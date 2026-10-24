@@ -1,0 +1,88 @@
+{
+  "id": "lam_dien_ba_vuong_long",
+  "nhom": "S (rồng cuộn)",
+  "ngay": "2026-10-24",
+  "code": [],
+  "display": {
+    "scale": 1.0,
+    "dx": 0,
+    "dy": 0,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; độ đục ghost (lớp sau) và ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255"
+  },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "lượt": 1,
+    "body": {
+      "description": "giant spectral azure thunder dragon coiling, horned head raised, crackling blue lightning on scales, translucent ghost-like energy, deep blue and cyan, isometric game sprite",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 11
+    }
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "lượt": 2,
+    "seed": 3311653318,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "giant blue thunder dragon coiling with horned head raised, lightning",
+      "no_background": true
+    },
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 1,
+      "se": 2,
+      "e": 3,
+      "ne": 4,
+      "n": 5
+    }
+  },
+  "hoatAnh": {
+    "endpoint": "/v2/animate-with-text-v3",
+    "lượtMoiLan": 2,
+    "frame_count": 8,
+    "no_background": true,
+    "khungTraVe": 9,
+    "dung": "khung 0–7 (bỏ khung 8, trùng khung 0 để vòng lặp liền)",
+    "first_frame": "rot/<chỉ số hướng>.png",
+    "idle": "dragon breathing gently, body slowly rising and falling, tail swaying, lightning crackling along the scales, looping idle",
+    "attack": "dragon rears back then lunges forward roaring with wide open mouth, lightning flashing brightly across the whole body, then settles back",
+    "seed": "ngẫu nhiên (không ghi)"
+  },
+  "luotThucTe": {
+    "concept": 1,
+    "xoay": 2,
+    "idle 5 hướng": 10,
+    "attack 5 hướng": 10,
+    "tong": 23
+  }
+}

@@ -13,7 +13,7 @@
 //   BOT_PG_DIR, mặc định D:/soul-pg-shared), hoặc PostgreSQL có sẵn qua BOT_PG_URL. Mỗi lượt một database riêng, xoá khi xong.
 // - Cổng server chọn ngẫu nhiên còn trống; chỉ tắt đúng tiến trình con của mình (kể cả khi Ctrl+C / lỗi). Không đọc server/.env.
 // Mã thoát: của bot (khác 0 khi có dòng ✗), 1 khi server không lên / chết giữa chừng, 2 khi sai tham số.
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { createWriteStream, existsSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, rmSync, statSync, unlinkSync, writeFileSync, closeSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -30,7 +30,7 @@ const secs = (t0) => `${((Date.now() - t0) / 1000).toFixed(1)} giây`;
 
 // ---------- Tham số ----------
 const argv = process.argv.slice(2);
-const opt = { only: "", part: "", pg: false, full: false, channels: false, fatal: false, heap: Number(process.env.BOT_HEAP_MB ?? 768), env: [], once: false, procs: 1 };
+const opt = { only: "", part: "", pg: false, full: false, channels: false, fatal: false, heap: Number(process.env.BOT_HEAP_MB ?? 768), env: [], once: false, procs: 1, seedTest: "" };
 const botSrc = readFileSync(path.join(clientDir, "scripts", "bot-test.mjs"), "utf8");
 const onlyNames = [...new Set([...botSrc.matchAll(/BOT_ONLY==="(\w+)"/g)].map((m) => m[1]))];
 const partCount = Number(botSrc.match(/^const BOT_PARTS=(\d+);/m)?.[1] ?? 0);
@@ -47,6 +47,8 @@ const usage = () => console.log(`Cách dùng: npm run bot:local -- (--only <nhó
   --procs    số tiến trình server dùng chung Redis (#120, mặc định 1; bot chỉ nối tiến trình đầu, phòng mở ở tiến trình nào do server chọn):
              cần --env REDIS_URL=redis://127.0.0.1:<cổng> trỏ tới redis-server cục bộ do bạn tự bật; REDIS_URL của shell không được dùng
   --env      biến thêm cho server, ví dụ --env BOSS_CLOCK=20:00 --env MAP_V1=all
+  --seed-test  (cần --pg) dựng tài khoản test mức max | giua-game | moi (server/scripts/seed-test-account.ts, #517) vào database của lượt này
+             trước khi bật server, bot nhận BOT_TEST_NAME / BOT_TEST_PASS / BOT_TEST_PRESET (bài --only testacc)
   --pg-status / --pg-stop [--force]   xem / tắt PostgreSQL chung của máy
 Biến: BOT_LOCAL_MAX (số lượt cùng lúc, mặc định 2), BOT_PG_URL (PostgreSQL có sẵn, ví dụ postgres://user:pass@localhost:5432/postgres),
 BOT_PG_DIR (mặc định D:/soul-pg-shared nếu có ổ D), BOT_PG_PORT (mặc định 5433).`);
@@ -63,6 +65,7 @@ for (let i = 0; i < argv.length; i++) {
   else if (a === "--fatal") opt.fatal = true;
   else if (a === "--heap") opt.heap = Number(val());
   else if (a === "--procs") { opt.procs = Number(val()); if (!Number.isInteger(opt.procs) || opt.procs < 1 || opt.procs > 4) die("--procs là số nguyên 1..4"); }
+  else if (a === "--seed-test") opt.seedTest = val();
   else if (a === "--env") { const e = val(); if (!/^[A-Z_][A-Z0-9_]*=/.test(e)) die(`--env cần dạng TÊN=giá trị: ${e}`); opt.env.push(e); }
   else if (a === "--pg-status" || a === "--pg-stop") pgCmd = a;
   else if (a === "--force") force = true;
@@ -71,8 +74,9 @@ for (let i = 0; i < argv.length; i++) {
 }
 if (!pgCmd) {
   if ([opt.only, opt.part, opt.full, opt.channels, opt.fatal].filter(Boolean).length !== 1) die("chọn đúng một trong --only, --part, --channels, --full, --fatal");
+  if (opt.seedTest && (!opt.pg || !["max", "giua-game", "moi"].includes(opt.seedTest))) die("--seed-test cần --pg và một mức: max | giua-game | moi");
   if (opt.only && !onlyNames.includes(opt.only)) die(`--only ${opt.only}: không có trong bot-test.mjs`);
-  if (opt.part && !(/^\d+$/.test(opt.part) && +opt.part >= 1 && +opt.part <= partCount)) die(`--part chỉ nhận 1..${partCount}`);
+  if (opt.part && opt.part !== "smoke" && !(/^\d+$/.test(opt.part) && +opt.part >= 1 && +opt.part <= partCount)) die(`--part chỉ nhận 1..${partCount} hoặc smoke`);
   if (!(opt.heap >= 128)) die("--heap tối thiểu 128 (MB)");
 }
 
@@ -400,6 +404,7 @@ async function fatalRun(server, port, senv, env, slog, blog, sstats, onLine) {
 const what = opt.only ? `only=${opt.only}` : opt.part ? `part=${opt.part}` : opt.channels ? "channels" : opt.fatal ? "fatal" : "full";
 const label = `${what}${opt.pg ? " pg" : ""}`;
 let build;
+let seedEnv = {};
 let code = 1;
 const tAll = Date.now();
 try {
@@ -424,6 +429,15 @@ try {
     db = await createDb();
     Object.assign(senv, { DATABASE_URL: db.url, PGSSL: "false" });
     console.log(`[bot-local ${label}] database ${db.name} sẵn sàng sau ${secs(t0)}`);
+    if (opt.seedTest) {
+      // Dựng tài khoản test (#517) vào database riêng của lượt này: script tự chạy migration (is_test) rồi ghi một transaction.
+      const name = `BotTest${opt.seedTest.replace(/\W/g, "")}${process.pid}`, pass = `pw-${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+      const r = spawnSync(process.execPath, ["--import", "tsx", "scripts/seed-test-account.ts", "--name", name, "--preset", opt.seedTest, "--password", pass, "--confirm-db", new URL(db.url).hostname],
+        { cwd: serverDir, env: { ...env, DATABASE_URL: db.url, PGSSL: "false" }, encoding: "utf8", windowsHide: true });
+      console.log((r.stdout ?? "").trimEnd());
+      if (r.status !== 0) die(`dựng tài khoản test thất bại: ${(r.stderr ?? "").trim()}`);
+      seedEnv = { BOT_TEST_NAME: name, BOT_TEST_PASS: pass, BOT_TEST_PRESET: opt.seedTest };
+    }
   }
   const port = await freePort();
   senv.PORT = String(port);
@@ -449,7 +463,7 @@ try {
     code = n["✗"] ? 1 : 0;
     console.log(`[bot-local ${label}] ${code === 0 ? "ĐẠT" : "TRƯỢT"}: ✓ ${n["✓"]}, ✗ ${n["✗"]}; tổng ${secs(tAll)}; log: ${path.relative(root, slog)}, ${path.relative(root, blog)}`);
   } else {
-    const benv = { ...env, SERVER_URL: `http://localhost:${port}` };
+    const benv = { ...env, ...seedEnv, SERVER_URL: `http://localhost:${port}` };
     if (opt.only) benv.BOT_ONLY = opt.only;
     if (opt.part) benv.BOT_PART = opt.part;
     for (const e of opt.env) if (e.startsWith("MAP_V1=")) benv.MAP_V1 = e.slice(7); // bot cần cùng bản đồ với server

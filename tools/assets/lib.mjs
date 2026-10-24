@@ -73,6 +73,13 @@ export const ISO_VH_SEXES = ["m", "f"];
 /** Sheet hồn thú: 20 cột × 5 hàng (5 hướng vẽ). */
 export const ISO_BEAST_COLS = 20, ISO_BEAST_ROWS = 5;
 export const ISO_BEAST_ANIMS = { idle: [0, 4], walk: [4, 6], attack: [10, 4], hurt: [14, 2], die: [16, 4] };
+/**
+ * Pháp tướng Võ Hồn Chân Thân (mục 5.18, #482): sheet `phaptuong/<mã võ hồn>.png`, khung 160×160, gốc (80, 124) trùng chân hồn sư (ISO_HS_ORIGIN).
+ * 5 hàng hướng (s, se, e, ne, n; sw / w / nw lật), 16 cột: idle 8 (vòng "thở"), attack 8 (đánh / niệm). Ảnh chỉ alpha 0 / 255 (như mọi sheet);
+ * độ đục hư ảnh PT_GHOST (và 70% ở lớp trước) do client áp lúc vẽ, ghi ở `pt` của manifest. Viền sáng màu `col` 2 điểm (điểm ngoài dithering).
+ * Mỗi sheet tối đa PT_MAX_COLORS màu (bảng riêng từng võ hồn, như chân dung). Điểm alpha ≤ PT_ALPHA_MIN của khung nguồn bị bỏ.
+ */
+export const PT_FRAME = 160, PT_ORIGIN = [80, 124], PT_COLS = 16, PT_ANIMS = { idle: [0, 8], attack: [8, 8] }, PT_GHOST = 0.88, PT_ALPHA_MIN = 40, PT_MAX_COLORS = 48;
 /** pack --code (hurt / die / absorb vẽ bằng code, mục 5.11): dòng hông mặc định trong khung 64, độ hạ thân khi khuỵu / ngồi,
  *  nửa bề ngang người đứng (để đặt người nằm chạm đất). */
 export const ISO_HIP = 40, ISO_KNEEL = 6, ISO_SIT = 10, ISO_LIE_HALF = 10;
@@ -90,6 +97,8 @@ export function isoLayout(kind, size) {
     frame = kind === "honsu" ? ISO_HS_FRAME : ISO_VH_FRAME; origin = kind === "honsu" ? ISO_HS_ORIGIN : ISO_VH_ORIGIN;
     cols = ISO_HS_COLS; rows = kind === "honsu" ? ISO_HS_ROWS : ISO_HS_ROWS * ISO_VH_SEXES.length;
     anims = kind === "honsu" ? ISO_HS_ANIMS : Object.fromEntries(ISO_VH_ANIMS.map((a) => [a, ISO_HS_ANIMS[a]]));
+  } else if (kind === "phaptuong") {
+    frame = PT_FRAME; origin = PT_ORIGIN; cols = PT_COLS; rows = ISO_DIRS.length; anims = PT_ANIMS;
   } else if (kind === "beast") {
     if (!ISO_BEAST_SIZES.includes(size)) throw new Error(`hồn thú cần khung ${ISO_BEAST_SIZES.join(" / ")} (nhận ${size})`);
     frame = size; origin = [size >> 1, size - ISO_BEAST_FOOT]; cols = ISO_BEAST_COLS; rows = ISO_BEAST_ROWS; anims = ISO_BEAST_ANIMS;
@@ -137,10 +146,10 @@ export const ISO_PROP_STEP = ISO_TILE_W / 2, ISO_PROP_FOOT = 2;
 // ---------- Giấy phép asset ngoài (GAME_DESIGN.md mục 5.11 "Nguồn và giấy phép") ----------
 /**
  * Giấy phép đã biết, ghi như CREDITS.csv của LPC / trang OpenGameArt ("CC0", "CC-BY 4.0", "CC-BY-SA 3.0", "OGA-BY 3.0+",
- * "GPL 3.0", "CC-BY-NC 4.0", "OGA-SA 3.0"…). Mọi giấy phép đã biết đều dùng được; giấy phép lạ, trống, ND (cấm sửa, mà công cụ
+ * "GPL 3.0", "CC-BY-NC 4.0", "OGA-SA 3.0"…; CC / OGA ghi không kèm số phiên bản như "CC-BY" vẫn đọc được). Mọi giấy phép đã biết đều dùng được; giấy phép lạ, trống, ND (cấm sửa, mà công cụ
  * luôn sửa ảnh) thì công cụ dừng. OGA-SA (OpenGameArt Share-Alike, lớp LPC `neck/scarf`, `torso/clothes/corset`) gắn cờ SA.
  */
-export const LICENSE_KNOWN = /^(CC0|CC-BY(-NC)?(-SA)? \d(\.\d)?\+?|OGA-(BY|SA) \d(\.\d)?\+?|GPL \d(\.\d)?\+?)$/;
+export const LICENSE_KNOWN = /^(CC0|CC-BY(-NC)?(-SA)?( \d(\.\d)?\+?)?|OGA-(BY|SA)( \d(\.\d)?\+?)?|GPL \d(\.\d)?\+?)$/;
 /** Cờ nghĩa vụ của một giấy phép: SA / GPL (bản đã sửa theo đúng giấy phép đó), NC (chỉ dùng khi game phi thương mại). */
 export const licenseFlags = (l) => [/-SA\b/.test(l) && "SA", /^GPL\b/.test(l) && "GPL", /-NC\b/.test(l) && "NC"].filter(Boolean);
 const licenseRank = (l) => { const f = licenseFlags(l); return (f.includes("NC") ? 3 : 0) + (f.includes("SA") ? 1 : 0) + (f.includes("GPL") ? 2 : 0); };
@@ -209,6 +218,14 @@ export function statusIds() {
   return ids;
 }
 
+/** Id ô (EQUIP_SLOTS) và id bậc (EQUIP_TIERS) của trang bị hồn sư, đọc từ shared/data.ts theo đúng thứ tự khai báo. */
+export function equipSlotTierIds() {
+  const src = readFileSync(path.join(ROOT, "shared", "data.ts"), "utf8");
+  const block = (name) => { const i = src.indexOf(`export const ${name}`); return i < 0 ? "" : src.slice(i, src.indexOf("\n];", i)); };
+  const ids = (name) => [...block(name).matchAll(/\bid: "([a-z_]+)"/g)].map((m) => m[1]);
+  return { slots: ids("EQUIP_SLOTS"), tiers: ids("EQUIP_TIERS") };
+}
+
 /**
  * Mã biểu tượng vật phẩm hợp lệ: id trong ITEMS (mục có `id`, `kind` liền nhau), nhóm trong ITEM_KINDS (biểu tượng chung
  * của nhóm, ví dụ `hon_hach`, `manh_vo_hon`) và `hon_cot_<vị trí>` theo BONE_SLOTS.
@@ -222,6 +239,13 @@ export function itemIconIds() {
   for (const m of kinds.matchAll(/^\s*([a-z_]+): \{/gm)) ids.add(m[1]);
   const start = src.indexOf("export const BONE_SLOTS"), bones = src.slice(start, src.indexOf("];", start));
   for (const m of bones.matchAll(/\bid: "([a-z_]+)"/g)) ids.add(`hon_cot_${m[1]}`);
+  // Trang bị hồn sư (E0, mục 5.15): `equip_<mẫu>`, `equip_slot_<ô>`, `equip_frame_<bậc>`; nguyên liệu (EQUIP_STONES, EQUIP_CHARM…) theo mã.
+  const block = (name, end) => { const i = src.indexOf(`export const ${name}`); return i < 0 ? "" : src.slice(i, src.indexOf(end, i)); };
+  const { slots, tiers } = equipSlotTierIds();
+  for (const s of slots) { ids.add(`equip_slot_${s}`); for (const t of tiers) ids.add(`equip_${s}_${t}`); }
+  for (const t of tiers) ids.add(`equip_frame_${t}`);
+  for (const m of block("EQUIP_STONES", "\n];").matchAll(/\bid: "([a-z_0-9]+)"/g)) ids.add(m[1]);
+  for (const c of ["EQUIP_CHARM", "EQUIP_ESSENCE", "EQUIP_SOUL"]) { const m = src.match(new RegExp(`export const ${c} = "([a-z_]+)"`)); if (m) ids.add(m[1]); }
   return ids;
 }
 
@@ -385,6 +409,7 @@ export function sheetSpec(key, frame, iso = false, stat = false) {
     const spec = (file, layout, extra = {}) => ({ file, frame: layout.frame, size: [layout.frame[0] * layout.cols, layout.frame[1] * layout.rows], kind: layout.kind, layout, iso: true, ...extra });
     if ((m = key.match(/^hs_((?:body|outfit|hair)_([mf]_\d+))$/))) return spec(`honsu/${m[1]}.png`, isoLayout("honsu"), { set: m[2] });
     if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return spec(`vohon/${m[1]}.png`, isoLayout("vohon"));
+    if ((m = key.match(/^pt_([a-z_]+)$/))) return spec(`phaptuong/${m[1]}.png`, isoLayout("phaptuong"));
     if ((m = key.match(/^b(\d)$/)) && ISO_BEAST_TIER[+m[1]]) return spec(`beast/${key}.png`, isoLayout("beast", frame?.[0] ?? ISO_BEAST_TIER[+m[1]]));
     // Hồn thú lai (#386): sheet tĩnh 3 khung nam / đông / bắc (ISO_STATIC_DIRS), chuyển động vẽ bằng code ở client; manifest ghi `"static": true`.
     if (stat && (m = key.match(/^beast_([a-z_]+)$/)) && frame && frame[0] === frame[1] && ISO_BEAST_SIZES.includes(frame[0])) return { file: `beast/${m[1]}.png`, frame, size: [frame[0] * 3, frame[1]], kind: "beast", iso: true, static: true };

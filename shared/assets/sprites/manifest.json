@@ -8,8 +8,38 @@
         96
       ],
       "iso": true,
-      "map": "tinh_dau_noi_dia",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "beast_bang_bich_hat",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "beast_bang_giap_cu_quy",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "beast_bang_nguyen_cu_tuong",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
     },
     {
       "key": "beast_bang_phong_bach_hung",
@@ -18,8 +48,58 @@
         96
       ],
       "iso": true,
-      "map": "cuc_bac_chi_dia",
-      "lpc": true
+      "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "beast_bang_tinh_hat",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "beast_bang_vu_ung",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "beast_bich_lan_xa",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
+    },
+    {
+      "key": "beast_co_moc_thu_nhan",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
+    },
+    {
+      "key": "beast_cuc_yeu_hoa_linh",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
     },
     {
       "key": "beast_dien_thu",
@@ -42,6 +122,26 @@
       "map": "thanh_hon_thon"
     },
     {
+      "key": "beast_doc_cuc_dang",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
+    },
+    {
+      "key": "beast_doc_vu_thiem",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
+    },
+    {
       "key": "beast_hac_boi_da_tru",
       "frame": [
         64,
@@ -52,14 +152,54 @@
       "map": "thanh_hon_thon"
     },
     {
+      "key": "beast_hac_thuy_mang",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
+    },
+    {
       "key": "beast_hac_vu_bien_buc",
       "frame": [
         96,
         96
       ],
       "iso": true,
-      "map": "tinh_dau_noi_dia",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "beast_han_bang_dia_long",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "beast_han_nguyet_ung",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "beast_hoa_linh_diep",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
     },
     {
       "key": "beast_hoi_vu_tuoc",
@@ -72,14 +212,104 @@
       "map": "thanh_hon_thon"
     },
     {
+      "key": "beast_huyen_bang_thiem",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
+    },
+    {
+      "key": "beast_huyen_minh_bang_tam",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "beast_huyet_nha_cu_sa",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "beast_kiem_ngu",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "beast_kiem_vi_hat",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "beast_kim_lan_long_quy",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
       "key": "beast_kim_linh_ung",
       "frame": [
         96,
         96
       ],
       "iso": true,
-      "map": "tinh_dau_ngoai_vi",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
+    },
+    {
+      "key": "beast_lam_lan_hai_xa",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "beast_lam_loi_te_nguu",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "beast_liet_hoa_tich_dich",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
     },
     {
       "key": "beast_liet_trao_hung",
@@ -88,8 +318,18 @@
         96
       ],
       "iso": true,
-      "map": "tinh_dau_ngoai_vi",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
+    },
+    {
+      "key": "beast_loi_duc_ung",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_noi_dia"
     },
     {
       "key": "beast_loi_quang_hai_dieu",
@@ -98,15 +338,48 @@
         96
       ],
       "iso": true,
-      "map": "hai_than_dao",
-      "lpc": true
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "beast_loi_van_hai_ung",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "beast_loi_van_hau",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
     },
     {
       "key": "beast_man_da_la_xa",
       "frame": [
-        32,
-        32
-      ]
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
+    },
+    {
+      "key": "beast_nhan_dien_ma_chu",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_noi_dia"
     },
     {
       "key": "beast_nhan_dien_ma_chu_non",
@@ -115,8 +388,8 @@
         96
       ],
       "iso": true,
-      "map": "tinh_dau_ngoai_vi",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
     },
     {
       "key": "beast_nhu_cot_tho_hoang",
@@ -135,8 +408,8 @@
         96
       ],
       "iso": true,
-      "map": "tinh_dau_ngoai_vi",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
     },
     {
       "key": "beast_phong_lang_con",
@@ -149,14 +422,24 @@
       "map": "thanh_hon_thon"
     },
     {
+      "key": "beast_quy_anh_bao",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
       "key": "beast_quy_dang",
       "frame": [
         128,
         128
       ],
       "iso": true,
-      "map": "tinh_dau_ngoai_vi",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
     },
     {
       "key": "beast_quy_dang_non",
@@ -169,14 +452,74 @@
       "map": "thanh_hon_thon"
     },
     {
+      "key": "beast_quy_dien_hai_yeu",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
       "key": "beast_quy_ho",
       "frame": [
         96,
         96
       ],
       "iso": true,
-      "map": "tinh_dau_ngoai_vi",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
+    },
+    {
+      "key": "beast_thai_than_cu_vien",
+      "frame": [
+        192,
+        192
+      ],
+      "iso": true,
+      "static": true,
+      "map": "loi_tinh_dau"
+    },
+    {
+      "key": "beast_tham_hai_ma_chuong",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "beast_tham_hai_ma_kinh",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "beast_thanh_lan_doc_co",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
+    },
+    {
+      "key": "beast_thanh_lan_ngac",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
     },
     {
       "key": "beast_thanh_lan_xa",
@@ -187,6 +530,46 @@
       "iso": true,
       "static": true,
       "map": "thanh_hon_thon"
+    },
+    {
+      "key": "beast_that_tinh_doc_thiem",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "beast_thien_thanh_nguu_mang",
+      "frame": [
+        192,
+        192
+      ],
+      "iso": true,
+      "static": true,
+      "map": "loi_tinh_dau"
+    },
+    {
+      "key": "beast_thiet_giap_cu_giai",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "beast_thiet_giap_te_nguu",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
     },
     {
       "key": "beast_thiet_giap_xuyen_son_giap",
@@ -205,15 +588,18 @@
         96
       ],
       "iso": true,
-      "map": "lac_nhat_sam_lam",
-      "lpc": true
+      "static": true,
+      "map": "lac_nhat_sam_lam"
     },
     {
       "key": "beast_tu_van_bao",
       "frame": [
-        32,
-        32
-      ]
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_ngoai_vi"
     },
     {
       "key": "beast_tuyet_lang",
@@ -222,8 +608,18 @@
         96
       ],
       "iso": true,
-      "map": "cuc_bac_chi_dia",
-      "lpc": true
+      "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "beast_tuyet_ma_vien",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "cuc_bac_chi_dia"
     },
     {
       "key": "beast_tuyet_vi_yeu_ho",
@@ -232,8 +628,8 @@
         96
       ],
       "iso": true,
-      "map": "cuc_bac_chi_dia",
-      "lpc": true
+      "static": true,
+      "map": "cuc_bac_chi_dia"
     },
     {
       "key": "beast_u_linh_hai_mau",
@@ -242,8 +638,8 @@
         96
       ],
       "iso": true,
-      "map": "hai_than_dao",
-      "lpc": true
+      "static": true,
+      "map": "hai_than_dao"
     },
     {
       "key": "beast_u_minh_lang",
@@ -252,8 +648,28 @@
         96
       ],
       "iso": true,
-      "map": "tinh_dau_noi_dia",
-      "lpc": true
+      "static": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "beast_xich_lan_mang",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "beast_y_la_hoa_yeu",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
     },
     {
       "key": "card_sr",
@@ -268,7 +684,327 @@
       "iso": true
     },
     {
+      "key": "fx_am_cau",
+      "frame": [
+        22,
+        22
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_am_chem",
+      "frame": [
+        40,
+        40
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_am_ngon",
+      "frame": [
+        26,
+        26
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_am_phu",
+      "frame": [
+        48,
+        48
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_am_tia",
+      "frame": [
+        32,
+        32
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_bang_cau",
+      "frame": [
+        22,
+        22
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_bang_chem",
+      "frame": [
+        40,
+        40
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_bang_ngon",
+      "frame": [
+        26,
+        26
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_bang_phu",
+      "frame": [
+        48,
+        48
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_bang_tia",
+      "frame": [
+        32,
+        32
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_doc_cau",
+      "frame": [
+        22,
+        22
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_doc_chem",
+      "frame": [
+        40,
+        40
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_doc_ngon",
+      "frame": [
+        26,
+        26
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_doc_phu",
+      "frame": [
+        48,
+        48
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_doc_tia",
+      "frame": [
+        32,
+        32
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_loi_cau",
+      "frame": [
+        24,
+        24
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_loi_chem",
+      "frame": [
+        40,
+        40
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_loi_ngon",
+      "frame": [
+        28,
+        28
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_loi_phu",
+      "frame": [
+        48,
+        48
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_loi_tia",
+      "frame": [
+        32,
+        32
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_lua_cau",
+      "frame": [
+        22,
+        22
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_lua_chem",
+      "frame": [
+        40,
+        40
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_lua_ngon",
+      "frame": [
+        24,
+        24
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_lua_phu",
+      "frame": [
+        48,
+        48
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_lua_tia",
+      "frame": [
+        32,
+        32
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_moc_cau",
+      "frame": [
+        22,
+        22
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_moc_chem",
+      "frame": [
+        40,
+        40
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_moc_ngon",
+      "frame": [
+        26,
+        26
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_moc_phu",
+      "frame": [
+        48,
+        48
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_moc_tia",
+      "frame": [
+        32,
+        32
+      ],
+      "iso": true
+    },
+    {
       "key": "fx_no",
+      "frame": [
+        32,
+        32
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_phong_cau",
+      "frame": [
+        22,
+        22
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_phong_chem",
+      "frame": [
+        40,
+        40
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_phong_ngon",
+      "frame": [
+        26,
+        26
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_phong_phu",
+      "frame": [
+        48,
+        48
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_phong_tia",
+      "frame": [
+        32,
+        32
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_quang_cau",
+      "frame": [
+        22,
+        22
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_quang_chem",
+      "frame": [
+        40,
+        40
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_quang_ngon",
+      "frame": [
+        26,
+        26
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_quang_phu",
+      "frame": [
+        48,
+        48
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_quang_tia",
       "frame": [
         32,
         32
@@ -302,7 +1038,10 @@
       "key": "hs_body_m_0",
       "iso": true
     },
-    "hs_body_m_1",
+    {
+      "key": "hs_body_m_1",
+      "iso": true
+    },
     "hs_body_m_2",
     "hs_body_m_3",
     {
@@ -316,7 +1055,10 @@
       "key": "hs_hair_m_0",
       "iso": true
     },
-    "hs_hair_m_1",
+    {
+      "key": "hs_hair_m_1",
+      "iso": true
+    },
     "hs_hair_m_2",
     "hs_hair_m_3",
     {
@@ -330,7 +1072,10 @@
       "key": "hs_outfit_m_0",
       "iso": true
     },
-    "hs_outfit_m_1",
+    {
+      "key": "hs_outfit_m_1",
+      "iso": true
+    },
     "hs_outfit_m_2",
     "hs_outfit_m_3",
     {
@@ -339,6 +1084,310 @@
     },
     {
       "key": "item_dai_hoi_huyet_dan",
+      "iso": true
+    },
+    {
+      "key": "item_equip_ao_chi_bao",
+      "iso": true
+    },
+    {
+      "key": "item_equip_ao_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_ao_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_ao_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_ao_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_ao_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_dai_chi_bao",
+      "iso": true
+    },
+    {
+      "key": "item_equip_dai_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_dai_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_dai_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_dai_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_dai_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_day_chuyen_chi_bao",
+      "iso": true
+    },
+    {
+      "key": "item_equip_day_chuyen_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_day_chuyen_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_day_chuyen_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_day_chuyen_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_day_chuyen_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_frame_chi_bao",
+      "iso": true
+    },
+    {
+      "key": "item_equip_frame_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_frame_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_frame_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_frame_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_frame_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_giay_chi_bao",
+      "iso": true
+    },
+    {
+      "key": "item_equip_giay_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_giay_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_giay_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_giay_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_giay_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_mu_chi_bao",
+      "iso": true
+    },
+    {
+      "key": "item_equip_mu_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_mu_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_mu_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_mu_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_mu_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_phai_chi_bao",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_phai_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_phai_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_phai_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_phai_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_phai_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_trai_chi_bao",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_trai_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_trai_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_trai_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_trai_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_nhan_trai_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_ao",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_dai",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_day_chuyen",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_giay",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_mu",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_nhan_phai",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_nhan_trai",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_vong_phai",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_vong_trai",
+      "iso": true
+    },
+    {
+      "key": "item_equip_slot_vu_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_phai_chi_bao",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_phai_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_phai_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_phai_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_phai_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_phai_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_trai_chi_bao",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_trai_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_trai_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_trai_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_trai_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vong_trai_tu_kim",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vu_khi_chi_bao",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vu_khi_han_ngoc",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vu_khi_pham_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vu_khi_than_khi",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vu_khi_tinh_thiet",
+      "iso": true
+    },
+    {
+      "key": "item_equip_vu_khi_tu_kim",
       "iso": true
     },
     {
@@ -502,11 +1551,23 @@
       "iso": true
     },
     {
+      "key": "npc_ba_tai_tay",
+      "iso": true
+    },
+    {
+      "key": "npc_chu_giao_vu_hon_dien",
+      "iso": true
+    },
+    {
       "key": "npc_dai_su",
       "iso": true
     },
     {
       "key": "npc_dau_hon_truong",
+      "iso": true
+    },
+    {
+      "key": "npc_hai_ma_dau_la",
       "iso": true
     },
     {
@@ -522,6 +1583,10 @@
       "iso": true
     },
     {
+      "key": "npc_ninh_phong_tri",
+      "iso": true
+    },
+    {
       "key": "npc_phat_lan_duc",
       "iso": true
     },
@@ -530,7 +1595,19 @@
       "iso": true
     },
     {
+      "key": "npc_su_gia_hao_thien",
+      "iso": true
+    },
+    {
+      "key": "npc_su_gia_lam_dien",
+      "iso": true
+    },
+    {
       "key": "npc_thuong_nhan",
+      "iso": true
+    },
+    {
+      "key": "npc_thuong_nhan_luu_dong",
       "iso": true
     },
     {
@@ -542,7 +1619,15 @@
       "iso": true
     },
     {
+      "key": "npc_trieu_vo_cuc",
+      "iso": true
+    },
+    {
       "key": "portrait_a_ngan",
+      "iso": true
+    },
+    {
+      "key": "portrait_bach_ho",
       "iso": true
     },
     {
@@ -1197,6 +2282,761 @@
       "map": "nac_dinh_thanh"
     },
     {
+      "key": "pt_a_ngan",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_a_ngan_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_a_ngan_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_bach_ho",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
+      "key": "pt_bang_phuong_hoang",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
+      "key": "pt_bich_lan_xa_hoang",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
+      "key": "pt_can_khon_hon_nguyen_toa",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": -4,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_can_khon_hon_nguyen_toa_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_can_khon_hon_nguyen_toa_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_cuu_bao_luu_ly_thap",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": -2,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_cuu_bao_luu_ly_thap_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_cuu_bao_luu_ly_thap_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_cuu_tinh_that_sat_kiem",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 10,
+        "dy": -4,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_cuu_tinh_that_sat_kiem_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_cuu_tinh_that_sat_kiem_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_hao_thien_chuy",
+      "iso": true,
+      "pt": {
+        "scale": 0.85,
+        "dx": 12,
+        "dy": -4,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; độ đục ghost (lớp sau) và ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255"
+      }
+    },
+    {
+      "key": "pt_hoa_anh",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
+      "key": "pt_hoa_long",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
+      "key": "pt_kim_vu_mieu_ung",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
+      "key": "pt_ky_nhung_thong_thien_cuc",
+      "iso": true,
+      "pt": {
+        "scale": 1.05,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_ky_nhung_thong_thien_cuc_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_ky_nhung_thong_thien_cuc_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_lam_dien_ba_vuong_long",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; độ đục ghost (lớp sau) và ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255"
+      }
+    },
+    {
+      "key": "pt_lam_ngan_thao",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_lam_ngan_thao_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_lam_ngan_thao_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_liet_hoa_thuong_lang",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
+      "key": "pt_nguyet_nhan",
+      "iso": true,
+      "pt": {
+        "scale": 1.2,
+        "dx": 0,
+        "dy": -6,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_nguyet_nhan_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_nguyet_nhan_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_nhu_cot_tho",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
+      "key": "pt_pha_hon_thuong",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 12,
+        "dy": -2,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_pha_hon_thuong_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_pha_hon_thuong_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_quy_mi",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
+      "key": "pt_ta_hoa_phuong_hoang",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
+      "key": "pt_thien_can_bach_ngoc_dinh",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": -6,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_thien_can_bach_ngoc_dinh_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_thien_can_bach_ngoc_dinh_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_tu_vong_chu_hoang",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
+      "key": "pt_u_minh_linh_mieu",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
+      "key": "pt_xuc_xich",
+      "iso": true,
+      "pt": {
+        "scale": 1.1,
+        "dx": 10,
+        "dy": -6,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_xuc_xich_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_xuc_xich_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_yeu_ho",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
+      "key": "skill_a_ngan_0",
+      "iso": true
+    },
+    {
+      "key": "skill_a_ngan_1",
+      "iso": true
+    },
+    {
+      "key": "skill_a_ngan_2",
+      "iso": true
+    },
+    {
+      "key": "skill_a_ngan_3",
+      "iso": true
+    },
+    {
+      "key": "skill_a_ngan_4",
+      "iso": true
+    },
+    {
+      "key": "skill_a_ngan_5",
+      "iso": true
+    },
+    {
+      "key": "skill_a_ngan_7",
+      "iso": true
+    },
+    {
+      "key": "skill_a_ngan_8",
+      "iso": true
+    },
+    {
+      "key": "skill_a_ngan_9",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_0",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_1",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_2",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_3",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_4",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_5",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_7",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_8",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_9",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_0",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_1",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_2",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_3",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_4",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_5",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_7",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_8",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_9",
+      "iso": true
+    },
+    {
+      "key": "skill_bich_lan_xa_hoang_0",
+      "iso": true
+    },
+    {
+      "key": "skill_bich_lan_xa_hoang_1",
+      "iso": true
+    },
+    {
+      "key": "skill_bich_lan_xa_hoang_2",
+      "iso": true
+    },
+    {
+      "key": "skill_bich_lan_xa_hoang_3",
+      "iso": true
+    },
+    {
+      "key": "skill_bich_lan_xa_hoang_4",
+      "iso": true
+    },
+    {
+      "key": "skill_bich_lan_xa_hoang_5",
+      "iso": true
+    },
+    {
+      "key": "skill_bich_lan_xa_hoang_7",
+      "iso": true
+    },
+    {
+      "key": "skill_bich_lan_xa_hoang_8",
+      "iso": true
+    },
+    {
+      "key": "skill_bich_lan_xa_hoang_9",
+      "iso": true
+    },
+    {
+      "key": "skill_can_khon_hon_nguyen_toa_0",
+      "iso": true
+    },
+    {
+      "key": "skill_can_khon_hon_nguyen_toa_1",
+      "iso": true
+    },
+    {
+      "key": "skill_can_khon_hon_nguyen_toa_2",
+      "iso": true
+    },
+    {
+      "key": "skill_can_khon_hon_nguyen_toa_3",
+      "iso": true
+    },
+    {
+      "key": "skill_can_khon_hon_nguyen_toa_4",
+      "iso": true
+    },
+    {
+      "key": "skill_can_khon_hon_nguyen_toa_5",
+      "iso": true
+    },
+    {
+      "key": "skill_can_khon_hon_nguyen_toa_7",
+      "iso": true
+    },
+    {
+      "key": "skill_can_khon_hon_nguyen_toa_8",
+      "iso": true
+    },
+    {
+      "key": "skill_can_khon_hon_nguyen_toa_9",
+      "iso": true
+    },
+    {
       "key": "skill_chung_0",
       "iso": true
     },
@@ -1210,6 +3050,78 @@
     },
     {
       "key": "skill_chung_3",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_0",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_1",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_2",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_3",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_4",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_5",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_7",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_8",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_9",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_tinh_that_sat_kiem_0",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_tinh_that_sat_kiem_1",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_tinh_that_sat_kiem_2",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_tinh_that_sat_kiem_3",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_tinh_that_sat_kiem_4",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_tinh_that_sat_kiem_5",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_tinh_that_sat_kiem_7",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_tinh_that_sat_kiem_8",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_tinh_that_sat_kiem_9",
       "iso": true
     },
     {
@@ -1249,6 +3161,186 @@
       "iso": true
     },
     {
+      "key": "skill_hoa_anh_0",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_anh_1",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_anh_2",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_anh_3",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_anh_4",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_anh_5",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_anh_7",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_anh_8",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_anh_9",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_long_0",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_long_1",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_long_2",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_long_3",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_long_4",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_long_5",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_long_7",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_long_8",
+      "iso": true
+    },
+    {
+      "key": "skill_hoa_long_9",
+      "iso": true
+    },
+    {
+      "key": "skill_kim_vu_mieu_ung_0",
+      "iso": true
+    },
+    {
+      "key": "skill_kim_vu_mieu_ung_1",
+      "iso": true
+    },
+    {
+      "key": "skill_kim_vu_mieu_ung_2",
+      "iso": true
+    },
+    {
+      "key": "skill_kim_vu_mieu_ung_3",
+      "iso": true
+    },
+    {
+      "key": "skill_kim_vu_mieu_ung_4",
+      "iso": true
+    },
+    {
+      "key": "skill_kim_vu_mieu_ung_5",
+      "iso": true
+    },
+    {
+      "key": "skill_kim_vu_mieu_ung_7",
+      "iso": true
+    },
+    {
+      "key": "skill_kim_vu_mieu_ung_8",
+      "iso": true
+    },
+    {
+      "key": "skill_kim_vu_mieu_ung_9",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_0",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_1",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_2",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_3",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_4",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_5",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_7",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_8",
+      "iso": true
+    },
+    {
+      "key": "skill_ky_nhung_thong_thien_cuc_9",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_0",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_1",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_2",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_3",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_4",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_5",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_7",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_8",
+      "iso": true
+    },
+    {
+      "key": "skill_lam_dien_ba_vuong_long_9",
+      "iso": true
+    },
+    {
       "key": "skill_lam_ngan_thao_0",
       "iso": true
     },
@@ -1282,6 +3374,294 @@
     },
     {
       "key": "skill_lam_ngan_thao_9",
+      "iso": true
+    },
+    {
+      "key": "skill_liet_hoa_thuong_lang_0",
+      "iso": true
+    },
+    {
+      "key": "skill_liet_hoa_thuong_lang_1",
+      "iso": true
+    },
+    {
+      "key": "skill_liet_hoa_thuong_lang_2",
+      "iso": true
+    },
+    {
+      "key": "skill_liet_hoa_thuong_lang_3",
+      "iso": true
+    },
+    {
+      "key": "skill_liet_hoa_thuong_lang_4",
+      "iso": true
+    },
+    {
+      "key": "skill_liet_hoa_thuong_lang_5",
+      "iso": true
+    },
+    {
+      "key": "skill_liet_hoa_thuong_lang_7",
+      "iso": true
+    },
+    {
+      "key": "skill_liet_hoa_thuong_lang_8",
+      "iso": true
+    },
+    {
+      "key": "skill_liet_hoa_thuong_lang_9",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_0",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_1",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_2",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_3",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_4",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_5",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_7",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_8",
+      "iso": true
+    },
+    {
+      "key": "skill_nguyet_nhan_9",
+      "iso": true
+    },
+    {
+      "key": "skill_nhu_cot_tho_0",
+      "iso": true
+    },
+    {
+      "key": "skill_nhu_cot_tho_1",
+      "iso": true
+    },
+    {
+      "key": "skill_nhu_cot_tho_2",
+      "iso": true
+    },
+    {
+      "key": "skill_nhu_cot_tho_3",
+      "iso": true
+    },
+    {
+      "key": "skill_nhu_cot_tho_4",
+      "iso": true
+    },
+    {
+      "key": "skill_nhu_cot_tho_5",
+      "iso": true
+    },
+    {
+      "key": "skill_nhu_cot_tho_7",
+      "iso": true
+    },
+    {
+      "key": "skill_nhu_cot_tho_8",
+      "iso": true
+    },
+    {
+      "key": "skill_nhu_cot_tho_9",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_0",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_1",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_2",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_3",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_4",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_5",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_7",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_8",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_9",
+      "iso": true
+    },
+    {
+      "key": "skill_quy_mi_0",
+      "iso": true
+    },
+    {
+      "key": "skill_quy_mi_1",
+      "iso": true
+    },
+    {
+      "key": "skill_quy_mi_2",
+      "iso": true
+    },
+    {
+      "key": "skill_quy_mi_3",
+      "iso": true
+    },
+    {
+      "key": "skill_quy_mi_4",
+      "iso": true
+    },
+    {
+      "key": "skill_quy_mi_5",
+      "iso": true
+    },
+    {
+      "key": "skill_quy_mi_7",
+      "iso": true
+    },
+    {
+      "key": "skill_quy_mi_8",
+      "iso": true
+    },
+    {
+      "key": "skill_quy_mi_9",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_0",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_1",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_2",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_3",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_4",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_5",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_7",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_8",
+      "iso": true
+    },
+    {
+      "key": "skill_ta_hoa_phuong_hoang_9",
+      "iso": true
+    },
+    {
+      "key": "skill_thien_can_bach_ngoc_dinh_0",
+      "iso": true
+    },
+    {
+      "key": "skill_thien_can_bach_ngoc_dinh_1",
+      "iso": true
+    },
+    {
+      "key": "skill_thien_can_bach_ngoc_dinh_2",
+      "iso": true
+    },
+    {
+      "key": "skill_thien_can_bach_ngoc_dinh_3",
+      "iso": true
+    },
+    {
+      "key": "skill_thien_can_bach_ngoc_dinh_4",
+      "iso": true
+    },
+    {
+      "key": "skill_thien_can_bach_ngoc_dinh_5",
+      "iso": true
+    },
+    {
+      "key": "skill_thien_can_bach_ngoc_dinh_7",
+      "iso": true
+    },
+    {
+      "key": "skill_thien_can_bach_ngoc_dinh_8",
+      "iso": true
+    },
+    {
+      "key": "skill_thien_can_bach_ngoc_dinh_9",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_0",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_1",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_2",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_3",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_4",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_5",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_7",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_8",
+      "iso": true
+    },
+    {
+      "key": "skill_tu_vong_chu_hoang_9",
       "iso": true
     },
     {
@@ -1321,7 +3701,87 @@
       "iso": true
     },
     {
+      "key": "skill_xuc_xich_0",
+      "iso": true
+    },
+    {
+      "key": "skill_xuc_xich_1",
+      "iso": true
+    },
+    {
+      "key": "skill_xuc_xich_2",
+      "iso": true
+    },
+    {
+      "key": "skill_xuc_xich_3",
+      "iso": true
+    },
+    {
+      "key": "skill_xuc_xich_4",
+      "iso": true
+    },
+    {
+      "key": "skill_xuc_xich_5",
+      "iso": true
+    },
+    {
+      "key": "skill_xuc_xich_7",
+      "iso": true
+    },
+    {
+      "key": "skill_xuc_xich_8",
+      "iso": true
+    },
+    {
+      "key": "skill_xuc_xich_9",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_0",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_1",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_2",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_3",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_4",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_5",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_7",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_8",
+      "iso": true
+    },
+    {
+      "key": "skill_yeu_ho_9",
+      "iso": true
+    },
+    {
+      "key": "status_allure",
+      "iso": true
+    },
+    {
       "key": "status_armor",
+      "iso": true
+    },
+    {
+      "key": "status_atk",
       "iso": true
     },
     {
@@ -1333,7 +3793,23 @@
       "iso": true
     },
     {
+      "key": "status_chill",
+      "iso": true
+    },
+    {
+      "key": "status_crit",
+      "iso": true
+    },
+    {
       "key": "status_def",
+      "iso": true
+    },
+    {
+      "key": "status_flood",
+      "iso": true
+    },
+    {
+      "key": "status_freeze",
       "iso": true
     },
     {
@@ -1341,11 +3817,35 @@
       "iso": true
     },
     {
+      "key": "status_ink",
+      "iso": true
+    },
+    {
+      "key": "status_inv",
+      "iso": true
+    },
+    {
       "key": "status_leech",
       "iso": true
     },
     {
+      "key": "status_lock",
+      "iso": true
+    },
+    {
+      "key": "status_mp",
+      "iso": true
+    },
+    {
+      "key": "status_phoenix",
+      "iso": true
+    },
+    {
       "key": "status_poison",
+      "iso": true
+    },
+    {
+      "key": "status_root",
       "iso": true
     },
     {
@@ -1358,6 +3858,10 @@
     },
     {
       "key": "status_slow",
+      "iso": true
+    },
+    {
+      "key": "status_spd",
       "iso": true
     },
     {
@@ -1675,6 +4179,11 @@
       "nine": 14
     },
     {
+      "key": "ui_mapview_paper",
+      "iso": true,
+      "nine": 16
+    },
+    {
       "key": "ui_nut_nhan",
       "iso": true,
       "nine": 6
@@ -1705,6 +4214,14 @@
       "nine": 4
     },
     {
+      "key": "ui_radar_compass",
+      "iso": true
+    },
+    {
+      "key": "ui_radar_frame",
+      "iso": true
+    },
+    {
       "key": "ui_thanh_hon_luc",
       "iso": true,
       "nine": 6
@@ -1716,6 +4233,38 @@
     },
     {
       "key": "ui_vach_but",
+      "iso": true
+    },
+    {
+      "key": "vh_a_ngan_b",
+      "iso": true
+    },
+    {
+      "key": "vh_a_ngan_f",
+      "iso": true
+    },
+    {
+      "key": "vh_bach_ho_b",
+      "iso": true
+    },
+    {
+      "key": "vh_bach_ho_f",
+      "iso": true
+    },
+    {
+      "key": "vh_bang_phuong_hoang_b",
+      "iso": true
+    },
+    {
+      "key": "vh_bang_phuong_hoang_f",
+      "iso": true
+    },
+    {
+      "key": "vh_bich_lan_xa_hoang_b",
+      "iso": true
+    },
+    {
+      "key": "vh_bich_lan_xa_hoang_f",
       "iso": true
     },
     {
@@ -1751,6 +4300,38 @@
       "iso": true
     },
     {
+      "key": "vh_hoa_anh_b",
+      "iso": true
+    },
+    {
+      "key": "vh_hoa_anh_f",
+      "iso": true
+    },
+    {
+      "key": "vh_kim_vu_mieu_ung_b",
+      "iso": true
+    },
+    {
+      "key": "vh_kim_vu_mieu_ung_f",
+      "iso": true
+    },
+    {
+      "key": "vh_ky_nhung_thong_thien_cuc_b",
+      "iso": true
+    },
+    {
+      "key": "vh_ky_nhung_thong_thien_cuc_f",
+      "iso": true
+    },
+    {
+      "key": "vh_lam_dien_ba_vuong_long_b",
+      "iso": true
+    },
+    {
+      "key": "vh_lam_dien_ba_vuong_long_f",
+      "iso": true
+    },
+    {
       "key": "vh_lam_ngan_thao_b",
       "iso": true
     },
@@ -1767,6 +4348,14 @@
       "iso": true
     },
     {
+      "key": "vh_nhu_cot_tho_b",
+      "iso": true
+    },
+    {
+      "key": "vh_nhu_cot_tho_f",
+      "iso": true
+    },
+    {
       "key": "vh_pha_hon_thuong_b",
       "iso": true
     },
@@ -1775,11 +4364,35 @@
       "iso": true
     },
     {
+      "key": "vh_quy_mi_b",
+      "iso": true
+    },
+    {
+      "key": "vh_quy_mi_f",
+      "iso": true
+    },
+    {
+      "key": "vh_ta_hoa_phuong_hoang_b",
+      "iso": true
+    },
+    {
+      "key": "vh_ta_hoa_phuong_hoang_f",
+      "iso": true
+    },
+    {
       "key": "vh_thien_can_bach_ngoc_dinh_b",
       "iso": true
     },
     {
       "key": "vh_thien_can_bach_ngoc_dinh_f",
+      "iso": true
+    },
+    {
+      "key": "vh_tu_vong_chu_hoang_b",
+      "iso": true
+    },
+    {
+      "key": "vh_tu_vong_chu_hoang_f",
       "iso": true
     },
     {
@@ -1796,6 +4409,14 @@
     },
     {
       "key": "vh_xuc_xich_f",
+      "iso": true
+    },
+    {
+      "key": "vh_yeu_ho_b",
+      "iso": true
+    },
+    {
+      "key": "vh_yeu_ho_f",
       "iso": true
     }
   ]

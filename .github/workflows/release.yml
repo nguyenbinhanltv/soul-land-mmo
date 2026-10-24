@@ -1,0 +1,224 @@
+# Release (K3, #500): sau khi CI của main xanh, dựng image, THỬ image, quét lỗ hổng, rồi mới đẩy lên Artifact Registry.
+#   1) buildx (cache GHA) dựng image, nạp vào docker local;
+#   2) chạy container đó + PostgreSQL tạm (service container, DB rỗng) và bot khói vào container (GAME_TEST=1 chỉ ở bước này);
+#   3) Trivy chặn lỗ hổng CRITICAL;
+#   4) đạt cả ba mới đăng nhập GCP (key JSON của service account GCP_SA_KEY, hoặc Workload Identity Federation nếu không có key) và đẩy ĐÚNG image đã thử với tag sha-<7> (+ main nếu vẫn là bản mới nhất).
+# Không tự deploy: đưa lên prod bằng promote.yml (mở PR ở repo GitOps), xem docs/deploy.md. Thiết lập GCP: deploy/gcp/README.md.
+# Thông báo chỉ qua GitHub: lượt chạy ở tab Actions, trạng thái commit `release/image` và bảng tóm tắt (GITHUB_STEP_SUMMARY).
+name: Release
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch: # chạy tay trên main: dựng + thử + đẩy lại bản mới nhất của main (cần khi lượt tự động bị lỡ)
+
+permissions:
+  contents: read
+
+# Mỗi lượt xếp hàng, không hủy lượt đang đẩy dở; lượt chờ cũ hơn bị thay bằng lượt mới nhất (bản main mới nhất luôn được dựng).
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  IMAGE: asia-southeast1-docker.pkg.dev/landing-page-455614/soul-land/game
+  REGISTRY: asia-southeast1-docker.pkg.dev
+
+jobs:
+  release:
+    name: build, thử, quét, đẩy image
+    # Chỉ khi CI trên push vào main xanh (không chạy cho PR, không chạy khi CI đỏ). Chạy tay thì chỉ được chạy trên main.
+    if: ${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      id-token: write # đổi token OIDC lấy quyền GCP khi dùng WIF (chỉ dùng sau khi image đã đạt)
+      statuses: write # trạng thái commit release/image
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+    # DB rỗng, chỉ sống trong lượt này; mật khẩu dưới đây chỉ là của service container tạm (không phải bí mật, không nối ra ngoài runner).
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: soul
+          POSTGRES_PASSWORD: soul-ci-tam
+          POSTGRES_DB: soul_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U soul -d soul_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: trạng thái commit = đang chạy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api "repos/$GITHUB_REPOSITORY/statuses/$SHA" -f state=pending -f context=release/image -f description="đang dựng và thử image" -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >/dev/null
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.SHA }}
+          persist-credentials: false
+      - id: meta
+        run: |
+          echo "tag=sha-${SHA:0:7}" >>"$GITHUB_OUTPUT"
+          echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >>"$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: dựng image (cache GHA, nạp vào docker local)
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          load: true
+          push: false
+          tags: ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }}
+          build-args: |
+            VERSION=${{ steps.meta.outputs.tag }}
+            REVISION=${{ env.SHA }}
+            CREATED=${{ steps.meta.outputs.created }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ---- Thử image: container thật + Postgres tạm. GAME_TEST=1 chỉ có ở container này (không có trong image / bản đẩy lên). ----
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22 # khớp Dockerfile (node:22-slim)
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci --no-audit --no-fund --prefix client # bot (client/scripts/bot-test.mjs) cần colyseus.js
+      - name: chạy container (DB tạm, GAME_TEST=1) và bot khói
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+          # Chỉ localhost (service container). bot-image.sh từ chối mọi URL / DATABASE_URL không phải localhost (#406).
+          DATABASE_URL: postgres://soul:soul-ci-tam@127.0.0.1:5432/soul_ci
+        run: |
+          mkdir -p ci-logs
+          docker run -d --name game --network host \
+            -e PORT=3141 -e GAME_TEST=1 -e DATABASE_URL -e TRUST_PROXY=1 \
+            "$IMAGE:$TAG"
+          # Chạy hai lần liền (migration phải chạy lại an toàn): container lên lần đầu, bot chạy, rồi bật lại trên cùng DB và kiểm /health.
+          set +e
+          bash tools/ci/bot-image.sh http://localhost:3141
+          code=$?
+          docker logs game >ci-logs/image-server.log 2>&1
+          docker stop -t 15 game >/dev/null
+          if [ "$code" -eq 0 ]; then
+            docker rm game >/dev/null
+            docker run -d --name game --network host -e PORT=3141 -e DATABASE_URL "$IMAGE:$TAG" >/dev/null
+            for i in $(seq 1 60); do curl -sf localhost:3141/health && break; sleep 1; done
+            curl -sf localhost:3141/health >/dev/null || { echo "✗ bật lại trên DB đã có dữ liệu không lên được"; docker logs game | tail -n 50; code=1; }
+            [ "$code" -eq 0 ] && echo "" && echo "bật lại trên DB đã migrate: /health ok"
+            docker logs game >>ci-logs/image-server.log 2>&1
+            docker stop -t 15 game >/dev/null
+          fi
+          if [ "$code" -ne 0 ]; then echo "---- log server (200 dòng cuối) ----"; tail -n 200 ci-logs/image-server.log; fi
+          exit "$code"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ failure() }}
+        with:
+          name: image-test-logs
+          path: ci-logs/
+          retention-days: 7
+
+      # ---- Quét lỗ hổng: CRITICAL thì chặn. ignore-unfixed: lỗi chưa có bản vá thì không chặn được bằng cách cập nhật. ----
+      - name: Trivy (chặn CRITICAL)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }}
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          format: table
+      - name: Trivy bảng HIGH để tham khảo (không chặn)
+        if: ${{ !cancelled() }}
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }}
+          severity: HIGH
+          ignore-unfixed: true
+          exit-code: "0"
+          format: table
+
+      # ---- Đạt hết mới đăng nhập GCP và đẩy. ----
+      # Đăng nhập GCP: ưu tiên key JSON của service account (secret GCP_SA_KEY); không có thì dùng Workload Identity Federation.
+      # Key chỉ đi qua secret -> action (action ghi file tạm của runner, không in ra log).
+      - id: gcp-mode
+        name: chọn cách đăng nhập GCP
+        env:
+          HAS_KEY: ${{ secrets.GCP_SA_KEY != '' }}
+          HAS_WIF: ${{ (vars.GCP_WIF_PROVIDER || secrets.GCP_WIF_PROVIDER) != '' && (vars.GCP_SA_EMAIL || secrets.GCP_SA_EMAIL) != '' }}
+        run: |
+          if [ "$HAS_KEY" = true ]; then echo "mode=key" >>"$GITHUB_OUTPUT"; echo "Đăng nhập GCP bằng key service account (GCP_SA_KEY)"
+          elif [ "$HAS_WIF" = true ]; then echo "mode=wif" >>"$GITHUB_OUTPUT"; echo "Đăng nhập GCP bằng Workload Identity Federation"
+          else echo "::error title=gcp::Thiếu cấu hình đăng nhập GCP: đặt secret GCP_SA_KEY (key JSON của service account), hoặc cặp GCP_WIF_PROVIDER + GCP_SA_EMAIL (Variable hoặc Secret). Xem deploy/gcp/README.md."; exit 1; fi
+      - name: đăng nhập GCP (key service account)
+        if: ${{ steps.gcp-mode.outputs.mode == 'key' }}
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: đăng nhập GCP (Workload Identity Federation)
+        if: ${{ steps.gcp-mode.outputs.mode == 'wif' }}
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER || secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_SA_EMAIL || secrets.GCP_SA_EMAIL }}
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      - name: đẩy image (sha-7 ký tự, và main nếu đây vẫn là bản mới nhất)
+        id: push
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gcloud auth configure-docker "$REGISTRY" --quiet # credential helper của gcloud, dùng chung cho key và WIF (không đụng token trong lệnh)
+          docker push "$IMAGE:$TAG"
+          # Hai lượt kết thúc lệch thứ tự không được kéo tag main lùi: chỉ gắn main khi commit này vẫn là đầu main.
+          HEAD_MAIN=$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)
+          if [ "$HEAD_MAIN" = "$SHA" ]; then
+            docker tag "$IMAGE:$TAG" "$IMAGE:main"
+            docker push "$IMAGE:main"
+            echo "main=yes" >>"$GITHUB_OUTPUT"
+          else
+            echo "::notice title=release::main đã có commit mới hơn (${HEAD_MAIN:0:7}), chỉ đẩy $TAG, không đổi tag main"
+            echo "main=no" >>"$GITHUB_OUTPUT"
+          fi
+          DIGEST=$(docker image inspect "$IMAGE:$TAG" --format '{{index .RepoDigests 0}}' 2>/dev/null || true)
+          echo "digest=${DIGEST#*@}" >>"$GITHUB_OUTPUT"
+          docker logout "$REGISTRY" >/dev/null 2>&1 || true
+      - name: tóm tắt
+        if: ${{ success() }}
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+          MAIN: ${{ steps.push.outputs.main }}
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          SIZE=$(docker image inspect "$IMAGE:$TAG" --format '{{.Size}}' | awk '{printf "%.0f MB", $1/1048576}')
+          {
+            echo "### Release \`$TAG\` đã đẩy lên Artifact Registry"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Image | \`$IMAGE:$TAG\` |"
+            echo "| Tag main | $([ "$MAIN" = yes ] && echo "đã trỏ về bản này" || echo "không đổi (main có commit mới hơn)") |"
+            echo "| Digest | \`${DIGEST:-?}\` |"
+            echo "| Cỡ | $SIZE |"
+            echo "| Commit | $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$SHA |"
+            echo "| Thử trước khi đẩy | container + PostgreSQL tạm, bot khói đạt, Trivy không có CRITICAL |"
+            echo ""
+            echo "Chưa deploy. Đưa lên prod: chạy workflow **Promote** (nhập \`$TAG\`), xem docs/deploy.md."
+          } >>"$GITHUB_STEP_SUMMARY"
+      - name: trạng thái commit = kết quả
+        if: ${{ always() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ job.status }}
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          case "$RESULT" in
+            success) state=success; desc="image $TAG đã đẩy lên registry (chưa deploy)" ;;
+            cancelled) state=error; desc="lượt release bị hủy" ;;
+            *) state=failure; desc="release trượt: xem lượt chạy (bot khói / Trivy / đẩy image)" ;;
+          esac
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$SHA" -f state="$state" -f context=release/image -f description="$desc" -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >/dev/null

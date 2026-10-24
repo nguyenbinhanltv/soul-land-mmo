@@ -18,7 +18,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { checkIsoTiles } from "./iso-build.mjs";
 import path from "node:path";
-import { ROOT, SPRITES, MANIFEST, readPng, toHex, allowedColors, accentColors, readGpl, npcIds, itemIconIds, skillIconIds, statusIds, heIds, beastIds, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS } from "./lib.mjs";
+import { ROOT, SPRITES, MANIFEST, PT_MAX_COLORS, readPng, toHex, allowedColors, accentColors, readGpl, npcIds, itemIconIds, skillIconIds, statusIds, heIds, beastIds, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -73,7 +73,7 @@ function check(key, frame, iso = false, map = "", nine = 0, stat = false) {
   // Màu và alpha.
   const palette = /^hs_(hair|outfit)_/.test(key) ? grayOnly : spec.kind === "prop" ? withAccents : map ? new Set([...allowed, ...mapColors(key, map)]) : allowed;
   // Chân dung / biểu tượng và hiệu ứng fx_* (màu gốc của gói LPC) không theo bảng chung, chỉ giới hạn số màu.
-  const free = spec.kind === "portrait" || spec.kind === "fx" || !!spec.static; // sheet tĩnh ComfyUI: bảng màu riêng từng loài, như chân dung
+  const free = spec.kind === "portrait" || spec.kind === "fx" || spec.kind === "phaptuong" || !!spec.static; // sheet tĩnh ComfyUI: bảng màu riêng từng loài, như chân dung
   const bad = new Map(), used = new Set(); let semi = 0;
   for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) {
     const p = img.get(x, y);
@@ -84,7 +84,7 @@ function check(key, frame, iso = false, map = "", nine = 0, stat = false) {
     if (!free && !palette.has(c)) bad.set(c, (bad.get(c) ?? 0) + 1);
   }
   if (semi) err(key, `${semi} điểm bán trong suốt (chỉ được alpha 0 hoặc 255)`);
-  if (free && !spec.static && used.size > PORTRAIT_MAX_COLORS) err(key, `${used.size} màu, ${spec.kind === "fx" ? "hiệu ứng" : "chân dung"} tối đa ${PORTRAIT_MAX_COLORS}`);
+  if (free && !spec.static && used.size > (spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS)) err(key, `${used.size} màu, ${spec.kind === "fx" ? "hiệu ứng" : spec.kind === "phaptuong" ? "pháp tướng" : "chân dung"} tối đa ${spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS}`);
   if (spec.npc && !(npcIds_ ??= npcIds()).has(spec.npc)) err(key, `không có NPC "${spec.npc}" trong NPCS (shared/data.ts)`);
   if (spec.status && !(statusIds_ ??= statusIds()).has(spec.status)) err(key, `không có trạng thái / buff "${spec.status}" trong STATUS_IDS / BUFF_IDS / BEAST_BUFF_IDS (shared/data.ts)`);
   if (spec.beast && !(beastIds_ ??= beastIds()).has(spec.beast)) err(key, `không có loài "${spec.beast}" trong BEASTS (shared/data.ts)`);
@@ -143,6 +143,14 @@ function checkIso(key, spec, img, at, fw, fh) {
   for (let r = 0; r < L.rows; r++) for (let c = 0; c < L.cols; c++) if (!L.cells.has(`${r},${c}`) && filled(r, c)) stray.push([r, c]);
   if (stray.length) err(key, `vẽ vào ô ngoài bố cục (client không đọc): ` + stray.slice(0, 10).map(([r, c]) => `(${r},${c})`).join(" "));
   if (spec.kind === "vohon") { if (cellEmpty(img, 0, 0, img.w, img.h)) warn(key, "sheet trống hoàn toàn"); return spec; }
+  // Pháp tướng: đủ mọi khung idle / attack của 5 hướng; khung vẽ không chạm mép (viền sáng 2 điểm không bị cắt).
+  if (spec.kind === "phaptuong") {
+    const miss = L.required.filter(([r, c]) => !filled(r, c));
+    if (miss.length) err(key, `thiếu ${miss.length} khung: ` + miss.slice(0, 10).map(([r, c]) => `(${r},${c})`).join(" "));
+    const edge = L.required.filter(([r, c]) => { const [x0, y0] = at(r, c); return !cellEmpty(img, x0, y0, fw, 1) || !cellEmpty(img, x0, y0, 1, fh) || !cellEmpty(img, x0 + fw - 1, y0, 1, fh); });
+    if (edge.length) err(key, `${edge.length} khung chạm mép trên / trái / phải (hình bị cắt): ` + edge.slice(0, 6).map(([r, c]) => `(${r},${c})`).join(" "));
+    return spec;
+  }
   const empty = L.required.filter(([r, c]) => !filled(r, c));
   // Lớp thân, NPC LPC (một lớp) và hồn thú phải đủ khung; lớp áo/tóc có thể trống ở khung bị lớp khác che hết.
   const hard = spec.kind === "beast" || spec.kind === "lpc" || /^hs_body_/.test(key);
@@ -161,6 +169,14 @@ function checkIso(key, spec, img, at, fw, fh) {
   return spec;
 }
 
+// Dịch vụ tạo ảnh ngoài Gemini / ChatGPT / ComfyUI: nhận theo chữ trong --tool, mỗi dịch vụ một mục CREDITS (hậu tố tên file ở hộp thư phẳng).
+const EXTRA_SERVICES = [
+  { re: /copilot/i, name: "Microsoft Copilot", suffix: "copilot" },
+  { re: /qwen/i, name: "Qwen Chat", suffix: "qwen" },
+  { re: /leonardo/i, name: "Leonardo AI", suffix: "leonardo" },
+  { re: /meta\s*ai|\bmeta\b/i, name: "Meta AI", suffix: "meta" },
+  { re: /grok/i, name: "Grok", suffix: "grok" },
+];
 // ---------- Đăng ký key mới ----------
 function upsertCredits(key, file) {
   const credits = path.join(ROOT, "art", "CREDITS.md");
@@ -168,13 +184,17 @@ function upsertCredits(key, file) {
   let md = readFileSync(credits, "utf8");
   const eol = md.includes("\r\n") ? "\r\n" : "\n";
   md = md.replace(/\r\n/g, "\n");
-  // Mỗi công cụ AI một mục: --tool có chữ "ComfyUI" / "Gemini" thì ghi vào mục đó, còn lại mục PixelLab.
-  const comfy = /comfyui/i.test(tool), gemini = !comfy && /gemini/i.test(tool);
-  const head = comfy ? "## Asset tạo bằng AI (ComfyUI)" : gemini ? "## Asset tạo bằng AI (Gemini)" : "## Asset tạo bằng AI (PixelLab)";
+  // Mỗi công cụ AI một mục: --tool có chữ "ComfyUI" / "Gemini" / "ChatGPT" thì ghi vào mục đó, còn lại mục PixelLab.
+  const comfy = /comfyui/i.test(tool), chatgpt = !comfy && /chatgpt/i.test(tool), other = !comfy && !chatgpt ? EXTRA_SERVICES.find((x) => x.re.test(tool)) : undefined, gemini = !comfy && !chatgpt && !other && /gemini/i.test(tool);
+  const head = comfy ? "## Asset tạo bằng AI (ComfyUI)" : gemini ? "## Asset tạo bằng AI (Gemini)" : chatgpt ? "## Asset tạo bằng AI (ChatGPT)" : other ? `## Asset tạo bằng AI (${other.name})` : "## Asset tạo bằng AI (PixelLab)";
   const intro = comfy
     ? "Ảnh AI tạo bằng ComfyUI tự host (SDXL base 1.0, CreativeML Open RAIL++-M + LoRA pixel-art-xl, CreativeML OpenRAIL-M; VAE sdxl-vae-fp16-fix, MIT), tách nền bằng `tools/assets/comfy-key.mjs`, nhập bằng `gemini-import.mjs` và đăng ký bằng `validate --register`. Quy trình: `.claude/skills/asset-gen/SKILL.md`."
     : gemini
     ? "Người dùng tạo ảnh bằng Gemini (gemini.google.com), rồi nhập bằng `tools/assets/gemini-import.mjs` (gỡ logo, xóa nền, điểm ảnh giả → pixel thật, đưa về khung) và đăng ký bằng `validate --register`. Quy trình: `.claude/skills/asset-gen/SKILL.md`."
+    : other
+    ? `Người dùng tạo ảnh bằng ${other.name}, rồi nhập bằng \`tools/assets/gemini-import.mjs\` / \`equip-import.mjs\` và đăng ký bằng \`validate --register\`. Hộp thư ảnh: \`anh-inbox/\` (tên file có hậu tố \`-${other.suffix}\`). Quy trình: \`.claude/skills/asset-gen/SKILL.md\`.`
+    : chatgpt
+    ? "Người dùng tạo ảnh bằng ChatGPT (tạo ảnh, nền trong suốt), rồi nhập bằng `tools/assets/equip-import.mjs` / `gemini-import.mjs` (ngưỡng alpha, điểm ảnh giả → pixel thật, đưa về khung) và đăng ký bằng `validate --register`. Quy trình: `.claude/skills/asset-gen/SKILL.md`."
     : "Tạo bằng PixelLab qua MCP, rồi chuẩn hóa bằng `tools/assets` (normalize → pack → validate). Quy trình: `.claude/skills/asset-gen/SKILL.md`.";
   if (!md.includes(head)) {
     md = md.replace("## Asset bên ngoài", `${head}\n\n${intro}\n\n` +
@@ -195,6 +215,12 @@ function upsertCredits(key, file) {
   writeFileSync(credits, lines.join(eol));
 }
 
+/** Pháp tướng (`pt_<mã>`): cách ghép vào hồn sư (lớp sau / trước theo hướng, tỉ lệ, dời) lấy từ `display` của recipe.json cạnh ảnh nguồn. */
+function ptDisplay(key) {
+  const m = key.match(/^pt_([a-z_]+)$/), f = m && path.join(ROOT, "art", "src", "pixellab", "phap_tuong", m[1], "recipe.json");
+  return f && existsSync(f) ? JSON.parse(readFileSync(f, "utf8")).display : undefined;
+}
+
 if (register) {
   if (!prompt) { console.error("--register cần --prompt (ghi vào art/CREDITS.md)"); process.exit(1); }
   const frame = frameOpt ? frameOpt.split("x").map(Number) : undefined;
@@ -202,7 +228,7 @@ if (register) {
   if (errors) process.exit(1);
   const iso = isoOpt || !!spec.iso;
   // --nine N: mảnh giao diện kéo giãn 9 lát, giữ nguyên N điểm ở mỗi mép (hộp thoại, cuộn giấy, khung thanh).
-  const entry = frame || iso || mapOpt || nineOpt || staticOpt ? { key: register, ...(frame ? { frame } : {}), ...(iso ? { iso: true } : {}), ...(staticOpt ? { static: true } : {}), ...(mapOpt ? { map: mapOpt } : {}), ...(nineOpt ? { nine: nineOpt } : {}) } : register;
+  const entry = frame || iso || mapOpt || nineOpt || staticOpt ? { key: register, ...(frame ? { frame } : {}), ...(iso ? { iso: true } : {}), ...(staticOpt ? { static: true } : {}), ...(mapOpt ? { map: mapOpt } : {}), ...(nineOpt ? { nine: nineOpt } : {}), ...(ptDisplay(register) ? { pt: ptDisplay(register) } : {}) } : register;
   const i = manifest.sprites.findIndex((e) => entryKey(e) === register);
   if (i < 0 || JSON.stringify(manifest.sprites[i]) !== JSON.stringify(entry)) {
     // Đăng ký lại một key (ví dụ bộ 32×32 cũ thay bằng bộ isometric) thì ghi đè dòng cũ.

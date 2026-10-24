@@ -35,6 +35,7 @@
       <section id="party" class="panel" aria-label="Tổ đội"></section>
       </div>
       <div id="pmenu" class="panel" hidden role="dialog" aria-label="Hồn sư"></div>
+      <div id="dualTabs" hidden role="tablist" aria-label="Chuyển Nhân vật / Túi"></div>
       <div id="char" class="panel" hidden role="dialog" aria-label="Bảng nhân vật Hồn sư"></div>
       <div id="roster" class="panel" hidden></div>
       <div id="bag" class="panel" hidden></div>
@@ -45,14 +46,45 @@
       <div id="autoSum" class="panel" hidden role="dialog" aria-label="Tổng kết tự động"></div>
       <div id="npc" class="panel" hidden role="dialog" aria-label="Hộp thoại NPC"></div>
       <div id="world" class="panel" hidden role="dialog" aria-label="Bản đồ thế giới"></div>
+      <div id="mapview" hidden role="dialog" aria-label="Bản đồ khu vực">
+        <canvas id="mapviewCv"></canvas>
+        <div id="mapviewBar">
+          <span id="mapviewTitle"></span>
+          <div id="mapviewLayers" role="group" aria-label="Lớp hiển thị"></div>
+          <div class="mvtools">
+            <button id="mapviewMode" class="mvbtn" aria-pressed="false" title="Đổi hướng nhìn: xoay theo màn hình / nhìn thẳng (Bắc lên)">Nhìn thẳng</button>
+            <button id="mapviewGo" class="mvbtn mvgo" title="Tự đi tới cờ (đóng bản đồ)" hidden>Đi tới cờ</button>
+            <button id="mapviewClear" class="mvbtn" title="Xoá cờ" hidden>Xoá cờ</button>
+            <button id="mapviewMe" class="mvbtn" title="Về chỗ mình đứng">Về tôi</button>
+            <button id="mapviewIn" class="mvbtn mvz" title="Phóng to (lăn chuột lên, chụm hai ngón)">+</button>
+            <button id="mapviewOut" class="mvbtn mvz" title="Thu nhỏ">−</button>
+            <button id="mapviewClose" class="mvbtn mvx" title="Đóng (N hoặc Esc)" aria-label="Đóng bản đồ khu vực">✕</button>
+          </div>
+        </div>
+        <div id="mapviewHelp">Kéo để di chuyển · bấm (điện thoại: chạm giữ) để đặt cờ · chuột phải: "Tập trung ở đây" (tổ đội) · lăn chuột / chụm hai ngón để phóng · N hoặc Esc để đóng</div>
+        <div id="mapviewTip" hidden></div>
+        <div id="mapviewMenu" hidden><button id="mapviewMenuFlag" class="mvbtn">Đặt cờ</button><button id="mapviewMenuRally" class="mvbtn">Tập trung ở đây</button></div>
+      </div>
       <div id="rcol">
       <section class="panel mapbox">
-        <canvas id="mini"></canvas>
+        <div id="radar" role="img" aria-label="Radar quanh nhân vật">
+          <canvas id="mini"></canvas>
+          <img id="radarFrame" alt="" hidden>
+          <button id="radarMode" class="rbtn" aria-pressed="false" title="Xoay theo màn hình / Nhìn thẳng">◈</button>
+          <button id="radarIn" class="rbtn" title="Phóng to (lăn chuột lên)">+</button>
+          <button id="radarOut" class="rbtn" title="Thu nhỏ (lăn chuột xuống)">−</button>
+          <div id="radarTip" hidden></div>
+        </div>
         <div id="zoneName"></div>
-        <div id="mapLegend" aria-label="Chú giải bản đồ nhỏ"><span class="lg-mate">Đội</span><span class="lg-npc">NPC</span><span class="lg-gate">Cổng</span><span class="lg-boss">Boss</span></div>
+        <div id="radarInfo"></div>
+        <div id="mapLegend" aria-label="Chú giải radar"><span class="lg-mate">Đội</span><span class="lg-npc">NPC</span><span class="lg-gate">Cổng</span><span class="lg-boss">Boss</span></div>
         <div id="online"></div>
-        <button id="worldBtn" class="minibtn" aria-controls="world" aria-expanded="false" title="Bản đồ thế giới">Thế giới <kbd>M</kbd></button>
-        <button id="chanBtn" class="minibtn" aria-controls="chans" aria-expanded="false" title="Chọn kênh" hidden>Kênh ▾</button>
+        <div class="radarbtns">
+          <button id="chanBtn" class="minibtn" aria-controls="chans" aria-expanded="false" title="Chọn kênh" hidden>Kênh ▾</button>
+          <button id="areaBtn" class="minibtn" aria-controls="mapview" aria-expanded="false" title="Bản đồ khu vực (phím N)">Vùng <kbd>N</kbd></button>
+          <button id="worldBtn" class="minibtn" aria-controls="world" aria-expanded="false" title="Bản đồ thế giới">Thế giới <kbd>M</kbd></button>
+        </div>
+        <div id="flagBar" hidden aria-live="polite"><span id="flagText"></span><button id="flagGo" class="minibtn" title="Tự đi tới cờ (phím Y)">Đi <kbd>Y</kbd></button><button id="flagStop" class="minibtn" title="Dừng tự đi (hoặc bấm phím di chuyển)" hidden>Dừng <kbd>Y</kbd></button><button id="flagClear" class="minibtn" title="Xoá cờ" aria-label="Xoá cờ">✕</button></div>
         <div id="chans" hidden role="dialog" aria-label="Chọn kênh"></div>
       </section>
       <div id="quest" class="panel" hidden aria-label="Nhiệm vụ đang làm"></div>

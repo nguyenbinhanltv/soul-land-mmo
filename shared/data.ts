@@ -107,7 +107,7 @@ export const MAPS: Record<string, MapDef> = {
   tinh_dau_ngoai_vi: { id: "tinh_dau_ngoai_vi", name: "Tinh Đấu Ngoại vi", kind: "hunt", level: [10, 30], years: [300, 2000],
     shards: ["u_minh_linh_mieu", "kim_vu_mieu_ung", "xuc_xich"], cores: ["linh_mieu", "hao_thien", "xa_hoang"], king: "huyet_nguyet_lang_vuong" },
   tinh_dau_noi_dia: { id: "tinh_dau_noi_dia", name: "Tinh Đấu Nội địa", kind: "hunt", level: [30, 60], years: [1500, 25000],
-    shards: ["tu_vong_chu_hoang", "lam_dien_ba_vuong_long", "cuu_tinh_that_sat_kiem"], cores: ["ba_vuong_long", "that_sat", "luu_ly"], king: "thien_doc_chu_hoang" },
+    shards: ["tu_vong_chu_hoang", "lam_dien_ba_vuong_long", "cuu_tinh_that_sat_kiem", "bach_ho"], cores: ["ba_vuong_long", "that_sat", "luu_ly"], king: "thien_doc_chu_hoang" },
   // BĐ6a: thủ đô, thành an toàn; Đại Đấu Hồn Trường dời về đây. Cổng tây đi Lạc Nhật Sâm Lâm mở từ BĐ6b, cổng bắc đi Cực Bắc Chi Địa
   // từ BĐ6c, bến thuyền đi Hải Thần Đảo từ BĐ6d.
   thien_dau_thanh: { id: "thien_dau_thanh", name: "Thiên Đấu Thành", kind: "town", level: null, years: null, shards: [], cores: [] },
@@ -333,13 +333,13 @@ export const VOHON: VoHonDef[] = [
   vh("ta_hoa_phuong_hoang", "Tà Hỏa Phượng Hoàng", "cuong_cong", "SSR", "Mã Hồng Tuấn", ["Thiêu đốt"],
     "#ff6a2a", "#8f2a14", "Bay, thiêu đốt diện rộng; trong lãnh vực phượng hoàng địch nhận thêm sát thương."),
   // SSR cơ bản – mẫn công
-  vh("u_minh_linh_mieu", "U Minh Linh Miêu", "man_cong", "SSR", "Chu Trúc Thanh", ["Chấn đãng"],
+  vh("u_minh_linh_mieu", "U Minh Linh Miêu", "man_cong", "SSR", "Chu Trúc Thanh", ["Chấn động"],
     "#b06bff", "#3e2266", "Tốc độ và chí mạng cao, cào liên hoàn."),
   vh("nguyet_nhan", "Nguyệt Nhận", "man_cong", "SSR", "Tà Nguyệt", ["Thiêu đốt", "Phá giáp"],
     "#e6e6f0", "#4a4a5e", "Lướt xuyên hàng trước, hạ nhanh mục tiêu yếu máu."),
   vh("hoa_long", "Hỏa Long", "man_cong", "SSR", "Hỏa Vô Song", ["Thiêu đốt"],
     "#ff4a2a", "#7a1c10", "Đánh tầm xa phạm vi rộng; Viêm bạo kích nổ thiêu đốt."),
-  vh("nhu_cot_tho", "Nhu Cốt Thố", "man_cong", "SSR", "Tiểu Vũ", ["Chấn đãng"],
+  vh("nhu_cot_tho", "Nhu Cốt Thố", "man_cong", "SSR", "Tiểu Vũ", ["Chấn động"],
     "#ffc2e2", "#c86a9a", "Lướt, quật ngã, tăng chí mạng và hút máu."),
   vh("kim_vu_mieu_ung", "Kim Vũ Miêu Ưng", "man_cong", "SSR", "", ["Cảm điện"],
     "#ffd54a", "#7a5a12", "Bay, vuốt gây tê liệt và câm lặng; áo nghĩa phủ Cảm điện toàn vùng."),
@@ -362,21 +362,24 @@ export const VOHON: VoHonDef[] = [
   vh("thien_can_bach_ngoc_dinh", "Thiên Càn Bạch Ngọc Đỉnh", "phu_tro", "SSR", "", ["Đánh boss"],
     "#f0e0a0", "#6a5a2a", "Hồi máu và khiên; xóa buff địch, thanh tẩy đồng đội."),
   // Ngoài danh sách SSR cơ bản
-  vh("lam_ngan_thao", "Lam Ngân Thảo", "khong_che", "SR", "Đường Tam", ["Chấn đãng"],
+  vh("lam_ngan_thao", "Lam Ngân Thảo", "khong_che", "SR", "Đường Tam", ["Chấn động"],
     "#4ab0ff", "#1f4a6b", "Gom quái, trói; tuyệt kỹ kéo cả vùng lại và giam."),
-  vh("hao_thien_chuy", "Hạo Thiên Chùy", "cuong_cong", "UR", "Đường Hạo", ["Chấn đãng"],
+  vh("hao_thien_chuy", "Hạo Thiên Chùy", "cuong_cong", "UR", "Đường Hạo", ["Chấn động"],
     "#9aa0b4", "#22222c", "Sát thương theo % máu; Loạn Phi Phong Chùy Pháp kết thúc bằng hất tung."),
   vh("cuu_bao_luu_ly_thap", "Cửu Bảo Lưu Ly Tháp", "phu_tro", "UR", "Ninh Vinh Vinh", ["Thiêu đốt"],
     "#7ef0ff", "#2a6a7a", "Tăng công, thủ, tốc cho đội; Vô Địch Thần Quang miễn sát thương."),
   // Bước 8.3: 4 võ hồn ngoài danh sách SSR cơ bản (EXTRA_VOHON; hệ, độ hiếm, chủ nhân, lưu phái đã chốt). Chỉ mở bằng mảnh.
   vh("pha_hon_thuong", "Phá Hồn Thương", "cuong_cong", "SSR", "", ["Phá giáp"],
     "#7fe0d0", "#1f4a48", "Trường thương lướt đâm xuyên hàng, Phá giáp; phá hồn gây Câm lặng ngắt chiêu."),
-  vh("a_ngan", "A Ngân", "phu_tro", "SSR", "A Ngân (Lam Ngân Hoàng, mẫu thân Đường Tam)", ["Chấn đãng"],
+  vh("a_ngan", "A Ngân", "phu_tro", "SSR", "A Ngân (Lam Ngân Hoàng, mẫu thân Đường Tam)", ["Chấn động"],
     "#7fd8ff", "#24527a", "Lam Ngân Hoàng mười vạn năm: hồi máu, khiên cho đội; dây Lam Ngân trói và gây Dễ thương."),
   vh("liet_hoa_thuong_lang", "Liệt Hỏa Thương Lang", "man_cong", "SR", "", ["Thiêu đốt"],
     "#ff7a3a", "#4a3a3a", "Sói lửa lao vồ, cắn xé liên hoàn chồng Thiêu đốt; tiếng tru tăng tốc."),
   vh("bang_phuong_hoang", "Băng Phượng Hoàng", "khong_che", "SSR", "Thủy Băng Nhi", ["Băng phong"],
     "#a8e8ff", "#2a5a8a", "Bay, băng phong diện rộng: đóng băng (Choáng), Làm chậm, gây Dễ thương."),
+  // #194: võ hồn thêm sau 8.3, chỉ mở bằng mảnh (SHARD_ONLY_VOHON); cặp dung hợp U Minh Bạch Hổ với U Minh Linh Miêu (FUSIONS).
+  vh("bach_ho", "Bạch Hổ", "cuong_cong", "SSR", "Đái Mộc Bạch", ["Chấn động"],
+    "#f2f2f6", "#3a3a4c", "Hộ thân rồi vồ: Liệt Quang Ba hất lùi, Kim Cương Biến tăng công thủ; tuyệt kỹ chấn cả vùng."),
 ];
 
 const VOHON_INDEX = new Map(VOHON.map((v, i) => [v.id, i]));
@@ -391,8 +394,10 @@ export const AWAKEN_GIFT = "lam_ngan_thao";
  * không vào lựa chọn thức tỉnh dù có độ hiếm SSR.
  */
 export const EXTRA_VOHON = ["pha_hon_thuong", "a_ngan", "liet_hoa_thuong_lang", "bang_phuong_hoang"];
-/** Võ hồn được tự chọn khi thức tỉnh: mọi SSR cơ bản (17 võ hồn, không gồm EXTRA_VOHON). */
-export const AWAKEN_CHOICES = VOHON.filter((v) => v.rarity === "SSR" && !EXTRA_VOHON.includes(v.id));
+/** Võ hồn chỉ mở bằng mảnh: EXTRA_VOHON (8.3) và Bạch Hổ (#194, thêm sau, nên không chung nhóm "4 võ hồn của 8.3"). */
+export const SHARD_ONLY_VOHON = [...EXTRA_VOHON, "bach_ho"];
+/** Võ hồn được tự chọn khi thức tỉnh: mọi SSR cơ bản (17 võ hồn, không gồm SHARD_ONLY_VOHON). */
+export const AWAKEN_CHOICES = VOHON.filter((v) => v.rarity === "SSR" && !SHARD_ONLY_VOHON.includes(v.id));
 /** Số ô của đội hình võ hồn (mục 3, 5.1). Bảng `teams` lưu ô 0..TEAM_SIZE-1. */
 export const TEAM_SIZE = 4;
 /** Hồi chiêu sau mỗi lần đổi võ hồn trong đội khi đang đánh (giây, mục 5.1 "Trong trận"). */
@@ -571,24 +576,104 @@ export const SKIN_TONES: SkinDef[] = [
   { name: "Bánh mật",   ramp: ["#9c6447", "#c98f6c", "#e3ae88"] },
   { name: "Ngăm",       ramp: ["#5a3b22", "#8a5a3c", "#b07d5a"] },
 ];
-/** Ngoại hình hồn sư: các số nhỏ lưu theo tài khoản, đồng bộ trong PlayerState để người khác thấy. `skin` thêm ở 9.9. */
-export interface Looks { sex: number; hair: number; hairCol: number; outfitCol: number; skin: number; }
-/** Ngoại hình của tài khoản chưa tự chọn (tài khoản tạo trước bước 2.2a). */
-export const DEFAULT_LOOKS: Looks = { sex: 0, hair: 0, hairCol: 0, outfitCol: 0, skin: 0 };
 /**
- * Kiểm tra ngoại hình: mỗi trường phải là số nguyên trong khoảng của bảng tương ứng. Sai bất kỳ trường nào thì null.
- * Riêng `skin` (thêm sau, 9.9) thiếu hẳn thì là tông 0, như tài khoản cũ và client cũ; có mà sai thì vẫn null.
+ * Ngoại hình hồn sư: lưu theo tài khoản, đồng bộ trong PlayerState để người khác thấy. Hai chế độ song song (kế hoạch #507, mục 5):
+ * `preset` (Mẫu dựng sẵn) dùng 5 số nhỏ `sex`..`skin`; `lpc` (Tự tạo) dùng thêm `lpc`, khi đó `sex` = thể hình `lpc.body` và bốn số
+ * còn lại là 0 (không dùng). `mode` thiếu = preset (tài khoản cũ, client cũ). `skin` thêm ở 9.9.
+ */
+export interface Looks { sex: number; hair: number; hairCol: number; outfitCol: number; skin: number; mode?: "preset" | "lpc"; lpc?: LpcLooks; }
+/** Phần LPC của ngoại hình (L2 #509). `v`: phiên bản cấu trúc (hiện 1). `body`: thể hình, chỉ số trong SEXES (0 nam, 1 nữ). `parts`: ô → mã món
+ *  trong LPC_PARTS (đúng ô, đúng thể hình; bắt buộc có `body` và `head`). `colors`: `skin` / `eye` (dải trong `allow` của LPC_RAMPS.body / eye) và
+ *  màu từng ô (dải `allow` của chất liệu đổi màu, hoặc một trong `colors` của món); thiếu = màu gốc của món. */
+export interface LpcLooks { v: 1; body: number; parts: Record<string, string>; colors: Record<string, string>; }
+/** Ngoại hình của tài khoản chưa tự chọn (tài khoản tạo trước bước 2.2a). */
+export const DEFAULT_LOOKS: Looks = { sex: 0, hair: 0, hairCol: 0, outfitCol: 0, skin: 0, mode: "preset" };
+
+// LPC_PARTS / LPC_SLOTS khai báo ở cuối file nên bảng tra mã dựng lười, ở lần gọi đầu.
+let lpcById: Map<string, LpcPart> | null = null;
+const lpcPart = (id: string) => (lpcById ??= new Map(LPC_PARTS.map((p) => [p.id, p]))).get(id);
+const LPC_REQUIRED_SLOTS = ["body", "head"];
+const ownStr = (o: Record<string, unknown>, k: string): string | null => {
+  const v = Object.prototype.hasOwnProperty.call(o, k) ? o[k] : undefined;
+  return typeof v === "string" ? v : null;
+};
+/** Màu một ô chọn được cho món này: danh sách riêng của món (sheet vẽ sẵn) hoặc `allow` của chất liệu đổi màu đầu tiên không phải thân / mắt. */
+function lpcSlotColors(part: LpcPart): string[] {
+  if (part.colors.length) return part.colors;
+  for (const m of part.mats) { const fam = m.split(":")[0]; if (fam !== "body" && fam !== "eye") return LPC_RAMPS[fam]?.allow ?? []; }
+  return [];
+}
+/** Kiểm phần LPC: chỉ nhận mã / màu có trong danh mục, đúng ô, đúng thể hình, không khóa thừa; sai thì null. */
+export function parseLpc(x: unknown): LpcLooks | null {
+  const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+  if (!isObj(x) || x.v !== 1 || typeof x.body !== "number" || !Number.isInteger(x.body) || x.body < 0 || x.body >= SEXES.length) return null;
+  if (!isObj(x.parts) || !isObj(x.colors)) return null;
+  const slots = Object.keys(x.parts);
+  if (slots.length > Object.keys(LPC_SLOTS).length || LPC_REQUIRED_SLOTS.some((s) => !slots.includes(s))) return null;
+  const parts: Record<string, string> = {}, colors: Record<string, string> = {};
+  for (const slot of slots) {
+    const id = ownStr(x.parts, slot), part = id === null ? undefined : lpcPart(id);
+    if (!part || part.slot !== slot || !Object.prototype.hasOwnProperty.call(LPC_SLOTS, slot)) return null;
+    if (part.sex !== "mf" && part.sex !== (x.body === 0 ? "m" : "f")) return null;
+    parts[slot] = part.id;
+  }
+  for (const k of Object.keys(x.colors)) {
+    const c = ownStr(x.colors, k);
+    const allow = k === "skin" ? LPC_RAMPS.body.allow : k === "eye" ? LPC_RAMPS.eye.allow : Object.prototype.hasOwnProperty.call(parts, k) ? lpcSlotColors(lpcPart(parts[k])!) : [];
+    if (c === null || !allow.includes(c)) return null;
+    colors[k] = c;
+  }
+  return { v: 1, body: x.body, parts, colors };
+}
+
+/**
+ * Chuỗi gọn của phần LPC để đồng bộ (`PlayerState.lpc`) và lưu DB: `1|<thể hình>|<da>|<mắt>|<mã>[=<màu>],…` (thể hình 0 / 1, da / mắt
+ * để trống = mặc định; món theo thứ tự ô của LPC_SLOTS). Chỉ đưa vào đây dữ liệu đã qua parseLpc.
+ */
+export function encodeLpc(l: LpcLooks): string {
+  const items = Object.keys(LPC_SLOTS).filter((s) => l.parts[s]).map((s) => l.parts[s] + (l.colors[s] ? "=" + l.colors[s] : ""));
+  return `1|${l.body}|${l.colors.skin ?? ""}|${l.colors.eye ?? ""}|${items.join(",")}`;
+}
+/** Ngược của encodeLpc; chuỗi hỏng / mã lạ thì null (cũng kiểm bằng parseLpc). */
+export function decodeLpc(s: string): LpcLooks | null {
+  if (typeof s !== "string" || s.length > 1024) return null;
+  const f = s.split("|");
+  if (f.length !== 5 || f[0] !== "1") return null;
+  const parts: Record<string, string> = {}, colors: Record<string, string> = {};
+  if (f[2]) colors.skin = f[2];
+  if (f[3]) colors.eye = f[3];
+  for (const it of f[4].split(",")) {
+    if (!it) continue;
+    const [id, col, ...rest] = it.split("=");
+    const part = lpcPart(id);
+    if (!part || rest.length || parts[part.slot]) return null;
+    parts[part.slot] = id;
+    if (col !== undefined) colors[part.slot] = col;
+  }
+  return parseLpc({ v: 1, body: Number(f[1]), parts, colors });
+}
+
+/**
+ * Kiểm tra ngoại hình. `mode` thiếu / null = preset: mỗi trường phải là số nguyên trong khoảng của bảng tương ứng, sai bất kỳ trường nào thì
+ * null; riêng `skin` (thêm sau, 9.9) thiếu hẳn thì là tông 0, như tài khoản cũ và client cũ; có mà sai thì vẫn null. `mode` = "lpc": kiểm
+ * `lpc` bằng parseLpc, `sex` thiếu thì lấy `lpc.body` (có thì phải bằng), các số preset khác bỏ qua và đặt 0. `mode` khác hai giá trị trên thì null.
  */
 export function parseLooks(x: unknown): Looks | null {
   const o = (typeof x === "object" && x !== null ? x : {}) as Record<string, unknown>;
+  if (o.mode === "lpc") {
+    const lpc = parseLpc(o.lpc);
+    if (!lpc || (o.sex !== undefined && o.sex !== null && o.sex !== lpc.body)) return null;
+    return { sex: lpc.body, hair: 0, hairCol: 0, outfitCol: 0, skin: 0, mode: "lpc", lpc };
+  }
+  if (o.mode !== undefined && o.mode !== null && o.mode !== "preset") return null;
   const pick = (k: keyof Looks, n: number) => {
     const v = o[k];
     return typeof v === "number" && Number.isInteger(v) && v >= 0 && v < n ? v : -1;
   };
   const sex = pick("sex", SEXES.length);
-  const l: Looks = { sex, hair: pick("hair", HAIR_STYLES[Math.max(0, sex)].length), hairCol: pick("hairCol", HAIR_COLORS.length), outfitCol: pick("outfitCol", OUTFIT_COLORS.length),
+  const n = { sex, hair: pick("hair", HAIR_STYLES[Math.max(0, sex)].length), hairCol: pick("hairCol", HAIR_COLORS.length), outfitCol: pick("outfitCol", OUTFIT_COLORS.length),
     skin: o.skin === undefined || o.skin === null ? 0 : pick("skin", SKIN_TONES.length) };
-  return Object.values(l).every((v) => v >= 0) ? l : null;
+  return Object.values(n).every((v) => v >= 0) ? { ...n, mode: "preset" } : null;
 }
 
 /** Hướng nhìn 4 phía của hồn sư (trường `dir` trong PlayerState): chỉ số trong mảng này. Hướng trái do client lật ngang hướng phải. */
@@ -1371,9 +1456,9 @@ export const vnHHMM = (ms: number) => { const c = vnClock(ms); return `${String(
  * - Mảnh UR: `ur` (5%, đã chốt) thêm 1 mảnh Hạo Thiên Chùy hoặc Cửu Bảo Lưu Ly Tháp; từ BĐ6 (có boss thế giới, BĐ6e) bỏ: `ur` = 0,
  *   mảnh UR chỉ còn trong rương boss thế giới (WORLD_CHEST, mục 5.3 "Mảnh UR trước BĐ6").
  * - Hồn hạch sao cao (từ 5.1): luôn 1 món, sao cao nhất của coreStarBand(năm thú vương) (rollCore `high`), bộ theo MapDef.cores của bản
- *   đồ thú vương như hồn hạch rơi. `slots` = 4: hồn cốt, mảnh, mảnh UR, hồn hạch mỗi thứ có thể cần một ô mới.
+ *   đồ thú vương như hồn hạch rơi. `slots` = 10: 4 ô cho hồn cốt, mảnh, mảnh UR, hồn hạch (mỗi thứ có thể cần một ô mới) + 6 ô cho trang bị (E2: tối đa `EQUIP_DROP.ranks[2].rolls[1]` = 5 lượt rơi + 1 Bùa Hộ Mệnh; test `test:equip` kiểm hai số này khớp nhau).
  */
-export const KING_CHEST = { slots: 4, bone: 20, shards: [3, 5] as [number, number], ur: 0, urShards: ["hao_thien_chuy", "cuu_bao_luu_ly_thap"],
+export const KING_CHEST = { slots: 10, bone: 20, shards: [3, 5] as [number, number], ur: 0, urShards: ["hao_thien_chuy", "cuu_bao_luu_ly_thap"],
   fire: "ta_hoa_phuong_hoang", every: [] as string[], later: ["bich_lan_xa_hoang", "ky_nhung_thong_thien_cuc", "hoa_long", "yeu_ho", "can_khon_hon_nguyen_toa",
     "nguyet_nhan", "quy_mi", "thien_can_bach_ngoc_dinh", "hoa_anh"] };
 /** Võ hồn có thể rơi mảnh từ rương thú vương của bản đồ `mapId`, kèm trọng số: mảnh của bản đồ 3, Tà Hỏa và `every` 2, bản đồ chưa mở 1. */
@@ -1432,8 +1517,9 @@ export const WORLD_RING = { top: 100000, red: 0.1, black: [80000, 99999] as [num
 /**
  * Rương boss thế giới (mục 5.3 "Rơi đặc trưng", 5.4): cần `slots` ô trống. Hồn cốt boneChance(100.000 năm, `bone`), loài gốc của boss;
  * `ur` [ít nhất, nhiều nhất] mảnh UR (một võ hồn trong KING_CHEST.urShards); luôn 1 hồn hạch sao trong `stars` của bộ bất kỳ (CORE_SETS).
+ * `slots` = 4 + 9 ô trang bị (E2: tối đa `EQUIP_DROP.ranks[3].rolls[1]` = 8 lượt rơi + 1 Bùa Hộ Mệnh).
  */
-export const WORLD_CHEST = { slots: 4, bone: 3, ur: [1, 2] as [number, number], stars: [5, 6] as [number, number] };
+export const WORLD_CHEST = { slots: 13, bone: 3, ur: [1, 2] as [number, number], stars: [5, 6] as [number, number] };
 
 // ---------- Hiệu ứng có lợi trên hồn sư (hồn kỹ phụ trợ; thuộc hồn sư nên đổi võ hồn vẫn còn, như khiên) ----------
 /** Thứ tự là bit trong `PlayerState.buff`. atk: +công, spd: +tốc độ, def: giảm sát thương nhận, crit: +tỉ lệ chí mạng,
@@ -1557,7 +1643,7 @@ export const SKILLS: SkillDef[] = [
  * hồn hoàn thứ i và mạnh theo số năm của hồn hoàn đó. Võ hồn chưa có trong bảng dùng SKILLS. Bảng chi tiết ở GAME_DESIGN.md 5.2.
  */
 export const VOHON_SKILLS: Record<string, SkillDef[]> = {
-  // Khống chế, chấn đãng: trói, gom quái, gây Dễ thương.
+  // Khống chế, chấn động: trói, gom quái, gây Dễ thương.
   lam_ngan_thao: [
     { name: "Triền Nhiễu", desc: "Dây Lam Ngân quấn mục tiêu gần nhất: trói, trúng độc", icon: "❦", cost: 12, cd: 4,
       area: "target", r: 80, dmg: 1.6, status: [{ s: "root" }, { s: "poison" }] },
@@ -1568,7 +1654,7 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
     { name: "Chu Võng Thúc Phược", desc: "Lưới nhện trói buộc diện rộng: choáng 2 giây", icon: "✳", cost: 40, cd: 13,
       area: "around", r: 70, dmg: 2.6, glow: true, status: [{ s: "stun", secs: 2 }] },
   ],
-  // Cường công, chấn đãng: sát thương theo % sinh lực, phá giáp, hất tung.
+  // Cường công, chấn động: sát thương theo % sinh lực, phá giáp, hất tung.
   hao_thien_chuy: [
     { name: "Hạo Thiên Trọng Kích", desc: "Nện chùy nửa trước mặt, thêm 3% sinh lực tối đa mục tiêu", icon: "⚒", cost: 12, cd: 3.5,
       area: "front", r: 36, dmg: 2.4, pctHp: 0.03 },
@@ -1579,7 +1665,7 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
     { name: "Hạo Thiên Phá Sơn", desc: "Đại chùy giáng xuống diện rộng, thêm 6% sinh lực tối đa, hất tung", icon: "▲", cost: 40, cd: 14,
       area: "around", r: 80, dmg: 4, pctHp: 0.06, glow: true, shake: true, status: [{ s: "stun", secs: 1.2 }] },
   ],
-  // Mẫn công, chấn đãng: tốc độ, chí mạng cao, cào liên hoàn.
+  // Mẫn công, chấn động: tốc độ, chí mạng cao, cào liên hoàn.
   u_minh_linh_mieu: [
     { name: "U Minh Đột Thứ", desc: "Lướt xuyên hàng hồn thú phía trước, +25% chí mạng", icon: "➹", cost: 12, cd: 3.5,
       area: "dash", r: 70, dmg: 2.2, crit: 0.25, inv: 0.3 },
@@ -1740,7 +1826,7 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
     { name: "Thất Sát Trảm", desc: "Một kiếm Thất Sát chém nửa trước mặt: mỗi tầng Phá giáp trên mục tiêu thêm 40% công", icon: "⚡", cost: 40, cd: 14,
       area: "front", r: 64, dmg: 3.6, perStack: { s: "armor", dmg: 0.4 }, glow: true, shake: true, status: [{ s: "armor", n: 2 }] },
   ],
-  // Mẫn công, chấn đãng: lướt, quật ngã, tăng chí mạng, hút máu; ràng buộc chí mạng với Hạo Thiên Chùy (BONDS).
+  // Mẫn công, chấn động: lướt, quật ngã, tăng chí mạng, hút máu; ràng buộc chí mạng với Hạo Thiên Chùy (BONDS).
   nhu_cot_tho: [
     { name: "Yêu Cung", desc: "Lướt tới quật mục tiêu bằng Yêu Cung: quật ngã (Choáng 0,6 giây), +20% chí mạng, hút 20% sát thương", icon: "➰", cost: 12, cd: 3.5,
       area: "target", r: 50, dash: 40, dmg: 2, crit: 0.2, lifesteal: 0.2, status: [{ s: "stun", secs: 0.6 }] },
@@ -1800,7 +1886,7 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
     { name: "Phá Hồn Nhất Thương", desc: "Một thương phá hồn quét nửa trước mặt: mỗi tầng Phá giáp trên mục tiêu thêm 40% công, Phá giáp 2 tầng, Câm lặng 1,5 giây", icon: "⚡", cost: 40, cd: 14,
       area: "front", r: 70, dmg: 3.6, perStack: { s: "armor", dmg: 0.4 }, glow: true, shake: true, status: [{ s: "armor", n: 2 }, { s: "silence", secs: 1.5 }] },
   ],
-  // Phụ trợ, chấn đãng: Lam Ngân Hoàng mười vạn năm (mẫu thân Đường Tam): dây Lam Ngân trói, Dễ thương; hồi máu, khiên, tăng công cho đội
+  // Phụ trợ, chấn động: Lam Ngân Hoàng mười vạn năm (mẫu thân Đường Tam): dây Lam Ngân trói, Dễ thương; hồi máu, khiên, tăng công cho đội
   // (hiệu ứng thuộc hồn sư nên đổi võ hồn vẫn còn).
   a_ngan: [
     { name: "Lam Ngân Triền Phược", desc: "Dây Lam Ngân quấn mục tiêu gần nhất: Trói 2 giây", icon: "❦", cost: 12, cd: 4,
@@ -1834,6 +1920,18 @@ export const VOHON_SKILLS: Record<string, SkillDef[]> = {
     { name: "Băng Phượng Phong Ấn", desc: "Bay lên rồi giáng băng quanh thân: đóng băng (Choáng 2 giây), Dễ thương 5 giây", icon: "✾", cost: 40, cd: 14,
       area: "around", r: 100, dmg: 2.4, fly: 0.5, glow: true, shake: true, status: [{ s: "stun", secs: 2 }, { s: "vuln" }] },
   ],
+  // #194, Đái Mộc Bạch (cường công, chấn động): hộ thân rồi vồ, luồng quang hất lùi, Kim Cương Biến tăng công thủ. Tên vòng 1–3 theo truyện;
+  // vòng 4 và các vòng sau là tên phỏng theo (chưa kiểm được thứ tự và tên gốc).
+  bach_ho: [
+    { name: "Bạch Hổ Hộ Thân Chướng", desc: "Hộ thể Bạch Hổ bùng quanh thân: sát thương nhận giảm 20%, khiên 8% sinh lực trong 6 giây", icon: "◈", cost: 12, cd: 6,
+      area: "around", r: 44, dmg: 1.4, self: { buff: { def: 0.2 }, secs: 6, shield: 0.08 } },
+    { name: "Bạch Hổ Liệt Quang Ba", desc: "Luồng quang Bạch Hổ quét nửa trước mặt: hất lùi", icon: "✺", cost: 16, cd: 5,
+      area: "front", r: 70, dmg: 2.6, push: 40 },
+    { name: "Bạch Hổ Kim Cương Biến", desc: "Kim cương thân: công +15%, sát thương nhận giảm 25% trong 10 giây", icon: "✪", cost: 20, cd: 16,
+      area: "self", r: 0, dmg: 0, self: { buff: { atk: 0.15, def: 0.25 }, secs: 10 } },
+    { name: "Bạch Hổ Phục Ma Trảo (phỏng theo)", desc: "Lao tới mục tiêu, vồ 3 nhát; nhát cuối hất tung (Choáng 1 giây)", icon: "≋", cost: 40, cd: 14,
+      area: "target", r: 80, dash: 60, n: 3, every: 0.15, dmg: 1.3, crit: 0.15, inv: 0.3, finisher: [{ s: "stun", secs: 1 }] },
+  ],
 };
 /** Hồn kỹ của một võ hồn: bảng riêng nếu có, không thì 4 hồn kỹ dùng chung. */
 export const skillsOf = (vohonId: string) => VOHON_SKILLS[vohonId] ?? SKILLS;
@@ -1854,7 +1952,7 @@ export const DEFAULT_LOADOUT: readonly number[] = [0, 1, 2, 3];
  * Bảng chi tiết ở GAME_DESIGN.md 5.2.
  */
 export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
-  // Khống chế, chấn đãng: trói, gom quái, Dễ thương; tuyệt kỹ kéo cả vùng lại và giam (5.1).
+  // Khống chế, chấn động: trói, gom quái, Dễ thương; tuyệt kỹ kéo cả vùng lại và giam (5.1).
   lam_ngan_thao: [
     { name: "Lam Ngân Bá Vương Thương", desc: "Lam Ngân ngưng thành trường thương, lướt xuyên hàng hồn thú: Trói 1,5 giây", icon: "➶", cost: 45, cd: 10,
       area: "dash", r: 100, dmg: 2.6, inv: 0.4, status: [{ s: "root", secs: 1.5 }] },
@@ -1867,7 +1965,7 @@ export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
     { name: "Lam Ngân Thiên Hạ", desc: "Tuyệt kỹ: Lam Ngân phủ kín cả vùng, kéo mọi hồn thú lại và giam: Trói 4 giây, Dễ thương 8 giây, Trúng độc 3 tầng", icon: "❦", cost: 100, cd: 45,
       area: "around", r: 160, dmg: 6, pull: true, glow: true, shake: true, ult: true, status: [{ s: "root", secs: 4 }, { s: "vuln", secs: 8 }, { s: "poison", n: 3 }] },
   ],
-  // Cường công, chấn đãng: % sinh lực, phá giáp, hất tung; tuyệt kỹ là Loạn Phi Phong Chùy Pháp đủ thức (vòng 3 là bản 4 nhát).
+  // Cường công, chấn động: % sinh lực, phá giáp, hất tung; tuyệt kỹ là Loạn Phi Phong Chùy Pháp đủ thức (vòng 3 là bản 4 nhát).
   hao_thien_chuy: [
     { name: "Đại Tu Di Chùy", desc: "Dồn lực Đại Tu Di nện quanh thân, thêm 5% sinh lực tối đa, Phá giáp 2 tầng", icon: "✺", cost: 45, cd: 10,
       area: "around", r: 80, dmg: 3, pctHp: 0.05, shake: true, status: [{ s: "armor", n: 2 }] },
@@ -1880,7 +1978,7 @@ export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
     { name: "Loạn Phi Phong Chùy Pháp · Đại Thành", desc: "Tuyệt kỹ: 12 nhát chùy liên hoàn vào một mục tiêu, mỗi nhát thêm 3% sinh lực tối đa, nhát cuối hất tung (Choáng 2 giây)", icon: "☄", cost: 100, cd: 45,
       area: "target", r: 90, dash: 70, n: 12, every: 0.15, dmg: 0.75, pctHp: 0.03, inv: 0.5, glow: true, shake: true, ult: true, finisher: [{ s: "stun", secs: 2 }] },
   ],
-  // Mẫn công, chấn đãng: tốc độ, chí mạng cao, cào liên hoàn; tuyệt kỹ U Minh Bách Trảo đủ thức (vòng 4 là bản 8 nhát).
+  // Mẫn công, chấn động: tốc độ, chí mạng cao, cào liên hoàn; tuyệt kỹ U Minh Bách Trảo đủ thức (vòng 4 là bản 8 nhát).
   u_minh_linh_mieu: [
     { name: "U Minh Trảm", desc: "Lướt xuyên hàng hồn thú, +30% chí mạng, Phá giáp 1 tầng", icon: "➹", cost: 45, cd: 9,
       area: "dash", r: 100, dmg: 3, crit: 0.3, inv: 0.4, status: [{ s: "armor" }] },
@@ -2076,7 +2174,7 @@ export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
     { name: "Kiếm Trảm Sơn Hà", desc: "Tuyệt kỹ: dồn cả kiếm ý chém một kiếm núi sông nửa trước mặt cả vùng: mỗi tầng Phá giáp trên mục tiêu thêm 80% công, Phá giáp đủ 3 tầng", icon: "⚡", cost: 100, cd: 45,
       area: "front", r: 150, dmg: 7, perStack: { s: "armor", dmg: 0.8 }, inv: 0.5, glow: true, shake: true, ult: true, status: [{ s: "armor", n: 3 }] },
   ],
-  // Mẫn công, chấn đãng: lướt, quật ngã, chí mạng, hút máu; hồn kỹ của Tiểu Vũ (Mị Hoặc, Thuấn Di, Vô Địch Kim Thân, Bát Đoạn Suất).
+  // Mẫn công, chấn động: lướt, quật ngã, chí mạng, hút máu; hồn kỹ của Tiểu Vũ (Mị Hoặc, Thuấn Di, Vô Địch Kim Thân, Bát Đoạn Suất).
   nhu_cot_tho: [
     { name: "Mị Hoặc", desc: "Ánh mắt mị hoặc quét nửa trước mặt, +20% chí mạng: Mị hoặc 2 tầng", icon: "✾", cost: 45, cd: 9,
       area: "front", r: 60, dmg: 2.4, crit: 0.2, status: [{ s: "allure", n: 2 }] },
@@ -2148,7 +2246,7 @@ export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
       area: "target", r: 130, dash: 110, n: 6, every: 0.12, dmg: 1.4, perStack: { s: "armor", dmg: 0.3 }, inv: 1, glow: true, shake: true, ult: true,
       status: [{ s: "armor" }, { s: "silence", secs: 3 }], finisher: [{ s: "stun", secs: 1.5 }] },
   ],
-  // Phụ trợ, chấn đãng: Lam Ngân Hoàng giam cả vùng, hồi máu, thanh tẩy, tăng chỉ số cho đội; tuyệt kỹ Lam Ngân Hoàng · Sinh Sinh Bất Tức.
+  // Phụ trợ, chấn động: Lam Ngân Hoàng giam cả vùng, hồi máu, thanh tẩy, tăng chỉ số cho đội; tuyệt kỹ Lam Ngân Hoàng · Sinh Sinh Bất Tức.
   a_ngan: [
     { name: "Lam Ngân Tù Thiên", desc: "Lam Ngân kéo mọi hồn thú quanh thân lại và giam: Trói 2,5 giây, Dễ thương 6 giây", icon: "⌘", cost: 45, cd: 14,
       area: "around", r: 110, dmg: 2.2, pull: true, status: [{ s: "root", secs: 2.5 }, { s: "vuln", secs: 6 }] },
@@ -2189,6 +2287,20 @@ export const VOHON_SKILLS_HIGH: Record<string, SkillDef[]> = {
     { name: "Băng Phượng Hoàng · Băng Phong Thiên Địa", desc: "Tuyệt kỹ: bay lên rồi đóng băng cả vùng: Choáng 3,5 giây, Dễ thương 8 giây, Làm chậm 4 giây, bất tử 1 giây", icon: "❄", cost: 100, cd: 45,
       area: "around", r: 170, dmg: 5.5, fly: 0.6, inv: 1, glow: true, shake: true, ult: true,
       status: [{ s: "stun", secs: 3.5 }, { s: "vuln", secs: 8 }, { s: "slow", secs: 4 }] },
+  ],
+  // #194: cường công chấn động; tuyệt kỹ chấn cả vùng, ngang Kiếm Trảm Sơn Hà. Tên phỏng theo truyện.
+  bach_ho: [
+    { name: "Liệt Quang Ba · Cường Hóa (phỏng theo)", desc: "Luồng quang Bạch Hổ mạnh hơn quét nửa trước mặt: hất lùi, Phá giáp 1 tầng", icon: "✺", cost: 45, cd: 9,
+      area: "front", r: 80, dmg: 3.2, push: 50, status: [{ s: "armor" }] },
+    { name: "Bạch Hổ Kim Cương Thân (phỏng theo)", desc: "Kim thân mạnh hơn: công +20%, tốc độ +10%, sát thương nhận giảm 25%, khiên 12% sinh lực trong 12 giây", icon: "✪", cost: 50, cd: 16,
+      area: "self", r: 0, dmg: 0, self: { buff: { atk: 0.2, spd: 0.1, def: 0.25 }, secs: 12, shield: 0.12 } },
+    { name: "Bạch Hổ Lưu Tinh Vũ (phỏng theo)", desc: "14 luồng quang bắn ra bốn phía, mỗi luồng Phá giáp 1 tầng", icon: "✶", cost: 60, cd: 16,
+      area: "proj", r: 170, n: 14, spread: 360, dmg: 1.4, glow: true, status: [{ s: "armor" }] },
+    { name: "Bạch Hổ Phục Ma Chấn (phỏng theo)", desc: "Chấn đất quanh thân: hất tung (Choáng 1,5 giây), Phá giáp 2 tầng", icon: "▲", cost: 70, cd: 20,
+      area: "around", r: 110, dmg: 6, glow: true, shake: true, status: [{ s: "stun", secs: 1.5 }, { s: "armor", n: 2 }] },
+    { name: "Bạch Hổ · Thiên Hổ Chấn Thế (phỏng theo)", desc: "Tuyệt kỹ: Bạch Hổ gầm chấn cả vùng: Choáng 2 giây, Phá giáp đủ 3 tầng; công +25%, sát thương nhận giảm 20% trong 10 giây, bất tử 0,6 giây", icon: "◉", cost: 100, cd: 45,
+      area: "around", r: 160, dmg: 7, inv: 0.6, glow: true, shake: true, ult: true, status: [{ s: "stun", secs: 2 }, { s: "armor", n: 3 }],
+      self: { buff: { atk: 0.25, def: 0.2 }, secs: 10 } },
   ],
 };
 /**
@@ -2236,8 +2348,126 @@ export type ChanThanStat = "atk" | "def" | "spd" | "crit" | "mp" | "hp";
  */
 export interface ChanThanDef { name: string; desc: string; icon: string; cost: number; cd: number; secs: number;
   stats: Partial<Record<ChanThanStat, number>>; skill: SkillDef; burst?: SkillDef; field?: number; lei?: number; }
-/** Client phóng hình hồn sư ngần ấy lần khi đang Chân Thân (chỉ hình ảnh). */
-export const CHAN_THAN_SCALE = 1.35;
+
+// ---------- Pháp tướng Võ Hồn Chân Thân (hình ảnh, #482 / #486; GAME_DESIGN 5.18) ----------
+// Mọi võ hồn đều là pháp tướng: hồn sư giữ nguyên, sau lưng hiện hư ảnh võ hồn khổng lồ. Chỉ hiển thị (client); số ở đây để server, client, bot
+// cùng đọc, không chép chỗ khác. Sheet `pt_<mã>` khung PT_FRAME, hàng = hướng PT_DIRS (sw / w / nw lật gương từ se / e / ne), cột 0..7 "thở",
+// 8..15 "đánh"; ảnh tĩnh chỉ 5 khung (một cột) vẫn dùng được, chuyển động khi đó hoàn toàn bằng code (công thức "vật thể").
+export const PT_FRAME = 160, PT_COLS = 16, PT_IDLE_N = 8, PT_ATTACK_N = 8;
+/** Gốc trong khung (trùng chân hồn sư). */
+export const PT_ORIGIN: readonly [number, number] = [80, 124];
+export const PT_DIRS = ["s", "se", "e", "ne", "n"] as const;
+export type PtDir = (typeof PT_DIRS)[number];
+/** Hướng vẽ SAU thân hồn sư; còn lại (ne, n) vẽ TRƯỚC, độ đục nhân PT_FRONT_ALPHA. */
+export const PT_BACK_DIRS: readonly PtDir[] = ["s", "se", "e"];
+export const PT_FRONT_ALPHA = 0.7, PT_GHOST = 0.88;
+
+/** Công thức: "sinh_vat" có sheet hoạt ảnh; "vat_the" ảnh tĩnh (hoặc sheet ngắn), chuyển động bằng code theo `motion`. */
+export type PtFormula = "sinh_vat" | "vat_the";
+/** Kiểu hạt theo hệ vẽ bằng code: điện (tia), lửa, băng (tinh thể), lá, hồn quang, độc, khói. */
+export type PtHat = "dien" | "lua" | "bang" | "la" | "hon" | "doc" | "khoi";
+/** Nhóm bố cục (H0): V vũ khí, S rồng / rắn, P hoa / cây, B chim, T thú, O vật lơ lửng, D bóng. */
+export type PtGroup = "V" | "S" | "P" | "B" | "T" | "O" | "D";
+export interface PtMotion {
+  bob: number;    // px nhấp nhô dọc (lơ lửng)
+  bobSec: number; // chu kỳ thở (giây)
+  sway: number;   // độ lắc quanh gốc
+  lag: number;    // trễ pha của phần phụ (lắc, hạt) so với thân, tính theo chu kỳ 0..1
+  spin: number;   // độ / giây xoay quanh `pivot` (vòng, xích); 0 = không xoay
+  pivot: number;  // px phía trên gốc làm tâm xoay / vung
+  pulse: number;  // biên độ sáng nhịp 0..1 của lớp phát sáng
+  swing: number;  // độ vung / chém khi đánh (quanh pivot, theo hướng hồn sư)
+  lunge: number;  // px lao về phía hướng đánh khi ra đòn
+}
+export interface PhapTuongDef {
+  sheet: string; formula: PtFormula; group: PtGroup;
+  /** Cỡ và độ lệch (px quanh gốc hồn sư) của khung pháp tướng. */
+  scale: number; dx: number; dy: number;
+  hat: PtHat;
+  /** Màu phát sáng (mặc định màu võ hồn). */
+  glow?: string;
+  motion: PtMotion;
+}
+const PT_BASE: Record<PtGroup, PtMotion> = {
+  S: { bob: 1.5, bobSec: 1.8, sway: 2, lag: 0.25, spin: 0, pivot: 40, pulse: 0.12, swing: 0, lunge: 6 },
+  B: { bob: 2, bobSec: 1.6, sway: 3, lag: 0.3, spin: 0, pivot: 40, pulse: 0.12, swing: 0, lunge: 4 },
+  T: { bob: 1, bobSec: 1.9, sway: 1.5, lag: 0.2, spin: 0, pivot: 30, pulse: 0.1, swing: 0, lunge: 8 },
+  D: { bob: 2, bobSec: 2, sway: 2.5, lag: 0.35, spin: 0, pivot: 40, pulse: 0.2, swing: 0, lunge: 6 },
+  V: { bob: 1.5, bobSec: 2, sway: 0.5, lag: 0.15, spin: 0, pivot: 60, pulse: 0.15, swing: 12, lunge: 4 },
+  O: { bob: 2.5, bobSec: 1.7, sway: 1, lag: 0.2, spin: 0, pivot: 70, pulse: 0.2, swing: 0, lunge: 8 },
+  P: { bob: 0.5, bobSec: 2, sway: 2.5, lag: 0.4, spin: 0, pivot: 10, pulse: 0.15, swing: 0, lunge: 3 },
+};
+/** Sheet 80 khung dựng bằng `phaptuong-khi.mjs` (lô P4 và P5, H3 #487) đã có thở và đánh (nhấp nhô, xoay, lao tới, uốn ngọn cây cỏ, xoay cánh hoa, vệt, vòng sóng, hạt) nướng sẵn trong
+ *  khung và trong lớp sáng `pt_<mã>_glow`; code chỉ thêm nhịp sáng `pulse`, không cộng thêm bob / lắc / vung / lao (sẽ nhân đôi chuyển động).
+ *  Thông số gốc dùng khi dựng nằm ở `chuyenDong` của `art/src/pixellab/phap_tuong/<mã>/recipe.json`. Thở 8 khung, đánh 8 khung (ra đòn khung 3 hoặc 4, giữ khung 4).
+ *  Lô P1 (Hỏa Long, Tà Hỏa Phượng Hoàng, Băng Phượng Hoàng, Kim Vũ Miêu Ưng) lô P2 (U Minh Linh Miêu, Nhu Cốt Thỏ, Yêu Hồ, Liệt Hỏa Thương Lang, Bạch Hổ) và lô P3 (Tử Vong Chu Hoàng, Bích Lân Xà Hoàng, Quỷ Mị, Hỏa Ảnh) dùng hoạt ảnh PixelLab qua `phaptuong.mjs` (cánh vỗ, thân uốn, bùng chiêu đã nằm trong khung). */
+const BAKED: Partial<PtMotion> = { bob: 0, sway: 0, spin: 0, swing: 0, lunge: 0 };
+const pt = (id: string, group: PtGroup, hat: PtHat, o: { scale?: number; dx?: number; dy?: number; glow?: string; motion?: Partial<PtMotion> } = {}): [string, PhapTuongDef] =>
+  [id, { sheet: `pt_${id}`, formula: group === "S" || group === "B" || group === "T" || group === "D" ? "sinh_vat" : "vat_the", group, hat,
+    scale: o.scale ?? 1, dx: o.dx ?? 0, dy: o.dy ?? 0, glow: o.glow, motion: { ...PT_BASE[group], ...o.motion } }];
+/** Bảng pháp tướng của đủ 25 võ hồn (bài kiểm thử đòi mỗi võ hồn có mục). Giá trị H1 (Lam Điện, Hạo Thiên Chùy) lấy theo manifest ảnh. */
+export const PHAP_TUONG: Record<string, PhapTuongDef> = Object.fromEntries([
+  pt("cuu_tinh_that_sat_kiem", "V", "hon", { dx: 10, dy: -4, motion: { ...BAKED, pulse: 0.2 } }),
+  pt("lam_dien_ba_vuong_long", "S", "dien"),
+  pt("ky_nhung_thong_thien_cuc", "P", "hon", { scale: 1.05, motion: { ...BAKED, pulse: 0.25 } }),
+  pt("ta_hoa_phuong_hoang", "B", "lua", { motion: { ...BAKED, pulse: 0.12 } }),
+  pt("u_minh_linh_mieu", "T", "khoi", { motion: { ...BAKED, pulse: 0.12 } }),
+  pt("nguyet_nhan", "V", "hon", { scale: 1.2, dy: -6, motion: { ...BAKED, pulse: 0.15 } }),
+  pt("hoa_long", "S", "lua", { motion: { ...BAKED, pulse: 0.12 } }),
+  pt("nhu_cot_tho", "T", "hon", { motion: { ...BAKED, pulse: 0.1 } }),
+  pt("kim_vu_mieu_ung", "B", "dien", { motion: { ...BAKED, pulse: 0.12 } }),
+  pt("tu_vong_chu_hoang", "T", "doc", { motion: { ...BAKED, pulse: 0.12 } }),
+  pt("bich_lan_xa_hoang", "S", "doc", { motion: { ...BAKED, pulse: 0.12 } }),
+  pt("can_khon_hon_nguyen_toa", "O", "hon", { dy: -4, motion: { ...BAKED, pulse: 0.2 } }),
+  pt("hoa_anh", "D", "lua", { motion: { ...BAKED, pulse: 0.15 } }),
+  pt("yeu_ho", "T", "hon", { motion: { ...BAKED, pulse: 0.12 } }),
+  pt("xuc_xich", "O", "khoi", { scale: 1.1, dx: 10, dy: -6, motion: { ...BAKED, pulse: 0.2 } }),
+  pt("quy_mi", "D", "khoi", { motion: { ...BAKED, pulse: 0.12 } }),
+  pt("thien_can_bach_ngoc_dinh", "O", "khoi", { dy: -6, motion: { ...BAKED, pulse: 0.15 } }),
+  pt("lam_ngan_thao", "P", "la", { motion: { ...BAKED, pulse: 0.15 } }),
+  pt("hao_thien_chuy", "V", "khoi", { scale: 0.85, dx: 12, dy: -4, motion: { swing: 0, bob: 1 } }),
+  pt("cuu_bao_luu_ly_thap", "V", "hon", { dy: -2, motion: { ...BAKED, pulse: 0.25 } }),
+  pt("pha_hon_thuong", "V", "hon", { dx: 12, dy: -2, motion: { ...BAKED, pulse: 0.15 } }),
+  pt("a_ngan", "P", "la", { motion: { ...BAKED, pulse: 0.2 } }),
+  pt("liet_hoa_thuong_lang", "T", "lua", { motion: { ...BAKED, pulse: 0.12 } }),
+  pt("bang_phuong_hoang", "B", "bang", { motion: { ...BAKED, pulse: 0.12 } }),
+  pt("bach_ho", "T", "hon", { motion: { ...BAKED, pulse: 0.1 } }),
+]);
+export const phapTuongOf = (vohonId: string): PhapTuongDef | null => PHAP_TUONG[vohonId] ?? null;
+/**
+ * Tiến hóa theo vòng hồn hoàn (số vòng đã đồng bộ, PlayerState.rings): từ `rings` vòng trở lên dùng bậc đó.
+ * alpha: nhân độ đục hư ảnh; glow: lớp phát sáng; hat: hệ số hạt; aura: vòng / hào quang dưới chân (0 = không).
+ */
+export const PT_STAGES: readonly { rings: number; alpha: number; glow: number; hat: number; aura: number }[] = [
+  { rings: 7, alpha: 0.55, glow: 0.3, hat: 0, aura: 0.3 },
+  { rings: 8, alpha: 0.75, glow: 0.5, hat: 0.6, aura: 0.55 },
+  { rings: 9, alpha: 0.9, glow: 0.7, hat: 1, aura: 1 },
+  { rings: 10, alpha: 1, glow: 1, hat: 1.6, aura: 1.5 },
+];
+export const phapTuongStage = (rings: number) => [...PT_STAGES].reverse().find((s) => rings >= s.rings) ?? PT_STAGES[0];
+/** Bùng hết cỡ (lúc tung tuyệt kỹ, mọi bậc): hệ số nhân PT_STAGES[3] trong chừng này giây. */
+export const PT_BURST_SEC = 1.6;
+/** Chuỗi biến hình (giây từ lúc bật Chân Thân): vòng sáng, cột sáng, hiện từ dưới lên, gầm / vung, giữ. Tổng PT_FORM.total. */
+export const PT_FORM = { column: 0.2, rise0: 0.35, rise1: 0.95, roar: 1.0, total: 1.2, fadeOut: 0.6 } as const;
+/** Đòn đánh (giây): lấy đà, ra đòn, dừng hình (hit-stop 2–3 khung ≈ 0,05 s) rồi thu về; tổng = lấy đà + ra đòn + dừng + thu. */
+export const PT_STRIKE = { windup: 0.14, hit: 0.1, stop: 0.05, recover: 0.26, back: 6 } as const;
+/** Cut-in khi bật Chân Thân (chỉ mình thấy): giây. */
+export const PT_CUTIN_SEC = 0.5;
+/** Hệ số độ đục / hạt của pháp tướng người khác so với của mình, theo mức hiệu ứng Thấp / Vừa / Cao. */
+export const PT_OTHERS_K = { low: 0.4, mid: 0.6, high: 0.75 } as const;
+/**
+ * Quầng hào quang Chân Thân (#535, chỉ hình ảnh): lúc biến hình các vòng hồn hoàn lần lượt bay xoắn lên rồi hợp thành quầng đồng tâm SAU lưng
+ * (chỉ lớp sau thân); vòng `foot` (vòng 7, chỉ số từ 0) ở lại dưới chân và sáng. Đơn vị: pixel nội bộ (1 pixel ảnh thân), giây, radian / giây.
+ * cy: độ cao tâm quầng trên chân; r0 / step: bán kính vòng trong cùng và bước tăng (vòng mạnh nhất ngoài cùng); spin: tốc độ xoay (xen kẽ chiều);
+ * stagger / flight / turns: vòng bay cách nhau, mỗi vòng bay trong, số vòng xoắn (stagger co lại để vòng cuối xong trước PT_FORM.total);
+ * pulse: nhịp sáng (ms); litSec: vòng lóe sáng khi tung hồn kỹ; fadeOut: quầng tan khi hết Chân Thân; alpha: độ đục nền (nhân thêm theo niên hạn).
+ */
+export const HAO_QUANG = { cy: 32, r0: 10, step: 1.8, foot: 6, spin: 0.45, stagger: 0.055, flight: 0.6, turns: 1.25, pulse: 700, litSec: 0.45, fadeOut: 0.5, alpha: 0.62 } as const;
+/** Cách hiện vòng hồn hoàn khi Chân Thân (cài đặt hiệu ứng): quầng sau lưng (mặc định) / giữ dưới chân / kiểu cũ (bay quanh thân). */
+export type HaoQuangMode = "halo" | "feet" | "old";
+export const HAO_QUANG_MODES: readonly [HaoQuangMode, string][] = [["halo", "Hào quang"], ["feet", "Dưới chân"], ["old", "Kiểu cũ"]];
+/** Hai pháp tướng cùng lúc (dung hợp kỹ H6): độ lệch ngang giữa hai hình và độ đục mỗi hình khi hòa nhau. */
+export const PT_DUO = { dx: 22, alpha: 0.8 } as const;
 const ctBurst = (name: string, o: Partial<SkillDef>): SkillDef => ({ name, desc: "", icon: "", cost: 0, cd: 0, area: "around", r: 90, dmg: 0, ...o });
 /** Hồn kỹ Chân Thân (9.6, đã chốt): ô P (chỉ số trong 4 ô mang theo), hồn lực và hồi chiêu chung của mọi võ hồn. */
 export const CHAN_THAN_SKILL_SLOT = LOADOUT_SIZE - 1;
@@ -2370,6 +2600,11 @@ export const CHAN_THAN: Record<string, ChanThanDef> = {
     skill: ctSkill("Băng Phượng Cực Hàn Vực", "Băng vực phượng hoàng quanh thân: đóng băng (Choáng 2,5 giây), Làm chậm 3 giây, Dễ thương 6 giây", "❄",
       { area: "around", r: 140, dmg: 4.3, glow: true, status: [{ s: "stun", secs: 2.5 }, { s: "slow", secs: 3 }, { s: "vuln", secs: 6 }] }),
     burst: ctBurst("Băng Phượng Hoàng Chân Thân", { r: 110, dmg: 1.8, fly: 0.5, status: [{ s: "stun", secs: 1.5 }, { s: "slow", secs: 3 }] }) },
+  bach_ho: { name: "Bạch Hổ Chân Thân", desc: "Hóa thân Bạch Hổ: chấn quanh thân (hất lùi, Phá giáp 2 tầng); công +30%, sát thương nhận giảm 20%, sinh lực tối đa +15%",
+    icon: "◉", cost: 80, cd: 90, secs: 15, stats: { atk: 0.3, def: 0.2, hp: 0.15 },
+    skill: ctSkill("Bạch Hổ Phá Thiên Trảo", "Lao tới một mục tiêu, vồ bằng cả sức Bạch Hổ: hất tung (Choáng 1 giây), Phá giáp 2 tầng", "◉",
+      { area: "target", r: 120, dash: 100, dmg: 7.2, glow: true, shake: true, status: [{ s: "stun", secs: 1 }, { s: "armor", n: 2 }] }),
+    burst: ctBurst("Bạch Hổ Chân Thân", { r: 100, dmg: 2.2, push: 40, shake: true, status: [{ s: "armor", n: 2 }] }) },
 };
 export const chanThanOf = (vohonId: string): ChanThanDef | null => CHAN_THAN[vohonId] ?? null;
 /** Bán kính lãnh vực phượng hoàng của hồn sư có võ hồn ra trận `vohonId`, `ava` = đang Chân Thân (8.1b; server tính trúng, client vẽ). */
@@ -2439,6 +2674,8 @@ export const TIEN_CO_RIENG: Record<string, SkillDef> = {
     area: "target", r: 110, dash: 90, n: 3, every: 0.1, dmg: 1.2, inv: 0.35, status: [{ s: "burn" }] },
   bang_phuong_hoang: { name: "Băng Phượng Lâm Thế", desc: "bay lên rồi giáng băng quanh thân: đóng băng (Choáng 1,5 giây), Làm chậm 3 giây", icon: "❄", cost: 0, cd: 0,
     area: "around", r: 90, dmg: 1.2, fly: 0.5, status: [{ s: "stun" }, { s: "slow", secs: 3 }] },
+  bach_ho: { name: "Bạch Hổ Chấn Thiên", desc: "luồng quang nửa trước mặt, hất lùi, Phá giáp 2 tầng", icon: "◉", cost: 0, cd: 0,
+    area: "front", r: 80, dmg: 2.6, push: 40, shake: true, status: [{ s: "armor", n: 2 }] },
 };
 
 /**
@@ -2513,6 +2750,14 @@ export const FUSIONS: FusionDef[] = [
       { name: "Hỏa", desc: "", icon: "✹", cost: 0, cd: 0, area: "around", r: 80, dmg: 2.2, side: 1, status: [{ s: "burn", n: 3 }] },
       { name: "Lưỡng Nghi", desc: "", icon: "☯", cost: 0, cd: 0, area: "around", r: 110, dmg: 1.6, vsSt: { s: ["stun", "burn"], v: 0.5 },
         glow: true, shake: true },
+    ] },
+  // Đái Mộc Bạch và Chu Trúc Thanh: dung hợp kỹ nổi tiếng nhất truyện (#194). Mô tả hiệu ứng là phỏng theo: bóng U Minh phủ lên Bạch Hổ.
+  { name: "U Minh Bạch Hổ", pair: ["bach_ho", "u_minh_linh_mieu"], icon: "☾",
+    desc: "Nửa vùng phía Bạch Hổ: luồng quang chấn lùi, Phá giáp 2 tầng; nửa phía U Minh Linh Miêu: 3 nhát cào bóng tối, +30% chí mạng, mỗi nhát Phá giáp 1 tầng; rồi hổ ảnh U Minh phủ cả vùng, hồn thú đang Phá giáp chịu thêm 50%",
+    parts: [
+      { name: "Bạch Hổ", desc: "", icon: "◉", cost: 0, cd: 0, area: "around", r: 80, dmg: 2.2, side: 0, push: 30, status: [{ s: "armor", n: 2 }] },
+      { name: "U Minh", desc: "", icon: "☾", cost: 0, cd: 0, area: "around", r: 80, n: 3, every: 0.2, dmg: 0.9, crit: 0.3, side: 1, status: [{ s: "armor" }] },
+      { name: "U Minh Bạch Hổ", desc: "", icon: "✥", cost: 0, cd: 0, area: "around", r: 110, dmg: 1.6, vsSt: { s: ["armor"], v: 0.5 }, glow: true, shake: true },
     ] },
 ];
 /** Chỉ số cặp dung hợp của hai võ hồn (mã), bất kể thứ tự; -1 nếu không ghép được. */
@@ -2845,7 +3090,7 @@ export const CORE_SETS: { id: CoreSetId; name: string; tag: string; col: string;
     set4: "Đánh trúng mục tiêu cảm điện hồi 3% hồn lực, mỗi giây 1 lần" },
   { id: "xa_hoang",      name: "Xà Hoàng",      tag: "Trúng độc", col: "#6fd35a", set2: "+15% sát thương độc",
     set4: "Mục tiêu trúng độc từ 5 tầng trở lên bị Dễ thương 10%" },
-  { id: "hao_thien",     name: "Hạo Thiên",     tag: "Chấn đãng", col: "#b9a3ff", set2: "+15% công",
+  { id: "hao_thien",     name: "Hạo Thiên",     tag: "Chấn động", col: "#b9a3ff", set2: "+15% công",
     set4: "Đòn đánh thứ 3 liên tiếp gây thêm 40% sát thương" },
   { id: "that_sat",      name: "Thất Sát",      tag: "Phá giáp",  col: "#e3e6f0", set2: "Đòn trực tiếp xuyên 1/3 thủ của hồn thú",
     set4: "Mục tiêu bị Liệt thương nhận thêm 15% chí mạng từ võ hồn mang bộ" },
@@ -3407,9 +3652,344 @@ export function passiveText(p: { buff?: Partial<Record<PassiveBuff, number>>; re
     ...Object.entries(p.resist ?? {}).map(([k, v]) => `Kháng ${STATUS[k as StatusId].name}: thời gian −${pctTxt(v * mult)}`)].join(", ");
 }
 
+// ---------- Trang bị hồn sư (mục 5.15, bước E0; số đã soát ở docs/trang-bi-kinh-te.md, CHỜ NGƯỜI DÙNG DUYỆT trước khi bật) ----------
+/** Mã vật phẩm của một món trang bị (cột `items.code`, `kind` = `trang_bi`): mỗi món một ô; mẫu, cấp vật phẩm, dòng phụ… ở `items.stats`. */
+export const EQUIP_ITEM = "trang_bi";
+export type EquipSlot = "vu_khi" | "mu" | "ao" | "dai" | "giay" | "day_chuyen" | "vong_trai" | "vong_phai" | "nhan_trai" | "nhan_phai";
+/**
+ * 10 ô trang bị của hồn sư (thuộc hồn sư, cộng cho võ hồn đang ra trận). `main`: mã chỉ số chính (CORE_STATS); `w`: mức chỉ số chính so
+ * với một chỉ số chính hồn hạch 6★ +0 (CORE_STATS[main].main), sau đó nhân hệ số bậc, cấp vật phẩm và cường hóa. `red`: phần "giảm
+ * sát thương nhận" tối đa của ô ở bậc cao nhất (0 = không có). `luck`: ô mang may mắn. `weapon`: công cộng theo từng đòn, tung trong
+ * [min, max] = giữa × (1 − spread, 1 + spread). Thứ tự là chỉ số ô: thêm ô mới thì thêm vào cuối.
+ */
+export interface EquipSlotDef { id: EquipSlot; name: string; main: CoreStat; w: number; red: number; luck: boolean; weapon?: { spread: number } }
+export const EQUIP_SLOTS: EquipSlotDef[] = [
+  { id: "vu_khi",     name: "Vũ khí",         main: "atk",      w: 2,   red: 0,     luck: true, weapon: { spread: 0.25 } },
+  { id: "mu",         name: "Mũ",             main: "mp",       w: 0.6, red: 0.02,  luck: false },
+  { id: "ao",         name: "Áo",             main: "hp",       w: 1,   red: 0.03,  luck: false },
+  { id: "dai",        name: "Đai",            main: "hp_pct",   w: 0.4, red: 0.015, luck: false },
+  { id: "giay",       name: "Giày",           main: "hp",       w: 0.6, red: 0.015, luck: false },
+  { id: "day_chuyen", name: "Dây chuyền",     main: "crit",     w: 0.4, red: 0,     luck: true },
+  { id: "vong_trai",  name: "Vòng tay trái",  main: "atk",      w: 0.6, red: 0,     luck: false },
+  { id: "vong_phai",  name: "Vòng tay phải",  main: "atk_pct",  w: 0.3, red: 0,     luck: false },
+  { id: "nhan_trai",  name: "Nhẫn trái",      main: "crit_dmg", w: 0.3, red: 0,     luck: false },
+  { id: "nhan_phai",  name: "Nhẫn phải",      main: "mp_pct",   w: 0.3, red: 0,     luck: false },
+];
+export const equipSlotIndex = (slot: unknown) => EQUIP_SLOTS.findIndex((s) => s.id === slot);
+export const equipSlotDef = (slot: unknown) => EQUIP_SLOTS[equipSlotIndex(slot)];
+
+/**
+ * 6 bậc (tên đề xuất, người dùng đã chốt giữ cho tới khi đổi). `k`: hệ số chỉ số chính (nhân CORE_STATS[main].main × w); `lines`: số
+ * dòng phụ; `lineK`: mức dòng phụ lớn nhất so với CORE_STATS[mã].sub; `red`: tỉ lệ phần giảm sát thương tối đa của ô (EquipSlotDef.red).
+ * Chỉ số bậc cao nhất (Chí Bảo +15 cả bộ) cố ý dưới hồn hạch / hồn cốt đã cường hóa đủ: vòng chơi chính vẫn là hồn hoàn / hồn cốt / hồn hạch.
+ */
+export interface EquipTierDef { id: string; name: string; color: string; col: string; k: number; lines: number; lineK: number; red: number }
+export const EQUIP_TIERS: EquipTierDef[] = [
+  { id: "pham_khi",   name: "Phàm Khí",           color: "Trắng", col: "#e8e8e8", k: 0.08, lines: 0, lineK: 0,    red: 0.2 },
+  { id: "tinh_thiet", name: "Tinh Thiết",         color: "Lục",   col: "#6fd06f", k: 0.13, lines: 1, lineK: 0.1,  red: 0.35 },
+  { id: "han_ngoc",   name: "Hàn Ngọc",           color: "Lam",   col: "#4b9dff", k: 0.2,  lines: 1, lineK: 0.15, red: 0.5 },
+  { id: "tu_kim",     name: "Tử Kim",             color: "Tím",   col: "#b36bff", k: 0.3,  lines: 2, lineK: 0.2,  red: 0.7 },
+  { id: "than_khi",   name: "Thần Khí",           color: "Cam",   col: "#ff9a3c", k: 0.45, lines: 3, lineK: 0.25, red: 0.85 },
+  { id: "chi_bao",    name: "Đường Môn Chí Bảo",  color: "Đỏ",    col: "#ff4d4d", k: 0.65, lines: 4, lineK: 0.3,  red: 1 },
+];
+export const EQUIP_MAX_TIER = EQUIP_TIERS.length - 1;
+/**
+ * Cấp vật phẩm theo bản đồ nơi rơi (`ilvl` lưu trên món, 1–7): EQUIP_ILVL_K nhân chỉ số chính và dòng phụ (như niên hạn hồn hoàn: cùng bậc,
+ * bản đồ sâu ra món mạnh hơn). `EquipMapDef.maxTier`: bậc tối đa rơi ở bản đồ (tung vượt thì kẹp xuống); `stones`: trọng số rơi Đá Cường Hóa I–V.
+ */
+export interface EquipMapDef { ilvl: number; maxTier: number; stones: [number, number, number, number, number] }
+export const EQUIP_ILVL_K = [0.55, 0.65, 0.75, 0.82, 0.9, 1, 1.05];
+export const equipIlvlK = (ilvl: number) => EQUIP_ILVL_K[Math.max(1, Math.min(EQUIP_ILVL_K.length, Math.floor(ilvl) || 1)) - 1];
+export const EQUIP_MAPS: Record<string, EquipMapDef> = {
+  thanh_hon_thon:    { ilvl: 1, maxTier: 2, stones: [70, 30, 0, 0, 0] },
+  tinh_dau_ngoai_vi: { ilvl: 2, maxTier: 3, stones: [40, 45, 15, 0, 0] },
+  tinh_dau_noi_dia:  { ilvl: 3, maxTier: 3, stones: [15, 40, 35, 10, 0] },
+  lac_nhat_sam_lam:  { ilvl: 4, maxTier: 4, stones: [5, 25, 40, 25, 5] },
+  cuc_bac_chi_dia:   { ilvl: 5, maxTier: 4, stones: [0, 15, 35, 35, 15] },
+  hai_than_dao:      { ilvl: 6, maxTier: 5, stones: [0, 5, 25, 40, 30] },
+  loi_tinh_dau:      { ilvl: 7, maxTier: 5, stones: [0, 0, 10, 40, 50] },
+};
+
+/** Mẫu trang bị: mỗi (ô × bậc) một mẫu, mã `<ô>_<bậc>` (lưu DB, không đổi). `w`: trọng số chọn mẫu trong cùng bậc (mọi ô cân bằng nhau). */
+export interface EquipTemplate { id: string; name: string; slot: EquipSlot; tier: number; w: number }
+const EQUIP_NAMES: Record<EquipSlot, [string, string, string, string, string, string]> = {
+  vu_khi:     ["Phi Đao Phàm Thiết", "Tụ Tiễn Tinh Thiết", "Hàn Ngọc Phi Kiếm", "Tử Kim Đường Nỏ", "Thần Khí Liên Nỗ", "Phật Nộ Đường Liên"],
+  mu:         ["Khăn Vải Thôn Dân", "Mũ Sắt Tinh Thiết", "Hàn Ngọc Quan", "Tử Kim Phát Quan", "Thần Khí Kim Quan", "Đường Môn Chí Tôn Quan"],
+  ao:         ["Áo Vải Thô", "Giáp Da Tinh Thiết", "Hàn Ngọc Bào", "Tử Kim Chiến Giáp", "Thần Khí Hồn Giáp", "Đường Môn Thần Giáp"],
+  dai:        ["Dây Lưng Gai", "Đai Tinh Thiết", "Hàn Ngọc Yêu Đới", "Tử Kim Yêu Đới", "Thần Khí Yêu Đới", "Chí Bảo Long Đới"],
+  giay:       ["Giày Cỏ", "Ủng Tinh Thiết", "Hàn Ngọc Ngoa", "Tử Kim Chiến Ngoa", "Thần Khí Phi Ngoa", "Chí Bảo Phi Ngoa"],
+  day_chuyen: ["Dây Chuyền Đá Cuội", "Dây Chuyền Tinh Thiết", "Hàn Ngọc Mặt Dây", "Tử Kim Hạng Liên", "Thần Khí Hạng Liên", "Chí Bảo Hạng Liên"],
+  vong_trai:  ["Vòng Đồng Hộ Uyển", "Tinh Thiết Hộ Uyển", "Hàn Ngọc Hộ Uyển", "Tử Kim Hộ Uyển", "Thần Khí Hộ Uyển", "Chí Bảo Hộ Uyển"],
+  vong_phai:  ["Vòng Đồng Thủ Trạc", "Tinh Thiết Thủ Trạc", "Hàn Ngọc Thủ Trạc", "Tử Kim Thủ Trạc", "Thần Khí Thủ Trạc", "Chí Bảo Thủ Trạc"],
+  nhan_trai:  ["Nhẫn Đồng Trơn", "Nhẫn Tinh Thiết", "Hàn Ngọc Giới Chỉ", "Tử Kim Giới Chỉ", "Thần Khí Giới Chỉ", "Chí Bảo Giới Chỉ"],
+  nhan_phai:  ["Nhẫn Gỗ Mộc", "Nhẫn Tinh Thiết Khắc Văn", "Hàn Ngọc Chỉ Hoàn", "Tử Kim Chỉ Hoàn", "Thần Khí Chỉ Hoàn", "Chí Bảo Chỉ Hoàn"],
+};
+export const EQUIP_TEMPLATES: EquipTemplate[] = EQUIP_SLOTS.flatMap((s) =>
+  EQUIP_TIERS.map((t, i): EquipTemplate => ({ id: `${s.id}_${t.id}`, name: EQUIP_NAMES[s.id][i], slot: s.id, tier: i, w: 1 })));
+const EQUIP_TPL_INDEX = new Map(EQUIP_TEMPLATES.map((t) => [t.id, t]));
+export const equipTemplate = (id: unknown) => EQUIP_TPL_INDEX.get(id as string);
+/** Tên đầy đủ trong túi: "+7 Tử Kim Hộ Uyển". */
+export const equipName = (tpl: unknown, enhance = 0) => { const t = equipTemplate(tpl); return t ? `${enhance > 0 ? `+${enhance} ` : ""}${t.name}` : "Trang bị lạ"; };
+
+/**
+ * Khóa ảnh của trang bị (quy ước cho E5 / E6; ảnh 32×32 `item_*` theo tools/assets/README.md). Mã mẫu là khóa ổn định: thay ảnh tạm bằng ảnh
+ * thật chỉ cần đặt đúng tên file, không sửa code. Thứ tự tra của client (equipIconChain): ảnh của mẫu `item_equip_<mẫu>` → hình ô
+ * `item_equip_slot_<ô>` (bóng ô, cũng dùng cho ô trống trên búp bê) → `item_trang_bi`. Khung viền theo bậc `item_equip_frame_<bậc>` vẽ chồng
+ * lên ảnh; chưa có ảnh khung thì client vẽ viền CSS bằng `EquipTierDef.col`. Nguyên liệu (đá, bùa…) theo quy ước chung `item_<mã>`.
+ */
+export const equipIconKey = (tpl: string) => `item_equip_${tpl}`;
+export const equipSlotIconKey = (slot: EquipSlot) => `item_equip_slot_${slot}`;
+export const equipFrameKey = (tier: number) => `item_equip_frame_${EQUIP_TIERS[Math.max(0, Math.min(EQUIP_MAX_TIER, Math.floor(tier) || 0))].id}`;
+export const equipIconChain = (tpl: unknown) => { const t = equipTemplate(tpl); return t ? [equipIconKey(t.id), equipSlotIconKey(t.slot), `item_${EQUIP_ITEM}`] : [`item_${EQUIP_ITEM}`]; };
+/** Mọi khóa ảnh trang bị cần làm ở E6: 60 ảnh mẫu + 10 hình ô + 6 khung bậc = 76. */
+export const equipIconKeys = () => [...EQUIP_TEMPLATES.map((t) => equipIconKey(t.id)), ...EQUIP_SLOTS.map((x) => equipSlotIconKey(x.id)), ...EQUIP_TIERS.map((_, i) => equipFrameKey(i))];
+
+/** May mắn (vũ khí + dây chuyền): tổng tối đa EQUIP_LUCK_MAX; từ mức đó đòn vũ khí luôn ra công tối đa. */
+export const EQUIP_LUCK_MAX = 9;
+
+/**
+ * Cường hóa +1…+EQUIP_MAX_ENHANCE: chỉ số chính và công vũ khí × (1 + EQUIP_ENHANCE_STAT × cấp^1,5) (+5 ×1,18, +10 ×1,51, +15 ×1,93);
+ * không áp lên may mắn, giảm sát thương và dòng phụ. Bản kế hoạch ghi 8% × cấp^1,5 (+15 ×5,65): co lại vì +15 đã tốn rất nhiều.
+ */
+export const EQUIP_MAX_ENHANCE = 15;
+export const EQUIP_ENHANCE_STAT = 0.016;
+export const equipEnhanceClamp = (e: unknown) => Math.max(0, Math.min(EQUIP_MAX_ENHANCE, Math.floor(Number(e)) || 0));
+export const equipEnhanceMult = (enhance: number) => 1 + EQUIP_ENHANCE_STAT * Math.pow(equipEnhanceClamp(enhance), 1.5);
+
+/** Đá Cường Hóa I–V (`items.code`, gộp tối đa `stack`): `drop` = số đá mỗi lần rơi ở nhóm "đồ tạp" (EQUIP_DROP.ranks), `buy` = giá thương nhân (0 = không bán). */
+export const EQUIP_STONES: { id: string; name: string; col: string; stack: number; drop: [number, number]; buy: number }[] = [
+  { id: "da_cuong_hoa_1", name: "Đá Cường Hóa I",   col: "#b8c0c8", stack: 999, drop: [1, 3], buy: 40 },
+  { id: "da_cuong_hoa_2", name: "Đá Cường Hóa II",  col: "#7fd0a0", stack: 999, drop: [1, 2], buy: 150 },
+  { id: "da_cuong_hoa_3", name: "Đá Cường Hóa III", col: "#6aa8ff", stack: 999, drop: [1, 2], buy: 0 },
+  { id: "da_cuong_hoa_4", name: "Đá Cường Hóa IV",  col: "#c280ff", stack: 999, drop: [1, 1], buy: 0 },
+  { id: "da_cuong_hoa_5", name: "Đá Cường Hóa V",   col: "#ff9a3c", stack: 999, drop: [1, 1], buy: 0 },
+];
+/** Bùa Hộ Mệnh: chặn phá hủy khi cường hóa thất bại ở +13–15 (giữ cấp, mất 1 bùa); chỉ rơi từ thú vương / boss thế giới, không bán. */
+export const EQUIP_CHARM = "bua_ho_menh";
+/** Tinh Hoa Đường Môn (phân giải Thần Khí / Chí Bảo; chi phí hợp thành T4→T5) và Thần Hồn (phân giải Chí Bảo; khắc may mắn). */
+export const EQUIP_ESSENCE = "tinh_hoa_duong_mon";
+export const EQUIP_SOUL = "than_hon";
+export const EQUIP_MATERIALS: { id: string; name: string; col: string; stack: number; desc: string }[] = [
+  ...EQUIP_STONES.map((s, i) => ({ id: s.id, name: s.name, col: s.col, stack: s.stack, desc: `Nguyên liệu cường hóa trang bị hồn sư (nấc ${i + 1}). Rơi từ hồn thú, phân giải trang bị.` })),
+  { id: EQUIP_CHARM, name: "Bùa Hộ Mệnh", col: "#ffd45a", stack: 99, desc: "Cường hóa trang bị thất bại ở +13–15 mà có bùa thì món không bị phá hủy (giữ cấp, mất 1 bùa). Chỉ rơi từ thú vương và boss thế giới." },
+  { id: EQUIP_ESSENCE, name: "Tinh Hoa Đường Môn", col: "#ff6a5a", stack: 99, desc: "Tinh hoa từ trang bị Thần Khí / Chí Bảo phân giải. Dùng hợp thành Thần Khí lên Chí Bảo." },
+  { id: EQUIP_SOUL, name: "Thần Hồn", col: "#e8dcff", stack: 99, desc: "Hồn từ trang bị Chí Bảo phân giải. Khắc may mắn lên vũ khí / dây chuyền." },
+];
+
+/** Một nấc cường hóa. `to`: khoảng cấp ĐÍCH (+a … +b) dùng chung điều kiện; `fail`: keep giữ cấp, down tụt `n` cấp, reset về cấp `to` (nếu đang cao hơn), destroy phá hủy món (có Bùa Hộ Mệnh thì giữ cấp). */
+export interface EquipEnhanceStep { to: [number, number]; p: number; stone: number; qty: number; fee: number; fail: { kind: "keep" } | { kind: "down"; n: number } | { kind: "reset"; to: number } | { kind: "destroy" } }
+/**
+ * **(chờ duyệt)** Bảng cường hóa theo cấp đích (stone = chỉ số trong EQUIP_STONES). Mỗi lần cố đều trừ đá và `fee` đồng Hồn Tệ, kể cả khi
+ * thất bại. +13–15 thất bại không có bùa PHÁ HỦY món: ngoại lệ có chủ đích với nguyên tắc "cường hóa hồn cốt / hồn hạch không thất bại" (mục 5.15).
+ */
+export const EQUIP_ENHANCE: EquipEnhanceStep[] = [
+  { to: [1, 3],   p: 1,    stone: 0, qty: 1, fee: 200,   fail: { kind: "keep" } },
+  { to: [4, 6],   p: 0.75, stone: 1, qty: 2, fee: 800,   fail: { kind: "keep" } },
+  { to: [7, 9],   p: 0.5,  stone: 2, qty: 4, fee: 2500,  fail: { kind: "down", n: 1 } },
+  { to: [10, 12], p: 0.3,  stone: 3, qty: 5, fee: 8000,  fail: { kind: "down", n: 1 } },
+  { to: [13, 15], p: 0.1,  stone: 4, qty: 8, fee: 30000, fail: { kind: "destroy" } },
+];
+/** Nấc cường hóa để lên +(enhance + 1); null = đã tối đa. */
+export const equipEnhanceStep = (enhance: number) => { const e = equipEnhanceClamp(enhance); return e >= EQUIP_MAX_ENHANCE ? null : EQUIP_ENHANCE.find((s) => e + 1 >= s.to[0] && e + 1 <= s.to[1]) ?? null; };
+/**
+ * Kết quả một lần cường hóa từ +`enhance` (hàm thuần; server tung `ok` bằng `rnd() < step.p` rồi gọi): cấp mới, món có bị phá hủy không,
+ * có tiêu Bùa Hộ Mệnh không. `charm`: người chơi chọn dùng bùa (chỉ có tác dụng ở nấc phá hủy; không dùng thì thất bại là mất món).
+ */
+export function equipEnhanceResult(enhance: number, ok: boolean, charm: boolean): { enhance: number; destroyed: boolean; charmUsed: boolean } | null {
+  const e = equipEnhanceClamp(enhance), s = equipEnhanceStep(e); if (!s) return null;
+  if (ok) return { enhance: e + 1, destroyed: false, charmUsed: false };
+  switch (s.fail.kind) {
+    case "keep": return { enhance: e, destroyed: false, charmUsed: false };
+    case "down": return { enhance: Math.max(0, e - s.fail.n), destroyed: false, charmUsed: false };
+    case "reset": return { enhance: Math.min(e, s.fail.to), destroyed: false, charmUsed: false };
+    case "destroy": return charm ? { enhance: e, destroyed: false, charmUsed: true } : { enhance: 0, destroyed: true, charmUsed: false };
+  }
+}
+
+/**
+ * **(chờ duyệt)** Hợp thành 3 → 1 ở Thợ rèn (1 món chính + 2 món hiến tế cùng bậc, cùng ô, không khoá, không đang mặc) ra 1 món bậc kế,
+ * mẫu ngẫu nhiên cùng ô. `from`: bậc đầu vào; `p`: tỉ lệ; `fee`: Hồn Tệ (trừ cả khi thất bại); `essence`: Tinh Hoa Đường Môn tiêu hao;
+ * thất bại: luôn mất 2 hiến tế; `mainLoss`: món chính mất ngần này cấp cường hóa (T3→T4); `all`: mất cả món chính (T4→T5) và hoàn `refund`
+ * phần Tinh Hoa (làm tròn xuống). Thành công: món mới giữ EQUIP_SYNTH_KEEP phần cấp cường hóa của món chính (làm tròn xuống). Không có độ bền.
+ */
+export const EQUIP_SYNTH: { from: number; p: number; fee: number; essence: number; mainLoss: number; all: boolean; refund: number }[] = [
+  { from: 0, p: 1,    fee: 100,   essence: 0,  mainLoss: 0, all: false, refund: 0 },
+  { from: 1, p: 0.85, fee: 400,   essence: 0,  mainLoss: 0, all: false, refund: 0 },
+  { from: 2, p: 0.65, fee: 1500,  essence: 0,  mainLoss: 0, all: false, refund: 0 },
+  { from: 3, p: 0.4,  fee: 6000,  essence: 0,  mainLoss: 1, all: false, refund: 0 },
+  { from: 4, p: 0.2,  fee: 20000, essence: 10, mainLoss: 0, all: true,  refund: 0.3 },
+];
+export const EQUIP_SYNTH_KEEP = 0.5;
+export const equipSynthStep = (tier: number) => EQUIP_SYNTH.find((s) => s.from === tier) ?? null;
+/**
+ * Kết quả hợp thành từ bậc `from` (hàm thuần; server tung `ok` bằng `rnd() < step.p`): thành công → món mới cấp cường hóa floor(món chính × EQUIP_SYNTH_KEEP);
+ * thất bại → `main` = cấp món chính sau đó (null = mất cả món chính), luôn mất 2 hiến tế, `refund` = Tinh Hoa hoàn lại (làm tròn xuống). Bậc không hợp thành được: null.
+ */
+export function equipSynthOutcome(from: number, mainEnhance: number, ok: boolean): { ok: true; enhance: number } | { ok: false; main: number | null; refund: number } | null {
+  const s = equipSynthStep(from); if (!s) return null;
+  const e = equipEnhanceClamp(mainEnhance);
+  if (ok) return { ok: true, enhance: Math.floor(e * EQUIP_SYNTH_KEEP) };
+  return { ok: false, main: s.all ? null : Math.max(0, e - s.mainLoss), refund: s.all ? Math.floor(s.essence * s.refund) : 0 };
+}
+/** Tối đa ngần này món trong một lệnh phân giải (cỡ một trang túi, BAG_PAGE). */
+export const EQUIP_SALVAGE_MAX = 50;
+
+/**
+ * **(chờ duyệt)** Phân giải (không cho kinh nghiệm): Hồn Tệ = coin[bậc] × (1 + cấp cường hóa / 5), cộng nguyên liệu `mats` theo bậc
+ * (mỗi dòng: xác suất `p`, số lượng [lo, hi]; mã trong EQUIP_MATERIALS). Cấp cường hóa chỉ tăng phần Hồn Tệ.
+ */
+export const EQUIP_SALVAGE: { coin: number; mats: { code: string; p: number; qty: [number, number] }[] }[] = [
+  { coin: 4,    mats: [{ code: "da_cuong_hoa_1", p: 1, qty: [1, 2] }] },
+  { coin: 12,   mats: [{ code: "da_cuong_hoa_1", p: 1, qty: [1, 2] }, { code: "da_cuong_hoa_2", p: 0.5, qty: [1, 1] }] },
+  { coin: 40,   mats: [{ code: "da_cuong_hoa_2", p: 1, qty: [1, 2] }, { code: "da_cuong_hoa_3", p: 0.5, qty: [1, 1] }] },
+  { coin: 120,  mats: [{ code: "da_cuong_hoa_3", p: 1, qty: [1, 2] }, { code: "da_cuong_hoa_4", p: 0.5, qty: [1, 1] }] },
+  { coin: 400,  mats: [{ code: "da_cuong_hoa_4", p: 1, qty: [1, 3] }, { code: "da_cuong_hoa_5", p: 0.5, qty: [1, 1] }, { code: EQUIP_ESSENCE, p: 0.5, qty: [1, 1] }] },
+  { coin: 1200, mats: [{ code: "da_cuong_hoa_5", p: 1, qty: [1, 2] }, { code: EQUIP_ESSENCE, p: 1, qty: [2, 3] }, { code: EQUIP_SOUL, p: 0.25, qty: [1, 1] }] },
+];
+export function equipSalvage(tier: number, enhance: number, rnd: () => number): { coin: number; items: { code: string; qty: number }[] } {
+  const t = EQUIP_SALVAGE[Math.max(0, Math.min(EQUIP_MAX_TIER, Math.floor(tier) || 0))], items: { code: string; qty: number }[] = [];
+  for (const m of t.mats) if (rnd() < m.p) items.push({ code: m.code, qty: m.qty[0] + Math.floor(rnd() * (m.qty[1] - m.qty[0] + 1)) });
+  return { coin: Math.round(t.coin * (1 + equipEnhanceClamp(enhance) / 5)), items };
+}
+/**
+ * **(đề xuất, chờ duyệt)** Khắc may mắn: 1 Thần Hồn lên vũ khí / dây chuyền từ may mắn n lên n + 1 với tỉ lệ EQUIP_LUCK_UP[n]; thất bại mất
+ * Thần Hồn, may mắn giữ nguyên (không phá). Tổng may mắn hai ô tối đa EQUIP_LUCK_MAX.
+ */
+export const EQUIP_LUCK_UP = [1, 0.8, 0.6, 0.45, 0.3, 0.2, 0.12, 0.08, 0.05];
+
+/**
+ * Rơi trang bị (hàm thuần, server truyền RNG và hệ số). `ranks[bậc hồn thú 0–3]`: `chance` có rơi lượt nào không, `rolls` số lượt [lo, hi],
+ * `p` xác suất mỗi lượt ra [đồ tạp = Đá Cường Hóa, T0–T1, T2–T3, T4–T5] (chưa chuẩn hoá), `t5` tỉ lệ T5 trong nhóm T4–T5, `qty` nhân số đá,
+ * `charm` tỉ lệ rơi (vào rương) Bùa Hộ Mệnh mỗi lần hạ (thú vương / boss thế giới). `tierW`: trọng số hai bậc trong nhóm T0–T1 và T2–T3.
+ * `rateCap`: trần hệ số (1 + rate máy chủ + rate người chơi) nhân vào xác suất ra trang bị trong mỗi lượt (không nhân đồ tạp, không nhân số lượt rơi, không có Rate VIP, không nạp tiền).
+ * `luck`: tỉ lệ ô may mắn ra sẵn +1. Thú vương / boss thế giới: kết quả đi vào rương theo đóng góp, không rải xuống đất (mục 5.15).
+ */
+export const EQUIP_DROP = {
+  ranks: [
+    { chance: 0.06, rolls: [1, 1], p: [0.45, 0.549, 0.001, 0], t5: 0, qty: 1, charm: 0 },
+    { chance: 1,    rolls: [1, 2], p: [0.2, 0.5, 0.28, 0.02], t5: 0, qty: 1, charm: 0 },
+    { chance: 1,    rolls: [3, 5], p: [0.12, 0.2, 0.6, 0.08], t5: 0.05, qty: 3, charm: 0.25 },
+    { chance: 1,    rolls: [5, 8], p: [0.05, 0.05, 0.4, 0.5], t5: 0.15, qty: 5, charm: 0.6 },
+  ] as { chance: number; rolls: [number, number]; p: [number, number, number, number]; t5: number; qty: number; charm: number }[],
+  tierW: [[7, 3], [6, 4]] as [number, number][],
+  rateCap: 3,
+  luck: 0.005,
+};
+
+/** Dữ liệu một món trang bị (`items.stats`; cấp cường hóa ở `items.enhance`): chỉ số cuối luôn tính lại từ mẫu + cấp vật phẩm + cấp cường hóa. */
+export interface EquipData {
+  tpl: string; ilvl: number;
+  /** Biến động chỉ số chính, đều trong ±EQUIP_ROLL. */
+  roll: number;
+  /** Dòng phụ: [mã CORE_STATS, mức tung trong CORE_SUB_ROLL]. Giá trị = equipAffixValue (CORE_STATS[mã].sub × lineK × cấp vật phẩm × mức). */
+  affixes: [CoreStat, number][];
+  /** May mắn 0–EQUIP_LUCK_MAX (chỉ ô `luck`). */
+  luck: number;
+}
+export const EQUIP_ROLL = 0.05;
+/** Đọc `items.stats` của một món trang bị (pg trả object, MemoryStore có thể trả chuỗi JSON); dữ liệu hỏng hoặc mẫu lạ thì null. Kẹp mọi số về khoảng hợp lệ. */
+export function parseEquip(stats: unknown): EquipData | null {
+  let o = stats as Record<string, unknown> | string | null;
+  if (typeof o === "string") { try { o = JSON.parse(o); } catch { return null; } }
+  if (!o || typeof o !== "object" || !equipTemplate(o.tpl)) return null;
+  const affixes = Array.isArray(o.affixes) ? o.affixes.filter((x): x is [CoreStat, number] => Array.isArray(x) && CORE_STAT_IDS.includes(x[0]) && typeof x[1] === "number" && Number.isFinite(x[1])) : [];
+  const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+  return { tpl: o.tpl as string, ilvl: Math.max(1, Math.min(EQUIP_ILVL_K.length, Math.floor(num(o.ilvl)) || 1)),
+    roll: Math.max(-EQUIP_ROLL, Math.min(EQUIP_ROLL, num(o.roll))), affixes: affixes.slice(0, Math.max(...EQUIP_TIERS.map((t) => t.lines))),
+    luck: Math.max(0, Math.min(EQUIP_LUCK_MAX, Math.floor(num(o.luck)))) };
+}
+export type EquipDrop = { kind: "equip"; item: EquipData } | { kind: "stone"; code: string; qty: number };
+
+const pickIdx = (w: readonly number[], rnd: () => number) => {
+  const total = w.reduce((a, x) => a + x, 0); if (!(total > 0)) return -1;
+  let r = rnd() * total; for (let i = 0; i < w.length; i++) { r -= w[i]; if (r < 0 && w[i] > 0) return i; }
+  return w.findIndex((x) => x > 0);
+};
+/** Tạo một món mẫu `tpl` rơi ở cấp vật phẩm `ilvl`: biến động chính ±EQUIP_ROLL, dòng phụ theo bậc (khác nhau, khác chỉ số chính), may mắn +1 hiếm. */
+export function rollEquip(tpl: EquipTemplate, ilvl: number, rnd: () => number): EquipData {
+  const slot = equipSlotDef(tpl.slot), t = EQUIP_TIERS[tpl.tier], pool = CORE_STAT_IDS.filter((k) => k !== slot.main), affixes: [CoreStat, number][] = [];
+  for (let n = 0; n < t.lines && pool.length; n++) {
+    const k = pool.splice(Math.min(pool.length - 1, Math.floor(rnd() * pool.length)), 1)[0];
+    affixes.push([k, +(CORE_SUB_ROLL[0] + rnd() * (CORE_SUB_ROLL[1] - CORE_SUB_ROLL[0])).toFixed(3)]);
+  }
+  return { tpl: tpl.id, ilvl: Math.max(1, Math.min(EQUIP_ILVL_K.length, Math.floor(ilvl) || 1)), roll: +((rnd() * 2 - 1) * EQUIP_ROLL).toFixed(3),
+    affixes, luck: slot.luck && rnd() < EQUIP_DROP.luck ? 1 : 0 };
+}
+/**
+ * Các món rơi khi hạ một hồn thú bậc `rank` (0–3) ở bản đồ `mapId`. `rate`: tổng hệ số cộng thêm (sự kiện máy chủ + người chơi), xác suất
+ * trang bị mỗi lượt nhân (1 + rate) kẹp 0..rateCap (xác suất đá và cổng lượt rơi không đổi nên P(trang bị mỗi lần hạ) ≤ rateCap × giá trị gốc); tổng trọng số 0 thì bỏ lượt (không chia 0). Bản đồ / bậc lạ: không rơi gì.
+ */
+export function rollEquipDrop(rank: number, mapId: string, rnd: () => number, rate = 0): EquipDrop[] {
+  const cfg = EQUIP_DROP.ranks[rank], map = EQUIP_MAPS[mapId], out: EquipDrop[] = [];
+  if (!cfg || !map) return out;
+  const mult = Math.max(0, Math.min(EQUIP_DROP.rateCap, 1 + (Number.isFinite(rate) ? rate : 0)));
+  if (!(rnd() < cfg.chance)) return out; // cổng "có lượt rơi không" không nhân hệ số: rate chỉ nhân xác suất ra TRANG BỊ trong từng lượt
+  const rolls = cfg.rolls[0] + Math.floor(rnd() * (cfg.rolls[1] - cfg.rolls[0] + 1)), total = cfg.p.reduce((x, y) => x + y, 0), eq = cfg.p[1] + cfg.p[2] + cfg.p[3];
+  const equipDrop = () => {
+    const g = pickIdx([0, cfg.p[1], cfg.p[2], cfg.p[3]], rnd); // nhóm trang bị theo trọng số gốc
+    if (g < 0) return;
+    const tier = Math.min(map.maxTier, g === 3 ? (rnd() < cfg.t5 ? 5 : 4) : (g - 1) * 2 + pickIdx(EQUIP_DROP.tierW[g - 1], rnd));
+    const list = EQUIP_TEMPLATES.filter((x) => x.tier === tier), tpl = list[pickIdx(list.map((x) => x.w), rnd)];
+    if (tpl) out.push({ kind: "equip", item: rollEquip(tpl, map.ilvl, rnd) });
+  };
+  for (let i = 0; i < rolls && total > 0; i++) {
+    // Phân loại gốc (không phụ thuộc rate): đá, trang bị hoặc không gì. Rate chỉ tác động lên TRANG BỊ: mult < 1 bỏ bớt, mult > 1 thêm
+    // một món phụ với xác suất (mult − 1) × pTrangBị; nên kỳ vọng trang bị mỗi lượt đúng × mult, còn đá và số lượt rơi không đổi.
+    const u = rnd(), pStone = cfg.p[0] / total, pEq = eq / total;
+    if (u < pStone) {
+      const si = pickIdx(map.stones, rnd);
+      if (si >= 0) {
+        const [lo, hi] = EQUIP_STONES[si].drop;
+        out.push({ kind: "stone", code: EQUIP_STONES[si].id, qty: Math.max(1, Math.round((lo + Math.floor(rnd() * (hi - lo + 1))) * cfg.qty)) });
+      }
+    } else if (u < pStone + pEq && (mult >= 1 || rnd() < mult)) equipDrop();
+    if (mult > 1) { const x = (mult - 1) * pEq; for (let k = Math.floor(x) + (rnd() < x - Math.floor(x) ? 1 : 0); k > 0; k--) equipDrop(); }
+  }
+  return out;
+}
+/** Số Bùa Hộ Mệnh vào rương khi hạ thú vương / boss thế giới (0 hoặc 1). */
+export const rollEquipCharm = (rank: number, rnd: () => number) => (rnd() < (EQUIP_DROP.ranks[rank]?.charm ?? 0) ? 1 : 0);
+
+/** Công vũ khí cho một đòn: tung đều trong [min, max]; may mắn L có xác suất L / EQUIP_LUCK_MAX ra đúng max, từ EQUIP_LUCK_MAX trở lên luôn max. */
+export function equipWeaponRoll(w: { min: number; max: number }, luck: number, rnd: () => number) {
+  const l = Math.max(0, Math.min(EQUIP_LUCK_MAX, Math.floor(luck) || 0));
+  return l >= EQUIP_LUCK_MAX || rnd() < l / EQUIP_LUCK_MAX ? w.max : w.min + rnd() * (w.max - w.min);
+}
+/** Chỉ số chính của món (cộng phẳng hoặc % theo CORE_STATS[main].pct); vũ khí: công giữa của khoảng [min, max]. */
+export function equipMainValue(slot: EquipSlotDef, tier: number, ilvl: number, enhance = 0, roll = 0) {
+  const t = EQUIP_TIERS[Math.max(0, Math.min(EQUIP_MAX_TIER, Math.floor(tier) || 0))];
+  return coreRound(slot.main, CORE_STATS[slot.main].main * slot.w * t.k * equipIlvlK(ilvl) * equipEnhanceMult(enhance) * (1 + Math.max(-EQUIP_ROLL, Math.min(EQUIP_ROLL, roll))));
+}
+/** Giá trị một dòng phụ của món bậc `tier`, cấp vật phẩm `ilvl`, mức tung `roll`. */
+export const equipAffixValue = (k: CoreStat, tier: number, ilvl: number, roll: number) =>
+  coreRound(k, CORE_STATS[k].sub * EQUIP_TIERS[Math.max(0, Math.min(EQUIP_MAX_TIER, Math.floor(tier) || 0))].lineK * equipIlvlK(ilvl) * Math.max(0, roll));
+export interface EquipInput { tpl: string; ilvl: number; enhance?: number; roll?: number; affixes?: readonly [CoreStat, number][]; luck?: number }
+/**
+ * Tổng chỉ số các món đang mặc (mỗi ô tối đa một món, server kiểm tra; mẫu lạ bỏ qua): `bonus` cùng dạng và đơn vị với coreBonus / boneBonus
+ * (công vũ khí KHÔNG nằm ở đây); `weapon`: khoảng công cộng theo từng đòn (null nếu chưa mặc vũ khí); `red`: tổng giảm sát thương nhận
+ * (gộp với bị động hồn cốt dưới BONE_PASSIVE_CAP.def: equipDefTotal); `luck`: tổng may mắn, tối đa EQUIP_LUCK_MAX.
+ */
+export function equipStats(items: readonly EquipInput[]): { bonus: Record<CoreStat, number>; weapon: { min: number; max: number } | null; red: number; luck: number } {
+  const bonus = Object.fromEntries(CORE_STAT_IDS.map((k) => [k, 0])) as Record<CoreStat, number>, seen = new Set<string>();
+  let weapon: { min: number; max: number } | null = null, red = 0, luck = 0;
+  for (const it of items) {
+    const tpl = equipTemplate(it.tpl); if (!tpl || seen.has(tpl.slot)) continue;
+    seen.add(tpl.slot);
+    const slot = equipSlotDef(tpl.slot), main = equipMainValue(slot, tpl.tier, it.ilvl, it.enhance ?? 0, it.roll ?? 0);
+    if (slot.weapon) weapon = { min: Math.max(1, Math.round(main * (1 - slot.weapon.spread))), max: Math.max(1, Math.round(main * (1 + slot.weapon.spread))) };
+    else bonus[slot.main] += main;
+    for (const [k, r] of it.affixes ?? []) if (k in CORE_STATS) bonus[k] += equipAffixValue(k, tpl.tier, it.ilvl, r);
+    red += slot.red * EQUIP_TIERS[tpl.tier].red;
+    if (slot.luck) luck += Math.max(0, Math.min(EQUIP_LUCK_MAX, Math.floor(it.luck ?? 0) || 0));
+  }
+  return { bonus, weapon, red, luck: Math.min(EQUIP_LUCK_MAX, luck) };
+}
+/** Giảm sát thương nhận tổng: bị động hồn cốt (buff `def`) cộng giảm sát thương trang bị, chung một trần BONE_PASSIVE_CAP.def. */
+export const equipDefTotal = (bonePassiveDef: number, equipRed: number) => Math.min(BONE_PASSIVE_CAP.def, Math.max(0, bonePassiveDef) + Math.max(0, equipRed));
+
 // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1; mọi số dưới đây đã chốt) ----------
 /** Nhóm vật phẩm (cột `items.kind`). Có đan, hồn hoàn, mảnh võ hồn (3.4), hồn cốt (4.1), hồn hạch (5.1), rương thú vương (BĐ5), tiên thảo (BĐ6b, HERBS). */
-export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao" | "ruong" | "phu" | "lenh";
+export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao" | "ruong" | "phu" | "lenh" | "trang_bi" | "nguyen_lieu";
 export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
   dan: { name: "Đan dược" },
   hon_hoan: { name: "Hồn hoàn" },
@@ -3420,6 +4000,8 @@ export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
   ruong: { name: "Rương" }, // BĐ5: rương tà hóa thú vương
   phu: { name: "Phù chú" }, // 11.2: Hồi Thành Phù
   lenh: { name: "Lệnh bài" }, // Auto 2: Ủy Thác Lệnh
+  trang_bi: { name: "Trang bị hồn sư" }, // E0, mục 5.15
+  nguyen_lieu: { name: "Nguyên liệu" }, // E0: đá cường hóa, bùa, tinh hoa, thần hồn
 };
 /**
  * Một loại vật phẩm. `id` là mã cố định (cột `items.code`), không đổi mã đã dùng. `stack`: số món tối đa trong một ô
@@ -3516,6 +4098,10 @@ export const ITEMS: ItemDef[] = [
   // Ủy Thác Lệnh (Auto 2, mục 5.13): cộng giờ treo tự săn ngoài AUTO_DAILY_SECS mỗi ngày; thương nhân trong thành bán, không mua lại.
   { id: AUTO_TOKEN, kind: "lenh", name: "Ủy Thác Lệnh", col: "#86e0b0", stack: 99, auto: AUTO_TOKEN_SECS,
     desc: `Dùng thì cộng ${AUTO_TOKEN_SECS / 3600} giờ treo tự săn (giữ qua ngày, chỉ tiêu sau khi đã treo hết giờ miễn phí của hôm nay; tích tối đa ${AUTO_BONUS_MAX / 3600} giờ).` },
+  // Trang bị hồn sư (E0, mục 5.15): chưa rơi / chưa dùng được cho tới E1+; mỗi món một ô, dữ liệu ở `items.stats` (EquipData).
+  { id: EQUIP_ITEM, kind: "trang_bi", name: "Trang bị hồn sư", col: "#e8e8e8", stack: 1,
+    desc: "Mặc vào một trong 10 ô của hồn sư để cộng chỉ số cho võ hồn đang ra trận. Cường hóa, hợp thành, phân giải ở Thợ rèn." },
+  ...EQUIP_MATERIALS.map((m): ItemDef => ({ id: m.id, kind: "nguyen_lieu", name: m.name, col: m.col, stack: m.stack, desc: m.desc })),
 ];
 const ITEM_INDEX = new Map(ITEMS.map((d) => [d.id, d]));
 /** Định nghĩa vật phẩm theo mã; mã không còn trong ITEMS thì undefined (server vẫn giữ món đồ, client hiện "Vật phẩm lạ"). */
@@ -3574,7 +4160,7 @@ export const TICK_RATE = 20; // số lần server cập nhật mỗi giây
  * Vai trò NPC: `talk` chỉ có lời thoại; `shop` (thương nhân) mở cửa hàng mua đan / bán đồ dư; `forge` (lò rèn) mở bảng cường hóa
  * hồn cốt (4.4) và chỗ nâng cấp hồn hạch (5.3, sắp mở).
  */
-export type NpcRole = "talk" | "shop" | "forge" | "arena" | "tong"; // arena (7.2): xếp hàng Đại Đấu Hồn Trường, bảng xếp hạng; tong (#196): sứ giả tông môn
+export type NpcRole = "talk" | "shop" | "forge" | "arena" | "tong" | "looks"; // arena (7.2): xếp hàng Đại Đấu Hồn Trường, bảng xếp hạng; tong (#196): sứ giả tông môn; looks (L4 #511): thợ may đổi ngoại hình
 /**
  * Một NPC. `id` là mã cố định, khớp thuộc tính `npc` của object `npc` trong file Tiled (mục 6); không đổi mã đã dùng.
  * Hình: sheet NPC LPC `lpc_<id>` nếu có trong manifest (mục 5.11 "NPC phụ và dân thường"), không thì `looks` (ngoại hình vẽ bằng
@@ -3713,12 +4299,33 @@ export const NPCS: NpcDef[] = [
       "Vũ Hồn Điện là tổ chức lớn nhất đại lục, giáo hoàng Bỉ Bỉ Đông cai quản; phân điện có mặt ở mọi thành lớn, kể cả Thiên Đấu.",
       "Muốn gia nhập thì cần hoàn thành bài học nhập môn và có võ hồn đủ cấp. Vào rồi vẫn có thể rời hoặc đổi, nhưng đừng đổi đi đổi lại.",
     ] },
+  // L4 (#511): thợ may đổi ngoại hình (role "looks", LOOKS_CHANGE): mỗi thành lớn một người.
+  { id: "tho_may", name: "Thợ may Nặc Đinh", title: "Tiệm may Nặc Đinh", role: "looks", col: "#e08cc8",
+    looks: { sex: 1, hair: 2, hairCol: 2, outfitCol: 2, skin: 0 },
+    lines: [
+      "Tiệm may Nặc Đinh đây! Muốn đổi dáng vẻ: mặt mũi, tóc tai, y phục, hay đổi hẳn từ mẫu dựng sẵn sang tự tạo, ta đều làm được.",
+      "Lần đầu ta làm miễn phí, coi như quà gặp mặt. Từ lần sau thì tính tiền công, ngươi đừng chê đắt.",
+    ] },
+  { id: "tho_may_thien_dau", name: "Thợ may Thiên Đấu", title: "Tiệm may Thiên Đấu", role: "looks", col: "#e08cc8",
+    looks: { sex: 0, hair: 3, hairCol: 4, outfitCol: 4, skin: 0 },
+    lines: [
+      "Tiệm may Thiên Đấu, may áo cho quý tộc cả đế quốc. Ngươi muốn thay đổi diện mạo thì cứ nói.",
+      "Lần đổi đầu tiên miễn phí, các lần sau tính tiền công. Đổi ở đâu thì tiền công cũng như nhau, Nặc Đinh hay Thiên Đấu.",
+    ] },
 ];
 const NPC_INDEX = new Map(NPCS.map((n) => [n.id, n]));
 /** NPC theo mã (thuộc tính `npc` của object Tiled); mã lạ thì undefined. */
 export const npcDef = (id: unknown) => (typeof id === "string" ? NPC_INDEX.get(id) : undefined);
 /** Khoảng cách (pixel, tính từ chân) tối đa để nói chuyện, mua bán, rèn với NPC; server kiểm tra lại mỗi lần. */
 export const NPC_RANGE = 40;
+/**
+ * Đổi ngoại hình sau khi đã tạo nhân vật (L4 #511, GAME_DESIGN.md mục 5.11): chỉ qua thợ may (role "looks") đứng trong NPC_RANGE, kể cả
+ * đổi qua lại giữa Mẫu dựng sẵn và Tự tạo. `free` lần đổi đầu miễn phí, các lần sau tốn `cost` đồng Hồn Tệ mỗi lần. Số lần đã đổi lưu ở
+ * `accounts.looks_changes`; lần tạo nhân vật đầu tiên (looks_chosen = false) không tính là một lần đổi.
+ */
+export const LOOKS_CHANGE = { free: 1, cost: 10000 };
+/** Giá (đồng) của lần đổi kế tiếp khi đã đổi `done` lần. */
+export const looksChangeCost = (done: number) => (done < LOOKS_CHANGE.free ? 0 : LOOKS_CHANGE.cost);
 /**
  * Tông môn (#196, mục 5.14): bốn phe có sẵn theo truyện, mỗi người thuộc tối đa một tông; `npc` là sứ giả (mã trong NPCS) ở Thiên Đấu
  * Thành, `col` màu tên tông dưới tên hồn sư. Thứ tự cố định: chỉ số + 1 là `PlayerState.tong`. Không buff chỉ số theo tông.
@@ -3813,16 +4420,19 @@ export interface SellSettings {
   bone: number;    // bán hồn cốt cường hóa dưới +bone (0 = không bán hồn cốt)
   core: number;    // bán hồn hạch chưa nâng cấp dưới bấy nhiêu sao (1 = không bán hồn hạch)
   shard: boolean;  // bán mảnh võ hồn (vật phẩm thường thương nhân mua; đan, phù chú, lệnh bài, rương, tiên thảo thì thương nhân không mua)
+  salv: number;    // tự phân giải trang bị hồn sư (E4) bậc dưới `salv` (0 = tắt, mặc định; tối đa EQUIP_MAX_TIER: Chí Bảo không bao giờ tự phân giải); độc lập với `on`
+  salvEnh: number; // chỉ tự phân giải món cường hóa dưới +salvEnh (1 = chỉ món +0)
 }
 /** Mặc định: tắt; khi bật chỉ bán đồ giá trị thấp (hồn hoàn dưới nghìn năm, hồn hạch 1–2 sao), giữ hồn cốt và mảnh võ hồn. */
-export const SELL_DEFAULTS: SellSettings = { on: false, ring: 1000, high: false, bone: 0, core: 3, shard: false };
+export const SELL_DEFAULTS: SellSettings = { on: false, ring: 1000, high: false, bone: 0, core: 3, shard: false, salv: 0, salvEnh: 1 };
 /** Bộ lọc từ client / DB: kẹp từng giá trị, thiếu hoặc sai thì lấy mặc định. */
 export function parseSell(raw: unknown): SellSettings {
   const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>, D = SELL_DEFAULTS;
   const num = (v: unknown, lo: number, hi: number, def: number) => (typeof v === "number" && Number.isFinite(v) ? Math.round(Math.max(lo, Math.min(hi, v))) : def);
   const bool = (v: unknown, def: boolean) => (typeof v === "boolean" ? v : def);
   return { on: bool(o.on, D.on), ring: num(o.ring, 0, MAX_YEARS + 1, D.ring), high: bool(o.high, D.high),
-    bone: num(o.bone, 0, BONE_MAX_ENHANCE + 1, D.bone), core: num(o.core, 1, MAX_CORE_STARS + 1, D.core), shard: bool(o.shard, D.shard) };
+    bone: num(o.bone, 0, BONE_MAX_ENHANCE + 1, D.bone), core: num(o.core, 1, MAX_CORE_STARS + 1, D.core), shard: bool(o.shard, D.shard),
+    salv: num(o.salv, 0, EQUIP_MAX_TIER, D.salv), salvEnh: num(o.salvEnh, 1, EQUIP_MAX_ENHANCE + 1, D.salvEnh) };
 }
 /**
  * Món `it` có bị tự bán theo bộ lọc `s` không (hàm thuần, client dùng để xem trước): không khoá, không gắn, thương nhân mua (sellPrice),
@@ -3838,6 +4448,13 @@ export function autoSellable(it: { code: string; years: number | null; stars: nu
   if (kind === "hon_hach") return it.enhance === 0 && (it.stars ?? 1) < s.core;
   if (kind === "manh_vo_hon") return s.shard;
   return false;
+}
+
+/** Món trang bị hồn sư `it` (trong túi) có bị tự phân giải theo bộ lọc `s` không (hàm thuần, client xem trước): không khoá, không mặc, bậc < `salv`, cấp cường hóa < `salvEnh`. */
+export function equipAutoSalvageable(it: { code: string; stats: unknown; enhance: number; locked?: boolean; vohon?: number | null; equipSlot?: number }, s: SellSettings): boolean {
+  if (s.salv <= 0 || it.code !== EQUIP_ITEM || it.locked || (it.vohon ?? null) !== null || it.equipSlot !== undefined) return false;
+  const e = parseEquip(it.stats), t = e ? equipTemplate(e.tpl) : undefined;
+  return !!t && t.tier < s.salv && it.enhance < s.salvEnh;
 }
 
 // ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2; nội dung, số lượng và phần thưởng đã chốt) ----------
@@ -4665,3 +5282,328 @@ export function offlineSplit(endMs: number, secs: number, usedDay: string, used:
   }
   return out;
 }
+
+// ---------- Radar và bản đồ khu vực (GAME_DESIGN.md mục 5.17, theo dõi #426) ----------
+// Đơn vị: `r`, `far`, `sight` tính bằng ô lưới (TILE pixel thế giới); kích thước hiển thị tính bằng pixel màn hình / CSS.
+
+/** Một mức ưu tiên của chấm radar: số cao vẽ sau (đè lên); `arrow`: ngoài tầm thì có mũi tên ở mép. `col` rỗng: màu theo ngữ cảnh (niên hạn, aura loài). */
+export interface RadarLevel { prio: number; id: string; name: string; col: string; size: number; blink: boolean; arrow: boolean }
+
+export const RADAR = {
+  /** Bán kính mặc định (ô) và ba mức thu phóng (ô, nhỏ = gần hơn); `zoomDefault` là chỉ số trong `zooms`. */
+  r: 40, zooms: [25, 40, 70] as number[], zoomDefault: 1,
+  /** Bán kính (ô) quanh từng người trong đó server mới gửi hồn sư lạ trong tin `mini` (R5); đồng đội, cùng tông, boss luôn gửi. */
+  far: 120,
+  /** Đường kính vòng radar (pixel CSS): máy tính / điện thoại ngang. */
+  size: { desktop: 168, mobile: 120 },
+  /** Số lần vẽ lại mỗi giây (không vẽ mỗi khung hình). */
+  hz: 10,
+  /** Mũi tên ở mép lùi vào trong viền chừng này pixel; ghi kèm khoảng cách theo ô. */
+  arrowInset: 6,
+  /** Bán kính bắt chấm khi rê chuột / chạm (pixel). */
+  hitPx: 6,
+  /** 7 mức ưu tiên (thấp → cao), biểu tượng 5–9 px vẽ bằng code. Bảng ở GAME_DESIGN.md mục 5.17. */
+  levels: [
+    { prio: 1, id: "beast",  name: "Hồn thú",                   col: "",        size: 5, blink: false, arrow: false },
+    { prio: 2, id: "player", name: "Hồn sư khác",               col: "#5aa0ff", size: 6, blink: false, arrow: false },
+    { prio: 3, id: "poi",    name: "NPC, cổng, truyền tống",    col: "#f2c84b", size: 6, blink: false, arrow: false },
+    { prio: 4, id: "quest",  name: "Mục tiêu nhiệm vụ, đồ quý", col: "#ffd23f", size: 8, blink: false, arrow: true },
+    { prio: 5, id: "ally",   name: "Đồng đội, cùng tông môn",   col: "#5ee06a", size: 7, blink: false, arrow: true },
+    { prio: 6, id: "elite",  name: "Tinh anh",                  col: "",        size: 8, blink: true,  arrow: false },
+    { prio: 7, id: "boss",   name: "Thú vương, boss thế giới",  col: "#e0303a", size: 9, blink: true,  arrow: true },
+    { prio: 8, id: "rally",  name: "Tập trung ở đây (tổ đội)",  col: "#ffe14a", size: 9, blink: true,  arrow: true },
+  ] as RadarLevel[],
+  /** Màu viền chấm cùng tông môn (đồng đội tổ đội dùng màu của mức `ally`). */
+  tongCol: "#3fd0b0",
+  /** Cờ người chơi đặt trên bản đồ khu vực (R3 / R4) vẽ như mức nhiệm vụ. */
+  flagCol: "#ff9a3c",
+};
+
+/**
+ * Khóa ảnh giao diện cho R7 (#434) và cỡ đích (pixel). Chưa có ảnh trong manifest thì client dùng CSS tạm; có ảnh thì thay mà không sửa code.
+ * - `frame`: khung gỗ sơn mài tròn, vuông `w`×`h` (lòng khung ≈ 3/4 cỡ ảnh nên 224 ứng lòng tròn `RADAR.size.desktop`), lòng tròn nằm giữa (điện thoại thu theo tỉ lệ);
+ * - `compass`: la bàn 4 hướng vuông, tâm trùng tâm radar, vẽ xoay theo `radarCompassRotation` (shared/radar.ts); mũi Bắc không dài hơn
+ *   mũi Nam, nên client tô đỏ đầu mũi Bắc và vẽ chữ "B" bằng code (ảnh không có chữ);
+ * - `paper`: nền giấy bản đồ khu vực, kéo giãn 9 lát (`nine`).
+ */
+export const RADAR_ART = {
+  frame:   { key: "ui_radar_frame",   w: 224, h: 224 },
+  compass: { key: "ui_radar_compass", w: 160, h: 160 },
+  paper:   { key: "ui_mapview_paper", w: 144, h: 105, nine: 16 },
+};
+
+/** Bản đồ khu vực toàn màn hình (phím N): giới hạn phóng (pixel màn hình mỗi ô lưới) và các lớp lọc, mặc định bật hết. */
+export const MAPVIEW = {
+  zoomMin: 1, zoomMax: 8, zoomDefault: 3, zoomStep: 1.25,
+  layers: [
+    { id: "beast",  name: "Hồn thú" },
+    { id: "drop",   name: "Đồ rơi" },
+    { id: "npc",    name: "NPC, cổng" },
+    { id: "player", name: "Người chơi" },
+    { id: "quest",  name: "Nhiệm vụ" },
+  ] as { id: string; name: string }[],
+  /** Lớp lọc của từng loại chấm radar (`RADAR.levels[].id`); đồ rơi tách riêng bằng tham số `layer` của chấm. */
+  layerOf: { beast: "beast", elite: "beast", boss: "beast", player: "player", ally: "player", poi: "npc", quest: "quest" } as Record<string, string>,
+  /** Mức phóng (pixel màn hình mỗi ô) từ đó mới hiện nhãn của từng loại, để khỏi chồng chữ khi thu nhỏ. Vùng săn, hang thú vương luôn hiện tên; dòng mô tả dài của vùng săn (`zoneSub`) chỉ hiện khi phóng tới mức đó, dưới đó chỉ hiện cấp đề xuất. */
+  labelZoom: { npc: 4, gate: 2.5, wp: 2.5, safe: 2, zoneSub: 4 },
+  /** Bán kính bắt chấm / nhãn khi rê chuột hoặc chạm (pixel), và ngưỡng kéo (pixel) để phân biệt chạm với kéo. */
+  hitPx: 10, dragPx: 6,
+};
+
+/**
+ * Tự đi tới cờ (R4 #431, GAME_DESIGN.md mục 5.17): client chỉ lái hướng đi (cùng đường `input` như bấm chuột), server vẫn tính vị trí / va chạm / cổng.
+ * - `arrive`: cách cờ dưới chừng này ô thì coi là tới nơi;
+ * - `stuckSecs` / `progress`: quá chừng này giây mà khoảng cách tới đích không giảm thêm `progress` ô thì dừng ("bị kẹt");
+ * - `gateSecs`: đứng trên cổng, đã xin qua mà quá chừng này giây vẫn ở bản đồ cũ (cổng đòi cấp, kênh đầy…) thì dừng;
+ * - `replanMs`: giãn cách tính lại đường khi đoạn đang đi đã hết;
+ * - `holdMs`: chạm giữ trên bản đồ khu vực (điện thoại) đủ lâu thì đặt cờ.
+ */
+export const AUTOWALK = { arrive: 1.5, stuckSecs: 5, progress: 1.5, gateSecs: 6, replanMs: 250, holdMs: 500 };
+
+/**
+ * Đánh dấu "Tập trung ở đây" của tổ đội (R6 #433, GAME_DESIGN.md mục 5.17): mỗi thành viên một dấu (đặt dấu mới thì dấu cũ của chính họ mất), server chỉ chuyển tiếp cho thành viên cùng tổ đội.
+ * - `secs`: dấu tự tắt sau chừng này giây (client đếm từ lúc nhận; server không giữ dấu);
+ * - `burst` / `refillMs`: giới hạn tốc độ mỗi tài khoản (token bucket: đặt liền tối đa `burst` lần, rồi hồi 1 lượt mỗi `refillMs`);
+ * - `col`: màu dấu trên radar, bản đồ khu vực và vòng sáng trên mặt đất; `nameMax`: cắt tên người đặt khi hiện.
+ */
+export const RALLY = { secs: 40, burst: 3, refillMs: 1700, col: "#ffe14a", nameMax: 24 };
+
+/**
+ * Sương mù khám phá (R8 #435, GAME_DESIGN.md mục 5.17): ô thô `cell`×`cell` ô lưới, bán kính nhìn `sight` ô; bản đồ trong `open` mở sẵn (thành, Thánh Hồn Thôn, đấu trường).
+ * - `markSecs`: giãn cách server đánh dấu ô quanh từng người (không đánh dấu mỗi tick);
+ * - `sendSecs` / `maxAdd`: giãn cách gửi phần mới xuống client và số ô tối đa mỗi tin (dư thì gửi ở nhịp sau);
+ * - `fadeMs`: client làm sáng dần ô vừa mở (tắt khi Giảm chuyển động / hiệu ứng Thấp);
+ * - `maxCells`: trần số ô thô mỗi bản đồ server chịu lưu (bitset lớn hơn là dữ liệu lạ, bị bỏ).
+ */
+export const FOG = {
+  cell: 8, sight: 12,
+  open: ["thanh_hon_thon", "nac_dinh_thanh", "thien_dau_thanh", "dai_dau_hon_truong"] as string[],
+  markSecs: 1, sendSecs: 3, maxAdd: 96, fadeMs: 700, maxCells: 20000,
+};
+
+/**
+ * Ảnh nền bản đồ nhỏ / khu vực (R1 #428): `tools/maps` sinh `shared/assets/<dir>/<mapId>.png`, `px` điểm ảnh mỗi ô logic (rộng = số ô × px).
+ * Client (R2) cắt ảnh này làm nền radar và bản đồ khu vực.
+ */
+export const MINI_BASE = { px: 2, dir: "mini" };
+
+// ---------- LPC: danh mục "Tự tạo hồn sư" (L1 #508, kế hoạch #507; GAME_DESIGN.md mục 5.11 "Hồn sư chế độ Tự tạo") ----------
+// Bốn khối dưới (LPC_SLOTS, LPC_SHEET, LPC_RAMPS, LPC_PARTS) viết đúng cú pháp JSON (khóa có nháy, không chú thích bên trong) để
+// tools/assets/lpc-parts.mjs đọc lại; sửa tay thì giữ dạng đó. Nguồn từng lớp (thư mục trong kho LPC, theo zPos) ở
+// art/src/lpc-parts.json; `npm run check` kiểm hai bên khớp, mọi món có sheet trong shared/assets/lpcparts/ và có dòng ghi công.
+
+/** Ô (lớp) của món, theo thứ tự hiện trong màn tạo nhân vật. */
+export const LPC_SLOTS: Record<string, string> = {"body":"Thân","head":"Mặt","brow":"Mày","nose":"Mũi","beard":"Râu","hair":"Tóc","hairext":"Tóc (thêm)","torso":"Áo","legs":"Quần / váy","feet":"Giày / tất","cape":"Áo choàng / vai","belt":"Đai","hat":"Mũ / khăn","neck":"Cổ","face":"Phụ kiện mặt","arms":"Tay"};
+
+/** Một món trong danh mục. `sex`: thể hình có món (m nam, f nữ, mf cả hai); `idle`: thể hình có hoạt ảnh idle riêng (món thiếu idle thì
+ *  cả bộ đứng bằng khung đứng của walk); `mats`: chất liệu đổi màu lúc chạy, dạng "<chất liệu>:<dải gốc>" (khóa của LPC_RAMPS); `colors`: màu
+ *  vẽ sẵn (mỗi màu một sheet; chỉ món không đổi màu được); `z`: zPos từng lớp (nhỏ hơn 10 nằm dưới thân, như tóc sau gáy; mỗi lớp một
+ *  sheet); `lic`: giấy phép game dùng theo (nhóm ít ràng buộc nhất, như licenseUse của tools/assets/lib.mjs); `sa`: cờ Share-Alike
+ *  (sheet ghép có món cờ SA thì theo SA, ghi ở `art/CREDITS.md`). `style`: dong = đồ phương Đông, trung = trung tính, tay = nghiêng Tây. */
+export interface LpcPart {
+  id: string; slot: string; vi: string; style: "dong" | "trung" | "tay";
+  sex: "m" | "f" | "mf"; idle: "" | "m" | "f" | "mf";
+  mats: string[]; colors: string[]; z: number[]; lic: string[]; sa: boolean;
+}
+
+/**
+ * Quy cách sheet đóng gói của mỗi lớp / thể hình (`shared/assets/lpcparts/<khóa>.png`, manifest cùng thư mục): khung `frame`², gốc chân
+ * `origin`; hàng `rows` (s xuống, e phải, n lên; hàng hurt chỉ nhìn xuống); `strips`: đoạn cột của từng animation LPC và các khung
+ * LPC được giữ (`col` = cột đầu); `srcRows`: hàng của sheet LPC gốc (hàng Trái không dùng); `dir8`: 8 hướng của game → [hàng, lật ngang]
+ * (4 hướng LPC, se / e / ne cùng hàng phải, tây lật như NPC LPC); `anims`: animation game → đoạn, chỉ số khung trong đoạn, thời gian từng
+ * khung (ms), `dirs` "s" = chỉ hướng xuống. `budgetBytes`: ngưỡng báo dung lượng tổng các sheet (`npm run check` báo, không chặn).
+ */
+export const LPC_SHEET = {"frame":64,"origin":[32,58],"budgetBytes":2097152,"rows":{"s":0,"e":1,"n":2,"hurt":3},"srcRows":{"s":2,"e":3,"n":0,"hurt":0},"dir8":{"s":["s",false],"se":["e",false],"e":["e",false],"ne":["e",false],"n":["n",false],"nw":["e",true],"w":["e",true],"sw":["e",true]},"strips":{"idle":{"src":"idle","frames":[0,1],"col":0},"walk":{"src":"walk","frames":[1,2,4,5,7,8],"col":2},"slash":{"src":"slash","frames":[1,2,3,5],"col":8},"spellcast":{"src":"spellcast","frames":[1,2,3,4,5],"col":12},"hurt":{"src":"hurt","frames":[1,2,3,4,5],"col":17}},"anims":{"idle":{"strip":"idle","idx":[0,0,1,1],"ms":[200,200,200,200],"loop":true,"dirs":"all"},"walk":{"strip":"walk","idx":[0,1,2,3,4,5],"ms":[100,100,100,100,100,100],"loop":true,"dirs":"all"},"attack":{"strip":"slash","idx":[0,1,2,3],"ms":[70,70,90,120],"loop":false,"dirs":"all"},"cast":{"strip":"spellcast","idx":[0,2,4],"ms":[100,200,140],"loop":false,"dirs":"all"},"hurt":{"strip":"hurt","idx":[0,1],"ms":[80,120],"loop":false,"dirs":"s"},"die":{"strip":"hurt","idx":[1,2,3,4],"ms":[120,120,120,120],"loop":false,"dirs":"s"},"absorb":{"strip":"spellcast","idx":[1,3],"ms":[500,500],"loop":true,"dirs":"s"}}};
+
+/** Dải màu LPC cho tô màu lúc chạy: `ramps[tên]` là các sắc tối → sáng của dải; `allow`: tên người chơi được chọn (còn lại chỉ là dải
+ *  gốc của món để thay màu, hoặc bị loại vì chói). Client đổi từng sắc của dải gốc (`mats` của món) sang sắc cùng chỉ số của dải chọn. */
+export const LPC_RAMPS: Record<string, { allow: string[]; ramps: Record<string, string[]> }> = {
+  "body": { "allow": ["light","amber","olive","taupe","bronze","brown","black"], "ramps": {
+    "light": ["#271920","#99423c","#cc8665","#e4a47c","#f9d5ba","#faece7"],
+    "amber": ["#281716","#9e3e37","#d28144","#ea9f54","#fdd082","#fbe7a4"],
+    "olive": ["#271920","#442725","#7f4c31","#ae6b3f","#d38b59","#e4a47c"],
+    "taupe": ["#271920","#503734","#785946","#936849","#ba8454","#c7935f"],
+    "bronze": ["#1a1213","#442725","#644133","#7f4c31","#ae6b3f","#d38b59"],
+    "brown": ["#120e10","#412b29","#5f4539","#76513a","#9c663e","#b8773f"],
+    "black": ["#000000","#1a1213","#2e1f1c","#442725","#603429","#7f4c31"]
+  } },
+  "eye": { "allow": ["blue","green","purple","red","orange","yellow","brown","gray"], "ramps": {
+    "blue": ["#2a3c49","#5686ae","#57cee4"],
+    "green": ["#2b4b29","#53b351","#84ec50"],
+    "purple": ["#710862","#b90da0","#eba0e0"],
+    "red": ["#532421","#cb4a39","#ff3d62"],
+    "orange": ["#a45227","#be734b","#ea9b71"],
+    "yellow": ["#b69953","#d9bf46","#fedf47"],
+    "brown": ["#232017","#544c2e","#7e4e20"],
+    "gray": ["#3d3c37","#8b8979","#ada18f"]
+  } },
+  "hair": { "allow": ["raven","black","dark_brown","chestnut","dark_gray","gray","white","navy","red","light_brown"], "ramps": {
+    "raven": ["#010107","#040b18","#061421","#071f2a","#0d384d","#1a5369"],
+    "black": ["#000000","#080a0a","#101414","#1c2222","#31313e","#4a5057"],
+    "dark_brown": ["#050100","#160701","#290e02","#421603","#5f1f04","#792806"],
+    "chestnut": ["#200c0d","#3a130e","#63200b","#81310a","#b6550e","#d28102"],
+    "dark_gray": ["#000000","#0e0e0e","#1b1b1b","#3b3b3b","#7c7c7c","#c1c1c1"],
+    "gray": ["#0e0e0e","#292929","#4b4b4b","#777777","#aaaaaa","#d9d9d9"],
+    "white": ["#1d1d21","#484e57","#8b9498","#b8bbbc","#d8dcdc","#ffffff"],
+    "navy": ["#180716","#20102b","#281e41","#322d6a","#3c49ad","#466ac9"],
+    "red": ["#300000","#870000","#a40712","#cb0000","#e21414","#f1583a"],
+    "light_brown": ["#1a0e04","#301b07","#60350f","#7d4513","#ae682a","#c88d58"],
+    "orange": ["#260d14","#6a1108","#a42600","#bf4000","#e55600","#ff8a00"]
+  } },
+  "cloth": { "allow": ["brown","leather","walnut","tan","maroon","navy","teal","bluegray","forest","slate","gray","charcoal","black","white","purple","red"], "ramps": {
+    "brown": ["#1d131e","#411e05","#4b2b13","#62351c","#744b30","#996b4a"],
+    "leather": ["#2b1c1d","#311210","#4b2b13","#704325","#75502d","#9a6f37"],
+    "walnut": ["#1d0f0e","#3e2613","#62351c","#744b30","#996b4a","#a17c50"],
+    "tan": ["#3e2613","#684415","#986a20","#b78c41","#b7996a","#cfc587"],
+    "maroon": ["#1d131e","#400b1f","#551c22","#682121","#832121","#ae424a"],
+    "navy": ["#180716","#20102b","#281e41","#322d6a","#3c49ad","#466ac9"],
+    "teal": ["#180716","#1b2b47","#0e4e72","#156c99","#0098b2","#00cfdf"],
+    "bluegray": ["#11150b","#0b2b28","#2e403a","#315b49","#557e85","#79979d"],
+    "forest": ["#09131d","#07391d","#0b1f25","#0b2b28","#134507","#1b5502"],
+    "slate": ["#1d131e","#31313e","#4a5057","#818b8b","#b3afa1","#e5e6c7"],
+    "gray": ["#0e0e18","#201e2b","#373340","#585561","#797580","#a2a0a4"],
+    "charcoal": ["#000000","#130d14","#1c2222","#2a3034","#4a5057","#6e7675"],
+    "black": ["#000000","#101414","#1c2222","#22282a","#2a3034","#4a5057"],
+    "white": ["#281820","#4d4a5d","#958080","#c4b59f","#e5e6c7","#ffffff"],
+    "purple": ["#180716","#13112d","#261044","#411357","#621e78","#813089"],
+    "red": ["#1d131e","#400b1f","#651117","#82171c","#ab1e1e","#cd2429"]
+  } },
+  "metal": { "allow": ["ceramic","brass","copper","bronze","iron","steel","silver","gold"], "ramps": {
+    "ceramic": ["#181009","#32251a","#594435","#7d604d","#ba9069","#fbe3b0"],
+    "brass": ["#1a1213","#61482c","#836332","#af8a35","#fdd082","#fdf5cc"],
+    "copper": ["#691503","#7b2008","#973c23","#9d5427","#ec855c","#ffc95a"],
+    "bronze": ["#4f2313","#6d4a00","#966600","#bf8200","#e7a820","#fbe3b0"],
+    "iron": ["#000000","#1b192b","#29253a","#343043","#484152","#726b7e"],
+    "steel": ["#1d131e","#4d4a5d","#726b7e","#867e7f","#c4b59f","#ffffff"],
+    "silver": ["#1d131e","#31313e","#4a5057","#818b8b","#d6e1d3","#ffffff"],
+    "gold": ["#2e2533","#6d4a00","#966600","#dc6f35","#ffc95a","#ffff61"]
+  } }
+};
+
+/** Danh mục 111 món (kết quả L0; mã = "<ô>.<tên>"). */
+export const LPC_PARTS: LpcPart[] = [
+  {"id":"body.body","slot":"body","vi":"Thân","style":"trung","sex":"mf","idle":"mf","mats":["body:light"],"colors":[],"z":[10],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"head.male","slot":"head","vi":"Mặt nam","style":"trung","sex":"mf","idle":"mf","mats":["body:light","eye:blue"],"colors":[],"z":[100],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"head.male_gaunt","slot":"head","vi":"Mặt nam gầy","style":"trung","sex":"mf","idle":"mf","mats":["body:light","eye:blue"],"colors":[],"z":[100],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"head.male_small","slot":"head","vi":"Mặt nam trẻ","style":"trung","sex":"mf","idle":"mf","mats":["body:light","eye:blue"],"colors":[],"z":[100],"lic":["OGA-BY 3.0","CC-BY"],"sa":false},
+  {"id":"head.female","slot":"head","vi":"Mặt nữ","style":"trung","sex":"mf","idle":"mf","mats":["body:light","eye:blue"],"colors":[],"z":[100],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"head.female_small","slot":"head","vi":"Mặt nữ trẻ","style":"trung","sex":"mf","idle":"mf","mats":["body:light","eye:blue"],"colors":[],"z":[100],"lic":["OGA-BY 3.0","CC-BY"],"sa":false},
+  {"id":"head.male_elderly","slot":"head","vi":"Mặt lão","style":"trung","sex":"mf","idle":"mf","mats":["body:light","eye:blue"],"colors":[],"z":[100],"lic":["OGA-BY 3.0","CC-BY 3.0"],"sa":false},
+  {"id":"brow.thick","slot":"brow","vi":"Mày rậm","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[106],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"brow.thin","slot":"brow","vi":"Mày thanh","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[106],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"nose.nose_straight","slot":"nose","vi":"Mũi thẳng","style":"trung","sex":"mf","idle":"mf","mats":["body:light"],"colors":[],"z":[105],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"nose.nose_button","slot":"nose","vi":"Mũi nhỏ","style":"trung","sex":"mf","idle":"mf","mats":["body:light"],"colors":[],"z":[105],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"beard.trimmed","slot":"beard","vi":"Râu tỉa","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[110],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"beard.medium","slot":"beard","vi":"Râu vừa","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[110],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"beard.chevron","slot":"beard","vi":"Ria hình chữ V","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[111],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"beard.mustache","slot":"beard","vi":"Ria mép","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[111],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"hair.topknot_short","slot":"hair","vi":"Búi tóc đỉnh đầu (mái chẻ)","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,145],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"hair.topknot_short2","slot":"hair","vi":"Búi tóc đỉnh đầu (mái chẻ 2)","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,145],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"hair.relm_short","slot":"hair","vi":"Tóc ngắn Relm","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"hair.relm_xlong","slot":"hair","vi":"Tóc rất dài Relm","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"hair.high_ponytail","slot":"hair","vi":"Đuôi ngựa cao","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.half_up","slot":"hair","vi":"Nửa búi nửa xõa","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.bangs_bun","slot":"hair","vi":"Búi tóc có mái","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC0"],"sa":false},
+  {"id":"hair.idol","slot":"hair","vi":"Tóc idol","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC0"],"sa":false},
+  {"id":"hair.long_center_part","slot":"hair","vi":"Dài rẽ giữa","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["CC0"],"sa":false},
+  {"id":"hair.long_straight","slot":"hair","vi":"Dài thẳng","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC0"],"sa":false},
+  {"id":"hair.loose","slot":"hair","vi":"Xõa","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"hair.princess","slot":"hair","vi":"Công chúa","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.xlong","slot":"hair","vi":"Rất dài","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.xlong_wavy","slot":"hair","vi":"Rất dài gợn sóng","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.braid","slot":"hair","vi":"Bím tóc","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.ponytail2","slot":"hair","vi":"Đuôi ngựa","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.page","slot":"hair","vi":"Ngang vai thẳng (page)","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.parted","slot":"hair","vi":"Rẽ ngôi","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"hair.parted_side_bangs","slot":"hair","vi":"Rẽ ngôi mái lệch","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"hair.swoop_side","slot":"hair","vi":"Hất sang bên","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"hair.pixie","slot":"hair","vi":"Pixie","style":"tay","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"hair.plain","slot":"hair","vi":"Ngắn trơn","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.bob","slot":"hair","vi":"Bob","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC0"],"sa":false},
+  {"id":"hair.lob","slot":"hair","vi":"Lob","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC0"],"sa":false},
+  {"id":"hair.curtains_long","slot":"hair","vi":"Mái rèm dài","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC-BY 3.0"],"sa":false},
+  {"id":"hair.wavy","slot":"hair","vi":"Gợn sóng","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hairext.high_bun","slot":"hairext","vi":"Búi cao (thêm lên tóc)","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[128],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hairext.topknot_short","slot":"hairext","vi":"Búi đỉnh đầu (thêm lên tóc)","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[128],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"torso.longsleeve","slot":"torso","vi":"Áo dài tay","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.longsleeve2","slot":"torso","vi":"Áo dài tay 2","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.longsleeve2_cardigan","slot":"torso","vi":"Áo khoác mở","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.longsleeve2_vneck","slot":"torso","vi":"Áo cổ chữ V","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.shortsleeve","slot":"torso","vi":"Áo ngắn tay","style":"tay","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.robe","slot":"torso","vi":"Áo bào","style":"dong","sex":"f","idle":"","mats":[],"colors":["brown","red","blue","purple"],"z":[35],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"torso.tunic","slot":"torso","vi":"Áo túi (tunic)","style":"trung","sex":"f","idle":"","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.tunic_sara","slot":"torso","vi":"Áo túi Sara","style":"trung","sex":"f","idle":"","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.blouse_longsleeve","slot":"torso","vi":"Áo cánh tay dài","style":"trung","sex":"f","idle":"","mats":[],"colors":["black","maroon","navy","forest","white","gray","tan","red","blue","green"],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.kimono","slot":"torso","vi":"Kimono","style":"dong","sex":"f","idle":"f","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[30],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"torso.kimono_split","slot":"torso","vi":"Kimono xẻ","style":"dong","sex":"f","idle":"f","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[30],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"torso.kimono_trim","slot":"torso","vi":"Viền kimono","style":"dong","sex":"f","idle":"f","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[31],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"torso.slit","slot":"torso","vi":"Váy xẻ","style":"dong","sex":"f","idle":"f","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[30],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.sash","slot":"torso","vi":"Váy thắt đai","style":"trung","sex":"f","idle":"f","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[30],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"torso.jacket_iverness","slot":"torso","vi":"Áo choàng Inverness","style":"trung","sex":"m","idle":"","mats":[],"colors":["black"],"z":[55],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"torso.jacket_tabard","slot":"torso","vi":"Áo tabard","style":"tay","sex":"mf","idle":"","mats":[],"colors":["black","maroon","navy","forest","white","gray","tan","red","blue","green"],"z":[55],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.vest","slot":"torso","vi":"Áo gile","style":"tay","sex":"m","idle":"m","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[45],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"torso.longsleeve_scoop","slot":"torso","vi":"Áo dài tay cổ tròn","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.pants2","slot":"legs","vi":"Quần dài","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[20],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.pants","slot":"legs","vi":"Quần","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[20],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.pantaloons","slot":"legs","vi":"Quần ống rộng","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[20],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.cuffed","slot":"legs","vi":"Quần xắn gấu","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[20],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.leggings","slot":"legs","vi":"Quần bó","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[20],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.skirts_plain","slot":"legs","vi":"Váy trơn","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[20],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.skirts_slit","slot":"legs","vi":"Váy xẻ tà","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[20],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.skirt_straight","slot":"legs","vi":"Váy thẳng","style":"trung","sex":"f","idle":"f","mats":["cloth:white"],"colors":[],"z":[20],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.skirt_overskirt","slot":"legs","vi":"Váy ngoài dài","style":"dong","sex":"f","idle":"f","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"feet.shoes_basic","slot":"feet","vi":"Giày vải","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[15],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"feet.shoes_sara","slot":"feet","vi":"Giày Sara","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[15],"lic":["OGA-BY 3.0","CC-BY 3.0+"],"sa":false},
+  {"id":"feet.boots_basic","slot":"feet","vi":"Ủng","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[25],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"feet.boots_fold","slot":"feet","vi":"Ủng gập mép","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[25],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"feet.boots_rim","slot":"feet","vi":"Ủng viền","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[25],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"feet.sandals","slot":"feet","vi":"Dép quai","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[15],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"feet.slippers","slot":"feet","vi":"Dép mềm","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[15],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"feet.socks_tabi","slot":"feet","vi":"Tất tabi","style":"dong","sex":"mf","idle":"mf","mats":["cloth:brown"],"colors":[],"z":[14],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"feet.socks_high","slot":"feet","vi":"Tất cao","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[14],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"cape.solid","slot":"cape","vi":"Áo choàng","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[85,5],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"cape.tattered","slot":"cape","vi":"Áo choàng rách","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[85,5],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"cape.trim","slot":"cape","vi":"Viền áo choàng","style":"trung","sex":"mf","idle":"mf","mats":["cloth:brown"],"colors":[],"z":[90],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"cape.mantal","slot":"cape","vi":"Khoác vai (mantle)","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[75],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"belt.obi","slot":"belt","vi":"Đai obi","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[65],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"belt.obi_knot_left","slot":"belt","vi":"Nút đai obi trái","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[66],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"belt.obi_knot_right","slot":"belt","vi":"Nút đai obi phải","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[66],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"belt.robe","slot":"belt","vi":"Đai áo bào","style":"dong","sex":"mf","idle":"","mats":[],"colors":["white","teal"],"z":[70],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"belt.sash","slot":"belt","vi":"Khăn thắt eo","style":"dong","sex":"mf","idle":"","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[65],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"belt.sash_narrow","slot":"belt","vi":"Khăn thắt eo hẹp","style":"dong","sex":"mf","idle":"","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[65],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"belt.mage","slot":"belt","vi":"Đai pháp sư","style":"trung","sex":"f","idle":"","mats":[],"colors":["brown","gold","silver","bronze"],"z":[90],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"belt.waistband","slot":"belt","vi":"Đai lưng vải","style":"trung","sex":"f","idle":"","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[65],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"belt.leather","slot":"belt","vi":"Đai da","style":"tay","sex":"mf","idle":"","mats":[],"colors":["charcoal","brown","white","tan","slate","leather","walnut"],"z":[70],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hat.hood_cloth","slot":"hat","vi":"Mũ trùm","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[130],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hat.bandana","slot":"hat","vi":"Khăn chít đầu","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[120],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hat.bandana2","slot":"hat","vi":"Khăn chít viền","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[120],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hat.headband_tied","slot":"hat","vi":"Dải buộc trán","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[125],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hat.headband_thick","slot":"hat","vi":"Băng đô rộng","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[125],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"hat.headband_hairtie","slot":"hat","vi":"Dây buộc tóc","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[125],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"hat.formal_tiara","slot":"hat","vi":"Trâm cài / miện nhỏ","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[130],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"hat.formal_crown","slot":"hat","vi":"Mũ miện","style":"trung","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[130],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"neck.scarf","slot":"neck","vi":"Khăn quàng","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[90],"lic":["OGA-SA 3.0","CC-BY-SA 3.0"],"sa":true},
+  {"id":"neck.necklace_simple","slot":"neck","vi":"Dây chuyền","style":"trung","sex":"mf","idle":"mf","mats":[],"colors":["gold","silver","steel","iron","ceramic","brass","copper","bronze"],"z":[80],"lic":["CC0"],"sa":false},
+  {"id":"neck.necklace_chain","slot":"neck","vi":"Dây chuyền xích","style":"trung","sex":"mf","idle":"mf","mats":[],"colors":["gold","silver","steel","iron","ceramic","brass","copper","bronze"],"z":[80],"lic":["CC0"],"sa":false},
+  {"id":"neck.amulet_star","slot":"neck","vi":"Bùa sao","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["brass_blue","brass_green","brass_orange","brass_purple","brass_red","brass_yellow","bronze_blue","bronze_green","bronze_orange","bronze_purple"],"z":[81],"lic":["CC0"],"sa":false},
+  {"id":"neck.charm_oval","slot":"neck","vi":"Mặt dây bầu dục","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["gold","silver","steel","iron","ceramic","brass","copper","bronze"],"z":[81],"lic":["CC0"],"sa":false},
+  {"id":"face.mask_plain","slot":"face","vi":"Mặt nạ trơn","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan"],"z":[114],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"face.earrings_princess","slot":"face","vi":"Khuyên tai ngọc","style":"trung","sex":"mf","idle":"","mats":[],"colors":["red","blue","green","purple","yellow","orange"],"z":[115],"lic":["CC0"],"sa":false},
+  {"id":"face.earring_left","slot":"face","vi":"Khuyên tai trái","style":"trung","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[115],"lic":["CC0"],"sa":false},
+  {"id":"arms.bracers","slot":"arms","vi":"Hộ tay","style":"trung","sex":"mf","idle":"mf","mats":["metal:steel"],"colors":[],"z":[70],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"arms.cuffs","slot":"arms","vi":"Cổ tay áo","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[70],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"arms.gloves","slot":"arms","vi":"Găng tay","style":"tay","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[70],"lic":["OGA-BY 3.0"],"sa":false}
+];
+
+/**
+ * Hiển thị hồn sư chế độ Tự tạo (L3 #510, client/src/lpcRig.ts). Hằng hiển thị, không phải số cân bằng.
+ * `dirHoldMs`: hướng nhìn mới (đổi hàng LPC hoặc lật) phải giữ chừng này ms mới đổi hình, để đi chéo không nháy giữa hai hàng.
+ * `breatheY`: hàng ảnh (trong khung 64, gốc chân ở 58) chia thân: phần trên nhích xuống 1 điểm ở nửa sau chu kỳ idle của bộ thiếu
+ * idle (thở bằng code, như NPC). `outline`: viền ngoài như hồn sư. `budgetMs`: thời gian tối đa mỗi khung dành cho tô màu / ghép
+ * lớp (việc còn lại để khung sau). `graceMs`: tổ hợp hết người dùng vẫn giữ ngần này ms (đi qua lại tầm nhìn không ghép lại).
+ * `vohon`: độ lệch (điểm ảnh nội bộ, dx đổi dấu theo lật ngang) của hai lớp phụ thể so với thân LPC, thân LPC rộng hơn m1.
+ */
+export const LPC_VIEW = {
+  dirHoldMs: 140, breatheY: 30, outline: "#1a1020", budgetMs: 4, graceMs: 8000,
+  vohon: { dx: 0, dy: 0 },
+};

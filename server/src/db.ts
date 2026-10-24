@@ -2,12 +2,12 @@
 // Có DATABASE_URL -> dùng PostgreSQL/Supabase. Không có -> lưu trong RAM (mất khi tắt server, chỉ để thử nhanh).
 import pg from "pg";
 import { readFileSync, readdirSync } from "node:fs";
-import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { randomBytes, randomUUID, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { nameKey } from "./names.ts";
 import { mapFile } from "./map.ts";
-import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, isTongTask, type TongRank, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
-  BONE_ITEM, CORE_ITEM, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
+import { DEFAULT_LOOKS, parseLooks, encodeLpc, decodeLpc, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, isTongTask, type TongRank, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
+  BONE_ITEM, CORE_ITEM, EQUIP_ITEM, EQUIP_SLOTS, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
   RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE,
   type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
 
@@ -23,8 +23,8 @@ export interface Character {
   herbs: Record<string, number>; // từ BĐ6b: số cây tiên thảo đã dùng theo mã (HERBS), cột `vohons.herbs`; lưu cùng tiến độ như `stars`
 }
 
-/** Ngoại hình hồn sư của tài khoản. `chosen` = đã tự chọn (chỉ chọn được một lần). */
-export interface AccountLooks extends Looks { chosen: boolean; }
+/** Ngoại hình hồn sư của tài khoản. `chosen` = đã tạo nhân vật (lần chọn đầu, miễn phí); `changes` = số lần đã đổi ở thợ may sau đó (LOOKS_CHANGE). */
+export interface AccountLooks extends Looks { chosen: boolean; changes: number; }
 
 /**
  * Bản đồ đang đứng (mã trong MAPS) và vị trí của hồn sư; x, y = null khi chưa lưu vị trí hoặc vị trí ghi trên file Tiled khác file server
@@ -55,6 +55,7 @@ export interface Item {
   vohonId: number | null;      // đang gắn vào võ hồn nào (vohons.id), null = nằm trong túi
   created: number;             // thời điểm tạo (ms, items.created_at): thứ tự ô trong túi khi nạp lại
   locked?: boolean;            // người chơi khoá (#216, items.locked): không bán / bỏ / làm nguyên liệu
+  equipSlot?: number;          // trang bị hồn sư đang mặc (E1, items.equip_slot): chỉ số ô trong EQUIP_SLOTS; thiếu = nằm trong túi
 }
 /**
  * Túi đồ và Hồn Tệ (đồng) của một tài khoản: chỉ server và chính chủ thấy. Từ 6.2 kèm tiến độ nhiệm vụ `quests` (bảng `quests`,
@@ -67,7 +68,11 @@ export interface Item {
 export interface TongRow { tong: string | null; at: number | null; }
 /** Bảng tông tuần (#197): mỗi tông có điểm trong tuần (TongRank), và top cá nhân mỗi tông (tên, điểm; điểm > 0, cao trước). */
 export interface TongBoard { tongs: TongRank[]; top: Record<string, { name: string; points: number }[]>; }
-export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; sell?: unknown; sold?: SoldRow[]; }
+export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; sell?: unknown; sold?: SoldRow[];
+  /** Điểm tông tuần (#197, #320) cộng cùng transaction với túi: bài tông vụ đã xong thì điểm đi theo lần ghi túi, không mất một nửa. */
+  tongPts?: { week: number; tong: string; n: number }[];
+  /** Khóa phiên bản (E3, cường hóa trang bị): các món sẽ bị sửa / xóa, kèm cấp cường hóa đang lưu mà phòng dựa vào để tung. Lệch thì ném lỗi, không ghi gì. */
+  lock?: { id: string; enhance: number }[]; }
 /** Một hồn sư trong danh sách bạn bè / chặn (#195). */
 export interface SocialPeer { id: number; name: string; }
 /** Bạn bè, chặn và người đã thêm mình của một tài khoản (#195; Store.getSocial). */
@@ -89,6 +94,42 @@ function checkAutoRow(row: AutoRow) {
  * `day` / `used`: ngày giờ Việt Nam và giây tự săn đã treo trong ngày đó lúc thoát.
  */
 export interface OfflineRow { mapId: string; zone: string; at: number; day: string; used: number; }
+/**
+ * Tài khoản TEST (#517, cột `accounts.is_test`, 028_is_test.sql): dữ liệu dựng sẵn do `server/src/testPreset.ts` tạo, ghi một lần bằng
+ * Store.seedTestAccount. Võ hồn, món gắn võ hồn và đội hình trỏ bằng MÃ võ hồn (VOHON), vì mã dòng `vohons.id` chỉ có sau khi ghi.
+ */
+export interface SeedVohon { vohon: string; level: number; xp: number; stars: number; rings: number[]; kills: number; skills: number[]; herbs: Record<string, number>; }
+export type SeedItem = Omit<Item, "id" | "created" | "vohonId"> & { vohon?: string };
+export interface SeedData {
+  vohons: SeedVohon[];
+  active: string;                 // mã võ hồn ra trận (nằm trong `vohons` và `team`)
+  team: string[];                 // mã võ hồn theo ô đội (tối đa TEAM_SIZE, không trùng)
+  items: SeedItem[];              // túi đồ: `vohon` có thì món gắn vào võ hồn đó; `equipSlot` có thì đang mặc
+  honTe: number; slots: number;   // Hồn Tệ (đồng) và số ô túi
+  starter: boolean;               // đã nhận vật phẩm khởi đầu (STARTER_ITEMS) chưa; false thì lần vào game tới server tặng
+  waypoints: string[];            // mã truyền tống trận đã mở khoá
+  mapId: string | null;           // bản đồ đang đứng (null = chưa lưu: về DEFAULT_MAP); vị trí luôn về điểm xuất hiện
+  looks: Looks;
+}
+/** Tài khoản theo tên, kể cả chưa thức tỉnh: `isTest` (cờ 028), `lastLogin` (ms phiên đăng nhập gần nhất, null = chưa có; RAM không ghi). */
+export interface AccountRef { id: number; name: string; isTest: boolean; lastLogin: number | null; }
+/** Hàm kiểm tra dữ liệu dựng sẵn dùng chung cho cả hai store: võ hồn không trùng, đội / võ hồn ra trận / món gắn đều trỏ tới võ hồn có thật. */
+function seedOk(d: SeedData) {
+  const codes = new Set(d.vohons.map((v) => v.vohon));
+  if (!d.vohons.length || codes.size !== d.vohons.length) throw new Error("Dữ liệu dựng sẵn: võ hồn trống hoặc trùng.");
+  if (!codes.has(d.active) || !d.team.includes(d.active) || new Set(d.team).size !== d.team.length || d.team.length > TEAM_SIZE || d.team.some((c) => !codes.has(c)))
+    throw new Error("Dữ liệu dựng sẵn: đội hình / võ hồn ra trận không hợp lệ.");
+  for (const i of d.items) if (i.vohon !== undefined && !codes.has(i.vohon)) throw new Error(`Dữ liệu dựng sẵn: món ${i.code} gắn vào võ hồn lạ ${i.vohon}.`);
+  if (!parseTeam(autoTeam(d.team.map((_, k) => k + 1)))) throw new Error("Dữ liệu dựng sẵn: đội hình sai dạng.");
+}
+/** Đổi món dựng sẵn thành `Item` thật (id mới, thứ tự ô theo vị trí trong danh sách); `rowOf` đổi mã võ hồn thành `vohons.id`. */
+const seedItems = (items: SeedItem[], rowOf: (code: string) => number): Item[] => {
+  const t0 = Date.now() - items.length;
+  return items.map(({ vohon, ...i }, k): Item => ({ ...copyItem({ ...i, id: "", created: 0, vohonId: null }), id: randomUUID(), created: t0 + k, vohonId: vohon === undefined ? null : rowOf(vohon) }));
+};
+/** Các bảng xoá khi `removeTestAccount` (theo thứ tự xoá; kết quả trả số dòng mỗi bảng). */
+const REMOVE_TABLES = ["items", "teams", "vohons", "quests", "waypoints", "boss_claims", "auto_hunt", "auto_offline", "tong_points", "arena_ratings", "arena_pairs",
+  "friends", "blocks", "map_fog", "sessions", "characters", "inventory", "accounts"] as const;
 const copyItem = (i: Item): Item => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) });
 const copyQuest = (q: QuestProgress): QuestProgress => ({ ...q, prog: [...q.prog] });
 const copySold = (r: SoldRow): SoldRow => ({ ...r, item: copyItem(r.item) });
@@ -107,6 +148,14 @@ function bagOk(b: Bag) {
   if (!Number.isSafeInteger(b.honTe) || b.honTe < 0) throw new Error(`Hồn Tệ không hợp lệ: ${b.honTe}.`);
   if (b.slots !== undefined && (!Number.isInteger(b.slots) || b.slots < BAG_SLOTS || b.slots > BAG_MAX_SLOTS)) throw new Error(`Số ô túi không hợp lệ: ${b.slots}.`);
   for (const i of b.items) if (!Number.isInteger(i.qty) || i.qty < 1) throw new Error(`Số lượng ô ${i.id} không hợp lệ: ${i.qty}.`);
+  // Trang bị đang mặc (E1): ô có thật, đúng món trang bị, không gắn võ hồn, mỗi ô một món (khớp CHECK và chỉ mục duy nhất của 027_trang_bi.sql).
+  const worn = new Set<number>();
+  for (const i of b.items) {
+    if (i.equipSlot === undefined) continue;
+    if (!Number.isInteger(i.equipSlot) || i.equipSlot < 0 || i.equipSlot >= EQUIP_SLOTS.length || i.code !== EQUIP_ITEM || i.vohonId !== null || worn.has(i.equipSlot))
+      throw new Error(`Ô trang bị ${i.equipSlot} của ${i.id} không hợp lệ.`);
+    worn.add(i.equipSlot);
+  }
   for (const r of b.sold ?? []) if (!Number.isInteger(r.item.qty) || r.item.qty < 1 || !Number.isSafeInteger(r.price) || r.price < 0) throw new Error(`Món tự bán ${r.key} không hợp lệ.`);
   const chains = new Set((b.quests ?? []).map((q) => q.chain));
   if (chains.size !== (b.quests ?? []).length) throw new Error("Tiến độ nhiệm vụ có hai dòng cùng chuỗi.");
@@ -149,6 +198,12 @@ export interface Store {
   getLooks(accountId: number): Promise<AccountLooks>;
   /** Lưu ngoại hình lần đầu (đã kiểm tra bằng parseLooks). false nếu tài khoản đã chọn rồi. */
   chooseLooks(accountId: number, looks: Looks): Promise<boolean>;
+  /**
+   * Đổi ngoại hình ở thợ may (L4 #511) trong MỘT transaction: ghi ngoại hình mới, tăng số lần đổi và ghi túi (đã trừ Hồn Tệ). Chỉ thành công khi
+   * tài khoản đã tạo nhân vật và số lần đổi trong DB đúng bằng `expect` (hai yêu cầu cùng lúc chỉ một cái được ghi); trả số lần đổi mới,
+   * hoặc null (không ghi gì, kể cả túi) nếu không khớp.
+   */
+  changeLooks(accountId: number, looks: Looks, expect: number, bag: Bag): Promise<number | null>;
   /** Bản đồ đang đứng và vị trí (đã ánh xạ bằng resolveMap). */
   getLocation(accountId: number): Promise<Location>;
   /**
@@ -198,6 +253,13 @@ export interface Store {
   getWaypoints(accountId: number): Promise<string[]>;
   /** Mở khóa truyền tống trận `wp` (đã có thì thôi, chạy lại an toàn). */
   unlockWaypoint(accountId: number, wp: string): Promise<void>;
+  /**
+   * Sương mù khám phá (R8 #435, bảng `map_fog`): bitset ô thô của tài khoản ở bản đồ `mapId` (shared/fog.ts). null = chưa có, hoặc dòng ghi cho
+   * file Tiled khác `file` (tọa độ không còn đúng). Nơi gọi tự kiểm kích thước bằng fogValid.
+   */
+  getFog(accountId: number, mapId: string, file: string): Promise<Uint8Array | null>;
+  /** Ghi (thay cả dòng) bitset ô thô của tài khoản ở bản đồ `mapId` / file `file`. Gọi qua chuỗi lưu của người chơi, gộp theo nhịp lưu, không mỗi bước. */
+  saveFog(accountId: number, mapId: string, file: string, cells: Uint8Array): Promise<void>;
   /** Tông môn của tài khoản (#196, cột `accounts.tong` / `tong_at`): `tong` mã trong TONG_MON (null = không), `at` ms gia nhập gần nhất (null = chưa từng). */
   getTong(accountId: number): Promise<TongRow>;
   /**
@@ -273,6 +335,20 @@ export interface Store {
    * ghi dòng của chính tài khoản; chỉ gọi trong chuỗi lưu của người chơi.
    */
   setBlock(accountId: number, other: number, on: boolean): Promise<void>;
+  /** Tài khoản theo tên (so theo nameKey), kể cả chưa thức tỉnh; chưa có thì null (công cụ tài khoản test, #517). */
+  lookupAccount(name: string): Promise<AccountRef | null>;
+  /** Tài khoản có cờ `is_test` không (ẩn khỏi xếp hạng, chỉ ghép đấu trường với tài khoản test cùng loại, #517). Không có tài khoản thì false. */
+  isTestAccount(accountId: number): Promise<boolean>;
+  /**
+   * Tạo (nếu chưa có; cần `password`) hoặc dựng lại tài khoản TEST `name` theo `data`, trong MỘT transaction (#517): xoá võ hồn, đồ, đội, nhiệm vụ,
+   * truyền tống, tự săn, điểm tông của tài khoản rồi ghi lại, bật `is_test`. Tên đã có mà KHÔNG có cờ `is_test` thì ném lỗi, không ghi gì.
+   * Không đụng tài khoản khác, không đổi mật khẩu tài khoản đã có, không đụng Elo / bạn bè.
+   */
+  seedTestAccount(name: string, password: string | null, data: SeedData): Promise<{ accountId: number; created: boolean }>;
+  /** Bật cờ `is_test` cho tài khoản (admin dùng lệnh GM, #518). Chỉ bật, không có đường tắt cờ qua game; tắt cờ chỉ bằng SQL tay. */
+  markTest(accountId: number): Promise<void>;
+  /** Xoá sạch tài khoản TEST `name` (mọi bảng tham chiếu, rồi dòng `accounts`) trong MỘT transaction; trả số dòng đã xoá mỗi bảng. Không có cờ `is_test` thì ném lỗi. */
+  removeTestAccount(name: string): Promise<Record<string, number>>;
 }
 
 // scrypt bất đồng bộ (threadpool của libuv): bản Sync mất vài chục ms mỗi lần trên luồng chính, đăng nhập dồn dập làm đứng tick mọi phòng.
@@ -334,6 +410,7 @@ export class MemoryStore implements Store {
   rows = new Map<number, Character>();  // vohons.id -> võ hồn
   active = new Map<number, number>();   // accountId -> vohons.id đang ra trận
   looks = new Map<number, Looks>();     // accountId -> ngoại hình đã chọn (chưa có = chưa chọn)
+  looksChanges = new Map<number, number>(); // accountId -> số lần đã đổi ngoại hình ở thợ may (accounts.looks_changes, L4 #511)
   teams = new Map<number, number[]>();  // accountId -> đội hình (vohons.id theo ô, 0 = trống)
   locs = new Map<number, { mapId: string | null; x: number | null; y: number | null; file: string | null }>(); // accountId -> accounts.map_id, pos_x, pos_y, map_file
   bags = new Map<number, Bag>();        // accountId -> túi đồ (bảng items) và Hồn Tệ (accounts.hon_te)
@@ -343,12 +420,14 @@ export class MemoryStore implements Store {
   arena = new Map<number, ArenaRecord & { t: number }>(); // accountId -> Elo, thành tích, lần ghi (bảng arena_ratings, 7.2)
   pairs = new Map<string, number>(); // "day|a|b" (a < b) -> số trận của cặp trong ngày (bảng arena_pairs, 9.7)
   wps = new Map<number, Set<string>>(); // accountId -> mã truyền tống trận đã mở khóa (bảng waypoints, 11.2)
+  fogs = new Map<number, Map<string, { file: string; cells: Uint8Array }>>(); // accountId -> mapId -> bitset sương mù (bảng map_fog, R8)
   tongs = new Map<number, TongRow>(); // accountId -> tông môn (accounts.tong / tong_at, #196)
   tongPts = new Map<string, { accountId: number; week: number; tong: string; points: number }>(); // `${accountId}|${week}|${tong}` -> điểm tông tuần (tong_points, #197)
   autos = new Map<number, AutoRow>(); // accountId -> cài đặt và giờ treo tự săn (bảng auto_hunt, Auto 1)
   offline = new Map<number, OfflineRow>(); // accountId -> lần ủy thác offline chưa nhận (bảng auto_offline, Auto 3)
   friends = new Map<number, Set<number>>(); // accountId -> tài khoản đã thêm làm bạn, theo thứ tự thêm (bảng friends, #195)
   blocks = new Map<number, Set<number>>(); // accountId -> tài khoản đã chặn, theo thứ tự chặn (bảng blocks, #195)
+  tests = new Set<number>(); // accountId có cờ is_test (028_is_test.sql, #517)
   arenaT = 0;
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
@@ -415,11 +494,17 @@ export class MemoryStore implements Store {
   }
   async getLooks(accountId: number) {
     const l = this.looks.get(accountId);
-    return { ...(l ?? DEFAULT_LOOKS), chosen: !!l };
+    return { ...(l ?? DEFAULT_LOOKS), chosen: !!l, changes: this.looksChanges.get(accountId) ?? 0 };
   }
   async chooseLooks(accountId: number, looks: Looks) {
     if (this.looks.has(accountId)) return false;
     this.looks.set(accountId, { ...looks }); return true;
+  }
+  async changeLooks(accountId: number, looks: Looks, expect: number, bag: Bag) {
+    if (!this.looks.has(accountId) || (this.looksChanges.get(accountId) ?? 0) !== expect) return null;
+    this.checkBag(accountId, bag);
+    this.looks.set(accountId, { ...looks }); this.looksChanges.set(accountId, expect + 1); this.putBag(accountId, bag);
+    return expect + 1;
   }
   async getLocation(accountId: number) {
     const l = this.locs.get(accountId);
@@ -455,6 +540,7 @@ export class MemoryStore implements Store {
    * có bài khảo hạch hằng ngày (tông vụ, #197) thì bỏ bài khảo hạch (tông vụ) của các ngày khác.
    */
   putBag(accountId: number, bag: Bag) {
+    for (const t of bag.tongPts ?? []) this.bumpTong(accountId, t.week, t.tong, t.n);
     const { quests, slots, sell, sold, ...rest } = copyBag(bag), prev = this.bags.get(accountId), old = prev?.slots;
     // Bộ lọc / danh sách tự bán (#216): thiếu khi ghi thì giữ bản đang lưu, như writeBag.
     const keepSell = sell !== undefined ? sell : prev?.sell, keepSold = sold ?? prev?.sold;
@@ -470,6 +556,7 @@ export class MemoryStore implements Store {
   /** Như các ràng buộc của bảng `items`: id không thuộc tài khoản khác, đồ chỉ gắn vào võ hồn của chính tài khoản. */
   checkBag(accountId: number, bag: Bag) {
     bagOk(bag);
+    for (const l of bag.lock ?? []) { const x = this.bags.get(accountId)?.items.find((i) => i.id === l.id); if (x && x.enhance !== l.enhance) throw new Error(`Món ${l.id} đã đổi cấp ở nơi khác.`); }
     for (const [acc, b] of this.bags)
       if (acc !== accountId && b.items.some((i) => bag.items.some((j) => j.id === i.id))) throw new Error("Id món đồ thuộc tài khoản khác.");
     for (const i of bag.items)
@@ -503,6 +590,14 @@ export class MemoryStore implements Store {
     for (const c of chars) { const cur = this.rows.get(c.rowId)!; this.rows.set(c.rowId, { ...copy(c), vohon: cur.vohon, skills: [...cur.skills] }); }
     this.putBag(accountId, bag);
   }
+  async getFog(accountId: number, mapId: string, file: string) {
+    const r = this.fogs.get(accountId)?.get(mapId);
+    return r && r.file === file ? new Uint8Array(r.cells) : null;
+  }
+  async saveFog(accountId: number, mapId: string, file: string, cells: Uint8Array) {
+    let m = this.fogs.get(accountId); if (!m) this.fogs.set(accountId, (m = new Map()));
+    m.set(mapId, { file, cells: new Uint8Array(cells) });
+  }
   async getWaypoints(accountId: number) { return [...(this.wps.get(accountId) ?? [])]; }
   async unlockWaypoint(accountId: number, wp: string) {
     let set = this.wps.get(accountId);
@@ -519,14 +614,15 @@ export class MemoryStore implements Store {
     for (const x of this.tongPts.values()) if (x.accountId === accountId && x.week === week && (!best || x.points > best.points)) best = { tong: x.tong, points: x.points };
     return best;
   }
-  async addTongPoints(accountId: number, week: number, tong: string, n: number) {
+  bumpTong(accountId: number, week: number, tong: string, n: number) {
     const k = `${accountId}|${week}|${tong}`, x = this.tongPts.get(k) ?? { accountId, week, tong, points: 0 };
     x.points += n; this.tongPts.set(k, x);
     return x.points;
   }
+  async addTongPoints(accountId: number, week: number, tong: string, n: number) { return this.bumpTong(accountId, week, tong, n); }
   async tongBoard(week: number, min: number, topN: number): Promise<TongBoard> {
     const by = new Map<string, { accountId: number; points: number }[]>();
-    for (const x of this.tongPts.values()) if (x.week === week) { const l = by.get(x.tong) ?? []; l.push(x); by.set(x.tong, l); }
+    for (const x of this.tongPts.values()) if (x.week === week && !this.tests.has(x.accountId)) { const l = by.get(x.tong) ?? []; l.push(x); by.set(x.tong, l); }
     const tongs: TongRank[] = [], top: TongBoard["top"] = {};
     for (const [tong, l] of by) {
       const act = l.filter((x) => x.points >= min);
@@ -602,13 +698,13 @@ export class MemoryStore implements Store {
   }
   async arenaTop(n: number, accountId: number) {
     // Cùng thứ tự với chỉ mục arena_ratings_rank: Elo, số trận thắng, ai ghi trước, mã tài khoản.
-    const all = [...this.arena].sort(([ia, a], [ib, b]) => b.elo - a.elo || b.wins - a.wins || a.t - b.t || ia - ib);
+    const all = [...this.arena].filter(([id]) => !this.tests.has(id)).sort(([ia, a], [ib, b]) => b.elo - a.elo || b.wins - a.wins || a.t - b.t || ia - ib);
     const rec = ([id, r]: [number, ArenaRecord & { t: number }]) => ({ accountId: id, name: this.names.get(id) ?? "?", elo: r.elo, wins: r.wins, losses: r.losses, draws: r.draws });
     const at = all.findIndex(([id]) => id === accountId), mine = at >= 0 ? all[at][1] : null;
     return { list: all.slice(0, n).map(rec), me: mine ? { elo: mine.elo, wins: mine.wins, losses: mine.losses, draws: mine.draws, rank: at + 1 } : null };
   }
   async resonanceTop(page: number, pageSize: number, accountId: number) {
-    const all = await resonanceRanking(async () => [...this.names].map(([id, name]) => {
+    const all = await resonanceRanking(async () => [...this.names].filter(([id]) => !this.tests.has(id)).map(([id, name]) => {
       const vohons = this.owned(id).map((v) => ({ level: v.level, rings: v.rings.length, stars: v.stars }));
       const worn = (this.bags.get(id)?.items ?? []).filter((i) => i.vohonId !== null);
       return resonanceEntry(id, name, vohons, worn.filter((i) => i.code === BONE_ITEM).map((i) => ({ enhance: i.enhance })),
@@ -621,6 +717,71 @@ export class MemoryStore implements Store {
     if (a === b || !this.names.has(a) || !this.names.has(b)) throw new Error(`Cặp tài khoản #${a}, #${b} không hợp lệ.`);
     const k = pairKey(day, a, b), n = (this.pairs.get(k) ?? 0) + 1;
     this.pairs.set(k, n);
+    return n;
+  }
+  async lookupAccount(name: string): Promise<AccountRef | null> {
+    const acc = this.accounts.get(nameKey(name));
+    return acc ? { id: acc.id, name: this.names.get(acc.id)!, isTest: this.tests.has(acc.id), lastLogin: null } : null;
+  }
+  async isTestAccount(accountId: number) { return this.tests.has(accountId); }
+  async markTest(accountId: number) { if (this.names.has(accountId)) this.tests.add(accountId); }
+  async seedTestAccount(name: string, password: string | null, data: SeedData) {
+    // Kiểm tra hết trước khi đụng gì: ghi hết hoặc không ghi gì.
+    seedOk(data); bagOk({ honTe: data.honTe, slots: data.slots, items: seedItems(data.items, () => 1) });
+    const key = nameKey(name);
+    let acc = this.accounts.get(key), created = false;
+    if (acc && !this.tests.has(acc.id)) throw new Error(`Tài khoản "${name}" không có cờ is_test: không ghi đè tài khoản thật.`);
+    if (!acc) {
+      if (password === null) throw new Error(`Tài khoản "${name}" chưa có: cần mật khẩu để tạo.`);
+      const pass = await hashPass(password);
+      acc = this.accounts.get(key); // trong lúc băm có yêu cầu khác cùng tên vừa tạo tài khoản
+      if (acc && !this.tests.has(acc.id)) throw new Error(`Tài khoản "${name}" không có cờ is_test: không ghi đè tài khoản thật.`);
+      if (!acc) { acc = { id: this.seq++, pass }; this.accounts.set(key, acc); this.names.set(acc.id, name); created = true; }
+    }
+    const id = acc.id;
+    this.tests.add(id);
+    for (const [rid, c] of this.rows) if (c.accountId === id) this.rows.delete(rid);
+    for (const k of [...this.tongPts.keys()]) if (this.tongPts.get(k)!.accountId === id) this.tongPts.delete(k);
+    for (const k of [...this.claims.keys()]) if (k.startsWith(`${id}|`)) this.claims.delete(k);
+    for (const m of [this.active, this.teams, this.bags, this.quests, this.wps, this.autos, this.offline, this.tongs, this.fogs]) m.delete(id);
+    const rowOf = new Map<string, number>();
+    for (const v of data.vohons) {
+      const c: Character = { accountId: id, name: this.names.get(id)!, rowId: this.rowSeq++, vohon: v.vohon, level: v.level, xp: v.xp, stars: v.stars, rings: [...v.rings],
+        kills: v.kills, skills: [...v.skills], herbs: { ...v.herbs } };
+      this.rows.set(c.rowId, c); rowOf.set(v.vohon, c.rowId);
+    }
+    this.active.set(id, rowOf.get(data.active)!);
+    this.teams.set(id, autoTeam(data.team.map((c) => rowOf.get(c)!)));
+    const bag: Bag = { honTe: data.honTe, slots: data.slots, items: seedItems(data.items, (c) => rowOf.get(c)!) };
+    this.checkBag(id, bag); this.putBag(id, bag);
+    if (data.starter) this.starter.add(id); else this.starter.delete(id);
+    this.locs.set(id, { mapId: data.mapId, x: null, y: null, file: null });
+    this.looks.set(id, { ...data.looks }); this.looksChanges.delete(id);
+    this.wps.set(id, new Set(data.waypoints));
+    return { accountId: id, created };
+  }
+  async removeTestAccount(name: string) {
+    const key = nameKey(name), acc = this.accounts.get(key);
+    if (!acc) throw new Error(`Không có tài khoản "${name}".`);
+    if (!this.tests.has(acc.id)) throw new Error(`Tài khoản "${name}" không có cờ is_test: không xoá tài khoản thật.`);
+    const id = acc.id, n = Object.fromEntries(REMOVE_TABLES.map((t) => [t, 0])) as Record<string, number>;
+    const owned = this.owned(id), tokens = [...this.sessions].filter(([, a]) => a === id).map(([t]) => t);
+    const pairs = [...this.pairs.keys()].filter((k) => { const [, a, b] = k.split("|"); return Number(a) === id || Number(b) === id; });
+    const tp = [...this.tongPts].filter(([, x]) => x.accountId === id).map(([k]) => k), cl = [...this.claims.keys()].filter((k) => k.startsWith(`${id}|`));
+    const rel = (m: Map<number, Set<number>>) => (m.get(id)?.size ?? 0) + [...m].filter(([a, set]) => a !== id && set.has(id)).length;
+    Object.assign(n, { items: this.bags.get(id)?.items.length ?? 0, teams: this.teams.get(id)?.filter(Boolean).length ?? 0, vohons: owned.length,
+      quests: this.quests.get(id)?.length ?? 0, waypoints: this.wps.get(id)?.size ?? 0, map_fog: this.fogs.get(id)?.size ?? 0, boss_claims: cl.length, auto_hunt: this.autos.has(id) ? 1 : 0,
+      auto_offline: this.offline.has(id) ? 1 : 0, tong_points: tp.length, arena_ratings: this.arena.has(id) ? 1 : 0, arena_pairs: pairs.length,
+      friends: rel(this.friends), blocks: rel(this.blocks), sessions: tokens.length, accounts: 1 });
+    for (const c of owned) this.rows.delete(c.rowId);
+    for (const k of tp) this.tongPts.delete(k);
+    for (const k of cl) this.claims.delete(k);
+    for (const k of pairs) this.pairs.delete(k);
+    for (const t of tokens) this.sessions.delete(t);
+    for (const m of [this.active, this.teams, this.bags, this.quests, this.wps, this.autos, this.offline, this.tongs, this.arena, this.locs, this.looks, this.looksChanges, this.friends, this.blocks, this.names, this.fogs])
+      m.delete(id);
+    for (const m of [this.friends, this.blocks]) for (const set of m.values()) set.delete(id);
+    this.starter.delete(id); this.tests.delete(id); this.accounts.delete(key);
     return n;
   }
 }
@@ -798,11 +959,13 @@ export class PgStore implements Store {
     } finally { db.release(); }
   }
   async getLooks(accountId: number) {
-    const r = await this.pool.query("SELECT sex, hair, hair_col, outfit_col, skin, looks_chosen FROM accounts WHERE id=$1", [accountId]);
+    const r = await this.pool.query("SELECT sex, hair, hair_col, outfit_col, skin, looks_lpc, looks_chosen, looks_changes FROM accounts WHERE id=$1", [accountId]);
     const x = r.rows[0];
     // Giá trị ngoài khoảng (sửa tay trong DB, hoặc bảng màu bị rút bớt) thì về mặc định thay vì gửi chỉ số hỏng cho client.
-    const l = x ? parseLooks({ sex: x.sex, hair: x.hair, hairCol: x.hair_col, outfitCol: x.outfit_col, skin: x.skin }) : null;
-    return { ...(l ?? DEFAULT_LOOKS), chosen: !!x?.looks_chosen };
+    // Cột looks_lpc có chuỗi thì là chế độ Tự tạo (decodeLpc kiểm lại theo danh mục; hỏng thì cũng về mặc định).
+    const l = x ? parseLooks(x.looks_lpc ? { mode: "lpc", lpc: decodeLpc(x.looks_lpc) }
+      : { sex: x.sex, hair: x.hair, hairCol: x.hair_col, outfitCol: x.outfit_col, skin: x.skin }) : null;
+    return { ...(l ?? DEFAULT_LOOKS), chosen: !!x?.looks_chosen, changes: Number(x?.looks_changes ?? 0) };
   }
   /**
    * Biểu thức SQL của resolveMap(map_id) và các tham số của nó, đánh số từ `$n`: mọi mã trong MAPS, mã cũ / mã thay thế trong
@@ -865,20 +1028,24 @@ export class PgStore implements Store {
   }
   itemRow(x: any): Item {
     return { id: x.id, kind: x.kind, code: x.code, qty: x.qty, years: x.years, stars: x.stars, enhance: x.enhance, stats: x.stats ?? null,
-      vohonId: x.vohon_id === null ? null : Number(x.vohon_id), created: new Date(x.created_at).getTime(), ...(x.locked ? { locked: true } : {}) };
+      vohonId: x.vohon_id === null ? null : Number(x.vohon_id), created: new Date(x.created_at).getTime(), ...(x.locked ? { locked: true } : {}),
+      ...(x.equip_slot === null || x.equip_slot === undefined ? {} : { equipSlot: Number(x.equip_slot) }) };
   }
   /** Thêm hoặc sửa các ô `items` (chỉ ô của chính tài khoản; id thuộc tài khoản khác thì ném lỗi). Gọi trong transaction. */
   async upsertItems(db: pg.PoolClient, accountId: number, items: Item[]) {
     if (!items.length) return;
     const rows = JSON.stringify(items.map((i) => ({ id: i.id, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars,
-      enhance: i.enhance, stats: i.stats ?? null, vohon_id: i.vohonId, created: new Date(i.created).toISOString(), locked: !!i.locked })));
+      enhance: i.enhance, stats: i.stats ?? null, vohon_id: i.vohonId, created: new Date(i.created).toISOString(), locked: !!i.locked, equip_slot: i.equipSlot ?? null })));
     const r = await db.query(
-      `INSERT INTO items(id, account_id, kind, code, qty, years, stars, enhance, stats, vohon_id, created_at, locked)
-       SELECT x.id, $1, x.kind, x.code, x.qty, x.years, x.stars, x.enhance, x.stats, x.vohon_id, x.created, x.locked
+      `INSERT INTO items(id, account_id, kind, code, qty, years, stars, enhance, stats, vohon_id, created_at, locked, equip_slot)
+       SELECT x.id, $1, x.kind, x.code, x.qty, x.years, x.stars, x.enhance, x.stats, x.vohon_id, x.created, x.locked, x.equip_slot
        FROM jsonb_to_recordset($2::jsonb) AS x(id uuid, kind text, code text, qty int, years int, stars smallint, enhance smallint,
-         stats jsonb, vohon_id bigint, created timestamptz, locked boolean)
+         stats jsonb, vohon_id bigint, created timestamptz, locked boolean, equip_slot smallint)
        ON CONFLICT (id) DO UPDATE SET kind=EXCLUDED.kind, code=EXCLUDED.code, qty=EXCLUDED.qty, years=EXCLUDED.years, stars=EXCLUDED.stars,
-         enhance=EXCLUDED.enhance, stats=EXCLUDED.stats, vohon_id=EXCLUDED.vohon_id, locked=EXCLUDED.locked,
+         -- ver (027): tăng khi cấp cường hóa, chỉ số hoặc ô mặc của món đổi.
+         ver=CASE WHEN items.enhance IS DISTINCT FROM EXCLUDED.enhance OR items.stats IS DISTINCT FROM EXCLUDED.stats
+           OR items.equip_slot IS DISTINCT FROM EXCLUDED.equip_slot THEN items.ver + 1 ELSE items.ver END,
+         enhance=EXCLUDED.enhance, stats=EXCLUDED.stats, vohon_id=EXCLUDED.vohon_id, locked=EXCLUDED.locked, equip_slot=EXCLUDED.equip_slot,
          -- Thứ tự ô (#215 "Sắp xếp" đặt lại created); cùng mili giây thì giữ giá trị cũ (Item.created chỉ có mili giây).
          created_at=CASE WHEN date_trunc('milliseconds', items.created_at) = EXCLUDED.created_at THEN items.created_at ELSE EXCLUDED.created_at END
        WHERE items.account_id = EXCLUDED.account_id`, [accountId, rows]);
@@ -893,8 +1060,17 @@ export class PgStore implements Store {
       auto_sell=COALESCE($4::jsonb, auto_sell), auto_sold=COALESCE($5::jsonb, auto_sold) WHERE id=$1`,
       [accountId, bag.honTe, bag.slots ?? null, bag.sell === undefined ? null : JSON.stringify(bag.sell), bag.sold ? JSON.stringify(bag.sold) : null]);
     if (a.rowCount !== 1) throw new Error(`Không có tài khoản #${accountId}.`);
+    if (bag.lock?.length) { // E3: khóa dòng món theo id tăng dần (sau dòng tài khoản), cấp lưu lệch cấp phòng dựa vào thì hủy cả transaction
+      const ids = bag.lock.map((l) => l.id).sort(), r = await db.query("SELECT id, enhance FROM items WHERE account_id=$1 AND id = ANY($2::uuid[]) ORDER BY id FOR UPDATE", [accountId, ids]);
+      for (const x of r.rows) if (Number(x.enhance) !== bag.lock.find((l) => l.id === x.id)!.enhance) throw new Error(`Món ${x.id} đã đổi cấp ở nơi khác.`);
+    }
     await db.query("DELETE FROM items WHERE account_id=$1 AND NOT (id = ANY($2::uuid[]))", [accountId, bag.items.map((i) => i.id)]);
+    // Trang bị (027): món đổi ô / tháo ra thì nhả ô trước, để chỉ mục duy nhất (account_id, equip_slot) không vướng khi hai món đổi chỗ trong một câu upsert.
+    await db.query(`UPDATE items i SET equip_slot=NULL WHERE i.account_id=$1 AND i.equip_slot IS NOT NULL AND NOT EXISTS (
+      SELECT 1 FROM jsonb_to_recordset($2::jsonb) AS x(id uuid, s smallint) WHERE x.id=i.id AND x.s=i.equip_slot)`,
+      [accountId, JSON.stringify(bag.items.filter((i) => i.equipSlot !== undefined).map((i) => ({ id: i.id, s: i.equipSlot })))]);
     await this.upsertItems(db, accountId, bag.items);
+    for (const t of bag.tongPts ?? []) await this.addTongPointsTx(db, accountId, t.week, t.tong, t.n);
     if (bag.quests?.length) {
       await db.query(
         `INSERT INTO quests(account_id, chain, step, accepted, prog)
@@ -981,6 +1157,17 @@ export class PgStore implements Store {
   async unlockWaypoint(accountId: number, wp: string) {
     await this.pool.query("INSERT INTO waypoints (account_id, wp) VALUES ($1, $2) ON CONFLICT DO NOTHING", [accountId, wp]);
   }
+  async getFog(accountId: number, mapId: string, file: string) {
+    const r = await this.pool.query("SELECT map_file, cells FROM map_fog WHERE account_id=$1 AND map_id=$2", [accountId, mapId]);
+    const x = r.rows[0];
+    return x && x.map_file === file ? new Uint8Array(x.cells as Buffer) : null;
+  }
+  async saveFog(accountId: number, mapId: string, file: string, cells: Uint8Array) {
+    await this.pool.query(
+      `INSERT INTO map_fog (account_id, map_id, map_file, cells) VALUES ($1,$2,$3,$4)
+       ON CONFLICT (account_id, map_id) DO UPDATE SET map_file=EXCLUDED.map_file, cells=EXCLUDED.cells, updated_at=now()`,
+      [accountId, mapId, file, Buffer.from(cells)]);
+  }
   async getTong(accountId: number) {
     const r = await this.pool.query("SELECT tong, tong_at FROM accounts WHERE id=$1", [accountId]);
     const x = r.rows[0];
@@ -1033,8 +1220,9 @@ export class PgStore implements Store {
     const r = await this.pool.query("SELECT tong, points FROM tong_points WHERE account_id=$1 AND week=$2 ORDER BY points DESC LIMIT 1", [accountId, week]);
     return r.rowCount ? { tong: r.rows[0].tong as string, points: Number(r.rows[0].points) } : null;
   }
-  async addTongPoints(accountId: number, week: number, tong: string, n: number) {
-    const r = await this.pool.query(
+  async addTongPoints(accountId: number, week: number, tong: string, n: number) { return this.addTongPointsTx(this.pool, accountId, week, tong, n); }
+  async addTongPointsTx(db: pg.Pool | pg.PoolClient, accountId: number, week: number, tong: string, n: number) {
+    const r = await db.query(
       `INSERT INTO tong_points(account_id, week, tong, points) VALUES ($1, $2, $3, $4)
        ON CONFLICT (account_id, week, tong) DO UPDATE SET points = tong_points.points + EXCLUDED.points RETURNING points`, [accountId, week, tong, n]);
     return Number(r.rows[0].points);
@@ -1042,12 +1230,12 @@ export class PgStore implements Store {
   async tongBoard(week: number, min: number, topN: number): Promise<TongBoard> {
     const [g, t] = await Promise.all([
       this.pool.query(
-        `SELECT tong, COUNT(*) FILTER (WHERE points >= $2)::int AS active, COALESCE(AVG(points) FILTER (WHERE points >= $2), 0)::float8 AS avg
-         FROM tong_points WHERE week=$1 GROUP BY tong`, [week, min]),
+        `SELECT p.tong, COUNT(*) FILTER (WHERE p.points >= $2)::int AS active, COALESCE(AVG(p.points) FILTER (WHERE p.points >= $2), 0)::float8 AS avg
+         FROM tong_points p JOIN accounts a ON a.id = p.account_id WHERE p.week=$1 AND NOT a.is_test GROUP BY p.tong`, [week, min]),
       this.pool.query(
         `SELECT x.tong, a.name, x.points FROM (
-           SELECT tong, account_id, points, ROW_NUMBER() OVER (PARTITION BY tong ORDER BY points DESC, account_id) AS r
-           FROM tong_points WHERE week=$1 AND points > 0) x
+           SELECT p.tong, p.account_id, p.points, ROW_NUMBER() OVER (PARTITION BY p.tong ORDER BY p.points DESC, p.account_id) AS r
+           FROM tong_points p JOIN accounts t ON t.id = p.account_id WHERE p.week=$1 AND p.points > 0 AND NOT t.is_test) x
          JOIN accounts a ON a.id = x.account_id WHERE x.r <= $2 ORDER BY x.tong, x.points DESC, x.account_id`, [week, topN]),
     ]);
     const top: TongBoard["top"] = {};
@@ -1150,8 +1338,8 @@ export class PgStore implements Store {
   async arenaTop(n: number, accountId: number) {
     const order = "ORDER BY r.elo DESC, r.wins DESC, r.updated_at, r.account_id";
     const [top, me] = await Promise.all([
-      this.pool.query(`SELECT r.account_id, a.name, r.elo, r.wins, r.losses, r.draws FROM arena_ratings r JOIN accounts a ON a.id=r.account_id ${order} LIMIT $1`, [n]),
-      this.pool.query(`SELECT * FROM (SELECT r.account_id, r.elo, r.wins, r.losses, r.draws, ROW_NUMBER() OVER (${order}) AS rank FROM arena_ratings r) x
+      this.pool.query(`SELECT r.account_id, a.name, r.elo, r.wins, r.losses, r.draws FROM arena_ratings r JOIN accounts a ON a.id=r.account_id WHERE NOT a.is_test ${order} LIMIT $1`, [n]),
+      this.pool.query(`SELECT * FROM (SELECT r.account_id, r.elo, r.wins, r.losses, r.draws, ROW_NUMBER() OVER (${order}) AS rank FROM arena_ratings r JOIN accounts a ON a.id=r.account_id WHERE NOT a.is_test) x
         WHERE x.account_id=$1`, [accountId]),
     ]);
     return { list: top.rows.map((x) => ({ accountId: Number(x.account_id), name: x.name as string, ...arenaRow(x) })),
@@ -1163,7 +1351,7 @@ export class PgStore implements Store {
   }
   private async resonanceAll(): Promise<ResonanceTopEntry[]> {
     const [accounts, vohons, items] = await Promise.all([
-      this.pool.query("SELECT id, name FROM accounts ORDER BY id"),
+      this.pool.query("SELECT id, name FROM accounts WHERE NOT is_test ORDER BY id"),
       this.pool.query("SELECT account_id, level, rings, stars FROM vohons ORDER BY id"),
       this.pool.query("SELECT account_id, code, enhance, stars FROM items WHERE vohon_id IS NOT NULL AND code = ANY($1::text[])", [[BONE_ITEM, CORE_ITEM]]),
     ]);
@@ -1193,12 +1381,99 @@ export class PgStore implements Store {
        ON CONFLICT (day, a, b) DO UPDATE SET n = arena_pairs.n + 1, updated_at = now() RETURNING n`, [day, Math.min(a, b), Math.max(a, b)]);
     return Number(r.rows[0].n);
   }
+  async lookupAccount(name: string): Promise<AccountRef | null> {
+    const r = await this.pool.query(
+      `SELECT a.id, a.name, a.is_test, (SELECT max(created_at) FROM sessions WHERE account_id=a.id) AS last_login FROM accounts a WHERE a.name_key=$1`, [nameKey(name)]);
+    const x = r.rows[0];
+    return x ? { id: Number(x.id), name: x.name as string, isTest: !!x.is_test, lastLogin: x.last_login ? new Date(x.last_login).getTime() : null } : null;
+  }
+  async markTest(accountId: number) { await this.pool.query("UPDATE accounts SET is_test=true WHERE id=$1", [accountId]); }
+  async isTestAccount(accountId: number) {
+    const r = await this.pool.query("SELECT is_test FROM accounts WHERE id=$1", [accountId]);
+    return !!r.rows[0]?.is_test;
+  }
+  async seedTestAccount(name: string, password: string | null, data: SeedData) {
+    seedOk(data); bagOk({ honTe: data.honTe, slots: data.slots, items: seedItems(data.items, () => 1) });
+    const key = nameKey(name), hash = password === null ? null : await hashPass(password);
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      const found = await db.query("SELECT id, is_test FROM accounts WHERE name_key=$1 FOR UPDATE", [key]);
+      let id: number, created = false;
+      if (found.rowCount) {
+        if (!found.rows[0].is_test) throw new Error(`Tài khoản "${name}" không có cờ is_test: không ghi đè tài khoản thật.`);
+        id = Number(found.rows[0].id);
+      } else {
+        if (hash === null) throw new Error(`Tài khoản "${name}" chưa có: cần mật khẩu để tạo.`);
+        const ins = await db.query("INSERT INTO accounts(name, name_key, pass_hash, is_test) VALUES ($1,$2,$3,true) ON CONFLICT DO NOTHING RETURNING id", [name, key, hash]);
+        if (!ins.rowCount) throw new Error(`Không tạo được tài khoản "${name}" (trùng tên vừa có người tạo?).`);
+        id = Number(ins.rows[0].id); created = true;
+      }
+      // Xoá phần dựng lại được (không đụng Elo, bạn bè, chặn): đồ trước võ hồn vì items tham chiếu vohons.
+      for (const t of ["items", "teams", "vohons", "quests", "waypoints", "boss_claims", "auto_hunt", "auto_offline", "tong_points", "map_fog"])
+        await db.query(`DELETE FROM ${t} WHERE account_id=$1`, [id]);
+      const rowOf = new Map<string, number>();
+      for (const v of data.vohons) {
+        const r = await db.query(
+          "INSERT INTO vohons(account_id, vohon, level, xp, stars, rings, kills, skills, herbs) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb) RETURNING id",
+          [id, v.vohon, v.level, v.xp, v.stars, v.rings, v.kills, v.skills, JSON.stringify(parseHerbs(v.herbs))]);
+        rowOf.set(v.vohon, Number(r.rows[0].id));
+      }
+      for (const [slot, code] of data.team.entries()) await db.query("INSERT INTO teams(account_id, slot, vohon_id) VALUES ($1,$2,$3)", [id, slot, rowOf.get(code)]);
+      await db.query(
+        `UPDATE accounts SET is_test=true, active_vohon=$2, map_id=$3, pos_x=NULL, pos_y=NULL, map_file=NULL, sex=$4, hair=$5, hair_col=$6, outfit_col=$7, skin=$8,
+           looks_lpc='', looks_changes=0, looks_chosen=true, starter_items=$9, tong=NULL, tong_at=NULL, bag_slots=NULL, auto_sell=NULL, auto_sold=NULL WHERE id=$1`,
+        [id, rowOf.get(data.active), data.mapId, data.looks.sex, data.looks.hair, data.looks.hairCol, data.looks.outfitCol, data.looks.skin, data.starter]);
+      await this.writeBag(db, id, { honTe: data.honTe, slots: data.slots, items: seedItems(data.items, (c) => rowOf.get(c)!) });
+      for (const wp of data.waypoints) await db.query("INSERT INTO waypoints(account_id, wp) VALUES ($1,$2) ON CONFLICT DO NOTHING", [id, wp]);
+      await db.query("COMMIT");
+      return { accountId: id, created };
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
+  }
+  async removeTestAccount(name: string) {
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      const found = await db.query("SELECT id, is_test FROM accounts WHERE name_key=$1 FOR UPDATE", [nameKey(name)]);
+      if (!found.rowCount) throw new Error(`Không có tài khoản "${name}".`);
+      if (!found.rows[0].is_test) throw new Error(`Tài khoản "${name}" không có cờ is_test: không xoá tài khoản thật.`);
+      const id = Number(found.rows[0].id), n: Record<string, number> = {};
+      const where: Record<string, string> = { arena_pairs: "a=$1 OR b=$1", friends: "account_id=$1 OR friend_id=$1", blocks: "account_id=$1 OR blocked_id=$1", accounts: "id=$1" };
+      for (const t of REMOVE_TABLES) n[t] = (await db.query(`DELETE FROM ${t} WHERE ${where[t] ?? "account_id=$1"}`, [id])).rowCount ?? 0;
+      await db.query("COMMIT");
+      return n;
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
+  }
   async chooseLooks(accountId: number, looks: Looks) {
     // Một lần duy nhất: điều kiện NOT looks_chosen làm hai yêu cầu cùng lúc chỉ một cái được ghi.
     const r = await this.pool.query(
-      "UPDATE accounts SET sex=$2, hair=$3, hair_col=$4, outfit_col=$5, skin=$6, looks_chosen=true WHERE id=$1 AND NOT looks_chosen",
-      [accountId, looks.sex, looks.hair, looks.hairCol, looks.outfitCol, looks.skin]);
+      "UPDATE accounts SET sex=$2, hair=$3, hair_col=$4, outfit_col=$5, skin=$6, looks_lpc=$7, looks_chosen=true WHERE id=$1 AND NOT looks_chosen",
+      [accountId, looks.sex, looks.hair, looks.hairCol, looks.outfitCol, looks.skin, looks.lpc ? encodeLpc(looks.lpc) : ""]);
     return (r.rowCount ?? 0) > 0;
+  }
+  async changeLooks(accountId: number, looks: Looks, expect: number, bag: Bag) {
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      // Điều kiện looks_changes = expect: hai yêu cầu cùng lúc chỉ một cái khớp (dòng bị khóa khi cập nhật), cái kia ROLLBACK, không trừ tiền.
+      const r = await db.query(
+        `UPDATE accounts SET sex=$2, hair=$3, hair_col=$4, outfit_col=$5, skin=$6, looks_lpc=$7, looks_changes=looks_changes+1
+         WHERE id=$1 AND looks_chosen AND looks_changes=$8 RETURNING looks_changes`,
+        [accountId, looks.sex, looks.hair, looks.hairCol, looks.outfitCol, looks.skin, looks.lpc ? encodeLpc(looks.lpc) : "", expect]);
+      if (!r.rowCount) { await db.query("ROLLBACK"); return null; }
+      await this.writeBag(db, accountId, bag);
+      await db.query("COMMIT");
+      return Number(r.rows[0].looks_changes);
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
   }
 }
 

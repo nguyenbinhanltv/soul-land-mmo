@@ -1,0 +1,202 @@
+// Kiểm thử hàm thuần radar (shared/radar.ts, hằng RADAR / MAPVIEW / FOG ở shared/data.ts, mục 5.17): không cần bật server.
+// Chạy: npm run test:radar --prefix server
+import assert from "node:assert/strict";
+import { RALLY, RADAR, RADAR_ART, MAPVIEW, FOG, MAPS, TILE, AUTOWALK } from "../../shared/data.ts";
+import {
+  radarRotate, radarUnrotate, radarNorthAngle, radarCompassRotation, radarPlace, clampToCircle, radarHit, radarZoomStep, radarPrio,
+  radarSortDots, radarPick, mapviewToScreen, mapviewToTile, mapviewZoomAt, mapviewPan, mapviewClampCenter, mapviewClampZoom, mapviewLayer, type MapView,
+} from "../../shared/radar.ts";
+import { fogDims, fogEmpty, fogGet, fogSet, fogFill, fogCount, fogCellOf, fogReveal, fogValid, fogBytes, fogCells, fogOn } from "../../shared/fog.ts";
+import { rallyPoint, rallyRead, rallyUpsert, rallyPrune, rallyLeft, type Rally } from "../../shared/rally.ts";
+import { rallyCheck, rallyReset } from "../src/ratelimit.ts";
+import { autoLeg } from "../../shared/autowalk.ts";
+import { mapRoute } from "../src/map.ts";
+import { MemoryStore } from "../src/db.ts";
+
+const pend: Promise<void>[] = [];
+function test(title: string, fn: () => void | Promise<void>) { const r = fn(); if (r) pend.push(r.then(() => console.log(`✓ ${title}`))); else console.log(`✓ ${title}`); }
+const near = (got: number, want: number, what: string, tol = 1e-9) => assert.ok(Math.abs(got - want) <= tol, `${what}: ${got} lệch ${want}`);
+
+test("Hằng số: tầm mặc định nằm trong bảng phóng, ưu tiên 1..7 liên tiếp, bản đồ mở sẵn có thật", () => {
+  assert.equal(RADAR.zooms[RADAR.zoomDefault], RADAR.r); assert.deepEqual([...RADAR.zooms].sort((a, b) => a - b), RADAR.zooms);
+  assert.ok(RADAR.far > RADAR.zooms[RADAR.zooms.length - 1] && RADAR.hz > 0 && RADAR.hitPx > 0);
+  assert.deepEqual(RADAR.levels.map((l) => l.prio), [1, 2, 3, 4, 5, 6, 7, 8]); assert.equal(new Set(RADAR.levels.map((l) => l.id)).size, 8);
+  assert.ok(RADAR.levels.every((l) => l.size >= 5 && l.size <= 9));
+  assert.ok(MAPVIEW.zoomMin <= MAPVIEW.zoomDefault && MAPVIEW.zoomDefault <= MAPVIEW.zoomMax);
+  assert.equal(new Set(MAPVIEW.layers.map((l) => l.id)).size, MAPVIEW.layers.length);
+  assert.ok(FOG.cell > 0 && FOG.sight > 0); for (const m of FOG.open) assert.ok(MAPS[m], `bản đồ mở sẵn lạ ${m}`);
+  assert.deepEqual(Object.values(RADAR_ART).map((a) => a.key), ["ui_radar_frame", "ui_radar_compass", "ui_mapview_paper"]);
+});
+
+test("Chiếu iso: đi lên màn hình (thế giới −1,−1) thì lên radar; đi phải màn hình (1,−1) thì sang phải", () => {
+  const up = radarRotate(-1, -1, "iso"); near(up.x, 0, "up.x"); assert.ok(up.y < 0);
+  const right = radarRotate(1, -1, "iso"); near(right.y, 0, "right.y"); assert.ok(right.x > 0);
+  const down = radarRotate(1, 1, "iso"); near(down.x, 0, "down.x"); assert.ok(down.y > 0);
+});
+
+test("Chiếu iso giữ khoảng cách (vòng tròn vẫn tròn); nhìn thẳng giữ nguyên; xoay ngược về đúng", () => {
+  for (const [dx, dy] of [[10, 0], [0, 7], [-3, 4], [123, -45]]) {
+    for (const mode of ["iso", "flat"] as const) {
+      const p = radarRotate(dx, dy, mode); near(Math.hypot(p.x, p.y), Math.hypot(dx, dy), `độ dài ${mode}`);
+      const q = radarUnrotate(p.x, p.y, mode); near(q.x, dx, `x ${mode}`, 1e-9); near(q.y, dy, `y ${mode}`, 1e-9);
+    }
+  }
+  assert.deepEqual(radarRotate(5, -3, "flat"), { x: 5, y: -3 });
+});
+
+test("Hướng Bắc (thế giới −y): nhìn thẳng thì lên; iso thì lên-phải; ảnh la bàn xoay đúng góc đó", () => {
+  near(radarNorthAngle("flat"), -Math.PI / 2, "flat"); near(radarNorthAngle("iso"), -Math.PI / 4, "iso");
+  near(radarCompassRotation("flat"), 0, "la bàn thẳng"); near(radarCompassRotation("iso"), Math.PI / 4, "la bàn iso");
+});
+
+test("radarPlace: trong tầm tỉ lệ theo tầm, ngoài tầm kẹp vào mép có lùi, kèm khoảng cách ô và góc", () => {
+  const rPx = 84, rT = 40;
+  const a = radarPlace(rT * TILE / 2, 0, "flat", rT, rPx); assert.equal(a.outside, false); near(a.x, rPx / 2, "x"); near(a.y, 0, "y"); near(a.tiles, 20, "tiles");
+  const b = radarPlace(0, -100 * TILE, "flat", rT, rPx, 6); assert.equal(b.outside, true);
+  near(Math.hypot(b.x, b.y), rPx - 6, "mép"); near(b.y, -(rPx - 6), "hướng lên"); near(b.tiles, 100, "tiles"); near(b.angle, -Math.PI / 2, "góc");
+  const c = radarPlace(rT * TILE, 0, "flat", rT, rPx); assert.equal(c.outside, false, "đúng bán kính vẫn trong tầm");
+  near(Math.hypot(c.x, c.y), rPx, "ở mép tròn");
+  const d = radarPlace(0, 0, "iso", rT, rPx); assert.deepEqual([d.x, d.y, d.outside, d.tiles], [0, 0, false, 0]);
+  const e = radarPlace(-60 * TILE, -60 * TILE, "iso", rT, rPx); assert.equal(e.outside, true); near(e.x, 0, "iso lên: x", 1e-6); assert.ok(e.y < 0);
+});
+
+test("clampToCircle / radarHit: trong đĩa giữ nguyên, ngoài về mép đúng hướng, tâm không chia 0", () => {
+  assert.deepEqual(clampToCircle(3, 4, 10), { x: 3, y: 4 }); assert.deepEqual(clampToCircle(0, 0, 10), { x: 0, y: 0 });
+  const p = clampToCircle(30, 40, 10); near(p.x, 6, "x"); near(p.y, 8, "y"); assert.deepEqual(clampToCircle(5, 5, 0), { x: 0, y: 0 });
+  assert.ok(radarHit(3, 4, 5)); assert.ok(!radarHit(3.1, 4, 5));
+});
+
+test("Thu phóng: phóng to = tầm nhỏ lại, kẹp hai đầu, chỉ số lạ được kẹp", () => {
+  assert.equal(radarZoomStep(1, 1), 0); assert.equal(radarZoomStep(1, -1), 2); assert.equal(radarZoomStep(0, 1), 0); assert.equal(radarZoomStep(2, -1), 2);
+  assert.equal(radarZoomStep(9, -1), 2); assert.equal(radarZoomStep(-4, 1), 0);
+});
+
+test("Xếp chấm: ưu tiên thấp vẽ trước, cao đè sau, cùng mức giữ thứ tự, không sửa mảng gốc; chọn chấm theo ưu tiên", () => {
+  assert.equal(radarPrio("boss"), 7); assert.equal(radarPrio("beast"), 1); assert.equal(radarPrio("la"), 0);
+  const dots = [{ n: "boss", prio: radarPrio("boss"), x: 0, y: 0 }, { n: "t1", prio: 1, x: 0, y: 0 }, { n: "ally", prio: radarPrio("ally"), x: 1, y: 0 },
+    { n: "t2", prio: 1, x: 5, y: 5 }, { n: "player", prio: radarPrio("player"), x: 0, y: 1 }];
+  const before = dots.map((d) => d.n);
+  assert.deepEqual(radarSortDots(dots).map((d) => d.n), ["t1", "t2", "player", "ally", "boss"]);
+  assert.deepEqual(dots.map((d) => d.n), before);
+  assert.equal(radarPick(dots, 0, 0)?.n, "boss", "chồng nhau thì chọn mức cao nhất");
+  assert.equal(radarPick(dots, 5, 5)?.n, "t2"); assert.equal(radarPick(dots, 50, 50), undefined);
+  assert.equal(radarPick([{ prio: 1, x: 1, y: 0 }, { prio: 1, x: 0.2, y: 0 }], 0, 0)?.x, 0.2, "cùng mức thì chọn gần hơn");
+});
+
+test("Bản đồ khu vực: ô ↔ màn hình khứ hồi ở cả hai hướng; phóng quanh con trỏ giữ ô dưới con trỏ; kéo đi theo ngón tay; kẹp", () => {
+  for (const mode of ["iso", "flat"] as const) {
+    const v: MapView = { cx: 100, cy: 60, zoom: 3, mode };
+    const s = mapviewToScreen(v, 130, 40), t = mapviewToTile(v, s.x, s.y); near(t.x, 130, `x ${mode}`, 1e-9); near(t.y, 40, `y ${mode}`, 1e-9);
+    const c = mapviewToScreen(v, 100, 60); near(c.x, 0, "tâm x"); near(c.y, 0, "tâm y");
+    const before = mapviewToTile(v, 70, -30), z = mapviewZoomAt(v, 2, 70, -30), after = mapviewToTile(z, 70, -30);
+    near(z.zoom, 6, "zoom"); near(after.x, before.x, `ô dưới con trỏ x ${mode}`, 1e-9); near(after.y, before.y, `ô dưới con trỏ y ${mode}`, 1e-9);
+    const g = mapviewToScreen(v, 120, 80), p = mapviewPan(v, 25, -10), g2 = mapviewToScreen(p, 120, 80);
+    near(g2.x, g.x + 25, `kéo x ${mode}`, 1e-9); near(g2.y, g.y - 10, `kéo y ${mode}`, 1e-9);
+  }
+  assert.equal(mapviewZoomAt({ cx: 0, cy: 0, zoom: MAPVIEW.zoomMax, mode: "flat" }, 5, 0, 0).zoom, MAPVIEW.zoomMax);
+  assert.equal(mapviewClampZoom(0.01), MAPVIEW.zoomMin);
+  assert.deepEqual(mapviewClampCenter({ cx: -5, cy: 999, zoom: 3, mode: "flat" }, 255, 170), { cx: 0, cy: 170, zoom: 3, mode: "flat" });
+  const up = mapviewToScreen({ cx: 0, cy: 0, zoom: 1, mode: "iso" }, -1, -1); near(up.x, 0, "iso lên x", 1e-9); assert.ok(up.y < 0, "đi lên màn hình thì lên");
+});
+
+test("Lớp lọc: loại chấm → lớp, `layer` tường minh thắng, mọi lớp trong bảng lọc đều có loại chấm hoặc là đồ rơi", () => {
+  assert.equal(mapviewLayer("boss"), "beast"); assert.equal(mapviewLayer("ally"), "player"); assert.equal(mapviewLayer("poi"), "npc");
+  assert.equal(mapviewLayer("quest", "drop"), "drop"); assert.equal(mapviewLayer("la"), "");
+  const ids = new Set(MAPVIEW.layers.map((l) => l.id));
+  for (const l of Object.values(MAPVIEW.layerOf)) assert.ok(ids.has(l), `lớp lạ ${l}`);
+  for (const k of Object.keys(MAPVIEW.layerOf)) assert.ok(RADAR.levels.some((lv) => lv.id === k), `loại chấm lạ ${k}`);
+  assert.ok(MAPVIEW.hitPx > 0 && MAPVIEW.dragPx > 0);
+});
+
+test("Tự đi tới cờ (R4): chặng kế tiếp theo bản đồ đứng, bản đồ đích và route", () => {
+  assert.deepEqual(autoLeg("a", { map: "a", tile: true }, {}), { k: "flag" });
+  assert.deepEqual(autoLeg("a", { map: "a", tile: false }, {}), { k: "arrived" });
+  assert.deepEqual(autoLeg("a", { map: "c", tile: true }, { b: "b", c: "b" }), { k: "gate", to: "b" });
+  assert.deepEqual(autoLeg("a", { map: "z", tile: true }, { b: "b" }), { k: "none" });
+  assert.deepEqual(autoLeg("a", { map: "toString", tile: true }, {}), { k: "none" }, "không đọc thuộc tính của Object");
+  assert.ok(AUTOWALK.arrive > 0 && AUTOWALK.stuckSecs > 0 && AUTOWALK.gateSecs > 0 && AUTOWALK.holdMs > 0);
+});
+
+test("Tự đi tới cờ (R4): mọi bản đồ đi bộ được đều có đường tới nhau qua cổng thật (mapRoute)", () => {
+  const ids = Object.keys(MAPS).filter((id) => MAPS[id].kind !== "arena");
+  for (const from of ids) {
+    const r = mapRoute(from);
+    for (const to of Object.keys(r)) assert.ok(Object.hasOwn(MAPS, r[to]) && r[to] !== from, `${from} → ${to}: chặng đầu ${r[to]}`);
+  }
+  const start = ids[0], far = Object.keys(mapRoute(start)).at(-1)!;
+  assert.deepEqual(autoLeg(start, { map: far, tile: true }, mapRoute(start)), { k: "gate", to: mapRoute(start)[far] });
+});
+
+test("Sương mù (R8): lưới ô thô, đánh dấu quanh điểm, bit thừa, mở cả bản đồ", () => {
+  const d = fogDims(255, 170); assert.deepEqual([d.cw, d.ch, d.cells, d.bytes], [32, 22, 704, 88], "bản đồ 255×170 khoảng 90 byte");
+  const b = fogEmpty(d); assert.equal(fogCount(b), 0);
+  const add = fogReveal(b, d, 100, 80); assert.ok(add.length > 0 && add.length === fogCount(b));
+  assert.ok(fogGet(b, fogCellOf(d, 100, 80)), "ô đứng được mở");
+  assert.deepEqual(fogReveal(b, d, 100, 80), [], "đứng yên không mở thêm");
+  assert.ok(!fogGet(b, fogCellOf(d, 100 + FOG.sight * 3, 80)), "xa hơn tầm nhìn thì chưa mở");
+  // mọi điểm trong bán kính nhìn đều nằm trong ô đã mở
+  for (let a = 0; a < 16; a++) { const x = 100 + Math.cos(a) * (FOG.sight - 0.01), y = 80 + Math.sin(a) * (FOG.sight - 0.01); assert.ok(fogGet(b, fogCellOf(d, x, y)), `điểm bán kính ${a}`); }
+  assert.deepEqual(fogReveal(fogEmpty(d), d, -50, -50), [], "ngoài bản đồ: không mở gì");
+  assert.equal(fogReveal(fogEmpty(d), d, NaN, 3).length, 0);
+  const full = fogFill(d); assert.equal(fogCount(full), d.cells); assert.ok(fogValid(full, d));
+  const tiny = fogDims(10, 10); assert.equal(tiny.cells, 4); assert.equal(fogFill(tiny)[0], 0b1111, "bit thừa giữ 0");
+  assert.equal(fogSet(fogEmpty(tiny), tiny, 4), false, "ô ngoài lưới bị từ chối"); assert.equal(fogSet(fogEmpty(tiny), tiny, -1), false); assert.equal(fogSet(fogEmpty(tiny), tiny, 1.5), false);
+});
+
+test("Sương mù (R8): dữ liệu lạ bị từ chối (sai kiểu, sai độ dài, bit thừa, lưới quá lớn), danh sách ô lọc và cắt", () => {
+  const d = fogDims(255, 170), t = fogDims(10, 10);
+  assert.ok(fogValid(fogEmpty(d), d));
+  assert.ok(!fogValid(new Uint8Array(d.bytes + 1), d) && !fogValid(new Uint8Array(3), d) && !fogValid("x", d) && !fogValid(null, d) && !fogValid([1, 2], d));
+  assert.ok(!fogValid(Uint8Array.of(0b10000), t), "bit thừa khác 0"); assert.ok(fogValid(Uint8Array.of(0b1111), t));
+  const huge = fogDims(FOG.cell * 1000, FOG.cell * 1000); assert.ok(!fogValid(new Uint8Array(huge.bytes), huge), "lưới vượt FOG.maxCells");
+  assert.deepEqual(fogBytes([1, 2, 255]), Uint8Array.of(1, 2, 255)); assert.equal(fogBytes([1, 256]), null); assert.equal(fogBytes("abc"), null); assert.equal(fogBytes({}), null);
+  assert.deepEqual(fogBytes(Uint8Array.of(7).buffer), Uint8Array.of(7));
+  assert.deepEqual(fogCells([0, 3, -1, 1.5, "2", 999999, 5], d), [0, 3, 5]); assert.deepEqual(fogCells("x", d), []);
+  assert.equal(fogCells(Array.from({ length: 500 }, (_, i) => i), d).length, FOG.maxAdd);
+  assert.ok(FOG.maxAdd > 0 && FOG.markSecs > 0 && FOG.sendSecs >= FOG.markSecs && FOG.fadeMs >= 0);
+  for (const m of FOG.open) assert.ok(!fogOn(m)); assert.ok(fogOn("tinh_dau_noi_dia"));
+  assert.ok(!fogOn(MAPS.dai_dau_hon_truong ? "dai_dau_hon_truong" : ""), "sân đấu không có sương mù");
+});
+
+test("Sương mù (R8): MemoryStore ghi / đọc bitset theo tài khoản × bản đồ, sai file bản đồ thì bỏ", async () => {
+  const st = new MemoryStore(), d = fogDims(255, 170), b = fogEmpty(d); fogReveal(b, d, 100, 80);
+  assert.equal(await st.getFog(1, "m", "f.json"), null, "chưa có");
+  await st.saveFog(1, "m", "f.json", b);
+  assert.deepEqual(await st.getFog(1, "m", "f.json"), b); assert.equal(await st.getFog(2, "m", "f.json"), null, "tài khoản khác không thấy");
+  assert.equal(await st.getFog(1, "n", "f.json"), null, "bản đồ khác không thấy"); assert.equal(await st.getFog(1, "m", "f.v2.json"), null, "file Tiled khác thì bỏ");
+  const got = (await st.getFog(1, "m", "f.json"))!; got[0] ^= 0xff; assert.notDeepEqual(await st.getFog(1, "m", "f.json"), got, "bản đọc ra là bản sao");
+});
+
+test("Tập trung (R6): hằng hợp lý, ô hợp lệ chỉ trong bản đồ và về tâm ô, dữ liệu lạ bị bỏ", () => {
+  assert.ok(RALLY.secs > 0 && RALLY.burst >= 1 && RALLY.refillMs > 0 && RALLY.nameMax > 0);
+  assert.deepEqual(rallyPoint(10.2, 5.9, 20, 20), { tx: 10.5, ty: 5.5 });
+  for (const [x, y] of [[-0.1, 1], [1, -1], [20, 1], [1, 20], [NaN, 1], [1, Infinity]] as const) assert.equal(rallyPoint(x, y, 20, 20), null, `${x},${y}`);
+  for (const v of [undefined, null, "3", {}, [], true]) assert.equal(rallyPoint(v, 1, 20, 20), null);
+  const ok = { from: "A", map: "m", ch: 1, tx: 3.5, ty: 4.5, secs: RALLY.secs };
+  assert.deepEqual(rallyRead(ok), ok); assert.equal(rallyRead({ ...ok, secs: 9999 })!.secs, RALLY.secs, "số giây bị kẹp vào luật");
+  assert.equal(rallyRead({ ...ok, secs: -5 })!.secs, 1);
+  for (const bad of [null, 1, "x", {}, { ...ok, from: "" }, { ...ok, map: 3 }, { ...ok, tx: NaN }, { ...ok, secs: "9" }]) assert.equal(rallyRead(bad), null);
+  assert.equal(rallyRead({ ...ok, from: "x".repeat(200) })!.from.length, RALLY.nameMax);
+});
+
+test("Tập trung (R6): mỗi người một dấu, hết hạn thì bỏ, người rời tổ đội thì dấu mất", () => {
+  const m = (from: string, tx: number, secs = 10) => ({ from, map: "m", ch: 1, tx, ty: 1.5, secs });
+  let l: Rally[] = [];
+  l = rallyUpsert(l, m("A", 1.5), 1000); l = rallyUpsert(l, m("B", 2.5), 1000); l = rallyUpsert(l, m("A", 9.5), 2000);
+  assert.deepEqual(l.map((r) => [r.from, r.tx]), [["B", 2.5], ["A", 9.5]], "dấu mới của A thay dấu cũ của A");
+  const a = l.find((r) => r.from === "A")!; assert.equal(a.until, 12000); assert.equal(rallyLeft(a, 2000), 10); assert.equal(rallyLeft(a, 11500), 1); assert.equal(rallyLeft(a, 99999), 0);
+  assert.equal(rallyPrune(l, 10999, null).length, 2, "B (hết hạn 11000) còn"); assert.deepEqual(rallyPrune(l, 11000, null).map((r) => r.from), ["A"], "B hết hạn đúng lúc");
+  assert.deepEqual(rallyPrune(l, 2000, new Set(["A"])).map((r) => r.from), ["A"], "B rời tổ đội thì mất"); assert.equal(rallyPrune(l, 12000, null).length, 0);
+  assert.equal(rallyUpsert(l, m("C", 1.5), 0).length, 3); assert.equal(l.length, 2, "không sửa mảng cũ");
+});
+
+test("Tập trung (R6): giới hạn tốc độ token bucket theo tài khoản, hồi dần, xoá bộ đếm", () => {
+  const t0 = 1_000_000; rallyReset(7);
+  for (let i = 0; i < RALLY.burst; i++) assert.equal(rallyCheck(7, t0), null, `lượt ${i + 1}`);
+  const e = rallyCheck(7, t0); assert.ok(e && /quá nhanh/.test(e.error), "hết lượt thì chặn");
+  assert.equal(rallyCheck(8, t0), null, "tài khoản khác có bộ đếm riêng"); rallyReset(8);
+  assert.equal(rallyCheck(7, t0 + RALLY.refillMs - 50)?.error !== undefined, true, "chưa đủ thời gian hồi");
+  assert.equal(rallyCheck(7, t0 + RALLY.refillMs + 50), null, "hồi được một lượt"); assert.ok(rallyCheck(7, t0 + RALLY.refillMs + 60), "chỉ một lượt");
+  rallyReset(7); assert.equal(rallyCheck(7, t0), null, "xoá bộ đếm"); rallyReset(7);
+});
+await Promise.all(pend);

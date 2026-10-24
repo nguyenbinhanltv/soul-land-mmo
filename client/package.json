@@ -8,6 +8,8 @@
     "preview": "vite preview",
     "bot": "node scripts/bot-test.mjs",
     "test:predict": "node scripts/predict-test.mjs",
+    "test:charbag": "node scripts/charbag-test.mjs",
+    "test:phaptuong": "node scripts/phaptuong-test.mjs",
     "test:audio": "node scripts/audio-test.mjs && node scripts/music-test.mjs"
   },
   "dependencies": {

@@ -5,6 +5,8 @@ import { RedisPresence } from "@colyseus/redis-presence";
 
 export const PRESENCE_TTL_MS = 15_000;
 export const PRESENCE_HEARTBEAT_MS = 5_000;
+/** Khóa lease giữ tài khoản của phiên đang chơi (MapRoom.holdAccount); script seed tài khoản test (#517) đọc khóa này để biết có đang online không. */
+export const accountLeaseKey = (accountId: number) => `accountHold:${accountId}`;
 
 type LocalValue = { value: string; expiresAt: number };
 

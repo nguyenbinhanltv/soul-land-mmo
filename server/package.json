@@ -9,7 +9,14 @@
     "test:ratelimit": "tsx scripts/ratelimit-test.ts",
     "test:accounts": "tsx scripts/accounts-test.ts",
     "test:presence": "tsx scripts/presence-test.ts",
-    "test:presence-kill": "tsx scripts/presence-kill-test.ts"
+    "test:presence-kill": "tsx scripts/presence-kill-test.ts",
+    "test:equip": "tsx scripts/equip-test.ts",
+    "test:radar": "tsx scripts/radar-test.ts",
+    "test:gm": "tsx scripts/gm-test.ts",
+    "test:seed": "tsx scripts/seed-test.ts",
+    "seed:test": "tsx scripts/seed-test-account.ts",
+    "econ:equip": "tsx scripts/equip-econ.ts",
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --packages=external --tsconfig=tsconfig.json --sourcemap --outfile=dist/index.mjs"
   },
   "dependencies": {
     "@colyseus/redis-driver": "0.16.1",
@@ -20,13 +27,14 @@
     "express": "4.22.3",
     "ioredis": "5.11.1",
     "pg": "8.16.3",
-    "rung-san-hon-online": "file:..",
-    "tsx": "4.19.4"
+    "rung-san-hon-online": "file:.."
   },
   "devDependencies": {
     "@types/express": "4.17.21",
     "@types/node": "22.10.2",
     "@types/pg": "8.11.10",
+    "esbuild": "0.25.12",
+    "tsx": "4.19.4",
     "typescript": "5.9.3"
   }
 }

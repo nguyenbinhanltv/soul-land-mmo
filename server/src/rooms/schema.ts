@@ -10,6 +10,8 @@ export class PlayerState extends Schema {
   @type("uint8") hairCol: number = 0;
   @type("uint8") outfitCol: number = 0;
   @type("uint8") skin: number = 0;     // từ 9.9: tông da, tài khoản cũ là 0
+  // Từ L2 (#509): ngoại hình chế độ Tự tạo (LPC), chuỗi gọn của encodeLpc (shared/data.ts); "" = chế độ Mẫu dựng sẵn (dùng sex..skin ở trên).
+  @type("string") lpc: string = "";
   @type("float32") x: number = 0;
   @type("float32") y: number = 0;
   @type("uint8") dir: number = 0;      // hướng nhìn 4 phía, chỉ số trong DIRS4 (shared/data.ts): 0 xuống, 1 phải, 2 lên, 3 trái (thay `face` = ±1)
@@ -105,6 +107,7 @@ export class DropState extends Schema {
   // người nhặt thấy trong túi đồ.
   @type("uint8") stars: number = 0;
   @type("uint8") cset: number = 0;
+  // Từ E2 trang bị hồn sư (`item` = EQUIP_ITEM): `cset` = chỉ số mẫu trong EQUIP_TEMPLATES, `stars` = bậc + 1; chỉ số đã tung chỉ server biết (equipDrops).
   @type("string") owner: string = "";   // sessionId được ưu tiên nhặt
   // Từ 7.1: tổ đội của người được ưu tiên lúc đồ rơi (id trong server/src/party.ts, 0 = không có): cả tổ đội cùng được ưu tiên nhặt.
   @type("uint32") party: number = 0;

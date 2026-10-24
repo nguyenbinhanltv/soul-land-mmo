@@ -1,6 +1,7 @@
 import type { AudioManager } from "./AudioManager.ts";
 import type { AudioSettings } from "./settings.ts";
-import { fxPrefs, setFxPrefs, type FxLevel } from "../combatFx.ts";
+import { fxPrefs, setFxPrefs, SHAKE_MODES, type FxLevel, type ShakeMode } from "../combatFx.ts";
+import { HAO_QUANG_MODES, type HaoQuangMode } from "../../../shared/data.ts";
 import { UI_SCALE_CHOICES, getUiScalePref, setUiScalePref, uiScale } from "../uiArt.ts";
 
 const PANEL_ID = "audio";
@@ -62,7 +63,15 @@ export function bindAudioPanel(audio: AudioManager, signal: AbortSignal): void {
     <div class="scale-set" role="group" aria-labelledby="fxLbl"><span id="fxLbl">Hiệu ứng hình ảnh</span>
       <div class="scale-opts">${FX_LEVELS.map(([v, label]) => `<button type="button" data-fx="${v}" aria-pressed="false">${label}</button>`).join("")}
         <button type="button" data-fx-reduce aria-pressed="false" title="Giảm chuyển động
-Tắt rung màn hình, nháy trắng, dừng hình và phóng to khi đánh.">Giảm chuyển động</button></div></div>
+Tắt rung màn hình, nháy trắng, dừng hình và phóng to khi đánh.">Giảm chuyển động</button>
+        <button type="button" data-fx-cine aria-pressed="false" title="Cảnh hồn kỹ lớn
+Hồn kỹ vòng 7 trở lên: tối màn, chân dung võ hồn trượt ngang, tên chiêu chữ lớn.">Cảnh hồn kỹ lớn</button>
+        <button type="button" data-fx-cutin aria-pressed="false" title="Cut-in Chân Thân
+Khi bật Võ Hồn Chân Thân: chân dung pháp tướng lướt ngang màn hình nửa giây (chỉ mình bạn thấy; tắt khi Giảm chuyển động hoặc mức Thấp).">Cut-in Chân Thân</button></div></div>
+    <div class="scale-set" role="group" aria-labelledby="shakeLbl"><span id="shakeLbl">Rung màn hình</span>
+      <div class="scale-opts">${SHAKE_MODES.map(([v, label]) => `<button type="button" data-shake="${v}" aria-pressed="false" title="${v === "off" ? "Không rung, không phóng to giật, không dừng hình khi đánh." : v === "boss" ? "Chỉ rung với tinh anh, thú vương, boss, khi bị chiêu mạnh và khi tung hồn kỹ lớn." : "Thêm rung khi chí mạng lên hồn thú thường (không áp dụng lúc tự săn)."}">${label}</button>`).join("")}</div></div>
+    <div class="scale-set" role="group" aria-labelledby="haloLbl"><span id="haloLbl">Vòng hồn hoàn khi Chân Thân</span>
+      <div class="scale-opts">${HAO_QUANG_MODES.map(([v, label]) => `<button type="button" data-halo="${v}" aria-pressed="false" title="${v === "halo" ? "Các vòng bay xoắn lúc biến hình rồi hợp thành quầng sáng nhỏ sau lưng; vòng 7 ở lại dưới chân." : v === "feet" ? "Các vòng giữ nguyên đồng tâm dưới chân, vòng 7 sáng." : "Các vòng bay lên xếp quanh thân như trước."}">${label}</button>`).join("")}</div></div>
     <p>Âm thanh chỉ bắt đầu sau lần chạm hoặc phím đầu tiên của bạn.</p>`;
   const update = (key: "master" | "music" | "sfx" | "ui" | "ambient", value: number) => {
     audio.updateSettings({ [key]: value });
@@ -94,9 +103,17 @@ Tắt rung màn hình, nháy trắng, dừng hình và phóng to khi đánh.">Gi
   const renderFx = () => {
     el.querySelectorAll<HTMLButtonElement>("[data-fx]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.fx === fxPrefs.level)));
     el.querySelector("[data-fx-reduce]")!.setAttribute("aria-pressed", String(fxPrefs.reduce));
+    el.querySelector("[data-fx-cine]")!.setAttribute("aria-pressed", String(fxPrefs.cine));
+    el.querySelector("[data-fx-cutin]")!.setAttribute("aria-pressed", String(fxPrefs.cutin));
+    el.querySelectorAll<HTMLButtonElement>("[data-shake]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.shake === fxPrefs.shake)));
+    el.querySelectorAll<HTMLButtonElement>("[data-halo]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.halo === fxPrefs.halo)));
   };
+  el.querySelectorAll<HTMLButtonElement>("[data-halo]").forEach((b) => b.addEventListener("click", () => { setFxPrefs({ halo: b.dataset.halo as HaoQuangMode }); audio.play("ui_click"); renderFx(); }, { signal }));
+  el.querySelectorAll<HTMLButtonElement>("[data-shake]").forEach((b) => b.addEventListener("click", () => { setFxPrefs({ shake: b.dataset.shake as ShakeMode }); audio.play("ui_click"); renderFx(); }, { signal }));
   el.querySelectorAll<HTMLButtonElement>("[data-fx]").forEach((b) => b.addEventListener("click", () => { setFxPrefs({ level: b.dataset.fx as FxLevel }); audio.play("ui_click"); renderFx(); }, { signal }));
   el.querySelector("[data-fx-reduce]")!.addEventListener("click", () => { setFxPrefs({ reduce: !fxPrefs.reduce }); audio.play("ui_click"); renderFx(); }, { signal });
+  el.querySelector("[data-fx-cine]")!.addEventListener("click", () => { setFxPrefs({ cine: !fxPrefs.cine }); audio.play("ui_click"); renderFx(); }, { signal });
+  el.querySelector("[data-fx-cutin]")!.addEventListener("click", () => { setFxPrefs({ cutin: !fxPrefs.cutin }); audio.play("ui_click"); renderFx(); }, { signal });
   renderFx();
   addEventListener("resize", renderScale, { signal });
   renderScale();
