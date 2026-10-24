@@ -1,0 +1,186 @@
+{
+  "id": "lam_ngan_thao",
+  "nhom": "P (cỏ lam bạc, dây quấn)",
+  "ngay": "2026-10-24",
+  "code": [
+    "idle",
+    "attack"
+  ],
+  "mode": "dat",
+  "prescale": 0.95,
+  "clean": {
+    "minComp": 6,
+    "markMax": 0,
+    "catMau": {
+      "mau": [
+        "#22233e",
+        "#061024",
+        "#081328",
+        "#181d37"
+      ],
+      "d": 14,
+      "duoi": 0.22
+    }
+  },
+  "display": {
+    "scale": 1,
+    "dx": 0,
+    "dy": 0,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "glow": "pt_lam_ngan_thao_glow",
+    "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+  },
+  "chuyenDong": {
+    "idle": {
+      "pivot": [
+        0.5,
+        0.95
+      ],
+      "bob": 1,
+      "rot": 0,
+      "pulse": 0.15,
+      "lay": 3,
+      "layLag": 1.9
+    },
+    "attack": {
+      "pivot": [
+        0.5,
+        0.95
+      ],
+      "hit": 3,
+      "vet": [
+        3,
+        4
+      ],
+      "vong": 22,
+      "vongMau": "#7fe0ff",
+      "poses": [
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          0.97,
+          1.03,
+          null,
+          -4,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0.97,
+          1.03,
+          1.08,
+          null,
+          -7,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1.2,
+          0.98,
+          1.5,
+          null,
+          10,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1.18,
+          0.99,
+          1.45,
+          null,
+          12,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1.0666666666666667,
+          1,
+          1.2,
+          null,
+          3,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1.01,
+          1,
+          1.08,
+          null,
+          -2,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null,
+          0,
+          0
+        ]
+      ],
+      "layLag": 1.4,
+      "layCyc": 1
+    },
+    "hat": [
+      {
+        "vi": "nen",
+        "n": 8,
+        "mau": [
+          "#9df1f9",
+          "#ffffff"
+        ],
+        "len": 24,
+        "seed": 41,
+        "s": 2
+      },
+      {
+        "vi": "tren",
+        "n": 5,
+        "mau": [
+          "#7fe0ff"
+        ],
+        "len": 20,
+        "rong": 0.8,
+        "seed": 42,
+        "s": 1,
+        "troi": 6
+      }
+    ]
+  }
+}

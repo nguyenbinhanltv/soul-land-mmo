@@ -17,9 +17,10 @@ const src = path.join(ROOT, "art", "src", "pixellab", "phap_tuong", id);
 const outBody = path.join(SPRITES, "phaptuong", `${id}.png`), outGlow = path.join(SPRITES, "phaptuong", `${id}_glow.png`);
 const colors = vohonColors(id);
 if (!colors) fail(`không có võ hồn "${id}" trong VOHON`);
-const COL = hex(colors[0]), OUT = hex(OUTLINE);
+const COL = hex(colors[0]), OUT = hex(OUTLINE), GLC = recipe0Glow() ?? COL; // GLC: màu viền / vệt sáng (mặc định màu võ hồn; recipe có thể đặt `glowMau` cho võ hồn đa sắc như A Ngân)
 const L = isoLayout("phaptuong"), [N_IDLE, N_ATK] = [L.anims.idle[1], L.anims.attack[1]], N = N_IDLE + N_ATK;
 const recipe = JSON.parse(readFileSync(path.join(src, "recipe.json"), "utf8"));
+function recipe0Glow() { try { const g = JSON.parse(readFileSync(path.join(src, "recipe.json"), "utf8")).glowMau; return g ? hex(g) : null; } catch { return null; } }
 const M = recipe.chuyenDong, CLEAN = recipe.clean ?? {}, MODE = recipe.mode ?? "dat";
 const FACE = { s: [0, 0.6], se: [0.8, 0.4], e: [1, 0], ne: [0.8, -0.4], n: [0, -0.6] }; // hướng "ra đòn" trên màn hình (đơn vị điểm × `fwd`)
 const rnd = (a) => () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -95,6 +96,10 @@ function clean(file) {
     const del = []; for (let y = 0; y < im.h; y++) for (let x = 0; x < im.w; x++) if (im.alpha(x, y) && !keep(x, y)) del.push([x, y]);
     for (const [x, y] of del) im.set(x, y, [0, 0, 0, 0]);
   }
+  if (CLEAN.catMau) { // bỏ đế đất / bóng tối của concept: xóa điểm gần các màu `catMau.mau` (sai số `d`) ở `catMau.duoi` phần dưới hộp bao
+    const b0 = bboxOf(im), yMin = b0.y1 - CLEAN.catMau.duoi * b0.h, ks = CLEAN.catMau.mau.map(hex), d2 = CLEAN.catMau.d ** 2;
+    for (let y = 0; y < im.h; y++) for (let x = 0; x < im.w; x++) { const p = im.get(x, y); if (p[3] && y >= yMin && ks.some((k) => (k[0] - p[0]) ** 2 + (k[1] - p[1]) ** 2 + (k[2] - p[2]) ** 2 <= d2)) im.set(x, y, [0, 0, 0, 0]); }
+  }
   if (CLEAN.thanToi) { // bỏ phần sáng bao quanh (lửa trong concept): giữ vùng tối nhất, đóng khe, lấp lỗ; phần sáng làm lại ở lớp sáng
     const m = new Img(im.w, im.h); for (let y = 0; y < im.h; y++) for (let x = 0; x < im.w; x++) if (im.alpha(x, y) && lum(im.get(x, y)) < CLEAN.thanToi) m.set(x, y, [0, 0, 0, 255]);
     const big = components(m)[0], k = new Img(im.w, im.h); for (const [x, y] of big.pts) k.set(x, y, [0, 0, 0, 255]);
@@ -152,10 +157,12 @@ function place(d) {
 
 // ---------- Chuyển động ----------
 /** Biến đổi ngược, láng giềng gần nhất: xoay deg quanh pv, co giãn sx / sy quanh pv, dời (tx, ty), nhân sáng `br`, dải sáng `band` (tỉ lệ 0..1 từ đáy lên). */
-function xform(im, pv, deg, sx, sy, tx, ty, br, bandY) {
+function xform(im, pv, deg, sx, sy, tx, ty, br, bandY, ext) {
   const o = new Img(im.w, im.h), a = (deg * Math.PI) / 180, co = Math.cos(a), si = Math.sin(a);
   for (let y = 0; y < im.h; y++) for (let x = 0; x < im.w; x++) {
-    const X = x - tx - pv[0], Y = y - ty - pv[1], u = Math.round((co * X + si * Y) / sx + pv[0]), v = Math.round((-si * X + co * Y) / sy + pv[1]);
+    const X = x - tx - pv[0], Y = y - ty - pv[1]; let u = Math.round((co * X + si * Y) / sx + pv[0]), v = Math.round((-si * X + co * Y) / sy + pv[1]);
+    if (ext?.lay) { const h = Math.max(0, Math.min(1, (ext.lay.base - y) / ext.lay.hgt)); u = Math.round(u - ext.lay.amp * Math.pow(h, 1.3) * Math.sin(ext.lay.ph - ext.lay.lag * h)); } // cây cỏ: uốn theo chiều cao, ngọn trễ pha
+    if (ext?.hoa && Math.hypot(u - ext.hoa.c[0], v - ext.hoa.c[1]) < ext.hoa.r) { const q = (ext.hoa.deg * Math.PI) / 180, dx = u - ext.hoa.c[0], dy = v - ext.hoa.c[1]; u = Math.round(ext.hoa.c[0] + Math.cos(q) * dx - Math.sin(q) * dy); v = Math.round(ext.hoa.c[1] + Math.sin(q) * dx + Math.cos(q) * dy); } // xoay riêng vùng hoa (cánh)
     if (!opaque(im, u, v)) continue;
     const p = im.get(u, v); let k = br;
     if (bandY != null && Math.abs(y - bandY) <= 7) k *= 1 + 0.5 * (1 - Math.abs(y - bandY) / 8);
@@ -164,20 +171,26 @@ function xform(im, pv, deg, sx, sy, tx, ty, br, bandY) {
   return o;
 }
 const tf = (pt, pv, deg, sx, sy, tx, ty) => { const a = (deg * Math.PI) / 180, X = (pt[0] - pv[0]) * sx, Y = (pt[1] - pv[1]) * sy; return [pv[0] + Math.cos(a) * X - Math.sin(a) * Y + tx, pv[1] + Math.sin(a) * X + Math.cos(a) * Y + ty]; };
+/** Phần mở rộng cho cây cỏ (`lay`: biên độ uốn ngọn, điểm; `hoa`: độ xoay vùng hoa) — `cfg.layLag` là độ trễ pha giữa gốc và ngọn, `cfg.hoaTam` / `hoaBk` tâm / bán kính vùng hoa theo hộp bao. */
+const vegExt = (b, cfg, ph, lay, hoa) => ({
+  lay: lay ? { base: b.y1 + 1, hgt: b.h, amp: lay, ph, lag: cfg.layLag ?? 1.6 } : null,
+  hoa: hoa ? { c: [b.x0 + cfg.hoaTam[0] * b.w, b.y0 + cfg.hoaTam[1] * b.h], r: cfg.hoaBk * Math.max(b.w, b.h), deg: hoa } : null,
+});
 function motion(d) {
   const { c, marks } = place(d), b = bboxOf(c), out = [];
   const poseOf = (anim, i, cfg) => {
     const pv = [b.x0 + cfg.pivot[0] * b.w, b.y0 + cfg.pivot[1] * b.h];
     if (anim === "idle") {
       const t = (i / N_IDLE) * 2 * Math.PI;
-      return { pv, deg: Math.sin(t) * (cfg.rot ?? 0), sx: 1, sy: 1, tx: Math.round(Math.sin(t + 1.57) * (cfg.sway ?? 0)), ty: Math.round(Math.sin(t) * cfg.bob), br: 1 + (cfg.pulse ?? 0.1) * (Math.sin(t) + 1) / 2, band: null, k: (Math.sin(t) + 1) / 2 };
+      return { pv, deg: Math.sin(t) * (cfg.rot ?? 0), sx: 1, sy: 1, tx: Math.round(Math.sin(t + 1.57) * (cfg.sway ?? 0)), ty: Math.round(Math.sin(t) * cfg.bob), br: 1 + (cfg.pulse ?? 0.1) * (Math.sin(t) + 1) / 2, band: null, k: (Math.sin(t) + 1) / 2,
+        ext: vegExt(b, cfg, t, cfg.lay ?? 0, cfg.hoaDeg ? Math.sin(t) * cfg.hoaDeg : 0) };
     }
-    const [deg, fwd, up, sx, sy, br, band] = cfg.poses[i], f = FACE[d];
-    return { pv, deg, sx, sy, tx: Math.round(f[0] * fwd), ty: Math.round(f[1] * fwd - up), br, band: band == null ? null : b.y1 - band * b.h, k: br > 1.2 ? 1 : 0.4 };
+    const [deg, fwd, up, sx, sy, br, band, lay = 0, hoa = 0] = cfg.poses[i], f = FACE[d];
+    return { pv, deg, sx, sy, tx: Math.round(f[0] * fwd), ty: Math.round(f[1] * fwd - up), br, band: band == null ? null : b.y1 - band * b.h, k: br > 1.2 ? 1 : 0.4, ext: vegExt(b, cfg, (i / N_ATK) * 2 * Math.PI * (cfg.layCyc ?? 1), lay, hoa) };
   };
   for (let i = 0; i < N; i++) {
     const anim = i < N_IDLE ? "idle" : "attack", j = i < N_IDLE ? i : i - N_IDLE, p = poseOf(anim, j, M[anim]);
-    out.push({ anim, j, p, body: xform(c, p.pv, p.deg, p.sx, p.sy, p.tx, p.ty, p.br, p.band), marks: marks.map((m) => tf(m, p.pv, p.deg, p.sx, p.sy, p.tx, p.ty)) });
+    out.push({ anim, j, p, body: xform(c, p.pv, p.deg, p.sx, p.sy, p.tx, p.ty, p.br, p.band, p.ext), marks: marks.map((m) => tf(m, p.pv, p.deg, p.sx, p.sy, p.tx, p.ty)) });
   }
   return out;
 }
@@ -202,11 +215,11 @@ function glow(fr, prev, bd, idx) {
     const v = dist[y * g.w + x]; if (v === 0 || v > ring) continue;
     const on = v === 1 || (v === 2 && (x + y) % 2 === 0) || (v === 3 && (x % 2 === 0 && y % 2 === 0)) || (v >= 4 && x % 3 === 0 && y % 3 === 0);
     if (!on) continue;
-    let c = COL; if (G.cauVong && v === 1) c = RAINBOW[Math.floor(((Math.atan2(y - bb.cy, x - bb.cx) / (2 * Math.PI) + 1.5) % 1) * RAINBOW.length)];
+    let c = GLC; if (G.cauVong && v === 1) c = RAINBOW[Math.floor(((Math.atan2(y - bb.cy, x - bb.cx) / (2 * Math.PI) + 1.5) % 1) * RAINBOW.length)];
     g.set(x, y, [...c, 255]);
   }
   if (fr.anim === "attack" && M.attack.vet?.includes(fr.j) && prev) { // vệt tàn ảnh: thân khung trước, rải điểm
-    const bp = prev.body; for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) if (bp.alpha(x, y) && !body.alpha(x, y) && (x + y) % 2 === 0) g.set(x, y, [...COL, 255]);
+    const bp = prev.body; for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) if (bp.alpha(x, y) && !body.alpha(x, y) && (x + y) % 2 === 0) g.set(x, y, [...GLC, 255]);
   }
   const rg = rnd(idx * 977 + 13);
   for (const e of M.hat ?? []) { // hạt theo hệ: mỗi hạt có pha riêng, một vòng lặp đúng bằng độ dài hoạt ảnh
