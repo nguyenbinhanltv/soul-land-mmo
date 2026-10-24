@@ -1083,7 +1083,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 **Nhóm Hình thái Võ Hồn Chân Thân: pháp tướng** (mục 5.18; theo dõi #482; mỗi bước một PR).
 - [x] H0 Bảng đặc tả 25 võ hồn và prompt PixelLab (#483, PR #492, `docs/phap-tuong.md`).
 - [x] H1 Ảnh pháp tướng Lam Điện Bá Vương Long + Hạo Thiên Chùy, công thức chuẩn (#485, PR #499, `docs/phap-tuong-cong-thuc.md`).
-- [x] H2 Khung code dùng chung (#486, PR #505, mục 5.18): bảng `PHAP_TUONG`, lớp sau / trước thân, vòng thở và động tác đánh có dừng hình, chuỗi biến hình và tan, tiến hóa theo vòng, cut-in, hai pháp tướng, mức hiệu ứng; đã nối ảnh thật H1, 23 võ hồn còn lại dùng hình tạm bằng code tới khi ảnh vào manifest. H3 (#487): lô P4 xong (7 khí võ hồn, PR của phiên P4); các lô còn lại làm đủ 25 pháp tướng, hiệu ứng riêng tuyệt kỹ / hồn kỹ Chân Thân, hoàn thiện (xem #482).
+- [x] H2 Khung code dùng chung (#486, PR #505, mục 5.18): bảng `PHAP_TUONG`, lớp sau / trước thân, vòng thở và động tác đánh có dừng hình, chuỗi biến hình và tan, tiến hóa theo vòng, cut-in, hai pháp tướng, mức hiệu ứng; đã nối ảnh thật H1, 23 võ hồn còn lại dùng hình tạm bằng code tới khi ảnh vào manifest. H3 (#487): lô P4 xong (7 khí võ hồn, PR #513); các lô còn lại làm đủ 25 pháp tướng, hiệu ứng riêng tuyệt kỹ / hồn kỹ Chân Thân, hoàn thiện (xem #482).
 
 ## 8. Câu hỏi còn mở
 1. **Ngân sách mỹ thuật isometric:** phần còn lại của Giai đoạn 10 (6 bộ hồn sư, 20 phụ thể, 67 loài hồn thú) phụ thuộc cách làm hoạt ảnh 8 hướng bằng ComfyUI (#335; PixelLab đã bỏ) (riêng xoay hướng và hoạt ảnh nhiều hướng được dùng PixelLab, mục 5.11 và 5.18); cần chọn thứ tự ưu tiên hoặc chuyển bớt sang Gemini / LPC / vẽ tay.
