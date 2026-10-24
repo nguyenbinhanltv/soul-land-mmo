@@ -549,7 +549,7 @@ const ISO_VH_HALF_ROWS = 6;
  * dùng nửa nữ nếu sheet có đủ hai nửa; sheet cũ / vẽ bằng code: 0.
  */
 export function vohonHalf(scene: Phaser.Scene, vohonKey: string, bodyKey: string): number {
-  if (!/^hs_body_f_/.test(bodyKey) || !isIsoSheet(scene, vohonKey)) return 0;
+  if (!/^(hs_body_f_|lpcc_f_)/.test(bodyKey) || !isIsoSheet(scene, vohonKey)) return 0;
   return scene.textures.get(vohonKey).source[0].height >= 2 * ISO_VH_HALF_ROWS * ISO_VH_FRAME ? ISO_VH_HALF_ROWS * ISO_SHEET_COLS : 0;
 }
 
