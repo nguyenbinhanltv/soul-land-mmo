@@ -104,3 +104,14 @@ Hoạt ảnh PixelLab của sinh vật cần làm sạch trước khi vào sheet
 Bảng `PHAP_TUONG` (`shared/data.ts`) của 4 sinh vật này dùng `BAKED` (bob / sway / lao = 0, chỉ còn `pulse`), vì cánh vỗ, thân uốn và bùng chiêu đã nằm trong khung; cộng thêm chuyển động code sẽ nhân đôi. Hạo Thiên Chùy và Lam Điện (H1) giữ mục cũ (chuyển động code / bản H1).
 
 Bài học thêm: (1) prompt có "isometric game sprite" khiến PixelLab đặt con vật lên nền đá; thay bằng "no ground, no base, pixel art" và nêu tư thế ("S-shaped body", "head tilted down looking at the viewer"). (2) Concept đầu thường chưa đạt: dự trù 1–3 lần làm lại (+1 lượt mỗi lần) trước khi xoay. (3) Hướng n của con vật cuộn vòng (Hỏa Long) thành hình tam giác nhìn từ sau, xoay lại không cải thiện. (4) Mặt nhỏ ở cỡ game: prompt phải ép "large … face" (Kim Vũ bản đầu bỏ vì mặt mèo không đọc được, mất 20 lượt hoạt ảnh) và nên duyệt concept ở bước xoay trước khi làm hoạt ảnh. (5) Số dư tài khoản PixelLab dùng chung nhiều worker nên chỉ cộng `usage` của lệnh mình gọi.
+
+## 9. Bổ sung từ lô P2 (U Minh Linh Miêu, Nhu Cốt Thỏ, Yêu Hồ, Liệt Hỏa Thương Lang, Bạch Hổ)
+
+Thú bốn chân và thú ngồi dùng cùng `post` của lô P1, 119 lượt cho 5 võ hồn (concept 7, xoay 12, hoạt ảnh 100). Điều mới:
+
+- **Thứ tự 8 ảnh xoay đổi theo con vật.** Báo, hồ, sói: s = ảnh 7, se = 0, e = 1, ne = 2, n = 3; thỏ: ảnh 1 đến 5 (như H1); hổ ngồi: ảnh 0 đến 4. Phải xem 8 ảnh bằng mắt rồi chọn: `node tools/assets/pixellab-pt.mjs map --id <mã> --map s=7,se=0,e=1,ne=2,n=3` (0 lượt) và ghi vào `xoay.dung` ở recipe.
+- **Bóng 5 thú phải khác nhau** ngay ở concept: mỗi con một dấu hiệu hình khối (đuôi chữ S, tai rất dài, đuôi xòe quạt, bờm lửa, dáng ngồi). Bạch Hổ bản đầu (cúi nhìn thẳng) có bóng tròn như gấu và không thấy chữ Vương, phải làm lại; dáng "ngồi uy nghi, ngẩng đầu gầm" cho bóng cao và đọc rõ.
+- **Màu nặng và median cut.** Thân trắng (thỏ, hổ) chiếm hơn nửa số điểm của hộp màu nên bản cũ của `quantize` cắt dính nó vào các màu hồng / xám nhẹ hơn và cả thân thành một mảng phẳng. Đã sửa mốc cắt (chọn mốc gần nửa nhất, tách màu nặng riêng). Sheet đã merge trước đó không đổi trừ khi dựng lại.
+- **Sửa màu sau hoạt ảnh:** PixelLab đổi màu mắt Yêu Hồ sang xanh lam; đổi lại sang hồng bằng cách thay điểm xanh lam ở mọi khung trước khi dựng sheet (0 lượt, ghi `hauKy` ở recipe).
+- Hướng s của con đứng thẳng nhìn thẳng (báo, sói) hẹp khi thở; hoạt ảnh đánh mở rộng nên dùng được, không cần chỉnh `scale / dx / dy`.
+- Thỏ nhảy làm đáy hộp bao lệch tới 18 điểm lúc đánh (cho phép: chỉ idle phải ≤ 2).

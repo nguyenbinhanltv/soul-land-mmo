@@ -2308,6 +2308,27 @@
       "iso": true
     },
     {
+      "key": "pt_bach_ho",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
       "key": "pt_bang_phuong_hoang",
       "iso": true,
       "pt": {
@@ -2543,6 +2564,27 @@
       "iso": true
     },
     {
+      "key": "pt_liet_hoa_thuong_lang",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
       "key": "pt_nguyet_nhan",
       "iso": true,
       "pt": {
@@ -2567,6 +2609,27 @@
     {
       "key": "pt_nguyet_nhan_glow",
       "iso": true
+    },
+    {
+      "key": "pt_nhu_cot_tho",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
     },
     {
       "key": "pt_pha_hon_thuong",
@@ -2642,6 +2705,27 @@
       "iso": true
     },
     {
+      "key": "pt_u_minh_linh_mieu",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
       "key": "pt_xuc_xich",
       "iso": true,
       "pt": {
@@ -2666,6 +2750,27 @@
     {
       "key": "pt_xuc_xich_glow",
       "iso": true
+    },
+    {
+      "key": "pt_yeu_ho",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
     },
     {
       "key": "skill_a_ngan_0",
