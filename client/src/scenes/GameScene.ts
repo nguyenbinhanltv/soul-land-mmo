@@ -17,6 +17,7 @@ import { mapview, type MapLabel } from "../mapview.ts";
 import { fog } from "../fog.ts";
 import { toast, lootToasts } from "../feedback.ts";
 import { initDualWindows } from "../dualWindow.ts";
+import type { ServerCommand } from "../charBagContract.ts";
 import { toggleChar, isCharOpen, onCharOpen, renderChar, charViewRow, charLog, type StatsMsg } from "../charPanel.ts";
 import { Predictor, PREDICT, LAG_MS, stepSpeed } from "../predict.ts";
 import { findPath, findLongPath, buildNav, type Nav } from "../../../shared/path.ts";
@@ -1281,7 +1282,7 @@ export class GameScene extends Phaser.Scene {
     // Từ #215 sau tin "bag" đầu tiên chỉ nhận phần đổi (tin "bagd"); chưa có túi gốc thì bỏ qua (tin "bag" đang tới).
     const onBag = (m: BagMsg) => { if (lootToasts(this.bag?.items ?? null, m.items) >= RARE_LOOT_MIN) this.audio.playUi("rare"); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
     this.room.onMessage("bag", onBag);
-    this.room.onMessage("gear", (m: GearMsg) => { this.gear = m; this.renderBag(); this.askStats(); hud.npcRefresh(); }); // trang bị hồn sư (5.15): chỉ số tổng ở tin "stats"
+    this.room.onMessage("gear", (m: GearMsg) => { this.gear = m; this.renderBag(); this.renderChar(); this.askStats(); hud.npcRefresh(); }); // trang bị hồn sư (5.15): chỉ số tổng ở tin "stats"
     this.room.onMessage("bagd", (m: BagDeltaMsg) => {
       if (this.bag) onBag({ slots: m.slots, honTe: m.honTe, cd: m.cd, items: applyBagDelta(this.bag.items, m), buyback: m.buyback ?? this.bag.buyback,
         sell: m.sell ?? this.bag.sell, sold: m.sold ?? this.bag.sold });
@@ -2833,6 +2834,11 @@ export class GameScene extends Phaser.Scene {
 
   /** Xin lại chỉ số của võ hồn đang xem ở bảng nhân vật (server giới hạn nhịp, tin về qua "stats"). */
   askStats() { this.room.send("stats", { rowId: charViewRow() }); }
+  /** NV3 (#457): gửi một lệnh gắn / tháo do kéo thả, bấm đúp hay thẻ thao tác dựng (charBagContract.ServerCommand: đúng các tin có sẵn); server quyết định. */
+  sendCmd(cmd: ServerCommand) {
+    if (cmd.msg !== "equipsalvage" && cmd.msg !== "lock") this.audio.playUi("equip");
+    this.room.send(cmd.msg, cmd.data);
+  }
   renderChar() {
     if (!this.owned || !isCharOpen()) return;
     renderChar(this.owned, this.bag?.items ?? [], this.charStats, {
@@ -2844,6 +2850,7 @@ export class GameScene extends Phaser.Scene {
       unequipCore: (itemId) => this.room.send("unequipcore", { itemId }),
       switchTo: (slot) => this.room.send("switch", { slot }),
       combat: () => this.combat,
+      send: (cmd) => this.sendCmd(cmd), gear: () => this.gear?.items ?? [],
     });
   }
   /**
@@ -2935,6 +2942,7 @@ export class GameScene extends Phaser.Scene {
       equipGear: (id) => { this.audio.playUi("equip"); this.room.send("equipgear", { id }); }, // trang bị hồn sư (5.15)
       unequipGear: (slot) => { this.audio.playUi("equip"); this.room.send("unequipgear", { slot }); },
       gear: () => this.gear,
+      viewRow: () => (isCharOpen() ? charViewRow() ?? this.owned?.active ?? null : this.owned?.active ?? null), send: (cmd) => this.sendCmd(cmd),
     });
   }
 

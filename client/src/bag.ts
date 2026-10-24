@@ -1,8 +1,8 @@
 // Túi đồ dạng lưới (UI-1, #351): phần logic thuần phía client (nhóm lọc, sắp xếp, thứ tự tự xếp, so sánh trang bị). Chỉ hiển thị:
 // thao tác thật (gắn, bán, dùng…) vẫn là lệnh gửi server như nút cũ; số liệu chỉ số lấy từ shared/data.ts.
 import type { BagItem } from "./net.ts";
-import { type CoreStat, type ItemKind, BONE_ITEM, CORE_ITEM, RING_ITEM, CORE_SLOTS, CORE_STAT_IDS, CORE_STATS, ITEM_KINDS, boneStats, coreMainValue, itemDef,
-  parseBone, parseBoneSubs, parseCore, tierOfYears } from "../../shared/data.ts";
+import { type CoreStat, type ItemKind, BONE_ITEM, CORE_ITEM, EQUIP_ITEM, RING_ITEM, CORE_SLOTS, CORE_STAT_IDS, CORE_STATS, ITEM_KINDS, boneStats, coreMainValue, itemDef,
+  equipStats, parseBone, parseBoneSubs, parseCore, parseEquip, tierOfYears } from "../../shared/data.ts";
 import type { TipLine } from "./tooltip.ts";
 
 /** Nhóm lọc ở đầu túi: `kinds` = nhóm vật phẩm (ITEM_KINDS) thuộc nhóm (null = tất cả). "Trang bị" gộp hồn cốt và hồn hạch. */
@@ -103,6 +103,49 @@ export function statsOf(it: BagItem): Stats | null {
 const fmt = (n: number) => n.toLocaleString("vi-VN", { maximumFractionDigits: 1 });
 const statName = (k: CoreStat) => CORE_STATS[k].name + (k.endsWith("_pct") ? " %" : "");
 
+/** Một dòng so sánh: `old` / `neu` là số cũ / mới (đã đổi về đơn vị hiển thị), `pct` thêm "%", `oldText` / `newText` thay số khi cần chữ khác (công vũ khí "min–max"). */
+export interface CmpRow { k: string; old: number; neu: number; d: number; pct: boolean; oldText?: string; newText?: string }
+type Metric = { v: number; pct: boolean; name: string; text?: string };
+/** Mọi chỉ số so sánh được của một món: hồn cốt, hồn hạch (statsOf) hoặc trang bị hồn sư (equipStats: chỉ số, công vũ khí, giảm sát thương, may mắn); món khác null. */
+function metricsOf(it: BagItem): Map<string, Metric> | null {
+  const m = new Map<string, Metric>();
+  const eq = it.code === EQUIP_ITEM ? parseEquip(it.stats) : null;
+  if (eq) {
+    const st = equipStats([{ ...eq, enhance: it.enhance }]);
+    if (st.weapon) m.set("weapon", { v: (st.weapon.min + st.weapon.max) / 2, pct: false, name: "Công mỗi đòn", text: `${st.weapon.min}–${st.weapon.max}` });
+    for (const k of CORE_STAT_IDS) if (st.bonus[k]) m.set(k, { v: st.bonus[k], pct: !!CORE_STATS[k].pct, name: statName(k) });
+    if (st.red) m.set("red", { v: st.red * 100, pct: true, name: "Giảm sát thương nhận" });
+    if (st.luck) m.set("luck", { v: st.luck, pct: false, name: "May mắn" });
+    return m;
+  }
+  const s = statsOf(it); if (!s) return null;
+  for (const k of CORE_STAT_IDS) if (s[k]) m.set(k, { v: s[k]!, pct: !!CORE_STATS[k].pct, name: statName(k) });
+  return m;
+}
+/** Món có so sánh được không (có chỉ số cộng): hồn cốt, hồn hạch, trang bị hồn sư hợp lệ. */
+export const comparable = (it: BagItem) => metricsOf(it) !== null;
+/**
+ * Các dòng so sánh `it` (món mới) với `cur` (món đang gắn / mặc, null = ô trống): mỗi chỉ số một dòng, `d` = mới − cũ làm tròn 0,1; dùng chung cho
+ * chú thích (compareLines), khung chi tiết và bảng so sánh hai cột. Món không so sánh được thì null.
+ */
+export function compareRows(it: BagItem, cur: BagItem | null): CmpRow[] | null {
+  const a = metricsOf(it); if (!a) return null;
+  const b = (cur && metricsOf(cur)) || new Map<string, Metric>();
+  const rows: CmpRow[] = [];
+  for (const k of [...a.keys(), ...[...b.keys()].filter((x) => !a.has(x))].sort((x, y) => keyRank(x) - keyRank(y))) {
+    const n = a.get(k), o = b.get(k), ref = n ?? o!;
+    rows.push({ k: ref.name, old: o?.v ?? 0, neu: n?.v ?? 0, d: Math.round(((n?.v ?? 0) - (o?.v ?? 0)) * 10) / 10, pct: ref.pct, oldText: o?.text, newText: n?.text });
+  }
+  return rows;
+}
+const keyRank = (k: string) => (k === "weapon" ? -1 : k === "red" ? 100 : k === "luck" ? 101 : CORE_STAT_IDS.indexOf(k as CoreStat));
+/** "12 → 15  ▲ +3" cho một dòng (cả chữ và mũi tên, không chỉ màu). */
+const rowText = (r: CmpRow) => {
+  const u = r.pct ? "%" : "";
+  return `${r.oldText ?? fmt(r.old) + u} → ${r.newText ?? fmt(r.neu) + u}  ${r.d > 0 ? "▲ +" : r.d < 0 ? "▼ −" : "= "}${fmt(Math.abs(r.d))}${r.d ? u : ""}`;
+};
+export const rowTone = (r: CmpRow): "good" | "bad" | "muted" => (r.d > 0 ? "good" : r.d < 0 ? "bad" : "muted");
+
 /**
  * Món đang gắn cùng chỗ trên võ hồn ra trận `active` (rowId) mà `it` sẽ thay: hồn cốt cùng vị trí; hồn hạch: còn ô trống thì không thay ai
  * (`cur` null), đủ ô thì món yếu nhất (ít sao, ít nâng cấp). Món không gắn được / chưa có võ hồn ra trận: null.
@@ -123,14 +166,8 @@ export function wornFor(it: BagItem, items: BagItem[], active: number | null): {
  * `curName`: tên món bị thay (null = gắn vào ô trống / vị trí chưa có món).
  */
 export function compareLines(it: BagItem, w: { cur: BagItem | null; full: boolean }, curName: string | null): TipLine[] | null {
-  const a = statsOf(it); if (!a) return null;
-  const b = w.cur ? statsOf(w.cur) ?? {} : {};
+  const rows = compareRows(it, w.cur); if (!rows) return null;
   const lines: TipLine[] = [{ v: w.cur ? `So với đang gắn: ${curName}` : w.full ? "Vị trí này đang trống: gắn là cộng thêm" : "Còn ô trống: gắn là cộng thêm", tone: "muted" }];
-  for (const k of CORE_STAT_IDS) {
-    const n = a[k] ?? 0, o = b[k] ?? 0;
-    if (!n && !o) continue;
-    const d = Math.round((n - o) * 10) / 10, pct = CORE_STATS[k].pct ? "%" : "";
-    lines.push({ k: statName(k), v: `${fmt(o)}${pct} → ${fmt(n)}${pct}  ${d > 0 ? "▲ +" : d < 0 ? "▼ −" : "= "}${fmt(Math.abs(d))}${d ? pct : ""}`, tone: d > 0 ? "good" : d < 0 ? "bad" : "muted" });
-  }
+  for (const r of rows) lines.push({ k: r.k, v: rowText(r), tone: rowTone(r) });
   return lines;
 }
