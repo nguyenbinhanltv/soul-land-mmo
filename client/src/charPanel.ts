@@ -41,8 +41,8 @@ const TABS: { id: DollTab; name: string }[] = [{ id: "equip", name: "Trang bị"
 const EQUIP_LEFT = ["vu_khi", "vong_trai", "nhan_trai", "dai"], EQUIP_RIGHT = ["mu", "day_chuyen", "vong_phai", "nhan_phai", "giay"];
 let tab: DollTab = "bone";            // tab búp bê đang xem
 let selBone: string | null = null;    // ô hồn cốt đang chọn (mã vị trí): Túi lọc / sáng món hợp, thẻ dưới búp bê hiện món đang gắn
-let selCore: number | null = null;
-let selEquip: string | null = null;   // ô trang bị trống đang chọn (mã ô EQUIP_SLOTS): Túi sáng món hợp ô    // ô hồn hạch đang chọn (0..CORE_SLOTS − 1)
+let selCore: number | null = null;    // ô hồn hạch đang chọn (0..CORE_SLOTS − 1)
+let selEquip: string | null = null;   // ô trang bị trống đang chọn (mã ô EQUIP_SLOTS): Túi sáng món hợp ô
 let notice: { text: string; bad: boolean } | null = null; // kết quả lệnh gắn / tháo vừa gửi (tin "log" của server)
 let lastAct = 0, noticeTimer = 0;
 let lastTap = { k: "", t: 0 };        // lần bấm ô búp bê gần nhất (nhận bấm đúp = tháo)
