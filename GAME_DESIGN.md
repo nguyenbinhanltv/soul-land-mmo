@@ -1128,6 +1128,10 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [x] H1 Ảnh pháp tướng Lam Điện Bá Vương Long + Hạo Thiên Chùy, công thức chuẩn (#485, PR #499, `docs/phap-tuong-cong-thuc.md`).
 - [x] H2 Khung code dùng chung (#486, PR #505, mục 5.18): bảng `PHAP_TUONG`, lớp sau / trước thân, vòng thở và động tác đánh có dừng hình, chuỗi biến hình và tan, tiến hóa theo vòng, cut-in, hai pháp tướng, mức hiệu ứng; đã nối ảnh thật H1, 23 võ hồn còn lại dùng hình tạm bằng code tới khi ảnh vào manifest. H3 (#487): lô P4 xong (7 khí võ hồn, PR #513); lô P1 xong (4 sinh vật Hỏa Long, Tà Hỏa Phượng Hoàng, Băng Phượng Hoàng, Kim Vũ Miêu Ưng, PR #528); lô P2 xong (5 thú U Minh Linh Miêu, Nhu Cốt Thỏ, Yêu Hồ, Liệt Hỏa Thương Lang, Bạch Hổ, PR #531); lô P3 xong (Tử Vong Chu Hoàng, Bích Lân Xà Hoàng, Quỷ Mị, Hỏa Ảnh): đủ 25 / 25 ảnh pháp tướng; còn lại là hiệu ứng riêng tuyệt kỹ / hồn kỹ Chân Thân, hoàn thiện (xem #482).
 
+**Nhóm Hình ảnh kỹ năng combat** (theo dõi #541; chỉ hình ảnh và cảm giác đánh, giữ số và cơ chế; mỗi bước một PR).
+- [x] S0 Bảng đặc tả 25 võ hồn × 11 chiêu, ô Võ Hồn Chân Thân ở vòng 7 (#541, `docs/ky-nang-combat-dac-ta.md`).
+- [ ] S1–S5 Khung code `SKILL_VISUAL`, thử 2 võ hồn, theo lô, hoàn thiện (làm sau khi đủ 25 pháp tướng).
+
 **Nhóm Hồn sư tự tạo bằng LPC** (mục 5.11; theo dõi #507; chạy song song chế độ Mẫu dựng sẵn; mỗi bước một PR).
 - [x] L0 Mẫu thử và danh mục 111 món, chủ repo duyệt 4 hướng (không sửa repo).
 - [x] L1 Danh mục `LPC_PARTS` + công cụ đóng gói sheet + ghi công (`tools/assets/lpc-parts.mjs`, #508).
