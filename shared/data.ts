@@ -5687,6 +5687,50 @@ export function parseNewLooks(x: unknown): Looks | null {
 }
 
 /**
+ * Áo / mũ trang bị hiện lên lớp LPC (HL4 #573, GAME_DESIGN 5.11 + 5.15). Mặc áo (ô `ao`) / mũ (ô `mu`) thì đè ô `torso` / `hat` của ngoại hình
+ * LPC; vũ khí vẫn do phụ thể võ hồn. Chỉ phụ thuộc loại ô và bậc (EQUIP_TIERS), không phụ thuộc chỉ số: server chỉ đồng bộ bậc đang mặc
+ * (`PlayerState.gearAo` / `gearMu` = bậc + 1, 0 = không mặc). Mỗi bậc: [mã món, màu] cho nam, `f` nếu nữ khác (món phải đúng thể hình,
+ * màu thuộc dải của món; sai thì lpcGearLooks giữ nguyên ngoại hình). Thêm lớp áo / mũ phương Đông mới (C3 #554) thì chỉ sửa bảng này.
+ */
+export type LpcGearKind = "ao" | "mu";
+export interface LpcGearLook { m: [string, string]; f?: [string, string] }
+export const LPC_GEAR: Record<LpcGearKind, LpcGearLook[]> = {
+  ao: [
+    { m: ["torso.longsleeve_scoop", "white"] },
+    { m: ["torso.longsleeve", "forest"] },
+    { m: ["torso.longsleeve2_vneck", "navy"] },
+    { m: ["torso.longsleeve2_cardigan", "purple"] },
+    { m: ["torso.shortsleeve", "leather"] },
+    { m: ["torso.longsleeve2", "red"] },
+  ],
+  mu: [
+    { m: ["hat.headband_hairtie", "white"] },
+    { m: ["hat.headband_tied", "forest"] },
+    { m: ["hat.bandana2", "navy"] },
+    { m: ["hat.headband_thick", "purple"] },
+    { m: ["hat.hood_cloth", "leather"] },
+    { m: ["hat.formal_crown", "red"] },
+  ],
+};
+const LPC_GEAR_SLOT: Record<LpcGearKind, string> = { ao: "torso", mu: "hat" };
+/** Bậc đang mặc (0..EQUIP_MAX_TIER) → giá trị đồng bộ (bậc + 1); không hợp lệ / không mặc → 0. */
+export const lpcGearCode = (tier: number | null | undefined) => typeof tier === "number" && Number.isInteger(tier) && tier >= 0 && tier <= EQUIP_MAX_TIER ? tier + 1 : 0;
+/**
+ * Ngoại hình LPC khi mặc trang bị: đè ô áo / mũ theo `ao` / `mu` (giá trị đồng bộ, 0 = không mặc, không đổi ô đó). Món không hợp thể hình
+ * hoặc bảng thiếu thì giữ ô của ngoại hình gốc. `hideHat`: không vẽ mũ trang bị (tuỳ chọn "Ẩn mũ"; mũ của ngoại hình gốc vẫn giữ).
+ */
+export function lpcGearLooks(l: LpcLooks, ao: number, mu: number, hideHat = false): LpcLooks {
+  let out = l;
+  for (const [kind, code] of [["ao", ao], ["mu", hideHat ? 0 : mu]] as [LpcGearKind, number][]) {
+    const g = code > 0 ? LPC_GEAR[kind][code - 1] : undefined; if (!g) continue;
+    const [id, col] = (l.body === 1 && g.f) || g.m, slot = LPC_GEAR_SLOT[kind];
+    const next = parseLpc({ v: 1, body: out.body, parts: { ...out.parts, [slot]: id }, colors: { ...Object.fromEntries(Object.entries(out.colors).filter(([k]) => k !== slot)), [slot]: col } });
+    if (next) out = next;
+  }
+  return out;
+}
+
+/**
  * Hiển thị hồn sư chế độ Tự tạo (L3 #510, client/src/lpcRig.ts). Hằng hiển thị, không phải số cân bằng.
  * `dirHoldMs`: hướng nhìn mới (đổi hàng LPC hoặc lật) phải giữ chừng này ms mới đổi hình, để đi chéo không nháy giữa hai hàng.
  * `breatheY`: hàng ảnh (trong khung 64, gốc chân ở 58) chia thân: phần trên nhích xuống 1 điểm ở nửa sau chu kỳ idle của bộ thiếu

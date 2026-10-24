@@ -7,17 +7,17 @@ export type FxLevel = "low" | "mid" | "high";
 /** Rung màn hình (#437): Tắt (không rung / giật), Chỉ boss (mặc định: tinh anh trở lên, chiêu mạnh vào mình, hồn kỹ lớn), Đầy đủ (thêm chí mạng lên hồn thú thường, trừ khi tự săn). */
 export type ShakeMode = "off" | "boss" | "full";
 export const SHAKE_MODES: [ShakeMode, string][] = [["off", "Tắt"], ["boss", "Chỉ boss"], ["full", "Đầy đủ"]];
-export interface FxPrefs { level: FxLevel; reduce: boolean; shake: ShakeMode; cine: boolean; cutin: boolean; halo: HaoQuangMode }
+export interface FxPrefs { level: FxLevel; reduce: boolean; shake: ShakeMode; cine: boolean; cutin: boolean; halo: HaoQuangMode; hideHat: boolean }
 
 const KEY = "soul-land-fx-v1";
 const store = (): Storage | null => { try { return window.localStorage; } catch { return null; } };
 const prefersReduce = () => { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; } };
 
 function load(): FxPrefs {
-  const def: FxPrefs = { level: "mid", reduce: prefersReduce(), shake: "boss", cine: true, cutin: true, halo: "halo" };
+  const def: FxPrefs = { level: "mid", reduce: prefersReduce(), shake: "boss", cine: true, cutin: true, halo: "halo", hideHat: false };
   try {
     const raw = JSON.parse(store()?.getItem(KEY) ?? "null");
-    if (raw && typeof raw === "object") return { level: raw.level === "low" || raw.level === "high" ? raw.level : "mid", reduce: typeof raw.reduce === "boolean" ? raw.reduce : def.reduce, shake: raw.shake === "off" || raw.shake === "full" ? raw.shake : "boss", cine: typeof raw.cine === "boolean" ? raw.cine : true, cutin: typeof raw.cutin === "boolean" ? raw.cutin : true, halo: raw.halo === "feet" || raw.halo === "old" ? raw.halo : "halo" }; // bản lưu cũ không có `shake` → Chỉ boss
+    if (raw && typeof raw === "object") return { level: raw.level === "low" || raw.level === "high" ? raw.level : "mid", reduce: typeof raw.reduce === "boolean" ? raw.reduce : def.reduce, shake: raw.shake === "off" || raw.shake === "full" ? raw.shake : "boss", cine: typeof raw.cine === "boolean" ? raw.cine : true, cutin: typeof raw.cutin === "boolean" ? raw.cutin : true, halo: raw.halo === "feet" || raw.halo === "old" ? raw.halo : "halo", hideHat: raw.hideHat === true }; // bản lưu cũ không có `shake` → Chỉ boss
   } catch { /* hỏng thì dùng mặc định */ }
   return def;
 }
@@ -107,6 +107,13 @@ export class ParticleLayer {
     for (let k = 0; k < n; k++) {
       this.emit(cx + (Math.random() - 0.5) * w, cy - Math.random() * h, k % 2 ? 0xffffff : col,
         { vx: (Math.random() - 0.5) * 24, vy: -(18 + Math.random() * 40), life: 0.7 + Math.random() * 0.5, size: 2, gravity: -10 });
+    }
+  }
+  /** Bụi chân nhỏ theo nhịp bước; không dùng lõi trắng để không chớp gắt. */
+  footDust(cx: number, cy: number, col: number, n: number, walking: boolean) {
+    for (let k = 0; k < n; k++) {
+      this.emit(cx + (Math.random() - 0.5) * 8 * this.px, cy - Math.random() * 2 * this.px, k % 2 ? col : 0x4a3c35,
+        { vx: (Math.random() - 0.5) * 18 * this.px, vy: -(8 + Math.random() * (walking ? 16 : 22)) * this.px / 2, life: 0.24 + Math.random() * 0.16, size: walking ? 1.5 : 2, gravity: 8 });
     }
   }
   update(dt: number) {
