@@ -114,12 +114,12 @@ jobs:
       - name: chạy thử container (/health, client, user)
         if: steps.need.outputs.run == 'true'
         run: |
-          docker run -d --name g -p 2567:2567 soul-land-game:ci
+          docker run -d --name game-ci -p 2567:2567 soul-land-game:ci
           for i in $(seq 1 60); do curl -sf localhost:2567/health && break; sleep 1; done
           echo; curl -sf localhost:2567/health
-          curl -sf localhost:2567/ | head -c 200 | grep -qi "<html" || { echo "✗ client đã build không được phục vụ"; docker logs g; exit 1; }
-          [ "$(docker exec g id -u)" != 0 ] || { echo "✗ container chạy bằng root"; exit 1; }
-          docker logs g | tail -n 20
+          curl -sf localhost:2567/ | head -c 200 | grep -qi "<html" || { echo "✗ client đã build không được phục vụ"; docker logs game-ci; exit 1; }
+          [ "$(docker exec game-ci id -u)" != 0 ] || { echo "✗ container chạy bằng root"; exit 1; }
+          docker logs game-ci | tail -n 20
       - name: cỡ image
         if: steps.need.outputs.run == 'true'
         env:
@@ -139,7 +139,7 @@ jobs:
           fi
           cat "$GITHUB_STEP_SUMMARY" | tail -n 6
       - if: ${{ always() }}
-        run: docker rm -f g >/dev/null 2>&1 || true
+        run: docker rm -f game-ci >/dev/null 2>&1 || true
 
   # Bot RAM và các bài thử nhanh (#171), chỉ ubuntu. Chỉ để tham khảo như check-build (không bắt buộc trong bảo vệ nhánh).
   # Bot đầy đủ chạy ~25 phút trên runner nên chia 4 nhóm song song (BOT_PART; phần nào thuộc nhóm nào khai báo ở INLINE / STANDALONE
