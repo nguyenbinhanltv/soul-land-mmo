@@ -494,7 +494,7 @@ const STANDALONE=[
   ["arena",2,arenaTest],                      //  96 7.2, 9.7 Đại Đấu Hồn Trường
   ["friend",2,friendTest,true],               // ~40 #195 bạn bè và chặn (đo ở máy)
   ["chuong3",2,chapter3Test],                 // ~18 #284 chương 3 Hải Thần Đảo (đo ở máy)
-  ["bag",4,async()=>{ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); }], // 127 #215, 9.8; E1 trang bị hồn sư; E2 rơi đồ; E3 cường hóa; E4 hợp thành / phân giải
+  ["bag",4,async()=>{ bagSyncPure(); await shopBuybackTest(); await charBagCmdTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); }], // 127 #215, 9.8; E1 trang bị hồn sư; E2 rơi đồ; E3 cường hóa; E4 hợp thành / phân giải
   ["sell",3,sellTest],                        //   5 #216
   ["looks2",3,looks2Test],                    //   2 #509 Looks v2 (preset / lpc)
   ["looks3",3,looks3Test],                    //  ~8 #511 đổi ngoại hình ở thợ may: miễn phí lần đầu, tốn Hồn Tệ lần sau
@@ -590,7 +590,7 @@ if(process.env.BOT_ONLY==="fog"){ await fogTest(); console.log(fails?`✗ ${fail
 if(process.env.BOT_ONLY==="rally"){ await rallyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="gm"){ await gmTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="testacc"){ await testAccTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); await charBagCmdTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="offline"){ await offlineTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="chuong3"){ await chapter3Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="chuong2"){ await chapter2Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -602,6 +602,7 @@ if(process.env.BOT_ONLY==="combo"){ await comboTest(); console.log(fails?`✗ ${
 if(process.env.BOT_ONLY==="egg"){ await eggTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="autoboss"){ await autoBossTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="autobossperf"){ await autoBossPerf(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="charbag"){ await charBagCmdTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="equipsoak"){ await equipSoak(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="cheat2"){ await cheatBagTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="arena"){ await arenaTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -6805,6 +6806,75 @@ async function bagPageTest(E,relog){
  * chiếm ô túi và không nằm trong tin bag; chỉ số khớp server (stats, giảm sát thương, công vũ khí); may mắn 9 thì mọi đòn ra max; từ chối
  * đúng; 20 lệnh dồn cùng lúc chỉ một lệnh có hiệu lực; lưu qua lần vào lại (kiểm cả với --pg: chỉ mục duy nhất, đổi chỗ trong một lần ghi).
  */
+/**
+ * NV5 (#459, BOT_ONLY=charbag, thuộc nhóm bag của BOT_PART): lệnh gắn / tháo do giao diện Nhân vật + Túi dựng (client/src/charBagContract.ts:
+ * quickCommand = bấm đúp, unmountCommand = tháo, kèm "switch" của nút Ra trận) đúng là các tin server có sẵn và server nhận: hồn cốt (equip / unequip),
+ * hồn hạch (equipcore / unequipcore), trang bị hồn sư (equipgear / unequipgear), đội (team / switch). Hợp đồng gửi đi là gì thì bot gửi đúng thế.
+ */
+async function charBagCmdTest(){
+  console.log("[NV5] Lệnh gắn / tháo từ giao diện Nhân vật + Túi (hợp đồng client) được server nhận");
+  const C=await import("../src/charBagContract.ts");
+  const S=await bot("Nhân vật Túi","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
+  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua nhân vật + túi (cần hook gear, give, rest): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  try{
+  await waitFor(()=>S.bag&&S.owned,3000);
+  await test(S,"clear"); await test(S,"rest",{s:TEAM_COMBAT_SECS+1}); await test(S,"gear",{clear:true});
+  const row=()=>S.owned.active, view=()=>({rowId:row(),bag:S.bag.items,gear:S.gear?.items??[]});
+  const itemOf=id=>S.bag.items.find(i=>i.id===id);
+  /** Gửi một lệnh của hợp đồng, chờ túi / trang bị đổi hoặc dòng log; trả dòng log mới nhất ("" nếu chỉ có tin đổi). */
+  async function send(cmd){ const b=S.bagMsgs??0, g=S.gearN??0, l=S.logs.length; S.room.send(cmd.msg,cmd.data);
+    await waitFor(()=>(S.bagMsgs??0)>b||(S.gearN??0)>g||S.logs.length>l,2000); await sleep(150); return S.logs.length>l?S.logs.at(-1):""; }
+  const fresh=async(code,give)=>{ const before=new Set(S.bag.items.map(i=>i.id)); await test(S,"give",{code,...give}); await waitFor(()=>S.bag.items.some(i=>i.code===code&&!before.has(i.id)),1500); return S.bag.items.filter(i=>i.code===code&&!before.has(i.id)); };
+
+  // ---- Hồn cốt: bấm đúp trong Túi = equip vào đúng ô của võ hồn đang xem; kéo ra Túi = unequip ----
+  const [bone]=await fresh(BONE_ITEM,{slot:"tay_trai"});
+  const bc=C.quickCommand(bone,view());
+  ok(bc?.msg==="equip"&&bc.data.itemId===bone.id&&bc.data.vohonId===row()&&bc.data.slot==="tay_trai","bấm đúp hồn cốt Tay trái: hợp đồng ra equip {itemId, vohonId = võ hồn đang xem, slot}");
+  let t=await send(bc);
+  ok(itemOf(bone.id)?.vohon===row(),`server nhận equip: hồn cốt gắn vào võ hồn ${row()} (${t||"không có dòng từ chối"})`);
+  ok(C.quickCommand(itemOf(bone.id),view())===null,"hồn cốt đã gắn: bấm đúp trong Túi không còn lệnh gắn lại");
+  const ubc=C.unmountCommand(itemOf(bone.id),{tab:"bone",slot:"tay_trai",rowId:row()});
+  ok(ubc?.msg==="unequip"&&ubc.data.itemId===bone.id,"kéo ô Tay trái ra Túi: hợp đồng ra unequip {itemId}");
+  await send(ubc);
+  ok(itemOf(bone.id)?.vohon===null,"server nhận unequip: hồn cốt về túi");
+
+  // ---- Hồn hạch: ô trống thấp nhất, rồi tháo ----
+  const cores=await fresh(CORE_ITEM,{stars:2,qty:1}); const [c2]=await fresh(CORE_ITEM,{stars:2,qty:1}); const c1=cores[0];
+  const cc1=C.quickCommand(c1,view());
+  ok(cc1?.msg==="equipcore"&&cc1.data.vohonId===row()&&cc1.data.slot===0,"bấm đúp hồn hạch thứ nhất: equipcore vào ô 0");
+  await send(cc1);
+  const cc2=C.quickCommand(c2,view());
+  ok(itemOf(c1.id)?.vohon===row()&&itemOf(c1.id).stats.slot===0&&cc2?.msg==="equipcore"&&cc2.data.slot===1,"server gắn hồn hạch vào ô 0; hồn hạch thứ hai đi ô 1 (ô trống thấp nhất)");
+  await send(cc2);
+  ok(itemOf(c2.id)?.vohon===row()&&itemOf(c2.id).stats.slot===1,"server nhận equipcore ô 1");
+  const ucc=C.unmountCommand(itemOf(c2.id),{tab:"core",slot:1,rowId:row()});
+  ok(ucc?.msg==="unequipcore","kéo ô hồn hạch ra Túi: unequipcore");
+  await send(ucc);
+  ok(itemOf(c2.id)?.vohon===null,"server nhận unequipcore: hồn hạch về túi");
+  await send(C.unmountCommand(itemOf(c1.id),{tab:"core",slot:0,rowId:row()}));
+
+  // ---- Trang bị hồn sư: equipgear / unequipgear ----
+  const gid=(await test(S,"gear",{tpl:"mu_tu_kim",ilvl:3,enhance:0}))?.id; await waitFor(()=>itemOf(gid),1500);
+  const gc=C.quickCommand(itemOf(gid),view());
+  ok(gc?.msg==="equipgear"&&gc.data.id===gid,"bấm đúp Mũ Tử Kim: equipgear {id}");
+  await send(gc);
+  const slotMu=SD.EQUIP_SLOTS.findIndex(s=>s.id==="mu"), worn=()=>S.gear?.items.find(g=>g.slot===slotMu);
+  ok(worn()?.id===gid&&!itemOf(gid),"server nhận equipgear: Mũ vào ô Mũ, rời túi");
+  const ugc=C.unmountCommand(C.gearAsBagItem(worn()),{tab:"equip",slot:"mu",rowId:null});
+  ok(ugc?.msg==="unequipgear"&&ugc.data.slot===slotMu,"kéo ô Mũ ra Túi: unequipgear {slot theo chỉ số ô}");
+  await send(ugc);
+  ok(!worn()&&!!itemOf(gid),"server nhận unequipgear: Mũ về túi");
+
+  // ---- Đội: team + nút "Ra trận" (switch theo ô đội) ----
+  await test(S,"grant",{vohon:"hoa_long"}); await waitFor(()=>S.owned.list.length>=2,1500);
+  const a=row(), other=S.owned.list.find(v=>v.rowId!==a).rowId;
+  await sendTeam(S,[a,other,0,0]);
+  ok(same(S.owned.team.slice(0,2),[a,other]),"tin team: đội [đang ra trận, võ hồn thứ hai]");
+  await test(S,"clear"); await test(S,"rest",{s:TEAM_COMBAT_SECS+1});
+  const n=S.ownedMsgs; S.room.send("switch",{slot:S.owned.team.indexOf(other)}); await waitFor(()=>S.ownedMsgs>n&&row()===other,2000);
+  ok(row()===other,"nút Ra trận: switch {slot} đổi võ hồn ra trận");
+  }finally{ await S.room.leave(); }
+}
 async function gearTest(){
   console.log("[E1] Trang bị hồn sư: mặc / tháo, chỉ số, may mắn, lưu");
   // Hàm thuần: parseEquip nhận object và chuỗi JSON (MemoryStore / pg), kẹp số, bỏ mẫu lạ.
