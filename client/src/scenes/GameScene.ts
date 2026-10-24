@@ -1143,7 +1143,7 @@ export class GameScene extends Phaser.Scene {
       if (m.id === this.me && !m.heal && !m.shield && getFlag()?.on) this.flagStop(AUTO_STOP.hit);
       if (m.id) { const v = this.players.get(m.id); if (v) { v.hurtT = this.time.now; this.playAct(m.id, "hurt"); } }
       const at = this.lifted(m.x, m.y);
-      this.damageText(at.x, at.y - at.lift, m, m.by && !m.dot && !m.heal && !m.shield ? elementOfVohonIndex(this.players.get(m.by)?.vh) : undefined);
+      this.damageText(at.x, at.y - at.lift, m, m.dot ? "poison" : m.by && !m.heal && !m.shield ? elementOfVohonIndex(this.players.get(m.by)?.vh) : undefined);
     });
     this.room.onMessage("fx", (m: any) => this.fx(m));
     // Cổng: server báo riêng khi bước vào / ra khỏi cổng, và khi đã lưu xong thì cho chuyển bản đồ (mục 6).
@@ -2156,7 +2156,7 @@ export class GameScene extends Phaser.Scene {
     const plus = !!(m.heal || m.shield), self = !m.immune && !plus && m.v < 0 && m.id === this.me, k = this.txtK;
     const label = m.immune ? "Miễn" : `${plus ? "+" : self ? "−" : ""}${Math.abs(m.v).toLocaleString("vi-VN")}${m.crit ? "!" : ""}`;
     const kind = m.heal ? "heal" : m.shield ? "shield" : m.immune ? "immune" : m.crit ? "crit" : "damage" as const;
-    const ds = damageStyle(el, !!m.crit, m.by === this.me, kind); // C1: chữ pixel, màu / viền theo hệ; hồi máu / khiên tách màu
+    const ds = damageStyle(el, !!m.crit, self, kind); // C1: self là nạn nhân; by chỉ dùng để chọn hệ người đánh
     const t = this.add.text(x, y, label, {
       fontFamily: '"Galmuri 11", "Be Vietnam Pro", system-ui, sans-serif', fontSize: `${ds.font}px`,
       color: ds.color,

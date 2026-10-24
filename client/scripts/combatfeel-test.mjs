@@ -15,5 +15,7 @@ assert.equal(damageTextStyle("shield", false, undefined).color, "#9ad8ff");
 assert.equal(damageTextStyle("damage", false, "ice", true).color, "#ff7b72");
 assert.equal(damageTextStyle("crit", true, "ice", true).color, "#ff7b72");
 assert.equal(damageTextStyle("shield", false, "ice", true).color, "#9ad8ff");
+assert.equal(damageTextStyle("damage", false, "fire", false).color, "#ff9a54");
+assert.equal(damageTextStyle("crit", true, "ice", false).color, "#ffe14d");
 assert.equal(rootSnareDiameter(18, 1, 0.5), 18);
 console.log("combatfeel-test: đạt");
