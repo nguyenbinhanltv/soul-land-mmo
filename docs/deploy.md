@@ -17,7 +17,7 @@ Merge `main` **không** tự deploy, vì mỗi lần deploy ngắt người chơ
 
 ## Quay lui
 
-Revert PR promote ở repo GitOps (nút Revert trên PR đã merge, rồi merge PR revert). ArgoCD sync về tag cũ. Tag cũ phải còn trên registry (giữ 30 bản mới nhất, xem `deploy/gcp/README.md` mục 5).
+Revert PR promote ở repo GitOps (nút Revert trên PR đã merge, rồi merge PR revert). ArgoCD sync về tag cũ. Tag cũ còn trên registry vì mỗi bản được promote mang thêm tag `prod-<sha7>` (workflow Promote gắn), và chính sách dọn giữ mãi tag `prod-*` (`deploy/gcp/README.md` mục 5). Bản chưa từng promote chỉ giữ 30 bản `sha-*` mới nhất / 14 ngày.
 
 ## Kiểm một bản trước khi promote
 
