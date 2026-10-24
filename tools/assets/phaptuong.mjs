@@ -12,7 +12,7 @@
 // (median cut). Bố cục sheet: isoLayout("phaptuong") trong lib.mjs.
 // `recipe.post` (tùy chọn, dùng cho lô Sinh vật P1 trở đi): { despeckle: N (xóa cụm điểm lẻ < N điểm, mặc định 0), anchor: "median" (đặt điểm neo
 // theo trung vị của 8 khung idle thay cho hộp bao hợp), stabilize: px (kẹp khung idle lệch neo quá px, mặc định 0 = không), maxColors: N (≤ PT_MAX_COLORS),
-// idleLoop: [chỉ số khung] (xếp lại 8 khung idle thành vòng thở mượt, ví dụ [0,1,2,3,4,3,2,1]: đi tới giữa rồi quay về, không nhảy ở điểm nối), attackLoop: "peak" (đánh = khung 0 → khung đổi nhiều nhất trong 2–5, giữ 2–3 khung lúc chạm, rồi quay về dần: hoạt ảnh PixelLab thường kết thúc ở tư thế xa idle),
+// idleLoop: [chỉ số khung] (xếp lại 8 khung idle thành vòng thở mượt, ví dụ [0,1,2,3,4,3,2,1]: đi tới giữa rồi quay về, không nhảy ở điểm nối), attackLoop: "peak" (đánh = khung 0 → khung đổi nhiều nhất trong 2–4, giữ 2 khung lúc chạm, rồi quay về dần, khung cuối là khung 1: hoạt ảnh PixelLab thường kết thúc ở tư thế xa idle),
 // match: { idle: 0..1, attack: 0..1 } (khớp biểu đồ màu từng kênh về khung idle đầu, diệt nhấp nháy màu / độ sáng của hoạt ảnh PixelLab), tint: { color, amount: { <hướng>: 0..1 } } (đẩy điểm xám / trắng về màu, ví dụ đẩy cyan cho Băng Phượng) }. Luôn in độ lệch điểm neo từng hướng
 // (neo = giữa-đáy hộp bao mỗi khung): lệch quá 2 điểm giữa các khung idle thì cảnh báo.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
@@ -192,10 +192,12 @@ ISO_DIRS.forEach((d, row) => {
   if (POST.idleLoop) idle0 = POST.idleLoop.map((i) => idle0[i]);
   if (POST.attackLoop === "peak") {
     const diff = (f, g) => { let n = 0; for (let i = 0; i < f.data.length; i += 4) { const a = f.data[i + 3], b = g.data[i + 3]; if ((a === 0) !== (b === 0) || (a && Math.abs(f.data[i] - g.data[i]) + Math.abs(f.data[i + 1] - g.data[i + 1]) + Math.abs(f.data[i + 2] - g.data[i + 2]) > 90)) n++; } return n; };
-    let peak = 2; for (let i = 3; i <= 5; i++) if (diff(atk0[i], atk0[0]) > diff(atk0[peak], atk0[0])) peak = i;
+    let peak = 2; for (let i = 3; i <= 4; i++) if (diff(atk0[i], atk0[0]) > diff(atk0[peak], atk0[0])) peak = i; // đỉnh trong 2–4 để còn chỗ quay về
     const seq = []; for (let i = 0; i <= peak; i++) seq.push(i);
-    const hold = Math.min(2, N_ATK - seq.length); for (let h = 0; h < hold; h++) seq.push(peak);
-    for (let i = peak - 1; seq.length < N_ATK; i--) seq.push(Math.max(1, i));
+    seq.push(peak); // giữ 2 khung lúc chạm
+    const back = N_ATK - seq.length; // quay về dần: chia đều từ đỉnh xuống khung 1, khung cuối luôn là khung 1
+    for (let k = 1; k <= back; k++) seq.push(Math.max(1, Math.floor(peak - ((peak - 1) * k) / back)));
+    console.log(`[phaptuong] đánh ${d}: đỉnh ${peak}, chuỗi ${seq.join(" ")}`);
     atk0 = seq.slice(0, N_ATK).map((i) => atk0[i]);
   }
   if (POST.match) { const ref = colorStats(idle0[0]); idle0 = idle0.map((f, i) => (i ? matchColor(f, ref, POST.match.idle ?? 1) : f)); atk0 = atk0.map((f) => matchColor(f, ref, POST.match.attack ?? 0.5)); }

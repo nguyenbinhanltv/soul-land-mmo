@@ -33,7 +33,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
   RESONANCE, RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CD, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResEffect,
   HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
-  ARENA, ARENA_HE_DMG, arenaTeamElo, SYNC_VIEW, AUTO_DAILY_SECS, AUTO_MAX_PER_CELL, AUTO_BONUS_MAX, parseAuto, autoLeft, autoTimeText, type AutoSettings, type AutoSummary,
+  ARENA, ARENA_HE_DMG, arenaTeamElo, SYNC_VIEW, RADAR, AUTO_DAILY_SECS, AUTO_MAX_PER_CELL, AUTO_BONUS_MAX, parseAuto, autoLeft, autoTimeText, type AutoSettings, type AutoSummary,
   BEAST_ATK_CD, OFFLINE, offlineFight, offlineSplit, type OfflinePower,
   BEAST_DEF, defMult, beastMelee, PLAYER_STATUS_PVE, RESIST_AS, PLAYER_CHARM,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, parseSell, autoSellable, type SellSettings } from "../../../shared/data.ts";
@@ -7485,16 +7485,37 @@ export class MapRoom extends Room<MapState> {
   }
 
   /**
-   * Bản đồ nhỏ (tin `mini`, mỗi SYNC_VIEW.mini giây, như nhau cho mọi client): vị trí theo ô của mọi hồn sư `[sid, x, y]`, hồn thú
-   * thường từ nghìn năm `[x, y, bậc]` và đồ rơi `[x, y, bậc]` cả bản đồ, vì `players` / `beasts` / `drops` trong state chỉ còn thực thể
-   * ở gần. Tinh anh, thú vương luôn có trong state.
+   * Bản đồ nhỏ (tin `mini`, mỗi SYNC_VIEW.mini giây): `p` vị trí theo ô `[sid, x, y]` của hồn sư, hồn thú thường từ nghìn năm `b`
+   * `[x, y, bậc]` và đồ rơi `d` `[x, y, bậc]` cả bản đồ, vì `players` / `beasts` / `drops` trong state chỉ còn thực thể ở gần. Tinh anh,
+   * thú vương luôn có trong state. Hồn sư tính RIÊNG cho từng client (R5, `RADAR.far`): người lạ ngoài `RADAR.far` ô không có trong
+   * tin (không lộ vị trí); đồng đội tổ đội cùng kênh và người cùng tông môn luôn có. Hồn thú / đồ rơi dùng chung một bản.
    */
   sendMini() {
-    const t = (v: number) => Math.floor(v / TILE), p: (string | number)[] = [], b: number[] = [], d: number[] = [];
-    this.state.players.forEach((q, id) => { p.push(id, t(q.x), t(q.y)); });
+    const t = (v: number) => Math.floor(v / TILE), b: number[] = [], d: number[] = [];
     this.state.beasts.forEach((q) => { if (q.tier >= 3 && !q.rank) b.push(t(q.x), t(q.y), q.tier); });
     this.state.drops.forEach((q) => { d.push(t(q.x), t(q.y), q.tier); });
-    this.broadcast("mini", { p, b, d });
+    // Đồng đội: tài khoản -> sid trong phòng; cùng tông: tông -> các sid.
+    const sidOf = new Map<number, string>(), clan = new Map<number, string[]>();
+    for (const [sid, x] of this.pdata) {
+      sidOf.set(x.accountId, sid);
+      const tg = this.state.players.get(sid)?.tong ?? 0;
+      if (tg > 0) { const l = clan.get(tg); if (l) l.push(sid); else clan.set(tg, [sid]); }
+    }
+    const far = RADAR.far * TILE, far2 = far * far;
+    for (const c of this.clients) {
+      const me = this.state.players.get(c.sessionId), mx = this.pdata.get(c.sessionId);
+      if (!me || !mx) continue;
+      const ids = new Set<string>(), p: (string | number)[] = [];
+      const put = (id: string) => { if (ids.has(id)) return; const q = this.state.players.get(id); if (!q) return; ids.add(id); p.push(id, t(q.x), t(q.y)); };
+      put(c.sessionId);
+      for (const id of this.interest.players.near(me.x, me.y, far)) {
+        const q = this.state.players.get(id);
+        if (q && (q.x - me.x) ** 2 + (q.y - me.y) ** 2 <= far2) put(id);
+      }
+      for (const acc of party.partyMembers(mx.accountId)) { const id = sidOf.get(acc); if (id) put(id); }
+      if (me.tong > 0) for (const id of clan.get(me.tong) ?? []) put(id);
+      c.send("mini", { p, b, d });
+    }
   }
 
   /**

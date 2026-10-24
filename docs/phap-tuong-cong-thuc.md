@@ -76,6 +76,31 @@ Thay cho `phaptuong.mjs --code` ở nhóm kiếm, tháp, đỉnh, thương, vàn
 - Lớp sáng: viền dithering theo nhịp, hạt theo hệ, dấu nhận diện nháy, vòng sóng lúc ra đòn; alpha 0 / 255.
 - **Lượt thực tế lô P4: 35** (17 concept gồm 10 lần thử lại, 9 lần xoay × 2, hoạt ảnh 0). Concept đầu thường cần thử lại 1–3 lần cho vật có đế / lửa / mặt (thêm "no ground, no base, no face, no fire" vào prompt). Bài học: thứ tự 8 ảnh xoay của vật có mặt trước (tỏa) và vật mỏng (vành) không theo sw, s, se...; chọn bằng mắt rồi ghi `xoay.dung` trong recipe.
 
+## 6c. Thực vật: cùng `phaptuong-khi.mjs` (H3 lô P5, 3 võ hồn)
+
+Lam Ngân Thảo, A Ngân, Kỳ Nhung Thông Thiên Cúc: concept + xoay như mục 6b, thở / đánh bằng code, 0 lượt hoạt ảnh. Tham số thêm ở `recipe.json`:
+- `clean.catMau` `{ mau: ["#hex"...], d, duoi }`: xóa điểm gần các màu đế (đất, cỏ, bóng tối) ở `duoi` phần dưới hộp bao, vì concept hay kèm đế.
+- `chuyenDong.<idle|attack>.lay` (idle) hoặc phần tử thứ 8 của mỗi khung `attack.poses` (`[xoay, tiến, nâng, co ngang, co dọc, sáng, dải sáng, lay, hoa]`): biên độ uốn ngọn theo chiều cao (điểm); `layLag` là độ trễ pha giữa gốc và ngọn. Co ngang > 1 ở khung ra đòn làm dây vươn ra hai bên.
+- `hoaTam` / `hoaBk` / `hoaDeg` (idle) hoặc phần tử thứ 9 của `poses` (attack): xoay riêng vùng hoa (tâm theo hộp bao, bán kính theo cạnh lớn) để cánh xoay mà thân đứng yên.
+- `glowMau`: màu viền / vệt sáng riêng (mặc định màu võ hồn), dùng cho võ hồn đa sắc như A Ngân (`#c080ff`).
+- **Lượt thực tế lô P5: ~17** (7 concept gồm Cúc làm lại 1, A Ngân làm lại 3; 4 lần xoay × 2 gồm A Ngân xoay lại; 2 lượt dự phòng cho một lệnh xoay bị timeout). Bài học: prompt cây cao nhiều nhánh ra dáng dương xỉ mảnh, đọc yếu khi chồng lên hồn sư; "tán hoa lớn như lọng + vương miện + tua rủ" ra bóng rõ hơn. Cúc cần "hàng trăm cánh kim dài, không có đĩa vàng phẳng", nếu không ra hoa hướng dương.
+
 ## 7. Việc chưa làm (H2 trở đi)
 
 Client chưa tải sheet `pt_*` (`sprites.ts` bỏ qua key isometric ngoài hs / vh / beast / fx); H2 thêm hệ thống hình thái (đổi lớp, chuỗi biến hình 5 bước, tan), đọc `pt` từ manifest. Normal map (`_n.png`) chưa làm.
+
+## 8. Bổ sung từ lô P1 (Hỏa Long, Tà Hỏa Phượng Hoàng, Băng Phượng Hoàng, Kim Vũ Miêu Ưng)
+
+Hoạt ảnh PixelLab của sinh vật cần làm sạch trước khi vào sheet; `recipe.json` có khối `post` (đọc bởi `phaptuong.mjs`, không đổi sheet H1 nếu không khai báo):
+
+- `despeckle: 3` xóa cụm điểm lẻ nhỏ hơn 3 điểm; alpha luôn nhị phân hóa.
+- `match: { idle: 1, attack: 0.5 }` khớp biểu đồ màu từng kênh về khung idle đầu: PixelLab hay đổi màu / độ sáng giữa khung (lửa vàng ↔ đỏ), khớp biểu đồ diệt nhấp nháy mà vẫn giữ cấu trúc ảnh.
+- `idleLoop: [0,1,2,3,4,3,2,1]` xếp 8 khung thở thành vòng đi tới giữa rồi quay về. Lý do: bản PixelLab chỉ trả khung 0–8 nên 8 khung đầu không tự khép vòng (khung 7 → 0 nhảy).
+- `attackLoop: "peak"`: đánh = khung 0 → khung đổi nhiều nhất trong 2–5 (đỉnh) → giữ 2 khung → quay về dần; hoạt ảnh đánh thô thường kết thúc ở tư thế xa idle (chim thu nhỏ, bể thành mảnh) nên client chuyển về idle sẽ giật.
+- `anchor: "median"`, `stabilize: 1.5`: neo = giữa-đáy hộp bao theo trung vị 8 khung idle, kẹp khung idle lệch quá 1,5 điểm; lệnh in độ lệch từng hướng (idle ≤ 2 điểm; attack được lệch nhiều).
+- `tint: { color, amount: { <hướng>: 0..1 } }` đẩy điểm xám / trắng về màu (Băng Phượng: `#7fe0ff`, 0,3 ở s tới 0,5 ở e / ne).
+- `maxColors: 40` (trần cứng của validate vẫn là `PT_MAX_COLORS`).
+
+Bảng `PHAP_TUONG` (`shared/data.ts`) của 4 sinh vật này dùng `BAKED` (bob / sway / lao = 0, chỉ còn `pulse`), vì cánh vỗ, thân uốn và bùng chiêu đã nằm trong khung; cộng thêm chuyển động code sẽ nhân đôi. Hạo Thiên Chùy và Lam Điện (H1) giữ mục cũ (chuyển động code / bản H1).
+
+Bài học thêm: (1) prompt có "isometric game sprite" khiến PixelLab đặt con vật lên nền đá; thay bằng "no ground, no base, pixel art" và nêu tư thế ("S-shaped body", "head tilted down looking at the viewer"). (2) Concept đầu thường chưa đạt: dự trù 1–3 lần làm lại (+1 lượt mỗi lần) trước khi xoay. (3) Hướng n của con vật cuộn vòng (Hỏa Long) thành hình tam giác nhìn từ sau, xoay lại không cải thiện. (4) Mặt nhỏ ở cỡ game: prompt phải ép "large … face" (Kim Vũ bản đầu bỏ vì mặt mèo không đọc được, mất 20 lượt hoạt ảnh) và nên duyệt concept ở bước xoay trước khi làm hoạt ảnh. (5) Số dư tài khoản PixelLab dùng chung nhiều worker nên chỉ cộng `usage` của lệnh mình gọi.
