@@ -83,7 +83,7 @@ ok(ids(cardActions({ ...newMu, lock: true }, { view: vMu })) === "mount,compare,
 ok(ids(cardActions(nb, { view: view([wb, nb]) })) === "mount,compare,lock", "thẻ hồn cốt: Gắn, So sánh, Khóa");
 ok(ids(cardActions(pill, { view: view(), useLabel: "Dùng" })) === "use,lock" && cardActions(pill, { view: view(), useLabel: "Dùng" })[0].primary, "thẻ đan: Dùng (nút chính), Khóa");
 ok(ids(cardActions(wb, { view: view([wb]), worn: true })) === "unmount", "món đang gắn trên búp bê: chỉ Tháo");
-ok(ids(cardActions(gearAsBagItem(gearOf(oldMu, 1)), { view: vMu, worn: true })) === "unmount,lock", "trang bị đang mặc: Tháo, Khóa");
+ok(ids(cardActions(gearAsBagItem(gearOf(oldMu, 1)), { view: vMu, worn: true })) === "unmount", "trang bị đang mặc: chỉ Tháo (server lock chỉ tìm trong túi)");
 ok(!cardActions(nb, { view: view([nb], [], null) }).some((a) => a.id === "mount"), "chưa có võ hồn: không có nút Gắn");
 // bấm đúp
 ok(quickCommand(newMu, vMu)?.msg === "equipgear", "bấm đúp trang bị → equipgear");

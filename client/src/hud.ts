@@ -25,7 +25,7 @@ import { setTip, tipOf, hideTip, parseText, type TipLine, type TipSpec } from ".
 import { BAG_GROUPS, BAG_SORTS, type BagSort, inGroup, rarityOf, noteSeen, isNew, markSeen, sortView, moveItem, clearOrder, wornFor, compareLines, compareRows } from "./bag.ts";
 import { type CardActionId, type DollView, type DragSession, type ServerCommand, type SlotRef, acceptsItem, cardActions, currentFor, mountCommand, quickCommand, smartTarget, unmountCommand } from "./charBagContract.ts";
 import { addZone, dragSource } from "./dragDrop.ts";
-import { hideCard, hideCompare, showCard, showCompare } from "./actionCard.ts";
+import { cardFor, compareFor, hideCard, hideCompare, showCard, showCompare } from "./actionCard.ts";
 import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_TIERS, EQUIP_MAX_TIER, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SALVAGE_MAX, EQUIP_SYNTH_KEEP, equipName, equipTemplate, equipSlotDef, equipStats, equipSynthStep, equipAutoSalvageable, parseEquip } from "../../shared/data.ts";
 import { toast } from "./feedback.ts";
 import type { GearMsg, EquipEnhPreview, EquipEnhDone, EquipSynDone, EquipSalvDone } from "./net.ts";
@@ -1931,6 +1931,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   // NV3 (#457): hàm thuần của charBagContract nhìn túi + trang bị đang mặc + võ hồn đang xem trên búp bê; dựng lúc cần (tin mới về thì vẽ lại cả bảng).
   const dollView = (): DollView => ({ rowId: act.viewRow(), bag: bag.items, gear: act.gear()?.items ?? [] });
   const useOf = (it: BagItem) => useAction(it, act, again);
+  for (const k of [cardFor(), compareFor()]) if (k && !items.some((i) => i.id === k)) { hideCard(); hideCompare(); break; } // món của thẻ / bảng so sánh đã rời túi (bán, tháo…)
   const quick = (it: BagItem) => { const cmd = quickCommand(it, dollView()); if (cmd) act.send(cmd); else useOf(it)?.quick?.(); };
   const bagArea = (d: DragSession) => ("bagIndex" in d.from ? null : unmountCommand(d.item, d.from) ? { ok: true } : { ok: false, why: "Không tháo được món này." });
   const bagAreaDrop = (d: DragSession) => { const c = "bagIndex" in d.from ? null : unmountCommand(d.item, d.from); if (c) act.send(c); };
@@ -1938,7 +1939,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     const it = items.find((i) => i.id === id), anchor = document.querySelector<HTMLElement>(`#bag .bslot[data-id="${CSS.escape(id)}"]`);
     if (!it || !anchor) return;
     const v = dollView(), u = useOf(it), acts = cardActions(it, { view: v, useLabel: u?.label ?? null });
-    showCard(anchor, itemName(it), itemColor(it), it.lock ? "Đang khóa" : "", acts, (a) => runCard(it, a, v, u));
+    showCard(anchor, itemName(it), itemColor(it), it.lock ? "Đang khóa" : "", acts, (a) => runCard(it, a, v, u), it.id);
   };
   const runCard = (it: BagItem, a: CardActionId, v: DollView, u: ReturnType<typeof useAction>) => {
     if (a === "mount") quick(it);
@@ -1948,7 +1949,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     else if (a === "compare") {
       const w = currentFor(it, v), rows = compareRows(it, w?.cur ?? null); if (!rows) return;
       const who = (x: BagItem) => ({ name: itemName(x), color: itemColor(x) });
-      showCompare({ cur: w?.cur ? who(w.cur) : null, neu: who(it), rows, mount: cardActions(it, { view: v }).some((c) => c.id === "mount") ? (it.code === EQUIP_ITEM ? "Mặc" : "Gắn") : null, onMount: () => quick(it) });
+      showCompare({ itemId: it.id, cur: w?.cur ? who(w.cur) : null, neu: who(it), rows, mount: cardActions(it, { view: v }).some((c) => c.id === "mount") ? (it.code === EQUIP_ITEM ? "Mặc" : "Gắn") : null, onMount: () => quick(it) });
     }
   };
   addZone({ el, kind: "area", test: bagArea, drop: bagAreaDrop }); // kéo từ búp bê thả vào Túi = tháo
@@ -2024,10 +2025,10 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       b.addEventListener("click", () => {
         b.blur(); markSeen(it.id);
         // Bấm đúp = mặc thông minh. Bấm lần đầu vẽ lại túi (ô bị thay) nên không dùng sự kiện dblclick: so thời điểm hai lần bấm cùng một món.
+        if (bagFocus?.match(it)) return bagFocus.pick(it); // đang chọn món cho một ô của bảng Nhân vật: gắn luôn (server quyết định), không tính bấm đúp
         const now = performance.now(), dbl = lastTap.id === it.id && now - lastTap.t < DBL_MS;
         lastTap = dbl ? { id: "", t: 0 } : { id: it.id, t: now };
         if (dbl) { hideCard(); return quick(it); }
-        if (bagFocus?.match(it)) return bagFocus.pick(it); // đang chọn món cho một ô của bảng Nhân vật: gắn luôn (server quyết định)
         bagSel = bagSel === it.id ? null : it.id; sellOpen = false; enhClose(); again();
         if (bagSel) openCard(it.id); else hideCard();
       });

@@ -139,14 +139,13 @@ export interface CardCtx { view: DollView; /** món đang nằm trên búp bê (
 
 /**
  * Nút trên thẻ thao tác khi bấm một lần, theo loại món: [Mặc / Gắn / Dùng] [So sánh] [Khóa / Phân giải]. Món đang gắn trên búp bê chỉ có Tháo
- * (và Khóa cho trang bị). Server vẫn quyết định: nút chỉ chọn lệnh gửi; "Bán" không có ở đây (bán cần đứng cạnh thương nhân, làm ở hộp thoại NPC).
+ * (server `lock` chỉ tìm món trong túi, nên khóa phải tháo về túi rồi mới khóa). Server vẫn quyết định: nút chỉ chọn lệnh gửi; "Bán" không có ở đây (bán cần đứng cạnh thương nhân, làm ở hộp thoại NPC).
  */
 export function cardActions(item: BagItem, ctx: CardCtx): CardAction[] {
   const out: CardAction[] = [], eq = item.code === EQUIP_ITEM;
   const lockBtn: CardAction = { id: item.lock ? "unlock" : "lock", label: item.lock ? "Mở khóa" : "Khóa" };
   if (ctx.worn) {
     out.push({ id: "unmount", label: "Tháo", primary: true });
-    if (eq) out.push(lockBtn);
     return out;
   }
   if (smartTarget(item, ctx.view)) out.push({ id: "mount", label: eq ? "Mặc" : "Gắn", primary: true });

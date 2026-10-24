@@ -8,17 +8,19 @@ const mk = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = "", text = "") 
 };
 const host = () => document.body; // position: fixed theo cửa sổ, không theo #stage (có thể bị biến đổi)
 
-let card: HTMLElement | null = null, cardOff: (() => void) | null = null;
+let card: HTMLElement | null = null, cardOff: (() => void) | null = null, cardId: string | null = null;
 /** Đóng thẻ thao tác (nếu đang mở). */
-export function hideCard() { card?.remove(); card = null; cardOff?.(); cardOff = null; }
+export function hideCard() { card?.remove(); card = null; cardId = null; cardOff?.(); cardOff = null; }
 export const cardOpen = () => card !== null;
+/** Id món mà thẻ / bảng so sánh đang mở cho (null = không mở): bảng vẽ lại thấy món biến mất thì đóng, không để nút chạy với món cũ. */
+export const cardFor = () => cardId;
 
 /**
  * Mở thẻ bên cạnh ô `anchor`: tiêu đề tô `color`, mỗi `CardAction` một nút (nút chính tô nổi); bấm nút thì đóng thẻ rồi gọi `run(id)`.
  * Đóng khi bấm ra ngoài, Esc, cuộn. Nút đầu tiên được focus để Enter chạy ngay (phím: Enter mở thẻ, Enter lần nữa = nút chính).
  */
-export function showCard(anchor: HTMLElement, title: string, color: string, sub: string, actions: CardAction[], run: (id: CardActionId) => void) {
-  hideCard();
+export function showCard(anchor: HTMLElement, title: string, color: string, sub: string, actions: CardAction[], run: (id: CardActionId) => void, itemId: string | null = null) {
+  hideCard(); cardId = itemId;
   const c = mk("div", "acard"); c.setAttribute("role", "dialog"); c.setAttribute("aria-label", `Thao tác: ${title}`);
   c.style.setProperty("--c", color);
   const h = mk("b", "", title); c.appendChild(h);
@@ -43,22 +45,23 @@ export function showCard(anchor: HTMLElement, title: string, color: string, sub:
   cardOff = () => { document.removeEventListener("pointerdown", away, true); document.removeEventListener("keydown", key, true); document.removeEventListener("scroll", hideCard, true); };
 }
 
-let dlg: HTMLElement | null = null;
-/** Đóng bảng so sánh (nếu đang mở). */
-export function hideCompare() { dlg?.remove(); dlg = null; }
+let dlg: HTMLElement | null = null, dlgOff: (() => void) | null = null, dlgId: string | null = null;
+/** Đóng bảng so sánh (nếu đang mở), gỡ luôn nghe phím Esc. */
+export function hideCompare() { dlg?.remove(); dlg = null; dlgId = null; dlgOff?.(); dlgOff = null; }
 export const compareOpen = () => dlg !== null;
+export const compareFor = () => dlgId;
 
 export interface CompareSpec {
   /** tên + màu món đang mặc (null = ô trống) và món mới */
   cur: { name: string; color: string } | null; neu: { name: string; color: string };
-  rows: CmpRow[]; /** nhãn nút gắn ("Mặc" / "Gắn"), null = không có nút */ mount: string | null; onMount(): void;
+  itemId: string; rows: CmpRow[]; /** nhãn nút gắn ("Mặc" / "Gắn"), null = không có nút */ mount: string | null; onMount(): void;
 }
 /**
  * Bảng so sánh hai cột [Đang mặc] | [Món mới]: mỗi chỉ số một hàng, cột mới có ▲ xanh (tăng) / ▼ đỏ (giảm) / = (không đổi) kèm chữ, không chỉ màu.
  * Số do `compareRows` đưa; bảng không tự tính.
  */
 export function showCompare(sp: CompareSpec) {
-  hideCompare();
+  hideCompare(); dlgId = sp.itemId;
   const d = mk("div", "cmpdlg"); d.setAttribute("role", "dialog"); d.setAttribute("aria-label", "So sánh trang bị");
   const head = mk("div", "chead");
   head.innerHTML = `<b>So sánh</b><button class="x" type="button" aria-label="Đóng">×</button>`;
@@ -85,6 +88,6 @@ export function showCompare(sp: CompareSpec) {
   d.appendChild(foot);
   host().appendChild(d); dlg = d;
   (foot.querySelector("button") as HTMLElement).focus({ preventScroll: true });
-  const key = (e: KeyboardEvent) => { if (e.key === "Escape") { e.stopPropagation(); hideCompare(); document.removeEventListener("keydown", key, true); } };
-  document.addEventListener("keydown", key, true);
+  const key = (e: KeyboardEvent) => { if (e.key === "Escape") { e.stopPropagation(); hideCompare(); } };
+  document.addEventListener("keydown", key, true); dlgOff = () => document.removeEventListener("keydown", key, true);
 }

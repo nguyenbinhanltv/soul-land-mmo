@@ -2,6 +2,7 @@
 // hoặc cạnh nhau, lớp nổi, thẻ chuyển ở màn hẹp. Không đọc state game, không gửi tin; bố cục nằm ở style.css theo lớp `dual-win` /
 // `data-pick` trên <body>. Các bảng khác (Đội hình, Bạn bè, Thế giới…) vẫn tự đóng nhau như cũ ở hud.ts.
 import type { PanelId, WindowState } from "./charBagContract.ts";
+import { hideCard, hideCompare } from "./actionCard.ts";
 
 const EL: Record<PanelId, string> = { char: "char", bag: "bag" };
 const el = (p: PanelId) => document.getElementById(EL[p])!;
@@ -46,6 +47,7 @@ export function raisePanel(p: PanelId) { front = p; sync(); }
 
 /** Gọi sau khi hud / charPanel đã đặt `hidden`: giữ lớp và thẻ chuyển khớp. Mở bảng thì bảng đó nổi lên. */
 export function panelChanged(p: PanelId, open: boolean) {
+  if (!open) { hideCard(); hideCompare(); } // thẻ / bảng so sánh gắn vào <body>: đóng cùng bảng, không để nổi lơ lửng
   if (open) front = p; else if (front === p && isPanelOpen(other(p))) front = other(p);
   sync();
 }
@@ -70,7 +72,7 @@ export function swapButton(p: PanelId, open: (p: PanelId, on: boolean) => void):
 export function initDualWindows() {
   for (const p of ["char", "bag"] as const) el(p).addEventListener("pointerdown", () => { if (front !== p) raisePanel(p); }, true);
   // Nơi khác (autoPanel, cài đặt âm thanh…) ẩn bảng trực tiếp bằng `hidden`: theo dõi để lớp và thẻ chuyển luôn khớp.
-  const mo = new MutationObserver(() => { if (!isPanelOpen(front) && isPanelOpen(other(front))) front = other(front); sync(); });
+  const mo = new MutationObserver(() => { if (!isPanelOpen("char") || !isPanelOpen("bag")) { hideCard(); hideCompare(); } if (!isPanelOpen(front) && isPanelOpen(other(front))) front = other(front); sync(); });
   for (const p of ["char", "bag"] as const) mo.observe(el(p), { attributes: true, attributeFilter: ["hidden"] });
   const tabs = document.getElementById("dualTabs");
   if (tabs) {

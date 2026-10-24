@@ -242,7 +242,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
       b.addEventListener("click", () => {
         if (!it || dblUnmount(b, ref, it)) return;
         showCard(b, itemName(it), itemColor(it), `Trang bị hồn sư · ${s.name}`, cardActions(it, { view: { rowId: v.rowId, bag: items, gear: act.gear() }, worn: true }),
-          (a) => { const c: ServerCommand | null = a === "unmount" ? unmountCommand(it, ref) : a === "lock" || a === "unlock" ? { msg: "lock", data: { id: it.id } } : null; if (c) send(() => act.send(c)); });
+          (a) => { const c = a === "unmount" ? unmountCommand(it, ref) : null; if (c) send(() => act.send(c)); });
       });
       return b;
     };
