@@ -8,7 +8,7 @@ import { TIERS, VOHON, ringSkill, chanThanOf, tienCoOf, MAX_RINGS } from "../../
 import { ELEMENTS, type Element } from "./audio/soundMap.ts";
 import { ParticleLayer, fxPrefs, setFxPrefs, hitstopMs, type FxLevel } from "./combatFx.ts";
 import { SheetFx } from "./fxSheet.ts";
-import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, SKILL_VISUAL, visualKey } from "./skillVisual.ts";
+import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, SKILL_VISUAL, FUSION_VISUAL, visualKey } from "./skillVisual.ts";
 import { HIT_HES, KNOCK_PX, damageStyle, hitWeight, materialSparks, playHitFeelSheets, registerHitFeelSheets } from "./hitFeel.ts";
 import { COMBAT_MATERIALS, type Material } from "./audio/soundMap.ts";
 import type { He } from "../../shared/data.ts";
@@ -59,7 +59,7 @@ class FxTestScene extends Phaser.Scene {
       if (this.sheets) { // phần mới của S1/C1: sheet theo bảng (nửa số lần là người khác: bản nhẹ) + tia lửa theo chất liệu
         const keys = Object.keys(SKILL_VISUAL), [vid, vr] = keys[(Math.random() * keys.length) | 0].split(":"); // S2: cả 22 chiêu đã có sheet
         const vis = skillVisualOf(vid, vr === "ct" ? 6 : vr === "tc" ? "tc" : +vr, vr === "ct"), vsk = vr === "tc" ? undefined : vr === "ct" ? chanThanOf(vid)?.skill : ringSkill(vid, +vr);
-        this.svp.cast(vis, { x, y: y - 8 * SPR, ang: 0, tx: x + 40, ty: y - 8 * SPR, mine: Math.random() < 0.5, r: (vsk?.r ?? 56) * RX, n: vsk?.n, everyMs: (vsk?.every ?? 0) * 1000 });
+        this.svp.cast(vis, { x, y: y - 8 * SPR, ang: 0, tx: x + 40, ty: y - 8 * SPR, mine: Math.random() < 0.5, r: (vsk?.r ?? 56) * RX, n: vsk?.n, everyMs: (vsk?.every ?? 0) * 1000, spread: ((vsk?.spread ?? 0) * Math.PI) / 180 });
         const mat = COMBAT_MATERIALS[(Math.random() * COMBAT_MATERIALS.length) | 0];
         materialSparks(this.fxp, mat, el, x + 40, y - 8 * SPR, (Math.random() * 3) | 0, SPR);
         playHitFeelSheets(this.svp.sheets, mat, HIT_HES[(Math.random() * HIT_HES.length) | 0], x + 40, y - 8 * SPR, Math.random() < 0.5, 1);
@@ -158,7 +158,13 @@ export function fxTestScreen(card: HTMLElement, overlay: HTMLElement): void {
   $("fhit").onclick = () => sc().hit($<HTMLSelectElement>("fm").value as Material, +$<HTMLSelectElement>("fh").value, $<HTMLInputElement>("fx").checked);
   /** Phát một hồn kỹ theo khóa `<mã>:<vòng 0..9 | ct | tc>`: hiệu ứng G3 + sheet SKILL_VISUAL (trừ `sv=0`) + cảnh vòng 7+ + đánh thử lên mục tiêu (khựng, tia lửa, số). */
   const runSkill = (v: string) => {
-    const [id, r] = v.split(":"), ct = r === "ct", tc = r === "tc", ring = ct || tc ? 6 : +r, d = skillFxOf(id, tc ? 0 : ring, ct);
+    const [id, r] = v.split(":");
+    if (id === "fusion") { // S3 (#566): dung hợp `fusion:<tên chiêu>`: sheet ở điểm giữa (trang thử không có đóa kính dựng bằng code của GameScene)
+      const fv = FUSION_VISUAL[r], s = sc(); lastSkill = v; (window as unknown as { __t0: number }).__t0 = performance.now();
+      if (fv && q.get("sv") !== "0") s.svp.cast({ tier: 3, heavy: 2, ...fv }, { x: s.hero.x, y: s.hero.y - 8 * SPR, ang: 0, tx: s.hero.x, ty: s.hero.y - 8 * SPR, mine: q.get("others") !== "1", r: 100 * RX });
+      return;
+    }
+    const ct = r === "ct", tc = r === "tc", ring = ct || tc ? 6 : +r, d = skillFxOf(id, tc ? 0 : ring, ct);
     const sk = tc ? undefined : (ct ? chanThanOf(id)?.skill : ringSkill(id, ring));
     sc().el = d.element; sc().kind = d.kind; $<HTMLSelectElement>("fe").value = d.element; $<HTMLSelectElement>("fk").value = d.kind;
     $("fn").textContent = `→ ${ELEMENT_NAME[d.element]} · ${FX_KIND_NAME[d.kind]} · ${fxTexKey(d.element, d.kind)}${FX_TEX_ELEMENTS.includes(d.element) ? "" : " (chưa có ảnh: chỉ hạt)"}`;
@@ -169,7 +175,7 @@ export function fxTestScreen(card: HTMLElement, overlay: HTMLElement): void {
     s.rr = rr; (window as unknown as { __t0: number }).__t0 = performance.now(); // mốc phát chiêu cho script quay hình
     const withSheet = q.get("sv") !== "0";
     s.fire(d.kind, d.element, withSheet && !!vis.replace && !!vis.sheet && s.svp.sheets.has(vis.sheet.key), area === "around" || area === "self");
-    if (withSheet) s.svp.cast(vis, { x: s.hero.x, y: hy, ang: 0, tx, ty: s.dummy.y - 8 * SPR, mine: own, r: rr, n: sk?.n, everyMs: (sk?.every ?? 0) * 1000 });
+    if (withSheet) s.svp.cast(vis, { x: s.hero.x, y: hy, ang: 0, tx, ty: s.dummy.y - 8 * SPR, mine: own, r: rr, n: sk?.n, everyMs: (sk?.every ?? 0) * 1000, spread: ((sk?.spread ?? 0) * Math.PI) / 180 });
     const key = visualKey(id, vk, ct);
     $("fn").textContent += ` · T${vis.tier} nặng ${vis.heavy}${SKILL_VISUAL[key]?.sheet ? " · sheet " + SKILL_VISUAL[key]!.sheet!.key : " · (chưa có sheet: G3)"}`;
     if (!tc && isCinematic(ring, ct) && q.get("cine") !== "0") sc().cine.show(id, sk?.name ?? "", TIERS[sc().tier].glow, true);

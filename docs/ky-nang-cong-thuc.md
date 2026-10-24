@@ -62,6 +62,16 @@ Mỗi lô gửi chủ repo một **trang xem trước** (HTML tĩnh, đường d
 4. GIF: `node tools/assets/skill-vfx/preview/gif.mjs --frames <khung> --out <gif> --names a,b --from -150 --to 1900 --fps 15 --crop 240,110,480,300` (tự mã hóa GIF, không thư viện); ghép ảnh duyệt nhanh bằng `montage.mjs`. FPS: `fps.mjs`. Xóa thư mục khung sau khi làm GIF (hàng GB).
 5. Chạy Chrome luôn `--mute-audio` (chủ repo chơi game trên cùng máy); chỉ tắt đúng PID mình bật.
 
+## 6b. Lô A (S3 #566): các kiểu chiêu mới
+
+- **Đạn** (`area: proj`): sheet `at: "travel"` vẽ hướng sang phải, `rotate: true` xoay ảnh theo hướng bay (không lật), `repeat: true` + `CastCtx.spread` xòe quạt (hoặc vòng khi `spread` ≥ 360°) theo `n`, tối đa 1 / 4 / 6 viên theo mức, người khác 2.
+- **Hào quang** (`area: self`, hệ Phụ trợ: Xúc Xích, Thiên Càn, Cửu Bảo): `at: "cast"`, `scale: 2` (T3 `lift: GROUND`); khác chiêu trong cùng võ hồn bằng hình (mũi tên lực, vệt tốc, vòng hồn, khiên lục giác...).
+- **Lướt chém** (`area: dash`): phát ở điểm trúng như vệt chém (`fit: 0.9` ở T2).
+- **Dung hợp**: `FUSION_VISUAL[tên chiêu]` ở `skillVisual.ts`, gọi trong `fusionFx` (GameScene); trang thử `?thu=fx&skill=fusion:<tên>`.
+- Bảng màu xếp **tăng dần theo độ sáng** `[viền, tối, chủ, nhấn, sáng]`: võ hồn có màu nhấn tối hơn màu chủ (Cửu Tinh) thì hoán hai ô; nhấn đỏ (Nguyệt Nhận) đặt ở ô giữa, bạc ở ô nhấn; màu sáng đỏ (Phá Hồn Thương) bỏ, giữ trắng.
+- **Lượt thực tế lô A:** 78 sheet + 8 làm lại (đòn quá nhỏ: Phá Hồn Thương ×4, đạn Cửu Tinh / Xúc Xích; khối trắng đặc: Kiếm Trảm Sơn Hà; dung hợp thiếu lưỡi trăng) ≈ **86 lượt** cho 7 võ hồn + 1 dung hợp. Đòn thương một vạch vẫn mảnh: yêu cầu "nét to, đậm, phủ gần hết khung" trong mô tả giúp đạn, ít giúp vệt đâm.
+- `--spec <tên>.json` cho `run.mjs` / `post.mjs` / `reg.mjs` (mặc định `pilot.json`); `run-real.sh` luôn bỏ `DATABASE_URL`.
+
 ## 7. Bẫy đã gặp
 
 - Mô tả từ 700 ký tự bị tính gấp đôi (6 lượt thử đầu tốn gấp đôi).
@@ -70,3 +80,5 @@ Mỗi lô gửi chủ repo một **trang xem trước** (HTML tĩnh, đường d
 - Chiêu T3 lấy ngoại lệ: sheet 12 khung phát ngay khi tin `fx` tới (khớp số sát thương); "báo trước" nằm trong sheet và lớp tụ khí, không trì hoãn đòn.
 - Hook test `energy` + `switch` không tung tiên cơ trong game thật; Chrome khóa thư mục profile trên Windows (đổi tên profile mỗi lượt, `rm` bọc `try`).
 - Trong trại (`inSafe`) chiêu không tung; vùng cần đứng ngoài trại.
+- Shell của agent có thể mang sẵn `DATABASE_URL` thật: `run-real.sh` phải bỏ nó (đã làm), nếu không server `GAME_TEST` ghi tài khoản test vào DB thật. Đọc dòng đầu log server (phải là RAM presence, không có "Đã kết nối PostgreSQL").
+- Quay game thật: chờ tin riêng `owned` về (thăm tối đa 10 giây) thay vì ngủ cố định 900 ms.
