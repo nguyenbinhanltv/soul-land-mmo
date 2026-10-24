@@ -104,6 +104,9 @@ try {
   assert.deepEqual(await arenaLiveOpenList(), [], "trận quá hạn không hiện dù chủ còn sống");
   await arenaLiveOpen({ roomId: "r3", mode: "1v1", sides, phase: "fight", secs: 30 });
   assert.deepEqual(Object.keys((await presenceBackend.getJson<Record<string, unknown>>("arena:live")) ?? {}), ["r3"], "lần ghi dọn trận ma");
+  await presenceBackend.delete("arena:live");
+  await arenaLivePhase("r3", "fight", 60);
+  assert.deepEqual(Object.keys((await presenceBackend.getJson<Record<string, unknown>>("arena:live")) ?? {}), ["r3"], "ghi pha mở lại mục đã bị dọn");
   await arenaLiveClose("r3");
   console.log("✓ Sổ xem trận ở presence: pha, giữ chỗ nguyên tử, một trận mỗi tài khoản, dọn trận của tiến trình chết");
   console.log("✓ Mua lại: hai lần nhận cùng một món ở presence chỉ một lần được trao");
