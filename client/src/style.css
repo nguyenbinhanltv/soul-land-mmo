@@ -82,16 +82,27 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 #target .thu small{text-align:left}
 #target .xpcut{font-style:normal;color:var(--warn);font-size:12px;font-family:var(--f12)}
 .mapbox{position:relative;padding:6px}
-#mini{display:block;width:150px;height:100px;image-rendering:pixelated}
+/* Radar tròn (R2 #429): đường kính RADAR.size (168 máy tính, 120 điện thoại ngang); khung gỗ tạm vẽ trong canvas, có ảnh ui_radar_frame thì phủ lên */
+#radar{position:relative;width:168px;height:168px;margin:0 auto;pointer-events:auto}
+#mini{display:block;width:100%;height:100%;border-radius:50%;touch-action:none}
+#radarFrame{position:absolute;left:50%;top:50%;height:auto;transform:translate(-50%,-50%);pointer-events:none;image-rendering:pixelated}
+#radar .rbtn{position:absolute;width:20px;height:20px;padding:0;font:bold 13px/18px var(--f12);text-align:center;color:var(--paper);background:var(--ink-panel);border:1px solid var(--ink2);border-radius:50%;cursor:pointer}
+#radar .rbtn:disabled{opacity:.4;cursor:default}
+#radar #radarMode{left:-2px;top:-2px}
+#radar #radarIn{left:-2px;bottom:-2px}
+#radar #radarOut{right:-2px;bottom:-2px}
+#radarTip{position:absolute;transform:translateX(-50%);white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;padding:1px 5px;font:12px/16px var(--f12);color:var(--ink-text);background:var(--ink-panel);border:1px solid var(--ink2);pointer-events:none;z-index:3}
+#radarTip[hidden]{display:none}
+#radarInfo{font-size:11px;font-family:var(--f10);color:var(--muted);text-align:center;max-width:168px;margin:1px auto 0}
+.radarbtns{display:flex;gap:3px;margin-top:4px}
+.radarbtns .minibtn{margin:0;flex:1 1 0;min-width:0;padding:3px 2px;white-space:nowrap;font-size:10px;font-family:var(--f10)}
+.radarbtns .minibtn kbd{margin-left:1px;padding:0 1px;font-size:10px}
+.radarbtns .minibtn:disabled{opacity:.45;cursor:default}
+.radarbtns .minibtn[hidden]{display:none}
 #zoneName{font-size:12px;font-family:var(--f12);text-align:center;margin-top:4px}
 #online{font-size:12px;font-family:var(--f12);color:var(--muted);text-align:center}
 /* Kênh (mục 6 "Nhiều kênh"): nhãn "Kênh N" nổi ở góc bản đồ nhỏ (khung không cao thêm), danh sách kênh nổi ngay dưới khung,
    trên khung nhiệm vụ */
-.mapbox #worldBtn{position:absolute;top:9px;left:9px;width:auto;margin:0;padding:2px 4px;font-size:12px;font-family:var(--f12);color:var(--paper);
-  background:var(--ink-panel);border-color:var(--ink2)}
-.mapbox #worldBtn kbd{font-size:10px;font-family:var(--f10);color:var(--paper2);margin-left:2px;border:0;padding:0}
-.mapbox #chanBtn{position:absolute;top:9px;right:9px;width:auto;margin:0;padding:2px 4px;font-size:12px;font-family:var(--f12);color:var(--paper);
-  background:var(--ink-panel);border-color:var(--ink2)}
 #chans{position:absolute;right:-2px;top:calc(100% + 4px);z-index:5;display:flex;flex-direction:column;gap:3px;width:170px;padding:6px;
   background:linear-gradient(var(--panel),var(--panel)),var(--bg);border:2px solid var(--line);box-shadow:0 0 0 2px rgba(0,0,0,.35);pointer-events:auto}
 #chans[hidden]{display:none}
@@ -481,7 +492,8 @@ body.touch .minibtn kbd{display:none}
 @media (prefers-reduced-motion: reduce){.tm.full{animation:none;box-shadow:0 0 8px color-mix(in srgb,var(--xp) 60%,transparent)}}
 /* @media (max-width:640px) → lớp ui-w640 (kích thước logic, uiArt.ts) */
   :where(body.ui-w640) .stats{width:190px;padding:8px 9px 9px}
-  :where(body.ui-w640) #mini{width:105px;height:70px}
+  :where(body.ui-w640) #radar{width:120px;height:120px}
+  :where(body.ui-w640) #radarInfo{max-width:120px}
   :where(body.ui-w640) .sk{width:52px;height:52px;font-size:10px;font-family:var(--f10)}
   body:where(.ui-w640).touch #skills{width:176px}
   :where(body.ui-w640) .tm{width:52px;height:50px}
@@ -611,6 +623,7 @@ body.touch .pbtn{min-height:34px;font-size:12px;font-family:var(--f12);padding:4
    đặt sát bên trái bản đồ nhỏ (vùng trên giữa màn hình còn trống), cao tối đa tới trên thanh đội hình. */
 /* @media (max-height:500px) → lớp ui-h500 (kích thước logic, uiArt.ts) */body:where(.ui-h500).touch #rcol{display:contents}
 body:where(.ui-h500).touch .mapbox{position:absolute;right:10px;top:10px}
+body:where(.ui-h500).touch #radar{width:120px;height:120px}
 body.arena:where(.ui-h500).touch .mapbox{top:84px}
 body:where(.ui-h500).touch #quest{position:absolute;top:22px;right:180px;width:200px;max-height:max(80px,calc(100% - 230px))}
 /* Đại Đấu Hồn Trường (7.2): đang tìm trận, thanh trận đấu, kết quả, bảng xếp hạng */
