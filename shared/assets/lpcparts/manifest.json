@@ -77,7 +77,7 @@
    "n": -2
   }
  },
- "totalBytes": 1352270,
+ "totalBytes": 1859902,
  "sheets": {
   "lpcp_arms_bracers_f_70": {
    "part": "arms.bracers",
@@ -3617,6 +3617,326 @@
    "idle": true,
    "bytes": 599
   },
+  "lpcp_torso_ao_bao_f_31_black": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 31,
+   "color": "black",
+   "idle": true,
+   "bytes": 5260
+  },
+  "lpcp_torso_ao_bao_f_31_brown": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 31,
+   "color": "brown",
+   "idle": true,
+   "bytes": 5260
+  },
+  "lpcp_torso_ao_bao_f_31_charcoal": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 31,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 5260
+  },
+  "lpcp_torso_ao_bao_f_31_forest": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 31,
+   "color": "forest",
+   "idle": true,
+   "bytes": 5260
+  },
+  "lpcp_torso_ao_bao_f_31_gray": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 31,
+   "color": "gray",
+   "idle": true,
+   "bytes": 5260
+  },
+  "lpcp_torso_ao_bao_f_31_maroon": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 31,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 5260
+  },
+  "lpcp_torso_ao_bao_f_31_navy": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 31,
+   "color": "navy",
+   "idle": true,
+   "bytes": 5260
+  },
+  "lpcp_torso_ao_bao_f_31_red": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 31,
+   "color": "red",
+   "idle": true,
+   "bytes": 5260
+  },
+  "lpcp_torso_ao_bao_f_31_tan": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 31,
+   "color": "tan",
+   "idle": true,
+   "bytes": 5260
+  },
+  "lpcp_torso_ao_bao_f_31_white": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 31,
+   "color": "white",
+   "idle": true,
+   "bytes": 5260
+  },
+  "lpcp_torso_ao_bao_f_35_black": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 35,
+   "color": "black",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_ao_bao_f_35_brown": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 35,
+   "color": "brown",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_ao_bao_f_35_charcoal": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 35,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_ao_bao_f_35_forest": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 35,
+   "color": "forest",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_ao_bao_f_35_gray": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 35,
+   "color": "gray",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_ao_bao_f_35_maroon": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 35,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_ao_bao_f_35_navy": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 35,
+   "color": "navy",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_ao_bao_f_35_red": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 35,
+   "color": "red",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_ao_bao_f_35_tan": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 35,
+   "color": "tan",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_ao_bao_f_35_white": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 35,
+   "color": "white",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_ao_bao_m_31_black": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 31,
+   "color": "black",
+   "idle": false,
+   "bytes": 5011
+  },
+  "lpcp_torso_ao_bao_m_31_brown": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 31,
+   "color": "brown",
+   "idle": false,
+   "bytes": 5011
+  },
+  "lpcp_torso_ao_bao_m_31_charcoal": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 31,
+   "color": "charcoal",
+   "idle": false,
+   "bytes": 5011
+  },
+  "lpcp_torso_ao_bao_m_31_forest": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 31,
+   "color": "forest",
+   "idle": false,
+   "bytes": 5011
+  },
+  "lpcp_torso_ao_bao_m_31_gray": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 31,
+   "color": "gray",
+   "idle": false,
+   "bytes": 5011
+  },
+  "lpcp_torso_ao_bao_m_31_maroon": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 31,
+   "color": "maroon",
+   "idle": false,
+   "bytes": 5011
+  },
+  "lpcp_torso_ao_bao_m_31_navy": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 31,
+   "color": "navy",
+   "idle": false,
+   "bytes": 5011
+  },
+  "lpcp_torso_ao_bao_m_31_red": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 31,
+   "color": "red",
+   "idle": false,
+   "bytes": 5011
+  },
+  "lpcp_torso_ao_bao_m_31_tan": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 31,
+   "color": "tan",
+   "idle": false,
+   "bytes": 5011
+  },
+  "lpcp_torso_ao_bao_m_31_white": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 31,
+   "color": "white",
+   "idle": false,
+   "bytes": 5011
+  },
+  "lpcp_torso_ao_bao_m_35_black": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 35,
+   "color": "black",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_ao_bao_m_35_brown": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 35,
+   "color": "brown",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_ao_bao_m_35_charcoal": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 35,
+   "color": "charcoal",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_ao_bao_m_35_forest": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 35,
+   "color": "forest",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_ao_bao_m_35_gray": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 35,
+   "color": "gray",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_ao_bao_m_35_maroon": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 35,
+   "color": "maroon",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_ao_bao_m_35_navy": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 35,
+   "color": "navy",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_ao_bao_m_35_red": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 35,
+   "color": "red",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_ao_bao_m_35_tan": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 35,
+   "color": "tan",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_ao_bao_m_35_white": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 35,
+   "color": "white",
+   "idle": false,
+   "bytes": 5392
+  },
   "lpcp_torso_blouse_longsleeve_f_35_black": {
    "part": "torso.blouse_longsleeve",
    "sex": "f",
@@ -3697,19 +4017,325 @@
    "idle": false,
    "bytes": 4058
   },
-  "lpcp_torso_formal_m_35": {
-   "part": "torso.formal",
-   "sex": "m",
-   "z": 35,
-   "idle": false,
-   "bytes": 4676
+  "lpcp_torso_giao_linh_f_31_black": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 31,
+   "color": "black",
+   "idle": true,
+   "bytes": 2799
   },
-  "lpcp_torso_formal_striped_m_35": {
-   "part": "torso.formal_striped",
+  "lpcp_torso_giao_linh_f_31_brown": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 31,
+   "color": "brown",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_giao_linh_f_31_charcoal": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 31,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_giao_linh_f_31_forest": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 31,
+   "color": "forest",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_giao_linh_f_31_gray": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 31,
+   "color": "gray",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_giao_linh_f_31_maroon": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 31,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_giao_linh_f_31_navy": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 31,
+   "color": "navy",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_giao_linh_f_31_red": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 31,
+   "color": "red",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_giao_linh_f_31_tan": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 31,
+   "color": "tan",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_giao_linh_f_31_white": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 31,
+   "color": "white",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_giao_linh_f_35_black": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 35,
+   "color": "black",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_giao_linh_f_35_brown": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 35,
+   "color": "brown",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_giao_linh_f_35_charcoal": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 35,
+   "color": "charcoal",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_giao_linh_f_35_forest": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 35,
+   "color": "forest",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_giao_linh_f_35_gray": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 35,
+   "color": "gray",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_giao_linh_f_35_maroon": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 35,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_giao_linh_f_35_navy": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 35,
+   "color": "navy",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_giao_linh_f_35_red": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 35,
+   "color": "red",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_giao_linh_f_35_tan": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 35,
+   "color": "tan",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_giao_linh_f_35_white": {
+   "part": "torso.giao_linh",
+   "sex": "f",
+   "z": 35,
+   "color": "white",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_giao_linh_m_31_black": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 31,
+   "color": "black",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_torso_giao_linh_m_31_brown": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 31,
+   "color": "brown",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_torso_giao_linh_m_31_charcoal": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 31,
+   "color": "charcoal",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_torso_giao_linh_m_31_forest": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 31,
+   "color": "forest",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_torso_giao_linh_m_31_gray": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 31,
+   "color": "gray",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_torso_giao_linh_m_31_maroon": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 31,
+   "color": "maroon",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_torso_giao_linh_m_31_navy": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 31,
+   "color": "navy",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_torso_giao_linh_m_31_red": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 31,
+   "color": "red",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_torso_giao_linh_m_31_tan": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 31,
+   "color": "tan",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_torso_giao_linh_m_31_white": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 31,
+   "color": "white",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_torso_giao_linh_m_35_black": {
+   "part": "torso.giao_linh",
    "sex": "m",
    "z": 35,
+   "color": "black",
    "idle": false,
-   "bytes": 4698
+   "bytes": 5413
+  },
+  "lpcp_torso_giao_linh_m_35_brown": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 35,
+   "color": "brown",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_giao_linh_m_35_charcoal": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 35,
+   "color": "charcoal",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_giao_linh_m_35_forest": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 35,
+   "color": "forest",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_giao_linh_m_35_gray": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 35,
+   "color": "gray",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_giao_linh_m_35_maroon": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 35,
+   "color": "maroon",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_giao_linh_m_35_navy": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 35,
+   "color": "navy",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_giao_linh_m_35_red": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 35,
+   "color": "red",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_giao_linh_m_35_tan": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 35,
+   "color": "tan",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_giao_linh_m_35_white": {
+   "part": "torso.giao_linh",
+   "sex": "m",
+   "z": 35,
+   "color": "white",
+   "idle": false,
+   "bytes": 5392
   },
   "lpcp_torso_jacket_iverness_m_55_black": {
    "part": "torso.jacket_iverness",
@@ -4395,6 +5021,134 @@
    "idle": true,
    "bytes": 3745
   },
+  "lpcp_torso_su_lai_khac_f_31_forest": {
+   "part": "torso.su_lai_khac",
+   "sex": "f",
+   "z": 31,
+   "color": "forest",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_su_lai_khac_f_31_gray": {
+   "part": "torso.su_lai_khac",
+   "sex": "f",
+   "z": 31,
+   "color": "gray",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_su_lai_khac_f_31_navy": {
+   "part": "torso.su_lai_khac",
+   "sex": "f",
+   "z": 31,
+   "color": "navy",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_su_lai_khac_f_31_white": {
+   "part": "torso.su_lai_khac",
+   "sex": "f",
+   "z": 31,
+   "color": "white",
+   "idle": true,
+   "bytes": 2799
+  },
+  "lpcp_torso_su_lai_khac_f_35_forest": {
+   "part": "torso.su_lai_khac",
+   "sex": "f",
+   "z": 35,
+   "color": "forest",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_su_lai_khac_f_35_gray": {
+   "part": "torso.su_lai_khac",
+   "sex": "f",
+   "z": 35,
+   "color": "gray",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_su_lai_khac_f_35_navy": {
+   "part": "torso.su_lai_khac",
+   "sex": "f",
+   "z": 35,
+   "color": "navy",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_su_lai_khac_f_35_white": {
+   "part": "torso.su_lai_khac",
+   "sex": "f",
+   "z": 35,
+   "color": "white",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_su_lai_khac_m_31_forest": {
+   "part": "torso.su_lai_khac",
+   "sex": "m",
+   "z": 31,
+   "color": "forest",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_torso_su_lai_khac_m_31_gray": {
+   "part": "torso.su_lai_khac",
+   "sex": "m",
+   "z": 31,
+   "color": "gray",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_torso_su_lai_khac_m_31_navy": {
+   "part": "torso.su_lai_khac",
+   "sex": "m",
+   "z": 31,
+   "color": "navy",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_torso_su_lai_khac_m_31_white": {
+   "part": "torso.su_lai_khac",
+   "sex": "m",
+   "z": 31,
+   "color": "white",
+   "idle": false,
+   "bytes": 2595
+  },
+  "lpcp_torso_su_lai_khac_m_35_forest": {
+   "part": "torso.su_lai_khac",
+   "sex": "m",
+   "z": 35,
+   "color": "forest",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_su_lai_khac_m_35_gray": {
+   "part": "torso.su_lai_khac",
+   "sex": "m",
+   "z": 35,
+   "color": "gray",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_su_lai_khac_m_35_navy": {
+   "part": "torso.su_lai_khac",
+   "sex": "m",
+   "z": 35,
+   "color": "navy",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_su_lai_khac_m_35_white": {
+   "part": "torso.su_lai_khac",
+   "sex": "m",
+   "z": 35,
+   "color": "white",
+   "idle": false,
+   "bytes": 5392
+  },
   "lpcp_torso_tunic_f_35_black": {
    "part": "torso.tunic",
    "sex": "f",
@@ -4634,6 +5388,134 @@
    "color": "white",
    "idle": true,
    "bytes": 2596
+  },
+  "lpcp_torso_vu_hon_dien_f_31_black": {
+   "part": "torso.vu_hon_dien",
+   "sex": "f",
+   "z": 31,
+   "color": "black",
+   "idle": true,
+   "bytes": 5260
+  },
+  "lpcp_torso_vu_hon_dien_f_31_maroon": {
+   "part": "torso.vu_hon_dien",
+   "sex": "f",
+   "z": 31,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 5260
+  },
+  "lpcp_torso_vu_hon_dien_f_31_purple": {
+   "part": "torso.vu_hon_dien",
+   "sex": "f",
+   "z": 31,
+   "color": "purple",
+   "idle": true,
+   "bytes": 5260
+  },
+  "lpcp_torso_vu_hon_dien_f_31_white": {
+   "part": "torso.vu_hon_dien",
+   "sex": "f",
+   "z": 31,
+   "color": "white",
+   "idle": true,
+   "bytes": 5260
+  },
+  "lpcp_torso_vu_hon_dien_f_35_black": {
+   "part": "torso.vu_hon_dien",
+   "sex": "f",
+   "z": 35,
+   "color": "black",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_vu_hon_dien_f_35_maroon": {
+   "part": "torso.vu_hon_dien",
+   "sex": "f",
+   "z": 35,
+   "color": "maroon",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_vu_hon_dien_f_35_purple": {
+   "part": "torso.vu_hon_dien",
+   "sex": "f",
+   "z": 35,
+   "color": "purple",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_vu_hon_dien_f_35_white": {
+   "part": "torso.vu_hon_dien",
+   "sex": "f",
+   "z": 35,
+   "color": "white",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_vu_hon_dien_m_31_black": {
+   "part": "torso.vu_hon_dien",
+   "sex": "m",
+   "z": 31,
+   "color": "black",
+   "idle": false,
+   "bytes": 5011
+  },
+  "lpcp_torso_vu_hon_dien_m_31_maroon": {
+   "part": "torso.vu_hon_dien",
+   "sex": "m",
+   "z": 31,
+   "color": "maroon",
+   "idle": false,
+   "bytes": 5011
+  },
+  "lpcp_torso_vu_hon_dien_m_31_purple": {
+   "part": "torso.vu_hon_dien",
+   "sex": "m",
+   "z": 31,
+   "color": "purple",
+   "idle": false,
+   "bytes": 5011
+  },
+  "lpcp_torso_vu_hon_dien_m_31_white": {
+   "part": "torso.vu_hon_dien",
+   "sex": "m",
+   "z": 31,
+   "color": "white",
+   "idle": false,
+   "bytes": 5011
+  },
+  "lpcp_torso_vu_hon_dien_m_35_black": {
+   "part": "torso.vu_hon_dien",
+   "sex": "m",
+   "z": 35,
+   "color": "black",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_vu_hon_dien_m_35_maroon": {
+   "part": "torso.vu_hon_dien",
+   "sex": "m",
+   "z": 35,
+   "color": "maroon",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_vu_hon_dien_m_35_purple": {
+   "part": "torso.vu_hon_dien",
+   "sex": "m",
+   "z": 35,
+   "color": "purple",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_vu_hon_dien_m_35_white": {
+   "part": "torso.vu_hon_dien",
+   "sex": "m",
+   "z": 35,
+   "color": "white",
+   "idle": false,
+   "bytes": 5392
   }
  }
 }
