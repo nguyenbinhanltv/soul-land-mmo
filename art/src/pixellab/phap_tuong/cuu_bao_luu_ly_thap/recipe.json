@@ -1,0 +1,201 @@
+{
+  "id": "cuu_bao_luu_ly_thap",
+  "nhom": "V (tháp dựng sau lưng)",
+  "ngay": "2026-10-24",
+  "code": [
+    "idle",
+    "attack"
+  ],
+  "mode": "dat",
+  "prescale": 0.9,
+  "clean": {
+    "minComp": 6,
+    "catDe": {
+      "sat": 30,
+      "gan": 1,
+      "cot": true
+    }
+  },
+  "display": {
+    "scale": 1,
+    "dx": 0,
+    "dy": -2,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "glow": "pt_cuu_bao_luu_ly_thap_glow",
+    "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+  },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "luot": 1,
+    "chon": "thap_c11",
+    "body": {
+      "description": "pixel art, isometric RPG sprite, single subject, slender floating nine-tier glazed pagoda tower seen from the front, nine stacked tiers each a different jewel color (red, orange, yellow, green, cyan, blue, purple, pink, white), curved eaves, golden finial, rainbow halo, translucent ghost-like, ...",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 11
+    },
+    "thuLai": "thap_a (đế đá, 6 tầng) và thap_b / thap_c3 bỏ; concept làm lại tốn thêm 3 lượt"
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "luot": 2,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "slender nine-tier glazed pagoda tower, each tier a different jewel color",
+      "no_background": true
+    },
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 1,
+      "se": 2,
+      "e": 3,
+      "ne": 4,
+      "n": 5
+    }
+  },
+  "chuyenDong": {
+    "hao": {
+      "cauVong": true
+    },
+    "idle": {
+      "pivot": [
+        0.5,
+        0.95
+      ],
+      "bob": 1,
+      "rot": 0.6,
+      "pulse": 0.1
+    },
+    "attack": {
+      "pivot": [
+        0.5,
+        0.95
+      ],
+      "hit": 6,
+      "vong": 24,
+      "vongMau": "#7ef0ff",
+      "poses": [
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          1.02,
+          1.05,
+          0.08
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          1.02,
+          1.1,
+          0.25
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          1.02,
+          1.1,
+          0.42
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          1.02,
+          1.15,
+          0.6
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          1.02,
+          1.15,
+          0.8
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1.5,
+          1
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1.1,
+          null
+        ]
+      ]
+    },
+    "hat": [
+      {
+        "vi": "quay",
+        "n": 9,
+        "mau": [
+          "#ff4a4a",
+          "#ff9a3a",
+          "#ffe04a",
+          "#5ae06a",
+          "#4ad8ff",
+          "#5a7aff",
+          "#b06bff"
+        ],
+        "e": 0.3,
+        "xa": 5,
+        "len": 8,
+        "seed": 2,
+        "s": 2
+      }
+    ]
+  }
+}

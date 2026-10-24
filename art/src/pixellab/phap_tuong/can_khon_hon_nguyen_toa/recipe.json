@@ -1,0 +1,194 @@
+{
+  "id": "can_khon_hon_nguyen_toa",
+  "nhom": "O (vòng xích + ổ khóa lơ lửng sau lưng)",
+  "ngay": "2026-10-24",
+  "code": [
+    "idle",
+    "attack"
+  ],
+  "mode": "troi",
+  "lift": 14,
+  "prescale": 0.8,
+  "clean": {
+    "minComp": 24,
+    "xa": 0
+  },
+  "display": {
+    "scale": 1,
+    "dx": 0,
+    "dy": -4,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "glow": "pt_can_khon_hon_nguyen_toa_glow",
+    "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+  },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "luot": 1,
+    "chon": "toa_a",
+    "body": {
+      "description": "pixel art, isometric RPG sprite, single subject, giant spectral golden chain wheel with ornate padlock, ...",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 0
+    }
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "luot": 2,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "giant spectral golden chain wheel with ornate padlock",
+      "no_background": true
+    },
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 0,
+      "se": 1,
+      "e": 2,
+      "ne": 3,
+      "n": 4
+    },
+    "ghiChu": "Ổ khóa có mặt trước: chỉ số 0 là mặt trước nhìn người xem; lấy 0..4 thay 1..5 để hướng s thấy mặt khóa, n thấy lưng."
+  },
+  "chuyenDong": {
+    "idle": {
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "bob": 1,
+      "rot": 1.5,
+      "pulse": 0.15
+    },
+    "attack": {
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "hit": 3,
+      "vong": 26,
+      "vongMau": "#ffe08a",
+      "poses": [
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null
+        ],
+        [
+          0,
+          -3,
+          0,
+          0.94,
+          0.94,
+          1.05,
+          null
+        ],
+        [
+          0,
+          4,
+          0,
+          1.02,
+          1.02,
+          1.15,
+          null
+        ],
+        [
+          0,
+          10,
+          0,
+          1.05,
+          1.05,
+          1.5,
+          null
+        ],
+        [
+          0,
+          10,
+          0,
+          1.05,
+          1.05,
+          1.5,
+          null
+        ],
+        [
+          0,
+          6,
+          0,
+          1,
+          1,
+          1.2,
+          null
+        ],
+        [
+          0,
+          2,
+          0,
+          1,
+          1,
+          1.05,
+          null
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null
+        ]
+      ]
+    },
+    "hat": [
+      {
+        "vi": "quay",
+        "n": 7,
+        "mau": [
+          "#ffe08a",
+          "#e0b04a"
+        ],
+        "e": 0.4,
+        "xa": 4,
+        "len": 0,
+        "seed": 6,
+        "s": 2
+      }
+    ],
+    "xich": {
+      "n": 3,
+      "mat": 8
+    }
+  }
+}
