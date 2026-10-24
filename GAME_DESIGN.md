@@ -1131,7 +1131,8 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 
 **Nhóm Hình ảnh kỹ năng combat** (theo dõi #541; chỉ hình ảnh và cảm giác đánh, giữ số và cơ chế; mỗi bước một PR).
 - [x] S0 Bảng đặc tả 25 võ hồn × 11 chiêu, ô Võ Hồn Chân Thân ở vòng 7 (#541, `docs/ky-nang-combat-dac-ta.md`).
-- [ ] S1–S5 Khung code `SKILL_VISUAL`, thử 2 võ hồn, theo lô, hoàn thiện (làm sau khi đủ 25 pháp tướng).
+- [x] S1 Khung code `SKILL_VISUAL` + cảm giác đánh (#542, PR #546, mục 5.11).
+- [ ] S2–S5 Thử 2 võ hồn (Lam Điện Bá Vương Long + Hạo Thiên Chùy), theo lô, hoàn thiện; 25 / 25 pháp tướng đã đủ nên làm được ngay (theo dõi #541 / #482, chưa có issue riêng cho từng bước).
 
 **Nhóm Hồn sư tự tạo bằng LPC** (mục 5.11; theo dõi #507; chạy song song chế độ Mẫu dựng sẵn; mỗi bước một PR).
 - [x] L0 Mẫu thử và danh mục 111 món, chủ repo duyệt 4 hướng (không sửa repo).
