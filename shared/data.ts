@@ -1376,9 +1376,9 @@ export const vnHHMM = (ms: number) => { const c = vnClock(ms); return `${String(
  * - Mảnh UR: `ur` (5%, đã chốt) thêm 1 mảnh Hạo Thiên Chùy hoặc Cửu Bảo Lưu Ly Tháp; từ BĐ6 (có boss thế giới, BĐ6e) bỏ: `ur` = 0,
  *   mảnh UR chỉ còn trong rương boss thế giới (WORLD_CHEST, mục 5.3 "Mảnh UR trước BĐ6").
  * - Hồn hạch sao cao (từ 5.1): luôn 1 món, sao cao nhất của coreStarBand(năm thú vương) (rollCore `high`), bộ theo MapDef.cores của bản
- *   đồ thú vương như hồn hạch rơi. `slots` = 4: hồn cốt, mảnh, mảnh UR, hồn hạch mỗi thứ có thể cần một ô mới.
+ *   đồ thú vương như hồn hạch rơi. `slots` = 10: 4 ô cho hồn cốt, mảnh, mảnh UR, hồn hạch (mỗi thứ có thể cần một ô mới) + 6 ô cho trang bị (E2: tối đa `EQUIP_DROP.ranks[2].rolls[1]` = 5 lượt rơi + 1 Bùa Hộ Mệnh; test `test:equip` kiểm hai số này khớp nhau).
  */
-export const KING_CHEST = { slots: 4, bone: 20, shards: [3, 5] as [number, number], ur: 0, urShards: ["hao_thien_chuy", "cuu_bao_luu_ly_thap"],
+export const KING_CHEST = { slots: 10, bone: 20, shards: [3, 5] as [number, number], ur: 0, urShards: ["hao_thien_chuy", "cuu_bao_luu_ly_thap"],
   fire: "ta_hoa_phuong_hoang", every: [] as string[], later: ["bich_lan_xa_hoang", "ky_nhung_thong_thien_cuc", "hoa_long", "yeu_ho", "can_khon_hon_nguyen_toa",
     "nguyet_nhan", "quy_mi", "thien_can_bach_ngoc_dinh", "hoa_anh"] };
 /** Võ hồn có thể rơi mảnh từ rương thú vương của bản đồ `mapId`, kèm trọng số: mảnh của bản đồ 3, Tà Hỏa và `every` 2, bản đồ chưa mở 1. */
@@ -1437,8 +1437,9 @@ export const WORLD_RING = { top: 100000, red: 0.1, black: [80000, 99999] as [num
 /**
  * Rương boss thế giới (mục 5.3 "Rơi đặc trưng", 5.4): cần `slots` ô trống. Hồn cốt boneChance(100.000 năm, `bone`), loài gốc của boss;
  * `ur` [ít nhất, nhiều nhất] mảnh UR (một võ hồn trong KING_CHEST.urShards); luôn 1 hồn hạch sao trong `stars` của bộ bất kỳ (CORE_SETS).
+ * `slots` = 4 + 9 ô trang bị (E2: tối đa `EQUIP_DROP.ranks[3].rolls[1]` = 8 lượt rơi + 1 Bùa Hộ Mệnh).
  */
-export const WORLD_CHEST = { slots: 4, bone: 3, ur: [1, 2] as [number, number], stars: [5, 6] as [number, number] };
+export const WORLD_CHEST = { slots: 13, bone: 3, ur: [1, 2] as [number, number], stars: [5, 6] as [number, number] };
 
 // ---------- Hiệu ứng có lợi trên hồn sư (hồn kỹ phụ trợ; thuộc hồn sư nên đổi võ hồn vẫn còn, như khiên) ----------
 /** Thứ tự là bit trong `PlayerState.buff`. atk: +công, spd: +tốc độ, def: giảm sát thương nhận, crit: +tỉ lệ chí mạng,

@@ -1,9 +1,10 @@
 // Kiểm thử hàm thuần trang bị hồn sư (shared/data.ts, mục 5.15): không cần bật server, RNG có hạt.
 // Chạy: npm run test:equip --prefix server
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   EQUIP_SLOTS, EQUIP_TIERS, EQUIP_TEMPLATES, EQUIP_DROP, EQUIP_MAPS, EQUIP_ENHANCE, EQUIP_SYNTH, EQUIP_MATERIALS, EQUIP_STONES, EQUIP_SALVAGE,
-  EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ITEM, EQUIP_CHARM, BONE_PASSIVE_CAP, CORE_STATS, MAPS, ITEMS, ITEM_KINDS,
+  EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, KING_CHEST, WORLD_CHEST, EQUIP_ITEM, EQUIP_CHARM, BONE_PASSIVE_CAP, CORE_STATS, MAPS, ITEMS, ITEM_KINDS,
   equipTemplate, equipEnhanceMult, equipEnhanceStep, equipEnhanceResult, equipWeaponRoll, equipStats, equipDefTotal, equipSalvage,
   rollEquip, rollEquipDrop, rollEquipCharm, itemDef, equipIconKeys, equipIconChain, equipFrameKey,
 } from "../../shared/data.ts";
@@ -136,6 +137,26 @@ test("Rơi: bản đồ kẹp bậc tối đa, bản đồ / bậc lạ không r
   const base = dist(0, "hai_than_dao", 300000, 51, 0); assert.ok(capD.equips > base.equips * 2, "rate tăng xác suất trang bị");
   // đá rơi theo bản đồ: Thánh Hồn Thôn không ra đá III trở lên
   assert.equal(th.stones.slice(2).reduce((a, x) => a + x, 0), 0);
+});
+test("Rương (E2): số ô trống cần để mở đủ chứa lượt rơi tối đa + Bùa Hộ Mệnh, ngoài 4 ô hồn cốt / mảnh / UR / hồn hạch (thú vương: 3 thứ, boss: 3 thứ + 1 dự phòng)", () => {
+  assert.ok(KING_CHEST.slots >= 4 + EQUIP_DROP.ranks[2].rolls[1] + 1, `KING_CHEST.slots ${KING_CHEST.slots} không đủ`);
+  assert.ok(WORLD_CHEST.slots >= 4 + EQUIP_DROP.ranks[3].rolls[1] + 1, `WORLD_CHEST.slots ${WORLD_CHEST.slots} không đủ`);
+});
+test("Monte Carlo so với docs/trang-bi-kinh-te.md mục 2: mỗi lần hạ thú vương / boss thế giới, số món từng bậc, đá và Bùa khớp bảng (100.000 lần)", () => {
+  const md = readFileSync(new URL("../../docs/trang-bi-kinh-te.md", import.meta.url), "utf8"), start = md.indexOf("### 2."), end = md.indexOf("### 3.");
+  assert.ok(start >= 0 && end > start, "không thấy mục 2 trong docs");
+  const rows = new Map<string, number[]>();
+  for (const line of md.slice(start, end).split(/\r?\n/)) {
+    const c = line.split("|").map((x) => x.trim()).filter(Boolean);
+    if (c.length === 13 && !c[0].startsWith("---") && c[0] !== "Loại") rows.set(c[0], c.slice(1).map((x) => Number(x.replace(/\./g, "").replace(",", "."))));
+  }
+  const kinds: [string, number, string][] = [["Thú vương Nội địa", 2, "tinh_dau_noi_dia"], ["Thú vương Cực Bắc", 2, "cuc_bac_chi_dia"], ["Thú vương Hải Thần", 2, "hai_than_dao"], ["Boss thế giới", 3, "loi_tinh_dau"]];
+  for (const [name, rank, mapId] of kinds) {
+    const want = rows.get(name); assert.ok(want && want.length === 12, `thiếu hàng "${name}" trong docs`);
+    const d = dist(rank, mapId, 100000, rank * 31), r = rng(rank * 77); let charm = 0; for (let i = 0; i < 100000; i++) charm += rollEquipCharm(rank, r);
+    const got = [...d.tiers.map((x) => x / 100000), ...d.stones.map((x) => x / 100000), charm / 100000];
+    got.forEach((v, i) => near(v, want[i], 0.06, `${name} cột ${i}`));
+  }
 });
 test("Bùa Hộ Mệnh: chỉ thú vương / boss thế giới, tần suất khớp cấu hình", () => {
   const r = rng(61); let n2 = 0, n3 = 0, n0 = 0;
