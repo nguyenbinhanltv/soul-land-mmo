@@ -55,7 +55,7 @@
   "bh": {
    "palette": [
     "#1a1020",
-    "#2a5a8a",
+    "#7a1c10",
     "#ff4a2a",
     "#a8e8ff",
     "#ffffff"
@@ -284,7 +284,7 @@
    "t": 3,
    "f": 12,
    "big": 1,
-   "d": "Heavy-palm ultimate: a colossal shadow-flame hand presses down from above onto the whole area, the ground cracks glowing red, fire flows out along the cracks, then fades. Very large, dramatic."
+   "d": "Heavy-palm ultimate: a colossal flame hand with five rounded curved fingers and a palm, drawn as a clear hand silhouette of crimson fire with flickering edges (not blocks), pressing down from above onto the area, ground cracks glowing orange, fire flows along cracks. Very large, dramatic."
   },
   {
    "n": "ha_t3b",
@@ -465,7 +465,7 @@
    "t": 3,
    "f": 12,
    "big": 1,
-   "d": "Fusion ultimate: an ice phoenix on the left and a fire dragon on the right, the ground splits into a yin-yang circle half ice half fire, then both halves collide and swirl into white steam. Very large, dramatic."
+   "d": "Fusion ultimate: left half of a circular ground is ice with crystal feathers and snowflakes, right half is red-orange flames with a dragon fire swirl, a yin-yang S-curve between them, then both swirl together into white steam. Strong red fire and cyan ice. Very large."
   }
  ]
 }
