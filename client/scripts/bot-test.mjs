@@ -581,6 +581,7 @@ if(process.env.BOT_ONLY==="combo"){ await comboTest(); console.log(fails?`✗ ${
 if(process.env.BOT_ONLY==="egg"){ await eggTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="autoboss"){ await autoBossTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="autobossperf"){ await autoBossPerf(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="equipsoak"){ await equipSoak(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="cheat2"){ await cheatBagTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="arena"){ await arenaTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="daily"){ await dailyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -10803,6 +10804,102 @@ async function autoBossPerf(){
   }finally{ for(const b of B) await b.room.leave().catch(()=>{}); }
 }
 
+/**
+ * Chạy dài trang bị hồn sư (E7 #418; BOT_ONLY=equipsoak, không chạy trong bot đầy đủ): ES_N bot (mặc định 20) đứng quanh Thợ rèn ở
+ * Nạc Định Thành, mỗi bot mặc đủ 10 ô rồi lặp ES_SECS giây (mặc định 120): cường hóa (kể cả dùng bùa), hợp thành 3 → 1, phân giải nhiều món,
+ * đổi món đang mặc, thỉnh thoảng thoát và vào lại (lưu / đọc lại trang bị). Cần server GAME_TEST=1, nên bật PERF_LOG=1:
+ *   npm run bot:local -- --only equipsoak --env PERF_LOG=1 [--pg]    (ES_N, ES_SECS, ES_SAMPLE đặt bằng biến môi trường của shell)
+ * In mỗi ES_SAMPLE giây (mặc định 15) một dòng: tick / bản vá của phòng, RSS và heap của server; cuối lượt: số lệnh, lỗi, độ trễ p50 / p95 của từng
+ * loại lệnh, so nửa đầu với nửa sau (chậm dần / phình bộ nhớ), kiểm Hồn Tệ không âm, id không trùng, số món mặc sau khi vào lại.
+ */
+async function equipSoak(){
+  const N=Math.max(1,Number(process.env.ES_N)||20), SECS=Math.max(10,Number(process.env.ES_SECS)||120), SAMPLE=Math.max(3,Number(process.env.ES_SAMPLE)||15);
+  console.log(`[E7 #418] Chạy dài trang bị: ${N} bot × ${SECS} giây (cường hóa, hợp thành, phân giải, mặc / tháo, vào lại)`);
+  const SLOTS=SD.EQUIP_SLOTS.map(s=>s.id), TIERS=SD.EQUIP_TIERS.map(t=>t.id);
+  const B=[]; for(let i=0;i<N;i++) B.push(await bot(`Soak TB ${i}`,AWAKEN_CHOICES[i%AWAKEN_CHOICES.length].id,{sex:i%2,hair:i%4,hairCol:i%5,outfitCol:i%6}));
+  const O=await bot("Soak TB obs","u_minh_linh_mieu",{sex:0,hair:0,hairCol:0,outfitCol:0}), H=B[0], mo=b=>b.room.state.players?.get(b.room.sessionId);
+  try{
+    if(!(await test(H,"ping"))?.enabled){ console.log("  ⚠ bỏ qua: bật server bằng GAME_TEST=1"); return; }
+    const lr=npcSpot("nac_dinh_thanh","lo_ren"), lat={enh:[],syn:[],salv:[],wear:[]}, cnt={enh:0,syn:0,salv:0,wear:0,rejoin:0,fail:0,destroyed:0,charm:0,synOk:0};
+    const watch=b=>{ b.enhN=0; b.synN=0; b.salvN=0;
+      b.room.onMessage("equipenhd",m=>{ b.enhLast=m; b.enhN++; }); b.room.onMessage("equipenhp",()=>{});
+      b.room.onMessage("equipsynd",m=>{ b.synLast=m; b.synN++; }); b.room.onMessage("equipsalvd",m=>{ b.salvLast=m; b.salvN++; }); };
+    const rejoin=async b=>{ await b.room.leave(); await sleep(150+Math.random()*250); b.mapId=(await post("/api/me",{token:b.token})).mapId; await enter(b); watch(b); await waitFor(()=>mo(b)&&b.bag&&b.gear,4000); };
+    const loose=b=>looseOf(b), slotRnd=()=>SLOTS[Math.floor(Math.random()*SLOTS.length)];
+    const SPOTS=[[0,16],[8,16],[-8,16],[0,24],[12,20],[-12,20],[16,12],[-16,12]]; // chỗ đứng quanh Thợ rèn (NPC_RANGE 40); bot thử lần lượt tới khi đứng được và còn trong tầm
+    const spot=async(b,bi)=>{ for(let k=0;k<SPOTS.length;k++){ const [dx,dy]=SPOTS[(bi+k)%SPOTS.length]; await test(b,"goto",{x:lr.x+dx,y:lr.y+dy}); const m=mo(b); if(m&&Math.hypot(m.x-lr.x,m.y-lr.y)<SD.NPC_RANGE-6) return true; } return false; };
+    const why=new Map(), fail=(k,b,e)=>{ cnt.fail++; const m=`${k}: ${(e??b?.logs?.at(-1)??"(không có log)")}`.replace(/d+/g,"#").slice(0,90); why.set(m,(why.get(m)??0)+1); };
+    const mk=async(b,tpl,more={})=>{ const r=await test(b,"gear",{tpl,ilvl:1+Math.floor(Math.random()*7),...more}); if(!r?.id){ fail("gear",b,r?.error??"không có trả lời"); return null; } await waitFor(()=>loose(b).some(i=>i.id===r.id),2000); return r.id; };
+    const timed=async(kind,fn)=>{ const t=Date.now(), res=await fn(); lat[kind].push(Date.now()-t); cnt[kind]++; return res; };
+    // Bot quan sát đứng cùng kênh Nạc Định Thành để hook perf đọc đúng phòng đang chịu tải.
+    O.travel=null; O.room.send("test",{op:"warp",mapId:"nac_dinh_thanh",x:0,y:0}); await waitFor(()=>O.travel,4000);
+    if(O.travel){ const t=O.travel; await O.room.leave(); await sleep(200); O.mapId=t.mapId; await enter(O,t.roomId??undefined); }
+    // Chuẩn bị: mỗi bot tới Nạc Định Thành, đứng cạnh Thợ rèn, mặc đủ 10 ô (bậc theo số thứ tự bot) và có sẵn Hồn Tệ, đá, bùa.
+    await Promise.all(B.map(async(b,bi)=>{
+      b.travel=null; b.room.send("test",{op:"warp",mapId:"nac_dinh_thanh",x:0,y:0}); await waitFor(()=>b.travel,4000);
+      if(b.travel){ const t=b.travel; await b.room.leave(); await sleep(200+bi*30); b.mapId=t.mapId; await enter(b,t.roomId??undefined); }
+      watch(b); await waitFor(()=>mo(b)&&b.bag&&b.gear,5000);
+      await test(b,"gear",{clear:true}); await test(b,"rest",{s:SD.TEAM_COMBAT_SECS+1}); await test(b,"coin",{n:5e7});
+      for(const st of SD.EQUIP_STONES) await test(b,"give",{code:st.id,qty:400}); await test(b,"give",{code:SD.EQUIP_CHARM,qty:60});
+      await spot(b,bi);
+      for(const sl of SLOTS){ const id=await mk(b,`${sl}_${TIERS[(bi+SLOTS.indexOf(sl))%TIERS.length]}`,{enhance:8+(bi%8)}); if(id){ const g=b.gearN??0; b.room.send("equipgear",{id}); await waitFor(()=>(b.gearN??0)>g,2000); } }
+    }));
+    const wornOf=b=>b.gear?.items?.length??0;
+    ok(B.every(b=>wornOf(b)===SLOTS.length),`${N} bot mặc đủ ${SLOTS.length} ô (${B.map(wornOf).join(",")})`);
+    const perf=async(reset)=>test(O,"perf",{reset,mem:true}); // bot quan sát riêng, không chung hạn mức hook test với bot đang chạy lệnh
+    const p0=await perf(true); console.log(`  · trước khi chạy: ${p0?.players} người, server RSS ${p0?.rss?Math.round(p0.rss/1048576):"?"} MB, heap ${p0?.heap?Math.round(p0.heap/1048576):"?"} MB`); const t0=Date.now(), deadline=t0+SECS*1000, series=[];
+    const sampler=(async()=>{ while(Date.now()<deadline){ await sleep(SAMPLE*1000); const p=await perf(true); if(!p) continue; series.push({t:Math.round((Date.now()-t0)/1000),...p});
+      console.log(`  · ${String(Math.round((Date.now()-t0)/1000)).padStart(4)} giây: ${p.on?`tick ${p.tick.toFixed(3)} ms, bản vá ${p.patch.toFixed(3)} ms, lớn nhất ${p.max.toFixed(1)} ms`:"(PERF_LOG tắt)"}; ${p.players} người; server RSS ${p.rss?Math.round(p.rss/1048576):"?"} MB, heap ${p.heap?Math.round(p.heap/1048576):"?"} MB; ${cnt.enh} cường hóa, ${cnt.syn} hợp thành, ${cnt.salv} phân giải, ${cnt.rejoin} lần vào lại, ${cnt.fail} lỗi`); } })();
+    await Promise.all(B.map(async(b,bi)=>{
+      let loop=0;
+      while(Date.now()<deadline){
+        loop++;
+        try{
+          const kind=loop%4;
+          if(kind===0){ // cường hóa món đang mặc (ở nấc 13–15 luôn dùng bùa)
+            const w=b.gear?.items?.[Math.floor(Math.random()*wornOf(b))]; if(!w) continue;
+            if(w.enhance>=SD.EQUIP_MAX_ENHANCE){ await sleep(100); continue; }
+            const r=await timed("enh",async()=>{ const n=b.enhN, l=b.logs.length; b.room.send("equipenh",{id:w.id,charm:Math.random()<0.8}); await waitFor(()=>b.enhN>n||b.logs.length>l,3000); return b.enhN>n?b.enhLast:null; });
+            if(!r) fail("enh",b); else { if(r.destroyed) cnt.destroyed++; if(r.charmUsed) cnt.charm++; }
+          }else if(kind===1){ // hợp thành 3 → 1 cùng ô cùng bậc (T0 / T1 / T2)
+            const sl=slotRnd(), tier=TIERS[Math.floor(Math.random()*3)], ids=[]; for(let k=0;k<3;k++){ const id=await mk(b,`${sl}_${tier}`); if(id) ids.push(id); }
+            if(ids.length<3){ if(ids.length) b.room.send("equipsalvage",{ids}); }
+            else{ await test(b,"coin",{n:5e7}); const r=await timed("syn",async()=>{ const n=b.synN, l=b.logs.length; b.room.send("equipsynth",{main:ids[0],sacrifice:[ids[1],ids[2]]}); await waitFor(()=>b.synN>n||b.logs.length>l,3000); return b.synN>n?b.synLast:null; });
+              if(!r) fail("syn",b); else if(r.ok) cnt.synOk++; }
+          }else if(kind===2){ // phân giải 5–8 món một lượt
+            const ids=[]; for(let k=0,n=5+Math.floor(Math.random()*4);k<n;k++){ const id=await mk(b,`${slotRnd()}_${TIERS[Math.floor(Math.random()*4)]}`); if(id) ids.push(id); }
+            if(!ids.length) continue;
+            const r=await timed("salv",async()=>{ const n=b.salvN, l=b.logs.length; b.room.send("equipsalvage",{ids}); await waitFor(()=>b.salvN>n||b.logs.length>l,3000); return b.salvN>n?b.salvLast:null; });
+            if(!r) fail("salv",b);
+          }else{ // đổi món đang mặc (món cũ về túi); mỗi 40 vòng (vài giây) thoát và vào lại
+            const id=await mk(b,`${slotRnd()}_${TIERS[Math.floor(Math.random()*TIERS.length)]}`);
+            if(id){ await test(b,"rest",{s:SD.TEAM_COMBAT_SECS+1}); await timed("wear",async()=>{ const g=b.gearN??0, l=b.logs.length; b.room.send("equipgear",{id}); await waitFor(()=>(b.gearN??0)>g||b.logs.length>l,3000); }); }
+            if(loop%40===3){ await rejoin(b); cnt.rejoin++; await spot(b,bi); }
+          }
+          // giữ túi gọn: phân giải bớt trang bị lẻ trong túi để lượt sau không tràn ô
+          const extra=loose(b).filter(i=>i.code===SD.EQUIP_ITEM).map(i=>i.id); if(extra.length>12) b.room.send("equipsalvage",{ids:extra.slice(0,SD.EQUIP_SALVAGE_MAX)});
+          await sleep(30+Math.random()*120);
+        }catch(e){ cnt.fail++; fail("ngoại lệ",b,e?.message??String(e)); await sleep(200); }
+      }
+    }));
+    await sampler;
+    for(const [m,n] of [...why].sort((a,b)=>b[1]-a[1]).slice(0,8)) console.log(`  · lỗi ×${n}: ${m}`);
+    const q=(a,p)=>a.length?[...a].sort((x,y)=>x-y)[Math.min(a.length-1,Math.floor(a.length*p))]:0;
+    for(const k of ["enh","syn","salv","wear"]) console.log(`  · ${k.padEnd(4)}: ${String(cnt[k]).padStart(5)} lệnh, trễ p50 ${q(lat[k],0.5)} ms, p95 ${q(lat[k],0.95)} ms, lớn nhất ${q(lat[k],1)} ms`);
+    console.log(`  · hợp thành thành công ${cnt.synOk}/${cnt.syn}, phá hủy ${cnt.destroyed}, dùng bùa ${cnt.charm}, vào lại ${cnt.rejoin}, lỗi / hết hạn ${cnt.fail}`);
+    const ps=series.filter(x=>x.rss); if(ps.length>=4){ const h=Math.floor(ps.length/2), a=ps.slice(0,h), z=ps.slice(h), avg=(xs,k)=>xs.reduce((s,x)=>s+x[k],0)/xs.length;
+      console.log(`  · nửa đầu → nửa sau: tick ${avg(a,"tick").toFixed(3)} → ${avg(z,"tick").toFixed(3)} ms, heap ${(avg(a,"heap")/1048576).toFixed(0)} → ${(avg(z,"heap")/1048576).toFixed(0)} MB, RSS ${(avg(a,"rss")/1048576).toFixed(0)} → ${(avg(z,"rss")/1048576).toFixed(0)} MB`); }
+    // Kiểm cuối: mọi bot vào lại thấy đủ ô, Hồn Tệ không âm, id túi không trùng
+    let bad=0; const sig=b=>JSON.stringify({g:(b.gear?.items??[]).map(g=>`${g.id}:${g.slot}:${g.enhance}`).sort(),l:loose(b).map(i=>i.id).sort()});
+    for(const b of B){ await sleep(300); const before=sig(b); await rejoin(b); const ids=[...loose(b).map(i=>i.id),...(b.gear?.items??[]).map(g=>g.id)]; if(new Set(ids).size!==ids.length||b.bag.honTe<0||sig(b)!==before) bad++; }
+    ok(bad===0,`sau chạy dài: ${N} bot vào lại thấy đúng món đang mặc (id, ô, cấp) và túi như trước, Hồn Tệ không âm, id không trùng (${bad} bot lệch)`);
+    ok(cnt.fail<=Math.max(5,0.02*(cnt.enh+cnt.syn+cnt.salv+cnt.wear)),`lỗi / hết hạn ${cnt.fail} trên ${cnt.enh+cnt.syn+cnt.salv+cnt.wear} lệnh (tối đa 2%)`);
+    const pl=series.filter(x=>x.on); if(pl.length) ok(Math.max(...pl.map(x=>x.tick))<1000/TICK_RATE/2,`tick trung bình lớn nhất ${Math.max(...pl.map(x=>x.tick)).toFixed(3)} ms < nửa chu kỳ ${(1000/TICK_RATE/2).toFixed(0)} ms`);
+    for(const b of B) await b.room.leave().catch(()=>{}); B.length=0; await sleep(20000); // B rỗng: finally không rời lần hai (leave() trên phòng đã đóng không bao giờ xong)
+    const pe=await perf(true); // mọi bot đã rời: bộ nhớ về đâu (GC chạy tự nhiên)
+    console.log(`  · sau khi ${N} bot rời 20 giây: ${pe?.players} người, server RSS ${pe?.rss?Math.round(pe.rss/1048576):"?"} MB, heap ${pe?.heap?Math.round(pe.heap/1048576):"?"} MB (trước khi chạy: RSS ${p0?.rss?Math.round(p0.rss/1048576):"?"} MB, heap ${p0?.heap?Math.round(p0.heap/1048576):"?"} MB)`);
+  }finally{ await O.room.leave().catch(()=>{}); for(const b of B) await b.room.leave().catch(()=>{}); }
+}
 async function groundTest(){
   console.log("[#161] Vùng lưu lại trên mặt đất: vũng độc, sương độc");
   const skOf=(boss,name)=>BOSSES[bossIndex(boss)]?.skills.find(s=>s.name===name);
