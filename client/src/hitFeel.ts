@@ -1,8 +1,12 @@
 // S1 (#542): cảm giác đánh theo độ nặng, chất liệu, hệ. Hàm thuần + tia lửa dùng lớp hạt có sẵn; chỉ hiển thị ở client
 // (hằng số ở đây là độ dài / độ mạnh hiệu ứng, KHÔNG phải số cân bằng). KHÔNG rung màn: rung vẫn do `beastJerk` / `SHAKE_TIER` ở combatFx.
-import type { Element, Material } from "./audio/soundMap.ts";
+import type Phaser from "phaser";
+import type { He } from "../../shared/data.ts";
+import { COMBAT_MATERIALS, type Element, type Material } from "./audio/soundMap.ts";
 import { ELEMENT_COL } from "./skillFx.ts";
-import { fxPrefs, type ParticleLayer } from "./combatFx.ts";
+import { fxPrefs, HIT_SPARK, type ParticleLayer } from "./combatFx.ts";
+import { makeCodeSheet, SheetFx } from "./fxSheet.ts";
+import { SPR } from "./iso.ts";
 
 /** Độ nặng đòn 0..3: tỉ lệ sát thương / sinh lực tối đa, chí mạng, kết liễu, và độ nặng khai báo của chiêu (`SKILL_VISUAL.heavy`). */
 export function hitWeight(ratio: number, crit: boolean, kill: boolean, heavy = 0): 0 | 1 | 2 | 3 {
@@ -18,6 +22,8 @@ export const MATERIAL_SPARK: Record<Material, { col: number; n: number; speed: n
   giap: { col: 0xffe9a0, n: 7, speed: 130, size: 1, gravity: 10, life: 0.22 }, // tia vàng nhỏ, nhanh, bay thẳng
   bang: { col: 0xcdf3ff, n: 6, speed: 80, size: 2, gravity: 55, life: 0.4 },   // mảnh băng vỡ rơi
   go:   { col: 0xb98a55, n: 5, speed: 65, size: 2, gravity: 45, life: 0.36 },  // vụn gỗ
+  da:   { col: 0x9d9a91, n: 5, speed: 46, size: 2, gravity: 62, life: 0.42 },   // mảnh đá nặng
+  linh_the: { col: 0xc8b8ff, n: 6, speed: 72, size: 2, gravity: -18, life: 0.48 }, // hạt linh thể bay nhẹ
 };
 /** Số tia nhân theo mức hiệu ứng (Thấp: không tia, giống hạt chung). */
 const SPARK_K = { low: 0, mid: 1, high: 1.6 } as const;
@@ -30,6 +36,50 @@ export function materialSparks(fxp: ParticleLayer, mat: Material, el: Element | 
     const a = Math.random() * Math.PI * 2, s = m.speed * px / 2 * (0.5 + Math.random() * 0.6) * (1 + weight * 0.12);
     fxp.emit(x, y, i % 3 === 0 ? hi : m.col, { vx: Math.cos(a) * s, vy: Math.sin(a) * s * 0.7 - 12, life: m.life * (0.7 + Math.random() * 0.5), size: m.size + (weight >= 2 && i % 4 === 0 ? 1 : 0), gravity: m.gravity });
   }
+}
+
+export const HIT_HES: readonly He[] = ["cuong_cong", "man_cong", "khong_che", "phu_tro"];
+const hitSheetKey = (mat: Material, he: He, glow = false) => `fxh_${mat}_${he}${glow ? "_glow" : ""}`;
+
+/** Sheet code 6 khung cho tia / mảnh C1; chỉ là fallback pixel đã hậu kỳ bằng code, không phải asset gameplay. */
+export function registerHitFeelSheets(scene: Phaser.Scene): void {
+  for (const mat of COMBAT_MATERIALS) for (const he of HIT_HES) {
+    const spec = MATERIAL_SPARK[mat], spark = HIT_SPARK[he];
+    makeCodeSheet(scene, hitSheetKey(mat, he), 6, 40, (c, k, size) => {
+      const fade = 1 - k * 0.8, r = (5 + k * 10) * (1 + spark.size / 4);
+      c.globalAlpha = fade;
+      for (let i = 0; i < Math.min(8, spec.n + 2); i++) {
+        const a = (i / Math.min(8, spec.n + 2)) * Math.PI * 2 + (he === "khong_che" ? k * 2 : 0);
+        const x0 = size / 2 + Math.cos(a) * r * 0.28, y0 = size / 2 + Math.sin(a) * r * 0.16;
+        const x1 = size / 2 + Math.cos(a) * r, y1 = size / 2 + Math.sin(a) * r * 0.6;
+        c.strokeStyle = "#1a1020"; c.lineWidth = 3; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+        c.strokeStyle = `#${spec.col.toString(16).padStart(6, "0")}`; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+      }
+      c.fillStyle = `#${spec.col.toString(16).padStart(6, "0")}`;
+      if (mat === "thit") c.fillRect(size / 2 - 2, size / 2 + k * 5, 3, 5);
+      else if (mat === "giap") c.fillRect(size / 2 - 2, size / 2 - 2, 4, 4);
+      else if (mat === "bang") { c.beginPath(); c.moveTo(size / 2, size / 2 - 6); c.lineTo(size / 2 + 4, size / 2); c.lineTo(size / 2, size / 2 + 6); c.lineTo(size / 2 - 4, size / 2); c.closePath(); c.fill(); }
+      else if (mat === "go") c.fillRect(size / 2 - 6 - k * 5, size / 2 - 1, 7, 2);
+      else if (mat === "da") c.fillRect(size / 2 - 3, size / 2 - 3, 6, 6);
+      else { c.beginPath(); c.arc(size / 2, size / 2 - k * 7, 3, 0, Math.PI * 2); c.fill(); }
+      c.globalAlpha = 1;
+    });
+    makeCodeSheet(scene, hitSheetKey(mat, he, true), 6, 40, (c, k, size) => {
+      c.globalAlpha = (1 - k) * 0.75;
+      c.fillStyle = "#ffffff";
+      c.fillRect(size / 2 - 1, size / 2 - 1, 2, 2);
+      c.globalAlpha = 1;
+    });
+  }
+}
+
+/** Phát sheet trúng đòn và lớp sáng; bản của người khác nhỏ, mờ hơn. */
+export function playHitFeelSheets(sheets: SheetFx, mat: Material, he: He, x: number, y: number, mine: boolean, weight: number): void {
+  if (fxPrefs.level === "low") return;
+  const scale = (1 + Math.min(2, weight) * 0.15) * SPR;
+  const common = { x, y, key: hitSheetKey(mat, he), scale, fps: 24, light: !mine } as const;
+  sheets.play(common);
+  sheets.play({ ...common, key: hitSheetKey(mat, he, true), scale: scale * 1.05, fps: 24, light: !mine });
 }
 
 /** Kiểu số sát thương theo hệ người đánh + chí mạng: viền theo màu tối của hệ, chí mạng chữ to hơn khi mức Vừa / Cao. */

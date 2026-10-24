@@ -6,14 +6,17 @@ import { BEASTS, BOSSES, TIERS, VOHON, type VoHonDef } from "../../../shared/dat
 export type Weapon = "kiem" | "chuy" | "thuong" | "trao" | "quyen";
 export type Element = "fire" | "ice" | "lightning" | "poison" | "light" | "dark" | "wood" | "wind";
 export type SkillPhase = "start" | "fly" | "boom";
-export type Material = "thit" | "giap" | "bang" | "go";
+export type Material = "thit" | "giap" | "bang" | "go" | "da" | "linh_the";
 export type Surface = "co" | "dat" | "da" | "tuyet" | "go" | "nuoc";
 export type BeastFamily = "lang" | "hung" | "bao" | "xa" | "chim" | "trung" | "thiem" | "thuc";
 
 export const WEAPONS: readonly Weapon[] = ["kiem", "chuy", "thuong", "trao", "quyen"];
 export const ELEMENTS: readonly Element[] = ["fire", "ice", "lightning", "poison", "light", "dark", "wood", "wind"];
 export const SKILL_PHASES: readonly SkillPhase[] = ["start", "fly", "boom"];
+/** Nhóm âm thanh G2 đã có mẫu; không mở rộng trong C1 để không đổi catalog audio. */
 export const MATERIALS: readonly Material[] = ["thit", "giap", "bang", "go"];
+/** Sáu chất liệu visual C1; `da` / `linh_the` dùng fallback tiếng va chạm chung nếu chưa có mẫu riêng. */
+export const COMBAT_MATERIALS: readonly Material[] = ["thit", "giap", "bang", "go", "da", "linh_the"];
 export const SURFACES: readonly Surface[] = ["co", "dat", "da", "tuyet", "go", "nuoc"];
 export const BEAST_FAMILIES: readonly BeastFamily[] = ["lang", "hung", "bao", "xa", "chim", "trung", "thiem", "thuc"];
 
@@ -75,6 +78,8 @@ export function beastSpeciesId(species: number, rank: number): string {
 
 /** Chất liệu khi đánh trúng hồn thú: băng (loài băng / tuyết), gỗ-cây (họ thực vật), giáp-vỏ (loài giáp), còn lại thịt. */
 export function materialOfBeast(speciesId: string): Material {
+  if (/thai_than_cu_vien|thien_thanh_nguu_mang|u_linh_hai_mau/.test(speciesId)) return "linh_the";
+  if (/cu_vien|thach|ngoc/.test(speciesId)) return "da";
   if (/bang|tuyet|han_/.test(speciesId)) return "bang";
   if (beastFamilyOf(speciesId) === "thuc") return "go";
   if (speciesId.split("_").some((t) => ["giap", "nguu", "giai", "lan"].includes(t))) return "giap";
