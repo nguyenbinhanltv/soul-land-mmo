@@ -126,7 +126,7 @@ import { LOOKS_CHANGE, looksChangeCost } from "../../shared/data.ts"; // L4 #511
 import { RADAR, RALLY, MAPS as RALLY_MAPS } from "../../shared/data.ts"; // R5 (#432): bán kính lọc tin mini; R6 (#433): dấu tập trung
 import { rallyUpsert, rallyPrune } from "../../shared/rally.ts";
 import { FOG } from "../../shared/data.ts"; import { fogDims, fogCount, fogGet, fogCellOf, fogBytes, fogValid } from "../../shared/fog.ts"; import { loadMap } from "../../server/src/map.ts"; // R8 (#435): sương mù khám phá
-import { parseLpc, encodeLpc, decodeLpc, LPC_PARTS, LPC_RAMPS } from "../../shared/data.ts"; // Looks v2 (#509)
+import { parseLpc, encodeLpc, decodeLpc, LPC_PARTS, LPC_RAMPS, LPC_PRESETS } from "../../shared/data.ts"; // Looks v2 (#509)
 import { PHAP_TUONG } from "../../shared/data.ts"; // pháp tướng Chân Thân (#486): bảng hiển thị client
 import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_MAX_ENHANCE, EQUIP_LUCK_MAX, EQUIP_ROLL, EQUIP_ILVL_K, parseEquip, equipStats, equipDefTotal, equipTemplate, equipSlotIndex, EQUIP_ENHANCE, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_SYNTH, EQUIP_SYNTH_KEEP, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SOUL, equipSynthStep, equipSynthOutcome, equipSalvage, equipAutoSalvageable } from "../../shared/data.ts"; // trang bị hồn sư (E1, E3)
 import * as SD from "../../shared/data.ts"; // E2: rollEquipDrop, rollEquipCharm... (equipDropTest)
@@ -254,6 +254,16 @@ async function looks2Test(){
   ok(parseLooks(L(mut(c=>{c.body=1;}))).sex===1,"thân nữ -> sex 1");
   const ff=mut(c=>{c.body=1; c.parts.torso=fOnly.id; delete c.colors.torso; if(fOnly.colors.length) c.colors.torso=fOnly.colors[0];});
   ok(parseLooks(L(ff))!==null,`món chỉ nữ (${fOnly.id}) với thân nữ -> nhận`);
+  // Bộ LPC dựng sẵn (HL1 #565): mỗi bộ phải còn hợp lệ y nguyên (không bị chuẩn hóa đổi) khi LPC_PARTS / LPC_RAMPS thay đổi.
+  ok(LPC_PRESETS.length>=8&&LPC_PRESETS.length<=12,`LPC_PRESETS có ${LPC_PRESETS.length} bộ (8–12)`);
+  ok(new Set(LPC_PRESETS.map(p=>p.id)).size===LPC_PRESETS.length,"LPC_PRESETS: mã bộ không trùng");
+  const nPre=LPC_PRESETS.filter(p=>p.lpc.body===0).length;
+  ok(nPre>0&&Math.abs(nPre-(LPC_PRESETS.length-nPre))<=1,`LPC_PRESETS: nam ${nPre} / nữ ${LPC_PRESETS.length-nPre} cân bằng`);
+  for(const p of LPC_PRESETS){
+    const r=parseLpc(p.lpc);
+    ok(r!==null&&JSON.stringify(r)===JSON.stringify(p.lpc),`bộ ${p.id}: parseLpc nhận và không đổi gì`);
+    ok(r!==null&&encodeLpc(decodeLpc(encodeLpc(r)))===encodeLpc(r)&&parseLooks(L(p.lpc))?.mode==="lpc",`bộ ${p.id}: khứ hồi encode / decode, parseLooks nhận`);
+  }
 
   // /api/looks: ca sai không tạo nhân vật, ca đúng tạo được; nhận qua lần đăng nhập lại.
   const newAcc=async n=>{ const l=await post("/api/login",{name:`${n} ${RUN}`,password:PASS}); ok(!l.looks?.chosen&&l.looks?.mode!=="lpc"&&l.looks?.lpc===undefined,`${n}: tài khoản mới chưa chọn, mặc định là preset`); return l; };
@@ -264,6 +274,8 @@ async function looks2Test(){
   const ra=await post("/api/looks",{token:A.token,...L(good)});
   ok(ra.status===200&&ra.looks?.chosen&&ra.looks.mode==="lpc"&&ra.looks.sex===0&&JSON.stringify(ra.looks.lpc)===JSON.stringify(parseLpc(good)),"tạo lpc hợp lệ -> 200, trả đúng phần lpc");
   ok((await post("/api/looks",{token:A.token,...L(good)})).status===409,"đổi / tạo lại sau khi đã chọn -> 409 (luật hiện tại giữ nguyên)");
+  const P=await newAcc("L2 mau"), rp=await post("/api/looks",{token:P.token,...L(LPC_PRESETS[0].lpc)});
+  ok(rp.status===200&&rp.looks?.mode==="lpc"&&JSON.stringify(rp.looks.lpc)===JSON.stringify(LPC_PRESETS[0].lpc),`/api/looks nhận bộ dựng sẵn ${LPC_PRESETS[0].id} -> 200, giữ nguyên`);
   const A2=await post("/api/login",{name:`L2 lpc ${RUN}`,password:PASS});
   ok(A2.looks?.mode==="lpc"&&A2.looks.chosen&&encodeLpc(A2.looks.lpc)===enc,"đăng nhập lại: lpc lưu đúng (DB / RAM)");
   const rb=await post("/api/looks",{token:B.token,mode:"preset",sex:1,hair:2,hairCol:3,outfitCol:4,skin:1});
