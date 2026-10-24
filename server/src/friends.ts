@@ -79,10 +79,12 @@ export class FriendHub {
     if (!backend) { this.ready = Promise.resolve(); return; }
     void Promise.resolve(backend.presence.subscribe(FRIEND_STATE_TOPIC, this.sub));
     const beat = () => backend.putJson(workerKey(this.id), 1, PRESENCE_TTL_MS);
-    let failed = false;
+    let failed = false, lastOk = Date.now();
     this.beatT = setInterval(() => {
       void beat().then(() => {
-        if (!failed) return;
+        const lapsed = failed || Date.now() - lastOk >= PRESENCE_TTL_MS;
+        lastOk = Date.now();
+        if (!lapsed) return;
         failed = false;
         for (const [acc, s] of this.social) this.share(acc, s);
       }).catch((e) => { failed = true; console.error("Không gia hạn lease worker bạn bè", e); });

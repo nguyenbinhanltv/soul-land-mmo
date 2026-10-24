@@ -190,10 +190,12 @@ sub<{ id: string }>(T.abort, (m) => {
 const workerKey = (id: string) => `arena:worker:${id}`;
 // Lease sống của tiến trình này: mục hàng chờ của owner hết lease (crash / kill) bị coi là mục ma và bị dọn ở pass().
 const beat = () => presenceBackend.putJson(workerKey(presenceBackend.workerId), 1, PRESENCE_TTL_MS);
-let beatFailed = false;
+let beatFailed = false, lastOk = Date.now();
 setInterval(() => {
   void beat().then(async () => {
-    if (!beatFailed) return;
+    const lapsed = beatFailed || Date.now() - lastOk >= PRESENCE_TTL_MS;
+    lastOk = Date.now();
+    if (!lapsed) return;
     await liveRestore();
     beatFailed = false;
   }).catch((err) => { beatFailed = true; console.error("Không gia hạn lease worker đấu trường", err); });
