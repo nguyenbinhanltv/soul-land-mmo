@@ -75,6 +75,8 @@ const GROUND = -8 * SPR; // tâm khung ở ngang ngực (CastCtx.y): kéo xuốn
 const LD = 0x8ac8ff, HT = 0xd0d4e4;
 // S3 lô A (#566): màu lấy đà / báo trước theo bảng màu võ hồn
 const CS = 0xcfe3ff, NN = 0xe6e6f0, CK = 0xffe08a, XX = 0xffd9a0, TD = 0xfff6d0, CB = 0xbff4ff, PH = 0xc0fff4;
+// S3 lô C (#568): màu lấy đà / báo trước theo bảng màu võ hồn
+const TP = 0xffb347, HL = 0xffb347, HA = 0xff9a5a, QM = 0xc0c0ff, BP = 0xeafcff;
 
 /**
  * Bảng chiêu → sheet. S2 điền Lam Điện Bá Vương Long (`lam_dien_ba_vuong_long`) và Hạo Thiên Chùy (`hao_thien_chuy`): 11 chiêu mỗi võ hồn
@@ -190,11 +192,72 @@ export const SKILL_VISUAL: Readonly<Record<string, Partial<SkillVisual>>> = {
   "pha_hon_thuong:9": { tier: 3, heavy: 2, ...wind(PH, true), replace: true, sheet: sk("ph_t3a", { at: "target", fit: 1, fps: 9, lift: GROUND }) },
   "pha_hon_thuong:ct": { tier: 3, heavy: 2, ...wind(PH, true), replace: true, sheet: sk("ph_t3b", { at: "target", fit: 1, fps: 9, lift: GROUND }) },
   "pha_hon_thuong:tc": { tier: 2, heavy: 1, replace: true, sheet: sk("ph_dash_tc", { at: "target", fit: 0.9, fps: 12 }) },
+  // --- Tà Hỏa Phượng Hoàng (hệ Hỏa, lửa tím đỏ, lông vũ cháy) ---
+  "ta_hoa_phuong_hoang:0": { tier: 1, heavy: 0, replace: true, sheet: sk("tp_slash1", { at: "target", scale: 2, fps: 16 }) },
+  "ta_hoa_phuong_hoang:1": { tier: 1, heavy: 0, replace: true, sheet: sk("tp_zone2", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "ta_hoa_phuong_hoang:2": { tier: 1, heavy: 0, replace: true, sheet: sk("tp_dash3", { at: "target", scale: 2, fps: 14 }) },
+  "ta_hoa_phuong_hoang:3": { tier: 1, heavy: 0, replace: true, sheet: sk("tp_zone4", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "ta_hoa_phuong_hoang:4": { tier: 2, heavy: 1, repeat: true, ...wind(TP), replace: true, sheet: sk("tp_proj5", { at: "travel", rotate: true, scale: 2, fps: 12 }) },
+  "ta_hoa_phuong_hoang:5": { tier: 2, heavy: 1, ...wind(TP), replace: true, sheet: sk("tp_dash6", { at: "target", fit: 0.9, fps: 12 }) },
+  "ta_hoa_phuong_hoang:7": { tier: 2, heavy: 1, repeat: true, ...wind(TP), replace: true, sheet: sk("tp_zone8", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "ta_hoa_phuong_hoang:8": { tier: 2, heavy: 1, ...wind(TP), replace: true, sheet: sk("tp_zone9", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "ta_hoa_phuong_hoang:9": { tier: 3, heavy: 2, ...wind(TP, true), replace: true, sheet: sk("tp_t3a", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "ta_hoa_phuong_hoang:ct": { tier: 3, heavy: 2, ...wind(TP, true), replace: true, sheet: sk("tp_t3b", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "ta_hoa_phuong_hoang:tc": { tier: 2, heavy: 1, replace: true, sheet: sk("tp_zone_tc", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  // --- Hỏa Long (hệ Hỏa, cầu lửa vảy cháy, mặt rồng) ---
+  "hoa_long:0": { tier: 1, heavy: 0, repeat: true, replace: true, sheet: sk("hl_proj1", { at: "travel", rotate: true, scale: 2, fps: 12 }) },
+  "hoa_long:1": { tier: 1, heavy: 0, replace: true, sheet: sk("hl_hit2", { at: "target", scale: 2, fps: 12, lift: -4 * SPR }) },
+  "hoa_long:2": { tier: 1, heavy: 0, repeat: true, replace: true, sheet: sk("hl_proj3", { at: "travel", rotate: true, scale: 2, fps: 12 }) },
+  "hoa_long:3": { tier: 1, heavy: 0, replace: true, sheet: sk("hl_zone4", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "hoa_long:4": { tier: 2, heavy: 1, repeat: true, ...wind(HL), replace: true, sheet: sk("hl_proj5", { at: "travel", rotate: true, scale: 2, fps: 12 }) },
+  "hoa_long:5": { tier: 2, heavy: 1, repeat: true, ...wind(HL), replace: true, sheet: sk("hl_hit6", { at: "target", scale: 2, fps: 12, lift: -6 * SPR }) },
+  "hoa_long:7": { tier: 2, heavy: 1, repeat: true, ...wind(HL), replace: true, sheet: sk("hl_proj8", { at: "travel", rotate: true, scale: 2, fps: 12 }) },
+  "hoa_long:8": { tier: 2, heavy: 1, ...wind(HL), replace: true, sheet: sk("hl_zone9", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "hoa_long:9": { tier: 3, heavy: 2, ...wind(HL, true), replace: true, sheet: sk("hl_t3a", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "hoa_long:ct": { tier: 3, heavy: 2, ...wind(HL, true), replace: true, sheet: sk("hl_t3b", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "hoa_long:tc": { tier: 2, heavy: 1, replace: true, sheet: sk("hl_zone_tc", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  // --- Hỏa Ảnh (hệ Hỏa, chưởng lửa đỏ thẫm, dấu bàn tay) ---
+  "hoa_anh:0": { tier: 1, heavy: 0, replace: true, sheet: sk("ha_slash1", { at: "target", scale: 2, fps: 16 }) },
+  "hoa_anh:1": { tier: 1, heavy: 0, replace: true, sheet: sk("ha_hit2", { at: "target", scale: 2, fps: 12, lift: -4 * SPR }) },
+  "hoa_anh:2": { tier: 1, heavy: 0, replace: true, sheet: sk("ha_zone3", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "hoa_anh:3": { tier: 1, heavy: 0, replace: true, sheet: sk("ha_zone4", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "hoa_anh:4": { tier: 2, heavy: 1, ...wind(HA), replace: true, sheet: sk("ha_slash5", { at: "target", fit: 0.9, fps: 12 }) },
+  "hoa_anh:5": { tier: 2, heavy: 1, repeat: true, ...wind(HA), replace: true, sheet: sk("ha_zone6", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "hoa_anh:7": { tier: 2, heavy: 1, ...wind(HA), replace: true, sheet: sk("ha_zone8", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "hoa_anh:8": { tier: 2, heavy: 1, ...wind(HA), replace: true, sheet: sk("ha_hit9", { at: "target", scale: 2, fps: 12, lift: -6 * SPR }) },
+  "hoa_anh:9": { tier: 3, heavy: 2, ...wind(HA, true), replace: true, sheet: sk("ha_t3a", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "hoa_anh:ct": { tier: 3, heavy: 2, ...wind(HA, true), replace: true, sheet: sk("ha_t3b", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "hoa_anh:tc": { tier: 2, heavy: 1, replace: true, sheet: sk("ha_zone_tc", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  // --- Quỷ Mị (hệ Ám, phụ trợ: hào quang khói tím xanh quanh người tung) ---
+  "quy_mi:0": { tier: 1, heavy: 0, replace: true, sheet: sk("qm_hit1", { at: "target", scale: 2, fps: 12, lift: -4 * SPR }) },
+  "quy_mi:1": { tier: 1, heavy: 0, replace: true, sheet: sk("qm_aura2", { at: "cast", scale: 2, fps: 12 }) },
+  "quy_mi:2": { tier: 1, heavy: 0, replace: true, sheet: sk("qm_aura3", { at: "cast", scale: 2, fps: 12 }) },
+  "quy_mi:3": { tier: 1, heavy: 0, replace: true, sheet: sk("qm_aura4", { at: "cast", scale: 2, fps: 12 }) },
+  "quy_mi:4": { tier: 2, heavy: 1, ...wind(QM), replace: true, sheet: sk("qm_zone5", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "quy_mi:5": { tier: 2, heavy: 1, ...wind(QM), replace: true, sheet: sk("qm_aura6", { at: "cast", scale: 2, fps: 12 }) },
+  "quy_mi:7": { tier: 2, heavy: 1, ...wind(QM), replace: true, sheet: sk("qm_aura8", { at: "cast", scale: 2, fps: 12 }) },
+  "quy_mi:8": { tier: 2, heavy: 1, ...wind(QM), replace: true, sheet: sk("qm_zone9", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "quy_mi:9": { tier: 3, heavy: 2, ...wind(QM, true), replace: true, sheet: sk("qm_t3a", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "quy_mi:ct": { tier: 3, heavy: 2, ...wind(QM, true), replace: true, sheet: sk("qm_t3b", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "quy_mi:tc": { tier: 2, heavy: 1, replace: true, sheet: sk("qm_aura_tc", { at: "cast", scale: 2, fps: 12 }) },
+  // --- Băng Phượng Hoàng (hệ Băng, lông vũ tinh thể, bông tuyết) ---
+  "bang_phuong_hoang:0": { tier: 1, heavy: 0, repeat: true, replace: true, sheet: sk("bp_proj1", { at: "travel", rotate: true, scale: 2, fps: 12 }) },
+  "bang_phuong_hoang:1": { tier: 1, heavy: 0, replace: true, sheet: sk("bp_slash2", { at: "target", scale: 2, fps: 14 }) },
+  "bang_phuong_hoang:2": { tier: 1, heavy: 0, repeat: true, replace: true, sheet: sk("bp_zone3", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "bang_phuong_hoang:3": { tier: 1, heavy: 0, replace: true, sheet: sk("bp_zone4", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "bang_phuong_hoang:4": { tier: 2, heavy: 1, ...wind(BP), replace: true, sheet: sk("bp_dash5", { at: "target", fit: 0.9, fps: 12 }) },
+  "bang_phuong_hoang:5": { tier: 2, heavy: 1, repeat: true, ...wind(BP), replace: true, sheet: sk("bp_zone6", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "bang_phuong_hoang:7": { tier: 2, heavy: 1, repeat: true, ...wind(BP), replace: true, sheet: sk("bp_proj8", { at: "travel", rotate: true, scale: 2, fps: 12 }) },
+  "bang_phuong_hoang:8": { tier: 2, heavy: 1, ...wind(BP), replace: true, sheet: sk("bp_zone9", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "bang_phuong_hoang:9": { tier: 3, heavy: 2, ...wind(BP, true), replace: true, sheet: sk("bp_t3a", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "bang_phuong_hoang:ct": { tier: 3, heavy: 2, ...wind(BP, true), replace: true, sheet: sk("bp_t3b", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "bang_phuong_hoang:tc": { tier: 2, heavy: 1, replace: true, sheet: sk("bp_zone_tc", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
 };
 
 /** Dung hợp (S3 #566): sheet bùng ở điểm giữa hai người, khóa theo tên `FUSIONS[i].name`; chưa có thì giữ đóa kính lưu ly dựng bằng code. */
 export const FUSION_VISUAL: Readonly<Record<string, Partial<SkillVisual>>> = {
   "Yêu Nguyệt": { tier: 3, heavy: 2, replace: true, sheet: sk("yn_t3", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "Băng Hỏa Lưỡng Nghi": { tier: 3, heavy: 2, replace: true, sheet: sk("bh_t3", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
 };
 
 /** Mục đã điền đủ mặc định cho chiêu; không có mục thì chỉ tầng + độ nặng theo vòng (hành vi cũ). */
