@@ -101,7 +101,7 @@ export function playHitFeelSheets(sheets: SheetFx, mat: Material, he: He, x: num
 
 /** Kiểu số sát thương theo hệ người đánh + chí mạng: viền theo màu tối của hệ, chí mạng chữ to hơn khi mức Vừa / Cao. */
 export function damageStyle(el: Element | undefined, crit: boolean, mine: boolean, kind: "damage" | "crit" | "heal" | "shield" | "immune" = crit ? "crit" : "damage") {
-  const visual = damageTextStyle(kind, crit, el);
+  const visual = damageTextStyle(kind, crit, el, mine);
   return {
     stroke: parseInt(visual.stroke.slice(1), 16),
     color: visual.color,
