@@ -7,7 +7,7 @@ import { Client, ServerError } from "colyseus";
 import { MapRoom, seatAccount, seatUsed, type AuthData, type PData, type SeatPass } from "./MapRoom.ts";
 import { ArenaState, ArenaSide } from "./schema.ts";
 import { ARENA, ARENA_MAP, ARENA_SHARDS, PARTY_BUFF_R, arenaCrossPairs, arenaRanked, dir4, eloAfter, shardCode, sellPrice, type ArenaRecord } from "../../../shared/data.ts";
-import { arenaMatches, arenaLive, type ArenaMatch } from "./arenaQueue.ts";
+import { arenaMatches, arenaLiveOpen, arenaLivePhase, arenaLiveClose, arenaLiveHeld, arenaLiveWatch, arenaLiveUnwatch, type ArenaMatch } from "./arenaQueue.ts";
 import { store, type Item, type Bag, type SocialRow } from "../db.ts";
 import { friends } from "../friends.ts";
 
@@ -30,7 +30,7 @@ interface Reward { items: Item[]; honTeAfter: number; bag: Bag; honTe: number; c
  * ký làm Colyseus ngắt kết nối client, nên không bỏ hẳn).
  */
 const BLOCKED = ["auto", "absorb", "pickup", "discard", "team", "travel", "wp", "use", "open", "unlock", "starup", "equip", "unequip", "equipcore",
-  "unequipcore", "enhance", "enhancecore", "talk", "buy", "sell", "buyback", "expand", "shardbuy", "loadout",
+  "unequipcore", "equipgear", "unequipgear", "equipenh", "equipenhpreview", "equipsynth", "equipsalvage", "enhance", "enhancecore", "talk", "buy", "sell", "buyback", "expand", "shardbuy", "loadout",
   "fusion"]; // Võ Hồn Dung Hợp Kỹ cấm trong sân, kể cả 2v2 (#192, #178)
 const REASON_TEXT: Record<Reason, string> = { ko: "hạ hết đội võ hồn", time: "hết giờ, so sinh lực cả đội", leave: "đối thủ rời sân", noshow: "đối thủ không vào sân" };
 /** Mã đóng kết nối khi trận đã xong và hết ARENA.endSecs: client tự quay về bản đồ cũ. */
@@ -52,9 +52,14 @@ export class ArenaRoom extends MapRoom {
   syncT = 0;
   /** Người xem trực tiếp (#278): phiên -> tài khoản. Không có PlayerState / PData, mọi message bị bỏ qua trừ `arena {op: "unwatch"}`. */
   watchers = new Map<string, number>();
+  /** Trận đã ghi vào sổ xem trận (presence); chưa ghi được thì không cập nhật pha. */
+  liveOpen = false;
 
   get phase() { return this.state.phase as Phase; }
-  setPhase(p: Phase, secs: number) { this.state.phase = p; this.state.time = secs; }
+  setPhase(p: Phase, secs: number) {
+    this.state.phase = p; this.state.time = secs;
+    if (this.liveOpen) arenaLivePhase(this.roomId, p, secs).catch((e) => console.error("Không cập nhật pha trận ở sổ xem trận", e));
+  }
 
   async onCreate(options: { mapId?: unknown; matchId?: unknown }) {
     // Mỗi trận đã ghép đúng một phòng: phòng đầu tiên nhận trận, lần mở thứ hai (kể cả client tự gọi create("arena")) bị từ chối.
@@ -74,10 +79,12 @@ export class ArenaRoom extends MapRoom {
     Promise.all(pairs.map(([a, b]) => store.arenaPairCount(this.today(), a, b))).then((counts) => { if (!this.done) this.state.friendly = counts.some((n) => !arenaRanked(n + 1)); },
       (e) => console.error("Không đọc được số trận của cặp đấu hồn", e));
     this.setPhase("wait", ARENA.joinSecs);
-    // Danh sách xem trực tiếp (#278): MapRoom đọc pha / giờ còn lại / số người xem qua sổ mức tiến trình.
-    arenaLive.set(this.roomId, { roomId: this.roomId, mode: this.sides.some((x) => x.members.length > 1) ? "2v2" : "1v1",
-      sides: this.sides.map((x) => ({ name: x.members.map((member) => member.name).join(" / "), elo: x.elo })),
-      phase: () => this.phase, secs: () => this.state.time, holds: new Map(), watching: new Map() });
+    // Danh sách xem trực tiếp (#278): MapRoom (ở bất kỳ tiến trình nào) đọc pha / giờ còn lại / số người xem qua sổ presence.
+    try {
+      await arenaLiveOpen({ roomId: this.roomId, mode: this.sides.some((x) => x.members.length > 1) ? "2v2" : "1v1",
+        sides: this.sides.map((x) => ({ name: x.members.map((member) => member.name).join(" / "), elo: x.elo })), phase: this.phase, secs: this.state.time });
+      this.liveOpen = true;
+    } catch (e) { console.error("Không ghi được trận vào sổ xem trận", e); }
     for (const t of BLOCKED) this.onMessage(t, (c) => this.log(c.sessionId, "Đang ở Đại Đấu Hồn Trường: không làm được việc này trong trận.", "#ffb35c"));
     this.onMessage("quest", (c, msg: { op: unknown }) => {
       if (msg?.op === "get") this.askQuest(c.sessionId); else this.log(c.sessionId, "Đang ở Đại Đấu Hồn Trường: nhiệm vụ để sau trận.", "#ffb35c");
@@ -117,8 +124,8 @@ export class ArenaRoom extends MapRoom {
     if (s) return !s.left && !this.done;
     return !this.done && this.watchHold(pass.seatFor);
   }
-  /** Tài khoản còn chỗ giữ xem trận này (chưa hết hạn). */
-  watchHold(accountId: number) { return (arenaLive.get(this.roomId)?.holds.get(accountId) ?? 0) > Date.now(); }
+  /** Tài khoản còn chỗ giữ xem trận này (chưa hết hạn), đọc từ sổ presence. */
+  watchHold(accountId: number) { return arenaLiveHeld(this.roomId, accountId); }
 
   /** Chỉ thành viên của hai bên được vào, mỗi tài khoản một phiên (rời sân là bỏ trận); không đối chiếu bản đồ đang đứng. */
   async checkJoin(accountId: number) {
@@ -136,7 +143,7 @@ export class ArenaRoom extends MapRoom {
     const acc = options?.token ? await store.accountFromToken(options.token) : null;
     if (acc && !this.sides.some((x) => x.members.some((member) => member.accountId === acc.accountId))) {
       await seatUsed(acc.accountId, client.sessionId);
-      if (this.done || !this.watchHold(acc.accountId)) throw new ServerError(403, "Không có chỗ xem trận đấu này.");
+      if (this.done || !await this.watchHold(acc.accountId)) throw new ServerError(403, "Không có chỗ xem trận đấu này.");
       await this.waitOldSession(acc.accountId, client.sessionId);
       const social = await store.getSocial(acc.accountId); // chặn vẫn lọc tin tổ đội / riêng / thế giới khi xem trận (#195)
       return { accountId: acc.accountId, watch: true, social } satisfies WatchAuth as unknown as AuthData;
@@ -169,11 +176,10 @@ export class ArenaRoom extends MapRoom {
    * (hoặc trận vừa xong) thì đóng kết nối như hết trận.
    */
   joinWatch(client: Client, auth: WatchAuth) {
-    const l = arenaLive.get(this.roomId);
     this.holdAccount(auth.accountId, client.sessionId);
     friends.enter(auth.accountId, client.sessionId, "", auth.social); // MapRoom.onLeave bỏ ra
     this.watchers.set(client.sessionId, auth.accountId);
-    l?.holds.delete(auth.accountId); l?.watching.set(client.sessionId, auth.accountId);
+    arenaLiveWatch(this.roomId, client.sessionId, auth.accountId).catch((e) => console.error("Không ghi người xem vào sổ xem trận", e));
     this.state.watchers = this.watchers.size;
     this.interest.spectate(client);
     if (this.done) client.leave(ARENA_END_CODE);
@@ -182,7 +188,7 @@ export class ArenaRoom extends MapRoom {
   /** Rời sân trước khi có kết quả (đóng tab, mất mạng, bấm rời) là bỏ trận: thua (mục 5.9, bước 7.2). Người xem rời không ảnh hưởng trận. */
   async onLeave(client: Client) {
     if (this.watchers.delete(client.sessionId)) {
-      arenaLive.get(this.roomId)?.watching.delete(client.sessionId);
+      arenaLiveUnwatch(this.roomId, client.sessionId).catch((e) => console.error("Không bỏ người xem khỏi sổ xem trận", e));
       this.state.watchers = this.watchers.size;
     }
     const i = this.sides.findIndex((x) => x.members.some((member) => member.sid === client.sessionId));
@@ -197,7 +203,7 @@ export class ArenaRoom extends MapRoom {
   async onDispose() {
     await super.onDispose();
     arenaMatches.delete(this.match?.id);
-    arenaLive.delete(this.roomId);
+    await arenaLiveClose(this.roomId).catch((e) => console.error("Không xóa trận khỏi sổ xem trận", e));
   }
 
   // ---------- Luật trận đấu ----------
@@ -253,6 +259,7 @@ export class ArenaRoom extends MapRoom {
     const d = this.pdata.get(id); if (!d) return false;
     const bag = this.unsavedBag(d); if (!bag) return true;
     try { await store.saveBag(d.accountId, bag); } catch (e) { d.bagDirty = true; throw e; }
+    d.tongPend.splice(0, bag.tongPts?.length ?? 0);
     return true;
   }
 

@@ -22,6 +22,9 @@ import { artImg, artUrl, skillImg, tintedUrl } from "./uiArt.ts";
 import { toggleChar } from "./charPanel.ts";
 import { setTip, tipOf, hideTip, parseText, type TipLine, type TipSpec } from "./tooltip.ts";
 import { BAG_GROUPS, BAG_SORTS, type BagSort, inGroup, rarityOf, noteSeen, isNew, markSeen, sortView, moveItem, clearOrder, wornFor, compareLines } from "./bag.ts";
+import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_TIERS, EQUIP_MAX_TIER, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SALVAGE_MAX, EQUIP_SYNTH_KEEP, equipName, equipTemplate, equipSlotDef, equipStats, equipSynthStep, equipAutoSalvageable, parseEquip } from "../../shared/data.ts";
+import { toast } from "./feedback.ts";
+import type { GearMsg, EquipEnhPreview, EquipEnhDone, EquipSynDone, EquipSalvDone } from "./net.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
 import { autoTimeText, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, WORLD_CHAT, TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, tongDef, FRIEND_MAX, BLOCK_MAX,
   type QuestProgress, type QuestStatus, type TongRank } from "../../shared/data.ts";
@@ -1691,6 +1694,8 @@ export function itemName(it: BagItem) {
   if (bone) return boneName(bone.beast, bone.slot, it.years!, it.enhance);
   const core = coreOf(it);
   if (core) return coreName(core.set, it.stars ?? 1, it.enhance);
+  const eq = it.code === EQUIP_ITEM ? parseEquip(it.stats) : null;
+  if (eq) return equipName(eq.tpl, it.enhance);
   return (itemDef(it.code)?.name ?? "Vật phẩm lạ") + (it.years !== null ? ` ${formatYears(it.years)}` : "");
 }
 /** Hồn hoàn trong túi: có số năm thì màu theo số năm (bảng 5.2). */
@@ -1711,7 +1716,8 @@ const subName = (k: CoreStat) => `${CORE_STATS[k].name}${CORE_STATS[k].pct && k.
 export const yearsShort = (y: number) => (y < 10000 ? y.toLocaleString("vi-VN") : `${(y / 10000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}v`);
 /** Màu một ô: hồn hoàn, hồn cốt theo số năm; hồn hạch theo bộ; vật phẩm khác theo ITEMS. */
 export const itemColor = (it: BagItem) => {
-  const core = coreOf(it);
+  const core = coreOf(it), eq = it.code === EQUIP_ITEM ? parseEquip(it.stats) : null;
+  if (eq) return EQUIP_TIERS[equipTemplate(eq.tpl)!.tier].col;
   return hasYears(it) ? ringColor(tierOfYears(it.years)) : (core && coreSet(core.set)?.col) || (itemDef(it.code)?.col ?? "#9db3a2");
 };
 /**
@@ -1755,6 +1761,7 @@ export interface BagActions {
   herb(id: string, vohonId: number): void; herbOptions(code: string): HerbOption[]; // tiên thảo (BĐ6b)
   active(): number | null; equipBone(id: string, slot?: string): void; equipCore(id: string, slot?: number): void; // UI-1: võ hồn ra trận, gắn nhanh (kéo thả / nút) cho võ hồn đó
   enhance(targetId: string, materialIds: string[]): void; enhanceCore(targetId: string, materialIds: string[]): void;
+  equipGear(id: string): void; unequipGear(slot: number): void; gear(): GearMsg | null; // trang bị hồn sư (5.15, E1): giao diện tối thiểu, bản đẹp ở E5
 }
 let bagConfirm: string | null = null; // id ô vừa bấm "Bỏ" lần đầu: bấm lần nữa mới bỏ hẳn
 let pickRing: string | null = null;   // id hồn hoàn đang mở bảng chọn võ hồn để hấp thụ
@@ -1905,6 +1912,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   bar.appendChild(sort);
   el.appendChild(bar);
   if (active !== null) el.appendChild(bagEquipStrip(bag.items, active, act));
+  const gear = act.gear(); if (gear?.items.length) el.appendChild(gearStrip(gear, act));
 
   const grid = document.createElement("div"); grid.className = "bgrid";
   for (let k = bagPage * BAG_PAGE; k < Math.min(bag.slots, (bagPage + 1) * BAG_PAGE); k++) {
@@ -1997,6 +2005,8 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       st.classList.add("core");
       info.insertBefore(st, info.querySelector("p"));
     }
+    const eq = sel.code === EQUIP_ITEM ? parseEquip(sel.stats) : null;
+    if (eq) info.insertBefore(equipBox(sel, eq, act.gear()), info.querySelector("p"));
     const worn = wornFor(sel, bag.items, active), cmp = worn && compareLines(sel, worn, worn.cur ? itemName(worn.cur) : null);
     if (cmp) info.insertBefore(compareBox(cmp), info.querySelector("p"));
     const ready = isRing(sel) ? act.absorbOptions(sel.years).filter((o) => !o.reason).length : 0;
@@ -2013,6 +2023,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     if (isRing(sel) && pickRing === sel.id) { info.appendChild(absorbPicker(sel, act, again)); el.appendChild(info); return finishBag(el); }
     if (isRing(sel)) btn("Hấp thụ…", "absorb", () => { pickRing = sel.id; pickVh = null; act.refresh(); again(); });
     if (def?.vohon) btn("Mở / lên sao…", "use", () => toggleRoster(true)); // mảnh võ hồn (3.4): nút ở bảng đội hình
+    if (eq) btn("Mặc", "absorb", () => act.equipGear(sel.id)); // trang bị hồn sư (5.15): ô theo mẫu, đổi chỗ nếu ô đã có món
     if (def?.kind === "ruong") btn("Mở rương", "absorb", () => act.open(sel.id)); // rương thú vương (BĐ5): server tung phần thưởng
     if (def?.kind === "tien_thao" && pickHerb === sel.id) { info.appendChild(herbPicker(sel, act, again)); el.appendChild(info); return finishBag(el); }
     if (def?.kind === "tien_thao") btn("Dùng cho…", "absorb", () => { pickHerb = sel.id; pickVh = null; act.refresh(); again(); }); // BĐ6b
@@ -2033,6 +2044,35 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   } else info.innerHTML = `<small>Chọn một ô để xem, dùng, hấp thụ hoặc bỏ vật phẩm.</small>`;
   el.appendChild(info);
   finishBag(el);
+}
+
+/** Dòng chỉ số của một món trang bị (E1, mục 5.15): ô, bậc, chỉ số chính / công vũ khí, dòng phụ, may mắn, kèm so với món đang mặc ở ô đó. */
+function equipBox(it: BagItem, eq: NonNullable<ReturnType<typeof parseEquip>>, gear: GearMsg | null) {
+  const tpl = equipTemplate(eq.tpl)!, slot = equipSlotDef(tpl.slot), st = equipStats([{ ...eq, enhance: it.enhance }]);
+  const box = document.createElement("div"); box.className = "bstat";
+  const rows: [string, string][] = [["Ô", slot.name], ["Bậc", `${EQUIP_TIERS[tpl.tier].name} (${EQUIP_TIERS[tpl.tier].color})`], ["Cấp vật phẩm", String(eq.ilvl)]];
+  if (st.weapon) rows.push(["Công mỗi đòn", `${st.weapon.min}–${st.weapon.max}`]);
+  for (const k of Object.keys(st.bonus) as CoreStat[]) if (st.bonus[k]) rows.push([CORE_STATS[k].name, coreStatText(k, st.bonus[k]).replace(/^.*? \+/, "+")]);
+  if (st.red) rows.push(["Giảm sát thương nhận", `${(st.red * 100).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}%`]);
+  if (st.luck) rows.push(["May mắn", String(st.luck)]);
+  const cur = gear?.items.find((g) => g.slot === EQUIP_SLOTS.findIndex((s) => s.id === tpl.slot));
+  rows.push(["Đang mặc", cur ? equipName(parseEquip(cur.stats)?.tpl, cur.enhance) : "Ô trống"]);
+  for (const [k, v] of rows) { const a = document.createElement("span"), b = document.createElement("b"); a.textContent = k; b.textContent = v; box.append(a, b); }
+  return box;
+}
+
+/** Dải "Đang mặc" (E1): món trang bị hồn sư đang mặc, bấm một món để tháo về túi. Chưa có búp bê (E5). */
+function gearStrip(gear: GearMsg, act: BagActions) {
+  const box = document.createElement("div"); box.className = "bequip";
+  const lab = document.createElement("small"); lab.textContent = "Trang bị đang mặc (bấm để tháo):"; box.appendChild(lab);
+  for (const g of [...gear.items].sort((a, b) => a.slot - b.slot)) {
+    const e = parseEquip(g.stats), b = document.createElement("button"); b.type = "button"; b.className = "buse use";
+    b.textContent = `${EQUIP_SLOTS[g.slot]?.name ?? "?"}: ${e ? equipName(e.tpl, g.enhance) : "?"}`;
+    if (e) b.style.color = EQUIP_TIERS[equipTemplate(e.tpl)!.tier].col;
+    b.addEventListener("click", () => { b.blur(); act.unequipGear(g.slot); });
+    box.appendChild(b);
+  }
+  return box;
 }
 
 /** Ô gửi kèm khi gắn nhanh hồn hạch: đủ ô thì ô của món yếu nhất (đúng món bảng so sánh nói sẽ bị thay), còn ô trống thì để server chọn. */
@@ -2111,6 +2151,8 @@ let sellOpen = false; // đang mở bộ lọc tự bán thay cho chi tiết ô 
 const SELL_RING: [number, string][] = [[0, "Không bán"], [100, "Dưới 100 năm"], [1000, "Dưới 1.000 năm"], [10000, "Dưới 10.000 năm"],
   [100000, "Dưới 100.000 năm"], [MAX_YEARS + 1, "Mọi niên hạn"]];
 const SELL_BONE: [number, string][] = [[0, "Không bán"], [1, "Chưa cường hóa (+0)"], [5, "Dưới +5"], [10, "Dưới +10"]];
+const SELL_SALV: [number, string][] = [[0, "Không tự phân giải"], ...EQUIP_TIERS.slice(0, EQUIP_MAX_TIER).map((t, i): [number, string] => [i + 1, i ? `${EQUIP_TIERS[0].name} – ${t.name}` : t.name])];
+const SELL_SALV_ENH: [number, string][] = [[1, "Chỉ món +0"], [4, "Tới +3"], [7, "Tới +6"], [11, "Tới +10"]];
 const SELL_CORE: [number, string][] = [[1, "Không bán"],
   ...Array.from({ length: MAX_CORE_STARS - 2 }, (_, i): [number, string] => [i + 2, i ? `1★ – ${i + 1}★` : "1★"])];
 /**
@@ -2125,7 +2167,7 @@ function sellBox(bag: BagMsg, cfg: SellSettings, act: BagActions) {
   tg.textContent = cfg.on ? "Tắt tự bán" : "Bật tự bán"; tg.setAttribute("aria-pressed", String(cfg.on));
   tg.addEventListener("click", () => { tg.blur(); send({ on: !cfg.on }); });
   box.appendChild(tg);
-  const pick = (label: string, list: [number, string][], v: number, key: "ring" | "bone" | "core") => {
+  const pick = (label: string, list: [number, string][], v: number, key: "ring" | "bone" | "core" | "salv" | "salvEnh") => {
     const l = document.createElement("label"); l.className = "achk"; l.textContent = label + " ";
     const s = document.createElement("select");
     for (const [n, t] of list) { const o = document.createElement("option"); o.value = String(n); o.textContent = t; o.selected = n === v; s.appendChild(o); }
@@ -2143,12 +2185,16 @@ function sellBox(bag: BagMsg, cfg: SellSettings, act: BagActions) {
   pick("Hồn cốt", SELL_BONE, cfg.bone, "bone");
   pick("Hồn hạch chưa nâng cấp", SELL_CORE, cfg.core, "core");
   check("Mảnh võ hồn", cfg.shard, "shard");
+  pick("Tự phân giải trang bị hồn sư", SELL_SALV, cfg.salv, "salv"); // E4: mặc định tắt, độc lập với nút bật tự bán
+  if (cfg.salv > 0) pick("… với cường hóa", SELL_SALV_ENH, cfg.salvEnh, "salvEnh");
   check(`Cho bán cả hồn hoàn, hồn cốt từ ${AUTO_SELL_GUARD.toLocaleString("vi-VN")} năm (vạn năm) trở lên`, cfg.high, "high");
   const now = bag.items.filter((i) => autoSellable({ ...i, locked: i.lock }, cfg));
+  const salvNow = bag.items.filter((i) => equipAutoSalvageable({ ...i, locked: i.lock }, cfg)).length;
   const gain = now.reduce((a, i) => a + (sellPrice(i) ?? 0) * i.qty, 0);
   const pv = document.createElement("small");
   pv.textContent = now.length ? `Lúc này túi có ${now.length} ô hợp bộ lọc (≈ +${formatHonTe(gain)}).` : "Lúc này không có ô nào hợp bộ lọc.";
   box.appendChild(pv);
+  if (cfg.salv > 0) { const sv = document.createElement("small"); sv.textContent = `Tự phân giải: túi còn dưới ${AUTO_SELL_FREE} ô trống thì phân giải ${salvNow} trang bị đang hợp bộ lọc (không khoá, không mặc; không cho kinh nghiệm).`; box.appendChild(sv); }
   const n = document.createElement("small");
   n.textContent = `Bật thì khi túi còn dưới ${AUTO_SELL_FREE} ô trống (hoặc tự săn thấy túi đầy), đồ hợp bộ lọc được bán từ xa đúng giá thương nhân trong thành. `
     + "Không bao giờ bán món khoá, món đang gắn, hồn hoàn đang hấp thụ. Đan, phù chú, lệnh bài, rương, tiên thảo thương nhân không mua nên không bán. "
@@ -2204,9 +2250,11 @@ export interface NpcActions {
   // Tông môn (#196): gia nhập / đổi sang `tong`, rời tông; #197: nhận / trả tông vụ `chain`, xin bảng tông tuần, nhận thưởng tuần.
   tong(op: "join" | "leave" | "accept" | "turnin" | "board" | "claim", tong?: string, chain?: string): void;
   shard(vohon: string, qty: number): void; shardInfo(): void; // Thương hội đổi mảnh võ hồn (#282): đổi, xin số đã đổi hôm nay
+  gear(): GearMsg | null; equipEnh(id: string, charm: boolean): void; equipEnhPreview(id: string): void; // Thợ rèn: cường hóa trang bị hồn sư (E3)
+  equipSynth(main: string, sacrifice: string[]): void; equipSalvage(ids: string[]): void; // Thợ rèn: hợp thành 3 → 1, phân giải hàng loạt (E4)
   owned(): string[]; // mã các võ hồn đã sở hữu (trang đổi mảnh ghi "chưa có")
 }
-type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "forgeset" | "quest" | "daily" | "rank" | "shard" | "tongtask" | "tongrank" | "live";
+type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "forgeset" | "forgegear" | "forgesynth" | "forgesalv" | "quest" | "daily" | "rank" | "shard" | "tongtask" | "tongrank" | "live";
 let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
 let npcPage: NpcPage = "talk";
 let npcLine = 0;                       // câu thoại đang hiện
@@ -2333,6 +2381,9 @@ function renderNpc() {
       btn("Cường hóa hồn cốt", "absorb", () => go("forge"), !bag);
       btn("Nâng cấp hồn hạch", "absorb", () => go("forgecore"), !bag); // 5.3
       btn("Đổi bộ hồn hạch", "absorb", () => go("forgeset"), !bag); // #283
+      btn("Cường hóa trang bị hồn sư", "absorb", () => { gearPick = null; gearConfirm = false; go("forgegear"); }, !bag); // E3
+      btn("Hợp thành trang bị (3 → 1)", "absorb", () => { synMain = null; synSac = []; synConfirm = false; go("forgesynth"); }, !bag); // E4
+      btn("Phân giải trang bị", "absorb", () => { salvSel.clear(); salvConfirm = false; go("forgesalv"); }, !bag); // E4
     }
     if (def.role === "arena") { // 7.2: server kiểm tra lại khoảng cách và trạng thái khi xếp hàng
       btn(arenaQ ? "Hủy xếp hàng" : "Xếp hàng đấu hồn", arenaQ ? "drop" : "absorb", () => act.arena(arenaQ ? "cancel" : "queue"));
@@ -2362,6 +2413,9 @@ function renderNpc() {
   else if (npcPage === "buyback") renderShopBuyback(el, bag, act);
   else if (npcPage === "shard") renderShardShop(el, bag, act);
   else if (npcPage === "forgeset") renderForgeSets(el, bag, act);
+  else if (npcPage === "forgegear") renderForgeGear(el, bag, act);
+  else if (npcPage === "forgesynth") renderForgeSynth(el, bag, act);
+  else if (npcPage === "forgesalv") renderForgeSalv(el, bag, act);
   else { const box = npcPage === "forgecore" ? renderForgeCores(bag, act) : renderForge(bag, act); el.appendChild(box); if (box.classList.contains("epick")) return; }
   btn("‹ Quay lại", "drop", () => go("talk"));
   el.appendChild(row);
@@ -2597,6 +2651,173 @@ function renderForgeCores(bag: BagMsg, act: NpcActions): HTMLElement {
     box.appendChild(b);
   }
   return box;
+}
+
+let gearPick: string | null = null; // trang bị đang chọn ở trang "Cường hóa trang bị hồn sư" của Thợ rèn (E3)
+let gearPrev: EquipEnhPreview | null = null; // tin xem trước gần nhất (server tính, client chỉ hiển thị)
+let gearCharm = false; // đang chọn dùng Bùa Hộ Mệnh
+let gearConfirm = false; // đã bấm nút đỏ lần đầu: bấm lần nữa mới gửi
+/** Tin "equipenhp" (E3): xem trước lần cường hóa tiếp theo. */
+export function equipEnhPreview(m: EquipEnhPreview) { if (m.id === gearPick) { gearPrev = m; if (npcDefOpen && npcPage === "forgegear") renderNpc(); } }
+/** Tin "equipenhd" (E3): xong một lần cường hóa; bỏ trạng thái xác nhận, món bị phá hủy thì về danh sách. */
+export function equipEnhDone(m: EquipEnhDone) {
+  gearConfirm = false; if (m.destroyed && m.id === gearPick) { gearPick = null; gearPrev = null; }
+  toast("info", m.destroyed ? "Trang bị bị phá hủy" : m.ok ? `Cường hóa thành công +${m.to}` : m.charmUsed ? `Thất bại, Bùa Hộ Mệnh giữ +${m.to}` : `Cường hóa thất bại (+${m.to})`);
+  if (npcDefOpen && npcPage === "forgegear") renderNpc();
+}
+/** Vẽ lại hộp thoại NPC khi trang bị đang mặc đổi (tin "gear"). */
+export function npcRefresh() { if (npcDefOpen) renderNpc(); }
+const failText = (f: EquipEnhPreview["fail"]) => !f ? "" : f.kind === "keep" ? "giữ nguyên cấp" : f.kind === "down" ? `tụt ${f.n} cấp` : f.kind === "reset" ? `về +${f.to}` : "món bị PHÁ HỦY (không có Bùa Hộ Mệnh)";
+/**
+ * Lò rèn, trang cường hóa trang bị hồn sư (E3; trang đẹp ở E5): chọn món (đang mặc hoặc trong túi), xem bảng xem trước do server tính (tỉ lệ, đá,
+ * phí, hậu quả thất bại), có thể dùng Bùa Hộ Mệnh. Nút chuyển ĐỎ và phải bấm hai lần khi thất bại có thể tụt cấp hoặc phá hủy.
+ */
+function renderForgeGear(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+  const box = document.createElement("div"); box.className = "forge"; el.appendChild(box);
+  const h = document.createElement("b"); h.className = "shead"; h.textContent = "Cường hóa trang bị hồn sư"; box.appendChild(h);
+  const worn = (act.gear()?.items ?? []).map((g) => ({ id: g.id, name: equipName(parseEquip(g.stats)?.tpl, g.enhance), enhance: g.enhance, where: `đang mặc (${EQUIP_SLOTS[g.slot]?.name ?? "?"})`, stats: g.stats }));
+  const loose = bag.items.filter((i) => i.code === EQUIP_ITEM && i.vohon === null).map((i) => ({ id: i.id, name: itemName(i), enhance: i.enhance, where: "trong túi", stats: i.stats }));
+  const all = [...worn, ...loose], pick = gearPick ? all.find((x) => x.id === gearPick) : undefined;
+  if (!pick) {
+    gearPick = null; gearPrev = null;
+    if (!all.length) { const p = document.createElement("small"); p.textContent = "Chưa có trang bị hồn sư nào để cường hóa."; box.appendChild(p); }
+    for (const it of all) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "aopt eopt"; b.style.setProperty("--c", EQUIP_TIERS[equipTemplate(parseEquip(it.stats)?.tpl ?? "")?.tier ?? 0]?.col ?? "#9db3a2");
+      b.innerHTML = `<b></b><i></i><span></span>`;
+      b.querySelector("b")!.textContent = it.name; b.querySelector("i")!.textContent = it.where;
+      b.addEventListener("click", () => { b.blur(); gearPick = it.id; gearPrev = null; gearCharm = false; gearConfirm = false; act.equipEnhPreview(it.id); renderNpc(); });
+      box.appendChild(b);
+    }
+    return;
+  }
+  const info = document.createElement("small"); box.appendChild(info);
+  const back = document.createElement("button"); back.type = "button"; back.className = "aopt drop"; back.textContent = "Chọn trang bị khác";
+  back.addEventListener("click", () => { gearPick = null; gearPrev = null; gearConfirm = false; renderNpc(); });
+  const pv = gearPrev && gearPrev.id === pick.id ? gearPrev : null;
+  if (!pv) { info.textContent = `${pick.name}: đang tải bảng xem trước…`; box.appendChild(back); return; }
+  if (pv.to === null) { info.textContent = `${pick.name} đã cường hóa tối đa.`; box.appendChild(back); return; }
+  const stone = pv.stone ? itemDef(pv.stone)?.name ?? pv.stone : "";
+  const rows: [string, string][] = [["Món", `${pick.name} (${pick.where})`], ["Cấp", `+${pv.enhance} → +${pv.to}`], ["Tỉ lệ thành công", `${Math.round(pv.p * 100)}%`],
+    ["Đá cần", `${pv.qty} ${stone} (có ${pv.have})`], ["Phí", honTeParts(pv.fee).map((x) => `${x.n.toLocaleString("vi-VN")} ${x.unit}`).join(" ") || "0"],
+    ["Nếu thất bại", failText(pv.fail)], ["Đá và phí mất cả khi thất bại", ""]];
+  for (const [k, v] of rows) { const r = document.createElement("div"); r.className = "erow"; r.innerHTML = `<b></b><span></span>`; r.querySelector("b")!.textContent = k; r.querySelector("span")!.textContent = v; box.appendChild(r); }
+  const destroy = pv.fail?.kind === "destroy";
+  if (destroy) {
+    const l = document.createElement("label"); l.className = "echarm"; const c = document.createElement("input"); c.type = "checkbox"; c.checked = gearCharm && pv.charm > 0; c.disabled = pv.charm <= 0;
+    c.addEventListener("change", () => { gearCharm = c.checked; gearConfirm = false; renderNpc(); });
+    l.appendChild(c); l.appendChild(document.createTextNode(` Dùng Bùa Hộ Mệnh (có ${pv.charm}): thất bại giữ nguyên cấp, mất 1 bùa`)); box.appendChild(l);
+  }
+  const risky = pv.fail?.kind === "down" || pv.fail?.kind === "reset" || (destroy && !(gearCharm && pv.charm > 0));
+  const poor = pv.have < pv.qty || pv.honTe < pv.fee, go = document.createElement("button"); go.type = "button";
+  go.className = `aopt ${risky ? "danger" : "absorb"}`; if (risky) go.style.background = "#a82a2a";
+  go.disabled = poor || pv.busy || act.combat();
+  go.textContent = poor ? "Không đủ đá hoặc Hồn Tệ" : act.combat() ? "Đang giao chiến" : risky ? (gearConfirm ? `Bấm lần nữa: ${destroy ? "có thể PHÁ HỦY" : "có thể tụt cấp"}` : `Cường hóa (${destroy ? "nguy cơ phá hủy" : "có thể tụt cấp"})`) : "Cường hóa";
+  go.addEventListener("click", () => {
+    go.blur();
+    if (risky && !gearConfirm) { gearConfirm = true; renderNpc(); return; }
+    gearConfirm = false; act.equipEnh(pick.id, destroy && gearCharm && pv.charm > 0);
+  });
+  box.appendChild(go); box.appendChild(back);
+}
+
+// ---------- Lò rèn: hợp thành 3 → 1 và phân giải trang bị hồn sư (E4; trang đẹp ở E5) ----------
+let synMain: string | null = null, synSac: string[] = [], synConfirm = false; // hợp thành: món chính, hai món hiến tế, đã bấm nút lần đầu
+const salvSel = new Set<string>(); let salvConfirm = false; // phân giải: các món đang chọn, đã bấm nút lần đầu
+/** Các trang bị hồn sư trong túi (không khoá) kèm bậc và ô; món đang mặc không nằm trong túi nên không xuất hiện. */
+const looseEquip = (bag: BagMsg) => bag.items.flatMap((i) => {
+  const t = i.code === EQUIP_ITEM && i.vohon === null && !i.lock ? equipTemplate(parseEquip(i.stats)?.tpl ?? "") : undefined;
+  return t ? [{ it: i, tier: t.tier, slot: t.slot }] : [];
+});
+const honTeText = (n: number) => honTeParts(n).map((x) => `${x.n.toLocaleString("vi-VN")} ${x.unit}`).join(" ") || "0";
+const equipBtn = (box: HTMLElement, it: BagItem, tier: number, note: string, on: boolean, click: () => void) => {
+  const b = document.createElement("button"); b.type = "button"; b.className = "aopt eopt" + (on ? " on" : ""); b.style.setProperty("--c", EQUIP_TIERS[tier]?.col ?? "#9db3a2");
+  b.innerHTML = `<b></b><i></i><span></span>`; b.querySelector("b")!.textContent = (on ? "✓ " : "") + itemName(it); b.querySelector("i")!.textContent = note;
+  b.addEventListener("click", () => { b.blur(); click(); }); box.appendChild(b);
+};
+const synFailText = (tier: number) => {
+  const s = equipSynthStep(tier); if (!s) return "";
+  return s.all ? `mất cả 3 món${s.refund ? `, hoàn ${Math.floor(s.essence * s.refund)} Tinh Hoa Đường Môn` : ""}` : `mất 2 món hiến tế${s.mainLoss ? `, món chính tụt ${s.mainLoss} cấp cường hóa` : ""}`;
+};
+/** Tin "equipsynd" (E4): xong một lần hợp thành; bỏ chọn, báo kết quả. */
+export function equipSynDone(m: EquipSynDone) {
+  synMain = null; synSac = []; synConfirm = false;
+  toast("info", m.ok ? `Hợp thành thành công: ${EQUIP_TIERS[m.from + 1].name}` : m.enhance === null ? "Hợp thành thất bại: mất cả 3 món" : "Hợp thành thất bại");
+  if (npcDefOpen && npcPage === "forgesynth") renderNpc();
+}
+/** Tin "equipsalvd" (E4): xong phân giải; bỏ chọn, báo tổng nhận được. */
+export function equipSalvDone(m: EquipSalvDone) {
+  salvSel.clear(); salvConfirm = false;
+  toast("info", `${m.auto ? "Tự phân giải" : "Phân giải"} ${m.n} trang bị`, `+${honTeText(m.coin)}${m.items.map((x) => `, ${x.qty} ${itemDef(x.code)?.name ?? x.code}`).join("")}`);
+  if (npcDefOpen && npcPage === "forgesalv") renderNpc();
+}
+/**
+ * Lò rèn, trang hợp thành 3 → 1 (E4): chọn món chính rồi 2 món hiến tế cùng bậc, cùng ô (không khoá, không mặc). Tỉ lệ, phí và hậu quả thất bại lấy từ
+ * EQUIP_SYNTH (chỉ hiển thị; server tính và kiểm lại). Nút chuyển đỏ, bấm hai lần vì thất bại luôn mất đồ.
+ */
+function renderForgeSynth(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+  const box = document.createElement("div"); box.className = "forge"; el.appendChild(box);
+  const h = document.createElement("b"); h.className = "shead"; h.textContent = "Hợp thành trang bị (3 → 1)"; box.appendChild(h);
+  const all = looseEquip(bag), main = synMain ? all.find((x) => x.it.id === synMain) : undefined;
+  if (synMain && !main) { synMain = null; synSac = []; }
+  const same = (x: { tier: number; slot: string }, y: { tier: number; slot: string }) => x.tier === y.tier && x.slot === y.slot;
+  if (!main) {
+    const pool = all.filter((x) => equipSynthStep(x.tier) && all.filter((y) => y.it.id !== x.it.id && same(x, y)).length >= 2);
+    const info = document.createElement("small"); box.appendChild(info);
+    info.textContent = pool.length ? "Chọn MÓN CHÍNH (cấp cường hóa được giữ một nửa). Cần thêm 2 món cùng bậc, cùng ô, không khoá, không đang mặc làm hiến tế."
+      : "Chưa đủ 3 trang bị cùng bậc, cùng ô (không khoá, không đang mặc) để hợp thành.";
+    for (const x of pool) equipBtn(box, x.it, x.tier, `${EQUIP_TIERS[x.tier].name} · ${EQUIP_SLOTS.find((s) => s.id === x.slot)?.name ?? ""}`, false, () => { synMain = x.it.id; synSac = []; synConfirm = false; renderNpc(); });
+    return;
+  }
+  synSac = synSac.filter((id) => all.some((x) => x.it.id === id && x.it.id !== main.it.id && same(x, main)));
+  const step = equipSynthStep(main.tier)!, ess = bag.items.filter((i) => i.code === EQUIP_ESSENCE).reduce((n, i) => n + i.qty, 0);
+  const rows: [string, string][] = [["Món chính", itemName(main.it)], ["Hợp thành", `${EQUIP_TIERS[main.tier].name} → ${EQUIP_TIERS[main.tier + 1].name}`],
+    ["Tỉ lệ thành công", `${Math.round(step.p * 100)}%`], ["Cấp cường hóa mới", `+${Math.floor(main.it.enhance * EQUIP_SYNTH_KEEP)} (giữ ${Math.round(EQUIP_SYNTH_KEEP * 100)}%)`],
+    ["Phí", honTeText(step.fee)], ...(step.essence ? [["Tinh Hoa Đường Môn", `${step.essence} (có ${ess})`] as [string, string]] : []),
+    ["Nếu thất bại", synFailText(main.tier)], ["Phí và Tinh Hoa mất cả khi thất bại", ""]];
+  for (const [k, v] of rows) { const r = document.createElement("div"); r.className = "erow"; r.innerHTML = `<b></b><span></span>`; r.querySelector("b")!.textContent = k; r.querySelector("span")!.textContent = v; box.appendChild(r); }
+  const sh = document.createElement("small"); sh.textContent = `Chọn 2 món hiến tế (${synSac.length}/2):`; box.appendChild(sh);
+  for (const x of all.filter((y) => y.it.id !== main.it.id && same(y, main)))
+    equipBtn(box, x.it, x.tier, "hiến tế", synSac.includes(x.it.id), () => { synSac = synSac.includes(x.it.id) ? synSac.filter((i) => i !== x.it.id) : [...synSac, x.it.id].slice(-2); synConfirm = false; renderNpc(); });
+  const poor = bag.honTe < step.fee || ess < step.essence, go = document.createElement("button"); go.type = "button"; go.className = "aopt danger"; go.style.background = "#a82a2a";
+  go.disabled = poor || synSac.length !== 2 || act.combat();
+  go.textContent = poor ? "Không đủ Hồn Tệ hoặc Tinh Hoa" : act.combat() ? "Đang giao chiến" : synSac.length !== 2 ? "Chọn đủ 2 món hiến tế" : synConfirm ? "Bấm lần nữa: hợp thành" : "Hợp thành (có thể mất đồ)";
+  go.addEventListener("click", () => { go.blur(); if (!synConfirm) { synConfirm = true; renderNpc(); return; } synConfirm = false; act.equipSynth(main.it.id, synSac); });
+  box.appendChild(go);
+  const back = document.createElement("button"); back.type = "button"; back.className = "aopt drop"; back.textContent = "Chọn món chính khác";
+  back.addEventListener("click", () => { synMain = null; synSac = []; synConfirm = false; renderNpc(); }); box.appendChild(back);
+}
+/**
+ * Lò rèn, trang phân giải trang bị (E4): chọn nhiều món (không khoá, không mặc, tối đa EQUIP_SALVAGE_MAX), nút chọn nhanh theo bậc. Hồn Tệ theo bảng
+ * EQUIP_SALVAGE (hiển thị số tối thiểu, chưa tính nguyên liệu ngẫu nhiên); không cho kinh nghiệm. Bấm hai lần; server kiểm lại và ghi một transaction.
+ */
+function renderForgeSalv(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+  const box = document.createElement("div"); box.className = "forge"; el.appendChild(box);
+  const h = document.createElement("b"); h.className = "shead"; h.textContent = "Phân giải trang bị"; box.appendChild(h);
+  const all = looseEquip(bag).sort((a, b) => a.tier - b.tier || a.it.enhance - b.it.enhance);
+  for (const id of [...salvSel]) if (!all.some((x) => x.it.id === id)) salvSel.delete(id);
+  if (!all.length) { const p = document.createElement("small"); p.textContent = "Không có trang bị nào để phân giải (món khoá và món đang mặc không phân giải được)."; box.appendChild(p); return; }
+  const quick = document.createElement("div"); quick.className = "erow";
+  for (let t = 0; t < EQUIP_MAX_TIER; t++) {
+    if (!all.some((x) => x.tier === t)) continue;
+    const q = document.createElement("button"); q.type = "button"; q.className = "aopt"; q.textContent = `Chọn mọi ${EQUIP_TIERS[t].name}`;
+    q.addEventListener("click", () => { q.blur(); salvSel.clear(); for (const x of all.filter((y) => y.tier === t).slice(0, EQUIP_SALVAGE_MAX)) salvSel.add(x.it.id); salvConfirm = false; renderNpc(); });
+    quick.appendChild(q);
+  }
+  const clr = document.createElement("button"); clr.type = "button"; clr.className = "aopt drop"; clr.textContent = "Bỏ chọn";
+  clr.addEventListener("click", () => { clr.blur(); salvSel.clear(); salvConfirm = false; renderNpc(); }); quick.appendChild(clr); box.appendChild(quick);
+  for (const x of all) equipBtn(box, x.it, x.tier, `${EQUIP_TIERS[x.tier].name} · +${x.it.enhance}`, salvSel.has(x.it.id), () => {
+    if (salvSel.has(x.it.id)) salvSel.delete(x.it.id); else if (salvSel.size < EQUIP_SALVAGE_MAX) salvSel.add(x.it.id); salvConfirm = false; renderNpc();
+  });
+  const picked = all.filter((x) => salvSel.has(x.it.id)), coin = picked.reduce((n, x) => n + Math.round(EQUIP_SALVAGE[x.tier].coin * (1 + x.it.enhance / 5)), 0);
+  const info = document.createElement("small");
+  info.textContent = picked.length ? `Đã chọn ${picked.length}/${EQUIP_SALVAGE_MAX} món: nhận ${honTeText(coin)} cùng đá / Tinh Hoa / Thần Hồn theo bậc (ngẫu nhiên). Không cho kinh nghiệm; túi phải còn chỗ cho nguyên liệu.`
+    : `Chọn trang bị cần phân giải (tối đa ${EQUIP_SALVAGE_MAX} món mỗi lần).`;
+  box.appendChild(info);
+  const go = document.createElement("button"); go.type = "button"; go.className = "aopt danger"; go.style.background = "#a82a2a";
+  go.disabled = !picked.length || act.combat();
+  go.textContent = act.combat() ? "Đang giao chiến" : !picked.length ? "Chưa chọn món nào" : salvConfirm ? `Bấm lần nữa: phân giải ${picked.length} món` : `Phân giải ${picked.length} món`;
+  go.addEventListener("click", () => { go.blur(); if (!salvConfirm) { salvConfirm = true; renderNpc(); return; } salvConfirm = false; act.equipSalvage(picked.map((x) => x.it.id)); });
+  box.appendChild(go);
 }
 
 let setPick: string | null = null; // hồn hạch đang chọn ở trang "Đổi bộ hồn hạch" của Thợ rèn

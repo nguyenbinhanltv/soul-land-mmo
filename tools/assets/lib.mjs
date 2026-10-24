@@ -209,6 +209,14 @@ export function statusIds() {
   return ids;
 }
 
+/** Id ô (EQUIP_SLOTS) và id bậc (EQUIP_TIERS) của trang bị hồn sư, đọc từ shared/data.ts theo đúng thứ tự khai báo. */
+export function equipSlotTierIds() {
+  const src = readFileSync(path.join(ROOT, "shared", "data.ts"), "utf8");
+  const block = (name) => { const i = src.indexOf(`export const ${name}`); return i < 0 ? "" : src.slice(i, src.indexOf("\n];", i)); };
+  const ids = (name) => [...block(name).matchAll(/\bid: "([a-z_]+)"/g)].map((m) => m[1]);
+  return { slots: ids("EQUIP_SLOTS"), tiers: ids("EQUIP_TIERS") };
+}
+
 /**
  * Mã biểu tượng vật phẩm hợp lệ: id trong ITEMS (mục có `id`, `kind` liền nhau), nhóm trong ITEM_KINDS (biểu tượng chung
  * của nhóm, ví dụ `hon_hach`, `manh_vo_hon`) và `hon_cot_<vị trí>` theo BONE_SLOTS.
@@ -222,6 +230,13 @@ export function itemIconIds() {
   for (const m of kinds.matchAll(/^\s*([a-z_]+): \{/gm)) ids.add(m[1]);
   const start = src.indexOf("export const BONE_SLOTS"), bones = src.slice(start, src.indexOf("];", start));
   for (const m of bones.matchAll(/\bid: "([a-z_]+)"/g)) ids.add(`hon_cot_${m[1]}`);
+  // Trang bị hồn sư (E0, mục 5.15): `equip_<mẫu>`, `equip_slot_<ô>`, `equip_frame_<bậc>`; nguyên liệu (EQUIP_STONES, EQUIP_CHARM…) theo mã.
+  const block = (name, end) => { const i = src.indexOf(`export const ${name}`); return i < 0 ? "" : src.slice(i, src.indexOf(end, i)); };
+  const { slots, tiers } = equipSlotTierIds();
+  for (const s of slots) { ids.add(`equip_slot_${s}`); for (const t of tiers) ids.add(`equip_${s}_${t}`); }
+  for (const t of tiers) ids.add(`equip_frame_${t}`);
+  for (const m of block("EQUIP_STONES", "\n];").matchAll(/\bid: "([a-z_0-9]+)"/g)) ids.add(m[1]);
+  for (const c of ["EQUIP_CHARM", "EQUIP_ESSENCE", "EQUIP_SOUL"]) { const m = src.match(new RegExp(`export const ${c} = "([a-z_]+)"`)); if (m) ids.add(m[1]); }
   return ids;
 }
 

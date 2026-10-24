@@ -16,6 +16,8 @@ npm run map:preview -- shared/assets/tinh_dau_ngoai_vi.v2.json toan-canh.png --s
                                                            # ảnh toàn cảnh isometric bằng ảnh ô / vật thật (không có mép, nhà, ánh sáng)
 ```
 
+**Ảnh nền bản đồ nhỏ** (R1 #428): mỗi lần sinh file Tiled, công cụ ghi thêm `shared/assets/mini/<mapId>.png` (`MINI_BASE` ở `shared/data.ts`: 2 điểm ảnh mỗi ô, nên rộng = số ô × 2). Màu đất / rừng lấy trung bình ảnh ô isometric trong `tiles.json` (đúng bảng màu từng vùng), pha sắc giấy, nhiễu loang, sắc nhẹ theo tầng niên hạn (làm nhòe giữa các tầng); đường nâu sáng, suối lam nhạt viền mực mảnh, vách mực đậm, nhà / tường thành / tàn tích viền mực 1 điểm. Code ở `lib/mini.mjs`; `--check` so từng điểm ảnh (không so byte PNG vì zlib khác phiên bản). Lớp chỉnh tay cũng vào ảnh.
+
 Bản dựng lại của một bản đồ đang có ghi ra `<mapId>.v2.json` và là bản **mặc định** khi có file (11.5); đường lùi: server bật `MAP_V1=<mapId>` (danh sách cách nhau dấu phẩy, `all` = mọi bản đồ) thì dùng lại bản cũ `<mapId>.json`. Server báo tên file cho client qua `MapState.mapFile`. Bot chạy cùng `MAP_V1` với server để đọc đúng file (`BOT_ONLY=bigmap` chỉ chạy phần bản đồ lớn: mọi bản ×8).
 
 ## Chỉnh tay
