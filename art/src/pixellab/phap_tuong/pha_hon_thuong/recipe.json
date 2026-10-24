@@ -1,0 +1,191 @@
+{
+  "id": "pha_hon_thuong",
+  "nhom": "V (thương dựng chếch sau lưng)",
+  "ngay": "2026-10-24",
+  "code": [
+    "idle",
+    "attack"
+  ],
+  "mode": "dat",
+  "prescale": 0.85,
+  "clean": {
+    "minComp": 6
+  },
+  "display": {
+    "scale": 1,
+    "dx": 12,
+    "dy": -2,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "glow": "pt_pha_hon_thuong_glow",
+    "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+  },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "luot": 1,
+    "chon": "thuong_a",
+    "body": {
+      "description": "pixel art, isometric RPG sprite, single subject, giant spectral long spear standing upright, diamond-shaped teal blade, red tassel, ...",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 0
+    }
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "luot": 2,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "giant spectral long spear standing upright, diamond-shaped teal blade, red tassel",
+      "no_background": true
+    },
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 1,
+      "se": 2,
+      "e": 3,
+      "ne": 4,
+      "n": 5
+    }
+  },
+  "chuyenDong": {
+    "idle": {
+      "pivot": [
+        0.5,
+        0.9
+      ],
+      "bob": 1,
+      "rot": 0.8,
+      "pulse": 0.1
+    },
+    "attack": {
+      "pivot": [
+        0.5,
+        0.9
+      ],
+      "hit": 3,
+      "vet": [
+        3,
+        4,
+        5
+      ],
+      "vong": 10,
+      "poses": [
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null
+        ],
+        [
+          0,
+          -3,
+          0,
+          1,
+          1,
+          1.05,
+          null
+        ],
+        [
+          0,
+          3,
+          0,
+          1,
+          1,
+          1.2,
+          null
+        ],
+        [
+          0,
+          14,
+          0,
+          1,
+          1,
+          1.5,
+          null
+        ],
+        [
+          0,
+          14,
+          0,
+          1,
+          1,
+          1.5,
+          null
+        ],
+        [
+          0,
+          8,
+          0,
+          1,
+          1,
+          1.2,
+          null
+        ],
+        [
+          0,
+          3,
+          0,
+          1,
+          1,
+          1.05,
+          null
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null
+        ]
+      ]
+    },
+    "hat": [
+      {
+        "vi": "tren",
+        "n": 5,
+        "mau": [
+          "#ffffff",
+          "#7fe0d0"
+        ],
+        "len": 10,
+        "rong": 0.15,
+        "seed": 4,
+        "s": 1
+      }
+    ]
+  },
+  "nghieng": 10
+}

@@ -1,0 +1,194 @@
+{
+  "id": "cuu_tinh_that_sat_kiem",
+  "nhom": "V (vũ khí lơ lửng chéo sau vai)",
+  "ngay": "2026-10-24",
+  "code": [
+    "idle",
+    "attack"
+  ],
+  "mode": "troi",
+  "lift": 10,
+  "prescale": 1,
+  "clean": {
+    "minComp": 4,
+    "markMax": 40,
+    "xa": 40
+  },
+  "display": {
+    "scale": 1,
+    "dx": 10,
+    "dy": -4,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "glow": "pt_cuu_tinh_that_sat_kiem_glow",
+    "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+  },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "luot": 1,
+    "chon": "kiem_a",
+    "body": {
+      "description": "pixel art, isometric RPG sprite, single subject, giant spectral silver greatsword floating diagonally, blade pointing down, seven glowing stars orbiting the blade, pale blue-white glow, ...",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 0
+    }
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "luot": 2,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "giant spectral silver greatsword floating diagonally, blade pointing down, seven glowing stars orbiting the blade, pale blue-white glow",
+      "no_background": true
+    },
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 1,
+      "se": 2,
+      "e": 3,
+      "ne": 4,
+      "n": 5
+    }
+  },
+  "chuyenDong": {
+    "dau": true,
+    "idle": {
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "bob": 2,
+      "rot": 1.5,
+      "pulse": 0.12,
+      "sway": 1
+    },
+    "attack": {
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "hit": 3,
+      "vet": [
+        2,
+        3,
+        4
+      ],
+      "vong": 14,
+      "poses": [
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null
+        ],
+        [
+          -8,
+          -3,
+          4,
+          1,
+          1,
+          1.05,
+          null
+        ],
+        [
+          4,
+          3,
+          0,
+          1,
+          1,
+          1.15,
+          null
+        ],
+        [
+          24,
+          9,
+          -2,
+          1,
+          1,
+          1.5,
+          null
+        ],
+        [
+          24,
+          10,
+          -2,
+          1,
+          1,
+          1.5,
+          null
+        ],
+        [
+          14,
+          5,
+          0,
+          1,
+          1,
+          1.2,
+          null
+        ],
+        [
+          5,
+          2,
+          1,
+          1,
+          1,
+          1.05,
+          null
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null
+        ]
+      ]
+    },
+    "hat": [
+      {
+        "vi": "nen",
+        "n": 6,
+        "mau": [
+          "#ffffff",
+          "#cfe3ff"
+        ],
+        "len": 14,
+        "seed": 1,
+        "s": 1
+      }
+    ]
+  }
+}

@@ -2317,32 +2317,36 @@ const PT_BASE: Record<PtGroup, PtMotion> = {
   O: { bob: 2.5, bobSec: 1.7, sway: 1, lag: 0.2, spin: 0, pivot: 70, pulse: 0.2, swing: 0, lunge: 8 },
   P: { bob: 0.5, bobSec: 2, sway: 2.5, lag: 0.4, spin: 0, pivot: 10, pulse: 0.15, swing: 0, lunge: 3 },
 };
+/** Sheet 80 khung dựng bằng `phaptuong-khi.mjs` (lô P4, H3 #487) đã có thở và đánh (nhấp nhô, xoay, lao tới, vệt, vòng sóng, hạt) nướng sẵn trong
+ *  khung và trong lớp sáng `pt_<mã>_glow`; code chỉ thêm nhịp sáng `pulse`, không cộng thêm bob / lắc / vung / lao (sẽ nhân đôi chuyển động).
+ *  Thông số gốc dùng khi dựng nằm ở `chuyenDong` của `art/src/pixellab/phap_tuong/<mã>/recipe.json`. Thở 8 khung, đánh 8 khung (ra đòn khung 3 hoặc 4, giữ khung 4). */
+const BAKED: Partial<PtMotion> = { bob: 0, sway: 0, spin: 0, swing: 0, lunge: 0 };
 const pt = (id: string, group: PtGroup, hat: PtHat, o: { scale?: number; dx?: number; dy?: number; glow?: string; motion?: Partial<PtMotion> } = {}): [string, PhapTuongDef] =>
   [id, { sheet: `pt_${id}`, formula: group === "S" || group === "B" || group === "T" || group === "D" ? "sinh_vat" : "vat_the", group, hat,
     scale: o.scale ?? 1, dx: o.dx ?? 0, dy: o.dy ?? 0, glow: o.glow, motion: { ...PT_BASE[group], ...o.motion } }];
 /** Bảng pháp tướng của đủ 25 võ hồn (bài kiểm thử đòi mỗi võ hồn có mục). Giá trị H1 (Lam Điện, Hạo Thiên Chùy) lấy theo manifest ảnh. */
 export const PHAP_TUONG: Record<string, PhapTuongDef> = Object.fromEntries([
-  pt("cuu_tinh_that_sat_kiem", "V", "hon", { motion: { swing: 25, pivot: 90, pulse: 0.25 } }),
+  pt("cuu_tinh_that_sat_kiem", "V", "hon", { dx: 10, dy: -4, motion: { ...BAKED, pulse: 0.2 } }),
   pt("lam_dien_ba_vuong_long", "S", "dien"),
   pt("ky_nhung_thong_thien_cuc", "P", "hon", { motion: { pulse: 0.25 } }),
   pt("ta_hoa_phuong_hoang", "B", "lua", { motion: { sway: 4 } }),
   pt("u_minh_linh_mieu", "T", "khoi"),
-  pt("nguyet_nhan", "V", "hon", { motion: { spin: 28, pivot: 62, swing: 0, bob: 2 } }),
+  pt("nguyet_nhan", "V", "hon", { scale: 1.2, dy: -6, motion: { ...BAKED, pulse: 0.15 } }),
   pt("hoa_long", "S", "lua"),
   pt("nhu_cot_tho", "T", "hon", { motion: { lunge: 10 } }),
   pt("kim_vu_mieu_ung", "B", "dien"),
   pt("tu_vong_chu_hoang", "T", "doc", { motion: { sway: 2.5 } }),
   pt("bich_lan_xa_hoang", "S", "doc", { motion: { sway: 3 } }),
-  pt("can_khon_hon_nguyen_toa", "O", "hon", { motion: { spin: 18, pivot: 60 } }),
+  pt("can_khon_hon_nguyen_toa", "O", "hon", { dy: -4, motion: { ...BAKED, pulse: 0.2 } }),
   pt("hoa_anh", "D", "lua"),
   pt("yeu_ho", "T", "hon", { motion: { lag: 0.3 } }),
-  pt("xuc_xich", "O", "khoi", { motion: { swing: 18, lunge: 12, bob: 3 } }),
+  pt("xuc_xich", "O", "khoi", { scale: 1.1, dx: 10, dy: -6, motion: { ...BAKED, pulse: 0.2 } }),
   pt("quy_mi", "D", "khoi", { motion: { bob: 3 } }),
-  pt("thien_can_bach_ngoc_dinh", "O", "khoi", { motion: { swing: 8 } }),
+  pt("thien_can_bach_ngoc_dinh", "O", "khoi", { dy: -6, motion: { ...BAKED, pulse: 0.15 } }),
   pt("lam_ngan_thao", "P", "la", { motion: { sway: 3 } }),
   pt("hao_thien_chuy", "V", "khoi", { scale: 0.85, dx: 12, dy: -4, motion: { swing: 0, bob: 1 } }),
-  pt("cuu_bao_luu_ly_thap", "V", "hon", { motion: { swing: 0, pulse: 0.3, bob: 2 } }),
-  pt("pha_hon_thuong", "V", "hon", { motion: { swing: 6, lunge: 14, pivot: 50 } }),
+  pt("cuu_bao_luu_ly_thap", "V", "hon", { dy: -2, motion: { ...BAKED, pulse: 0.25 } }),
+  pt("pha_hon_thuong", "V", "hon", { dx: 12, dy: -2, motion: { ...BAKED, pulse: 0.15 } }),
   pt("a_ngan", "P", "la", { motion: { pulse: 0.2 } }),
   pt("liet_hoa_thuong_lang", "T", "lua", { motion: { lunge: 9 } }),
   pt("bang_phuong_hoang", "B", "bang"),

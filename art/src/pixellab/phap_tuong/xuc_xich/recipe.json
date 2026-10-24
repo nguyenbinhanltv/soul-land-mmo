@@ -1,0 +1,230 @@
+{
+  "id": "xuc_xich",
+  "nhom": "O (xúc xích lơ lửng chéo sau lưng, chất hài)",
+  "ngay": "2026-10-24",
+  "code": [
+    "idle",
+    "attack"
+  ],
+  "mode": "troi",
+  "lift": 16,
+  "prescale": 1.25,
+  "clean": {
+    "minComp": 6,
+    "thanToi": 150
+  },
+  "display": {
+    "scale": 1.1,
+    "dx": 10,
+    "dy": -6,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "glow": "pt_xuc_xich_glow",
+    "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+  },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "luot": 1,
+    "chon": "xuc_b",
+    "body": {
+      "description": "pixel art, isometric RPG sprite, single subject, one single giant glowing grilled sausage floating diagonally, steam rising, ...",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 7
+    },
+    "thuLai": "xuc_a (xúc xích trên đĩa) bỏ; xuc_c5 / xuc_c19 (hot dog kẹp bánh) sai nghĩa, bỏ. Concept xuc_b có lửa quanh thân: hậu kỳ giữ phần thân tối (clean.thanToi), lửa làm lại ở lớp sáng (hạt). Thử lại tốn thêm 3 lượt"
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "luot": 2,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "one single giant glowing grilled sausage floating diagonally, steam rising",
+      "no_background": true
+    },
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 1,
+      "se": 2,
+      "e": 3,
+      "ne": 4,
+      "n": 5
+    }
+  },
+  "chuyenDong": {
+    "idle": {
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "bob": 2,
+      "rot": 3,
+      "pulse": 0.15,
+      "sway": 2
+    },
+    "attack": {
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "hit": 3,
+      "vet": [
+        2,
+        3,
+        4
+      ],
+      "vong": 14,
+      "vongMau": "#ffd18a",
+      "poses": [
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null
+        ],
+        [
+          -8,
+          -4,
+          2,
+          1,
+          1,
+          1.05,
+          null
+        ],
+        [
+          0,
+          4,
+          0,
+          1,
+          1,
+          1.15,
+          null
+        ],
+        [
+          8,
+          16,
+          -1,
+          1,
+          1,
+          1.5,
+          null
+        ],
+        [
+          8,
+          16,
+          -1,
+          1,
+          1,
+          1.5,
+          null
+        ],
+        [
+          4,
+          8,
+          0,
+          1,
+          1,
+          1.2,
+          null
+        ],
+        [
+          0,
+          2,
+          0,
+          1,
+          1,
+          1.05,
+          null
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null
+        ]
+      ]
+    },
+    "hat": [
+      {
+        "vi": "tren",
+        "n": 6,
+        "mau": [
+          "#ffffff",
+          "#dcdcdc"
+        ],
+        "len": 22,
+        "rong": 0.5,
+        "seed": 7,
+        "s": 2
+      },
+      {
+        "vi": "nen",
+        "n": 9,
+        "mau": [
+          "#ffe04a",
+          "#ffb040",
+          "#ff7a2a"
+        ],
+        "len": 22,
+        "seed": 8,
+        "s": 2
+      },
+      {
+        "vi": "chan",
+        "n": 7,
+        "mau": [
+          "#ffb040",
+          "#ff7a2a"
+        ],
+        "len": 18,
+        "seed": 9,
+        "s": 1
+      },
+      {
+        "vi": "quay",
+        "n": 3,
+        "mau": [
+          "#c8602a"
+        ],
+        "e": 0.3,
+        "xa": 10,
+        "len": 0,
+        "seed": 10,
+        "mini": true
+      }
+    ]
+  }
+}

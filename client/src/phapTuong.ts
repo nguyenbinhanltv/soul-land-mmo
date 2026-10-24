@@ -118,7 +118,7 @@ export function ptFrameUrl(scene: Phaser.Scene, id: string): string {
 // ---------- hệ thống ----------
 
 type Sprite = Phaser.GameObjects.Sprite;
-interface Slot { id: string; def: PhapTuongDef; col: number; body: Sprite; glow: Sprite; acc: number }
+interface Slot { id: string; def: PhapTuongDef; col: number; body: Sprite; glow: Sprite; acc: number; own: boolean }
 interface Rig {
   slots: Slot[]; state: "in" | "hold" | "out"; t0: number; born: number; strike: number; burst: number;
   extra: { id: string; alpha: number } | null;
@@ -148,11 +148,13 @@ export class PhapTuongSystem {
   private makeSlot(id: string): Slot | null {
     const def = PHAP_TUONG[id], vh = VOHON.find((v) => v.id === id);
     if (!def || !vh || !ensurePtSheet(this.scene, id)) return null;
+    // Có sheet lớp sáng riêng `pt_<mã>_glow` (cùng bố cục, màu đã nướng sẵn) thì lớp cộng sáng dùng nó, không tô màu; chưa có thì dùng lại sheet thân.
+    const gk = `${def.sheet}_glow`, own = this.scene.textures.exists(gk);
     const mk = (add: boolean) => {
-      const s = this.take().setTexture(def.sheet, 0).setOrigin(PT_ORIGIN[0] / PT_FRAME, PT_ORIGIN[1] / PT_FRAME);
+      const s = this.take().setTexture(add && own ? gk : def.sheet, 0).setOrigin(PT_ORIGIN[0] / PT_FRAME, PT_ORIGIN[1] / PT_FRAME);
       s.setBlendMode(add ? Phaser.BlendModes.ADD : Phaser.BlendModes.NORMAL); return s;
     };
-    return { id, def, col: hexN(def.glow ?? vh.col), body: mk(false), glow: mk(true), acc: 0 };
+    return { id, def, col: hexN(def.glow ?? vh.col), body: mk(false), glow: mk(true), acc: 0, own };
   }
   private release(r: Rig) { for (const s of r.slots) { s.body.setBlendMode(0); this.give(s.body); this.give(s.glow); } r.slots = []; }
   private setSlots(r: Rig, ids: string[]) {
@@ -261,7 +263,7 @@ export class PhapTuongSystem {
       const flashHit = stopT && flashOn();
       if (flashHit) s.body.setTintFill(0xffffff); else s.body.clearTint();
       const pulse = 0.5 + 0.5 * Math.sin(phase * Math.PI * 2);
-      s.glow.setTint(s.col).setAlpha(clamp01((0.25 + 0.3 * m.pulse * pulse * 2 + (flashHit ? 0.6 : 0) + sc * 0.2 + 0.4 * bur) * stG * k * vis * v.alpha * (lv === "low" ? 0.5 : 1)));
+      (s.own ? s.glow.clearTint() : s.glow.setTint(s.col)).setAlpha(clamp01((0.25 + 0.3 * m.pulse * pulse * 2 + (flashHit ? 0.6 : 0) + sc * 0.2 + 0.4 * bur) * stG * k * vis * v.alpha * (lv === "low" ? 0.5 : 1)));
       // hạt theo hệ (pool dùng chung ở ParticleLayer; Thấp: trần 0 nên không phát)
       if (stH > 0 && k > 0 && !calm && lv !== "low" && vis > 0.5) {
         s.acc += dt * 14 * stH * k;
