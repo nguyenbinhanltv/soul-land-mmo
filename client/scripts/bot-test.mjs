@@ -5604,10 +5604,20 @@ async function autoTest(){
     const pb=(await test(A,"spawn",{tier:0,dx:40,dy:0,years:15}))?.bid;
     await quiet(()=>false,2000,[pb]); info=await test(A,"auto");
     ok(m?.on&&pb&&info?.pace>0&&info.target!==pb&&A.room.state.beasts.has(pb),`còn nợ nhịp ${info?.pace?.toFixed(1)} giây: đứng nghỉ, chưa nhắm hồn thú mới (mục tiêu ${info?.target})`);
-    const pk=await quiet(()=>!A.room.state.beasts.has(pb),10000,[pb]);
+    // #422: nợ nhịp chỉ giảm theo giờ server trong lúc đi tới / đánh (không kẹp), nên trận dài ngang ước lượng (~4 giây) làm nợ về ≤ 0 dù
+    // đã cộng đúng. Đo nợ + giờ server (`secs`) mỗi 100 ms tới khi con thử mất, rồi so với nợ trước − thời gian trôi + ước lượng.
+    let pre=null, pk=false;
+    for(let t=0;t<10000&&!pk;t+=100){
+      if(!A.room.state.beasts.has(pb)){ pk=true; break; }
+      const s=await test(A,"auto"); if(s&&A.room.state.beasts.has(pb)) pre=s;
+      await test(A,"clear",{but:[pb]}); await sleep(100);
+    }
     ok(pk,`hết nợ nhịp: hạ tiếp${pk?"":await why(pb)}`);
     info=await test(A,"auto");
-    ok(info?.pace>0,`hạ một con: cộng thời gian tự đánh con đó vào nợ nhịp (còn ${info?.pace?.toFixed(1)} giây${info?.pace>0?"":`, ước lượng ${info?.est?.toFixed(1)}, mục tiêu ${info?.target}`})`);
+    const expect=pre&&info?pre.pace-(info.secs-pre.secs)+info.est:null;
+    // Không đo được nợ trước khi hạ thì không có gì để so: báo ✗ kèm chẩn đoán, không lọt qua bằng điều kiện nợ > 0 (dễ chập chờn lại).
+    ok(pre!=null,`hạ một con: đo được nợ nhịp trước khi hạ (con thử ${pb}, còn trong state: ${A.room.state.beasts.has(pb)}, sau hạ nợ ${info?.pace?.toFixed(1)}, ước lượng ${info?.est?.toFixed(1)})`);
+    ok(info?.pace>0||(expect!=null&&info.est>0&&Math.abs(info.pace-expect)<=1.5),`hạ một con: cộng thời gian tự đánh con đó vào nợ nhịp (còn ${info?.pace?.toFixed(1)} giây, ước lượng ${info?.est?.toFixed(1)}, dự kiến ${expect?.toFixed(1)}, mục tiêu ${info?.target})`);
     // Trận dài hơn AUTO_PACE.credit giây: thời gian thật đã trừ vào nợ, nên sau khi hạ nợ chỉ còn phần ước lượng vượt thời gian thật
     // (không kẹp lúc đang đánh rồi cộng nguyên ước lượng, tức không tính trận hai lần).
     await test(A,"clear",{all:true,keep:true}); await test(A,"auto",{pace:0}); // cả bản đồ: không hồn thú tự nhiên nào xen vào trận
