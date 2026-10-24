@@ -1,0 +1,66 @@
+{
+  "id": "liet_hoa_thuong_lang",
+  "nhom": "T (sói)",
+  "ngay": "2026-10-24",
+  "code": [],
+  "lo": "P2 (#487)",
+  "display": {
+    "scale": 1.0,
+    "dx": 0,
+    "dy": 0,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+  },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "lượtMoiLan": 1,
+    "body": {
+      "description": "giant spectral gray wolf standing on four legs head raised howling, mane and shoulder fur burning with orange flames, huge flame-tipped tail, glowing amber eyes, claws wreathed in fire, three-quarter view, no ground, no base, no pedestal, no text, pixel art",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 54
+    },
+    "ghiChu": ""
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "lượt": 2,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "giant gray wolf with burning flame mane and flame-tipped tail",
+      "no_background": true
+    },
+    "dung": {
+      "s": 7,
+      "se": 0,
+      "e": 1,
+      "ne": 2,
+      "n": 3
+    },
+    "ghiChu": "thứ tự 8 ảnh xoay đổi theo con vật, chọn bằng mắt (pixellab-pt.mjs map)"
+  },
+  "luotThucTe": {
+    "concept": 1,
+    "xoay": 2,
+    "hoat anh": "chưa làm (bước 2)"
+  }
+}

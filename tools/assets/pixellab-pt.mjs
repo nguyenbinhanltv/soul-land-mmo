@@ -6,6 +6,8 @@
 //        generate-8-rotations-v3 từ concept.png → rot/0..7.png (thứ tự trả về: sw, s, se, e, ne, n, nw, w)
 //   node tools/assets/pixellab-pt.mjs anim --id <mã> --dir s|se|e|ne|n --anim idle|attack --action "<chuyển động>"
 //        animate-with-text-v3 8 khung từ rot/<hướng>.png → <hướng>_<anim>_00..07.png (bỏ khung 9, trùng khung đầu)
+//   node tools/assets/pixellab-pt.mjs map --id <mã> --map s=7,se=0,e=1,ne=2,n=3
+//        chọn lại 5 hướng từ rot/0..7.png (0 lượt): thứ tự 8 ảnh xoay đổi theo con vật (P2 #487: báo, hồ, sói, hổ lệch 2 bước so với H1), xem bằng mắt rồi ghi xoay.dung ở recipe.json
 //   node tools/assets/pixellab-pt.mjs balance
 // Vật cứng (búa, tháp...) không cần `anim`: phaptuong.mjs --code idle,attack dựng thở / đánh bằng code (0 lượt).
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -64,10 +66,14 @@ else if (cmd === "concept") {
   mkdirSync(path.join(dir, "rot"), { recursive: true });
   out.images.forEach((im, i) => writeFileSync(path.join(dir, "rot", `${i}.png`), png(im)));
   for (const [d, i] of Object.entries(ROT_INDEX)) writeFileSync(path.join(dir, `${d}.png`), readFileSync(path.join(dir, "rot", `${i}.png`)));
+} else if (cmd === "map") {
+  need(id, "--id");
+  const m = Object.fromEntries(need(opt("--map"), "--map").split(",").map((kv) => kv.split("=")));
+  for (const d of ISO_DIRS) writeFileSync(path.join(dir, `${d}.png`), readFileSync(path.join(dir, "rot", `${need(m[d], `--map ${d}=`)}.png`)));
 } else if (cmd === "anim") {
   need(id, "--id");
   const d = opt("--dir"), an = opt("--anim");
   if (!ISO_DIRS.includes(d) || !["idle", "attack"].includes(an)) fail("--dir s|se|e|ne|n, --anim idle|attack");
   const out = await run(`anim ${id} ${d} ${an}`, "/animate-with-text-v3", { first_frame: b64(path.join(dir, `${d}.png`)), action: need(opt("--action"), "--action"), frame_count: 8, no_background: true });
   out.images.slice(0, 8).forEach((im, i) => writeFileSync(path.join(dir, `${d}_${an}_${String(i).padStart(2, "0")}.png`), png(im)));
-} else fail("Lệnh: concept | rot | anim | balance (xem đầu file)");
+} else fail("Lệnh: concept | rot | map | anim | balance (xem đầu file)");
