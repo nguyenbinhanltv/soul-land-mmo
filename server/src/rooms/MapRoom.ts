@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TICK_RATE, tierOfYears, vohonIndex,
   AWAKEN_GIFT, AWAKEN_CHOICES, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, REVIVE_SECS, RESPAWN_SECS, XP_SHARE_ACTIVE, XP_SHARE_BENCH,
-  beastLevel, xpLevelScale, MAX_RINGS, parseTeam, BEASTS, beastIndex, MAPS, MAP_MOVED, DEFAULT_MAP, parseLooks, encodeLpc, dir4, type Looks,
+  beastLevel, xpLevelScale, MAX_RINGS, parseTeam, BEASTS, beastIndex, MAPS, MAP_MOVED, DEFAULT_MAP, parseLooks, encodeLpc, lpcGearCode, dir4, type Looks,
   TRAVEL_CAST, BOAT_CAST, WAYPOINT_CAST, waypointFee, RED_BEAST_CHANCE, kingYears, TRAVEL_LEAVE_SECS, CHANNEL_MAX, CHANNEL_CD,
   TIEN_CO, TIEN_CO_MAX, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY, energyGain, tienCoDmgMult, TILE, RALLY,
   itemDef, ITEMS, ITEM_KINDS, BAG_EXPAND, BAG_MAX_SLOTS, bagSlotsOf, BUYBACK_MAX, bagExpandCost, DAN_CD, STARTER_ITEMS, BEAST_COIN, formatHonTe, type ItemDef,
@@ -702,6 +702,11 @@ function itemStacks(code: string, qty: number): Item[] {
 type GearStats = ReturnType<typeof equipStats>;
 /** Chỉ số tổng của các món đang mặc (mục 5.15): dữ liệu hỏng / mẫu lạ bị bỏ qua. */
 const gearStats = (gear: Item[]): GearStats => equipStats(gear.flatMap((it) => { const e = parseEquip(it.stats); return e ? [{ ...e, enhance: it.enhance }] : []; }));
+/** Bậc áo / mũ đang mặc (+1, 0 = không) → PlayerState.gearAo / gearMu để người khác thấy trên lớp LPC (HL4 #573); không đồng bộ chỉ số. */
+function gearLook(p: PlayerState, gear: Item[]) {
+  const tier = (slot: string) => { for (const it of gear) { const t = equipTemplate(parseEquip(it.stats)?.tpl); if (t?.slot === slot) return t.tier; } return null; };
+  p.gearAo = lpcGearCode(tier("ao")); p.gearMu = lpcGearCode(tier("mu"));
+}
 const bagUsed = (bag: Item[]) => bag.filter((i) => i.vohonId === null).length;
 /** Thứ tự xếp túi (#215 "Sắp xếp"): nhóm theo ITEM_KINDS, rồi loại theo ITEMS. */
 const KIND_ORDER = Object.keys(ITEM_KINDS), ITEM_ORDER = new Map(ITEMS.map((x, k) => [x.id, k]));
@@ -1129,6 +1134,7 @@ export class MapRoom extends Room<MapState> {
     const p = new PlayerState();
     p.name = ch.name; this.showVohon(p, ch);
     p.sex = looks.sex; p.hair = looks.hair; p.hairCol = looks.hairCol; p.outfitCol = looks.outfitCol; p.skin = looks.skin; p.lpc = looks.lpc ? encodeLpc(looks.lpc) : "";
+    gearLook(p, bag.items.filter((i) => i.equipSlot !== undefined));
     // Vị trí đã lưu; chưa có, kẹt trong ô chặn hoặc ngoài bản đồ thì về `spawn` (mục 6).
     const pos = loc.x !== null && loc.y !== null && this.map.standable(loc.x, loc.y) ? { x: loc.x, y: loc.y } : this.spawnPoint();
     p.x = pos.x; p.y = pos.y;
@@ -6140,6 +6146,7 @@ export class MapRoom extends Room<MapState> {
   /** Sau khi đổi trang bị: tính lại chỉ số, báo client, ghi ngay qua chuỗi lưu (túi + ô mặc cùng một transaction). */
   afterGear(id: string, d: PData) {
     d.gearSt = gearStats(d.gear); d.bagDirty = true;
+    const p = this.state.players.get(id); if (p) gearLook(p, d.gear);
     this.afterBones(id, d.ch); this.sendGear(id);
     void this.save(id);
   }
