@@ -4149,7 +4149,7 @@ export const TICK_RATE = 20; // số lần server cập nhật mỗi giây
  * Vai trò NPC: `talk` chỉ có lời thoại; `shop` (thương nhân) mở cửa hàng mua đan / bán đồ dư; `forge` (lò rèn) mở bảng cường hóa
  * hồn cốt (4.4) và chỗ nâng cấp hồn hạch (5.3, sắp mở).
  */
-export type NpcRole = "talk" | "shop" | "forge" | "arena" | "tong"; // arena (7.2): xếp hàng Đại Đấu Hồn Trường, bảng xếp hạng; tong (#196): sứ giả tông môn
+export type NpcRole = "talk" | "shop" | "forge" | "arena" | "tong" | "looks"; // arena (7.2): xếp hàng Đại Đấu Hồn Trường, bảng xếp hạng; tong (#196): sứ giả tông môn; looks (L4 #511): thợ may đổi ngoại hình
 /**
  * Một NPC. `id` là mã cố định, khớp thuộc tính `npc` của object `npc` trong file Tiled (mục 6); không đổi mã đã dùng.
  * Hình: sheet NPC LPC `lpc_<id>` nếu có trong manifest (mục 5.11 "NPC phụ và dân thường"), không thì `looks` (ngoại hình vẽ bằng
@@ -4288,12 +4288,33 @@ export const NPCS: NpcDef[] = [
       "Vũ Hồn Điện là tổ chức lớn nhất đại lục, giáo hoàng Bỉ Bỉ Đông cai quản; phân điện có mặt ở mọi thành lớn, kể cả Thiên Đấu.",
       "Muốn gia nhập thì cần hoàn thành bài học nhập môn và có võ hồn đủ cấp. Vào rồi vẫn có thể rời hoặc đổi, nhưng đừng đổi đi đổi lại.",
     ] },
+  // L4 (#511): thợ may đổi ngoại hình (role "looks", LOOKS_CHANGE): mỗi thành lớn một người.
+  { id: "tho_may", name: "Thợ may Nặc Đinh", title: "Tiệm may Nặc Đinh", role: "looks", col: "#e08cc8",
+    looks: { sex: 1, hair: 2, hairCol: 2, outfitCol: 2, skin: 0 },
+    lines: [
+      "Tiệm may Nặc Đinh đây! Muốn đổi dáng vẻ: mặt mũi, tóc tai, y phục, hay đổi hẳn từ mẫu dựng sẵn sang tự tạo, ta đều làm được.",
+      "Lần đầu ta làm miễn phí, coi như quà gặp mặt. Từ lần sau thì tính tiền công, ngươi đừng chê đắt.",
+    ] },
+  { id: "tho_may_thien_dau", name: "Thợ may Thiên Đấu", title: "Tiệm may Thiên Đấu", role: "looks", col: "#e08cc8",
+    looks: { sex: 0, hair: 3, hairCol: 4, outfitCol: 4, skin: 0 },
+    lines: [
+      "Tiệm may Thiên Đấu, may áo cho quý tộc cả đế quốc. Ngươi muốn thay đổi diện mạo thì cứ nói.",
+      "Lần đổi đầu tiên miễn phí, các lần sau tính tiền công. Đổi ở đâu thì tiền công cũng như nhau, Nặc Đinh hay Thiên Đấu.",
+    ] },
 ];
 const NPC_INDEX = new Map(NPCS.map((n) => [n.id, n]));
 /** NPC theo mã (thuộc tính `npc` của object Tiled); mã lạ thì undefined. */
 export const npcDef = (id: unknown) => (typeof id === "string" ? NPC_INDEX.get(id) : undefined);
 /** Khoảng cách (pixel, tính từ chân) tối đa để nói chuyện, mua bán, rèn với NPC; server kiểm tra lại mỗi lần. */
 export const NPC_RANGE = 40;
+/**
+ * Đổi ngoại hình sau khi đã tạo nhân vật (L4 #511, GAME_DESIGN.md mục 5.11): chỉ qua thợ may (role "looks") đứng trong NPC_RANGE, kể cả
+ * đổi qua lại giữa Mẫu dựng sẵn và Tự tạo. `free` lần đổi đầu miễn phí, các lần sau tốn `cost` đồng Hồn Tệ mỗi lần. Số lần đã đổi lưu ở
+ * `accounts.looks_changes`; lần tạo nhân vật đầu tiên (looks_chosen = false) không tính là một lần đổi.
+ */
+export const LOOKS_CHANGE = { free: 1, cost: 10000 };
+/** Giá (đồng) của lần đổi kế tiếp khi đã đổi `done` lần. */
+export const looksChangeCost = (done: number) => (done < LOOKS_CHANGE.free ? 0 : LOOKS_CHANGE.cost);
 /**
  * Tông môn (#196, mục 5.14): bốn phe có sẵn theo truyện, mỗi người thuộc tối đa một tông; `npc` là sứ giả (mã trong NPCS) ở Thiên Đấu
  * Thành, `col` màu tên tông dưới tên hồn sư. Thứ tự cố định: chỉ số + 1 là `PlayerState.tong`. Không buff chỉ số theo tông.

@@ -90,6 +90,7 @@
     { "name": "Ngọc Tiểu Cương (Đại Sư)", "npc": "dai_su", "at": [29, 29] },
     { "name": "Thợ rèn", "npc": "lo_ren", "at": [111, 27] },
     { "name": "Thương nhân", "npc": "thuong_nhan", "at": [26, 76] },
+    { "name": "Thợ may Nặc Đinh", "npc": "tho_may", "at": [32, 76] },
     { "name": "Sứ giả Đại Đấu Hồn Trường", "npc": "su_gia_dau_hon", "at": [121, 82] }
   ]
 }
