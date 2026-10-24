@@ -135,7 +135,19 @@ Mục tiêu là kiểm tra Redis mất kết nối không làm hai server chết
 
 Trong lượt `arena`, các trận tiếp tục chạy qua lúc Redis tắt và dữ liệu Elo / phần thưởng / sổ xem trận vẫn đạt sau khi Redis hồi. Trong lượt `friend`, thao tác thêm bạn, chặn, chat và nạp lại danh sách đạt sau khi Redis hồi. Cả hai server đều sống đến cuối và log tắt bình thường có `đã lưu người chơi đang online`; database test được xóa sau mỗi lượt.
 
-Kiểm tra bổ sung trên Redis localhost riêng: `npm run test:presence --prefix server` đạt các nhánh lock / `arena:live` / `friend:state`; `npm run test:presence-kill --prefix server` đạt dọn trận sau **15 giây TTL**, nhả lease tài khoản và dọn bản sao bạn bè của tiến trình bị kill.
+Kiểm tra bổ sung gồm hai phạm vi. Bài `presence` dùng backend local cố định và đạt các nhánh lock / `arena:live` / `friend:state`:
+
+```bash
+npm run test:presence --prefix server
+```
+
+Bài `presence-kill` dùng Redis localhost riêng, cần prefix an toàn bắt đầu bằng `test`; bài đạt dọn trận sau **15 giây TTL**, nhả lease tài khoản và dọn bản sao bạn bè của tiến trình bị kill:
+
+```bash
+REDIS_URL=redis://127.0.0.1:<cổng-local> \
+REDIS_PREFIX=test:presence-kill \
+npm run test:presence-kill --prefix server
+```
 
 Lệnh tái hiện phần bot:
 
