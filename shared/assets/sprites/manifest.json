@@ -232,6 +232,26 @@
       "map": "cuc_bac_chi_dia"
     },
     {
+      "key": "beast_huyet_nha_cu_sa",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "beast_kiem_ngu",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
       "key": "beast_kiem_vi_hat",
       "frame": [
         96,
@@ -242,6 +262,16 @@
       "map": "tinh_dau_noi_dia"
     },
     {
+      "key": "beast_kim_lan_long_quy",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
       "key": "beast_kim_linh_ung",
       "frame": [
         96,
@@ -250,6 +280,16 @@
       "iso": true,
       "static": true,
       "map": "tinh_dau_ngoai_vi"
+    },
+    {
+      "key": "beast_lam_lan_hai_xa",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
     },
     {
       "key": "beast_lam_loi_te_nguu",
@@ -298,8 +338,18 @@
         96
       ],
       "iso": true,
-      "map": "hai_than_dao",
-      "lpc": true
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "beast_loi_van_hai_ung",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
     },
     {
       "key": "beast_loi_van_hau",
@@ -402,6 +452,16 @@
       "map": "thanh_hon_thon"
     },
     {
+      "key": "beast_quy_dien_hai_yeu",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
       "key": "beast_quy_ho",
       "frame": [
         96,
@@ -410,6 +470,26 @@
       "iso": true,
       "static": true,
       "map": "tinh_dau_ngoai_vi"
+    },
+    {
+      "key": "beast_tham_hai_ma_chuong",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "beast_tham_hai_ma_kinh",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
     },
     {
       "key": "beast_thanh_lan_doc_co",
@@ -450,6 +530,16 @@
       "iso": true,
       "static": true,
       "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "beast_thiet_giap_cu_giai",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
     },
     {
       "key": "beast_thiet_giap_te_nguu",
@@ -528,8 +618,8 @@
         96
       ],
       "iso": true,
-      "map": "hai_than_dao",
-      "lpc": true
+      "static": true,
+      "map": "hai_than_dao"
     },
     {
       "key": "beast_u_minh_lang",
