@@ -1,5 +1,7 @@
 import "./style.css";
 import Phaser from "phaser";
+import { ASSET_RETRIES, MAX_PARALLEL } from "./assetUrl.ts";
+import { installLoaderRetry } from "./loaderRetry.ts";
 import { Client, type Room } from "colyseus.js";
 import { GameScene } from "./scenes/GameScene.ts";
 import { addLag } from "./predict.ts";
@@ -269,6 +271,7 @@ function play(room: Room, roomMap: string, watch = false) {
   const onTravel = (to: string, roomId?: string | null) => leaveThen(() => { mapId = to; join(true, roomId); });
   const onArena = (roomId: string, w = false) => leaveThen(() => joinArena(roomId, w));
   const onBack = () => onTravel(mapId);
+  installLoaderRetry();
   game = new Phaser.Game({
     // `?canvas`: ép Canvas để thử đường lùi không có WebGL (ánh sáng tắt hẳn, 10.7). maxLights: số đèn Light2D (lighting.ts).
     type: new URLSearchParams(location.search).has("canvas") ? Phaser.CANVAS : Phaser.AUTO, parent: "game", backgroundColor: "#0c1712", pixelArt: true, roundPixels: true,
@@ -276,6 +279,8 @@ function play(room: Room, roomMap: string, watch = false) {
     // AudioContext dùng chung qua các lần tạo lại game (music.ts): Phaser chỉ treo chứ không đóng, nhạc nền mờ chéo được khi đổi bản đồ.
     audio: { context: sharedAudioContext() },
     scale: { mode: Phaser.Scale.RESIZE, width: innerWidth, height: innerHeight },
+    // Tải tối đa MAX_PARALLEL file cùng lúc (Phaser mặc định 32), lỗi thì thử lại ASSET_RETRIES lần có backoff (assetUrl.ts).
+    loader: { maxParallelDownloads: MAX_PARALLEL, maxRetries: ASSET_RETRIES },
   });
   game.scene.add("game", GameScene, true, { room, mapId: roomMap, onTravel, onArena, onBack, watch });
 }
