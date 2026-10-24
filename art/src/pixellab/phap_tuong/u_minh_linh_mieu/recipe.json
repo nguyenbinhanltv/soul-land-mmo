@@ -61,6 +61,36 @@
   "luotThucTe": {
     "concept": 1,
     "xoay": 2,
-    "hoat anh": "chưa làm (bước 2)"
+    "hoat anh": 20
+  },
+  "post": {
+    "despeckle": 3,
+    "anchor": "median",
+    "stabilize": 1.5,
+    "maxColors": 40,
+    "match": {
+      "idle": 1.0,
+      "attack": 0.5
+    },
+    "idleLoop": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      3,
+      2,
+      1
+    ],
+    "attackLoop": "peak"
+  },
+  "hoatAnh": {
+    "endpoint": "/v2/animate-with-text-v3",
+    "lượtMoiLan": 2,
+    "frame_count": 8,
+    "no_background": true,
+    "dung": "khung 0–7",
+    "first_frame": "<hướng>.png",
+    "seed": "ngẫu nhiên (không ghi)"
   }
 }
