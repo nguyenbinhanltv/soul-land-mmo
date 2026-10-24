@@ -46,13 +46,14 @@ export type GmCmd =
   | { op: "vohon"; vohon: string; level: number; rings: number }
   | { op: "coin"; n: number }
   | { op: "tp"; mapId: string }
+  | { op: "fog"; mode: "open" | "reset" }
   | { op: "preset"; preset: PresetId };
 
 /** Trợ giúp: cú pháp từng lệnh (gõ `/gm` không kèm gì để xem). */
 export const GM_HELP = [
   "/gm level <cấp>", "/gm give <mã vật phẩm> [số lượng]", "/gm ring <số năm> [số lượng]", "/gm bone <mã loài> <vị trí> [số năm] [cường hóa]",
   "/gm core <mã bộ> <sao> [nâng cấp]", "/gm gear <mã mẫu> [cấp vật phẩm] [cường hóa]", "/gm vohon <mã võ hồn> [cấp] [số hồn hoàn]", "/gm coin <đồng>",
-  "/gm tp <mã bản đồ>", `/gm preset ${PRESETS.join("|")}`,
+  "/gm tp <mã bản đồ>", "/gm fog [open|reset]", `/gm preset ${PRESETS.join("|")}`,
 ];
 
 const num = (s: string | undefined, lo: number, hi: number, def: number | null, what: string): number | { error: string } => {
@@ -110,6 +111,7 @@ export function parseGm(text: unknown): GmCmd | { error: string } {
     if (!Object.hasOwn(MAPS, mapId) || MAPS[mapId].kind === "arena") return { error: `Bản đồ: ${Object.keys(MAPS).filter((m) => MAPS[m].kind !== "arena").join(", ")}.` };
     return { op, mapId };
   }
+  if (op === "fog") { const mode = a[0] ?? "open"; return mode === "open" || mode === "reset" ? { op, mode } : { error: "Sương mù: /gm fog open (mở cả bản đồ) hoặc /gm fog reset (xoá về trống)." }; }
   if (op === "preset") return isPresetId(a[0]) ? { op, preset: a[0] } : { error: `Mức dựng sẵn: ${PRESETS.join(", ")}.` };
   return { error: `Lệnh lạ. Có: ${GM_HELP.join(" | ")}` };
 }

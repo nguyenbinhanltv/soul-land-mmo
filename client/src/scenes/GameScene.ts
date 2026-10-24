@@ -14,6 +14,7 @@ import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers
 import * as hud from "../hud.ts";
 import { radar, type DotSink } from "../radar.ts";
 import { mapview, type MapLabel } from "../mapview.ts";
+import { fog } from "../fog.ts";
 import { toast, lootToasts } from "../feedback.ts";
 import { initDualWindows } from "../dualWindow.ts";
 import { toggleChar, isCharOpen, onCharOpen, renderChar, charViewRow, type StatsMsg } from "../charPanel.ts";
@@ -1213,6 +1214,9 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("channels", (m: ChannelsMsg) => hud.setChannels(m)); // danh sách kênh của bản đồ (mục 6 "Nhiều kênh")
     // Bản đồ nhỏ (11.4): state chỉ còn thực thể ở gần, vị trí cả bản đồ đến mỗi giây qua tin này.
     this.room.onMessage("mini", (m: GameScene["far"]) => { if (m && Array.isArray(m.p) && Array.isArray(m.b) && Array.isArray(m.d)) this.far = m; });
+    // Sương mù khám phá (R8): server quyết định ô nào đã khám phá; `fog` cả bitset (khi xin), `fogd` các ô vừa mở. Client chỉ giữ bản sao để vẽ.
+    this.room.onMessage("fog", (m: { bits?: unknown }) => fog().setFull(m?.bits));
+    this.room.onMessage("fogd", (m: { add?: unknown }) => fog().add(m?.add));
     // Cộng minh (8.2): tiến độ 5 trụ cột và % cộng cho mọi võ hồn do server tính; mốc mới đạt thì báo lớn.
     this.room.onMessage("resonance", (m: ResonanceMsg) => {
       if (!m || !Array.isArray(m.prog)) return;
@@ -1304,6 +1308,7 @@ export class GameScene extends Phaser.Scene {
     });
     if (this.watching) return; // người xem (#280): không xin dữ liệu riêng
     this.room.send("vohons");
+    this.room.send("fog"); // sương mù khám phá (R8): tin lúc vào phòng có thể tới trước khi cảnh nghe, xin lại cả bitset
     this.room.send("boss"); // #118: tin boss lúc vào phòng tới trước khi cảnh nghe tin, xin lại (đếm ngược, đồng hồ, chiêu đang báo trước)
     this.room.send("bag");
     this.room.send("party", { op: "get" });
@@ -2244,7 +2249,7 @@ export class GameScene extends Phaser.Scene {
     for (const r of this.portals) b.fillRect(Math.floor(r.x / TILE), Math.floor(r.y / TILE), Math.max(1, Math.round(r.w / TILE)), Math.max(1, Math.round(r.h / TILE)));
     b.fillStyle = "#8fe0ff"; // truyền tống trận (11.2)
     for (const w of this.waypoints) b.fillRect(Math.floor(w.x / TILE), Math.floor(w.y / TILE), Math.max(1, Math.round(w.w / TILE)), Math.max(1, Math.round(w.h / TILE)));
-    radar().setBase(base, 1, this.mapId); mapview().reset(); mapview().setMap(this.mapId, map.width, map.height); this.initFlag();
+    radar().setBase(base, 1, this.mapId); fog().setMap(this.mapId, map.width, map.height); mapview().reset(); mapview().setMap(this.mapId, map.width, map.height); this.initFlag();
     // Nền ảnh R1 (shared/assets/mini); lỗi tải thì giữ nền vẽ từ ô ở trên. Chỉ nhận khi radar còn ở bản đồ này.
     const mapId = this.mapId, img = new Image();
     img.onload = () => { if (radar().baseKey === mapId) radar().setBase(img, MINI_BASE.px, mapId); };
@@ -2266,17 +2271,19 @@ export class GameScene extends Phaser.Scene {
   collectDots(R: DotSink, me: any, mx: number, my: number) {
     const st = this.room.state, near = SYNC_VIEW.r / TILE, far = this.far; // ngưỡng vào tầm state là SYNC_VIEW.r (interest.ts), không phải .out
     const isNear = (x: number, y: number) => Math.hypot(x - mx, y - my) < near; // trong vùng state đã có, khỏi vẽ trùng bản `mini` chậm 1 giây
-    for (let i = 0; i + 2 < far.d.length; i += 3) if (!isNear(far.d[i], far.d[i + 1])) R.dot(far.d[i + 2] >= 3 ? "quest" : "beast", far.d[i] + 0.5, far.d[i + 1] + 0.5, "Đồ rơi", TIERS[far.d[i + 2]]?.glow ?? "#ffffff", "", "drop");
-    for (let i = 0; i + 2 < far.b.length; i += 3) if (!isNear(far.b[i], far.b[i + 1])) R.dot("beast", far.b[i] + 0.5, far.b[i + 1] + 0.5, "Hồn thú nghìn năm", far.b[i + 2] === 4 ? "#ff3b3b" : "#8a6bff");
-    st.drops.forEach((d: any) => R.dot(d.tier >= 3 ? "quest" : "beast", d.x / TILE, d.y / TILE, "Đồ rơi", TIERS[d.tier].glow, "", "drop"));
+    // Sương mù (R8): hồn thú thường, đồ rơi và người lạ ở chỗ chưa khám phá thì không hiện; tinh anh, boss, đồng đội, cổng, NPC, truyền tống, mục tiêu nhiệm vụ vẫn hiện.
+    const seen = (x: number, y: number) => F.explored(x, y), F = fog();
+    for (let i = 0; i + 2 < far.d.length; i += 3) if (!isNear(far.d[i], far.d[i + 1]) && seen(far.d[i], far.d[i + 1])) R.dot(far.d[i + 2] >= 3 ? "quest" : "beast", far.d[i] + 0.5, far.d[i + 1] + 0.5, "Đồ rơi", TIERS[far.d[i + 2]]?.glow ?? "#ffffff", "", "drop");
+    for (let i = 0; i + 2 < far.b.length; i += 3) if (!isNear(far.b[i], far.b[i + 1]) && seen(far.b[i], far.b[i + 1])) R.dot("beast", far.b[i] + 0.5, far.b[i + 1] + 0.5, "Hồn thú nghìn năm", far.b[i + 2] === 4 ? "#ff3b3b" : "#8a6bff");
+    st.drops.forEach((d: any) => seen(d.x / TILE, d.y / TILE) && R.dot(d.tier >= 3 ? "quest" : "beast", d.x / TILE, d.y / TILE, "Đồ rơi", TIERS[d.tier].glow, "", "drop"));
     st.beasts.forEach((b: any) => {
       const x = b.x / TILE, y = b.y / TILE;
       if (b.rank >= 2) R.dot("boss", x, y, beastName(b.rank, b.species), BOSSES[b.species]?.aura ?? "");
       else if (b.rank === 1) R.dot("elite", x, y, beastName(1, b.species), BOSSES[b.species]?.aura ?? "#ffffff");
-      else R.dot("beast", x, y, BEASTS[b.species]?.name ?? "Hồn thú", TIERS[b.tier]?.glow ?? "#ffffff");
+      else if (seen(x, y)) R.dot("beast", x, y, BEASTS[b.species]?.name ?? "Hồn thú", TIERS[b.tier]?.glow ?? "#ffffff");
     });
     // Hang thú vương (BĐ5): khung đỏ sẫm.
-    if (this.lair) R.rect(this.lair.x / TILE, this.lair.y / TILE, this.lair.w / TILE, this.lair.h / TILE, "#a0303c");
+    if (this.lair && F.explored((this.lair.x + this.lair.w / 2) / TILE, (this.lair.y + this.lair.h / 2) / TILE)) R.rect(this.lair.x / TILE, this.lair.y / TILE, this.lair.w / TILE, this.lair.h / TILE, "#a0303c");
     // NPC, cổng, truyền tống trận (11.2).
     for (const n of this.npcs) R.dot("poi", n.x / TILE, n.y / TILE, n.def?.name ?? n.id);
     for (const r of this.portals) R.dot("poi", (r.x + r.w / 2) / TILE, (r.y + r.h / 2) / TILE, `Cổng → ${MAPS[r.to]?.name ?? r.to}`, "#86e0b0");
@@ -2292,12 +2299,12 @@ export class GameScene extends Phaser.Scene {
     st.players.forEach((p: any, id: string) => {
       if (id === this.me) return;
       const x = p.x / TILE, y = p.y / TILE, mate = mates.has(id), clan = (me.tong ?? 0) > 0 && p.tong === me.tong;
-      if (mate || clan) R.dot("ally", x, y, p.name, "", clan ? tongCol : ""); else R.dot("player", x, y, p.name);
+      if (mate || clan) R.dot("ally", x, y, p.name, "", clan ? tongCol : ""); else if (seen(x, y)) R.dot("player", x, y, p.name);
     });
     for (let i = 0; i + 2 < far.p.length; i += 3) {
       const id = String(far.p[i]); if (id === this.me || st.players.has(id)) continue;
       const x = Number(far.p[i + 1]) + 0.5, y = Number(far.p[i + 2]) + 0.5, mn = mates.get(id);
-      if (mn !== undefined) R.dot("ally", x, y, mn); else R.dot("player", x, y, "Hồn sư");
+      if (mn !== undefined) R.dot("ally", x, y, mn); else if (seen(x, y)) R.dot("player", x, y, "Hồn sư");
     }
   }
 

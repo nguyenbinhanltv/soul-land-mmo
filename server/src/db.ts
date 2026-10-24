@@ -129,7 +129,7 @@ const seedItems = (items: SeedItem[], rowOf: (code: string) => number): Item[] =
 };
 /** Các bảng xoá khi `removeTestAccount` (theo thứ tự xoá; kết quả trả số dòng mỗi bảng). */
 const REMOVE_TABLES = ["items", "teams", "vohons", "quests", "waypoints", "boss_claims", "auto_hunt", "auto_offline", "tong_points", "arena_ratings", "arena_pairs",
-  "friends", "blocks", "sessions", "characters", "inventory", "accounts"] as const;
+  "friends", "blocks", "map_fog", "sessions", "characters", "inventory", "accounts"] as const;
 const copyItem = (i: Item): Item => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) });
 const copyQuest = (q: QuestProgress): QuestProgress => ({ ...q, prog: [...q.prog] });
 const copySold = (r: SoldRow): SoldRow => ({ ...r, item: copyItem(r.item) });
@@ -247,6 +247,13 @@ export interface Store {
   getWaypoints(accountId: number): Promise<string[]>;
   /** Mở khóa truyền tống trận `wp` (đã có thì thôi, chạy lại an toàn). */
   unlockWaypoint(accountId: number, wp: string): Promise<void>;
+  /**
+   * Sương mù khám phá (R8 #435, bảng `map_fog`): bitset ô thô của tài khoản ở bản đồ `mapId` (shared/fog.ts). null = chưa có, hoặc dòng ghi cho
+   * file Tiled khác `file` (tọa độ không còn đúng). Nơi gọi tự kiểm kích thước bằng fogValid.
+   */
+  getFog(accountId: number, mapId: string, file: string): Promise<Uint8Array | null>;
+  /** Ghi (thay cả dòng) bitset ô thô của tài khoản ở bản đồ `mapId` / file `file`. Gọi qua chuỗi lưu của người chơi, gộp theo nhịp lưu, không mỗi bước. */
+  saveFog(accountId: number, mapId: string, file: string, cells: Uint8Array): Promise<void>;
   /** Tông môn của tài khoản (#196, cột `accounts.tong` / `tong_at`): `tong` mã trong TONG_MON (null = không), `at` ms gia nhập gần nhất (null = chưa từng). */
   getTong(accountId: number): Promise<TongRow>;
   /**
@@ -406,6 +413,7 @@ export class MemoryStore implements Store {
   arena = new Map<number, ArenaRecord & { t: number }>(); // accountId -> Elo, thành tích, lần ghi (bảng arena_ratings, 7.2)
   pairs = new Map<string, number>(); // "day|a|b" (a < b) -> số trận của cặp trong ngày (bảng arena_pairs, 9.7)
   wps = new Map<number, Set<string>>(); // accountId -> mã truyền tống trận đã mở khóa (bảng waypoints, 11.2)
+  fogs = new Map<number, Map<string, { file: string; cells: Uint8Array }>>(); // accountId -> mapId -> bitset sương mù (bảng map_fog, R8)
   tongs = new Map<number, TongRow>(); // accountId -> tông môn (accounts.tong / tong_at, #196)
   tongPts = new Map<string, { accountId: number; week: number; tong: string; points: number }>(); // `${accountId}|${week}|${tong}` -> điểm tông tuần (tong_points, #197)
   autos = new Map<number, AutoRow>(); // accountId -> cài đặt và giờ treo tự săn (bảng auto_hunt, Auto 1)
@@ -569,6 +577,14 @@ export class MemoryStore implements Store {
     for (const c of chars) { const cur = this.rows.get(c.rowId)!; this.rows.set(c.rowId, { ...copy(c), vohon: cur.vohon, skills: [...cur.skills] }); }
     this.putBag(accountId, bag);
   }
+  async getFog(accountId: number, mapId: string, file: string) {
+    const r = this.fogs.get(accountId)?.get(mapId);
+    return r && r.file === file ? new Uint8Array(r.cells) : null;
+  }
+  async saveFog(accountId: number, mapId: string, file: string, cells: Uint8Array) {
+    let m = this.fogs.get(accountId); if (!m) this.fogs.set(accountId, (m = new Map()));
+    m.set(mapId, { file, cells: new Uint8Array(cells) });
+  }
   async getWaypoints(accountId: number) { return [...(this.wps.get(accountId) ?? [])]; }
   async unlockWaypoint(accountId: number, wp: string) {
     let set = this.wps.get(accountId);
@@ -714,7 +730,7 @@ export class MemoryStore implements Store {
     for (const [rid, c] of this.rows) if (c.accountId === id) this.rows.delete(rid);
     for (const k of [...this.tongPts.keys()]) if (this.tongPts.get(k)!.accountId === id) this.tongPts.delete(k);
     for (const k of [...this.claims.keys()]) if (k.startsWith(`${id}|`)) this.claims.delete(k);
-    for (const m of [this.active, this.teams, this.bags, this.quests, this.wps, this.autos, this.offline, this.tongs]) m.delete(id);
+    for (const m of [this.active, this.teams, this.bags, this.quests, this.wps, this.autos, this.offline, this.tongs, this.fogs]) m.delete(id);
     const rowOf = new Map<string, number>();
     for (const v of data.vohons) {
       const c: Character = { accountId: id, name: this.names.get(id)!, rowId: this.rowSeq++, vohon: v.vohon, level: v.level, xp: v.xp, stars: v.stars, rings: [...v.rings],
@@ -741,7 +757,7 @@ export class MemoryStore implements Store {
     const tp = [...this.tongPts].filter(([, x]) => x.accountId === id).map(([k]) => k), cl = [...this.claims.keys()].filter((k) => k.startsWith(`${id}|`));
     const rel = (m: Map<number, Set<number>>) => (m.get(id)?.size ?? 0) + [...m].filter(([a, set]) => a !== id && set.has(id)).length;
     Object.assign(n, { items: this.bags.get(id)?.items.length ?? 0, teams: this.teams.get(id)?.filter(Boolean).length ?? 0, vohons: owned.length,
-      quests: this.quests.get(id)?.length ?? 0, waypoints: this.wps.get(id)?.size ?? 0, boss_claims: cl.length, auto_hunt: this.autos.has(id) ? 1 : 0,
+      quests: this.quests.get(id)?.length ?? 0, waypoints: this.wps.get(id)?.size ?? 0, map_fog: this.fogs.get(id)?.size ?? 0, boss_claims: cl.length, auto_hunt: this.autos.has(id) ? 1 : 0,
       auto_offline: this.offline.has(id) ? 1 : 0, tong_points: tp.length, arena_ratings: this.arena.has(id) ? 1 : 0, arena_pairs: pairs.length,
       friends: rel(this.friends), blocks: rel(this.blocks), sessions: tokens.length, accounts: 1 });
     for (const c of owned) this.rows.delete(c.rowId);
@@ -749,7 +765,7 @@ export class MemoryStore implements Store {
     for (const k of cl) this.claims.delete(k);
     for (const k of pairs) this.pairs.delete(k);
     for (const t of tokens) this.sessions.delete(t);
-    for (const m of [this.active, this.teams, this.bags, this.quests, this.wps, this.autos, this.offline, this.tongs, this.arena, this.locs, this.looks, this.friends, this.blocks, this.names])
+    for (const m of [this.active, this.teams, this.bags, this.quests, this.wps, this.autos, this.offline, this.tongs, this.arena, this.locs, this.looks, this.friends, this.blocks, this.names, this.fogs])
       m.delete(id);
     for (const m of [this.friends, this.blocks]) for (const set of m.values()) set.delete(id);
     this.starter.delete(id); this.tests.delete(id); this.accounts.delete(key);
@@ -1128,6 +1144,17 @@ export class PgStore implements Store {
   async unlockWaypoint(accountId: number, wp: string) {
     await this.pool.query("INSERT INTO waypoints (account_id, wp) VALUES ($1, $2) ON CONFLICT DO NOTHING", [accountId, wp]);
   }
+  async getFog(accountId: number, mapId: string, file: string) {
+    const r = await this.pool.query("SELECT map_file, cells FROM map_fog WHERE account_id=$1 AND map_id=$2", [accountId, mapId]);
+    const x = r.rows[0];
+    return x && x.map_file === file ? new Uint8Array(x.cells as Buffer) : null;
+  }
+  async saveFog(accountId: number, mapId: string, file: string, cells: Uint8Array) {
+    await this.pool.query(
+      `INSERT INTO map_fog (account_id, map_id, map_file, cells) VALUES ($1,$2,$3,$4)
+       ON CONFLICT (account_id, map_id) DO UPDATE SET map_file=EXCLUDED.map_file, cells=EXCLUDED.cells, updated_at=now()`,
+      [accountId, mapId, file, Buffer.from(cells)]);
+  }
   async getTong(accountId: number) {
     const r = await this.pool.query("SELECT tong, tong_at FROM accounts WHERE id=$1", [accountId]);
     const x = r.rows[0];
@@ -1370,7 +1397,7 @@ export class PgStore implements Store {
         id = Number(ins.rows[0].id); created = true;
       }
       // Xoá phần dựng lại được (không đụng Elo, bạn bè, chặn): đồ trước võ hồn vì items tham chiếu vohons.
-      for (const t of ["items", "teams", "vohons", "quests", "waypoints", "boss_claims", "auto_hunt", "auto_offline", "tong_points"])
+      for (const t of ["items", "teams", "vohons", "quests", "waypoints", "boss_claims", "auto_hunt", "auto_offline", "tong_points", "map_fog"])
         await db.query(`DELETE FROM ${t} WHERE account_id=$1`, [id]);
       const rowOf = new Map<string, number>();
       for (const v of data.vohons) {
