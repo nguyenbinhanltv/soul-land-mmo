@@ -82,7 +82,12 @@ Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` 
 | A Ngân (`a_ngan`) | Dây Lam Ngân vân vàng quấn hai tay, vương miện cỏ, đóa Lam Ngân Hoàng nở sau lưng | Tay + đầu + lưng | Đốm sáng xanh và vàng li ti |
 | Liệt Hỏa Thương Lang (`liet_hoa_thuong_lang`) | Tai sói xám, đuôi sói to chóp lửa, vuốt lửa hai tay | Đầu + lưng + tay | Tàn lửa bay từ chóp đuôi; vệt cào lửa khi đánh |
 | Băng Phượng Hoàng (`bang_phuong_hoang`) | Đôi cánh băng phượng hoàng, mào băng trên đầu | Lưng + đầu | Tinh thể băng hình chữ thập lấp lánh quanh người |
-| Bạch Hổ (`bach_ho`) | Tai hổ trắng, đuôi hổ vằn đen, vuốt hai tay (hình tạm vẽ bằng code, ảnh thật ở #425) | Đầu + lưng + tay | Vằn sáng và vệt cào trắng khi đánh |
+| Bạch Hổ (`bach_ho`) | Tai hổ trắng, đuôi hổ vằn đen, vuốt hai tay (ảnh Gemini 5 hướng, ghép ở #425) | Đầu + lưng + tay | Vằn sáng và vệt cào trắng khi đánh |
+
+## Pháp tướng Võ Hồn Chân Thân
+- Sheet `phaptuong/<mã võ hồn>.png`, key `pt_<mã>` (`"iso": true` kèm `pt` trong manifest), khung 160×160, gốc (80, 124) trùng chân hồn sư (32, 58); 5 hàng hướng `s`, `se`, `e`, `ne`, `n` (sw / w / nw lật), 16 cột: `idle` 8 (cột 0–7), `attack` 8 (cột 8–15); 2560×800. Chỉ alpha 0 / 255, ≤ `PT_MAX_COLORS` (48) màu, khung không chạm mép trên / trái / phải. Hằng `PT_*` và `isoLayout("phaptuong")` ở `lib.mjs`.
+- Nguồn ảnh và `recipe.json` (prompt, seed, lượt, cách ghép) ở `art/src/pixellab/phap_tuong/<mã>/`; công cụ `pixellab-pt.mjs` (concept, xoay, hoạt ảnh bằng PixelLab) và `phaptuong.mjs` (hậu kỳ + sheet, thở / đánh bằng code cho vật cứng). Công thức chuẩn, lượt thực tế, bẫy: `docs/phap-tuong-cong-thuc.md`; đặc tả 25 võ hồn: `docs/phap-tuong.md`.
+- Client chưa tải sheet này (H2); độ đục hư ảnh, lớp sau / trước theo hướng, tỉ lệ và độ dời đọc từ `pt` của manifest.
 
 ## Hồn thú
 - Khung theo bậc: Trắng, Vàng 64×64 (thú nhỏ, cao 20–40); Tím, Đen 96×96 (dài khoảng 2–3 thoi); Đỏ 128×128; tà hóa thú vương 160×160; boss thế giới 192×192. Gốc giữa đáy, cách mép dưới khoảng 8 (`ISO_BEAST_FOOT`). Tinh anh không có khung riêng: client phóng sprite loài gốc theo `ELITE.scale` (`rankScale` trong `GameScene.ts`); thú vương / boss chưa có sprite riêng thì phóng theo `KING.scale` / `WORLD.scale`.
