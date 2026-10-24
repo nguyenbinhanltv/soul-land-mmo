@@ -1335,6 +1335,1406 @@
       "pack": "pk",
       "sourceId": "oga-heartbeat-fast",
       "start": 14.86
+    },
+    {
+      "duration": 0.3,
+      "group": "skill-t3-ult-cuu-tinh-that-sat-kiem-start",
+      "id": "ult-cuu-tinh-that-sat-kiem-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 17.47
+    },
+    {
+      "duration": 0.24,
+      "group": "skill-t3-ult-cuu-tinh-that-sat-kiem-fly",
+      "id": "ult-cuu-tinh-that-sat-kiem-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 17.82
+    },
+    {
+      "duration": 0.33,
+      "group": "skill-t3-ult-cuu-tinh-that-sat-kiem-boom",
+      "id": "ult-cuu-tinh-that-sat-kiem-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 18.11
+    },
+    {
+      "duration": 0.52,
+      "group": "skill-t3-ult-lam-dien-ba-vuong-long-start",
+      "id": "ult-lam-dien-ba-vuong-long-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 18.49
+    },
+    {
+      "duration": 0.75,
+      "group": "skill-t3-ult-lam-dien-ba-vuong-long-fly",
+      "id": "ult-lam-dien-ba-vuong-long-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 19.06
+    },
+    {
+      "duration": 0.88,
+      "group": "skill-t3-ult-lam-dien-ba-vuong-long-boom",
+      "id": "ult-lam-dien-ba-vuong-long-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 19.86
+    },
+    {
+      "duration": 0.75,
+      "group": "skill-t3-ult-ky-nhung-thong-thien-cuc-start",
+      "id": "ult-ky-nhung-thong-thien-cuc-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 20.79
+    },
+    {
+      "duration": 0.32,
+      "group": "skill-t3-ult-ky-nhung-thong-thien-cuc-fly",
+      "id": "ult-ky-nhung-thong-thien-cuc-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 21.59
+    },
+    {
+      "duration": 0.37,
+      "group": "skill-t3-ult-ky-nhung-thong-thien-cuc-boom",
+      "id": "ult-ky-nhung-thong-thien-cuc-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 21.96
+    },
+    {
+      "duration": 0.54,
+      "group": "skill-t3-ult-ta-hoa-phuong-hoang-start",
+      "id": "ult-ta-hoa-phuong-hoang-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 22.38
+    },
+    {
+      "duration": 0.73,
+      "group": "skill-t3-ult-ta-hoa-phuong-hoang-fly",
+      "id": "ult-ta-hoa-phuong-hoang-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 22.97
+    },
+    {
+      "duration": 0.34,
+      "group": "skill-t3-ult-ta-hoa-phuong-hoang-boom",
+      "id": "ult-ta-hoa-phuong-hoang-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 23.75
+    },
+    {
+      "duration": 0.41,
+      "group": "skill-t3-ult-u-minh-linh-mieu-start",
+      "id": "ult-u-minh-linh-mieu-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 24.14
+    },
+    {
+      "duration": 0.33,
+      "group": "skill-t3-ult-u-minh-linh-mieu-fly",
+      "id": "ult-u-minh-linh-mieu-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 24.6
+    },
+    {
+      "duration": 0.05,
+      "group": "skill-t3-ult-u-minh-linh-mieu-boom",
+      "id": "ult-u-minh-linh-mieu-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 24.98
+    },
+    {
+      "duration": 0.59,
+      "group": "skill-t3-ult-nguyet-nhan-start",
+      "id": "ult-nguyet-nhan-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 25.08
+    },
+    {
+      "duration": 0.27,
+      "group": "skill-t3-ult-nguyet-nhan-fly",
+      "id": "ult-nguyet-nhan-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 25.72
+    },
+    {
+      "duration": 0.5,
+      "group": "skill-t3-ult-nguyet-nhan-boom",
+      "id": "ult-nguyet-nhan-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 26.04
+    },
+    {
+      "duration": 0.26,
+      "group": "skill-t3-ult-hoa-long-start",
+      "id": "ult-hoa-long-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 26.59
+    },
+    {
+      "duration": 0.21,
+      "group": "skill-t3-ult-hoa-long-fly",
+      "id": "ult-hoa-long-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 26.9
+    },
+    {
+      "duration": 0.22,
+      "group": "skill-t3-ult-hoa-long-boom",
+      "id": "ult-hoa-long-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 27.16
+    },
+    {
+      "duration": 0.14,
+      "group": "skill-t3-ult-nhu-cot-tho-start",
+      "id": "ult-nhu-cot-tho-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 27.43
+    },
+    {
+      "duration": 0.09,
+      "group": "skill-t3-ult-nhu-cot-tho-fly",
+      "id": "ult-nhu-cot-tho-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 27.62
+    },
+    {
+      "duration": 0.8,
+      "group": "skill-t3-ult-nhu-cot-tho-boom",
+      "id": "ult-nhu-cot-tho-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 27.76
+    },
+    {
+      "duration": 0.45,
+      "group": "skill-t3-ult-kim-vu-mieu-ung-start",
+      "id": "ult-kim-vu-mieu-ung-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 28.61
+    },
+    {
+      "duration": 0.53,
+      "group": "skill-t3-ult-kim-vu-mieu-ung-fly",
+      "id": "ult-kim-vu-mieu-ung-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 29.11
+    },
+    {
+      "duration": 1.2,
+      "group": "skill-t3-ult-kim-vu-mieu-ung-boom",
+      "id": "ult-kim-vu-mieu-ung-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 29.69
+    },
+    {
+      "duration": 0.75,
+      "group": "skill-t3-ult-tu-vong-chu-hoang-start",
+      "id": "ult-tu-vong-chu-hoang-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 30.94
+    },
+    {
+      "duration": 0.67,
+      "group": "skill-t3-ult-tu-vong-chu-hoang-fly",
+      "id": "ult-tu-vong-chu-hoang-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 31.74
+    },
+    {
+      "duration": 0.38,
+      "group": "skill-t3-ult-tu-vong-chu-hoang-boom",
+      "id": "ult-tu-vong-chu-hoang-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 32.46
+    },
+    {
+      "duration": 0.43,
+      "group": "skill-t3-ult-bich-lan-xa-hoang-start",
+      "id": "ult-bich-lan-xa-hoang-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 32.89
+    },
+    {
+      "duration": 0.38,
+      "group": "skill-t3-ult-bich-lan-xa-hoang-fly",
+      "id": "ult-bich-lan-xa-hoang-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 33.37
+    },
+    {
+      "duration": 0.38,
+      "group": "skill-t3-ult-bich-lan-xa-hoang-boom",
+      "id": "ult-bich-lan-xa-hoang-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 33.8
+    },
+    {
+      "duration": 0.44,
+      "group": "skill-t3-ult-can-khon-hon-nguyen-toa-start",
+      "id": "ult-can-khon-hon-nguyen-toa-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 34.23
+    },
+    {
+      "duration": 0.48,
+      "group": "skill-t3-ult-can-khon-hon-nguyen-toa-fly",
+      "id": "ult-can-khon-hon-nguyen-toa-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 34.72
+    },
+    {
+      "duration": 1.18,
+      "group": "skill-t3-ult-can-khon-hon-nguyen-toa-boom",
+      "id": "ult-can-khon-hon-nguyen-toa-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 35.25
+    },
+    {
+      "duration": 0.21,
+      "group": "skill-t3-ult-hoa-anh-start",
+      "id": "ult-hoa-anh-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 36.48
+    },
+    {
+      "duration": 0.06,
+      "group": "skill-t3-ult-hoa-anh-fly",
+      "id": "ult-hoa-anh-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 36.74
+    },
+    {
+      "duration": 0.15,
+      "group": "skill-t3-ult-hoa-anh-boom",
+      "id": "ult-hoa-anh-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 36.85
+    },
+    {
+      "duration": 0.71,
+      "group": "skill-t3-ult-yeu-ho-start",
+      "id": "ult-yeu-ho-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 37.05
+    },
+    {
+      "duration": 0.3,
+      "group": "skill-t3-ult-yeu-ho-fly",
+      "id": "ult-yeu-ho-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 37.81
+    },
+    {
+      "duration": 0.46,
+      "group": "skill-t3-ult-yeu-ho-boom",
+      "id": "ult-yeu-ho-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 38.16
+    },
+    {
+      "duration": 0.22,
+      "group": "skill-t3-ult-xuc-xich-start",
+      "id": "ult-xuc-xich-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 38.67
+    },
+    {
+      "duration": 0.17,
+      "group": "skill-t3-ult-xuc-xich-fly",
+      "id": "ult-xuc-xich-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 38.94
+    },
+    {
+      "duration": 0.21,
+      "group": "skill-t3-ult-xuc-xich-boom",
+      "id": "ult-xuc-xich-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 39.16
+    },
+    {
+      "duration": 0.58,
+      "group": "skill-t3-ult-quy-mi-start",
+      "id": "ult-quy-mi-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 39.42
+    },
+    {
+      "duration": 0.33,
+      "group": "skill-t3-ult-quy-mi-fly",
+      "id": "ult-quy-mi-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 40.05
+    },
+    {
+      "duration": 0.14,
+      "group": "skill-t3-ult-quy-mi-boom",
+      "id": "ult-quy-mi-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 40.43
+    },
+    {
+      "duration": 0.26,
+      "group": "skill-t3-ult-thien-can-bach-ngoc-dinh-start",
+      "id": "ult-thien-can-bach-ngoc-dinh-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 40.62
+    },
+    {
+      "duration": 0.22,
+      "group": "skill-t3-ult-thien-can-bach-ngoc-dinh-fly",
+      "id": "ult-thien-can-bach-ngoc-dinh-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 40.93
+    },
+    {
+      "duration": 0.29,
+      "group": "skill-t3-ult-thien-can-bach-ngoc-dinh-boom",
+      "id": "ult-thien-can-bach-ngoc-dinh-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 41.2
+    },
+    {
+      "duration": 0.2,
+      "group": "skill-t3-ult-lam-ngan-thao-start",
+      "id": "ult-lam-ngan-thao-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 41.54
+    },
+    {
+      "duration": 0.38,
+      "group": "skill-t3-ult-lam-ngan-thao-fly",
+      "id": "ult-lam-ngan-thao-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 41.79
+    },
+    {
+      "duration": 0.28,
+      "group": "skill-t3-ult-lam-ngan-thao-boom",
+      "id": "ult-lam-ngan-thao-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 42.22
+    },
+    {
+      "duration": 0.18,
+      "group": "skill-t3-ult-hao-thien-chuy-start",
+      "id": "ult-hao-thien-chuy-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 42.55
+    },
+    {
+      "duration": 0.22,
+      "group": "skill-t3-ult-hao-thien-chuy-fly",
+      "id": "ult-hao-thien-chuy-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 42.78
+    },
+    {
+      "duration": 0.51,
+      "group": "skill-t3-ult-hao-thien-chuy-boom",
+      "id": "ult-hao-thien-chuy-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 43.05
+    },
+    {
+      "duration": 0.43,
+      "group": "skill-t3-ult-cuu-bao-luu-ly-thap-start",
+      "id": "ult-cuu-bao-luu-ly-thap-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 43.61
+    },
+    {
+      "duration": 0.36,
+      "group": "skill-t3-ult-cuu-bao-luu-ly-thap-fly",
+      "id": "ult-cuu-bao-luu-ly-thap-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 44.09
+    },
+    {
+      "duration": 0.12,
+      "group": "skill-t3-ult-cuu-bao-luu-ly-thap-boom",
+      "id": "ult-cuu-bao-luu-ly-thap-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 44.5
+    },
+    {
+      "duration": 0.33,
+      "group": "skill-t3-ult-pha-hon-thuong-start",
+      "id": "ult-pha-hon-thuong-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 44.67
+    },
+    {
+      "duration": 0.15,
+      "group": "skill-t3-ult-pha-hon-thuong-fly",
+      "id": "ult-pha-hon-thuong-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 45.05
+    },
+    {
+      "duration": 0.53,
+      "group": "skill-t3-ult-pha-hon-thuong-boom",
+      "id": "ult-pha-hon-thuong-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 45.25
+    },
+    {
+      "duration": 0.31,
+      "group": "skill-t3-ult-a-ngan-start",
+      "id": "ult-a-ngan-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 45.83
+    },
+    {
+      "duration": 0.66,
+      "group": "skill-t3-ult-a-ngan-fly",
+      "id": "ult-a-ngan-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 46.19
+    },
+    {
+      "duration": 0.81,
+      "group": "skill-t3-ult-a-ngan-boom",
+      "id": "ult-a-ngan-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 46.9
+    },
+    {
+      "duration": 0.75,
+      "group": "skill-t3-ult-liet-hoa-thuong-lang-start",
+      "id": "ult-liet-hoa-thuong-lang-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 47.76
+    },
+    {
+      "duration": 0.75,
+      "group": "skill-t3-ult-liet-hoa-thuong-lang-fly",
+      "id": "ult-liet-hoa-thuong-lang-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 48.56
+    },
+    {
+      "duration": 0.82,
+      "group": "skill-t3-ult-liet-hoa-thuong-lang-boom",
+      "id": "ult-liet-hoa-thuong-lang-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 49.36
+    },
+    {
+      "duration": 0.75,
+      "group": "skill-t3-ult-bang-phuong-hoang-start",
+      "id": "ult-bang-phuong-hoang-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 50.23
+    },
+    {
+      "duration": 0.37,
+      "group": "skill-t3-ult-bang-phuong-hoang-fly",
+      "id": "ult-bang-phuong-hoang-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 51.03
+    },
+    {
+      "duration": 0.5,
+      "group": "skill-t3-ult-bang-phuong-hoang-boom",
+      "id": "ult-bang-phuong-hoang-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 51.45
+    },
+    {
+      "duration": 0.49,
+      "group": "skill-t3-ult-bach-ho-start",
+      "id": "ult-bach-ho-start",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 52
+    },
+    {
+      "duration": 0.75,
+      "group": "skill-t3-ult-bach-ho-fly",
+      "id": "ult-bach-ho-fly",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 52.54
+    },
+    {
+      "duration": 0.17,
+      "group": "skill-t3-ult-bach-ho-boom",
+      "id": "ult-bach-ho-boom",
+      "pack": "skill",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 53.34
+    },
+    {
+      "duration": 0.32,
+      "group": "skill-t3-ct-cuu-tinh-that-sat-kiem-start",
+      "id": "ct-cuu-tinh-that-sat-kiem-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 53.56
+    },
+    {
+      "duration": 0.27,
+      "group": "skill-t3-ct-cuu-tinh-that-sat-kiem-fly",
+      "id": "ct-cuu-tinh-that-sat-kiem-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 53.93
+    },
+    {
+      "duration": 0.29,
+      "group": "skill-t3-ct-cuu-tinh-that-sat-kiem-boom",
+      "id": "ct-cuu-tinh-that-sat-kiem-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 54.25
+    },
+    {
+      "duration": 0.2,
+      "group": "skill-t3-ct-lam-dien-ba-vuong-long-start",
+      "id": "ct-lam-dien-ba-vuong-long-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 54.59
+    },
+    {
+      "duration": 0.38,
+      "group": "skill-t3-ct-lam-dien-ba-vuong-long-fly",
+      "id": "ct-lam-dien-ba-vuong-long-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 54.84
+    },
+    {
+      "duration": 0.2,
+      "group": "skill-t3-ct-lam-dien-ba-vuong-long-boom",
+      "id": "ct-lam-dien-ba-vuong-long-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 55.27
+    },
+    {
+      "duration": 0.3,
+      "group": "skill-t3-ct-ky-nhung-thong-thien-cuc-start",
+      "id": "ct-ky-nhung-thong-thien-cuc-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 55.52
+    },
+    {
+      "duration": 0.18,
+      "group": "skill-t3-ct-ky-nhung-thong-thien-cuc-fly",
+      "id": "ct-ky-nhung-thong-thien-cuc-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 55.87
+    },
+    {
+      "duration": 0.2,
+      "group": "skill-t3-ct-ky-nhung-thong-thien-cuc-boom",
+      "id": "ct-ky-nhung-thong-thien-cuc-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 56.1
+    },
+    {
+      "duration": 0.31,
+      "group": "skill-t3-ct-ta-hoa-phuong-hoang-start",
+      "id": "ct-ta-hoa-phuong-hoang-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 56.35
+    },
+    {
+      "duration": 0.21,
+      "group": "skill-t3-ct-ta-hoa-phuong-hoang-fly",
+      "id": "ct-ta-hoa-phuong-hoang-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 56.71
+    },
+    {
+      "duration": 0.28,
+      "group": "skill-t3-ct-ta-hoa-phuong-hoang-boom",
+      "id": "ct-ta-hoa-phuong-hoang-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 56.97
+    },
+    {
+      "duration": 0.29,
+      "group": "skill-t3-ct-u-minh-linh-mieu-start",
+      "id": "ct-u-minh-linh-mieu-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 57.3
+    },
+    {
+      "duration": 0.31,
+      "group": "skill-t3-ct-u-minh-linh-mieu-fly",
+      "id": "ct-u-minh-linh-mieu-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 57.64
+    },
+    {
+      "duration": 0.36,
+      "group": "skill-t3-ct-u-minh-linh-mieu-boom",
+      "id": "ct-u-minh-linh-mieu-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 58
+    },
+    {
+      "duration": 0.27,
+      "group": "skill-t3-ct-nguyet-nhan-start",
+      "id": "ct-nguyet-nhan-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 58.41
+    },
+    {
+      "duration": 0.23,
+      "group": "skill-t3-ct-nguyet-nhan-fly",
+      "id": "ct-nguyet-nhan-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 58.73
+    },
+    {
+      "duration": 0.25,
+      "group": "skill-t3-ct-nguyet-nhan-boom",
+      "id": "ct-nguyet-nhan-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 59.01
+    },
+    {
+      "duration": 0.26,
+      "group": "skill-t3-ct-hoa-long-start",
+      "id": "ct-hoa-long-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 59.31
+    },
+    {
+      "duration": 0.23,
+      "group": "skill-t3-ct-hoa-long-fly",
+      "id": "ct-hoa-long-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 59.62
+    },
+    {
+      "duration": 0.2,
+      "group": "skill-t3-ct-hoa-long-boom",
+      "id": "ct-hoa-long-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 59.9
+    },
+    {
+      "duration": 0.25,
+      "group": "skill-t3-ct-nhu-cot-tho-start",
+      "id": "ct-nhu-cot-tho-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 60.15
+    },
+    {
+      "duration": 0.24,
+      "group": "skill-t3-ct-nhu-cot-tho-fly",
+      "id": "ct-nhu-cot-tho-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 60.45
+    },
+    {
+      "duration": 0.2,
+      "group": "skill-t3-ct-nhu-cot-tho-boom",
+      "id": "ct-nhu-cot-tho-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 60.74
+    },
+    {
+      "duration": 0.27,
+      "group": "skill-t3-ct-kim-vu-mieu-ung-start",
+      "id": "ct-kim-vu-mieu-ung-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 60.99
+    },
+    {
+      "duration": 0.22,
+      "group": "skill-t3-ct-kim-vu-mieu-ung-fly",
+      "id": "ct-kim-vu-mieu-ung-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 61.31
+    },
+    {
+      "duration": 0.29,
+      "group": "skill-t3-ct-kim-vu-mieu-ung-boom",
+      "id": "ct-kim-vu-mieu-ung-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 61.58
+    },
+    {
+      "duration": 0.26,
+      "group": "skill-t3-ct-tu-vong-chu-hoang-start",
+      "id": "ct-tu-vong-chu-hoang-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 61.92
+    },
+    {
+      "duration": 0.19,
+      "group": "skill-t3-ct-tu-vong-chu-hoang-fly",
+      "id": "ct-tu-vong-chu-hoang-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 62.23
+    },
+    {
+      "duration": 0.26,
+      "group": "skill-t3-ct-tu-vong-chu-hoang-boom",
+      "id": "ct-tu-vong-chu-hoang-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 62.47
+    },
+    {
+      "duration": 0.06,
+      "group": "skill-t3-ct-bich-lan-xa-hoang-start",
+      "id": "ct-bich-lan-xa-hoang-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 62.78
+    },
+    {
+      "duration": 0.1,
+      "group": "skill-t3-ct-bich-lan-xa-hoang-fly",
+      "id": "ct-bich-lan-xa-hoang-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 62.89
+    },
+    {
+      "duration": 0.08,
+      "group": "skill-t3-ct-bich-lan-xa-hoang-boom",
+      "id": "ct-bich-lan-xa-hoang-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 63.04
+    },
+    {
+      "duration": 0.07,
+      "group": "skill-t3-ct-can-khon-hon-nguyen-toa-start",
+      "id": "ct-can-khon-hon-nguyen-toa-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 63.17
+    },
+    {
+      "duration": 0.08,
+      "group": "skill-t3-ct-can-khon-hon-nguyen-toa-fly",
+      "id": "ct-can-khon-hon-nguyen-toa-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 63.29
+    },
+    {
+      "duration": 0.1,
+      "group": "skill-t3-ct-can-khon-hon-nguyen-toa-boom",
+      "id": "ct-can-khon-hon-nguyen-toa-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 63.42
+    },
+    {
+      "duration": 0.12,
+      "group": "skill-t3-ct-hoa-anh-start",
+      "id": "ct-hoa-anh-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 63.57
+    },
+    {
+      "duration": 0.08,
+      "group": "skill-t3-ct-hoa-anh-fly",
+      "id": "ct-hoa-anh-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 63.74
+    },
+    {
+      "duration": 0.07,
+      "group": "skill-t3-ct-hoa-anh-boom",
+      "id": "ct-hoa-anh-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 63.87
+    },
+    {
+      "duration": 0.15,
+      "group": "skill-t3-ct-yeu-ho-start",
+      "id": "ct-yeu-ho-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 63.99
+    },
+    {
+      "duration": 0.07,
+      "group": "skill-t3-ct-yeu-ho-fly",
+      "id": "ct-yeu-ho-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 64.19
+    },
+    {
+      "duration": 0.14,
+      "group": "skill-t3-ct-yeu-ho-boom",
+      "id": "ct-yeu-ho-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 64.31
+    },
+    {
+      "duration": 0.1,
+      "group": "skill-t3-ct-xuc-xich-start",
+      "id": "ct-xuc-xich-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 64.5
+    },
+    {
+      "duration": 0.12,
+      "group": "skill-t3-ct-xuc-xich-fly",
+      "id": "ct-xuc-xich-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 64.65
+    },
+    {
+      "duration": 0.15,
+      "group": "skill-t3-ct-xuc-xich-boom",
+      "id": "ct-xuc-xich-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 64.82
+    },
+    {
+      "duration": 0.11,
+      "group": "skill-t3-ct-quy-mi-start",
+      "id": "ct-quy-mi-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 65.02
+    },
+    {
+      "duration": 0.07,
+      "group": "skill-t3-ct-quy-mi-fly",
+      "id": "ct-quy-mi-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 65.18
+    },
+    {
+      "duration": 0.09,
+      "group": "skill-t3-ct-quy-mi-boom",
+      "id": "ct-quy-mi-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 65.3
+    },
+    {
+      "duration": 0.09,
+      "group": "skill-t3-ct-thien-can-bach-ngoc-dinh-start",
+      "id": "ct-thien-can-bach-ngoc-dinh-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 65.44
+    },
+    {
+      "duration": 0.08,
+      "group": "skill-t3-ct-thien-can-bach-ngoc-dinh-fly",
+      "id": "ct-thien-can-bach-ngoc-dinh-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 65.58
+    },
+    {
+      "duration": 0.14,
+      "group": "skill-t3-ct-thien-can-bach-ngoc-dinh-boom",
+      "id": "ct-thien-can-bach-ngoc-dinh-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 65.71
+    },
+    {
+      "duration": 0.15,
+      "group": "skill-t3-ct-lam-ngan-thao-start",
+      "id": "ct-lam-ngan-thao-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 65.9
+    },
+    {
+      "duration": 0.19,
+      "group": "skill-t3-ct-lam-ngan-thao-fly",
+      "id": "ct-lam-ngan-thao-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 66.1
+    },
+    {
+      "duration": 0.14,
+      "group": "skill-t3-ct-lam-ngan-thao-boom",
+      "id": "ct-lam-ngan-thao-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 66.34
+    },
+    {
+      "duration": 0.17,
+      "group": "skill-t3-ct-hao-thien-chuy-start",
+      "id": "ct-hao-thien-chuy-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 66.53
+    },
+    {
+      "duration": 0.07,
+      "group": "skill-t3-ct-hao-thien-chuy-fly",
+      "id": "ct-hao-thien-chuy-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 66.75
+    },
+    {
+      "duration": 0.06,
+      "group": "skill-t3-ct-hao-thien-chuy-boom",
+      "id": "ct-hao-thien-chuy-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 66.87
+    },
+    {
+      "duration": 0.1,
+      "group": "skill-t3-ct-cuu-bao-luu-ly-thap-start",
+      "id": "ct-cuu-bao-luu-ly-thap-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 66.98
+    },
+    {
+      "duration": 0.07,
+      "group": "skill-t3-ct-cuu-bao-luu-ly-thap-fly",
+      "id": "ct-cuu-bao-luu-ly-thap-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 67.13
+    },
+    {
+      "duration": 0.06,
+      "group": "skill-t3-ct-cuu-bao-luu-ly-thap-boom",
+      "id": "ct-cuu-bao-luu-ly-thap-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 67.25
+    },
+    {
+      "duration": 0.06,
+      "group": "skill-t3-ct-pha-hon-thuong-start",
+      "id": "ct-pha-hon-thuong-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 67.36
+    },
+    {
+      "duration": 0.05,
+      "group": "skill-t3-ct-pha-hon-thuong-fly",
+      "id": "ct-pha-hon-thuong-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 67.47
+    },
+    {
+      "duration": 0.04,
+      "group": "skill-t3-ct-pha-hon-thuong-boom",
+      "id": "ct-pha-hon-thuong-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 67.57
+    },
+    {
+      "duration": 0.06,
+      "group": "skill-t3-ct-a-ngan-start",
+      "id": "ct-a-ngan-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 67.66
+    },
+    {
+      "duration": 0.05,
+      "group": "skill-t3-ct-a-ngan-fly",
+      "id": "ct-a-ngan-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 67.77
+    },
+    {
+      "duration": 0.1,
+      "group": "skill-t3-ct-a-ngan-boom",
+      "id": "ct-a-ngan-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 67.87
+    },
+    {
+      "duration": 0.2,
+      "group": "skill-t3-ct-liet-hoa-thuong-lang-start",
+      "id": "ct-liet-hoa-thuong-lang-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 68.02
+    },
+    {
+      "duration": 0.15,
+      "group": "skill-t3-ct-liet-hoa-thuong-lang-fly",
+      "id": "ct-liet-hoa-thuong-lang-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 68.27
+    },
+    {
+      "duration": 0.09,
+      "group": "skill-t3-ct-liet-hoa-thuong-lang-boom",
+      "id": "ct-liet-hoa-thuong-lang-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 68.47
+    },
+    {
+      "duration": 0.14,
+      "group": "skill-t3-ct-bang-phuong-hoang-start",
+      "id": "ct-bang-phuong-hoang-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 68.61
+    },
+    {
+      "duration": 0.18,
+      "group": "skill-t3-ct-bang-phuong-hoang-fly",
+      "id": "ct-bang-phuong-hoang-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 68.8
+    },
+    {
+      "duration": 0.15,
+      "group": "skill-t3-ct-bang-phuong-hoang-boom",
+      "id": "ct-bang-phuong-hoang-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 69.03
+    },
+    {
+      "duration": 0.24,
+      "group": "skill-t3-ct-bach-ho-start",
+      "id": "ct-bach-ho-start",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 69.23
+    },
+    {
+      "duration": 0.18,
+      "group": "skill-t3-ct-bach-ho-fly",
+      "id": "ct-bach-ho-fly",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 69.52
+    },
+    {
+      "duration": 0.15,
+      "group": "skill-t3-ct-bach-ho-boom",
+      "id": "ct-bach-ho-boom",
+      "pack": "skill",
+      "sourceId": "kenney-impact-sounds",
+      "start": 69.75
+    },
+    {
+      "duration": 0.29,
+      "group": "skill-t3-avatar-cuu-tinh-that-sat-kiem",
+      "id": "avatar-cuu-tinh-that-sat-kiem-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 69.95
+    },
+    {
+      "duration": 0.23,
+      "group": "skill-t3-avatar-lam-dien-ba-vuong-long",
+      "id": "avatar-lam-dien-ba-vuong-long-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 70.29
+    },
+    {
+      "duration": 0.23,
+      "group": "skill-t3-avatar-ky-nhung-thong-thien-cuc",
+      "id": "avatar-ky-nhung-thong-thien-cuc-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 70.57
+    },
+    {
+      "duration": 0.45,
+      "group": "skill-t3-avatar-ta-hoa-phuong-hoang",
+      "id": "avatar-ta-hoa-phuong-hoang-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 70.85
+    },
+    {
+      "duration": 0.72,
+      "group": "skill-t3-avatar-u-minh-linh-mieu",
+      "id": "avatar-u-minh-linh-mieu-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 71.35
+    },
+    {
+      "duration": 0.57,
+      "group": "skill-t3-avatar-nguyet-nhan",
+      "id": "avatar-nguyet-nhan-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 72.12
+    },
+    {
+      "duration": 0.43,
+      "group": "skill-t3-avatar-hoa-long",
+      "id": "avatar-hoa-long-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 72.74
+    },
+    {
+      "duration": 0.28,
+      "group": "skill-t3-avatar-nhu-cot-tho",
+      "id": "avatar-nhu-cot-tho-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 73.22
+    },
+    {
+      "duration": 0.14,
+      "group": "skill-t3-avatar-kim-vu-mieu-ung",
+      "id": "avatar-kim-vu-mieu-ung-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 73.55
+    },
+    {
+      "duration": 0.4,
+      "group": "skill-t3-avatar-tu-vong-chu-hoang",
+      "id": "avatar-tu-vong-chu-hoang-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 73.74
+    },
+    {
+      "duration": 0.53,
+      "group": "skill-t3-avatar-bich-lan-xa-hoang",
+      "id": "avatar-bich-lan-xa-hoang-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 74.19
+    },
+    {
+      "duration": 0.58,
+      "group": "skill-t3-avatar-can-khon-hon-nguyen-toa",
+      "id": "avatar-can-khon-hon-nguyen-toa-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 74.77
+    },
+    {
+      "duration": 0.4,
+      "group": "skill-t3-avatar-hoa-anh",
+      "id": "avatar-hoa-anh-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 75.4
+    },
+    {
+      "duration": 0.43,
+      "group": "skill-t3-avatar-yeu-ho",
+      "id": "avatar-yeu-ho-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 75.85
+    },
+    {
+      "duration": 0.51,
+      "group": "skill-t3-avatar-xuc-xich",
+      "id": "avatar-xuc-xich-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 76.33
+    },
+    {
+      "duration": 0.79,
+      "group": "skill-t3-avatar-quy-mi",
+      "id": "avatar-quy-mi-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 76.89
+    },
+    {
+      "duration": 0.53,
+      "group": "skill-t3-avatar-thien-can-bach-ngoc-dinh",
+      "id": "avatar-thien-can-bach-ngoc-dinh-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 77.73
+    },
+    {
+      "duration": 0.17,
+      "group": "skill-t3-avatar-lam-ngan-thao",
+      "id": "avatar-lam-ngan-thao-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 78.31
+    },
+    {
+      "duration": 0.81,
+      "group": "skill-t3-avatar-hao-thien-chuy",
+      "id": "avatar-hao-thien-chuy-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 78.53
+    },
+    {
+      "duration": 0.47,
+      "group": "skill-t3-avatar-cuu-bao-luu-ly-thap",
+      "id": "avatar-cuu-bao-luu-ly-thap-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 79.39
+    },
+    {
+      "duration": 0.95,
+      "group": "skill-t3-avatar-pha-hon-thuong",
+      "id": "avatar-pha-hon-thuong-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 79.91
+    },
+    {
+      "duration": 0.39,
+      "group": "skill-t3-avatar-a-ngan",
+      "id": "avatar-a-ngan-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 80.91
+    },
+    {
+      "duration": 0.48,
+      "group": "skill-t3-avatar-liet-hoa-thuong-lang",
+      "id": "avatar-liet-hoa-thuong-lang-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 81.35
+    },
+    {
+      "duration": 0.59,
+      "group": "skill-t3-avatar-bang-phuong-hoang",
+      "id": "avatar-bang-phuong-hoang-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 81.88
+    },
+    {
+      "duration": 0.23,
+      "group": "skill-t3-avatar-bach-ho",
+      "id": "avatar-bach-ho-form",
+      "pack": "skill",
+      "sourceId": "oga-100-cc0-sfx",
+      "start": 82.52
     }
   ],
   "generatedAt": "2026-10-23T00:00:00.000Z",
@@ -1392,15 +2792,15 @@
       }
     },
     "skill": {
-      "duration": 11.47,
+      "duration": 82.8,
       "files": {
-        "m4a": {
-          "bytes": 123803,
-          "path": "sfx/skill.m4a"
-        },
         "ogg": {
-          "bytes": 91159,
-          "path": "sfx/skill.ogg"
+          "path": "sfx/skill.ogg",
+          "bytes": 646144
+        },
+        "m4a": {
+          "path": "sfx/skill.m4a",
+          "bytes": 845952
         }
       }
     },
@@ -1448,184 +2848,184 @@
   "schemaVersion": 1,
   "sources": [
     {
-      "archiveSha256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
-      "author": "rubberduck",
       "id": "oga-80-cc0-rpg-sfx",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
       "title": "80 CC0 RPG SFX",
-      "url": "https://opengameart.org/content/80-cc0-rpg-sfx"
+      "author": "rubberduck",
+      "url": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "license": "CC0-1.0",
+      "archiveSha256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "retrievedAt": "2026-10-23"
     },
     {
-      "archiveSha256": "7980215241b739a787dcf26f660ce510bb237900968789395a86911619795693",
-      "author": "artisticdude",
       "id": "oga-swishes-sound-pack",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
       "title": "Swishes Sound Pack",
-      "url": "https://opengameart.org/content/swishes-sound-pack"
+      "author": "artisticdude",
+      "url": "https://opengameart.org/content/swishes-sound-pack",
+      "license": "CC0-1.0",
+      "archiveSha256": "7980215241b739a787dcf26f660ce510bb237900968789395a86911619795693",
+      "retrievedAt": "2026-10-23"
     },
     {
-      "archiveSha256": "6dbeaf8544da958d8f2adcb4a4a4b76c1ade34a05f8ab9edccd327da7375f38b",
-      "author": "Kenney",
       "id": "kenney-rpg-audio",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
       "title": "RPG Audio",
-      "url": "https://kenney.nl/assets/rpg-audio"
+      "author": "Kenney",
+      "url": "https://kenney.nl/assets/rpg-audio",
+      "license": "CC0-1.0",
+      "archiveSha256": "6dbeaf8544da958d8f2adcb4a4a4b76c1ade34a05f8ab9edccd327da7375f38b",
+      "retrievedAt": "2026-10-23"
     },
     {
-      "archiveSha256": "029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8",
-      "author": "Kenney",
       "id": "kenney-impact-sounds",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
       "title": "Impact Sounds",
-      "url": "https://kenney.nl/assets/impact-sounds"
-    },
-    {
-      "archiveSha256": "7824c08e54b5b68d6c70ced9d8fe9e47f86ce19c1d8d47d093e1dc1b579f78ec",
-      "author": "rubberduck",
-      "id": "oga-50-cc0-sci-fi-sfx",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
-      "title": "50 CC0 Sci-Fi SFX",
-      "url": "https://opengameart.org/content/50-cc0-sci-fi-sfx"
-    },
-    {
-      "archiveSha256": "a5c135878c132f1c59cca54e60061c296cd0ac27ad031ca2c41b8cd5cab3c706",
-      "author": "rubberduck",
-      "id": "oga-100-cc0-sfx",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
-      "title": "100 CC0 SFX",
-      "url": "https://opengameart.org/content/100-cc0-sfx"
-    },
-    {
-      "archiveSha256": "5d4002eea42f278e76543bb36e8ddd2cb978588a13271984191d8228f5d26768",
-      "author": "rubberduck",
-      "id": "oga-80-cc0-creature-sfx",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
-      "title": "80 CC0 creature SFX",
-      "url": "https://opengameart.org/content/80-cc0-creature-sfx"
-    },
-    {
-      "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
       "author": "Kenney",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "license": "CC0-1.0",
+      "archiveSha256": "029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8",
+      "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-50-cc0-sci-fi-sfx",
+      "title": "50 CC0 Sci-Fi SFX",
+      "author": "rubberduck",
+      "url": "https://opengameart.org/content/50-cc0-sci-fi-sfx",
+      "license": "CC0-1.0",
+      "archiveSha256": "7824c08e54b5b68d6c70ced9d8fe9e47f86ce19c1d8d47d093e1dc1b579f78ec",
+      "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-100-cc0-sfx",
+      "title": "100 CC0 SFX",
+      "author": "rubberduck",
+      "url": "https://opengameart.org/content/100-cc0-sfx",
+      "license": "CC0-1.0",
+      "archiveSha256": "a5c135878c132f1c59cca54e60061c296cd0ac27ad031ca2c41b8cd5cab3c706",
+      "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-80-cc0-creature-sfx",
+      "title": "80 CC0 creature SFX",
+      "author": "rubberduck",
+      "url": "https://opengameart.org/content/80-cc0-creature-sfx",
+      "license": "CC0-1.0",
+      "archiveSha256": "5d4002eea42f278e76543bb36e8ddd2cb978588a13271984191d8228f5d26768",
+      "retrievedAt": "2026-10-23"
+    },
+    {
       "id": "kenney-interface-sounds",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
       "title": "Interface Sounds",
-      "url": "https://kenney.nl/assets/interface-sounds"
+      "author": "Kenney",
+      "url": "https://kenney.nl/assets/interface-sounds",
+      "license": "CC0-1.0",
+      "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+      "retrievedAt": "2026-10-23"
     },
     {
-      "archiveSha256": "9f1fd5c8b37949e6889a7f6acbd822f66e0ab4e918d72bda58d8d8c2c7e85a80",
-      "author": "Bashar (Skirmish.io)",
       "id": "oga-mild-wind",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
       "title": "Mild Wind Background Noise",
-      "url": "https://opengameart.org/content/mild-wind-background-noise"
+      "author": "Bashar (Skirmish.io)",
+      "url": "https://opengameart.org/content/mild-wind-background-noise",
+      "license": "CC0-1.0",
+      "archiveSha256": "9f1fd5c8b37949e6889a7f6acbd822f66e0ab4e918d72bda58d8d8c2c7e85a80",
+      "retrievedAt": "2026-10-23"
     },
     {
-      "archiveSha256": "fcfca178eca2eac536e8c2a4ed5cf8096e44c921acd587047b3d9f1d7845435c",
-      "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
       "id": "oga-wave-01",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
       "title": "Beach Ocean Waves (wave 01)",
-      "url": "https://opengameart.org/content/beach-ocean-waves"
+      "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
+      "url": "https://opengameart.org/content/beach-ocean-waves",
+      "license": "CC0-1.0",
+      "archiveSha256": "fcfca178eca2eac536e8c2a4ed5cf8096e44c921acd587047b3d9f1d7845435c",
+      "retrievedAt": "2026-10-23"
     },
     {
-      "archiveSha256": "53b5c28c0edc36f049e77e65f2cf8a86135103328c44c1507c416e6469d18096",
-      "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
       "id": "oga-wave-02",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
       "title": "Beach Ocean Waves (wave 02)",
-      "url": "https://opengameart.org/content/beach-ocean-waves"
+      "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
+      "url": "https://opengameart.org/content/beach-ocean-waves",
+      "license": "CC0-1.0",
+      "archiveSha256": "53b5c28c0edc36f049e77e65f2cf8a86135103328c44c1507c416e6469d18096",
+      "retrievedAt": "2026-10-23"
     },
     {
-      "archiveSha256": "fc795f95f352b354867d69a587daecb8815334e28e3b56a7798c5f3005349054",
-      "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
       "id": "oga-wave-03",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
       "title": "Beach Ocean Waves (wave 03)",
-      "url": "https://opengameart.org/content/beach-ocean-waves"
-    },
-    {
-      "archiveSha256": "3c490e736365fdd617ce8405470d8878fc6146d9a8dba448d622addb01cfff3b",
       "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
+      "url": "https://opengameart.org/content/beach-ocean-waves",
+      "license": "CC0-1.0",
+      "archiveSha256": "fc795f95f352b354867d69a587daecb8815334e28e3b56a7798c5f3005349054",
+      "retrievedAt": "2026-10-23"
+    },
+    {
       "id": "oga-wave-04",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
       "title": "Beach Ocean Waves (wave 04)",
-      "url": "https://opengameart.org/content/beach-ocean-waves"
+      "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
+      "url": "https://opengameart.org/content/beach-ocean-waves",
+      "license": "CC0-1.0",
+      "archiveSha256": "3c490e736365fdd617ce8405470d8878fc6146d9a8dba448d622addb01cfff3b",
+      "retrievedAt": "2026-10-23"
     },
     {
-      "archiveSha256": "359e4e3f9da9d75aac64cede511c7e3ef8b461f9d9f8c230f8f80e44c4b3e35f",
-      "author": "isaiah658",
       "id": "oga-ambient-birds",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
       "title": "Ambient Bird Sounds",
-      "url": "https://opengameart.org/content/ambient-bird-sounds"
+      "author": "isaiah658",
+      "url": "https://opengameart.org/content/ambient-bird-sounds",
+      "license": "CC0-1.0",
+      "archiveSha256": "359e4e3f9da9d75aac64cede511c7e3ef8b461f9d9f8c230f8f80e44c4b3e35f",
+      "retrievedAt": "2026-10-23"
     },
     {
-      "archiveSha256": "bc6e28bd823b653b2abf3384d4147718603af6bcd98e26166345df71a61eeb08",
-      "author": "syncopika",
       "id": "oga-bird-chirping",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
       "title": "Bird chirping sounds",
-      "url": "https://opengameart.org/content/bird-chirping-sounds"
+      "author": "syncopika",
+      "url": "https://opengameart.org/content/bird-chirping-sounds",
+      "license": "CC0-1.0",
+      "archiveSha256": "bc6e28bd823b653b2abf3384d4147718603af6bcd98e26166345df71a61eeb08",
+      "retrievedAt": "2026-10-23"
     },
     {
-      "archiveSha256": "5b5bd1f744087888c5623543c3ff80be9c2ce106093993e7c8a8492b0280b2c0",
-      "author": "Ted Kerr",
       "id": "oga-crickets",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
       "title": "Crickets Ambient Noise - loopable",
-      "url": "https://opengameart.org/content/crickets-ambient-noise-loopable"
+      "author": "Ted Kerr",
+      "url": "https://opengameart.org/content/crickets-ambient-noise-loopable",
+      "license": "CC0-1.0",
+      "archiveSha256": "5b5bd1f744087888c5623543c3ff80be9c2ce106093993e7c8a8492b0280b2c0",
+      "retrievedAt": "2026-10-23"
     },
     {
-      "archiveSha256": "85ca0cc60d0c037fff8b185e31ad1fcdbda6ce45eee17c3ee1318d1b8f59e330",
-      "author": "OpenGameArt (trang không ghi tên tác giả)",
       "id": "oga-fireplace",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
       "title": "Fireplace Sound loop",
-      "url": "https://opengameart.org/content/fireplace-sound-loop"
+      "author": "OpenGameArt (trang không ghi tên tác giả)",
+      "url": "https://opengameart.org/content/fireplace-sound-loop",
+      "license": "CC0-1.0",
+      "archiveSha256": "85ca0cc60d0c037fff8b185e31ad1fcdbda6ce45eee17c3ee1318d1b8f59e330",
+      "retrievedAt": "2026-10-23"
     },
     {
-      "archiveSha256": "ce5d2bbe4c9e2a8843fc76419070b9e88f71b2aa4ba7226a5f50a6b45d13be60",
-      "author": "estevinho",
       "id": "oga-heartbeat-slow",
-      "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
       "title": "Heartbeat sounds (slow)",
-      "url": "https://opengameart.org/content/heartbeat-sounds"
-    },
-    {
-      "archiveSha256": "cda9235df232a5a06724a02798f7240e3e6eca96a992fa5560edd5b4b24823ce",
       "author": "estevinho",
-      "id": "oga-heartbeat-fast",
+      "url": "https://opengameart.org/content/heartbeat-sounds",
       "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
-      "title": "Heartbeat sounds (fast)",
-      "url": "https://opengameart.org/content/heartbeat-sounds"
+      "archiveSha256": "ce5d2bbe4c9e2a8843fc76419070b9e88f71b2aa4ba7226a5f50a6b45d13be60",
+      "retrievedAt": "2026-10-23"
     },
     {
-      "archiveSha256": "a4d95514029dd928e5637c3b9edd659b8eaf14fa78d8afb2ab7ec4da064e4417",
-      "author": "William Hector",
-      "id": "oga-horde-war-drums",
+      "id": "oga-heartbeat-fast",
+      "title": "Heartbeat sounds (fast)",
+      "author": "estevinho",
+      "url": "https://opengameart.org/content/heartbeat-sounds",
       "license": "CC0-1.0",
-      "retrievedAt": "2026-10-23",
+      "archiveSha256": "cda9235df232a5a06724a02798f7240e3e6eca96a992fa5560edd5b4b24823ce",
+      "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-horde-war-drums",
       "title": "Horde War Drums loop",
-      "url": "https://opengameart.org/content/horde-war-drums-loop"
+      "author": "William Hector",
+      "url": "https://opengameart.org/content/horde-war-drums-loop",
+      "license": "CC0-1.0",
+      "archiveSha256": "a4d95514029dd928e5637c3b9edd659b8eaf14fa78d8afb2ab7ec4da064e4417",
+      "retrievedAt": "2026-10-23"
     }
   ]
 }

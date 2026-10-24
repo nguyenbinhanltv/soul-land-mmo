@@ -32,6 +32,8 @@ export interface SheetPlay {
   lift?: number;
   /** Bề ngang mong muốn trên màn hình (px): chọn cỡ nguyên gần nhất cho khung (vùng khớp bán kính chiêu). Có thì bỏ qua `scale`. */
   fitW?: number;
+  /** Xoay ảnh theo hướng bay (đạn vẽ hướng sang phải): thay cho lật ngang. */
+  rotate?: boolean;
   /** Độ đục tối đa 0..1 (lớp cộng sáng nhẹ hơn thân). */
   alpha?: number;
   /** Vẽ thường (không cộng sáng): hiệu ứng khói bụi / đá giữ được màu tối và viền. Mặc định cộng sáng (sét, lửa, quang). */
@@ -64,8 +66,8 @@ export class SheetFx {
     if (!c) { c = { img: this.scene.add.image(0, 0, o.key).setBlendMode(Phaser.BlendModes.ADD), on: false, t: 0, dur: 0, cols: 0, row: 0, x0: 0, y0: 0, x1: 0, y1: 0, a: 1, calm: false, wait: 0, frames: 0 }; this.cells.push(c); }
     const sc = o.fitW ? Math.max(SPR, Math.round(o.fitW * (o.light ? 0.7 : 1) / (this.frameW(tex) * 0.88))) : Math.max(SPR, snap((o.scale ?? 2 * SPR) * (o.light ? 0.7 : 1)));
     const dy = -(o.lift ?? 0);
-    c.img.setBlendMode(o.normal ? Phaser.BlendModes.NORMAL : Phaser.BlendModes.ADD).setTexture(o.key, 0).setDepth(this.depth).setScale(sc).setRotation(0).setAlpha(0).setVisible(false).setActive(true)
-      .setFlipX(rows < 8 && Math.cos(a) < 0);
+    c.img.setBlendMode(o.normal ? Phaser.BlendModes.NORMAL : Phaser.BlendModes.ADD).setTexture(o.key, 0).setDepth(this.depth).setScale(sc).setRotation(o.rotate ? Math.atan2((o.to?.y ?? o.y) - o.y, (o.to?.x ?? o.x) - o.x) : 0).setAlpha(0).setVisible(false).setActive(true)
+      .setFlipX(rows < 8 && !o.rotate && Math.cos(a) < 0);
     if (o.tint !== undefined) c.img.setTint(o.tint); else c.img.clearTint();
     c.on = true; c.t = 0; c.cols = cols; c.row = row; c.frames = cols;
     c.dur = (cols / (o.fps ?? 20)) * 1000; c.wait = o.delay ?? 0;
