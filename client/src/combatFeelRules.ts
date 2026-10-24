@@ -19,6 +19,10 @@ export function footDustCount(level: FeelLevel, reduce: boolean, mine: boolean):
   return level === "high" ? 2 : 1;
 }
 
+export function rootSnareDiameter(width: number, q: number): number {
+  return width * q;
+}
+
 const ELEMENT_TEXT: Record<Element, string> = {
   fire: "#ff9a54", ice: "#b8edff", lightning: "#b9d8ff", poison: "#b6e86b",
   light: "#fff0ae", dark: "#c7a7ff", wood: "#86e88d", wind: "#d9fbff",

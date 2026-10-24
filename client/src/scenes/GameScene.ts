@@ -45,7 +45,7 @@ import { SkillCine, cineAllowed } from "../skillCine.ts";
 import { SheetFx } from "../fxSheet.ts";
 import { SkillVisualPlayer, skillVisualOf, registerCodeSheets } from "../skillVisual.ts";
 import { hitWeight, KNOCK_PX, materialSparks, damageStyle, playHitFeelSheets, registerHitFeelSheets } from "../hitFeel.ts";
-import { footDustCount } from "../combatFeelRules.ts";
+import { footDustCount, rootSnareDiameter } from "../combatFeelRules.ts";
 import { PhapTuongSystem, PhapTuongCutIn } from "../phapTuong.ts";
 import { ParticleLayer, HIT_SPARK, SHAKE_TIER, beastJerk, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs } from "../combatFx.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
@@ -2319,11 +2319,11 @@ export class GameScene extends Phaser.Scene {
 
   /** Trói C1: vòng khóa co giãn với nút dây, thay vòng + bốn đoạn thẳng cũ. */
   rootSnare(g: Phaser.GameObjects.Graphics, cx: number, feet: number, time: number, q: number, width: number) {
-    const c = hex(STATUS.root.col), pulse = 0.8 + 0.2 * Math.sin(time / 280), rx = width * q * (0.5 + 0.04 * Math.sin(time / 210));
-    g.lineStyle(1, 0x1a1020, 0.85).strokeEllipse(cx, feet, rx + 3 * q, 6 * q);
-    g.lineStyle(1, c, pulse).strokeEllipse(cx, feet, rx, 4 * q);
+    const c = hex(STATUS.root.col), pulse = 0.8 + 0.2 * Math.sin(time / 280), diameter = rootSnareDiameter(width, q);
+    g.lineStyle(1, 0x1a1020, 0.85).strokeEllipse(cx, feet, diameter + 3 * q, 6 * q);
+    g.lineStyle(1, c, pulse).strokeEllipse(cx, feet, diameter, 4 * q);
     for (let j = 0; j < 5; j++) {
-      const x = cx - rx * 0.75 + j * rx * 0.38, lean = Math.sin(time / 300 + j) * 2 * q;
+      const x = cx - diameter * 0.75 + j * diameter * 0.38, lean = Math.sin(time / 300 + j) * 2 * q;
       g.lineStyle(1, 0x1a1020, 0.9).lineBetween(x, feet + q, x + lean, feet - (4 + (j % 2) * 2) * q);
       g.lineStyle(1, c, pulse).lineBetween(x + q, feet, x + lean, feet - (3 + (j % 2) * 2) * q);
       g.fillStyle(c, pulse).fillRect(x - q, feet - (5 + (j % 2) * 2) * q, 2 * q, 2 * q);

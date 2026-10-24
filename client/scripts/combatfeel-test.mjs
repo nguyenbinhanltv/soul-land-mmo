@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { damageTextStyle, footDustCount, HIT_HE_STYLE } from "../src/combatFeelRules.ts";
+import { damageTextStyle, footDustCount, HIT_HE_STYLE, rootSnareDiameter } from "../src/combatFeelRules.ts";
 
 assert.equal(footDustCount("low", false, true), 0);
 assert.equal(footDustCount("mid", true, true), 0);
@@ -12,4 +12,5 @@ assert.ok(damageTextStyle("heal", false, undefined).color !== damageTextStyle("d
 assert.ok(damageTextStyle("crit", true, "ice").font > damageTextStyle("damage", false, "ice").font);
 assert.equal(damageTextStyle("heal", false, undefined).color, "#7dff8a");
 assert.equal(damageTextStyle("shield", false, undefined).color, "#9ad8ff");
+assert.equal(rootSnareDiameter(18, 1, 0.5), 18);
 console.log("combatfeel-test: đạt");
