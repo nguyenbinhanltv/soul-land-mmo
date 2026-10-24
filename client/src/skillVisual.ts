@@ -75,6 +75,7 @@ const wind = (tint: number, big = false): Pick<SkillVisual, "windup" | "windupSh
   : { windup: 150, windupSheet: { key: "fxs_tu_khi", at: "cast", scale: 2 * SPR, fps: 40, tint } };
 const GROUND = -8 * SPR; // tâm khung ở ngang ngực (CastCtx.y): kéo xuống mặt đất cho hiệu ứng vùng
 const LD = 0x8ac8ff, HT = 0xd0d4e4;
+const KN = 0xffb347, CD = 0x9a4aff, BL = 0x3ad98a, LN = 0x4ab0ff, AN = 0x7fd8ff;
 const UM = 0xb06bff, NC = 0xffc2e2, KM = 0xffd54a, YH = 0xff9ad5, LH = 0xff7a3a, BH = 0xf2f2f6;
 // S3 lô A (#566): màu lấy đà / báo trước theo bảng màu võ hồn
 const CS = 0xcfe3ff, NN = 0xe6e6f0, CK = 0xffe08a, XX = 0xffd9a0, TD = 0xfff6d0, CB = 0xbff4ff, PH = 0xc0fff4;
@@ -111,6 +112,67 @@ export const SKILL_VISUAL: Readonly<Record<string, Partial<SkillVisual>>> = {
   "hao_thien_chuy:9": { tier: 3, heavy: 3, ...wind(HT, true), replace: true, sheet: sk("ht_t3a", { at: "target", fit: 1, fps: 9, lift: GROUND }) },
   "hao_thien_chuy:ct": { tier: 3, heavy: 3, ...wind(HT, true), replace: true, sheet: sk("ht_t3b", { at: "target", fit: 1, fps: 9, lift: GROUND }) },
   "hao_thien_chuy:tc": { tier: 2, heavy: 2, replace: true, sheet: sk("ht_zone_tc", { at: "cast", fit: 1, lift: GROUND, fps: 10 }) },
+  // S3 lô D (#569): 5 võ hồn thực vật / độc, cùng công thức S2 (tools/assets/skill-vfx/lo-d.json).
+  // --- Kỳ Nhung Thông Thiên Cúc (hệ Hỏa, cánh cúc vàng cam) ---
+  "ky_nhung_thong_thien_cuc:0": { tier: 1, heavy: 0, replace: true, sheet: sk("kn_dart1", { at: "travel", rotate: true, scale: 2, fps: 12 }) },
+  "ky_nhung_thong_thien_cuc:1": { tier: 1, heavy: 0, repeat: true, replace: true, sheet: sk("kn_zone2", { at: "cast", fit: 1, lift: GROUND, fps: 10 }) },
+  "ky_nhung_thong_thien_cuc:2": { tier: 1, heavy: 0, replace: true, sheet: sk("kn_zone3", { at: "cast", fit: 1, lift: GROUND, fps: 10 }) },
+  "ky_nhung_thong_thien_cuc:3": { tier: 1, heavy: 0, repeat: true, replace: true, sheet: sk("kn_zone4", { at: "cast", fit: 1, lift: GROUND, fps: 10 }) },
+  "ky_nhung_thong_thien_cuc:4": { tier: 2, heavy: 1, ...wind(KN), replace: true, sheet: sk("kn_fan5", { at: "travel", rotate: true, scale: 2, fps: 12 }) },
+  "ky_nhung_thong_thien_cuc:5": { tier: 2, heavy: 1, ...wind(KN), replace: true, sheet: sk("kn_zone6", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "ky_nhung_thong_thien_cuc:7": { tier: 2, heavy: 1, repeat: true, ...wind(KN), replace: true, sheet: sk("kn_zone8", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "ky_nhung_thong_thien_cuc:8": { tier: 2, heavy: 1, repeat: true, ...wind(KN), replace: true, sheet: sk("kn_hit9", { at: "target", scale: 2, fps: 12, lift: -6 * SPR }) },
+  "ky_nhung_thong_thien_cuc:9": { tier: 3, heavy: 2, ...wind(KN, true), replace: true, sheet: sk("kn_t3a", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "ky_nhung_thong_thien_cuc:ct": { tier: 3, heavy: 2, ...wind(KN, true), replace: true, sheet: sk("kn_t3b", { at: "target", fit: 1, fps: 9, lift: GROUND }) },
+  "ky_nhung_thong_thien_cuc:tc": { tier: 2, heavy: 1, repeat: true, replace: true, sheet: sk("kn_zone_tc", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  // --- Tử Vong Chu Hoàng (hệ Ám, mạng nhện tím, độc lục) ---
+  "tu_vong_chu_hoang:0": { tier: 1, heavy: 0, replace: true, sheet: sk("cd_hit1", { at: "target", scale: 2, fps: 12, lift: -4 * SPR }) },
+  "tu_vong_chu_hoang:1": { tier: 1, heavy: 0, replace: true, sheet: sk("cd_zone2", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "tu_vong_chu_hoang:2": { tier: 1, heavy: 0, repeat: true, replace: true, sheet: sk("cd_zone3", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "tu_vong_chu_hoang:3": { tier: 1, heavy: 0, replace: true, sheet: sk("cd_zone4", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "tu_vong_chu_hoang:4": { tier: 2, heavy: 1, ...wind(CD), replace: true, sheet: sk("cd_fan5", { at: "travel", rotate: true, scale: 2, fps: 12 }) },
+  "tu_vong_chu_hoang:5": { tier: 2, heavy: 1, repeat: true, ...wind(CD), replace: true, sheet: sk("cd_zone6", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "tu_vong_chu_hoang:7": { tier: 2, heavy: 1, ...wind(CD), replace: true, sheet: sk("cd_zone8", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "tu_vong_chu_hoang:8": { tier: 2, heavy: 1, repeat: true, ...wind(CD), replace: true, sheet: sk("cd_zone9", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "tu_vong_chu_hoang:9": { tier: 3, heavy: 2, ...wind(CD, true), replace: true, sheet: sk("cd_t3a", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "tu_vong_chu_hoang:ct": { tier: 3, heavy: 2, ...wind(CD, true), replace: true, sheet: sk("cd_t3b", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "tu_vong_chu_hoang:tc": { tier: 2, heavy: 1, replace: true, sheet: sk("cd_zone_tc", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  // --- Bích Lân Xà Hoàng (hệ Độc, rắn lục, sương độc) ---
+  "bich_lan_xa_hoang:0": { tier: 1, heavy: 0, replace: true, sheet: sk("bl_fan1", { at: "travel", rotate: true, scale: 2, fps: 10 }) },
+  "bich_lan_xa_hoang:1": { tier: 1, heavy: 0, replace: true, sheet: sk("bl_zone2", { at: "cast", fit: 1, lift: GROUND, fps: 10 }) },
+  "bich_lan_xa_hoang:2": { tier: 1, heavy: 0, replace: true, sheet: sk("bl_zone3", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "bich_lan_xa_hoang:3": { tier: 1, heavy: 0, replace: true, sheet: sk("bl_hit4", { at: "target", scale: 2, fps: 12, lift: -4 * SPR }) },
+  "bich_lan_xa_hoang:4": { tier: 2, heavy: 1, ...wind(BL), replace: true, sheet: sk("bl_fan5", { at: "travel", rotate: true, scale: 2, fps: 12 }) },
+  "bich_lan_xa_hoang:5": { tier: 2, heavy: 1, repeat: true, ...wind(BL), replace: true, sheet: sk("bl_zone6", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "bich_lan_xa_hoang:7": { tier: 2, heavy: 1, ...wind(BL), replace: true, sheet: sk("bl_zone8", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "bich_lan_xa_hoang:8": { tier: 2, heavy: 1, ...wind(BL), replace: true, sheet: sk("bl_hit9", { at: "target", scale: 2, fps: 12, lift: -6 * SPR }) },
+  "bich_lan_xa_hoang:9": { tier: 3, heavy: 2, ...wind(BL, true), replace: true, sheet: sk("bl_t3a", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "bich_lan_xa_hoang:ct": { tier: 3, heavy: 2, ...wind(BL, true), replace: true, sheet: sk("bl_t3b", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "bich_lan_xa_hoang:tc": { tier: 2, heavy: 1, replace: true, sheet: sk("bl_zone_tc", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  // --- Lam Ngân Thảo (hệ Mộc, dây cỏ lam trói / kéo) ---
+  "lam_ngan_thao:0": { tier: 1, heavy: 0, replace: true, sheet: sk("ln_hit1", { at: "target", scale: 2, fps: 12, lift: -4 * SPR }) },
+  "lam_ngan_thao:1": { tier: 1, heavy: 0, replace: true, sheet: sk("ln_hit2", { at: "target", scale: 2, fps: 12, lift: -4 * SPR }) },
+  "lam_ngan_thao:2": { tier: 1, heavy: 0, replace: true, sheet: sk("ln_zone3", { at: "cast", fit: 1, lift: GROUND, fps: 10 }) },
+  "lam_ngan_thao:3": { tier: 1, heavy: 0, replace: true, sheet: sk("ln_zone4", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "lam_ngan_thao:4": { tier: 2, heavy: 1, ...wind(LN), replace: true, sheet: sk("ln_slash5", { at: "target", fit: 0.9, fps: 12 }) },
+  "lam_ngan_thao:5": { tier: 2, heavy: 1, repeat: true, ...wind(LN), replace: true, sheet: sk("ln_zone6", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "lam_ngan_thao:7": { tier: 2, heavy: 1, ...wind(LN), replace: true, sheet: sk("ln_zone8", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "lam_ngan_thao:8": { tier: 2, heavy: 1, ...wind(LN), replace: true, sheet: sk("ln_burst9", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "lam_ngan_thao:9": { tier: 3, heavy: 2, ...wind(LN, true), replace: true, sheet: sk("ln_t3a", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "lam_ngan_thao:ct": { tier: 3, heavy: 2, ...wind(LN, true), replace: true, sheet: sk("ln_t3b", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "lam_ngan_thao:tc": { tier: 2, heavy: 1, replace: true, sheet: sk("ln_zone_tc", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  // --- A Ngân (hệ Phong, phụ trợ: hào quang chữa / che chở, hoa lam vàng) ---
+  "a_ngan:0": { tier: 1, heavy: 0, replace: true, sheet: sk("an_hit1", { at: "target", scale: 2, fps: 10, lift: -4 * SPR }) },
+  "a_ngan:1": { tier: 1, heavy: 0, replace: true, sheet: sk("an_aura2", { at: "cast", scale: 2, fps: 12, lift: -6 * SPR }) },
+  "a_ngan:2": { tier: 1, heavy: 0, replace: true, sheet: sk("an_aura3", { at: "cast", scale: 2, fps: 10, lift: -6 * SPR }) },
+  "a_ngan:3": { tier: 1, heavy: 0, replace: true, sheet: sk("an_zone4", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "a_ngan:4": { tier: 2, heavy: 1, ...wind(AN), replace: true, sheet: sk("an_zone5", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "a_ngan:5": { tier: 2, heavy: 1, ...wind(AN), replace: true, sheet: sk("an_aura6", { at: "cast", scale: 2, fps: 12, lift: -6 * SPR }) },
+  "a_ngan:7": { tier: 2, heavy: 1, ...wind(AN), replace: true, sheet: sk("an_burst8", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "a_ngan:8": { tier: 2, heavy: 1, ...wind(AN), replace: true, sheet: sk("an_aura9", { at: "cast", scale: 2, fps: 12, lift: -6 * SPR }) },
+  "a_ngan:9": { tier: 3, heavy: 2, ...wind(AN, true), replace: true, sheet: sk("an_t3a", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "a_ngan:ct": { tier: 3, heavy: 2, ...wind(AN, true), replace: true, sheet: sk("an_t3b", { at: "cast", scale: 2, fps: 9, lift: GROUND }) },
+  "a_ngan:tc": { tier: 2, heavy: 1, replace: true, sheet: sk("an_zone_tc", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
   // --- Cửu Tinh Thất Sát Kiếm (hệ Quang, kiếm khí bạc: vẽ thường, lớp sáng cộng) ---
   "cuu_tinh_that_sat_kiem:0": { tier: 1, heavy: 0, replace: true, sheet: sk("cs_slash1", { at: "target", scale: 2, fps: 16 }) },
   "cuu_tinh_that_sat_kiem:1": { tier: 1, heavy: 0, repeat: true, replace: true, sheet: sk("cs_proj2", { at: "travel", rotate: true, scale: 2, fps: 12 }) },
@@ -334,6 +396,7 @@ export const SKILL_VISUAL: Readonly<Record<string, Partial<SkillVisual>>> = {
 /** Dung hợp (S3 #566): sheet bùng ở điểm giữa hai người, khóa theo tên `FUSIONS[i].name`; chưa có thì giữ đóa kính lưu ly dựng bằng code. */
 export const FUSION_VISUAL: Readonly<Record<string, Partial<SkillVisual>>> = {
   "Yêu Nguyệt": { tier: 3, heavy: 2, replace: true, sheet: sk("yn_t3", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "Lôi Độc Song Sát": { tier: 3, heavy: 2, replace: true, sheet: sk("fu_ldds", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
   "Hạo Thiên Nhu Cốt": { tier: 3, heavy: 2, replace: true, sheet: sk("hn_t3", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
   "U Minh Bạch Hổ": { tier: 3, heavy: 2, replace: true, sheet: sk("ub_t3", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
   "Băng Hỏa Lưỡng Nghi": { tier: 3, heavy: 2, replace: true, sheet: sk("bh_t3", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },

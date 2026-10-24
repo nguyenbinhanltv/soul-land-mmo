@@ -1,8 +1,15 @@
 import assert from "node:assert/strict";
-import { createPresenceBackend, presenceBackend } from "../src/presence.ts";
+import { createPresenceBackend, presenceBackend, isRedisFailure } from "../src/presence.ts";
 import { claimBuyback, editBuyback } from "../src/rooms/MapRoom.ts";
 import { arenaDeliver, arenaEnqueue, arenaQueued, arenaLiveOpen, arenaLivePhase, arenaLiveHold, arenaLiveHeld, arenaLiveWatch, arenaLiveUnwatch, arenaLiveOpenList, arenaLiveRelease, arenaLiveClose } from "../src/rooms/arenaQueue.ts";
 import { FriendHub, friends } from "../src/friends.ts";
+
+// #561: chỉ lỗi mang dấu hiệu ioredis mới được coi là lỗi Redis; mã socket chung (pg, fetch) vẫn phải làm server thoát có kiểm soát.
+assert.equal(isRedisFailure(Object.assign(new Error("Reached the max retries per request limit (which is 2)."), { name: "MaxRetriesPerRequestError" })), true);
+assert.equal(isRedisFailure(new Error("Connection is closed.")), true);
+assert.equal(isRedisFailure(Object.assign(new Error("read ECONNRESET"), { code: "ECONNRESET" })), false);
+assert.equal(isRedisFailure(Object.assign(new Error("connect ECONNREFUSED"), { code: "ECONNREFUSED" })), false);
+console.log("✓ isRedisFailure: chỉ nhận dấu hiệu ioredis, không nhận mã socket chung");
 
 const backend = createPresenceBackend({ mode: "local" });
 try {
