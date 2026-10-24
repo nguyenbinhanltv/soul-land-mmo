@@ -71,6 +71,13 @@ export const ISO_VH_ANIMS = ["idle", "walk", "attack", "cast"];
  */
 export const ISO_VH_SEXES = ["m", "f"];
 /** Sheet hồn thú: 20 cột × 5 hàng (5 hướng vẽ). */
+/**
+ * Pháp tướng Võ Hồn Chân Thân (mục 5.18, #482): sheet `phaptuong/<mã võ hồn>.png`, khung 160×160, gốc (80, 124) trùng chân hồn sư (ISO_HS_ORIGIN).
+ * 5 hàng hướng (s, se, e, ne, n; sw / w / nw lật), 16 cột: idle 8 (vòng "thở"), attack 8 (đánh / niệm). Ảnh chỉ alpha 0 / 255 (như mọi sheet);
+ * độ đục hư ảnh PT_GHOST (và 70% ở lớp trước) do client áp lúc vẽ, ghi ở `pt` của manifest. Viền sáng màu `col` 2 điểm (điểm ngoài dithering).
+ * Mỗi sheet tối đa PT_MAX_COLORS màu (bảng riêng từng võ hồn, như chân dung). Điểm alpha ≤ PT_ALPHA_MIN của khung nguồn bị bỏ.
+ */
+export const PT_FRAME = 160, PT_ORIGIN = [80, 124], PT_COLS = 16, PT_ANIMS = { idle: [0, 8], attack: [8, 8] }, PT_GHOST = 0.88, PT_ALPHA_MIN = 40, PT_MAX_COLORS = 48;
 export const ISO_BEAST_COLS = 20, ISO_BEAST_ROWS = 5;
 export const ISO_BEAST_ANIMS = { idle: [0, 4], walk: [4, 6], attack: [10, 4], hurt: [14, 2], die: [16, 4] };
 /** pack --code (hurt / die / absorb vẽ bằng code, mục 5.11): dòng hông mặc định trong khung 64, độ hạ thân khi khuỵu / ngồi,
@@ -90,6 +97,8 @@ export function isoLayout(kind, size) {
     frame = kind === "honsu" ? ISO_HS_FRAME : ISO_VH_FRAME; origin = kind === "honsu" ? ISO_HS_ORIGIN : ISO_VH_ORIGIN;
     cols = ISO_HS_COLS; rows = kind === "honsu" ? ISO_HS_ROWS : ISO_HS_ROWS * ISO_VH_SEXES.length;
     anims = kind === "honsu" ? ISO_HS_ANIMS : Object.fromEntries(ISO_VH_ANIMS.map((a) => [a, ISO_HS_ANIMS[a]]));
+  } else if (kind === "phaptuong") {
+    frame = PT_FRAME; origin = PT_ORIGIN; cols = PT_COLS; rows = ISO_DIRS.length; anims = PT_ANIMS;
   } else if (kind === "beast") {
     if (!ISO_BEAST_SIZES.includes(size)) throw new Error(`hồn thú cần khung ${ISO_BEAST_SIZES.join(" / ")} (nhận ${size})`);
     frame = size; origin = [size >> 1, size - ISO_BEAST_FOOT]; cols = ISO_BEAST_COLS; rows = ISO_BEAST_ROWS; anims = ISO_BEAST_ANIMS;
@@ -400,6 +409,7 @@ export function sheetSpec(key, frame, iso = false, stat = false) {
     const spec = (file, layout, extra = {}) => ({ file, frame: layout.frame, size: [layout.frame[0] * layout.cols, layout.frame[1] * layout.rows], kind: layout.kind, layout, iso: true, ...extra });
     if ((m = key.match(/^hs_((?:body|outfit|hair)_([mf]_\d+))$/))) return spec(`honsu/${m[1]}.png`, isoLayout("honsu"), { set: m[2] });
     if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return spec(`vohon/${m[1]}.png`, isoLayout("vohon"));
+    if ((m = key.match(/^pt_([a-z_]+)$/))) return spec(`phaptuong/${m[1]}.png`, isoLayout("phaptuong"));
     if ((m = key.match(/^b(\d)$/)) && ISO_BEAST_TIER[+m[1]]) return spec(`beast/${key}.png`, isoLayout("beast", frame?.[0] ?? ISO_BEAST_TIER[+m[1]]));
     // Hồn thú lai (#386): sheet tĩnh 3 khung nam / đông / bắc (ISO_STATIC_DIRS), chuyển động vẽ bằng code ở client; manifest ghi `"static": true`.
     if (stat && (m = key.match(/^beast_([a-z_]+)$/)) && frame && frame[0] === frame[1] && ISO_BEAST_SIZES.includes(frame[0])) return { file: `beast/${m[1]}.png`, frame, size: [frame[0] * 3, frame[1]], kind: "beast", iso: true, static: true };
