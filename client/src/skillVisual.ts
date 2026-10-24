@@ -30,9 +30,10 @@ export interface SkillVisual {
   tier: FxTier;
   /** Độ nặng đòn 0..3 (khựng, giật lùi, tia lửa mạnh hơn); mặc định theo tầng: T1 0, T2 1, T3 2. */
   heavy: 0 | 1 | 2 | 3;
-  /** Lớp báo trước / lấy đà phát trước đòn chính (T2 / T3), ms. */
+  /** Lớp báo trước / lấy đà (T2 / T3): phát ở người tung ngay khi tin `fx` tới, chạy trong `windup` ms. Sheet chính vẫn phát ngay (khớp số sát thương / tia lửa / khựng, không bị trễ). Chỉ người tung chiêu thấy. */
+  windupSheet?: VisualSheet;
   windup?: number;
-  /** Phát thêm một lần ở điểm trúng sau `aftershock` ms (dư chấn T3). */
+  /** Phát thêm một lần ở điểm trúng sau `delay` ms kể từ lúc tung (dư chấn T3, chính mình thấy). */
   aftershock?: { sheet: VisualSheet; delay: number };
   sheet?: VisualSheet;
   /** true: sheet THAY hiệu ứng G3 (mặc định false: sheet chồng lên G3, an toàn khi ảnh chưa đẹp). */
@@ -54,9 +55,9 @@ export const visualKey = (vohonId: string, ring: number, chanThan = false) => `$
  */
 export const SKILL_VISUAL: Readonly<Record<string, Partial<SkillVisual>>> = {
   // T2: sét giáng xuống điểm trúng, lấy đà 180 ms.
-  "lam_dien_ba_vuong_long:4": { tier: 2, heavy: 2, windup: 180, sheet: { key: "fxs_loi_giang", at: "target", scale: 2 * SPR, fps: 18 } },
+  "lam_dien_ba_vuong_long:4": { tier: 2, heavy: 2, windup: 180, windupSheet: { key: "fxs_tu_khi", at: "cast", scale: 2 * SPR, fps: 34, tint: 0x8ac8ff }, sheet: { key: "fxs_loi_giang", at: "target", scale: 2 * SPR, fps: 18 } },
   // T3: chùy nện, nổ ở điểm trúng, dư chấn (dùng sheet nổ G3 có sẵn `fx_no`).
-  "hao_thien_chuy:9": { tier: 3, heavy: 3, windup: 260, sheet: { key: "fx_no", at: "target", scale: 3 * SPR, fps: 16, tint: 0xffe08a },
+  "hao_thien_chuy:9": { tier: 3, heavy: 3, windup: 260, windupSheet: { key: "fxs_tu_khi", at: "cast", scale: 3 * SPR, fps: 24, tint: 0xffe08a }, sheet: { key: "fx_no", at: "target", scale: 3 * SPR, fps: 16, tint: 0xffe08a },
     aftershock: { delay: 380, sheet: { key: "fx_no", at: "target", scale: 2 * SPR, fps: 24, tint: 0xffcf6a } } },
 };
 
@@ -70,6 +71,7 @@ export const skillExists = (vohonId: string, ring: number, chanThan = false) => 
 
 /** Dựng sheet bằng code cần cho bảng (gọi một lần khi cảnh khởi tạo; có ảnh thật cùng khóa thì bỏ qua). */
 export function registerCodeSheets(scene: Phaser.Scene) {
+  tuKhi(scene);
   // Sét giáng: cột sét zíc-zắc từ trên xuống rồi vòng sóng lan, 8 khung 48×48, vẽ theo ô pixel 2.
   makeCodeSheet(scene, "fxs_loi_giang", 8, 48, (c, k, S) => {
     const px = 2, bolt = Math.min(1, k * 3), fade = k < 0.4 ? 1 : 1 - (k - 0.4) / 0.6;
@@ -88,6 +90,16 @@ export function registerCodeSheets(scene: Phaser.Scene) {
   });
 }
 
+/** Sheet tụ khí (lấy đà) dựng bằng code: vòng sáng thu nhỏ vào tâm, 6 khung 32×32. */
+function tuKhi(scene: Phaser.Scene) {
+  makeCodeSheet(scene, "fxs_tu_khi", 6, 32, (c, k, S) => {
+    const r = (1 - k) * S * 0.45 + 2;
+    c.strokeStyle = "#ffffff"; c.lineWidth = 2; c.globalAlpha = 0.35 + 0.65 * k;
+    c.beginPath(); c.ellipse(S / 2, S / 2, r, r * 0.55, 0, 0, Math.PI * 2); c.stroke(); c.globalAlpha = 1;
+    c.fillStyle = "#ffffff"; c.fillRect(S / 2 - 1, S / 2 - 1, 2, 2);
+  });
+}
+
 /** Ngữ cảnh một lần tung chiêu. Tọa độ màn hình. */
 export interface CastCtx { x: number; y: number; ang: number; tx: number; ty: number; mine: boolean; tierCol?: number; delayBase?: number }
 
@@ -98,13 +110,15 @@ export class SkillVisualPlayer {
     const at = s.at === "cast" ? { x: c.x, y: c.y } : { x: c.tx, y: c.ty };
     return { key: s.key, rows: s.rows, scale: s.scale, fps: s.fps, tint: s.tint, ang: c.ang, light: !c.mine, ...at, ...(s.at === "travel" ? { x: c.x, y: c.y, to: { x: c.tx, y: c.ty } } : {}), ...extra };
   }
-  /** `vis.sheet` có và đã tải: phát. Người khác (`!mine`) chỉ thấy bản nhẹ: bỏ lấy đà và dư chấn. */
+  /** `vis.sheet` có và đã tải: phát ngay. Người tung còn thấy lớp lấy đà (`windupSheet`) và dư chấn; người khác chỉ thấy bản nhẹ của sheet chính. */
   cast(vis: SkillVisual, c: CastCtx): boolean {
     const s = vis.sheet; if (!s || !this.sheets.has(s.key)) return false;
-    const wait = fxPrefs.reduce || !c.mine ? 0 : vis.windup ?? 0;
-    const ok = this.sheets.play(this.mk(s, c, { delay: wait }));
-    if (ok && c.mine && vis.aftershock && fxPrefs.level !== "low" && !fxPrefs.reduce && this.sheets.has(vis.aftershock.sheet.key))
-      this.sheets.play(this.mk(vis.aftershock.sheet, c, { delay: wait + vis.aftershock.delay }));
+    const ok = this.sheets.play(this.mk(s, c));
+    if (ok && c.mine && !fxPrefs.reduce && fxPrefs.level !== "low") {
+      const w = vis.windupSheet;
+      if (w && this.sheets.has(w.key)) this.sheets.play(this.mk(w, { ...c, tx: c.x, ty: c.y }));
+      if (vis.aftershock && this.sheets.has(vis.aftershock.sheet.key)) this.sheets.play(this.mk(vis.aftershock.sheet, c, { delay: vis.aftershock.delay }));
+    }
     return ok && !!vis.replace;
   }
 }
