@@ -97,7 +97,7 @@ jobs:
       - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
         run: npm run test:accounts --prefix server
       # Mỗi lượt một server mới bật (GAME_TEST=1, RAM); bot trượt (dòng ✗) thì bước đỏ và in log server. Số ✓ / ✗ / ⚠ in thành annotation (gh run view) và bảng ở trang lượt chạy.
-      # Bình thường ~7 phút; quá 12 phút là treo (hoặc nhóm lệch, xem dòng ⏱ để chia lại).
+      # Bình thường ~9 phút; quá 12 phút là treo (hoặc nhóm lệch, xem dòng ⏱ để chia lại).
       - name: bot nhóm ${{ matrix.part }} (server GAME_TEST=1, RAM)
         if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
         timeout-minutes: 12
