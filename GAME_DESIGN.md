@@ -806,7 +806,7 @@ Thiết kế đã chốt (chủ repo 2026-10-24), làm theo NV1–NV6 ở mục 
 ### 5.17 Radar và bản đồ khu vực
 Thay bản đồ nhỏ 150×100 px (vẽ cả bản đồ ×8 dưới 1 px mỗi ô, nhìn thẳng trong khi màn chơi là isometric). **Từ bước R0 chỉ có hằng, hàm thuần và kiểm thử**; giao diện làm ở R1–R8 (mục 7, nhóm "Bản đồ khu vực"; kế hoạch và quyết định ở #426). Server vẫn quyết định mọi thứ; client chỉ hiển thị. Số liệu ở `shared/data.ts` (`RADAR`, `RADAR_ART`, `MAPVIEW`, `FOG`), hàm thuần ở `shared/radar.ts`, kiểm thử `npm run test:radar --prefix server`.
 
-- **Radar góc màn hình** (R2): tròn, khung gỗ sơn mài và la bàn, đường kính `RADAR.size`, **tâm là mình**. Tầm mặc định `RADAR.r` ô, ba mức thu phóng `RADAR.zooms` (nút +/- hoặc lăn chuột; `radarZoomStep`). Vẽ lại `RADAR.hz` lần mỗi giây, không vẽ mỗi khung hình.
+- **Radar góc màn hình** (R2): tròn, khung gỗ sơn mài và la bàn, đường kính `RADAR.size`, **tâm là mình**. Tầm mặc định `RADAR.r` ô, ba mức thu phóng `RADAR.zooms` (nút +/- hoặc lăn chuột; `radarZoomStep`). Vẽ lại `RADAR.hz` lần mỗi giây, không vẽ mỗi khung hình. Tùy chọn hướng và mức phóng nhớ ở localStorage (`soul.radar.mode`, `soul.radar.zoom`); nút ở góc radar: đổi hướng (◈ / ⬆), +, −. Dưới radar: tên vùng, dòng "tên bản đồ · tọa độ ô · Kênh N", nút Kênh / Vùng (N, chờ R3) / Thế giới (M). Nền radar là ảnh bản đồ nhỏ cũ (1 pixel mỗi ô) quay + phóng, cắt tròn; khung vùng hang thú vương và vùng săn nhiệm vụ vẽ trên nền.
 - **Hướng:** mặc định **xoay theo isometric** (`radarRotate(…, "iso")`: xoay 45°, không ép dọc, nên vòng tròn trên mặt đất vẫn tròn và đi lên màn hình thì chấm đi lên radar); tùy chọn **"Nhìn thẳng"** (`"flat"`: theo lưới Tiled, Bắc lên). `radarUnrotate` đổi điểm bấm trên radar / bản đồ thành vector thế giới (đặt cờ).
 - **La bàn:** ảnh `RADAR_ART.compass` có bốn mũi gần bằng nhau, không có chữ. **Hướng Bắc đánh dấu bằng code:** tô đỏ đầu mũi Bắc và vẽ chữ "B"; ảnh xoay `radarCompassRotation` (iso: 45°, mũi Bắc lên-phải; thẳng: 0) và đánh dấu bám theo `radarNorthAngle`, không cố định ở đỉnh ảnh.
 - **Chấm theo 7 mức ưu tiên** (`RADAR.levels`, vẽ thấp → cao, `radarSortDots`; biểu tượng pixel 5–9 px vẽ bằng code): 1 hồn thú (màu theo niên hạn), 2 hồn sư khác, 3 NPC / cổng / truyền tống trận, 4 mục tiêu nhiệm vụ và đồ rơi quý, 5 đồng đội tổ đội / cùng tông môn (viền `RADAR.tongCol`), 6 tinh anh (nhấp nháy, màu aura loài), 7 thú vương / boss thế giới (đầu lâu đỏ nhấp nháy). Cờ người chơi đặt vẽ như mức 4 (`flagCol`).
@@ -1056,7 +1056,8 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 
 **Nhóm Bản đồ khu vực: radar, bản đồ và sương mù** (mục 5.17; theo dõi #426; mỗi bước một PR).
 - [x] R0 Hằng `RADAR` / `MAPVIEW` / `FOG` / `RADAR_ART`, hàm thuần `shared/radar.ts`, test `npm run test:radar --prefix server` (#427).
-- [ ] R1 Ảnh nền thủy mặc sinh bằng `tools/maps` (#428). R2 Radar tròn (#429). R3 Bản đồ khu vực phím N (#430). R4 Tự đi tới cờ xuyên bản đồ (#431). R5 Lọc tin `mini` theo bán kính (#432). R6 Đánh dấu tổ đội (#433). R7 Ảnh khung / la bàn / nền giấy (#434). R8 Sương mù khám phá, SQL (#435).
+- [x] R2 Radar tròn góc màn hình thay bản đồ nhỏ (`client/src/radar.ts`, #429; còn chờ ảnh khung / la bàn R7, nút Vùng N chờ R3).
+- [ ] R1 Ảnh nền thủy mặc sinh bằng `tools/maps` (#428). R3 Bản đồ khu vực phím N (#430). R4 Tự đi tới cờ xuyên bản đồ (#431). R5 Lọc tin `mini` theo bán kính (#432). R6 Đánh dấu tổ đội (#433). R7 Ảnh khung / la bàn / nền giấy (#434). R8 Sương mù khám phá, SQL (#435).
 
 ## 8. Câu hỏi còn mở
 1. **Ngân sách mỹ thuật isometric:** phần còn lại của Giai đoạn 10 (6 bộ hồn sư, 20 phụ thể, 67 loài hồn thú) phụ thuộc cách làm hoạt ảnh 8 hướng bằng ComfyUI (#335; PixelLab đã bỏ); cần chọn thứ tự ưu tiên hoặc chuyển bớt sang Gemini / LPC / vẽ tay.
