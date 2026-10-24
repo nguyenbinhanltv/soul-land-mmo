@@ -9,6 +9,7 @@
     "test:ratelimit": "tsx scripts/ratelimit-test.ts",
     "test:accounts": "tsx scripts/accounts-test.ts",
     "test:presence": "tsx scripts/presence-test.ts",
+    "test:itemlock": "tsx scripts/itemlock-test.ts",
     "test:presence-kill": "tsx scripts/presence-kill-test.ts",
     "test:equip": "tsx scripts/equip-test.ts",
     "test:radar": "tsx scripts/radar-test.ts",
@@ -16,6 +17,7 @@
     "test:seed": "tsx scripts/seed-test.ts",
     "seed:test": "tsx scripts/seed-test-account.ts",
     "econ:equip": "tsx scripts/equip-econ.ts",
+    "sim:equip": "tsx scripts/equip-sim.ts",
     "build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --packages=external --tsconfig=tsconfig.json --sourcemap --outfile=dist/index.mjs"
   },
   "dependencies": {

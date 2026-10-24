@@ -1,19 +1,22 @@
 // Kiểm bảng SKILL_VISUAL (client/src/skillVisual.ts): mọi khóa trỏ tới chiêu có thật, sheet khai báo có trong manifest hoặc dựng bằng code.
 // Đọc nguồn bằng regex (skillVisual.ts kéo Phaser, Node không nạp được). Chạy: npm run test:skillvisual --prefix client
 import { readFileSync } from "node:fs";
-import { VOHON, ringSkill, chanThanOf, MAX_RINGS } from "../../shared/data.ts";
+import { VOHON, ringSkill, chanThanOf, tienCoOf, MAX_RINGS } from "../../shared/data.ts";
 
 let fails = 0;
 const ok = (c, msg) => { console.log(`${c ? "✓" : "✗"} ${msg}`); if (!c) fails++; };
 const src = readFileSync(new URL("../src/skillVisual.ts", import.meta.url), "utf8");
 const body = src.slice(src.indexOf("export const SKILL_VISUAL"), src.indexOf("export function skillVisualOf"));
-const keys = [...body.matchAll(/^\s*"([a-z_]+):(\d+|ct)":/gm)].map((m) => [m[1], m[2]]);
+const keys = [...body.matchAll(/^\s*"([a-z_]+):(\d+|ct|tc)":/gm)].map((m) => [m[1], m[2]]);
 ok(keys.length > 0, `bảng có ${keys.length} mục thử`);
 for (const [id, r] of keys) {
-  const has = VOHON.some((v) => v.id === id) && (r === "ct" ? !!chanThanOf(id)?.skill : +r < MAX_RINGS && !!ringSkill(id, +r));
+  const has = VOHON.some((v) => v.id === id) && (r === "tc" ? !!tienCoOf(id) : r === "ct" ? !!chanThanOf(id)?.skill : +r < MAX_RINGS && !!ringSkill(id, +r));
   ok(has, `khóa ${id}:${r} là chiêu có thật`);
 }
 const manifest = JSON.parse(readFileSync(new URL("../../shared/assets/sprites/manifest.json", import.meta.url), "utf8")).sprites.map((e) => (typeof e === "string" ? e : e.key));
 const codeSheets = [...src.matchAll(/makeCodeSheet\(scene, "([a-z_]+)"/g)].map((m) => m[1]);
 for (const k of new Set([...body.matchAll(/key: "([a-z_]+)"/g)].map((m) => m[1]))) ok(manifest.includes(k) || codeSheets.includes(k), `sheet ${k} có ảnh (manifest) hoặc dựng bằng code`);
+// S2 (#548): sheet dựng bằng sk("<tên>", …) cần ảnh `fx_sk_<tên>` và lớp sáng `fx_sk_<tên>_g` trong manifest; mỗi võ hồn đã điền đủ 11 chiêu (vòng 1–6, 8, 9, 10, Chân Thân, tiên cơ).
+for (const n of new Set([...body.matchAll(/sk\("([a-z0-9_]+)"/g)].map((m) => m[1]))) ok(manifest.includes(`fx_sk_${n}`) && manifest.includes(`fx_sk_${n}_g`), `sheet fx_sk_${n} (+ lớp sáng _g) có trong manifest`);
+for (const id of ["lam_dien_ba_vuong_long", "hao_thien_chuy"]) ok(["0", "1", "2", "3", "4", "5", "7", "8", "9", "ct", "tc"].every((r) => keys.some(([i, k]) => i === id && k === r)), `${id} đủ 11 chiêu trong bảng`);
 if (fails) { console.error(`${fails} lỗi`); process.exit(1); }

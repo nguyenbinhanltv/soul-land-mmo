@@ -24,6 +24,14 @@ export interface VisualSheet {
   fps?: number;
   /** Màu nhân vào ảnh (bỏ trống: giữ màu ảnh). */
   tint?: number;
+  /** Lớp cộng sáng riêng cùng bố cục (`fx_sk_<tên>_g`): Thấp không vẽ, Vừa mờ, Cao đủ; chiêu của người khác không có. */
+  glow?: string;
+  /** Vẽ thường thay vì cộng sáng (bụi, đá, chùy: màu tối và viền không bị mất). */
+  normal?: boolean;
+  /** Bù độ cao (px màn hình, dương = lên): vùng trên mặt đất đặt -8 * SPR (tâm gốc là ngang ngực). */
+  lift?: number;
+  /** Vừa bán kính chiêu: bề ngang = 2 × bán kính × hệ số (bỏ `scale`). */
+  fit?: number;
 }
 
 export interface SkillVisual {
@@ -36,6 +44,8 @@ export interface SkillVisual {
   /** Phát thêm một lần ở điểm trúng sau `delay` ms kể từ lúc tung (dư chấn T3, chính mình thấy). */
   aftershock?: { sheet: VisualSheet; delay: number };
   sheet?: VisualSheet;
+  /** Chiêu trúng nhiều lần / nhiều đợt (`n`, `every` ở data.ts): phát lại sheet theo nhịp đó (tối đa `REPEAT_MAX` theo mức hiệu ứng). */
+  repeat?: boolean;
   /** true: sheet THAY hiệu ứng G3 (mặc định false: sheet chồng lên G3, an toàn khi ảnh chưa đẹp). */
   replace?: boolean;
   /** Ghi đè hệ (màu hạt, tia lửa); mặc định theo `skillFxOf`. */
@@ -47,24 +57,57 @@ export const tierOfRing = (ring: number, chanThan: boolean): FxTier => (chanThan
 const HEAVY_OF_TIER: Record<FxTier, 0 | 1 | 2> = { 1: 0, 2: 1, 3: 2 };
 
 /** Khóa bảng: `<mã võ hồn>:<vòng 0..9>`, hồn kỹ Chân Thân `<mã>:ct`. */
-export const visualKey = (vohonId: string, ring: number, chanThan = false) => `${vohonId}:${chanThan ? "ct" : ring}`;
+export const visualKey = (vohonId: string, ring: number | "tc", chanThan = false) => `${vohonId}:${chanThan ? "ct" : ring}`;
+/** Số lần phát lại tối đa của chiêu nhiều lần theo mức hiệu ứng (chiêu của người khác tối đa 2). */
+const REPEAT_MAX: Record<"low" | "mid" | "high", number> = { low: 1, mid: 4, high: 6 };
+/** Độ đục lớp cộng sáng theo mức. */
+const GLOW_ALPHA = { low: 0, mid: 0.3, high: 0.5 } as const;
+
+/** Sheet PixelLab `fx_sk_<tên>` (S2 #548, `tools/assets/skill-vfx/pilot.json`): `s` thân + lớp cộng sáng `_g` cùng tên. `fit` vừa bán kính chiêu (vùng), hoặc `scale` cố định (đòn trúng, vệt chém). */
+const sk = (n: string, o: Omit<VisualSheet, "key" | "glow">): VisualSheet => ({ key: `fx_sk_${n}`, glow: `fx_sk_${n}_g`, normal: true, ...o });
+/** Lấy đà T2 (2 khung ở người tung) và báo trước T3 (0,4 giây): sheet tụ khí dựng bằng code, nhuộm màu võ hồn. */
+const wind = (tint: number, big = false): Pick<SkillVisual, "windup" | "windupSheet"> => big
+  ? { windup: 400, windupSheet: { key: "fxs_tu_khi", at: "cast", scale: 4 * SPR, fps: 15, tint, lift: -4 * SPR } }
+  : { windup: 150, windupSheet: { key: "fxs_tu_khi", at: "cast", scale: 2 * SPR, fps: 40, tint } };
+const GROUND = -8 * SPR; // tâm khung ở ngang ngực (CastCtx.y): kéo xuống mặt đất cho hiệu ứng vùng
+const LD = 0x8ac8ff, HT = 0xd0d4e4;
 
 /**
- * Hai chiêu thử khung (S1). S2 thay bằng sheet vẽ thật cho Lam Điện Bá Vương Long + Hạo Thiên Chùy; các võ hồn khác điền ở S3.
- * `fxs_*` là sheet dựng bằng code (makeCodeSheet, `registerCodeSheets`): thay bằng ảnh thật chỉ cần đổi khóa.
+ * Bảng chiêu → sheet. S2 điền Lam Điện Bá Vương Long (`lam_dien_ba_vuong_long`) và Hạo Thiên Chùy (`hao_thien_chuy`): 11 chiêu mỗi võ hồn
+ * (vòng 1–6, 8, 9, 10 → khóa 0–5, 7, 8, 9; Chân Thân `ct`; tiên cơ `tc`). Võ hồn khác điền ở S3 theo cùng mẫu (T1 nhẹ không lấy đà, T2 lấy đà + khựng 3,
+ * T3 báo trước + sheet 12 khung + `pt.strike`). `fxs_*` là sheet dựng bằng code (makeCodeSheet, `registerCodeSheets`).
  */
 export const SKILL_VISUAL: Readonly<Record<string, Partial<SkillVisual>>> = {
-  // T2: sét giáng xuống điểm trúng, lấy đà 180 ms.
-  "lam_dien_ba_vuong_long:4": { tier: 2, heavy: 2, windup: 180, windupSheet: { key: "fxs_tu_khi", at: "cast", scale: 2 * SPR, fps: 34, tint: 0x8ac8ff }, sheet: { key: "fxs_loi_giang", at: "target", scale: 2 * SPR, fps: 18 } },
-  // T3: chùy nện, nổ ở điểm trúng, dư chấn (dùng sheet nổ G3 có sẵn `fx_no`).
-  "hao_thien_chuy:9": { tier: 3, heavy: 3, windup: 260, windupSheet: { key: "fxs_tu_khi", at: "cast", scale: 3 * SPR, fps: 24, tint: 0xffe08a }, sheet: { key: "fx_no", at: "target", scale: 3 * SPR, fps: 16, tint: 0xffe08a },
-    aftershock: { delay: 380, sheet: { key: "fx_no", at: "target", scale: 2 * SPR, fps: 24, tint: 0xffcf6a } } },
+  // --- Lam Điện Bá Vương Long (hệ Lôi, cộng sáng) ---
+  "lam_dien_ba_vuong_long:0": { tier: 1, heavy: 0, replace: true, sheet: sk("ld_slash1", { at: "target", scale: 2, fps: 16 }) },
+  "lam_dien_ba_vuong_long:1": { tier: 1, heavy: 0, replace: true, sheet: sk("ld_zone1", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "lam_dien_ba_vuong_long:2": { tier: 1, heavy: 0, repeat: true, replace: true, sheet: sk("ld_hit1", { at: "target", scale: 2, fps: 14, lift: -4 * SPR }) },
+  "lam_dien_ba_vuong_long:3": { tier: 1, heavy: 0, replace: true, sheet: sk("ld_zone4", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "lam_dien_ba_vuong_long:4": { tier: 2, heavy: 1, ...wind(LD), replace: true, sheet: sk("ld_slash5", { at: "target", fit: 0.9, fps: 12 }) },
+  "lam_dien_ba_vuong_long:5": { tier: 2, heavy: 1, repeat: true, ...wind(LD), replace: true, sheet: sk("ld_hit6", { at: "target", scale: 2, fps: 12, lift: -6 * SPR }) },
+  "lam_dien_ba_vuong_long:7": { tier: 2, heavy: 1, repeat: true, ...wind(LD), replace: true, sheet: sk("ld_zone8", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "lam_dien_ba_vuong_long:8": { tier: 2, heavy: 1, ...wind(LD), replace: true, sheet: sk("ld_zone9", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  "lam_dien_ba_vuong_long:9": { tier: 3, heavy: 2, ...wind(LD, true), replace: true, sheet: sk("ld_t3a", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "lam_dien_ba_vuong_long:ct": { tier: 3, heavy: 2, ...wind(LD, true), replace: true, sheet: sk("ld_t3b", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "lam_dien_ba_vuong_long:tc": { tier: 2, heavy: 1, replace: true, sheet: sk("ld_zone_tc", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
+  // --- Hạo Thiên Chùy (hệ Quang, vẽ thường: bụi và đá giữ màu tối, nhịp chậm) ---
+  "hao_thien_chuy:0": { tier: 1, heavy: 1, replace: true, sheet: sk("ht_slash1", { at: "target", scale: 2, fps: 10 }) },
+  "hao_thien_chuy:1": { tier: 1, heavy: 1, replace: true, sheet: sk("ht_zone1", { at: "cast", fit: 1, lift: GROUND, fps: 10 }) },
+  "hao_thien_chuy:2": { tier: 1, heavy: 1, repeat: true, replace: true, sheet: sk("ht_hit1", { at: "target", scale: 2, fps: 12, lift: GROUND }) },
+  "hao_thien_chuy:3": { tier: 1, heavy: 1, replace: true, sheet: sk("ht_zone4", { at: "cast", fit: 1, lift: GROUND, fps: 10 }) },
+  "hao_thien_chuy:4": { tier: 2, heavy: 2, ...wind(HT), replace: true, sheet: sk("ht_zone5", { at: "cast", fit: 1, lift: GROUND, fps: 10 }) },
+  "hao_thien_chuy:5": { tier: 2, heavy: 2, ...wind(HT), replace: true, sheet: sk("ht_slash6", { at: "target", fit: 0.9, fps: 10 }) },
+  "hao_thien_chuy:7": { tier: 2, heavy: 2, repeat: true, ...wind(HT), replace: true, sheet: sk("ht_zone8", { at: "cast", fit: 1, lift: GROUND, fps: 10 }) },
+  "hao_thien_chuy:8": { tier: 2, heavy: 2, ...wind(HT), replace: true, sheet: sk("ht_hit9", { at: "target", scale: 2, fps: 12, lift: GROUND }) },
+  "hao_thien_chuy:9": { tier: 3, heavy: 3, ...wind(HT, true), replace: true, sheet: sk("ht_t3a", { at: "target", fit: 1, fps: 9, lift: GROUND }) },
+  "hao_thien_chuy:ct": { tier: 3, heavy: 3, ...wind(HT, true), replace: true, sheet: sk("ht_t3b", { at: "target", fit: 1, fps: 9, lift: GROUND }) },
+  "hao_thien_chuy:tc": { tier: 2, heavy: 2, replace: true, sheet: sk("ht_zone_tc", { at: "cast", fit: 1, lift: GROUND, fps: 10 }) },
 };
 
 /** Mục đã điền đủ mặc định cho chiêu; không có mục thì chỉ tầng + độ nặng theo vòng (hành vi cũ). */
-export function skillVisualOf(vohonId: string, ring: number, chanThan = false): SkillVisual & { element: Element } {
-  const own = SKILL_VISUAL[visualKey(vohonId, ring, chanThan)], tier = own?.tier ?? tierOfRing(ring, chanThan);
-  return { ...own, tier, heavy: own?.heavy ?? HEAVY_OF_TIER[tier], element: own?.element ?? skillFxOf(vohonId, ring, chanThan).element };
+export function skillVisualOf(vohonId: string, ring: number | "tc", chanThan = false): SkillVisual & { element: Element } {
+  const own = SKILL_VISUAL[visualKey(vohonId, ring, chanThan)], tier = own?.tier ?? tierOfRing(ring === "tc" ? 4 : ring, chanThan);
+  return { ...own, tier, heavy: own?.heavy ?? HEAVY_OF_TIER[tier], element: own?.element ?? skillFxOf(vohonId, ring === "tc" ? 0 : ring, chanThan).element };
 }
 /** Chiêu có thật (kiểm bảng không trỏ vào chiêu không tồn tại). */
 export const skillExists = (vohonId: string, ring: number, chanThan = false) => !!(chanThan ? chanThanOf(vohonId)?.skill : ringSkill(vohonId, ring));
@@ -101,19 +144,28 @@ function tuKhi(scene: Phaser.Scene) {
 }
 
 /** Ngữ cảnh một lần tung chiêu. Tọa độ màn hình. */
-export interface CastCtx { x: number; y: number; ang: number; tx: number; ty: number; mine: boolean; tierCol?: number; delayBase?: number }
+export interface CastCtx { x: number; y: number; ang: number; tx: number; ty: number; mine: boolean; tierCol?: number; delayBase?: number; /** bán kính chiêu trên màn hình (px) */ r?: number; /** số lần / nhịp (ms) của chiêu nhiều lần */ n?: number; everyMs?: number }
 
 /** Điều phối T1–T3 trên một `SheetFx`: sheet chính, lấy đà, dư chấn. Trả true nếu sheet thay hiệu ứng G3 (nơi gọi bỏ G3). */
 export class SkillVisualPlayer {
   constructor(readonly sheets: SheetFx) {}
   private mk(s: VisualSheet, c: CastCtx, extra: Partial<SheetPlay> = {}): SheetPlay {
     const at = s.at === "cast" ? { x: c.x, y: c.y } : { x: c.tx, y: c.ty };
-    return { key: s.key, rows: s.rows, scale: s.scale, fps: s.fps, tint: s.tint, ang: c.ang, light: !c.mine, ...at, ...(s.at === "travel" ? { x: c.x, y: c.y, to: { x: c.tx, y: c.ty } } : {}), ...extra };
+    return { key: s.key, rows: s.rows, scale: s.scale, fps: s.fps, tint: s.tint, ang: c.ang, light: !c.mine, lift: s.lift, normal: s.normal, fitW: s.fit && c.r ? 2 * c.r * s.fit : undefined, ...at, ...(s.at === "travel" ? { x: c.x, y: c.y, to: { x: c.tx, y: c.ty } } : {}), ...extra };
+  }
+  /** Một lần phát: thân + lớp cộng sáng (không có ở bản nhẹ của người khác và mức Thấp). */
+  private play1(s: VisualSheet, c: CastCtx, delay: number): boolean {
+    const ok = this.sheets.play(this.mk(s, c, { delay }));
+    const ga = GLOW_ALPHA[fxPrefs.level];
+    if (ok && s.glow && c.mine && ga > 0 && !fxPrefs.reduce && this.sheets.has(s.glow)) this.sheets.play(this.mk({ ...s, key: s.glow, normal: false }, c, { delay, alpha: ga }));
+    return ok;
   }
   /** `vis.sheet` có và đã tải: phát ngay. Người tung còn thấy lớp lấy đà (`windupSheet`) và dư chấn; người khác chỉ thấy bản nhẹ của sheet chính. */
   cast(vis: SkillVisual, c: CastCtx): boolean {
     const s = vis.sheet; if (!s || !this.sheets.has(s.key)) return false;
-    const ok = this.sheets.play(this.mk(s, c));
+    const reps = vis.repeat && c.n && c.n > 1 ? Math.min(c.n, c.mine ? REPEAT_MAX[fxPrefs.level] : Math.min(2, REPEAT_MAX[fxPrefs.level])) : 1;
+    let ok = false;
+    for (let i = 0; i < reps; i++) ok = this.play1(s, c, i * (c.everyMs ?? 0)) || ok;
     if (ok && c.mine && !fxPrefs.reduce && fxPrefs.level !== "low") {
       const w = vis.windupSheet;
       if (w && this.sheets.has(w.key)) this.sheets.play(this.mk(w, { ...c, tx: c.x, ty: c.y }));

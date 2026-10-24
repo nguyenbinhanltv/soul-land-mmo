@@ -30,6 +30,12 @@ export interface SheetPlay {
   light?: boolean;
   /** Bù độ cao lên (pixel màn hình). */
   lift?: number;
+  /** Bề ngang mong muốn trên màn hình (px): chọn cỡ nguyên gần nhất cho khung (vùng khớp bán kính chiêu). Có thì bỏ qua `scale`. */
+  fitW?: number;
+  /** Độ đục tối đa 0..1 (lớp cộng sáng nhẹ hơn thân). */
+  alpha?: number;
+  /** Vẽ thường (không cộng sáng): hiệu ứng khói bụi / đá giữ được màu tối và viền. Mặc định cộng sáng (sét, lửa, quang). */
+  normal?: boolean;
 }
 
 interface Cell { img: Phaser.GameObjects.Image; on: boolean; t: number; dur: number; cols: number; row: number; x0: number; y0: number; x1: number; y1: number; a: number; calm: boolean; wait: number; frames: number }
@@ -42,6 +48,8 @@ export class SheetFx {
   /** Số Image đã tạo (kiểm thử "không tạo object mỗi khung"). */
   get pooled() { return this.cells.length; }
   has(key: string) { return this.scene.textures.exists(key); }
+  /** Bề ngang một khung (px) của texture nhiều khung (khung 0; `__BASE` đứng trước nên lấy khung 0). */
+  private frameW(tex: Phaser.Textures.Texture) { return tex.get(0).width; }
 
   /** Phát một lần; trả false khi texture chưa có hoặc quá trần (nơi gọi giữ hiệu ứng cũ). */
   play(o: SheetPlay): boolean {
@@ -54,15 +62,15 @@ export class SheetFx {
     const row = rows >= 8 ? ((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8 : 0;
     let c = this.cells.find(k => !k.on);
     if (!c) { c = { img: this.scene.add.image(0, 0, o.key).setBlendMode(Phaser.BlendModes.ADD), on: false, t: 0, dur: 0, cols: 0, row: 0, x0: 0, y0: 0, x1: 0, y1: 0, a: 1, calm: false, wait: 0, frames: 0 }; this.cells.push(c); }
-    const sc = Math.max(SPR, snap((o.scale ?? 2 * SPR) * (o.light ? 0.7 : 1)));
+    const sc = o.fitW ? Math.max(SPR, Math.round(o.fitW * (o.light ? 0.7 : 1) / (this.frameW(tex) * 0.88))) : Math.max(SPR, snap((o.scale ?? 2 * SPR) * (o.light ? 0.7 : 1)));
     const dy = -(o.lift ?? 0);
-    c.img.setTexture(o.key, 0).setDepth(this.depth).setScale(sc).setRotation(0).setAlpha(0).setVisible(false).setActive(true)
+    c.img.setBlendMode(o.normal ? Phaser.BlendModes.NORMAL : Phaser.BlendModes.ADD).setTexture(o.key, 0).setDepth(this.depth).setScale(sc).setRotation(0).setAlpha(0).setVisible(false).setActive(true)
       .setFlipX(rows < 8 && Math.cos(a) < 0);
     if (o.tint !== undefined) c.img.setTint(o.tint); else c.img.clearTint();
     c.on = true; c.t = 0; c.cols = cols; c.row = row; c.frames = cols;
     c.dur = (cols / (o.fps ?? 20)) * 1000; c.wait = o.delay ?? 0;
     c.x0 = o.x; c.y0 = o.y + dy; c.x1 = o.to ? o.to.x : o.x; c.y1 = (o.to ? o.to.y : o.y) + dy;
-    c.a = o.light ? 0.75 : 1; c.calm = calm;
+    c.a = (o.light ? 0.75 : 1) * (o.alpha ?? 1); c.calm = calm;
     this.live++;
     return true;
   }

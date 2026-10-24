@@ -121,3 +121,6 @@ Code `5620686` (có `PERF_LOG` ghi `[perf-slow]` theo đoạn và CPU luồng ch
 | 100 | Thấp / Vừa / Cao | 112 | 0,46 / 0,59 / 0,57 | 0,73 / 0,90 / 0,85 | 4 / 14 / 30 | 0 / 56 / 140 |
 
 **Kết luận.** Hiệu ứng thêm khoảng 0,1–0,2 ms script mỗi khung ở mức Vừa / Cao khi 60 người cùng tung chiêu (0,5 ms trong ngân sách 16,7 ms của 60 khung/giây); sprite và hạt luôn nằm dưới trần theo mức nên chi phí không tăng theo số người. **Giới hạn của phép đo:** không có Chrome nào dựng cả 60 hồn sư, bản đồ và ánh sáng cùng lúc, nên con số này chỉ là phần hiệu ứng cộng thêm; cảnh thật (hồn sư, hồn thú, Light2D) chưa đo trong lượt này. Máy dùng chung với phiên khác.
+
+## Trang bị hồn sư (E7, #418)
+Chạy dài lệnh Thợ rèn / mặc đồ (40 bot × 20 phút, và PostgreSQL 20 bot × 5 phút): tick ~0,9 ms, không chậm dần, bộ nhớ không rò, vào lại đúng trạng thái. Số liệu, cách chạy (`bot:local --only equipsoak`) và kết luận cân bằng ở `docs/trang-bi-kinh-te.md` mục E7.

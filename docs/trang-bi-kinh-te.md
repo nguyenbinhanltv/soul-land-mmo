@@ -2,7 +2,7 @@
 
 Kèm mục 5.15 của `GAME_DESIGN.md`. Số liệu sinh ra bằng `npm run econ:equip --prefix server -- --md` (kịch bản `server/scripts/equip-econ.ts`, dùng đúng hàm và bảng của `shared/data.ts`; đổi bảng số thì chạy lại và dán lại các bảng dưới đây).
 
-**Đây là ước lượng theo giả định, không phải đo thật.** Số cần người dùng duyệt trước khi E1 trở đi bật cho người chơi. Đo thật ở bước E7.
+**Đây là ước lượng theo giả định, không phải đo thật.** Số cần người dùng duyệt trước khi E1 trở đi bật cho người chơi. Chạy dài đo thật và giả lập theo thời gian ở bước E7 (mục cuối).
 
 ## Giả định
 
@@ -118,8 +118,195 @@ Hệ số cường hóa: trang bị +5 ×1,18, +10 ×1,51, +15 ×1,93; hồn c�
 7. **Nguồn trang bị:** ~14 món T0 và ~6 món T1 mỗi giờ (chủ yếu chất đống để phân giải), tinh anh ra T3 ~1 món/giờ ở Ngoại vi trở đi (túi đầy xử lý theo luật nhặt hiện hành; Tự bán / tự phân giải tùy chọn ở E4). T4 chỉ ~0,15/giờ từ tinh anh ở bản đồ sâu và 0,3 mỗi thú vương; **T5 chủ yếu từ boss thế giới (~0,5/ngày)**, cả bộ 10 ô T5 cần hàng tháng (chỉ cần một ô trùng là phân giải).
 8. **Đấu trường tính đầy đủ** (đã chốt): trang bị làm tăng khoảng cách giữa người chơi nhiều giờ và người ít giờ, nhưng chỉ ở mức ~30% tối đa và có trần giảm sát thương; `ARENA_HE_DMG`, `dmgMult` không đổi. Soát lại sau khi có số liệu đấu thật (E7). May mắn (vũ khí + dây chuyền) kéo công vũ khí từ giữa lên max: tối đa +25% của riêng công vũ khí (vài % tổng công), nên không phải nguồn sức mạnh chính.
 
-## Việc để E7
+## E7 (#418): giả lập theo thời gian, đấu trường, chạy dài
 
-- Chạy giả lập nhiều người chơi / bot dài, so thời gian lên +10 / +12 với bảng này.
-- Đo sức mạnh thật trên đấu trường (Elo giữa nhóm có và không có bộ Chí Bảo).
-- Kiểm tải ghi DB khi phân giải hàng loạt (tinh anh rơi ~20 món/giờ).
+Sinh bằng `npm run sim:equip --prefix server -- --md` (`server/scripts/equip-sim.ts`, 40 lượt tung × 120 ngày × 3 hồ sơ, dùng đúng hàm và bảng của `shared/data.ts`) và `npm run bot:local -- --only equipsoak --env PERF_LOG=1` (bài chạy dài ở `client/scripts/bot-test.mjs`). **Giả lập vẫn là ước lượng theo giả định; phần chạy dài là số đo thật trên server.** **Kết luận: không đổi số cân bằng nào trong PR này** (lý do ở cuối mục).
+
+### Giả định của giả lập
+
+| Giả định | Giá trị | Ghi chú |
+|---|---|---|
+| Hồ sơ | 1 / 3 / 6 giờ săn mỗi ngày | thường 500 + tinh anh 5 con/giờ (như E0); thú vương 1–2 lần/ngày, boss thế giới 1 lần/ngày |
+| Lộ trình bản đồ | theo giờ chơi lũy kế (chuẩn 3 giờ/ngày): Thánh Hồn Thôn → Ngoại vi (ngày 3) → Nội địa (9) → Lạc Nhật (18) → Cực Bắc (30) → Hải Thần (45) | thú vương từ Nội địa; **boss thế giới chỉ từ Hải Thần** (bản đồ Lõi Tinh Đấu cấp 90–100) |
+| Chính sách mặc | món mới mặc khi điểm (chỉ số chính × bậc × cấp vật phẩm × cường hóa) cao hơn món đang mặc | món bị thay về túi |
+| Hợp thành | khi có 3 món cùng ô cùng bậc và bậc kế tốt hơn món đang mặc ô đó; tối đa T4 → T5 | giữ tối đa 2 món/bậc/ô làm hiến tế, còn lại phân giải |
+| Cường hóa | món đang mặc lên mức mục tiêu theo bậc: T1 +3, T2 +6, T3 +9, T4 +12, T5 +15; món thấp nhất trước | ở nấc 13–15 **luôn dùng bùa** (không bùa thì chờ): người chơi cẩn thận, nên số "Phá hủy" luôn 0 |
+| Hồn Tệ | vào: săn + phân giải; ra: phí cường hóa + hợp thành | không tính hồn cốt / hồn hạch / mua bán khác (cùng ví Hồn Tệ) |
+| Đấu trường | 1v1 cùng kỹ năng, so P = công × sinh lực ÷ (1 − giảm ST) × hệ số chí mạng | thắng ⇔ P lớn hơn (thời gian hạ gục); hệ số `ARENA` áp như nhau cho hai bên nên triệt tiêu khi so tỉ lệ |
+
+### A1. Ít giờ (1 giờ/ngày): tiến trình bộ 10 ô theo ngày
+
+| Ngày | Bản đồ | Bậc TB | + TB | + cao nhất | ≥T4 | T5 | Sinh lực % | Công % | Giảm ST % | Chí mạng |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Thánh Hồn Thôn | 0,8 | 1 | 2 | 0 | 0 | 9 | 10 | 2,2 | 0,3 |
+| 3 | Thánh Hồn Thôn | 1,5 | 2,5 | 3 | 0 | 0 | 13,5 | 17,4 | 3,5 | 0,6 |
+| 7 | Thánh Hồn Thôn | 2 | 3,3 | 4 | 0 | 0 | 17,1 | 20,7 | 4 | 0,6 |
+| 14 | Tinh Đấu Ngoại vi | 2,6 | 6 | 6 | 0 | 0 | 14,6 | 15,8 | 4,9 | 1,1 |
+| 30 | Tinh Đấu Nội địa | 3,1 | 7 | 8 | 1 | 0 | 14,7 | 14 | 5,6 | 1,8 |
+| 60 | Lạc Nhật Sâm Lâm | 3,8 | 7,9 | 9 | 8 | 0 | 14,1 | 14,6 | 6,5 | 3,2 |
+| 90 | Cực Bắc Chi Địa | 4 | 8,4 | 12 | 10 | 0 | 12,4 | 12,9 | 6,8 | 3,5 |
+| 120 | Cực Bắc Chi Địa | 4 | 8,6 | 12 | 10 | 0 | 12,9 | 13,5 | 6,8 | 3,6 |
+
+### A1. Vừa (3 giờ/ngày): tiến trình bộ 10 ô theo ngày
+
+| Ngày | Bản đồ | Bậc TB | + TB | + cao nhất | ≥T4 | T5 | Sinh lực % | Công % | Giảm ST % | Chí mạng |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Thánh Hồn Thôn | 1,5 | 2,9 | 3 | 0 | 0 | 14,3 | 17,1 | 3,3 | 0,5 |
+| 3 | Tinh Đấu Ngoại vi | 2,3 | 4,9 | 5 | 0 | 0 | 11,2 | 12,2 | 4,6 | 1,1 |
+| 7 | Tinh Đấu Ngoại vi | 2,9 | 6,7 | 7 | 0 | 0 | 17,4 | 17,9 | 5,6 | 1,5 |
+| 14 | Tinh Đấu Nội địa | 3,4 | 7,8 | 8 | 4 | 0 | 17,8 | 18,6 | 6,1 | 2,2 |
+| 30 | Cực Bắc Chi Địa | 4 | 8,3 | 12 | 10 | 0 | 13 | 13,1 | 6,8 | 3,1 |
+| 60 | Hải Thần Đảo | 4,6 | 8,5 | 12 | 10 | 6 | 19,1 | 20,2 | 7,6 | 6 |
+| 90 | Hải Thần Đảo | 5 | 8,9 | 15 | 10 | 10 | 22,2 | 22,5 | 8 | 6,7 |
+| 120 | Hải Thần Đảo | 5 | 10,1 | 15 | 10 | 10 | 23,5 | 24,4 | 8 | 7 |
+
+### A1. Cày (6 giờ/ngày): tiến trình bộ 10 ô theo ngày
+
+| Ngày | Bản đồ | Bậc TB | + TB | + cao nhất | ≥T4 | T5 | Sinh lực % | Công % | Giảm ST % | Chí mạng |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Thánh Hồn Thôn | 1,9 | 3,5 | 4 | 0 | 0 | 16,4 | 19,3 | 4 | 0,6 |
+| 3 | Tinh Đấu Ngoại vi | 2,9 | 6,6 | 7 | 0 | 0 | 17 | 18,2 | 5,3 | 1,5 |
+| 7 | Tinh Đấu Nội địa | 3,3 | 7,7 | 8 | 3 | 0 | 17,9 | 17,6 | 6 | 2,2 |
+| 14 | Lạc Nhật Sâm Lâm | 3,9 | 8,1 | 9 | 9 | 0 | 15,7 | 15,4 | 6,8 | 3,5 |
+| 30 | Hải Thần Đảo | 4,4 | 8,4 | 12 | 10 | 4 | 16,8 | 17,2 | 7,2 | 5,2 |
+| 60 | Hải Thần Đảo | 4,9 | 9,8 | 15 | 10 | 9 | 23,5 | 22,5 | 8 | 7,2 |
+| 90 | Hải Thần Đảo | 5 | 11 | 15 | 10 | 10 | 24,7 | 24,1 | 8 | 7,5 |
+| 120 | Hải Thần Đảo | 5 | 12,7 | 15 | 10 | 10 | 26,1 | 26 | 8 | 7,8 |
+
+### A2. Ít giờ (1 giờ/ngày): Hồn Tệ vào / ra và nguyên liệu (cộng dồn)
+
+| Ngày | HT săn | HT phân giải | HT cường hóa | HT hợp thành | Ra/Vào % | Tồn HT | Phá hủy | Bùa kiếm/dùng | Đá tồn I-V |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | 2.023 | 48 | 2.000 | 0 | 96,3 | 109 | 0 | 0/0 | 27/7/0/0/0 |
+| 3 | 6.036 | 280 | 6.000 | 200 | 97,9 | 115 | 0 | 0/0 | 110/25/0/0/0 |
+| 7 | 14.120 | 900 | 12.200 | 2.500 | 98,1 | 279 | 0 | 0/0 | 291/54/0/0/0 |
+| 14 | 60.296 | 2.508 | 56.800 | 4.550 | 98,6 | 674 | 0 | 0/0 | 584/73/24/0/0 |
+| 30 | 255.575 | 6.612 | 162.850 | 31.750 | 73,9 | 68.456 | 0 | 1/0 | 1.235/244/2/7/0 |
+| 60 | 1.141.940 | 20.284 | 519.350 | 122.000 | 56 | 513.251 | 0 | 9/0 | 2.281/611/1/56/5 |
+| 90 | 2.298.089 | 35.301 | 1.078.450 | 137.950 | 52,8 | 1.104.344 | 0 | 17/0 | 3.273/946/1/22/30 |
+| 120 | 3.888.839 | 50.654 | 1.581.400 | 137.950 | 44,1 | 2.206.186 | 0 | 24/0 | 4.240/1.208/2/100/106 |
+
+### A2. Vừa (3 giờ/ngày): Hồn Tệ vào / ra và nguyên liệu (cộng dồn)
+
+| Ngày | HT săn | HT phân giải | HT cường hóa | HT hợp thành | Ra/Vào % | Tồn HT | Phá hủy | Bùa kiếm/dùng | Đá tồn I-V |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | 6.077 | 276 | 5.800 | 400 | 98 | 159 | 0 | 0/0 | 110/26/0/0/0 |
+| 3 | 34.415 | 1.411 | 32.500 | 2.500 | 98,9 | 396 | 0 | 0/0 | 368/51/12/0/0 |
+| 7 | 123.449 | 4.049 | 109.500 | 8.200 | 92,1 | 10.738 | 0 | 0/0 | 861/147/2/0/0 |
+| 14 | 627.822 | 10.883 | 283.400 | 78.250 | 55,5 | 281.688 | 0 | 3/0 | 1.608/394/1/33/0 |
+| 30 | 2.395.291 | 31.136 | 1.014.800 | 139.850 | 47,4 | 1.279.350 | 0 | 10,5/0 | 3.186/897/1/59/35 |
+| 60 | 7.274.341 | 107.484 | 2.326.350 | 222.200 | 34,7 | 4.824.643 | 0 | 35/0 | 5.946/1.489/2/483/404 |
+| 90 | 12.246.843 | 210.494 | 4.750.000 | 331.750 | 40,4 | 7.422.927 | 0 | 68/41 | 8.761/2.129/2/1.089/594 |
+| 120 | 17.219.343 | 314.815 | 7.218.400 | 335.300 | 43,2 | 9.977.578 | 0 | 100,5/80 | 11.582/2.777/1/1.642/763 |
+
+### A2. Cày (6 giờ/ngày): Hồn Tệ vào / ra và nguyên liệu (cộng dồn)
+
+| Ngày | HT săn | HT phân giải | HT cường hóa | HT hợp thành | Ra/Vào % | Tồn HT | Phá hủy | Bùa kiếm/dùng | Đá tồn I-V |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | 12.266 | 696 | 11.600 | 1.200 | 96,9 | 461 | 0 | 0/0 | 267/43/0/0/0 |
+| 3 | 100.508 | 3.432 | 92.900 | 4.900 | 95,2 | 5.007 | 0 | 0/0 | 743/121/3/0/0 |
+| 7 | 628.219 | 9.876 | 257.850 | 59.100 | 50,1 | 316.817 | 0 | 1,5/0 | 1.617/401/2/32/0 |
+| 14 | 2.155.099 | 25.039 | 810.400 | 112.750 | 42,3 | 1.247.674 | 0 | 5/0 | 2.975/792/1/81/27 |
+| 30 | 7.352.299 | 79.807 | 2.040.350 | 147.300 | 29,5 | 5.234.652 | 0 | 18,5/0 | 5.911/1.393/2/431/376 |
+| 60 | 17.298.319 | 212.613 | 5.657.350 | 302.300 | 34 | 11.558.054 | 0 | 52,5/47,5 | 11.408/2.437/2/1.309/931 |
+| 90 | 27.243.928 | 346.327 | 9.099.250 | 365.100 | 34 | 18.202.003 | 0 | 86,5/83,5 | 16.945/3.563/2/2.236/1.552 |
+| 120 | 37.189.648 | 479.420 | 11.886.600 | 390.450 | 32,6 | 25.369.727 | 0 | 120/117,5 | 22.490/4.765/3/3.147/2.193 |
+
+### A3. Ngày đầu tiên đạt mốc (trung vị; ∞ = chưa đạt trong 120 ngày, kèm % lượt đạt)
+
+| Hồ sơ | Có T4 | Có T5 | Một món +10 | Một món +12 | Một món +15 | Cả bộ ≥ +10 |
+|---|---|---|---|---|---|---|
+| Ít giờ (1 giờ/ngày) | 26 (100%) | ∞ (0%) | 59 (100%) | 73 (85%) | ∞ (0%) | 104 (5%) |
+| Vừa (3 giờ/ngày) | 9 (100%) | 46 (100%) | 20 (100%) | 30 (100%) | 80 (90%) | 43 (3%) |
+| Cày (6 giờ/ngày) | 5 (100%) | 24 (100%) | 11 (100%) | 18 (100%) | 45 (85%) | 109 (48%) |
+
+### B1. Đấu trường: chỉ số sức mạnh P = công × sinh lực ÷ (1 − giảm ST) × (hệ số chí mạng), võ hồn Cường công; tỉ lệ P so với người CÙNG cấp / hồn hoàn / hồn cốt / hồn hạch nhưng KHÔNG trang bị
+
+| Mốc | Bộ trang bị | Công | Sinh lực | Giảm ST % | P / P(không) | Thắng 1v1? |
+|---|---|---|---|---|---|---|
+| Cấp 30 | không trang bị | 168 | 1.268 | 0 | 1,00 | - |
+|  | T1 +3 ilvl 2 | 177 | 1.354 | 2,8 | 1,16 | thắng |
+|  | T2 +3 ilvl 2 | 181 | 1.397 | 4 | 1,25 | thắng |
+| Cấp 60 | không trang bị | 507 | 3.864 | 0 | 1,00 | - |
+|  | T3 +9 ilvl 4 | 546 | 4.179 | 5,6 | 1,25 | thắng |
+|  | T4 +9 ilvl 5 | 575 | 4.446 | 6,8 | 1,43 | thắng |
+| Cấp 100 | không trang bị | 1.067 | 8.682 | 0 | 1,00 | - |
+|  | T3 +10 ilvl 6 | 1.128 | 9.117 | 5,6 | 1,2 | thắng |
+|  | T4 +12 ilvl 6 | 1.157 | 9.553 | 6,8 | 1,32 | thắng |
+|  | T5 +15 ilvl 7 | 1.256 | 10.224 | 8 | 1,58 | thắng |
+
+### B2. Cùng bộ đồ, khác hệ võ hồn: chênh lệch từ trang bị so với chênh lệch có sẵn của hệ (ARENA_HE_DMG) ở cấp 100, T5 +15 so với không trang bị
+
+| Hệ | Hệ số sát thương | P không | P T5+15 | Tăng % |
+|---|---|---|---|---|
+| cuong_cong | 0,9 | 12.042.058 | 19.064.593 | 58,3 |
+| man_cong | 0,95 | 10.473.981 | 16.730.167 | 59,7 |
+| khong_che | 1,15 | 10.778.054 | 17.242.486 | 60 |
+| phu_tro | 1,35 | 10.267.812 | 16.525.802 | 60,9 |
+
+### B3. Hai người cùng cấp 100, bộ trang bị khác nhau, đối đầu 1v1 cùng kỹ năng (mô hình thời gian hạ gục)
+
+| A | B | Hạ B mất (giây) | Hạ A mất (giây) | Thắng |
+|---|---|---|---|---|
+| T5+15 | T3+10 | 20,3 | 26,1 | T5+15 (1,28× nhanh hơn; trận 180 giây) |
+| T5+15 | không | 18,3 | 27,6 | T5+15 (1,51× nhanh hơn; trận 180 giây) |
+| T4+12 | không | 19,8 | 25,4 | T4+12 (1,28× nhanh hơn; trận 180 giây) |
+| T3+10 | không | 20,4 | 24 | T3+10 (1,18× nhanh hơn; trận 180 giây) |
+| T5+15 | T4+12 | 21,6 | 25,4 | T5+15 (1,18× nhanh hơn; trận 180 giây) |
+
+### B4. Để so: hồn cốt + hồn hạch đủ bộ so với không có gì (cùng cấp 100 / Cường công), và trang bị cộng thêm lên trên
+
+| Cấu hình | P | P / P(trần) | TTK so với trần |
+|---|---|---|---|
+| Không gì (cấp 100 + 9 hồn hoàn) | 3.015.129 | 1 | 1 |
+| + hồn cốt 100.000y +12 | 5.545.881 | 1,84 | 0,54 |
+| + hồn hạch 6★ +12 | 7.824.108 | 2,59 | 0,39 |
+| + cả hai | 12.042.058 | 3,99 | 0,25 |
+| + cả hai + T3 +10 | 14.396.087 | 4,77 | 0,21 |
+| + cả hai + T5 +15 | 19.064.593 | 6,32 | 0,16 |
+
+### B5. Chênh lệch thật giữa các hồ sơ người chơi (cùng cấp 100, cùng hồn cốt / hồn hạch; chỉ khác bộ trang bị do giả lập ra; P so với hồ sơ Vừa cùng ngày)
+
+| Ngày | Ít giờ / Vừa | Cày / Vừa | Cày / Ít giờ | Vừa / không đồ |
+|---|---|---|---|---|
+| 14 | 0,94 | 1,05 | 1,12 | 1,19 |
+| 30 | 0,93 | 1,09 | 1,18 | 1,25 |
+| 60 | 0,87 | 1,05 | 1,21 | 1,42 |
+| 90 | 0,84 | 1,02 | 1,22 | 1,5 |
+| 120 | 0,83 | 1,02 | 1,23 | 1,52 |
+
+Trần giảm sát thương chung: 30%; bộ T5 đầy đủ cho 8% (bị động hồn cốt cộng vào dưới cùng trần).
+
+### Chạy dài (`soak-perf`, số đo thật)
+
+Bài `equipsoak` (BOT_ONLY, không nằm trong bot đầy đủ / CI): N bot đứng quanh Thợ rèn Nạc Định Thành, mỗi bot mặc đủ 10 ô (món đã +8…+15) rồi lặp: cường hóa (80% dùng bùa, 20% không để chạm phá hủy), hợp thành 3 → 1, phân giải 5–8 món, đổi món đang mặc, thoát và vào lại. Máy: Windows 11, i5-12400F, Node 24, lưu RAM (`MemoryStore`) hoặc PostgreSQL chung của máy; có phiên khác chạy song song (nhiễu). Server `GAME_TEST=1 PERF_LOG=1`, heap tối đa 768 MB. Một bot quan sát riêng đứng cùng phòng để đọc `perf` (tick, bản vá, RSS, heap) mỗi 60 giây.
+
+| Lượt | Lệnh | Lỗi | Trễ p50 / p95 một lệnh | tick TB (nửa đầu → nửa sau) | bản vá TB | tick lớn nhất | RSS server | heap server |
+|---|---|---|---|---|---|---|---|---|
+| RAM, 40 bot × 20 phút | 22.773 cường hóa, 22.861 hợp thành, 22.852 phân giải, 22.834 mặc, 2.302 lần vào lại | 2 hết hạn | 54–56 / 64 ms | 0,97 → 0,87 ms | 0,7–1,0 ms | 31 ms | 146 → 210 (phút 1) → 240 MB (phút 20, tăng ~0,8 MB/phút và chậm dần); đỉnh 245 | 38–96 MB, 38 MB sau khi bot rời |
+| PostgreSQL, 20 bot × 5 phút | 1.919 cường hóa, 1.958 hợp thành, 1.953 phân giải, 1.947 mặc, 200 lần vào lại | 0 | 55 / 64 ms | 0,51 → 0,53 ms | 0,17–0,37 ms | 15 ms | 152 → 209 MB; đỉnh 214 | 37–59 MB |
+
+- Mốc so sánh `docs/hieu-nang-soak.md` (40 bot tự săn trên bản đồ ×8): tick + vá 7–9 ms. Bài này chỉ có 40 người **đứng ở một phòng nhỏ** làm việc nặng túi / lưu, nên tick + vá chỉ ~1,7 ms: tải nằm ở chuỗi lưu và transaction, không ở tick.
+- **Không rò rỉ rõ rệt:** tick không chậm dần (nửa sau thấp hơn nửa đầu), mọi lệnh trả lời ~55 ms (phần lớn là nhịp chờ 50 ms của bot), RSS tăng chậm rồi gần bằng phẳng, heap về 38 MB khi bot rời. RSS giữ ở 240 MB sau khi bot rời là hành vi thường của Node (không trả lại hệ điều hành ngay), không phải heap giữ đối tượng.
+- **Vào lại giữ đúng trạng thái:** sau 20 phút, cả 40 bot thoát rồi vào lại thấy đúng món đang mặc (id, ô, cấp), túi và Hồn Tệ không âm, id không trùng (với PostgreSQL cũng vậy). 22 món bị phá hủy do chủ ý bấm không bùa: server xóa món đúng chỗ, không treo ô.
+- Một lần trễ 2,8 giây (đồng thời cả ba loại lệnh) ở lượt 20 phút, tick server lúc đó không quá 31 ms; trùng lúc **bot** gần chạm trần heap 768 MB (bot RSS 743 MB vì `b.logs` giữ mọi dòng log) nên nhiều khả năng là GC của bot; chưa chứng minh. Một lần 1,4 giây ở lượt PostgreSQL, cùng cách giải thích. Chỉ là một lệnh quá hạn / chậm, không có mất đồ.
+- **Chưa đo:** hàng trăm người (chỉ 40), cùng lúc có hồn thú trên bản đồ ×8 (xem `docs/hieu-nang-soak.md`), nhiều tiến trình / Redis (#120), PostgreSQL ở máy chủ thật (chỉ PostgreSQL cục bộ).
+
+### Kết luận E7 và việc để chủ repo duyệt
+
+1. **Thời gian lên (giả lập mọi khâu cùng nhau):** với 3 giờ/ngày, có T4 từ ngày 9, **một món +10 ở ngày 20** (~60 giờ chơi), +12 ở ngày 30, T5 từ ngày 46 (boss thế giới ở Hải Thần), **một món +15 ở ngày 80** (90% lượt đạt trong 120 ngày). Người 1 giờ/ngày: +10 ở ngày 59, **không có T5 trong 120 ngày** (tới Hải Thần quá chậm); người 6 giờ/ngày: +10 ở ngày 11, T5 ngày 24, +15 ngày 45. Dài hơn ước lượng E0 ("một món +10 ≈ 3–4 ngày ở Nội địa trở đi") vì E0 coi món cố định, còn ở đây món bị thay khi lên bậc và đá III–V chỉ có ở bản đồ sâu. Thứ tự vẫn khớp ý thiết kế: đá và bùa, không phải Hồn Tệ, là nút cổ chai.
+2. **Bùa Hộ Mệnh là nút cổ chai của +13–15:** người 3 giờ/ngày kiếm ~100 bùa trong 120 ngày (thú vương 25% + boss thế giới 60%), dùng ~80; +TB cả bộ ở ngày 120 chỉ 8,6 / 10,1 / 12,7 (1 / 3 / 6 giờ/ngày). Đúng mục tiêu dài hạn đã ghi ở E0; **không đổi**.
+3. **Sức mạnh bão hòa quanh +22–26% sinh lực / công** (ngày 90–120, hồ sơ ≥ 3 giờ), giảm sát thương 8%: khớp ước lượng E0 (Chí Bảo +15 đủ bộ ≈ +30%). Giữa game (ngày 14–60) sức mạnh dao động 13–20% vì món bị thay khi sang bản đồ mới: bình thường.
+4. **Hồn Tệ:** trang bị tiêu 33–44% tổng thu nhập (săn + phân giải) sau 120 ngày ở mọi hồ sơ (7,6 triệu trên 17,5 triệu với 3 giờ/ngày, gồm cả hợp thành), nhưng phần còn lại **tồn lại hàng triệu đến chục triệu** (2,2 triệu / 10 triệu / 25 triệu theo 1 / 3 / 6 giờ/ngày; cùng ví với hồn cốt, hồn hạch): nguồn tiêu Hồn Tệ cuối game yếu, không riêng trang bị. **Tuần đầu** thì ngược lại: chính sách cường hóa mục tiêu +3 / +6 cho T0–T2 dùng 98% Hồn Tệ của hồ sơ 1 giờ/ngày (tiêu 14.700 trên thu 15.000 trong 7 ngày) và 92% của hồ sơ 3 giờ/ngày, tranh với đan / cổng truyền tống của người mới. Đây là hệ quả chính sách giả lập, không phải lỗi bảng; người chơi thật có thể bỏ qua cường hóa món T0–T1.
+5. **Đấu trường tính đầy đủ vẫn ổn:**
+   - Trang bị **không phải** nguồn chênh lệch chính: hồn cốt + hồn hạch đủ bộ nhân sức mạnh P lên ~4,0 lần so với không gì cả (cấp 100), trang bị T5 +15 thêm ×1,58 (công và sinh lực mỗi thứ ×1,18, giảm sát thương 8%, chí mạng thêm vài điểm).
+   - Chênh giữa những người **thật sự chơi**: cùng ngày, hồ sơ 6 giờ so với 1 giờ hơn **1,12× (ngày 14) → 1,23× (ngày 120)** về P; 6 giờ so với 3 giờ chỉ 1,02–1,09×. Người hoàn toàn không có trang bị thua người 3 giờ/ngày ở ngày 90 khoảng 1,5×.
+   - Cùng hệ số trang bị cho mọi hệ võ hồn (tăng 58–61% P ở T5 +15), nên **không đổi cán cân giữa các hệ** (`ARENA_HE_DMG`).
+   - Giảm sát thương 8% xa trần 30% chung với bị động hồn cốt. May mắn vũ khí (max thay vì giữa) chỉ cộng vài % tổng công.
+   - Đây là mô hình thời gian hạ gục, **chưa phải Elo thật** (né, khống chế, hồn kỹ không có trong mô hình; chưa có số trận đấu thật). Nếu sau này thấy người ít giờ bị bỏ xa trong đấu trường, đòn bẩy rẻ nhất là hệ số riêng cho trang bị trong sân (chưa làm, chưa có số liệu thật để đặt).
+6. **Chạy dài:** không chậm dần, không rò, vào lại đúng trạng thái (bảng trên).
+
+**Số cân bằng đổi trong PR này: không.** Các kết quả đo (+15 cần ~80 ngày với 3 giờ/ngày, T5 không tới tay người 1 giờ/ngày, bộ nhớ ổn, chênh đấu trường ≤ 1,23× giữa người chơi tích cực) nằm trong ý thiết kế E0 / mục 5.15; đổi số khi chưa có số liệu đấu thật và chưa ai chơi thử chỉ làm lệch ước lượng. Ba núm nếu chủ repo muốn chỉnh sau khi chơi thử (chưa đổi, chỉ ghi hướng tác động):
+- **Tuần đầu tranh Hồn Tệ:** hạ `EQUIP_ENHANCE[0].fee` (200) hoặc `EQUIP_SYNTH[0].fee` (100) nếu người mới báo hết Hồn Tệ.
+- **Cuối game dư Hồn Tệ:** tăng `fee` các nấc 10–12 / 13–15 của `EQUIP_ENHANCE` (8.000 / 30.000) hoặc `EQUIP_SYNTH[3..4].fee` làm nguồn tiêu; không đổi tốc độ lên vì nút cổ chai là đá và bùa.
+- **+15 quá chậm / quá nhanh:** `EQUIP_DROP.ranks[2..3].charm` (0,25 / 0,6) là đòn bẩy trực tiếp lên số ngày; chạy lại `npm run sim:equip --prefix server` để so trước / sau.
