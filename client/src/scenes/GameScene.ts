@@ -7,7 +7,7 @@ import { MINI_BASE, TIERS, BEASTS, VOHON, RADAR, SYNC_VIEW, MAPS, TILE, titleOf,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, EQUIP_ITEM, EQUIP_TEMPLATES, EQUIP_TIERS, equipName, coreStatText, type CoreSubUp, type CoreStat, KING,
   AUTOWALK, AUTO_MOVE, WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM, SLOW_CAP,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
-  type QuestProgress, type QuestStatus, formatHonTe, type SkillDef, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS, LPC_VIEW, decodeLpc, type Looks } from "../../../shared/data.ts";
+  type QuestProgress, type QuestStatus, formatHonTe, type SkillDef, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS, LPC_VIEW, decodeLpc, encodeLpc, lpcGearLooks, type Looks } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN } from "../textures.ts";
 import { buildRings, animateRings, type HaloState } from "../soulRings.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
@@ -184,6 +184,20 @@ const pSlow = (st: number) => Math.min(SLOW_CAP, PLAYER_STATUS.reduce((a, s) => 
 /** Biểu tượng trạng thái trên đầu hồn thú / hồn sư (thứ tự hiển thị); Choáng, Trói, Mê hoặc vẽ riêng. */
 const STATUS_ICONS = ["burn", "shock", "poison", "vuln", "armor", "silence", "allure", "lock", "slow", "chill", "flood", "ink"] as const;
 
+/** Chuỗi LPC để dựng thân: ngoại hình LPC đè áo / mũ trang bị đang mặc (`gearAo` / `gearMu`, HL4 #573; tuỳ chọn Ẩn mũ); "" = chế độ Mẫu dựng sẵn cũ. Nhớ kết quả theo bộ đầu vào. */
+const gearLpcMemo = new Map<string, string>();
+function gearLpc(p: { lpc: string; gearAo: number; gearMu: number }): string {
+  if (!p.lpc || (!p.gearAo && !p.gearMu)) return p.lpc;
+  const key = `${p.lpc}#${p.gearAo}#${p.gearMu}#${fxPrefs.hideHat ? 1 : 0}`;
+  let out = gearLpcMemo.get(key);
+  if (out === undefined) {
+    const l = decodeLpc(p.lpc);
+    out = l ? encodeLpc(lpcGearLooks(l, p.gearAo, p.gearMu, fxPrefs.hideHat)) : p.lpc;
+    if (gearLpcMemo.size > 400) gearLpcMemo.clear();
+    gearLpcMemo.set(key, out);
+  }
+  return out;
+}
 /** Ngoại hình đang mang của một hồn sư trong state (chế độ Tự tạo khi có chuỗi `lpc`); chuỗi hỏng thì null. */
 function looksOf(p: { sex: number; hair: number; hairCol: number; outfitCol: number; skin: number; lpc: string }): Looks | null {
   if (!p.lpc) return { sex: p.sex, hair: p.hair, hairCol: p.hairCol, outfitCol: p.outfitCol, skin: p.skin, mode: "preset" };
@@ -2523,11 +2537,12 @@ export class GameScene extends Phaser.Scene {
       root.setPosition(at.x, at.y).setDepth(at.y);
       // Ngoại hình hồn sư (sex, hair, hairCol, outfitCol, skin) và võ hồn ra trận đồng bộ từ server, ai cũng thấy.
       // Chế độ Tự tạo (L3 #510): chuỗi `lpc` thay cho năm số; thân là texture ghép lúc chạy, áo và tóc đã nằm trong đó.
-      const looks = p.lpc ? `L${p.lpc}` : `${p.sex}|${p.hair}|${p.hairCol}|${p.outfitCol}|${p.skin}`;
+      const lpcStr = gearLpc(p);
+      const looks = lpcStr ? `L${lpcStr}` : `${p.sex}|${p.hair}|${p.hairCol}|${p.outfitCol}|${p.skin}`;
       if (looks !== v.looks) {
         v.looks = looks; v.playing = "";
         if (v.lpcKey) { this.lpc.release(v.lpcKey); v.lpcKey = null; }
-        const lk = p.lpc ? this.lpc.acquire(p.lpc) : null;
+        const lk = lpcStr ? this.lpc.acquire(lpcStr) : null;
         if (lk) { v.lpcKey = lk; v.lpcFace = { shown: null, pend: null }; fitHonsuLayer(v.body.setTexture(lk)); v.outfit.setVisible(false); v.hair.setVisible(false); }
         else {
           const t = looksTextures(this, p);
@@ -2932,7 +2947,7 @@ export class GameScene extends Phaser.Scene {
     const me = this.room.state.players.get(this.me); if (!me) return "";
     const lk = this.players.get(this.me)?.lpcKey ?? null;
     if (me.lpc && !(lk && this.lpc.ready(lk, "idle"))) return ""; // thân LPC chưa ghép xong: chưa có ảnh (không lưu đệm)
-    const looks = me.lpc ? `L${me.lpc}` : `${me.sex}|${me.hair}|${me.hairCol}|${me.outfitCol}|${me.skin}`;
+    const looks = me.lpc ? `L${gearLpc(me)}` : `${me.sex}|${me.hair}|${me.hairCol}|${me.outfitCol}|${me.skin}`;
     if (looks !== this.portraitLooks) { this.portraits.clear(); this.portraitLooks = looks; } // đổi ngoại hình: ảnh cũ bỏ đi
     const hit = this.portraits.get(vohon);
     if (hit) return hit;
