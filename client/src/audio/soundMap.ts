@@ -22,7 +22,7 @@ const WEAPON_OF: Readonly<Record<string, Weapon>> = {
   cuu_tinh_that_sat_kiem: "kiem", nguyet_nhan: "kiem", ky_nhung_thong_thien_cuc: "kiem",
   hao_thien_chuy: "chuy", thien_can_bach_ngoc_dinh: "chuy", cuu_bao_luu_ly_thap: "chuy", xuc_xich: "chuy",
   pha_hon_thuong: "thuong", liet_hoa_thuong_lang: "thuong", lam_ngan_thao: "thuong",
-  u_minh_linh_mieu: "trao", kim_vu_mieu_ung: "trao", yeu_ho: "trao", tu_vong_chu_hoang: "trao", bich_lan_xa_hoang: "trao", hoa_long: "trao",
+  bach_ho: "trao", u_minh_linh_mieu: "trao", kim_vu_mieu_ung: "trao", yeu_ho: "trao", tu_vong_chu_hoang: "trao", bich_lan_xa_hoang: "trao", hoa_long: "trao",
 };
 export function weaponOf(vohonId: string | undefined): Weapon { return (vohonId && WEAPON_OF[vohonId]) || "quyen"; }
 

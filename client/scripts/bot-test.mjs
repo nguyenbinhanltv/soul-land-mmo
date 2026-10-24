@@ -2992,9 +2992,9 @@ else {
   }
   // ---------- 8.3: 4 võ hồn mới (Phá Hồn Thương, A Ngân, Liệt Hỏa Thương Lang, Băng Phượng Hoàng) ----------
   if(inPart("ab2")){
-    const NEW=EXTRA_VOHON, n0=VOHON.length-NEW.length;
-    ok(NEW.length===4&&NEW.every((id,k)=>vohonIndex(id)===n0+k)&&vohonIndex("cuu_bao_luu_ly_thap")===n0-1,
-      `8.3: 4 võ hồn mới ở cuối VOHON (chỉ số ${n0}–${VOHON.length-1}), võ hồn cũ giữ chỉ số: ${NEW.map(id=>`${vname(id)} (${VOHON[vohonIndex(id)].rarity}, ${HE[VOHON[vohonIndex(id)].he].name})`).join(", ")}`);
+    const NEW=EXTRA_VOHON, n0=vohonIndex(NEW[0]); // Bạch Hổ (#194) thêm sau 4 võ hồn này, ở cuối VOHON
+    ok(NEW.length===4&&NEW.every((id,k)=>vohonIndex(id)===n0+k)&&vohonIndex("cuu_bao_luu_ly_thap")===n0-1&&vohonIndex("bach_ho")===n0+NEW.length&&VOHON.length===n0+NEW.length+1,
+      `8.3: 4 võ hồn mới nối nhau (chỉ số ${n0}–${n0+NEW.length-1}), Bạch Hổ (#194) sau đó, võ hồn cũ giữ chỉ số: ${NEW.map(id=>`${vname(id)} (${VOHON[vohonIndex(id)].rarity}, ${HE[VOHON[vohonIndex(id)].he].name})`).join(", ")}`);
     ok(AWAKEN_CHOICES.length===17&&AWAKEN_CHOICES.every(v=>v.rarity==="SSR"&&!NEW.includes(v.id)),"lựa chọn thức tỉnh vẫn là 17 SSR cơ bản, không có võ hồn mới");
     ok(NEW.every(id=>skillsOf(id)!==SKILLS&&skillsOf(id).length===4&&TIEN_CO_RIENG[id]&&HIGH_RINGS.every(n=>ringSkill(id,n-1))&&!ringSkill(id,CHAN_THAN_RING-1)
       &&ringSkill(id,9).ult&&/^Tuyệt kỹ:/.test(ringSkill(id,9).desc)&&chanThanOf(id)?.burst&&new Set(skillChoices(id,10).map(r=>ringSkill(id,r).name)).size===9),
@@ -3195,14 +3195,14 @@ else {
   }
   // ---------- 9.6: hồn kỹ Chân Thân (ChanThanDef.skill: ô P đổi thành hồn kỹ này trong lúc biến hình, hồi chiêu riêng) ----------
   if(inPart("ab2")){
-    // Hàm thuần: đủ 24 võ hồn, 40 hồn lực, hồi 8 giây; mạnh hơn vòng 9 khoảng 20% (tổng hệ số sát thương), cùng lối đánh.
+    // Hàm thuần: đủ 25 võ hồn, 40 hồn lực, hồi 8 giây; mạnh hơn vòng 9 khoảng 20% (tổng hệ số sát thương), cùng lối đánh.
     const tot=s=>s.dmg*(s.n??1);
     const bad=VOHON.filter(v=>{ const ct=chanThanOf(v.id)?.skill, r9=ringSkill(v.id,8); if(!ct||ct.cost!==CHAN_THAN_SKILL_COST||ct.cd!==CHAN_THAN_SKILL_CD||!r9) return true;
       if(tot(r9)>0&&Math.abs(tot(ct)/tot(r9)-1.2)>0.05) return true;
       if(v.he==="phu_tro"&&!(ct.self&&(ct.self.heal||ct.self.shield||ct.self.buff))) return true;
       if(v.he==="khong_che"&&!((ct.area==="around"||(ct.area==="proj"&&ct.spread>=360))&&[...(ct.status??[]),...(ct.finisher??[])].some(a=>["stun","root","silence","lock","allure","slow"].includes(a.s)))) return true;
       return false; });
-    ok(VOHON.length===24&&!bad.length&&CHAN_THAN_SKILL_SLOT===3,
+    ok(VOHON.length===25&&!bad.length&&CHAN_THAN_SKILL_SLOT===3,
       `cả ${VOHON.length} võ hồn có hồn kỹ Chân Thân (${CHAN_THAN_SKILL_COST} hồn lực, hồi ${CHAN_THAN_SKILL_CD} giây, ×1,2 vòng 9, đúng lối đánh)${bad.length?` – lỗi: ${bad.map(v=>v.id).join(", ")}`:""}`);
     const C=await bot("Tester CTS","yeu_ho",{sex:0,hair:3,hairCol:2,outfitCol:4});
     await waitFor(()=>C.owned&&C.squad&&meOf(C)); const cp=meOf(C), V="bang_phuong_hoang", def=chanThanOf(V), ct=def.skill, sP=skillsOf(V)[3];
@@ -10446,12 +10446,13 @@ async function fusionTest(){
   const fi=fusionIndex("yeu_ho","nguyet_nhan"), YN=FUSIONS[fi], sumDmg=f=>f.parts.reduce((a,x)=>a+x.dmg*(x.n??1),0);
   // Số cân bằng chỉ ở shared/data.ts: bài chỉ kiểm quan hệ / cấu trúc, in số ra để đọc.
   ok(FUSION.r===PARTY_BUFF_R&&FUSION.window>0&&FUSION.cd>FUSION.window&&FUSION.cost>0&&FUSION.minRings>1,`FUSION: r ${FUSION.r} (= PARTY_BUFF_R), chờ ${FUSION.window} giây, hồi ${FUSION.cd} giây, ${FUSION.cost} hồn lực, ${FUSION.minRings} hồn hoàn`);
-  const MVP=[["yeu_ho","nguyet_nhan"],["hao_thien_chuy","nhu_cot_tho"],["lam_dien_ba_vuong_long","bich_lan_xa_hoang"],["bang_phuong_hoang","hoa_long"]];
+  const MVP=[["yeu_ho","nguyet_nhan"],["hao_thien_chuy","nhu_cot_tho"],["lam_dien_ba_vuong_long","bich_lan_xa_hoang"],["bang_phuong_hoang","hoa_long"],["bach_ho","u_minh_linh_mieu"]];
   ok(fi>=0&&fusionIndex("nguyet_nhan","yeu_ho")===fi&&MVP.every(([a,b])=>fusionIndex(a,b)>=0)&&FUSIONS.every(f=>f.parts.every(x=>x.area==="around")&&sumDmg(f)>0),
-    `4 cặp MVP có trong FUSIONS, vùng quanh điểm giữa, tổng dmg ${FUSIONS.map(f=>`${f.name} ${sumDmg(f).toFixed(1)}`).join(", ")}`);
+    `${MVP.length} cặp có trong FUSIONS, vùng quanh điểm giữa, tổng dmg ${FUSIONS.map(f=>`${f.name} ${sumDmg(f).toFixed(1)}`).join(", ")}`);
   const A=await bot("Dung Hợp A","yeu_ho",{sex:1,hair:2,hairCol:1,outfitCol:2});
   const B=await bot("Dung Hợp B","nguyet_nhan",{sex:0,hair:1,hairCol:3,outfitCol:4});
   const O=await bot("Dung Hợp O","nguyet_nhan",{sex:0,hair:3,hairCol:2,outfitCol:1});
+  const U=await bot("Dung Hợp U","u_minh_linh_mieu",{sex:1,hair:1,hairCol:5,outfitCol:3}); // #194: cặp U Minh Bạch Hổ với O cầm Bạch Hổ
   try{
   if(!(await test(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua dung hợp kỹ (cần hook set, goto, party): bật server bằng GAME_TEST=1"); return; }
   const meP=b=>b.room.state.players.get(b.room.sessionId), rowOf=(b,v)=>b.owned.list.find(x=>x.vohon===v)?.rowId;
@@ -10563,7 +10564,37 @@ async function fusionTest(){
   await B.room.leave(); await sleep(300); await enter(B); await waitFor(()=>meP(B)&&B.owned,3000);
   w=await fus(B,"start"); ok(/hồi chiêu dung hợp/.test(w),`B thoát rồi vào lại vẫn còn hồi chiêu: "${w}"`);
   ok(B.owned?.fcd>0&&B.owned.fcd<=FUSION.cd,`vào lại: vohons của B vẫn có hồi chiêu dung hợp ${B.owned?.fcd} giây (ô G không làm mới)`);
-  } finally { for(const b of [A,B,O]) await b.room.leave().catch(()=>{}); }
+  // #194: U Minh Bạch Hổ. O (chưa dùng dung hợp) nhận Bạch Hổ bằng hook grant, U cầm U Minh Linh Miêu, hai người lập tổ đội riêng.
+  { const UB=FUSIONS[fusionIndex("bach_ho","u_minh_linh_mieu")];
+    await test(O,"grant",{vohon:"bach_ho"}); ok(await waitFor(()=>rowOf(O,"bach_ho"),2000),"O nhận Bạch Hổ (hook grant)");
+    const wantO=[rowOf(O,"bach_ho"),0,0,0], wantU=[rowOf(U,"u_minh_linh_mieu"),0,0,0];
+    await test(O,"clear"); await test(U,"clear"); await test(O,"rest",{s:TEAM_COMBAT_SECS+1}); await test(U,"rest",{s:TEAM_COMBAT_SECS+1});
+    await test(O,"set",{rowId:wantO[0],level:35,xp:0,rings:Y}); await test(U,"set",{rowId:wantU[0],level:35,xp:0,rings:Y});
+    await sendTeam(O,wantO); await sendTeam(U,wantU);
+    ok(await waitFor(()=>meP(O).vh===vohonIndex("bach_ho")&&meP(U).vh===vohonIndex("u_minh_linh_mieu"),2500),`O ra trận Bạch Hổ, U ra trận U Minh Linh Miêu (${UB?.name})`);
+    const ox=Math.round(meP(O).x), oy=Math.round(meP(O).y);
+    let near=false; // hook goto bỏ qua ô không đứng được: thử vài chỗ quanh O, chọn chỗ U tới được ngoài làng
+    for(const [dx,dy] of [[0,50],[50,0],[-50,0],[0,-50],[40,40],[-40,-40]]){
+      await test(U,"goto",{x:ox+dx,y:oy+dy}); near=await waitFor(()=>Math.hypot(meP(U).x-ox-dx,meP(U).y-oy-dy)<0.5,600)&&!inSf(U); if(near) break; }
+    ok(near,`U đứng gần O (${Math.round(Math.hypot(meP(U).x-meP(O).x,meP(U).y-meP(O).y))} pixel), ngoài làng`);
+    await test(O,"party",{pop:"rlreset"});
+    { const k=U.partyMsgs??0; O.room.send("party",{op:"invite",name:U.name}); await waitFor(()=>(U.partyMsgs??0)>k,2000);
+      U.room.send("party",{op:"accept",name:O.name}); ok(await waitFor(()=>O.party?.members?.length===2&&U.party?.id===O.party.id,2000),"O và U cùng tổ đội"); }
+    await test(O,"clear"); await test(U,"clear"); await test(O,"ready"); await test(U,"ready");
+    const eb2=(await test(O,"beast",{boss:EB,dx:40,dy:0,hpx:50})).bid; await test(O,"status",{s:"root",secs:30,bid:eb2});
+    O.fxs=[]; O.fus.length=0; U.fus.length=0;
+    w=await fus(O,"start"); ok(await waitFor(()=>U.fus.some(m=>m.k==="ask"&&m.i===fusionIndex("bach_ho","u_minh_linh_mieu")),1500),`O mời: U nhận lời nhắc ${UB.name}: "${w}"`);
+    w=await fus(U,"join");
+    ok(await waitFor(()=>O.fus.some(m=>m.k==="done")&&U.fus.some(m=>m.k==="done"),1500)&&w.includes(`Võ Hồn Dung Hợp Kỹ ${UB.name}`),`U hưởng ứng: tung ${UB.name}: "${w}"`);
+    const fx2=O.fxs.find(f=>f.k==="fusion");
+    ok(fx2?.va===vohonIndex("bach_ho")&&fx2?.vb===vohonIndex("u_minh_linh_mieu"),`fx fusion mang Bạch Hổ và U Minh Linh Miêu: va ${fx2?.va}, vb ${fx2?.vb}`);
+    await sleep(UB.parts.reduce((a,x)=>a+(x.n??1)*(x.every??0.15),0)*1000+500);
+    const one2=(await test(O,"elite",{bid:eb2})).one, d1=one2?.dmgBy?.[O.room.sessionId]??0, d2=one2?.dmgBy?.[U.room.sessionId]??0;
+    ok(one2&&d1>0&&Math.abs(d1-d2)<1e-6,`đóng góp tinh anh chia đôi: O ${d1.toFixed(1)}, U ${d2.toFixed(1)}`);
+    const ar=O.room.state.beasts.get(eb2)?.armor??0;
+    ok(ar>=2,`U Minh Bạch Hổ để lại Phá giáp trên tinh anh: ${ar} tầng`);
+  }
+  } finally { for(const b of [A,B,O,U]) await b.room.leave().catch(()=>{}); }
 }
 
 /**
