@@ -19,7 +19,8 @@
     "audio:process": "node tools/audio/process.mjs",
     "audio:validate": "node tools/audio/validate.mjs",
     "audio:preview": "node tools/audio/preview.mjs",
-    "audio:sfx": "node tools/audio/process-sfx.mjs"
+    "audio:sfx": "node tools/audio/process-sfx.mjs",
+    "audio:preview-sfx": "node tools/audio/preview-sfx.mjs"
   },
   "devDependencies": {
     "embedded-postgres": "18.4.0-beta.17",
