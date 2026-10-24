@@ -5243,3 +5243,211 @@ export const FOG = {
  * Client (R2) cắt ảnh này làm nền radar và bản đồ khu vực.
  */
 export const MINI_BASE = { px: 2, dir: "mini" };
+
+// ---------- LPC: danh mục "Tự tạo hồn sư" (L1 #508, kế hoạch #507; GAME_DESIGN.md mục 5.11 "Hồn sư chế độ Tự tạo") ----------
+// Bốn khối dưới (LPC_SLOTS, LPC_SHEET, LPC_RAMPS, LPC_PARTS) viết đúng cú pháp JSON (khóa có nháy, không chú thích bên trong) để
+// tools/assets/lpc-parts.mjs đọc lại; sửa tay thì giữ dạng đó. Nguồn từng lớp (thư mục trong kho LPC, theo zPos) ở
+// art/src/lpc-parts.json; `npm run check` kiểm hai bên khớp, mọi món có sheet trong shared/assets/lpcparts/ và có dòng ghi công.
+
+/** Ô (lớp) của món, theo thứ tự hiện trong màn tạo nhân vật. */
+export const LPC_SLOTS: Record<string, string> = {"body":"Thân","head":"Mặt","brow":"Mày","nose":"Mũi","beard":"Râu","hair":"Tóc","hairext":"Tóc (thêm)","torso":"Áo","legs":"Quần / váy","feet":"Giày / tất","cape":"Áo choàng / vai","belt":"Đai","hat":"Mũ / khăn","neck":"Cổ","face":"Phụ kiện mặt","arms":"Tay"};
+
+/** Một món trong danh mục. `sex`: thể hình có món (m nam, f nữ, mf cả hai); `idle`: thể hình có hoạt ảnh idle riêng (món thiếu idle thì
+ *  cả bộ đứng bằng khung đứng của walk); `mats`: chất liệu đổi màu lúc chạy, dạng "<chất liệu>:<dải gốc>" (khóa của LPC_RAMPS); `colors`: màu
+ *  vẽ sẵn (mỗi màu một sheet; chỉ món không đổi màu được); `z`: zPos từng lớp (nhỏ hơn 10 nằm dưới thân, như tóc sau gáy; mỗi lớp một
+ *  sheet); `lic`: giấy phép game dùng theo (nhóm ít ràng buộc nhất, như licenseUse của tools/assets/lib.mjs); `sa`: cờ Share-Alike
+ *  (sheet ghép có món cờ SA thì theo SA, ghi ở `art/CREDITS.md`). `style`: dong = đồ phương Đông, trung = trung tính, tay = nghiêng Tây. */
+export interface LpcPart {
+  id: string; slot: string; vi: string; style: "dong" | "trung" | "tay";
+  sex: "m" | "f" | "mf"; idle: "" | "m" | "f" | "mf";
+  mats: string[]; colors: string[]; z: number[]; lic: string[]; sa: boolean;
+}
+
+/**
+ * Quy cách sheet đóng gói của mỗi lớp / thể hình (`shared/assets/lpcparts/<khóa>.png`, manifest cùng thư mục): khung `frame`², gốc chân
+ * `origin`; hàng `rows` (s xuống, e phải, n lên; hàng hurt chỉ nhìn xuống); `strips`: đoạn cột của từng animation LPC và các khung
+ * LPC được giữ (`col` = cột đầu); `srcRows`: hàng của sheet LPC gốc (hàng Trái không dùng); `dir8`: 8 hướng của game → [hàng, lật ngang]
+ * (4 hướng LPC, se / e / ne cùng hàng phải, tây lật như NPC LPC); `anims`: animation game → đoạn, chỉ số khung trong đoạn, thời gian từng
+ * khung (ms), `dirs` "s" = chỉ hướng xuống. `budgetBytes`: ngưỡng báo dung lượng tổng các sheet (`npm run check` báo, không chặn).
+ */
+export const LPC_SHEET = {"frame":64,"origin":[32,58],"budgetBytes":2097152,"rows":{"s":0,"e":1,"n":2,"hurt":3},"srcRows":{"s":2,"e":3,"n":0,"hurt":0},"dir8":{"s":["s",false],"se":["e",false],"e":["e",false],"ne":["e",false],"n":["n",false],"nw":["e",true],"w":["e",true],"sw":["e",true]},"strips":{"idle":{"src":"idle","frames":[0,1],"col":0},"walk":{"src":"walk","frames":[1,2,4,5,7,8],"col":2},"slash":{"src":"slash","frames":[1,2,3,5],"col":8},"spellcast":{"src":"spellcast","frames":[1,2,3,4,5],"col":12},"hurt":{"src":"hurt","frames":[1,2,3,4,5],"col":17}},"anims":{"idle":{"strip":"idle","idx":[0,0,1,1],"ms":[200,200,200,200],"loop":true,"dirs":"all"},"walk":{"strip":"walk","idx":[0,1,2,3,4,5],"ms":[100,100,100,100,100,100],"loop":true,"dirs":"all"},"attack":{"strip":"slash","idx":[0,1,2,3],"ms":[70,70,90,120],"loop":false,"dirs":"all"},"cast":{"strip":"spellcast","idx":[0,2,4],"ms":[100,200,140],"loop":false,"dirs":"all"},"hurt":{"strip":"hurt","idx":[0,1],"ms":[80,120],"loop":false,"dirs":"s"},"die":{"strip":"hurt","idx":[1,2,3,4],"ms":[120,120,120,120],"loop":false,"dirs":"s"},"absorb":{"strip":"spellcast","idx":[1,3],"ms":[500,500],"loop":true,"dirs":"s"}}};
+
+/** Dải màu LPC cho tô màu lúc chạy: `ramps[tên]` là các sắc tối → sáng của dải; `allow`: tên người chơi được chọn (còn lại chỉ là dải
+ *  gốc của món để thay màu, hoặc bị loại vì chói). Client đổi từng sắc của dải gốc (`mats` của món) sang sắc cùng chỉ số của dải chọn. */
+export const LPC_RAMPS: Record<string, { allow: string[]; ramps: Record<string, string[]> }> = {
+  "body": { "allow": ["light","amber","olive","taupe","bronze","brown","black"], "ramps": {
+    "light": ["#271920","#99423c","#cc8665","#e4a47c","#f9d5ba","#faece7"],
+    "amber": ["#281716","#9e3e37","#d28144","#ea9f54","#fdd082","#fbe7a4"],
+    "olive": ["#271920","#442725","#7f4c31","#ae6b3f","#d38b59","#e4a47c"],
+    "taupe": ["#271920","#503734","#785946","#936849","#ba8454","#c7935f"],
+    "bronze": ["#1a1213","#442725","#644133","#7f4c31","#ae6b3f","#d38b59"],
+    "brown": ["#120e10","#412b29","#5f4539","#76513a","#9c663e","#b8773f"],
+    "black": ["#000000","#1a1213","#2e1f1c","#442725","#603429","#7f4c31"]
+  } },
+  "eye": { "allow": ["blue","green","purple","red","orange","yellow","brown","gray"], "ramps": {
+    "blue": ["#2a3c49","#5686ae","#57cee4"],
+    "green": ["#2b4b29","#53b351","#84ec50"],
+    "purple": ["#710862","#b90da0","#eba0e0"],
+    "red": ["#532421","#cb4a39","#ff3d62"],
+    "orange": ["#a45227","#be734b","#ea9b71"],
+    "yellow": ["#b69953","#d9bf46","#fedf47"],
+    "brown": ["#232017","#544c2e","#7e4e20"],
+    "gray": ["#3d3c37","#8b8979","#ada18f"]
+  } },
+  "hair": { "allow": ["raven","black","dark_brown","chestnut","dark_gray","gray","white","navy","red","light_brown"], "ramps": {
+    "raven": ["#010107","#040b18","#061421","#071f2a","#0d384d","#1a5369"],
+    "black": ["#000000","#080a0a","#101414","#1c2222","#31313e","#4a5057"],
+    "dark_brown": ["#050100","#160701","#290e02","#421603","#5f1f04","#792806"],
+    "chestnut": ["#200c0d","#3a130e","#63200b","#81310a","#b6550e","#d28102"],
+    "dark_gray": ["#000000","#0e0e0e","#1b1b1b","#3b3b3b","#7c7c7c","#c1c1c1"],
+    "gray": ["#0e0e0e","#292929","#4b4b4b","#777777","#aaaaaa","#d9d9d9"],
+    "white": ["#1d1d21","#484e57","#8b9498","#b8bbbc","#d8dcdc","#ffffff"],
+    "navy": ["#180716","#20102b","#281e41","#322d6a","#3c49ad","#466ac9"],
+    "red": ["#300000","#870000","#a40712","#cb0000","#e21414","#f1583a"],
+    "light_brown": ["#1a0e04","#301b07","#60350f","#7d4513","#ae682a","#c88d58"],
+    "orange": ["#260d14","#6a1108","#a42600","#bf4000","#e55600","#ff8a00"]
+  } },
+  "cloth": { "allow": ["brown","leather","walnut","tan","maroon","navy","teal","bluegray","forest","slate","gray","charcoal","black","white","purple","red"], "ramps": {
+    "brown": ["#1d131e","#411e05","#4b2b13","#62351c","#744b30","#996b4a"],
+    "leather": ["#2b1c1d","#311210","#4b2b13","#704325","#75502d","#9a6f37"],
+    "walnut": ["#1d0f0e","#3e2613","#62351c","#744b30","#996b4a","#a17c50"],
+    "tan": ["#3e2613","#684415","#986a20","#b78c41","#b7996a","#cfc587"],
+    "maroon": ["#1d131e","#400b1f","#551c22","#682121","#832121","#ae424a"],
+    "navy": ["#180716","#20102b","#281e41","#322d6a","#3c49ad","#466ac9"],
+    "teal": ["#180716","#1b2b47","#0e4e72","#156c99","#0098b2","#00cfdf"],
+    "bluegray": ["#11150b","#0b2b28","#2e403a","#315b49","#557e85","#79979d"],
+    "forest": ["#09131d","#07391d","#0b1f25","#0b2b28","#134507","#1b5502"],
+    "slate": ["#1d131e","#31313e","#4a5057","#818b8b","#b3afa1","#e5e6c7"],
+    "gray": ["#0e0e18","#201e2b","#373340","#585561","#797580","#a2a0a4"],
+    "charcoal": ["#000000","#130d14","#1c2222","#2a3034","#4a5057","#6e7675"],
+    "black": ["#000000","#101414","#1c2222","#22282a","#2a3034","#4a5057"],
+    "white": ["#281820","#4d4a5d","#958080","#c4b59f","#e5e6c7","#ffffff"],
+    "purple": ["#180716","#13112d","#261044","#411357","#621e78","#813089"],
+    "red": ["#1d131e","#400b1f","#651117","#82171c","#ab1e1e","#cd2429"]
+  } },
+  "metal": { "allow": ["ceramic","brass","copper","bronze","iron","steel","silver","gold"], "ramps": {
+    "ceramic": ["#181009","#32251a","#594435","#7d604d","#ba9069","#fbe3b0"],
+    "brass": ["#1a1213","#61482c","#836332","#af8a35","#fdd082","#fdf5cc"],
+    "copper": ["#691503","#7b2008","#973c23","#9d5427","#ec855c","#ffc95a"],
+    "bronze": ["#4f2313","#6d4a00","#966600","#bf8200","#e7a820","#fbe3b0"],
+    "iron": ["#000000","#1b192b","#29253a","#343043","#484152","#726b7e"],
+    "steel": ["#1d131e","#4d4a5d","#726b7e","#867e7f","#c4b59f","#ffffff"],
+    "silver": ["#1d131e","#31313e","#4a5057","#818b8b","#d6e1d3","#ffffff"],
+    "gold": ["#2e2533","#6d4a00","#966600","#dc6f35","#ffc95a","#ffff61"]
+  } }
+};
+
+/** Danh mục 111 món (kết quả L0; mã = "<ô>.<tên>"). */
+export const LPC_PARTS: LpcPart[] = [
+  {"id":"body.body","slot":"body","vi":"Thân","style":"trung","sex":"mf","idle":"mf","mats":["body:light"],"colors":[],"z":[10],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"head.male","slot":"head","vi":"Mặt nam","style":"trung","sex":"mf","idle":"mf","mats":["body:light","eye:blue"],"colors":[],"z":[100],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"head.male_gaunt","slot":"head","vi":"Mặt nam gầy","style":"trung","sex":"mf","idle":"mf","mats":["body:light","eye:blue"],"colors":[],"z":[100],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"head.male_small","slot":"head","vi":"Mặt nam trẻ","style":"trung","sex":"mf","idle":"mf","mats":["body:light","eye:blue"],"colors":[],"z":[100],"lic":["OGA-BY 3.0","CC-BY"],"sa":false},
+  {"id":"head.female","slot":"head","vi":"Mặt nữ","style":"trung","sex":"mf","idle":"mf","mats":["body:light","eye:blue"],"colors":[],"z":[100],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"head.female_small","slot":"head","vi":"Mặt nữ trẻ","style":"trung","sex":"mf","idle":"mf","mats":["body:light","eye:blue"],"colors":[],"z":[100],"lic":["OGA-BY 3.0","CC-BY"],"sa":false},
+  {"id":"head.male_elderly","slot":"head","vi":"Mặt lão","style":"trung","sex":"mf","idle":"mf","mats":["body:light","eye:blue"],"colors":[],"z":[100],"lic":["OGA-BY 3.0","CC-BY 3.0"],"sa":false},
+  {"id":"brow.thick","slot":"brow","vi":"Mày rậm","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[106],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"brow.thin","slot":"brow","vi":"Mày thanh","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[106],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"nose.nose_straight","slot":"nose","vi":"Mũi thẳng","style":"trung","sex":"mf","idle":"mf","mats":["body:light"],"colors":[],"z":[105],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"nose.nose_button","slot":"nose","vi":"Mũi nhỏ","style":"trung","sex":"mf","idle":"mf","mats":["body:light"],"colors":[],"z":[105],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"beard.trimmed","slot":"beard","vi":"Râu tỉa","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[110],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"beard.medium","slot":"beard","vi":"Râu vừa","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[110],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"beard.chevron","slot":"beard","vi":"Ria hình chữ V","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[111],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"beard.mustache","slot":"beard","vi":"Ria mép","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[111],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"hair.topknot_short","slot":"hair","vi":"Búi tóc đỉnh đầu (mái chẻ)","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,145],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"hair.topknot_short2","slot":"hair","vi":"Búi tóc đỉnh đầu (mái chẻ 2)","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,145],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"hair.relm_short","slot":"hair","vi":"Tóc ngắn Relm","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"hair.relm_xlong","slot":"hair","vi":"Tóc rất dài Relm","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"hair.high_ponytail","slot":"hair","vi":"Đuôi ngựa cao","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.half_up","slot":"hair","vi":"Nửa búi nửa xõa","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.bangs_bun","slot":"hair","vi":"Búi tóc có mái","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC0"],"sa":false},
+  {"id":"hair.idol","slot":"hair","vi":"Tóc idol","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC0"],"sa":false},
+  {"id":"hair.long_center_part","slot":"hair","vi":"Dài rẽ giữa","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["CC0"],"sa":false},
+  {"id":"hair.long_straight","slot":"hair","vi":"Dài thẳng","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC0"],"sa":false},
+  {"id":"hair.loose","slot":"hair","vi":"Xõa","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"hair.princess","slot":"hair","vi":"Công chúa","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.xlong","slot":"hair","vi":"Rất dài","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.xlong_wavy","slot":"hair","vi":"Rất dài gợn sóng","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.braid","slot":"hair","vi":"Bím tóc","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.ponytail2","slot":"hair","vi":"Đuôi ngựa","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.page","slot":"hair","vi":"Ngang vai thẳng (page)","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.parted","slot":"hair","vi":"Rẽ ngôi","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"hair.parted_side_bangs","slot":"hair","vi":"Rẽ ngôi mái lệch","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"hair.swoop_side","slot":"hair","vi":"Hất sang bên","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"hair.pixie","slot":"hair","vi":"Pixie","style":"tay","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"hair.plain","slot":"hair","vi":"Ngắn trơn","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hair.bob","slot":"hair","vi":"Bob","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC0"],"sa":false},
+  {"id":"hair.lob","slot":"hair","vi":"Lob","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC0"],"sa":false},
+  {"id":"hair.curtains_long","slot":"hair","vi":"Mái rèm dài","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120],"lic":["CC-BY 3.0"],"sa":false},
+  {"id":"hair.wavy","slot":"hair","vi":"Gợn sóng","style":"trung","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[120,9],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hairext.high_bun","slot":"hairext","vi":"Búi cao (thêm lên tóc)","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[128],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hairext.topknot_short","slot":"hairext","vi":"Búi đỉnh đầu (thêm lên tóc)","style":"dong","sex":"mf","idle":"mf","mats":["hair:orange"],"colors":[],"z":[128],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"torso.longsleeve","slot":"torso","vi":"Áo dài tay","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.longsleeve2","slot":"torso","vi":"Áo dài tay 2","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.longsleeve2_cardigan","slot":"torso","vi":"Áo khoác mở","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.longsleeve2_vneck","slot":"torso","vi":"Áo cổ chữ V","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.shortsleeve","slot":"torso","vi":"Áo ngắn tay","style":"tay","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.robe","slot":"torso","vi":"Áo bào","style":"dong","sex":"f","idle":"","mats":[],"colors":["brown","red","blue","purple"],"z":[35],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"torso.tunic","slot":"torso","vi":"Áo túi (tunic)","style":"trung","sex":"f","idle":"","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.tunic_sara","slot":"torso","vi":"Áo túi Sara","style":"trung","sex":"f","idle":"","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.blouse_longsleeve","slot":"torso","vi":"Áo cánh tay dài","style":"trung","sex":"f","idle":"","mats":[],"colors":["black","maroon","navy","forest","white","gray","tan","red","blue","green"],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.kimono","slot":"torso","vi":"Kimono","style":"dong","sex":"f","idle":"f","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[30],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"torso.kimono_split","slot":"torso","vi":"Kimono xẻ","style":"dong","sex":"f","idle":"f","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[30],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"torso.kimono_trim","slot":"torso","vi":"Viền kimono","style":"dong","sex":"f","idle":"f","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[31],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"torso.slit","slot":"torso","vi":"Váy xẻ","style":"dong","sex":"f","idle":"f","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[30],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.sash","slot":"torso","vi":"Váy thắt đai","style":"trung","sex":"f","idle":"f","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[30],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"torso.jacket_iverness","slot":"torso","vi":"Áo choàng Inverness","style":"trung","sex":"m","idle":"","mats":[],"colors":["black"],"z":[55],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"torso.jacket_tabard","slot":"torso","vi":"Áo tabard","style":"tay","sex":"mf","idle":"","mats":[],"colors":["black","maroon","navy","forest","white","gray","tan","red","blue","green"],"z":[55],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.vest","slot":"torso","vi":"Áo gile","style":"tay","sex":"m","idle":"m","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[45],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"torso.longsleeve_scoop","slot":"torso","vi":"Áo dài tay cổ tròn","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.pants2","slot":"legs","vi":"Quần dài","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[20],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.pants","slot":"legs","vi":"Quần","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[20],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.pantaloons","slot":"legs","vi":"Quần ống rộng","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[20],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.cuffed","slot":"legs","vi":"Quần xắn gấu","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[20],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.leggings","slot":"legs","vi":"Quần bó","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[20],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.skirts_plain","slot":"legs","vi":"Váy trơn","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[20],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.skirts_slit","slot":"legs","vi":"Váy xẻ tà","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[20],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.skirt_straight","slot":"legs","vi":"Váy thẳng","style":"trung","sex":"f","idle":"f","mats":["cloth:white"],"colors":[],"z":[20],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"legs.skirt_overskirt","slot":"legs","vi":"Váy ngoài dài","style":"dong","sex":"f","idle":"f","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"feet.shoes_basic","slot":"feet","vi":"Giày vải","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[15],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"feet.shoes_sara","slot":"feet","vi":"Giày Sara","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[15],"lic":["OGA-BY 3.0","CC-BY 3.0+"],"sa":false},
+  {"id":"feet.boots_basic","slot":"feet","vi":"Ủng","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[25],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"feet.boots_fold","slot":"feet","vi":"Ủng gập mép","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[25],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"feet.boots_rim","slot":"feet","vi":"Ủng viền","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[25],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"feet.sandals","slot":"feet","vi":"Dép quai","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[15],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"feet.slippers","slot":"feet","vi":"Dép mềm","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[15],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"feet.socks_tabi","slot":"feet","vi":"Tất tabi","style":"dong","sex":"mf","idle":"mf","mats":["cloth:brown"],"colors":[],"z":[14],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"feet.socks_high","slot":"feet","vi":"Tất cao","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[14],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"cape.solid","slot":"cape","vi":"Áo choàng","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[85,5],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"cape.tattered","slot":"cape","vi":"Áo choàng rách","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[85,5],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"cape.trim","slot":"cape","vi":"Viền áo choàng","style":"trung","sex":"mf","idle":"mf","mats":["cloth:brown"],"colors":[],"z":[90],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"cape.mantal","slot":"cape","vi":"Khoác vai (mantle)","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[75],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"belt.obi","slot":"belt","vi":"Đai obi","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[65],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"belt.obi_knot_left","slot":"belt","vi":"Nút đai obi trái","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[66],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"belt.obi_knot_right","slot":"belt","vi":"Nút đai obi phải","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[66],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"belt.robe","slot":"belt","vi":"Đai áo bào","style":"dong","sex":"mf","idle":"","mats":[],"colors":["white","teal"],"z":[70],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"belt.sash","slot":"belt","vi":"Khăn thắt eo","style":"dong","sex":"mf","idle":"","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[65],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"belt.sash_narrow","slot":"belt","vi":"Khăn thắt eo hẹp","style":"dong","sex":"mf","idle":"","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[65],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"belt.mage","slot":"belt","vi":"Đai pháp sư","style":"trung","sex":"f","idle":"","mats":[],"colors":["brown","gold","silver","bronze"],"z":[90],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"belt.waistband","slot":"belt","vi":"Đai lưng vải","style":"trung","sex":"f","idle":"","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[65],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"belt.leather","slot":"belt","vi":"Đai da","style":"tay","sex":"mf","idle":"","mats":[],"colors":["charcoal","brown","white","tan","slate","leather","walnut"],"z":[70],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hat.hood_cloth","slot":"hat","vi":"Mũ trùm","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[130],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hat.bandana","slot":"hat","vi":"Khăn chít đầu","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[120],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hat.bandana2","slot":"hat","vi":"Khăn chít viền","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[120],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hat.headband_tied","slot":"hat","vi":"Dải buộc trán","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[125],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"hat.headband_thick","slot":"hat","vi":"Băng đô rộng","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[125],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"hat.headband_hairtie","slot":"hat","vi":"Dây buộc tóc","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[125],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"hat.formal_tiara","slot":"hat","vi":"Trâm cài / miện nhỏ","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[130],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"hat.formal_crown","slot":"hat","vi":"Mũ miện","style":"trung","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[130],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"neck.scarf","slot":"neck","vi":"Khăn quàng","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[90],"lic":["OGA-SA 3.0","CC-BY-SA 3.0"],"sa":true},
+  {"id":"neck.necklace_simple","slot":"neck","vi":"Dây chuyền","style":"trung","sex":"mf","idle":"mf","mats":[],"colors":["gold","silver","steel","iron","ceramic","brass","copper","bronze"],"z":[80],"lic":["CC0"],"sa":false},
+  {"id":"neck.necklace_chain","slot":"neck","vi":"Dây chuyền xích","style":"trung","sex":"mf","idle":"mf","mats":[],"colors":["gold","silver","steel","iron","ceramic","brass","copper","bronze"],"z":[80],"lic":["CC0"],"sa":false},
+  {"id":"neck.amulet_star","slot":"neck","vi":"Bùa sao","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["brass_blue","brass_green","brass_orange","brass_purple","brass_red","brass_yellow","bronze_blue","bronze_green","bronze_orange","bronze_purple"],"z":[81],"lic":["CC0"],"sa":false},
+  {"id":"neck.charm_oval","slot":"neck","vi":"Mặt dây bầu dục","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["gold","silver","steel","iron","ceramic","brass","copper","bronze"],"z":[81],"lic":["CC0"],"sa":false},
+  {"id":"face.mask_plain","slot":"face","vi":"Mặt nạ trơn","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan"],"z":[114],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"face.earrings_princess","slot":"face","vi":"Khuyên tai ngọc","style":"trung","sex":"mf","idle":"","mats":[],"colors":["red","blue","green","purple","yellow","orange"],"z":[115],"lic":["CC0"],"sa":false},
+  {"id":"face.earring_left","slot":"face","vi":"Khuyên tai trái","style":"trung","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[115],"lic":["CC0"],"sa":false},
+  {"id":"arms.bracers","slot":"arms","vi":"Hộ tay","style":"trung","sex":"mf","idle":"mf","mats":["metal:steel"],"colors":[],"z":[70],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"arms.cuffs","slot":"arms","vi":"Cổ tay áo","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[70],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"arms.gloves","slot":"arms","vi":"Găng tay","style":"tay","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[70],"lic":["OGA-BY 3.0"],"sa":false}
+];
