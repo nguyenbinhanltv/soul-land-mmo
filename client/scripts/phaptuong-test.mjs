@@ -1,5 +1,6 @@
 // Kiểm thử bảng pháp tướng (shared/data.ts PHAP_TUONG) và hàm thuần (client/src/phapTuongMath.ts), không cần server / trình duyệt.
 // Chạy: npm run test:phaptuong --prefix client (Node >= 22.18 tự bỏ kiểu của file .ts).
+import { readFileSync, existsSync } from "node:fs";
 import {
   PHAP_TUONG, PT_STAGES, PT_STRIKE, PT_FORM, PT_DIRS, PT_BACK_DIRS, PT_ATTACK_N, PT_CUTIN_SEC, PT_OTHERS_K, VOHON, CHAN_THAN, phapTuongOf, phapTuongStage, MAX_RINGS,
 } from "../../shared/data.ts";
@@ -31,6 +32,22 @@ for (const [id, d] of Object.entries(PHAP_TUONG)) {
 ok(bad.length === 0, `mọi mục hợp lệ (công thức, nhóm, hạt, cỡ, tham số)${bad.length ? ": " + bad.join("; ") : ""}`);
 ok(phapTuongOf("khong_co") === null && phapTuongOf("hao_thien_chuy")?.scale === 0.85, "phapTuongOf: mã lạ → null, giá trị H1 của Hạo Thiên Chùy");
 ok(PHAP_TUONG.lam_dien_ba_vuong_long.formula === "sinh_vat" && PHAP_TUONG.hao_thien_chuy.formula === "vat_the", "Lam Điện = sinh vật, Hạo Thiên Chùy = vật thể");
+
+// ---- ảnh thật trong manifest (`pt_<mã>`) khớp bảng: cỡ, độ lệch, lớp; sheet có mặt, đủ 16 × 5 khung
+const man = JSON.parse(readFileSync(new URL("../../shared/assets/sprites/manifest.json", import.meta.url), "utf8"));
+const pts = (man.sprites ?? []).filter((e) => typeof e !== "string" && /^pt_/.test(e.key));
+const mis = [];
+for (const e of pts) {
+  const id = e.key.slice(3), d = PHAP_TUONG[id];
+  if (!d) { mis.push(`${e.key}: không có mục PHAP_TUONG`); continue; }
+  const m = e.pt ?? {};
+  if (m.scale !== d.scale || m.dx !== d.dx || m.dy !== d.dy) mis.push(`${id}: scale / dx / dy lệch manifest (${m.scale},${m.dx},${m.dy})`);
+  if (JSON.stringify(m.back) !== JSON.stringify(PT_BACK_DIRS)) mis.push(`${id}: lớp sau lệch`);
+  const f = new URL(`../../shared/assets/sprites/phaptuong/${id}.png`, import.meta.url);
+  if (!existsSync(f)) mis.push(`${id}: thiếu sheet`);
+  else { const b = readFileSync(f); if (b.readUInt32BE(16) !== 160 * 16 || b.readUInt32BE(20) !== 160 * 5) mis.push(`${id}: sheet không phải 2560×800`); }
+}
+ok(mis.length === 0, `${pts.length} pháp tướng thật trong manifest khớp bảng PHAP_TUONG${mis.length ? ": " + mis.join("; ") : ""}`);
 
 // ---- tiến hóa theo vòng
 ok(PT_STAGES.length === 4 && PT_STAGES.every((s, i) => s.rings === 7 + i), "4 bậc cho vòng 7..10");
