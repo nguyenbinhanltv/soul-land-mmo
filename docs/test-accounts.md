@@ -58,8 +58,34 @@ Làm trên máy của bạn (không dùng agent). Dưới đây `<host>` là ph�
 
 Nếu có sự cố: dừng, không chạy thêm lệnh nào lên DB, khôi phục từ bản sao lưu ở bước 1.
 
+## Lệnh GM trong game (#518)
+
+Cho phép chủ repo chỉnh tài khoản đang chơi mà không phải thoát game. **Mặc định tắt hẳn.**
+
+1. Biết `accounts.id` của tài khoản (Supabase → Table editor → `accounts`, tìm theo `name`).
+2. Đặt biến môi trường `ADMIN_ACCOUNTS=<id>[,<id>…]` cho server rồi khởi động lại. Trống hoặc không đặt = không ai dùng được lệnh GM (kể cả khi gõ).
+3. Trong game, ô chat: `/gm <lệnh>`. Người không có trong danh sách chỉ nhận dòng "Không có quyền dùng lệnh GM"; mọi lệnh (kể cả bị từ chối) ghi một dòng `[GM]` vào log server.
+
+| Lệnh | Việc |
+| --- | --- |
+| `/gm level <cấp>` | Đặt cấp võ hồn đang ra trận (tự thêm hồn hoàn đúng giới hạn vòng cho đủ bình cảnh) |
+| `/gm give <mã vật phẩm> [số lượng]` | Cho đồ gộp thường (đan, phù, lệnh, mảnh, nguyên liệu…) |
+| `/gm ring <số năm> [số lượng]` | Cho hồn hoàn |
+| `/gm bone <mã loài> <vị trí> [số năm] [cường hóa]` | Cho hồn cốt (vị trí: `dau`, `than`, `tay_trai`, `tay_phai`, `chan_trai`, `chan_phai`) |
+| `/gm core <mã bộ> <sao> [nâng cấp]` | Cho hồn hạch |
+| `/gm gear <mã mẫu> [cấp vật phẩm] [cường hóa]` | Cho trang bị (mã mẫu `<ô>_<bậc>`, vd `vu_khi_chi_bao`) |
+| `/gm vohon <mã võ hồn> [cấp] [số hồn hoàn]` | Thêm võ hồn kèm hồn hoàn |
+| `/gm coin <đồng>` | Đặt Hồn Tệ |
+| `/gm tp <mã bản đồ>` | Dịch chuyển |
+| `/gm preset max\|giua-game\|moi` | Áp mức dựng sẵn (như script) rồi ngắt kết nối; vào lại game để thấy |
+
+Mọi giá trị bị kẹp theo giới hạn của luật (vd cấp ≤ 100, cường hóa ≤ mức tối đa); sai thì báo lỗi, không đổi gì. Tài khoản dùng lệnh GM lần đầu **tự bật `is_test`** (ẩn khỏi xếp hạng, chỉ đấu trường với tài khoản test); tắt cờ chỉ bằng SQL tay (`UPDATE accounts SET is_test=false WHERE id=…`).
+
+**Tổ đội đấu trường:** tổ đội có cả tài khoản test và người thật không xếp hàng Đại Đấu Hồn Trường được (báo từ chối); đội test chỉ gặp đội test.
+
 ## Kiểm thử (cho người làm code)
 
 - `npm run test:seed --prefix server`: mức dựng sẵn hợp lệ với luật (`checkSeed`), `seedTestAccount` / `removeTestAccount`, từ chối tài khoản thật, ẩn khỏi xếp hạng. Mặc định MemoryStore; đặt `TEST_DATABASE_URL` (một database **riêng**, vd PostgreSQL cục bộ của `npm run bot:local`) để thử cả PgStore.
 - `npm run bot:local -- --only testacc --seed-test max --pg`: dựng tài khoản `max` vào database cục bộ của lượt chạy rồi để bot đăng nhập: vào game, mở túi, đổi võ hồn, hạ hồn thú, kiểm ẩn khỏi xếp hạng, vào lại.
+- `npm run test:gm --prefix server` (phần thuần của lệnh GM) và `npm run bot:local -- --only gm --pg` (admin dùng được, người thường bị từ chối, `preset` ghi đè DB).
 - Agent **không** trỏ công cụ này vào DB thật (xem `CLAUDE.md`); sự cố bot ghi vào DB thật ở #406 là lý do script mặc định không nối DB.

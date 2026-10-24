@@ -766,6 +766,7 @@ export class GameScene extends Phaser.Scene {
     if (cmd === "moi" || cmd === "mời") {
       if (arg) this.partySend("invite", arg); else need("/moi <tên hồn sư> để mời vào tổ đội");
     } else if (cmd === "roi" || cmd === "rời") this.partySend("leave");
+    else if (cmd === "gm") this.room.send("gm", { cmd: arg }); // lệnh GM của tài khoản admin (#518): server kiểm quyền và cú pháp, người thường chỉ nhận lời từ chối
     else if (cmd === "b") { if (arg) this.room.send("chat", { text: arg }); else need("/b <tin> để chat ở bản đồ"); }
     else if (cmd === "d" || cmd === "đ") { if (arg) this.room.send("chat", { text: arg, ch: "party" }); else need("/d <tin> để chat tổ đội"); }
     else if (cmd === "tg") { if (arg) this.room.send("chat", { text: arg, ch: "world" }); else need("/tg <tin> để chat kênh thế giới"); }
