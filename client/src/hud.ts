@@ -26,7 +26,7 @@ import { BAG_GROUPS, BAG_SORTS, type BagSort, inGroup, rarityOf, noteSeen, isNew
 import { type CardActionId, type DollView, type DragSession, type ServerCommand, type SlotRef, acceptsItem, cardActions, currentFor, mountCommand, quickCommand, smartTarget, unmountCommand } from "./charBagContract.ts";
 import { addZone, dragSource } from "./dragDrop.ts";
 import { cardFor, compareFor, hideCard, hideCompare, showCard, showCompare } from "./actionCard.ts";
-import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_TIERS, EQUIP_MAX_TIER, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SALVAGE_MAX, EQUIP_SYNTH_KEEP, equipName, equipTemplate, equipSlotDef, equipStats, equipSynthStep, equipAutoSalvageable, parseEquip } from "../../shared/data.ts";
+import { EQUIP_ITEM, equipIconChain, EQUIP_SLOTS, EQUIP_TIERS, EQUIP_MAX_TIER, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SALVAGE_MAX, EQUIP_SYNTH_KEEP, equipName, equipTemplate, equipSlotDef, equipStats, equipSynthStep, equipAutoSalvageable, parseEquip } from "../../shared/data.ts";
 import { toast } from "./feedback.ts";
 import { openLooksOverlay } from "./looksMaker.ts";
 import type { GearMsg, EquipEnhPreview, EquipEnhDone, EquipSynDone, EquipSalvDone } from "./net.ts";
@@ -1730,7 +1730,11 @@ export const itemColor = (it: BagItem) => {
  * Biểu tượng ảnh 32×32 của một món (10.8, key item_*): hồn cốt là bản xám tô màu niên hạn theo vị trí (item_hon_cot_<vị trí>); món khác
  * theo mã trong ITEMS rồi theo nhóm ITEM_KINDS. Chưa có ảnh thì "" (nơi gọi vẽ biểu tượng CSS / SVG cũ).
  */
-function itemArt(it: Pick<BagItem, "code" | "years" | "stats">) {
+export function itemArt(it: Pick<BagItem, "code" | "years" | "stats">) {
+  if (it.code === EQUIP_ITEM) { // trang bị hồn sư (E6): ảnh mẫu → hình ô → ảnh chung (equipIconChain)
+    for (const k of equipIconChain(parseEquip(it.stats)?.tpl)) { const img = artImg(k, "ico art"); if (img) return img; }
+    return "";
+  }
   const bone = it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
   if (bone) { const u = tintedUrl(`item_hon_cot_${bone.slot}`, ringColor(tierOfYears(it.years!))); return u ? `<img class="ico art" src="${u}" alt="" draggable="false">` : ""; }
   const def = itemDef(it.code), kind = def?.kind;

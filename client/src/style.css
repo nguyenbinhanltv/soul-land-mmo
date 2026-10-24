@@ -1375,6 +1375,15 @@ body .dd-bad.dd-over{outline-color:#ff7a6a!important;background:rgba(210,72,61,.
 #char .ecell:not(.empty){cursor:pointer}
 #char .ecell{padding:2px;overflow:hidden}
 #char .ecell span{max-width:100%;overflow-wrap:anywhere}
+/* NV4 (#458): ảnh món 32×32 + khung viền theo bậc phủ lên; ô trống là hình bóng mờ của ô; "+N" luôn nằm trên khung */
+#char .ecell:not(.empty){border-style:solid;border-color:var(--c);box-shadow:inset 0 0 0 1px rgba(0,0,0,.55)}
+#char .ecell:not(.empty)[data-etier="4"],#char .ecell:not(.empty)[data-etier="5"]{box-shadow:inset 0 0 0 1px rgba(0,0,0,.55),0 0 7px color-mix(in srgb,var(--c) 75%,transparent)}
+#char .ecell img.ico{width:32px;height:32px;image-rendering:pixelated;pointer-events:none}
+#char .ecell img.efr{position:absolute;inset:2px;width:calc(100% - 4px);height:calc(100% - 4px);image-rendering:pixelated;pointer-events:none}
+#char .ecell img.esil{opacity:.3;filter:grayscale(1)}
+#char .ecell.empty{flex-direction:column;gap:1px}
+#char .ecell b.enh{z-index:2}
+#char .ecell.sel{outline:2px solid #ffe08a;outline-offset:-2px}
 
 .acard,.cmpdlg{position:fixed;z-index:9000;background:var(--panel);color:var(--text);border:2px solid color-mix(in srgb,var(--c,var(--line)) 60%,var(--line));
   box-shadow:0 6px 20px rgba(0,0,0,.5);padding:8px 10px;font-family:var(--f12);font-size:12px}

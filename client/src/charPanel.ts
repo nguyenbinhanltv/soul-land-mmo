@@ -2,7 +2,7 @@
 // tách nhóm chính / phụ, bộ hồn hạch. Chỉ số tổng hợp là tin riêng "stats" do server tính (MapRoom.sendStats), client không tính lại.
 // Gắn / tháo hồn cốt, hồn hạch làm ngay trên bảng: bấm ô thì Túi lọc và sáng món hợp (hud.setBagFocus), bấm món sáng thì gửi lệnh gắn có
 // sẵn; server quyết định, client không đổi tạm: kết quả (kể cả lý do bị từ chối) lấy từ tin "log" (charLog) và state mới. Không nhảy sang Đội hình (V).
-import { TIERS, VOHON, BONE_SLOTS, CORE_SLOTS, CORE_SET_2, CORE_SET_4, MAX_RINGS, TEAM_SIZE, EQUIP_SLOTS, atBottleneck, tierOfYears, vohonIndex,
+import { TIERS, VOHON, BONE_SLOTS, CORE_SLOTS, CORE_SET_2, CORE_SET_4, MAX_RINGS, TEAM_SIZE, EQUIP_SLOTS, EQUIP_TIERS, EQUIP_ITEM, equipTemplate, parseEquip, equipFrameKey, equipSlotIconKey, atBottleneck, tierOfYears, vohonIndex,
   ringSkill, loadoutOf, formatYears, coreSetCounts, coreSetIndex, coreSlotOf, boneSkillOf } from "../../shared/data.ts";
 import type { OwnedVohons, BagItem, GearItem } from "./net.ts";
 import { panelChanged, swapButton, raisePanel } from "./dualWindow.ts";
@@ -11,11 +11,12 @@ import { addZone, dragSource } from "./dragDrop.ts";
 import { showCard } from "./actionCard.ts";
 import { vohonCard } from "./cards.ts";
 import { boneSvg } from "./boneIcons.ts";
-import { skillImg } from "./uiArt.ts";
+import { skillImg, artImg } from "./uiArt.ts";
+import { compareRows } from "./bag.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { setTip, type TipSpec, type TipLine } from "./tooltip.ts";
 import { itemColor, itemName, boneOf, coreOf, coreSet, coreLines, wornCores, boneIcon, yearsShort, boneFullText, boneSkillText, skillSpec, SKILL_KEYS,
-  starSkillText, toggleRoster, toggleBag, toggleReso, toggleWorld, toggleFriends, closeNpc, setBagFocus } from "./hud.ts";
+  starSkillText, itemArt, toggleRoster, toggleBag, toggleReso, toggleWorld, toggleFriends, closeNpc, setBagFocus } from "./hud.ts";
 
 /** Bộ chỉ số server gửi (kết quả calcStats). */
 export interface StatBlock { maxHp: number; maxMp: number; atk: number; speed: number; crit: number; critMult: number; }
@@ -40,7 +41,8 @@ const TABS: { id: DollTab; name: string }[] = [{ id: "equip", name: "Trang bị"
 const EQUIP_LEFT = ["vu_khi", "vong_trai", "nhan_trai", "dai"], EQUIP_RIGHT = ["mu", "day_chuyen", "vong_phai", "nhan_phai", "giay"];
 let tab: DollTab = "bone";            // tab búp bê đang xem
 let selBone: string | null = null;    // ô hồn cốt đang chọn (mã vị trí): Túi lọc / sáng món hợp, thẻ dưới búp bê hiện món đang gắn
-let selCore: number | null = null;    // ô hồn hạch đang chọn (0..CORE_SLOTS − 1)
+let selCore: number | null = null;
+let selEquip: string | null = null;   // ô trang bị trống đang chọn (mã ô EQUIP_SLOTS): Túi sáng món hợp ô    // ô hồn hạch đang chọn (0..CORE_SLOTS − 1)
 let notice: { text: string; bad: boolean } | null = null; // kết quả lệnh gắn / tháo vừa gửi (tin "log" của server)
 let lastAct = 0, noticeTimer = 0;
 let lastTap = { k: "", t: 0 };        // lần bấm ô búp bê gần nhất (nhận bấm đúp = tháo)
@@ -58,7 +60,7 @@ export function toggleChar(open = $("#char").hidden) {
   if (el.hidden === !open) return open;
   el.hidden = !open; document.getElementById("charBtn")?.setAttribute("aria-expanded", String(open));
   if (open) { toggleRoster(false); toggleReso(false); toggleWorld(false); toggleFriends(false); closeNpc(); onOpen?.(); again?.(); }
-  else { charRow = null; selBone = null; selCore = null; notice = null; setBagFocus(null); }
+  else { charRow = null; selBone = null; selCore = null; selEquip = null; notice = null; setBagFocus(null); }
   panelChanged("char", open);
   return open;
 }
@@ -104,6 +106,16 @@ function wornTip(it: BagItem): TipSpec {
   }
   if (it.enhance) lines.push({ k: "Cường hóa", v: `+${it.enhance}`, tone: "good" });
   return { title: itemName(it), color, border: itemColor(it), sub, lines, foot: "Bấm để chọn ô; tháo ở thẻ bên dưới" };
+}
+
+/** Chú thích một món trang bị đang mặc: bậc, cấp vật phẩm, từng chỉ số (chính, dòng phụ, công vũ khí, giảm sát thương, may mắn) từ `compareRows` dùng chung với bảng so sánh. */
+function equipTip(it: BagItem, slotName: string): TipSpec {
+  const eq = parseEquip(it.stats), tpl = equipTemplate(eq?.tpl), t = tpl && EQUIP_TIERS[tpl.tier];
+  const f = (x: number) => x.toLocaleString("vi-VN", { maximumFractionDigits: 1 });
+  const lines: TipLine[] = (compareRows(it, null) ?? []).map((r) => ({ k: r.k, v: r.newText ?? `+${f(r.neu)}${r.pct ? "%" : ""}`, tone: "good" as const }));
+  if (it.enhance) lines.unshift({ k: "Cường hóa", v: `+${it.enhance}`, tone: "good" });
+  return { title: itemName(it), color: itemColor(it), border: itemColor(it), sub: `Trang bị hồn sư · ${slotName}${t ? ` · ${t.name} (${t.color})` : ""}${eq ? ` · cấp vật phẩm ${eq.ilvl}` : ""}`, lines,
+    foot: "Bấm: thẻ thao tác · bấm đúp hoặc kéo ra Túi: tháo" };
 }
 
 /** Mở Túi (nếu đang đóng) ở chế độ chọn món cho ô vừa bấm; màn hẹp (một bảng một lúc) thì Túi nổi lên, màn rộng giữ bảng này ở trên. */
@@ -166,7 +178,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     const c = unmountCommand(worn, ref); if (c) send(() => act.send(c));
     selBone = null; selCore = null; b.blur(); rerender(); return true;
   };
-  const pickTab = (t: DollTab) => { tab = t; selBone = null; selCore = null; notice = null; rerender(); };
+  const pickTab = (t: DollTab) => { tab = t; selBone = null; selCore = null; selEquip = null; notice = null; rerender(); };
 
   // Đầu bảng: tên, nút sang Đội hình (nâng cao: thức tỉnh, dung hợp, danh sách), đóng.
   const head = mk("div", "rhead");
@@ -204,7 +216,9 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
   const worn = new Map<string, BagItem & { years: number }>();
   for (const it of items) { const b = boneOf(it); if (b && it.vohon === v.rowId && it.years !== null) worn.set(b.slot, it as BagItem & { years: number }); }
   const dtabs = mk("div", "cdtabs"); dtabs.setAttribute("role", "tablist");
-  const counts: Record<DollTab, string> = { equip: `${EQUIP_SLOTS.length}`, bone: `${worn.size}/${BONE_SLOTS.length}`, core: `${bySlot.size}/${CORE_SLOTS}`, vohon: `${inTeam.length}/${TEAM_SIZE}` };
+  const gearBy = new Map<string, GearItem>();
+  for (const g of act.gear()) { const sid = EQUIP_SLOTS[g.slot]?.id; if (sid) gearBy.set(sid, g); }
+  const counts: Record<DollTab, string> = { equip: `${gearBy.size}/${EQUIP_SLOTS.length}`, bone: `${worn.size}/${BONE_SLOTS.length}`, core: `${bySlot.size}/${CORE_SLOTS}`, vohon: `${inTeam.length}/${TEAM_SIZE}` };
   for (const t of TABS) {
     const b = mk("button", "ui-tab"); b.type = "button"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(tab === t.id)); b.dataset.tab = t.id;
     b.innerHTML = `${t.name} <small>${counts[t.id]}</small>`;
@@ -222,25 +236,32 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
   const counts6 = coreSetCounts(wornCores(mine));
 
   if (tab === "equip") {
-    // --- Trang bị: khung 10 ô kiểu Mir2. NV3 (#457): ô nhận thả / kéo ra được ngay; phần trình bày đầy đủ của tab (so sánh, bộ, …) để NV4 (#458) ---
-    left.appendChild(mk("small", "cshead", "Trang bị hồn sư (10 ô)"));
-    const fig = mk("div", "edoll"), gearBy = new Map<string, GearItem>();
-    for (const g of act.gear()) { const sid = EQUIP_SLOTS[g.slot]?.id; if (sid) gearBy.set(sid, g); }
+    // --- Trang bị (NV4 #458): 10 ô kiểu Mir2, ảnh món + khung viền theo bậc + "+N"; ô trống là hình bóng của ô. Đọc từ tin riêng "gear";
+    // mặc / tháo bằng equipgear / unequipgear (NV3: kéo thả, bấm đúp, thẻ thao tác). Bấm ô trống: Túi sáng món hợp ô, bấm món là mặc. ---
+    left.appendChild(mk("small", "cshead", `Trang bị hồn sư (${gearBy.size}/${EQUIP_SLOTS.length})`));
+    const fig = mk("div", "edoll");
     const cell = (id: string) => {
       const s = EQUIP_SLOTS.find((x) => x.id === id)!, g = gearBy.get(id), it = g && gearAsBagItem(g), ref: SlotRef = { tab: "equip", slot: id, rowId: null };
-      const b = mk("button", "bcell ecell ui-cell" + (it ? "" : " empty")); b.type = "button"; b.dataset.slot = id;
+      const tpl = it ? equipTemplate(parseEquip(it.stats)?.tpl) : undefined;
+      const b = mk("button", "bcell ecell ui-cell" + (it ? "" : " empty") + (selEquip === id ? " sel" : "")); b.type = "button"; b.dataset.slot = id;
+      b.setAttribute("aria-pressed", String(selEquip === id));
       if (it) {
-        b.style.setProperty("--c", itemColor(it));
-        b.append(mk("span", "", itemName(it)), ...(it.enhance ? [mk("b", "enh", `+${it.enhance}`)] : []));
-        b.setAttribute("aria-label", `Ô ${s.name}: ${itemName(it)}`);
-        setTip(b, { title: itemName(it), border: itemColor(it), sub: `Trang bị hồn sư · ${s.name}`, foot: "Bấm: thẻ thao tác · bấm đúp hoặc kéo ra Túi: tháo" });
+        b.style.setProperty("--c", itemColor(it)); b.dataset.etier = String(tpl?.tier ?? 0);
+        const art = itemArt(it);
+        b.innerHTML = `${art}${tpl ? artImg(equipFrameKey(tpl.tier), "efr") : ""}`;
+        if (!art) b.appendChild(mk("span", "", itemName(it)));
+        if (it.enhance) b.appendChild(mk("b", "enh", `+${it.enhance}`));
+        b.setAttribute("aria-label", `Ô ${s.name}: ${itemName(it)}${tpl ? `, ${EQUIP_TIERS[tpl.tier].name}` : ""}`);
+        setTip(b, equipTip(it, s.name));
       } else {
+        b.innerHTML = artImg(equipSlotIconKey(s.id), "ico art esil");
         b.appendChild(mk("span", "", s.name)); b.setAttribute("aria-label", `Ô ${s.name}: trống`);
-        setTip(b, { title: `Ô ${s.name} trống`, lines: ["Trang bị thuộc hồn sư, dùng chung cho cả đội."], foot: "Kéo món từ Túi thả vào, hoặc bấm đúp món trong Túi để mặc" });
+        setTip(b, { title: `Ô ${s.name} trống`, lines: ["Trang bị thuộc hồn sư, dùng chung cho cả đội."], foot: "Bấm để chọn món trong Túi · kéo món từ Túi thả vào · bấm đúp món trong Túi để mặc" });
       }
       wire(b, ref, it);
       b.addEventListener("click", () => {
-        if (!it || dblUnmount(b, ref, it)) return;
+        if (!it) { b.blur(); selEquip = selEquip === id ? null : id; if (selEquip) openBagFor(); rerender(); return; }
+        if (dblUnmount(b, ref, it)) return;
         showCard(b, itemName(it), itemColor(it), `Trang bị hồn sư · ${s.name}`, cardActions(it, { view: { rowId: v.rowId, bag: items, gear: act.gear() }, worn: true }),
           (a) => { const c = a === "unmount" ? unmountCommand(it, ref) : null; if (c) send(() => act.send(c)); });
       });
@@ -252,6 +273,8 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     mid.appendChild(cell("ao")); // Áo đè lên thân hình hồn sư (Mir2)
     fig.append(col(EQUIP_LEFT, "l"), mid, col(EQUIP_RIGHT, "r"));
     left.appendChild(fig);
+    const es = selEquip ? EQUIP_SLOTS.find((x) => x.id === selEquip) : undefined;
+    if (es) left.appendChild(mk("small", "cnote ok", `Ô ${es.name} trống: bấm một món sáng viền vàng trong Túi để mặc.`));
     left.appendChild(mk("small", "rnote", "Trang bị thuộc hồn sư (không phụ thuộc võ hồn đang xem). Kéo từ Túi thả vào ô (xanh = hợp, đỏ = sai ô), bấm đúp món trong Túi để mặc nhanh; kéo món đang mặc ra Túi hoặc bấm đúp để tháo."));
   } else if (tab === "bone") {
     // --- Hồn cốt: 6 ô quanh hình võ hồn ---
@@ -398,6 +421,12 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     row("Sát thương chí mạng", "Hệ số nhân sát thương khi đòn chí mạng.", `×${t.critMult.toLocaleString("vi-VN", { maximumFractionDigits: 2 })}`,
       t.critMult - b.critMult > 1e-9 ? `+${(t.critMult - b.critMult).toLocaleString("vi-VN", { maximumFractionDigits: 2 })}` : "", "");
   }
+  if (st?.gear && (st.gear.weapon || st.gear.red > 0 || st.gear.luck > 0)) { // chỉ số riêng của trang bị hồn sư (server tính, đã nằm trong số trên)
+    group("Từ trang bị hồn sư");
+    if (st.gear.weapon) row("Công mỗi đòn", "Công cộng từ vũ khí: mỗi đòn tung ngẫu nhiên trong khoảng này.", `${num(st.gear.weapon.min)}–${num(st.gear.weapon.max)}`, "", "");
+    if (st.gear.red > 0) row("Giảm sát thương nhận", "Phần trang bị giảm sát thương nhận (cộng với bị động hồn cốt, có trần).", pct(st.gear.red), "", "");
+    if (st.gear.luck > 0) row("May mắn", "Vũ khí / dây chuyền: càng cao đòn vũ khí càng hay ra công lớn.", String(st.gear.luck), "", "");
+  }
   right.appendChild(box);
   right.appendChild(mk("small", "cshead", "Bộ hồn hạch")); right.appendChild(setsEl);
   const stx = starSkillText(v.stars);
@@ -410,13 +439,17 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
   // Ô đang chọn quyết định chế độ chọn món của Túi (đặt cuối: dùng dữ liệu vừa vẽ; Túi chỉ vẽ lại khi ô chọn đổi).
   const mkFocus = (key: string, group: string, label: string, match: (it: BagItem) => boolean, mount: (it: BagItem) => void) =>
     setBagFocus({ key, group, label, match: (it) => it.vohon === null && match(it),
-      pick: (it) => { send(() => mount(it)); selBone = null; selCore = null; backToChar(); rerender(); },
-      cancel: () => { selBone = null; selCore = null; rerender(); } });
+      pick: (it) => { send(() => mount(it)); selBone = null; selCore = null; selEquip = null; backToChar(); rerender(); },
+      cancel: () => { selBone = null; selCore = null; selEquip = null; rerender(); } });
   if (tab === "bone" && selBone) {
     const slot = selBone, s = BONE_SLOTS.find((x) => x.id === slot)!;
     mkFocus(`bone:${v.rowId}:${slot}`, "hon_cot", `Hồn cốt ${s.name.toLowerCase()} cho ${def.name}`, (it) => boneOf(it)?.slot === slot, (it) => act.equipBone(it.id, v.rowId, slot));
   } else if (tab === "core" && selCore !== null) {
     const slot = selCore;
     mkFocus(`core:${v.rowId}:${slot}`, "hon_hach", `Hồn hạch cho ô ${slot + 1} của ${def.name}`, (it) => !!coreOf(it), (it) => act.equipCore(it.id, v.rowId, slot));
+  } else if (tab === "equip" && selEquip && !gearBy.has(selEquip)) {
+    const slot = selEquip, s = EQUIP_SLOTS.find((x) => x.id === slot)!;
+    mkFocus(`equip:${slot}`, "all", `Trang bị ô ${s.name}`, (it) => it.code === EQUIP_ITEM && equipTemplate(parseEquip(it.stats)?.tpl)?.slot === slot,
+      (it) => act.send({ msg: "equipgear", data: { id: it.id } }));
   } else setBagFocus(null);
 }
