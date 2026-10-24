@@ -30,6 +30,54 @@
     "glow": "pt_ky_nhung_thong_thien_cuc_glow",
     "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
   },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "luot": 2,
+    "chon": "concept.png = bản thử thứ 2 (seed 32)",
+    "body": {
+      "description": "pixel art, giant golden chrysanthemum flower, hundreds of thin long curled needle-like petals densely layered in a big round shaggy ball, glowing amber center glow, deep orange and gold, no flat yellow disc, short stem with two leaves, single flower, no ground, no base, no face, isometric game sprite",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 32
+    },
+    "thuLai": "bản 1 (seed 23, cúc có đĩa vàng phẳng giữa, giống hoa hướng dương) bỏ và đã xóa khỏi repo; làm lại 1 lần (tổng 2 lượt)"
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "luot": 2,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "giant golden orange chrysanthemum with shaggy long petals and short stem with two leaves",
+      "no_background": true
+    },
+    "seed": 3397885425,
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 1,
+      "se": 2,
+      "e": 3,
+      "ne": 4,
+      "n": 5
+    }
+  },
   "chuyenDong": {
     "idle": {
       "pivot": [

@@ -40,6 +40,54 @@
     "glow": "pt_lam_ngan_thao_glow",
     "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
   },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "luot": 1,
+    "chon": "concept 1 lần, seed 21",
+    "body": {
+      "description": "pixel art, tall slender clump of long blue silver grass blades fanning upward, two long thick coiling vines curling out to both sides and hanging down with curled tips, glowing cyan blue sparkles, deep blue and silver, single plant, no ground, no base, no soil, no flower, no face, isometric game sprite",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 21
+    },
+    "thuLai": "không làm lại. Concept có đế đất tối hình elip: hậu kỳ bỏ bằng clean.catMau"
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "luot": 2,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "tall clump of blue silver grass blades with long coiling curled vines",
+      "no_background": true
+    },
+    "seed": 1480720670,
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 1,
+      "se": 2,
+      "e": 3,
+      "ne": 4,
+      "n": 5
+    }
+  },
   "chuyenDong": {
     "idle": {
       "pivot": [

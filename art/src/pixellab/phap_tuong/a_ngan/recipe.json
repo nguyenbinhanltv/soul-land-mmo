@@ -44,6 +44,55 @@
     "glow": "pt_a_ngan_glow",
     "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
   },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "luot": 4,
+    "chon": "concept.png = bản thử thứ 4 (seed 51)",
+    "body": {
+      "description": "pixel art, majestic royal tree of blue silver emperor grass, thick twisting blue trunk, broad canopy crowned with large golden and purple lotus blossoms and a golden crown ornament, long golden vines hanging down, imperial regal grand, deep blue, gold and royal purple, single plant, no ground, no base, no soil, no face, no mushroom, isometric game sprite",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 51
+    },
+    "thuLai": "làm lại 3 lần (tổng 4 concept = 4 lượt), 3 bản đầu bỏ và đã xóa khỏi repo: seed 22 giống cây nấm / lọng xanh; seed 31 cột lam đỉnh hoa tím vàng, dáng đuốc, quá mảnh; seed 41 cây nhiều nhánh như dương xỉ, nụ tím nhỏ, đọc yếu khi chồng lên hồn sư (đã xoay 8 hướng 2 lượt rồi cũng bỏ). Bản 4 có đế cỏ + đất: hậu kỳ bỏ bằng clean.catMau"
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "luot": 2,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "royal tree of blue silver emperor grass with thick twisting trunk and broad purple and golden lotus canopy with golden crown and hanging golden vines",
+      "no_background": true
+    },
+    "seed": 216576903,
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 1,
+      "se": 2,
+      "e": 3,
+      "ne": 4,
+      "n": 5
+    },
+    "thuLai": "xoay lần 1 (cho concept seed 41, seed 4013240347, 2 lượt) bỏ cùng concept đó; một lệnh xoay của concept seed 51 bị cắt vì timeout (có thể tính 2 lượt, không có kết quả), chạy lại ra lần này (2 lượt). rot/ là lượt cuối. Tổng lượt xoay tính 6 (2 + 2 + 2 dự phòng)"
+  },
   "chuyenDong": {
     "idle": {
       "pivot": [

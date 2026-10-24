@@ -17,10 +17,10 @@ const src = path.join(ROOT, "art", "src", "pixellab", "phap_tuong", id);
 const outBody = path.join(SPRITES, "phaptuong", `${id}.png`), outGlow = path.join(SPRITES, "phaptuong", `${id}_glow.png`);
 const colors = vohonColors(id);
 if (!colors) fail(`không có võ hồn "${id}" trong VOHON`);
-const COL = hex(colors[0]), OUT = hex(OUTLINE), GLC = recipe0Glow() ?? COL; // GLC: màu viền / vệt sáng (mặc định màu võ hồn; recipe có thể đặt `glowMau` cho võ hồn đa sắc như A Ngân)
+const COL = hex(colors[0]), OUT = hex(OUTLINE);
 const L = isoLayout("phaptuong"), [N_IDLE, N_ATK] = [L.anims.idle[1], L.anims.attack[1]], N = N_IDLE + N_ATK;
 const recipe = JSON.parse(readFileSync(path.join(src, "recipe.json"), "utf8"));
-function recipe0Glow() { try { const g = JSON.parse(readFileSync(path.join(src, "recipe.json"), "utf8")).glowMau; return g ? hex(g) : null; } catch { return null; } }
+const GLC = recipe.glowMau ? hex(recipe.glowMau) : COL; // màu viền / vệt sáng (mặc định màu võ hồn; recipe có thể đặt `glowMau` cho võ hồn đa sắc như A Ngân)
 const M = recipe.chuyenDong, CLEAN = recipe.clean ?? {}, MODE = recipe.mode ?? "dat";
 const FACE = { s: [0, 0.6], se: [0.8, 0.4], e: [1, 0], ne: [0.8, -0.4], n: [0, -0.6] }; // hướng "ra đòn" trên màn hình (đơn vị điểm × `fwd`)
 const rnd = (a) => () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
