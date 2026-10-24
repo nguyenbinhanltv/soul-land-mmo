@@ -1,0 +1,252 @@
+{
+  "id": "a_ngan",
+  "nhom": "P (cây Lam Ngân Hoàng, mẫu thân Đường Tam)",
+  "ngay": "2026-10-24",
+  "code": [
+    "idle",
+    "attack"
+  ],
+  "mode": "dat",
+  "prescale": 0.9,
+  "clean": {
+    "minComp": 6,
+    "markMax": 0,
+    "catMau": {
+      "mau": [
+        "#4f8b2f",
+        "#162810",
+        "#234617",
+        "#356b1c",
+        "#080504",
+        "#0c0906",
+        "#09060e"
+      ],
+      "d": 24,
+      "duoi": 0.2
+    }
+  },
+  "glowMau": "#c080ff",
+  "display": {
+    "scale": 1,
+    "dx": 0,
+    "dy": 0,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "glow": "pt_a_ngan_glow",
+    "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+  },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "luot": 4,
+    "chon": "concept.png = bản thử thứ 4 (seed 51)",
+    "body": {
+      "description": "pixel art, majestic royal tree of blue silver emperor grass, thick twisting blue trunk, broad canopy crowned with large golden and purple lotus blossoms and a golden crown ornament, long golden vines hanging down, imperial regal grand, deep blue, gold and royal purple, single plant, no ground, no base, no soil, no face, no mushroom, isometric game sprite",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 51
+    },
+    "thuLai": "làm lại 3 lần (tổng 4 concept = 4 lượt), 3 bản đầu bỏ và đã xóa khỏi repo: seed 22 giống cây nấm / lọng xanh; seed 31 cột lam đỉnh hoa tím vàng, dáng đuốc, quá mảnh; seed 41 cây nhiều nhánh như dương xỉ, nụ tím nhỏ, đọc yếu khi chồng lên hồn sư (đã xoay 8 hướng 2 lượt rồi cũng bỏ). Bản 4 có đế cỏ + đất: hậu kỳ bỏ bằng clean.catMau"
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "luot": 2,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "royal tree of blue silver emperor grass with thick twisting trunk and broad purple and golden lotus canopy with golden crown and hanging golden vines",
+      "no_background": true
+    },
+    "seed": 216576903,
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 1,
+      "se": 2,
+      "e": 3,
+      "ne": 4,
+      "n": 5
+    },
+    "thuLai": "xoay lần 1 (cho concept seed 41, seed 4013240347, 2 lượt) bỏ cùng concept đó; một lệnh xoay của concept seed 51 bị cắt vì timeout (có thể tính 2 lượt, không có kết quả), chạy lại ra lần này (2 lượt). rot/ là lượt cuối. Tổng lượt xoay tính 6 (2 + 2 + 2 dự phòng)"
+  },
+  "chuyenDong": {
+    "idle": {
+      "pivot": [
+        0.5,
+        0.95
+      ],
+      "bob": 1.5,
+      "rot": 0,
+      "pulse": 0.2,
+      "lay": 2,
+      "layLag": 2.2
+    },
+    "attack": {
+      "pivot": [
+        0.5,
+        0.95
+      ],
+      "hit": 3,
+      "vet": [
+        3,
+        4
+      ],
+      "vong": 24,
+      "vongMau": "#ffd84a",
+      "poses": [
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          0.97,
+          1.03,
+          null,
+          -2.4000000000000004,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0.982,
+          1.03,
+          1.08,
+          null,
+          -4.199999999999999,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1.072,
+          0.98,
+          1.5,
+          null,
+          6,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1.06,
+          0.99,
+          1.45,
+          null,
+          7.199999999999999,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1.024,
+          1,
+          1.2,
+          null,
+          1.7999999999999998,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1.006,
+          1,
+          1.08,
+          null,
+          -1.2000000000000002,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null,
+          0,
+          0
+        ]
+      ],
+      "layLag": 1.8,
+      "layCyc": 1
+    },
+    "hat": [
+      {
+        "vi": "nen",
+        "n": 7,
+        "mau": [
+          "#ffe08a",
+          "#ffd84a"
+        ],
+        "len": 26,
+        "seed": 51,
+        "s": 2
+      },
+      {
+        "vi": "tren",
+        "n": 6,
+        "mau": [
+          "#d9a0ff",
+          "#f4d0ff"
+        ],
+        "len": 22,
+        "rong": 0.5,
+        "seed": 52,
+        "s": 2,
+        "troi": 0
+      },
+      {
+        "vi": "quay",
+        "n": 5,
+        "mau": [
+          "#ffe08a"
+        ],
+        "e": 0.3,
+        "xa": 6,
+        "len": 10,
+        "seed": 53,
+        "s": 1
+      }
+    ]
+  }
+}
