@@ -80,9 +80,12 @@ gcloud iam service-accounts keys delete <KEY_ID> --iam-account soul-land-ar-pull
 
 ## 5. Dọn image
 
-Chính sách của Artifact Registry (script đặt ở bước 3): giữ 30 bản mới nhất, xóa bản **không tag** quá 14 ngày, xóa bản có tag nhưng cũ hơn 1 ngày và ngoài 30 bản mới nhất.
+Chính sách của Artifact Registry (script đặt ở bước 3):
+- **Giữ mãi** mọi bản có tag `prod-<sha7>`: `promote.yml` gắn tag này vào bản được promote ngay khi mở PR, nên bản đang chạy ở prod và các bản prod trước đó (dùng để quay lui bằng revert PR promote) không bị xóa dù `main` ra bao nhiêu commit.
+- Các tag `sha-*` khác: giữ 30 bản mới nhất; cũ hơn 14 ngày (`TAGGED_DAYS`) và ngoài 30 bản đó thì xóa.
+- Bản không tag quá 14 ngày thì xóa.
 
-Lưu ý: bản đang chạy ở prod phải nằm trong 30 bản mới nhất, nếu không sẽ bị xóa (pod khởi động lại sẽ không kéo được). Nếu prod đứng lâu ở một tag cũ trong khi `main` ra nhiều bản mới, promote bản mới hơn hoặc tăng `KEEP_TAGGED`. Muốn thử trước: `CLEANUP_DRY_RUN=true deploy/gcp/setup.sh`, rồi xem log kiểm toán (Cloud Logging) để biết sẽ xóa gì.
+Hệ quả: chỉ bản **chưa từng promote** mới bị dọn. Bản prod đầu tiên (nếu đặt tag tay trước khi có `promote.yml`) cần gắn tay `gcloud artifacts docker tags add <image>:sha-xxxxxxx <image>:prod-xxxxxxx`. Muốn thử chính sách trước: `CLEANUP_DRY_RUN=true deploy/gcp/setup.sh`, rồi xem log kiểm toán (Cloud Logging) để biết sẽ xóa gì. Muốn bỏ bớt `prod-*` cũ thì xóa tag tay.
 
 ## 6. Kiểm nhanh sau khi chạy
 

@@ -6,7 +6,7 @@
 #
 # Cách dùng:  deploy/gcp/setup.sh [--dry-run]     (--dry-run: chỉ in các lệnh gcloud sẽ chạy, không chạm GCP)
 # Ghi đè giá trị mặc định bằng biến môi trường: GCP_PROJECT, GCP_REGION, AR_REPO, GITHUB_REPO, GITHUB_REF_ALLOWED, WIF_POOL, WIF_PROVIDER_ID,
-# SA_WRITER, SA_READER, KEEP_TAGGED, UNTAGGED_DAYS, CLEANUP_DRY_RUN=true (chính sách dọn chỉ mô phỏng, không xóa thật).
+# SA_WRITER, SA_READER, KEEP_TAGGED, UNTAGGED_DAYS, TAGGED_DAYS, CLEANUP_DRY_RUN=true (chính sách dọn chỉ mô phỏng, không xóa thật).
 # Nên đặt GITHUB_REPO_ID (số id của repo: `gh api repos/<chủ>/<repo> --jq .id`): khi đó provider và quyền mượn SA gắn theo id bất biến,
 # repo bị xóa rồi tạo lại cùng tên (repo-jacking) không lấy lại được quyền.
 set -euo pipefail
@@ -22,6 +22,7 @@ SA_WRITER=${SA_WRITER:-soul-land-ci-push}
 SA_READER=${SA_READER:-soul-land-ar-pull}
 KEEP_TAGGED=${KEEP_TAGGED:-30}
 UNTAGGED_DAYS=${UNTAGGED_DAYS:-14}
+TAGGED_DAYS=${TAGGED_DAYS:-14}
 CLEANUP_DRY_RUN=${CLEANUP_DRY_RUN:-false}
 GH_REPO_ID=${GITHUB_REPO_ID:-}
 
@@ -66,16 +67,17 @@ else
     --description="Image game Đấu La (CI đẩy, cụm K8s kéo)"
 fi
 
-step "3. Chính sách dọn: giữ $KEEP_TAGGED bản mới nhất, xóa bản không tag quá $UNTAGGED_DAYS ngày (dry-run=$CLEANUP_DRY_RUN)"
-# KEEP thắng DELETE: bản nằm trong $KEEP_TAGGED bản mới nhất không bao giờ bị xóa; bản có tag cũ hơn 1 ngày và ngoài nhóm đó bị xóa.
-# Bản đang chạy ở prod phải nằm trong nhóm giữ lại (hoặc đủ mới), xem mục "Dọn image" ở README.
+step "3. Chính sách dọn: giữ tag prod-*, giữ $KEEP_TAGGED bản mới nhất, xóa sha-* quá $TAGGED_DAYS ngày, xóa bản không tag quá $UNTAGGED_DAYS ngày (dry-run=$CLEANUP_DRY_RUN)"
+# KEEP thắng DELETE. Bản đã promote lên prod mang thêm tag `prod-<sha7>` (promote.yml gắn): luôn được giữ, không phụ thuộc số commit merge,
+# nên quay lui (revert PR promote) và pod khởi động lại luôn kéo được image. Các tag sha-* khác giữ $KEEP_TAGGED bản mới nhất, quá $TAGGED_DAYS ngày thì xóa.
 POLICY=$(mktemp)
 trap 'rm -f "$POLICY"' EXIT
 cat >"$POLICY" <<JSON
 [
   {"name": "xoa-khong-tag", "action": {"type": "Delete"}, "condition": {"tagState": "untagged", "olderThan": "$((UNTAGGED_DAYS * 86400))s"}},
+  {"name": "giu-prod", "action": {"type": "Keep"}, "condition": {"tagState": "tagged", "tagPrefixes": ["prod-"]}},
   {"name": "giu-moi-nhat", "action": {"type": "Keep"}, "mostRecentVersions": {"keepCount": $KEEP_TAGGED}},
-  {"name": "xoa-tag-cu", "action": {"type": "Delete"}, "condition": {"tagState": "tagged", "olderThan": "86400s"}}
+  {"name": "xoa-sha-cu", "action": {"type": "Delete"}, "condition": {"tagState": "tagged", "tagPrefixes": ["sha-"], "olderThan": "$((TAGGED_DAYS * 86400))s"}}
 ]
 JSON
 if [ "$DRY" = 1 ]; then cat "$POLICY"; fi
