@@ -472,6 +472,16 @@
       "map": "tinh_dau_ngoai_vi"
     },
     {
+      "key": "beast_thai_than_cu_vien",
+      "frame": [
+        192,
+        192
+      ],
+      "iso": true,
+      "static": true,
+      "map": "loi_tinh_dau"
+    },
+    {
       "key": "beast_tham_hai_ma_chuong",
       "frame": [
         96,
@@ -500,16 +510,6 @@
       "iso": true,
       "static": true,
       "map": "lac_nhat_sam_lam"
-    },
-    {
-      "key": "beast_thai_than_cu_vien",
-      "frame": [
-        192,
-        192
-      ],
-      "iso": true,
-      "static": true,
-      "map": "loi_tinh_dau"
     },
     {
       "key": "beast_thanh_lan_ngac",
@@ -1038,7 +1038,10 @@
       "key": "hs_body_m_0",
       "iso": true
     },
-    "hs_body_m_1",
+    {
+      "key": "hs_body_m_1",
+      "iso": true
+    },
     "hs_body_m_2",
     "hs_body_m_3",
     {
@@ -1052,7 +1055,10 @@
       "key": "hs_hair_m_0",
       "iso": true
     },
-    "hs_hair_m_1",
+    {
+      "key": "hs_hair_m_1",
+      "iso": true
+    },
     "hs_hair_m_2",
     "hs_hair_m_3",
     {
@@ -1066,7 +1072,10 @@
       "key": "hs_outfit_m_0",
       "iso": true
     },
-    "hs_outfit_m_1",
+    {
+      "key": "hs_outfit_m_1",
+      "iso": true
+    },
     "hs_outfit_m_2",
     "hs_outfit_m_3",
     {
