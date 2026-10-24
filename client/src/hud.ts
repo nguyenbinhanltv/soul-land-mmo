@@ -2152,7 +2152,7 @@ const SELL_RING: [number, string][] = [[0, "Không bán"], [100, "Dưới 100 n�
   [100000, "Dưới 100.000 năm"], [MAX_YEARS + 1, "Mọi niên hạn"]];
 const SELL_BONE: [number, string][] = [[0, "Không bán"], [1, "Chưa cường hóa (+0)"], [5, "Dưới +5"], [10, "Dưới +10"]];
 const SELL_SALV: [number, string][] = [[0, "Không tự phân giải"], ...EQUIP_TIERS.slice(0, EQUIP_MAX_TIER).map((t, i): [number, string] => [i + 1, i ? `${EQUIP_TIERS[0].name} – ${t.name}` : t.name])];
-const SELL_SALV_ENH: [number, string][] = [[1, "Chỉ món +0"], [4, "Dưới +3"], [7, "Dưới +6"], [11, "Dưới +10"]];
+const SELL_SALV_ENH: [number, string][] = [[1, "Chỉ món +0"], [4, "Tới +3"], [7, "Tới +6"], [11, "Tới +10"]];
 const SELL_CORE: [number, string][] = [[1, "Không bán"],
   ...Array.from({ length: MAX_CORE_STARS - 2 }, (_, i): [number, string] => [i + 2, i ? `1★ – ${i + 1}★` : "1★"])];
 /**
