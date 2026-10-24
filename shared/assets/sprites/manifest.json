@@ -232,6 +232,26 @@
       "map": "cuc_bac_chi_dia"
     },
     {
+      "key": "beast_huyet_nha_cu_sa",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "beast_kiem_ngu",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
       "key": "beast_kiem_vi_hat",
       "frame": [
         96,
@@ -242,6 +262,16 @@
       "map": "tinh_dau_noi_dia"
     },
     {
+      "key": "beast_kim_lan_long_quy",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
       "key": "beast_kim_linh_ung",
       "frame": [
         96,
@@ -250,6 +280,16 @@
       "iso": true,
       "static": true,
       "map": "tinh_dau_ngoai_vi"
+    },
+    {
+      "key": "beast_lam_lan_hai_xa",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
     },
     {
       "key": "beast_lam_loi_te_nguu",
@@ -298,8 +338,18 @@
         96
       ],
       "iso": true,
-      "map": "hai_than_dao",
-      "lpc": true
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "beast_loi_van_hai_ung",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
     },
     {
       "key": "beast_loi_van_hau",
@@ -402,6 +452,16 @@
       "map": "thanh_hon_thon"
     },
     {
+      "key": "beast_quy_dien_hai_yeu",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
       "key": "beast_quy_ho",
       "frame": [
         96,
@@ -412,16 +472,6 @@
       "map": "tinh_dau_ngoai_vi"
     },
     {
-      "key": "beast_thanh_lan_doc_co",
-      "frame": [
-        96,
-        96
-      ],
-      "iso": true,
-      "static": true,
-      "map": "lac_nhat_sam_lam"
-    },
-    {
       "key": "beast_thai_than_cu_vien",
       "frame": [
         192,
@@ -430,6 +480,36 @@
       "iso": true,
       "static": true,
       "map": "loi_tinh_dau"
+    },
+    {
+      "key": "beast_tham_hai_ma_chuong",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "beast_tham_hai_ma_kinh",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "beast_thanh_lan_doc_co",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "lac_nhat_sam_lam"
     },
     {
       "key": "beast_thanh_lan_ngac",
@@ -470,6 +550,16 @@
       "iso": true,
       "static": true,
       "map": "loi_tinh_dau"
+    },
+    {
+      "key": "beast_thiet_giap_cu_giai",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "static": true,
+      "map": "hai_than_dao"
     },
     {
       "key": "beast_thiet_giap_te_nguu",
@@ -548,8 +638,8 @@
         96
       ],
       "iso": true,
-      "map": "hai_than_dao",
-      "lpc": true
+      "static": true,
+      "map": "hai_than_dao"
     },
     {
       "key": "beast_u_minh_lang",
@@ -948,7 +1038,10 @@
       "key": "hs_body_m_0",
       "iso": true
     },
-    "hs_body_m_1",
+    {
+      "key": "hs_body_m_1",
+      "iso": true
+    },
     "hs_body_m_2",
     "hs_body_m_3",
     {
@@ -962,7 +1055,10 @@
       "key": "hs_hair_m_0",
       "iso": true
     },
-    "hs_hair_m_1",
+    {
+      "key": "hs_hair_m_1",
+      "iso": true
+    },
     "hs_hair_m_2",
     "hs_hair_m_3",
     {
@@ -976,7 +1072,10 @@
       "key": "hs_outfit_m_0",
       "iso": true
     },
-    "hs_outfit_m_1",
+    {
+      "key": "hs_outfit_m_1",
+      "iso": true
+    },
     "hs_outfit_m_2",
     "hs_outfit_m_3",
     {
@@ -2183,6 +2282,114 @@
       "map": "nac_dinh_thanh"
     },
     {
+      "key": "skill_a_ngan_0",
+      "iso": true
+    },
+    {
+      "key": "skill_a_ngan_1",
+      "iso": true
+    },
+    {
+      "key": "skill_a_ngan_2",
+      "iso": true
+    },
+    {
+      "key": "skill_a_ngan_3",
+      "iso": true
+    },
+    {
+      "key": "skill_a_ngan_4",
+      "iso": true
+    },
+    {
+      "key": "skill_a_ngan_5",
+      "iso": true
+    },
+    {
+      "key": "skill_a_ngan_7",
+      "iso": true
+    },
+    {
+      "key": "skill_a_ngan_8",
+      "iso": true
+    },
+    {
+      "key": "skill_a_ngan_9",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_0",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_1",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_2",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_3",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_4",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_5",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_7",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_8",
+      "iso": true
+    },
+    {
+      "key": "skill_bach_ho_9",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_0",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_1",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_2",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_3",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_4",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_5",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_7",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_8",
+      "iso": true
+    },
+    {
+      "key": "skill_bang_phuong_hoang_9",
+      "iso": true
+    },
+    {
       "key": "skill_bich_lan_xa_hoang_0",
       "iso": true
     },
@@ -2268,6 +2475,42 @@
     },
     {
       "key": "skill_chung_3",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_0",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_1",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_2",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_3",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_4",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_5",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_7",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_8",
+      "iso": true
+    },
+    {
+      "key": "skill_cuu_bao_luu_ly_thap_9",
       "iso": true
     },
     {
@@ -2559,6 +2802,42 @@
       "iso": true
     },
     {
+      "key": "skill_liet_hoa_thuong_lang_0",
+      "iso": true
+    },
+    {
+      "key": "skill_liet_hoa_thuong_lang_1",
+      "iso": true
+    },
+    {
+      "key": "skill_liet_hoa_thuong_lang_2",
+      "iso": true
+    },
+    {
+      "key": "skill_liet_hoa_thuong_lang_3",
+      "iso": true
+    },
+    {
+      "key": "skill_liet_hoa_thuong_lang_4",
+      "iso": true
+    },
+    {
+      "key": "skill_liet_hoa_thuong_lang_5",
+      "iso": true
+    },
+    {
+      "key": "skill_liet_hoa_thuong_lang_7",
+      "iso": true
+    },
+    {
+      "key": "skill_liet_hoa_thuong_lang_8",
+      "iso": true
+    },
+    {
+      "key": "skill_liet_hoa_thuong_lang_9",
+      "iso": true
+    },
+    {
       "key": "skill_nguyet_nhan_0",
       "iso": true
     },
@@ -2628,6 +2907,42 @@
     },
     {
       "key": "skill_nhu_cot_tho_9",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_0",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_1",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_2",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_3",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_4",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_5",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_7",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_8",
+      "iso": true
+    },
+    {
+      "key": "skill_pha_hon_thuong_9",
       "iso": true
     },
     {
@@ -2808,6 +3123,42 @@
     },
     {
       "key": "skill_u_minh_linh_mieu_9",
+      "iso": true
+    },
+    {
+      "key": "skill_xuc_xich_0",
+      "iso": true
+    },
+    {
+      "key": "skill_xuc_xich_1",
+      "iso": true
+    },
+    {
+      "key": "skill_xuc_xich_2",
+      "iso": true
+    },
+    {
+      "key": "skill_xuc_xich_3",
+      "iso": true
+    },
+    {
+      "key": "skill_xuc_xich_4",
+      "iso": true
+    },
+    {
+      "key": "skill_xuc_xich_5",
+      "iso": true
+    },
+    {
+      "key": "skill_xuc_xich_7",
+      "iso": true
+    },
+    {
+      "key": "skill_xuc_xich_8",
+      "iso": true
+    },
+    {
+      "key": "skill_xuc_xich_9",
       "iso": true
     },
     {
@@ -3342,6 +3693,30 @@
       "iso": true
     },
     {
+      "key": "vh_kim_vu_mieu_ung_b",
+      "iso": true
+    },
+    {
+      "key": "vh_kim_vu_mieu_ung_f",
+      "iso": true
+    },
+    {
+      "key": "vh_ky_nhung_thong_thien_cuc_b",
+      "iso": true
+    },
+    {
+      "key": "vh_ky_nhung_thong_thien_cuc_f",
+      "iso": true
+    },
+    {
+      "key": "vh_lam_dien_ba_vuong_long_b",
+      "iso": true
+    },
+    {
+      "key": "vh_lam_dien_ba_vuong_long_f",
+      "iso": true
+    },
+    {
       "key": "vh_lam_ngan_thao_b",
       "iso": true
     },
@@ -3358,11 +3733,27 @@
       "iso": true
     },
     {
+      "key": "vh_nhu_cot_tho_b",
+      "iso": true
+    },
+    {
+      "key": "vh_nhu_cot_tho_f",
+      "iso": true
+    },
+    {
       "key": "vh_pha_hon_thuong_b",
       "iso": true
     },
     {
       "key": "vh_pha_hon_thuong_f",
+      "iso": true
+    },
+    {
+      "key": "vh_ta_hoa_phuong_hoang_b",
+      "iso": true
+    },
+    {
+      "key": "vh_ta_hoa_phuong_hoang_f",
       "iso": true
     },
     {

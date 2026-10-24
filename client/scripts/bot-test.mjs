@@ -295,7 +295,7 @@ const health=await fetch(API+"/health").then(r=>r.json()).catch(()=>({}));
 if(health.chMax===2){ await channelTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 // ---- Chia nhóm BOT_PART=1..BOT_PARTS (job bot-ram của CI chạy song song, .github/workflows/check.yml; #236). Mọi nhóm chạy phần chung
 // (A, B, 2.3b, 2.4, vào lại của A, ~80 giây trên runner CI); mỗi phần còn lại thuộc đúng một nhóm, khai báo một chỗ ở INLINE và STANDALONE
-// dưới đây. Không đặt BOT_PART thì chạy hết. Cuối mỗi lượt in dòng "⏱" (thời gian từng phần) để chia lại cho cân: mỗi nhóm ~7 phút
+// dưới đây. Không đặt BOT_PART thì chạy hết. Cuối mỗi lượt in dòng "⏱" (thời gian từng phần) để chia lại cho cân: mỗi nhóm ~9 phút
 // trên runner thường (~9 phút khi runner chậm). Bài mới tự tạo bot thì thêm vào STANDALONE, gắn nhóm đang nhẹ nhất theo dòng ⏱. ----
 const BOT_PARTS=4;
 // Khối nằm trong luồng A / B hay bot C (dùng state của các bot đó nên không tách ra được): khóa -> nhóm.
@@ -313,13 +313,13 @@ const STANDALONE=[
   ["arena",2,arenaTest],                      //  96 7.2, 9.7 Đại Đấu Hồn Trường
   ["friend",2,friendTest,true],               // ~40 #195 bạn bè và chặn (đo ở máy)
   ["chuong3",2,chapter3Test],                 // ~18 #284 chương 3 Hải Thần Đảo (đo ở máy)
-  ["bag",3,async()=>{ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); }], // 16 #215, 9.8; E1 trang bị hồn sư; E2 rơi đồ; E3 cường hóa; E4 hợp thành / phân giải
+  ["bag",4,async()=>{ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); }], // 127 #215, 9.8; E1 trang bị hồn sư; E2 rơi đồ; E3 cường hóa; E4 hợp thành / phân giải
   ["sell",3,sellTest],                        //   5 #216
   ["shardBuy",3,shardBuyTest],                //  ~8 #282 Thương hội đổi mảnh võ hồn (đo ở máy)
   ["tong",3,tongTest],                        //   9 #196 tông môn
-  ["waypoint",3,waypointTest],                //  45 11.2
+  ["waypoint",4,waypointTest],                //  45 11.2
   ["camp",3,campTest],                        //   9 #111
-  ["bigmap",3,bigMapTest],                    //  36 11.3 / 11.5
+  ["bigmap",1,bigMapTest],                    //  78 11.3 / 11.5
   ["view",3,syncViewTest],                    //   8 11.4
   ["quest",3,questTest],                      //  31 6.2
   ["chuong2",3,chapter2Test],                // 106 #189, #256 chương 2 Sử Lai Khắc Thất Quái
@@ -341,20 +341,25 @@ const STANDALONE=[
   ["supportContrib",4,supportContribTest,true],    // 13 9.2
   ["copyParty",4,copyPartyTest,true],         //  11 9.3
 ];
+// BOT_PART=smoke (mức "smoke" của CI, job `changes`): chỉ phần chung (đăng nhập, vào bản đồ, di chuyển, đánh quái, túi / nhân vật, tin giao diện cơ bản)
+// cộng các bài độc lập nhẹ ở SMOKE dưới đây, ~2 phút trên runner CI. Không khối INLINE nào chạy ở chế độ này.
+const SMOKE=new Set(["cold","ink","boneSub","sell"]);
 const PART=process.env.BOT_PART??"", T0=Date.now(), timing=[];
 const inPart=k=>{ if(!(k in INLINE)) throw new Error(`inPart: khóa ${k} chưa có trong INLINE`); return !PART||PART===String(INLINE[k]); };
 for(const [k,n] of [...Object.entries(INLINE),...STANDALONE.map(([k,n])=>[k,n])])
   if(!(Number.isInteger(n)&&n>=1&&n<=BOT_PARTS)){ console.log(`✗ phần ${k} gắn nhóm ${n}: chỉ nhận 1..${BOT_PARTS}`); process.exit(1); }
-if(PART&&!(/^\d+$/.test(PART)&&+PART>=1&&+PART<=BOT_PARTS)){ console.log(`✗ BOT_PART=${PART}: chỉ nhận 1..${BOT_PARTS}`); process.exit(1); }
+if(PART&&PART!=="smoke"&&!(/^\d+$/.test(PART)&&+PART>=1&&+PART<=BOT_PARTS)){ console.log(`✗ BOT_PART=${PART}: chỉ nhận 1..${BOT_PARTS} hoặc smoke`); process.exit(1); }
+if(PART==="smoke"&&[...SMOKE].some(k=>!STANDALONE.some(x=>x[0]===k))){ console.log("✗ SMOKE có khóa không có trong STANDALONE"); process.exit(1); }
 // CI truyền số job trong matrix (strategy.job-total): lệch BOT_PARTS thì có nhóm không job nào chạy.
 if(PART&&process.env.BOT_PARTS_CI&&+process.env.BOT_PARTS_CI!==BOT_PARTS){ console.log(`✗ matrix CI có ${process.env.BOT_PARTS_CI} nhóm, BOT_PARTS=${BOT_PARTS}: sửa .github/workflows/check.yml`); process.exit(1); }
-if(PART) console.log(`BOT_PART=${PART}/${BOT_PARTS}: chỉ chạy phần chung và nhóm ${PART}`);
+if(PART==="smoke") console.log("BOT_PART=smoke: chỉ chạy phần chung và các bài khói");
+else if(PART) console.log(`BOT_PART=${PART}/${BOT_PARTS}: chỉ chạy phần chung và nhóm ${PART}`);
 /** Chạy `fn`, ghi thời gian vào dòng ⏱ cuối lượt. */
 async function timed(k,fn){ const t=Date.now(); await fn(); timing.push(`${k} ${Math.round((Date.now()-t)/1000)}`); }
 /** Chạy các bài độc lập của nhóm đang chạy (mọi bài nếu không đặt BOT_PART); bài cần hook test thì bỏ qua khi server không bật GAME_TEST=1. */
 async function runStandalone(hook){
   for(const [k,n,fn,needHook] of STANDALONE){
-    if(PART&&PART!==String(n)) continue;
+    if(PART==="smoke"?!SMOKE.has(k):PART&&PART!==String(n)) continue;
     if(needHook&&!hook){ console.log(`  ⚠ bỏ qua ${k} (cần hook test): bật server bằng GAME_TEST=1`); continue; }
     await timed(k,fn);
   }

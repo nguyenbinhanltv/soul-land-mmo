@@ -72,7 +72,7 @@ for (let i = 0; i < argv.length; i++) {
 if (!pgCmd) {
   if ([opt.only, opt.part, opt.full, opt.channels, opt.fatal].filter(Boolean).length !== 1) die("chọn đúng một trong --only, --part, --channels, --full, --fatal");
   if (opt.only && !onlyNames.includes(opt.only)) die(`--only ${opt.only}: không có trong bot-test.mjs`);
-  if (opt.part && !(/^\d+$/.test(opt.part) && +opt.part >= 1 && +opt.part <= partCount)) die(`--part chỉ nhận 1..${partCount}`);
+  if (opt.part && opt.part !== "smoke" && !(/^\d+$/.test(opt.part) && +opt.part >= 1 && +opt.part <= partCount)) die(`--part chỉ nhận 1..${partCount} hoặc smoke`);
   if (!(opt.heap >= 128)) die("--heap tối thiểu 128 (MB)");
 }
 

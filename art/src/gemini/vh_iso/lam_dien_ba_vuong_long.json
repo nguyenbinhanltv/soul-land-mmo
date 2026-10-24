@@ -1,0 +1,10 @@
+{
+ "attach": "back",
+ "dirs": {
+  "s": [{"img":"../phuthe_5huong/lam_dien_ba_vuong_long/s.png","pivot":[48,46],"off":[0,0],"layer":"b","f":{"pivot":[48,47]}}],
+  "se": [{"img":"../phuthe_5huong/lam_dien_ba_vuong_long/se.png","pivot":[48,44],"off":[0,0],"layer":"b","f":{"pivot":[47,45]}}],
+  "e": [{"img":"../phuthe_5huong/lam_dien_ba_vuong_long/e.png","pivot":[48,43],"off":[0,0],"layer":"b","f":{"pivot":[46,44]}}],
+  "ne": [{"img":"../phuthe_5huong/lam_dien_ba_vuong_long/ne.png","pivot":[47,44],"off":[0,0],"layer":"f","f":{"pivot":[47,44]}}],
+  "n": [{"img":"../phuthe_5huong/lam_dien_ba_vuong_long/n.png","pivot":[48,45],"off":[0,0],"layer":"f","f":{"pivot":[48,46]}}]
+ }
+}
