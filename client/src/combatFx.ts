@@ -7,17 +7,17 @@ export type FxLevel = "low" | "mid" | "high";
 /** Rung màn hình (#437): Tắt (không rung / giật), Chỉ boss (mặc định: tinh anh trở lên, chiêu mạnh vào mình, hồn kỹ lớn), Đầy đủ (thêm chí mạng lên hồn thú thường, trừ khi tự săn). */
 export type ShakeMode = "off" | "boss" | "full";
 export const SHAKE_MODES: [ShakeMode, string][] = [["off", "Tắt"], ["boss", "Chỉ boss"], ["full", "Đầy đủ"]];
-export interface FxPrefs { level: FxLevel; reduce: boolean; shake: ShakeMode; cine: boolean }
+export interface FxPrefs { level: FxLevel; reduce: boolean; shake: ShakeMode; cine: boolean; cutin: boolean }
 
 const KEY = "soul-land-fx-v1";
 const store = (): Storage | null => { try { return window.localStorage; } catch { return null; } };
 const prefersReduce = () => { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; } };
 
 function load(): FxPrefs {
-  const def: FxPrefs = { level: "mid", reduce: prefersReduce(), shake: "boss", cine: true };
+  const def: FxPrefs = { level: "mid", reduce: prefersReduce(), shake: "boss", cine: true, cutin: true };
   try {
     const raw = JSON.parse(store()?.getItem(KEY) ?? "null");
-    if (raw && typeof raw === "object") return { level: raw.level === "low" || raw.level === "high" ? raw.level : "mid", reduce: typeof raw.reduce === "boolean" ? raw.reduce : def.reduce, shake: raw.shake === "off" || raw.shake === "full" ? raw.shake : "boss", cine: typeof raw.cine === "boolean" ? raw.cine : true }; // bản lưu cũ không có `shake` → Chỉ boss
+    if (raw && typeof raw === "object") return { level: raw.level === "low" || raw.level === "high" ? raw.level : "mid", reduce: typeof raw.reduce === "boolean" ? raw.reduce : def.reduce, shake: raw.shake === "off" || raw.shake === "full" ? raw.shake : "boss", cine: typeof raw.cine === "boolean" ? raw.cine : true, cutin: typeof raw.cutin === "boolean" ? raw.cutin : true }; // bản lưu cũ không có `shake` → Chỉ boss
   } catch { /* hỏng thì dùng mặc định */ }
   return def;
 }

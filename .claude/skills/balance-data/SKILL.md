@@ -16,7 +16,7 @@ description: Quy tắc cho số liệu cân bằng game (niên hạn, chỉ số
 | Tiên cơ (5.1) | `TIEN_CO_MAX`, `TIEN_CO_GAIN`, `TIEN_CO_IDLE_SECS`, `TIEN_CO_DECAY`, `TIEN_CO`, `TIEN_CO_RIENG` / `tienCoOf`, `TIEN_CO_SET`, `energyGain`, `tienCoDmgMult` |
 | Trạng thái, hiệu ứng (5.1) | `STATUS_IDS` / `STATUS` / `statusBit`, `PLAYER_STATUS`, `SLOW_CAP`, `STATUS_TICK`, `CC_TIER_MULT`, `BUFF_IDS` / `BUFFS` / `buffBit`, `PHOENIX_FIELD_R`, `PHONG_LOI`, `BONDS` / `bondsOf` / `bondSum` / `BOND_KEYS` |
 | Hồn kỹ (5.2) | `SkillDef`, `SKILLS` (dự phòng), `VOHON_SKILLS` / `skillsOf`, `VOHON_SKILLS_HIGH`, `HIGH_RINGS`, `ringSkill`, `skillChoices`, `LOADOUT_SIZE` / `DEFAULT_LOADOUT` / `parseLoadout` / `loadoutOf`, `skillPower`, `buffPower`, `BUFF_SCALE`, `PCT_HP_CAP`, `PROJ_SPEED` |
-| Chân Thân (5.2) | `CHAN_THAN_RING`, `ChanThanDef`, `CHAN_THAN` / `chanThanOf` / `chanThanStats`, `CHAN_THAN_SCALE`, `CHAN_THAN_SKILL_SLOT` / `_COST` / `_CD`, `phoenixFieldR` |
+| Chân Thân (5.2) | `CHAN_THAN_RING`, `ChanThanDef`, `CHAN_THAN` / `chanThanOf` / `chanThanStats`, `PHAP_TUONG` / `PT_*` (pháp tướng hiển thị), `CHAN_THAN_SKILL_SLOT` / `_COST` / `_CD`, `phoenixFieldR` |
 | Hồn hoàn, hấp thụ (5.2) | `MAX_RINGS`, `MAX_LEVEL`, `RING_LIMIT` / `ringLimit`, `xpNeed`, `atBottleneck`, `xpBlocked`, `ABSORB_FAIL` / `absorbChance`, `ABSORB_SECS` / `absorbSecs`, `RING_ITEM`, `DROP_OWNER_SECS`, `DROP_TTL_SECS`, `PICKUP_RANGE` |
 | Quy cấp (5.3) | `beastLevel`, `XP_LEVEL_CAP`, `XP_LEVEL_STEPS`, `xpLevelScale` |
 | Hồn thú (5.3) | `BEASTS` / `beastIndex`, `BEAST_SKILLS` / `beastSkillOf`, `BEAST_SKILL_YEARS`, `TELE_WARN`, `TELE_FIRST`, `TELE_PAD`, `teleHits` / `teleZones`, `BEAST_REGEN`, `BEAST_AGGRO_R`, `BEAST_WANDER`, `SPAWN_CLEAR`, `RED_BEAST_CHANCE`, `BEAST_COIN` |
