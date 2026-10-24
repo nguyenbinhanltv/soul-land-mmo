@@ -24,7 +24,7 @@ const ANIMS = Object.keys(ISO_HS_ANIMS) as HsAnim[];
 /** Hoạt ảnh ghép ngay khi có tổ hợp (đứng, đi, đánh, thi triển, bị đánh); còn lại ghép khi cần. */
 const EAGER: HsAnim[] = ["idle", "walk", "attack", "cast", "hurt"];
 
-interface Src { key: string; sheet: string; pairs: [number, number][]; refs: number; state: "wait" | "queued" | "ready" | "fail"; img: CanvasImageSource | null }
+interface Src { key: string; sheet: string; pairs: [number, number][]; refs: number; state: "wait" | "queued" | "ready" | "fail"; img: CanvasImageSource | null; redo?: boolean /* đang tải lại sau lỗi: tải xong mới ghép lại tổ hợp dùng nó */ }
 interface Raw { sheet: string; refs: number; state: "load" | "ready" | "fail"; img: HTMLImageElement | null; waiting: Src[]; tries: number; failAt: number }
 /** Sheet tải lỗi hẳn (sau ASSET_RETRIES lần) thì hình dự phòng (bộ thiếu lớp / preset) dùng tạm, và thử tải lại sau chừng này (ms). */
 const RETRY_LATER_MS = 30000;
@@ -189,7 +189,7 @@ export class LpcRig {
         if (this.raw.get(r.sheet) === r) {
           if (ok) { r.state = "ready"; for (const w of r.waiting.splice(0)) this.queueSrc(w); }
           else if (r.tries < ASSET_RETRIES) setTimeout(() => { if (this.raw.get(r.sheet) === r) { this.loadQ.push(r); this.pump(); } }, retryDelay(r.tries++));
-          else { r.state = "fail"; r.failAt = performance.now(); for (const w of r.waiting.splice(0)) w.state = "fail"; }
+          else { r.state = "fail"; r.failAt = performance.now(); for (const w of r.waiting.splice(0)) { w.state = "fail"; w.redo = false; } }
         }
         this.pump();
       };
@@ -203,11 +203,9 @@ export class LpcRig {
     for (const r of this.raw.values()) {
       if (r.state !== "fail" || now - r.failAt < RETRY_LATER_MS) continue;
       r.state = "load"; r.tries = 0;
-      for (const a of this.tinted.values()) if (a.sheet === r.sheet && a.state === "fail") { a.state = "wait"; r.waiting.push(a); }
-      for (const c of this.combos.values()) if (c.layers.some((L) => L.state === "wait")) {
-        for (const a of c.done) c.want.add(a); // ghép lại cả hoạt ảnh đã ghép khi thiếu lớp này
-        c.done.clear(); this.dirty.add(c);
-      }
+      // Giữ nguyên state "fail" và `done` trong lúc tải lại (texture cũ vẫn dùng được); chỉ khi tải xong mới ghép lại (step).
+      for (const a of this.tinted.values()) if (a.sheet === r.sheet && a.state === "fail") { a.redo = true; r.waiting.push(a); }
+      for (const c of this.combos.values()) if (c.layers.some((L) => L.redo)) this.dirty.add(c);
       this.loadQ.push(r);
     }
     this.pump();
@@ -268,8 +266,14 @@ export class LpcRig {
     const t0 = performance.now(), over = () => performance.now() - t0 >= budgetMs;
     while (this.queue.length && !over()) this.tint(this.queue.shift()!);
     for (const c of this.dirty) {
-      if (!c.want.size) { this.dirty.delete(c); continue; }
-      if (c.layers.some((L) => L.state === "wait" || L.state === "queued")) continue;
+      const redo = c.layers.some((L) => L.redo);
+      if (!c.want.size && !redo) { this.dirty.delete(c); continue; }
+      if (c.layers.some((L) => L.state === "wait" || L.state === "queued" || (L.redo && this.raw.get(L.sheet)?.state === "load"))) continue;
+      if (redo) {
+        let loaded = false;
+        for (const L of c.layers) if (L.redo) { L.redo = false; if (L.state === "ready") loaded = true; }
+        if (loaded) { for (const a of c.done) c.want.add(a); c.done.clear(); } // ghép lại cả hoạt ảnh đã ghép khi thiếu lớp này
+      }
       for (const a of [...c.want]) {
         if (over()) return;
         this.compose(c, a); c.want.delete(a); c.done.add(a);
