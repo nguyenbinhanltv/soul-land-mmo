@@ -2,6 +2,7 @@
 // độ dài / độ mạnh của hiệu ứng, KHÔNG phải số cân bằng (số cân bằng ở shared/data.ts).
 import Phaser from "phaser";
 import type { He, HaoQuangMode } from "../../shared/data.ts";
+import { FxGovernor, GOV } from "./combatFeelRules.ts";
 
 export type FxLevel = "low" | "mid" | "high";
 /** Rung màn hình (#437): Tắt (không rung / giật), Chỉ boss (mặc định: tinh anh trở lên, chiêu mạnh vào mình, hồn kỹ lớn), Đầy đủ (thêm chí mạng lên hồn thú thường, trừ khi tự săn). */
@@ -30,32 +31,7 @@ export function setFxPrefs(p: Partial<FxPrefs>): void {
 }
 
 // ---- H8 (#491): tự hạ mức hiệu ứng khi FPS thấp. Chỉ hiển thị, không đổi lựa chọn đã lưu của người chơi.
-const LEVELS: FxLevel[] = ["low", "mid", "high"];
-/** Ngưỡng và độ trễ của bộ điều tốc (ms / khung): hạ khi trung bình chậm hơn `SLOW_MS` quá `DROP_AFTER`, nâng lại khi nhanh hơn `FAST_MS` đủ `RISE_AFTER`. */
-export const GOV = { SLOW_MS: 1000 / 40, FAST_MS: 1000 / 54, DROP_AFTER: 1500, RISE_AFTER: 12000, SKIP_MS: 250, ALPHA: 0.06 };
-export class FxGovernor {
-  /** Trần mức do FPS (không phải do người chơi chọn). */
-  cap: FxLevel = "high";
-  avg = 1000 / 60;
-  private bad = 0; private good = 0;
-  /** Mức hiện hành sau khi trừ trần FPS. */
-  effective(user: FxLevel): FxLevel { return LEVELS[Math.min(LEVELS.indexOf(user), LEVELS.indexOf(this.cap))]; }
-  /** Mỗi khung (dt ms). Khung dài bất thường (đổi tab, dừng hình) bỏ qua. Trả true khi vừa đổi trần. */
-  feed(dt: number, user: FxLevel): boolean {
-    if (!(dt > 0) || dt > GOV.SKIP_MS) return false;
-    this.avg += (dt - this.avg) * GOV.ALPHA;
-    const eff = LEVELS.indexOf(this.effective(user));
-    if (this.avg > GOV.SLOW_MS && eff > 0) {
-      this.good = 0; this.bad += dt;
-      if (this.bad >= GOV.DROP_AFTER) { this.cap = LEVELS[eff - 1]; this.bad = 0; this.avg = 1000 / 60; return true; }
-    } else if (this.avg < GOV.FAST_MS && LEVELS.indexOf(this.cap) < LEVELS.length - 1) {
-      this.bad = 0; this.good += dt;
-      if (this.good >= GOV.RISE_AFTER) { this.cap = LEVELS[LEVELS.indexOf(this.cap) + 1]; this.good = 0; return true; }
-    } else { this.bad = 0; this.good = 0; }
-    return false;
-  }
-  reset() { this.cap = "high"; this.avg = 1000 / 60; this.bad = this.good = 0; }
-}
+export { GOV };
 export const fxGov = new FxGovernor();
 /** Mức hiệu ứng đang áp dụng: lựa chọn của người chơi, hạ thêm khi FPS thấp (nếu bật `auto`). MỌI nơi vẽ hiệu ứng đọc hàm này, không đọc `fxPrefs.level`. */
 export function fxLevel(): FxLevel { return fxPrefs.auto ? fxGov.effective(fxPrefs.level) : fxPrefs.level; }

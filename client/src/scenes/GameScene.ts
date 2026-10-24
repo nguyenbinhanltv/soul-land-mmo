@@ -263,6 +263,8 @@ export class GameScene extends Phaser.Scene {
   /** Bảng xếp hạng sát thương thú vương gần nhất (tin "boss" k = "rank"); hiện khi mình đang tham gia. */
   bossList: { id: string; name: string; pct: number }[] | null = null;
   teleG!: Phaser.GameObjects.Graphics;
+  /** Viền vùng báo trước vẽ lại ở lớp TRÊN hiệu ứng chiêu (H8 #491): sheet / hạt của đông người không che được vòng báo trước. */
+  teleTop!: Phaser.GameObjects.Graphics;
   /** Đồng hồ phía client của vùng lưu lại (#161, drawGrounds): `ttl` lần đổi gần nhất, lúc đổi, lúc thấy lần đầu (ms của scene). */
   groundClock = new Map<string, { v: number; at: number; seen: number }>();
   drops = new Map<string, { img: Phaser.GameObjects.Image; txt: Phaser.GameObjects.Text }>(); // hồn hoàn dưới đất kèm số năm
@@ -443,6 +445,7 @@ export class GameScene extends Phaser.Scene {
     this.pt = new PhapTuongSystem(this, this.fxp); // pháp tướng Võ Hồn Chân Thân (#486)
     this.skfx = new SkillFx(this, this.fxp);
     registerCodeSheets(this); registerHitFeelSheets(this); this.svis = new SkillVisualPlayer(new SheetFx(this)); // S1 #542: sheet hiệu ứng theo chiêu (SKILL_VISUAL)
+    this.teleTop = this.add.graphics().setDepth(99983.5); // trên mọi hiệu ứng chiêu (≤ 99983), dưới tên / số sát thương
     this.teleG = this.add.graphics().setDepth(2); // vùng cảnh báo nằm trên mặt đất, dưới hồn sư và hồn thú
     const cam = this.cameras.main;
     const bb = this.isoMap.bounds();
@@ -1601,7 +1604,7 @@ export class GameScene extends Phaser.Scene {
   /** Ngữ cảnh chọn tiếng cho tin `fx` (G2): vũ khí, hệ, họ thú, bậc hồn hoàn của người / thú phát. Dung hợp kỹ (#193) lấy võ hồn người mời từ `va`. */
   fxSound(m: any, actor?: PView): FxSoundInfo & { he?: string } {
     const def = m.k === "fusion" ? VOHON[m.va] : actor ? VOHON[actor.vh] : undefined, b = m.bid ? this.room.state.beasts.get(m.bid) : undefined;
-    return { he: def?.he, weapon: weaponOf(def?.id), element: def ? elementOf(def) : undefined, tier: Number.isInteger(m.tier) ? m.tier : undefined,
+    return { he: def?.he, vohonId: def?.id, mine: m.id === this.me, weapon: weaponOf(def?.id), element: def ? elementOf(def) : undefined, tier: Number.isInteger(m.tier) ? m.tier : undefined,
       family: b ? beastFamilyOf(beastSpeciesId(b.species, b.rank)) : undefined };
   }
   /** Bước chân (G2): mỗi nhịp khi đang di chuyển, theo bề mặt ô nền dưới chân; người xa nghe nhỏ và bị cắt trước (kênh Môi trường). */
@@ -1681,7 +1684,7 @@ export class GameScene extends Phaser.Scene {
       }
       this.ringFx(this.feet(v), 6, m.k === "ult" ? 150 : 90, col, 650); this.ringFx(this.feet(v), 4, m.k === "ult" ? 110 : 60, "#ffffff", 550, 150);
       const me = this.players.get(this.me);
-      if (me && Math.hypot(me.wx - v.wx, me.wy - v.wy) < 220) {
+      if (me && m.id === this.me) { // H8 (#491): chớp / rung chỉ khi CHÍNH MÌNH biến hình / tung tuyệt kỹ; đông người cùng tung thì màn không chớp liên hồi
         const c = Phaser.Display.Color.HexStringToColor(col);
         this.flash(m.k === "ult" ? 260 : 180, c.red, c.green, c.blue); this.shake(300, m.k === "ult" ? 0.006 : 0.003);
       }
@@ -1841,7 +1844,7 @@ export class GameScene extends Phaser.Scene {
   }
   /** Mọi vùng cảnh báo đang hiện: nền đỏ mờ cả vùng, phần đỏ đậm đầy dần theo thời gian, viền nhấp nháy nhanh dần lúc sắp tung. */
   drawTeles(time: number) {
-    const g = this.teleG; g.clear();
+    const g = this.teleG, gt = this.teleTop; g.clear(); gt.clear();
     this.drawGrounds(g, time); // vùng lưu lại nằm dưới vùng cảnh báo
     this.paintHoaDan(g, time); // Hỏa Đàn (#163): vòng hơi ấm cũng dưới vùng cảnh báo; đống lửa ở lớp riêng theo độ sâu
     for (const [bid, x] of this.teles) {
@@ -1851,16 +1854,18 @@ export class GameScene extends Phaser.Scene {
       const blink = 0.55 + 0.45 * Math.sin(time / (k > 0.6 ? 45 : 90));
       // G1: vòng đỏ thu dần quanh chân hồn thú (đòn sắp tới), nhấp nháy nhanh dần cùng viền vùng.
       const bp = this.bpos.get(bid), bs = this.room.state.beasts.get(bid);
-      if (bp && bs) { const R = (10 + 10 * bs.tier) * (1.6 - 0.6 * k); g.lineStyle(2, k > 0.6 ? 0xffd0d0 : TELE_COL, 0.5 + 0.5 * blink); strokeGround(g, bp.x, bp.y, R); }
+      if (bp && bs) { const R = (10 + 10 * bs.tier) * (1.6 - 0.6 * k); g.lineStyle(2, k > 0.6 ? 0xffd0d0 : TELE_COL, 0.5 + 0.5 * blink); strokeGround(g, bp.x, bp.y, R); gt.lineStyle(2, k > 0.6 ? 0xffd0d0 : TELE_COL, 0.5 + 0.5 * blink); strokeGround(gt, bp.x, bp.y, R); }
       for (const t of x.t) {
         g.fillStyle(TELE_COL, 0.16); this.teleShape(g, t, 1);
         g.fillStyle(TELE_COL, 0.2 + 0.25 * k); this.teleShape(g, t, k);
         g.lineStyle(1, k > 0.6 ? 0xffd0d0 : TELE_COL, blink); this.teleOutline(g, t);
+        gt.lineStyle(2, k > 0.6 ? 0xffd0d0 : TELE_COL, 0.55 + 0.45 * blink); this.teleOutline(gt, t);
       }
       // Chiêu toàn sàn (#118): vòng an toàn xanh ngọc phủ lên vùng đỏ, viền sáng dần khi sắp nổ.
       for (const t of x.safe ?? []) {
         g.fillStyle(SAFE_COL, 0.3 + 0.15 * k); fillGround(g, t.x, t.y, t.r);
         g.lineStyle(2, k > 0.6 ? 0xffffff : SAFE_COL, 0.6 + 0.4 * blink); strokeGround(g, t.x, t.y, t.r);
+        gt.lineStyle(2, k > 0.6 ? 0xffffff : SAFE_COL, 0.6 + 0.4 * blink); strokeGround(gt, t.x, t.y, t.r);
       }
     }
     this.drawDiveMark(time);
@@ -2122,7 +2127,7 @@ export class GameScene extends Phaser.Scene {
         this.tweens.add({ targets: t, alpha: 0, delay: 1500, duration: 600, onComplete: () => t.destroy() });
       }
       const me = this.players.get(this.me);
-      if (me && Math.hypot(me.wx - m.x, me.wy - m.y) < 260) {
+      if (me && (m.id === this.me || m.to === this.me) && Math.hypot(me.wx - m.x, me.wy - m.y) < 260) { // H8: chỉ hai người dung hợp thấy chớp / rung
         const cc = Phaser.Display.Color.ValueToColor(hex(col));
         this.flash(260, cc.red, cc.green, cc.blue); if (!sheetOn) this.shake(320, 0.006);
       }

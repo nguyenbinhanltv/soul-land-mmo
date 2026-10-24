@@ -70,7 +70,7 @@ class FxTestScene extends Phaser.Scene {
     });
     // `stress=P`: P người chơi, mỗi người tung một hồn kỹ ngẫu nhiên mỗi ~2,5 s (đo FPS 40–60 người, docs/hieu-nang-soak.md).
     const P = Number(q.get("stress") ?? 0);
-    if (q.get("legacy") === "1") { setFxPrefs({ auto: false }); SHEET_TUNE.othersK = 1; } // bản trước H8: không tự hạ mức, người khác dùng cả trần sheet
+    if (q.get("legacy") === "1") SHEET_TUNE.othersK = 1; // bản trước H8: người khác dùng cả trần sheet (và không tự hạ mức, xem fxTestScreen)
     this.pt = new PhapTuongSystem(this, this.fxp);
     for (let i = 0; i < CT; i++) {
       const ids = Object.keys(PHAP_TUONG), c = this.person((Math.random() - 0.5) * 420, (Math.random() - 0.5) * 220 + 10, 0x9fb4e8 + ((Math.random() * 0x404040) | 0));
@@ -148,6 +148,7 @@ class FxTestScene extends Phaser.Scene {
 export function fxTestScreen(card: HTMLElement, overlay: HTMLElement): void {
   void card; overlay.hidden = true;
   // Tham số cho quay hình / đo FPS: `lv=low|mid|high`, `reduce=1` (Giảm chuyển động).
+  fxPrefs.auto = q.get("legacy") !== "1"; // legacy=1: bản trước H8, không tự hạ mức (chỉ phiên này; đặt trước setFxPrefs để không lưu đè)
   const lv = q.get("lv"); if (lv === "low" || lv === "mid" || lv === "high") setFxPrefs({ level: lv });
   if (q.get("reduce") === "1") setFxPrefs({ reduce: true });
   const bar = document.createElement("div");

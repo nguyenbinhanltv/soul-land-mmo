@@ -5,7 +5,7 @@ import { createZzFxBuffer } from "./zzfx.ts";
 import { musicPlayerFor, type MusicPlayer } from "./music.ts";
 import { SfxBank, type SfxBankOptions } from "./sfxBank.ts";
 import { AmbientLayers, type AmbientInput, type AmbientKind } from "./ambientLayers.ts";
-import { LOUD_FX, SKILL_PHASE_OF_FX, SWING_FX, UI_GROUP, heartbeatInterval, LOW_HP_RATIO, ringGlowMix, type UiSound, type BeastFamily, type Element, type Material, type Weapon } from "./soundMap.ts";
+import { LOUD_FX, SKILL_PHASE_OF_FX, T3_WINDOW_MS, T3_OTHERS_GAP_MS, T3_OTHERS_GAIN, t3Group, SWING_FX, UI_GROUP, heartbeatInterval, LOW_HP_RATIO, ringGlowMix, type UiSound, type SkillPhase, type BeastFamily, type Element, type Material, type Weapon } from "./soundMap.ts";
 
 interface SoundManagerHost {
   context?: AudioContext;
@@ -24,10 +24,12 @@ export interface AudioEvent {
   shield?: boolean;
   result?: string;
   he?: string;
+  /** Biến hình: `on` false là lúc tan. `ct` / `av`: tin `soulring` của hồn kỹ Chân Thân / của chính lúc biến hình. */
+  on?: boolean; ct?: number; av?: number;
 }
 
 /** Ngữ cảnh chọn tiếng cho một tin `fx` (GameScene suy từ võ hồn / hồn thú của người phát). */
-export interface FxSoundInfo { weapon?: Weapon; element?: Element; family?: BeastFamily; tier?: number; boss?: boolean; }
+export interface FxSoundInfo { weapon?: Weapon; element?: Element; family?: BeastFamily; tier?: number; boss?: boolean; /** mã võ hồn người phát (chọn tiếng T3 riêng) */ vohonId?: string; /** người phát là chính mình */ mine?: boolean; }
 
 export type AudioSourceResolver = (message: AudioEvent) => AudioPoint | null;
 
@@ -99,6 +101,9 @@ export class AudioManager {
   private readonly voices = new Set<Voice>();
   private readonly bufferCache = new Map<SfxId, AudioBuffer>();
   private readonly lastPlayedAt = new Map<string, number>();
+  /** Người phát → loại chiêu T3 vừa tung và hạn (ms): để pha bay / nổ của chiêu đó cũng lấy tiếng T3. */
+  private readonly t3Ctx = new Map<string, { kind: "ult" | "ct"; until: number }>();
+  private lastT3Other = 0;
   private readonly random: () => number;
   private reverb: ConvolverNode | null = null;
   /** Nhạc nền / khúc ngắn (music.ts): sống theo AudioContext, không theo scene; null khi không có WebAudio (bot, headless). */
@@ -270,6 +275,19 @@ export class AudioManager {
     if (!this.playGroup(group, source, { priority: 1.2 })) this.play("combat_hit", source);
   }
 
+  /** Nhóm tiếng T3 của tin `fx` này, hoặc null nếu không phải chiêu T3 / thiếu mã võ hồn. Ghi nhớ cửa sổ T3 của người phát cho các pha sau. */
+  private t3GroupOf(m: AudioEvent, k: string, phase: SkillPhase, info: FxSoundInfo): string | null {
+    const vh = info.vohonId; if (!vh || !m.id) return null;
+    const now = Date.now();
+    if (k === "avatar") return t3Group("avatar", vh);
+    if (k === "ult") { this.t3Ctx.set(m.id, { kind: "ult", until: now + T3_WINDOW_MS }); return t3Group("ult", vh, "start"); }
+    if (k === "soulring" && m.ct && !m.av) { this.t3Ctx.set(m.id, { kind: "ct", until: now + T3_WINDOW_MS }); return t3Group("ct", vh, "start"); }
+    const c = this.t3Ctx.get(m.id);
+    if (c && phase !== "start" && c.until > now) return t3Group(c.kind, vh, phase);
+    if (c && c.until <= now) this.t3Ctx.delete(m.id);
+    return null;
+  }
+
   handleFx(message: AudioEvent, info: FxSoundInfo & { he?: string } = {}): void {
     const source = this.resolveSource(message);
     if (!source || !message.k) return;
@@ -290,8 +308,19 @@ export class AudioManager {
     }
     const phase = SKILL_PHASE_OF_FX[k];
     if (phase) {
-      const element = info.element;
-      const ok = element && this.playGroup(`skill-${element}-${phase}`, source, { priority: k === "ult" || k === "avatar" ? 2.4 : 1.6, ...loud });
+      if (k === "avatar" && message.on === false) return; // tan Chân Thân: không tiếng (tiếng biến hình chỉ lúc bật)
+      const element = info.element, big = k === "ult" || k === "avatar";
+      // H8 (#491): tiếng T3 riêng của võ hồn (C4); người khác bị giãn nhịp, nhỏ hơn và không hạ nhạc nền; thiếu mẫu thì lùi về tiếng theo hệ.
+      const t3 = this.t3GroupOf(message, k, phase, info);
+      const others = !info.mine, now = Date.now();
+      if (t3 && !(others && now - this.lastT3Other < T3_OTHERS_GAP_MS)) {
+        if (others) this.lastT3Other = now;
+        if (this.playGroup(t3, source, { priority: big ? 2.6 : 2, gain: others ? T3_OTHERS_GAIN : 1, ...(others ? {} : loud) })) {
+          if (k === "soulring" && info.tier !== undefined) this.playRingGlow(info.tier, source);
+          return;
+        }
+      }
+      const ok = element && this.playGroup(`skill-${element}-${phase}`, source, { priority: big ? 2.4 : 1.6, ...(others && big ? {} : loud) });
       if (k === "soulring" && info.tier !== undefined) this.playRingGlow(info.tier, source);
       if (ok) return;
       const mapped = phase === "start" ? skillSfxByHe[he ?? ""] ?? eventSfx[k] : eventSfx[k];

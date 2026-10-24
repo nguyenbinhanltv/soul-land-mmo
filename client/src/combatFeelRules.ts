@@ -42,3 +42,31 @@ export function damageTextStyle(kind: DamageTextKind, crit: boolean, el?: Elemen
   if (kind === "crit") return { color: "#ffe14d", stroke: "#70521a", font: 16 };
   return { color: el ? ELEMENT_TEXT[el] : crit ? "#ffe14d" : "#ff7b72", stroke: el ? ELEMENT_STROKE[el] : "#1a1020", font: crit ? 16 : 12 };
 }
+
+// ---- H8 (#491): bộ điều tốc mức hiệu ứng theo FPS (thuần, dùng ở combatFx.ts)
+const LEVELS: FeelLevel[] = ["low", "mid", "high"];
+/** Ngưỡng và độ trễ của bộ điều tốc (ms / khung): hạ khi trung bình chậm hơn `SLOW_MS` quá `DROP_AFTER`, nâng lại khi nhanh hơn `FAST_MS` đủ `RISE_AFTER`. */
+export const GOV = { SLOW_MS: 1000 / 50, FAST_MS: 1000 / 57, DROP_AFTER: 2000, RISE_AFTER: 12000, SKIP_MS: 250, ALPHA: 0.06 };
+export class FxGovernor {
+  /** Trần mức do FPS (không phải do người chơi chọn). */
+  cap: FeelLevel = "high";
+  avg = 1000 / 60;
+  private bad = 0; private good = 0;
+  /** Mức hiện hành sau khi trừ trần FPS. */
+  effective(user: FeelLevel): FeelLevel { return LEVELS[Math.min(LEVELS.indexOf(user), LEVELS.indexOf(this.cap))]; }
+  /** Mỗi khung (dt ms). Khung dài bất thường (đổi tab, dừng hình) bỏ qua. Trả true khi vừa đổi trần. */
+  feed(dt: number, user: FeelLevel): boolean {
+    if (!(dt > 0) || dt > GOV.SKIP_MS) return false;
+    this.avg += (dt - this.avg) * GOV.ALPHA;
+    const eff = LEVELS.indexOf(this.effective(user));
+    if (this.avg > GOV.SLOW_MS && eff > 0) {
+      this.good = 0; this.bad += dt;
+      if (this.bad >= GOV.DROP_AFTER) { this.cap = LEVELS[eff - 1]; this.bad = 0; this.avg = 1000 / 60; return true; }
+    } else if (this.avg < GOV.FAST_MS && LEVELS.indexOf(this.cap) < LEVELS.length - 1) {
+      this.bad = 0; this.good += dt;
+      if (this.good >= GOV.RISE_AFTER) { this.cap = LEVELS[LEVELS.indexOf(this.cap) + 1]; this.good = 0; return true; }
+    } else { this.bad = 0; this.good = 0; }
+    return false;
+  }
+  reset() { this.cap = "high"; this.avg = 1000 / 60; this.bad = this.good = 0; }
+}

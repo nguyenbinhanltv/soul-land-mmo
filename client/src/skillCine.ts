@@ -11,6 +11,7 @@ export const CINE_NEAR = 220;
 /** Có nên hiện cảnh này cho người xem hay không: Thấp / tùy chọn tắt → không; Vừa → người dùng chiêu và người ở gần; Cao → mọi người. */
 export function cineAllowed(mine: boolean, dist: number): boolean {
   if (!fxPrefs.cine || fxLevel() === "low") return false;
+  if (!mine && document.body.classList.contains("touch")) return false; // H8 (#491): điện thoại ngang màn hẹp, cảnh của người khác che vòng báo trước / nút bấm
   return mine || fxLevel() === "high" || dist < CINE_NEAR;
 }
 
