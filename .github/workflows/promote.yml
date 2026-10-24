@@ -30,7 +30,7 @@ env:
 jobs:
   promote:
     name: mở PR đổi tag prod
-    # Quyền GCP chỉ cấp cho workflow chạy trên main (điều kiện của Workload Identity provider).
+    # Chỉ chạy trên main (WIF: điều kiện của provider; key: cùng nguyên tắc, không cho nhánh khác đụng registry).
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -45,7 +45,24 @@ jobs:
           s=$(echo "$INPUT" | tr 'A-F' 'a-f' | tr -d '[:space:]'); s=${s#sha-}
           if [ -n "$s" ] && ! echo "$s" | grep -Eq '^[0-9a-f]{7,40}$'; then echo "::error title=sha::phải là 7-40 ký tự hex (hoặc sha-xxxxxxx), nhận: $INPUT"; exit 1; fi
           if [ -n "$s" ]; then echo "tag=sha-${s:0:7}" >>"$GITHUB_OUTPUT"; else echo "tag=" >>"$GITHUB_OUTPUT"; fi
-      - id: auth
+      # Đăng nhập GCP: ưu tiên key JSON của service account (secret GCP_SA_KEY); không có thì dùng Workload Identity Federation.
+      # Key chỉ đi qua secret -> action (action ghi file tạm của runner, không in ra log).
+      - id: gcp-mode
+        name: chọn cách đăng nhập GCP
+        env:
+          HAS_KEY: ${{ secrets.GCP_SA_KEY != '' }}
+          HAS_WIF: ${{ (vars.GCP_WIF_PROVIDER || secrets.GCP_WIF_PROVIDER) != '' && (vars.GCP_SA_EMAIL || secrets.GCP_SA_EMAIL) != '' }}
+        run: |
+          if [ "$HAS_KEY" = true ]; then echo "mode=key" >>"$GITHUB_OUTPUT"; echo "Đăng nhập GCP bằng key service account (GCP_SA_KEY)"
+          elif [ "$HAS_WIF" = true ]; then echo "mode=wif" >>"$GITHUB_OUTPUT"; echo "Đăng nhập GCP bằng Workload Identity Federation"
+          else echo "::error title=gcp::Thiếu cấu hình đăng nhập GCP: đặt secret GCP_SA_KEY (key JSON của service account), hoặc cặp GCP_WIF_PROVIDER + GCP_SA_EMAIL (Variable hoặc Secret). Xem deploy/gcp/README.md."; exit 1; fi
+      - name: đăng nhập GCP (key service account)
+        if: ${{ steps.gcp-mode.outputs.mode == 'key' }}
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: đăng nhập GCP (Workload Identity Federation)
+        if: ${{ steps.gcp-mode.outputs.mode == 'wif' }}
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER || secrets.GCP_WIF_PROVIDER }}

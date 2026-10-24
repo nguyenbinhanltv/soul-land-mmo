@@ -2,7 +2,7 @@
 #   1) buildx (cache GHA) dựng image, nạp vào docker local;
 #   2) chạy container đó + PostgreSQL tạm (service container, DB rỗng) và bot khói vào container (GAME_TEST=1 chỉ ở bước này);
 #   3) Trivy chặn lỗ hổng CRITICAL;
-#   4) đạt cả ba mới đăng nhập GCP (Workload Identity Federation, không key) và đẩy ĐÚNG image đã thử với tag sha-<7> (+ main nếu vẫn là bản mới nhất).
+#   4) đạt cả ba mới đăng nhập GCP (key JSON của service account GCP_SA_KEY, hoặc Workload Identity Federation nếu không có key) và đẩy ĐÚNG image đã thử với tag sha-<7> (+ main nếu vẫn là bản mới nhất).
 # Không tự deploy: đưa lên prod bằng promote.yml (mở PR ở repo GitOps), xem docs/deploy.md. Thiết lập GCP: deploy/gcp/README.md.
 # Thông báo chỉ qua GitHub: lượt chạy ở tab Actions, trạng thái commit `release/image` và bảng tóm tắt (GITHUB_STEP_SUMMARY).
 name: Release
@@ -35,7 +35,7 @@ jobs:
     timeout-minutes: 40
     permissions:
       contents: read
-      id-token: write # đổi token OIDC lấy quyền GCP (chỉ dùng sau khi image đã đạt)
+      id-token: write # đổi token OIDC lấy quyền GCP khi dùng WIF (chỉ dùng sau khi image đã đạt)
       statuses: write # trạng thái commit release/image
     env:
       SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
@@ -143,12 +143,29 @@ jobs:
           format: table
 
       # ---- Đạt hết mới đăng nhập GCP và đẩy. ----
-      - id: auth
+      # Đăng nhập GCP: ưu tiên key JSON của service account (secret GCP_SA_KEY); không có thì dùng Workload Identity Federation.
+      # Key chỉ đi qua secret -> action (action ghi file tạm của runner, không in ra log).
+      - id: gcp-mode
+        name: chọn cách đăng nhập GCP
+        env:
+          HAS_KEY: ${{ secrets.GCP_SA_KEY != '' }}
+          HAS_WIF: ${{ (vars.GCP_WIF_PROVIDER || secrets.GCP_WIF_PROVIDER) != '' && (vars.GCP_SA_EMAIL || secrets.GCP_SA_EMAIL) != '' }}
+        run: |
+          if [ "$HAS_KEY" = true ]; then echo "mode=key" >>"$GITHUB_OUTPUT"; echo "Đăng nhập GCP bằng key service account (GCP_SA_KEY)"
+          elif [ "$HAS_WIF" = true ]; then echo "mode=wif" >>"$GITHUB_OUTPUT"; echo "Đăng nhập GCP bằng Workload Identity Federation"
+          else echo "::error title=gcp::Thiếu cấu hình đăng nhập GCP: đặt secret GCP_SA_KEY (key JSON của service account), hoặc cặp GCP_WIF_PROVIDER + GCP_SA_EMAIL (Variable hoặc Secret). Xem deploy/gcp/README.md."; exit 1; fi
+      - name: đăng nhập GCP (key service account)
+        if: ${{ steps.gcp-mode.outputs.mode == 'key' }}
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: đăng nhập GCP (Workload Identity Federation)
+        if: ${{ steps.gcp-mode.outputs.mode == 'wif' }}
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER || secrets.GCP_WIF_PROVIDER }}
           service_account: ${{ vars.GCP_SA_EMAIL || secrets.GCP_SA_EMAIL }}
-          token_format: access_token
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
       - name: đẩy image (sha-7 ký tự, và main nếu đây vẫn là bản mới nhất)
         id: push
         env:
