@@ -26,6 +26,8 @@ export interface VisualSheet {
   tint?: number;
   /** Lớp cộng sáng riêng cùng bố cục (`fx_sk_<tên>_g`): Thấp không vẽ, Vừa mờ, Cao đủ; chiêu của người khác không có. */
   glow?: string;
+  /** Nhân độ đục lớp cộng sáng (tuyệt kỹ cần lớp sáng mạnh hơn T2; tối đa 1). */
+  glowMul?: number;
   /** Vẽ thường thay vì cộng sáng (bụi, đá, chùy: màu tối và viền không bị mất). */
   normal?: boolean;
   /** Bù độ cao (px màn hình, dương = lên): vùng trên mặt đất đặt -8 * SPR (tâm gốc là ngang ngực). */
@@ -139,8 +141,8 @@ export const SKILL_VISUAL: Readonly<Record<string, Partial<SkillVisual>>> = {
   "can_khon_hon_nguyen_toa:5": { tier: 2, heavy: 1, repeat: true, ...wind(CK), replace: true, sheet: sk("ck_zone6", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
   "can_khon_hon_nguyen_toa:7": { tier: 2, heavy: 1, ...wind(CK), replace: true, sheet: sk("ck_zone8", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
   "can_khon_hon_nguyen_toa:8": { tier: 2, heavy: 1, ...wind(CK), replace: true, sheet: sk("ck_hit9", { at: "target", scale: 2, fps: 12, lift: -6 * SPR }) },
-  "can_khon_hon_nguyen_toa:9": { tier: 3, heavy: 2, ...wind(CK, true), replace: true, sheet: sk("ck_t3a", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
-  "can_khon_hon_nguyen_toa:ct": { tier: 3, heavy: 2, ...wind(CK, true), replace: true, sheet: sk("ck_t3b", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
+  "can_khon_hon_nguyen_toa:9": { tier: 3, heavy: 2, ...wind(CK, true), replace: true, sheet: sk("ck_t3a", { at: "cast", fit: 1, lift: GROUND, fps: 9, glowMul: 1.6 }) },
+  "can_khon_hon_nguyen_toa:ct": { tier: 3, heavy: 2, ...wind(CK, true), replace: true, sheet: sk("ck_t3b", { at: "cast", fit: 1, lift: GROUND, fps: 9, glowMul: 1.6 }) },
   "can_khon_hon_nguyen_toa:tc": { tier: 2, heavy: 1, replace: true, sheet: sk("ck_zone_tc", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
   // --- Xúc Xích (hệ Lôi, phụ trợ: hào quang quanh người tung) ---
   "xuc_xich:0": { tier: 1, heavy: 0, replace: true, sheet: sk("xx_aura1", { at: "cast", scale: 2, fps: 12 }) },
@@ -255,7 +257,7 @@ export class SkillVisualPlayer {
   private play1(s: VisualSheet, c: CastCtx, delay: number): boolean {
     const ok = this.sheets.play(this.mk(s, c, { delay }));
     const ga = GLOW_ALPHA[fxPrefs.level];
-    if (ok && s.glow && c.mine && ga > 0 && !fxPrefs.reduce && this.sheets.has(s.glow)) this.sheets.play(this.mk({ ...s, key: s.glow, normal: false }, c, { delay, alpha: ga }));
+    if (ok && s.glow && c.mine && ga > 0 && !fxPrefs.reduce && this.sheets.has(s.glow)) this.sheets.play(this.mk({ ...s, key: s.glow, normal: false }, c, { delay, alpha: Math.min(1, ga * (s.glowMul ?? 1)) }));
     return ok;
   }
   /** `vis.sheet` có và đã tải: phát ngay. Người tung còn thấy lớp lấy đà (`windupSheet`) và dư chấn; người khác chỉ thấy bản nhẹ của sheet chính. */
