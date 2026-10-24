@@ -19,12 +19,21 @@ export function windowState(): WindowState | null {
   return c && b ? "dual" : c ? "char" : b ? "bag" : null;
 }
 
+/** Nhãn nút ⇆ theo trạng thái hiện tại (đang hai bảng thì bấm sẽ về một bảng `p`). */
+function setSwapLabel(b: HTMLElement, p: PanelId) {
+  const t = windowState() === "dual" ? `Chỉ ${LABEL[p].toLowerCase()}` : "Mở cả Nhân vật và Túi";
+  b.title = t;
+  b.setAttribute("aria-label", t);
+}
+
 /** Cập nhật lớp trên <body> và lớp `front` trên hai bảng sau mỗi lần mở / đóng / bấm nổi. */
 function sync() {
   const st = windowState(), cl = document.body.classList;
   cl.toggle("dual-win", st === "dual");
   document.body.dataset.pick = front;
   for (const p of ["char", "bag"] as const) el(p).classList.toggle("front", p === front);
+  // Đầu bảng không vẽ lại khi bảng kia mở / đóng, nên nhãn nút ⇆ phải cập nhật ở đây.
+  document.querySelectorAll<HTMLElement>("button.swap").forEach((b) => setSwapLabel(b, b.dataset.p as PanelId));
   const tabs = document.getElementById("dualTabs");
   if (tabs) {
     tabs.hidden = st !== "dual";
@@ -51,9 +60,8 @@ export function swapWindows(p: PanelId, open: (p: PanelId, on: boolean) => void)
 export function swapButton(p: PanelId, open: (p: PanelId, on: boolean) => void): HTMLButtonElement {
   const b = document.createElement("button");
   b.type = "button"; b.className = "swap"; b.textContent = "⇆";
-  const dual = windowState() === "dual";
-  b.title = dual ? `Chỉ ${LABEL[p].toLowerCase()}` : "Mở cả Nhân vật và Túi";
-  b.setAttribute("aria-label", b.title);
+  b.dataset.p = p;
+  setSwapLabel(b, p);
   b.addEventListener("click", () => { b.blur(); swapWindows(p, open); });
   return b;
 }
