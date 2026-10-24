@@ -2078,7 +2078,7 @@ export class GameScene extends Phaser.Scene {
       // Đóa kính lưu ly: vòng trong là mảnh tam giác xen hai màu võ hồn, vòng ngoài là mảnh lam / ngọc / tím lưu ly (_luu_ly.gpl),
       // mọi mảnh viền chì sẫm, mép ngoài viền vàng kim; nở ra rồi mờ dần.
       // S3 lô B (#567): chiêu có sheet riêng (FUSION_VISUAL) thì sheet thay đóa kính, vẫn giữ vòng sáng và tên chiêu bên dưới.
-      const own = this.me === m.id || this.me === m.to, sheetOn = this.svis.fusion(f.name, { x: c.x, y: c.y, r: R * RX, mine: own });
+      const own = this.me === m.id || this.me === m.to, sheetOn = !SV_OFF && this.svis.fusion(f.name, { x: c.x, y: c.y, r: R * RX, mine: own });
       if (!sheetOn) {
         const glass = [0x2a5ab0, 0x2a9a7a, 0x7a4ab0], N = 12, g = this.add.graphics().setDepth(99979), o = { s: 0.25, a: 1 };
         const draw = () => {

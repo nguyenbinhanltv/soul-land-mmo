@@ -163,7 +163,7 @@ export function fxTestScreen(card: HTMLElement, overlay: HTMLElement): void {
       const f = FUSIONS[+v.split(":")[1]], s = sc(); if (!f) return;
       const R = Math.max(40, ...f.parts.map((p) => p.r ?? 0));
       s.rr = R * RX; (window as unknown as { __t0: number }).__t0 = performance.now();
-      s.svp.fusion(f.name, { x: (s.hero.x + s.dummy.x) / 2, y: s.hero.y, r: R * RX, mine: q.get("others") !== "1" });
+      if (q.get("sv") !== "0") s.svp.fusion(f.name, { x: (s.hero.x + s.dummy.x) / 2, y: s.hero.y, r: R * RX, mine: q.get("others") !== "1" });
       $("fn").textContent = `→ dung hợp ${f.name}`; lastSkill = v; return;
     }
     const [id, r] = v.split(":"), ct = r === "ct", tc = r === "tc", ring = ct || tc ? 6 : +r, d = skillFxOf(id, tc ? 0 : ring, ct);
