@@ -170,8 +170,6 @@ export const SKILL_VISUAL: Readonly<Record<string, Partial<SkillVisual>>> = {
   "a_ngan:9": { tier: 3, heavy: 2, ...wind(AN, true), replace: true, sheet: sk("an_t3a", { at: "cast", fit: 1, lift: GROUND, fps: 9 }) },
   "a_ngan:ct": { tier: 3, heavy: 2, ...wind(AN, true), replace: true, sheet: sk("an_t3b", { at: "cast", scale: 2, fps: 9, lift: GROUND }) },
   "a_ngan:tc": { tier: 2, heavy: 1, replace: true, sheet: sk("an_zone_tc", { at: "cast", fit: 1, lift: GROUND, fps: 12 }) },
-};
-
   // --- Cửu Tinh Thất Sát Kiếm (hệ Quang, kiếm khí bạc: vẽ thường, lớp sáng cộng) ---
   "cuu_tinh_that_sat_kiem:0": { tier: 1, heavy: 0, replace: true, sheet: sk("cs_slash1", { at: "target", scale: 2, fps: 16 }) },
   "cuu_tinh_that_sat_kiem:1": { tier: 1, heavy: 0, repeat: true, replace: true, sheet: sk("cs_proj2", { at: "travel", rotate: true, scale: 2, fps: 12 }) },
