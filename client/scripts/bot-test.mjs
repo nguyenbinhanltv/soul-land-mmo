@@ -6968,6 +6968,22 @@ async function gearEnhanceTest(){
     `20 lệnh dồn: đúng 1 lệnh được xử lý (+0 → +${find(T).enhance}), trừ ${stones0-have(stone(0))} đá và ${coin0-S.bag.honTe} Hồn Tệ`);
   r=await enh(T); ok(r?.ok&&find(T).enhance===2,"sau khi xong, lệnh kế tiếp được nhận lại bình thường");
   await rejoin(); ok(find(T)?.enhance===2,"vào lại: cấp cường hóa đã lưu");
+  // ---- #559: khóa Redis theo món (chỉ khi chạy nhiều tiến trình, hook itemlock giả tiến trình khác đang giữ món) ----
+  const LK=await mk("day_chuyen_than_khi",0); await give(stone(0),30); await coin(1e6); await test(S,"enhroll",{r:0});
+  const held=await test(S,"itemlock",{id:LK,on:true});
+  if(!held?.redis) console.log("  ⚠ bỏ qua khóa Redis theo món (cần --procs 2 --pg --env REDIS_URL=…)");
+  else{
+    const lk0=have(stone(0)), lc0=S.bag.honTe, ln=S.enhN;
+    r=await enh(LK); ok(held.held&&r===null&&/đang được xử lý/.test(S.logs.at(-1))&&find(LK).enhance===0&&have(stone(0))===lk0&&S.bag.honTe===lc0,
+      `món đang bị tiến trình khác giữ khóa: cường hóa bị từ chối "đang xử lý", không trừ đá / phí (${S.logs.at(-1)})`);
+    await test(S,"itemlock",{id:LK,on:false}); r=await enh(LK);
+    ok(r?.ok&&find(LK).enhance===1&&have(stone(0))===lk0-st(0).qty&&S.bag.honTe===lc0-st(0).fee,"nhả khóa: cường hóa chạy, đúng một lần trừ đá và phí");
+    await rejoin(); ok(find(LK)?.enhance===1&&have(stone(0))===lk0-st(0).qty,"vào lại: đúng một lần cường hóa đã lưu (không nhân, không mất đồ)");
+    // Rời game khi món vừa mặc đang bị giữ khóa: lần ghi cuối chờ có hạn rồi vẫn ghi, không mất tiến độ (#559).
+    await test(S,"rest",{s:TEAM_COMBAT_SECS+1}); await test(S,"itemlock",{id:LK,on:true}); S.room.send("equipgear",{id:LK}); await waitFor(()=>S.gear?.items.some(g=>g.id===LK),2000);
+    await rejoin(); await test(S,"itemlock",{id:LK,on:false});
+    ok(S.gear?.items.some(g=>g.id===LK&&g.enhance===1),"rời game khi món đang bị giữ khóa: lần ghi cuối vẫn lưu, vào lại món vẫn đang mặc");
+  }
   await test(S,"enhroll",{r:-1}); await test(S,"gear",{clear:true});
   }finally{ await S.room.leave().catch(()=>{}); }
 }
