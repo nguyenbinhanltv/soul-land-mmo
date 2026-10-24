@@ -1140,7 +1140,8 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [x] S1 Khung code `SKILL_VISUAL` + cảm giác đánh (#542, PR #546, mục 5.11).
 - [x] S2 Thử trọn bộ 11 chiêu Lam Điện Bá Vương Long + Hạo Thiên Chùy, công thức chuẩn (#548, `docs/ky-nang-cong-thuc.md`, mục 5.11).
 - [ ] S3 lô A: 7 võ hồn + dung hợp Yêu Nguyệt (#566, đã làm: Cửu Tinh Thất Sát Kiếm, Nguyệt Nhận, Càn Khôn Hỗn Nguyên Tỏa, Xúc Xích, Thiên Càn Bạch Ngọc Đỉnh, Cửu Bảo Lưu Ly Tháp, Phá Hồn Thương, Yêu Nguyệt; chờ duyệt / gộp).
-- [ ] S3–S5 các võ hồn còn lại (trừ lô A) theo lô theo công thức S2, hoàn thiện (theo dõi #541, chưa có issue riêng cho từng bước).
+- [x] S3 lô D: 5 võ hồn thực vật / độc (Kỳ Nhung Thông Thiên Cúc, Tử Vong Chu Hoàng, Bích Lân Xà Hoàng, Lam Ngân Thảo, A Ngân) × 11 chiêu + dung hợp Lôi Độc Song Sát: 56 sheet (#569, `tools/assets/skill-vfx/lo-d.json`, `FUSION_VISUAL`).
+- [ ] S3–S5 các võ hồn còn lại (trừ lô A, D) theo lô theo công thức S2, hoàn thiện (theo dõi #541, chưa có issue riêng cho từng bước).
 
 **Nhóm Hồn sư tự tạo bằng LPC** (mục 5.11; theo dõi #507; chạy song song chế độ Mẫu dựng sẵn; mỗi bước một PR).
 - [x] L0 Mẫu thử và danh mục 111 món, chủ repo duyệt 4 hướng (không sửa repo).
