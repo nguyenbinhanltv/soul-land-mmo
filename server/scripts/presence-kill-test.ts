@@ -22,6 +22,7 @@ if (process.argv[2] === "child") {
   setInterval(() => {}, 1000);
 } else {
   assert.equal(presenceBackend.mode, "redis", "cần REDIS_URL cục bộ");
+  if (!process.env.REDIS_PREFIX?.trim().startsWith("test")) { console.error("✗ Bài thử xóa khóa presence: đặt REDIS_PREFIX bắt đầu bằng \"test\" (vd test:presence-kill)."); process.exit(1); }
   for (const k of ["account:kill", "kill:ttl", "arena:live", "friend:state"]) await presenceBackend.delete(k);
   const child = spawn(process.execPath, ["--import", "tsx", "scripts/presence-kill-test.ts", "child"], { stdio: ["ignore", "pipe", "inherit"], env: process.env });
   try {
