@@ -111,7 +111,7 @@ function createScreen(me: Me) {
   // Một bộ nghe chung cho mọi nút (click chạy cả với chuột và chạm).
   opts.addEventListener("click", (e) => {
     const b = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-k]"); if (!b) return;
-    const k = b.dataset.k as keyof Looks, i = Number(b.dataset.i);
+    const k = b.dataset.k as "sex" | "hair" | "hairCol" | "outfitCol" | "skin", i = Number(b.dataset.i);
     if (L[k] === i) return;
     L[k] = i; render();
     opts.querySelector<HTMLButtonElement>(`button[data-k="${k}"][data-i="${i}"]`)?.focus();

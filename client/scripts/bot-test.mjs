@@ -121,6 +121,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   PLAYER_SPEED, RUN_MULT, BEAST_GAIT, BEAST_LEASH, TICK_RATE,
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, CAMP_PT_GAP, shopOf, shopExpands,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, parseSell, autoSellable } from "../../shared/data.ts";
+import { parseLpc, encodeLpc, decodeLpc, LPC_PARTS, LPC_RAMPS } from "../../shared/data.ts"; // Looks v2 (#509)
 import { PHAP_TUONG } from "../../shared/data.ts"; // pháp tướng Chân Thân (#486): bảng hiển thị client
 import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_ROLL, EQUIP_ILVL_K, parseEquip, equipStats, equipDefTotal, equipTemplate, equipSlotIndex, EQUIP_ENHANCE, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_SYNTH, EQUIP_SYNTH_KEEP, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SOUL, equipSynthStep, equipSynthOutcome, equipSalvage, equipAutoSalvageable } from "../../shared/data.ts"; // trang bị hồn sư (E1, E3)
 import * as SD from "../../shared/data.ts"; // E2: rollEquipDrop, rollEquipCharm... (equipDropTest)
@@ -193,6 +194,87 @@ async function bot(name,choice,looks,near=false){
   await enter(b);
   return b;
 }
+/**
+ * Looks v2 (#509, BOT_ONLY=looks2): ngoại hình chế độ Tự tạo (LPC) song song với Mẫu dựng sẵn. Hàm thuần parseLooks / parseLpc / encodeLpc;
+ * /api/looks nhận preset (có / không `mode`, như client cũ) và lpc hợp lệ; mã lạ, sai ô, sai giới, màu lạ, quá dài, khóa thừa bị 400
+ * (không tạo nhân vật); lưu qua lần đăng nhập lại; người khác trong phòng nhận đúng chuỗi `lpc` và hồn sư preset có chuỗi rỗng.
+ */
+async function looks2Test(){
+  console.log("[#509] Looks v2: preset / lpc, kiểm theo danh mục, đồng bộ");
+  const partOf=(slot,pred=()=>true)=>LPC_PARTS.find(p=>p.slot===slot&&pred(p));
+  const fOnly=LPC_PARTS.find(p=>p.sex==="f"&&p.slot==="torso");
+  const hair=partOf("hair"), torso=partOf("torso",p=>p.sex==="mf"&&p.mats.some(m=>m.startsWith("cloth"))), fixed=LPC_PARTS.find(p=>p.colors.length&&p.sex==="mf"&&p.slot!=="torso"&&p.slot!=="hair");
+  const good={v:1,body:0,parts:{body:"body.body",head:"head.male",hair:hair.id,torso:torso.id,[fixed.slot]:fixed.id},colors:{skin:LPC_RAMPS.body.allow[2],eye:"green",hair:LPC_RAMPS.hair.allow[1],torso:LPC_RAMPS.cloth.allow[3],[fixed.slot]:fixed.colors[1]}};
+  const L=(lpc,extra={})=>({mode:"lpc",lpc,...extra});
+  const mut=f=>{const c=structuredClone(good); f(c); return c;};
+
+  // Hàm thuần.
+  const g=parseLooks(L(good));
+  ok(g&&g.mode==="lpc"&&g.sex===0&&g.hair===0&&g.hairCol===0&&g.outfitCol===0&&g.skin===0&&g.lpc.parts.hair===hair.id,"parseLooks nhận lpc hợp lệ, sex lấy từ lpc.body, số preset = 0");
+  const enc=encodeLpc(g.lpc), dec=decodeLpc(enc);
+  ok(dec&&encodeLpc(dec)===enc&&enc.length<400&&enc.startsWith("1|0|"),`encodeLpc gọn (${enc.length} ký tự) và decodeLpc khôi phục đúng`);
+  ok(parseLooks({sex:1,hair:2,hairCol:3,outfitCol:4,skin:2}).mode==="preset"&&parseLooks({sex:1,hair:2,hairCol:3,outfitCol:4,mode:"preset"})?.skin===0,"thiếu mode = preset; thiếu skin = 0 (client cũ)");
+  ok(parseLooks({sex:0,hair:0,hairCol:0,outfitCol:0,mode:"xyz"})===null&&parseLooks({sex:0,hair:0,hairCol:0,outfitCol:0,mode:1})===null,"mode lạ -> null");
+  ok(decodeLpc("1|0|||body.body")===null&&decodeLpc("2|0|||body.body,head.male")===null&&decodeLpc("1|0|||body.body,head.male,zzz.x")===null&&decodeLpc("1|0|||body.body,body.body,head.male")===null&&decodeLpc("x".repeat(2000))===null,"decodeLpc: thiếu ô bắt buộc / phiên bản lạ / mã lạ / trùng ô / quá dài -> null");
+
+  // Các ca bị từ chối (cả ở hàm thuần lẫn /api/looks).
+  const bad={
+    "mã lạ":mut(c=>{c.parts.hair="hair.khong_co";}),
+    "sai ô (mã tóc nằm ô áo)":mut(c=>{c.parts.torso=hair.id;}),
+    "ô lạ":mut(c=>{c.parts.wings=hair.id;}),
+    "thiếu thân":mut(c=>{delete c.parts.body;}),
+    "thiếu mặt":mut(c=>{delete c.parts.head;}),
+    "món chỉ nữ, thân nam":mut(c=>{c.parts.torso=fOnly.id; delete c.colors.torso;}),
+    "màu da lạ":mut(c=>{c.colors.skin="tim_than_ky";}),
+    "màu tóc không có trong allow (orange chỉ là dải gốc)":mut(c=>{c.colors.hair="orange";}),
+    "màu sheet vẽ sẵn không có trong món":mut(c=>{c.colors[fixed.slot]="khong_co";}),
+    "màu cho ô không có món":mut(c=>{c.colors.cape="black";}),
+    "màu không phải chuỗi":mut(c=>{c.colors.hair=3;}),
+    "mã không phải chuỗi":mut(c=>{c.parts.hair=5;}),
+    "thể hình lạ":mut(c=>{c.body=2;}),
+    "thể hình không nguyên":mut(c=>{c.body=0.5;}),
+    "phiên bản lạ":mut(c=>{c.v=2;}),
+    "parts là mảng":mut(c=>{c.parts=[];}),
+    "quá nhiều ô":mut(c=>{for(let i=0;i<40;i++) c.parts["x"+i]="body.body";}),
+    "mã quá dài":mut(c=>{c.parts.hair="hair."+"a".repeat(5000);}),
+    "khóa __proto__":JSON.parse('{"v":1,"body":0,"parts":{"body":"body.body","head":"head.male","__proto__":"x"},"colors":{}}'),
+  };
+  for(const [n,l] of Object.entries(bad)) ok(parseLpc(l)===null&&parseLooks(L(l))===null,`lpc sai (${n}) -> null`);
+  ok(parseLooks({mode:"lpc"})===null&&parseLooks(L(null))===null&&parseLooks(L("x"))===null&&parseLooks(L(good,{sex:1}))===null,"mode lpc thiếu / sai kiểu lpc, hoặc sex khác lpc.body -> null");
+  ok(parseLooks(L(good,{sex:0,hair:3,skin:9}))?.hair===0,"mode lpc bỏ qua các số preset (đặt 0)");
+  ok(parseLooks(L(mut(c=>{c.body=1;}))).sex===1,"thân nữ -> sex 1");
+  const ff=mut(c=>{c.body=1; c.parts.torso=fOnly.id; delete c.colors.torso; if(fOnly.colors.length) c.colors.torso=fOnly.colors[0];});
+  ok(parseLooks(L(ff))!==null,`món chỉ nữ (${fOnly.id}) với thân nữ -> nhận`);
+
+  // /api/looks: ca sai không tạo nhân vật, ca đúng tạo được; nhận qua lần đăng nhập lại.
+  const newAcc=async n=>{ const l=await post("/api/login",{name:`${n} ${RUN}`,password:PASS}); ok(!l.looks?.chosen&&l.looks?.mode!=="lpc"&&l.looks?.lpc===undefined,`${n}: tài khoản mới chưa chọn, mặc định là preset`); return l; };
+  const A=await newAcc("L2 lpc"), B=await newAcc("L2 preset"), C=await newAcc("L2 cu");
+  for(const [n,l] of Object.entries(bad)) ok((await post("/api/looks",{token:A.token,...L(l)})).status===400,`/api/looks lpc sai (${n}) -> 400`);
+  ok((await post("/api/looks",{token:A.token,mode:"lpc"})).status===400&&(await post("/api/looks",{token:A.token,mode:"khac",sex:0,hair:0,hairCol:0,outfitCol:0})).status===400,"/api/looks: lpc thiếu / mode lạ -> 400");
+  ok(!(await post("/api/login",{name:`L2 lpc ${RUN}`,password:PASS})).looks?.chosen,"các ca sai không làm tài khoản thành đã chọn");
+  const ra=await post("/api/looks",{token:A.token,...L(good)});
+  ok(ra.status===200&&ra.looks?.chosen&&ra.looks.mode==="lpc"&&ra.looks.sex===0&&JSON.stringify(ra.looks.lpc)===JSON.stringify(parseLpc(good)),"tạo lpc hợp lệ -> 200, trả đúng phần lpc");
+  ok((await post("/api/looks",{token:A.token,...L(good)})).status===409,"đổi / tạo lại sau khi đã chọn -> 409 (luật hiện tại giữ nguyên)");
+  const A2=await post("/api/login",{name:`L2 lpc ${RUN}`,password:PASS});
+  ok(A2.looks?.mode==="lpc"&&A2.looks.chosen&&encodeLpc(A2.looks.lpc)===enc,"đăng nhập lại: lpc lưu đúng (DB / RAM)");
+  const rb=await post("/api/looks",{token:B.token,mode:"preset",sex:1,hair:2,hairCol:3,outfitCol:4,skin:1});
+  ok(rb.status===200&&rb.looks.mode==="preset"&&rb.looks.lpc===undefined&&rb.looks.skin===1,"tạo preset có mode -> 200");
+  const rc=await post("/api/looks",{token:C.token,sex:0,hair:3,hairCol:5,outfitCol:1});
+  ok(rc.status===200&&rc.looks.mode==="preset"&&rc.looks.skin===0&&rc.looks.lpc===undefined,"client cũ (không mode, không skin) -> preset, tông 0");
+  ok((await post("/api/login",{name:`L2 cu ${RUN}`,password:PASS})).looks?.mode==="preset","đăng nhập lại tài khoản preset: vẫn preset");
+
+  // Đồng bộ: vào phòng, người khác thấy đúng chuỗi.
+  for(const [x,v] of [[A,"lam_dien_ba_vuong_long"],[B,"bich_lan_xa_hoang"]]){ const a=await post("/api/awaken",{token:x.token,vohon:v}); ok(a.status===200,`thức tỉnh ${v}`); }
+  const mk=async(l,n)=>{ const me=await post("/api/me",{token:l.token}); const b={name:n,token:l.token,logs:[],owned:null,ownedMsgs:0,looks:me.looks,isNew:true,mapId:me.mapId,near:false}; await enter(b); return b; };
+  const ba=await mk(A,"L2 lpc"), bb=await mk(B,"L2 preset");
+  await sleep(800);
+  const seenA=bb.room.state.players.get(ba.room.sessionId), seenB=ba.room.state.players.get(bb.room.sessionId);
+  ok(ba.room.roomId===bb.room.roomId&&seenA&&seenB,"hai bot cùng phòng, thấy nhau");
+  ok(seenA?.lpc===enc&&decodeLpc(seenA.lpc)&&seenA.sex===0&&seenA.hair===0,`B thấy đúng chuỗi lpc của A (${seenA?.lpc?.length} ký tự)`);
+  ok(seenB?.lpc===""&&seenB.sex===1&&seenB.hair===2&&seenB.hairCol===3&&seenB.outfitCol===4&&seenB.skin===1,"A thấy B là preset: lpc rỗng, số preset giữ nguyên");
+  await ba.room.leave(); await bb.room.leave();
+}
+
 /**
  * Vào phòng bản đồ và nghe tin nhắn riêng (log, danh sách võ hồn + đội hình). `roomId`: vào thẳng phòng đó: kênh server chọn (như
  * client sau `travel`, mục 6 "Nhiều kênh") hoặc phòng sân đấu server gửi khi ghép trận (7.2).
@@ -316,6 +398,7 @@ const STANDALONE=[
   ["chuong3",2,chapter3Test],                 // ~18 #284 chương 3 Hải Thần Đảo (đo ở máy)
   ["bag",4,async()=>{ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); }], // 127 #215, 9.8; E1 trang bị hồn sư; E2 rơi đồ; E3 cường hóa; E4 hợp thành / phân giải
   ["sell",3,sellTest],                        //   5 #216
+  ["looks2",3,looks2Test],                    //   2 #509 Looks v2 (preset / lpc)
   ["shardBuy",3,shardBuyTest],                //  ~8 #282 Thương hội đổi mảnh võ hồn (đo ở máy)
   ["tong",3,tongTest],                        //   9 #196 tông môn
   ["waypoint",4,waypointTest],                //  45 11.2
@@ -344,7 +427,7 @@ const STANDALONE=[
 ];
 // BOT_PART=smoke (mức "smoke" của CI, job `changes`): chỉ phần chung (đăng nhập, vào bản đồ, di chuyển, đánh quái, túi / nhân vật, tin giao diện cơ bản)
 // cộng các bài độc lập nhẹ ở SMOKE dưới đây, ~2 phút trên runner CI. Không khối INLINE nào chạy ở chế độ này.
-const SMOKE=new Set(["cold","ink","boneSub","sell"]);
+const SMOKE=new Set(["cold","ink","boneSub","sell","looks2"]);
 const PART=process.env.BOT_PART??"", T0=Date.now(), timing=[];
 const inPart=k=>{ if(!(k in INLINE)) throw new Error(`inPart: khóa ${k} chưa có trong INLINE`); return !PART||PART===String(INLINE[k]); };
 for(const [k,n] of [...Object.entries(INLINE),...STANDALONE.map(([k,n])=>[k,n])])
@@ -387,6 +470,7 @@ function finish(){
 // BOT_ONLY=daily: chỉ chạy phần khảo hạch hằng ngày (thử nhanh khi sửa phần đó; lần chạy đầy đủ vẫn gồm phần này).
 // Liên kích Hạo Thiên 4 món (#249, comboTest; BOT_ONLY=combo, không chạy trong bot đầy đủ): lặp bài "liên kích ở đòn thứ 3" của
 // nhóm 1 nhiều lượt trên một bot riêng để thử chập chờn.
+if(process.env.BOT_ONLY==="looks2"){ await looks2Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="waypoint"){ await waypointTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="camp"){ await campTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="bigmap"){ await bigMapTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }

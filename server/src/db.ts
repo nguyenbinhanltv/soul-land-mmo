@@ -6,7 +6,7 @@ import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { nameKey } from "./names.ts";
 import { mapFile } from "./map.ts";
-import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, isTongTask, type TongRank, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
+import { DEFAULT_LOOKS, parseLooks, encodeLpc, decodeLpc, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, isTongTask, type TongRank, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
   BONE_ITEM, CORE_ITEM, EQUIP_ITEM, EQUIP_SLOTS, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
   RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE,
   type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
@@ -814,10 +814,12 @@ export class PgStore implements Store {
     } finally { db.release(); }
   }
   async getLooks(accountId: number) {
-    const r = await this.pool.query("SELECT sex, hair, hair_col, outfit_col, skin, looks_chosen FROM accounts WHERE id=$1", [accountId]);
+    const r = await this.pool.query("SELECT sex, hair, hair_col, outfit_col, skin, looks_lpc, looks_chosen FROM accounts WHERE id=$1", [accountId]);
     const x = r.rows[0];
     // Giá trị ngoài khoảng (sửa tay trong DB, hoặc bảng màu bị rút bớt) thì về mặc định thay vì gửi chỉ số hỏng cho client.
-    const l = x ? parseLooks({ sex: x.sex, hair: x.hair, hairCol: x.hair_col, outfitCol: x.outfit_col, skin: x.skin }) : null;
+    // Cột looks_lpc có chuỗi thì là chế độ Tự tạo (decodeLpc kiểm lại theo danh mục; hỏng thì cũng về mặc định).
+    const l = x ? parseLooks(x.looks_lpc ? { mode: "lpc", lpc: decodeLpc(x.looks_lpc) }
+      : { sex: x.sex, hair: x.hair, hairCol: x.hair_col, outfitCol: x.outfit_col, skin: x.skin }) : null;
     return { ...(l ?? DEFAULT_LOOKS), chosen: !!x?.looks_chosen };
   }
   /**
@@ -1226,8 +1228,8 @@ export class PgStore implements Store {
   async chooseLooks(accountId: number, looks: Looks) {
     // Một lần duy nhất: điều kiện NOT looks_chosen làm hai yêu cầu cùng lúc chỉ một cái được ghi.
     const r = await this.pool.query(
-      "UPDATE accounts SET sex=$2, hair=$3, hair_col=$4, outfit_col=$5, skin=$6, looks_chosen=true WHERE id=$1 AND NOT looks_chosen",
-      [accountId, looks.sex, looks.hair, looks.hairCol, looks.outfitCol, looks.skin]);
+      "UPDATE accounts SET sex=$2, hair=$3, hair_col=$4, outfit_col=$5, skin=$6, looks_lpc=$7, looks_chosen=true WHERE id=$1 AND NOT looks_chosen",
+      [accountId, looks.sex, looks.hair, looks.hairCol, looks.outfitCol, looks.skin, looks.lpc ? encodeLpc(looks.lpc) : ""]);
     return (r.rowCount ?? 0) > 0;
   }
 }
