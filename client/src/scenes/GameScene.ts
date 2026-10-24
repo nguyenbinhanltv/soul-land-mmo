@@ -38,7 +38,7 @@ import { bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, toggleAutoPane
 import { bossPhase, combatHit } from "../audio/music.ts";
 import { ArenaShow } from "../arenaShow.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, GearMsg, EquipEnhPreview, EquipEnhDone, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, GearMsg, EquipEnhPreview, EquipEnhDone, EquipSynDone, EquipSalvDone, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -989,10 +989,14 @@ export class GameScene extends Phaser.Scene {
         gear: () => this.gear,
         equipEnh: (id, charm) => this.room.send("equipenh", { id, charm }), // lò rèn: cường hóa trang bị hồn sư (E3)
         equipEnhPreview: (id) => this.room.send("equipenhpreview", { id }),
+        equipSynth: (main, sacrifice) => this.room.send("equipsynth", { main, sacrifice }), // lò rèn: hợp thành 3 → 1 (E4)
+        equipSalvage: (ids) => this.room.send("equipsalvage", { ids }), // lò rèn: phân giải hàng loạt (E4)
       });
     });
     this.room.onMessage("equipenhp", (m: EquipEnhPreview) => hud.equipEnhPreview(m));
     this.room.onMessage("equipenhd", (m: EquipEnhDone) => hud.equipEnhDone(m));
+    this.room.onMessage("equipsynd", (m: EquipSynDone) => hud.equipSynDone(m));
+    this.room.onMessage("equipsalvd", (m: EquipSalvDone) => hud.equipSalvDone(m));
     // Đại Đấu Hồn Trường (7.2): server báo đang xếp hàng, đã ghép trận (vào phòng sân đấu), các pha của trận và kết quả.
     this.room.onMessage("arena", (m: any) => {
       if (m?.k === "queue") hud.setArenaQueue(m.on ? { elo: m.elo, secs: m.secs } : null, () => this.room.send("arena", { op: "cancel" }));
