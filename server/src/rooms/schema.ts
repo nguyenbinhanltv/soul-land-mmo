@@ -10,6 +10,8 @@ export class PlayerState extends Schema {
   @type("uint8") hairCol: number = 0;
   @type("uint8") outfitCol: number = 0;
   @type("uint8") skin: number = 0;     // từ 9.9: tông da, tài khoản cũ là 0
+  // Từ L2 (#509): ngoại hình chế độ Tự tạo (LPC), chuỗi gọn của encodeLpc (shared/data.ts); "" = chế độ Mẫu dựng sẵn (dùng sex..skin ở trên).
+  @type("string") lpc: string = "";
   @type("float32") x: number = 0;
   @type("float32") y: number = 0;
   @type("uint8") dir: number = 0;      // hướng nhìn 4 phía, chỉ số trong DIRS4 (shared/data.ts): 0 xuống, 1 phải, 2 lên, 3 trái (thay `face` = ±1)

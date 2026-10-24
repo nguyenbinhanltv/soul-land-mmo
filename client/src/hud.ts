@@ -3483,6 +3483,9 @@ let worldPick: string | null = null;   // trận đích đang chọn (chờ bấ
 let worldGo: (key: string) => void = () => {};
 /** Gắn hàm gửi ý định truyền tống (`wp {op: "go", key}`); GameScene gọi mỗi lần vào phòng. */
 export function onWorldGo(fn: (key: string) => void) { worldGo = fn; }
+/** Nút "Tự đi tới" của từng bản đồ trong bảng thế giới (R4): đi bộ qua các cổng thật tới bản đồ đó, không tốn Hồn Tệ. */
+let worldAuto: (map: string) => void = () => {};
+export function onWorldAuto(fn: (map: string) => void) { worldAuto = fn; }
 export const worldOpen = () => !$("#world").hidden;
 /** Mở / đóng bảng bản đồ thế giới (phím M, nút "Thế giới", F khi đứng trên trận). Mở thì GameScene xin tin `world` mới. */
 export function toggleWorld(open = $("#world").hidden) {
@@ -3550,7 +3553,13 @@ function renderWorld() {
     const top = document.createElement("div"); top.className = "restop";
     const name = document.createElement("b"); name.textContent = def.name + (id === m.map ? " · đang ở đây" : "");
     const lv = document.createElement("span"); lv.textContent = def.kind === "town" ? "Thành" : def.level ? `cấp ${def.level[0]}–${def.level[1]}` : "";
-    top.append(name, lv); sec.appendChild(top);
+    top.append(name, lv);
+    if (id !== m.map) {
+      const walk = document.createElement("button"); walk.type = "button"; walk.className = "wwalk"; walk.textContent = "Tự đi tới";
+      walk.title = `Đi bộ qua các cổng tới ${def.name}`; walk.addEventListener("click", () => { walk.blur(); toggleWorld(false); worldAuto(id); });
+      top.appendChild(walk);
+    }
+    sec.appendChild(top);
     for (const w of wps) {
       const b = document.createElement("button"); b.type = "button";
       const isHere = w.key === m.cur, can = !!here && w.open && !isHere && w.fee !== null;
