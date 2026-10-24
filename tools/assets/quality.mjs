@@ -177,6 +177,11 @@ export function renderPreview(report, options = {}) {
   return `<!doctype html><meta charset="utf-8"><title>${title}</title><style>body{margin:0;background:#17131b;color:#f2e8d5;font:14px system-ui}header{position:sticky;top:0;padding:16px;background:#241c29;z-index:1}main{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:16px}article{background:#2b2230;border:1px solid #514157;border-radius:8px;padding:8px}img{display:block;width:100%;height:160px;object-fit:contain;image-rendering:pixelated;background:repeating-conic-gradient(#3b3141 0 25%,#302738 0 50%) 0/16px 16px}strong,small{display:block;margin-top:6px;overflow-wrap:anywhere}small{color:#cbbbd0;font-size:12px}</style><header><h1>${title}</h1><div>${assets.length} asset · tổng ${(assets.reduce((n, a) => n + (a.bytes ?? 0), 0) / 1024).toFixed(1)} KB</div></header><main>${cards}</main>`;
 }
 
+export function writePreview(report, outputFile) {
+  mkdirSync(path.dirname(outputFile), { recursive: true });
+  writeFileSync(outputFile, renderPreview(preparePreview(report, { outputFile })));
+}
+
 function writeReport(file, report) { mkdirSync(path.dirname(file), { recursive: true }); writeFileSync(file, JSON.stringify(report, null, 2) + "\n"); }
 function option(name, fallback = "") { const i = process.argv.indexOf(name); return i >= 0 ? process.argv[i + 1] : fallback; }
 function has(name) { return process.argv.includes(name); }
@@ -204,7 +209,7 @@ async function main() {
   }
   if (has("--preview")) {
     const report = qualityCheck(manifest), out = option("--out", path.join(ROOT, "tools/assets/quality-preview.html"));
-    writeFileSync(out, renderPreview(preparePreview(report, { outputFile: out })));
+    writePreview(report, out);
     console.log(`[quality] preview ${rel(out)}`);
     return;
   }

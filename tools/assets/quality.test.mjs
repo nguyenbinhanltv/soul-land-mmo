@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { Img, encodePng, readPng } from "./lib.mjs";
-import { inspectPng, packAtlas, optimizePng, renderPreview, preparePreview, qualityCheck } from "./quality.mjs";
+import { inspectPng, packAtlas, optimizePng, renderPreview, preparePreview, qualityCheck, writePreview } from "./quality.mjs";
 
 function samplePng(w = 4, h = 3) {
   const img = new Img(w, h);
@@ -62,6 +62,13 @@ test("preparePreview tạo URL ảnh tương đối từ thư mục của file H
   const outputFile = path.join(process.cwd(), "tools/assets/quality-preview.html");
   const report = preparePreview({ assets: [{ key: "a", url: "sprites/iso/portrait/a.png" }] }, { outputFile });
   assert.equal(report.assets[0].url, "../../shared/assets/sprites/iso/portrait/a.png");
+});
+
+test("writePreview tạo thư mục cha khi file HTML nằm trong đường dẫn mới", () => {
+  const root = mkdtempSync(path.join(os.tmpdir(), "asset-quality-"));
+  const outputFile = path.join(root, "nested", "preview.html");
+  writePreview({ assets: [] }, outputFile);
+  assert.equal(existsSync(outputFile), true);
 });
 
 test("qualityCheck báo origin manifest sai so với neo chuẩn của sheetSpec", () => {
