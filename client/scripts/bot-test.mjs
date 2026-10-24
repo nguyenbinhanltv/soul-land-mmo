@@ -118,7 +118,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   HIGH_RINGS, CHAN_THAN_RING, DEFAULT_LOADOUT, ringSkill, skillChoices, loadoutOf, parseLoadout, chanThanOf, chanThanStats, phoenixFieldR, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_COST, CHAN_THAN_SKILL_CD,
   PARTY_MAX, PARTY_XP_RANGE, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW,
   RESONANCE, RES_VOHON_LEVEL, RESONANCE_RANK_CD, RESONANCE_RANK_PAGE_MAX, RES_BONE_ENHANCE, RES_CORE_STARS, RESONANCE_EFFECT_CAP, resonanceProgress, resonanceLevels, resonanceBonus,
-  ARENA, ARENA_MAP, ARENA_SHARDS, SHARD_BUY, shardBuyPrice, shardBuyCost, eloAfter, arenaTeamElo, arenaCrossPairs, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES, SKIN_TONES, parseLooks,
+  ARENA, ARENA_MAP, ARENA_SHARDS, SHARD_BUY, shardBuyPrice, shardBuyCost, eloAfter, arenaTeamElo, arenaCrossPairs, arenaWindow, arenaPairs, arenaRanked, EXTRA_VOHON, AWAKEN_CHOICES, SKIN_TONES, parseLooks, presetToLpc,
   PLAYER_SPEED, RUN_MULT, BEAST_GAIT, BEAST_LEASH, TICK_RATE,
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, CAMP_PT_GAP, shopOf, shopExpands,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, parseSell, autoSellable } from "../../shared/data.ts";
@@ -179,11 +179,11 @@ async function bot(name,choice,looks,near=false){
       ok((await post("/api/looks",{token:l.token,...bad})).status===400,`ngoại hình sai ${JSON.stringify(bad)} -> 400`);
     const r=await post("/api/looks",{token:l.token,...looks});
     // Không gửi `skin` (client cũ, trước 9.9) thì server lưu tông 0.
-    ok(r.status===200&&r.looks?.chosen&&r.looks.hairCol===looks.hairCol&&r.looks.skin===(looks.skin??0),`tạo nhân vật ${JSON.stringify(looks)}, tông da ${r.looks?.skin}`);
+    ok(r.status===200&&r.looks?.chosen&&r.looks.mode==="lpc"&&JSON.stringify(r.looks.lpc)===JSON.stringify(presetToLpc({skin:0,...looks})),`tạo nhân vật ${JSON.stringify(looks)} (preset từ client cũ -> LPC gần nhất, HL2)`);
   }
   ok((await post("/api/looks",{token:l.token,...looks})).status===409,"tạo nhân vật lần hai -> 409");
   const me=await post("/api/me",{token:l.token});
-  ok(me.looks?.chosen&&me.looks.skin===(l.looks?.chosen?l.looks.skin:looks.skin??0),`/api/me: đã tạo nhân vật, tông da ${me.looks?.skin}`);
+  ok(me.looks?.chosen&&me.looks.mode==="lpc"&&JSON.stringify(me.looks.lpc)===JSON.stringify(l.looks?.chosen?l.looks.lpc:presetToLpc({skin:0,...looks})),`/api/me: đã tạo nhân vật, ngoại hình LPC`);
   ok(typeof me.mapId==="string"&&me.mapId===l.mapId,`/api/login và /api/me trả bản đồ đang đứng: ${me.mapId}`);
   if(!l.character) ok(me.mapId==="thanh_hon_thon","tài khoản mới bắt đầu ở Thánh Hồn Thôn");
   if(!l.character){
@@ -278,11 +278,20 @@ async function looks2Test(){
   ok(rp.status===200&&rp.looks?.mode==="lpc"&&JSON.stringify(rp.looks.lpc)===JSON.stringify(LPC_PRESETS[0].lpc),`/api/looks nhận bộ dựng sẵn ${LPC_PRESETS[0].id} -> 200, giữ nguyên`);
   const A2=await post("/api/login",{name:`L2 lpc ${RUN}`,password:PASS});
   ok(A2.looks?.mode==="lpc"&&A2.looks.chosen&&encodeLpc(A2.looks.lpc)===enc,"đăng nhập lại: lpc lưu đúng (DB / RAM)");
-  const rb=await post("/api/looks",{token:B.token,mode:"preset",sex:1,hair:2,hairCol:3,outfitCol:4,skin:1});
-  ok(rb.status===200&&rb.looks.mode==="preset"&&rb.looks.lpc===undefined&&rb.looks.skin===1,"tạo preset có mode -> 200");
-  const rc=await post("/api/looks",{token:C.token,sex:0,hair:3,hairCol:5,outfitCol:1});
-  ok(rc.status===200&&rc.looks.mode==="preset"&&rc.looks.skin===0&&rc.looks.lpc===undefined,"client cũ (không mode, không skin) -> preset, tông 0");
-  ok((await post("/api/login",{name:`L2 cu ${RUN}`,password:PASS})).looks?.mode==="preset","đăng nhập lại tài khoản preset: vẫn preset");
+  // HL2 #571: /api/looks không còn tạo preset, đổi sang LPC gần nhất; tài khoản kiểu cũ (hook test) tự chuyển lúc nạp, không tăng looks_changes.
+  const PB={sex:1,hair:2,hairCol:3,outfitCol:4,skin:1}, PC={sex:0,hair:3,hairCol:5,outfitCol:1,skin:0};
+  const rb=await post("/api/test/legacy-looks",{token:B.token,...PB});
+  if(rb.status!==200){ console.log("  ⚠ bỏ qua chuyển tài khoản preset cũ (cần GAME_TEST=1)"); }
+  else{
+    ok(rb.ok===true,"tạo tài khoản kiểu cũ (preset đã chọn) bằng hook test");
+    const lb=await post("/api/login",{name:`L2 preset ${RUN}`,password:PASS}), mb=await post("/api/me",{token:B.token});
+    ok(lb.looks?.mode==="lpc"&&lb.looks.chosen&&lb.looks.changes===0&&JSON.stringify(lb.looks.lpc)===JSON.stringify(presetToLpc(PB))&&parseLpc(lb.looks.lpc)!==null,"HL2: đăng nhập tài khoản preset cũ -> LPC hợp lệ đúng presetToLpc, looks_changes vẫn 0");
+    ok(JSON.stringify(mb.looks)===JSON.stringify(lb.looks)&&mb.looks.sex===1,"HL2: /api/me trả đúng cùng ngoại hình LPC (chuyển một lần, chạy lại như cũ)");
+    ok((await post("/api/test/legacy-looks",{token:B.token,...PC})).ok===false,"HL2: hook cũ không ghi đè tài khoản đã chọn");
+  }
+  const rc=await post("/api/looks",{token:C.token,...PC});
+  ok(rc.status===200&&rc.looks.mode==="lpc"&&JSON.stringify(rc.looks.lpc)===JSON.stringify(presetToLpc(PC))&&rc.looks.changes===0,"HL2: client cũ gửi preset (không mode, không skin) -> lưu LPC gần nhất");
+  ok((await post("/api/login",{name:`L2 cu ${RUN}`,password:PASS})).looks?.mode==="lpc","đăng nhập lại: vẫn LPC");
 
   // Đồng bộ: vào phòng, người khác thấy đúng chuỗi.
   for(const [x,v] of [[A,"lam_dien_ba_vuong_long"],[B,"bich_lan_xa_hoang"]]){ const a=await post("/api/awaken",{token:x.token,vohon:v}); ok(a.status===200,`thức tỉnh ${v}`); }
@@ -292,7 +301,7 @@ async function looks2Test(){
   const seenA=bb.room.state.players.get(ba.room.sessionId), seenB=ba.room.state.players.get(bb.room.sessionId);
   ok(ba.room.roomId===bb.room.roomId&&seenA&&seenB,"hai bot cùng phòng, thấy nhau");
   ok(seenA?.lpc===enc&&decodeLpc(seenA.lpc)&&seenA.sex===0&&seenA.hair===0,`B thấy đúng chuỗi lpc của A (${seenA?.lpc?.length} ký tự)`);
-  ok(seenB?.lpc===""&&seenB.sex===1&&seenB.hair===2&&seenB.hairCol===3&&seenB.outfitCol===4&&seenB.skin===1,"A thấy B là preset: lpc rỗng, số preset giữ nguyên");
+  ok(seenB?.lpc===encodeLpc(presetToLpc(PB))&&seenB.sex===1&&seenB.hair===0&&seenB.skin===0,"A thấy B (tài khoản preset cũ đã chuyển) là LPC đúng chuỗi, số preset = 0");
   await ba.room.leave(); await bb.room.leave();
 }
 
@@ -317,7 +326,7 @@ async function looks3Test(){
   const lpc={v:1,body:1,parts:{body:"body.body",head:"head.female",hair:"hair.long_straight",torso:"torso.longsleeve"},colors:{skin:"amber",eye:"green",hair:"chestnut",torso:LPC_RAMPS.cloth.allow[3]}};
   const lpc2={...lpc,body:0,parts:{...lpc.parts,head:"head.male",hair:"hair.parted"}};
   ok(parseLpc(lpc)&&parseLpc(lpc2),"dữ liệu thử hợp lệ");
-  const E=encodeLpc(parseLpc(lpc)), E2=encodeLpc(parseLpc(lpc2));
+  const E=encodeLpc(parseLpc(lpc)), E2=encodeLpc(parseLpc(lpc2)), EP=encodeLpc(presetToLpc({sex:0,hair:2,hairCol:3,outfitCol:4,skin:1})); // EP: preset kiểu cũ gửi lên đã đổi sang LPC (HL2)
   const preset={mode:"preset",sex:0,hair:2,hairCol:3,outfitCol:4,skin:1};
   const state=()=>{ const p=me(S); return p?{sex:p.sex,hair:p.hair,hairCol:p.hairCol,outfitCol:p.outfitCol,skin:p.skin,lpc:p.lpc}:null; };
   const before=JSON.stringify(state()); await test(S,"coin",{n:LOOKS_CHANGE.cost*5}); await sleep(200);
@@ -338,12 +347,12 @@ async function looks3Test(){
   ok(await waitFor(()=>seen()?.lpc===E,2000),"người ở gần thấy ngoại hình mới ngay");
   let acc=await post("/api/me",{token:S.token}); ok(acc.looks?.mode==="lpc"&&acc.looks.chosen&&acc.looks.changes===1&&encodeLpc(acc.looks.lpc)===E,"/api/me: ngoại hình mới và số lần đổi = 1 (lưu DB)");
   // Lần 2: lpc -> preset (không `mode`, như client cũ), tốn tiền.
-  r=await change(S,{sex:0,hair:2,hairCol:3,outfitCol:4,skin:1}); ok(!r.err&&r.n===2&&r.honTe===LOOKS_CHANGE.cost*4&&state().lpc===""&&state().hair===2,`đổi lần hai (Tự tạo → Mẫu dựng sẵn): −${LOOKS_CHANGE.cost}, còn ${r.honTe}`);
-  acc=await post("/api/me",{token:S.token}); ok(acc.looks?.mode==="preset"&&acc.looks.changes===2&&acc.looks.hair===2,"/api/me: preset, số lần đổi = 2");
-  ok(await waitFor(()=>seen()?.lpc===""&&seen().hair===2,2000),"người ở gần thấy ngoại hình mới (về preset)");
+  r=await change(S,{sex:0,hair:2,hairCol:3,outfitCol:4,skin:1}); ok(!r.err&&r.n===2&&r.honTe===LOOKS_CHANGE.cost*4&&state().lpc===EP&&state().hair===0,`đổi lần hai (Tự tạo → preset kiểu cũ, server đổi sang LPC): −${LOOKS_CHANGE.cost}, còn ${r.honTe}`);
+  acc=await post("/api/me",{token:S.token}); ok(acc.looks?.mode==="lpc"&&acc.looks.changes===2&&encodeLpc(acc.looks.lpc)===EP,"/api/me: LPC từ preset cũ, số lần đổi = 2");
+  ok(await waitFor(()=>seen()?.lpc===EP,2000),"người ở gần thấy ngoại hình mới (về preset)");
   // Thiếu tiền (thiếu 1 đồng): từ chối, không đổi gì.
   await test(S,"coin",{n:LOOKS_CHANGE.cost-1}); await sleep(200);
-  r=await change(S,{mode:"lpc",lpc:lpc2}); ok(/Hồn Tệ/.test(r.err??"")&&r.n===2&&r.honTe===LOOKS_CHANGE.cost-1&&state().lpc==="","thiếu tiền: từ chối, không đổi, không mất tiền");
+  r=await change(S,{mode:"lpc",lpc:lpc2}); ok(/Hồn Tệ/.test(r.err??"")&&r.n===2&&r.honTe===LOOKS_CHANGE.cost-1&&state().lpc===EP,"thiếu tiền: từ chối, không đổi, không mất tiền");
   // Chống đua lệnh: đủ tiền cho đúng một lần, gửi ba lệnh cùng lúc: chỉ một lệnh được tính.
   await test(S,"coin",{n:LOOKS_CHANGE.cost}); await sleep(200);
   const n0=S.looksN; for(const l of [lpc2,lpc,lpc2]) S.room.send("looks",{looks:{mode:"lpc",lpc:l},npc:"tho_may"});
@@ -357,7 +366,7 @@ async function looks3Test(){
   S.travel=null; S.room.send("test",{op:"warp",mapId:"thien_dau_thanh",x:sp2.x,y:sp2.y+16});
   ok(await waitFor(()=>S.travel?.mapId==="thien_dau_thanh",4000),"tới Thiên Đấu Thành"); await rejoin(S); await test(S,"goto",{x:sp2.x,y:sp2.y+16});
   ok(await talk(S,"tho_may_thien_dau")==="tho_may_thien_dau"&&S.looksInfo?.n===3,"thợ may Thiên Đấu: số lần đổi dùng chung theo tài khoản (3)");
-  r=await change(S,preset,"tho_may_thien_dau"); ok(!r.err&&r.n===4&&r.honTe===0&&state().hair===2,`đổi ở thợ may Thiên Đấu: tốn ${LOOKS_CHANGE.cost}, số lần = ${r.n}`);
+  r=await change(S,preset,"tho_may_thien_dau"); ok(!r.err&&r.n===4&&r.honTe===0&&state().lpc===EP,`đổi ở thợ may Thiên Đấu: tốn ${LOOKS_CHANGE.cost}, số lần = ${r.n}`);
   }finally{ await S.room.leave().catch(()=>{}); await O.room.leave().catch(()=>{}); }
 }
 
@@ -958,8 +967,8 @@ const aSeen=B.room.state.players.get(A.room.sessionId);
 ok(aSeen&&["sex","hair","hairCol","outfitCol","skin"].every(k=>aSeen[k]===A.looks[k]),`B thấy ngoại hình A: ${aSeen&&[aSeen.sex,aSeen.hair,aSeen.hairCol,aSeen.outfitCol,aSeen.skin].join("/")}`);
 { // ---------- 9.9: tông da ----------
   const bSeen=A.room.state.players.get(B.room.sessionId);
-  ok(A.looks.skin===2&&aSeen?.skin===2,`9.9: A tạo nhân vật tông da 2 (${SKIN_TONES[2].name}), B thấy chỉ số ${aSeen?.skin}`);
-  ok(B.looks.skin===0&&bSeen?.skin===0,`9.9: B không chọn tông da (như tài khoản cũ) vẫn tông 0, A thấy chỉ số ${bSeen?.skin}`);
+  ok(A.looks.mode==="lpc"&&A.looks.lpc.colors.skin==="bronze"&&aSeen?.lpc===encodeLpc(A.looks.lpc),`HL2: A gửi preset tông da 2 (${SKIN_TONES[2].name}) -> LPC da ${A.looks.lpc?.colors.skin}, B thấy đúng chuỗi lpc`);
+  ok(B.looks.mode==="lpc"&&B.looks.lpc.colors.skin==="light"&&bSeen?.lpc===encodeLpc(B.looks.lpc),`HL2: B không gửi tông da (client cũ) -> da LPC ${B.looks.lpc?.colors.skin}, A thấy đúng chuỗi lpc`);
   ok(SKIN_TONES.length===3&&SKIN_TONES.every(t=>t.ramp.length===3&&t.ramp.every(c=>/^#[0-9a-f]{6}$/.test(c)))&&SKIN_TONES[0].ramp[1]==="#f1c7a0",
     `9.9: SKIN_TONES 3 tông, mỗi tông 3 sắc, tông 0 quanh #f1c7a0: ${SKIN_TONES.map(t=>t.name).join(", ")}`);
   const gpl=readFileSync(new URL("../../art/palette.gpl",import.meta.url),"utf8").toLowerCase();

@@ -12,7 +12,7 @@ import { loginBegin, loginEnd, signupBegin, signupEnd } from "./ratelimit.ts";
 import { cleanName } from "./names.ts";
 import { loadMap } from "./map.ts";
 import { startSchedule } from "./schedule.ts";
-import { MAPS } from "../../shared/data.ts";
+import { MAPS, parseLooks } from "../../shared/data.ts";
 import { gamePresence, presenceBackend } from "./presence.ts";
 import { configurePresence as configurePartyPresence } from "./party.ts";
 
@@ -99,6 +99,15 @@ app.post("/api/looks", route(async (req, res) => {
   const r = await chooseLooks(acc.accountId, req.body);
   if ("error" in r) { res.status(r.status).json({ error: r.error }); return; }
   res.json(r);
+}));
+
+// Hook test (chỉ GAME_TEST=1, HL2 #571): tạo tài khoản kiểu cũ (ngoại hình preset 5 số đã chọn) để bot thử chuyển sang LPC lúc nạp. /api/looks
+// thật không còn tạo preset. Chỉ ghi được khi tài khoản chưa chọn ngoại hình (store.chooseLooks một lần).
+if (process.env.GAME_TEST === "1") app.post("/api/test/legacy-looks", route(async (req, res) => {
+  const acc = await store.accountFromToken(req.body?.token);
+  const looks = parseLooks({ ...req.body, mode: "preset" });
+  if (!acc || !looks) { res.status(400).json({ error: "token hoặc ngoại hình sai." }); return; }
+  res.json({ ok: await store.chooseLooks(acc.accountId, looks) });
 }));
 
 // Lễ thức tỉnh (một lần): client gửi võ hồn SSR muốn chọn, luật kiểm tra nằm trong MapRoom.ts.
