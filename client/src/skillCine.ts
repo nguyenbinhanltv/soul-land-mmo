@@ -18,7 +18,7 @@ export class SkillCine {
   private root: HTMLDivElement | null = null;
   private timer = 0;
   /** `vohonId`: mã võ hồn (chân dung `portrait_<mã>`); `col`: màu niên hạn của vòng. */
-  show(vohonId: string, name: string, col: string, mine: boolean) {
+  show(vohonId: string, name: string, col: string, mine: boolean, noPic = false) {
     this.clear();
     const calm = fxPrefs.reduce, src = artUrl(`portrait_${vohonId}`);
     const el = document.createElement("div");
@@ -26,7 +26,7 @@ export class SkillCine {
     el.style.setProperty("--col", col); el.style.setProperty("--slide", `${SLIDE_MS}ms`); el.style.setProperty("--total", `${TOTAL_MS}ms`);
     el.setAttribute("aria-hidden", "true");
     // Giảm chuyển động: không tối màn, không trượt; chỉ tên chiêu mờ vào rồi ra.
-    el.innerHTML = `${calm ? "" : `<i class="skdim"></i>`}${calm || !src ? "" : `<img class="skpic" src="${src}" alt="">`}<b class="skname"></b>`;
+    el.innerHTML = `${calm ? "" : `<i class="skdim"></i>`}${calm || noPic || !src ? "" : `<img class="skpic" src="${src}" alt="">`}<b class="skname"></b>`;
     (el.querySelector(".skname") as HTMLElement).textContent = name;
     document.body.appendChild(el);
     this.root = el;
