@@ -2,7 +2,7 @@
 // (`begin` → `dot` / `rect` → `end`), phép chiếu / kẹp mép / xếp ưu tiên dùng hàm thuần ở shared/radar.ts, số liệu ở `RADAR`.
 // Vẽ `RADAR.hz` lần mỗi giây; chấm lấy từ bể đối tượng dùng lại nên mỗi lần vẽ không dựng đối tượng chấm mới.
 import { RADAR, RADAR_ART, TILE } from "../../shared/data.ts";
-import { radarPlace, radarRotate, radarNorthAngle, radarCompassRotation, radarZoomStep, radarPick, type RadarMode } from "../../shared/radar.ts";
+import { radarPlace, radarRotate, radarUnrotate, radarNorthAngle, radarCompassRotation, radarZoomStep, radarPick, type RadarMode } from "../../shared/radar.ts";
 import { artUrl } from "./uiArt.ts";
 import { fog } from "./fog.ts";
 
@@ -41,6 +41,12 @@ export function drawRadarIcon(ctx: CanvasRenderingContext2D, d: { id: string; x:
     case "elite": // chữ X sáng màu aura
       ctx.fillStyle = DARK; for (let i = -h; i <= h; i++) { ctx.fillRect(x + i - 1, y + i - 1, 3, 3); ctx.fillRect(x + i - 1, y - i - 1, 3, 3); }
       ctx.fillStyle = d.col; for (let i = -h; i <= h; i++) { ctx.fillRect(x + i, y + i, 1, 1); ctx.fillRect(x + i, y - i, 1, 1); } break;
+    case "rally": { // dấu tập trung: cờ vàng trong vòng sáng (viền mực để thấy trên mọi nền)
+      ctx.lineWidth = 3; ctx.strokeStyle = DARK; ctx.beginPath(); ctx.arc(x + 0.5, y + 0.5, 9, 0, Math.PI * 2); ctx.stroke();
+      ctx.lineWidth = 1.5; ctx.strokeStyle = d.col; ctx.beginPath(); ctx.arc(x + 0.5, y + 0.5, 9, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = DARK; ctx.fillRect(x - 5, y - 5, 11, 11); ctx.fillStyle = d.col; ctx.fillRect(x - 4, y - 4, 9, 9);
+      ctx.fillStyle = DARK; ctx.fillRect(x - 2, y - 3, 1, 7); ctx.fillRect(x - 1, y - 3, 4, 3); break;
+    }
     default: // boss: đầu lâu
       ctx.fillStyle = DARK; ctx.fillRect(x - 5, y - 5, 11, 11); ctx.fillStyle = d.col; for (const [cx, cy] of SKULL_CELLS) ctx.fillRect(x - 4 + cx, y - 4 + cy, 1, 1);
   }
@@ -91,6 +97,11 @@ class Radar implements DotSink {
   private compassTried = false;
   /** Bấm vào radar (chuột; cảm ứng thì chạm chỗ không có chấm) mở bản đồ khu vực: GameScene đặt. */
   onOpen: (() => void) | null = null;
+  /** Chuột phải trên radar: đặt dấu "Tập trung ở đây" ở ô dưới con trỏ (R6): GameScene đặt. */
+  onRally: ((tx: number, ty: number) => void) | null = null;
+  /** Bấm vào dấu tập trung trên radar: tự đi tới đó (R4 + R6): GameScene đặt. */
+  onRallyGo: ((tx: number, ty: number) => void) | null = null;
+  private k = 1; private rPx = 0;
 
   constructor() {
     const cv = this.cv;
@@ -98,9 +109,11 @@ class Radar implements DotSink {
     cv.addEventListener("pointermove", (e) => this.point(e));
     cv.addEventListener("pointerdown", (e) => {
       this.point(e);
+      if (e.pointerType !== "mouse" && this.rallyAt()) return this.goRally();
       if (e.pointerType !== "mouse") { clearTimeout(this.tipTimer); this.tipTimer = window.setTimeout(() => this.point(null), 2500); if (this.tip.hidden) this.onOpen?.(); }
     });
-    cv.addEventListener("click", (e) => { if ((e as PointerEvent).pointerType === "mouse") this.onOpen?.(); });
+    cv.addEventListener("click", (e) => { if ((e as PointerEvent).pointerType === "mouse") { if (this.rallyAt()) this.goRally(); else this.onOpen?.(); } });
+    cv.addEventListener("contextmenu", (e) => { e.preventDefault(); this.point(e as PointerEvent); this.rallyHere(); });
     cv.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") this.point(null); });
     document.getElementById("radarIn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.zoomBy(1); });
     document.getElementById("radarOut")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.zoomBy(-1); });
@@ -148,6 +161,7 @@ class Radar implements DotSink {
     if (cv.width !== px) { cv.width = px; cv.height = px; }
     this.size = css; this.scale = px / css;
     const ctx = this.ctx, S = css, c = S / 2, rPx = c - 2, rTiles = RADAR.zooms[this.zoom] ?? RADAR.r, k = rPx / rTiles, mode = this.mode;
+    this.k = k; this.rPx = rPx;
     ctx.setTransform(this.scale, 0, 0, this.scale, 0, 0); ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, S, S);
     ctx.save(); ctx.beginPath(); ctx.arc(c, c, rPx, 0, Math.PI * 2); ctx.clip();
@@ -218,6 +232,17 @@ class Radar implements DotSink {
     const len = Math.hypot(d.x, d.y) || 1, ix = d.x - (d.x / len) * 11, iy = d.y - (d.y / len) * 11;
     ctx.font = '9px "Be Vietnam Pro", system-ui, sans-serif'; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.lineWidth = 2.5; ctx.strokeStyle = DARK; const t = String(Math.floor(d.tiles)); ctx.strokeText(t, ix, iy); ctx.fillStyle = "#fff"; ctx.fillText(t, ix, iy);
+  }
+
+  // ---------- Dấu tập trung (R6) ----------
+  /** Dấu tập trung dưới con trỏ (chấm trong tầm hoặc mũi tên ở mép), nếu có. */
+  private rallyAt() { const h = this.hover; const d = h ? radarPick(this.live, h.x, h.y) : undefined; return d && d.id === "rally" ? d : undefined; }
+  private goRally() { const d = this.rallyAt(); if (d) this.onRallyGo?.(d.wx, d.wy); }
+  /** Ô thế giới dưới con trỏ (ngược phép chiếu của `end`); ngoài vòng radar thì bỏ. */
+  private rallyHere() {
+    const h = this.hover; if (!h || Math.hypot(h.x, h.y) > this.rPx || !this.k) return;
+    const u = radarUnrotate(h.x, h.y, this.mode);
+    this.onRally?.(this.px + u.x / this.k, this.py + u.y / this.k);
   }
 
   // ---------- Tên khi rê chuột / chạm ----------

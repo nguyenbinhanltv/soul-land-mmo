@@ -5311,6 +5311,7 @@ export const RADAR = {
     { prio: 5, id: "ally",   name: "Đồng đội, cùng tông môn",   col: "#5ee06a", size: 7, blink: false, arrow: true },
     { prio: 6, id: "elite",  name: "Tinh anh",                  col: "",        size: 8, blink: true,  arrow: false },
     { prio: 7, id: "boss",   name: "Thú vương, boss thế giới",  col: "#e0303a", size: 9, blink: true,  arrow: true },
+    { prio: 8, id: "rally",  name: "Tập trung ở đây (tổ đội)",  col: "#ffe14a", size: 9, blink: true,  arrow: true },
   ] as RadarLevel[],
   /** Màu viền chấm cùng tông môn (đồng đội tổ đội dùng màu của mức `ally`). */
   tongCol: "#3fd0b0",
@@ -5358,6 +5359,14 @@ export const MAPVIEW = {
  * - `holdMs`: chạm giữ trên bản đồ khu vực (điện thoại) đủ lâu thì đặt cờ.
  */
 export const AUTOWALK = { arrive: 1.5, stuckSecs: 5, progress: 1.5, gateSecs: 6, replanMs: 250, holdMs: 500 };
+
+/**
+ * Đánh dấu "Tập trung ở đây" của tổ đội (R6 #433, GAME_DESIGN.md mục 5.17): mỗi thành viên một dấu (đặt dấu mới thì dấu cũ của chính họ mất), server chỉ chuyển tiếp cho thành viên cùng tổ đội.
+ * - `secs`: dấu tự tắt sau chừng này giây (client đếm từ lúc nhận; server không giữ dấu);
+ * - `burst` / `refillMs`: giới hạn tốc độ mỗi tài khoản (token bucket: đặt liền tối đa `burst` lần, rồi hồi 1 lượt mỗi `refillMs`);
+ * - `col`: màu dấu trên radar, bản đồ khu vực và vòng sáng trên mặt đất; `nameMax`: cắt tên người đặt khi hiện.
+ */
+export const RALLY = { secs: 40, burst: 3, refillMs: 1700, col: "#ffe14a", nameMax: 24 };
 
 /**
  * Sương mù khám phá (R8 #435, GAME_DESIGN.md mục 5.17): ô thô `cell`×`cell` ô lưới, bán kính nhìn `sight` ô; bản đồ trong `open` mở sẵn (thành, Thánh Hồn Thôn, đấu trường).

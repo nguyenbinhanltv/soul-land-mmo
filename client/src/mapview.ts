@@ -4,7 +4,8 @@
 //
 // Chỗ chừa cho các bước sau (chưa làm ở R3):
 // - R4 (#431) cờ "Đi tới" (đã làm): `onFlag` nhận ô bấm (chuột) hoặc chạm giữ (điện thoại), cờ vẽ bằng `setMarker("flag", …)`, nút Đi / Xoá cờ ở thanh trên;
-// - R6 (#433) "Tập trung ở đây": cùng `setMarker("rally", …)` / `onTap`;
+// - R6 (#433) "Tập trung ở đây" (đã làm): chuột phải (điện thoại: chạm giữ mở thẻ chọn "Đặt cờ" / "Tập trung ở đây") gọi `onRally`; dấu của đồng đội
+//   là chấm mức `rally` (GameScene gom), bấm vào để tự đi tới như cờ;
 // - R8 (#435) sương mù (đã làm): fog.ts vẽ ngay trên nền, dưới chấm; nhãn vùng ở chỗ chưa khám phá bị ẩn (cổng, NPC, truyền tống trận vẫn hiện).
 import { RADAR, MAPVIEW, AUTOWALK, TILE as _TILE } from "../../shared/data.ts";
 import {
@@ -54,6 +55,8 @@ class MapViewUi implements DotSink {
   readonly cv = el<HTMLCanvasElement>("mapviewCv");
   readonly ctx = this.cv.getContext("2d")!;
   readonly tip = el("mapviewTip");
+  readonly menu = el("mapviewMenu");
+  private menuAt: { x: number; y: number } | null = null;
   readonly title = el("mapviewTitle");
   readonly modeBtn = el("mapviewMode");
   /** Bản đồ đang đứng: cỡ (ô) và khoá (đổi khoá thì đặt lại khung nhìn). */
@@ -63,6 +66,10 @@ class MapViewUi implements DotSink {
   onTap: ((t: MapTap) => void) | null = null;
   /** GameScene đặt: bấm chuột (hoặc chạm giữ `AUTOWALK.holdMs` trên điện thoại, chạm ngắn chỉ hiện tên) vào một ô thì đặt cờ (R4). */
   onFlag: ((t: MapTap) => void) | null = null;
+  /** GameScene đặt: đặt dấu "Tập trung ở đây" của tổ đội ở ô (chuột phải, hoặc chạm giữ rồi chọn trong thẻ, R6). */
+  onRally: ((t: MapTap) => void) | null = null;
+  /** GameScene đặt: đang trong tổ đội (có đồng đội) thì chạm giữ mở thẻ chọn thay vì đặt cờ ngay. */
+  canRally: (() => boolean) | null = null;
   /** GameScene đặt: nút "Đi tới cờ" / "Dừng tự đi" / "Xoá cờ" trên thanh trên (R4). */
   flagActs: { go: () => void; stop: () => void; clear: () => void } | null = null;
   /** GameScene đặt: đóng các bảng khác trước khi mở bằng nút Vùng. */
@@ -86,7 +93,10 @@ class MapViewUi implements DotSink {
     this.buildBar();
     const cv = this.cv;
     cv.addEventListener("wheel", (e) => { e.preventDefault(); const p = this.local(e); this.zoomAt(e.deltaY < 0 ? MAPVIEW.zoomStep : 1 / MAPVIEW.zoomStep, p.x, p.y); }, { passive: false });
-    cv.addEventListener("pointerdown", (e) => this.down(e));
+    cv.addEventListener("pointerdown", (e) => { this.menu.hidden = true; this.down(e); });
+    cv.addEventListener("contextmenu", (e) => { e.preventDefault(); const p = this.local(e); this.rallyAt(p.x, p.y, "mouse"); });
+    press(el("mapviewMenuFlag"), () => { this.menu.hidden = true; if (this.menuAt) this.flagAt(this.menuAt.x, this.menuAt.y, "touch"); });
+    press(el("mapviewMenuRally"), () => { this.menu.hidden = true; if (this.menuAt) this.rallyAt(this.menuAt.x, this.menuAt.y, "touch"); });
     cv.addEventListener("pointermove", (e) => this.move(e));
     cv.addEventListener("pointerup", (e) => this.up(e));
     cv.addEventListener("pointercancel", (e) => { this.ptrs.delete(e.pointerId); this.drag = null; this.pinch = 0; });
@@ -130,7 +140,7 @@ class MapViewUi implements DotSink {
   }
   close() {
     if (!this.root.hidden) this.root.hidden = true;
-    this.tip.hidden = true; this.ptrs.clear(); this.drag = null; this.pinch = 0; window.clearTimeout(this.hold);
+    this.tip.hidden = true; this.menu.hidden = true; this.ptrs.clear(); this.drag = null; this.pinch = 0; window.clearTimeout(this.hold);
     document.getElementById("areaBtn")?.setAttribute("aria-expanded", "false");
   }
   toggle() { if (this.isOpen) this.close(); else this.open(); }
@@ -185,7 +195,8 @@ class MapViewUi implements DotSink {
       // Điện thoại: chạm giữ không kéo thì đặt cờ (chuột đặt cờ lúc nhả, `up`).
       if (e.pointerType !== "mouse") this.hold = window.setTimeout(() => {
         const g = this.drag; if (!g || g.moved || this.ptrs.size !== 1) return;
-        this.held = true; navigator.vibrate?.(30); this.flagAt(g.x, g.y, "touch");
+        this.held = true; navigator.vibrate?.(30);
+        if (this.canRally?.()) this.openMenu(g.x, g.y); else this.flagAt(g.x, g.y, "touch");
       }, AUTOWALK.holdMs);
     } else { this.drag = null; this.pinch = this.span(); }
   }
@@ -223,6 +234,21 @@ class MapViewUi implements DotSink {
     const t = this.showTip(x, y, kind);
     this.onFlag?.({ tx: ti.x, ty: ti.y, name: t?.name ?? "", sub: t?.sub ?? "" });
     if (kind !== "mouse") window.setTimeout(() => { this.tip.hidden = true; }, 2500);
+  }
+
+  /** Đặt dấu "Tập trung ở đây" ở điểm (x, y) (so với tâm khung vẽ): gọi `onRally` kèm tên chấm / nhãn dưới con trỏ. */
+  private rallyAt(x: number, y: number, kind: string) {
+    const ti = mapviewToTile(this.view, x, y);
+    if (ti.x < 0 || ti.y < 0 || ti.x >= this.mapW || ti.y >= this.mapH) return;
+    const t = this.showTip(x, y, kind);
+    this.onRally?.({ tx: ti.x, ty: ti.y, name: t?.name ?? "", sub: t?.sub ?? "" });
+    if (kind !== "mouse") window.setTimeout(() => { this.tip.hidden = true; }, 2500);
+  }
+  /** Thẻ chọn sau khi chạm giữ (trong tổ đội): "Đặt cờ" hoặc "Tập trung ở đây" ở ô vừa giữ. */
+  private openMenu(x: number, y: number) {
+    this.menuAt = { x, y };
+    const r = this.cv.getBoundingClientRect(), left = Math.min(Math.max(r.width / 2 + x, 110), r.width - 110), top = r.height / 2 + y;
+    this.menu.style.left = `${left}px`; this.menu.style.top = `${top + 70 > r.height ? top - 56 : top + 14}px`; this.menu.hidden = false;
   }
 
   /** Tên chấm / nhãn gần điểm (x, y) (so với tâm khung vẽ): chấm ưu tiên cao nhất trước, rồi vùng chứa ô đó. Hiện chú thích tại chỗ. */

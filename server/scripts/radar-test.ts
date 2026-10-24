@@ -1,12 +1,14 @@
 // Kiểm thử hàm thuần radar (shared/radar.ts, hằng RADAR / MAPVIEW / FOG ở shared/data.ts, mục 5.17): không cần bật server.
 // Chạy: npm run test:radar --prefix server
 import assert from "node:assert/strict";
-import { RADAR, RADAR_ART, MAPVIEW, FOG, MAPS, TILE, AUTOWALK } from "../../shared/data.ts";
+import { RALLY, RADAR, RADAR_ART, MAPVIEW, FOG, MAPS, TILE, AUTOWALK } from "../../shared/data.ts";
 import {
   radarRotate, radarUnrotate, radarNorthAngle, radarCompassRotation, radarPlace, clampToCircle, radarHit, radarZoomStep, radarPrio,
   radarSortDots, radarPick, mapviewToScreen, mapviewToTile, mapviewZoomAt, mapviewPan, mapviewClampCenter, mapviewClampZoom, mapviewLayer, type MapView,
 } from "../../shared/radar.ts";
 import { fogDims, fogEmpty, fogGet, fogSet, fogFill, fogCount, fogCellOf, fogReveal, fogValid, fogBytes, fogCells, fogOn } from "../../shared/fog.ts";
+import { rallyPoint, rallyRead, rallyUpsert, rallyPrune, rallyLeft, type Rally } from "../../shared/rally.ts";
+import { rallyCheck, rallyReset } from "../src/ratelimit.ts";
 import { autoLeg } from "../../shared/autowalk.ts";
 import { mapRoute } from "../src/map.ts";
 import { MemoryStore } from "../src/db.ts";
@@ -18,7 +20,7 @@ const near = (got: number, want: number, what: string, tol = 1e-9) => assert.ok(
 test("Hằng số: tầm mặc định nằm trong bảng phóng, ưu tiên 1..7 liên tiếp, bản đồ mở sẵn có thật", () => {
   assert.equal(RADAR.zooms[RADAR.zoomDefault], RADAR.r); assert.deepEqual([...RADAR.zooms].sort((a, b) => a - b), RADAR.zooms);
   assert.ok(RADAR.far > RADAR.zooms[RADAR.zooms.length - 1] && RADAR.hz > 0 && RADAR.hitPx > 0);
-  assert.deepEqual(RADAR.levels.map((l) => l.prio), [1, 2, 3, 4, 5, 6, 7]); assert.equal(new Set(RADAR.levels.map((l) => l.id)).size, 7);
+  assert.deepEqual(RADAR.levels.map((l) => l.prio), [1, 2, 3, 4, 5, 6, 7, 8]); assert.equal(new Set(RADAR.levels.map((l) => l.id)).size, 8);
   assert.ok(RADAR.levels.every((l) => l.size >= 5 && l.size <= 9));
   assert.ok(MAPVIEW.zoomMin <= MAPVIEW.zoomDefault && MAPVIEW.zoomDefault <= MAPVIEW.zoomMax);
   assert.equal(new Set(MAPVIEW.layers.map((l) => l.id)).size, MAPVIEW.layers.length);
@@ -163,5 +165,38 @@ test("Sương mù (R8): MemoryStore ghi / đọc bitset theo tài khoản × b�
   assert.deepEqual(await st.getFog(1, "m", "f.json"), b); assert.equal(await st.getFog(2, "m", "f.json"), null, "tài khoản khác không thấy");
   assert.equal(await st.getFog(1, "n", "f.json"), null, "bản đồ khác không thấy"); assert.equal(await st.getFog(1, "m", "f.v2.json"), null, "file Tiled khác thì bỏ");
   const got = (await st.getFog(1, "m", "f.json"))!; got[0] ^= 0xff; assert.notDeepEqual(await st.getFog(1, "m", "f.json"), got, "bản đọc ra là bản sao");
+});
+
+test("Tập trung (R6): hằng hợp lý, ô hợp lệ chỉ trong bản đồ và về tâm ô, dữ liệu lạ bị bỏ", () => {
+  assert.ok(RALLY.secs > 0 && RALLY.burst >= 1 && RALLY.refillMs > 0 && RALLY.nameMax > 0);
+  assert.deepEqual(rallyPoint(10.2, 5.9, 20, 20), { tx: 10.5, ty: 5.5 });
+  for (const [x, y] of [[-0.1, 1], [1, -1], [20, 1], [1, 20], [NaN, 1], [1, Infinity]] as const) assert.equal(rallyPoint(x, y, 20, 20), null, `${x},${y}`);
+  for (const v of [undefined, null, "3", {}, [], true]) assert.equal(rallyPoint(v, 1, 20, 20), null);
+  const ok = { from: "A", map: "m", ch: 1, tx: 3.5, ty: 4.5, secs: RALLY.secs };
+  assert.deepEqual(rallyRead(ok), ok); assert.equal(rallyRead({ ...ok, secs: 9999 })!.secs, RALLY.secs, "số giây bị kẹp vào luật");
+  assert.equal(rallyRead({ ...ok, secs: -5 })!.secs, 1);
+  for (const bad of [null, 1, "x", {}, { ...ok, from: "" }, { ...ok, map: 3 }, { ...ok, tx: NaN }, { ...ok, secs: "9" }]) assert.equal(rallyRead(bad), null);
+  assert.equal(rallyRead({ ...ok, from: "x".repeat(200) })!.from.length, RALLY.nameMax);
+});
+
+test("Tập trung (R6): mỗi người một dấu, hết hạn thì bỏ, người rời tổ đội thì dấu mất", () => {
+  const m = (from: string, tx: number, secs = 10) => ({ from, map: "m", ch: 1, tx, ty: 1.5, secs });
+  let l: Rally[] = [];
+  l = rallyUpsert(l, m("A", 1.5), 1000); l = rallyUpsert(l, m("B", 2.5), 1000); l = rallyUpsert(l, m("A", 9.5), 2000);
+  assert.deepEqual(l.map((r) => [r.from, r.tx]), [["B", 2.5], ["A", 9.5]], "dấu mới của A thay dấu cũ của A");
+  const a = l.find((r) => r.from === "A")!; assert.equal(a.until, 12000); assert.equal(rallyLeft(a, 2000), 10); assert.equal(rallyLeft(a, 11500), 1); assert.equal(rallyLeft(a, 99999), 0);
+  assert.equal(rallyPrune(l, 10999, null).length, 2, "B (hết hạn 11000) còn"); assert.deepEqual(rallyPrune(l, 11000, null).map((r) => r.from), ["A"], "B hết hạn đúng lúc");
+  assert.deepEqual(rallyPrune(l, 2000, new Set(["A"])).map((r) => r.from), ["A"], "B rời tổ đội thì mất"); assert.equal(rallyPrune(l, 12000, null).length, 0);
+  assert.equal(rallyUpsert(l, m("C", 1.5), 0).length, 3); assert.equal(l.length, 2, "không sửa mảng cũ");
+});
+
+test("Tập trung (R6): giới hạn tốc độ token bucket theo tài khoản, hồi dần, xoá bộ đếm", () => {
+  const t0 = 1_000_000; rallyReset(7);
+  for (let i = 0; i < RALLY.burst; i++) assert.equal(rallyCheck(7, t0), null, `lượt ${i + 1}`);
+  const e = rallyCheck(7, t0); assert.ok(e && /quá nhanh/.test(e.error), "hết lượt thì chặn");
+  assert.equal(rallyCheck(8, t0), null, "tài khoản khác có bộ đếm riêng"); rallyReset(8);
+  assert.equal(rallyCheck(7, t0 + RALLY.refillMs - 50)?.error !== undefined, true, "chưa đủ thời gian hồi");
+  assert.equal(rallyCheck(7, t0 + RALLY.refillMs + 50), null, "hồi được một lượt"); assert.ok(rallyCheck(7, t0 + RALLY.refillMs + 60), "chỉ một lượt");
+  rallyReset(7); assert.equal(rallyCheck(7, t0), null, "xoá bộ đếm"); rallyReset(7);
 });
 await Promise.all(pend);

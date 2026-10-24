@@ -4,12 +4,17 @@
 // File này chỉ giữ trạng thái và luật. MapRoom gọi các hàm ở đây, rồi phát mỗi PartyNote trả về lên kênh presence PARTY_TOPIC để
 // phòng đang giữ người nhận (có thể ở bản đồ khác) gửi lại khung tổ đội và dòng thông báo cho đúng người đó (dữ liệu riêng, mục 6).
 import { PARTY_MAX, PARTY_INVITE_SECS, PARTY_OFFLINE_SECS } from "../../shared/data.ts";
+import type { RallyMsg } from "../../shared/rally.ts";
 import { nameKey } from "./names.ts";
 import type { PresenceBackend } from "./presence.ts";
 
 /** Kênh presence: mọi phòng nghe, gửi tin riêng "party" (và log) cho người chơi của mình có trong `to`. */
 export const PARTY_TOPIC = "party";
 export const PARTY_STATE_TOPIC = "party:state";
+/** Kênh presence của dấu "Tập trung ở đây" (R6 #433): chỉ chuyển tiếp tới tài khoản trong `to` (thành viên tổ đội lúc đặt dấu). */
+export const RALLY_TOPIC = "party:rally";
+/** Dấu tập trung trên presence: `pid` là tổ đội lúc đặt (nơi nhận kiểm lại người nhận còn trong đúng tổ đội đó). */
+export interface RallyRoute { to: number[]; pid: number; from: number; msg: RallyMsg; map: string }
 
 /**
  * Người chơi đang trong game (hoặc vừa rời phòng, chờ vào lại / đi cổng trong PARTY_OFFLINE_SECS): phòng đang giữ người đó ghi đè

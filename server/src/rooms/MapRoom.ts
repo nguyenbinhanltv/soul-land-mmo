@@ -8,7 +8,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   AWAKEN_GIFT, AWAKEN_CHOICES, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, REVIVE_SECS, RESPAWN_SECS, XP_SHARE_ACTIVE, XP_SHARE_BENCH,
   beastLevel, xpLevelScale, MAX_RINGS, parseTeam, BEASTS, beastIndex, MAPS, MAP_MOVED, DEFAULT_MAP, parseLooks, encodeLpc, dir4, type Looks,
   TRAVEL_CAST, BOAT_CAST, WAYPOINT_CAST, waypointFee, RED_BEAST_CHANCE, kingYears, TRAVEL_LEAVE_SECS, CHANNEL_MAX, CHANNEL_CD,
-  TIEN_CO, TIEN_CO_MAX, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY, energyGain, tienCoDmgMult, TILE,
+  TIEN_CO, TIEN_CO_MAX, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY, energyGain, tienCoDmgMult, TILE, RALLY,
   itemDef, ITEMS, ITEM_KINDS, BAG_EXPAND, BAG_MAX_SLOTS, bagSlotsOf, BUYBACK_MAX, bagExpandCost, DAN_CD, STARTER_ITEMS, BEAST_COIN, formatHonTe, type ItemDef,
   MAX_YEARS, tierBand, rollYears, beastStats, formatYears, RING_ITEM, DROP_OWNER_SECS, DROP_TTL_SECS, PICKUP_RANGE,
   absorbSecs, absorbChance, SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode, starSkillMult, starCdMult, starTienCoMult, starRing,
@@ -46,10 +46,11 @@ import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.
 import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, bossOffset, bossNow, bossClockMode, type BossEvent } from "../schedule.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag, type AutoRow, type SoldRow, type TongRow, type SocialRow } from "../db.ts";
-import { chatCheck, chatText, chatReset, worldWait, worldMark, inviteCheck, inviteReset, friendCheck, friendReset, friendNoteOk, type ChatChannel } from "../ratelimit.ts";
+import { chatCheck, chatText, chatReset, worldWait, worldMark, inviteCheck, inviteReset, rallyCheck, rallyReset, friendCheck, friendReset, friendNoteOk, type ChatChannel } from "../ratelimit.ts";
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
+import { rallyPoint, type RallyMsg } from "../../../shared/rally.ts";
 import { friends, FRIEND_TOPIC, type FriendNote, type FriendResult } from "../friends.ts";
 import { watchGc, gcIn, cpuMs, clock } from "../perf.ts";
 import { arenaLiveOpenList, arenaLiveHold, arenaLiveRelease, arenaWatchMax, setTestWatchMax } from "./arenaQueue.ts";
@@ -782,6 +783,8 @@ export class MapRoom extends Room<MapState> {
   partySub = (n: party.PartyNote) => this.partyNote(n);
   /** Đồng bộ snapshot tổ đội giữa các tiến trình; dữ liệu chỉ dùng để dựng khung riêng cho đúng người. */
   partyStateSub = (s: party.PartySnapshot) => party.applySnapshot(s);
+  /** Dấu "Tập trung ở đây" (presence RALLY_TOPIC, R6): gửi tin riêng `rally` và một dòng chat hệ thống cho thành viên tổ đội của phòng này. */
+  rallySub = (r: party.RallyRoute) => this.rallyNote(r);
   /**
    * Chat xuyên phòng (presence CHAT_TOPIC, #188): gửi tin cho người của phòng này có trong `to`, hoặc đang thuộc tông `tong` (#198,
    * đọc tông lúc nhận nên vừa rời / đổi tông là thôi nhận); không có cả hai thì mọi người. Lọc chặn (#195) đặt ở đây cho mọi kênh.
@@ -1000,6 +1003,7 @@ export class MapRoom extends Room<MapState> {
     this.presence.subscribe(ELITE_LOCK_TOPIC, this.eliteLockSub);
     this.presence.subscribe(party.PARTY_TOPIC, this.partySub);
     this.presence.subscribe(party.PARTY_STATE_TOPIC, this.partyStateSub);
+    this.presence.subscribe(party.RALLY_TOPIC, this.rallySub);
     this.presence.subscribe(CHAT_TOPIC, this.chatSub);
     this.presence.subscribe(FRIEND_TOPIC, this.friendSub);
     // Phòng mở ra trong lúc khung giờ thú vương đang diễn ra (mục 6): nhận lại suất của phòng cũ đã hủy (đã hạ / rút đi thì không có
@@ -1094,6 +1098,7 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("buyback", (c, m: { key: unknown; npc: unknown }) => { void this.buybackItem(c.sessionId, m?.key, m?.npc).catch((e) => console.error("Lỗi mua lại", e)); }); // mua lại đồ vừa bán (9.8)
     this.onMessage("expand", (c, m: { npc: unknown }) => this.expandBag(c.sessionId, m?.npc)); // mở rộng túi (9.8)
     this.onMessage("party", (c, m: unknown) => { void this.partyAction(c.sessionId, m); }); // tổ đội người chơi (7.1)
+    this.onMessage("rally", (c, m: unknown) => this.rallyAction(c.sessionId, m)); // đánh dấu "Tập trung ở đây" cho tổ đội (R6 #433)
     this.onMessage("quest", (c, m: { op: unknown; chain: unknown }) => this.questAction(c.sessionId, m?.op, m?.chain)); // nhiệm vụ (6.2; `chain` = khảo hạch hằng ngày)
     this.onMessage("arena", (c, m: { op: unknown; roomId?: unknown }) => this.arenaAction(c.sessionId, m?.op, m?.roomId)); // Đại Đấu Hồn Trường (7.2)
     this.onMessage("resonance", (c, m: { op?: unknown; page?: unknown; pageSize?: unknown }) => {
@@ -1232,6 +1237,7 @@ export class MapRoom extends Room<MapState> {
     this.presence.unsubscribe(ELITE_LOCK_TOPIC, this.eliteLockSub);
     this.presence.unsubscribe(party.PARTY_TOPIC, this.partySub);
     this.presence.unsubscribe(party.PARTY_STATE_TOPIC, this.partyStateSub);
+    this.presence.unsubscribe(party.RALLY_TOPIC, this.rallySub);
     this.presence.unsubscribe(CHAT_TOPIC, this.chatSub);
     this.presence.unsubscribe(FRIEND_TOPIC, this.friendSub);
     // Redis lỗi không được bỏ qua lần ghi DB cuối của người còn trong phòng: lỗi presence chỉ ghi log.
@@ -3599,6 +3605,7 @@ export class MapRoom extends Room<MapState> {
       const x = sb ? { bid: o.bid as string, b: sb } : nearB(); if (x) { this.killBeast(x.bid, id); out = { bid: x.bid, x: x.b.x, y: x.b.y, years: x.b.years }; }
     }
     else if (op === "chat") { if (o.cop === "rlreset") { chatReset(d.accountId); void presenceBackend.delete(worldChatKey(d.accountId)); } } // #188: xóa bộ đếm chat mọi kênh + hồi kênh thế giới của người gọi
+    else if (op === "rally") { if (o.rop === "rlreset") rallyReset(d.accountId); } // R6 #433: xóa bộ đếm đặt dấu tập trung của người gọi
     else if (op === "friend") { if (o.fop === "rlreset") friendReset(d.accountId); } // #195: xóa bộ đếm thao tác bạn bè của người gọi
     else if (op === "party") {
       // 7.1: `rlreset` xóa bộ đếm lời mời của người gọi; `age {name, s}` đẩy lùi lúc rời game của `name` s giây rồi dọn (party.sweep);
@@ -7480,6 +7487,39 @@ export class MapRoom extends Room<MapState> {
     else return;
     if ("error" in r) { warn(r.error); return this.sendParty(id, true); }
     this.partyPublish(r.notes);
+  }
+
+  /**
+   * Tin `rally {tx, ty}` (R6 #433): thành viên tổ đội đặt dấu "Tập trung ở đây" ở ô (tx, ty) của bản đồ đang đứng. Server kiểm: có ở trong
+   * tổ đội, không ở Đại Đấu Hồn Trường / đang đổi bản đồ, ô nằm trong bản đồ và đi được, rồi mới tính giới hạn tốc độ (ratelimit.rallyCheck).
+   * Bản đồ và kênh lấy từ chính phòng này (client không gửi). Hợp lệ thì phát `RALLY_TOPIC` tới thành viên tổ đội (kể cả tiến trình khác);
+   * server không giữ dấu, mỗi nơi nhận tự đếm `RALLY.secs`. Lỗi báo riêng người đặt.
+   */
+  rallyAction(id: string, m: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, warn = (text: string) => this.log(id, text, "#ffb35c");
+    if (this.map.kind === "arena") return warn("Đại Đấu Hồn Trường không có dấu tập trung.");
+    const acc = d.accountId, members = party.partyMembers(acc);
+    if (members.length < 2) return warn("Cần ở trong tổ đội để đặt dấu Tập trung ở đây.");
+    const pt = rallyPoint(o.tx, o.ty, this.map.MW, this.map.MH);
+    if (!pt || !this.map.standable(pt.tx * TILE, pt.ty * TILE)) return warn("Chỗ đó không đi được, hãy đặt dấu ở chỗ trống.");
+    const rl = rallyCheck(acc, Date.now()); if (rl) return warn(rl.error);
+    const msg: RallyMsg = { from: p.name, map: this.state.mapId, ch: this.state.channel, tx: pt.tx, ty: pt.ty, secs: RALLY.secs };
+    void this.presence.publish(party.RALLY_TOPIC, { to: members, pid: party.partyIdOf(acc), from: acc, msg, map: MAPS[this.state.mapId]?.name ?? this.state.mapId } satisfies party.RallyRoute);
+  }
+
+  /** Dấu tập trung trên presence: người của phòng này có trong `to` (và còn trong đúng tổ đội đó, không chặn người đặt) nhận tin riêng `rally` kèm một dòng chat hệ thống. */
+  rallyNote(r: party.RallyRoute) {
+    if (!Array.isArray(r?.to) || !r.msg) return;
+    const here = r.msg.map === this.state.mapId && r.msg.ch === this.state.channel;
+    for (const [id, d] of this.pdata) {
+      if (!r.to.includes(d.accountId) || party.partyIdOf(d.accountId) !== r.pid || d.travelling) continue;
+      if (d.accountId !== r.from && friends.blocked(d.accountId, r.from)) continue;
+      const c = this.clients.getById(id); if (!c) continue;
+      c.send("rally", r.msg);
+      const at = here ? "" : ` (${r.map}${r.msg.ch ? ` · Kênh ${r.msg.ch}` : ""})`;
+      c.send("chat", { ch: "party", name: "Hệ thống", text: `${r.msg.from} đánh dấu Tập trung ở đây${at}.` });
+    }
   }
 
   /**
