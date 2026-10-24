@@ -122,6 +122,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   PLAYER_SPEED, RUN_MULT, BEAST_GAIT, BEAST_LEASH, TICK_RATE,
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, CAMP_PT_GAP, shopOf, shopExpands,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, parseSell, autoSellable } from "../../shared/data.ts";
+import { RADAR } from "../../shared/data.ts"; // R5 (#432): bán kính lọc tin mini
 import { parseLpc, encodeLpc, decodeLpc, LPC_PARTS, LPC_RAMPS } from "../../shared/data.ts"; // Looks v2 (#509)
 import { PHAP_TUONG } from "../../shared/data.ts"; // pháp tướng Chân Thân (#486): bảng hiển thị client
 import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_MAX_ENHANCE, EQUIP_LUCK_MAX, EQUIP_ROLL, EQUIP_ILVL_K, parseEquip, equipStats, equipDefTotal, equipTemplate, equipSlotIndex, EQUIP_ENHANCE, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_SYNTH, EQUIP_SYNTH_KEEP, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SOUL, equipSynthStep, equipSynthOutcome, equipSalvage, equipAutoSalvageable } from "../../shared/data.ts"; // trang bị hồn sư (E1, E3)
@@ -5212,7 +5213,7 @@ async function npcTown(){
  */
 /**
  * 11.4: hai bot bật lọc đồng bộ ở hai đầu Tinh Đấu Ngoại vi (trận Trại cổng / Trạm gác). State chỉ có hồn sư, hồn thú, đồ rơi trong
- * SYNC_VIEW.r (tinh anh luôn có), `online` đếm cả phòng; lại gần thì thấy nhau; tin fx của người ở xa không gửi; tin mini có hồn sư và
+ * SYNC_VIEW.r (tinh anh luôn có), `online` đếm cả phòng; lại gần thì thấy nhau; tin fx của người ở xa không gửi; tin mini lọc hồn sư theo RADAR.far (người lạ ở xa không có, đồng đội tổ đội có; R5 #432), có
  * đồ rơi ở xa; hồn thú cách mọi hồn sư quá SYNC_VIEW.wake ngủ (đứng yên) rồi thức khi có người lại gần; hook view tắt / bật lọc.
  */
 /**
@@ -5818,7 +5819,7 @@ async function syncViewTest(){
   const V=await bot("Gần","lam_dien_ba_vuong_long",{sex:0,hair:1,hairCol:2,outfitCol:1},true);
   const W=await bot("Xa","lam_dien_ba_vuong_long",{sex:1,hair:1,hairCol:1,outfitCol:3},true);
   if(!(await test(V,"ping"))?.enabled){ console.log("  ⚠ bỏ qua 11.4 (cần hook view, warp, goto): bật server bằng GAME_TEST=1"); await V.room.leave(); await W.room.leave(); return; }
-  const MAP="tinh_dau_ngoai_vi", objs=JSON.parse(readFileSync(new URL(`../../shared/assets/${MAP}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]);
+  const MAP="tinh_dau_ngoai_vi", objs=JSON.parse(readFileSync(new URL(`../../shared/assets/${mapFileOf(MAP)}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]);
   const wpAt=n=>{ const o=objs.find(o=>o.type==="waypoint"&&o.name===n); return {x:o.x+o.width/2,y:o.y+o.height/2}; };
   const west=wpAt("trai_cong"), east=wpAt("tram_gac");
   const me=b=>b.room.state.players.get(b.room.sessionId), dist=(a,c)=>Math.hypot(a.x-c.x,a.y-c.y);
@@ -5844,9 +5845,20 @@ async function syncViewTest(){
   const bs=[...V.room.state.beasts.values()], farB=bs.filter(b=>!b.rank&&dist(b,me(V))>SYNC_VIEW.out+40), ranked=bs.filter(b=>b.rank).length;
   ok(!farB.length&&V.room.state.beasts.size<=v.total.beasts&&ranked===v.total.ranked,
     `state có ${V.room.state.beasts.size}/${v.total.beasts} hồn thú, không con thường nào xa quá ${SYNC_VIEW.out} pixel (${farB.length}), đủ ${ranked}/${v.total.ranked} tinh anh / thú vương`);
-  V.mini=null; ok(await waitFor(()=>V.mini?.p?.includes(sid),2500),"tin mini (bản đồ nhỏ) có hồn sư ở xa");
+  // R5 (#432): tin mini lọc theo RADAR.far. Người lạ ngoài bán kính KHÔNG có trong tin (không lộ vị trí), chính mình luôn có.
+  const farPx=dist(me(V),me(W)), miniHas=(b,id)=>b.mini?.p?.some((v,i)=>i%3===0&&v===id);
+  V.mini=null; await waitFor(()=>V.mini?.p?.length,2500); await sleep(1200);
+  ok(farPx>RADAR.far*16,`hai bot cách ${Math.round(farPx/16)} ô, xa hơn RADAR.far = ${RADAR.far} ô`);
+  ok(miniHas(V,vsid)&&!miniHas(V,sid)&&!miniHas(W,vsid),"tin mini: người lạ ngoài RADAR.far không có trong tin của nhau, chính mình có");
+  // Đồng đội tổ đội ở xa vẫn có (luật R5).
+  W.room.send("party",{op:"invite",name:V.name}); await sleep(300); V.room.send("party",{op:"accept",name:W.name});
+  await waitFor(()=>V.party?.members?.length===2,2500);
+  V.mini=null; ok(await waitFor(()=>miniHas(V,sid),3000),"tin mini: đồng đội tổ đội ở xa có trong tin");
   const k=V.mini?.p?.indexOf(sid)??-1;
   ok(k>=0&&Math.abs(V.mini.p[k+1]-Math.floor(me(W).x/16))<=2&&Math.abs(V.mini.p[k+2]-Math.floor(me(W).y/16))<=2,`tin mini: vị trí theo ô ${V.mini?.p?.slice(k+1,k+3)}`);
+  V.room.send("party",{op:"leave"}); await waitFor(()=>!V.party||V.party.members?.length<2,2500);
+  V.mini=null; await waitFor(()=>V.mini?.p?.length,2500); await sleep(1200);
+  ok(!miniHas(V,sid),"rời tổ đội: người ở xa lại biến khỏi tin mini");
   // Chống gian lận (#166): sid ở xa (lấy từ tin mini) không đổi được ra tên qua lời mời tổ đội.
   /** Khung tổ đội mới nhất của `b` (xin `party {op:"get"}`, chờ tin về): đọc sau khi server đã xử lý tin của người kia. */
   const partyNow=async b=>{ const n=b.partyMsgs; b.room.send("party",{op:"get"}); await waitFor(()=>b.partyMsgs>n,2000); return b.party; };
@@ -5856,6 +5868,7 @@ async function syncViewTest(){
   // Lại gần dưới SYNC_VIEW.r: thấy nhau.
   await place(W,{x:west.x+48,y:west.y+16});
   ok(await waitFor(()=>V.room.state.players.has(sid)&&W.room.state.players.has(vsid),1500),`lại gần (${Math.round(dist(me(W),me(V)))} pixel): hai bên thấy nhau`);
+  V.mini=null; ok(await waitFor(()=>miniHas(V,sid),3000),"tin mini: người lạ trong RADAR.far (đang gần) có trong tin");
   // Bấm vào hồn sư đang thấy (sid): lời mời tới đúng người, có tên người mời; từ chối để dọn.
   { const t=await inviteSid(), wp=await partyNow(W);
     ok(wp?.invites?.some(i=>i.name===V.name)&&t.includes(W.name),`mời tổ đội bằng sid của hồn sư đang thấy: W nhận lời mời của V (${t})`);

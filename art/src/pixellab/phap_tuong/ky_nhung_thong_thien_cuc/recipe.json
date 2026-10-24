@@ -1,0 +1,235 @@
+{
+  "id": "ky_nhung_thong_thien_cuc",
+  "nhom": "P (đóa cúc khổng lồ như vầng hào quang)",
+  "ngay": "2026-10-24",
+  "code": [
+    "idle",
+    "attack"
+  ],
+  "mode": "dat",
+  "prescale": 0.85,
+  "clean": {
+    "minComp": 6,
+    "markMax": 0
+  },
+  "display": {
+    "scale": 1.05,
+    "dx": 0,
+    "dy": 0,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "glow": "pt_ky_nhung_thong_thien_cuc_glow",
+    "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+  },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "luot": 2,
+    "chon": "concept.png = bản thử thứ 2 (seed 32)",
+    "body": {
+      "description": "pixel art, giant golden chrysanthemum flower, hundreds of thin long curled needle-like petals densely layered in a big round shaggy ball, glowing amber center glow, deep orange and gold, no flat yellow disc, short stem with two leaves, single flower, no ground, no base, no face, isometric game sprite",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 32
+    },
+    "thuLai": "bản 1 (seed 23, cúc có đĩa vàng phẳng giữa, giống hoa hướng dương) bỏ và đã xóa khỏi repo; làm lại 1 lần (tổng 2 lượt)"
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "luot": 2,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "giant golden orange chrysanthemum with shaggy long petals and short stem with two leaves",
+      "no_background": true
+    },
+    "seed": 3397885425,
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 1,
+      "se": 2,
+      "e": 3,
+      "ne": 4,
+      "n": 5
+    }
+  },
+  "chuyenDong": {
+    "idle": {
+      "pivot": [
+        0.5,
+        0.95
+      ],
+      "bob": 1.5,
+      "rot": 0,
+      "pulse": 0.2,
+      "lay": 1,
+      "layLag": 1,
+      "hoaTam": [
+        0.5,
+        0.38
+      ],
+      "hoaBk": 0.5,
+      "hoaDeg": 3
+    },
+    "attack": {
+      "pivot": [
+        0.5,
+        0.95
+      ],
+      "hit": 3,
+      "vet": [
+        3,
+        4
+      ],
+      "vong": 26,
+      "vongMau": "#ffd060",
+      "poses": [
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          0.97,
+          1.03,
+          null,
+          -0.8,
+          -6
+        ],
+        [
+          0,
+          0,
+          0,
+          0.97,
+          1.03,
+          1.08,
+          null,
+          -1.4,
+          -10
+        ],
+        [
+          0,
+          0,
+          0,
+          1.1,
+          0.98,
+          1.5,
+          null,
+          2,
+          16
+        ],
+        [
+          0,
+          0,
+          0,
+          1.08,
+          0.99,
+          1.45,
+          null,
+          2.4,
+          22
+        ],
+        [
+          0,
+          0,
+          0,
+          1.0333333333333334,
+          1,
+          1.2,
+          null,
+          0.6,
+          10
+        ],
+        [
+          0,
+          0,
+          0,
+          1.01,
+          1,
+          1.08,
+          null,
+          -0.4,
+          3
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          null,
+          0,
+          0
+        ]
+      ],
+      "hoaTam": [
+        0.5,
+        0.38
+      ],
+      "hoaBk": 0.5,
+      "layLag": 1,
+      "layCyc": 1
+    },
+    "hat": [
+      {
+        "vi": "nen",
+        "n": 10,
+        "mau": [
+          "#ffe04a",
+          "#ffb040"
+        ],
+        "len": 26,
+        "seed": 61,
+        "s": 2
+      },
+      {
+        "vi": "quay",
+        "n": 6,
+        "mau": [
+          "#fff2a0"
+        ],
+        "e": 0.3,
+        "xa": 8,
+        "len": 12,
+        "seed": 62,
+        "s": 1
+      }
+    ]
+  }
+}

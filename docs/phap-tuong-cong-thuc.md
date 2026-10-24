@@ -76,6 +76,15 @@ Thay cho `phaptuong.mjs --code` ở nhóm kiếm, tháp, đỉnh, thương, vàn
 - Lớp sáng: viền dithering theo nhịp, hạt theo hệ, dấu nhận diện nháy, vòng sóng lúc ra đòn; alpha 0 / 255.
 - **Lượt thực tế lô P4: 35** (17 concept gồm 10 lần thử lại, 9 lần xoay × 2, hoạt ảnh 0). Concept đầu thường cần thử lại 1–3 lần cho vật có đế / lửa / mặt (thêm "no ground, no base, no face, no fire" vào prompt). Bài học: thứ tự 8 ảnh xoay của vật có mặt trước (tỏa) và vật mỏng (vành) không theo sw, s, se...; chọn bằng mắt rồi ghi `xoay.dung` trong recipe.
 
+## 6c. Thực vật: cùng `phaptuong-khi.mjs` (H3 lô P5, 3 võ hồn)
+
+Lam Ngân Thảo, A Ngân, Kỳ Nhung Thông Thiên Cúc: concept + xoay như mục 6b, thở / đánh bằng code, 0 lượt hoạt ảnh. Tham số thêm ở `recipe.json`:
+- `clean.catMau` `{ mau: ["#hex"...], d, duoi }`: xóa điểm gần các màu đế (đất, cỏ, bóng tối) ở `duoi` phần dưới hộp bao, vì concept hay kèm đế.
+- `chuyenDong.<idle|attack>.lay` (idle) hoặc phần tử thứ 8 của mỗi khung `attack.poses` (`[xoay, tiến, nâng, co ngang, co dọc, sáng, dải sáng, lay, hoa]`): biên độ uốn ngọn theo chiều cao (điểm); `layLag` là độ trễ pha giữa gốc và ngọn. Co ngang > 1 ở khung ra đòn làm dây vươn ra hai bên.
+- `hoaTam` / `hoaBk` / `hoaDeg` (idle) hoặc phần tử thứ 9 của `poses` (attack): xoay riêng vùng hoa (tâm theo hộp bao, bán kính theo cạnh lớn) để cánh xoay mà thân đứng yên.
+- `glowMau`: màu viền / vệt sáng riêng (mặc định màu võ hồn), dùng cho võ hồn đa sắc như A Ngân (`#c080ff`).
+- **Lượt thực tế lô P5: ~17** (7 concept gồm Cúc làm lại 1, A Ngân làm lại 3; 4 lần xoay × 2 gồm A Ngân xoay lại; 2 lượt dự phòng cho một lệnh xoay bị timeout). Bài học: prompt cây cao nhiều nhánh ra dáng dương xỉ mảnh, đọc yếu khi chồng lên hồn sư; "tán hoa lớn như lọng + vương miện + tua rủ" ra bóng rõ hơn. Cúc cần "hàng trăm cánh kim dài, không có đĩa vàng phẳng", nếu không ra hoa hướng dương.
+
 ## 7. Việc chưa làm (H2 trở đi)
 
 Client chưa tải sheet `pt_*` (`sprites.ts` bỏ qua key isometric ngoài hs / vh / beast / fx); H2 thêm hệ thống hình thái (đổi lớp, chuỗi biến hình 5 bước, tan), đọc `pt` từ manifest. Normal map (`_n.png`) chưa làm.
