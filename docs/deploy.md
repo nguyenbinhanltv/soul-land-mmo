@@ -26,11 +26,11 @@ Release đã chạy bot khói vào chính image đó với DB rỗng. Không ch�
 ## Thiết lập một lần (chủ repo)
 
 1. Chạy `deploy/gcp/setup.sh` (Artifact Registry, Workload Identity Federation, hai service account), làm theo `deploy/gcp/README.md`.
-2. Ở GitHub repo game đặt Variables `GCP_WIF_PROVIDER`, `GCP_SA_EMAIL` và Secret `GITOPS_TOKEN` (hướng dẫn trong README đó).
+2. Ở GitHub repo game đặt `GCP_WIF_PROVIDER`, `GCP_SA_EMAIL` (Variable hoặc Secret đều được: release.yml / promote.yml đọc `vars.X || secrets.X`) và Secret `GITOPS_TOKEN` (hướng dẫn trong README đó).
 3. Repo GitOps (`soul-land-gitops`, private): manifest Kustomize, ArgoCD, SealedSecret `soul-land-env` (`DATABASE_URL`) và pull secret `ar-pull`.
 
 ## Thông số image / pod (để khớp repo GitOps)
 
-- Image chạy `node --import tsx src/index.ts` (node là PID 1), user `node` (không root), cổng `2567`, `GET /health`.
+- Image chạy `node --enable-source-maps dist/index.mjs` (JS do esbuild gộp ở tầng build, không có tsx / esbuild trong image; node là PID 1), user `node` (không root), cổng `2567`, `GET /health`.
 - `terminationGracePeriodSeconds` = `SHUTDOWN_SAVE_MS` (`server/src/index.ts`, hiện 6000 ms) + 30 giây = 36 giây, `preStop` ngủ 5 giây. Đổi hằng thì đổi theo ở repo GitOps.
 - Biến môi trường prod: `PORT`, `TRUST_PROXY=1`, `CLIENT_ORIGIN=https://soulland.oleqima.com`, `NODE_ENV=production`, `DATABASE_URL` (từ secret). Không đặt `GAME_TEST`, `REDIS_URL`, `PUBLIC_ADDRESS` (pha 1 một bản).
