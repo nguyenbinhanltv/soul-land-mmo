@@ -12,7 +12,7 @@ export const WS = API.replace(/^http/, "ws");
 export interface Character { accountId: number; name: string; rowId: number; vohon: string; level: number; xp: number; stars: number; rings: number[]; kills: number; }
 
 /** Ngoại hình hồn sư của tài khoản; `chosen` = đã tạo nhân vật (chỉ chọn một lần). */
-export interface AccountLooks extends Looks { chosen: boolean; }
+export interface AccountLooks extends Looks { chosen: boolean; changes: number; }
 /** Trả về từ /api/login và /api/me: võ hồn ra trận (null = chưa thức tỉnh), ngoại hình và bản đồ đang đứng (do server lưu). */
 export interface Me { character: Character | null; looks: AccountLooks; mapId: string; }
 

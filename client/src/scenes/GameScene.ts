@@ -7,7 +7,7 @@ import { MINI_BASE, TIERS, BEASTS, VOHON, RADAR, SYNC_VIEW, MAPS, TILE, titleOf,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, EQUIP_ITEM, EQUIP_TEMPLATES, EQUIP_TIERS, equipName, coreStatText, type CoreSubUp, type CoreStat, KING,
   AUTOWALK, AUTO_MOVE, WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM, SLOW_CAP,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
-  type QuestProgress, type QuestStatus, formatHonTe, type SkillDef, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS, LPC_VIEW } from "../../../shared/data.ts";
+  type QuestProgress, type QuestStatus, formatHonTe, type SkillDef, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS, LPC_VIEW, decodeLpc, type Looks } from "../../../shared/data.ts";
 import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
@@ -174,6 +174,13 @@ const DIVE_MARK = { r: 40, ripple: 52, holdMs: 1500 };
 const pSlow = (st: number) => Math.min(SLOW_CAP, PLAYER_STATUS.reduce((a, s) => a + (st & statusBit(s) ? STATUS[s].slow : 0), 0));
 /** Biểu tượng trạng thái trên đầu hồn thú / hồn sư (thứ tự hiển thị); Choáng, Trói, Mê hoặc vẽ riêng. */
 const STATUS_ICONS = ["burn", "shock", "poison", "vuln", "armor", "silence", "allure", "lock", "slow", "chill", "flood", "ink"] as const;
+
+/** Ngoại hình đang mang của một hồn sư trong state (chế độ Tự tạo khi có chuỗi `lpc`); chuỗi hỏng thì null. */
+function looksOf(p: { sex: number; hair: number; hairCol: number; outfitCol: number; skin: number; lpc: string }): Looks | null {
+  if (!p.lpc) return { sex: p.sex, hair: p.hair, hairCol: p.hairCol, outfitCol: p.outfitCol, skin: p.skin, mode: "preset" };
+  const lpc = decodeLpc(p.lpc);
+  return lpc ? { sex: lpc.body, hair: 0, hairCol: 0, outfitCol: 0, skin: 0, mode: "lpc", lpc } : null;
+}
 
 export class GameScene extends Phaser.Scene {
   room!: Room<any>;
@@ -1136,6 +1143,8 @@ export class GameScene extends Phaser.Scene {
         tong: (op, tong, chain) => this.room.send("tong", { op, tong, chain }), // #196: gia nhập / đổi / rời tông môn; #197: tông vụ, bảng tuần, thưởng tuần
         shard: (vohon, qty) => this.room.send("shardbuy", { vohon, qty, npc: m.id }), // #282: Thương hội đổi mảnh võ hồn
         shardInfo: () => this.room.send("shardinfo"),
+        looks: () => { const p = this.room.state.players.get(this.me); return p ? looksOf(p) : null; }, // thợ may (L4 #511): ngoại hình đang mang
+        changeLooks: (looks) => this.room.send("looks", { looks, npc: m.id }),
         owned: () => (this.owned?.list ?? []).map((v) => v.vohon),
         gear: () => this.gear,
         equipEnh: (id, charm) => this.room.send("equipenh", { id, charm }), // lò rèn: cường hóa trang bị hồn sư (E3)
@@ -1190,6 +1199,7 @@ export class GameScene extends Phaser.Scene {
     });
     this.room.onMessage("tong", (m: hud.TongMsg) => { if (m && typeof m.tong === "string") hud.setTong(m); }); // #196, #197 tông vụ
     this.room.onMessage("tongBoard", (m: hud.TongBoardMsg) => { if (m && m.cur && m.last) hud.setTongBoard(m); }); // #197 bảng tông tuần
+    this.room.onMessage("looksinfo", (m: { n: number; err?: string }) => { if (m && Number.isInteger(m.n)) hud.setLooksInfo(m); }); // L4 #511: số lần đã đổi ngoại hình / lý do từ chối
     this.room.onMessage("shardinfo", (m: { n: number; daily: number }) => { if (m && Number.isInteger(m.n)) hud.setShardInfo(m); }); // #282
     // Khảo hạch hằng ngày: tiến độ do server đếm; client vẽ mục "Hằng ngày", dấu trên đầu Phất Lan Đức, chấm bản đồ nhỏ và thông báo.
     this.room.onMessage("daily", (m: DailyMsg) => {

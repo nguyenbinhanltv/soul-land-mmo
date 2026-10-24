@@ -25,7 +25,7 @@ const EAGER: HsAnim[] = ["idle", "walk", "attack", "cast", "hurt"];
 
 interface Src { key: string; sheet: string; pairs: [number, number][]; refs: number; state: "wait" | "queued" | "ready" | "fail"; img: CanvasImageSource | null }
 interface Raw { refs: number; state: "load" | "ready" | "fail"; img: HTMLImageElement | null; waiting: Src[] }
-interface Spec { sheet: string; z: number; tint: string; pairs: [number, number][]; idle: boolean }
+export interface Spec { sheet: string; z: number; tint: string; pairs: [number, number][]; idle: boolean }
 interface Combo {
   id: number; str: string; key: string; sex: "m" | "f"; refs: number; freeAt: number;
   layers: Src[]; idleOk: boolean; want: Set<HsAnim>; done: Set<HsAnim>;
@@ -33,7 +33,7 @@ interface Combo {
 }
 
 /** Danh sách lớp của một ngoại hình LPC theo thứ tự vẽ (zPos tăng dần): sheet, bảng đổi màu dải gốc → dải chọn. */
-function layerSpecs(l: LpcLooks): Spec[] {
+export function layerSpecs(l: LpcLooks): Spec[] {
   const sx = l.body === 0 ? "m" : "f", out: Spec[] = [];
   for (const slot of Object.keys(l.parts)) {
     const part = byId.get(l.parts[slot]); if (!part) continue;
@@ -51,6 +51,43 @@ function layerSpecs(l: LpcLooks): Spec[] {
     for (const z of part.z) out.push({ sheet: `lpcp_${part.id.replace(".", "_")}_${sx}_${z}${color ? `_${color}` : ""}`, z, tint, pairs, idle });
   }
   return out.sort((a, b) => a.z - b.z);
+}
+
+/** Tô màu một sheet: đổi từng sắc dải gốc sang sắc dải chọn (`pairs`: [từ, sang] dạng 0xRRGGBB); trả canvas mới. */
+export function tintImage(img: HTMLImageElement, pairs: [number, number][]): HTMLCanvasElement {
+  const cv = document.createElement("canvas"); cv.width = img.width; cv.height = img.height;
+  const ctx = cv.getContext("2d", { willReadFrequently: true })!;
+  ctx.drawImage(img, 0, 0);
+  const px = ctx.getImageData(0, 0, cv.width, cv.height), d = px.data, map = new Map(pairs);
+  for (let i = 0; i < d.length; i += 4) {
+    if (!d[i + 3]) continue;
+    const to = map.get((d[i] << 16) | (d[i + 1] << 8) | d[i + 2]);
+    if (to !== undefined) { d[i] = to >> 16; d[i + 1] = (to >> 8) & 255; d[i + 2] = to & 255; }
+  }
+  ctx.putImageData(px, 0, 0);
+  return cv;
+}
+
+/** Ghép một khung từ các lớp (đã sắp theo zPos; lớp null chưa tải thì bỏ) vào `t` (khung F×F), rồi viền ngoài như hồn sư. Dùng chung bộ ghép trong game và màn tạo nhân vật. */
+export function flattenFrame(t: CanvasRenderingContext2D, layers: (CanvasImageSource | null)[], srcCol: number, srcRow: number) {
+  t.clearRect(0, 0, F, F);
+  for (const img of layers) if (img) t.drawImage(img, srcCol * F, srcRow * F, F, F, 0, 0, F, F);
+  const px = t.getImageData(0, 0, F, F), d = px.data;
+  const solid = (x: number, y: number) => x >= 0 && y >= 0 && x < F && y < F && d[(y * F + x) * 4 + 3] >= 128;
+  const edge = new Uint8Array(F * F);
+  for (let y = 0; y < F; y++) for (let x = 0; x < F; x++) {
+    const i = (y * F + x) * 4;
+    if (d[i + 3] < 128) continue;
+    const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+    edge[y * F + x] = !(solid(x - 1, y) && solid(x + 1, y) && solid(x, y - 1) && solid(x, y + 1)) || lum < 0.12 * 255 ? 1 : 0;
+  }
+  for (let y = 0; y < F; y++) for (let x = 0; x < F; x++) {
+    const i = (y * F + x) * 4;
+    if (d[i + 3] < 128) { d[i + 3] = 0; continue; }
+    d[i + 3] = 255;
+    if (edge[y * F + x]) { d[i] = OUTLINE >> 16; d[i + 1] = (OUTLINE >> 8) & 255; d[i + 2] = OUTLINE & 255; }
+  }
+  t.putImageData(px, 0, 0);
 }
 
 export class LpcRig {
@@ -144,16 +181,7 @@ export class LpcRig {
   private tint(a: Src) {
     const img = this.raw.get(a.sheet)?.img;
     if (!img) { a.state = "fail"; return; }
-    const cv = document.createElement("canvas"); cv.width = img.width; cv.height = img.height;
-    const ctx = cv.getContext("2d", { willReadFrequently: true })!;
-    ctx.drawImage(img, 0, 0);
-    const px = ctx.getImageData(0, 0, cv.width, cv.height), d = px.data, map = new Map(a.pairs);
-    for (let i = 0; i < d.length; i += 4) {
-      if (!d[i + 3]) continue;
-      const to = map.get((d[i] << 16) | (d[i + 1] << 8) | d[i + 2]);
-      if (to !== undefined) { d[i] = to >> 16; d[i + 1] = (to >> 8) & 255; d[i + 2] = to & 255; }
-    }
-    ctx.putImageData(px, 0, 0);
+    const cv = tintImage(img, a.pairs);
     a.img = cv; a.state = "ready";
   }
 
@@ -172,25 +200,7 @@ export class LpcRig {
   // ---------- Ghép khung ----------
   /** Ghép một khung: vẽ các lớp theo zPos vào ảnh tạm, viền ngoài, rồi đặt vào ô (tx, ty) của texture. `breathe`: nhích phần trên 1 điểm. */
   private frame(c: Combo, srcCol: number, srcRow: number, tx: number, ty: number, breathe: boolean) {
-    const t = this.tctx;
-    t.clearRect(0, 0, F, F);
-    for (const L of c.layers) if (L.state === "ready" && L.img) t.drawImage(L.img, srcCol * F, srcRow * F, F, F, 0, 0, F, F);
-    const px = t.getImageData(0, 0, F, F), d = px.data;
-    const solid = (x: number, y: number) => x >= 0 && y >= 0 && x < F && y < F && d[(y * F + x) * 4 + 3] >= 128;
-    const edge = new Uint8Array(F * F);
-    for (let y = 0; y < F; y++) for (let x = 0; x < F; x++) {
-      const i = (y * F + x) * 4;
-      if (d[i + 3] < 128) continue;
-      const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-      edge[y * F + x] = !(solid(x - 1, y) && solid(x + 1, y) && solid(x, y - 1) && solid(x, y + 1)) || lum < 0.12 * 255 ? 1 : 0;
-    }
-    for (let y = 0; y < F; y++) for (let x = 0; x < F; x++) {
-      const i = (y * F + x) * 4;
-      if (d[i + 3] < 128) { d[i + 3] = 0; continue; }
-      d[i + 3] = 255;
-      if (edge[y * F + x]) { d[i] = OUTLINE >> 16; d[i + 1] = (OUTLINE >> 8) & 255; d[i + 2] = OUTLINE & 255; }
-    }
-    t.putImageData(px, 0, 0);
+    flattenFrame(this.tctx, c.layers.map((L) => (L.state === "ready" ? L.img : null)), srcCol, srcRow);
     const o = c.ctx, Y = LPC_VIEW.breatheY;
     o.clearRect(tx, ty, F, F);
     if (breathe) { o.drawImage(this.tmp, 0, 0, F, Y, tx, ty + 1, F, Y); o.drawImage(this.tmp, 0, Y, F, F - Y, tx, ty + Y, F, F - Y); }

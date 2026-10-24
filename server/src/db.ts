@@ -23,8 +23,8 @@ export interface Character {
   herbs: Record<string, number>; // từ BĐ6b: số cây tiên thảo đã dùng theo mã (HERBS), cột `vohons.herbs`; lưu cùng tiến độ như `stars`
 }
 
-/** Ngoại hình hồn sư của tài khoản. `chosen` = đã tự chọn (chỉ chọn được một lần). */
-export interface AccountLooks extends Looks { chosen: boolean; }
+/** Ngoại hình hồn sư của tài khoản. `chosen` = đã tạo nhân vật (lần chọn đầu, miễn phí); `changes` = số lần đã đổi ở thợ may sau đó (LOOKS_CHANGE). */
+export interface AccountLooks extends Looks { chosen: boolean; changes: number; }
 
 /**
  * Bản đồ đang đứng (mã trong MAPS) và vị trí của hồn sư; x, y = null khi chưa lưu vị trí hoặc vị trí ghi trên file Tiled khác file server
@@ -198,6 +198,12 @@ export interface Store {
   getLooks(accountId: number): Promise<AccountLooks>;
   /** Lưu ngoại hình lần đầu (đã kiểm tra bằng parseLooks). false nếu tài khoản đã chọn rồi. */
   chooseLooks(accountId: number, looks: Looks): Promise<boolean>;
+  /**
+   * Đổi ngoại hình ở thợ may (L4 #511) trong MỘT transaction: ghi ngoại hình mới, tăng số lần đổi và ghi túi (đã trừ Hồn Tệ). Chỉ thành công khi
+   * tài khoản đã tạo nhân vật và số lần đổi trong DB đúng bằng `expect` (hai yêu cầu cùng lúc chỉ một cái được ghi); trả số lần đổi mới,
+   * hoặc null (không ghi gì, kể cả túi) nếu không khớp.
+   */
+  changeLooks(accountId: number, looks: Looks, expect: number, bag: Bag): Promise<number | null>;
   /** Bản đồ đang đứng và vị trí (đã ánh xạ bằng resolveMap). */
   getLocation(accountId: number): Promise<Location>;
   /**
@@ -397,6 +403,7 @@ export class MemoryStore implements Store {
   rows = new Map<number, Character>();  // vohons.id -> võ hồn
   active = new Map<number, number>();   // accountId -> vohons.id đang ra trận
   looks = new Map<number, Looks>();     // accountId -> ngoại hình đã chọn (chưa có = chưa chọn)
+  looksChanges = new Map<number, number>(); // accountId -> số lần đã đổi ngoại hình ở thợ may (accounts.looks_changes, L4 #511)
   teams = new Map<number, number[]>();  // accountId -> đội hình (vohons.id theo ô, 0 = trống)
   locs = new Map<number, { mapId: string | null; x: number | null; y: number | null; file: string | null }>(); // accountId -> accounts.map_id, pos_x, pos_y, map_file
   bags = new Map<number, Bag>();        // accountId -> túi đồ (bảng items) và Hồn Tệ (accounts.hon_te)
@@ -479,11 +486,17 @@ export class MemoryStore implements Store {
   }
   async getLooks(accountId: number) {
     const l = this.looks.get(accountId);
-    return { ...(l ?? DEFAULT_LOOKS), chosen: !!l };
+    return { ...(l ?? DEFAULT_LOOKS), chosen: !!l, changes: this.looksChanges.get(accountId) ?? 0 };
   }
   async chooseLooks(accountId: number, looks: Looks) {
     if (this.looks.has(accountId)) return false;
     this.looks.set(accountId, { ...looks }); return true;
+  }
+  async changeLooks(accountId: number, looks: Looks, expect: number, bag: Bag) {
+    if (!this.looks.has(accountId) || (this.looksChanges.get(accountId) ?? 0) !== expect) return null;
+    this.checkBag(accountId, bag);
+    this.looks.set(accountId, { ...looks }); this.looksChanges.set(accountId, expect + 1); this.putBag(accountId, bag);
+    return expect + 1;
   }
   async getLocation(accountId: number) {
     const l = this.locs.get(accountId);
@@ -727,7 +740,7 @@ export class MemoryStore implements Store {
     this.checkBag(id, bag); this.putBag(id, bag);
     if (data.starter) this.starter.add(id); else this.starter.delete(id);
     this.locs.set(id, { mapId: data.mapId, x: null, y: null, file: null });
-    this.looks.set(id, { ...data.looks });
+    this.looks.set(id, { ...data.looks }); this.looksChanges.delete(id);
     this.wps.set(id, new Set(data.waypoints));
     return { accountId: id, created };
   }
@@ -749,7 +762,7 @@ export class MemoryStore implements Store {
     for (const k of cl) this.claims.delete(k);
     for (const k of pairs) this.pairs.delete(k);
     for (const t of tokens) this.sessions.delete(t);
-    for (const m of [this.active, this.teams, this.bags, this.quests, this.wps, this.autos, this.offline, this.tongs, this.arena, this.locs, this.looks, this.friends, this.blocks, this.names])
+    for (const m of [this.active, this.teams, this.bags, this.quests, this.wps, this.autos, this.offline, this.tongs, this.arena, this.locs, this.looks, this.looksChanges, this.friends, this.blocks, this.names])
       m.delete(id);
     for (const m of [this.friends, this.blocks]) for (const set of m.values()) set.delete(id);
     this.starter.delete(id); this.tests.delete(id); this.accounts.delete(key);
@@ -930,13 +943,13 @@ export class PgStore implements Store {
     } finally { db.release(); }
   }
   async getLooks(accountId: number) {
-    const r = await this.pool.query("SELECT sex, hair, hair_col, outfit_col, skin, looks_lpc, looks_chosen FROM accounts WHERE id=$1", [accountId]);
+    const r = await this.pool.query("SELECT sex, hair, hair_col, outfit_col, skin, looks_lpc, looks_chosen, looks_changes FROM accounts WHERE id=$1", [accountId]);
     const x = r.rows[0];
     // Giá trị ngoài khoảng (sửa tay trong DB, hoặc bảng màu bị rút bớt) thì về mặc định thay vì gửi chỉ số hỏng cho client.
     // Cột looks_lpc có chuỗi thì là chế độ Tự tạo (decodeLpc kiểm lại theo danh mục; hỏng thì cũng về mặc định).
     const l = x ? parseLooks(x.looks_lpc ? { mode: "lpc", lpc: decodeLpc(x.looks_lpc) }
       : { sex: x.sex, hair: x.hair, hairCol: x.hair_col, outfitCol: x.outfit_col, skin: x.skin }) : null;
-    return { ...(l ?? DEFAULT_LOOKS), chosen: !!x?.looks_chosen };
+    return { ...(l ?? DEFAULT_LOOKS), chosen: !!x?.looks_chosen, changes: Number(x?.looks_changes ?? 0) };
   }
   /**
    * Biểu thức SQL của resolveMap(map_id) và các tham số của nó, đánh số từ `$n`: mọi mã trong MAPS, mã cũ / mã thay thế trong
@@ -1382,7 +1395,7 @@ export class PgStore implements Store {
       for (const [slot, code] of data.team.entries()) await db.query("INSERT INTO teams(account_id, slot, vohon_id) VALUES ($1,$2,$3)", [id, slot, rowOf.get(code)]);
       await db.query(
         `UPDATE accounts SET is_test=true, active_vohon=$2, map_id=$3, pos_x=NULL, pos_y=NULL, map_file=NULL, sex=$4, hair=$5, hair_col=$6, outfit_col=$7, skin=$8,
-           looks_chosen=true, starter_items=$9, tong=NULL, tong_at=NULL, bag_slots=NULL, auto_sell=NULL, auto_sold=NULL WHERE id=$1`,
+           looks_lpc='', looks_changes=0, looks_chosen=true, starter_items=$9, tong=NULL, tong_at=NULL, bag_slots=NULL, auto_sell=NULL, auto_sold=NULL WHERE id=$1`,
         [id, rowOf.get(data.active), data.mapId, data.looks.sex, data.looks.hair, data.looks.hairCol, data.looks.outfitCol, data.looks.skin, data.starter]);
       await this.writeBag(db, id, { honTe: data.honTe, slots: data.slots, items: seedItems(data.items, (c) => rowOf.get(c)!) });
       for (const wp of data.waypoints) await db.query("INSERT INTO waypoints(account_id, wp) VALUES ($1,$2) ON CONFLICT DO NOTHING", [id, wp]);
@@ -1416,6 +1429,24 @@ export class PgStore implements Store {
       "UPDATE accounts SET sex=$2, hair=$3, hair_col=$4, outfit_col=$5, skin=$6, looks_lpc=$7, looks_chosen=true WHERE id=$1 AND NOT looks_chosen",
       [accountId, looks.sex, looks.hair, looks.hairCol, looks.outfitCol, looks.skin, looks.lpc ? encodeLpc(looks.lpc) : ""]);
     return (r.rowCount ?? 0) > 0;
+  }
+  async changeLooks(accountId: number, looks: Looks, expect: number, bag: Bag) {
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      // Điều kiện looks_changes = expect: hai yêu cầu cùng lúc chỉ một cái khớp (dòng bị khóa khi cập nhật), cái kia ROLLBACK, không trừ tiền.
+      const r = await db.query(
+        `UPDATE accounts SET sex=$2, hair=$3, hair_col=$4, outfit_col=$5, skin=$6, looks_lpc=$7, looks_changes=looks_changes+1
+         WHERE id=$1 AND looks_chosen AND looks_changes=$8 RETURNING looks_changes`,
+        [accountId, looks.sex, looks.hair, looks.hairCol, looks.outfitCol, looks.skin, looks.lpc ? encodeLpc(looks.lpc) : "", expect]);
+      if (!r.rowCount) { await db.query("ROLLBACK"); return null; }
+      await this.writeBag(db, accountId, bag);
+      await db.query("COMMIT");
+      return Number(r.rows[0].looks_changes);
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
   }
 }
 

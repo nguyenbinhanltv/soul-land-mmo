@@ -3,11 +3,11 @@ import Phaser from "phaser";
 import { Client, type Room } from "colyseus.js";
 import { GameScene } from "./scenes/GameScene.ts";
 import { addLag } from "./predict.ts";
-import { TIERS, VOHON, HE, MAPS, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES, SEXES, HAIR_STYLES, HAIR_COLORS, OUTFIT_COLORS, SKIN_TONES,
-  type He, type Looks } from "../../shared/data.ts";
+import { TIERS, VOHON, HE, MAPS, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES,
+  type He } from "../../shared/data.ts";
 import { API, WS, post, storage, type Character, type Me } from "./net.ts";
 import { ringColor } from "./hud.ts";
-import { paintHonsuPreview } from "./honsuArt.ts";
+import { mountMaker } from "./looksMaker.ts";
 import { MAX_LIGHTS } from "./lighting.ts";
 import { loadUiArt } from "./uiArt.ts";
 import { initTips } from "./tooltip.ts";
@@ -68,70 +68,32 @@ async function resume(err = "") {
   try { route(await post<Me>("/api/me", { token })); } catch { loginScreen(err); }
 }
 
-/** Vẽ hồn sư xem trước lên canvas 32×32 (CSS phóng to, pixelated), cùng hình vẽ với trong game. */
-function paintPreview(cv: HTMLCanvasElement, L: Looks) {
-  const ctx = cv.getContext("2d")!;
-  ctx.clearRect(0, 0, cv.width, cv.height);
-  paintHonsuPreview(ctx, L, 16, 30);
-}
-
-// Tạo nhân vật (mục 3, 5.11): chọn giới tính, tông da (9.9), kiểu tóc, màu tóc, màu áo. Chạy ngay trước bước chọn SSR của lễ thức tỉnh;
-// tài khoản cũ đang mang ngoại hình mặc định thì được chọn lại một lần. Server kiểm tra mọi giá trị.
+// Tạo nhân vật (mục 3, 5.11): bước đầu chọn [Mẫu dựng sẵn] (giới tính, tông da, kiểu tóc, màu tóc, màu áo) hoặc [Tự tạo (LPC)] (ghép từng
+// món, looksMaker.ts). Chạy ngay trước bước chọn SSR của lễ thức tỉnh; tài khoản cũ đang mang ngoại hình mặc định thì được chọn lại một
+// lần. Lần chọn này miễn phí; đổi về sau phải qua thợ may (có phí từ lần thứ hai). Server kiểm tra mọi giá trị.
 function createScreen(me: Me) {
-  const L: Looks = { sex: me.looks.sex, hair: me.looks.hair, hairCol: me.looks.hairCol, outfitCol: me.looks.outfitCol, skin: me.looks.skin };
-  card.classList.add("wide");
-  card.innerHTML = `<h1>Tạo nhân vật</h1>
-    <p>${me.character
-      ? "Hồn sư của bạn đang mang ngoại hình mặc định. Bạn được chọn lại <b>một lần</b>; sau khi xác nhận sẽ không đổi được nữa."
-      : "Chọn ngoại hình hồn sư trước lễ thức tỉnh. Ngoại hình chỉ chọn được <b>một lần</b>."}</p>
-    <div class="maker">
-      <div class="pv"><canvas id="pv" width="32" height="32" aria-label="Xem trước hồn sư"></canvas><div id="pvTxt"></div></div>
-      <div class="opts" id="opts"></div>
-    </div>
-    <div class="btns"><button class="btn primary" id="ok">Xác nhận ngoại hình</button><button class="btn" id="out">Đổi tài khoản</button></div>
-    <div class="err" id="err"></div>`;
-  const opts = document.getElementById("opts")!, cv = document.getElementById("pv") as HTMLCanvasElement;
-  const seg = (k: keyof Looks, names: readonly string[]) => names.map((n, i) =>
-    `<button type="button" class="opt" data-k="${k}" data-i="${i}" aria-pressed="${L[k] === i}">${n}</button>`).join("");
-  // Ô màu vẽ 3 sắc sáng nhất của dải (tóc / áo 4 sắc, da 3 sắc).
-  const sw = (k: keyof Looks, list: readonly { name: string; ramp: readonly string[] }[]) => list.map((c, i) => {
-    const [a, b, d] = c.ramp.slice(-3);
-    return `<button type="button" class="sw" data-k="${k}" data-i="${i}" aria-pressed="${L[k] === i}" title="${c.name}" aria-label="${c.name}"
-      style="--a:${a};--b:${b};--c:${d}"></button>`;
-  }).join("");
-  const render = () => {
-    opts.innerHTML = `<h3>Giới tính</h3><div class="seg">${seg("sex", SEXES)}</div>
-      <h3>Tông da · ${SKIN_TONES[L.skin].name}</h3><div class="sws">${sw("skin", SKIN_TONES)}</div>
-      <h3>Kiểu tóc</h3><div class="seg">${seg("hair", HAIR_STYLES[L.sex])}</div>
-      <h3>Màu tóc · ${HAIR_COLORS[L.hairCol].name}</h3><div class="sws">${sw("hairCol", HAIR_COLORS)}</div>
-      <h3>Màu áo · ${OUTFIT_COLORS[L.outfitCol].name}</h3><div class="sws">${sw("outfitCol", OUTFIT_COLORS)}</div>`;
-    paintPreview(cv, L);
-    document.getElementById("pvTxt")!.textContent = `${SEXES[L.sex]} · ${HAIR_STYLES[L.sex][L.hair]}`;
-  };
-  // Một bộ nghe chung cho mọi nút (click chạy cả với chuột và chạm).
-  opts.addEventListener("click", (e) => {
-    const b = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-k]"); if (!b) return;
-    const k = b.dataset.k as "sex" | "hair" | "hairCol" | "outfitCol" | "skin", i = Number(b.dataset.i);
-    if (L[k] === i) return;
-    L[k] = i; render();
-    opts.querySelector<HTMLButtonElement>(`button[data-k="${k}"][data-i="${i}"]`)?.focus();
+  card.classList.add("wide", "mk");
+  const stop = mountMaker({
+    host: card, title: "Tạo nhân vật",
+    intro: me.character
+      ? "Hồn sư của bạn đang mang ngoại hình mặc định. Bạn được chọn lại <b>một lần</b> ở đây (miễn phí). Sau này muốn đổi thì tới thợ may trong thành."
+      : "Chọn ngoại hình hồn sư trước lễ thức tỉnh. Lần chọn này <b>miễn phí</b>; sau này muốn đổi (kể cả đổi giữa hai chế độ) thì tới thợ may trong thành: lần đổi đầu miễn phí, các lần sau tốn Hồn Tệ.",
+    current: me.looks.chosen || me.character ? me.looks : null,
+    okLabel: "Xác nhận ngoại hình",
+    async onOk(looks) {
+      try {
+        const r = await post<{ looks: Me["looks"] }>("/api/looks", { token, ...looks });
+        stop(); card.classList.remove("mk");
+        route({ ...me, looks: r.looks });
+      } catch (e) {
+        // Đã chọn ở tab khác, hoặc phiên hết hạn: hỏi lại server.
+        const m = (e as Error).message;
+        if (/đã chọn|hết hạn/.test(m)) { stop(); card.classList.remove("mk"); return resume(m); }
+        throw e;
+      }
+    },
+    cancel: { label: "Đổi tài khoản", fn: () => { stop(); card.classList.remove("mk"); storage.del("shh-token"); loginScreen(); } },
   });
-  render();
-  const ok = document.getElementById("ok") as HTMLButtonElement;
-  ok.onclick = async () => {
-    ok.disabled = true;
-    try {
-      const r = await post<{ looks: Me["looks"] }>("/api/looks", { token, ...L });
-      route({ ...me, looks: r.looks });
-    } catch (e) {
-      // Đã chọn ở tab khác, hoặc phiên hết hạn: hỏi lại server.
-      const m = (e as Error).message;
-      if (/đã chọn|hết hạn/.test(m)) return resume(m);
-      document.getElementById("err")!.textContent = m; ok.disabled = false;
-    }
-  };
-  document.getElementById("out")!.onclick = () => { storage.del("shh-token"); loginScreen(); };
-  ok.focus();
 }
 
 // Lễ thức tỉnh: nhận Lam Ngân Thảo và tự chọn 1 võ hồn SSR. Server kiểm tra lựa chọn và roll hồn lực bẩm sinh.

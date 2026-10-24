@@ -8,7 +8,7 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_STAT_IDS, CORE_STATS, coreSlotOf, coreBonus, coreSetCounts,
   BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, BONE_FEED_SAME_SLOT, boneXp, boneEnhancePreview, boneEnhanceNeed, boneFeedXp, boneSkillMult, boneMilestones,
-  BONE_ENHANCE_MILESTONES, BONE_MAX_SUBS, BONE_SUB_POOL, parseBoneSubs, boneSubsDue, KING, WORLD, NPCS, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee, SHARD_BUY, shardBuyPrice, shardBuyCost, ARENA_SHARDS, shardCode, WAYPOINT_CAST, type NpcDef, type NpcRole,
+  BONE_ENHANCE_MILESTONES, BONE_MAX_SUBS, BONE_SUB_POOL, parseBoneSubs, boneSubsDue, KING, WORLD, NPCS, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee, SHARD_BUY, shardBuyPrice, shardBuyCost, ARENA_SHARDS, shardCode, WAYPOINT_CAST, LOOKS_CHANGE, looksChangeCost, type Looks, type NpcDef, type NpcRole,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, CORE_FEED_SAME_SET, CORE_SUB_EVERY, CORE_MAX_SUBS, coreXp, coreEnhancePreview, coreEnhanceNeed, coreFeedXp,
   QUESTS, QUEST_STARTER, QUEST_AFTER, questChain, questRewardText, questBoneText, type QuestReward, type QuestStep, DAILY, RESONANCE, RESONANCE_RANK_PAGE_SIZE, resonanceText,
   herbDef, herbBonus, HERB_MAX, HERB_PCT, RES_STAT_NAMES,
@@ -24,6 +24,7 @@ import { setTip, tipOf, hideTip, parseText, type TipLine, type TipSpec } from ".
 import { BAG_GROUPS, BAG_SORTS, type BagSort, inGroup, rarityOf, noteSeen, isNew, markSeen, sortView, moveItem, clearOrder, wornFor, compareLines } from "./bag.ts";
 import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_TIERS, EQUIP_MAX_TIER, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SALVAGE_MAX, EQUIP_SYNTH_KEEP, equipName, equipTemplate, equipSlotDef, equipStats, equipSynthStep, equipAutoSalvageable, parseEquip } from "../../shared/data.ts";
 import { toast } from "./feedback.ts";
+import { openLooksOverlay } from "./looksMaker.ts";
 import type { GearMsg, EquipEnhPreview, EquipEnhDone, EquipSynDone, EquipSalvDone } from "./net.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
 import { autoTimeText, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, WORLD_CHAT, TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, tongDef, FRIEND_MAX, BLOCK_MAX,
@@ -2253,6 +2254,7 @@ export interface NpcActions {
   gear(): GearMsg | null; equipEnh(id: string, charm: boolean): void; equipEnhPreview(id: string): void; // Thợ rèn: cường hóa trang bị hồn sư (E3)
   equipSynth(main: string, sacrifice: string[]): void; equipSalvage(ids: string[]): void; // Thợ rèn: hợp thành 3 → 1, phân giải hàng loạt (E4)
   owned(): string[]; // mã các võ hồn đã sở hữu (trang đổi mảnh ghi "chưa có")
+  looks(): Looks | null; changeLooks(looks: Looks): void; // Thợ may (L4 #511): ngoại hình đang mang, gửi lựa chọn mới (server kiểm khoảng cách, tiền)
 }
 type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "forgeset" | "forgegear" | "forgesynth" | "forgesalv" | "quest" | "daily" | "rank" | "shard" | "tongtask" | "tongrank" | "live";
 let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
@@ -2265,6 +2267,7 @@ let sellConfirm: string | null = null; // "id|số lượng" vừa bấm "Bán" 
 const SELL_CONFIRM_DONG = 100;
 const NPC_ROLE_NOTE: Record<NpcRole, string> = { talk: "", shop: "Thương nhân: mua đan dược, bán đồ dư.", forge: "Lò rèn: cường hóa hồn cốt, nâng cấp hồn hạch.",
   arena: "Đấu đội võ hồn 1v1, xếp hạng Elo. Thua không mất gì.",
+  looks: `Thợ may: đổi ngoại hình, kể cả đổi giữa Mẫu dựng sẵn và Tự tạo. ${LOOKS_CHANGE.free === 1 ? "Lần đầu" : `${LOOKS_CHANGE.free} lần đầu`} miễn phí, các lần sau tốn Hồn Tệ.`,
   tong: `Gia nhập cần xong chuỗi tân thủ và võ hồn cấp ${TONG_MIN_LEVEL}; đổi tông sau ${TONG_SWITCH_DAYS} ngày, mất điểm tuần đang có. Tông không cộng chỉ số.` };
 /** Tin "tong": tông đang thuộc ("" = không), giây còn chờ đổi tông; từ #197 tông vụ hôm nay (tiến độ do server giữ). */
 export interface TongMsg { tong: string; wait: number; day?: string; tasks?: (QuestProgress & { status: QuestStatus })[]; }
@@ -2278,6 +2281,30 @@ let tongBoardMsg: TongBoardMsg | null = null; // tin "tongBoard" gần nhất
 let shardMsg: { n: number; daily: number } | null = null; // tin "shardinfo" gần nhất (#282): số mảnh đã đổi hôm nay ở Thương hội
 /** Tin "shardinfo" (#282): vẽ lại hộp thoại Chưởng quỹ nếu đang mở. */
 export function setShardInfo(m: { n: number; daily: number }) { shardMsg = m; if (npcDefOpen?.id === SHARD_BUY.npc) renderNpc(); }
+let looksMsg: { n: number; err?: string } | null = null; // tin "looksinfo" gần nhất (L4 #511): số lần đã đổi ngoại hình
+let looksWait: ((m: { n: number; err?: string }) => void) | null = null; // đang chờ server trả lời lần đổi vừa gửi
+/** Tin "looksinfo" (L4 #511): số lần đã đổi, hoặc lý do từ chối; vẽ lại hộp thoại thợ may nếu đang mở. */
+export function setLooksInfo(m: { n: number; err?: string }) { looksMsg = m; looksWait?.(m); if (npcDefOpen?.role === "looks") renderNpc(); }
+/** Mở màn đổi ngoại hình của thợ may đang mở hộp thoại; xong (server xác nhận) thì đóng màn và hộp thoại. */
+function openLooksChange(def: NpcDef, act: NpcActions) {
+  const n0 = looksMsg?.n ?? 0, cost = looksChangeCost(n0), have = npcBagMsg?.honTe ?? 0;
+  closeNpc(); // màn đổi ngoại hình phủ lên game; xong thì nói chuyện lại với thợ may nếu muốn đổi tiếp
+  openLooksOverlay({
+    title: "Đổi ngoại hình", current: act.looks(),
+    intro: cost ? `Lần đổi này tốn <b>${formatHonTe(cost)}</b> Hồn Tệ (bạn có ${formatHonTe(have)}). Có thể đổi giữa Mẫu dựng sẵn và Tự tạo.`
+      : `Lần đổi này <b>miễn phí</b>; các lần sau tốn ${formatHonTe(LOOKS_CHANGE.cost)} Hồn Tệ mỗi lần. Có thể đổi giữa Mẫu dựng sẵn và Tự tạo.`,
+    okLabel: cost ? `Đổi ngoại hình (−${formatHonTe(cost)})` : "Đổi ngoại hình (miễn phí)",
+    onOk: (looks) => new Promise<void>((ok, no) => {
+      const t = setTimeout(() => { looksWait = null; no(new Error("Máy chủ không trả lời, thử lại sau.")); }, 10000);
+      looksWait = (m) => {
+        if (m.err) { clearTimeout(t); looksWait = null; no(new Error(m.err)); }
+        else if (m.n > n0) { clearTimeout(t); looksWait = null; ok(); }
+      };
+      act.changeLooks(looks);
+    }),
+    onClose: () => { looksWait = null; },
+  });
+}
 /** Tin "tong" (#196): vẽ lại hộp thoại sứ giả nếu đang mở. */
 export function setTong(m: TongMsg) { tongMsg = m; if (npcDefOpen?.role === "tong") renderNpc(); }
 /** Tin "tongBoard" (#197): vẽ lại hộp thoại sứ giả nếu đang mở. */
@@ -2384,6 +2411,11 @@ function renderNpc() {
       btn("Cường hóa trang bị hồn sư", "absorb", () => { gearPick = null; gearConfirm = false; go("forgegear"); }, !bag); // E3
       btn("Hợp thành trang bị (3 → 1)", "absorb", () => { synMain = null; synSac = []; synConfirm = false; go("forgesynth"); }, !bag); // E4
       btn("Phân giải trang bị", "absorb", () => { salvSel.clear(); salvConfirm = false; go("forgesalv"); }, !bag); // E4
+    }
+    if (def.role === "looks") { // L4 #511: giá lần đổi kế tiếp tính từ số lần đã đổi (server gửi `looksinfo` khi mở hộp thoại)
+      const cost = looksChangeCost(looksMsg?.n ?? 0), poor = !!bag && bag.honTe < cost;
+      btn(cost ? `Đổi ngoại hình (${formatHonTe(cost)})` : "Đổi ngoại hình (miễn phí)", "absorb", () => openLooksChange(def, act), !looksMsg || poor);
+      if (poor) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = `Không đủ Hồn Tệ: cần ${formatHonTe(cost)}.`; el.appendChild(k); }
     }
     if (def.role === "arena") { // 7.2: server kiểm tra lại khoảng cách và trạng thái khi xếp hàng
       btn(arenaQ ? "Hủy xếp hàng" : "Xếp hàng đấu hồn", arenaQ ? "drop" : "absorb", () => act.arena(arenaQ ? "cancel" : "queue"));
