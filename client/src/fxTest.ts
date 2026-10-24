@@ -8,7 +8,7 @@ import { TIERS, VOHON, ringSkill, chanThanOf, tienCoOf, MAX_RINGS } from "../../
 import { ELEMENTS, type Element } from "./audio/soundMap.ts";
 import { ParticleLayer, fxPrefs, setFxPrefs, hitstopMs, type FxLevel } from "./combatFx.ts";
 import { SheetFx } from "./fxSheet.ts";
-import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, SKILL_VISUAL, visualKey } from "./skillVisual.ts";
+import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, SKILL_VISUAL, FUSION_VISUAL, visualKey } from "./skillVisual.ts";
 import { KNOCK_PX, damageStyle, hitWeight, materialSparks } from "./hitFeel.ts";
 import { MATERIALS, type Material } from "./audio/soundMap.ts";
 import { SPR, RX } from "./iso.ts";
@@ -143,7 +143,13 @@ export function fxTestScreen(card: HTMLElement, overlay: HTMLElement): void {
   $("fhit").onclick = () => sc().hit($<HTMLSelectElement>("fm").value as Material, +$<HTMLSelectElement>("fh").value, $<HTMLInputElement>("fx").checked);
   /** Phát một hồn kỹ theo khóa `<mã>:<vòng 0..9 | ct | tc>`: hiệu ứng G3 + sheet SKILL_VISUAL (trừ `sv=0`) + cảnh vòng 7+ + đánh thử lên mục tiêu (khựng, tia lửa, số). */
   const runSkill = (v: string) => {
-    const [id, r] = v.split(":"), ct = r === "ct", tc = r === "tc", ring = ct || tc ? 6 : +r, d = skillFxOf(id, tc ? 0 : ring, ct);
+    const [id, r] = v.split(":");
+    if (id === "fusion") { // S3 (#566): dung hợp `fusion:<tên chiêu>`: sheet ở điểm giữa (trang thử không có đóa kính dựng bằng code của GameScene)
+      const fv = FUSION_VISUAL[r], s = sc(); lastSkill = v; (window as unknown as { __t0: number }).__t0 = performance.now();
+      if (fv && q.get("sv") !== "0") s.svp.cast({ tier: 3, heavy: 2, ...fv }, { x: s.hero.x, y: s.hero.y - 8 * SPR, ang: 0, tx: s.hero.x, ty: s.hero.y - 8 * SPR, mine: q.get("others") !== "1", r: 100 * RX });
+      return;
+    }
+    const ct = r === "ct", tc = r === "tc", ring = ct || tc ? 6 : +r, d = skillFxOf(id, tc ? 0 : ring, ct);
     const sk = tc ? undefined : (ct ? chanThanOf(id)?.skill : ringSkill(id, ring));
     sc().el = d.element; sc().kind = d.kind; $<HTMLSelectElement>("fe").value = d.element; $<HTMLSelectElement>("fk").value = d.kind;
     $("fn").textContent = `→ ${ELEMENT_NAME[d.element]} · ${FX_KIND_NAME[d.kind]} · ${fxTexKey(d.element, d.kind)}${FX_TEX_ELEMENTS.includes(d.element) ? "" : " (chưa có ảnh: chỉ hạt)"}`;
