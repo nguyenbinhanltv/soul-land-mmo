@@ -8,7 +8,8 @@ import { MINI_BASE, TIERS, BEASTS, VOHON, RADAR, SYNC_VIEW, MAPS, TILE, titleOf,
   AUTOWALK, AUTO_MOVE, WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM, SLOW_CAP,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
   type QuestProgress, type QuestStatus, formatHonTe, type SkillDef, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS, LPC_VIEW, decodeLpc, type Looks } from "../../../shared/data.ts";
-import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN, soulRingKey } from "../textures.ts";
+import { makeTextures, looksTextures, vohonTextures, bodyKey, BEAST_ORIGIN } from "../textures.ts";
+import { buildRings, animateRings, type HaloState } from "../soulRings.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, HS_ORIGIN, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
@@ -66,6 +67,7 @@ interface PView {
   act: { anim: HsAnim; t0: number } | null; // animation chạy một lần: attack, cast, hurt
   hurtT: number;                            // lúc bị đánh gần nhất, để nháy trắng
   lit: { i: number; t0: number } | null;    // vòng hồn hoàn đang sáng khi tung hồn kỹ
+  halo: HaloState | null;                   // quầng hào quang Chân Thân (soulRings.ts), tạo khi cần
   ringY: number[];                          // độ cao hiện tại từng vòng hồn hoàn trên chân (pixel nội bộ), trượt dần tới chỗ đích
   fly: { t0: number; ms: number } | null;   // đang bay (Tà Hỏa Phượng Hoàng, 2.5b): chỉ là hiệu ứng, nhấc hình lên khỏi bóng
   lock: { face: Dir8; until: number } | null; // hướng nhìn theo đòn vừa đánh (tin `fx` có dx, dy), giữ hết animation đánh (10.1)
@@ -80,10 +82,6 @@ const BEAST_ANIM_SCALE = { wander: 0.7, chase: 1.4 };
 const KILL_GHOST_MS = 3000;
 /** Chiều cao tên hồn sư trên chân (pixel màn hình): thân 32 pixel cũ phóng SPR. Danh hiệu, chữ bay, biểu tượng trạng thái đặt theo mốc này. */
 const HEAD = 30 * SPR;
-/** Vòng thứ i bay lên ngang ngực, sáng rồi hạ về trong chừng này mili giây khi tung hồn kỹ của vòng đó (mục 5.11 "Vòng hồn hoàn"). */
-const RING_LIT_MS = 450;
-/** Vòng hồn hoàn khi bay lên: độ cao ngang ngực khi tung hồn kỹ; Chân Thân xếp đều các vòng từ RING_UP_LOW tới RING_UP_TOP (pixel nội bộ). */
-const RING_CHEST = 28, RING_UP_LOW = 6, RING_UP_TOP = 52;
 interface Rect { x: number; y: number; w: number; h: number; }
 interface Zone extends Rect { name: string; hint: string; years?: [number, number] | null; }
 const inRect = (r: Rect, x: number, y: number) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
@@ -2434,7 +2432,7 @@ export class GameScene extends Phaser.Scene {
           color: "#ffffff", stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 1).setDepth(99985);
         v = { root, wx: p.x, wy: p.y, face: "s", body, outfit, hair, vb, vf, ringsB, ringsF, label, title, tongT, looks: "", vh: -1, rings: "", playing: "", lpcKey: null, lpcFace: { shown: null, pend: null },
-          act: null, hurtT: -1e9, lit: null, ringY: [], fly: null, lock: null };
+          act: null, hurtT: -1e9, lit: null, halo: null, ringY: [], fly: null, lock: null };
         this.players.set(id, v);
         if (id === this.me) this.cameras.main.startFollow(root, true, 0.2, 0.2);
       }
@@ -2474,11 +2472,11 @@ export class GameScene extends Phaser.Scene {
       }
       if (p.vh !== v.vh) { v.vh = p.vh; const [kb, kf] = vohonTextures(this, p.vh); fitHonsuLayer(v.vb.setTexture(kb), true); fitHonsuLayer(v.vf.setTexture(kf), true); }
       const rings = [...p.rings].join(",");
-      if (rings !== v.rings) { v.rings = rings; this.buildRings(v, [...p.rings]); }
+      if (rings !== v.rings) { v.rings = rings; buildRings(this, v, [...p.rings]); }
       // Nhịp animation đi theo vận tốc (11.1): chính mình theo tốc độ dự đoán của bước đang đi, người khác (và chính mình khi tự săn) theo
       // `spd` của server; đang Mê hoặc theo tốc độ đi bộ gốc × PLAYER_CHARM.spd × Làm chậm (server không gửi tốc độ lúc này).
       const spd = charmed ? PLAYER_SPEED * (VOHON[p.vh]?.spd ?? 1) * PLAYER_CHARM.spd * (1 - pSlow(p.st)) : self ? stepSpeed(p, this.walk) * Math.min(1, Math.hypot(this.dir.x, this.dir.y)) : p.spd;
-      this.animatePlayer(v, p, time, walk, spd);
+      this.animatePlayer(id, v, p, time, walk, spd);
       if (!p.dead) this.stepSound(id, v.wx, v.wy, walk, self ? this.walk : false, time);
       // Tàng hình (Yêu Hồ, 2.5c): người khác thấy mờ hẳn, chính mình thấy nửa trong suốt.
       const hidden = (p.buff & buffBit("hide")) !== 0, a = hidden ? (id === this.me ? 0.5 : 0.22) : 1;
@@ -2727,19 +2725,6 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Một cặp ảnh cho mỗi hồn hoàn của võ hồn ra trận: cung trên (sau thân) và cung dưới (trước thân), vẽ ở pixel nội bộ (phóng 1 / SPR
-   * trong khung chứa); texture đặt mỗi khung theo cách hiện (animatePlayer).
-   */
-  buildRings(v: PView, tiers: number[]) {
-    v.ringsB.removeAll(true); v.ringsF.removeAll(true); v.ringY = tiers.map(() => 0);
-    tiers.forEach((t, k) => {
-      const key = soulRingKey(this, t, k);
-      v.ringsB.add(this.make.image({ key, frame: 0 }, false).setScale(1 / SPR));
-      v.ringsF.add(this.make.image({ key, frame: 1 }, false).setScale(1 / SPR));
-    });
-  }
-
-  /**
    * Nguồn sáng hồn lực trong khung này (phong cách A, 10.7): vòng hồn hoàn của mỗi hồn sư (màu `glow` của vòng cao nhất, rộng theo số
    * vòng, Chân Thân rộng hơn), mắt hồn thú (màu niên hạn, ở đầu), hồn hoàn / hồn cốt rơi trên đất. Lighting chọn theo độ ưu tiên.
    */
@@ -2794,7 +2779,7 @@ export class GameScene extends Phaser.Scene {
    * `moving`: đang đi (chính mình khi dự đoán: theo phím, không chờ cờ `moving` của server); `spd`: tốc độ đi (pixel/giây) để chọn nhịp
    * animation `walk` (11.1; các animation khác giữ nhịp vẽ vì thời lượng đòn đánh / hồn kỹ tính theo honsuAnimMs).
    */
-  animatePlayer(v: PView, p: any, time: number, moving: boolean, spd = WALK_ANIM_SPEED) {
+  animatePlayer(id: string, v: PView, p: any, time: number, moving: boolean, spd = WALK_ANIM_SPEED) {
     const sheet = v.lpcKey ?? bodyKey(p);
     if (v.act && time >= v.act.t0 + honsuAnimMs(this, sheet, v.act.anim)) v.act = null;
     let anim: HsAnim = p.dead ? "die" : p.absorb > 0 ? "absorb" : v.act?.anim ?? (moving ? "walk" : "idle");
@@ -2809,27 +2794,15 @@ export class GameScene extends Phaser.Scene {
     // Bay (2.5b): nhấc mọi lớp trừ bóng lên tối đa 10 pixel theo nửa sóng sin.
     const fe = v.fly ? (time - v.fly.t0) / v.fly.ms : 1; if (fe >= 1) v.fly = null;
     const lift = fe < 1 ? -Math.round(Math.sin(Math.PI * Math.max(0, fe)) * 10) : 0;
-    for (const s of [v.body, v.outfit, v.hair, v.vb, v.vf, v.ringsB, v.ringsF]) s.y = lift;
+    for (const s of [v.body, v.outfit, v.hair, v.vb, v.vf, v.ringsB, v.ringsF]) s.y = lift; // quầng (v.halo) đặt y trong animateRings
     // Phụ thể của thân LPC (rộng hơn m1): lệch theo LPC_VIEW.vohon, dx đổi dấu khi lật ngang.
     const ox = v.lpcKey ? (flip ? -LPC_VIEW.vohon.dx : LPC_VIEW.vohon.dx) : 0, oy = v.lpcKey ? LPC_VIEW.vohon.dy : 0;
     v.vb.x = v.vf.x = ox; v.vb.y = v.vf.y = lift + oy;
     // Bị đánh: nháy trắng 2 lần.
     const e = time - v.hurtT, white = e < 70 || (e >= 140 && e < 210);
     for (const s of [v.body, v.outfit, v.hair, v.vb, v.vf]) if (white) s.setTintFill(0xffffff); else s.clearTint();
-    // Vòng hồn hoàn (mục 5.11 "Vòng hồn hoàn"): bình thường nằm đồng tâm trên mặt đất dưới chân (vòng 1 trong cùng), sáng lan dần từ
-    // trong ra; tung hồn kỹ thì vòng đó bay lên ngang ngực, sáng rồi hạ về; Chân Thân thì mọi vòng bay lên xếp đều quanh thân. Ẩn khi gục.
-    v.ringsB.setVisible(!p.dead); v.ringsF.setVisible(!p.dead);
-    const n = v.ringsB.length, up = p.ava > 0 && !p.dead, lit = v.lit && time < v.lit.t0 + RING_LIT_MS ? v.lit.i : -1;
-    const ease = Math.min(1, this.game.loop.delta / 90);
-    for (let k = 0; k < n; k++) {
-      const t = p.rings[k], self = k === lit && !up, f = self ? (time - v.lit!.t0) / RING_LIT_MS : 0;
-      const want = up ? RING_UP_LOW + ((k + 0.5) * (RING_UP_TOP - RING_UP_LOW)) / n + Math.sin(time / 600 + k * 1.3) * 1.5 : self ? Math.sin(Math.PI * f) * RING_CHEST : 0;
-      v.ringY[k] = self ? want : v.ringY[k] + (want - v.ringY[k]) * ease;
-      const flying = up || self || v.ringY[k] > 2, key = soulRingKey(this, t, flying ? "up" : k, self || (up && k === lit));
-      const a = flying ? 1 : 0.7 + 0.3 * Math.sin(time / 380 - k * 0.7), y = -Math.round(v.ringY[k]) / SPR;
-      (v.ringsB.list[k] as Phaser.GameObjects.Image).setTexture(key, 0).setY(y).setAlpha(a);
-      (v.ringsF.list[k] as Phaser.GameObjects.Image).setTexture(key, 1).setY(y).setAlpha(a);
-    }
+    // Vòng hồn hoàn (mục 5.11 "Vòng hồn hoàn", soulRings.ts): dưới chân, bay lên ngang ngực khi tung hồn kỹ; Chân Thân thì thành quầng sau lưng. Ẩn khi gục.
+    animateRings(this, v, p, time, { mine: id === this.me, formAge: this.pt.formAge(id, time), lift, delta: this.game.loop.delta });
   }
 
   /** Xin lại chỉ số của võ hồn đang xem ở bảng nhân vật (server giới hạn nhịp, tin về qua "stats"). */

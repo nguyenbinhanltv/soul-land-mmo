@@ -2455,6 +2455,17 @@ export const PT_STRIKE = { windup: 0.14, hit: 0.1, stop: 0.05, recover: 0.26, ba
 export const PT_CUTIN_SEC = 0.5;
 /** Hệ số độ đục / hạt của pháp tướng người khác so với của mình, theo mức hiệu ứng Thấp / Vừa / Cao. */
 export const PT_OTHERS_K = { low: 0.4, mid: 0.6, high: 0.75 } as const;
+/**
+ * Quầng hào quang Chân Thân (#535, chỉ hình ảnh): lúc biến hình các vòng hồn hoàn lần lượt bay xoắn lên rồi hợp thành quầng đồng tâm SAU lưng
+ * (chỉ lớp sau thân); vòng `foot` (vòng 7, chỉ số từ 0) ở lại dưới chân và sáng. Đơn vị: pixel nội bộ (1 pixel ảnh thân), giây, radian / giây.
+ * cy: độ cao tâm quầng trên chân; r0 / step: bán kính vòng trong cùng và bước tăng (vòng mạnh nhất ngoài cùng); spin: tốc độ xoay (xen kẽ chiều);
+ * stagger / flight / turns: vòng bay cách nhau, mỗi vòng bay trong, số vòng xoắn (stagger co lại để vòng cuối xong trước PT_FORM.total);
+ * pulse: nhịp sáng (ms); litSec: vòng lóe sáng khi tung hồn kỹ; fadeOut: quầng tan khi hết Chân Thân; alpha: độ đục nền (nhân thêm theo niên hạn).
+ */
+export const HAO_QUANG = { cy: 32, r0: 10, step: 1.8, foot: 6, spin: 0.45, stagger: 0.055, flight: 0.6, turns: 1.25, pulse: 700, litSec: 0.45, fadeOut: 0.5, alpha: 0.62 } as const;
+/** Cách hiện vòng hồn hoàn khi Chân Thân (cài đặt hiệu ứng): quầng sau lưng (mặc định) / giữ dưới chân / kiểu cũ (bay quanh thân). */
+export type HaoQuangMode = "halo" | "feet" | "old";
+export const HAO_QUANG_MODES: readonly [HaoQuangMode, string][] = [["halo", "Hào quang"], ["feet", "Dưới chân"], ["old", "Kiểu cũ"]];
 /** Hai pháp tướng cùng lúc (dung hợp kỹ H6): độ lệch ngang giữa hai hình và độ đục mỗi hình khi hòa nhau. */
 export const PT_DUO = { dx: 22, alpha: 0.8 } as const;
 const ctBurst = (name: string, o: Partial<SkillDef>): SkillDef => ({ name, desc: "", icon: "", cost: 0, cd: 0, area: "around", r: 90, dmg: 0, ...o });
