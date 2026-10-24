@@ -69,6 +69,13 @@ Key PixelLab đọc từ file (`PIXELLAB_KEY_FILE`, mặc định `~/.config/pix
 - Bảng màu chung của game không chứa màu PixelLab: pháp tướng dùng bảng riêng ≤ 48 màu (như chân dung), không đưa qua `normalize` / `pack`.
 - Nền trong suốt chỉ do `no_background` của PixelLab; nếu khung nguồn có điểm nền mờ sót, tăng `PT_ALPHA_MIN` trong `tools/assets/lib.mjs`.
 
+## 6b. Vật thể (khí võ hồn): `phaptuong-khi.mjs` (H3 lô P4, 7 võ hồn)
+
+Thay cho `phaptuong.mjs --code` ở nhóm kiếm, tháp, đỉnh, thương, vành, tỏa, xúc xích. Chạy `node tools/assets/phaptuong-khi.mjs --id <mã>` (dựng `<mã>.png` + `<mã>_glow.png`) và `--id <mã> --check` (đo khung bao / neo 5 hướng lệch ≤ 2 điểm, lề). Tham số ở `recipe.json`: `mode` ("dat" neo giữa-đáy, "troi" neo trọng tâm + `lift`), `prescale`, `nghieng`, `clean` (`minComp`, `xa`, `markMax`, `catDe`, `nhuom`, `thanToi`), `chuyenDong` (`idle`, `attack.poses` 8 khung `[độ xoay, tiến, nâng, co ngang, co dọc, sáng, dải sáng]`, `hit`, `vet`, `vong`, `hat`, `dau`, `xich`, `hao`).
+- Làm sạch: alpha nhị phân, bỏ thành phần rời, lấp lỗ, bỏ đế đá / lửa quanh thân, viền #1a1020 1 điểm, nén ≤ 48 màu.
+- Lớp sáng: viền dithering theo nhịp, hạt theo hệ, dấu nhận diện nháy, vòng sóng lúc ra đòn; alpha 0 / 255.
+- **Lượt thực tế lô P4: 35** (17 concept gồm 10 lần thử lại, 9 lần xoay × 2, hoạt ảnh 0). Concept đầu thường cần thử lại 1–3 lần cho vật có đế / lửa / mặt (thêm "no ground, no base, no face, no fire" vào prompt). Bài học: thứ tự 8 ảnh xoay của vật có mặt trước (tỏa) và vật mỏng (vành) không theo sw, s, se...; chọn bằng mắt rồi ghi `xoay.dung` trong recipe.
+
 ## 7. Việc chưa làm (H2 trở đi)
 
 Client chưa tải sheet `pt_*` (`sprites.ts` bỏ qua key isometric ngoài hs / vh / beast / fx); H2 thêm hệ thống hình thái (đổi lớp, chuỗi biến hình 5 bước, tan), đọc `pt` từ manifest. Normal map (`_n.png`) chưa làm.

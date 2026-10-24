@@ -2282,6 +2282,84 @@
       "map": "nac_dinh_thanh"
     },
     {
+      "key": "pt_can_khon_hon_nguyen_toa",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": -4,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_can_khon_hon_nguyen_toa_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_can_khon_hon_nguyen_toa_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_cuu_bao_luu_ly_thap",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": -2,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_cuu_bao_luu_ly_thap_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_cuu_bao_luu_ly_thap_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_cuu_tinh_that_sat_kiem",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 10,
+        "dy": -4,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_cuu_tinh_that_sat_kiem_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_cuu_tinh_that_sat_kiem_glow",
+      "iso": true
+    },
+    {
       "key": "pt_hao_thien_chuy",
       "iso": true,
       "pt": {
@@ -2322,6 +2400,110 @@
         "ghost": 0.88,
         "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; độ đục ghost (lớp sau) và ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255"
       }
+    },
+    {
+      "key": "pt_nguyet_nhan",
+      "iso": true,
+      "pt": {
+        "scale": 1.2,
+        "dx": 0,
+        "dy": -6,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_nguyet_nhan_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_nguyet_nhan_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_pha_hon_thuong",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 12,
+        "dy": -2,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_pha_hon_thuong_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_pha_hon_thuong_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_thien_can_bach_ngoc_dinh",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": -6,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_thien_can_bach_ngoc_dinh_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_thien_can_bach_ngoc_dinh_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_xuc_xich",
+      "iso": true,
+      "pt": {
+        "scale": 1.1,
+        "dx": 10,
+        "dy": -6,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_xuc_xich_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_xuc_xich_glow",
+      "iso": true
     },
     {
       "key": "skill_a_ngan_0",
