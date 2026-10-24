@@ -1,0 +1,186 @@
+{
+ "_": "S2 (#548): đặc tả sheet hiệu ứng chiêu cho 2 võ hồn thử. `d` gửi PixelLab /v2/vfx (lite); palette hậu kỳ: [viền, tối, chủ, nhấn, sáng]. Chạy: node tools/assets/skill-vfx/run.mjs --out <nháp> [--only tên,...]",
+ "common": "Pixel art VFX for an isometric RPG skill, 3/4 top-down view, transparent background, no character, no text, dark outline, limited palette, white-hot core, centered.",
+ "vohon": {
+  "ld": {
+   "palette": [
+    "#1a1020",
+    "#1f3f8f",
+    "#5ab8ff",
+    "#b8e4ff",
+    "#ffffff"
+   ],
+   "theme": "Blue lightning magic, jagged zigzag arcs, colors blue #5ab8ff, dark blue #1f3f8f, pale cyan, white."
+  },
+  "ht": {
+   "palette": [
+    "#1a1020",
+    "#22222c",
+    "#9aa0b4",
+    "#d0d4e4",
+    "#ffffff"
+   ],
+   "theme": "Heavy hammer force, shattered rocks, ground cracks, grey dust, colors grey #9aa0b4, dark #22222c, white."
+  }
+ },
+ "sheets": [
+  {
+   "n": "ld_slash1",
+   "v": "ld",
+   "t": 1,
+   "f": 8,
+   "d": "Dragon-claw swipe of lightning: three parallel curved claw slashes sweeping across, jagged zigzag arcs shooting from the edges, afterimage fades, sparks. Compact. (Tạo lần đầu ở lượt thử với mô tả dài hơn.)"
+  },
+  {
+   "n": "ld_zone1",
+   "v": "ld",
+   "t": 1,
+   "f": 6,
+   "d": "Ground ring around the caster: flat isometric ellipse of lightning, six jagged bolts racing from center to rim, flares to full size, fades to sparks. Compact."
+  },
+  {
+   "n": "ld_hit1",
+   "v": "ld",
+   "t": 1,
+   "f": 6,
+   "d": "Thin jagged forked lightning bolt striking down from above onto a ground point, small electric arcs crackling outward around the impact, sparks. Compact."
+  },
+  {
+   "n": "ld_zone4",
+   "v": "ld",
+   "t": 1,
+   "f": 6,
+   "d": "Dragon roar shockwave on the ground: two expanding electric rings with jagged lightning forks on the rim, sparks fade. Compact."
+  },
+  {
+   "n": "ld_slash5",
+   "v": "ld",
+   "t": 2,
+   "f": 8,
+   "d": "Big sweeping dragon-claw swipe of lightning: three thick parallel curved slashes with white edges, forked bolts from the tips, a short lightning column drops at impact, fading afterimage, sparks. Large, clear."
+  },
+  {
+   "n": "ld_hit6",
+   "v": "ld",
+   "t": 2,
+   "f": 8,
+   "d": "Chain lightning impact: targeting reticle on the target, then a thin jagged lightning bolt strikes down, arcs jump outward in several directions, bright flash, lingering sparks. Large, clear."
+  },
+  {
+   "n": "ld_zone8",
+   "v": "ld",
+   "t": 2,
+   "f": 8,
+   "d": "Lightning prison pulse: flat isometric circle of crackling electric web, six bolts racing outward, bursts to full radius, short bolts strike inside, fades to sparks. Large, clear pattern."
+  },
+  {
+   "n": "ld_zone9",
+   "v": "ld",
+   "t": 2,
+   "f": 8,
+   "d": "Overlord dragon roar: wide flat isometric lightning ring with a faint dragon head silhouette roaring at the center, six bolts racing out, purple-blue lock sigil flickers, bolts strike down, fades. Large."
+  },
+  {
+   "n": "ld_zone_tc",
+   "v": "ld",
+   "t": 2,
+   "f": 8,
+   "d": "Lightning explosion ring bursting from the caster onto the ground, a tiny serpentine lightning dragon flashes through the blast, bolts racing from center, fades to sparks. Large."
+  },
+  {
+   "n": "ld_t3a",
+   "v": "ld",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Ultimate area strike on a wide flat isometric ground ring: faint glowing anticipation ring, then three waves of huge white-blue lightning bolts crash down from the outer edge inward, then an electric web crawls across the ground. Very large, dramatic."
+  },
+  {
+   "n": "ld_t3b",
+   "v": "ld",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Transformation burst: a giant spectral lightning dragon coils around the center and howls head thrown back, then concentric rings of lightning strikes expand from the feet outward, ripples of electricity on the ground. Very large, dramatic."
+  },
+  {
+   "n": "ht_slash1",
+   "v": "ht",
+   "t": 1,
+   "f": 6,
+   "d": "Wide heavy hammer sweep: a big white-grey crescent swipe with a bright leading edge, thick grey dust cloud trailing behind, rock chips flying. Compact, heavy."
+  },
+  {
+   "n": "ht_zone1",
+   "v": "ht",
+   "t": 1,
+   "f": 6,
+   "d": "Ground slam around the caster: flat isometric ring of cracks with radial crack lines spreading from the center, small rocks pop up, dust settles. Compact."
+  },
+  {
+   "n": "ht_hit1",
+   "v": "ht",
+   "t": 1,
+   "f": 6,
+   "d": "Heavy hammer impact: round shockwave ring thumping outward on the ground, rock debris flying up, grey dust cloud rising. Compact."
+  },
+  {
+   "n": "ht_zone4",
+   "v": "ht",
+   "t": 1,
+   "f": 6,
+   "d": "Huge hammer smash: large radial ground-crack pattern spreading from center, rocks launched upward and falling, dust clouds. Compact."
+  },
+  {
+   "n": "ht_zone5",
+   "v": "ht",
+   "t": 2,
+   "f": 8,
+   "d": "Mountain-heavy hammer slam around the caster: flat isometric ring with thick radial cracks spreading to full radius, big shockwave ring thump, rocks and dust flung up, then settles. Large, clear."
+  },
+  {
+   "n": "ht_slash6",
+   "v": "ht",
+   "t": 2,
+   "f": 8,
+   "d": "Heavy wide hammer quake swing: broad white-grey crescent swipe, a shockwave thump ring at impact, thick grey dust trail, rock chips scatter. Large, clear."
+  },
+  {
+   "n": "ht_zone8",
+   "v": "ht",
+   "t": 2,
+   "f": 8,
+   "d": "Repeated hammer quake around the caster: flat isometric ring of radial cracks, thump shockwave ring, armor-shard rock fragments fly, grey dust, fades cleanly. Large."
+  },
+  {
+   "n": "ht_hit9",
+   "v": "ht",
+   "t": 2,
+   "f": 8,
+   "d": "Sky-breaking hammer smash on a target: targeting mark appears, huge shockwave thump ring, ground crack ring, rocks and dust flung high, bright flash. Large, clear."
+  },
+  {
+   "n": "ht_t3a",
+   "v": "ht",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Three consecutive heavy hammer smashes on one ground point, each leaving a wider ring of dark cracks and flying boulders, the last smash bursts with a bright flash and big shockwave ring, then dust settles. Dark grey stone, white only for the flash. No filled white disc. Very large, dramatic."
+  },
+  {
+   "n": "ht_t3b",
+   "v": "ht",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "A gigantic dark stone hammer head slams straight down onto a ground point: its shadow grows on the ground, the impact shatters the ground in a huge ring of cracks with flying boulders, shockwave ring, dust cloud, aftershock cracks. No filled white circle. Very large, dramatic."
+  },
+  {
+   "n": "ht_zone_tc",
+   "v": "ht",
+   "t": 2,
+   "f": 8,
+   "d": "Giant spectral hammer drops onto the ground around the caster: flat isometric ring of cracks spreading, shockwave ring, rocks and dust flying, fades. Large."
+  }
+ ]
+}
