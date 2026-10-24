@@ -2429,7 +2429,7 @@ export class GameScene extends Phaser.Scene {
       const locked = !!v.lock && time < v.lock.until;
       if (locked) v.face = v.lock!.face; // đang đánh: quay về phía đòn đánh
       else if (d8) { v.lock = null; v.face = d8; }
-      if (v.lpcKey) v.face = this.lpcFace(v, locked || p.dead, time); // chế độ Tự tạo: 4 hướng LPC, đổi hướng có độ trễ
+      if (v.lpcKey) this.lpcFace(v, locked || p.dead, time); // chế độ Tự tạo: hướng hiện (4 hướng LPC, có trễ) riêng, `v.face` giữ hướng 8 thật cho hướng hiệu ứng
       if (mine) { const at = this.pred!.update(p, this.dir, dt, this.walk); v.wx = at.x; v.wy = at.y; }
       else if (Math.hypot(p.x - v.wx, p.y - v.wy) > 64) { v.wx = p.x; v.wy = p.y; }
       else { v.wx += (p.x - v.wx) * lerp; v.wy += (p.y - v.wy) * lerp; }
@@ -2462,7 +2462,7 @@ export class GameScene extends Phaser.Scene {
       if (v.root.alpha !== a) { v.root.setAlpha(a); label.setAlpha(a); title.setAlpha(a); tongT.setAlpha(a); }
       // Võ Hồn Chân Thân: hồn sư giữ nguyên cỡ, sau lưng hiện pháp tướng (PhapTuongSystem, #486); hào quang vẽ trong drawStatus.
       const vhId = VOHON[p.vh]?.id ?? "";
-      this.pt.sync(id, { x: root.x, y: root.y, depth: root.depth, face: v.face, alpha: a }, { ava: p.ava, dead: p.dead, rings: p.rings.length, vohonId: vhId }, id === this.me, time, dt);
+      this.pt.sync(id, { x: root.x, y: root.y, depth: root.depth, face: v.lpcKey ? v.lpcFace.shown ?? v.face : v.face, alpha: a }, { ava: p.ava, dead: p.dead, rings: p.rings.length, vohonId: vhId }, id === this.me, time, dt);
       const up = 0;
       if (label.scale !== this.txtK) { label.setScale(this.txtK); title.setScale(this.txtK); tongT.setScale(this.txtK); }
       // Tên tông (#196) ngay trên đầu, tên và danh hiệu dịch lên một dòng khi có tông.
@@ -2755,7 +2755,7 @@ export class GameScene extends Phaser.Scene {
   /**
    * Hướng hiện của hồn sư chế độ Tự tạo: 8 hướng thu về 4 hàng LPC (s, n; se / e / ne là hàng Phải "e"; sw / w / nw lật "w"), và hướng
    * mới phải giữ `LPC_VIEW.dirHoldMs` mới đổi để đi chéo không nháy giữa hai hàng. `now`: đổi ngay (đang đánh, gục, lần đầu).
-   * Phụ thể và pháp tướng đọc `v.face` đã thu gọn này nên khung hướng khớp thân.
+   * Thân, phụ thể và pháp tướng đọc hướng hiện này (`v.lpcFace.shown`) nên khung khớp nhau; `v.face` giữ hướng 8 thật cho hướng bay của hiệu ứng hồn kỹ.
    */
   lpcFace(v: PView, now: boolean, time: number): Dir8 {
     const f = v.lpcFace, d = v.face, want: Dir8 = d === "s" || d === "n" ? d : d === "se" || d === "e" || d === "ne" ? "e" : "w";
@@ -2777,7 +2777,7 @@ export class GameScene extends Phaser.Scene {
     let anim: HsAnim = p.dead ? "die" : p.absorb > 0 ? "absorb" : v.act?.anim ?? (moving ? "walk" : "idle");
     // Hoạt ảnh LPC chưa ghép xong (lpcRig.step ghép dần): tạm đứng yên bằng idle, rồi tự chuyển khi xong.
     if (v.lpcKey && !this.lpc.ready(v.lpcKey, anim) && this.lpc.ready(v.lpcKey, "idle")) anim = "idle";
-    const { key, flip } = honsuAnimKey(this, sheet, anim, v.face);
+    const { key, flip } = honsuAnimKey(this, sheet, anim, v.lpcKey ? v.lpcFace.shown ?? v.face : v.face);
     const tag = `${key}|${v.act?.anim === anim ? v.act.t0 : ""}`; // đánh liên tiếp thì phát lại từ đầu
     if (tag !== v.playing) { v.playing = tag; fitHonsuLayer(v.body.play(key)); }
     v.body.anims.timeScale = anim === "walk" ? Phaser.Math.Clamp(spd / WALK_ANIM_SPEED, WALK_ANIM_SCALE[0], WALK_ANIM_SCALE[1]) : 1;
