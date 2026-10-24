@@ -7,6 +7,8 @@
 # Cách dùng:  deploy/gcp/setup.sh [--dry-run]     (--dry-run: chỉ in các lệnh gcloud sẽ chạy, không chạm GCP)
 # Ghi đè giá trị mặc định bằng biến môi trường: GCP_PROJECT, GCP_REGION, AR_REPO, GITHUB_REPO, GITHUB_REF_ALLOWED, WIF_POOL, WIF_PROVIDER_ID,
 # SA_WRITER, SA_READER, KEEP_TAGGED, UNTAGGED_DAYS, CLEANUP_DRY_RUN=true (chính sách dọn chỉ mô phỏng, không xóa thật).
+# Nên đặt GITHUB_REPO_ID (số id của repo: `gh api repos/<chủ>/<repo> --jq .id`): khi đó provider và quyền mượn SA gắn theo id bất biến,
+# repo bị xóa rồi tạo lại cùng tên (repo-jacking) không lấy lại được quyền.
 set -euo pipefail
 
 PROJECT=${GCP_PROJECT:-landing-page-455614}
@@ -21,6 +23,7 @@ SA_READER=${SA_READER:-soul-land-ar-pull}
 KEEP_TAGGED=${KEEP_TAGGED:-30}
 UNTAGGED_DAYS=${UNTAGGED_DAYS:-14}
 CLEANUP_DRY_RUN=${CLEANUP_DRY_RUN:-false}
+GH_REPO_ID=${GITHUB_REPO_ID:-}
 
 DRY=0
 case "${1:-}" in
@@ -85,10 +88,22 @@ if exists gcloud iam workload-identity-pools describe "$POOL" --location global 
 else
   run gcloud iam workload-identity-pools create "$POOL" --location global --project "$PROJECT" --display-name "GitHub Actions"
 fi
-# Chỉ token của đúng repo + đúng nhánh ($GH_REF) đổi được lấy quyền. workflow_run / workflow_dispatch chạy trên nhánh mặc định nên ref là main.
+# Chỉ token của đúng repo + đúng nhánh ($GH_REF) + đúng hai workflow (release.yml, promote.yml) + đúng hai loại sự kiện (workflow_run, workflow_dispatch)
+# đổi được lấy quyền. workflow_run / workflow_dispatch chạy trên nhánh mặc định nên ref là main; PR, push nhánh khác, workflow khác bị từ chối.
+WF="$GH_REPO/.github/workflows"
 CONDITION="assertion.repository == '$GH_REPO' && assertion.ref == '$GH_REF'"
+CONDITION="$CONDITION && assertion.event_name in ['workflow_run', 'workflow_dispatch']"
+CONDITION="$CONDITION && (assertion.job_workflow_ref.startsWith('$WF/release.yml@') || assertion.job_workflow_ref.startsWith('$WF/promote.yml@'))"
+MAPPING="google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.ref=assertion.ref,attribute.repository_id=assertion.repository_id"
+PRINCIPAL_ATTR="attribute.repository/$GH_REPO"
+if [ -n "$GH_REPO_ID" ]; then
+  CONDITION="$CONDITION && assertion.repository_id == '$GH_REPO_ID'"
+  PRINCIPAL_ATTR="attribute.repository_id/$GH_REPO_ID"
+else
+  echo "Lưu ý: chưa đặt GITHUB_REPO_ID, quyền gắn theo TÊN repo (khuyến nghị đặt id, xem đầu file)."
+fi
 PROVIDER_ARGS=(--location global --project "$PROJECT" --workload-identity-pool "$POOL" --issuer-uri "https://token.actions.githubusercontent.com"
-  --attribute-mapping "google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.ref=assertion.ref"
+  --attribute-mapping "$MAPPING"
   --attribute-condition "$CONDITION")
 if exists gcloud iam workload-identity-pools providers describe "$PROVIDER" --location global --project "$PROJECT" --workload-identity-pool "$POOL"; then
   echo "provider đã có: cập nhật điều kiện"
@@ -105,9 +120,9 @@ else
 fi
 run gcloud artifacts repositories add-iam-policy-binding "$REPO" --location "$REGION" --project "$PROJECT" \
   --member "serviceAccount:$WRITER_EMAIL" --role roles/artifactregistry.writer --condition=None
-# Chỉ workflow của đúng repo (đã lọc nhánh ở provider) mượn được SA này.
+# Chỉ workflow của đúng repo (đã lọc nhánh / workflow / sự kiện ở provider) mượn được SA này.
 run gcloud iam service-accounts add-iam-policy-binding "$WRITER_EMAIL" --project "$PROJECT" --role roles/iam.workloadIdentityUser \
-  --member "principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/$POOL/attribute.repository/$GH_REPO"
+  --member "principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/$POOL/$PRINCIPAL_ATTR"
 
 step "6. Service account reader '$SA_READER' (cụm K8s kéo image)"
 if exists gcloud iam service-accounts describe "$READER_EMAIL" --project "$PROJECT"; then

@@ -32,7 +32,7 @@ Settings → Secrets and variables → Actions:
 
 Hai Variable không phải bí mật. Không có key JSON nào ở GitHub.
 
-Provider WIF chỉ nhận token có `repository == nguyenbinhanltv/soul-land-mmo` **và** `ref == refs/heads/main`. `release.yml` (chạy sau CI của main bằng `workflow_run`) và `promote.yml` (`workflow_dispatch`) đều chạy trên nhánh mặc định nên khớp điều kiện; PR hay nhánh khác không lấy được quyền.
+Provider WIF chỉ nhận token có `repository == nguyenbinhanltv/soul-land-mmo`, `ref == refs/heads/main`, sự kiện `workflow_run` / `workflow_dispatch` và workflow `release.yml` / `promote.yml` (thêm workflow mới cần mượn quyền thì sửa điều kiện ở `setup.sh` rồi chạy lại). Nên chạy kèm `GITHUB_REPO_ID=$(gh api repos/nguyenbinhanltv/soul-land-mmo --jq .id) deploy/gcp/setup.sh` để quyền gắn theo id repo bất biến (chống tạo lại repo cùng tên). `release.yml` (chạy sau CI của main bằng `workflow_run`) và `promote.yml` (`workflow_dispatch`) đều chạy trên nhánh mặc định nên khớp điều kiện; PR hay nhánh khác không lấy được quyền.
 
 ## 3. `GITOPS_TOKEN` (cho `promote.yml`)
 
