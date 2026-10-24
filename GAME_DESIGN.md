@@ -801,7 +801,7 @@ Hệ trang bị phỏng theo Mir2 / Sabuk (10 ô, 6 bậc, cường hóa +15 có
 
 ### 5.16 Giao diện Nhân vật + Túi (hai cửa sổ, búp bê 4 tab; theo dõi #453)
 Thiết kế đã chốt (chủ repo 2026-10-24), làm theo NV1–NV6 ở mục 7. **Chỉ phía client**: server quyết định mọi thứ, không đổi luật chơi và số cân bằng; chỉ gửi lệnh có sẵn. Bản phác bố cục: `docs/ban-phac-nhan-vat-tui/index.html` (kèm ảnh ở `anh/`); hợp đồng kiểu và hàm thuần: `client/src/charBagContract.ts` (kiểm thử `npm run test:charbag --prefix client`).
-- **Hai cửa sổ:** `WindowState` = `bag` (B) / `char` (C, H) / `dual` (nút ⇆ trên mỗi bảng, hoặc tự chuyển khi bấm "Gắn" / kéo đồ từ túi). Màn ngang ≥ 960 px: nhân vật trái (5–48%), túi phải (52–95%), khe giữa là vùng thả trống. Điện thoại ngang thấp: hai bảng thu gọn cạnh nhau (ô ~36 px, túi 6 cột). Màn hẹp hơn: một bảng một lúc, có thẻ chuyển nhanh. Bảng bấm vào thì nổi lên; không bảng nào chặn chuột của bảng kia; đóng bằng ×, Esc hoặc phím tắt. Bỏ luật "mở bảng này đóng bảng kia" **chỉ cho cặp Nhân vật / Túi**; Đội hình, Bạn bè, Thế giới… vẫn đóng như cũ.
+- **Hai cửa sổ** (`client/src/dualWindow.ts`; trạng thái suy ra từ `hidden` của `#char` / `#bag`): `WindowState` = `bag` (B) / `char` (C, H) / `dual` (nút ⇆ trên mỗi bảng: một bảng thì mở thêm bảng kia, đang `dual` thì về chỉ bảng đó; NV3 sẽ tự chuyển khi bấm "Gắn" / kéo đồ từ túi). Màn ngang ≥ 960 px: nhân vật trái (5–48%), túi phải (52–95%), khe giữa là vùng thả trống. Điện thoại ngang thấp: hai bảng thu gọn cạnh nhau (ô ~36 px, túi 6 cột). Màn hẹp (logic ≤ 560 px): một bảng một lúc, thẻ chuyển Nhân vật / Túi (`#dualTabs`) ở đầu màn hình. Bố cục theo lớp `dual-win` / `ui-wide` (≥ 960 px logic) / `ui-w560` trên `<body>`, không dùng `@media`. Bảng bấm vào thì nổi lên; không bảng nào chặn chuột của bảng kia; đóng bằng ×, Esc hoặc phím tắt. Bỏ luật "mở bảng này đóng bảng kia" **chỉ cho cặp Nhân vật / Túi**; Đội hình, Bạn bè, Thế giới… vẫn đóng như cũ.
 - **Búp bê 4 tab** (đầu bảng: dải chọn võ hồn trong đội và nút "Ra trận"; cột chỉ số do server gửi bên cạnh, có chênh lệch khi xem trước đồ):
   - **Trang bị:** 10 ô (`EQUIP_SLOTS`) kiểu Mir2 quanh hình hồn sư (Áo đè lên thân), thuộc hồn sư nên không phụ thuộc võ hồn đang xem; viền theo bậc, "+N", ô trống có hình bóng. Đọc từ tin riêng `gear`; mặc / tháo bằng `equipgear {id}` / `unequipgear {slot}`.
   - **Hồn cốt:** 6 ô (`BONE_SLOTS`) quanh hình võ hồn đang xem; bấm ô trống thì túi tô vàng các món hợp ô.
@@ -1076,7 +1076,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 
 **Giai đoạn 14: Giao diện Nhân vật + Túi** (mục 5.16; theo dõi #453; chỉ client; mỗi bước một PR; **NV0 cần chủ repo duyệt bố cục trước khi làm NV1**).
 - [x] NV0 Thiết kế chi tiết: mục 5.16, bản phác HTML `docs/ban-phac-nhan-vat-tui/`, hợp đồng `client/src/charBagContract.ts` + `npm run test:charbag --prefix client` (#454).
-- [ ] NV1 `DualWindowManager`: mở cả hai, phím B / C, nút ⇆, lớp, bố cục đáp ứng; bỏ đóng chéo Nhân vật / Túi (#455).
+- [x] NV1 `DualWindowManager`: mở cả hai, phím B / C, nút ⇆, lớp, bố cục đáp ứng; bỏ đóng chéo Nhân vật / Túi (#455).
 - [ ] NV2 Búp bê 4 tab; gắn / tháo hồn cốt, hồn hạch ngay trong bảng; tab Võ hồn (đội, ra trận, vòng) (#456).
 - [ ] NV3 Kéo thả, bấm đúp mặc thông minh, thẻ thao tác nhanh, so sánh hai cột (#457).
 - [ ] NV4 Tab Trang bị 10 ô dùng `equipgear` / `unequipgear` (thay phần giao diện bảng nhân vật của E5 #416; cần E1 #412, đã xong) (#458).

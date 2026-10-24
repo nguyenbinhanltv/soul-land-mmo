@@ -15,6 +15,7 @@ import * as hud from "../hud.ts";
 import { radar, type DotSink } from "../radar.ts";
 import { mapview, type MapLabel } from "../mapview.ts";
 import { toast, lootToasts } from "../feedback.ts";
+import { initDualWindows } from "../dualWindow.ts";
 import { toggleChar, isCharOpen, onCharOpen, renderChar, charViewRow, type StatsMsg } from "../charPanel.ts";
 import { Predictor, PREDICT, LAG_MS, stepSpeed } from "../predict.ts";
 import { findPath, findLongPath, buildNav, type Nav } from "../../../shared/path.ts";
@@ -669,7 +670,7 @@ export class GameScene extends Phaser.Scene {
       const f = document.activeElement;
       if (field(f)) { if (e.code !== "Escape") return; (f as HTMLElement).blur(); } // Esc: rời ô rồi đóng bảng như thường
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
-      if (e.code === "KeyH" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); toggleChar(); return; } // bảng nhân vật (UI-2)
+      if ((e.code === "KeyH" || e.code === "KeyC") && !e.repeat) { closeAudioPanel(); closeAutoPanel(); toggleChar(); return; } // bảng nhân vật (UI-2); C và H cùng mở, độc lập với Túi (NV1 #455)
       if (e.code === "KeyV" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); return; }
       if (e.code === "KeyB" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); return; }
       if (e.code === "KeyK" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
@@ -703,6 +704,7 @@ export class GameScene extends Phaser.Scene {
     chat.addEventListener("blur", () => hud.chatFocus(false), on);
     hud.buildChatTabs(); // tab kênh chat (#188); lịch sử giữ qua đổi bản đồ trong phiên
     addEventListener("focusin", (e) => { if (field(e.target)) this.keys = {}; }, on); // phím đang giữ lúc vào ô nhập thì nhả
+    initDualWindows();
     document.getElementById("charBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); toggleChar(); }, on);
     document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); }, on);
     document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); }, on);
