@@ -9,7 +9,7 @@
 // chặn chưa) và thấy bạn online / vị trí (đã bị xóa / chặn thì thôi thấy ngay). Không có Redis thì không phát, không ghi.
 import { FRIEND_MAX, BLOCK_MAX } from "../../shared/data.ts";
 import { nameKey } from "./names.ts";
-import { presenceBackend, type PresenceBackend } from "./presence.ts";
+import { presenceBackend, PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS, type PresenceBackend } from "./presence.ts";
 import type { SocialPeer, SocialRow } from "./db.ts";
 
 /** Kênh presence: mọi phòng nghe, gửi lại tin riêng "friends" (và log) cho người chơi của mình có trong `to`. */
@@ -18,6 +18,10 @@ export const FRIEND_TOPIC = "friend";
 export const FRIEND_STATE_TOPIC = "friend:state";
 /** Tài liệu presence: danh sách của mọi người đang trong game (tiến trình mở sau nạp lúc khởi động). */
 const STATE_KEY = "friend:state";
+/** Lease sống của một tiến trình: mục STATE_KEY của tiến trình hết lease (chết / bị kill) là mục ma, bị dọn lúc ghi và lúc nạp (#120). */
+const workerKey = (id: string) => `friend:worker:${id}`;
+/** Số lần ghi liên tiếp không khóa được tài liệu STATE_KEY thì bỏ lượt chờ (lần đổi danh sách sau ghi lại bản mới nhất). */
+const FLUSH_TRIES = 3;
 
 /** Danh sách của một người đang trong game: bạn bè / chặn (tài khoản -> tên), `fans`: tài khoản đã thêm người này làm bạn. */
 interface Social { sid: string; name: string; friends: Map<number, string>; blocks: Map<number, string>; fans: Set<number>; }
@@ -25,7 +29,7 @@ interface Social { sid: string; name: string; friends: Map<number, string>; bloc
  * Danh sách chia sẻ qua presence (chỉ số tài khoản) của phiên `sid`. `v`: bộ đếm tăng dần của tiến trình giữ phiên, chỉ so trong cùng
  * một phiên (không so đồng hồ giữa các tiến trình).
  */
-interface Shared { sid: string; v: number; friends: number[]; blocks: number[]; }
+interface Shared { sid: string; v: number; friends: number[]; blocks: number[]; w?: string; }
 /**
  * Tin FRIEND_STATE_TOPIC: `w` tiến trình phát (tự bỏ tin của mình). `enter`: phiên `sid` vừa vào phòng, mọi phiên khác của tài khoản
  * đã kết thúc (phiên mới chỉ mở sau khi phiên cũ nhả tài khoản, mục 6). `gone`: phiên `sid` rời phòng (`friends` là danh sách lúc rời).
@@ -74,17 +78,33 @@ export class FriendHub {
   constructor(private readonly backend: PresenceBackend | null, private readonly id = backend?.workerId ?? "") {
     if (!backend) { this.ready = Promise.resolve(); return; }
     void Promise.resolve(backend.presence.subscribe(FRIEND_STATE_TOPIC, this.sub));
-    this.ready = backend.getJson<StateDoc>(STATE_KEY).then((doc) => {
-      // Tài khoản đã có tin tới trước bản chụp (hoặc đang ở tiến trình này) thì tin đó mới hơn: bỏ mục trong tài liệu.
+    const beat = () => backend.putJson(workerKey(this.id), 1, PRESENCE_TTL_MS);
+    this.beatT = setInterval(() => { void beat().catch((e) => console.error("Không gia hạn lease worker bạn bè", e)); }, PRESENCE_HEARTBEAT_MS);
+    this.beatT.unref();
+    this.ready = beat().then(() => backend.getJson<StateDoc>(STATE_KEY)).then(async (doc) => {
+      const alive = await this.aliveWorkers(Object.values(doc ?? {}).flatMap((ses) => Object.values(ses).map((e) => e.w)));
+      // Tài khoản đã có tin tới trước bản chụp (hoặc đang ở tiến trình này) thì tin đó mới hơn: bỏ mục trong tài liệu; mục của tiến trình chết cũng bỏ.
       for (const [key, ses] of Object.entries(doc ?? {})) {
         const acc = Number(key);
-        if (!this.remote.has(acc) && !this.social.has(acc)) for (const e of Object.values(ses)) this.apply({ ...e, acc, w: "" });
+        if (!this.remote.has(acc) && !this.social.has(acc)) for (const e of Object.values(ses)) if (e.w && alive.has(e.w)) this.apply({ ...e, acc, w: "" });
       }
     }).catch((e) => console.error("Không đọc được danh sách bạn bè / chặn từ presence", e));
   }
+  private beatT: ReturnType<typeof setInterval> | undefined;
 
-  /** Thôi nghe presence (bài thử). */
-  close() { this.backend?.presence.unsubscribe(FRIEND_STATE_TOPIC, this.sub); }
+  /** Trong `ids` (tiến trình ghi mục STATE_KEY; thiếu = bản ghi cũ không rõ chủ), những tiến trình còn lease; tiến trình này luôn sống. */
+  private async aliveWorkers(ids: (string | undefined)[]) {
+    const others = [...new Set(ids.filter((w): w is string => !!w && w !== this.id))];
+    const leases = await this.backend!.getJsonMany<number>(others.map(workerKey));
+    return new Set([this.id, ...others.filter((_, i) => leases[i] !== null)]);
+  }
+
+  /** Thôi nghe presence và nhả lease (bài thử). */
+  close() {
+    this.backend?.presence.unsubscribe(FRIEND_STATE_TOPIC, this.sub);
+    clearInterval(this.beatT);
+    void this.backend?.delete(workerKey(this.id));
+  }
 
   /** Các lần ghi tài liệu STATE_KEY đang chờ đã xong (bài thử). */
   async settled() { while (this.flushing) await this.flushing; }
@@ -156,22 +176,30 @@ export class FriendHub {
    */
   private async flush() {
     const b = this.backend!;
+    let fails = 0;
     while (this.pending.size) {
       const batch = [...this.pending]; this.pending.clear();
-      const ok = await b.withLock<StateDoc>(STATE_KEY, `${this.id}:friend:${batch[0][1].v}`, 5000, (old) => {
+      const ok = await b.withLock<StateDoc>(STATE_KEY, `${this.id}:friend:${batch[0][1].v}`, 5000, async (old) => {
         const doc = old ?? {};
+        const alive = await this.aliveWorkers(Object.values(doc).flatMap((ses) => Object.values(ses).map((e) => e.w)));
+        for (const [acc, ses] of Object.entries(doc)) {
+          for (const [sid, e] of Object.entries(ses)) if (!e.w || !alive.has(e.w)) delete ses[sid];
+          if (!Object.keys(ses).length) delete doc[acc];
+        }
         for (const [acc, { gone, ...e }] of batch) {
           const ses = { ...doc[acc] };
           for (const x of this.remote.get(acc)?.ended ?? []) delete ses[x];
           if (gone) delete ses[e.sid];
-          else if (this.social.get(acc)?.sid === e.sid && (ses[e.sid]?.v ?? -1) <= e.v) ses[e.sid] = e;
+          else if (this.social.get(acc)?.sid === e.sid && (ses[e.sid]?.v ?? -1) <= e.v) ses[e.sid] = { ...e, w: this.id };
           if (Object.keys(ses).length) doc[acc] = ses; else delete doc[acc];
         }
         return doc;
       }, 0).catch((err) => { console.error("Không ghi được danh sách bạn bè / chặn vào presence", err); return true; });
-      if (ok) continue;
-      // Không khóa được (tranh chấp lâu): ghi lại lần sau các mục chưa có bản mới hơn chờ ghi.
-      console.error("Không khóa được danh sách bạn bè / chặn trong presence: ghi lại lần sau.");
+      if (ok) { fails = 0; continue; }
+      // Không khóa được (tranh chấp lâu): ghi lại các mục chưa có bản mới hơn chờ ghi, tối đa FLUSH_TRIES lần liên tiếp; quá thì bỏ
+      // (lần đổi danh sách kế tiếp của tài khoản đó ghi lại bản mới nhất).
+      if (++fails >= FLUSH_TRIES) { console.error(`Không khóa được danh sách bạn bè / chặn trong presence sau ${FLUSH_TRIES} lần: bỏ lượt ghi.`); fails = 0; continue; }
+      console.error("Không khóa được danh sách bạn bè / chặn trong presence: ghi lại.");
       for (const [acc, e] of batch) if (!this.pending.has(acc)) this.pending.set(acc, e);
     }
     this.flushing = null;

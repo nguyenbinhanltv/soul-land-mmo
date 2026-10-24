@@ -14,6 +14,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   absorbSecs, absorbChance, SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode, starSkillMult, starCdMult, starTienCoMult, starRing,
   BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus, boneSlotIndex,
   CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, coreSetName, coreResetFee, MAX_CORE_STARS, type CoreData,
+  CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ROLL, parseEquip, equipStats, equipDefTotal, equipWeaponRoll, equipTemplate, equipSlotIndex, equipName, equipSlotDef, rollEquip,
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, atkRoll, type CoreFx,
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed, parseBoneSubs, boneAddSubs, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee, SHARD_BUY, shardBuyCost, ARENA_SHARDS,
@@ -49,7 +50,7 @@ import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
 import { friends, FRIEND_TOPIC, type FriendNote, type FriendResult } from "../friends.ts";
 import { watchGc, gcIn, cpuMs, clock } from "../perf.ts";
-import { arenaLive, arenaWatchMax, arenaWatchUsed, arenaWatchingAny, setTestWatchMax } from "./arenaQueue.ts";
+import { arenaLiveOpenList, arenaLiveHold, arenaLiveRelease, arenaWatchMax, setTestWatchMax } from "./arenaQueue.ts";
 import { arenaEnqueue, arenaDequeue, arenaQueued, arenaQueueLocked, arenaQueueSlots, arenaReadActive, arenaReadElo, arenaReadCancel, arenaReadCancelled, arenaTestSlow, type ArenaTeamEntry } from "./arenaQueue.ts";
 import { floorSafeZones, surfaceSpot, BOSS_BOX } from "./worldBoss.ts";
 import { Interest } from "./interest.ts";
@@ -135,6 +136,9 @@ export interface PData {
   wclaims: { day: string; n: number }; // lượt nhận thưởng boss thế giới hôm nay (BĐ6e, loại BOSS_CLAIM_WORLD), như `claims`
   // Mảnh đã đổi ở Thương hội hôm nay (#282, loại SHARD_BUY.claimKind), như `claims`; `pend`: số mảnh của các lần đổi đang chờ DB.
   shardBuy: { day: string; n: number; pend: number };
+  // Trang bị hồn sư đang mặc (E1, mục 5.15; `items.equip_slot`): không nằm trong `bag` (không chiếm ô túi, không bán / bỏ), ghi DB cùng túi (bagSnapshot).
+  // `gearSt` tính lại mỗi lần đổi (gearStats): cộng vào calcStats (recalc), công vũ khí theo đòn (atkOf), giảm sát thương (buffV "def").
+  gear: Item[]; gearSt: GearStats;
   claimBusy: number;    // số lần nhận phần thưởng boss đang chờ DB: chặn mở rương, bán / bỏ / hấp thụ / nộp đồ cho tới khi xong (#165)
   testClaimHold: boolean; // hook test `claimhold` (#165): như đang chờ DB ghi phần thưởng boss, cờ riêng để không đụng bộ đếm claimBusy thật
   testTravelLost: boolean; // hook test `travellost` (#165): lần đi cổng kế tiếp commit xong rồi mới báo lỗi, như mất phản hồi sau COMMIT
@@ -155,6 +159,7 @@ export interface PData {
   // Tông vụ hằng ngày (#197, TONG_DAILY): TONG_DAILY.count bài của ngày `tongDay` ở sứ giả tông mình, gửi trong tin riêng "tong"; lưu cùng
   // túi đồ như khảo hạch. `tongBoardAt`: lúc xin bảng tông tuần gần nhất (ms, TONG_BOARD_CD).
   tongTasks: QuestProgress[]; tongDay: string; tongBoardAt: number;
+  tongPend: { week: number; tong: string; n: number }[]; // điểm tông vụ chờ ghi cùng túi (#320): chỉ bỏ khỏi hàng sau khi lần ghi thành công
   // Đại Đấu Hồn Trường (7.2): đang chờ DB đọc Elo trước khi vào hàng chờ; lúc xin bảng xếp hạng gần nhất (ms, chống xin dồn dập).
   arenaBusy: boolean; arenaTopAt: number; arenaLiveAt: number; resonanceTopAt: number;
   arenaGone: boolean;   // đã được ghép trận và rời phòng sang sân đấu (7.2): rời phòng lúc đó không phải rời game (giữ danh sách mua lại, 9.8)
@@ -673,6 +678,9 @@ function itemStacks(code: string, qty: number): Item[] {
   return out;
 }
 /** Số ô túi đang dùng: món đang gắn vào võ hồn không tính. */
+type GearStats = ReturnType<typeof equipStats>;
+/** Chỉ số tổng của các món đang mặc (mục 5.15): dữ liệu hỏng / mẫu lạ bị bỏ qua. */
+const gearStats = (gear: Item[]): GearStats => equipStats(gear.flatMap((it) => { const e = parseEquip(it.stats); return e ? [{ ...e, enhance: it.enhance }] : []; }));
 const bagUsed = (bag: Item[]) => bag.filter((i) => i.vohonId === null).length;
 /** Thứ tự xếp túi (#215 "Sắp xếp"): nhóm theo ITEM_KINDS, rồi loại theo ITEMS. */
 const KIND_ORDER = Object.keys(ITEM_KINDS), ITEM_ORDER = new Map(ITEMS.map((x, k) => [x.id, k]));
@@ -845,7 +853,7 @@ export class MapRoom extends Room<MapState> {
    * SeatPass được giữ chỗ ở phòng này không: bản đồ đã kiểm ở static onAuth phải là bản đồ của phòng (joinById vào kênh bản đồ khác thì
    * không). ArenaRoom: chỉ thành viên của trận.
    */
-  seatAllowed(pass: SeatPass) { return pass.mapId === this.state.mapId; }
+  seatAllowed(pass: SeatPass): boolean | Promise<boolean> { return pass.mapId === this.state.mapId; }
 
   /**
    * Giữ chỗ từ matchmake: bỏ SeatPass (authData của static onAuth) để onAuth của phòng chạy lúc mở WebSocket (Colyseus bỏ qua onAuth của
@@ -859,7 +867,7 @@ export class MapRoom extends Room<MapState> {
     }
     const acc = pass.seatFor;
     await seatUsed(acc, pass.key);
-    if (!this.seatAllowed(pass as SeatPass)) return false;
+    if (!await this.seatAllowed(pass as SeatPass)) return false;
     await seatAdd(acc, sessionId, Date.now() + seconds * 1000);
     const ok = await super._reserveSeat(sessionId, joinOptions, undefined, seconds, allowReconnection, devModeReconnection);
     if (!ok) await seatUsed(acc, sessionId);
@@ -1044,6 +1052,8 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("starup", (c, m: { vohon: unknown }) => this.starUp(c.sessionId, m?.vohon));
     this.onMessage("equip", (c, m: { itemId: unknown; vohonId: unknown; slot: unknown }) => this.equipBone(c.sessionId, m?.itemId, m?.vohonId, m?.slot));
     this.onMessage("unequip", (c, m: { itemId: unknown }) => this.unequipBone(c.sessionId, m?.itemId));
+    this.onMessage("equipgear", (c, m: { id: unknown }) => this.equipGear(c.sessionId, m?.id));
+    this.onMessage("unequipgear", (c, m: { slot: unknown }) => this.unequipGear(c.sessionId, m?.slot));
     this.onMessage("equipcore", (c, m: { itemId: unknown; vohonId: unknown; slot: unknown }) => this.equipCore(c.sessionId, m?.itemId, m?.vohonId, m?.slot));
     this.onMessage("unequipcore", (c, m: { itemId: unknown }) => this.unequipCore(c.sessionId, m?.itemId));
     this.onMessage("enhance", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceBone(c.sessionId, m?.targetId, m?.materialIds));
@@ -1094,12 +1104,12 @@ export class MapRoom extends Room<MapState> {
       saving: Promise.resolve(), teamQueued: false, tradeQueued: false, latest: new Map(), portalKey: "", travelCast: null, travelling: false, travelled: false, chListAt: 0, chListQueued: false, bossAskAt: 0, statsRow: undefined, askAt: new Map(), askQueued: new Set(),
       wps: new Set(auth.wps), wpKey: "",
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
-      bag: bag.items, honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "",
+      bag: bag.items.filter((i) => i.equipSlot === undefined), gear: bag.items.filter((i) => i.equipSlot !== undefined), gearSt: gearStats(bag.items.filter((i) => i.equipSlot !== undefined)), honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "",
       sellCfg: parseSell(bag.sell), sold: bag.sold ?? [], sellCheck: true, sellSent: "", soldN: 0, soldCoins: 0, autoSold0: [0, 0], danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0, hanT: 0, charm: null,
       claims: auth.claims, wclaims: auth.wclaims, shardBuy: { ...auth.shardBuy, pend: 0 }, claimBusy: 0, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
-      chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests), ...this.tongTasksOf(bag.quests), tongBoardAt: 0,
+      chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests), ...this.tongTasksOf(bag.quests), tongBoardAt: 0, tongPend: [],
       res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, resonanceTopAt: 0, arenaGone: false,
       auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0,
       autoBonus: auth.auto.bonus, autoDirty: false, offMsg: null, offAsk: false,
@@ -1228,7 +1238,7 @@ export class MapRoom extends Room<MapState> {
   recalc(id: string, full: boolean) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
     const cores = this.coresOn(d, d.ch.rowId);
-    const s = calcStats(p.vh, p.level, [...p.rings], d.ch.stars, this.boneBonusOf(d, d.ch.rowId), coreBonus(cores), d.res.bonus, herbBonus(d.ch.herbs));
+    const s = calcStats(p.vh, p.level, [...p.rings], d.ch.stars, this.boneBonusOf(d, d.ch.rowId), this.withGear(d, coreBonus(cores)), d.res.bonus, herbBonus(d.ch.herbs));
     p.maxHp = s.maxHp; p.maxMp = s.maxMp; d.atk = s.atk; d.speed = s.speed; d.crit = s.crit; d.critMult = s.critMult;
     if (d.ava?.row === d.ch.rowId) p.maxHp = Math.round(s.maxHp * (1 + (d.ava.stats.hp ?? 0))); // Võ Hồn Chân Thân (8.1a)
     d.passive = bonePassive(this.bonesOn(d, d.ch.rowId)); // bị động hồn cốt (4.3) theo võ hồn ra trận
@@ -1289,12 +1299,14 @@ export class MapRoom extends Room<MapState> {
 
   /** Ảnh chụp túi đồ và Hồn Tệ chưa lưu (bỏ đánh dấu `bagDirty`); undefined nếu không đổi gì từ lần lưu trước. */
   unsavedBag(d: PData): Bag | undefined {
-    return d.bagDirty ? this.bagSnapshot(d) : undefined;
+    const bag = d.bagDirty || d.tongPend.length ? this.bagSnapshot(d) : undefined;
+    if (bag && d.tongPend.length) bag.tongPts = d.tongPend.map((t) => ({ ...t }));
+    return bag;
   }
   /** Ảnh chụp cả túi đồ, Hồn Tệ và tiến độ nhiệm vụ (6.2; bỏ đánh dấu `bagDirty`), dù có đổi hay không. */
   bagSnapshot(d: PData): Bag {
     d.bagDirty = false;
-    return { honTe: d.honTe, slots: d.bagSlots, items: d.bag.map((i) => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) })),
+    return { honTe: d.honTe, slots: d.bagSlots, items: [...d.bag, ...d.gear].map((i) => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) })),
       quests: [d.quest, ...d.chains, ...d.daily, ...d.tongTasks].map((q) => ({ ...q, prog: [...q.prog] })),
       sell: { ...d.sellCfg }, sold: d.sold.map((r) => ({ ...r, item: { ...r.item, stats: r.item.stats == null ? null : structuredClone(r.item.stats) } })) };
   }
@@ -1315,6 +1327,7 @@ export class MapRoom extends Room<MapState> {
       const list = this.unsaved(id), bag = this.unsavedBag(d);
       try { await store.saveTravel(d.accountId, list, this.state.mapId, out.to, out.ax, out.ay, bag); }
       catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; throw e; }
+      d.tongPend.splice(0, bag?.tongPts?.length ?? 0);
       return true;
     }
     // Vị trí, võ hồn và túi trong một transaction có lớp chặn WHERE map_id (#165): DB đã ở bản đồ khác thì không ghi gì, kể cả túi.
@@ -1322,7 +1335,7 @@ export class MapRoom extends Room<MapState> {
     let saved: boolean;
     try { saved = await store.saveProgress(d.accountId, list, this.state.mapId, x, y, d.testLocFile, bag); }
     catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; throw e; }
-    if (saved) return true;
+    if (saved) { d.tongPend.splice(0, bag?.tongPts?.length ?? 0); return true; }
     // Lưới an toàn: beginTravel đã đọc lại DB khi đi cổng báo lỗi nên đường thường không tới đây. Nếu tới thì ngắt client để vào lại đúng
     // bản đồ trong DB (/api/me), thay vì ở lại phòng mà mọi lần lưu sau đều bị bỏ.
     console.error(`Bỏ lần lưu tài khoản #${d.accountId}: DB không còn ở bản đồ ${this.state.mapId}; ngắt kết nối để vào lại.`);
@@ -1343,8 +1356,9 @@ export class MapRoom extends Room<MapState> {
     const vh = Math.max(0, vohonIndex(v.vohon)), rings = v.rings.map(tierOfYears), herbs = herbBonus(v.herbs);
     const total = calcStats(vh, v.level, rings, v.stars, this.boneBonusOf(d, v.rowId), this.coreBonusOf(d, v.rowId), d.res.bonus, herbs);
     const base = calcStats(vh, v.level, rings, v.stars, {}, {}, d.res.bonus, herbs);
+    const gear = { bonus: d.gearSt.bonus, weapon: d.gearSt.weapon, red: d.gearSt.red, luck: d.gearSt.luck }; // trang bị hồn sư (5.15): `total` đã gồm phần cộng này
     if (d.ava?.row === v.rowId) total.maxHp = Math.round(total.maxHp * (1 + (d.ava.stats.hp ?? 0))); // như recalc
-    c.send("stats", { rowId: v.rowId, total, base });
+    c.send("stats", { rowId: v.rowId, total, base, gear });
   }
 
   /** Sinh lực tối đa của một võ hồn sở hữu (dù đang ra trận hay không), kể cả hồn cốt (4.2), hồn hạch (5.2) đang gắn, cộng minh (8.2) và tiên thảo (BĐ6b). */
@@ -2107,6 +2121,7 @@ export class MapRoom extends Room<MapState> {
       enhance: i.enhance, stats: i.stats, price, at }));
     const auto = { sell: d.sellCfg, sold }, as = JSON.stringify(auto);
     if (full || !d.bagSent) {
+      this.sendGear(id);
       c.send("bag", { ...head, items, buyback, ...auto });
       d.bagSent = bagDiff(new Map(), items).next;
     } else {
@@ -2187,6 +2202,8 @@ export class MapRoom extends Room<MapState> {
     if (bone) return `hồn cốt ${boneName(bone.beast, bone.slot, it.years!, it.enhance)}`;
     const core = it.code === CORE_ITEM ? parseCore(it.stats) : null;
     if (core) return coreName(core.set, it.stars ?? 1, it.enhance).replace("Hồn hạch", "hồn hạch");
+    const eq = it.code === EQUIP_ITEM ? parseEquip(it.stats) : null;
+    if (eq) return equipName(eq.tpl, it.enhance);
     const name = itemDef(it.code)?.name ?? "vật phẩm lạ";
     return it.years !== null ? `${name} ${formatYears(it.years)}` : it.qty > 1 ? `${it.qty} ${name}` : name;
   }
@@ -2421,9 +2438,9 @@ export class MapRoom extends Room<MapState> {
       if (!d.tong) return warn("Ngươi chưa thuộc tông môn nào.");
       if (!this.npcNear(id, { role: "tong" })) return warn("Hãy lại gần sứ giả tông môn để rời tông.");
       const old = tongDef(d.tong)!;
-      d.tong = null; p.tong = 0;
-      this.chain(d, () => store.setTong(d.accountId, null, null));
-      this.log(id, `Ngươi đã rời ${old.name}.`, old.col);
+      d.tong = null; p.tong = 0; d.tongPend = [];
+      this.chain(d, () => store.setTong(d.accountId, null, null, tongWeek(this.tongNow())));
+      this.log(id, `Ngươi đã rời ${old.name}; điểm tuần này đã bỏ.`, old.col);
       return this.sendTong(id);
     }
     const t = tongDef(raw);
@@ -2437,7 +2454,7 @@ export class MapRoom extends Room<MapState> {
     if (d.tongAt !== null && now < d.tongAt + TONG_SWITCH_DAYS * 86400000)
       return warn(`Mới gia nhập gần đây: còn ${Math.ceil((d.tongAt + TONG_SWITCH_DAYS * 86400000 - now) / 86400000)} ngày nữa mới đổi được tông.`);
     const from = d.tong ? tongDef(d.tong) : null;
-    d.tong = t.id; d.tongAt = now; p.tong = TONG_MON.findIndex((x) => x.id === t.id) + 1;
+    d.tong = t.id; d.tongAt = now; d.tongPend = []; p.tong = TONG_MON.findIndex((x) => x.id === t.id) + 1;
     this.chain(d, () => store.setTong(d.accountId, t.id, now, tongWeek(this.tongNow())));
     this.log(id, from ? `Ngươi đã rời ${from.name} và gia nhập ${t.name}; điểm tuần này đã bỏ.` : `Chúc mừng, ngươi đã gia nhập ${t.name}!`, t.col);
     this.questEvent(id, { k: "tong" }); // #286: gia nhập hoặc đổi tông
@@ -2494,10 +2511,8 @@ export class MapRoom extends Room<MapState> {
     this.log(id, `Trả tông vụ "${step.name}"${given ? ` (nộp ${given})` : ""}: nhận ${formatHonTe(step.reward.honTe)} và ${TONG_POINTS} điểm ${t.name}.`, "#f2c84b");
     this.sendBag(id);
     this.sendTong(id);
-    this.chain(d, async () => {
-      if (!(await this.write(id))) return;
-      await store.addTongPoints(d.accountId, week, tong, TONG_POINTS);
-    });
+    d.tongPend.push({ week, tong, n: TONG_POINTS });
+    this.saveTrade(id, d);
   }
 
   /**
@@ -2999,10 +3014,11 @@ export class MapRoom extends Room<MapState> {
     const d = this.pdata.get(id); if (!d) return;
     const now = Date.now(); if (now - d.arenaLiveAt < ARENA.topCd * 1000) return;
     d.arenaLiveAt = now;
-    const list = [...arenaLive.values()].filter((l) => l.phase() === "ready" || l.phase() === "fight")
-      .sort((a, b) => (a.phase() === "fight" ? 0 : 1) - (b.phase() === "fight" ? 0 : 1) || a.secs() - b.secs()).slice(0, ARENA.liveN)
-      .map((l) => ({ roomId: l.roomId, mode: l.mode, sides: l.sides, phase: l.phase(), secs: Math.ceil(l.secs()), watchers: l.watching.size, max: arenaWatchMax() }));
-    this.clients.getById(id)?.send("arena", { k: "live", list });
+    arenaLiveOpenList().then((all) => {
+      const list = all.sort((a, b) => (a.phase === "fight" ? 0 : 1) - (b.phase === "fight" ? 0 : 1) || a.secs - b.secs).slice(0, ARENA.liveN)
+        .map((l) => ({ ...l, secs: Math.ceil(l.secs), max: arenaWatchMax() }));
+      this.clients.getById(id)?.send("arena", { k: "live", list });
+    }, (e) => console.error("Không đọc được sổ xem trận", e));
   }
 
   /**
@@ -3016,14 +3032,20 @@ export class MapRoom extends Room<MapState> {
     if (!this.npcNear(id, { role: "arena" })) return no("Hãy lại gần Đại Đấu Hồn Trường.");
     const why = this.arenaBusyOne(p, d); if (why) return no(why);
     if (arenaQueued(d.accountId) || d.arenaBusy) return no("Đang xếp hàng: hủy hàng trước khi xem trận.");
-    if (arenaWatchingAny(d.accountId)) return no("Đang xem một trận khác.");
-    const l = arenaLive.get(roomId);
-    if (!l || (l.phase() !== "ready" && l.phase() !== "fight")) return no("Trận đấu không còn diễn ra.");
-    if (arenaWatchUsed(l) >= arenaWatchMax()) return no(`Trận đã đủ ${arenaWatchMax()} người xem.`);
-    l.holds.set(d.accountId, Date.now() + ARENA.joinSecs * 1000);
-    this.freeze(id); this.portalHint(id, p, d); d.arenaGone = true;
-    c.send("arena", { k: "watch", roomId, sides: l.sides });
-    this.clock.setTimeout(() => { if (d.arenaGone && this.clients.getById(id)) c.leave(4006); }, ARENA.joinSecs * 1000);
+    const until = Date.now() + ARENA.joinSecs * 1000;
+    arenaLiveHold(roomId, d.accountId, until, arenaWatchMax()).then((r) => {
+      if (r === "other") return no("Đang xem một trận khác.");
+      if (r === "gone") return no("Trận đấu không còn diễn ra.");
+      if (r === "full") return no(`Trận đã đủ ${arenaWatchMax()} người xem.`);
+      const p2 = this.state.players.get(id);
+      // Trong lúc chờ sổ presence người chơi có thể đã rời / đi cổng / xếp hàng: nhả chỗ giữ, không freeze.
+      if (!p2 || this.pdata.get(id) !== d || d.travelling || arenaQueued(d.accountId) || d.arenaBusy || !this.clients.getById(id)) {
+        void arenaLiveRelease(roomId, d.accountId).catch((e) => console.error("Không nhả chỗ giữ xem trận", e)); return;
+      }
+      this.freeze(id); this.portalHint(id, p2, d); d.arenaGone = true;
+      c.send("arena", { k: "watch", roomId, sides: r.sides });
+      this.clock.setTimeout(() => { if (d.arenaGone && this.clients.getById(id)) c.leave(4006); }, ARENA.joinSecs * 1000);
+    }, (e) => { console.error("Không giữ được chỗ xem trận", e); no("Hệ thống bận."); });
   }
 
   /** Hoàn tác freeze nếu bên kia mất phiên ngay sau khi matchMaker mở phòng nhưng trước khi cả hai nhận mã. */
@@ -3503,6 +3525,24 @@ export class MapRoom extends Room<MapState> {
       const r = int(o.r, -1, 100, -1);
       d.testHerb = r < 0 ? null : { r: Math.min(0.9999, r / 100), i: int(o.i, -1, 99, -1) };
     }
+    // E1: `gear {tpl, ilvl?, enhance?, roll?, luck?, affixes?}` tạo một món trang bị vào túi (mẫu trong EQUIP_TEMPLATES; `roll` −1..1 nhân EQUIP_ROLL,
+    // thiếu thì 0; `luck` đặt thẳng, thiếu thì 0; `affixes` [[mã, mức]…] thiếu thì không có dòng phụ) và trả id; `gear {clear: true}` bỏ hết trang bị trong túi và đang mặc.
+    // Không qua tung ngẫu nhiên nên bot so được chỉ số với equipStats.
+    else if (op === "gear") {
+      if (o.clear === true) { d.bag = d.bag.filter((i) => i.code !== EQUIP_ITEM); d.gear = []; d.gearSt = gearStats(d.gear); d.bagDirty = true; this.afterBones(id, d.ch); this.sendGear(id); out = { cleared: true }; }
+      else {
+        const tpl = typeof o.tpl === "string" ? equipTemplate(o.tpl) : undefined;
+        if (!tpl) out = { error: "mẫu lạ" };
+        else if (bagUsed(d.bag) >= d.bagSlots) out = { error: "túi đầy" };
+        else {
+          const def = itemDef(EQUIP_ITEM)!, it = newItem(def, 1), base = rollEquip(tpl, int(o.ilvl, 1, 99, 1), () => 0.5);
+          it.enhance = int(o.enhance, 0, EQUIP_MAX_ENHANCE, 0);
+          it.stats = { ...base, roll: Math.max(-1, Math.min(1, typeof o.roll === "number" && Number.isFinite(o.roll) ? o.roll : 0)) * EQUIP_ROLL, luck: equipSlotDef(tpl.slot).luck ? int(o.luck, 0, EQUIP_LUCK_MAX, 0) : 0,
+            affixes: Array.isArray(o.affixes) ? (o.affixes as unknown[]).filter((x): x is [CoreStat, number] => Array.isArray(x) && CORE_STAT_IDS.includes(x[0]) && typeof x[1] === "number") : [] };
+          d.bag.push(it); d.bagDirty = true; this.sendBag(id); out = { id: it.id };
+        }
+      }
+    }
     else if (op === "bone") {
       const r = int(o.r, -1, 100, -1);
       d.testBone = r < 0 ? null : { r: Math.min(0.9999, r / 100), s: int(o.s, -1, BONE_SLOTS.length - 1, -1) };
@@ -3601,7 +3641,7 @@ export class MapRoom extends Room<MapState> {
       } else if (k === "st") {
         const s = String(o.s ?? "") as StatusId, tid = o.self ? id : fid, td = tid ? this.pdata.get(tid) : undefined;
         const a: StatusApply = { s, n: int(o.n, 1, 9, 1), ...(typeof o.secs === "number" && o.secs > 0 ? { secs: Math.min(60, o.secs) } : {}) };
-        if (tid && td) this.applyPStatus(tid, a, o.self ? 10 : this.atkOf(d) * ARENA.dmgMult, o.self ? undefined : id);
+        if (tid && td) this.applyPStatus(tid, a, o.self ? 10 : this.atkOf(d, true, "mid") * ARENA.dmgMult, o.self ? undefined : id);
         const x = td?.st.get(s); out = x ? { t: x.t, v: x.v, n: x.n, src: x.src === id } : { none: true };
       } else if (k === "heal") out = { mult: this.healMult(d) };
     }
@@ -3666,6 +3706,7 @@ export class MapRoom extends Room<MapState> {
       // gắn gì; võ hồn ra trận kèm `live` (chỉ số đang dùng trong trận: maxHp, maxMp, atk). Từ 5.2: `cores` (chỉ số hồn hạch kèm phần
       // của bộ), `sets` (số món từng bộ), `fx` (hiệu ứng bộ), `slots` (id hồn hạch -> ô); `live` thêm chí mạng và hiệu ứng bộ đang dùng.
       // Từ 8.2: `base` và `stats` kèm cộng minh của tài khoản (không phải đồ gắn), `res` là tiến độ / mốc / % cộng minh hiện tại.
+      // E1: `gear` (chỉ số trang bị hồn sư đang mặc, `stats` đã gồm), `live.atkRolls` (12 lần tung công đòn trực tiếp: vũ khí, may mắn).
       // Từ 9.1: `live.buffs` (hiệu ứng có lợi: giây còn lại, độ lớn), `live.shield` / `shieldT` để thử hiệu ứng lan từ đồng đội tổ đội.
       const v = d.owned.find((x) => x.rowId === o.rowId) ?? d.ch;
       if (v === d.ch) this.syncCh(id);
@@ -3674,9 +3715,9 @@ export class MapRoom extends Room<MapState> {
       out = { rowId: v.rowId, bones, cores, sets: Object.fromEntries(coreSetCounts(worn)), fx: coreFx(worn),
         slots: Object.fromEntries(worn.map((w) => [w.it.id, w.slot])),
         base: calcStats(vh, v.level, rings, v.stars, {}, {}, d.res.bonus, herbBonus(v.herbs)),
-        stats: calcStats(vh, v.level, rings, v.stars, bones, cores, d.res.bonus, herbBonus(v.herbs)), res: d.res, herbs: { ...v.herbs },
+        stats: calcStats(vh, v.level, rings, v.stars, bones, this.withGear(d, cores), d.res.bonus, herbBonus(v.herbs)), gear: { bonus: d.gearSt.bonus, weapon: d.gearSt.weapon, red: d.gearSt.red, luck: d.gearSt.luck }, res: d.res, herbs: { ...v.herbs },
         live: v === d.ch ? { maxHp: p.maxHp, maxMp: p.maxMp, atk: d.atk, passive: d.passive, crit: d.crit, critMult: d.critMult, fx: d.coreFx,
-          atkNow: this.atkOf(d), spd: d.speed * (1 + this.buffV(d, "spd")), def: this.buffV(d, "def"), critB: this.buffV(d, "crit"),
+          atkNow: this.atkOf(d, true, "mid"), atkRolls: Array.from({ length: 12 }, () => this.atkOf(d)), spd: d.speed * (1 + this.buffV(d, "spd")), def: this.buffV(d, "def"), critB: this.buffV(d, "crit"),
           ava: d.ava && { row: d.ava.row, t: d.ava.t, stats: d.ava.stats }, avaCd: d.avaCd.get(v.rowId) ?? 0,
           buffs: Object.fromEntries([...d.buffs].map(([k, x]) => [k, { t: x.t, v: x.v }])), shield: d.shield, shieldT: d.shieldT } : null,
         skills: loadoutOf(v.vohon, v.skills), saved: [...v.skills] };
@@ -3859,10 +3900,10 @@ export class MapRoom extends Room<MapState> {
       // #198: `set` = mã tông (hoặc "" / null để rời) đặt thẳng, bỏ qua điều kiện sứ giả / cấp / chờ đổi (bài chat tông); ghi DB như gia nhập.
       if ("set" in o) {
         const t = tongDef(o.set), now = Date.now();
-        d.tong = t?.id ?? null; p.tong = t ? TONG_MON.findIndex((x) => x.id === t.id) + 1 : 0;
+        d.tong = t?.id ?? null; d.tongPend = []; p.tong = t ? TONG_MON.findIndex((x) => x.id === t.id) + 1 : 0;
         if (t) d.tongAt = now;
-        // Như tongAction: gia nhập xoá điểm tuần (week), rời thì không; tong_at giữ (COALESCE ở PgStore).
-        const id2 = d.tong, at = t ? now : null; this.chain(d, () => t ? store.setTong(d.accountId, id2, at, tongWeek(now)) : store.setTong(d.accountId, null, null));
+        // Như tongAction: gia nhập hay rời đều xoá điểm tuần (week); tong_at giữ (COALESCE ở PgStore).
+        const id2 = d.tong, at = t ? now : null; this.chain(d, () => t ? store.setTong(d.accountId, id2, at, tongWeek(now)) : store.setTong(d.accountId, null, null, tongWeek(now)));
         if (t) this.questEvent(id, { k: "tong" }); // #286: như gia nhập thật
         this.sendTong(id);
       }
@@ -4068,19 +4109,26 @@ export class MapRoom extends Room<MapState> {
       d.combo = near.length || foes.length ? (d.comboT <= CORE_FX_RULE.comboGap ? d.combo + 1 : 1) : 0; d.comboT = 0;
       if (d.combo >= CORE_FX_RULE.comboN) { d.combo = 0; mult += d.coreFx.combo; this.broadcast("fx", { k: "combo", id, col: CORE_SETS[coreSetIndex("hao_thien")].col }); }
     }
-    for (const [bid] of near) this.damageBeast(bid, this.atkOf(d) * mult * atkRoll(Math.random()), id, VOHON[p.vh].col, hit);
-    for (const f of foes) this.damageFoe(f, this.atkOf(d) * mult * atkRoll(Math.random()), id, VOHON[p.vh].col, hit);
+    const atk = this.atkOf(d); // một lần tung vũ khí cho cả đòn
+    for (const [bid] of near) this.damageBeast(bid, atk * mult * atkRoll(Math.random()), id, VOHON[p.vh].col, hit);
+    for (const f of foes) this.damageFoe(f, atk * mult * atkRoll(Math.random()), id, VOHON[p.vh].col, hit);
   }
 
   /** Độ lớn hiệu ứng có lợi `b` đang có trên hồn sư (0 = không có), cộng cả bị động hồn cốt cùng tên (4.3) của võ hồn ra trận. */
   buffV(d: PData, b: BuffId) {
     const resonance = b === "def" ? (d.res.bonus.def ?? 0) / 100 : 0;
-    return resonance + (d.buffs.get(b)?.v ?? 0) + (d.passive.buff[b as PassiveBuff] ?? 0) + (d.ava ? d.ava.stats[b as ChanThanStat] ?? 0 : 0); // + cộng minh Sao võ hồn và Chân Thân (8.1a)
+    // Giảm sát thương: bị động hồn cốt cộng giảm của trang bị dưới cùng một trần BONE_PASSIVE_CAP.def (mục 5.15).
+    const passive = b === "def" ? equipDefTotal(d.passive.buff.def ?? 0, d.gearSt.red) : d.passive.buff[b as PassiveBuff] ?? 0;
+    return resonance + (d.buffs.get(b)?.v ?? 0) + passive + (d.ava ? d.ava.stats[b as ChanThanStat] ?? 0 : 0); // + cộng minh Sao võ hồn và Chân Thân (8.1a)
   }
   /** Công hiện tại của võ hồn ra trận, tính cả hiệu ứng tăng công. */
-  atkOf(d: PData, bond = true) { return d.atk * (1 + this.buffV(d, "atk") + (bond ? this.bondV(d, "atk") : 0)); } // + ràng buộc Thất Bảo Lưu Ly Tông (9.4); dung hợp kỹ không nhận (#192)
+  atkOf(d: PData, bond = true, weapon: "roll" | "mid" | "none" = "roll") {
+    // Công vũ khí (5.15) cộng vào công một đòn trước hệ số: "roll" = đòn trực tiếp (tung trong [min, max], may mắn), "mid" = công giữa (sát thương theo thời gian, hiển thị), "none" = không (dung hợp).
+    const w = d.gearSt.weapon, add = !w || weapon === "none" ? 0 : weapon === "mid" ? (w.min + w.max) / 2 : equipWeaponRoll(w, d.gearSt.luck, Math.random);
+    return (d.atk + add) * (1 + this.buffV(d, "atk") + (bond ? this.bondV(d, "atk") : 0));
+  } // + ràng buộc Thất Bảo Lưu Ly Tông (9.4); dung hợp kỹ không nhận (#192)
   /** Chỉ số võ hồn ra trận cho công thức tự đánh (offlineFight): ủy thác offline và trần tốc độ tự săn (AUTO_PACE). */
-  offlinePower(d: PData, p: PlayerState): OfflinePower { return { atk: this.atkOf(d), crit: d.crit, critMult: d.critMult, maxHp: p.maxHp, def: VOHON[p.vh].def }; }
+  offlinePower(d: PData, p: PlayerState): OfflinePower { return { atk: this.atkOf(d, true, "mid"), crit: d.crit, critMult: d.critMult, maxHp: p.maxHp, def: VOHON[p.vh].def }; }
   /** Đồng bộ PlayerState.buff (bit theo BUFF_IDS) để mọi người thấy hào quang. */
   syncBuffs(p: PlayerState, d: PData) { let m = 0; for (const b of d.buffs.keys()) m |= buffBit(b); p.buff = m; }
   /**
@@ -4481,7 +4529,7 @@ export class MapRoom extends Room<MapState> {
     // Ràng buộc Tà Hỏa – Hỏa Ảnh (2.5d), bộ hồn hạch Phượng Hoàng / Xà Hoàng 2 món (5.2): Thiêu đốt / Trúng độc của hồn sư mạnh
     // thêm, tính lúc gây như tăng công.
     const amp = a.s === "burn" ? (pair ? 0 : this.bondV(pd, "burn")) + (fx.burn ?? 0) : a.s === "poison" ? fx.poison ?? 0 : 0;
-    const v = def.dot ? (fus ? fus.atk : this.atkOf(pd)) * def.dot * power * (1 + amp) : def.amp;
+    const v = def.dot ? (fus ? fus.atk : this.atkOf(pd, true, "mid")) * def.dot * power * (1 + amp) : def.amp;
     // Bộ Phượng Hoàng 4 món: Thiêu đốt của hồn sư thêm tầng tối đa (người khác gây tiếp không làm giảm số tầng đang có).
     const max = def.max + (a.s === "burn" ? fx.burnMax ?? 0 : 0);
     const cur = bd.st.get(a.s), n = a.n ?? 1;
@@ -4984,7 +5032,7 @@ export class MapRoom extends Room<MapState> {
       this.clients.getById(q)?.send("fusion", { k: "done", i: fi, cd: FUSION.cd });
     }
     const top = (d: PData) => Math.max(TIERS[0].years, ...d.ringYears), years = Math.min(top(da), top(db));
-    const atk = (this.atkOf(da, false) + this.atkOf(db, false)) / 2, power = skillPower(years); // công trung bình, không ràng buộc
+    const atk = (this.atkOf(da, false, "none") + this.atkOf(db, false, "none")) / 2, power = skillPower(years); // công trung bình, không ràng buộc
     const mid = { x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2 }, col = TIERS[tierOfYears(years)].glow;
     // `va` / `vb`: võ hồn ra trận của A / B (màu luồng sáng, tiếng theo hệ ở client #193; người xem có thể không có A / B trong state, 11.4).
     this.broadcast("fx", { k: "fusion", id: a, to: b, x: Math.round(mid.x), y: Math.round(mid.y), i: fi, col, va: pa.vh, vb: pb.vh });
@@ -5031,7 +5079,8 @@ export class MapRoom extends Room<MapState> {
     this.unhide(p, d);
     this.recalc(id, false);
     d.hpF = Math.min(p.maxHp, d.hpF + Math.max(0, p.maxHp - hp0)); p.hp = Math.ceil(d.hpF);
-    this.broadcast("fx", { k: "soulring", id, tier, i: ri, vh: p.vh });
+    // av: chỉ cho client biết đây là biến hình Chân Thân (hiển thị), không phải tung hồn kỹ vòng 7 (G3, #394)
+    this.broadcast("fx", { k: "soulring", id, tier, i: ri, vh: p.vh, av: 1 });
     this.broadcast("fx", { k: "avatar", id, name: def.name, col, on: true });
     if (def.burst) this.runSkill(id, def.burst, skillPower(years), buffPower(years), TIERS[tier].glow, { kind: "skill", done: false }, this.shareOf(p, d.ch.vohon));
     this.log(id, `${def.name}: ${def.secs} giây.`, col);
@@ -5135,7 +5184,7 @@ export class MapRoom extends Room<MapState> {
       w.shield -= used; hpDmg = Math.round((eff - used) / m); credit = Math.round(used) + Math.min(hpDmg, b.hp);
       b.shield = Math.ceil(w.shield);
       if (w.shield <= 0) { w.shield = 0; w.shieldT = 0; b.shield = 0; this.broadcast("boss", { k: "armorBreak", bid, name: ar.name, by: p.name }); }
-      this.broadcast("dmg", { x: b.x, y: b.y - TIERS[b.tier].size - 8, v: Math.round(used), c: "#9ad8ff", bid });
+      this.broadcast("dmg", { x: b.x, y: b.y - TIERS[b.tier].size - 8, v: Math.round(used), c: "#9ad8ff", bid, by, dot: !direct || undefined });
     }
     if (bd.elite && mate) { this.credit(bd.elite, "dmgBy", by, credit / 2); this.credit(bd.elite, "dmgBy", mate, credit / 2); }
     else if (bd.elite) this.credit(bd.elite, "dmgBy", by, credit);
@@ -5152,7 +5201,7 @@ export class MapRoom extends Room<MapState> {
       const dx = b.x - p.x, dy = b.y - p.y, dd = Math.hypot(dx, dy) || 1, kb = b.rank >= 2 ? 0 : b.tier >= 3 ? 40 : 110; // thú vương không bị đẩy lùi
       bd.kx = (dx / dd) * kb; bd.ky = (dy / dd) * kb;
     }
-    this.broadcast("dmg", { x: b.x, y: b.y - TIERS[b.tier].size, v: dmg, crit, c: crit ? "#ffe14d" : col, bid, kill: b.hp <= 0 || undefined }); // kill: đòn kết liễu (chỉ để hiển thị: client chạy hiệu ứng chết, hồn thú bị xoá cùng tick)
+    this.broadcast("dmg", { x: b.x, y: b.y - TIERS[b.tier].size, v: dmg, crit, c: crit ? "#ffe14d" : col, bid, by, dot: !direct || undefined, kill: b.hp <= 0 || undefined }); // by / dot: chỉ để client chọn hiệu ứng đánh; kill: đòn kết liễu (chỉ để hiển thị: client chạy hiệu ứng chết, hồn thú bị xoá cùng tick)
     if (hit && !hit.done) { hit.done = true; this.gainEnergy(by, hit.kind); this.gainLei(by, hit.kind, bd.st.has("shock")); hit.onHit?.(); }
     // Hút máu của hồn kỹ (đòn trực tiếp) cộng hút huyết `leech` của hồn sư (Quỷ Mị, 2.5d: mọi sát thương, kể cả theo thời gian và lan
     // Cảm điện), hồi cho võ hồn ra trận; cả đội đã gục thì không hồi.
@@ -5772,6 +5821,52 @@ export class MapRoom extends Room<MapState> {
     this.sendSquad(id, true);
   }
 
+  // ---------- Trang bị hồn sư (mục 5.15, bước E1) ----------
+  /** Tin riêng "gear": các món đang mặc (`slot` = chỉ số trong EQUIP_SLOTS) và chỉ số tổng `st` (equipStats). Chỉ chính chủ; không vào state công khai. */
+  sendGear(id: string) {
+    const d = this.pdata.get(id), c = this.clients.getById(id); if (!d || !c) return;
+    c.send("gear", { items: d.gear.map((i) => ({ id: i.id, code: i.code, enhance: i.enhance, stats: i.stats, slot: i.equipSlot, ...(i.locked ? { lock: true } : {}) })), st: d.gearSt });
+  }
+  /** Sau khi đổi trang bị: tính lại chỉ số, báo client, ghi ngay qua chuỗi lưu (túi + ô mặc cùng một transaction). */
+  afterGear(id: string, d: PData) {
+    d.gearSt = gearStats(d.gear); d.bagDirty = true;
+    this.afterBones(id, d.ch); this.sendGear(id);
+    void this.save(id);
+  }
+  /**
+   * Mặc trang bị `rawItem` (id món trong túi của chính người gửi): ô lấy từ mẫu của món (EQUIP_TEMPLATES; vòng / nhẫn trái phải là mẫu riêng).
+   * Ô đã có món thì đổi chỗ, món cũ về túi đúng chỗ món mới rời (số ô túi không đổi). Cùng luật gắn / tháo hồn cốt (boneLock: ngoài giao chiến,
+   * không gục, không hấp thụ); trong sân Đại Đấu Hồn Trường bị chặn (ArenaRoom BLOCKED). Thuộc hồn sư nên cộng cho cả đội; chỉ số tính lại ngay.
+   */
+  equipGear(id: string, rawItem: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); };
+    const idx = typeof rawItem === "string" ? d.bag.findIndex((i) => i.id === rawItem && i.vohonId === null && i.code === EQUIP_ITEM) : -1, it = d.bag[idx];
+    const e = it ? parseEquip(it.stats) : null, tpl = e ? equipTemplate(e.tpl) : undefined;
+    if (!it || !e || !tpl) return warn("Không có trang bị này trong túi đồ.");
+    if (claimHeld(d)) return warn(CLAIM_BUSY);
+    const lock = this.boneLock(p, d, "trang bị"); if (lock) return warn(lock);
+    const slot = equipSlotIndex(tpl.slot), oi = d.gear.findIndex((g) => g.equipSlot === slot), old = d.gear[oi];
+    if (old) { d.gear.splice(oi, 1); delete old.equipSlot; }
+    it.equipSlot = slot; d.bag.splice(idx, 1, ...(old ? [old] : [])); d.gear.push(it);
+    this.log(id, `Mặc ${equipName(e.tpl, it.enhance)} (${EQUIP_SLOTS[slot].name}).${old ? ` ${equipName(parseEquip(old.stats)?.tpl, old.enhance)} về túi đồ.` : ""}`, "#e8dcff");
+    this.afterGear(id, d);
+  }
+  /** Tháo trang bị ở ô `rawSlot` (chỉ số 0..9 hoặc mã ô trong EQUIP_SLOTS) về túi; túi đầy thì từ chối. Giữ nguyên cấp cường hóa và chỉ số. */
+  unequipGear(id: string, rawSlot: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); };
+    const slot = typeof rawSlot === "number" && Number.isInteger(rawSlot) ? rawSlot : typeof rawSlot === "string" ? equipSlotIndex(rawSlot) : -1;
+    const gi = d.gear.findIndex((g) => g.equipSlot === slot);
+    if (gi < 0) return warn("Ô này chưa mặc trang bị nào.");
+    if (claimHeld(d)) return warn(CLAIM_BUSY);
+    const lock = this.boneLock(p, d, "trang bị"); if (lock) return warn(lock);
+    if (bagUsed(d.bag) >= d.bagSlots) return warn(`Túi đồ đã đầy (${d.bagSlots} ô): bỏ bớt vật phẩm rồi mới tháo được trang bị.`);
+    const [it] = d.gear.splice(gi, 1); delete it.equipSlot; d.bag.push(it);
+    this.log(id, `Tháo ${equipName(parseEquip(it.stats)?.tpl, it.enhance)} về túi đồ.`);
+    this.afterGear(id, d);
+  }
+
   // ---------- Gắn hồn hạch (mục 5.6, bước 5.2) ----------
   /** Hồn hạch đang gắn trên võ hồn `rowId` (món của chính người chơi, `vohonId` = rowId), kèm ô (coreSlotOf); dữ liệu hỏng thì bỏ qua. */
   coresOn(d: PData, rowId: number) {
@@ -5781,7 +5876,13 @@ export class MapRoom extends Room<MapState> {
     });
   }
   /** Tổng chỉ số hồn hạch đang gắn trên võ hồn `rowId` (coreBonus, kèm phần chỉ số của bộ), cộng vào calcStats. */
-  coreBonusOf(d: PData, rowId: number) { return coreBonus(this.coresOn(d, rowId)); }
+  coreBonusOf(d: PData, rowId: number) { return this.withGear(d, coreBonus(this.coresOn(d, rowId))); }
+  /** Cộng chỉ số trang bị hồn sư đang mặc (thuộc hồn sư, dùng chung mọi võ hồn) vào bảng chỉ số kiểu hồn hạch; cùng đơn vị với coreBonus. */
+  withGear(d: PData, b: Record<CoreStat, number>) {
+    const out = { ...b };
+    for (const k of CORE_STAT_IDS) out[k] = Math.round((out[k] + d.gearSt.bonus[k]) * 10) / 10;
+    return out;
+  }
   /** Câu báo khi bộ `set` trên võ hồn `rowId` vừa đủ 2 / 4 món ("" nếu không). */
   coreSetNote(d: PData, rowId: number, set: string) {
     const n = coreSetCounts(this.coresOn(d, rowId)).get(set) ?? 0, cs = CORE_SETS[coreSetIndex(set)];

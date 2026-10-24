@@ -146,6 +146,7 @@ Client chiếu từng điểm của hình server gửi (`client/src/iso.ts`): v�
 | `he_{mã HE_IDS}` | 24×24 (`ISO_HE_ICON`) | Biểu tượng trắng trên tròn màu hệ, viền vàng kim: Cường công kiếm / đỏ, Mẫn công 3 vết cào / lục, Khống chế mắt xích / tím, Phụ trợ hoa sen / vàng |
 | `status_{mã}` | 24×24 (`ISO_STATUS_ICON`) | Theo `STATUS_IDS` / `BUFF_IDS` / `BEAST_BUFF_IDS`; 16 px mất hình nên không dùng |
 | `item_{mã}` | 32×32 (`ISO_ITEM_ICON`) | Id `ITEMS`, nhóm `ITEM_KINDS` (`item_hon_hach`, `item_manh_vo_hon`) hoặc `item_hon_cot_<vị trí BONE_SLOTS>`; hồn cốt bản xám (chân phải lật chân trái); `item_ruong`, `item_tien_thao` bản xám tô theo `col` (`lpc-item.mjs`) |
+| `item_equip_{mẫu}`, `item_equip_slot_{ô}`, `item_equip_frame_{bậc}` | 32×32 | Trang bị hồn sư (GAME_DESIGN 5.15): 60 ảnh mẫu (`<ô>_<bậc>`, ví dụ `item_equip_mu_tu_kim`), 10 hình ô (bóng ô, cũng làm ô trống của búp bê), 6 khung viền theo bậc (màu `EQUIP_TIERS[].col`); danh sách đủ ở `equipIconKeys()` (shared/data.ts). Đá / bùa / tinh hoa / thần hồn theo `item_{mã}`; thiếu ảnh thì client tra mẫu → hình ô → `item_trang_bi` |
 | `fx_{tên}` | dải một hàng khung vuông (manifest ghi `frame`) | Hiệu ứng từ gói LPC (`lpc-item.mjs`), giữ màu gốc ≤ `PORTRAIT_MAX_COLORS`; client chạy một lần bằng `playFx` |
 | `ui_{tên}` | điểm ảnh thật | Mảnh thủy mặc; kéo giãn ghi `"nine": N` (giấy dùng `round`) |
 
@@ -184,5 +185,6 @@ shared/assets/iso/
 
 ## Hồn thú lai: sheet tĩnh 3 hướng (#386)
 - Manifest `{ "key": "beast_<loài>", "frame": [64, 64], "iso": true, "static": true, "map": "<vùng>" }`; sheet `beast/<loài>.png` rộng 3 × khung, cao 1 khung: cột 0 nam (`s`), cột 1 đông (`e`), cột 2 bắc (`n`), gốc giữa đáy cách đáy `ISO_BEAST_FOOT`. `validate.mjs --static` (và `sheetSpec(key, frame, true, true)` trong `lib.mjs`) kiểm cỡ, đủ 3 khung, màu tự do như chân dung (mỗi hướng một bảng màu riêng, không giới hạn 32 màu, không so bảng chung); `normal.mjs --frame 64x64` sinh `_n.png`.
+- Ghép sheet: `node tools/assets/static-sheet.mjs <nam.png> <dong.png> <bac.png> beast/<loài>.png` (ba khung cùng cỡ vuông ra từ `gemini-import --kind beast --size <khung>`); ảnh Gemini có vạch lưới tối giữa các ô thì thêm `gemini-import --unline` (gỡ vạch trước khi tách vật). Boss thế giới dùng khung 192 (`beast_thai_than_cu_vien`, `beast_thien_thanh_nguu_mang`, `map: loi_tinh_dau`).
 - Client (`sprites.ts`): `isStaticBeast`, `STATIC_DIR_MAP` (hướng 8 → khung + lật), `staticBeastPose` / `STATIC_MOTION` (thở, nhún, ngả + vồ, lắc, nháy trắng; bóng ngã khi chết ở `GameScene.fadeBeastGhost`).
 - Họ hoạt ảnh (`beastFamily`, bảng `FAMILY_SPECIES`): thêm loài mới vào đúng họ (chim, rắn, côn trùng, cây / hoa; còn lại là thú bốn chân). Ảnh đông trong sheet phải nhìn sang phải.

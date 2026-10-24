@@ -161,6 +161,14 @@ function checkIso(key, spec, img, at, fw, fh) {
   return spec;
 }
 
+// Dịch vụ tạo ảnh ngoài Gemini / ChatGPT / ComfyUI: nhận theo chữ trong --tool, mỗi dịch vụ một mục CREDITS (hậu tố tên file ở hộp thư phẳng).
+const EXTRA_SERVICES = [
+  { re: /copilot/i, name: "Microsoft Copilot", suffix: "copilot" },
+  { re: /qwen/i, name: "Qwen Chat", suffix: "qwen" },
+  { re: /leonardo/i, name: "Leonardo AI", suffix: "leonardo" },
+  { re: /meta\s*ai|\bmeta\b/i, name: "Meta AI", suffix: "meta" },
+  { re: /grok/i, name: "Grok", suffix: "grok" },
+];
 // ---------- Đăng ký key mới ----------
 function upsertCredits(key, file) {
   const credits = path.join(ROOT, "art", "CREDITS.md");
@@ -168,13 +176,17 @@ function upsertCredits(key, file) {
   let md = readFileSync(credits, "utf8");
   const eol = md.includes("\r\n") ? "\r\n" : "\n";
   md = md.replace(/\r\n/g, "\n");
-  // Mỗi công cụ AI một mục: --tool có chữ "ComfyUI" / "Gemini" thì ghi vào mục đó, còn lại mục PixelLab.
-  const comfy = /comfyui/i.test(tool), gemini = !comfy && /gemini/i.test(tool);
-  const head = comfy ? "## Asset tạo bằng AI (ComfyUI)" : gemini ? "## Asset tạo bằng AI (Gemini)" : "## Asset tạo bằng AI (PixelLab)";
+  // Mỗi công cụ AI một mục: --tool có chữ "ComfyUI" / "Gemini" / "ChatGPT" thì ghi vào mục đó, còn lại mục PixelLab.
+  const comfy = /comfyui/i.test(tool), chatgpt = !comfy && /chatgpt/i.test(tool), other = !comfy && !chatgpt ? EXTRA_SERVICES.find((x) => x.re.test(tool)) : undefined, gemini = !comfy && !chatgpt && !other && /gemini/i.test(tool);
+  const head = comfy ? "## Asset tạo bằng AI (ComfyUI)" : gemini ? "## Asset tạo bằng AI (Gemini)" : chatgpt ? "## Asset tạo bằng AI (ChatGPT)" : other ? `## Asset tạo bằng AI (${other.name})` : "## Asset tạo bằng AI (PixelLab)";
   const intro = comfy
     ? "Ảnh AI tạo bằng ComfyUI tự host (SDXL base 1.0, CreativeML Open RAIL++-M + LoRA pixel-art-xl, CreativeML OpenRAIL-M; VAE sdxl-vae-fp16-fix, MIT), tách nền bằng `tools/assets/comfy-key.mjs`, nhập bằng `gemini-import.mjs` và đăng ký bằng `validate --register`. Quy trình: `.claude/skills/asset-gen/SKILL.md`."
     : gemini
     ? "Người dùng tạo ảnh bằng Gemini (gemini.google.com), rồi nhập bằng `tools/assets/gemini-import.mjs` (gỡ logo, xóa nền, điểm ảnh giả → pixel thật, đưa về khung) và đăng ký bằng `validate --register`. Quy trình: `.claude/skills/asset-gen/SKILL.md`."
+    : other
+    ? `Người dùng tạo ảnh bằng ${other.name}, rồi nhập bằng \`tools/assets/gemini-import.mjs\` / \`equip-import.mjs\` và đăng ký bằng \`validate --register\`. Hộp thư ảnh: \`anh-inbox/\` (tên file có hậu tố \`-${other.suffix}\`). Quy trình: \`.claude/skills/asset-gen/SKILL.md\`.`
+    : chatgpt
+    ? "Người dùng tạo ảnh bằng ChatGPT (tạo ảnh, nền trong suốt), rồi nhập bằng `tools/assets/equip-import.mjs` / `gemini-import.mjs` (ngưỡng alpha, điểm ảnh giả → pixel thật, đưa về khung) và đăng ký bằng `validate --register`. Quy trình: `.claude/skills/asset-gen/SKILL.md`."
     : "Tạo bằng PixelLab qua MCP, rồi chuẩn hóa bằng `tools/assets` (normalize → pack → validate). Quy trình: `.claude/skills/asset-gen/SKILL.md`.";
   if (!md.includes(head)) {
     md = md.replace("## Asset bên ngoài", `${head}\n\n${intro}\n\n` +

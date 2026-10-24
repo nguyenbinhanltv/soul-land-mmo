@@ -121,6 +121,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   PLAYER_SPEED, RUN_MULT, BEAST_GAIT, BEAST_LEASH, TICK_RATE,
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, CAMP_PT_GAP, shopOf, shopExpands,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, parseSell, autoSellable } from "../../shared/data.ts";
+import { EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_ROLL, EQUIP_ILVL_K, parseEquip, equipStats, equipDefTotal, equipTemplate, equipSlotIndex } from "../../shared/data.ts"; // trang bị hồn sư (E1)
 import { campMerchantSpot } from "../../shared/camp.ts";
 import { hoaDanSpot } from "../../shared/hoaDan.ts"; // Hỏa Đàn (#163)
 import { PLAYER_STATUS } from "../../shared/data.ts";
@@ -235,6 +236,7 @@ async function enter(b,roomId){
     if(b.bag) b.bag={slots:m.slots,honTe:m.honTe,cd:m.cd,items:applyBagDelta(b.bag.items,m),buyback:m.buyback??b.bag.buyback,sell:m.sell??b.bag.sell,sold:m.sold??b.bag.sold};
     b.bagMsgs=(b.bagMsgs??0)+1; bagCount("bagd",m);
   });
+  b.gear=null; b.gearN=0; b.room.onMessage("gear",m=>{b.gear=m; b.gearN++;}); // trang bị hồn sư đang mặc (E1, mục 5.15)
   b.room.onMessage("absorbing",m=>{b.absorbing=m;});
   b.room.onMessage("autosold",m=>{b.autosold=m;}); // tự bán từ xa (#216): số món, Hồn Tệ
   b.room.onMessage("enhanced",m=>{b.enh=m;}); // kết quả cường hóa hồn cốt (4.4)
@@ -310,7 +312,7 @@ const STANDALONE=[
   ["arena",2,arenaTest],                      //  96 7.2, 9.7 Đại Đấu Hồn Trường
   ["friend",2,friendTest,true],               // ~40 #195 bạn bè và chặn (đo ở máy)
   ["chuong3",2,chapter3Test],                 // ~18 #284 chương 3 Hải Thần Đảo (đo ở máy)
-  ["bag",3,async()=>{ bagSyncPure(); await shopBuybackTest(); }], // 16 #215, 9.8
+  ["bag",3,async()=>{ bagSyncPure(); await shopBuybackTest(); await gearTest(); }], // 16 #215, 9.8; E1 trang bị hồn sư
   ["sell",3,sellTest],                        //   5 #216
   ["shardBuy",3,shardBuyTest],                //  ~8 #282 Thương hội đổi mảnh võ hồn (đo ở máy)
   ["tong",3,tongTest],                        //   9 #196 tông môn
@@ -389,7 +391,7 @@ if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(fails?`✗ ${fa
 if(process.env.BOT_ONLY==="tong"){ await tongTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="shardbuy"){ await shardBuyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="sell"){ await sellTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); await gearTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="offline"){ await offlineTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="chuong3"){ await chapter3Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="chuong2"){ await chapter2Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -1422,6 +1424,7 @@ else {
     const ry=VILLAGE_RY, out=safe.x+safe.width+30, bid=await spawnNear(E,3,40), pc=STATUS.poison.col, ticks=()=>E.dmgs.filter(d=>d.bid===bid&&d.c===pc);
     await test(E,"status",{s:"stun",secs:30}); await test(E,"status",{s:"poison",n:2,secs:30});
     E.dmgs=[]; ok(await waitFor(()=>ticks().length,1500),`Trúng độc ngoài làng: mất ${ticks()[0]?.v} mỗi giây`);
+    ok(ticks().every(d=>d.dot===true&&d.by===E.room.sessionId),`Tin dmg của độc có cờ dot và by = người gây (${JSON.stringify(ticks()[0]?.by)}, dot ${ticks()[0]?.dot})`);
     await goTo(E,safe.x+safe.width-24,ry); ok(inSafeOf(E),"E vào làng");
     E.dmgs=[]; await test(E,"ready"); E.room.send("skill",{i:0}); ok(await lastLog(E,/Vùng an toàn/),"trong làng: không tung hồn kỹ");
     await sleep(2200); ok(!ticks().length,"trong làng: độc do mình gây tạm dừng, không gây sát thương");
@@ -5236,15 +5239,19 @@ async function autoTest(){
     // Không có chỗ nào xa hơn tầm aggro: báo ✗ rõ (không lùi về chỗ sinh cũ vốn gây lỗi), vẫn sinh Y để các kiểm tra sau chạy tiếp.
     ok(yAt&&yAt.away>BEAST_AGGRO_R+40,`chỗ sinh Y xa B và X hơn tầm aggro ${BEAST_AGGRO_R} (xa nhất ${yAt?.away.toFixed(0)} pixel; ${yCand.length} chỗ: ${yCand.filter(c=>c.solid).length} ô chặn, ${yCand.filter(c=>c.far).length} ngoài vùng neo; A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}, B ${me(B).x.toFixed(0)},${me(B).y.toFixed(0)}, X ${xb()?.x.toFixed(0)},${xb()?.y.toFixed(0)})`);
     const ySite=`chỗ sinh Y ${yAt?`dx,dy ${yAt.dx},${yAt.dy}, cách B / X ${yAt.away.toFixed(0)} pixel`:"đường lùi dx,dy -50,0 (không có chỗ hợp lệ)"}`;
+    // Nợ nhịp (AUTO_PACE): A vừa hạ một hồn thú hoang đánh trả trong lúc chờ X thì còn nợ vài giây tới hơn chục giây, tự săn đứng nghỉ, không
+    // nhắm Y, không dạo (#305 lần 3: CI A đứng yên 15 giây, mục tiêu / đích rỗng, Y đầy máu cách 115 pixel). Bài này thử luật không cướp quái,
+    // không phải trần tốc độ (bài riêng bên dưới), nên xóa nợ trước và trong lúc chờ.
+    await test(A,"auto",{pace:0});
     sp=await test(A,"spawn",{tier:0,dx:yAt?.dx??-50,dy:yAt?.dy??0,years:150}); const Y=sp?.bid;
     let downY=false; const yTrack=[];
     for(const t0=Date.now();Y&&!downY&&Date.now()-t0<15000;){
       downY=await waitFor(()=>!A.room.state.beasts.has(Y),500);
-      if(!downY){ const yb=A.room.state.beasts.get(Y), st=await test(A,"auto",{bid:Y}); yTrack.push(`${((Date.now()-t0)/1000).toFixed(1)}s Y ${yb?.x.toFixed(0)},${yb?.y.toFixed(0)} nhắm ${st?.beast?.target} A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}`); await test(A,"clear",{but:[X,Y]}); }
+      if(!downY){ const yb=A.room.state.beasts.get(Y), st=await test(A,"auto",{bid:Y,pace:0}); yTrack.push(`${((Date.now()-t0)/1000).toFixed(1)}s Y ${yb?.x.toFixed(0)},${yb?.y.toFixed(0)} nhắm ${st?.beast?.target} A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)} ${st?.on?"bật":"TẮT"} mục tiêu ${st?.target} nợ ${st?.pace?.toFixed?.(1)}`); await test(A,"clear",{but:[X,Y]}); }
     }
     // Chẩn đoán khi trượt (#305): chỗ A / B / X / Y, sinh lực Y, mục tiêu / đích / đường của tự săn, Y nhắm ai / bị bỏ qua.
     const whyY=downY&&xb()?.hp>=hx?"":await (async()=>{ const st=await test(A,"auto",{bid:Y}), yb=A.room.state.beasts.get(Y), at=o=>o?`${o.x.toFixed(0)},${o.y.toFixed(0)}`:"-";
-      return ` [${ySite}; A(${A.room.sessionId}) ${at(me(A))}, B(${B.room.sessionId}) ${at(me(B))}, X ${at(xb())}, Y ${yb?`${at(yb)} ${yb.hp}/${yb.maxHp}`:"đã mất"}; mục tiêu ${st?.target}, đích ${JSON.stringify(st?.goal)}, đường ${st?.path}, Y ${JSON.stringify(st?.beast)}; vết Y ${yTrack.join(" | ")}; log ${A.logs.slice(-3).join(" | ")}]`; })();
+      return ` [${ySite}; A(${A.room.sessionId}) ${at(me(A))}, B(${B.room.sessionId}) ${at(me(B))}, X ${at(xb())}, Y ${yb?`${at(yb)} ${yb.hp}/${yb.maxHp}`:"đã mất"}; tự săn ${st?.on?"bật":"TẮT"} (${A.autoMsg?.why??"-"}), mục tiêu ${st?.target}, nợ nhịp ${st?.pace?.toFixed?.(1)} (ước lượng ${st?.est?.toFixed?.(1)}), đích ${JSON.stringify(st?.goal)}, đường ${st?.path}, Y ${JSON.stringify(st?.beast)}; vết Y ${yTrack.join(" | ")}; log ${A.logs.slice(-3).join(" | ")}]`; })();
     ok(Y&&downY&&xb()?.hp>=hx,`A hạ hồn thú Y không ai giành, X không mất sinh lực (${hx} → ${xb()?.hp})${whyY}`);
     await autoOp(A,"off"); await test(B,"slay",{bid:X});
     // Các bài sau không dùng B tới bài nợ nhịp: về điểm vào trại cổng (hồn thú hoang không lang thang tới), không kéo hồn thú hoang tới A.
@@ -6204,6 +6211,12 @@ async function tongWeekTest(){
     await pts(C,20); ok((await board(C)).me===20,"C có 20 điểm tuần mới");
     await test(C,"tong",{back:TONG_SWITCH_DAYS+1}); await near(C,H.npc); t=await op(C,{op:"join",tong:H.id});
     ok(C.tong.tong===H.id&&(await board(C)).me===0,`C đổi sang ${H.name}: điểm tuần hiện tại bỏ (${t})`);
+    // Rời tông cũng xoá điểm tuần (#320): C có 60 điểm rồi rời, sang tuần sau không có thưởng tuần của tông cũ.
+    await pts(C,60); ok((await board(C)).me===60,"C có 60 điểm tuần");
+    await near(C,H.npc); t=await op(C,{op:"leave"});
+    ok(C.tong.tong===""&&(await board(C)).me===0&&/điểm tuần này đã bỏ/.test(t),`C rời ${H.name}: điểm tuần hiện tại bỏ (${t})`);
+    await test(A,"tweek",{shift:84}); bd=await board(C);
+    ok(bd.last.reward==null&&!bd.last.claimed,`tuần sau: C đã rời, không có thưởng tuần của tông cũ (${bd.last.reward})`);
   }finally{
     await test(A,"tweek",{shift:0}).catch(()=>{});
     for(const b of [A,B,C]) await b.room.leave().catch(()=>{});
@@ -6422,6 +6435,104 @@ async function bagPageTest(E,relog){
   await test(E,"coin",{n:1e6}); // phần sau (đan lớn) tính Hồn Tệ từ mốc này
 }
 
+/**
+ * Trang bị hồn sư E1 (mục 5.15, BOT_ONLY=bag): hàm thuần parseEquip; mặc / tháo / đổi chỗ qua lệnh equipgear / unequipgear; món đang mặc không
+ * chiếm ô túi và không nằm trong tin bag; chỉ số khớp server (stats, giảm sát thương, công vũ khí); may mắn 9 thì mọi đòn ra max; từ chối
+ * đúng; 20 lệnh dồn cùng lúc chỉ một lệnh có hiệu lực; lưu qua lần vào lại (kiểm cả với --pg: chỉ mục duy nhất, đổi chỗ trong một lần ghi).
+ */
+async function gearTest(){
+  console.log("[E1] Trang bị hồn sư: mặc / tháo, chỉ số, may mắn, lưu");
+  // Hàm thuần: parseEquip nhận object và chuỗi JSON (MemoryStore / pg), kẹp số, bỏ mẫu lạ.
+  const raw={tpl:"vu_khi_chi_bao",ilvl:7,roll:0.05,affixes:[["crit",1],["xx",2]],luck:3};
+  ok(same(parseEquip(raw)?.affixes,[["crit",1]])&&parseEquip(JSON.stringify(raw))?.luck===3&&parseEquip({...raw,luck:99,ilvl:99,roll:5})?.luck===EQUIP_LUCK_MAX
+    &&parseEquip({...raw,ilvl:99,roll:5}).ilvl===EQUIP_ILVL_K.length&&parseEquip({...raw,roll:5}).roll===EQUIP_ROLL
+    &&parseEquip({tpl:"khong_co"})===null&&parseEquip("{hỏng")===null&&parseEquip(null)===null&&parseEquip(7)===null,
+    "parseEquip: nhận object / chuỗi JSON, kẹp ilvl, roll, may mắn, bỏ dòng phụ lạ, mẫu lạ hoặc dữ liệu hỏng thì null");
+  ok(equipDefTotal(BONE_PASSIVE_CAP.def-0.01,0.5)===BONE_PASSIVE_CAP.def&&equipDefTotal(0,0.02)===0.02,"equipDefTotal: gộp với bị động hồn cốt dưới cùng một trần");
+  const S=await bot("Trang bị","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
+  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua trang bị (cần hook gear, hurt, rest): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  try{
+  const me=()=>S.room.state.players?.get(S.room.sessionId), loose=()=>looseOf(S), free=()=>S.bag.slots-loose().length;
+  await waitFor(()=>me()&&S.bag,3000);
+  async function rejoin(){ await S.room.leave(); await sleep(400); S.mapId=(await post("/api/me",{token:S.token})).mapId; await enter(S); await waitFor(()=>me()&&S.bag&&S.gear,3000); }
+  /** Gửi lệnh trang bị; chờ tin gear (đổi được) hoặc dòng log từ chối. Trả dòng log mới nhất ("" nếu chỉ có tin gear). */
+  async function op(type,msg){ const g=S.gearN??0, l=S.logs.length; S.room.send(type,msg); await waitFor(()=>(S.gearN??0)>g||S.logs.length>l,2000); await sleep(100); return S.gearN>g?"":(S.logs.at(-1)??""); }
+  const mk=async(tpl,more={})=>{ const r=await test(S,"gear",{tpl,...more}); await waitFor(()=>loose().some(i=>i.id===r?.id),1500); return r?.id; };
+  const inBag=id=>loose().some(i=>i.id===id), worn=slot=>S.gear?.items.find(g=>g.slot===slot);
+  const eq=(tpl,ilvl,roll=0,luck=0,affixes=[])=>({tpl,ilvl,enhance:0,roll:roll*EQUIP_ROLL,luck,affixes});
+  const slotOf=tpl=>equipSlotIndex(equipTemplate(tpl).slot);
+  await test(S,"gear",{clear:true}); await test(S,"rest",{s:TEAM_COMBAT_SECS+1});
+  const s0=await test(S,"stats"), base0=s0.stats;
+  ok(s0.gear.red===0&&s0.gear.luck===0&&s0.gear.weapon===null&&(S.gear?.items.length??0)===0,"chưa mặc gì: không cộng chỉ số, giảm sát thương, may mắn, công vũ khí");
+  const W1=await mk("vu_khi_chi_bao",{ilvl:7,roll:1,luck:5}), W2=await mk("vu_khi_pham_khi",{ilvl:1}), A1=await mk("ao_tu_kim",{ilvl:5,affixes:[["crit",1]]}), A2=await mk("ao_pham_khi",{ilvl:1});
+  const N1=await mk("day_chuyen_than_khi",{ilvl:6,luck:4}), N2=await mk("vong_trai_han_ngoc",{ilvl:3,enhance:5});
+  ok([W1,W2,A1,A2,N1,N2].every(Boolean)&&loose().filter(i=>i.code===EQUIP_ITEM).length===6,"hook gear: 6 món trang bị vào túi (cùng ô được hai món)");
+  const rm=loose().find(i=>i.id===A1);
+  ok(rm.kind==="trang_bi"&&rm.stats.tpl==="ao_tu_kim"&&rm.stats.ilvl===5&&same(rm.stats.affixes,[["crit",1]]),"dữ liệu món (stats = EquipData) tới client nguyên vẹn");
+  // ---- Từ chối ----
+  const dan=loose().find(i=>i.code!==EQUIP_ITEM&&i.code!==CORE_ITEM&&i.code!==BONE_ITEM);
+  let t=await op("equipgear",{id:dan.id}); ok(/Không có trang bị này/.test(t),`vật phẩm không phải trang bị bị từ chối: ${t}`);
+  for(const bad of ["khong-co",7,null,{},[A1]]){ t=await op("equipgear",{id:bad}); ok(/Không có trang bị này/.test(t)&&(S.gear?.items.length??0)===0,`id ${JSON.stringify(bad)} bị từ chối`); }
+  t=await op("equipgear",null); ok(/Không có trang bị này/.test(t),"tin equipgear rỗng bị từ chối, không ném lỗi");
+  for(const bad of [0,"vu_khi",99,-1,1.5,"x",null,{}]){ t=await op("unequipgear",{slot:bad}); ok(/chưa mặc trang bị/.test(t),`tháo ô ${JSON.stringify(bad)} (trống / lạ) bị từ chối`); }
+  // Đang giao chiến: không mặc / tháo được.
+  await test(S,"hurt",{pct:1}); t=await op("equipgear",{id:A1});
+  ok(/Đang giao chiến: .* gắn \/ tháo trang bị/.test(t)&&inBag(A1)&&!S.gear?.items.length,`đang giao chiến: mặc bị từ chối (${t})`);
+  await test(S,"rest",{s:TEAM_COMBAT_SECS+1});
+  // ---- Mặc áo: không chiếm ô túi, không nằm trong tin bag, chỉ số khớp ----
+  const n0=loose().length; t=await op("equipgear",{id:A1});
+  const e1=equipStats([eq("ao_tu_kim",5,0,0,[["crit",1]])]), s1=await test(S,"stats");
+  ok(t===""&&worn(2)?.id===A1&&!inBag(A1)&&loose().length===n0-1&&free()===S.bag.slots-n0+1&&same(S.gear.st,e1),
+    `mặc Áo Tử Kim: vào ô ${EQUIP_SLOTS[2].name}, rời túi (${n0} -> ${loose().length} ô), tin gear = equipStats`);
+  ok(s1.stats.maxHp-base0.maxHp===e1.bonus.hp&&s1.live.maxHp===s1.stats.maxHp&&Math.abs(s1.live.crit-(s0.live.crit+e1.bonus.crit/100))<1e-9&&s1.gear.red===e1.red,
+    `chỉ số vào calcStats: sinh lực tối đa ${base0.maxHp} -> ${s1.stats.maxHp} (+${e1.bonus.hp}), chí mạng +${e1.bonus.crit}%, giảm sát thương ${(e1.red*100).toFixed(1)}%`);
+  ok(Math.abs(s1.live.def-s0.live.def-e1.red)<1e-9||s1.live.def===BONE_PASSIVE_CAP.def,`giảm sát thương nhận vào buff def: ${s0.live.def} -> ${s1.live.def}`);
+  ok(me().maxHp===s1.stats.maxHp,"state công khai: sinh lực tối đa theo chỉ số mới");
+  // ---- Đổi chỗ: món cũ về túi đúng chỗ món mới rời ----
+  const idx=loose().findIndex(i=>i.id===A2); t=await op("equipgear",{id:A2});
+  ok(t===""&&worn(2)?.id===A2&&inBag(A1)&&!inBag(A2)&&loose().findIndex(i=>i.id===A1)===idx&&loose().length===n0-1,
+    `đổi Áo: Áo Phàm Khí vào ô, Áo Tử Kim về túi đúng chỗ (số ô túi giữ nguyên ${loose().length})`);
+  ok(same(S.gear.st,equipStats([eq("ao_pham_khi",1)]))&&(await test(S,"stats")).stats.maxHp===base0.maxHp+equipStats([eq("ao_pham_khi",1)]).bonus.hp,"chỉ số theo món mới, không cộng dồn món cũ");
+  // ---- Vũ khí + dây chuyền + vòng: công mỗi đòn, may mắn cộng hai ô, cường hóa vào chỉ số ----
+  await op("equipgear",{id:W2}); await op("equipgear",{id:W1}); await op("equipgear",{id:N2});
+  ok(worn(0)?.id===W1&&inBag(W2)&&worn(6)?.id===N2&&slotOf("vong_trai_han_ngoc")===6,"mặc vũ khí (đổi chỗ), vòng tay trái");
+  const eW=equipStats([eq("vu_khi_chi_bao",7,1,5)]);
+  let g=await test(S,"stats"), m=g.live.atkNow/(g.live.atk+(eW.weapon.min+eW.weapon.max)/2);
+  ok(same(g.gear.weapon,eW.weapon)&&g.gear.luck===5&&g.live.atkRolls.every(r=>r>=(g.live.atk+eW.weapon.min)*m-1e-6&&r<=(g.live.atk+eW.weapon.max)*m+1e-6)&&new Set(g.live.atkRolls).size>1,
+    `vũ khí: công mỗi đòn ${eW.weapon.min}–${eW.weapon.max}, may mắn 5: 12 đòn nằm trong khoảng và không đều nhau`);
+  const eN2=equipStats([eq("vong_trai_han_ngoc",3)]); void eN2;
+  await op("equipgear",{id:N1});
+  g=await test(S,"stats"); m=g.live.atkNow/(g.live.atk+(eW.weapon.min+eW.weapon.max)/2);
+  ok(g.gear.luck===EQUIP_LUCK_MAX&&g.live.atkRolls.every(r=>Math.abs(r-(g.live.atk+eW.weapon.max)*m)<1e-6),
+    `may mắn vũ khí 5 + dây chuyền 4 = ${g.gear.luck}: mọi đòn ra công tối đa (${g.live.atkRolls.map(r=>r.toFixed(1)).join(", ")})`);
+  const eAll=equipStats([eq("vu_khi_chi_bao",7,1,5),eq("day_chuyen_than_khi",6,0,4),{...eq("vong_trai_han_ngoc",3),enhance:5},eq("ao_pham_khi",1)]);
+  ok(same(g.gear.bonus,eAll.bonus)&&g.gear.red===eAll.red,`tổng bộ đang mặc khớp equipStats (giảm sát thương ${(eAll.red*100).toFixed(1)}%, cường hóa +5 của vòng tính vào chỉ số)`);
+  // ---- Lưu qua lần vào lại ----
+  const keep=S.gear.items.map(i=>`${i.slot}:${i.id}:${i.enhance}`).sort(), bagIds=new Set(loose().map(i=>i.id));
+  await rejoin();
+  ok(same(S.gear.items.map(i=>`${i.slot}:${i.id}:${i.enhance}`).sort(),keep)&&[W1,N1,N2,A2].every(id=>!inBag(id))&&[W2,A1].every(inBag)&&loose().length===bagIds.size,
+    `vào lại: ${S.gear.items.length} món vẫn mặc đúng ô, món trong túi còn nguyên (${loose().length} ô)`);
+  const s2=await test(S,"stats"); ok(same(s2.gear.bonus,eAll.bonus)&&s2.gear.luck===EQUIP_LUCK_MAX&&s2.stats.maxHp===g.stats.maxHp,"chỉ số sau khi vào lại giống trước (tính lại từ dữ liệu đã lưu)");
+  // Đổi chỗ vũ khí rồi vào lại: một lần ghi đổi ô cho hai món (chỉ mục duy nhất (tài khoản, ô) không vướng).
+  await op("equipgear",{id:W2}); await rejoin();
+  ok(worn(0)?.id===W2&&inBag(W1)&&S.gear.items.length===4,"đổi chỗ vũ khí rồi vào lại: Vũ Khí Phàm Khí đang mặc, Chí Bảo về túi");
+  // ---- 20 lệnh dồn cùng lúc: chỉ một lệnh có hiệu lực, không nhân đồ ----
+  for(let k=0;k<20;k++) S.room.send("equipgear",{id:W1});
+  await waitFor(()=>worn(0)?.id===W1,2000); await sleep(400);
+  ok(worn(0)?.id===W1&&S.gear.items.filter(i=>i.id===W1).length===1&&!inBag(W1)&&inBag(W2)&&S.gear.items.length===4&&loose().filter(i=>i.code===EQUIP_ITEM).length===2,
+    "20 lệnh mặc cùng một món: ô có đúng một món, không nhân đồ, món cũ về túi một lần");
+  await rejoin(); ok(S.gear.items.length===4&&worn(0)?.id===W1&&loose().filter(i=>i.code===EQUIP_ITEM).length===2,"vào lại sau đua lệnh: vẫn 4 món mặc, 2 món trong túi");
+  // ---- Tháo ----
+  t=await op("unequipgear",{slot:0}); ok(t===""&&!worn(0)&&inBag(W1)&&S.gear.items.length===3&&S.gear.st.weapon===null,"tháo vũ khí theo chỉ số ô: về túi, không còn công vũ khí");
+  t=await op("unequipgear",{slot:"day_chuyen"}); ok(t===""&&!worn(5)&&inBag(N1)&&S.gear.st.luck===0,"tháo theo mã ô (day_chuyen): về túi, hết may mắn");
+  // Túi đầy: không tháo được; vẫn đổi chỗ được (số ô không đổi).
+  const room=free(); if(room>0) await test(S,"give",{code:RING_ITEM,qty:room,years:100}); await waitFor(()=>free()===0,3000);
+  t=await op("unequipgear",{slot:2}); ok(/Túi đồ đã đầy/.test(t)&&worn(2)&&free()===0,`túi đầy: tháo bị từ chối, món vẫn mặc (${t})`);
+  t=await op("equipgear",{id:A1}); ok(t===""&&worn(2)?.id===A1&&inBag(A2)&&free()===0,"túi đầy: đổi chỗ vẫn được (món cũ chiếm đúng ô món mới rời)");
+  await test(S,"gear",{clear:true});
+  ok(!(S.gear?.items.length)&&loose().every(i=>i.code!==EQUIP_ITEM)&&(await test(S,"stats")).stats.maxHp===base0.maxHp,"dọn: hết trang bị, sinh lực tối đa về gốc");
+  }finally{ await S.room.leave().catch(()=>{}); }
+}
 async function shopBuybackTest(){
   console.log("[9.8] Thương nhân: đan lớn, mở rộng túi, mua lại đồ bán nhầm");
   const big=["dai_hoi_huyet_dan","dai_hoi_hon_dan"].map(c=>itemDef(c)), small=itemDef("hoi_huyet_dan");

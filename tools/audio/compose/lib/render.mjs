@@ -182,9 +182,9 @@ export function writeWav(path, { left, right }, sampleRate) {
 }
 
 /** wav -> ogg Vorbis hoặc m4a AAC (dự phòng cho Safari, như dây chuyền #133). Bỏ metadata, bitexact để chạy lại ra cùng file. */
-export function encode(wavPath, outPath, format, bitrate = "96k") {
+export function encode(wavPath, outPath, format, bitrate = "96k", mono = false) {
   const codec = format === "ogg" ? ["-c:a", "libvorbis", "-b:a", bitrate, "-serial_offset", "0"] : ["-c:a", "aac", "-b:a", bitrate, "-movflags", "+faststart"];
-  const r = spawnSync(ffmpegPath, ["-hide_banner", "-loglevel", "error", "-y", "-i", wavPath, "-map_metadata", "-1",
+  const r = spawnSync(ffmpegPath, ["-hide_banner", "-loglevel", "error", "-y", "-i", wavPath, "-map_metadata", "-1", ...(mono ? ["-ac", "1"] : []),
     "-fflags", "+bitexact", "-flags:a", "+bitexact", ...codec, outPath], { encoding: "utf8" });
   if (r.status !== 0) throw new Error(`ffmpeg lỗi: ${r.stderr}`);
 }

@@ -7,7 +7,7 @@ import { promisify } from "node:util";
 import { nameKey } from "./names.ts";
 import { mapFile } from "./map.ts";
 import { DEFAULT_LOOKS, parseLooks, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, isTongTask, type TongRank, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
-  BONE_ITEM, CORE_ITEM, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
+  BONE_ITEM, CORE_ITEM, EQUIP_ITEM, EQUIP_SLOTS, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
   RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE,
   type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
 
@@ -55,6 +55,7 @@ export interface Item {
   vohonId: number | null;      // đang gắn vào võ hồn nào (vohons.id), null = nằm trong túi
   created: number;             // thời điểm tạo (ms, items.created_at): thứ tự ô trong túi khi nạp lại
   locked?: boolean;            // người chơi khoá (#216, items.locked): không bán / bỏ / làm nguyên liệu
+  equipSlot?: number;          // trang bị hồn sư đang mặc (E1, items.equip_slot): chỉ số ô trong EQUIP_SLOTS; thiếu = nằm trong túi
 }
 /**
  * Túi đồ và Hồn Tệ (đồng) của một tài khoản: chỉ server và chính chủ thấy. Từ 6.2 kèm tiến độ nhiệm vụ `quests` (bảng `quests`,
@@ -67,7 +68,9 @@ export interface Item {
 export interface TongRow { tong: string | null; at: number | null; }
 /** Bảng tông tuần (#197): mỗi tông có điểm trong tuần (TongRank), và top cá nhân mỗi tông (tên, điểm; điểm > 0, cao trước). */
 export interface TongBoard { tongs: TongRank[]; top: Record<string, { name: string; points: number }[]>; }
-export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; sell?: unknown; sold?: SoldRow[]; }
+export interface Bag { items: Item[]; honTe: number; quests?: QuestProgress[]; slots?: number; sell?: unknown; sold?: SoldRow[];
+  /** Điểm tông tuần (#197, #320) cộng cùng transaction với túi: bài tông vụ đã xong thì điểm đi theo lần ghi túi, không mất một nửa. */
+  tongPts?: { week: number; tong: string; n: number }[]; }
 /** Một hồn sư trong danh sách bạn bè / chặn (#195). */
 export interface SocialPeer { id: number; name: string; }
 /** Bạn bè, chặn và người đã thêm mình của một tài khoản (#195; Store.getSocial). */
@@ -107,6 +110,14 @@ function bagOk(b: Bag) {
   if (!Number.isSafeInteger(b.honTe) || b.honTe < 0) throw new Error(`Hồn Tệ không hợp lệ: ${b.honTe}.`);
   if (b.slots !== undefined && (!Number.isInteger(b.slots) || b.slots < BAG_SLOTS || b.slots > BAG_MAX_SLOTS)) throw new Error(`Số ô túi không hợp lệ: ${b.slots}.`);
   for (const i of b.items) if (!Number.isInteger(i.qty) || i.qty < 1) throw new Error(`Số lượng ô ${i.id} không hợp lệ: ${i.qty}.`);
+  // Trang bị đang mặc (E1): ô có thật, đúng món trang bị, không gắn võ hồn, mỗi ô một món (khớp CHECK và chỉ mục duy nhất của 027_trang_bi.sql).
+  const worn = new Set<number>();
+  for (const i of b.items) {
+    if (i.equipSlot === undefined) continue;
+    if (!Number.isInteger(i.equipSlot) || i.equipSlot < 0 || i.equipSlot >= EQUIP_SLOTS.length || i.code !== EQUIP_ITEM || i.vohonId !== null || worn.has(i.equipSlot))
+      throw new Error(`Ô trang bị ${i.equipSlot} của ${i.id} không hợp lệ.`);
+    worn.add(i.equipSlot);
+  }
   for (const r of b.sold ?? []) if (!Number.isInteger(r.item.qty) || r.item.qty < 1 || !Number.isSafeInteger(r.price) || r.price < 0) throw new Error(`Món tự bán ${r.key} không hợp lệ.`);
   const chains = new Set((b.quests ?? []).map((q) => q.chain));
   if (chains.size !== (b.quests ?? []).length) throw new Error("Tiến độ nhiệm vụ có hai dòng cùng chuỗi.");
@@ -455,6 +466,7 @@ export class MemoryStore implements Store {
    * có bài khảo hạch hằng ngày (tông vụ, #197) thì bỏ bài khảo hạch (tông vụ) của các ngày khác.
    */
   putBag(accountId: number, bag: Bag) {
+    for (const t of bag.tongPts ?? []) this.bumpTong(accountId, t.week, t.tong, t.n);
     const { quests, slots, sell, sold, ...rest } = copyBag(bag), prev = this.bags.get(accountId), old = prev?.slots;
     // Bộ lọc / danh sách tự bán (#216): thiếu khi ghi thì giữ bản đang lưu, như writeBag.
     const keepSell = sell !== undefined ? sell : prev?.sell, keepSold = sold ?? prev?.sold;
@@ -519,11 +531,12 @@ export class MemoryStore implements Store {
     for (const x of this.tongPts.values()) if (x.accountId === accountId && x.week === week && (!best || x.points > best.points)) best = { tong: x.tong, points: x.points };
     return best;
   }
-  async addTongPoints(accountId: number, week: number, tong: string, n: number) {
+  bumpTong(accountId: number, week: number, tong: string, n: number) {
     const k = `${accountId}|${week}|${tong}`, x = this.tongPts.get(k) ?? { accountId, week, tong, points: 0 };
     x.points += n; this.tongPts.set(k, x);
     return x.points;
   }
+  async addTongPoints(accountId: number, week: number, tong: string, n: number) { return this.bumpTong(accountId, week, tong, n); }
   async tongBoard(week: number, min: number, topN: number): Promise<TongBoard> {
     const by = new Map<string, { accountId: number; points: number }[]>();
     for (const x of this.tongPts.values()) if (x.week === week) { const l = by.get(x.tong) ?? []; l.push(x); by.set(x.tong, l); }
@@ -865,20 +878,24 @@ export class PgStore implements Store {
   }
   itemRow(x: any): Item {
     return { id: x.id, kind: x.kind, code: x.code, qty: x.qty, years: x.years, stars: x.stars, enhance: x.enhance, stats: x.stats ?? null,
-      vohonId: x.vohon_id === null ? null : Number(x.vohon_id), created: new Date(x.created_at).getTime(), ...(x.locked ? { locked: true } : {}) };
+      vohonId: x.vohon_id === null ? null : Number(x.vohon_id), created: new Date(x.created_at).getTime(), ...(x.locked ? { locked: true } : {}),
+      ...(x.equip_slot === null || x.equip_slot === undefined ? {} : { equipSlot: Number(x.equip_slot) }) };
   }
   /** Thêm hoặc sửa các ô `items` (chỉ ô của chính tài khoản; id thuộc tài khoản khác thì ném lỗi). Gọi trong transaction. */
   async upsertItems(db: pg.PoolClient, accountId: number, items: Item[]) {
     if (!items.length) return;
     const rows = JSON.stringify(items.map((i) => ({ id: i.id, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars,
-      enhance: i.enhance, stats: i.stats ?? null, vohon_id: i.vohonId, created: new Date(i.created).toISOString(), locked: !!i.locked })));
+      enhance: i.enhance, stats: i.stats ?? null, vohon_id: i.vohonId, created: new Date(i.created).toISOString(), locked: !!i.locked, equip_slot: i.equipSlot ?? null })));
     const r = await db.query(
-      `INSERT INTO items(id, account_id, kind, code, qty, years, stars, enhance, stats, vohon_id, created_at, locked)
-       SELECT x.id, $1, x.kind, x.code, x.qty, x.years, x.stars, x.enhance, x.stats, x.vohon_id, x.created, x.locked
+      `INSERT INTO items(id, account_id, kind, code, qty, years, stars, enhance, stats, vohon_id, created_at, locked, equip_slot)
+       SELECT x.id, $1, x.kind, x.code, x.qty, x.years, x.stars, x.enhance, x.stats, x.vohon_id, x.created, x.locked, x.equip_slot
        FROM jsonb_to_recordset($2::jsonb) AS x(id uuid, kind text, code text, qty int, years int, stars smallint, enhance smallint,
-         stats jsonb, vohon_id bigint, created timestamptz, locked boolean)
+         stats jsonb, vohon_id bigint, created timestamptz, locked boolean, equip_slot smallint)
        ON CONFLICT (id) DO UPDATE SET kind=EXCLUDED.kind, code=EXCLUDED.code, qty=EXCLUDED.qty, years=EXCLUDED.years, stars=EXCLUDED.stars,
-         enhance=EXCLUDED.enhance, stats=EXCLUDED.stats, vohon_id=EXCLUDED.vohon_id, locked=EXCLUDED.locked,
+         -- ver (027): tăng khi cấp cường hóa, chỉ số hoặc ô mặc của món đổi.
+         ver=CASE WHEN items.enhance IS DISTINCT FROM EXCLUDED.enhance OR items.stats IS DISTINCT FROM EXCLUDED.stats
+           OR items.equip_slot IS DISTINCT FROM EXCLUDED.equip_slot THEN items.ver + 1 ELSE items.ver END,
+         enhance=EXCLUDED.enhance, stats=EXCLUDED.stats, vohon_id=EXCLUDED.vohon_id, locked=EXCLUDED.locked, equip_slot=EXCLUDED.equip_slot,
          -- Thứ tự ô (#215 "Sắp xếp" đặt lại created); cùng mili giây thì giữ giá trị cũ (Item.created chỉ có mili giây).
          created_at=CASE WHEN date_trunc('milliseconds', items.created_at) = EXCLUDED.created_at THEN items.created_at ELSE EXCLUDED.created_at END
        WHERE items.account_id = EXCLUDED.account_id`, [accountId, rows]);
@@ -894,7 +911,12 @@ export class PgStore implements Store {
       [accountId, bag.honTe, bag.slots ?? null, bag.sell === undefined ? null : JSON.stringify(bag.sell), bag.sold ? JSON.stringify(bag.sold) : null]);
     if (a.rowCount !== 1) throw new Error(`Không có tài khoản #${accountId}.`);
     await db.query("DELETE FROM items WHERE account_id=$1 AND NOT (id = ANY($2::uuid[]))", [accountId, bag.items.map((i) => i.id)]);
+    // Trang bị (027): món đổi ô / tháo ra thì nhả ô trước, để chỉ mục duy nhất (account_id, equip_slot) không vướng khi hai món đổi chỗ trong một câu upsert.
+    await db.query(`UPDATE items i SET equip_slot=NULL WHERE i.account_id=$1 AND i.equip_slot IS NOT NULL AND NOT EXISTS (
+      SELECT 1 FROM jsonb_to_recordset($2::jsonb) AS x(id uuid, s smallint) WHERE x.id=i.id AND x.s=i.equip_slot)`,
+      [accountId, JSON.stringify(bag.items.filter((i) => i.equipSlot !== undefined).map((i) => ({ id: i.id, s: i.equipSlot })))]);
     await this.upsertItems(db, accountId, bag.items);
+    for (const t of bag.tongPts ?? []) await this.addTongPointsTx(db, accountId, t.week, t.tong, t.n);
     if (bag.quests?.length) {
       await db.query(
         `INSERT INTO quests(account_id, chain, step, accepted, prog)
@@ -1033,8 +1055,9 @@ export class PgStore implements Store {
     const r = await this.pool.query("SELECT tong, points FROM tong_points WHERE account_id=$1 AND week=$2 ORDER BY points DESC LIMIT 1", [accountId, week]);
     return r.rowCount ? { tong: r.rows[0].tong as string, points: Number(r.rows[0].points) } : null;
   }
-  async addTongPoints(accountId: number, week: number, tong: string, n: number) {
-    const r = await this.pool.query(
+  async addTongPoints(accountId: number, week: number, tong: string, n: number) { return this.addTongPointsTx(this.pool, accountId, week, tong, n); }
+  async addTongPointsTx(db: pg.Pool | pg.PoolClient, accountId: number, week: number, tong: string, n: number) {
+    const r = await db.query(
       `INSERT INTO tong_points(account_id, week, tong, points) VALUES ($1, $2, $3, $4)
        ON CONFLICT (account_id, week, tong) DO UPDATE SET points = tong_points.points + EXCLUDED.points RETURNING points`, [accountId, week, tong, n]);
     return Number(r.rows[0].points);
