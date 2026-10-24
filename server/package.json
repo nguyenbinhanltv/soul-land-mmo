@@ -12,6 +12,7 @@
     "test:presence-kill": "tsx scripts/presence-kill-test.ts",
     "test:equip": "tsx scripts/equip-test.ts",
     "test:radar": "tsx scripts/radar-test.ts",
+    "test:gm": "tsx scripts/gm-test.ts",
     "econ:equip": "tsx scripts/equip-econ.ts"
   },
   "dependencies": {

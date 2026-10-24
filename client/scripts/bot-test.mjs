@@ -11505,6 +11505,14 @@ async function gmTest(){
   t=await gm(G,"preset moi"); ok(/moi/.test(t)&&await waitFor(()=>G.leftCode!==null,3000),`preset moi: ${t} (ngắt kết nối, mã ${G.leftCode})`);
   await sleep(500); G.mapId=(await post("/api/me",{token:G.token})).mapId; await enter(G); await waitFor(()=>me(G)&&G.bag&&G.owned,4000);
   ok(G.owned.list.length===2&&G.bag.honTe===0&&G.owned.list.every(v=>v.level===1),`vào lại sau preset: đúng mức mới (${G.owned.list.length} võ hồn, ${formatHonTe(G.bag.honTe)})`);
+  // Thao tác ghi túi ngay sau preset (cửa sổ 800 ms trước khi ngắt): phiên đã khoá nên không chụp túi cũ trong RAM đè mức vừa áp.
+  await gm(G,"coin 777"); t=await gm(G,`give ${AUTO_TOKEN} 1`);
+  await waitFor(()=>G.bag.items.some(i=>i.code===AUTO_TOKEN),2000); const tok=G.bag.items.find(i=>i.code===AUTO_TOKEN); ok(!!tok&&G.bag.honTe===777,`chuẩn bị túi cũ: có Ủy Thác Lệnh, Hồn Tệ 777 (${t})`);
+  G.leftCode=null; G.room.send("gm",{cmd:"preset max"});
+  for(let k=0;k<3;k++){ G.room.send("use",{id:tok.id}); G.room.send("gm",{cmd:"coin 999"}); await sleep(30); }
+  ok(await waitFor(()=>G.leftCode!==null,4000),`preset max rồi ghi túi ngay: bị ngắt kết nối (mã ${G.leftCode})`);
+  await sleep(500); G.mapId=(await post("/api/me",{token:G.token})).mapId; await enter(G); await waitFor(()=>me(G)&&G.bag&&G.owned,4000);
+  ok(G.owned.list.length>2&&G.bag.honTe>999,`vào lại: túi vẫn đúng mức max, không bị túi cũ đè (${G.owned.list.length} võ hồn, ${formatHonTe(G.bag.honTe)})`);
   await test(G,"gmadmin",{on:false});
   ok(/Không có quyền/.test(await gm(G,"coin 5")),"bỏ quyền admin: lại bị từ chối");
   await N.room.leave(); await G.room.leave();

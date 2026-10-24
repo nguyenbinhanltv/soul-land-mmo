@@ -1282,7 +1282,8 @@ export class MapRoom extends Room<MapState> {
    * không làm gãy chuỗi; promise trả về luôn resolve.
    */
   chain(d: PData, fn: () => unknown) {
-    d.saving = d.saving.then(fn).then(() => {}, (e) => { saveStats.failed++; console.error(`Lưu dữ liệu tài khoản #${d.accountId} thất bại`, e); });
+    // Sau `/gm preset` (gmReset) mọi lần ghi xếp thêm bị bỏ: chụp túi / Hồn Tệ cũ trong RAM sẽ đè mức vừa áp (#518).
+    d.saving = d.saving.then(() => (d.gmReset ? undefined : fn())).then(() => {}, (e) => { saveStats.failed++; console.error(`Lưu dữ liệu tài khoản #${d.accountId} thất bại`, e); });
     return d.saving;
   }
 
@@ -4152,10 +4153,11 @@ export class MapRoom extends Room<MapState> {
         return `Dịch chuyển tới ${MAPS[cmd.mapId].name}.`;
       }
       case "preset": {
-        // Ghi đè DB bằng mức dựng sẵn rồi ngắt client: từ lúc này mọi lần ghi của phiên (kể cả lúc thoát) bị bỏ (gmReset), nên không đè lại mức vừa áp.
-        d.gmReset = true;
+        // Ghi đè DB bằng mức dựng sẵn rồi ngắt client: từ lúc bắt đầu phiên bị khoá (freeze: mọi handler bỏ qua người đang travelling,
+        // lưu định kỳ bỏ qua) và mọi lần ghi xếp thêm bị bỏ (gmReset, ở chain), nên không đè lại mức vừa áp bằng túi cũ trong RAM.
+        d.gmReset = true; this.freeze(id);
         try { await store.seedTestAccount(p.name, null, buildPreset(cmd.preset)); }
-        catch (e) { d.gmReset = false; throw e; }
+        catch (e) { d.gmReset = false; d.travelling = false; throw e; } // lỗi: trả lại như cũ, người chơi chơi tiếp
         setTimeout(() => this.clients.getById(id)?.leave(4000), 800);
         return `Đã áp mức "${cmd.preset}": vào lại game để thấy thay đổi.`;
       }
