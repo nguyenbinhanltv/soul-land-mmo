@@ -45,6 +45,7 @@ import { SkillCine, cineAllowed } from "../skillCine.ts";
 import { SheetFx } from "../fxSheet.ts";
 import { SkillVisualPlayer, skillVisualOf, registerCodeSheets } from "../skillVisual.ts";
 import { hitWeight, KNOCK_PX, materialSparks, damageStyle, playHitFeelSheets, registerHitFeelSheets } from "../hitFeel.ts";
+import { footDustCount } from "../combatFeelRules.ts";
 import { PhapTuongSystem, PhapTuongCutIn } from "../phapTuong.ts";
 import { ParticleLayer, HIT_SPARK, SHAKE_TIER, beastJerk, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs } from "../combatFx.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
@@ -1582,6 +1583,14 @@ export class GameScene extends Phaser.Scene {
     this.stepT.set(id, time + (walking ? STEP_INTERVAL_MS.walk : STEP_INTERVAL_MS.run));
     const mine = id === this.me;
     this.audio.playGroup(`step-${surfaceOfGround(this.isoMap.groundNameAt(wx, wy))}`, { x: wx, y: wy }, { channel: "ambient", priority: mine ? 0.9 : 0.35, range: 200, gain: mine ? 1 : 0.8 });
+    this.stepDust(wx, wy, walking, mine);
+  }
+  /** Bụi chân nhẹ theo đúng nhịp âm thanh bước; đổi hướng vẫn giữ nhịp, không tạo hạt ngoài mức cho phép. */
+  stepDust(wx: number, wy: number, walking: boolean, mine: boolean) {
+    const n = footDustCount(fxPrefs.level, fxPrefs.reduce, mine); if (!n) return;
+    const surface = surfaceOfGround(this.isoMap.groundNameAt(wx, wy));
+    const col = ({ co: 0x9a8b68, dat: 0x9b7654, da: 0x989898, tuyet: 0xe8f6ff, go: 0xb07a4d, nuoc: 0x88cfe0 } as Record<string, number>)[surface] ?? 0x9a8b68;
+    const at = W2S(wx, wy); this.fxp.footDust(at.x, at.y + 2 * SPR, col, n, walking);
   }
 
   fx(m: any) {
@@ -2140,11 +2149,11 @@ export class GameScene extends Phaser.Scene {
   damageText(x: number, y: number, m: { v: number; crit?: boolean; c: string; id?: string; by?: string; immune?: boolean; heal?: boolean; shield?: boolean }, el?: Element) {
     const plus = !!(m.heal || m.shield), self = !m.immune && !plus && m.v < 0 && m.id === this.me, k = this.txtK;
     const label = m.immune ? "Miễn" : `${plus ? "+" : self ? "−" : ""}${Math.abs(m.v).toLocaleString("vi-VN")}${m.crit ? "!" : ""}`;
-    const ds = damageStyle(el, !!m.crit, m.by === this.me); // S1 #542: viền theo hệ người đánh (của mình), chí mạng to hơn
+    const kind = m.heal ? "heal" : m.shield ? "shield" : m.immune ? "immune" : m.crit ? "crit" : "damage" as const;
+    const ds = damageStyle(el, !!m.crit, m.by === this.me, kind); // C1: chữ pixel, màu / viền theo hệ; hồi máu / khiên tách màu
     const t = this.add.text(x, y, label, {
       fontFamily: '"Galmuri 11", "Be Vietnam Pro", system-ui, sans-serif', fontSize: `${ds.font}px`,
-      // khiên đỡ (lam) thì giữ lam dù lên chính mình
-      color: self && m.c !== "#9ad8ff" ? "#ff4a4a" : m.c,
+      color: ds.color,
       stroke: "#" + ds.stroke.toString(16).padStart(6, "0"), strokeThickness: m.crit || self ? 4 : 3, resolution: 4,
     }).setOrigin(0.5).setDepth(self ? 100000 : 99999).setScale(k * (m.crit ? 0.6 : 0.8));
     const base = t.scaleX;
@@ -2203,10 +2212,7 @@ export class GameScene extends Phaser.Scene {
       // (#116), biểu tượng trên danh hiệu (Che tầm nhìn #175: giọt mực; màn mực chỉ người trúng thấy, InkVeil).
       if (p.st) {
         const ph = (x: (typeof PLAYER_STATUS)[number]) => (p.st & statusBit(x)) !== 0;
-        if (ph("root")) {
-          g.lineStyle(1, hex(STATUS.root.col), 0.9).strokeEllipse(rx, ry, 18 * q, 5 * q);
-          for (let j = 0; j < 4; j++) { const x = rx + (-8 + j * 5.3) * q; g.lineBetween(x, ry + q, x + q, ry - (5 + (j % 2) * 2) * q); }
-        }
+        if (ph("root")) this.rootSnare(g, rx, ry, time, q, 18);
         const icons = STATUS_ICONS.filter((x) => PLAYER_STATUS.includes(x) && ph(x));
         this.statusIcons(g, rx, ry - HEAD - 24 * this.txtK, icons, { chill: p.han ?? 0 }); // tầng Hàn (#163): chấm dưới bông tuyết
         if (ph("freeze")) this.iceBlock(g, rx, ry, time);
@@ -2238,10 +2244,7 @@ export class GameScene extends Phaser.Scene {
       const tint = has("shock") && Math.floor(time / 150) % 3 === 0 ? 0x7fd0ff : has("burn") ? (Math.floor(time / 200) % 2 ? 0xffa060 : 0xff7a2a) : has("poison") ? 0x8ef08a : 0;
       if (tint) { s.setTint(tint); s.setData("stTint", true); } else if (s.getData("stTint")) { s.clearTint(); s.setData("stTint", false); }
       this.attachedStatusFx(g, s.x, s.y, b.st, time, false, q);
-      if (has("root")) {
-        g.lineStyle(1, hex(STATUS.root.col), 0.9).strokeEllipse(s.x, s.y, size + 8 * q, 5 * q);
-        for (let k = 0; k < 4; k++) { const x = s.x - size / 2 - 2 * q + (k * (size + 4 * q)) / 3; g.lineBetween(x, s.y + q, x + q, s.y - (4 + (k % 2) * 2) * q); }
-      }
+      if (has("root")) this.rootSnare(g, s.x, s.y, time, q, size / q + 8);
       // Biểu tượng trạng thái hàng ngang trên thanh máu: hình riêng mỗi loại, số tầng là chấm nhỏ bên dưới.
       const icons = STATUS_ICONS.filter(has);
       this.statusIcons(g, s.x, top - 13, icons, { burn: b.burn, poison: b.poison, armor: b.armor, allure: b.allure, lock: b.lock });
@@ -2249,6 +2252,7 @@ export class GameScene extends Phaser.Scene {
       const headY = top - 6 * q - (icons.length ? 9 : 0);
       if (has("charm")) this.charmHearts(g, s.x, headY, time);
       if (has("stun")) this.stunStars(g, s.x, headY, time);
+      if (has("freeze")) this.iceBlock(g, s.x, s.y, time);
     });
   }
 
@@ -2289,24 +2293,40 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  /** Khối băng trong suốt bọc hồn sư bị Đóng băng (#116): mặt băng nhạt, viền sáng, vệt phản quang và tinh thể băng dưới chân. */
+  /** Băng phong C1: sáu mảnh tinh thể lệch nhịp và vết nứt, thay khối chữ nhật cũ. */
   iceBlock(g: Phaser.GameObjects.Graphics, cx: number, feet: number, time: number) {
-    const q = SPR, c = hex(STATUS.freeze.col), w = 18 * q, h = 30 * q, x0 = cx - w / 2, y0 = feet - h + q;
-    g.fillStyle(c, 0.32).fillRect(x0, y0, w, h);
-    g.lineStyle(1, 0xe8f8ff, 0.85).strokeRect(x0, y0, w, h);
-    const k = (Math.sin(time / 500) + 1) / 2; // vệt phản quang trượt chậm
-    g.lineStyle(1, 0xffffff, 0.55 + 0.3 * k).lineBetween(x0 + 3 * q, y0 + 4 * q, x0 + 7 * q, y0 + 1.5 * q);
-    g.lineBetween(x0 + 3 * q, y0 + 9 * q, x0 + 11 * q, y0 + 3 * q);
-    for (let j = 0; j < 3; j++) { const x = x0 + (3 + j * 6) * q; g.fillStyle(j % 2 ? 0xe8f8ff : c, 0.9).fillTriangle(x - 2 * q, feet + q, x + 2 * q, feet + q, x, feet - (3 + (j % 2) * 2) * q); }
+    const q = SPR, c = hex(STATUS.freeze.col), pulse = 0.75 + 0.25 * Math.sin(time / 240), y = feet - 15 * q;
+    for (let j = 0; j < 6; j++) {
+      const a = time / 900 + j * Math.PI / 3, x = cx + Math.cos(a) * 12 * q, yy = y + Math.sin(a * 1.7) * 7 * q, r = (3 + (j % 2)) * q;
+      g.fillStyle(0x1a1020, 0.7 * pulse).fillPoints([{ x, y: yy - r }, { x: x + r * 0.65, y: yy }, { x, y: yy + r }, { x: x - r * 0.65, y: yy }], true);
+      g.fillStyle(c, 0.55 * pulse).fillPoints([{ x, y: yy - r * 0.7 }, { x: x + r * 0.4, y: yy }, { x, y: yy + r * 0.7 }, { x: x - r * 0.4, y: yy }], true);
+    }
+    g.lineStyle(1, c, 0.55 * pulse).strokeEllipse(cx, feet - 12 * q, 25 * q, 30 * q);
+    g.lineStyle(1, 0xe8f8ff, 0.8 * pulse);
+    for (const d of [-7, 0, 6]) { g.lineBetween(cx + d * q, feet - (24 + Math.abs(d)) * q, cx + (d + 3) * q, feet - (16 - Math.abs(d) * 0.3) * q); }
   }
 
-  /** Sao choáng xoay quanh đầu (hồn thú, và hồn sư từ 3.5). */
+  /** Choáng C1: tia zigzag lệch nhau và vòng nhịp ngắn, khác hàng sao cũ. */
   stunStars(g: Phaser.GameObjects.Graphics, cx: number, y: number, time: number) {
-    const q = SPR;
-    g.lineStyle(1, 0xffe08a, 0.7); g.strokeEllipse(cx, y, 16 * q, 5 * q);
+    const q = SPR, pulse = 0.6 + 0.4 * Math.sin(time / 110);
+    g.lineStyle(1, 0xffd66e, 0.45 * pulse).strokeEllipse(cx, y, (18 + pulse * 4) * q, 7 * q);
     for (let k = 0; k < 3; k++) {
-      const a = time / 180 + k * 2.1, x = cx + Math.cos(a) * 8 * q, sy = y + Math.sin(a) * 2.5 * q;
-      g.fillStyle(0x1a1020, 1).fillRect(x - 2 * q, sy - 2 * q, 4 * q, 4 * q); g.fillStyle(0xffe08a, 1).fillRect(x - q, sy - q, 2 * q, 2 * q);
+      const a = time / 260 + k * 2.1, x = cx + Math.cos(a) * 9 * q, sy = y + Math.sin(a) * 3 * q;
+      g.lineStyle(2, 0x1a1020, 0.95).lineBetween(x - 3 * q, sy - 4 * q, x + q, sy).lineBetween(x + q, sy, x - 2 * q, sy + 4 * q);
+      g.lineStyle(1, 0xffd66e, 1).lineBetween(x - 2 * q, sy - 3 * q, x, sy).lineBetween(x, sy, x - q, sy + 3 * q);
+    }
+  }
+
+  /** Trói C1: vòng khóa co giãn với nút dây, thay vòng + bốn đoạn thẳng cũ. */
+  rootSnare(g: Phaser.GameObjects.Graphics, cx: number, feet: number, time: number, q: number, width: number) {
+    const c = hex(STATUS.root.col), pulse = 0.8 + 0.2 * Math.sin(time / 280), rx = width * q * (0.5 + 0.04 * Math.sin(time / 210));
+    g.lineStyle(1, 0x1a1020, 0.85).strokeEllipse(cx, feet, rx + 3 * q, 6 * q);
+    g.lineStyle(1, c, pulse).strokeEllipse(cx, feet, rx, 4 * q);
+    for (let j = 0; j < 5; j++) {
+      const x = cx - rx * 0.75 + j * rx * 0.38, lean = Math.sin(time / 300 + j) * 2 * q;
+      g.lineStyle(1, 0x1a1020, 0.9).lineBetween(x, feet + q, x + lean, feet - (4 + (j % 2) * 2) * q);
+      g.lineStyle(1, c, pulse).lineBetween(x + q, feet, x + lean, feet - (3 + (j % 2) * 2) * q);
+      g.fillStyle(c, pulse).fillRect(x - q, feet - (5 + (j % 2) * 2) * q, 2 * q, 2 * q);
     }
   }
 

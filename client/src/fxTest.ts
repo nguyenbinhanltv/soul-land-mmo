@@ -13,6 +13,7 @@ import { HIT_HES, KNOCK_PX, damageStyle, hitWeight, materialSparks, playHitFeelS
 import { COMBAT_MATERIALS, type Material } from "./audio/soundMap.ts";
 import type { He } from "../../shared/data.ts";
 import { SPR } from "./iso.ts";
+import { footDustCount } from "./combatFeelRules.ts";
 import { SkillCine } from "./skillCine.ts";
 import { ELEMENT_NAME, FX_KINDS, FX_KIND_NAME, FX_TEX_ELEMENTS, SkillFx, skillFxOf, fxTexKey, isCinematic, type FxKind } from "./skillFx.ts";
 
@@ -23,6 +24,7 @@ class FxTestScene extends Phaser.Scene {
   fxp!: ParticleLayer; skfx!: SkillFx; svp!: SkillVisualPlayer; cine = new SkillCine(); sheets = q.get("sheets") !== "0";
   el: Element = pick(q.get("he"), ELEMENTS, "fire"); kind: FxKind = pick(q.get("kieu"), FX_KINDS, "proj");
   he: He = pick(q.get("he_danh"), HIT_HES, "cuong_cong");
+  lastStep = 0;
   tier = Math.max(0, Math.min(4, Number(q.get("tier") ?? 2) | 0));
   hero!: Phaser.GameObjects.Container; dummy!: Phaser.GameObjects.Container;
   constructor() { super("fxtest"); }
@@ -41,7 +43,13 @@ class FxTestScene extends Phaser.Scene {
     this.skfx = new SkillFx(this, this.fxp);
     registerCodeSheets(this); registerHitFeelSheets(this); this.svp = new SkillVisualPlayer(new SheetFx(this));
     this.hero = this.person(-70, 12, 0x9fb4e8); this.dummy = this.person(70, 12, 0xd8b090);
-    this.events.on("update", (_t: number, dt: number) => { this.fxp.update(dt / 1000); this.svp.sheets.update(dt); });
+    this.events.on("update", (time: number, dt: number) => {
+      this.fxp.update(dt / 1000); this.svp.sheets.update(dt);
+      if (q.get("steps") === "1" && time - this.lastStep >= (q.get("run") === "1" ? 300 : 480)) {
+        this.lastStep = time; const n = footDustCount(fxPrefs.level, fxPrefs.reduce, true);
+        if (n) this.fxp.footDust(this.hero.x, this.hero.y + 4 * SPR, 0x9a8b68, n, q.get("run") !== "1");
+      }
+    });
     // `stress=P`: P người chơi, mỗi người tung một hồn kỹ ngẫu nhiên mỗi ~2,5 s (đo FPS 40–60 người, docs/hieu-nang-soak.md).
     const P = Number(q.get("stress") ?? 0);
     if (P > 0) this.time.addEvent({ delay: 2500 / P, loop: true, callback: () => {

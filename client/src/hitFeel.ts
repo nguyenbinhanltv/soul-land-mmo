@@ -7,6 +7,7 @@ import { ELEMENT_COL } from "./skillFx.ts";
 import { fxPrefs, HIT_SPARK, type ParticleLayer } from "./combatFx.ts";
 import { makeCodeSheet, SheetFx } from "./fxSheet.ts";
 import { SPR } from "./iso.ts";
+import { damageTextStyle, HIT_HE_STYLE } from "./combatFeelRules.ts";
 
 /** Độ nặng đòn 0..3: tỉ lệ sát thương / sinh lực tối đa, chí mạng, kết liễu, và độ nặng khai báo của chiêu (`SKILL_VISUAL.heavy`). */
 export function hitWeight(ratio: number, crit: boolean, kill: boolean, heavy = 0): 0 | 1 | 2 | 3 {
@@ -44,18 +45,34 @@ const hitSheetKey = (mat: Material, he: He, glow = false) => `fxh_${mat}_${he}${
 /** Sheet code 6 khung cho tia / mảnh C1; chỉ là fallback pixel đã hậu kỳ bằng code, không phải asset gameplay. */
 export function registerHitFeelSheets(scene: Phaser.Scene): void {
   for (const mat of COMBAT_MATERIALS) for (const he of HIT_HES) {
-    const spec = MATERIAL_SPARK[mat], spark = HIT_SPARK[he];
+    const spec = MATERIAL_SPARK[mat], spark = HIT_SPARK[he], shape = HIT_HE_STYLE[he].shape;
     makeCodeSheet(scene, hitSheetKey(mat, he), 6, 40, (c, k, size) => {
-      const fade = 1 - k * 0.8, r = (5 + k * 10) * (1 + spark.size / 4);
+      const fade = 1 - k * 0.8, r = (5 + k * 10) * (1 + spark.size / 4), core = `#${spark.col.toString(16).padStart(6, "0")}`;
       c.globalAlpha = fade;
-      for (let i = 0; i < Math.min(8, spec.n + 2); i++) {
-        const a = (i / Math.min(8, spec.n + 2)) * Math.PI * 2 + (he === "khong_che" ? k * 2 : 0);
-        const x0 = size / 2 + Math.cos(a) * r * 0.28, y0 = size / 2 + Math.sin(a) * r * 0.16;
-        const x1 = size / 2 + Math.cos(a) * r, y1 = size / 2 + Math.sin(a) * r * 0.6;
-        c.strokeStyle = "#1a1020"; c.lineWidth = 3; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
-        c.strokeStyle = `#${spec.col.toString(16).padStart(6, "0")}`; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+      if (shape === "burst") {
+        for (let i = 0; i < Math.min(8, spec.n + 2); i++) {
+          const a = (i / Math.min(8, spec.n + 2)) * Math.PI * 2, x0 = size / 2 + Math.cos(a) * r * 0.28, y0 = size / 2 + Math.sin(a) * r * 0.16;
+          const x1 = size / 2 + Math.cos(a) * r, y1 = size / 2 + Math.sin(a) * r * 0.6;
+          c.strokeStyle = "#1a1020"; c.lineWidth = 3; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+          c.strokeStyle = core; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+        }
+      } else if (shape === "slash") {
+        for (let i = -1; i <= 1; i++) {
+          const x = size / 2 + i * 5 - k * 2, y = size / 2 + i * 3;
+          c.strokeStyle = "#1a1020"; c.lineWidth = 3; c.beginPath(); c.moveTo(x - r * 0.7, y + r * 0.5); c.lineTo(x + r * 0.7, y - r * 0.5); c.stroke();
+          c.strokeStyle = core; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x - r * 0.7, y + r * 0.5); c.lineTo(x + r * 0.7, y - r * 0.5); c.stroke();
+        }
+      } else if (shape === "lock") {
+        const a = k * 0.65, cx = size / 2 + Math.cos(a) * 2, cy = size / 2 + Math.sin(a) * 2;
+        c.strokeStyle = "#1a1020"; c.lineWidth = 3; c.strokeRect(cx - r * 0.5, cy - r * 0.35, r, r * 0.7);
+        c.strokeStyle = core; c.lineWidth = 1.5; c.strokeRect(cx - r * 0.5, cy - r * 0.35, r, r * 0.7);
+        c.beginPath(); c.arc(cx, cy - r * 0.3, r * 0.32, Math.PI, 0); c.stroke();
+      } else {
+        const cx = size / 2, cy = size / 2 - k * 4;
+        c.strokeStyle = "#1a1020"; c.lineWidth = 3; c.beginPath(); c.moveTo(cx - r, cy); c.lineTo(cx + r, cy); c.moveTo(cx, cy - r * 0.65); c.lineTo(cx, cy + r * 0.65); c.stroke();
+        c.strokeStyle = core; c.lineWidth = 1.5; c.beginPath(); c.moveTo(cx - r, cy); c.lineTo(cx + r, cy); c.moveTo(cx, cy - r * 0.65); c.lineTo(cx, cy + r * 0.65); c.stroke();
       }
-      c.fillStyle = `#${spec.col.toString(16).padStart(6, "0")}`;
+      c.fillStyle = core;
       if (mat === "thit") c.fillRect(size / 2 - 2, size / 2 + k * 5, 3, 5);
       else if (mat === "giap") c.fillRect(size / 2 - 2, size / 2 - 2, 4, 4);
       else if (mat === "bang") { c.beginPath(); c.moveTo(size / 2, size / 2 - 6); c.lineTo(size / 2 + 4, size / 2); c.lineTo(size / 2, size / 2 + 6); c.lineTo(size / 2 - 4, size / 2); c.closePath(); c.fill(); }
@@ -65,8 +82,8 @@ export function registerHitFeelSheets(scene: Phaser.Scene): void {
       c.globalAlpha = 1;
     });
     makeCodeSheet(scene, hitSheetKey(mat, he, true), 6, 40, (c, k, size) => {
-      c.globalAlpha = (1 - k) * 0.75;
-      c.fillStyle = "#ffffff";
+      c.globalAlpha = (1 - k) * 0.42;
+      c.fillStyle = `#${spark.col.toString(16).padStart(6, "0")}`;
       c.fillRect(size / 2 - 1, size / 2 - 1, 2, 2);
       c.globalAlpha = 1;
     });
@@ -77,15 +94,17 @@ export function registerHitFeelSheets(scene: Phaser.Scene): void {
 export function playHitFeelSheets(sheets: SheetFx, mat: Material, he: He, x: number, y: number, mine: boolean, weight: number): void {
   if (fxPrefs.level === "low") return;
   const scale = (1 + Math.min(2, weight) * 0.15) * SPR;
-  const common = { x, y, key: hitSheetKey(mat, he), scale, fps: 24, light: !mine } as const;
+  const common = { x, y, key: hitSheetKey(mat, he), scale, fps: HIT_HE_STYLE[he].fps, light: !mine } as const;
   sheets.play(common);
-  sheets.play({ ...common, key: hitSheetKey(mat, he, true), scale: scale * 1.05, fps: 24, light: !mine });
+  sheets.play({ ...common, key: hitSheetKey(mat, he, true), scale: scale * 1.05, fps: HIT_HE_STYLE[he].fps, light: !mine });
 }
 
 /** Kiểu số sát thương theo hệ người đánh + chí mạng: viền theo màu tối của hệ, chí mạng chữ to hơn khi mức Vừa / Cao. */
-export function damageStyle(el: Element | undefined, crit: boolean, mine: boolean) {
+export function damageStyle(el: Element | undefined, crit: boolean, mine: boolean, kind: "damage" | "crit" | "heal" | "shield" | "immune" = crit ? "crit" : "damage") {
+  const visual = damageTextStyle(kind, crit, el);
   return {
-    stroke: el && mine ? ELEMENT_COL[el].lo : 0x1a1020,
-    font: crit ? (fxPrefs.level === "low" ? 24 : 30) : 12,
+    stroke: parseInt(visual.stroke.slice(1), 16),
+    color: visual.color,
+    font: visual.font * (fxPrefs.level === "low" ? 0.92 : 1),
   };
 }

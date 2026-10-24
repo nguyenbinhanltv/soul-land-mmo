@@ -76,7 +76,7 @@ export function beastSpeciesId(species: number, rank: number): string {
   return (rank > 0 ? BOSSES[species]?.species : BEASTS[species]?.id) ?? "";
 }
 
-/** Chất liệu khi đánh trúng hồn thú: băng (loài băng / tuyết), gỗ-cây (họ thực vật), giáp-vỏ (loài giáp), còn lại thịt. */
+/** Chất liệu khi đánh trúng hồn thú: băng (loài băng / tuyết), gỗ-cây (họ thực vật), giáp-vỏ (loài giáp), linh thể (ba boss đặc biệt), còn lại thịt. `da` là nhánh visual dự phòng; hiện BEAST/BOSS đang dùng không có loài đá riêng nên chưa được chọn trong trận. */
 export function materialOfBeast(speciesId: string): Material {
   if (/thai_than_cu_vien|thien_thanh_nguu_mang|u_linh_hai_mau/.test(speciesId)) return "linh_the";
   if (/cu_vien|thach|ngoc/.test(speciesId)) return "da";
