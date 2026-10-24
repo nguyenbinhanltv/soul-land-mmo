@@ -27,7 +27,7 @@ const WEAPON_OF: Readonly<Record<string, Weapon>> = {
 export function weaponOf(vohonId: string | undefined): Weapon { return (vohonId && WEAPON_OF[vohonId]) || "quyen"; }
 
 const ELEMENT_OF_FLOW: Readonly<Record<string, Element>> = {
-  "Thiêu đốt": "fire", "Cảm điện": "lightning", "Trúng độc": "poison", "Băng phong": "ice", "Chấn đãng": "wind",
+  "Thiêu đốt": "fire", "Cảm điện": "lightning", "Trúng độc": "poison", "Băng phong": "ice", "Chấn động": "wind",
   "Phá giáp": "light", "Bùng nổ": "dark", "Đánh boss": "wood",
 };
 const ELEMENT_OVERRIDE: Readonly<Record<string, Element>> = {
