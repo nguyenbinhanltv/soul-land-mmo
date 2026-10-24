@@ -5531,7 +5531,7 @@ export const LPC_PARTS: LpcPart[] = [
   {"id":"torso.longsleeve2_vneck","slot":"torso","vi":"Áo cổ chữ V","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
   {"id":"torso.shortsleeve","slot":"torso","vi":"Áo ngắn tay","style":"tay","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
   {"id":"torso.giao_linh","slot":"torso","vi":"Áo giao lĩnh vạt chéo","style":"dong","sex":"mf","idle":"f","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[35,31],"lic":["CC-BY-SA 3.0"],"sa":true},
-  {"id":"torso.ao_bao","slot":"torso","vi":"Áo bào tay rộng","style":"dong","sex":"mf","idle":"f","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[35,31],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"torso.ao_bao","slot":"torso","vi":"Áo bào tay rộng","style":"dong","sex":"mf","idle":"f","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red","purple"],"z":[35,31],"lic":["CC-BY-SA 3.0"],"sa":true},
   {"id":"torso.su_lai_khac","slot":"torso","vi":"Đồng phục Sử Lai Khắc","style":"dong","sex":"mf","idle":"f","mats":[],"colors":["navy","forest","white","gray"],"z":[35,31],"lic":["CC-BY-SA 3.0"],"sa":true},
   {"id":"torso.vu_hon_dien","slot":"torso","vi":"Đồng phục Vũ Hồn Điện","style":"dong","sex":"mf","idle":"f","mats":[],"colors":["black","maroon","purple","white"],"z":[35,31],"lic":["CC-BY-SA 3.0"],"sa":true},
   {"id":"torso.robe","slot":"torso","vi":"Áo bào","style":"dong","sex":"f","idle":"","mats":[],"colors":["brown","red","blue","purple"],"z":[35],"lic":["CC-BY-SA 3.0"],"sa":true},

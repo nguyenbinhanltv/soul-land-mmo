@@ -77,7 +77,7 @@
    "n": -2
   }
  },
- "totalBytes": 1859902,
+ "totalBytes": 1880808,
  "sheets": {
   "lpcp_arms_bracers_f_70": {
    "part": "arms.bracers",
@@ -3673,6 +3673,14 @@
    "idle": true,
    "bytes": 5260
   },
+  "lpcp_torso_ao_bao_f_31_purple": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 31,
+   "color": "purple",
+   "idle": true,
+   "bytes": 5260
+  },
   "lpcp_torso_ao_bao_f_31_red": {
    "part": "torso.ao_bao",
    "sex": "f",
@@ -3750,6 +3758,14 @@
    "sex": "f",
    "z": 35,
    "color": "navy",
+   "idle": true,
+   "bytes": 5222
+  },
+  "lpcp_torso_ao_bao_f_35_purple": {
+   "part": "torso.ao_bao",
+   "sex": "f",
+   "z": 35,
+   "color": "purple",
    "idle": true,
    "bytes": 5222
   },
@@ -3833,6 +3849,14 @@
    "idle": false,
    "bytes": 5011
   },
+  "lpcp_torso_ao_bao_m_31_purple": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 31,
+   "color": "purple",
+   "idle": false,
+   "bytes": 5011
+  },
   "lpcp_torso_ao_bao_m_31_red": {
    "part": "torso.ao_bao",
    "sex": "m",
@@ -3910,6 +3934,14 @@
    "sex": "m",
    "z": 35,
    "color": "navy",
+   "idle": false,
+   "bytes": 5413
+  },
+  "lpcp_torso_ao_bao_m_35_purple": {
+   "part": "torso.ao_bao",
+   "sex": "m",
+   "z": 35,
+   "color": "purple",
    "idle": false,
    "bytes": 5413
   },
