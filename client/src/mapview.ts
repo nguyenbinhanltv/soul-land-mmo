@@ -68,7 +68,7 @@ class MapViewUi implements DotSink {
   private markers = new Map<string, MapMarker>();
   private overlays: { at: "fog" | "top"; fn: MapOverlay }[] = [];
   private hits: Hit[] = [];
-  private mx = 0; private my = 0; private now = 0; private last = 0; private raf = 0;
+  private mx = NaN; private my = NaN; /** Mở xong chưa có lượt gom nào: lượt đầu tiên căn khung về chỗ đứng. */ private needCenter = false; private now = 0; private last = 0; private raf = 0;
   private info = "";
   private ptrs = new Map<number, { x: number; y: number }>();
   private drag: { x: number; y: number; moved: boolean } | null = null; private pinch = 0;
@@ -97,7 +97,7 @@ class MapViewUi implements DotSink {
   // ---------- API cho GameScene và các bước sau ----------
   /** Báo bản đồ đang đứng (gọi khi dựng cảnh); đổi bản đồ thì đóng và đặt lại khung nhìn. */
   setMap(key: string, w: number, h: number) {
-    if (key !== this.mapKey) { this.close(); this.markers.clear(); this.view = { ...this.view, cx: w / 2, cy: h / 2 }; }
+    if (key !== this.mapKey) { this.close(); this.markers.clear(); this.mx = this.my = NaN; this.view = { ...this.view, cx: w / 2, cy: h / 2 }; }
     this.mapKey = key; this.mapW = w; this.mapH = h;
   }
   /** Đặt / xoá dấu (`null`) theo khoá ("flag", "rally"…). */
@@ -109,7 +109,7 @@ class MapViewUi implements DotSink {
 
   open() {
     if (this.isOpen) return;
-    this.root.hidden = false; this.last = 0; this.n = 0; this.nb = 0; this.syncUi(); this.recenter();
+    this.root.hidden = false; this.last = 0; this.n = 0; this.nb = 0; this.syncUi(); this.needCenter = true; this.mx = this.my = NaN;
     document.getElementById("areaBtn")?.setAttribute("aria-expanded", "true");
   }
   close() {
@@ -124,6 +124,7 @@ class MapViewUi implements DotSink {
   /** Bắt đầu một lượt gom: mình ở (tx, ty) ô, nhãn tĩnh của bản đồ, tiêu đề (tên bản đồ · toạ độ · kênh). */
   begin(tx: number, ty: number, now: number, labels: MapLabel[], title: string) {
     this.last = now; this.now = now; this.mx = tx; this.my = ty; this.n = 0; this.nb = 0; this.labels = labels;
+    if (this.needCenter) { this.needCenter = false; this.recenter(); }
     if (title !== this.info) { this.info = title; this.title.textContent = title; }
   }
   dot(id: string, tx: number, ty: number, name: string, col = "", ring = "", layer = "") {
@@ -139,7 +140,7 @@ class MapViewUi implements DotSink {
 
   // ---------- Khung nhìn ----------
   private recenter() {
-    this.view = mapviewClampCenter({ ...this.view, cx: this.mx || this.mapW / 2, cy: this.my || this.mapH / 2, mode: radar().mode }, this.mapW, this.mapH);
+    this.view = mapviewClampCenter({ ...this.view, cx: Number.isFinite(this.mx) ? this.mx : this.mapW / 2, cy: Number.isFinite(this.my) ? this.my : this.mapH / 2, mode: radar().mode }, this.mapW, this.mapH);
     this.redraw();
   }
   private zoomAt(f: number, sx: number, sy: number) {
@@ -254,8 +255,10 @@ class MapViewUi implements DotSink {
     for (const l of this.labels) this.drawLabel(ctx, l, at(l.x, l.y), c, z, v);
     for (const o of this.overlays) if (o.at === "top") { ctx.save(); ctx.translate(c.x, c.y); if (iso) ctx.rotate(Math.PI / 4); ctx.scale(z, z); ctx.translate(-v.cx, -v.cy); o.fn(ctx, v, this.mapW, this.mapH); ctx.restore(); }
     for (const [, m] of this.markers) { const p = at(m.tx, m.ty); this.flag(ctx, p.x, p.y, m.col); this.hits.push({ x: p.x - c.x, y: p.y - c.y, prio: 8, name: m.name, sub: "", wx: m.tx, wy: m.ty }); }
-    const me = at(this.mx, this.my);
-    ctx.fillStyle = DARK; ctx.fillRect(me.x - 4, me.y - 4, 9, 9); ctx.fillStyle = "#fff"; ctx.fillRect(me.x - 3, me.y - 3, 7, 7); ctx.fillStyle = "#ff4040"; ctx.fillRect(me.x - 1, me.y - 1, 3, 3);
+    if (Number.isFinite(this.mx)) {
+      const me = at(this.mx, this.my);
+      ctx.fillStyle = DARK; ctx.fillRect(me.x - 4, me.y - 4, 9, 9); ctx.fillStyle = "#fff"; ctx.fillRect(me.x - 3, me.y - 3, 7, 7); ctx.fillStyle = "#ff4040"; ctx.fillRect(me.x - 1, me.y - 1, 3, 3);
+    }
     this.compass(ctx, 34, H - 34, v);
   }
 
