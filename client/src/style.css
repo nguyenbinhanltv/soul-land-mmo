@@ -1240,7 +1240,7 @@ body.touch :is(.cring,.qhead){min-width:0}
 @keyframes skfade{0%{opacity:0}25%,70%{opacity:1}100%{opacity:0}}
 
 /* ===== NV1 (#455): hai bảng Nhân vật + Túi mở cùng lúc (client/src/dualWindow.ts). Bảng bấm vào thì nổi (.front); mỗi bảng chỉ nhận chuột trong khung của nó. ===== */
-#char.front,#bag.front{z-index:5}
+body.dual-win :is(#char,#bag):not(.front){z-index:3}
 .swap{font:inherit;font-family:var(--f12);line-height:1;min-width:32px;height:32px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer}
 #dualTabs{display:none}
 /* mặc định (điện thoại ngang / màn vừa): hai bảng thu gọn cạnh nhau, túi 6 cột */

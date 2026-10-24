@@ -1,4 +1,4 @@
-// DualWindowManager (NV1 của #453, mục 5.7 "Hai cửa sổ Nhân vật + Túi" ở GAME_DESIGN.md): chỉ lo bảng Nhân vật (#char) và Túi (#bag) mở độc lập
+// DualWindowManager (NV1 của #453, mục 5.16 "Hai cửa sổ Nhân vật + Túi" ở GAME_DESIGN.md): chỉ lo bảng Nhân vật (#char) và Túi (#bag) mở độc lập
 // hoặc cạnh nhau, lớp nổi, thẻ chuyển ở màn hẹp. Không đọc state game, không gửi tin; bố cục nằm ở style.css theo lớp `dual-win` /
 // `data-pick` trên <body>. Các bảng khác (Đội hình, Bạn bè, Thế giới…) vẫn tự đóng nhau như cũ ở hud.ts.
 import type { PanelId, WindowState } from "./charBagContract.ts";
@@ -69,6 +69,9 @@ export function swapButton(p: PanelId, open: (p: PanelId, on: boolean) => void):
 /** Dựng một lần: thẻ chuyển Nhân vật / Túi (chỉ hiện ở màn hẹp khi mở cả hai) và bấm-nổi-lên trên hai bảng. */
 export function initDualWindows() {
   for (const p of ["char", "bag"] as const) el(p).addEventListener("pointerdown", () => { if (front !== p) raisePanel(p); }, true);
+  // Nơi khác (autoPanel, cài đặt âm thanh…) ẩn bảng trực tiếp bằng `hidden`: theo dõi để lớp và thẻ chuyển luôn khớp.
+  const mo = new MutationObserver(() => { if (!isPanelOpen(front) && isPanelOpen(other(front))) front = other(front); sync(); });
+  for (const p of ["char", "bag"] as const) mo.observe(el(p), { attributes: true, attributeFilter: ["hidden"] });
   const tabs = document.getElementById("dualTabs");
   if (tabs) {
     tabs.innerHTML = "";
