@@ -19,4 +19,7 @@ for (const k of new Set([...body.matchAll(/key: "([a-z_]+)"/g)].map((m) => m[1])
 // S2 (#548): sheet dựng bằng sk("<tên>", …) cần ảnh `fx_sk_<tên>` và lớp sáng `fx_sk_<tên>_g` trong manifest; mỗi võ hồn đã điền đủ 11 chiêu (vòng 1–6, 8, 9, 10, Chân Thân, tiên cơ).
 for (const n of new Set([...body.matchAll(/sk\("([a-z0-9_]+)"/g)].map((m) => m[1]))) ok(manifest.includes(`fx_sk_${n}`) && manifest.includes(`fx_sk_${n}_g`), `sheet fx_sk_${n} (+ lớp sáng _g) có trong manifest`);
 for (const id of ["lam_dien_ba_vuong_long", "hao_thien_chuy"]) ok(["0", "1", "2", "3", "4", "5", "7", "8", "9", "ct", "tc"].every((r) => keys.some(([i, k]) => i === id && k === r)), `${id} đủ 11 chiêu trong bảng`);
+// S3 lô D (#569): 5 võ hồn thực vật / độc đủ 11 chiêu; dung hợp Lôi Độc Song Sát có sheet trong bảng FUSION_VISUAL.
+for (const id of ["ky_nhung_thong_thien_cuc", "tu_vong_chu_hoang", "bich_lan_xa_hoang", "lam_ngan_thao", "a_ngan"]) ok(["0", "1", "2", "3", "4", "5", "7", "8", "9", "ct", "tc"].every((r) => keys.some(([i, k]) => i === id && k === r)), `${id} đủ 11 chiêu trong bảng`);
+ok(src.includes(`"Lôi Độc Song Sát": { sheet: sk(`), `dung hợp Lôi Độc Song Sát có sheet (FUSION_VISUAL)`);
 if (fails) { console.error(`${fails} lỗi`); process.exit(1); }

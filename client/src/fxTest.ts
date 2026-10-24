@@ -4,7 +4,7 @@
 // giật lùi), `stress=P&sheets=0` tắt phần mới để so FPS trước / sau. Tham số thêm: mat, nang (0..3), crit=1.
 // Chỉ để chủ repo duyệt phong cách; không đổi luật chơi.
 import Phaser from "phaser";
-import { TIERS, VOHON, ringSkill, chanThanOf, tienCoOf, MAX_RINGS } from "../../shared/data.ts";
+import { TIERS, VOHON, FUSIONS, ringSkill, chanThanOf, tienCoOf, MAX_RINGS } from "../../shared/data.ts";
 import { ELEMENTS, type Element } from "./audio/soundMap.ts";
 import { ParticleLayer, fxPrefs, setFxPrefs, hitstopMs, type FxLevel } from "./combatFx.ts";
 import { SheetFx } from "./fxSheet.ts";
@@ -156,8 +156,16 @@ export function fxTestScreen(card: HTMLElement, overlay: HTMLElement): void {
   $("fgo").onclick = () => sc().fire();
   $("fa").onclick = () => sc().fireAll();
   $("fhit").onclick = () => sc().hit($<HTMLSelectElement>("fm").value as Material, +$<HTMLSelectElement>("fh").value, $<HTMLInputElement>("fx").checked);
+  const id0 = (v: string) => v.split(":")[0];
   /** Phát một hồn kỹ theo khóa `<mã>:<vòng 0..9 | ct | tc>`: hiệu ứng G3 + sheet SKILL_VISUAL (trừ `sv=0`) + cảnh vòng 7+ + đánh thử lên mục tiêu (khựng, tia lửa, số). */
   const runSkill = (v: string) => {
+    if (id0(v) === "fusion") { // S3 lô B (#567): `skill=fusion:<chỉ số FUSIONS>` phát sheet dung hợp ở điểm giữa hero và mục tiêu
+      const f = FUSIONS[+v.split(":")[1]], s = sc(); if (!f) return;
+      const R = Math.max(40, ...f.parts.map((p) => p.r ?? 0));
+      s.rr = R * RX; (window as unknown as { __t0: number }).__t0 = performance.now();
+      s.svp.fusion(f.name, { x: (s.hero.x + s.dummy.x) / 2, y: s.hero.y, r: R * RX, mine: q.get("others") !== "1" });
+      $("fn").textContent = `→ dung hợp ${f.name}`; lastSkill = v; return;
+    }
     const [id, r] = v.split(":"), ct = r === "ct", tc = r === "tc", ring = ct || tc ? 6 : +r, d = skillFxOf(id, tc ? 0 : ring, ct);
     const sk = tc ? undefined : (ct ? chanThanOf(id)?.skill : ringSkill(id, ring));
     sc().el = d.element; sc().kind = d.kind; $<HTMLSelectElement>("fe").value = d.element; $<HTMLSelectElement>("fk").value = d.kind;

@@ -1012,6 +1012,550 @@
       "iso": true
     },
     {
+      "key": "fx_sk_an_aura2",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_aura2_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_aura3",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_aura3_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_aura6",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_aura6_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_aura9",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_aura9_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_burst8",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_burst8_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_hit1",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_hit1_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_t3a",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_t3a_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_t3b",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_t3b_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_zone_tc",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_zone_tc_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_zone4",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_zone4_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_zone5",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_an_zone5_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_fan1",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_fan1_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_fan5",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_fan5_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_hit4",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_hit4_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_hit9",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_hit9_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_t3a",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_t3a_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_t3b",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_t3b_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_zone_tc",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_zone_tc_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_zone2",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_zone2_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_zone3",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_zone3_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_zone6",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_zone6_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_zone8",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bl_zone8_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_fan5",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_fan5_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_hit1",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_hit1_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_t3a",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_t3a_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_t3b",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_t3b_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_zone_tc",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_zone_tc_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_zone2",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_zone2_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_zone3",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_zone3_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_zone4",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_zone4_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_zone6",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_zone6_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_zone8",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_zone8_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_zone9",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_cd_zone9_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_fu_ldds",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_fu_ldds_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
       "key": "fx_sk_ht_hit1",
       "frame": [
         67,
@@ -1188,6 +1732,182 @@
       "iso": true
     },
     {
+      "key": "fx_sk_kn_dart1",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_dart1_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_fan5",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_fan5_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_hit9",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_hit9_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_t3a",
+      "frame": [
+        174,
+        174
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_t3a_g",
+      "frame": [
+        174,
+        174
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_t3b",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_t3b_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_zone_tc",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_zone_tc_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_zone2",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_zone2_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_zone3",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_zone3_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_zone4",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_zone4_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_zone6",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_zone6_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_zone8",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_kn_zone8_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
       "key": "fx_sk_ld_hit1",
       "frame": [
         72,
@@ -1357,6 +2077,182 @@
     },
     {
       "key": "fx_sk_ld_zone9_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_burst9",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_burst9_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_hit1",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_hit1_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_hit2",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_hit2_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_slash5",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_slash5_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_t3a",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_t3a_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_t3b",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_t3b_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_zone_tc",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_zone_tc_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_zone3",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_zone3_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_zone4",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_zone4_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_zone6",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_zone6_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_zone8",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ln_zone8_g",
       "frame": [
         104,
         104
