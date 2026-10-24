@@ -90,6 +90,9 @@ Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` 
 - Client chưa tải sheet này (H2); độ đục hư ảnh, lớp sau / trước theo hướng, tỉ lệ và độ dời đọc từ `pt` của manifest.
 - Vật thể (khí võ hồn): `phaptuong-khi.mjs` dựng thân + lớp sáng `phaptuong/<mã>_glow.png` (key `pt_<mã>_glow`), kiểm neo bằng `--check`; xem `docs/phap-tuong-cong-thuc.md` mục 6b; nhóm thực vật (uốn ngọn, xoay cánh, `catMau`, `glowMau`) ở mục 6c.
 
+## Hiệu ứng chiêu (S2 #548)
+- Sheet hiệu ứng từng chiêu `fx_sk_<tên>` (+ lớp cộng sáng `_g`) làm bằng PixelLab `/v2/vfx` (`pixellab-vfx.mjs`), đặc tả ở `skill-vfx/pilot.json`, chạy `skill-vfx/run.mjs` → `post.mjs` (nhuộm thang 7 màu, alpha 0/255, bỏ khung rỗng, lớp sáng) → `reg.mjs`; xem `vfx-view.mjs`; công cụ quay / GIF / FPS ở `skill-vfx/preview/`. Công thức chuẩn, lượt, bẫy: `docs/ky-nang-cong-thuc.md`.
+
 ## Hồn thú
 - Khung theo bậc: Trắng, Vàng 64×64 (thú nhỏ, cao 20–40); Tím, Đen 96×96 (dài khoảng 2–3 thoi); Đỏ 128×128; tà hóa thú vương 160×160; boss thế giới 192×192. Gốc giữa đáy, cách mép dưới khoảng 8 (`ISO_BEAST_FOOT`). Tinh anh không có khung riêng: client phóng sprite loài gốc theo `ELITE.scale` (`rankScale` trong `GameScene.ts`); thú vương / boss chưa có sprite riêng thì phóng theo `KING.scale` / `WORLD.scale`.
 - Animation: `idle` 4, `walk` 6, `attack` 4 (khung đầu là tư thế báo trước, client giữ khung này khi `BeastState.cast` bật rồi chạy 3 khung ra đòn), `hurt` 2, `die` 4. Sheet 20 cột × 5 hàng (hàng là `s`, `se`, `e`, `ne`, `n`; cột 0–3 `idle`, 4–9 `walk`, 10–13 `attack`, 14–15 `hurt`, 16–19 `die`); sheet lớn nhất 3840×960, dưới giới hạn texture 4096 của điện thoại.

@@ -147,3 +147,6 @@ npm run bot:local -- --only friend --procs 2 --pg --env REDIS_URL=redis://127.0.
 ```
 
 Redis được tắt / bật bởi harness ngoài bài bot đúng giữa lượt; không đưa harness hoặc log tạm vào repo.
+
+## Trang bị hồn sư (E7, #418)
+Chạy dài lệnh Thợ rèn / mặc đồ (40 bot × 20 phút, và PostgreSQL 20 bot × 5 phút): tick ~0,9 ms, không chậm dần, bộ nhớ không rò, vào lại đúng trạng thái. Số liệu, cách chạy (`bot:local --only equipsoak`) và kết luận cân bằng ở `docs/trang-bi-kinh-te.md` mục E7.

@@ -381,7 +381,7 @@ function sheetSpec(key: string, frame?: readonly [number, number], iso = false):
   if (/^ring\d$/.test(key)) return { url: `ring/${key}.png` };
   if (/^halo\d$/.test(key)) return { url: `ring/${key}.png`, frame: [24, 10] };
   // Hiệu ứng (tools/assets/lpc-item.mjs, #201): dải một hàng, manifest ghi `frame`; chạy bằng playFx.
-  if ((m = key.match(/^fx_([a-z_]+)$/)) && frame) return { url: `iso/fx/${m[1]}.png`, frame };
+  if ((m = key.match(/^fx_([a-z0-9_]+)$/)) && frame) return { url: `iso/fx/${m[1]}.png`, frame };
   // NPC phụ / dân thường ghép từ LPC (mục 5.11 "NPC phụ và dân thường"): một lớp đã tô màu, bố cục sheet hồn sư isometric.
   // Pháp tướng Võ Hồn Chân Thân (#482): sheet 16 cột × 5 hàng, khung 160 (PT_FRAME); không có normal map. Do phapTuong.ts dùng.
   if ((m = key.match(/^pt_([a-z_]+)$/))) return { url: `phaptuong/${m[1]}.png`, frame: [PT_FRAME, PT_FRAME] };
