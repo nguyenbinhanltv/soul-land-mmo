@@ -2,7 +2,7 @@
 //   shared/assets/sprites/iso/fx/sk_<tên>.png    dải một hàng, khung vuông (cỡ thô + lề 4), alpha 0 / 255, màu theo thang 7 mức của võ hồn (≤ 7 màu)
 //   shared/assets/sprites/iso/fx/sk_<tên>_g.png  lớp cộng sáng riêng (viền đặc 2 điểm quanh phần sáng nhất, một màu), code hạ theo mức hiệu ứng
 // Bước: nhị phân alpha → nhuộm theo độ sáng (viền #1a1020 / tối / chủ / nhấn / sáng, không lòe) → bỏ khung rỗng ở hai đầu → lớp sáng.
-//   node tools/assets/skill-vfx/post.mjs --raw <nháp> [--only a,b] [--thr 90]
+//   node tools/assets/skill-vfx/post.mjs --raw <nháp> [--spec pilot.json] [--only a,b] [--thr 90]
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -13,7 +13,7 @@ const args = process.argv.slice(2);
 const opt = (n, d = "") => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const raw = opt("--raw"), only = opt("--only").split(",").filter(Boolean), THR = +opt("--thr", "90");
 if (!raw) { console.error("cần --raw"); process.exit(1); }
-const here = path.dirname(fileURLToPath(import.meta.url)), spec = JSON.parse(readFileSync(path.join(here, "pilot.json"), "utf8"));
+const here = path.dirname(fileURLToPath(import.meta.url)), spec = JSON.parse(readFileSync(path.join(here, opt("--spec", "pilot.json")), "utf8"));
 const outDir = path.join(SPRITES, "iso", "fx"); mkdirSync(outDir, { recursive: true });
 const PAD = 4;
 const mix = (a, b) => a.map((v, i) => Math.round((v + b[i]) / 2));
