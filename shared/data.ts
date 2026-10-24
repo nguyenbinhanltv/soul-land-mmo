@@ -576,24 +576,104 @@ export const SKIN_TONES: SkinDef[] = [
   { name: "Bánh mật",   ramp: ["#9c6447", "#c98f6c", "#e3ae88"] },
   { name: "Ngăm",       ramp: ["#5a3b22", "#8a5a3c", "#b07d5a"] },
 ];
-/** Ngoại hình hồn sư: các số nhỏ lưu theo tài khoản, đồng bộ trong PlayerState để người khác thấy. `skin` thêm ở 9.9. */
-export interface Looks { sex: number; hair: number; hairCol: number; outfitCol: number; skin: number; }
-/** Ngoại hình của tài khoản chưa tự chọn (tài khoản tạo trước bước 2.2a). */
-export const DEFAULT_LOOKS: Looks = { sex: 0, hair: 0, hairCol: 0, outfitCol: 0, skin: 0 };
 /**
- * Kiểm tra ngoại hình: mỗi trường phải là số nguyên trong khoảng của bảng tương ứng. Sai bất kỳ trường nào thì null.
- * Riêng `skin` (thêm sau, 9.9) thiếu hẳn thì là tông 0, như tài khoản cũ và client cũ; có mà sai thì vẫn null.
+ * Ngoại hình hồn sư: lưu theo tài khoản, đồng bộ trong PlayerState để người khác thấy. Hai chế độ song song (kế hoạch #507, mục 5):
+ * `preset` (Mẫu dựng sẵn) dùng 5 số nhỏ `sex`..`skin`; `lpc` (Tự tạo) dùng thêm `lpc`, khi đó `sex` = thể hình `lpc.body` và bốn số
+ * còn lại là 0 (không dùng). `mode` thiếu = preset (tài khoản cũ, client cũ). `skin` thêm ở 9.9.
+ */
+export interface Looks { sex: number; hair: number; hairCol: number; outfitCol: number; skin: number; mode?: "preset" | "lpc"; lpc?: LpcLooks; }
+/** Phần LPC của ngoại hình (L2 #509). `v`: phiên bản cấu trúc (hiện 1). `body`: thể hình, chỉ số trong SEXES (0 nam, 1 nữ). `parts`: ô → mã món
+ *  trong LPC_PARTS (đúng ô, đúng thể hình; bắt buộc có `body` và `head`). `colors`: `skin` / `eye` (dải trong `allow` của LPC_RAMPS.body / eye) và
+ *  màu từng ô (dải `allow` của chất liệu đổi màu, hoặc một trong `colors` của món); thiếu = màu gốc của món. */
+export interface LpcLooks { v: 1; body: number; parts: Record<string, string>; colors: Record<string, string>; }
+/** Ngoại hình của tài khoản chưa tự chọn (tài khoản tạo trước bước 2.2a). */
+export const DEFAULT_LOOKS: Looks = { sex: 0, hair: 0, hairCol: 0, outfitCol: 0, skin: 0, mode: "preset" };
+
+// LPC_PARTS / LPC_SLOTS khai báo ở cuối file nên bảng tra mã dựng lười, ở lần gọi đầu.
+let lpcById: Map<string, LpcPart> | null = null;
+const lpcPart = (id: string) => (lpcById ??= new Map(LPC_PARTS.map((p) => [p.id, p]))).get(id);
+const LPC_REQUIRED_SLOTS = ["body", "head"];
+const ownStr = (o: Record<string, unknown>, k: string): string | null => {
+  const v = Object.prototype.hasOwnProperty.call(o, k) ? o[k] : undefined;
+  return typeof v === "string" ? v : null;
+};
+/** Màu một ô chọn được cho món này: danh sách riêng của món (sheet vẽ sẵn) hoặc `allow` của chất liệu đổi màu đầu tiên không phải thân / mắt. */
+function lpcSlotColors(part: LpcPart): string[] {
+  if (part.colors.length) return part.colors;
+  for (const m of part.mats) { const fam = m.split(":")[0]; if (fam !== "body" && fam !== "eye") return LPC_RAMPS[fam]?.allow ?? []; }
+  return [];
+}
+/** Kiểm phần LPC: chỉ nhận mã / màu có trong danh mục, đúng ô, đúng thể hình, không khóa thừa; sai thì null. */
+export function parseLpc(x: unknown): LpcLooks | null {
+  const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+  if (!isObj(x) || x.v !== 1 || typeof x.body !== "number" || !Number.isInteger(x.body) || x.body < 0 || x.body >= SEXES.length) return null;
+  if (!isObj(x.parts) || !isObj(x.colors)) return null;
+  const slots = Object.keys(x.parts);
+  if (slots.length > Object.keys(LPC_SLOTS).length || LPC_REQUIRED_SLOTS.some((s) => !slots.includes(s))) return null;
+  const parts: Record<string, string> = {}, colors: Record<string, string> = {};
+  for (const slot of slots) {
+    const id = ownStr(x.parts, slot), part = id === null ? undefined : lpcPart(id);
+    if (!part || part.slot !== slot || !Object.prototype.hasOwnProperty.call(LPC_SLOTS, slot)) return null;
+    if (part.sex !== "mf" && part.sex !== (x.body === 0 ? "m" : "f")) return null;
+    parts[slot] = part.id;
+  }
+  for (const k of Object.keys(x.colors)) {
+    const c = ownStr(x.colors, k);
+    const allow = k === "skin" ? LPC_RAMPS.body.allow : k === "eye" ? LPC_RAMPS.eye.allow : Object.prototype.hasOwnProperty.call(parts, k) ? lpcSlotColors(lpcPart(parts[k])!) : [];
+    if (c === null || !allow.includes(c)) return null;
+    colors[k] = c;
+  }
+  return { v: 1, body: x.body, parts, colors };
+}
+
+/**
+ * Chuỗi gọn của phần LPC để đồng bộ (`PlayerState.lpc`) và lưu DB: `1|<thể hình>|<da>|<mắt>|<mã>[=<màu>],…` (thể hình 0 / 1, da / mắt
+ * để trống = mặc định; món theo thứ tự ô của LPC_SLOTS). Chỉ đưa vào đây dữ liệu đã qua parseLpc.
+ */
+export function encodeLpc(l: LpcLooks): string {
+  const items = Object.keys(LPC_SLOTS).filter((s) => l.parts[s]).map((s) => l.parts[s] + (l.colors[s] ? "=" + l.colors[s] : ""));
+  return `1|${l.body}|${l.colors.skin ?? ""}|${l.colors.eye ?? ""}|${items.join(",")}`;
+}
+/** Ngược của encodeLpc; chuỗi hỏng / mã lạ thì null (cũng kiểm bằng parseLpc). */
+export function decodeLpc(s: string): LpcLooks | null {
+  if (typeof s !== "string" || s.length > 1024) return null;
+  const f = s.split("|");
+  if (f.length !== 5 || f[0] !== "1") return null;
+  const parts: Record<string, string> = {}, colors: Record<string, string> = {};
+  if (f[2]) colors.skin = f[2];
+  if (f[3]) colors.eye = f[3];
+  for (const it of f[4].split(",")) {
+    if (!it) continue;
+    const [id, col, ...rest] = it.split("=");
+    const part = lpcPart(id);
+    if (!part || rest.length || parts[part.slot]) return null;
+    parts[part.slot] = id;
+    if (col !== undefined) colors[part.slot] = col;
+  }
+  return parseLpc({ v: 1, body: Number(f[1]), parts, colors });
+}
+
+/**
+ * Kiểm tra ngoại hình. `mode` thiếu / null = preset: mỗi trường phải là số nguyên trong khoảng của bảng tương ứng, sai bất kỳ trường nào thì
+ * null; riêng `skin` (thêm sau, 9.9) thiếu hẳn thì là tông 0, như tài khoản cũ và client cũ; có mà sai thì vẫn null. `mode` = "lpc": kiểm
+ * `lpc` bằng parseLpc, `sex` thiếu thì lấy `lpc.body` (có thì phải bằng), các số preset khác bỏ qua và đặt 0. `mode` khác hai giá trị trên thì null.
  */
 export function parseLooks(x: unknown): Looks | null {
   const o = (typeof x === "object" && x !== null ? x : {}) as Record<string, unknown>;
+  if (o.mode === "lpc") {
+    const lpc = parseLpc(o.lpc);
+    if (!lpc || (o.sex !== undefined && o.sex !== null && o.sex !== lpc.body)) return null;
+    return { sex: lpc.body, hair: 0, hairCol: 0, outfitCol: 0, skin: 0, mode: "lpc", lpc };
+  }
+  if (o.mode !== undefined && o.mode !== null && o.mode !== "preset") return null;
   const pick = (k: keyof Looks, n: number) => {
     const v = o[k];
     return typeof v === "number" && Number.isInteger(v) && v >= 0 && v < n ? v : -1;
   };
   const sex = pick("sex", SEXES.length);
-  const l: Looks = { sex, hair: pick("hair", HAIR_STYLES[Math.max(0, sex)].length), hairCol: pick("hairCol", HAIR_COLORS.length), outfitCol: pick("outfitCol", OUTFIT_COLORS.length),
+  const n = { sex, hair: pick("hair", HAIR_STYLES[Math.max(0, sex)].length), hairCol: pick("hairCol", HAIR_COLORS.length), outfitCol: pick("outfitCol", OUTFIT_COLORS.length),
     skin: o.skin === undefined || o.skin === null ? 0 : pick("skin", SKIN_TONES.length) };
-  return Object.values(l).every((v) => v >= 0) ? l : null;
+  return Object.values(n).every((v) => v >= 0) ? { ...n, mode: "preset" } : null;
 }
 
 /** Hướng nhìn 4 phía của hồn sư (trường `dir` trong PlayerState): chỉ số trong mảng này. Hướng trái do client lật ngang hướng phải. */
