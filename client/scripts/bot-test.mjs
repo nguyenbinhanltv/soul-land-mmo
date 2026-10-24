@@ -123,7 +123,8 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, CAMP_PT_GAP, shopOf, shopExpands,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, parseSell, autoSellable } from "../../shared/data.ts";
 import { LOOKS_CHANGE, looksChangeCost } from "../../shared/data.ts"; // L4 #511
-import { RADAR } from "../../shared/data.ts"; // R5 (#432): bán kính lọc tin mini
+import { RADAR, RALLY, MAPS as RALLY_MAPS } from "../../shared/data.ts"; // R5 (#432): bán kính lọc tin mini; R6 (#433): dấu tập trung
+import { rallyUpsert, rallyPrune } from "../../shared/rally.ts";
 import { FOG } from "../../shared/data.ts"; import { fogDims, fogCount, fogGet, fogCellOf, fogBytes, fogValid } from "../../shared/fog.ts"; import { loadMap } from "../../server/src/map.ts"; // R8 (#435): sương mù khám phá
 import { parseLpc, encodeLpc, decodeLpc, LPC_PARTS, LPC_RAMPS } from "../../shared/data.ts"; // Looks v2 (#509)
 import { PHAP_TUONG } from "../../shared/data.ts"; // pháp tướng Chân Thân (#486): bảng hiển thị client
@@ -360,6 +361,7 @@ async function enter(b,roomId){
   b.chans=null; b.room.onMessage("channels",m=>{b.chans=m;}); // danh sách kênh (mục 6 "Nhiều kênh")
   b.mini=null; b.room.onMessage("mini",m=>{b.mini=m;}); // bản đồ nhỏ: vị trí cả bản đồ (11.4)
   b.fogBits=null; b.fogMsgs=0; b.fogd=[]; b.room.onMessage("fog",m=>{ b.fogBits=fogBytes(m?.bits); b.fogMsgs++; }); b.room.onMessage("fogd",m=>{ b.fogd.push(m); }); // sương mù khám phá (R8)
+  b.rallies=[]; b.room.onMessage("rally",m=>{ b.rallies.push(m); }); // dấu "Tập trung ở đây" của tổ đội (R6)
   b.leftCode=null; b.room.onLeave(c=>{b.leftCode=c;});
   // Đại Đấu Hồn Trường (7.2): xếp hàng / đã ghép / pha trận / kết quả, bảng xếp hạng.
   b.arena=[]; b.aq=null; b.aqN=0; b.room.onMessage("arena",m=>{b.arena.push(m); if(m.k==="queue"){b.aq=m; b.aqN++;}});
@@ -478,6 +480,7 @@ const STANDALONE=[
   ["shardBuy",3,shardBuyTest],                //  ~8 #282 Thương hội đổi mảnh võ hồn (đo ở máy)
   ["tong",3,tongTest],                        //   9 #196 tông môn
   ["fog",2,fogTest,true],                     //  ~40 R8 #435 sương mù khám phá: đánh dấu, lưu, theo bản đồ, dữ liệu lạ, lệnh GM (đo ở máy)
+  ["rally",2,rallyTest],                      //  ~40 R6 #433 dấu "Tập trung ở đây" của tổ đội: đặt, đồng đội nhận, người ngoài không, spam, hết hạn
   ["flag",2,flagTest],                        //  ~60 R4 #431 tự đi tới cờ: cùng bản đồ, xuyên cổng, bị chặn (đo ở máy)
   ["waypoint",4,waypointTest],                //  45 11.2
   ["camp",3,campTest],                        //   9 #111
@@ -563,6 +566,7 @@ if(process.env.BOT_ONLY==="tong"){ await tongTest(); console.log(fails?`✗ ${fa
 if(process.env.BOT_ONLY==="shardbuy"){ await shardBuyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="sell"){ await sellTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="fog"){ await fogTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="rally"){ await rallyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="gm"){ await gmTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="testacc"){ await testAccTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -11696,6 +11700,66 @@ async function gmTest(){
  * đi tới chỗ mới thì ô đó được đánh dấu, thoát vào lại vẫn còn (cần `--pg` để thử PostgreSQL), mỗi bản đồ một bitset riêng, tài khoản khác không thấy,
  * tin lạ từ client không làm đổi gì, lệnh GM `fog open|reset` (admin) mở cả bản đồ / xoá, tài khoản thường bị từ chối.
  */
+/**
+ * Dấu "Tập trung ở đây" của tổ đội (R6 #433, BOT_ONLY=rally): người ngoài tổ đội không đặt được và không nhận; thành viên (kể cả ở bản đồ khác)
+ * nhận tin `rally` kèm chat hệ thống; ô không hợp lệ bị bỏ; spam bị chặn theo RALLY.burst; rời tổ đội thì thôi nhận; hết hạn theo RALLY.secs.
+ */
+async function rallyTest(){
+  console.log("[R6 #433] Dấu Tập trung ở đây của tổ đội");
+  const A=await bot("Tập A","yeu_ho",{sex:0,hair:1,hairCol:2,outfitCol:3}), B=await bot("Tập B","kim_vu_mieu_ung",{sex:1,hair:0,hairCol:1,outfitCol:1}),
+    E=await bot("Tập E","bich_lan_xa_hoang",{sex:0,hair:2,hairCol:3,outfitCol:2}), C=await bot("Tập C","yeu_ho",{sex:1,hair:3,hairCol:1,outfitCol:4});
+  if(!(await test(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua dấu tập trung (cần hook test): bật server bằng GAME_TEST=1"); for(const b of [A,B,E,C]) await b.room.leave(); return; }
+  const me=b=>b.room.state.players?.get(b.room.sessionId), map=loadMap(A.mapId), M2="tinh_dau_ngoai_vi";
+  await waitFor(()=>[A,B,E,C].every(b=>me(b)&&b.bag&&b.party),4000);
+  const rl=async b=>{ await test(b,"rally",{rop:"rlreset"}); };
+  const logsOf=(b,n)=>b.logs.slice(n).join(" | "), sysChat=(b,n)=>b.chats.slice(n).filter(c=>c.name==="Hệ thống"&&c.ch==="party"&&/Tập trung ở đây/.test(c.text));
+  // Hai ô quanh A: một ô đi được (cách A vài ô), một ô vật cản.
+  const ax=Math.floor(me(A).x/TILE), ay=Math.floor(me(A).y/TILE); let good=null, wall=null;
+  for(let r=2;r<30&&!(good&&wall);r++) for(let dx=-r;dx<=r;dx++) for(const dy of [-r,r]){ const x=ax+dx, y=ay+dy; if(x<1||y<1||x>=map.MW-1||y>=map.MH-1) continue;
+    if(!good&&map.standable((x+0.5)*TILE,(y+0.5)*TILE)) good={x,y}; if(!wall&&!map.standable((x+0.5)*TILE,(y+0.5)*TILE)) wall={x,y}; }
+  ok(!!good,"có ô đi được gần chỗ đứng");
+  // 1. Chưa vào tổ đội: không đặt được, chỉ nhận lời nhắc.
+  await rl(A); let n=A.logs.length; A.room.send("rally",{tx:good.x+0.3,ty:good.y+0.7}); await sleep(600);
+  ok(/trong tổ đội/.test(logsOf(A,n))&&!A.rallies.length&&!B.rallies.length,`chưa có tổ đội: không đặt được (${logsOf(A,n)})`);
+  // 2. Lập tổ đội A (trưởng) + B + E; E sang bản đồ khác.
+  for(const m of [B,E]){ A.room.send("party",{op:"invite",name:m.name}); await sleep(300); m.room.send("party",{op:"accept",name:A.name}); await waitFor(()=>m.party?.id>0,2000); }
+  ok(A.party?.id>0&&B.party?.id===A.party.id&&E.party?.id===A.party.id,"A, B, E cùng một tổ đội");
+  E.travel=null; await test(E,"warp",{mapId:M2,x:0,y:0}); ok(await waitFor(()=>E.travel?.mapId===M2,4000),`E sang ${M2}`);
+  await E.room.leave(); await sleep(300); E.mapId=(await post("/api/me",{token:E.token})).mapId; await enter(E); await waitFor(()=>me(E)&&E.bag,4000);
+  // 3. A đặt dấu: A, B, E nhận (E ở bản đồ khác); C (ngoài tổ đội) không nhận gì.
+  const nb=[A,B,E,C].map(b=>b.chats.length); await rl(A); A.room.send("rally",{tx:good.x+0.3,ty:good.y+0.7});
+  ok(await waitFor(()=>A.rallies.length&&B.rallies.length&&E.rallies.length,3000),"A, B, E đều nhận tin rally");
+  const m=B.rallies[0];
+  ok(m.from===A.name&&m.map===A.mapId&&m.tx===good.x+0.5&&m.ty===good.y+0.5&&m.secs===RALLY.secs&&Number.isInteger(m.ch),`tin rally đúng: người đặt, bản đồ ${m.map}, ô về tâm (${m.tx}, ${m.ty}), ${m.secs}s`);
+  ok(E.rallies[0].map===A.mapId&&E.rallies[0].map!==M2,"E ở bản đồ khác vẫn nhận, dấu ghi bản đồ của người đặt");
+  await sleep(500);
+  ok(sysChat(B,nb[1]).length===1&&sysChat(E,nb[2]).length===1&&sysChat(E,nb[2])[0].text.includes(RALLY_MAPS[A.mapId].name),"chat hệ thống tổ đội: B 1 dòng, E 1 dòng kèm tên bản đồ");
+  ok(!C.rallies.length&&!sysChat(C,nb[3]).length,"người ngoài tổ đội không nhận tin rally, không có dòng chat");
+  ok(Object.keys(m).sort().join()==="ch,from,map,secs,tx,ty","tin rally chỉ có người đặt (tên), bản đồ, kênh, ô đích, số giây: không lộ id tài khoản, phiên hay vị trí người đặt");
+  // 4. Ô không hợp lệ: vật cản, ngoài bản đồ, kiểu lạ: bị bỏ, không tốn lượt, không rơi kết nối.
+  const before=B.rallies.length; await rl(A); n=A.logs.length;
+  for(const v of [{tx:wall.x+0.5,ty:wall.y+0.5},{tx:-3,ty:4},{tx:map.MW+5,ty:4},{tx:NaN,ty:1},{tx:"3",ty:"4"},{tx:null,ty:{}},{},null,"x",[1,2]]) A.room.send("rally",v);
+  await sleep(800);
+  ok(B.rallies.length===before&&A.leftCode===null&&/không đi được/.test(logsOf(A,n)),`ô lạ / vật cản / ngoài bản đồ bị bỏ, vẫn kết nối (${logsOf(A,n).slice(0,60)})`);
+  A.room.send("rally",{tx:good.x+0.5,ty:good.y+0.5}); ok(await waitFor(()=>B.rallies.length===before+1,2000),"ô lạ không tốn lượt: dấu hợp lệ ngay sau đó vẫn gửi được");
+  // 5. Spam: gửi dồn 12 lần, người nhận chỉ nhận tối đa burst (+1 nếu hồi kịp), người gửi nhận lời nhắc "quá nhanh".
+  await rl(A); const b0=B.rallies.length; n=A.logs.length;
+  for(let i=0;i<12;i++) A.room.send("rally",{tx:good.x+0.5,ty:good.y+0.5});
+  await sleep(1200); const got=B.rallies.length-b0;
+  ok(got>=RALLY.burst&&got<=RALLY.burst+1&&/quá nhanh/.test(logsOf(A,n)),`spam 12 lần: B nhận ${got} (burst ${RALLY.burst}), A bị nhắc "quá nhanh"`);
+  await sleep(Math.ceil(RALLY.refillMs*1.2)); A.room.send("rally",{tx:good.x+0.5,ty:good.y+0.5});
+  ok(await waitFor(()=>B.rallies.length===b0+got+1,2000),"chờ hồi một lượt thì đặt lại được");
+  // 6. Hết hạn: client giữ mỗi người một dấu và bỏ khi hết RALLY.secs (cùng hàm thuần shared/rally.ts).
+  let list=[]; const t0=1e6; list=rallyUpsert(list,B.rallies.at(-1),t0); list=rallyUpsert(list,B.rallies.at(-1),t0+1000);
+  ok(list.length===1&&rallyPrune(list,t0+1000+RALLY.secs*1000-1,null).length===1&&rallyPrune(list,t0+1000+RALLY.secs*1000,null).length===0,`mỗi người một dấu; hết hạn đúng sau ${RALLY.secs}s`);
+  // 7. B rời tổ đội: không nhận dấu mới nữa, không đặt được; A vẫn đặt được và E vẫn nhận.
+  await rl(A); B.room.send("party",{op:"leave"}); await waitFor(()=>B.party?.id===0,2000); const bb=B.rallies.length, eb=E.rallies.length; n=B.logs.length;
+  A.room.send("rally",{tx:good.x+0.5,ty:good.y+0.5}); ok(await waitFor(()=>E.rallies.length>eb,2000),"B đã rời: E vẫn nhận dấu mới của A"); await sleep(500);
+  ok(B.rallies.length===bb,"B đã rời tổ đội: không nhận dấu mới"); B.room.send("rally",{tx:good.x+0.5,ty:good.y+0.5}); await sleep(600);
+  ok(/trong tổ đội/.test(logsOf(B,n))&&B.rallies.length===bb,"B đã rời: không đặt được dấu");
+  for(const b of [A,B,E,C]) await b.room.leave().catch(()=>{});
+}
+
 async function fogTest(){
   console.log("[#435] Sương mù khám phá");
   const A=await bot("Fog A","yeu_ho",{sex:0,hair:1,hairCol:2,outfitCol:3}), B=await bot("Fog B","kim_vu_mieu_ung",{sex:1,hair:0,hairCol:1,outfitCol:1});

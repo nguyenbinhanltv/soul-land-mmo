@@ -23,6 +23,9 @@ import { Predictor, PREDICT, LAG_MS, stepSpeed } from "../predict.ts";
 import { findPath, findLongPath, buildNav, type Nav } from "../../../shared/path.ts";
 import { autoLeg, AUTO_STOP } from "../../../shared/autowalk.ts";
 import { getFlag, setFlag, patchFlag, bindFlagBar, mapName } from "../autowalk.ts";
+import { RALLY } from "../../../shared/data.ts";
+import { rallyLeft } from "../../../shared/rally.ts";
+import { addRally, pruneRallies, getRallies } from "../rally.ts";
 import { Crowd, lpcPreloader, type CrowdMap } from "../crowd.ts";
 import { LpcRig } from "../lpcRig.ts";
 import { solidGrid, clampDir, isSolidTile, type SolidGrid } from "../../../shared/move.ts";
@@ -723,6 +726,10 @@ export class GameScene extends Phaser.Scene {
     mapview().beforeOpen = () => { closeAudioPanel(); closeAutoPanel(); }; // nút Vùng do mapview.ts gắn một lần (cảm ứng chạy ngay lúc chạm)
     radar().onOpen = () => mapview().open();
     mapview().onFlag = (t) => this.mapFlag(t);
+    mapview().onRally = (t) => this.rallyPlace(t.tx, t.ty);
+    mapview().canRally = () => this.inParty();
+    radar().onRally = (tx, ty) => this.rallyPlace(tx, ty);
+    radar().onRallyGo = (tx, ty) => this.rallyGo(tx, ty);
     mapview().flagActs = { go: () => this.flagGo(), stop: () => this.flagStop("Đã dừng tự đi"), clear: () => this.flagClear() };
     bindFlagBar(() => this.flagGo(), () => this.flagStop("Đã dừng tự đi"), () => this.flagClear());
     hud.onWorldAuto((map) => this.flagToMap(map));
@@ -885,6 +892,7 @@ export class GameScene extends Phaser.Scene {
     if (this.watching || this.isArena) return;
     const gate = this.portals.find((r) => Math.hypot((r.x + r.w / 2) / TILE - t.tx, (r.y + r.h / 2) / TILE - t.ty) <= 2);
     if (gate) return this.flagToMap(gate.to);
+    if (this.rallyNear(t.tx, t.ty)) return this.rallyGo(t.tx, t.ty); // bấm vào dấu tập trung: tự đi tới đúng chỗ dấu (R6)
     const tx = Math.floor(t.tx), ty = Math.floor(t.ty);
     if (!this.grid || isSolidTile(this.grid, tx, ty)) { hud.log("Chỗ đó không đi được, hãy đặt cờ ở chỗ trống.", "#ffb35c"); return; }
     this.flagStop(null);
@@ -968,6 +976,42 @@ export class GameScene extends Phaser.Scene {
     const end = path.at(-1);
     if (!end || Math.hypot(end.x - tx, end.y - ty) > TILE * 2) return this.flagStop(AUTO_STOP.none);
     this.goal = { x: end.x, y: end.y, path, i: 0, d: Infinity, t: now, auto: true };
+  }
+
+  // ---------- Đánh dấu "Tập trung ở đây" của tổ đội (R6 #433, mục 5.17) ----------
+  // Server kiểm (thành viên tổ đội, ô đi được, giới hạn tốc độ) rồi chuyển tiếp cho cả tổ đội, kể cả đồng đội ở bản đồ / tiến trình khác; client
+  // chỉ gửi ý định và hiển thị dấu (rally.ts) trên radar, bản đồ khu vực và mặt đất, tự tắt sau `RALLY.secs`.
+
+  /** Có đồng đội trong tổ đội không (khung tổ đội server đã gửi). */
+  inParty() { return (this.party?.members?.length ?? 0) >= 2; }
+
+  /** Chuột phải trên radar / bản đồ khu vực, hoặc chọn "Tập trung ở đây": xin server đặt dấu ở ô (tx, ty). */
+  rallyPlace(tx: number, ty: number) {
+    if (this.watching || this.isArena) return;
+    if (!this.inParty()) { hud.log("Cần ở trong tổ đội để đặt dấu Tập trung ở đây (mời bằng /moi <tên>).", "#ffb35c"); return; }
+    this.room.send("rally", { tx, ty });
+  }
+
+  /** Bấm vào dấu tập trung (radar, bản đồ khu vực): đặt cờ ngay ở dấu rồi tự đi tới (R4). Dấu ở bản đồ / kênh khác thì chỉ báo. */
+  rallyGo(tx: number, ty: number) {
+    if (this.watching || this.isArena) return;
+    const r = this.rallyNear(tx, ty); if (!r) return;
+    this.flagStop(null);
+    setFlag({ map: this.mapId, tx: r.tx, ty: r.ty, name: `Tập trung: ${r.from}`, on: false, cross: false });
+    this.syncFlagMarker();
+    this.flagGo();
+  }
+
+  /** Dấu tập trung còn hiệu lực ở bản đồ và kênh này, gần ô (tx, ty) trong 2 ô. */
+  rallyNear(tx: number, ty: number) {
+    return this.rallyHere().find((r) => Math.hypot(r.tx - tx, r.ty - ty) <= 2);
+  }
+  rallyHere() { const ch = this.room.state.channel; return getRallies().filter((r) => r.map === this.mapId && r.ch === ch); }
+
+  /** Dấu tập trung vào radar / bản đồ khu vực (mức `rally`: mũi tên ở mép khi ngoài tầm). Dấu hết hạn thì bỏ. */
+  collectRally(R: DotSink) {
+    const now = Date.now(); pruneRallies(null, now);
+    for (const r of this.rallyHere()) R.dot("rally", r.tx, r.ty, `Tập trung ở đây: ${r.from} (${rallyLeft(r, now)}s)`, RALLY.col);
   }
 
   /** Gom đường đi và cờ cho radar / bản đồ khu vực: đường còn lại của `this.goal`, cờ (hoặc cổng đang đi tới) mức nhiệm vụ để có mũi tên ở mép. */
@@ -1243,7 +1287,8 @@ export class GameScene extends Phaser.Scene {
       if (m && Array.isArray(m.list)) hud.setResonanceTop(m);
     });
     // Tổ đội người chơi (7.1): khung tổ đội và lời mời, chỉ gửi riêng cho mình.
-    this.room.onMessage("party", (m: PartyView) => { this.party = m; hud.renderParty(m, { send: (op, name, sid) => this.partySend(op, name, sid) }); });
+    this.room.onMessage("rally", (m: unknown) => { addRally(m); }); // dấu "Tập trung ở đây" của đồng đội (R6)
+    this.room.onMessage("party", (m: PartyView) => { this.party = m; pruneRallies(new Set(m.members.map((x) => x.name))); hud.renderParty(m, { send: (op, name, sid) => this.partySend(op, name, sid) }); });
     // Bạn bè và chặn (#195): bảng bạn bè và lời "đã thêm bạn", chỉ gửi riêng cho mình.
     hud.bindFriends((op, name) => this.room.send("friend", { op, ...(name ? { name } : {}) }), (name) => this.partySend("invite", name));
     this.room.onMessage("friends", (m: FriendsMsg) => { if (m && Array.isArray(m.list) && Array.isArray(m.blocks)) hud.setFriends(m); });
@@ -2276,8 +2321,8 @@ export class GameScene extends Phaser.Scene {
     const mx = me.x / TILE, my = me.y / TILE;
     const info = `${MAPS[this.mapId]?.name ?? this.mapId} · ${Math.floor(mx)}, ${Math.floor(my)}${st.channel ? ` · Kênh ${st.channel}` : ""}`;
     // Cùng một bộ chấm cho radar và bản đồ khu vực (mỗi nơi theo nhịp RADAR.hz riêng).
-    if (dueR) { R.begin(mx, my, now); this.collectDots(R, me, mx, my); this.collectFlag(R, true); R.end(info); }
-    if (dueV) { V.begin(mx, my, now, this.mapLabels(), info); this.collectDots(V, me, mx, my); this.collectFlag(V, false); V.end(); }
+    if (dueR) { R.begin(mx, my, now); this.collectDots(R, me, mx, my); this.collectRally(R); this.collectFlag(R, true); R.end(info); }
+    if (dueV) { V.begin(mx, my, now, this.mapLabels(), info); this.collectDots(V, me, mx, my); this.collectRally(V); this.collectFlag(V, false); V.end(); }
   }
 
   /** Gom chấm và khung vùng vào `R` (radar hoặc bản đồ khu vực): thực thể ở xa theo tin `mini`, ở gần theo state (11.4). */
@@ -2691,6 +2736,8 @@ export class GameScene extends Phaser.Scene {
     // Cờ đã đặt ở bản đồ này (R4): vòng cam lớn hơn trên mặt đất, nhấp nháy khi đang tự đi.
     const fl = getFlag();
     if (fl && fl.map === this.mapId && fl.tx !== null && fl.ty !== null) { this.teleG.lineStyle(2, 0xff9a3c, fl.on ? 0.6 + 0.35 * Math.sin(time / 150) : 0.8); strokeGround(this.teleG, fl.tx * TILE, fl.ty * TILE, 9); strokeGround(this.teleG, fl.tx * TILE, fl.ty * TILE, 3); }
+    // Dấu tập trung của đồng đội (R6): vòng sáng vàng ba lớp, nhấp nháy, trên mặt đất.
+    for (const r of this.rallyHere()) { const k = 0.55 + 0.35 * Math.sin(time / 180); this.teleG.lineStyle(2, 0xffe14a, k); strokeGround(this.teleG, r.tx * TILE, r.ty * TILE, 14); strokeGround(this.teleG, r.tx * TILE, r.ty * TILE, 8); strokeGround(this.teleG, r.tx * TILE, r.ty * TILE, 3); }
     this.drawAuras(g, st, time);
     // Ô bản đồ trong tầm camera; khối cao đang che chính mình hoặc hồn thú trong tầm thì khoét lỗ, mờ đi (10.7: cả hồn thú).
     const mv = this.players.get(this.me), view = this.cameras.main.worldView, focus: Focus[] = mv ? [{ x: mv.root.x, y: mv.root.y }] : [];

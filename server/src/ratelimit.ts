@@ -4,7 +4,7 @@
 
 import { isIPv6 } from "node:net";
 import { nameKey } from "./names.ts";
-import { WORLD_CHAT } from "../../shared/data.ts";
+import { WORLD_CHAT, RALLY } from "../../shared/data.ts";
 
 /**
  * Chuẩn hoá IP thành khoá giới hạn: IPv4-mapped (`::ffff:a.b.c.d`) về `a.b.c.d`, IPv6 cắt về /64 (4 nhóm đầu, đã mở `::`),
@@ -349,3 +349,22 @@ setInterval(() => sweep(), SWEEP_MS).unref();
 
 /** Chỉ dùng trong kiểm thử: xóa toàn bộ trạng thái. */
 export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); signups.clear(); chat.clear(); worldAt.clear(); invites.clear(); friendOps.clear(); friendNotes.clear(); }
+
+// ---------- Đánh dấu "Tập trung ở đây" của tổ đội (R6 #433) ----------
+const rallies = new Map<number, { tokens: number; at: number }>();
+
+/**
+ * Kiểm tra một lần đặt dấu "Tập trung ở đây" của tài khoản `key`: token bucket `RALLY.burst` lượt, hồi 1 lượt mỗi `RALLY.refillMs`. Gọi sau
+ * mọi bước kiểm tra luật (dấu không hợp lệ không tốn lượt). Hợp lệ -> null (đã tính lượt); hết lượt -> { error } báo riêng người đặt.
+ */
+export function rallyCheck(key: number, now = Date.now()): { error: string } | null {
+  let e = rallies.get(key);
+  if (!e) { e = { tokens: RALLY.burst, at: now }; rallies.set(key, e); }
+  e.tokens = Math.min(RALLY.burst, e.tokens + (now - e.at) / RALLY.refillMs); e.at = now;
+  if (e.tokens < 1) return { error: `Đặt dấu tập trung quá nhanh. Đợi ${Math.ceil(((1 - e.tokens) * RALLY.refillMs) / 1000)} giây rồi đặt tiếp.` };
+  e.tokens -= 1;
+  return null;
+}
+
+/** Hook kiểm thử (`test {op: "rally", rop: "rlreset"}`, chỉ khi GAME_TEST=1): xóa bộ đếm đặt dấu của một tài khoản. */
+export function rallyReset(key: number) { rallies.delete(key); }
