@@ -2268,8 +2268,110 @@ export type ChanThanStat = "atk" | "def" | "spd" | "crit" | "mp" | "hp";
  */
 export interface ChanThanDef { name: string; desc: string; icon: string; cost: number; cd: number; secs: number;
   stats: Partial<Record<ChanThanStat, number>>; skill: SkillDef; burst?: SkillDef; field?: number; lei?: number; }
-/** Client phóng hình hồn sư ngần ấy lần khi đang Chân Thân (chỉ hình ảnh). */
-export const CHAN_THAN_SCALE = 1.35;
+
+// ---------- Pháp tướng Võ Hồn Chân Thân (hình ảnh, #482 / #486; GAME_DESIGN 5.18) ----------
+// Mọi võ hồn đều là pháp tướng: hồn sư giữ nguyên, sau lưng hiện hư ảnh võ hồn khổng lồ. Chỉ hiển thị (client); số ở đây để server, client, bot
+// cùng đọc, không chép chỗ khác. Sheet `pt_<mã>` khung PT_FRAME, hàng = hướng PT_DIRS (sw / w / nw lật gương từ se / e / ne), cột 0..7 "thở",
+// 8..15 "đánh"; ảnh tĩnh chỉ 5 khung (một cột) vẫn dùng được, chuyển động khi đó hoàn toàn bằng code (công thức "vật thể").
+export const PT_FRAME = 160, PT_COLS = 16, PT_IDLE_N = 8, PT_ATTACK_N = 8;
+/** Gốc trong khung (trùng chân hồn sư). */
+export const PT_ORIGIN: readonly [number, number] = [80, 124];
+export const PT_DIRS = ["s", "se", "e", "ne", "n"] as const;
+export type PtDir = (typeof PT_DIRS)[number];
+/** Hướng vẽ SAU thân hồn sư; còn lại (ne, n) vẽ TRƯỚC, độ đục nhân PT_FRONT_ALPHA. */
+export const PT_BACK_DIRS: readonly PtDir[] = ["s", "se", "e"];
+export const PT_FRONT_ALPHA = 0.7, PT_GHOST = 0.88;
+
+/** Công thức: "sinh_vat" có sheet hoạt ảnh; "vat_the" ảnh tĩnh (hoặc sheet ngắn), chuyển động bằng code theo `motion`. */
+export type PtFormula = "sinh_vat" | "vat_the";
+/** Kiểu hạt theo hệ vẽ bằng code: điện (tia), lửa, băng (tinh thể), lá, hồn quang, độc, khói. */
+export type PtHat = "dien" | "lua" | "bang" | "la" | "hon" | "doc" | "khoi";
+/** Nhóm bố cục (H0): V vũ khí, S rồng / rắn, P hoa / cây, B chim, T thú, O vật lơ lửng, D bóng. */
+export type PtGroup = "V" | "S" | "P" | "B" | "T" | "O" | "D";
+export interface PtMotion {
+  bob: number;    // px nhấp nhô dọc (lơ lửng)
+  bobSec: number; // chu kỳ thở (giây)
+  sway: number;   // độ lắc quanh gốc
+  lag: number;    // trễ pha của phần phụ (lắc, hạt) so với thân, tính theo chu kỳ 0..1
+  spin: number;   // độ / giây xoay quanh `pivot` (vòng, xích); 0 = không xoay
+  pivot: number;  // px phía trên gốc làm tâm xoay / vung
+  pulse: number;  // biên độ sáng nhịp 0..1 của lớp phát sáng
+  swing: number;  // độ vung / chém khi đánh (quanh pivot, theo hướng hồn sư)
+  lunge: number;  // px lao về phía hướng đánh khi ra đòn
+}
+export interface PhapTuongDef {
+  sheet: string; formula: PtFormula; group: PtGroup;
+  /** Cỡ và độ lệch (px quanh gốc hồn sư) của khung pháp tướng. */
+  scale: number; dx: number; dy: number;
+  hat: PtHat;
+  /** Màu phát sáng (mặc định màu võ hồn). */
+  glow?: string;
+  motion: PtMotion;
+}
+const PT_BASE: Record<PtGroup, PtMotion> = {
+  S: { bob: 1.5, bobSec: 1.8, sway: 2, lag: 0.25, spin: 0, pivot: 40, pulse: 0.12, swing: 0, lunge: 6 },
+  B: { bob: 2, bobSec: 1.6, sway: 3, lag: 0.3, spin: 0, pivot: 40, pulse: 0.12, swing: 0, lunge: 4 },
+  T: { bob: 1, bobSec: 1.9, sway: 1.5, lag: 0.2, spin: 0, pivot: 30, pulse: 0.1, swing: 0, lunge: 8 },
+  D: { bob: 2, bobSec: 2, sway: 2.5, lag: 0.35, spin: 0, pivot: 40, pulse: 0.2, swing: 0, lunge: 6 },
+  V: { bob: 1.5, bobSec: 2, sway: 0.5, lag: 0.15, spin: 0, pivot: 60, pulse: 0.15, swing: 12, lunge: 4 },
+  O: { bob: 2.5, bobSec: 1.7, sway: 1, lag: 0.2, spin: 0, pivot: 70, pulse: 0.2, swing: 0, lunge: 8 },
+  P: { bob: 0.5, bobSec: 2, sway: 2.5, lag: 0.4, spin: 0, pivot: 10, pulse: 0.15, swing: 0, lunge: 3 },
+};
+const pt = (id: string, group: PtGroup, hat: PtHat, o: { scale?: number; dx?: number; dy?: number; glow?: string; motion?: Partial<PtMotion> } = {}): [string, PhapTuongDef] =>
+  [id, { sheet: `pt_${id}`, formula: group === "S" || group === "B" || group === "T" || group === "D" ? "sinh_vat" : "vat_the", group, hat,
+    scale: o.scale ?? 1, dx: o.dx ?? 0, dy: o.dy ?? 0, glow: o.glow, motion: { ...PT_BASE[group], ...o.motion } }];
+/** Bảng pháp tướng của đủ 25 võ hồn (bài kiểm thử đòi mỗi võ hồn có mục). Giá trị H1 (Lam Điện, Hạo Thiên Chùy) lấy theo manifest ảnh. */
+export const PHAP_TUONG: Record<string, PhapTuongDef> = Object.fromEntries([
+  pt("cuu_tinh_that_sat_kiem", "V", "hon", { motion: { swing: 25, pivot: 90, pulse: 0.25 } }),
+  pt("lam_dien_ba_vuong_long", "S", "dien"),
+  pt("ky_nhung_thong_thien_cuc", "P", "hon", { motion: { pulse: 0.25 } }),
+  pt("ta_hoa_phuong_hoang", "B", "lua", { motion: { sway: 4 } }),
+  pt("u_minh_linh_mieu", "T", "khoi"),
+  pt("nguyet_nhan", "V", "hon", { motion: { spin: 28, pivot: 62, swing: 0, bob: 2 } }),
+  pt("hoa_long", "S", "lua"),
+  pt("nhu_cot_tho", "T", "hon", { motion: { lunge: 10 } }),
+  pt("kim_vu_mieu_ung", "B", "dien"),
+  pt("tu_vong_chu_hoang", "T", "doc", { motion: { sway: 2.5 } }),
+  pt("bich_lan_xa_hoang", "S", "doc", { motion: { sway: 3 } }),
+  pt("can_khon_hon_nguyen_toa", "O", "hon", { motion: { spin: 18, pivot: 60 } }),
+  pt("hoa_anh", "D", "lua"),
+  pt("yeu_ho", "T", "hon", { motion: { lag: 0.3 } }),
+  pt("xuc_xich", "O", "khoi", { motion: { swing: 18, lunge: 12, bob: 3 } }),
+  pt("quy_mi", "D", "khoi", { motion: { bob: 3 } }),
+  pt("thien_can_bach_ngoc_dinh", "O", "khoi", { motion: { swing: 8 } }),
+  pt("lam_ngan_thao", "P", "la", { motion: { sway: 3 } }),
+  pt("hao_thien_chuy", "V", "khoi", { scale: 0.85, dx: 12, dy: -4, motion: { swing: 0, bob: 1 } }),
+  pt("cuu_bao_luu_ly_thap", "V", "hon", { motion: { swing: 0, pulse: 0.3, bob: 2 } }),
+  pt("pha_hon_thuong", "V", "hon", { motion: { swing: 6, lunge: 14, pivot: 50 } }),
+  pt("a_ngan", "P", "la", { motion: { pulse: 0.2 } }),
+  pt("liet_hoa_thuong_lang", "T", "lua", { motion: { lunge: 9 } }),
+  pt("bang_phuong_hoang", "B", "bang"),
+  pt("bach_ho", "T", "hon", { motion: { lunge: 9 } }),
+]);
+export const phapTuongOf = (vohonId: string): PhapTuongDef | null => PHAP_TUONG[vohonId] ?? null;
+/**
+ * Tiến hóa theo vòng hồn hoàn (số vòng đã đồng bộ, PlayerState.rings): từ `rings` vòng trở lên dùng bậc đó.
+ * alpha: nhân độ đục hư ảnh; glow: lớp phát sáng; hat: hệ số hạt; aura: vòng / hào quang dưới chân (0 = không).
+ */
+export const PT_STAGES: readonly { rings: number; alpha: number; glow: number; hat: number; aura: number }[] = [
+  { rings: 7, alpha: 0.55, glow: 0.3, hat: 0, aura: 0.3 },
+  { rings: 8, alpha: 0.75, glow: 0.5, hat: 0.6, aura: 0.55 },
+  { rings: 9, alpha: 0.9, glow: 0.7, hat: 1, aura: 1 },
+  { rings: 10, alpha: 1, glow: 1, hat: 1.6, aura: 1.5 },
+];
+export const phapTuongStage = (rings: number) => [...PT_STAGES].reverse().find((s) => rings >= s.rings) ?? PT_STAGES[0];
+/** Bùng hết cỡ (lúc tung tuyệt kỹ, mọi bậc): hệ số nhân PT_STAGES[3] trong chừng này giây. */
+export const PT_BURST_SEC = 1.6;
+/** Chuỗi biến hình (giây từ lúc bật Chân Thân): vòng sáng, cột sáng, hiện từ dưới lên, gầm / vung, giữ. Tổng PT_FORM.total. */
+export const PT_FORM = { column: 0.2, rise0: 0.35, rise1: 0.95, roar: 1.0, total: 1.2, fadeOut: 0.6 } as const;
+/** Đòn đánh (giây): lấy đà, ra đòn, dừng hình (hit-stop 2–3 khung ≈ 0,05 s) rồi thu về; tổng = lấy đà + ra đòn + dừng + thu. */
+export const PT_STRIKE = { windup: 0.14, hit: 0.1, stop: 0.05, recover: 0.26, back: 6 } as const;
+/** Cut-in khi bật Chân Thân (chỉ mình thấy): giây. */
+export const PT_CUTIN_SEC = 0.5;
+/** Hệ số độ đục / hạt của pháp tướng người khác so với của mình, theo mức hiệu ứng Thấp / Vừa / Cao. */
+export const PT_OTHERS_K = { low: 0.4, mid: 0.6, high: 0.75 } as const;
+/** Hai pháp tướng cùng lúc (dung hợp kỹ H6): độ lệch ngang giữa hai hình và độ đục mỗi hình khi hòa nhau. */
+export const PT_DUO = { dx: 22, alpha: 0.8 } as const;
 const ctBurst = (name: string, o: Partial<SkillDef>): SkillDef => ({ name, desc: "", icon: "", cost: 0, cd: 0, area: "around", r: 90, dmg: 0, ...o });
 /** Hồn kỹ Chân Thân (9.6, đã chốt): ô P (chỉ số trong 4 ô mang theo), hồn lực và hồi chiêu chung của mọi võ hồn. */
 export const CHAN_THAN_SKILL_SLOT = LOADOUT_SIZE - 1;
