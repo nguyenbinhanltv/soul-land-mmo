@@ -1,0 +1,115 @@
+{
+  "id": "kim_vu_mieu_ung",
+  "nhom": "B (chim xòe cánh)",
+  "ngay": "2026-10-24",
+  "code": [],
+  "lo": "P1 (#487)",
+  "display": {
+    "scale": 1.0,
+    "dx": 0,
+    "dy": 0,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+  },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "lượtMoiLan": 1,
+    "body": {
+      "description": "giant golden cat-faced owl hawk, large fierce cat face with whiskers and big pointed ear tufts, bright glowing eyes, wide spread golden wings with sharp feathers crackling with yellow lightning bolts, head tilted down looking at the viewer, three-quarter view, no ground, no base, pixel art",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 42
+    },
+    "ghiChu": "v2 (concept 2 lần: seed 41 giống cáo, seed 42 chọn); v1 (chim ưng thường, seed 24) bỏ vì mặt mèo không đọc được ở cỡ game, đã làm đủ 80 khung hoạt ảnh v1 (20 lượt) rồi bỏ"
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "lượt": 2,
+    "seed": 1369493651,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "giant golden cat-faced owl hawk, cat ears, white face, wide spread wings with yellow lightning feather patterns",
+      "no_background": true
+    },
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 1,
+      "se": 2,
+      "e": 3,
+      "ne": 4,
+      "n": 5
+    }
+  },
+  "luotThucTe": {
+    "v1": {
+      "concept": 1,
+      "xoay": 2,
+      "hoat anh": 20,
+      "ghiChu": "bỏ"
+    },
+    "v2": {
+      "concept": 2,
+      "xoay": 2,
+      "hoat anh": 20
+    },
+    "tong dung": 24
+  },
+  "post": {
+    "despeckle": 3,
+    "anchor": "median",
+    "stabilize": 1.5,
+    "maxColors": 40,
+    "match": {
+      "idle": 1.0,
+      "attack": 0.5
+    },
+    "idleLoop": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      3,
+      2,
+      1
+    ],
+    "attackLoop": "peak"
+  },
+  "hoatAnh": {
+    "endpoint": "/v2/animate-with-text-v3",
+    "lượtMoiLan": 2,
+    "frame_count": 8,
+    "no_background": true,
+    "dung": "khung 0–7",
+    "first_frame": "<hướng>.png",
+    "seed": "ngẫu nhiên (không ghi)"
+  }
+}

@@ -2282,6 +2282,53 @@
       "map": "nac_dinh_thanh"
     },
     {
+      "key": "pt_a_ngan",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_a_ngan_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_a_ngan_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_bang_phuong_hoang",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
       "key": "pt_can_khon_hon_nguyen_toa",
       "iso": true,
       "pt": {
@@ -2381,6 +2428,74 @@
       }
     },
     {
+      "key": "pt_hoa_long",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
+      "key": "pt_kim_vu_mieu_ung",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
+      "key": "pt_ky_nhung_thong_thien_cuc",
+      "iso": true,
+      "pt": {
+        "scale": 1.05,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_ky_nhung_thong_thien_cuc_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_ky_nhung_thong_thien_cuc_glow",
+      "iso": true
+    },
+    {
       "key": "pt_lam_dien_ba_vuong_long",
       "iso": true,
       "pt": {
@@ -2400,6 +2515,32 @@
         "ghost": 0.88,
         "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; độ đục ghost (lớp sau) và ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255"
       }
+    },
+    {
+      "key": "pt_lam_ngan_thao",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "glow": "pt_lam_ngan_thao_glow",
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+      }
+    },
+    {
+      "key": "pt_lam_ngan_thao_glow",
+      "iso": true
     },
     {
       "key": "pt_nguyet_nhan",
@@ -2452,6 +2593,27 @@
     {
       "key": "pt_pha_hon_thuong_glow",
       "iso": true
+    },
+    {
+      "key": "pt_ta_hoa_phuong_hoang",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
     },
     {
       "key": "pt_thien_can_bach_ngoc_dinh",
