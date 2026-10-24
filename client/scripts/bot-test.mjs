@@ -5693,7 +5693,7 @@ async function offlineTest(){
   await waitFor(()=>free()>=6,2000);
   const fill=Math.max(0,free()-6);
   for(let i=0;i<fill;i++) await test(A,"gear",{tpl:"vu_khi_chi_bao"});
-  ok(await waitFor(()=>free()<=6,3000),`làm đầy túi bằng ${fill} món trang bị: còn ${free()} ô trống (cần ≤ 6)`);
+  ok(await waitFor(()=>free()===6,3000),`làm đầy túi bằng ${fill} món trang bị: còn ${free()} ô trống (cần đúng 6)`);
   await test(A,"auto",{used:0});
   m=await away(H);
   ok(m&&m.stop!=="túi đầy"&&m.kills>0&&m.used>m.secs-120&&m.equipLost>0,`túi đầy vì trang bị: vẫn săn đủ ${m?.used}/${m?.secs} giây (${m?.kills} con), bỏ ${m?.equipLost} món (dừng: ${m?.stop})`);
