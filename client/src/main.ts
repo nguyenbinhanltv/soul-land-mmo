@@ -1,6 +1,7 @@
 import "./style.css";
 import Phaser from "phaser";
-import { ASSET_RETRIES, MAX_PARALLEL, installLoaderRetry } from "./assetUrl.ts";
+import { ASSET_RETRIES, MAX_PARALLEL } from "./assetUrl.ts";
+import { installLoaderRetry } from "./loaderRetry.ts";
 import { Client, type Room } from "colyseus.js";
 import { GameScene } from "./scenes/GameScene.ts";
 import { addLag } from "./predict.ts";
