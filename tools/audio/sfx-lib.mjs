@@ -6,6 +6,15 @@ export const SFX_MAX_TOTAL_BYTES = 8 * 1024 * 1024;
 export const SFX_CREDITS_START = "<!-- audio-sfx-g2:start -->";
 export const SFX_CREDITS_END = "<!-- audio-sfx-g2:end -->";
 export const SFX_PACKS = ["combat", "skill", "beast", "world", "steps", "amb", "ui", "pk"];
+export const T3_SKILL_IDS = [
+  "cuu_tinh_that_sat_kiem", "lam_dien_ba_vuong_long", "ky_nhung_thong_thien_cuc", "ta_hoa_phuong_hoang", "u_minh_linh_mieu",
+  "nguyet_nhan", "hoa_long", "nhu_cot_tho", "kim_vu_mieu_ung", "tu_vong_chu_hoang", "bich_lan_xa_hoang", "can_khon_hon_nguyen_toa",
+  "hoa_anh", "yeu_ho", "xuc_xich", "quy_mi", "thien_can_bach_ngoc_dinh", "lam_ngan_thao", "hao_thien_chuy", "cuu_bao_luu_ly_thap",
+  "pha_hon_thuong", "a_ngan", "liet_hoa_thuong_lang", "bang_phuong_hoang", "bach_ho",
+];
+const T3_PHASES = ["start", "fly", "boom"];
+const t3Groups = (kind, id) => T3_PHASES.map((phase) => `skill-t3-${kind}-${id.replaceAll("_", "-")}-${phase}`);
+const t3RequiredGroups = T3_SKILL_IDS.flatMap((id) => [...t3Groups("ult", id), ...t3Groups("ct", id), `skill-t3-avatar-${id.replaceAll("_", "-")}`]);
 /** Nhóm bắt buộc có trong catalog (tên nhóm = id phát ở client, client/src/audio/soundMap.ts). Mỗi nhóm đủ số biến thể tối thiểu. */
 export const SFX_REQUIRED = {
   ...Object.fromEntries(["kiem", "chuy", "thuong", "trao", "quyen"].map((k) => [`swing-${k}`, 3])),
@@ -50,6 +59,11 @@ export function validateSfxCatalog(catalog) {
     perGroup.set(c.group, (perGroup.get(c.group) ?? 0) + 1);
   }
   for (const [group, min] of Object.entries(SFX_REQUIRED)) if ((perGroup.get(group) ?? 0) < min) fail(`nhóm ${group} cần ít nhất ${min} biến thể`);
+  for (const group of t3RequiredGroups) {
+    if ((perGroup.get(group) ?? 0) !== 1) fail(`nhóm T3 ${group} phải có đúng 1 clip`);
+    const clip = catalog.clips.find((c) => c.group === group);
+    if (clip.t3 !== true || clip.noVoice !== true) fail(`clip T3 ${clip.id} thiếu cờ T3 / không tiếng hô`);
+  }
   return true;
 }
 
@@ -120,4 +134,4 @@ export function validateSfxCredits(text, manifest) {
   return true;
 }
 
-export { stableJson };
+export { stableJson, t3RequiredGroups };

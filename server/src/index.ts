@@ -1,5 +1,6 @@
 import http from "node:http";
 import { existsSync } from "node:fs";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import express from "express";
 import { Server, matchMaker } from "colyseus";
@@ -10,9 +11,10 @@ import { ArenaRoom } from "./rooms/ArenaRoom.ts";
 import { store } from "./db.ts";
 import { loginBegin, loginEnd, signupBegin, signupEnd } from "./ratelimit.ts";
 import { cleanName } from "./names.ts";
+import { cacheControlFor } from "./staticCache.ts";
 import { loadMap } from "./map.ts";
 import { startSchedule } from "./schedule.ts";
-import { MAPS } from "../../shared/data.ts";
+import { MAPS, parseLooks } from "../../shared/data.ts";
 import { gamePresence, presenceBackend } from "./presence.ts";
 import { configurePresence as configurePartyPresence } from "./party.ts";
 
@@ -101,6 +103,15 @@ app.post("/api/looks", route(async (req, res) => {
   res.json(r);
 }));
 
+// Hook test (chỉ GAME_TEST=1, HL2 #571): tạo tài khoản kiểu cũ (ngoại hình preset 5 số đã chọn) để bot thử chuyển sang LPC lúc nạp. /api/looks
+// thật không còn tạo preset. Chỉ ghi được khi tài khoản chưa chọn ngoại hình (store.chooseLooks một lần).
+if (process.env.GAME_TEST === "1") app.post("/api/test/legacy-looks", route(async (req, res) => {
+  const acc = await store.accountFromToken(req.body?.token);
+  const looks = parseLooks({ ...req.body, mode: "preset" });
+  if (!acc || !looks) { res.status(400).json({ error: "token hoặc ngoại hình sai." }); return; }
+  res.json({ ok: await store.chooseLooks(acc.accountId, looks) });
+}));
+
 // Lễ thức tỉnh (một lần): client gửi võ hồn SSR muốn chọn, luật kiểm tra nằm trong MapRoom.ts.
 app.post("/api/awaken", route(async (req, res) => {
   const acc = await store.accountFromToken(req.body?.token);
@@ -121,7 +132,19 @@ app.use((err: { status?: number }, _req: express.Request, res: express.Response,
 
 // Khi deploy: phục vụ luôn bản build của client -> chỉ cần một đường link.
 const dist = fileURLToPath(new URL("../../client/dist", import.meta.url));
-if (existsSync(dist)) app.use(express.static(dist));
+if (existsSync(dist)) {
+  // Chỉ để thử tải lỗi (#580): GAME_TEST=1 + ASSET_FAIL_RATE=0.3 trả 504 ngẫu nhiên cho 30% request ảnh / json / âm thanh, kiểm client thử lại.
+  const failRate = process.env.GAME_TEST === "1" ? Math.min(1, Number(process.env.ASSET_FAIL_RATE) || 0) : 0;
+  if (failRate > 0) app.use((req, res, next) => { if (/\.(png|json|ogg|m4a)$/.test(req.path) && Math.random() < failRate) { res.status(504).end(); return; } next(); });
+  // cacheControl: false để setHeaders đặt theo loại file (staticCache.ts); ETag / Last-Modified của express.static giữ nguyên.
+  app.use(express.static(dist, {
+    cacheControl: false,
+    setHeaders: (res, file) => {
+      const rel = "/" + path.relative(dist, file).split(path.sep).join("/");
+      res.setHeader("Cache-Control", cacheControlFor(rel, typeof (res.req as express.Request).query.v === "string"));
+    },
+  }));
+}
 
 const server = http.createServer(app);
 // Một tiến trình dùng LocalPresence và bộ nhớ. Khi có REDIS_URL, pub/sub + registry phòng dùng Redis để nhiều tiến trình nhìn thấy nhau.

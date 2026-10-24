@@ -72,6 +72,14 @@ Mỗi lô gửi chủ repo một **trang xem trước** (HTML tĩnh, đường d
 - **Lượt thực tế lô A:** 78 sheet + 8 làm lại (đòn quá nhỏ: Phá Hồn Thương ×4, đạn Cửu Tinh / Xúc Xích; khối trắng đặc: Kiếm Trảm Sơn Hà; dung hợp thiếu lưỡi trăng) ≈ **86 lượt** cho 7 võ hồn + 1 dung hợp. Đòn thương một vạch vẫn mảnh: yêu cầu "nét to, đậm, phủ gần hết khung" trong mô tả giúp đạn, ít giúp vệt đâm.
 - `--spec <tên>.json` cho `run.mjs` / `post.mjs` / `reg.mjs` (mặc định `pilot.json`); `run-real.sh` luôn bỏ `DATABASE_URL`.
 
+## 6c. Lô C (S3 #568): lửa, băng, ảnh
+
+- **Lượt thực tế lô C:** 56 sheet + 2 làm lại (bàn tay Hỏa Ảnh T3 thành khối chữ nhật; dung hợp ngả nâu tím) + 4 lượt làm lại T3 Hỏa Ảnh sau duyệt (mô tả dài, tính gấp đôi) ≈ **62 lượt** cho 5 võ hồn + 1 dung hợp. Giữ `d` + `theme` + câu cố định dưới 700 ký tự (chủ đề dài hơn 300 ký tự thì rút `d` còn ~250).
+- **Bảng màu theo vật chất:** màu chủ đỏ hồng (`#ff3a4a`) nhuộm lửa thành "đất sét hồng"; lửa thật cần thang vàng → cam → đỏ thẫm. T3 Hỏa Ảnh dùng bảng `hs` riêng `[viền, #701822, #e8431e, #ff9a2a, #ffe08a]` và `glowMul: 1.6` (lớp sáng mạnh ở lõi). Dung hợp hai màu (`bh`): tối đỏ sẫm, chủ đỏ cam, nhấn xanh băng, sáng trắng, để nửa lửa không pha thành nâu tím.
+- **Hậu kỳ:** `post.mjs` hạ ngưỡng điểm sáng từ 0,7 xuống 0,55 khi lớp `_g` gần rỗng (sheet tối), để vẫn có lớp sáng.
+- **Kiểu mới:** Quỷ Mị (phụ trợ) dùng hào quang `at: "cast"` như Xúc Xích; Băng Phượng / Tà Hỏa dùng đạn `travel` + `rotate`, lướt chém `target` như Nguyệt Nhận.
+- **Trang xem trước:** vite phải chạy `--host 127.0.0.1` (mặc định chỉ nghe IPv6 `localhost`, `cap.mjs` quay 0 khung).
+
 ## 7. Bẫy đã gặp
 
 - Mô tả từ 700 ký tự bị tính gấp đôi (6 lượt thử đầu tốn gấp đôi).

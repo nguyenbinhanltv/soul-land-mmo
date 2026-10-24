@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-import { SFX_REQUIRED, renderSfxCredits, validateSfxCatalog, validateSfxCredits, validateSfxManifest } from "./sfx-lib.mjs";
+import { SFX_REQUIRED, renderSfxCredits, t3RequiredGroups, validateSfxCatalog, validateSfxCredits, validateSfxManifest } from "./sfx-lib.mjs";
 
 const load = async (path) => JSON.parse(await readFile(new URL(path, import.meta.url), "utf8"));
 const catalog = await load("./sfx-catalog.json");
@@ -15,6 +15,14 @@ test("catalog SFX G2 hợp lệ và chỉ dùng giấy phép CC0", () => {
   assert.deepEqual([...new Set(catalog.sources.map((s) => s.license))], ["CC0-1.0"]);
   assert.ok(catalog.clips.length >= 100);
   assert.ok(new Set(catalog.clips.map((c) => c.group)).size >= 50);
+});
+
+test("catalog C4 có đủ 25 tuyệt kỹ, 25 Chân Thân và 25 tiếng biến hình", () => {
+  const t3 = catalog.clips.filter((clip) => clip.t3 === true);
+  assert.equal(t3.length, 175);
+  assert.equal(new Set(t3.map((clip) => clip.group)).size, 175);
+  assert.deepEqual(new Set(t3.map((clip) => clip.group)), new Set(t3RequiredGroups));
+  assert.ok(t3.every((clip) => clip.noVoice === true && clip.kind !== "voice"));
 });
 
 test("catalog từ chối giấy phép lạ, thiếu SHA, nhóm thiếu biến thể", () => {
