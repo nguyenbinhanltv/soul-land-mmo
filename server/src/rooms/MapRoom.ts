@@ -4099,7 +4099,7 @@ export class MapRoom extends Room<MapState> {
       // #218: thời gian tick / bản vá trung bình và lớn nhất (ms) của phòng từ lần đặt lại trước (chỉ đo khi server bật PERF_LOG=1);
       // `reset` đặt lại sau khi đọc.
       const a = this.perfAll, n = Math.max(1, a.n);
-      out = { on: this.perfOn, n: a.n, tick: a.tick / n, patch: a.patch / n, max: a.max, auto: a.auto / n, players: this.state.players.size, beasts: this.state.beasts.size };
+      out = { on: this.perfOn, n: a.n, tick: a.tick / n, patch: a.patch / n, max: a.max, auto: a.auto / n, players: this.state.players.size, beasts: this.state.beasts.size, ...(o.mem === true ? (({ rss, heapUsed }) => ({ rss, heap: heapUsed }))(process.memoryUsage()) : {}) };
       if (o.reset) Object.assign(a, { n: 0, tick: 0, patch: 0, max: 0, auto: 0 });
     }
     else if (op === "offline") {
