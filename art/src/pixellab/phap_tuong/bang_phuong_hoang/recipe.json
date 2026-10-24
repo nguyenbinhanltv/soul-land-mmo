@@ -1,0 +1,116 @@
+{
+  "id": "bang_phuong_hoang",
+  "nhom": "B (chim xòe cánh)",
+  "ngay": "2026-10-24",
+  "code": [],
+  "lo": "P1 (#487)",
+  "display": {
+    "scale": 1.0,
+    "dx": 0,
+    "dy": 0,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+  },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "lượtMoiLan": 1,
+    "body": {
+      "description": "giant phoenix bird made of ice and frost, crystalline cyan ice feathered wings spread wide, glowing white-blue core, head with ice crown crest tilted down looking at the viewer, three long flowing frost ribbon tail streamers, snowflake sparkles, icy blue cyan and white, three-quarter view, no ground, no base, pixel art",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 34
+    },
+    "ghiChu": "3 lần (v1 trắng nhợt, v2 giống thằn lằn cánh)"
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "lượt": 2,
+    "seed": 3825292375,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "giant ice phoenix bird, crystalline cyan wings spread, ice crown crest, three frost ribbon tails",
+      "no_background": true
+    },
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 1,
+      "se": 2,
+      "e": 3,
+      "ne": 4,
+      "n": 5
+    }
+  },
+  "luotThucTe": {
+    "concept": 5,
+    "xoay": 2,
+    "hoat anh": "chưa làm (bước 2)"
+  },
+  "post": {
+    "despeckle": 3,
+    "anchor": "median",
+    "stabilize": 1.5,
+    "maxColors": 40,
+    "tint": {
+      "color": "#7fe0ff",
+      "amount": {
+        "s": 0.3,
+        "se": 0.4,
+        "e": 0.5,
+        "ne": 0.5,
+        "n": 0.4
+      }
+    },
+    "match": {
+      "idle": 1.0,
+      "attack": 0.5
+    },
+    "idleLoop": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      3,
+      2,
+      1
+    ],
+    "attackLoop": "peak"
+  },
+  "hoatAnh": {
+    "endpoint": "/v2/animate-with-text-v3",
+    "lượtMoiLan": 2,
+    "frame_count": 8,
+    "no_background": true,
+    "dung": "khung 0–7",
+    "first_frame": "<hướng>.png",
+    "seed": "ngẫu nhiên (không ghi)"
+  }
+}

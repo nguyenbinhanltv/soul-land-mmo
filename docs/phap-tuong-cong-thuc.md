@@ -88,3 +88,19 @@ Lam Ngân Thảo, A Ngân, Kỳ Nhung Thông Thiên Cúc: concept + xoay như m�
 ## 7. Việc chưa làm (H2 trở đi)
 
 Client chưa tải sheet `pt_*` (`sprites.ts` bỏ qua key isometric ngoài hs / vh / beast / fx); H2 thêm hệ thống hình thái (đổi lớp, chuỗi biến hình 5 bước, tan), đọc `pt` từ manifest. Normal map (`_n.png`) chưa làm.
+
+## 8. Bổ sung từ lô P1 (Hỏa Long, Tà Hỏa Phượng Hoàng, Băng Phượng Hoàng, Kim Vũ Miêu Ưng)
+
+Hoạt ảnh PixelLab của sinh vật cần làm sạch trước khi vào sheet; `recipe.json` có khối `post` (đọc bởi `phaptuong.mjs`, không đổi sheet H1 nếu không khai báo):
+
+- `despeckle: 3` xóa cụm điểm lẻ nhỏ hơn 3 điểm; alpha luôn nhị phân hóa.
+- `match: { idle: 1, attack: 0.5 }` khớp biểu đồ màu từng kênh về khung idle đầu: PixelLab hay đổi màu / độ sáng giữa khung (lửa vàng ↔ đỏ), khớp biểu đồ diệt nhấp nháy mà vẫn giữ cấu trúc ảnh.
+- `idleLoop: [0,1,2,3,4,3,2,1]` xếp 8 khung thở thành vòng đi tới giữa rồi quay về. Lý do: bản PixelLab chỉ trả khung 0–8 nên 8 khung đầu không tự khép vòng (khung 7 → 0 nhảy).
+- `attackLoop: "peak"`: đánh = khung 0 → khung đổi nhiều nhất trong 2–5 (đỉnh) → giữ 2 khung → quay về dần; hoạt ảnh đánh thô thường kết thúc ở tư thế xa idle (chim thu nhỏ, bể thành mảnh) nên client chuyển về idle sẽ giật.
+- `anchor: "median"`, `stabilize: 1.5`: neo = giữa-đáy hộp bao theo trung vị 8 khung idle, kẹp khung idle lệch quá 1,5 điểm; lệnh in độ lệch từng hướng (idle ≤ 2 điểm; attack được lệch nhiều).
+- `tint: { color, amount: { <hướng>: 0..1 } }` đẩy điểm xám / trắng về màu (Băng Phượng: `#7fe0ff`, 0,3 ở s tới 0,5 ở e / ne).
+- `maxColors: 40` (trần cứng của validate vẫn là `PT_MAX_COLORS`).
+
+Bảng `PHAP_TUONG` (`shared/data.ts`) của 4 sinh vật này dùng `BAKED` (bob / sway / lao = 0, chỉ còn `pulse`), vì cánh vỗ, thân uốn và bùng chiêu đã nằm trong khung; cộng thêm chuyển động code sẽ nhân đôi. Hạo Thiên Chùy và Lam Điện (H1) giữ mục cũ (chuyển động code / bản H1).
+
+Bài học thêm: (1) prompt có "isometric game sprite" khiến PixelLab đặt con vật lên nền đá; thay bằng "no ground, no base, pixel art" và nêu tư thế ("S-shaped body", "head tilted down looking at the viewer"). (2) Concept đầu thường chưa đạt: dự trù 1–3 lần làm lại (+1 lượt mỗi lần) trước khi xoay. (3) Hướng n của con vật cuộn vòng (Hỏa Long) thành hình tam giác nhìn từ sau, xoay lại không cải thiện. (4) Mặt nhỏ ở cỡ game: prompt phải ép "large … face" (Kim Vũ bản đầu bỏ vì mặt mèo không đọc được, mất 20 lượt hoạt ảnh) và nên duyệt concept ở bước xoay trước khi làm hoạt ảnh. (5) Số dư tài khoản PixelLab dùng chung nhiều worker nên chỉ cộng `usage` của lệnh mình gọi.

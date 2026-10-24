@@ -2308,6 +2308,27 @@
       "iso": true
     },
     {
+      "key": "pt_bang_phuong_hoang",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
       "key": "pt_can_khon_hon_nguyen_toa",
       "iso": true,
       "pt": {
@@ -2404,6 +2425,48 @@
         "frontAlpha": 0.7,
         "ghost": 0.88,
         "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; độ đục ghost (lớp sau) và ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255"
+      }
+    },
+    {
+      "key": "pt_hoa_long",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
+    },
+    {
+      "key": "pt_kim_vu_mieu_ung",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
       }
     },
     {
@@ -2530,6 +2593,27 @@
     {
       "key": "pt_pha_hon_thuong_glow",
       "iso": true
+    },
+    {
+      "key": "pt_ta_hoa_phuong_hoang",
+      "iso": true,
+      "pt": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "back": [
+          "s",
+          "se",
+          "e"
+        ],
+        "front": [
+          "ne",
+          "n"
+        ],
+        "frontAlpha": 0.7,
+        "ghost": 0.88,
+        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+      }
     },
     {
       "key": "pt_thien_can_bach_ngoc_dinh",

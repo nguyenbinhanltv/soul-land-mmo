@@ -10,6 +10,11 @@
 // attack nên gốc không nhảy giữa hai hoạt ảnh); điểm alpha ≤ PT_ALPHA_MIN bỏ, còn lại đục 255 (độ đục hư ảnh do client áp, `pt.ghost` ở
 // manifest); viền sáng 2 điểm màu `col` của võ hồn (VOHON) quanh hình (điểm ngoài dithering); cả sheet giảm còn PT_MAX_COLORS màu
 // (median cut). Bố cục sheet: isoLayout("phaptuong") trong lib.mjs.
+// `recipe.post` (tùy chọn, dùng cho lô Sinh vật P1 trở đi): { despeckle: N (xóa cụm điểm lẻ < N điểm, mặc định 0), anchor: "median" (đặt điểm neo
+// theo trung vị của 8 khung idle thay cho hộp bao hợp), stabilize: px (kẹp khung idle lệch neo quá px, mặc định 0 = không), maxColors: N (≤ PT_MAX_COLORS),
+// idleLoop: [chỉ số khung] (xếp lại 8 khung idle thành vòng thở mượt, ví dụ [0,1,2,3,4,3,2,1]: đi tới giữa rồi quay về, không nhảy ở điểm nối), attackLoop: "peak" (đánh = khung 0 → khung đổi nhiều nhất trong 2–4, giữ 2 khung lúc chạm, rồi quay về dần, khung cuối là khung 1: hoạt ảnh PixelLab thường kết thúc ở tư thế xa idle),
+// match: { idle: 0..1, attack: 0..1 } (khớp biểu đồ màu từng kênh về khung idle đầu, diệt nhấp nháy màu / độ sáng của hoạt ảnh PixelLab), tint: { color, amount: { <hướng>: 0..1 } } (đẩy điểm xám / trắng về màu, ví dụ đẩy cyan cho Băng Phượng) }. Luôn in độ lệch điểm neo từng hướng
+// (neo = giữa-đáy hộp bao mỗi khung): lệch quá 2 điểm giữa các khung idle thì cảnh báo.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { ROOT, SPRITES, Img, readPng, encodePng, hex, vohonColors, ISO_DIRS, isoLayout, PT_FRAME, PT_ORIGIN, PT_ALPHA_MIN, PT_MAX_COLORS, toHex, OUTLINE } from "./lib.mjs";
@@ -84,6 +89,56 @@ function framesOf(d, anim, n, seed) {
 
 // ---------- Hậu kỳ ----------
 const solid = (im, x, y) => x >= 0 && y >= 0 && x < im.w && y < im.h && im.alpha(x, y) > PT_ALPHA_MIN;
+const POST = recipe.post ?? {};
+/** Nhị phân hóa alpha, xóa cụm điểm lẻ nhỏ hơn `min` điểm (8 láng giềng), đẩy điểm xám / trắng về màu `tint` (đẩy cyan cho Băng Phượng...). */
+function clean(f, dir) {
+  const o = new Img(f.w, f.h), seen = new Uint8Array(f.w * f.h);
+  const tint = POST.tint, amt = tint ? (tint.amount?.[dir] ?? 0) : 0, tc = tint ? hex(tint.color) : null;
+  for (let y = 0; y < f.h; y++) for (let x = 0; x < f.w; x++) if (f.alpha(x, y) > PT_ALPHA_MIN) {
+    const p = f.get(x, y); let c = [p[0], p[1], p[2]];
+    if (amt && Math.max(...c) - Math.min(...c) < 60 && Math.max(...c) > 110) c = c.map((v, k) => Math.round(v * (1 - amt) + tc[k] * amt));
+    o.set(x, y, [...c, 255]);
+  }
+  const min = POST.despeckle ?? 0;
+  if (min > 1) for (let y0 = 0; y0 < f.h; y0++) for (let x0 = 0; x0 < f.w; x0++) {
+    if (!o.alpha(x0, y0) || seen[y0 * f.w + x0]) continue;
+    const comp = [], st = [[x0, y0]]; seen[y0 * f.w + x0] = 1;
+    while (st.length) {
+      const [x, y] = st.pop(); comp.push([x, y]);
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = x + dx, Y = y + dy; if (X >= 0 && Y >= 0 && X < f.w && Y < f.h && o.alpha(X, Y) && !seen[Y * f.w + X]) { seen[Y * f.w + X] = 1; st.push([X, Y]); } }
+    }
+    if (comp.length < min) for (const [x, y] of comp) o.set(x, y, [0, 0, 0, 0]);
+  }
+  return o;
+}
+/** Biểu đồ phân bố (CDF) từng kênh RGB của các điểm đục. */
+function colorStats(f) {
+  const cdf = [0, 1, 2].map(() => new Float64Array(256)); let c = 0;
+  for (let i = 0; i < f.data.length; i += 4) if (f.data[i + 3]) { c++; for (let k = 0; k < 3; k++) cdf[k][f.data[i + k]]++; }
+  for (const h of cdf) { let a = 0; for (let v = 0; v < 256; v++) { a += h[v]; h[v] = c ? a / c : 0; } }
+  return { cdf };
+}
+/** Khớp biểu đồ từng kênh của khung `f` với khung tham chiếu `ref` (histogram specification), trộn theo độ mạnh `k` (0..1): diệt nhấp nháy màu / độ sáng. */
+function matchColor(f, ref, k) {
+  if (!k) return f;
+  const a = colorStats(f), map = [0, 1, 2].map((c) => {
+    const m = new Uint8Array(256); let j = 0;
+    for (let v = 0; v < 256; v++) { while (j < 255 && ref.cdf[c][j] < a.cdf[c][v]) j++; m[v] = j; }
+    return m;
+  });
+  const o = new Img(f.w, f.h, new Uint8Array(f.data));
+  for (let i = 0; i < o.data.length; i += 4) if (o.data[i + 3]) for (let c = 0; c < 3; c++) o.data[i + c] = Math.round(o.data[i + c] * (1 - k) + map[c][o.data[i + c]] * k);
+  return o;
+}
+/** Hộp bao (alpha > 0) và điểm neo (giữa-đáy) của một khung. */
+function anchorOf(f) {
+  let x0 = 1e9, x1 = -1, y1 = -1;
+  for (let y = 0; y < f.h; y++) for (let x = 0; x < f.w; x++) if (f.alpha(x, y)) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+  return x1 < 0 ? null : { cx: (x0 + x1 + 1) / 2, bottom: y1 + 1 };
+}
+const med = (a) => { const v = [...a].sort((p, q) => p - q); return v[v.length >> 1]; };
+/** Dời khung nguồn (đã đệm) dx, dy điểm. */
+function shift(f, dx, dy) { const o = new Img(f.w, f.h); o.blit(f, 0, 0, f.w, f.h, dx, dy); return o; }
 function bake(frames, ox, oy) {
   return frames.map((f) => {
     const o = new Img(PT_FRAME, PT_FRAME), body = (x, y) => solid(f, x - ox, y - oy);
@@ -132,17 +187,43 @@ function quantize(t, max) {
 
 const sheet = new Img(PT_FRAME * L.cols, PT_FRAME * L.rows);
 ISO_DIRS.forEach((d, row) => {
-  const idle = framesOf(d, "idle", N_IDLE, 11), atk = framesOf(d, "attack", N_ATK, 29), all = [...idle, ...atk];
+  let idle0 = framesOf(d, "idle", N_IDLE, 11).map((f) => clean(f, d)), atk0 = framesOf(d, "attack", N_ATK, 29).map((f) => clean(f, d));
+  if (POST.idleLoop) idle0 = POST.idleLoop.map((i) => idle0[i]);
+  if (POST.attackLoop === "peak") {
+    const diff = (f, g) => { let n = 0; for (let i = 0; i < f.data.length; i += 4) { const a = f.data[i + 3], b = g.data[i + 3]; if ((a === 0) !== (b === 0) || (a && Math.abs(f.data[i] - g.data[i]) + Math.abs(f.data[i + 1] - g.data[i + 1]) + Math.abs(f.data[i + 2] - g.data[i + 2]) > 90)) n++; } return n; };
+    let peak = 2; for (let i = 3; i <= 4; i++) if (diff(atk0[i], atk0[0]) > diff(atk0[peak], atk0[0])) peak = i; // đỉnh trong 2–4 để còn chỗ quay về
+    const seq = []; for (let i = 0; i <= peak; i++) seq.push(i);
+    seq.push(peak); // giữ 2 khung lúc chạm
+    const back = N_ATK - seq.length; // quay về dần: chia đều từ đỉnh xuống khung 1, khung cuối luôn là khung 1
+    for (let k = 1; k <= back; k++) seq.push(Math.max(1, Math.floor(peak - ((peak - 1) * k) / back)));
+    console.log(`[phaptuong] đánh ${d}: đỉnh ${peak}, chuỗi ${seq.join(" ")}`);
+    atk0 = seq.slice(0, N_ATK).map((i) => atk0[i]);
+  }
+  if (POST.match) { const ref = colorStats(idle0[0]); idle0 = idle0.map((f, i) => (i ? matchColor(f, ref, POST.match.idle ?? 1) : f)); atk0 = atk0.map((f) => matchColor(f, ref, POST.match.attack ?? 0.5)); }
+  const A = [...idle0, ...atk0].map(anchorOf);
+  if (A.some((a) => !a)) fail(`hướng ${d} có khung trống`);
+  const mcx = med(A.slice(0, N_IDLE).map((a) => a.cx)), mb = med(A.slice(0, N_IDLE).map((a) => a.bottom));
+  let idle = idle0, atk = atk0;
+  if (POST.stabilize) { // kẹp khung idle lệch neo quá `stabilize` điểm về sát ngưỡng
+    const k = POST.stabilize, clamp = (v) => (Math.abs(v) > k ? Math.round(v - Math.sign(v) * k) : 0);
+    idle = idle0.map((f, i) => shift(f, clamp(mcx - A[i].cx), clamp(mb - A[i].bottom)));
+  }
+  const all = [...idle, ...atk];
   let x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1;
-  for (const f of all) for (let y = 0; y < f.h; y++) for (let x = 0; x < f.w; x++) if (f.alpha(x, y) > PT_ALPHA_MIN) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  for (const f of all) for (let y = 0; y < f.h; y++) for (let x = 0; x < f.w; x++) if (f.alpha(x, y)) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
   if (x1 < 0) fail(`hướng ${d} trống`);
-  const ox = PT_ORIGIN[0] - Math.floor((x0 + x1 + 1) / 2), oy = PT_ORIGIN[1] - (y1 + 1);
+  const byMedian = POST.anchor === "median";
+  const ox = PT_ORIGIN[0] - Math.floor((byMedian ? mcx : (x0 + x1 + 1) / 2)), oy = PT_ORIGIN[1] - (byMedian ? mb : y1 + 1);
+  const dev = (arr, m, key) => Math.max(...arr.map((a) => Math.abs(a[key] - m)));
+  const Ai = [...idle, ...atk].map(anchorOf), im = med(Ai.slice(0, N_IDLE).map((a) => a.cx)), ib = med(Ai.slice(0, N_IDLE).map((a) => a.bottom));
+  const dIdle = [dev(Ai.slice(0, N_IDLE), im, "cx"), dev(Ai.slice(0, N_IDLE), ib, "bottom")], dAtk = [dev(Ai.slice(N_IDLE), im, "cx"), dev(Ai.slice(N_IDLE), ib, "bottom")];
+  console.log(`[phaptuong] neo ${d}: idle lệch ngang ${dIdle[0]} / đáy ${dIdle[1]}, attack lệch ngang ${dAtk[0]} / đáy ${dAtk[1]} điểm${Math.max(...dIdle) > 2 ? "  ⚠ idle > 2" : ""}`);
   bake(all, ox, oy).forEach((b, i) => {
     const col = i < N_IDLE ? L.anims.idle[0] + i : L.anims.attack[0] + (i - N_IDLE);
     sheet.blit(b, 0, 0, PT_FRAME, PT_FRAME, col * PT_FRAME, row * PT_FRAME);
   });
 });
-const nColors = quantize(sheet, PT_MAX_COLORS);
+const nColors = quantize(sheet, Math.min(PT_MAX_COLORS, POST.maxColors ?? PT_MAX_COLORS));
 mkdirSync(path.dirname(out), { recursive: true });
 writeFileSync(out, encodePng(sheet));
 console.log(`[phaptuong] ${id}: ${path.relative(ROOT, out)} (${sheet.w}×${sheet.h}, ${nColors} màu)`);

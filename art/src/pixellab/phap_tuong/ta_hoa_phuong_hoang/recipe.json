@@ -1,0 +1,106 @@
+{
+  "id": "ta_hoa_phuong_hoang",
+  "nhom": "B (chim xòe cánh)",
+  "ngay": "2026-10-24",
+  "code": [],
+  "lo": "P1 (#487)",
+  "display": {
+    "scale": 1.0,
+    "dx": 0,
+    "dy": 0,
+    "back": [
+      "s",
+      "se",
+      "e"
+    ],
+    "front": [
+      "ne",
+      "n"
+    ],
+    "frontAlpha": 0.7,
+    "ghost": 0.88,
+    "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+  },
+  "concept": {
+    "endpoint": "/v2/create-image-pixflux",
+    "lượtMoiLan": 1,
+    "body": {
+      "description": "giant phoenix bird made of purple-red flames, burning feathered wings spread wide, head tilted down looking at the viewer with glowing eyes, three long flowing flame tail streamers, magenta violet and crimson fire, bright blazing, three-quarter view, no ground, no base, pixel art",
+      "image_size": {
+        "width": 128,
+        "height": 128
+      },
+      "no_background": true,
+      "view": "low top-down",
+      "direction": "south",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "text_guidance_scale": 8,
+      "seed": 32
+    },
+    "ghiChu": "2 lần (v1 giống con dơi sẫm màu)"
+  },
+  "xoay": {
+    "endpoint": "/v2/generate-8-rotations-v3",
+    "lượt": 2,
+    "seed": 764959027,
+    "body": {
+      "first_frame": "concept.png",
+      "description": "giant purple-red flame phoenix bird, spread burning wings, three long flame tail streamers",
+      "no_background": true
+    },
+    "thuTuTraVe": [
+      "sw",
+      "s",
+      "se",
+      "e",
+      "ne",
+      "n",
+      "nw",
+      "w"
+    ],
+    "dung": {
+      "s": 1,
+      "se": 2,
+      "e": 3,
+      "ne": 4,
+      "n": 5
+    }
+  },
+  "luotThucTe": {
+    "concept": 4,
+    "xoay": 2,
+    "hoat anh": "chưa làm (bước 2)"
+  },
+  "post": {
+    "despeckle": 3,
+    "anchor": "median",
+    "stabilize": 1.5,
+    "maxColors": 40,
+    "match": {
+      "idle": 1.0,
+      "attack": 0.5
+    },
+    "idleLoop": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      3,
+      2,
+      1
+    ],
+    "attackLoop": "peak"
+  },
+  "hoatAnh": {
+    "endpoint": "/v2/animate-with-text-v3",
+    "lượtMoiLan": 2,
+    "frame_count": 8,
+    "no_background": true,
+    "dung": "khung 0–7",
+    "first_frame": "<hướng>.png",
+    "seed": "ngẫu nhiên (không ghi)"
+  }
+}
