@@ -45,7 +45,9 @@ const usage = () => console.log(`Cách dùng: npm run bot:local -- (--only <nhó
              an toàn) rồi mới chạy bot, --once để chỉ bật một lần
   --heap     trần heap của server và bot (mặc định 768, biến BOT_HEAP_MB)
   --procs    số tiến trình server dùng chung Redis (#120, mặc định 1; bot chỉ nối tiến trình đầu, phòng mở ở tiến trình nào do server chọn):
-             cần --env REDIS_URL=redis://127.0.0.1:<cổng> trỏ tới redis-server cục bộ do bạn tự bật; REDIS_URL của shell không được dùng
+             mỗi lượt tự bật một redis-server riêng ở cổng trống (biến BOT_REDIS_BIN, mặc định redis-server trong PATH) và tắt đúng PID đó khi xong;
+             hai lượt cùng dùng chung một Redis thì nhiễu nhau (pub/sub, phòng, health-check của Colyseus không theo REDIS_PREFIX, #495).
+             Tự bật Redis của mình thì truyền --env REDIS_URL=redis://127.0.0.1:<cổng> (mỗi lượt một cổng riêng); REDIS_URL của shell không được dùng
   --env      biến thêm cho server, ví dụ --env BOSS_CLOCK=20:00 --env MAP_V1=all
   --seed-test  (cần --pg) dựng tài khoản test mức max | giua-game | moi (server/scripts/seed-test-account.ts, #517) vào database của lượt này
              trước khi bật server, bot nhận BOT_TEST_NAME / BOT_TEST_PASS / BOT_TEST_PRESET (bài --only testacc)
@@ -322,6 +324,26 @@ function spawnNode(script, { cwd, env, log, stats, onLine }) {
   }
   return p;
 }
+/** Bật redis-server riêng của lượt này (cổng trống, không lưu đĩa); trả { p, url }. Chỉ tắt đúng tiến trình này (kill / cleanup). */
+async function startRedis() {
+  const bin = process.env.BOT_REDIS_BIN?.trim() || "redis-server", port = await freePort();
+  let ready = false, err = "";
+  const p = spawn(bin, ["--port", String(port), "--bind", "127.0.0.1", "--save", "", "--appendonly", "no"], { stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
+  p.on("error", (e) => { err = String(e); });
+  children.add(p);
+  p.done = new Promise((r) => p.on("close", (code, sig) => { children.delete(p); r(code ?? (sig ? 1 : 0)); }));
+  p.stdout.on("data", (d) => { if (String(d).includes("Ready to accept connections")) ready = true; });
+  p.stderr.resume();
+  const t0 = Date.now();
+  while (!ready) {
+    if (err || p.exitCode !== null || p.signalCode !== null || Date.now() - t0 > 15_000) {
+      await kill(p);
+      die(`không bật được redis-server (${bin}): ${err || "không sẵn sàng"}. Cài redis-server, đặt BOT_REDIS_BIN, hoặc truyền --env REDIS_URL=redis://127.0.0.1:<cổng>`);
+    }
+    await sleep(50);
+  }
+  return { p, url: `redis://127.0.0.1:${port}` };
+}
 const kill = async (p) => { if (p && p.exitCode === null && p.signalCode === null) { p.kill(); await p.done; } };
 const tail = (f, n) => { try { return readFileSync(f, "utf8").split("\n").slice(-n).join("\n"); } catch { return ""; } };
 /** Cổng TCP còn trống do hệ điều hành cấp (dải động, không đụng các cổng 26xx–31xx các phiên hay dùng). */
@@ -420,6 +442,7 @@ try {
   if (opt.channels) senv.CHANNEL_MAX = "2";
   for (const e of opt.env) { const i = e.indexOf("="); senv[e.slice(0, i)] = e.slice(i + 1); }
   if (opt.procs > 1) {
+    if (!senv.REDIS_URL) { const r = await startRedis(); senv.REDIS_URL = r.url; console.log(`[bot-local ${label}] redis-server riêng ${r.url} (PID ${r.p.pid})`); }
     if (!/^redis:\/\/(127\.0\.0\.1|localhost)[:/]/.test(senv.REDIS_URL ?? "")) die("--procs > 1 cần --env REDIS_URL=redis://127.0.0.1:<cổng> (Redis cục bộ)");
     senv.REDIS_PREFIX = `soulbot:${process.pid}`;
   }
