@@ -10828,7 +10828,7 @@ async function equipSoak(){
     const loose=b=>looseOf(b), slotRnd=()=>SLOTS[Math.floor(Math.random()*SLOTS.length)];
     const SPOTS=[[0,16],[8,16],[-8,16],[0,24],[12,20],[-12,20],[16,12],[-16,12]]; // chỗ đứng quanh Thợ rèn (NPC_RANGE 40); bot thử lần lượt tới khi đứng được và còn trong tầm
     const spot=async(b,bi)=>{ for(let k=0;k<SPOTS.length;k++){ const [dx,dy]=SPOTS[(bi+k)%SPOTS.length]; await test(b,"goto",{x:lr.x+dx,y:lr.y+dy}); const m=mo(b); if(m&&Math.hypot(m.x-lr.x,m.y-lr.y)<SD.NPC_RANGE-6) return true; } return false; };
-    const why=new Map(), fail=(k,b,e)=>{ cnt.fail++; const m=`${k}: ${(e??b?.logs?.at(-1)??"(không có log)")}`.replace(/d+/g,"#").slice(0,90); why.set(m,(why.get(m)??0)+1); };
+    const why=new Map(), fail=(k,b,e)=>{ cnt.fail++; const m=`${k}: ${(e??b?.logs?.at(-1)??"(không có log)")}`.replace(/[0-9]+/g,"#").slice(0,90); why.set(m,(why.get(m)??0)+1); };
     const mk=async(b,tpl,more={})=>{ const r=await test(b,"gear",{tpl,ilvl:1+Math.floor(Math.random()*7),...more}); if(!r?.id){ fail("gear",b,r?.error??"không có trả lời"); return null; } await waitFor(()=>loose(b).some(i=>i.id===r.id),2000); return r.id; };
     const timed=async(kind,fn)=>{ const t=Date.now(), res=await fn(); lat[kind].push(Date.now()-t); cnt[kind]++; return res; };
     // Bot quan sát đứng cùng kênh Nạc Định Thành để hook perf đọc đúng phòng đang chịu tải.
@@ -10879,7 +10879,7 @@ async function equipSoak(){
           // giữ túi gọn: phân giải bớt trang bị lẻ trong túi để lượt sau không tràn ô
           const extra=loose(b).filter(i=>i.code===SD.EQUIP_ITEM).map(i=>i.id); if(extra.length>12) b.room.send("equipsalvage",{ids:extra.slice(0,SD.EQUIP_SALVAGE_MAX)});
           await sleep(30+Math.random()*120);
-        }catch(e){ cnt.fail++; fail("ngoại lệ",b,e?.message??String(e)); await sleep(200); }
+        }catch(e){ fail("ngoại lệ",b,e?.message??String(e)); await sleep(200); }
       }
     }));
     await sampler;
