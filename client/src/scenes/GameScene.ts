@@ -17,7 +17,7 @@ import { mapview, type MapLabel } from "../mapview.ts";
 import { fog } from "../fog.ts";
 import { toast, lootToasts } from "../feedback.ts";
 import { initDualWindows } from "../dualWindow.ts";
-import { toggleChar, isCharOpen, onCharOpen, renderChar, charViewRow, type StatsMsg } from "../charPanel.ts";
+import { toggleChar, isCharOpen, onCharOpen, renderChar, charViewRow, charLog, type StatsMsg } from "../charPanel.ts";
 import { Predictor, PREDICT, LAG_MS, stepSpeed } from "../predict.ts";
 import { findPath, findLongPath, buildNav, type Nav } from "../../../shared/path.ts";
 import { autoLeg, AUTO_STOP } from "../../../shared/autowalk.ts";
@@ -1017,7 +1017,7 @@ export class GameScene extends Phaser.Scene {
 
   // ---------- Tin nhắn từ server ----------
   setupMessages() {
-    this.room.onMessage("log", (m: { text: string; col?: string }) => hud.log(m.text, m.col));
+    this.room.onMessage("log", (m: { text: string; col?: string }) => { hud.log(m.text, m.col); charLog(m.text, m.col); }); // charLog: kết quả / lý do từ chối lệnh gắn, tháo gửi từ bảng nhân vật
     // Tinh anh xuất hiện / bị hạ trong bản đồ này (BĐ4): báo cả phòng.
     this.room.onMessage("elite", (m: { k: string; name: string; zone?: string; by?: string; col?: string }) => {
       if (m.k === "spawn") { hud.banner(`${m.name} xuất hiện`, m.zone ?? ""); hud.log(`${m.name} đã xuất hiện ở ${m.zone}!`, m.col); }
@@ -2823,7 +2823,16 @@ export class GameScene extends Phaser.Scene {
   askStats() { this.room.send("stats", { rowId: charViewRow() }); }
   renderChar() {
     if (!this.owned || !isCharOpen()) return;
-    renderChar(this.owned, this.bag?.items ?? [], this.charStats, { portrait: (vohon) => this.portrait(vohon), ask: (rowId) => this.room.send("stats", { rowId }) });
+    renderChar(this.owned, this.bag?.items ?? [], this.charStats, {
+      portrait: (vohon) => this.portrait(vohon), ask: (rowId) => this.room.send("stats", { rowId }),
+      // NV2 (#456): gắn / tháo ngay trên bảng, cùng lệnh với bảng Đội hình; server kiểm tra ô, giao chiến, túi đầy
+      equipBone: (itemId, vohonId, slot) => { this.audio.playUi("equip"); this.room.send("equip", { itemId, vohonId, slot }); },
+      unequipBone: (itemId) => this.room.send("unequip", { itemId }),
+      equipCore: (itemId, vohonId, slot) => { this.audio.playUi("equip"); this.room.send("equipcore", { itemId, vohonId, slot }); },
+      unequipCore: (itemId) => this.room.send("unequipcore", { itemId }),
+      switchTo: (slot) => this.room.send("switch", { slot }),
+      combat: () => this.combat,
+    });
   }
   /**
    * Bảng đội hình kèm hồn cốt (bước 4.2), hồn hạch (bước 5.2) và mảnh võ hồn (bước 3.4): số mảnh, hồn cốt và hồn hạch (đang gắn /
