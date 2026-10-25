@@ -1119,7 +1119,7 @@ export class GameScene extends Phaser.Scene {
     // Tà hóa thú vương (BĐ5): báo toàn server trước 5 phút (đếm ngược) và lúc xuất hiện; trong bản đồ có thú vương thì thêm giai đoạn 2,
     // bảng xếp hạng sát thương, bị hạ / rút đi / bỏ giao chiến.
     this.room.onMessage("boss", (m: any) => {
-      if (m.k === "warn" && !m.join) { this.audio.play("boss_warn"); this.audio.playBeast("boss", null); } // tin xin lại lúc vào phòng (#118, `join`) không kêu lại
+      if (m.k === "warn" && !m.join) { if (!this.audio.playBeast("boss", null)) this.audio.play("boss_warn"); } // tin xin lại lúc vào phòng (#118, `join`) không kêu lại
       else if (m.k === "down") { this.audio.play("boss_down"); this.audio.music?.jingle("boss_down"); }
       const col = m.col ?? "#ff5a5a";
       if (this.worldBossMsg(m, col)) return; // boss thế giới (BĐ6e): cơ chế riêng
@@ -1376,7 +1376,7 @@ export class GameScene extends Phaser.Scene {
     // Cường hóa hồn cốt (bước 4.4): kết quả do server tính (luôn thành công); túi mới đến ngay sau bằng tin "bag". Từ #187 kèm
     // các dòng phụ server vừa tung ở mốc (`subs`).
     this.room.onMessage("enhanced", (m: { id: string; from: number; to: number; gain: number; used: number; fee?: number; subs?: { k: CoreStat; v: number }[] }) => {
-      if (m.to > m.from) { this.audio.play("breakthrough"); this.audio.playUi("enhanceOk"); } else this.audio.playUi("enhanceFail"); // chưa đủ lên cấp = chưa thành (G5)
+      if (m.to > m.from) { if (!this.audio.playUi("enhanceOk")) this.audio.play("breakthrough"); } else this.audio.playUi("enhanceFail"); // chưa đủ lên cấp = chưa thành (G5)
       const pts = `+${m.gain.toLocaleString("vi-VN")} điểm từ ${m.used} nguyên liệu${m.fee ? `, phí ${formatHonTe(m.fee)}` : ""}`; // phí #281
       const subs = (m.subs ?? []).map((u) => ` · dòng phụ mới ${coreStatText(u.k, u.v)}`).join("");
       toast("info", `Cường hóa hồn cốt +${m.to}`, (m.to > m.from ? `+${m.from} → +${m.to} · ${pts}` : `${pts}, chưa đủ lên cấp`) + subs);
@@ -1400,7 +1400,7 @@ export class GameScene extends Phaser.Scene {
         return;
       }
       hud.setAbsorbing(null);
-      if (m.result === "ok") { this.audio.play("ring_absorb_success"); this.audio.playGroup("ring-absorb", null, { priority: 3, duck: 0.6, duckMs: 900 }); this.audio.music?.jingle("ring_absorb"); hud.banner(`Hấp thụ thành công: hồn hoàn thứ ${m.slot}`, `${name} · ${age} · cấp ${m.level}`); }
+      if (m.result === "ok") { if (!this.audio.playGroup("ring-absorb", null, { priority: 3, duck: 0.6, duckMs: 900 })) this.audio.play("ring_absorb_success"); this.audio.music?.jingle("ring_absorb"); hud.banner(`Hấp thụ thành công: hồn hoàn thứ ${m.slot}`, `${name} · ${age} · cấp ${m.level}`); }
       else if (m.result === "fail") { this.audio.play("ring_absorb_fail"); hud.banner("Hấp thụ thất bại", `Hồn hoàn ${age} vỡ tan; ${name} không bị tổn hại`); }
     });
     if (this.watching) return; // người xem (#280): không xin dữ liệu riêng

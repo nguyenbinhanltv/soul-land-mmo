@@ -91,3 +91,7 @@ export class FxGovernor {
   }
   reset() { this.cap = "high"; this.avg = 1000 / 60; this.bad = this.good = 0; this.win = []; this.wi = 0; /* period giữ nguyên: tần số màn là đặc tính máy */ }
 }
+
+/** Mức hiệu ứng mặc định (chủ repo chốt 2026-10-23: VỪA) cho người chưa chọn / bản lưu hỏng; bộ điều tốc hạ tiếp về Thấp trên máy yếu. */
+export const FX_DEFAULT_LEVEL: FeelLevel = "mid";
+export const normalizeFxLevel = (v: unknown): FeelLevel => (v === "low" || v === "mid" || v === "high" ? v : FX_DEFAULT_LEVEL);

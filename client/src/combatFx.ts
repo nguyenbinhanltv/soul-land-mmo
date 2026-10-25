@@ -2,7 +2,7 @@
 // độ dài / độ mạnh của hiệu ứng, KHÔNG phải số cân bằng (số cân bằng ở shared/data.ts).
 import Phaser from "phaser";
 import type { He, HaoQuangMode } from "../../shared/data.ts";
-import { FxGovernor, GOV } from "./combatFeelRules.ts";
+import { FxGovernor, GOV, FX_DEFAULT_LEVEL, normalizeFxLevel } from "./combatFeelRules.ts";
 
 export type FxLevel = "low" | "mid" | "high";
 /** Rung màn hình (#437): Tắt (không rung / giật), Chỉ boss (mặc định: tinh anh trở lên, chiêu mạnh vào mình, hồn kỹ lớn), Đầy đủ (thêm chí mạng lên hồn thú thường, trừ khi tự săn). */
@@ -15,10 +15,10 @@ const store = (): Storage | null => { try { return window.localStorage; } catch 
 const prefersReduce = () => { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; } };
 
 function load(): FxPrefs {
-  const def: FxPrefs = { level: "mid", reduce: prefersReduce(), shake: "boss", cine: true, cutin: true, halo: "halo", hideHat: false, auto: true };
+  const def: FxPrefs = { level: FX_DEFAULT_LEVEL, reduce: prefersReduce(), shake: "boss", cine: true, cutin: true, halo: "halo", hideHat: false, auto: true };
   try {
     const raw = JSON.parse(store()?.getItem(KEY) ?? "null");
-    if (raw && typeof raw === "object") return { level: raw.level === "low" || raw.level === "high" ? raw.level : "mid", reduce: typeof raw.reduce === "boolean" ? raw.reduce : def.reduce, shake: raw.shake === "off" || raw.shake === "full" ? raw.shake : "boss", cine: typeof raw.cine === "boolean" ? raw.cine : true, cutin: typeof raw.cutin === "boolean" ? raw.cutin : true, halo: raw.halo === "feet" || raw.halo === "old" ? raw.halo : "halo", hideHat: raw.hideHat === true, auto: raw.auto !== false }; // bản lưu cũ không có `shake` → Chỉ boss
+    if (raw && typeof raw === "object") return { level: normalizeFxLevel(raw.level), reduce: typeof raw.reduce === "boolean" ? raw.reduce : def.reduce, shake: raw.shake === "off" || raw.shake === "full" ? raw.shake : "boss", cine: typeof raw.cine === "boolean" ? raw.cine : true, cutin: typeof raw.cutin === "boolean" ? raw.cutin : true, halo: raw.halo === "feet" || raw.halo === "old" ? raw.halo : "halo", hideHat: raw.hideHat === true, auto: raw.auto !== false }; // bản lưu cũ không có `shake` → Chỉ boss
   } catch { /* hỏng thì dùng mặc định */ }
   return def;
 }
