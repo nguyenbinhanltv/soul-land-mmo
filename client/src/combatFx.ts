@@ -25,8 +25,12 @@ function load(): FxPrefs {
 
 /** Cài đặt hiệu ứng hiện hành (đối tượng sống, mọi nơi đọc trực tiếp). */
 export const fxPrefs: FxPrefs = load();
+/** Giảm chuyển động (G8 #399): gắn lớp `reduce-motion` lên <html> để CSS tắt cả nháy / rung / nhấp nháy giao diện, không chỉ khi hệ điều hành bật (style.css, cuối file). */
+function applyReduceClass(): void { try { document.documentElement.classList.toggle("reduce-motion", fxPrefs.reduce); } catch { /* không có DOM (bot, kiểm thử) */ } }
+applyReduceClass();
 export function setFxPrefs(p: Partial<FxPrefs>): void {
   Object.assign(fxPrefs, p);
+  applyReduceClass();
   try { store()?.setItem(KEY, JSON.stringify(fxPrefs)); } catch { /* localStorage có thể bị khóa */ }
 }
 
