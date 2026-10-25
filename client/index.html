@@ -15,7 +15,7 @@
     <div id="hud" hidden>
       <div id="lcol">
       <section class="panel stats">
-        <div class="who"><span id="vhName">–</span><span id="lvl"></span></div>
+        <div class="who"><div class="portrait" id="vhPortrait" aria-label="Biểu tượng võ hồn"><span id="vhGlyph">魂</span></div><div class="who-main"><span id="vhName">–</span><span id="lvl"></span></div></div>
         <div class="bar hp"><i id="hpFill"></i><span id="hpTxt"></span></div>
         <div class="bar mp"><i id="mpFill"></i><span id="mpTxt"></span></div>
         <div class="bar xp"><i id="xpFill"></i><span id="xpTxt"></span></div>
@@ -23,13 +23,14 @@
         <div class="rings" id="rings"></div>
         <div class="buffs" id="buffs" aria-label="Hiệu ứng và trạng thái"></div>
         <div class="buffs" id="bpas" aria-label="Kỹ năng bị động của hồn cốt"></div>
-        <div class="minirow">
-          <button id="charBtn" class="minibtn" aria-controls="char" aria-expanded="false">Hồn sư <kbd>H</kbd></button>
-          <button id="vhBtn" class="minibtn" aria-controls="roster" aria-expanded="false">Đội hình <kbd>V</kbd></button>
-          <button id="bagBtn" class="minibtn" aria-controls="bag" aria-expanded="false">Túi đồ <kbd>B</kbd></button>
-          <button id="resBtn" class="minibtn" aria-controls="reso" aria-expanded="false">Cộng minh <kbd>K</kbd></button>
-          <button id="audioBtn" class="minibtn" aria-controls="audio" aria-expanded="false">Cài đặt</button>
-          <button id="autoBtn" class="minibtn" aria-pressed="false" aria-controls="autoPanel" aria-expanded="false" title="Bảng Tự động: cài đặt và bật / tắt tự săn (phím T bật / tắt ngay)">Tự động <kbd>T</kbd></button>
+        <button id="hudMenuBtn" class="hud-menu-btn" type="button" aria-controls="quickMenu" aria-expanded="false" aria-label="Mở menu HUD">☰<span>Menu</span></button>
+        <div class="minirow" id="quickMenu" role="toolbar" aria-label="Menu HUD">
+          <button id="charBtn" class="minibtn" aria-controls="char" aria-expanded="false"><span class="menu-icon" aria-hidden="true">♙</span><span class="menu-label">Hồn sư</span> <kbd>H</kbd></button>
+          <button id="vhBtn" class="minibtn" aria-controls="roster" aria-expanded="false"><span class="menu-icon" aria-hidden="true">♜</span><span class="menu-label">Đội hình</span> <kbd>V</kbd></button>
+          <button id="bagBtn" class="minibtn" aria-controls="bag" aria-expanded="false"><span class="menu-icon" aria-hidden="true">▣</span><span class="menu-label">Túi đồ</span> <kbd>B</kbd></button>
+          <button id="resBtn" class="minibtn" aria-controls="reso" aria-expanded="false"><span class="menu-icon" aria-hidden="true">✥</span><span class="menu-label">Cộng minh</span> <kbd>K</kbd></button>
+          <button id="audioBtn" class="minibtn" aria-controls="audio" aria-expanded="false"><span class="menu-icon" aria-hidden="true">⚙</span><span class="menu-label">Cài đặt</span></button>
+          <button id="autoBtn" class="minibtn" aria-pressed="false" aria-controls="autoPanel" aria-expanded="false" title="Bảng Tự động: cài đặt và bật / tắt tự săn (phím T bật / tắt ngay)"><span class="menu-icon" aria-hidden="true">◉</span><span class="menu-label">Tự động</span> <kbd>T</kbd></button>
         </div>
       </section>
       <section id="party" class="panel" aria-label="Tổ đội"></section>
