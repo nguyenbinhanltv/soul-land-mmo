@@ -1640,4 +1640,27 @@ export class PgStore implements Store {
   }
 }
 
-export const store: Store = process.env.DATABASE_URL ? new PgStore(process.env.DATABASE_URL) : new MemoryStore();
+/**
+ * Hook test `savefail {n}` (#797, CHỈ GAME_TEST=1): số lần ghi kế tiếp của tài khoản bị ép lỗi, để bot kiểm nhánh hoàn lại khi lỗi DB
+ * (equipLuck, equipEnhance, coreset, tongAction). Chỉ chặn ba đường ghi túi / tông: saveBag, setTong, saveProgress có kèm túi.
+ * Lỗi ném TRƯỚC khi chạm DB nên không ghi gì (giống transaction rollback). Không GAME_TEST thì store trả về nguyên bản, không bọc.
+ */
+export const saveFailTest = new Map<number, { n: number; only: string }>();
+/** `kind`: "bag" (saveBag, saveProgress có túi) hoặc "tong" (setTong); hook đặt `only` thì chỉ chặn đúng loại đó (tránh lần lưu định kỳ của túi ăn mất lượt ép lỗi của setTong). */
+const failSave = (accountId: number, kind: "bag" | "tong") => {
+  const f = saveFailTest.get(accountId); if (!f || f.n <= 0 || (f.only && f.only !== kind)) return;
+  if (f.n === 1) saveFailTest.delete(accountId); else f.n--;
+  throw new Error("hook test savefail: ép lần ghi DB lỗi (#797)");
+};
+const withSaveFail = (s: Store): Store => new Proxy(s, {
+  get(t, k) {
+    const f = Reflect.get(t, k, t);
+    if (typeof f !== "function") return f;
+    if (k === "saveBag") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
+    if (k === "setTong") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "tong"); return f.call(t, accountId, ...a); };
+    if (k === "saveProgress") return async (accountId: number, ...a: unknown[]) => { if (a[5] !== undefined) failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
+    return f.bind(t);
+  },
+});
+const baseStore: Store = process.env.DATABASE_URL ? new PgStore(process.env.DATABASE_URL) : new MemoryStore();
+export const store: Store = process.env.GAME_TEST === "1" ? withSaveFail(baseStore) : baseStore;

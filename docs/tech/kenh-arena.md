@@ -15,7 +15,7 @@
 
 **Không né luật đổi kênh bằng cách tự rời rồi vào kênh khác**
 - Rời phòng không qua đường server duyệt thì tài khoản bị giữ ở kênh đó `CHANNEL_CD` giây (`leftRoom`): `onAuth` từ chối kênh khác của cùng bản đồ khi kênh cũ còn mở và còn chỗ, còn `pickChannel` đưa về đúng kênh cũ.
-- Đi cổng / đổi kênh / truyền tống sang bản đồ khác commit xong cũng giữ như vậy ở **kênh server đã chọn** của bản đồ đích (`leftRoom` cờ `travel`): client không tự `joinById` kênh khác.
+- Đi cổng / đổi kênh / truyền tống sang bản đồ khác commit xong cũng giữ như vậy ở **kênh server đã chọn** của bản đồ đích (`leftRoom` cờ `travel`): client không tự `joinById` kênh khác. Khóa này cũng ghi vào `channel-left:<accountId>` (presence dùng chung, TTL `CHANNEL_CD`); chạy Redis thì `leftLock` chỉ tin presence, không tin Map RAM của tiến trình (#819).
 
 ## Phòng trường đấu
 - `ArenaRoom extends MapRoom`, `define("arena", ArenaRoom)`, phòng riêng (`setPrivate`) trên sân `ARENA_MAP`. `MapRoom.onCreate` từ chối kind `arena`; `ArenaRoom` gọi thẳng `setup(mapId)`.

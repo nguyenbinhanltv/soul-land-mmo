@@ -24,6 +24,7 @@ import { fog } from "../fog.ts";
 import { toast, lootToasts } from "../feedback.ts";
 import { guideStart, guideEvent, guideHint } from "../guide.ts";
 import { initDualWindows } from "../dualWindow.ts";
+import { initPanelStack, closeTopPanel, panelOf, trapTab } from "../panelStack.ts";
 import type { ServerCommand } from "../charBagContract.ts";
 import { toggleChar, cycleCharTab, isCharOpen, onCharOpen, renderChar, charViewRow, charLog, type StatsMsg } from "../charPanel.ts";
 import { Predictor, PREDICT, LAG_MS, DEBUG_TAG, stepSpeed } from "../predict.ts";
@@ -741,6 +742,7 @@ export class GameScene extends Phaser.Scene {
     const field = (t: EventTarget | null) => t instanceof HTMLSelectElement || t instanceof HTMLTextAreaElement ||
       (t instanceof HTMLInputElement && !["checkbox", "radio", "range", "button"].includes(t.type));
     const on = { signal: this.ac.signal };
+    const muted = new Set<string>(); // phím đã nhả ép lúc mở bảng, còn đang giữ (hệ điều hành vẫn gửi keydown lặp)
     addEventListener("keydown", (e) => {
       if (this.watching) return; // người xem: không phím tắt, không chat
       // Màn đổi ngoại hình (thợ may) phủ lên game: phím thuộc về màn (Tab / Enter / Space bấm nút); Esc đóng màn; không di chuyển, đánh, đổi võ hồn.
@@ -752,6 +754,10 @@ export class GameScene extends Phaser.Scene {
       }
       const f = document.activeElement;
       if (field(f)) { if (e.code !== "Escape") return; (f as HTMLElement).blur(); } // Esc: rời ô rồi đóng bảng như thường
+      // Tiêu điểm đang ở nút / ô trong một bảng (U1 #754): Tab xoay vòng trong bảng, Space / Enter bấm đúng nút đó; không thành đổi mục tiêu / đánh / mở chat.
+      // Nút vừa bấm chuột không tính (không `:focus-visible`), nên chơi bằng chuột rồi bấm Space đánh vẫn đánh được.
+      if (e.code === "Tab" && panelOf(f) && trapTab(e)) return;
+      if ((e.code === "Space" || e.key === "Enter") && panelOf(f) && (f as HTMLElement).matches(":focus-visible")) return;
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
       if (e.code === "KeyH" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); toggleChar(); return; } // bảng nhân vật (UI-2), độc lập với Túi (NV1 #455); C là kỹ năng hồn cốt tay phải nên không dùng để mở bảng (NV5 #459)
       if ((e.code === "BracketLeft" || e.code === "BracketRight") && cycleCharTab(e.code === "BracketRight" ? 1 : -1)) { e.preventDefault(); return; } // chuyển tab búp bê khi bảng Nhân vật đang mở (NV5 #459)
@@ -764,11 +770,14 @@ export class GameScene extends Phaser.Scene {
       if (e.code === "KeyN" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); mapview().toggle(); return; } // bản đồ khu vực (R3): lớp phủ, không dừng game
       if (e.code === "Escape" && mapview().isOpen) { mapview().close(); return; }
       if (e.code === "Escape" && hud.chatClose()) return; // khung chat đang mở (chọn tab): Esc đóng nó trước
-      if (e.code === "Escape" && this.lockId) { this.lockTo(""); return; } // Esc: bỏ khoá mục tiêu trước
+      // Esc (U1 #754): đóng đúng MỘT bảng trên cùng (lần nhấn kế đóng bảng kế); hết bảng mới bỏ khoá mục tiêu (M3). Thứ tự: bản đồ vùng → chat → bảng → khoá.
+      if (e.code === "Escape" && closeTopPanel()) return;
+      if (e.code === "Escape" && this.lockId) { this.lockTo(""); return; }
+      if (e.code === "Escape") return; // không bảng, không khoá: không làm gì (không ghi Escape vào `keys`)
       if (e.code === "Tab") { e.preventDefault(); if (!e.repeat) this.cycleTarget(); return; }
-      if (e.code === "Escape") { closeAudioPanel(); closeAutoPanel(); toggleChar(false); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleFriends(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); closeAutoSum(); return; }
       if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }
+      if (muted.has(e.code)) { if (e.repeat) return; muted.delete(e.code); } // phím giữ từ trước khi mở bảng: bỏ phím lặp tới khi nhả rồi bấm lại
       this.keys[e.code] = true;
       if (MOVE_KEYS.includes(e.code)) guideEvent("move");
       if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
@@ -785,7 +794,7 @@ export class GameScene extends Phaser.Scene {
       else if (bk >= 0) this.act("bone" + bk);
       else if (slot >= 0 && slot < TEAM_SIZE) this.act("switch" + slot);
     }, on);
-    addEventListener("keyup", (e) => { this.keys[e.code] = false; }, on);
+    addEventListener("keyup", (e) => { this.keys[e.code] = false; muted.delete(e.code); }, on);
     addEventListener("blur", () => { this.keys = {}; }, on);
     chat.addEventListener("focus", () => { this.keys = {}; hud.chatFocus(true); }, on);
     chat.addEventListener("blur", () => hud.chatFocus(false), on);
@@ -823,6 +832,8 @@ export class GameScene extends Phaser.Scene {
     // Bấm nền đất (không trúng hồn sư khác, NPC): đi tới điểm đó. Điểm bấm chiếu ngược ra tọa độ thế giới; client chỉ tự lái hướng
     // đi gửi trong `input` như khi giữ phím, server vẫn tính vị trí và va chạm (10.1).
     this.input.on("pointerdown", (ptr: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) => {
+      // Phaser còn nghe mousedown ở cấp window: bấm rơi vào bảng / nút HUD (không phải canvas) không được thành lệnh đi, khoá hay chọn người (U1 #754).
+      if (ptr.downElement && ptr.downElement !== this.game.canvas) return;
       if (this.watching) { // người xem: bấm / chạm hồn sư để theo dõi người đó, không đi, không mời đội
         let sid = "", bd = 14 * SPR;
         this.players.forEach((v, id) => { const k = Math.hypot(ptr.worldX - v.root.x, (ptr.worldY - (v.root.y - 12 * SPR)) * 0.7); if (k < bd) { bd = k; sid = id; } });
@@ -856,6 +867,17 @@ export class GameScene extends Phaser.Scene {
     joyEl.addEventListener("pointermove", (e) => { if (e.pointerId === jid) mv(e); }, on);
     const end = (e: PointerEvent) => { if (e.pointerId !== jid) return; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = ""; };
     joyEl.addEventListener("pointerup", end, on); joyEl.addEventListener("pointercancel", end, on);
+    // Ngăn xếp bảng (U1 #754): Esc đóng bảng trên cùng, bấm vào bảng nâng lên; mở bảng thì nhả phím đang giữ và dừng cần điều khiển.
+    initPanelStack([
+      { id: "char", close: () => toggleChar(false) }, { id: "bag", close: () => hud.toggleBag(false) }, { id: "roster", close: () => hud.toggleRoster(false) },
+      { id: "reso", close: () => hud.toggleReso(false) }, { id: "friends", close: () => hud.toggleFriends(false) }, { id: "world", close: () => hud.toggleWorld(false) },
+      { id: "npc", close: () => hud.closeNpc() }, { id: "autoPanel", close: closeAutoPanel }, { id: "audio", close: closeAudioPanel },
+      { id: "pmenu", close: () => hud.showPlayerMenu(null), popup: true }, { id: "chans", close: () => hud.toggleChannels(false), popup: true },
+      { id: "autoSum", close: closeAutoSum, popup: true },
+    ], () => {
+      for (const k of Object.keys(this.keys)) if (this.keys[k]) muted.add(k);
+      this.keys = {}; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = "";
+    }, this.ac.signal);
   }
 
   /**

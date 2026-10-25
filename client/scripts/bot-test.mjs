@@ -547,6 +547,7 @@ const STANDALONE=[
   ["chuong3",5,chapter3Test],                 // ~18 #284 chương 3 Hải Thần Đảo (đo ở máy)
   ["bag",4,async()=>{ bagSyncPure(); await shopBuybackTest(); await charBagCmdTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); }], // 127 #215, 9.8; E1 trang bị hồn sư; E2 rơi đồ; E3 cường hóa; E4 hợp thành / phân giải
   ["luckRace",6,luckRaceTest],                //  ~6 #740 khắc may mắn: tháo / mặc giữa lúc chờ DB (tài khoản riêng)
+  ["saveFail",6,saveFailTest],                //  ~12 #797 hook savefail: hoàn lại khi ghi DB lỗi (luck / enhance / coreset / tông)
   ["luck",6,gearLuckTest],                    //  ~12 #662 khắc may mắn bằng Thần Hồn (tách khỏi nhóm bag, #684)
   ["forgePreview",5,forgePreviewTest,true],    //  ~25 #699 xem trước cường hóa + coreset (ước, chưa đo)
   ["sell",5,sellTest],                        //   5 #216
@@ -642,6 +643,7 @@ if(process.env.BOT_ONLY==="cold"){ await coldTest(); console.log(fails?`✗ ${fa
 if(process.env.BOT_ONLY==="ground"){ await groundTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="tong"){ await tongTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="savefail"){ await saveFailTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="luckrace"){ await luckRaceTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="luck"){ await gearLuckTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="shardbuy"){ await shardBuyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -774,6 +776,16 @@ async function channelTest(){
   await follow(P2);
   P1.travel=null; await T(P1,"warp",{mapId:NV,x:0,y:0}); await waitFor(()=>P1.travel,3000); await follow(P1);
   ok(chOf(P3)===1&&chOf(P2)===1&&chOf(P1)===2,`Ngoại vi: P3, P2 kênh ${chOf(P3)}; P1 kênh ${chOf(P1)} (kênh 1 đầy)`);
+  { // #819: khóa kênh đích sau đổi kênh nằm ở presence dùng chung (chạy --procs 2: phòng đích khác tiến trình vẫn thấy khóa, không chặn nhầm)
+    await T(P2,"chan",{reset:1}); P2.travel=null; await say(P2,"channel",{ch:2}); await waitFor(()=>P2.travel,3000);
+    const t=P2.travel; await P2.room.leave(); await sleep(200);
+    let other=""; try{ const r=await new Client(WS).joinById(P3.room.roomId,{token:P2.token,mapId:NV}); await r.leave(); other="vào được"; }catch(e){ other=String(e?.message??e); }
+    ok(/kênh 2/.test(other)&&other!=="vào được",`#819 Ngoại vi: đổi sang kênh 2 nhưng joinById kênh 1: bị từ chối ("${other}")`);
+    await enter(P2,t.roomId); await fresh(P2);
+    ok(chOf(P2)===2,"#819: vào đúng kênh server chọn: khóa không chặn nhầm");
+    await T(P2,"chan",{reset:1}); P2.travel=null; await say(P2,"channel",{ch:1}); await waitFor(()=>P2.travel,3000); await follow(P2);
+    ok(chOf(P2)===1&&chOf(P1)===2,"#819: P2 về kênh 1 như cũ (khóa cũ đã gỡ, không chặn lần vào hợp lệ kế tiếp)");
+  }
 
   // ---- Thú vương: mỗi kênh một con (suất theo bản đồ), báo toàn server mọi kênh, mỗi khung giờ một rương dù đổi kênh ----
   const king=b=>[...b.room.state.beasts.values()].find(x=>x.rank===2), chestN=b=>qtyOf(b,chestCode("huyet_nguyet_lang_vuong"));
@@ -6935,6 +6947,20 @@ async function tongTest(){
   await test(S,"tong",{back:TONG_SWITCH_DAYS+1}); await rejoin(S); await test(S,"goto",{x:spot(L.npc).x,y:spot(L.npc).y+16});
   ok(me(S).tong===0&&await talk(S,L.npc)===L.npc&&S.tong?.tong==="","vào lại: vẫn không thuộc tông (rời đã lưu)");
   t=await act(S,"join",L.id); ok(S.tong.tong===L.id&&me(S).tong===3&&/Chúc mừng/.test(t),`hết thời gian chờ: gia nhập ${L.name} (${t})`);
+  // #796: ghi DB lỗi (hook savefail only=tong, #797): rời / gia nhập không đổi gì, báo lỗi, DB giữ nguyên; lệnh thứ hai trong lúc chờ bị chặn.
+  { const lag=async()=>{ await sleep(300); return (await test(S,"savefail",{n:0})).left; };
+    await near(S,L.npc); await sleep(300); await test(S,"savefail",{n:1,only:"tong"});
+    t=await act(S,"leave"); ok(/Không lưu được/.test(t)&&!/đã rời/.test(t)&&S.tong.tong===L.id&&me(S).tong===3&&await lag()===0,`rời tông khi ghi DB lỗi: báo lỗi, vẫn thuộc ${L.name} (${t})`);
+    await rejoin(S); await test(S,"goto",{x:spot(L.npc).x,y:spot(L.npc).y+16});
+    ok(me(S).tong===3&&await talk(S,L.npc)===L.npc&&S.tong?.tong===L.id,"vào lại sau lần rời lỗi: DB vẫn tông cũ, không lệch");
+    t=await act(S,"leave"); ok(S.tong.tong===""&&me(S).tong===0&&/rời/.test(t),`rời tông lại (không lỗi): đúng (${t})`);
+    await test(S,"tong",{back:TONG_SWITCH_DAYS+1}); await near(S,H.npc); await sleep(300); await test(S,"savefail",{n:1,only:"tong"});
+    t=await act(S,"join",H.id); ok(/Không lưu được/.test(t)&&!/gia nhập/.test(t.replace(/Không lưu được[^|]*/,""))&&S.tong.tong===""&&me(S).tong===0&&await lag()===0,`gia nhập khi ghi DB lỗi: báo lỗi, chưa thuộc tông nào (${t})`);
+    await rejoin(S); await test(S,"goto",{x:spot(H.npc).x,y:spot(H.npc).y+16}); await talk(S,H.npc);
+    ok(me(S).tong===0&&S.tong?.tong===""&&S.tong.wait===0,"vào lại sau lần gia nhập lỗi: vẫn chưa thuộc tông, tongAt không bị ghi (không phải chờ)");
+    const l0=S.logs.length, n0=S.tongN; for(let k=0;k<3;k++) S.room.send("tong",{op:"join",tong:H.id});
+    await waitFor(()=>S.tongN>n0+1,2000); await sleep(400);
+    ok(S.tong.tong===H.id&&me(S).tong===1&&S.logs.slice(l0).filter(x=>/Chúc mừng/.test(x)).length===1,`gia nhập bấm dồn 3 lần: chỉ một lần thành công (lệnh sau bị chặn "đang xử lý" hoặc "đã là người") (tông ${S.tong.tong}, ${me(S).tong}, ${JSON.stringify(S.logs.slice(l0))})`); }
   t=await act(S,"leave"); ok(S.tong.tong==="","rời tông cuối"); 
   }finally{ await S.room.leave().catch(()=>{}); await O.room.leave().catch(()=>{}); }
   await tongWeekTest();
@@ -7657,6 +7683,94 @@ async function luckRaceTest(){
   ok(/Tổng may mắn hai ô đang mặc/.test(S.logs.at(-1))&&luckOf(W)===EQUIP_LUCK_MAX-3&&have(EQUIP_SOUL)===4,`tổng đã chạm trần: khắc tiếp bị chặn, giữ Thần Hồn (${S.logs.at(-1)})`);
   await wear(C); ok(worn().includes(C)&&!worn().includes(N),"sau khi xong lệnh: mặc món khác lại được (cờ chặn đã nhả)");
   await test(S,"gear",{clear:true}); await test(S,"enhroll",{r:-1});
+  }finally{ await S.room.leave().catch(()=>{}); }
+}
+/**
+ * Nhánh hoàn lại khi ghi DB lỗi (#797, BOT_ONLY=savefail; tài khoản riêng): hook `savefail {n}` (chỉ GAME_TEST, db.ts) ép n lần ghi túi / tông kế tiếp lỗi.
+ * equipluck (món trong túi và món đang mặc), equipenh (thành công; nấc phá hủy trên món đang mặc), coreset (#699): lỗi ghi thì Thần Hồn / đá / phí về đúng,
+ * `it.stats` / cấp về đúng, món không nhân / mất; thử lại không hook thì trừ đúng MỘT lần. coreset ghi qua write (không hoàn lại trong RAM, túi bẩn nên lần ghi
+ * kế persist): vào lại phòng phải thấy bộ mới và phí trừ đúng một lần. setTong: DB giữ nguyên khi ghi lỗi (hook GM `tong set`; đường tongAction thật: #796).
+ */
+async function saveFailTest(){
+  console.log("[#797] Hoàn lại khi ghi DB lỗi: luck / enhance / coreset / tông");
+  const S=await bot("Save fail","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
+  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua savefail (cần hook gear, give, coin, enhroll, savefail): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  try{
+  const me=()=>S.room.state.players?.get(S.room.sessionId), loose=()=>looseOf(S);
+  const watch=()=>{ S.lucN=0; S.enhN=0; S.room.onMessage("equipluckd",()=>{ S.lucN++; }); S.room.onMessage("equipluckp",()=>{}); S.room.onMessage("equipenhd",()=>{ S.enhN++; }); S.room.onMessage("equipenhp",()=>{}); };
+  async function rejoin(){ await S.room.leave(); await sleep(400); S.mapId=(await post("/api/me",{token:S.token})).mapId; S.bag=null; S.gear=null; await enter(S); watch(); await waitFor(()=>me()&&S.bag&&S.gear,4000); }
+  watch();
+  S.travel=null; S.room.send("test",{op:"warp",mapId:"nac_dinh_thanh",x:0,y:0}); await waitFor(()=>S.travel,4000);
+  if(S.travel){ const t=S.travel; await S.room.leave(); await sleep(300); S.mapId=t.mapId; await enter(S,t.roomId??undefined); watch(); }
+  await waitFor(()=>me()&&S.bag&&S.gear,4000);
+  const lr=npcSpot("nac_dinh_thanh","lo_ren");
+  const have=code=>loose().filter(i=>i.code===code).reduce((n,i)=>n+i.qty,0);
+  const give=async(code,qty)=>{ const n=have(code); await test(S,"give",{code,qty}); await waitFor(()=>have(code)===n+qty,2000); };
+  const coin=async n=>{ await test(S,"coin",{n}); await waitFor(()=>S.bag.honTe===n,1500); };
+  const mk=async(tpl,enhance,luck=0)=>{ const r=await test(S,"gear",{tpl,enhance,ilvl:3,luck}); await waitFor(()=>loose().some(i=>i.id===r?.id),1500); return r?.id; };
+  const find=id=>loose().find(i=>i.id===id)??S.gear?.items.find(g=>g.id===id);
+  const copies=id=>loose().filter(i=>i.id===id).length+(S.gear?.items.filter(g=>g.id===id).length??0);
+  const luckOf=id=>parseEquip(find(id)?.stats)?.luck;
+  const wear=async id=>{ S.room.send("equipgear",{id}); await waitFor(()=>S.gear?.items.some(g=>g.id===id),2000); };
+  /** Ép 1 lần ghi lỗi rồi chạy `send`; chờ log "Không lưu được" (nhánh hoàn lại đã chạy), trả true nếu thấy. */
+  async function failed(send){ await sleep(300); const l=S.logs.length; await test(S,"savefail",{n:1,only:"bag"}); send(); const g=await waitFor(()=>S.logs.slice(l).some(x=>/Không lưu được/.test(x)),3000); await sleep(400); return g; }
+  async function done(send,key){ await sleep(300); const k=S[key]; send(); await waitFor(()=>S[key]>k,3000); await sleep(300); }
+  await test(S,"gear",{clear:true}); await test(S,"goto",{x:lr.x,y:lr.y+16}); await test(S,"rest",{s:TEAM_COMBAT_SECS+1}); await test(S,"enhroll",{r:0});
+  await coin(1e6); await give(EQUIP_SOUL,6);
+
+  // ---- equipluck: món trong túi, rồi món đang mặc ----
+  const A=await mk("vu_khi_pham_khi",0,0), B=await mk("day_chuyen_pham_khi",0,0); await wear(B);
+  for(const [id,where] of [[A,"trong túi"],[B,"đang mặc"]]){
+    const soul=have(EQUIP_SOUL), n0=S.lucN, g0=(await test(S,"stats")).gear.luck;
+    ok(await failed(()=>S.room.send("equipluck",{id})),`equipluck ${where}: ghi lỗi thì báo "Không lưu được" (nhánh hoàn lại chạy)`);
+    const g1=(await test(S,"stats")).gear.luck;
+    ok(luckOf(id)===0&&have(EQUIP_SOUL)===soul&&copies(id)===1&&g1===g0&&S.lucN===n0,`equipluck ${where}: ghi lỗi hoàn lại Thần Hồn (${have(EQUIP_SOUL)}/${soul}), may mắn về M0, tổng ô mặc ${g1}/${g0}, món không nhân / mất, không báo thành công`);
+    await done(()=>S.room.send("equipluck",{id}),"lucN");
+    ok(luckOf(id)===1&&have(EQUIP_SOUL)===soul-1&&copies(id)===1,`equipluck ${where}: thử lại không lỗi → M1, trừ đúng 1 Thần Hồn (${have(EQUIP_SOUL)}/${soul-1})`);
+  }
+
+  // ---- equipenh: thành công (đá + phí hoàn), nấc phá hủy trên món đang mặc (món về đúng ô) ----
+  const stone=l=>EQUIP_STONES[equipEnhanceStep(l).stone].id, stp=l=>equipEnhanceStep(l);
+  { const lv=0, st=stp(lv), E=await mk("vu_khi_pham_khi",lv); await give(stone(lv),st.qty+1); await coin(st.fee+1234);
+    const stones=have(stone(lv)), ht=S.bag.honTe;
+    ok(await failed(()=>S.room.send("equipenh",{id:E})),"equipenh: ghi lỗi thì báo \"Không lưu được\"");
+    ok(find(E)?.enhance===lv&&have(stone(lv))===stones&&S.bag.honTe===ht&&copies(E)===1&&S.enhN===0,`equipenh thành công bị ghi lỗi: đá (${have(stone(lv))}/${stones}) và Hồn Tệ (${S.bag.honTe}/${ht}) hoàn lại, món về +${lv}, không nhân / mất`);
+    await done(()=>S.room.send("equipenh",{id:E,charm:false}),"enhN");
+    ok(find(E)?.enhance===lv+1&&have(stone(lv))===stones-st.qty&&S.bag.honTe===ht-st.fee,`equipenh thử lại: +${lv+1}, trừ đúng ${st.qty} đá và phí ${st.fee} một lần`); }
+  { const lv=[...Array(EQUIP_MAX_ENHANCE).keys()].find(l=>stp(l)?.fail.kind==="destroy"), st=stp(lv);
+    ok(lv!==undefined,`có nấc phá hủy khi thất bại (+${lv}) để thử hoàn lại món`);
+    await test(S,"enhroll",{r:100});
+    const D=await mk("vu_khi_pham_khi",lv); await wear(D); await give(stone(lv),st.qty); await coin(st.fee+99);
+    const stones=have(stone(lv)), ht=S.bag.honTe, slot=S.gear.items.find(g=>g.id===D)?.equipSlot;
+    ok(await failed(()=>S.room.send("equipenh",{id:D,charm:false})),"equipenh nấc phá hủy: ghi lỗi thì báo \"Không lưu được\"");
+    const back=S.gear.items.find(g=>g.id===D);
+    ok(!!back&&back.enhance===lv&&back.equipSlot===slot&&copies(D)===1&&have(stone(lv))===stones&&S.bag.honTe===ht,`món suýt bị phá hủy được hoàn lại đúng ô mặc, +${lv}, đá / phí về đủ, không nhân / mất`);
+    await test(S,"enhroll",{r:0}); }
+
+  // ---- coreset (#699): ghi qua write, túi bẩn nên lần ghi kế persist ----
+  await test(S,"rest",{s:TEAM_COMBAT_SECS+1}); await test(S,"goto",{x:lr.x,y:lr.y+16});
+  const fee=coreResetFee(2); await coin(fee+500);
+  const had=new Set(loose().map(i=>i.id)); await test(S,"give",{code:CORE_ITEM,stars:2,set:"lam_ngan"}); await waitFor(()=>loose().some(i=>!had.has(i.id)&&i.code===CORE_ITEM),1500);
+  const C=loose().find(i=>!had.has(i.id)&&i.code===CORE_ITEM)?.id;
+  ok(!!C,"coreset: có hồn hạch 2★ Lam Ngân để thử");
+  await sleep(300); await test(S,"savefail",{n:1,only:"bag"}); { const l=S.logs.length; S.room.send("coreset",{id:C,set:"hao_thien",npc:"lo_ren"}); await waitFor(()=>S.logs.length>l,2000); await sleep(300); }
+  // coreset không log khi ghi lỗi: chứng minh lượt ép đã bị lần ghi của coreset tiêu thụ (còn 0) bằng `left` của hook.
+  { let left=1; for(let k=0;k<20&&left>0;k++){ left=(await test(S,"savefail",{n:1,only:"bag"})).left; if(left>0) await sleep(200); } await test(S,"savefail",{n:0});
+    ok(left===0,`coreset: lần ghi bị ép lỗi đã chạy (lượt ép còn ${left}), RAM đã đổi bộ và trừ phí (${S.bag.honTe})`); }
+  ok(copies(C)===1&&S.bag.honTe===500&&find(C)?.stats?.set==="hao_thien","coreset khi ghi lỗi: RAM giữ bộ mới và Hồn Tệ 500 (phí trừ một lần), món không nhân / mất; túi bẩn chờ lần ghi kế");
+
+  // ---- setTong: ghi lỗi thì DB giữ nguyên ----
+  const H=TONG_MON[0];
+  await test(S,"tong",{set:H.id}); await sleep(500);
+  await test(S,"savefail",{n:1,only:"tong"}); const tg=await test(S,"tong",{set:""}); await sleep(500); const tl=(await test(S,"savefail",{n:0})).left; ok(tl===0,`setTong: lần ghi bị ép lỗi đã chạy (lượt ép còn ${tl})`);
+
+  // ---- vào lại phòng: đọc lại từ DB ----
+  const hte=S.bag.honTe; await rejoin();
+  const core=loose().find(i=>i.id===C);
+  ok(core?.stats?.set==="hao_thien"&&S.bag.honTe===hte&&hte===500,`vào lại: hồn hạch đổi bộ đúng một lần (${core?.stats?.set}), Hồn Tệ ${S.bag.honTe} = 500 (phí ${fee} trừ đúng một lần)`);
+  ok(luckOf(A)===1&&luckOf(B)===1&&copies(A)===1&&copies(B)===1,"vào lại: may mắn M1 của cả hai món đã persist đúng một nấc");
+  const tn=await test(S,"tong",{}); ok(tg?.tong===null&&tn.tong===H.id,`setTong ghi lỗi: RAM đã rời (${tg?.tong}) nhưng DB giữ nguyên tông cũ sau khi vào lại: ${tn.tong} (kỳ vọng ${H.id})`);
+  await test(S,"tong",{set:""}); await sleep(400); await test(S,"gear",{clear:true}); await test(S,"enhroll",{r:-1});
   }finally{ await S.room.leave().catch(()=>{}); }
 }
 /**
