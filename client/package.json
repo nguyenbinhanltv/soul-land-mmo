@@ -12,6 +12,7 @@
     "test:nameplate-browser": "node scripts/nameplate-browser.mjs",
     "test:charbag": "node scripts/charbag-test.mjs",
     "test:phaptuong": "node scripts/phaptuong-test.mjs",
+    "test:beastanim": "node --experimental-strip-types scripts/beastanim-test.mjs",
     "test:spiritmotion": "node scripts/spiritmotion-test.mjs",
     "test:combatfeel": "node scripts/combatfeel-test.mjs",
     "test:skillvisual": "node scripts/skillvisual-test.mjs",

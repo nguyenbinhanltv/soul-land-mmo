@@ -10,8 +10,9 @@ import { MINI_BASE, TIERS, BEASTS, VOHON, RADAR, SYNC_VIEW, MAPS, TILE, titleOf,
   type QuestProgress, type QuestStatus, formatHonTe, type SkillDef, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS, LPC_VIEW, decodeLpc, encodeLpc, presetToLpc, lpcGearLooks, type Looks } from "../../../shared/data.ts";
 import { makeTextures, vohonTextures, BEAST_ORIGIN } from "../textures.ts";
 import { buildRings, animateRings, type HaloState } from "../soulRings.ts";
-import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, VH_ORIGIN,
-  ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
+import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, animBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, VH_ORIGIN,
+  ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim, animLayoutOf } from "../sprites.ts";
+import { dieFrame, dieMs, type BeastAnimState } from "../beastAnim.ts";
 import * as hud from "../hud.ts";
 import { radar, type DotSink } from "../radar.ts";
 import { mapview, type MapLabel } from "../mapview.ts";
@@ -93,6 +94,8 @@ const GOAL_NEAR = 3;
 const WALK_ANIM_SPEED = PLAYER_SPEED, WALK_ANIM_SCALE: [number, number] = [0.5, 1.8];
 /** Hồn thú có sheet theo loài: nhịp animation đi khi lang thang / khi đuổi (đuổi nhanh gấp BEAST_GAIT.chase / wander lần). */
 const BEAST_ANIM_SCALE = { wander: 0.7, chase: 1.4 };
+/** Tham số tái dùng mỗi khung hình cho hoạt ảnh vẽ thật của hồn thú (tránh cấp phát object mỗi con mỗi khung). */
+const BEAST_ART = { now: 0, hp: 0, walkScale: 1 };
 /** Tin `dmg` kết liễu chỉ có giá trị tới chừng này mili giây trước khi hồn thú bị xoá khỏi state (bản vá luôn tới trong vài khung). */
 const KILL_GHOST_MS = 3000;
 /** Chiều cao tên hồn sư trên chân (pixel màn hình): thân 32 pixel cũ phóng SPR. Danh hiệu, chữ bay, biểu tượng trạng thái đặt theo mốc này. */
@@ -2251,7 +2254,13 @@ export class GameScene extends Phaser.Scene {
    */
   /** Bóng ngã của hồn thú lai vừa biến mất (STATIC_MOTION.die): bản sao sprite ngã quanh chân, chìm, mờ dần rồi tự hủy (không giữ trong this.beasts). */
   fadeBeastGhost(src: Phaser.GameObjects.Sprite) {
-    const D = STATIC_MOTION.die, side = src.flipX ? -1 : 1;
+    const D = STATIC_MOTION.die, side = src.flipX ? -1 : 1, ba: BeastAnimState | undefined = src.getData("ba");
+    if (ba) { // hoạt ảnh vẽ thật: chạy dải `die` (giữ khung cuối) rồi mờ dần, không xoay / chìm bằng code
+      const L = animLayoutOf(src.texture.key), dm = dieMs(L), g = this.add.sprite(src.x, src.y, src.texture.key, dieFrame(L, ba.dir, 0)).setOrigin(src.originX, src.originY)
+        .setScale(src.scaleX, src.scaleY).setFlipX(src.flipX).setDepth(src.depth);
+      this.tweens.addCounter({ from: 0, to: dm + 500, duration: dm + 500, onUpdate: (c) => { const t = c.getValue() ?? 0; g.setFrame(dieFrame(L, ba.dir, t)); g.setAlpha(t < dm ? 1 : Math.max(0, 1 - (t - dm) / 500)); }, onComplete: () => g.destroy() });
+      return;
+    }
     const g = this.add.sprite(src.x, src.y, src.texture.key, src.frame.name).setOrigin(src.originX, src.originY).setScale(src.scaleX, src.scaleY)
       .setFlipX(src.flipX).setDepth(src.depth).setRotation(src.rotation);
     this.tweens.add({ targets: g, rotation: D.turn * side, y: src.y + D.sink, scaleY: src.scaleY * (1 - D.sy), alpha: 0, duration: D.sec * 1000, ease: "Quad.easeIn", onComplete: () => g.destroy() });
@@ -2704,17 +2713,18 @@ export class GameScene extends Phaser.Scene {
       // Tinh anh (BĐ4): sprite của loài gốc (BOSSES.species) phóng ELITE.scale. Mọi sprite cũ phóng thêm SPR (10.1); sheet isometric
       // (mục 5.11) đã ở cỡ màn hình nội bộ nên không phóng SPR. Hình tạm LPC không dùng cho thú vương / boss (beastSheetSpecies).
       // Bọc trứng (#162): kén vẽ bằng code, phập phồng nhanh dần khi sắp nở (đồng hồ nở vẽ ở lớp phủ bên dưới).
-      const egg = b.egg > 0, spr = egg ? null : syncBeastSprite(s, beastSheetSpecies(b.rank, beastBase(b.rank, b.species)?.id), b.moving, b.aggro, b.cast, face), k = spr ? spriteRankScale(s, b.rank) : rankScale(b.rank);
+      const egg = b.egg > 0, spr = egg ? null : syncBeastSprite(s, beastSheetSpecies(b.rank, beastBase(b.rank, b.species)?.id), b.moving, b.aggro, b.cast, face, (BEAST_ART.now = time, BEAST_ART.hp = b.hp, BEAST_ART.walkScale = b.aggro ? BEAST_ANIM_SCALE.chase : BEAST_ANIM_SCALE.wander, BEAST_ART)), k = spr ? spriteRankScale(s, b.rank) : rankScale(b.rank);
       if (egg) {
         if (s.texture.key !== "spider_egg") s.setTexture("spider_egg");
         s.setScale(SPR * (1 + (b.egg < EGG_SOON ? 0.08 * Math.sin(time / 45) : 0.03 * Math.sin(time / 160))));
       } else if (!spr) {
         s.setTexture(`b${b.tier}_${b.moving ? step : 0}${b.aggro ? "a" : ""}`);
         s.setScale(k * SPR * (b.cast ? 1.08 + 0.06 * Math.sin(time / 60) : 1));
-      } else if (spr === "static") {
+      } else if (spr === "static" || spr === "anim") {
+        // Hoạt ảnh vẽ thật (H3, #688, spr === "anim"): khung do stepBeastAnim chọn; code chỉ chồng báo trước, nửa quãng lao và lắc / nháy trắng (animBeastPose).
         // Hồn thú lai (#386): ảnh tĩnh 3 hướng, thở / nhún / ngả rồi vồ / lắc khi trúng đòn vẽ bằng code (staticBeastPose). Phép biến đổi
         // quanh chân; vị trí dịch cộng thêm sau khi đã đặt độ sâu theo điểm chân nên không đổi thứ tự vẽ.
-        const P = staticBeastPose(s, time, b.moving && !b.cast, b.cast, b.hp, face, beastFamily(beastBase(b.rank, b.species)?.id), b.rank ? 1 + 0.35 * Math.min(b.rank, 3) : 1);
+        const P = (spr === "anim" ? animBeastPose : staticBeastPose)(s, time, b.moving && !b.cast, b.cast, b.hp, face, beastFamily(beastBase(b.rank, b.species)?.id), b.rank ? 1 + 0.35 * Math.min(b.rank, 3) : 1);
         s.setScale(k * P.sx, k * P.sy).setRotation(P.rot).setPosition(at.x + P.dx, at.y + P.dy);
         if (P.flash) s.setTintFill(0xffffff);
       } else {
@@ -2732,7 +2742,7 @@ export class GameScene extends Phaser.Scene {
       // Sprite một hàng chỉ vẽ hướng phải: đang đi thì lật theo hướng trượt trên màn hình, đứng yên thì theo `face` của server
       // (sheet isometric tự chọn hướng và lật trong syncBeastSprite).
       const dsx = s.x - ox;
-      if (spr !== "iso" && spr !== "static") s.setFlipX(b.moving && Math.abs(dsx) > 0.05 ? dsx < 0 : b.face < 0);
+      if (spr !== "iso" && spr !== "static" && spr !== "anim") s.setFlipX(b.moving && Math.abs(dsx) > 0.05 ? dsx < 0 : b.face < 0);
       // G1: đẩy lùi (chỉ hình, 110 ms) và nháy trắng 50 ms sau khi bị đánh; hết hạn thì trả màu cho nhánh tô màu của sprite.
       const tl = this.teles.get(id);
       if (tl && !fxPrefs.reduce) { // lấy đà: ngả ra sau (ngược hướng nhìn trên màn hình isometric) khi báo trước
@@ -2746,7 +2756,7 @@ export class GameScene extends Phaser.Scene {
       }
       const fl = this.hitFlash.get(id);
       if (fl !== undefined) { if (time < fl) s.setTintFill(0xffffff); else { this.hitFlash.delete(id); s.clearTint(); } }
-      s.setDepth(spr === "static" ? at.y : s.y); // sprite tĩnh: độ sâu theo điểm chân
+      s.setDepth(spr === "static" || spr === "anim" ? at.y : s.y); // sprite tĩnh: độ sâu theo điểm chân
       {
         let lb = this.eliteLabels.get(id);
         const kind = egg ? "elite" : b.rank >= 3 ? "boss" : b.rank === 2 ? "king" : b.rank === 1 ? "elite" : "beast";
