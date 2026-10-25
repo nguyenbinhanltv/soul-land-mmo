@@ -20,6 +20,7 @@ npm run install:all            # cài thư viện server + client (clone mới)
 npm run hooks                  # bật git pre-commit hook (.githooks/, typecheck file đã stage) – một lần
 npm run check                  # typecheck server + client, validate sprite, kiểm tiles.json – bắt buộc sau mỗi thay đổi
 npm run build                  # build client (tsc + vite)
+npm run test:unit              # 12 bài test đơn vị nhanh (~1 phút, không server / DB); CI job test-unit chạy cùng lệnh
 npm run dev:server             # server http://localhost:2567 (không có DATABASE_URL thì lưu RAM)
 npm run dev:client             # client http://localhost:5173
 npm run bot:local -- --only <nhóm> [--pg]   # bot ở máy: tự bật server GAME_TEST=1 cổng trống, chạy một nhóm, tự dọn
