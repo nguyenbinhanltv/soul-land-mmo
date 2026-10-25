@@ -967,9 +967,11 @@ async function cheatTest(){
   const Z=await bot("Gian lận Z","bich_lan_xa_hoang",{sex:0,hair:0,hairCol:0,outfitCol:0});
   try{
     const big=Array.from({length:1e5},(_,i)=>i+1); let nest=[1]; for(let k=0;k<200;k++) nest=[nest];
-    for(const ids of [nest,[big,nest],[...Array(500).keys()]]) Z.room.send("equipsalvage",{ids});
+    for(const ids of [nest,[nest,nest],[...Array(500).keys()]]) Z.room.send("equipsalvage",{ids});
     Z.room.send("equipsynth",{main:1,sacrifice:nest}); Z.room.send("enhance",{targetId:1,materialIds:nest});
-    try{ Z.room.send("equipsalvage",{ids:big}); Z.room.send("equipsynth",{main:1,sacrifice:big}); }catch{}
+    await sleep(500);
+    ok(Z.leftCode===null,"mảng lồng 200 tầng, mảng 500 phần tử: server nhận và bỏ qua, kết nối của người gửi còn nguyên");
+    try{ Z.room.send("equipsalvage",{ids:[big,nest]}); Z.room.send("equipsynth",{main:1,sacrifice:big}); }catch{} // quá cỡ: server đóng kết nối người gửi
     await sleep(800);
   } finally { await Promise.race([Z.room.leave().catch(()=>{}),sleep(1000)]); }
   ok(await alive(),"equipsalvage / equipsynth / enhance với mảng 10^5 phần tử, mảng lồng 200 tầng: phòng vẫn chạy");
