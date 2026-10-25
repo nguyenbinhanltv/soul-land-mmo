@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { damageTextStyle, footDustCount, HIT_HE_STYLE, rootSnareDiameter, FxGovernor, GOV } from "../src/combatFeelRules.ts";
+import { damageTextStyle, footDustCount, HIT_HE_STYLE, rootSnareDiameter, FxGovernor, GOV, FX_DEFAULT_LEVEL, normalizeFxLevel } from "../src/combatFeelRules.ts";
 
 assert.equal(footDustCount("low", false, true), 0);
 assert.equal(footDustCount("mid", true, true), 0);
@@ -65,3 +65,28 @@ assert.equal(rootSnareDiameter(18, 1, 0.5), 18);
   assert.equal(new FxGovernor().feed(NaN, "high"), false);
 }
 console.log("combatfeel-test: đạt");
+
+// G8 (#399): mức hiệu ứng mặc định là Vừa; bản lưu hỏng / lạ cũng về Vừa; máy yếu từ mặc định tự hạ xuống Thấp
+assert.equal(FX_DEFAULT_LEVEL, "mid");
+for (const bad of [undefined, null, "", "max", 2, {}]) assert.equal(normalizeFxLevel(bad), "mid");
+for (const ok of ["low", "mid", "high"]) assert.equal(normalizeFxLevel(ok), ok);
+{
+  const weak = new FxGovernor();
+  for (let t = 0; t < 12000; t += 50) weak.feed(50, FX_DEFAULT_LEVEL); // máy yếu: đều 20 FPS
+  assert.equal(weak.effective(FX_DEFAULT_LEVEL), "low", "máy yếu bắt đầu từ Vừa thì tự hạ về Thấp");
+  const fine = new FxGovernor();
+  for (let t = 0; t < 12000; t += 1000 / 60) fine.feed(1000 / 60, FX_DEFAULT_LEVEL);
+  assert.equal(fine.effective(FX_DEFAULT_LEVEL), "mid", "máy khỏe giữ nguyên Vừa");
+}
+
+// G8 (#399): "Giảm chuyển động" tắt mọi nhịp nhấp nháy vô hạn của giao diện (lớp `reduce-motion` trên <html>, đặt ở combatFx.ts)
+{
+  const { readFileSync } = await import("node:fs");
+  const css = readFileSync(new URL("../src/style.css", import.meta.url), "utf8");
+  const tail = css.slice(css.lastIndexOf("G8 (#399)"));
+  const infinite = [...css.matchAll(/([^{}]+)\{[^{}]*animation:[^;}]*infinite[^;}]*[;}]/g)].map((m) => m[1].trim().split(",").map((x) => x.trim())).flat().filter((sel) => !sel.startsWith("#arenaQ .spin") && !sel.startsWith(".alow") && !sel.includes("@"));
+  assert.ok(infinite.length >= 8, "tìm được các hoạt ảnh vô hạn của giao diện");
+  for (const sel of infinite) assert.ok(tail.includes(`.reduce-motion ${sel}`), `hoạt ảnh vô hạn ${sel} chưa bị tắt khi Giảm chuyển động`);
+  assert.ok(readFileSync(new URL("../src/combatFx.ts", import.meta.url), "utf8").includes('classList.toggle("reduce-motion", fxPrefs.reduce)'));
+  console.log("combatfeel-test: mặc định Vừa, máy yếu tự hạ, Giảm chuyển động tắt hoạt ảnh vô hạn đạt");
+}

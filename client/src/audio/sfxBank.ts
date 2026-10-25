@@ -5,7 +5,7 @@ export interface SfxClip { id: string; group: string; pack: string; start: numbe
 export interface SfxSource { title: string; author: string; url: string; license: string; }
 interface SfxManifest { packs: Record<string, { files: Partial<Record<MusicFormat, { path: string }>> }>; clips: SfxClip[]; sources?: SfxSource[]; }
 /** Một lần phát: bộ đệm giải mã của cả gói + đoạn cần phát. */
-export interface SfxPick { buffer: AudioBuffer; start: number; duration: number; id: string; }
+export interface SfxPick { buffer: AudioBuffer; start: number; duration: number; id: string; group: string; }
 
 export const SFX_MANIFEST_URL = "audio/sfx/manifest.json";
 /** Gói tải lỗi (mạng chập): chờ chừng này ms rồi mới thử lại, tránh gọi lại mỗi tiếng. */
@@ -103,7 +103,7 @@ export class SfxBank {
   /** Một clip cụ thể theo mã (trang nghe thử); null khi gói chưa sẵn sàng. */
   pickClip(id: string): SfxPick | null {
     const clip = this.clips().find((c) => c.id === id), buffer = clip && this.packs.get(clip.pack);
-    return clip && buffer ? { buffer, start: clip.start, duration: clip.duration, id: clip.id } : null;
+    return clip && buffer ? { buffer, start: clip.start, duration: clip.duration, id: clip.id, group: clip.group } : null;
   }
 
   pick(group: string): SfxPick | null {
@@ -114,6 +114,6 @@ export class SfxBank {
     let choice = list[Math.floor(this.random() * list.length) % list.length];
     if (list.length > 1 && choice.id === this.last.get(group)) choice = list[(list.indexOf(choice) + 1) % list.length];
     this.last.set(group, choice.id);
-    return { buffer, start: choice.start, duration: choice.duration, id: choice.id };
+    return { buffer, start: choice.start, duration: choice.duration, id: choice.id, group };
   }
 }

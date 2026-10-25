@@ -34,6 +34,8 @@ export function stepSpeed(me: MeState, w: boolean): number {
 /** Bật bằng mặc định; `?nopredict` trên địa chỉ trang thì tắt (để so sánh). */
 const query = new URLSearchParams(typeof location === "undefined" ? "" : location.search);
 export const PREDICT = !query.has("nopredict");
+/** Nhãn gỡ lỗi (trễ giả lập / dự đoán) trên màn chơi: ẩn mặc định, chỉ hiện khi địa chỉ trang có `?debug`. */
+export const DEBUG_TAG = query.has("debug");
 
 export class Predictor {
   /** Số thứ tự input gần nhất đã gửi (gửi kèm `input {x, y, s}`). */

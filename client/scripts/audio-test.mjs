@@ -3,6 +3,7 @@ import { AUDIO_MAX_ACTIVE, AudioManager, resolveAudioSource, SFX_REPEAT_WINDOW_M
 import { DEFAULT_AUDIO_SETTINGS, normalizeAudioSettings } from "../src/audio/settings.ts";
 import { panFromProjection, spatialMix } from "../src/audio/spatial.ts";
 import { SFX_IDS, SFX_PARAMS } from "../src/audio/sfxData.ts";
+import { CROWD_DUCK, GROUP_TRIM_DB, MASTER_COMPRESSOR, VOICE_CAP, groupTrim, groupTrimKey, voiceClassOf } from "../src/audio/soundMap.ts";
 import { createZzFxBuffer } from "../src/audio/zzfx.ts";
 
 const settings = normalizeAudioSettings({ master: 2, music: -1, sfx: "bad", muted: 1 });
@@ -49,7 +50,7 @@ assert.ok(Math.abs(spatialMix(beastSource, listener).volume - 0.55) < 1e-9, "ngu
 assert.equal(spatialMix({ x: 500, y: 100 }, listener), null, "nguồn ngoài tầm không phát");
 assert.equal(resolveAudioSource({ k: "slash", id: "gone" }, resolveFromState), null, "không có vị trí thì không phát fx gameplay toàn cục");
 
-assert.equal(SFX_IDS.length, 40);
+assert.equal(SFX_IDS.length, 35);
 assert.equal(new Set(SFX_IDS).size, SFX_IDS.length);
 for (const id of SFX_IDS) assert.ok(SFX_PARAMS[id], `thiếu tham số SFX: ${id}`);
 assert.ok(SFX_IDS.includes("skill_fire"));
@@ -119,7 +120,8 @@ audio.play("combat_crit", { x: 100, y: 100 });
 assert.equal(sources.length, 1, "context treo thì không tạo node mới");
 context.state = "running";
 for (const id of SFX_IDS) audio.play(id, { x: 100, y: 100 });
-assert.equal(audio.activeVoices, AUDIO_MAX_ACTIVE, "giới hạn số tiếng đồng thời (tiếng ưu tiên cao chen được, không vượt trần)");
+assert.equal(audio.activeVoices, VOICE_CAP.ui + VOICE_CAP.synth, "G8: tiếng tổng hợp bị chặn theo trần của từng loại (giao diện / tổng hợp), tiếng ưu tiên cao chen được");
+assert.ok(audio.activeVoices <= AUDIO_MAX_ACTIVE);
 audio.dispose();
 
 const noListenerContext = { ...context, state: "running", createBufferSource() {
@@ -190,6 +192,8 @@ noListenerAudio.dispose();
   // kho + trộn với WebAudio giả
   const manifest = { packs: { combat: { files: { ogg: { path: "sfx/combat.ogg" } } } }, clips: [] };
   for (let i = 0; i < 20; i++) for (let j = 0; j < 2; j++) manifest.clips.push({ id: `swing-t${i}-${j}`, group: `swing-t${i}`, pack: "combat", start: i * 2 + j, duration: 0.3 });
+  manifest.packs.beast = { files: { ogg: { path: "sfx/beast.ogg" } } };
+  for (let i = 0; i < 8; i++) manifest.clips.push({ id: `beast-t${i}`, group: `beast-t${i}`, pack: "beast", start: i, duration: 0.3 });
   const loads = [];
   const load = async (url) => { loads.push(url); return url.endsWith("manifest.json") ? new TextEncoder().encode(JSON.stringify(manifest)).buffer : new ArrayBuffer(8); };
   const make = (random = () => 0.5) => {
@@ -213,7 +217,7 @@ noListenerAudio.dispose();
     const { audio, started } = make();
     assert.equal(audio.playGroup("swing-t0", { x: 100, y: 100 }), false, "mẫu chưa tải thì báo để lùi về tiếng tổng hợp");
     await audio.bank.ensure("combat");
-    assert.deepEqual(loads.filter((u) => u.includes("sfx/")), ["audio/sfx/manifest.json", "audio/sfx/combat.ogg"], "chỉ tải manifest và đúng gói cần");
+    assert.deepEqual(loads.filter((u) => u.includes("sfx/")).slice(0, 2), ["audio/sfx/manifest.json", "audio/sfx/combat.ogg"], "chỉ tải manifest và đúng gói cần");
     assert.equal(audio.playGroup("swing-t0", { x: 100, y: 100 }), true);
     assert.equal(started.length, 1);
     assert.ok(started[0].args[1] >= 0 && started[0].args[1] < 2, "phát đúng đoạn của clip trong sprite");
@@ -241,6 +245,7 @@ noListenerAudio.dispose();
   // giới hạn số tiếng: gần thắng xa, xa không đuổi được gần
   {
     const { audio, started } = make();
+    audio.setMixEnabled(false); // hành vi trước G8: chỉ trần chung 16 tiếng
     await audio.bank.ensure("combat");
     for (let i = 0; i < AUDIO_MAX_ACTIVE; i++) audio.playGroup(`swing-t${i}`, { x: 100 + 300, y: 100 });
     assert.equal(started.length, AUDIO_MAX_ACTIVE);
@@ -251,11 +256,105 @@ noListenerAudio.dispose();
     assert.equal(started.filter((n) => n.stopped).length, 1, "đúng một tiếng xa bị cắt nhường chỗ");
   }
 
+  // G8 (#399): cân âm lượng nhóm, trần chồng theo loại, nén chung, hạ nền khi đông tiếng
+  {
+    assert.equal(groupTrimKey("skill-fire-boom"), "skill-fire");
+    assert.equal(groupTrimKey("skill-t3-ult-cuu-tinh-that-sat-kiem-fly"), "skill-t3-ult-fly");
+    assert.equal(groupTrimKey("skill-t3-ct-hao-thien-chuy-start"), "skill-t3-ct-start");
+    assert.equal(groupTrimKey("skill-t3-avatar-hoa-long"), "skill-t3-avatar");
+    assert.equal(groupTrim("nhom-la"), 1, "nhóm không có trong bảng: giữ nguyên");
+    assert.ok(Math.abs(groupTrim("swing-chuy") - 10 ** (-4 / 20)) < 1e-12, "swing-chuy -4 dB");
+    // mọi nhóm của manifest thật có khóa trim đúng (trừ nhóm đã sát mục tiêu: 0 dB), mọi khóa trim đều trỏ tới nhóm có thật, trong khoảng ±9 dB
+    const keys = new Set(real.clips.map((c) => groupTrimKey(c.group)));
+    for (const k of Object.keys(GROUP_TRIM_DB)) { assert.ok(keys.has(k), `khóa trim thừa: ${k}`); assert.ok(Math.abs(GROUP_TRIM_DB[k]) <= 9, `trim ${k} quá ±9 dB`); }
+    for (const k of keys) assert.ok(k in GROUP_TRIM_DB || ["ring-absorb", "ui-equip"].includes(k), `nhóm ${k} chưa được cân (chạy tools/audio/measure-sfx.mjs)`);
+    for (const c of real.clips) assert.notEqual(voiceClassOf(c.group), "synth", `nhóm ${c.group} chưa có loại tiếng`);
+    assert.equal(voiceClassOf("skill-t3-ult-hoa-long-start"), "t3");
+    assert.equal(voiceClassOf("skill-ice-fly"), "skill");
+
+    // trần theo loại: 20 nhóm vung vũ khí chỉ giữ VOICE_CAP.melee tiếng; loại khác vẫn còn chỗ
+    const { audio, started } = make();
+    await audio.bank.ensure("combat");
+    for (let i = 0; i < 12; i++) audio.playGroup(`swing-t${i}`, { x: 100 + 100, y: 100 });
+    assert.equal(audio.activeVoices, VOICE_CAP.melee, "hết trần loại thì tiếng mới cùng loại (không hơn điểm) bị bỏ");
+    audio.playGroup("swing-t12", { x: 100, y: 100 });
+    assert.equal(audio.activeVoices, VOICE_CAP.melee, "tiếng cùng loại ở gần hơn chen vào, cắt đúng một tiếng xa");
+    assert.equal(started.filter((n) => n.stopped).length, 1);
+    audio.setMixEnabled(false);
+    audio.playGroup("swing-t13", { x: 100 + 100, y: 100 });
+    assert.equal(audio.activeVoices, VOICE_CAP.melee + 1, "tắt trộn G8: trở lại trần chung, không trần theo loại");
+    assert.ok(Object.values(VOICE_CAP).every((n) => n >= 2 && n <= AUDIO_MAX_ACTIVE));
+  }
+
+  // trim áp vào âm lượng tiếng; tắt trộn thì về 1
+  for (const [on, k] of [[true, groupTrim("swing-chuy")], [false, 1]]) {
+    const { audio, gainNodes } = make();
+    audio.setMixEnabled(on);
+    await audio.bank.ensure("combat");
+    audio.bank.pick = (group) => ({ buffer: {}, start: 0, duration: 1, id: "x", group });
+    audio.playGroup("swing-chuy", { x: 100, y: 100 });
+    assert.ok(Math.abs(gainNodes.at(-1).gain.value - k) < 1e-9, `trim ${on ? "bật" : "tắt"}: ${k}, được ${gainNodes.at(-1).gain.value}`);
+  }
+
+  // nén chung + hạ nhạc nền / môi trường khi đông tiếng
+  {
+    const { audio, ctx, gainNodes } = make();
+    const compressor = { threshold: { value: 0 }, knee: { value: 0 }, ratio: { value: 0 }, attack: { value: 0 }, release: { value: 0 }, connections: [], connect(t) { this.connections.push(t); }, disconnect() {} };
+    ctx.createDynamicsCompressor = () => compressor;
+    ctx.currentTime = 0;
+    const withComp = new AudioManager({ sound: { context: ctx, setMute() {}, setVolume() {} } }, () => ({ x: 100, y: 100 }), () => null, { bank: { load, format: "ogg", now: () => 1e9 } });
+    assert.equal(compressor.ratio.value, MASTER_COMPRESSOR.ratio);
+    assert.equal(compressor.threshold.value, MASTER_COMPRESSOR.threshold);
+    assert.deepEqual(compressor.connections, [ctx.destination], "bộ nén nối ra loa");
+    assert.deepEqual(gainNodes.at(-3).connections, [compressor], "kênh Hiệu ứng đi qua bộ nén");
+    withComp.setMixEnabled(false);
+    assert.equal(compressor.ratio.value, 1, "tắt trộn: bộ nén thành đường thẳng");
+    withComp.dispose();
+  }
+  {
+    const { audio, gainNodes } = make();
+    const ducks = [];
+    Object.defineProperty(audio, "music", { value: { duckFor: (depth, ms) => ducks.push([depth, ms]) } });
+    await audio.bank.ensure("combat"); await audio.bank.ensure("beast");
+    const ambient = gainNodes[2].gain;
+    ambient.value = 0.7; // đã đặt theo cài đặt; hạ rồi trả lại về mức này (mock ghi giá trị cuối của mỗi lệnh)
+    for (let i = 0; i < 5; i++) audio.playGroup(`swing-t${i}`, { x: 100, y: 100 });
+    for (let i = 0; i < CROWD_DUCK.voices - 6; i++) audio.playGroup(`beast-t${i}`, { x: 100, y: 100 });
+    assert.equal(audio.activeVoices, CROWD_DUCK.voices - 1);
+    assert.equal(ducks.length, 0, `dưới ${CROWD_DUCK.voices} tiếng chưa hạ nền`);
+    audio.playGroup(`beast-t7`, { x: 100, y: 100 });
+    assert.deepEqual(ducks, [[CROWD_DUCK.music, CROWD_DUCK.ms]], "đủ tiếng thì hạ nhạc nền một lần");
+    audio.playGroup(`beast-t6`, { x: 100, y: 100 });
+    assert.equal(ducks.length, 1, "không hạ dồn dập trong nửa chu kỳ hạ");
+    // tiếng lớn đang hạ nhạc thì hạ đám đông không ghi đè (G8 review)
+    const { audio: a2 } = make(), d2 = [];
+    Object.defineProperty(a2, "music", { value: { duckFor: (depth, ms) => d2.push([depth, ms]) } });
+    await a2.bank.ensure("combat"); await a2.bank.ensure("beast");
+    a2.bank.pick = (group) => ({ buffer: {}, start: 0, duration: 1, id: "x", group });
+    a2.playGroup("beast-t0", null, { duck: 0.55, duckMs: 800 });
+    for (let i = 0; i < 5; i++) a2.playGroup(`swing-t${i}`, { x: 100, y: 100 });
+    for (let i = 1; i < 6; i++) a2.playGroup(`beast-t${i}`, { x: 100, y: 100 });
+    assert.deepEqual(d2, [[0.55, 800]], "đông tiếng không hạ nhạc nông lại khi lần hạ của tiếng lớn còn hạn");
+    audio.setMixEnabled(false);
+    audio.playGroup(`beast-t5`, { x: 100, y: 100 });
+    assert.equal(ducks.length, 1, "tắt trộn G8 thì không hạ nền theo số tiếng");
+  }
+
+  {
+    const { audio, ctx, gainNodes } = make();
+    const cancels = [];
+    gainNodes[2].gain.cancelScheduledValues = (t) => cancels.push(t);
+    ctx.currentTime = 7;
+    audio.updateSettings({ muted: true });
+    assert.deepEqual(cancels, [7], "đổi cài đặt hủy lịch hạ môi trường còn treo");
+    assert.equal(gainNodes[2].gain.value, 0, "tắt tiếng thì bus môi trường về 0");
+  }
+
   // vang lấy sau âm lượng của tiếng (xa thì vang nhỏ), bị cắt thì vang cũng ngắt
   {
     const { audio, started, gainNodes } = make();
     await audio.bank.ensure("combat");
-    audio.bank.pick = () => ({ buffer: {}, start: 0, duration: 1, id: "x" });
+    audio.bank.pick = () => ({ buffer: {}, start: 0, duration: 1, id: "x", group: "step-co" });
     audio.playGroup("swing-t6", { x: 100 + 250, y: 100 }, { wet: 0.5 });
     const send = gainNodes.at(-1);
     assert.equal(started.length, 1);

@@ -5,7 +5,7 @@ import { createZzFxBuffer } from "./zzfx.ts";
 import { musicPlayerFor, type MusicPlayer } from "./music.ts";
 import { SfxBank, type SfxBankOptions } from "./sfxBank.ts";
 import { AmbientLayers, type AmbientInput, type AmbientKind } from "./ambientLayers.ts";
-import { LOUD_FX, SKILL_PHASE_OF_FX, T3_WINDOW_MS, T3_OTHERS_GAP_MS, T3_OTHERS_GAIN, t3Group, SWING_FX, UI_GROUP, heartbeatInterval, LOW_HP_RATIO, ringGlowMix, type UiSound, type SkillPhase, type BeastFamily, type Element, type Material, type Weapon } from "./soundMap.ts";
+import { LOUD_FX, SKILL_PHASE_OF_FX, T3_WINDOW_MS, T3_OTHERS_GAP_MS, T3_OTHERS_GAIN, t3Group, SWING_FX, UI_GROUP, heartbeatInterval, groupTrim, voiceClassOf, VOICE_CAP, CROWD_DUCK, MASTER_COMPRESSOR, LOW_HP_RATIO, ringGlowMix, type VoiceClass, type UiSound, type SkillPhase, type BeastFamily, type Element, type Material, type Weapon } from "./soundMap.ts";
 
 interface SoundManagerHost {
   context?: AudioContext;
@@ -87,7 +87,7 @@ const skillSfxByHe: Readonly<Record<string, SfxId>> = {
 /** Ưu tiên mặc định của tiếng tổng hợp theo nhóm: giao diện luôn nghe, tiếng chiến đấu hơn tiếng thường. */
 const synthPriority = (id: SfxId) => (id.startsWith("ui_") ? 4 : id.startsWith("boss_") ? 3 : id.startsWith("combat_") || id.startsWith("skill_") ? 1.2 : 1);
 
-interface Voice { node: AudioBufferSourceNode; gain: GainNode; score: number; send: GainNode | null; }
+interface Voice { node: AudioBufferSourceNode; gain: GainNode; score: number; send: GainNode | null; cls: VoiceClass; }
 
 export class AudioManager {
   private readonly host: SoundManagerHost;
@@ -113,12 +113,26 @@ export class AudioManager {
   /** Môi trường lớp chồng (gió, sóng, chim, côn trùng, lửa, chuông): GameScene gọi `updateAmbient`. */
   readonly ambient: AmbientLayers;
   private heartbeatAt = 0;
+  /** Bộ nén chung của ba kênh tiếng (null khi không có DynamicsCompressor, ví dụ môi trường thử). */
+  private readonly compressor: DynamicsCompressorNode | null = null;
+  /** Bật cân âm lượng nhóm + trần chồng theo loại + nén + hạ nền khi đông (G8, #399); tắt = hành vi trước G8, chỉ để trang nghe thử `?thu=am` so sánh trước / sau. */
+  private mixOn = true;
+  private lastCrowdDuckAt = 0;
+  /** Hạn (ms) lần hạ nhạc của tiếng lớn đang chạy (boss gầm, mở trận, hấp thụ…): hạ nhạc theo đám đông không được ghi đè lên nó. */
+  private loudDuckUntil = 0;
 
   constructor(scene: { sound: unknown }, listener: () => AudioPoint | null, sourceResolver: AudioSourceResolver = () => null,
     options: { bank?: SfxBankOptions; random?: () => number } = {}) {
     this.host = scene.sound as SoundManagerHost;
     this.context = this.host.context ?? null;
-    const bus = () => { const g = this.context!.createGain(); g.connect(this.context!.destination); return g; };
+    const comp = this.context && typeof this.context.createDynamicsCompressor === "function" ? this.context.createDynamicsCompressor() : null;
+    if (comp) {
+      const c = MASTER_COMPRESSOR;
+      comp.threshold.value = c.threshold; comp.knee.value = c.knee; comp.ratio.value = c.ratio; comp.attack.value = c.attack; comp.release.value = c.release;
+      comp.connect(this.context!.destination);
+      this.compressor = comp;
+    }
+    const bus = () => { const g = this.context!.createGain(); g.connect(comp ?? this.context!.destination); return g; };
     this.sfxBus = this.context ? bus() : null;
     this.uiBus = this.context ? bus() : null;
     this.ambientBus = this.context ? bus() : null;
@@ -131,6 +145,13 @@ export class AudioManager {
     this.settings = loadAudioSettings(storage());
     this.applySettings();
   }
+
+  /** Bật / tắt phần trộn G8 (trang nghe thử so sánh trước / sau): cân nhóm, trần theo loại, nén, hạ nền khi đông. */
+  setMixEnabled(on: boolean): void {
+    this.mixOn = on;
+    if (this.compressor) this.compressor.ratio.value = on ? MASTER_COMPRESSOR.ratio : 1;
+  }
+  get mixEnabled(): boolean { return this.mixOn; }
 
   /** Số tiếng đang phát (tối đa AUDIO_MAX_ACTIVE). */
   get activeVoices(): number { return this.voices.size; }
@@ -167,8 +188,8 @@ export class AudioManager {
     const mix = source ? spatialMix(source, listener!) : { volume: 1, pan: 0 };
     if (!mix) return;
     const vary = this.vary();
-    const score = synthPriority(id) * mix.volume;
-    if (!this.admit(score)) return;
+    const score = synthPriority(id) * mix.volume, cls: VoiceClass = id.startsWith("ui_") ? "ui" : "synth";
+    if (!this.admit(score, cls)) return;
     let buffer = this.bufferCache.get(id);
     if (!buffer) {
       buffer = createZzFxBuffer(context, params);
@@ -177,7 +198,7 @@ export class AudioManager {
     const node = context.createBufferSource();
     node.buffer = buffer;
     if (node.playbackRate) node.playbackRate.value = vary.rate;
-    this.startVoice(node, mix.volume * vary.gain, mix.pan, (id.startsWith("ui_") ? this.uiBus : this.sfxBus) ?? context.destination, score);
+    this.startVoice(node, mix.volume * vary.gain, mix.pan, (id.startsWith("ui_") ? this.uiBus : this.sfxBus) ?? context.destination, score, cls);
     this.lastPlayedAt.set(id, now);
     node.start();
   }
@@ -221,8 +242,7 @@ export class AudioManager {
   updateAmbient(nowMs: number, input: AmbientInput): void { this.ambient.update(nowMs, input); }
 
   private playAmbient(kind: AmbientKind, volume: number, pan: number): void {
-    const gain = { wind: 0.7, wave: 0.8, bird: 0.7, cricket: 0.55, fire: 0.9, bell: 0.7 }[kind];
-    this.playGroup(`amb-${kind}`, null, { channel: "ambient", priority: 0.25, gain: gain * volume, pan, ...(kind === "bell" ? { wet: 0.5 } : {}) });
+    this.playGroup(`amb-${kind}`, null, { channel: "ambient", priority: 0.25, gain: volume, pan, ...(kind === "bell" ? { wet: 0.5 } : {}) });
   }
 
   // ---- PK (G5, #396): chỉ tiếng + hàm phát; trận đấu trường gọi ở G6 (#397). ----
@@ -348,6 +368,7 @@ export class AudioManager {
     this.sfxBus?.disconnect();
     this.uiBus?.disconnect();
     this.ambientBus?.disconnect();
+    this.compressor?.disconnect();
     this.bufferCache.clear();
     this.lastPlayedAt.clear();
   }
@@ -360,30 +381,64 @@ export class AudioManager {
     return channel === "ui" ? this.uiBus : channel === "ambient" ? this.ambientBus : this.sfxBus;
   }
 
-  /** Còn chỗ thì nhận; hết chỗ thì cắt tiếng điểm thấp nhất nếu tiếng mới điểm cao hơn, không thì bỏ tiếng mới. */
-  private admit(score: number): boolean {
+  /** Còn chỗ thì nhận; hết chỗ (cả 16 tiếng, hoặc trần của loại `cls`) thì cắt tiếng điểm thấp nhất nếu tiếng mới điểm cao hơn, không thì bỏ tiếng mới. */
+  private admit(score: number, cls: VoiceClass = "synth"): boolean {
+    if (this.mixOn) {
+      let n = 0, weakest: Voice | null = null;
+      for (const voice of this.voices) if (voice.cls === cls) { n++; if (!weakest || voice.score < weakest.score) weakest = voice; }
+      if (n >= VOICE_CAP[cls]) {
+        if (!weakest || score <= weakest.score) return false;
+        this.cut(weakest);
+      }
+    }
     if (this.voices.size < AUDIO_MAX_ACTIVE) return true;
     let weakest: Voice | null = null;
     for (const voice of this.voices) if (!weakest || voice.score < weakest.score) weakest = voice;
     if (!weakest || score <= weakest.score) return false;
-    this.voices.delete(weakest);
-    try { weakest.gain.gain.value = 0; weakest.node.stop(); } catch { /* đã dừng */ }
-    weakest.send?.disconnect();
+    this.cut(weakest);
     return true;
   }
 
-  private startSample(pick: { buffer: AudioBuffer; start: number; duration: number }, mix: { volume: number; pan: number }, opts: SampleOptions, vary = true): void {
+  private cut(voice: Voice): void {
+    this.voices.delete(voice);
+    try { voice.gain.gain.value = 0; voice.node.stop(); } catch { /* đã dừng */ }
+    voice.send?.disconnect();
+  }
+
+  /** Đông tiếng thì hạ nhạc nền và môi trường một lúc (CROWD_DUCK), không dồn dập hơn nửa chu kỳ hạ. */
+  private crowdDuck(): void {
+    if (!this.mixOn || this.voices.size < CROWD_DUCK.voices) return;
+    const now = Date.now();
+    if (now - this.lastCrowdDuckAt < CROWD_DUCK.ms / 2) return;
+    this.lastCrowdDuckAt = now;
+    if (now >= this.loudDuckUntil) this.music?.duckFor(CROWD_DUCK.music, CROWD_DUCK.ms); // tiếng lớn đang hạ nhạc sâu hơn thì để nguyên
+    this.duckAmbient(CROWD_DUCK.ambient, CROWD_DUCK.ms);
+  }
+
+  private duckAmbient(depth: number, ms: number): void {
+    const bus = this.ambientBus, context = this.context;
+    if (!bus || !context || typeof bus.gain.cancelScheduledValues !== "function") return;
+    const g = bus.gain, t = context.currentTime, base = this.settings.muted ? 0 : this.settings.master * this.settings.ambient, end = Math.max(t + ms / 1000, t + 0.06);
+    g.cancelScheduledValues(t);
+    g.setValueAtTime(g.value, t);
+    g.linearRampToValueAtTime(base * depth, t + 0.06);
+    g.setValueAtTime(base * depth, end);
+    g.linearRampToValueAtTime(base, end + 0.5);
+  }
+
+  private startSample(pick: { buffer: AudioBuffer; start: number; duration: number; group: string }, mix: { volume: number; pan: number }, opts: SampleOptions, vary = true): void {
     const context = this.context!;
     const v = vary ? this.vary() : { rate: 1, gain: 1 };
-    const score = (opts.priority ?? 1) * mix.volume;
-    if (!this.admit(score)) return;
+    const score = (opts.priority ?? 1) * mix.volume, cls = voiceClassOf(pick.group);
+    if (!this.admit(score, cls)) return;
     const node = context.createBufferSource();
     node.buffer = pick.buffer;
     const rate = v.rate * (opts.rate ?? 1);
     if (node.playbackRate) node.playbackRate.value = rate;
-    this.startVoice(node, mix.volume * v.gain * (opts.gain ?? 1), opts.pan ?? mix.pan, this.channelBus(opts.channel ?? "sfx") ?? context.destination, score, opts.wet);
+    this.startVoice(node, mix.volume * v.gain * (opts.gain ?? 1) * (this.mixOn ? groupTrim(pick.group) : 1), opts.pan ?? mix.pan, this.channelBus(opts.channel ?? "sfx") ?? context.destination, score, cls, opts.wet);
     node.start(0, pick.start, pick.duration + 0.01);
-    if (opts.duck) this.music?.duckFor(opts.duck, opts.duckMs ?? LOUD_DUCK.ms);
+    if (opts.duck) { const ms = opts.duckMs ?? LOUD_DUCK.ms; this.music?.duckFor(opts.duck, ms); this.loudDuckUntil = Math.max(this.loudDuckUntil, Date.now() + ms + 500); }
+    else this.crowdDuck();
   }
 
   /** Nhánh vang: gain của tiếng (đã nhân khoảng cách) → gain (mức wet) → ConvolverNode → bus Hiệu ứng, nên tiếng xa vang nhỏ theo. Không có WebAudio đủ thì bỏ vang. */
@@ -407,7 +462,7 @@ export class AudioManager {
     return send;
   }
 
-  private startVoice(node: AudioBufferSourceNode, volume: number, pan: number, destination: AudioNode, score: number, wet = 0): void {
+  private startVoice(node: AudioBufferSourceNode, volume: number, pan: number, destination: AudioNode, score: number, cls: VoiceClass, wet = 0): void {
     const context = this.context!;
     const gain = context.createGain();
     const panner = typeof context.createStereoPanner === "function" ? context.createStereoPanner() : null;
@@ -416,7 +471,7 @@ export class AudioManager {
     if (panner) { panner.pan.value = pan; gain.connect(panner); panner.connect(destination); }
     else gain.connect(destination);
     const send = wet > 0 ? this.sendToReverb(gain, wet) : null;
-    const voice: Voice = { node, gain, score, send };
+    const voice: Voice = { node, gain, score, send, cls };
     this.voices.add(voice);
     node.addEventListener("ended", () => { this.voices.delete(voice); send?.disconnect(); }, { once: true });
   }
@@ -431,7 +486,11 @@ export class AudioManager {
     this.host.setVolume(level(s.music));
     if (this.sfxBus) this.sfxBus.gain.value = level(s.sfx);
     if (this.uiBus) this.uiBus.gain.value = level(s.ui);
-    if (this.ambientBus) this.ambientBus.gain.value = level(s.ambient);
+    if (this.ambientBus) {
+      const g = this.ambientBus.gain; // bỏ lịch hạ đám đông đang chạy, không thì ramp trả âm lượng cũ ghi đè lên cài đặt mới (nhất là Tắt tiếng)
+      if (typeof g.cancelScheduledValues === "function" && this.context) g.cancelScheduledValues(this.context.currentTime);
+      g.value = level(s.ambient);
+    }
     // Bus nhạc thật nằm ở MusicPlayer (nối thẳng vào loa, không qua Phaser); volume Phaser ở trên giữ cho tiếng Phaser nếu có.
     this.music?.setVolume(level(s.music));
   }

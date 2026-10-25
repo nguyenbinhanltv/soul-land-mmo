@@ -62,7 +62,8 @@ export function audioTestScreen(card: HTMLElement, overlay: HTMLElement): void {
   <div class="at-mix" id="atMix"></div>
   <h2>Thử trộn</h2>
   <div class="at-row"><button type="button" id="atBoss">Boss gầm (nhạc tự hạ)</button>
-    <button type="button" id="atCrowd">Chồng 40 tiếng ở xa gần khác nhau</button><small id="atVoices"></small></div>
+    <button type="button" id="atCrowd">Chồng 40 tiếng ở xa gần khác nhau</button><small id="atVoices"></small>
+    <label><input type="checkbox" id="atMixOn" checked> Trộn G8 (cân âm lượng nhóm, trần chồng theo loại, nén, hạ nền khi đông); bỏ chọn = nghe bản trước G8</label></div>
   <h2>Nhạc động</h2>
   <div class="at-row"><b>Bản đồ</b><select id="atMap">${Object.values(MAPS).map((m) => `<option value="${m.id}">${m.name}</option>`).join("")}</select>
     <button type="button" id="atMusic">Bật / tắt nhạc</button><small id="atMusicState"></small></div>
@@ -158,6 +159,7 @@ export function audioTestScreen(card: HTMLElement, overlay: HTMLElement): void {
   $("atHp25").addEventListener("click", withAudio(() => { hp = 0.25; }));
   $("atHp08").addEventListener("click", withAudio(() => { hp = 0.08; }));
   $("atHpOff").addEventListener("click", () => { hp = 0; audio.updateLowHpHeartbeat(1); });
+  $<HTMLInputElement>("atMixOn").addEventListener("change", (e) => audio.setMixEnabled((e.target as HTMLInputElement).checked));
   $("atBoss").addEventListener("click", () => { void audio.unlock().then(() => audio.playBeast("boss", null)); });
   $("atCrowd").addEventListener("click", () => {
     void audio.unlock().then(() => {
