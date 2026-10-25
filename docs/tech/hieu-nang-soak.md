@@ -33,7 +33,7 @@ Mỗi mức chạy 5 phút (20 → 40 → 60 bot trên cùng server), xong thì 
 - Sau khi bot rời: phòng tự hủy (0 phòng), heap về 27,6 MB, RSS giữ ~250 MB.
 
 ## 2. Kịch bản Vào ra: 40 bot trộn vai trên 6–7 phòng, 28 phút
-`CHANNEL_MAX=12` để Tinh Đấu Ngoại vi ×8 tách 2 kênh. Có 5 phút 20 bot, rồi 23 phút 40 bot. Mỗi 10 bot gồm: tự săn ở Tinh Đấu Ngoại vi ×2, Lạc Nhật Sâm Lâm và Cực Bắc Chi Địa; 2 bot đánh thú vương (Thâm Hải Ma Kình Vương ở Hải Thần Đảo, Thiên Độc Chu Hoàng ở Tinh Đấu Nội địa /, gọi ra bằng hook `king spawn`, tự săn đánh boss); 1 bot đi lang thang đánh thường / hồn kỹ; 1 bot gia nhập tông môn rồi đứng ở Thiên Đấu Thành; 2 bot **vào ra** mỗi 30–90 giây (đổi kênh, đi cổng sang bản đồ ×8 khác, rời hẳn rồi vào lại thành phiên mới).
+`CHANNEL_MAX=12` để Tinh Đấu Ngoại vi ×8 tách 2 kênh. Có 5 phút 20 bot, rồi 23 phút 40 bot. Mỗi 10 bot gồm: tự săn ở Tinh Đấu Ngoại vi ×2, Lạc Nhật Sâm Lâm và Cực Bắc Chi Địa; 2 bot đánh thú vương (Thâm Hải Ma Kình Vương ở Hải Thần Đảo, Thiên Độc Chu Hoàng ở Tinh Đấu Nội địa, gọi ra bằng hook `king spawn`, tự săn đánh boss); 1 bot đi lang thang đánh thường / hồn kỹ; 1 bot gia nhập tông môn rồi đứng ở Thiên Đấu Thành; 2 bot **vào ra** mỗi 30–90 giây (đổi kênh, đi cổng sang bản đồ ×8 khác, rời hẳn rồi vào lại thành phiên mới).
 Trong 23 phút ở mức 40 bot: 68 lần vào lại, 63 lần đi cổng, đổi kênh 1 lần (lượt sau 15 lần; hiếm khi có kênh thứ hai còn chỗ), 0 lỗi server.
 
 | Phút | Bot | Phòng | heap sau gc | RSS | CPU | Σ tick + vá mọi phòng / nhịp |
@@ -102,7 +102,7 @@ Code `5620686` (có `PERF_LOG` ghi `[perf-slow]` theo đoạn và CPU luồng ch
 - Lượt 40 bot, 4 dòng `[perf-slow]` (wall / cpu ms, đoạn nặng): 70 / 68 (người 63), 67 / 27 (người 49), 118 / 22 (nhiễu: wall ≫ cpu), 13 / 10 (trễ nhịp trước). Chỉ nhịp đầu là việc thật của luồng; nhịp thứ hai nửa thật nửa bị hệ điều hành giành CPU.
 - Lượt 60 bot không có nhịp nào vượt 50 ms, nên **chưa thấy** đỉnh tăng theo số người (chỉ một lượt 5 phút mỗi mức; với ~0,4 nhịp thật / phút ở lượt 40, xác suất lượt 60 không gặp nhịp nào do ngẫu nhiên vẫn ~13 %, chưa đủ để kết luận). Có vẻ là biến cố rời rạc (nghi `AutoHunter` tìm đường A* một lần nặng khi mục tiêu xa / không tới được), chưa chứng minh vì `[perf-slow]` chỉ chia tới đoạn "người".
 - Lượt đo trước (cổng DB thật, bỏ) cho thấy nhiễu máy thật sự gây nhịp tới 25 giây (wall 25 000 ms, cpu 7 ms: cả tiến trình bị treo), không liên quan code game.
-- Kết luận: với 40–60 người tự săn một kênh ×8, nhịp trung bình 7–8 ms, nhịp > 50 ms hiếm (≤ 1 / phút) và không có nguyên nhân rõ trong code nên **không sửa code**. Chốt nguyên nhân (đo từng lần gọi `AutoHunter.tick`, đoạn "người", khi nhịp vượt ngưỡng) tách sang .
+- Kết luận: với 40–60 người tự săn một kênh ×8, nhịp trung bình 7–8 ms, nhịp > 50 ms hiếm (≤ 1 / phút) và không có nguyên nhân rõ trong code nên **không sửa code**. Chốt nguyên nhân (đo từng lần gọi `AutoHunter.tick`, đoạn "người", khi nhịp vượt ngưỡng) tách sang phần 7 bên dưới.
 
 ## 7. Nhịp chậm ở vòng người chơi khi 40 người tự săn: đo từng lần `AutoHunter.tick`
 **Cách đo.** Server `PERF_LOG=1` bật thì mỗi dòng `[perf-slow]` thêm: số `AutoHunter.tick` và tổng ms, ba người tốn nhất, và từng lần `plan()` (A*) kèm thời gian, loại (thường / dài), số điểm (`perfAuto` / `perfPlan` ở `MapRoom`, xóa đầu mỗi tick; tắt `PERF_LOG` thì không đo gì). Lượt đo: server `env -u DATABASE_URL GAME_TEST=1 PERF_LOG=1` (log xác nhận "chỉ lưu trong RAM"), `N=40 node client/scripts/auto-soak.mjs` trên Tinh Đấu Ngoại vi ×8: 10 phút rồi 25 phút (macOS, máy có phiên khác chạy).
@@ -171,4 +171,4 @@ Redis được tắt / bật bởi harness ngoài bài bot đúng giữa lượt
 Chạy dài lệnh Thợ rèn / mặc đồ (40 bot × 20 phút, và PostgreSQL 20 bot × 5 phút): tick ~0,9 ms, không chậm dần, bộ nhớ không rò, vào lại đúng trạng thái. Số liệu, cách chạy (`bot:local --only equipsoak`) và kết luận cân bằng ở `docs/trang-bi-kinh-te.md` mục E7.
 
 ## Issue liên quan
-#167 (soak ×8), #229 (soak 30 phút), #240, #241, #250, #273 và #375 (nhịp chậm), #311 (`PERF_LOG` theo đoạn), #394 (hiệu ứng G3), #418 (E7), #496 (Redis).
+#167 (soak ×8), #220 / #222 (thú vương Tinh Đấu Nội địa), #229 (soak 30 phút), #240, #241, #250, #273 và #375 (nhịp chậm), #311 (`PERF_LOG` theo đoạn), #394 (hiệu ứng G3), #418 (E7), #496 (Redis).
