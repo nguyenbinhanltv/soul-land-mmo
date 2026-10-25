@@ -2150,10 +2150,10 @@ export class GameScene extends Phaser.Scene {
         const fly = (ico?: Phaser.GameObjects.Image) => {
           const targets: Phaser.GameObjects.GameObject[] = ico ? [t, ico] : [t];
           this.tweens.add({ targets: t, scale: 1.3 * this.txtK, y: cy - HEAD - 16 * k, duration: 500, ease: "Back.easeOut" });
-          if (ico) this.tweens.add({ targets: ico, scale: 1.3 * this.txtK * 18 / ico.width, y: cy - HEAD - 16 * k - 22 * this.txtK, duration: 500, ease: "Back.easeOut" });
+          if (ico) this.tweens.add({ targets: ico, scale: 1.3 * this.txtK * 18 / ico.width, y: cy - HEAD - 16 * k - 9 * this.txtK, duration: 500, ease: "Back.easeOut" });
           this.tweens.add({ targets, alpha: 0, delay: 1500, duration: 600, onComplete: () => targets.forEach((o) => o.destroy()) });
         };
-        const mkIco = () => this.add.image(c.x, cy - HEAD - 16 * this.txtK, icoKey).setOrigin(0.5, 1).setDepth(99990).setScale(0.5 * this.txtK * 18 / this.textures.get(icoKey).getSourceImage().width);
+        const mkIco = () => this.add.image(c.x, cy - HEAD - 4 * this.txtK, icoKey).setOrigin(0.5, 1).setDepth(99990).setScale(0.5 * this.txtK * 18 / this.textures.get(icoKey).getSourceImage().width);
         if (!icoUrl) fly();
         else if (this.textures.exists(icoKey)) fly(mkIco());
         else { // nạp lười một lần; trong lúc chờ nhãn đã bay (không chặn khung hình), ảnh tới kịp lúc thì hiện theo
