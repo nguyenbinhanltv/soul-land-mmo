@@ -1,6 +1,6 @@
 ---
 name: asset-gen
-description: Hướng dẫn thao tác làm ảnh và đưa vào game theo quy cách isometric ở docs/art/quy-cach-isometric.md (hồn sư 64×64 ghép lớp, phụ thể võ hồn 96×96, hồn thú theo bậc 64–192, ô nền thoi 32×16 / ô lớn 64×32, vật đứng, chân dung, thẻ, biểu tượng, mảnh giao diện thủy mặc, NPC phụ LPC): chọn nguồn ảnh theo họ asset (họ C1–C16 giao diện / cảm giác đánh / trang phục thuộc Codex của tthoadev; hồn sư và NPC phụ LPC; phụ thể ảnh tĩnh 5 hướng + chuyển động code; hồn thú kiểu lai; PixelLab Tier 1 chỉ cho hoạt ảnh kỹ năng / pháp tướng / xoay hướng; ComfyUI tự host (MCP comfyui-pixel, SDXL + pixel-art-xl; prompt, ảnh dẫn isometric comfy-guide.mjs, tách nền comfy-key.mjs) cho ảnh tĩnh khi orchestrator cần; Gemini do người dùng tạo), nhập ảnh Gemini bằng gemini-import.mjs, ghép NPC phụ từ LPC bằng lpc-compose.mjs, vẽ tay (he-icons.mjs, Aseprite) và dây chuyền tools/assets normalize → pack → normal → preview → validate. Dùng khi được yêu cầu "tạo <asset>" (hồn sư, kiểu tóc, phụ thể võ hồn, hồn thú, ô nền, cây, nhà, biểu tượng…), hoặc khi sửa tools/assets, shared/assets/sprites, shared/assets/iso, manifest.json, art/CREDITS.md.
+description: Hướng dẫn thao tác làm ảnh và đưa vào game theo quy cách isometric ở docs/art/quy-cach-isometric.md (hồn sư 64×64 ghép lớp, phụ thể võ hồn 96×96, hồn thú theo bậc 64–192, ô nền thoi 32×16 / ô lớn 64×32, vật đứng, chân dung, thẻ, biểu tượng, mảnh giao diện thủy mặc, NPC phụ LPC): chọn nguồn ảnh theo họ asset (họ C1–C16 giao diện / cảm giác đánh / trang phục thuộc Codex của tthoadev; hồn sư và NPC phụ LPC; phụ thể ảnh tĩnh 5 hướng + chuyển động code; hồn thú kiểu lai; PixelLab Tier 1 chỉ cho hoạt ảnh kỹ năng / pháp tướng / xoay hướng; ComfyUI tự host (MCP comfyui-pixel, SDXL + pixel-art-xl; prompt, ảnh dẫn isometric comfy-guide.mjs, tách nền comfy-key.mjs) cho ảnh tĩnh khi orchestrator cần; Gemini cũ đã duyệt; ảnh sinh model mới là ChatGPT / Codex, Q44), nhập ảnh Gemini bằng gemini-import.mjs, ghép NPC phụ từ LPC bằng lpc-compose.mjs, vẽ tay (he-icons.mjs, Aseprite) và dây chuyền tools/assets normalize → pack → normal → preview → validate. Dùng khi được yêu cầu "tạo <asset>" (hồn sư, kiểu tóc, phụ thể võ hồn, hồn thú, ô nền, cây, nhà, biểu tượng…), hoặc khi sửa tools/assets, shared/assets/sprites, shared/assets/iso, manifest.json, art/CREDITS.md.
 ---
 
 # Làm ảnh và đưa vào game
@@ -38,9 +38,9 @@ Quy tắc (phép chiếu, cỡ khung, phong cách, bảng màu) là `docs/art/qu
 | Phụ thể võ hồn | **Xong 25 / 25** (#606): ảnh tĩnh 5 hướng ghép theo điểm neo + chi tiết bằng code; chuyển động phụ bằng code (H7 #605). Không làm hoạt ảnh nhiều hướng |
 | Hồn thú | **Kiểu lai** (#386): ComfyUI tĩnh 3 hướng nam / đông / bắc + chuyển động bằng code; 67 loài xong. Thú LPC chỉ còn là hình tạm cũ (phần 5) |
 | Hoạt ảnh kỹ năng / sheet hiệu ứng (S2 / S3), pháp tướng, xoay hướng / hoạt ảnh nhiều hướng | **PixelLab Tier 1** (phần 3) |
-| Ô nền | Gemini (người dùng tự tạo; 10 bản đồ hiện dùng), ComfyUI (phần 10); **một bản đồ một nguồn ô nền** |
-| Vật đứng, công trình | Gemini (người dùng tự tạo) hoặc ComfyUI (phần 10, công cụ của orchestrator) |
-| Chân dung, khung thẻ, biểu tượng vật phẩm / trạng thái, mảnh giao diện | Gemini (người dùng tự tạo); phần giao diện thuộc họ C1–C16 do Codex; biểu tượng vật phẩm cũng làm được bằng ComfyUI (phần 10) |
+| Ô nền | ComfyUI (phần 10), ChatGPT / Codex sinh ảnh (Q44); 10 bản đồ hiện dùng ô Gemini cũ đã duyệt; **một bản đồ một nguồn ô nền** |
+| Vật đứng, công trình | ChatGPT / Codex sinh ảnh (Q44) hoặc ComfyUI (phần 10, công cụ của orchestrator); ảnh Gemini cũ đã duyệt giữ nguyên |
+| Chân dung, khung thẻ, biểu tượng vật phẩm / trạng thái, mảnh giao diện | ChatGPT / Codex sinh ảnh (Q44; biểu tượng trang bị E6 làm bằng ChatGPT), ảnh Gemini cũ đã duyệt giữ nguyên; phần giao diện thuộc họ C1–C16 do Codex; biểu tượng vật phẩm cũng làm được bằng ComfyUI (phần 10) |
 | Huy hiệu hệ, chỉnh pixel | Vẽ tay (phần 6) |
 | NPC phụ, dân thường, lính gác | LPC (phần 5) |
 
@@ -50,14 +50,14 @@ Quy tắc (phép chiếu, cỡ khung, phong cách, bảng màu) là `docs/art/qu
 - Ảnh thô và thư mục làm việc để ngoài repo (thư mục artifact của phiên hoặc thư mục tạm); chỉ chép vào `shared/assets` sau khi người dùng duyệt.
 
 ## 3. PixelLab (bỏ 2026-10-23, dùng lại có giới hạn từ 2026-10-24)
-Người dùng chốt **không dùng PixelLab để tạo hình nhân vật / ảnh tĩnh**, không ghi key vào đâu. Chỉ gọi PixelLab cho đúng phạm vi ngoại lệ dưới đây. Ảnh PixelLab cũ vẫn còn trong game (hồn sư, hồn thú, vài vật đứng) và vẫn đi qua `normalize` / `pack` / `normal` / `validate` như trước (phần 7); nguồn ở `art/src/pixellab/` giữ để chạy lại; `art/CREDITS.md` giữ ghi nguồn. **Ngoại lệ (2026-10-24, gói Tier 1 mua lại; `docs/art/nguon-giay-phep.md`, Q22 ở `docs/quyet-dinh.md`): PixelLab chỉ cho hoạt ảnh / sheet hiệu ứng kỹ năng (S2 / S3), pháp tướng (`docs/art/phap-tuong.md`), xoay hướng và hoạt ảnh nhiều hướng**; ảnh tĩnh mới và hình nhân vật không dùng PixelLab.
+Người dùng chốt **không dùng PixelLab để tạo hình nhân vật / ảnh tĩnh**, không ghi key vào đâu. Chỉ gọi PixelLab cho đúng phạm vi ngoại lệ dưới đây. Ảnh PixelLab cũ vẫn còn trong game (hồn sư, hồn thú, vài vật đứng) và vẫn đi qua `normalize` / `pack` / `normal` / `validate` như trước (phần 7); nguồn ở `art/src/pixellab/` giữ để chạy lại; `art/CREDITS.md` giữ ghi nguồn. **Ngoại lệ (2026-10-24, gói Tier 1 mua lại; `docs/art/nguon-giay-phep.md`, Q22 ở `docs/quyet-dinh.md`): PixelLab chỉ cho hoạt ảnh / sheet hiệu ứng kỹ năng (S2 / S3), pháp tướng dạng hoạt ảnh (`docs/art/phap-tuong.md`), xoay hướng và hoạt ảnh nhiều hướng**; ảnh tĩnh mới, hình nhân vật và **ảnh concept pháp tướng** không dùng PixelLab (Q43).
 - Hoạt ảnh 8 hướng bằng ComfyUI / ControlNet **đã dừng** (#335 và #387 đóng; nhãn `cho-hoat-anh-8-huong` không còn ý nghĩa). Thay bằng: hồn sư LPC 4 hướng, phụ thể ảnh tĩnh 5 hướng + chuyển động code, hồn thú kiểu lai (ảnh tĩnh 3 hướng + chuyển động code).
 - Bài học còn đúng với mọi công cụ: duyệt khung tĩnh 8 hướng bằng mắt (phóng ×3, đặt trên nền isometric) trước khi làm animation; thu nhỏ ảnh 96×96 bằng code làm hỏng chi tiết nhỏ; ảnh ghép nhiều nhân vật không animate được; hồn thú không vẽ mắt phát sáng hay hào quang (client tô mắt theo `TIERS[bậc].glow`), hồn sư không vẽ vòng hồn hoàn.
 - Lỗi màu hay gặp ở hồn sư (ảnh cũ và mọi nguồn có tóc lam / áo xám khóa): mắt lam + lòng trắng, áo ánh tím lam, đai đỏ / vàng: `normalize --split` tự sửa mắt lam và 1–3 điểm lạc màu khóa, còn lại tô tay trước khi tách; mẫu vẽ cả hiệu ứng vào khung: `normalize --strip-fx cast`.
 - Màu thế giới (A + B): vật mô tả bằng màu **trầm, hơi khử màu** của vùng, chỉ phần phát sáng thật (nấm, băng tinh, lửa) mới sáng. Ô nền theo bảng chung (trầm), không theo màu vùng: client nhân màu môi trường. Công thức prompt ComfyUI ở phần 10.
 
-## 4. Gemini
-Người dùng tạo ảnh ở gemini.google.com; mình viết prompt, nhập và soát. Gemini vẽ nhiều vật trên một ảnh lớn dạng "giả pixel" (mỗi pixel nghệ thuật là khối ~5–7 px không đều, logo sao ở góc dưới phải); `gemini-import.mjs` đưa về pixel thật đúng khung isometric. Ảnh thô ở thư mục artifact (inbox), kết quả ra thư mục tạm ngoài repo.
+## 4. Gemini (quy trình ảnh lưới; nguồn ảnh sinh model hiện là ChatGPT / Codex, Q44)
+Ảnh Gemini cũ đã duyệt giữ nguyên ghi nguồn. Quy trình nhập ảnh lưới dưới đây dùng chung cho mọi ảnh sinh model (ban đầu người dùng tạo ở gemini.google.com); mình viết prompt, nhập và soát. Gemini vẽ nhiều vật trên một ảnh lớn dạng "giả pixel" (mỗi pixel nghệ thuật là khối ~5–7 px không đều, logo sao ở góc dưới phải); `gemini-import.mjs` đưa về pixel thật đúng khung isometric. Ảnh thô ở thư mục artifact (inbox), kết quả ra thư mục tạm ngoài repo.
 
 **Cách tạo ảnh và prompt**
 - **Mỗi ảnh một cuộc trò chuyện Gemini mới**: cùng cuộc trò chuyện thì Gemini hay vẽ lại nội dung lượt trước (đã gặp 5/10 ảnh sai bản đồ). Kiểm nội dung từng ảnh trước khi nhập.
@@ -190,7 +190,7 @@ Vũ khí cầm tay để đầu chĩa lên phải, tay `right`; hư ảnh thú s
 
 ## 8. Quy trình "tạo <asset>"
 1. Đọc `docs/art/quy-cach-isometric.md`, `docs/art/nguon-giay-phep.md` và `tools/assets/README.md`, xác định key (bảng phần 1) và nguồn (phần 2).
-2. ComfyUI (ảnh tĩnh, phần 10): chờ hàng đợi Mac trống, 2–4 seed, `comfy-key` → `gemini-import`. Hồn sư LPC, phụ thể và hồn thú theo bảng phần 2; họ C1–C16 do Codex. Gemini: viết prompt, người dùng tạo, nhập bằng `gemini-import`. LPC: công thức `art/src/lpc/`.
+2. ComfyUI (ảnh tĩnh, phần 10): chờ hàng đợi Mac trống, 2–4 seed, `comfy-key` → `gemini-import`. Hồn sư LPC, phụ thể và hồn thú theo bảng phần 2; họ C1–C16 do Codex. Ảnh sinh model (ChatGPT / Codex, Q44): viết prompt, nhập bằng `gemini-import`. LPC: công thức `art/src/lpc/`.
 3. normalize → pack → normal → `preview.mjs` soát lệch chân, màu lạ, điểm vụn, hướng lật → `validate.mjs --register` → `npm run check`.
 4. Xem trong game ở ×2 và ×3 (bật server và client; `ao preview` / `ao browser`, hoặc Chrome headless qua CDP nếu panel bị ẩn): đủ 8 hướng, ít nhất 2 màu tóc và 2 màu áo, đứng trước / sau cây và nhà, nền rừng sâu.
 5. `npm run build --prefix client`, bot khi server bật; PR kèm ảnh chụp, nguồn ảnh (và seed ComfyUI); đánh dấu bước ở `ROADMAP.md`.
