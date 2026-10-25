@@ -28,6 +28,7 @@ const SECTIONS = [
   [/^Nguồn gốc và giấy phép/, "skip"],
   [/^game-icons\.net/, "gi"],
   [/^C6 /, "own:Codex (imagegen): màn đăng nhập, logo, banner"],
+  [/^Landing page/, "own:Landing page: ảnh chụp game và xuất lại từ ảnh sẵn có"],
   [/^Asset tự vẽ/, "own:Nhóm tự vẽ / sinh bằng mã"],
   [/^Asset tạo bằng AI \((.+)\)/, "ai"],
   [/^Asset bên ngoài/, "external"],

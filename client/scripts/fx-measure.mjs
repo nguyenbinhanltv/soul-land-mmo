@@ -44,7 +44,7 @@ async function run(c, query) {
   c.errors.length = 0;
   if (MOBILE) { await c.send("Emulation.setDeviceMetricsOverride", { width: 844, height: 390, deviceScaleFactor: 2, mobile: true }); await c.send("Emulation.setTouchEmulationEnabled", { enabled: true }); }
   await c.send("Emulation.setCPUThrottlingRate", { rate: CPU });
-  await c.send("Page.navigate", { url: `${BASE}/?thu=fx&bar=0&zoom=2&${query}` });
+  await c.send("Page.navigate", { url: `${BASE}/choi/?thu=fx&bar=0&zoom=2&${query}` });
   for (let i = 0; i < 80; i++) { await sleep(250); if (await c.ev("!!window.__fx").catch(() => false)) break; }
   await sleep(5000);
   await c.ev(`(()=>{window.__ft=[];let l=performance.now();const f=t=>{window.__ft.push(t-l);l=t;if(!window.__stop)requestAnimationFrame(f)};window.__stop=false;requestAnimationFrame(f)})()`);
@@ -61,7 +61,7 @@ try {
   const lvArg = opt("lv", "high");
   if (mode === "all") {
     await c.send("Emulation.setCPUThrottlingRate", { rate: CPU });
-    await c.send("Page.navigate", { url: `${BASE}/?thu=fx&bar=0&pt=1&cine=0&lv=${lvArg}${opt("reduce", false) ? "&reduce=1" : ""}` });
+    await c.send("Page.navigate", { url: `${BASE}/choi/?thu=fx&bar=0&pt=1&cine=0&lv=${lvArg}${opt("reduce", false) ? "&reduce=1" : ""}` });
     for (let i = 0; i < 120; i++) { await sleep(250); if (await c.ev("!!window.__castAll && !!window.__fx").catch(() => false)) break; }
     await sleep(3000);
     await c.send("HeapProfiler.collectGarbage"); const heap0 = await c.ev("performance.memory?.usedJSHeapSize");

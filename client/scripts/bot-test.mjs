@@ -543,6 +543,7 @@ const STANDALONE=[
   ["bag",4,async()=>{ bagSyncPure(); await shopBuybackTest(); await charBagCmdTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); }], // 127 #215, 9.8; E1 trang bị hồn sư; E2 rơi đồ; E3 cường hóa; E4 hợp thành / phân giải
   ["luck",3,gearLuckTest],                    //  ~12 #662 khắc may mắn bằng Thần Hồn (tách khỏi nhóm bag để nhóm 4 không vượt 12 phút)
   ["sell",3,sellTest],                        //   5 #216
+  ["gm",3,gmTest,true],                       //  ~15 #518 lệnh GM: người không quyền bị từ chối, admin (hook gmadmin) chạy đúng, lệnh sai, preset (#663 vào bot khói)
   ["google",3,googleTest],                    //  ~1 #612 đăng nhập Google (bộ kiểm giả GAME_TEST): chọn tên, liên kết, trùng tên, vé giả
   ["looks2",3,looks2Test],                    //   2 #509 Looks v2 (preset / lpc)
   ["looks3",3,looks3Test],                    //  ~8 #511 đổi ngoại hình ở thợ may: miễn phí lần đầu, tốn Hồn Tệ lần sau
@@ -577,7 +578,7 @@ const STANDALONE=[
 ];
 // BOT_PART=smoke (mức "smoke" của CI, job `changes`): chỉ phần chung (đăng nhập, vào bản đồ, di chuyển, đánh quái, túi / nhân vật, tin giao diện cơ bản)
 // cộng các bài độc lập nhẹ ở SMOKE dưới đây, ~2 phút trên runner CI. Không khối INLINE nào chạy ở chế độ này.
-const SMOKE=new Set(["cold","ink","boneSub","sell","looks2"]);
+const SMOKE=new Set(["cold","ink","boneSub","sell","looks2","gm"]);
 const PART=process.env.BOT_PART??"", T0=Date.now(), timing=[];
 const inPart=k=>{ if(!(k in INLINE)) throw new Error(`inPart: khóa ${k} chưa có trong INLINE`); return !PART||PART===String(INLINE[k]); };
 for(const [k,n] of [...Object.entries(INLINE),...STANDALONE.map(([k,n])=>[k,n])])
