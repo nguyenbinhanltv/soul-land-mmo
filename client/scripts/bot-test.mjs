@@ -9127,7 +9127,7 @@ async function arenaTest(){
     await sleep(60); return b.logs.slice(l).at(-1)??""; }
   const found=b=>b.arena.filter(m=>m.k==="found").at(-1), endOf=b=>b.arena.filter(m=>m.k==="end").at(-1);
   /** Đang ở bản đồ, đã được ghép: rời phòng bản đồ, vào phòng sân đấu bằng mã phòng. */
-  async function enterArena(b){ const id=found(b).roomId; await b.room.leave(); await enter(b,id); await waitFor(()=>meOf(b)&&b.owned&&b.bag&&b.squad,3000); }
+  async function enterArena(b,match=found(b)){ const id=match?.roomId; if(!id) throw new Error(`${b.name}: thiếu mã phòng sân đấu`); await b.room.leave(); await enter(b,id); await waitFor(()=>meOf(b)&&b.owned&&b.bag&&b.squad,3000); }
   /** Hết giờ hiện kết quả (hook afast): server đóng kết nối mã 4005, bot vào lại bản đồ cũ. */
   async function kickBack(b){
     await test(b,"afast",{s:0}); ok(await waitFor(()=>b.leftCode===4005,3000),`${b.name}: hết giờ kết quả thì server đưa ra khỏi sân (mã ${b.leftCode})`);
@@ -9505,7 +9505,7 @@ async function arenaTest(){
     const found3=b=>b.arena.slice(b===K?nK2:b===L?nL2:b===M?nM2:nN2).filter(m=>m.k==="found").at(-1);
     ok(await waitFor(()=>found3(K)&&found3(L)&&found3(M)&&found3(N),4000),"2v2 rời khi chờ: cả hai đội nhận được mã trận"
       +(found3(K)&&found3(L)&&found3(M)&&found3(N)?"":` [K: ${qK2}; M: ${qM2}; kênh ${all.map(b=>b.room.roomId).join(" ")}; nhận mã ${all.map(b=>!!found3(b)).join("/")}]`));
-    await enterArena(K); await enterArena(M);
+    await enterArena(K,found3(K)); await enterArena(M,found3(M));
     ok(K.room.state.phase==="wait","2v2 rời khi chờ: mới có một người mỗi bên thì vẫn chờ");
     await K.room.leave();
     ok(await waitFor(()=>M.arena.slice(nM2).some(m=>m.k==="end"),3000),"2v2 rời khi chờ: bên còn lại nhận kết quả ngay");
