@@ -1033,25 +1033,25 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 
 **Đã có** (Giai đoạn 2–9 và nhóm Bản đồ BĐ1–BĐ6): mọi luật mô tả ở mục 4–5 và kiến trúc mục 6, trừ các việc còn ghi dưới đây.
 
-**Giai đoạn 10: Đồ họa isometric** (quy cách mục 5.11; server không đổi; mỗi bước một PR). PixelLab đã bỏ từ 2026-10-23: các bước 10.4b–10.6 (hoạt ảnh 8 hướng của hồn sư, phụ thể, hồn thú) chờ cách làm bằng ComfyUI (thử ở #335; nhãn `cho-hoat-anh-8-huong`), chưa có thì dừng và báo, key chưa có ảnh vẫn vẽ bằng code; số lượt ghi ở mỗi bước là ước tính cũ, không còn áp dụng.
+**Giai đoạn 10: Đồ họa isometric** (quy cách mục 5.11; server không đổi; mỗi bước một PR). PixelLab không còn dùng tạo hình nhân vật từ 2026-10-23 (ngoại lệ 2026-10-24: xoay hướng, hoạt ảnh nhiều hướng, sheet hiệu ứng kỹ năng / pháp tướng, mục 5.11). Hoạt ảnh 8 hướng bằng ComfyUI / ControlNet đã dừng (#335 đóng, #387 đóng); hồn sư thay bằng LPC 4 hướng (#564), phụ thể là ảnh tĩnh 5 hướng ghép theo điểm neo, hồn thú là kiểu lai (ảnh tĩnh 3 hướng + chuyển động bằng code). Các bước 10.4b / 10.5 / 10.6 bên dưới đã xong hoặc được thay như ghi.
 
-**Đã có:** quy cách isometric và phong cách A–D, bảng 10 vùng, bảng màu (10.0, 10.0b); client isometric: chiếu / chiếu ngược, camera 640×360 phóng số nguyên, sắp lớp theo độ sâu, khoét lỗ vật che, bóng và vòng hồn hoàn elip, điều khiển theo màn hình và chuột, `?view=topdown` (10.1); bộ ô và vật đứng của cả 10 bản đồ (ô nền Gemini, vật PixelLab cũ / Gemini / ComfyUI, nhà và tường thành dựng bằng code, cung uyển với công trình Gemini, lớp phủ mép; `tiles.json` kiểm trong `npm run check`) (10.2, 10.2b); dây chuyền `tools/assets` 8 hướng (10.3); hồn sư 64×64 bộ `m_0`, `f_0` (10.4a); phụ thể isometric Hạo Thiên Chùy, Cửu Tinh Thất Sát Kiếm, U Minh Linh Miêu, Lam Ngân Thảo (10.5a); giao diện thủy mặc, font pixel (Ark Pixel, từ UI-0 là Galmuri), thẻ võ hồn lưu ly, biểu tượng vật phẩm / trạng thái / hệ, chân dung NPC (10.8); ánh sáng Light2D và `ambient` ngày / đêm từng vùng, nguồn sáng hồn lực, thời tiết và hạt bay, normal map tự sinh, vòng hồn hoàn đồng tâm dưới chân, tự tắt khi không có GPU (10.7); NPC phụ, dân thường, lính gác bằng LPC; client tải sheet hồn thú isometric 8 hướng, hình tạm từ thú LPC cho 6 loài (Phong Lang, Liệt Trảo Hùng, Nhân Diện Ma Chu non, Hắc Bối Dã Trư, Nhu Cốt Thỏ hoang, Điền Thử). Ảnh 32×32 cũ (6 bộ hồn sư, phụ thể, 2 loài hồn thú) giữ cho tới khi 10.4b / 10.5 / 10.6 thay.
+**Đã có:** quy cách isometric và phong cách A–D, bảng 10 vùng, bảng màu (10.0, 10.0b); client isometric: chiếu / chiếu ngược, camera 640×360 phóng số nguyên, sắp lớp theo độ sâu, khoét lỗ vật che, bóng và vòng hồn hoàn elip, điều khiển theo màn hình và chuột, `?view=topdown` (10.1); bộ ô và vật đứng của cả 10 bản đồ (ô nền Gemini, vật PixelLab cũ / Gemini / ComfyUI, nhà và tường thành dựng bằng code, cung uyển với công trình Gemini, lớp phủ mép; `tiles.json` kiểm trong `npm run check`) (10.2, 10.2b); dây chuyền `tools/assets` 8 hướng (10.3); hồn sư 64×64 bộ `m_0`, `f_0` (10.4a); phụ thể isometric Hạo Thiên Chùy, Cửu Tinh Thất Sát Kiếm, U Minh Linh Miêu, Lam Ngân Thảo (10.5a); giao diện thủy mặc, font pixel (Ark Pixel, từ UI-0 là Galmuri), thẻ võ hồn lưu ly, biểu tượng vật phẩm / trạng thái / hệ, chân dung NPC (10.8); ánh sáng Light2D và `ambient` ngày / đêm từng vùng, nguồn sáng hồn lực, thời tiết và hạt bay, normal map tự sinh, vòng hồn hoàn đồng tâm dưới chân, tự tắt khi không có GPU (10.7); NPC phụ, dân thường, lính gác bằng LPC; hồn thú kiểu lai (ảnh tĩnh 3 hướng + chuyển động bằng code) cho 67 / 67 loài, 2 boss thế giới 192×192 (10.6).
 
-- [ ] 10.4b 6 bộ hồn sư còn lại (chờ #335; chia PR theo giới): như 10.4a (8 hướng + `walk`, `attack`, `cast` cho 5 hướng; `idle` thở và `hurt` / `die` / `absorb` vẽ bằng code). Sau đó `hurt`, `die` thật khi có cách làm (#100).
-- [ ] 10.5 Phụ thể võ hồn còn lại: phụ thể tĩnh 5 hướng ghép theo điểm neo (#102); 23 / 25 võ hồn đã có ảnh thật (13 võ hồn ảnh Gemini 5 hướng ghép bằng `vohon-static5.mjs`), còn Hỏa Long, Liệt Hỏa Thương Lang.
-  - [ ] 10.5b Bích Lân Xà Hoàng, Cửu Bảo Lưu Ly Tháp (cần vẽ lại đúng cỡ: thu nhỏ bằng code bị nhòe); dây Lam Ngân quấn tay; hướng riêng cho hư ảnh thú (Linh Miêu nhìn nghiêng / quay lưng) khi có cách làm (#101).
-- [ ] 10.6 Hồn thú và boss (chờ #335: 8 hướng + `walk` 5 hướng; `attack` thật chỉ cho tinh anh / thú vương / boss): theo thứ tự bản đồ (Thánh Hồn Thôn, Tinh Đấu Ngoại vi, Nội địa, Lạc Nhật…); loài con dùng chung sprite loài lớn với hoán màu; thú vương 160×160, 2 boss thế giới 192×192 (#103). **Giải pháp lai (#386, người dùng chốt 2026-10-23):** ảnh tĩnh 3 hướng ComfyUI + chuyển động bằng code (mục 5.11 "Hồn thú lai"); xong Thánh Hồn Thôn (#386), Tinh Đấu Ngoại vi, Nội địa, Lạc Nhật Sâm Lâm, Cực Bắc Chi Địa và Hải Thần Đảo (#395); các bản đồ còn lại làm tiếp, mỗi bản đồ một PR.
+- [x] 10.4b 6 bộ hồn sư còn lại (#100, đóng): **thay bằng** hồn sư LPC 4 hướng, mọi bộ preset / sprite `hs_*` đã gỡ (HL1–HL4, #564: #570, #574, #588, #578); ControlNet 8 hướng dừng (#387).
+- [ ] 10.5 Phụ thể võ hồn còn lại: phụ thể tĩnh 5 hướng ghép theo điểm neo (#102); 23 / 25 võ hồn đã có ảnh thật (#342 / #383 vũ khí, #442, #447, #480, #481, #484 hư ảnh thú và thực vật, `vohon-static5.mjs`). **Còn:** Hỏa Long, Liệt Hỏa Thương Lang (chưa có `vh_*`, vẫn vẽ bằng code).
+  - [x] 10.5b Bích Lân Xà Hoàng (#481), Cửu Bảo Lưu Ly Tháp (#383) có ảnh thật (#101). Phần "dây Lam Ngân quấn tay" và hướng riêng cho hư ảnh thú (nhìn nghiêng / quay lưng) **bỏ**: cần nhiều góc cùng một vật, ControlNet đã dừng; chuyển động phụ làm bằng code ở H7 (#490).
+- [x] 10.6 Hồn thú và boss theo thứ tự bản đồ (Thánh Hồn Thôn, Tinh Đấu Ngoại vi, Nội địa, Lạc Nhật…); loài con dùng chung sprite loài lớn với hoán màu; thú vương 160×160, 2 boss thế giới 192×192 (#103). **Giải pháp lai (#386, người dùng chốt 2026-10-23):** ảnh tĩnh 3 hướng ComfyUI + chuyển động bằng code (mục 5.11 "Hồn thú lai"); xong Thánh Hồn Thôn (#386), Tinh Đấu Ngoại vi, Nội địa, Lạc Nhật Sâm Lâm, Cực Bắc Chi Địa và Hải Thần Đảo (#395); Xong cả 7 bản đồ có hồn thú: 67 / 67 loài là ảnh tĩnh hồn thú lai, 2 boss thế giới 192×192 làm tay (#451), không còn hình tạm LPC (#436, #444, #463, #466, #476); sheet 8 hướng + `walk` / `attack` thật **không làm** (thay bằng kiểu lai).
 - [x] Thú LPC làm hình tạm cho các loài hồn thú chưa có sprite isometric (#105; 19 loài đầu, thêm 13 loài ở #201). Xong: mọi hình tạm LPC đã thay bằng hồn thú lai của 10.6 (Thánh Hồn Thôn #386, Hải Thần Đảo #395: Lôi Quang Hải Diêu và U Linh Hải Mẫu là hai hình tạm cuối); manifest không còn hồn thú nào có cờ `lpc` và vùng `lpc-beast` ở `art/CREDITS.md` rỗng.
-- [ ] Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện): làm bằng món áo LPC (HL4 #573, C3 #554), không còn lớp áo preset (HL3 #572).
+- [ ] Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện, #104 đã đóng): làm bằng món áo LPC, không còn lớp áo preset (HL3 #572). Đã có: áo / mũ trang bị hiện lên lớp LPC (HL4 #578). **Còn:** lớp trang phục phương Đông (C3 #554, PR nháp #576).
 - Ảnh tĩnh bằng ComfyUI (skill `asset-gen` mục 10, #331), không tốn lượt PixelLab:
-  - [ ] Đặt 42 vật đã có ảnh nhưng chưa dùng vào bản đồ (#333).
+  - [x] Đặt 42 vật đã có ảnh nhưng chưa dùng vào bản đồ (#333, đóng 2026-10-22).
   - [x] Vật đặc trưng vùng còn thiếu, lô 1 (#337).
   - [x] Công trình Nặc Đinh Thành: nhà chính học viện sơ cấp, đấu hồn trường, tửu lâu (#336).
   - [x] Công trình điểm nhấn các vùng (#385): đền băng, lều thợ săn băng (Cực Bắc), miếu cổ, nhà hái thuốc (Lạc Nhật), trạm gác Vũ Hồn Điện (Tinh Đấu Ngoại vi), trại thợ săn (Nội địa), nhà ngư dân, tháp canh biển (Hải Thần Đảo); ảnh dẫn nhiều khối `comfy-shape.mjs`.
   - [x] Trọn bộ ô nền Lõi Tinh Đấu (#338): 7 ô riêng (cỏ, cỏ hoa, đất, sàn đá phiến có phù văn mờ, nước hồ gợn sáng, rêu phát quang, sỏi).
   - [x] Phụ thể tĩnh vũ khí / vật đối xứng (#342): Phá Hồn Thương, Thiên Càn Bạch Ngọc Đỉnh, Nguyệt Nhận, Xúc Xích, Càn Khôn Hỗn Nguyên Tỏa, Cửu Bảo Lưu Ly Tháp (ComfyUI, một ảnh tĩnh cho 5 hướng).
   - [x] Chân dung hồn thú ở khung mục tiêu: lô 1 Thánh Hồn Thôn, Tinh Đấu Ngoại vi kèm phần hiển thị (#339, xong), lô 2 Nội địa, Lạc Nhật (#340, xong), lô 3 Cực Bắc, Hải Thần, boss Lõi Tinh Đấu (#341, xong).
-  - [ ] Thử nghiệm hoạt ảnh 8 hướng bằng ComfyUI cho hồn sư, hồn thú, phụ thể hư ảnh thú (#335).
+  - [x] Thử nghiệm hoạt ảnh 8 hướng bằng ComfyUI cho hồn sư, hồn thú, phụ thể hư ảnh thú (#335, đóng: không đạt; ControlNet dừng ở #387, **thay bằng** LPC cho hồn sư và kiểu lai cho hồn thú).
 
 **Giai đoạn 11: Di chuyển, bản đồ lớn, truyền tống trận** (chủ repo chốt 2026-10-21; chi tiết và tiêu chí xong ở từng issue; số liệu đặt ở `shared/data.ts` khi làm).
 
@@ -1104,7 +1104,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [x] Boss thế giới: chiêu toàn sàn né được, vị trí nổi lên của Du Thủy có báo trước, lặn ra giữa hồ (#118; mục 5.4 "Boss thế giới 100.000 năm").
 - [x] Đóng góp boss theo tài khoản thay vì theo phiên (thoát vào lại / đổi kênh không mất đóng góp); giới hạn săn tinh anh nhiều kênh (#119; mục 5.4).
 - [x] Chạy nhiều tiến trình: `RedisPresence`, chuyển số kênh, `kingSeats`, `kingWarns`, `eliteLocks`, hồi chiêu dung hợp kỹ `fusionReady`, hàng chờ đấu trường, sổ xem trận `arenaLive` (#278), tổ đội (kể cả tra tên cho tin riêng), hồi kênh thế giới, khóa đổi kênh, bạn bè / chặn sang presence; dọn phiên giữ tài khoản và mục của tiến trình chết; thử Redis thật: `test:presence-kill` (kill PID, TTL) và bot hai tiến trình `bot:local -- --procs 2` (#120); CI chạy cả hai ở job tùy chọn `presence-redis` với service Redis (#497).
-- [ ] Bot thử thêm: bán hồn hoàn đang hấp thụ, trận hòa và hết lượt thưởng đấu trường, ngắt kết nối khi đã ghép mà không rời bản đồ; thử giao diện bằng tay trên điện thoại thật (#121; BOT_ONLY=issue121).
+- [x] Bot thử thêm: bán hồn hoàn đang hấp thụ, trận hòa và hết lượt thưởng đấu trường, ngắt kết nối khi đã ghép mà không rời bản đồ; thử giao diện bằng tay trên điện thoại thật (#121, đóng 2026-10-23; BOT_ONLY=issue121).
 - [x] CI GitHub Actions chạy `npm run check` và `npm run build` cho mọi PR (#122).
 
 **Giai đoạn 13: Trang bị hồn sư** (mục 5.15; theo dõi #410; **E0 chờ người dùng duyệt bảng số trước khi làm E1**; mỗi bước một PR, qua AO review và CI `bot-ram`).
@@ -1125,7 +1125,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [x] NV3 Kéo thả, bấm đúp mặc thông minh, thẻ thao tác nhanh, so sánh hai cột (#457).
 - [x] NV4 Tab Trang bị 10 ô dùng `equipgear` / `unequipgear` (thay phần giao diện bảng nhân vật của E5 #416; cần E1 #412, đã xong) (#458).
 - [x] NV5 Hoàn thiện: điện thoại thật / màn hẹp, phím tắt, bot kiểm lệnh gắn / tháo, ảnh trước / sau, đo FPS khi kéo (#459).
-- [ ] NV6 Ảnh nền búp bê (hình hồn sư mờ, lục giác hồn cốt, vòng đan điền) nếu bản vẽ bằng code chưa đẹp (#460).
+- [ ] NV6 Ảnh nền búp bê (hình hồn sư mờ, lục giác hồn cốt, vòng đan điền): #460 đóng, **thay bằng** C2 #553 (làm ảnh, PR nháp #577) rồi C16 #595 (gắn vào giao diện, chờ C2); giữ bản vẽ bằng code tới lúc đó.
 
 **Nhóm Bản đồ khu vực: radar, bản đồ và sương mù** (mục 5.17; theo dõi #426; mỗi bước một PR).
 - [x] R0 Hằng `RADAR` / `MAPVIEW` / `FOG` / `RADAR_ART`, hàm thuần `shared/radar.ts`, test `npm run test:radar --prefix server` (#427).
@@ -1148,12 +1148,12 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [x] S0 Bảng đặc tả 25 võ hồn × 11 chiêu, ô Võ Hồn Chân Thân ở vòng 7 (#541, `docs/ky-nang-combat-dac-ta.md`).
 - [x] S1 Khung code `SKILL_VISUAL` + cảm giác đánh (#542, PR #546, mục 5.11).
 - [x] S2 Thử trọn bộ 11 chiêu Lam Điện Bá Vương Long + Hạo Thiên Chùy, công thức chuẩn (#548, `docs/ky-nang-cong-thuc.md`, mục 5.11).
-- [ ] S3 lô A: 7 võ hồn + dung hợp Yêu Nguyệt (#566, đã làm: Cửu Tinh Thất Sát Kiếm, Nguyệt Nhận, Càn Khôn Hỗn Nguyên Tỏa, Xúc Xích, Thiên Càn Bạch Ngọc Đỉnh, Cửu Bảo Lưu Ly Tháp, Phá Hồn Thương, Yêu Nguyệt; chờ duyệt / gộp).
+- [x] S3 lô A: 7 khí võ hồn (Cửu Tinh Thất Sát Kiếm, Nguyệt Nhận, Càn Khôn Hỗn Nguyên Tỏa, Xúc Xích, Thiên Càn Bạch Ngọc Đỉnh, Cửu Bảo Lưu Ly Tháp, Phá Hồn Thương) + dung hợp Yêu Nguyệt (#566, PR #583).
 - [x] S3 lô B 6 thú võ hồn (U Minh Linh Miêu, Nhu Cốt Thố, Kim Vũ Miêu Ưng, Yêu Hồ, Liệt Hỏa Thương Lang, Bạch Hổ) × 11 chiêu + dung hợp Hạo Thiên Nhu Cốt, U Minh Bạch Hổ: 68 sheet (#567, `tools/assets/skill-vfx/lo-b.json`, `FUSION_VISUAL`).
 - [x] S3 lô C 5 võ hồn (Tà Hỏa Phượng Hoàng, Hỏa Long, Hỏa Ảnh, Quỷ Mị, Băng Phượng Hoàng) × 11 chiêu + dung hợp Băng Hỏa Lưỡng Nghi: 56 sheet (#568, `tools/assets/skill-vfx/lo-c.json`, `FUSION_VISUAL`).
 - [x] S3 lô D: 5 võ hồn thực vật / độc (Kỳ Nhung Thông Thiên Cúc, Tử Vong Chu Hoàng, Bích Lân Xà Hoàng, Lam Ngân Thảo, A Ngân) × 11 chiêu + dung hợp Lôi Độc Song Sát: 56 sheet (#569, `tools/assets/skill-vfx/lo-d.json`, `FUSION_VISUAL`).
 - [x] S5 Hoàn thiện (H8 #491, mục 5.11): FPS 40–60 người, tự hạ mức hiệu ứng, Giảm chuyển động / điện thoại ngang, âm thanh T3, kiểm tung mọi chiêu (`docs/hieu-nang-hieu-ung.md`).
-- [ ] S3–S5 các võ hồn còn lại (trừ lô A, B, C, D) theo lô theo công thức S2, hoàn thiện (theo dõi #541, chưa có issue riêng cho từng bước).
+- [x] S3–S5 các võ hồn còn lại: **không còn võ hồn nào**, S2 + lô A–D phủ đủ 25 / 25; hoàn thiện là S5 ở trên (#541 đóng).
 
 **Nhóm Hồn sư tự tạo bằng LPC** (mục 5.11; theo dõi #507; chạy song song chế độ Mẫu dựng sẵn; mỗi bước một PR).
 - [x] L0 Mẫu thử và danh mục 111 món, chủ repo duyệt 4 hướng (không sửa repo).
@@ -1165,10 +1165,10 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [x] HL2 Chuyển tài khoản preset cũ sang LPC lúc nạp: `presetToLpc`, ghi `looks_lpc` có điều kiện, không tính lượt thợ may; `/api/looks` và thợ may đổi preset từ client cũ sang LPC (#571, nhóm #564).
 - [x] HL3 Hồn sư chỉ còn LPC: NPC chưa có sheet dựng LPC từ `looks`, dữ liệu preset sót đổi bằng `presetToLpc`, gỡ sprite / lớp áo-tóc / đường vẽ preset và 24 key `hs_*` khỏi client (#572, nhóm #564; client giảm 720 KB ảnh trong `client/dist`; 41 người cùng màn Nặc Đinh Thành trên Chrome GPU vẫn ~102 khung / giây như trước).
 - [x] HL4 Áo / mũ trang bị hiện lên lớp LPC: `LPC_GEAR`, `gearAo` / `gearMu` công khai, Ẩn mũ (#573, nhóm #564; đồng phục theo phe / lớp phương Đông chờ C3 #554).
-- [ ] L5 Trang bị hiện lên người (tùy chọn, sau E1) (#507).
-- [ ] L6 Hoàn thiện: đo FPS 30–50 người, điện thoại, bot đủ, cập nhật mục ngoại hình (#507).
+- [x] L5 Trang bị hiện lên người: **thay bằng** HL4 (áo / mũ trang bị lên lớp LPC, #573, PR #578); các ô khác chưa hiện lên người.
+- [x] L6 Hoàn thiện: đo FPS 41 người trên Chrome GPU ở HL3 (#572, PR #588) và FPS 40–60 người ở H8 (#590); bot LPC đủ ở L2 / HL2; #507 đóng.
 
 ## 8. Câu hỏi còn mở
-1. **Ngân sách mỹ thuật isometric:** phần còn lại của Giai đoạn 10 (6 bộ hồn sư, 20 phụ thể, 67 loài hồn thú) phụ thuộc cách làm hoạt ảnh 8 hướng bằng ComfyUI (#335; PixelLab đã bỏ) (riêng xoay hướng và hoạt ảnh nhiều hướng được dùng PixelLab, mục 5.11 và 5.18); cần chọn thứ tự ưu tiên hoặc chuyển bớt sang Gemini / LPC / vẽ tay.
+1. **Ngân sách mỹ thuật isometric:** hồn sư, hồn thú và phần lớn phụ thể đã chốt (LPC, kiểu lai, ảnh tĩnh 5 hướng); phần còn lại của Giai đoạn 10 chỉ là phụ thể Hỏa Long, Liệt Hỏa Thương Lang (#102) và áo phương Đông (C3 #554); xoay hướng và hoạt ảnh nhiều hướng được dùng PixelLab (mục 5.11 và 5.18).
 2. **Trần số người khi tính máu boss:** hiện không có trần (nhóm bạn bè ít người); xem lại nếu phòng đông làm boss quá trâu.
 3. **Chủ nhân và tên hồn kỹ trong truyện** của Kim Vũ Miêu Ưng, Càn Khôn Hỗn Nguyên Tỏa, Hỏa Ảnh, Thiên Càn Bạch Ngọc Đỉnh, Phá Hồn Thương, Liệt Hỏa Thương Lang: để trống / đặt tạm cho tới khi có nguồn chắc chắn.
