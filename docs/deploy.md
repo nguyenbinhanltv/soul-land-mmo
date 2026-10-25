@@ -29,11 +29,23 @@ Release đã chạy bot khói vào chính image đó với DB rỗng. Không ch�
 2. Đăng nhập GCP của CI: **hoặc** secret `GCP_SA_KEY` (key JSON của SA writer, tạo bằng `deploy/gcp/setup.sh --sa-key`, xoay 90 ngày; `deploy/gcp/README.md` mục 2b), **hoặc** WIF. Có `GCP_SA_KEY` thì workflow dùng key, không thì dùng WIF; thiếu cả hai thì báo lỗi. Với WIF, ở GitHub repo game đặt `GCP_WIF_PROVIDER`, `GCP_SA_EMAIL` (Variable hoặc Secret đều được: release.yml / promote.yml đọc `vars.X || secrets.X`). Cả hai cách đều cần Secret `GITOPS_TOKEN` (hướng dẫn trong README đó).
 3. Repo GitOps (`soul-land-gitops`, private): manifest Kustomize, ArgoCD, SealedSecret `soul-land-env` (`DATABASE_URL`) và pull secret `ar-pull`.
 
+## Đăng nhập Google (chủ repo tạo OAuth client một lần, #612)
+
+Nút "Đăng nhập bằng Google" chỉ hiện khi server có `GOOGLE_CLIENT_ID`; thiếu thì client ẩn nút và game chạy như cũ (tên + mật khẩu). Client ID là cấu hình công khai (không phải bí mật), **không** đưa giá trị thật vào repo.
+
+1. Google Cloud Console, project `landing-page-455614` → **APIs & Services → OAuth consent screen**: loại **External**, điền tên app, email hỗ trợ (logo tuỳ chọn), rồi **Publish app** (để "Testing" thì chỉ email trong Test users vào được). Scope cơ bản `openid` / `email` / `profile` thường không cần Google duyệt.
+2. **Credentials → Create credentials → OAuth client ID → Web application**. **Authorized JavaScript origins**: `https://soulland.oleqima.com`, `http://localhost:5173`, `http://localhost:2567`. Không cần Authorized redirect URIs (luồng ID token, không redirect) và không dùng client secret.
+3. Đưa Client ID vào ConfigMap của repo GitOps làm biến `GOOGLE_CLIENT_ID` (kiểu `…apps.googleusercontent.com`); chạy dev thì đặt trong `server/.env`.
+4. Chạy nhiều tiến trình (nhiều pod) thì đặt thêm `GOOGLE_TICKET_SECRET` (chuỗi ngẫu nhiên dài, đưa vào SealedSecret) để vé chọn tên của pod này đọc được ở pod kia; một bản thì có thể bỏ qua.
+5. Kiểm: mở trang, thấy nút Google dưới form đăng nhập; chọn tài khoản Google mới → màn "Chọn tên nhân vật" → tạo nhân vật. Tài khoản cũ: đăng nhập tên + mật khẩu → **Cài đặt → Tài khoản Google** để liên kết.
+
+Server không lưu email, tên hay token Google (chỉ mã người dùng `sub`, bảng `account_identities`). Bộ kiểm giả (`test:<mã>`) chỉ có khi `GAME_TEST=1` và `NODE_ENV` khác `production`; ở prod luôn tắt. Chi tiết luật: `GAME_DESIGN.md` mục HTTP / Bảo mật.
+
 ## Thông số image / pod (để khớp repo GitOps)
 
 - Image chạy `node --enable-source-maps dist/index.mjs` (JS do esbuild gộp ở tầng build, không có tsx / esbuild trong image; node là PID 1), user `node` (không root), cổng `2567`, `GET /health`. Có `REDIS_URL` thì `/health` trả 503 khi Redis mất (dùng làm readiness: ngừng chuyển người chơi mới tới, tiến trình không thoát, tự phục hồi); liveness probe dùng `GET /live` (luôn 200 khi tiến trình còn chạy) để k8s không khởi động lại cả tiến trình chỉ vì Redis mất (#561).
 - `terminationGracePeriodSeconds` = `SHUTDOWN_SAVE_MS` (`server/src/index.ts`, hiện 6000 ms) + 30 giây = 36 giây, `preStop` ngủ 5 giây. Đổi hằng thì đổi theo ở repo GitOps.
-- Biến môi trường prod: `PORT`, `TRUST_PROXY=1`, `CLIENT_ORIGIN=https://soulland.oleqima.com`, `NODE_ENV=production`, `DATABASE_URL` (từ secret). Không đặt `GAME_TEST`, `REDIS_URL`, `PUBLIC_ADDRESS` (pha 1 một bản).
+- Biến môi trường prod: `PORT`, `TRUST_PROXY=1`, `CLIENT_ORIGIN=https://soulland.oleqima.com`, `NODE_ENV=production`, `DATABASE_URL` (từ secret), tuỳ chọn `GOOGLE_CLIENT_ID` (và `GOOGLE_TICKET_SECRET` khi nhiều pod; mục "Đăng nhập Google" ở trên). Không đặt `GAME_TEST`, `REDIS_URL`, `PUBLIC_ADDRESS` (pha 1 một bản).
 
 ## Cache tài sản tĩnh và Cloudflare (#580)
 

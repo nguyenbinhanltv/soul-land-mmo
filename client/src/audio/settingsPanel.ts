@@ -3,6 +3,8 @@ import type { AudioSettings } from "./settings.ts";
 import { fxPrefs, setFxPrefs, SHAKE_MODES, type FxLevel, type ShakeMode } from "../combatFx.ts";
 import { HAO_QUANG_MODES, type HaoQuangMode } from "../../../shared/data.ts";
 import { UI_SCALE_CHOICES, getUiScalePref, setUiScalePref, uiScale } from "../uiArt.ts";
+import { mountGoogleButton } from "../google.ts";
+import { post, storage, type Me } from "../net.ts";
 
 const PANEL_ID = "audio";
 const FX_LEVELS: [FxLevel, string][] = [["low", "Thấp"], ["mid", "Vừa"], ["high", "Cao"]];
@@ -52,6 +54,8 @@ export function bindAudioPanel(audio: AudioManager, signal: AbortSignal): void {
   if (!el || !button) return;
   el.innerHTML = `
     <div class="audio-head"><div><b>Cài đặt</b><small data-audio-status>Âm thanh đã bật</small></div><button class="panel-x" type="button" data-audio-close aria-label="Đóng bảng Cài đặt">×</button></div>
+    <div class="scale-set" role="group" aria-labelledby="ggLbl" id="ggSet" hidden><span id="ggLbl">Tài khoản Google</span>
+      <small id="ggState" aria-live="polite"></small><div class="gbtn" id="ggBtn" hidden></div></div>
     <label>Âm lượng tổng <output data-audio-output="master"></output><input type="range" min="0" max="1" step="0.05" data-audio="master" aria-label="Âm lượng tổng"></label>
     <label>Nhạc <output data-audio-output="music"></output><input type="range" min="0" max="1" step="0.05" data-audio="music" aria-label="Nhạc"></label>
     <label>Hiệu ứng <output data-audio-output="sfx"></output><input type="range" min="0" max="1" step="0.05" data-audio="sfx" aria-label="Hiệu ứng"></label>
@@ -77,6 +81,24 @@ Không vẽ mũ trang bị lên hồn sư (của mọi người; chỉ trên má
     <div class="scale-set" role="group" aria-labelledby="haloLbl"><span id="haloLbl">Vòng hồn hoàn khi Chân Thân</span>
       <div class="scale-opts">${HAO_QUANG_MODES.map(([v, label]) => `<button type="button" data-halo="${v}" aria-pressed="false" title="${v === "halo" ? "Các vòng bay xoắn lúc biến hình rồi hợp thành quầng sáng nhỏ sau lưng; vòng 7 ở lại dưới chân." : v === "feet" ? "Các vòng giữ nguyên đồng tâm dưới chân, vòng 7 sáng." : "Các vòng bay lên xếp quanh thân như trước."}">${label}</button>`).join("")}</div></div>
     <p>Âm thanh chỉ bắt đầu sau lần chạm hoặc phím đầu tiên của bạn.</p>`;
+  // Liên kết Google (#612): hỏi trạng thái mỗi lần mở bảng; chưa liên kết thì hiện nút Google (server tắt thì ẩn cả mục).
+  const ggSet = el.querySelector<HTMLElement>("#ggSet")!, ggState = el.querySelector<HTMLElement>("#ggState")!, ggBtn = el.querySelector<HTMLElement>("#ggBtn")!;
+  const refreshGoogle = async () => {
+    const token = storage.get("shh-token");
+    if (!token) return;
+    try {
+      const me = await post<Me>("/api/me", { token });
+      if (me.googleLinked) { ggSet.hidden = false; ggBtn.hidden = true; ggState.textContent = "Đã liên kết: bạn có thể vào game bằng Google."; return; }
+      const shown = await mountGoogleButton(ggBtn, "Liên kết Google", async (credential) => {
+        ggState.textContent = "Đang liên kết…";
+        try { await post("/api/link/google", { token, credential }); void refreshGoogle(); }
+        catch (e) { ggState.textContent = (e as Error).message; }
+      }, (m) => { ggState.textContent = m; });
+      if (!shown && !ggState.textContent) { ggSet.hidden = true; return; } // server tắt Google: ẩn cả mục; nạp lỗi thì giữ mục để hiện lỗi
+      ggSet.hidden = false;
+      if (shown) ggState.textContent = "Chưa liên kết. Liên kết để lần sau vào game bằng Google (vẫn dùng được tên và mật khẩu).";
+    } catch { /* mất mạng / phiên hết hạn: giữ nguyên mục, thử lại lần mở sau */ }
+  };
   const update = (key: "master" | "music" | "sfx" | "ui" | "ambient", value: number) => {
     audio.updateSettings({ [key]: value });
     const output = el.querySelector<HTMLOutputElement>(`output[data-audio-output="${key}"]`);
@@ -93,6 +115,7 @@ Không vẽ mũ trang bị lên hồn sư (của mọi người; chỉ trên má
   button.addEventListener("click", (event) => {
     (event.currentTarget as HTMLElement).blur();
     const open = toggleAudioPanel();
+    if (open) void refreshGoogle();
     audio.play(open ? "ui_panel_open" : "ui_panel_close");
   }, { signal });
   const renderScale = () => {
