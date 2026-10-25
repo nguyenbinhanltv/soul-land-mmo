@@ -46,10 +46,11 @@ Thêm quyết định mới: cộng mã `Q` kế tiếp ở cuối bảng đúng
 | Q25 | 2026-10-24 | Danh mục LPC `LPC_PARTS` và 4 hướng cho hồn sư Tự tạo (L0 mẫu thử, chủ repo duyệt 4 hướng) | #507, #508 | `docs/art/hon-su-lpc.md` |
 | Q26 | 2026-10-25 | S2 duyệt công thức chuẩn làm hiệu ứng chiêu (11 chiêu Lam Điện Bá Vương Long + Hạo Thiên Chùy, sheet PixelLab `/v2/vfx`) | #548 | `docs/art/ky-nang-cong-thuc.md` |
 | Q27 | 2026-10-25 | Họ asset **C1–C16** (cảm giác đánh, giao diện, trang phục LPC phương Đông, âm thanh tuyệt kỹ CC0, màn đăng nhập / tải, HUD …) do **Codex (tthoadev)** làm: vẽ bằng code + sinh ảnh model + hậu kỳ pixel; ComfyUI là công cụ của orchestrator cho ảnh tĩnh khi cần; C2–C6 chỉ mở sau duyệt preview C1 | #541, #553, #554, #595, #616 | `docs/art/nguon-giay-phep.md`, `docs/design/giao-dien.md` |
-| Q34 | 2026-10-25 | Asset ngoài lấy từ **mọi nguồn** (kể cả gói hỗ trợ AI), nhưng **chỉ tìm và dùng asset miễn phí**; không đề xuất hay mua gói trả phí. Áp cho hình ảnh (âm thanh theo Q36). Mở rộng Q05 | #622 | `docs/art/nguon-giay-phep.md` |
+| Q34 | 2026-10-25 | Asset ngoài lấy từ **mọi nguồn** (kể cả gói hỗ trợ AI), nhưng **chỉ tìm và dùng asset miễn phí**, áp cho **cả hình ảnh lẫn âm thanh**; không đề xuất hay mua gói trả phí. Asset săn được **không** chuyển cho task C của tthoadev (C1–C16 vẫn do Codex sinh). Mở rộng Q05 | #622 | `docs/art/nguon-giay-phep.md` |
 | Q35 | 2026-10-25 | Gói asset có giấy phép hạn chế (Gigapack, cây rừng …) nằm ở **kho riêng** `soul-land-assets-private`; repo game chỉ giữ mô tả, manifest, CREDITS, công cụ nhập; CI release kéo kho vào image; không có kho thì game vẫn chạy bằng hình cũ; cấm đưa gói đó vào AI; có màn Ghi công trong game | #622, #623, #629 | `docs/asset-rieng.md` |
-| Q36 | 2026-10-25 | Nhạc nền là **nhạc tu tiên tự sáng tác** (ngũ cung, mỗi bản đồ một bản + lớp giao chiến); âm thanh khác chỉ CC0 / miễn phí bản quyền, không AI | #622, #643 | `docs/art/am-thanh.md` |
-| Q37 | 2026-10-25 | **Bỏ công trình Japanese** (kiểu Nhật) khỏi bản đồ; gỡ cả `fx_bao_truoc` (dấu "!" của Gigapack) theo chủ repo | #622, #641 | `docs/asset-rieng.md` |
+| Q36 | 2026-10-25 | Nhạc nền là **nhạc tu tiên tự sáng tác** (`compose.mjs`, ngũ cung, soundfont miễn phí): mỗi bản đồ một bản + lớp giao chiến (#643); âm nền môi trường CC0 (#644); âm thanh khác theo Q34 | #622, #643, #644 | `docs/art/am-thanh.md` |
+| Q37 | 2026-10-25 | **Bỏ hẳn** các gói công trình Japanese, Chinese roof, Isometric houses: chưa từng đưa vào game (chỉ thử ở nhánh, không có PR) | #622 | `docs/asset-rieng.md` |
+| Q41 | 2026-10-25 | Đợt 2: gỡ `fx_bao_truoc` (dấu "!" của Gigapack) (#641); **không duyệt** vòng trận pháp, lửa lam, ngọn lửa lam ở đợt 2A (#639) | #622, #639, #641 | `docs/asset-rieng.md` |
 
 ## Quy trình, CI, triển khai
 
@@ -60,9 +61,9 @@ Thêm quyết định mới: cộng mã `Q` kế tiếp ở cuối bảng đúng
 | Q30 | 2026-10-22 (g) | Luật chơi đổi thì chờ chủ repo chốt; triage phản hồi chơi thử không tự sửa `GAME_DESIGN.md` | — | skill `playtest-triage` |
 | Q31 | 2026-10-24 (g) | Triển khai: không staging, chỉ prod `soulland.oleqima.com` (một bản, `Recreate`); merge `main` **không** tự deploy; `Promote` do chủ repo chạy tay, chủ repo duyệt PR ở repo GitOps, ArgoCD sync; không chạy bot / đo tải vào DB prod | #500, #504, #406 | `docs/deploy.md`, `CONTRIBUTING.md` |
 | Q32 | 2026-10-25 | **Tối ưu tài liệu (#619)**: (1) tách `GAME_DESIGN.md` thành nhiều file, file gốc còn mục lục + tóm tắt + luật chung; (2) toàn bộ tài liệu tiếng Việt; (3) số issue gom về cuối mỗi file + `docs/quyet-dinh.md`; (4) thêm tóm tắt tiếng Anh (bản tóm tắt tiếng Anh `OVERVIEW` (thư mục docs, nhánh en) + đoạn đầu README); (5) triển khai sau khi xong các việc đang chạy | #619 | `GAME_DESIGN.md` (mục lục) |
-| Q38 | 2026-10-25 | Phương án **A1** cho tài liệu (giữ nguyên tiêu đề mục đánh số `### 5.x` vì code trích); `docs-check` chạy trong `npm run check` ở mức **cảnh báo**; PR chỉ sửa `.md` thì CI ở mức bỏ qua | #619, #640 | `CONTRIBUTING.md` |
-| Q39 | 2026-10-25 | **Supabase là DB test**: `DATABASE_URL` trỏ Supabase được dùng cho quay ảnh, đo FPS; prod là PostgreSQL trong cụm K8s, **không trỏ**; bot đầy đủ và migration mới vẫn chạy `bot:local` | #619 | `docs/deploy.md`, `docs/tech/du-lieu-db.md` |
-| Q40 | 2026-10-25 | **C7 (giao diện riêng cho điện thoại) chưa cần làm** | #541 | `docs/design/giao-dien.md` |
+| Q38 | 2026-10-25 | Phương án **A1** cho tài liệu: tạo 3 file mới (`docs/design/trang-thai-buff.md`, `docs/design/ban-do-khu-vuc.md`, `docs/art/hon-su-lpc.md`) + gộp các file `docs/tech` nhỏ; tách `GAME_DESIGN.md` giữ nguyên tiêu đề mục đánh số `### 5.x` vì code trích (#636, #637); `docs-check` trong `npm run check` ở mức **cảnh báo** (#640); PR chỉ sửa `.md` thì CI ở mức bỏ qua | #619, #636, #637, #640 | `CONTRIBUTING.md` |
+| Q39 | 2026-10-25 | **Supabase là DB test**: `DATABASE_URL` trỏ Supabase được dùng cho quay ảnh, đo FPS; prod là PostgreSQL trong cụm K8s, **không trỏ**; bot đầy đủ và migration mới vẫn chạy `bot:local` | memory | `docs/deploy.md`, `docs/tech/du-lieu-db.md` |
+| Q40 | 2026-10-25 | **C7 HUD gọn** (#592 / PR #618) được merge khi giao diện **điện thoại** chưa đạt: giao diện điện thoại **chưa cần** ở giai đoạn này | #592, #618 | `docs/design/giao-dien.md` |
 
 ## Việc đang chờ chủ repo
 
