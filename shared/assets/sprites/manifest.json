@@ -7841,6 +7841,14 @@
       "iso": true
     },
     {
+      "key": "vh_hoa_long_b",
+      "iso": true
+    },
+    {
+      "key": "vh_hoa_long_f",
+      "iso": true
+    },
+    {
       "key": "vh_kim_vu_mieu_ung_b",
       "iso": true
     },
@@ -7870,6 +7878,14 @@
     },
     {
       "key": "vh_lam_ngan_thao_f",
+      "iso": true
+    },
+    {
+      "key": "vh_liet_hoa_thuong_lang_b",
+      "iso": true
+    },
+    {
+      "key": "vh_liet_hoa_thuong_lang_f",
       "iso": true
     },
     {
