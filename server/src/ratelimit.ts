@@ -390,3 +390,13 @@ export function rallyCheck(key: number, now = Date.now()): { error: string } | n
 
 /** Hook kiểm thử (`test {op: "rally", rop: "rlreset"}`, chỉ khi GAME_TEST=1): xóa bộ đếm đặt dấu của một tài khoản. */
 export function rallyReset(key: number) { rallies.delete(key); }
+
+// ---------- Bộ đếm token theo kết nối (#677) ----------
+/** `n` token còn lại tại thời điểm `t` (ms). */
+export interface TokenBucket { n: number; t: number }
+/** Lấy một token: hồi theo thời gian `now` (tối đa `burst`, `rate` token / giây); trả false (không trừ) khi hết. */
+export function takeToken(b: TokenBucket, now: number, burst: number, rate: number): boolean {
+  b.n = Math.min(burst, b.n + Math.max(0, now - b.t) / 1000 * rate); b.t = now;
+  if (b.n < 1) return false;
+  b.n -= 1; return true;
+}

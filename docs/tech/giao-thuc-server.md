@@ -25,6 +25,7 @@
 - Kiểm id có thật và thuộc chính người gửi; kiểm trạng thái (gục, hấp thụ, đi cổng, giao chiến, vùng an toàn); hồi chiêu do server đếm.
 - Từ chối thì gửi lý do bằng tin `log` tiếng Việt, không ném lỗi.
 - Tin xin lại dữ liệu riêng (`bag`, `vohons`, `quest {op: "get"}`, `stats`, `fog`) theo nhịp `ASK_CD`: xin dồn thì gộp thành một lần gửi khi hết nhịp.
+- Tin "ghi túi" (`sortbag`, `equip*`, `unequip*`, `discard`, `lock`, `use`, `open`, `pickup`, `enhance*`, `absorb`, `autosell`…; đăng ký qua `onBagMsg`) theo bộ đếm token từng kết nối: tối đa `BAG_MSG_BURST` tin dồn, hồi `BAG_MSG_RATE` tin / giây (`takeToken`, `ratelimit.ts`); hết token thì bỏ tin, không ngắt kết nối. Không đặt `Room.maxMessagesPerSecond` toàn phòng: `input` gửi mỗi khi hướng đổi (giữ chuột kéo qua đường A* có thể mỗi khung hình, tới tần số màn hình 144 Hz+), trần thấp sẽ ngắt người chơi thật, trần cao thì không chặn được gì; khuếch đại băng thông nằm ở nhóm tin ghi túi. Bài bot: nhóm `cheat` (dồn 200 `sortbag`); khi `GAME_TEST=1` giới hạn mặc định tắt (bot dọn túi hàng trăm ô) và bài này bật bằng hook `test {op: "baglimit", on: 1}`.
 - Trong lúc phần thưởng boss chờ DB xác nhận lượt (`claimBusy`) thì không bán / bỏ / hấp thụ / nộp đồ.
 
 ## Lỗi bất ngờ

@@ -189,6 +189,12 @@ export const CHANNEL_CD = 10;
  */
 export const ASK_CD = 0.25;
 /**
+ * Giới hạn tin "ghi túi" theo kết nối (#677; sắp xếp, trang bị, bỏ, khóa, dùng, cường hóa, nhặt…): bộ đếm token, tối đa BURST tin dồn,
+ * hồi RATE token / giây; hết thì server bỏ tin (không ngắt). Người chơi thật bấm tối đa vài tin / giây nên rất dư; hằng kỹ thuật.
+ */
+export const BAG_MSG_BURST = 30;
+export const BAG_MSG_RATE = 10;
+/**
  * Đồng bộ theo vùng gần (11.4, mục 6 "Đồng bộ xuống client"). Hằng kỹ thuật, không phải số cân bằng (đặt ở đây cho server và bot dùng
  * chung). Mỗi client chỉ nhận hồn thú thường, đồ rơi, hồn sư khác cách mình dưới `r` pixel thế giới, bỏ khi xa quá `out` (chênh nhau để
  * không vào / ra liên tục ở mép); tinh anh, thú vương, boss thế giới luôn đồng bộ. Tin `fx` / `dmg` chỉ gửi cho client cách điểm hiệu
