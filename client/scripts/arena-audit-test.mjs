@@ -44,7 +44,7 @@ export async function arenaAuditTest(h) {
   for (const b of all) { await warpTown(b); await at(b, all.indexOf(b) * 10 - 10); }
 
   // ---- (b) `arena watch` / `arena live` không hạn nhịp ----
-  // `live` có nhịp ARENA.topCd (arenaLiveAt); `watch` thì không: mỗi tin tới lượt khóa sổ presence `arena:live` dùng chung mọi tiến trình
+  // `live` có nhịp ARENA.topCd (arenaLiveAt), `watch` cũng vậy (arenaWatchAt, #789). Trước khi sửa `watch` không có nhịp: mỗi tin tới lượt khóa sổ presence `arena:live` dùng chung mọi tiến trình
   // (arenaLiveHold -> liveEdit -> withLock) kể cả khi mã phòng không có thật. Đo bằng số phản hồi đã được xử lý.
   {
     const N = 25, n = A.arena.length;
@@ -54,10 +54,9 @@ export async function arenaAuditTest(h) {
     ok(lives >= 1 && lives <= 2, `live: ${N} tin dồn trong một nhịp chỉ trả ${lives} lần (nhịp ${ARENA.topCd} giây)`);
     const l2 = A.logs.length;
     for (let i = 0; i < N; i++) A.room.send("arena", { op: "watch", roomId: "khong-co-that" });
-    await waitFor(() => A.logs.slice(l2).filter((x) => /Chưa vào xem được/.test(x)).length >= N, 3000);
-    await sleep(300);
+    await sleep(1500);
     const watches = A.logs.slice(l2).filter((x) => /không còn diễn ra/.test(x)).length;
-    known(watches <= 2, `watch mã phòng không có thật: ${N} tin dồn, server xử lý ${watches} lượt (mỗi lượt khóa sổ presence dùng chung)`, "#789");
+    ok(watches <= 1, `watch mã phòng không có thật: ${N} tin dồn, server xử lý ${watches} lượt (nhịp ${ARENA.topCd} giây, #789)`);
   }
 
   // ---- đầu vào lạ cho `arena` (op, roomId sai kiểu / dài 3000 ký tự (dài hơn 4 KB thì ws ngắt kết nối)): không ném lỗi, phòng vẫn sống ----

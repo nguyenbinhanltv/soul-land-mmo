@@ -13,7 +13,7 @@ PR này chỉ thêm bài kiểm và báo cáo; không sửa `MapRoom.ts` (M3 #78
 | `arena {op:"cancel"}` | Ổn. Hủy lúc đọc Elo chỉ đánh dấu, cờ hạ khi Promise kết thúc; xếp lại ngay bị từ chối |
 | `arena {op:"top"}` | Ổn, có nhịp `topCd` (`arenaTopAt`) |
 | `arena {op:"live"}` | Ổn, có nhịp `topCd` (`arenaLiveAt`); bài: 25 tin dồn chỉ trả 1 lần |
-| `arena {op:"watch"}` | **Lỗ hổng L1** (không có nhịp) |
+| `arena {op:"watch"}` | Ổn sau #789: nhịp `topCd` (`arenaWatchAt`), mã phòng rỗng / quá 64 ký tự bị bỏ trước khi chạm sổ presence (L1 đã sửa) |
 | `arena` ở phòng sân (`op: unwatch`, `top`) | Ổn: người xem gửi gì khác cũng bị bỏ (`onMessage` bọc); message ngoài trận nằm trong `BLOCKED` |
 | Đầu vào lạ (`op`/`roomId` sai kiểu, mảng, object, 3000 ký tự, `null`, số) | Ổn: `strIn` kẹp, phòng không ngắt, không xếp hàng nhầm. Tin quá 4 KB bị `ws` ngắt kết nối (`maxPayload` 4 KB của Colyseus), đúng thiết kế |
 | Rời phòng / đi cổng / gục lúc đọc Elo (`arenaReadCancel`, `freeze`) | Ổn: không thành mục ma trong hàng chờ, vào lại xếp hàng được (không kẹt `arenaBusy`), gục thì `late` từ chối |
@@ -23,7 +23,7 @@ PR này chỉ thêm bài kiểm và báo cáo; không sửa `MapRoom.ts` (M3 #78
 
 ## Phát hiện
 
-### L1 (Vừa, #789): `arena {op:"watch"}` không có nhịp
+### L1 (Vừa, #789, ĐÃ SỬA): `arena {op:"watch"}` không có nhịp
 `MapRoom.ts:3261` (`arenaWatch`). Khác `top` (`:3293`, `arenaTopAt`) và `live` (`:3245`, `arenaLiveAt`), `watch` không có mốc thời gian. Mỗi tin đứng gần NPC đều đi tới `arenaLiveHold` -> `liveEdit` -> `presenceBackend.withLock` trên khóa `arena:live` dùng chung mọi tiến trình, kể cả khi `roomId` không có thật.
 - **Tái hiện:** bài `arenaAudit`, đứng cạnh NPC Đại Đấu Hồn Trường gửi 25 tin `arena {op:"watch", roomId:"x"}` liên tiếp: server xử lý đủ 25 lượt (25 dòng "Trận đấu không còn diễn ra"), trong khi 25 tin `live` chỉ trả 1 lần.
 - **Tác động:** tải khóa Redis và tranh chấp với `arenaLivePhase` / `arenaLiveOpen` của các trận đang chạy (`arenaLivePhase` thử 3 lần rồi bỏ: pha trong sổ xem trận có thể trễ). Không đổi Elo / tiền.
