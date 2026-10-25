@@ -300,6 +300,13 @@ noListenerAudio.dispose();
     calls.length = 0;
     audio.handleFx({ k: "soulring", id: "b", ct: 1, tier: 4, ...at }, info(true));
     assert.equal(calls[0][0], t3Group("ct", vh, "start"), "hồn kỹ Chân Thân: tiếng T3 riêng");
+    // Hình dạng tin đúng như server gửi (MapRoom.runSkill): wave / burst có id người tung; thiếu id thì không thể gắn T3 (lỗi cũ).
+    audio.handleFx({ k: "wave", id: "b", x: 100, y: 94, r: 40, col: "#fff" }, info(true));
+    assert.equal(calls.at(-1)[0], t3Group("ct", vh, "boom"), "hồn kỹ Chân Thân: pha nổ (wave) dùng T3");
+    calls.length = 0;
+    audio.handleFx({ k: "ult", id: "a2", ...at }, info(true));
+    audio.handleFx({ k: "wave", x: 100, y: 94, r: 40, col: "#fff" }, info(true));
+    assert.equal(calls.at(-1)[0], "skill-fire-boom", "wave không có id: không gắn được T3 (chặn lại lỗi cũ nếu server bỏ id)");
     calls.length = 0;
     audio.handleFx({ k: "burst", id: "c", ...at }, info(true));
     assert.equal(calls[0][0], "skill-fire-boom", "chiêu thường vẫn dùng tiếng theo hệ");

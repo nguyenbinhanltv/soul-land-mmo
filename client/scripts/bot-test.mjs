@@ -2620,6 +2620,8 @@ else {
       want=exp(atk*P10(9)*ult.dmg);
       ok(await waitFor(()=>[g1,g2].every(g=>dist(g)>=0&&dist(g)<TIERS[4].size/2+16&&hasSt(beastOf(K,g),"root")&&beastOf(K,g).poison===3),800)&&want.includes(dmgsOn(K,g1)[0]?.v),
         `tuyệt kỹ ${ult.name}: ${dmgsOn(K,g1)[0]?.v} (cần ${want.join(" hoặc ")}), kéo 2 hồn thú về ${dist(g1).toFixed(0)} / ${dist(g2).toFixed(0)} pixel, Trói, Trúng độc 3 tầng`);
+      // H8 (#491): pha nổ của tiếng T3 chọn theo id người tung, nên tin wave / burst của tuyệt kỹ phải mang id (trước đây server không gửi).
+      ok(ult.area==="around"&&K.fxs.some(f=>f.k==="wave"&&f.id===K.room.sessionId),`${ult.name}: fx nổ (wave) mang id người tung (tiếng T3 pha boom)`);
       const def=chanThanOf(id), cs=chanThanStats(def,Y10[6]); await test(K,"clear"); await test(K,"ready"); const s0=await stats();
       await chanThan(); const s1=await stats();
       ok(kp.ava>0&&Math.abs(s1.spd-s0.spd*(1+cs.spd))<0.01&&Math.abs(s1.def-cs.def)<1e-3,`${def.name}: tốc độ ${s0.spd.toFixed(1)} -> ${s1.spd.toFixed(1)}, giảm sát thương ${Math.round(s1.def*100)}%`);
@@ -3436,6 +3438,7 @@ else {
     want=exp(atk*skillPower(Y[CHAN_THAN_RING-1])*ct.dmg);
     ok(cp.ava>0&&want.includes(dmgsOn(C,bid)[0]?.v)&&C.fxs.some(f=>f.k==="soulring"&&f.ct&&f.i===CHAN_THAN_RING-1),
       `đang Chân Thân: ô P tung ${ct.name} ${dmgsOn(C,bid)[0]?.v} (cần ${want.join(" hoặc ")}: công đã tăng × sức mạnh hồn hoàn vòng 7 ×${skillPower(Y[6])})`);
+    ok(C.fxs.some(f=>(f.k==="wave"||f.k==="burst")&&f.id===C.room.sessionId),`${ct.name}: fx nổ (wave / burst) mang id người tung (tiếng T3 pha boom)`);
     ok(Math.abs(cp.ctCd-ct.cd)<0.5&&cp.cds[3]>0&&cp.cds[3]<=cd0&&mp0-cp.mp>ct.cost-30&&mp0-cp.mp<=ct.cost+1, // hồn lực tự hồi tới ~28/giây ở cấp 100 trong lúc chờ
       `hồi chiêu riêng ${cp.ctCd.toFixed(1)} giây (cần ${ct.cd}), ô P cũ vẫn ${cp.cds[3].toFixed(1)} giây (trước ${cd0.toFixed(1)}), hồn lực ${mp0} -> ${cp.mp} (tốn ${ct.cost}, trừ phần tự hồi)`);
     ok(await waitFor(()=>hasSt(beastOf(C,bid),"vuln")&&hasSt(beastOf(C,bid),"slow"),800),`${ct.name}: khống chế diện rộng (Choáng, Làm chậm, Dễ thương)`);

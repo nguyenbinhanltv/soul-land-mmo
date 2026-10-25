@@ -4747,7 +4747,7 @@ export class MapRoom extends Room<MapState> {
         const go = () => {
           const me = this.state.players.get(id); if (me !== p || me.dead) return;
           const cx = at?.x ?? p.x, cy = at?.y ?? p.y;
-          this.broadcast("fx", { k: "wave", x: cx, y: cy - 6, r: sk.r, col, ...(sk.shake && k === 0 ? { shake: 0.5 } : {}) });
+          this.broadcast("fx", { k: "wave", id, x: cx, y: cy - 6, r: sk.r, col, ...(sk.shake && k === 0 ? { shake: 0.5 } : {}) });
           const ids = near(sk.r, cx, cy), fids = this.foesNear(id, sk.r, cx, cy);
           // Từ 8.1c `shockR`: sét tìm mục tiêu Cảm điện ở xa hơn `r` (cả đối thủ đang Cảm điện); tia sét từ tâm vùng tới từng mục tiêu (fx zap).
           if (sk.shockR) {
@@ -4794,7 +4794,7 @@ export class MapRoom extends Room<MapState> {
         this.projs.push({ x: p.x, y: p.y - 8, vx: Math.cos(a) * PROJ_SPEED, vy: Math.sin(a) * PROJ_SPEED, life: sk.r / PROJ_SPEED, owner: id,
           fire: (bid) => strike(bid, true), foe: (fid) => strikeFoe(fid, true) });
       }
-      this.broadcast("fx", ring ? { k: "burst", x: p.x, y: p.y - 8, col } : { k: "burst", x: p.x, y: p.y - 8, col, n, a0, spread, r: sk.r });
+      this.broadcast("fx", ring ? { k: "burst", id, x: p.x, y: p.y - 8, col } : { k: "burst", id, x: p.x, y: p.y - 8, col, n, a0, spread, r: sk.r });
     } else if (sk.area === "target") {
       const bid = sk.pick === "low" ? this.weakestBeast(p, sk.r) : this.nearestBeast(p, sk.r), b = bid ? this.state.beasts.get(bid) : undefined;
       // Không có hồn thú trong tầm thì nhắm đối thủ gần nhất (Đại Đấu Hồn Trường, 7.2).
