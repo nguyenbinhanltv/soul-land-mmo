@@ -27,7 +27,8 @@ const metadata = { providerHead, eventBase, mergeBase, actualCheckout,
  dataset: 'two fresh RAM accounts with the same looks/awakening preset; live names/positions/levels may differ',
  viewport: { desktop: [1280, 720], regression: [844, 390], dpr2: 2 } };
 const report = { ...metadata, fixture: { resource: '/private/present.json', scope: 'exact URL on each BASE/HEAD origin only', replacementStatus: 404, baselineResponses: [] }, consoleErrors: [], expectedOptional404: [], warnings: [], checks: [], errors: [], layout: {}, passed: false };
-const children = []; let browser;
+const children = []; let browser, phase = 'khởi động';
+report.consoleDetails = [];
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const port=()=>new Promise((r,j)=>{const s=createServer();s.on('error',j);s.listen(0,'127.0.0.1',()=>{const n=s.address().port;s.close(()=>r(n));});});
 // Chỉ truyền đường dẫn runtime; không kế thừa URL DB/Redis hoặc token.
@@ -47,7 +48,7 @@ function observe(page, name, optionalUrl) {
  page.on('console', message => {
   if (message.type() === 'error') {
    if (message.location().url === optionalUrl && /404/.test(message.text())) report.expectedOptional404.push(name + ': /private/present.json 404');
-   else report.consoleErrors.push(name + ': ' + message.text());
+   else { report.consoleErrors.push(name + ': ' + message.text()); report.consoleDetails.push({ version: name, phase, message: message.text(), source: message.location().url }); }
   } else if (message.type() === 'warning') report.warnings.push(name + ': ' + message.text());
  });
 }
@@ -80,7 +81,7 @@ try{
   report.fixture.baselineResponses.push({version:name,resource:'/private/present.json',status:original.status,contentType:'text/html',missingFileHtmlFallback:true});
   observe(page,name,optionalUrl);
   await page.route(optionalUrl,route=>route.fulfill({status:404,contentType:'application/json',body:'{"error":"private assets not installed"}'}));
-  await page.goto(url+'/choi/?lag=1');
+  phase=name+': vào game';await page.goto(url+'/choi/?lag=1');
   await page.getByRole('button',{name:'Vào Thánh Hồn Thôn',exact:true}).click();
   await page.waitForFunction(()=>window.__scene?.players.size>0,null,{timeout:60000});
   if(name==='after'){await page.waitForFunction(()=>document.querySelectorAll('#quickMenu .c12-ui-icon').length===6);await page.waitForFunction(()=>document.querySelector('#c12Connection.c12-with-icon')?.dataset.c12Key==='gi_ui_connected'&&document.querySelector('#hudMenuBtn.c12-with-icon')?.dataset.c12Key==='gi_ui_menu');report.checks.push('owner816 merged: menu and connected icons loaded');}
@@ -101,29 +102,29 @@ try{
  async function style(){return page.evaluate(()=>window.__scene.game.canvas.style.cursor);}
  async function test(op,extra={}){return page.evaluate(({op,extra})=>new Promise((resolve,reject)=>{const room=window.__scene.room;let off;const timeout=setTimeout(()=>{off?.();reject(Error('test timeout '+op));},5000);off=room.onMessage('test',m=>{clearTimeout(timeout);off();resolve(m);});room.send('test',{op,...extra});}),{op,extra});}
  const npcWorld=await page.evaluate(()=>{const n=window.__scene.npcs.find(n=>n.def);return{x:n.x,y:n.y};});
- await test('goto',{x:npcWorld.x+24,y:npcWorld.y});await delay(1800);
+ phase='NPC goto';await test('goto',{x:npcWorld.x+24,y:npcWorld.y});await delay(1800);
  const npc=await page.evaluate(()=>{const s=window.__scene,c=s.cameras.main,cv=s.game.canvas,r=cv.getBoundingClientRect();for(const n of s.npcs){if(!n.def)continue;const x=n.x-n.y,y=(n.top+(n.x+n.y)/2)/2,cx=r.x+(x-c.worldView.x)*c.zoom,cy=r.y+(y-c.worldView.y)*c.zoom;if(cx>0&&cy>0&&cx<1280&&cy<720&&document.elementFromPoint(cx,cy)===cv)return{x,y};}throw Error('No visible NPC');});
  await move(npc,'talk');report.checks.push('NPC hover: talk');console.log('NPC talk passed');
  // Chọn nền chặn đang hiện trên canvas, không bị DOM che.
  const blocked=await page.evaluate(()=>{const s=window.__scene,c=s.cameras.main,cv=s.game.canvas,r=cv.getBoundingClientRect();for(let ty=0;ty<s.grid.MH;ty++)for(let tx=0;tx<s.grid.MW;tx++){if(s.grid.solid[ty*s.grid.MW+tx]!==1)continue;const x=tx*16+8,y=ty*16+8,sx=x-y,sy=(x+y)/2,cx=r.x+(sx-c.worldView.x)*c.zoom,cy=r.y+(sy-c.worldView.y)*c.zoom;if(cx>350&&cx<850&&cy>80&&cy<500&&document.elementFromPoint(cx,cy)===cv)return{x:sx,y:sy};}return null;});
  assert.ok(blocked,'a visible solid tile is required');await move(blocked,'blocked');report.checks.push('solid hover: blocked');
- await test('clear');
- const spawned=await test('spawn',{dx:65,dy:0,tier:0,hpx:100});await delay(500);
+ phase='clear beasts';await test('clear');
+ phase='spawn beast';const spawned=await test('spawn',{dx:65,dy:0,tier:0,hpx:100});await delay(500);
  const beast=await page.evaluate(id=>{const s=window.__scene,v=s.beasts.get(id);return{x:v.x,y:v.y-15};},spawned.bid);
  await page.evaluate(()=>{const s=window.__scene;s.__c12sent=[];const send=s.room.send.bind(s.room);s.room.send=(type,...args)=>{s.__c12sent.push(type);return send(type,...args)};});
  await move(beast,'attack');
  assert.equal(await page.evaluate(()=>window.__scene.__c12sent.filter(t=>t==='target'||t==='attack'||t==='pickup').length),0);
  report.checks.push('hover attack: no target/attack/pickup message');
- await page.mouse.click(...Object.values(await point(beast)));
+ phase='M3 click lock';await page.mouse.click(...Object.values(await point(beast)));
  await page.waitForFunction(id=>window.__scene.lockId===id,spawned.bid);
  report.checks.push('M3 click beast still locks target');console.log('M3 click passed');
  await page.keyboard.press('ArrowLeft');await delay(150);await page.keyboard.up('ArrowLeft');
  const ui=await page.locator('#charBtn').boundingBox();await page.mouse.move(ui.x+ui.width/2,ui.y+ui.height/2);await delay(200);assert.ok(!(await style()).includes('cursor_'));
  report.checks.push('DOM overlay clears custom cursor');
- await test('slay',{bid:spawned.bid});await delay(600);
+ phase='slay/drop';await test('slay',{bid:spawned.bid});await delay(600);
  await page.waitForFunction(()=>window.__scene.drops.size>0,null,{timeout:5000});
  const lootWorld=await page.evaluate(()=>{const s=window.__scene,[id,v]=[...s.drops][0],d=s.room.state.drops.get(id);return{id,x:d.x,y:d.y};});
- await test('goto',{x:lootWorld.x,y:lootWorld.y});await delay(1500);
+ phase='pickup goto';await test('goto',{x:lootWorld.x,y:lootWorld.y});await delay(1500);
  const lootPoint=await page.evaluate(id=>{const v=window.__scene.drops.get(id);return{x:v.img.x,y:v.img.y};},lootWorld.id);
  await move(lootPoint,'pickup');report.checks.push('actual drop in range: pickup cursor');
  await page.evaluate(()=>window.__scene.game.canvas.dispatchEvent(new PointerEvent('pointermove',{pointerType:'touch',clientX:10,clientY:10})));
@@ -133,13 +134,13 @@ try{
  await page.setViewportSize({width:844,height:390});await delay(400);
  const mobile=await page.evaluate(()=>{const s=window.__scene;return{cursor:s.game.canvas.style.cursor,actbar:document.getElementById('actbar')?.getBoundingClientRect().toJSON(),label:document.getElementById('c12Connection')?.getBoundingClientRect().toJSON()};});
  report.mobile=mobile; report.checks.push('844x390 screenshot only; no mobile feature changes');
- await page.evaluate(()=>window.__scene.room.leave());
+ phase='room leave';await page.evaluate(()=>window.__scene.room.leave());
  await page.waitForFunction(()=>document.getElementById('c12Connection').textContent==='Mất kết nối');
  await page.waitForFunction(()=>document.querySelector('#c12Connection.c12-with-icon')?.dataset.c12Key==='gi_ui_disconnected');report.checks.push('owner816 merged: disconnected icon loaded');assert.equal(await page.locator('#overlay').isVisible(),true);
  report.checks.push('actual room leave: disconnected label and existing overlay');
  await page.screenshot({path:out+'/after-disconnected.png'});
  assert.ok(report.layout.after.worldBtn.scroll-report.layout.after.worldBtn.client<=report.layout.before.worldBtn.scroll-report.layout.before.worldBtn.client,'C12 must not increase existing world label overflow: '+JSON.stringify(report.layout));
- const hd=await browser.newContext({viewport:{width:1280,height:720},deviceScaleFactor:2});
+ phase='DPR2 join';const hd=await browser.newContext({viewport:{width:1280,height:720},deviceScaleFactor:2});
  await hd.addInitScript(token=>localStorage.setItem('shh-token',token),currentToken);
  hd.setDefaultTimeout(15000);const hp=await hd.newPage(),requested=[];
  hp.on('request',r=>{if(/cursor_.*_64\.png/.test(r.url()))requested.push(r.url());});
