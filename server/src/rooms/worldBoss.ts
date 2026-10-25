@@ -23,7 +23,7 @@ const anchorOf = (map: GameMap, at: Anchor, box: Box): Anchor => {
   const l = map.lair; return !l || !map.hits(at.x, at.y, box.hw, box.hh) ? at : { x: l.x + l.w / 2, y: l.y + l.h / 2 };
 };
 /** Bản đồ đã cảnh báo thiếu vòng an toàn (chỉ cảnh báo một lần mỗi bản đồ, Bạo Nộ lặp mỗi WORLD.slamEvery giây). */
-const warned = new Set<string>();
+const warned = new Set<string>(); // map-co-dinh: khóa theo mapId (số bản đồ cố định)
 
 /**
  * Một chỗ ngẫu nhiên (tọa độ nguyên) trong sàn đấu (object `boss`), trong dải cột `col` / `cols` theo bề ngang, cách mép sàn `pad`,
