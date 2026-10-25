@@ -119,7 +119,7 @@ export interface PData {
   chListAt: number;     // lần gửi danh sách kênh gần nhất (ms): tin "channels" tối đa 1 lần / giây
   bossAskAt: number;    // lần trả tin boss lúc vào phòng gần nhất (ms, #118): tin "boss" tối đa 1 lần / giây
   chListQueued: boolean; // đã hẹn gửi lại danh sách kênh khi hết 1 giây (client xin dồn)
-  bagTok: TokenBucket; // bộ đếm token tin ghi túi (#677)
+  bagLimit: boolean; bagTok: TokenBucket; // bộ đếm token tin ghi túi (#677)
   statsRow: unknown; askAt: Map<string, number>; askQueued: Set<string>; // tin client xin lại dữ liệu riêng (bag, vohons, quest): lần gửi gần nhất (ms), đã hẹn gửi (#165, ask)
   energy: Map<number, number>;  // năng lượng tiên cơ từng võ hồn trong đội (rowId -> 0..TIEN_CO_MAX; không có = 0). Không lưu DB
   shield: number; shieldT: number; // khiên của hồn sư (tiên cơ phụ trợ) và số giây còn lại
@@ -1150,7 +1150,7 @@ export class MapRoom extends Room<MapState> {
     const d: PData = { accountId: auth.accountId, leaseOwner, leaseT: PRESENCE_HEARTBEAT_MS, owned, team, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 }, walk: false,
       atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, testBone: null, testCore: null, testHerb: null, looksN: looks.changes, looksBusy: false, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
       benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0,
-      saving: Promise.resolve(), teamQueued: false, tradeQueued: false, latest: new Map(), portalKey: "", travelCast: null, travelling: false, travelled: false, gmReset: false, gmMarked: false, chListAt: 0, chListQueued: false, bossAskAt: 0, bagTok: { n: BAG_MSG_BURST, t: Date.now() }, statsRow: undefined, askAt: new Map(), askQueued: new Set(),
+      saving: Promise.resolve(), teamQueued: false, tradeQueued: false, latest: new Map(), portalKey: "", travelCast: null, travelling: false, travelled: false, gmReset: false, gmMarked: false, chListAt: 0, chListQueued: false, bossAskAt: 0, bagLimit: process.env.GAME_TEST !== "1", bagTok: { n: BAG_MSG_BURST, t: Date.now() }, statsRow: undefined, askAt: new Map(), askQueued: new Set(),
       wps: new Set(auth.wps), wpKey: "", fog: null, fogAdd: [], fogDirty: false,
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
       bag: bag.items.filter((i) => i.equipSlot === undefined), gear: bag.items.filter((i) => i.equipSlot !== undefined), gearSt: gearStats(bag.items.filter((i) => i.equipSlot !== undefined)), honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "",
@@ -2207,7 +2207,7 @@ export class MapRoom extends Room<MapState> {
   onBagMsg<T = unknown>(type: string, cb: (c: Client, m: T) => void) {
     this.onMessage(type, (c, m: T) => {
       const d = this.pdata.get(c.sessionId); if (!d) return;
-      if (!takeToken(d.bagTok, Date.now(), BAG_MSG_BURST, BAG_MSG_RATE)) return;
+      if (d.bagLimit && !takeToken(d.bagTok, Date.now(), BAG_MSG_BURST, BAG_MSG_RATE)) return;
       cb(c, m);
     });
   }
@@ -3636,6 +3636,7 @@ export class MapRoom extends Room<MapState> {
    * Từ #218: `bmax {bid, x}` nhân máu tối đa hồn thú (cả máu gốc tinh anh / boss) và hồi đầy; `elock {key, s}` đặt khóa thưởng tinh anh `key`
    * cho chính mình; `auto {kn, wn}` đặt số lượt nhận thưởng thú vương / boss thế giới hôm nay trong bộ nhớ, trả thêm trạng thái trận boss
    * của tự săn; `perf {reset}` thời gian tick / bản vá (server PERF_LOG=1).
+   * Từ #677: `baglimit {on}` bật / tắt giới hạn tin ghi túi cho chính mình; khi GAME_TEST=1 mặc định TẮT (bot dọn túi hàng trăm ô một lúc), chỉ bài dồn sortbag bật.
    * Từ #164: `throw` ném lỗi ngay trong handler (không trả lời): thử lớp chặn chung onUncaughtException giữ server sống.
    * Từ #270: `crash {reject}` trả lời rồi ném lỗi NGOÀI phòng (hẹn giờ thường của Node, không qua clock của phòng; `reject`: promise bị từ
    * chối không ai bắt): thử process.on ở index.ts lưu người chơi đang online rồi thoát mã 1. Chỉ bài `bot:local --fatal` gọi.
@@ -3644,6 +3645,7 @@ export class MapRoom extends Room<MapState> {
     const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = strIn(o.op);
     if (process.env.GAME_TEST !== "1") return c.send("test", { op, enabled: false });
     if (op === "throw") throw new Error("hook test: lỗi cố ý (#164)");
+    if (op === "baglimit") { const d = this.pdata.get(c.sessionId); if (d) d.bagLimit = !!o.on; return c.send("test", { op, on: !!o.on }); } // #677: bật giới hạn tin ghi túi (mặc định tắt khi GAME_TEST=1)
     if (op === "crash") {
       const reject = !!o.reject;
       c.send("test", { op, reject });
