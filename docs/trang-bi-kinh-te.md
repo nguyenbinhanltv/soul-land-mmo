@@ -286,11 +286,11 @@ Bài `equipsoak` (BOT_ONLY, không nằm trong bot đầy đủ / CI): N bot đ�
 | RAM, 40 bot × 20 phút | 22.773 cường hóa, 22.861 hợp thành, 22.852 phân giải, 22.834 mặc, 2.302 lần vào lại | 2 hết hạn | 54–56 / 64 ms | 0,97 → 0,87 ms | 0,7–1,0 ms | 31 ms | 146 → 210 (phút 1) → 240 MB (phút 20, tăng ~0,8 MB/phút và chậm dần); đỉnh 245 | 38–96 MB, 38 MB sau khi bot rời |
 | PostgreSQL, 20 bot × 5 phút | 1.919 cường hóa, 1.958 hợp thành, 1.953 phân giải, 1.947 mặc, 200 lần vào lại | 0 | 55 / 64 ms | 0,51 → 0,53 ms | 0,17–0,37 ms | 15 ms | 152 → 209 MB; đỉnh 214 | 37–59 MB |
 
-- Mốc so sánh `docs/hieu-nang-soak.md` (40 bot tự săn trên bản đồ ×8): tick + vá 7–9 ms. Bài này chỉ có 40 người **đứng ở một phòng nhỏ** làm việc nặng túi / lưu, nên tick + vá chỉ ~1,7 ms: tải nằm ở chuỗi lưu và transaction, không ở tick.
+- Mốc so sánh `docs/tech/hieu-nang-soak.md` (40 bot tự săn trên bản đồ ×8): tick + vá 7–9 ms. Bài này chỉ có 40 người **đứng ở một phòng nhỏ** làm việc nặng túi / lưu, nên tick + vá chỉ ~1,7 ms: tải nằm ở chuỗi lưu và transaction, không ở tick.
 - **Không rò rỉ rõ rệt:** tick không chậm dần (nửa sau thấp hơn nửa đầu), mọi lệnh trả lời ~55 ms (phần lớn là nhịp chờ 50 ms của bot), RSS tăng chậm rồi gần bằng phẳng, heap về 38 MB khi bot rời. RSS giữ ở 240 MB sau khi bot rời là hành vi thường của Node (không trả lại hệ điều hành ngay), không phải heap giữ đối tượng.
 - **Vào lại giữ đúng trạng thái:** sau 20 phút, cả 40 bot thoát rồi vào lại thấy đúng món đang mặc (id, ô, cấp), túi và Hồn Tệ không âm, id không trùng (với PostgreSQL cũng vậy). 22 món bị phá hủy do chủ ý bấm không bùa: server xóa món đúng chỗ, không treo ô.
 - Một lần trễ 2,8 giây (đồng thời cả ba loại lệnh) ở lượt 20 phút, tick server lúc đó không quá 31 ms; trùng lúc **bot** gần chạm trần heap 768 MB (bot RSS 743 MB vì `b.logs` giữ mọi dòng log) nên nhiều khả năng là GC của bot; chưa chứng minh. Một lần 1,4 giây ở lượt PostgreSQL, cùng cách giải thích. Chỉ là một lệnh quá hạn / chậm, không có mất đồ.
-- **Chưa đo:** hàng trăm người (chỉ 40), cùng lúc có hồn thú trên bản đồ ×8 (xem `docs/hieu-nang-soak.md`), nhiều tiến trình / Redis (#120), PostgreSQL ở máy chủ thật (chỉ PostgreSQL cục bộ).
+- **Chưa đo:** hàng trăm người (chỉ 40), cùng lúc có hồn thú trên bản đồ ×8 (xem `docs/tech/hieu-nang-soak.md`), nhiều tiến trình / Redis (#120), PostgreSQL ở máy chủ thật (chỉ PostgreSQL cục bộ).
 
 ### Kết luận E7 và việc để chủ repo duyệt
 

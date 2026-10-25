@@ -1,8 +1,8 @@
 # Đặc tả hình ảnh kỹ năng combat: 25 võ hồn × 11 chiêu (S0, #541)
 
-Tài liệu đặc tả (chỉ ghi, không có mã). Theo dõi: kế hoạch combat 2026-10-24, bước **S0**. **Cách làm (công thức chuẩn S2): `docs/ky-nang-cong-thuc.md`.** Làm nền cho S1 (khung code `SKILL_VISUAL`), S2 (thử Lam Điện Bá Vương Long + Hạo Thiên Chùy), S3 (theo lô).
+Tài liệu đặc tả (chỉ ghi, không có mã). Theo dõi: kế hoạch combat 2026-10-24, bước **S0**. **Cách làm (công thức chuẩn S2): `docs/art/ky-nang-cong-thuc.md`.** Làm nền cho S1 (khung code `SKILL_VISUAL`), S2 (thử Lam Điện Bá Vương Long + Hạo Thiên Chùy), S3 (theo lô).
 
-**Nguồn khớp:** tên và mô tả chiêu lấy từ `shared/data.ts` (`VOHON_SKILLS`, `VOHON_SKILLS_HIGH`, `chanThanOf`, `tienCoOf`, `FUSIONS`; đổi tên ở đó thì sửa lại bảng này); hình dáng pháp tướng và dấu hiệu theo `docs/phap-tuong.md` (H0). Mọi con số cân bằng (sát thương, tầm, hồi chiêu) **không chép vào đây**, nằm ở `shared/data.ts`.
+**Nguồn khớp:** tên và mô tả chiêu lấy từ `shared/data.ts` (`VOHON_SKILLS`, `VOHON_SKILLS_HIGH`, `chanThanOf`, `tienCoOf`, `FUSIONS`; đổi tên ở đó thì sửa lại bảng này); hình dáng pháp tướng và dấu hiệu theo `docs/art/phap-tuong.md` (H0). Mọi con số cân bằng (sát thương, tầm, hồi chiêu) **không chép vào đây**, nằm ở `shared/data.ts`.
 
 ## 1. Phạm vi và nguyên tắc (chủ repo đã chốt 2026-10-24)
 
