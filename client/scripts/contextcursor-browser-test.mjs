@@ -118,7 +118,7 @@ try{
  await page.waitForFunction(id=>window.__scene.lockId===id,spawned.bid);
  report.checks.push('M3 click beast still locks target');console.log('M3 click passed');
  await page.keyboard.press('ArrowLeft');await delay(150);await page.keyboard.up('ArrowLeft');
- const ui=await page.locator('#charBtn').boundingBox();await page.mouse.move(ui.x+ui.width/2,ui.y+ui.height/2);await delay(200);assert.ok(!(await style()).includes('cursor_')); 
+ const ui=await page.locator('#charBtn').boundingBox();await page.mouse.move(ui.x+ui.width/2,ui.y+ui.height/2);await delay(200);assert.ok(!(await style()).includes('cursor_'));
  report.checks.push('DOM overlay clears custom cursor');
  await test('slay',{bid:spawned.bid});await delay(600);
  await page.waitForFunction(()=>window.__scene.drops.size>0,null,{timeout:5000});
