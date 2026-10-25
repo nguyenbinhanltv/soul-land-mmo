@@ -275,10 +275,9 @@ export class AutoHunter {
    * đi / đánh mục tiêu đã trừ vào nợ (không kẹp), nên con đó tốn max(thật, ước lượng); phần thật dư quá `credit` giây bỏ khi thôi nhắm
    * mục tiêu (drop). Hạ lan con khác giữa trận không kẹp, để không xóa thời gian thật của trận đang đánh.
    */
-  killed(pw: OfflinePower, years: number, species: string, at?: Pt) {
+  killed(pw: OfflinePower, years: number, species: string, zi?: number) {
     this.est = offlineFight(pw, years, species).secs; this.pace += this.est; this.lootWait = AUTO_LOOT_WAIT;
-    const zi = at ? this.room.map.zones.findIndex((z) => at.x >= z.x0 && at.x < z.x1 && at.y >= z.y0 && at.y < z.y1) : -1;
-    if (zi < 0) return;
+    if (zi === undefined || !this.room.map.zones[zi]) return; // zi: vùng sinh thật của con vừa hạ (bdata.zone), không theo chỗ nó chết
     this.spawns.delete(zi); this.spawns.set(zi, this.clock); // làm mới: vùng hạ gần nhất xếp cuối
     if (this.spawns.size > AUTO_SPAWN.max) this.spawns.delete(this.spawns.keys().next().value!);
   }
