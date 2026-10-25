@@ -2,6 +2,40 @@
   "about": "Asset kho riêng (docs/asset-rieng.md): chỉ siêu dữ liệu, ảnh không nằm trong repo. Client tải theo private/present.json; thiếu file thì bỏ qua và giữ hình cũ. Sinh bởi tools/assets/import-pack.mjs.",
   "sprites": [
     {
+      "key": "fx_bang_dong",
+      "kind": "fx",
+      "private": true,
+      "tier": "cong_khai",
+      "pack": "free",
+      "file": "packs/fx_bang_dong.png",
+      "frame": [
+        84,
+        88
+      ],
+      "frames": 86,
+      "fps": 24,
+      "normal": false,
+      "glow": "packs/fx_bang_dong_hao.png",
+      "use": "Đóng băng quanh mục tiêu (hệ Băng, trạng thái Đóng băng)"
+    },
+    {
+      "key": "fx_bao_truoc",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "giga",
+      "file": "packs/fx_bao_truoc.png",
+      "frame": [
+        42,
+        76
+      ],
+      "frames": 14,
+      "fps": 14,
+      "normal": false,
+      "glow": "packs/fx_bao_truoc_hao.png",
+      "use": "Dấu báo trước nguy hiểm trên vùng chiêu của quái"
+    },
+    {
       "key": "fx_bui_dat",
       "kind": "fx",
       "private": true,
@@ -33,6 +67,40 @@
       "normal": true,
       "glow": "packs/fx_chem_sang_hao.png",
       "use": "Chém sáng (hệ Quang)"
+    },
+    {
+      "key": "fx_chem_sang_b",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "holy",
+      "file": "packs/fx_chem_sang_b.png",
+      "frame": [
+        64,
+        32
+      ],
+      "frames": 4,
+      "fps": 14,
+      "normal": true,
+      "glow": "packs/fx_chem_sang_b_hao.png",
+      "use": "Chém sáng B (Quang T2)"
+    },
+    {
+      "key": "fx_chem_sang_c",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "holy",
+      "file": "packs/fx_chem_sang_c.png",
+      "frame": [
+        64,
+        58
+      ],
+      "frames": 7,
+      "fps": 14,
+      "normal": true,
+      "glow": "packs/fx_chem_sang_c_hao.png",
+      "use": "Chém sáng C (Quang T3)"
     },
     {
       "key": "fx_dam_tim",
@@ -153,6 +221,23 @@
       "use": "Khói lướt khi dịch chuyển nhanh"
     },
     {
+      "key": "fx_kiem_cong_ly",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "holy",
+      "file": "packs/fx_kiem_cong_ly.png",
+      "frame": [
+        58,
+        128
+      ],
+      "frames": 13,
+      "fps": 14,
+      "normal": false,
+      "glow": "packs/fx_kiem_cong_ly_hao.png",
+      "use": "Kiếm công lý đâm xuống (hệ Quang T3)"
+    },
+    {
       "key": "fx_lua_cuon",
       "kind": "fx",
       "private": true,
@@ -168,6 +253,23 @@
       "normal": false,
       "glow": "packs/fx_lua_cuon_hao.png",
       "use": "Cột lửa cuốn: Thiêu đốt, Tà Hỏa"
+    },
+    {
+      "key": "fx_lua_doc",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "fire",
+      "file": "packs/fx_lua_doc.png",
+      "frame": [
+        20,
+        46
+      ],
+      "frames": 8,
+      "fps": 10,
+      "normal": false,
+      "glow": "packs/fx_lua_doc_hao.png",
+      "use": "Ngọn lửa lục đứng (Độc Hỏa, đầm độc)"
     },
     {
       "key": "fx_lua_dung",
@@ -187,6 +289,23 @@
       "use": "Ngọn lửa: trạng thái Thiêu đốt / Hỏa Long / Tà Hỏa dưới chân"
     },
     {
+      "key": "fx_lua_lam",
+      "kind": "fx",
+      "private": true,
+      "tier": "cong_khai",
+      "pack": "free",
+      "file": "packs/fx_lua_lam.png",
+      "frame": [
+        62,
+        88
+      ],
+      "frames": 61,
+      "fps": 24,
+      "normal": false,
+      "glow": "packs/fx_lua_lam_hao.png",
+      "use": "Lửa lam (hồn hỏa, Băng Hỏa)"
+    },
+    {
       "key": "fx_lua_roi",
       "kind": "fx",
       "private": true,
@@ -202,6 +321,23 @@
       "normal": false,
       "glow": "packs/fx_lua_roi_hao.png",
       "use": "Roi lửa quất: hồn kỹ Tà Hỏa"
+    },
+    {
+      "key": "fx_lua_xanh",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "fire",
+      "file": "packs/fx_lua_xanh.png",
+      "frame": [
+        20,
+        46
+      ],
+      "frames": 8,
+      "fps": 10,
+      "normal": false,
+      "glow": "packs/fx_lua_xanh_hao.png",
+      "use": "Ngọn lửa lam đứng (Băng Hỏa, hồn hỏa)"
     },
     {
       "key": "fx_lua_xoay",
@@ -238,6 +374,125 @@
       "use": "Nổ tiên cơ diện rộng (thay fx_no LPC)"
     },
     {
+      "key": "fx_quang_no",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "holy",
+      "file": "packs/fx_quang_no.png",
+      "frame": [
+        96,
+        128
+      ],
+      "frames": 12,
+      "fps": 14,
+      "normal": false,
+      "glow": "packs/fx_quang_no_hao.png",
+      "use": "Thiên phạt Quang (hệ Quang T3)"
+    },
+    {
+      "key": "fx_quang_phat",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "holy",
+      "file": "packs/fx_quang_phat.png",
+      "frame": [
+        64,
+        64
+      ],
+      "frames": 11,
+      "fps": 14,
+      "normal": true,
+      "glow": "packs/fx_quang_phat_hao.png",
+      "use": "Quang phạt giáng (hệ Quang T2)"
+    },
+    {
+      "key": "fx_set_giang",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "giga",
+      "file": "packs/fx_set_giang.png",
+      "frame": [
+        128,
+        128
+      ],
+      "frames": 7,
+      "fps": 20,
+      "normal": false,
+      "glow": "packs/fx_set_giang_hao.png",
+      "use": "Sét giáng xuống mục tiêu (hệ Lôi, Lam Điện)"
+    },
+    {
+      "key": "fx_set_khuech",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "giga",
+      "file": "packs/fx_set_khuech.png",
+      "frame": [
+        128,
+        128
+      ],
+      "frames": 12,
+      "fps": 20,
+      "normal": false,
+      "glow": "packs/fx_set_khuech_hao.png",
+      "use": "Hào quang sét quanh người (Lôi, Cảm điện)"
+    },
+    {
+      "key": "fx_set_no_1",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "giga",
+      "file": "packs/fx_set_no_1.png",
+      "frame": [
+        64,
+        64
+      ],
+      "frames": 8,
+      "fps": 20,
+      "normal": false,
+      "glow": "packs/fx_set_no_1_hao.png",
+      "use": "Sét nổ nhỏ (trúng đòn Lôi)"
+    },
+    {
+      "key": "fx_set_no_2",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "giga",
+      "file": "packs/fx_set_no_2.png",
+      "frame": [
+        64,
+        64
+      ],
+      "frames": 9,
+      "fps": 20,
+      "normal": false,
+      "glow": "packs/fx_set_no_2_hao.png",
+      "use": "Sét nổ vừa (hồn kỹ Lôi T2)"
+    },
+    {
+      "key": "fx_set_no_3",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "giga",
+      "file": "packs/fx_set_no_3.png",
+      "frame": [
+        96,
+        96
+      ],
+      "frames": 10,
+      "fps": 20,
+      "normal": false,
+      "glow": "packs/fx_set_no_3_hao.png",
+      "use": "Sét nổ lớn (hồn kỹ Lôi T3)"
+    },
+    {
       "key": "fx_song_quang",
       "kind": "fx",
       "private": true,
@@ -253,6 +508,23 @@
       "normal": true,
       "glow": "packs/fx_song_quang_hao.png",
       "use": "Buff hệ Phụ trợ / sóng Quang"
+    },
+    {
+      "key": "fx_tran_phap",
+      "kind": "fx",
+      "private": true,
+      "tier": "cong_khai",
+      "pack": "free",
+      "file": "packs/fx_tran_phap.png",
+      "frame": [
+        38,
+        48
+      ],
+      "frames": 61,
+      "fps": 24,
+      "normal": false,
+      "glow": "packs/fx_tran_phap_hao.png",
+      "use": "Vòng trận pháp bảo hộ (vùng hồi / phòng thủ)"
     },
     {
       "key": "fx_va_cham_nho",
@@ -287,6 +559,23 @@
       "normal": false,
       "glow": "packs/fx_va_cham_vang_hao.png",
       "use": "Va chạm / tia lửa khi trúng đòn (cạnh fxh_*)"
+    },
+    {
+      "key": "fx_xoay_doc",
+      "kind": "fx",
+      "private": true,
+      "tier": "cong_khai",
+      "pack": "free",
+      "file": "packs/fx_xoay_doc.png",
+      "frame": [
+        84,
+        78
+      ],
+      "frames": 61,
+      "fps": 24,
+      "normal": false,
+      "glow": "packs/fx_xoay_doc_hao.png",
+      "use": "Xoáy độc quanh mục tiêu (hệ Độc)"
     },
     {
       "key": "vat_bui_cay",

@@ -150,6 +150,14 @@ class FxTestScene extends Phaser.Scene {
     }
     else if (name === "dan") { if (!P("fx_dan_lua", { x: h.x + 14, y: up, to: { x: d.x, y: d.y - 10 * SPR }, rotate: true, scale: 2 * SPR })) this.fire("proj", "fire"); } // đạn lửa nhỏ (cũ: viên đạn hạt G3)
     else if (name === "dam") { if (!P("fx_dam_trang", { x: d.x - 20, y: d.y - 10 * SPR, scale: SPR })) this.fire("slash", "light"); P("fx_dam_tim", { x: d.x - 20, y: d.y - 4 * SPR, scale: SPR, delay: 400 }); } // vệt đâm (cũ: vệt chém G3)
+    else if (name.startsWith("cast:")) { // #622 đợt 2: chạy đúng đường game (SkillVisualPlayer.overlay) cho hệ + tầng, vd `cast:lightning:3`, `cast:fire:2`
+      const [, el, t] = name.split(":");
+      this.svp.cast({ tier: +t as 1 | 2 | 3, heavy: 2, element: el as Element, ...(el === "fire" && +t === 1 ? { sheet: { key: "", at: "travel" as const } } : {}) }, { x: h.x, y: up, ang: 0, tx: d.x, ty: d.y - 8 * SPR, mine: true, r: 56 * RX });
+    }
+    else if (name === "bao") P("fx_bao_truoc", { x: d.x, y: d.y - 40 * SPR, scale: SPR });
+    else if (name === "tran") P("fx_tran_phap", { x: h.x, y: h.y - 2 * SPR, scale: 2 * SPR, ang: 0 });
+    else if (name === "lam") { P("fx_lua_lam", { x: d.x, y: d.y - 8 * SPR, scale: SPR }); P("fx_lua_xanh", { x: h.x, y: h.y - 4 * SPR, scale: SPR }); }
+    else if (name === "chemb") { P("fx_chem_sang_b", { x: d.x, y: d.y - 10 * SPR, scale: 2 * SPR }); P("fx_chem_sang_c", { x: d.x, y: d.y - 10 * SPR, scale: 2 * SPR, delay: 400 }); }
     else if (name === "khoi") { P("fx_khoi_luot", { x: h.x, y: h.y - 4 * SPR, ang: 0, scale: SPR }); P("fx_bui_dat", { x: d.x - 30, y: d.y - 2 * SPR, scale: SPR, delay: 80 }); this.fxp.footDust(h.x, h.y + 4 * SPR, 0x9a8b68, footDustCount(fxPrefs.level, fxPrefs.reduce, false) || 6, false); }
   }
   /** Phát lần lượt cả 5 kiểu của hệ đang chọn (xem nhanh một hệ). */

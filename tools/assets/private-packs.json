@@ -433,6 +433,184 @@
       "fps": 18,
       "glow": true,
       "use": "Va chạm vàng (thay thế va chạm Gigapack nếu gọn hơn)"
+    },
+    {
+      "key": "fx_set_giang",
+      "kind": "fx",
+      "pack": "giga",
+      "ramp": "set",
+      "fps": 20,
+      "glow": true,
+      "use": "Sét giáng xuống mục tiêu (hệ Lôi, Lam Điện)"
+    },
+    {
+      "key": "fx_set_no_1",
+      "kind": "fx",
+      "pack": "giga",
+      "ramp": "set",
+      "fps": 20,
+      "glow": true,
+      "use": "Sét nổ nhỏ (trúng đòn Lôi)"
+    },
+    {
+      "key": "fx_set_no_2",
+      "kind": "fx",
+      "pack": "giga",
+      "ramp": "set",
+      "fps": 20,
+      "glow": true,
+      "use": "Sét nổ vừa (hồn kỹ Lôi T2)"
+    },
+    {
+      "key": "fx_set_no_3",
+      "kind": "fx",
+      "pack": "giga",
+      "ramp": "set",
+      "fps": 20,
+      "glow": true,
+      "use": "Sét nổ lớn (hồn kỹ Lôi T3)"
+    },
+    {
+      "key": "fx_set_khuech",
+      "kind": "fx",
+      "pack": "giga",
+      "fw": 128,
+      "layout": "grid",
+      "ramp": "set",
+      "fps": 20,
+      "glow": true,
+      "use": "Hào quang sét quanh người (Lôi, Cảm điện)"
+    },
+    {
+      "key": "fx_bao_truoc",
+      "kind": "fx",
+      "pack": "giga",
+      "ramp": "lua",
+      "fps": 14,
+      "glow": true,
+      "use": "Dấu báo trước nguy hiểm trên vùng chiêu của quái"
+    },
+    {
+      "key": "fx_quang_phat",
+      "kind": "fx",
+      "pack": "holy",
+      "fw": 64,
+      "ramp": "quang",
+      "fps": 14,
+      "glow": true,
+      "normal": true,
+      "gamma": 1.2,
+      "use": "Quang phạt giáng (hệ Quang T2)"
+    },
+    {
+      "key": "fx_quang_no",
+      "kind": "fx",
+      "pack": "holy",
+      "fw": 128,
+      "ramp": "quang",
+      "fps": 14,
+      "glow": true,
+      "gamma": 1.2,
+      "use": "Thiên phạt Quang (hệ Quang T3)"
+    },
+    {
+      "key": "fx_kiem_cong_ly",
+      "kind": "fx",
+      "pack": "holy",
+      "fw": 64,
+      "ramp": "quang",
+      "fps": 14,
+      "glow": true,
+      "gamma": 1.2,
+      "use": "Kiếm công lý đâm xuống (hệ Quang T3)"
+    },
+    {
+      "key": "fx_chem_sang_b",
+      "kind": "fx",
+      "pack": "holy",
+      "fw": 64,
+      "ramp": "quang",
+      "fps": 14,
+      "glow": true,
+      "normal": true,
+      "gamma": 1.2,
+      "use": "Chém sáng B (Quang T2)"
+    },
+    {
+      "key": "fx_chem_sang_c",
+      "kind": "fx",
+      "pack": "holy",
+      "fw": 64,
+      "ramp": "quang",
+      "fps": 14,
+      "glow": true,
+      "normal": true,
+      "gamma": 1.2,
+      "use": "Chém sáng C (Quang T3)"
+    },
+    {
+      "key": "fx_bang_dong",
+      "kind": "fx",
+      "pack": "free",
+      "fw": 100,
+      "layout": "grid",
+      "ramp": "khien",
+      "fps": 24,
+      "glow": true,
+      "use": "Đóng băng quanh mục tiêu (hệ Băng, trạng thái Đóng băng)"
+    },
+    {
+      "key": "fx_lua_lam",
+      "kind": "fx",
+      "pack": "free",
+      "fw": 100,
+      "layout": "grid",
+      "ramp": "set",
+      "fps": 24,
+      "glow": true,
+      "use": "Lửa lam (hồn hỏa, Băng Hỏa)"
+    },
+    {
+      "key": "fx_xoay_doc",
+      "kind": "fx",
+      "pack": "free",
+      "fw": 100,
+      "layout": "grid",
+      "ramp": "hoi",
+      "fps": 24,
+      "glow": true,
+      "use": "Xoáy độc quanh mục tiêu (hệ Độc)"
+    },
+    {
+      "key": "fx_tran_phap",
+      "kind": "fx",
+      "pack": "free",
+      "fw": 100,
+      "layout": "grid",
+      "ramp": "quang",
+      "fps": 24,
+      "glow": true,
+      "use": "Vòng trận pháp bảo hộ (vùng hồi / phòng thủ)"
+    },
+    {
+      "key": "fx_lua_xanh",
+      "kind": "fx",
+      "pack": "fire",
+      "fw": 32,
+      "ramp": "set",
+      "fps": 10,
+      "glow": true,
+      "use": "Ngọn lửa lam đứng (Băng Hỏa, hồn hỏa)"
+    },
+    {
+      "key": "fx_lua_doc",
+      "kind": "fx",
+      "pack": "fire",
+      "fw": 32,
+      "ramp": "hoi",
+      "fps": 10,
+      "glow": true,
+      "use": "Ngọn lửa lục đứng (Độc Hỏa, đầm độc)"
     }
   ]
 }
