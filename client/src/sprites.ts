@@ -131,6 +131,15 @@ export function isStaticBeast(scene: Phaser.Scene, key: string) {
 const ANIM_LAYOUTS = new Map<string, AnimLayout>();
 /** Bố cục của sheet hoạt ảnh vẽ thật (mặc định theo đặc tả khi manifest không ghi). */
 export const animLayoutOf = (key: string): AnimLayout => ANIM_LAYOUTS.get(key) ?? DEFAULT_LAYOUT;
+/** Key sheet hoạt ảnh của từng loài đã tra (undefined = loài không có): tra mỗi hồn thú mỗi khung hình nên nhớ lại, xóa khi tạo lại animation. */
+const ANIM_KEY_OF = new Map<string, string | undefined>();
+/** Key `beast_{loài}_anim` nếu loài có sheet hoạt ảnh vẽ thật trong texture, không thì undefined. */
+function animKeyOf(scene: Phaser.Scene, species: string): string | undefined {
+  if (ANIM_KEY_OF.has(species)) return ANIM_KEY_OF.get(species);
+  const k = `beast_${species}_anim`, v = isAnimBeast(scene, k) ? k : undefined;
+  ANIM_KEY_OF.set(species, v);
+  return v;
+}
 /** Sheet hoạt ảnh vẽ thật (H3): key `beast_{loài}_anim`, rộng 6 khung, cao 20 khung (5 hướng × 4 dải). */
 export function isAnimBeast(scene: Phaser.Scene, key: string) {
   if (!/^beast_[a-z_]+_anim$/.test(key) || !scene.textures.exists(key)) return false;
@@ -359,9 +368,9 @@ export function beastBody(s: Phaser.GameObjects.Sprite): BeastBodyPx & { h: numb
  */
 export function syncBeastSprite(s: Phaser.GameObjects.Sprite, species: string | undefined, moving: boolean, aggro: boolean, cast = false,
   face: Dir8 = "se", art?: { now: number; hp: number; walkScale: number }): false | "iso" | "flat" | "static" | "anim" {
-  const key = `beast_${species}`, akey = `${key}_anim`;
+  const key = `beast_${species}`, akey = species && art ? animKeyOf(s.scene, species) : undefined;
   // Hoạt ảnh vẽ thật (H3, #688): ưu tiên hơn ảnh tĩnh; loài chưa có sheet rơi xuống các nhánh cũ nguyên vẹn.
-  if (species && art && isAnimBeast(s.scene, akey)) {
+  if (species && art && akey) {
     const L = ANIM_LAYOUTS.get(akey) ?? DEFAULT_LAYOUT;
     let st: BeastAnimState | undefined = s.getData("ba");
     if (s.texture.key !== akey) {
@@ -527,6 +536,7 @@ export function createBeastAnims(scene: Phaser.Scene, sheet: string) {
 
 /** Tạo animation cho mọi sheet NPC LPC (thân hồn sư LPC ghép lúc chạy tự tạo ở lpcRig.ts) và hồn thú đang có (ảnh thật hoặc vẽ bằng code). */
 export function createSheetAnims(scene: Phaser.Scene) {
+  ANIM_KEY_OF.clear();
   for (const key of scene.textures.getTextureKeys()) {
     if (/^lpc_[a-z0-9_]+$/.test(key)) createHonsuAnims(scene, key);
     else if (/^(b\d|beast_[a-z_]+)$/.test(key) && !key.endsWith("_n")) createBeastAnims(scene, key); // `_n`: normal map, không phải sheet
