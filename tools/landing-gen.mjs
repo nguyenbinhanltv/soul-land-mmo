@@ -19,7 +19,8 @@ const items = VOHON.map((v, i) => {
 const html = readFileSync(file, "utf8");
 const re = /(<!--vohon:start-->)[\s\S]*?(<!--vohon:end-->)/;
 if (!re.test(html)) throw new Error("Thiếu dấu <!--vohon:start--> / <!--vohon:end--> ở client/index.html");
-const out = html.replace(re, (_, a, b) => `${a}\n${items}\n${b}`);
+const eol = html.includes("\r\n") ? "\r\n" : "\n"; // checkout Windows (autocrlf) có thể là CRLF
+const out = html.replace(re, (_, a, b) => `${a}${eol}${items.replaceAll("\n", eol)}${eol}${b}`);
 if (process.argv.includes("--check")) {
   if (out !== html) { console.error("Danh sách võ hồn ở client/index.html đã cũ: chạy node tools/landing-gen.mjs"); process.exit(1); }
   console.log("Danh sách võ hồn của landing khớp shared/data.ts");

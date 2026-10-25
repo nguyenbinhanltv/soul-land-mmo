@@ -16,7 +16,7 @@ const GAME = "/choi";
 }
 
 // ----- Đã có phiên đăng nhập: "Vào chơi" thành "Tiếp tục chơi" -----
-if (storage.get("shh-token")) document.querySelectorAll<HTMLElement>("a.btn.seal").forEach((a) => { if (a.textContent === "Vào chơi") a.textContent = "Tiếp tục chơi"; else if (a.textContent === "Vào chơi ngay") a.textContent = "Tiếp tục chơi ngay"; });
+if (storage.get("shh-token")) document.querySelectorAll<HTMLElement>("a[data-play]").forEach((a) => { a.textContent = a.dataset.play ?? a.textContent; });
 
 // ----- Đăng nhập Google -----
 type Gsi = { accounts: { id: { initialize(o: object): void; renderButton(el: HTMLElement, o: object): void } } };
