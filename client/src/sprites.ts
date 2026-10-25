@@ -12,6 +12,7 @@ import Phaser from "phaser";
 import { TELE_WARN, PT_FRAME } from "../../shared/data.ts";
 import { SPR, type Dir8 } from "./iso.ts";
 import { lightingOn } from "./lighting.ts";
+import { readFxPrefs } from "./fxSettings.ts";
 
 const MANIFEST_KEY = "sprites-manifest";
 const BASE = "sprites/";
@@ -192,11 +193,8 @@ let motionAt = -1e9, motionVal = 1;
 function motionScale(nowMs: number): number {
   if (nowMs - motionAt < 1000) return motionVal;
   motionAt = nowMs; motionVal = 1;
-  try {
-    const r = JSON.parse(window.localStorage.getItem("soul-land-fx-v1") ?? "null") ?? {};
-    const reduce = typeof r.reduce === "boolean" ? r.reduce : window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    motionVal = reduce ? 0.2 : r.level === "low" ? 0.6 : r.level === "high" ? 1.25 : 1;
-  } catch { /* hỏng thì mặc định Vừa */ }
+  const r = readFxPrefs();
+  motionVal = r.reduce ? 0.2 : r.level === "low" ? 0.6 : r.level === "high" ? 1.25 : 1;
   return motionVal;
 }
 /** Mức chuyển động hiện tại (1 = Vừa); dưới 0,5 (Giảm chuyển động) thì GameScene bỏ vòng sóng xung kích. */
