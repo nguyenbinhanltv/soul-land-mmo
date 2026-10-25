@@ -1,0 +1,36 @@
+Create ONE image, exactly 1024x1536 pixels: an animation sprite sheet of a single fantasy creature for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
+
+CREATURE: Phong Lang - grey wind wolf, slate grey fur with pale blue-white wind-swept tufts, lean muscular adult wolf, long muzzle, pointed ears, standing on all four straight legs. Body type: thú bốn chân. Size class: Tím / Đen. The attached reference image shows this exact creature in three static views (front, side, back): keep the SAME design, proportions, colors, markings and overall size in every frame of the sheet. Do not redesign it.
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
+
+GRID: 6 columns x 12 rows of equal invisible cells (171x128 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with its feet (or lowest body point) standing on the same invisible ground line about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.
+
+LAYOUT (top to bottom):
+Block 1 (rows 1-4): direction "s" = facing the viewer (front view, three-quarter from above).
+  row 1: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 2: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 3: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 4: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+Block 2 (rows 5-8): direction "se" = facing the lower right of the picture (three-quarter front view, head toward the viewer's right).
+  row 5: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 6: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 7: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 8: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+Block 3 (rows 9-12): direction "e" = facing right (side profile, seen from slightly above).
+  row 9: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 10: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 11: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 12: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+
+CONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, standing, walking and hurt frames keep the body at the same scale and the same ground line. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).
+
+STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.
+
+DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions.
+
+DIRECTION ACCURACY IS ESSENTIAL. Generate this entire sheet anew, using ONLY the attached original three-view creature reference. Do not use any previously generated sheet.
+ROWS 1-4: STRICT SOUTH, a symmetrical frontal view seen from above. Nose projects straight DOWN toward the viewer, centered between both eyes. Both ears visible symmetrically. The spine recedes straight UP behind the head, strongly foreshortened. This remains true for ALL idle, hurt, walk and attack poses. In row 1 columns 5-6, flinch by retracting the head straight BACK along that same axis and closing both eyes; NO head turn, NO right-facing muzzle. Row 3: frontal crouch, frontal forward bite toward camera, forelegs spreading symmetrically, frontal landing, recover. Never rotate the head/body to the right during this attack. Death can roll sideways but retains the original head-to-tail axis.
+ROWS 5-8: STRICT SOUTHEAST 45 degrees, head toward LOWER RIGHT and hindquarters toward UPPER LEFT. Show BOTH the front chest and the right flank; muzzle projects DOWN-RIGHT, never horizontally right. The near forepaw is lower on the screen than the far forepaw. Keep this exact heading during hurt/walk/attack; collapse along that diagonal. This must look obviously different from rows 9-12.
+ROWS 9-12: STRICT EAST profile, nose points horizontally RIGHT, tail LEFT, not towards camera. Keep the existing six-column twelve-row layout with exactly 66 creatures and six empty magenta cells: row4 cols5-6, row8 cols5-6, row12 cols5-6.
+Maintain the original slim wolf proportions and pale blue-white tufts without making any part glow. Make genuine sequential drawn animation pose changes, not repeated static images. Keep every other requirement above, including requested resolution 1024x1536, flat #FF00FF background, same scale/ground line/margins and no text or grid.
