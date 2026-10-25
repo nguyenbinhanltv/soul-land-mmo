@@ -4119,6 +4119,10 @@ export class MapRoom extends Room<MapState> {
         boss: a?.boss ?? false, dodges: a?.dodges ?? 0, dodge: a?.dodge ?? null, away: a?.away ?? false, warm: a?.warm ?? false, role: a?.role?.he ?? null, cleanse: a?.cleanseRow(d) ?? null,
         // #291: nhịp trước đi thẳng tới mục tiêu ("line") hay theo đường A* ("path"), số lần tìm đường A*, số lần tính đường thẳng.
         way: a?.way ?? null, plans: a?.plans ?? 0, lines: a?.lines ?? 0,
+        // AH3 (#610): đang nghỉ hồi (hết đan), đang đi dạo tới vùng hồi sinh đã nhớ (điểm đi dạo), số vùng nhớ, số hồn kỹ diện rộng đã tung vì
+        // đông, các ô hồn kỹ diện rộng (quanh thân / trước mặt) của võ hồn ra trận, số con trong AUTO_CLUSTER.r quanh mình.
+        resting: a?.resting ?? false, spawning: a?.spawning ?? false, patrol: a?.patrol ?? null, spawns: a?.spawns.size ?? 0, aoeCasts: a?.aoeCasts ?? 0,
+        aoe: a ? a.cfg.skills.filter((i) => { const sk = a.skillAt(p, d, i)?.sk; return !!sk && (sk.area === "around" || sk.area === "front") && sk.dmg > 0; }) : [],
         ...(bd ? { beast: { target: bd.target, hitBy: bd.hitBy, calm: bd.calm, ret: bd.ret, skip: a && skipTo !== undefined && skipTo > a.clock ? skipTo - a.clock : null, claim } } : {}) };
     }
     else if (op === "tong") {

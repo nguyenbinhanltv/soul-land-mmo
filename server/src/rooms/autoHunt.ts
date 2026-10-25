@@ -21,6 +21,8 @@ import { AutoFeed } from "./autoStatus.ts";
 const HP_POTS = ITEMS.filter((d) => d.hp), MP_POTS = ITEMS.filter((d) => d.mp);
 /** Nửa cỡ hồn thú lớn nhất: cộng vào bán kính khi lấy ứng viên từ lưới không gian (như BEAST_HALF của MapRoom). */
 const BEAST_HALF = Math.max(...TIERS.map((t) => t.size)) / 2;
+/** Dạng hồn kỹ đánh diện rộng quanh thân / trước mặt (AUTO_AOE_MIN, B1 #610). */
+const AOE_AREAS: string[] = ["around", "front"];
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 /** Kinh nghiệm tích lũy của một võ hồn (mọi cấp đã qua cộng phần của cấp đang có): hiệu hai lần chụp là kinh nghiệm nhận được. */
 const xpTotal = (level: number, xp: number) => { let n = xp; for (let l = 1; l < level; l++) n += xpNeed(l); return n; };
@@ -93,6 +95,8 @@ export class AutoHunter {
 
   /** Vùng sinh hồn thú nơi vừa hạ một con (chỉ số trong map.zones → giây của `clock` lúc hạ), tối đa AUTO_SPAWN.max (B2, #610). */
   spawns = new Map<number, number>();
+  /** Số lần tung hồn kỹ diện rộng vì có từ AUTO_AOE_MIN con trong vùng (hook test, B1 #610). */
+  aoeCasts = 0;
   /** Đang đi dạo tới vùng hồi sinh đã nhớ (để hiện trạng thái). */
   spawning = false;
   /** Hết đan: đang đứng nghỉ hồi sinh lực tới AUTO_REST.resume (B3, #610). */
@@ -550,9 +554,9 @@ export class AutoHunter {
       .some((a) => (cast?.charge ? isCcStatus(a.s) : STATUS[a.s].noAtk || STATUS[a.s].noSkill));
     const want = (i: number) => { const sk = this.skillAt(p, d, i)?.sk; return !!sk && (cleanse ? !!sk.self?.cleanse : !!cast && cc(sk)); };
     // Không có việc cần (thanh tẩy / ngắt chiêu): hồn kỹ diện rộng có từ AUTO_AOE_MIN hồn thú thường trong vùng thì lên trước (B1, #610).
-    const crowded = (i: number) => { const sk = this.skillAt(p, d, i)?.sk; return !!sk && (sk.area === "around" || sk.area === "front") && sk.dmg > 0 && this.inArea(p, sk.r) >= AUTO_AOE_MIN; };
+    const hot = cleanse || cast || this.boss ? [] : this.cfg.skills.filter((i) => { const sk = this.skillAt(p, d, i)?.sk; return !!sk && AOE_AREAS.includes(sk.area) && sk.dmg > 0 && this.inArea(p, sk.r) >= AUTO_AOE_MIN; });
     const order = cleanse || cast ? [...this.cfg.skills.filter(want), ...this.cfg.skills.filter((i) => !want(i))]
-      : this.boss ? this.cfg.skills : [...this.cfg.skills.filter(crowded), ...this.cfg.skills.filter((i) => !crowded(i))];
+      : hot.length ? [...hot, ...this.cfg.skills.filter((i) => !hot.includes(i))] : this.cfg.skills;
     for (const i of order) {
       const at = this.skillAt(p, d, i); if (!at) continue;
       if (at.ct ? p.ctCd > 0 : p.cds[i] > 0) continue;
@@ -565,6 +569,7 @@ export class AutoHunter {
       if (run.area === "target" || run.at) { const near = room.nearestBeast(p, reach); if (!near || (near !== this.target && !this.boss && this.taken(near))) continue; }
       // Hồn kỹ diện rộng (quanh thân, trước mặt, lướt, bắn mũi) không tung khi vùng của nó có hồn thú người khác đang giao chiến.
       else if (run.area !== "self" && !this.fighting() && this.splash(p.x, p.y - 6, run.r)) continue;
+      if (hot.includes(i)) this.aoeCasts++;
       room.skill(c, i);
       return;
     }
