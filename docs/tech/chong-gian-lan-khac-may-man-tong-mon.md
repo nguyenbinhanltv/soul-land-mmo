@@ -28,7 +28,7 @@ Lưu ý đọc kết quả: trần tổng chỉ chặn **khắc**; may mắn hi�
 
 Nhánh `catch` của `equipLuck`: `undoSoul(); it.stats = was`. Vì món không đổi chỗ trong lúc chờ (1a) nên `wear` còn đúng; `it.stats` là tham chiếu cùng một đối tượng nên gán lại `was` đúng cả khi món ở túi hay ô mặc. `undoSoul` trả đúng phần đã trừ trên túi hiện tại (nhặt thêm đồ lúc chờ không bị đè). Không thấy lỗ hổng.
 
-**Khoảng trống kiểm thử:** server chưa có hook ép `saveBag` lỗi, nên nhánh này (và nhánh lỗi của `equipenh`, `coreset`, #699) chưa có bài chạy. Cần hook `test` kiểu `savefail` trong `MapRoom.ts` (ngoài phạm vi issue này): issue #797.
+**Đã có bài chạy (#797):** hook `test` `savefail {n, only}` (chỉ `GAME_TEST=1`, bọc `store` ở `db.ts`) ép n lần ghi túi / tông kế tiếp lỗi; bài `BOT_ONLY=savefail` (`saveFailTest`) kiểm `equipluck` (túi và ô mặc), `equipenh` (cả nấc phá hủy trên món đang mặc), `coreset` (#699): Thần Hồn / đá / phí hoàn đúng, `it.stats` / cấp về đúng, thử lại chỉ trừ một lần, không nhân / mất. `coreset` ghi qua `write` nên không hoàn lại trong RAM mà túi bẩn, lần ghi kế persist đúng một lần phí. `setTong`: DB giữ nguyên khi ghi lỗi.
 
 ## 4. Tông môn: `setTong` lệch DB
 
