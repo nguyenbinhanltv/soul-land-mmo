@@ -1541,7 +1541,7 @@ body.ui-h460 :is(#char,#bag)>*{flex-shrink:0}
   #overlay .c6-event-copy{padding:2px 12px}
   #overlay .c6-event-copy span{display:none}
   .gsep{margin:6px 0 4px}
-  .c6-credits{margin-top:6px;min-height:32px}
+  #overlay .c6-credits{margin-top:6px;min-height:32px}
 }
 @media (max-height:520px){
   /* Điện thoại ngang: bớt hàng niên hạn ở màn đăng nhập để nút Google nằm trong tầm nhìn không cần cuộn. */
