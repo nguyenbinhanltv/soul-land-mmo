@@ -3,13 +3,15 @@
 // Nhà / tường thành (gid 14 / 15, client dựng bằng code) vẽ thành khối đơn giản theo màu `build` của vùng. Không có lớp phủ mép,
 // công trình ảnh, ánh sáng và hồn thú (chỉ để duyệt bố cục cả bản đồ); ảnh trong game chụp bằng Chrome.
 //   node tools/maps/preview.mjs <file Tiled .json> <ra.png> [--map <mapId>] [--scale 0.25] [--tint #eef4dc]
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readPng, encodePng, Img, hex } from "../assets/lib.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const ISO = path.join(ROOT, "shared", "assets", "iso"), PROPS = path.join(ROOT, "shared", "assets", "sprites", "iso", "props");
+/** Kho riêng (docs/asset-rieng.md): `PRIVATE_DIR` hoặc shared/assets/private; thiếu thì vật riêng bị bỏ / thay vật công khai. */
+const PRIVATE = process.env.PRIVATE_DIR || path.join(ROOT, "shared", "assets", "private");
 const TW = 32, TH = 16; // thoi một ô logic (client/src/iso.ts)
 
 /** Băm vị trí giống client/src/isoMap.ts (chọn biến thể, lật, vật trong danh sách). */
@@ -73,9 +75,12 @@ for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
   const gid = trees[y * MW + x]; if (!gid) continue;
   if (gid === 14 || gid === 15) { props.push({ x, y, d: x + y, block: gid }); continue; }
   const r = set.props[gid]; if (!r) { missing.add(`vật ${gid}`); continue; }
-  const list = [].concat(r), pick = ref(list[hash(x, y, 7) % list.length]), p = data.props[pick.name];
-  if (!p) { missing.add(`vật ${pick.name}`); continue; }
-  props.push({ x, y, d: x + y, file: path.join(PROPS, `${p.key.replace(/^prop_/, "")}.png`), tint: pick.tint, foot: p.foot, flip: p.flip === true || (p.flip !== false && hash(x, y, 3) % 2 === 1) });
+  const list = [].concat(r), alts = list[hash(x, y, 7) % list.length].split("|").map(ref);
+  // "vật_riêng|vật_công khai": vật riêng nếu kho riêng có ảnh (PRIVATE hoặc shared/assets/private), không thì vật công khai.
+  const file = (p) => (p.private ? path.join(PRIVATE, p.private) : path.join(PROPS, `${p.key.replace(/^prop_/, "")}.png`));
+  const pick = alts.find((a) => data.props[a.name] && existsSync(file(data.props[a.name]))) ?? alts[alts.length - 1], p = data.props[pick.name];
+  if (!p || !existsSync(file(p))) { if (!p?.private) missing.add(`vật ${pick.name}`); continue; }
+  props.push({ x, y, d: x + y, file: file(p), tint: pick.tint, foot: p.foot, flip: p.flip === true || (p.flip !== false && hash(x, y, 3) % 2 === 1) });
 }
 props.sort((a, b) => a.d - b.d || a.x - b.x);
 // Khối nhà: mái (gid 14) cao hơn tường (gid 15); tường đứng riêng (không có mái ngay phía trên) là tường thành, màu `fence`.

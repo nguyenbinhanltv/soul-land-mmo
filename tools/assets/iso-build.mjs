@@ -137,6 +137,13 @@ export function checkIsoTiles(log = console.error) {
   // Vật đứng: key prop_{vật} phải có trong manifest ("iso": true), ảnh ở sprites/iso/props.
   const keys = new Set(JSON.parse(readFileSync(MANIFEST, "utf8")).sprites.map((e) => (typeof e === "string" ? e : e.key)));
   for (const [name, p] of Object.entries(data.props ?? {})) {
+    // Vật kho riêng (#622): ảnh không có trong repo công khai, chỉ kiểm khóa và đường dẫn trong kho.
+    if (p.private !== undefined) {
+      if (p.key !== name || !/^vat_[a-z0-9_]+$/.test(name)) err(`vật riêng ${name}: key phải bằng tên và theo quy ước vat_*`);
+      if (p.private !== `packs/${name}.png`) err(`vật riêng ${name}: private phải là packs/${name}.png`);
+      if (!Array.isArray(p.foot)) err(`vật riêng ${name}: thiếu foot`);
+      continue;
+    }
     if (!/^prop_[a-z_]+$/.test(p.key ?? "")) { err(`vật ${name}: key "${p.key}" sai quy ước prop_{vật}`); continue; }
     if (!keys.has(p.key)) err(`vật ${name}: ${p.key} chưa đăng ký trong manifest (validate.mjs --register ${p.key} --iso)`);
     const s = size(path.join("..", "sprites", "iso", "props", `${p.key.slice(5)}.png`));
@@ -164,7 +171,7 @@ export function checkIsoTiles(log = console.error) {
       if (gid === 14 || gid === 15) { if (!build) err(`${id}: có nhà / tường (gid ${gid}) nhưng thiếu kiểu nhà "build"`); continue; }
       const r = set.props[gid];
       if (!r) err(`${id}: gid vật ${gid} chưa có trong tiles.json`);
-      else for (const x of [].concat(r)) if (!data.props?.[ref(x)]) err(`${id}: gid ${gid} trỏ tới vật "${ref(x)}" không có`);
+      else for (const x of [].concat(r).flatMap((v) => v.split("|"))) if (!data.props?.[ref(x)]) err(`${id}: gid ${gid} trỏ tới vật "${ref(x)}" không có`);
     }
   }
   return errors;

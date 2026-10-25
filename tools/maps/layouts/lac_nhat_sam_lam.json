@@ -8,14 +8,15 @@
   "zoneCell": 8,
   "blend": 5,
   "gids": {
-    "walk": ["poison_flower"],
+    "walk": ["poison_flower", "vat_deco", "vat_nam"],
     "ground": {
       "grass": [1, 2], "leaf": 3, "moss": 5, "path": 7, "pathDark": 8, "camp": 10, "pave": 13, "crack": 16, "water": 9, "ford": 34,
       "bank": 25, "deep": 35, "stony": 26, "glow": 4, "bridge": 33
     },
     "objects": { "roof": 14, "wall": 15,
       "rock": 36, "cliff": 32, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 30, "tent": 11, "fire": 12, "plant": 28,
-      "burnt_tree": 41, "poison_flower": 42, "ice_fire_rock": 43
+      "burnt_tree": 41, "poison_flower": 42, "ice_fire_rock": 43,
+      "vat_thong": 44, "vat_soi": 45, "vat_khuc_go": 46, "vat_deco": 47, "vat_nam": 48
     },
     "canopy": { "17": 21, "18": 22, "19": 23, "20": 24 }
   },
@@ -98,7 +99,12 @@
     { "type": "scatter", "kind": "ice_fire_rock", "circle": [217, 61, 11], "p": 0.04, "on": ["stony", "glow"] },
     { "type": "scatter", "kind": "ice_fire_rock", "circle": [227, 67, 11], "p": 0.04, "on": ["path", "glow"] },
     { "type": "house", "rect": [100, 24, 6, 5], "margin": 1 },
-    { "type": "house", "rect": [34, 24, 5, 4], "margin": 1 }
+    { "type": "house", "rect": [34, 24, 5, 4], "margin": 1 },
+    { "type": "scatter", "kind": "vat_thong", "rect": [22, 2, 110, 166], "p": 0.0035, "on": ["grass", "leaf", "moss"] },
+    { "type": "scatter", "kind": "vat_soi", "rect": [22, 2, 110, 166], "p": 0.0025, "on": ["grass", "leaf", "moss"] },
+    { "type": "scatter", "kind": "vat_khuc_go", "rect": [22, 2, 110, 166], "p": 0.0012, "on": ["grass", "leaf", "moss"] },
+    { "type": "scatter", "kind": "vat_deco", "rect": [22, 2, 110, 166], "p": 0.01, "on": ["grass", "leaf", "moss"] },
+    { "type": "scatter", "kind": "vat_nam", "rect": [22, 2, 110, 166], "p": 0.004, "on": ["grass", "leaf", "moss"] }
   ],
   "roads": [
     { "via": ["camp_e", "hoa_lo", "dam", "bang_hoa", "nghi_tay", "nghi"], "width": 3 },
