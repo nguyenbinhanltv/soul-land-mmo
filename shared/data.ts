@@ -1559,6 +1559,12 @@ export const buffBit = (b: BuffId) => 1 << BUFF_IDS.indexOf(b);
 export const CRIT = { chance: 0.12, mult: 1.8 };
 /** Hồi chiêu đánh thường (giây); bộ hồn hạch Linh Miêu 4 món chia cho (1 + tăng tốc đánh). */
 export const ATTACK_CD = 0.38;
+/**
+ * Tầm đòn đánh thường và khoá mục tiêu (M3 #750, GAME_DESIGN.md mục 5.11): đòn trúng hồn thú có tâm thân cách điểm đánh (`fwd` pixel trước
+ * mặt, cao 6 pixel) dưới `r` + nửa cỡ thân; `reach` = tầm tính từ hồn sư để tự đánh khi khoá; `pick` = bán kính chọn quanh thân khi bấm;
+ * `leash` = xa hơn thì mất khoá; `tab` = Tab chỉ đổi giữa hồn thú trong bán kính này.
+ */
+export const ATTACK_REACH = { fwd: 10, r: 18, pick: 14, leash: 480, tab: 360 };
 /** Đòn đánh thường (hồn sư: MapRoom.attack; hồn thú: MapRoom.tick) gây công x (1 ± ATK_SPREAD), ngẫu nhiên đều; `r` trong [0, 1). */
 export const ATK_SPREAD = 0.15;
 export const atkRoll = (r: number) => 1 + (2 * r - 1) * ATK_SPREAD;
