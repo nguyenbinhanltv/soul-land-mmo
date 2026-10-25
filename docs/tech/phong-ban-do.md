@@ -22,6 +22,8 @@
 
 Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arrive` không tồn tại hoặc nằm trong `portal`, mã NPC lạ) thì server ghi cảnh báo và bỏ object đó.
 
+**Quét vật vẽ lệch ô chặn (#747):** `tools/maps/quet-chan.mjs` (trong `npm run check`) so nhà, tường, cây, prop được vẽ với ô `collides`; lệch là lỗi, in danh sách `file [loại] tx,ty` (cách đọc ở `tools/maps/README.md`). Bộ dựng gỡ nhà bị cổng / điểm đến / waypoint khoét thành hình chữ L.
+
 **Không sửa thẳng file `.v2.json`:** `npm run check` sinh lại từ `tools/maps` và báo lỗi nếu khác. `npm run map` (`tools/gen-map.mjs`) chỉ sinh các bản cũ `<mapId>.json` (đường lùi) và ghi đè bản cũ đã sửa tay.
 
 **Bản đồ dựng bằng `tools/maps`** (11.3, cách dùng và chỉnh tay ở `tools/maps/README.md`; chỉnh tay chỉ qua lớp `tools/maps/hand/<mapId>.json`): file Tiled cùng định dạng, sinh từ bố cục `tools/maps/layouts/<mapId>.json` (vùng niên hạn theo đa giác tách thành chữ nhật, điểm chính, đường A*, suối, vách, tàn tích, điểm nhấn) và lớp chỉnh tay `tools/maps/hand/<mapId>.json`; cùng hạt giống ra cùng file, `npm run check` báo lỗi khi file khác bản sinh. Bản dựng lại của bản đồ đang có là `<mapId>.v2.json` và là **bản mặc định** khi có file (11.5); đường lùi: biến môi trường `MAP_V1` (danh sách `mapId` hoặc `all`) dùng lại bản cũ `<mapId>.json`. Server ghi tên file ở `MapState.mapFile`, client tải đúng file đó (cùng lưới va chạm với server). Tọa độ chỉ có nghĩa trên một file: vị trí lưu kèm tên file đang dùng (`accounts.map_file`); vào lại mà file đã lưu khác file server đang dùng (bản ×8 thành mặc định, đổi qua lại bằng `MAP_V1`) thì vào ở `spawn`; dòng ghi trước 11.5 (NULL) coi là bản cũ `<mapId>`.
