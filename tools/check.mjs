@@ -6,7 +6,7 @@
 //   node tools/check.mjs --hook     -> đọc JSON hook của Claude Code từ stdin (PostToolUse Edit/Write)
 // Lỗi: thoát mã 1 (git) hoặc 2 (hook Claude, để AI đọc lỗi và tự sửa).
 import { spawnSync, execSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -43,6 +43,24 @@ if (mode === "--hook") {
 } else projects = ["server", "client"];
 
 let failed = false;
+// #701: catch rỗng nuốt lỗi im lặng ở server/src: chỉ cho phép ROLLBACK (rollback lỗi thì không còn gì làm).
+// Chỗ khác: log có ngữ cảnh, xử lý, hoặc ghi chú vì sao bỏ qua ngay trong thân catch (có comment thì không tính là rỗng).
+if (mode === "") {
+  const silent = /catch\s*(\([^)]*\))?\s*\{\s*\}|\.catch\(\s*\(\s*\w*\s*\)\s*=>\s*\{\s*\}\s*\)/;
+  const bad = [];
+  const walk = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const f = path.join(dir, e.name);
+      if (e.isDirectory()) { if (e.name !== "node_modules") walk(f); continue; }
+      if (!e.name.endsWith(".ts")) continue;
+      readFileSync(f, "utf8").split(/\r?\n/).forEach((line, i) => {
+        if (silent.test(line) && !line.includes("ROLLBACK")) bad.push(`${path.relative(root, f).split(path.sep).join("/")}:${i + 1}`);
+      });
+    }
+  };
+  walk(path.join(root, "server", "src"));
+  if (bad.length) { failed = true; console.error(`[check] catch rỗng nuốt lỗi (chỉ ROLLBACK được phép; log có ngữ cảnh hoặc ghi chú vì sao trong thân catch):\n  ${bad.join("\n  ")}`); }
+}
 for (const p of projects) {
   const tsc = path.join(root, p, "node_modules", "typescript", "bin", "tsc");
   // Kiểm tra đầy đủ trên CI (CI=true, GitHub Actions tự đặt): thiếu thư viện là lỗi, không được lặng lẽ cho qua.
