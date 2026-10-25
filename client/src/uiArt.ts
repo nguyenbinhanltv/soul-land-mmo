@@ -35,7 +35,7 @@ export function chanThanImg(vohonId: string, skill = false, cls = "") {
 }
 /** Biểu tượng Dung hợp kỹ `gi_fusion_<tên không dấu>` (ví dụ "Yêu Nguyệt" → gi_fusion_yeu_nguyet); chưa có ảnh thì "". */
 export function fusionImg(name: string, cls = "") {
-  return artImg(`gi_fusion_${name.toLowerCase().replace(/đ/g, "d").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/s+/g, "_")}`, cls);
+  return artImg(`gi_fusion_${name.toLowerCase().replace(/đ/g, "d").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, "_")}`, cls);
 }
 /** `<img>` điểm ảnh của key (alt rỗng: chỉ để trang trí, nghĩa nằm ở nhãn của phần tử chứa); không có ảnh thì "". */
 export function artImg(key: string, cls = "") {
