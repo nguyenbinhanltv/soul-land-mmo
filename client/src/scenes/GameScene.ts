@@ -20,7 +20,7 @@ import { toast, lootToasts } from "../feedback.ts";
 import { initDualWindows } from "../dualWindow.ts";
 import type { ServerCommand } from "../charBagContract.ts";
 import { toggleChar, cycleCharTab, isCharOpen, onCharOpen, renderChar, charViewRow, charLog, type StatsMsg } from "../charPanel.ts";
-import { Predictor, PREDICT, LAG_MS, stepSpeed } from "../predict.ts";
+import { Predictor, PREDICT, LAG_MS, DEBUG_TAG, stepSpeed } from "../predict.ts";
 import { findPath, findLongPath, buildNav, type Nav } from "../../../shared/path.ts";
 import { autoLeg, AUTO_STOP } from "../../../shared/autowalk.ts";
 import { getFlag, setFlag, patchFlag, bindFlagBar, mapName } from "../autowalk.ts";
@@ -422,12 +422,14 @@ export class GameScene extends Phaser.Scene {
     // Dự đoán chuyển động: cùng lưới ô chặn của file Tiled mà server dùng (shared/move.ts; dựng ở trên, trước Hỏa Đàn).
     if (PREDICT && this.grid) this.pred = new Predictor(this.grid);
     if (LAG_MS || !PREDICT) {
-      // Nhãn chế độ thử ở giữa mép trên (khung chỉ số chiếm góc trái); gỡ khi scene tắt (đổi bản đồ).
-      const tag = document.body.appendChild(document.createElement("div"));
-      tag.textContent = `Trễ giả lập ${LAG_MS} ms mỗi chiều · dự đoán chuyển động: ${this.pred ? "bật" : "tắt"}`;
-      tag.style.cssText = "position:fixed;top:4px;left:50%;transform:translateX(-50%);z-index:50;pointer-events:none;font:600 12px 'Be Vietnam Pro',system-ui,sans-serif;color:#ffe9a0;background:#000a;padding:2px 8px;border-radius:4px";
-      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => tag.remove());
-      this.events.once(Phaser.Scenes.Events.DESTROY, () => tag.remove());
+      // Nhãn chế độ thử ở giữa mép trên (khung chỉ số chiếm góc trái); chỉ hiện khi có `?debug`; gỡ khi scene tắt (đổi bản đồ).
+      if (DEBUG_TAG) {
+        const tag = document.body.appendChild(document.createElement("div"));
+        tag.textContent = `Trễ giả lập ${LAG_MS} ms mỗi chiều · dự đoán chuyển động: ${this.pred ? "bật" : "tắt"}`;
+        tag.style.cssText = "position:fixed;top:4px;left:50%;transform:translateX(-50%);z-index:50;pointer-events:none;font:600 12px 'Be Vietnam Pro',system-ui,sans-serif;color:#ffe9a0;background:#000a;padding:2px 8px;border-radius:4px";
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => tag.remove());
+        this.events.once(Phaser.Scenes.Events.DESTROY, () => tag.remove());
+      }
       this.ghost = this.add.graphics().setDepth(99989);
       (window as any).__scene = this; // chỉ khi thử trễ: script đo (Chrome headless) đọc vị trí vẽ / vị trí server
     }
