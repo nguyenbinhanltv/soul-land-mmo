@@ -63,15 +63,6 @@
       "credit": "Battle Effects - pimen (CC BY 4.0)",
       "noAI": false,
       "tier": "cong_khai"
-    },
-    "caves": {
-      "name": "RPG Worlds Caves v2.1",
-      "author": "Szadi art.",
-      "source": "https://szadiart.itch.io/rpg-worlds-ca",
-      "license": "'License for Everyone' (_license.txt): dùng cho nội dung miễn phí, cá nhân hoặc thương mại; được sửa, cắt, bán tác phẩm làm từ asset; cấm bán lại (gốc hay đã sửa), cấm dùng làm logo / nhãn hiệu; ghi công không bắt buộc. Cấm bán lại nên xếp kho riêng cho an toàn.",
-      "credit": "RPG Worlds Caves - Szadi art.",
-      "noAI": false,
-      "tier": "rieng"
     }
   },
   "ramps": {
@@ -150,16 +141,6 @@
       "fps": 20,
       "glow": true,
       "use": "Nổ tiên cơ diện rộng (thay fx_no LPC)"
-    },
-    {
-      "key": "pfx_set",
-      "kind": "fx",
-      "pack": "giga",
-      "src": "spritesheet/Lightning/lightning_strike_001/lightning_strike_001_large_violet/spritesheet.png",
-      "ramp": "set",
-      "fps": 20,
-      "glow": true,
-      "use": "Sét giáng, hệ Lam Điện"
     },
     {
       "key": "pfx_khoi",
@@ -479,84 +460,6 @@
       "fps": 18,
       "glow": true,
       "use": "Va chạm vàng (thay thế va chạm Gigapack nếu gọn hơn)"
-    },
-    {
-      "key": "prv_hang_da_hang_1",
-      "kind": "prop",
-      "pack": "caves",
-      "src": "RPGW_Caves_v2.1/decorative.png",
-      "rect": [
-        4,
-        37,
-        84,
-        91
-      ],
-      "use": "Đá hang lớn (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
-    },
-    {
-      "key": "prv_hang_da_hang_2",
-      "kind": "prop",
-      "pack": "caves",
-      "src": "RPGW_Caves_v2.1/decorative.png",
-      "rect": [
-        96,
-        50,
-        64,
-        78
-      ],
-      "use": "Đá hang vừa (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
-    },
-    {
-      "key": "prv_hang_da_hang_3",
-      "kind": "prop",
-      "pack": "caves",
-      "src": "RPGW_Caves_v2.1/decorative.png",
-      "rect": [
-        235,
-        77,
-        49,
-        51
-      ],
-      "use": "Đá hang nhỏ (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
-    },
-    {
-      "key": "prv_hang_da_hang_4",
-      "kind": "prop",
-      "pack": "caves",
-      "src": "RPGW_Caves_v2.1/decorative.png",
-      "rect": [
-        303,
-        80,
-        40,
-        48
-      ],
-      "use": "Măng đá (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
-    },
-    {
-      "key": "prv_hang_tinh_the_xanh",
-      "kind": "prop",
-      "pack": "caves",
-      "src": "RPGW_Caves_v2.1/decorative.png",
-      "rect": [
-        65,
-        610,
-        31,
-        27
-      ],
-      "use": "Cụm tinh thể xanh (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
-    },
-    {
-      "key": "prv_hang_tinh_the_luc",
-      "kind": "prop",
-      "pack": "caves",
-      "src": "RPGW_Caves_v2.1/decorative.png",
-      "rect": [
-        189,
-        610,
-        31,
-        27
-      ],
-      "use": "Cụm tinh thể lục (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
     }
   ]
 }

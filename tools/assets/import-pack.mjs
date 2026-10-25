@@ -1,5 +1,5 @@
 // Nhập gói asset ngoài giấy phép hạn chế (cấm phân phối lại file) vào KHO RIÊNG, không vào repo công khai (#623, docs/asset-rieng.md).
-//   node tools/assets/import-pack.mjs --out <thư mục ngoài repo> [--giga <thư mục gói>] [--holy <…>] [--forest <…>] [--fire --free --bdragon --pimen --caves <…>] [--only key,key]
+//   node tools/assets/import-pack.mjs --out <thư mục ngoài repo> [--giga <thư mục gói>] [--holy <…>] [--forest <…>] [--fire --free --bdragon --pimen ] [--only key,key]
 //        [--manifest shared/assets/sprites/private-manifest.json] [--credits art/CREDITS.md]
 //   node tools/assets/import-pack.mjs --list <ảnh.png>        liệt kê các mảnh rời (hộp bao) của một ảnh lớn, để chọn `rect` cho vật đứng
 // Đọc `tools/assets/private-packs.json` (mô tả, không có ảnh). Với mỗi mục:
@@ -18,7 +18,7 @@ const opt = (n, d = "") => { const i = args.indexOf(n); return i >= 0 ? args.spl
 const only = opt("--only") ? new Set(opt("--only").split(",")) : null;
 const outDir = opt("--out"), manifestOut = opt("--manifest"), creditsOut = opt("--credits"), listFile = opt("--list");
 const SPEC = JSON.parse(readFileSync(path.join(ROOT, "tools", "assets", "private-packs.json"), "utf8"));
-const roots = Object.fromEntries(Object.keys(SPEC.packs).map((k) => [k, opt(`--${k}`)])); // --giga --holy --forest --fire --free --bdragon --pimen --caves
+const roots = Object.fromEntries(Object.keys(SPEC.packs).map((k) => [k, opt(`--${k}`)])); // --giga --holy --forest --fire --free --bdragon --pimen
 
 const lum = (r, g, b) => (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 const A_LEVELS = [0, 96, 176, 255];
@@ -160,7 +160,7 @@ const creditBlock = () => {
 writeFileSync(path.join(outDir, "CREDITS-private.md"), creditBlock());
 if (manifestOut) {
   const f = path.resolve(manifestOut), prev = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : { sprites: [] };
-  const keep = (prev.sprites ?? []).filter((s) => !manifest.some((m) => m.key === s.key));
+  const keep = (prev.sprites ?? []).filter((s) => SPEC.entries.some((e) => e.key === s.key) && !manifest.some((m) => m.key === s.key)); // mục đã gỡ khỏi private-packs.json thì gỡ khỏi manifest
   writeFileSync(f, JSON.stringify({ about: "Asset kho riêng (docs/asset-rieng.md): chỉ siêu dữ liệu, ảnh không nằm trong repo. Client tải theo private/present.json; thiếu file thì bỏ qua và giữ hình cũ. Sinh bởi tools/assets/import-pack.mjs.", sprites: [...keep, ...manifest].sort((a, b) => a.key.localeCompare(b.key)) }, null, 2) + "\n");
 }
 if (creditsOut) {

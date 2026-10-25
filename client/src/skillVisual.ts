@@ -464,11 +464,10 @@ export class SkillVisualPlayer {
     if (ok && s.glow && c.mine && ga > 0 && !fxPrefs.reduce && this.sheets.has(s.glow)) this.sheets.play(this.mk({ ...s, key: s.glow, normal: false }, c, { delay, alpha: Math.min(1, ga * (s.glowMul ?? 1)) }));
     return ok;
   }
-  /** #623: lớp thêm từ kho riêng cho chiêu T2 / T3 theo hệ (Lôi: sét giáng; Quang: chém sáng), chồng lên sheet S3, không thay sheet nào. */
+  /** #623: lớp thêm từ kho riêng cho chiêu T2 / T3 theo hệ (Quang: chém sáng; lớp sét giáng đã bỏ vì bị sheet S3 che), chồng lên sheet S3, không thay sheet nào. */
   private overlay(vis: SkillVisual & { element?: Element }, c: CastCtx) {
     if (vis.tier < 2 || !c.mine) return;
-    if (vis.element === "lightning") playPriv(this.sheets, "pfx_set", { x: c.tx, y: c.ty, scale: SPR, lift: 0 });
-    else if (vis.element === "light") playPriv(this.sheets, "pfx_chem_sang", { x: c.tx, y: c.ty, ang: c.ang, scale: 2 * SPR });
+    if (vis.element === "light") playPriv(this.sheets, "pfx_chem_sang", { x: c.tx, y: c.ty, ang: c.ang, scale: 2 * SPR });
   }
   /** `vis.sheet` có và đã tải: phát ngay. Người tung còn thấy lớp lấy đà (`windupSheet`) và dư chấn; người khác chỉ thấy bản nhẹ của sheet chính. */
   cast(vis: SkillVisual, c: CastCtx): boolean {

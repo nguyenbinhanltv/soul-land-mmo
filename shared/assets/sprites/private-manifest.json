@@ -255,23 +255,6 @@
       "use": "Buff hệ Phụ trợ / sóng Quang"
     },
     {
-      "key": "pfx_set",
-      "kind": "fx",
-      "private": true,
-      "tier": "rieng",
-      "pack": "giga",
-      "file": "packs/giga/set.png",
-      "frame": [
-        128,
-        128
-      ],
-      "frames": 7,
-      "fps": 20,
-      "normal": false,
-      "glow": "packs/giga/set_glow.png",
-      "use": "Sét giáng, hệ Lam Điện"
-    },
-    {
       "key": "pfx_va_cham",
       "kind": "fx",
       "private": true,
@@ -304,114 +287,6 @@
       "normal": false,
       "glow": "packs/pimen/va_cham_2_glow.png",
       "use": "Va chạm vàng (thay thế va chạm Gigapack nếu gọn hơn)"
-    },
-    {
-      "key": "prv_hang_da_hang_1",
-      "kind": "prop",
-      "private": true,
-      "tier": "rieng",
-      "pack": "caves",
-      "file": "packs/caves/hang_da_hang_1.png",
-      "frame": [
-        84,
-        91
-      ],
-      "frames": 1,
-      "foot": [
-        42,
-        90
-      ],
-      "use": "Đá hang lớn (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
-    },
-    {
-      "key": "prv_hang_da_hang_2",
-      "kind": "prop",
-      "private": true,
-      "tier": "rieng",
-      "pack": "caves",
-      "file": "packs/caves/hang_da_hang_2.png",
-      "frame": [
-        64,
-        78
-      ],
-      "frames": 1,
-      "foot": [
-        32,
-        77
-      ],
-      "use": "Đá hang vừa (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
-    },
-    {
-      "key": "prv_hang_da_hang_3",
-      "kind": "prop",
-      "private": true,
-      "tier": "rieng",
-      "pack": "caves",
-      "file": "packs/caves/hang_da_hang_3.png",
-      "frame": [
-        49,
-        51
-      ],
-      "frames": 1,
-      "foot": [
-        25,
-        50
-      ],
-      "use": "Đá hang nhỏ (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
-    },
-    {
-      "key": "prv_hang_da_hang_4",
-      "kind": "prop",
-      "private": true,
-      "tier": "rieng",
-      "pack": "caves",
-      "file": "packs/caves/hang_da_hang_4.png",
-      "frame": [
-        40,
-        48
-      ],
-      "frames": 1,
-      "foot": [
-        20,
-        47
-      ],
-      "use": "Măng đá (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
-    },
-    {
-      "key": "prv_hang_tinh_the_luc",
-      "kind": "prop",
-      "private": true,
-      "tier": "rieng",
-      "pack": "caves",
-      "file": "packs/caves/hang_tinh_the_luc.png",
-      "frame": [
-        31,
-        27
-      ],
-      "frames": 1,
-      "foot": [
-        16,
-        26
-      ],
-      "use": "Cụm tinh thể lục (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
-    },
-    {
-      "key": "prv_hang_tinh_the_xanh",
-      "kind": "prop",
-      "private": true,
-      "tier": "rieng",
-      "pack": "caves",
-      "file": "packs/caves/hang_tinh_the_xanh.png",
-      "frame": [
-        31,
-        27
-      ],
-      "frames": 1,
-      "foot": [
-        16,
-        26
-      ],
-      "use": "Cụm tinh thể xanh (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
     },
     {
       "key": "prv_rung_bui_cay",

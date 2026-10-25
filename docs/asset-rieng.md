@@ -55,7 +55,7 @@ node tools/assets/import-pack.mjs --out <thư mục ngoài repo> \
 ```
 
 - Công cụ **từ chối** `--out` nằm trong repo game.
-- Mục nào gói chưa chỉ định (`--giga` / `--holy` / `--forest`) thì bỏ qua; `--only pfx_no,pfx_set` nhập một phần.
+- Mục nào gói chưa chỉ định (`--giga` / `--holy` / `--forest`) thì bỏ qua; `--only pfx_no,pfx_bui` nhập một phần.
 - Nhuộm theo độ sáng vào dải 4 màu của bảng màu game (`ramps` trong `private-packs.json`), alpha 4 mức, viền `#1a1020` cho khói / bụi, cắt viền trống chung mọi khung (giữ tâm), tách lớp sáng `_glow` (client chạy cộng sáng).
 - `layout` của hiệu ứng: dải một hàng (mặc định), `vertical` (khung xếp dọc, cần `fw` `fh`), `grid` (lưới, bỏ ô trống cuối); `rect` cắt trước khi tách khung.
 - Vật đứng (`kind: prop`): `node tools/assets/import-pack.mjs --list <ảnh.png>` liệt kê hộp bao các mảnh rời để chọn `rect`.
@@ -81,7 +81,7 @@ Không có quyền đọc kho riêng: bỏ qua, mọi thứ chạy như cũ.
 |---|---|---|---|
 | `pfx_va_cham` (tia lửa va chạm), `pfx_ket_lieu` (nổ nhỏ, độ nặng 3) | Gigapack | `hitFeel.ts` `playHitFeelSheets` | chồng lên sheet code `fxh_*` |
 | `pfx_no` | Gigapack | `GameScene.tienCoFx` (tiên cơ Cường Công) | thay quả nổ LPC `fx_no` (thiếu thì giữ `fx_no`) |
-| `pfx_set` / `pfx_chem_sang` | Gigapack / Holy | `skillVisual.ts` `SkillVisualPlayer.overlay` (chiêu T2+ hệ Lôi / Quang của chính mình) | chồng lên sheet PixelLab S3, **không thay** sheet S3 nào |
+| `pfx_chem_sang` | Holy | `skillVisual.ts` `SkillVisualPlayer.overlay` (chiêu T2+ hệ Quang của chính mình; lớp sét giáng đã bỏ) | chồng lên sheet PixelLab S3, **không thay** sheet S3 nào |
 | `pfx_hoi`, `pfx_khien` | Holy | `GameScene` tin `dmg` có `heal` / `shield` | thêm hiệu ứng ở người nhận (trước chỉ có số) |
 | `pfx_quang` | Holy | `GameScene.tienCoFx` nhánh Hộ thể (Phụ trợ) | chồng lên vòng hạt |
 | `pfx_khoi`, `pfx_bui` | Gigapack | `GameScene.tienCoFx` nhánh Lướt (Mẫn Công) | thêm khói chỗ xuất phát, bụi chỗ dừng |
