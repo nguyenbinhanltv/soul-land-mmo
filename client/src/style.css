@@ -1504,7 +1504,7 @@ body.ui-h460 :is(#char,#bag)>*{flex-shrink:0}
 #audio #ggSet small{color:var(--muted);font-size:10px;font-family:var(--f10);line-height:normal}
 @media (max-height:520px){
   /* Điện thoại ngang: bớt hàng niên hạn ở màn đăng nhập để nút Google nằm trong tầm nhìn không cần cuộn. */
-  #overlay .card:has(#gbtn) :is(.tiers,h1+p){display:none}
+  #overlay .card:has(#gbtn) :is(.tiers,h1+p,.c6-event){display:none}
   .gsep{margin:4px 0}
   .gbtn{min-height:36px}
   #nf{flex-direction:row;flex-wrap:wrap;align-items:center}
