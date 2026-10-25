@@ -184,6 +184,7 @@ export interface PData {
   // Tông vụ hằng ngày (#197, TONG_DAILY): TONG_DAILY.count bài của ngày `tongDay` ở sứ giả tông mình, gửi trong tin riêng "tong"; lưu cùng
   // túi đồ như khảo hạch. `tongBoardAt`: lúc xin bảng tông tuần gần nhất (ms, TONG_BOARD_CD).
   tongTasks: QuestProgress[]; tongDay: string; tongBoardAt: number;
+  tongBusy: boolean;   // đang chờ DB ghi lệnh gia nhập / rời tông (#796): lệnh tông tới sau bị từ chối ngay, bộ nhớ chỉ đổi sau khi ghi xong
   tongPend: { week: number; tong: string; n: number }[]; // điểm tông vụ chờ ghi cùng túi (#320): chỉ bỏ khỏi hàng sau khi lần ghi thành công
   // Đại Đấu Hồn Trường (7.2): đang chờ DB đọc Elo trước khi vào hàng chờ; lúc xin bảng xếp hạng gần nhất (ms, chống xin dồn dập).
   arenaBusy: boolean; arenaTopAt: number; arenaLiveAt: number; arenaWatchAt: number; resonanceTopAt: number;
@@ -1142,7 +1143,7 @@ export class MapRoom extends Room<MapState> {
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
       bag: bag.items.filter((i) => i.equipSlot === undefined), gear: bag.items.filter((i) => i.equipSlot !== undefined), gearSt: gearStats(bag.items.filter((i) => i.equipSlot !== undefined)), honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "",
       sellCfg: parseSell(bag.sell), sold: bag.sold ?? [], sellCheck: true, sellSent: "", soldN: 0, soldCoins: 0, autoSold0: [0, 0], danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0, hanT: 0, charm: null,
-      claims: auth.claims, wclaims: auth.wclaims, shardBuy: { ...auth.shardBuy, pend: 0 }, claimBusy: 0, lockIds: new Set(), enhBusy: false, salvAt: 0, testSyn: null, testEnh: null, testEnhSlow: 0, testEquip: null, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
+      claims: auth.claims, wclaims: auth.wclaims, shardBuy: { ...auth.shardBuy, pend: 0 }, claimBusy: 0, lockIds: new Set(), enhBusy: false, tongBusy: false, salvAt: 0, testSyn: null, testEnh: null, testEnhSlow: 0, testEquip: null, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
       chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests), ...this.tongTasksOf(bag.quests), tongBoardAt: 0, tongPend: [],
@@ -2708,11 +2709,14 @@ export class MapRoom extends Room<MapState> {
     if (op === "leave") {
       if (!d.tong) return warn("Ngươi chưa thuộc tông môn nào.");
       if (!this.npcNear(id, { role: "tong" })) return warn("Hãy lại gần sứ giả tông môn để rời tông.");
+      if (d.tongBusy) return warn("Đang xử lý lệnh tông môn trước, đợi một chút.");
       const old = tongDef(d.tong)!;
-      d.tong = null; p.tong = 0; d.tongPend = [];
-      this.chain(d, () => store.setTong(d.accountId, null, null, tongWeek(this.tongNow())));
-      this.log(id, `Ngươi đã rời ${old.name}; điểm tuần này đã bỏ.`, old.col);
-      return this.sendTong(id);
+      this.tongWrite(id, d, () => store.setTong(d.accountId, null, null, tongWeek(this.tongNow())), () => {
+        d.tong = null; p.tong = 0; d.tongPend = [];
+        this.log(id, `Ngươi đã rời ${old.name}; điểm tuần này đã bỏ.`, old.col);
+        this.sendTong(id);
+      });
+      return;
     }
     const t = tongDef(raw);
     if (!t) return warn("Tông môn không tồn tại.");
@@ -2724,12 +2728,28 @@ export class MapRoom extends Room<MapState> {
     const now = Date.now();
     if (d.tongAt !== null && now < d.tongAt + TONG_SWITCH_DAYS * 86400000)
       return warn(`Mới gia nhập gần đây: còn ${Math.ceil((d.tongAt + TONG_SWITCH_DAYS * 86400000 - now) / 86400000)} ngày nữa mới đổi được tông.`);
+    if (d.tongBusy) return warn("Đang xử lý lệnh tông môn trước, đợi một chút.");
     const from = d.tong ? tongDef(d.tong) : null;
-    d.tong = t.id; d.tongAt = now; d.tongPend = []; p.tong = TONG_MON.findIndex((x) => x.id === t.id) + 1;
-    this.chain(d, () => store.setTong(d.accountId, t.id, now, tongWeek(this.tongNow())));
-    this.log(id, from ? `Ngươi đã rời ${from.name} và gia nhập ${t.name}; điểm tuần này đã bỏ.` : `Chúc mừng, ngươi đã gia nhập ${t.name}!`, t.col);
-    this.questEvent(id, { k: "tong" }); // #286: gia nhập hoặc đổi tông
-    this.sendTong(id);
+    this.tongWrite(id, d, () => store.setTong(d.accountId, t.id, now, tongWeek(this.tongNow())), () => {
+      d.tong = t.id; d.tongAt = now; d.tongPend = []; p.tong = TONG_MON.findIndex((x) => x.id === t.id) + 1;
+      this.log(id, from ? `Ngươi đã rời ${from.name} và gia nhập ${t.name}; điểm tuần này đã bỏ.` : `Chúc mừng, ngươi đã gia nhập ${t.name}!`, t.col);
+      this.questEvent(id, { k: "tong" }); // #286: gia nhập hoặc đổi tông
+      this.sendTong(id);
+    });
+  }
+
+  /**
+   * Gia nhập / rời tông (#796): ghi DB trong chuỗi lưu TRƯỚC, chỉ khi ghi xong mới chạy `apply` (đổi bộ nhớ, báo, gửi tin). Ghi lỗi thì bộ nhớ giữ nguyên,
+   * báo lỗi và gửi lại tin tông (không lệch DB, không báo "đã gia nhập" khi chưa lưu). `tongBusy` chặn lệnh tông thứ hai trong lúc chờ (kể cả khi
+   * chuỗi bị bỏ qua sau `/gm preset`: cờ nhả ở `.then`).
+   */
+  tongWrite(id: string, d: PData, write: () => Promise<void>, apply: () => void) {
+    d.tongBusy = true;
+    this.chain(d, async () => {
+      try { await write(); }
+      catch (err) { this.log(id, "Không lưu được thay đổi tông môn, hãy thử lại sau.", "#ffb35c"); this.sendTong(id); throw err; }
+      if (this.pdata.get(id) === d && this.state.players.get(id)) apply();
+    }).then(() => { d.tongBusy = false; });
   }
 
   /**
