@@ -7697,16 +7697,14 @@ async function socialAuditTest(){
   ok(/không trong game/.test(w1)&&w1.replace(off.name,"X")===w2.replace(`Khong Co ${RUN} y`,"X"),`tin riêng: tài khoản ngoại tuyến và tên không tồn tại cùng một câu trả lời (${w1})`);
   // ---- (3) ký tự lạ trong chat: server chỉ gộp khoảng trắng; ghi lại cái gì tới người nhận ----
   await T(A,"chat",{cop:"rlreset"});
-  /** Lỗ hổng đã biết, đã tách issue sửa riêng: chưa sửa thì in ⚠ (không làm trượt), sửa xong thì ✓ (khi đó đổi thành ok để không quay lại). */
-  const known=(cond,msg,issue)=>console.log(cond?"  ✓":`  ⚠ biết lỗi #${issue}:`,msg);
   const BAD_CTRL=/[\u0000-\u0008\u000b-\u001f\u007f]/, BAD_BIDI=/[\u202a-\u202e\u2066-\u2069]/;
   const probes=[["nul",`a\u0000b ${RUN}`],["rlo",`\u202eevil ${RUN}`],["zw",`\u200b\u200b\u200b`],["bel",`b\u0007\u001b[31m ${RUN}`],["nl",`d1\n\n\td2 ${RUN}`],["emoji","😀".repeat(60)]];
   const got={}; for(const [n,txt] of probes){ O.chats.length=0; A.room.send("chat",{text:txt}); await sleep(450); got[n]=O.chats.find(m=>m.name===A.name)?.text; await sleep(250); }
   console.log(`    nhận được: ${Object.entries(got).map(([k,v])=>`${k}=${v===undefined?"(bị bỏ)":JSON.stringify(v).slice(0,24)}`).join(" ")}`);
   ok(got.nl===`d1 d2 ${RUN}`,"xuống dòng / tab gộp thành một dấu cách");
   ok(got.emoji!==undefined,"tin 60 emoji (120 đơn vị) tới nơi, không bị cắt giữa cặp thay thế");
-  known(got.zw===undefined||got.zw.replace(/[\u200b-\u200f\u2060\ufeff]/g,"").trim()!=="","tin toàn ký tự độ rộng 0 không thành dòng chat trống nhìn thấy được",817);
-  known([got.nul,got.bel].every(t=>t===undefined||!BAD_CTRL.test(t))&&(got.rlo===undefined||!BAD_BIDI.test(got.rlo)),"ký tự điều khiển / đổi chiều văn bản bị bỏ trước khi tới người khác",817);
+  ok(got.zw===undefined,"tin toàn ký tự độ rộng 0 bị bỏ như tin rỗng, không thành dòng chat trống (#817)");
+  ok([got.nul,got.bel].every(t=>t!==undefined&&!BAD_CTRL.test(t))&&got.rlo!==undefined&&!BAD_BIDI.test(got.rlo),"ký tự điều khiển / đổi chiều văn bản bị bỏ trước khi tới người khác, phần chữ còn lại vẫn tới (#817)");
   // ---- (5) chat tông khi chưa có tông ----
   await T(A,"tong",{set:null}); O.chats.length=0;
   ok(/chưa thuộc tông/.test(await said(A,"chat",{text:`tong ${RUN}`,ch:"tong"}))&&!O.chats.some(m=>m.text===`tong ${RUN}`),"chat tông khi chưa có tông: báo riêng, không phát cho ai");
@@ -7724,7 +7722,7 @@ async function socialAuditTest(){
   try{
     await sleep(300); V.chats.length=0; SP.room.send("chat",{text:`Bảo trì, hãy nhập lại mật khẩu ${RUN}`}); await sleep(700);
     const seen=V.chats.find(m=>m.text.includes(RUN));
-    console.log(!seen||seen.name!=="Hệ thống"?"  ✓":"  ⚠ biết lỗi #818:","tài khoản tên \"Hệ thống\" không giả được tin hệ thống trong chat bản đồ (client tô xanh theo đúng tên này)");
+    ok(!seen||seen.name!=="Hệ thống","tài khoản tên \"Hệ thống\" (cũ, trước khi có tên cấm) không giả được tin hệ thống trong chat bản đồ (#818)");
   }finally{ await SP.room.leave().catch(()=>{}); await V.room.leave().catch(()=>{}); }
 }
 /**
