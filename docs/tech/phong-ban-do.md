@@ -26,3 +26,27 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 
 **Bản đồ dựng bằng `tools/maps`** (11.3, cách dùng và chỉnh tay ở `tools/maps/README.md`; chỉnh tay chỉ qua lớp `tools/maps/hand/<mapId>.json`): file Tiled cùng định dạng, sinh từ bố cục `tools/maps/layouts/<mapId>.json` (vùng niên hạn theo đa giác tách thành chữ nhật, điểm chính, đường A*, suối, vách, tàn tích, điểm nhấn) và lớp chỉnh tay `tools/maps/hand/<mapId>.json`; cùng hạt giống ra cùng file, `npm run check` báo lỗi khi file khác bản sinh. Bản dựng lại của bản đồ đang có là `<mapId>.v2.json` và là **bản mặc định** khi có file (11.5); đường lùi: biến môi trường `MAP_V1` (danh sách `mapId` hoặc `all`) dùng lại bản cũ `<mapId>.json`. Server ghi tên file ở `MapState.mapFile`, client tải đúng file đó (cùng lưới va chạm với server). Tọa độ chỉ có nghĩa trên một file: vị trí lưu kèm tên file đang dùng (`accounts.map_file`); vào lại mà file đã lưu khác file server đang dùng (bản ×8 thành mặc định, đổi qua lại bằng `MAP_V1`) thì vào ở `spawn`; dòng ghi trước 11.5 (NULL) coi là bản cũ `<mapId>`.
 
+
+**Bản đồ miền của `MapRoom.ts`** (#702: tách dần theo miền, từng PR nhỏ, di chuyển nguyên văn, không đổi hành vi / tên message / thứ tự ghi DB qua `this.chain`; hàm thuần trước). Tìm theo tên hàm, không theo số dòng (số dòng trôi). Cột "Đã tách" là mô-đun cùng thư mục `server/src/rooms/` (kiểu "hàm nhận phòng / `PData`" hoặc hàm thuần):
+
+| Miền | Hàm / nhóm trong `MapRoom.ts` | Đã tách |
+|---|---|---|
+| Vật phẩm, túi (hàm thuần), đồ đang mặc | `newItem`, `itemStacks`, `bagUsed`, `gearStats`, `gearLook`, thứ tự xếp túi (`KIND_ORDER`) | `items.ts` |
+| Vào / rời phòng, phiên, kênh, ghế | `onAuth`, `onJoin`, `onLeave`, `holdAccount`, `switchChannel`, `seat*`, `leftRoom` | chưa |
+| Lưu người chơi | `chain`, `chainLatest`, `save`, `write`, `writeNow`, `bagSnapshot` | chưa |
+| Đội hình, võ hồn, cộng hưởng | `setTeam`, `switchSlot`, `activate`, `resCheck`, `sendRes`, `resonanceTop` | chưa |
+| Tự săn, ủy thác | `autoAction`, `sendAuto`, `claimOffline` | `autoHunt.ts`, `autoStatus.ts` |
+| Đi cổng, điểm dịch chuyển | `travel`, `beginTravel`, `waypointAction`, `startWaypoint`, `useRecall`, `finishRecall` | chưa |
+| Túi (phần có phòng): nhặt, dùng, bán, mua lại, mở rộng | `addItem`, `pickup`, `sortBag`, `sendBag`, `useItem`, `buyItem`, `sellItem`, `buybackItem`, `expandBag`, `autoSell` | chưa |
+| NPC, tông môn, nhiệm vụ | `talkNpc`, `tongAction`, `tongTaskAction`, `questAction`, `questEvent`, `dailyAction` | chưa |
+| Đấu trường (phía phòng bản đồ) | `arenaAction`, `arenaFound`, `arenaQueue*`, `arenaWatch` | `arenaQueue.ts`, `ArenaRoom.ts` |
+| GM / hook test | `testHook` (chỉ chạy khi `GAME_TEST`), `gmAction`, `gmRun` | chưa |
+| Chiến đấu người chơi: kỹ năng, trạng thái, hợp thể | `attack`, `skill`, `runSkill`, `applyStatus`, `applyPStatus`, `fusion*`, `boneSkill` | chưa |
+| Hồn thú, tinh anh, thú vương, boss thế giới | `spawnBeast`, `tickElite`, `tickKing`, `world*`, `killKing`, `openChest` | `worldBoss.ts`, `split.ts`, `tide.ts`, `eggs.ts`, `ground.ts`, `cold.ts`, `beastTraits.ts` |
+| Hấp thụ hồn hoàn, hồn cốt, hồn hạch | `tryAbsorb`, `finishAbsorb`, `equipBone`, `enhanceBone`, `equipCore`, `enhanceCore`, `resetCoreSet` | chưa |
+| Trang bị / Thợ rèn | `equipGear`, `equipEnhance`, `equipLuck`, `equipSynth`, `salvageEquip`, `forgeLane` | chưa (hàm thuần mặc đồ đã ở `items.ts`) |
+| Xã hội: chat, bạn bè, tổ đội, tập hợp | `chatAction`, `friendAction`, `partyAction`, `rallyAction` | chưa |
+| Phạm vi quan tâm, sương mù, radar | `beastsNear`, `fog*`, `sendMini` | `interest.ts` |
+| Vòng `tick` | `tick`, `moveBeast`, `perfLog` | chưa |
+
+Thứ tự tách tiếp (mỗi bước một PR, bot nhóm liên quan xanh): (2) trang bị / Thợ rèn thành hàm nhận phòng (`equip.ts`, giữ `forgeLane` / `itemLocked` nguyên); (3) hồn cốt / hồn hạch; (4) xã hội (chat, bạn bè, tổ đội); (5) cửa hàng / mua lại; (6) `testHook` + GM (chỉ chạy khi `GAME_TEST`); (7) nhiệm vụ / tông môn. Luật mỗi bước: thứ tự `onMessage` đăng ký ở `MapRoom` giữ nguyên; phương thức có `private` thì mô-đun mới nhận `room: MapRoom` như `split.ts`.
