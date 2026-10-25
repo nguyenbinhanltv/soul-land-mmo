@@ -10,7 +10,7 @@
 - `?view=topdown`: vẽ nhìn thẳng (cùng đường code, ma trận chiếu khác) để so sánh / khắc phục.
 
 **Dự đoán chuyển động phía client**
-- Va chạm ô và bước đi dùng chung `shared/move.ts` (`solidGrid`, `hits`, `moveEnt`) ở cả `server/src/map.ts` và client. Client vẫn chỉ gửi hướng; server tự tính vị trí trong `tick()`.
+- Va chạm ô và bước đi dùng chung `shared/move.ts` (`solidGrid`, `hits`, `moveEnt`) ở cả `server/src/map.ts` và client. Bước đi của hồn sư có lách góc (`MOVE_NUDGE`, tham số `nudge` của `moveEnt`): vướng góc ô chỉ vài pixel thì tự đẩy sang phía trống, server và dự đoán cùng gọi nên không lệch. Client vẫn chỉ gửi hướng; server tự tính vị trí trong `tick()`.
 - Client đánh số input `input {x, y, s, w}` (`w`: giữ Shift, đi bộ); server ghi `PlayerState.seq` (số cuối đã nhận), `seqT` (số giây hướng đó đã được áp), `spd` (tốc độ thật lúc này, đã nhân `RUN_MULT` khi đang chạy), `calm` (ngoài giao chiến) và `walk` (cờ `w` của input cuối). Server tự dừng hướng đi thì tăng `seq`.
 - Mỗi bước dự đoán nhớ cờ đi bộ của nó; tốc độ bước tính lại từ `spd`, `calm`, `walk` (`stepSpeed`), nên giữ / nhả Shift không làm hình giật. Vào giao chiến khi đang chạy (server quyết định) thì đang đi chỉ thu độ lệch chậm (`SMOOTH_MOVING`), hình chậm lại cho server đuổi kịp, không giật lùi.
 - **Bản vá state gửi ngay sau mỗi nhịp `tick()`** (`patchRate = 0`, `broadcastPatch()` cuối mỗi nhịp `TICK_RATE`), không theo hẹn giờ riêng: input tới client chậm nhất một nhịp và mỗi bản vá mang đúng một bước mô phỏng.

@@ -2,7 +2,7 @@
 // Server vẫn là nguồn sự thật: mỗi lần state mới về, lấy vị trí server rồi phát lại các bước chưa được xác nhận.
 // Không dùng Phaser: kiểm thử bằng `npm run test:predict --prefix client` (scripts/predict-test.mjs, chạy thẳng bằng Node).
 import { moveEnt, MOVE_DEAD, PLAYER_HW, PLAYER_HH, type SolidGrid } from "../../shared/move.ts";
-import { dir4, RUN_MULT } from "../../shared/data.ts";
+import { dir4, RUN_MULT, MOVE_NUDGE } from "../../shared/data.ts";
 
 /** Dự đoán cũ và mới lệch quá chừng này (pixel) thì đặt thẳng (bị kéo, đi cổng, hồi sinh, dịch chuyển); dưới thì trượt dần. */
 const SNAP = 40;
@@ -75,7 +75,7 @@ export class Predictor {
     if (!this.resend && Math.hypot(dir.x, dir.y) > MOVE_DEAD) {
       this.steps.push({ seq: this.seq, x: dir.x, y: dir.y, w: walk, dt });
       const sp = stepSpeed(me, walk);
-      if (!me.dead) { moveEnt(this.grid, pos, dir.x * sp * dt, dir.y * sp * dt, PLAYER_HW, PLAYER_HH); moved = sp * Math.hypot(dir.x, dir.y); }
+      if (!me.dead) { moveEnt(this.grid, pos, dir.x * sp * dt, dir.y * sp * dt, PLAYER_HW, PLAYER_HH, MOVE_NUDGE); moved = sp * Math.hypot(dir.x, dir.y); }
     }
     // Bỏ bước quá cũ: chỉ xảy ra khi server không trả lời; vị trí sẽ được kéo về theo server ở lần đối chiếu sau.
     let old = 0, i = this.steps.length;

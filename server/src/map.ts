@@ -51,7 +51,7 @@ export interface GameMap {
   inLair(x: number, y: number): boolean;
   isSolidTile(tx: number, ty: number): boolean;
   hits(x: number, y: number, hw: number, hh: number): boolean;
-  moveEnt(e: { x: number; y: number }, dx: number, dy: number, hw: number, hh: number): void;
+  moveEnt(e: { x: number; y: number }, dx: number, dy: number, hw: number, hh: number, nudge?: number): void;
   inSpawn(x: number, y: number): boolean;
   /** Trong vùng an toàn: không sinh hồn thú, hồn thú không đuổi vào, không giao chiến (mục 5.3, 5.8). */
   inSafe(x: number, y: number): boolean;
@@ -233,7 +233,7 @@ export function loadMap(mapId: string): GameMap {
     mapId, MW, MH, solid, kind, zones, spawn, safe, portals, elites, lair, lake, npcs, waypoints, isSolidTile, hits, hoaDan,
     waypointAt: (x, y) => waypoints.find((w) => inRect(w, x, y)),
     inLair: (x, y) => !!lair && inRect(lair, x, y),
-    moveEnt: (e, dx, dy, hw, hh) => gridMove(grid, e, dx, dy, hw, hh),
+    moveEnt: (e, dx, dy, hw, hh, nudge) => gridMove(grid, e, dx, dy, hw, hh, nudge),
     inSpawn: (x, y) => inRect(spawn, x, y),
     inSafe: (x, y) => kind === "town" || safe.some((r) => inRect(r, x, y)),
     portalAt: (x, y) => portals.find((p) => inRect(p, x, y)),

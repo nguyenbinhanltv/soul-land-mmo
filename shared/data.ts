@@ -4167,6 +4167,8 @@ export function honTeParts(dong: number) {
 export const formatHonTe = (dong: number) => honTeParts(dong).map((p) => `${p.n.toLocaleString("vi-VN")} ${p.unit}`).join(" ");
 
 export const TILE = 16;
+/** Lách góc (corner nudge, shared/move.ts): trục đi vướng góc ô mà lệch sang bên ≤ chừng này pixel thì tự đẩy nhẹ qua (server + dự đoán client). */
+export const MOVE_NUDGE = 4;
 export const TICK_RATE = 20; // số lần server cập nhật mỗi giây
 
 // ---------- NPC, thương nhân và lò rèn (mục 5.8, bước 6.1; mọi số đã chốt) ----------
