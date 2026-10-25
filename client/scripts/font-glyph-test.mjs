@@ -12,6 +12,9 @@ const FONT_DIR = path.join(root, "client/src/fonts");
 /** Ký tự cho phép thiếu: mã -> lý do (chỉ khi có đường lùi khác hoặc không hiện trên giao diện). */
 const ALLOW = new Map([]);
 
+/** Tệp vẽ chữ bằng Phaser Text / canvas với chuỗi phông Be Vietnam Pro + Galmuri 11. */
+const SCENE_FILES = ["client/src/scenes/GameScene.ts", "client/src/radar.ts", "client/src/mapview.ts"];
+
 /**
  * Biểu tượng hồn kỹ `icon: "…"` ở shared/data.ts hiện còn thiếu glyph (mốc ngày 2026-10-25). Chữ này chỉ hiện khi chưa có ảnh kỹ năng
  * (skillImg / skillart) nên hạ thành mốc: thêm biểu tượng mới thiếu glyph thì lỗi, sửa xong một ký tự thì phải bỏ khỏi mốc (không để thừa).
@@ -147,6 +150,23 @@ export function run() {
     }
   }
   const hex = (c) => `U+${c.toString(16).toUpperCase().padStart(4, "0")}`;
+  // 3) Chữ Phaser / canvas dùng chuỗi `"Be Vietnam Pro", "Galmuri 11", system-ui`: ký tự ngoài Latin ở các tệp này phải có trong bvp-* hoặc galmuri-11
+  //    (không tính Galmuri 9 / Ark Symbols, vì chuỗi phông của chữ này không có chúng), và mọi chuỗi có Be Vietnam Pro phải kèm Galmuri 11 ngay sau.
+  const sceneFonts = new Set();
+  for (const [f, set] of cmaps) if (/^(bvp-\d+|galmuri-11)\.woff2$/.test(f)) for (const c of set) sceneFonts.add(c);
+  for (const rel of SCENE_FILES) {
+    const src = readFileSync(path.join(root, rel), "utf8");
+    for (const m of src.matchAll(/Be Vietnam Pro["']?,\s*(["'])?([^"',]*)/g)) {
+      if (m[2] !== "Galmuri 11") problems.push(`${rel}: chuỗi phông có "Be Vietnam Pro" nhưng không kèm "Galmuri 11" ngay sau (ký tự như → ◆ sẽ rơi về phông hệ thống)`);
+    }
+    const seen = new Set();
+    for (const ch of stripComments(src)) {
+      const c = ch.codePointAt(0);
+      if (isPlain(c) || isCjk(c) || sceneFonts.has(c) || ALLOW.has(c) || seen.has(c)) continue;
+      seen.add(c);
+      problems.push(`${hex(c)} "${ch}" (${rel}) vẽ bằng Be Vietnam Pro / Galmuri 11 mà cả hai đều không có glyph`);
+    }
+  }
   for (const [c, rel] of used) {
     if (union.has(c) || ALLOW.has(c)) continue;
     problems.push(`${hex(c)} "${String.fromCodePoint(c)}" (${rel}) không có trong phông nhúng nào`);
