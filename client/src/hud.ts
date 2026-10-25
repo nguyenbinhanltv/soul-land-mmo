@@ -169,6 +169,14 @@ export function buildChatTabs() {
       menu.setAttribute("aria-expanded", String(open));
     });
   }
+  const menuTips: [string, string, string][] = [
+    ["charBtn", "Hồn sư", "H"], ["vhBtn", "Đội hình", "V"], ["bagBtn", "Túi đồ", "B"],
+    ["resBtn", "Cộng minh", "K"], ["audioBtn", "Cài đặt âm thanh và giao diện", "không có phím tắt"],
+  ];
+  for (const [id, title, key] of menuTips) {
+    const b = document.getElementById(id);
+    if (b) setTip(b, { title, foot: `Mở ${title.toLowerCase()} · ${key === "không có phím tắt" ? key : `phím ${key}`}` });
+  }
   renderChat();
 }
 
