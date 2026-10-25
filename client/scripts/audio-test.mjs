@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { AUDIO_MAX_ACTIVE, AudioManager, resolveAudioSource, SFX_REPEAT_WINDOW_MS } from "../src/audio/AudioManager.ts";
+import { stopAmbientBed } from "../src/audio/ambientBed.ts";
 import { DEFAULT_AUDIO_SETTINGS, normalizeAudioSettings } from "../src/audio/settings.ts";
 import { panFromProjection, spatialMix } from "../src/audio/spatial.ts";
 import { SFX_IDS, SFX_PARAMS } from "../src/audio/sfxData.ts";
@@ -531,7 +532,27 @@ noListenerAudio.dispose();
     quick.audio.updateAmbient(0, input("hai_than_dao")); quick.audio.updateAmbient(10, input("loi_tinh_dau")); await flush();
     assert.equal(quick.started.filter((n) => n.loop === true && !n.stopped).length, 1);
     assert.equal(quick.audio.bed.current, "loi_tinh_dau");
+    // Scene bị hủy khi đi cổng / đổi kênh: AudioManager mới trên cùng AudioContext dùng lại bộ phát và bộ nhớ đệm, nền cũ không bị cắt.
+    const { ctx } = quick;
+    quick.audio.updateAmbient(0, input("hai_than_dao")); await flush();
+    const fetchedBefore = quick.audio.bed.fetched.length;
+    const live = quick.started.filter((n) => n.loop === true && !n.stopped);
+    assert.equal(live.length, 1, "đang nghe nền Hải Thần Đảo");
+    quick.audio.dispose();
+    assert.ok(!live[0].stopped, "hủy AudioManager không cắt nền đang phát");
+    const next = new AudioManager({ sound: { context: ctx, setMute() {}, setVolume() {} } }, () => ({ x: 100, y: 100 }), () => null, { random: () => 0.5 });
+    assert.equal(next.bed, quick.audio.bed, "một bộ phát nền cho mỗi AudioContext");
+    next.updateAmbient(0, input("hai_than_dao")); await flush();
+    assert.equal(quick.started.filter((n) => n.loop === true).length, 2, "cùng bản đồ sau khi đổi scene: nền giữ nguyên, không phát lại");
+    next.updateAmbient(250, input("loi_tinh_dau")); await flush();
+    assert.equal(next.bed.fetched.length, fetchedBefore, "đổi sang bản đồ đã nghe: không tải lại");
+    assert.equal(next.bed.current, "loi_tinh_dau", "nền mới vào, nền cũ mờ ra chéo");
+    stopAmbientBed();
+    assert.equal(next.bed.current, null, "mất kết nối: ngừng nền");
+    next.updateAmbient(500, input("hai_than_dao")); await flush();
+    assert.equal(next.bed.current, "hai_than_dao", "vào lại thì phát lại");
     audio.dispose();
+    next.dispose();
   }
 }
 

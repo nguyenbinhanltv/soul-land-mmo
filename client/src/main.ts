@@ -20,6 +20,7 @@ import { fxTestScreen } from "./fxTest.ts";
 import { phapTuongTestScreen } from "./phapTuongTest.ts";
 import { phutheTestScreen } from "./phutheTest.ts";
 import { sharedAudioContext, stopMusic } from "./audio/music.ts";
+import { stopAmbientBed } from "./audio/ambientBed.ts";
 import { mountGoogleButton } from "./google.ts";
 import { openCredits } from "./credits.ts";
 
@@ -319,7 +320,7 @@ function play(room: Room, roomMap: string, watch = false) {
     left = true;
     if (travelling) return;
     if (isArena && code === ARENA_END_CODE) { onTravel(mapId); return; }
-    closeLooks(); document.body.classList.remove("playing"); overlay.hidden = false; stopMusic();
+    closeLooks(); document.body.classList.remove("playing"); overlay.hidden = false; stopMusic(); stopAmbientBed();
     const msg = code === 4001 ? "Tài khoản vừa đăng nhập ở nơi khác." : "Mất kết nối với server.";
     card.innerHTML = `<h1>Đã rời ${esc(MAPS[roomMap]?.name ?? "bản đồ")}</h1><p>${msg}</p><div class="btns"><button class="btn primary" onclick="location.reload()">Vào lại</button></div>`;
   });

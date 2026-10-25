@@ -4,7 +4,7 @@ import { SFX_PARAMS, type SfxId } from "./sfxData.ts";
 import { createZzFxBuffer } from "./zzfx.ts";
 import { musicPlayerFor, type MusicPlayer } from "./music.ts";
 import { SfxBank, type SfxBankOptions } from "./sfxBank.ts";
-import { AmbientBed, type AmbientBedOptions } from "./ambientBed.ts";
+import { ambientBedFor, type AmbientBed, type AmbientBedOptions } from "./ambientBed.ts";
 import { AmbientLayers, type AmbientInput, type AmbientKind } from "./ambientLayers.ts";
 import { LOUD_FX, SKILL_PHASE_OF_FX, T3_WINDOW_MS, T3_OTHERS_GAP_MS, T3_OTHERS_GAIN, t3Group, SWING_FX, UI_GROUP, heartbeatInterval, groupTrim, voiceClassOf, VOICE_CAP, CROWD_DUCK, MASTER_COMPRESSOR, LOW_HP_RATIO, ringGlowMix, type VoiceClass, type UiSound, type SkillPhase, type BeastFamily, type Element, type Material, type Weapon } from "./soundMap.ts";
 
@@ -113,7 +113,7 @@ export class AudioManager {
   readonly bank: SfxBank | null;
   /** Môi trường lớp chồng (gió, sóng, chim, côn trùng, lửa, chuông): GameScene gọi `updateAmbient`. */
   readonly ambient: AmbientLayers;
-  /** Nền môi trường vòng lặp theo bản đồ (ambientBed.ts); null khi không có WebAudio. */
+  /** Nền môi trường vòng lặp theo bản đồ (ambientBed.ts): sống theo AudioContext, không bị hủy cùng scene; null khi không có WebAudio. */
   readonly bed: AmbientBed | null;
   private heartbeatAt = 0;
   /** Bộ nén chung của ba kênh tiếng (null khi không có DynamicsCompressor, ví dụ môi trường thử). */
@@ -142,7 +142,7 @@ export class AudioManager {
     this.music = musicPlayerFor(this.context);
     this.bank = this.context ? new SfxBank(this.context, options.bank) : null;
     this.random = options.random ?? Math.random;
-    this.bed = this.context && this.ambientBus ? new AmbientBed(this.context, this.ambientBus, options.bed) : null;
+    this.bed = ambientBedFor(this.context, options.bed);
     this.ambient = new AmbientLayers((kind, volume, pan) => this.playAmbient(kind, volume, pan), this.random);
     this.listener = listener;
     this.sourceResolver = sourceResolver;
@@ -371,7 +371,6 @@ export class AudioManager {
     this.voices.clear();
     this.sfxBus?.disconnect();
     this.uiBus?.disconnect();
-    this.bed?.dispose();
     this.ambientBus?.disconnect();
     this.compressor?.disconnect();
     this.bufferCache.clear();
@@ -423,6 +422,7 @@ export class AudioManager {
   private duckAmbient(depth: number, ms: number): void {
     const bus = this.ambientBus, context = this.context;
     if (!bus || !context || typeof bus.gain.cancelScheduledValues !== "function") return;
+    this.bed?.duckFor(depth, ms);
     const g = bus.gain, t = context.currentTime, base = this.settings.muted ? 0 : this.settings.master * this.settings.ambient, end = Math.max(t + ms / 1000, t + 0.06);
     g.cancelScheduledValues(t);
     g.setValueAtTime(g.value, t);
@@ -496,6 +496,7 @@ export class AudioManager {
       if (typeof g.cancelScheduledValues === "function" && this.context) g.cancelScheduledValues(this.context.currentTime);
       g.value = level(s.ambient);
     }
+    this.bed?.setVolume(level(s.ambient));
     // Bus nhạc thật nằm ở MusicPlayer (nối thẳng vào loa, không qua Phaser); volume Phaser ở trên giữ cho tiếng Phaser nếu có.
     this.music?.setVolume(level(s.music));
   }

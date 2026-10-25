@@ -1,6 +1,8 @@
 // Nền môi trường vòng lặp (#622): một bản thu liền mạch phát suốt khi ở bản đồ có nền (sóng Hải Thần Đảo, hang Lõi Tinh Đấu, hầm Đấu Hồn Trường),
 // chồng dưới nhạc nền và dưới lớp chồng ngẫu nhiên (ambientLayers.ts). Đổi bản đồ thì mờ ra / mờ vào chéo nhau; tải lười từng file theo bản đồ.
-// Đi qua bus Môi trường của AudioManager nên thanh Môi trường, Tắt tiếng và hạ nền khi đông tiếng áp dụng như mọi tiếng môi trường khác.
+// Sống theo AudioContext như nhạc nền (`ambientBedFor`), không theo scene: mỗi lần đổi bản đồ / kênh GameScene bị hủy và AudioManager mới được tạo,
+// nhưng bộ phát và bộ nhớ đệm đã giải mã vẫn còn nên nền cũ mờ ra chứ không bị cắt, file không tải lại. AudioManager chỉ đặt âm lượng
+// (thanh Môi trường × Tổng, 0 khi Tắt tiếng) và hạ nền khi đông tiếng.
 import { AMBIENT_BEDS, AMBIENT_BED_FADE_S, AMBIENT_BED_RETRY_S, ambientBedFile } from "./ambientLayers.ts";
 import { browserMusicFormat, decodeAudio, fetchBytes, type MusicFormat } from "./music.ts";
 
@@ -15,7 +17,10 @@ interface Playing { id: string; src: AudioBufferSourceNode; gain: GainNode }
 
 export class AmbientBed {
   private readonly context: AudioContext;
-  private readonly dest: AudioNode;
+  /** Hạ nền khi đông tiếng (`duckFor`), nối trước bus âm lượng. */
+  private readonly duck: GainNode;
+  private readonly bus: GainNode;
+  private volume = 0;
   private readonly load: (url: string) => Promise<ArrayBuffer>;
   private readonly fmt: MusicFormat;
   private readonly now: () => number;
@@ -28,9 +33,14 @@ export class AmbientBed {
   /** Các file đã yêu cầu tải (để bot / bài thử thấy tải lười). */
   readonly fetched: string[] = [];
 
-  constructor(context: AudioContext, dest: AudioNode, options: AmbientBedOptions = {}) {
+  constructor(context: AudioContext, options: AmbientBedOptions = {}) {
     this.context = context;
-    this.dest = dest;
+    this.bus = context.createGain();
+    this.duck = context.createGain();
+    this.bus.gain.value = 0;
+    this.duck.gain.value = 1;
+    this.duck.connect(this.bus);
+    this.bus.connect(context.destination);
     this.load = options.load ?? fetchBytes;
     this.fmt = options.format ?? browserMusicFormat();
     this.now = options.now ?? Date.now;
@@ -40,15 +50,34 @@ export class AmbientBed {
   /** Nền đang nghe thấy (đã hoặc đang mờ vào); null = bản đồ không có nền. */
   get current(): string | null { for (const p of this.playing) if (p.id === this.wanted) return p.id; return null; }
 
-  /** Gọi mỗi lần báo môi trường (~250 ms): chỉ làm gì khi bản đồ đổi hoặc nền cần tải lại sau lỗi. */
-  setMap(mapId: string): void {
+  /** Âm lượng bus Môi trường (Tổng × Môi trường, 0 khi tắt tiếng). Bằng 0 thì không tải nền mới. */
+  setVolume(volume: number): void {
+    const v = Number.isFinite(volume) ? Math.min(1, Math.max(0, volume)) : 0, t = this.context.currentTime ?? 0;
+    this.volume = v;
+    this.bus.gain.cancelScheduledValues?.(t);
+    this.bus.gain.setValueAtTime(v, t);
+    this.bus.gain.value = v;
+  }
+
+  /** Đông tiếng: hạ nền còn `depth` rồi giữ `ms`, sau đó trả lại (cùng nhịp với `AudioManager.duckAmbient`). */
+  duckFor(depth: number, ms: number): void {
+    const g = this.duck.gain, t = this.context.currentTime ?? 0, end = Math.max(t + ms / 1000, t + 0.06);
+    g.cancelScheduledValues?.(t);
+    g.setValueAtTime(g.value, t);
+    g.linearRampToValueAtTime(depth, t + 0.06);
+    g.setValueAtTime(depth, end);
+    g.linearRampToValueAtTime(1, end + 0.5);
+  }
+
+  /** Gọi mỗi lần báo môi trường (~250 ms): chỉ làm gì khi bản đồ đổi hoặc nền cần tải lại sau lỗi. `null` = ngừng nền (mất kết nối). */
+  setMap(mapId: string | null): void {
     if (this.disposed) return;
-    const changed = mapId !== this.wanted;
-    if (changed) {
-      this.wanted = mapId;
-      for (const p of this.playing) if (p.id !== mapId) this.fadeOut(p);
+    const want = mapId ?? "";
+    if (want !== this.wanted) {
+      this.wanted = want;
+      for (const p of this.playing) if (p.id !== want) this.fadeOut(p);
     }
-    if (!AMBIENT_BEDS[mapId] || [...this.playing].some((p) => p.id === mapId)) return;
+    if (!mapId || this.volume <= 0 || !AMBIENT_BEDS[mapId] || [...this.playing].some((p) => p.id === mapId)) return;
     const failed = this.failedAt.get(mapId);
     if (failed !== undefined && this.now() - failed < AMBIENT_BED_RETRY_S * 1000) return;
     void this.start(mapId);
@@ -81,7 +110,7 @@ export class AmbientBed {
     gain.gain.value = 0;
     gain.gain.setValueAtTime(0, t);
     gain.gain.linearRampToValueAtTime(AMBIENT_BEDS[mapId].gain, t + AMBIENT_BED_FADE_S);
-    gain.connect(this.dest);
+    gain.connect(this.duck);
     const src = c.createBufferSource();
     src.buffer = buffer;
     src.loop = true;
@@ -102,6 +131,9 @@ export class AmbientBed {
     p.src.addEventListener?.("ended", () => { p.gain.disconnect(); });
   }
 
+  /** Mờ ra rồi dừng mọi nền (mất kết nối); gọi `setMap` lại thì phát lại. */
+  stop(): void { this.setMap(null); }
+
   dispose(): void {
     this.disposed = true;
     for (const p of [...this.playing]) {
@@ -109,5 +141,24 @@ export class AmbientBed {
       try { p.src.stop(); } catch { /* đã dừng */ }
       p.gain.disconnect();
     }
+    this.bus.disconnect();
   }
 }
+
+const beds = new WeakMap<object, AmbientBed>();
+let lastBed: AmbientBed | null = null;
+
+/** Một bộ phát nền cho mỗi AudioContext (sống qua các scene); không có context (bot, trình duyệt không WebAudio) thì null. */
+export function ambientBedFor(context: AudioContext | null | undefined, options?: AmbientBedOptions): AmbientBed | null {
+  if (!context) return null;
+  let bed = beds.get(context);
+  if (!bed) {
+    try { bed = new AmbientBed(context, options); } catch { return null; }
+    beds.set(context, bed);
+    lastBed = bed;
+  }
+  return bed;
+}
+
+/** Mất kết nối (màn "Đã rời bản đồ"): ngừng nền của bộ phát dùng chung, cùng chỗ gọi với `stopMusic`. */
+export function stopAmbientBed(): void { lastBed?.stop(); }
