@@ -5725,7 +5725,7 @@ export class MapRoom extends Room<MapState> {
     this.questEvent(by, { k: "kill", map: this.state.mapId, zone, fit: fit(by), party: grp });
     if (e?.king) return this.killKing(bid, b, e, by); // tà hóa thú vương (BĐ5): thưởng theo đóng góp, rương
     const p = this.state.players.get(by)!; p.kills++;
-    const ad = this.pdata.get(by); if (ad?.auto && !b.rank) ad.auto.killed(this.offlinePower(ad, p), b.years, BEASTS[b.species]?.id ?? ""); // trần tốc độ tự săn
+    const ad = this.pdata.get(by); if (ad?.auto && !b.rank) ad.auto.killed(this.offlinePower(ad, p), b.years, BEASTS[b.species]?.id ?? "", b); // trần tốc độ tự săn
     const share = partyXpShare(team.length);
     // Giới hạn săn tinh anh nhiều kênh (#119, mục 5.4): tài khoản đã nhận thưởng loài tinh anh này trên bản đồ này trong ELITE.lock giây
     // (ở bất kỳ kênh nào) thì lần này chỉ nhận như hồn thú thường; ai nhận thưởng tinh anh lần này thì bị khóa ELITE.lock giây.
