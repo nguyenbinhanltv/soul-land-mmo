@@ -1670,3 +1670,5 @@ body.ui-h500 #credits .cr-head small{display:none}
 .thuymac #char .bmid small{background:var(--plate)}
 
 .thuymac #npc[data-c16-page]::before,.thuymac #npc[data-c16-page]::after{display:none}
+/* Ảnh đan điền 128×128: giữ vùng (0,10)–(106,128), đưa tâm (53,70) về giữa; không kéo méo vòng. */
+.thuymac #char .cring6::before{clip-path:inset(7.8125% 17.1875% 0 0);transform:translate(8.59375%,-4.6875%)}
