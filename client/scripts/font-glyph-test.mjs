@@ -156,8 +156,9 @@ export function run() {
   for (const [f, set] of cmaps) if (/^(bvp-\d+|galmuri-11)\.woff2$/.test(f)) for (const c of set) sceneFonts.add(c);
   for (const rel of SCENE_FILES) {
     const src = readFileSync(path.join(root, rel), "utf8");
-    for (const m of src.matchAll(/Be Vietnam Pro["']?,\s*(["'])?([^"',]*)/g)) {
-      if (m[2] !== "Galmuri 11") problems.push(`${rel}: chuỗi phông có "Be Vietnam Pro" nhưng không kèm "Galmuri 11" ngay sau (ký tự như → ◆ sẽ rơi về phông hệ thống)`);
+    // Mỗi dòng nhắc Be Vietnam Pro (chuỗi phông nằm trọn trên một dòng) phải có cả Galmuri 11.
+    for (const [n, line] of src.split(/\r?\n/).entries()) {
+      if (line.includes("Be Vietnam Pro") && !line.includes("Galmuri 11")) problems.push(`${rel}:${n + 1}: chuỗi phông có "Be Vietnam Pro" nhưng không có "Galmuri 11" (ký tự như → ◆ sẽ rơi về phông hệ thống)`);
     }
     const seen = new Set();
     for (const ch of stripComments(src)) {

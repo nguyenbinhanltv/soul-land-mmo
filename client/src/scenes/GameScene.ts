@@ -2221,7 +2221,7 @@ export class GameScene extends Phaser.Scene {
     const kind = m.heal ? "heal" : m.shield ? "shield" : m.immune ? "immune" : m.crit ? "crit" : "damage" as const;
     const ds = damageStyle(el, !!m.crit, self, kind, m.dot ? m.c : undefined); // C1: self là nạn nhân; DoT giữ màu server gửi
     const t = this.add.text(x, y, label, {
-      fontFamily: '"Galmuri 11", "Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif', fontSize: `${ds.font}px`,
+      fontFamily: '"Galmuri 11", "Be Vietnam Pro", system-ui, sans-serif', fontSize: `${ds.font}px`,
       color: ds.color,
       stroke: "#" + ds.stroke.toString(16).padStart(6, "0"), strokeThickness: m.crit || self ? 4 : 3, resolution: 4,
     }).setOrigin(0.5).setDepth(self ? 100000 : 99999).setScale(k * (m.crit ? 0.6 : 0.8));
