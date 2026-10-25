@@ -482,15 +482,6 @@
       "use": "Hào quang sét quanh người (Lôi, Cảm điện)"
     },
     {
-      "key": "fx_bao_truoc",
-      "kind": "fx",
-      "pack": "giga",
-      "ramp": "lua",
-      "fps": 14,
-      "glow": true,
-      "use": "Dấu báo trước nguy hiểm trên vùng chiêu của quái"
-    },
-    {
       "key": "fx_quang_phat",
       "kind": "fx",
       "pack": "holy",
