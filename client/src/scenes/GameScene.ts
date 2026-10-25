@@ -49,7 +49,7 @@ const SV_OFF = new URLSearchParams(location.search).get("sv") === "0";
 import { hitWeight, KNOCK_PX, materialSparks, damageStyle, playHitFeelSheets, registerHitFeelSheets } from "../hitFeel.ts";
 import { footDustCount, rootSnareDiameter } from "../combatFeelRules.ts";
 import { PhapTuongSystem, PhapTuongCutIn } from "../phapTuong.ts";
-import { SPIRIT_FAMILY, spiritPose, spiritScale, spiritPhase, pivotShift, newSpiritPose, type SpiritState } from "../spiritMotion.ts";
+import { SPIRIT_FAMILY, spiritPose, spiritScale, spiritPhase, applySpiritPose, newSpiritPose, type SpiritState } from "../spiritMotion.ts";
 import { ParticleLayer, HIT_SPARK, SHAKE_TIER, beastJerk, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs, fxLevel, fxGov } from "../combatFx.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bindUiSounds } from "../audio/uiSounds.ts";
@@ -2973,17 +2973,13 @@ export class GameScene extends Phaser.Scene {
    */
   spiritMotion(id: string, v: PView, p: any, time: number, anim: HsAnim, flip: boolean, ox: number, oy: number) {
     const fam = SPIRIT_FAMILY[VOHON[p.vh]?.id ?? ""], layers = [v.vb, v.vf];
-    const k = fam && v.vb.visible && isIsoSheet(this, v.vb.texture.key) && !p.dead && anim !== "absorb" ? spiritScale(fxLevel(), fxPrefs.reduce, id === this.me) : 0;
-    if (!fam || (k <= 0 && v.vb.rotation === 0 && v.vb.scaleX === 1 / SPR && v.vb.scaleY === 1 / SPR)) return;
+    const k = fam && v.vb.visible && !p.dead && anim !== "absorb" ? spiritScale(fxLevel(), fxPrefs.reduce, id === this.me) : 0;
+    const base = isIsoSheet(this, v.vb.texture.key) ? 1 / SPR : 1; // phụ thể 48×48 cũ vẽ bằng code phóng 1 (fitHonsuLayer)
+    if (!fam || (k <= 0 && v.vb.rotation === 0 && v.vb.scaleX === base && v.vb.scaleY === base)) return;
     const st: SpiritState = anim === "attack" || anim === "cast" ? anim : anim === "walk" ? "walk" : "idle";
     v.spPhase ??= spiritPhase(id);
     const age = v.act ? time - v.act.t0 : 0, dur = v.act ? honsuAnimMs(v.act.anim) : 0;
-    const P = spiritPose(this.spPose, fam, k > 0 ? st : "idle", time, age, dur, flip ? -1 : 1, time - v.hurtT, k, v.spPhase), sh = pivotShift(this.spShift, P);
-    for (const s of layers) {
-      // đơn vị vị trí là đơn vị của khung chứa (phóng SPR), còn độ dời tính theo pixel ảnh (phóng 1 / SPR): chia SPR
-      s.setRotation(P.rot).setScale(P.sx / SPR, P.sy / SPR);
-      s.x = ox + sh.x / SPR; s.y = oy + sh.y / SPR;
-    }
+    applySpiritPose(layers, spiritPose(this.spPose, fam, k > 0 ? st : "idle", time, age, dur, flip ? -1 : 1, time - v.hurtT, k, v.spPhase), this.spShift, ox, oy, base);
   }
 
   /** Xin lại chỉ số của võ hồn đang xem ở bảng nhân vật (server giới hạn nhịp, tin về qua "stats"). */

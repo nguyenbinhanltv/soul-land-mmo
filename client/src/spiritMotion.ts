@@ -140,3 +140,19 @@ export function pivotShift(out: { x: number; y: number }, pose: SpiritPose): { x
   out.x = pose.dx - h * s; out.y = pose.dy - h * (1 - c);
   return out;
 }
+
+/** Lớp ảnh nhận tư thế (Phaser.GameObjects.Sprite thỏa cấu trúc này). */
+export interface PoseLayer { x: number; y: number; setRotation(r: number): unknown; setScale(x: number, y: number): unknown }
+
+/**
+ * Đặt tư thế lên các lớp phụ thể: `base` là hệ số phóng gốc của lớp (isometric 96×96: 1 / SPR; phụ thể 48×48 cũ vẽ bằng code: 1), nên độ dời
+ * pixel ảnh nhân `base` khi cộng vào vị trí trong khung chứa phóng SPR. `(ox, oy)` là vị trí gốc của lớp (độ lệch LPC_VIEW.vohon + nhấc bay).
+ * Dùng chung cho GameScene và trang xem trước.
+ */
+export function applySpiritPose(layers: readonly PoseLayer[], pose: SpiritPose, shift: { x: number; y: number }, ox: number, oy: number, base: number): void {
+  pivotShift(shift, pose);
+  for (const s of layers) {
+    s.setRotation(pose.rot); s.setScale(pose.sx * base, pose.sy * base);
+    s.x = ox + shift.x * base; s.y = oy + shift.y * base;
+  }
+}
