@@ -18,3 +18,18 @@
 - `client/src/predict.ts` (`Predictor`): mỗi khung tự đi trước, mỗi lần state về thì lấy vị trí server, bỏ phần input server đã áp rồi phát lại phần còn lại; lệch nhỏ thì trượt dần, lệch lớn (bị kéo, đi cổng, hồi sinh) thì đặt thẳng. Người chơi khác và hồn thú nội suy về vị trí server.
 - `?nopredict` tắt dự đoán; `?lag=<ms>` giả trễ mỗi chiều (thêm `?debug` thì góc màn hình ghi chế độ; khung đỏ là vị trí server). Kiểm thử không cần server (dự đoán, chạy / đi bộ, tìm đường A*): `npm run test:predict --prefix client`.
 
+## Khóa localStorage của client
+Mọi khóa đều là tùy chọn riêng của trình duyệt, không phải dữ liệu game (không gửi server, mất đi thì về mặc định). Đọc / ghi luôn bọc `try` vì trình duyệt có thể khóa lưu trữ.
+
+| Khóa | Nội dung | Nơi đọc / ghi |
+|---|---|---|
+| `soul-land-fx-v1` | Tùy chọn hiệu ứng (JSON: `level`, `reduce`, `shake`, `cine`, `cutin`, `halo`, `hideHat`, `auto`) | `client/src/fxSettings.ts` (`readFxPrefs` / `writeFxPrefs`, mặc định `defaultFxPrefs`); `combatFx.ts` giữ đối tượng sống `fxPrefs`, `arenaShow.ts` và `sprites.ts` chỉ đọc |
+| `soul-land-audio-v1` | Âm lượng / bật tắt âm thanh | `client/src/audio/settings.ts` |
+| `shh-ui-scale` | Cỡ giao diện (`auto` hoặc hệ số) | `client/src/uiArt.ts` |
+| `soul-bag-order` | Thứ tự sắp xếp túi đồ | `client/src/bag.ts` |
+| `soul.radar.mode`, `soul.radar.zoom` | Chế độ và mức thu phóng radar | `client/src/radar.ts` |
+| `shh-token`, `shh-name` | Token đăng nhập và tên điền sẵn | `client/src/main.ts` (qua `storage` ở `net.ts`) |
+| `shh-hat` | Bật / tắt hạt thời tiết bằng lệnh `/hat` (`0` = tắt) | `client/src/weather.ts` (qua `storage` ở `net.ts`) |
+| `shh-gtest` | Mã đăng nhập Google giả (chỉ khi server `GAME_TEST`) | `client/src/google.ts` |
+
+Thêm khóa mới: đặt hằng khóa cạnh mô-đun sở hữu nó và thêm một dòng vào bảng này; tùy chọn dùng chung nhiều chỗ thì gom đọc / ghi vào một mô-đun như `fxSettings.ts`.
