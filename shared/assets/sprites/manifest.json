@@ -9574,6 +9574,38 @@
     { "key": "ui_cursor_pickup_32", "iso": true },
     { "key": "ui_cursor_pickup_64", "iso": true },
     { "key": "ui_cursor_blocked_32", "iso": true },
-    { "key": "ui_cursor_blocked_64", "iso": true }
+    { "key": "ui_cursor_blocked_64", "iso": true },
+    {
+      "key": "gi_ui_menu",
+      "iso": true
+    },
+    {
+      "key": "gi_ui_connected",
+      "iso": true
+    },
+    {
+      "key": "gi_ui_disconnected",
+      "iso": true
+    },
+    {
+      "key": "gi_notice_info",
+      "iso": true
+    },
+    {
+      "key": "gi_notice_loot",
+      "iso": true
+    },
+    {
+      "key": "gi_notice_level",
+      "iso": true
+    },
+    {
+      "key": "gi_notice_quest",
+      "iso": true
+    },
+    {
+      "key": "gi_notice_boss",
+      "iso": true
+    }
   ]
 }

@@ -5086,6 +5086,8 @@ export const RESONANCE_RANK_PAGE_MAX = 20;
 export const RESONANCE_RANK_CD = 2;
 /** Giây giữ bảng xếp hạng cộng minh đã tính (dùng chung mọi phòng); bảng có thể trễ ngần này so với dữ liệu đã lưu. */
 export const RESONANCE_RANK_CACHE = 30;
+/** Giây giữ bảng xếp hạng đấu trường / tông môn đã tính (dùng chung trong tiến trình, #738); ghi Elo / điểm tông trong tiến trình thì xoá ngay, nên chỉ ghi từ tiến trình khác mới trễ tới ngần này. */
+export const RANK_BOARD_CACHE = 8;
 /**
  * 5 trụ cột cộng minh (mục 5.10). Thứ tự là thứ tự mảng tiến độ / mốc (`resonanceProgress`, `resonanceLevels`, tin "resonance");
  * mã `id` cố định. Mốc lấy đúng bảng ví dụ 5.10; **giá trị cộng đã chốt**:

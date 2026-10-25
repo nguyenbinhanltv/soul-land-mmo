@@ -11,7 +11,7 @@ Quy định ở `GAME_DESIGN.md` mục 5.11 (phần "Nguồn và giấy phép").
 
 ## game-icons.net — biểu tượng pixel (#625)
 
-Icons made by Lorc, Delapouite, Faithtoken (https://game-icons.net, CC BY 3.0). SVG gốc ở `art/src/game-icons/svg/`, map ở `art/src/game-icons/icons.json`, tô màu bằng `node tools/assets/game-icons-pixel.mjs`, ảnh ra ở `shared/assets/sprites/iso/{item,gi}/`. Không dùng AI. Key `gi_menu_*` (16 icon menu HUD) để sẵn trong manifest, chưa nối vào giao diện.
+Icons made by Lorc, Delapouite, Faithtoken (https://game-icons.net, CC BY 3.0). SVG gốc ở `art/src/game-icons/svg/`, map ở `art/src/game-icons/icons.json`, tô màu bằng `node tools/assets/game-icons-pixel.mjs`, ảnh ra ở `shared/assets/sprites/iso/{item,gi}/`. Không dùng AI. Key `gi_menu_*` (16 icon menu HUD) để sẵn trong manifest, chưa nối vào giao diện; thêm 8 key HUD C12 (#812): `gi_ui_menu`, `gi_ui_connected`, `gi_ui_disconnected`, `gi_notice_info` / `loot` / `level` / `quest` / `boss`.
 
 | Key | Nguồn | Tác giả, giấy phép, hậu kỳ | Ngày |
 |---|---|---|---|
@@ -94,6 +94,14 @@ Icons made by Lorc, Delapouite, Faithtoken (https://game-icons.net, CC BY 3.0). 
 | `gi_menu_arena` | game-icons.net: [crossed sabres](https://game-icons.net/1x1/lorc/crossed-sabres.html) | Lorc (https://lorcblog.blogspot.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
 | `gi_menu_shop` | game-icons.net: [shop](https://game-icons.net/1x1/delapouite/shop.html) | Delapouite (https://delapouite.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
 | `gi_menu_forge` | game-icons.net: [anvil](https://game-icons.net/1x1/lorc/anvil.html) | Lorc (https://lorcblog.blogspot.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
+| `gi_ui_menu` | game-icons.net: [hamburger menu](https://game-icons.net/1x1/delapouite/hamburger-menu.html) | Delapouite (https://delapouite.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
+| `gi_ui_connected` | game-icons.net: [plug](https://game-icons.net/1x1/delapouite/plug.html) | Delapouite (https://delapouite.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
+| `gi_ui_disconnected` | game-icons.net: [stop sign](https://game-icons.net/1x1/delapouite/stop-sign.html) | Delapouite (https://delapouite.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
+| `gi_notice_info` | game-icons.net: [info](https://game-icons.net/1x1/delapouite/info.html) | Delapouite (https://delapouite.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
+| `gi_notice_loot` | game-icons.net: [chest](https://game-icons.net/1x1/delapouite/chest.html) | Delapouite (https://delapouite.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
+| `gi_notice_level` | game-icons.net: [upgrade](https://game-icons.net/1x1/delapouite/upgrade.html) | Delapouite (https://delapouite.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
+| `gi_notice_quest` | game-icons.net: [scroll unfurled](https://game-icons.net/1x1/lorc/scroll-unfurled.html) | Lorc (https://lorcblog.blogspot.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
+| `gi_notice_boss` | game-icons.net: [horned skull](https://game-icons.net/1x1/lorc/horned-skull.html) | Lorc (https://lorcblog.blogspot.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
 | `item_hon_hach_phuong_hoang` | game-icons.net: [fire silhouette](https://game-icons.net/1x1/lorc/fire-silhouette.html) | Lorc (https://lorcblog.blogspot.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
 | `item_hon_hach_ba_vuong_long` | game-icons.net: [lightning branches](https://game-icons.net/1x1/lorc/lightning-branches.html) | Lorc (https://lorcblog.blogspot.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
 | `item_hon_hach_xa_hoang` | game-icons.net: [snake spiral](https://game-icons.net/1x1/delapouite/snake-spiral.html) | Delapouite (https://delapouite.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
