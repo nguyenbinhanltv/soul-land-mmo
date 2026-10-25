@@ -9564,6 +9564,16 @@
     {
       "key": "item_hon_hach_tien_co",
       "iso": true
-    }
+    },
+    { "key": "ui_cursor_default_32", "iso": true },
+    { "key": "ui_cursor_default_64", "iso": true },
+    { "key": "ui_cursor_attack_32", "iso": true },
+    { "key": "ui_cursor_attack_64", "iso": true },
+    { "key": "ui_cursor_talk_32", "iso": true },
+    { "key": "ui_cursor_talk_64", "iso": true },
+    { "key": "ui_cursor_pickup_32", "iso": true },
+    { "key": "ui_cursor_pickup_64", "iso": true },
+    { "key": "ui_cursor_blocked_32", "iso": true },
+    { "key": "ui_cursor_blocked_64", "iso": true }
   ]
 }

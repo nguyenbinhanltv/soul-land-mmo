@@ -7,6 +7,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "bot": "node scripts/bot-test.mjs",
+    "test:contextcursor": "node --experimental-strip-types scripts/contextcursor-test.mjs",
     "test:predict": "node scripts/predict-test.mjs",
     "test:nameplate": "node --experimental-strip-types scripts/nameplate-test.mjs",
     "test:nameplate-browser": "node scripts/nameplate-browser.mjs",

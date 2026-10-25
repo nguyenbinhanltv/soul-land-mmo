@@ -1,0 +1,5 @@
+.c12-ui-icon{display:block;width:24px;height:24px;object-fit:contain;image-rendering:pixelated}
+.c12-with-icon::before{content:"";display:inline-block;width:24px;height:24px;vertical-align:middle;margin-right:4px;background:var(--c12-icon) center/contain no-repeat;image-rendering:pixelated}
+.radarbtns>.c12-with-icon::before,#c12Connection.c12-with-icon::before{width:16px;height:16px;margin-right:3px}
+#c12Connection{align-self:center;color:var(--text);font:11px var(--f12);line-height:1.35}
+#c12Connection[hidden]{display:none}

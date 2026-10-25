@@ -273,6 +273,17 @@ Mỗi asset một dòng. Thêm ảnh vào `shared/assets/sprites/` thì thêm ke
 | `shared/assets/sprites/iso/he/khong_che.png` | `he_khong_che` | Vẽ tay từng điểm bằng code (`tools/assets/he-icons.mjs`, mảng ký tự, không dùng AI) | Không | Huy hiệu hệ 24×24 (mục 5.11): Khống chế: một mắt xích trắng nằm chéo trên tròn tím; viền vàng kim, viền ngoài #1a1020, màu theo art/palette.gpl |
 | `shared/assets/sprites/iso/he/phu_tro.png` | `he_phu_tro` | Vẽ tay từng điểm bằng code (`tools/assets/he-icons.mjs`, mảng ký tự, không dùng AI) | Không | Huy hiệu hệ 24×24 (mục 5.11): Phụ trợ: hoa sen trắng trên tròn vàng; viền vàng kim, viền ngoài #1a1020, màu theo art/palette.gpl |
 
+| `shared/assets/sprites/iso/ui/cursor_default_32.png` | `ui_cursor_default_32` | Codex (tthoadev), vẽ bằng code | Không dùng model ảnh; công cụ `tools/assets/ui-cursors.mjs`, hình học pixel gốc | C12 #598; PNG32/64, hotspot logic (2,2); 2026-10-26 |
+| `shared/assets/sprites/iso/ui/cursor_default_64.png` | `ui_cursor_default_64` | Codex (tthoadev), vẽ bằng code | Không dùng model ảnh; công cụ `tools/assets/ui-cursors.mjs`, hình học pixel gốc | C12 #598; PNG32/64, hotspot logic (2,2); 2026-10-26 |
+| `shared/assets/sprites/iso/ui/cursor_attack_32.png` | `ui_cursor_attack_32` | Codex (tthoadev), vẽ bằng code | Không dùng model ảnh; công cụ `tools/assets/ui-cursors.mjs`, hình học pixel gốc | C12 #598; PNG32/64, hotspot logic (2,2); 2026-10-26 |
+| `shared/assets/sprites/iso/ui/cursor_attack_64.png` | `ui_cursor_attack_64` | Codex (tthoadev), vẽ bằng code | Không dùng model ảnh; công cụ `tools/assets/ui-cursors.mjs`, hình học pixel gốc | C12 #598; PNG32/64, hotspot logic (2,2); 2026-10-26 |
+| `shared/assets/sprites/iso/ui/cursor_talk_32.png` | `ui_cursor_talk_32` | Codex (tthoadev), vẽ bằng code | Không dùng model ảnh; công cụ `tools/assets/ui-cursors.mjs`, hình học pixel gốc | C12 #598; PNG32/64, hotspot logic (2,2); 2026-10-26 |
+| `shared/assets/sprites/iso/ui/cursor_talk_64.png` | `ui_cursor_talk_64` | Codex (tthoadev), vẽ bằng code | Không dùng model ảnh; công cụ `tools/assets/ui-cursors.mjs`, hình học pixel gốc | C12 #598; PNG32/64, hotspot logic (2,2); 2026-10-26 |
+| `shared/assets/sprites/iso/ui/cursor_pickup_32.png` | `ui_cursor_pickup_32` | Codex (tthoadev), vẽ bằng code | Không dùng model ảnh; công cụ `tools/assets/ui-cursors.mjs`, hình học pixel gốc | C12 #598; PNG32/64, hotspot logic (2,2); 2026-10-26 |
+| `shared/assets/sprites/iso/ui/cursor_pickup_64.png` | `ui_cursor_pickup_64` | Codex (tthoadev), vẽ bằng code | Không dùng model ảnh; công cụ `tools/assets/ui-cursors.mjs`, hình học pixel gốc | C12 #598; PNG32/64, hotspot logic (2,2); 2026-10-26 |
+| `shared/assets/sprites/iso/ui/cursor_blocked_32.png` | `ui_cursor_blocked_32` | Codex (tthoadev), vẽ bằng code | Không dùng model ảnh; công cụ `tools/assets/ui-cursors.mjs`, hình học pixel gốc | C12 #598; PNG32/64, hotspot logic (2,2); 2026-10-26 |
+| `shared/assets/sprites/iso/ui/cursor_blocked_64.png` | `ui_cursor_blocked_64` | Codex (tthoadev), vẽ bằng code | Không dùng model ảnh; công cụ `tools/assets/ui-cursors.mjs`, hình học pixel gốc | C12 #598; PNG32/64, hotspot logic (2,2); 2026-10-26 |
+
 ## Asset tạo bằng AI (PixelLab)
 
 Tạo bằng PixelLab qua MCP, rồi chuẩn hóa bằng `tools/assets` (normalize → pack → validate). Quy trình: `.claude/skills/asset-gen/SKILL.md`.
