@@ -1,6 +1,6 @@
 # Dựng GCP cho CI/CD của game (K2, #500)
 
-Chủ repo tự chạy (cần quyền admin ở project GCP). Worker / agent **không** chạy lệnh nào vào GCP thật. Luồng tổng thể: xem `docs/deploy.md`.
+Chủ repo tự chạy (cần quyền admin ở project GCP). Worker / agent **không** chạy lệnh nào vào GCP thật. Luồng tổng thể: xem `docs/ops/trien-khai.md`.
 
 Kết quả sau khi chạy:
 - Artifact Registry `soul-land` (docker, `asia-southeast1`), image `asia-southeast1-docker.pkg.dev/landing-page-455614/soul-land/game`.

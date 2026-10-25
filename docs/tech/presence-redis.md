@@ -6,7 +6,7 @@
 - Presence của Colyseus: phòng `publish("announce", {text, col})`, mọi `MapRoom` subscribe trong `onCreate` rồi `broadcast("chat")`.
 - Một tiến trình dùng `LocalPresence` và bộ nhớ. Có `REDIS_URL` thì dùng `RedisPresence` cùng `RedisDriver` để pub/sub và registry phòng.
 - Đã bật Redis mà Redis lỗi thì **fail-closed**, không tự rơi về RAM vì sẽ tạo split-brain.
-- **Prod hiện chạy một tiến trình, không đặt `REDIS_URL`** (`docs/deploy.md`). Nhiều tiến trình / Redis chỉ dùng khi thử (`bot:local --procs 2 --pg`).
+- **Prod hiện chạy một tiến trình, không đặt `REDIS_URL`** (`docs/ops/trien-khai.md`, `docs/ops/db-redis-sao-luu.md`). Nhiều tiến trình / Redis chỉ dùng khi thử (`bot:local --procs 2 --pg`).
 - Hợp đồng dữ liệu presence: trạng thái tạm thời chỉ chứa `accountId`, `roomId`, `sessionId` / fencing token, mã bản đồ / kênh, thời gian hết hạn và dữ liệu hiển thị tối thiểu; không chứa token đăng nhập, mật khẩu, túi đồ hay bí mật. Lua `SET NX PX`, compare-renew và compare-delete làm các claim / release lặp lại an toàn.
 
 ## Redis mất giữa chừng: không phục vụ, không thoát
