@@ -161,11 +161,6 @@
       "goc": "spritesheet.png",
       "src": "spritesheet/Lightning/lightning_aura_002/lightning_aura_002_large_blue/spritesheet.png"
     },
-    "fx_bao_truoc": {
-      "pack": "giga",
-      "goc": "spritesheet.png",
-      "src": "spritesheet/Symbols/symbol_alert_001/symbol_alert_001_large_red/spritesheet.png"
-    },
     "fx_quang_phat": {
       "pack": "holy",
       "goc": "Smite_spritesheet.png",

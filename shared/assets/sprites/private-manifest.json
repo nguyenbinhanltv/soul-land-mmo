@@ -19,23 +19,6 @@
       "use": "Đóng băng quanh mục tiêu (hệ Băng, trạng thái Đóng băng)"
     },
     {
-      "key": "fx_bao_truoc",
-      "kind": "fx",
-      "private": true,
-      "tier": "rieng",
-      "pack": "giga",
-      "file": "packs/fx_bao_truoc.png",
-      "frame": [
-        42,
-        76
-      ],
-      "frames": 14,
-      "fps": 14,
-      "normal": false,
-      "glow": "packs/fx_bao_truoc_hao.png",
-      "use": "Dấu báo trước nguy hiểm trên vùng chiêu của quái"
-    },
-    {
       "key": "fx_bui_dat",
       "kind": "fx",
       "private": true,

@@ -1803,7 +1803,6 @@ export class GameScene extends Phaser.Scene {
       this.teles.set(m.bid, { t: [m, ...(m.parts ?? [])], t0: this.time.now - (m.warn ? (m.warn - m.t) * 1000 : 0), ms, safe: m.safe });
       const s = this.beasts.get(m.bid), b = this.room.state.beasts.get(m.bid);
       if (s && b) this.floatText(s.x, beastTop(s, b.tier) - 10, m.name, "#ff6b6b");
-      if (s && b) playPriv(this.svis.sheets, "fx_bao_truoc", { x: s.x, y: beastTop(s, b.tier) - 30, scale: SPR }); // #622: dấu chấm than báo trước (thiếu kho riêng thì chỉ có tên chiêu)
       // Quay về vùng báo trước (mục 5.11): vệt / nón theo hướng chiêu, vòng dưới chân mục tiêu theo hướng tới tâm vòng.
       const d = b && (m.shape !== "circle" ? dir8(Math.cos(m.ang), Math.sin(m.ang)) : Math.hypot(m.x - b.x, m.y - b.y) > 2 ? dir8(m.x - b.x, m.y - b.y) : null);
       if (d) this.bface.set(m.bid, d);
