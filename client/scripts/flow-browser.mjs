@@ -132,6 +132,7 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
   await page.locator("#hud:not([hidden])").waitFor({ timeout: 30000 });
   await page.waitForFunction(() => window.__scene?.players?.size > 0, null, { timeout: 30000 });
   const pos = () => page.evaluate(() => { const s = window.__scene, p = s.room.state.players.get(s.me); return { x: p.x, y: p.y }; });
+  await page.locator("#guide").waitFor({ state: "visible" }); // thẻ hướng dẫn (M6 #752) hiện trước khi thử đi
   await sleep(500);
   const before = await pos();
   await page.keyboard.down("KeyD");
@@ -142,6 +143,18 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
   assert.ok(Math.hypot(after.x - before.x, after.y - before.y) > 8, `giữ phím D mà nhân vật đứng yên (${before.x},${before.y} → ${after.x},${after.y})`);
   await shot("vao-game");
   step("vào game: HUD hiện, nhân vật đi được");
+
+  // 5b. Hướng dẫn lần đầu (M6 #752): hiện ở bước 1, giữ D đã sang bước 2, nút Bỏ qua tắt và ghi nhớ; nút "?" mở lại; tải lại không hiện.
+  const guide = page.locator("#guide");
+  await guide.waitFor({ state: "visible" });
+  assert.match(await guide.locator(".g-head b").textContent(), /bước 2\/4/, "giữ D xong mà hướng dẫn chưa sang bước 2");
+  await guide.getByRole("button", { name: "Bỏ qua" }).click();
+  await guide.waitFor({ state: "hidden" });
+  await page.locator("#guideBtn").click();
+  assert.match(await guide.locator(".g-head b").textContent(), /bước 1\/4/, "nút ? không mở lại hướng dẫn từ bước 1");
+  await guide.getByRole("button", { name: "Đóng" }).click();
+  await guide.waitFor({ state: "hidden" });
+  step("hướng dẫn lần đầu: bước theo phím, Bỏ qua, nút ? xem lại");
 
   assert.deepEqual(problems, [], `Có lỗi trình duyệt:\n${problems.join("\n")}`);
   step("không có pageerror / console.error ngoài danh sách cho phép");
