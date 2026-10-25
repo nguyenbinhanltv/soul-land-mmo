@@ -42,7 +42,7 @@ Mỗi câu phản hồi có thể chứa vài quan sát; tách từng cái.
    # Việc mới (cân bằng, cải tiến): theo mẫu viec-lo-trinh.md (Mô tả / Tiêu chí xong / Thiết kế / Ghi chú)
    gh issue create --title "<tên việc>" --body-file <file> --label gameplay --label san-sang
    ```
-   - `san-sang` chỉ khi issue đủ rõ để người khác nhận ngay và không bị chặn; chờ quyết định / tài nguyên thì `chan` và ghi chờ gì; cần hoạt ảnh 8 hướng (chờ cách làm bằng ComfyUI, #335) thì thêm `cho-hoat-anh-8-huong` (nhãn cũ `can-pixellab` đã đổi tên). Thuộc giai đoạn Lộ trình thì thêm `giai-doan-N`.
+   - `san-sang` chỉ khi issue đủ rõ để người khác nhận ngay và không bị chặn; chờ quyết định / tài nguyên thì `chan` và ghi chờ gì; không dùng nhãn `cho-hoat-anh-8-huong` nữa (#335 đã đóng). Thuộc giai đoạn Lộ trình thì thêm `giai-doan-N`.
    - Không gắn `dang-lam`, `agent:<tên>` hay tự gán, trừ khi chính mình nhận làm ngay theo `CONTRIBUTING.md`.
 4. Đưa vào bảng Project 3 và đặt Status khớp nhãn (`san-sang` → Sẵn sàng, `chan` → Chờ): `gh project item-add 3 --owner nguyenbinhanltv --url <URL issue>` (cần quyền `project` của `gh`). Không có quyền thì ghi vào báo cáo cho orchestrator đồng bộ hộ.
 5. Lỗi cần sửa ngay mà Lộ trình chưa có dòng: không tự thêm dòng vào `GAME_DESIGN.md` mục 7; để orchestrator / chủ repo xếp lịch.

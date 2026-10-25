@@ -12,7 +12,7 @@ Repo có nhiều người cùng làm, mỗi người có thể có agent AI riê
 | `dang-lam` | Đang có người làm (xem assignee và nhãn chủ). |
 | `cho-review` | PR đã tự review đạt (comment `Review: đạt`), chờ orchestrator AO của chủ repo kiểm tra lại và merge. |
 | `chan` | Bị chặn: chờ việc khác, quyết định của chủ repo hoặc tài nguyên. Mô tả issue ghi chờ gì. |
-| `cho-hoat-anh-8-huong` | Chờ cách làm hoạt ảnh 8 hướng bằng ComfyUI (thử ở #335; thường đi cùng `chan`). Nhãn cũ `can-pixellab` đã đổi tên: PixelLab không dùng nữa từ 2026-10-23. |
+| `cho-hoat-anh-8-huong` | Không còn ý nghĩa: hoạt ảnh 8 hướng bằng ComfyUI đã dừng (#335 / #387 đóng), đừng gắn nhãn mới; nguồn ảnh hiện hành ở `.claude/skills/asset-gen/SKILL.md` mục 2. |
 | `giai-doan-10`, `giai-doan-11` | Thuộc giai đoạn Lộ trình. |
 | `gameplay`, `art`, `tai-lieu`, `bot-test` | Loại việc. |
 | `agent:<tên>` | Nhãn chủ khi agent làm, gắn trên **cả issue lẫn PR** (ví dụ `agent:ao-orchestrator`). Người làm thì chỉ cần assignee. |
