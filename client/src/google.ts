@@ -18,7 +18,7 @@ function loadGsi(): Promise<Gsi> {
     if (w.google?.accounts) return res(w.google);
     const s = document.createElement("script");
     s.src = GSI_SRC; s.async = true; s.defer = true;
-    s.onload = () => (w.google?.accounts ? res(w.google) : rej(new Error("Không nạp được Google.")));
+    s.onload = () => { if (w.google?.accounts) res(w.google); else { gsi = undefined; rej(new Error("Không nạp được Google.")); } };
     s.onerror = () => { gsi = undefined; rej(new Error("Không nạp được Google (kiểm tra mạng).")); };
     document.head.appendChild(s);
   });

@@ -98,7 +98,7 @@ function nameScreen(ticket: string, suggest: string) {
     ok.disabled = true; ok.textContent = "Đang tạo…";
     try {
       const r = await post<{ token: string } & Me>("/api/login/google/create", { ticket, name: input.value.trim() });
-      token = r.token; storage.set("shh-token", token); storage.set("shh-name", input.value.trim());
+      token = r.token; storage.set("shh-token", token); // không lưu shh-name: tài khoản này chưa có mật khẩu để điền sẵn ở form
       route(r);
     } catch (er) {
       const m = er instanceof TypeError ? `Không kết nối được server (${API}).` : (er as Error).message;

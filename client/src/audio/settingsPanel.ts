@@ -94,7 +94,8 @@ Không vẽ mũ trang bị lên hồn sư (của mọi người; chỉ trên má
         try { await post("/api/link/google", { token, credential }); void refreshGoogle(); }
         catch (e) { ggState.textContent = (e as Error).message; }
       }, (m) => { ggState.textContent = m; });
-      ggSet.hidden = !shown;
+      if (!shown && !ggState.textContent) { ggSet.hidden = true; return; } // server tắt Google: ẩn cả mục; nạp lỗi thì giữ mục để hiện lỗi
+      ggSet.hidden = false;
       if (shown) ggState.textContent = "Chưa liên kết. Liên kết để lần sau vào game bằng Google (vẫn dùng được tên và mật khẩu).";
     } catch { /* mất mạng / phiên hết hạn: giữ nguyên mục, thử lại lần mở sau */ }
   };
