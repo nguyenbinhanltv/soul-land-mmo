@@ -963,11 +963,11 @@ async function cheatTest(){
   await sleep(500);
   ok(await alive(),`${rest.length} message khác × ${ODD.length+2} giá trị lạ: phòng vẫn chạy`);
   // Giới hạn tin ghi túi (#677): dồn 200 tin sortbag thì server bỏ phần dư (không ngắt), tin sau khi hồi token vẫn xử lý.
-  await test(X,"baglimit",{on:1}); await sleep(1500); const lg0=X.logs.length; for(let k=0;k<200;k++) X.room.send("sortbag"); await sleep(800);
+  await test(X,"baglimit",{on:1}); const lg0=X.logs.length; for(let k=0;k<200;k++) X.room.send("sortbag"); await sleep(800);
   const sorted=X.logs.slice(lg0).filter(t=>/sắp xếp túi/.test(t)).length;
   ok(await alive()&&X.leftCode===null,`dồn 200 tin sortbag: phòng sống, kết nối không bị ngắt`);
   ok(sorted>=1&&sorted<=BAG_MSG_BURST+BAG_MSG_RATE*2,`server chỉ xử lý ${sorted}/200 tin sortbag (trần ${BAG_MSG_BURST} dồn + ${BAG_MSG_RATE}/giây)`);
-  await sleep(1500); const lg1=X.logs.length; X.room.send("sortbag"); await waitFor(()=>X.logs.length>lg1,2000);
+  await sleep(1100); const lg1=X.logs.length; X.room.send("sortbag"); await waitFor(()=>X.logs.length>lg1,2000);
   ok(X.logs.length>lg1,"hết dồn, token hồi lại: tin sortbag tiếp theo vẫn được xử lý");
   await test(X,"baglimit",{on:0}); // các bài sau dọn túi hàng loạt: tắt lại
   for(let k=0;k<5;k++) X.room.send("test",{op:"throw"}); // lỗi bất ngờ trong handler (hook): chỉ ghi log
