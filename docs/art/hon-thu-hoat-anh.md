@@ -72,4 +72,4 @@ Code ở `client/src/beastAnim.ts` (chọn khung, không phụ thuộc Phaser, c
 - **Thử bằng sheet giả:** `beast-sheet-fake.mjs` + `beast-sheet-cut.mjs` rồi cài tạm vào `shared/assets` (không commit); xem ảnh chụp và số FPS ở mô tả PR.
 
 ## Việc tiếp
-H2 (đã làm cho Phong Lang, #691): sheet `beast_phong_lang_anim` đã nhập vào `shared/assets` (cắt `--scale 0.55`); Kim Linh Ưng và Thái Thản Cự Viên chưa có sheet thật.
+H2 (đã làm cho Phong Lang, #691): sheet `beast_phong_lang_anim` đã nhập vào `shared/assets` (cắt `--scale 0.55`); Kim Linh Ưng cũng đã nhập (`beast_kim_linh_ung_anim`); Thái Thản Cự Viên chưa có sheet thật.
