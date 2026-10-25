@@ -9,6 +9,7 @@ import { MINI_BASE, TIERS, BEASTS, VOHON, RADAR, SYNC_VIEW, MAPS, TILE, titleOf,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
   type QuestProgress, type QuestStatus, formatHonTe, type SkillDef, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS, LPC_VIEW, decodeLpc, encodeLpc, presetToLpc, lpcGearLooks, type Looks } from "../../../shared/data.ts";
 import { makeTextures, vohonTextures, BEAST_ORIGIN } from "../textures.ts";
+import { wantVohon, vohonIdAt, vohonKeys } from "../vohonLazy.ts";
 import { buildRings, animateRings, type HaloState } from "../soulRings.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, animBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim, animLayoutOf } from "../sprites.ts";
@@ -381,7 +382,8 @@ export class GameScene extends Phaser.Scene {
     this.load.tilemapTiledJSON(this.mapId, `${this.room.state.mapFile || this.mapId}.json`);
     this.load.image("tiles", "tiles.png");
     preloadIso(this, this.mapId);
-    preloadSprites(this, lpcPreloader(this, this.mapId)); // sheet NPC LPC: chỉ của NPC và dân thường bản đồ này (crowd.ts)
+    // sheet NPC LPC: chỉ của NPC và dân thường bản đồ này (crowd.ts); phụ thể võ hồn: chỉ của người đang trong phòng, người tới sau tải lười (vohonLazy.ts)
+    preloadSprites(this, lpcPreloader(this, this.mapId), () => this.room.state.players?.forEach((p: any) => { if (p.vh >= 0) wantVohon(this, vohonIdAt(p.vh), false); }));
   }
 
   create() {
@@ -2681,7 +2683,11 @@ export class GameScene extends Phaser.Scene {
         const lk = this.lpc.acquire(lpcStr);
         if (lk) { v.lpcKey = lk; v.lpcFace = { shown: null, pend: null }; fitHonsuLayer(v.body.setTexture(lk)); }
       }
-      if (p.vh !== v.vh) { v.vh = p.vh; const [kb, kf] = vohonTextures(this, p.vh); fitHonsuLayer(v.vb.setTexture(kb), true); fitHonsuLayer(v.vf.setTexture(kf), true); }
+      if (p.vh !== v.vh) {
+        // Phụ thể tải lười: chưa tới thì giữ v.vh cũ (hỏi lại khung sau) và animatePlayer ẩn hai lớp; không có ảnh thật thì vẽ bằng code như cũ.
+        const st = wantVohon(this, vohonIdAt(p.vh));
+        if (st !== "wait") { v.vh = p.vh; const [kb, kf] = st === "ready" ? vohonKeys(vohonIdAt(p.vh)) : vohonTextures(this, p.vh); fitHonsuLayer(v.vb.setTexture(kb), true); fitHonsuLayer(v.vf.setTexture(kf), true); }
+      }
       const rings = [...p.rings].join(",");
       if (rings !== v.rings) { v.rings = rings; buildRings(this, v, [...p.rings]); }
       // Nhịp animation đi theo vận tốc (11.1): chính mình theo tốc độ dự đoán của bước đang đi, người khác (và chính mình khi tự săn) theo
@@ -3073,6 +3079,7 @@ export class GameScene extends Phaser.Scene {
     v.body.anims.timeScale = anim === "walk" ? Phaser.Math.Clamp(spd / WALK_ANIM_SPEED, WALK_ANIM_SCALE[0], WALK_ANIM_SCALE[1]) : 1;
     v.body.setFlipX(flip);
     syncLayers(v.body, [v.vb, v.vf]);
+    if (p.vh !== v.vh) { v.vb.setVisible(false); v.vf.setVisible(false); } // phụ thể đang tải lười (vohonLazy.ts)
     // Bay (2.5b): nhấc mọi lớp trừ bóng lên tối đa 10 pixel theo nửa sóng sin.
     const fe = v.fly ? (time - v.fly.t0) / v.fly.ms : 1; if (fe >= 1) v.fly = null;
     const lift = fe < 1 ? -Math.round(Math.sin(Math.PI * Math.max(0, fe)) * 10) : 0;
@@ -3157,6 +3164,7 @@ export class GameScene extends Phaser.Scene {
 
   portraits = new Map<string, string>(); // ảnh võ hồn trong bảng hồn cốt theo mã võ hồn (data URL), của ngoại hình `portraitLooks`
   portraitLooks = "";
+  portraitWait = false; // đang chờ phụ thể tải lười để dựng lại bảng (vohonLazy.ts)
   /**
    * Ảnh 48×48 hồn sư của mình phóng thích võ hồn `vohon` (khung đứng yên hướng xuống: phụ thể sau, thân LPC, phụ thể trước),
    * ghép từ đúng các texture trên bản đồ, cho khung hồn cốt (4.2). Chưa có hồn sư trong state thì "".
@@ -3169,7 +3177,12 @@ export class GameScene extends Phaser.Scene {
     if (looks !== this.portraitLooks) { this.portraits.clear(); this.portraitLooks = looks; } // đổi ngoại hình: ảnh cũ bỏ đi
     const hit = this.portraits.get(vohon);
     if (hit) return hit;
-    const [kb, kf] = vohonTextures(this, Math.max(0, vohonIndex(vohon)));
+    const vi = Math.max(0, vohonIndex(vohon)), st = wantVohon(this, vohonIdAt(vi));
+    if (st === "wait") { // phụ thể đang tải lười: chưa có ảnh (không lưu đệm); tải xong thì dựng lại bảng đội hình / nhân vật để ảnh hiện
+      if (!this.portraitWait) { this.portraitWait = true; this.load.once(Phaser.Loader.Events.COMPLETE, () => { this.portraitWait = false; this.renderRoster(); }); }
+      return "";
+    }
+    const [kb, kf] = st === "ready" ? vohonKeys(vohonIdAt(vi)) : vohonTextures(this, vi);
     // Thân LPC isometric (10.4): ảnh 96×96 chân ở (48, 80), lớp 64×64 / 96×96 vẽ 1:1, phụ thể 48×48 của võ hồn chưa có ảnh 10.5 phóng ×2;
     // khung hồn cốt hiện ảnh ở 96 pixel nên hai cỡ trông như nhau. Phụ thể isometric lấy nửa sheet theo giới của thân (vohonHalf).
     const k = 2, cv = document.createElement("canvas"); cv.width = cv.height = 48 * k;
