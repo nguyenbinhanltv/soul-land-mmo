@@ -14,6 +14,7 @@ import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim, animLayoutOf } from "../sprites.ts";
 import { dieFrame, dieMs, type BeastAnimState } from "../beastAnim.ts";
 import * as hud from "../hud.ts";
+import { artUrl, fusionImgKey } from "../uiArt.ts";
 import { dropArtSpec, dropTexture, DROP_ART_SCALE } from "../dropArt.ts";
 import { radar, type DotSink } from "../radar.ts";
 import { mapview, type MapLabel } from "../mapview.ts";
@@ -65,6 +66,7 @@ import type { OwnedVohons, Squad, PortalInfo, BagMsg, GearMsg, EquipEnhPreview, 
 import { applyBagDelta } from "../../../shared/bagSync.ts";
 import { assetUrl } from "../assetUrl.ts";
 import { layoutNameplates, measureNameplate, nameplateAppearance, nameplatePriority, playerNameplateKind, type NameplateRect, type NameplatePlacement } from "../nameplate.ts";
+import { replayBufferedMessages } from "../roomBuffer.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
@@ -1427,6 +1429,7 @@ export class GameScene extends Phaser.Scene {
       if (m.result === "ok") { if (!this.audio.playGroup("ring-absorb", null, { priority: 3, duck: 0.6, duckMs: 900 })) this.audio.play("ring_absorb_success"); this.audio.music?.jingle("ring_absorb"); hud.banner(`Hấp thụ thành công: hồn hoàn thứ ${m.slot}`, `${name} · ${age} · cấp ${m.level}`); }
       else if (m.result === "fail") { this.audio.play("ring_absorb_fail"); hud.banner("Hấp thụ thất bại", `Hồn hoàn ${age} vỡ tan; ${name} không bị tổn hại`); }
     });
+    replayBufferedMessages(this.room); // tin server gửi lúc vào phòng, trước khi cảnh nghe (#714)
     if (this.watching) return; // người xem (#280): không xin dữ liệu riêng
     this.room.send("vohons");
     this.room.send("fog"); // sương mù khám phá (R8): tin lúc vào phòng có thể tới trước khi cảnh nghe, xin lại cả bitset
@@ -2146,10 +2149,30 @@ export class GameScene extends Phaser.Scene {
       const own = this.me === m.id || this.me === m.to;
       if (own) hud.banner(f.name, "Võ Hồn Dung Hợp Kỹ");
       else {
-        const t = this.add.text(c.x, cy - HEAD, `${f.icon} ${f.name}`, { fontFamily: FONT, fontSize: "12px", fontStyle: "800", color: col, stroke: "#1a1020", strokeThickness: 3, resolution: 8 })
+        // Ảnh gi_fusion_<tên> thay ký tự icon (phụ thuộc phông); chưa có ảnh / chưa tải xong thì chỉ có tên.
+        const t = this.add.text(c.x, cy - HEAD, f.name, { fontFamily: FONT, fontSize: "12px", fontStyle: "800", color: col, stroke: "#1a1020", strokeThickness: 3, resolution: 8 })
           .setOrigin(0.5).setDepth(99990).setScale(0.5 * this.txtK);
+        const icoKey = fusionImgKey(f.name), icoUrl = artUrl(icoKey);
+        const t0 = this.time.now;
         this.tweens.add({ targets: t, scale: 1.3 * this.txtK, y: cy - HEAD - 16 * k, duration: 500, ease: "Back.easeOut" });
         this.tweens.add({ targets: t, alpha: 0, delay: 1500, duration: 600, onComplete: () => t.destroy() });
+        // Ảnh đi kèm: nhãn bay ngay; ảnh tới muộn (nạp lười) thì hiện ở chỗ nhãn đang đứng và mờ cùng lúc với nhãn, quá trễ thì bỏ.
+        const mkIco = () => {
+          const el = this.time.now - t0; if (!t.active || el > 1500) return;
+          const w = this.textures.get(icoKey).getSourceImage().width, sc = 1.3 * this.txtK * 18 / w;
+          const ico = this.add.image(c.x, t.y - 9 * this.txtK, icoKey).setOrigin(0.5, 1).setDepth(99990).setScale(el < 500 ? 0.5 * this.txtK * 18 / w : sc);
+          if (el < 500) this.tweens.add({ targets: ico, scale: sc, y: cy - HEAD - 16 * k - 9 * this.txtK, duration: 500 - el, ease: "Back.easeOut" });
+          this.tweens.add({ targets: ico, alpha: 0, delay: 1500 - el, duration: 600, onComplete: () => ico.destroy() });
+        };
+        if (icoUrl && this.textures.exists(icoKey)) mkIco();
+        else if (icoUrl) { // nạp lười một lần (không chặn khung hình); lỗi tải thì giữ nhãn chỉ có tên
+          const done = () => { this.load.off(`filecomplete-image-${icoKey}`, ok); this.load.off("loaderror", bad); };
+          const ok = () => { done(); mkIco(); };
+          const bad = (file: { key: string }) => { if (file.key === icoKey) done(); };
+          this.load.image(icoKey, icoUrl);
+          this.load.on(`filecomplete-image-${icoKey}`, ok); this.load.on("loaderror", bad);
+          this.load.start();
+        }
       }
       const me = this.players.get(this.me);
       if (me && (m.id === this.me || m.to === this.me) && Math.hypot(me.wx - m.x, me.wy - m.y) < 260) { // H8: chỉ hai người dung hợp thấy chớp / rung

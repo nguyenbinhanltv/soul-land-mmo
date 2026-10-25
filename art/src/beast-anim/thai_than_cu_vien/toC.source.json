@@ -1,0 +1,57 @@
+{
+  "species": "thai_than_cu_vien",
+  "sheet": "C",
+  "direction": "e",
+  "date": "2026-10-26",
+  "tool": "image_gen.imagegen tích hợp Codex",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Công cụ không trả model ID/seed, không có size selector.",
+  "attempts": 2,
+  "selected_attempt": 2,
+  "raw_file": "toC.png",
+  "sha256": "a87a8f549be24f057f8e6e399574ca0206b92e0824a6e4ec829086e4aa2c049f",
+  "width": 1536,
+  "height": 1024,
+  "requested_dimensions": [
+    1536,
+    1024
+  ],
+  "grid": [
+    6,
+    4
+  ],
+  "expected_visible_cells": 22,
+  "empty_cells": [
+    "H4 C5",
+    "H4 C6"
+  ],
+  "prompt_file": "toC.prompt.txt",
+  "prompt_sha256": "45a0a617f998a5e1ae04617b45917528016e834566d8e92ab3dd2ae0a22d431f",
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/thai_than_cu_vien.png",
+      "sha256": "f7ed1e71f981c53fc0478d6af6c4ecc07690551a1cde00567886bc0b23353255",
+      "role": "thiết kế nhân vật gốc, đã xem trước"
+    },
+    {
+      "path": "art/src/beast-anim/thai_than_cu_vien/toA.png",
+      "sha256": "dce40e4ed49f98a93f02abd739adb41fa0126e572080bdd34679fe6b5cd1230d",
+      "role": "candidate A tham chiếu phong cách, chưa owner duyệt mỹ thuật"
+    }
+  ],
+  "postprocessing": "Không. Sao chép nguyên byte từ output tool; không resize, đổi metadata, cắt, ghép hay nhân pose.",
+  "output_path_returned_by_tool": "/Users/thanhhoa/.codex/generated_images/01a1741d-a578-7c61-8eea-40abb1ff497d/exec-75ee048f-4e49-4492-8997-d57523b71414.png",
+  "qa_status": "candidate, chưa được owner duyệt mỹ thuật; chưa cắt nên chưa kiểm bằng preview hoạt ảnh",
+  "suspected_issues": [
+    "H1–2: góc còn hơi 3/4, chưa ngang tuyệt đối.",
+    "H3 C2: ngực xoay ra trước; H3 C3–4: nắm tay vượt hoặc sát ranh phải ô.",
+    "H4 C4: mặt còn xoay về người xem."
+  ],
+  "previous_attempt": {
+    "output_path": "/Users/thanhhoa/.codex/generated_images/01a1741d-a578-7c61-8eea-40abb1ff497d/exec-7c3c9474-2f91-4b67-832f-ded2c1817954.png",
+    "preserved_outside_git": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-59/toC-attempt1.png",
+    "prompt_outside_git": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-59/toC-attempt1.prompt.txt",
+    "reason": "Góc3/4 thay ngang; H3C3–4 vượt ô; H4 đổi trục."
+  }
+}

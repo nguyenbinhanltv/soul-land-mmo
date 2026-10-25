@@ -35,7 +35,11 @@ export function chanThanImg(vohonId: string, skill = false, cls = "") {
 }
 /** Biểu tượng Dung hợp kỹ `gi_fusion_<tên không dấu>` (ví dụ "Yêu Nguyệt" → gi_fusion_yeu_nguyet); chưa có ảnh thì "". */
 export function fusionImg(name: string, cls = "") {
-  return artImg(`gi_fusion_${name.toLowerCase().replace(/đ/g, "d").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, "_")}`, cls);
+  return artImg(fusionImgKey(name), cls);
+}
+/** Key `gi_fusion_<tên không dấu>` của Dung hợp kỹ (dùng chung HTML và nhãn trên đầu). */
+export function fusionImgKey(name: string) {
+  return `gi_fusion_${name.toLowerCase().replace(/đ/g, "d").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, "_")}`;
 }
 /** `<img>` điểm ảnh của key (alt rỗng: chỉ để trang trí, nghĩa nằm ở nhãn của phần tử chứa); không có ảnh thì "". */
 export function artImg(key: string, cls = "") {
