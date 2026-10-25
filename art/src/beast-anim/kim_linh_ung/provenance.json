@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-26",
+  "tool": "image_gen.imagegen tích hợp Codex",
+  "model_id": null,
+  "seed": null,
+  "reference": "shared/assets/sprites/beast/kim_linh_ung.png",
+  "reference_sha256": "69f2f5448f69d7967597d9641b23dff81bbd06af19d8f1725707e4e67ecee1ee",
+  "postprocessing": "Không; sao chép nguyên byte PNG, không resize hay sửa metadata",
+  "calls": "4 lần độc lập: A1, B1, B2, A2. Mỗi lần chỉ truyền reference gốc, không truyền ảnh đã sinh hoặc num_last_images_to_include.",
+  "outputs": [
+    {
+      "sheet": "A",
+      "attempt": 1,
+      "selected": false,
+      "original_output": "/Users/thanhhoa/.codex/generated_images/01a1741d-21d6-7821-b66f-f0c7e260234d/exec-4798d87e-8fca-43b4-a7ff-1fa6cbc23823.png",
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-58/toA-attempt1.png",
+      "artifact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-58/toA-attempt1.txt",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "8b311541989e4824704bd592f5aa927e67c5696f412d75c766b53ed5b46bf687"
+    },
+    {
+      "sheet": "A",
+      "attempt": 2,
+      "selected": true,
+      "original_output": "/Users/thanhhoa/.codex/generated_images/01a1741d-21d6-7821-b66f-f0c7e260234d/exec-b85f65d2-15db-4ea3-b0ef-48bd99a54c87.png",
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-58/toA-attempt2.png",
+      "artifact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-58/toA-attempt2.txt",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "f8e2c03d47e05558fffc5eaeed3ef4ca6f1c6e06c19f624e65045170a943b798"
+    },
+    {
+      "sheet": "B",
+      "attempt": 1,
+      "selected": false,
+      "original_output": "/Users/thanhhoa/.codex/generated_images/01a1741d-21d6-7821-b66f-f0c7e260234d/exec-feb4970b-afc3-497b-a5ba-1aa36d12f99f.png",
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-58/toB-attempt1.png",
+      "artifact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-58/toB-attempt1.txt",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "4262711e4c3a11d9c685b478b59dd9587a04e1e903ef8db1fbb1a18b569559af"
+    },
+    {
+      "sheet": "B",
+      "attempt": 2,
+      "selected": true,
+      "original_output": "/Users/thanhhoa/.codex/generated_images/01a1741d-21d6-7821-b66f-f0c7e260234d/exec-1e2519e6-e988-43d6-85ba-9911b375ad2d.png",
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-58/toB-attempt2.png",
+      "artifact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-58/toB-attempt2.txt",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "9ca7765cd522255a255a2d412fa9b5bd871acfb2bcebc705877268c735bc4293"
+    }
+  ]
+}

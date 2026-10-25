@@ -4172,7 +4172,7 @@ export const TICK_RATE = 20; // số lần server cập nhật mỗi giây
 // ---------- NPC, thương nhân và lò rèn (mục 5.8, bước 6.1; mọi số đã chốt) ----------
 /**
  * Vai trò NPC: `talk` chỉ có lời thoại; `shop` (thương nhân) mở cửa hàng mua đan / bán đồ dư; `forge` (lò rèn) mở bảng cường hóa
- * hồn cốt (4.4) và chỗ nâng cấp hồn hạch (5.3, sắp mở).
+ * hồn cốt (4.4), nâng cấp / đổi bộ hồn hạch (5.3), cường hóa / hợp thành / phân giải trang bị và khắc may mắn.
  */
 export type NpcRole = "talk" | "shop" | "forge" | "arena" | "tong" | "looks"; // arena (7.2): xếp hàng Đại Đấu Hồn Trường, bảng xếp hạng; tong (#196): sứ giả tông môn; looks (L4 #511): thợ may đổi ngoại hình
 /**
@@ -4219,7 +4219,7 @@ export const NPCS: NpcDef[] = [
     looks: { sex: 0, hair: 2, hairCol: 1, outfitCol: 5, skin: 0 },
     lines: [
       "Lò rèn Nặc Đinh, nghề rèn truyền ba đời. Hồn cốt dư mang tới đây, ta dung luyện vào hồn cốt chính của ngươi: không bao giờ thất bại.",
-      "Hồn hạch thì phải đợi ta tìm đủ đồ nghề mới nâng cấp được (sắp mở).",
+      "Hồn hạch dư cũng mang tới được: nâng cấp hồn hạch chính, đổi bộ hồn hạch. Trang bị thì ta cường hóa, hợp thành, phân giải và khắc may mắn cho.",
     ] },
   // 7.2: Đại Đấu Hồn Trường, mở trang xếp hàng / bảng xếp hạng (role "arena"). Lối vào tạm ở Nặc Đinh Thành (7.2), từ BĐ6a đặt ở
   // Thiên Đấu Thành (Nặc Đinh Thành còn sứ giả chỉ đường `su_gia_dau_hon`).
