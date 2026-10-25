@@ -115,3 +115,10 @@ Bản phác bố cục: `docs/art/ban-phac-nhan-vat-tui/index.html` (kèm ảnh 
 - Túi dạng lưới UI-1 #351; bảng Nhân vật UI-2 #352 (nay gộp vào 5.16, gắn / tháo ngay trên búp bê, không mở bảng Đội hình).
 - Hai cửa sổ, búp bê 4 tab: #453; thiết kế chốt bởi chủ repo 2026-10-24. Các bước: NV1 hai cửa sổ, NV2 gắn / tháo tại bảng, NV3 kéo thả và thao tác nhanh, NV4 tab Trang bị, NV5 điện thoại / phím / đo (#459); NV6 ảnh nền búp bê thay bằng C2 #553, C16 #595 (việc còn lại ở `ROADMAP.md`).
 - Nhật ký từng bước: `docs/lich-su.md`.
+
+## Thanh kỹ năng và đội hình trong trận (C8)
+- Ba nhóm riêng: Hồn cốt (Z / X / C), Hồn kỹ (J, U / I / O / P, R, G nếu có), Vật phẩm (E nhặt; B mở túi, nút Tiêu hao mở nhóm tiêu hao).
+- Phím nằm trong góc ô, tên dưới biểu tượng; hồi chiêu quét dạng quạt và số giây chỉ phủ vùng biểu tượng. Ô khóa ghi “Khóa”, thiếu hồn lực ghi “Thiếu lực”; tooltip giải thích điều kiện, tên đầy đủ và tiêu hao. Server vẫn quyết định khả năng dùng và hồi chiêu.
+- Thẻ đội hình có tên hai dòng; tên dài rút gọn theo từ ở giữa, giữ đầu và cuối để phân biệt. Tooltip luôn có tên đầy đủ, cấp, trạng thái ra trận / gục / tiên cơ và phím đổi. Thanh sinh lực, năng lượng tiên cơ và hồi chiêu đổi lấy từ dữ liệu server.
+- Điện thoại ngang thấp: đội hình nằm bên trái nhóm kỹ năng sát mép dưới; ô chạm tối thiểu 44 px, tâm màn hình để trống cho cảnh báo chiêu. Thông báo nổi nằm phía trên thanh hành động.
+- Kiểm tra game thật: `npm run test:actionbar-browser --prefix client`; ảnh ghi ngoài repo qua `C8_OUTPUT`. CI `actionbar-preview` đính kèm ảnh trước/sau ở 1280×720, 960×540 và 844×390 cảm ứng. Dùng lại ảnh có trong manifest; không đổi key, frame, origin.
