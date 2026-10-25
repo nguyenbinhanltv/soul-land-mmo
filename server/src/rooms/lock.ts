@@ -16,9 +16,9 @@ export const inReach = (p: PlayerState, b: BeastState) => { const g = reachGap(p
 /** Gửi riêng cho người chơi mục tiêu đang khoá ("" = không khoá) để client vẽ vòng chọn và thanh mục tiêu. */
 function tell(room: MapRoom, id: string, tid: string) { room.clients.getById(id)?.send("lock", { id: tid }); }
 
-/** Đặt / bỏ khoá; không đổi gì thì không gửi tin. */
-export function setLock(room: MapRoom, id: string, d: PData, tid: string) {
-  if (d.target === tid) return;
+/** Đặt / bỏ khoá; không đổi gì thì không gửi tin, trừ khi `force` (trả lời một yêu cầu bị từ chối để client bỏ khoá ảo đã đặt tạm). */
+export function setLock(room: MapRoom, id: string, d: PData, tid: string, force = false) {
+  if (d.target === tid && !force) return;
   d.target = tid; tell(room, id, tid);
 }
 
@@ -29,14 +29,15 @@ function face(room: MapRoom, p: PlayerState, d: PData, b: BeastState) {
 }
 
 /**
- * Tin `target {id}`: bấm / Tab chọn hồn thú. Kiểm id có thật ở bản đồ này, còn trong LEASH, hồn sư sống và không ở vùng an toàn; id rỗng
+ * Tin `target {id}`: bấm / Tab chọn hồn thú. Kiểm id có thật ở bản đồ này (không phải trứng), còn trong `leash`, hồn sư sống và không ở vùng an toàn; id rỗng
  * hoặc không hợp lệ thì bỏ khoá. Chọn tay thì tắt tự săn (tay ưu tiên).
  */
 export function targetMsg(room: MapRoom, id: string, tid: unknown) {
   const p = room.state.players.get(id), d = room.pdata.get(id); if (!p || !d || d.travelling) return;
-  if (typeof tid !== "string" || !tid) return setLock(room, id, d, "");
+  if (typeof tid !== "string" || !tid) return setLock(room, id, d, "", true);
   const b = room.state.beasts.get(tid);
-  if (!b || p.dead || room.map.inSafe(p.x, p.y) || Math.hypot(b.x - p.x, b.y - p.y) > ATTACK_REACH.leash) return setLock(room, id, d, "");
+  // Từ chối thì luôn báo lại `lock ""`: client đặt khoá tạm ngay khi bấm, không có tin này sẽ vẽ vòng khoá và lái tới một con server không khoá.
+  if (!b || b.egg || p.dead || room.map.inSafe(p.x, p.y) || Math.hypot(b.x - p.x, b.y - p.y) > ATTACK_REACH.leash) return setLock(room, id, d, "", true);
   room.autoHand(id);
   setLock(room, id, d, tid);
 }

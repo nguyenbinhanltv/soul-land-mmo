@@ -11798,6 +11798,9 @@ async function lockTest(){
       F.room.send("target",{id:b2}); await waitFor(()=>lockMsg===b2,1500);
       F.room.send("target",{id:bad}); const cleared=await waitFor(()=>lockMsg==="",1000);
       ok(cleared,`id sai ${JSON.stringify(bad)}: bỏ khoá, không khoá lung tung`); }
+    // 6b) Chưa khoá mà bị từ chối: vẫn nhận tin `lock ""` (client đã đặt khoá tạm, không có tin này sẽ vẽ vòng khoá giả).
+    await sleep(200); const n0=n; F.room.send("target",{id:"khong-co-id"});
+    ok(await waitFor(()=>n>n0&&lockMsg==="",1000),"chưa khoá, bấm id sai: server vẫn trả lock rỗng để client bỏ khoá tạm");
     // 7) Space chưa khoá: quay mặt về quái gần nhất trong tầm (hồn sư đang quay lưng) rồi đánh.
     await test(F,"clear"); F.room.send("input",{x:-1,y:0}); await sleep(250); F.room.send("input",{x:0,y:0}); await sleep(150);
     await test(F,"goto",{x:mo().x,y:mo().y});

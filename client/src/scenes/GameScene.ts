@@ -940,7 +940,8 @@ export class GameScene extends Phaser.Scene {
   steerLock(walk: boolean) {
     const b = this.room.state.beasts.get(this.lockId), at = this.pred?.pos ?? this.room.state.players.get(this.me);
     if (!b || !at) { if (this.goal?.lock) this.goal = null; return; }
-    if (reachGap(at, b).dist < reachGap(at, b).max - 2) { if (this.goal?.lock) this.goal = null; return; }
+    const rg = reachGap(at, b);
+    if (rg.dist < rg.max - 2) { if (this.goal?.lock) this.goal = null; return; }
     const g = this.goal, now = this.time.now;
     if (g?.lock && Math.hypot((g.dest?.x ?? 0) - b.x, (g.dest?.y ?? 0) - b.y) < 24 && now < this.lockPlanT) return;
     this.lockPlanT = now + 250;
@@ -954,7 +955,7 @@ export class GameScene extends Phaser.Scene {
   beastAt(x: number, y: number) {
     let best = "", bd = Infinity;
     for (const [id, s] of this.beasts) {
-      if (!this.room.state.beasts.get(id)) continue;
+      if (!this.room.state.beasts.get(id) || this.room.state.beasts.get(id).egg) continue; // trứng không khoá được (như server)
       const b = beastBody(s), pad = ATTACK_REACH.pick, cx = s.x, cy = (b.top + s.y) / 2;
       if (x < cx - b.w / 2 - pad || x > cx + b.w / 2 + pad || y < b.top - pad || y > s.y + pad) continue;
       const k = Math.hypot(x - cx, (y - cy) * 0.7); if (k < bd) { bd = k; best = id; }
