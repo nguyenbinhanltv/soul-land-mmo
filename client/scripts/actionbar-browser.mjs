@@ -82,6 +82,13 @@ try {
     await screenshot(page, "san-sang", size);
     if (!before) {
       assert.equal(await page.locator("#actrow .action-group").count(), 3);
+      await page.waitForFunction(() => [...document.querySelectorAll("#bskills .ico img")].every((img) => img.complete && img.naturalWidth > 0));
+      const boneIcons = await page.locator("#bskills .ico img").evaluateAll((imgs) => imgs.map((img) => {
+        const r = img.getBoundingClientRect(), cell = img.closest("button").getBoundingClientRect();
+        return { loaded: img.complete && img.naturalWidth > 0, inside: r.width > 0 && r.height > 0 && r.x >= cell.x && r.y >= cell.y && r.right <= cell.right && r.bottom <= cell.bottom };
+      }));
+      assert.equal(boneIcons.length, 3, "Giữ đủ ba ảnh hồn cốt từ main");
+      assert.ok(boneIcons.every((icon) => icon.loaded && icon.inside), "Ảnh hồn cốt phải tải được và nằm trong ô");
       const geometry = await page.evaluate(() => {
         const buttons = [...document.querySelectorAll("#actbar button")];
         return buttons.map((b) => {

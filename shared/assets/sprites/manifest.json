@@ -9222,6 +9222,42 @@
     {
       "key": "gi_menu_forge",
       "iso": true
+    },
+    {
+      "key": "item_hon_hach_phuong_hoang",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hach_ba_vuong_long",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hach_xa_hoang",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hach_hao_thien",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hach_that_sat",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hach_linh_mieu",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hach_lam_ngan",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hach_luu_ly",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hach_tien_co",
+      "iso": true
     }
   ]
 }

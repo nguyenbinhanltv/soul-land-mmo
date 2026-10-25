@@ -10,9 +10,11 @@ import { MINI_BASE, TIERS, BEASTS, VOHON, RADAR, SYNC_VIEW, MAPS, TILE, titleOf,
   type QuestProgress, type QuestStatus, formatHonTe, type SkillDef, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS, LPC_VIEW, decodeLpc, encodeLpc, presetToLpc, lpcGearLooks, type Looks } from "../../../shared/data.ts";
 import { makeTextures, vohonTextures, BEAST_ORIGIN } from "../textures.ts";
 import { buildRings, animateRings, type HaloState } from "../soulRings.ts";
-import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, VH_ORIGIN,
-  ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
+import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, animBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, VH_ORIGIN,
+  ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim, animLayoutOf } from "../sprites.ts";
+import { dieFrame, dieMs, type BeastAnimState } from "../beastAnim.ts";
 import * as hud from "../hud.ts";
+import { dropArtSpec, dropTexture, DROP_ART_SCALE } from "../dropArt.ts";
 import { radar, type DotSink } from "../radar.ts";
 import { mapview, type MapLabel } from "../mapview.ts";
 import { fog } from "../fog.ts";
@@ -93,6 +95,8 @@ const GOAL_NEAR = 3;
 const WALK_ANIM_SPEED = PLAYER_SPEED, WALK_ANIM_SCALE: [number, number] = [0.5, 1.8];
 /** Hồn thú có sheet theo loài: nhịp animation đi khi lang thang / khi đuổi (đuổi nhanh gấp BEAST_GAIT.chase / wander lần). */
 const BEAST_ANIM_SCALE = { wander: 0.7, chase: 1.4 };
+/** Tham số tái dùng mỗi khung hình cho hoạt ảnh vẽ thật của hồn thú (tránh cấp phát object mỗi con mỗi khung). */
+const BEAST_ART = { now: 0, hp: 0, walkScale: 1 };
 /** Tin `dmg` kết liễu chỉ có giá trị tới chừng này mili giây trước khi hồn thú bị xoá khỏi state (bản vá luôn tới trong vài khung). */
 const KILL_GHOST_MS = 3000;
 /** Chiều cao tên hồn sư trên chân (pixel màn hình): thân 32 pixel cũ phóng SPR. Danh hiệu, chữ bay, biểu tượng trạng thái đặt theo mốc này. */
@@ -272,7 +276,7 @@ export class GameScene extends Phaser.Scene {
   teleTop!: Phaser.GameObjects.Graphics;
   /** Đồng hồ phía client của vùng lưu lại (#161, drawGrounds): `ttl` lần đổi gần nhất, lúc đổi, lúc thấy lần đầu (ms của scene). */
   groundClock = new Map<string, { v: number; at: number; seen: number }>();
-  drops = new Map<string, { img: Phaser.GameObjects.Image; txt: Phaser.GameObjects.Text }>(); // hồn hoàn dưới đất kèm số năm
+  drops = new Map<string, { img: Phaser.GameObjects.Image; txt: Phaser.GameObjects.Text; glow?: Phaser.GameObjects.Image; art?: { key: string; tint?: string } | null }>(); // hồn hoàn dưới đất kèm số năm
   ov!: Phaser.GameObjects.Graphics;
   /** Ánh sáng theo vùng (Light2D, 10.7) và thời tiết / hạt bay. */
   light!: Lighting;
@@ -2251,7 +2255,13 @@ export class GameScene extends Phaser.Scene {
    */
   /** Bóng ngã của hồn thú lai vừa biến mất (STATIC_MOTION.die): bản sao sprite ngã quanh chân, chìm, mờ dần rồi tự hủy (không giữ trong this.beasts). */
   fadeBeastGhost(src: Phaser.GameObjects.Sprite) {
-    const D = STATIC_MOTION.die, side = src.flipX ? -1 : 1;
+    const D = STATIC_MOTION.die, side = src.flipX ? -1 : 1, ba: BeastAnimState | undefined = src.getData("ba");
+    if (ba) { // hoạt ảnh vẽ thật: chạy dải `die` (giữ khung cuối) rồi mờ dần, không xoay / chìm bằng code
+      const L = animLayoutOf(src.texture.key), dm = dieMs(L), g = this.add.sprite(src.x, src.y, src.texture.key, dieFrame(L, ba.dir, 0)).setOrigin(src.originX, src.originY)
+        .setScale(src.scaleX, src.scaleY).setFlipX(src.flipX).setDepth(src.depth);
+      this.tweens.addCounter({ from: 0, to: dm + 500, duration: dm + 500, onUpdate: (c) => { const t = c.getValue() ?? 0; g.setFrame(dieFrame(L, ba.dir, t)); g.setAlpha(t < dm ? 1 : Math.max(0, 1 - (t - dm) / 500)); }, onComplete: () => g.destroy() });
+      return;
+    }
     const g = this.add.sprite(src.x, src.y, src.texture.key, src.frame.name).setOrigin(src.originX, src.originY).setScale(src.scaleX, src.scaleY)
       .setFlipX(src.flipX).setDepth(src.depth).setRotation(src.rotation);
     this.tweens.add({ targets: g, rotation: D.turn * side, y: src.y + D.sink, scaleY: src.scaleY * (1 - D.sy), alpha: 0, duration: D.sec * 1000, ease: "Quad.easeIn", onComplete: () => g.destroy() });
@@ -2704,17 +2714,18 @@ export class GameScene extends Phaser.Scene {
       // Tinh anh (BĐ4): sprite của loài gốc (BOSSES.species) phóng ELITE.scale. Mọi sprite cũ phóng thêm SPR (10.1); sheet isometric
       // (mục 5.11) đã ở cỡ màn hình nội bộ nên không phóng SPR. Hình tạm LPC không dùng cho thú vương / boss (beastSheetSpecies).
       // Bọc trứng (#162): kén vẽ bằng code, phập phồng nhanh dần khi sắp nở (đồng hồ nở vẽ ở lớp phủ bên dưới).
-      const egg = b.egg > 0, spr = egg ? null : syncBeastSprite(s, beastSheetSpecies(b.rank, beastBase(b.rank, b.species)?.id), b.moving, b.aggro, b.cast, face), k = spr ? spriteRankScale(s, b.rank) : rankScale(b.rank);
+      const egg = b.egg > 0, spr = egg ? null : syncBeastSprite(s, beastSheetSpecies(b.rank, beastBase(b.rank, b.species)?.id), b.moving, b.aggro, b.cast, face, (BEAST_ART.now = time, BEAST_ART.hp = b.hp, BEAST_ART.walkScale = b.aggro ? BEAST_ANIM_SCALE.chase : BEAST_ANIM_SCALE.wander, BEAST_ART)), k = spr ? spriteRankScale(s, b.rank) : rankScale(b.rank);
       if (egg) {
         if (s.texture.key !== "spider_egg") s.setTexture("spider_egg");
         s.setScale(SPR * (1 + (b.egg < EGG_SOON ? 0.08 * Math.sin(time / 45) : 0.03 * Math.sin(time / 160))));
       } else if (!spr) {
         s.setTexture(`b${b.tier}_${b.moving ? step : 0}${b.aggro ? "a" : ""}`);
         s.setScale(k * SPR * (b.cast ? 1.08 + 0.06 * Math.sin(time / 60) : 1));
-      } else if (spr === "static") {
+      } else if (spr === "static" || spr === "anim") {
+        // Hoạt ảnh vẽ thật (H3, #688, spr === "anim"): khung do stepBeastAnim chọn; code chỉ chồng báo trước, nửa quãng lao và lắc / nháy trắng (animBeastPose).
         // Hồn thú lai (#386): ảnh tĩnh 3 hướng, thở / nhún / ngả rồi vồ / lắc khi trúng đòn vẽ bằng code (staticBeastPose). Phép biến đổi
         // quanh chân; vị trí dịch cộng thêm sau khi đã đặt độ sâu theo điểm chân nên không đổi thứ tự vẽ.
-        const P = staticBeastPose(s, time, b.moving && !b.cast, b.cast, b.hp, face, beastFamily(beastBase(b.rank, b.species)?.id), b.rank ? 1 + 0.35 * Math.min(b.rank, 3) : 1);
+        const P = (spr === "anim" ? animBeastPose : staticBeastPose)(s, time, b.moving && !b.cast, b.cast, b.hp, face, beastFamily(beastBase(b.rank, b.species)?.id), b.rank ? 1 + 0.35 * Math.min(b.rank, 3) : 1);
         s.setScale(k * P.sx, k * P.sy).setRotation(P.rot).setPosition(at.x + P.dx, at.y + P.dy);
         if (P.flash) s.setTintFill(0xffffff);
       } else {
@@ -2732,7 +2743,7 @@ export class GameScene extends Phaser.Scene {
       // Sprite một hàng chỉ vẽ hướng phải: đang đi thì lật theo hướng trượt trên màn hình, đứng yên thì theo `face` của server
       // (sheet isometric tự chọn hướng và lật trong syncBeastSprite).
       const dsx = s.x - ox;
-      if (spr !== "iso" && spr !== "static") s.setFlipX(b.moving && Math.abs(dsx) > 0.05 ? dsx < 0 : b.face < 0);
+      if (spr !== "iso" && spr !== "static" && spr !== "anim") s.setFlipX(b.moving && Math.abs(dsx) > 0.05 ? dsx < 0 : b.face < 0);
       // G1: đẩy lùi (chỉ hình, 110 ms) và nháy trắng 50 ms sau khi bị đánh; hết hạn thì trả màu cho nhánh tô màu của sprite.
       const tl = this.teles.get(id);
       if (tl && !fxPrefs.reduce) { // lấy đà: ngả ra sau (ngược hướng nhìn trên màn hình isometric) khi báo trước
@@ -2746,7 +2757,7 @@ export class GameScene extends Phaser.Scene {
       }
       const fl = this.hitFlash.get(id);
       if (fl !== undefined) { if (time < fl) s.setTintFill(0xffffff); else { this.hitFlash.delete(id); s.clearTint(); } }
-      s.setDepth(spr === "static" ? at.y : s.y); // sprite tĩnh: độ sâu theo điểm chân
+      s.setDepth(spr === "static" || spr === "anim" ? at.y : s.y); // sprite tĩnh: độ sâu theo điểm chân
       {
         let lb = this.eliteLabels.get(id);
         const kind = egg ? "elite" : b.rank >= 3 ? "boss" : b.rank === 2 ? "king" : b.rank === 1 ? "elite" : "beast";
@@ -2802,17 +2813,22 @@ export class GameScene extends Phaser.Scene {
         const txt = this.add.text(at.x, at.y + (core ? 18 : bone ? 12 : 4) * SPR, name, { // hồn cốt, hồn hạch: dưới nhãn số năm của hồn hoàn (và hồn cốt) nằm cạnh
           fontFamily: FONT, fontSize: "6px", fontStyle: "700", color: col, stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 0).setDepth(at.y - 1).setScale(this.txtK);
-        v = { img, txt }; this.drops.set(id, v);
+        const glow = !d.item ? this.add.image(at.x, at.y, `ring${d.tier}`).setDepth(at.y - 2).setScale(SPR) : undefined; // hồn hoàn: vòng sáng elip dưới ảnh (#693)
+        v = { img, txt, glow, art: dropArtSpec(d, bone, core, eq, it, col) }; this.drops.set(id, v);
         if (!it && !bone && !core && d.tier >= 1 && d.ttl >= DROP_TTL_SECS - 2 && this.downAt.some(q => time - q.t < 2500 && Math.hypot(q.x - at.x, q.y - at.y) < 140 * SPR)) this.dropGlint(at, hud.ringColor(d.tier)); // hồn hoàn mới rơi: vòng sáng màu niên hạn bay lên
         if (d.ttl >= DROP_TTL_SECS - 2) { // chỉ đồ vừa rơi (đồ nằm sẵn đi tới gần mới đồng bộ, 11.4, thì không kêu)
           this.audio.playGroup("ring-drop", { x: d.x, y: d.y }, { priority: 1.5 });
           if (!d.item && d.tier >= 2) this.audio.playRingGlow(d.tier, { x: d.x, y: d.y });
         }
       }
+      if (v.art) { // #693: ảnh item_* tải xong thì thay ảnh vẽ bằng code (chưa xong / lỗi thì giữ ảnh dự phòng)
+        const k = dropTexture(this, v.art.key, v.art.tint);
+        if (k) { v.img.setTexture(k).setOrigin(0.5, 0.75).setScale(SPR * DROP_ART_SCALE).clearTint(); v.art = null; }
+      }
       v.img.y = at.y - (4 + (0.5 + 0.5 * Math.sin(time / 250)) * 2) * SPR;
       if (v.txt.scale !== this.txtK) v.txt.setScale(this.txtK); // đổi cỡ cửa sổ
       const a = d.ttl < 8 ? (Math.floor(time / 160) % 2 ? 0.4 : 1) : 1;
-      v.img.setAlpha(a); v.txt.setAlpha(a);
+      v.img.setAlpha(a); v.txt.setAlpha(a); v.glow?.setAlpha(a);
     });
     st.drops.forEach((d: any, id: string) => this.dropTtl.set(id, { ttl: d.ttl, x: d.x, y: d.y }));
     const meNear = st.players.get(this.me);
@@ -2821,7 +2837,7 @@ export class GameScene extends Phaser.Scene {
       const last = this.dropTtl.get(id);
       if (meNear && last && last.ttl > 1.5 && Math.hypot(last.x - meNear.x, last.y - meNear.y) < PICKUP_RANGE + 24) this.audio.play("pickup");
       this.dropTtl.delete(id);
-      v.img.destroy(); v.txt.destroy(); this.drops.delete(id);
+      v.img.destroy(); v.txt.destroy(); v.glow?.destroy(); this.drops.delete(id);
     }
 
 
