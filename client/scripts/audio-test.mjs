@@ -326,9 +326,28 @@ noListenerAudio.dispose();
     assert.deepEqual(ducks, [[CROWD_DUCK.music, CROWD_DUCK.ms]], "đủ tiếng thì hạ nhạc nền một lần");
     audio.playGroup(`beast-t6`, { x: 100, y: 100 });
     assert.equal(ducks.length, 1, "không hạ dồn dập trong nửa chu kỳ hạ");
+    // tiếng lớn đang hạ nhạc thì hạ đám đông không ghi đè (G8 review)
+    const { audio: a2 } = make(), d2 = [];
+    Object.defineProperty(a2, "music", { value: { duckFor: (depth, ms) => d2.push([depth, ms]) } });
+    await a2.bank.ensure("combat"); await a2.bank.ensure("beast");
+    a2.bank.pick = (group) => ({ buffer: {}, start: 0, duration: 1, id: "x", group });
+    a2.playGroup("beast-t0", null, { duck: 0.55, duckMs: 800 });
+    for (let i = 0; i < 5; i++) a2.playGroup(`swing-t${i}`, { x: 100, y: 100 });
+    for (let i = 1; i < 6; i++) a2.playGroup(`beast-t${i}`, { x: 100, y: 100 });
+    assert.deepEqual(d2, [[0.55, 800]], "đông tiếng không hạ nhạc nông lại khi lần hạ của tiếng lớn còn hạn");
     audio.setMixEnabled(false);
     audio.playGroup(`beast-t5`, { x: 100, y: 100 });
     assert.equal(ducks.length, 1, "tắt trộn G8 thì không hạ nền theo số tiếng");
+  }
+
+  {
+    const { audio, ctx, gainNodes } = make();
+    const cancels = [];
+    gainNodes[2].gain.cancelScheduledValues = (t) => cancels.push(t);
+    ctx.currentTime = 7;
+    audio.updateSettings({ muted: true });
+    assert.deepEqual(cancels, [7], "đổi cài đặt hủy lịch hạ môi trường còn treo");
+    assert.equal(gainNodes[2].gain.value, 0, "tắt tiếng thì bus môi trường về 0");
   }
 
   // vang lấy sau âm lượng của tiếng (xa thì vang nhỏ), bị cắt thì vang cũng ngắt

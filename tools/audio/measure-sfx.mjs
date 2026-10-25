@@ -28,7 +28,7 @@ const srv = http.createServer((q, r) => { if (q.url === "/") { r.setHeader("cont
   const f = path.join(ROOT, q.url); fs.readFile(f, (e, d) => e ? (r.statusCode = 404, r.end()) : r.end(d)); }).listen(0, "127.0.0.1", async () => {
   const port = srv.address().port, dbg = 9400 + Math.floor(Math.random() * 400);
   const ud = fs.mkdtempSync(path.join(process.env.TEMP || "/tmp", "chr-"));
-  const ch = spawn("C:/Program Files/Google/Chrome/Application/chrome.exe", ["--headless=new", "--mute-audio", `--remote-debugging-port=${dbg}`, `--user-data-dir=${ud}`, `http://127.0.0.1:${port}/`]);
+  const ch = spawn(process.env.CHROME_PATH || "C:/Program Files/Google/Chrome/Application/chrome.exe", ["--headless=new", "--mute-audio", `--remote-debugging-port=${dbg}`, `--user-data-dir=${ud}`, `http://127.0.0.1:${port}/`]);
   try {
     let t; for (let i = 0; i < 50 && !t; i++) { await new Promise((r) => setTimeout(r, 300)); try { t = (await (await fetch(`http://127.0.0.1:${dbg}/json`)).json()).find((x) => x.type === "page"); } catch {} }
     const ws = new WebSocket(t.webSocketDebuggerUrl); await new Promise((r) => (ws.onopen = r)); ws.send(JSON.stringify({ id: 99, method: "Page.navigate", params: { url: `http://127.0.0.1:${port}/` } })); await new Promise((r) => setTimeout(r, 2000));

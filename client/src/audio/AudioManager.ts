@@ -118,6 +118,8 @@ export class AudioManager {
   /** Bật cân âm lượng nhóm + trần chồng theo loại + nén + hạ nền khi đông (G8, #399); tắt = hành vi trước G8, chỉ để trang nghe thử `?thu=am` so sánh trước / sau. */
   private mixOn = true;
   private lastCrowdDuckAt = 0;
+  /** Hạn (ms) lần hạ nhạc của tiếng lớn đang chạy (boss gầm, mở trận, hấp thụ…): hạ nhạc theo đám đông không được ghi đè lên nó. */
+  private loudDuckUntil = 0;
 
   constructor(scene: { sound: unknown }, listener: () => AudioPoint | null, sourceResolver: AudioSourceResolver = () => null,
     options: { bank?: SfxBankOptions; random?: () => number } = {}) {
@@ -409,7 +411,7 @@ export class AudioManager {
     const now = Date.now();
     if (now - this.lastCrowdDuckAt < CROWD_DUCK.ms / 2) return;
     this.lastCrowdDuckAt = now;
-    this.music?.duckFor(CROWD_DUCK.music, CROWD_DUCK.ms);
+    if (now >= this.loudDuckUntil) this.music?.duckFor(CROWD_DUCK.music, CROWD_DUCK.ms); // tiếng lớn đang hạ nhạc sâu hơn thì để nguyên
     this.duckAmbient(CROWD_DUCK.ambient, CROWD_DUCK.ms);
   }
 
@@ -435,7 +437,7 @@ export class AudioManager {
     if (node.playbackRate) node.playbackRate.value = rate;
     this.startVoice(node, mix.volume * v.gain * (opts.gain ?? 1) * (this.mixOn ? groupTrim(pick.group) : 1), opts.pan ?? mix.pan, this.channelBus(opts.channel ?? "sfx") ?? context.destination, score, cls, opts.wet);
     node.start(0, pick.start, pick.duration + 0.01);
-    if (opts.duck) this.music?.duckFor(opts.duck, opts.duckMs ?? LOUD_DUCK.ms);
+    if (opts.duck) { const ms = opts.duckMs ?? LOUD_DUCK.ms; this.music?.duckFor(opts.duck, ms); this.loudDuckUntil = Math.max(this.loudDuckUntil, Date.now() + ms + 500); }
     else this.crowdDuck();
   }
 
@@ -484,7 +486,11 @@ export class AudioManager {
     this.host.setVolume(level(s.music));
     if (this.sfxBus) this.sfxBus.gain.value = level(s.sfx);
     if (this.uiBus) this.uiBus.gain.value = level(s.ui);
-    if (this.ambientBus) this.ambientBus.gain.value = level(s.ambient);
+    if (this.ambientBus) {
+      const g = this.ambientBus.gain; // bỏ lịch hạ đám đông đang chạy, không thì ramp trả âm lượng cũ ghi đè lên cài đặt mới (nhất là Tắt tiếng)
+      if (typeof g.cancelScheduledValues === "function" && this.context) g.cancelScheduledValues(this.context.currentTime);
+      g.value = level(s.ambient);
+    }
     // Bus nhạc thật nằm ở MusicPlayer (nối thẳng vào loa, không qua Phaser); volume Phaser ở trên giữ cho tiếng Phaser nếu có.
     this.music?.setVolume(level(s.music));
   }
