@@ -13,13 +13,16 @@ const BEAST_HALF = Math.max(...TIERS.map((t) => t.size)) / 2;
 /** Hồn thú `b` nằm trong tầm đòn thường của hồn sư `p` (quay mặt về nó thì đòn trúng). */
 export const inReach = (p: PlayerState, b: BeastState) => { const g = reachGap(p, b); return g.dist < g.max; };
 
-/** Gửi riêng cho người chơi mục tiêu đang khoá ("" = không khoá) để client vẽ vòng chọn và thanh mục tiêu. */
-function tell(room: MapRoom, id: string, tid: string) { room.clients.getById(id)?.send("lock", { id: tid }); }
+/** Lý do server huỷ khoá (M5 #751), client đổi thành câu báo ở chip trạng thái: hồn thú chết / mất, quá xa, vùng an toàn, hồn sư gục, tự săn bật. */
+export type LockWhy = "gone" | "far" | "safe" | "dead" | "hunt";
+
+/** Gửi riêng cho người chơi mục tiêu đang khoá ("" = không khoá) để client vẽ vòng chọn và thanh mục tiêu; `why` khi server tự huỷ. */
+function tell(room: MapRoom, id: string, tid: string, why?: LockWhy) { room.clients.getById(id)?.send("lock", why ? { id: tid, why } : { id: tid }); }
 
 /** Đặt / bỏ khoá; không đổi gì thì không gửi tin, trừ khi `force` (trả lời một yêu cầu bị từ chối để client bỏ khoá ảo đã đặt tạm). */
-export function setLock(room: MapRoom, id: string, d: PData, tid: string, force = false) {
+export function setLock(room: MapRoom, id: string, d: PData, tid: string, force = false, why?: LockWhy) {
   if (d.target === tid && !force) return;
-  d.target = tid; tell(room, id, tid);
+  d.target = tid; tell(room, id, tid, why);
 }
 
 /** Quay mặt (hướng đánh d.dir và hướng vẽ p.dir) về tâm thân hồn thú. */
@@ -45,7 +48,8 @@ export function targetMsg(room: MapRoom, id: string, tid: unknown) {
 /** Mỗi nhịp, cho người chơi đang sống: kiểm điều kiện giữ khoá rồi tự quay mặt + đánh thường nếu trong tầm. Tự săn đang lái thì không chen. */
 export function tickLock(room: MapRoom, id: string, p: PlayerState, d: PData) {
   const b = room.state.beasts.get(d.target);
-  if (!b || d.auto || room.map.inSafe(p.x, p.y) || Math.hypot(b.x - p.x, b.y - p.y) > ATTACK_REACH.leash) return setLock(room, id, d, "");
+  if (!b || d.auto || room.map.inSafe(p.x, p.y) || Math.hypot(b.x - p.x, b.y - p.y) > ATTACK_REACH.leash)
+    return setLock(room, id, d, "", false, !b ? "gone" : d.auto ? "hunt" : room.map.inSafe(p.x, p.y) ? "safe" : "far");
   if (d.atkCd > 0 || !inReach(p, b)) return;
   face(room, p, d, b); room.attack(id);
 }
