@@ -10,7 +10,7 @@
 // (e) link markdown tương đối [chữ](đường/dẫn.md#neo) trong *.md phải trỏ tới file có thật;
 // (f) cỡ file *.md (docs/**, file gốc) tối đa MAX_MD_BYTES; ngoại lệ có chủ đích ở MD_SIZE_EXCEPT (hạ dần khi tách file).
 // (g) mục lục GAME_DESIGN.md đủ: mọi docs/design|tech|art/*.md phải được nhắc tới trong đó;
-// Chữ "mục" nghĩa thường (Danh mục, mục tiêu, mục con…) không bị coi là tham chiếu: (a) chỉ bắt "mục" đứng riêng, ngay trước số.
+// Chữ "mục" nghĩa thường (mục tiêu, mục con…) không bị coi là tham chiếu vì không có số theo sau; "Danh mục / Hạng mục / Đề mục / Tiết mục N" được loại bằng lookbehind ở (a); "mục" dính chữ đứng trước cũng bị loại.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -42,6 +42,7 @@ export const MD_SIZE_EXCEPT = { "docs/art/ky-nang-combat-dac-ta.md": 330000 };
 const CONST_DOCS = /^docs\/(design|tech|art)\//;
 const CONST_RE = /`([A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+)`/g;
 
+const safeDecode = (t) => { try { return decodeURI(t); } catch { return t; } };
 const norm = (s) => s.toLowerCase().replace(/[`*_"“”«»]/g, "").replace(/[:.;,\s]+$/g, "").replace(/\s+/g, " ").trim();
 
 /** Các "ứng viên tên mục": tiêu đề, chữ đậm, và 70 ký tự đầu mỗi dòng (đã gọt dấu đánh dấu). */
@@ -116,7 +117,7 @@ export function check({ root = repoRoot, overlay = null, list = 15 } = {}) {
     let fence = false;
     lines.forEach((line, i) => {
       const at = `${rel}:${i + 1}`;
-      for (const m of line.matchAll(/(?<![\p{L}])[Mm]ục (\d+(?:\.\d+)?)(?!\d)(?:\s+["“«]([^"”»]{2,80})["”»])?/gu)) {
+      for (const m of line.matchAll(/(?<![\p{L}])(?<!(?:[Dd]anh|[Hh]ạng|[Đđ]ề|[Tt]iết) )[Mm]ục (\d+(?:\.\d+)?)(?!\d)(?:\s+["“«]([^"”»]{2,80})["”»])?/gu)) {
         // "mục 5.3." cuối câu: bỏ dấu chấm thừa do regex không nuốt; số có dạng N.M chỉ khi theo sau là chữ số
         a.total++;
         if (!sections.has(m[1])) { a.orphans.push(`${at}  mục ${m[1]}`); continue; }
@@ -135,7 +136,7 @@ export function check({ root = repoRoot, overlay = null, list = 15 } = {}) {
         const t = m[1].split("#")[0];
         if (!t || /^([a-z]+:|\/)/i.test(t)) continue;
         e.total++;
-        const target = path.posix.normalize(path.posix.join(path.posix.dirname(rel), decodeURI(t))).replace(/\/$/, "");
+        const target = path.posix.normalize(path.posix.join(path.posix.dirname(rel), safeDecode(t))).replace(/\/$/, "");
         if (!exists(target)) e.orphans.push(`${at}  ${m[1]}`);
       }
       for (const m of line.matchAll(/(?<![A-Za-z0-9_./-])(docs\/[A-Za-z0-9_\-./]*[A-Za-z0-9_\-/])/g)) {
