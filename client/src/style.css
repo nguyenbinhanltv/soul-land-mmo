@@ -1134,6 +1134,34 @@ body.touch #autoPanel .atoggle kbd{display:none}
 #autoPanel .aorder .rlink{min-height:28px;padding:2px 8px}
 body.touch #autoPanel .aorder .rlink{min-height:36px}
 #autoPanel .brow{display:flex;gap:6px}
+/* U3 #756: công tắc pill (vẫn là input checkbox phủ kín nhãn, bấm / Space được), chip chọn một, ô số có − / +; vùng bấm ≥ 44 px. */
+#autoPanel .atoggle{min-height:48px;font-size:14px}
+#autoPanel .asub{font-size:12px;font-family:var(--f12);margin-top:4px}
+#autoPanel .achk.apill{position:relative;flex-wrap:nowrap;gap:8px;min-height:44px;cursor:pointer}
+#autoPanel .achk.apill input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+#autoPanel .apill i{flex:none;position:relative;width:52px;height:28px;box-sizing:border-box;border:2px solid var(--ink);border-radius:14px;background:#5a5260;transition:background .12s}
+#autoPanel .apill i::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--paper);transition:left .12s}
+#autoPanel .apill input:checked+i{background:var(--good)}
+#autoPanel .apill input:checked+i::after{left:26px}
+#autoPanel .apill input:focus-visible+i,#autoPanel .achip input:focus-visible+span{outline:2px solid var(--son);outline-offset:2px}
+#autoPanel .apill input:disabled+i{opacity:.5}
+#autoPanel .achips{display:flex;flex-wrap:wrap;gap:6px}
+#autoPanel .achip{position:relative;display:inline-flex;margin:0;padding:0;border:0;background:none;font:inherit;cursor:pointer}
+#autoPanel .achip input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+#autoPanel .achip span{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;box-sizing:border-box;border:2px solid var(--wood);background:var(--paper2);color:var(--ink);font-size:12px;font-family:var(--f12)}
+#autoPanel .achip input:checked+span,#autoPanel .achip.on span{background:var(--son);color:var(--paper);border-color:var(--son-d)}
+#autoPanel .achip:focus-visible span{outline:2px solid var(--son);outline-offset:2px}
+#autoPanel .astp{display:inline-flex;border:2px solid var(--wood)}
+#autoPanel .astp button{width:44px;min-height:44px;padding:0;border:0;background:var(--paper2);color:var(--ink);font:18px var(--f12);cursor:pointer}
+#autoPanel .astp button:hover{background:var(--paper3)}
+#autoPanel .astp input[type=number]{width:72px;min-height:44px;box-sizing:border-box;border:0;text-align:center;appearance:textfield;-moz-appearance:textfield}
+#autoPanel .astp input::-webkit-outer-spin-button,#autoPanel .astp input::-webkit-inner-spin-button{appearance:none;margin:0}
+#autoPanel .astp:has(input[aria-invalid]){border-color:var(--bad)}
+#autoPanel input[aria-invalid]{background:#f6d6d2;color:var(--bad)}
+#autoPanel .asec small.ayerr{color:var(--bad)}
+#autoPanel input[type=number]:not([data-k=y0],[data-k=y1]),#autoPanel select{min-height:44px;box-sizing:border-box}
+#autoPanel .arange input{height:44px}
+#autoPanel .aorder .rlink{min-height:44px;min-width:44px}
 #autoSum{position:absolute;left:50%;top:56px;transform:translateX(-50%);width:min(340px,92vw);padding:8px 12px;pointer-events:auto;display:flex;flex-direction:column;gap:6px}
 .asum{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;font-size:12px;font-family:var(--f12)}
 .asum span{color:var(--muted)}
