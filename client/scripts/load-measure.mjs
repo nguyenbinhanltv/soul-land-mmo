@@ -82,7 +82,7 @@ const c = await launch();
 const out = [];
 try {
   const name = "ldm" + Date.now().toString(36).slice(-6);
-  const login = await post("/api/login", { name, password: "matkhau1" });
+  const login = await post("/api/login", { name, password: crypto.randomUUID().slice(0, 12) });
   await post("/api/looks", { token: login.token, sex: 0, hair: 0, hairCol: 0, outfitCol: 0, skin: 0, mode: "preset" });
   await post("/api/awaken", { token: login.token, vohon: "lam_dien_ba_vuong_long" });
   await c.send("Page.navigate", { url: `${BASE}/choi/` });
