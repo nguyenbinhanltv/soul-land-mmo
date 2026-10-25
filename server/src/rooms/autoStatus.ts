@@ -59,7 +59,8 @@ function jobOf(h: AutoHunter, p: PlayerState): AutoStatus {
     if (h.hit || h.fighting()) k = "fight";
     else { k = "go"; d = Math.max(AUTO_STATUS.dist, Math.round(dist(b.x, b.y) / AUTO_STATUS.dist) * AUTO_STATUS.dist); }
   } else if (dr) { k = "loot"; n = dr.item ? itemDef(dr.item)?.name : "hồn hoàn"; to = dr; }
-  else if (h.pace > 0) { k = "rest"; to = null; }
+  else if (h.pace > 0 || h.resting) { k = "rest"; to = null; }
+  else if (h.spawning && h.patrol) { k = "spawn"; to = h.patrol; }
   else { k = "patrol"; to = h.patrol ?? h.goal; }
   // Vài điểm đầu của đường đang đi; không có đường (đi thẳng) thì điểm tới.
   const pts = h.path.length ? h.path.slice(0, AUTO_STATUS.path) : to ? [to] : [];

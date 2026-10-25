@@ -5188,6 +5188,21 @@ export const AUTO_LOOT_RADIUS = 8 * TILE;
 export const AUTO_LOOT_WAIT = 0.6;
 export const AUTO_BOSS_DETOUR = 20 * TILE;
 export const AUTO_TARGET = { detour: 1.4, tough: 30, value: [2, 4, 8] as const, retaliate: BEAST_AGGRO_R, free: 1 };
+/**
+ * Tự săn v2 (AH3, #610, mục 5.13), chủ repo chốt 2026-10-25:
+ * - `AUTO_CLUSTER` (ưu tiên cụm quái): chi phí một con (AUTO_TARGET) chia cho 1 + `bonus` × số hồn thú thường hợp lệ khác trong `r` pixel
+ *   quanh nó (tối đa `max` con), nên cụm đông được chọn trước một con lẻ hơi gần hơn.
+ * - `AUTO_AOE_MIN`: từ ngần ấy hồn thú thường (kể cả mục tiêu, không của người khác) trong vùng của hồn kỹ diện rộng (quanh thân / trước
+ *   mặt) thì hồn kỹ đó được tung trước các hồn kỹ khác (giữ thứ tự cài đặt trong mỗi nhóm).
+ * - `AUTO_SPAWN` (nhớ chỗ hồi sinh): mỗi vùng sinh hồn thú nơi mình vừa hạ một con được nhớ `keep` giây (tối đa `max` vùng); hồn thú hồi
+ *   sinh sau khoảng `wait` giây. Hết hồn thú hợp lệ thì đi dạo trong vùng nhớ gần nhất (đã / sắp hồi sinh) thay vì quanh chỗ đứng.
+ * - `AUTO_REST` (nghỉ hồi khi hết đan, `AutoSettings.restNoPot`): cần uống đan hồi sinh lực mà hết thì đứng nghỉ (vẫn đánh trả, nhặt đồ)
+ *   tới khi sinh lực võ hồn ra trận từ `resume` phần rồi săn tiếp; cài "hết đan thì dừng" (`stopNoPot`) thì dừng như cũ.
+ */
+export const AUTO_CLUSTER = { r: 3 * TILE, bonus: 0.1, max: 4 };
+export const AUTO_AOE_MIN = 3;
+export const AUTO_SPAWN = { wait: 1.5, keep: 90, max: 8 };
+export const AUTO_REST = { resume: 0.8 };
 /** Cách tự săn xét tinh anh / thú vương / boss thế giới: "near" (mặc định) chỉ khi gần, "always" tới đánh trước mọi việc (như trước AH1), "off" không đánh. */
 export type AutoBossMode = "near" | "always" | "off";
 /** Cài đặt tự săn của tài khoản (bảng `auto_hunt`; chỉnh ở bảng Tự động, Auto 2). */
@@ -5204,6 +5219,7 @@ export interface AutoSettings {
   coreStar: number;        // chỉ nhặt hồn hạch từ bấy nhiêu sao (1..MAX_CORE_STARS)
   kinds: ItemKind[];       // loại vật phẩm khác được nhặt (trong AUTO_LOOT_KINDS)
   stopNoPot: boolean;      // cần uống đan hồi sinh lực mà hết thì dừng
+  restNoPot: boolean;      // #610: hết đan thì nghỉ hồi sinh lực tới AUTO_REST.resume rồi săn tiếp (stopNoPot bật thì dừng thay vì nghỉ)
   tienCo: boolean;         // võ hồn khác trong đội đầy năng lượng tiên cơ thì đổi tay vào tung, hết hồi chiêu đổi thì về võ hồn cũ
   elite: boolean; king: boolean; world: boolean; // #218: đánh cả tinh anh, thú vương, boss thế giới xuất hiện trên bản đồ đang đứng
   bossMode: AutoBossMode;  // #608: khi nào tới đánh ba loại trên (xem AutoBossMode)
@@ -5214,7 +5230,7 @@ export interface AutoSettings {
  */
 export const AUTO_DEFAULTS: AutoSettings = { scope: "map", radius: AUTO_RADIUS / TILE, years: [0, MAX_YEARS], hp: 0.45, mp: 0.25, mpKeep: 0.15,
   skills: [3, 2, 1, 0], slots: Array.from({ length: TEAM_SIZE }, (_, i) => i), ring: 0, bone: true, core: true, coreStar: 1,
-  kinds: [...AUTO_LOOT_KINDS], stopNoPot: false, tienCo: true, elite: true, king: true, world: true, bossMode: "near" };
+  kinds: [...AUTO_LOOT_KINDS], stopNoPot: false, restNoPot: true, tienCo: true, elite: true, king: true, world: true, bossMode: "near" };
 /** Cài đặt từ client / DB: kẹp từng giá trị, thiếu hoặc sai thì lấy mặc định (AUTO_DEFAULTS). */
 export function parseAuto(raw: unknown): AutoSettings {
   const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>, D = AUTO_DEFAULTS;
@@ -5231,7 +5247,7 @@ export function parseAuto(raw: unknown): AutoSettings {
     hp: num(o.hp, 0, 0.95, D.hp), mp: num(o.mp, 0, 0.95, D.mp), mpKeep: num(o.mpKeep, 0, 0.9, D.mpKeep),
     skills: order(o.skills, LOADOUT_SIZE, D.skills), slots: order(o.slots, TEAM_SIZE, D.slots),
     ring: Math.round(num(o.ring, -1, MAX_YEARS, D.ring)), bone: bool(o.bone, D.bone), core: bool(o.core, D.core),
-    coreStar: Math.round(num(o.coreStar, 1, MAX_CORE_STARS, D.coreStar)), kinds, stopNoPot: bool(o.stopNoPot, D.stopNoPot), tienCo: bool(o.tienCo, D.tienCo),
+    coreStar: Math.round(num(o.coreStar, 1, MAX_CORE_STARS, D.coreStar)), kinds, stopNoPot: bool(o.stopNoPot, D.stopNoPot), restNoPot: bool(o.restNoPot, D.restNoPot), tienCo: bool(o.tienCo, D.tienCo),
     // Bản lưu trước #218 chưa có ba công tắc: bật như mặc định.
     elite: bool(o.elite, D.elite), king: bool(o.king, D.king), world: bool(o.world, D.world),
     // Bản lưu trước AH1 chưa có `bossMode` (hoặc giá trị lạ): "near".
@@ -5256,7 +5272,7 @@ export type AutoRate = [number, number, number];
  * thống kê theo giờ, `minSecs`: chưa treo đủ ngần ấy giây thì chưa hiện số (còn quá ít mẫu).
  */
 export const AUTO_STATUS = { every: 1, rateEvery: 5, dist: 5, path: 6, window: 600, minSecs: 30 };
-export type AutoJob = "loot" | "fight" | "go" | "dodge" | "back" | "rest" | "patrol";
+export type AutoJob = "loot" | "fight" | "go" | "dodge" | "back" | "rest" | "spawn" | "patrol";
 export interface AutoStatus { k: AutoJob; n?: string; d?: number; path?: number[]; rate?: AutoRate | null; }
 /** Chữ hiển thị của trạng thái tự săn ("Đang đánh Sói Xám", "Đi tới Thú vương (35 ô)"…). */
 export function autoStatusText(s: Pick<AutoStatus, "k" | "n" | "d">): string {
@@ -5268,6 +5284,7 @@ export function autoStatusText(s: Pick<AutoStatus, "k" | "n" | "d">): string {
     case "dodge": return "Đang né";
     case "back": return "Đang lùi hồi sức";
     case "rest": return "Đang nghỉ";
+    case "spawn": return "Đi tới chỗ hồi sinh";
     default: return "Đang đi dạo";
   }
 }
