@@ -14,7 +14,7 @@ export interface Character { accountId: number; name: string; rowId: number; voh
 /** Ngoại hình hồn sư của tài khoản; `chosen` = đã tạo nhân vật (chỉ chọn một lần). */
 export interface AccountLooks extends Looks { chosen: boolean; changes: number; }
 /** Trả về từ /api/login và /api/me: võ hồn ra trận (null = chưa thức tỉnh), ngoại hình và bản đồ đang đứng (do server lưu). */
-export interface Me { character: Character | null; looks: AccountLooks; mapId: string; }
+export interface Me { character: Character | null; looks: AccountLooks; mapId: string; /** Chỉ /api/me: tài khoản đã liên kết Google (#612). */ googleLinked?: boolean; }
 
 /** Tin nhắn riêng "portal": cổng đang đứng (name rỗng = không đứng ở cổng nào), cấp đề xuất, cảnh báo dưới cấp (chặn mềm). */
 /** Hộp đi cổng (tin riêng `portal`); `boat` (BĐ6d): bến thuyền, số giây đi thuyền. */

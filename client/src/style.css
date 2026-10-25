@@ -1466,3 +1466,22 @@ body.ui-h460 :is(#char,#bag)>*{flex-shrink:0}
 .reduce-motion .forge.fx-ok,.reduce-motion .forge.fx-fail,.reduce-motion .forge.fx-break,.reduce-motion .toast{animation:none!important}
 .reduce-motion .tm.full{box-shadow:0 0 8px color-mix(in srgb,var(--xp) 60%,transparent)}
 .reduce-motion .ui-cell.ready{box-shadow:0 0 6px var(--c)}
+
+/* Đăng nhập Google (#612): nút dưới form đăng nhập, mục "Tài khoản Google" trong Cài đặt. */
+.gsep{display:flex;align-items:center;gap:8px;margin:10px 0 8px;color:var(--muted);font-size:11px;font-family:var(--f10)}
+.gsep::before,.gsep::after{content:"";flex:1;border-top:1px solid var(--line)}
+.gbtn{display:flex;justify-content:center;min-height:44px}
+.gbtn .gfake{width:100%}
+#nf{display:flex;flex-direction:column;gap:8px}
+#nf input{font:inherit;font-size:14px;padding:10px;border:2px solid var(--line2);background:var(--paper2,transparent);color:var(--text)}
+#audio #ggSet small{color:var(--muted);font-size:10px;font-family:var(--f10);line-height:normal}
+@media (max-height:520px){
+  /* Điện thoại ngang: bớt hàng niên hạn ở màn đăng nhập để nút Google nằm trong tầm nhìn không cần cuộn. */
+  #overlay .card:has(#gbtn) :is(.tiers,h1+p){display:none}
+  .gsep{margin:4px 0}
+  .gbtn{min-height:36px}
+  #nf{flex-direction:row;flex-wrap:wrap;align-items:center}
+  #nf input{flex:1 1 160px;min-width:0;padding:6px 8px}
+  #nf .btn{padding:6px 10px;min-height:32px}
+  #nf .err{flex:1 1 100%;min-height:1.2em}
+}
