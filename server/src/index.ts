@@ -15,7 +15,7 @@ import { cleanName } from "./names.ts";
 import { cacheControlFor } from "./staticCache.ts";
 import { loadMap } from "./map.ts";
 import { startSchedule } from "./schedule.ts";
-import { MAPS, parseLooks } from "../../shared/data.ts";
+import { MAPS, MSG_MAX_PAYLOAD, parseLooks } from "../../shared/data.ts";
 import { gamePresence, presenceBackend, isRedisFailure, guardClient } from "./presence.ts";
 import { configurePresence as configurePartyPresence } from "./party.ts";
 
@@ -245,7 +245,7 @@ if (driver) guardClient("Redis (registry phòng)", (driver as unknown as { _clie
 // `arenaMatches` (arenaQueue.ts) là bộ nhớ của tiến trình đó; phòng khác giữ cách chọn mặc định của Colyseus (tiến trình ít phòng nhất).
 const publicAddress = process.env.PUBLIC_ADDRESS?.trim() || undefined;
 // gracefullyShutdown: false: Colyseus không tự gắn uncaughtException / tín hiệu tắt; việc tắt server chỉ do `shutdown` dưới đây (#270).
-const gameServer = new Server({ transport: new WebSocketTransport({ server }), presence: gamePresence, gracefullyShutdown: false, ...(driver ? { driver } : {}), ...(publicAddress ? { publicAddress } : {}),
+const gameServer = new Server({ transport: new WebSocketTransport({ server, maxPayload: MSG_MAX_PAYLOAD }), presence: gamePresence, gracefullyShutdown: false, ...(driver ? { driver } : {}), ...(publicAddress ? { publicAddress } : {}),
   selectProcessIdToCreateRoom: async (roomName) => roomName === "arena"
     ? matchMaker.processId
     : (await matchMaker.stats.fetchAll()).sort((a, b) => a.roomCount > b.roomCount ? 1 : -1)[0]?.processId || matchMaker.processId });
