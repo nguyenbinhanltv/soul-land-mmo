@@ -97,4 +97,4 @@ Không có quyền đọc kho riêng: bỏ qua, mọi thứ chạy như cũ.
 | `fx_song_quang` | Holy | `GameScene.tienCoFx` nhánh Hộ thể (Phụ trợ) | chồng lên vòng hạt |
 | `fx_khoi_luot`, `fx_bui_dat` | Gigapack | `GameScene.tienCoFx` nhánh Lướt (Mẫn Công) | thêm khói chỗ xuất phát, bụi chỗ dừng |
 
-Vật rừng (`vat_*`, Forest (cây, bụi, đá, nấm, khúc gỗ)) đã cắt vào kho riêng nhưng **chưa nối vào bản đồ** (cần chọn ô gid và bản đồ ở bước sau).
+Vật rừng (`vat_*`, Forest) đã nối vào bản đồ Tinh Đấu Ngoại vi, Lạc Nhật Sâm Lâm và dải rừng quanh Thánh Hồn Thôn (#622): mỗi bản đồ 5 gid vật trong `tiles.json` (`vat_thong`, `vat_soi`, `vat_khuc_go` chặn 1 ô; `vat_deco` bụi + đá nhỏ và `vat_nam` đi xuyên được, khai ở `gids.walk`), rải bằng `scatter` cuối `features` trong `tools/maps/layouts/`. Ô bản đồ ghi `"vật_riêng|vật_công_khai"`: không có kho riêng thì client dùng vật công khai thay, vật nhỏ bỏ qua. Vật riêng khai trong `props` của `tiles.json` bằng `private` (đường dẫn trong kho) và client chỉ tải file có trong `private/present.json`; `?pfx=0` tắt.
