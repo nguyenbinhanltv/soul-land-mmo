@@ -5309,6 +5309,13 @@ export function autoHint(pw: OfflinePower, zones: AutoHintZone[]): AutoHint {
     if (fine(hi)) a = hi; else while (b - a > 1) { const m = (a + b) >> 1; if (fine(m)) a = m; else b = m; }
     rows.push({ zone: z.name, years: [lo, a], secs: Math.round(at(a).secs * 10) / 10, full: a >= hi });
   }
+  // Nhiều vùng cùng tên (bản đồ chia vùng nhỏ): gộp, giữ dòng hợp sức cao nhất.
+  const byName = new Map<string, AutoHintRow>();
+  for (const r of rows.splice(0)) {
+    const o = byName.get(r.zone);
+    if (!o || (r.years && (!o.years || r.years[1] > o.years[1]))) byName.set(r.zone, r);
+  }
+  rows.push(...byName.values());
   let best: AutoHintRow | null = null;
   for (const r of rows) if (r.years && (!best || r.years[1] > best.years![1] || (r.years[1] === best.years![1] && r.secs < best.secs))) best = r;
   return { best, rows };

@@ -1,12 +1,12 @@
 // Bảng Tự động (Auto 2, mục 5.13): cài đặt tự săn, nút bật / tắt, giờ treo còn lại, và bảng tổng kết khi tự săn dừng. Client chỉ
 // gửi ý định (`auto {op: "set", cfg}` / `on` / `off`); server kẹp lại bằng parseAuto, lưu theo tài khoản và trả tin `auto`.
 import { AUTO_DEFAULTS, AUTO_LOOT_KINDS, AUTO_RADIUS, AUTO_RADIUS_MIN, ITEM_KINDS, MAX_CORE_STARS, MAX_YEARS, TILE,
-  autoTimeText, formatHonTe, autoStatusText, autoRateText, parseAuto, type AutoSettings, type AutoSummary, type AutoRate } from "../../shared/data.ts";
+  autoTimeText, formatHonTe, autoStatusText, autoRateText, parseAuto, type AutoSettings, type AutoSummary, type AutoRate, AUTO_HINT } from "../../shared/data.ts";
 import type { AutoMsg, AutoStMsg } from "./net.ts";
 
 /** GameScene cung cấp: gửi tin `auto`, tên ô đội hình (theo tin `vohons`) và tên hồn kỹ ở 4 ô của võ hồn đang ra trận. */
 export interface AutoPanelCtx {
-  send(op: "on" | "off" | "set", cfg?: AutoSettings): void;
+  send(op: "on" | "off" | "set" | "get", cfg?: AutoSettings): void;
   slotName(i: number): string;
   skillName(i: number): string;
 }
@@ -44,6 +44,7 @@ export function toggleAutoPanel(open = !!panel()?.hidden) {
   el.hidden = false;
   document.getElementById("autoBtn")?.setAttribute("aria-expanded", "true");
   if (last) fill(last); // tên võ hồn / hồn kỹ có thể đã đổi từ lần trước
+  ctx?.send("get"); // gợi ý hợp sức theo võ hồn ra trận hiện tại (AH4)
   return true;
 }
 export function closeAutoSum() { const el = sumBox(); if (el) el.hidden = true; }
@@ -66,6 +67,7 @@ export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
         <input type="range" min="${AUTO_RADIUS_MIN / TILE}" max="${AUTO_RADIUS / TILE}" step="1" data-k="radius"></label>
       <div class="aline">Niên hạn hồn thú từ <input type="number" min="0" max="${MAX_YEARS}" step="10" data-k="y0"> đến
         <input type="number" min="0" max="${MAX_YEARS}" step="10" data-k="y1"> năm</div>
+      <div class="anote" data-a="hint" hidden><small data-a="hintText"></small> <button class="buse" type="button" data-a="hintApply">Áp dụng</button></div>
       <small>Bỏ qua hồn thú người khác đang đánh. Hồn thú đánh mình thì luôn đánh trả.</small></section>
     <section class="asec"><b>Tinh anh, thú vương, boss</b>
       <label class="achk"><input type="checkbox" data-k="elite"> Tinh anh</label>
@@ -96,6 +98,10 @@ export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
   const on = { signal };
   $("[data-a=close]", el)!.addEventListener("click", closeAutoPanel, on);
   $("[data-a=toggle]", el)!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); ctx?.send(last?.on ? "off" : "on"); }, on);
+  $("[data-a=hintApply]", el)!.addEventListener("click", () => {
+    const y = last?.hint?.best?.years, cfg = read(el); if (!y || !cfg) return;
+    ctx?.send("set", { ...cfg, years: [y[0], y[1]] });
+  }, on);
   $("[data-a=reset]", el)!.addEventListener("click", () => ctx?.send("set", structuredClone(AUTO_DEFAULTS)), on);
   // Kéo thanh trượt: chỉ đổi số hiển thị; thả ra (change) thì gửi cài đặt.
   el.addEventListener("input", (e) => { const t = e.target as HTMLInputElement; if (t.type === "range") showRange(el, t); }, on);
@@ -165,10 +171,27 @@ function fill(m: AutoMsg) {
   for (const k of AUTO_LOOT_KINDS) { const i = $<HTMLInputElement>(`[data-kind=${k}]`, el); if (i) i.checked = c.kinds.includes(k); }
   order(el, "skills", c.skills, (i) => `${SKILL_KEYS[i]} · ${ctx?.skillName(i) || "chưa có hồn kỹ"}`);
   order(el, "slots", c.slots, (i) => `Ô ${i + 1} · ${ctx?.slotName(i) || "trống"}`);
+  fillHint(el, m);
   fillJob(el);
   const box = $("[data-a=last]", el)!;
   box.hidden = !lastSum;
   if (lastSum) renderSum($(".asum", box)!, lastSum.sum, lastSum.left);
+}
+
+/**
+ * Gợi ý khoảng niên hạn hợp sức (AH4, #611): server tính bằng offlineFight với chỉ số võ hồn ra trận (tin `auto`.hint, chỉ ở bản đồ săn);
+ * nút "Áp dụng" đặt khoảng niên hạn của cài đặt theo vùng tốt nhất.
+ */
+function fillHint(el: HTMLElement, m: AutoMsg) {
+  const box = $("[data-a=hint]", el); if (!box) return;
+  const h = m.hint; box.hidden = !h;
+  if (!h) return;
+  const b = h.best, apply = $<HTMLButtonElement>("[data-a=hintApply]", el)!;
+  apply.hidden = !b;
+  const ok = h.rows.filter((r) => r.years), hard = h.rows.length - ok.length;
+  const parts = [...ok.map((r) => `${r.zone} ${r.years![0]}–${r.years![1]} năm (~${Math.round(r.secs)} giây/con)`), ...(hard ? [`${hard} vùng còn quá sức`] : [])];
+  $("[data-a=hintText]", el)!.textContent = (b ? `Gợi ý hợp sức: ${b.zone}, ${b.years![0]}–${b.years![1]} năm (hạ một con ~${Math.round(b.secs)} giây, tối đa ${AUTO_HINT.maxSecs} giây).`
+    : "Võ hồn ra trận hiện chưa đánh nổi vùng nào ở đây trong thời gian hợp lý.") + (parts.length > 1 ? ` Từng vùng: ${parts.join("; ")}.` : "");
 }
 
 /** Việc đang làm và thống kê theo giờ trong bảng (AH2, #609): ẩn khi không tự săn; chưa đủ AUTO_STATUS.minSecs thì chưa có số. */
