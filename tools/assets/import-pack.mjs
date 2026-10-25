@@ -18,6 +18,16 @@ const opt = (n, d = "") => { const i = args.indexOf(n); return i >= 0 ? args.spl
 const onlyArg = opt("--only"), only = onlyArg ? new Set(onlyArg.split(",")) : null; // opt() gỡ tham số khỏi args: mỗi tham số chỉ đọc một lần
 const outDir = opt("--out"), manifestOut = opt("--manifest"), creditsOut = opt("--credits"), listFile = opt("--list");
 const SPEC = JSON.parse(readFileSync(path.join(ROOT, "tools", "assets", "private-packs.json"), "utf8"));
+// Luật đặt tên (chủ repo 2026-10-25): khóa = tên file theo quy ước game (fx_* hiệu ứng, vat_* vật đứng, tiếng Việt không dấu theo công dụng), KHÔNG giữ tên gốc của gói.
+// Tên gốc + đường dẫn trong gói chỉ ở private-rename.json (bảng "tên game ← tên gốc"), CREDITS và licenses/.
+const RENAME = JSON.parse(readFileSync(path.join(ROOT, "tools", "assets", "private-rename.json"), "utf8")).map;
+for (const e of SPEC.entries) {
+  const m = RENAME[e.key];
+  if (!/^(fx|vat)_[a-z0-9_]+$/.test(e.key)) { console.error(`✗ khóa "${e.key}" không theo quy ước game (fx_* / vat_*, chữ thường không dấu)`); process.exit(1); }
+  if (!m || m.pack !== e.pack) { console.error(`✗ "${e.key}" thiếu mục trong private-rename.json (hoặc lệch gói)`); process.exit(1); }
+  e.src = m.src;
+}
+if (new Set(SPEC.entries.map((e) => e.key)).size !== SPEC.entries.length) { console.error("✗ khóa trùng trong private-packs.json"); process.exit(1); }
 const roots = Object.fromEntries(Object.keys(SPEC.packs).map((k) => [k, opt(`--${k}`)])); // --giga --holy --forest --fire --free --bdragon --pimen
 
 const lum = (r, g, b) => (0.299 * r + 0.587 * g + 0.114 * b) / 255;
@@ -140,10 +150,9 @@ for (const e of SPEC.entries) {
   const root = roots[e.pack];
   if (!root) { console.log(`bỏ qua ${e.key}: thiếu --${e.pack}`); continue; }
   const r = e.kind === "prop" ? importProp(e, root) : importFx(e, root);
-  const name = e.key.replace(/^(pfx|prv)_/, "");
-  mkdirSync(path.join(outDir, "packs", e.pack), { recursive: true });
-  const rec = { key: e.key, kind: e.kind, private: true, tier: SPEC.packs[e.pack].tier, pack: e.pack, file: `packs/${e.pack}/${name}.png`, frame: r.frame, frames: r.frames, ...(e.kind === "fx" ? { fps: e.fps, normal: !!e.normal } : { foot: r.foot }), ...(r.files._glow ? { glow: `packs/${e.pack}/${name}_glow.png` } : {}), use: e.use };
-  for (const [suf, img] of Object.entries(r.files)) { writeFileSync(path.join(outDir, "packs", e.pack, `${name}${suf}.png`), encodePng(img)); present.push(`packs/${e.pack}/${name}${suf}.png`); }
+  mkdirSync(path.join(outDir, "packs"), { recursive: true });
+  const rec = { key: e.key, kind: e.kind, private: true, tier: SPEC.packs[e.pack].tier, pack: e.pack, file: `packs/${e.key}.png`, frame: r.frame, frames: r.frames, ...(e.kind === "fx" ? { fps: e.fps, normal: !!e.normal } : { foot: r.foot }), ...(r.files._glow ? { glow: `packs/${e.key}_hao.png` } : {}), use: e.use };
+  for (const [suf, img] of Object.entries(r.files)) { const fn = `packs/${e.key}${suf ? "_hao" : ""}.png`; writeFileSync(path.join(outDir, fn), encodePng(img)); present.push(fn); }
   manifest.push(rec); used.add(e.pack); done.push(rec);
   console.log(`✓ ${e.key}: ${r.frames} khung ${r.frame.join("×")}${r.files._glow ? " + lớp sáng" : ""}`);
 }
@@ -155,11 +164,12 @@ writeFileSync(presentFile, JSON.stringify({ about: "File có thật trong kho ri
 mkdirSync(path.join(outDir, "licenses"), { recursive: true });
 for (const p of used) {
   const k = SPEC.packs[p];
-  writeFileSync(path.join(outDir, "licenses", `${p}.md`), `# ${k.name}\n\n- Tác giả: ${k.author}\n- Nguồn: ${k.source}\n- Giấy phép: ${k.license}\n- Ghi công: ${k.credit}\n${k.noAI ? "- CẤM đưa vào model AI / làm ảnh tham chiếu.\n" : ""}`);
+  const map = done.filter((d) => d.pack === p).map((d) => `| \`${d.key}\` | ${RENAME[d.key].goc} |`).join("\n");
+  writeFileSync(path.join(outDir, "licenses", `${p}.md`), `# ${k.name}\n\n- Tác giả: ${k.author}\n- Nguồn: ${k.source}\n- Giấy phép: ${k.license}\n- Ghi công: ${k.credit}\n${k.noAI ? "- CẤM đưa vào model AI / làm ảnh tham chiếu.\n" : ""}\n## Tên game ← tên gốc\n\n| Tên game | Tên gốc trong gói |\n|---|---|\n${map}\n`);
 }
 const creditBlock = () => {
-  const rows = [...used].map((p) => { const k = SPEC.packs[p], n = done.filter((d) => d.pack === p).length; return `| ${k.name} | ${k.author} | ${k.tier === "cong_khai" ? "(dùng được cả trong repo công khai) " : "(chỉ kho riêng) "}${k.license} | ${k.source} | ${n} mục (\`${done.filter((d) => d.pack === p).map((d) => d.key).join("`, `")}\`) |`; });
-  return `<!-- private-assets:start -->\n## Asset kho riêng (không nằm trong repo công khai)\n\nẢnh các gói dưới đây nằm ở kho riêng \`nguyenbinhanltv/soul-land-assets-private\` (docs/asset-rieng.md), CI kéo về lúc build image; repo này chỉ giữ mô tả (\`tools/assets/private-packs.json\`, \`shared/assets/sprites/private-manifest.json\`), không nhúng file. Bản đã xử lý: nhuộm về bảng màu game, cắt viền, đóng sheet, viền #1a1020 (\`tools/assets/import-pack.mjs\`).\n\n| Gói | Tác giả | Giấy phép | Nguồn | Dùng |\n|---|---|---|---|---|\n${rows.join("\n")}\n<!-- private-assets:end -->\n`;
+  const rows = [...used].map((p) => { const k = SPEC.packs[p], n = done.filter((d) => d.pack === p).length; return `| ${k.name} | ${k.author} | ${k.tier === "cong_khai" ? "(dùng được cả trong repo công khai) " : "(chỉ kho riêng) "}${k.license} | ${k.source} | ${n} mục: ${done.filter((d) => d.pack === p).map((d) => `\`${d.key}\` ← ${RENAME[d.key].goc}`).join("; ")} |`; });
+  return `<!-- private-assets:start -->\n## Asset kho riêng (không nằm trong repo công khai)\n\nẢnh các gói dưới đây nằm ở kho riêng \`nguyenbinhanltv/soul-land-assets-private\` (docs/asset-rieng.md), CI kéo về lúc build image; repo này chỉ giữ mô tả (\`tools/assets/private-packs.json\`, \`shared/assets/sprites/private-manifest.json\`), không nhúng file. Bản đã xử lý: nhuộm về bảng màu game, cắt viền, đóng sheet, viền #1a1020 (\`tools/assets/import-pack.mjs\`).\n\n| Gói | Tác giả | Giấy phép | Nguồn | Tên game ← tên gốc |\n|---|---|---|---|---|\n${rows.join("\n")}\n<!-- private-assets:end -->\n`;
 };
 writeFileSync(path.join(outDir, "CREDITS-private.md"), creditBlock());
 if (manifestOut) {
@@ -174,8 +184,18 @@ if (creditsOut) {
   writeFileSync(f, t);
 }
 
+// Kiểm không còn tên gốc của gói lọt vào packs / manifest / present.json / preview (chỉ CREDITS, licenses/ và private-rename.json được chứa).
+const GENERIC = new Set(["spritesheet", "effects", "frames"]);
+const originals = new Set();
+for (const m of Object.values(RENAME)) for (const part of m.src.split("/")) { const t = part.replace(/\.[a-z]+$/i, "").toLowerCase(); if (t.length >= 8 && !GENERIC.has(t)) originals.add(t); }
+const leaks = [];
+const scan = (label, text) => { const low = text.toLowerCase(); for (const o of originals) if (low.includes(o)) leaks.push(`${label}: "${o}"`); };
+present.forEach((p) => scan(`file ${p}`, p));
+scan("manifest", JSON.stringify(manifest));
+if (leaks.length) { console.error(`✗ còn tên gốc của gói trong đầu ra:\n  ${leaks.join("\n  ")}`); process.exit(1); }
+
 // Trang xem trước: mỗi mục chạy lặp trên nền tối (×3, nearest).
 const cell = (d, p) => { const w = d.frame[0], h = d.frame[1], dur = (d.frames / (d.fps ?? 8)).toFixed(2);
-  return `<div class=c><div class=s style="width:${w * 3}px;height:${h * 3}px;background:url(${d.file}) 0 0/${w * 3 * d.frames}px ${h * 3}px;animation:k_${d.key} ${dur}s steps(${d.frames}) infinite"></div><b>${d.key}</b><small>${d.pack} · ${d.frames} khung ${w}×${h}${d.glow ? " · +sáng" : ""}</small></div>`; };
+  return `<div class=c><div class=s style="width:${w * 3}px;height:${h * 3}px;background:url(${d.file}) 0 0/${w * 3 * d.frames}px ${h * 3}px;animation:k_${d.key} ${dur}s steps(${d.frames}) infinite"></div><b>${d.key}</b><small>${d.frames} khung ${w}×${h}${d.glow ? " · +sáng" : ""}</small></div>`; };
 writeFileSync(path.join(outDir, "preview.html"), `<!doctype html><meta charset=utf-8><title>Xem trước kho riêng</title><style>body{background:#0c1712;color:#ddd;font:13px sans-serif;display:flex;flex-wrap:wrap;gap:16px;padding:16px}.c{background:#1c2230;padding:10px;text-align:center}.s{image-rendering:pixelated;margin:auto}small{display:block;color:#889}${done.filter((d) => d.kind === "fx").map((d) => `@keyframes k_${d.key}{to{background-position-x:-${d.frame[0] * 3 * d.frames}px}}`).join("")}</style>${done.filter((d) => d.kind === "fx").map(cell).join("")}`);
 console.log(`xong: ${done.length} mục → ${outDir}`);

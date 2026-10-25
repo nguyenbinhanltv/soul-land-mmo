@@ -99,8 +99,8 @@ export function playHitFeelSheets(sheets: SheetFx, mat: Material, he: He, x: num
   sheets.play(common);
   sheets.play({ ...common, key: hitSheetKey(mat, he, true), scale: scale * 1.05, fps: HIT_HE_STYLE[he].fps, light: !mine });
   // #623: va chạm kho riêng cho đòn từ nhẹ trở lên; độ nặng 3 (đòn kết liễu / chí mạng nặng) thêm quả nổ nhỏ.
-  if (weight >= 1) playPriv(sheets, "pfx_va_cham", { x, y, scale: SPR, light: !mine });
-  if (weight >= 3) playPriv(sheets, "pfx_ket_lieu", { x, y, scale: SPR, light: !mine });
+  if (weight >= 1) playPriv(sheets, "fx_va_cham_vang", { x, y, scale: SPR, light: !mine });
+  if (weight >= 3) playPriv(sheets, "fx_ket_lieu", { x, y, scale: SPR, light: !mine });
 }
 
 /** Kiểu số sát thương theo hệ người đánh + chí mạng: viền theo màu tối của hệ, chí mạng chữ to hơn khi mức Vừa / Cao. */

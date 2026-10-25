@@ -467,7 +467,7 @@ export class SkillVisualPlayer {
   /** #623: lớp thêm từ kho riêng cho chiêu T2 / T3 theo hệ (Quang: chém sáng; lớp sét giáng đã bỏ vì bị sheet S3 che), chồng lên sheet S3, không thay sheet nào. */
   private overlay(vis: SkillVisual & { element?: Element }, c: CastCtx) {
     if (vis.tier < 2 || !c.mine) return;
-    if (vis.element === "light") playPriv(this.sheets, "pfx_chem_sang", { x: c.tx, y: c.ty, ang: c.ang, scale: 2 * SPR });
+    if (vis.element === "light") playPriv(this.sheets, "fx_chem_sang", { x: c.tx, y: c.ty, ang: c.ang, scale: 2 * SPR });
   }
   /** `vis.sheet` có và đã tải: phát ngay. Người tung còn thấy lớp lấy đà (`windupSheet`) và dư chấn; người khác chỉ thấy bản nhẹ của sheet chính. */
   cast(vis: SkillVisual, c: CastCtx): boolean {

@@ -1,5 +1,5 @@
 {
-  "_": "Mô tả gói asset ngoài giấy phép hạn chế (cấm phân phối lại file) cho tools/assets/import-pack.mjs. KHÔNG chứa ảnh: ảnh đã xử lý chỉ nằm trong kho riêng (docs/asset-rieng.md). packs: nguồn + giấy phép (ghi vào CREDITS). entries: một dòng một hiệu ứng / vật; ramp = 4 màu tối → sáng (hex trong art/palette.gpl) để nhuộm theo độ sáng; fx = hiệu ứng (dải một hàng, chạy bằng SheetFx), prop = vật đứng cắt từ ảnh lớn.",
+  "_": "Mô tả gói asset ngoài giấy phép hạn chế (cấm phân phối lại file) cho tools/assets/import-pack.mjs. KHÔNG chứa ảnh: ảnh đã xử lý chỉ nằm trong kho riêng (docs/asset-rieng.md). packs: nguồn + giấy phép (ghi vào CREDITS). entries: một dòng một hiệu ứng / vật, khóa = tên game (fx_* hiệu ứng, vat_* vật đứng; tên tiếng Việt không dấu theo công dụng), KHÔNG giữ tên gốc của gói. Tên gốc và đường dẫn trong gói chỉ ở private-rename.json (bảng 'tên game ← tên gốc', cũng vào CREDITS / licenses); ramp = 4 màu tối → sáng (hex trong art/palette.gpl) để nhuộm theo độ sáng; fx = hiệu ứng (dải một hàng, chạy bằng SheetFx), prop = vật đứng cắt từ ảnh lớn.",
   "packs": {
     "giga": {
       "name": "Super Pixel Effects Gigapack (Free Version) v3.1.0",
@@ -123,30 +123,27 @@
   },
   "entries": [
     {
-      "key": "pfx_va_cham",
+      "key": "fx_va_cham_vang",
       "kind": "fx",
       "pack": "giga",
-      "src": "spritesheet/Impacts/symmetrical_impact_001/symmetrical_impact_001_small_yellow/spritesheet.png",
       "ramp": "quang",
       "fps": 24,
       "glow": true,
       "use": "Va chạm / tia lửa khi trúng đòn (cạnh fxh_*)"
     },
     {
-      "key": "pfx_no",
+      "key": "fx_no_lon",
       "kind": "fx",
       "pack": "giga",
-      "src": "spritesheet/Explosions/stylized_explosion_001/stylized_explosion_001_large_yellow/spritesheet.png",
       "ramp": "lua",
       "fps": 20,
       "glow": true,
       "use": "Nổ tiên cơ diện rộng (thay fx_no LPC)"
     },
     {
-      "key": "pfx_khoi",
+      "key": "fx_khoi_luot",
       "kind": "fx",
       "pack": "giga",
-      "src": "spritesheet/Smoke Bursts/directional_smoke_burst_001/directional_smoke_burst_001_large_white/spritesheet.png",
       "ramp": "khoi",
       "fps": 16,
       "outline": true,
@@ -155,10 +152,9 @@
       "gamma": 1.6
     },
     {
-      "key": "pfx_bui",
+      "key": "fx_bui_dat",
       "kind": "fx",
       "pack": "giga",
-      "src": "spritesheet/Smoke Bursts/symmetrical_smoke_burst_001/symmetrical_smoke_burst_001_large_brown/spritesheet.png",
       "ramp": "bui",
       "fps": 16,
       "outline": true,
@@ -166,20 +162,18 @@
       "use": "Bụi khi hạ đất / bước nặng"
     },
     {
-      "key": "pfx_ket_lieu",
+      "key": "fx_ket_lieu",
       "kind": "fx",
       "pack": "giga",
-      "src": "spritesheet/Explosions/epic_explosion_001/epic_explosion_001_large_orange/spritesheet.png",
       "ramp": "lua",
       "fps": 22,
       "glow": true,
       "use": "Đòn kết liễu (độ nặng 3, quái chết)"
     },
     {
-      "key": "pfx_hoi",
+      "key": "fx_hoi_mau",
       "kind": "fx",
       "pack": "holy",
-      "src": "Heal/Spritesheet/Heal_spritesheet.png",
       "fw": 64,
       "ramp": "hoi",
       "fps": 10,
@@ -189,10 +183,9 @@
       "normal": true
     },
     {
-      "key": "pfx_khien",
+      "key": "fx_khien_sang",
       "kind": "fx",
       "pack": "holy",
-      "src": "HolyShield/Spritesheet/HolyShield_spritesheet.png",
       "fw": 64,
       "ramp": "khien",
       "fps": 10,
@@ -202,10 +195,9 @@
       "normal": true
     },
     {
-      "key": "pfx_quang",
+      "key": "fx_song_quang",
       "kind": "fx",
       "pack": "holy",
-      "src": "HolyNova/Spritesheet/HolyNova_spritesheet.png",
       "fw": 128,
       "ramp": "quang",
       "fps": 10,
@@ -215,10 +207,9 @@
       "normal": true
     },
     {
-      "key": "pfx_chem_sang",
+      "key": "fx_chem_sang",
       "kind": "fx",
       "pack": "holy",
-      "src": "HolySlash_A/Spritesheet/HolySlash_A_spritesheet.png",
       "fw": 64,
       "ramp": "quang",
       "fps": 14,
@@ -228,10 +219,9 @@
       "normal": true
     },
     {
-      "key": "prv_rung_cay_soi_1",
+      "key": "vat_cay_soi_1",
       "kind": "prop",
       "pack": "forest",
-      "src": "Decorations/Decorations.png",
       "rect": [
         11,
         143,
@@ -241,10 +231,9 @@
       "use": "Cây sồi lớn (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
     },
     {
-      "key": "prv_rung_cay_soi_2",
+      "key": "vat_cay_soi_2",
       "kind": "prop",
       "pack": "forest",
-      "src": "Decorations/Decorations.png",
       "rect": [
         88,
         143,
@@ -254,10 +243,9 @@
       "use": "Cây sồi lớn (biến thể) (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
     },
     {
-      "key": "prv_rung_cay_thong_1",
+      "key": "vat_cay_thong_1",
       "kind": "prop",
       "pack": "forest",
-      "src": "Decorations/Decorations.png",
       "rect": [
         163,
         163,
@@ -267,10 +255,9 @@
       "use": "Cây thông (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
     },
     {
-      "key": "prv_rung_cay_thong_2",
+      "key": "vat_cay_thong_2",
       "kind": "prop",
       "pack": "forest",
-      "src": "Decorations/Decorations.png",
       "rect": [
         211,
         163,
@@ -280,10 +267,9 @@
       "use": "Cây thông (biến thể) (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
     },
     {
-      "key": "prv_rung_bui_cay",
+      "key": "vat_bui_cay",
       "kind": "prop",
       "pack": "forest",
-      "src": "Decorations/Decorations.png",
       "rect": [
         13,
         4,
@@ -293,10 +279,9 @@
       "use": "Bụi cây (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
     },
     {
-      "key": "prv_rung_khuc_go",
+      "key": "vat_khuc_go",
       "kind": "prop",
       "pack": "forest",
-      "src": "Decorations/Decorations.png",
       "rect": [
         75,
         0,
@@ -306,10 +291,9 @@
       "use": "Khúc gỗ mục (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
     },
     {
-      "key": "prv_rung_da_1",
+      "key": "vat_da_rung_1",
       "kind": "prop",
       "pack": "forest",
-      "src": "Decorations/Decorations.png",
       "rect": [
         163,
         133,
@@ -319,10 +303,9 @@
       "use": "Đá (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
     },
     {
-      "key": "prv_rung_da_2",
+      "key": "vat_da_rung_2",
       "kind": "prop",
       "pack": "forest",
-      "src": "Decorations/Decorations.png",
       "rect": [
         194,
         133,
@@ -332,10 +315,9 @@
       "use": "Đá (biến thể) (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
     },
     {
-      "key": "prv_rung_da_3",
+      "key": "vat_da_rung_3",
       "kind": "prop",
       "pack": "forest",
-      "src": "Decorations/Decorations.png",
       "rect": [
         228,
         133,
@@ -345,10 +327,9 @@
       "use": "Đá nhỏ (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
     },
     {
-      "key": "prv_rung_nam_do",
+      "key": "vat_nam_do",
       "kind": "prop",
       "pack": "forest",
-      "src": "Decorations/Decorations.png",
       "rect": [
         203,
         8,
@@ -358,10 +339,9 @@
       "use": "Nấm đỏ (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
     },
     {
-      "key": "pfx_hoa_ngon",
+      "key": "fx_lua_dung",
       "kind": "fx",
       "pack": "fire",
-      "src": "Pixel fire asset pack v1.2/Pixel Fire Asset Pack Colored/fire asset red/Group 4 - 1/Group 4 - 1.png",
       "fw": 32,
       "ramp": "lua",
       "fps": 10,
@@ -369,10 +349,9 @@
       "use": "Ngọn lửa: trạng thái Thiêu đốt / Hỏa Long / Tà Hỏa dưới chân"
     },
     {
-      "key": "pfx_hoa_xoay",
+      "key": "fx_lua_xoay",
       "kind": "fx",
       "pack": "free",
-      "src": "Free_Pixel_Effects_Pack/7_firespin_spritesheet.png",
       "fw": 100,
       "layout": "grid",
       "ramp": "lua",
@@ -381,10 +360,9 @@
       "use": "Vòng lửa xoay: Hỏa Long, hồn kỹ vùng hệ Hỏa"
     },
     {
-      "key": "pfx_hoa_cuon",
+      "key": "fx_lua_cuon",
       "kind": "fx",
       "pack": "free",
-      "src": "Free_Pixel_Effects_Pack/11_fire_spritesheet.png",
       "fw": 100,
       "layout": "grid",
       "ramp": "lua",
@@ -393,10 +371,9 @@
       "use": "Cột lửa cuốn: Thiêu đốt, Tà Hỏa"
     },
     {
-      "key": "pfx_hoa_roi",
+      "key": "fx_lua_roi",
       "kind": "fx",
       "pack": "free",
-      "src": "Free_Pixel_Effects_Pack/6_flamelash_spritesheet.png",
       "fw": 100,
       "layout": "grid",
       "ramp": "lua",
@@ -405,10 +382,9 @@
       "use": "Roi lửa quất: hồn kỹ Tà Hỏa"
     },
     {
-      "key": "pfx_dan_lua",
+      "key": "fx_dan_lua",
       "kind": "fx",
       "pack": "bdragon",
-      "src": "New_All_Fire_Bullet_Pixel_16x16/All_Fire_Bullet_Pixel_16x16_00.png",
       "rect": [
         0,
         304,
@@ -422,10 +398,9 @@
       "use": "Đạn lửa nhỏ: hồn kỹ phóng (thử)"
     },
     {
-      "key": "pfx_dam",
+      "key": "fx_dam_trang",
       "kind": "fx",
       "pack": "pimen",
-      "src": "Thrust/Thrusts 1 SpriteSheet.png",
       "fw": 64,
       "fh": 32,
       "layout": "vertical",
@@ -436,10 +411,9 @@
       "use": "Vệt đâm: hồn kỹ đâm (thương, kiếm)"
     },
     {
-      "key": "pfx_dam_am",
+      "key": "fx_dam_tim",
       "kind": "fx",
       "pack": "pimen",
-      "src": "Thrust/Thrust 2 SpriteSheet.png",
       "fw": 64,
       "fh": 32,
       "layout": "vertical",
@@ -449,10 +423,9 @@
       "use": "Vệt đâm tím (hệ Ám)"
     },
     {
-      "key": "pfx_va_cham_2",
+      "key": "fx_va_cham_nho",
       "kind": "fx",
       "pack": "pimen",
-      "src": "Effects/Effect 1 - Sprite Sheet.png",
       "fw": 64,
       "fh": 32,
       "layout": "vertical",

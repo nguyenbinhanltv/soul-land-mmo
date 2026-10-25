@@ -24,12 +24,22 @@ const mf = path.join(ROOT, "shared", "assets", "sprites", "private-manifest.json
 if (existsSync(mf)) {
   const man = JSON.parse(readFileSync(mf, "utf8")), set = new Set(tracked);
   for (const e of man.sprites ?? []) {
+    if (!/^(fx|vat)_[a-z0-9_]+$/.test(e.key)) errs.push(`private-manifest: khóa ${e.key} không theo quy ước game (fx_* / vat_*)`);
+    if (e.file !== `packs/${e.key}.png`) errs.push(`private-manifest: ${e.key} có file ${e.file} (khóa phải = tên file)`);
+    if (e.glow && e.glow !== `packs/${e.key}_hao.png`) errs.push(`private-manifest: ${e.key} có lớp sáng ${e.glow} (phải là ${e.key}_hao.png)`);
     if (e.private !== true) errs.push(`private-manifest: ${e.key} thiếu "private": true`);
     for (const f of [e.file, e.glow].filter(Boolean)) {
-      if (!/^packs\/[a-z]+\//.test(f)) errs.push(`private-manifest: ${e.key} trỏ ngoài packs/: ${f}`);
+      if (!/^packs\/[a-z0-9_]+\.png$/.test(f)) errs.push(`private-manifest: ${e.key} trỏ ngoài packs/: ${f}`);
       for (const t of set) if (t.endsWith("/" + f) || t === f) errs.push(`file riêng của ${e.key} nằm trong repo: ${t}`);
     }
   }
+}
+// Luật đặt tên: tên gốc của gói (private-rename.json) không được lọt vào manifest.
+const rn = path.join(ROOT, "tools", "assets", "private-rename.json");
+if (existsSync(rn) && existsSync(mf)) {
+  const GENERIC = new Set(["spritesheet", "effects", "frames"]), text = readFileSync(mf, "utf8").toLowerCase(), originals = new Set();
+  for (const m of Object.values(JSON.parse(readFileSync(rn, "utf8")).map)) for (const part of m.src.split("/")) { const o = part.replace(/\.[a-z]+$/i, "").toLowerCase(); if (o.length >= 8 && !GENERIC.has(o)) originals.add(o); }
+  for (const o of originals) if (text.includes(o)) errs.push(`private-manifest chứa tên gốc của gói: "${o}" (đổi tên theo quy ước game)`);
 }
 if (errs.length) { for (const e of errs) console.error(`[private-assets] ✗ ${e}`); process.exit(1); }
 console.log("[private-assets] OK: không có file gói riêng trong repo công khai");

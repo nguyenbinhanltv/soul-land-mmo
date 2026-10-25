@@ -9,7 +9,7 @@ import type { SheetFx, SheetPlay } from "./fxSheet.ts";
 interface PrivDef { key: string; kind: string; file: string; glow?: string; frame: [number, number]; frames: number; fps?: number; normal?: boolean; foot?: [number, number] }
 const defs = new Map<string, PrivDef>();
 const off = typeof location !== "undefined" && /[?&]pfx=0\b/.test(location.search);
-const glowKey = (key: string) => `${key}_glow`;
+const glowKey = (key: string) => `${key}_hao`;
 let started: Promise<void> | null = null;
 
 /** Tải các sheet kho riêng có thật (gọi một lần khi vào cảnh, không chặn: sheet tới muộn thì lần phát sau mới có). Lỗi / thiếu thì im lặng. */
