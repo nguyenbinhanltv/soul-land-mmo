@@ -8,7 +8,7 @@ Fresh worker `soul-land-mmo-70` sinh duy nhất tờ A bằng builtin `image_gen
 - Đã dùng2/2 lượt. A2 có E hurt tốt hơn nhưng lệch hàng/đường neo ô128 rõ, nên chọn A1 để bàn giao. Không tự coi đạt mỹ thuật hoặc runtime.
 - `toA.prompt.txt`: nguyên văn prompt thật A1. `huyen_bang_thiem-toA.md`: nguyên hướng dẫn/prompt gốc do script sinh. `toA.source.json`: model/seed unknown, tham số thực, hash/dimensions và output gốc cả hai lượt, prompt hash, suspects và nguồn artifact. Tool không có bộ chọn size/model/seed; không suy ra image model từ model agent.
 - Raw A1/A2 cùng exact prompt/provenance gốc giữ tại `/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-70/`; chỉ A1 nộp vào Git. Worker64 đối chiếu hai lượt nguyên byte với tool original, PNG header/hash và static reference trước tích hợp.
-- Không hậu kỳ, cắt, resize, quantize, ghép/copy khung, nắn pixel hoặc sửa metadata. Tờ B chưa nộp; đã gửi orchestrator44 static đúng loài + A1 STYLE candidate + promptB để điều phối phiên mới, không thêm gate chờ mỹ thuật hoặc merge.
+- Không hậu kỳ, cắt, resize, quantize, ghép/copy khung, nắn pixel hoặc sửa metadata. Tờ B do fresh worker72 sinh riêng, chỉ reference static đúng loài + A1 STYLE candidate, chưa duyệt mỹ thuật/runtime.
 
 ## Ô nghi lỗi cần owner soát
 
@@ -22,3 +22,13 @@ Hàng/cột tính từ1, chỉ soát raw bằng mắt; chưa nghiệm thu.
 - Độ chi tiết tinh thể/độ tròn thân có thể khác ảnh tĩnh; cần owner soát identity. Màu chính vẫn pale blue, chưa xác nhận exact palette/nền/viền từng pixel.
 
 A2 không chọn: H2–4/H7–8/H10–12 lệch hàng; H5/H9 C5–6 hurt còn quay trước3/4; H8/H12 C2–4 die và H1 C5–6 mắt cần soát. Dừng đúng2 lượt, worker70 trả slot. Pipeline cắt/preview/nhập game thuộc owner repo, không thuộc phiên này.
+
+## Tờ B từ fresh worker72
+
+- `toB.png`: B2 candidate, chọn lượt 2/2; thực tế 1254×1254, 1997305 byte, khác yêu cầu 1024×1024. Cả hai lượt cùng cỡ; giữ nguyên byte, không resize. Tool không expose image model/seed/size selector.
+- `toB.prompt.txt`: exact prompt B2 thực gửi. `huyen_bang_thiem-toB.md`: hướng dẫn/prompt script gốc. `toB.source.json`: provenance hai lượt, outputs gốc, hashes/times/reference/exact prompts/suspects. Prepared prompt bổ sung của64 đến sau hai lượt; không dùng thay exact prompt, không gọi thêm.
+- Worker72 view static rồi A1, chỉ sinh B, đã dùng 2/2 builtin calls và trả slot. Worker64 đối chiếu hai raw với original bytes, header/hash, exact prompt hashes và hai reference; A trong PR khớp A1 STYLE candidate, chưa nghiệm thu mỹ thuật/runtime.
+- B1/B2 cùng prompts gốc giữ ngoài Git tại `/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-72/`. B2 được chọn vì hurt N ít quay front hơn B1.
+- Nhìn thấy 44 hình, 6×8; H4/H8 C5–6 trống. NE H1–4 vẫn gần E, chưa rõ lưng chéo đi xa; H8 C3 cần kiểm, H8 C4 die N quay mặt trước. Hurt nhẹ, idle/walk ít biến đổi, attack N khiêm tốn; chưa kiểm loop/runtime, chưa đo margin/scale/exact nền/viền.
+
+Không hậu kỳ/cắt/resize/quantize/ghép/copy frame/nắn pixel/sửa metadata. Hai tờ tổng 110 vị trí nhìn thấy; giữ nghi lỗi A phía trên. Owner repo cắt/preview/nhập game và quyết định chất lượng.
