@@ -1,5 +1,5 @@
 {
- "_": "S3 lô C (#568): đặc tả sheet hiệu ứng chiêu cho 5 võ hồn (Tà Hỏa Phượng Hoàng, Hỏa Long, Hỏa Ảnh, Quỷ Mị, Băng Phượng Hoàng) + dung hợp Băng Hỏa Lưỡng Nghi, theo công thức chuẩn S2 (docs/ky-nang-cong-thuc.md). `d` gửi PixelLab /v2/vfx (lite); palette hậu kỳ: [viền, tối, chủ, nhấn, sáng] xếp tăng dần theo độ sáng. Chạy: node tools/assets/skill-vfx/run.mjs --spec lo-c.json --out <nháp> [--only tên,...]",
+ "_": "S3 lô C (#568): đặc tả sheet hiệu ứng chiêu cho 5 võ hồn (Tà Hỏa Phượng Hoàng, Hỏa Long, Hỏa Ảnh, Quỷ Mị, Băng Phượng Hoàng) + dung hợp Băng Hỏa Lưỡng Nghi, theo công thức chuẩn S2 (docs/art/ky-nang-cong-thuc.md). `d` gửi PixelLab /v2/vfx (lite); palette hậu kỳ: [viền, tối, chủ, nhấn, sáng] xếp tăng dần theo độ sáng. Chạy: node tools/assets/skill-vfx/run.mjs --spec lo-c.json --out <nháp> [--only tên,...]",
  "common": "Pixel art VFX for an isometric RPG skill, 3/4 top-down view, transparent background, no character, no text, dark outline, limited palette, white-hot core, centered.",
  "vohon": {
   "tp": {

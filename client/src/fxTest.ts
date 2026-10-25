@@ -70,7 +70,7 @@ class FxTestScene extends Phaser.Scene {
         if (n) this.fxp.footDust(this.hero.x, this.hero.y + 4 * SPR, 0x9a8b68, n, q.get("run") !== "1");
       }
     });
-    // `stress=P`: P người chơi, mỗi người tung một hồn kỹ ngẫu nhiên mỗi ~2,5 s (đo FPS 40–60 người, docs/hieu-nang-soak.md).
+    // `stress=P`: P người chơi, mỗi người tung một hồn kỹ ngẫu nhiên mỗi ~2,5 s (đo FPS 40–60 người, docs/tech/hieu-nang-soak.md).
     const P = Number(q.get("stress") ?? 0);
     if (q.get("legacy") === "1") SHEET_TUNE.othersK = 1; // bản trước H8: người khác dùng cả trần sheet (và không tự hạ mức, xem fxTestScreen)
     this.pt = new PhapTuongSystem(this, this.fxp);
