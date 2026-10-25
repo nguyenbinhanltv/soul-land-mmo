@@ -65,6 +65,7 @@ import type { OwnedVohons, Squad, PortalInfo, BagMsg, GearMsg, EquipEnhPreview, 
 import { applyBagDelta } from "../../../shared/bagSync.ts";
 import { assetUrl } from "../assetUrl.ts";
 import { layoutNameplates, measureNameplate, nameplateAppearance, nameplatePriority, playerNameplateKind, type NameplateRect, type NameplatePlacement } from "../nameplate.ts";
+import { replayBufferedMessages } from "../roomBuffer.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
@@ -1427,6 +1428,7 @@ export class GameScene extends Phaser.Scene {
       if (m.result === "ok") { if (!this.audio.playGroup("ring-absorb", null, { priority: 3, duck: 0.6, duckMs: 900 })) this.audio.play("ring_absorb_success"); this.audio.music?.jingle("ring_absorb"); hud.banner(`Hấp thụ thành công: hồn hoàn thứ ${m.slot}`, `${name} · ${age} · cấp ${m.level}`); }
       else if (m.result === "fail") { this.audio.play("ring_absorb_fail"); hud.banner("Hấp thụ thất bại", `Hồn hoàn ${age} vỡ tan; ${name} không bị tổn hại`); }
     });
+    replayBufferedMessages(this.room); // tin server gửi lúc vào phòng, trước khi cảnh nghe (#714)
     if (this.watching) return; // người xem (#280): không xin dữ liệu riêng
     this.room.send("vohons");
     this.room.send("fog"); // sương mù khám phá (R8): tin lúc vào phòng có thể tới trước khi cảnh nghe, xin lại cả bitset

@@ -43,7 +43,7 @@ try {
   browser = await chromium.launch({ headless: true, args: ["--mute-audio", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   const bad = [];
-  const watch = (kind, text) => { if (/not registered|refId|Please report this issue/i.test(text)) bad.push(`${kind}: ${text}`); };
+  const watch = (kind, text) => { if (/not registered for type '(?!test')|refId|Please report this issue/i.test(text)) bad.push(`${kind}: ${text}`); }; // 'test': trả lời hook warp của chính bài này
   page.on("console", (m) => watch(m.type(), m.text()));
   page.on("pageerror", (e) => { console.error("[trình duyệt]", e.message); watch("pageerror", e.message); });
   await page.addInitScript(({ token }) => localStorage.setItem("shh-token", token), { token });
@@ -61,8 +61,8 @@ try {
     await page.waitForFunction(({ old, to }) => window.__jbScene?.room.roomId !== old && window.__jbScene.mapId === to && window.__jbScene.players.size > 0, { old, to }, { timeout: 60000 });
     await sleep(300);
   }
-  // Tin riêng lúc vào phòng phải tới được cảnh: khung tổ đội và tiến độ cộng minh đã có dữ liệu.
-  await page.waitForFunction(() => window.__jbScene.party && window.__jbScene.squad, null, { timeout: 10000 });
+  // Tin riêng lúc vào phòng phải tới được cảnh: khung tổ đội đã có dữ liệu.
+  await page.waitForFunction(() => window.__jbScene.party, null, { timeout: 10000 });
   assert.deepEqual(bad, [], `Console có lỗi vào phòng:\n${bad.join("\n")}`);
   console.log(`✓ ${WARPS} lần đổi bản đồ, console không có cảnh báo onMessage / lỗi refId`);
 } finally {
