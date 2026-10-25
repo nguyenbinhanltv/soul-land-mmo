@@ -5457,6 +5457,56 @@ async function autoTest(){
   m=await autoOp(A,"on"); const off=await autoOp(A,"off");
   ok(m?.on&&!off?.on&&/đã tắt/.test(off?.why??""),"bấm lại nút / phím T: tắt");
 
+  // ---- #291: đường thẳng tới mục tiêu thông thì đi thẳng (không tìm đường A*), có ô chặn ở giữa thì theo đường A* ----
+  // Hồn thú đứng yên (BEAST_ROOTED) để đường thẳng không đổi vì nó lang thang; chỗ thử chọn theo lưới ô chặn của file Tiled đang dùng.
+  // Không tung hồn kỹ / tiên cơ (đòn tầm xa trúng từ chỗ đứng): chỉ đánh thường nên phải đi tới sát mới đánh trúng.
+  {
+    const g=solidGrid(JSON.parse(readFileSync(mapUrl(NV),"utf8"))), free=(x,y)=>!hits(g,x,y,PLAYER_HW+1,PLAYER_HH+1);
+    const safes=objsOf(NV).filter(o=>o.type==="safe"), inSafe=(x,y)=>safes.some(o=>x>=o.x-48&&x<=o.x+o.width+48&&y>=o.y-48&&y<=o.y+o.height+48);
+    const okAt=(x,y)=>free(x,y)&&!inCamp(x,y)&&!inSafe(x,y);
+    /** Cặp (chỗ đứng, chỗ hồn thú) gần điểm neo: `wall` thì đường thẳng vướng ô chặn mà A* tới được, không thì đường thẳng thông. */
+    const pick=wall=>{
+      const tx0=Math.floor(home.x/16), ty0=Math.floor(home.y/16), cand=[];
+      for(let dy=-40;dy<=40;dy++) for(let dx=-40;dx<=40;dx++) cand.push([dx,dy]);
+      cand.sort((a,b)=>Math.hypot(...a)-Math.hypot(...b));
+      for(const [dx,dy] of cand){
+        const P={x:(tx0+dx)*16+8,y:(ty0+dy)*16+8}; if(!okAt(P.x,P.y)) continue;
+        for(const d of [80,96,112]) for(const [ux,uy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+          const Q={x:P.x+ux*d,y:P.y+uy*d}; if(!okAt(Q.x,Q.y)) continue;
+          if(!wall){ if(clearLine(g,P,Q)) return {P,Q}; continue; }
+          if(clearLine(g,P,Q)) continue;
+          const path=findPath(g,P,Q,AUTO_MOVE.path), end=path.at(-1);
+          if(end&&Math.hypot(end.x-Q.x,end.y-Q.y)<4&&pathLength(P,path)<=3*d) return {P,Q};
+        }
+      }
+      return null;
+    };
+    /** Bật tự săn đứng ở P với hồn thú đứng yên ở Q; theo dõi hook `auto` tới khi đánh trúng nó. */
+    const run=async({P,Q})=>{
+      await test(A,"goto",P); await test(A,"clear");
+      if(Math.hypot(me(A).x-P.x,me(A).y-P.y)>=1) return null;
+      const bid=(await test(A,"spawn",{species:"thuc_nhan_hoa",tier:0,dx:Q.x-P.x,dy:Q.y-P.y,years:15,hpx:200}))?.bid, bb=()=>A.room.state.beasts.get(bid);
+      const ways=new Set(); let st=null;
+      if(!bid||!(await autoOp(A,"on"))?.on) return null;
+      const t00=Date.now(); let hit=false, ms=0; // waitFor chỉ nhận hàm đồng bộ: hỏi hook `auto` mỗi nhịp để ghi cách đi của từng lúc
+      for(const t0=Date.now();Date.now()-t0<12000&&!hit;await sleep(100)){ st=await test(A,"auto"); if(st?.way) ways.add(st.way); hit=!!bb()&&bb().hp<bb().maxHp; if(hit) ms=Date.now()-t00; }
+      st=await test(A,"auto"); await autoOp(A,"off"); await test(A,"clear");
+      return {hit,ms,ways:[...ways],target:st?.target===bid,plans:st?.plans,lines:st?.lines,start:P,beast:Q};
+    };
+    const L=pick(false), W=pick(true);
+    await autoOp(A,"set",{cfg:{...NEAR,skills:[],tienCo:false}});
+    if(!L||!W) console.log(`  ⚠ bỏ qua #291 đi thẳng / A*: không tìm được chỗ thử quanh điểm neo (thông ${!!L}, vướng ${!!W})`);
+    else{
+      const a=await run(L);
+      ok(a?.hit&&a.target&&a.plans===0&&a.lines>=1&&a.ways.includes("line")&&!a.ways.includes("path"),
+        `#291: đường thẳng thông: đi thẳng tới hồn thú, không tìm đường A* (${JSON.stringify(a)})`);
+      const w=await run(W);
+      ok(w?.hit&&w.target&&w.plans>=1&&w.lines>=1&&w.ways.includes("path"),
+        `#291: có ô chặn ở giữa: đi theo đường A* vòng qua rồi đánh trúng (${JSON.stringify(w)})`);
+    }
+    await autoOp(A,"set",{cfg:NEAR});
+  }
+
   // ---- Không cướp quái: B đang đánh X, A treo cạnh không đánh X mà đánh Y ----
   const B=await bot("Treo cạnh","nguyet_nhan",{sex:1,hair:2,hairCol:0,outfitCol:4}); extra.push(B);
   await warp(B,NV,ar.x,ar.y);
