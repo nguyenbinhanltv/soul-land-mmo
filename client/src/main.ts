@@ -5,6 +5,7 @@ import { ASSET_RETRIES, MAX_PARALLEL } from "./assetUrl.ts";
 import { installLoaderRetry } from "./loaderRetry.ts";
 import { Client, type Room } from "colyseus.js";
 import { GameScene } from "./scenes/GameScene.ts";
+import { bufferRoomMessages } from "./roomBuffer.ts";
 import { addLag } from "./predict.ts";
 import { TIERS, VOHON, HE, MAPS, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES,
   type He } from "../../shared/data.ts";
@@ -189,12 +190,12 @@ function awakenIntro() {
   const aw = document.getElementById("aw") as HTMLButtonElement, info = document.getElementById("info")!;
   for (const v of AWAKEN_CHOICES) {
     const b = vohonCard(v, {}, "button");
-    b.classList.add("acard"); b.dataset.id = v.id; b.setAttribute("aria-pressed", "false"); b.title = v.owner ? `${v.name} · ${v.owner}` : v.name;
+    b.classList.add("awk-pick"); b.dataset.id = v.id; b.setAttribute("aria-pressed", "false"); b.title = v.owner ? `${v.name} · ${v.owner}` : v.name;
     card.querySelector(`.vgrid[data-he="${v.he}"]`)!.appendChild(b);
   }
-  card.querySelectorAll<HTMLButtonElement>(".acard").forEach((b) => b.addEventListener("click", () => {
+  card.querySelectorAll<HTMLButtonElement>(".awk-pick").forEach((b) => b.addEventListener("click", () => {
     chosen = b.dataset.id!; const v = VOHON[vohonIndex(chosen)];
-    card.querySelectorAll(".acard").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    card.querySelectorAll(".awk-pick").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
     info.innerHTML = `<b style="color:${v.col}">${v.name}</b> · ${HE[v.he].name}${v.owner ? ` · ${v.owner}` : ""}<br>${v.trait}
       <br><small>Lưu phái: ${v.flows.join(", ")}</small>`;
     aw.disabled = false; aw.textContent = `Thức tỉnh ${v.name}`;
@@ -277,6 +278,7 @@ async function join(retry = true, roomId?: string | null) {
         throw e;
       })
       : await client.joinOrCreate("map", opts);
+    bufferRoomMessages(room);
     const roomMap = await waitMapId(room).catch((e) => { room.leave().catch(() => {}); throw e; });
     play(room, roomMap);
   } catch (e) {
@@ -304,6 +306,7 @@ async function joinArena(roomId: string, watch = false) {
   card.innerHTML = `<h1>${watch ? "Đang vào xem trận…" : "Đang vào Đại Đấu Hồn Trường…"}</h1>`;
   try {
     const room = await new Client(WS).joinById(roomId, { token });
+    bufferRoomMessages(room);
     const roomMap = await waitMapId(room).catch((e) => { room.leave().catch(() => {}); throw e; });
     play(room, roomMap, watch);
   } catch (e) {
