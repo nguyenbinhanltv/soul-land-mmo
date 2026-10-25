@@ -4439,6 +4439,9 @@ export function sellPrice(it: { code: string; years: number | null; stars: numbe
  */
 export const AUTO_SELL_FREE = 5;
 export const AUTO_SELL_BUYBACK = 20;
+
+/** Hướng dẫn M6 (#752): gợi ý "túi gần đầy" hiện một lần khi số ô trống còn không quá mức này (client chỉ hiển thị, không ảnh hưởng luật chơi). */
+export const GUIDE_BAG_FREE = 10;
 /** Hồn hoàn, hồn cốt từ bấy nhiêu năm (vạn năm) trở lên không bao giờ tự bán, trừ khi người chơi bật `high`. */
 export const AUTO_SELL_GUARD = 10000;
 /** Bộ lọc tự bán của tài khoản (`accounts.auto_sell`; chỉnh ở bảng Túi đồ). Món khoá, món đang gắn không bao giờ bán. */
