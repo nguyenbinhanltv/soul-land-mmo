@@ -5351,6 +5351,10 @@
       "map": "thien_dau_thanh"
     },
     {
+      "key": "prop_cay_hoa_tim",
+      "iso": true
+    },
+    {
       "key": "prop_cay_la_cam",
       "iso": true,
       "map": "lac_nhat_sam_lam"
@@ -5617,9 +5621,17 @@
       "iso": true
     },
     {
+      "key": "prop_nha_dai_mai_cong",
+      "iso": true
+    },
+    {
       "key": "prop_nha_hai_thuoc",
       "iso": true,
       "map": "lac_nhat_sam_lam"
+    },
+    {
+      "key": "prop_nha_mai_cong",
+      "iso": true
     },
     {
       "key": "prop_nha_ngu_dan",
@@ -5630,6 +5642,10 @@
       "key": "prop_nha_nong_dan",
       "iso": true,
       "map": "thanh_hon_thon"
+    },
+    {
+      "key": "prop_nha_tranh_jp",
+      "iso": true
     },
     {
       "key": "prop_nha_truong_thon",
@@ -5697,6 +5713,10 @@
       "key": "prop_thap_cong_thanh",
       "iso": true,
       "map": "nac_dinh_thanh"
+    },
+    {
+      "key": "prop_thap_da_jp",
+      "iso": true
     },
     {
       "key": "prop_thong_cao",

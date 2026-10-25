@@ -442,6 +442,26 @@
    "key": "prop_cay_bong_mat",
    "foot": [32, 78]
   },
+  "nha_mai_cong": {
+   "key": "prop_nha_mai_cong",
+   "foot": [56, 110]
+  },
+  "nha_dai_mai_cong": {
+   "key": "prop_nha_dai_mai_cong",
+   "foot": [96, 142]
+  },
+  "nha_tranh_jp": {
+   "key": "prop_nha_tranh_jp",
+   "foot": [56, 110]
+  },
+  "thap_da_jp": {
+   "key": "prop_thap_da_jp",
+   "foot": [72, 142]
+  },
+  "cay_hoa_tim": {
+   "key": "prop_cay_hoa_tim",
+   "foot": [48, 110]
+  },
   "thap_cong_thanh": {
    "key": "prop_thap_cong_thanh",
    "foot": [40, 126]
@@ -970,7 +990,7 @@
      "79,60": {
       "main": ["nha_truong_thon"],
       "gate": "cong_lang_go",
-      "deco": ["thung_go_chong", "vuon_rau", "dong_rom"],
+      "deco": ["thung_go_chong", "vuon_rau", "cay_hoa_tim", "dong_rom"],
       "floor": "dat_lang"
      },
      "111,60": {
@@ -985,7 +1005,7 @@
       "walls": false
      },
      "105,60": {
-      "main": ["nha_nong_dan"],
+      "main": ["nha_mai_cong"],
       "walls": false
      },
      "79,83": {
@@ -993,7 +1013,7 @@
       "walls": false
      },
      "117,83": {
-      "main": ["kho_thoc"],
+      "main": ["nha_tranh_jp"],
       "walls": false
      }
     }
@@ -1057,10 +1077,10 @@
      "top": "#8a8478",
      "h": 30
     },
-    "tower": "thap_cong_thanh",
+    "tower": "thap_da_jp",
     "compounds": {
      "100,10": {
-      "main": ["xuong_ren", "lo_ren_lang"],
+      "main": ["xuong_ren", "nha_dai_mai_cong"],
       "gate": "cong_sat",
       "deco": ["gia_vu_khi", "thung_go_chong", "lo_lua_dong"],
       "floor": "pho_da"
