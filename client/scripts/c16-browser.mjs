@@ -1,34 +1,36 @@
 // C16: ảnh game thật và hồi quy marker trang rèn/toast; runtime RAM riêng, không DB ngoài.
-import { spawn } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { createServer } from 'node:net';
 import { writeFileSync, mkdirSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { createOwnedChildren, viteFsUrl, withCleanup } from './c16-runtime.mjs';
 const root=fileURLToPath(new URL('../../', import.meta.url));
 const out=resolve(process.env.C16_OUTPUT ?? resolve(tmpdir(),'c16-preview'));
 mkdirSync(out, {recursive:true});
 const before=process.env.C16_BEFORE === '1';
-const {execFileSync}=await import('node:child_process');
 const sha=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
 const sourceDirty=!!execFileSync('git',['diff','--name-only','HEAD','--','client/src','shared'],{cwd:root,encoding:'utf8'}).trim();
-const children=[]; let browser; let stopping=false;
+const children=createOwnedChildren(); let browser, browserStarting; let stopping=false;
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const port=()=>new Promise((res,rej)=>{const s=createServer();s.on('error',rej);s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>res(p));});});
-function start(args,extra){const c=spawn(process.execPath,args,{cwd:root,detached:true,env:{...process.env,DATABASE_URL:'',REDIS_URL:'',ADMIN_ACCOUNTS:'',...extra},stdio:['ignore','pipe','pipe']});children.push(c);let log='';for(const s of [c.stdout,c.stderr])s.on('data',d=>log=(log+d).slice(-4000));c.on('exit',code=>{if(code&&!stopping)console.error('runtime exit',code,log);});}
-async function ready(url){for(let n=0;n<150;n++){if(await fetch(url).then(r=>r.ok).catch(()=>false))return;await delay(200);}throw Error('runtime not ready');}
-try{
+function start(args,extra){const c=children.start(args,{cwd:root,env:{...process.env,DATABASE_URL:'',REDIS_URL:'',ADMIN_ACCOUNTS:'',...extra},stdio:['ignore','pipe','pipe']});let log='';for(const s of [c.stdout,c.stderr])s.on('data',d=>log=(log+d).slice(-4000));c.on('exit',code=>{if(code&&!stopping)console.error('runtime exit',code,log);});}
+async function ready(url,signal){for(let n=0;n<150;n++){signal.throwIfAborted();if(await fetch(url,{signal}).then(r=>r.ok).catch(()=>false))return;await delay(200);}throw Error('runtime not ready');}
+await withCleanup(async(signal)=>{
  const apiPort=await port(),webPort=await port(),api=`http://127.0.0.1:${apiPort}`,web=`http://127.0.0.1:${webPort}`;
- start(['server/node_modules/tsx/dist/cli.mjs','--tsconfig','server/tsconfig.json','server/src/index.ts'],{PORT:String(apiPort),GAME_TEST:'1'});
+ start(['--import',pathToFileURL(resolve(root,'server/node_modules/tsx/dist/loader.mjs')).href,'server/src/index.ts'],{PORT:String(apiPort),GAME_TEST:'1',TSX_TSCONFIG_PATH:resolve(root,'server/tsconfig.json')});
  start(['client/node_modules/vite/bin/vite.js','client','--host','127.0.0.1','--port',String(webPort)],{VITE_SERVER_URL:api});
- await Promise.all([ready(api+'/health'),ready(web)]);console.log('Runtime RAM riêng',web);
+ await Promise.all([ready(api+'/health',signal),ready(web,signal)]);console.log('Runtime RAM riêng',web);
 
- const post=async(p,b)=>{const r=await fetch(api+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const d=await r.json();if(!r.ok)throw Error(p+' status '+r.status);return d;};
+ const post=async(p,b)=>{const r=await fetch(api+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b),signal});const d=await r.json();if(!r.ok)throw Error(p+' status '+r.status);return d;};
  const {token}=await post('/api/login',{name:'tthoa_c16_demo',password:'Local-baseline-only!'});
  await post('/api/looks',{token,sex:0,hair:0,hairCol:0,outfitCol:0});await post('/api/awaken',{token,vohon:'lam_dien_ba_vuong_long'});
- browser=await chromium.launch({...(process.env.C16_CHANNEL ? {channel:process.env.C16_CHANNEL}:{}),headless:true,args:['--mute-audio','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+ signal.throwIfAborted();
+ browserStarting=chromium.launch({...(process.env.C16_CHANNEL ? {channel:process.env.C16_CHANNEL}:{}),headless:true,args:['--mute-audio','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+ browser=await browserStarting;signal.throwIfAborted();
  const page=await browser.newPage({viewport:{width:1280,height:720}});
  const errors=[], contrast=[];page.on('pageerror',e=>errors.push({message:e.message,jsonLoader:/JSONFile\d*\.onProcess/.test(e.stack??'')}));
  await page.addInitScript(({token})=>localStorage.setItem('shh-token',token),{token});
@@ -38,7 +40,7 @@ try{
  if(!before) {
   const result=await page.evaluate(async(dataPath)=>{
    document.querySelector('#toasts')?.remove();
-   const f=await import('/src/feedback.ts'); const {RARE_LOOT_MIN}=await import('/src/audio/soundMap.ts'); const {TIERS,RING_ITEM}=await import('/@fs'+dataPath);
+   const f=await import('/src/feedback.ts'); const {RARE_LOOT_MIN}=await import('/src/audio/soundMap.ts'); const {TIERS,RING_ITEM}=await import(dataPath);
    const ring=(years)=>({id:'r'+years,code:RING_ITEM,qty:1,years,stars:null,enhance:0,vohon:null,stats:null});
    const rare=ring(TIERS[RARE_LOOT_MIN].years); const common=ring(TIERS[RARE_LOOT_MIN].years-1);
    f.lootToasts([], [rare,common]);
@@ -51,7 +53,7 @@ try{
    const quest=nodes().find(t=>t.dataset.k==='quest');
    rareNode?.click();
    return {initial,merged,questFrame:quest?.dataset.frame??'',dismissed:rareNode?.classList.contains('out')};
-  }, resolve(root,'shared/data.ts'));
+  }, viteFsUrl(resolve(root,'shared/data.ts')));
   assert.equal(result.initial.rareCount,1,'Chỉ hồn hoàn hiếm phải có marker C2');
   assert.equal(result.initial.rareKind,'loot');assert.equal(result.initial.count,2);
   assert.equal(result.merged.count,2);assert.equal(result.merged.n,'×2');assert.equal(result.questFrame,'');assert.equal(result.dismissed,true);
@@ -89,7 +91,7 @@ try{
      const a=lum(fg),b=lum(bg);rows.push({text:text.textContent.trim(),fg,bg,cssBg,ratio:(Math.max(a,b)+.05)/(Math.min(a,b)+.05)});
     }
    }return {rows,clippedText};
-  },{data:png.toString('base64'),helper:'/@fs'+resolve(root,'client/scripts/c16-contrast.mjs')});
+  },{data:png.toString('base64'),helper:viteFsUrl(resolve(root,'client/scripts/c16-contrast.mjs'))});
   const measurements=observed.rows;
   contrast.push({file,measurements,clippedText:observed.clippedText});
   for(const text of requiredText)assert.ok(measurements.some(r=>r.text===text),file+': bắt buộc đo nhãn '+text+' sau cuộn');
@@ -136,4 +138,4 @@ try{
  writeFileSync(out+'/evidence.json',JSON.stringify({sha,sourceDirty,tool:'Playwright Chrome headless --mute-audio',viewports:['1280x720','960x540','844x390 touch'],runtime:'server RAM riêng, không DB/Redis',fixture:'Game thật; Nhân vật state server; fixture có món dùng hook give/equip trên GAME_TEST RAM, gồm chọn nguyên liệu để đo dòng cấp/chỉ số/phí; trang NPC gọi openNpc với bag thật/no-op actions, chọn tab/trang bằng DOM handler, toast gọi hàm hiển thị trực tiếp. Không chứng minh server phát sinh sự kiện hay thao tác rèn.',pageErrors:errors,aoBrowser:'Không kiểm E2E AO Browser; thiếu capability'},null,2));
  assert.deepEqual(errors.filter(e=>!(e.jsonLoader&&e.message.startsWith("Unexpected token '<'"))),[], 'Lỗi trình duyệt mới ngoài lỗi JSON loader baseline');
  console.log('Đã chụp 36 ảnh game (3 viewport, gồm nhãn Phụ sau cuộn, có món và chọn nguyên liệu); lỗi JSON loader baseline:',errors.length);
-}finally{stopping=true;await browser?.close().catch(()=>{});for(const c of children){try{process.kill(-c.pid);}catch{}}}
+},async()=>{stopping=true;await Promise.all([browserStarting?.then(b=>b.close()).catch(()=>{}),children.close()]);});
