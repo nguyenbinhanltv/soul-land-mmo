@@ -12,6 +12,11 @@ export interface AutoPanelCtx {
 }
 
 const SKILL_KEYS = ["U", "I", "O", "P"];
+/** Niên hạn mẫu (U3 #756): chỉ là lối tắt điền hai ô từ / đến; trần lấy từ MAX_YEARS, server vẫn kẹp lại bằng parseAuto. */
+const YEAR_PRESETS: { label: string; years: [number, number] }[] = [
+  { label: "1K–5K", years: [1000, 5000] }, { label: "10K–20K", years: [10000, 20000] }, { label: "50K+", years: [50000, MAX_YEARS] }];
+/** Một lần bấm − / + ở ô niên hạn. */
+const YEAR_STEP = 1000;
 const $ = <T extends HTMLElement = HTMLElement>(sel: string, root: ParentNode = document) => root.querySelector<T>(sel);
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 /** Thời gian treo để hiển thị: dưới một phút thì ghi giây. */
@@ -28,6 +33,11 @@ let last: AutoMsg | null = null;
 let lastSum: { sum: AutoSummary; left: number } | null = null;
 /** Thứ tự đầy đủ đang hiển thị của hai danh sách (ô bật trước theo thứ tự ưu tiên, ô tắt sau) và ô đang bật. */
 const lists = { skills: { order: [0, 1, 2, 3], on: new Set<number>() }, slots: { order: [0, 1, 2, 3], on: new Set<number>() } };
+
+/** Ô số niên hạn kèm hai nút − / + (vùng bấm 44 px, U3 #756). */
+const stepper = (k: string, label: string) => `<div class="astp"><button type="button" data-step="${k}" data-d="-1" aria-label="${label}: giảm ${YEAR_STEP}">−</button>`
+  + `<input type="number" min="0" max="${MAX_YEARS}" step="10" data-k="${k}" aria-label="${label} (năm)">`
+  + `<button type="button" data-step="${k}" data-d="1" aria-label="${label}: tăng ${YEAR_STEP}">+</button></div>`;
 
 const panel = () => document.getElementById("autoPanel");
 const sumBox = () => document.getElementById("autoSum");
@@ -53,7 +63,7 @@ export function closeAutoSum() { const el = sumBox(); if (el) el.hidden = true; 
 export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
   ctx = c;
   const el = panel(); if (!el) return;
-  const kinds = AUTO_LOOT_KINDS.map((k) => `<label class="achk"><input type="checkbox" data-kind="${k}"> ${ITEM_KINDS[k].name}</label>`).join("");
+  const kinds = AUTO_LOOT_KINDS.map((k) => `<label class="achk apill"><input type="checkbox" data-kind="${k}"><i></i><span>${ITEM_KINDS[k].name}</span></label>`).join("");
   const stars = Array.from({ length: MAX_CORE_STARS }, (_, i) => `<option value="${i + 1}">${i + 1}★</option>`).join("");
   el.innerHTML = `
     <div class="rhead"><b>Tự động</b><button class="x" type="button" data-a="close" aria-label="Đóng bảng Tự động">×</button></div>
@@ -61,18 +71,23 @@ export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
     <button class="buse absorb atoggle" type="button" data-a="toggle"></button>
     <div class="anote" data-a="job" aria-live="off" hidden><b></b><small data-a="rate"></small></div>
     <section class="asec"><b>Vùng săn</b>
-      <label class="achk"><input type="radio" name="ascope" value="map" data-scope> Toàn bản đồ (tự đi tới hồn thú gần nhất, không qua cổng)</label>
-      <label class="achk"><input type="radio" name="ascope" value="near" data-scope> Chỉ quanh chỗ đứng</label>
+      <div class="achips" role="radiogroup" aria-label="Vùng săn">
+        <label class="achip"><input type="radio" name="ascope" value="map" data-scope><span>Toàn bản đồ</span></label>
+        <label class="achip"><input type="radio" name="ascope" value="near" data-scope><span>Quanh chỗ đứng</span></label></div>
+      <small>Toàn bản đồ: tự đi tới hồn thú gần nhất, không qua cổng.</small>
       <label class="arange">Bán kính quanh chỗ bật <output data-o="radius"></output>
         <input type="range" min="${AUTO_RADIUS_MIN / TILE}" max="${AUTO_RADIUS / TILE}" step="1" data-k="radius"></label>
-      <div class="aline">Niên hạn hồn thú từ <input type="number" min="0" max="${MAX_YEARS}" step="10" data-k="y0"> đến
-        <input type="number" min="0" max="${MAX_YEARS}" step="10" data-k="y1"> năm</div>
+      <b class="asub">Niên hạn hồn thú</b>
+      <div class="achips" role="group" aria-label="Niên hạn mẫu">${YEAR_PRESETS.map((p, i) => `<button type="button" class="achip" data-preset="${i}" aria-pressed="false"><span>${p.label}</span></button>`).join("")}
+        <button type="button" class="achip" data-preset="custom" aria-pressed="false"><span>Tuỳ chọn</span></button></div>
+      <div class="aline"><span>Từ</span>${stepper("y0", "Niên hạn từ")}<span>đến</span>${stepper("y1", "Niên hạn đến")}<span>năm</span></div>
+      <small class="ayerr" data-a="yerr" role="alert" hidden></small>
       <div class="anote" data-a="hint" hidden><small data-a="hintText"></small> <button class="buse" type="button" data-a="hintApply">Áp dụng</button></div>
       <small>Bỏ qua hồn thú người khác đang đánh. Hồn thú đánh mình thì luôn đánh trả.</small></section>
     <section class="asec"><b>Tinh anh, thú vương, boss</b>
-      <label class="achk"><input type="checkbox" data-k="elite"> Tinh anh</label>
-      <label class="achk"><input type="checkbox" data-k="king"> Tà hóa thú vương</label>
-      <label class="achk"><input type="checkbox" data-k="world"> Boss thế giới</label>
+      <label class="achk apill"><input type="checkbox" data-k="elite"><i></i><span>Tinh anh</span></label>
+      <label class="achk apill"><input type="checkbox" data-k="king"><i></i><span>Tà hóa thú vương</span></label>
+      <label class="achk apill"><input type="checkbox" data-k="world"><i></i><span>Boss thế giới</span></label>
       <label class="aline">Khi nào tới đánh <select data-k="bossMode">
         <option value="near">Khi gần (ưu tiên quái thường quanh mình)</option>
         <option value="always">Luôn ưu tiên (chạy tới bất kể xa)</option>
@@ -81,17 +96,17 @@ export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
     <section class="asec"><b>Hồn kỹ ưu tiên</b><small>Ô trên cùng tung trước; bỏ chọn thì không tung.</small><ol class="aorder" data-list="skills"></ol>
       <label class="arange">Chừa hồn lực <output data-o="mpKeep"></output><input type="range" min="0" max="0.9" step="0.05" data-k="mpKeep"></label></section>
     <section class="asec"><b>Võ hồn đổi tay</b>
-      <label class="achk"><input type="checkbox" data-k="tienCo"> Võ hồn khác đầy năng lượng tiên cơ thì đổi tay vào tung, xong về võ hồn chính</label>
+      <label class="achk apill"><input type="checkbox" data-k="tienCo"><i></i><span>Võ hồn khác đầy năng lượng tiên cơ thì đổi tay vào tung, xong về võ hồn chính</span></label>
       <ol class="aorder" data-list="slots"></ol></section>
     <section class="asec"><b>Đan dược</b>
       <label class="arange">Uống đan hồi sinh lực khi dưới <output data-o="hp"></output><input type="range" min="0" max="0.95" step="0.05" data-k="hp"></label>
       <label class="arange">Uống đan hồi hồn lực khi dưới <output data-o="mp"></output><input type="range" min="0" max="0.95" step="0.05" data-k="mp"></label>
-      <label class="achk"><input type="checkbox" data-k="stopNoPot"> Hết đan hồi sinh lực thì dừng</label>
-      <label class="achk"><input type="checkbox" data-k="restNoPot"> Hết đan thì nghỉ hồi sinh lực rồi săn tiếp (không chọn dừng ở trên)</label></section>
+      <label class="achk apill"><input type="checkbox" data-k="stopNoPot"><i></i><span>Hết đan hồi sinh lực thì dừng</span></label>
+      <label class="achk apill"><input type="checkbox" data-k="restNoPot"><i></i><span>Hết đan thì nghỉ hồi sinh lực rồi săn tiếp (không chọn dừng ở trên)</span></label></section>
     <section class="asec"><b>Nhặt đồ</b>
-      <label class="achk"><input type="checkbox" data-k="ringOn"> Hồn hoàn từ <input type="number" min="0" max="${MAX_YEARS}" step="10" data-k="ring"> năm</label>
-      <label class="achk"><input type="checkbox" data-k="bone"> Hồn cốt</label>
-      <label class="achk"><input type="checkbox" data-k="core"> Hồn hạch từ <select data-k="coreStar">${stars}</select></label>
+      <div class="aline"><label class="achk apill"><input type="checkbox" data-k="ringOn"><i></i><span>Hồn hoàn từ</span></label><input type="number" min="0" max="${MAX_YEARS}" step="10" data-k="ring" aria-label="Niên hạn hồn hoàn tối thiểu"> năm</div>
+      <label class="achk apill"><input type="checkbox" data-k="bone"><i></i><span>Hồn cốt</span></label>
+      <div class="aline"><label class="achk apill"><input type="checkbox" data-k="core"><i></i><span>Hồn hạch từ</span></label><select data-k="coreStar" aria-label="Sao hồn hạch tối thiểu">${stars}</select></div>
       ${kinds}
       <small>Hồn Tệ luôn vào thẳng túi. Không tự hấp thụ hồn hoàn.</small></section>
     <div class="brow"><button class="buse" type="button" data-a="reset">Về mặc định</button></div>
@@ -104,12 +119,29 @@ export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
     ctx?.send("set", { ...cfg, years: [y[0], y[1]] });
   }, on);
   $("[data-a=reset]", el)!.addEventListener("click", () => ctx?.send("set", structuredClone(AUTO_DEFAULTS)), on);
-  // Kéo thanh trượt: chỉ đổi số hiển thị; thả ra (change) thì gửi cài đặt.
-  el.addEventListener("input", (e) => { const t = e.target as HTMLInputElement; if (t.type === "range") showRange(el, t); }, on);
+  // Kéo thanh trượt: chỉ đổi số hiển thị; thả ra (change) thì gửi cài đặt. Gõ ô niên hạn: báo lỗi ngay (từ > đến) nhưng chưa gửi.
+  el.addEventListener("input", (e) => {
+    const t = e.target as HTMLInputElement;
+    if (t.type === "range") showRange(el, t); else if (t.dataset.k === "y0" || t.dataset.k === "y1") checkYears(el);
+  }, on);
+  // Space trên công tắc / chip đang có tiêu điểm là để bật / tắt: không cho nổi lên phím game (GameScene chặn Space để đánh).
+  el.addEventListener("keydown", (e) => {
+    const t = e.target as HTMLInputElement;
+    if (e.code === "Space" && t.tagName === "INPUT" && (t.type === "checkbox" || t.type === "radio")) e.stopPropagation();
+  }, on);
+  // Niên hạn mẫu và nút − / +: đặt hai ô rồi gửi (chỉ khi từ ≤ đến).
+  el.addEventListener("click", (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-preset], button[data-step]"); if (!b) return;
+    const y = (k: string) => $<HTMLInputElement>(`[data-k=${k}]`, el)!;
+    if (b.dataset.preset === "custom") { y("y0").focus(); return; }
+    if (b.dataset.preset) { const p = YEAR_PRESETS[Number(b.dataset.preset)]; y("y0").value = String(p.years[0]); y("y1").value = String(p.years[1]); }
+    else { const i = y(b.dataset.step!); i.value = String(clampYears(Number(i.value) + Number(b.dataset.d) * YEAR_STEP)); }
+    b.blur(); commit(el, true);
+  }, on);
   // Ô đánh dấu / chọn / thanh trượt đổi xong thì bỏ tiêu điểm để phím game (Space, mũi tên, số) dùng lại ngay; ô số và chọn sao giữ tiêu điểm.
   el.addEventListener("change", (e) => {
     const t = e.target as HTMLInputElement; if (t.type === "checkbox" || t.type === "radio" || t.type === "range") t.blur();
-    const cfg = read(el); if (cfg) ctx?.send("set", cfg);
+    commit(el, t.dataset.k === "y0" || t.dataset.k === "y1");
   }, on);
   for (const key of ["skills", "slots"] as const) {
     $(`[data-list=${key}]`, el)!.addEventListener("click", (e) => {
@@ -123,6 +155,35 @@ export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
   const sum = sumBox();
   if (sum) sum.hidden = true;
   if (last) fill(last);
+}
+
+const clampYears = (v: number) => Math.min(MAX_YEARS, Math.max(0, Math.round(v) || 0));
+const yearsOf = (el: HTMLElement): [number, number] => [clampYears(Number($<HTMLInputElement>("[data-k=y0]", el)!.value)), clampYears(Number($<HTMLInputElement>("[data-k=y1]", el)!.value))];
+
+/** Kiểm niên hạn (từ ≤ đến, trong 0..MAX_YEARS): sai thì ô đỏ + chú thích; đồng thời sáng nút mẫu khớp. Trả về true nếu hợp lệ. */
+function checkYears(el: HTMLElement) {
+  const [a, b] = yearsOf(el), ok = a <= b;
+  for (const k of ["y0", "y1"]) $<HTMLInputElement>(`[data-k=${k}]`, el)!.toggleAttribute("aria-invalid", !ok);
+  const err = $("[data-a=yerr]", el)!; err.hidden = ok;
+  if (!ok) err.textContent = `Niên hạn "từ" (${a.toLocaleString("vi-VN")}) đang lớn hơn "đến" (${b.toLocaleString("vi-VN")}): sửa lại thì mới lưu.`;
+  const hit = ok ? YEAR_PRESETS.findIndex((p) => p.years[0] === a && p.years[1] === b) : -1;
+  for (const p of el.querySelectorAll<HTMLButtonElement>("button[data-preset]")) {
+    const on = p.dataset.preset === "custom" ? ok && hit < 0 : Number(p.dataset.preset) === hit;
+    p.classList.toggle("on", on); p.setAttribute("aria-pressed", String(on));
+  }
+  return ok;
+}
+
+/** Gửi cài đặt sau khi người chơi đổi; niên hạn sai (từ > đến): sửa chính ô niên hạn thì không gửi, đổi ô khác thì gửi kèm niên hạn đang lưu. Ô niên hạn vượt trần thì kẹp về MAX_YEARS ngay ở ô. */
+function commit(el: HTMLElement, yearsChanged = false) {
+  const [a, b] = yearsOf(el);
+  $<HTMLInputElement>("[data-k=y0]", el)!.value = String(a); $<HTMLInputElement>("[data-k=y1]", el)!.value = String(b);
+  const cfg = read(el); if (!cfg) return;
+  if (!checkYears(el)) {
+    if (yearsChanged) return; // đang sửa niên hạn: không gửi (server trả tin sẽ ghi đè số đang gõ), ô đỏ chờ sửa tiếp
+    cfg.years = [...last!.cfg.years]; // đổi ô khác khi niên hạn đang sai: vẫn lưu, với niên hạn đang có
+  }
+  ctx?.send("set", cfg);
 }
 
 function showRange(el: HTMLElement, t: HTMLInputElement) {
@@ -165,7 +226,7 @@ function fill(m: AutoMsg) {
   };
   for (const i of el.querySelectorAll<HTMLInputElement>("input[data-scope]")) i.checked = i.value === c.scope;
   // Bán kính chỉ dùng khi săn quanh chỗ đứng.
-  set("radius", c.radius); $<HTMLInputElement>("[data-k=radius]", el)!.disabled = c.scope !== "near"; set("y0", c.years[0]); set("y1", c.years[1]); set("mpKeep", c.mpKeep); set("tienCo", c.tienCo);
+  set("radius", c.radius); $<HTMLInputElement>("[data-k=radius]", el)!.disabled = c.scope !== "near"; set("y0", c.years[0]); set("y1", c.years[1]); checkYears(el); set("mpKeep", c.mpKeep); set("tienCo", c.tienCo);
   set("hp", c.hp); set("mp", c.mp); set("stopNoPot", c.stopNoPot); set("restNoPot", c.restNoPot); set("elite", c.elite); set("king", c.king); set("world", c.world); set("bossMode", c.bossMode);
   set("ringOn", c.ring >= 0); set("ring", Math.max(0, c.ring)); set("bone", c.bone); set("core", c.core);
   $<HTMLSelectElement>("[data-k=coreStar]", el)!.value = String(c.coreStar);
@@ -221,11 +282,11 @@ function order(el: HTMLElement, key: "skills" | "slots", picked: number[], label
   const box = $(`[data-list=${key}]`, el)!; box.innerHTML = "";
   l.order.forEach((i, k) => {
     const li = document.createElement("li");
-    li.innerHTML = `<label class="achk"><input type="checkbox" data-on="${i}"><span></span></label>`
+    li.innerHTML = `<label class="achk apill"><input type="checkbox" data-on="${i}"><i></i><span></span></label>`
       + `<button type="button" class="rlink" data-mv="-1" data-i="${k}" aria-label="Lên">▲</button>`
       + `<button type="button" class="rlink" data-mv="1" data-i="${k}" aria-label="Xuống">▼</button>`;
     $<HTMLInputElement>("input", li)!.checked = l.on.has(i);
-    $("span", li)!.textContent = label(i);
+    $("label span", li)!.textContent = label(i);
     box.appendChild(li);
   });
 }
