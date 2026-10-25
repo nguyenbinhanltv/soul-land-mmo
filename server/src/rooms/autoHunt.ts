@@ -5,7 +5,8 @@
 // Từ #218 đánh cả tinh anh, thú vương, boss thế giới (mục tiêu chung), né vùng báo trước / vùng độc mỗi nhịp, đổi võ hồn theo cơ chế boss.
 import type { Client } from "colyseus";
 import { TIERS, TILE, ITEMS, BONE_ITEM, CORE_ITEM, RING_ITEM, PICKUP_RANGE, BEAST_AGGRO_R, TIEN_CO_MAX, CHAN_THAN_RING, CHAN_THAN_SKILL_SLOT,
-  AUTO_HZ, AUTO_DAILY_SECS, AUTO_CLAIM_SECS, AUTO_MOVE, AUTO_SUM_LOOT, AUTO_RADIUS, AUTO_PACE, AUTO_BOSS, STATUS, VOHON, offlineFight, loadoutOf, ringSkill,
+  AUTO_HZ, AUTO_DAILY_SECS, AUTO_CLAIM_SECS, AUTO_MOVE, AUTO_SUM_LOOT, AUTO_RADIUS, AUTO_PACE, AUTO_BOSS, AUTO_LOOT_RADIUS, AUTO_LOOT_WAIT,
+  AUTO_BOSS_DETOUR, AUTO_TARGET, BEASTS, STATUS, VOHON, offlineFight, loadoutOf, ringSkill,
   chanThanOf, autoTimeText, itemDef, xpNeed, formatYears, vohonIndex, isCcStatus, teleHits, teleSafe,
   type AutoSettings, type AutoSummary, type OfflinePower, type SkillDef, type ItemDef, type He } from "../../../shared/data.ts";
 import { MOVE_DEAD, type SolidGrid } from "../../../shared/move.ts";
@@ -79,6 +80,9 @@ export class AutoHunter {
   /** Đi thẳng tới mục tiêu được không (clearLine), tính lại khi mình hoặc mục tiêu dời quá vài pixel so với lần tính trước. */
   los = { px: NaN, py: NaN, bx: NaN, by: NaN, ok: false };
 
+  /** Giây còn phải chờ đồ rơi sau khi vừa hạ một hồn thú thường (AUTO_LOOT_WAIT) trước khi nhắm con mới (#608). */
+  lootWait = 0;
+
   /** Nợ nhịp (giây, AUTO_PACE): còn dương thì không nhắm hồn thú mới. `est`: giây tự đánh ước lượng của con vừa hạ (hook test). */
   pace = 0; est = 0;
 
@@ -120,7 +124,7 @@ export class AutoHunter {
   tick(dt: number) {
     const room = this.room, p = room.state.players.get(this.id), d = room.pdata.get(this.id), c = room.clients.getById(this.id);
     if (!p || !d || !c) return room.autoStop(this.id, "mất kết nối.");
-    this.clock += dt; this.secs += dt;
+    this.clock += dt; this.secs += dt; this.lootWait = Math.max(0, this.lootWait - dt);
     // Nợ nhịp giảm theo thời gian thực; chỉ kẹp khi không có mục tiêu (rảnh), không kẹp lúc đang đi tới / đánh một con (AUTO_PACE).
     this.pace -= dt; if (!this.target) this.pace = Math.max(-AUTO_PACE.credit, this.pace);
     // Giờ miễn phí của hôm nay trước, hết thì tiêu quỹ cộng thêm từ Ủy Thác Lệnh (Auto 2).
@@ -183,12 +187,37 @@ export class AutoHunter {
     if (this.potions(p, d) === "stop") return;
     // Bỏ mục tiêu đã chết / ra khỏi vùng / bị người khác giành; hồn thú đang đánh mình thì đổi sang nó (đánh trả).
     if (this.target && !this.keep(this.target, p, d)) this.drop();
-    // #218: tinh anh / thú vương / boss thế giới trên bản đồ thì tới đánh trước mọi việc khác (kể cả đánh trả: hồn thú thường đang đánh
-    // mình, bầy / nhện con boss gọi ra trúng lan từ đòn và hồn kỹ diện rộng); không xét trần AUTO_PACE. Chưa đánh trúng boss đang nhắm
-    // thì vẫn xét lại: boss bậc cao hơn / gần hơn vừa nhắm được (ví dụ vừa hết khóa thưởng) thì đổi sang.
-    if (!this.boss || !this.hit) { const t = this.findBoss(p, d); if (t && t !== this.target) this.setTarget(t); }
+    // Thứ tự mỗi nhịp (#608): né (steer) → đan (trên) → đánh trả con đang đánh mình (sát) → NHẶT → chọn mục tiêu → đi dạo. Chế độ boss
+    // "always" (#218, như cũ): tinh anh / thú vương / boss thế giới trên bản đồ thì tới đánh trước mọi việc khác (kể cả đánh trả: bầy /
+    // nhện con boss gọi ra trúng lan từ đòn và hồn kỹ diện rộng, và nhặt); không xét trần AUTO_PACE. Chưa đánh trúng boss đang nhắm thì
+    // vẫn xét lại: boss bậc cao hơn / gần hơn vừa nhắm được (ví dụ vừa hết khóa thưởng) thì đổi sang.
+    const always = this.cfg.bossMode === "always";
+    if (always && (!this.boss || !this.hit)) { const t = this.findBoss(p, d); if (t && t !== this.target) this.setTarget(t); }
     const foe = this.boss ? null : this.attacker(p);
     if (foe && foe !== this.target && (!this.target || room.bdata.get(this.target)?.target !== this.id)) this.setTarget(foe);
+    // Đang đánh (đã trúng, hoặc nó đang đánh mình) thì giữ tới khi hạ; chưa thì nhặt đồ trước (bỏ mục tiêu đang đi tới, chọn lại sau).
+    if (!(this.target && (this.hit || this.fighting())) && !(this.boss && always)) {
+      this.tienCo(p, d, c);
+      if (this.loot && !this.lootable(this.loot)) this.loot = null;
+      if (!this.loot) this.loot = this.findLoot(p);
+      if (this.loot) {
+        if (this.target) this.drop();
+        const dr = room.state.drops.get(this.loot)!;
+        if (Math.hypot(dr.x - p.x, dr.y - p.y) < PICKUP_RANGE - 4) {
+          room.pickup(this.id, this.loot); // đúng món đã chọn theo bộ lọc, không phải món gần nhất (có thể bị lọc bỏ)
+          if (room.state.drops.has(this.loot)) this.skip.set(this.loot, this.clock + AUTO_MOVE.skip); // không nhặt được (ví dụ chưa tới lượt)
+          this.loot = null; this.go(null);
+        } else this.go({ x: dr.x, y: dr.y });
+        return;
+      }
+      // Vừa hạ một con: chờ đồ rơi rồi mới nhắm con mới.
+      if (!this.target && this.lootWait > 0) { this.patrol = null; this.go(null); return; }
+    }
+    // Chế độ "near": tinh anh / thú vương / boss thế giới chỉ khi gần (findBoss); không xét trần AUTO_PACE. Chưa đánh trúng boss đang nhắm
+    // thì xét lại như trên; đang đi tới hồn thú thường chưa đánh trúng mà boss vừa vào tầm thì đổi sang boss.
+    if (!always && !this.hit && !this.fighting()) { const t = this.findBoss(p, d); if (t && t !== this.target) this.setTarget(t); }
+    // Chưa có mục tiêu: chọn con mới (trần AUTO_PACE: còn nợ nhịp thì đứng nghỉ, vẫn đánh trả và nhặt đồ).
+    if (!this.target && this.pace <= 0) { const t = this.findTarget(p); if (t) { this.setTarget(t); return; } }
     // Săn khắp bản đồ: đang đi tới hồn thú ở xa (chưa đánh trúng, nó chưa đánh mình) mà gần mình có con hợp lệ thì đổi sang con gần.
     if (this.target && !this.boss && this.wide && !this.hit && !this.fighting() && this.pace <= 0) {
       const b = room.state.beasts.get(this.target)!;
@@ -204,23 +233,7 @@ export class AutoHunter {
       this.skill(p, d, c, b, need);
       return;
     }
-    // Không có ai đánh: tự đổi về võ hồn chính nếu vừa đổi tay tung tiên cơ, rồi nhặt đồ, tìm mục tiêu mới, đi dạo / về điểm neo.
-    this.tienCo(p, d, c);
-    if (this.loot && !this.lootable(this.loot)) this.loot = null;
-    if (!this.loot) this.loot = this.findLoot(p);
-    if (this.loot) {
-      const dr = room.state.drops.get(this.loot)!;
-      if (Math.hypot(dr.x - p.x, dr.y - p.y) < PICKUP_RANGE - 4) {
-        room.pickup(this.id, this.loot); // đúng món đã chọn theo bộ lọc, không phải món gần nhất (có thể bị lọc bỏ)
-        if (room.state.drops.has(this.loot)) this.skip.set(this.loot, this.clock + AUTO_MOVE.skip); // không nhặt được (ví dụ chưa tới lượt)
-        this.loot = null; this.go(null);
-      } else this.go({ x: dr.x, y: dr.y });
-      return;
-    }
-    // Trần tốc độ (AUTO_PACE): còn nợ nhịp thì đứng nghỉ, chưa nhắm con mới.
     if (this.pace > 0) { this.patrol = null; this.go(null); return; }
-    const t = this.findTarget(p);
-    if (t) { this.setTarget(t); return; }
     const far = !this.wide && Math.hypot(p.x - this.anchor.x, p.y - this.anchor.y) > this.R;
     if (far) { this.patrol = null; this.go(this.anchor); return; }
     // Vùng neo trống / cả bản đồ không còn hồn thú hợp lệ (săn khắp bản đồ): đi dạo quanh tâm săn chờ hồn thú hồi sinh.
@@ -235,7 +248,7 @@ export class AutoHunter {
    * đi / đánh mục tiêu đã trừ vào nợ (không kẹp), nên con đó tốn max(thật, ước lượng); phần thật dư quá `credit` giây bỏ khi thôi nhắm
    * mục tiêu (drop). Hạ lan con khác giữa trận không kẹp, để không xóa thời gian thật của trận đang đánh.
    */
-  killed(pw: OfflinePower, years: number, species: string) { this.est = offlineFight(pw, years, species).secs; this.pace += this.est; }
+  killed(pw: OfflinePower, years: number, species: string) { this.est = offlineFight(pw, years, species).secs; this.pace += this.est; this.lootWait = AUTO_LOOT_WAIT; }
 
   setTarget(bid: string) {
     this.target = bid; this.hit = false; this.blockT = 0; this.go(null);
@@ -290,10 +303,10 @@ export class AutoHunter {
     if (!this.wide && Math.hypot(b.x - this.anchor.x, b.y - this.anchor.y) > this.R + 2 * TILE) return false;
     return !(this.taken(bid) && !(this.hit && bd.hitBy === this.id));
   }
-  /** Hồn thú thường đang đánh mình ở gần (gần nhất). */
+  /** Hồn thú thường đang đánh mình ở sát (trong AUTO_TARGET.retaliate; gần nhất). */
   attacker(p: PlayerState) {
-    let best: string | null = null, bd2 = BEAST_AGGRO_R * 2;
-    for (const [bid, b] of this.room.beastsNear(p.x, p.y, BEAST_AGGRO_R * 2)) {
+    let best: string | null = null, bd2 = AUTO_TARGET.retaliate;
+    for (const [bid, b] of this.room.beastsNear(p.x, p.y, AUTO_TARGET.retaliate + BEAST_HALF)) {
       const bd = this.room.bdata.get(bid);
       if (b.rank || b.hp <= 0 || bd?.target !== this.id || this.skip.has(bid)) continue;
       const dd = Math.hypot(b.x - p.x, b.y - p.y); if (dd < bd2) { bd2 = dd; best = bid; }
@@ -301,45 +314,67 @@ export class AutoHunter {
     return best;
   }
   /** Công tắc của bậc hồn thú `b` trong cài đặt (#218): tinh anh, thú vương, boss thế giới. */
-  bossOn(b: BeastState) { return b.rank === 1 ? this.cfg.elite : b.rank === 2 ? this.cfg.king : b.rank === 3 && this.cfg.world; }
+  bossOn(b: BeastState) { return this.cfg.bossMode !== "off" && (b.rank === 1 ? this.cfg.elite : b.rank === 2 ? this.cfg.king : b.rank === 3 && this.cfg.world); }
   /** Trong vùng neo (phạm vi "Chỉ quanh chỗ đứng"), có lề 2 ô. */
   nearAnchor(b: { x: number; y: number }) { return Math.hypot(b.x - this.anchor.x, b.y - this.anchor.y) <= this.R + 2 * TILE; }
   /**
-   * Tinh anh / thú vương / boss thế giới đang có trên bản đồ (#218): công tắc bật, mình còn nhận được thưởng (MapRoom.autoBossOk), chỗ
-   * sinh đi bộ tới được (cùng vùng liên thông), trong vùng neo khi chỉ quanh chỗ đứng. Bậc cao trước, cùng bậc thì gần nhất.
+   * Độ dài đường đi ước lượng (pixel) từ `p` tới `b` (#608): khoảng cách thẳng nếu đi thẳng được (clearLine, trong khung A*), không thì
+   * nhân AUTO_TARGET.detour. Không chạy A* cho từng ứng viên (xét nhiều con mỗi lần chọn).
+   */
+  walk(p: Pt, b: Pt) {
+    const dd = Math.hypot(b.x - p.x, b.y - p.y);
+    const near = Math.max(Math.abs(b.x - p.x), Math.abs(b.y - p.y)) < AUTO_MOVE.path.maxTiles * TILE;
+    return near && clearLine(navOf(this.room.map).grid, p, b) ? dd : dd * AUTO_TARGET.detour;
+  }
+  /**
+   * Tinh anh / thú vương / boss thế giới đang có trên bản đồ (#218): công tắc bật (bossMode khác "off"), mình còn nhận được thưởng
+   * (MapRoom.autoBossOk), chỗ sinh đi bộ tới được (cùng vùng liên thông), trong vùng neo khi chỉ quanh chỗ đứng. "always": bậc cao
+   * trước, cùng bậc thì gần nhất. "near" (#608): chỉ con có đường đi ≤ AUTO_BOSS_DETOUR, hoặc khi không có hồn thú thường nào (đang
+   * nhắm hay chọn được trong AUTO_RADIUS quanh mình); xếp theo đường đi / hệ số AUTO_TARGET.value (thấp nhất trước).
    */
   findBoss(p: PlayerState, d: PData) {
-    const room = this.room, { nav } = navOf(room.map), me = navNode(nav, p.x, p.y), region = me >= 0 ? nav.region[me] : -1;
-    let best: string | null = null, key = -Infinity;
+    if (this.cfg.bossMode === "off") return null;
+    const room = this.room, { nav } = navOf(room.map), me = navNode(nav, p.x, p.y), region = me >= 0 ? nav.region[me] : -1, always = this.cfg.bossMode === "always";
+    let best: string | null = null, key = -Infinity, free: boolean | null = null;
     for (const [bid, b] of room.autoBosses()) {
       const bd = room.bdata.get(bid);
       if (!bd || !this.bossOn(b) || this.skip.has(bid) || (!this.wide && !this.nearAnchor(b)) || !room.autoBossOk(d, b)) continue;
       const n = navNode(nav, bd.hx, bd.hy); if (n < 0 || nav.region[n] !== region) continue;
-      const k = b.rank * 1e7 - Math.hypot(b.x - p.x, b.y - p.y);
+      if (always) { const k = b.rank * 1e7 - Math.hypot(b.x - p.x, b.y - p.y); if (k > key) { key = k; best = bid; } continue; }
+      const len = this.walk(p, b);
+      if (len > AUTO_BOSS_DETOUR) {
+        free ??= !(this.target && !this.boss) && this.findTarget(p, true) === null;
+        if (!free) continue;
+      }
+      const k = -len / AUTO_TARGET.value[b.rank - 1];
       if (k > key) { key = k; best = bid; }
     }
     return best;
   }
   /**
-   * Mục tiêu mới: hồn thú thường đúng khoảng niên hạn, chưa ai giành (kể cả người treo khác đang nhắm), gần mình nhất. Chỉ quanh chỗ
-   * đứng: trong vùng neo. Săn khắp bản đồ: trong R quanh mình trước (lưới không gian), không có thì quét mọi hồn thú của kênh, chỉ lấy
-   * con đi bộ tới được (cùng vùng liên thông của đồ thị dẫn đường). `nearOnly`: chỉ xét trong R quanh tâm săn.
+   * Mục tiêu mới (#608): hồn thú thường đúng khoảng niên hạn, chưa ai giành (kể cả người treo khác đang nhắm), chi phí thấp nhất:
+   * (đường đi / tốc độ) + giây ước lượng hạ (offlineFight với chỉ số võ hồn ra trận; không đánh nổi thì cộng AUTO_TARGET.tough). Chỉ
+   * quanh chỗ đứng: trong vùng neo. Săn khắp bản đồ: trong R quanh mình trước (lưới không gian), không có thì quét mọi hồn thú của
+   * kênh, chỉ lấy con đi bộ tới được (cùng vùng liên thông của đồ thị dẫn đường). `nearOnly`: chỉ xét trong R quanh tâm săn.
    */
   findTarget(p: PlayerState, nearOnly = false) {
-    const [y0, y1] = this.cfg.years, R = this.R, c = this.center(), claimed = this.claimed();
-    let best: string | null = null, bdist = Infinity;
+    const [y0, y1] = this.cfg.years, R = this.R, c = this.center(), claimed = this.claimed(), d = this.room.pdata.get(this.id);
+    const pw = d ? this.room.offlinePower(d, p) : null, spd = Math.max(1, p.spd);
+    let best: string | null = null, bcost = Infinity;
     const consider = (bid: string, b: BeastState, r: number) => {
       if (b.rank || b.hp <= 0 || b.years < y0 || b.years > y1 || this.skip.has(bid) || claimed.has(bid)) return;
       const dd = Math.hypot(b.x - p.x, b.y - p.y);
-      if (dd >= bdist || Math.hypot(b.x - c.x, b.y - c.y) > r) return;
+      if (dd / spd >= bcost || Math.hypot(b.x - c.x, b.y - c.y) > r) return;
       const bd = this.room.bdata.get(bid); if (!bd || bd.ret > 0 || this.taken(bid)) return;
-      bdist = dd; best = bid;
+      const f = pw ? offlineFight(pw, b.years, BEASTS[b.species]?.id ?? "") : null;
+      const cost = this.walk(p, b) / spd + (f ? f.secs + (f.ok ? 0 : AUTO_TARGET.tough) : 0);
+      if (cost < bcost) { bcost = cost; best = bid; }
     };
     for (const [bid, b] of this.room.beastsNear(c.x, c.y, R)) consider(bid, b, R);
     if (best || !this.wide || nearOnly) return best;
     const { nav } = navOf(this.room.map), me = navNode(nav, p.x, p.y), region = me >= 0 ? nav.region[me] : -1;
     this.room.state.beasts.forEach((b, bid) => {
-      if (Math.hypot(b.x - p.x, b.y - p.y) >= bdist) return;
+      if (Math.hypot(b.x - p.x, b.y - p.y) / spd >= bcost) return;
       const n = navNode(nav, b.x, b.y); if (n < 0 || nav.region[n] !== region) return;
       consider(bid, b, Infinity);
     });
@@ -355,19 +390,20 @@ export class AutoHunter {
     const kind = itemDef(dr.item)?.kind;
     return !!kind && this.cfg.kinds.includes(kind);
   }
+  /** Món đang nằm đó còn nhặt được: hợp bộ lọc, quyền nhặt, chưa bỏ qua, trong vùng nhặt (AUTO_LOOT_RADIUS quanh mình; chỉ quanh chỗ đứng: trong vùng neo). */
   lootable(did: string) {
     const dr = this.room.state.drops.get(did);
     const c = this.center();
     return !!dr && !this.skip.has(did) && this.wanted(dr) && this.room.canLoot(dr, this.id)
-      && Math.hypot(dr.x - c.x, dr.y - c.y) <= this.R + 2 * TILE;
+      && Math.hypot(dr.x - c.x, dr.y - c.y) <= (this.wide ? AUTO_LOOT_RADIUS : this.R) + 2 * TILE;
   }
+  /** Món hợp bộ lọc trong AUTO_LOOT_RADIUS quanh mình, gần nhất trước (nhặt xong lại tìm từ chỗ mới: chuỗi gần nhất); bỏ món trong vùng báo trước / vùng độc (#608). */
   findLoot(p: PlayerState) {
     let best: string | null = null, bdist = Infinity;
-    const c = this.center();
-    for (const did of this.room.interest.drops.near(c.x, c.y, this.R)) {
+    for (const did of this.room.interest.drops.near(p.x, p.y, AUTO_LOOT_RADIUS)) {
       if (!this.lootable(did)) continue;
       const dr = this.room.state.drops.get(did)!, dd = Math.hypot(dr.x - p.x, dr.y - p.y);
-      if (dd < bdist) { bdist = dd; best = did; }
+      if (dd < bdist && !this.inDanger(dr.x, dr.y)) { bdist = dd; best = did; }
     }
     return best;
   }
