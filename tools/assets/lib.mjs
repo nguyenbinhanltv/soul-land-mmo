@@ -415,6 +415,8 @@ export function sheetSpec(key, frame, iso = false, stat = false) {
     if ((m = key.match(/^pt_([a-z_]+)$/))) return spec(`phaptuong/${m[1]}.png`, isoLayout("phaptuong"));
     if ((m = key.match(/^b(\d)$/)) && ISO_BEAST_TIER[+m[1]]) return spec(`beast/${key}.png`, isoLayout("beast", frame?.[0] ?? ISO_BEAST_TIER[+m[1]]));
     // Hồn thú lai (#386): sheet tĩnh 3 khung nam / đông / bắc (ISO_STATIC_DIRS), chuyển động vẽ bằng code ở client; manifest ghi `"static": true`.
+    // Hoạt ảnh vẽ thật (#688): `beast_<loài>_anim`, 6 cột × 20 hàng (5 hướng × 4 dải, beast-sheet-cut.mjs); bảng màu riêng từng loài như sheet tĩnh.
+    if ((m = key.match(/^beast_([a-z_]+)_anim$/)) && frame && frame[0] === frame[1] && ISO_BEAST_SIZES.includes(frame[0])) return { file: `beast/${key.slice(6)}.png`, frame, size: [frame[0] * 6, frame[1] * 20], kind: "beast", iso: true, static: true, anim: true };
     if (stat && (m = key.match(/^beast_([a-z_]+)$/)) && frame && frame[0] === frame[1] && ISO_BEAST_SIZES.includes(frame[0])) return { file: `beast/${m[1]}.png`, frame, size: [frame[0] * 3, frame[1]], kind: "beast", iso: true, static: true };
     if ((m = key.match(/^beast_([a-z_]+)$/)) && frame && frame[0] === frame[1] && ISO_BEAST_SIZES.includes(frame[0])) return spec(`beast/${m[1]}.png`, isoLayout("beast", frame[0]));
     // NPC phụ / dân thường ghép từ LPC (lpc-compose --game): bố cục sheet hồn sư 24 × 6, đã tô màu (không hoán màu), một lớp.
