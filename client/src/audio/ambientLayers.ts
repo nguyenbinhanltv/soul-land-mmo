@@ -19,6 +19,21 @@ export const AMBIENT_PROFILES: Readonly<Record<string, AmbientProfile>> = {
   dai_dau_hon_truong: { wind: 30, fire: 4 },
 };
 
+/**
+ * Nền vòng lặp theo bản đồ (#622, ambientBed.ts): file `audio/ambient/amb_nen_<mapId>.{ogg,m4a}`, đã cân -16 LUFS (tools/audio/bed.mjs).
+ * `gain` là độ to khi đưa vào bus Môi trường (chốt khi nghe thử: nhạc khu giữ nguyên, nền nằm dưới, lớp chồng ngẫu nhiên vẫn nghe rõ).
+ */
+export const AMBIENT_BEDS: Readonly<Record<string, { gain: number }>> = {
+  hai_than_dao: { gain: 0.55 },
+  loi_tinh_dau: { gain: 0.7 },
+  dai_dau_hon_truong: { gain: 0.8 },
+};
+/** Mờ ra / mờ vào chéo nhau khi đổi bản đồ (giây). */
+export const AMBIENT_BED_FADE_S = 2;
+/** Tải nền lỗi thì thử lại sau chừng này giây (không dồn dập theo nhịp 250 ms). */
+export const AMBIENT_BED_RETRY_S = 15;
+export const ambientBedFile = (mapId: string, format: "ogg" | "m4a") => `audio/ambient/amb_nen_${mapId}.${format}`;
+
 /** Tên vật (shared/assets/iso/tiles.json) là lửa: lửa trại, lò lửa, lò rèn. */
 export const AMBIENT_FIRE_PROPS: ReadonlySet<string> = new Set(["lua_trai", "lo_lua_dong", "lo_ren_lang"]);
 /** Đứng cách vật cháy trong tầm này (pixel iso) mới nghe lửa; càng gần càng to. */

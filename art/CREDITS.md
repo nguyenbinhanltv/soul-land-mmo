@@ -2144,6 +2144,16 @@ Chỉ dùng thư viện CC0 (Kenney, OpenGameArt). Được sinh từ `shared/as
 | `shared/assets/audio/sfx/world.ogg`<br>`shared/assets/audio/sfx/world.m4a` | ring-glow, ring-absorb, ring-drop | Kenney<br>rubberduck | CC0-1.0 | Impact Sounds — <https://kenney.nl/assets/impact-sounds> — SHA-256 `029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8`<br>100 CC0 SFX — <https://opengameart.org/content/100-cc0-sfx> — SHA-256 `a5c135878c132f1c59cca54e60061c296cd0ac27ad031ca2c41b8cd5cab3c706`<br>80 CC0 RPG SFX — <https://opengameart.org/content/80-cc0-rpg-sfx> — SHA-256 `1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd` |
 <!-- audio-sfx-g2:end -->
 
+## Nền môi trường vòng lặp (#622)
+
+Ba bản thu CC0 (OpenGameArt) cắt thành vòng lặp liền mạch bằng `tools/audio/bed.mjs` (ghép đoạn, crossfade đầu–đuôi, cân -16 LUFS; hầm và hang nén bớt đỉnh), phát ở `client/src/audio/ambientBed.ts`. Không AI. Bảng viết tay: `audio:process` không sinh phần này.
+
+| Tệp output | Track | Tác giả | Giấy phép | Provenance | Xử lý |
+|---|---|---|---|---|---|
+| `shared/assets/audio/ambient/amb_nen_hai_than_dao.ogg`<br>`shared/assets/audio/ambient/amb_nen_hai_than_dao.m4a` | amb_nen_hai_than_dao (Hải Thần Đảo) | jasinski | CC0-1.0 | Beach Ocean Waves — <https://opengameart.org/content/beach-ocean-waves> — SHA-256 wave_01 `fcfca178eca2eac536e8c2a4ed5cf8096e44c921acd587047b3d9f1d7845435c`, wave_02 `53b5c28c0edc36f049e77e65f2cf8a86135103328c44c1507c416e6469d18096`, wave_03 `fc795f95f352b354867d69a587daecb8815334e28e3b56a7798c5f3005349054`, wave_04 `3c490e736365fdd617ce8405470d8878fc6146d9a8dba448d622addb01cfff3b` | 8 đoạn sóng xáo thứ tự, crossfade 0,45 s, khép vòng 0,8 s, 20,6 s |
+| `shared/assets/audio/ambient/amb_nen_loi_tinh_dau.ogg`<br>`shared/assets/audio/ambient/amb_nen_loi_tinh_dau.m4a` | amb_nen_loi_tinh_dau (Lõi Tinh Đấu) | Paul Wortmann | CC0-1.0 | Dark Cavern Ambient — <https://opengameart.org/content/dark-cavern-ambient> — SHA-256 `3e364b94dc1fceff13d8d067af9f034f297cfa5d15ff9cecfbe02fd857801dce` | đoạn 8–68 s (dark_cavern_ambient_001), nén nhẹ, khép vòng 5 s, 55 s |
+| `shared/assets/audio/ambient/amb_nen_dai_dau_hon_truong.ogg`<br>`shared/assets/audio/ambient/amb_nen_dai_dau_hon_truong.m4a` | amb_nen_dai_dau_hon_truong (Đấu Hồn Trường) | JaggedStone | CC0-1.0 | Loopable Dungeon Ambience — <https://opengameart.org/content/loopable-dungeon-ambience> — SHA-256 `df491823e4877371c34dbda4e9321cd83a4a14fa7573cee0ebca1ae423b70e6e` | đoạn 4–64 s, nén 8:1, khép vòng 4 s, 56 s (-19 LUFS vì đỉnh cao) |
+
 ## Biểu tượng vật phẩm và hiệu ứng từ gói LPC (OpenGameArt)
 Vùng này do `tools/assets/lpc-item.mjs` ghi theo `art/src/lpc-item.json`, không sửa tay.
 
