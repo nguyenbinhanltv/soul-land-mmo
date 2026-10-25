@@ -955,11 +955,16 @@ async function cheatTest(){
   if(down.length) return;
   // Các message còn lại (ngoài đợt này): mọi trường mang cùng giá trị lạ.
   const rest=["auto","offline","absorb","pickup","discard","sortbag","lock","autosell","vohons","boss","bag","use","open","unlock","starup","equip","unequip",
-    "equipcore","unequipcore","enhance","enhancecore","talk","buy","sell","buyback","expand","shardbuy","shardinfo","looks","quest","resonance","chat"];
+    "equipcore","unequipcore","enhance","enhancecore","talk","buy","sell","buyback","expand","shardbuy","shardinfo","looks","quest","resonance","chat",
+    "equipgear","unequipgear","equipenh","equipsynth","equipsalvage","equipenhpreview","equipluck","equipluckpreview","coreset","fusion","tong","rally","friend","gm","stats","fog"];
   for(const type of rest){
-    for(const v of ODD) X.room.send(type,{op:v,id:v,itemId:v,vohonId:v,vohon:v,slot:v,targetId:v,materialIds:[v],npc:v,code:v,qty:v,key:v,cfg:v,chain:v,text:v,looks:v});
+    for(const v of ODD) X.room.send(type,{op:v,id:v,itemId:v,vohonId:v,vohon:v,slot:v,targetId:v,materialIds:[v],npc:v,code:v,qty:v,key:v,cfg:v,chain:v,text:v,looks:v,ids:[v,v],main:v,sacrifice:[v,v],charm:v,set:v,tong:v,cmd:v,rowId:v});
     X.room.send(type,"x"); X.room.send(type,[1]);
   }
+  // Mảng rất dài và mảng lồng nhau: server cắt / bỏ, không treo.
+  const big=Array.from({length:1e5},(_,i)=>i+1); let nest=[1]; for(let k=0;k<200;k++) nest=[nest];
+  X.room.send("equipsalvage",{ids:big}); X.room.send("equipsalvage",{ids:nest}); X.room.send("equipsalvage",{ids:[big,nest]});
+  X.room.send("equipsynth",{main:1,sacrifice:big}); X.room.send("enhance",{targetId:1,materialIds:big});
   await sleep(500);
   ok(await alive(),`${rest.length} message khác × ${ODD.length+2} giá trị lạ: phòng vẫn chạy`);
   for(let k=0;k<5;k++) X.room.send("test",{op:"throw"}); // lỗi bất ngờ trong handler (hook): chỉ ghi log
