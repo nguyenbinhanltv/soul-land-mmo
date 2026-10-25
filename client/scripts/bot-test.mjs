@@ -134,7 +134,7 @@ import { campMerchantSpot } from "../../shared/camp.ts";
 import { hoaDanSpot } from "../../shared/hoaDan.ts"; // Hỏa Đàn (#163)
 import { PLAYER_STATUS } from "../../shared/data.ts";
 import { SAFE_REGEN_MULT, hpRegen, mpRegen } from "../../shared/data.ts"; // hồi sinh lực / hồn lực, vùng an toàn (#112)
-import { AUTO_DAILY_SECS, AUTO_RADIUS, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, AUTO_MOVE, AUTO_PACE, parseAuto, autoLeft, autoTimeText } from "../../shared/data.ts"; // tự săn (Auto 1, #213)
+import { AUTO_DAILY_SECS, AUTO_RADIUS, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, AUTO_MOVE, AUTO_PACE, AUTO_STATUS, parseAuto, autoLeft, autoTimeText } from "../../shared/data.ts"; // tự săn (Auto 1, #213)
 import { AUTO_RADIUS_MIN, AUTO_LOOT_KINDS, AUTO_TOKEN, AUTO_TOKEN_SECS, AUTO_TOKEN_PRICE, AUTO_BONUS_MAX } from "../../shared/data.ts"; // Auto 2
 import { OFFLINE, offlineSplit, offlineFight } from "../../shared/data.ts"; // ủy thác offline (Auto 3)
 import { ASK_CD } from "../../shared/data.ts"; // nhịp tin xin lại dữ liệu riêng (#165)
@@ -398,6 +398,7 @@ async function enter(b,roomId){
   // Truyền tống trận (11.2): đứng trên trận, trận vừa mở khóa (giữ qua các lần vào phòng), bản đồ thế giới, thanh niệm.
   b.wpHere=null; b.wpUnlock??=[]; b.room.onMessage("wp",m=>{ if(m.k==="here") b.wpHere=m.key?m:null; if(m.k==="unlock") b.wpUnlock.push(m.key); });
   b.world=null; b.room.onMessage("world",m=>{b.world=m;}); b.recall=null; b.room.onMessage("recall",m=>{b.recall=m;});
+  b.autost=[]; b.room.onMessage("autost",m=>{b.autost.push({...m,t:Date.now()});}); // trạng thái tự săn (AH2, #609)
   b.autoMsg=null; b.room.onMessage("auto",m=>{b.autoMsg=m;}); // tự săn (Auto 1): bật / tắt, giờ còn lại, lý do dừng
   b.offMsg=null; b.room.onMessage("offline",m=>{b.offMsg=m;}); b.room.send("offline"); // ủy thác offline (Auto 3): xin bảng nhận thưởng
   b.room.onMessage("vohons",m=>{b.owned=m; b.ownedMsgs++;});
@@ -5389,13 +5390,18 @@ async function autoTest(){
   let r0=qtyOf(A,RING_ITEM), k0=me(A).kills;
   let sp=await test(A,"spawn",{tier:0,dx:56,dy:0,years:150,hpx:8}); const b1=sp?.bid;
   await autoOp(A,"set",{cfg:NEAR});
-  A.fxs=[]; m=await autoOp(A,"on");
+  A.fxs=[]; A.autost=[]; m=await autoOp(A,"on"); const on0=Date.now();
   ok(m?.on&&m.left<=AUTO_DAILY_SECS,`bật tự săn ở bãi săn (điểm neo ${home.x.toFixed(0)},${home.y.toFixed(0)})`);
   ok(b1&&await waitFor(()=>!A.room.state.beasts.has(b1),25000),`tự đi tới và hạ hồn thú ${b1}`);
   ok(me(A).kills>k0,`tính là người chơi hạ (${k0} → ${me(A).kills} hồn thú)`);
   ok(A.fxs.some(f=>f.k==="slash"&&f.id===A.room.sessionId)&&A.fxs.some(f=>f.k==="soulring"&&f.id===A.room.sessionId),"đánh thường và tung hồn kỹ qua đúng lệnh của người chơi (fx slash, soulring)");
   ok(await waitFor(()=>qtyOf(A,RING_ITEM)>r0,8000),`tự nhặt hồn hoàn vào túi (${r0} → ${qtyOf(A,RING_ITEM)})`);
   ok(me(A).auto&&Math.hypot(me(A).x-home.x,me(A).y-home.y)<=AUTO_RADIUS+2*16,`vẫn tự săn, đứng trong vùng neo (${Math.hypot(me(A).x-home.x,me(A).y-home.y).toFixed(0)} pixel)`);
+
+  // AH2 (#609): tin riêng `autost` có mã việc hợp lệ, gọn và không dày (tối đa ~1 tin mỗi giây), đã thấy việc "đánh"; không gửi khi không tự săn.
+  const JOBS=["loot","fight","go","dodge","back","rest","patrol"], st=A.autost, secs0=(Date.now()-on0)/1000;
+  ok(st.length>=1&&st.every(s=>JOBS.includes(s.k)&&(s.path===undefined||s.path.length%2===0&&s.path.length<=2*AUTO_STATUS.path+2)&&JSON.stringify(s).length<400),`tin autost hợp lệ, gọn (${st.length} tin: ${[...new Set(st.map(s=>s.k))].join(", ")})`);
+  ok(st.some(s=>s.k==="fight"&&s.n)&&st.length<=secs0/AUTO_STATUS.every+3,`autost không dày: ${st.length} tin trong ${secs0.toFixed(0)} giây, có việc "đánh <tên>"`);
 
   // ---- Tay ưu tiên ----
   A.room.send("input",{x:1,y:0});
@@ -5404,6 +5410,9 @@ async function autoTest(){
   const sum=A.autoMsg?.sum;
   ok(sum&&sum.secs>0&&sum.kills>=1&&sum.xp>0&&sum.coins>0&&sum.loot.some(([n,q])=>/^Hồn hoàn/.test(n)&&q>=1)&&A.autoMsg.left>0,
     `tổng kết khi dừng: ${JSON.stringify(sum)}, còn ${autoTimeText(A.autoMsg?.left??0)}`);
+  ok(!sum?.rate||sum.rate.length===3&&sum.rate.every(v=>v>=0),`tổng kết có thống kê theo giờ đúng dạng (${JSON.stringify(sum?.rate)})`);
+  const nSt=A.autost.length; await sleep(1500);
+  ok(A.autost.length===nSt,"đã dừng: không còn tin autost");
   A.room.send("input",{x:0,y:0}); await sleep(100);
   m=await autoOp(A,"on"); A.room.send("attack");
   ok(m?.on&&await stopped(A,/tự ra đòn/),`tự bấm đánh: tắt (${A.autoMsg?.why})`);
