@@ -73,7 +73,7 @@ app.post("/api/login", route(async (req, res) => {
   if (password.length > PASSWORD_MAX_LEN) { res.status(400).json({ error: `Mật khẩu tối đa ${PASSWORD_MAX_LEN} ký tự.` }); return; }
   // Giới hạn số lần sai theo tên và theo IP (server/src/ratelimit.ts).
   const ip = req.ip ?? req.socket.remoteAddress ?? "?";
-  const blocked = loginBegin(name, ip) ?? loginRate(name, ip);
+  const blocked = loginRate(name, ip) ?? loginBegin(name, ip); // loginRate trước: loginBegin giữ chỗ (pending), chặn sau sẽ rò
   if (blocked) { res.setHeader("Retry-After", String(blocked.retryAfter)); res.status(429).json({ error: blocked.error }); return; }
   // Giới hạn số tài khoản MỚI mỗi IP (#207): hết lượt thì login không tạo, tài khoản cũ vẫn vào được; chỉ đếm khi thật sự tạo.
   const noSignup = signupBegin(ip);

@@ -285,6 +285,15 @@ test("Đăng nhập (kể cả đúng): 10 lần / (tên, IP) rồi 429, hồi 1
   assert.equal(PASSWORD_MAX_LEN, 128);
 });
 
+test("Vượt loginRate nhiều lần không rò pending: tên đó từ IP khác vẫn đăng nhập được (#735)", () => {
+  // Đúng thứ tự gọi của route /api/login: loginRate trước, loginBegin sau.
+  const gate = (n: string, ip: string) => loginRate(n, ip, now) ?? loginBegin(n, ip, now);
+  for (let i = 0; i < 60; i++) gate("Tiểu Vũ", "7.7.7.7");
+  const ok = gate("Tiểu Vũ", "8.8.8.8");
+  assert.equal(ok, null);
+  loginEnd("Tiểu Vũ", "8.8.8.8", true, now);
+});
+
 test("Dọn dẹp xóa trạng thái cũ", () => {
   for (let i = 0; i < 5; i++) send(`x${i}`);
   sec(11 * 60); sweep(now);
