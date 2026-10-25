@@ -13,7 +13,7 @@ Tài liệu đặc tả hình ảnh. Luật chơi của Chân Thân (hồn lực
 
 ## 2. Điểm gắn và lớp
 
-Hồn sư 64×64 có gốc (chân) ở `(32, 58)` trong khung. Khung pháp tướng 160×160 đặt gốc của nó ở **`(80, 124)`** trong khung (tức hai gốc trùng khi ghép: dời khung 160 sao cho `(80,124)` rơi đúng `(32,58)` của thân), chừa 124 px phía trên gốc cho hình cao và 36 px phía dưới cho bóng, đất nứt, rễ, vòng. Khi Chân Thân, thân hồn sư phóng `CHAN_THAN_SCALE`; khung pháp tướng **phóng theo cùng tỉ lệ quanh gốc** (đổi nếu thử ở H1 thấy hình quá lớn). Thân hồn sư cao khoảng 40 px nên pháp tướng cao 60–120 px, đầu pháp tướng cao hơn đầu hồn sư.
+Hồn sư 64×64 có gốc (chân) ở `(32, 58)` trong khung. Khung pháp tướng 160×160 đặt gốc của nó ở **`(80, 124)`** trong khung (tức hai gốc trùng khi ghép: dời khung 160 sao cho `(80,124)` rơi đúng `(32,58)` của thân), chừa 124 px phía trên gốc cho hình cao và 36 px phía dưới cho bóng, đất nứt, rễ, vòng. Khi Chân Thân, thân hồn sư phóng theo tỉ lệ Chân Thân (hằng này chưa có trong `CHAN_THAN`, thêm ở H1); khung pháp tướng **phóng theo cùng tỉ lệ quanh gốc** (đổi nếu thử ở H1 thấy hình quá lớn). Thân hồn sư cao khoảng 40 px nên pháp tướng cao 60–120 px, đầu pháp tướng cao hơn đầu hồn sư.
 
 Điểm gắn gợi ý theo nhóm bố cục (cột "Nhóm" ở bảng chuyển động). **Lớp không theo nhóm**: mọi nhóm dùng một luật lớp ở mục 1 (H1 chốt), nhóm chỉ cho biết đặt hình ở đâu quanh gốc (`display.dx`, `dy`, `scale` trong `recipe.json`).
 

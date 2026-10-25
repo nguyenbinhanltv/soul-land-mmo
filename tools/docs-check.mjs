@@ -5,7 +5,12 @@
 // (a) mọi "mục N(.M)" nhắc trong *.ts *.mjs *.md *.yml *.json phải là một mục có thật (tiêu đề ##/### của GAME_DESIGN.md,
 //     hoặc hàng của mục lục khi GAME_DESIGN.md đã tách);
 // (b) (khi đã tách, kiểm trong CẢ file mục lục trỏ tới nên lỏng hơn chế độ tiêu đề) mọi `mục N "Tên"` phải tìm thấy Tên (tiêu đề, chữ đậm hoặc đầu dòng) trong phần của mục N (khi đã tách: trong các file mục lục trỏ tới);
-// (c) mọi đường dẫn `docs/…` nhắc trong file phải tồn tại.
+// (c) mọi đường dẫn `docs/…` nhắc trong file phải tồn tại;
+// (d) tên hằng IN_HOA_GẠCH trong backtick ở docs/design|tech|art phải xuất hiện trong code (*.ts *.mjs);
+// (e) link markdown tương đối [chữ](đường/dẫn.md#neo) trong *.md phải trỏ tới file có thật;
+// (f) cỡ file *.md (docs/**, file gốc) tối đa MAX_MD_BYTES; ngoại lệ có chủ đích ở MD_SIZE_EXCEPT (hạ dần khi tách file).
+// (g) mục lục GAME_DESIGN.md đủ: mọi docs/design|tech|art/*.md phải được nhắc tới trong đó;
+// Chữ "mục" nghĩa thường (Danh mục, mục tiêu, mục con…) không bị coi là tham chiếu: (a) chỉ bắt "mục" đứng riêng, ngay trước số.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -29,6 +34,13 @@ function walk(dir, rel = "", out = []) {
   }
   return out;
 }
+
+/** Cỡ tối đa (byte, LF) của file .md; lớn hơn thì tách file. */
+export const MAX_MD_BYTES = 48000;
+/** Ngoại lệ có chủ đích: file -> cỡ tối đa. Hạ / bỏ khi tách file đó. */
+export const MD_SIZE_EXCEPT = { "docs/art/ky-nang-combat-dac-ta.md": 330000 };
+const CONST_DOCS = /^docs\/(design|tech|art)\//;
+const CONST_RE = /`([A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+)`/g;
 
 const norm = (s) => s.toLowerCase().replace(/[`*_"“”«»]/g, "").replace(/[:.;,\s]+$/g, "").replace(/\s+/g, " ").trim();
 
@@ -81,11 +93,30 @@ export function check({ root = repoRoot, overlay = null, list = 15 } = {}) {
   const candOf = (sec) => { if (!candCache.has(sec)) candCache.set(sec, candidates(regionOf.get(sec) ?? "")); return candCache.get(sec); };
 
   const a = { total: 0, orphans: [] }, b = { total: 0, orphans: [] }, c = { total: 0, orphans: [] };
+  const d = { total: 0, orphans: [] }, e = { total: 0, orphans: [] }, f = { total: 0, orphans: [] };
+  // (g) mục lục đủ: mọi docs/design|tech|art/*.md phải được GAME_DESIGN.md nhắc tới (hàng mục lục khi đã tách)
+  const g = { total: 0, orphans: [] };
+  for (const rel of files.keys()) {
+    if (!/^docs\/(design|tech|art)\/[^/]+\.md$/.test(rel)) continue;
+    g.total++;
+    if (!gd.includes(rel)) g.orphans.push(`${rel}  chưa có trong mục lục GAME_DESIGN.md`);
+  }
+  let code = "";
+  for (const [rel, text] of files) if (/\.(ts|mjs)$/.test(rel)) code += text + "\n";
+  const constOk = new Map();
+  const hasConst = (n) => { if (!constOk.has(n)) constOk.set(n, new RegExp(`(?<![A-Za-z0-9_])${n}(?![A-Za-z0-9_])`).test(code)); return constOk.get(n); };
   for (const [rel, text] of files) {
     const lines = text.split("\n");
+    if (rel.endsWith(".md") && (rel.startsWith("docs/") || !rel.includes("/"))) {
+      f.total++;
+      const bytes = Buffer.byteLength(text.replace(/\r/g, ""));
+      const max = MD_SIZE_EXCEPT[rel] ?? MAX_MD_BYTES;
+      if (bytes > max) f.orphans.push(`${rel}  ${bytes} byte > ${max}`);
+    }
+    let fence = false;
     lines.forEach((line, i) => {
       const at = `${rel}:${i + 1}`;
-      for (const m of line.matchAll(/[Mm]ục (\d+(?:\.\d+)?)(?!\d)(?:\s+["“«]([^"”»]{2,80})["”»])?/g)) {
+      for (const m of line.matchAll(/(?<![\p{L}])[Mm]ục (\d+(?:\.\d+)?)(?!\d)(?:\s+["“«]([^"”»]{2,80})["”»])?/gu)) {
         // "mục 5.3." cuối câu: bỏ dấu chấm thừa do regex không nuốt; số có dạng N.M chỉ khi theo sau là chữ số
         a.total++;
         if (!sections.has(m[1])) { a.orphans.push(`${at}  mục ${m[1]}`); continue; }
@@ -94,6 +125,18 @@ export function check({ root = repoRoot, overlay = null, list = 15 } = {}) {
           const want = norm(m[2]);
           if (!candOf(m[1]).some((x) => x.includes(want))) b.orphans.push(`${at}  mục ${m[1]} "${m[2]}"`);
         }
+      }
+      if (/^\s*```/.test(line)) fence = !fence;
+      if (CONST_DOCS.test(rel) && !fence) for (const m of line.matchAll(CONST_RE)) {
+        d.total++;
+        if (!hasConst(m[1])) d.orphans.push(`${at}  \`${m[1]}\``);
+      }
+      if (rel.endsWith(".md") && !fence) for (const m of line.matchAll(/\[[^\]]*\]\(([^)\s]+)\)/g)) {
+        const t = m[1].split("#")[0];
+        if (!t || /^([a-z]+:|\/)/i.test(t)) continue;
+        e.total++;
+        const target = path.posix.normalize(path.posix.join(path.posix.dirname(rel), decodeURI(t))).replace(/\/$/, "");
+        if (!exists(target)) e.orphans.push(`${at}  ${m[1]}`);
       }
       for (const m of line.matchAll(/(?<![A-Za-z0-9_./-])(docs\/[A-Za-z0-9_\-./]*[A-Za-z0-9_\-/])/g)) {
         const next = line[m.index + m[0].length] ?? "";
@@ -104,21 +147,21 @@ export function check({ root = repoRoot, overlay = null, list = 15 } = {}) {
       }
     });
   }
-  return { mode: tocMode ? "mục-lục" : "tiêu-đề", sections: sections.size, files: files.size, a, b, c, list };
+  return { mode: tocMode ? "mục-lục" : "tiêu-đề", sections: sections.size, files: files.size, a, b, c, d, e, f, g, list };
 }
 
 function main() {
   const r = check({ root: path.resolve(arg("--root", repoRoot)), overlay: arg("--overlay", null) && path.resolve(arg("--overlay")), list: +arg("--list", 15) });
-  if (has("--json")) { console.log(JSON.stringify({ mode: r.mode, sections: r.sections, files: r.files, a: [r.a.total, r.a.orphans.length], b: [r.b.total, r.b.orphans.length], c: [r.c.total, r.c.orphans.length], orphans: { a: r.a.orphans, b: r.b.orphans, c: r.c.orphans } }, null, 1)); }
+  if (has("--json")) { console.log(JSON.stringify({ mode: r.mode, sections: r.sections, files: r.files, a: [r.a.total, r.a.orphans.length], b: [r.b.total, r.b.orphans.length], c: [r.c.total, r.c.orphans.length], d: [r.d.total, r.d.orphans.length], e: [r.e.total, r.e.orphans.length], f: [r.f.total, r.f.orphans.length], g: [r.g.total, r.g.orphans.length], orphans: { a: r.a.orphans, b: r.b.orphans, c: r.c.orphans, d: r.d.orphans, e: r.e.orphans, f: r.f.orphans, g: r.g.orphans } }, null, 1)); }
   else {
     console.log(`docs-check: chế độ ${r.mode} (${r.sections} mục, quét ${r.files} file)`);
-    for (const [k, label, g] of [["a", "(a) tham chiếu \"mục N\" có thật", r.a], ["b", "(b) tên mục con \"mục N \"Tên\"\" tìm thấy", r.b], ["c", "(c) đường dẫn docs/… tồn tại", r.c]]) {
+    for (const [k, label, g] of [["a", "(a) tham chiếu \"mục N\" có thật", r.a], ["b", "(b) tên mục con \"mục N \"Tên\"\" tìm thấy", r.b], ["c", "(c) đường dẫn docs/… tồn tại", r.c], ["d", "(d) tên hằng trong backtick có trong code", r.d], ["e", "(e) link markdown tương đối tồn tại", r.e], ["f", "(f) cỡ file .md trong ngưỡng", r.f], ["g", "(g) mục lục GAME_DESIGN đủ file docs/design|tech|art", r.g]]) {
       console.log(`${g.orphans.length ? "✗" : "✓"} ${label}: ${g.total - g.orphans.length}/${g.total}, mồ côi ${g.orphans.length}`);
       for (const o of g.orphans.slice(0, r.list)) console.log("    " + o);
       if (g.orphans.length > r.list) console.log(`    … và ${g.orphans.length - r.list} chỗ nữa (--list ${g.orphans.length} để xem hết)`);
     }
   }
-  if (!has("--warn") && (r.a.orphans.length || r.b.orphans.length || r.c.orphans.length)) process.exit(1);
+  if (!has("--warn") && [r.a, r.b, r.c, r.d, r.e, r.f, r.g].some((g) => g.orphans.length)) process.exit(1);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

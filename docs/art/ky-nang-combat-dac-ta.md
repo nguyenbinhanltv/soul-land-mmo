@@ -21,7 +21,7 @@ Tài liệu đặc tả (chỉ ghi, không có mã). **Cách làm (công thức 
 | **T2 vừa** | hồn kỹ vòng 5, 6, 8, 9 và tiên cơ | 0,6–1,2 giây | Hiệu ứng trúng riêng, vùng có hoa văn riêng, lấy đà rõ; khựng 3 khung | PixelLab: 2–3 sheet 6–10 khung / võ hồn (trúng, vùng, trạng thái) |
 | **T3 trình diễn** | tuyệt kỹ vòng 10, hồn kỹ Chân Thân | 1–2 giây | Pháp tướng ra đòn (khung đánh H2), cut-in tên chiêu, chuỗi **báo trước → bùng → dư chấn**; tối viền màn quanh tâm; khựng 4 khung | PixelLab: sheet lớn 10–16 khung / chiêu; code điều phối |
 
-Quy ước chuỗi chung (mọi tầng): **lấy đà → ra đòn → khựng 2–4 khung khi trúng (`hitstopMs`) → tia lửa / mảnh vỡ theo chất liệu mục tiêu (bảng `soundMap` G2: thịt / giáp / băng / gỗ; C1 thêm đá / linh thể cho visual) → hồi**. Đá hiện là nhánh visual dự phòng vì bảng BEAST/BOSS đang dùng chưa có loài đá riêng; linh thể dùng cho ba boss đặc biệt. Đòn lớn có giật lùi nhẹ thân quái (không rung màn). Số sát thương theo hệ, chí mạng to hơn. Trạng thái có hình bám thân (bảng ở mục 1.3).
+Quy ước chuỗi chung (mọi tầng): **lấy đà → ra đòn → khựng 2–4 khung khi trúng (`hitstopMs`) → tia lửa / mảnh vỡ theo chất liệu mục tiêu (bảng `soundMap` G2: thịt / giáp / băng / gỗ; C1 thêm đá / linh thể cho visual) → hồi**. Đá hiện là nhánh visual dự phòng vì bảng BEAST/BOSS đang dùng chưa có loài đá riêng; linh thể dùng cho ba boss đặc biệt. Đòn lớn có giật lùi nhẹ thân quái (không rung màn). Số sát thương theo hệ, chí mạng to hơn. Trạng thái có hình bám thân (bảng ở phần 1.3 của file này).
 
 ### 1.2 Kiểu hiệu ứng (khớp `skillFx.ts`: `FxKind`)
 

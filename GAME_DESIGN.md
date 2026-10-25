@@ -37,6 +37,8 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/nguon-giay-phep.md](docs/art/nguon-giay-phep.md) | 5 | Nguồn và giấy phép |
 | 5.12 | Cảm giác đánh, hiệu ứng chiêu (phần hiển thị) và âm thanh | [docs/art/am-thanh.md](docs/art/am-thanh.md) | 5 | Âm thanh; Âm thanh chiến đấu và hồn thú có tầm; Nhạc nền |
 | 5.12 | Cảm giác đánh, hiệu ứng chiêu (phần hiển thị) và âm thanh | [docs/design/ky-nang-combat-phap-tuong.md](docs/design/ky-nang-combat-phap-tuong.md) | 5 |  |
+| 5.12 | Cảm giác đánh, hiệu ứng chiêu (phần hiển thị) và âm thanh | [docs/art/ky-nang-combat-dac-ta.md](docs/art/ky-nang-combat-dac-ta.md) | 1 |  |
+| 5.12 | Cảm giác đánh, hiệu ứng chiêu (phần hiển thị) và âm thanh | [docs/art/ky-nang-cong-thuc.md](docs/art/ky-nang-cong-thuc.md) | 1 |  |
 | 5.13 | Tự săn (Auto 1, Auto 2) | [docs/design/tu-san-uy-thac.md](docs/design/tu-san-uy-thac.md) | 5 | Tự săn; Ủy thác offline |
 | 5.14 | Tông môn | [docs/design/tong-mon.md](docs/design/tong-mon.md) | 5 |  |
 | 5.15 | Trang bị hồn sư | [docs/design/trang-bi.md](docs/design/trang-bi.md) | 5 |  |
@@ -44,6 +46,8 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 5.16 | Giao diện Nhân vật + Túi (hai cửa sổ, búp bê 4 tab; theo dõi #453) | [docs/design/giao-dien.md](docs/design/giao-dien.md) | 7 | Giao diện Nhân vật + Túi |
 | 5.17 | Radar và bản đồ khu vực | [docs/design/ban-do-khu-vuc.md](docs/design/ban-do-khu-vuc.md) | 5 |  |
 | 5.18 | Võ Hồn Chân Thân: pháp tướng (theo dõi #482) | [docs/design/ky-nang-combat-phap-tuong.md](docs/design/ky-nang-combat-phap-tuong.md) | 10 | Võ Hồn Chân Thân |
+| 5.18 | Võ Hồn Chân Thân: pháp tướng (theo dõi #482) | [docs/art/phap-tuong.md](docs/art/phap-tuong.md) | 1 |  |
+| 5.18 | Võ Hồn Chân Thân: pháp tướng (theo dõi #482) | [docs/art/phap-tuong-cong-thuc.md](docs/art/phap-tuong-cong-thuc.md) | 1 |  |
 | 6 | Kiến trúc (bắt buộc giữ) | (file này) | – | Kiến trúc; Server quyết định mọi thứ; HTTP; Lưu của mỗi người chơi chạy nối tiếp |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/giao-thuc-server.md](docs/tech/giao-thuc-server.md) | 5 | Message từ client; Bảo mật; Đăng nhập Google |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/dong-bo-state.md](docs/tech/dong-bo-state.md) | 5 | Đồng bộ xuống client |
@@ -53,6 +57,8 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/luu-tru-cong-phien.md](docs/tech/luu-tru-cong-phien.md) | 5 | Đi qua cổng và lưu vị trí; Mỗi tài khoản một phiên |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/presence-redis.md](docs/tech/presence-redis.md) | 5 | Thông báo toàn server và lịch boss |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/du-lieu-db.md](docs/tech/du-lieu-db.md) | 5 | Dữ liệu trong `shared/data.ts; Dữ liệu lâu dài |
+| 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/hieu-nang-hieu-ung.md](docs/tech/hieu-nang-hieu-ung.md) | 1 |  |
+| 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/hieu-nang-soak.md](docs/tech/hieu-nang-soak.md) | 1 |  |
 | 7 | Lộ trình | [ROADMAP.md](ROADMAP.md) | 5 | Đã có; [ ] NV6 Ảnh nền búp bê; [ ] Giao diện và cảm giác họ C1–C16 |
 | 7 | Lộ trình | [docs/lich-su.md](docs/lich-su.md) | 5 | Giai đoạn 10; Đã có; Ảnh tĩnh bằng ComfyUI; Giai đoạn 11; Giai đoạn 12; Tự săn; Việc để sau; Giai đoạn 13; Giai đoạn 14; Nhóm Bản đồ khu vực; Nhóm Hình thái Võ Hồn Chân Thân; Nhóm Hình ảnh kỹ năng combat; Nhóm Hồn sư tự tạo bằng LPC |
 | 8 | Câu hỏi còn mở | [ROADMAP.md](ROADMAP.md) | 13 |  |
