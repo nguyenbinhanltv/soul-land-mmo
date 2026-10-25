@@ -66,7 +66,7 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 .who-main{min-width:0;display:flex;justify-content:space-between;align-items:baseline;gap:6px;flex:1}
 .portrait{width:34px;height:34px;flex:0 0 34px;display:flex;align-items:center;justify-content:center;border:2px solid var(--line2);background:var(--ink-panel);color:var(--paper);font:24px var(--f12);text-shadow:var(--stroke);box-shadow:inset 0 0 0 2px var(--paper2)}
 #vhName{font-size:12px;font-family:var(--f12)}
-#vhName{min-width:0;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.25;overflow-wrap:anywhere} #lvl{flex-shrink:0;white-space:nowrap}   /* Galmuri rộng hơn: tên dài rút gọn, tên đầy đủ ở chú thích */
+#vhName{min-width:0;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.25;overflow-wrap:anywhere} #lvl{flex-shrink:0;white-space:nowrap}   /* Galmuri rộng hơn: tên dài xuống tối đa 2 dòng rồi mới rút gọn, tên đầy đủ ở chú thích */
 #lvl{color:var(--accent);font-variant-numeric:tabular-nums}
 .bar{position:relative;height:14px;background:var(--track);border:1px solid var(--ink2);margin-top:5px;overflow:hidden}
 .bar i{position:absolute;left:0;top:0;bottom:0;width:0;transition:width .12s linear}
@@ -652,7 +652,7 @@ body.touch .minibtn kbd{display:none}
 :where(body.ui-w1000:not(.ui-w640)) .sk{width:52px;height:52px}
 :where(body.ui-w1000:not(.ui-w640)) #chatbox{width:270px}
 :where(body.ui-w1000:not(.ui-w640)) #chattabs{gap:0}
-:where(body.ui-w1000:not(.ui-w640)) #chattabs button{font-size:11px;padding:3px 3px;flex:1 1 auto}
+:where(body.ui-w1000:not(.ui-w640)) #chattabs button{font-size:11px;padding:3px 3px}
 :where(body.ui-w1000:not(.ui-w640)) #bottombar{gap:6px}
 
 /* Rương tà hóa thú vương (BĐ5): hộp vuông màu aura, nắp sẫm, khóa sáng */
@@ -963,9 +963,9 @@ body.touch .alive .buse{min-height:38px}
 @keyframes sealPulse{from{filter:drop-shadow(0 0 2px #ffe08a)}to{filter:drop-shadow(0 0 6px #ffe08a)}}
 .thuymac .sk.bsk i{color:var(--paper)}
 .thuymac .sk:focus-visible{outline:2px solid var(--paper);outline-offset:0}
-/* @media (max-width:640px) → lớp ui-w640 (kích thước logic, uiArt.ts) */.thuymac :where(body.ui-w640) .sk{background-image:var(--ui-an-trien-vua);background-position:center 0;padding-top:6px}
-  .thuymac :where(body.ui-w640) .sk .ico{margin-bottom:8px}.thuymac :where(body.ui-w640) .sk .ico+span{-webkit-line-clamp:1;color:var(--paper);max-width:100%}
-  .thuymac :where(body.ui-w640) .sk.ui-cell .ico{margin-bottom:0}
+/* @media (max-width:640px) → lớp ui-w640 (kích thước logic, uiArt.ts); ô nhỏ 52 px cũng dùng ở ui-w1000 (U1 #720) */.thuymac :where(body:is(.ui-w640,.ui-w1000)) .sk{background-image:var(--ui-an-trien-vua);background-position:center 0;padding-top:6px}
+  .thuymac :where(body:is(.ui-w640,.ui-w1000)) .sk .ico{margin-bottom:8px}.thuymac :where(body:is(.ui-w640,.ui-w1000)) .sk .ico+span{-webkit-line-clamp:1;color:var(--paper);max-width:100%}
+  .thuymac :where(body:is(.ui-w640,.ui-w1000)) .sk.ui-cell .ico{margin-bottom:0}
 .thuymac body.touch .sk.bsk{background-image:var(--ui-an-trien-vua);background-position:center;padding:0;justify-content:center}
 /* Ô đội hình trong trận: nút giấy, viền trong màu võ hồn khi ra trận. */
 .thuymac .tm{color:var(--text)}
