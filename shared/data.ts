@@ -5136,6 +5136,8 @@ export const AUTO_HZ = 4;
 export const AUTO_PACE = { credit: 10 };
 /** Tối đa bấy nhiêu người treo có điểm neo trong cùng một ô lưới SYNC_VIEW.cell của một kênh (chống dồn một chỗ). */
 export const AUTO_MAX_PER_CELL = 3;
+/** Giới hạn tin `auto` (bật / tắt / đặt / hỏi) theo người chơi: gửi liền tối đa `burst` tin, hồi `perSec` tin mỗi giây; vượt thì bỏ tin (token bucket). */
+export const AUTO_MSG_RATE = { burst: 8, perSec: 2 };
 /**
  * Không cướp quái: hồn thú đang nhắm người khác, hoặc bị người khác đánh trong AUTO_CLAIM_SECS giây gần nhất (ngoài tổ đội của mình),
  * thì không nhắm; hồn thú đang đánh chính mình thì luôn được đánh trả (kể cả ngoài khoảng niên hạn đã chọn).
