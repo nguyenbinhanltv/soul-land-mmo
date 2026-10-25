@@ -75,7 +75,7 @@ export function ssoCheck(rawIp: string, now = Date.now()): { error: string; retr
 }
 
 // ---------- REST có token và đăng nhập (#735) ----------
-/** Token bucket theo IP cho nhóm REST có token (/api/me, /api/channel, /api/looks, /api/awaken, /api/link/google): mỗi lần tốn 1 truy vấn DB
+/** Token bucket theo IP cho nhóm REST có token (/api/me, /api/channel, /api/looks, /api/awaken): mỗi lần tốn 1 truy vấn DB
  *  trở lên. Liền tối đa 120, hồi 1 lượt mỗi giây (rộng cho quán net dùng chung IP). GAME_TEST=1: nhân 1000 như ngưỡng tạo tài khoản. */
 const API_BURST = 120;
 const API_REFILL_MS = 1_000;
