@@ -22,10 +22,11 @@
 - `auto_hunt`: tự săn (mục 5.13), cài đặt JSONB, ngày giờ Việt Nam và số giây đã treo trong ngày, quỹ giờ cộng thêm từ Ủy Thác Lệnh `bonus_secs`; mỗi tài khoản một dòng.
 - `auto_offline`: ủy thác offline (mục 5.13), bản đồ, tên vùng, thời điểm bắt đầu, ngày và giây đã treo lúc thoát; tối đa một dòng mỗi tài khoản, xóa khi nhận.
 - `friends`, `blocks`: bạn bè / chặn; mỗi tài khoản chỉ ghi dòng của chính mình, hai bên là bạn khi có cả hai dòng.
-- `tong_points`: điểm tông môn theo tuần (mục 5.14).
+- `tong_points`: điểm tông môn theo tuần (mục 5.14); chỉ mục `tong_points_week_tong (week, tong)` cho bảng xếp hạng (`034_tong_points_week_index.sql`).
 - `boss_claims`: lượt nhận thưởng mỗi ngày (loại: thú vương, boss thế giới, thắng đấu trường `dau_hon_truong`, mảnh đổi ở Thương hội; số lần).
 - `quests`: tiến độ nhiệm vụ, ghi cùng transaction với túi; khảo hạch hằng ngày là chuỗi `daily:<yyyymmdd>:<i>`, chỉ giữ ngày đang chơi.
 - `arena_ratings` (Elo, thắng / thua / hòa), `arena_pairs` (số trận mỗi cặp mỗi ngày).
+- **Cache bảng xếp hạng (#738):** `arenaTop` (danh sách đầu bảng) và `tongBoard` (cả hai tuần) được giữ chung trong tiến trình `RANK_BOARD_CACHE` giây, yêu cầu đến lúc đang tính dùng chung một lần truy vấn; ghi Elo / điểm tông trong cùng tiến trình xoá cache ngay (`rankBoardClear`), nên **độ trễ hiển thị tối đa `RANK_BOARD_CACHE` giây và chỉ khi ghi đến từ tiến trình khác**. Dòng `me` / hạng của mình luôn tính riêng (một truy vấn đếm theo chỉ mục `arena_ratings_rank`). Bảng cộng minh vẫn theo `RESONANCE_RANK_CACHE`, nay chỉ nạp số vòng hồn hoàn (`cardinality(rings)`) thay vì cả mảng. Đo trên PostgreSQL cục bộ 5000 tài khoản, 60 người mở bảng mỗi giây: 321 → 55 truy vấn/s, trễ p95 35 → 5 ms.
 - `characters`, `inventory` (từ `001_init.sql`): bảng cũ, giữ để chuyển dữ liệu, không còn ghi.
 
 ## Lưu túi chỉ ghi dòng `items` có đổi (#737)
