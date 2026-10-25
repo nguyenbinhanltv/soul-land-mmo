@@ -49,6 +49,7 @@ const SV_OFF = new URLSearchParams(location.search).get("sv") === "0";
 import { hitWeight, KNOCK_PX, materialSparks, damageStyle, playHitFeelSheets, registerHitFeelSheets } from "../hitFeel.ts";
 import { footDustCount, rootSnareDiameter } from "../combatFeelRules.ts";
 import { PhapTuongSystem, PhapTuongCutIn } from "../phapTuong.ts";
+import { SPIRIT_FAMILY, spiritPose, spiritScale, spiritPhase, applySpiritPose, newSpiritPose, type SpiritState } from "../spiritMotion.ts";
 import { ParticleLayer, HIT_SPARK, SHAKE_TIER, beastJerk, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs, fxLevel, fxGov } from "../combatFx.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bindUiSounds } from "../audio/uiSounds.ts";
@@ -76,6 +77,7 @@ interface PView {
   lpcFace: { shown: Dir8 | null; pend: { d: Dir8; t0: number } | null }; // hướng LPC đang hiện và hướng mới đang chờ giữ đủ LPC_VIEW.dirHoldMs
   act: { anim: HsAnim; t0: number } | null; // animation chạy một lần: attack, cast, hurt
   hurtT: number;                            // lúc bị đánh gần nhất, để nháy trắng
+  spPhase?: number;                         // lệch pha chuyển động phụ phụ thể (spiritMotion.ts), tính một lần theo mã người chơi
   lit: { i: number; t0: number } | null;    // vòng hồn hoàn đang sáng khi tung hồn kỹ
   halo: HaloState | null;                   // quầng hào quang Chân Thân (soulRings.ts), tạo khi cần
   ringY: number[];                          // độ cao hiện tại từng vòng hồn hoàn trên chân (pixel nội bộ), trượt dần tới chỗ đích
@@ -2957,11 +2959,29 @@ export class GameScene extends Phaser.Scene {
     // Phụ thể của thân LPC (rộng hơn m1): lệch theo LPC_VIEW.vohon, dx đổi dấu khi lật ngang.
     const ox = v.lpcKey ? (flip ? -LPC_VIEW.vohon.dx : LPC_VIEW.vohon.dx) : 0, oy = v.lpcKey ? LPC_VIEW.vohon.dy : 0;
     v.vb.x = v.vf.x = ox; v.vb.y = v.vf.y = lift + oy;
+    this.spiritMotion(id, v, p, time, anim, flip, ox, lift + oy);
     // Bị đánh: nháy trắng 2 lần.
     const e = time - v.hurtT, white = e < 70 || (e >= 140 && e < 210);
     for (const s of [v.body, v.vb, v.vf]) if (white) s.setTintFill(0xffffff); else s.clearTint();
     // Vòng hồn hoàn (mục 5.11 "Vòng hồn hoàn", soulRings.ts): dưới chân, bay lên ngang ngực khi tung hồn kỹ; Chân Thân thì thành quầng sau lưng. Ẩn khi gục.
     animateRings(this, v, p, time, { mine: id === this.me, formAge: this.pt.formAge(id, time), lift, delta: this.game.loop.delta });
+  }
+
+  private spPose = newSpiritPose(); private spShift = { x: 0, y: 0 };
+  /**
+   * Chuyển động phụ của phụ thể (H7 #490, spiritMotion.ts): xoay / co giãn / lệch hai lớp phụ thể theo họ của võ hồn và trạng thái đứng / đi /
+   * đánh / thi triển, bằng biến đổi Phaser trên sprite có sẵn (không tạo object). Mức theo fxLevel (Thấp / Vừa / Cao, đã gồm trần FPS), Giảm
+   * chuyển động tắt hẳn, người khác nhẹ hơn. Gục, hấp thụ, khung phụ thể ẩn thì trả về tư thế gốc.
+   */
+  spiritMotion(id: string, v: PView, p: any, time: number, anim: HsAnim, flip: boolean, ox: number, oy: number) {
+    const fam = SPIRIT_FAMILY[VOHON[p.vh]?.id ?? ""], layers = [v.vb, v.vf];
+    const k = fam && v.vb.visible && !p.dead && anim !== "absorb" ? spiritScale(fxLevel(), fxPrefs.reduce, id === this.me) : 0;
+    const base = isIsoSheet(this, v.vb.texture.key) ? 1 / SPR : 1; // phụ thể 48×48 cũ vẽ bằng code phóng 1 (fitHonsuLayer)
+    if (!fam || (k <= 0 && v.vb.rotation === 0 && v.vb.scaleX === base && v.vb.scaleY === base)) return;
+    const st: SpiritState = anim === "attack" || anim === "cast" ? anim : anim === "walk" ? "walk" : "idle";
+    v.spPhase ??= spiritPhase(id);
+    const age = v.act ? time - v.act.t0 : 0, dur = v.act ? honsuAnimMs(v.act.anim) : 0;
+    applySpiritPose(layers, spiritPose(this.spPose, fam, k > 0 ? st : "idle", time, age, dur, flip ? -1 : 1, time - v.hurtT, k, v.spPhase), this.spShift, ox, oy, base, 1 / SPR);
   }
 
   /** Xin lại chỉ số của võ hồn đang xem ở bảng nhân vật (server giới hạn nhịp, tin về qua "stats"). */

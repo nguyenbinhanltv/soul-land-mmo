@@ -55,6 +55,8 @@ Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` 
 | `die` (cột 19–22) | Không vẽ |
 | `absorb` (hàng 5, cột 0–1) | Hàng 0, cột 0–1, mờ 60% |
 
+**Chuyển động phụ (H7 #490):** cột "Hiệu ứng đặc trưng" dưới đây là ảnh vẽ; ngoài ra client tự thêm chuyển động phụ bằng code theo họ của võ hồn (`SPIRIT_FAMILY` ở `client/src/spiritMotion.ts`), không cần ảnh mới; võ hồn mới thì thêm dòng vào bảng họ (test `test:spiritmotion` báo thiếu).
+
 **Dạng phụ thể của 24 võ hồn** (màu chủ đạo `col` / `robe` trong `VOHON`; thêm võ hồn thì thêm dòng)
 
 | Võ hồn (`id`) | Dạng phụ thể khi phóng thích | Vị trí | Hiệu ứng đặc trưng |

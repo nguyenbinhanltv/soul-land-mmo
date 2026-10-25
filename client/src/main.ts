@@ -18,6 +18,7 @@ import { fontTestScreen } from "./fontTest.ts";
 import { audioTestScreen } from "./audioTest.ts";
 import { fxTestScreen } from "./fxTest.ts";
 import { phapTuongTestScreen } from "./phapTuongTest.ts";
+import { phutheTestScreen } from "./phutheTest.ts";
 import { sharedAudioContext, stopMusic } from "./audio/music.ts";
 import { mountGoogleButton } from "./google.ts";
 
@@ -345,6 +346,7 @@ function play(room: Room, roomMap: string, watch = false) {
   if (thu === "font") return fontTestScreen(card, overlay);
   if (thu === "am") return audioTestScreen(card, overlay); // `?thu=am`: nghe thử tiếng mẫu CC0 (G2, #393)
   if (thu === "fx") return fxTestScreen(card, overlay); // `?thu=fx`: thử hiệu ứng hồn kỹ theo hệ (G3, #394)
+  if (thu === "phuthe") return phutheTestScreen(card, overlay); // `?thu=phuthe`: thử chuyển động phụ phụ thể, trước / sau (H7, #490)
   if (thu === "phaptuong") return phapTuongTestScreen(card, overlay); // `?thu=phaptuong`: thử pháp tướng Võ Hồn Chân Thân (#486)
   if (!token) return loginScreen();
   await resume();
