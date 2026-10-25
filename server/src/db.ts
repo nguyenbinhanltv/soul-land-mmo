@@ -8,7 +8,7 @@ import { nameKey } from "./names.ts";
 import { mapFile } from "./map.ts";
 import { DEFAULT_LOOKS, parseLooks, encodeLpc, decodeLpc, presetToLpc, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, isTongTask, type TongRank, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
   BONE_ITEM, CORE_ITEM, EQUIP_ITEM, EQUIP_SLOTS, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
-  RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE,
+  RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE, RANK_BOARD_CACHE,
   type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
@@ -406,6 +406,20 @@ function resonanceEntry(accountId: number, name: string, vohons: { level: number
   const value = resonanceRankValue(prog, levels, vohons.reduce((s, v) => s + Math.max(0, Math.floor(v.stars) - 1), 0));
   return value.score ? { accountId, name, ...value } : null;
 }
+// Bảng xếp hạng đấu trường / tông môn (#738): kết quả dùng chung trong tiến trình, hết hạn sau RANK_BOARD_CACHE giây; yêu cầu đến lúc đang
+// tính dùng chung một Promise. Mọi lần ghi điểm / Elo trong tiến trình gọi rankBoardClear() nên chỉ bảng do tiến trình khác ghi mới trễ.
+const rankBoards = new Map<string, { at: number; v: unknown }>(), rankBusy = new Map<string, Promise<unknown>>();
+let rankGen = 0;
+export const rankBoardClear = () => { rankGen++; rankBoards.clear(); rankBusy.clear(); };
+function rankBoard<T>(key: string, compute: () => Promise<T>): Promise<T> {
+  const hit = rankBoards.get(key);
+  if (hit && Date.now() - hit.at < RANK_BOARD_CACHE * 1000) return Promise.resolve(hit.v as T);
+  const busy = rankBusy.get(key); if (busy) return busy as Promise<T>;
+  const gen = rankGen;
+  const p = compute().then((v) => { if (gen === rankGen) rankBoards.set(key, { at: Date.now(), v }); return v; }).finally(() => { if (rankBusy.get(key) === p) rankBusy.delete(key); });
+  rankBusy.set(key, p);
+  return p;
+}
 // Bảng đã sắp xếp dùng chung mọi phòng / cả hai Store, hết hạn sau RESONANCE_RANK_CACHE giây; yêu cầu đến lúc đang tính dùng chung một Promise.
 let resonanceCache: { at: number; all: ResonanceTopEntry[] } | null = null, resonanceBusy: Promise<ResonanceTopEntry[]> | null = null;
 async function resonanceRanking(compute: () => Promise<ResonanceTopEntry[]>): Promise<ResonanceTopEntry[]> {
@@ -668,11 +682,12 @@ export class MemoryStore implements Store {
   }
   bumpTong(accountId: number, week: number, tong: string, n: number) {
     const k = `${accountId}|${week}|${tong}`, x = this.tongPts.get(k) ?? { accountId, week, tong, points: 0 };
-    x.points += n; this.tongPts.set(k, x);
+    x.points += n; this.tongPts.set(k, x); rankBoardClear();
     return x.points;
   }
   async addTongPoints(accountId: number, week: number, tong: string, n: number) { return this.bumpTong(accountId, week, tong, n); }
   async tongBoard(week: number, min: number, topN: number): Promise<TongBoard> {
+    return rankBoard(`tong|${week}|${min}|${topN}`, async () => {
     const by = new Map<string, { accountId: number; points: number }[]>();
     for (const x of this.tongPts.values()) if (x.week === week && !this.tests.has(x.accountId)) { const l = by.get(x.tong) ?? []; l.push(x); by.set(x.tong, l); }
     const tongs: TongRank[] = [], top: TongBoard["top"] = {};
@@ -683,6 +698,7 @@ export class MemoryStore implements Store {
         .map((x) => ({ name: this.names.get(x.accountId) ?? "?", points: x.points }));
     }
     return { tongs, top };
+    });
   }
   async findAccount(name: string) {
     const acc = this.accounts.get(nameKey(name));
@@ -745,7 +761,7 @@ export class MemoryStore implements Store {
     }
     const cur = this.arena.get(accountId) ?? { elo: start, wins: 0, losses: 0, draws: 0 }, add = (a: number, b: number) => Math.max(0, a + b);
     const rec = { elo: add(cur.elo, delta.elo), wins: add(cur.wins, delta.wins), losses: add(cur.losses, delta.losses), draws: add(cur.draws, delta.draws) };
-    this.arena.set(accountId, { ...rec, t: ++this.arenaT });
+    this.arena.set(accountId, { ...rec, t: ++this.arenaT }); rankBoardClear();
     return { rec, paid };
   }
   async arenaTop(n: number, accountId: number) {
@@ -1353,9 +1369,13 @@ export class PgStore implements Store {
     const r = await db.query(
       `INSERT INTO tong_points(account_id, week, tong, points) VALUES ($1, $2, $3, $4)
        ON CONFLICT (account_id, week, tong) DO UPDATE SET points = tong_points.points + EXCLUDED.points RETURNING points`, [accountId, week, tong, n]);
+    rankBoardClear();
     return Number(r.rows[0].points);
   }
   async tongBoard(week: number, min: number, topN: number): Promise<TongBoard> {
+    return rankBoard(`tong|${week}|${min}|${topN}`, () => this.tongBoardQuery(week, min, topN));
+  }
+  private async tongBoardQuery(week: number, min: number, topN: number): Promise<TongBoard> {
     const [g, t] = await Promise.all([
       this.pool.query(
         `SELECT p.tong, COUNT(*) FILTER (WHERE p.points >= $2)::int AS active, COALESCE(AVG(p.points) FILTER (WHERE p.points >= $2), 0)::float8 AS avg
@@ -1457,6 +1477,7 @@ export class PgStore implements Store {
         if (r.rowCount && Number(r.rows[0].n) <= reward.limit) { await this.writeBag(db, accountId, reward.bag); paid = true; }
       }
       await db.query("COMMIT");
+      rankBoardClear();
       return { rec: arenaRow(a.rows[0]), paid };
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});
@@ -1464,13 +1485,18 @@ export class PgStore implements Store {
     } finally { db.release(); }
   }
   async arenaTop(n: number, accountId: number) {
-    const order = "ORDER BY r.elo DESC, r.wins DESC, r.updated_at, r.account_id";
-    const [top, me] = await Promise.all([
-      this.pool.query(`SELECT r.account_id, a.name, r.elo, r.wins, r.losses, r.draws FROM arena_ratings r JOIN accounts a ON a.id=r.account_id WHERE NOT a.is_test ${order} LIMIT $1`, [n]),
-      this.pool.query(`SELECT * FROM (SELECT r.account_id, r.elo, r.wins, r.losses, r.draws, ROW_NUMBER() OVER (${order}) AS rank FROM arena_ratings r JOIN accounts a ON a.id=r.account_id WHERE NOT a.is_test) x
-        WHERE x.account_id=$1`, [accountId]),
+    // Danh sách đầu bảng dùng chung (cache); `me` tính riêng: lấy dòng của mình rồi đếm số người đứng trước (khoá chỉ mục arena_ratings_rank).
+    const [list, me] = await Promise.all([
+      rankBoard(`arena|${n}`, async () => (await this.pool.query(
+        `SELECT r.account_id, a.name, r.elo, r.wins, r.losses, r.draws FROM arena_ratings r JOIN accounts a ON a.id=r.account_id WHERE NOT a.is_test
+         ORDER BY r.elo DESC, r.wins DESC, r.updated_at, r.account_id LIMIT $1`, [n])).rows),
+      this.pool.query(
+        `SELECT m.elo, m.wins, m.losses, m.draws, 1 + (SELECT COUNT(*) FROM arena_ratings r JOIN accounts a ON a.id=r.account_id
+           WHERE NOT a.is_test AND (r.elo > m.elo OR (r.elo = m.elo AND (r.wins > m.wins OR (r.wins = m.wins AND
+             (r.updated_at < m.updated_at OR (r.updated_at = m.updated_at AND r.account_id < m.account_id))))))) AS rank
+         FROM arena_ratings m JOIN accounts t ON t.id=m.account_id WHERE m.account_id=$1 AND NOT t.is_test`, [accountId]),
     ]);
-    return { list: top.rows.map((x) => ({ accountId: Number(x.account_id), name: x.name as string, ...arenaRow(x) })),
+    return { list: list.map((x: any) => ({ accountId: Number(x.account_id), name: x.name as string, ...arenaRow(x) })),
       me: me.rowCount ? { ...arenaRow(me.rows[0]), rank: Number(me.rows[0].rank) } : null };
   }
   async resonanceTop(page: number, pageSize: number, accountId: number) {
@@ -1480,13 +1506,13 @@ export class PgStore implements Store {
   private async resonanceAll(): Promise<ResonanceTopEntry[]> {
     const [accounts, vohons, items] = await Promise.all([
       this.pool.query("SELECT id, name FROM accounts WHERE NOT is_test ORDER BY id"),
-      this.pool.query("SELECT account_id, level, rings, stars FROM vohons ORDER BY id"),
+      this.pool.query("SELECT account_id, level, COALESCE(cardinality(rings), 0) AS rings, stars FROM vohons"),
       this.pool.query("SELECT account_id, code, enhance, stars FROM items WHERE vohon_id IS NOT NULL AND code = ANY($1::text[])", [[BONE_ITEM, CORE_ITEM]]),
     ]);
     const byVohon = new Map<number, { level: number; rings: number; stars: number }[]>(), byItem = new Map<number, { code: string; enhance: number; stars: number | null }[]>();
     for (const v of vohons.rows) {
       const id = Number(v.account_id), list = byVohon.get(id) ?? [];
-      list.push({ level: Number(v.level), rings: Array.isArray(v.rings) ? v.rings.length : 0, stars: Number(v.stars ?? 1) }); byVohon.set(id, list);
+      list.push({ level: Number(v.level), rings: Number(v.rings), stars: Number(v.stars ?? 1) }); byVohon.set(id, list);
     }
     for (const i of items.rows) {
       const id = Number(i.account_id), list = byItem.get(id) ?? [];
