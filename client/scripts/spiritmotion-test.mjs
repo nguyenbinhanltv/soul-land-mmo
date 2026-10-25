@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { VOHON } from "../../shared/data.ts";
-import { SPIRIT_FAMILY, SPIRIT_MOTION, SPIRIT_PIVOT, spiritPose, spiritScale, spiritPhase, kickEnvelope, pivotShift, newSpiritPose } from "../src/spiritMotion.ts";
+import { applySpiritPose, SPIRIT_FAMILY, SPIRIT_MOTION, SPIRIT_PIVOT, spiritPose, spiritScale, spiritPhase, kickEnvelope, pivotShift, newSpiritPose } from "../src/spiritMotion.ts";
 
 // H7 (#490): mọi võ hồn có họ chuyển động, mọi họ có đủ số liệu cho 4 trạng thái
 for (const v of VOHON) assert.ok(SPIRIT_FAMILY[v.id], `thiếu họ chuyển động cho ${v.id}`);
@@ -45,4 +45,13 @@ assert.ok(ph.size > 30, "40 người lệch pha khác nhau");
 // bị đánh: giật trong hurt.ms rồi hết
 spiritPose(P, "ghost", "idle", 0, 0, 0, 1, 40, 1, 0); const h1 = P.dx;
 spiritPose(P, "ghost", "idle", 0, 0, 0, 1, SPIRIT_MOTION.hurt.ms + 1, 1, 0); assert.notEqual(h1, P.dx);
+// ảnh 48×48 (base 1) và 96×96 (base 1/SPR): độ dời trong khung chứa như nhau, chỉ độ phóng khác
+{
+  const SPR = 2, mk = () => ({ x: 0, y: 0, setRotation() {}, sc: [1, 1], setScale(a, b) { this.sc = [a, b]; } });
+  const q = newSpiritPose(); q.rot = 0.2; q.pivot = 26; q.dx = 3; q.dy = -2;
+  const a = mk(), b = mk();
+  applySpiritPose([a], q, { x: 0, y: 0 }, 0, 0, 1 / SPR, 1 / SPR); applySpiritPose([b], q, { x: 0, y: 0 }, 0, 0, 1, 1 / SPR);
+  assert.equal(a.x, b.x); assert.equal(a.y, b.y);
+  assert.notEqual(a.sc[0], b.sc[0]);
+}
 console.log("spiritmotion-test: ok");

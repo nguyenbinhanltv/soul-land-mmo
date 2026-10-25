@@ -77,7 +77,7 @@ class PhutheScene extends Phaser.Scene {
       h.body.setFrame(f).setFlipX(flip); h.vb.setFrame(vf).setFlipX(flip); h.vf.setFrame(vf).setFlipX(flip);
       const kk = h.on ? k : 0;
       if (!h.fam) continue;
-      applySpiritPose([h.vb, h.vf], spiritPose(this.pose, SPIRIT_FAMILY[h.id], once && doing ? st : st === "walk" ? "walk" : "idle", t, age, dur, flip ? -1 : 1, -1, kk, h.phase), this.shift, 0, 0, h.iso ? 1 / SPR : 1);
+      applySpiritPose([h.vb, h.vf], spiritPose(this.pose, SPIRIT_FAMILY[h.id], once && doing ? st : st === "walk" ? "walk" : "idle", t, age, dur, flip ? -1 : 1, -1, kk, h.phase), this.shift, 0, 0, h.iso ? 1 / SPR : 1, 1 / SPR);
     }
     this.spentMs += performance.now() - t0; this.spentN++;
   }

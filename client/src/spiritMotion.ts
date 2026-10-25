@@ -145,14 +145,14 @@ export function pivotShift(out: { x: number; y: number }, pose: SpiritPose): { x
 export interface PoseLayer { x: number; y: number; setRotation(r: number): unknown; setScale(x: number, y: number): unknown }
 
 /**
- * Đặt tư thế lên các lớp phụ thể: `base` là hệ số phóng gốc của lớp (isometric 96×96: 1 / SPR; phụ thể 48×48 cũ vẽ bằng code: 1), nên độ dời
- * pixel ảnh nhân `base` khi cộng vào vị trí trong khung chứa phóng SPR. `(ox, oy)` là vị trí gốc của lớp (độ lệch LPC_VIEW.vohon + nhấc bay).
- * Dùng chung cho GameScene và trang xem trước.
+ * Đặt tư thế lên các lớp phụ thể. Số liệu `SPIRIT_MOTION` / `SPIRIT_PIVOT` tính theo pixel màn hình nội bộ (1 pixel ảnh 96×96), nên độ dời
+ * đổi sang đơn vị khung chứa bằng `unit` (= 1 / SPR, đúng cho mọi lớp). `base` chỉ là hệ số phóng gốc của lớp (isometric 96×96: 1 / SPR;
+ * phụ thể 48×48 cũ vẽ bằng code: 1) cho `setScale`. `(ox, oy)` là vị trí gốc của lớp. Dùng chung cho GameScene và trang xem trước.
  */
-export function applySpiritPose(layers: readonly PoseLayer[], pose: SpiritPose, shift: { x: number; y: number }, ox: number, oy: number, base: number): void {
+export function applySpiritPose(layers: readonly PoseLayer[], pose: SpiritPose, shift: { x: number; y: number }, ox: number, oy: number, base: number, unit: number): void {
   pivotShift(shift, pose);
   for (const s of layers) {
     s.setRotation(pose.rot); s.setScale(pose.sx * base, pose.sy * base);
-    s.x = ox + shift.x * base; s.y = oy + shift.y * base;
+    s.x = ox + shift.x * unit; s.y = oy + shift.y * unit;
   }
 }
