@@ -179,6 +179,57 @@ function free(id, group, attach, name, layerOf, build) {
   }
 }
 
+
+// ───────────────────────────── Hỏa Long: rồng lửa quấn tay phải và thân, đầu rồng có sừng ngóc trên vai ─────────────────────────────
+{
+  const id = "hoa_long", p = pal(id);
+  const coil = (u, v) => { const t = (((u + v) % 6) + 6) % 6; return t === 0 ? p.cl : t === 1 || t === 2 ? p.c : t === 3 ? p.cd : null; };
+  wraps(id, "tay", "rong_tay", { s: ["left"], e: ["left"], n: ["right"] }, coil);
+  const SH = { s: [-12, -2], e: [-9, -3], n: [12, -2] };
+  free(id, "dau", "back", "dau_rong", () => "f", (d) => {
+    const img = blank(), [sx, sy] = SH[d], k = d === "n" ? -1 : 1, head = [sx + (d === "e" ? 3 : -2 * k), sy - 14];
+    stroke(img, [[sx, sy + 1], [sx - 3 * k, sy - 4], [head[0] + 3 * k, head[1] + 4], head], 2.6, 2.2, (t, i) => (Math.floor(i / 3) % 2 ? p.c : p.cd));
+    if (d === "e") { fillPoly(img, [[head[0] - 3, head[1] - 2], [head[0] + 5, head[1]], [head[0] - 3, head[1] + 3]], p.c); px(img, head[0] - 1, head[1] - 1, p.cl); px(img, head[0] + 3, head[1] + 1, p.cd); fillPoly(img, [[head[0] - 3, head[1] - 3], [head[0] - 6, head[1] - 7], [head[0] - 1, head[1] - 3]], p.cl); }
+    else { fillPoly(img, [[head[0] - 4, head[1] - 1], [head[0], head[1] - 3], [head[0] + 4, head[1] - 1], [head[0] + 2.5, head[1] + 3], [head[0] - 2.5, head[1] + 3]], d === "n" ? p.cd : p.c);
+      fillPoly(img, [[head[0] - 4, head[1] - 1], [head[0] - 7, head[1] - 6], [head[0] - 2, head[1] - 2]], p.cl); fillPoly(img, [[head[0] + 4, head[1] - 1], [head[0] + 7, head[1] - 6], [head[0] + 2, head[1] - 2]], p.cl);
+      if (d === "s") { px(img, head[0] - 2, head[1], p.cl); px(img, head[0] + 1, head[1], p.cl); px(img, head[0] - 1, head[1] + 2, p.rd); px(img, head[0], head[1] + 2, p.rd); } }
+    return finish(img, null);
+  });
+  // Thân rồng vắt chéo qua ngực / lưng.
+  free(id, "than", "back", "than_rong", () => "f", (d) => {
+    const img = blank(), P = { s: [[-9, -3], [-2, 2], [4, 7], [9, 12]], e: [[-3, -3], [0, 2], [-1, 7], [-4, 12]], n: [[9, -3], [2, 2], [-4, 7], [-9, 12]] }[d];
+    stroke(img, P, d === "e" ? 1.8 : 2.2, d === "e" ? 1.8 : 2.2, (t, i) => (Math.floor(i / 3) % 2 ? p.c : p.cd));
+    for (let y = -C / 2; y < C / 2; y++) for (let x = -C / 2; x < C / 2; x++) { const c = get(img, x + O, y + O); if (c && same(c, p.c) && !get(img, x + O, y + O - 1)) px(img, x, y, p.cl); }
+    return finish(img, null);
+  });
+}
+
+// ───────────────────────────── Liệt Hỏa Thương Lang: tai sói, đuôi chóp lửa, vuốt lửa ─────────────────────────────
+{
+  const id = "liet_hoa_thuong_lang", p = pal(id);
+  free(id, "tai", "head", "tai", () => "f", (d) => {
+    const img = blank();
+    const ear = (cx, tipx, w, inner) => { fillPoly(img, [[cx - w / 2, 3], [cx + w / 2, 3], [tipx, -9]], p.r); fillPoly(img, [[cx - w / 2 + 2, 3], [cx + w / 2 - 1, 3], [tipx + 0.2, -4]], inner ? p.c : p.rd); };
+    if (d === "e") { ear(3, 4, 6, true); ear(-3.5, -6, 8, true); } else { ear(-6, -8, 7, d === "s"); ear(6, 8, 7, d === "s"); }
+    return finish(img, p.rl);
+  });
+  free(id, "duoi", "back", "duoi", (d) => (d === "n" ? "f" : "b"), (d) => {
+    const img = blank(), P = { s: [[8, 10], [15, 11], [19, 3], [17, -5]], e: [[-5, 10], [-12, 9], [-17, 3], [-17, -4]], n: [[3, 11], [8, 15], [13, 12], [15, 5]] }[d];
+    const sm = stroke(img, P, d === "n" ? 3 : 4.6, d === "n" ? 2 : 3.2, () => p.r);
+    for (let y = -C / 2; y < C / 2; y++) for (let x = -C / 2; x < C / 2; x++) { const c = get(img, x + O, y + O); if (c && same(c, p.r) && !get(img, x + O, y + O - 1)) px(img, x, y, p.rl); }
+    const tip = sm[sm.length - 1]; disc(img, tip[0], tip[1], 2.8, p.c); disc(img, tip[0], tip[1] + 0.5, 1.5, p.cl);
+    fillPoly(img, [[tip[0] - 2, tip[1] - 1], [tip[0] - 1, tip[1] - 6], [tip[0], tip[1] - 1]], p.c); fillPoly(img, [[tip[0], tip[1] - 1], [tip[0] + 1.5, tip[1] - 7], [tip[0] + 2.5, tip[1] - 1]], p.c); px(img, tip[0] + 1, tip[1] - 4, p.cl);
+    return finish(img, null);
+  });
+  for (const d of DIRS) for (const side of ({ s: ["left", "right"], e: ["left"], n: ["left", "right"] })[alias(d)]) {
+    const img = blank();
+    for (const [dx, len] of [[-2, 4], [0, 5], [2, 4]]) for (let i = 0; i < len; i++) px(img, dx, 1 + i, i === len - 1 ? p.cl : i < 1 ? p.cd : p.c);
+    finish(img, null);
+    const fn = `vuot_${alias(d)}_${side}.png`; save(path.join(OUT, id), fn, img);
+    add(id, `tay_${side}`, "hand", d, { img: fn, pivot: [O, O], hand: side, layer: "f", off: [0, 0], ...(alias(d) === "e" ? { free: true } : {}) });
+  }
+}
+
 // Nhóm có sẵn từ trước (hư ảnh báo, bụi cỏ dưới chân) giữ nguyên, chạy cùng.
 const BASE = { lam_ngan_thao: ["../../pixellab/vh_iso/lam_ngan_thao.json"], u_minh_linh_mieu: ["../../pixellab/vh_iso/u_minh_linh_mieu.json"] };
 for (const [id, groups] of Object.entries(specs)) writeFileSync(path.join(OUT, id, "spec.json"), JSON.stringify({ base: BASE[id] ?? [], groups }, null, 1) + "\n");
