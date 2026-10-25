@@ -6,6 +6,10 @@
 /* Dự phòng: 12 biểu tượng hồn kỹ / giao diện (☄ ☇ ☈ ☠ ☯ ☽ ☾ ⚒ ⚔ ⛓ ⛨ ❦) có ở Ark Pixel mà Galmuri không có; subset Ark chỉ còn các ký tự đó (khoảng 1 KB mỗi cỡ, OFL). */
 @font-face{font-family:"Ark Symbols 12";src:url("./fonts/ark-symbols-12.woff2") format("woff2");font-display:block}
 @font-face{font-family:"Ark Symbols 10";src:url("./fonts/ark-symbols-10.woff2") format("woff2");font-display:block}
+/* Be Vietnam Pro (OFL, client/src/fonts/OFL-be-vietnam-pro.txt): chữ trong cảnh Phaser, radar, bản đồ; tập con Latin + Việt, tự host (không tải Google Fonts). `block`: chờ phông, không vẽ bằng phông hệ thống. */
+@font-face{font-family:"Be Vietnam Pro";font-weight:500;src:url("./fonts/bvp-500.woff2") format("woff2");font-display:block}
+@font-face{font-family:"Be Vietnam Pro";font-weight:600;src:url("./fonts/bvp-600.woff2") format("woff2");font-display:block}
+@font-face{font-family:"Be Vietnam Pro";font-weight:800;src:url("./fonts/bvp-800.woff2") format("woff2");font-display:block}
 /* Bảng màu thủy mặc (art/palettes/_thuy_mac.gpl): giấy ngà, mực, triện son, gỗ trục; chữ mực trên giấy. Lớp "mực" (dải tối trong
    suốt) cho chữ nổi trên cảnh (log, gợi ý). */
 :root{

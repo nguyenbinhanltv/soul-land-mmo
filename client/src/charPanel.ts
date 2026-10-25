@@ -400,8 +400,8 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     row.innerHTML = `${coreIcon(set)}<span><b></b><small></small><small></small></span>`;
     row.querySelector("b")!.textContent = `${cs ? `${cs.name} (${cs.tag})` : "Bộ lạ"} · ${n} món`;
     const [s2, s4] = row.querySelectorAll("small");
-    s2.textContent = `${n >= CORE_SET_2 ? "✓" : `${n}/${CORE_SET_2}`} 2 món: ${cs?.set2 ?? "không rõ"}`; s2.classList.toggle("on", n >= CORE_SET_2);
-    s4.textContent = `${n >= CORE_SET_4 ? "✓" : `${n}/${CORE_SET_4}`} 4 món: ${cs?.set4 ?? "không rõ"}`; s4.classList.toggle("on", n >= CORE_SET_4);
+    s2.textContent = `${n >= CORE_SET_2 ? "√" : `${n}/${CORE_SET_2}`} 2 món: ${cs?.set2 ?? "không rõ"}`; s2.classList.toggle("on", n >= CORE_SET_2);
+    s4.textContent = `${n >= CORE_SET_4 ? "√" : `${n}/${CORE_SET_4}`} 4 món: ${cs?.set4 ?? "không rõ"}`; s4.classList.toggle("on", n >= CORE_SET_4);
     setsEl.appendChild(row);
   }
 
