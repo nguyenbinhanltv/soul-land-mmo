@@ -5441,10 +5441,10 @@ async function autoTest(){
       const bid=(await test(A,"spawn",{species:"thuc_nhan_hoa",tier:0,dx:Q.x-P.x,dy:Q.y-P.y,years:15,hpx:200}))?.bid, bb=()=>A.room.state.beasts.get(bid);
       const ways=new Set(); let st=null;
       if(!bid||!(await autoOp(A,"on"))?.on) return null;
-      let hit=false; // waitFor chỉ nhận hàm đồng bộ: hỏi hook `auto` mỗi nhịp để ghi cách đi của từng lúc
-      for(const t0=Date.now();Date.now()-t0<12000&&!hit;await sleep(100)){ st=await test(A,"auto"); if(st?.way) ways.add(st.way); hit=!!bb()&&bb().hp<bb().maxHp; }
+      const t00=Date.now(); let hit=false, ms=0; // waitFor chỉ nhận hàm đồng bộ: hỏi hook `auto` mỗi nhịp để ghi cách đi của từng lúc
+      for(const t0=Date.now();Date.now()-t0<12000&&!hit;await sleep(100)){ st=await test(A,"auto"); if(st?.way) ways.add(st.way); hit=!!bb()&&bb().hp<bb().maxHp; if(hit) ms=Date.now()-t00; }
       st=await test(A,"auto"); await autoOp(A,"off"); await test(A,"clear");
-      return {hit,ways:[...ways],target:st?.target===bid,plans:st?.plans,lines:st?.lines,start:P,beast:Q};
+      return {hit,ms,ways:[...ways],target:st?.target===bid,plans:st?.plans,lines:st?.lines,start:P,beast:Q};
     };
     const L=pick(false), W=pick(true);
     await autoOp(A,"set",{cfg:{...NEAR,skills:[],tienCo:false}});
