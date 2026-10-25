@@ -776,6 +776,16 @@ async function channelTest(){
   await follow(P2);
   P1.travel=null; await T(P1,"warp",{mapId:NV,x:0,y:0}); await waitFor(()=>P1.travel,3000); await follow(P1);
   ok(chOf(P3)===1&&chOf(P2)===1&&chOf(P1)===2,`Ngoại vi: P3, P2 kênh ${chOf(P3)}; P1 kênh ${chOf(P1)} (kênh 1 đầy)`);
+  { // #819: khóa kênh đích sau đổi kênh nằm ở presence dùng chung (chạy --procs 2: phòng đích khác tiến trình vẫn thấy khóa, không chặn nhầm)
+    await T(P2,"chan",{reset:1}); P2.travel=null; await say(P2,"channel",{ch:2}); await waitFor(()=>P2.travel,3000);
+    const t=P2.travel; await P2.room.leave(); await sleep(200);
+    let other=""; try{ const r=await new Client(WS).joinById(P3.room.roomId,{token:P2.token,mapId:NV}); await r.leave(); other="vào được"; }catch(e){ other=String(e?.message??e); }
+    ok(/kênh 2/.test(other)&&other!=="vào được",`#819 Ngoại vi: đổi sang kênh 2 nhưng joinById kênh 1: bị từ chối ("${other}")`);
+    await enter(P2,t.roomId); await fresh(P2);
+    ok(chOf(P2)===2,"#819: vào đúng kênh server chọn: khóa không chặn nhầm");
+    await T(P2,"chan",{reset:1}); P2.travel=null; await say(P2,"channel",{ch:1}); await waitFor(()=>P2.travel,3000); await follow(P2);
+    ok(chOf(P2)===1&&chOf(P1)===2,"#819: P2 về kênh 1 như cũ (khóa cũ đã gỡ, không chặn lần vào hợp lệ kế tiếp)");
+  }
 
   // ---- Thú vương: mỗi kênh một con (suất theo bản đồ), báo toàn server mọi kênh, mỗi khung giờ một rương dù đổi kênh ----
   const king=b=>[...b.room.state.beasts.values()].find(x=>x.rank===2), chestN=b=>qtyOf(b,chestCode("huyet_nguyet_lang_vuong"));

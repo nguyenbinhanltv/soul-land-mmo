@@ -569,7 +569,9 @@ const testNoLeaveLock = new Set<number>();
 const testOfflineAgo = new Map<number, number>();
 /** Kênh vừa rời của tài khoản ở bản đồ `mapId` nếu còn khóa và kênh đó còn mở, còn chỗ (trong `list`). */
 async function leftLock(accountId: number, mapId: string, list: ChannelInfo[]) {
-  const l = (await presenceBackend.getJson<{ mapId: string; roomId: string; ch: number; until: number; travel?: boolean }>(channelLeftKey(accountId))) ?? leftRoom.get(accountId);
+  // Redis: sổ presence dùng chung là nguồn duy nhất (Map RAM của tiến trình khác / lần đi cổng trước có thể đã cũ, chặn nhầm); RAM: presence chính là Map.
+  const shared = await presenceBackend.getJson<{ mapId: string; roomId: string; ch: number; until: number; travel?: boolean }>(channelLeftKey(accountId));
+  const l = presenceBackend.mode === "redis" ? shared : shared ?? leftRoom.get(accountId);
   if (!l || l.until <= Date.now()) { leftRoom.delete(accountId); bg(presenceBackend.delete(channelLeftKey(accountId)), "presence"); return null; }
   leftRoom.set(accountId, l);
   return l.mapId === mapId ? list.find((c) => c.roomId === l.roomId && !c.full) ?? null : null;
@@ -1979,8 +1981,15 @@ export class MapRoom extends Room<MapState> {
       // Kênh đích chọn ngay trong chuỗi, trước khi phiên này nhả tài khoản (onLeave nối sau): client, kể cả vừa mất kết nối rồi vào
       // lại, chỉ vào được kênh này CHANNEL_CD giây khi nó còn mở, còn chỗ (leftRoom cờ `travel`; mục 6: client không chọn kênh đích, #164).
       dest = to ?? (await pickChannel(d.accountId, portal.to).catch(() => null));
-      if (dest) leftRoom.set(d.accountId, { mapId: portal.to, roomId: dest.roomId, ch: dest.ch, until: Date.now() + CHANNEL_CD * 1000, travel: true });
-      else leftRoom.delete(d.accountId);
+      // Ghi cả vào presence (có TTL, chờ xong trước khi client nhận `travel`): phòng ở tiến trình khác cũng thấy khóa (#819).
+      if (dest) {
+        const lock = { mapId: portal.to, roomId: dest.roomId, ch: dest.ch, until: Date.now() + CHANNEL_CD * 1000, travel: true };
+        leftRoom.set(d.accountId, lock);
+        await presenceBackend.putJson(channelLeftKey(d.accountId), lock, CHANNEL_CD * 1000).catch((e) => console.error("presence travel lock", e));
+      } else {
+        leftRoom.delete(d.accountId);
+        await presenceBackend.delete(channelLeftKey(d.accountId)).catch((e) => console.error("presence travel lock", e));
+      }
     }).then(() => {
       const c = this.clients.getById(id); if (!c) return; // client đã rời: onLeave (đang chờ trong chuỗi) xét d.travelled
       if (!d.travelled) {
