@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { damageTextStyle, footDustCount, HIT_HE_STYLE, rootSnareDiameter } from "../src/combatFeelRules.ts";
+import { damageTextStyle, footDustCount, HIT_HE_STYLE, rootSnareDiameter, FxGovernor, GOV } from "../src/combatFeelRules.ts";
 
 assert.equal(footDustCount("low", false, true), 0);
 assert.equal(footDustCount("mid", true, true), 0);
@@ -20,4 +20,48 @@ assert.equal(damageTextStyle("crit", true, "ice", false).color, "#ffe14d");
 assert.equal(damageTextStyle("damage", false, undefined, false, "#ff7a2a").color, "#ff7a2a");
 assert.equal(damageTextStyle("damage", false, undefined, false, "#6ee06a").color, "#6ee06a");
 assert.equal(rootSnareDiameter(18, 1, 0.5), 18);
+// H8 (#491): bộ điều tốc mức hiệu ứng theo FPS
+{
+  const run = (g, ms, user, n) => { let ch = 0; for (let t = 0; t < n; t += ms) ch += g.feed(ms, user) ? 1 : 0; return ch; };
+  const g = new FxGovernor();
+  assert.equal(g.effective("high"), "high");
+  run(g, 1000 / 60, "high", 20000);
+  assert.equal(g.cap, "high", "60 FPS: không hạ");
+  const jitter = (g2, n) => { for (let i = 0; i < n; i++) g2.feed(i % 2 ? 1000 / 60 * 2.8 : 1000 / 60 * 1.2, "high"); };
+  const hz30 = new FxGovernor();
+  run(hz30, 1000 / 30, "high", 60000);
+  assert.equal(hz30.effective("high"), "high", "màn khóa 30 Hz ổn định: giữ nguyên mức, không hạ");
+  const slow60 = new FxGovernor();
+  run(slow60, 1000 / 60, "high", 2000);
+  jitter(slow60, 90);
+  assert.equal(slow60.effective("high"), "mid", "30 FPS dao động trên màn 60 Hz: vẫn hạ một bậc");
+  const steady30 = new FxGovernor();
+  run(steady30, 1000 / 60, "high", 5000);
+  run(steady30, 1000 / 30, "high", 3000);
+  assert.equal(steady30.effective("high"), "mid", "màn 60 Hz giật đều 30 FPS: hạ một bậc");
+  run(steady30, 1000 / 30, "high", 10000);
+  assert.equal(steady30.effective("high"), "low", "vẫn giật đều 30 FPS ≥ 10 s: hạ tiếp tới Thấp");
+  run(g, 1000 / 20, "high", 2800);
+  assert.equal(g.effective("high"), "mid", "20 FPS ổn định: hạ một bậc");
+  run(g, 1000 / 20, "high", 8000);
+  assert.equal(g.effective("high"), "low", "vẫn chậm: hạ tiếp, sàn là Thấp");
+  run(g, 1000 / 20, "high", 8000);
+  assert.equal(g.effective("high"), "low", "không hạ dưới Thấp");
+  assert.equal(g.effective("low"), "low");
+  run(g, 1000 / 60, "high", GOV.RISE_AFTER + 2000);
+  assert.equal(g.effective("high"), "mid", "FPS tốt trở lại: nâng một bậc sau độ trễ");
+  run(g, 1000 / 60, "high", GOV.RISE_AFTER * 2 + 2000);
+  assert.equal(g.effective("high"), "high", "nâng hết về mức người chơi chọn");
+  assert.equal(g.effective("mid"), "mid", "không bao giờ nâng quá mức người chơi chọn");
+  const h = new FxGovernor();
+  run(h, 1000 / 20, "mid", 4000);
+  assert.equal(h.effective("mid"), "low", "người chơi chọn Vừa: hạ được về Thấp");
+  const s = new FxGovernor();
+  for (let i = 0; i < 100; i++) s.feed(GOV.SKIP_MS + 1, "high"); // đổi tab / dừng hình: khung dài bất thường không tính
+  assert.equal(s.cap, "high");
+  const spike = new FxGovernor();
+  for (let i = 0; i < 600; i++) spike.feed(i % 60 === 0 ? 120 : 1000 / 60, "high");
+  assert.equal(spike.cap, "high", "thỉnh thoảng một khung chậm không làm hạ mức");
+  assert.equal(new FxGovernor().feed(NaN, "high"), false);
+}
 console.log("combatfeel-test: đạt");

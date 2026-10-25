@@ -49,6 +49,21 @@ export const SKILL_PHASE_OF_FX: Readonly<Record<string, SkillPhase>> = {
   fly: "fly", bolt: "fly", zap: "fly", pull: "fly",
   burst: "boom", wave: "boom", bone: "boom",
 };
+/**
+ * Nhóm tiếng T3 riêng của một võ hồn (C4 #579, `tools/audio/sfx-catalog.json`): `ult` = tuyệt kỹ vòng 10, `ct` = hồn kỹ Chân Thân (cả hai có 3 pha
+ * start / fly / boom), `avatar` = tiếng biến hình (không pha). Tên nhóm dùng gạch ngang thay gạch dưới của mã võ hồn.
+ */
+export function t3Group(kind: "ult" | "ct" | "avatar", vohonId: string, phase?: SkillPhase): string {
+  const id = vohonId.replaceAll("_", "-");
+  return kind === "avatar" ? `skill-t3-avatar-${id}` : `skill-t3-${kind}-${id}-${phase ?? "start"}`;
+}
+/** Sau khi một người tung chiêu T3, các tin `fx` bay / nổ của chính chiêu đó trong chừng này ms cũng dùng tiếng T3 của võ hồn. */
+export const T3_WINDOW_MS = 1600;
+/** Người khác (không phải mình) chỉ được phát tiếng T3 cách nhau tối thiểu chừng này ms (đông người cùng tung không chồng thành một mảng ồn). */
+export const T3_OTHERS_GAP_MS = 700;
+/** Hệ số âm lượng tiếng T3 của người khác. */
+export const T3_OTHERS_GAIN = 0.7;
+
 /** Hồn kỹ nặng: hạ nhạc nền một lúc. */
 export const LOUD_FX: ReadonlySet<string> = new Set(["ult", "avatar", "fusion", "roar"]);
 

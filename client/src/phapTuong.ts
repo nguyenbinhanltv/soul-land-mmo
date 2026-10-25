@@ -9,7 +9,7 @@ import {
   PHAP_TUONG, PT_FRAME, PT_COLS, PT_IDLE_N, PT_ATTACK_N, PT_ORIGIN, PT_DIRS, PT_FRONT_ALPHA, PT_GHOST, PT_FORM, PT_STRIKE,
   PT_OTHERS_K, PT_DUO, PT_BURST_SEC, PT_STAGES, PT_CUTIN_SEC, VOHON, phapTuongStage, type PhapTuongDef, type PtGroup, type PtHat,
 } from "../../shared/data.ts";
-import { fxPrefs, flashOn, type ParticleLayer } from "./combatFx.ts";
+import { fxPrefs, flashOn, type ParticleLayer, fxLevel } from "./combatFx.ts";
 import type { Dir8 } from "./iso.ts";
 import { DIRV, ptRow, ptIsBack, ptStrikeFrame, ptStrikeCurve, clamp01 } from "./phapTuongMath.ts";
 
@@ -208,7 +208,7 @@ export class PhapTuongSystem {
     if (r.state === "in" && age >= PT_FORM.total) r.state = "hold";
     this.setSlots(r, [p.vohonId, ...(r.extra ? [r.extra.id] : [])]);
 
-    const lv = fxPrefs.level, calm = fxPrefs.reduce, k = mine ? 1 : PT_OTHERS_K[lv];
+    const lv = fxLevel(), calm = fxPrefs.reduce, k = mine ? 1 : PT_OTHERS_K[lv];
     const stage = phapTuongStage(p.rings), tb = (time - r.burst) / 1000;
     const bur = tb >= 0 && tb < PT_BURST_SEC ? 1 - tb / PT_BURST_SEC : 0, top = PT_STAGES[PT_STAGES.length - 1];
     const lerpTop = (a: number, b: number) => a + (b - a) * bur;
@@ -263,6 +263,7 @@ export class PhapTuongSystem {
       const flashHit = stopT && flashOn();
       if (flashHit) s.body.setTintFill(0xffffff); else s.body.clearTint();
       const pulse = 0.5 + 0.5 * Math.sin(phase * Math.PI * 2);
+      s.glow.setVisible(mine || lv !== "low"); // H8: Thấp, pháp tướng người khác bỏ lớp cộng sáng (một lượt vẽ thay vì hai)
       (s.own ? s.glow.clearTint() : s.glow.setTint(s.col)).setAlpha(clamp01((0.25 + 0.3 * m.pulse * pulse * 2 + (flashHit ? 0.6 : 0) + sc * 0.2 + 0.4 * bur) * stG * k * vis * v.alpha * (lv === "low" ? 0.5 : 1)));
       // hạt theo hệ (pool dùng chung ở ParticleLayer; Thấp: trần 0 nên không phát)
       if (stH > 0 && k > 0 && !calm && lv !== "low" && vis > 0.5) {
@@ -292,7 +293,7 @@ export class PhapTuongSystem {
    */
   auraFx(g: Phaser.GameObjects.Graphics, id: string, x: number, y: number, rings: number, col: number, mine: boolean, time: number, q: number) {
     const r = this.rigs.get(id); if (!r) return;
-    const lv = fxPrefs.level, calm = fxPrefs.reduce, k = mine ? 1 : PT_OTHERS_K[lv], st = phapTuongStage(rings), pu = 0.5 + 0.5 * Math.sin(time / 150);
+    const lv = fxLevel(), calm = fxPrefs.reduce, k = mine ? 1 : PT_OTHERS_K[lv], st = phapTuongStage(rings), pu = 0.5 + 0.5 * Math.sin(time / 150);
     const age = (time - r.t0) / 1000;
     if (r.state === "in" && !calm) {
       // vòng 7 sáng → cột sáng
@@ -316,7 +317,7 @@ export class PhapTuongSystem {
 export class PhapTuongCutIn {
   private el: HTMLDivElement | null = null;
   private timer = 0;
-  static allowed() { return fxPrefs.cutin && !fxPrefs.reduce && fxPrefs.level !== "low"; }
+  static allowed() { return fxPrefs.cutin && !fxPrefs.reduce && fxLevel() !== "low"; }
   show(scene: Phaser.Scene, vohonId: string, col: string): boolean {
     this.clear();
     if (!PhapTuongCutIn.allowed()) return false;

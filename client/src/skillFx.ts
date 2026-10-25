@@ -4,7 +4,7 @@ import Phaser from "phaser";
 import { SkillDef, VOHON, ringSkill, chanThanOf } from "../../shared/data.ts";
 import { ELEMENTS, elementOf, type Element } from "./audio/soundMap.ts";
 import { SPR } from "./iso.ts";
-import { fxPrefs, type ParticleLayer } from "./combatFx.ts";
+import { fxPrefs, type ParticleLayer, fxLevel } from "./combatFx.ts";
 
 /** 5 kiểu dựng sẵn: phóng (bay tới), vùng tròn (trên mặt đất), chém (vệt cong), hào quang buff (quanh thân), tia trúng (tại mục tiêu). */
 export type FxKind = "proj" | "zone" | "slash" | "aura" | "hit";
@@ -93,7 +93,7 @@ export class SkillFx {
   get active() { return this.live; }
 
   private grab(key: string): Phaser.GameObjects.Image | null {
-    if (this.bare || this.live >= SPRITE_CAP[fxPrefs.level] || !this.scene.textures.exists(key)) return null;
+    if (this.bare || this.live >= SPRITE_CAP[fxLevel()] || !this.scene.textures.exists(key)) return null;
     let s = this.pool.pop();
     if (!s) s = this.scene.add.image(0, 0, key).setBlendMode(Phaser.BlendModes.ADD);
     s.setTexture(key).clearTint().setActive(true).setVisible(true).setDepth(this.depth).setAlpha(1).setFlip(false, false).setRotation(0).setOrigin(0.5);
@@ -122,7 +122,7 @@ export class SkillFx {
 
   play(kind: FxKind, el: Element, o: PlayOpts) {
     this.bare = !!o.partsOnly;
-    const c = ELEMENT_COL[el], tc = o.tierCol ?? c.hi, lv = fxPrefs.level, pk = PART_K[lv];
+    const c = ELEMENT_COL[el], tc = o.tierCol ?? c.hi, lv = fxLevel(), pk = PART_K[lv];
     const tex = fxTexKey(el, kind), a = o.ang ?? 0, reduce = fxPrefs.reduce;
     const n = (k: number) => Math.round(k * pk);
     if (kind === "proj") {

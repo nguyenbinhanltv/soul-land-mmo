@@ -3,10 +3,12 @@
 // × `cols` khung. Lớp cộng sáng (ADD), pool Image dùng lại, mảng ô định sẵn: không tạo object mới mỗi khung hay mỗi lần phát (trừ lần đầu tới trần).
 import Phaser from "phaser";
 import { SPR } from "./iso.ts";
-import { fxPrefs, type FxLevel } from "./combatFx.ts";
+import { fxPrefs, type FxLevel, fxLevel } from "./combatFx.ts";
 
 /** Trần số sprite sheet cùng lúc theo mức (Thấp: vài hình chính; ở đông người thì chiêu của người khác nhường chỗ, xem `light`). */
 export const SHEET_CAP: Record<FxLevel, number> = { low: 3, mid: 10, high: 24 };
+/** Chiêu của người khác (bản nhẹ) chỉ được dùng tới phần này của trần: phần còn lại dành cho chiêu của chính mình (H8 #491). */
+export const SHEET_TUNE = { othersK: 0.6 };
 const snap = (v: number) => Math.round(v / SPR) * SPR;
 
 export interface SheetPlay {
@@ -56,7 +58,7 @@ export class SheetFx {
   /** Phát một lần; trả false khi texture chưa có hoặc quá trần (nơi gọi giữ hiệu ứng cũ). */
   play(o: SheetPlay): boolean {
     const tex = this.scene.textures.exists(o.key) ? this.scene.textures.get(o.key) : null;
-    if (!tex || this.live >= SHEET_CAP[fxPrefs.level]) return false;
+    if (!tex || this.live >= (o.light ? Math.max(1, Math.floor(SHEET_CAP[fxLevel()] * SHEET_TUNE.othersK)) : SHEET_CAP[fxLevel()])) return false;
     const total = tex.frameTotal - 1, rows = Math.max(1, o.rows ?? 1), cols = Math.floor(total / rows);
     if (cols < 1) return false;
     const a = o.ang ?? 0, calm = fxPrefs.reduce;

@@ -1,6 +1,6 @@
 // G3 (#394): cảnh hồn kỹ lớn (vòng 7+ / Võ Hồn Chân Thân): tối màn, chân dung võ hồn trượt ngang, tên chiêu chữ lớn.
 // Chỉ hiển thị ở client (lớp HTML trên canvas, không chặn chuột); thời lượng ở đây là độ dài hiệu ứng, KHÔNG phải số cân bằng.
-import { fxPrefs } from "./combatFx.ts";
+import { fxPrefs, fxLevel } from "./combatFx.ts";
 import { artUrl } from "./uiArt.ts";
 
 /** Chân dung trượt ngang (~0,6 s), cả cảnh tồn tại chừng này ms. */
@@ -10,8 +10,9 @@ export const CINE_NEAR = 220;
 
 /** Có nên hiện cảnh này cho người xem hay không: Thấp / tùy chọn tắt → không; Vừa → người dùng chiêu và người ở gần; Cao → mọi người. */
 export function cineAllowed(mine: boolean, dist: number): boolean {
-  if (!fxPrefs.cine || fxPrefs.level === "low") return false;
-  return mine || fxPrefs.level === "high" || dist < CINE_NEAR;
+  if (!fxPrefs.cine || fxLevel() === "low") return false;
+  if (!mine && document.body.classList.contains("touch")) return false; // H8 (#491): điện thoại ngang màn hẹp, cảnh của người khác che vòng báo trước / nút bấm
+  return mine || fxLevel() === "high" || dist < CINE_NEAR;
 }
 
 export class SkillCine {

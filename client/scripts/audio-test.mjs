@@ -275,6 +275,52 @@ noListenerAudio.dispose();
     assert.deepEqual(ducks, [[0.5, 700]]);
   }
 
+  // H8 (#491): tiếng T3 riêng (C4 #579) nối đủ 25 võ hồn; đông người thì người khác bị giãn nhịp, nhỏ hơn, không hạ nhạc nền
+  {
+    const { t3Group, T3_OTHERS_GAP_MS, T3_OTHERS_GAIN } = map;
+    for (const v of VOHON) {
+      const names = [t3Group("avatar", v.id), ...["ult", "ct"].flatMap((k) => map.SKILL_PHASES.map((p) => t3Group(k, v.id, p)))];
+      for (const g of names) { assert.ok(have.get(g) >= 1, `thiếu mẫu T3 ${g}`); assert.equal(packOfGroup(g), "skill", `${g} nằm gói skill`); }
+    }
+    assert.equal(t3Group("ult", "lam_dien_ba_vuong_long", "boom"), "skill-t3-ult-lam-dien-ba-vuong-long-boom");
+    const { audio } = make();
+    const calls = [];
+    audio.playGroup = (g, _s, o = {}) => { calls.push([g, o]); return true; };
+    const at = { x: 100, y: 100 };
+    const vh = "hoa_long", info = (mine) => ({ element: "fire", vohonId: vh, mine, tier: 4 });
+    audio.handleFx({ k: "avatar", id: "a", on: false, ...at }, info(true));
+    assert.equal(calls.length, 0, "tan Chân Thân không tiếng");
+    audio.handleFx({ k: "avatar", id: "a", on: true, ...at }, info(true));
+    assert.equal(calls[0][0], t3Group("avatar", vh), "biến hình: tiếng T3 của võ hồn");
+    assert.ok(calls[0][1].duck > 0, "tiếng của chính mình hạ nhạc nền");
+    calls.length = 0;
+    audio.handleFx({ k: "ult", id: "a", ...at }, info(true));
+    audio.handleFx({ k: "burst", id: "a", ...at }, info(true));
+    assert.deepEqual(calls.map((c) => c[0]), [t3Group("ult", vh, "start"), t3Group("ult", vh, "boom")], "tuyệt kỹ: pha nổ của chính chiêu đó cũng dùng T3");
+    calls.length = 0;
+    audio.handleFx({ k: "soulring", id: "b", ct: 1, tier: 4, ...at }, info(true));
+    assert.equal(calls[0][0], t3Group("ct", vh, "start"), "hồn kỹ Chân Thân: tiếng T3 riêng");
+    // Hình dạng tin đúng như server gửi (MapRoom.runSkill): wave / burst có id người tung; thiếu id thì không thể gắn T3 (lỗi cũ).
+    audio.handleFx({ k: "wave", id: "b", x: 100, y: 94, r: 40, col: "#fff" }, info(true));
+    assert.equal(calls.at(-1)[0], t3Group("ct", vh, "boom"), "hồn kỹ Chân Thân: pha nổ (wave) dùng T3");
+    calls.length = 0;
+    audio.handleFx({ k: "ult", id: "a2", ...at }, info(true));
+    audio.handleFx({ k: "wave", x: 100, y: 94, r: 40, col: "#fff" }, info(true));
+    assert.equal(calls.at(-1)[0], "skill-fire-boom", "wave không có id: không gắn được T3 (chặn lại lỗi cũ nếu server bỏ id)");
+    calls.length = 0;
+    audio.handleFx({ k: "burst", id: "c", ...at }, info(true));
+    assert.equal(calls[0][0], "skill-fire-boom", "chiêu thường vẫn dùng tiếng theo hệ");
+    calls.length = 0;
+    const t0 = Date.now();
+    audio.handleFx({ k: "avatar", id: "x", on: true, ...at }, info(false));
+    audio.handleFx({ k: "ult", id: "y", ...at }, info(false));
+    const t3others = calls.filter((c) => c[0].startsWith("skill-t3-"));
+    assert.equal(t3others.length, Date.now() - t0 < T3_OTHERS_GAP_MS ? 1 : 2, `người khác: tối đa một tiếng T3 mỗi ${T3_OTHERS_GAP_MS} ms`);
+    assert.equal(t3others[0][1].gain, T3_OTHERS_GAIN, "người khác nhỏ hơn");
+    assert.equal(t3others[0][1].duck, undefined, "người khác không hạ nhạc nền");
+    audio.dispose();
+  }
+
   // Lô 2 (G5, #396): mọi nhóm giao diện / PK / môi trường có mẫu trong manifest thật và nằm đúng gói; hàm phát gọi đúng nhóm, đúng kênh.
   {
     const { UI_GROUP, heartbeatInterval, HEARTBEAT_MS, LOW_HP_RATIO, RARE_LOOT_MIN } = map;

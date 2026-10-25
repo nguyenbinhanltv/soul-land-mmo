@@ -68,6 +68,8 @@ Tắt rung màn hình, nháy trắng, dừng hình và phóng to khi đánh.">Gi
 Hồn kỹ vòng 7 trở lên: tối màn, chân dung võ hồn trượt ngang, tên chiêu chữ lớn.">Cảnh hồn kỹ lớn</button>
         <button type="button" data-fx-cutin aria-pressed="false" title="Cut-in Chân Thân
 Khi bật Võ Hồn Chân Thân: chân dung pháp tướng lướt ngang màn hình nửa giây (chỉ mình bạn thấy; tắt khi Giảm chuyển động hoặc mức Thấp).">Cut-in Chân Thân</button>
+        <button type="button" data-fx-auto aria-pressed="false" title="Tự hạ hiệu ứng
+Khi FPS thấp kéo dài, tự giảm mức Hiệu ứng một bậc (không đổi lựa chọn của bạn); FPS tốt lại thì nâng lên, tối đa bằng mức bạn chọn.">Tự hạ khi giật</button>
         <button type="button" data-fx-hat aria-pressed="false" title="Ẩn mũ
 Không vẽ mũ trang bị lên hồn sư (của mọi người; chỉ trên máy bạn). Áo vẫn hiện.">Ẩn mũ</button></div></div>
     <div class="scale-set" role="group" aria-labelledby="shakeLbl"><span id="shakeLbl">Rung màn hình</span>
@@ -108,6 +110,7 @@ Không vẽ mũ trang bị lên hồn sư (của mọi người; chỉ trên má
     el.querySelector("[data-fx-cine]")!.setAttribute("aria-pressed", String(fxPrefs.cine));
     el.querySelector("[data-fx-cutin]")!.setAttribute("aria-pressed", String(fxPrefs.cutin));
     el.querySelector("[data-fx-hat]")!.setAttribute("aria-pressed", String(fxPrefs.hideHat));
+    el.querySelector("[data-fx-auto]")!.setAttribute("aria-pressed", String(fxPrefs.auto));
     el.querySelectorAll<HTMLButtonElement>("[data-shake]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.shake === fxPrefs.shake)));
     el.querySelectorAll<HTMLButtonElement>("[data-halo]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.halo === fxPrefs.halo)));
   };
@@ -117,6 +120,7 @@ Không vẽ mũ trang bị lên hồn sư (của mọi người; chỉ trên má
   el.querySelector("[data-fx-reduce]")!.addEventListener("click", () => { setFxPrefs({ reduce: !fxPrefs.reduce }); audio.play("ui_click"); renderFx(); }, { signal });
   el.querySelector("[data-fx-cine]")!.addEventListener("click", () => { setFxPrefs({ cine: !fxPrefs.cine }); audio.play("ui_click"); renderFx(); }, { signal });
   el.querySelector("[data-fx-cutin]")!.addEventListener("click", () => { setFxPrefs({ cutin: !fxPrefs.cutin }); audio.play("ui_click"); renderFx(); }, { signal });
+  el.querySelector("[data-fx-auto]")!.addEventListener("click", () => { setFxPrefs({ auto: !fxPrefs.auto }); audio.play("ui_click"); renderFx(); }, { signal });
   el.querySelector("[data-fx-hat]")!.addEventListener("click", () => { setFxPrefs({ hideHat: !fxPrefs.hideHat }); audio.play("ui_click"); renderFx(); }, { signal });
   renderFx();
   addEventListener("resize", renderScale, { signal });
