@@ -110,6 +110,36 @@ jobs:
           path: ${{ runner.temp }}/c9-preview
           retention-days: 30
 
+  # Luồng đầu người chơi mới bằng trình duyệt thật (#713): landing → đăng ký → tạo nhân vật → Lễ thức tỉnh (thẻ võ hồn không chồng) → vào game, không lỗi console.
+  # Chạy ở mức smoke và full (đổi giao diện client là chạm luồng này), ~2 phút gồm build client. Chỉ để tham khảo như bot-ram.
+  flow-browser:
+    name: flow-browser
+    needs: changes
+    if: ${{ needs.changes.outputs.level != 'skip' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund --prefix server && npm ci --no-audit --no-fund --prefix client
+      - run: npx --prefix client playwright install --with-deps chromium
+      - run: npm run test:flow-browser --prefix client
+        timeout-minutes: 5
+        env:
+          FLOW_OUTPUT: ${{ runner.temp }}/flow-browser
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ failure() }}
+        with:
+          name: flow-browser-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/flow-browser
+          retention-days: 7
+          if-no-files-found: ignore
+
   # Bài test đơn vị chạy nhanh (không server, không DB): trang bị, đăng nhập Google, khóa món, GM, cache tĩnh, hiệu ứng client, công cụ ảnh / tài liệu (#660).
   # Gộp ở `npm run test:unit` (gốc package.json); thêm bài mới thì thêm vào đó. Chỉ ubuntu, song song với check-build nên không làm CI chậm thêm.
   test-unit:
