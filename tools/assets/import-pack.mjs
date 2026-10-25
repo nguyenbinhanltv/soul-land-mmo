@@ -1,5 +1,5 @@
 // Nhập gói asset ngoài giấy phép hạn chế (cấm phân phối lại file) vào KHO RIÊNG, không vào repo công khai (#623, docs/asset-rieng.md).
-//   node tools/assets/import-pack.mjs --out <thư mục ngoài repo> [--giga <thư mục gói>] [--holy <…>] [--forest <…>] [--only key,key]
+//   node tools/assets/import-pack.mjs --out <thư mục ngoài repo> [--giga <thư mục gói>] [--holy <…>] [--forest <…>] [--fire --free --bdragon --pimen --caves <…>] [--only key,key]
 //        [--manifest shared/assets/sprites/private-manifest.json] [--credits art/CREDITS.md]
 //   node tools/assets/import-pack.mjs --list <ảnh.png>        liệt kê các mảnh rời (hộp bao) của một ảnh lớn, để chọn `rect` cho vật đứng
 // Đọc `tools/assets/private-packs.json` (mô tả, không có ảnh). Với mỗi mục:
@@ -17,8 +17,8 @@ const args = process.argv.slice(2);
 const opt = (n, d = "") => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const only = opt("--only") ? new Set(opt("--only").split(",")) : null;
 const outDir = opt("--out"), manifestOut = opt("--manifest"), creditsOut = opt("--credits"), listFile = opt("--list");
-const roots = { giga: opt("--giga"), holy: opt("--holy"), forest: opt("--forest") };
 const SPEC = JSON.parse(readFileSync(path.join(ROOT, "tools", "assets", "private-packs.json"), "utf8"));
+const roots = Object.fromEntries(Object.keys(SPEC.packs).map((k) => [k, opt(`--${k}`)])); // --giga --holy --forest --fire --free --bdragon --pimen --caves
 
 const lum = (r, g, b) => (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 const A_LEVELS = [0, 96, 176, 255];
@@ -61,9 +61,27 @@ function sheetFrameW(file) {
   return m ? +m[1] : null;
 }
 
+/** Sheet nhiều hàng (xếp dọc một cột, hoặc lưới theo hàng) → dải một hàng; bỏ các ô trống ở cuối. */
+function toStrip(sheet, fw, fh, layout) {
+  const cols = layout === "vertical" ? 1 : Math.floor(sheet.w / fw), rows = Math.floor(sheet.h / fh), cells = [];
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    let any = false;
+    for (let y = 0; y < fh && !any; y++) for (let x = 0; x < fw; x++) if (sheet.alpha(c * fw + x, r * fh + y)) { any = true; break; }
+    cells.push([c, r, any]);
+  }
+  while (cells.length && !cells[cells.length - 1][2]) cells.pop();
+  const out = new Img(fw * cells.length, fh);
+  cells.forEach(([c, r], i) => out.blit(sheet, c * fw, r * fh, fw, fh, i * fw, 0));
+  return out;
+}
+
 function importFx(e, root) {
-  const file = path.join(root, e.src), sheet = decodePng(readFileSync(file));
-  const fw = e.fw ?? sheetFrameW(file) ?? sheet.h, fh = sheet.h, n = Math.round(sheet.w / fw);
+  const file = path.join(root, e.src);
+  let sheet = decodePng(readFileSync(file));
+  if (e.rect) { const [rx, ry, rw, rh] = e.rect, c = new Img(rw, rh); c.blit(sheet, rx, ry, rw, rh, 0, 0); sheet = c; }
+  const fw = e.fw ?? sheetFrameW(file) ?? sheet.h, fh = e.fh ?? (e.layout === "grid" ? fw : sheet.h);
+  if (e.layout === "vertical" || e.layout === "grid") sheet = toStrip(sheet, fw, fh, e.layout);
+  const n = Math.round(sheet.w / fw);
   if (n * fw !== sheet.w) throw new Error(`${e.key}: bề ngang ${sheet.w} không chia hết cho khung ${fw}`);
   const ramp = SPEC.ramps[e.ramp].map(hex), K = ramp.length;
   // Độ sáng chuẩn hóa theo cả sheet: điểm sáng nhất = màu sáng nhất của dải.
@@ -123,7 +141,7 @@ for (const e of SPEC.entries) {
   const r = e.kind === "prop" ? importProp(e, root) : importFx(e, root);
   const name = e.key.replace(/^(pfx|prv)_/, "");
   mkdirSync(path.join(outDir, "packs", e.pack), { recursive: true });
-  const rec = { key: e.key, kind: e.kind, private: true, pack: e.pack, file: `packs/${e.pack}/${name}.png`, frame: r.frame, frames: r.frames, ...(e.kind === "fx" ? { fps: e.fps, normal: !!e.normal } : { foot: r.foot }), ...(r.files._glow ? { glow: `packs/${e.pack}/${name}_glow.png` } : {}), use: e.use };
+  const rec = { key: e.key, kind: e.kind, private: true, tier: SPEC.packs[e.pack].tier, pack: e.pack, file: `packs/${e.pack}/${name}.png`, frame: r.frame, frames: r.frames, ...(e.kind === "fx" ? { fps: e.fps, normal: !!e.normal } : { foot: r.foot }), ...(r.files._glow ? { glow: `packs/${e.pack}/${name}_glow.png` } : {}), use: e.use };
   for (const [suf, img] of Object.entries(r.files)) { writeFileSync(path.join(outDir, "packs", e.pack, `${name}${suf}.png`), encodePng(img)); present.push(`packs/${e.pack}/${name}${suf}.png`); }
   manifest.push(rec); used.add(e.pack); done.push(rec);
   console.log(`✓ ${e.key}: ${r.frames} khung ${r.frame.join("×")}${r.files._glow ? " + lớp sáng" : ""}`);
@@ -136,7 +154,7 @@ for (const p of used) {
   writeFileSync(path.join(outDir, "licenses", `${p}.md`), `# ${k.name}\n\n- Tác giả: ${k.author}\n- Nguồn: ${k.source}\n- Giấy phép: ${k.license}\n- Ghi công: ${k.credit}\n${k.noAI ? "- CẤM đưa vào model AI / làm ảnh tham chiếu.\n" : ""}`);
 }
 const creditBlock = () => {
-  const rows = [...used].map((p) => { const k = SPEC.packs[p], n = done.filter((d) => d.pack === p).length; return `| ${k.name} | ${k.author} | ${k.license} | ${k.source} | ${n} mục (\`${done.filter((d) => d.pack === p).map((d) => d.key).join("`, `")}\`) |`; });
+  const rows = [...used].map((p) => { const k = SPEC.packs[p], n = done.filter((d) => d.pack === p).length; return `| ${k.name} | ${k.author} | ${k.tier === "cong_khai" ? "(dùng được cả trong repo công khai) " : "(chỉ kho riêng) "}${k.license} | ${k.source} | ${n} mục (\`${done.filter((d) => d.pack === p).map((d) => d.key).join("`, `")}\`) |`; });
   return `<!-- private-assets:start -->\n## Asset kho riêng (không nằm trong repo công khai)\n\nẢnh các gói dưới đây nằm ở kho riêng \`nguyenbinhanltv/soul-land-assets-private\` (docs/asset-rieng.md), CI kéo về lúc build image; repo này chỉ giữ mô tả (\`tools/assets/private-packs.json\`, \`shared/assets/sprites/private-manifest.json\`), không nhúng file. Bản đã xử lý: nhuộm về bảng màu game, cắt viền, đóng sheet, viền #1a1020 (\`tools/assets/import-pack.mjs\`).\n\n| Gói | Tác giả | Giấy phép | Nguồn | Dùng |\n|---|---|---|---|---|\n${rows.join("\n")}\n<!-- private-assets:end -->\n`;
 };
 writeFileSync(path.join(outDir, "CREDITS-private.md"), creditBlock());

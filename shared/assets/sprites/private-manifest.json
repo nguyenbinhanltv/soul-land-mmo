@@ -5,6 +5,7 @@
       "key": "pfx_bui",
       "kind": "fx",
       "private": true,
+      "tier": "rieng",
       "pack": "giga",
       "file": "packs/giga/bui.png",
       "frame": [
@@ -20,6 +21,7 @@
       "key": "pfx_chem_sang",
       "kind": "fx",
       "private": true,
+      "tier": "rieng",
       "pack": "holy",
       "file": "packs/holy/chem_sang.png",
       "frame": [
@@ -33,9 +35,129 @@
       "use": "Chém sáng (hệ Quang)"
     },
     {
+      "key": "pfx_dam",
+      "kind": "fx",
+      "private": true,
+      "tier": "cong_khai",
+      "pack": "pimen",
+      "file": "packs/pimen/dam.png",
+      "frame": [
+        64,
+        12
+      ],
+      "frames": 5,
+      "fps": 18,
+      "normal": true,
+      "glow": "packs/pimen/dam_glow.png",
+      "use": "Vệt đâm: hồn kỹ đâm (thương, kiếm)"
+    },
+    {
+      "key": "pfx_dam_am",
+      "kind": "fx",
+      "private": true,
+      "tier": "cong_khai",
+      "pack": "pimen",
+      "file": "packs/pimen/dam_am.png",
+      "frame": [
+        42,
+        10
+      ],
+      "frames": 5,
+      "fps": 18,
+      "normal": false,
+      "glow": "packs/pimen/dam_am_glow.png",
+      "use": "Vệt đâm tím (hệ Ám)"
+    },
+    {
+      "key": "pfx_dan_lua",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "bdragon",
+      "file": "packs/bdragon/dan_lua.png",
+      "frame": [
+        12,
+        12
+      ],
+      "frames": 5,
+      "fps": 14,
+      "normal": false,
+      "glow": "packs/bdragon/dan_lua_glow.png",
+      "use": "Đạn lửa nhỏ: hồn kỹ phóng (thử)"
+    },
+    {
+      "key": "pfx_hoa_cuon",
+      "kind": "fx",
+      "private": true,
+      "tier": "cong_khai",
+      "pack": "free",
+      "file": "packs/free/hoa_cuon.png",
+      "frame": [
+        32,
+        58
+      ],
+      "frames": 61,
+      "fps": 24,
+      "normal": false,
+      "glow": "packs/free/hoa_cuon_glow.png",
+      "use": "Cột lửa cuốn: Thiêu đốt, Tà Hỏa"
+    },
+    {
+      "key": "pfx_hoa_ngon",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "fire",
+      "file": "packs/fire/hoa_ngon.png",
+      "frame": [
+        20,
+        46
+      ],
+      "frames": 8,
+      "fps": 10,
+      "normal": false,
+      "glow": "packs/fire/hoa_ngon_glow.png",
+      "use": "Ngọn lửa: trạng thái Thiêu đốt / Hỏa Long / Tà Hỏa dưới chân"
+    },
+    {
+      "key": "pfx_hoa_roi",
+      "kind": "fx",
+      "private": true,
+      "tier": "cong_khai",
+      "pack": "free",
+      "file": "packs/free/hoa_roi.png",
+      "frame": [
+        46,
+        56
+      ],
+      "frames": 46,
+      "fps": 24,
+      "normal": false,
+      "glow": "packs/free/hoa_roi_glow.png",
+      "use": "Roi lửa quất: hồn kỹ Tà Hỏa"
+    },
+    {
+      "key": "pfx_hoa_xoay",
+      "kind": "fx",
+      "private": true,
+      "tier": "cong_khai",
+      "pack": "free",
+      "file": "packs/free/hoa_xoay.png",
+      "frame": [
+        44,
+        52
+      ],
+      "frames": 61,
+      "fps": 24,
+      "normal": false,
+      "glow": "packs/free/hoa_xoay_glow.png",
+      "use": "Vòng lửa xoay: Hỏa Long, hồn kỹ vùng hệ Hỏa"
+    },
+    {
       "key": "pfx_hoi",
       "kind": "fx",
       "private": true,
+      "tier": "rieng",
       "pack": "holy",
       "file": "packs/holy/hoi.png",
       "frame": [
@@ -52,6 +174,7 @@
       "key": "pfx_ket_lieu",
       "kind": "fx",
       "private": true,
+      "tier": "rieng",
       "pack": "giga",
       "file": "packs/giga/ket_lieu.png",
       "frame": [
@@ -68,6 +191,7 @@
       "key": "pfx_khien",
       "kind": "fx",
       "private": true,
+      "tier": "rieng",
       "pack": "holy",
       "file": "packs/holy/khien.png",
       "frame": [
@@ -84,6 +208,7 @@
       "key": "pfx_khoi",
       "kind": "fx",
       "private": true,
+      "tier": "rieng",
       "pack": "giga",
       "file": "packs/giga/khoi.png",
       "frame": [
@@ -99,6 +224,7 @@
       "key": "pfx_no",
       "kind": "fx",
       "private": true,
+      "tier": "rieng",
       "pack": "giga",
       "file": "packs/giga/no.png",
       "frame": [
@@ -115,6 +241,7 @@
       "key": "pfx_quang",
       "kind": "fx",
       "private": true,
+      "tier": "rieng",
       "pack": "holy",
       "file": "packs/holy/quang.png",
       "frame": [
@@ -131,6 +258,7 @@
       "key": "pfx_set",
       "kind": "fx",
       "private": true,
+      "tier": "rieng",
       "pack": "giga",
       "file": "packs/giga/set.png",
       "frame": [
@@ -147,6 +275,7 @@
       "key": "pfx_va_cham",
       "kind": "fx",
       "private": true,
+      "tier": "rieng",
       "pack": "giga",
       "file": "packs/giga/va_cham.png",
       "frame": [
@@ -160,9 +289,135 @@
       "use": "Va chạm / tia lửa khi trúng đòn (cạnh fxh_*)"
     },
     {
+      "key": "pfx_va_cham_2",
+      "kind": "fx",
+      "private": true,
+      "tier": "cong_khai",
+      "pack": "pimen",
+      "file": "packs/pimen/va_cham_2.png",
+      "frame": [
+        34,
+        32
+      ],
+      "frames": 5,
+      "fps": 18,
+      "normal": false,
+      "glow": "packs/pimen/va_cham_2_glow.png",
+      "use": "Va chạm vàng (thay thế va chạm Gigapack nếu gọn hơn)"
+    },
+    {
+      "key": "prv_hang_da_hang_1",
+      "kind": "prop",
+      "private": true,
+      "tier": "rieng",
+      "pack": "caves",
+      "file": "packs/caves/hang_da_hang_1.png",
+      "frame": [
+        84,
+        91
+      ],
+      "frames": 1,
+      "foot": [
+        42,
+        90
+      ],
+      "use": "Đá hang lớn (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
+    },
+    {
+      "key": "prv_hang_da_hang_2",
+      "kind": "prop",
+      "private": true,
+      "tier": "rieng",
+      "pack": "caves",
+      "file": "packs/caves/hang_da_hang_2.png",
+      "frame": [
+        64,
+        78
+      ],
+      "frames": 1,
+      "foot": [
+        32,
+        77
+      ],
+      "use": "Đá hang vừa (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
+    },
+    {
+      "key": "prv_hang_da_hang_3",
+      "kind": "prop",
+      "private": true,
+      "tier": "rieng",
+      "pack": "caves",
+      "file": "packs/caves/hang_da_hang_3.png",
+      "frame": [
+        49,
+        51
+      ],
+      "frames": 1,
+      "foot": [
+        25,
+        50
+      ],
+      "use": "Đá hang nhỏ (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
+    },
+    {
+      "key": "prv_hang_da_hang_4",
+      "kind": "prop",
+      "private": true,
+      "tier": "rieng",
+      "pack": "caves",
+      "file": "packs/caves/hang_da_hang_4.png",
+      "frame": [
+        40,
+        48
+      ],
+      "frames": 1,
+      "foot": [
+        20,
+        47
+      ],
+      "use": "Măng đá (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
+    },
+    {
+      "key": "prv_hang_tinh_the_luc",
+      "kind": "prop",
+      "private": true,
+      "tier": "rieng",
+      "pack": "caves",
+      "file": "packs/caves/hang_tinh_the_luc.png",
+      "frame": [
+        31,
+        27
+      ],
+      "frames": 1,
+      "foot": [
+        16,
+        26
+      ],
+      "use": "Cụm tinh thể lục (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
+    },
+    {
+      "key": "prv_hang_tinh_the_xanh",
+      "kind": "prop",
+      "private": true,
+      "tier": "rieng",
+      "pack": "caves",
+      "file": "packs/caves/hang_tinh_the_xanh.png",
+      "frame": [
+        31,
+        27
+      ],
+      "frames": 1,
+      "foot": [
+        16,
+        26
+      ],
+      "use": "Cụm tinh thể xanh (vật đứng hang / Tinh Đấu, ô nền top-down KHÔNG dùng)"
+    },
+    {
       "key": "prv_rung_bui_cay",
       "kind": "prop",
       "private": true,
+      "tier": "rieng",
       "pack": "forest",
       "file": "packs/forest/rung_bui_cay.png",
       "frame": [
@@ -180,6 +435,7 @@
       "key": "prv_rung_cay_soi_1",
       "kind": "prop",
       "private": true,
+      "tier": "rieng",
       "pack": "forest",
       "file": "packs/forest/rung_cay_soi_1.png",
       "frame": [
@@ -197,6 +453,7 @@
       "key": "prv_rung_cay_soi_2",
       "kind": "prop",
       "private": true,
+      "tier": "rieng",
       "pack": "forest",
       "file": "packs/forest/rung_cay_soi_2.png",
       "frame": [
@@ -214,6 +471,7 @@
       "key": "prv_rung_cay_thong_1",
       "kind": "prop",
       "private": true,
+      "tier": "rieng",
       "pack": "forest",
       "file": "packs/forest/rung_cay_thong_1.png",
       "frame": [
@@ -231,6 +489,7 @@
       "key": "prv_rung_cay_thong_2",
       "kind": "prop",
       "private": true,
+      "tier": "rieng",
       "pack": "forest",
       "file": "packs/forest/rung_cay_thong_2.png",
       "frame": [
@@ -248,6 +507,7 @@
       "key": "prv_rung_da_1",
       "kind": "prop",
       "private": true,
+      "tier": "rieng",
       "pack": "forest",
       "file": "packs/forest/rung_da_1.png",
       "frame": [
@@ -265,6 +525,7 @@
       "key": "prv_rung_da_2",
       "kind": "prop",
       "private": true,
+      "tier": "rieng",
       "pack": "forest",
       "file": "packs/forest/rung_da_2.png",
       "frame": [
@@ -282,6 +543,7 @@
       "key": "prv_rung_da_3",
       "kind": "prop",
       "private": true,
+      "tier": "rieng",
       "pack": "forest",
       "file": "packs/forest/rung_da_3.png",
       "frame": [
@@ -299,6 +561,7 @@
       "key": "prv_rung_khuc_go",
       "kind": "prop",
       "private": true,
+      "tier": "rieng",
       "pack": "forest",
       "file": "packs/forest/rung_khuc_go.png",
       "frame": [
@@ -316,6 +579,7 @@
       "key": "prv_rung_nam_do",
       "kind": "prop",
       "private": true,
+      "tier": "rieng",
       "pack": "forest",
       "file": "packs/forest/rung_nam_do.png",
       "frame": [

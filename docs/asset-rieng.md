@@ -1,6 +1,6 @@
 # Kho asset riêng (gói giấy phép hạn chế)
 
-Repo game là **công khai**. Một số gói asset mua / tải miễn phí cho dùng **trong game** nhưng **cấm phân phối lại file** (kể cả đã sửa): Pixel Holy Effects Pack 01, Super Pixel Effects Gigapack, Topdown Fantasy - Forest (giấy phép từng gói ở `tools/assets/private-packs.json`). Đưa ảnh vào repo công khai là phân phối lại, nên:
+Repo game là **công khai**. Gói **CC BY / public domain** (Free Pixel Effects Pack, Battle Effects của pimen) có thể vào repo công khai kèm ghi công; pipeline vẫn cho chúng đi qua kho riêng (`tier: cong_khai` trong `private-packs.json` ghi rõ) để gọn một đường. Một số gói asset mua / tải miễn phí cho dùng **trong game** nhưng **cấm phân phối lại file** (kể cả đã sửa): Pixel Holy Effects Pack 01, Super Pixel Effects Gigapack, Topdown Fantasy - Forest (giấy phép từng gói ở `tools/assets/private-packs.json`). Đưa ảnh vào repo công khai là phân phối lại, nên:
 
 - **ảnh đã xử lý chỉ nằm ở kho riêng** `nguyenbinhanltv/soul-land-assets-private` (repo private);
 - repo game giữ **mô tả** (`tools/assets/private-packs.json`), **manifest** (`shared/assets/sprites/private-manifest.json`, mục nào cũng `"private": true`), **CREDITS** và công cụ nhập (`tools/assets/import-pack.mjs`);
@@ -57,6 +57,7 @@ node tools/assets/import-pack.mjs --out <thư mục ngoài repo> \
 - Công cụ **từ chối** `--out` nằm trong repo game.
 - Mục nào gói chưa chỉ định (`--giga` / `--holy` / `--forest`) thì bỏ qua; `--only pfx_no,pfx_set` nhập một phần.
 - Nhuộm theo độ sáng vào dải 4 màu của bảng màu game (`ramps` trong `private-packs.json`), alpha 4 mức, viền `#1a1020` cho khói / bụi, cắt viền trống chung mọi khung (giữ tâm), tách lớp sáng `_glow` (client chạy cộng sáng).
+- `layout` của hiệu ứng: dải một hàng (mặc định), `vertical` (khung xếp dọc, cần `fw` `fh`), `grid` (lưới, bỏ ô trống cuối); `rect` cắt trước khi tách khung.
 - Vật đứng (`kind: prop`): `node tools/assets/import-pack.mjs --list <ảnh.png>` liệt kê hộp bao các mảnh rời để chọn `rect`.
 - Thêm hiệu ứng mới: thêm một dòng vào `entries` ở `private-packs.json`, chạy lại, rồi nối vào code ở `client/src/` bằng `playPriv(sheets, "<key>", {...})` (`privateAssets.ts`).
 - Thư mục ra có `preview.html` xem nhanh từng hiệu ứng lặp.

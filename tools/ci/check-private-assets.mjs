@@ -17,7 +17,7 @@ const gi = readFileSync(path.join(ROOT, ".gitignore"), "utf8");
 for (const d of ["shared/assets/private/", "art/src/private/"]) if (!gi.split(/\r?\n/).includes(d)) errs.push(`.gitignore thiếu dòng "${d}"`);
 
 // Tên file đặc trưng của gói gốc (Gigapack: spritesheet.png / frameNNNN.png trong thư mục spritesheet|PNG; Holy: <Tên>_spritesheet.png, <Tên>_NN.png; Forest).
-const PACK_FILE = /(^|\/)(TopDownFantasy[^/]*|PixelHolyEffectsPack[^/]*|Super Pixel Effects Gigapack[^/]*|Decorations\.png|Tileset1xPadding\.png)(\/|$)|(^|\/)(Heal|HolyNova|HolyShield|HolySlash_[ABC]|Smite|HeavensFury|SwordOfJustice)(_spritesheet|_\d\d)\.(png|aseprite)$|(^|\/)frame\d{4}\.png$/i;
+const PACK_FILE = /(^|\/)(TopDownFantasy[^/]*|PixelHolyEffectsPack[^/]*|Super Pixel Effects Gigapack[^/]*|Decorations\.png|Tileset1xPadding\.png|RPGW_Caves[^/]*|Pixel fire asset pack[^/]*|All_Fire_Bullet_Pixel[^/]*|Effect and Bullet 16x16[^/]*)(\/|$)|(^|\/)(Heal|HolyNova|HolyShield|HolySlash_[ABC]|Smite|HeavensFury|SwordOfJustice)(_spritesheet|_\d\d)\.(png|aseprite)$|(^|\/)frame\d{4}\.png$/i;
 for (const f of tracked) if (PACK_FILE.test(f)) errs.push(`trùng tên file của gói asset riêng: ${f}`);
 
 const mf = path.join(ROOT, "shared", "assets", "sprites", "private-manifest.json");

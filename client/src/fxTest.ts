@@ -136,13 +136,21 @@ class FxTestScene extends Phaser.Scene {
    * (cũ: chỉ số nổi như game), `quang` hộ thể tiên cơ (cũ: hạt), `khoi` + `bui` lướt (cũ: hạt bụi chân). Va chạm / kết liễu: nút Đánh thử (nặng 1 / 3), sét / chém sáng: hồn kỹ Lôi / Quang T2+.
    */
   demo(name: string) {
-    const sh = this.svp.sheets, h = this.hero, d = this.dummy, up = h.y - 10 * SPR;
+    const PF = Number(q.get("pfps") ?? 0), sh = this.svp.sheets, h = this.hero, d = this.dummy, up = h.y - 10 * SPR;
+    const P = (k: string, o: Parameters<typeof playPriv>[2]) => playPriv(sh, k, PF ? { ...o, fps: PF } : o); // `pfps=N`: chạy chậm để quay GIF
     const num = (x: number, y: number, t: string, col: string) => { const e = this.add.text(x, y, t, { fontFamily: "system-ui", fontSize: "13px", fontStyle: "bold", color: col, stroke: "#1a1020", strokeThickness: 3 }).setOrigin(0.5).setDepth(50); this.tweens.add({ targets: e, y: y - 26, alpha: 0, delay: 400, duration: 600, onComplete: () => e.destroy() }); };
-    if (name === "no") { if (!playPriv(sh, "pfx_no", { x: d.x, y: d.y - 10 * SPR, fitW: 1.6 * RX * 56 })) playFx(this, "fx_no", d.x, d.y - 10 * SPR, Math.max(1, Math.round((1.4 * RX * 56) / 32)), 99981); }
-    else if (name === "hoi") { playPriv(sh, "pfx_hoi", { x: h.x, y: up, scale: SPR }); num(h.x, h.y - 70, "+320", "#86e0b0"); }
-    else if (name === "khien") { playPriv(sh, "pfx_khien", { x: h.x, y: up, scale: SPR }); num(h.x, h.y - 70, "+180", "#9ad8ff"); }
-    else if (name === "quang") { this.fxp.burst(h.x, h.y - 10, 0xffe08a, 8, 40 * SPR / 2, 2); playPriv(sh, "pfx_quang", { x: h.x, y: h.y - 8 * SPR, scale: SPR }); }
-    else if (name === "khoi") { playPriv(sh, "pfx_khoi", { x: h.x, y: h.y - 4 * SPR, ang: 0, scale: SPR }); playPriv(sh, "pfx_bui", { x: d.x - 30, y: d.y - 2 * SPR, scale: SPR, delay: 80 }); this.fxp.footDust(h.x, h.y + 4 * SPR, 0x9a8b68, footDustCount(fxPrefs.level, fxPrefs.reduce, false) || 6, false); }
+    if (name === "no") { if (!P("pfx_no", { x: d.x, y: d.y - 10 * SPR, fitW: 1.6 * RX * 56 })) playFx(this, "fx_no", d.x, d.y - 10 * SPR, Math.max(1, Math.round((1.4 * RX * 56) / 32)), 99981); }
+    else if (name === "hoi") { P("pfx_hoi", { x: h.x, y: up, scale: SPR }); num(h.x, h.y - 70, "+320", "#86e0b0"); }
+    else if (name === "khien") { P("pfx_khien", { x: h.x, y: up, scale: SPR }); num(h.x, h.y - 70, "+180", "#9ad8ff"); }
+    else if (name === "quang") { this.fxp.burst(h.x, h.y - 10, 0xffe08a, 8, 40 * SPR / 2, 2); P("pfx_quang", { x: h.x, y: h.y - 8 * SPR, scale: SPR }); }
+    else if (name === "hoa") { // Hỏa: vòng lửa xoay + roi lửa ở mục tiêu + ngọn lửa Thiêu đốt dưới chân mục tiêu (cũ: hạt lửa)
+      if (!P("pfx_hoa_xoay", { x: h.x, y: h.y - 6 * SPR, scale: SPR, fps: 30 })) this.fire("aura", "fire");
+      if (!P("pfx_hoa_roi", { x: d.x, y: d.y - 10 * SPR, scale: SPR, fps: 30, delay: 250 })) this.fire("hit", "fire");
+      P("pfx_hoa_ngon", { x: d.x, y: d.y - 8 * SPR, scale: SPR, delay: 600 });
+    }
+    else if (name === "dan") { if (!P("pfx_dan_lua", { x: h.x + 14, y: up, to: { x: d.x, y: d.y - 10 * SPR }, rotate: true, scale: 2 * SPR })) this.fire("proj", "fire"); } // đạn lửa nhỏ (cũ: viên đạn hạt G3)
+    else if (name === "dam") { if (!P("pfx_dam", { x: d.x - 20, y: d.y - 10 * SPR, scale: SPR })) this.fire("slash", "light"); P("pfx_dam_am", { x: d.x - 20, y: d.y - 4 * SPR, scale: SPR, delay: 400 }); } // vệt đâm (cũ: vệt chém G3)
+    else if (name === "khoi") { P("pfx_khoi", { x: h.x, y: h.y - 4 * SPR, ang: 0, scale: SPR }); P("pfx_bui", { x: d.x - 30, y: d.y - 2 * SPR, scale: SPR, delay: 80 }); this.fxp.footDust(h.x, h.y + 4 * SPR, 0x9a8b68, footDustCount(fxPrefs.level, fxPrefs.reduce, false) || 6, false); }
   }
   /** Phát lần lượt cả 5 kiểu của hệ đang chọn (xem nhanh một hệ). */
   fireAll(el = this.el) {
