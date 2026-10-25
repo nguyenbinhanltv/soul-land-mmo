@@ -92,7 +92,7 @@
       1
     ],
     "attackLoop": "peak",
-    "ghiChu": "khung nguồn thu 94% và đáy rách (xem docs/phap-tuong-cong-thuc.md mục 10); match tắt"
+    "ghiChu": "khung nguồn thu 94% và đáy rách (xem docs/art/phap-tuong-cong-thuc.md mục 10); match tắt"
   },
   "hoatAnh": {
     "endpoint": "/v2/animate-with-text-v3",

@@ -16,7 +16,7 @@ Bản đồ ×8, server `GAME_TEST=1 PERF_LOG=1`, bot đi lang thang:
 | 12 bot rải đều | ~2–5 | ~7–8 KB/s |
 | 40 bot rải đều | ~7 | ~8 KB/s |
 
-Số đo mới hơn (tự săn, thú vương, tông môn, vào ra; 20 / 40 / 60 bot; heap, CPU): `docs/hieu-nang-soak.md` (#167).
+Số đo mới hơn (tự săn, thú vương, tông môn, vào ra; 20 / 40 / 60 bot; heap, CPU): `docs/tech/hieu-nang-soak.md` (#167).
 
 Ngưỡng báo động: trung bình tick + bản vá vượt ~10 ms, `max` thường xuyên vượt 50 ms (trễ nhịp), băng thông mỗi client tăng theo tổng số thực thể cả bản đồ (lọc view hỏng).
 

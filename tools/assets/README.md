@@ -89,12 +89,12 @@ Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` 
 
 ## Pháp tướng Võ Hồn Chân Thân
 - Sheet `phaptuong/<mã võ hồn>.png`, key `pt_<mã>` (`"iso": true` kèm `pt` trong manifest), khung 160×160, gốc (80, 124) trùng chân hồn sư (32, 58); 5 hàng hướng `s`, `se`, `e`, `ne`, `n` (sw / w / nw lật), 16 cột: `idle` 8 (cột 0–7), `attack` 8 (cột 8–15); 2560×800. Chỉ alpha 0 / 255, ≤ `PT_MAX_COLORS` (48) màu, khung không chạm mép trên / trái / phải. Hằng `PT_*` và `isoLayout("phaptuong")` ở `lib.mjs`.
-- Nguồn ảnh và `recipe.json` (prompt, seed, lượt, cách ghép) ở `art/src/pixellab/phap_tuong/<mã>/`; công cụ `pixellab-pt.mjs` (concept, xoay, hoạt ảnh bằng PixelLab) và `phaptuong.mjs` (hậu kỳ + sheet, thở / đánh bằng code cho vật cứng). Công thức chuẩn, lượt thực tế, bẫy: `docs/phap-tuong-cong-thuc.md`; đặc tả 25 võ hồn: `docs/phap-tuong.md`.
+- Nguồn ảnh và `recipe.json` (prompt, seed, lượt, cách ghép) ở `art/src/pixellab/phap_tuong/<mã>/`; công cụ `pixellab-pt.mjs` (concept, xoay, hoạt ảnh bằng PixelLab) và `phaptuong.mjs` (hậu kỳ + sheet, thở / đánh bằng code cho vật cứng). Công thức chuẩn, lượt thực tế, bẫy: `docs/art/phap-tuong-cong-thuc.md`; đặc tả 25 võ hồn: `docs/art/phap-tuong.md`.
 - Client chưa tải sheet này (H2); độ đục hư ảnh, lớp sau / trước theo hướng, tỉ lệ và độ dời đọc từ `pt` của manifest.
-- Vật thể (khí võ hồn): `phaptuong-khi.mjs` dựng thân + lớp sáng `phaptuong/<mã>_glow.png` (key `pt_<mã>_glow`), kiểm neo bằng `--check`; xem `docs/phap-tuong-cong-thuc.md` mục 6b; nhóm thực vật (uốn ngọn, xoay cánh, `catMau`, `glowMau`) ở mục 6c.
+- Vật thể (khí võ hồn): `phaptuong-khi.mjs` dựng thân + lớp sáng `phaptuong/<mã>_glow.png` (key `pt_<mã>_glow`), kiểm neo bằng `--check`; xem `docs/art/phap-tuong-cong-thuc.md` mục 6b; nhóm thực vật (uốn ngọn, xoay cánh, `catMau`, `glowMau`) ở mục 6c.
 
 ## Hiệu ứng chiêu (S2 #548)
-- Sheet hiệu ứng từng chiêu `fx_sk_<tên>` (+ lớp cộng sáng `_g`) làm bằng PixelLab `/v2/vfx` (`pixellab-vfx.mjs`), đặc tả ở `skill-vfx/pilot.json`, chạy `skill-vfx/run.mjs` → `post.mjs` (nhuộm thang 7 màu, alpha 0/255, bỏ khung rỗng, lớp sáng) → `reg.mjs`; xem `vfx-view.mjs`; công cụ quay / GIF / FPS ở `skill-vfx/preview/`. Công thức chuẩn, lượt, bẫy: `docs/ky-nang-cong-thuc.md`.
+- Sheet hiệu ứng từng chiêu `fx_sk_<tên>` (+ lớp cộng sáng `_g`) làm bằng PixelLab `/v2/vfx` (`pixellab-vfx.mjs`), đặc tả ở `skill-vfx/pilot.json`, chạy `skill-vfx/run.mjs` → `post.mjs` (nhuộm thang 7 màu, alpha 0/255, bỏ khung rỗng, lớp sáng) → `reg.mjs`; xem `vfx-view.mjs`; công cụ quay / GIF / FPS ở `skill-vfx/preview/`. Công thức chuẩn, lượt, bẫy: `docs/art/ky-nang-cong-thuc.md`.
 
 ## Hồn thú
 - Khung theo bậc: Trắng, Vàng 64×64 (thú nhỏ, cao 20–40); Tím, Đen 96×96 (dài khoảng 2–3 thoi); Đỏ 128×128; tà hóa thú vương 160×160; boss thế giới 192×192. Gốc giữa đáy, cách mép dưới khoảng 8 (`ISO_BEAST_FOOT`). Tinh anh không có khung riêng: client phóng sprite loài gốc theo `ELITE.scale` (`rankScale` trong `GameScene.ts`); thú vương / boss chưa có sprite riêng thì phóng theo `KING.scale` / `WORLD.scale`.

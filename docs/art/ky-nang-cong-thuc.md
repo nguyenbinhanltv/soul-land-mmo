@@ -1,6 +1,6 @@
 # Công thức chuẩn làm hiệu ứng chiêu (S2 #548, chủ repo duyệt 2026-10-25)
 
-Chuẩn cho 23 võ hồn còn lại (S3). Đã làm: Lam Điện Bá Vương Long và Hạo Thiên Chùy, 22 chiêu. Đặc tả hình, màu, ý chiêu từng chiêu ở `docs/ky-nang-combat-dac-ta.md` (S0); khung code ở `GAME_DESIGN.md` mục 5.11 (S1). Ở đây ghi cách làm, tham số, lượt thực tế và bẫy. Chỉ hình ảnh + cảm giác đánh: giữ nguyên số và cơ chế, **không rung màn hình** (chỉ boss).
+Chuẩn cho 23 võ hồn còn lại (S3). Đã làm: Lam Điện Bá Vương Long và Hạo Thiên Chùy, 22 chiêu. Đặc tả hình, màu, ý chiêu từng chiêu ở `docs/art/ky-nang-combat-dac-ta.md` (S0); khung code ở `GAME_DESIGN.md` mục 5.11 (S1). Ở đây ghi cách làm, tham số, lượt thực tế và bẫy. Chỉ hình ảnh + cảm giác đánh: giữ nguyên số và cơ chế, **không rung màn hình** (chỉ boss).
 
 ## 1. Quy trình một võ hồn (11 chiêu)
 
