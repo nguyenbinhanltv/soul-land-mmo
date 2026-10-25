@@ -54,6 +54,7 @@ Thêm quyết định mới: cộng mã `Q` kế tiếp ở cuối bảng đúng
 | Q42 | 2026-10-25 | **Bảng số trang bị hồn sư (E1–E7) đã được chủ repo duyệt**; bỏ các câu "chờ duyệt" / "ước lượng chưa duyệt" ở hai file trang bị; E7 không đổi số | #411 | `docs/trang-bi-kinh-te.md`, `docs/tech/trang-bi-cai-dat.md` |
 | Q43 | 2026-10-25 | Ảnh **concept pháp tướng không thuộc ngoại lệ PixelLab**: PixelLab chỉ cho hoạt ảnh, sheet hiệu ứng, pháp tướng dạng hoạt ảnh và xoay hướng (làm rõ Q22); concept ảnh tĩnh làm bằng công cụ ảnh tĩnh (mục Q44); concept cũ đã có giữ nguyên ghi nguồn | #482, #541 | `docs/art/nguon-giay-phep.md`, `docs/art/phap-tuong.md` |
 | Q44 | 2026-10-25 | **Ảnh sinh bằng model dùng ChatGPT và Codex** (họ C1–C16 vẫn Codex của tthoadev; biểu tượng trang bị E6 làm bằng ChatGPT); ComfyUI vẫn là công cụ ảnh tĩnh của orchestrator; ảnh Gemini cũ đã duyệt giữ nguyên ghi nguồn. Thay quy tắc cũ 2026-10-24 "chỉ Gemini" | #616 | `docs/art/nguon-giay-phep.md`, skill `asset-gen` |
+| Q45 | 2026-10-25 | **Làm khắc may mắn bằng Thần Hồn** theo thiết kế sẵn có; bảng `EQUIP_LUCK_UP` coi như đã duyệt (chủ repo trả lời P4, phương án a); phần may mắn ở `docs/design/trang-bi.md` do việc #662 sửa cùng code | #662 | `docs/design/trang-bi.md` |
 
 ## Quy trình, CI, triển khai
 
@@ -72,7 +73,6 @@ Thêm quyết định mới: cộng mã `Q` kế tiếp ở cuối bảng đúng
 
 | Mã | Ngày ghi | Nội dung | File |
 |---|---|---|---|
-| P4 | 2026-10-25 | `EQUIP_LUCK_UP` (khắc may mắn bằng Thần Hồn) ghi "đề xuất, chờ duyệt", chưa có code: làm hay bỏ (issue #662, chủ repo chưa trả lời) | `docs/design/trang-bi.md` |
 | P5 | 2026-10-25 | Trần số người khi tính máu boss: hiện không có trần; xem lại nếu phòng đông (`ROADMAP.md` mục 8) | `ROADMAP.md` |
 | P6 | 2026-10-25 | Chủ nhân và tên hồn kỹ trong truyện của 6 võ hồn: giữ mở (`ROADMAP.md` mục 8) | `ROADMAP.md` |
 
