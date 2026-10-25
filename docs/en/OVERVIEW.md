@@ -16,8 +16,8 @@ Terms: *võ hồn* = martial spirit (your "class"/creature), *hồn sư* = soul 
 - **Hunt soul beasts** across several maps (towns, hunting maps, a boss map) to get soul rings, soul bones and soul cores. Rings have an age up to 100,000 years and must be absorbed within the spirit's limit; absorbing too far can destroy the ring.
 - **Elites, beast kings and world bosses** scale in difficulty with the number of players taking part.
 - **Party and PvP.** Players form parties and fight bosses together. PvP exists only in the ranked **Đại Đấu Hồn Trường** (Soul Fighting Arena). There is no player trading and no PvP outside the arena, so one person cannot farm for everyone else.
+- Also quests, equipment, sects (tông môn), friends, auto-hunt.
 - **Losing costs little.** You never lose a spirit, an absorbed ring, or equipped bones and cores (one explicit exception: high equipment enhancement, only if the player chooses to risk it).
-- Also: quests, equipment, sects (tông môn), friends, auto-hunt and offline commissions, a radar / area map.
 
 All balance numbers live in one file, `shared/data.ts`; the docs describe mechanics and point to constant names instead of copying values.
 
@@ -34,7 +34,6 @@ client (Phaser 3 + Vite, TypeScript)  <-- WebSocket (Colyseus) -->  server (Node
 - **Maps** are Tiled JSON files in `shared/assets/`, declared in `MAPS` (`shared/data.ts`). The server ticks at 20 Hz (`TICK_RATE`).
 - **Persistence.** PostgreSQL or Supabase. The server applies every `server/sql/*.sql` file by name on each start (idempotent, row-level security on, no policies). Without `DATABASE_URL` it keeps data in RAM and loses it on shutdown. Writes for one player are serialized, and map travel saves in a single transaction before the client is told to join the new room.
 - **Scaling.** Several server processes can share state through Redis (`RedisPresence`); without `REDIS_URL` everything is in-process.
-- **Anti-cheat** follows from the above: the client cannot create items, damage or positions. Test hooks exist only when the server runs with `GAME_TEST=1`.
 
 ## Run it locally
 
@@ -65,7 +64,7 @@ Checks: `npm run check` (typechecks, sprite / map / docs validation; required af
 | `docs/quyet-dinh.md`, `ROADMAP.md`, `docs/lich-su.md` | Current decisions, roadmap, change history |
 | `CLAUDE.md`, `CONTRIBUTING.md` | Code rules and contribution workflow |
 
-Start with `README.md` (setup, in Vietnamese), then `GAME_DESIGN.md`. A player guide is `docs/huong-dan-choi.md`. Reading the design docs in depth requires Vietnamese; machine translation of single files is enough for orientation.
+Start with `README.md` (setup, in Vietnamese), then `GAME_DESIGN.md`. A player guide is `docs/huong-dan-choi.md`.
 
 ## Assets and licenses (summary)
 
