@@ -59,7 +59,8 @@ const snapshot = (): PartySnapshot => ({
   parties: Object.fromEntries(parties),
   invites: Object.fromEntries([...invites].map(([acc, m]) => [acc, Object.fromEntries(m)])),
 });
-export function applySnapshot(s: (PartySnapshot | { live?: Record<string, Live>; parties?: unknown; invites?: unknown }) | null | undefined) {
+/** `force`: bản đọc dưới khóa là nguồn đúng, luôn áp và lấy phiên bản của nó (kể cả thấp hơn bản cục bộ, vd. Redis mất key); tin pub/sub thì lọc theo `ver`. */
+export function applySnapshot(s: (PartySnapshot | { live?: Record<string, Live>; parties?: unknown; invites?: unknown }) | null | undefined, force = false) {
   if (!s) return;
   const partial = s as { live?: Record<string, Live>; parties?: unknown; invites?: unknown };
   if (!partial.parties && !partial.invites) {
@@ -72,8 +73,8 @@ export function applySnapshot(s: (PartySnapshot | { live?: Record<string, Live>;
   }
   const full = s as PartySnapshot;
   // Tin publish đi sau khi nhả khóa nên có thể đến muộn / sai thứ tự: bản cũ hơn bản đã áp thì bỏ (không để trạng thái lùi).
-  if (full.ver !== undefined && full.ver < stateVer) return;
-  stateVer = Math.max(stateVer, full.ver ?? 0);
+  if (!force && full.ver !== undefined && full.ver < stateVer) return;
+  stateVer = force ? full.ver ?? stateVer : Math.max(stateVer, full.ver ?? 0);
   live.clear(); byName.clear(); parties.clear(); partyOfAcc.clear(); invites.clear();
   nextParty = Math.max(1, Number(full.nextParty) || 1);
   for (const [acc, value] of Object.entries(full.live ?? {})) {
@@ -92,7 +93,7 @@ async function remoteMutation<T>(fn: () => T | Promise<T>, publish = true): Prom
   if (!remote) return fn();
   let result!: T;
   const ok = await remote.withLock<PartySnapshot>(REMOTE_KEY, remote.workerId, 5000, async (old) => {
-    applySnapshot(old ?? snapshot()); result = await fn(); stateVer++; return snapshot();
+    applySnapshot(old ?? snapshot(), true); result = await fn(); stateVer++; return snapshot();
   }, 0);
   if (!ok) throw new Error("Không khóa được trạng thái tổ đội trong presence.");
   if (publish) void remote.presence.publish(PARTY_STATE_TOPIC, snapshot());
