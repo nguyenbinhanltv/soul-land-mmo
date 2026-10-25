@@ -470,12 +470,13 @@ export class SkillVisualPlayer {
    * T3 thêm vòng lửa xoay ở người tung, cột lửa cuốn rồi ngọn lửa đứng ở điểm trúng. Ám T2+: vệt đâm tím.
    */
   private overlay(vis: SkillVisual & { element?: Element }, c: CastCtx) {
-    if (!c.mine || fxLevel() === "low") return;
+    if (!c.mine || fxPrefs.reduce || fxLevel() === "low") return; // Giảm chuyển động: không chồng lớp chớp sáng (như `cast` / `play1`)
     if (vis.element === "light" && vis.tier >= 2) playPriv(this.sheets, "fx_chem_sang", { x: c.tx, y: c.ty, ang: c.ang, scale: 2 * SPR });
     if (vis.element === "dark" && vis.tier >= 2) playPriv(this.sheets, "fx_dam_tim", { x: c.tx, y: c.ty, ang: c.ang, scale: SPR }); // #622: vệt đâm tím hệ Ám
     if (vis.element === "ice" && vis.tier >= 2) playPriv(this.sheets, "fx_bang_dong", { x: c.tx, y: c.ty, scale: SPR, fps: 30 }); // #622 đợt 2: băng đóng quanh mục tiêu
     if (vis.element === "poison" && vis.tier >= 2) playPriv(this.sheets, "fx_xoay_doc", { x: c.tx, y: c.ty, scale: SPR, fps: 30 }); // xoáy độc
     if (vis.element === "poison" && vis.tier >= 3) playPriv(this.sheets, "fx_lua_doc", { x: c.tx, y: c.ty, scale: SPR, delay: 500 });
+    if (vis.element === "lightning" && vis.tier < 2) playPriv(this.sheets, "fx_set_no_1", { x: c.tx, y: c.ty, scale: SPR }); // Lôi T1: nổ sét nhỏ
     if (vis.element === "lightning" && vis.tier >= 2) { // Lôi: nổ sét ở điểm trúng (T3 lớn hơn, thêm sét giáng + hào quang sét ở người tung)
       playPriv(this.sheets, vis.tier >= 3 ? "fx_set_no_3" : "fx_set_no_2", { x: c.tx, y: c.ty, scale: SPR });
       if (vis.tier >= 3) { playPriv(this.sheets, "fx_set_giang", { x: c.tx, y: c.ty - 16 * SPR, scale: SPR, delay: 100 }); playPriv(this.sheets, "fx_set_khuech", { x: c.x, y: c.y, scale: SPR }); }
