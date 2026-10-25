@@ -89,7 +89,7 @@ export function guideStart(name: string, starterDone: boolean) {
   who = name; load();
   if (!wired) { wired = true; document.getElementById("guideBtn")?.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); guideReview(); }); }
   if (!saved.tour && starterDone) { saved.tour = "done"; save(); }
-  if (!saved.tour) { mode = "tour"; step = 0; render(); }
+  if (!saved.tour) { if (mode !== "tour") step = 0; mode = "tour"; render(); } // đổi bản đồ giữa chừng (GameScene dựng lại): giữ bước đang làm
 }
 
 /** Nút "?": xem lại từ bước 1 (bấm lần nữa thì đóng); không đổi trạng thái đã xem. */
@@ -108,10 +108,11 @@ export function guideEvent(ev: GuideEvent) {
 /** Gợi ý một lần theo tình huống (tự tắt sau ít giây); không hiện khi đang có hướng dẫn / gợi ý khác (lần sau gặp lại tình huống thì hiện). */
 export function guideHint(h: GuideHint) {
   if (!who || mode !== "off" || saved.hints?.includes(h)) return;
-  (saved.hints ??= []).push(h); save();
-  mode = "hint";
   const c = root(), t = HINTS[h];
   c.hidden = false; c.dataset.mode = "hint";
+  if (getComputedStyle(c).display === "none") { c.hidden = true; return; } // CSS đang ẩn thẻ (hộp NPC mở, đấu trường): chưa tính là đã thấy, lần sau gặp lại thì hiện
+  (saved.hints ??= []).push(h); save();
+  mode = "hint";
   q(c, ".g-head b").textContent = "Gợi ý";
   q(c, ".g-dots").textContent = "";
   q(c, "h4").textContent = t.title;

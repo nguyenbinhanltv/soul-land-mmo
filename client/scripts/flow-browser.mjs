@@ -132,6 +132,7 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
   await page.locator("#hud:not([hidden])").waitFor({ timeout: 30000 });
   await page.waitForFunction(() => window.__scene?.players?.size > 0, null, { timeout: 30000 });
   const pos = () => page.evaluate(() => { const s = window.__scene, p = s.room.state.players.get(s.me); return { x: p.x, y: p.y }; });
+  await page.locator("#guide").waitFor({ state: "visible" }); // thẻ hướng dẫn (M6 #752) hiện trước khi thử đi
   await sleep(500);
   const before = await pos();
   await page.keyboard.down("KeyD");
