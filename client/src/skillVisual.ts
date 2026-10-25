@@ -464,10 +464,36 @@ export class SkillVisualPlayer {
     if (ok && s.glow && c.mine && ga > 0 && !fxPrefs.reduce && this.sheets.has(s.glow)) this.sheets.play(this.mk({ ...s, key: s.glow, normal: false }, c, { delay, alpha: Math.min(1, ga * (s.glowMul ?? 1)) }));
     return ok;
   }
-  /** #623: lớp thêm từ kho riêng cho chiêu T2 / T3 theo hệ (Quang: chém sáng; lớp sét giáng đã bỏ vì bị sheet S3 che), chồng lên sheet S3, không thay sheet nào. */
+  /**
+   * #623: lớp thêm từ kho riêng theo hệ, chồng lên sheet S3, không thay sheet nào, chỉ chiêu của chính mình.
+   * Quang T2+: chém sáng (lớp sét giáng đã bỏ vì bị sheet S3 che); T3: quang phạt, thiên phạt, kiếm công lý. Lôi T2+: nổ sét (T3: thêm sét giáng, hào quang). Băng T2+: băng đóng. Độc T2+: xoáy độc (T3: lửa lục). Hỏa (#622 đợt 1b): đạn bay thêm đạn lửa nhỏ; T2+ roi lửa quất ở điểm trúng;
+   * T3 thêm vòng lửa xoay ở người tung, cột lửa cuốn rồi ngọn lửa đứng ở điểm trúng. Ám T2+: vệt đâm tím.
+   */
   private overlay(vis: SkillVisual & { element?: Element }, c: CastCtx) {
-    if (vis.tier < 2 || !c.mine) return;
-    if (vis.element === "light") playPriv(this.sheets, "fx_chem_sang", { x: c.tx, y: c.ty, ang: c.ang, scale: 2 * SPR });
+    if (!c.mine || fxPrefs.reduce || fxLevel() === "low") return; // Giảm chuyển động: không chồng lớp chớp sáng (như `cast` / `play1`)
+    if (vis.element === "light" && vis.tier >= 2) playPriv(this.sheets, "fx_chem_sang", { x: c.tx, y: c.ty, ang: c.ang, scale: 2 * SPR });
+    if (vis.element === "dark" && vis.tier >= 2) playPriv(this.sheets, "fx_dam_tim", { x: c.tx, y: c.ty, ang: c.ang, scale: SPR }); // #622: vệt đâm tím hệ Ám
+    if (vis.element === "ice" && vis.tier >= 2) playPriv(this.sheets, "fx_bang_dong", { x: c.tx, y: c.ty, scale: SPR, fps: 30 }); // #622 đợt 2: băng đóng quanh mục tiêu
+    if (vis.element === "poison" && vis.tier >= 2) playPriv(this.sheets, "fx_xoay_doc", { x: c.tx, y: c.ty, scale: SPR, fps: 30 }); // xoáy độc
+    if (vis.element === "poison" && vis.tier >= 3) playPriv(this.sheets, "fx_lua_doc", { x: c.tx, y: c.ty, scale: SPR, delay: 500 });
+    if (vis.element === "lightning" && vis.tier < 2) playPriv(this.sheets, "fx_set_no_1", { x: c.tx, y: c.ty, scale: SPR }); // Lôi T1: nổ sét nhỏ
+    if (vis.element === "lightning" && vis.tier >= 2) { // Lôi: nổ sét ở điểm trúng (T3 lớn hơn, thêm sét giáng + hào quang sét ở người tung)
+      playPriv(this.sheets, vis.tier >= 3 ? "fx_set_no_3" : "fx_set_no_2", { x: c.tx, y: c.ty, scale: SPR });
+      if (vis.tier >= 3) { playPriv(this.sheets, "fx_set_giang", { x: c.tx, y: c.ty - 16 * SPR, scale: SPR, delay: 100 }); playPriv(this.sheets, "fx_set_khuech", { x: c.x, y: c.y, scale: SPR }); }
+    }
+    if (vis.element === "light" && vis.tier >= 3) { // Quang T3: quang phạt + thiên phạt + kiếm công lý (cạnh chém sáng T2+)
+      playPriv(this.sheets, "fx_quang_phat", { x: c.tx, y: c.ty - 4 * SPR, scale: SPR });
+      playPriv(this.sheets, "fx_quang_no", { x: c.tx, y: c.ty - 8 * SPR, scale: SPR, delay: 250 });
+      playPriv(this.sheets, "fx_kiem_cong_ly", { x: c.tx, y: c.ty - 12 * SPR, scale: SPR, delay: 500 });
+    }
+    if (vis.element !== "fire") return;
+    if (vis.sheet?.at === "travel") playPriv(this.sheets, "fx_dan_lua", { x: c.x, y: c.y, to: { x: c.tx, y: c.ty }, rotate: true, scale: 2 * SPR });
+    if (vis.tier < 2) return;
+    playPriv(this.sheets, "fx_lua_roi", { x: c.tx, y: c.ty, scale: SPR, fps: 30, delay: 150 });
+    if (vis.tier < 3) return;
+    playPriv(this.sheets, "fx_lua_xoay", { x: c.x, y: c.y, scale: SPR, fps: 30 });
+    playPriv(this.sheets, "fx_lua_cuon", { x: c.tx, y: c.ty, scale: SPR, fps: 30, delay: 350 });
+    playPriv(this.sheets, "fx_lua_dung", { x: c.tx, y: c.ty, scale: SPR, delay: 600 });
   }
   /** `vis.sheet` có và đã tải: phát ngay. Người tung còn thấy lớp lấy đà (`windupSheet`) và dư chấn; người khác chỉ thấy bản nhẹ của sheet chính. */
   cast(vis: SkillVisual, c: CastCtx): boolean {

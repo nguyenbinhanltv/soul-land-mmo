@@ -100,6 +100,8 @@ export function playHitFeelSheets(sheets: SheetFx, mat: Material, he: He, x: num
   sheets.play({ ...common, key: hitSheetKey(mat, he, true), scale: scale * 1.05, fps: HIT_HE_STYLE[he].fps, light: !mine });
   // #623: va chạm kho riêng cho đòn từ nhẹ trở lên; độ nặng 3 (đòn kết liễu / chí mạng nặng) thêm quả nổ nhỏ.
   if (weight >= 1) playPriv(sheets, "fx_va_cham_vang", { x, y, scale: SPR, light: !mine });
+  else if (mine) playPriv(sheets, "fx_va_cham_nho", { x, y, scale: SPR }); // #622: đòn nhẹ nhất: va chạm vàng nhỏ (đòn nặng hơn đã có va chạm Gigapack)
+  if (he === "man_cong" && mine && weight >= 1) playPriv(sheets, "fx_dam_trang", { x: x - 12, y, scale: SPR }); // #622: Mẫn công = đòn đâm nhanh: vệt đâm trắng
   if (weight >= 3) playPriv(sheets, "fx_ket_lieu", { x, y, scale: SPR, light: !mine });
 }
 
