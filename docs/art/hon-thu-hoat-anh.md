@@ -63,5 +63,13 @@ Tên theo quy ước game (`beast_<loài>_anim`); không dùng tên gói ngoài.
 
 Tổng 9 tờ (2 + 2 + 5). Làm theo thứ tự Phong Lang, Kim Linh Ưng, Thái Thản Cự Viên; mỗi loài xong thì cắt và xem trang trước rồi mới vẽ loài kế để rút kinh nghiệm cho prompt. Chưa có thú vương (khung 160) trong 3 loài vì boss đã thử đường một hướng mỗi tờ.
 
+## Client phát hoạt ảnh (H3, đã làm)
+Code ở `client/src/beastAnim.ts` (chọn khung, không phụ thuộc Phaser, có bài kiểm `npm run test:beastanim --prefix client`) và `sprites.ts` (`syncBeastSprite`, `animBeastPose`).
+- **Điều kiện dùng:** loài có texture `beast_<loài>_anim` (manifest `anim`; thiếu `anim` thì dùng bố cục mặc định của đặc tả) **ưu tiên hơn** ảnh tĩnh. Loài chưa có sheet đi nguyên nhánh cũ (ảnh tĩnh + `staticBeastPose`): hành vi, bot, ảnh chụp cũ không đổi.
+- **Chọn khung theo giờ, không dùng animation của Phaser:** hướng 8 → hàng của 5 hướng vẽ (tây lật ngang `se` / `e` / `ne`); trạng thái theo ưu tiên báo trước (`cast`, giữ khung 0 dải đánh) > ra đòn (khung 1–5 sau khi `cast` tắt) > trúng đòn (máu giảm, 2 khung) > đi (`moving`, giữ thêm `walkHold` để không nháy) > đứng. Số khung tính từ giờ trong trạng thái nên đổi hướng giữa chừng chỉ đổi hàng, không nhảy về khung đầu; nhịp đi nhân `walkScale` (đuổi nhanh hơn lang thang như `BEAST_ANIM_SCALE`) và cộng dồn pha nên đổi tốc độ không giật. Nhịp khung ở `ART_MS`.
+- **Còn do code chồng:** báo trước (co giãn, ngả, lùi), nửa quãng lao khi ra đòn, lắc và nháy trắng khi trúng đòn; phần thở / nhún / nghiêng khi đứng và đi **bỏ** (đã vẽ trong khung). Bóng, vòng hồn hoàn, glow bậc, "!" của hồn thú hung hăng, nháy cuồng nộ giữ nguyên (cùng gốc chân `ISO_BEAST_FOOT`, thân đo ở khung idle đầu của 5 hướng).
+- **Chết:** hồn thú bị kết liễu để lại bóng chạy dải `die` (giữ khung cuối) rồi mờ dần; loài chưa có sheet vẫn ngã bằng code.
+- **Thử bằng sheet giả:** `beast-sheet-fake.mjs` + `beast-sheet-cut.mjs` rồi cài tạm vào `shared/assets` (không commit); xem ảnh chụp và số FPS ở mô tả PR.
+
 ## Việc tiếp
-H2: nhập vào `shared/assets` + manifest + `client/src/sprites.ts` (đọc `anim`, ưu tiên hoạt ảnh vẽ thật, giữ `staticBeastPose` làm dự phòng, lật ngang hướng tây), sau khi chủ repo duyệt hoạt ảnh của 3 loài.
+H2: nhập sheet thật vào `shared/assets` + `manifest.json` (mục `beast_<loài>_anim` từ `manifest-entry.json`, thêm normal map `_n` bằng `normal.mjs`) sau khi chủ repo duyệt hoạt ảnh của 3 loài; client đã sẵn sàng (H3), không phải sửa thêm.
