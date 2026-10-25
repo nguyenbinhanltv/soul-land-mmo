@@ -10,6 +10,7 @@
     "test:predict": "node scripts/predict-test.mjs",
     "test:nameplate": "node --experimental-strip-types scripts/nameplate-test.mjs",
     "test:nameplate-browser": "node scripts/nameplate-browser.mjs",
+    "test:join-browser": "node scripts/join-browser.mjs",
     "test:charbag": "node scripts/charbag-test.mjs",
     "test:phaptuong": "node scripts/phaptuong-test.mjs",
     "test:beastanim": "node --experimental-strip-types scripts/beastanim-test.mjs",

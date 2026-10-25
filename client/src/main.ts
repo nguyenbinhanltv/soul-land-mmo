@@ -5,6 +5,7 @@ import { ASSET_RETRIES, MAX_PARALLEL } from "./assetUrl.ts";
 import { installLoaderRetry } from "./loaderRetry.ts";
 import { Client, type Room } from "colyseus.js";
 import { GameScene } from "./scenes/GameScene.ts";
+import { bufferRoomMessages } from "./roomBuffer.ts";
 import { addLag } from "./predict.ts";
 import { TIERS, VOHON, HE, MAPS, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES,
   type He } from "../../shared/data.ts";
@@ -277,6 +278,7 @@ async function join(retry = true, roomId?: string | null) {
         throw e;
       })
       : await client.joinOrCreate("map", opts);
+    bufferRoomMessages(room);
     const roomMap = await waitMapId(room).catch((e) => { room.leave().catch(() => {}); throw e; });
     play(room, roomMap);
   } catch (e) {
@@ -304,6 +306,7 @@ async function joinArena(roomId: string, watch = false) {
   card.innerHTML = `<h1>${watch ? "Đang vào xem trận…" : "Đang vào Đại Đấu Hồn Trường…"}</h1>`;
   try {
     const room = await new Client(WS).joinById(roomId, { token });
+    bufferRoomMessages(room);
     const roomMap = await waitMapId(room).catch((e) => { room.leave().catch(() => {}); throw e; });
     play(room, roomMap, watch);
   } catch (e) {
