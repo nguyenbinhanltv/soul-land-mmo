@@ -39,7 +39,7 @@ Nút "Đăng nhập bằng Google" chỉ hiện khi server có `GOOGLE_CLIENT_ID
 2. **Credentials → Create credentials → OAuth client ID → Web application**. **Authorized JavaScript origins**: `https://soulland.oleqima.com`, `http://localhost:5173`, `http://localhost:2567`. Không cần Authorized redirect URIs (luồng ID token, không redirect) và không dùng client secret.
 3. Đưa Client ID vào ConfigMap của repo GitOps làm biến `GOOGLE_CLIENT_ID` (kiểu `…apps.googleusercontent.com`); chạy dev thì đặt trong `server/.env`.
 4. Chạy nhiều tiến trình (nhiều pod) thì đặt thêm `GOOGLE_TICKET_SECRET` (chuỗi ngẫu nhiên dài, thêm khoá này vào Secret có sẵn trên cụm, chủ repo tự tạo, không dùng Sealed Secrets; sinh chuỗi bằng `openssl rand -hex 32` hoặc `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`; thiếu thì server dùng khoá ngẫu nhiên và in một dòng cảnh báo) để vé chọn tên của pod này đọc được ở pod kia; một bản thì có thể bỏ qua.
-5. Kiểm: mở trang, thấy nút Google dưới form đăng nhập; chọn tài khoản Google mới → màn "Chọn tên nhân vật" → tạo nhân vật. Tài khoản cũ: đăng nhập tên + mật khẩu → **Cài đặt → Tài khoản Google** để liên kết.
+5. Landing (`/`) và game (`/choi`) cùng origin nên chỉ cần một origin ở bước 2. Landing có nút Google riêng (bấm là mở cửa sổ Google, xong vào `/choi`; tài khoản mới thì game hiện luôn màn chọn tên, vé chuyển qua `sessionStorage`). Kiểm: mở `/`, bấm "Đăng nhập Google" rồi vào `/choi`; hoặc mở `/choi`, thấy nút Google dưới form đăng nhập; chọn tài khoản Google mới → màn "Chọn tên nhân vật" → tạo nhân vật. Tài khoản cũ: đăng nhập tên + mật khẩu → **Cài đặt → Tài khoản Google** để liên kết.
 
 Server không lưu email, tên hay token Google (chỉ mã người dùng `sub`, bảng `account_identities`). Bộ kiểm giả (`test:<mã>`) chỉ có khi `GAME_TEST=1` và `NODE_ENV` khác `production`; ở prod luôn tắt. Chi tiết luật: `GAME_DESIGN.md` mục HTTP / Bảo mật.
 
@@ -56,7 +56,7 @@ Origin (`server/src/staticCache.ts`) tự đặt `Cache-Control` cho `client/dis
 | Nhóm | Header origin | Ghi chú |
 | --- | --- | --- |
 | `/assets/<tên>-<hash>.*` (JS, CSS, font do Vite hash) | `public, max-age=31536000, immutable` | Phaser tách chunk riêng (`phaser-<hash>.js`) nên đổi code game không tải lại Phaser |
-| `index.html` | `no-cache` | luôn hỏi lại (ETag, thường 304) vì nó trỏ tới file hash mới |
+| `index.html` (landing ở `/`), `choi/index.html` (game ở `/choi`, có và không dấu gạch cuối; server trả thẳng, không chuyển hướng) | `no-cache` | luôn hỏi lại (ETag, thường 304) vì nó trỏ tới file hash mới |
 | ảnh / âm thanh / bản đồ / manifest không hash (`lpcparts`, `sprites`, `iso`, `mini`, `audio`, `*.json`) khi URL có `?v=` | `public, max-age=31536000, immutable` | client gắn `?v=<hash nội dung shared/assets>` (`client/src/assetUrl.ts`, `vite.config.ts`): asset đổi thì URL đổi, không kẹt cache |
 | như trên, không có `?v=` (bot, trang thử) | ảnh / âm thanh: `max-age=604800, stale-while-revalidate=86400`; json: `no-cache` | |
 

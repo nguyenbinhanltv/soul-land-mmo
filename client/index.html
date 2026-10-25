@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="vi" data-theme="a">
+<html lang="vi">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -46,8 +46,12 @@
     <p class="sub">Game nhập vai săn hồn thú ngay trên trình duyệt, chơi cùng bạn bè. Không cần cài đặt, máy điện thoại hay máy tính đều chơi được.</p>
     <div class="cta">
       <a class="btn seal" href="/choi">Vào chơi</a>
-      <a class="btn alt" href="/choi">Đăng nhập Google</a>
+      <div class="gwrap" id="gwrap">
+        <a class="btn alt" id="gfallback" href="/choi">Đăng nhập Google</a>
+        <div id="gbtn" hidden></div>
+      </div>
     </div>
+    <p class="gerr" id="gerr" role="alert" hidden></p>
     <p class="status" id="status" role="status"><span class="dot" aria-hidden="true"></span><span id="statusTxt">Máy chủ: đang kiểm tra…</span></p>
   </div>
 </section>
@@ -196,15 +200,6 @@
   </div>
 </footer>
 
-<script>
-// Trạng thái máy chủ: một lần gọi /health, lỗi thì báo không kết nối được (không chặn trang).
-(function () {
-  var s = document.getElementById("status"), t = document.getElementById("statusTxt");
-  function set(cls, txt) { s.className = "status " + cls; t.textContent = txt; }
-  fetch("/health", { cache: "no-store" }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok && j.ok }; }); })
-    .then(function (r) { r.ok ? set("up", "Máy chủ: đang mở, vào chơi được") : set("down", "Máy chủ: đang bảo trì, thử lại sau ít phút"); })
-    .catch(function () { set("down", "Máy chủ: chưa kết nối được"); });
-})();
-</script>
+<script type="module" src="/src/landing.ts"></script>
 </body>
 </html>

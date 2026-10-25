@@ -9,7 +9,7 @@ npm run hooks                  # bật git pre-commit hook (.githooks/, typechec
 npm run check                  # typecheck server + client, validate sprite, kiểm tiles.json, docs-check – bắt buộc sau mỗi thay đổi
 npm run build                  # build client (tsc + vite)
 npm run dev:server             # server http://localhost:2567 (không có DATABASE_URL thì lưu RAM)
-npm run dev:client             # client http://localhost:5173
+npm run dev:client             # trang giới thiệu http://localhost:5173, game http://localhost:5173/choi/ (landing ở "/", #656)
 npm run bot:local -- --only <nhóm> [--pg]   # bot ở máy: tự bật server GAME_TEST=1 cổng trống, chạy một nhóm, tự dọn
 npm run bot --prefix client    # bot thô, chạy khi server đang bật (SERVER_URL=… nếu khác cổng); agent dùng bot:local
 ```

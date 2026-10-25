@@ -31,7 +31,7 @@ const srv = http.createServer((q, r) => { if (q.url === "/") { r.setHeader("cont
   const ch = spawn(process.env.CHROME_PATH || "C:/Program Files/Google/Chrome/Application/chrome.exe", ["--headless=new", "--mute-audio", `--remote-debugging-port=${dbg}`, `--user-data-dir=${ud}`, `http://127.0.0.1:${port}/`]);
   try {
     let t; for (let i = 0; i < 50 && !t; i++) { await new Promise((r) => setTimeout(r, 300)); try { t = (await (await fetch(`http://127.0.0.1:${dbg}/json`)).json()).find((x) => x.type === "page"); } catch {} }
-    const ws = new WebSocket(t.webSocketDebuggerUrl); await new Promise((r) => (ws.onopen = r)); ws.send(JSON.stringify({ id: 99, method: "Page.navigate", params: { url: `http://127.0.0.1:${port}/` } })); await new Promise((r) => setTimeout(r, 2000));
+    const ws = new WebSocket(t.webSocketDebuggerUrl); await new Promise((r) => (ws.onopen = r)); ws.send(JSON.stringify({ id: 99, method: "Page.navigate", params: { url: `http://127.0.0.1:${port}/choi/` } })); await new Promise((r) => setTimeout(r, 2000));
     const out = await new Promise((resolve) => { ws.onmessage = (m) => { const j = JSON.parse(m.data); if (j.id === 1) resolve(j.result); }; ws.send(JSON.stringify({ id: 1, method: "Runtime.evaluate", params: { expression: "run()", awaitPromise: true, returnByValue: true } })); });
     const db = (x) => 20 * Math.log10(Math.max(1e-6, x));
     const rows = Object.entries(out.result.value).map(([k, a]) => {
