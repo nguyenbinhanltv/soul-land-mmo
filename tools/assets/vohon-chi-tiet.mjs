@@ -1,5 +1,4 @@
-// Vẽ bằng code các chi tiết phụ thể bám người (#101): dây Lam Ngân quấn cẳng tay, rắn Bích Lân quấn tay + đầu rắn trên vai,
-// tai / đuôi / móng U Minh Linh Miêu. Ra ảnh mảnh + mô tả nhóm neo cho `vohon-multi.mjs`.
+// Vẽ bằng code phụ thể bám người cho Hỏa Long (rồng quấn tay + thân, đầu rồng trên vai) và Liệt Hỏa Thương Lang (tai sói, đuôi chóp lửa, vuốt) (#102). Ra ảnh mảnh + mô tả nhóm neo cho `vohon-multi.mjs`.
 //   node tools/assets/vohon-chi-tiet.mjs [--body <thư mục thân mẫu LPC>]    (mặc định dựng thân mẫu bằng lpc-mannequin.mjs)
 // Ghi art/src/vh_nho/<id>/*.png và art/src/vh_nho/<id>/spec.json. Chỉ cần khớp ba hướng LPC dùng (s, e, n; se / ne dùng lại hướng e,
 // vì client vẽ se / e / ne bằng cùng hàng LPC "phải"). Mảnh gắn tay lấy hình cẳng tay từ lớp da của thân mẫu nên khít từng giới.
@@ -118,68 +117,6 @@ function free(id, group, attach, name, layerOf, build) {
   }
 }
 
-// ───────────────────────────── Lam Ngân Thảo: dây quấn hai cẳng tay ─────────────────────────────
-{
-  const id = "lam_ngan_thao", p = pal(id);
-  // Dải chéo 3 điểm dây, 2 điểm da; mép dưới dải đậm hơn, mép trên sáng.
-  const vine = (u, v) => { const t = (((u + v) % 5) + 5) % 5; return t === 0 ? p.cl : t === 1 ? p.c : t === 2 ? p.cd : null; };
-  wraps(id, "tay", "day", { s: ["left", "right"], e: ["left"], n: ["left", "right"] }, vine);
-}
-
-// ───────────────────────────── Bích Lân Xà Hoàng: rắn quấn tay phải + đầu ngóc trên vai ─────────────────────────────
-{
-  const id = "bich_lan_xa_hoang", p = pal(id);
-  // Thân rắn: dải chéo rộng 4 điểm, sống lưng sáng, bụng đậm; 2 điểm da giữa các vòng.
-  const coil = (u, v) => { const t = (((u + v) % 6) + 6) % 6; return t === 0 ? p.cl : t === 1 || t === 2 ? p.c : t === 3 ? p.cd : null; };
-  wraps(id, "tay", "xa_tay", { s: ["left"], e: ["left"], n: ["right"] }, coil);
-  // Đầu rắn ngóc trên vai phải: cổ hình chữ S từ vai lên, đầu nhìn người xem (s), nhìn phải (e), nhìn từ sau (n).
-  const SH = { s: [-12, -2], e: [-9, -3], n: [12, -2] }; // vai phải so với điểm neo lưng
-  free(id, "dau", "back", "dau_ran", () => "f", (d) => {
-    const img = blank(), [sx, sy] = SH[d], k = d === "n" ? -1 : 1, head = [sx + (d === "e" ? 3 : -2 * k), sy - 14];
-    const neck = [[sx, sy + 1], [sx - 3 * k, sy - 4], [head[0] + 3 * k, head[1] + 4], head];
-    stroke(img, neck, 2.4, 2.0, (t, i) => (Math.floor(i / 3) % 2 ? p.c : p.cd));
-    // sống lưng sáng một điểm dọc cổ
-    for (let i = 0; i < 30; i++) { const t = i / 29; const q = [sx + (head[0] - sx) * t + Math.sin(t * Math.PI) * -3 * k, sy + (head[1] - sy) * t]; const c = get(img, Math.round(q[0] + O), Math.round(q[1] + O)); if (c) px(img, q[0] - 0.5 * k, q[1], p.cl); }
-    // đầu hình thoi 7×5 (s, n) hoặc mõm nhọn về phải (e)
-    if (d === "e") { fillPoly(img, [[head[0] - 3, head[1] - 2], [head[0] + 4, head[1]], [head[0] - 3, head[1] + 3]], p.c); px(img, head[0] + 4, head[1] + 1, p.c); px(img, head[0] - 3, head[1] - 2, p.cl); px(img, head[0] - 1, head[1] - 1, [255, 224, 80, 255]); px(img, head[0] + 5, head[1] + 1, [220, 60, 60, 255]); }
-    else { fillPoly(img, [[head[0] - 3.5, head[1] - 1], [head[0], head[1] - 3], [head[0] + 3.5, head[1] - 1], [head[0] + 2, head[1] + 3], [head[0] - 2, head[1] + 3]], d === "n" ? p.cd : p.c);
-      if (d === "s") { px(img, head[0] - 2, head[1] - 1, [255, 224, 80, 255]); px(img, head[0] + 1, head[1] - 1, [255, 224, 80, 255]); px(img, head[0] - 0, head[1] + 4, [220, 60, 60, 255]); px(img, head[0] - 1, head[1] - 3, p.cl); px(img, head[0], head[1] - 3, p.cl); } else { px(img, head[0] - 1, head[1] - 2, p.c); px(img, head[0], head[1] - 2, p.c); } }
-    return finish(img, null);
-  });
-}
-
-// ───────────────────────────── U Minh Linh Miêu: tai, đuôi, móng ─────────────────────────────
-{
-  const id = "u_minh_linh_mieu", p = pal(id);
-  // Tai (neo đầu: đỉnh đầu): tam giác thân tím, lòng tai sáng; s / n hai tai đối xứng, e tai gần to và tai xa lùi ra trước.
-  free(id, "tai", "head", "tai", () => "f", (d) => {
-    const img = blank();
-    const ear = (cx, base, tipx, tipy, w, inner) => { fillPoly(img, [[cx - w / 2, base], [cx + w / 2, base], [tipx, tipy]], p.r); fillPoly(img, [[cx - w / 2 + 2, base], [cx + w / 2 - 1, base], [tipx + 0.2, tipy + 3]], inner ? p.c : p.rd); };
-    if (d === "e") { ear(3.5, 3, 5, -7, 6, true); ear(-3, 4, -5, -8, 8, true); } else { ear(-6, 3, -8, -7, 7, d === "s"); ear(6, 3, 8, -7, 7, d === "s"); }
-    return finish(img, p.cl);
-  });
-  // Đuôi (neo lưng): cong chữ S sau người; s / e vẽ sau thân, n vẽ trước thân (hồn sư quay lưng).
-  free(id, "duoi", "back", "duoi", (d) => (d === "n" ? "f" : "b"), (d) => {
-    const img = blank(), P = { s: [[9, 10], [15, 12], [18, 4], [15, -5], [18, -9]], e: [[-5, 10], [-12, 9], [-17, 2], [-16, -6], [-19, -9]], n: [[3, 11], [8, 15], [13, 12], [15, 5]] }[d];
-    stroke(img, P, d === "n" ? 2 : 2.6, d === "n" ? 1.3 : 1.6, () => p.r);
-    // lông sáng ở mép trên và chóp đuôi
-    for (let y = -C / 2; y < C / 2; y++) for (let x = -C / 2; x < C / 2; x++) { const c = get(img, x + O, y + O); if (c && same(c, p.r) && !get(img, x + O, y + O - 1)) px(img, x, y, p.c); }
-    const tip = P[P.length - 1]; disc(img, tip[0], tip[1], 1.6, p.cl);
-    return finish(img, p.cl);
-  });
-  // Móng vuốt (neo tay): ba móng cong sáng chĩa xuống từ đầu bàn tay.
-  const claw = (u, v) => null;
-  for (const d of DIRS) for (const side of ({ s: ["left", "right"], e: ["left"], n: ["left", "right"] })[alias(d)]) {
-    const piece = { hand: side, layer: "f", off: [0, 0], ...(alias(d) === "e" ? { free: true } : {}) };
-    const img = blank(); const k = side === "left" ? -1 : 1;
-    for (const [dx, len] of [[-2, 4], [0, 5], [2, 4]]) for (let i = 0; i < len; i++) { const x = dx + (dx * i) / 6 * 0 + (i > 2 ? Math.sign(dx) * 0 : 0), c = i === len - 1 ? p.cl : p.c; px(img, x, 1 + i, i < 1 ? p.r : c); if (i < 2) px(img, x + (dx === 0 ? 0 : -Math.sign(dx)), 1 + i, p.r); }
-    finish(img, null);
-    const fn = `mong_${alias(d)}_${side}.png`; save(path.join(OUT, id), fn, img);
-    add(id, `tay_${side}`, "hand", d, { img: fn, pivot: [O, O], ...piece });
-  }
-}
-
-
 // ───────────────────────────── Hỏa Long: rồng lửa quấn tay phải và thân, đầu rồng có sừng ngóc trên vai ─────────────────────────────
 {
   const id = "hoa_long", p = pal(id);
@@ -230,7 +167,5 @@ function free(id, group, attach, name, layerOf, build) {
   }
 }
 
-// Nhóm có sẵn từ trước (hư ảnh báo, bụi cỏ dưới chân) giữ nguyên, chạy cùng.
-const BASE = { lam_ngan_thao: ["../../pixellab/vh_iso/lam_ngan_thao.json"], u_minh_linh_mieu: ["../../pixellab/vh_iso/u_minh_linh_mieu.json"] };
-for (const [id, groups] of Object.entries(specs)) writeFileSync(path.join(OUT, id, "spec.json"), JSON.stringify({ base: BASE[id] ?? [], groups }, null, 1) + "\n");
+for (const [id, groups] of Object.entries(specs)) writeFileSync(path.join(OUT, id, "spec.json"), JSON.stringify({ base: [], groups }, null, 1) + "\n");
 console.log(`[vohon-chi-tiet] ${Object.keys(specs).join(", ")} → ${path.relative(ROOT, OUT)}`);
