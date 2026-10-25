@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { AUDIO_MAX_ACTIVE, AudioManager, resolveAudioSource, SFX_REPEAT_WINDOW_MS } from "../src/audio/AudioManager.ts";
+import { stopAmbientBed } from "../src/audio/ambientBed.ts";
 import { DEFAULT_AUDIO_SETTINGS, normalizeAudioSettings } from "../src/audio/settings.ts";
 import { panFromProjection, spatialMix } from "../src/audio/spatial.ts";
 import { SFX_IDS, SFX_PARAMS } from "../src/audio/sfxData.ts";
@@ -209,7 +210,7 @@ noListenerAudio.dispose();
       resume() { return Promise.resolve(); },
     };
     const host = { context: ctx, setMute() {}, setVolume() {} };
-    const audio = new AudioManager({ sound: host }, () => ({ x: 100, y: 100 }), () => null, { bank: { load, format: "ogg", now: () => 1e9 }, random });
+    const audio = new AudioManager({ sound: host }, () => ({ x: 100, y: 100 }), () => null, { bank: { load, format: "ogg", now: () => 1e9 }, random, bed: { load: () => Promise.resolve(new ArrayBuffer(8)), format: "ogg", random: () => 0.5 } });
     return { audio, ctx, started, gainNodes };
   };
 
@@ -496,6 +497,66 @@ noListenerAudio.dispose();
     const spread = new Set(), ls = new amb.AmbientLayers((k, v, p) => spread.add(p), Math.random);
     for (let t = 0; t < 600_000; t += 250) ls.update(t, { mapId: "cuc_bac_chi_dia", night: 0, fireDist: null });
     assert.ok(spread.size > 3, "lệch trái / phải ngẫu nhiên");
+  }
+
+  // Nền môi trường vòng lặp (#622): tải lười theo bản đồ, vòng lặp, chuyển chéo khi đổi bản đồ, im ở bản đồ không có nền.
+  {
+    const { existsSync } = await import("node:fs");
+    const amb = await import("../src/audio/ambientLayers.ts");
+    for (const [id, cfg] of Object.entries(amb.AMBIENT_BEDS)) {
+      assert.ok(amb.AMBIENT_PROFILES[id], `nền ${id} thuộc bản đồ có hồ sơ môi trường`);
+      assert.ok(cfg.gain > 0 && cfg.gain <= 1, `độ to nền ${id} trong (0, 1]`);
+      for (const f of ["ogg", "m4a"]) assert.ok(existsSync(new URL(`../../shared/assets/${amb.ambientBedFile(id, f)}`, import.meta.url)), `thiếu file nền ${amb.ambientBedFile(id, f)}`);
+    }
+    const { audio, started } = make();
+    const beds = () => started.filter((n) => n.loop === true);
+    const flush = async () => { for (let i = 0; i < 6; i += 1) await new Promise((r) => setTimeout(r, 0)); };
+    const input = (mapId) => ({ mapId, night: 0, fireDist: null });
+    assert.ok(audio.bed, "có bộ phát nền khi có WebAudio");
+    audio.updateAmbient(0, input("thanh_hon_thon")); await flush();
+    assert.equal(audio.bed.fetched.length, 0, "bản đồ không có nền: không tải gì");
+    audio.updateAmbient(250, input("hai_than_dao")); audio.updateAmbient(500, input("hai_than_dao")); await flush();
+    assert.deepEqual(audio.bed.fetched, ["audio/ambient/amb_nen_hai_than_dao.ogg"], "tải đúng file nền của bản đồ, một lần");
+    assert.equal(beds().length, 1, "một nền đang phát, gọi lặp không nhân đôi");
+    assert.equal(audio.bed.current, "hai_than_dao");
+    assert.equal(beds()[0].args[1], 30, "vào giữa vòng ở chỗ ngẫu nhiên");
+    audio.updateAmbient(750, input("loi_tinh_dau")); await flush();
+    assert.equal(beds().length, 2, "đổi bản đồ: nền mới vào");
+    assert.ok(beds()[0].stopped && !beds()[1].stopped, "nền cũ mờ ra rồi dừng, nền mới tiếp tục");
+    audio.updateAmbient(1000, input("hai_than_dao")); await flush();
+    assert.equal(audio.bed.fetched.length, 2, "quay lại bản đồ cũ: dùng bản đã tải");
+    audio.updateAmbient(1250, input("thanh_hon_thon")); await flush();
+    assert.ok(beds().every((n) => n.stopped) && audio.bed.current === null, "sang bản đồ không có nền: im");
+    // Đổi bản đồ khi đang tải: chỉ nền của bản đồ cuối được phát.
+    const quick = make();
+    quick.audio.updateAmbient(0, input("hai_than_dao")); quick.audio.updateAmbient(10, input("loi_tinh_dau")); await flush();
+    assert.equal(quick.started.filter((n) => n.loop === true && !n.stopped).length, 1);
+    assert.equal(quick.audio.bed.current, "loi_tinh_dau");
+    // Scene bị hủy khi đi cổng / đổi kênh: AudioManager mới trên cùng AudioContext dùng lại bộ phát và bộ nhớ đệm, nền cũ không bị cắt.
+    const { ctx } = quick;
+    quick.audio.updateAmbient(0, input("hai_than_dao")); await flush();
+    const fetchedBefore = quick.audio.bed.fetched.length;
+    const live = quick.started.filter((n) => n.loop === true && !n.stopped);
+    assert.equal(live.length, 1, "đang nghe nền Hải Thần Đảo");
+    quick.audio.dispose();
+    assert.ok(!live[0].stopped, "hủy AudioManager không cắt nền đang phát");
+    const next = new AudioManager({ sound: { context: ctx, setMute() {}, setVolume() {} } }, () => ({ x: 100, y: 100 }), () => null, { random: () => 0.5 });
+    assert.equal(next.bed, quick.audio.bed, "một bộ phát nền cho mỗi AudioContext");
+    next.updateAmbient(0, input("hai_than_dao")); await flush();
+    assert.equal(quick.started.filter((n) => n.loop === true).length, 2, "cùng bản đồ sau khi đổi scene: nền giữ nguyên, không phát lại");
+    next.updateAmbient(250, input("loi_tinh_dau")); await flush();
+    assert.equal(next.bed.fetched.length, fetchedBefore, "đổi sang bản đồ đã nghe: không tải lại");
+    assert.equal(next.bed.current, "loi_tinh_dau", "nền mới vào, nền cũ mờ ra chéo");
+    stopAmbientBed();
+    assert.equal(next.bed.current, null, "mất kết nối: ngừng nền");
+    next.updateAmbient(500, input("hai_than_dao")); next.updateAmbient(750, input("loi_tinh_dau")); await flush();
+    assert.equal(next.bed.current, null, "scene cũ còn gọi updateAmbient sau khi mất kết nối: vẫn im");
+    const again = new AudioManager({ sound: { context: ctx, setMute() {}, setVolume() {} } }, () => ({ x: 100, y: 100 }), () => null, { random: () => 0.5 });
+    again.updateAmbient(0, input("hai_than_dao")); await flush();
+    assert.equal(again.bed.current, "hai_than_dao", "AudioManager mới (vào lại) thì phát lại");
+    again.dispose();
+    audio.dispose();
+    next.dispose();
   }
 }
 
