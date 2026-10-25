@@ -1,114 +1,37 @@
-// Thánh Hồn Thôn: làng quê yên bình. Ngũ cung Rê (cung Rê: D E F# A B), 90 BPM, 32 ô (A A' B A''), ~85 giây.
-// Sáo Pan dẫn giai điệu, đàn tranh (koto) rải hợp âm, koto trầm giữ bè, shamisen đối đáp, shakuhachi hát đoạn B,
-// dây (strings) đệm rất nhỏ, trống taiko nhẹ và mõ gỗ giữ nhịp.
-import { bars, midi, pattern } from "../lib/theory.mjs";
+// Thánh Hồn Thôn: làng quê yên bình, buổi sớm sương mỏng. Ngũ cung điệu Cung trên Rê (D E F# A B), 75 BPM, 32 ô (A A' B A), ~102 giây.
+// Sáo trúc (ban-di) hát giai điệu thưa, nhiều khoảng lặng; cổ tranh rải chậm và lướt cuối câu; nhị hồ làm bè từ A' trở đi;
+// cổ cầm giữ gốc trầm; nền ngân rất nhỏ, chuông điểm đầu đoạn, mõ gỗ gõ thưa từ A'. Lớp giao chiến `_chien` cùng điệu (xem lib/ngucung.mjs).
+import { buildSong, channels } from "../lib/ngucung.mjs";
 
-const BPB = 4;
+const J = (rows) => rows.join(" | ");
+const A = J(["1:4 2:2 3:2", "4:6 -:2", "3:2 2:2 1:2 2:2", "3:8", "-:2 3:2 4:2 5:2", "4:4 3:2 2:2", "1:2 2:2 3:2 2:2", "1:6 -:2"]);
+const A2 = J(["1:2 3:2 4:4", "5:4 4:2 3:2", "4:2 3:2 2:2 1:2", "2:6 -:2", "3:2 4:2 5:2 1':2", "5:4 4:2 3:2", "2:2 3:2 2:2 1:2", "1:4 -:4"]);
+const B = J(["5:6 4:2", "3:4 2:2 3:2", "4:2 5:2 4:2 3:2", "2:8", "3:2 2:2 1:4", "2:2 3:2 5:4", "4:2 3:2 2:2 3:2", "5:6 -:2"]);
+const FOLLOW = (roots) => J(roots.map((d) => `${d === 5 ? "5," : d}:8`));
+const R_A = [1, 1, 5, 5, 4, 4, 2, 1];
+const R_B = [5, 5, 4, 4, 2, 2, 5, 4];
 
-// Hợp âm theo ô (chỉ dùng nốt trong ngũ cung): tên -> [bè trầm, các nốt rải từ thấp lên].
-const CHORD = {
-  D: ["D2", ["D3", "A3", "D4", "E4", "F#4", "A4"]],
-  Bm: ["B1", ["B2", "F#3", "B3", "D4", "E4", "F#4"]],
-  E: ["E2", ["E3", "B3", "E4", "F#4", "A4", "B4"]],
-  A: ["A1", ["A2", "E3", "A3", "B3", "E4", "F#4"]],
-  F: ["F#2", ["F#3", "A3", "B3", "E4", "F#4", "A4"]],
-};
-const PROG = [
-  "D", "Bm", "E", "D", "E", "F", "A", "D", // A
-  "D", "A", "Bm", "D", "E", "Bm", "A", "D", // A'
-  "Bm", "D", "E", "Bm", "Bm", "F", "E", "A", // B
-  "D", "Bm", "E", "D", "E", "F", "A", "D", // A''
-];
-
-const MELODY_A = `
-  A4:2 B4:1 D5:1 E5:3 D5:1 | B4:2 A4:2 F#4:4 | E4:2 F#4:1 A4:1 B4:2 A4:1 B4:1 | D5:6 -:2 |
-  E5:2 F#5:1 E5:1 D5:2 B4:2 | A4:2 B4:1 A4:1 F#4:2 E4:2 | F#4:2 A4:2 B4:1 A4:1 F#4:1 E4:1 | D4:6 -:2`;
-const MELODY_A2 = `
-  A4:1 B4:1 D5:2 E5:2 F#5:2 | E5:2 D5:1 B4:1 A4:4 | B4:2 D5:1 E5:1 F#5:2 A5:2 | F#5:6 E5:1 D5:1 |
-  E5:3 F#5:1 E5:2 D5:2 | B4:2 A4:1 B4:1 D5:4 | E5:2 D5:1 B4:1 A4:2 F#4:1 E4:1 | D4:6 -:2`;
-// Đoạn B nghiêng về điệu Vũ (lấy Si làm chủ), shakuhachi hát thấp, trầm lắng hơn.
-const MELODY_B = `
-  F#4:3 A4:1 B4:4 | A4:2 F#4:2 E4:2 D4:2 | E4:3 F#4:1 A4:2 B4:2 | F#4:8 |
-  B4:3 D5:1 E5:2 D5:2 | B4:2 A4:2 F#4:4 | E4:2 F#4:2 A4:2 B4:1 A4:1 | B4:4 A4:4`;
-// A'' kết bằng nốt đi lên để nối về ô 1 (vòng lặp).
-const MELODY_A3 = `
-  A4:2 B4:1 D5:1 E5:3 D5:1 | B4:2 A4:2 F#4:4 | E4:2 F#4:1 A4:1 B4:2 A4:1 B4:1 | D5:6 -:2 |
-  E5:2 F#5:1 E5:1 D5:2 B4:2 | A4:2 B4:1 A4:1 F#4:2 E4:2 | F#4:2 A4:2 B4:1 A4:1 F#4:1 E4:1 | D4:4 E4:2 F#4:2`;
-
-// Shamisen đáp lại sau mỗi câu sáo ở A' và A'' (khoảng nghỉ của giai điệu), đoạn B gảy nhịp lệch.
-const SHAMISEN_A = `
-  -:8 | -:8 | -:8 | -:4 A4:1 B4:1 D5:2 | -:8 | -:8 | -:8 | -:4 F#4:1 E4:1 D4:2`;
-const SHAMISEN_B = `
-  -:1 B3:1 -:1 B3:1 -:1 D4:1 -:1 B3:1 | -:1 A3:1 -:1 A3:1 -:1 D4:1 -:1 A3:1 |
-  -:1 B3:1 -:1 B3:1 -:1 E4:1 -:1 B3:1 | -:1 F#3:1 -:1 B3:1 -:1 D4:1 -:1 F#4:1 |
-  -:1 B3:1 -:1 B3:1 -:1 D4:1 -:1 B3:1 | -:1 A3:1 -:1 F#3:1 -:1 A3:1 -:1 B3:1 |
-  -:1 B3:1 -:1 E4:1 -:1 B3:1 -:1 E4:1 | -:1 A3:1 -:1 E4:1 -:1 A3:1 -:2`;
-
-// Kiểu rải koto (chỉ số vào danh sách nốt của hợp âm), đổi theo đoạn cho đỡ lặp.
-const ARP = {
-  A: [0, 1, 2, 3, 4, 3, 2, 1],
-  A2: [0, 2, 1, 3, 2, 4, 3, 5],
-  B: [0, 1, 2, 1, 3, -1, 2, 1],
-};
-
-function build() {
-  const notes = [];
-  const add = (ch, list) => notes.push(...list.map((n) => ({ ...n, ch })));
-
-  add("flute", bars(MELODY_A, { startBar: 0, vel: 84 }));
-  add("flute", bars(MELODY_A2, { startBar: 8, vel: 90 }));
-  add("shaku", bars(MELODY_B, { startBar: 16, vel: 86, legato: 0.98 }));
-  add("flute", bars(MELODY_A3, { startBar: 24, vel: 86 }));
-  // A'': shakuhachi ngân nốt dài dưới sáo (bè thứ hai), mỗi ô một nốt gốc của hợp âm.
-  PROG.slice(24).forEach((c, i) => {
-    notes.push({ ch: "shaku", t: (24 + i) * BPB, d: BPB * 0.95, p: midi(CHORD[c][1][0]) + 12, v: 50 });
-  });
-
-  add("shami", bars(SHAMISEN_A, { startBar: 8, vel: 74 }));
-  add("shami", bars(SHAMISEN_B, { startBar: 16, vel: 66, legato: 0.6 }));
-  add("shami", bars(SHAMISEN_A, { startBar: 24, vel: 74 }));
-
-  PROG.forEach((c, bar) => {
-    const [bass, tones] = CHORD[c];
-    const section = bar < 8 ? "A" : bar < 16 ? "A2" : bar < 24 ? "B" : bar < 28 ? "A" : "A2";
-    const names = ARP[section].map((i) => (i < 0 ? "-" : tones[i]));
-    add("koto", pattern(names, { bar, vel: 58 }));
-    // Koto trầm: gốc ở phách 1, quãng năm ở phách 3,5.
-    notes.push({ ch: "bass", t: bar * BPB, d: 2.5, p: midi(bass) + 12, v: 76 });
-    notes.push({ ch: "bass", t: bar * BPB + 2.5, d: 1.4, p: midi(tones[1]), v: 60 });
-    // Dây đệm: gốc + quãng năm + nốt thứ 3 của danh sách, rất nhỏ.
-    for (const n of [tones[0], tones[1], tones[3]]) notes.push({ ch: "pad", t: bar * BPB, d: BPB * 0.98, p: midi(n), v: 46 });
-
-    // Trống: taiko nhẹ đầu mỗi 2 ô; mõ gỗ "tóc . tóc . . tóc . ." từ A' trở đi, đoạn B thêm lắc nhẹ.
-    if (bar % 2 === 0) notes.push({ ch: "taiko", t: bar * BPB, d: 1, p: midi("C3"), v: bar % 8 === 0 ? 70 : 54 });
-    if (bar % 8 === 7) notes.push({ ch: "taiko", t: bar * BPB + 3.5, d: 0.5, p: midi("C3"), v: 44 });
-    if (bar >= 8) {
-      for (const [step, v] of [[0, 84], [1.5, 66], [3, 72]]) notes.push({ ch: "perc", t: bar * BPB + step, d: 0.25, p: 77, v });
-    }
-    if (bar >= 16 && bar < 24) {
-      for (let s = 0; s < 8; s++) notes.push({ ch: "perc", t: bar * BPB + s * 0.5, d: 0.25, p: 70, v: s % 2 ? 50 : 64 });
-    }
-  });
-  return notes;
-}
+const { notes, roots } = buildSong({
+  tonic: "D3", mode: "cung", leadBase: 10, erhuBase: 5, arp: [0, -1, 1, -1, 2, -1, -1, -1], arpVel: 52,
+  sections: [
+    { lead: A, roots: R_A },
+    { lead: A2, erhu: FOLLOW(R_A), roots: R_A },
+    { lead: B, erhu: FOLLOW(R_B), roots: R_B, arp: [0, -1, 2, -1, 1, -1, 3, -1] },
+    { lead: A, roots: R_A },
+  ],
+  // Mõ gỗ nhẹ ở phách 3 các ô chẵn từ A'.
+  perc: ({ bar, k, s }) => (s >= 1 && k % 2 === 0 ? [{ ch: "mo", t: bar * 4 + 2, d: 0.25, p: 70, v: 52 }] : []),
+});
 
 export default {
   id: "thanh_hon_thon",
   title: "Thánh Hồn Thôn",
   kind: "map",
   maps: ["thanh_hon_thon"],
-  bpm: 90,
-  beatsPerBar: BPB,
+  bpm: 75,
+  beatsPerBar: 4,
   bars: 32,
-  channels: [
-    { key: "flute", name: "Sáo Pan", channel: 1, program: 75, volume: 100, pan: 60, reverb: 70, chorus: 10, humanTicks: 3, expr: true, vibrato: 36, bend: 0.12, phrase: 4 },
-    { key: "koto", name: "Đàn tranh (koto)", channel: 2, program: 107, volume: 100, pan: 80, reverb: 55, humanVel: 8, groove: true, phrase: 4, phraseAmt: 8 },
-    { key: "bass", name: "Koto trầm", channel: 3, program: 107, volume: 84, pan: 58, reverb: 40, groove: true },
-    { key: "shami", name: "Shamisen", channel: 4, program: 106, volume: 100, pan: 40, reverb: 50, humanTicks: 3, groove: true },
-    { key: "shaku", name: "Shakuhachi", channel: 5, program: 77, volume: 90, pan: 70, reverb: 75, expr: true, vibrato: 44, bend: 0.35, bendDepth: 0.7, phrase: 4 },
-    { key: "pad", name: "Dây đệm", channel: 6, program: 49, volume: 58, pan: 64, reverb: 80, chorus: 30, humanVel: 2, expr: true },
-    { key: "taiko", name: "Taiko", channel: 7, program: 116, volume: 80, pan: 64, reverb: 60, humanTicks: 0 },
-    { key: "perc", name: "Mõ gỗ / lắc", channel: 10, program: 0, volume: 100, pan: 72, reverb: 45, humanTicks: 1, groove: true },
-  ],
-  notes: build(),
+  ngucung: { tonic: "D3", mode: "cung", roots },
+  channels: channels({ mo: { volume: 80 } }),
+  notes,
 };

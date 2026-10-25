@@ -96,6 +96,9 @@ async function googleGate(req: express.Request, res: express.Response, credentia
   if (!googleEnabled()) { res.status(503).json({ error: "Máy chủ chưa bật đăng nhập Google." }); return null; }
   const blocked = ssoCheck(req.ip ?? req.socket.remoteAddress ?? "?");
   if (blocked) { res.setHeader("Retry-After", String(blocked.retryAfter)); res.status(429).json({ error: blocked.error }); return null; }
+  return verifyGateCredential(res, credential);
+}
+async function verifyGateCredential(res: express.Response, credential: unknown) {
   const g = await verifyGoogle(credential);
   if ("error" in g) { res.status(401).json({ error: g.error }); return null; }
   return g;
@@ -134,9 +137,13 @@ app.post("/api/login/google/create", route(async (req, res) => {
 
 // Liên kết Google với tài khoản đang đăng nhập (Cài đặt): một Google một tài khoản, một tài khoản tối đa một Google.
 app.post("/api/link/google", route(async (req, res) => {
+  // Giới hạn theo IP trước khi tra DB bằng token phiên (S5 báo cáo soát).
+  if (!googleEnabled()) { res.status(503).json({ error: "Máy chủ chưa bật đăng nhập Google." }); return; }
+  const blocked = ssoCheck(req.ip ?? req.socket.remoteAddress ?? "?");
+  if (blocked) { res.setHeader("Retry-After", String(blocked.retryAfter)); res.status(429).json({ error: blocked.error }); return; }
   const acc = await store.accountFromToken(req.body?.token);
   if (!acc) { res.status(401).json({ error: "Phiên đăng nhập hết hạn." }); return; }
-  const g = await googleGate(req, res, req.body?.credential);
+  const g = await verifyGateCredential(res, req.body?.credential);
   if (!g) return;
   const r = await store.linkIdentity(acc.accountId, GOOGLE, g.sub);
   if (r === "subject-taken") { res.status(409).json({ error: "Tài khoản Google này đã liên kết với nhân vật khác." }); return; }
@@ -204,6 +211,8 @@ if (existsSync(dist)) {
   // Chỉ để thử tải lỗi (#580): GAME_TEST=1 + ASSET_FAIL_RATE=0.3 trả 504 ngẫu nhiên cho 30% request ảnh / json / âm thanh, kiểm client thử lại.
   const failRate = process.env.GAME_TEST === "1" ? Math.min(1, Number(process.env.ASSET_FAIL_RATE) || 0) : 0;
   if (failRate > 0) app.use((req, res, next) => { if (/\.(png|json|ogg|m4a)$/.test(req.path) && Math.random() < failRate) { res.status(504).end(); return; } next(); });
+  // Game ở /choi (landing ở "/", #656): phục vụ thẳng cả khi không có dấu gạch cuối (express.static chỉ chuyển hướng 301 sang /choi/); query (?thu=…, ?nopredict) giữ nguyên.
+  app.get("/choi", (_q, res) => { res.setHeader("Cache-Control", "no-cache"); res.sendFile(path.join(dist, "choi", "index.html")); });
   // cacheControl: false để setHeaders đặt theo loại file (staticCache.ts); ETag / Last-Modified của express.static giữ nguyên.
   app.use(express.static(dist, {
     cacheControl: false,

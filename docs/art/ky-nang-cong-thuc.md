@@ -1,12 +1,12 @@
-# Công thức chuẩn làm hiệu ứng chiêu (S2 #548, chủ repo duyệt 2026-10-25)
+# Công thức chuẩn làm hiệu ứng chiêu (chủ repo duyệt 2026-10-25)
 
-Chuẩn cho 23 võ hồn còn lại (S3). Đã làm: Lam Điện Bá Vương Long và Hạo Thiên Chùy, 22 chiêu. Đặc tả hình, màu, ý chiêu từng chiêu ở `docs/art/ky-nang-combat-dac-ta.md` (S0); khung code ở `GAME_DESIGN.md` mục 5.11 (S1). Ở đây ghi cách làm, tham số, lượt thực tế và bẫy. Chỉ hình ảnh + cảm giác đánh: giữ nguyên số và cơ chế, **không rung màn hình** (chỉ boss).
+Chuẩn đã dùng cho 25 võ hồn (thử ở Lam Điện Bá Vương Long và Hạo Thiên Chùy rồi theo lô). Đặc tả hình, màu, ý chiêu từng chiêu ở `docs/art/ky-nang/README.md` (S0); khung code ở `GAME_DESIGN.md` mục 5.11 (S1). Ở đây ghi cách làm, tham số, lượt thực tế và bẫy. Chỉ hình ảnh + cảm giác đánh: giữ nguyên số và cơ chế, **không rung màn hình** (chỉ boss).
 
 ## 1. Quy trình một võ hồn (11 chiêu)
 
 | Bước | Lệnh | Ra |
 |---|---|---|
-| 1. Khai báo sheet | thêm vào `tools/assets/skill-vfx/pilot.json` (đổi tên file nếu làm lô khác): mục `vohon` (`palette` 5 màu `[viền, tối, chủ, nhấn, sáng]` lấy từ bảng màu võ hồn ở `ky-nang-combat-dac-ta.md` mục 3, `theme` một câu) và `sheets` (`n` tên, `v` võ hồn, `t` tầng, `f` số khung, `d` mô tả hiệu ứng) | |
+| 1. Khai báo sheet | thêm vào `tools/assets/skill-vfx/pilot.json` (đổi tên file nếu làm lô khác): mục `vohon` (`palette` 5 màu `[viền, tối, chủ, nhấn, sáng]` lấy từ bảng màu võ hồn ở `ky-nang/README.md` mục 3, `theme` một câu) và `sheets` (`n` tên, `v` võ hồn, `t` tầng, `f` số khung, `d` mô tả hiệu ứng) | |
 | 2. Sinh sheet thô | `node tools/assets/skill-vfx/run.mjs --out <nháp ngoài repo> [--only a,b]` (3 lệnh song song, bỏ qua sheet đã có) | `<tên>.png` (lưới) + `.json` (khung) + `.gif` + `.meta.json` |
 | 3. Xem | `node tools/assets/vfx-view.mjs --out <ảnh.png> --zoom 3 <sheet.png:khung> ...` | ảnh xem trên nền tối và nền cỏ |
 | 4. Hậu kỳ | `node tools/assets/skill-vfx/post.mjs --raw <nháp> [--only a,b]` | `shared/assets/sprites/iso/fx/sk_<tên>.png` + `sk_<tên>_g.png` |
@@ -90,3 +90,6 @@ Mỗi lô gửi chủ repo một **trang xem trước** (HTML tĩnh, đường d
 - Trong trại (`inSafe`) chiêu không tung; vùng cần đứng ngoài trại.
 - Shell của agent có thể mang sẵn `DATABASE_URL` thật: `run-real.sh` phải bỏ nó (đã làm), nếu không server `GAME_TEST` ghi tài khoản test vào DB thật. Đọc dòng đầu log server (phải là RAM presence, không có "Đã kết nối PostgreSQL").
 - Quay game thật: chờ tin riêng `owned` về (thăm tối đa 10 giây) thay vì ngủ cố định 900 ms.
+
+## Issue liên quan
+#541 (S0, đặc tả), #548 (S2, công thức), #482.

@@ -20,6 +20,7 @@ const MAX_BYTES = 1.5 * 1024 * 1024;
 const { values: args } = parseArgs({
   options: {
     soundfont: { type: "string" },
+    "extra-soundfont": { type: "string" },
     out: { type: "string", default: path.join(ASSETS, "audio/music") },
     song: { type: "string" },
     midi: { type: "string" },
@@ -31,6 +32,8 @@ if (!args.soundfont) {
   process.exit(1);
 }
 if (!existsSync(args.soundfont)) throw new Error(`Không thấy soundfont: ${args.soundfont}`);
+const extraBanks = args["extra-soundfont"] ? [{ path: args["extra-soundfont"], offset: 1 }] : [];
+if (extraBanks.some((b) => !existsSync(b.path))) throw new Error(`Không thấy soundfont phụ: ${args["extra-soundfont"]}`);
 const out = path.resolve(args.out);
 mkdirSync(out, { recursive: true });
 if (args.midi) mkdirSync(args.midi, { recursive: true });
@@ -60,7 +63,7 @@ try {
       console.error(`[${song.id}] Vòng ${L * SAMPLE_RATE} mẫu không là bội của 1024: đổi bpm / số ô (xem README).`);
       failed = true;
     }
-    const render = { soundfont: args.soundfont, sampleRate: SAMPLE_RATE, preSeconds: (PRE_BEATS * 60) / song.bpm, mix: song.mix };
+    const render = { soundfont: args.soundfont, extraBanks, sampleRate: SAMPLE_RATE, preSeconds: (PRE_BEATS * 60) / song.bpm, mix: song.mix };
     const audio = loop
       ? await renderLoop({ ...render, midiBytes: buildMidi(song, { repeats: 3, preBeats: PRE_BEATS }), loopSeconds: L })
       : await renderOnce({ ...render, midiBytes: buildMidi(song, { repeats: 1, preBeats: PRE_BEATS }), seconds: L });

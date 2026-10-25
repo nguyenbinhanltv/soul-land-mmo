@@ -2,7 +2,7 @@
 
 Repo có nhiều người cùng làm, mỗi người có thể có agent AI riêng. Để không ai làm trùng việc của ai, **mọi việc đi qua issue GitHub** và theo quy trình dưới đây. Người hay agent đều theo cùng một quy trình.
 
-Đọc trước: `CLAUDE.md` (quy tắc code, lệnh, kiểm thử) và `GAME_DESIGN.md` (mục 6 Kiến trúc là bắt buộc giữ; mục 7 Lộ trình trỏ tới số issue của từng việc).
+Đọc trước: `CLAUDE.md` (luật cốt lõi, lệnh, bảng "sửa hệ thống X thì đọc file Y"), `GAME_DESIGN.md` (mục lục: số mục → file trong `docs/design|art|tech`; kiến trúc bắt buộc giữ ở `docs/tech/`), `ROADMAP.md` (việc đang làm, trỏ tới số issue) và `docs/quyet-dinh.md` (quyết định hiện hành của chủ repo). Chi tiết lệnh chạy ở máy: `docs/ops/chay-local.md`.
 
 ## Nhãn
 
@@ -12,7 +12,7 @@ Repo có nhiều người cùng làm, mỗi người có thể có agent AI riê
 | `dang-lam` | Đang có người làm (xem assignee và nhãn chủ). |
 | `cho-review` | PR đã tự review đạt (comment `Review: đạt`), chờ orchestrator AO của chủ repo kiểm tra lại và merge. |
 | `chan` | Bị chặn: chờ việc khác, quyết định của chủ repo hoặc tài nguyên. Mô tả issue ghi chờ gì. |
-| `cho-hoat-anh-8-huong` | Không còn ý nghĩa: hoạt ảnh 8 hướng bằng ComfyUI đã dừng (#335 / #387 đóng), đừng gắn nhãn mới; nguồn ảnh hiện hành ở `.claude/skills/asset-gen/SKILL.md` mục 2. |
+| `cho-hoat-anh-8-huong` | Không còn ý nghĩa: hoạt ảnh 8 hướng bằng ComfyUI đã dừng (#335 / #387 đóng), đừng gắn nhãn mới; nguồn ảnh hiện hành ở `docs/art/nguon-giay-phep.md`. |
 | `giai-doan-10`, `giai-doan-11` | Thuộc giai đoạn Lộ trình. |
 | `gameplay`, `art`, `tai-lieu`, `bot-test` | Loại việc. |
 | `agent:<tên>` | Nhãn chủ khi agent làm, gắn trên **cả issue lẫn PR** (ví dụ `agent:ao-orchestrator`). Người làm thì chỉ cần assignee. |
@@ -81,8 +81,8 @@ Nhiều việc cùng sửa các file sau. Sửa đúng chỗ cần, **không for
 | `shared/data.ts` | Thêm hằng mới cạnh nhóm liên quan, không đổi thứ tự / đổi tên hằng có sẵn ngoài phạm vi việc. |
 | `server/src/rooms/MapRoom.ts` | Tách logic mới thành hàm / file riêng khi được, chỉ thêm lời gọi ngắn trong `MapRoom`. |
 | `shared/assets/sprites/manifest.json` | Sinh bằng dây chuyền `tools/assets`, không sửa tay; xung đột thì lấy bản `main` rồi chạy lại công cụ. |
-| `GAME_DESIGN.md` | Chỉ sửa đúng mục của luật đổi và dòng của mình ở mục 7. |
-| `art/CREDITS.md` | Thêm dòng đúng nhóm, không sắp xếp lại. Asset ngoài nào cũng một dòng (tác giả, URL, giấy phép, file, có sửa gì), SA / GPL / NC ghi cờ (luật ở `GAME_DESIGN.md` 5.11). |
+| `GAME_DESIGN.md`, `docs/design/`, `docs/art/`, `docs/tech/`, `ROADMAP.md` | Sửa đúng file của hệ thống đổi và đúng dòng của mình ở `ROADMAP.md`; số issue gom cuối file, không chen giữa câu. Quyết định mới của chủ repo ghi thêm một dòng `Q` ở `docs/quyet-dinh.md` (không viết ngược). |
+| `art/CREDITS.md` | Thêm dòng đúng nhóm, không sắp xếp lại. Asset ngoài nào cũng một dòng (tác giả, URL, giấy phép, file, có sửa gì), SA / GPL / NC ghi cờ (luật ở `docs/art/nguon-giay-phep.md`). Asset ngoài chỉ lấy miễn phí; gói giới hạn giấy phép ở kho riêng (`docs/asset-rieng.md`). |
 
 Các file này có chủ repo trong `.github/CODEOWNERS`.
 
@@ -92,9 +92,10 @@ Các file này có chủ repo trong `.github/CODEOWNERS`.
    - `npm run check` và `npm run build`;
    - bot với server `GAME_TEST=1` ở chế độ RAM: job CI `bot-ram` tự chạy mỗi lần push (mục Merge), ghi kết quả của head cuối vào PR; tự chạy ở máy khi gỡ lỗi hoặc thêm luồng bot mới, **chỉ bằng `npm run bot:local -- --only <nhóm>`** (hoặc `--part 1|2|3`, `--channels`; `CLAUDE.md` phần Lệnh): công cụ tự bật server nhẹ ở cổng trống, tự dọn, và giới hạn tối đa 2 lượt bot cùng lúc trên cả máy. Agent không tự bật server rời hay embedded-postgres riêng để chạy bot;
    - PR đổi `server/` hoặc `shared/`: thêm lượt bot với **PostgreSQL** (bắt buộc khi đổi SQL / `db.ts`): `npm run bot:local -- --only <nhóm> --pg` (PostgreSQL chung của máy, database riêng mỗi lượt, server bật hai lần liên tiếp rồi bot);
-   - đổi giao diện / ảnh: ảnh chụp trong game.
+   - đổi giao diện / ảnh: ảnh chụp trong game, ảnh cần duyệt gắn thẳng vào PR (trang xem trước); không đưa ảnh thô vào repo;
+   - DB để thử: Supabase là **DB test** (`DATABASE_URL` trỏ Supabase được dùng để quay ảnh, đo FPS); prod là PostgreSQL trong cụm, **không bao giờ trỏ**; bot đầy đủ và migration mới vẫn chạy bằng `bot:local`.
 2. `git merge origin/main` lần cuối, chạy lại `npm run check`.
-3. **Tự review PR của mình:** chạy reviewer (AO review nếu có, hoặc reviewer của agent, ví dụ `/code-review`), sửa hết góp ý, review lại tới khi đạt. Ghi kết quả vào một comment PR có tiêu đề **`Review: đạt`**: công cụ review, SHA head đã review, kết luận. Comment bắt buộc có dòng (SHA đủ 40 ký tự, lấy bằng `git rev-parse HEAD`):
+3. **Tự review PR của mình:** chạy reviewer (review AO: `ao review trigger`, kết quả xem `ao review ls`; hoặc reviewer của agent, ví dụ `/code-review`), sửa hết góp ý, review lại tới khi đạt. PR chỉ sửa `.md` / `docs/**` thì bot CI ở mức bỏ qua (`check-build` vẫn chạy đủ, trong đó `npm run check` có `docs-check`). Ghi kết quả vào một comment PR có tiêu đề **`Review: đạt`**: công cụ review, SHA head đã review, kết luận. Comment bắt buộc có dòng (SHA đủ 40 ký tự, lấy bằng `git rev-parse HEAD`):
    ```
    **Head đã review:** `<SHA 40 ký tự>`
    ```
@@ -103,16 +104,12 @@ Các file này có chủ repo trong `.github/CODEOWNERS`.
 
 ## Merge
 
-- **CI** (`.github/workflows/check.yml`) chạy trên mọi PR vào `main` và mỗi push vào `main`, ba job chính (`changes`, `check-build`, `bot-ram`):
-  - `check-build` (ubuntu + Windows): `npm ci` (server + client, cài đúng lockfile), bài âm thanh, `npm run check`, `npm run build`.
-  - `changes` (job đầu tiên, `tools/ci/changes.sh`): chọn **mức bot** theo file PR đổi so với base, in mức và lý do ra Summary. `full` khi chạm `server/**`, `shared/**` (trừ ảnh / âm thanh / manifest sprite), `client/src/net.ts`, `predict.ts`, `hud.ts`, `autoPanel.ts`, `main.ts`, `scenes/GameScene.ts`, `client/scripts/**`, `tools/**`, `.github/**`, `package*.json`, `server/sql/**`, file bản đồ `shared/assets/<bản đồ>[.v2].json`, hoặc file không nhận ra (không chắc thì full); `smoke` khi chỉ đổi mã giao diện client còn lại (`client/src/**`, CSS, html); `skip` khi chỉ đổi ảnh / âm thanh / manifest sprite / `*.md` / `docs/**` / `art/**`. Push vào `main` luôn `full`. Nhãn PR ép mức: `ci:full` → full, `ci:bot-khoi` → ít nhất smoke; nhãn được đọc lúc job `changes` chạy: gắn nhãn rồi bấm Re-run (hoặc push) là có hiệu lực, đổi nhãn không tự tạo lượt CI mới. `check-build` luôn chạy đủ ở mọi mức.
-  - `bot-ram` (ubuntu): ở mức `skip` không chạy bot, báo success; ở mức `smoke` job `bot-smoke` chạy `test:predict`, `test:charbag` và một lượt bot khói (`BOT_PART=smoke`: phần chung đăng nhập / bản đồ / di chuyển / đánh quái / túi / nhân vật cùng vài bài nhẹ khai báo ở `SMOKE` trong `client/scripts/bot-test.mjs`, ~3 phút); ở mức `full` bot trên server mới bật `GAME_TEST=1` chế độ RAM, chia 4 job song song `bot-ram (nhóm 1|2|3|4)` theo `BOT_PART` (bot đầy đủ ~25 phút, mỗi nhóm ~9 phút; phần nào thuộc nhóm nào khai báo một chỗ ở `INLINE` / `STANDALONE` đầu phần chia nhóm trong `client/scripts/bot-test.mjs`, bài mới tự tạo bot thì thêm vào `STANDALONE` và gắn nhóm đang nhẹ theo dòng `⏱` thời gian từng phần mà mỗi nhóm in ở annotation; bước bot quá 12 phút thì coi là treo); nhóm 1 chạy thêm `test:predict`, `test:ratelimit`, `test:accounts` và lượt nhiều kênh (`CHANNEL_MAX=2`). Job `bot-ram` gộp kết quả 4 nhóm (annotation phân biệt có nhóm trượt với bị hủy / hết giờ). Mỗi lượt qua `tools/ci/bot-run.sh` (chạy được ở máy Linux / macOS: `BOT_PART=2 bash tools/ci/bot-run.sh nhom-2`). Bot trượt thì in log server, log đầy đủ ở artifact `bot-logs-<nhóm>` của lượt chạy.
-  - CI **chỉ để tham khảo**, không là status check bắt buộc trong bảo vệ nhánh `main` (chủ repo chốt, không đổi ruleset). CI đỏ thì đọc log: lỗi do PR thì sửa, bot chập chờn thì xử lý theo skill `bot-flakiness`, lỗi hạ tầng (GitHub Actions, mạng) thì ghi lý do trong PR.
-  - **Reviewer dùng kết quả CI cho bot RAM**, không tự chạy lại bot RAM: `gh pr checks <PR>` (`bot-ram` và 4 nhóm của đúng head đang review), `gh run view <run-id>` in annotation số dòng ✓ / ✗ / ⚠ của từng nhóm và các dòng ✗ (bảng đầy đủ kèm dòng ⚠ ở trang lượt chạy, mục Summary), đỏ thì `gh run view <run-id> --log-failed`. Head chưa có lượt `bot-ram` xong (đang chạy, bị hủy) thì chờ lượt mới. Lượt **PostgreSQL** CI chưa có: PR đổi SQL / `db.ts` thì reviewer vẫn tự chạy bằng `npm run bot:local -- --only <nhóm> --pg` (mục Xin review).
+- **CI** (`.github/workflows/check.yml`, chi tiết ở `docs/ops/ci.md`) chạy trên mọi PR vào `main`: `check-build` (check + build, ubuntu và Windows), `changes` (chọn mức bot `skip` / `smoke` / `full` theo file PR đổi; PR chỉ sửa `.md` / `docs/**` / ảnh thì `skip`) và `bot-ram` (4 nhóm bot RAM). CI **chỉ để tham khảo**, không là status check bắt buộc (Q29). CI đỏ thì đọc log: lỗi do PR thì sửa, bot chập chờn thì xử lý theo skill `bot-flakiness`, lỗi hạ tầng thì ghi lý do trong PR.
+- **Reviewer dùng kết quả CI cho bot RAM**, không tự chạy lại bot RAM: `gh pr checks <PR>` (đúng head đang review), `gh run view <run-id>` (✓ / ✗ / ⚠ từng nhóm), đỏ thì `--log-failed`; head chưa có lượt `bot-ram` xong thì chờ. Lượt **PostgreSQL** CI chưa có: PR đổi SQL / `db.ts` thì reviewer vẫn tự chạy `npm run bot:local -- --only <nhóm> --pg`.
 - PR của orchestrator AO: orchestrator tự merge khi review AO đạt (xem kết quả CI `check-build`, `bot-ram` để tham khảo; CI đỏ thì tìm nguyên nhân trước khi merge).
 - PR của người cộng tác: orchestrator AO của chủ repo kiểm tra lại PR có `cho-review` và comment `Review: đạt` (review độc lập, chạy check / bot nếu cần). Đạt thì orchestrator merge vào `main`; chưa đạt thì comment góp ý trên PR. Người cộng tác **không tự merge**.
 - Dùng **Squash and merge**, tiêu đề tiếng Việt kèm số PR. `Closes #<N>` tự đóng issue.
-- Sau khi merge: đánh dấu bước ở `GAME_DESIGN.md` mục 7 (nếu PR chưa làm), xóa nhánh.
+- Sau khi merge: đánh dấu bước ở `ROADMAP.md` (nếu PR chưa làm; phần đã xong chuyển sang `docs/lich-su.md`), xóa nhánh.
 
 ## Bảng Project
 
@@ -128,4 +125,4 @@ Nhãn là nguồn sự thật. Không sửa được bảng (thiếu quyền) th
 
 ## Triển khai
 
-Merge vào `main` chỉ dựng, thử và đẩy image (`release.yml`); lên prod bằng workflow `Promote` (mở PR ở repo GitOps, chủ repo duyệt, ArgoCD sync). Quay lui = revert PR promote. Chi tiết, thiết lập GCP và biến GitHub: `docs/deploy.md`, `deploy/gcp/README.md`.
+Merge vào `main` chỉ dựng, thử và đẩy image (`release.yml`); lên prod bằng workflow `Promote` (mở PR ở repo GitOps, chủ repo duyệt, ArgoCD sync). Quay lui = revert PR promote. Chi tiết, thiết lập GCP và biến GitHub: `docs/ops/trien-khai.md`, `deploy/gcp/README.md`.

@@ -1,5 +1,7 @@
 # Rừng Săn Hồn Online
 
+> **English:** a non-commercial, browser-based isometric MMO fan game set in *Douluo Dalu* (Đấu La Đại Lục), built for friends with a server-authoritative Colyseus backend and a Phaser 3 client. Short English summary (gameplay, architecture, local setup, docs map, asset licenses, contributing): [docs/en/OVERVIEW.md](docs/en/OVERVIEW.md). The rest of this README and the design docs are in Vietnamese.
+
 > **Người mới vào chơi:** đọc [Hướng dẫn chơi](docs/huong-dan-choi.md) (điều khiển, đội hình, hồn hoàn, bản đồ, boss, đấu trường).
 
 MMO săn hồn thế giới mở chơi trên trình duyệt, lấy bối cảnh **Đấu La Đại Lục**: sưu tầm võ hồn, lập đội 4 võ hồn,
@@ -16,56 +18,18 @@ Cần Node.js 22 trở lên.
 ```bash
 npm run install:all       # cài thư viện cho server và client
 npm run dev:server        # terminal 1 – server ở http://localhost:2567
-npm run dev:client        # terminal 2 – game ở http://localhost:5173
+npm run dev:client        # terminal 2 – trang giới thiệu ở http://localhost:5173, game ở http://localhost:5173/choi/
 ```
 
-Mở `http://localhost:5173`, nhập tên và mật khẩu bất kỳ (tên mới tự tạo tài khoản), tạo nhân vật rồi qua lễ thức tỉnh.
-Mở thêm một tab ẩn danh với tên khác để thấy hai người chơi cùng lúc. Điện thoại cùng Wi-Fi: mở `http://<IP-máy-tính>:5173`.
+Mở `http://localhost:5173/choi/` (game; `/` là trang giới thiệu, nút "Vào chơi" dẫn sang `/choi`), nhập tên và mật khẩu bất kỳ (tên mới tự tạo tài khoản), tạo nhân vật rồi qua lễ thức tỉnh.
+Mở thêm một tab ẩn danh với tên khác để thấy hai người chơi cùng lúc. Điện thoại cùng Wi-Fi: mở `http://<IP-máy-tính>:5173/choi/`.
 
 Điều khiển chính: WASD / mũi tên đi, J / Space đánh, U / I / O / P hồn kỹ, 1–4 đổi võ hồn, V đội hình, B túi đồ, E nhặt, F đi cổng / nói chuyện, Enter chat.
-Bảng phím đầy đủ ở `GAME_DESIGN.md` mục 4. Điện thoại có joystick ảo và nút chạm.
+Bảng phím đầy đủ ở `docs/design/01-luat-chung.md`. Điện thoại có joystick ảo và nút chạm.
 
 ### Lưu dữ liệu
 
-Không cấu hình database thì dữ liệu chỉ lưu trong RAM, tắt server là mất. Biến môi trường mẫu ở [`.env.example`](.env.example) (chép thành `server/.env`).
-
-**PostgreSQL bằng Docker**
-
-```bash
-docker compose up -d
-cp .env.example server/.env      # đã có sẵn DATABASE_URL cho Postgres local
-npm run dev:server
-```
-
-**Nhiều tiến trình với RedisPresence**
-
-Chỉ bật khi chạy hai tiến trình cùng lúc. Dùng cùng `REDIS_URL` cho các tiến trình trong cùng một cụm; mỗi cụm / môi trường phải dùng Redis riêng, không dùng chung Redis của dịch vụ khác.
-
-```bash
-# terminal 1
-PORT=2567 REDIS_URL=redis://127.0.0.1:6379 npm run dev:server
-# terminal 2
-PORT=2568 REDIS_URL=redis://127.0.0.1:6379 npm run dev:server
-```
-
-Mỗi tiến trình cần `PUBLIC_ADDRESS` là địa chỉ client mở WebSocket tới đúng tiến trình đó (ví dụ `PUBLIC_ADDRESS=localhost:2567` và `PUBLIC_ADDRESS=localhost:2568`, hoặc đường dẫn riêng sau proxy). Không đặt thì client chỉ vào được phòng nằm ở tiến trình đã nhận yêu cầu HTTP. Sân đấu luôn mở ở tiến trình ghép trận.
-
-Thử máy mình (Redis cục bộ cổng riêng, không dùng Redis của dịch vụ khác): `redis-server --port 6391 --save "" --appendonly no`, rồi `REDIS_URL=redis://127.0.0.1:6391 REDIS_PREFIX=test:kill npm run test:presence-kill --prefix server` (tiến trình con ghi presence, bị kill, sau TTL dữ liệu phải được dọn) và `npm run bot:local -- --only arena --pg --procs 2 --env REDIS_URL=redis://127.0.0.1:6391` (hai server dùng chung Redis và PostgreSQL; cần `--pg` vì tài khoản RAM không chia sẻ giữa tiến trình).
-
-`RedisPresence` dùng pub/sub và RedisDriver để chia sẻ phòng, số kênh, khóa đổi kênh, phiên tài khoản, thú vương, khóa tinh anh, hàng chờ đấu trường và tổ đội. Lease có TTL 15 giây, heartbeat 5 giây; tiến trình chết không giữ tài khoản hoặc suất vô hạn. `REDIS_PREFIX` chỉ áp cho khóa ioredis của game; kênh pub/sub của `RedisPresence` và registry phòng của `RedisDriver` không có prefix, nên mỗi cụm vẫn cần Redis riêng. Khi không đặt `REDIS_URL`, server tự dùng LocalPresence và RAM như cũ, không cần chạy dịch vụ ngoài. Khi đã bật Redis mà Redis lỗi, server đóng phiên liên quan để tránh hai tiến trình cùng ghi dữ liệu.
-
-**Supabase**
-
-1. Tạo project trên [supabase.com](https://supabase.com), ghi nhớ mật khẩu database, chọn region gần người chơi.
-2. Dashboard → **Connect** → **Connection String** → Type `URI` → Method **Session pooler**, sao chép chuỗi.
-   Đừng dùng "Direct connection" (chỉ chạy qua IPv6) hay "Transaction pooler" (server giữ kết nối lâu dài).
-3. Ghi vào `server/.env`: `DATABASE_URL=postgresql://postgres.<ref>:<mật-khẩu>@aws-0-<region>.pooler.supabase.com:5432/postgres`.
-   Mật khẩu có ký tự đặc biệt thì mã hóa URL (`@` → `%40`, `#` → `%23`, `/` → `%2F`). SSL tự bật khi URL chứa "supabase" (hoặc đặt `PGSSL=true`).
-4. Chạy lại `npm run dev:server`, thấy `✓ Đã kết nối PostgreSQL và cập nhật bảng.` là xong.
-
-Server tự tạo / cập nhật bảng mỗi lần khởi động (chạy mọi file `server/sql/*.sql` theo tên) và bật Row Level Security cho mọi bảng,
-nên Data API công khai của Supabase không đọc được dữ liệu; server kết nối bằng user `postgres` nên vẫn đọc ghi bình thường.
-Gói miễn phí của Supabase tạm dừng project sau khoảng 1 tuần không truy cập; vào dashboard bấm Restore để chạy lại.
+Không cấu hình database thì dữ liệu chỉ lưu trong RAM, tắt server là mất. Có PostgreSQL thì chép [`.env.example`](.env.example) thành `server/.env` (Docker: `docker compose up -d`). Chi tiết PostgreSQL / Supabase test, migration, Redis nhiều tiến trình và sao lưu: [`docs/ops/db-redis-sao-luu.md`](docs/ops/db-redis-sao-luu.md). Lệnh bot, tài khoản test: [`docs/ops/chay-local.md`](docs/ops/chay-local.md).
 
 ## Kiểm thử
 
@@ -138,7 +102,8 @@ npm run bot:local -- --only bag --pg        # lưu PostgreSQL: database riêng, 
 │                          #   gemini-import (nhập ảnh Gemini), lpc-compose (NPC phụ LPC), he-icons
 ├─ art/                    # file nguồn không tải trong game: palette.gpl, palettes/ (bảng nhấn từng vùng),
 │                          #   src/ (ảnh thô ComfyUI / Gemini / PixelLab cũ, công thức LPC), CREDITS.md
-├─ GAME_DESIGN.md          # thiết kế luật chơi, mỹ thuật, kiến trúc, lộ trình (cho người và AI đọc)
+├─ GAME_DESIGN.md          # mục lục + luật chung; chi tiết ở docs/design, docs/art, docs/tech (cho người và AI đọc)
+├─ docs/                   # design (luật chơi), art (mỹ thuật, âm thanh), tech (kiến trúc), ops (chạy máy, CI / CD, deploy), quyet-dinh.md
 ├─ CLAUDE.md               # quy tắc cho AI agent khi sửa code
 ├─ .claude/                # cấu hình Claude Code dùng chung: plugin, hook, skill
 ├─ .githooks/              # pre-commit
@@ -148,30 +113,23 @@ npm run bot:local -- --only bag --pg        # lưu PostgreSQL: database riêng, 
 
 ## Mỹ thuật và giấy phép
 
-Quy tắc hình (isometric, cỡ khung, phong cách, bảng màu) ở `GAME_DESIGN.md` mục 5.11, quy cách chi tiết (sheet, key, thư mục) ở `tools/assets/README.md`, cách làm ảnh ở skill `.claude/skills/asset-gen`.
+Quy tắc hình (isometric, cỡ khung, phong cách, bảng màu) ở `docs/art/quy-cach-isometric.md`, quy cách chi tiết (sheet, key, thư mục) ở `tools/assets/README.md`, cách làm ảnh ở skill `.claude/skills/asset-gen`.
 Nguồn ảnh: **ComfyUI** tự host và **Gemini** (công cụ AI, dùng theo điều khoản của từng dịch vụ), **LPC** (Universal LPC Spritesheet Character Generator,
 chỉ cho NPC phụ và dân thường; thú LPC làm hình tạm cho hồn thú thường) và ảnh vẽ tay. Font: Galmuri (giao diện) và Be Vietnam Pro (OFL).
-Asset bên ngoài được dùng mọi giấy phép rõ ràng (CC0, CC-BY, CC-BY-SA, OGA-BY, CC-BY-NC, GPL, OFL…) kèm nghĩa vụ ghi công / share-alike ở `GAME_DESIGN.md` mục 5.11. Không dùng ảnh từ game thương mại, phim hay truyện tranh chính thức. Tác giả, giấy phép và nguồn của từng file ở [`art/CREDITS.md`](art/CREDITS.md).
+Asset bên ngoài được dùng mọi giấy phép rõ ràng (CC0, CC-BY, CC-BY-SA, OGA-BY, CC-BY-NC, GPL, OFL…) kèm nghĩa vụ ghi công / share-alike ở `docs/art/nguon-giay-phep.md`. Không dùng ảnh từ game thương mại, phim hay truyện tranh chính thức. Tác giả, giấy phép và nguồn của từng file ở [`art/CREDITS.md`](art/CREDITS.md).
 
 ## Sửa bản đồ bằng Tiled
 
 1. Cài [Tiled](https://www.mapeditor.org), mở `shared/assets/<mapId>.json` (mã bản đồ khai báo trong `MAPS` ở `shared/data.ts`).
 2. Layer `ground` là nền, `trees` là vật cản, `canopy` là tán cây phủ lên nhân vật. Ô chặn đường có thuộc tính bool `collides = true` trong tileset.
-3. Layer đối tượng chứa `zone` (vùng săn), `portal`, `arrive`, `spawn`, `safe`, `elite`, `boss`, `npc`; thuộc tính từng loại ở `GAME_DESIGN.md` mục 6.
+3. Layer đối tượng chứa `zone` (vùng săn), `portal`, `arrive`, `spawn`, `safe`, `elite`, `boss`, `npc`; thuộc tính từng loại ở `docs/tech/phong-ban-do.md`.
 4. Lưu lại (giữ định dạng JSON), khởi động lại server. Object sai thuộc tính thì server ghi cảnh báo và bỏ qua.
 
 Các bản đồ hiện được sinh bằng `tools/gen-map.mjs`; `npm run map` sinh lại và **ghi đè** bản đã vẽ tay.
 
 ## Đưa lên mạng
 
-Server phục vụ luôn bản build của client, nên chỉ cần **một dịch vụ, một link**. Với nền tảng chạy được Docker (Render, Railway, Fly.io, VPS…):
-
-1. Tạo dịch vụ từ repo, build bằng `Dockerfile`.
-2. Thêm biến môi trường `DATABASE_URL` (Supabase hoặc Postgres của nền tảng) và `TRUST_PROXY=1` (chạy sau proxy, để giới hạn đăng nhập sai theo đúng IP).
-3. Deploy xong, gửi link cho bạn bè.
-
-Nền tảng cần hỗ trợ WebSocket và nên giữ server chạy liên tục (gói miễn phí thường "ngủ", lần vào đầu chậm).
-Muốn để client ở chỗ khác (Vercel, Netlify…): build client với `VITE_SERVER_URL=https://server-cua-ban` và đặt `CLIENT_ORIGIN` trên server bằng domain của client.
+Server phục vụ luôn bản build của client, nên chỉ cần **một dịch vụ, một link** (WebSocket, chạy liên tục; `TRUST_PROXY=1` khi sau proxy; client ở chỗ khác thì build với `VITE_SERVER_URL` và đặt `CLIENT_ORIGIN`). Prod chính thức: image dựng bằng Release, đưa lên Kubernetes bằng Promote + GitOps + ArgoCD (một bản, không staging; merge `main` không tự deploy). Chi tiết, thiết lập, quay lui, sự cố: [`docs/ops/`](docs/ops/README.md).
 
 ## Phát triển cùng Claude Code
 

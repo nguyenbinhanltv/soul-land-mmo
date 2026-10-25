@@ -1,7 +1,5 @@
 # Client: hiển thị isometric và dự đoán chuyển động
 
-<!-- Tách cơ học từ GAME_DESIGN.md (D1, #619): nguyên văn, chưa viết lại; số mục và tên mục con giữ nguyên. -->
-
 **Hiển thị isometric phía client** (quy tắc hình ở mục 5.11)
 - Server và file Tiled giữ tọa độ thế giới Descartes; client chỉ chiếu khi vẽ. `client/src/iso.ts`: `worldToScreen` / `screenToWorld` (cỡ thoi đổi bằng một hằng `TILE_W`, `TILE_H = TILE_W / 2`), độ sâu vẽ `depthAt` (tỉ lệ x + y của điểm chân), elip mặt đất `fillGround` (`RX` / `RY`), đa giác chiếu `ptsToScreen`, hướng 8 phía `dir8` và hướng gần nhất của sprite 4 hướng cũ `legacyDir`. Hằng hiển thị, không phải số cân bằng.
 - `client/src/isoMap.ts` vẽ lớp `ground` thành ô thoi và lớp `trees` thành vật đứng theo `shared/assets/iso/tiles.json` (nhà / tường thành dựng bằng `isoBuild.ts`), sắp lớp theo độ sâu; ảnh dựng / cất theo khối 8 × 8 ô, chỉ khối trong tầm camera (cộng lề vật cao) có ảnh; mặt đất và lớp phủ mép của mỗi khối nung thành một ảnh canvas (kèm normal map khi có ánh sáng, giữ thêm vài chục khối vừa đi qua), vật đứng vẫn là ảnh riêng; làm mờ vật che chính mình chỉ xét vật của các khối quanh thực thể cần thấy (11.4); `preloadIso` chỉ tải ảnh bản đồ đang vào dùng tới. Gid / ảnh còn thiếu thì vẽ tạm bằng code từ `tiles.png`. Lớp `canopy` chỉ dùng ở chế độ nhìn thẳng.
@@ -20,3 +18,18 @@
 - `client/src/predict.ts` (`Predictor`): mỗi khung tự đi trước, mỗi lần state về thì lấy vị trí server, bỏ phần input server đã áp rồi phát lại phần còn lại; lệch nhỏ thì trượt dần, lệch lớn (bị kéo, đi cổng, hồi sinh) thì đặt thẳng. Người chơi khác và hồn thú nội suy về vị trí server.
 - `?nopredict` tắt dự đoán; `?lag=<ms>` giả trễ mỗi chiều (thêm `?debug` thì góc màn hình ghi chế độ; khung đỏ là vị trí server). Kiểm thử không cần server (dự đoán, chạy / đi bộ, tìm đường A*): `npm run test:predict --prefix client`.
 
+## Khóa localStorage của client
+Mọi khóa đều là tùy chọn riêng của trình duyệt, không phải dữ liệu game (không gửi server, mất đi thì về mặc định). Đọc / ghi luôn bọc `try` vì trình duyệt có thể khóa lưu trữ.
+
+| Khóa | Nội dung | Nơi đọc / ghi |
+|---|---|---|
+| `soul-land-fx-v1` | Tùy chọn hiệu ứng (JSON: `level`, `reduce`, `shake`, `cine`, `cutin`, `halo`, `hideHat`, `auto`) | `client/src/fxSettings.ts` (`readFxPrefs` / `writeFxPrefs`, mặc định `defaultFxPrefs`); `combatFx.ts` giữ đối tượng sống `fxPrefs`, `arenaShow.ts` và `sprites.ts` chỉ đọc |
+| `soul-land-audio-v1` | Âm lượng / bật tắt âm thanh | `client/src/audio/settings.ts` |
+| `shh-ui-scale` | Cỡ giao diện (`auto` hoặc hệ số) | `client/src/uiArt.ts` |
+| `soul-bag-order` | Thứ tự sắp xếp túi đồ | `client/src/bag.ts` |
+| `soul.radar.mode`, `soul.radar.zoom` | Chế độ và mức thu phóng radar | `client/src/radar.ts` |
+| `shh-token`, `shh-name` | Token đăng nhập và tên điền sẵn | `client/src/main.ts` (qua `storage` ở `net.ts`) |
+| `shh-hat` | Bật / tắt hạt thời tiết bằng lệnh `/hat` (`0` = tắt) | `client/src/weather.ts` (qua `storage` ở `net.ts`) |
+| `shh-gtest` | Mã đăng nhập Google giả (chỉ khi server `GAME_TEST`) | `client/src/google.ts` |
+
+Thêm khóa mới: đặt hằng khóa cạnh mô-đun sở hữu nó và thêm một dòng vào bảng này; tùy chọn dùng chung nhiều chỗ thì gom đọc / ghi vào một mô-đun như `fxSettings.ts`.

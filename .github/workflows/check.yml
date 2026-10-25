@@ -109,6 +109,28 @@ jobs:
           path: ${{ runner.temp }}/c9-preview
           retention-days: 30
 
+  # Bài test đơn vị chạy nhanh (không server, không DB): trang bị, đăng nhập Google, khóa món, GM, cache tĩnh, hiệu ứng client, công cụ ảnh / tài liệu (#660).
+  # Gộp ở `npm run test:unit` (gốc package.json); thêm bài mới thì thêm vào đó. Chỉ ubuntu, song song với check-build nên không làm CI chậm thêm.
+  test-unit:
+    name: test-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22 # khớp Dockerfile (node:22-slim)
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
+            client/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund --prefix server && npm ci --no-audit --no-fund --prefix client
+      - run: npm run test:unit
+
   # Build thử image (không push, K1 #500): chạy khi PR đổi Dockerfile / .dockerignore / package*.json (gốc, server, client), và luôn chạy trên main.
   # Bản build thật + thử bằng bot + quét lỗ hổng + đẩy lên registry nằm ở release.yml. Job này chỉ bắt lỗi Dockerfile sớm ở PR.
   docker-build:
@@ -142,7 +164,9 @@ jobs:
           docker run -d --name game-ci -p 2567:2567 soul-land-game:ci
           for i in $(seq 1 60); do curl -sf localhost:2567/health && break; sleep 1; done
           echo; curl -sf localhost:2567/health
-          curl -sf localhost:2567/ | head -c 200 | grep -qi "<html" || { echo "✗ client đã build không được phục vụ"; docker logs game-ci; exit 1; }
+          curl -sf localhost:2567/ | head -c 200 | grep -qi "<html" || { echo "✗ landing (/) đã build không được phục vụ"; docker logs game-ci; exit 1; }
+          curl -sf localhost:2567/choi | grep -q 'id="stage"' || { echo "✗ game (/choi, không gạch cuối) không được phục vụ"; docker logs game-ci; exit 1; }
+          curl -sf localhost:2567/choi/ | grep -q 'id="stage"' || { echo "✗ game (/choi/) không được phục vụ"; docker logs game-ci; exit 1; }
           [ "$(docker exec game-ci id -u)" != 0 ] || { echo "✗ container chạy bằng root"; exit 1; }
           docker logs game-ci | tail -n 20
       - name: cỡ image

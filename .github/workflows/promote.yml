@@ -1,8 +1,8 @@
 # Promote (K3, #500): chạy TAY, mở PR ở repo GitOps đổi tag image prod. KHÔNG tự merge: chủ repo duyệt PR, ArgoCD sync, quay lui = revert PR đó.
-# Đầu vào `sha` (7 đến 40 ký tự hex, hoặc dạng sha-xxxxxxx); để trống = bản main mới nhất đã có trên registry (tag `main`).
+# Đầu vào `sha` (7 đến 40 ký tự hex, hoặc dạng sha-xxxxxxx); để trống = commit mới nhất trên main (dò ngược git log) đã có tag sha-* trên registry; tag `main` chỉ là phương án dự phòng.
 # Gắn thêm tag prod-<sha7> cho bản được promote (registry giữ mãi tag này, để quay lui được).
 # Cần: GCP_SA_KEY (secret, key JSON của service account), hoặc GCP_WIF_PROVIDER + GCP_SA_EMAIL (Variable hoặc Secret; workflow đọc vars rồi secrets) để kiểm tag có trên registry; và secret GITOPS_TOKEN (chỉ quyền contents + pull-requests trên repo GitOps).
-# Hướng dẫn thiết lập: deploy/gcp/README.md. Luồng đầy đủ: docs/deploy.md.
+# Hướng dẫn thiết lập: deploy/gcp/README.md. Luồng đầy đủ: docs/ops/trien-khai.md.
 name: Promote
 
 on:
@@ -72,16 +72,23 @@ jobs:
         name: kiểm tag có trên registry
         env:
           WANT: ${{ steps.in.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           # Cột: tag (đường dẫn đầy đủ) và version (digest). Bản main mới nhất = tag sha-* cùng digest với tag main.
           gcloud artifacts docker tags list "$IMAGE" --format='value(tag,version)' >tags.txt
           base() { awk -v want="$1" '{ n=split($1,a,"/"); if (a[n]==want) print $2 }' tags.txt; }
           if [ -z "$WANT" ]; then
-            MAIN_V=$(base main)
-            [ -n "$MAIN_V" ] || { echo "::error title=promote::registry chưa có tag main (chưa release lần nào?)"; exit 1; }
-            WANT=$(awk -v v="$MAIN_V" '{ n=split($1,a,"/"); if ($2==v && a[n] ~ /^sha-/) print a[n] }' tags.txt | head -n 1)
-            [ -n "$WANT" ] || { echo "::error title=promote::tag main không có tag sha-* đi kèm"; exit 1; }
-            echo "Mặc định: bản main mới nhất = $WANT"
+            # Tag main có thể đứng yên ở bản cũ (release chỉ dời main tiến lên): dò ngược 100 commit mới nhất của main, lấy commit đầu tiên đã có sha-<7> trên registry.
+            for c in $(gh api "repos/$GITHUB_REPOSITORY/commits?sha=main&per_page=100" --jq '.[].sha'); do
+              if [ -n "$(base "sha-${c:0:7}")" ]; then WANT="sha-${c:0:7}"; echo "Mặc định: commit mới nhất của main đã release = ${c:0:7}"; break; fi
+            done
+            if [ -z "$WANT" ]; then
+              MAIN_V=$(base main)
+              [ -n "$MAIN_V" ] || { echo "::error title=promote::registry chưa có bản nào của 100 commit mới nhất trên main và chưa có tag main"; exit 1; }
+              WANT=$(awk -v v="$MAIN_V" '{ n=split($1,a,"/"); if ($2==v && a[n] ~ /^sha-/) print a[n] }' tags.txt | head -n 1)
+              [ -n "$WANT" ] || { echo "::error title=promote::tag main không có tag sha-* đi kèm"; exit 1; }
+              echo "::warning title=promote::không thấy commit gần đây nào đã release, dùng tag main = $WANT"
+            fi
           fi
           [ -n "$(base "$WANT")" ] || { echo "::error title=promote::registry không có tag $WANT (chưa release, hoặc đã bị chính sách dọn xóa). 5 tag mới nhất:"; awk '{ n=split($1,a,"/"); print a[n] }' tags.txt | head -n 5; exit 1; }
           echo "tag=$WANT" >>"$GITHUB_OUTPUT"
@@ -116,8 +123,13 @@ jobs:
         env:
           TAG: ${{ steps.tag.outputs.tag }}
         run: |
-          gcloud artifacts docker tags add "$IMAGE:$TAG" "$IMAGE:prod-${TAG#sha-}"
-          echo "Đã gắn $IMAGE:prod-${TAG#sha-}"
+          # Idempotent: tag đã trỏ đúng digest thì bỏ qua (SA không có quyền tags.delete, `tags add` lên tag đã có sẽ PERMISSION_DENIED). Đã trỏ digest khác thì dừng, không đè.
+          gcloud artifacts docker tags list "$IMAGE" --format='value(tag,version)' >tags2.txt
+          ver() { awk -v want="$1" '{ n=split($1,a,"/"); if (a[n]==want) print $2 }' tags2.txt; }
+          P="prod-${TAG#sha-}"; SRC=$(ver "$TAG"); CUR=$(ver "$P")
+          if [ -z "$CUR" ]; then gcloud artifacts docker tags add "$IMAGE:$TAG" "$IMAGE:$P"; echo "Đã gắn $IMAGE:$P"
+          elif [ "$CUR" = "$SRC" ]; then echo "$P đã trỏ đúng digest của $TAG, bỏ qua"
+          else echo "::error title=promote::$P đã có nhưng trỏ digest khác $TAG ($CUR != $SRC); không tự đè"; exit 1; fi
       - name: mở PR (KHÔNG tự merge)
         if: ${{ steps.edit.outputs.changed == 'yes' }}
         working-directory: gitops

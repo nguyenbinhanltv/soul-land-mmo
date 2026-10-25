@@ -1,6 +1,6 @@
-# Hiệu năng hiệu ứng chiêu nhiều người (H8 / S5, #491)
+# Hiệu năng hiệu ứng chiêu nhiều người
 
-Đo trên Chrome thật dùng GPU (`--use-angle=d3d11`, RTX 3060 Ti, Windows 11, `--mute-audio`), qua trang thử `?thu=fx`, không cần server game.
+Đo (H8 / S5) trên Chrome thật dùng GPU (`--use-angle=d3d11`, RTX 3060 Ti, Windows 11, `--mute-audio`), qua trang thử `?thu=fx`, không cần server game.
 Công cụ: `client/scripts/fx-measure.mjs` (đọc thời gian khung bằng `requestAnimationFrame` trong trang, bỏ 5 khung đầu; 5 giây khởi động rồi lấy mẫu 25–40 giây).
 
 ```bash
@@ -51,10 +51,13 @@ Mỗi lượt kèm hiệu ứng G3, tia lửa theo chất liệu. Đồng thời
 
 Không rò texture, pool không lớn thêm ở vòng hai. Bài này chạy trên trang thử hiệu ứng (đúng `SkillVisualPlayer`, `SheetFx`, `PhapTuongSystem`, `ParticleLayer`), **không** phải `GameScene` trong phòng thật; bot server (`bot-test.mjs`) không dựng hình nên không đo được hiệu ứng.
 
-## Âm thanh biến hình / tuyệt kỹ (C4 #579)
+## Âm thanh biến hình / tuyệt kỹ (C4)
 
-Kiểm lại: 175 clip T3 của C4 có trong manifest nhưng **client chưa gọi** (không nơi nào dùng nhóm `skill-t3-*`), nên tuyệt kỹ / Chân Thân vẫn chỉ phát tiếng theo hệ. H8 nối vào `AudioManager.handleFx`: xem mục 5.11 trong `GAME_DESIGN.md`. `npm run test:audio` kiểm đủ 25 võ hồn × (tuyệt kỹ, Chân Thân × 3 pha, biến hình) có mẫu trong gói `skill`, đúng nhóm được gọi, người khác giãn nhịp / nhỏ hơn / không hạ nhạc nền.
+175 clip T3 của C4 (nhóm `skill-t3-*`, tên qua `t3Group` ở `client/src/audio/soundMap.ts`) được `AudioManager.handleFx` gọi cho tuyệt kỹ, Chân Thân và biến hình; chi tiết ở `docs/art/am-thanh.md`. `npm run test:audio` kiểm đủ 25 võ hồn × (tuyệt kỹ, Chân Thân × 3 pha, biến hình) có mẫu trong gói `skill`, đúng nhóm được gọi, người khác giãn nhịp / nhỏ hơn / không hạ nhạc nền.
 
-## Cân âm lượng (G8, #399)
+## Cân âm lượng (G8)
 
 `node tools/audio/measure-sfx.mjs` giải mã gói âm thanh thật bằng Chrome headless (`--mute-audio`) và đo RMS từng nhóm. Trước G8 mọi clip chỉ cùng đỉnh −3 dB nên độ to chênh tới ~14 dB giữa các nhóm (từ −14 dB gầm boss đến −29,6 dB hồn hoàn rơi; tuyệt kỹ T3 −25 … −29 dB nhỏ hơn cả hồn kỹ thường −17 … −25 dB). Sau khi cân (`GROUP_TRIM_DB`): vung / va chạm ≈ −22, hồn kỹ ≈ −23, T3 ≈ −21 … −23, thú ≈ −22, bước chân ≈ −34, môi trường −26 … −30, giao diện ≈ −22, PK −18 … −22 (chênh trong loại ≤ 2 dB). Đỉnh được chừa ≥ 1,5 dB dưới 0 dBFS; phần còn lại do bộ nén chung lo.
+
+## Issue liên quan
+#491 (H8 / S5), #579 (C4), #399 (G8).

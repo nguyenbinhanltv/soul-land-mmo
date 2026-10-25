@@ -28,6 +28,7 @@ const SECTIONS = [
   [/^Nguồn gốc và giấy phép/, "skip"],
   [/^game-icons\.net/, "gi"],
   [/^C6 /, "own:Codex (imagegen): màn đăng nhập, logo, banner"],
+  [/^Landing page/, "own:Landing page: ảnh chụp game và xuất lại từ ảnh sẵn có"],
   [/^Asset tự vẽ/, "own:Nhóm tự vẽ / sinh bằng mã"],
   [/^Asset tạo bằng AI \((.+)\)/, "ai"],
   [/^Asset bên ngoài/, "external"],
@@ -36,6 +37,7 @@ const SECTIONS = [
   [/^Biểu tượng vật phẩm/, "oga"],
   [/^Âm thanh/, "audio"],
   [/^Hiệu ứng âm thanh/, "audio"],
+  [/^Nền môi trường vòng lặp/, "audio"],
   [/^Lịch sử/, "skip"],
   [/^Asset kho riêng/, "doc"],
 ];

@@ -14,7 +14,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   absorbSecs, absorbChance, SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode, starSkillMult, starCdMult, starTienCoMult, starRing,
   BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus, boneSlotIndex,
   CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, coreSetName, coreResetFee, MAX_CORE_STARS, type CoreData,
-  CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ROLL, parseEquip, equipStats, equipDefTotal, equipWeaponRoll, equipTemplate, equipSlotIndex, equipName, equipSlotDef, rollEquip, rollEquipDrop, rollEquipCharm, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_TEMPLATES, EQUIP_TIERS, EQUIP_ESSENCE, EQUIP_SALVAGE_MAX, equipSynthStep, equipSynthOutcome, equipSalvage, equipAutoSalvageable, type EquipData, type EquipDrop,
+  CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ROLL, parseEquip, equipStats, equipDefTotal, equipWeaponRoll, equipTemplate, equipSlotIndex, equipName, equipSlotDef, rollEquip, rollEquipDrop, rollEquipCharm, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_TEMPLATES, EQUIP_TIERS, EQUIP_ESSENCE, EQUIP_SOUL, equipLuckStep, EQUIP_SALVAGE_MAX, equipSynthStep, equipSynthOutcome, equipSalvage, equipAutoSalvageable, type EquipData, type EquipDrop,
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, atkRoll, type CoreFx,
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed, parseBoneSubs, boneAddSubs, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee, SHARD_BUY, shardBuyCost, ARENA_SHARDS,
@@ -33,7 +33,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
   RESONANCE, RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CD, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResEffect,
   HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
-  ARENA, ARENA_HE_DMG, arenaTeamElo, SYNC_VIEW, RADAR, AUTO_DAILY_SECS, AUTO_STUCK, AUTO_MAX_PER_CELL, AUTO_BONUS_MAX, parseAuto, autoLeft, autoHint, type AutoHint, autoTimeText, type AutoSettings, type AutoSummary,
+  ARENA, ARENA_HE_DMG, arenaTeamElo, SYNC_VIEW, RADAR, AUTO_DAILY_SECS, AUTO_STUCK, AUTO_MAX_PER_CELL, AUTO_MSG_RATE, AUTO_BONUS_MAX, parseAuto, autoLeft, autoHint, type AutoHint, autoTimeText, type AutoSettings, type AutoSummary,
   BEAST_ATK_CD, OFFLINE, offlineFight, offlineSplit, type OfflinePower,
   BEAST_DEF, defMult, beastMelee, PLAYER_STATUS_PVE, RESIST_AS, PLAYER_CHARM,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, parseSell, autoSellable, type SellSettings } from "../../../shared/data.ts";
@@ -199,7 +199,7 @@ export interface PData {
   // Tự săn (Auto 1, mục 5.13): đang chạy (null = tắt), cài đặt, ngày (giờ Việt Nam) và số giây đã treo trong ngày đó, cờ chưa lưu
   // (bảng auto_hunt; flushAuto ghi trong chuỗi lưu cùng lần lưu thường, trước transaction đi cổng và khi dừng). `autoBonus`: giây
   // treo cộng thêm còn lại từ Ủy Thác Lệnh (Auto 2), chỉ tiêu khi đã treo hết AUTO_DAILY_SECS của hôm nay.
-  auto: AutoHunter | null; autoCfg: AutoSettings; autoDay: string; autoUsed: number; autoBonus: number; autoDirty: boolean; autoPace: [number, number];
+  auto: AutoHunter | null; autoCfg: AutoSettings; autoDay: string; autoUsed: number; autoBonus: number; autoDirty: boolean; autoTok: number; autoTokAt: number; autoSetPend: { cfg: unknown } | null; autoRealRate: boolean; autoPace: [number, number]; autoHintC: { key: string; hint: AutoHint } | null;
   // Ủy thác offline (Auto 3): bảng nhận thưởng đã tính chờ gửi (client xin bằng tin `offline` sau khi đăng ký handler, vì claimOffline
   // có thể xong trước khi client sẵn sàng nhận) và client đã xin chưa.
   offMsg: Record<string, unknown> | null; offAsk: boolean;
@@ -754,6 +754,8 @@ export class MapRoom extends Room<MapState> {
    */
   perfAll = { n: 0, tick: 0, patch: 0, max: 0, auto: 0 };
   perfOn = !!process.env.PERF_LOG;
+  /** PERF_LOG=1 (#664): lần lưu định kỳ trong 10 giây: số lần, ms chụp túi (đồng bộ), ms phần đồng bộ của ghi DB, tổng số món túi + trang bị đã chụp. */
+  perfSave = { n: 0, snap: 0, store: 0, items: 0 };
   /**
    * PERF_LOG=1, nhịp chậm (#273): mốc thời gian các đoạn của tick (đầu, trước vòng người chơi, trước vòng hồn thú, trước thế giới,
    * trước sinh lại, cuối), CPU luồng chính và mốc của nhịp trước; nhịp chậm chờ in ở nhịp sau (bản ghi GC tới muộn một vòng lặp).
@@ -1095,6 +1097,8 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("equipsynth", (c, m: { main: unknown; sacrifice: unknown }) => this.equipSynth(c.sessionId, m?.main, m?.sacrifice)); // hợp thành 3 → 1 (E4)
     this.onMessage("equipsalvage", (c, m: { ids: unknown }) => this.salvageEquip(c.sessionId, m?.ids)); // phân giải hàng loạt (E4)
     this.onMessage("equipenhpreview", (c, m: { id: unknown }) => this.equipEnhancePreview(c.sessionId, m?.id));
+    this.onMessage("equipluck", (c, m: { id: unknown }) => this.equipLuck(c.sessionId, m?.id)); // khắc may mắn bằng Thần Hồn ở Thợ rèn
+    this.onMessage("equipluckpreview", (c, m: { id: unknown }) => this.equipLuckPreview(c.sessionId, m?.id));
     this.onMessage("equipcore", (c, m: { itemId: unknown; vohonId: unknown; slot: unknown }) => this.equipCore(c.sessionId, m?.itemId, m?.vohonId, m?.slot));
     this.onMessage("unequipcore", (c, m: { itemId: unknown }) => this.unequipCore(c.sessionId, m?.itemId));
     this.onMessage("enhance", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceBone(c.sessionId, m?.targetId, m?.materialIds));
@@ -1156,7 +1160,7 @@ export class MapRoom extends Room<MapState> {
       chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests), ...this.tongTasksOf(bag.quests), tongBoardAt: 0, tongPend: [],
       res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, resonanceTopAt: 0, arenaGone: false,
       auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0,
-      autoBonus: auth.auto.bonus, autoDirty: false, autoPace: [0, 0], offMsg: null, offAsk: false,
+      autoBonus: auth.auto.bonus, autoDirty: false, autoTok: AUTO_MSG_RATE.burst, autoTokAt: Date.now(), autoSetPend: null, autoRealRate: false, autoPace: [0, 0], autoHintC: null, offMsg: null, offAsk: false,
       tong: tongDef(auth.tong.tong)?.id ?? null, tongAt: auth.tong.at };
     p.tong = d.tong ? TONG_MON.findIndex((t) => t.id === d.tong) + 1 : 0;
     this.pdata.set(client.sessionId, d);
@@ -1399,9 +1403,15 @@ export class MapRoom extends Room<MapState> {
       return true;
     }
     // Vị trí, võ hồn và túi trong một transaction có lớp chặn WHERE map_id (#165): DB đã ở bản đồ khác thì không ghi gì, kể cả túi.
+    const t0 = this.perfOn ? performance.now() : 0;
     const list = this.unsaved(id), x = p.x, y = p.y, bag = this.unsavedBag(d);
+    const t1 = this.perfOn ? performance.now() : 0;
     let saved: boolean;
-    try { saved = await store.saveProgress(d.accountId, list, this.state.mapId, x, y, d.testLocFile, bag); }
+    try {
+      const pr = store.saveProgress(d.accountId, list, this.state.mapId, x, y, d.testLocFile, bag);
+      if (this.perfOn) { const f = this.perfSave; f.n++; f.snap += t1 - t0; f.store += performance.now() - t1; f.items += bag?.items.length ?? 0; }
+      saved = await pr;
+    }
     catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; throw e; }
     if (saved) { d.tongPend.splice(0, bag?.tongPts?.length ?? 0); return true; }
     // Lưới an toàn: beginTravel đã đọc lại DB khi đi cổng báo lỗi nên đường thường không tới đây. Nếu tới thì ngắt client để vào lại đúng
@@ -1633,6 +1643,23 @@ export class MapRoom extends Room<MapState> {
    */
   autoAction(id: string, op: unknown, cfg: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    // Nhịp riêng theo người chơi (F2 báo cáo soát): vượt thì bỏ tin, không ghi DB / duyệt pdata.
+    const now = Date.now(), scale = process.env.GAME_TEST === "1" && !d.autoRealRate ? 1000 : 1; // bot bật / tắt dồn dập: GAME_TEST nới nhịp (hook `test auto {rate}` trả về nhịp thật)
+    d.autoTok = Math.min(AUTO_MSG_RATE.burst * scale, d.autoTok + (now - d.autoTokAt) / 1000 * AUTO_MSG_RATE.perSec * scale); d.autoTokAt = now;
+    if (d.autoTok < 1) {
+      // `set` vượt nhịp: giữ cấu hình cuối, áp một lần khi có token (không để cài đặt cuối bị mất, không tốn DB); tin khác bỏ, trả lại trạng thái thật.
+      if (op === "set") {
+        const wait = !d.autoSetPend;
+        d.autoSetPend = { cfg };
+        if (wait) this.clock.setTimeout(() => {
+          const pend = d.autoSetPend; d.autoSetPend = null;
+          if (pend && this.pdata.get(id) === d) this.autoAction(id, "set", pend.cfg);
+        }, Math.ceil((1 - d.autoTok) / AUTO_MSG_RATE.perSec * 1000) + 20);
+      } else this.sendAuto(id);
+      return;
+    }
+    d.autoTok -= 1;
+    if (op === "set") d.autoSetPend = null; // `set` mới áp ngay thì bỏ cấu hình chờ cũ hơn
     const day = this.today(); if (day !== d.autoDay) { d.autoDay = day; d.autoUsed = 0; d.autoDirty = true; }
     if (op === "off") { if (d.auto) this.autoStop(id, "đã tắt."); else this.sendAuto(id); return; }
     if (op === "set") {
@@ -1692,9 +1719,14 @@ export class MapRoom extends Room<MapState> {
   /** Gợi ý vùng / khoảng niên hạn hợp sức (AH4, #611) cho võ hồn ra trận của `id` ở bản đồ này (mọi vùng săn có khai báo niên hạn). */
   autoHintOf(id: string): AutoHint | undefined {
     const d = this.pdata.get(id), p = this.state.players.get(id); if (!d || !p) return undefined;
+    // Cùng chỉ số võ hồn thì giữ kết quả lần trước: tin `auto` vượt nhịp vẫn được trả lời (sendAuto), không để mỗi tin chạy lại offlineFight (vùng × loài × tìm nhị phân).
+    const pw = this.offlinePower(d, p), key = `${pw.atk}|${pw.crit}|${pw.critMult}|${pw.maxHp}|${pw.def}`;
+    if (d.autoHintC?.key === key) return d.autoHintC.hint;
     const all = BEASTS.map((b) => b.id);
-    return autoHint(this.offlinePower(d, p), this.map.zones.filter((z) => z.years).map((z) =>
+    const hint = autoHint(pw, this.map.zones.filter((z) => z.years).map((z) =>
       ({ name: z.name, years: z.years!, species: z.beasts.length ? z.beasts.map((b) => BEASTS[b.species].id) : all })));
+    d.autoHintC = { key, hint };
+    return hint;
   }
 
   /** Dòng tự săn để lưu (cài đặt, ngày, giờ đã treo, quỹ cộng thêm; làm tròn 0,1 giây). */
@@ -4109,6 +4141,8 @@ export class MapRoom extends Room<MapState> {
       // Auto 2: `bonus` đặt quỹ giờ treo cộng thêm (giây, 0..AUTO_BONUS_MAX).
       if (typeof o.bonus === "number" && Number.isFinite(o.bonus)) { d.autoBonus = Math.max(0, Math.min(AUTO_BONUS_MAX, o.bonus)); d.autoDirty = true; this.sendAuto(id); }
       if (o.pvp && !p.dead) { d.inv = 0; this.hurtPlayer(id, 1, { pvp: { dealt: 0 } }); }
+      // `rate: true` dùng nhịp tin `auto` thật (AUTO_MSG_RATE) và đầy lại lượt; `rate: false` nới lại (thử F2 báo cáo soát).
+      if (typeof o.rate === "boolean") { d.autoRealRate = o.rate; d.autoTok = AUTO_MSG_RATE.burst; d.autoTokAt = Date.now(); d.autoSetPend = null; }
       const a = d.auto;
       // #213: `pace` đặt nợ nhịp (giây) của lượt tự săn đang chạy (thử trần tốc độ AUTO_PACE).
       if (a && typeof o.pace === "number" && Number.isFinite(o.pace)) a.pace = Math.max(-3600, Math.min(3600, o.pace));
@@ -6291,6 +6325,60 @@ export class MapRoom extends Room<MapState> {
   }
 
   /**
+   * Khắc may mắn của một món: `luck` hiện tại, bước kế (`equipLuckStep`) và lý do không khắc được (`slot` ô không có may mắn, `max` món đã đạt
+   * EQUIP_LUCK_MAX, `worn` tổng hai ô đang mặc đã đạt EQUIP_LUCK_MAX). Món đang mặc tính trần theo tổng hai ô, món trong túi theo chính nó.
+   */
+  luckInfo(d: PData, it: Item, e: EquipData) {
+    const wear = it.equipSlot !== undefined, slotOk = !!equipSlotDef(equipTemplate(e.tpl)?.slot).luck, wornLuck = d.gear.reduce((n, g) => n + (parseEquip(g.stats)?.luck ?? 0), 0);
+    const step = slotOk ? equipLuckStep(e.luck, wear ? wornLuck : null) : null;
+    return { wear, step, reason: !slotOk ? "slot" : step ? null : e.luck >= EQUIP_LUCK_MAX ? "max" : "worn" };
+  }
+  /** `equipluckpreview {id}` trả "equipluckp": tỉ lệ khắc may mắn kế tiếp, số Thần Hồn đang có, lý do bị chặn. Chỉ đọc. `busy`: lệnh sắp xong gửi false (cờ `enhBusy` chưa nhả). */
+  equipLuckPreview(id: string, rawId: unknown, busy?: boolean) {
+    const d = this.pdata.get(id), c = this.clients.getById(id); if (!d || !c) return;
+    const it = this.equipOf(d, rawId), e = it ? parseEquip(it.stats) : null; if (!it || !e) return;
+    const { step, reason } = this.luckInfo(d, it, e);
+    c.send("equipluckp", { id: it.id, luck: e.luck, to: step?.to ?? null, p: step?.p ?? 0, reason, soul: this.countOf(d, EQUIP_SOUL), max: EQUIP_LUCK_MAX, busy: busy ?? d.enhBusy });
+  }
+  /**
+   * Khắc may mắn (Thợ rèn): tốn 1 Thần Hồn mỗi lần, may mắn n → n + 1 với tỉ lệ EQUIP_LUCK_UP[n] (server tung; `testEnh` chỉ có khi GAME_TEST). Thất bại
+   * mất Thần Hồn, giữ may mắn, KHÔNG phá món, không phí Hồn Tệ. Chỉ vũ khí / dây chuyền (ô `luck`). Chặn khi món đã đạt EQUIP_LUCK_MAX, món đang mặc
+   * chặn khi tổng hai ô đã đạt EQUIP_LUCK_MAX. Cùng hàng đợi / khóa / transaction ghi như cường hóa; lỗi ghi thì hoàn lại Thần Hồn và may mắn.
+   */
+  equipLuck(id: string, rawId: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    if (d.enhBusy) return this.log(id, "Đang xử lý lệnh Thợ rèn trước, đợi một chút.", "#ffb35c");
+    d.enhBusy = true; d.claimBusy++;
+    this.chain(d, () => this.itemLocked(id, [rawId], async () => {
+      const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); this.equipLuckPreview(id, rawId); };
+      if (d.testEnhSlow) await new Promise((r) => setTimeout(r, d.testEnhSlow));
+      const it = this.equipOf(d, rawId), e = it ? parseEquip(it.stats) : null; if (!it || !e) return warn("Không có trang bị này để khắc may mắn.");
+      const npc = this.npcNear(id, { role: "forge" }); if (!npc) return warn("Hãy lại gần Thợ rèn hơn để khắc may mắn.");
+      const lock = this.boneLock(p, d, "trang bị"); if (lock) return warn(lock.replace("gắn / tháo", "khắc may mắn"));
+      const label = this.itemLabel(it), { wear, step, reason } = this.luckInfo(d, it, e);
+      if (!step) return warn(reason === "slot" ? `${label} không khắc may mắn được (chỉ vũ khí và dây chuyền).`
+        : reason === "max" ? `${label} đã đạt may mắn tối đa ${EQUIP_LUCK_MAX}.` : `Tổng may mắn hai ô đang mặc đã đạt tối đa ${EQUIP_LUCK_MAX}.`);
+      if (this.countOf(d, EQUIP_SOUL) < 1) return warn("Không có Thần Hồn trong túi đồ.");
+      const undoSoul = this.spendItem(d, EQUIP_SOUL, 1), from = e.luck;
+      const ok = (d.testEnh ?? Math.random()) < step.p, was = it.stats;
+      if (ok) it.stats = { tpl: e.tpl, ilvl: e.ilvl, roll: e.roll, affixes: e.affixes.map(([k, v]) => [k, v]), luck: step.to };
+      d.bagDirty = true;
+      try { await store.saveBag(d.accountId, { ...this.bagSnapshot(d), lock: [{ id: it.id, enhance: it.enhance }] }); }
+      catch (err) {
+        undoSoul(); it.stats = was; d.bagDirty = true;
+        if (wear) { d.gearSt = gearStats(d.gear); this.afterBones(id, d.ch); this.sendGear(id); }
+        this.sendBag(id);
+        warn("Không lưu được lần khắc may mắn, đã hoàn lại Thần Hồn và món đồ. Thử lại sau."); throw err;
+      }
+      this.log(id, `Khắc may mắn ${equipName(e.tpl, it.enhance)} M${from} → M${from + 1}: ${ok ? "thành công" : `thất bại, giữ M${from}`} (−1 ${itemDef(EQUIP_SOUL)?.name ?? "Thần Hồn"}).`, ok ? "#9cff9c" : "#ffb35c");
+      this.clients.getById(id)?.send("equipluckd", { id: it.id, from, to: ok ? step.to : from, ok });
+      if (wear) { d.gearSt = gearStats(d.gear); this.afterBones(id, d.ch); this.sendGear(id); }
+      this.sendBag(id);
+      this.equipLuckPreview(id, it.id, false);
+    })).then(() => { d.enhBusy = false; d.claimBusy--; });
+  }
+
+  /**
    * Thêm `qty` món mã `code` vào túi (addItem) và trả `got` (số đã nhận) cùng hàm hoàn lại ĐÚNG phần vừa thêm trên túi hiện tại (ô mới bị bỏ,
    * ô gộp bớt đúng số vừa cộng): dùng khi transaction lưu thất bại mà trong lúc chờ DB túi có thể đã nhận thêm đồ.
    */
@@ -7793,6 +7881,8 @@ export class MapRoom extends Room<MapState> {
     let awake = 0; this.state.beasts.forEach((b) => { if (this.interest.awake(b.x, b.y)) awake++; });
     console.log(`[perf] ${this.state.mapId}#${this.state.channel} tick ${(f.tick / f.n).toFixed(3)} ms, patch ${(f.patch / f.n).toFixed(3)} ms, ` +
       `max ${f.max.toFixed(2)} ms, slow ${this.perfSlowN}, beasts ${this.state.beasts.size} (awake ${awake}), players ${this.state.players.size}`);
+    const sv = this.perfSave;
+    if (sv.n) { console.log(`[perf-save] ${this.state.mapId}#${this.state.channel} ${sv.n} lần lưu, chụp túi ${sv.snap.toFixed(1)} ms, ghi DB (đồng bộ) ${sv.store.toFixed(1)} ms, ${sv.items} món`); Object.assign(sv, { n: 0, snap: 0, store: 0, items: 0 }); }
     Object.assign(f, { n: 0, tick: 0, patch: 0, max: 0, at: Date.now() }); this.perfSlowN = 0;
   }
 

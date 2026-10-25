@@ -59,7 +59,7 @@ import { autoJob, autoJobText, bindAutoPanel, closeAutoPanel, closeAutoSum, setA
 import { bossPhase, combatHit } from "../audio/music.ts";
 import { ArenaShow } from "../arenaShow.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, GearMsg, EquipEnhPreview, EquipEnhDone, EquipSynDone, EquipSalvDone, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, AutoStMsg, FriendsMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, GearMsg, EquipEnhPreview, EquipEnhDone, EquipLuckPreview, EquipLuckDone, EquipSynDone, EquipSalvDone, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, AutoStMsg, FriendsMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
 import { assetUrl } from "../assetUrl.ts";
 import { layoutNameplates, measureNameplate, nameplateAppearance, nameplatePriority, playerNameplateKind, type NameplateRect, type NameplatePlacement } from "../nameplate.ts";
@@ -1254,10 +1254,14 @@ export class GameScene extends Phaser.Scene {
         gear: () => this.gear,
         equipEnh: (id, charm) => this.room.send("equipenh", { id, charm }), // lò rèn: cường hóa trang bị hồn sư (E3)
         equipEnhPreview: (id) => this.room.send("equipenhpreview", { id }),
+        equipLuck: (id) => this.room.send("equipluck", { id }), // lò rèn: khắc may mắn bằng Thần Hồn
+        equipLuckPreview: (id) => this.room.send("equipluckpreview", { id }),
         equipSynth: (main, sacrifice) => this.room.send("equipsynth", { main, sacrifice }), // lò rèn: hợp thành 3 → 1 (E4)
         equipSalvage: (ids) => this.room.send("equipsalvage", { ids }), // lò rèn: phân giải hàng loạt (E4)
       });
     });
+    this.room.onMessage("equipluckp", (m: EquipLuckPreview) => hud.equipLuckPreview(m));
+    this.room.onMessage("equipluckd", (m: EquipLuckDone) => { this.audio.playUi(m.ok ? "enhanceOk" : "enhanceFail"); hud.equipLuckDone(m); });
     this.room.onMessage("equipenhp", (m: EquipEnhPreview) => hud.equipEnhPreview(m));
     this.room.onMessage("equipenhd", (m: EquipEnhDone) => { this.audio.playUi(m.ok ? "enhanceOk" : "enhanceFail"); hud.equipEnhDone(m); });
     this.room.onMessage("equipsynd", (m: EquipSynDone) => { this.audio.playUi(m.ok ? "enhanceOk" : "enhanceFail"); hud.equipSynDone(m); });
@@ -1802,7 +1806,6 @@ export class GameScene extends Phaser.Scene {
       this.teles.set(m.bid, { t: [m, ...(m.parts ?? [])], t0: this.time.now - (m.warn ? (m.warn - m.t) * 1000 : 0), ms, safe: m.safe });
       const s = this.beasts.get(m.bid), b = this.room.state.beasts.get(m.bid);
       if (s && b) this.floatText(s.x, beastTop(s, b.tier) - 10, m.name, "#ff6b6b");
-      if (s && b) playPriv(this.svis.sheets, "fx_bao_truoc", { x: s.x, y: beastTop(s, b.tier) - 30, scale: SPR }); // #622: dấu chấm than báo trước (thiếu kho riêng thì chỉ có tên chiêu)
       // Quay về vùng báo trước (mục 5.11): vệt / nón theo hướng chiêu, vòng dưới chân mục tiêu theo hướng tới tâm vòng.
       const d = b && (m.shape !== "circle" ? dir8(Math.cos(m.ang), Math.sin(m.ang)) : Math.hypot(m.x - b.x, m.y - b.y) > 2 ? dir8(m.x - b.x, m.y - b.y) : null);
       if (d) this.bface.set(m.bid, d);

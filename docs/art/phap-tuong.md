@@ -8,12 +8,12 @@ Tài liệu đặc tả hình ảnh. Luật chơi của Chân Thân (hồn lực
 - **Khung 160×160**, nền trong suốt. **Một lớp cho cả khung ở mỗi hướng** (H1 #485 chốt): `s`, `se`, `e` vẽ **SAU** thân hồn sư; `ne`, `n` vẽ **TRƯỚC** thân hồn sư, mờ 70%. Không tách phần sau / phần ló trước trong một khung.
 - **5 hướng vẽ thật** `s`, `se`, `e`, `ne`, `n`; ba hướng còn lại (`sw`, `w`, `nw`) **lật gương** từ `se`, `e`, `ne` (như hồn sư và hồn thú).
 - **Hai hoạt ảnh**: (1) **vòng lặp "thở"** dùng chung cho đứng và đi (lơ lửng, sáng nhịp); (2) **một động tác đánh / niệm** (rồng gầm, búa vung...) dùng cho đánh thường và tung hồn kỹ. Trúng đòn, gục: không thêm khung (pháp tướng mờ theo thân, tan khi hết Chân Thân).
-- **Concept do PixelLab tự tạo** (prompt ở mục 5); chủ repo duyệt kết quả ở trang xem trước trước khi làm cả bộ.
+- **Concept ảnh tĩnh không dùng PixelLab** (Q43 ở `docs/quyet-dinh.md`; concept của 25 võ hồn đã làm bằng PixelLab giữ nguyên ghi nguồn, prompt ở mục 5); concept mới làm bằng công cụ ảnh tĩnh (ChatGPT / Codex, ComfyUI; Q44), PixelLab chỉ xoay hướng và hoạt ảnh từ concept đó; chủ repo duyệt kết quả ở trang xem trước trước khi làm cả bộ.
 - Hình thái xuất hiện / tan theo chuỗi biến hình 5 bước trong kế hoạch #482 (vòng hồn hoàn 7 sáng, cột sáng màu võ hồn, cảnh cận, nở từ tâm + vỡ mảnh kính màu, tan thành bụi sáng). Phần chuyển động đó làm bằng code (Phaser), không tốn lượt ảnh.
 
 ## 2. Điểm gắn và lớp
 
-Hồn sư 64×64 có gốc (chân) ở `(32, 58)` trong khung. Khung pháp tướng 160×160 đặt gốc của nó ở **`(80, 124)`** trong khung (tức hai gốc trùng khi ghép: dời khung 160 sao cho `(80,124)` rơi đúng `(32,58)` của thân), chừa 124 px phía trên gốc cho hình cao và 36 px phía dưới cho bóng, đất nứt, rễ, vòng. Khi Chân Thân, thân hồn sư phóng `CHAN_THAN_SCALE`; khung pháp tướng **phóng theo cùng tỉ lệ quanh gốc** (đổi nếu thử ở H1 thấy hình quá lớn). Thân hồn sư cao khoảng 40 px nên pháp tướng cao 60–120 px, đầu pháp tướng cao hơn đầu hồn sư.
+Hồn sư 64×64 có gốc (chân) ở `(32, 58)` trong khung. Khung pháp tướng 160×160 đặt gốc của nó ở **`(80, 124)`** trong khung (tức hai gốc trùng khi ghép: dời khung 160 sao cho `(80,124)` rơi đúng `(32,58)` của thân), chừa 124 px phía trên gốc cho hình cao và 36 px phía dưới cho bóng, đất nứt, rễ, vòng. Khi Chân Thân, thân hồn sư phóng theo tỉ lệ Chân Thân (hằng này chưa có trong `CHAN_THAN`, thêm ở H1); khung pháp tướng **phóng theo cùng tỉ lệ quanh gốc** (đổi nếu thử ở H1 thấy hình quá lớn). Thân hồn sư cao khoảng 40 px nên pháp tướng cao 60–120 px, đầu pháp tướng cao hơn đầu hồn sư.
 
 Điểm gắn gợi ý theo nhóm bố cục (cột "Nhóm" ở bảng chuyển động). **Lớp không theo nhóm**: mọi nhóm dùng một luật lớp ở mục 1 (H1 chốt), nhóm chỉ cho biết đặt hình ở đâu quanh gốc (`display.dx`, `dy`, `scale` trong `recipe.json`).
 

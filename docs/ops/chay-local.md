@@ -1,0 +1,40 @@
+# Chạy local: lệnh, bot, PostgreSQL, tài khoản test
+
+Lệnh hằng ngày cho người và agent. Luật code ngắn gọn ở `CLAUDE.md`; quy trình nhận việc / PR ở `CONTRIBUTING.md`. Trang này là nơi chi tiết.
+
+## Lệnh
+```bash
+npm run install:all            # cài thư viện server + client (clone mới)
+npm run hooks                  # bật git pre-commit hook (.githooks/, typecheck file đã stage) – một lần
+npm run check                  # typecheck server + client, validate sprite, kiểm tiles.json, docs-check – bắt buộc sau mỗi thay đổi
+npm run build                  # build client (tsc + vite)
+npm run dev:server             # server http://localhost:2567 (không có DATABASE_URL thì lưu RAM)
+npm run dev:client             # trang giới thiệu http://localhost:5173, game http://localhost:5173/choi/ (landing ở "/", #656)
+npm run bot:local -- --only <nhóm> [--pg]   # bot ở máy: tự bật server GAME_TEST=1 cổng trống, chạy một nhóm, tự dọn
+npm run bot --prefix client    # bot thô, chạy khi server đang bật (SERVER_URL=… nếu khác cổng); agent dùng bot:local
+```
+
+## Bot ở máy
+- **Agent chạy bot ở máy bằng `npm run bot:local`** (`tools/bot-local.mjs`), **không** tự bật server rời hay embedded-postgres riêng: công cụ build server một lần (esbuild, cache theo hash nguồn) rồi chạy `node` với trần heap 768 MB, `GAME_TEST=1`, cổng trống, state sạch; chạy đúng một nhóm (`--only <nhóm>` BOT_ONLY, `--part 1..4` BOT_PART, `--channels` lượt nhiều kênh `CHANNEL_MAX=2`, `--fatal [--pg]` lỗi nghiêm trọng ngoài phòng làm server lưu rồi thoát (đổi `index.ts` / cách tắt server thì chạy); `--help` liệt kê nhóm); chỉ tắt tiến trình con của mình (kể cả Ctrl+C / lỗi) và in RAM đỉnh. **Tối đa 2 lượt bot cùng lúc trên cả máy** (khoá ở `%TEMP%/soul-bot-slots`), lượt thứ 3 tự chờ. Bot đầy đủ (`--full`, ~25 phút) để job CI `bot-ram` chạy. Với `GAME_TEST=1`, lịch boss đứng yên ở 12:00 giờ Việt Nam trừ khi đặt `--env BOSS_CLOCK=HH:MM` (hoặc `real`).
+- Đổi presence / trạng thái dùng chung nhiều tiến trình: thêm `--procs 2 --pg` (công cụ tự bật `redis-server` riêng mỗi lượt ở cổng trống, binary ở `BOT_REDIS_BIN` hoặc PATH, chỉ tắt đúng PID đó; **không** cho hai lượt dùng chung một Redis vì pub/sub và phòng của Colyseus không theo `REDIS_PREFIX`; `REDIS_URL` của shell bị bỏ, tự bật Redis thì mỗi lượt một cổng qua `--env REDIS_URL=…`); `npm run test:presence-kill --prefix server` thử kill PID / TTL với Redis thật.
+- Bot cần server bật `GAME_TEST=1` (hook `test`; thiếu thì bot báo bỏ qua phần lớn kiểm tra) và **server mới bật**. Người chạy tay (gỡ lỗi kèm trình duyệt): `GAME_TEST=1 PORT=2600 npm run dev:server` rồi `SERVER_URL=http://localhost:2600 npm run bot --prefix client`.
+- Bot không assert mọi thứ: đọc output (dòng ✗ là lỗi, ⚠ là bị bỏ qua) và log server. Luồng mới thì thêm vào `client/scripts/bot-test.mjs`.
+- CI (`.github/workflows/check.yml`, chỉ tham khảo) có job `bot-ram`: bài nhanh + bot RAM + lượt nhiều kênh trên mỗi push vào PR. Review đọc kết quả CI (`gh pr checks`, `gh run view <id>` in số ✓ / ✗ / ⚠ từng nhóm và các dòng ✗) thay vì tự chạy bot RAM; lượt PostgreSQL vẫn tự chạy.
+
+## PostgreSQL ở máy
+- **Đổi SQL / `db.ts` thì thử thêm với PostgreSQL**, sau lượt bot ở chế độ RAM: `npm run bot:local -- --only <nhóm> --pg`. Công cụ dùng **một PostgreSQL chung cho cả máy** (binary `embedded-postgres` trong `node_modules`, cổng `BOT_PG_PORT` 5433, dữ liệu `BOT_PG_DIR` mặc định `D:/soul-pg-shared`; chưa chạy thì tự bật, đang chạy thì dùng lại), mỗi lượt một database riêng UTF8 (`soulbot_<phiên>_<pid>`, có dấu `COMMENT ON DATABASE`; công cụ chỉ dọn database có dấu đó), bật server **hai lần liên tiếp** (migration phải chạy lại an toàn) rồi chạy bot, xoá database khi xong. Có PostgreSQL cài sẵn thì đặt `BOT_PG_URL`. Xem / tắt instance chung: `npm run bot:local -- --pg-status` / `--pg-stop`.
+- Người chạy server dev với PostgreSQL: `docker compose up -d` và `cp .env.example server/.env`.
+- **Supabase là DB test:** `DATABASE_URL` trỏ Supabase được dùng cho quay ảnh, đo FPS (Q39 ở `docs/quyet-dinh.md`); bot đầy đủ và migration mới vẫn chạy `bot:local`. Prod là PostgreSQL trong cụm K8s, **không bao giờ trỏ**.
+
+## Nhiều phiên song song
+`bot:local` tự chọn cổng và giới hạn số lượt. Tự bật tiến trình khác (server dev, Chrome) thì dùng cổng riêng và chỉ tắt đúng PID mình bật, không tắt theo cổng hay theo tên. Chrome chụp ảnh luôn có `--mute-audio` (không phát nhạc khi chạy bot); cổng CDP 9333 đã có người dùng, không tự chiếm.
+
+## Tài khoản test và lệnh GM
+- **Tài khoản test**: `npm run seed:test --prefix server -- --name <tên> --preset max|giua-game|moi` (mặc định chạy thử, không nối DB; ghi thật cần `--confirm-db <host>`); **agent không bao giờ trỏ nó vào DB thật**, chỉ thử trên MemoryStore / PostgreSQL cục bộ (`npm run test:seed --prefix server`, `TEST_DATABASE_URL` cho PgStore; bot: `npm run bot:local -- --only testacc --seed-test max --pg`). Hướng dẫn cho chủ repo ở `docs/test-accounts.md`.
+- **Lệnh GM**: `/gm …` trong chat, chỉ `accounts.id` trong `ADMIN_ACCOUNTS` (trống = tắt); thử bằng `npm run test:gm --prefix server` và `npm run bot:local -- --only gm --pg`; không bao giờ đặt `ADMIN_ACCOUNTS` cho DB / server chạy bot hoặc đo tải ngoài máy mình. Từ #663: `npm run test:gate --prefix server` (trong `test:unit`) kiểm server giống prod (hook test tắt, GM từ chối), và `--fatal` RAM; bài bot `gm` nằm trong nhóm khói (BOT_PART=smoke) và nhóm 3.
+
+## Kiểm thử khác
+`npm run test:unit` (gốc; 14 bài đơn vị nhanh ~1 phút, không server / DB / Redis, gồm `test:presence` (`isRedisFailure`, `claimBuyback`, `FriendHub`, hàng đợi đấu trường) và `test:seed` (MemoryStore; PgStore chỉ khi có `TEST_DATABASE_URL`, bỏ qua trong CI); CI job `test-unit` chạy cùng lệnh; `test:presence-kill` và `test:presence-outage` cần Redis thật nên nằm ở job Redis tùy chọn / chạy tay). `npm run test:predict --prefix client` (dự đoán chuyển động), `npm run test:audio --prefix client` (SFX, nhạc nền), `npm run test:radar --prefix server` (hàm thuần radar), `npm run test:looks-migrate --prefix server` (preset cũ → LPC, HL2), `npm run sim:equip --prefix server` (giả lập kinh tế trang bị theo ngày + sức mạnh đấu trường; chạy lại khi đổi bảng số của `docs/design/trang-bi.md`), `npm run bot:local -- --only equipsoak --env PERF_LOG=1` (chạy dài trang bị; `ES_N` bot × `ES_SECS` giây, thêm `--pg` để thử ghi DB; không thuộc bot đầy đủ / CI), `npm run test:ratelimit --prefix server`, `npm run test:accounts --prefix server`.
+
+## Issue liên quan
+#120 (presence nhiều tiến trình), #228 (`bot:local`), #270 (`--fatal`), #495 (Redis riêng mỗi lượt), #517 (tài khoản test), #518 (lệnh GM), #619 (tối ưu tài liệu).

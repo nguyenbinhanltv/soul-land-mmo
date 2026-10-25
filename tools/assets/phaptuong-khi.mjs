@@ -2,7 +2,7 @@
 //   `phaptuong/<id>.png` (thân) và `phaptuong/<id>_glow.png` (lớp phát sáng, client vẽ cộng sáng), thở + đánh dựng bằng code (0 lượt).
 //   node tools/assets/phaptuong-khi.mjs --id <mã> [--preview <file.png>]   dựng hai sheet từ art/src/pixellab/phap_tuong/<id>/
 //   node tools/assets/phaptuong-khi.mjs --id <mã> --check                  chỉ kiểm sheet đã dựng: khung bao, điểm neo 5 hướng lệch ≤ 2 điểm, lề
-// Tham số mỗi võ hồn ở `recipe.json` (khóa `clean`, `mode`, `prescale`, `chuyenDong`): xem `docs/phap-tuong-cong-thuc.md` mục "Vật thể (khí)".
+// Tham số mỗi võ hồn ở `recipe.json` (khóa `clean`, `mode`, `prescale`, `chuyenDong`): xem `docs/art/phap-tuong-cong-thuc.md` mục "Vật thể (khí)".
 // Bố cục sheet như `phaptuong.mjs` (isoLayout("phaptuong"): 5 hướng × idle 8 + attack 8). Alpha chỉ 0 / 255; độ đục hư ảnh do client áp (`pt.ghost`).
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import path from "node:path";
