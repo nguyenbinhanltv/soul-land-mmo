@@ -62,7 +62,7 @@
 // chậm, vẫn dùng hồn kỹ), thanh tẩy giải, hết giờ thì hết.
 // Vùng lưu lại trên mặt đất (#161, groundTest; BOT_ONLY=ground): vũng / sương độc gây Trúng độc theo nhịp khi đứng
 // trong vùng, ra khỏi vùng / vào vùng an toàn thì thôi, người vào tầm sau vẫn thấy vùng, vùng mất khi hết giờ / hồn thú gây ra bị hạ.
-// Kiểm thử bổ sung #121 (issue121Test; BOT_ONLY=issue121, nhóm 3 của BOT_PART): bán hồn hoàn đang hấp thụ, trận hòa / hết lượt thưởng
+// Kiểm thử bổ sung #121 (issue121Test; BOT_ONLY=issue121, nhóm 6 của BOT_PART): bán hồn hoàn đang hấp thụ, trận hòa / hết lượt thưởng
 // Đại Đấu Hồn Trường và server tự ngắt client đã ghép nhưng còn ở bản đồ.
 // Boss thế giới ở Lõi Tinh Đấu (BĐ6e, #118, loiTinhDauTest; BOT_ONLY=world): chạy sau phần tạo bot C (vài phút đầu vẫn chạy) rồi
 // chỉ chạy phần boss thế giới: vòng an toàn của chiêu toàn sàn, Du Thủy lặn ra giữa hồ và nổi lên đúng chỗ đã báo.
@@ -477,9 +477,9 @@ const health=await fetch(API+"/health").then(r=>r.json()).catch(()=>({}));
 if(health.chMax===2){ await channelTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 // ---- Chia nhóm BOT_PART=1..BOT_PARTS (job bot-ram của CI chạy song song, .github/workflows/check.yml; #236). Mọi nhóm chạy phần chung
 // (A, B, 2.3b, 2.4, vào lại của A, ~80 giây trên runner CI); mỗi phần còn lại thuộc đúng một nhóm, khai báo một chỗ ở INLINE và STANDALONE
-// dưới đây. Không đặt BOT_PART thì chạy hết. Cuối mỗi lượt in dòng "⏱" (thời gian từng phần) để chia lại cho cân: mỗi nhóm ~9 phút
-// trên runner thường (~9 phút khi runner chậm). Bài mới tự tạo bot thì thêm vào STANDALONE, gắn nhóm đang nhẹ nhất theo dòng ⏱. ----
-const BOT_PARTS=4;
+// dưới đây. Không đặt BOT_PART thì chạy hết. Cuối mỗi lượt in dòng "⏱" (thời gian từng phần) để chia lại cho cân: mỗi nhóm ~7 phút
+// trên runner thường (đích ≤ ~8 phút, trần bước bot 12 phút; #684). Bài mới tự tạo bot thì thêm vào STANDALONE, gắn nhóm đang nhẹ nhất theo dòng ⏱. ----
+const BOT_PARTS=6;
 // Khối nằm trong luồng A / B hay bot C (dùng state của các bot đó nên không tách ra được): khóa -> nhóm.
 const INLINE={
   ab1:1,  // ~325 giây: 2.5a–2.5d (bot E), BĐ5, 3.2
@@ -536,45 +536,45 @@ const STANDALONE=[
   ["cold",1,coldTest],                        //  18 #163 Cực Hàn
   ["ink",1,inkTest],                          //   6 #175 Phun Mực che tầm nhìn
   ["boneSub",1,boneSubTest],                  //   3 #187 dòng phụ hồn cốt
-  ["split",1,splitTest],                      // ~42 #173 hang chia phần luân phiên (đo ở máy)
-  ["arena",2,arenaTest],                      //  96 7.2, 9.7 Đại Đấu Hồn Trường
-  ["friend",2,friendTest,true],               // ~40 #195 bạn bè và chặn (đo ở máy)
-  ["chuong3",2,chapter3Test],                 // ~18 #284 chương 3 Hải Thần Đảo (đo ở máy)
+  ["split",5,splitTest],                      // ~42 #173 hang chia phần luân phiên (đo ở máy)
+  ["arena",3,arenaTest],                      //  96 7.2, 9.7 Đại Đấu Hồn Trường
+  ["friend",5,friendTest,true],               // ~40 #195 bạn bè và chặn (đo ở máy)
+  ["chuong3",5,chapter3Test],                 // ~18 #284 chương 3 Hải Thần Đảo (đo ở máy)
   ["bag",4,async()=>{ bagSyncPure(); await shopBuybackTest(); await charBagCmdTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); }], // 127 #215, 9.8; E1 trang bị hồn sư; E2 rơi đồ; E3 cường hóa; E4 hợp thành / phân giải
-  ["luck",3,gearLuckTest],                    //  ~12 #662 khắc may mắn bằng Thần Hồn (tách khỏi nhóm bag để nhóm 4 không vượt 12 phút)
-  ["sell",3,sellTest],                        //   5 #216
-  ["gm",3,gmTest,true],                       //  ~15 #518 lệnh GM: người không quyền bị từ chối, admin (hook gmadmin) chạy đúng, lệnh sai, preset (#663 vào bot khói)
-  ["google",3,googleTest],                    //  ~1 #612 đăng nhập Google (bộ kiểm giả GAME_TEST): chọn tên, liên kết, trùng tên, vé giả
-  ["looks2",3,looks2Test],                    //   2 #509 Looks v2 (preset / lpc)
-  ["looks3",3,looks3Test],                    //  ~8 #511 đổi ngoại hình ở thợ may: miễn phí lần đầu, tốn Hồn Tệ lần sau
-  ["shardBuy",3,shardBuyTest],                //  ~8 #282 Thương hội đổi mảnh võ hồn (đo ở máy)
-  ["tong",3,tongTest],                        //   9 #196 tông môn
+  ["luck",6,gearLuckTest],                    //  ~12 #662 khắc may mắn bằng Thần Hồn (tách khỏi nhóm bag, #684)
+  ["sell",5,sellTest],                        //   5 #216
+  ["gm",5,gmTest,true],                       //  ~15 #518 lệnh GM: người không quyền bị từ chối, admin (hook gmadmin) chạy đúng, lệnh sai, preset (#663 vào bot khói)
+  ["google",5,googleTest],                    //  ~1 #612 đăng nhập Google (bộ kiểm giả GAME_TEST): chọn tên, liên kết, trùng tên, vé giả
+  ["looks2",5,looks2Test],                    //   2 #509 Looks v2 (preset / lpc)
+  ["looks3",5,looks3Test],                    //  ~8 #511 đổi ngoại hình ở thợ may: miễn phí lần đầu, tốn Hồn Tệ lần sau
+  ["shardBuy",5,shardBuyTest],                //  ~8 #282 Thương hội đổi mảnh võ hồn (đo ở máy)
+  ["tong",6,tongTest],                        //   9 #196 tông môn
   ["fog",2,fogTest,true],                     //  ~40 R8 #435 sương mù khám phá: đánh dấu, lưu, theo bản đồ, dữ liệu lạ, lệnh GM (đo ở máy)
   ["rally",2,rallyTest],                      //  ~40 R6 #433 dấu "Tập trung ở đây" của tổ đội: đặt, đồng đội nhận, người ngoài không, spam, hết hạn
   ["flag",2,flagTest],                        //  ~60 R4 #431 tự đi tới cờ: cùng bản đồ, xuyên cổng, bị chặn (đo ở máy)
-  ["waypoint",4,waypointTest],                //  45 11.2
+  ["waypoint",5,waypointTest],                //  45 11.2
   ["camp",3,campTest],                        //   9 #111
-  ["bigmap",1,bigMapTest],                    //  78 11.3 / 11.5
-  ["view",3,syncViewTest],                    //   8 11.4
-  ["quest",3,questTest],                      //  31 6.2
-  ["chuong2",3,chapter2Test],                // 106 #189, #256 chương 2 Sử Lai Khắc Thất Quái
-  ["daily",3,dailyTest],                      //  18 khảo hạch hằng ngày
-  ["resonance",3,resonanceTest],              //  20 8.2
-  ["issue121",3,issue121Test],                //  55 #121 hồn hoàn đang hấp thụ, hòa / hết lượt thưởng, ngắt kết nối sau ghép
-  ["chat",3,chatTest,true],                   //  ~8 #188 chat tổ đội / riêng / thế giới (đo ở máy)
+  ["bigmap",5,bigMapTest],                    //  78 11.3 / 11.5
+  ["view",5,syncViewTest],                    //   8 11.4
+  ["quest",6,questTest],                      //  31 6.2
+  ["chuong2",6,chapter2Test],                // 106 #189, #256 chương 2 Sử Lai Khắc Thất Quái
+  ["daily",6,dailyTest],                      //  18 khảo hạch hằng ngày
+  ["resonance",6,resonanceTest],              //  20 8.2
+  ["issue121",6,issue121Test],                //  55 #121 hồn hoàn đang hấp thụ, hòa / hết lượt thưởng, ngắt kết nối sau ghép
+  ["chat",5,chatTest,true],                   //  ~8 #188 chat tổ đội / riêng / thế giới (đo ở máy)
   ["auto",4,autoTest],                        // 145–190 Auto 1
-  ["autoBoss",4,autoBossTest],                //  55 #218
-  ["egg",4,eggTest],                          //  12 #162 bọc trứng Vạn Chu Phệ
-  ["fusion",4,fusionTest],                    //  13 #192 Võ Hồn Dung Hợp Kỹ
-  ["tide",4,tideTest],                        //  10 #174 Thủy Triều Dâng
-  ["cheat",4,cheatTest],                      //  11 #164 chống gian lận 1
-  ["offline",4,offlineTest],                  //  12 Auto 3
-  ["ground",4,groundTest],                    //  12 #161
-  ["cheat2",4,cheatBagTest],                  //  12 #165 chống gian lận 2
-  ["partyBuff",4,partyBuffTest,true],         //  10 9.1
-  ["partyEffect",4,partyEffectExpansionTest,true], // 11 #114
-  ["supportContrib",4,supportContribTest,true],    // 13 9.2
-  ["copyParty",4,copyPartyTest,true],         //  11 9.3
+  ["autoBoss",5,autoBossTest],                //  55 #218
+  ["egg",6,eggTest],                          //  12 #162 bọc trứng Vạn Chu Phệ
+  ["fusion",6,fusionTest],                    //  13 #192 Võ Hồn Dung Hợp Kỹ
+  ["tide",6,tideTest],                        //  10 #174 Thủy Triều Dâng
+  ["cheat",6,cheatTest],                      //  11 #164 chống gian lận 1
+  ["offline",6,offlineTest],                  //  12 Auto 3
+  ["ground",6,groundTest],                    //  12 #161
+  ["cheat2",6,cheatBagTest],                  //  12 #165 chống gian lận 2
+  ["partyBuff",6,partyBuffTest,true],         //  10 9.1
+  ["partyEffect",6,partyEffectExpansionTest,true], // 11 #114
+  ["supportContrib",6,supportContribTest,true],    // 13 9.2
+  ["copyParty",6,copyPartyTest,true],         //  11 9.3
 ];
 // BOT_PART=smoke (mức "smoke" của CI, job `changes`): chỉ phần chung (đăng nhập, vào bản đồ, di chuyển, đánh quái, túi / nhân vật, tin giao diện cơ bản)
 // cộng các bài độc lập nhẹ ở SMOKE dưới đây, ~2 phút trên runner CI. Không khối INLINE nào chạy ở chế độ này.
@@ -610,8 +610,8 @@ function finish(){
 // chạy trong bot đầy đủ): đo tick khi nhiều bot tự săn cùng đánh một boss thế giới (server PERF_LOG=1).
 // Bọc trứng Vạn Chu Phệ (#162, eggTest; BOT_ONLY=egg chỉ chạy phần này): đẻ đủ bọc, phá thì không nở, để nguyên thì
 // nở đúng số nhện con, giới hạn nhện con còn sống, thú vương bị hạ thì bọc tan.
-// Chương 2 Sử Lai Khắc Thất Quái (#189, chapter2Test, nhóm 3 của BOT_PART; BOT_ONLY=chuong2): dữ liệu chuỗi, mở sau tân thủ, nhận / trả bài 1, lưu qua lần vào lại.
-// Chương 3 Hải Thần Đảo (#284, chapter3Test, nhóm 2 của BOT_PART; BOT_ONLY=chuong3): dữ liệu chuỗi, NPC / Thánh địa, mở sau chương 2, sự kiện theo bản đồ, world, đi hết 8 bài.
+// Chương 2 Sử Lai Khắc Thất Quái (#189, chapter2Test, nhóm 6 của BOT_PART; BOT_ONLY=chuong2): dữ liệu chuỗi, mở sau tân thủ, nhận / trả bài 1, lưu qua lần vào lại.
+// Chương 3 Hải Thần Đảo (#284, chapter3Test, nhóm 5 của BOT_PART; BOT_ONLY=chuong3): dữ liệu chuỗi, NPC / Thánh địa, mở sau chương 2, sự kiện theo bản đồ, world, đi hết 8 bài.
 // Võ Hồn Dung Hợp Kỹ (#192, fusionTest; BOT_ONLY=fusion chỉ chạy phần này): hai bot cùng tổ đội tung, nổ ở điểm
 // giữa, tốn hồn lực, hồi chiêu; từng lý do từ chối; hết giờ hủy không tốn; đóng góp tinh anh chia đôi.
 // Thủy Triều Dâng của Thâm Hải Ma Kình Vương (#174, tideTest; BOT_ONLY=tide): vùng ngập luân phiên đổi chỗ mỗi đợt,
@@ -6970,7 +6970,7 @@ async function tongWeekTest(){
   }
 }
 /**
- * #282 Thương hội Thiên Đấu đổi mảnh võ hồn (bot riêng M; BOT_ONLY=shardbuy, nhóm 3): giá tăng dần, chỉ mảnh SR / SSR (không UR, không Lam
+ * #282 Thương hội Thiên Đấu đổi mảnh võ hồn (bot riêng M; BOT_ONLY=shardbuy, nhóm 5): giá tăng dần, chỉ mảnh SR / SSR (không UR, không Lam
  * Ngân Thảo, mã lạ), đứng xa / NPC khác bị từ chối, mua 1 / mua N, thiếu Hồn Tệ / thiếu chỗ từ chối hết, bấm dồn không vượt trần hay sai
  * giá, hết lượt, số đã đổi lưu DB (hook claims) và còn sau khi vào lại, sang ngày mới (hook day) thì đặt lại.
  */
@@ -8744,7 +8744,7 @@ async function partyTest(C){
 }
 
 /**
- * Chương 2 "Sử Lai Khắc Thất Quái" (#189, phần 1 và #256 phần 2; BOT_ONLY=chuong2, nhóm 3 của BOT_PART): dữ liệu chuỗi (9 bài, NPC Triệu Vô Cực ở Thiên Đấu
+ * Chương 2 "Sử Lai Khắc Thất Quái" (#189, phần 1 và #256 phần 2; BOT_ONLY=chuong2, nhóm 6 của BOT_PART): dữ liệu chuỗi (9 bài, NPC Triệu Vô Cực ở Thiên Đấu
  * Thành, mục tiêu trỏ tới bản đồ / NPC có thật, không thưởng mảnh UR, khớp sự kiện elite / king / party); server giữ tiến độ nhiều chuỗi:
  * chương 2 chỉ mở sau tân thủ, tiến độ tân thủ không đổi; nhận / trả bài 1 (đặt chân tới Thiên Đấu Thành, nói chuyện với Phất Lan Đức)
  * và lưu qua lần vào lại; phần 2: sự kiện elite / king / party và đi hết 9 bài.
@@ -8835,7 +8835,7 @@ async function chapter2Test(){
 }
 
 /**
- * Chương 3 "Hải Thần Đảo" (#284, phần 1; BOT_ONLY=chuong3, nhóm 2 của BOT_PART): dữ liệu chuỗi (8 bài, Hải Mã Đấu La ở Bến Hải Thần,
+ * Chương 3 "Hải Thần Đảo" (#284, phần 1; BOT_ONLY=chuong3, nhóm 5 của BOT_PART): dữ liệu chuỗi (8 bài, Hải Mã Đấu La ở Bến Hải Thần,
  * Ba Tái Tây trong vùng an toàn Thánh địa Hải Thần, Hải Mã Đấu La trong vùng an toàn nhỏ ở trại, thưởng hợp lệ không mảnh UR, đủ SHARD_UNLOCK mảnh Nhu Cốt Thố); mở sau chương 2;
  * sự kiện talk / elite / king lọc theo bản đồ, `world` chỉ tính boss thế giới; đi hết 8 bài, tiến độ hai chuỗi cũ không đổi, lưu qua
  * lần vào lại. #285: chỉ bài 8 thưởng hồn cốt Thâm Hải Ma Kình đúng BossDef.years; túi thiếu một ô cho hồn cốt thì từ chối, giữ
@@ -10494,7 +10494,7 @@ async function partyEffectExpansionTest(){
 }
 
 /**
- * Chat tổ đội, tin riêng, kênh thế giới (#188), chat tông (#198; BOT_ONLY=chat, nhóm 3 của BOT_PART): `chat {text, ch?, to?}`, thiếu
+ * Chat tổ đội, tin riêng, kênh thế giới (#188), chat tông (#198; BOT_ONLY=chat, nhóm 5 của BOT_PART): `chat {text, ch?, to?}`, thiếu
  * `ch` là chat bản đồ như cũ; tổ đội / riêng / thế giới / tông tới người ở bản đồ khác (qua presence); người nhận phải đang trong game;
  * thế giới chặn dưới WORLD_CHAT.minLevel và 1 tin / WORLD_CHAT.cdSecs giây; tông chỉ tới người cùng tông, chưa có tông thì báo; chống
  * spam riêng từng kênh; giá trị lạ bị bỏ qua. Phần xuyên kênh cùng bản đồ ở channelTest (CHANNEL_MAX=2).

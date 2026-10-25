@@ -85,6 +85,6 @@ Quy trình worker review-only:
 - **PR worker:** worker gọi `ao review trigger` khi Ready; orchestrator chờ nền bằng [templates/cho-merge.sh](templates/cho-merge.sh) (chờ `approved` ở đúng head + CI xanh rồi `gh pr merge --squash --match-head-commit`).
 - **PR collaborator:** điều kiện spawn review-only là PR không nháp, có "Review: đạt" (đọc `comments` **và** `reviews`) với SHA khớp head. Mẫu prompt review-only đã dùng cho hai PR đo hiệu năng của một collaborator: [templates/prompt-mau.md](templates/prompt-mau.md) (mục 4).
 - **Danh mục soát của repo:** đúng phạm vi issue; luật chơi chỉ ở server, số cân bằng chỉ ở `shared/data.ts`; trường đồng bộ mới khai báo ở `schema.ts`; bảng / cột mới qua `server/sql/00N_*.sql` chạy lại an toàn + cập nhật cả `PgStore` lẫn `MemoryStore`; ghi DB một người chơi qua `this.chain`; PR đổi SQL / `db.ts` thì reviewer vẫn tự chạy `npm run bot:local -- --only <nhóm> --pg`; PR đổi giao diện phải có ảnh trước / sau.
-- **Bot RAM:** reviewer đọc CI `bot-ram` (4 nhóm) thay vì chạy lại.
+- **Bot RAM:** reviewer đọc CI `bot-ram` (6 nhóm) thay vì chạy lại.
 - **Ví dụ vòng sửa (PR UI-3):** review AO tìm 2 lỗi + 3 gợi ý trên một PR của worker không nhận tin nữa → orchestrator spawn worker mới `--claim-pr 367` với danh sách lỗi cụ thể theo `file:dòng` (đọc `gh pr view 367 --comments` và `gh api repos/<OWNER>/<REPO>/pulls/367/comments`).
 - **Ví dụ kết quả review-only:** tác giả ghi "Review: đạt" khớp head, CI 8/8 xanh; worker đọc diff, đọc CI, `gh pr review --comment` với dòng `Head đã review: <sha>`; orchestrator merge.

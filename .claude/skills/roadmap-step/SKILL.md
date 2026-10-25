@@ -22,7 +22,7 @@ Mỗi gạch đầu dòng ở `ROADMAP.md` (mục 7) là **một** lần giao vi
 
 ## 3. Kiểm tra
 1. `npm run check` (hook PostToolUse cũng tự chạy `tools/check.mjs --hook` sau mỗi lần sửa; lỗi thì sửa ngay).
-2. Bot ở máy bằng `npm run bot:local -- --only <nhóm>` hoặc `--part 1..4` (server mới bật `GAME_TEST=1`, cổng trống, tự dọn; tối đa 2 lượt cùng lúc trên máy). Bot đầy đủ để job CI `bot-ram` chạy mỗi push. Đổi SQL / `db.ts` thì thêm `--pg`.
+2. Bot ở máy bằng `npm run bot:local -- --only <nhóm>` hoặc `--part 1..6` (server mới bật `GAME_TEST=1`, cổng trống, tự dọn; tối đa 2 lượt cùng lúc trên máy). Bot đầy đủ để job CI `bot-ram` chạy mỗi push. Đổi SQL / `db.ts` thì thêm `--pg`.
 3. Đọc output: dòng ✗ là lỗi thật, ⚠ là phần bị bỏ qua; xem log server (`ci-logs/local-*-server.log`) không có lỗi. Đổi luật kênh thì chạy thêm `npm run bot:local -- --channels`.
 4. Luồng / message mới: thêm kiểm tra vào `client/scripts/bot-test.mjs`; luồng khó dựng bằng bot thì thêm `op` cho hook `test` gọi đúng hàm luật chơi (chỉ chạy khi `GAME_TEST=1`), không viết luật riêng cho bot.
 5. Đổi giao diện: `npm run dev:client`, mở `http://localhost:5173/choi/` (game; `/` là landing) thử bằng tay (chuột, phím, chạm).

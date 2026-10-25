@@ -65,7 +65,7 @@ Làm lần lượt; mỗi bước có chi tiết ở file ghi bên phải.
 | Lệnh `ao`, nhịp kiểm tra, `cho-merge.sh` | Toàn bộ | Tên project / đường dẫn worktree trong script |
 | Nhãn, Project, "Review: đạt" + SHA | Cơ chế | Trường Project `Giai đoạn`, `Bước lộ trình`, `Chủ` |
 | Review AO / review-only | Toàn bộ | Danh mục soát (server-authoritative, `shared/data.ts`) |
-| `check` / hook / CI | Cấu trúc 2 job (kiểm tĩnh + kiểm hành vi) | `bot:local`, `bot-ram` 4 nhóm, PostgreSQL chung |
+| `check` / hook / CI | Cấu trúc 2 job (kiểm tĩnh + kiểm hành vi) | `bot:local`, `bot-ram` 6 nhóm, PostgreSQL chung |
 | Bot chập chờn | Quy trình tái hiện / đối chứng / chờ theo state | Bảng nguyên nhân cụ thể của `bot-test.mjs` |
 | Skill | Khung `SKILL.md`, cách viết | 11 skill game (balance, anti-cheat, asset…) |
 | Ảnh | Quy trình duyệt 2–3 phương án, hàng đợi 1 job / lần | ComfyUI + LoRA pixel-art-xl, isometric 32×16 |
