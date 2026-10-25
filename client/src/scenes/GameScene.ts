@@ -28,6 +28,7 @@ import { findPath, findLongPath, buildNav, type Nav } from "../../../shared/path
 import { autoLeg, AUTO_STOP } from "../../../shared/autowalk.ts";
 import { getFlag, setFlag, patchFlag, bindFlagBar, mapName } from "../autowalk.ts";
 import { RALLY } from "../../../shared/data.ts";
+import { newGoal, stepGoal, type ClickGoal } from "../../../shared/clickgoal.ts";
 import { rallyLeft } from "../../../shared/rally.ts";
 import { addRally, pruneRallies, getRallies } from "../rally.ts";
 import { Crowd, lpcPreloader, type CrowdMap } from "../crowd.ts";
@@ -332,7 +333,7 @@ export class GameScene extends Phaser.Scene {
    * cách tới điểm đang đi và lúc kiểm tra gần nhất để dừng khi bị chặn.
    */
   autoLine: number[] = [];
-  goal: { x: number; y: number; path: Pt[]; i: number; d: number; t: number; auto?: boolean } | null = null;
+  goal: ClickGoal | null = null;
   /** Tự đi tới cờ (R4): đồ thị dẫn đường của bản đồ (dựng khi cần), khoảng cách tốt nhất tới đích và lúc cải thiện cuối, lúc xin qua cổng, lúc tính đường kế. */
   flagNav: Nav | null = null; flagLine: number[] = []; flagBest = Infinity; flagBestT = 0; flagCross = 0; flagPlanT = 0; flagDailyT = 0;
   grid: SolidGrid | null = null;    // lưới ô chặn của bản đồ (shared/move.ts): dự đoán chuyển động, tìm đường khi bấm chuột
@@ -913,10 +914,7 @@ export class GameScene extends Phaser.Scene {
     if (getFlag()?.on) this.flagStop(AUTO_STOP.moved);
     const at = this.pred?.pos ?? this.room.state.players.get(this.me);
     if (!at) return;
-    const path = this.grid ? findPath(this.grid, at, w) : [w];
-    if (!path.length) { this.goal = null; return; }
-    const end = path[path.length - 1];
-    this.goal = { x: end.x, y: end.y, path, i: 0, d: Infinity, t: this.time.now };
+    this.goal = newGoal(this.grid, at, w, this.time.now);
   }
 
   // ---------- Tự đi tới cờ (R4 #431, mục 5.17) ----------
@@ -1102,19 +1100,17 @@ export class GameScene extends Phaser.Scene {
     if (!sx && !sy && getFlag()?.on) this.flagTick(); // cờ: chọn chặng / đặt `this.goal`, nhánh dưới lái theo goal như khi bấm chuột
     if (sx || sy) { this.goal = null; if (getFlag()?.on) this.flagStop(AUTO_STOP.moved); } // phím / cần điều khiển thắng điểm bấm và cờ
     else if (this.goal) {
-      // Bấm để đi tới: lái về từng điểm của đường A*; tới điểm cuối, hoặc nửa giây không gần thêm điểm đang đi tới (bị chặn: hồn thú,
-      // người khác không có trong lưới ô chặn) thì dừng. Lái theo vị trí dự đoán (đi trước như server sẽ tính); tắt dự đoán thì theo
+      // Bấm để đi tới: lái về từng điểm của đường A* (shared/clickgoal.ts); bị chặn tạm (hồn thú, choáng, đẩy lùi) thì tính lại đường,
+      // kẹt thật mới dừng và báo lý do. Lái theo vị trí dự đoán (đi trước như server sẽ tính); tắt dự đoán thì theo
       // vị trí server, không theo hình đang nội suy.
       // Coi là tới điểm khi còn cách dưới quãng đi một khung (chạy nhanh, khung thưa thì một bước dài hơn GOAL_NEAR: không lắc qua lại).
       const at = this.pred?.pos ?? this.room.state.players.get(this.me), g = this.goal, me = this.room.state.players.get(this.me);
       const near = Math.max(GOAL_NEAR, (me ? (this.pred ? stepSpeed(me, walk) : me.spd) : 0) * this.game.loop.delta / 1000);
-      let wp = g.path[g.i], dx = wp.x - (at?.x ?? wp.x), dy = wp.y - (at?.y ?? wp.y), L = Math.hypot(dx, dy);
-      while (L < near && g.i < g.path.length - 1) {
-        wp = g.path[++g.i]; dx = wp.x - (at?.x ?? wp.x); dy = wp.y - (at?.y ?? wp.y); L = Math.hypot(dx, dy); g.d = Infinity; g.t = this.time.now;
-      }
-      if (L < near) this.goal = null;
-      else if (this.time.now - g.t > 500) { if (L > g.d - 2) this.goal = null; else { g.d = L; g.t = this.time.now; } }
-      if (this.goal) { x = dx / L; y = dy / L; }
+      const beasts: Pt[] = []; this.room.state.beasts.forEach((b: any) => beasts.push(b));
+      const held = !!me && PLAYER_STATUS.some((s) => STATUS[s].noMove && (me.st & statusBit(s)));
+      const r = stepGoal(g, { at: at ?? g, near, now: this.time.now, held, grid: this.grid, beasts });
+      if (r.end) { this.goal = null; if (r.end === "blocked") hud.log("Đường đi bị chặn, dừng lại.", "#ffb35c"); }
+      else if (r.dir) { x = r.dir.x; y = r.dir.y; }
     }
     const key = `${x.toFixed(2)},${y.toFixed(2)},${walk}`;
     if (this.pred?.resend) this.lastInput = ""; // server đã tự dừng hướng đi (hook thử goto): gửi lại hướng đang giữ với số mới
@@ -2906,7 +2902,11 @@ export class GameScene extends Phaser.Scene {
       this.teleG.fillStyle(0x1a1020, 0.35).fillEllipse(s.x, s.y, w, w / 2);
     }
     // Điểm đang đi tới (bấm để đi): vòng nhỏ nhấp nháy trên mặt đất.
-    if (this.goal) { this.teleG.lineStyle(1, 0xfff2b0, 0.6 + 0.3 * Math.sin(time / 120)); strokeGround(this.teleG, this.goal.x, this.goal.y, 5); }
+    if (this.goal) {
+      const gx = this.goal.dest?.x ?? this.goal.x, gy = this.goal.dest?.y ?? this.goal.y, k = Math.sin(time / 120);
+      this.teleG.lineStyle(1.5, 0xfff2b0, 0.65 + 0.3 * k); strokeGround(this.teleG, gx, gy, 5 + k);
+      if (!this.goal.auto) { this.teleG.lineStyle(1, 0xfff2b0, 0.4); strokeGround(this.teleG, gx, gy, 9 - 2 * k); }
+    }
     // Cờ đã đặt ở bản đồ này (R4): vòng cam lớn hơn trên mặt đất, nhấp nháy khi đang tự đi.
     const fl = getFlag();
     if (fl && fl.map === this.mapId && fl.tx !== null && fl.ty !== null) { this.teleG.lineStyle(2, 0xff9a3c, fl.on ? 0.6 + 0.35 * Math.sin(time / 150) : 0.8); strokeGround(this.teleG, fl.tx * TILE, fl.ty * TILE, 9); strokeGround(this.teleG, fl.tx * TILE, fl.ty * TILE, 3); }

@@ -865,6 +865,11 @@ export const beastMelee = (tier: number, rooted = false) => TIERS[tier].size / 2
  * xét tối đa `maxNodes` ô; không tới được thì đi tới ô tới được gần điểm bấm nhất.
  */
 export const CLICK_PATH = { maxTiles: 40, maxNodes: 8000 };
+/**
+ * Bấm để đi không bỏ dở khi bị chặn tạm (M4 #749): `stallMs` không gần điểm đang đi tới thêm thì tính lại A* từ chỗ đứng (ô có hồn thú
+ * đứng là vật cản mềm); `giveUpMs` bị kẹt liên tục chừng này (không tính lúc bị khống chế: choáng, trói, băng) mới bỏ và báo lý do.
+ */
+export const CLICK_GOAL = { stallMs: 500, giveUpMs: 2000 };
 
 // ---------- Chiêu có báo trước của hồn thú (mục 5.3, 5.4; bước 3.5, mọi số đã chốt) ----------
 /** Hình vùng: vệt (đường thẳng dài `r`, rộng `w`), nón (quạt bán kính `r`, góc `arc` độ), vòng (tròn bán kính `r`). */

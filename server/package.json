@@ -17,6 +17,7 @@
     "test:static-cache": "tsx scripts/static-cache-test.ts",
     "test:radar": "tsx scripts/radar-test.ts",
     "test:autopath": "tsx scripts/autopath-test.ts",
+    "test:clickgoal": "tsx scripts/clickgoal-test.ts",
     "test:looks-migrate": "tsx scripts/looks-migrate-test.ts",
     "test:gm": "tsx scripts/gm-test.ts",
     "test:seed": "tsx scripts/seed-test.ts",
