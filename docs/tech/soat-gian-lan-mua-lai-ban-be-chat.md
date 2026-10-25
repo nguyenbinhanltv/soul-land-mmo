@@ -14,8 +14,8 @@ Ngày soát 2026-10-26, trên `main` tại `40f342b5`.
 | 5a | `friends.add` dồn tên lạ: mỗi tên một truy vấn DB | **Chặn đúng**: 10 truy vấn rồi ≤ 1 / giây | Thấp |
 | 5b | Dò tên tài khoản qua phản hồi thêm bạn | **Dò được** (có chủ ý, thêm theo tên); tin riêng không lộ | Thấp |
 | 5c | Tin chat biên (120 ký tự, 60 emoji), xuống dòng / tab | Đúng | — |
-| 5d | Ký tự điều khiển / đổi chiều văn bản / độ rộng 0 trong chat | **Qua nguyên vẹn tới người nhận** | Thấp → #817 |
-| 5e | Tài khoản đặt tên "Hệ thống" giả tin hệ thống | **Giả được** (client tô xanh theo tên) | Vừa → #818 |
+| 5d | Ký tự điều khiển / đổi chiều văn bản / độ rộng 0 trong chat | **Qua nguyên vẹn tới người nhận** | Thấp → #817 (đã sửa) |
+| 5e | Tài khoản đặt tên "Hệ thống" giả tin hệ thống | **Giả được** (client tô xanh theo tên) | Vừa → #818 (đã sửa) |
 | 5f | Chat `tong` khi chưa có tông | Từ chối, không phát cho ai | — |
 
 Lỗi thật đã tách issue sửa riêng, không sửa `MapRoom.ts` trong PR này (#804 / #806 đang merge).
@@ -45,13 +45,13 @@ Sửa: ghi khóa `travel` vào presence cùng chỗ `leftRoom.set` và xóa ở 
 
 ## 5. Bạn bè / chat
 
-**Bài bot** `BOT_ONLY=socialaudit` (`socialAuditTest`; tài khoản riêng "Soat A / O / Off / V", không dùng chung với bài khác; chạy `npm run bot:local -- --only socialaudit`). Hai dòng không tách issue riêng cho Thấp có chủ ý (5a, 5b) nằm trong bài như kiểm bắt buộc; ba dòng lỗi thật in `⚠ biết lỗi #N` (không làm trượt) tới khi sửa xong, rồi đổi sang `ok`.
+**Bài bot** `BOT_ONLY=socialaudit` (`socialAuditTest`; tài khoản riêng "Soat A / O / Off / V", không dùng chung với bài khác; chạy `npm run bot:local -- --only socialaudit`). Hai dòng không tách issue riêng cho Thấp có chủ ý (5a, 5b) nằm trong bài như kiểm bắt buộc; hai dòng lỗi thật (5d, 5e) đã sửa nên nay là kiểm bắt buộc (`ok`).
 
 - **5a. `friends.add` dồn.** `friendAction` tính một lượt `friendCheck` (burst `FRIEND_BURST` = 10, hồi 1 / giây) **trước** khi tra tên (`store.findAccount`, một truy vấn có chỉ mục `accounts_name_key_idx` + `EXISTS vohons`). Bài gửi 40 tên lạ liền: 10 lần tra DB trả "không có hồn sư", 30 lần chặn "quá nhanh" trước khi tra. Giới hạn theo **tài khoản**, không theo IP: nhiều tài khoản thì nhân lên, nhưng tạo tài khoản đã bị `signup` giới hạn theo IP. Truy vấn nhẹ nên mức Thấp; nếu cần siết, tính lượt "tên không có" riêng (ví dụ 3 / phút).
 - **5b. Dò tên.** Thêm bạn theo tên không có: "Không có hồn sư nào tên …"; có thật (kể cả ngoại tuyến): "Đã thêm … vào danh sách bạn bè". Dò được tên tài khoản (đã thức tỉnh), bị chặn bởi 5a. Có chủ ý (thêm bạn theo tên ngoại tuyến là tính năng #195). Tin riêng **không** lộ: tài khoản ngoại tuyến và tên không tồn tại cùng một câu "không trong game".
 - **5c. Chat biên.** Quá 120 ký tự bị từ chối, 60 emoji (120 đơn vị) tới nơi nguyên vẹn, xuống dòng / tab gộp thành dấu cách; loại kênh / người nhận / nội dung lạ (object, mảng, `null`) đã có bài ở `chatTest`.
-- **5d. Ký tự điều khiển (#817).** `chatText` chỉ gộp `\s+`. NUL, BEL, ESC, U+202E (đổi chiều văn bản) tới người nhận nguyên vẹn; tin toàn U+200B thành dòng chat trống nhìn thấy được. Client dùng `textContent` (`hud.ts`, `chatEl`) nên không có XSS; hậu quả là chữ đảo chiều, dòng trống. Sửa ở `ratelimit.ts`.
-- **5e. "Hệ thống" (#818).** Tên tài khoản chỉ qua `NAME_RE`, không có tên cấm. Tài khoản "Hệ thống" nói trong chat bản đồ thì client tô xanh như tin hệ thống thật. Tái hiện bằng bot (người xem nhận `name: "Hệ thống"`). Sửa: danh sách tên cấm khi tạo tài khoản.
+- **5d. Ký tự điều khiển (#817).** `chatText` chỉ gộp `\s+`. NUL, BEL, ESC, U+202E (đổi chiều văn bản) tới người nhận nguyên vẹn; tin toàn U+200B thành dòng chat trống nhìn thấy được. Client dùng `textContent` (`hud.ts`, `chatEl`) nên không có XSS; hậu quả là chữ đảo chiều, dòng trống. **Đã sửa:** `chatText` bỏ `CHAT_STRIP` (điều khiển C0 trừ tab / xuống dòng, DEL, độ rộng 0, đổi chiều văn bản) trước khi gộp khoảng trắng; tin rỗng sau khi lọc bị bỏ như tin rỗng.
+- **5e. "Hệ thống" (#818).** Tên tài khoản chỉ qua `NAME_RE`, không có tên cấm. Tài khoản "Hệ thống" nói trong chat bản đồ thì client tô xanh như tin hệ thống thật. Tái hiện bằng bot (người xem nhận `name: "Hệ thống"`). **Đã sửa:** `RESERVED_NAMES` (`shared/data.ts`) kiểm bằng `isReservedName` (`names.ts`: bỏ dấu, hoa/thường, dấu cách, `_`; so nguyên cụm nên "Admin2" vẫn được) ở `/api/login` (chỉ khi tên chưa có tài khoản) và `/api/login/google/create`, trả 400. **Tài khoản cũ trùng tên cấm vẫn đăng nhập và giữ nguyên tên** (không đổi tên tự động); nếu cần gỡ thì đổi tên thủ công bằng lệnh GM. Danh sách chỉ chặn tên MỚI nên không cần migration `name_key`.
 - **5f. Chat `tong` khi chưa có tông.** `chatAction` báo "chưa thuộc tông môn" riêng người gửi, không phát tin (đã có thêm ở `chatTest`; bài này kiểm lại người khác không nhận).
 
 ## Danh sách đã đọc
