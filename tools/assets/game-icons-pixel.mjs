@@ -1,6 +1,7 @@
 // Biểu tượng pixel từ game-icons.net (CC BY 3.0, ghi tác giả từng icon ở art/CREDITS.md, #625), không dùng AI, không phụ thuộc thư viện:
 //   node tools/assets/game-icons-pixel.mjs --import <thư mục icons-master>   chép đúng các SVG trong map vào art/src/game-icons/svg/
-//   node tools/assets/game-icons-pixel.mjs [--out <thư mục>] [--only <key,key>] [--preview <thư mục>]
+//   node tools/assets/game-icons-pixel.mjs [--only <key,key>]   vẽ vào shared/assets/sprites/iso/{item,gi}/ và thêm key còn thiếu vào manifest.json
+//   node tools/assets/game-icons-pixel.mjs --out <thư mục> [--preview <thư mục>]   vẽ phẳng vào <thư mục> (không đụng manifest), kèm trang xem trước
 //   node tools/assets/game-icons-pixel.mjs --credits   in các dòng CREDITS (tác giả, giấy phép, link) của mọi icon trong map
 // Map `art/src/game-icons/icons.json`: { "icons": [{ "key", "src": "<tác giả>/<tên>", "col": "#rrggbb", "frame": "round|square|none", "size": 32|48,
 //   "fit": số điểm cạnh tối đa của hình chính (mặc định 20 khi có khung, 28 khi không), "compare": "key sprite hiện có để so (chỉ trang xem trước)" }] }.
@@ -9,14 +10,14 @@
 // cùng kiểu skill-icon (nền tối pha màu, vòng màu hệ). Mỗi icon tối đa 5 màu (3 sắc độ + viền + nền khung), không còn màu nào ngoài `col`.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { encodePng, hex, Img, OUTLINE, ROOT } from "./lib.mjs";
+import { encodePng, hex, Img, MANIFEST, OUTLINE, ROOT, SPRITES } from "./lib.mjs";
 
 const SRC_DIR = path.join(ROOT, "art", "src", "game-icons");
-const SVG_DIR = path.join(SRC_DIR, "svg");
+const SVG_DIR = path.join(SRC_DIR, "svg"), ISO = path.join(SPRITES, "iso");
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const flag = (n) => { const i = args.indexOf(n); if (i >= 0) args.splice(i, 1); return i >= 0; };
-const importDir = opt("--import", ""), outDir = opt("--out", path.join(ROOT, "shared", "assets", "sprites", "iso", "gi")), only = opt("--only", ""), preview = opt("--preview", "");
+const importDir = opt("--import", ""), outDir = opt("--out", ""), only = opt("--only", ""), preview = opt("--preview", "");
 const credits = flag("--credits");
 
 const map = JSON.parse(readFileSync(path.join(SRC_DIR, "icons.json"), "utf8"));
@@ -152,18 +153,31 @@ function render(def, polys) {
   return img;
 }
 
-mkdirSync(outDir, { recursive: true });
+/** Key `item_<mã>` → iso/item/, key `gi_<tên>` → iso/gi/ (sheetSpec trong lib.mjs); có --out thì ghi phẳng. */
+const fileOf = (key) => outDir ? path.join(outDir, `${key}.png`)
+  : key.startsWith("item_") ? path.join(ISO, "item", `${key.slice(5)}.png`) : path.join(ISO, "gi", `${key.replace(/^gi_/, "")}.png`);
 const done = [];
 for (const def of sel) {
   const file = path.join(SVG_DIR, `${def.src}.svg`);
   if (!existsSync(file)) { console.error(`Thiếu ${file}; chạy --import trước.`); process.exit(1); }
   const png = encodePng(render(def, loadSvg(file)));
-  writeFileSync(path.join(outDir, `${def.key}.png`), png);
+  mkdirSync(path.dirname(fileOf(def.key)), { recursive: true });
+  writeFileSync(fileOf(def.key), png);
   done.push(def);
 }
-console.log(`Đã vẽ ${done.length} biểu tượng vào ${outDir}`);
+console.log(`Đã vẽ ${done.length} biểu tượng${outDir ? ` vào ${outDir}` : ""}`);
+if (!outDir) { // đăng ký key còn thiếu (đường dẫn suy ra từ key, sheetSpec)
+  const man = JSON.parse(readFileSync(MANIFEST, "utf8")), have = new Set(man.sprites.map((e) => e.key));
+  const add = done.filter((d) => !have.has(d.key));
+  if (add.length) { // chèn văn bản ở cuối mảng để giữ nguyên định dạng cả file
+    const raw = readFileSync(MANIFEST, "utf8"), eol = raw.includes("\r\n") ? "\r\n" : "\n", end = raw.lastIndexOf(`${eol}  ]`);
+    const text = add.map((d) => `    {${eol}      "key": "${d.key}",${eol}      "iso": true${eol}    }`).join(`,${eol}`);
+    writeFileSync(MANIFEST, `${raw.slice(0, end)},${eol}${text}${raw.slice(end)}`);
+    console.log(`Manifest: thêm ${add.length} key`);
+  }
+}
 
-if (preview) {
+if (preview && outDir) {
   mkdirSync(preview, { recursive: true });
   const groups = new Map();
   for (const d of done) { if (!groups.has(d.group)) groups.set(d.group, []); groups.get(d.group).push(d); }

@@ -18,7 +18,7 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
-import { artImg, artUrl, skillImg, tintedUrl } from "./uiArt.ts";
+import { artImg, artUrl, chanThanImg, fusionImg, skillImg, tintedUrl } from "./uiArt.ts";
 import { toggleChar, setPanel } from "./charPanel.ts";
 import { panelChanged, swapButton } from "./dualWindow.ts";
 import { setTip, tipOf, hideTip, parseText, type TipLine, type TipSpec } from "./tooltip.ts";
@@ -313,18 +313,19 @@ let lastMp = 0; // hồn lực hiện tại (updateStats ghi), để ô dung h�
 let slotCd: number[] = [];  // hồi chiêu đầy của hồn kỹ ở từng ô (vẽ lớp phủ hồi chiêu trong updateStats)
 let avaDef: ChanThanDef | null = null; // Võ Hồn Chân Thân của võ hồn ra trận (nút R), null = võ hồn chưa có
 /** Hồn kỹ Chân Thân (9.6) hiện ở nút P khi đang biến hình; null = võ hồn chưa có Chân Thân. */
-interface SlotView { name: string; icon: string; col: string; label: string; tip: TipSpec | string; cost: number; cd: number; tier: number; locked?: boolean }
+interface SlotView { name: string; icon: string; art: string; col: string; label: string; tip: TipSpec | string; cost: number; cd: number; tier: number; locked?: boolean }
 let ctSlot: SlotView | null = null;
 let pSlot: SlotView | null = null; // nội dung gốc của nút P (để trả lại khi hết Chân Thân)
 /** Tráo nút P giữa hồn kỹ đang mang và hồn kỹ Chân Thân (class `ct`: viền vàng). Chỉ hiển thị; server quyết định ô P tung gì. */
 function setCtSlot(b: HTMLElement, on: boolean) {
   const sp = b.querySelectorAll<HTMLElement>("span");
-  if (on) pSlot = { name: sp[1].textContent ?? "", icon: sp[0].textContent ?? "", col: sp[0].style.color, label: b.getAttribute("aria-label") ?? "",
+  if (on) pSlot = { name: sp[1].textContent ?? "", icon: sp[0].textContent ?? "", art: sp[0].classList.contains("skart") ? sp[0].innerHTML : "", col: sp[0].style.color, label: b.getAttribute("aria-label") ?? "",
     tip: cellBase.get(b) ?? "", cost: Number(b.dataset.cost), cd: Number(b.dataset.cdfull), tier: Number(b.dataset.tier ?? -1), locked: b.classList.contains("locked") };
   const v = on ? ctSlot : pSlot; if (!v) return;
   b.classList.toggle("ct", on); b.classList.toggle("locked", !on && !!v.locked);
   b.dataset.cool = "0"; // đổi nội dung ô không phải "vừa hồi xong" (paintCell không nháy .ready)
-  sp[0].textContent = v.icon; sp[0].style.color = v.col; sp[1].textContent = v.name;
+  if (v.art) sp[0].innerHTML = v.art; else sp[0].textContent = v.icon;
+  sp[0].classList.toggle("skart", !!v.art); sp[0].style.color = v.col; sp[1].textContent = v.name;
   b.dataset.cost = String(v.cost); b.dataset.cdfull = String(v.cd);
   if (v.tier >= 0) b.dataset.tier = String(v.tier); else delete b.dataset.tier;
   b.setAttribute("aria-label", v.label); setCellTip(b, v.tip);
@@ -370,11 +371,11 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
         sub: `Vòng ${CHAN_THAN_RING} · biến hình ${avaDef.secs} giây · tốn ${avaDef.cost} hồn lực · hồi ${avaDef.cd} giây`,
         lines: [avaDef.desc + ".", `Khi biến hình, ô ${SKILL_KEYS[CHAN_THAN_SKILL_SLOT]} thành ${avaDef.skill.name}.`,
           ...(has ? [{ k: `Hồn hoàn ${y.toLocaleString("vi-VN")} năm`, v: chanThanText(st), tone: "gem" as const }] : [])],
-        foot: has ? undefined : `Mở khi có hồn hoàn thứ ${CHAN_THAN_RING}.` }, has ? rings[ri] : -1, avaDef.cost, avaDef.cd);
+        foot: has ? undefined : `Mở khi có hồn hoàn thứ ${CHAN_THAN_RING}.` }, has ? rings[ri] : -1, avaDef.cost, avaDef.cd, chanThanImg(id));
     el.lastElementChild!.classList.add("ava");
     // Hồn kỹ Chân Thân (9.6): nút P đổi sang hồn kỹ này khi đang biến hình (updateStats tráo nội dung, viền vàng).
     const s = avaDef.skill;
-    ctSlot = { name: s.name, icon: s.icon, col: has ? TIERS[rings[ri]].glow : "#666", label: `Hồn kỹ Chân Thân: ${s.name}`, cost: s.cost, cd: s.cd, tier: has ? rings[ri] : -1,
+    ctSlot = { name: s.name, icon: s.icon, art: chanThanImg(id, true), col: has ? TIERS[rings[ri]].glow : "#666", label: `Hồn kỹ Chân Thân: ${s.name}`, cost: s.cost, cd: s.cd, tier: has ? rings[ri] : -1,
       tip: { title: s.name, color: has ? TIERS[rings[ri]].glow : undefined, sub: `Hồn kỹ Chân Thân · thay ô ${SKILL_KEYS[CHAN_THAN_SKILL_SLOT]} khi biến hình · tốn ${s.cost} hồn lực · hồi ${cdText(s.cd)} giây`,
         lines: [s.desc + ".", ...(has ? [{ k: "Sức mạnh", v: `×${skillPower(y).toFixed(2).replace(".", ",")}`, tone: "gem" as const },
           { k: `Hồn hoàn vòng ${CHAN_THAN_RING}`, v: `${y.toLocaleString("vi-VN")} năm`, tone: "muted" as const }] : [])] } };
@@ -388,7 +389,7 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
       + `. Bấm để mời đồng đội gần nhất; đồng đội bấm ${FUSION_KEY} trong ${cdText(FUSION.window)} giây thì chiêu nổ ở điểm giữa hai người.`
       + ` Đứng cách nhau dưới ${FUSION.r} pixel, mỗi người tốn ${FUSION.cost} hồn lực, hồi ${FUSION.cd} giây (của hồn sư: đổi võ hồn không làm mới).`;
     mk(FUSION_KEY, `Võ Hồn Dung Hợp Kỹ: ${fus.map((f) => f.name).join(" / ")}${has ? "" : " (khóa)"}`, has ? "Dung hợp" : `Vòng ${FUSION.minRings}`,
-      has ? VOHON[vh].col : "#666", "fusion", fus[0].icon, !has, undefined, has ? tip : { ...parseText(tip), foot: `Cần ít nhất ${FUSION.minRings} hồn hoàn.` }, -1, FUSION.cost, FUSION.cd);
+      has ? VOHON[vh].col : "#666", "fusion", fus[0].icon, !has, undefined, has ? tip : { ...parseText(tip), foot: `Cần ít nhất ${FUSION.minRings} hồn hoàn.` }, -1, FUSION.cost, FUSION.cd, fusionImg(fus[0].name));
     fusBtn = el.lastElementChild as HTMLElement; fusBtn.classList.add("fus");
     fusLabel = fusBtn.querySelectorAll("span")[1];
   }
@@ -429,7 +430,9 @@ export function setFusionPending(p: { k: "ask" | "wait"; i: number; who: string;
   el.classList.toggle("ask", ask);
   el.innerHTML = `<div class="ft"></div><small class="left" aria-hidden="true"></small><div class="bar" aria-hidden="true"><i></i></div>${ask ? `<button type="button">Dung hợp<kbd>${FUSION_KEY}</kbd></button>` : ""}`;
   const f = FUSIONS[fusPend.i];
-  el.querySelector(".ft")!.textContent = `${f.icon} Dung hợp kỹ ${f.name}`;
+  const fart = fusionImg(f.name, "fart");
+  el.querySelector(".ft")!.textContent = `${fart ? "" : `${f.icon} `}Dung hợp kỹ ${f.name}`;
+  if (fart) el.querySelector(".ft")!.insertAdjacentHTML("afterbegin", fart);
   el.querySelector(".ft")!.appendChild(document.createElement("small")).textContent = ask ? `${fusPend.who} mời hưởng ứng` : `Chờ ${fusPend.who} hưởng ứng`;
   // pointerdown cho chuột / chạm (nhanh, như nút cổng); click cho bàn phím / trình đọc màn hình. fusionOp chặn gửi hai lần.
   const btn = el.querySelector("button");
@@ -861,7 +864,7 @@ function renderLoadout(el: HTMLElement, data: OwnedVohons, act: RosterActions, a
     const b = document.createElement("button"); b.type = "button"; b.className = "kcard" + (at >= 0 ? " on" : "") + (open ? "" : " locked") + (ct ? " ava" : "");
     b.style.setProperty("--c", open ? ringColor(tiers[r]) : "#666");
     b.innerHTML = `<i class="ico"></i><span><b></b><small></small></span>`;
-    const kart = s ? skillImg(id, r) : "";
+    const kart = s ? skillImg(id, r) : chanThanImg(id);
     if (kart) { b.querySelector("i")!.insertAdjacentHTML("afterbegin", kart); b.classList.add("skart"); } else b.querySelector("i")!.textContent = (s ?? ct)!.icon;
     b.querySelector("b")!.textContent = `${r + 1}. ${(s ?? ct)!.name}`;
     b.querySelector("small")!.textContent = ct ? `Võ Hồn Chân Thân · phím ${AVA_KEY}${open ? "" : ` · cần hồn hoàn thứ ${r + 1}`}`

@@ -8906,6 +8906,322 @@
         104
       ],
       "iso": true
+    },
+    {
+      "key": "gi_ct_cuu_tinh_that_sat_kiem",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_lam_dien_ba_vuong_long",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_ky_nhung_thong_thien_cuc",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_ta_hoa_phuong_hoang",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_u_minh_linh_mieu",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_nguyet_nhan",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_hoa_long",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_nhu_cot_tho",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_kim_vu_mieu_ung",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_tu_vong_chu_hoang",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_bich_lan_xa_hoang",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_can_khon_hon_nguyen_toa",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_hoa_anh",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_yeu_ho",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_xuc_xich",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_quy_mi",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_thien_can_bach_ngoc_dinh",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_lam_ngan_thao",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_hao_thien_chuy",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_cuu_bao_luu_ly_thap",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_pha_hon_thuong",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_a_ngan",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_liet_hoa_thuong_lang",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_bang_phuong_hoang",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_bach_ho",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_cuu_tinh_that_sat_kiem",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_lam_dien_ba_vuong_long",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_ky_nhung_thong_thien_cuc",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_ta_hoa_phuong_hoang",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_u_minh_linh_mieu",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_nguyet_nhan",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_hoa_long",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_nhu_cot_tho",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_kim_vu_mieu_ung",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_tu_vong_chu_hoang",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_bich_lan_xa_hoang",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_can_khon_hon_nguyen_toa",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_hoa_anh",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_yeu_ho",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_xuc_xich",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_quy_mi",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_thien_can_bach_ngoc_dinh",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_lam_ngan_thao",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_hao_thien_chuy",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_cuu_bao_luu_ly_thap",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_pha_hon_thuong",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_a_ngan",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_liet_hoa_thuong_lang",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_bang_phuong_hoang",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_bach_ho",
+      "iso": true
+    },
+    {
+      "key": "gi_fusion_yeu_nguyet",
+      "iso": true
+    },
+    {
+      "key": "gi_fusion_hao_thien_nhu_cot",
+      "iso": true
+    },
+    {
+      "key": "gi_fusion_loi_doc_song_sat",
+      "iso": true
+    },
+    {
+      "key": "gi_fusion_bang_hoa_luong_nghi",
+      "iso": true
+    },
+    {
+      "key": "gi_fusion_u_minh_bach_ho",
+      "iso": true
+    },
+    {
+      "key": "item_da_cuong_hoa_1",
+      "iso": true
+    },
+    {
+      "key": "item_da_cuong_hoa_2",
+      "iso": true
+    },
+    {
+      "key": "item_da_cuong_hoa_3",
+      "iso": true
+    },
+    {
+      "key": "item_da_cuong_hoa_4",
+      "iso": true
+    },
+    {
+      "key": "item_da_cuong_hoa_5",
+      "iso": true
+    },
+    {
+      "key": "item_bua_ho_menh",
+      "iso": true
+    },
+    {
+      "key": "item_tinh_hoa_duong_mon",
+      "iso": true
+    },
+    {
+      "key": "item_than_hon",
+      "iso": true
+    },
+    {
+      "key": "gi_menu_char",
+      "iso": true
+    },
+    {
+      "key": "gi_menu_roster",
+      "iso": true
+    },
+    {
+      "key": "gi_menu_bag",
+      "iso": true
+    },
+    {
+      "key": "gi_menu_reso",
+      "iso": true
+    },
+    {
+      "key": "gi_menu_settings",
+      "iso": true
+    },
+    {
+      "key": "gi_menu_auto",
+      "iso": true
+    },
+    {
+      "key": "gi_menu_channel",
+      "iso": true
+    },
+    {
+      "key": "gi_menu_area",
+      "iso": true
+    },
+    {
+      "key": "gi_menu_world",
+      "iso": true
+    },
+    {
+      "key": "gi_menu_friends",
+      "iso": true
+    },
+    {
+      "key": "gi_menu_rank",
+      "iso": true
+    },
+    {
+      "key": "gi_menu_quest",
+      "iso": true
+    },
+    {
+      "key": "gi_menu_chat",
+      "iso": true
+    },
+    {
+      "key": "gi_menu_arena",
+      "iso": true
+    },
+    {
+      "key": "gi_menu_shop",
+      "iso": true
+    },
+    {
+      "key": "gi_menu_forge",
+      "iso": true
     }
   ]
 }

@@ -148,6 +148,7 @@ body.touch #mapviewHelp{display:none}
 #portal .danger{display:block;color:var(--son);margin-top:3px}
 #portal button,#wpbox button,#fusion button{margin-top:6px;font:inherit;font-size:12px;font-family:var(--f12);padding:5px 14px;border:1px solid var(--accent);background:var(--wash2);color:var(--text);cursor:pointer}
 #portal button.danger{border-color:var(--son-d)}
+#fusion .fart{width:24px;height:24px;vertical-align:middle;margin-right:6px;image-rendering:pixelated}
 #portal kbd,#wpbox kbd,#fusion kbd{font:inherit;font-size:10px;font-family:var(--f10);color:var(--muted);border:1px solid var(--line);padding:0 4px;margin-left:4px}
 body.touch :is(#portal,#wpbox){bottom:196px}
 /* Võ Hồn Dung Hợp Kỹ (#193): lời nhắc "Dung hợp [G]" có đếm ngược cho người được mời (nút chạm được), hoặc "chờ hưởng ứng" cho người mời. */

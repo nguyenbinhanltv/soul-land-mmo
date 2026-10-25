@@ -418,7 +418,7 @@ export function sheetSpec(key, frame, iso = false, stat = false) {
     if ((m = key.match(/^lpc_([a-z0-9_]+)$/))) return spec(`iso/lpc/${m[1]}.png`, isoLayout("honsu"), { kind: "lpc" });
     // Hiệu ứng (lpc-item.mjs): dải một hàng khung vuông `frame` (manifest ghi), giữ màu gốc của gói như chân dung.
     if ((m = key.match(/^fx_([a-z0-9_]+)$/)) && frame && frame[0] === frame[1]) return { file: `iso/fx/${m[1]}.png`, frame, kind: "fx", iso: true };
-    if (!/^(portrait|prop|npc|item|status|he|ui|card|thu|skill)_/.test(key)) return null; // chân dung, vật đứng, NPC, vật phẩm, trạng thái, hệ, giao diện, chân dung hồn thú, biểu tượng hồn kỹ: luôn isometric, khớp ở dưới
+    if (!/^(portrait|prop|npc|item|status|he|ui|card|thu|skill|gi)_/.test(key)) return null; // chân dung, vật đứng, NPC, vật phẩm, trạng thái, hệ, giao diện, chân dung hồn thú, biểu tượng hồn kỹ: luôn isometric, khớp ở dưới
   }
   if ((m = key.match(/^hs_((?:body|outfit|hair)_([mf]_\d+))$/))) return { file: `honsu/${m[1]}.png`, frame: [HS_FRAME, HS_FRAME], size: [HS_FRAME * SHEET_COLS, HS_FRAME * SHEET_ROWS], kind: "honsu", set: m[2] };
   if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return { file: `vohon/${m[1]}.png`, frame: [VH_FRAME, VH_FRAME], size: [VH_FRAME * SHEET_COLS, VH_FRAME * SHEET_ROWS], kind: "vohon" };
@@ -432,7 +432,8 @@ export function sheetSpec(key, frame, iso = false, stat = false) {
   if ((m = key.match(/^he_([a-z_]+)$/))) return { file: `iso/he/${m[1]}.png`, size: [ISO_HE_ICON, ISO_HE_ICON], kind: "portrait", iso: true, he: m[1] };
   if ((m = key.match(/^card_(sr|ssr|ur)$/))) return { file: `iso/ui/the_${m[1]}.png`, size: ISO_CARD, kind: "portrait", iso: true };
   if ((m = key.match(/^ui_(?!the_)([a-z0-9_]+)$/))) return { file: `iso/ui/${m[1]}.png`, kind: "portrait", iso: true };
-  if ((m = key.match(/^item_([a-z_]+)$/))) return { file: `iso/item/${m[1]}.png`, size: [ISO_ITEM_ICON, ISO_ITEM_ICON], kind: "portrait", iso: true, item: m[1] };
+  if ((m = key.match(/^gi_([a-z0-9_]+)$/))) return { file: `iso/gi/${m[1]}.png`, size: [ISO_SKILL_ICON, ISO_SKILL_ICON], kind: "portrait", iso: true }; // game-icons.net (#625): Chân Thân, dung hợp, menu HUD
+  if ((m = key.match(/^item_([a-z0-9_]+)$/))) return { file: `iso/item/${m[1]}.png`, size: [ISO_ITEM_ICON, ISO_ITEM_ICON], kind: "portrait", iso: true, item: m[1] };
   if ((m = key.match(/^npc_([a-z_]+)$/))) return { file: `iso/npc/${m[1]}.png`, size: [ISO_NPC_PORTRAIT, ISO_NPC_PORTRAIT], kind: "portrait", iso: true, npc: m[1] };
   if ((m = key.match(/^thu_([a-z_]+)$/))) return { file: `iso/thu/${m[1]}.png`, size: [ISO_BEAST_PORTRAIT, ISO_BEAST_PORTRAIT], kind: "portrait", iso: true, beast: m[1] };
   if ((m = key.match(/^skill_([a-z_]+)_(\d)$/))) return { file: `iso/skill/${m[1]}_${m[2]}.png`, size: [ISO_SKILL_ICON, ISO_SKILL_ICON], kind: "portrait", iso: true, skill: m[1] };
