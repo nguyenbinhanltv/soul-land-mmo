@@ -125,7 +125,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   PLAYER_SPEED, RUN_MULT, BEAST_GAIT, BEAST_LEASH, TICK_RATE,
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, CAMP_PT_GAP, shopOf, shopExpands,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, parseSell, autoSellable } from "../../shared/data.ts";
-import { LOOKS_CHANGE, looksChangeCost, BAG_MSG_BURST, BAG_MSG_RATE } from "../../shared/data.ts"; // L4 #511
+import { LOOKS_CHANGE, looksChangeCost, BAG_MSG_BURST, BAG_MSG_RATE, MSG_GROUP, MSG_HARD, MSG_FLOOD_CODE } from "../../shared/data.ts"; // L4 #511
 import { RADAR, RALLY, MAPS as RALLY_MAPS } from "../../shared/data.ts"; // R5 (#432): bán kính lọc tin mini; R6 (#433): dấu tập trung
 import { rallyUpsert, rallyPrune } from "../../shared/rally.ts";
 import { FOG } from "../../shared/data.ts"; import { fogDims, fogCount, fogGet, fogCellOf, fogBytes, fogValid } from "../../shared/fog.ts"; import { loadMap } from "../../server/src/map.ts"; // R8 (#435): sương mù khám phá
@@ -992,6 +992,17 @@ async function cheatTest(){
   ok(sorted>=1&&sorted<=BAG_MSG_BURST+BAG_MSG_RATE*2,`server chỉ xử lý ${sorted}/200 tin sortbag (trần ${BAG_MSG_BURST} dồn + ${BAG_MSG_RATE}/giây)`);
   await sleep(1100); const lg1=X.logs.length; X.room.send("sortbag"); await waitFor(()=>X.logs.length>lg1,2000);
   ok(X.logs.length>lg1,"hết dồn, token hồi lại: tin sortbag tiếp theo vẫn được xử lý");
+  // Giới hạn tin theo nhóm + trần tuyệt đối (#734): dồn tin mua bán / đọc dữ liệu bị bỏ phần dư (không ngắt); dồn quá trần tuyệt đối thì ngắt.
+  const countSell=async(type,payload,n)=>{ const l0=X.logs.length; for(let k=0;k<n;k++) X.room.send(type,payload); await sleep(800); return X.logs.length-l0; };
+  const trade=await countSell("sell",{id:999999,qty:1,npc:"khong_co"},200);
+  ok(trade>=1&&trade<=MSG_GROUP.trade.burst+MSG_GROUP.trade.rate*2&&X.leftCode===null,`dồn 200 tin sell: server chỉ xử lý ${trade} (trần ${MSG_GROUP.trade.burst} dồn + ${MSG_GROUP.trade.rate}/giây), không ngắt`);
+  await sleep(1100); { const l1=X.logs.length; X.room.send("sell",{id:999999,qty:1,npc:"khong_co"}); await waitFor(()=>X.logs.length>l1,2000); ok(X.logs.length>l1,"hết dồn, token hồi lại: tin sell tiếp theo vẫn được xử lý"); }
+  { let got=0; const h=()=>{got++;}; X.room.onMessage("shardinfo",h); for(let k=0;k<200;k++) X.room.send("shardinfo"); await sleep(800);
+    ok(got>=1&&got<=MSG_GROUP.read.burst+MSG_GROUP.read.rate*2&&X.leftCode===null,`dồn 200 tin shardinfo: server chỉ trả ${got} (trần ${MSG_GROUP.read.burst} dồn + ${MSG_GROUP.read.rate}/giây), không ngắt`); }
+  { const F=await bot("Dồn tin F","bich_lan_xa_hoang",{sex:0,hair:0,hairCol:0,outfitCol:0}); // bot riêng: bị ngắt không ảnh hưởng các bài sau
+    try{ await test(F,"baglimit",{on:1}); const n=MSG_HARD.burst+MSG_HARD.strikes+300; for(let k=0;k<n;k++) F.room.send("input",{x:0,y:0}); await waitFor(()=>F.leftCode!==null,3000);
+      ok(F.leftCode===MSG_FLOOD_CODE&&await alive(),`dồn ${n} tin input: vượt trần tuyệt đối, server ngắt kết nối người gửi (mã ${F.leftCode}), phòng vẫn chạy`);
+    } finally { await Promise.race([F.room.leave().catch(()=>{}),sleep(1000)]); } }
   await test(X,"baglimit",{on:0}); // các bài sau dọn túi hàng loạt: tắt lại
   for(let k=0;k<5;k++) X.room.send("test",{op:"throw"}); // lỗi bất ngờ trong handler (hook): chỉ ghi log
   await sleep(300);

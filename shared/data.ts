@@ -195,6 +195,26 @@ export const ASK_CD = 0.25;
 export const BAG_MSG_BURST = 30;
 export const BAG_MSG_RATE = 10;
 /**
+ * Giới hạn tin theo nhóm (#734, mở rộng #677): mỗi kết nối một bộ đếm token cho mỗi nhóm (`burst` tin dồn, hồi `rate` tin / giây); hết
+ * token thì server BỎ tin, không ngắt. `bag` = nhóm ghi túi (BAG_MSG_*); `trade` = mua bán (mỗi tin ghi DB / Redis); `social` = tổ
+ * đội, tông môn, đấu trường, đổi kênh, đổi đội hình; `read` = xin dữ liệu. Hằng kỹ thuật, người chơi thật bấm nhanh vẫn rất dư.
+ */
+export const MSG_GROUP = {
+  bag: { burst: BAG_MSG_BURST, rate: BAG_MSG_RATE },
+  trade: { burst: 20, rate: 6 },
+  social: { burst: 20, rate: 6 },
+  read: { burst: 40, rate: 20 },
+} as const;
+export type MsgGroup = keyof typeof MSG_GROUP;
+/**
+ * Trần tuyệt đối mọi loại tin của một kết nối (Colyseus 0.16 không có `maxMessagesPerSecond`, nên room tự đếm): `input` 20–60 Hz,
+ * `attack` / `target` giữ phím vẫn lọt xa dưới `rate`. Vượt `burst` thì bỏ tin; bỏ quá `strikes` tin liên tiếp (không có tin nào lọt
+ * giữa chừng) thì ngắt kết nối (mã MSG_FLOOD_CODE). Kích thước tin: `maxPayload` ở server/src/index.ts.
+ */
+export const MSG_HARD = { burst: 240, rate: 120, strikes: 400 } as const;
+export const MSG_FLOOD_CODE = 4008;
+export const MSG_MAX_PAYLOAD = 4096;
+/**
  * Đồng bộ theo vùng gần (11.4, mục 6 "Đồng bộ xuống client"). Hằng kỹ thuật, không phải số cân bằng (đặt ở đây cho server và bot dùng
  * chung). Mỗi client chỉ nhận hồn thú thường, đồ rơi, hồn sư khác cách mình dưới `r` pixel thế giới, bỏ khi xa quá `out` (chênh nhau để
  * không vào / ra liên tục ở mép); tinh anh, thú vương, boss thế giới luôn đồng bộ. Tin `fx` / `dmg` chỉ gửi cho client cách điểm hiệu
