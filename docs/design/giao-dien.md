@@ -120,6 +120,13 @@ Lệnh bị huỷ hoặc không bật được luôn có lý do: dòng log và c
 
 **Chip trạng thái** (`client/src/cmdChip.ts`, `#cmdChip`, giữa dưới màn hình, trên nhắc nhặt đồ): hiện lệnh ưu tiên cao nhất đang chạy, nền son: "Đang đánh: <tên> ×", "Đang đi tới… ×", "Tự đi cờ ×", "Tự săn ×". Bấm × huỷ đúng lệnh đó (khoá: bỏ khoá; bấm đi: dừng; cờ: dừng tự đi, cờ còn; tự săn: gửi tắt). Khi một lệnh bị huỷ chip đổi sang nền giấy ghi lý do vài giây (`WHY_MS`) rồi ẩn. Chỉ hiển thị, không thêm số cân bằng.
 
+### Quản lý bảng và Esc (U1 #754)
+Lớp mỏng `client/src/panelStack.ts` (không khung mới, không đọc state game): theo dõi `hidden` của các bảng (Nhân vật, Túi, Đội hình, Cộng minh, Bạn bè, Thế giới, hội thoại NPC, Tự động, Cài đặt; thêm cửa nhỏ: menu người chơi, danh sách kênh, tổng kết tự săn) và giữ thứ tự **dưới → trên**: bảng vừa mở hoặc vừa bấm vào (kể cả bấm viền / khe) ở trên cùng và có lớp (`z-index`) cao nhất; `dualWindow.ts` chuyển thẻ Nhân vật / Túi cũng nâng bảng trong ngăn xếp.
+- **Esc** (`GameScene.setupInput`), thứ tự: màn đổi ngoại hình → bản đồ vùng (N) → khung chat đang mở → **bảng trên cùng (chỉ một bảng mỗi lần nhấn)** → bỏ khoá mục tiêu (M3). Có bảng mở thì Esc không đụng khoá; hết bảng thì Esc bỏ khoá như cũ. Ô nhập đang focus: Esc rời ô rồi mới đến bước trên.
+- **Bấm xuyên:** Phaser còn nghe `mousedown` ở cấp window nên `pointerdown` của scene chỉ xử lý khi `downElement` là canvas; bấm vào bảng / nút HUD không `walkTo`, không khoá hồn thú, không chọn người chơi, kể cả khi trạng thái "chuột trên canvas" của Phaser còn cũ.
+- **Phím:** mở một bảng (không tính cửa nhỏ) thì nhả phím đang giữ và dừng cần điều khiển; phím đang giữ gửi `keydown` lặp bị bỏ tới khi nhả rồi bấm lại. Tiêu điểm đang ở trong bảng: **Tab** xoay vòng trong bảng (không đổi mục tiêu), **Space / Enter** thuộc nút đó khi tiêu điểm do bàn phím (`:focus-visible`); nút vừa bấm chuột không tính nên Space vẫn đánh.
+- Không đổi thứ tự ưu tiên lệnh M5 và thẻ hướng dẫn M6; kiểm thử `npm run test:panel-browser --prefix client` (bấm 6 điểm trên bảng, bấm dưới con trỏ đứng yên, `mousedown` rơi vào bảng, bấm nền vẫn đi, Esc nhiều lớp có khoá, nhả phím, 960×540).
+
 ### Kiểm thử
 - Bot nhóm `bag` (gồm `charbag`: lệnh `equip` / `unequip`, `equipcore` / `unequipcore`, `equipgear` / `unequipgear`, `team` / `switch` dựng từ `charBagContract`, server nhận đủ), `team`, `bone`, `core` vẫn phải qua.
 - Đổi giao diện thì chụp trước / sau (Chrome headless `--mute-audio`), thử màn ngang ≥ 960 px và điện thoại ngang.
