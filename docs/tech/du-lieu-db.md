@@ -28,6 +28,16 @@
 - `arena_ratings` (Elo, thắng / thua / hòa), `arena_pairs` (số trận mỗi cặp mỗi ngày).
 - `characters`, `inventory` (từ `001_init.sql`): bảng cũ, giữ để chuyển dữ liệu, không còn ghi.
 
+## Lưu túi chỉ ghi dòng `items` có đổi (#737)
+`PgStore.upsertItems` (gọi từ `writeBag`) có `DO UPDATE ... WHERE ... IS DISTINCT FROM` trên mọi cột được ghi: món không đổi không tạo phiên bản dòng mới (không WAL, không dead tuple). Câu `INSERT` không trả `rowCount` bằng số món nữa, nên id thuộc tài khoản khác được kiểm riêng bằng một truy vấn khóa chính. Đo bằng `BOT_PG_STATS=1 npm run bot:local -- --only <nhóm> --pg --once` (in `n_tup_upd` / `n_dead_tup` của `items` trước khi xóa database; PG chung của máy tắt autovacuum nên dead tuple cộng dồn):
+
+| Nhóm bot (--pg) | `items` upd trước → sau | `items` dead trước → sau |
+|---|---|---|
+| `bag` | 6502 → 34 | 6015 → 580 |
+| `equipsoak` | 83435 → 5030 | 3891 → 2637 |
+
+Số `ins` / `del` giữ nguyên (bag 1547 / 553). Số dead của `equipsoak` còn lại phần lớn do `DELETE` và `ver` của món đổi thật. Cấu hình pool xem `docs/ops/db-redis-sao-luu.md`.
+
 ## Tài khoản test
 - Cột `accounts.is_test`. Chủ repo dựng bằng `npm run seed:test --prefix server` (mức `max` / `giua-game` / `moi` ở `server/src/testPreset.ts`, số lấy từ `shared/data.ts`; hướng dẫn ở `docs/test-accounts.md`).
 - Chơi như tài khoản thường nhưng **ẩn khỏi mọi bảng xếp hạng** (đấu trường, cộng minh, tông tuần: cả hạng của chính nó) và **chỉ ghép Đại Đấu Hồn Trường với tài khoản test** (`ArenaMember.test`; `arenaQueue.ts` chia nhóm theo cỡ và loại).

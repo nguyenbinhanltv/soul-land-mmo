@@ -26,6 +26,8 @@ npm run dev:server
 
 Gói miễn phí của Supabase tạm dừng project sau khoảng 1 tuần không truy cập; vào dashboard bấm Restore.
 
+Pool kết nối (biến môi trường, đều tùy chọn): `PG_POOL_MAX` (số kết nối tối đa, mặc định 10) và `PG_STATEMENT_TIMEOUT_MS` (mặc định không đặt = không giới hạn; đặt thì mỗi câu lệnh quá hạn bị PostgreSQL hủy, `query_timeout` phía client lớn hơn 2 giây). Chỉ đặt khi đã có số đo cho thấy cần; một truy vấn treo giữ kết nối và chuỗi lưu của người chơi đó. Đặt `PG_STATEMENT_TIMEOUT_MS` quá thấp làm hỏng các câu lưu dài lúc đông người, nên bắt đầu từ vài chục giây.
+
 ## Migration
 Server tự tạo / cập nhật bảng mỗi lần khởi động: chạy mọi file `server/sql/*.sql` theo tên, câu lệnh chạy lại an toàn, bật Row Level Security (không tạo policy) nên Data API công khai của Supabase không đọc được dữ liệu; server kết nối bằng user `postgres`. File mới đặt tên `00N_<tên>.sql` (skill `db-migration`); không sửa file đã chạy. Đổi SQL / `db.ts` thì thử thêm bằng `npm run bot:local -- --only <nhóm> --pg` (server bật hai lần liên tiếp).
 
