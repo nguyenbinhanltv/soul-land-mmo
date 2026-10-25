@@ -57,6 +57,7 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/kenh-arena.md](docs/tech/kenh-arena.md) | 5 | Nhiều kênh; Phòng trường đấu |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/luu-tru-cong-phien.md](docs/tech/luu-tru-cong-phien.md) | 5 | Đi qua cổng và lưu vị trí; Mỗi tài khoản một phiên |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/presence-redis.md](docs/tech/presence-redis.md) | 5 | Thông báo toàn server và lịch boss |
+| 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/chong-gian-lan-khac-may-man-tong-mon.md](docs/tech/chong-gian-lan-khac-may-man-tong-mon.md) | 5 | Soát chống gian lận khắc may mắn + tông môn (#740) |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/du-lieu-db.md](docs/tech/du-lieu-db.md) | 5 | Dữ liệu trong `shared/data.ts; Dữ liệu lâu dài |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/hieu-nang-hieu-ung.md](docs/tech/hieu-nang-hieu-ung.md) | 1 |  |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/hieu-nang-soak.md](docs/tech/hieu-nang-soak.md) | 1 |  |
