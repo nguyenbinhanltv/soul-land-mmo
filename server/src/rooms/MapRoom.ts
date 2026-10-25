@@ -199,7 +199,7 @@ export interface PData {
   // Tự săn (Auto 1, mục 5.13): đang chạy (null = tắt), cài đặt, ngày (giờ Việt Nam) và số giây đã treo trong ngày đó, cờ chưa lưu
   // (bảng auto_hunt; flushAuto ghi trong chuỗi lưu cùng lần lưu thường, trước transaction đi cổng và khi dừng). `autoBonus`: giây
   // treo cộng thêm còn lại từ Ủy Thác Lệnh (Auto 2), chỉ tiêu khi đã treo hết AUTO_DAILY_SECS của hôm nay.
-  auto: AutoHunter | null; autoCfg: AutoSettings; autoDay: string; autoUsed: number; autoBonus: number; autoDirty: boolean;
+  auto: AutoHunter | null; autoCfg: AutoSettings; autoDay: string; autoUsed: number; autoBonus: number; autoDirty: boolean; autoPace: [number, number];
   // Ủy thác offline (Auto 3): bảng nhận thưởng đã tính chờ gửi (client xin bằng tin `offline` sau khi đăng ký handler, vì claimOffline
   // có thể xong trước khi client sẵn sàng nhận) và client đã xin chưa.
   offMsg: Record<string, unknown> | null; offAsk: boolean;
@@ -1156,7 +1156,7 @@ export class MapRoom extends Room<MapState> {
       chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests), ...this.tongTasksOf(bag.quests), tongBoardAt: 0, tongPend: [],
       res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, resonanceTopAt: 0, arenaGone: false,
       auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0,
-      autoBonus: auth.auto.bonus, autoDirty: false, offMsg: null, offAsk: false,
+      autoBonus: auth.auto.bonus, autoDirty: false, autoPace: [0, 0], offMsg: null, offAsk: false,
       tong: tongDef(auth.tong.tong)?.id ?? null, tongAt: auth.tong.at };
     p.tong = d.tong ? TONG_MON.findIndex((t) => t.id === d.tong) + 1 : 0;
     this.pdata.set(client.sessionId, d);
@@ -1653,7 +1653,9 @@ export class MapRoom extends Room<MapState> {
     const grid = this.interest.players, cell = grid.cellOf(p.x, p.y);
     let n = 0; for (const o of this.pdata.values()) if (o.auto && grid.cellOf(o.auto.anchor.x, o.auto.anchor.y) === cell) n++;
     if (n >= AUTO_MAX_PER_CELL) return deny(`chỗ này đã có ${n} người treo, hãy sang chỗ khác.`);
-    d.auto = new AutoHunter(this, id, { x: p.x, y: p.y }, d.autoCfg); p.auto = true; d.autoSold0 = [d.soldN, d.soldCoins];
+    d.auto = new AutoHunter(this, id, { x: p.x, y: p.y }, d.autoCfg); p.auto = true;
+    // Nợ nhịp (AUTO_PACE) còn lại của lượt trước, giảm theo thời gian thật: tắt rồi bật lại không xóa nợ (lách trần tốc độ tự săn).
+    d.auto.pace = Math.max(0, d.autoPace[0] - (Date.now() - d.autoPace[1]) / 1000); d.autoSold0 = [d.soldN, d.soldCoins];
     // Đang giữ phím đi thì bỏ hướng đó và tăng `seq` (như hook goto) để client đang dự đoán biết input của nó đã bị bỏ và gửi lại;
     // gửi lại hướng khác 0 là tự di chuyển nên tự săn tắt ngay (tay ưu tiên).
     if (Math.hypot(d.input.x, d.input.y) > MOVE_DEAD) { p.seq = (p.seq + 1) >>> 0; p.seqT = 0; }
@@ -1671,7 +1673,7 @@ export class MapRoom extends Room<MapState> {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!d?.auto) return;
     const sum = d.auto.summary(d), sold: [number, number] = [d.soldN - d.autoSold0[0], d.soldCoins - d.autoSold0[1]];
     if (sold[0] > 0) sum.sold = sold; // tự bán trong lượt (#216); Hồn Tệ đã nằm trong sum.coins
-    d.auto = null; if (p) p.auto = false;
+    d.autoPace = [d.auto.pace, Date.now()]; d.auto = null; if (p) p.auto = false;
     this.applyInput(d, 0, 0, false);
     d.autoDirty = true; this.chain(d, () => this.flushAuto(d));
     this.log(id, `Đã dừng tự động: ${why}`, "#ffb35c");

@@ -5733,6 +5733,10 @@ async function autoTest(){
     await test(A,"goto",home); await test(A,"clear");
     await autoOp(A,"set",{cfg:{...NEAR,years:[10,200],slots:[]}});
     m=await autoOp(A,"on"); await test(A,"auto",{pace:4});
+    // Chống lách trần tốc độ: tắt rồi bật lại tự săn không xóa nợ nhịp.
+    await test(A,"auto",{pace:30}); await autoOp(A,"off"); m=await autoOp(A,"on"); info=await test(A,"auto");
+    ok(m?.on&&info?.pace>20,`tắt rồi bật lại tự săn: nợ nhịp còn ${info?.pace?.toFixed(1)} giây (không về 0)`);
+    await test(A,"auto",{pace:4});
     const pb=(await test(A,"spawn",{tier:0,dx:40,dy:0,years:15}))?.bid;
     await quiet(()=>false,2000,[pb]); info=await test(A,"auto");
     ok(m?.on&&pb&&info?.pace>0&&info.target!==pb&&A.room.state.beasts.has(pb),`còn nợ nhịp ${info?.pace?.toFixed(1)} giây: đứng nghỉ, chưa nhắm hồn thú mới (mục tiêu ${info?.target})`);
