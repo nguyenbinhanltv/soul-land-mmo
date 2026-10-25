@@ -9,7 +9,7 @@ Dữ liệu người chơi nằm ở PostgreSQL. Luật lưu (chuỗi lưu nối
 | Dev / thử | PostgreSQL ở máy (`docker compose up -d`) hoặc **Supabase = DB test** | quay ảnh, đo FPS, thử migration |
 | Prod | PostgreSQL trong cụm Kubernetes (`DATABASE_URL` từ Secret `soul-land-env`) | người chơi thật; **không bao giờ trỏ từ máy dev / bot** |
 
-Bot, `seed:test`, lệnh GM, đo tải: chỉ chạy ở máy hoặc DB test (`docs/ops/chay-local.md`). Supabase là DB **test** (Q39 ở `docs/quyet-dinh.md`).
+Bot, `seed:test`, đo tải: chỉ chạy ở máy hoặc DB test (`docs/ops/chay-local.md`). Lệnh GM: không đặt `ADMIN_ACCOUNTS` cho DB / server chạy bot hoặc đo tải ngoài máy mình. Supabase là DB **test** (Q39 ở `docs/quyet-dinh.md`).
 
 ## PostgreSQL bằng Docker (dev)
 ```bash

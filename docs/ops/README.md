@@ -21,6 +21,6 @@ Trang giới thiệu (landing, #656) sắp đổi route: `/` → landing, `/choi
 
 ## Luật chung cho vận hành
 - Prod là một bản, không staging; merge `main` không tự deploy (Q31 ở `docs/quyet-dinh.md`).
-- Supabase là DB **test**; prod không bao giờ trỏ từ máy dev, bot, đo tải, `seed:test`.
+- Supabase là DB **test**; prod không bao giờ trỏ từ máy dev, bot, đo tải, `seed:test` (Q39 ở `docs/quyet-dinh.md`).
 - Không ghi key / mật khẩu / giá trị Secret vào repo, issue, PR, log.
 - Worker / agent không chạy lệnh vào GCP, cụm hay repo GitOps thật.

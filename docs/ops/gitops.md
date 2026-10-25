@@ -5,7 +5,7 @@ Trạng thái triển khai của prod nằm ở repo riêng **[nguyenbinhanltv/s
 ## Repo GitOps chứa gì
 - Manifest Kustomize cho ứng dụng `soul-land`; overlay prod ở `apps/soul-land/overlays/prod/kustomization.yaml` (trường `newTag` là bản image đang chạy).
 - Cấu hình ArgoCD (tự sync khi PR được merge).
-- ConfigMap (ví dụ `GOOGLE_CLIENT_ID`, `CLIENT_ORIGIN`) và SealedSecret / Secret (`soul-land-env`: `DATABASE_URL`, `GOOGLE_TICKET_SECRET` khi cần) cùng pull secret `ar-pull` kéo image từ Artifact Registry.
+- ConfigMap (ví dụ `GOOGLE_CLIENT_ID`, `CLIENT_ORIGIN`), SealedSecret `soul-land-env` (`DATABASE_URL`) và pull secret `ar-pull` kéo image từ Artifact Registry. Khoá `GOOGLE_TICKET_SECRET` (khi nhiều pod) chủ repo thêm thẳng vào Secret trên cụm, **không** qua SealedSecret (`docs/ops/sso-google.md`).
 - Thông số pod (`terminationGracePeriodSeconds`, `preStop`, probe `/health` / `/live`) phải khớp `server/src/index.ts`: bảng ở `docs/ops/trien-khai.md`.
 
 ## Repo game chạm tới GitOps ở đâu
@@ -14,4 +14,4 @@ Trạng thái triển khai của prod nằm ở repo riêng **[nguyenbinhanltv/s
 
 ## Quy tắc cho agent / worker
 - Worker **không** chạy lệnh vào GCP, cụm hay repo GitOps thật; chỉ chủ repo (hoặc orchestrator được giao rõ) thao tác.
-- Không đặt `GAME_TEST`, `ADMIN_ACCOUNTS`, `REDIS_URL` hay `PUBLIC_ADDRESS` ở prod một bản; không trỏ bot / đo tải / `seed:test` vào DB prod.
+- Không đặt `GAME_TEST`, `REDIS_URL` hay `PUBLIC_ADDRESS` ở prod một bản (`docs/ops/trien-khai.md`); không trỏ bot / đo tải / `seed:test` vào DB prod (Q39 ở `docs/quyet-dinh.md`); không đặt `ADMIN_ACCOUNTS` cho server chạy bot hoặc đo tải ngoài máy mình.
