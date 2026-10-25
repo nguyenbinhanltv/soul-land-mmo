@@ -14,7 +14,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   absorbSecs, absorbChance, SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode, starSkillMult, starCdMult, starTienCoMult, starRing,
   BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus, boneSlotIndex,
   CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, coreSetName, coreResetFee, MAX_CORE_STARS, type CoreData,
-  CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ROLL, parseEquip, equipStats, equipDefTotal, equipWeaponRoll, equipTemplate, equipSlotIndex, equipName, equipSlotDef, rollEquip, rollEquipDrop, rollEquipCharm, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_TEMPLATES, EQUIP_TIERS, EQUIP_ESSENCE, EQUIP_SALVAGE_MAX, equipSynthStep, equipSynthOutcome, equipSalvage, equipAutoSalvageable, type EquipData, type EquipDrop,
+  CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ROLL, parseEquip, equipStats, equipDefTotal, equipWeaponRoll, equipTemplate, equipSlotIndex, equipName, equipSlotDef, rollEquip, rollEquipDrop, rollEquipCharm, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_TEMPLATES, EQUIP_TIERS, EQUIP_ESSENCE, EQUIP_SOUL, equipLuckStep, EQUIP_SALVAGE_MAX, equipSynthStep, equipSynthOutcome, equipSalvage, equipAutoSalvageable, type EquipData, type EquipDrop,
   CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, atkRoll, type CoreFx,
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed, parseBoneSubs, boneAddSubs, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee, SHARD_BUY, shardBuyCost, ARENA_SHARDS,
@@ -1097,6 +1097,8 @@ export class MapRoom extends Room<MapState> {
     this.onMessage("equipsynth", (c, m: { main: unknown; sacrifice: unknown }) => this.equipSynth(c.sessionId, m?.main, m?.sacrifice)); // hợp thành 3 → 1 (E4)
     this.onMessage("equipsalvage", (c, m: { ids: unknown }) => this.salvageEquip(c.sessionId, m?.ids)); // phân giải hàng loạt (E4)
     this.onMessage("equipenhpreview", (c, m: { id: unknown }) => this.equipEnhancePreview(c.sessionId, m?.id));
+    this.onMessage("equipluck", (c, m: { id: unknown }) => this.equipLuck(c.sessionId, m?.id)); // khắc may mắn bằng Thần Hồn ở Thợ rèn
+    this.onMessage("equipluckpreview", (c, m: { id: unknown }) => this.equipLuckPreview(c.sessionId, m?.id));
     this.onMessage("equipcore", (c, m: { itemId: unknown; vohonId: unknown; slot: unknown }) => this.equipCore(c.sessionId, m?.itemId, m?.vohonId, m?.slot));
     this.onMessage("unequipcore", (c, m: { itemId: unknown }) => this.unequipCore(c.sessionId, m?.itemId));
     this.onMessage("enhance", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceBone(c.sessionId, m?.targetId, m?.materialIds));
@@ -6319,6 +6321,60 @@ export class MapRoom extends Room<MapState> {
       if (wear) { d.gearSt = gearStats(d.gear); this.afterBones(id, d.ch); this.sendGear(id); }
       this.sendBag(id);
       if (!res.destroyed) this.equipEnhancePreview(id, it.id);
+    })).then(() => { d.enhBusy = false; d.claimBusy--; });
+  }
+
+  /**
+   * Khắc may mắn của một món: `luck` hiện tại, bước kế (`equipLuckStep`) và lý do không khắc được (`slot` ô không có may mắn, `max` món đã đạt
+   * EQUIP_LUCK_MAX, `worn` tổng hai ô đang mặc đã đạt EQUIP_LUCK_MAX). Món đang mặc tính trần theo tổng hai ô, món trong túi theo chính nó.
+   */
+  luckInfo(d: PData, it: Item, e: EquipData) {
+    const wear = it.equipSlot !== undefined, slotOk = !!equipSlotDef(equipTemplate(e.tpl)?.slot).luck, wornLuck = d.gear.reduce((n, g) => n + (parseEquip(g.stats)?.luck ?? 0), 0);
+    const step = slotOk ? equipLuckStep(e.luck, wear ? wornLuck : null) : null;
+    return { wear, step, reason: !slotOk ? "slot" : step ? null : e.luck >= EQUIP_LUCK_MAX ? "max" : "worn" };
+  }
+  /** `equipluckpreview {id}` trả "equipluckp": tỉ lệ khắc may mắn kế tiếp, số Thần Hồn đang có, lý do bị chặn. Chỉ đọc. `busy`: lệnh sắp xong gửi false (cờ `enhBusy` chưa nhả). */
+  equipLuckPreview(id: string, rawId: unknown, busy?: boolean) {
+    const d = this.pdata.get(id), c = this.clients.getById(id); if (!d || !c) return;
+    const it = this.equipOf(d, rawId), e = it ? parseEquip(it.stats) : null; if (!it || !e) return;
+    const { step, reason } = this.luckInfo(d, it, e);
+    c.send("equipluckp", { id: it.id, luck: e.luck, to: step?.to ?? null, p: step?.p ?? 0, reason, soul: this.countOf(d, EQUIP_SOUL), max: EQUIP_LUCK_MAX, busy: busy ?? d.enhBusy });
+  }
+  /**
+   * Khắc may mắn (Thợ rèn): tốn 1 Thần Hồn mỗi lần, may mắn n → n + 1 với tỉ lệ EQUIP_LUCK_UP[n] (server tung; `testEnh` chỉ có khi GAME_TEST). Thất bại
+   * mất Thần Hồn, giữ may mắn, KHÔNG phá món, không phí Hồn Tệ. Chỉ vũ khí / dây chuyền (ô `luck`). Chặn khi món đã đạt EQUIP_LUCK_MAX, món đang mặc
+   * chặn khi tổng hai ô đã đạt EQUIP_LUCK_MAX. Cùng hàng đợi / khóa / transaction ghi như cường hóa; lỗi ghi thì hoàn lại Thần Hồn và may mắn.
+   */
+  equipLuck(id: string, rawId: unknown) {
+    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
+    if (d.enhBusy) return this.log(id, "Đang xử lý lệnh Thợ rèn trước, đợi một chút.", "#ffb35c");
+    d.enhBusy = true; d.claimBusy++;
+    this.chain(d, () => this.itemLocked(id, [rawId], async () => {
+      const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); this.equipLuckPreview(id, rawId); };
+      if (d.testEnhSlow) await new Promise((r) => setTimeout(r, d.testEnhSlow));
+      const it = this.equipOf(d, rawId), e = it ? parseEquip(it.stats) : null; if (!it || !e) return warn("Không có trang bị này để khắc may mắn.");
+      const npc = this.npcNear(id, { role: "forge" }); if (!npc) return warn("Hãy lại gần Thợ rèn hơn để khắc may mắn.");
+      const lock = this.boneLock(p, d, "trang bị"); if (lock) return warn(lock.replace("gắn / tháo", "khắc may mắn"));
+      const label = this.itemLabel(it), { wear, step, reason } = this.luckInfo(d, it, e);
+      if (!step) return warn(reason === "slot" ? `${label} không khắc may mắn được (chỉ vũ khí và dây chuyền).`
+        : reason === "max" ? `${label} đã đạt may mắn tối đa ${EQUIP_LUCK_MAX}.` : `Tổng may mắn hai ô đang mặc đã đạt tối đa ${EQUIP_LUCK_MAX}.`);
+      if (this.countOf(d, EQUIP_SOUL) < 1) return warn("Không có Thần Hồn trong túi đồ.");
+      const undoSoul = this.spendItem(d, EQUIP_SOUL, 1), from = e.luck;
+      const ok = (d.testEnh ?? Math.random()) < step.p, was = it.stats;
+      if (ok) it.stats = { tpl: e.tpl, ilvl: e.ilvl, roll: e.roll, affixes: e.affixes.map(([k, v]) => [k, v]), luck: step.to };
+      d.bagDirty = true;
+      try { await store.saveBag(d.accountId, { ...this.bagSnapshot(d), lock: [{ id: it.id, enhance: it.enhance }] }); }
+      catch (err) {
+        undoSoul(); it.stats = was; d.bagDirty = true;
+        if (wear) { d.gearSt = gearStats(d.gear); this.afterBones(id, d.ch); this.sendGear(id); }
+        this.sendBag(id);
+        warn("Không lưu được lần khắc may mắn, đã hoàn lại Thần Hồn và món đồ. Thử lại sau."); throw err;
+      }
+      this.log(id, `Khắc may mắn ${equipName(e.tpl, it.enhance)} M${from} → M${from + 1}: ${ok ? "thành công" : `thất bại, giữ M${from}`} (−1 ${itemDef(EQUIP_SOUL)?.name ?? "Thần Hồn"}).`, ok ? "#9cff9c" : "#ffb35c");
+      this.clients.getById(id)?.send("equipluckd", { id: it.id, from, to: ok ? step.to : from, ok });
+      if (wear) { d.gearSt = gearStats(d.gear); this.afterBones(id, d.ch); this.sendGear(id); }
+      this.sendBag(id);
+      this.equipLuckPreview(id, it.id, false);
     })).then(() => { d.enhBusy = false; d.claimBusy--; });
   }
 

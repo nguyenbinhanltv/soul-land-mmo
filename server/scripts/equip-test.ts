@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   EQUIP_SLOTS, EQUIP_TIERS, EQUIP_TEMPLATES, EQUIP_DROP, EQUIP_MAPS, EQUIP_ENHANCE, EQUIP_SYNTH, EQUIP_MATERIALS, EQUIP_STONES, EQUIP_SALVAGE,
-  EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, KING_CHEST, WORLD_CHEST, EQUIP_ITEM, EQUIP_CHARM, BONE_PASSIVE_CAP, CORE_STATS, MAPS, ITEMS, ITEM_KINDS,
+  EQUIP_LUCK_MAX, EQUIP_LUCK_UP, equipLuckStep, EQUIP_MAX_ENHANCE, KING_CHEST, WORLD_CHEST, EQUIP_ITEM, EQUIP_CHARM, BONE_PASSIVE_CAP, CORE_STATS, MAPS, ITEMS, ITEM_KINDS,
   equipTemplate, equipEnhanceMult, equipEnhanceStep, equipEnhanceResult, equipWeaponRoll, equipStats, equipDefTotal, equipSalvage,
   rollEquip, rollEquipDrop, rollEquipCharm, itemDef, equipIconKeys, equipIconChain, equipFrameKey,
 } from "../../shared/data.ts";
@@ -75,6 +75,9 @@ test("equipStats: bộ trống, một món, chỉ số chính đúng ô, công v
   assert.ok(vk.weapon && vk.weapon.max > vk.weapon.min && vk.weapon.min >= 1);
   const mid = 30 * 2 * 0.65 * 1.05 * (1 + 0.016 * Math.pow(15, 1.5)); near((vk.weapon!.min + vk.weapon!.max) / 2, mid, 1, "công giữa vũ khí Chí Bảo +15");
   assert.equal(vk.bonus.atk, 0, "công vũ khí không nằm trong bonus"); assert.equal(vk.luck, 6);
+  // khắc may mắn: tỉ lệ theo bảng, trần món / trần tổng hai ô đang mặc
+  assert.equal(EQUIP_LUCK_UP.length, EQUIP_LUCK_MAX); assert.deepEqual(equipLuckStep(0, null), { to: 1, p: EQUIP_LUCK_UP[0] });
+  assert.equal(equipLuckStep(EQUIP_LUCK_MAX, null), null); assert.equal(equipLuckStep(2, EQUIP_LUCK_MAX), null); assert.equal(equipLuckStep(2, EQUIP_LUCK_MAX - 1)?.to, 3);
   assert.equal(equipStats([{ tpl: "vu_khi_tu_kim", ilvl: 3, luck: 7 }, { tpl: "day_chuyen_tu_kim", ilvl: 3, luck: 8 }]).luck, EQUIP_LUCK_MAX);
   assert.equal(equipStats([{ tpl: "ao_pham_khi", ilvl: 1 }, { tpl: "ao_chi_bao", ilvl: 7 }]).bonus.hp, equipStats([{ tpl: "ao_pham_khi", ilvl: 1 }]).bonus.hp, "ô trùng chỉ tính món đầu");
   assert.equal(equipStats([{ tpl: "khong_co", ilvl: 1 }]).red, 0);

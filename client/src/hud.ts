@@ -26,10 +26,10 @@ import { BAG_GROUPS, BAG_SORTS, type BagSort, inGroup, rarityOf, noteSeen, isNew
 import { type CardActionId, type DollView, type DragSession, type ServerCommand, type SlotRef, acceptsItem, cardActions, currentFor, mountCommand, quickCommand, smartTarget, unmountCommand } from "./charBagContract.ts";
 import { addZone, dragSource } from "./dragDrop.ts";
 import { cardFor, compareFor, hideCard, hideCompare, showCard, showCompare } from "./actionCard.ts";
-import { EQUIP_ITEM, equipFrameKey, equipIconChain, EQUIP_SLOTS, EQUIP_TIERS, EQUIP_MAX_TIER, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SALVAGE_MAX, EQUIP_SYNTH_KEEP, equipName, equipTemplate, equipSlotDef, equipStats, equipSynthStep, equipAutoSalvageable, parseEquip } from "../../shared/data.ts";
+import { EQUIP_ITEM, EQUIP_LUCK_MAX, EQUIP_SOUL, equipFrameKey, equipIconChain, EQUIP_SLOTS, EQUIP_TIERS, EQUIP_MAX_TIER, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SALVAGE_MAX, EQUIP_SYNTH_KEEP, equipName, equipTemplate, equipSlotDef, equipStats, equipSynthStep, equipAutoSalvageable, parseEquip } from "../../shared/data.ts";
 import { toast } from "./feedback.ts";
 import { openLooksOverlay } from "./looksMaker.ts";
-import type { GearMsg, EquipEnhPreview, EquipEnhDone, EquipSynDone, EquipSalvDone } from "./net.ts";
+import type { GearMsg, EquipEnhPreview, EquipEnhDone, EquipLuckPreview, EquipLuckDone, EquipSynDone, EquipSalvDone } from "./net.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
 import { autoTimeText, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, WORLD_CHAT, TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, tongDef, FRIEND_MAX, BLOCK_MAX,
   type QuestProgress, type QuestStatus, type TongRank } from "../../shared/data.ts";
@@ -2367,11 +2367,12 @@ export interface NpcActions {
   tong(op: "join" | "leave" | "accept" | "turnin" | "board" | "claim", tong?: string, chain?: string): void;
   shard(vohon: string, qty: number): void; shardInfo(): void; // Thương hội đổi mảnh võ hồn (#282): đổi, xin số đã đổi hôm nay
   gear(): GearMsg | null; equipEnh(id: string, charm: boolean): void; equipEnhPreview(id: string): void; // Thợ rèn: cường hóa trang bị hồn sư (E3)
+  equipLuck(id: string): void; equipLuckPreview(id: string): void; // Thợ rèn: khắc may mắn bằng Thần Hồn
   equipSynth(main: string, sacrifice: string[]): void; equipSalvage(ids: string[]): void; // Thợ rèn: hợp thành 3 → 1, phân giải hàng loạt (E4)
   owned(): string[]; // mã các võ hồn đã sở hữu (trang đổi mảnh ghi "chưa có")
   looks(): Looks | null; changeLooks(looks: Looks): void; // Thợ may (L4 #511): ngoại hình đang mang, gửi lựa chọn mới (server kiểm khoảng cách, tiền)
 }
-type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "forgeset" | "forgegear" | "forgesynth" | "forgesalv" | "quest" | "daily" | "rank" | "shard" | "tongtask" | "tongrank" | "live";
+type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "forgeset" | "forgegear" | "forgeluck" | "forgesynth" | "forgesalv" | "quest" | "daily" | "rank" | "shard" | "tongtask" | "tongrank" | "live";
 let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
 let npcPage: NpcPage = "talk";
 let npcLine = 0;                       // câu thoại đang hiện
@@ -2530,6 +2531,7 @@ function renderNpc() {
       btn("Nâng cấp hồn hạch", "absorb", () => go("forgecore"), !bag); // 5.3
       btn("Đổi bộ hồn hạch", "absorb", () => go("forgeset"), !bag); // #283
       btn("Cường hóa trang bị hồn sư", "absorb", () => { gearPick = null; gearConfirm = false; go("forgegear"); }, !bag); // E3
+      btn("Khắc may mắn", "absorb", () => { luckPick = null; go("forgeluck"); }, !bag);
       btn("Hợp thành trang bị (3 → 1)", "absorb", () => { synMain = null; synSac = []; synConfirm = false; go("forgesynth"); }, !bag); // E4
       btn("Phân giải trang bị", "absorb", () => { salvSel.clear(); salvConfirm = false; go("forgesalv"); }, !bag); // E4
     }
@@ -2567,6 +2569,7 @@ function renderNpc() {
   else if (npcPage === "shard") renderShardShop(el, bag, act);
   else if (npcPage === "forgeset") renderForgeSets(el, bag, act);
   else if (npcPage === "forgegear") renderForgeGear(el, bag, act);
+  else if (npcPage === "forgeluck") renderForgeLuck(el, bag, act);
   else if (npcPage === "forgesynth") renderForgeSynth(el, bag, act);
   else if (npcPage === "forgesalv") renderForgeSalv(el, bag, act);
   else { const box = npcPage === "forgecore" ? renderForgeCores(bag, act) : renderForge(bag, act); el.appendChild(box); if (box.classList.contains("epick")) return; }
@@ -2886,6 +2889,57 @@ function renderForgeGear(el: HTMLElement, bag: BagMsg, act: NpcActions) {
     if (risky && !gearConfirm) { gearConfirm = true; renderNpc(); return; }
     gearConfirm = false; act.equipEnh(pick.id, destroy && gearCharm && pv.charm > 0);
   });
+  box.appendChild(go); box.appendChild(back);
+}
+
+// ---------- Lò rèn: khắc may mắn bằng Thần Hồn (vũ khí, dây chuyền) ----------
+let luckPick: string | null = null, luckPrev: EquipLuckPreview | null = null; // món đang chọn và bảng xem trước server tính
+/** Tin "equipluckp": xem trước lần khắc may mắn kế tiếp. */
+export function equipLuckPreview(m: EquipLuckPreview) { if (m.id === luckPick) { luckPrev = m; if (npcDefOpen && npcPage === "forgeluck") renderNpc(); } }
+/** Tin "equipluckd": xong một lần khắc; hiệu ứng thành / bại như cường hóa. */
+export function equipLuckDone(m: EquipLuckDone) {
+  setFx(m.ok ? "ok" : "fail", "forgeluck");
+  toast("info", m.ok ? `Khắc may mắn thành công: M${m.to}` : `Khắc may mắn thất bại, giữ M${m.to}`);
+  if (npcDefOpen && npcPage === "forgeluck") renderNpc();
+}
+const luckReason = (r: EquipLuckPreview["reason"], max: number) => r === "slot" ? "Chỉ vũ khí và dây chuyền khắc may mắn được." : r === "max" ? `Món đã đạt may mắn tối đa M${max}.` : r === "worn" ? `Tổng may mắn hai ô đang mặc đã đạt tối đa M${max}.` : "";
+/**
+ * Lò rèn, trang khắc may mắn: chọn vũ khí / dây chuyền (đang mặc hoặc trong túi), bảng xem trước do server tính (tỉ lệ, Thần Hồn). 1 Thần Hồn mỗi lần,
+ * thất bại mất Thần Hồn, may mắn giữ nguyên, món không bị phá (không cần xác nhận hai lần). Tỉ lệ chỉ hiển thị, server tung và kiểm lại.
+ */
+function renderForgeLuck(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+  const box = document.createElement("div"); box.className = "forge"; el.appendChild(box); takeFx(box, "forgeluck");
+  const h = document.createElement("b"); h.className = "shead"; h.textContent = "Khắc may mắn"; box.appendChild(h);
+  const hasLuck = (stats: BagItem["stats"]) => { const e = parseEquip(stats), t = equipTemplate(e?.tpl ?? ""); return !!t && !!equipSlotDef(t.slot).luck; };
+  const worn = (act.gear()?.items ?? []).filter((g) => hasLuck(g.stats)).map((g) => ({ id: g.id, name: equipName(parseEquip(g.stats)?.tpl, g.enhance), luck: parseEquip(g.stats)?.luck ?? 0, where: `đang mặc (${EQUIP_SLOTS[g.slot]?.name ?? "?"})`, stats: g.stats }));
+  const loose = bag.items.filter((i) => i.code === EQUIP_ITEM && i.vohon === null && hasLuck(i.stats)).map((i) => ({ id: i.id, name: itemName(i), luck: parseEquip(i.stats)?.luck ?? 0, where: "trong túi", stats: i.stats }));
+  const all = [...worn, ...loose], pick = luckPick ? all.find((x) => x.id === luckPick) : undefined;
+  const soulName = itemDef(EQUIP_SOUL)?.name ?? "Thần Hồn";
+  if (!pick) {
+    luckPick = null; luckPrev = null;
+    const p = document.createElement("small"); p.textContent = all.length ? `Khắc may mắn tốn 1 ${soulName} mỗi lần (rơi từ phân giải Chí Bảo). Thất bại mất ${soulName}, giữ may mắn, món không bị phá.` : "Chưa có vũ khí hay dây chuyền nào để khắc may mắn."; box.appendChild(p);
+    for (const it of all) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "aopt eopt"; b.style.setProperty("--c", EQUIP_TIERS[equipTemplate(parseEquip(it.stats)?.tpl ?? "")?.tier ?? 0]?.col ?? "#9db3a2");
+      b.innerHTML = `${equipIcon(it.stats)}<b></b><i></i><span></span>`;
+      b.querySelector("b")!.textContent = it.name; b.querySelector("i")!.textContent = it.where; b.querySelector("span")!.textContent = `May mắn M${it.luck}/${EQUIP_LUCK_MAX}`;
+      b.addEventListener("click", () => { b.blur(); luckPick = it.id; luckPrev = null; act.equipLuckPreview(it.id); renderNpc(); });
+      box.appendChild(b);
+    }
+    return;
+  }
+  const info = document.createElement("small"); box.appendChild(info);
+  const back = document.createElement("button"); back.type = "button"; back.className = "aopt drop"; back.textContent = "Chọn trang bị khác";
+  back.addEventListener("click", () => { luckPick = null; luckPrev = null; renderNpc(); });
+  const pv = luckPrev && luckPrev.id === pick.id ? luckPrev : null;
+  if (!pv) { info.textContent = `${pick.name}: đang tải bảng xem trước…`; box.appendChild(back); return; }
+  const rows: [string, string][] = [["Món", `${pick.name} (${pick.where})`], ["May mắn", pv.to === null ? `M${pv.luck}/${pv.max}` : `M${pv.luck} → M${pv.to}`]];
+  if (pv.to !== null) rows.push(["Tỉ lệ thành công", `${Math.round(pv.p * 100)}%`], ["Cần", `1 ${soulName} (có ${pv.soul})`], ["Nếu thất bại", `mất 1 ${soulName}, giữ M${pv.luck}, món không bị phá`]);
+  for (const [k, v] of rows) { const r = document.createElement("div"); r.className = "erow"; r.innerHTML = `<b></b><span></span>`; r.querySelector("b")!.textContent = k; r.querySelector("span")!.textContent = v; box.appendChild(r); }
+  if (pv.to === null) { info.textContent = luckReason(pv.reason, pv.max); box.appendChild(back); return; }
+  const poor = pv.soul < 1, go = document.createElement("button"); go.type = "button"; go.className = "aopt absorb";
+  go.disabled = poor || pv.busy || act.combat();
+  go.textContent = poor ? `Không đủ ${soulName}` : act.combat() ? "Đang giao chiến" : "Khắc may mắn";
+  go.addEventListener("click", () => { go.blur(); act.equipLuck(pick.id); });
   box.appendChild(go); box.appendChild(back);
 }
 

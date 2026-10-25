@@ -29,7 +29,7 @@ Hệ trang bị phỏng theo Mir2 / Sabuk (10 ô, 6 bậc, cường hóa +15 có
 - **Vũ khí có công theo từng đòn:** cộng vào công một đòn, tung trong [min, max] quanh công giữa (`EquipSlotDef.weapon`, `equipWeaponRoll`). Sát thương theo thời gian dùng công giữa.
 - **May mắn** (chỉ vũ khí và dây chuyền, tổng tối đa `EQUIP_LUCK_MAX`): xác suất ra đúng max = may mắn / `EQUIP_LUCK_MAX`; tổng đạt mức tối đa thì **mọi đòn ra max**. Không có may mắn âm.
 - Món rơi có tỉ lệ nhỏ (`EQUIP_DROP.luck`) ra sẵn +1.
-- **Chưa làm:** khắc thêm may mắn bằng Thần Hồn (hằng đề xuất `EQUIP_LUCK_UP`: thất bại mất Thần Hồn, không phá món; chưa có mã server / client dùng).
+- **Khắc may mắn** ở Thợ rèn (chỉ vũ khí và dây chuyền): mỗi lần 1 Thần Hồn (`EQUIP_SOUL`), may mắn n → n + 1 với tỉ lệ `EQUIP_LUCK_UP[n]` (`equipLuckStep`). **Thất bại mất Thần Hồn, giữ may mắn, KHÔNG phá món, không phí Hồn Tệ.** Món trong túi chặn ở `EQUIP_LUCK_MAX`; món đang mặc còn chặn khi tổng hai ô đang mặc đã đạt `EQUIP_LUCK_MAX`.
 
 ### Rơi đồ 4 pha
 `EQUIP_DROP`, `rollEquipDrop` (server gọi khi hồn thú chết; hàm thuần nhận RNG).
@@ -47,7 +47,7 @@ Hệ trang bị phỏng theo Mir2 / Sabuk (10 ô, 6 bậc, cường hóa +15 có
 - **Đá Cường Hóa I–V** (`EQUIP_STONES`): hồn thú rơi, phân giải ra; I–II có thể bán ở thương nhân.
 - **Bùa Hộ Mệnh** (`EQUIP_CHARM`): chỉ từ rương thú vương / boss thế giới, không bán.
 - **Tinh Hoa Đường Môn** (`EQUIP_ESSENCE`): từ phân giải Thần Khí / Chí Bảo; chi phí hợp thành T4 → T5.
-- **Thần Hồn** (`EQUIP_SOUL`): từ phân giải Chí Bảo; dành cho khắc may mắn (chưa làm).
+- **Thần Hồn** (`EQUIP_SOUL`): từ phân giải Chí Bảo; dành cho khắc may mắn.
 
 ### Cường hóa +1 → +15 ở Thợ rèn
 `EQUIP_ENHANCE`, `equipEnhanceStep`, `equipEnhanceResult`.
