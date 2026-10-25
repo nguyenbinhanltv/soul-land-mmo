@@ -17,7 +17,7 @@ const root = fileURLToPath(new URL("../../", import.meta.url));
 const out = resolve(process.env.FLOW_OUTPUT ?? await mkdtemp(resolve(tmpdir(), "flow-browser-")));
 const children = [];
 let stopping = false;
-let browser;
+let browser, page;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const port = () => new Promise((done, reject) => {
   const s = createServer(); s.on("error", reject); s.listen(0, "127.0.0.1", () => { const n = s.address().port; s.close(() => done(n)); });
@@ -54,6 +54,7 @@ try {
     if (b.status !== 0) throw new Error(`Build client lỗi:
 ${(b.stdout + b.stderr).slice(-3000)}`);
   }
+  else console.log("(dùng lại client/dist có sẵn; sửa mã client thì chạy FLOW_BUILD=1)");
   const apiPort = await port(), web = `http://127.0.0.1:${apiPort}`;
   start(["server/node_modules/tsx/dist/cli.mjs", "--tsconfig", "server/tsconfig.json", "server/src/index.ts"], { PORT: String(apiPort), GAME_TEST: "1" });
   await ready(`${web}/health`);
@@ -61,7 +62,7 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
   const launch = { headless: true, args: ["--mute-audio", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] };
   if (process.env.FLOW_CHANNEL) launch.channel = process.env.FLOW_CHANNEL;
   browser = await chromium.launch(launch);
-  const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   page.on("pageerror", (e) => problems.push(`pageerror: ${e.message}`));
   page.on("console", (m) => {
     if (m.type() !== "error") return;
@@ -69,6 +70,7 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
     if (ALLOWED.some((a) => a.url.test(url) && a.text.test(m.text()))) return;
     problems.push(`console.error: ${m.text()}${url ? ` (${url})` : ""}`);
   });
+  page.setDefaultTimeout(15000);
   const shot = (name) => page.screenshot({ path: resolve(out, `${name}.png`) });
 
   // 1. Landing → "Vào chơi".
@@ -147,6 +149,9 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
 } catch (e) {
   console.error(`✗ ${e.message}`);
   if (problems.length) console.error(`Lỗi trình duyệt đã gặp:\n${problems.join("\n")}`);
+  // Ảnh lúc trượt (artifact CI): màn hình thật tại bước lỗi.
+  await page?.screenshot({ path: resolve(out, "truot.png"), fullPage: true }).catch(() => {});
+  console.error(`Ảnh: ${out}`);
   process.exitCode = 1;
 } finally {
   await browser?.close().catch(() => {});
