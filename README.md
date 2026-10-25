@@ -23,7 +23,7 @@ Mở `http://localhost:5173`, nhập tên và mật khẩu bất kỳ (tên mớ
 Mở thêm một tab ẩn danh với tên khác để thấy hai người chơi cùng lúc. Điện thoại cùng Wi-Fi: mở `http://<IP-máy-tính>:5173`.
 
 Điều khiển chính: WASD / mũi tên đi, J / Space đánh, U / I / O / P hồn kỹ, 1–4 đổi võ hồn, V đội hình, B túi đồ, E nhặt, F đi cổng / nói chuyện, Enter chat.
-Bảng phím đầy đủ ở `GAME_DESIGN.md` mục 4. Điện thoại có joystick ảo và nút chạm.
+Bảng phím đầy đủ ở `docs/design/01-luat-chung.md`. Điện thoại có joystick ảo và nút chạm.
 
 ### Lưu dữ liệu
 
@@ -138,7 +138,7 @@ npm run bot:local -- --only bag --pg        # lưu PostgreSQL: database riêng, 
 │                          #   gemini-import (nhập ảnh Gemini), lpc-compose (NPC phụ LPC), he-icons
 ├─ art/                    # file nguồn không tải trong game: palette.gpl, palettes/ (bảng nhấn từng vùng),
 │                          #   src/ (ảnh thô ComfyUI / Gemini / PixelLab cũ, công thức LPC), CREDITS.md
-├─ GAME_DESIGN.md          # thiết kế luật chơi, mỹ thuật, kiến trúc, lộ trình (cho người và AI đọc)
+├─ GAME_DESIGN.md          # mục lục + luật chung; chi tiết ở docs/design, docs/art, docs/tech (cho người và AI đọc)
 ├─ CLAUDE.md               # quy tắc cho AI agent khi sửa code
 ├─ .claude/                # cấu hình Claude Code dùng chung: plugin, hook, skill
 ├─ .githooks/              # pre-commit
@@ -148,16 +148,16 @@ npm run bot:local -- --only bag --pg        # lưu PostgreSQL: database riêng, 
 
 ## Mỹ thuật và giấy phép
 
-Quy tắc hình (isometric, cỡ khung, phong cách, bảng màu) ở `GAME_DESIGN.md` mục 5.11, quy cách chi tiết (sheet, key, thư mục) ở `tools/assets/README.md`, cách làm ảnh ở skill `.claude/skills/asset-gen`.
+Quy tắc hình (isometric, cỡ khung, phong cách, bảng màu) ở `docs/art/quy-cach-isometric.md`, quy cách chi tiết (sheet, key, thư mục) ở `tools/assets/README.md`, cách làm ảnh ở skill `.claude/skills/asset-gen`.
 Nguồn ảnh: **ComfyUI** tự host và **Gemini** (công cụ AI, dùng theo điều khoản của từng dịch vụ), **LPC** (Universal LPC Spritesheet Character Generator,
 chỉ cho NPC phụ và dân thường; thú LPC làm hình tạm cho hồn thú thường) và ảnh vẽ tay. Font: Galmuri (giao diện) và Be Vietnam Pro (OFL).
-Asset bên ngoài được dùng mọi giấy phép rõ ràng (CC0, CC-BY, CC-BY-SA, OGA-BY, CC-BY-NC, GPL, OFL…) kèm nghĩa vụ ghi công / share-alike ở `GAME_DESIGN.md` mục 5.11. Không dùng ảnh từ game thương mại, phim hay truyện tranh chính thức. Tác giả, giấy phép và nguồn của từng file ở [`art/CREDITS.md`](art/CREDITS.md).
+Asset bên ngoài được dùng mọi giấy phép rõ ràng (CC0, CC-BY, CC-BY-SA, OGA-BY, CC-BY-NC, GPL, OFL…) kèm nghĩa vụ ghi công / share-alike ở `docs/art/nguon-giay-phep.md`. Không dùng ảnh từ game thương mại, phim hay truyện tranh chính thức. Tác giả, giấy phép và nguồn của từng file ở [`art/CREDITS.md`](art/CREDITS.md).
 
 ## Sửa bản đồ bằng Tiled
 
 1. Cài [Tiled](https://www.mapeditor.org), mở `shared/assets/<mapId>.json` (mã bản đồ khai báo trong `MAPS` ở `shared/data.ts`).
 2. Layer `ground` là nền, `trees` là vật cản, `canopy` là tán cây phủ lên nhân vật. Ô chặn đường có thuộc tính bool `collides = true` trong tileset.
-3. Layer đối tượng chứa `zone` (vùng săn), `portal`, `arrive`, `spawn`, `safe`, `elite`, `boss`, `npc`; thuộc tính từng loại ở `GAME_DESIGN.md` mục 6.
+3. Layer đối tượng chứa `zone` (vùng săn), `portal`, `arrive`, `spawn`, `safe`, `elite`, `boss`, `npc`; thuộc tính từng loại ở `docs/tech/phong-ban-do.md`.
 4. Lưu lại (giữ định dạng JSON), khởi động lại server. Object sai thuộc tính thì server ghi cảnh báo và bỏ qua.
 
 Các bản đồ hiện được sinh bằng `tools/gen-map.mjs`; `npm run map` sinh lại và **ghi đè** bản đã vẽ tay.

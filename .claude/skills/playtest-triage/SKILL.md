@@ -21,9 +21,9 @@ Mỗi câu phản hồi có thể chứa vài quan sát; tách từng cái.
 
 | Loại | Nhận ra khi | Nhãn | Bước tiếp |
 |---|---|---|---|
-| Lỗi | sai so với `GAME_DESIGN.md` / code, tái hiện được hoặc có log | `bug` + `gameplay` / `art` / `am-thanh` | mẫu "Lỗi" |
+| Lỗi | sai so với file thiết kế `docs/design/` / code, tái hiện được hoặc có log | `bug` + `gameplay` / `art` / `am-thanh` | mẫu "Lỗi" |
 | Cân bằng | luật đúng nhưng số cảm thấy sai (quá dễ, thừa tiền, rơi ít) | `gameplay` | soát bằng skill `balance-review` trước khi đề xuất số |
-| Luật chơi / thiết kế | khó hiểu, không vui, muốn đổi cơ chế | `gameplay` + `chan` | chờ chủ repo chốt; không tự sửa `GAME_DESIGN.md` |
+| Luật chơi / thiết kế | khó hiểu, không vui, muốn đổi cơ chế | `gameplay` + `chan` | chờ chủ repo chốt; không tự sửa `docs/design/` |
 | Giao diện, điều khiển | không thấy nút, chữ tràn, chạm khó, thiếu phản hồi | `gameplay` (hoặc `art` nếu là ảnh) | ghi màn hình / cỡ cửa sổ |
 | Ảnh, âm thanh | sprite sai hướng / lệch neo, thiếu âm, âm to | `art` / `am-thanh` | trỏ key sprite / file âm |
 | Hiệu năng | giật, trễ, máy nóng, mất kết nối | `bug` | đo theo skill `soak-perf` |
@@ -45,7 +45,7 @@ Mỗi câu phản hồi có thể chứa vài quan sát; tách từng cái.
    - `san-sang` chỉ khi issue đủ rõ để người khác nhận ngay và không bị chặn; chờ quyết định / tài nguyên thì `chan` và ghi chờ gì; không dùng nhãn `cho-hoat-anh-8-huong` nữa (#335 đã đóng). Thuộc giai đoạn Lộ trình thì thêm `giai-doan-N`.
    - Không gắn `dang-lam`, `agent:<tên>` hay tự gán, trừ khi chính mình nhận làm ngay theo `CONTRIBUTING.md`.
 4. Đưa vào bảng Project 3 và đặt Status khớp nhãn (`san-sang` → Sẵn sàng, `chan` → Chờ): `gh project item-add 3 --owner nguyenbinhanltv --url <URL issue>` (cần quyền `project` của `gh`). Không có quyền thì ghi vào báo cáo cho orchestrator đồng bộ hộ.
-5. Lỗi cần sửa ngay mà Lộ trình chưa có dòng: không tự thêm dòng vào `GAME_DESIGN.md` mục 7; để orchestrator / chủ repo xếp lịch.
+5. Lỗi cần sửa ngay mà Lộ trình chưa có dòng: không tự thêm dòng vào `ROADMAP.md`; để orchestrator / chủ repo xếp lịch.
 
 ## 4. Báo ngay, không chờ tổng hợp
 - **S1** và mọi lỗi **gian lận / nhân bản / lộ dữ liệu**: báo chủ repo / orchestrator ngay. Server đang mở cho người ngoài thì issue công khai chỉ mô tả hiện tượng, không ghi cách khai thác từng bước.

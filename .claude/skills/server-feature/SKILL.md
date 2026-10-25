@@ -5,7 +5,7 @@ description: Checklist server-authoritative khi thêm hoặc sửa luật chơi,
 
 # Tính năng phía server
 
-Nguồn luật: `CLAUDE.md` và `GAME_DESIGN.md` mục 6 (Kiến trúc, bắt buộc giữ). Server quyết định mọi thứ, client chỉ gửi ý định.
+Nguồn luật: `CLAUDE.md` và kiến trúc bắt buộc giữ (`GAME_DESIGN.md` mục 6 và `docs/tech/`). Server quyết định mọi thứ, client chỉ gửi ý định.
 
 ## Logic đặt ở đâu
 - **Luật chơi:** `server/src/rooms/MapRoom.ts`, lớp `MapRoom`; vòng lặp `tick(dt)` chạy `TICK_RATE` lần mỗi giây. Một loại phòng cho mọi bản đồ (`define("map", MapRoom).filterBy(["mapId"])` ở `index.ts`), mỗi phòng là một kênh; bản đồ nạp bằng `loadMap(mapId)` (`server/src/map.ts`) vào `this.map` (`hits`, `zones`, `spawn`, `inSafe`, `portalAt`, `npcs`, `lair`…). Khác biệt giữa các bản đồ nằm trong dữ liệu (`MAPS`, file Tiled), không tách lớp phòng con.
@@ -27,7 +27,7 @@ Nguồn luật: `CLAUDE.md` và `GAME_DESIGN.md` mục 6 (Kiến trúc, bắt bu
 - **Chỉ số:** tính lại bằng `recalc` / `maxHpOf` (`calcStats` với hồn cốt, hồn hạch, cộng minh, tiên thảo, sao).
 
 ## Checklist cho mỗi message từ client
-Đăng ký trong `onCreate()` bằng `this.onMessage(...)`; danh sách hiện có ở `GAME_DESIGN.md` mục 6. Message chưa đăng ký làm Colyseus ngắt client: bỏ message cũ thì sửa client và bot cùng lúc.
+Đăng ký trong `onCreate()` bằng `this.onMessage(...)`; danh sách hiện có ở `docs/tech/giao-thuc-server.md`. Message chưa đăng ký làm Colyseus ngắt client: bỏ message cũ thì sửa client và bot cùng lúc.
 1. **Ép kiểu và kẹp giá trị** bằng kiểm `typeof`: `numIn(m?.x)`, `intIn(m?.i)`, `strIn(m?.portal)` (`MapRoom.ts`, mẫu `input`, `travel`). Không `Number()` / `String()` / `${}` / `<` / `MAP[raw]` trên giá trị thô: đổi kiểu một object tùy ý có thể ném lỗi (#164).
 2. **Kiểm tra id có thật và thuộc chính người gửi** (`itemId`, `vohonId`, `rowId` so với `pdata.get(id)`).
 3. **Kiểm tra trạng thái**: người chơi tồn tại, không gục, không hấp thụ, không `d.travelling` (đang chuyển bản đồ: mọi hành động mới phải bị chặn, kể cả hiệu ứng trễ), ngoài vùng an toàn nếu là giao chiến (`this.map.inSafe`), ngoài giao chiến nếu là việc sắp xếp (luật chung như `boneLock`), NPC trong tầm nếu cần (`npcNear`), hết hồi chiêu, đủ hồn lực.
@@ -43,9 +43,9 @@ Nguồn luật: `CLAUDE.md` và `GAME_DESIGN.md` mục 6 (Kiến trúc, bắt bu
 
 ## Lưu dữ liệu
 - Qua `store` trong `server/src/db.ts`; bảng / cột mới dùng skill `db-migration`.
-- **Mọi lần ghi DB về một người chơi đi qua chuỗi lưu `this.chain(d, fn)`** (mục 6 "Lưu của mỗi người chơi chạy nối tiếp"). Không gọi `store.save…` trực tiếp ngoài chuỗi.
+- **Mọi lần ghi DB về một người chơi đi qua chuỗi lưu `this.chain(d, fn)`** (`GAME_DESIGN.md` mục 6 "Lưu của mỗi người chơi chạy nối tiếp"). Không gọi `store.save…` trực tiếp ngoài chuỗi.
 - Dữ liệu chưa lưu mới phải nằm trong cả `save` **và** `saveTravel` (túi đồ: cờ `bagDirty`, ảnh chụp `bagSnapshot`), vì transaction đi cổng / đổi kênh là lần ghi cuối của phòng cũ.
-- Phiên giữ tài khoản (mục 6 "Mỗi tài khoản một phiên"): `onAuth` gọi `waitOldSession` **trước** mọi lần đọc DB nhân vật; `onLeave` gọi `freeze` trước khi nối lần ghi cuối, rồi `releaseAccount`. Tiến độ chạy theo thời gian (như hấp thụ) phải dừng khi `d.travelling`.
+- Phiên giữ tài khoản (`docs/tech/luu-tru-cong-phien.md`, "Mỗi tài khoản một phiên"): `onAuth` gọi `waitOldSession` **trước** mọi lần đọc DB nhân vật; `onLeave` gọi `freeze` trước khi nối lần ghi cuối, rồi `releaseAccount`. Tiến độ chạy theo thời gian (như hấp thụ) phải dừng khi `d.travelling`.
 
 ## Xong thì
 `npm run check`, rồi bot ở máy bằng `npm run bot:local -- --only <nhóm>` (thêm `--pg` khi đổi lưu trữ; skill `roadmap-step`).

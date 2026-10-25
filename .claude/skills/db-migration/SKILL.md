@@ -10,13 +10,13 @@ description: Cách thêm bảng, cột hoặc chuyển dữ liệu PostgreSQL / 
 
 ## Viết file SQL mới
 1. Tạo `server/sql/00N_<ten>.sql` với N là số kế tiếp (lúc viết skill: file cuối là `016_account_skin.sql`). Luôn xem `git fetch` rồi `git ls-tree --name-only origin/main server/sql/` (nhánh khác có thể vừa thêm file) để không trùng số. Không sửa file cũ đã chạy trên DB thật, trừ khi chỉ thêm câu lệnh an toàn khi chạy lại.
-2. Đầu file: chú thích tiếng Việt nói file làm gì, trỏ tới mục trong `GAME_DESIGN.md`.
+2. Đầu file: chú thích tiếng Việt nói file làm gì, trỏ tới file thiết kế `docs/design/…` hoặc `docs/tech/du-lieu-db.md`.
 3. Câu lệnh chạy lại an toàn: `CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`, `ALTER TABLE ... ADD COLUMN IF NOT EXISTS ...`; chuyển dữ liệu bằng `INSERT ... SELECT ... WHERE NOT EXISTS (...)` (mẫu ở cuối `002_vohons.sql`) hoặc `ON CONFLICT DO NOTHING`.
 4. **Bật RLS cho mọi bảng mới**: `ALTER TABLE <bang> ENABLE ROW LEVEL SECURITY;` và **không** tạo policy (Data API công khai của Supabase không đọc được; server kết nối bằng user `postgres` nên không bị chặn; giải thích ở cuối `001_init.sql`).
 5. Khóa ngoại tới `accounts(id)` dùng `ON DELETE CASCADE`. Mã (võ hồn, vật phẩm, bản đồ…) lưu `TEXT` theo mã cố định trong `shared/data.ts`. Niên hạn lưu số năm; Hồn Tệ lưu một số nguyên (đồng).
 6. Số cân bằng (như `TEAM_SIZE`) không chép vào SQL. Chuyển dữ liệu cần số đó thì làm trong JS ở store (như `getTeam` tự xếp đội cho tài khoản cũ, `backfillNameKeys`).
 
-Bảng hiện có và vai trò: `GAME_DESIGN.md` mục 6 "Dữ liệu lâu dài".
+Bảng hiện có và vai trò: `docs/tech/du-lieu-db.md` (mục "Dữ liệu lâu dài").
 
 ## Cập nhật `server/src/db.ts`, luôn song song hai nơi
 1. Thêm / đổi kiểu dữ liệu và chữ ký hàm trong interface `Store`.
