@@ -13,6 +13,7 @@ import { buildRings, animateRings, type HaloState } from "../soulRings.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim } from "../sprites.ts";
 import * as hud from "../hud.ts";
+import { artUrl, fusionImgKey } from "../uiArt.ts";
 import { radar, type DotSink } from "../radar.ts";
 import { mapview, type MapLabel } from "../mapview.ts";
 import { fog } from "../fog.ts";
@@ -2142,10 +2143,25 @@ export class GameScene extends Phaser.Scene {
       const own = this.me === m.id || this.me === m.to;
       if (own) hud.banner(f.name, "Võ Hồn Dung Hợp Kỹ");
       else {
-        const t = this.add.text(c.x, cy - HEAD, `${f.icon} ${f.name}`, { fontFamily: FONT, fontSize: "12px", fontStyle: "800", color: col, stroke: "#1a1020", strokeThickness: 3, resolution: 8 })
+        // Ảnh gi_fusion_<tên> thay ký tự icon (phụ thuộc phông); chưa có ảnh / chưa tải xong thì chỉ có tên.
+        const t = this.add.text(c.x, cy - HEAD, f.name, { fontFamily: FONT, fontSize: "12px", fontStyle: "800", color: col, stroke: "#1a1020", strokeThickness: 3, resolution: 8 })
           .setOrigin(0.5).setDepth(99990).setScale(0.5 * this.txtK);
-        this.tweens.add({ targets: t, scale: 1.3 * this.txtK, y: cy - HEAD - 16 * k, duration: 500, ease: "Back.easeOut" });
-        this.tweens.add({ targets: t, alpha: 0, delay: 1500, duration: 600, onComplete: () => t.destroy() });
+        const icoKey = fusionImgKey(f.name), icoUrl = artUrl(icoKey);
+        const fly = (ico?: Phaser.GameObjects.Image) => {
+          const targets: Phaser.GameObjects.GameObject[] = ico ? [t, ico] : [t];
+          this.tweens.add({ targets: t, scale: 1.3 * this.txtK, y: cy - HEAD - 16 * k, duration: 500, ease: "Back.easeOut" });
+          if (ico) this.tweens.add({ targets: ico, scale: 1.3 * this.txtK * 18 / ico.width, y: cy - HEAD - 16 * k - 22 * this.txtK, duration: 500, ease: "Back.easeOut" });
+          this.tweens.add({ targets, alpha: 0, delay: 1500, duration: 600, onComplete: () => targets.forEach((o) => o.destroy()) });
+        };
+        const mkIco = () => this.add.image(c.x, cy - HEAD - 16 * this.txtK, icoKey).setOrigin(0.5, 1).setDepth(99990).setScale(0.5 * this.txtK * 18 / this.textures.get(icoKey).getSourceImage().width);
+        if (!icoUrl) fly();
+        else if (this.textures.exists(icoKey)) fly(mkIco());
+        else { // nạp lười một lần; trong lúc chờ nhãn đã bay (không chặn khung hình), ảnh tới kịp lúc thì hiện theo
+          this.load.image(icoKey, icoUrl);
+          this.load.once(`filecomplete-image-${icoKey}`, () => { if (t.active) fly(mkIco()); });
+          this.load.once(`loaderror`, () => { if (t.active && !this.textures.exists(icoKey)) fly(); });
+          this.load.start();
+        }
       }
       const me = this.players.get(this.me);
       if (me && (m.id === this.me || m.to === this.me) && Math.hypot(me.wx - m.x, me.wy - m.y) < 260) { // H8: chỉ hai người dung hợp thấy chớp / rung
