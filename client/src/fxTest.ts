@@ -154,6 +154,7 @@ class FxTestScene extends Phaser.Scene {
       const [, el, t] = name.split(":");
       this.svp.cast({ tier: +t as 1 | 2 | 3, heavy: 2, element: el as Element, ...(el === "fire" && +t === 1 ? { sheet: { key: "", at: "travel" as const } } : {}) }, { x: h.x, y: up, ang: 0, tx: d.x, ty: d.y - 8 * SPR, mine: true, r: 56 * RX });
     }
+    else if (name.startsWith("hit:")) { const [, he, w] = name.split(":"); playHitFeelSheets(sh, "thit", he as He, d.x, d.y - 10 * SPR, true, +w); } // `hit:man_cong:1` đòn đâm, `hit:cuong_cong:0` đòn nhẹ nhất
     else if (name === "bao") P("fx_bao_truoc", { x: d.x, y: d.y - 40 * SPR, scale: SPR });
     else if (name === "tran") P("fx_tran_phap", { x: h.x, y: h.y - 2 * SPR, scale: 2 * SPR, ang: 0 });
     else if (name === "lam") { P("fx_lua_lam", { x: d.x, y: d.y - 8 * SPR, scale: SPR }); P("fx_lua_xanh", { x: h.x, y: h.y - 4 * SPR, scale: SPR }); }
