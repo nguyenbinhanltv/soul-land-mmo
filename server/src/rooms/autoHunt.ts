@@ -87,6 +87,8 @@ export class AutoHunter {
 
   /** Giây còn phải chờ đồ rơi sau khi vừa hạ một hồn thú thường (AUTO_LOOT_WAIT) trước khi nhắm con mới (#608). */
   lootWait = 0;
+  /** Lần kiểm "quanh mình hết hồn thú thường" gần nhất (hasNear): giây của `clock` và kết quả. */
+  freeAt: { t: number; v: boolean } | null = null;
 
   /** Nợ nhịp (giây, AUTO_PACE): còn dương thì không nhắm hồn thú mới. `est`: giây tự đánh ước lượng của con vừa hạ (hook test). */
   pace = 0; est = 0;
@@ -329,7 +331,18 @@ export class AutoHunter {
   walk(p: Pt, b: Pt) {
     const dd = Math.hypot(b.x - p.x, b.y - p.y);
     const near = Math.max(Math.abs(b.x - p.x), Math.abs(b.y - p.y)) < AUTO_MOVE.path.maxTiles * TILE;
-    return near && clearLine(navOf(this.room.map).grid, p, b) ? dd : dd * AUTO_TARGET.detour;
+    if (!near) return dd * AUTO_TARGET.detour;
+    this.lines++;
+    return clearLine(navOf(this.room.map).grid, p, b) ? dd : dd * AUTO_TARGET.detour;
+  }
+  /**
+   * Quanh mình không còn hồn thú thường hợp lệ (đang nhắm một con thường thì chắc chắn còn); kết quả giữ AUTO_TARGET.free giây để
+   * findBoss (mỗi nhịp khi chưa có mục tiêu) không quét lại hồn thú quanh mình AUTO_HZ lần mỗi giây.
+   */
+  hasNear(p: PlayerState) {
+    if (this.target && !this.boss) return false;
+    if (this.freeAt === null || this.clock - this.freeAt.t >= AUTO_TARGET.free) this.freeAt = { t: this.clock, v: this.findTarget(p, true) === null };
+    return this.freeAt.v;
   }
   /**
    * Tinh anh / thú vương / boss thế giới đang có trên bản đồ (#218): công tắc bật (bossMode khác "off"), mình còn nhận được thưởng
@@ -348,7 +361,7 @@ export class AutoHunter {
       if (always) { const k = b.rank * 1e7 - Math.hypot(b.x - p.x, b.y - p.y); if (k > key) { key = k; best = bid; } continue; }
       const len = this.walk(p, b);
       if (len > AUTO_BOSS_DETOUR) {
-        free ??= !(this.target && !this.boss) && this.findTarget(p, true) === null;
+        free ??= this.hasNear(p);
         if (!free) continue;
       }
       const k = -len / AUTO_TARGET.value[b.rank - 1];
@@ -371,8 +384,10 @@ export class AutoHunter {
       const dd = Math.hypot(b.x - p.x, b.y - p.y);
       if (dd / spd >= bcost || Math.hypot(b.x - c.x, b.y - c.y) > r) return;
       const bd = this.room.bdata.get(bid); if (!bd || bd.ret > 0 || this.taken(bid)) return;
-      const f = pw ? offlineFight(pw, b.years, BEASTS[b.species]?.id ?? "") : null;
-      const cost = this.walk(p, b) / spd + (f ? f.secs + (f.ok ? 0 : AUTO_TARGET.tough) : 0);
+      const f = pw ? offlineFight(pw, b.years, BEASTS[b.species]?.id ?? "") : null, fight = f ? f.secs + (f.ok ? 0 : AUTO_TARGET.tough) : 0;
+      // Chi phí ≥ đi thẳng + đánh: chưa thắng được con tốt nhất hiện có thì không tốn clearLine của walk().
+      if (dd / spd + fight >= bcost) return;
+      const cost = this.walk(p, b) / spd + fight;
       if (cost < bcost) { bcost = cost; best = bid; }
     };
     for (const [bid, b] of this.room.beastsNear(c.x, c.y, R)) consider(bid, b, R);

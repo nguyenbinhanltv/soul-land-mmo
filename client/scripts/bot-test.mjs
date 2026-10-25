@@ -5916,7 +5916,7 @@ async function autoTest(){
       await test(A,"clear",{all:true,keep:true}); await autoOp(A,"set",{cfg:{...BO,bossMode:"always"}}); await autoOp(A,"on");
       for(let t=0;t<1500&&!far;t+=250){ if((await infoA()).target===E.bid) far={x,y,r}; else await sleep(250); }
       await autoOp(A,"off"); }
-    ok(E&&far,`AH1: boss ${E?.name} cách ${far?(Math.hypot(E.x-me(A).x,E.y-me(A).y)/16).toFixed(0):"?"} ô (AUTO_BOSS_DETOUR ${AUTO_BOSS_DETOUR/16} ô)`);
+    ok(E&&far,`AH1: boss ${E?.name} cách ${far?(Math.hypot(E.x-me(A).x,E.y-me(A).y)/TILE).toFixed(0):"?"} ô (AUTO_BOSS_DETOUR ${AUTO_BOSS_DETOUR/TILE} ô)`);
     if(E&&far){
       const E1=E.bid, setup=async cfg2=>{ await autoOp(A,"off"); await test(A,"goto",far); await test(A,"clear",{all:true,keep:true}); await autoOp(A,"set",{cfg:{...BO,...cfg2}}); await test(A,"auto",{pace:0}); };
       const near1=async()=>(await test(A,"spawn",{tier:0,dx:40,dy:0,years:10,hpx:20}))?.bid;
@@ -5924,7 +5924,7 @@ async function autoTest(){
       for(let t=0;t<3500;t+=250){ const st=await infoA(); if(st.target===E1) sawBoss=true; if(st.target===nb&&!st.boss) sawNear=true; await sleep(250); }
       ok(m?.on&&sawNear&&!sawBoss,`"Khi gần": boss xa + quái thường gần → đánh quái gần, không chạy tới boss (quái gần ${sawNear}, boss ${sawBoss})`);
       await test(A,"clear",{all:true,keep:true}); let toBoss=false;
-      for(let t=0;t<5000&&!toBoss;t+=250){ const st=await infoA(); toBoss=st.target===E1&&st.boss; await sleep(250); }
+      for(let t=0;t<6000&&!toBoss;t+=250){ await test(A,"clear",{all:true,keep:true}); const st=await infoA(); toBoss=st.target===E1&&st.boss; await sleep(250); } // dọn liên tục: hồn thú hồi sinh quanh A không xen vào
       ok(toBoss,`"Khi gần": hết quái thường quanh mình thì tới đánh boss`);
       await setup({bossMode:"always"}); nb=await near1(); m=await autoOp(A,"on"); toBoss=false;
       for(let t=0;t<3500&&!toBoss;t+=250){ const st=await infoA(); toBoss=st.target===E1&&st.boss; await sleep(250); }

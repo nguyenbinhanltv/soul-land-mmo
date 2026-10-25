@@ -5182,12 +5182,12 @@ export const AUTO_BOSS = { dodge: { dirs: 16, step: 12, max: 168, pad: 3 }, retr
  * - `AUTO_TARGET`: chi phí một hồn thú thường = (độ dài đường đi / tốc độ) + giây ước lượng hạ nó (offlineFight, chỉ số võ hồn ra
  *   trận); thấp nhất được nhắm. Độ dài đường = khoảng cách thẳng nếu đi thẳng được, không thì nhân `detour`. Trận ước lượng không
  *   đánh nổi (offlineFight.ok = false) cộng thêm `tough` giây. `value`: hệ số giá trị tinh anh / thú vương / boss thế giới khi xếp các
- *   con bậc cao (chi phí chia cho hệ số). `retaliate`: chỉ đánh trả hồn thú đang đánh mình khi nó trong bán kính này (pixel).
+ *   con bậc cao (chi phí chia cho hệ số). `free`: giây giữ kết quả "quanh mình hết hồn thú thường" khi xét boss. `retaliate`: chỉ đánh trả hồn thú đang đánh mình khi nó trong bán kính này (pixel).
  */
 export const AUTO_LOOT_RADIUS = 8 * TILE;
 export const AUTO_LOOT_WAIT = 0.6;
 export const AUTO_BOSS_DETOUR = 20 * TILE;
-export const AUTO_TARGET = { detour: 1.4, tough: 30, value: [2, 4, 8] as const, retaliate: BEAST_AGGRO_R };
+export const AUTO_TARGET = { detour: 1.4, tough: 30, value: [2, 4, 8] as const, retaliate: BEAST_AGGRO_R, free: 1 };
 /** Cách tự săn xét tinh anh / thú vương / boss thế giới: "near" (mặc định) chỉ khi gần, "always" tới đánh trước mọi việc (như trước AH1), "off" không đánh. */
 export type AutoBossMode = "near" | "always" | "off";
 /** Cài đặt tự săn của tài khoản (bảng `auto_hunt`; chỉnh ở bảng Tự động, Auto 2). */
