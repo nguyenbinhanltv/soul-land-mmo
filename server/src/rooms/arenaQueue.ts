@@ -130,16 +130,18 @@ export const arenaLiveWatch = (roomId: string, sid: string, acc: number) => live
   const d = book[roomId]; if (d) { delete d.holds[acc]; d.watching[sid] = acc; }
 });
 export const arenaLiveUnwatch = (roomId: string, sid: string) => liveEdit((book) => { delete book[roomId]?.watching[sid]; });
-/** Bên đối thủ của trận ngay trước (và lúc ghép), giữ trong RAM để arenaPairs tránh ghép lại quá sớm nếu còn bên khác. Dọn bởi sweepLastFoe. */
+/** Bên đối thủ của trận ngay trước (kèm lúc ghép), giữ trong RAM để arenaPairs tránh ghép lại quá sớm nếu còn bên khác. Dọn bởi sweepLastFoe. */
 const lastFoe = new Map<string, { foe: string; at: number }>();
+/** Hạn giữ một mục `lastFoe` kể từ lúc ghép: cả trận (hai bên vắng hàng suốt lúc đấu) cộng cửa sổ chờ lại ARENA.rematchSecs của arenaPairs. */
+export const LAST_FOE_TTL_MS = (ARENA.joinSecs + ARENA.readySecs + ARENA.fightSecs + ARENA.endSecs + ARENA.rematchSecs) * 1000;
 /**
- * Xóa mục `lastFoe` của bên `id` khi cả `id` lẫn đối thủ đều không còn trong hàng (`present`) và đã qua ARENA.rematchSettleSecs kể từ lúc ghép:
- * hết cửa sổ chờ ghép lại thì mục không còn tác dụng, không dọn thì Map tăng theo số đội từng xếp trận (#739). Trả số mục đã xóa.
+ * Xóa mục `lastFoe` của bên `id` khi cả `id` lẫn đối thủ đều không còn trong hàng (`present`) và đã qua LAST_FOE_TTL_MS kể từ lúc ghép:
+ * hết cửa sổ chờ ghép lại thì mục không còn tác dụng (9.7 vẫn giữ nguyên trong lúc đấu), không dọn thì Map tăng theo số đội từng xếp trận (#739). Trả số mục đã xóa.
  */
 export function sweepLastFoe(present: ReadonlySet<string>, now = Date.now()) {
   let n = 0;
   for (const [id, r] of lastFoe) {
-    if (now - r.at < ARENA.rematchSettleSecs * 1000 || present.has(id) || present.has(r.foe)) continue;
+    if (now - r.at < LAST_FOE_TTL_MS || present.has(id) || present.has(r.foe)) continue;
     lastFoe.delete(id); n++;
   }
   return n;

@@ -7,7 +7,7 @@
 - Băng thông 5–8 KB/s mỗi client (9–12 KB/s cạnh thú vương). Phòng trống tự hủy, heap về gần mức đầu; heap tăng chỉ do túi đồ bot đầy dần (có trần), không thấy rò.
 - Redis tắt giữa chừng (hai tiến trình): bài `arena` và `friend` đạt, server sống đến cuối (phần 9 bên dưới).
 - Kịch bản 1–2 giờ chưa đo.
-- Map toàn cục (#739): `kingClaimCache` dọn theo khung thú vương hết hạn, `lastFoe` của hàng chờ đấu trường dọn khi cả hai bên rời hàng sau `ARENA.rematchSettleSecs`; `tools/ci/check-global-maps.mjs` (trong `npm run check`) chặn Map / Set cấp module mới không có đường xóa (hoặc chú thích `map-co-dinh:`); test `npm run test:mapleak --prefix server`. Soak 2 giờ có chụp heap vẫn chưa chạy.
+- Map toàn cục (#739): `kingClaimCache` dọn theo khung thú vương hết hạn, `lastFoe` của hàng chờ đấu trường dọn khi cả hai bên rời hàng quá hạn (thời lượng trận + `ARENA.rematchSecs`, vì cặp đang đấu vẫn phải bị chặn ghép lại); `tools/ci/check-global-maps.mjs` (trong `npm run check`) chặn Map / Set cấp module mới không có đường xóa (hoặc chú thích `map-co-dinh:`); test `npm run test:mapleak --prefix server`. Soak 2 giờ có chụp heap vẫn chưa chạy.
 
 Bảng dưới là số liệu từng lượt; mốc đầu đo trên code `257570e`, so với mốc 11.4 và soak 30 phút.
 
