@@ -2147,19 +2147,24 @@ export class GameScene extends Phaser.Scene {
         const t = this.add.text(c.x, cy - HEAD, f.name, { fontFamily: FONT, fontSize: "12px", fontStyle: "800", color: col, stroke: "#1a1020", strokeThickness: 3, resolution: 8 })
           .setOrigin(0.5).setDepth(99990).setScale(0.5 * this.txtK);
         const icoKey = fusionImgKey(f.name), icoUrl = artUrl(icoKey);
-        const fly = (ico?: Phaser.GameObjects.Image) => {
-          const targets: Phaser.GameObjects.GameObject[] = ico ? [t, ico] : [t];
-          this.tweens.add({ targets: t, scale: 1.3 * this.txtK, y: cy - HEAD - 16 * k, duration: 500, ease: "Back.easeOut" });
-          if (ico) this.tweens.add({ targets: ico, scale: 1.3 * this.txtK * 18 / ico.width, y: cy - HEAD - 16 * k - 9 * this.txtK, duration: 500, ease: "Back.easeOut" });
-          this.tweens.add({ targets, alpha: 0, delay: 1500, duration: 600, onComplete: () => targets.forEach((o) => o.destroy()) });
+        const t0 = this.time.now;
+        this.tweens.add({ targets: t, scale: 1.3 * this.txtK, y: cy - HEAD - 16 * k, duration: 500, ease: "Back.easeOut" });
+        this.tweens.add({ targets: t, alpha: 0, delay: 1500, duration: 600, onComplete: () => t.destroy() });
+        // Ảnh đi kèm: nhãn bay ngay; ảnh tới muộn (nạp lười) thì hiện ở chỗ nhãn đang đứng và mờ cùng lúc với nhãn, quá trễ thì bỏ.
+        const mkIco = () => {
+          const el = this.time.now - t0; if (!t.active || el > 1500) return;
+          const w = this.textures.get(icoKey).getSourceImage().width, sc = 1.3 * this.txtK * 18 / w;
+          const ico = this.add.image(c.x, t.y - 9 * this.txtK, icoKey).setOrigin(0.5, 1).setDepth(99990).setScale(el < 500 ? 0.5 * this.txtK * 18 / w : sc);
+          if (el < 500) this.tweens.add({ targets: ico, scale: sc, y: cy - HEAD - 16 * k - 9 * this.txtK, duration: 500 - el, ease: "Back.easeOut" });
+          this.tweens.add({ targets: ico, alpha: 0, delay: 1500 - el, duration: 600, onComplete: () => ico.destroy() });
         };
-        const mkIco = () => this.add.image(c.x, cy - HEAD - 4 * this.txtK, icoKey).setOrigin(0.5, 1).setDepth(99990).setScale(0.5 * this.txtK * 18 / this.textures.get(icoKey).getSourceImage().width);
-        if (!icoUrl) fly();
-        else if (this.textures.exists(icoKey)) fly(mkIco());
-        else { // nạp lười một lần; trong lúc chờ nhãn đã bay (không chặn khung hình), ảnh tới kịp lúc thì hiện theo
+        if (icoUrl && this.textures.exists(icoKey)) mkIco();
+        else if (icoUrl) { // nạp lười một lần (không chặn khung hình); lỗi tải thì giữ nhãn chỉ có tên
+          const done = () => { this.load.off(`filecomplete-image-${icoKey}`, ok); this.load.off("loaderror", bad); };
+          const ok = () => { done(); mkIco(); };
+          const bad = (file: { key: string }) => { if (file.key === icoKey) done(); };
           this.load.image(icoKey, icoUrl);
-          this.load.once(`filecomplete-image-${icoKey}`, () => { if (t.active) fly(mkIco()); });
-          this.load.once(`loaderror`, () => { if (t.active && !this.textures.exists(icoKey)) fly(); });
+          this.load.on(`filecomplete-image-${icoKey}`, ok); this.load.on("loaderror", bad);
           this.load.start();
         }
       }
