@@ -40,22 +40,22 @@
       "#f4f8ff"
     ],
     "quang": [
-      "#b8862a",
-      "#f2c84b",
-      "#fff2b0",
-      "#ffffff"
+      "#8f5a12",
+      "#d9a02a",
+      "#ffd860",
+      "#fff6c8"
     ],
     "hoi": [
-      "#335f35",
-      "#5a9440",
-      "#a8e08a",
-      "#f4fff0"
+      "#27453a",
+      "#46b86a",
+      "#8fe08a",
+      "#e8ffe0"
     ],
     "khien": [
-      "#3c4f70",
-      "#7a8aa8",
-      "#c0cce0",
-      "#f4f8ff"
+      "#2d4a78",
+      "#5a9cc9",
+      "#a8d8ff",
+      "#eaf6ff"
     ],
     "khoi": [
       "#44434c",
@@ -110,7 +110,8 @@
       "fps": 16,
       "outline": true,
       "normal": true,
-      "use": "Khói lướt khi dịch chuyển nhanh"
+      "use": "Khói lướt khi dịch chuyển nhanh",
+      "gamma": 1.6
     },
     {
       "key": "pfx_bui",
@@ -142,7 +143,9 @@
       "ramp": "hoi",
       "fps": 10,
       "glow": true,
-      "use": "Hồi máu (hệ Phụ trợ)"
+      "use": "Hồi máu (hệ Phụ trợ)",
+      "gamma": 1.2,
+      "normal": true
     },
     {
       "key": "pfx_khien",
@@ -153,7 +156,9 @@
       "ramp": "khien",
       "fps": 10,
       "glow": true,
-      "use": "Khiên / buff phòng thủ"
+      "use": "Khiên / buff phòng thủ",
+      "gamma": 1.2,
+      "normal": true
     },
     {
       "key": "pfx_quang",
@@ -164,7 +169,9 @@
       "ramp": "quang",
       "fps": 10,
       "glow": true,
-      "use": "Buff hệ Phụ trợ / sóng Quang"
+      "use": "Buff hệ Phụ trợ / sóng Quang",
+      "gamma": 1.2,
+      "normal": true
     },
     {
       "key": "pfx_chem_sang",
@@ -175,7 +182,9 @@
       "ramp": "quang",
       "fps": 14,
       "glow": true,
-      "use": "Chém sáng (hệ Quang)"
+      "use": "Chém sáng (hệ Quang)",
+      "gamma": 1.2,
+      "normal": true
     },
     {
       "key": "prv_rung_cay_soi_1",

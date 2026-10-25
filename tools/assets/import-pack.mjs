@@ -67,8 +67,10 @@ function importFx(e, root) {
   if (n * fw !== sheet.w) throw new Error(`${e.key}: bề ngang ${sheet.w} không chia hết cho khung ${fw}`);
   const ramp = SPEC.ramps[e.ramp].map(hex), K = ramp.length;
   // Độ sáng chuẩn hóa theo cả sheet: điểm sáng nhất = màu sáng nhất của dải.
-  let maxL = 0.001;
-  for (let i = 0; i < sheet.w * sheet.h; i++) if (sheet.data[i * 4 + 3] > 40) maxL = Math.max(maxL, lum(sheet.data[i * 4], sheet.data[i * 4 + 1], sheet.data[i * 4 + 2]));
+  // Gói toàn màu sáng (Holy) thì kéo giãn từ điểm tối nhất tới sáng nhất, không thì mọi điểm dồn vào màu trên cùng của dải.
+  let maxL = 0.001, minL = 1;
+  for (let i = 0; i < sheet.w * sheet.h; i++) if (sheet.data[i * 4 + 3] > 40) { const v = lum(sheet.data[i * 4], sheet.data[i * 4 + 1], sheet.data[i * 4 + 2]); maxL = Math.max(maxL, v); minL = Math.min(minL, v); }
+  if (minL >= maxL) minL = 0;
   // Tìm vùng có hình chung mọi khung (đối xứng quanh tâm khung) để cắt viền trống.
   let hx = 0, hy = 0;
   for (let f = 0; f < n; f++) for (let y = 0; y < fh; y++) for (let x = 0; x < fw; x++) if (sheet.alpha(f * fw + x, y) > 20) { hx = Math.max(hx, Math.abs(x + 0.5 - fw / 2)); hy = Math.max(hy, Math.abs(y + 0.5 - fh / 2)); }
@@ -78,7 +80,7 @@ function importFx(e, root) {
     const sx = f * fw + x + ox, sy = y + oy, [r, g, b, a] = sheet.get(sx, sy);
     const qaa = qa(a);
     if (!qaa) continue;
-    const l = Math.min(1, lum(r, g, b) / maxL), idx = Math.min(K - 1, Math.floor(Math.pow(l, e.gamma ?? 0.9) * K)), c = ramp[idx];
+    const l = Math.max(0, Math.min(1, (lum(r, g, b) - minL * (e.stretch === false ? 0 : 1)) / (maxL - minL * (e.stretch === false ? 0 : 1)))), idx = Math.min(K - 1, Math.floor(Math.pow(l, e.gamma ?? 0.9) * K)), c = ramp[idx];
     body.set(f * ow + x, y, [...c, qaa]);
     if (e.glow && idx === K - 1) glow.set(f * ow + x, y, [...c, 120]);
   }
@@ -119,7 +121,7 @@ for (const e of SPEC.entries) {
   const root = roots[e.pack];
   if (!root) { console.log(`bỏ qua ${e.key}: thiếu --${e.pack}`); continue; }
   const r = e.kind === "prop" ? importProp(e, root) : importFx(e, root);
-  const name = e.key.replace(/^pfx_/, "");
+  const name = e.key.replace(/^(pfx|prv)_/, "");
   mkdirSync(path.join(outDir, "packs", e.pack), { recursive: true });
   const rec = { key: e.key, kind: e.kind, private: true, pack: e.pack, file: `packs/${e.pack}/${name}.png`, frame: r.frame, frames: r.frames, ...(e.kind === "fx" ? { fps: e.fps, normal: !!e.normal } : { foot: r.foot }), ...(r.files._glow ? { glow: `packs/${e.pack}/${name}_glow.png` } : {}), use: e.use };
   for (const [suf, img] of Object.entries(r.files)) { writeFileSync(path.join(outDir, "packs", e.pack, `${name}${suf}.png`), encodePng(img)); present.push(`packs/${e.pack}/${name}${suf}.png`); }

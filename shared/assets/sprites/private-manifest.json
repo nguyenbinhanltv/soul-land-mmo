@@ -28,7 +28,7 @@
       ],
       "frames": 5,
       "fps": 14,
-      "normal": false,
+      "normal": true,
       "glow": "packs/holy/chem_sang_glow.png",
       "use": "Chém sáng (hệ Quang)"
     },
@@ -44,7 +44,7 @@
       ],
       "frames": 12,
       "fps": 10,
-      "normal": false,
+      "normal": true,
       "glow": "packs/holy/hoi_glow.png",
       "use": "Hồi máu (hệ Phụ trợ)"
     },
@@ -76,7 +76,7 @@
       ],
       "frames": 11,
       "fps": 10,
-      "normal": false,
+      "normal": true,
       "glow": "packs/holy/khien_glow.png",
       "use": "Khiên / buff phòng thủ"
     },
@@ -123,7 +123,7 @@
       ],
       "frames": 10,
       "fps": 10,
-      "normal": false,
+      "normal": true,
       "glow": "packs/holy/quang_glow.png",
       "use": "Buff hệ Phụ trợ / sóng Quang"
     },
@@ -164,7 +164,7 @@
       "kind": "prop",
       "private": true,
       "pack": "forest",
-      "file": "packs/forest/prv_rung_bui_cay.png",
+      "file": "packs/forest/rung_bui_cay.png",
       "frame": [
         35,
         27
@@ -181,7 +181,7 @@
       "kind": "prop",
       "private": true,
       "pack": "forest",
-      "file": "packs/forest/prv_rung_cay_soi_1.png",
+      "file": "packs/forest/rung_cay_soi_1.png",
       "frame": [
         70,
         98
@@ -198,7 +198,7 @@
       "kind": "prop",
       "private": true,
       "pack": "forest",
-      "file": "packs/forest/prv_rung_cay_soi_2.png",
+      "file": "packs/forest/rung_cay_soi_2.png",
       "frame": [
         70,
         94
@@ -215,7 +215,7 @@
       "kind": "prop",
       "private": true,
       "pack": "forest",
-      "file": "packs/forest/prv_rung_cay_thong_1.png",
+      "file": "packs/forest/rung_cay_thong_1.png",
       "frame": [
         38,
         74
@@ -232,7 +232,7 @@
       "kind": "prop",
       "private": true,
       "pack": "forest",
-      "file": "packs/forest/prv_rung_cay_thong_2.png",
+      "file": "packs/forest/rung_cay_thong_2.png",
       "frame": [
         38,
         70
@@ -249,7 +249,7 @@
       "kind": "prop",
       "private": true,
       "pack": "forest",
-      "file": "packs/forest/prv_rung_da_1.png",
+      "file": "packs/forest/rung_da_1.png",
       "frame": [
         26,
         22
@@ -266,7 +266,7 @@
       "kind": "prop",
       "private": true,
       "pack": "forest",
-      "file": "packs/forest/prv_rung_da_2.png",
+      "file": "packs/forest/rung_da_2.png",
       "frame": [
         27,
         23
@@ -283,7 +283,7 @@
       "kind": "prop",
       "private": true,
       "pack": "forest",
-      "file": "packs/forest/prv_rung_da_3.png",
+      "file": "packs/forest/rung_da_3.png",
       "frame": [
         22,
         21
@@ -300,7 +300,7 @@
       "kind": "prop",
       "private": true,
       "pack": "forest",
-      "file": "packs/forest/prv_rung_khuc_go.png",
+      "file": "packs/forest/rung_khuc_go.png",
       "frame": [
         40,
         32
@@ -317,7 +317,7 @@
       "kind": "prop",
       "private": true,
       "pack": "forest",
-      "file": "packs/forest/prv_rung_nam_do.png",
+      "file": "packs/forest/rung_nam_do.png",
       "frame": [
         13,
         14
