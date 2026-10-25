@@ -8,6 +8,7 @@
     "preview": "vite preview",
     "bot": "node scripts/bot-test.mjs",
     "test:predict": "node scripts/predict-test.mjs",
+    "test:nameplate": "node --experimental-strip-types scripts/nameplate-test.mjs",
     "test:charbag": "node scripts/charbag-test.mjs",
     "test:phaptuong": "node scripts/phaptuong-test.mjs",
     "test:spiritmotion": "node scripts/spiritmotion-test.mjs",

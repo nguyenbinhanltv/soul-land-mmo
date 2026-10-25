@@ -62,6 +62,7 @@ import { showOffline, type OfflineMsg } from "../offline.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, GearMsg, EquipEnhPreview, EquipEnhDone, EquipSynDone, EquipSalvDone, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, AutoStMsg, FriendsMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
 import { assetUrl } from "../assetUrl.ts";
+import { stackNameplate } from "../nameplate.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
@@ -622,14 +623,15 @@ export class GameScene extends Phaser.Scene {
     }
     // Chữ trên đầu NPC: độ lệch so với `top` tính bằng pixel chữ chưa phóng, wtext nhân txtK (và đặt lại khi txtK đổi).
     const style = { fontFamily: FONT, fontStyle: "700", stroke: "#000", strokeThickness: 2, resolution: 8 };
-    this.wtext(this.add.text(sx, top, def?.name ?? name, { ...style, fontSize: "7px", color: def?.col ?? "#f2c84b" }).setOrigin(0.5, 1).setDepth(99984), top, 0);
-    if (def) this.wtext(this.add.text(sx, top, def.title, { ...style, fontSize: "5.5px", fontStyle: "600", color: "#d8d2c0" }).setOrigin(0.5, 1).setDepth(99984), top, 8);
+    const npcOffsets = stackNameplate(["name", "title", "action", "quest"]);
+    this.wtext(this.add.text(sx, top, def?.name ?? name, { ...style, fontSize: "7px", color: def?.col ?? "#f2c84b" }).setOrigin(0.5, 1).setDepth(99984), top, npcOffsets.name);
+    if (def) this.wtext(this.add.text(sx, top, def.title, { ...style, fontSize: "5.5px", fontStyle: "600", color: "#d8d2c0" }).setOrigin(0.5, 1).setDepth(99984), top, npcOffsets.title);
     let mark: Phaser.GameObjects.Text | null = null;
     if (def) {
       mark = this.add.text(sx, top, document.body.classList.contains("touch") ? "Chạm để nói chuyện" : "Nói chuyện [F]", {
         ...style, fontSize: "6px", color: "#fff2b0", backgroundColor: "#000000aa", padding: { x: 3, y: 1 },
       }).setOrigin(0.5, 1).setDepth(99986).setVisible(false);
-      this.wtext(mark, top, 16, { dy: 2, ms: 600 });
+      this.wtext(mark, top, npcOffsets.action, { dy: 2, ms: 600 });
       // Vùng bấm phủ cả hình và tên: chuột hoặc chạm đều được.
       this.add.zone(sx, (top + sy) / 2, 22 * SPR, sy - top + 12 * SPR).setInteractive({ useHandCursor: true }).on("pointerdown", () => this.talk(def.id));
     }
@@ -638,7 +640,7 @@ export class GameScene extends Phaser.Scene {
     if (def && hud.QUEST_GIVERS.has(def.id)) {
       qmark = this.add.text(sx, top, "", { ...style, fontSize: "12px", fontStyle: "800", color: "#ffd84a", strokeThickness: 3 })
         .setOrigin(0.5, 1).setDepth(99987).setVisible(false);
-      this.wtext(qmark, top, 25, { dy: 3, ms: 700 });
+      this.wtext(qmark, top, npcOffsets.quest, { dy: 3, ms: 700 });
     }
     this.npcs.push({ id, x, y, def, body, mark, qmark });
     this.updateQuestMarks();
@@ -2665,15 +2667,16 @@ export class GameScene extends Phaser.Scene {
       const up = 0;
       if (label.scale !== this.txtK) { label.setScale(this.txtK); title.setScale(this.txtK); tongT.setScale(this.txtK); }
       // Tên tông (#196) ngay trên đầu, tên và danh hiệu dịch lên một dòng khi có tông.
-      const tg = tongByIndex(p.tong), tu = tg ? 7 * this.txtK : 0;
+      const tg = tongByIndex(p.tong), playerLines = tg ? ["faction", "name", "title"] as const : ["name", "title"] as const;
+      const playerOffsets = stackNameplate(playerLines);
       tongT.setPosition(root.x, root.y - HEAD - (this.isArena ? 2 : 0) - up).setVisible(!!tg && !p.dead).setText(tg?.name ?? "");
       if (tg && tongT.style.color !== tg.col) tongT.setColor(tg.col);
-      label.setPosition(root.x, root.y - HEAD - (this.isArena ? 2 : 0) - up - tu).setVisible(!p.dead).setText(`${p.name} (${p.level})`);
+      label.setPosition(root.x, root.y - HEAD - (this.isArena ? 2 : 0) - up - playerOffsets.name * this.txtK).setVisible(!p.dead).setText(`${p.name} (${p.level})`);
       // Đồng đội trong tổ đội (7.1): tên màu xanh lá.
       const col = id === this.me ? "#ffe9a0" : this.party?.members.some((m) => !m.me && m.sid === id) ? "#7dff8a" : "#ffffff";
       if (label.style.color !== col) label.setColor(col);
       // Danh hiệu theo cấp võ hồn đang ra trận (mục 5.1); đang tự săn (Auto 1) thì thêm chữ "Tự động", màu lục.
-      title.setPosition(root.x, root.y - HEAD - 8 * this.txtK - up - tu).setVisible(!p.dead).setText(p.auto ? `${titleOf(p.level)} · ${id === this.me && autoJobText() || "Tự động"}` : titleOf(p.level));
+      title.setPosition(root.x, root.y - HEAD - playerOffsets.title * this.txtK - up).setVisible(!p.dead).setText(p.auto ? `${titleOf(p.level)} · ${id === this.me && autoJobText() || "Tự động"}` : titleOf(p.level));
       const tcol = p.auto ? "#86e0b0" : "#f2c84b"; if (title.style.color !== tcol) title.setColor(tcol);
     });
     if (this.stepT.size > st.players.size) for (const id of this.stepT.keys()) if (!st.players.has(id)) this.stepT.delete(id);
