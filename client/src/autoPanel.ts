@@ -136,7 +136,7 @@ export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
     if (b.dataset.preset === "custom") { y("y0").focus(); return; }
     if (b.dataset.preset) { const p = YEAR_PRESETS[Number(b.dataset.preset)]; y("y0").value = String(p.years[0]); y("y1").value = String(p.years[1]); }
     else { const i = y(b.dataset.step!); i.value = String(clampYears(Number(i.value) + Number(b.dataset.d) * YEAR_STEP)); }
-    commit(el);
+    b.blur(); commit(el);
   }, on);
   // Ô đánh dấu / chọn / thanh trượt đổi xong thì bỏ tiêu điểm để phím game (Space, mũi tên, số) dùng lại ngay; ô số và chọn sao giữ tiêu điểm.
   el.addEventListener("change", (e) => {
@@ -174,12 +174,13 @@ function checkYears(el: HTMLElement) {
   return ok;
 }
 
-/** Gửi cài đặt sau khi người chơi đổi; niên hạn sai (từ > đến) thì không gửi. Ô niên hạn vượt trần thì kẹp về MAX_YEARS ngay ở ô. */
+/** Gửi cài đặt sau khi người chơi đổi; niên hạn sai (từ > đến) thì không gửi niên hạn đó (giữ niên hạn đang lưu). Ô niên hạn vượt trần thì kẹp về MAX_YEARS ngay ở ô. */
 function commit(el: HTMLElement) {
   const [a, b] = yearsOf(el);
   $<HTMLInputElement>("[data-k=y0]", el)!.value = String(a); $<HTMLInputElement>("[data-k=y1]", el)!.value = String(b);
-  if (!checkYears(el)) return;
-  const cfg = read(el); if (cfg) ctx?.send("set", cfg);
+  const cfg = read(el); if (!cfg) return;
+  if (!checkYears(el)) cfg.years = [...last!.cfg.years]; // niên hạn sai: ô vẫn đỏ, các thay đổi khác vẫn lưu với niên hạn đang có
+  ctx?.send("set", cfg);
 }
 
 function showRange(el: HTMLElement, t: HTMLInputElement) {
