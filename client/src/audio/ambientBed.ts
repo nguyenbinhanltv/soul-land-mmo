@@ -30,6 +30,8 @@ export class AmbientBed {
   private readonly playing = new Set<Playing>();
   private wanted = "";
   private disposed = false;
+  /** Đã dừng hẳn (mất kết nối): scene cũ vẫn gọi `setMap` mỗi 250 ms nên phải bỏ qua cho tới khi có AudioManager mới (`resume`). */
+  private halted = false;
   /** Các file đã yêu cầu tải (để bot / bài thử thấy tải lười). */
   readonly fetched: string[] = [];
 
@@ -71,7 +73,7 @@ export class AmbientBed {
 
   /** Gọi mỗi lần báo môi trường (~250 ms): chỉ làm gì khi bản đồ đổi hoặc nền cần tải lại sau lỗi. `null` = ngừng nền (mất kết nối). */
   setMap(mapId: string | null): void {
-    if (this.disposed) return;
+    if (this.disposed || this.halted) return;
     const want = mapId ?? "";
     if (want !== this.wanted) {
       this.wanted = want;
@@ -131,8 +133,11 @@ export class AmbientBed {
     p.src.addEventListener?.("ended", () => { p.gain.disconnect(); });
   }
 
-  /** Mờ ra rồi dừng mọi nền (mất kết nối); gọi `setMap` lại thì phát lại. */
-  stop(): void { this.setMap(null); }
+  /** Mờ ra rồi dừng hẳn mọi nền (mất kết nối) cho tới khi `resume`. */
+  stop(): void { this.setMap(null); this.halted = true; }
+
+  /** Có AudioManager mới (scene mới sau Vào lại / đi cổng): cho phát tiếp. */
+  resume(): void { this.halted = false; }
 
   dispose(): void {
     this.disposed = true;
@@ -152,6 +157,7 @@ let lastBed: AmbientBed | null = null;
 export function ambientBedFor(context: AudioContext | null | undefined, options?: AmbientBedOptions): AmbientBed | null {
   if (!context) return null;
   let bed = beds.get(context);
+  bed?.resume();
   if (!bed) {
     try { bed = new AmbientBed(context, options); } catch { return null; }
     beds.set(context, bed);
@@ -160,5 +166,5 @@ export function ambientBedFor(context: AudioContext | null | undefined, options?
   return bed;
 }
 
-/** Mất kết nối (màn "Đã rời bản đồ"): ngừng nền của bộ phát dùng chung, cùng chỗ gọi với `stopMusic`. */
+/** Mất kết nối (màn "Đã rời bản đồ"): dừng hẳn nền của bộ phát dùng chung, cùng chỗ gọi với `stopMusic`; scene cũ gọi tiếp cũng im, chỉ AudioManager mới phát lại. */
 export function stopAmbientBed(): void { lastBed?.stop(); }

@@ -549,8 +549,12 @@ noListenerAudio.dispose();
     assert.equal(next.bed.current, "loi_tinh_dau", "nền mới vào, nền cũ mờ ra chéo");
     stopAmbientBed();
     assert.equal(next.bed.current, null, "mất kết nối: ngừng nền");
-    next.updateAmbient(500, input("hai_than_dao")); await flush();
-    assert.equal(next.bed.current, "hai_than_dao", "vào lại thì phát lại");
+    next.updateAmbient(500, input("hai_than_dao")); next.updateAmbient(750, input("loi_tinh_dau")); await flush();
+    assert.equal(next.bed.current, null, "scene cũ còn gọi updateAmbient sau khi mất kết nối: vẫn im");
+    const again = new AudioManager({ sound: { context: ctx, setMute() {}, setVolume() {} } }, () => ({ x: 100, y: 100 }), () => null, { random: () => 0.5 });
+    again.updateAmbient(0, input("hai_than_dao")); await flush();
+    assert.equal(again.bed.current, "hai_than_dao", "AudioManager mới (vào lại) thì phát lại");
+    again.dispose();
     audio.dispose();
     next.dispose();
   }
