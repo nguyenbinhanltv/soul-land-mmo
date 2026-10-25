@@ -128,7 +128,7 @@ class Radar implements DotSink {
     const flat = this.mode === "flat";
     this.modeBtn.setAttribute("aria-pressed", String(flat));
     this.modeBtn.title = flat ? "Nhìn thẳng (Bắc lên): bấm để xoay theo màn hình" : "Xoay theo màn hình isometric: bấm để nhìn thẳng";
-    this.modeBtn.textContent = flat ? "⬆" : "◈";
+    this.modeBtn.textContent = flat ? "↑" : "◈";
     (document.getElementById("radarIn") as HTMLButtonElement).disabled = this.zoom === 0;
     (document.getElementById("radarOut") as HTMLButtonElement).disabled = this.zoom === RADAR.zooms.length - 1;
   }

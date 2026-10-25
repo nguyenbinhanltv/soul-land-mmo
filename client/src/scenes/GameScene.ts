@@ -510,7 +510,7 @@ export class GameScene extends Phaser.Scene {
       // Nhìn thẳng: cổng sát mép trên bản đồ (cổng bắc Nặc Đinh Thành, BĐ6a) ghi tên dưới cổng, không thì khuất ngoài bản đồ.
       // Isometric: camera chừa lề trên bản đồ nên tên luôn ghi trên đỉnh cao nhất của cổng.
       const top = TOPDOWN && r.y < TILE, ys = pts.map((p) => p.y), cx = pts.reduce((a, p) => a + p.x, 0) / 4;
-      const t = this.add.text(cx, 0, `➜ ${MAPS[r.to].name}`, {
+      const t = this.add.text(cx, 0, `→ ${MAPS[r.to].name}`, {
         fontFamily: FONT, fontSize: "7px", fontStyle: "700", color: "#c8ffe0", stroke: "#000", strokeThickness: 2, resolution: 8,
       }).setOrigin(0.5, top ? 0 : 1).setDepth(99984);
       this.wtext(t, top ? Math.max(...ys) + 2 : Math.min(...ys) - 2, 0);
@@ -518,7 +518,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Truyền tống trận (11.2): tên trên trận (✦, mờ khi chưa mở) và vùng bấm / chạm mở bản đồ thế giới. Vòng trận phát sáng vẽ mỗi khung ở
+   * Truyền tống trận (11.2): tên trên trận (◆, mờ khi chưa mở) và vùng bấm / chạm mở bản đồ thế giới. Vòng trận phát sáng vẽ mỗi khung ở
    * `paintWaypoints` (phong cách A: hồn lực sáng màu lam ngọc; chưa mở thì xám mờ), không dùng ảnh.
    */
   drawWaypoints() {
@@ -535,7 +535,7 @@ export class GameScene extends Phaser.Scene {
   labelWaypoints() {
     for (const w of this.waypoints) {
       const open = this.wpOpen.has(w.key);
-      w.text?.setText(`✦ ${w.label}${open ? "" : " (chưa mở)"}`).setColor(open ? "#bfefff" : "#b8b8c4");
+      w.text?.setText(`◆ ${w.label}${open ? "" : " (chưa mở)"}`).setColor(open ? "#bfefff" : "#b8b8c4");
     }
   }
   /** Vòng trận trên mặt đất (lớp vùng cảnh báo, dưới hồn sư): hai vòng, 8 phù văn xoay chậm, tâm thoi; đã mở thì sáng nhịp. */
