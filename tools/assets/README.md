@@ -45,6 +45,7 @@ Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` 
 - Khung 96×96 (khung thân mở rộng 16 mỗi phía), gốc (48, 74). Sheet 24 × 12 (2304×1152): **mỗi giới một nửa** (`ISO_VH_SEXES`), ghép theo thân mẫu `m_0` (hàng 0–4) và `f_0` (hàng 6–10), hàng 5 và 11 trống; client chọn nửa theo giới của lớp thân (`vohonHalf`), các kiểu tóc cùng giới dùng chung nửa sheet.
 - **Điểm neo:** phụ thể vẽ tĩnh 5 hướng (`vohon-part.mjs` đặt ảnh vào khung đứng theo file mô tả: điểm cầm, nửa sau / trước, viền sáng), rồi `pack.mjs --kind vohon` tìm điểm neo trên từng khung thân (`frameAnchors`: tay cầm là đầu mút mảng da cùng phía với tay trong `grip.json`, giữa lưng, đỉnh đầu; phụ thể dưới chân đứng yên theo gốc) và ghép vào sheet `vh_{id}_b` / `vh_{id}_f`. Vũ khí xoay theo góc vung của `attack` (`ISO_ATTACK_SWING`; vũ khí dài góc nhỏ hơn). Người vẽ tự quyết pixel nào nửa sau, nửa trước theo hướng (quay lưng `n`, `ne` thì cánh ở nửa trước, vũ khí ở nửa sau).
 - **Phụ thể vẽ tĩnh 5 hướng đã đặt quanh thân khung đứng** (ảnh Gemini ở `art/src/gemini/phuthe_5huong/<id>/{s,se,e,ne,n}.png`): `node tools/assets/vohon-static5.mjs spec <id>` ghi file mô tả `art/src/gemini/vh_iso/<id>.json` (neo `back`, pivot mỗi giới = điểm neo thân `m_0` / `f_0` ở khung đứng nên ảnh giữ nguyên vị trí ở `idle` khung 0; nửa sau / trước theo hướng ở bảng `LAYERS` trong script: cánh, hoa, chân nhện, hư ảnh ở nửa sau khi quay mặt `s`, `se`, `e` và nửa trước khi quay lưng `ne`, `n`; tai, rắn, vuốt luôn nửa trước), `build <id…>` chạy `vohon-part` → `normalize --kind vohon --foot 74` → `pack --kind vohon --attach back` → `normal` cho cả hai giới. Phần gắn tay (vuốt, tay vảy) theo giữa lưng chứ không theo từng bàn tay; muốn bám tay thì viết mô tả riêng `attach: hand`.
+- **Phụ thể nhiều nhóm neo vẽ bằng code** (Hỏa Long, Liệt Hỏa Thương Lang, #102): `node tools/assets/vohon-chi-tiet.mjs` vẽ ảnh mảnh + `art/src/vh_nho/<id>/spec.json` (mỗi nhóm một neo tay / đầu / lưng; mảnh gắn tay lấy hình cẳng tay từ thân mẫu LPC của `lpc-mannequin.mjs`, thân dựng đúng lớp client ghép), `node tools/assets/vohon-multi.mjs build <id…>` chạy vohon-part → normalize → pack từng nhóm rồi chồng thành một cặp sheet. Hướng se / ne dùng lại hướng e vì client vẽ se / e / ne bằng cùng hàng LPC phải. Mô tả `free: true` ở mảnh gắn tay: pack bám mảnh da gần nhất, không giữ trái / phải (hướng nhìn ngang).
 - Phụ thể chỉ vẽ `idle`, `walk`, `attack`, `cast` (cột 0–16). Ánh xạ khung (`vohonFrame`, cùng cho hai nửa):
 
 | Lớp thân đang ở | Khung phụ thể |
@@ -64,7 +65,7 @@ Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` 
 | Tà Hỏa Phượng Hoàng (`ta_hoa_phuong_hoang`) | Đôi cánh lửa phượng hoàng | Lưng | Cánh vỗ theo nhịp đi; tàn lửa bay lên |
 | U Minh Linh Miêu (`u_minh_linh_mieu`) | Hư ảnh báo U Minh tím phục sau lưng; tai mèo, đuôi, móng vuốt trên tay để sau | Lưng (sau: đầu + tay) | Vệt cào tím; bóng mờ đuổi theo khi lướt |
 | Nguyệt Nhận (`nguyet_nhan`) | Đôi lưỡi trăng khuyết bạc cầm hai tay | Hai tay | Vệt chém hình trăng khuyết, ánh trăng lạnh |
-| Hỏa Long (`hoa_long`) | Hư ảnh rồng lửa nhỏ quấn quanh thân, đầu rồng trên vai | Bao quanh | Hơi nóng gợn quanh người, tia lửa bắn ra khi đánh |
+| Hỏa Long (`hoa_long`) | Rồng lửa nhỏ quấn cẳng tay và vắt chéo thân, đầu rồng có sừng ngóc trên vai (vẽ bằng code, #102) | Bao quanh | Hơi nóng gợn quanh người, tia lửa bắn ra khi đánh |
 | Nhu Cốt Thố (`nhu_cot_tho`) | Tai thỏ dài, đuôi bông; hai chân phát sáng | Đầu + lưng + dưới chân | Vệt sáng hồng hình cung khi lướt và đá |
 | Kim Vũ Miêu Ưng (`kim_vu_mieu_ung`) | Đôi cánh lông vàng kim, vuốt ưng ở tay | Lưng + tay | Lông vũ rơi; tia điện vàng lóe trên mép cánh |
 | Tử Vong Chu Hoàng (`tu_vong_chu_hoang`) | 4 chân nhện tím đen mọc sau lưng | Lưng | Sợi tơ tím; hơi độc mờ bay quanh chân |
@@ -80,7 +81,7 @@ Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` 
 | Cửu Bảo Lưu Ly Tháp (`cuu_bao_luu_ly_thap`) | Tháp lưu ly 9 tầng nhỏ lơ lửng trên tay | Tay (lơ lửng) | Hào quang 7 màu xoay quanh tháp, chiếu tia sáng lên đồng đội |
 | Phá Hồn Thương (`pha_hon_thuong`) | Trường thương cán dài, mũi hình thoi, tua đỏ dưới mũi | Tay phải | Hồn quang lấp lánh ở mũi thương; vệt đâm thẳng khi đánh |
 | A Ngân (`a_ngan`) | Dây Lam Ngân vân vàng quấn hai tay, vương miện cỏ, đóa Lam Ngân Hoàng nở sau lưng | Tay + đầu + lưng | Đốm sáng xanh và vàng li ti |
-| Liệt Hỏa Thương Lang (`liet_hoa_thuong_lang`) | Tai sói xám, đuôi sói to chóp lửa, vuốt lửa hai tay | Đầu + lưng + tay | Tàn lửa bay từ chóp đuôi; vệt cào lửa khi đánh |
+| Liệt Hỏa Thương Lang (`liet_hoa_thuong_lang`) | Tai sói xám, đuôi sói to chóp lửa, vuốt hai tay (vẽ bằng code, #102) | Đầu + lưng + tay | Tàn lửa bay từ chóp đuôi; vệt cào lửa khi đánh |
 | Băng Phượng Hoàng (`bang_phuong_hoang`) | Đôi cánh băng phượng hoàng, mào băng trên đầu | Lưng + đầu | Tinh thể băng hình chữ thập lấp lánh quanh người |
 | Bạch Hổ (`bach_ho`) | Tai hổ trắng, đuôi hổ vằn đen, vuốt hai tay (ảnh Gemini 5 hướng, ghép ở #425) | Đầu + lưng + tay | Vằn sáng và vệt cào trắng khi đánh |
 
