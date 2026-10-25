@@ -1,6 +1,6 @@
 # Âm thanh
 
-### 5.12 Âm thanh: nền tảng WebAudio, SFX tự tạo và nhạc nền
+### 5.12 Âm thanh: nền tảng WebAudio, SFX tự tạo và nhạc nền (phần hiển thị chiến đấu ở `docs/design/ky-nang-combat-phap-tuong.md`)
 Âm thanh là phần trình bày phía client. Server vẫn quyết định trạng thái, sát thương, vị trí và kết quả; client chỉ phát theo tin `fx`, `dmg` và state đã nhận. Không thêm message server cho âm thanh khi event hiện có đủ dữ liệu. Nếu sau này thiếu event, chỉ thêm event trạng thái tối thiểu, không đưa logic âm thanh lên server.
 
 - `client/src/audio/AudioManager.ts` dùng WebAudio context của Phaser Sound. Trình duyệt bị chặn tự phát thì chỉ `resume()` sau lần chạm, click hoặc phím đầu tiên; context không ở trạng thái `running` thì bỏ qua tiếng, không tạo node âm thanh. Bot headless không cần âm thanh.

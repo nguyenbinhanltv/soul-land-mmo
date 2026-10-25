@@ -10,17 +10,17 @@ Skill `balance-data` lo **đặt số đúng chỗ**; skill này lo **số có h
 Ý tưởng phỏng theo skill `balance-check` và agent `economy-designer` của [Claude Code Game Studios](https://github.com/Donchitos/Claude-Code-Game-Studios) (MIT), viết lại cho repo này.
 
 ## 0. Không có dữ liệu thì nói "chưa đánh giá"
-- Ghi rõ đã đọc file / hằng nào. Mục nào thiếu mục tiêu trong `GAME_DESIGN.md` (không có khoảng mong muốn) thì ghi **Chưa đánh giá: thiếu mục tiêu**, không tự bịa ngưỡng rồi kết luận "ổn".
+- Ghi rõ đã đọc file / hằng nào. Mục nào thiếu mục tiêu trong file thiết kế `docs/design/` (không có khoảng mong muốn) thì ghi **Chưa đánh giá: thiếu mục tiêu**, không tự bịa ngưỡng rồi kết luận "ổn".
 - Không quét thấy gì vì không có dữ liệu khác với quét thấy sạch. Báo cáo phải phân biệt hai trường hợp.
 
 ## 1. Chọn phạm vi
 | Phạm vi | Đọc trong `shared/data.ts` | Đối chiếu |
 |---|---|---|
-| Kinh tế Hồn Tệ | nguồn vào: `BEAST_COIN`, `QUESTS` (`reward.honTe`), `DAILY` / `DAILY_POOL`, `sellPrice` (`RING_SELL`, `BONE_SELL`, `CORE_SELL`, `SHARD_SELL`); nguồn ra: `SHOP`, `BAG_EXPAND_COST`, `BONE_ENHANCE_COST`, `CORE_ENHANCE_COST`, `WAYPOINT_FEE` / `waypointFee`, mua lại (`BUYBACK_MAX`) | mục 5.7, 5.8 |
-| Rơi đồ | `SHARD_DROP` / `shardChance`, `BONE_DROP`, `CORE_DROP`, `herbChance`, `RED_BEAST_CHANCE`, `KING_CHEST`, `WORLD_CHEST`, `ARENA_SHARDS` | mục 5.1, 5.4–5.7 |
-| Tiến độ | `xpNeed`, `RING_LIMIT`, `xpLevelScale`, `beastLevel`, `MAPS[].level` / `years`, `STAR_COST`, `BONE_MAX_ENHANCE`, `CORE_MAX_ENHANCE` | mục 5.2, 5.3 |
-| Chiến đấu | `calcStats`, `RARITY_MULT`, `VOHON_SKILLS*`, `skillPower`, `CHAN_THAN`, `TIEN_CO*`, `CC_TIER_MULT`, `BOSSES`, `bossHpMult` | mục 5.1, 5.2, 5.4 |
-| Đấu trường | `ARENA`, `eloAfter`, `arenaWindow`, `arenaPairs` | mục 5.9 |
+| Kinh tế Hồn Tệ | nguồn vào: `BEAST_COIN`, `QUESTS` (`reward.honTe`), `DAILY` / `DAILY_POOL`, `sellPrice` (`RING_SELL`, `BONE_SELL`, `CORE_SELL`, `SHARD_SELL`); nguồn ra: `SHOP`, `BAG_EXPAND_COST`, `BONE_ENHANCE_COST`, `CORE_ENHANCE_COST`, `WAYPOINT_FEE` / `waypointFee`, mua lại (`BUYBACK_MAX`) | `docs/design/kinh-te-tui-do.md`, `npc-dia-diem.md` |
+| Rơi đồ | `SHARD_DROP` / `shardChance`, `BONE_DROP`, `CORE_DROP`, `herbChance`, `RED_BEAST_CHANCE`, `KING_CHEST`, `WORLD_CHEST`, `ARENA_SHARDS` | `docs/design/vo-hon-doi-hinh.md`, `hon-thu-boss.md`, `hon-cot.md`, `hon-hach.md`, `kinh-te-tui-do.md` |
+| Tiến độ | `xpNeed`, `RING_LIMIT`, `xpLevelScale`, `beastLevel`, `MAPS[].level` / `years`, `STAR_COST`, `BONE_MAX_ENHANCE`, `CORE_MAX_ENHANCE` | `docs/design/hon-hoan.md`, `the-gioi-ban-do.md` |
+| Chiến đấu | `calcStats`, `RARITY_MULT`, `VOHON_SKILLS*`, `skillPower`, `CHAN_THAN`, `TIEN_CO*`, `CC_TIER_MULT`, `BOSSES`, `bossHpMult` | `docs/design/vo-hon-doi-hinh.md`, `hon-hoan.md`, `hon-thu-boss.md` |
+| Đấu trường | `ARENA`, `eloAfter`, `arenaWindow`, `arenaPairs` | `docs/design/to-doi-pvp-dau-truong.md` |
 
 Bảng đầy đủ tên hằng theo hệ thống ở skill `balance-data`.
 
@@ -45,7 +45,7 @@ Bảng đầy đủ tên hằng theo hệ thống ở skill `balance-data`.
 ## 3. Báo cáo (trong chat, hoặc comment issue nếu được giao)
 ```
 ## Soát cân bằng: <phạm vi>
-Đã đọc: <hằng / hàm, mục GAME_DESIGN>
+Đã đọc: <hằng / hàm, file thiết kế>
 Kết luận: Nghiêm trọng | Cần chỉnh | Chưa đánh giá (<thiếu gì>) | Ổn
 | Hằng | Mong muốn (nguồn) | Thực tế | Vấn đề | Đề xuất |
 Chiến thuật thoái hóa: <mô tả, cách tái hiện>
@@ -53,5 +53,5 @@ Chiến thuật thoái hóa: <mô tả, cách tái hiện>
 Kết luận lấy theo phát hiện nặng nhất: **Nghiêm trọng** = một lựa chọn trội tuyệt đối, tiến độ kẹt, vòng tiền không có nguồn ra; **Cần chỉnh** = lệch chỉnh số được; **Chưa đánh giá** khi có mục thiếu mục tiêu; **Ổn** chỉ khi mọi số đã so với mục tiêu.
 
 ## 4. Sau báo cáo
-- Đề xuất đổi số: tạo issue (skill `playtest-triage` mục 3, nhãn `gameplay`) hoặc làm trong việc đang nhận, theo skill `balance-data`; mỗi lần đổi một nhóm nhỏ.
+- Đề xuất đổi số: tạo issue (skill `playtest-triage` phần 3, nhãn `gameplay`) hoặc làm trong việc đang nhận, theo skill `balance-data`; mỗi lần đổi một nhóm nhỏ.
 - Đổi số xong: `npm run check`, bot `GAME_TEST=1` (nhiều bài bot so số với chính hằng trong `shared/data.ts`, ✗ sau khi đổi số thường là bot đọc sai hằng, không phải lỗi luật).
