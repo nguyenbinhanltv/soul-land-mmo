@@ -9,7 +9,7 @@ import { WebSocketTransport } from "@colyseus/ws-transport";
 import { MapRoom, awakenAccount, chooseLooks, pickChannel, CHANNEL_CAP, saveStats } from "./rooms/MapRoom.ts";
 import { ArenaRoom } from "./rooms/ArenaRoom.ts";
 import { store } from "./db.ts";
-import { loginBegin, loginEnd, signupBegin, signupEnd, ssoCheck } from "./ratelimit.ts";
+import { loginBegin, loginEnd, signupBegin, signupEnd, ssoCheck, apiCheck, loginRate, PASSWORD_MAX_LEN } from "./ratelimit.ts";
 import { GOOGLE, googleClientId, googleEnabled, verifyGoogle, makeTicket, readTicket } from "./google.ts";
 import { cleanName } from "./names.ts";
 import { cacheControlFor } from "./staticCache.ts";
@@ -51,6 +51,14 @@ const route = (fn: (req: express.Request, res: express.Response) => Promise<void
 app.get("/health", (_q, r) => { const up = presenceBackend.healthy(); r.status(up ? 200 : 503).json({ ok: up, chMax: CHANNEL_CAP, ...(up ? {} : { redis: "down" }) }); });
 app.get("/live", (_q, r) => { r.json({ ok: true }); });
 
+/** Giới hạn theo IP cho REST có token (#735): hết lượt thì trả 429 + Retry-After và trả false. */
+function apiGate(req: express.Request, res: express.Response) {
+  const blocked = apiCheck(req.ip ?? req.socket.remoteAddress ?? "?");
+  if (!blocked) return true;
+  res.setHeader("Retry-After", String(blocked.retryAfter)); res.status(429).json({ error: blocked.error });
+  return false;
+}
+
 const NAME_RE = /^[\p{L}\p{N}_ ]{3,20}$/u, NAME_ERR = "Tên 3–20 ký tự, chỉ gồm chữ, số, dấu cách hoặc _.";
 
 // Cấu hình công khai cho client: googleClientId null = ẩn nút Google (GOOGLE_CLIENT_ID không phải bí mật).
@@ -62,9 +70,10 @@ app.post("/api/login", route(async (req, res) => {
   const name = cleanName(String(req.body?.name ?? "")), password = String(req.body?.password ?? "");
   if (!NAME_RE.test(name)) { res.status(400).json({ error: NAME_ERR }); return; }
   if (password.length < 4) { res.status(400).json({ error: "Mật khẩu tối thiểu 4 ký tự." }); return; }
+  if (password.length > PASSWORD_MAX_LEN) { res.status(400).json({ error: `Mật khẩu tối đa ${PASSWORD_MAX_LEN} ký tự.` }); return; }
   // Giới hạn số lần sai theo tên và theo IP (server/src/ratelimit.ts).
   const ip = req.ip ?? req.socket.remoteAddress ?? "?";
-  const blocked = loginBegin(name, ip);
+  const blocked = loginRate(name, ip) ?? loginBegin(name, ip); // loginRate trước: loginBegin giữ chỗ (pending), chặn sau sẽ rò
   if (blocked) { res.setHeader("Retry-After", String(blocked.retryAfter)); res.status(429).json({ error: blocked.error }); return; }
   // Giới hạn số tài khoản MỚI mỗi IP (#207): hết lượt thì login không tạo, tài khoản cũ vẫn vào được; chỉ đếm khi thật sự tạo.
   const noSignup = signupBegin(ip);
@@ -154,6 +163,7 @@ app.post("/api/link/google", route(async (req, res) => {
 // Lấy nhân vật của phiên hiện tại: võ hồn ra trận (null = chưa thức tỉnh), ngoại hình (looks.chosen = đã tạo nhân vật)
 // và bản đồ đang đứng (mapId, từ BĐ2): client truyền mapId này khi vào phòng để Colyseus ghép đúng bản đồ.
 app.post("/api/me", route(async (req, res) => {
+  if (!apiGate(req, res)) return;
   const acc = await store.accountFromToken(req.body?.token);
   if (!acc) { res.status(401).json({ error: "Phiên đăng nhập hết hạn." }); return; }
   const [character, looks, loc] = await Promise.all([store.getCharacter(acc.accountId), store.getLooks(acc.accountId), store.getLocation(acc.accountId)]);
@@ -163,6 +173,7 @@ app.post("/api/me", route(async (req, res) => {
 // Kênh để vào game (mục 6 "Nhiều kênh"): bản đồ đang lưu và phòng (kênh) nên vào: kênh còn chỗ có đồng đội tổ đội, không thì kênh
 // ít người nhất còn chỗ. roomId null = mọi kênh đầy hoặc chưa có kênh: client joinOrCreate (Colyseus mở kênh mới).
 app.post("/api/channel", route(async (req, res) => {
+  if (!apiGate(req, res)) return;
   const acc = await store.accountFromToken(req.body?.token);
   if (!acc) { res.status(401).json({ error: "Phiên đăng nhập hết hạn." }); return; }
   const { mapId } = await store.getLocation(acc.accountId);
@@ -171,6 +182,7 @@ app.post("/api/channel", route(async (req, res) => {
 
 // Tạo nhân vật (một lần, trước lễ thức tỉnh; tài khoản cũ chọn lại một lần): luật kiểm tra nằm trong MapRoom.ts.
 app.post("/api/looks", route(async (req, res) => {
+  if (!apiGate(req, res)) return;
   const acc = await store.accountFromToken(req.body?.token);
   if (!acc) { res.status(401).json({ error: "Phiên đăng nhập hết hạn." }); return; }
   const r = await chooseLooks(acc.accountId, req.body);
@@ -189,6 +201,7 @@ if (process.env.GAME_TEST === "1") app.post("/api/test/legacy-looks", route(asyn
 
 // Lễ thức tỉnh (một lần): client gửi võ hồn SSR muốn chọn, luật kiểm tra nằm trong MapRoom.ts.
 app.post("/api/awaken", route(async (req, res) => {
+  if (!apiGate(req, res)) return;
   const acc = await store.accountFromToken(req.body?.token);
   if (!acc) { res.status(401).json({ error: "Phiên đăng nhập hết hạn." }); return; }
   const r = await awakenAccount(acc.accountId, acc.name, req.body?.vohon);
