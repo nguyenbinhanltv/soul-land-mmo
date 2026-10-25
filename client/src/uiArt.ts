@@ -13,8 +13,8 @@ const keys = new Map<string, Entry>();
 
 /** Đường dẫn ảnh theo key isometric của giao diện (mục 5.11 "Tên file"); key lạ thì null. */
 function pathOf(key: string) {
-  const m = key.match(/^(ui|card|portrait|he|npc|item|status|thu|skill)_([a-z0-9_]+)$/); if (!m) return null;
-  const dir = { ui: "ui", card: "ui", portrait: "portrait", he: "he", npc: "npc", item: "item", status: "status", thu: "thu", skill: "skill" }[m[1]];
+  const m = key.match(/^(ui|card|portrait|he|npc|item|status|thu|skill|gi)_([a-z0-9_]+)$/); if (!m) return null;
+  const dir = { ui: "ui", card: "ui", portrait: "portrait", he: "he", npc: "npc", item: "item", status: "status", thu: "thu", skill: "skill", gi: "gi" }[m[1]];
   return assetUrl(`${BASE}iso/${dir}/${m[1] === "card" ? "the_" : ""}${m[2]}.png`);
 }
 
@@ -28,6 +28,14 @@ export function artUrl(key: string) {
  */
 export function skillImg(vohonId: string, ring: number, cls = "") {
   return artImg(`skill_${VOHON_SKILLS[vohonId] ? vohonId : "chung"}_${ring}`, cls);
+}
+/** Biểu tượng Võ Hồn Chân Thân `gi_ct_<mã võ hồn>` (nút R), `skill` = hồn kỹ Chân Thân `gi_ctskill_<mã>` (ô P khi biến hình); chưa có ảnh thì "". */
+export function chanThanImg(vohonId: string, skill = false, cls = "") {
+  return artImg(`gi_ct${skill ? "skill" : ""}_${vohonId}`, cls);
+}
+/** Biểu tượng Dung hợp kỹ `gi_fusion_<tên không dấu>` (ví dụ "Yêu Nguyệt" → gi_fusion_yeu_nguyet); chưa có ảnh thì "". */
+export function fusionImg(name: string, cls = "") {
+  return artImg(`gi_fusion_${name.toLowerCase().replace(/đ/g, "d").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, "_")}`, cls);
 }
 /** `<img>` điểm ảnh của key (alt rỗng: chỉ để trang trí, nghĩa nằm ở nhãn của phần tử chứa); không có ảnh thì "". */
 export function artImg(key: string, cls = "") {

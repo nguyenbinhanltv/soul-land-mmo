@@ -1,0 +1,284 @@
+{
+ "_ghi_chu": "Ánh xạ GAME_DESIGN.md → file đích (D0 anh-xa.md mục 2, #619). Mỗi đoạn bắt đầu ở dòng có tiền tố 'a' (40 ký tự đầu của dòng, hoặc cả dòng tiêu đề) và kéo tới mỏ neo kế tiếp; thứ tự đoạn = thứ tự trong GAME_DESIGN.md. Dòng trống trước mỏ neo thuộc đoạn trước. 'to': GAME_DESIGN.md = giữ ở file gốc. Đổi đích chỉ cần sửa 'to'; gộp file mới vào file cha bằng 'aliases' (A1 chưa chốt), ví dụ: {\"docs/design/trang-thai-buff.md\":\"docs/design/vo-hon-doi-hinh.md\",\"docs/design/ban-do-khu-vuc.md\":\"docs/design/giao-dien.md\",\"docs/art/hon-su-lpc.md\":\"docs/art/nhan-vat-hon-thu.md\"}; gộp docs/tech nhỏ cũng bằng aliases.",
+ "head": "GAME_DESIGN.md",
+ "files": {
+  "docs/design/00-tong-quan.md": {
+   "title": "Tổng quan: ý tưởng, nguyên tắc, mô hình chơi"
+  },
+  "docs/design/01-luat-chung.md": {
+   "title": "Luật chung"
+  },
+  "docs/design/vo-hon-doi-hinh.md": {
+   "title": "Võ hồn và đội hình"
+  },
+  "docs/design/trang-thai-buff.md": {
+   "title": "Trạng thái và hiệu ứng có lợi"
+  },
+  "docs/design/hon-hoan.md": {
+   "title": "Hồn hoàn"
+  },
+  "docs/design/the-gioi-ban-do.md": {
+   "title": "Thế giới nhiều bản đồ"
+  },
+  "docs/design/hon-thu-boss.md": {
+   "title": "Hồn thú, tinh anh, thú vương và boss"
+  },
+  "docs/design/hon-cot.md": {
+   "title": "Hồn cốt"
+  },
+  "docs/design/hon-hach.md": {
+   "title": "Hồn hạch"
+  },
+  "docs/design/kinh-te-tui-do.md": {
+   "title": "Túi đồ, vật phẩm và tiền"
+  },
+  "docs/design/giao-dien.md": {
+   "title": "Giao diện Nhân vật + Túi"
+  },
+  "docs/design/npc-dia-diem.md": {
+   "title": "Địa điểm và NPC"
+  },
+  "docs/design/nhiem-vu.md": {
+   "title": "Nhiệm vụ"
+  },
+  "docs/design/to-doi-pvp-dau-truong.md": {
+   "title": "Tổ đội, dung hợp kỹ, Đại Đấu Hồn Trường, bạn bè"
+  },
+  "docs/design/cong-minh.md": {
+   "title": "Cộng minh"
+  },
+  "docs/design/ky-nang-combat-phap-tuong.md": {
+   "title": "Cảm giác đánh, hiệu ứng chiêu và pháp tướng"
+  },
+  "docs/design/tu-san-uy-thac.md": {
+   "title": "Tự săn và ủy thác offline"
+  },
+  "docs/design/tong-mon.md": {
+   "title": "Tông môn"
+  },
+  "docs/design/trang-bi.md": {
+   "title": "Trang bị hồn sư"
+  },
+  "docs/design/ban-do-khu-vuc.md": {
+   "title": "Radar và bản đồ khu vực"
+  },
+  "docs/art/quy-cach-isometric.md": {
+   "title": "Mỹ thuật: quy cách isometric"
+  },
+  "docs/art/nhan-vat-hon-thu.md": {
+   "title": "Mỹ thuật: hồn sư, phụ thể, hồn thú, NPC, chân dung"
+  },
+  "docs/art/hon-su-lpc.md": {
+   "title": "Mỹ thuật: hồn sư LPC"
+  },
+  "docs/art/nguon-giay-phep.md": {
+   "title": "Nguồn ảnh và giấy phép"
+  },
+  "docs/art/am-thanh.md": {
+   "title": "Âm thanh"
+  },
+  "docs/tech/trang-bi-cai-dat.md": {
+   "title": "Trang bị: hướng dẫn và cài đặt"
+  },
+  "docs/tech/giao-thuc-server.md": {
+   "title": "Giao thức server: HTTP và message"
+  },
+  "docs/tech/dong-bo-state.md": {
+   "title": "Đồng bộ state xuống client"
+  },
+  "docs/tech/phong-ban-do.md": {
+   "title": "Phòng bản đồ, file Tiled, tools/maps"
+  },
+  "docs/tech/client-iso-du-doan.md": {
+   "title": "Client: hiển thị isometric và dự đoán chuyển động"
+  },
+  "docs/tech/kenh-arena.md": {
+   "title": "Nhiều kênh và phòng trường đấu"
+  },
+  "docs/tech/luu-tru-cong-phien.md": {
+   "title": "Đi qua cổng, mỗi tài khoản một phiên"
+  },
+  "docs/tech/presence-redis.md": {
+   "title": "Thông báo toàn server, presence, Redis, lịch boss"
+  },
+  "docs/tech/du-lieu-db.md": {
+   "title": "Dữ liệu: shared/data.ts và PostgreSQL"
+  },
+  "docs/tech/bao-mat-dang-nhap.md": {
+   "title": "Bảo mật và đăng nhập"
+  },
+  "ROADMAP.md": {
+   "title": "Lộ trình"
+  },
+  "docs/lich-su.md": {
+   "title": "Lịch sử lộ trình (đã xong)"
+  }
+ },
+ "aliases": {},
+ "segments": [
+  {"a": "# Rừng Săn Hồn (Đấu La Đại Lục) – Tài li", "to": "GAME_DESIGN.md"},
+  {"a": "## 1. Ý tưởng và phạm vi", "to": "docs/design/00-tong-quan.md"},
+  {"a": "## 2. Nguyên tắc thiết kế", "to": "docs/design/00-tong-quan.md"},
+  {"a": "## 3. Mô hình chơi", "to": "docs/design/00-tong-quan.md"},
+  {"a": "## 4. Luật chung", "to": "docs/design/01-luat-chung.md"},
+  {"a": "**Điều khiển** (chuột / phím là chính; đ", "to": "docs/design/01-luat-chung.md"},
+  {"a": "**Kênh chat** (`chat {text, ch?, to?}`, ", "to": "docs/design/01-luat-chung.md"},
+  {"a": "**Di chuyển** (số ở `shared/data.ts`, mụ", "to": "docs/design/01-luat-chung.md"},
+  {"a": "**Giao chiến:** hồn sư \"đang giao chiến\"", "to": "docs/design/01-luat-chung.md"},
+  {"a": "**Vùng an toàn:** cả bản đồ thành (`town", "to": "docs/design/01-luat-chung.md"},
+  {"a": "**Hồi sinh lực và hồn lực** (số ở `share", "to": "docs/design/01-luat-chung.md"},
+  {"a": "**Gục:** võ hồn ra trận gục thì tự đổi s", "to": "docs/design/01-luat-chung.md"},
+  {"a": "**Đồ rơi và quyền nhặt:** hồn hoàn, hồn ", "to": "docs/design/01-luat-chung.md"},
+  {"a": "**Ngày và giờ:** mọi lịch boss và lượt \"", "to": "docs/design/01-luat-chung.md"},
+  {"a": "**Kênh:** mỗi bản đồ có nhiều kênh, mỗi ", "to": "docs/design/01-luat-chung.md"},
+  {"a": "**Thông báo toàn server:** lịch boss, bo", "to": "docs/design/01-luat-chung.md"},
+  {"a": "## 5. Thiết kế các hệ thống", "to": "GAME_DESIGN.md"},
+  {"a": "### 5.1 Võ hồn và đội hình", "to": "docs/design/vo-hon-doi-hinh.md"},
+  {"a": "**Mỗi võ hồn sở hữu có:** cấp (1–100), k", "to": "docs/design/vo-hon-doi-hinh.md"},
+  {"a": "**4 hệ** (`HE`, biểu tượng ở góc thẻ võ ", "to": "docs/design/vo-hon-doi-hinh.md"},
+  {"a": "**Độ hiếm:** SR, SSR, UR (`RARITY_MULT`)", "to": "docs/design/vo-hon-doi-hinh.md"},
+  {"a": "**Trạng thái dùng chung** (bảng `STATUS`", "to": "docs/design/trang-thai-buff.md"},
+  {"a": "**Hiệu ứng có lợi trên hồn sư** (`BUFFS`", "to": "docs/design/trang-thai-buff.md"},
+  {"a": "**Danh sách võ hồn** (`VOHON`: mã cố địn", "to": "docs/design/vo-hon-doi-hinh.md"},
+  {"a": "**Võ hồn ngoài danh sách SSR cơ bản:** L", "to": "docs/design/vo-hon-doi-hinh.md"},
+  {"a": "**Ràng buộc** (`BONDS`, `bondsOf`, `bond", "to": "docs/design/vo-hon-doi-hinh.md"},
+  {"a": "**Lưu phái đội hình mẫu:**", "to": "docs/design/vo-hon-doi-hinh.md"},
+  {"a": "**Sưu tầm võ hồn** (không có gacha):", "to": "docs/design/vo-hon-doi-hinh.md"},
+  {"a": "**Trong trận:**", "to": "docs/design/vo-hon-doi-hinh.md"},
+  {"a": "**Kinh nghiệm:** hạ hồn thú thì kinh ngh", "to": "docs/design/vo-hon-doi-hinh.md"},
+  {"a": "**Chỉ số võ hồn** (`calcStats`): theo hệ", "to": "docs/design/vo-hon-doi-hinh.md"},
+  {"a": "**Danh hiệu** theo cấp võ hồn đang ra tr", "to": "docs/design/vo-hon-doi-hinh.md"},
+  {"a": "### 5.2 Hồn hoàn", "to": "docs/design/hon-hoan.md"},
+  {"a": "**Niên hạn là số năm cụ thể.** Mỗi hồn t", "to": "docs/design/hon-hoan.md"},
+  {"a": "**Hồn hoàn là vật phẩm:** rơi xuống đất ", "to": "docs/design/hon-hoan.md"},
+  {"a": "**Hấp thụ:**", "to": "docs/design/hon-hoan.md"},
+  {"a": "**Hồn kỹ theo vòng:**", "to": "docs/design/hon-hoan.md"},
+  {"a": "### 5.3 Thế giới nhiều bản đồ và hồn thú", "to": "docs/design/the-gioi-ban-do.md"},
+  {"a": "**Danh sách bản đồ** (`MAPS`: cấp đề xuấ", "to": "docs/design/the-gioi-ban-do.md"},
+  {"a": "**Cỡ bản đồ** (11.5): bản đồ săn và thàn", "to": "docs/design/the-gioi-ban-do.md"},
+  {"a": "**Cổng và chặn mềm**", "to": "docs/design/the-gioi-ban-do.md"},
+  {"a": "**Truyền tống trận** (object `waypoint`,", "to": "docs/design/the-gioi-ban-do.md"},
+  {"a": "**Quy cấp theo niên hạn**", "to": "docs/design/the-gioi-ban-do.md"},
+  {"a": "**Vùng và hồn thú của từng bản đồ săn**", "to": "docs/design/the-gioi-ban-do.md"},
+  {"a": "**Lạc Nhật Sâm Lâm:** nơi duy nhất rơi *", "to": "docs/design/the-gioi-ban-do.md"},
+  {"a": "**Hồn thú 10 vạn năm:** mỗi kênh của một", "to": "docs/design/the-gioi-ban-do.md"},
+  {"a": "**Rơi đặc trưng theo bản đồ**", "to": "docs/design/the-gioi-ban-do.md"},
+  {"a": "**Luật chung của hồn thú**", "to": "docs/design/hon-thu-boss.md"},
+  {"a": "- **Che tầm nhìn** (Phun Mực của tinh an", "to": "docs/design/hon-thu-boss.md"},
+  {"a": "### 5.4 Bậc hồn thú: thường, tinh anh, t", "to": "docs/design/hon-thu-boss.md"},
+  {"a": "**Nhận diện:** tinh anh có tên \"Tinh anh", "to": "docs/design/hon-thu-boss.md"},
+  {"a": "**Tinh anh (biến dị)**", "to": "docs/design/hon-thu-boss.md"},
+  {"a": "**Tà hóa thú vương (boss bản đồ)**", "to": "docs/design/hon-thu-boss.md"},
+  {"a": "- **Bọc trứng** (Vạn Chu Phệ của Thiên Đ", "to": "docs/design/hon-thu-boss.md"},
+  {"a": "**Máu tăng theo số người tham gia** (tin", "to": "docs/design/hon-thu-boss.md"},
+  {"a": "**Boss thế giới 100.000 năm**", "to": "docs/design/hon-thu-boss.md"},
+  {"a": "### 5.5 Hồn cốt", "to": "docs/design/hon-cot.md"},
+  {"a": "- **Lưu:** mỗi hồn cốt một dòng `items` ", "to": "docs/design/hon-cot.md"},
+  {"a": "### 5.6 Hồn hạch", "to": "docs/design/hon-hach.md"},
+  {"a": "- **Lưu:** mỗi hồn hạch một dòng `items`", "to": "docs/design/hon-hach.md"},
+  {"a": "### 5.7 Túi đồ, vật phẩm và tiền", "to": "docs/design/kinh-te-tui-do.md"},
+  {"a": "- **Túi đồ dạng lưới (UI-1, #351; chỉ ph", "to": "docs/design/giao-dien.md"},
+  {"a": "- **Hồn Tệ** (đồng / ngân / kim: `HON_TE", "to": "docs/design/kinh-te-tui-do.md"},
+  {"a": "- **Khoá món** (nút \"Khoá\" / \"Mở khoá\" ở", "to": "docs/design/kinh-te-tui-do.md"},
+  {"a": "### 5.8 Địa điểm và NPC", "to": "docs/design/npc-dia-diem.md"},
+  {"a": "**Nhiệm vụ tân thủ** (`QUESTS`, chuỗi \"B", "to": "docs/design/nhiem-vu.md"},
+  {"a": "**Nhiệm vụ chương 2** (`QUESTS`, chuỗi \"", "to": "docs/design/nhiem-vu.md"},
+  {"a": "**Hiển thị chuỗi cố định** (#190, chung ", "to": "docs/design/nhiem-vu.md"},
+  {"a": "**Nhiệm vụ chương 3** (`QUESTS`, chuỗi \"", "to": "docs/design/nhiem-vu.md"},
+  {"a": "**Nhiệm vụ hằng ngày** (\"Khảo hạch Sử La", "to": "docs/design/nhiem-vu.md"},
+  {"a": "### 5.9 Người chơi lập đội và PvP", "to": "docs/design/to-doi-pvp-dau-truong.md"},
+  {"a": "**Tổ đội người chơi** (tối đa `PARTY_MAX", "to": "docs/design/to-doi-pvp-dau-truong.md"},
+  {"a": "**Võ Hồn Dung Hợp Kỹ** (#192; số ở `FUSI", "to": "docs/design/to-doi-pvp-dau-truong.md"},
+  {"a": "**Đại Đấu Hồn Trường** (đấu đội võ hồn 1", "to": "docs/design/to-doi-pvp-dau-truong.md"},
+  {"a": "- **Thưởng thắng:** mỗi thành viên bên t", "to": "docs/design/to-doi-pvp-dau-truong.md"},
+  {"a": "**Bạn bè** (#195; số ở `FRIEND_MAX`, `BL", "to": "docs/design/to-doi-pvp-dau-truong.md"},
+  {"a": "**PvP ngoài rừng:** không có. Phòng bản ", "to": "docs/design/to-doi-pvp-dau-truong.md"},
+  {"a": "### 5.10 Cộng minh (giai đoạn cuối)", "to": "docs/design/cong-minh.md"},
+  {"a": "### 5.11 Mỹ thuật: đồ họa isometric, hồn", "to": "docs/art/quy-cach-isometric.md"},
+  {"a": "**Phép chiếu và màn hình**", "to": "docs/art/quy-cach-isometric.md"},
+  {"a": "**Sắp lớp theo độ sâu**", "to": "docs/art/quy-cach-isometric.md"},
+  {"a": "**Ánh sáng và chiều sâu** (`client/src/l", "to": "docs/art/quy-cach-isometric.md"},
+  {"a": "**Phong cách**", "to": "docs/art/quy-cach-isometric.md"},
+  {"a": "**Bảng các vùng** (bản gọn; bảng đầy đủ ", "to": "docs/art/quy-cach-isometric.md"},
+  {"a": "**Độ tương phản**", "to": "docs/art/quy-cach-isometric.md"},
+  {"a": "**Bảng màu**", "to": "docs/art/quy-cach-isometric.md"},
+  {"a": "**Quy tắc vẽ**", "to": "docs/art/quy-cach-isometric.md"},
+  {"a": "**8 hướng**", "to": "docs/art/quy-cach-isometric.md"},
+  {"a": "**Cỡ khung** (gốc là điểm chân)", "to": "docs/art/quy-cach-isometric.md"},
+  {"a": "**Hồn sư và phụ thể**", "to": "docs/art/nhan-vat-hon-thu.md"},
+  {"a": "**Vòng hồn hoàn** (màu `col` / `glow` củ", "to": "docs/art/nhan-vat-hon-thu.md"},
+  {"a": "**Hồn thú**: 8 hướng như hồn sư, lúc tun", "to": "docs/art/nhan-vat-hon-thu.md"},
+  {"a": "**Vùng chiêu trên mặt đất**: server gửi ", "to": "docs/art/nhan-vat-hon-thu.md"},
+  {"a": "**Hồn sư = LPC (chủ repo chốt 2026-10-25", "to": "docs/art/hon-su-lpc.md"},
+  {"a": "**Hồn sư chế độ Tự tạo (LPC, L1 #508; kế", "to": "docs/art/hon-su-lpc.md"},
+  {"a": "**Ngoại hình hai chế độ (L2 #509, server", "to": "docs/art/hon-su-lpc.md"},
+  {"a": "**Vẽ hồn sư LPC (L3 #510, client `lpcRig", "to": "docs/art/hon-su-lpc.md"},
+  {"a": "**Màn tạo nhân vật và đổi ngoại hình (L4", "to": "docs/art/hon-su-lpc.md"},
+  {"a": "**NPC phụ và dân thường**: NPC phụ (11 N", "to": "docs/art/nhan-vat-hon-thu.md"},
+  {"a": "**Bản đồ isometric**: file Tiled không đ", "to": "docs/art/nhan-vat-hon-thu.md"},
+  {"a": "**Điều khiển**: phím / cần theo hướng mà", "to": "docs/art/nhan-vat-hon-thu.md"},
+  {"a": "**Chân dung và thẻ võ hồn** (giao diện H", "to": "docs/art/nhan-vat-hon-thu.md"},
+  {"a": "**Tên file, key và thư mục**: ảnh nằm tr", "to": "docs/art/nhan-vat-hon-thu.md"},
+  {"a": "**Nguồn và giấy phép**", "to": "docs/art/nguon-giay-phep.md"},
+  {"a": "### 5.12 Âm thanh: nền tảng WebAudio, SF", "to": "docs/art/am-thanh.md"},
+  {"a": "- **Cảm giác đánh** (G1, #392, chỉ hiển ", "to": "docs/design/ky-nang-combat-phap-tuong.md"},
+  {"a": "- **Hoàn thiện hiệu ứng chiêu H8 / S5** ", "to": "docs/design/ky-nang-combat-phap-tuong.md"},
+  {"a": "- Âm thanh chiến đấu và hồn thú có tầm `", "to": "docs/art/am-thanh.md"},
+  {"a": "**Nhạc nền** (`client/src/audio/music.ts", "to": "docs/art/am-thanh.md"},
+  {"a": "### 5.13 Tự săn (Auto 1, Auto 2)", "to": "docs/design/tu-san-uy-thac.md"},
+  {"a": "- **Né** (#218, mọi lúc tự săn): mỗi nhị", "to": "docs/design/tu-san-uy-thac.md"},
+  {"a": "- **Cách làm:** `server/src/rooms/autoHu", "to": "docs/design/tu-san-uy-thac.md"},
+  {"a": "**Ủy thác offline (Auto 3)** — số ở `sha", "to": "docs/design/tu-san-uy-thac.md"},
+  {"a": "### 5.14 Tông môn", "to": "docs/design/tong-mon.md"},
+  {"a": "### 5.15 Trang bị hồn sư", "to": "docs/design/trang-bi.md"},
+  {"a": "- **Hợp thành 3 → 1** (`EQUIP_SYNTH`): 1", "to": "docs/design/trang-bi.md"},
+  {"a": "**Hướng dẫn làm E1–E4 (người ngoài không", "to": "docs/tech/trang-bi-cai-dat.md"},
+  {"a": "- **Cài đặt E1 (đã làm):** món đang mặc ", "to": "docs/tech/trang-bi-cai-dat.md"},
+  {"a": "- **Cài đặt E7 (đã làm):** không đổi luậ", "to": "docs/tech/trang-bi-cai-dat.md"},
+  {"a": "### 5.16 Giao diện Nhân vật + Túi (hai c", "to": "docs/design/giao-dien.md"},
+  {"a": "- **Tab Trang bị trên búp bê (NV4, `clie", "to": "docs/design/giao-dien.md"},
+  {"a": "### 5.17 Radar và bản đồ khu vực", "to": "docs/design/ban-do-khu-vuc.md"},
+  {"a": "- **Nền ảnh** (R1): `tools/maps` sinh `s", "to": "docs/design/ban-do-khu-vuc.md"},
+  {"a": "### 5.18 Võ Hồn Chân Thân: pháp tướng (t", "to": "docs/design/ky-nang-combat-phap-tuong.md"},
+  {"a": "## 6. Kiến trúc (bắt buộc giữ)", "to": "GAME_DESIGN.md"},
+  {"a": "**Server quyết định mọi thứ.** Client ch", "to": "GAME_DESIGN.md"},
+  {"a": "**HTTP** (`server/src/index.ts`): `POST ", "to": "GAME_DESIGN.md"},
+  {"a": "**Message từ client** (đăng ký trong `Ma", "to": "docs/tech/giao-thuc-server.md"},
+  {"a": "**Đồng bộ xuống client**", "to": "docs/tech/dong-bo-state.md"},
+  {"a": "**Một loại phòng cho mọi bản đồ**", "to": "docs/tech/phong-ban-do.md"},
+  {"a": "**File Tiled mỗi bản đồ** (`shared/asset", "to": "docs/tech/phong-ban-do.md"},
+  {"a": "**Bản đồ lớn dựng bằng `tools/maps`** (1", "to": "docs/tech/phong-ban-do.md"},
+  {"a": "**Hiển thị isometric phía client** (quy ", "to": "docs/tech/client-iso-du-doan.md"},
+  {"a": "**Dự đoán chuyển động phía client**", "to": "docs/tech/client-iso-du-doan.md"},
+  {"a": "**Nhiều kênh**", "to": "docs/tech/kenh-arena.md"},
+  {"a": "**Phòng trường đấu**", "to": "docs/tech/kenh-arena.md"},
+  {"a": "**Lưu của mỗi người chơi chạy nối tiếp**", "to": "GAME_DESIGN.md"},
+  {"a": "**Đi qua cổng và lưu vị trí** (thứ tự bắ", "to": "docs/tech/luu-tru-cong-phien.md"},
+  {"a": "**Mỗi tài khoản một phiên** trên mọi phò", "to": "docs/tech/luu-tru-cong-phien.md"},
+  {"a": "**Thông báo toàn server và lịch boss**", "to": "docs/tech/presence-redis.md"},
+  {"a": "- **Trạng thái thú vương giữ theo bản đồ", "to": "docs/tech/presence-redis.md"},
+  {"a": "**Dữ liệu trong `shared/data.ts`** (serv", "to": "docs/tech/du-lieu-db.md"},
+  {"a": "**Dữ liệu lâu dài** trong PostgreSQL / S", "to": "docs/tech/du-lieu-db.md"},
+  {"a": "**Bảo mật:** giới hạn đăng nhập sai, số ", "to": "docs/tech/bao-mat-dang-nhap.md"},
+  {"a": "**Đăng nhập Google (#612):** ID token củ", "to": "docs/tech/bao-mat-dang-nhap.md"},
+  {"a": "## 7. Lộ trình", "to": "ROADMAP.md"},
+  {"a": "**Đã có** (Giai đoạn 2–9 và nhóm Bản đồ ", "to": "ROADMAP.md"},
+  {"a": "**Giai đoạn 10: Đồ họa isometric** (quy ", "to": "docs/lich-su.md"},
+  {"a": "**Đã có:** quy cách isometric và phong c", "to": "docs/lich-su.md"},
+  {"a": "- [ ] Áo hồn sư kiểu khác (đồng phục Sử ", "to": "ROADMAP.md"},
+  {"a": "- Ảnh tĩnh bằng ComfyUI (công cụ của orc", "to": "docs/lich-su.md"},
+  {"a": "**Giai đoạn 11: Di chuyển, bản đồ lớn, t", "to": "docs/lich-su.md"},
+  {"a": "**Đã có:** chạy / đi bộ theo giao chiến,", "to": "docs/lich-su.md"},
+  {"a": "**Giai đoạn 12: Âm thanh**", "to": "docs/lich-su.md"},
+  {"a": "**Tự săn** (chủ repo chốt 2026-10-22: hi", "to": "docs/lich-su.md"},
+  {"a": "**Việc để sau** (chưa có bước cụ thể; nh", "to": "docs/lich-su.md"},
+  {"a": "**Giai đoạn 13: Trang bị hồn sư** (mục 5", "to": "docs/lich-su.md"},
+  {"a": "**Giai đoạn 14: Giao diện Nhân vật + Túi", "to": "docs/lich-su.md"},
+  {"a": "- [ ] NV6 Ảnh nền búp bê (hình hồn sư mờ", "to": "ROADMAP.md"},
+  {"a": "**Nhóm Bản đồ khu vực: radar, bản đồ và ", "to": "docs/lich-su.md"},
+  {"a": "**Nhóm Hình thái Võ Hồn Chân Thân: pháp ", "to": "docs/lich-su.md"},
+  {"a": "**Nhóm Hình ảnh kỹ năng combat** (theo d", "to": "docs/lich-su.md"},
+  {"a": "**Nhóm Hồn sư tự tạo bằng LPC** (mục 5.1", "to": "docs/lich-su.md"},
+  {"a": "## 8. Câu hỏi còn mở", "to": "ROADMAP.md"}
+ ]
+}

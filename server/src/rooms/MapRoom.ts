@@ -199,7 +199,7 @@ export interface PData {
   // Tự săn (Auto 1, mục 5.13): đang chạy (null = tắt), cài đặt, ngày (giờ Việt Nam) và số giây đã treo trong ngày đó, cờ chưa lưu
   // (bảng auto_hunt; flushAuto ghi trong chuỗi lưu cùng lần lưu thường, trước transaction đi cổng và khi dừng). `autoBonus`: giây
   // treo cộng thêm còn lại từ Ủy Thác Lệnh (Auto 2), chỉ tiêu khi đã treo hết AUTO_DAILY_SECS của hôm nay.
-  auto: AutoHunter | null; autoCfg: AutoSettings; autoDay: string; autoUsed: number; autoBonus: number; autoDirty: boolean;
+  auto: AutoHunter | null; autoCfg: AutoSettings; autoDay: string; autoUsed: number; autoBonus: number; autoDirty: boolean; autoPace: [number, number];
   // Ủy thác offline (Auto 3): bảng nhận thưởng đã tính chờ gửi (client xin bằng tin `offline` sau khi đăng ký handler, vì claimOffline
   // có thể xong trước khi client sẵn sàng nhận) và client đã xin chưa.
   offMsg: Record<string, unknown> | null; offAsk: boolean;
@@ -1156,7 +1156,7 @@ export class MapRoom extends Room<MapState> {
       chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests), ...this.tongTasksOf(bag.quests), tongBoardAt: 0, tongPend: [],
       res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, resonanceTopAt: 0, arenaGone: false,
       auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0,
-      autoBonus: auth.auto.bonus, autoDirty: false, offMsg: null, offAsk: false,
+      autoBonus: auth.auto.bonus, autoDirty: false, autoPace: [0, 0], offMsg: null, offAsk: false,
       tong: tongDef(auth.tong.tong)?.id ?? null, tongAt: auth.tong.at };
     p.tong = d.tong ? TONG_MON.findIndex((t) => t.id === d.tong) + 1 : 0;
     this.pdata.set(client.sessionId, d);
@@ -1653,7 +1653,9 @@ export class MapRoom extends Room<MapState> {
     const grid = this.interest.players, cell = grid.cellOf(p.x, p.y);
     let n = 0; for (const o of this.pdata.values()) if (o.auto && grid.cellOf(o.auto.anchor.x, o.auto.anchor.y) === cell) n++;
     if (n >= AUTO_MAX_PER_CELL) return deny(`chỗ này đã có ${n} người treo, hãy sang chỗ khác.`);
-    d.auto = new AutoHunter(this, id, { x: p.x, y: p.y }, d.autoCfg); p.auto = true; d.autoSold0 = [d.soldN, d.soldCoins];
+    d.auto = new AutoHunter(this, id, { x: p.x, y: p.y }, d.autoCfg); p.auto = true;
+    // Nợ nhịp (AUTO_PACE) còn lại của lượt trước, giảm theo thời gian thật: tắt rồi bật lại không xóa nợ (lách trần tốc độ tự săn).
+    d.auto.pace = Math.max(0, d.autoPace[0] - (Date.now() - d.autoPace[1]) / 1000); d.autoSold0 = [d.soldN, d.soldCoins];
     // Đang giữ phím đi thì bỏ hướng đó và tăng `seq` (như hook goto) để client đang dự đoán biết input của nó đã bị bỏ và gửi lại;
     // gửi lại hướng khác 0 là tự di chuyển nên tự săn tắt ngay (tay ưu tiên).
     if (Math.hypot(d.input.x, d.input.y) > MOVE_DEAD) { p.seq = (p.seq + 1) >>> 0; p.seqT = 0; }
@@ -1671,7 +1673,7 @@ export class MapRoom extends Room<MapState> {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!d?.auto) return;
     const sum = d.auto.summary(d), sold: [number, number] = [d.soldN - d.autoSold0[0], d.soldCoins - d.autoSold0[1]];
     if (sold[0] > 0) sum.sold = sold; // tự bán trong lượt (#216); Hồn Tệ đã nằm trong sum.coins
-    d.auto = null; if (p) p.auto = false;
+    d.autoPace = [d.auto.pace, Date.now()]; d.auto = null; if (p) p.auto = false;
     this.applyInput(d, 0, 0, false);
     d.autoDirty = true; this.chain(d, () => this.flushAuto(d));
     this.log(id, `Đã dừng tự động: ${why}`, "#ffb35c");
@@ -4128,6 +4130,10 @@ export class MapRoom extends Room<MapState> {
         boss: a?.boss ?? false, dodges: a?.dodges ?? 0, dodge: a?.dodge ?? null, away: a?.away ?? false, warm: a?.warm ?? false, role: a?.role?.he ?? null, cleanse: a?.cleanseRow(d) ?? null,
         // #291: nhịp trước đi thẳng tới mục tiêu ("line") hay theo đường A* ("path"), số lần tìm đường A*, số lần tính đường thẳng.
         way: a?.way ?? null, plans: a?.plans ?? 0, lines: a?.lines ?? 0,
+        // AH3 (#610): đang nghỉ hồi (hết đan), đang đi dạo tới vùng hồi sinh đã nhớ (điểm đi dạo), số vùng nhớ, số hồn kỹ diện rộng đã tung vì
+        // đông, các ô hồn kỹ diện rộng (quanh thân / trước mặt) của võ hồn ra trận, số con trong AUTO_CLUSTER.r quanh mình.
+        resting: a?.resting ?? false, spawning: a?.spawning ?? false, patrol: a?.patrol ?? null, spawns: a?.spawns.size ?? 0, aoeCasts: a?.aoeCasts ?? 0,
+        aoe: a ? a.cfg.skills.filter((i) => { const sk = a.skillAt(p, d, i)?.sk; return !!sk && (sk.area === "around" || sk.area === "front") && sk.dmg > 0; }) : [],
         ...(bd ? { beast: { target: bd.target, hitBy: bd.hitBy, calm: bd.calm, ret: bd.ret, skip: a && skipTo !== undefined && skipTo > a.clock ? skipTo - a.clock : null, claim } } : {}) };
     }
     else if (op === "tong") {
@@ -5724,7 +5730,7 @@ export class MapRoom extends Room<MapState> {
    */
   killBeast(bid: string, by: string) {
     if (this.eggs.has(bid)) return this.eggs.broke(bid, by); // bọc trứng (#162): vỡ, không nở, không thưởng
-    const b = this.state.beasts.get(bid)!, e = this.bdata.get(bid)?.elite;
+    const b = this.state.beasts.get(bid)!, e = this.bdata.get(bid)?.elite, zone0 = this.bdata.get(bid)?.zone; // zone0: vùng sinh thật (B2 tự săn nhớ chỗ hồi sinh)
     const td = TIERS[b.tier], name = beastName(b.rank, b.species), age = formatYears(b.years);
     this.state.beasts.delete(bid); this.bdata.delete(bid);
     // 6.2: vùng săn tính theo chỗ hồn thú bị hạ (khung vùng trong Tiled).
@@ -5734,7 +5740,7 @@ export class MapRoom extends Room<MapState> {
     this.questEvent(by, { k: "kill", map: this.state.mapId, zone, fit: fit(by), party: grp });
     if (e?.king) return this.killKing(bid, b, e, by); // tà hóa thú vương (BĐ5): thưởng theo đóng góp, rương
     const p = this.state.players.get(by)!; p.kills++;
-    const ad = this.pdata.get(by); if (ad?.auto && !b.rank) ad.auto.killed(this.offlinePower(ad, p), b.years, BEASTS[b.species]?.id ?? ""); // trần tốc độ tự săn
+    const ad = this.pdata.get(by); if (ad?.auto && !b.rank) ad.auto.killed(this.offlinePower(ad, p), b.years, BEASTS[b.species]?.id ?? "", zone0); // trần tốc độ tự săn
     const share = partyXpShare(team.length);
     // Giới hạn săn tinh anh nhiều kênh (#119, mục 5.4): tài khoản đã nhận thưởng loài tinh anh này trên bản đồ này trong ELITE.lock giây
     // (ở bất kỳ kênh nào) thì lần này chỉ nhận như hồn thú thường; ai nhận thưởng tinh anh lần này thì bị khóa ELITE.lock giây.

@@ -6,6 +6,7 @@ import { COMBAT_MATERIALS, type Element, type Material } from "./audio/soundMap.
 import { ELEMENT_COL } from "./skillFx.ts";
 import { fxPrefs, HIT_SPARK, type ParticleLayer, fxLevel } from "./combatFx.ts";
 import { makeCodeSheet, SheetFx } from "./fxSheet.ts";
+import { playPriv } from "./privateAssets.ts";
 import { SPR } from "./iso.ts";
 import { damageTextStyle, HIT_HE_STYLE } from "./combatFeelRules.ts";
 
@@ -97,6 +98,9 @@ export function playHitFeelSheets(sheets: SheetFx, mat: Material, he: He, x: num
   const common = { x, y, key: hitSheetKey(mat, he), scale, fps: HIT_HE_STYLE[he].fps, light: !mine } as const;
   sheets.play(common);
   sheets.play({ ...common, key: hitSheetKey(mat, he, true), scale: scale * 1.05, fps: HIT_HE_STYLE[he].fps, light: !mine });
+  // #623: va chạm kho riêng cho đòn từ nhẹ trở lên; độ nặng 3 (đòn kết liễu / chí mạng nặng) thêm quả nổ nhỏ.
+  if (weight >= 1) playPriv(sheets, "fx_va_cham_vang", { x, y, scale: SPR, light: !mine });
+  if (weight >= 3) playPriv(sheets, "fx_ket_lieu", { x, y, scale: SPR, light: !mine });
 }
 
 /** Kiểu số sát thương theo hệ người đánh + chí mạng: viền theo màu tối của hệ, chí mạng chữ to hơn khi mức Vừa / Cao. */

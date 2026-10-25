@@ -43,6 +43,7 @@ import { RARE_LOOT_MIN, STEP_INTERVAL_MS, elementOfVohonIndex, beastFamilyOf, be
 import { SkillFx, skillFxOf, isCinematic, type FxKind } from "../skillFx.ts";
 import { SkillCine, cineAllowed } from "../skillCine.ts";
 import { SheetFx } from "../fxSheet.ts";
+import { loadPrivateAssets, playPriv } from "../privateAssets.ts"; // #623: hiệu ứng kho riêng (thiếu thì giữ hình cũ)
 import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, FUSION_VISUAL } from "../skillVisual.ts";
 /** `?sv=0`: tắt sheet SKILL_VISUAL (chỉ hiệu ứng G3), để quay ảnh "trước" cạnh "sau" trong game thật. */
 const SV_OFF = new URLSearchParams(location.search).get("sv") === "0";
@@ -450,6 +451,7 @@ export class GameScene extends Phaser.Scene {
     this.pt = new PhapTuongSystem(this, this.fxp); // pháp tướng Võ Hồn Chân Thân (#486)
     this.skfx = new SkillFx(this, this.fxp);
     registerCodeSheets(this); registerHitFeelSheets(this); this.svis = new SkillVisualPlayer(new SheetFx(this)); // S1 #542: sheet hiệu ứng theo chiêu (SKILL_VISUAL)
+    void loadPrivateAssets(this); // #623: kho riêng (không chặn vào game; không có kho thì không làm gì)
     this.teleTop = this.add.graphics().setDepth(99983.5); // trên mọi hiệu ứng chiêu (≤ 99983), dưới tên / số sát thương
     this.teleG = this.add.graphics().setDepth(2); // vùng cảnh báo nằm trên mặt đất, dưới hồn sư và hồn thú
     const cam = this.cameras.main;
@@ -1186,6 +1188,7 @@ export class GameScene extends Phaser.Scene {
       if (hit.combat) this.audio.music?.combatPulse();
       if (hit.bigCrit) this.audio.music?.jingle("crit_big");
       this.hitFeel(m);
+      if (m.heal || m.shield) { const hp = this.lifted(m.x, m.y); playPriv(this.svis.sheets, m.heal ? "fx_hoi_mau" : "fx_khien_sang", { x: hp.x, y: hp.y - 10 * SPR, scale: SPR, light: m.id !== this.me }); } // #623: hồi máu / khiên kho riêng
       if (m.id === this.me && !m.heal && !m.shield && getFlag()?.on) this.flagStop(AUTO_STOP.hit);
       if (m.id) { const v = this.players.get(m.id); if (v) { v.hurtT = this.time.now; this.playAct(m.id, "hurt"); } }
       const at = this.lifted(m.x, m.y);
@@ -2162,7 +2165,7 @@ export class GameScene extends Phaser.Scene {
       this.ringFx(at, 6, r, m.col, 450); this.ringFx(at, 4, r * 0.7, "#ffe08a", 380, 80);
       const f = this.add.ellipse(at.x, at.y, 2 * RX * r, 2 * RY * r, c, 0.35).setDepth(99979);
       this.tweens.add({ targets: f, alpha: 0, duration: 320, onComplete: () => f.destroy() });
-      playFx(this, "fx_no", at.x, at.y - 10 * k, Math.max(1, Math.round((1.4 * RX * r) / 32)), 99981);
+      if (!playPriv(this.svis.sheets, "fx_no_lon", { x: at.x, y: at.y - 10 * k, fitW: 1.6 * RX * r, light: m.id !== this.me })) playFx(this, "fx_no", at.x, at.y - 10 * k, Math.max(1, Math.round((1.4 * RX * r) / 32)), 99981); // #623: nổ kho riêng, thiếu thì quả nổ LPC
       if (m.id === this.me && !this.autoOn()) this.shake(260, 0.006); // #437: chỉ người tung chiêu thấy rung
     } else if (m.he === "man_cong") {
       // Lướt: vệt dài từ chỗ cũ, rồi dấu chém chữ X ở chỗ dừng (ngang ngực).
@@ -2171,6 +2174,9 @@ export class GameScene extends Phaser.Scene {
       g.lineStyle(2, gold, 1).lineBetween(a.x, a.y, b.x, b.y);
       for (const q of [0.8, -0.8]) g.lineStyle(3, gold, 1).lineBetween(b.x - 14 * k * Math.cos(q), b.y - 14 * k * Math.sin(q), b.x + 14 * k * Math.cos(q), b.y + 14 * k * Math.sin(q));
       this.tweens.add({ targets: g, alpha: 0, duration: 420, delay: 80, onComplete: () => g.destroy() });
+      const ang = Math.atan2(b.y - a.y, b.x - a.x), lite = m.id !== this.me; // #623: khói lướt ở chỗ cũ, bụi ở chỗ dừng
+      playPriv(this.svis.sheets, "fx_khoi_luot", { x: a.x, y: a.y, ang, scale: SPR, light: lite });
+      playPriv(this.svis.sheets, "fx_bui_dat", { x: b.x, y: b.y, scale: SPR, delay: 80, light: lite });
       if (m.id === this.me && !this.autoOn()) this.shake(140, 0.004);
     } else if (m.he === "khong_che") {
       // Phong tỏa: vòng thu hẹp lại và các mắt xích quay quanh trên mặt đất.
@@ -2184,6 +2190,7 @@ export class GameScene extends Phaser.Scene {
     } else {
       // Hộ thể: vòng xanh lá hồi phục và hạt sáng bay lên.
       this.ringFx(at, 4, 30, "#86e0b0", 500);
+      playPriv(this.svis.sheets, "fx_song_quang", { x: at.x, y: at.y - 8 * k, scale: SPR, light: m.id !== this.me }); // #623: sóng Quang kho riêng
       for (let j = 0; j < 10; j++) {
         const q = this.add.rectangle(at.x + (j - 4.5) * 3 * k, at.y - 2 * k, 2 * k, 2 * k, j % 2 ? 0x86e0b0 : gold).setDepth(99980);
         this.tweens.add({ targets: q, y: at.y - (30 + (j % 3) * 6) * k, alpha: 0, duration: 650, delay: j * 30, onComplete: () => q.destroy() });

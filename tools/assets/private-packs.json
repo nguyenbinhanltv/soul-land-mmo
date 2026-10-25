@@ -1,0 +1,438 @@
+{
+  "_": "Mô tả gói asset ngoài giấy phép hạn chế (cấm phân phối lại file) cho tools/assets/import-pack.mjs. KHÔNG chứa ảnh: ảnh đã xử lý chỉ nằm trong kho riêng (docs/asset-rieng.md). packs: nguồn + giấy phép (ghi vào CREDITS). entries: một dòng một hiệu ứng / vật, khóa = tên game (fx_* hiệu ứng, vat_* vật đứng; tên tiếng Việt không dấu theo công dụng), KHÔNG giữ tên gốc của gói. Tên gốc và đường dẫn trong gói chỉ ở private-rename.json (bảng 'tên game ← tên gốc', cũng vào CREDITS / licenses); ramp = 4 màu tối → sáng (hex trong art/palette.gpl) để nhuộm theo độ sáng; fx = hiệu ứng (dải một hàng, chạy bằng SheetFx), prop = vật đứng cắt từ ảnh lớn.",
+  "packs": {
+    "giga": {
+      "name": "Super Pixel Effects Gigapack (Free Version) v3.1.0",
+      "author": "Will Tice / unTied Games",
+      "source": "https://untiedgames.itch.io/super-pixel-effects-gigapack",
+      "license": "Dùng trong game (thương mại được); cấm phân phối công khai nội dung gói kể cả đã sửa; phải ghi công; cấm dùng làm dữ liệu huấn luyện AI (không đưa vào PixelLab / model / ảnh tham chiếu). Bản đầy đủ: http://untiedgames.com/files/license.txt",
+      "credit": "Super Pixel Effects Gigapack - Will Tice / unTied Games",
+      "noAI": true,
+      "tier": "rieng"
+    },
+    "holy": {
+      "name": "Pixel Holy Effects Pack 01 v1.1",
+      "author": "Sentient Dream Studio",
+      "source": "https://sentient-dream-studio.itch.io/",
+      "license": "Dùng trong game (thương mại được, làm tay không dùng AI); cấm bán lại và cấm phân phối lại file riêng lẻ hay đưa vào gói asset khác, kể cả đã sửa; ghi công không bắt buộc.",
+      "credit": "Pixel art effects by Sentient Dream Studio",
+      "noAI": false,
+      "tier": "rieng"
+    },
+    "forest": {
+      "name": "Free Topdown Fantasy - Forest - Pixelart Tileset (TopDownFantasy_Forest_v1)",
+      "author": "aamatniekss",
+      "source": "https://aamatniekss.itch.io/topdown-fantasy-forest",
+      "license": "Dùng trong dự án miễn phí và thương mại, được sửa; không ghi công cũng được (rất mong); cấm bán lại hoặc phân phối lại riêng lẻ (kể cả ảnh rời, bộ sưu tập asset, NFT); cấm dùng trong sản phẩm AI (không đưa vào model / ảnh tham chiếu). Đọc trên trang itch ngày 2026-10-25.",
+      "credit": "Topdown Fantasy - Forest - aamatniekss",
+      "noAI": true,
+      "tier": "rieng"
+    },
+    "fire": {
+      "name": "Pixel fire asset pack v1.2",
+      "author": "devkidd",
+      "source": "https://devkidd.itch.io/",
+      "license": "Dùng trong mọi dự án (cá nhân và thương mại); ghi công không bắt buộc; không bán lại nguyên bản, kể cả đã sửa (file Thank you.txt trong gói). Không nói rõ chuyện phân phối công khai nên xếp vào kho riêng cho an toàn.",
+      "credit": "Pixel fire asset pack - devkidd",
+      "noAI": false,
+      "tier": "rieng"
+    },
+    "free": {
+      "name": "Free Pixel Effects Pack",
+      "author": "CodeManu (Davit Masia)",
+      "source": "https://codemanu.itch.io/pixelart-effect-pack",
+      "license": "README: 'public domain asset', dùng cá nhân và thương mại, không cần ghi công; metadata trang itch ghi CC BY 4.0 (mâu thuẫn): giữ ghi công cho an toàn. Bản trên OpenGameArt ghi CC0. Dùng được trong repo công khai.",
+      "credit": "Free Pixel Effects Pack - CodeManu (Davit Masia)",
+      "noAI": false,
+      "tier": "cong_khai"
+    },
+    "bdragon": {
+      "name": "Effect and Bullet 16x16 + Fire Bullet Pixel 16x16",
+      "author": "BDragon1727",
+      "source": "https://bdragon1727.itch.io/free-effect-and-bullet-16x16",
+      "license": "Miễn phí cho game phi thương mại; game thương mại thì đóng góp (số tiền tùy ý, tác giả trả lời 'có' khi hỏi đó có phải ghi công); được sửa; cấm bán lại / phân phối lại (ghi trên trang itch ngày 2026-10-25). Không dùng AI để tạo. Chỉ kho riêng.",
+      "credit": "Effect and Bullet 16x16 / Fire Bullet Pixel 16x16 - BDragon1727",
+      "noAI": false,
+      "tier": "rieng"
+    },
+    "pimen": {
+      "name": "Battle Effects (Effects + Thrust)",
+      "author": "pimen",
+      "source": "https://pimen.itch.io/pixel-battle-effects",
+      "license": "CC BY 4.0 (trang itch); phải ghi công; được sửa, thương mại, phân phối lại kèm ghi công. Dùng được trong repo công khai.",
+      "credit": "Battle Effects - pimen (CC BY 4.0)",
+      "noAI": false,
+      "tier": "cong_khai"
+    }
+  },
+  "ramps": {
+    "lua": [
+      "#8f2a14",
+      "#ff6a2a",
+      "#ffe066",
+      "#fff2b0"
+    ],
+    "set": [
+      "#1f4a6b",
+      "#5a9cc9",
+      "#8ac8ff",
+      "#f4f8ff"
+    ],
+    "quang": [
+      "#8f5a12",
+      "#d9a02a",
+      "#ffd860",
+      "#fff6c8"
+    ],
+    "hoi": [
+      "#27453a",
+      "#46b86a",
+      "#8fe08a",
+      "#e8ffe0"
+    ],
+    "khien": [
+      "#2d4a78",
+      "#5a9cc9",
+      "#a8d8ff",
+      "#eaf6ff"
+    ],
+    "khoi": [
+      "#44434c",
+      "#646370",
+      "#8a8894",
+      "#c0cce0"
+    ],
+    "bui": [
+      "#6b5a42",
+      "#8c7a5c",
+      "#c9a46a",
+      "#e8d4a8"
+    ],
+    "am": [
+      "#2b1a40",
+      "#5d4380",
+      "#8a6bff",
+      "#e8e0ff"
+    ],
+    "da_hang": [
+      "#2a2a30",
+      "#44434c",
+      "#646370",
+      "#8a8894"
+    ]
+  },
+  "entries": [
+    {
+      "key": "fx_va_cham_vang",
+      "kind": "fx",
+      "pack": "giga",
+      "ramp": "quang",
+      "fps": 24,
+      "glow": true,
+      "use": "Va chạm / tia lửa khi trúng đòn (cạnh fxh_*)"
+    },
+    {
+      "key": "fx_no_lon",
+      "kind": "fx",
+      "pack": "giga",
+      "ramp": "lua",
+      "fps": 20,
+      "glow": true,
+      "use": "Nổ tiên cơ diện rộng (thay fx_no LPC)"
+    },
+    {
+      "key": "fx_khoi_luot",
+      "kind": "fx",
+      "pack": "giga",
+      "ramp": "khoi",
+      "fps": 16,
+      "outline": true,
+      "normal": true,
+      "use": "Khói lướt khi dịch chuyển nhanh",
+      "gamma": 1.6
+    },
+    {
+      "key": "fx_bui_dat",
+      "kind": "fx",
+      "pack": "giga",
+      "ramp": "bui",
+      "fps": 16,
+      "outline": true,
+      "normal": true,
+      "use": "Bụi khi hạ đất / bước nặng"
+    },
+    {
+      "key": "fx_ket_lieu",
+      "kind": "fx",
+      "pack": "giga",
+      "ramp": "lua",
+      "fps": 22,
+      "glow": true,
+      "use": "Đòn kết liễu (độ nặng 3, quái chết)"
+    },
+    {
+      "key": "fx_hoi_mau",
+      "kind": "fx",
+      "pack": "holy",
+      "fw": 64,
+      "ramp": "hoi",
+      "fps": 10,
+      "glow": true,
+      "use": "Hồi máu (hệ Phụ trợ)",
+      "gamma": 1.2,
+      "normal": true
+    },
+    {
+      "key": "fx_khien_sang",
+      "kind": "fx",
+      "pack": "holy",
+      "fw": 64,
+      "ramp": "khien",
+      "fps": 10,
+      "glow": true,
+      "use": "Khiên / buff phòng thủ",
+      "gamma": 1.2,
+      "normal": true
+    },
+    {
+      "key": "fx_song_quang",
+      "kind": "fx",
+      "pack": "holy",
+      "fw": 128,
+      "ramp": "quang",
+      "fps": 10,
+      "glow": true,
+      "use": "Buff hệ Phụ trợ / sóng Quang",
+      "gamma": 1.2,
+      "normal": true
+    },
+    {
+      "key": "fx_chem_sang",
+      "kind": "fx",
+      "pack": "holy",
+      "fw": 64,
+      "ramp": "quang",
+      "fps": 14,
+      "glow": true,
+      "use": "Chém sáng (hệ Quang)",
+      "gamma": 1.2,
+      "normal": true
+    },
+    {
+      "key": "vat_cay_soi_1",
+      "kind": "prop",
+      "pack": "forest",
+      "rect": [
+        11,
+        143,
+        70,
+        98
+      ],
+      "use": "Cây sồi lớn (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_cay_soi_2",
+      "kind": "prop",
+      "pack": "forest",
+      "rect": [
+        88,
+        143,
+        70,
+        94
+      ],
+      "use": "Cây sồi lớn (biến thể) (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_cay_thong_1",
+      "kind": "prop",
+      "pack": "forest",
+      "rect": [
+        163,
+        163,
+        38,
+        74
+      ],
+      "use": "Cây thông (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_cay_thong_2",
+      "kind": "prop",
+      "pack": "forest",
+      "rect": [
+        211,
+        163,
+        38,
+        70
+      ],
+      "use": "Cây thông (biến thể) (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_bui_cay",
+      "kind": "prop",
+      "pack": "forest",
+      "rect": [
+        13,
+        4,
+        35,
+        27
+      ],
+      "use": "Bụi cây (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_khuc_go",
+      "kind": "prop",
+      "pack": "forest",
+      "rect": [
+        75,
+        0,
+        40,
+        32
+      ],
+      "use": "Khúc gỗ mục (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_da_rung_1",
+      "kind": "prop",
+      "pack": "forest",
+      "rect": [
+        163,
+        133,
+        26,
+        22
+      ],
+      "use": "Đá (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_da_rung_2",
+      "kind": "prop",
+      "pack": "forest",
+      "rect": [
+        194,
+        133,
+        27,
+        23
+      ],
+      "use": "Đá (biến thể) (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_da_rung_3",
+      "kind": "prop",
+      "pack": "forest",
+      "rect": [
+        228,
+        133,
+        22,
+        21
+      ],
+      "use": "Đá nhỏ (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_nam_do",
+      "kind": "prop",
+      "pack": "forest",
+      "rect": [
+        203,
+        8,
+        13,
+        14
+      ],
+      "use": "Nấm đỏ (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "fx_lua_dung",
+      "kind": "fx",
+      "pack": "fire",
+      "fw": 32,
+      "ramp": "lua",
+      "fps": 10,
+      "glow": true,
+      "use": "Ngọn lửa: trạng thái Thiêu đốt / Hỏa Long / Tà Hỏa dưới chân"
+    },
+    {
+      "key": "fx_lua_xoay",
+      "kind": "fx",
+      "pack": "free",
+      "fw": 100,
+      "layout": "grid",
+      "ramp": "lua",
+      "fps": 24,
+      "glow": true,
+      "use": "Vòng lửa xoay: Hỏa Long, hồn kỹ vùng hệ Hỏa"
+    },
+    {
+      "key": "fx_lua_cuon",
+      "kind": "fx",
+      "pack": "free",
+      "fw": 100,
+      "layout": "grid",
+      "ramp": "lua",
+      "fps": 24,
+      "glow": true,
+      "use": "Cột lửa cuốn: Thiêu đốt, Tà Hỏa"
+    },
+    {
+      "key": "fx_lua_roi",
+      "kind": "fx",
+      "pack": "free",
+      "fw": 100,
+      "layout": "grid",
+      "ramp": "lua",
+      "fps": 24,
+      "glow": true,
+      "use": "Roi lửa quất: hồn kỹ Tà Hỏa"
+    },
+    {
+      "key": "fx_dan_lua",
+      "kind": "fx",
+      "pack": "bdragon",
+      "rect": [
+        0,
+        304,
+        80,
+        16
+      ],
+      "fw": 16,
+      "ramp": "lua",
+      "fps": 14,
+      "glow": true,
+      "use": "Đạn lửa nhỏ: hồn kỹ phóng (thử)"
+    },
+    {
+      "key": "fx_dam_trang",
+      "kind": "fx",
+      "pack": "pimen",
+      "fw": 64,
+      "fh": 32,
+      "layout": "vertical",
+      "ramp": "khien",
+      "fps": 18,
+      "glow": true,
+      "normal": true,
+      "use": "Vệt đâm: hồn kỹ đâm (thương, kiếm)"
+    },
+    {
+      "key": "fx_dam_tim",
+      "kind": "fx",
+      "pack": "pimen",
+      "fw": 64,
+      "fh": 32,
+      "layout": "vertical",
+      "ramp": "am",
+      "fps": 18,
+      "glow": true,
+      "use": "Vệt đâm tím (hệ Ám)"
+    },
+    {
+      "key": "fx_va_cham_nho",
+      "kind": "fx",
+      "pack": "pimen",
+      "fw": 64,
+      "fh": 32,
+      "layout": "vertical",
+      "ramp": "quang",
+      "fps": 18,
+      "glow": true,
+      "use": "Va chạm vàng (thay thế va chạm Gigapack nếu gọn hơn)"
+    }
+  ]
+}

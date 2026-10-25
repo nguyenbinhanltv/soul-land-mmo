@@ -86,7 +86,8 @@ export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
     <section class="asec"><b>Đan dược</b>
       <label class="arange">Uống đan hồi sinh lực khi dưới <output data-o="hp"></output><input type="range" min="0" max="0.95" step="0.05" data-k="hp"></label>
       <label class="arange">Uống đan hồi hồn lực khi dưới <output data-o="mp"></output><input type="range" min="0" max="0.95" step="0.05" data-k="mp"></label>
-      <label class="achk"><input type="checkbox" data-k="stopNoPot"> Hết đan hồi sinh lực thì dừng</label></section>
+      <label class="achk"><input type="checkbox" data-k="stopNoPot"> Hết đan hồi sinh lực thì dừng</label>
+      <label class="achk"><input type="checkbox" data-k="restNoPot"> Hết đan thì nghỉ hồi sinh lực rồi săn tiếp (không chọn dừng ở trên)</label></section>
     <section class="asec"><b>Nhặt đồ</b>
       <label class="achk"><input type="checkbox" data-k="ringOn"> Hồn hoàn từ <input type="number" min="0" max="${MAX_YEARS}" step="10" data-k="ring"> năm</label>
       <label class="achk"><input type="checkbox" data-k="bone"> Hồn cốt</label>
@@ -144,7 +145,7 @@ function read(el: HTMLElement): AutoSettings | null {
     skills: picked("skills"), slots: picked("slots"), ring: v("ringOn").checked ? num("ring") : -1, bone: v("bone").checked,
     core: v("core").checked, coreStar: Number($<HTMLSelectElement>("[data-k=coreStar]", el)!.value) || 1,
     kinds: AUTO_LOOT_KINDS.filter((k) => $<HTMLInputElement>(`[data-kind=${k}]`, el)?.checked),
-    stopNoPot: v("stopNoPot").checked, tienCo: v("tienCo").checked, elite: v("elite").checked, king: v("king").checked, world: v("world").checked,
+    stopNoPot: v("stopNoPot").checked, restNoPot: v("restNoPot").checked, tienCo: v("tienCo").checked, elite: v("elite").checked, king: v("king").checked, world: v("world").checked,
     bossMode: parseAuto({ bossMode: v("bossMode").value }).bossMode };
 }
 
@@ -165,7 +166,7 @@ function fill(m: AutoMsg) {
   for (const i of el.querySelectorAll<HTMLInputElement>("input[data-scope]")) i.checked = i.value === c.scope;
   // Bán kính chỉ dùng khi săn quanh chỗ đứng.
   set("radius", c.radius); $<HTMLInputElement>("[data-k=radius]", el)!.disabled = c.scope !== "near"; set("y0", c.years[0]); set("y1", c.years[1]); set("mpKeep", c.mpKeep); set("tienCo", c.tienCo);
-  set("hp", c.hp); set("mp", c.mp); set("stopNoPot", c.stopNoPot); set("elite", c.elite); set("king", c.king); set("world", c.world); set("bossMode", c.bossMode);
+  set("hp", c.hp); set("mp", c.mp); set("stopNoPot", c.stopNoPot); set("restNoPot", c.restNoPot); set("elite", c.elite); set("king", c.king); set("world", c.world); set("bossMode", c.bossMode);
   set("ringOn", c.ring >= 0); set("ring", Math.max(0, c.ring)); set("bone", c.bone); set("core", c.core);
   $<HTMLSelectElement>("[data-k=coreStar]", el)!.value = String(c.coreStar);
   for (const k of AUTO_LOOT_KINDS) { const i = $<HTMLInputElement>(`[data-kind=${k}]`, el); if (i) i.checked = c.kinds.includes(k); }

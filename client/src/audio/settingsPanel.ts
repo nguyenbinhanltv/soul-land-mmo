@@ -5,6 +5,7 @@ import { HAO_QUANG_MODES, type HaoQuangMode } from "../../../shared/data.ts";
 import { UI_SCALE_CHOICES, getUiScalePref, setUiScalePref, uiScale } from "../uiArt.ts";
 import { mountGoogleButton } from "../google.ts";
 import { post, storage, type Me } from "../net.ts";
+import { openCredits } from "../credits.ts";
 
 const PANEL_ID = "audio";
 const FX_LEVELS: [FxLevel, string][] = [["low", "Thấp"], ["mid", "Vừa"], ["high", "Cao"]];
@@ -80,6 +81,7 @@ Không vẽ mũ trang bị lên hồn sư (của mọi người; chỉ trên má
       <div class="scale-opts">${SHAKE_MODES.map(([v, label]) => `<button type="button" data-shake="${v}" aria-pressed="false" title="${v === "off" ? "Không rung, không phóng to giật, không dừng hình khi đánh." : v === "boss" ? "Chỉ rung với tinh anh, thú vương, boss, khi bị chiêu mạnh và khi tung hồn kỹ lớn." : "Thêm rung khi chí mạng lên hồn thú thường (không áp dụng lúc tự săn)."}">${label}</button>`).join("")}</div></div>
     <div class="scale-set" role="group" aria-labelledby="haloLbl"><span id="haloLbl">Vòng hồn hoàn khi Chân Thân</span>
       <div class="scale-opts">${HAO_QUANG_MODES.map(([v, label]) => `<button type="button" data-halo="${v}" aria-pressed="false" title="${v === "halo" ? "Các vòng bay xoắn lúc biến hình rồi hợp thành quầng sáng nhỏ sau lưng; vòng 7 ở lại dưới chân." : v === "feet" ? "Các vòng giữ nguyên đồng tâm dưới chân, vòng 7 sáng." : "Các vòng bay lên xếp quanh thân như trước."}">${label}</button>`).join("")}</div></div>
+    <button class="audio-credits" type="button" data-credits>Ghi công</button>
     <p>Âm thanh chỉ bắt đầu sau lần chạm hoặc phím đầu tiên của bạn.</p>`;
   // Liên kết Google (#612): hỏi trạng thái mỗi lần mở bảng; chưa liên kết thì hiện nút Google (server tắt thì ẩn cả mục).
   const ggSet = el.querySelector<HTMLElement>("#ggSet")!, ggState = el.querySelector<HTMLElement>("#ggState")!, ggBtn = el.querySelector<HTMLElement>("#ggBtn")!;
@@ -111,6 +113,7 @@ Không vẽ mũ trang bị lên hồn sư (của mọi người; chỉ trên má
   el.querySelector<HTMLButtonElement>('[data-audio="muted"]')!.addEventListener("click", () => {
     audio.updateSettings({ muted: !audio.getSettings().muted }); audio.play("ui_click"); render(audio.getSettings());
   }, { signal });
+  el.querySelector<HTMLButtonElement>("[data-credits]")!.addEventListener("click", () => { audio.play("ui_click"); openCredits(); }, { signal });
   el.querySelector<HTMLButtonElement>("[data-audio-close]")!.addEventListener("click", () => { audio.play("ui_panel_close"); closeAudioPanel(); }, { signal });
   button.addEventListener("click", (event) => {
     (event.currentTarget as HTMLElement).blur();

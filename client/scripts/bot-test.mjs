@@ -134,7 +134,7 @@ import { campMerchantSpot } from "../../shared/camp.ts";
 import { hoaDanSpot } from "../../shared/hoaDan.ts"; // Hỏa Đàn (#163)
 import { PLAYER_STATUS } from "../../shared/data.ts";
 import { SAFE_REGEN_MULT, hpRegen, mpRegen } from "../../shared/data.ts"; // hồi sinh lực / hồn lực, vùng an toàn (#112)
-import { AUTO_LOOT_WAIT, AUTO_BOSS_DETOUR, AUTO_DAILY_SECS, AUTO_RADIUS, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, AUTO_MOVE, AUTO_PACE, AUTO_STATUS, AUTO_PARTY, AUTO_STUCK, AUTO_HINT, autoHint, parseAuto, autoLeft, autoTimeText } from "../../shared/data.ts"; // tự săn (Auto 1, #213)
+import { AUTO_AOE_MIN, AUTO_CLUSTER, AUTO_REST, AUTO_LOOT_WAIT, AUTO_BOSS_DETOUR, AUTO_DAILY_SECS, AUTO_RADIUS, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, AUTO_MOVE, AUTO_PACE, AUTO_STATUS, AUTO_PARTY, AUTO_STUCK, AUTO_HINT, autoHint, parseAuto, autoLeft, autoTimeText } from "../../shared/data.ts"; // tự săn (Auto 1, #213)
 import { AUTO_RADIUS_MIN, AUTO_LOOT_KINDS, AUTO_TOKEN, AUTO_TOKEN_SECS, AUTO_TOKEN_PRICE, AUTO_BONUS_MAX } from "../../shared/data.ts"; // Auto 2
 import { OFFLINE, offlineSplit, offlineFight } from "../../shared/data.ts"; // ủy thác offline (Auto 3)
 import { ASK_CD } from "../../shared/data.ts"; // nhịp tin xin lại dữ liệu riêng (#165)
@@ -5446,7 +5446,7 @@ async function autoTest(){
   ok(me(A).auto&&Math.hypot(me(A).x-home.x,me(A).y-home.y)<=AUTO_RADIUS+2*16,`vẫn tự săn, đứng trong vùng neo (${Math.hypot(me(A).x-home.x,me(A).y-home.y).toFixed(0)} pixel)`);
 
   // AH2 (#609): tin riêng `autost` có mã việc hợp lệ, gọn và không dày (tối đa ~1 tin mỗi giây), đã thấy việc "đánh"; không gửi khi không tự săn.
-  const JOBS=["loot","fight","go","dodge","back","rest","patrol"], st=A.autost, secs0=(Date.now()-on0)/1000;
+  const JOBS=["loot","fight","go","dodge","back","rest","spawn","patrol"], st=A.autost, secs0=(Date.now()-on0)/1000;
   ok(st.length>=1&&st.every(s=>JOBS.includes(s.k)&&(s.path===undefined||s.path.length%2===0&&s.path.length<=2*AUTO_STATUS.path+2)&&JSON.stringify(s).length<400),`tin autost hợp lệ, gọn (${st.length} tin: ${[...new Set(st.map(s=>s.k))].join(", ")})`);
   ok(st.some(s=>s.k==="fight"&&s.n)&&st.length<=secs0/AUTO_STATUS.every+3,`autost không dày: ${st.length} tin trong ${secs0.toFixed(0)} giây, có việc "đánh <tên>"`);
 
@@ -5733,6 +5733,10 @@ async function autoTest(){
     await test(A,"goto",home); await test(A,"clear");
     await autoOp(A,"set",{cfg:{...NEAR,years:[10,200],slots:[]}});
     m=await autoOp(A,"on"); await test(A,"auto",{pace:4});
+    // Chống lách trần tốc độ: tắt rồi bật lại tự săn không xóa nợ nhịp.
+    await test(A,"auto",{pace:30}); await autoOp(A,"off"); m=await autoOp(A,"on"); info=await test(A,"auto");
+    ok(m?.on&&info?.pace>20,`tắt rồi bật lại tự săn: nợ nhịp còn ${info?.pace?.toFixed(1)} giây (không về 0)`);
+    await test(A,"auto",{pace:4});
     const pb=(await test(A,"spawn",{tier:0,dx:40,dy:0,years:15}))?.bid;
     await quiet(()=>false,2000,[pb]); info=await test(A,"auto");
     ok(m?.on&&pb&&info?.pace>0&&info.target!==pb&&A.room.state.beasts.has(pb),`còn nợ nhịp ${info?.pace?.toFixed(1)} giây: đứng nghỉ, chưa nhắm hồn thú mới (mục tiêu ${info?.target})`);
@@ -6024,6 +6028,50 @@ async function autoTest(){
     B.room.send("party",{op:"leave"}); await sleep(300);
   }
 
+  // ---- AH3 (#610): ưu tiên cụm quái + hồn kỹ diện rộng, nhớ chỗ hồi sinh, nghỉ hồi khi hết đan ----
+  ok(AUTO_DEFAULTS.restNoPot===true&&parseAuto({}).restNoPot===true&&parseAuto({restNoPot:false}).restNoPot===false&&parseAuto({restNoPot:"x"}).restNoPot===true
+    &&AUTO_AOE_MIN>=2&&AUTO_CLUSTER.bonus>0&&AUTO_REST.resume>0&&AUTO_REST.resume<=1,`AH3: restNoPot mặc định bật, bản lưu cũ / sai kiểu thì bật; AUTO_AOE_MIN ${AUTO_AOE_MIN}, AUTO_CLUSTER, AUTO_REST có số`);
+  { const P3={...NEAR,years:[0,MAX_YEARS],ring:-1,bone:false,core:false,slots:[],skills:[],tienCo:false,elite:false,king:false,world:false,hp:0.45,mp:0};
+    // B1: con lẻ gần hơn một chút, cụm 5 con xa hơn: chọn cụm.
+    await test(A,"goto",home); await test(A,"clear",{all:true,keep:true}); await autoOp(A,"set",{cfg:P3});
+    const lone=(await test(A,"spawn",{tier:0,dx:90,dy:0,years:10,hpx:50}))?.bid, pack=[];
+    for(const [dx,dy] of [[-130,0],[-150,16],[-150,-16],[-170,0],[-130,24]]) pack.push((await test(A,"spawn",{tier:0,dx,dy,years:10,hpx:50}))?.bid);
+    await test(A,"auto",{pace:0}); m=await autoOp(A,"on"); let pick3=null;
+    for(let t=0;t<3000&&!pick3;t+=100){ pick3=(await infoA()).target; if(!pick3) await sleep(100); }
+    ok(m?.on&&pick3&&pack.includes(pick3)&&pick3!==lone,`AH3 B1: con lẻ cách 90 pixel, cụm 5 con cách 130 pixel → nhắm vào cụm (${pick3===lone?"con lẻ":pack.includes(pick3)?"cụm":pick3})`);
+    // B1: đông (≥ AUTO_AOE_MIN con quanh thân) thì hồn kỹ diện rộng lên trước.
+    await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true}); await autoOp(A,"set",{cfg:{...P3,skills:[3,2,1,0]}});
+    const aoe=(await infoA()).aoe??[];
+    if(!aoe.length) console.log("  ⚠ bỏ qua hồn kỹ diện rộng: võ hồn đang ra trận chưa có hồn kỹ quanh thân / trước mặt");
+    else{
+      for(const [dx,dy] of [[20,0],[-20,0],[0,20],[0,-20],[28,14]]) await test(A,"spawn",{tier:0,dx,dy,years:10,hpx:200});
+      await test(A,"auto",{pace:0}); await autoOp(A,"on"); let c0=0;
+      for(let t=0;t<6000&&!c0;t+=200){ c0=(await infoA()).aoeCasts; if(!c0) await sleep(200); }
+      ok(c0>=1,`AH3 B1: ${AUTO_AOE_MIN}+ con quanh thân → tung hồn kỹ diện rộng trước (ô ${aoe.join(",")}, ${c0} lần)`);
+    }
+    await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true});
+    // B2: hạ một con rồi hết quái: nhớ vùng hồi sinh, đi dạo trong vùng đó ("Đi tới chỗ hồi sinh"). Dọn liên tục để hồn thú hồi sinh không xen vào.
+    await test(A,"goto",home); await autoOp(A,"set",{cfg:P3});
+    const k1=(await test(A,"spawn",{tier:0,dx:30,dy:0,years:10}))?.bid;
+    await test(A,"auto",{pace:0}); await autoOp(A,"on"); let remembered=0, sawSpawn=false;
+    for(let t=0;t<9000&&!(remembered&&sawSpawn);t+=250){
+      if(!A.room.state.beasts.has(k1)){ await test(A,"clear",{all:true,keep:true}); await test(A,"auto",{pace:0}); }
+      const st=await infoA(); remembered=Math.max(remembered,st.spawns); if(st.spawning&&st.patrol) sawSpawn=true; await sleep(250);
+    }
+    ok(remembered>=1&&sawSpawn,`AH3 B2: hạ con ở vùng sinh → nhớ ${remembered} vùng, hết quái thì đi tới chỗ hồi sinh (thấy ${sawSpawn})`);
+    await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true});
+    // B3: hết đan → nghỉ hồi tới AUTO_REST.resume rồi săn tiếp (không nhắm con mới khi đang nghỉ); stopNoPot thì dừng như cũ.
+    for(const it of looseOf(A)) if(ITEMS.find(x=>x.id===it.code)?.hp) A.room.send("discard",{id:it.id});
+    await sleep(500);
+    await test(A,"goto",home); await autoOp(A,"set",{cfg:{...P3,restNoPot:true,stopNoPot:false}});
+    await test(A,"auto",{pace:0}); m=await autoOp(A,"on"); await test(A,"hurt",{pct:70}); await sleep(600);
+    const bait=(await test(A,"spawn",{tier:0,dx:200,dy:0,years:10,hpx:50}))?.bid; let rested=false, baited=false, back=false;
+    for(let t=0;t<40000&&!back;t+=300){ const st=await infoA(); if(st.resting) { rested=true; if(st.target===bait) baited=true; } else if(rested&&st.target===bait) back=true; await sleep(300); }
+    ok(m?.on&&rested&&!baited&&back&&me(A).hp>=me(A).maxHp*AUTO_REST.resume-1,`AH3 B3: hết đan, sinh lực dưới ${AUTO_DEFAULTS.hp*100}% → nghỉ (không nhắm con mới), tới ${AUTO_REST.resume*100}% sinh lực săn tiếp (nghỉ ${rested}, nhắm khi nghỉ ${baited}, săn tiếp ${back}, sinh lực ${me(A).hp}/${me(A).maxHp})`);
+    await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true}); await test(A,"goto",home);
+    await autoOp(A,"set",{cfg:{...P3,restNoPot:true,stopNoPot:true}}); await test(A,"auto",{pace:0}); m=await autoOp(A,"on"); await test(A,"hurt",{pct:70});
+    ok(m?.on&&await stopped(A,/hết đan/,4000),`AH3 B3: chọn "hết đan thì dừng" → dừng, không nghỉ (${A.autoMsg?.why})`);
+  }
   await test(A,"goto",home); await autoOp(A,"set",{cfg});
 
   // #215: khi tự săn, mỗi lần nhặt / hạ hồn thú server chỉ gửi phần túi đổi (tin "bagd"), không gửi lại cả túi.

@@ -6,7 +6,7 @@
 import type { Client } from "colyseus";
 import { TIERS, TILE, ITEMS, BONE_ITEM, CORE_ITEM, RING_ITEM, PICKUP_RANGE, BEAST_AGGRO_R, TIEN_CO_MAX, CHAN_THAN_RING, CHAN_THAN_SKILL_SLOT,
   AUTO_HZ, AUTO_DAILY_SECS, AUTO_CLAIM_SECS, AUTO_MOVE, AUTO_SUM_LOOT, AUTO_RADIUS, AUTO_PACE, AUTO_STATUS, AUTO_BOSS, AUTO_LOOT_RADIUS, AUTO_LOOT_WAIT,
-  AUTO_BOSS_DETOUR, AUTO_TARGET, AUTO_PARTY, AUTO_STUCK, BEASTS, STATUS, VOHON, offlineFight, loadoutOf, ringSkill,
+  AUTO_BOSS_DETOUR, AUTO_TARGET, AUTO_PARTY, AUTO_STUCK, AUTO_CLUSTER, AUTO_AOE_MIN, AUTO_SPAWN, AUTO_REST, BEASTS, STATUS, VOHON, offlineFight, loadoutOf, ringSkill,
   chanThanOf, autoTimeText, itemDef, xpNeed, formatYears, vohonIndex, isCcStatus, teleHits, teleSafe,
   type AutoSettings, type AutoSummary, type AutoWhy, type AutoRate, type OfflinePower, type SkillDef, type ItemDef, type He } from "../../../shared/data.ts";
 import { MOVE_DEAD, type SolidGrid } from "../../../shared/move.ts";
@@ -21,6 +21,8 @@ import { AutoFeed } from "./autoStatus.ts";
 const HP_POTS = ITEMS.filter((d) => d.hp), MP_POTS = ITEMS.filter((d) => d.mp);
 /** Nửa cỡ hồn thú lớn nhất: cộng vào bán kính khi lấy ứng viên từ lưới không gian (như BEAST_HALF của MapRoom). */
 const BEAST_HALF = Math.max(...TIERS.map((t) => t.size)) / 2;
+/** Dạng hồn kỹ đánh diện rộng quanh thân / trước mặt (AUTO_AOE_MIN, B1 #610). */
+const AOE_AREAS: string[] = ["around", "front"];
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 /** Kinh nghiệm tích lũy của một võ hồn (mọi cấp đã qua cộng phần của cấp đang có): hiệu hai lần chụp là kinh nghiệm nhận được. */
 const xpTotal = (level: number, xp: number) => { let n = xp; for (let l = 1; l < level; l++) n += xpNeed(l); return n; };
@@ -90,6 +92,15 @@ export class AutoHunter {
   lootWait = 0;
   /** Lần kiểm "quanh mình hết hồn thú thường" gần nhất (hasNear): giây của `clock` và kết quả. */
   freeAt: { t: number; v: boolean } | null = null;
+
+  /** Vùng sinh hồn thú nơi vừa hạ một con (chỉ số trong map.zones → giây của `clock` lúc hạ), tối đa AUTO_SPAWN.max (B2, #610). */
+  spawns = new Map<number, number>();
+  /** Số lần tung hồn kỹ diện rộng vì có từ AUTO_AOE_MIN con trong vùng (hook test, B1 #610). */
+  aoeCasts = 0;
+  /** Đang đi dạo tới vùng hồi sinh đã nhớ (để hiện trạng thái). */
+  spawning = false;
+  /** Hết đan: đang đứng nghỉ hồi sinh lực tới AUTO_REST.resume (B3, #610). */
+  resting = false;
 
   /** Nợ nhịp (giây, AUTO_PACE): còn dương thì không nhắm hồn thú mới. `est`: giây tự đánh ước lượng của con vừa hạ (hook test). */
   pace = 0; est = 0;
@@ -203,12 +214,14 @@ export class AutoHunter {
     if (this.potions(p, d) === "stop") return;
     // Bỏ mục tiêu đã chết / ra khỏi vùng / bị người khác giành; hồn thú đang đánh mình thì đổi sang nó (đánh trả).
     if (this.target && !this.keep(this.target, p, d)) this.drop();
+    // Đang nghỉ hồi: bỏ mục tiêu chưa đánh (đánh trả và con đang đánh mình vẫn giữ).
+    if (this.resting && this.target && !(this.hit || this.fighting())) this.drop();
     // Thứ tự mỗi nhịp (#608): né (steer) → đan (trên) → đánh trả con đang đánh mình (sát) → NHẶT → chọn mục tiêu → đi dạo. Chế độ boss
     // "always" (#218, như cũ): tinh anh / thú vương / boss thế giới trên bản đồ thì tới đánh trước mọi việc khác (kể cả đánh trả: bầy /
     // nhện con boss gọi ra trúng lan từ đòn và hồn kỹ diện rộng, và nhặt); không xét trần AUTO_PACE. Chưa đánh trúng boss đang nhắm thì
     // vẫn xét lại: boss bậc cao hơn / gần hơn vừa nhắm được (ví dụ vừa hết khóa thưởng) thì đổi sang.
     const always = this.cfg.bossMode === "always";
-    if (always && (!this.boss || !this.hit)) { const t = this.findBoss(p, d); if (t && t !== this.target) this.setTarget(t); }
+    if (always && !this.resting && (!this.boss || !this.hit)) { const t = this.findBoss(p, d); if (t && t !== this.target) this.setTarget(t); }
     const foe = this.boss ? null : this.attacker(p);
     if (foe && foe !== this.target && (!this.target || room.bdata.get(this.target)?.target !== this.id)) this.setTarget(foe);
     // Đang đánh (đã trúng, hoặc nó đang đánh mình) thì giữ tới khi hạ; chưa thì nhặt đồ trước (bỏ mục tiêu đang đi tới, chọn lại sau).
@@ -231,9 +244,9 @@ export class AutoHunter {
     }
     // Chế độ "near": tinh anh / thú vương / boss thế giới chỉ khi gần (findBoss); không xét trần AUTO_PACE. Chưa đánh trúng boss đang nhắm
     // thì xét lại như trên; đang đi tới hồn thú thường chưa đánh trúng mà boss vừa vào tầm thì đổi sang boss.
-    if (!always && !this.hit && !this.fighting()) { const t = this.findBoss(p, d); if (t && t !== this.target) this.setTarget(t); }
+    if (!always && !this.resting && !this.hit && !this.fighting()) { const t = this.findBoss(p, d); if (t && t !== this.target) this.setTarget(t); }
     // Chưa có mục tiêu: chọn con mới (trần AUTO_PACE: còn nợ nhịp thì đứng nghỉ, vẫn đánh trả và nhặt đồ).
-    if (!this.target && this.pace <= 0) { const t = this.findTarget(p); if (t) { this.setTarget(t); return; } }
+    if (!this.target && this.pace <= 0 && !this.resting) { const t = this.findTarget(p); if (t) { this.setTarget(t); return; } }
     // Săn khắp bản đồ: đang đi tới hồn thú ở xa (chưa đánh trúng, nó chưa đánh mình) mà gần mình có con hợp lệ thì đổi sang con gần.
     if (this.target && !this.boss && this.wide && !this.hit && !this.fighting() && this.pace <= 0) {
       const b = room.state.beasts.get(this.target)!;
@@ -249,15 +262,16 @@ export class AutoHunter {
       this.skill(p, d, c, b, need);
       return;
     }
-    if (this.pace > 0) { this.patrol = null; this.go(null); return; }
+    if (this.pace > 0 || this.resting) { this.patrol = null; this.go(null); return; }
     // Tổ đội cùng treo (AH4): hết việc mà cách đồng đội xa thì đi lại gần, không đi dạo tách nhau.
     const mate = this.mates().reduce<{ p: PlayerState } | null>((m, q) => (!m || Math.hypot(q.p.x - p.x, q.p.y - p.y) < Math.hypot(m.p.x - p.x, m.p.y - p.y) ? q : m), null);
     if (mate && Math.hypot(mate.p.x - p.x, mate.p.y - p.y) > AUTO_PARTY.follow && (this.wide || Math.hypot(mate.p.x - this.anchor.x, mate.p.y - this.anchor.y) <= this.R)) { this.patrol = null; this.go({ x: mate.p.x, y: mate.p.y }); return; }
     const far = !this.wide && Math.hypot(p.x - this.anchor.x, p.y - this.anchor.y) > this.R;
     if (far) { this.patrol = null; this.go(this.anchor); return; }
-    // Vùng neo trống / cả bản đồ không còn hồn thú hợp lệ (săn khắp bản đồ): đi dạo quanh tâm săn chờ hồn thú hồi sinh.
+    // Vùng neo trống / cả bản đồ không còn hồn thú hợp lệ (săn khắp bản đồ): đi dạo chờ hồn thú hồi sinh, ưu tiên trong vùng sinh đã nhớ (B2).
     if (!this.patrol || (this.patrolT -= dt) <= 0 || Math.hypot(this.patrol.x - p.x, this.patrol.y - p.y) < 6) {
-      this.patrol = this.patrolPoint(this.center()); this.patrolT = rand(AUTO_MOVE.patrol[0], AUTO_MOVE.patrol[1]);
+      const sp = this.spawnSpot(p);
+      this.spawning = !!sp; this.patrol = sp ?? this.patrolPoint(this.center()); this.patrolT = rand(AUTO_MOVE.patrol[0], AUTO_MOVE.patrol[1]);
     }
     this.go(this.patrol);
   }
@@ -267,7 +281,37 @@ export class AutoHunter {
    * đi / đánh mục tiêu đã trừ vào nợ (không kẹp), nên con đó tốn max(thật, ước lượng); phần thật dư quá `credit` giây bỏ khi thôi nhắm
    * mục tiêu (drop). Hạ lan con khác giữa trận không kẹp, để không xóa thời gian thật của trận đang đánh.
    */
-  killed(pw: OfflinePower, years: number, species: string) { this.est = offlineFight(pw, years, species).secs; this.pace += this.est; this.lootWait = AUTO_LOOT_WAIT; }
+  killed(pw: OfflinePower, years: number, species: string, zi?: number) {
+    this.est = offlineFight(pw, years, species).secs; this.pace += this.est; this.lootWait = AUTO_LOOT_WAIT;
+    if (zi === undefined || !this.room.map.zones[zi]) return; // zi: vùng sinh thật của con vừa hạ (bdata.zone), không theo chỗ nó chết
+    this.spawns.delete(zi); this.spawns.set(zi, this.clock); // làm mới: vùng hạ gần nhất xếp cuối
+    if (this.spawns.size > AUTO_SPAWN.max) this.spawns.delete(this.spawns.keys().next().value!);
+  }
+
+  /**
+   * Điểm đi dạo trong vùng sinh đã nhớ (B2, #610): vùng chưa quá AUTO_SPAWN.keep giây, niên hạn vùng giao khoảng đã chọn, điểm đứng được,
+   * đi bộ tới được (cùng vùng liên thông) và, chỉ quanh chỗ đứng, trong vùng neo. Chọn vùng có (thời gian đi + giây còn chờ hồi sinh) nhỏ
+   * nhất. Không có thì null (đi dạo quanh tâm săn như cũ).
+   */
+  spawnSpot(p: PlayerState): Pt | null {
+    const map = this.room.map, { nav } = navOf(map), me = navNode(nav, p.x, p.y), region = me >= 0 ? nav.region[me] : -1, spd = Math.max(1, p.spd);
+    let best: Pt | null = null, bcost = Infinity;
+    for (const [zi, t] of [...this.spawns]) {
+      if (this.clock - t > AUTO_SPAWN.keep) { this.spawns.delete(zi); continue; }
+      const z = map.zones[zi];
+      if (z.years && (z.years[1] < this.cfg.years[0] || z.years[0] > this.cfg.years[1])) continue;
+      for (let k = 0; k < 12; k++) {
+        const x = z.x0 + 8 + Math.random() * Math.max(0, z.x1 - z.x0 - 16), y = z.y0 + 24 + Math.random() * Math.max(0, z.y1 - z.y0 - 48);
+        if (!map.standable(x, y) || map.inSafe(x, y)) continue;
+        if (!this.wide && Math.hypot(x - this.anchor.x, y - this.anchor.y) > this.R + 2 * TILE) continue;
+        const n = navNode(nav, x, y); if (n < 0 || nav.region[n] !== region) continue;
+        const cost = Math.hypot(x - p.x, y - p.y) / spd + Math.max(0, t + AUTO_SPAWN.wait - this.clock);
+        if (cost < bcost) { bcost = cost; best = { x, y }; }
+        break;
+      }
+    }
+    return best;
+  }
 
   setTarget(bid: string) {
     this.target = bid; this.hit = false; this.blockT = 0; this.go(null);
@@ -407,7 +451,7 @@ export class AutoHunter {
    */
   findTarget(p: PlayerState, nearOnly = false) {
     const [y0, y1] = this.cfg.years, R = this.R, c = this.center(), claimed = this.claimed(), d = this.room.pdata.get(this.id);
-    const pw = d ? this.room.offlinePower(d, p) : null, spd = Math.max(1, p.spd);
+    const pw = d ? this.room.offlinePower(d, p) : null, spd = Math.max(1, p.spd), gain = 1 + AUTO_CLUSTER.bonus * AUTO_CLUSTER.max;
     // Tổ đội cùng treo (AH4): chỉ con trong AUTO_PARTY.leash quanh đồng đội gần nhất; con đồng đội đang nhắm rẻ đi (cùng hạ một con).
     const mates = this.mates(), focus = new Set(mates.map((m) => m.a.target).filter((t): t is string => !!t));
     let best: string | null = null, bcost = Infinity;
@@ -416,23 +460,34 @@ export class AutoHunter {
       if (mates.length && !mates.some((m) => Math.hypot(b.x - m.p.x, b.y - m.p.y) <= AUTO_PARTY.leash)) return;
       const dd = Math.hypot(b.x - p.x, b.y - p.y);
       const k = focus.has(bid) ? AUTO_PARTY.focus : 1;
-      if (dd / spd * k >= bcost || Math.hypot(b.x - c.x, b.y - c.y) > r) return;
+      if (dd / spd * k / gain >= bcost || Math.hypot(b.x - c.x, b.y - c.y) > r) return;
       const bd = this.room.bdata.get(bid); if (!bd || bd.ret > 0 || this.taken(bid)) return;
       const f = pw ? offlineFight(pw, b.years, BEASTS[b.species]?.id ?? "") : null, fight = f ? f.secs + (f.ok ? 0 : AUTO_TARGET.tough) : 0;
-      // Chi phí ≥ đi thẳng + đánh: chưa thắng được con tốt nhất hiện có thì không tốn clearLine của walk().
-      if ((dd / spd + fight) * k >= bcost) return;
-      const cost = (this.walk(p, b) / spd + fight) * k;
+      // Chi phí ≥ (đi thẳng + đánh) × (hệ số đồng đội) / hệ số cụm tối đa: chưa thắng được con tốt nhất hiện có thì không tốn clearLine của walk() / đếm cụm.
+      if ((dd / spd + fight) * k / gain >= bcost) return;
+      const cost = (this.walk(p, b) / spd + fight) * k / (1 + AUTO_CLUSTER.bonus * this.crowd(bid, b, claimed));
       if (cost < bcost) { bcost = cost; best = bid; }
     };
     for (const [bid, b] of this.room.beastsNear(c.x, c.y, R)) consider(bid, b, R);
     if (best || !this.wide || nearOnly) return best;
     const { nav } = navOf(this.room.map), me = navNode(nav, p.x, p.y), region = me >= 0 ? nav.region[me] : -1;
     this.room.state.beasts.forEach((b, bid) => {
-      if (Math.hypot(b.x - p.x, b.y - p.y) / spd * (focus.size ? AUTO_PARTY.focus : 1) >= bcost) return;
+      if (Math.hypot(b.x - p.x, b.y - p.y) / spd * (focus.size ? AUTO_PARTY.focus : 1) / gain >= bcost) return;
       const n = navNode(nav, b.x, b.y); if (n < 0 || nav.region[n] !== region) return;
       consider(bid, b, Infinity);
     });
     return best;
+  }
+
+  /** Số hồn thú thường hợp lệ khác (đúng niên hạn, chưa ai giành) trong AUTO_CLUSTER.r quanh `b`, tối đa AUTO_CLUSTER.max (B1, #610). */
+  crowd(bid: string, b: BeastState, claimed: Set<string>) {
+    const [y0, y1] = this.cfg.years; let n = 0;
+    for (const [oid, o] of this.room.beastsNear(b.x, b.y, AUTO_CLUSTER.r + BEAST_HALF)) {
+      if (oid === bid || o.rank || o.hp <= 0 || o.years < y0 || o.years > y1 || this.skip.has(oid) || claimed.has(oid)) continue;
+      if (Math.hypot(o.x - b.x, o.y - b.y) > AUTO_CLUSTER.r || this.taken(oid)) continue;
+      if (++n >= AUTO_CLUSTER.max) break;
+    }
+    return n;
   }
 
   // ---------- Nhặt ----------
@@ -465,12 +520,14 @@ export class AutoHunter {
   // ---------- Đan, tiên cơ, hồn kỹ ----------
   /** Uống đan khi sinh lực / hồn lực dưới ngưỡng (qua useItem: hồi chiêu chung DAN_CD, đầy thì không uống). "stop" nếu hết đan cần dừng. */
   potions(p: PlayerState, d: PData): "stop" | void {
+    if (this.resting && p.hp >= p.maxHp * AUTO_REST.resume) { this.resting = false; this.go(null); } // nghỉ đủ: săn tiếp (B3, #610)
     if (d.danCd > 0) return;
     const pot = (list: ItemDef[]) => { for (const def of list) { const it = d.bag.find((i) => i.code === def.id && i.vohonId === null); if (it) return it; } return null; };
     if (this.cfg.hp > 0 && d.hpF < p.maxHp * this.cfg.hp) {
       const it = pot(HP_POTS);
       if (it) return void this.room.useItem(this.id, it.id);
       if (this.cfg.stopNoPot) { this.room.autoStop(this.id, "hết đan hồi sinh lực."); return "stop"; }
+      if (this.cfg.restNoPot && !this.resting) { this.resting = true; this.patrol = null; this.go(null); } // hết đan: đứng nghỉ tới AUTO_REST.resume
     }
     if (this.cfg.mp > 0 && d.mpF < p.maxMp * this.cfg.mp) { const it = pot(MP_POTS); if (it) this.room.useItem(this.id, it.id); }
   }
@@ -523,7 +580,10 @@ export class AutoHunter {
     const cleanse = need === "phu_tro", cc = (sk: SkillDef) => [...(sk.status ?? []), ...(sk.finisher ?? [])]
       .some((a) => (cast?.charge ? isCcStatus(a.s) : STATUS[a.s].noAtk || STATUS[a.s].noSkill));
     const want = (i: number) => { const sk = this.skillAt(p, d, i)?.sk; return !!sk && (cleanse ? !!sk.self?.cleanse : !!cast && cc(sk)); };
-    const order = cleanse || cast ? [...this.cfg.skills.filter(want), ...this.cfg.skills.filter((i) => !want(i))] : this.cfg.skills;
+    // Không có việc cần (thanh tẩy / ngắt chiêu): hồn kỹ diện rộng có từ AUTO_AOE_MIN hồn thú thường trong vùng thì lên trước (B1, #610).
+    const hot = cleanse || cast || this.boss ? [] : this.cfg.skills.filter((i) => { const sk = this.skillAt(p, d, i)?.sk; return !!sk && AOE_AREAS.includes(sk.area) && sk.dmg > 0 && this.inArea(p, sk.r) >= AUTO_AOE_MIN; });
+    const order = cleanse || cast ? [...this.cfg.skills.filter(want), ...this.cfg.skills.filter((i) => !want(i))]
+      : hot.length ? [...hot, ...this.cfg.skills.filter((i) => !hot.includes(i))] : this.cfg.skills;
     for (const i of order) {
       const at = this.skillAt(p, d, i); if (!at) continue;
       if (at.ct ? p.ctCd > 0 : p.cds[i] > 0) continue;
@@ -536,9 +596,20 @@ export class AutoHunter {
       if (run.area === "target" || run.at) { const near = room.nearestBeast(p, reach); if (!near || (near !== this.target && !this.boss && this.taken(near))) continue; }
       // Hồn kỹ diện rộng (quanh thân, trước mặt, lướt, bắn mũi) không tung khi vùng của nó có hồn thú người khác đang giao chiến.
       else if (run.area !== "self" && !this.fighting() && this.splash(p.x, p.y - 6, run.r)) continue;
+      if (hot.includes(i)) this.aoeCasts++;
       room.skill(c, i);
       return;
     }
+  }
+
+  /** Số hồn thú thường sống trong `r` pixel quanh thân (kể cả mục tiêu; bỏ con người khác đang giao chiến). */
+  inArea(p: PlayerState, r: number) {
+    let n = 0;
+    for (const [bid, b] of this.room.beastsNear(p.x, p.y - 6, r + BEAST_HALF)) {
+      const s = TIERS[b.tier].size;
+      if (!b.rank && b.hp > 0 && Math.hypot(b.x - p.x, b.y - s / 2 - (p.y - 6)) < r + s / 2 && (bid === this.target || !this.taken(bid))) n++;
+    }
+    return n;
   }
 
   // ---------- Trận boss (#218) ----------
