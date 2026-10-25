@@ -68,6 +68,8 @@ Thêm quyết định mới: cộng mã `Q` kế tiếp ở cuối bảng đúng
 | Q38 | 2026-10-25 | Phương án **A1** cho tài liệu: tạo 3 file mới (`docs/design/trang-thai-buff.md`, `docs/design/ban-do-khu-vuc.md`, `docs/art/hon-su-lpc.md`) + gộp các file `docs/tech` nhỏ; tách `GAME_DESIGN.md` giữ nguyên tiêu đề mục đánh số `### 5.x` vì code trích (#636, #637); `docs-check` trong `npm run check` ở mức **cảnh báo** (#640); PR chỉ sửa `.md` thì CI ở mức bỏ qua | #619, #636, #637, #640 | `CONTRIBUTING.md` |
 | Q39 | 2026-10-25 | **Supabase là DB test**: `DATABASE_URL` trỏ Supabase được dùng cho quay ảnh, đo FPS; prod là PostgreSQL trong cụm K8s, **không trỏ**; bot đầy đủ và migration mới vẫn chạy `bot:local` | memory | `docs/ops/db-redis-sao-luu.md`, `docs/tech/du-lieu-db.md` |
 | Q40 | 2026-10-25 | **C7 HUD gọn** (#592 / PR #618) được merge khi giao diện **điện thoại** chưa đạt: giao diện điện thoại **chưa cần** ở giai đoạn này | #592, #618 | `docs/design/giao-dien.md` |
+| Q46 | 2026-10-24 | **Không dùng Sealed Secrets**: bốn Secret (`soul-land-postgres-auth`, `soul-land-redis-auth`, `soul-land-env`, `gcp-ar-creds`) chủ repo tạo tay trên cụm, ArgoCD không quản; `GOOGLE_TICKET_SECRET` đặt trong `soul-land-env` | #500, #504 | `docs/ops/gitops.md`, `docs/ops/sso-google.md` |
+| Q47 | 2026-10-25 | **Bỏ toàn bộ NetworkPolicy**; PostgreSQL và Redis tự host trong cụm (Longhorn), CronJob sao lưu ra PVC | #500, #504 | `docs/ops/gitops.md`, `docs/ops/db-redis-sao-luu.md` |
 
 ## Việc đang chờ chủ repo
 
