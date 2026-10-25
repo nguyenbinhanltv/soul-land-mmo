@@ -207,11 +207,13 @@ export const MSG_GROUP = {
 } as const;
 export type MsgGroup = keyof typeof MSG_GROUP;
 /**
- * Trần tuyệt đối mọi loại tin của một kết nối (Colyseus 0.16 không có `maxMessagesPerSecond`, nên room tự đếm): `input` 20–60 Hz,
- * `attack` / `target` giữ phím vẫn lọt xa dưới `rate`. Vượt `burst` thì bỏ tin; bỏ quá `strikes` tin liên tiếp (không có tin nào lọt
- * giữa chừng) thì ngắt kết nối (mã MSG_FLOOD_CODE). Kích thước tin: `maxPayload` ở server/src/index.ts.
+ * Trần tuyệt đối mọi loại tin của một kết nối (Colyseus 0.16 không có `maxMessagesPerSecond`, nên room tự đếm): `burst` tin dồn, hồi
+ * `rate` tin / giây. Vượt thì BỎ tin, trừ `input` (client không gửi lại tin bị bỏ, màn 144–240 Hz kéo chuột có thể vượt `rate`; bỏ
+ * nhầm tin dừng thì nhân vật đi mãi) vẫn được xử lý nhưng tính là một tin vượt. Vượt quá `maxOver` tin trong một giây thì ngắt kết nối
+ * (mã MSG_FLOOD_CODE): dồn thật sự thì ngắt dù gửi đều tay hay dồn một gói; người chơi thật chỉ vượt vài chục tin / giây.
+ * Kích thước tin: `maxPayload` (MSG_MAX_PAYLOAD) ở server/src/index.ts.
  */
-export const MSG_HARD = { burst: 240, rate: 120, strikes: 400 } as const;
+export const MSG_HARD = { burst: 240, rate: 120, maxOver: 300 } as const;
 export const MSG_FLOOD_CODE = 4008;
 export const MSG_MAX_PAYLOAD = 4096;
 /**

@@ -1000,9 +1000,18 @@ async function cheatTest(){
   { let got=0; const h=()=>{got++;}; X.room.onMessage("shardinfo",h); for(let k=0;k<200;k++) X.room.send("shardinfo"); await sleep(800);
     ok(got>=1&&got<=MSG_GROUP.read.burst+MSG_GROUP.read.rate*2&&X.leftCode===null,`dồn 200 tin shardinfo: server chỉ trả ${got} (trần ${MSG_GROUP.read.burst} dồn + ${MSG_GROUP.read.rate}/giây), không ngắt`); }
   { const F=await bot("Dồn tin F","bich_lan_xa_hoang",{sex:0,hair:0,hairCol:0,outfitCol:0}); // bot riêng: bị ngắt không ảnh hưởng các bài sau
-    try{ await test(F,"baglimit",{on:1}); const n=MSG_HARD.burst+MSG_HARD.strikes+300; for(let k=0;k<n;k++) F.room.send("input",{x:0,y:0}); await waitFor(()=>F.leftCode!==null,3000);
-      ok(F.leftCode===MSG_FLOOD_CODE&&await alive(),`dồn ${n} tin input: vượt trần tuyệt đối, server ngắt kết nối người gửi (mã ${F.leftCode}), phòng vẫn chạy`);
+    try{ await test(F,"baglimit",{on:1}); const n=MSG_HARD.burst+MSG_HARD.maxOver+300; for(let k=0;k<n;k++) F.room.send("input",{x:0,y:0}); await waitFor(()=>F.leftCode!==null,3000);
+      ok(F.leftCode===MSG_FLOOD_CODE&&await alive(),`dồn ${n} tin input một gói: vượt trần tuyệt đối, server ngắt kết nối người gửi (mã ${F.leftCode}), phòng vẫn chạy`);
     } finally { await Promise.race([F.room.leave().catch(()=>{}),sleep(1000)]); } }
+  { const G=await bot("Dồn tin G","bich_lan_xa_hoang",{sex:0,hair:0,hairCol:0,outfitCol:0}); // gửi đều tay theo loạt nhỏ: vẫn bị ngắt
+    try{ await test(G,"baglimit",{on:1}); const t0=Date.now(); let sent=0; while(G.leftCode===null&&Date.now()-t0<5000){ for(let k=0;k<30;k++){ G.room.send("stats",{rowId:0}); sent++; } await sleep(5); }
+      ok(G.leftCode===MSG_FLOOD_CODE&&await alive(),`dồn đều tay ${sent} tin trong ${Date.now()-t0} ms: server vẫn ngắt kết nối người gửi (mã ${G.leftCode})`);
+    } finally { await Promise.race([G.room.leave().catch(()=>{}),sleep(1000)]); } }
+  { const H=await bot("Kéo chuột H","bich_lan_xa_hoang",{sex:0,hair:0,hairCol:0,outfitCol:0}); // 240 Hz kéo chuột 3 giây (> rate): không bị ngắt, tin input cuối vẫn tới
+    try{ await test(H,"baglimit",{on:1}); const hp=()=>H.room.state.players?.get(H.room.sessionId); await waitFor(()=>hp(),3000);
+      for(let k=0;k<720;k++){ H.room.send("input",{x:1,y:0,s:k}); if(k%4===3) await sleep(16); } H.room.send("input",{x:0,y:0,s:999}); await sleep(600); const x1=hp().x; await sleep(500);
+      ok(H.leftCode===null&&Math.abs(hp().x-x1)<1,`240 Hz kéo chuột 3 giây: không bị ngắt, tin dừng cuối vẫn xử lý (nhân vật đứng yên)`);
+    } finally { await Promise.race([H.room.leave().catch(()=>{}),sleep(1000)]); } }
   await test(X,"baglimit",{on:0}); // các bài sau dọn túi hàng loạt: tắt lại
   for(let k=0;k<5;k++) X.room.send("test",{op:"throw"}); // lỗi bất ngờ trong handler (hook): chỉ ghi log
   await sleep(300);

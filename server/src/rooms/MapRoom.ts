@@ -123,7 +123,7 @@ export interface PData {
   chListAt: number;     // lần gửi danh sách kênh gần nhất (ms): tin "channels" tối đa 1 lần / giây
   bossAskAt: number;    // lần trả tin boss lúc vào phòng gần nhất (ms, #118): tin "boss" tối đa 1 lần / giây
   chListQueued: boolean; // đã hẹn gửi lại danh sách kênh khi hết 1 giây (client xin dồn)
-  msgLimit: boolean; msgTok: Record<MsgGroup | "hard", TokenBucket>; msgDrops: number; // giới hạn tin theo nhóm + trần tuyệt đối (#677, #734)
+  msgLimit: boolean; msgTok: Record<MsgGroup | "hard", TokenBucket>; msgOver: number; msgOverAt: number; msgGone: boolean; // giới hạn tin theo nhóm + trần tuyệt đối (#677, #734)
   statsRow: unknown; askAt: Map<string, number>; askQueued: Set<string>; // tin client xin lại dữ liệu riêng (bag, vohons, quest): lần gửi gần nhất (ms), đã hẹn gửi (#165, ask)
   energy: Map<number, number>;  // năng lượng tiên cơ từng võ hồn trong đội (rowId -> 0..TIEN_CO_MAX; không có = 0). Không lưu DB
   shield: number; shieldT: number; // khiên của hồn sư (tiên cơ phụ trợ) và số giây còn lại
@@ -326,13 +326,13 @@ const HOLD_WAIT_MS = 8000;
 // có thể ném lỗi.
 /** Số hữu hạn client gửi; khác (chuỗi, object, NaN, Infinity…) thì 0. */
 const numIn = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
-/** Số nguyên client gửi; khác thì NaN (hàm nhận tự từ chối). */
 /** Bộ đếm token đầy cho mọi nhóm tin của một kết nối (#734). */
 const newMsgBuckets = (): Record<MsgGroup | "hard", TokenBucket> => {
   const t = Date.now(), b = { hard: { n: MSG_HARD.burst, t } } as Record<MsgGroup | "hard", TokenBucket>;
   for (const g of Object.keys(MSG_GROUP) as MsgGroup[]) b[g] = { n: MSG_GROUP[g].burst, t };
   return b;
 };
+/** Số nguyên client gửi; khác thì NaN (hàm nhận tự từ chối). */
 const intIn = (v: unknown) => (typeof v === "number" && Number.isInteger(v) ? v : NaN);
 /** Chuỗi client gửi; khác thì "". */
 const strIn = (v: unknown) => (typeof v === "string" ? v : "");
@@ -1132,7 +1132,7 @@ export class MapRoom extends Room<MapState> {
     const d: PData = { accountId: auth.accountId, leaseOwner, leaseT: PRESENCE_HEARTBEAT_MS, owned, team, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 }, walk: false,
       target: "", atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, testBone: null, testCore: null, testHerb: null, looksN: looks.changes, looksBusy: false, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
       benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0,
-      saving: Promise.resolve(), teamQueued: false, tradeQueued: false, latest: new Map(), portalKey: "", travelCast: null, travelling: false, travelled: false, gmReset: false, gmMarked: false, chListAt: 0, chListQueued: false, bossAskAt: 0, msgLimit: process.env.GAME_TEST !== "1", msgTok: newMsgBuckets(), msgDrops: 0, statsRow: undefined, askAt: new Map(), askQueued: new Set(),
+      saving: Promise.resolve(), teamQueued: false, tradeQueued: false, latest: new Map(), portalKey: "", travelCast: null, travelling: false, travelled: false, gmReset: false, gmMarked: false, chListAt: 0, chListQueued: false, bossAskAt: 0, msgLimit: process.env.GAME_TEST !== "1", msgTok: newMsgBuckets(), msgOver: 0, msgOverAt: 0, msgGone: false, statsRow: undefined, askAt: new Map(), askQueued: new Set(),
       wps: new Set(auth.wps), wpKey: "", fog: null, fogAdd: [], fogDirty: false,
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
       bag: bag.items.filter((i) => i.equipSlot === undefined), gear: bag.items.filter((i) => i.equipSlot !== undefined), gearSt: gearStats(bag.items.filter((i) => i.equipSlot !== undefined)), honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "",
@@ -2182,8 +2182,8 @@ export class MapRoom extends Room<MapState> {
 
   // ---------- Giới hạn tin theo kết nối (#677, #734) ----------
   /**
-   * Mọi tin của phòng đi qua trần tuyệt đối MSG_HARD (Colyseus 0.16 không có `maxMessagesPerSecond`): hết token thì bỏ tin, bỏ liên
-   * tiếp quá `strikes` tin thì ngắt kết nối. Tin `test` (chỉ GAME_TEST) và `*` không đếm.
+   * Mọi tin của phòng đi qua trần tuyệt đối MSG_HARD (Colyseus 0.16 không có `maxMessagesPerSecond`): hết token thì bỏ tin (trừ `input`), vượt
+   * `maxOver` tin trong một giây thì ngắt kết nối. Tin `test` (chỉ GAME_TEST) và `*` không đếm.
    */
   override onMessage<T = any>(type: "*", callback: (c: Client, type: string | number, message: T) => void): any;
   override onMessage<T = any>(type: string | number, callback: (c: Client, message: T) => void, validate?: (message: unknown) => T): any;
@@ -2192,8 +2192,13 @@ export class MapRoom extends Room<MapState> {
     return super.onMessage(type, (c: Client, m: unknown) => {
       const d = this.pdata.get(c.sessionId);
       if (d?.msgLimit) {
-        if (!takeToken(d.msgTok.hard, Date.now(), MSG_HARD.burst, MSG_HARD.rate)) { if (++d.msgDrops > MSG_HARD.strikes) c.leave(MSG_FLOOD_CODE); return; }
-        d.msgDrops = 0;
+        if (d.msgGone) return;
+        const now = Date.now();
+        if (!takeToken(d.msgTok.hard, now, MSG_HARD.burst, MSG_HARD.rate)) {
+          if (now - d.msgOverAt >= 1000) { d.msgOverAt = now; d.msgOver = 0; }
+          if (++d.msgOver > MSG_HARD.maxOver) { d.msgGone = true; c.leave(MSG_FLOOD_CODE); return; }
+          if (type !== "input") return;
+        }
       }
       callback(c, m);
     }, validate);
