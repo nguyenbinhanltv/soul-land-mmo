@@ -13,7 +13,7 @@
 - Ghi dữ liệu của một người chơi luôn qua chuỗi lưu `this.chain(d, fn)`.
 
 ## Bảng chính
-- `accounts`: tài khoản, ngoại hình (`looks`), võ hồn ra trận, `map_id` + `pos_x` / `pos_y` + `map_file` (file Tiled của tọa độ), `bag_slots`, Hồn Tệ, bộ lọc tự bán `auto_sell` và đồ tự bán gần nhất `auto_sold`, cờ `is_test`. `sessions`.
+- `accounts`: tài khoản, ngoại hình (`looks`), võ hồn ra trận, `map_id` + `pos_x` / `pos_y` + `map_file` (file Tiled của tọa độ), `bag_slots`, Hồn Tệ, bộ lọc tự bán `auto_sell` và đồ tự bán gần nhất `auto_sold`, cờ `is_test`. `sessions`. Phiên sống 30 ngày; `033_sessions_don.sql` thêm chỉ mục, mở phiên xóa phiên quá hạn và giữ tối đa 10 phiên mới nhất của tài khoản, `pruneSessions` quét mỗi giờ (#736).
 - `account_identities`: định danh Google (`sub`), xem `giao-thuc-server.md`.
 - `vohons` (võ hồn sở hữu: cấp, kinh nghiệm, sao, hồn hoàn theo số năm, `skills` 4 ô mang theo, `herbs`), `teams` (mỗi ô đội hình một dòng).
 - `items`: mỗi món một id: loại, mã, số lượng, số năm, sao, cấp cường hóa, `stats` JSONB, `vohon_id` đang gắn, `locked` người chơi khoá, `equip_slot` (trang bị hồn sư đang mặc, NULL = trong túi), `ver` (tăng mỗi lần ghi đè một món).

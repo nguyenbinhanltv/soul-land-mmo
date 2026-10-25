@@ -44,6 +44,7 @@ Matchmake (`joinOrCreate`, `joinById`) giữ chỗ và mở kênh ở bước HT
 ## Bảo mật
 - Giới hạn đăng nhập sai, số tài khoản mới mỗi IP, chat (riêng từng kênh) và lời mời tổ đội ở `server/src/ratelimit.ts` (RAM). `/api/login` tự tạo tài khoản nhưng chỉ đếm lần thật sự tạo; hết lượt thì 429, tài khoản cũ vẫn vào được. Ngưỡng là hằng `SIGNUP_IP_*`, nới khi `GAME_TEST=1`.
 - Khoá IP chuẩn hoá bằng `ipKey` (IPv6 gom theo /64, `::ffff:a.b.c.d` về IPv4), dùng chung cho đăng nhập sai và tạo tài khoản.
+- REST có token (`/api/me`, `/api/channel`, `/api/looks`, `/api/awaken`) có token bucket theo IP `apiCheck` (hằng `API_BURST`, `API_REFILL_MS`); mọi lần `/api/login` qua `loginBegin` (kể cả đúng, vì chạy scrypt) tốn một lượt của bucket (tên, IP) `loginRate` (`LOGIN_OK_*`); mật khẩu tối đa `PASSWORD_MAX_LEN`. Hết lượt thì 429 + `Retry-After`; `GAME_TEST=1` nhân ngưỡng như tạo tài khoản.
 - Deploy sau proxy thì đặt `TRUST_PROXY=1` (thiếu thì mọi người chung IP của proxy, chạm giới hạn tạo tài khoản rất nhanh).
 - Kiểm thử: `npm run test:ratelimit --prefix server`.
 

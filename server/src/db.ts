@@ -174,6 +174,8 @@ export interface Store {
   accountByIdentity(provider: string, subject: string): Promise<number | null>;
   /** Mở phiên mới cho tài khoản (đăng nhập qua định danh ngoài, không mật khẩu): trả token như login. */
   startSession(accountId: number): Promise<string>;
+  /** Xóa phiên quá hạn (> 30 ngày) của mọi tài khoản, tối đa SESSION_SWEEP_LIMIT dòng mỗi lần; trả số dòng đã xóa. Server gọi mỗi giờ. */
+  pruneSessions(): Promise<number>;
   /** Tạo tài khoản MỚI chỉ có định danh ngoài (mật khẩu ngẫu nhiên không ai biết) với tên hiển thị `name` (đã cleanName). Tên trùng thì
    *  `taken`; định danh đã có tài khoản (hai yêu cầu song song) thì `linked`. */
   createIdentityAccount(name: string, provider: string, subject: string): Promise<{ accountId: number } | { error: "taken" | "linked" }>;
@@ -377,6 +379,9 @@ async function checkPass(pw: string, stored: string) {
 const newToken = () => randomBytes(24).toString("base64url");
 /** Token đúng dạng newToken (base64url). Chặn trước khi hỏi DB: chuỗi lạ (ký tự NUL…) làm PostgreSQL báo lỗi mã hóa. */
 const tokenOk = (t: unknown): t is string => typeof t === "string" && /^[A-Za-z0-9_-]{32}$/.test(t);
+/** Phiên sống 30 ngày (accountFromToken); mỗi tài khoản giữ tối đa SESSION_KEEP phiên mới nhất (nhiều thiết bị vẫn đủ); quét định kỳ xóa
+ *  tối đa SESSION_SWEEP_LIMIT phiên quá hạn mỗi lượt (#736). */
+const SESSION_DAYS = 30, SESSION_KEEP = 10, SESSION_SWEEP_LIMIT = 5000;
 const copy = (c: Character): Character => ({ ...c, rings: [...c.rings], skills: [...c.skills], herbs: { ...c.herbs } });
 /** Đội tự xếp từ danh sách mã dòng võ hồn (đã theo thứ tự ưu tiên): lấy tối đa TEAM_SIZE, ô thừa để trống. */
 const autoTeam = (ids: number[]) => Array.from({ length: TEAM_SIZE }, (_, i) => ids[i] ?? 0);
@@ -418,7 +423,7 @@ function resonancePage(all: ResonanceTopEntry[], page: number, pageSize: number,
 export class MemoryStore implements Store {
   accounts = new Map<string, { id: number; pass: string }>();  // nameKey(tên) -> tài khoản
   names = new Map<number, string>();
-  sessions = new Map<string, number>();
+  sessions = new Map<string, { accountId: number; at: number }>(); // token -> tài khoản + lúc mở phiên (ms)
   rows = new Map<number, Character>();  // vohons.id -> võ hồn
   active = new Map<number, number>();   // accountId -> vohons.id đang ra trận
   looks = new Map<number, Looks>();     // accountId -> ngoại hình đã chọn (chưa có = chưa chọn)
@@ -455,12 +460,23 @@ export class MemoryStore implements Store {
       if (!acc) { acc = { id: this.seq++, pass }; this.accounts.set(key, acc); this.names.set(acc.id, name); created = true; }
     }
     if (!created && !(await checkPass(password, acc.pass))) return { error: "Sai mật khẩu." };
-    const token = newToken(); this.sessions.set(token, acc.id);
+    const token = this.openSession(acc.id);
     return { token, accountId: acc.id, created };
   }
   identities = new Map<string, number>(); // `${provider}|${subject}` -> accountId (bảng account_identities, #612)
   async accountByIdentity(provider: string, subject: string) { return this.identities.get(`${provider}|${subject}`) ?? null; }
-  async startSession(accountId: number) { const token = newToken(); this.sessions.set(token, accountId); return token; }
+  async startSession(accountId: number) { return this.openSession(accountId); }
+  /** Mở phiên: bỏ phiên quá hạn của tài khoản, rồi giữ SESSION_KEEP - 1 phiên mới nhất để chừa chỗ cho phiên mới. */
+  openSession(accountId: number) {
+    const now = Date.now(), own = [...this.sessions].filter(([, s]) => s.accountId === accountId).reverse().sort((a, b) => b[1].at - a[1].at); // reverse: cùng ms thì phiên chèn sau là mới hơn (sort ổn định)
+    own.forEach(([t, s], i) => { if (now - s.at > SESSION_DAYS * 864e5 || i >= SESSION_KEEP - 1) this.sessions.delete(t); });
+    const token = newToken(); this.sessions.set(token, { accountId, at: now }); return token;
+  }
+  async pruneSessions() {
+    const cut = Date.now() - SESSION_DAYS * 864e5; let n = 0;
+    for (const [t, s] of this.sessions) if (s.at < cut && n < SESSION_SWEEP_LIMIT) { this.sessions.delete(t); n++; }
+    return n;
+  }
   async createIdentityAccount(name: string, provider: string, subject: string) {
     const key = nameKey(name), ik = `${provider}|${subject}`;
     if (this.identities.has(ik)) return { error: "linked" as const };
@@ -481,7 +497,7 @@ export class MemoryStore implements Store {
   }
   async hasIdentity(accountId: number, provider: string) { return [...this.identities].some(([k, a]) => a === accountId && k.startsWith(`${provider}|`)); }
   async accountFromToken(token: unknown) {
-    const id = tokenOk(token) ? this.sessions.get(token) : undefined; return id ? { accountId: id, name: this.names.get(id)! } : null;
+    const s = tokenOk(token) ? this.sessions.get(token) : undefined, id = s && Date.now() - s.at <= SESSION_DAYS * 864e5 ? s.accountId : undefined; return id ? { accountId: id, name: this.names.get(id)! } : null;
   }
   owned(accountId: number) { return [...this.rows.values()].filter((c) => c.accountId === accountId).sort((a, b) => a.rowId - b.rowId); }
   async getCharacter(accountId: number) {
@@ -801,7 +817,7 @@ export class MemoryStore implements Store {
     if (!acc) throw new Error(`Không có tài khoản "${name}".`);
     if (!this.tests.has(acc.id)) throw new Error(`Tài khoản "${name}" không có cờ is_test: không xoá tài khoản thật.`);
     const id = acc.id, n = Object.fromEntries(REMOVE_TABLES.map((t) => [t, 0])) as Record<string, number>;
-    const owned = this.owned(id), tokens = [...this.sessions].filter(([, a]) => a === id).map(([t]) => t);
+    const owned = this.owned(id), tokens = [...this.sessions].filter(([, s]) => s.accountId === id).map(([t]) => t);
     const pairs = [...this.pairs.keys()].filter((k) => { const [, a, b] = k.split("|"); return Number(a) === id || Number(b) === id; });
     const tp = [...this.tongPts].filter(([, x]) => x.accountId === id).map(([k]) => k), cl = [...this.claims.keys()].filter((k) => k.startsWith(`${id}|`));
     const rel = (m: Map<number, Set<number>>) => (m.get(id)?.size ?? 0) + [...m].filter(([a, set]) => a !== id && set.has(id)).length;
@@ -893,7 +909,7 @@ export class PgStore implements Store {
     }
     const id = Number(acc.id);
     const token = newToken();
-    await this.pool.query("INSERT INTO sessions(token, account_id) VALUES ($1,$2)", [token, id]);
+    await this.openSession(token, id);
     return { token, accountId: id, created };
   }
   async accountByIdentity(provider: string, subject: string) {
@@ -902,8 +918,21 @@ export class PgStore implements Store {
   }
   async startSession(accountId: number) {
     const token = newToken();
-    await this.pool.query("INSERT INTO sessions(token, account_id) VALUES ($1,$2)", [token, accountId]);
+    await this.openSession(token, accountId);
     return token;
+  }
+  /** Thêm phiên rồi xóa phiên quá hạn và phiên vượt SESSION_KEEP (giữ mới nhất) của chính tài khoản đó, một câu lệnh (chỉ mục sessions_account_idx). */
+  async openSession(token: string, accountId: number) {
+    await this.pool.query("INSERT INTO sessions(token, account_id) VALUES ($1,$2)", [token, accountId]);
+    await this.pool.query(
+      `DELETE FROM sessions WHERE account_id=$1 AND (created_at < now() - make_interval(days => $2) OR token NOT IN
+         (SELECT token FROM sessions WHERE account_id=$1 ORDER BY created_at DESC, token LIMIT $3))`, [accountId, SESSION_DAYS, SESSION_KEEP]);
+  }
+  async pruneSessions() {
+    const r = await this.pool.query(
+      `DELETE FROM sessions WHERE token IN (SELECT token FROM sessions WHERE created_at < now() - make_interval(days => $1) LIMIT $2)`,
+      [SESSION_DAYS, SESSION_SWEEP_LIMIT]);
+    return r.rowCount ?? 0;
   }
   async createIdentityAccount(name: string, provider: string, subject: string) {
     const hash = await hashPass(randomBytes(24).toString("base64url"));
@@ -935,7 +964,7 @@ export class PgStore implements Store {
   async accountFromToken(token: unknown) {
     if (!tokenOk(token)) return null;
     const r = await this.pool.query(
-      "SELECT a.id, a.name FROM sessions s JOIN accounts a ON a.id=s.account_id WHERE s.token=$1 AND s.created_at > now() - interval '30 days'", [token]);
+      "SELECT a.id, a.name FROM sessions s JOIN accounts a ON a.id=s.account_id WHERE s.token=$1 AND s.created_at > now() - make_interval(days => $2)", [token, SESSION_DAYS]);
     return r.rowCount ? { accountId: Number(r.rows[0].id), name: r.rows[0].name as string } : null;
   }
   row(x: any, accountId: number, name: string): Character {

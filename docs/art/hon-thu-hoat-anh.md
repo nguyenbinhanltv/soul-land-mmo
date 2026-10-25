@@ -72,4 +72,4 @@ Code ở `client/src/beastAnim.ts` (chọn khung, không phụ thuộc Phaser, c
 - **Thử bằng sheet giả:** `beast-sheet-fake.mjs` + `beast-sheet-cut.mjs` rồi cài tạm vào `shared/assets` (không commit); xem ảnh chụp và số FPS ở mô tả PR.
 
 ## Việc tiếp
-H2: nhập sheet thật vào `shared/assets` + `manifest.json` (mục `beast_<loài>_anim` từ `manifest-entry.json`, thêm normal map `_n` bằng `normal.mjs`) sau khi chủ repo duyệt hoạt ảnh của 3 loài; client đã sẵn sàng (H3), không phải sửa thêm.
+H2 (đã làm cho Phong Lang, #691): sheet `beast_phong_lang_anim` đã nhập vào `shared/assets` (cắt `--scale 0.55`); Kim Linh Ưng cũng đã nhập (`beast_kim_linh_ung_anim`); Thái Thản Cự Viên cũng đã nhập (`beast_thai_than_cu_vien_anim`), cả 3 loài thử xong.
