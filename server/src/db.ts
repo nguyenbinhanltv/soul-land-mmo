@@ -673,7 +673,7 @@ export class MemoryStore implements Store {
   async getTong(accountId: number) { return { ...(this.tongs.get(accountId) ?? { tong: null, at: null }) }; }
   async setTong(accountId: number, tong: string | null, at: number | null, week?: number) {
     this.tongs.set(accountId, { tong, at: at ?? this.tongs.get(accountId)?.at ?? null });
-    if (week !== undefined) for (const [k, x] of this.tongPts) if (x.accountId === accountId && x.week === week) this.tongPts.delete(k);
+    if (week !== undefined) { for (const [k, x] of this.tongPts) if (x.accountId === accountId && x.week === week) this.tongPts.delete(k); rankBoardClear(); }
   }
   async tongPoints(accountId: number, week: number) {
     let best: { tong: string; points: number } | null = null;
@@ -1136,6 +1136,7 @@ export class PgStore implements Store {
       }
       if (bag) await this.writeBag(db, accountId, bag);
       await db.query("COMMIT");
+      if (bag?.tongPts?.length) rankBoardClear(); // sau COMMIT: bảng tông đọc được điểm mới (#738)
       return true;
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});
@@ -1157,6 +1158,7 @@ export class PgStore implements Store {
       if (a.rowCount !== 1) throw new Error(`Tài khoản #${accountId} không còn ở bản đồ ${from}.`);
       if (bag) await this.writeBag(db, accountId, bag);
       await db.query("COMMIT");
+      if (bag?.tongPts?.length) rankBoardClear(); // sau COMMIT: bảng tông đọc được điểm mới (#738)
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});
       throw e;
@@ -1258,6 +1260,7 @@ export class PgStore implements Store {
       await db.query("BEGIN");
       await this.writeBag(db, accountId, bag);
       await db.query("COMMIT");
+      if (bag?.tongPts?.length) rankBoardClear(); // sau COMMIT: bảng tông đọc được điểm mới (#738)
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});
       throw e;
@@ -1271,6 +1274,7 @@ export class PgStore implements Store {
       if (!c) { await db.query("ROLLBACK"); return null; }
       await this.writeBag(db, accountId, bag);
       await db.query("COMMIT");
+      if (bag?.tongPts?.length) rankBoardClear(); // sau COMMIT: bảng tông đọc được điểm mới (#738)
       return c;
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});
@@ -1289,6 +1293,7 @@ export class PgStore implements Store {
       }
       await this.writeBag(db, accountId, bag);
       await db.query("COMMIT");
+      if (bag?.tongPts?.length) rankBoardClear(); // sau COMMIT: bảng tông đọc được điểm mới (#738)
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});
       throw e;
@@ -1324,6 +1329,7 @@ export class PgStore implements Store {
       await db.query("UPDATE accounts SET tong=$2, tong_at=COALESCE($3, tong_at) WHERE id=$1", [accountId, tong, at]);
       if (week !== undefined) await db.query("DELETE FROM tong_points WHERE account_id=$1 AND week=$2", [accountId, week]);
       await db.query("COMMIT");
+      rankBoardClear();
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});
       throw e;
@@ -1411,6 +1417,7 @@ export class PgStore implements Store {
       await this.saveAuto(accountId, row, db);
       await this.writeBag(db, accountId, bag);
       await db.query("COMMIT");
+      if (bag?.tongPts?.length) rankBoardClear(); // sau COMMIT: bảng tông đọc được điểm mới (#738)
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});
       throw e;
@@ -1445,6 +1452,7 @@ export class PgStore implements Store {
       if (!r.rowCount || Number(r.rows[0].n) > limit) { await db.query("ROLLBACK"); return null; }
       await this.writeBag(db, accountId, bag);
       await db.query("COMMIT");
+      if (bag?.tongPts?.length) rankBoardClear(); // sau COMMIT: bảng tông đọc được điểm mới (#738)
       return Number(r.rows[0].n);
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});
@@ -1623,6 +1631,7 @@ export class PgStore implements Store {
       if (!r.rowCount) { await db.query("ROLLBACK"); return null; }
       await this.writeBag(db, accountId, bag);
       await db.query("COMMIT");
+      if (bag?.tongPts?.length) rankBoardClear(); // sau COMMIT: bảng tông đọc được điểm mới (#738)
       return Number(r.rows[0].looks_changes);
     } catch (e) {
       await db.query("ROLLBACK").catch(() => {});
