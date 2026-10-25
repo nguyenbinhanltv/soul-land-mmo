@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { RALLY, RADAR, RADAR_ART, MAPVIEW, FOG, MAPS, TILE, AUTOWALK } from "../../shared/data.ts";
 import {
   radarRotate, radarUnrotate, radarNorthAngle, radarCompassRotation, radarPlace, clampToCircle, radarHit, radarZoomStep, radarPrio,
-  radarSortDots, radarPick, mapviewToScreen, mapviewToTile, mapviewZoomAt, mapviewPan, mapviewClampCenter, mapviewClampZoom, mapviewLayer, type MapView,
+  radarSortDots, radarPick, mapviewToScreen, mapviewToTile, mapviewZoomAt, mapviewPan, mapviewClampCenter, mapviewClampZoom, mapviewFit, mapviewLayer, type MapView,
 } from "../../shared/radar.ts";
 import { fogDims, fogEmpty, fogGet, fogSet, fogFill, fogCount, fogCellOf, fogReveal, fogValid, fogBytes, fogCells, fogOn } from "../../shared/fog.ts";
 import { rallyPoint, rallyRead, rallyUpsert, rallyPrune, rallyLeft, type Rally } from "../../shared/rally.ts";
@@ -95,6 +95,15 @@ test("Bản đồ khu vực: ô ↔ màn hình khứ hồi ở cả hai hướng
   }
   assert.equal(mapviewZoomAt({ cx: 0, cy: 0, zoom: MAPVIEW.zoomMax, mode: "flat" }, 5, 0, 0).zoom, MAPVIEW.zoomMax);
   assert.equal(mapviewClampZoom(0.01), MAPVIEW.zoomMin);
+  for (const mode of ["iso", "flat"] as const) { // vừa khung: cả bản đồ nằm trong khung, chừa thanh trên
+    const f = mapviewFit(255, 170, 1280, 720, mode, 16, 50);
+    assert.ok(f.zoom >= MAPVIEW.zoomMin && f.zoom <= MAPVIEW.zoomMax, `fit zoom ${mode}`);
+    for (const [tx, ty] of [[0, 0], [255, 0], [0, 170], [255, 170]]) {
+      const s = mapviewToScreen(f, tx, ty), x = 640 + s.x, y = 360 + s.y;
+      assert.ok(x >= 15 && x <= 1265 && y >= 50 + 15 && y <= 705, `góc ${tx},${ty} trong khung ${mode}`);
+    }
+    const m = mapviewToScreen(f, 127.5, 85); near(m.x, 0, "giữa x", 1e-6); near(m.y, 25, "giữa y dồn xuống dưới thanh", 1e-6);
+  }
   assert.deepEqual(mapviewClampCenter({ cx: -5, cy: 999, zoom: 3, mode: "flat" }, 255, 170), { cx: 0, cy: 170, zoom: 3, mode: "flat" });
   const up = mapviewToScreen({ cx: 0, cy: 0, zoom: 1, mode: "iso" }, -1, -1); near(up.x, 0, "iso lên x", 1e-9); assert.ok(up.y < 0, "đi lên màn hình thì lên");
 });

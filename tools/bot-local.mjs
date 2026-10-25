@@ -226,7 +226,19 @@ async function createDb() {
   const u = new URL(adminUrl); u.pathname = `/${name}`;
   return { name, url: u.href };
 }
+/** BOT_PG_STATS=1: in n_tup_upd / n_dead_tup của `items` và `accounts` trong database của lượt này trước khi xoá (đo ghi thừa, #737). */
+async function printPgStats(name) {
+  const u = new URL(adminUrl); u.pathname = `/${name}`;
+  const c = await pgConnect(u.href);
+  if (c.error) return;
+  try {
+    const r = await c.query("SELECT relname, n_tup_ins, n_tup_upd, n_tup_del, n_dead_tup FROM pg_stat_user_tables WHERE relname IN ('items','accounts') ORDER BY 1");
+    for (const x of r.rows) console.log(`📊 ${x.relname}: ins=${x.n_tup_ins} upd=${x.n_tup_upd} del=${x.n_tup_del} dead=${x.n_dead_tup}`);
+  } catch (e) { console.log(`⚠ Không đọc được pg_stat: ${e.message}`); }
+  finally { await c.end(); }
+}
 async function dropDb(name) {
+  if (process.env.BOT_PG_STATS === "1") await printPgStats(name);
   const c = await pgConnect(adminUrl);
   if (c.error) { console.log(`⚠ Không xoá được database ${name}: ${c.error.message}`); return; }
   try { await c.query(`DROP DATABASE IF EXISTS ${qid(name)} WITH (FORCE)`); console.log(`✓ Đã xoá database ${name}`); }
