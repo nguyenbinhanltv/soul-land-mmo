@@ -129,7 +129,7 @@ export class Predictor {
     if (!me.dead) for (let j = 0; j < this.steps.length; j++) {
       const s = this.steps[j], dt = j === 0 ? s.dt - skip : s.dt;
       const sp = stepSpeed(me, s.w);
-      if (dt > 0) moveEnt(this.grid, q, s.x * sp * dt, s.y * sp * dt, PLAYER_HW, PLAYER_HH);
+      if (dt > 0) moveEnt(this.grid, q, s.x * sp * dt, s.y * sp * dt, PLAYER_HW, PLAYER_HH, MOVE_NUDGE);
     }
     if (this.pos) {
       const ex = this.pos.x + this.off.x - q.x, ey = this.pos.y + this.off.y - q.y;
