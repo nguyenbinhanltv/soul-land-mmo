@@ -769,6 +769,7 @@ export class GameScene extends Phaser.Scene {
       // Esc (U1 #754): đóng đúng MỘT bảng trên cùng (lần nhấn kế đóng bảng kế); hết bảng mới bỏ khoá mục tiêu (M3). Thứ tự: bản đồ vùng → chat → bảng → khoá.
       if (e.code === "Escape" && closeTopPanel()) return;
       if (e.code === "Escape" && this.lockId) { this.lockTo(""); return; }
+      if (e.code === "Escape") return; // không bảng, không khoá: không làm gì (không ghi Escape vào `keys`)
       if (e.code === "Tab") { e.preventDefault(); if (!e.repeat) this.cycleTarget(); return; }
       if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }

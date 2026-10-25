@@ -39,6 +39,7 @@ function sync() {
 
 /** Nâng bảng lên trên cùng (bấm vào bảng, hoặc dualWindow đổi bảng nổi). Bảng chưa mở thì bỏ qua. */
 export function raiseStack(id: string) {
+  sync(); // bảng vừa mở trong cùng lượt (observer chưa chạy) phải vào ngăn xếp và nhả phím trước khi nâng
   if (!def(id) || !isOpen(id) || order[order.length - 1] === id) return;
   order = order.filter((x) => x !== id); order.push(id); layer();
 }

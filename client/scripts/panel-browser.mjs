@@ -137,6 +137,16 @@ GameScene.prototype.create = function(...a) {
   check(held && !afterOpen && pressedAgain, `nhả phím khi mở bảng: ${JSON.stringify(res.keys)}`);
   await page.keyboard.press("Escape");
 
+  // 4b. Nút ⇆ (mở bảng kia rồi nâng bảng đang bấm trong cùng lượt): vẫn nhả phím, bảng đang bấm ở trên cùng (Esc đóng nó trước).
+  await page.keyboard.press("KeyH"); await page.waitForFunction(() => !document.getElementById("char").hidden);
+  await page.keyboard.down("KeyD"); await sleep(60);
+  await page.click("#char button.swap"); await sleep(80);
+  const swapState = await page.evaluate(() => ({ keyD: !!window.__u1.keys.KeyD, bag: !document.getElementById("bag").hidden, charZ: Number(document.getElementById("char").style.zIndex), bagZ: Number(document.getElementById("bag").style.zIndex) }));
+  await page.keyboard.up("KeyD"); await page.keyboard.press("Escape"); await sleep(80);
+  res.swap = { ...swapState, openAfterEsc: await open() };
+  check(swapState.bag && !swapState.keyD && swapState.charZ > swapState.bagZ && res.swap.openAfterEsc.join() === "bag", `nút ⇆: ${JSON.stringify(res.swap)}`);
+  await page.keyboard.press("Escape"); await page.keyboard.press("Escape");
+
   // 5. 960×540: hotbar / bảng vẫn chặn bấm xuyên (cùng bài 1).
   await page.setViewportSize({ width: 960, height: 540 }); await sleep(500);
   await page.keyboard.press("KeyB"); await sleep(200);
