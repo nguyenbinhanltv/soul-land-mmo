@@ -1,22 +1,21 @@
 /* Hướng dẫn M6 (#752): thẻ giấy ở giữa dưới màn hình, trên thanh kỹ năng và dòng nhắc nhặt đồ (#prompt), dưới bảng lớn.
    Không đè toast (góc dưới phải), khung nhiệm vụ (trái), mục tiêu / boss (giữa trên). Vùng bấm nút ≥ 44 px theo mockup U0. */
-.guide{position:absolute;left:50%;transform:translateX(-50%);bottom:150px;width:380px;max-width:calc(100% - 520px);min-width:300px;box-sizing:border-box;
-  padding:8px 12px 10px;pointer-events:auto;font-size:12px;font-family:var(--f12);z-index:2}
+.guide{position:absolute;left:50%;transform:translateX(-50%);bottom:132px;width:min(500px,calc(100% - 560px));min-width:380px;box-sizing:border-box;
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 10px;align-items:center;padding:6px 10px 6px 12px;pointer-events:auto;font-size:12px;font-family:var(--f12);z-index:2}
 .guide[hidden]{display:none}
 .guide .g-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;color:var(--inkl)}
 .guide .g-head b{font-weight:normal;font-size:10px;font-family:var(--f10);letter-spacing:.02em}
 .guide .g-dots{color:var(--son);letter-spacing:2px}
-.guide h4{margin:4px 0 2px;font-weight:normal;font-size:14px;font-family:var(--f12);color:var(--son)}
-.guide p{margin:0 0 6px;line-height:1.5;color:var(--ink)}
+.guide h4{margin:2px 0 1px;font-weight:normal;font-size:14px;font-family:var(--f12);color:var(--son)}
+.guide p{margin:0;line-height:1.5;color:var(--ink)}
 .guide kbd{font:inherit;font-size:11px;font-family:var(--f10);color:var(--ink);background:var(--paper2);border:1px solid var(--wood);padding:0 4px;margin:0 1px}
-.guide .g-foot{display:flex;justify-content:flex-end;gap:8px}
-.guide button{min-height:44px;min-width:64px;padding:0 14px;font:inherit;font-size:12px;font-family:var(--f12);cursor:pointer;
+.guide .g-foot{display:flex;flex-direction:column;gap:4px}
+.guide button{min-height:44px;min-width:72px;padding:0 12px;font:inherit;font-size:12px;font-family:var(--f12);cursor:pointer;
   border:2px solid var(--wood);background:var(--paper2);color:var(--ink)}
 .guide .g-next{background:var(--son);color:#fff;border-color:#6a1812}
 .guide button:focus-visible{outline:2px solid var(--son-l);outline-offset:1px}
 .guide[data-mode="hint"]{border-color:#e0b878}
 /* Hộp thoại "Nói chuyện" đang mở thì nhường chỗ phía trên; hộp NPC và đấu trường thì ẩn. */
-#hud:has(#talk:not([hidden])) .guide{bottom:214px}
+#hud:has(#talk:not([hidden])) .guide{bottom:226px}
 #hud:has(#npc:not([hidden])) .guide{display:none}
 body.arena .guide{display:none}
-@media (max-width:1100px){.guide{max-width:calc(100% - 20px);left:10px;transform:none}}

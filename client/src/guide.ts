@@ -51,8 +51,8 @@ function root(): HTMLElement {
   if (card?.isConnected) return card;
   card = document.createElement("section"); card.id = "guide"; card.className = "panel guide"; card.hidden = true;
   card.setAttribute("role", "dialog"); card.setAttribute("aria-label", "Hướng dẫn điều khiển"); card.setAttribute("aria-live", "polite");
-  card.innerHTML = `<div class="g-head"><b></b><span class="g-dots" aria-hidden="true"></span></div><h4></h4><p></p>
-    <div class="g-foot"><button type="button" class="g-skip"></button><button type="button" class="g-next"></button></div>`;
+  card.innerHTML = `<div class="g-main"><div class="g-head"><b></b><span class="g-dots" aria-hidden="true"></span></div><h4></h4><p></p></div>
+    <div class="g-foot"><button type="button" class="g-next"></button><button type="button" class="g-skip"></button></div>`;
   q(card, ".g-skip").addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); close(mode === "tour" ? "skip" : ""); });
   q(card, ".g-next").addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); if (mode === "hint") close(); else next(); });
   (document.getElementById("hud") ?? document.body).appendChild(card);
