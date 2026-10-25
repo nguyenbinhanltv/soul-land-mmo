@@ -124,6 +124,11 @@ export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
     const t = e.target as HTMLInputElement;
     if (t.type === "range") showRange(el, t); else if (t.dataset.k === "y0" || t.dataset.k === "y1") checkYears(el);
   }, on);
+  // Space trên công tắc / chip đang có tiêu điểm là để bật / tắt: không cho nổi lên phím game (GameScene chặn Space để đánh).
+  el.addEventListener("keydown", (e) => {
+    const t = e.target as HTMLInputElement;
+    if (e.code === "Space" && t.tagName === "INPUT" && (t.type === "checkbox" || t.type === "radio")) e.stopPropagation();
+  }, on);
   // Niên hạn mẫu và nút − / +: đặt hai ô rồi gửi (chỉ khi từ ≤ đến).
   el.addEventListener("click", (e) => {
     const b = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-preset], button[data-step]"); if (!b) return;

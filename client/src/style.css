@@ -1152,15 +1152,17 @@ body.touch #autoPanel .aorder .rlink{min-height:36px}
 #autoPanel .achip input:checked+span,#autoPanel .achip.on span{background:var(--son);color:var(--paper);border-color:var(--son-d)}
 #autoPanel .achip:focus-visible span{outline:2px solid var(--son);outline-offset:2px}
 #autoPanel .astp{display:inline-flex;border:2px solid var(--wood)}
+#autoPanel .aline:has(.astp){flex-wrap:nowrap;gap:4px}
 #autoPanel .astp button{width:44px;min-height:44px;padding:0;border:0;background:var(--paper2);color:var(--ink);font:18px var(--f12);cursor:pointer}
 #autoPanel .astp button:hover{background:var(--paper3)}
-#autoPanel .astp input[type=number]{width:72px;min-height:44px;box-sizing:border-box;border:0;text-align:center;appearance:textfield;-moz-appearance:textfield}
+#autoPanel .astp input[type=number]{width:60px;min-height:44px;box-sizing:border-box;border:0;text-align:center;appearance:textfield;-moz-appearance:textfield}
 #autoPanel .astp input::-webkit-outer-spin-button,#autoPanel .astp input::-webkit-inner-spin-button{appearance:none;margin:0}
 #autoPanel .astp:has(input[aria-invalid]){border-color:var(--bad)}
 #autoPanel input[aria-invalid]{background:#f6d6d2;color:var(--bad)}
 #autoPanel .asec small.ayerr{color:var(--bad)}
 #autoPanel input[type=number]:not([data-k=y0],[data-k=y1]),#autoPanel select{min-height:44px;box-sizing:border-box}
 #autoPanel .arange input{height:44px}
+#autoPanel .rhead .x,#autoPanel .buse:not(.atoggle){min-width:44px;min-height:44px}
 #autoPanel .aorder .rlink{min-height:44px;min-width:44px}
 #autoSum{position:absolute;left:50%;top:56px;transform:translateX(-50%);width:min(340px,92vw);padding:8px 12px;pointer-events:auto;display:flex;flex-direction:column;gap:6px}
 .asum{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;font-size:12px;font-family:var(--f12)}
