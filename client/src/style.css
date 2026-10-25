@@ -1459,3 +1459,10 @@ body.ui-h460 #char .cdtabs{display:grid;grid-template-columns:repeat(4,minmax(0,
 body.ui-h460 #char .cdtabs .ui-tab{flex-direction:column;justify-content:center;gap:0;min-height:36px;padding:0 2px;font-size:11px;line-height:1.15;text-align:center;white-space:nowrap}
 body.ui-h460 #char .cdtabs .ui-tab::before{display:none}
 body.ui-h460 :is(#char,#bag)>*{flex-shrink:0}
+
+/* G8 (#399): "Giảm chuyển động" trong Cài đặt tắt mọi nhấp nháy / rung / nhịp đập của giao diện (lớp đặt ở combatFx.ts, theo cả tùy chọn hệ điều hành). */
+.reduce-motion #fusion.ask,.reduce-motion .sk.ava.on,.reduce-motion .sk.fus.ask,.reduce-motion .thuymac .sk.ava.on,.reduce-motion .thuymac .sk.fus.ask,
+.reduce-motion .tm.full,.reduce-motion .ui-cell.ready,.reduce-motion .sk.ui-cell.ready,.reduce-motion .tm.ui-cell.ready,.reduce-motion #bossbar .wl span.bad,
+.reduce-motion .forge.fx-ok,.reduce-motion .forge.fx-fail,.reduce-motion .forge.fx-break,.reduce-motion .toast{animation:none!important}
+.reduce-motion .tm.full{box-shadow:0 0 8px color-mix(in srgb,var(--xp) 60%,transparent)}
+.reduce-motion .ui-cell.ready{box-shadow:0 0 6px var(--c)}
