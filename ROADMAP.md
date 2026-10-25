@@ -8,7 +8,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 **Đã có** (Giai đoạn 2–9 và nhóm Bản đồ BĐ1–BĐ6): mọi luật mô tả ở mục 4–5 và kiến trúc mục 6, trừ các việc còn ghi dưới đây.
 
 - [ ] NV6 Ảnh nền búp bê (hình hồn sư mờ, lục giác hồn cốt, vòng đan điền): ảnh nền đã có (C2 #553, PR #577); còn gắn vào giao diện, thợ rèn, thông báo lên cấp / hồn hoàn hiếm ở C16 #595; giữ bản vẽ bằng code tới lúc đó.
-- [ ] Giao diện và cảm giác dùng họ asset C1–C16 do Codex (tthoadev) làm, còn mở: C8 thanh kỹ năng + ô đội hình (#594), C9 nhãn trên đầu + dấu nhiệm vụ (#593, đang review), C10 hộp thoại NPC + cửa hàng lưới (#596), C11 nhiệm vụ (#597), C12 bộ biểu tượng + con trỏ (#598), C13 phản hồi giao diện (#599), C14 khả năng tiếp cận (#600), C15 màn chết / bảng kết quả / Bạn bè (#601).
+- [ ] Giao diện và cảm giác dùng họ asset C1–C16 do Codex (tthoadev) làm, còn mở: C8 thanh kỹ năng + ô đội hình (#594), C9 nhãn trên đầu + dấu nhiệm vụ (#593), C10 hộp thoại NPC + cửa hàng lưới (#596), C11 nhiệm vụ (#597), C12 bộ biểu tượng + con trỏ (#598), C13 phản hồi giao diện (#599), C14 khả năng tiếp cận (#600), C15 màn chết / bảng kết quả / Bạn bè (#601).
 - [ ] Asset ngoài: kho riêng tư, nhập gói itch, MCP `asset-scout`, biểu tượng game-icons (#622, theo dõi).
 - [ ] Tối ưu tài liệu (#619, theo dõi D0–D8).
 

@@ -72,7 +72,7 @@
 
 **Nhóm Hồn sư tự tạo bằng LPC** (mục 5.11).
 - [x] L0 Mẫu thử, bộ 115 món LPC, chủ repo duyệt 4 hướng; L1 danh mục `LPC_PARTS` + công cụ đóng gói; L2 server `Looks.mode`; L3 client ghép lớp lúc chạy; L4 màn tạo nhân vật hai chế độ, đổi ngoại hình qua thợ may.
-- [x] HL1 Mẫu dựng sẵn bằng LPC; HL2 chuyển tài khoản preset cũ lúc nạp; HL3 hồn sư chỉ còn LPC, gỡ sprite preset (client nhẹ 720 KB); HL4 áo / mũ trang bị hiện lên lớp LPC; L5 thay bằng HL4; L6 đo FPS 41 người trên Chrome GPU.
+- [x] HL1 Mẫu dựng sẵn bằng LPC; HL2 chuyển tài khoản preset cũ lúc nạp; HL3 hồn sư chỉ còn LPC, gỡ sprite preset (client nhẹ 720 KB); HL4 áo / mũ trang bị hiện lên lớp LPC; C3 lớp trang phục phương Đông cho Tự tạo (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện); L5 thay bằng HL4; L6 đo FPS 41 người trên Chrome GPU.
 
 ## Số issue / PR
 

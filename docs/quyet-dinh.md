@@ -46,7 +46,7 @@ Thêm quyết định mới: cộng mã `Q` kế tiếp ở cuối bảng đúng
 | Q25 | 2026-10-24 | Danh mục LPC `LPC_PARTS` và 4 hướng cho hồn sư Tự tạo (L0 mẫu thử, chủ repo duyệt 4 hướng) | #507, #508 | `docs/art/hon-su-lpc.md` |
 | Q26 | 2026-10-25 | S2 duyệt công thức chuẩn làm hiệu ứng chiêu (11 chiêu Lam Điện Bá Vương Long + Hạo Thiên Chùy, sheet PixelLab `/v2/vfx`) | #548 | `docs/art/ky-nang-cong-thuc.md` |
 | Q27 | 2026-10-25 | Họ asset **C1–C16** (cảm giác đánh, giao diện, trang phục LPC phương Đông, âm thanh tuyệt kỹ CC0, màn đăng nhập / tải, HUD …) do **Codex (tthoadev)** làm: vẽ bằng code + sinh ảnh model + hậu kỳ pixel; ComfyUI là công cụ của orchestrator cho ảnh tĩnh khi cần; C2–C6 chỉ mở sau duyệt preview C1 | #541, #553, #554, #595, #616 | `docs/art/nguon-giay-phep.md`, `docs/design/giao-dien.md` |
-| Q34 | 2026-10-25 | Asset ngoài lấy từ **mọi nguồn** (kể cả gói hỗ trợ AI), nhưng **chỉ tìm và dùng asset miễn phí**; không đề xuất hay mua gói trả phí. Mở rộng Q05 | #622 | `docs/art/nguon-giay-phep.md` |
+| Q34 | 2026-10-25 | Asset ngoài lấy từ **mọi nguồn** (kể cả gói hỗ trợ AI), nhưng **chỉ tìm và dùng asset miễn phí**; không đề xuất hay mua gói trả phí. Áp cho hình ảnh (âm thanh theo Q36). Mở rộng Q05 | #622 | `docs/art/nguon-giay-phep.md` |
 | Q35 | 2026-10-25 | Gói asset có giấy phép hạn chế (Gigapack, cây rừng …) nằm ở **kho riêng** `soul-land-assets-private`; repo game chỉ giữ mô tả, manifest, CREDITS, công cụ nhập; CI release kéo kho vào image; không có kho thì game vẫn chạy bằng hình cũ; cấm đưa gói đó vào AI; có màn Ghi công trong game | #622, #623, #629 | `docs/asset-rieng.md` |
 | Q36 | 2026-10-25 | Nhạc nền là **nhạc tu tiên tự sáng tác** (ngũ cung, mỗi bản đồ một bản + lớp giao chiến); âm thanh khác chỉ CC0 / miễn phí bản quyền, không AI | #622, #643 | `docs/art/am-thanh.md` |
 | Q37 | 2026-10-25 | **Bỏ công trình Japanese** (kiểu Nhật) khỏi bản đồ; gỡ cả `fx_bao_truoc` (dấu "!" của Gigapack) theo chủ repo | #622, #641 | `docs/asset-rieng.md` |
@@ -80,7 +80,7 @@ P2 (NV0 chờ duyệt bố cục) đã đóng: NV0 đến NV5 xong, ghi ở Q13.
 
 ## Quyết định chỉ có trong bộ nhớ của orchestrator
 
-Bốn quyết định ở bộ nhớ phiên điều phối chưa ở trong repo; chủ repo xác nhận rồi chuyển hẳn vào bảng trên:
+Bốn quyết định ở bộ nhớ phiên điều phối (M2, M3 đã có bản ghi trong repo ở Q39, Q28); chủ repo xác nhận rồi chuyển hẳn vào bảng trên:
 
 | Mã | Nội dung | Gợi ý |
 |---|---|---|
