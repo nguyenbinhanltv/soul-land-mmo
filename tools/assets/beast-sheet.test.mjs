@@ -73,6 +73,14 @@ test("tờ lỗi: báo thiếu khung, khung phóng quá, hình ở ô trống", 
   assert.match(w, /ô trống/);
 });
 
+test("boss khung 192 (5 tờ một hướng, nhiều điểm vật) cắt được với bảng màu tự động", () => {
+  const res = cutSpecies({ species: "thai_than_cu_vien", sheets: fakeSheets("thai_than_cu_vien", { seed: 2 }) });
+  assert.equal(res.report.frames, 110);
+  assert.equal(res.report.missing, 0);
+  assert.equal(res.sheet.w, COLS * 192);
+  assert.ok(res.report.palette <= 24);
+});
+
 test("thiếu cả tờ B thì báo và vẫn cắt tờ A", () => {
   const sheets = fakeSheets("phong_lang", { seed: 3 });
   const res = cutSpecies({ species: "phong_lang", sheets: { A: sheets.A } });

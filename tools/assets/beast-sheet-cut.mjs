@@ -23,11 +23,18 @@ const dist2 = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) 
 const median = (xs) => { const s = [...xs].sort((a, b) => a - b); return s.length ? (s.length % 2 ? s[s.length >> 1] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2) : 0; };
 
 // ---------- Nền ----------
-/** Màu khóa: số lần xuất hiện nhiều nhất ở 4 góc (ảnh có alpha thấp thì không cần khóa). */
+/** Màu khóa: màu nhiều phiếu nhất ở 4 góc (ảnh có alpha thấp ở góc thì không cần khóa). */
 function keyOf(img) {
-  const c = [[0, 0], [img.w - 1, 0], [0, img.h - 1], [img.w - 1, img.h - 1]].map(([x, y]) => img.get(x, y)).filter((p) => p[3] >= 128);
-  return c.length ? c[0] : null;
+  const votes = new Map();
+  for (const [x, y] of [[0, 0], [img.w - 1, 0], [0, img.h - 1], [img.w - 1, img.h - 1]]) {
+    const p = img.get(x, y);
+    if (p[3] >= 128) { const k = p.slice(0, 3).join(","); votes.set(k, (votes.get(k) ?? 0) + 1); }
+  }
+  let best = null, n = 0;
+  for (const [k, v] of votes) if (v > n) { n = v; best = k; }
+  return best ? best.split(",").map(Number).concat(255) : null;
 }
+
 /** Mặt nạ vật (1 = vật) sau khi bỏ nền và 3 lớp viền nhiễm màu nền (điểm giáp nền, màu nằm giữa vật và nền). */
 export function foregroundMask(img, key, tol) {
   const { w, h } = img, m = new Uint8Array(w * h);
@@ -126,7 +133,7 @@ function medianCut(pixels, n) {
     boxes.forEach((b, i) => { if (b.length > 1 && b.length > bs) { bs = b.length; bi = i; } });
     if (bi < 0) break;
     const b = boxes[bi]; let ch = 0, best = -1;
-    for (let c = 0; c < 3; c++) { const lo = Math.min(...b.map((p) => p[c])), hi = Math.max(...b.map((p) => p[c])); if (hi - lo > best) { best = hi - lo; ch = c; } }
+    for (let c = 0; c < 3; c++) { let lo = 255, hi = 0; for (const p of b) { if (p[c] < lo) lo = p[c]; if (p[c] > hi) hi = p[c]; } if (hi - lo > best) { best = hi - lo; ch = c; } }
     b.sort((p, q) => p[ch] - q[ch]);
     boxes.splice(bi, 1, b.slice(0, b.length >> 1), b.slice(b.length >> 1));
   }
@@ -210,7 +217,9 @@ export function cutSpecies(o) {
 
   // 4. Bảng màu
   const samples = [];
-  for (const r of all) for (let i = 0, n = 0; i < r.img.data.length; i += 4) if (r.img.data[i + 3] && ++n % 3 === 0) samples.push([r.img.data[i], r.img.data[i + 1], r.img.data[i + 2]]);
+  // lấy thưa để median cut vẫn nhanh với khung lớn (boss 192: hàng triệu điểm vật)
+  const total = all.reduce((t, r) => t + r.w * r.h, 0), stride = Math.max(3, Math.ceil(total / 60000));
+  for (const r of all) for (let i = 0, n = 0; i < r.img.data.length; i += 4) if (r.img.data[i + 3] && ++n % stride === 0) samples.push([r.img.data[i], r.img.data[i + 1], r.img.data[i + 2]]);
   const pal = o.palette && o.palette !== "auto"
     ? (o.palette === "gpl" ? readGpl() : readGpl(o.palette)).map(hex)
     : medianCut(samples, o.colors ?? 24);
