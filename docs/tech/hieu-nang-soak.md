@@ -110,8 +110,25 @@ Code `5620686` (có `PERF_LOG` ghi `[perf-slow]` theo đoạn và CPU luồng ch
 - Lượt 10 phút: 0 nhịp chậm, `max` mỗi 10 giây ≤ 39 ms.
 - Lượt 25 phút: chỉ **một cụm** nhịp thật vượt 50 ms, lúc 40 bot vừa vào phòng (3 nhịp trong 0,5 giây: 84 / 209 / 36 ms). Ở nhịp 84 ms: `AutoHunter` của một người mất 36,4 ms mà **không có lần tìm đường nào** (`tìm đường 0 lần`), nhịp 209 ms là `vá` 205 ms (đợt người vào, state đầy). Sau đó không còn nhịp nào vượt 50 ms; `AutoHunter.tick` cả 40 người ≤ 2,2 ms, mỗi lần A* ≤ 0,1 ms.
 - Microbench `findPath` / `findLongPath` (4000 cặp điểm ngẫu nhiên, bản đồ ×8): thường p99 0,66 ms, lớn nhất 0,73 ms; dài p99 1,4 ms, lớn nhất 2,9 ms. **A* không thể gây nhịp 50–65 ms.**
-- Các dòng `[perf-slow]` còn lại (khoảng 30 giây một dòng, về sau) chỉ do `gap` > 100 ms với `wall` 2–5 ms: CPU ngoài tick 100–380 ms, tăng dần theo thời gian soak (túi bot đầy). Không nằm trong tick, chưa rõ nguồn; xem phần để sau.
-**Kết luận.** Giả thuyết "A* một lần nặng" bị bác bỏ; nhịp 50–65 ms ở vòng người chơi là nhiễu lúc người vào đông (một `AutoHunter` quyết định lần đầu 36 ms, chưa rõ chỗ, chỉ gặp một lần). Không sửa code luật. Để sau: nhịp trễ định kỳ do CPU ngoài tick tăng dần khi túi đầy (chưa chứng minh nguồn).
+- Các dòng `[perf-slow]` còn lại (khoảng 30 giây một dòng, về sau) chỉ do `gap` > 100 ms với `wall` 2–5 ms: CPU ngoài tick 100–380 ms, tăng dần theo thời gian soak (túi bot đầy). Nguồn chốt ở mục 7.1 (#664).
+**Kết luận.** Giả thuyết "A* một lần nặng" bị bác bỏ; nhịp 50–65 ms ở vòng người chơi là nhiễu lúc người vào đông (một `AutoHunter` quyết định lần đầu 36 ms, chưa rõ chỗ, chỉ gặp một lần). Không sửa code luật. Nhịp trễ định kỳ do CPU ngoài tick: xem 7.1.
+
+### 7.1 Trễ ngoài tick tăng dần khi túi đầy: nguồn là `MemoryStore`, không phải server thật (#664)
+**Cách đo.** `PERF_LOG=1` thêm dòng `[perf-save]` mỗi 10 giây có lượt lưu định kỳ (`perfSave` ở `MapRoom`): số lần lưu, ms chụp túi (`unsavedBag` → `bagSnapshot`), ms phần **đồng bộ** của `store.saveProgress` (trước khi trả promise, tức phần chặn vòng lặp), tổng số món đã chụp. Lưu định kỳ chạy mỗi 30 giây cho cả phòng (`saveT` ở `MapRoom.tick`), nên 40 lần lưu dồn vào một đợt. Hai lượt giống hệt nhau, chỉ khác kho lưu: `N=40 SECS=900 node client/scripts/auto-soak.mjs`, Tinh Đấu Ngoại vi ×8, server `GAME_TEST=1 PERF_LOG=1`, Windows, một lượt chạy một mình (không có bot khác). Lượt 1 `env -u DATABASE_URL` (`MemoryStore`), lượt 2 PostgreSQL cục bộ (PostgreSQL chung của `bot:local`, database riêng, xoá sau khi đo).
+
+| Phút | Tổng món trong 40 túi | Chụp túi (ms/đợt) | Ghi DB đồng bộ, `MemoryStore` (ms/đợt) | Ghi DB đồng bộ, PostgreSQL (ms/đợt) |
+|---|---|---|---|---|
+| ~1 | 170 | 0,4 | 1,7 | 0,3 |
+| ~4 | 1000–1200 | 1,2 | 13 | 0,1 |
+| ~8 | 3200 | 3,5 | 88 | 0,1 |
+| ~12 | 5300 | 3,2–5,6 | 134–200 | 0,1 |
+| ~15 | 7000 | 4,2–6,4 | 272 | 0,2 |
+
+**Kết quả.**
+- `MemoryStore`: `[perf-slow]` 62 dòng trong 15 phút, 33 dòng có `gap` > 100 ms, 18 dòng có `cpu ngoài tick` > 80 ms (lớn nhất 369 ms), đều cách nhau ~30 giây, tăng theo số món. Trùng khít với ghi DB đồng bộ 272 ms ở 7000 món: `copyBag` / `copyItem` (`server/src/db.ts:133`, `structuredClone` chỉ số từng món) chạy trọn trong đợt lưu.
+- PostgreSQL: `[perf-slow]` 15 dòng, **0 dòng** có `cpu ngoài tick` > 80 ms, `gap` lớn nhất 143 ms và không có CPU tương ứng (nhiễu hệ điều hành / GC). Phần đồng bộ của ghi DB ≤ 0,3 ms; chụp túi 6,4 ms cho cả 40 người ở 7000 món (~0,9 µs mỗi món, tuyến tính, chấp nhận được). tick + vá trung bình 6,0 + 2,9 ms, không khác lượt `MemoryStore` (6,3 + 2,9).
+- GC không liên quan (`gc ngoài tick` ~0 ở mọi dòng).
+**Kết luận.** Không phải lỗi ở server chạy thật: nhịp trễ định kỳ chỉ có ở `MemoryStore` (kho RAM của dev / bot khi không có `DATABASE_URL`), do nhân bản sâu cả túi mỗi lần lưu. Không sửa luật chơi. Số đo của mục 7 (lượt chạy RAM) vì thế phóng đại phần trễ này; soak tải nên chạy với `--pg`. Giữ dòng `[perf-save]` để lần sau soi lại nếu đổi cách lưu túi.
 
 ## 8. Hiệu ứng hồn kỹ theo hệ khi 40–100 người cùng tung chiêu (G3, #394)
 **Cách đo.** Trang thử `?thu=fx&stress=<P>` (mỗi trong P người tung một hồn kỹ ngẫu nhiên, hệ / kiểu / niên hạn ngẫu nhiên, mỗi ~2,5 giây; không có server, chỉ phần vẽ). Chrome headless GPU thật (`d3d11`, vsync, `--mute-audio`) 1280×720, camera ×2, mỗi ô 10 giây sau 4 giây khởi động; số liệu từ CDP `Performance.getMetrics` (`ScriptDuration`, `TaskDuration` trên mỗi khung). Màn hình đo giới hạn 112 khung/giây.
