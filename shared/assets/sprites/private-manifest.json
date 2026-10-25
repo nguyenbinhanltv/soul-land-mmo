@@ -1,0 +1,472 @@
+{
+  "about": "Asset kho riêng (docs/asset-rieng.md): chỉ siêu dữ liệu, ảnh không nằm trong repo. Client tải theo private/present.json; thiếu file thì bỏ qua và giữ hình cũ. Sinh bởi tools/assets/import-pack.mjs.",
+  "sprites": [
+    {
+      "key": "fx_bui_dat",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "giga",
+      "file": "packs/fx_bui_dat.png",
+      "frame": [
+        64,
+        64
+      ],
+      "frames": 10,
+      "fps": 16,
+      "normal": true,
+      "use": "Bụi khi hạ đất / bước nặng"
+    },
+    {
+      "key": "fx_chem_sang",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "holy",
+      "file": "packs/fx_chem_sang.png",
+      "frame": [
+        56,
+        58
+      ],
+      "frames": 5,
+      "fps": 14,
+      "normal": true,
+      "glow": "packs/fx_chem_sang_hao.png",
+      "use": "Chém sáng (hệ Quang)"
+    },
+    {
+      "key": "fx_dam_tim",
+      "kind": "fx",
+      "private": true,
+      "tier": "cong_khai",
+      "pack": "pimen",
+      "file": "packs/fx_dam_tim.png",
+      "frame": [
+        42,
+        10
+      ],
+      "frames": 5,
+      "fps": 18,
+      "normal": false,
+      "glow": "packs/fx_dam_tim_hao.png",
+      "use": "Vệt đâm tím (hệ Ám)"
+    },
+    {
+      "key": "fx_dam_trang",
+      "kind": "fx",
+      "private": true,
+      "tier": "cong_khai",
+      "pack": "pimen",
+      "file": "packs/fx_dam_trang.png",
+      "frame": [
+        64,
+        12
+      ],
+      "frames": 5,
+      "fps": 18,
+      "normal": true,
+      "glow": "packs/fx_dam_trang_hao.png",
+      "use": "Vệt đâm: hồn kỹ đâm (thương, kiếm)"
+    },
+    {
+      "key": "fx_dan_lua",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "bdragon",
+      "file": "packs/fx_dan_lua.png",
+      "frame": [
+        12,
+        12
+      ],
+      "frames": 5,
+      "fps": 14,
+      "normal": false,
+      "glow": "packs/fx_dan_lua_hao.png",
+      "use": "Đạn lửa nhỏ: hồn kỹ phóng (thử)"
+    },
+    {
+      "key": "fx_hoi_mau",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "holy",
+      "file": "packs/fx_hoi_mau.png",
+      "frame": [
+        64,
+        64
+      ],
+      "frames": 12,
+      "fps": 10,
+      "normal": true,
+      "glow": "packs/fx_hoi_mau_hao.png",
+      "use": "Hồi máu (hệ Phụ trợ)"
+    },
+    {
+      "key": "fx_ket_lieu",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "giga",
+      "file": "packs/fx_ket_lieu.png",
+      "frame": [
+        128,
+        128
+      ],
+      "frames": 13,
+      "fps": 22,
+      "normal": false,
+      "glow": "packs/fx_ket_lieu_hao.png",
+      "use": "Đòn kết liễu (độ nặng 3, quái chết)"
+    },
+    {
+      "key": "fx_khien_sang",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "holy",
+      "file": "packs/fx_khien_sang.png",
+      "frame": [
+        64,
+        64
+      ],
+      "frames": 11,
+      "fps": 10,
+      "normal": true,
+      "glow": "packs/fx_khien_sang_hao.png",
+      "use": "Khiên / buff phòng thủ"
+    },
+    {
+      "key": "fx_khoi_luot",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "giga",
+      "file": "packs/fx_khoi_luot.png",
+      "frame": [
+        46,
+        64
+      ],
+      "frames": 21,
+      "fps": 16,
+      "normal": true,
+      "use": "Khói lướt khi dịch chuyển nhanh"
+    },
+    {
+      "key": "fx_lua_cuon",
+      "kind": "fx",
+      "private": true,
+      "tier": "cong_khai",
+      "pack": "free",
+      "file": "packs/fx_lua_cuon.png",
+      "frame": [
+        32,
+        58
+      ],
+      "frames": 61,
+      "fps": 24,
+      "normal": false,
+      "glow": "packs/fx_lua_cuon_hao.png",
+      "use": "Cột lửa cuốn: Thiêu đốt, Tà Hỏa"
+    },
+    {
+      "key": "fx_lua_dung",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "fire",
+      "file": "packs/fx_lua_dung.png",
+      "frame": [
+        20,
+        46
+      ],
+      "frames": 8,
+      "fps": 10,
+      "normal": false,
+      "glow": "packs/fx_lua_dung_hao.png",
+      "use": "Ngọn lửa: trạng thái Thiêu đốt / Hỏa Long / Tà Hỏa dưới chân"
+    },
+    {
+      "key": "fx_lua_roi",
+      "kind": "fx",
+      "private": true,
+      "tier": "cong_khai",
+      "pack": "free",
+      "file": "packs/fx_lua_roi.png",
+      "frame": [
+        46,
+        56
+      ],
+      "frames": 46,
+      "fps": 24,
+      "normal": false,
+      "glow": "packs/fx_lua_roi_hao.png",
+      "use": "Roi lửa quất: hồn kỹ Tà Hỏa"
+    },
+    {
+      "key": "fx_lua_xoay",
+      "kind": "fx",
+      "private": true,
+      "tier": "cong_khai",
+      "pack": "free",
+      "file": "packs/fx_lua_xoay.png",
+      "frame": [
+        44,
+        52
+      ],
+      "frames": 61,
+      "fps": 24,
+      "normal": false,
+      "glow": "packs/fx_lua_xoay_hao.png",
+      "use": "Vòng lửa xoay: Hỏa Long, hồn kỹ vùng hệ Hỏa"
+    },
+    {
+      "key": "fx_no_lon",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "giga",
+      "file": "packs/fx_no_lon.png",
+      "frame": [
+        96,
+        96
+      ],
+      "frames": 9,
+      "fps": 20,
+      "normal": false,
+      "glow": "packs/fx_no_lon_hao.png",
+      "use": "Nổ tiên cơ diện rộng (thay fx_no LPC)"
+    },
+    {
+      "key": "fx_song_quang",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "holy",
+      "file": "packs/fx_song_quang.png",
+      "frame": [
+        96,
+        56
+      ],
+      "frames": 10,
+      "fps": 10,
+      "normal": true,
+      "glow": "packs/fx_song_quang_hao.png",
+      "use": "Buff hệ Phụ trợ / sóng Quang"
+    },
+    {
+      "key": "fx_va_cham_nho",
+      "kind": "fx",
+      "private": true,
+      "tier": "cong_khai",
+      "pack": "pimen",
+      "file": "packs/fx_va_cham_nho.png",
+      "frame": [
+        34,
+        32
+      ],
+      "frames": 5,
+      "fps": 18,
+      "normal": false,
+      "glow": "packs/fx_va_cham_nho_hao.png",
+      "use": "Va chạm vàng (thay thế va chạm Gigapack nếu gọn hơn)"
+    },
+    {
+      "key": "fx_va_cham_vang",
+      "kind": "fx",
+      "private": true,
+      "tier": "rieng",
+      "pack": "giga",
+      "file": "packs/fx_va_cham_vang.png",
+      "frame": [
+        48,
+        48
+      ],
+      "frames": 7,
+      "fps": 24,
+      "normal": false,
+      "glow": "packs/fx_va_cham_vang_hao.png",
+      "use": "Va chạm / tia lửa khi trúng đòn (cạnh fxh_*)"
+    },
+    {
+      "key": "vat_bui_cay",
+      "kind": "prop",
+      "private": true,
+      "tier": "rieng",
+      "pack": "forest",
+      "file": "packs/vat_bui_cay.png",
+      "frame": [
+        35,
+        27
+      ],
+      "frames": 1,
+      "foot": [
+        18,
+        26
+      ],
+      "use": "Bụi cây (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_cay_soi_1",
+      "kind": "prop",
+      "private": true,
+      "tier": "rieng",
+      "pack": "forest",
+      "file": "packs/vat_cay_soi_1.png",
+      "frame": [
+        70,
+        98
+      ],
+      "frames": 1,
+      "foot": [
+        35,
+        97
+      ],
+      "use": "Cây sồi lớn (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_cay_soi_2",
+      "kind": "prop",
+      "private": true,
+      "tier": "rieng",
+      "pack": "forest",
+      "file": "packs/vat_cay_soi_2.png",
+      "frame": [
+        70,
+        94
+      ],
+      "frames": 1,
+      "foot": [
+        35,
+        93
+      ],
+      "use": "Cây sồi lớn (biến thể) (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_cay_thong_1",
+      "kind": "prop",
+      "private": true,
+      "tier": "rieng",
+      "pack": "forest",
+      "file": "packs/vat_cay_thong_1.png",
+      "frame": [
+        38,
+        74
+      ],
+      "frames": 1,
+      "foot": [
+        19,
+        73
+      ],
+      "use": "Cây thông (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_cay_thong_2",
+      "kind": "prop",
+      "private": true,
+      "tier": "rieng",
+      "pack": "forest",
+      "file": "packs/vat_cay_thong_2.png",
+      "frame": [
+        38,
+        70
+      ],
+      "frames": 1,
+      "foot": [
+        19,
+        69
+      ],
+      "use": "Cây thông (biến thể) (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_da_rung_1",
+      "kind": "prop",
+      "private": true,
+      "tier": "rieng",
+      "pack": "forest",
+      "file": "packs/vat_da_rung_1.png",
+      "frame": [
+        26,
+        22
+      ],
+      "frames": 1,
+      "foot": [
+        13,
+        21
+      ],
+      "use": "Đá (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_da_rung_2",
+      "kind": "prop",
+      "private": true,
+      "tier": "rieng",
+      "pack": "forest",
+      "file": "packs/vat_da_rung_2.png",
+      "frame": [
+        27,
+        23
+      ],
+      "frames": 1,
+      "foot": [
+        14,
+        22
+      ],
+      "use": "Đá (biến thể) (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_da_rung_3",
+      "kind": "prop",
+      "private": true,
+      "tier": "rieng",
+      "pack": "forest",
+      "file": "packs/vat_da_rung_3.png",
+      "frame": [
+        22,
+        21
+      ],
+      "frames": 1,
+      "foot": [
+        11,
+        20
+      ],
+      "use": "Đá nhỏ (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_khuc_go",
+      "kind": "prop",
+      "private": true,
+      "tier": "rieng",
+      "pack": "forest",
+      "file": "packs/vat_khuc_go.png",
+      "frame": [
+        40,
+        32
+      ],
+      "frames": 1,
+      "foot": [
+        20,
+        31
+      ],
+      "use": "Khúc gỗ mục (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    },
+    {
+      "key": "vat_nam_do",
+      "kind": "prop",
+      "private": true,
+      "tier": "rieng",
+      "pack": "forest",
+      "file": "packs/vat_nam_do.png",
+      "frame": [
+        13,
+        14
+      ],
+      "frames": 1,
+      "foot": [
+        7,
+        13
+      ],
+      "use": "Nấm đỏ (vật đứng rừng Tinh Đấu / Lạc Nhật Sâm Lâm)"
+    }
+  ]
+}

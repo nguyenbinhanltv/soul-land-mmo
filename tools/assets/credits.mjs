@@ -78,14 +78,14 @@ const slugTitle = (u) => decodeURIComponent(u.replace(/[?#].*$/, "").replace(/\/
 
 /** Gộp theo khóa (tác giả / công cụ): đếm dòng, hợp giấy phép và link. */
 class Bag {
-  constructor() { this.m = new Map(); }
+  constructor(onIds = () => {}) { this.m = new Map(); this.onIds = onIds; }
   add(name, { license = "", url = "", count = 1, ids = [] } = {}) {
     const k = name.toLowerCase();
     let e = this.m.get(k);
     if (!e) this.m.set(k, e = { name, licenses: new Set(), urls: new Set(), count: 0, ids: new Set() });
     if (license) e.licenses.add(license);
     if (url) e.urls.add(url);
-    e.count += count; ids.forEach((i) => e.ids.add(i));
+    e.count += count; ids.forEach((i) => { e.ids.add(i); this.onIds(i); });
   }
 }
 const finish = (bag, extra = {}) => [...bag.m.values()].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)).map((e) => ({
@@ -101,10 +101,11 @@ const usedLicense = (s) => { const b = /\*\*([^*]+)\*\*/.exec(s); return clean(b
 
 export function buildCredits({ md = readFileSync(CREDITS_MD, "utf8"), packs } = {}) {
   if (packs === undefined) packs = existsSync(PACKS_JSON) ? JSON.parse(readFileSync(PACKS_JSON, "utf8")) : null;
-  const bags = Object.fromEntries(Object.keys(GROUPS).map((k) => [k, new Bag()]));
+  const covered = new Set();
+  const bags = Object.fromEntries(Object.keys(GROUPS).map((k) => [k, new Bag((i) => covered.add(i))]));
   const links = Object.fromEntries(Object.keys(GROUPS).map((k) => [k, new Map()]));
-  const problems = [], seenAuthors = new Set(), rowIds = [], covered = new Set();
-  const take = (id) => { rowIds.push(id); covered.add(id); return id; };
+  const problems = [], seenAuthors = new Set(), rowIds = [];
+  const take = (id) => { rowIds.push(id); return id; };
   const knownSections = new Set();
 
   for (const t of parseTables(md)) {
@@ -190,8 +191,8 @@ export function validate({ data, problems, seenAuthors, rowIds, covered, packLis
   const errs = [...problems];
   const text = JSON.stringify(data);
   const dec = (s) => JSON.stringify(s).slice(1, -1);
-  const authorSet = new Set(data.groups.flatMap((g) => g.entries.flatMap((e) => [e.name, e.author].filter(Boolean).map((n) => n.toLowerCase()))));
-  const inAnyEntry = (a) => [...authorSet].some((n) => n.includes(a.toLowerCase())) || text.includes(dec(a));
+  const names = new Set(data.groups.flatMap((g) => g.entries.flatMap((e) => [e.name, e.author].filter(Boolean).flatMap((n) => n.split(" — ")).map((n) => n.toLowerCase()))));
+  const inAnyEntry = (a) => names.has(a.toLowerCase()) || [...names].some((n) => splitAuthors(n).includes(a.toLowerCase()));
   for (const a of seenAuthors) if (!inAnyEntry(a)) errs.push(`Tác giả "${a}" có trong CREDITS.md nhưng không có trong màn Ghi công.`);
   for (const id of rowIds) if (!covered.has(id)) errs.push(`Dòng "${id}" không được tính vào nhóm nào.`);
   for (const p of packList) if (!text.includes(dec(p.credit))) errs.push(`Dòng ghi công bắt buộc "${p.credit}" thiếu.`);
