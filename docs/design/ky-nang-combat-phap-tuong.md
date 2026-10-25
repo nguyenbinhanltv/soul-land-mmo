@@ -2,7 +2,7 @@
 
 Phần hiển thị của chiến đấu, **chỉ ở client**: không đổi luật, số, state hay nhịp mạng (trừ khi ghi khác). Số liệu ở `shared/data.ts` và hằng trong mã client (tên trong dấu `code`). Đặc tả từng chiêu, công thức làm ảnh: `docs/art/ky-nang-combat-dac-ta.md`, `docs/art/ky-nang-cong-thuc.md`. Số đo hiệu năng: `docs/tech/hieu-nang-hieu-ung.md`. Âm thanh: `docs/art/am-thanh.md`.
 
-## 5.12 Cảm giác đánh và hiệu ứng chiêu
+## 5.12 Cảm giác đánh và hiệu ứng chiêu (phần hiển thị; âm thanh ở `docs/art/am-thanh.md`)
 
 ### Cảm giác đánh khi trúng đòn
 Mã ở `client/src/combatFx.ts`.

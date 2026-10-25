@@ -61,7 +61,7 @@ Mỗi lần hạ hồn thú, mỗi loại đồ tung tỉ lệ riêng theo niên
 - Hồn hoàn luôn rơi; mảnh võ hồn `SHARD_DROP`; hồn cốt `BONE_DROP`; hồn hạch `CORE_DROP` (kèm khoảng sao).
 - Hồn thú càng già tỉ lệ càng cao; tinh anh và boss có hệ số riêng (mục 5.4).
 
-### 5.4 Bậc hồn thú: thường, tinh anh, thú vương, boss thế giới
+## 5.4 Bậc hồn thú: thường, tinh anh, thú vương, boss thế giới
 Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nhân vào chỉ số của hồn thú thường cùng loài, cùng niên hạn.
 
 | | Thường | Tinh anh (biến dị) | Tà hóa thú vương | Boss thế giới |
@@ -129,7 +129,7 @@ Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nh
 - Đứng trong xoáy: bị kéo về tâm `whirl.ground.pull` pixel mỗi giây (đi bộ trong nước vẫn thoát được nếu không bị Làm chậm thêm).
 - Thú vương bỏ giao chiến / rút đi thì nước rút ngay; bị hạ thì nước mất.
 - Chiêu báo trước giai đoạn 2 là Sóng Dữ (vệt sát thương, không Làm chậm).
-- **Cài đặt:** chọn chỗ ngập bằng `tideSpots` (`server/src/rooms/tide.ts`): đi thẳng tới được từ chỗ sinh của thú vương, phần lớn vùng đứng được, ngoài vùng an toàn, tâm cách nhau ít nhất `gap` × bán kính, cách mọi tâm của đợt trước ít nhất `shift` × bán kính. Thử cả đợt nhiều lần; không được thì không chấp nhận chỗ gần đợt trước.
+- **Cài đặt:** chọn chỗ ngập bằng `tideSpots` (`server/src/rooms/tide.ts`): đi thẳng tới được từ chỗ sinh của thú vương, phần lớn vùng đứng được, ngoài vùng an toàn, tâm cách nhau ít nhất `gap` × bán kính, cách mọi tâm của đợt trước ít nhất `shift` × bán kính. Thử cả đợt nhiều lần (`WAVE_TRIES`); vẫn không đủ chỗ thì bỏ điều kiện cách đợt trước (chấp nhận chỗ gần đợt trước).
 - **Hiển thị:** client vẽ bằng code (`drawWater`, isometric và `?view=topdown`): mặt nước xanh sâu, gợn sóng lan, ánh lấp lánh; xoáy có các nhánh xoắn quay về tâm và lõi tối. Lúc báo trước (`GroundState.wait`) chỉ viền đứt nhấp nháy và vòng nước dâng từ tâm ra mép. Ngập nước: ô trạng thái và biểu tượng sóng trên đầu.
 
 ### Hang chia phần luân phiên (Lưỡng Nghi Thủ Hộ Xà, Thiên Độc Chu Hoàng)
@@ -193,13 +193,13 @@ Bạo Nộ, Thanh Lân Độc Vụ, Đại Địa Chấn: `BeastSkillDef.safe`, 
 - **Điểm yếu hệ:** mỗi mốc máu `WORLD.weakAt` lộ một hệ ngẫu nhiên một lúc. Võ hồn ra trận đúng hệ gây × `weakMult`, hệ khác × `offMult`. Thanh máu lớn báo võ hồn mình có đúng hệ không.
 - ***Thái Thản Cự Viên:***
   - **Bá Thể:** khiên theo % máu tối đa trong một lúc. Võ hồn Cường công phá nhanh hơn; phần đánh vào khiên vẫn tính đóng góp; không phá kịp thì boss hồi máu bằng phần khiên còn lại.
-  - **Đại Địa Chấn:** tích lực. Chỉ khống chế của võ hồn **Khống chế** đang ra trận mới tính lần ngắt, cần đủ số lần. Ngắt được thì boss bị Choáng; không ngắt thì cả sàn, trừ người trong vòng an toàn, dính *Vết thương sâu*.
+  - **Đại Địa Chấn:** tích lực. Chỉ khống chế của võ hồn **Khống chế** đang ra trận mới tính lần ngắt, cần đủ số lần. Ngắt được thì boss bị Choáng; không ngắt thì cả sàn, trừ người trong vòng an toàn, dính *Vết thương sâu* (Phá giáp nặng, lâu và Choáng ngắn).
   - Cùng Cự Thạch, Địa Liệt Quyền.
 - ***Thiên Thanh Ngưu Mãng:***
   - **Thanh Lân Độc Vụ:** độc toàn sàn có báo trước và vòng an toàn (Trúng độc nặng, lâu).
   - **Du Thủy:** lặn **ra giữa hồ** (điểm `lake` trong Tiled), không nhận sát thương. Chỗ nổi lên trong sàn, cách chỗ lặn ít nhất `dive.away`, được chọn ngay lúc lặn và **báo trước** cho cả phòng bằng vòng sóng xanh (người vào giữa lúc boss lặn cũng thấy). Hết giờ lặn thì nổi lên đúng chỗ đó, lộ điểm yếu **Mẫn công**.
   - Cùng Ngưu Giác Xung, Mãng Vĩ Tảo.
-- ***Vết thương sâu*** là trạng thái thường (Phá giáp / Trúng độc) nhưng nặng và lâu: Phá giáp nặng, lâu và Choáng ngắn. Lõi không có vùng an toàn nên chỉ **thanh tẩy** của võ hồn phụ trợ giải được.
+- ***Vết thương sâu*** là trạng thái thường (Phá giáp / Trúng độc) nhưng nặng và lâu. Lõi không có vùng an toàn nên chỉ **thanh tẩy** của võ hồn phụ trợ giải được.
 
 ### Thưởng
 Điều kiện: đóng góp từ `WORLD.share`, còn trong phòng, `WORLD.daily` lần/ngày (lượt riêng với thú vương), mỗi khung một lần dù hạ ở kênh nào.
