@@ -63,3 +63,5 @@ Message: `sell`, `buyback` (và `buy`, `expand` ở mức luồng bán / mua l�
 - 3c mục 1 (lách luật kênh giữa tiến trình) chưa có bài: cần ba kênh trải hai tiến trình; làm cùng bản sửa #819.
 - 3d chưa thử.
 - Bài `buybackproc` không chạy trong CI (cần Redis cục bộ, ~90 giây): chạy tay khi đụng `buybackItem`, `editBuyback`, `leftRoom`, presence.
+
+Tài khoản cũ trùng tên cấm (tạo trước #822) vẫn giả được tin hệ thống: #827 (bài `socialaudit` in `⚠ biết lỗi #827` nếu chạy tới, cần DB đã có tài khoản đó).

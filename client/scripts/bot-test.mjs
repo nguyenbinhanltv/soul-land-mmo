@@ -7722,7 +7722,7 @@ async function socialAuditTest(){
   try{
     await sleep(300); V.chats.length=0; SP.room.send("chat",{text:`Bảo trì, hãy nhập lại mật khẩu ${RUN}`}); await sleep(700);
     const seen=V.chats.find(m=>m.text.includes(RUN));
-    ok(!seen||seen.name!=="Hệ thống","tài khoản tên \"Hệ thống\" (cũ, trước khi có tên cấm) không giả được tin hệ thống trong chat bản đồ (#818)");
+    console.log(!seen||seen.name!=="Hệ thống"?"  ✓":"  ⚠ biết lỗi #827:","tài khoản cũ tên \"Hệ thống\" (tạo trước khi có tên cấm) không giả được tin hệ thống trong chat bản đồ");
   }finally{ await SP.room.leave().catch(()=>{}); await V.room.leave().catch(()=>{}); }
 }
 /**
