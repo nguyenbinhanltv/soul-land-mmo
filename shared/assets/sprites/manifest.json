@@ -7712,6 +7712,11 @@
       "nine": 14
     },
     {
+      "key": "ui_khung_tab_nhan_vat",
+      "iso": true,
+      "nine": 8
+    },
+    {
       "key": "ui_mapview_paper",
       "iso": true,
       "nine": 16
@@ -7735,6 +7740,19 @@
       "key": "ui_nut_thuong",
       "iso": true,
       "nine": 6
+    },
+    {
+      "key": "ui_nv6_dan_dien",
+      "iso": true
+    },
+    {
+      "key": "ui_nv6_luc_giac",
+      "iso": true
+    },
+    {
+      "key": "ui_nv6_nen_bup_be",
+      "iso": true,
+      "nine": 16
     },
     {
       "key": "ui_o",
@@ -7763,6 +7781,31 @@
       "key": "ui_thanh_sinh_luc",
       "iso": true,
       "nine": 6
+    },
+    {
+      "key": "ui_tho_ren_cuong_hoa",
+      "iso": true,
+      "nine": 16
+    },
+    {
+      "key": "ui_tho_ren_hop_thanh",
+      "iso": true,
+      "nine": 12
+    },
+    {
+      "key": "ui_tho_ren_nang_cap",
+      "iso": true,
+      "nine": 12
+    },
+    {
+      "key": "ui_thong_bao_hon_hoan",
+      "iso": true,
+      "nine": 8
+    },
+    {
+      "key": "ui_thong_bao_len_cap",
+      "iso": true,
+      "nine": 8
     },
     {
       "key": "ui_vach_but",
