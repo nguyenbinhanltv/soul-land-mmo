@@ -6325,12 +6325,12 @@ export class MapRoom extends Room<MapState> {
     const step = slotOk ? equipLuckStep(e.luck, wear ? wornLuck : null) : null;
     return { wear, step, reason: !slotOk ? "slot" : step ? null : e.luck >= EQUIP_LUCK_MAX ? "max" : "worn" };
   }
-  /** `equipluckpreview {id}` trả "equipluckp": tỉ lệ khắc may mắn kế tiếp, số Thần Hồn đang có, lý do bị chặn. Chỉ đọc. */
-  equipLuckPreview(id: string, rawId: unknown) {
+  /** `equipluckpreview {id}` trả "equipluckp": tỉ lệ khắc may mắn kế tiếp, số Thần Hồn đang có, lý do bị chặn. Chỉ đọc. `busy`: lệnh sắp xong gửi false (cờ `enhBusy` chưa nhả). */
+  equipLuckPreview(id: string, rawId: unknown, busy?: boolean) {
     const d = this.pdata.get(id), c = this.clients.getById(id); if (!d || !c) return;
     const it = this.equipOf(d, rawId), e = it ? parseEquip(it.stats) : null; if (!it || !e) return;
     const { step, reason } = this.luckInfo(d, it, e);
-    c.send("equipluckp", { id: it.id, luck: e.luck, to: step?.to ?? null, p: step?.p ?? 0, reason, soul: this.countOf(d, EQUIP_SOUL), max: EQUIP_LUCK_MAX, busy: d.enhBusy });
+    c.send("equipluckp", { id: it.id, luck: e.luck, to: step?.to ?? null, p: step?.p ?? 0, reason, soul: this.countOf(d, EQUIP_SOUL), max: EQUIP_LUCK_MAX, busy: busy ?? d.enhBusy });
   }
   /**
    * Khắc may mắn (Thợ rèn): tốn 1 Thần Hồn mỗi lần, may mắn n → n + 1 với tỉ lệ EQUIP_LUCK_UP[n] (server tung; `testEnh` chỉ có khi GAME_TEST). Thất bại
@@ -6366,7 +6366,7 @@ export class MapRoom extends Room<MapState> {
       this.clients.getById(id)?.send("equipluckd", { id: it.id, from, to: ok ? step.to : from, ok });
       if (wear) { d.gearSt = gearStats(d.gear); this.afterBones(id, d.ch); this.sendGear(id); }
       this.sendBag(id);
-      this.equipLuckPreview(id, it.id);
+      this.equipLuckPreview(id, it.id, false);
     })).then(() => { d.enhBusy = false; d.claimBusy--; });
   }
 
