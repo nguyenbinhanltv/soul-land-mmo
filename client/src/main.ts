@@ -189,12 +189,12 @@ function awakenIntro() {
   const aw = document.getElementById("aw") as HTMLButtonElement, info = document.getElementById("info")!;
   for (const v of AWAKEN_CHOICES) {
     const b = vohonCard(v, {}, "button");
-    b.classList.add("acard"); b.dataset.id = v.id; b.setAttribute("aria-pressed", "false"); b.title = v.owner ? `${v.name} · ${v.owner}` : v.name;
+    b.classList.add("awk-pick"); b.dataset.id = v.id; b.setAttribute("aria-pressed", "false"); b.title = v.owner ? `${v.name} · ${v.owner}` : v.name;
     card.querySelector(`.vgrid[data-he="${v.he}"]`)!.appendChild(b);
   }
-  card.querySelectorAll<HTMLButtonElement>(".acard").forEach((b) => b.addEventListener("click", () => {
+  card.querySelectorAll<HTMLButtonElement>(".awk-pick").forEach((b) => b.addEventListener("click", () => {
     chosen = b.dataset.id!; const v = VOHON[vohonIndex(chosen)];
-    card.querySelectorAll(".acard").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    card.querySelectorAll(".awk-pick").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
     info.innerHTML = `<b style="color:${v.col}">${v.name}</b> · ${HE[v.he].name}${v.owner ? ` · ${v.owner}` : ""}<br>${v.trait}
       <br><small>Lưu phái: ${v.flows.join(", ")}</small>`;
     aw.disabled = false; aw.textContent = `Thức tỉnh ${v.name}`;
