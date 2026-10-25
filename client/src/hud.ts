@@ -2459,12 +2459,15 @@ export function closeNpc() {
   if (!npcDefOpen) return;
   npcDefOpen = null; npcAct = null; sellConfirm = null; enhClose();
   const el = $("#npc"); el.hidden = true; el.innerHTML = "";
+  delete el.dataset.c16Page;
 }
 /** Túi đổi (mua, bán, cường hóa): vẽ lại hộp thoại đang mở với Hồn Tệ và đồ mới. */
 export function npcBag(bag: BagMsg) { npcBagMsg = bag; bagCap = bag.slots; enhCoin = bag.honTe; if (npcDefOpen) renderNpc(); }
 
 function renderNpc() {
   const def = npcDefOpen, act = npcAct, el = $("#npc"); if (!def || !act) return;
+  if (npcPage === "forge" || npcPage === "forgecore" || npcPage === "forgesynth") el.dataset.c16Page = npcPage;
+  else delete el.dataset.c16Page;
   el.innerHTML = "";
   el.style.setProperty("--c", def.col);
   // 10.8: chân dung NPC 112×112 (npc_<mã>) bên trái tên, chức danh (chưa có ảnh thì chỉ có tên).

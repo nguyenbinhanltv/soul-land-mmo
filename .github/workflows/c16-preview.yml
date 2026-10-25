@@ -1,0 +1,71 @@
+name: C16 game preview
+on:
+  pull_request:
+    paths:
+      - 'client/src/feedback.*'
+      - 'client/src/hud.ts'
+      - 'client/src/style.css'
+      - 'client/scripts/c16-browser.mjs'
+      - '.github/workflows/c16-preview.yml'
+permissions:
+  contents: read
+jobs:
+  c16-preview:
+    if: github.event.pull_request.number == 811
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --prefix client --ignore-scripts --no-audit --no-fund
+      - run: npm ci --prefix server --ignore-scripts --no-audit --no-fund
+      - run: node client/node_modules/playwright/cli.js install --with-deps chromium
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: baseline
+          persist-credentials: false
+      - name: BEFORE cùng fixture trên base SHA
+        env:
+          C16_BEFORE: '1'
+          C16_OUTPUT: ${{ runner.temp }}/c16/before
+        run: |
+          cp client/scripts/c16-browser.mjs baseline/client/scripts/c16-browser.mjs
+          npm ci --prefix baseline/client --ignore-scripts --no-audit --no-fund
+          npm ci --prefix baseline/server --ignore-scripts --no-audit --no-fund
+          node baseline/client/scripts/c16-browser.mjs
+      - name: AFTER và hồi quy trên head SHA
+        env:
+          C16_OUTPUT: ${{ runner.temp }}/c16/after
+        run: node client/scripts/c16-browser.mjs
+      - name: Gallery ảnh thật và metadata SHA
+        if: always()
+        env:
+          C16_DIR: ${{ runner.temp }}/c16
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, html, json
+          root = pathlib.Path(os.environ['C16_DIR'])
+          root.mkdir(parents=True, exist_ok=True)
+          parts = ['<!doctype html><meta charset="utf-8"><title>C16 BEFORE / AFTER</title><style>body{background:#211b28;color:#ece2c8;font:16px system-ui;margin:24px}img{max-width:100%}a{color:#97e6bd}figure{margin:16px 0}</style><h1>C16 — ảnh game thật</h1><p>RAM riêng, Chrome headless --mute-audio. Hai viewport1280×720 và844×390 touch. NPC dùng bag thật/no-op actions; toast là fixture hiển thị. Không chứng minh kết quả rèn server. UI điện thoại hoãn theo Q40.</p>']
+          for side in ['before', 'after']:
+              parts.append('<h2>' + side.upper() + '</h2>')
+              evidence = root / side / 'evidence.json'
+              if evidence.exists():
+                  data = json.loads(evidence.read_text())
+                  parts.append('<p>SHA: <code>' + html.escape(data['sha']) + '</code> · <a href="' + side + '/evidence.json">Metadata / giới hạn</a></p>')
+              for path in sorted((root / side).glob('*.png')):
+                  parts.append('<figure><figcaption>' + html.escape(path.stem) + '</figcaption><img loading="lazy" src="' + side + '/' + path.name + '"></figure>')
+          (root / 'index.html').write_text(''.join(parts))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: c16-game-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/c16
+          retention-days: 14

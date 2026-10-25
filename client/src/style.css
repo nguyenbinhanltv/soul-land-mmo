@@ -1626,3 +1626,39 @@ body.ui-h500 #credits .cr-head small{display:none}
 .c6-credits:hover,.c6-credits:focus-visible{color:var(--text);border-color:var(--line2)}
 #audio .audio-credits{min-height:40px;padding:8px 12px;border:2px solid var(--line);background:var(--wash);color:var(--text);font:inherit;font-size:12px;font-family:var(--f12);cursor:pointer}
 @media (max-height:520px){#overlay .c6-credits{margin-top:4px;min-height:36px}}
+
+/* C16 (#595): một khung C2 ngoài, nội dung trên tấm mực; không đổi token toàn cục hay bố cục HUD. */
+.thuymac #char,.thuymac #npc[data-c16-page]{
+  --text:#ece2c8;--muted:#d8caa8;--accent:#97e6bd;--good:#97e6bd;--bad:#ff9b8a;--warn:#ffbf8a;--xp-t:#ffe08a;
+  --wash:#261c2e;--wash2:#342b3c;--line:#887457;--line2:#796887;
+  color:var(--text);background:var(--plate);box-shadow:none;scrollbar-color:var(--muted) var(--plate)
+}
+.thuymac #char{border:24px solid var(--line);border-image:var(--ui-nv6-nen-bup-be) 48 / 24px stretch;padding:8px}
+.thuymac #npc[data-c16-page]{border:20px solid var(--line);padding:8px}
+.thuymac #npc[data-c16-page="forge"]{border-image:var(--ui-tho-ren-cuong-hoa) 40 / 20px stretch}
+.thuymac #npc[data-c16-page="forgecore"]{border-image:var(--ui-tho-ren-nang-cap) 32 / 20px stretch}
+.thuymac #npc[data-c16-page="forgesynth"]{border-image:var(--ui-tho-ren-hop-thanh) 32 / 20px stretch}
+.thuymac #char button,.thuymac #npc[data-c16-page] button{
+  border-image:none;border:1px solid var(--line);background:var(--wash);color:var(--text);text-shadow:none
+}
+.thuymac #char button:disabled,.thuymac #npc[data-c16-page] button:disabled{color:var(--muted);opacity:1}
+.thuymac #char button:not(:disabled):hover,.thuymac #npc[data-c16-page] button:not(:disabled):hover{background:var(--wash2)}
+.thuymac #char button:focus-visible,.thuymac #npc[data-c16-page] button:focus-visible{outline:2px solid #ffe08a;outline-offset:2px}
+.thuymac #char .ui-tab[aria-selected="true"],.thuymac #char .bcell.sel{border-color:#ffe08a;background:var(--wash2);outline:1px solid #ffe08a;outline-offset:-2px}
+.thuymac #char .ui-cell::before{display:none}
+.thuymac #char .cdtabs{padding-bottom:32px;background:var(--ui-khung-tab-nhan-vat) center bottom / 192px 32px no-repeat}
+.thuymac #char .cdoll .bcell{background:var(--ui-nv6-luc-giac) center / contain no-repeat var(--plate)}
+.thuymac #char .cdoll .bcell span,.thuymac #char .cdoll .bcell small{background:var(--plate);color:var(--text)}
+.thuymac #char .cring6::before{inset:13%;border:0;border-radius:0;background:var(--ui-nv6-dan-dien) center / contain no-repeat;pointer-events:none}
+.thuymac #char .cmid{border:0;background:var(--plate)}
+.thuymac #char .cmid b,.thuymac #char .cmid small{color:var(--text)}
+.thuymac #char .binfo{border-image:none;border:0;background:var(--plate)}
+.thuymac #char .rhead,.thuymac #npc[data-c16-page] .rhead{background:none}
+.thuymac #npc[data-c16-page] .nface{border-image:none;border:1px solid var(--line);background:var(--plate)}
+.thuymac #npc[data-c16-page] :is(.shead,.epick,.forge){background:none;box-shadow:none;border-image:none}
+.thuymac #npc[data-c16-page] .ht.kim{color:#ffe08a}
+.thuymac #npc[data-c16-page] .ht.ngan{color:#cbd6ef}
+.thuymac #npc[data-c16-page] .ht.dong{color:#ffbf8a}
+.thuymac #char .bmid small{background:var(--plate)}
+
+.thuymac #npc[data-c16-page]::before,.thuymac #npc[data-c16-page]::after{display:none}
