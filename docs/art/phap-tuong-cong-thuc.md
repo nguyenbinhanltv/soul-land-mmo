@@ -1,6 +1,6 @@
 # Công thức chuẩn làm pháp tướng (chủ repo duyệt 2026-10-24)
 
-Chuẩn đã dùng cho cả 25 võ hồn (ảnh pháp tướng đủ 25 / 25). Đặc tả hình, màu, prompt từng võ hồn ở `docs/art/phap-tuong.md`; quy ước chung ở `GAME_DESIGN.md` mục 5.18. PixelLab ở đây thuộc phạm vi ngoại lệ (pháp tướng, xoay hướng, hoạt ảnh; `nguon-giay-phep.md`). Ở đây ghi cách làm, tham số, lượt thực tế và bẫy đã gặp.
+Chuẩn đã dùng cho cả 25 võ hồn (ảnh pháp tướng đủ 25 / 25). Đặc tả hình, màu, prompt từng võ hồn ở `docs/art/phap-tuong.md`; quy ước chung ở `GAME_DESIGN.md` mục 5.18. PixelLab ở đây thuộc phạm vi ngoại lệ (xoay hướng, hoạt ảnh, pháp tướng dạng hoạt ảnh; `nguon-giay-phep.md`); **ảnh concept không thuộc ngoại lệ** (Q43): bước 1 dưới đây là cách đã làm cho 25 võ hồn, concept mới lấy từ công cụ ảnh tĩnh rồi mới vào bước xoay. Ở đây ghi cách làm, tham số, lượt thực tế và bẫy đã gặp.
 
 ## 1. Quy trình một võ hồn
 

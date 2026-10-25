@@ -52,7 +52,7 @@ Quy ước chuỗi chung (mọi tầng): **lấy đà → ra đòn → khựng 2
 
 ### 1.4 Quy cách chung của prompt PixelLab (T2 / T3)
 
-Nguồn ảnh hiệu ứng kỹ năng: **PixelLab** theo ngoại lệ ở `GAME_DESIGN.md` mục 5.11 (chủ repo chốt 2026-10-24, #482 / #541; chỉ sheet hiệu ứng, hoạt ảnh kỹ năng và pháp tướng, không tạo hình nhân vật); texture tĩnh vẫn làm bằng ComfyUI / Gemini khi hợp hơn. Prompt của từng chiêu T2 / T3 = phần đầu chung bên dưới + chữ ký võ hồn + kiểu `area` + phần **riêng của chiêu** (tên chiêu, Ý chiêu, khung 1 của chiêu, **Màn** của T3, **Hình** của tiên cơ; chiêu cùng cơ chế với chiêu trước trong võ hồn thì thêm dòng nâng cấp). Kiểm khi sinh bảng: 175 / 175 prompt T2 / T3 khác nhau từng đôi trong cùng võ hồn, kể cả khi bỏ tên chiêu. Số lần của chuỗi / đợt / viên **không ghi ở đây**: S1 đọc `n`, `every` và số đợt của chiêu từ `shared/data.ts` lúc chạy.
+Nguồn ảnh hiệu ứng kỹ năng: **PixelLab** theo ngoại lệ ở `GAME_DESIGN.md` mục 5.11 (chủ repo chốt 2026-10-24, #482 / #541; chỉ sheet hiệu ứng, hoạt ảnh kỹ năng và pháp tướng, không tạo hình nhân vật, không làm concept ảnh tĩnh; Q43); texture tĩnh làm bằng ComfyUI hoặc ChatGPT / Codex khi hợp hơn (Q44). Prompt của từng chiêu T2 / T3 = phần đầu chung bên dưới + chữ ký võ hồn + kiểu `area` + phần **riêng của chiêu** (tên chiêu, Ý chiêu, khung 1 của chiêu, **Màn** của T3, **Hình** của tiên cơ; chiêu cùng cơ chế với chiêu trước trong võ hồn thì thêm dòng nâng cấp). Kiểm khi sinh bảng: 175 / 175 prompt T2 / T3 khác nhau từng đôi trong cùng võ hồn, kể cả khi bỏ tên chiêu. Số lần của chuỗi / đợt / viên **không ghi ở đây**: S1 đọc `n`, `every` và số đợt của chiêu từ `shared/data.ts` lúc chạy.
 
 Phần đầu mọi prompt: `pixel art VFX sprite sheet, 8 frames (T3: 12), isometric RPG skill effect, additive glow on transparent background, no character, no text, no watermark, clean dark outline, limited palette`. Kèm viền `#1a1020`, nguồn sáng trên-trái. Ảnh tách lớp cộng sáng riêng để code hạ theo mức hiệu ứng. Làm sạch sau PixelLab (lượng tử bảng màu, bỏ điểm lẻ, viền 1 px). Kích thước khung gợi ý: T2 96×96, T3 160×160 (đặt gốc cùng pháp tướng `(80,124)`). Kiểm đọc rõ trên cỏ sáng, hang tối, tuyết, ban đêm.
 
@@ -96,31 +96,56 @@ Cột **Tầng**: T1 / T2 / T3. Cột **Kiểu**: theo `area` của chiêu (xem 
 
 Mỗi võ hồn một file (tiêu đề mục 4.N giữ nguyên trong file):
 
-- [4.1 Cửu Tinh Thất Sát Kiếm](cuu-tinh-that-sat-kiem.md)
-- [4.2 Lam Điện Bá Vương Long](lam-dien-ba-vuong-long.md)
-- [4.3 Kỳ Nhung Thông Thiên Cúc](ky-nhung-thong-thien-cuc.md)
-- [4.4 Tà Hỏa Phượng Hoàng](ta-hoa-phuong-hoang.md)
-- [4.5 U Minh Linh Miêu](u-minh-linh-mieu.md)
-- [4.6 Nguyệt Nhận](nguyet-nhan.md)
-- [4.7 Hỏa Long](hoa-long.md)
-- [4.8 Nhu Cốt Thố](nhu-cot-tho.md)
-- [4.9 Kim Vũ Miêu Ưng](kim-vu-mieu-ung.md)
-- [4.10 Tử Vong Chu Hoàng](tu-vong-chu-hoang.md)
-- [4.11 Bích Lân Xà Hoàng](bich-lan-xa-hoang.md)
-- [4.12 Càn Khôn Hỗn Nguyên Tỏa](can-khon-hon-nguyen-toa.md)
-- [4.13 Hỏa Ảnh](hoa-anh.md)
-- [4.14 Yêu Hồ](yeu-ho.md)
-- [4.15 Xúc Xích](xuc-xich.md)
-- [4.16 Quỷ Mị](quy-mi.md)
-- [4.17 Thiên Càn Bạch Ngọc Đỉnh](thien-can-bach-ngoc-dinh.md)
-- [4.18 Lam Ngân Thảo](lam-ngan-thao.md)
-- [4.19 Hạo Thiên Chùy](hao-thien-chuy.md)
-- [4.20 Cửu Bảo Lưu Ly Tháp](cuu-bao-luu-ly-thap.md)
-- [4.21 Phá Hồn Thương](pha-hon-thuong.md)
-- [4.22 A Ngân](a-ngan.md)
-- [4.23 Liệt Hỏa Thương Lang](liet-hoa-thuong-lang.md)
-- [4.24 Băng Phượng Hoàng](bang-phuong-hoang.md)
-- [4.25 Bạch Hổ](bach-ho.md)
+- [4.1 Cửu Tinh Thất Sát Kiếm
+](cuu-tinh-that-sat-kiem.md)
+- [4.2 Lam Điện Bá Vương Long
+](lam-dien-ba-vuong-long.md)
+- [4.3 Kỳ Nhung Thông Thiên Cúc
+](ky-nhung-thong-thien-cuc.md)
+- [4.4 Tà Hỏa Phượng Hoàng
+](ta-hoa-phuong-hoang.md)
+- [4.5 U Minh Linh Miêu
+](u-minh-linh-mieu.md)
+- [4.6 Nguyệt Nhận
+](nguyet-nhan.md)
+- [4.7 Hỏa Long
+](hoa-long.md)
+- [4.8 Nhu Cốt Thố
+](nhu-cot-tho.md)
+- [4.9 Kim Vũ Miêu Ưng
+](kim-vu-mieu-ung.md)
+- [4.10 Tử Vong Chu Hoàng
+](tu-vong-chu-hoang.md)
+- [4.11 Bích Lân Xà Hoàng
+](bich-lan-xa-hoang.md)
+- [4.12 Càn Khôn Hỗn Nguyên Tỏa
+](can-khon-hon-nguyen-toa.md)
+- [4.13 Hỏa Ảnh
+](hoa-anh.md)
+- [4.14 Yêu Hồ
+](yeu-ho.md)
+- [4.15 Xúc Xích
+](xuc-xich.md)
+- [4.16 Quỷ Mị
+](quy-mi.md)
+- [4.17 Thiên Càn Bạch Ngọc Đỉnh
+](thien-can-bach-ngoc-dinh.md)
+- [4.18 Lam Ngân Thảo
+](lam-ngan-thao.md)
+- [4.19 Hạo Thiên Chùy
+](hao-thien-chuy.md)
+- [4.20 Cửu Bảo Lưu Ly Tháp
+](cuu-bao-luu-ly-thap.md)
+- [4.21 Phá Hồn Thương
+](pha-hon-thuong.md)
+- [4.22 A Ngân
+](a-ngan.md)
+- [4.23 Liệt Hỏa Thương Lang
+](liet-hoa-thuong-lang.md)
+- [4.24 Băng Phượng Hoàng
+](bang-phuong-hoang.md)
+- [4.25 Bạch Hổ
+](bach-ho.md)
 
 ## 5. Năm dung hợp hiện có
 

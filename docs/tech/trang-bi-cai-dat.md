@@ -69,7 +69,7 @@ Luật chơi và bảng số ở `docs/design/trang-bi.md` (mục 5.15) và `sha
 
 ## Chưa làm
 - **Khắc may mắn:** hằng `EQUIP_LUCK_UP` ở `shared/data.ts` ghi "đề xuất, chờ duyệt" và chưa có mã server / client nào dùng; thuộc tính `luck` của món hiện chỉ do rơi / `rollEquip` quyết định.
-- Số cân bằng trang bị chưa có ghi chép chủ repo duyệt riêng; `docs/trang-bi-kinh-te.md` vẫn là ước lượng theo giả định.
+- Số cân bằng trang bị đã được chủ repo duyệt (Q42 ở `docs/quyet-dinh.md`); `docs/trang-bi-kinh-te.md` là ước lượng theo giả định.
 
 ## Issue liên quan
 #411 (E0, kinh tế), #412–#415 (E1–E4), #418 (E7).
