@@ -273,7 +273,7 @@ export class GameScene extends Phaser.Scene {
   teleTop!: Phaser.GameObjects.Graphics;
   /** Đồng hồ phía client của vùng lưu lại (#161, drawGrounds): `ttl` lần đổi gần nhất, lúc đổi, lúc thấy lần đầu (ms của scene). */
   groundClock = new Map<string, { v: number; at: number; seen: number }>();
-  drops = new Map<string, { img: Phaser.GameObjects.Image; txt: Phaser.GameObjects.Text; art?: { key: string; tint?: string } | null }>(); // hồn hoàn dưới đất kèm số năm
+  drops = new Map<string, { img: Phaser.GameObjects.Image; txt: Phaser.GameObjects.Text; glow?: Phaser.GameObjects.Image; art?: { key: string; tint?: string } | null }>(); // hồn hoàn dưới đất kèm số năm
   ov!: Phaser.GameObjects.Graphics;
   /** Ánh sáng theo vùng (Light2D, 10.7) và thời tiết / hạt bay. */
   light!: Lighting;
@@ -2803,7 +2803,8 @@ export class GameScene extends Phaser.Scene {
         const txt = this.add.text(at.x, at.y + (core ? 18 : bone ? 12 : 4) * SPR, name, { // hồn cốt, hồn hạch: dưới nhãn số năm của hồn hoàn (và hồn cốt) nằm cạnh
           fontFamily: FONT, fontSize: "6px", fontStyle: "700", color: col, stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 0).setDepth(at.y - 1).setScale(this.txtK);
-        v = { img, txt, art: dropArtSpec(d, bone, core, eq, it, col) }; this.drops.set(id, v);
+        const glow = !d.item ? this.add.image(at.x, at.y, `ring${d.tier}`).setDepth(at.y - 2).setScale(SPR) : undefined; // hồn hoàn: vòng sáng elip dưới ảnh (#693)
+        v = { img, txt, glow, art: dropArtSpec(d, bone, core, eq, it, col) }; this.drops.set(id, v);
         if (!it && !bone && !core && d.tier >= 1 && d.ttl >= DROP_TTL_SECS - 2 && this.downAt.some(q => time - q.t < 2500 && Math.hypot(q.x - at.x, q.y - at.y) < 140 * SPR)) this.dropGlint(at, hud.ringColor(d.tier)); // hồn hoàn mới rơi: vòng sáng màu niên hạn bay lên
         if (d.ttl >= DROP_TTL_SECS - 2) { // chỉ đồ vừa rơi (đồ nằm sẵn đi tới gần mới đồng bộ, 11.4, thì không kêu)
           this.audio.playGroup("ring-drop", { x: d.x, y: d.y }, { priority: 1.5 });
@@ -2817,7 +2818,7 @@ export class GameScene extends Phaser.Scene {
       v.img.y = at.y - (4 + (0.5 + 0.5 * Math.sin(time / 250)) * 2) * SPR;
       if (v.txt.scale !== this.txtK) v.txt.setScale(this.txtK); // đổi cỡ cửa sổ
       const a = d.ttl < 8 ? (Math.floor(time / 160) % 2 ? 0.4 : 1) : 1;
-      v.img.setAlpha(a); v.txt.setAlpha(a);
+      v.img.setAlpha(a); v.txt.setAlpha(a); v.glow?.setAlpha(a);
     });
     st.drops.forEach((d: any, id: string) => this.dropTtl.set(id, { ttl: d.ttl, x: d.x, y: d.y }));
     const meNear = st.players.get(this.me);
@@ -2826,7 +2827,7 @@ export class GameScene extends Phaser.Scene {
       const last = this.dropTtl.get(id);
       if (meNear && last && last.ttl > 1.5 && Math.hypot(last.x - meNear.x, last.y - meNear.y) < PICKUP_RANGE + 24) this.audio.play("pickup");
       this.dropTtl.delete(id);
-      v.img.destroy(); v.txt.destroy(); this.drops.delete(id);
+      v.img.destroy(); v.txt.destroy(); v.glow?.destroy(); this.drops.delete(id);
     }
 
 

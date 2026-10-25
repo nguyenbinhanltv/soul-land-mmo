@@ -6,7 +6,7 @@ import { equipIconChain, type EquipTemplate } from "../../shared/data.ts";
 import { artUrl } from "./uiArt.ts";
 
 /** Cỡ ảnh item_* 32×32 so với SPR khi nằm dưới đất (to hơn viên shard 10×12 nhưng không át nhãn). */
-export const DROP_ART_SCALE = 0.55;
+export const DROP_ART_SCALE = 0.6;
 /** Ảnh xám / ảnh chung của nhóm được tô theo màu: giống danh sách TINTED của uiArt. */
 const TINT_KINDS = ["manh_vo_hon", "ruong", "tien_thao"];
 
