@@ -1,6 +1,6 @@
-# Công thức chuẩn làm pháp tướng (H1 #485, chủ repo duyệt 2026-10-24)
+# Công thức chuẩn làm pháp tướng (chủ repo duyệt 2026-10-24)
 
-Chuẩn cho 25 võ hồn (đã làm: Lam Điện Bá Vương Long và Hạo Thiên Chùy). Đặc tả hình, màu, prompt từng võ hồn ở `docs/art/phap-tuong.md` (PR #492); quy ước chung ở `GAME_DESIGN.md` mục 5.18. Ở đây ghi cách làm, tham số, lượt thực tế và bẫy đã gặp.
+Chuẩn đã dùng cho cả 25 võ hồn (ảnh pháp tướng đủ 25 / 25). Đặc tả hình, màu, prompt từng võ hồn ở `docs/art/phap-tuong.md`; quy ước chung ở `GAME_DESIGN.md` mục 5.18. PixelLab ở đây thuộc phạm vi ngoại lệ (pháp tướng, xoay hướng, hoạt ảnh; `nguon-giay-phep.md`). Ở đây ghi cách làm, tham số, lượt thực tế và bẫy đã gặp.
 
 ## 1. Quy trình một võ hồn
 
@@ -85,9 +85,9 @@ Lam Ngân Thảo, A Ngân, Kỳ Nhung Thông Thiên Cúc: concept + xoay như m�
 - `glowMau`: màu viền / vệt sáng riêng (mặc định màu võ hồn), dùng cho võ hồn đa sắc như A Ngân (`#c080ff`).
 - **Lượt thực tế lô P5: ~17** (7 concept gồm Cúc làm lại 1, A Ngân làm lại 3; 4 lần xoay × 2 gồm A Ngân xoay lại; 2 lượt dự phòng cho một lệnh xoay bị timeout). Bài học: prompt cây cao nhiều nhánh ra dáng dương xỉ mảnh, đọc yếu khi chồng lên hồn sư; "tán hoa lớn như lọng + vương miện + tua rủ" ra bóng rõ hơn. Cúc cần "hàng trăm cánh kim dài, không có đĩa vàng phẳng", nếu không ra hoa hướng dương.
 
-## 7. Việc chưa làm (H2 trở đi)
+## 7. Hiện trạng và việc còn lại
 
-Client chưa tải sheet `pt_*` (`sprites.ts` bỏ qua key isometric ngoài hs / vh / beast / fx); H2 thêm hệ thống hình thái (đổi lớp, chuỗi biến hình 5 bước, tan), đọc `pt` từ manifest. Normal map (`_n.png`) chưa làm.
+Client tải sheet `pt_*` (`sprites.ts`) và hệ thống hình thái `PhapTuongSystem` (`client/src/phapTuong.ts`: đổi lớp, chuỗi biến hình, tan) đọc `pt` từ manifest. Còn lại: normal map (`_n.png`) cho pháp tướng chưa làm (`sprites.ts` bỏ qua `_n` cho key `pt_*`).
 
 ## 8. Bổ sung từ lô P1 (Hỏa Long, Tà Hỏa Phượng Hoàng, Băng Phượng Hoàng, Kim Vũ Miêu Ưng)
 
@@ -124,5 +124,7 @@ Thú bốn chân và thú ngồi dùng cùng `post` của lô P1, 119 lượt ch
 - **Bỏ đế tròn / vệt dẹt dưới chân** (concept hay kèm đĩa lửa hoặc khói): cắt ở ảnh hướng s / se / e / ne / n TRƯỚC khi làm hoạt ảnh (giới hạn bề ngang theo thân, thu dần), để PixelLab không vẽ đế vào hoạt ảnh; sau hoạt ảnh làm rách 7 hàng đáy mỗi khung (xóa điểm theo hash cố định) cho lửa / khói tan thay vì đáy phẳng. Hỏa Ảnh cao sát 128 điểm nên thu 94% quanh giữa-đáy, nếu không ngọn lửa chạm mép trên khung 160.
 - **`post.match` có thể làm hỏng.** Khớp biểu đồ màu về khung idle đầu làm thân đen của Hỏa Ảnh nhấp nháy sang nâu đỏ và mất độ sáng mặt người của nhện: đặt `match: { idle: 0, attack: 0 }` cho hai võ hồn này, xem sheet trước khi chốt.
 - Hướng n (nhìn từ sau) của nhện và rắn bành cổ đọc yếu hơn các hướng khác nhưng vẫn phân biệt được bằng bóng và màu.
-- Cộng cả bộ 25 võ hồn: ảnh pháp tướng đã đủ; việc còn lại là hiệu ứng riêng của tuyệt kỹ / hồn kỹ Chân Thân và hoàn thiện (#482).
+- Cộng cả bộ 25 võ hồn: ảnh pháp tướng đã đủ; hiệu ứng riêng của tuyệt kỹ / hồn kỹ Chân Thân làm ở `ky-nang-cong-thuc.md`.
 
+## Issue liên quan
+#482 (theo dõi pháp tướng), #485 (H1), #492 (đặc tả `phap-tuong.md`).
