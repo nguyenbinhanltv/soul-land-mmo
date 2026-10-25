@@ -1,0 +1,56 @@
+{
+  "species": "am_kim_khung_trao_hung",
+  "sheet": "A",
+  "date": "2026-10-26",
+  "session": "soul-land-mmo-63",
+  "tool": "image_gen.imagegen tích hợp Codex",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Không có size/model selector; không trả model ID hay seed.",
+  "attempts": 1,
+  "selected_attempt": 1,
+  "raw_file": "toA.png",
+  "output_path_returned_by_tool": "/Users/thanhhoa/.codex/generated_images/01a174a4-4c8a-7b73-a0f0-0b3c9440e760/exec-fcac8659-a7ed-4e20-936b-25777b4d7f81.png",
+  "sha256": "da86d8bf5023a5401000a905df07bdebd70803df5613093ea5b4c6e00ab0392d",
+  "width": 1024,
+  "height": 1536,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "grid": [
+    6,
+    12
+  ],
+  "expected_visible_cells": 66,
+  "empty_cells": [
+    "H4 C5–6",
+    "H8 C5–6",
+    "H12 C5–6"
+  ],
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "13564bb0a3d5f21d87c1e49d941d0f42602293f6b0f56a66b148c938a14b5393",
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/am_kim_khung_trao_hung.png",
+      "sha256": "80e62d4106511f93d59328fd5dd1463abade6ad49a25969c0015f7b4d49ebbee",
+      "role": "ảnh tĩnh thiết kế gốc, đã xem trước"
+    }
+  ],
+  "tool_parameters": {
+    "transparent_background": false,
+    "referenced_image_paths": [
+      "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-63/shared/assets/sprites/beast/am_kim_khung_trao_hung.png"
+    ],
+    "prompt_file": "toA.prompt.txt"
+  },
+  "postprocessing": "Không. Sao chép nguyên byte từ output tool.",
+  "qa_status": "candidate chưa owner duyệt mỹ thuật/runtime",
+  "suspected_issues": [
+    "H1 C5–6 hurt quay đầu phải, thiếu giật lùi rõ.",
+    "H4 C2–4 die đổi trục nam sang phải.",
+    "H5–7 vài pose se gần e; H5 C5–6 hurt xoay mặt.",
+    "H9 C5–6 hurt xoay khỏi hướng đông.",
+    "H8/H12 C3–4 die cần kiểm trục và cỡ khi cắt preview."
+  ]
+}
