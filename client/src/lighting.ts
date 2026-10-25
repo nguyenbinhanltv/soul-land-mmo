@@ -14,7 +14,7 @@ const params = typeof location !== "undefined" ? new URLSearchParams(location.se
 /** `?light=0`: tắt ánh sáng (so khung hình, khắc phục máy yếu); `?light=1`: luôn bật (kể cả WebGL phần mềm, không tự tắt khi chậm). */
 export const LIGHT_OFF = params.get("light") === "0", LIGHT_FORCE = params.get("light") === "1";
 /**
- * Số đèn tối đa cùng lúc gần camera (Phaser `maxLights`, mục 5.11 "khoảng 10"): máy cảm ứng (điện thoại) 6 cho nhẹ; `?den=N` để thử.
+ * Số đèn tối đa cùng lúc gần camera (Phaser `maxLights`, mục 5.11 "Ánh sáng và chiều sâu"): máy cảm ứng (điện thoại) 6 cho nhẹ; `?den=N` để thử.
  * Đặt vào cấu hình game (main.ts) vì shader dịch theo số này.
  */
 export const MAX_LIGHTS = Math.max(1, Math.min(16, Number(params.get("den")) ||

@@ -38,7 +38,7 @@ Key PixelLab đọc từ file (`PIXELLAB_KEY_FILE`, mặc định `~/.config/pix
 | Thử đánh PixelLab (hỏng) | | 2 | xem mục 4 |
 | **Tổng** | **23** | **3 dùng + 2 thử = 5** | |
 
-Ước tính cho 23 võ hồn còn lại: **sinh vật / hình thú ≈ 23 lượt** (nhóm S, B, T, D: rồng, rắn, chim, thú, nhện, bóng); **vật cứng ≈ 3 lượt** (nhóm V, O, P: kiếm, búa, tháp, đỉnh, thương, xích, hoa). Nhóm theo `docs/art/phap-tuong.md` mục 4.2. Làm cả bộ ≈ 12 võ hồn sinh vật × 23 + 11 vật cứng × 3 ≈ **310 lượt** (thấp hơn ước tính 750 ở #482). Muốn đẹp hơn có thể làm thêm 1 concept dự phòng (+1 lượt) rồi chọn.
+Ước tính cho 23 võ hồn còn lại: **sinh vật / hình thú ≈ 23 lượt** (nhóm S, B, T, D: rồng, rắn, chim, thú, nhện, bóng); **vật cứng ≈ 3 lượt** (nhóm V, O, P: kiếm, búa, tháp, đỉnh, thương, xích, hoa). Nhóm theo `docs/art/phap-tuong.md` phần 4.2. Làm cả bộ ≈ 12 võ hồn sinh vật × 23 + 11 vật cứng × 3 ≈ **310 lượt** (thấp hơn ước tính 750 ở #482). Muốn đẹp hơn có thể làm thêm 1 concept dự phòng (+1 lượt) rồi chọn.
 
 ## 4. Thở / đánh bằng code cho võ hồn dạng vật (búa)
 

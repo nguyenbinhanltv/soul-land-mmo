@@ -4762,7 +4762,7 @@ else {
       for(const it of HT) A.room.send("discard",{id:it.id});
       await waitFor(()=>!HT.some(i=>itOf(i.id)),2000);
 
-      // Tiên Cơ (mục 2.4): 2 món trên võ hồn ngoài sân tích năng lượng +20%; 4 món: tiên cơ của võ hồn đó +35% sát thương.
+      // Tiên Cơ (docs/design/hon-hach.md): 2 món trên võ hồn ngoài sân tích năng lượng +20%; 4 món: tiên cơ của võ hồn đó +35% sát thương.
       if(bench){
         const TC=await giveCores("tien_co",4);
         await coreOp("equipcore",{itemId:TC[0].id,vohonId:bench}); t=await coreOp("equipcore",{itemId:TC[1].id,vohonId:bench});
