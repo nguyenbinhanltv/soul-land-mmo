@@ -7,11 +7,11 @@
   "model_id": null,
   "seed": null,
   "tool_limitations": "Không có size/model selector; không trả model ID hay seed.",
-  "attempts": 1,
-  "selected_attempt": 1,
+  "attempts": 2,
+  "selected_attempt": 2,
   "raw_file": "toA.png",
-  "output_path_returned_by_tool": "/Users/thanhhoa/.codex/generated_images/01a174a4-4c8a-7b73-a0f0-0b3c9440e760/exec-fcac8659-a7ed-4e20-936b-25777b4d7f81.png",
-  "sha256": "da86d8bf5023a5401000a905df07bdebd70803df5613093ea5b4c6e00ab0392d",
+  "output_path_returned_by_tool": "/Users/thanhhoa/.codex/generated_images/01a174a4-4c8a-7b73-a0f0-0b3c9440e760/exec-cd71e55c-c610-438d-884f-7cb10a5988b9.png",
+  "sha256": "6ce9fe1bd580b6b144a625adab9e745bb52341f19a5f7473030bdc507414fcd9",
   "width": 1024,
   "height": 1536,
   "requested_dimensions": [
@@ -29,7 +29,7 @@
     "H12 C5–6"
   ],
   "prompt_file": "toA.prompt.txt",
-  "prompt_sha256": "13564bb0a3d5f21d87c1e49d941d0f42602293f6b0f56a66b148c938a14b5393",
+  "prompt_sha256": "7d961ea48cb5e8dd379ee904d77552b5d01a2f1893578c3360cc673d878fe14f",
   "references": [
     {
       "path": "shared/assets/sprites/beast/am_kim_khung_trao_hung.png",
@@ -47,10 +47,26 @@
   "postprocessing": "Không. Sao chép nguyên byte từ output tool.",
   "qa_status": "candidate chưa owner duyệt mỹ thuật/runtime",
   "suspected_issues": [
-    "H1 C5–6 hurt quay đầu phải, thiếu giật lùi rõ.",
-    "H4 C2–4 die đổi trục nam sang phải.",
-    "H5–7 vài pose se gần e; H5 C5–6 hurt xoay mặt.",
-    "H9 C5–6 hurt xoay khỏi hướng đông.",
-    "H8/H12 C3–4 die cần kiểm trục và cỡ khi cắt preview."
+    "H1 C5 và H5 C5: hurt ngửa đầu, cần kiểm đủ giật lùi và giữ hướng s/se.",
+    "H4 C1–4: die đổi trục nam, C3–4 đầu quay trái; cần owner xem toàn chu kỳ.",
+    "H8 C3–4 và H12 C3–4: die nằm quay về người xem, nghi sai trục se/e.",
+    "H5–7 C1–6: kiểm se đủ khác e; H7 C3–4 thân vồ rộng, cần kiểm mép ô.",
+    "H11 C3–4: attack đầu/thân hơi xoay trước, cần kiểm trục e.",
+    "Toàn tờ: chưa cắt/preview, chưa xác nhận loop và độ khớp cỡ với ảnh tĩnh."
+  ],
+  "selection_reason": "A2 có recoil/hurt và claw-swipe/attack rõ hơn A1; giữ candidate cho owner kiểm, chưa đạt mỹ thuật.",
+  "history": [
+    {
+      "attempt": 1,
+      "sha256": "da86d8bf5023a5401000a905df07bdebd70803df5613093ea5b4c6e00ab0392d",
+      "artifact_directory": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-63/am_kim_khung_trao_hung/A1",
+      "status": "dự phòng, không chọn"
+    },
+    {
+      "attempt": 2,
+      "sha256": "6ce9fe1bd580b6b144a625adab9e745bb52341f19a5f7473030bdc507414fcd9",
+      "artifact_directory": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-63/am_kim_khung_trao_hung/A2",
+      "status": "candidate được chọn, chưa owner duyệt"
+    }
   ]
 }
