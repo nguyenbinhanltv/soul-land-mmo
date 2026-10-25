@@ -162,7 +162,7 @@ XONG. Đặt ở GitHub repo $GH_REPO (Settings > Secrets and variables > Action
   GCP_WIF_PROVIDER = $WIF_PROVIDER
   GCP_SA_EMAIL     = $WRITER_EMAIL
 Image: $REGION-docker.pkg.dev/$PROJECT/$REPO/game
-Reader (tạo pull secret 'ar-pull' cho cụm): $READER_EMAIL, xem deploy/gcp/README.md mục 4.
+Reader (tạo pull secret 'gcp-ar-creds' cho cụm): $READER_EMAIL, xem deploy/gcp/README.md mục 4.
 (Secret GITOPS_TOKEN cho promote.yml tạo riêng theo README mục 3.)
 ================================================================
 OUT

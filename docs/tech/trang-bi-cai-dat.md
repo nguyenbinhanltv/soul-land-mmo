@@ -74,7 +74,7 @@ Luật chơi và bảng số ở `docs/design/trang-bi.md` (mục 5.15) và `sha
 - Giao diện: trang "Khắc may mắn" ở Thợ rèn (chọn món, tỉ lệ, số Thần Hồn, hiệu ứng thành / bại), nhãn `M<n>` ở túi cập nhật qua tin `bagd` / `gear`. Bài bot `gearLuckTest` (nhóm `bag`).
 
 ## Chưa làm
-- Số cân bằng trang bị chưa có ghi chép chủ repo duyệt riêng; `docs/trang-bi-kinh-te.md` vẫn là ước lượng theo giả định.
+- Số cân bằng trang bị đã được chủ repo duyệt (Q42 ở `docs/quyet-dinh.md`); `docs/trang-bi-kinh-te.md` là ước lượng theo giả định.
 
 ## Issue liên quan
 #411 (E0, kinh tế), #412–#415 (E1–E4), #418 (E7).

@@ -2,36 +2,21 @@
 // độ dài / độ mạnh của hiệu ứng, KHÔNG phải số cân bằng (số cân bằng ở shared/data.ts).
 import Phaser from "phaser";
 import type { He, HaoQuangMode } from "../../shared/data.ts";
-import { FxGovernor, GOV, FX_DEFAULT_LEVEL, normalizeFxLevel } from "./combatFeelRules.ts";
+import { FxGovernor, GOV } from "./combatFeelRules.ts";
+import { readFxPrefs, writeFxPrefs, type FxLevel, type ShakeMode, type FxPrefs } from "./fxSettings.ts";
 
-export type FxLevel = "low" | "mid" | "high";
-/** Rung màn hình (#437): Tắt (không rung / giật), Chỉ boss (mặc định: tinh anh trở lên, chiêu mạnh vào mình, hồn kỹ lớn), Đầy đủ (thêm chí mạng lên hồn thú thường, trừ khi tự săn). */
-export type ShakeMode = "off" | "boss" | "full";
+export { type FxLevel, type ShakeMode, type FxPrefs } from "./fxSettings.ts";
 export const SHAKE_MODES: [ShakeMode, string][] = [["off", "Tắt"], ["boss", "Chỉ boss"], ["full", "Đầy đủ"]];
-export interface FxPrefs { level: FxLevel; reduce: boolean; shake: ShakeMode; cine: boolean; cutin: boolean; halo: HaoQuangMode; hideHat: boolean; /** Tự hạ mức hiệu ứng khi FPS thấp (H8 #491); chỉ hạ, không nâng quá mức người chơi chọn. */ auto: boolean }
-
-const KEY = "soul-land-fx-v1";
-const store = (): Storage | null => { try { return window.localStorage; } catch { return null; } };
-const prefersReduce = () => { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; } };
-
-function load(): FxPrefs {
-  const def: FxPrefs = { level: FX_DEFAULT_LEVEL, reduce: prefersReduce(), shake: "boss", cine: true, cutin: true, halo: "halo", hideHat: false, auto: true };
-  try {
-    const raw = JSON.parse(store()?.getItem(KEY) ?? "null");
-    if (raw && typeof raw === "object") return { level: normalizeFxLevel(raw.level), reduce: typeof raw.reduce === "boolean" ? raw.reduce : def.reduce, shake: raw.shake === "off" || raw.shake === "full" ? raw.shake : "boss", cine: typeof raw.cine === "boolean" ? raw.cine : true, cutin: typeof raw.cutin === "boolean" ? raw.cutin : true, halo: raw.halo === "feet" || raw.halo === "old" ? raw.halo : "halo", hideHat: raw.hideHat === true, auto: raw.auto !== false }; // bản lưu cũ không có `shake` → Chỉ boss
-  } catch { /* hỏng thì dùng mặc định */ }
-  return def;
-}
 
 /** Cài đặt hiệu ứng hiện hành (đối tượng sống, mọi nơi đọc trực tiếp). */
-export const fxPrefs: FxPrefs = load();
+export const fxPrefs: FxPrefs = readFxPrefs();
 /** Giảm chuyển động (G8 #399): gắn lớp `reduce-motion` lên <html> để CSS tắt cả nháy / rung / nhấp nháy giao diện, không chỉ khi hệ điều hành bật (style.css, cuối file). */
 function applyReduceClass(): void { try { document.documentElement.classList.toggle("reduce-motion", fxPrefs.reduce); } catch { /* không có DOM (bot, kiểm thử) */ } }
 applyReduceClass();
 export function setFxPrefs(p: Partial<FxPrefs>): void {
   Object.assign(fxPrefs, p);
   applyReduceClass();
-  try { store()?.setItem(KEY, JSON.stringify(fxPrefs)); } catch { /* localStorage có thể bị khóa */ }
+  writeFxPrefs(fxPrefs);
 }
 
 // ---- H8 (#491): tự hạ mức hiệu ứng khi FPS thấp. Chỉ hiển thị, không đổi lựa chọn đã lưu của người chơi.

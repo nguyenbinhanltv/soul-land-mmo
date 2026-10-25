@@ -1,6 +1,6 @@
 # Dựng GCP cho CI/CD của game (K2, #500)
 
-Chủ repo tự chạy (cần quyền admin ở project GCP). Worker / agent **không** chạy lệnh nào vào GCP thật. Luồng tổng thể: xem `docs/deploy.md`.
+Chủ repo tự chạy (cần quyền admin ở project GCP). Worker / agent **không** chạy lệnh nào vào GCP thật. Luồng tổng thể: xem `docs/ops/trien-khai.md`.
 
 Kết quả sau khi chạy:
 - Artifact Registry `soul-land` (docker, `asia-southeast1`), image `asia-southeast1-docker.pkg.dev/landing-page-455614/soul-land/game`.
@@ -73,9 +73,9 @@ Dùng khi WIF chưa chạy được. Key có hiệu lực dài hạn nên rủi 
 
 Đặt vào secret `GITOPS_TOKEN` của repo game. Token không được có quyền ở repo game hay repo khác.
 
-## 4. Pull secret `ar-pull` cho cụm K8s
+## 4. Pull secret `gcp-ar-creds` cho cụm K8s
 
-Cụm kéo image bằng service account **reader**. Key JSON chỉ tồn tại **cục bộ**, ngắn ngủi: tạo → đóng gói thành SealedSecret → xóa. Chỉ SealedSecret (đã mã hóa) được commit vào repo GitOps.
+Cụm kéo image bằng service account **reader**. Key JSON chỉ tồn tại **cục bộ**, ngắn ngủi: tạo → chủ repo tạo tay Secret `gcp-ar-creds` trên cụm → xóa key. Không dùng Sealed Secrets, không commit gì vào repo GitOps (`docs/ops/gitops.md`).
 
 ```bash
 # 1) Tạo key (file cục bộ, KHÔNG commit, KHÔNG gửi qua chat / CI)
@@ -83,23 +83,21 @@ KEY=$(mktemp)
 gcloud iam service-accounts keys create "$KEY" \
   --iam-account soul-land-ar-pull@landing-page-455614.iam.gserviceaccount.com
 
-# 2) Dựng Secret dockerconfigjson (không áp vào cụm: --dry-run=client) rồi mã hóa bằng kubeseal
-kubectl create secret docker-registry ar-pull \
+# 2) Tạo Secret dockerconfigjson thẳng trên cụm
+kubectl create secret docker-registry gcp-ar-creds \
   --namespace soul-land \
   --docker-server=asia-southeast1-docker.pkg.dev \
   --docker-username=_json_key \
   --docker-password="$(cat "$KEY")" \
-  --dry-run=client -o yaml \
-  | kubeseal --format yaml --controller-namespace <ns của sealed-secrets> --controller-name <tên controller> \
-  > ar-pull-sealed.yaml
+  --dry-run=client -o yaml | kubectl apply -f -
 
 # 3) Xóa key cục bộ ngay
 shred -u "$KEY" 2>/dev/null || rm -f "$KEY"
 ```
 
-Đặt `ar-pull-sealed.yaml` vào repo GitOps đúng chỗ (xem README repo đó), merge, ArgoCD sync. Tên và namespace trong SealedSecret phải đúng `ar-pull` / `soul-land` (SealedSecret gắn chặt tên + namespace).
+Tên và namespace Secret phải khớp `imagePullSecrets` của deployment (xem README repo GitOps).
 
-**Xoay 90 ngày:** lặp lại bước 1–3 với key mới, merge SealedSecret mới, kiểm pod kéo được image, rồi xóa key cũ:
+**Xoay 90 ngày:** lặp lại bước 1–3 với key mới (bước 2 dùng `kubectl apply` nên ghi đè tại chỗ, không có khoảng trống không có Secret), kiểm pod kéo được image, rồi xóa key cũ:
 
 ```bash
 gcloud iam service-accounts keys list --iam-account soul-land-ar-pull@landing-page-455614.iam.gserviceaccount.com

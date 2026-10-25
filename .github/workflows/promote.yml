@@ -2,7 +2,7 @@
 # Đầu vào `sha` (7 đến 40 ký tự hex, hoặc dạng sha-xxxxxxx); để trống = commit mới nhất trên main (dò ngược git log) đã có tag sha-* trên registry; tag `main` chỉ là phương án dự phòng.
 # Gắn thêm tag prod-<sha7> cho bản được promote (registry giữ mãi tag này, để quay lui được).
 # Cần: GCP_SA_KEY (secret, key JSON của service account), hoặc GCP_WIF_PROVIDER + GCP_SA_EMAIL (Variable hoặc Secret; workflow đọc vars rồi secrets) để kiểm tag có trên registry; và secret GITOPS_TOKEN (chỉ quyền contents + pull-requests trên repo GitOps).
-# Hướng dẫn thiết lập: deploy/gcp/README.md. Luồng đầy đủ: docs/deploy.md.
+# Hướng dẫn thiết lập: deploy/gcp/README.md. Luồng đầy đủ: docs/ops/trien-khai.md.
 name: Promote
 
 on:
