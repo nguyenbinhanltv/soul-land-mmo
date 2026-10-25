@@ -1,0 +1,324 @@
+// Cắt tờ hoạt ảnh hồn thú do ChatGPT / Codex vẽ thành sheet game (#688, docs/art/hon-thu-hoat-anh.md).
+//   node tools/assets/beast-sheet-cut.mjs --species phong_lang --sheet A=a.png --sheet B=b.png --out <thư mục> [tùy chọn]
+//
+// Các bước (mỗi tờ theo bố cục sheetPlan của beast-sheet-lib.mjs: lưới cố định, hàng = dải hoạt ảnh, cột = khung):
+//   1. Xóa nền (màu khóa mặc định đọc ở góc, thường #FF00FF; hoặc alpha thấp), gỡ 3 lớp viền nhiễm màu nền.
+//   2. Tách hình theo thành phần liên thông; mỗi thành phần về ô lưới chứa trọng tâm của nó (hình dính nhiều ô thì chia theo ô);
+//      mảnh vụn nhỏ hoặc xa thân bị bỏ (đếm trong báo cáo), mảnh nhỏ sát thân gộp vào thân.
+//   3. Mỗi khung: chân = đáy hộp bao, tâm chân ngang = trung bình x của các hàng đáy; MỘT hệ số thu chung cho cả loài
+//      (khớp cỡ ảnh tĩnh hiện có nếu có, không thì --fill); đặt chân vào gốc (giữa, cách đáy ISO_BEAST_FOOT).
+//   4. Lượng tử về bảng màu (auto: median cut --colors, hoặc --palette gpl|<file.gpl>), thu về lưới pixel bằng bỏ phiếu màu
+//      nhiều nhất (không nội suy), viền ngoài #1a1020.
+//   5. Cảnh báo: thiếu khung, hình ở ô trống, khung lệch cỡ / chân / vượt khung, hình dính, mảnh rời lớn bị bỏ.
+//   6. Ghi <out>/<loài>_anim.png (sheet game, 6 cột × 20 hàng: hướng × dải), <out>/manifest-entry.json, <out>/_report.json.
+// Không ghi vào shared/assets: orchestrator duyệt trang xem trước (beast-sheet-preview.mjs) rồi mới chép và nối client.
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { Img, readPng, encodePng, readGpl, hex, toHex, OUTLINE, ISO_BEAST_FOOT } from "./lib.mjs";
+import { DIRS, ANIMS, COLS, BAND_ROWS, animSlot, sheetPlan, sheetCells, cellRect, speciesInfo } from "./beast-sheet-lib.mjs";
+
+const K_OUT = hex(OUTLINE);
+const dist2 = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
+const median = (xs) => { const s = [...xs].sort((a, b) => a - b); return s.length ? (s.length % 2 ? s[s.length >> 1] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2) : 0; };
+
+// ---------- Nền ----------
+/** Màu khóa: số lần xuất hiện nhiều nhất ở 4 góc (ảnh có alpha thấp thì không cần khóa). */
+function keyOf(img) {
+  const c = [[0, 0], [img.w - 1, 0], [0, img.h - 1], [img.w - 1, img.h - 1]].map(([x, y]) => img.get(x, y)).filter((p) => p[3] >= 128);
+  return c.length ? c[0] : null;
+}
+/** Mặt nạ vật (1 = vật) sau khi bỏ nền và 3 lớp viền nhiễm màu nền (điểm giáp nền, màu nằm giữa vật và nền). */
+export function foregroundMask(img, key, tol) {
+  const { w, h } = img, m = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const p = img.get(x, y);
+    m[y * w + x] = p[3] < 128 || (key && dist2(p, key) <= tol * tol) ? 0 : 1;
+  }
+  if (key) for (let pass = 0; pass < 3; pass++) {
+    const kill = [];
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      if (!m[y * w + x]) continue;
+      const touches = (x > 0 && !m[y * w + x - 1]) || (x < w - 1 && !m[y * w + x + 1]) || (y > 0 && !m[(y - 1) * w + x]) || (y < h - 1 && !m[(y + 1) * w + x]);
+      if (!touches) continue;
+      const p = img.get(x, y), d = dist2(p, key), tint = p[0] - p[1] > 40 && p[2] - p[1] > 40; // ngả hồng-tím như nền
+      if (d <= (tol * 1.9) ** 2 || (tint && d <= (tol * 2.8) ** 2)) kill.push(y * w + x);
+    }
+    for (const i of kill) m[i] = 0;
+  }
+  return m;
+}
+
+// ---------- Thành phần liên thông ----------
+/** Nhãn 8 liên thông: danh sách { px: [chỉ số], area, x0, y0, x1, y1, cx, cy }. */
+export function components(mask, w, h) {
+  const seen = new Uint8Array(w * h), out = [], stack = [];
+  for (let s = 0; s < w * h; s++) {
+    if (!mask[s] || seen[s]) continue;
+    const c = { px: [], x0: w, y0: h, x1: -1, y1: -1, cx: 0, cy: 0 };
+    seen[s] = 1; stack.push(s);
+    while (stack.length) {
+      const i = stack.pop(), x = i % w, y = (i / w) | 0;
+      c.px.push(i); c.cx += x; c.cy += y;
+      if (x < c.x0) c.x0 = x; if (x > c.x1) c.x1 = x; if (y < c.y0) c.y0 = y; if (y > c.y1) c.y1 = y;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const X = x + dx, Y = y + dy;
+        if (X < 0 || Y < 0 || X >= w || Y >= h) continue;
+        const j = Y * w + X;
+        if (mask[j] && !seen[j]) { seen[j] = 1; stack.push(j); }
+      }
+    }
+    c.area = c.px.length; c.cx /= c.area; c.cy /= c.area;
+    out.push(c);
+  }
+  return out;
+}
+const pieceOf = (px, w) => {
+  const p = { px, area: px.length, x0: Infinity, y0: Infinity, x1: -1, y1: -1 };
+  for (const i of px) { const x = i % w, y = (i / w) | 0; if (x < p.x0) p.x0 = x; if (x > p.x1) p.x1 = x; if (y < p.y0) p.y0 = y; if (y > p.y1) p.y1 = y; }
+  return p;
+};
+
+/**
+ * Gán thành phần về ô lưới rồi gộp trong từng ô: thân = mảnh lớn nhất; mảnh khác ≥ minArea và cách hộp thân ≤ gap thì gộp, còn lại bỏ.
+ * @returns {{ pieces: Map<string, object>, dropped: number, droppedBig: object[], stuck: number }}
+ */
+export function assignToCells(img, sheet, mask, opt) {
+  const { w, h } = img, cw = w / sheet.cols, ch = h / sheet.rows;
+  const cellOf = (x, y) => ({ col: Math.min(sheet.cols - 1, (x / cw) | 0), row: Math.min(sheet.rows - 1, (y / ch) | 0) });
+  const buckets = new Map(); let stuck = 0;
+  const push = (k, p) => { if (!buckets.has(k)) buckets.set(k, []); buckets.get(k).push(p); };
+  for (const c of components(mask, w, h)) {
+    if (c.x1 - c.x0 + 1 > cw * 1.5 || c.y1 - c.y0 + 1 > ch * 1.5) {
+      stuck++;
+      const by = new Map();
+      for (const i of c.px) { const { col, row } = cellOf(i % w, (i / w) | 0), k = `${col},${row}`; if (!by.has(k)) by.set(k, []); by.get(k).push(i); }
+      for (const [k, px] of by) push(k, pieceOf(px, w));
+    } else {
+      const { col, row } = cellOf(c.cx, c.cy);
+      push(`${col},${row}`, c);
+    }
+  }
+  const minArea = Math.max(6, opt.minArea ?? Math.round(cw * ch * 0.0012)), gap = opt.gap ?? Math.round(Math.min(cw, ch) * 0.08);
+  const pieces = new Map(); let dropped = 0; const droppedBig = [];
+  for (const [k, list] of buckets) {
+    list.sort((a, b) => b.area - a.area);
+    const main = list[0], keep = [main];
+    let box = { x0: main.x0, y0: main.y0, x1: main.x1, y1: main.y1 };
+    for (const p of list.slice(1)) {
+      const near = p.x0 <= box.x1 + gap && p.x1 >= box.x0 - gap && p.y0 <= box.y1 + gap && p.y1 >= box.y0 - gap;
+      if (near && p.area >= minArea) { keep.push(p); box = { x0: Math.min(box.x0, p.x0), y0: Math.min(box.y0, p.y0), x1: Math.max(box.x1, p.x1), y1: Math.max(box.y1, p.y1) }; }
+      else { dropped++; if (p.area >= main.area * 0.03) droppedBig.push({ cell: k, area: p.area, of: main.area }); }
+    }
+    pieces.set(k, { px: keep.flatMap((p) => p.px), box });
+  }
+  // ô chỉ có đốm vụn (diện tích dưới 10% trung vị các thân) không phải khung vẽ
+  const med = median([...pieces.values()].map((p) => p.px.length));
+  for (const [k, p] of [...pieces]) if (p.px.length < med * 0.1) { pieces.delete(k); dropped++; }
+  return { pieces, dropped, droppedBig, stuck };
+}
+
+// ---------- Màu ----------
+function medianCut(pixels, n) {
+  const boxes = [pixels];
+  while (boxes.length < n) {
+    let bi = -1, bs = 0;
+    boxes.forEach((b, i) => { if (b.length > 1 && b.length > bs) { bs = b.length; bi = i; } });
+    if (bi < 0) break;
+    const b = boxes[bi]; let ch = 0, best = -1;
+    for (let c = 0; c < 3; c++) { const lo = Math.min(...b.map((p) => p[c])), hi = Math.max(...b.map((p) => p[c])); if (hi - lo > best) { best = hi - lo; ch = c; } }
+    b.sort((p, q) => p[ch] - q[ch]);
+    boxes.splice(bi, 1, b.slice(0, b.length >> 1), b.slice(b.length >> 1));
+  }
+  return boxes.map((b) => [0, 1, 2].map((c) => Math.round(b.reduce((s, p) => s + p[c], 0) / b.length)));
+}
+const nearest = (p, pal) => { let bi = 0, bd = Infinity; for (let i = 0; i < pal.length; i++) { const d = dist2(p, pal[i]); if (d < bd) { bd = d; bi = i; } } return bi; };
+
+// ---------- Cắt một loài ----------
+/**
+ * @param {{ species: string, sheets: Record<string, Img>, frame?: number, key?: number[], tol?: number, colors?: number, palette?: string, fill?: number, scale?: number, minArea?: number }} o
+ * @returns {{ sheet: Img, entry: object, report: object, frames: Map<string, Img> }} frames: khóa `dir/anim/n`
+ */
+export function cutSpecies(o) {
+  const info = speciesInfo(o.species), F = o.frame ?? info.frame;
+  if (!F) throw new Error(`loài ${o.species} chưa có khung trong manifest: đặt --frame`);
+  const plan = sheetPlan(F), warns = [], rep = { species: o.species, frame: F, sheets: {}, scale: 0, dropped: 0 };
+  const foot = F - ISO_BEAST_FOOT, tol = o.tol ?? 60;
+
+  // 1–2. Tách hình, gán ô
+  const raw = new Map(); // `dir/anim/n` → { img: Img (cắt, alpha 0/255), footX, w, h, cellBottom, cellH }
+  for (const sh of plan) {
+    const img = o.sheets[sh.id];
+    if (!img) { warns.push(`thiếu tờ ${sh.id} (${sh.dirs.join(", ")})`); continue; }
+    const key = o.key ?? keyOf(img), mask = foregroundMask(img, key, tol);
+    const { pieces, dropped, droppedBig, stuck } = assignToCells(img, sh, mask, { minArea: o.minArea });
+    rep.dropped += dropped;
+    for (const b of droppedBig) warns.push(`tờ ${sh.id} ô ${b.cell}: bỏ mảnh rời lớn ${b.area} điểm (thân ${b.of}), kiểm tra ảnh`);
+    if (stuck) warns.push(`tờ ${sh.id}: ${stuck} hình dính nhiều ô, đã chia theo ô; nên vẽ lại cho các hình cách xa nhau`);
+    const used = new Set();
+    rep.sheets[sh.id] = { size: [img.w, img.h], key: key && toHex(key), cells: pieces.size };
+    for (const c of sheetCells(sh)) {
+      const k = `${c.col},${c.row}`, p = pieces.get(k), name = `${c.dir}/${c.anim}/${c.frame}`;
+      used.add(k);
+      if (!p) { warns.push(`THIẾU khung ${name} (tờ ${sh.id} cột ${c.col} hàng ${c.row})`); continue; }
+      const { x0, y0, x1, y1 } = p.box, fw = x1 - x0 + 1, fh = y1 - y0 + 1, im = new Img(fw, fh);
+      for (const i of p.px) im.set((i % img.w) - x0, ((i / img.w) | 0) - y0, img.get(i % img.w, (i / img.w) | 0));
+      const lowRows = Math.max(1, Math.round(fh * 0.08)); let sx = 0, n = 0;
+      for (let y = fh - lowRows; y < fh; y++) for (let x = 0; x < fw; x++) if (im.alpha(x, y)) { sx += x; n++; }
+      const r = cellRect(sh, c.col, c.row, img.w, img.h);
+      raw.set(name, { img: im, w: fw, h: fh, footX: n ? sx / n : fw / 2, bottom: y1 + 1 - r.y0, cellH: r.h, anim: c.anim, dir: c.dir });
+    }
+    for (const k of pieces.keys()) if (!used.has(k)) warns.push(`tờ ${sh.id}: có hình ở ô trống ${k} (bỏ qua)`);
+  }
+
+  // Khung lệch: so với trung vị cùng dải hoạt ảnh và cùng hướng
+  for (const dir of DIRS) for (const [anim, n] of ANIMS) {
+    const fr = [...Array(n).keys()].map((f) => ({ f, r: raw.get(`${dir}/${anim}/${f}`) })).filter((x) => x.r);
+    if (fr.length < 2) continue;
+    const mh = median(fr.map((x) => x.r.h)), mw = median(fr.map((x) => x.r.w)), ma = median(fr.map((x) => x.r.img.data.filter((_, i) => i % 4 === 3 && _).length));
+    for (const { f, r } of fr) {
+      const area = r.img.data.filter((_, i) => i % 4 === 3 && _).length, why = [];
+      if (area > ma * 1.7 || area < ma / 1.7) why.push(`diện tích ${Math.round((area / ma) * 100)}% trung vị`);
+      if (anim !== "attack" && anim !== "die" && (r.h > mh * 1.35 || r.h < mh / 1.35)) why.push(`cao ${r.h} (trung vị ${Math.round(mh)})`);
+      if (anim !== "attack" && anim !== "die" && (r.w > mw * 1.5 || r.w < mw / 1.5)) why.push(`rộng ${r.w} (trung vị ${Math.round(mw)})`);
+      if (why.length) warns.push(`khung ${dir}/${anim}/${f} lệch: ${why.join(", ")}`);
+    }
+    const mb = median(fr.map((x) => x.r.bottom / x.r.cellH));
+    for (const { f, r } of fr) if (anim !== "attack" && Math.abs(r.bottom / r.cellH - mb) > 0.15) warns.push(`khung ${dir}/${anim}/${f}: chân lệch ${Math.round(Math.abs(r.bottom / r.cellH - mb) * 100)}% chiều cao ô so với các khung cùng hoạt ảnh`);
+  }
+
+  // 3. Hệ số thu chung
+  const idle = [...raw.entries()].filter(([, r]) => r.anim === "idle");
+  const all = [...raw.values()];
+  if (!all.length) throw new Error("không cắt được khung nào");
+  let scale = o.scale;
+  const ref = info.staticFile && !o.fill ? staticRef(info.staticFile, F) : null;
+  if (!scale) {
+    if (ref) {
+      // khớp cỡ ảnh tĩnh: chiều cao thân đứng khung đông (hoặc nam) của sheet tĩnh bằng chiều cao trung vị khung đứng cùng hướng
+      const hs = idle.filter(([k]) => k.startsWith(ref.dir + "/")).map(([, r]) => r.h);
+      scale = (hs.length ? ref.h / median(hs) : null);
+    }
+    scale ??= ((o.fill ?? 0.8) * F) / Math.max(median(idle.map(([, r]) => r.w)), median(idle.map(([, r]) => r.h)));
+  }
+  const fit = Math.min(...all.map((r) => Math.min((F - 4) / r.w, (foot - 2) / r.h)));
+  if (fit < scale) {
+    if (fit >= scale * 0.8) scale = fit;
+    else warns.push(`một số khung vượt khung ${F}×${F} ở hệ số ${scale.toFixed(3)} (nhỏ nhất vừa: ${fit.toFixed(3)}), bị cắt mép`);
+  }
+  rep.scale = +scale.toFixed(4);
+
+  // 4. Bảng màu
+  const samples = [];
+  for (const r of all) for (let i = 0, n = 0; i < r.img.data.length; i += 4) if (r.img.data[i + 3] && ++n % 3 === 0) samples.push([r.img.data[i], r.img.data[i + 1], r.img.data[i + 2]]);
+  const pal = o.palette && o.palette !== "auto"
+    ? (o.palette === "gpl" ? readGpl() : readGpl(o.palette)).map(hex)
+    : medianCut(samples, o.colors ?? 24);
+  rep.palette = pal.length;
+
+  const frames = new Map(), q = [];
+  for (const [name, r] of raw) {
+    const pw = r.w, ph = r.h, idx = new Int16Array(pw * ph).fill(-1);
+    for (let y = 0; y < ph; y++) for (let x = 0; x < pw; x++) if (r.img.alpha(x, y)) idx[y * pw + x] = nearest(r.img.get(x, y), pal);
+    const out = new Img(F, F), sw = pw * scale, y0 = Math.round(foot - ph * scale);
+    // chân về giữa khung; hình lệch ra mép (đòn lao, ngã) thì dời vào trong cho còn chỗ viền, báo nếu phải dời xa
+    let x0 = Math.round(F / 2 - r.footX * scale); const want = x0;
+    x0 = Math.max(2, Math.min(F - 2 - Math.ceil(sw), x0));
+    if (Math.abs(x0 - want) > F * 0.06) warns.push(`khung ${name}: dời ngang ${Math.abs(x0 - want)} điểm để vừa khung (chân lệch tâm nhiều)`);
+    // bỏ phiếu: mỗi điểm đích lấy 4×4 mẫu trong vùng nguồn tương ứng, vật nếu ≥ nửa mẫu là vật, màu nhiều phiếu nhất
+    for (let v = 0; v < F; v++) for (let u = 0; u < F; u++) {
+      const votes = new Map(); let opaque = 0;
+      for (let sy = 0; sy < 4; sy++) for (let sx = 0; sx < 4; sx++) {
+        const X = Math.floor((u - x0 + (sx + 0.5) / 4) / scale), Y = Math.floor((v - y0 + (sy + 0.5) / 4) / scale);
+        if (X < 0 || Y < 0 || X >= pw || Y >= ph) continue;
+        const c = idx[Y * pw + X];
+        if (c >= 0) { opaque++; votes.set(c, (votes.get(c) ?? 0) + 1); }
+      }
+      if (opaque < 8) continue;
+      let bc = -1, bv = 0; for (const [c, n] of votes) if (n > bv) { bv = n; bc = c; }
+      out.set(u, v, [...pal[bc], 255]);
+    }
+    if (clippedEdge(out)) warns.push(`khung ${name} chạm mép khung ${F}×${F} (có thể bị cắt)`);
+    frames.set(name, out); q.push(out);
+  }
+
+  // Viền ngoài: nếu viền hình vốn tối thì chỉ tô lại, không thì thêm một vòng ngoài
+  let dark = 0, edge = 0;
+  for (const im of q) forEdge(im, (x, y) => { edge++; const p = im.get(x, y); if (p[0] * 0.3 + p[1] * 0.59 + p[2] * 0.11 < 60) dark++; });
+  const recolor = edge > 0 && dark / edge >= 0.6;
+  rep.outline = recolor ? "tô lại viền tối sẵn có" : "thêm vòng viền ngoài";
+  for (const im of q) {
+    if (recolor) { const e = []; forEdge(im, (x, y) => e.push([x, y])); for (const [x, y] of e) im.set(x, y, [...K_OUT, 255]); }
+    else { const e = []; for (let y = 0; y < F; y++) for (let x = 0; x < F; x++) if (!im.alpha(x, y) && touchesOpaque(im, x, y)) e.push([x, y]); for (const [x, y] of e) im.set(x, y, [...K_OUT, 255]); }
+  }
+
+  // 6. Sheet game: 6 cột × (5 hướng × 4 dải) hàng
+  const sheet = new Img(COLS * F, DIRS.length * BAND_ROWS * F);
+  for (const [name, im] of frames) {
+    const [dir, anim, n] = name.split("/"), { band, col } = animSlot(anim);
+    sheet.blit(im, 0, 0, F, F, (col + +n) * F, (DIRS.indexOf(dir) * BAND_ROWS + band) * F);
+  }
+  const anims = Object.fromEntries(ANIMS.map(([a, n]) => [a, { band: animSlot(a).band, col: animSlot(a).col, n }]));
+  const entry = { key: `beast_${o.species}_anim`, frame: [F, F], iso: true, anim: { dirs: DIRS, cols: COLS, rowsPerDir: BAND_ROWS, anims, origin: [F >> 1, foot] } };
+  rep.warnings = warns; rep.frames = frames.size; rep.missing = warns.filter((w) => w.startsWith("THIẾU")).length;
+  return { sheet, entry, report: rep, frames };
+}
+
+function staticRef(file, F) {
+  const st = readPng(file), fw = st.h, cols = Math.round(st.w / st.h);
+  const col = cols >= 2 ? 1 : 0; // khung đông; sheet tĩnh = nam, đông, bắc
+  let y0 = Infinity, y1 = -1;
+  for (let y = 0; y < st.h; y++) for (let x = 0; x < fw; x++) if (st.alpha(col * fw + x, y)) { y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  return y1 < 0 ? null : { dir: "e", h: (y1 - y0 + 1) * (F / fw) };
+}
+function forEdge(im, fn) {
+  for (let y = 0; y < im.h; y++) for (let x = 0; x < im.w; x++) {
+    if (!im.alpha(x, y)) continue;
+    if (x === 0 || y === 0 || x === im.w - 1 || y === im.h - 1 || !im.alpha(x - 1, y) || !im.alpha(x + 1, y) || !im.alpha(x, y - 1) || !im.alpha(x, y + 1)) fn(x, y);
+  }
+}
+function touchesOpaque(im, x, y) { return (x > 0 && im.alpha(x - 1, y)) || (x < im.w - 1 && im.alpha(x + 1, y)) || (y > 0 && im.alpha(x, y - 1)) || (y < im.h - 1 && im.alpha(x, y + 1)); }
+function clippedEdge(im) {
+  for (let i = 0; i < im.w; i++) if (im.alpha(i, 0) || im.alpha(i, im.h - 1) || im.alpha(0, i) || im.alpha(im.w - 1, i)) return true;
+  return false;
+}
+
+// ---------- CLI ----------
+function parseArgs(argv) {
+  const o = { sheets: {} };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i], next = () => argv[++i];
+    if (a === "--species") o.species = next();
+    else if (a === "--sheet") { const [id, f] = next().split("="); o.sheets[id] = f; }
+    else if (a === "--out") o.out = next();
+    else if (a === "--frame") o.frame = +next();
+    else if (a === "--key") o.key = hex(next());
+    else if (a === "--tol") o.tol = +next();
+    else if (a === "--colors") o.colors = +next();
+    else if (a === "--palette") o.palette = next();
+    else if (a === "--fill") o.fill = +next();
+    else if (a === "--scale") o.scale = +next();
+    else if (a === "--min-area") o.minArea = +next();
+    else throw new Error(`tùy chọn lạ: ${a}`);
+  }
+  return o;
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try {
+    const o = parseArgs(process.argv.slice(2));
+    if (!o.species || !o.out || !Object.keys(o.sheets).length) {
+      console.error("Dùng: node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=<ảnh> [--sheet B=<ảnh>] --out <thư mục> [--frame N] [--colors 24] [--palette auto|gpl|<gpl>] [--fill 0.8 | --scale S] [--key #ff00ff] [--tol 60]");
+      process.exit(2);
+    }
+    for (const id of Object.keys(o.sheets)) o.sheets[id] = readPng(o.sheets[id]);
+    const res = cutSpecies(o);
+    mkdirSync(o.out, { recursive: true });
+    writeFileSync(path.join(o.out, `${o.species}_anim.png`), encodePng(res.sheet));
+    writeFileSync(path.join(o.out, "manifest-entry.json"), JSON.stringify(res.entry, null, 2) + "\n");
+    writeFileSync(path.join(o.out, "_report.json"), JSON.stringify(res.report, null, 2) + "\n");
+    console.log(`${o.species}: ${res.report.frames} khung, hệ số thu ${res.report.scale}, ${res.report.palette} màu, bỏ ${res.report.dropped} mảnh vụn → ${path.join(o.out, `${o.species}_anim.png`)}`);
+    for (const w of res.report.warnings) console.warn(`  ! ${w}`);
+    if (res.report.missing) { console.error(`${res.report.missing} khung thiếu: vẽ lại tờ đó.`); process.exit(1); }
+  } catch (e) { console.error(e.message); process.exit(2); }
+}
