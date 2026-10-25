@@ -1,0 +1,45 @@
+{
+  "species": "thai_than_cu_vien",
+  "sheet": "A",
+  "direction": "s",
+  "date": "2026-10-26",
+  "tool": "image_gen.imagegen tích hợp Codex",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Công cụ không trả model ID/seed, không có size selector.",
+  "attempts": 1,
+  "selected_attempt": 1,
+  "raw_file": "toA.png",
+  "sha256": "dce40e4ed49f98a93f02abd739adb41fa0126e572080bdd34679fe6b5cd1230d",
+  "width": 1536,
+  "height": 1024,
+  "requested_dimensions": [
+    1536,
+    1024
+  ],
+  "grid": [
+    6,
+    4
+  ],
+  "expected_visible_cells": 22,
+  "empty_cells": [
+    "H4 C5",
+    "H4 C6"
+  ],
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "f0a60fa71747ac76b31e2e540e43b53c2dd41f35bbe6f7e305ae12a5e83eec7d",
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/thai_than_cu_vien.png",
+      "sha256": "f7ed1e71f981c53fc0478d6af6c4ecc07690551a1cde00567886bc0b23353255",
+      "role": "thiết kế nhân vật gốc, đã xem trước"
+    }
+  ],
+  "postprocessing": "Không. Sao chép nguyên byte từ output tool; không resize, đổi metadata, cắt, ghép hay nhân pose.",
+  "output_path_returned_by_tool": "/Users/thanhhoa/.codex/generated_images/01a1741d-a578-7c61-8eea-40abb1ff497d/exec-6f9f1c37-9cd7-49d2-9d68-1ffb12b17f13.png",
+  "qa_status": "candidate, chưa được owner duyệt mỹ thuật; chưa cắt nên chưa kiểm bằng preview hoạt ảnh",
+  "suspected_issues": [
+    "H1 C5–6: hurt quay đầu sang phải, cần kiểm trục nam.",
+    "H4 C4: die nằm nghiêng, cần kiểm trục nam."
+  ]
+}
