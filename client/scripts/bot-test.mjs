@@ -5981,9 +5981,9 @@ async function autoTest(){
         // Dưới ngưỡng (1 con, AUTO_AOE_MIN - 1 con): đánh bình thường, không tính là tung vì đông.
         for(const n of [1,AUTO_AOE_MIN-1]){
           await test(A,"clear",{all:true,keep:true}); await test(A,"ready"); await test(A,"goto",home);
-          for(const [dx,dy] of around.slice(0,n)) await test(A,"spawn",{tier:0,dx,dy,years:10,hpx:400});
+          const mine=[]; for(const [dx,dy] of around.slice(0,n)) mine.push((await test(A,"spawn",{tier:0,dx,dy,years:10,hpx:400}))?.bid);
           await test(A,"auto",{pace:0}); m=await autoOp(A,"on"); let fought=false;
-          for(let t=0;t<3500;t+=250){ const st=await infoA(); if(st.target) fought=true; await sleep(250); }
+          for(let t=0;t<3500;t+=250){ await test(A,"clear",{all:true,keep:true,but:mine}); const st=await infoA(); if(st.target) fought=true; await sleep(250); } // dọn liên tục: hồn thú hồi sinh không làm đủ ngưỡng đông
           const st=await infoA();
           ok(m?.on&&fought&&st.aoeCasts===0,`AH3 B1b: ${n} con quanh thân (dưới ${AUTO_AOE_MIN}) → vẫn đánh, không tung hồn kỹ diện rộng vì đông (${st.aoeCasts} lần)`);
           await autoOp(A,"off");
@@ -5992,7 +5992,7 @@ async function autoTest(){
         await test(A,"clear",{all:true,keep:true}); await test(A,"ready"); await test(A,"goto",home);
         const crowd=[]; for(const [dx,dy] of around) crowd.push((await test(A,"spawn",{tier:0,dx,dy,years:10,hpx:400}))?.bid);
         await test(A,"auto",{pace:0}); await autoOp(A,"on"); let c1=0, hurt=0;
-        for(let t=0;t<6000&&!c1;t+=100){ c1=(await infoA()).aoeCasts; if(!c1) await sleep(100); }
+        for(let t=0;t<6000&&!c1;t+=100){ await test(A,"clear",{all:true,keep:true,but:crowd}); c1=(await infoA()).aoeCasts; if(!c1) await sleep(100); }
         await sleep(300); hurt=crowd.filter(b=>hpOf(b)!==undefined&&hpOf(b)<maxOf(b)).length;
         const aoe1=(await infoA()).aoe??[];
         ok(aoe1.includes(1),`AH3 B1b: Hạo Thiên Chùy có hồn kỹ diện rộng ở ô 1 (ô ${aoe1.join(",")})`);
@@ -6003,7 +6003,7 @@ async function autoTest(){
           await test(A,"ready"); await test(A,"goto",home); await test(A,"clear",{all:true,keep:true});
           const ids=[]; for(const [dx,dy] of layout) ids.push((await test(A,"spawn",{tier:0,dx,dy,years:10}))?.bid);
           await test(A,"auto",{pace:0}); await autoOp(A,"on"); const t0=Date.now();
-          while(Date.now()-t0<30000&&ids.some(b=>A.room.state.beasts.has(b))) await sleep(150);
+          while(Date.now()-t0<30000&&ids.some(b=>A.room.state.beasts.has(b))){ await test(A,"clear",{all:true,keep:true,but:ids}); await sleep(150); } // chỉ đo 5 con của bài
           const left=ids.filter(b=>A.room.state.beasts.has(b)).length; await autoOp(A,"off"); return {ms:Date.now()-t0,left};
         };
         const packL=[[120,0],[140,16],[140,-16],[160,0],[120,24]], spreadL=[[120,0],[-120,0],[0,120],[0,-120],[110,110]];
@@ -6011,7 +6011,8 @@ async function autoTest(){
         ok(tp.left===0&&ts.left===0&&tp.ms<=ts.ms*1.25+1500,`AH3 B1b: hạ cụm 5 con mất ${tp.ms}ms, 5 con rải xa mất ${ts.ms}ms (còn ${tp.left}/${ts.left}); bonus cụm ${AUTO_CLUSTER.bonus} không làm săn chậm`);
         // Trả võ hồn ban đầu.
         await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true}); await test(A,"ready"); await test(A,"rest",{s:10});
-        await waitFor(()=>A.room.state.players.get(A.room.sessionId)?.swCd===0,3500); A.room.send("switch",{slot:0}); await waitFor(()=>A.owned.active===act3,1500);
+        await waitFor(()=>A.room.state.players.get(A.room.sessionId)?.swCd===0,3500); A.room.send("switch",{slot:0});
+        if(!await waitFor(()=>A.owned.active===act3,1500)) console.log("  ⚠ AH3 B1b: không trả được võ hồn ban đầu, các bài sau chạy bằng Hạo Thiên Chùy");
         await test(A,"goto",home); await autoOp(A,"set",{cfg:P3});
       }
     }
