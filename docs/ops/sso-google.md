@@ -11,10 +11,15 @@ Chủ repo tạo OAuth client một lần. Nút "Đăng nhập bằng Google" ch
 Prod hiện là một bản, nên `GOOGLE_TICKET_SECRET` chưa bắt buộc. Thiếu thì server dùng khoá ngẫu nhiên và in một dòng cảnh báo.
 
 ## Tạo OAuth client (một lần)
-1. Google Cloud Console, project `landing-page-455614` → **APIs & Services → OAuth consent screen**: loại **External**, điền tên app, email hỗ trợ (logo tuỳ chọn), rồi **Publish app** (để "Testing" thì chỉ email trong Test users vào được). Scope cơ bản `openid` / `email` / `profile` thường không cần Google duyệt.
+Project GCP phải ở **ngoài tổ chức Workspace** (hoặc ít nhất Audience **External**). Màn đồng ý "Internal" của project thuộc tổ chức `oleqima.com` chỉ cho tài khoản trong domain đăng nhập, bạn bè dùng Gmail thường bị chặn (Q48).
+1. Google Cloud Console, project riêng ngoài tổ chức → **Google Auth Platform / OAuth consent screen**: Audience **External**, điền tên app và email hỗ trợ, **không tải logo** (có logo thì Google đòi xác minh thương hiệu), rồi **Publish app** (**In production**; để "Testing" thì chỉ email trong Test users vào được). Scope cơ bản `openid` / `email` / `profile` thường không cần Google duyệt.
 2. **Credentials → Create credentials → OAuth client ID → Web application**. **Authorized JavaScript origins**: `https://soulland.oleqima.com`, `http://localhost:5173`, `http://localhost:2567`. Không cần Authorized redirect URIs (luồng ID token, không redirect) và không dùng client secret.
 3. Đưa Client ID vào ConfigMap (bảng trên).
-4. (Nhiều pod) Tạo `GOOGLE_TICKET_SECRET` bằng `openssl rand -hex 32` hoặc `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`, đặt khoá vào Secret `soul-land-env` trên cụm (chủ repo tạo tay, không Sealed Secrets), rồi `kubectl rollout restart` deployment để pod nhận giá trị mới; không dán giá trị vào repo, issue, PR, log.
+4. **Sau khi đổi ConfigMap phải restart pod** (ConfigMap đổi không tự khởi động lại): `kubectl -n soul-land-mmo rollout restart deploy/soul-land-game`, rồi kiểm `https://soulland.oleqima.com/api/config` trả Client ID mới.
+5. (Nhiều pod) Tạo `GOOGLE_TICKET_SECRET` bằng `openssl rand -hex 32` hoặc `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`, đặt khoá vào Secret `soul-land-env` trên cụm (chủ repo tạo tay, không Sealed Secrets), rồi `kubectl rollout restart` deployment để pod nhận giá trị mới; không dán giá trị vào repo, issue, PR, log.
+
+## Đổi project / Client ID
+Định danh lưu ở `account_identities` là `sub` của tài khoản Google, **không đổi** khi đổi project hay Client ID. Tài khoản đã liên kết vẫn đăng nhập được sau khi đổi; không cần di chuyển dữ liệu.
 
 ## Kiểm
 Landing (`/`) và game (`/choi`) cùng origin nên chỉ cần một origin ở bước 2. Landing có nút Google riêng (bấm là mở cửa sổ Google, xong vào `/choi`; tài khoản mới thì game hiện luôn màn chọn tên, vé chuyển qua `sessionStorage`). Kiểm: mở `/`, bấm "Đăng nhập Google" rồi vào `/choi`; hoặc mở `/choi`, thấy nút Google dưới form đăng nhập; chọn tài khoản Google mới → màn "Chọn tên nhân vật" → tạo nhân vật. Tài khoản cũ: đăng nhập tên + mật khẩu → **Cài đặt → Tài khoản Google** để liên kết.

@@ -70,6 +70,7 @@ Thêm quyết định mới: cộng mã `Q` kế tiếp ở cuối bảng đúng
 | Q40 | 2026-10-25 | **C7 HUD gọn** (#592 / PR #618) được merge khi giao diện **điện thoại** chưa đạt: giao diện điện thoại **chưa cần** ở giai đoạn này | #592, #618 | `docs/design/giao-dien.md` |
 | Q46 | 2026-10-24 | **Không dùng Sealed Secrets**: bốn Secret (`soul-land-postgres-auth`, `soul-land-redis-auth`, `soul-land-env`, `gcp-ar-creds`) chủ repo tạo tay trên cụm, ArgoCD không quản; `GOOGLE_TICKET_SECRET` đặt trong `soul-land-env` | #500, #504 | `docs/ops/gitops.md`, `docs/ops/sso-google.md` |
 | Q47 | 2026-10-25 | **Bỏ toàn bộ NetworkPolicy**; PostgreSQL và Redis tự host trong cụm (Longhorn), CronJob sao lưu ra PVC | #500, #504 | `docs/ops/gitops.md`, `docs/ops/db-redis-sao-luu.md` |
+| Q48 | 2026-10-25 | **Đăng nhập Google dùng project GCP riêng ngoài tổ chức, Audience External, đã publish**: project cũ thuộc `oleqima.com` có màn đồng ý Internal nên chỉ tài khoản trong domain vào được; `sub` không đổi nên tài khoản đã liên kết vẫn dùng được | #612 | `docs/ops/sso-google.md` |
 
 ## Việc đang chờ chủ repo
 
