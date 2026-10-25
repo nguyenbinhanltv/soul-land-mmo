@@ -122,7 +122,7 @@ import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BE
   PLAYER_SPEED, RUN_MULT, BEAST_GAIT, BEAST_LEASH, TICK_RATE,
   WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, CAMP_PT_GAP, shopOf, shopExpands,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, parseSell, autoSellable } from "../../shared/data.ts";
-import { LOOKS_CHANGE, looksChangeCost } from "../../shared/data.ts"; // L4 #511
+import { LOOKS_CHANGE, looksChangeCost, BAG_MSG_BURST, BAG_MSG_RATE } from "../../shared/data.ts"; // L4 #511
 import { RADAR, RALLY, MAPS as RALLY_MAPS } from "../../shared/data.ts"; // R5 (#432): bán kính lọc tin mini; R6 (#433): dấu tập trung
 import { rallyUpsert, rallyPrune } from "../../shared/rally.ts";
 import { FOG } from "../../shared/data.ts"; import { fogDims, fogCount, fogGet, fogCellOf, fogBytes, fogValid } from "../../shared/fog.ts"; import { loadMap } from "../../server/src/map.ts"; // R8 (#435): sương mù khám phá
@@ -960,6 +960,13 @@ async function cheatTest(){
   }
   await sleep(500);
   ok(await alive(),`${rest.length} message khác × ${ODD.length+2} giá trị lạ: phòng vẫn chạy`);
+  // Giới hạn tin ghi túi (#677): dồn 200 tin sortbag thì server bỏ phần dư (không ngắt), tin sau khi hồi token vẫn xử lý.
+  await sleep(1500); const lg0=X.logs.length; for(let k=0;k<200;k++) X.room.send("sortbag"); await sleep(800);
+  const sorted=X.logs.slice(lg0).filter(t=>/sắp xếp túi/.test(t)).length;
+  ok(await alive()&&X.leftCode===null,`dồn 200 tin sortbag: phòng sống, kết nối không bị ngắt`);
+  ok(sorted>=1&&sorted<=BAG_MSG_BURST+BAG_MSG_RATE*2,`server chỉ xử lý ${sorted}/200 tin sortbag (trần ${BAG_MSG_BURST} dồn + ${BAG_MSG_RATE}/giây)`);
+  await sleep(1500); const lg1=X.logs.length; X.room.send("sortbag"); await waitFor(()=>X.logs.length>lg1,2000);
+  ok(X.logs.length>lg1,"hết dồn, token hồi lại: tin sortbag tiếp theo vẫn được xử lý");
   for(let k=0;k<5;k++) X.room.send("test",{op:"throw"}); // lỗi bất ngờ trong handler (hook): chỉ ghi log
   await sleep(300);
   ok(await alive()&&(await test(X,"ping"))?.enabled,"lỗi bất ngờ trong handler (hook throw ×5): phòng vẫn xử lý message tiếp");

@@ -1,7 +1,7 @@
 // Kiểm thử server/src/ratelimit.ts với đồng hồ giả (không cần bật server).
 // Chạy: npm run test:ratelimit --prefix server
 import assert from "node:assert/strict";
-import { ipKey, loginBegin, loginEnd, signupBegin, signupEnd, chatCheck, worldWait, worldMark, chatReset, sweep, _resetAll, _setSignupScale, CHAT_MAX_LEN } from "../src/ratelimit.ts";
+import { ipKey, loginBegin, loginEnd, signupBegin, signupEnd, chatCheck, worldWait, worldMark, chatReset, sweep, _resetAll, _setSignupScale, CHAT_MAX_LEN, takeToken } from "../src/ratelimit.ts";
 import { WORLD_CHAT } from "../../shared/data.ts";
 import { nameKey } from "../src/names.ts";
 
@@ -267,6 +267,16 @@ test("Dọn dẹp xóa trạng thái cũ", () => {
   for (let i = 0; i < 5; i++) send(`x${i}`);
   sec(11 * 60); sweep(now);
   for (let i = 0; i < 5; i++) assert.equal(send(`y${i}`), "ok");
+});
+
+test("Bộ đếm token tin ghi túi: dồn tối đa burst rồi bỏ, hồi theo rate (#677)", () => {
+  const b = { n: 5, t: now };
+  for (let i = 0; i < 5; i++) assert.equal(takeToken(b, now, 5, 2), true);
+  assert.equal(takeToken(b, now, 5, 2), false); // hết token: bỏ, không trừ âm
+  sec(0.5); assert.equal(takeToken(b, now, 5, 2), true); // 2/giây × 0,5 giây = 1 token
+  assert.equal(takeToken(b, now, 5, 2), false);
+  sec(60); for (let i = 0; i < 5; i++) assert.equal(takeToken(b, now, 5, 2), true); // không tích quá burst
+  assert.equal(takeToken(b, now, 5, 2), false);
 });
 
 console.log("Tất cả kiểm thử rate limit đều đạt.");
