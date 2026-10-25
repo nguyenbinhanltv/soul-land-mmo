@@ -884,6 +884,56 @@
   "xuong_ren": {
    "key": "prop_xuong_ren",
    "foot": [56, 107]
+  },
+  "vat_cay_soi_1": {
+   "key": "vat_cay_soi_1",
+   "private": "packs/vat_cay_soi_1.png",
+   "foot": [34, 92]
+  },
+  "vat_cay_soi_2": {
+   "key": "vat_cay_soi_2",
+   "private": "packs/vat_cay_soi_2.png",
+   "foot": [34, 89]
+  },
+  "vat_cay_thong_1": {
+   "key": "vat_cay_thong_1",
+   "private": "packs/vat_cay_thong_1.png",
+   "foot": [19, 70]
+  },
+  "vat_cay_thong_2": {
+   "key": "vat_cay_thong_2",
+   "private": "packs/vat_cay_thong_2.png",
+   "foot": [19, 66]
+  },
+  "vat_bui_cay": {
+   "key": "vat_bui_cay",
+   "private": "packs/vat_bui_cay.png",
+   "foot": [17, 24]
+  },
+  "vat_khuc_go": {
+   "key": "vat_khuc_go",
+   "private": "packs/vat_khuc_go.png",
+   "foot": [20, 28]
+  },
+  "vat_da_rung_1": {
+   "key": "vat_da_rung_1",
+   "private": "packs/vat_da_rung_1.png",
+   "foot": [13, 19]
+  },
+  "vat_da_rung_2": {
+   "key": "vat_da_rung_2",
+   "private": "packs/vat_da_rung_2.png",
+   "foot": [13, 20]
+  },
+  "vat_da_rung_3": {
+   "key": "vat_da_rung_3",
+   "private": "packs/vat_da_rung_3.png",
+   "foot": [11, 18]
+  },
+  "vat_nam_do": {
+   "key": "vat_nam_do",
+   "private": "packs/vat_nam_do.png",
+   "foot": [6, 12]
   }
  },
  "maps": {
@@ -1019,7 +1069,12 @@
     "46": "thung_go_chong",
     "47": "cau_go_ngang",
     "48": "lau_say",
-    "49": "rao_tre"
+    "49": "rao_tre",
+    "50": ["vat_cay_thong_1|thong_cao", "vat_cay_thong_2|thong_cao"],
+    "51": ["vat_cay_soi_1|cay_la_tron", "vat_cay_soi_2|cay_la_rong"],
+    "52": "vat_khuc_go|khuc_go_rong",
+    "53": ["vat_bui_cay", "vat_da_rung_1", "vat_da_rung_2", "vat_da_rung_3", "vat_bui_cay"],
+    "54": "vat_nam_do"
    }
   },
   "nac_dinh_thanh": {
@@ -1367,7 +1422,12 @@
     "40": ["khuc_go_rong~#c8a088", "re_cay_lon~#c0a090"],
     "41": "cay_chay_than",
     "42": "bui_hoa_doc",
-    "43": "da_bang_hoa"
+    "43": "da_bang_hoa",
+    "44": ["vat_cay_thong_1~#f0c8a0|thong_cao~#f0c8a0", "vat_cay_thong_2~#f0c8a0|thong_cao~#f0c8a0"],
+    "45": ["vat_cay_soi_1~#f0c8a0|cay_la_tron~#f0c8a0", "vat_cay_soi_2~#f0c8a0|cay_la_rong~#f0c8a0"],
+    "46": "vat_khuc_go~#e8c8a8|khuc_go_rong",
+    "47": ["vat_bui_cay~#f0c8a0", "vat_da_rung_1~#e8c8b0", "vat_da_rung_2~#e8c8b0", "vat_da_rung_3~#e8c8b0", "vat_bui_cay~#f0c8a0"],
+    "48": "vat_nam_do"
    },
    "build": {
     "wallKind": "plaster",
@@ -1428,7 +1488,12 @@
     "39": "vom_da",
     "40": ["khuc_go_rong", "re_cay_lon"],
     "41": "co_thu_lon",
-    "42": "cau_go_ngang"
+    "42": "cau_go_ngang",
+    "43": ["vat_cay_thong_1|thong_cao", "vat_cay_thong_2|thong_cao"],
+    "44": ["vat_cay_soi_1|cay_la_tron", "vat_cay_soi_2|cay_la_rong"],
+    "45": "vat_khuc_go|khuc_go_rong",
+    "46": ["vat_bui_cay", "vat_da_rung_1", "vat_da_rung_2", "vat_da_rung_3", "vat_bui_cay"],
+    "47": "vat_nam_do"
    },
    "build": {
     "wallKind": "plaster",
