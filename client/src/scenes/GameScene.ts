@@ -100,7 +100,7 @@ const HEAD = 30 * SPR;
 interface Rect { x: number; y: number; w: number; h: number; }
 interface Zone extends Rect { name: string; hint: string; years?: [number, number] | null; }
 const inRect = (r: Rect, x: number, y: number) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
-const FONT = '"Be Vietnam Pro", system-ui, sans-serif';
+const FONT = '"Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif';
 /**
  * Màu bản đồ nhỏ riêng từng bản đồ (đè bảng chung trong buildMinimap), tách lớp nền (`ground`) và lớp vật (`obj`), vì một gid ở mỗi
  * bản đồ trỏ tới ô / vật khác nhau theo shared/assets/iso/tiles.json. Tinh Đấu Ngoại vi (11.3, bản dựng bằng tools/maps): gid 25–26,
@@ -435,7 +435,7 @@ export class GameScene extends Phaser.Scene {
       if (DEBUG_TAG) {
         const tag = document.body.appendChild(document.createElement("div"));
         tag.textContent = `Trễ giả lập ${LAG_MS} ms mỗi chiều · dự đoán chuyển động: ${this.pred ? "bật" : "tắt"}`;
-        tag.style.cssText = "position:fixed;top:4px;left:50%;transform:translateX(-50%);z-index:50;pointer-events:none;font:600 12px 'Be Vietnam Pro',system-ui,sans-serif;color:#ffe9a0;background:#000a;padding:2px 8px;border-radius:4px";
+        tag.style.cssText = "position:fixed;top:4px;left:50%;transform:translateX(-50%);z-index:50;pointer-events:none;font:600 12px 'Be Vietnam Pro','Galmuri 11',system-ui,sans-serif;color:#ffe9a0;background:#000a;padding:2px 8px;border-radius:4px";
         this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => tag.remove());
         this.events.once(Phaser.Scenes.Events.DESTROY, () => tag.remove());
       }
@@ -2221,7 +2221,7 @@ export class GameScene extends Phaser.Scene {
     const kind = m.heal ? "heal" : m.shield ? "shield" : m.immune ? "immune" : m.crit ? "crit" : "damage" as const;
     const ds = damageStyle(el, !!m.crit, self, kind, m.dot ? m.c : undefined); // C1: self là nạn nhân; DoT giữ màu server gửi
     const t = this.add.text(x, y, label, {
-      fontFamily: '"Galmuri 11", "Be Vietnam Pro", system-ui, sans-serif', fontSize: `${ds.font}px`,
+      fontFamily: '"Galmuri 11", "Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif', fontSize: `${ds.font}px`,
       color: ds.color,
       stroke: "#" + ds.stroke.toString(16).padStart(6, "0"), strokeThickness: m.crit || self ? 4 : 3, resolution: 4,
     }).setOrigin(0.5).setDepth(self ? 100000 : 99999).setScale(k * (m.crit ? 0.6 : 0.8));
@@ -2239,7 +2239,7 @@ export class GameScene extends Phaser.Scene {
   /** Chữ bay lên rồi mờ dần (tên hồn kỹ, tên tiên cơ); đặt trên danh hiệu để không đè tên hồn sư. */
   floatText(x: number, y: number, text: string, col: string) {
     const t = this.add.text(x, y, text, {
-      fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: "8px", fontStyle: "800",
+      fontFamily: '"Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif', fontSize: "8px", fontStyle: "800",
       color: col, stroke: "#000", strokeThickness: 2, resolution: 8,
     }).setOrigin(0.5).setDepth(99999).setScale(this.txtK);
     this.tweens.add({ targets: t, y: y - 14 * this.txtK, alpha: 0, delay: 500, duration: 600, onComplete: () => t.destroy() });
@@ -2605,15 +2605,15 @@ export class GameScene extends Phaser.Scene {
         const ringsB = this.make.container({}, false), ringsF = this.make.container({}, false), at = W2S(p.x, p.y);
         const root = this.add.container(at.x, at.y, [this.make.image({ key: "hs_shadow" }, false), ringsB, vb, body, vf, ringsF]).setScale(SPR);
         const label = this.add.text(at.x, at.y - HEAD, p.name, {
-          fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: "7px", fontStyle: "600",
+          fontFamily: '"Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif', fontSize: "7px", fontStyle: "600",
           color: id === this.me ? "#ffe9a0" : "#ffffff", stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 1).setDepth(99985);
         const title = this.add.text(at.x, at.y - HEAD - 8, "", {
-          fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: "6px", fontStyle: "700",
+          fontFamily: '"Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif', fontSize: "6px", fontStyle: "700",
           color: "#f2c84b", stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 1).setDepth(99985);
         const tongT = this.add.text(at.x, at.y - HEAD, "", {
-          fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', fontSize: "5.5px", fontStyle: "700",
+          fontFamily: '"Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif', fontSize: "5.5px", fontStyle: "700",
           color: "#ffffff", stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 1).setDepth(99985);
         v = { root, wx: p.x, wy: p.y, face: "s", body, vb, vf, ringsB, ringsF, label, title, tongT, looks: "", vh: -1, rings: "", playing: "", lpcKey: "", lpcFace: { shown: null, pend: null },
