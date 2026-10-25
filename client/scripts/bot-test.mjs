@@ -540,7 +540,8 @@ const STANDALONE=[
   ["arena",2,arenaTest],                      //  96 7.2, 9.7 Đại Đấu Hồn Trường
   ["friend",2,friendTest,true],               // ~40 #195 bạn bè và chặn (đo ở máy)
   ["chuong3",2,chapter3Test],                 // ~18 #284 chương 3 Hải Thần Đảo (đo ở máy)
-  ["bag",4,async()=>{ bagSyncPure(); await shopBuybackTest(); await charBagCmdTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await gearLuckTest(); await equipDropTest(); }], // 127 #215, 9.8; E1 trang bị hồn sư; E2 rơi đồ; E3 cường hóa; E4 hợp thành / phân giải
+  ["bag",4,async()=>{ bagSyncPure(); await shopBuybackTest(); await charBagCmdTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); }], // 127 #215, 9.8; E1 trang bị hồn sư; E2 rơi đồ; E3 cường hóa; E4 hợp thành / phân giải
+  ["luck",3,gearLuckTest],                    //  ~12 #662 khắc may mắn bằng Thần Hồn (tách khỏi nhóm bag để nhóm 4 không vượt 12 phút)
   ["sell",3,sellTest],                        //   5 #216
   ["google",3,googleTest],                    //  ~1 #612 đăng nhập Google (bộ kiểm giả GAME_TEST): chọn tên, liên kết, trùng tên, vé giả
   ["looks2",3,looks2Test],                    //   2 #509 Looks v2 (preset / lpc)
@@ -632,13 +633,14 @@ if(process.env.BOT_ONLY==="cold"){ await coldTest(); console.log(fails?`✗ ${fa
 if(process.env.BOT_ONLY==="ground"){ await groundTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="tong"){ await tongTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="luck"){ await gearLuckTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="shardbuy"){ await shardBuyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="sell"){ await sellTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="fog"){ await fogTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="rally"){ await rallyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="gm"){ await gmTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="testacc"){ await testAccTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); await charBagCmdTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await gearLuckTest(); await equipDropTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); await charBagCmdTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="offline"){ await offlineTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="chuong3"){ await chapter3Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="chuong2"){ await chapter2Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }

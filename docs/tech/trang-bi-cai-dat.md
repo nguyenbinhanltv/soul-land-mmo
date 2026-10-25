@@ -71,7 +71,7 @@ Luật chơi và bảng số ở `docs/design/trang-bi.md` (mục 5.15) và `sha
 - `equipLuck` / `equipLuckPreview` (`MapRoom.ts`): tin `equipluck {id}` (trả `equipluckd {id, from, to, ok}`) và `equipluckpreview {id}` (trả `equipluckp`: `equipLuckStep`, Thần Hồn đang có, lý do bị chặn `slot` / `max` / `worn`). Cùng hàng đợi `enhBusy` / `itemLocked` / `saveBag` như cường hóa; `ArenaRoom` chặn.
 - Kiểm: món của chính chủ (túi hoặc đang mặc), ô có `luck`, `equipLuckStep` không null (món chưa đạt `EQUIP_LUCK_MAX`; món đang mặc còn kiểm tổng hai ô đang mặc), có Thần Hồn, gần Thợ rèn, ngoài giao chiến. Không có phí Hồn Tệ.
 - Trừ 1 Thần Hồn **trước** khi tung (`Math.random() < EQUIP_LUCK_UP[n]`, hook `enhroll` ép số tung). Thành công ghi `stats.luck` + 1; thất bại chỉ mất Thần Hồn, món không phá, may mắn và cấp cường hóa giữ. Lỗi ghi thì hoàn lại Thần Hồn và món.
-- Giao diện: trang "Khắc may mắn" ở Thợ rèn (chọn món, tỉ lệ, số Thần Hồn, hiệu ứng thành / bại), nhãn `M<n>` ở túi cập nhật qua tin `bagd` / `gear`. Bài bot `gearLuckTest` (nhóm `bag`).
+- Giao diện: trang "Khắc may mắn" ở Thợ rèn (chọn món, tỉ lệ, số Thần Hồn, hiệu ứng thành / bại), nhãn `M<n>` ở túi cập nhật qua tin `bagd` / `gear`. Bài bot `gearLuckTest` (khóa `luck`, nhóm 3).
 
 ## Chưa làm
 - Số cân bằng trang bị đã được chủ repo duyệt (Q42 ở `docs/quyet-dinh.md`); `docs/trang-bi-kinh-te.md` là ước lượng theo giả định.
