@@ -96,56 +96,31 @@ Cột **Tầng**: T1 / T2 / T3. Cột **Kiểu**: theo `area` của chiêu (xem 
 
 Mỗi võ hồn một file (tiêu đề mục 4.N giữ nguyên trong file):
 
-- [4.1 Cửu Tinh Thất Sát Kiếm
-](cuu-tinh-that-sat-kiem.md)
-- [4.2 Lam Điện Bá Vương Long
-](lam-dien-ba-vuong-long.md)
-- [4.3 Kỳ Nhung Thông Thiên Cúc
-](ky-nhung-thong-thien-cuc.md)
-- [4.4 Tà Hỏa Phượng Hoàng
-](ta-hoa-phuong-hoang.md)
-- [4.5 U Minh Linh Miêu
-](u-minh-linh-mieu.md)
-- [4.6 Nguyệt Nhận
-](nguyet-nhan.md)
-- [4.7 Hỏa Long
-](hoa-long.md)
-- [4.8 Nhu Cốt Thố
-](nhu-cot-tho.md)
-- [4.9 Kim Vũ Miêu Ưng
-](kim-vu-mieu-ung.md)
-- [4.10 Tử Vong Chu Hoàng
-](tu-vong-chu-hoang.md)
-- [4.11 Bích Lân Xà Hoàng
-](bich-lan-xa-hoang.md)
-- [4.12 Càn Khôn Hỗn Nguyên Tỏa
-](can-khon-hon-nguyen-toa.md)
-- [4.13 Hỏa Ảnh
-](hoa-anh.md)
-- [4.14 Yêu Hồ
-](yeu-ho.md)
-- [4.15 Xúc Xích
-](xuc-xich.md)
-- [4.16 Quỷ Mị
-](quy-mi.md)
-- [4.17 Thiên Càn Bạch Ngọc Đỉnh
-](thien-can-bach-ngoc-dinh.md)
-- [4.18 Lam Ngân Thảo
-](lam-ngan-thao.md)
-- [4.19 Hạo Thiên Chùy
-](hao-thien-chuy.md)
-- [4.20 Cửu Bảo Lưu Ly Tháp
-](cuu-bao-luu-ly-thap.md)
-- [4.21 Phá Hồn Thương
-](pha-hon-thuong.md)
-- [4.22 A Ngân
-](a-ngan.md)
-- [4.23 Liệt Hỏa Thương Lang
-](liet-hoa-thuong-lang.md)
-- [4.24 Băng Phượng Hoàng
-](bang-phuong-hoang.md)
-- [4.25 Bạch Hổ
-](bach-ho.md)
+- [4.1 Cửu Tinh Thất Sát Kiếm](cuu-tinh-that-sat-kiem.md)
+- [4.2 Lam Điện Bá Vương Long](lam-dien-ba-vuong-long.md)
+- [4.3 Kỳ Nhung Thông Thiên Cúc](ky-nhung-thong-thien-cuc.md)
+- [4.4 Tà Hỏa Phượng Hoàng](ta-hoa-phuong-hoang.md)
+- [4.5 U Minh Linh Miêu](u-minh-linh-mieu.md)
+- [4.6 Nguyệt Nhận](nguyet-nhan.md)
+- [4.7 Hỏa Long](hoa-long.md)
+- [4.8 Nhu Cốt Thố](nhu-cot-tho.md)
+- [4.9 Kim Vũ Miêu Ưng](kim-vu-mieu-ung.md)
+- [4.10 Tử Vong Chu Hoàng](tu-vong-chu-hoang.md)
+- [4.11 Bích Lân Xà Hoàng](bich-lan-xa-hoang.md)
+- [4.12 Càn Khôn Hỗn Nguyên Tỏa](can-khon-hon-nguyen-toa.md)
+- [4.13 Hỏa Ảnh](hoa-anh.md)
+- [4.14 Yêu Hồ](yeu-ho.md)
+- [4.15 Xúc Xích](xuc-xich.md)
+- [4.16 Quỷ Mị](quy-mi.md)
+- [4.17 Thiên Càn Bạch Ngọc Đỉnh](thien-can-bach-ngoc-dinh.md)
+- [4.18 Lam Ngân Thảo](lam-ngan-thao.md)
+- [4.19 Hạo Thiên Chùy](hao-thien-chuy.md)
+- [4.20 Cửu Bảo Lưu Ly Tháp](cuu-bao-luu-ly-thap.md)
+- [4.21 Phá Hồn Thương](pha-hon-thuong.md)
+- [4.22 A Ngân](a-ngan.md)
+- [4.23 Liệt Hỏa Thương Lang](liet-hoa-thuong-lang.md)
+- [4.24 Băng Phượng Hoàng](bang-phuong-hoang.md)
+- [4.25 Bạch Hổ](bach-ho.md)
 
 ## 5. Năm dung hợp hiện có
 
