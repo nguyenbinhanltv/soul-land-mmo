@@ -28,6 +28,7 @@ import { addZone, dragSource } from "./dragDrop.ts";
 import { cardFor, compareFor, hideCard, hideCompare, showCard, showCompare } from "./actionCard.ts";
 import { EQUIP_ITEM, equipFrameKey, equipIconChain, EQUIP_SLOTS, EQUIP_TIERS, EQUIP_MAX_TIER, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SALVAGE_MAX, EQUIP_SYNTH_KEEP, equipName, equipTemplate, equipSlotDef, equipStats, equipSynthStep, equipAutoSalvageable, parseEquip } from "../../shared/data.ts";
 import { toast } from "./feedback.ts";
+import { resolveQuestMarker } from "./nameplate.ts";
 import { openLooksOverlay } from "./looksMaker.ts";
 import type { GearMsg, EquipEnhPreview, EquipEnhDone, EquipSynDone, EquipSalvDone } from "./net.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
@@ -3155,11 +3156,10 @@ export const QUEST_GIVERS = new Set([...QUESTS.map((c) => c.giver), DAILY.giver]
  * Dấu trên đầu NPC `id`: "offer" có bài mới, "ready" có bài chờ trả, "active" đang làm, null = không có gì (xong hết / không giao).
  * Người ra khảo hạch hằng ngày gộp cả bộ bài: chờ trả trước, rồi bài mới, rồi đang làm.
  */
-export function questMarker(id: string): { symbol: "!" | "?"; color: string } | null {
-  const st = questOf(id)?.status;
-  const status = st === "offer" || st === "ready" || st === "active" ? st : id === DAILY.giver ? dailyMark() : null;
-  if (!status) return null;
-  return status === "offer" ? { symbol: "!", color: "#ffd84a" } : { symbol: "?", color: status === "ready" ? "#ffd84a" : "#a8a8a8" };
+export function questMarker(id: string) {
+  const statuses = questTracked().filter((q) => questChain(q.chain)?.giver === id).map((q) => q.status);
+  if (id === DAILY.giver) statuses.push(...(dailyMsg?.list ?? []).map((q) => q.status));
+  return resolveQuestMarker(statuses);
 }
 function dailyMark(): "offer" | "ready" | "active" | null {
   const l = dailyMsg?.list ?? [];

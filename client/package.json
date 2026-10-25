@@ -9,6 +9,7 @@
     "bot": "node scripts/bot-test.mjs",
     "test:predict": "node scripts/predict-test.mjs",
     "test:nameplate": "node --experimental-strip-types scripts/nameplate-test.mjs",
+    "test:nameplate-browser": "node scripts/nameplate-browser.mjs",
     "test:charbag": "node scripts/charbag-test.mjs",
     "test:phaptuong": "node scripts/phaptuong-test.mjs",
     "test:spiritmotion": "node scripts/spiritmotion-test.mjs",
@@ -22,6 +23,7 @@
     "rung-san-hon-online": "file:.."
   },
   "devDependencies": {
+    "playwright": "1.56.1",
     "typescript": "5.9.3",
     "vite": "6.4.3"
   }
