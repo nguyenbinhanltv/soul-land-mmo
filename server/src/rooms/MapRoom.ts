@@ -15,7 +15,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus, boneSlotIndex,
   CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, coreSetName, coreResetFee, MAX_CORE_STARS, type CoreData,
   CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ROLL, parseEquip, equipStats, equipDefTotal, equipWeaponRoll, equipTemplate, equipSlotIndex, equipName, equipSlotDef, rollEquip, rollEquipDrop, rollEquipCharm, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_TEMPLATES, EQUIP_TIERS, EQUIP_ESSENCE, EQUIP_SOUL, equipLuckStep, EQUIP_SALVAGE_MAX, equipSynthStep, equipSynthOutcome, equipSalvage, equipAutoSalvageable, type EquipData, type EquipDrop,
-  CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, atkRoll, type CoreFx,
+  CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, ATTACK_REACH, atkRoll, type CoreFx,
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed, parseBoneSubs, boneAddSubs, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee, SHARD_BUY, shardBuyCost, ARENA_SHARDS,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, coreXp, coreEnhanceNeed, coreEnhancePreview, coreUpgradeSubs, coreStatText,
@@ -69,8 +69,11 @@ import { ringLimit, coreSubRolls, ARENA_MAP } from "../../../shared/data.ts";
 import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
 import { newItem, itemStacks, gearStats, gearLook, bagUsed, bumpItemClock, KIND_ORDER, ITEM_ORDER, type GearStats } from "./items.ts";
+import { targetMsg, tickLock, setLock, manualAttack } from "./lock.ts";
 
 export interface PData {
+  /** Hồn thú đang khoá (M3 #750, rooms/lock.ts); "" = không khoá. */
+  target: string;
   accountId: number;
   leaseOwner: string;
   leaseT: number;
@@ -1024,7 +1027,8 @@ export class MapRoom extends Room<MapState> {
       if (p) { if (s > 0 && s <= 0xffffffff) p.seq = s; p.seqT = 0; }
     });
     // Đánh, hồn kỹ, Chân Thân, kỹ năng hồn cốt do người chơi tự bấm thì tắt tự săn trước (tay ưu tiên); tự săn gọi thẳng các hàm này.
-    this.onMessage("attack", (c) => { this.autoHand(c.sessionId); this.attack(c.sessionId); });
+    this.onMessage("attack", (c) => { this.autoHand(c.sessionId); manualAttack(this, c.sessionId); });
+    this.onMessage("target", (c, m: { id?: unknown }) => targetMsg(this, c.sessionId, m?.id)); // khoá mục tiêu (M3 #750)
     this.onMessage("skill", (c, m: { i: number }) => { this.autoHand(c.sessionId); this.skill(c, intIn(m?.i)); });
     this.onMessage("loadout", (c, m: { rowId: number; skills: unknown }) => this.setLoadout(c, intIn(m?.rowId), m?.skills)); // 8.1a
     this.onMessage("chanthan", (c) => { this.autoHand(c.sessionId); this.chanThan(c); }); // 8.1a: Võ Hồn Chân Thân (phím R)
@@ -1120,7 +1124,7 @@ export class MapRoom extends Room<MapState> {
     const pos = loc.x !== null && loc.y !== null && this.map.standable(loc.x, loc.y) ? { x: loc.x, y: loc.y } : this.spawnPoint();
     p.x = pos.x; p.y = pos.y;
     const d: PData = { accountId: auth.accountId, leaseOwner, leaseT: PRESENCE_HEARTBEAT_MS, owned, team, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 }, walk: false,
-      atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, testBone: null, testCore: null, testHerb: null, looksN: looks.changes, looksBusy: false, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
+      target: "", atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, testBone: null, testCore: null, testHerb: null, looksN: looks.changes, looksBusy: false, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
       benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0,
       saving: Promise.resolve(), teamQueued: false, tradeQueued: false, latest: new Map(), portalKey: "", travelCast: null, travelling: false, travelled: false, gmReset: false, gmMarked: false, chListAt: 0, chListQueued: false, bossAskAt: 0, bagLimit: process.env.GAME_TEST !== "1", bagTok: { n: BAG_MSG_BURST, t: Date.now() }, statsRow: undefined, askAt: new Map(), askQueued: new Set(),
       wps: new Set(auth.wps), wpKey: "", fog: null, fogAdd: [], fogDirty: false,
@@ -4457,10 +4461,10 @@ export class MapRoom extends Room<MapState> {
     d.atkCd = ATTACK_CD / (1 + (d.haste > 0 ? d.coreFx.haste ?? 0 : 0));
     if (this.map.inSafe(p.x, p.y)) { d.atkCd = 1; return this.log(id, "Vùng an toàn: không thể giao chiến.", "#ffb35c"); }
     this.unhide(p, d);
-    const ax = p.x + d.dir.x * 10, ay = p.y - 6 + d.dir.y * 10;
+    const ax = p.x + d.dir.x * ATTACK_REACH.fwd, ay = p.y - 6 + d.dir.y * ATTACK_REACH.fwd;
     this.broadcast("fx", { k: "slash", id, dx: d.dir.x, dy: d.dir.y, col: VOHON[p.vh].col });
     const hit: Hit = { kind: "attack", done: false };
-    const near = this.beastsNear(ax, ay, 18 + BEAST_HALF).filter(([, b]) => Math.hypot(b.x - ax, b.y - TIERS[b.tier].size / 2 - ay) < 18 + TIERS[b.tier].size / 2);
+    const near = this.beastsNear(ax, ay, ATTACK_REACH.r + BEAST_HALF).filter(([, b]) => Math.hypot(b.x - ax, b.y - TIERS[b.tier].size / 2 - ay) < ATTACK_REACH.r + TIERS[b.tier].size / 2);
     // Đối thủ trong Đại Đấu Hồn Trường (7.2): tâm thân hồn sư cao hơn chân ARENA.body pixel.
     const foes = this.foesOf(id).filter((f) => { const q = this.state.players.get(f); return q && !q.dead && Math.hypot(q.x - ax, q.y - ARENA.body - ay) < 18 + ARENA.body; });
     // Bộ Hạo Thiên 4 món (5.2): đòn thường trúng thứ comboN liên tiếp (cách nhau không quá comboGap giây) thêm sát thương; trượt thì đếm lại.
@@ -7943,6 +7947,7 @@ export class MapRoom extends Room<MapState> {
       // Tự bán từ xa (#216): túi vừa đổi (sendBag đặt cờ) thì xét một lần, không quét túi mỗi nhịp.
       if (d.sellCheck) { d.sellCheck = false; this.autoSell(id); this.autoSalvage(id); }
       if (p.dead) {
+        if (d.target) setLock(this, id, d, "");
         d.deadT -= dt;
         if (d.deadT <= 0) {
           // Cả đội gục: về doanh trại, cả đội hồi đầy.
@@ -7973,6 +7978,7 @@ export class MapRoom extends Room<MapState> {
         p.dir = dir4(ix, iy);
       }
       if (d.absorbing) { d.absorbing.t += dt; p.absorb = Math.min(0.999, d.absorbing.t / d.absorbing.dur); if (d.absorbing.t >= d.absorbing.dur) this.finishAbsorb(id); }
+      if (d.target) tickLock(this, id, p, d); // khoá mục tiêu (M3 #750): trong tầm thì quay mặt, đánh thường theo hồi chiêu
       this.portalHint(id, p, d);
       this.waypointTick(id, p, d);
       if (d.travelCast?.wp) {

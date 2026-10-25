@@ -58,6 +58,8 @@
 // server) nên chạy được trên bản ×8 lẫn bản cũ.
 // Cực Hàn của Huyền Minh Băng Giao (#163, coldTest; BOT_ONLY=cold): tầng Hàn tích theo nhịp, đủ tầng thì Đóng băng,
 // Hỏa Đàn / thanh tẩy / rời hang / hạ thú vương thì mất tầng.
+// Khoá mục tiêu (M3 #750, lockTest; BOT_ONLY=lock): gửi target {id} thì server giữ khoá, tự quay mặt + đánh thường trong tầm, bị đánh / Choáng
+// vẫn giữ, quái chết thì huỷ khoá; id sai bị bỏ; Space chưa khoá tự quay về quái gần nhất trong tầm.
 // Che tầm nhìn (#175, inkTest; BOT_ONLY=ink): Phun Mực của tinh anh Ma Chương Vương gây Che tầm nhìn (không Câm lặng / Làm
 // chậm, vẫn dùng hồn kỹ), thanh tẩy giải, hết giờ thì hết.
 // Vùng lưu lại trên mặt đất (#161, groundTest; BOT_ONLY=ground): vũng / sương độc gây Trúng độc theo nhịp khi đứng
@@ -534,6 +536,7 @@ async function googleTest(){
 // Bài độc lập (tự tạo bot, gọi được ở bất kỳ đâu): [khóa, nhóm, hàm, cần hook test]. Thứ tự là thứ tự chạy; số giây đo trên runner CI.
 const STANDALONE=[
   ["cold",1,coldTest],                        //  18 #163 Cực Hàn
+  ["lock",1,lockTest],                        //  ~12 M3 #750 khoá mục tiêu
   ["ink",1,inkTest],                          //   6 #175 Phun Mực che tầm nhìn
   ["boneSub",1,boneSubTest],                  //   3 #187 dòng phụ hồn cốt
   ["split",5,splitTest],                      // ~42 #173 hang chia phần luân phiên (đo ở máy)
@@ -630,6 +633,7 @@ if(process.env.BOT_ONLY==="waypoint"){ await waypointTest(); console.log(fails?`
 if(process.env.BOT_ONLY==="camp"){ await campTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="bigmap"){ await bigMapTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="view"){ await syncViewTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="lock"){ await lockTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="ink"){ await inkTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="cold"){ await coldTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="ground"){ await groundTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -11743,6 +11747,67 @@ async function groundTest(){
  * khai, người khác vẽ biểu tượng trên đầu) đúng thời gian STATUS.ink, không Câm lặng / Làm chậm như bản tối thiểu cũ và vẫn dùng được
  * hồn kỹ; tiên cơ Xúc Xích thanh tẩy giải; gây lại thì hết giờ tự hết.
  */
+/**
+ * M3 #750: khoá mục tiêu (rooms/lock.ts). Bot không có Phaser nên chỉ gửi ý định `target {id}` như client; kiểm phần server: giữ khoá,
+ * tự đánh trong tầm không cần tin `attack`, bị đánh / Choáng không huỷ, quái chết thì huỷ (tin `lock` rỗng), id sai bị bỏ, Space chưa khoá
+ * tự quay mặt về quái gần nhất trong tầm.
+ */
+async function lockTest(){
+  console.log("[M3 #750] Khoá mục tiêu: tự đánh, giữ khoá khi bị đánh / Choáng, Space tự quay mặt");
+  const F=await bot("Khoá mục tiêu","xuc_xich",{sex:0,hair:2,hairCol:3,outfitCol:2});
+  const mo=()=>F.room.state.players?.get(F.room.sessionId), bs=bid=>F.room.state.beasts.get(bid);
+  let lockMsg=null, n=0; F.room.onMessage("lock",m=>{ lockMsg=m.id; n++; });
+  await waitFor(()=>F.owned&&mo(),3000);
+  try{
+    if(!(await test(F,"ping"))?.enabled){ console.log("  ⚠ bỏ qua khoá mục tiêu (cần hook goto, spawn, clear, pst): bật server bằng GAME_TEST=1"); return; }
+    // Ra ngoài vùng an toàn của làng (không đánh được trong làng).
+    const sv=JSON.parse(readFileSync(mapUrl("thanh_hon_thon"),"utf8")).layers.flatMap(l=>l.objects??[]).find(o=>o.type==="safe"), tv=npcSpot("thanh_hon_thon","to_van_dao");
+    let out=false;
+    for(const [dx,dy] of [[40,0],[60,0],[40,24],[40,-24],[80,0],[60,48],[60,-48]]){
+      const x=sv.x+sv.width+dx, y=Math.max(sv.y+8,Math.min(sv.y+sv.height-8,tv.y))+dy; await test(F,"goto",{x,y});
+      if(Math.hypot(mo().x-x,mo().y-y)<1){ out=true; break; } }
+    ok(out,`ra ngoài làng (${mo().x.toFixed(0)}, ${mo().y.toFixed(0)})`);
+    await test(F,"clear"); await test(F,"rest",{s:TEAM_COMBAT_SECS+1});
+    // 1) Khoá một con ở xa (ngoài tầm đánh): server giữ khoá, báo lại bằng tin riêng `lock`.
+    const bid=(await test(F,"spawn",{tier:0,dx:70,hpx:6}))?.bid; await waitFor(()=>bs(bid),1000);
+    F.room.send("target",{id:bid});
+    ok(await waitFor(()=>lockMsg===bid,1500),`bấm quái: server khoá ${bid} (tin lock)`);
+    // 2) Ngoài tầm thì không đánh; hồn sư tới sát (client lái A* như bấm đi, ở đây dịch chuyển bằng hook) thì tự đánh, không gửi tin attack nào.
+    const hf=bs(bid)?.hp; await sleep(500);
+    ok(Math.hypot(bs(bid).x-mo().x,bs(bid).y-mo().y)>40?bs(bid).hp===hf:true,`ngoài tầm đánh: chưa ra đòn (sinh lực quái ${hf} -> ${bs(bid)?.hp})`);
+    await test(F,"goto",{x:bs(bid).x-18,y:bs(bid).y});
+    const h0=bs(bid)?.hp, m0=mo().maxHp;
+    ok(await waitFor(()=>bs(bid)&&bs(bid).hp<h0,6000),`trong tầm thì tự đánh thường, không bấm đánh (sinh lực quái ${h0} -> ${bs(bid)?.hp})`);
+    // 3) Bị đánh: vẫn giữ khoá.
+    await test(F,"hurt",{pct:15}); const hit=mo().hp<m0, kept=lockMsg===bid&&n>0; // hook hurt = bị đánh một đòn (như hồn thú trúng)
+    ok(hit&&kept,`bị đánh (sinh lực ${mo().hp}/${m0}): vẫn giữ khoá`);
+    await sleep(600); ok(lockMsg===bid&&!!bs(bid),"bị đánh xong vẫn giữ khoá sau 0,6 giây");
+    // 4) Choáng: không đánh được (noAtk) nhưng không mất khoá; hết Choáng thì đánh tiếp.
+    await test(F,"pst",{s:"stun",secs:1.5}); await waitFor(()=>((mo().st??0)&statusBit("stun"))!==0,1000);
+    const hs=bs(bid)?.hp; await sleep(900);
+    ok(lockMsg===bid&&(bs(bid)?.hp??0)>=(hs??0),`đang Choáng: không đánh, vẫn giữ khoá (sinh lực quái ${hs} -> ${bs(bid)?.hp})`);
+    ok(await waitFor(()=>bs(bid)&&bs(bid).hp<hs,5000),"hết Choáng: tự đánh tiếp");
+    // 5) Quái chết thì server huỷ khoá.
+    await test(F,"bhp",{pct:1,bid});
+    ok(await waitFor(()=>!bs(bid)&&lockMsg==="",8000),`quái chết: huỷ khoá (lock "${lockMsg}")`);
+    // 6) Chống gian lận: id không có thật / sai kiểu bị bỏ, khoá cũ cũng bỏ.
+    await test(F,"clear");
+    const b2=(await test(F,"spawn",{tier:0,dx:70}))?.bid; await waitFor(()=>bs(b2),1000);
+    F.room.send("target",{id:b2}); await waitFor(()=>lockMsg===b2,1500);
+    for(const bad of ["khong-co-id",{x:1},7,null]){
+      F.room.send("target",{id:b2}); await waitFor(()=>lockMsg===b2,1500);
+      F.room.send("target",{id:bad}); const cleared=await waitFor(()=>lockMsg==="",1000);
+      ok(cleared,`id sai ${JSON.stringify(bad)}: bỏ khoá, không khoá lung tung`); }
+    // 7) Space chưa khoá: quay mặt về quái gần nhất trong tầm (hồn sư đang quay lưng) rồi đánh.
+    await test(F,"clear"); F.room.send("input",{x:-1,y:0}); await sleep(250); F.room.send("input",{x:0,y:0}); await sleep(150);
+    await test(F,"goto",{x:mo().x,y:mo().y});
+    const b3=(await test(F,"spawn",{tier:0,dx:22,hpx:6}))?.bid; await waitFor(()=>bs(b3),1000);
+    const k0=bs(b3)?.hp; F.room.send("attack");
+    ok(await waitFor(()=>bs(b3)&&bs(b3).hp<k0,1200)&&lockMsg==="",`Space chưa khoá, quái ở sau lưng trong tầm: tự quay mặt, đánh trúng (${k0} -> ${bs(b3)?.hp}), không khoá`);
+    await test(F,"clear");
+  } finally { await F.room.leave().catch(()=>{}); }
+}
+
 async function inkTest(){
   console.log("[#175] Phun Mực: Che tầm nhìn, thanh tẩy, hết giờ");
   const HT="hai_than_dao", EB="ma_chuong_vuong", ED=BOSSES[bossIndex(EB)], PM=ED?.skills.findIndex(s=>s.name==="Phun Mực")??-1, IK=STATUS.ink;
