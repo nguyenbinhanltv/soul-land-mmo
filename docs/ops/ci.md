@@ -20,7 +20,7 @@ Ba job chính (`changes`, `check-build`, `bot-ram`):
 | 2 | `ab2` (8.x, 9.5, 9.6, 3.5, BĐ4), flag, fog, rally | 350 |
 | 3 | `botC`, arena, camp | 345 |
 | 4 | auto, bag | 355 |
-| 5 | waypoint, split, bigmap, autoBoss, friend, chuong3, shardBuy, gm, looks3, view, chat, sell, google, looks2 | 335 |
+| 5 | waypoint, split, bigmap, autoBoss, friend, chuong3, forgePreview (#699, ước ~25 giây), shardBuy, gm, looks3, view, chat, sell, google, looks2 | 335 |
 | 6 | tong, quest, chuong2, daily, resonance, issue121, egg, fusion, tide, cheat, offline, ground, cheat2, partyBuff, partyEffect, supportContrib, copyParty, luck | 355 |
 
 Khai báo ở `INLINE` / `STANDALONE` (`client/scripts/bot-test.mjs`), số nhóm `BOT_PARTS`, ma trận `part` ở `check.yml` phải khớp (bot tự báo ✗ khi lệch). Bài mới: gắn nhóm nhẹ nhất theo dòng `⏱`; nhóm nào vượt ~8 phút thì chuyển bài hoặc thêm nhóm.
