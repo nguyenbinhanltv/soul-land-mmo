@@ -3979,8 +3979,11 @@ else {
       const b0=ringsOf(B).length; B.room.send("pickup");
       ok(await lastLog(B,/thuộc về người hạ/)&&st.drops.has(k1.id)&&ringsOf(B).length===b0,`B không nhặt được trong ${DROP_OWNER_SECS} giây đầu: ${B.logs.at(-1)}`);
       // Đồ rơi chồng nhau: hồn hoàn của B rơi đúng chỗ hồn hoàn của A (rơi trước) thì B nhấn E vẫn nhặt được của mình.
+      await test(B,"edrop",{seed:7});
       const kb=await killFor(10,undefined,undefined,B); B.room.send("pickup");
       ok(kb&&await waitFor(()=>!st.drops.has(kb.id))&&st.drops.has(k1.id)&&ringsOf(B).some(i=>i.years===10),`đồ rơi chồng nhau: B nhặt hồn hoàn của mình nằm dưới hồn hoàn của A (${B.logs.at(-1)})`);
+      ok([...st.drops.values()].some(d=>d.item===SD.EQUIP_ITEM&&d.owner===B.room.sessionId),"hồi quy: trang bị của B còn dưới đất sau khi nhặt hồn hoàn chồng nhau");
+      await test(B,"edrop",{off:true});
       for(const i of ringsOf(B).filter(i=>i.years===10)) B.room.send("discard",{id:i.id});
       await waitFor(()=>!ringsOf(B).some(i=>i.years===10));
       const a0=ringsOf(A).length; A.room.send("pickup");
@@ -3988,10 +3991,17 @@ else {
       ok(ringsOf(A).some(i=>i.years===437&&i.qty===1&&i.kind==="hon_hoan"),"túi A có hồn hoàn đúng 437 năm (mỗi chiếc một ô)");
       ok(!ringsOf(B).some(i=>i.years===437),"túi B không có hồn hoàn của A");
     }
+    // Dọn đồ rơi kèm của ca chồng nhau: pickup ưu tiên trang bị B được nhặt trước hồn hoàn đang khóa của A.
+    await test(A,"drops",{s:SD.DROP_TTL_SECS});
+    ok(await waitFor(()=>st.drops.size===0),"dọn đồ rơi còn sót trước khi thử hết thời gian ưu tiên");
     // Hết thời gian ưu tiên thì ai cũng nhặt được.
     const k2=await killFor(1234);
     if(k2){
-      B.room.send("pickup"); ok(await lastLog(B,/thuộc về người hạ/),"B chưa nhặt được hồn hoàn 1.234 năm");
+      const l=B.logs.length, b0=bagKey(B);
+      B.room.send("pickup");
+      ok(await waitFor(()=>B.logs.slice(l).some(t=>t.startsWith(`Hồn hoàn ${formatYears(1234)} thuộc về người hạ`)),800)
+        &&st.drops.has(k2.id)&&k2.dr.owner===A.room.sessionId&&k2.dr.ownerTtl>0&&bagKey(B)===b0&&!ringsOf(B).some(i=>i.years===1234),
+        `B chưa nhặt được hồn hoàn 1.234 năm: ${B.logs.slice(l).join(" | ")}`);
       await test(A,"drops",{s:DROP_OWNER_SECS});
       B.room.send("pickup"); ok(await waitFor(()=>ringsOf(B).some(i=>i.years===1234))&&await waitFor(()=>!st.drops.has(k2.id)),`hết ${DROP_OWNER_SECS} giây: B nhặt được hồn hoàn 1.234 năm`);
     }
