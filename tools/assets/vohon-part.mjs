@@ -12,6 +12,7 @@
 //   - pivot: điểm trong ảnh gốc (trước flip / rot), ví dụ chỗ tay cầm cán búa, đáy tháp, giữa lưng hư ảnh.
 //   - hand (attach hand): bàn tay bên trái / phải màn hình (so với giữa người) ở khung đứng, theo frameAnchors của lib.mjs.
 //     Cùng mảng tay này là "tay cầm" mà pack.mjs dò theo ở từng khung (pack chọn mảng da gần phụ thể nhất ở khung đứng).
+//   - free (attach hand): true thì pack bám mảng da gần vị trí trước đó nhất, không giữ bên trái / phải (hướng nhìn ngang: tay vung ra phía trước vẫn là tay đó).
 //   - flip: lật ngang; rot: xoay 90 / 180 / 270 độ theo chiều kim đồng hồ (không nội suy); áp trước khi đặt.
 //   - rim: viền sáng 1 pixel ở mép trên / trái (điểm có ô trên hoặc ô trái trong suốt) cho võ hồn màu tối (mục 5.11), màu
 //     nên là `col` của võ hồn.
@@ -66,7 +67,7 @@ for (const [r, d] of ISO_DIRS.entries()) {
       const side = pc.hand === "left" ? -1 : 1, hs = A.hands.filter((h) => Math.sign(h.x - A.mid) === side);
       // Bàn tay bên đó: mảng thấp nhất (mảng da ngực / cổ của áo hở nằm cao hơn và gần giữa người).
       at = hs.length ? hs.reduce((a, b) => (b.y > a.y ? b : a)) : null;
-      if (at) grips[d] = { x: +at.x.toFixed(2), y: +at.y.toFixed(2) };
+      if (at) grips[d] = { x: +at.x.toFixed(2), y: +at.y.toFixed(2), ...(pc.free ? { free: true } : {}) };
       if (!at) fail(`[vohon-part] ${sex} ${d}: khung đứng không thấy tay bên ${pc.hand}`);
     } else at = A[spec.attach];
     const { img, pivot } = transform(readPng(path.join(base, pc.img)), pc.pivot, pc.flip, pc.rot);
