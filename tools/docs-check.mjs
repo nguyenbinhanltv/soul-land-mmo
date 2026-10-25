@@ -18,7 +18,7 @@ const has = (n) => process.argv.includes(n);
 const EXT = /\.(ts|mjs|md|yml|yaml|json)$/;
 const SKIP_DIR = new Set(["node_modules", ".git", "dist", "build", "artifacts"]); // ở mọi cấp
 const SKIP_PATH = new Set(["art", "shared/assets"]); // chỉ đúng đường dẫn này (docs/art vẫn quét)
-const SKIP_FILE = new Set(["package-lock.json", "docs-check.mjs", "docs-split.mjs", "docs-split.map.json"]);
+const SKIP_FILE = new Set(["package-lock.json", "docs-check.mjs", "docs-split.mjs", "docs-split.map.json", "docs-split.test.mjs"]);
 
 /** Duyệt thư mục, trả đường dẫn tương đối (dấu /) của file cần quét. `art/` và `shared/assets` bị bỏ (ảnh, Tiled). */
 function walk(dir, rel = "", out = []) {
