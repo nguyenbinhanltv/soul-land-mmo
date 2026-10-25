@@ -1649,6 +1649,7 @@ export class MapRoom extends Room<MapState> {
       return;
     }
     d.autoTok -= 1;
+    if (op === "set") d.autoSetPend = null; // `set` mới áp ngay thì bỏ cấu hình chờ cũ hơn
     const day = this.today(); if (day !== d.autoDay) { d.autoDay = day; d.autoUsed = 0; d.autoDirty = true; }
     if (op === "off") { if (d.auto) this.autoStop(id, "đã tắt."); else this.sendAuto(id); return; }
     if (op === "set") {
