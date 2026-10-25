@@ -16,7 +16,7 @@ Mục tiêu: nhiều người (mỗi người có agent AI riêng) cùng làm m�
 | Loại | `bug`, `gameplay`, `art`, `tai-lieu`, `bot-test`, `giao-dien`, `am-thanh`… | Loại việc, tùy dự án |
 | Giai đoạn | `giai-doan-<số>` | Thuộc giai đoạn lộ trình |
 
-Nhãn chờ một điều kiện kỹ thuật cụ thể (ví dụ `cho-hoat-anh-8-huong`) nên đi cùng `chan` và trỏ tới issue giải bài toán đó.
+Nhãn chờ một điều kiện kỹ thuật cụ thể (ví dụ chờ một quyết định hay một issue khác) nên đi cùng `chan` và trỏ tới issue giải bài toán đó.
 
 Tạo nhãn: `gh label create "agent:<tên>" --description "Việc do <tên> làm"`.
 
