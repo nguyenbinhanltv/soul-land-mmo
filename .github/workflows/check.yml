@@ -88,6 +88,7 @@ jobs:
   nameplate-preview:
     name: nameplate-preview
     needs: changes
+    if: ${{ needs.changes.outputs.level != 'skip' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:

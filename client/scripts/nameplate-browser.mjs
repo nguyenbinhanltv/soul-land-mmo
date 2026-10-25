@@ -48,7 +48,7 @@ try {
     return { name, token };
   }
   const owner = await account(40);
-  browser = await chromium.launch({ headless: true, args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
+  browser = await chromium.launch({ headless: true, args: ["--mute-audio", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   page.on("pageerror", (e) => console.error("[trình duyệt]", e.message));
   await page.addInitScript(({ token }) => localStorage.setItem("shh-token", token), owner);
@@ -168,6 +168,11 @@ try {
     await page.evaluate(() => { const s = window.__c9Scene; s.layoutOverheadLabels = window.__c9After; s.layoutOverheadLabels(); });
   }
   await writeFile(resolve(out, "verification.json"), JSON.stringify(samples, null, 2));
+  await writeFile(resolve(out, "preview.html"), `<!doctype html><html lang="vi"><meta charset="utf-8"><title>C9 — nhãn trong game thật</title>
+    <style>body{font:16px system-ui;background:#171d20;color:#f6eedb;margin:24px}img{max-width:100%;image-rendering:pixelated}section{margin:32px 0}figure{margin:16px 0}h1,h2{color:#ffe477}</style>
+    <h1>C9 — 41 hồn sư cùng màn hình</h1><p>Hai ảnh cùng state server RAM thật. Trước: tắt né/ẩn nhãn, đặt theo độ lệch cũ. Sau: bật C9. Đo bằng Chromium render phần mềm; không phải FPS thiết bị người chơi.</p>
+    ${samples.map((s) => `<section><h2>${s.width}×${s.height}</h2><p>FPS ${s.beforeFps} → ${s.afterFps}; còn ${s.visible} nhãn; không chồng chữ; giữ mục tiêu và tổ đội.</p><figure><figcaption>Trước</figcaption><img src="before-${s.width}x${s.height}.png"></figure><figure><figcaption>Sau</figcaption><img src="after-${s.width}x${s.height}.png"></figure></section>`).join("")}
+    <h2>Dấu nhiệm vụ</h2><p>Trạng thái do server gửi: nhận bài và chờ trả bài.</p><img src="quest-offer.png"><img src="quest-ready.png"></html>`);
   console.log(JSON.stringify({ output: out, samples }, null, 2));
 } finally {
   await Promise.allSettled(bots.map((b) => b.leave()));
