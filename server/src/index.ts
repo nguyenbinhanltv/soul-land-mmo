@@ -312,6 +312,8 @@ function fatal(kind: string, err: unknown) {
 // Nạp sẵn mọi bản đồ: thiếu file thì dừng ngay, object sai (cổng, loài) thì cảnh báo lúc khởi động thay vì lúc có người vào.
 for (const id of Object.keys(MAPS)) loadMap(id);
 await store.init();
+// Dọn phiên đăng nhập quá hạn mỗi giờ (#736); lỗi DB chỉ ghi log, không để rơi thành unhandledRejection.
+setInterval(() => { store.pruneSessions().catch((e) => console.warn("Dọn phiên lỗi:", (e as Error).message)); }, 3_600_000).unref();
 // Gắn sau khi nạp bản đồ / DB: lỗi lúc khởi động vẫn dừng ngay với lỗi gốc của Node (chưa có ai để lưu), trước khi server nhận kết nối.
 process.on("uncaughtException", (err, origin) => fatal(origin, err));
 process.on("unhandledRejection", (reason) => fatal("unhandledRejection", reason));

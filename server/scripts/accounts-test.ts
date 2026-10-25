@@ -22,6 +22,29 @@ await test("cleanName giữ hoa/thường, chỉ chuẩn hóa NFKC và cắt kho
 });
 
 /** Các kịch bản chung cho mọi Store. `u` thêm hậu tố để chạy lại trên Postgres không đụng tài khoản cũ. */
+// Dọn phiên (#736): `age` lùi ngày mở của một phiên (MemoryStore sửa Map, PgStore sửa cột created_at).
+async function sessionsTest(label: string, s: Store, u: string, age: (token: string, days: number) => Promise<void>) {
+  await test(`${label}: phiên > 30 ngày hết hạn, mở phiên mới xóa phiên cũ của tài khoản, giữ tối đa 10 phiên mới nhất, quét định kỳ (#736)`, async () => {
+    const id = ok(await s.login(cleanName(`Phiên${u}`), PW[4])), other = ok(await s.login(cleanName(`PhiênB${u}`), PW[4]));
+    const otherTok = await s.startSession(other);
+    const old = await s.startSession(id);
+    await age(old, 31);
+    assert.equal(await s.accountFromToken(old), null);               // quá hạn thì không dùng được dù chưa bị xóa
+    const keep = await s.startSession(id);                            // mở phiên mới: phiên quá hạn của chính tài khoản bị xóa
+    assert.ok(await s.accountFromToken(keep));
+    const quét = await s.startSession(id); await age(quét, 40);       // phiên quá hạn của tài khoản khác chưa bị đụng tới...
+    assert.ok((await s.pruneSessions()) >= 1);                        // ...quét định kỳ xóa
+    assert.equal(await s.accountFromToken(quét), null);
+    assert.ok(await s.accountFromToken(keep) && await s.accountFromToken(otherTok));
+    const tokens: string[] = [];
+    for (let i = 0; i < 14; i++) tokens.push(await s.startSession(id));
+    const alive = (await Promise.all(tokens.map((t) => s.accountFromToken(t)))).filter(Boolean).length;
+    assert.equal(alive, 10);                                           // 4 phiên cũ nhất bị đá, 10 mới nhất còn
+    assert.ok(await s.accountFromToken(tokens[13]) && !(await s.accountFromToken(tokens[0])));
+    assert.ok(await s.accountFromToken(otherTok));                    // tài khoản khác không bị ảnh hưởng
+  });
+}
+
 async function common(label: string, s: Store, u = "") {
   await test(`${label}: "ＴＡＭ${u}" và "Tam${u}" là cùng một tài khoản, tên hiển thị giữ như lần tạo`, async () => {
     const id = ok(await s.login(cleanName(`Tam${u}`), PW[1]));
@@ -213,7 +236,11 @@ async function common(label: string, s: Store, u = "") {
   });
 }
 
-await common("MemoryStore", new MemoryStore());
+{
+  const m = new MemoryStore();
+  await common("MemoryStore", m);
+  await sessionsTest("MemoryStore", m, "", async (t, d) => { m.sessions.get(t)!.at -= d * 864e5; });
+}
 
 const url = process.env.TEST_DATABASE_URL;
 if (!url) console.log("(Bỏ qua PgStore: chưa đặt TEST_DATABASE_URL.)");
@@ -222,6 +249,7 @@ else {
   await s.init();
   const u = " " + randomBytes(3).toString("hex");
   await common("PgStore", s, u);
+  await sessionsTest("PgStore", s, u, async (t, d) => { await s.pool.query("UPDATE sessions SET created_at = created_at - make_interval(days => $2) WHERE token=$1", [t, d]); });
 
   await test("PgStore: DB cũ có hai tài khoản trùng tên sau chuẩn hóa -> giữ tài khoản cũ nhất, không xóa tài khoản nào", async () => {
     // Giả lập dữ liệu tạo trước 004: chèn thẳng, name_key NULL. "ＶＩＮＨ…" tạo trước nên phải giữ tên.
