@@ -6,10 +6,10 @@ import { randomUUID } from "node:crypto";
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TICK_RATE, tierOfYears, vohonIndex,
   AWAKEN_GIFT, AWAKEN_CHOICES, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, REVIVE_SECS, RESPAWN_SECS, XP_SHARE_ACTIVE, XP_SHARE_BENCH,
-  beastLevel, xpLevelScale, MAX_RINGS, parseTeam, BEASTS, beastIndex, MAPS, MAP_MOVED, DEFAULT_MAP, parseNewLooks, encodeLpc, lpcGearCode, dir4, type Looks,
+  beastLevel, xpLevelScale, MAX_RINGS, parseTeam, BEASTS, beastIndex, MAPS, MAP_MOVED, DEFAULT_MAP, parseNewLooks, encodeLpc, dir4, type Looks,
   TRAVEL_CAST, BOAT_CAST, WAYPOINT_CAST, waypointFee, RED_BEAST_CHANCE, kingYears, TRAVEL_LEAVE_SECS, CHANNEL_MAX, CHANNEL_CD,
   TIEN_CO, TIEN_CO_MAX, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY, energyGain, tienCoDmgMult, TILE, RALLY,
-  itemDef, ITEMS, ITEM_KINDS, BAG_EXPAND, BAG_MAX_SLOTS, bagSlotsOf, BUYBACK_MAX, bagExpandCost, DAN_CD, STARTER_ITEMS, BEAST_COIN, formatHonTe, type ItemDef,
+  itemDef, BAG_EXPAND, BAG_MAX_SLOTS, bagSlotsOf, BUYBACK_MAX, bagExpandCost, DAN_CD, STARTER_ITEMS, BEAST_COIN, formatHonTe, type ItemDef,
   MAX_YEARS, tierBand, rollYears, beastStats, formatYears, RING_ITEM, DROP_OWNER_SECS, DROP_TTL_SECS, PICKUP_RANGE,
   absorbSecs, absorbChance, SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode, starSkillMult, starCdMult, starTienCoMult, starRing,
   BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus, boneSlotIndex,
@@ -68,6 +68,7 @@ import { buildPreset } from "../testPreset.ts";
 import { ringLimit, coreSubRolls, ARENA_MAP } from "../../../shared/data.ts";
 import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
+import { newItem, itemStacks, gearStats, gearLook, bagUsed, bumpItemClock, KIND_ORDER, ITEM_ORDER, type GearStats } from "./items.ts";
 
 export interface PData {
   accountId: number;
@@ -684,35 +685,6 @@ export async function claimBuyback(accountId: number, key: string) {
   return got as Buyback | null;
 }
 
-// ---------- Vật phẩm (mục 5.7) ----------
-let itemClock = 0;
-/**
- * Một ô mới chứa `qty` món `def` (id UUID do server sinh). `created` tăng dần để thứ tự ô giữ nguyên khi nạp lại từ DB.
- * `years`: số năm (hồn hoàn).
- */
-function newItem(def: ItemDef, qty: number, years: number | null = null): Item {
-  itemClock = Math.max(Date.now(), itemClock + 1);
-  return { id: randomUUID(), kind: def.kind, code: def.id, qty, years, stars: null, enhance: 0, stats: null, vohonId: null, created: itemClock };
-}
-/** `qty` món mã `code` chia thành các ô đầy theo `stack` (ô cuối có thể chưa đầy). */
-function itemStacks(code: string, qty: number): Item[] {
-  const def = itemDef(code); if (!def) return [];
-  const out: Item[] = [];
-  for (let left = qty; left > 0; left -= def.stack) out.push(newItem(def, Math.min(left, def.stack)));
-  return out;
-}
-/** Số ô túi đang dùng: món đang gắn vào võ hồn không tính. */
-type GearStats = ReturnType<typeof equipStats>;
-/** Chỉ số tổng của các món đang mặc (mục 5.15): dữ liệu hỏng / mẫu lạ bị bỏ qua. */
-const gearStats = (gear: Item[]): GearStats => equipStats(gear.flatMap((it) => { const e = parseEquip(it.stats); return e ? [{ ...e, enhance: it.enhance }] : []; }));
-/** Bậc áo / mũ đang mặc (+1, 0 = không) → PlayerState.gearAo / gearMu để người khác thấy trên lớp LPC (HL4 #573); không đồng bộ chỉ số. */
-function gearLook(p: PlayerState, gear: Item[]) {
-  const tier = (slot: string) => { for (const it of gear) { const t = equipTemplate(parseEquip(it.stats)?.tpl); if (t?.slot === slot) return t.tier; } return null; };
-  p.gearAo = lpcGearCode(tier("ao")); p.gearMu = lpcGearCode(tier("mu"));
-}
-const bagUsed = (bag: Item[]) => bag.filter((i) => i.vohonId === null).length;
-/** Thứ tự xếp túi (#215 "Sắp xếp"): nhóm theo ITEM_KINDS, rồi loại theo ITEMS. */
-const KIND_ORDER = Object.keys(ITEM_KINDS), ITEM_ORDER = new Map(ITEMS.map((x, k) => [x.id, k]));
 
 /** Hook test `daily {shift}`: lệch ngày của khảo hạch hằng ngày cho cả tiến trình (MapRoom.dailyDay); chỉ đổi khi GAME_TEST=1. */
 let dailyShift = 0;
@@ -2530,7 +2502,7 @@ export class MapRoom extends Room<MapState> {
       || b.enhance - a.enhance || b.qty - a.qty || a.created - b.created);
     let prev = -Infinity;
     kept.forEach((it, k) => { it.created = prev = Math.max(times[k], prev + 1); });
-    itemClock = Math.max(itemClock, prev);
+    bumpItemClock(prev);
     d.bag = [...kept, ...worn]; d.bagDirty = true;
     this.log(id, `Đã sắp xếp túi đồ${gone.size ? `, gộp bớt ${gone.size} ô` : ""}.`);
     this.sendBag(id);
