@@ -3,7 +3,7 @@
 // (Node >= 22.18 tự bỏ kiểu của file .ts).
 import { Predictor } from "../src/predict.ts";
 import { moveEnt, hits, clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../shared/move.ts";
-import { TICK_RATE, TILE, dir4, RUN_MULT, MOVE_NUDGE } from "../../shared/data.ts";
+import { TICK_RATE, TILE, dir4, RUN_MULT, MOVE_NUDGE, moveNudge } from "../../shared/data.ts";
 import { findPath, clearLine, pathLength } from "../../shared/path.ts";
 
 let fails = 0;
@@ -174,6 +174,9 @@ for (const lag of [0.05, 0.15]) {
   ok(a.x < 75 && a.y === 77, "không nudge: vướng góc ô thì đứng khựng");
   const b = walk(corner, { x: 60, y: 77 }, 2, 0, 40, MOVE_NUDGE);
   ok(b.x > 100 && b.y < 77, `nudge: lách qua góc ngoài (x=${b.x}, y=${b.y})`);
+  // #785: tự săn không lách (đi thuần va chạm như đường A* của nó đã tính), người chơi tự bấm vẫn lách.
+  const au = walk(corner, { x: 60, y: 77 }, 2, 0, 40, moveNudge(true)), hu = walk(corner, { x: 60, y: 77 }, 2, 0, 40, moveNudge(false));
+  ok(moveNudge(true) === 0 && moveNudge(false) === MOVE_NUDGE && au.x < 75 && au.y === 77 && hu.x > 100, `tự săn không lách góc (x=${au.x}), người chơi lách (x=${hu.x})`);
   const c = walk(corner, { x: 60, y: 84 }, 2, 0, 40, MOVE_NUDGE);
   ok(c.x < 75 && c.y === 84, "chạm sâu hơn ngưỡng thì không lách (vẫn chặn)");
   // Lách xuống phía dưới khi lệch lên trên (đối xứng) và đi dọc trục y (lách theo x).
