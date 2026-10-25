@@ -137,7 +137,6 @@ export function reassemble(segs, map, getFile) {
       const after = e + TOC_END.length;
       const pad = blankEnd(list[0].text) ? 0 : EOL.length; // dòng trống thêm trước mục lục
       body = body.slice(0, b - pad) + body.slice(after + 2 * EOL.length);
-      if (body.slice(0, b).endsWith("\n\n\n") ) body = body.slice(0, b - 1) + body.slice(b);
     } else {
       const h = headerOf(map.files[to]?.title ?? to);
       if (!body.startsWith(h)) throw new Error(`${to}: header không khớp`);

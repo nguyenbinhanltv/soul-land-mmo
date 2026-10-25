@@ -4,7 +4,7 @@
 //   tuỳ chọn: --root <thư mục> (mặc định gốc repo), --list <n> (số dòng liệt kê mỗi nhóm, mặc định 15), --json, --warn (luôn thoát 0)
 // (a) mọi "mục N(.M)" nhắc trong *.ts *.mjs *.md *.yml *.json phải là một mục có thật (tiêu đề ##/### của GAME_DESIGN.md,
 //     hoặc hàng của mục lục khi GAME_DESIGN.md đã tách);
-// (b) mọi `mục N "Tên"` phải tìm thấy Tên (tiêu đề, chữ đậm hoặc đầu dòng) trong phần của mục N (khi đã tách: trong các file mục lục trỏ tới);
+// (b) (khi đã tách, kiểm trong CẢ file mục lục trỏ tới nên lỏng hơn chế độ tiêu đề) mọi `mục N "Tên"` phải tìm thấy Tên (tiêu đề, chữ đậm hoặc đầu dòng) trong phần của mục N (khi đã tách: trong các file mục lục trỏ tới);
 // (c) mọi đường dẫn `docs/…` nhắc trong file phải tồn tại.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";

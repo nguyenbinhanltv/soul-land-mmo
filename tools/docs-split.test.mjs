@@ -50,3 +50,11 @@ test("thiếu mỏ neo thì báo lỗi, không tách bừa", () => {
   const map = { ...MAP, segments: [...MAP.segments, { a: "## 9. Không có", to: "docs/a.md" }] };
   assert.throws(() => buildOutputs(SRC, map), /Không tìm thấy 1 mỏ neo/);
 });
+
+test("đoạn đầu kết thúc bằng hai dòng trống liền nhau (LF và CRLF)", () => {
+  const src = SRC.replace("Lời dẫn.\n\n", "Lời dẫn.\n\n\n");
+  assert.notEqual(src, SRC);
+  assert.equal(roundtrip(src, MAP).text, src);
+  const crlf = src.replace(/\n/g, "\r\n");
+  assert.equal(roundtrip(crlf, MAP).text, crlf);
+});
