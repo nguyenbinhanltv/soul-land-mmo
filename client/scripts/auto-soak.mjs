@@ -3,7 +3,7 @@
 // bản vá mỗi 10 giây). Bản đồ mặc định là bản ×8 (11.5); bật đường lùi `MAP_V1` ở server thì chạy script với cùng `MAP_V1`.
 //   GAME_TEST=1 PERF_LOG=1 PORT=2600 npm run dev:server
 //   N=40 SECS=90 SERVER_URL=http://localhost:2600 node scripts/auto-soak.mjs
-// In: số bot đang tự săn, số hồn thú hạ, số lần tự săn dừng theo lý do, số KB bản vá / tin mỗi client mỗi giây.
+// In: số bot đang tự săn, số hồn thú hạ và món nhặt (cả theo phút, để so trước / sau khi đổi cách chọn việc), số lần tự săn dừng theo lý do, số KB bản vá / tin mỗi client mỗi giây.
 import { Client } from "colyseus.js";
 import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
@@ -40,7 +40,8 @@ async function join(b) {
   b.bytes = 0; b.room.connection.transport?.ws?.addEventListener?.("message", (e) => { b.bytes += e.data?.byteLength ?? e.data?.length ?? 0; });
   b.test = null; b.room.onMessage("test", (m) => { b.test = m; });
   b.auto = null; b.room.onMessage("auto", (m) => { b.auto = m; if (!m.on && m.why) stops.set(m.why, (stops.get(m.why) ?? 0) + 1); });
-  for (const t of ["log", "chat", "fx", "dmg", "mini", "vohons", "squad", "bag", "party", "quest", "daily", "resonance", "portal", "wp", "elite", "boss", "ko", "absorbing"])
+  b.loot = 0; b.room.onMessage("log", (m) => { if (/^Nhặt /.test(m?.text ?? m?.t ?? (typeof m === "string" ? m : ""))) b.loot++; });
+  for (const t of ["chat", "fx", "dmg", "mini", "vohons", "squad", "bag", "party", "quest", "daily", "resonance", "portal", "wp", "elite", "boss", "ko", "absorbing"])
     b.room.onMessage(t, () => {});
   b.room.onMessage("travel", (m) => { b.travel = m; });
 }
@@ -88,8 +89,9 @@ while (Date.now() - t0 < SECS * 1000) {
   samples++; autoSum += bots.filter((b) => me(b)?.auto).length;
 }
 const secs = (Date.now() - t0) / 1000, kills = bots.reduce((s, b, i) => s + (me(b)?.kills ?? 0) - kills0[i], 0);
+const loot = bots.reduce((s, b) => s + b.loot, 0);
 const kb = bots.reduce((s, b) => s + b.bytes, 0) / bots.length / 1024 / secs;
-console.log(`[soak] ${secs.toFixed(0)} giây: trung bình ${(autoSum / Math.max(1, samples)).toFixed(1)}/${bots.length} bot đang tự săn, ${kills} hồn thú bị hạ, ` +
+console.log(`[soak] ${secs.toFixed(0)} giây: trung bình ${(autoSum / Math.max(1, samples)).toFixed(1)}/${bots.length} bot đang tự săn, ${kills} hồn thú bị hạ (${(kills / secs * 60).toFixed(1)} con/phút), ${loot} món nhặt (${(loot / secs * 60).toFixed(1)}/phút), ` +
   `${kb ? kb.toFixed(1) + " KB/s nhận mỗi client" : "không đo được số byte"}`);
 if (stops.size) console.log(`[soak] tự săn dừng: ${[...stops].map(([k, v]) => `${k} ×${v}`).join(", ")}`);
 for (const b of bots) await b.room.leave().catch(() => {});
