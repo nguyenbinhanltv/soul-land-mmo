@@ -63,6 +63,32 @@ jobs:
         with:
           ref: ${{ env.SHA }}
           persist-credentials: false
+      # Asset kho riêng (#623, docs/asset-rieng.md): gói giấy phép hạn chế không nằm trong repo công khai. Có secret ASSETS_DEPLOY_KEY (deploy key CHỈ ĐỌC của
+      # nguyenbinhanltv/soul-land-assets-private) thì clone depth 1 vào shared/assets/private/ (Dockerfile COPY shared nên vào image). Không có secret (chưa
+      # cấu hình / fork) hoặc clone lỗi thì build vẫn chạy, game dùng hình cũ. Key chỉ đi qua env -> file tạm 0600, xóa ngay sau khi clone, không in ra log.
+      - id: private-assets
+        name: kéo kho asset riêng (nếu đã cấu hình)
+        env:
+          ASSETS_DEPLOY_KEY: ${{ secrets.ASSETS_DEPLOY_KEY }}
+          ASSETS_REPO: nguyenbinhanltv/soul-land-assets-private
+        run: |
+          if [ -z "$ASSETS_DEPLOY_KEY" ]; then
+            echo "::notice title=asset riêng::Chưa có secret ASSETS_DEPLOY_KEY: bỏ qua kho asset riêng, image dùng hình cũ."
+            echo "private=no" >>"$GITHUB_OUTPUT"; exit 0
+          fi
+          key=$(mktemp); trap 'rm -f "$key"' EXIT
+          printf '%s\n' "$ASSETS_DEPLOY_KEY" >"$key"; chmod 600 "$key"
+          if GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts" \
+               git clone --depth 1 --quiet "git@github.com:$ASSETS_REPO.git" "$RUNNER_TEMP/assets-private"; then
+            mkdir -p shared/assets/private
+            # Chỉ packs/ + present.json (shared/assets là publicDir của Vite: licenses/, CREDITS-private.md, preview.html không cần phục vụ).
+            cp -r "$RUNNER_TEMP/assets-private/packs" "$RUNNER_TEMP/assets-private/present.json" shared/assets/private/
+            echo "private=yes" >>"$GITHUB_OUTPUT"
+            echo "Kho asset riêng: $(find shared/assets/private -type f | wc -l) file."
+          else
+            echo "::warning title=asset riêng::Không clone được kho asset riêng (kiểm deploy key / tên repo): image dùng hình cũ."
+            echo "private=no" >>"$GITHUB_OUTPUT"
+          fi
       - id: meta
         run: |
           echo "tag=sha-${SHA:0:7}" >>"$GITHUB_OUTPUT"
@@ -193,6 +219,7 @@ jobs:
           TAG: ${{ steps.meta.outputs.tag }}
           MAIN: ${{ steps.push.outputs.main }}
           DIGEST: ${{ steps.push.outputs.digest }}
+          PRIVATE: ${{ steps.private-assets.outputs.private }}
         run: |
           SIZE=$(docker image inspect "$IMAGE:$TAG" --format '{{.Size}}' | awk '{printf "%.0f MB", $1/1048576}')
           {
@@ -205,6 +232,7 @@ jobs:
             echo "| Digest | \`${DIGEST:-?}\` |"
             echo "| Cỡ | $SIZE |"
             echo "| Commit | $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$SHA |"
+            echo "| Asset riêng | $([ "$PRIVATE" = yes ] && echo "đã kèm kho riêng" || echo "không có (hình cũ)") |"
             echo "| Thử trước khi đẩy | container + PostgreSQL tạm, bot khói đạt, Trivy không có CRITICAL |"
             echo ""
             echo "Chưa deploy. Đưa lên prod: chạy workflow **Promote** (nhập \`$TAG\`), xem docs/deploy.md."

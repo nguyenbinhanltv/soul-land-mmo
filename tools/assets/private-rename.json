@@ -1,0 +1,140 @@
+{
+  "_": "Bảng đổi tên (luật chủ repo 2026-10-25): khóa = tên game (cũng là tên file ảnh), goc = tên gốc trong gói, src = đường dẫn trong thư mục gói. Chỉ file này, CREDITS và licenses/ được chứa tên gốc; packs/, manifest, present.json, preview và mã client KHÔNG.",
+  "map": {
+    "fx_va_cham_vang": {
+      "pack": "giga",
+      "goc": "spritesheet.png",
+      "src": "spritesheet/Impacts/symmetrical_impact_001/symmetrical_impact_001_small_yellow/spritesheet.png"
+    },
+    "fx_no_lon": {
+      "pack": "giga",
+      "goc": "spritesheet.png",
+      "src": "spritesheet/Explosions/stylized_explosion_001/stylized_explosion_001_large_yellow/spritesheet.png"
+    },
+    "fx_khoi_luot": {
+      "pack": "giga",
+      "goc": "spritesheet.png",
+      "src": "spritesheet/Smoke Bursts/directional_smoke_burst_001/directional_smoke_burst_001_large_white/spritesheet.png"
+    },
+    "fx_bui_dat": {
+      "pack": "giga",
+      "goc": "spritesheet.png",
+      "src": "spritesheet/Smoke Bursts/symmetrical_smoke_burst_001/symmetrical_smoke_burst_001_large_brown/spritesheet.png"
+    },
+    "fx_ket_lieu": {
+      "pack": "giga",
+      "goc": "spritesheet.png",
+      "src": "spritesheet/Explosions/epic_explosion_001/epic_explosion_001_large_orange/spritesheet.png"
+    },
+    "fx_hoi_mau": {
+      "pack": "holy",
+      "goc": "Heal_spritesheet.png",
+      "src": "Heal/Spritesheet/Heal_spritesheet.png"
+    },
+    "fx_khien_sang": {
+      "pack": "holy",
+      "goc": "HolyShield_spritesheet.png",
+      "src": "HolyShield/Spritesheet/HolyShield_spritesheet.png"
+    },
+    "fx_song_quang": {
+      "pack": "holy",
+      "goc": "HolyNova_spritesheet.png",
+      "src": "HolyNova/Spritesheet/HolyNova_spritesheet.png"
+    },
+    "fx_chem_sang": {
+      "pack": "holy",
+      "goc": "HolySlash_A_spritesheet.png",
+      "src": "HolySlash_A/Spritesheet/HolySlash_A_spritesheet.png"
+    },
+    "vat_cay_soi_1": {
+      "pack": "forest",
+      "goc": "Decorations.png [rect 11,143,70,98]",
+      "src": "Decorations/Decorations.png"
+    },
+    "vat_cay_soi_2": {
+      "pack": "forest",
+      "goc": "Decorations.png [rect 88,143,70,94]",
+      "src": "Decorations/Decorations.png"
+    },
+    "vat_cay_thong_1": {
+      "pack": "forest",
+      "goc": "Decorations.png [rect 163,163,38,74]",
+      "src": "Decorations/Decorations.png"
+    },
+    "vat_cay_thong_2": {
+      "pack": "forest",
+      "goc": "Decorations.png [rect 211,163,38,70]",
+      "src": "Decorations/Decorations.png"
+    },
+    "vat_bui_cay": {
+      "pack": "forest",
+      "goc": "Decorations.png [rect 13,4,35,27]",
+      "src": "Decorations/Decorations.png"
+    },
+    "vat_khuc_go": {
+      "pack": "forest",
+      "goc": "Decorations.png [rect 75,0,40,32]",
+      "src": "Decorations/Decorations.png"
+    },
+    "vat_da_rung_1": {
+      "pack": "forest",
+      "goc": "Decorations.png [rect 163,133,26,22]",
+      "src": "Decorations/Decorations.png"
+    },
+    "vat_da_rung_2": {
+      "pack": "forest",
+      "goc": "Decorations.png [rect 194,133,27,23]",
+      "src": "Decorations/Decorations.png"
+    },
+    "vat_da_rung_3": {
+      "pack": "forest",
+      "goc": "Decorations.png [rect 228,133,22,21]",
+      "src": "Decorations/Decorations.png"
+    },
+    "vat_nam_do": {
+      "pack": "forest",
+      "goc": "Decorations.png [rect 203,8,13,14]",
+      "src": "Decorations/Decorations.png"
+    },
+    "fx_lua_dung": {
+      "pack": "fire",
+      "goc": "Group 4 - 1.png",
+      "src": "Pixel fire asset pack v1.2/Pixel Fire Asset Pack Colored/fire asset red/Group 4 - 1/Group 4 - 1.png"
+    },
+    "fx_lua_xoay": {
+      "pack": "free",
+      "goc": "7_firespin_spritesheet.png",
+      "src": "Free_Pixel_Effects_Pack/7_firespin_spritesheet.png"
+    },
+    "fx_lua_cuon": {
+      "pack": "free",
+      "goc": "11_fire_spritesheet.png",
+      "src": "Free_Pixel_Effects_Pack/11_fire_spritesheet.png"
+    },
+    "fx_lua_roi": {
+      "pack": "free",
+      "goc": "6_flamelash_spritesheet.png",
+      "src": "Free_Pixel_Effects_Pack/6_flamelash_spritesheet.png"
+    },
+    "fx_dan_lua": {
+      "pack": "bdragon",
+      "goc": "All_Fire_Bullet_Pixel_16x16_00.png [rect 0,304,80,16]",
+      "src": "New_All_Fire_Bullet_Pixel_16x16/All_Fire_Bullet_Pixel_16x16_00.png"
+    },
+    "fx_dam_trang": {
+      "pack": "pimen",
+      "goc": "Thrusts 1 SpriteSheet.png",
+      "src": "Thrust/Thrusts 1 SpriteSheet.png"
+    },
+    "fx_dam_tim": {
+      "pack": "pimen",
+      "goc": "Thrust 2 SpriteSheet.png",
+      "src": "Thrust/Thrust 2 SpriteSheet.png"
+    },
+    "fx_va_cham_nho": {
+      "pack": "pimen",
+      "goc": "Effect 1 - Sprite Sheet.png",
+      "src": "Effects/Effect 1 - Sprite Sheet.png"
+    }
+  }
+}

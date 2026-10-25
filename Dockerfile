@@ -27,7 +27,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY client/package.json client/package-lock.json client/
 RUN npm ci --no-audit --no-fund --prefix client
-# shared/ (publicDir của vite là shared/assets) và mã client đổi thường xuyên hơn thư viện nên copy sau npm ci.
+# shared/ (publicDir của vite là shared/assets; gồm shared/assets/private/ nếu release.yml kéo kho asset riêng, #623: không có thì build vẫn chạy) và mã client đổi thường xuyên hơn thư viện nên copy sau npm ci.
 COPY shared shared
 COPY client client
 RUN npm run build --prefix client

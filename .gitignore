@@ -6,3 +6,7 @@ ci-logs
 
 # Key JSON service account tạo cục bộ bởi deploy/gcp/setup.sh --sa-key (xóa ngay sau khi dán vào GCP_SA_KEY)
 soul-land-ci-push-key.json
+
+# Kho asset riêng (#623, docs/asset-rieng.md): ảnh gói giấy phép hạn chế KHÔNG được vào repo công khai
+shared/assets/private/
+art/src/private/
