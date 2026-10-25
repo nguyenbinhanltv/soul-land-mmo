@@ -1,7 +1,7 @@
 // Bảng Tự động (Auto 2, mục 5.13): cài đặt tự săn, nút bật / tắt, giờ treo còn lại, và bảng tổng kết khi tự săn dừng. Client chỉ
 // gửi ý định (`auto {op: "set", cfg}` / `on` / `off`); server kẹp lại bằng parseAuto, lưu theo tài khoản và trả tin `auto`.
 import { AUTO_DEFAULTS, AUTO_LOOT_KINDS, AUTO_RADIUS, AUTO_RADIUS_MIN, ITEM_KINDS, MAX_CORE_STARS, MAX_YEARS, TILE,
-  autoTimeText, formatHonTe, autoStatusText, autoRateText, type AutoSettings, type AutoSummary, type AutoRate } from "../../shared/data.ts";
+  autoTimeText, formatHonTe, autoStatusText, autoRateText, parseAuto, type AutoSettings, type AutoSummary, type AutoRate } from "../../shared/data.ts";
 import type { AutoMsg, AutoStMsg } from "./net.ts";
 
 /** GameScene cung cấp: gửi tin `auto`, tên ô đội hình (theo tin `vohons`) và tên hồn kỹ ở 4 ô của võ hồn đang ra trận. */
@@ -71,6 +71,10 @@ export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
       <label class="achk"><input type="checkbox" data-k="elite"> Tinh anh</label>
       <label class="achk"><input type="checkbox" data-k="king"> Tà hóa thú vương</label>
       <label class="achk"><input type="checkbox" data-k="world"> Boss thế giới</label>
+      <label class="aline">Khi nào tới đánh <select data-k="bossMode">
+        <option value="near">Khi gần (ưu tiên quái thường quanh mình)</option>
+        <option value="always">Luôn ưu tiên (chạy tới bất kể xa)</option>
+        <option value="off">Không đánh</option></select></label>
       <small>Xuất hiện trên bản đồ đang đứng thì tới đánh cùng mọi người (đóng góp theo tài khoản), chỉ khi còn nhận được thưởng. Né vùng báo trước, vùng độc; đổi võ hồn khống chế ngắt tích lực, phụ trợ thanh tẩy; ít máu thì lùi ra uống đan.</small></section>
     <section class="asec"><b>Hồn kỹ ưu tiên</b><small>Ô trên cùng tung trước; bỏ chọn thì không tung.</small><ol class="aorder" data-list="skills"></ol>
       <label class="arange">Chừa hồn lực <output data-o="mpKeep"></output><input type="range" min="0" max="0.9" step="0.05" data-k="mpKeep"></label></section>
@@ -134,7 +138,8 @@ function read(el: HTMLElement): AutoSettings | null {
     skills: picked("skills"), slots: picked("slots"), ring: v("ringOn").checked ? num("ring") : -1, bone: v("bone").checked,
     core: v("core").checked, coreStar: Number($<HTMLSelectElement>("[data-k=coreStar]", el)!.value) || 1,
     kinds: AUTO_LOOT_KINDS.filter((k) => $<HTMLInputElement>(`[data-kind=${k}]`, el)?.checked),
-    stopNoPot: v("stopNoPot").checked, tienCo: v("tienCo").checked, elite: v("elite").checked, king: v("king").checked, world: v("world").checked };
+    stopNoPot: v("stopNoPot").checked, tienCo: v("tienCo").checked, elite: v("elite").checked, king: v("king").checked, world: v("world").checked,
+    bossMode: parseAuto({ bossMode: v("bossMode").value }).bossMode };
 }
 
 /** Ghi trạng thái và cài đặt từ tin `auto` lên bảng (không dựng lại các ô nhập để không mất tiêu điểm). */
@@ -154,7 +159,7 @@ function fill(m: AutoMsg) {
   for (const i of el.querySelectorAll<HTMLInputElement>("input[data-scope]")) i.checked = i.value === c.scope;
   // Bán kính chỉ dùng khi săn quanh chỗ đứng.
   set("radius", c.radius); $<HTMLInputElement>("[data-k=radius]", el)!.disabled = c.scope !== "near"; set("y0", c.years[0]); set("y1", c.years[1]); set("mpKeep", c.mpKeep); set("tienCo", c.tienCo);
-  set("hp", c.hp); set("mp", c.mp); set("stopNoPot", c.stopNoPot); set("elite", c.elite); set("king", c.king); set("world", c.world);
+  set("hp", c.hp); set("mp", c.mp); set("stopNoPot", c.stopNoPot); set("elite", c.elite); set("king", c.king); set("world", c.world); set("bossMode", c.bossMode);
   set("ringOn", c.ring >= 0); set("ring", Math.max(0, c.ring)); set("bone", c.bone); set("core", c.core);
   $<HTMLSelectElement>("[data-k=coreStar]", el)!.value = String(c.coreStar);
   for (const k of AUTO_LOOT_KINDS) { const i = $<HTMLInputElement>(`[data-kind=${k}]`, el); if (i) i.checked = c.kinds.includes(k); }

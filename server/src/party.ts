@@ -24,6 +24,8 @@ export interface RallyRoute { to: number[]; pid: number; from: number; msg: Rall
 export interface Live {
   acc: number; name: string; sid: string; mapId: string; roomId: string; ch: number;
   level: number; vh: number; hp: number; maxHp: number; dead: boolean; off: number;
+  /** Lúc phòng nhận người (goOnline, ms): tin cập nhật một phần của phiên cũ đến muộn không được ghi đè phiên mới hơn. */
+  at?: number;
 }
 export interface Party { id: number; leader: number; members: number[]; }
 /** Một thông báo cho các tài khoản `to`: phòng của họ gửi lại khung tổ đội (luôn) kèm dòng log `text` (nếu có). */
@@ -38,6 +40,8 @@ const parties = new Map<number, Party>();
 const partyOfAcc = new Map<number, number>();             // accountId -> id tổ đội
 const invites = new Map<number, Map<number, number>>();   // người được mời -> (người mời -> hết hạn, ms)
 let nextParty = 1;
+/** Phiên bản trạng thái chung: tăng một ở mỗi lần ghi (remoteMutation, dưới khóa); bản chụp cũ hơn bản đã áp bị bỏ qua. */
+let stateVer = 0;
 let remote: PresenceBackend | null = null;
 const REMOTE_KEY = "party:state";
 const REMOTE_TTL_MS = 60_000;
@@ -46,24 +50,31 @@ const PARTY_SWEEP_INTERVAL_MS = 500;
 const PARTY_SWEEP_LEASE_TTL_MS = 1_000;
 let nextSweepAt = 0;
 let sweepInFlight: Promise<PartyNote[]> | null = null;
-export type PartySnapshot = { nextParty: number; live: Record<string, Live>; parties: Record<string, Party>; invites: Record<string, Record<string, number>> };
+export type PartySnapshot = { ver?: number; nextParty: number; live: Record<string, Live>; parties: Record<string, Party>; invites: Record<string, Record<string, number>> };
 
 const snapshot = (): PartySnapshot => ({
+  ver: stateVer,
   nextParty,
   live: Object.fromEntries(live),
   parties: Object.fromEntries(parties),
   invites: Object.fromEntries([...invites].map(([acc, m]) => [acc, Object.fromEntries(m)])),
 });
-export function applySnapshot(s: (PartySnapshot | { live?: Record<string, Live>; parties?: unknown; invites?: unknown }) | null | undefined) {
+/** `force`: bản đọc dưới khóa là nguồn đúng, luôn áp và lấy phiên bản của nó (kể cả thấp hơn bản cục bộ, vd. Redis mất key); tin pub/sub thì lọc theo `ver`. */
+export function applySnapshot(s: (PartySnapshot | { live?: Record<string, Live>; parties?: unknown; invites?: unknown }) | null | undefined, force = false) {
   if (!s) return;
   const partial = s as { live?: Record<string, Live>; parties?: unknown; invites?: unknown };
   if (!partial.parties && !partial.invites) {
     for (const [acc, value] of Object.entries(partial.live ?? {})) {
-      const l = value as Live; live.set(Number(acc), l); byName.set(nameKey(l.name), Number(acc));
+      const l = value as Live, cur = live.get(Number(acc));
+      if (cur && (l.at ?? 0) < (cur.at ?? 0)) continue; // tin của phiên cũ hơn phiên đang có
+      live.set(Number(acc), l); byName.set(nameKey(l.name), Number(acc));
     }
     return;
   }
   const full = s as PartySnapshot;
+  // Tin publish đi sau khi nhả khóa nên có thể đến muộn / sai thứ tự: bản cũ hơn bản đã áp thì bỏ (không để trạng thái lùi).
+  if (!force && full.ver !== undefined && full.ver < stateVer) return;
+  stateVer = force ? full.ver ?? stateVer : Math.max(stateVer, full.ver ?? 0);
   live.clear(); byName.clear(); parties.clear(); partyOfAcc.clear(); invites.clear();
   nextParty = Math.max(1, Number(full.nextParty) || 1);
   for (const [acc, value] of Object.entries(full.live ?? {})) {
@@ -82,7 +93,7 @@ async function remoteMutation<T>(fn: () => T | Promise<T>, publish = true): Prom
   if (!remote) return fn();
   let result!: T;
   const ok = await remote.withLock<PartySnapshot>(REMOTE_KEY, remote.workerId, 5000, async (old) => {
-    applySnapshot(old ?? snapshot()); result = await fn(); return snapshot();
+    applySnapshot(old ?? snapshot(), true); result = await fn(); stateVer++; return snapshot();
   }, 0);
   if (!ok) throw new Error("Không khóa được trạng thái tổ đội trong presence.");
   if (publish) void remote.presence.publish(PARTY_STATE_TOPIC, snapshot());
@@ -134,18 +145,19 @@ export function whereIs(acc: number) {
 }
 
 /** Phòng `roomId` nhận người chơi (vào game, vào lại, sang bản đồ mới qua cổng). */
-function goOnlineLocal(l: Omit<Live, "off">): PartyNote[] {
+function goOnlineLocal(l: Live): PartyNote[] {
   const old = live.get(l.acc);
   if (old && nameKey(old.name) !== nameKey(l.name)) byName.delete(nameKey(old.name));
-  live.set(l.acc, { ...l, off: 0 });
+  live.set(l.acc, l);
   byName.set(nameKey(l.name), l.acc);
   const p = partyOf(l.acc);
   return p ? [all(p)] : [];
 }
-export async function goOnline(l: Omit<Live, "off">) {
-  const notes = await remoteMutation(() => goOnlineLocal(l));
-  if (remote) await remote.putJson(`party:live:${l.acc}`, { ...l, off: 0 }, REMOTE_TTL_MS);
-  return notes;
+export async function goOnline(v: Omit<Live, "off">) {
+  const l: Live = { ...v, off: 0, at: Date.now() };
+  // Ghi heartbeat trước khi vào trạng thái chung: sweep xen giữa không thấy thiếu heartbeat mà đánh dấu người vừa vào là đã rời.
+  if (remote) await remote.putJson(`party:live:${l.acc}`, l, REMOTE_TTL_MS);
+  return remoteMutation(() => goOnlineLocal(l));
 }
 
 /** Cập nhật định kỳ trạng thái hiển thị (cấp, võ hồn ra trận, sinh lực) của người đang trong phòng `sid`. */

@@ -5173,6 +5173,23 @@ export const AUTO_LOOT_KINDS: ItemKind[] = ["manh_vo_hon", "tien_thao"];
  *   sàng, tới đứng cạnh Hỏa Đàn cho tới khi hết tầng.
  */
 export const AUTO_BOSS = { dodge: { dirs: 16, step: 12, max: 168, pad: 3 }, retreat: 0.3, back: 0.6, dist: 120, cleanse: 8, hold: 8, chill: 2 };
+/**
+ * Tự săn v2 (AH1, #608, chủ repo chốt 2026-10-25): nhặt đồ ưu tiên ngay sau né / đan / đánh trả, và chọn mục tiêu theo chi phí.
+ * - `AUTO_LOOT_RADIUS`: nhặt mọi món hợp bộ lọc trong bán kính này quanh mình, món gần nhất trước (chuỗi gần nhất); chưa nhặt xong thì
+ *   không nhắm con mới. `AUTO_LOOT_WAIT`: sau khi hạ một con, chờ ngần ấy giây cho đồ rơi rồi mới chọn tiếp.
+ * - `AUTO_BOSS_DETOUR`: chế độ "near" chỉ nhắm tinh anh / thú vương / boss thế giới khi đường đi tới nó không dài hơn mức này, hoặc
+ *   quanh mình (AUTO_RADIUS) không còn hồn thú thường hợp lệ.
+ * - `AUTO_TARGET`: chi phí một hồn thú thường = (độ dài đường đi / tốc độ) + giây ước lượng hạ nó (offlineFight, chỉ số võ hồn ra
+ *   trận); thấp nhất được nhắm. Độ dài đường = khoảng cách thẳng nếu đi thẳng được, không thì nhân `detour`. Trận ước lượng không
+ *   đánh nổi (offlineFight.ok = false) cộng thêm `tough` giây. `value`: hệ số giá trị tinh anh / thú vương / boss thế giới khi xếp các
+ *   con bậc cao (chi phí chia cho hệ số). `free`: giây giữ kết quả "quanh mình hết hồn thú thường" khi xét boss. `retaliate`: chỉ đánh trả hồn thú đang đánh mình khi nó trong bán kính này (pixel).
+ */
+export const AUTO_LOOT_RADIUS = 8 * TILE;
+export const AUTO_LOOT_WAIT = 0.6;
+export const AUTO_BOSS_DETOUR = 20 * TILE;
+export const AUTO_TARGET = { detour: 1.4, tough: 30, value: [2, 4, 8] as const, retaliate: BEAST_AGGRO_R, free: 1 };
+/** Cách tự săn xét tinh anh / thú vương / boss thế giới: "near" (mặc định) chỉ khi gần, "always" tới đánh trước mọi việc (như trước AH1), "off" không đánh. */
+export type AutoBossMode = "near" | "always" | "off";
 /** Cài đặt tự săn của tài khoản (bảng `auto_hunt`; chỉnh ở bảng Tự động, Auto 2). */
 export interface AutoSettings {
   scope: AutoScope;        // săn khắp bản đồ ("map") hay chỉ quanh điểm neo ("near")
@@ -5189,6 +5206,7 @@ export interface AutoSettings {
   stopNoPot: boolean;      // cần uống đan hồi sinh lực mà hết thì dừng
   tienCo: boolean;         // võ hồn khác trong đội đầy năng lượng tiên cơ thì đổi tay vào tung, hết hồi chiêu đổi thì về võ hồn cũ
   elite: boolean; king: boolean; world: boolean; // #218: đánh cả tinh anh, thú vương, boss thế giới xuất hiện trên bản đồ đang đứng
+  bossMode: AutoBossMode;  // #608: khi nào tới đánh ba loại trên (xem AutoBossMode)
 }
 /**
  * Mặc định: săn khắp bản đồ (vùng neo lớn nhất nếu chọn "near"), mọi niên hạn, uống đan dưới 45% sinh lực / 25% hồn lực, chừa 15% hồn
@@ -5196,7 +5214,7 @@ export interface AutoSettings {
  */
 export const AUTO_DEFAULTS: AutoSettings = { scope: "map", radius: AUTO_RADIUS / TILE, years: [0, MAX_YEARS], hp: 0.45, mp: 0.25, mpKeep: 0.15,
   skills: [3, 2, 1, 0], slots: Array.from({ length: TEAM_SIZE }, (_, i) => i), ring: 0, bone: true, core: true, coreStar: 1,
-  kinds: [...AUTO_LOOT_KINDS], stopNoPot: false, tienCo: true, elite: true, king: true, world: true };
+  kinds: [...AUTO_LOOT_KINDS], stopNoPot: false, tienCo: true, elite: true, king: true, world: true, bossMode: "near" };
 /** Cài đặt từ client / DB: kẹp từng giá trị, thiếu hoặc sai thì lấy mặc định (AUTO_DEFAULTS). */
 export function parseAuto(raw: unknown): AutoSettings {
   const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>, D = AUTO_DEFAULTS;
@@ -5215,7 +5233,9 @@ export function parseAuto(raw: unknown): AutoSettings {
     ring: Math.round(num(o.ring, -1, MAX_YEARS, D.ring)), bone: bool(o.bone, D.bone), core: bool(o.core, D.core),
     coreStar: Math.round(num(o.coreStar, 1, MAX_CORE_STARS, D.coreStar)), kinds, stopNoPot: bool(o.stopNoPot, D.stopNoPot), tienCo: bool(o.tienCo, D.tienCo),
     // Bản lưu trước #218 chưa có ba công tắc: bật như mặc định.
-    elite: bool(o.elite, D.elite), king: bool(o.king, D.king), world: bool(o.world, D.world) };
+    elite: bool(o.elite, D.elite), king: bool(o.king, D.king), world: bool(o.world, D.world),
+    // Bản lưu trước AH1 chưa có `bossMode` (hoặc giá trị lạ): "near".
+    bossMode: o.bossMode === "always" || o.bossMode === "off" ? o.bossMode : D.bossMode };
 }
 /**
  * Giây tự săn còn lại khi hôm nay đã dùng `used` giây: phần còn của AUTO_DAILY_SECS cộng quỹ giờ cộng thêm `bonus` (Ủy Thác Lệnh).

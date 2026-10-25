@@ -134,7 +134,7 @@ import { campMerchantSpot } from "../../shared/camp.ts";
 import { hoaDanSpot } from "../../shared/hoaDan.ts"; // Hỏa Đàn (#163)
 import { PLAYER_STATUS } from "../../shared/data.ts";
 import { SAFE_REGEN_MULT, hpRegen, mpRegen } from "../../shared/data.ts"; // hồi sinh lực / hồn lực, vùng an toàn (#112)
-import { AUTO_DAILY_SECS, AUTO_RADIUS, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, AUTO_MOVE, AUTO_PACE, AUTO_STATUS, parseAuto, autoLeft, autoTimeText } from "../../shared/data.ts"; // tự săn (Auto 1, #213)
+import { AUTO_LOOT_WAIT, AUTO_BOSS_DETOUR, AUTO_DAILY_SECS, AUTO_RADIUS, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, AUTO_MOVE, AUTO_PACE, AUTO_STATUS, parseAuto, autoLeft, autoTimeText } from "../../shared/data.ts"; // tự săn (Auto 1, #213)
 import { AUTO_RADIUS_MIN, AUTO_LOOT_KINDS, AUTO_TOKEN, AUTO_TOKEN_SECS, AUTO_TOKEN_PRICE, AUTO_BONUS_MAX } from "../../shared/data.ts"; // Auto 2
 import { OFFLINE, offlineSplit, offlineFight } from "../../shared/data.ts"; // ủy thác offline (Auto 3)
 import { ASK_CD } from "../../shared/data.ts"; // nhịp tin xin lại dữ liệu riêng (#165)
@@ -5881,6 +5881,71 @@ async function autoTest(){
   if(!gotBone) console.log(`  (giết ${JSON.stringify(sb)}; đồ gần: ${JSON.stringify(dropsAt().map(([k,d])=>[k,d.item,d.x,d.y,d.owner===A.room.sessionId]))}; bật ${JSON.stringify(m)}; tự săn ${JSON.stringify(await test(A,"auto"))}; log ${A.logs.slice(-4).join(" | ")})`);
   await autoOp(A,"off"); await autoOp(A,"set",{cfg});
 
+  // ---- AH1 (#608): nhặt đồ ưu tiên, chọn mục tiêu theo chi phí, chế độ boss ----
+  ok(AUTO_DEFAULTS.bossMode==="near"&&parseAuto({}).bossMode==="near"&&parseAuto({bossMode:"always"}).bossMode==="always"&&parseAuto({bossMode:"off"}).bossMode==="off"
+    &&parseAuto({bossMode:"x"}).bossMode==="near"&&parseAuto({bossMode:1}).bossMode==="near",`AH1: bossMode mặc định "Khi gần", bản lưu cũ / sai kiểu thì "near", kẹp về near | always | off`);
+  const infoA=async(more={})=>(await test(A,"auto",more))??{};
+  { const PK={...NEAR,years:[0,MAX_YEARS],ring:-1,bone:true,core:false,slots:[],skills:[],tienCo:false,elite:false,king:false,world:false};
+    await test(A,"goto",home); await test(A,"clear",{all:true,keep:true}); await autoOp(A,"set",{cfg:PK});
+    const bonesN=()=>bonesOf(A).length;
+    // Đang đi tới một con (chưa đánh trúng) mà có đồ rơi trong AUTO_LOOT_RADIUS: nhặt xong mới nhắm con đó (con đó vẫn nguyên sinh lực).
+    const tgt=(await test(A,"spawn",{tier:0,dx:200,dy:0,years:15,hpx:50}))?.bid, bn0=bonesN();
+    m=await autoOp(A,"on");
+    let targeted=false; for(let t=0;t<3000&&!targeted;t+=100){ targeted=(await infoA()).target===tgt; if(!targeted) await sleep(100); }
+    await test(A,"bone",{r:0,s:0}); const kb=(await test(A,"spawn",{tier:0,dx:-48,dy:0,years:1500}))?.bid; await test(A,"slay",{bid:kb}); await test(A,"bone",{r:-1});
+    await test(A,"auto",{pace:0}); // slay tính như hạ một con (nợ nhịp AUTO_PACE): bỏ nợ để thấy rõ thứ tự nhặt → nhắm
+    let picked=false, hurt=false, retarget=false, first=null;
+    for(let t=0;t<8000&&!(picked&&retarget);t+=100){
+      const st=await infoA(), tb=A.room.state.beasts.get(tgt);
+      if(!picked&&bonesN()>bn0){ picked=true; first=st; }
+      if(!picked&&tb&&tb.hp<tb.maxHp) hurt=true;
+      if(picked&&st.target===tgt) retarget=true;
+      await sleep(100);
+    }
+    ok(m?.on&&targeted&&picked&&!hurt&&retarget,`nhặt xong mới nhắm con mới: đang đi tới con ${tgt} thì hồn cốt rơi cạnh, nhặt trước (con đó chưa bị đánh), rồi quay lại nhắm nó (nhặt ${picked}, bị đánh trước khi nhặt ${hurt}, nhắm lại ${retarget})`);
+    await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true});
+    // Sau khi hạ một con: chờ AUTO_LOOT_WAIT cho đồ rơi rồi mới nhắm con mới (hồn thú thứ hai đã có sẵn cạnh đó).
+    await test(A,"goto",home); await autoOp(A,"set",{cfg:PK});
+    const w1=(await test(A,"spawn",{tier:0,dx:30,dy:0,years:10}))?.bid, w2=(await test(A,"spawn",{tier:0,dx:-60,dy:0,years:10,hpx:50}))?.bid;
+    await test(A,"auto",{pace:0}); m=await autoOp(A,"on");
+    let tw=null, gone=false, t1=0;
+    for(let t=0;t<8000&&tw===null;t+=50){ if(!A.room.state.beasts.has(w1)&&!gone){ gone=true; t1=Date.now(); await test(A,"auto",{pace:0}); }
+      if(gone&&(await infoA()).target===w2) tw=(Date.now()-t1)/1000; await sleep(50); }
+    ok(m?.on&&gone&&tw!==null&&tw>=AUTO_LOOT_WAIT-0.35,`sau khi hạ một con: chờ đồ rơi (AUTO_LOOT_WAIT ${AUTO_LOOT_WAIT} giây) rồi mới nhắm con kế (sau ${tw?.toFixed(2)} giây, đã hạ ${gone})`);
+    await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true});
+  }
+  // Boss xa 40 ô + quái thường gần: "near" đánh quái gần; "always" (như cũ) tới boss; "off" không đánh boss.
+  { const BO={...AUTO_DEFAULTS,scope:"map",years:[0,MAX_YEARS],bone:false,core:false,ring:-1,slots:[],skills:[],tienCo:false,king:false,world:false,elite:true};
+    let el=(await test(A,"elite")).list; if(!el.some(e=>e.bid)){ await test(A,"erespawn",{s:0}); for(let k=0;k<15&&!(el=(await test(A,"elite")).list).some(e=>e.bid);k++) await sleep(200); }
+    const E=el.find(e=>e.bid);
+    // Chỗ xa boss ≥ 30 ô mà boss đi bộ tới được (cùng vùng liên thông): thử bằng chế độ "always", nhắm được boss là đúng chỗ.
+    let far=null;
+    if(E) for(const r of [640,560,480]) for(let k=0;k<16&&!far;k++){ const a=k*Math.PI/8, x=Math.round(E.x+r*Math.cos(a)), y=Math.round(E.y+r*Math.sin(a));
+      await test(A,"goto",{x,y}); if(Math.hypot(me(A).x-x,me(A).y-y)>=1||inCamp(x,y)||el.some(e=>e.bid&&Math.hypot(e.x-x,e.y-y)<480)) continue; // mọi tinh anh đều ≥ 30 ô
+      await test(A,"clear",{all:true,keep:true}); await autoOp(A,"set",{cfg:{...BO,bossMode:"always"}}); await autoOp(A,"on");
+      for(let t=0;t<1500&&!far;t+=250){ if((await infoA()).boss) far={x,y,r}; else await sleep(250); }
+      await autoOp(A,"off"); }
+    ok(E&&far,`AH1: boss ${E?.name} cách ${far?(Math.hypot(E.x-me(A).x,E.y-me(A).y)/TILE).toFixed(0):"?"} ô (AUTO_BOSS_DETOUR ${AUTO_BOSS_DETOUR/TILE} ô)`);
+    if(E&&far){
+      const E1=E.bid, setup=async cfg2=>{ await autoOp(A,"off"); await test(A,"goto",far); await test(A,"clear",{all:true,keep:true}); await autoOp(A,"set",{cfg:{...BO,...cfg2}}); await test(A,"auto",{pace:0}); };
+      const near1=async()=>(await test(A,"spawn",{tier:0,dx:40,dy:0,years:10,hpx:20}))?.bid;
+      await setup({bossMode:"near"}); let nb=await near1(); m=await autoOp(A,"on"); let sawBoss=false, sawNear=false;
+      for(let t=0;t<3500;t+=250){ const st=await infoA(); if(st.boss&&A.room.state.beasts.has(nb)) sawBoss=true; if(st.target===nb&&!st.boss) sawNear=true; await sleep(250); }
+      ok(m?.on&&sawNear&&!sawBoss,`"Khi gần": boss xa + quái thường gần → đánh quái gần, không chạy tới boss (quái gần ${sawNear}, boss ${sawBoss})`);
+      await test(A,"clear",{all:true,keep:true}); let toBoss=false;
+      for(let t=0;t<6000&&!toBoss;t+=250){ await test(A,"clear",{all:true,keep:true}); const st=await infoA(); toBoss=st.boss; await sleep(250); } // dọn liên tục: hồn thú hồi sinh quanh A không xen vào
+      ok(toBoss,`"Khi gần": hết quái thường quanh mình thì tới đánh boss`+(toBoss?"":` [tự săn ${JSON.stringify(await infoA().then(x=>({on:x.on,target:x.target,boss:x.boss,goal:x.goal,pace:x.pace})))}, A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}, boss ${E.x.toFixed(0)},${E.y.toFixed(0)}, hồn thú thường gần: ${[...A.room.state.beasts.values()].filter(b=>!b.rank&&Math.hypot(b.x-me(A).x,b.y-me(A).y)<240).length}]`));
+      await setup({bossMode:"always"}); nb=await near1(); m=await autoOp(A,"on"); toBoss=false;
+      for(let t=0;t<3500&&!toBoss;t+=250){ const st=await infoA(); toBoss=st.boss; await sleep(250); }
+      ok(m?.on&&toBoss,`"Luôn ưu tiên": tới boss xa trước cả quái thường gần (hành vi cũ)`);
+      await setup({bossMode:"off"}); await test(A,"clear",{all:true,keep:true}); m=await autoOp(A,"on"); sawBoss=false;
+      for(let t=0;t<3000;t+=250){ const st=await infoA(); if(st.boss) sawBoss=true; await sleep(250); }
+      ok(m?.on&&!sawBoss,`"Không": không nhắm boss dù hết quái thường`);
+      await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true});
+    }
+  }
+  await test(A,"goto",home); await autoOp(A,"set",{cfg});
+
   // #215: khi tự săn, mỗi lần nhặt / hạ hồn thú server chỉ gửi phần túi đổi (tin "bagd"), không gửi lại cả túi.
   { const st=A.bagStat;
     ok(st.bagd.n>0&&st.bagd.max<1500,`đồng bộ túi khi tự săn: ${st.bagd.n} tin "bagd", trung bình ${Math.round(st.bagd.bytes/Math.max(1,st.bagd.n))} byte, lớn nhất ${st.bagd.max} byte (cả túi "bag": ${st.bag.n} tin, lớn nhất ${st.bag.max} byte)`); }
@@ -9501,9 +9566,10 @@ async function arenaTest(){
 
     // Thành viên rời trong pha chờ: không được chuyển sang giao đấu khi đủ các session còn lại.
     const nK2=K.arena.length, nL2=L.arena.length, nM2=M.arena.length, nN2=N.arena.length;
-    await aop(K,"queue"); await aop(M,"queue");
+    const qK2=await aop(K,"queue"), qM2=await aop(M,"queue");
     const found3=b=>b.arena.slice(b===K?nK2:b===L?nL2:b===M?nM2:nN2).filter(m=>m.k==="found").at(-1);
-    ok(await waitFor(()=>found3(K)&&found3(L)&&found3(M)&&found3(N),4000),"2v2 rời khi chờ: cả hai đội nhận được mã trận");
+    ok(await waitFor(()=>found3(K)&&found3(L)&&found3(M)&&found3(N),4000),"2v2 rời khi chờ: cả hai đội nhận được mã trận"
+      +(found3(K)&&found3(L)&&found3(M)&&found3(N)?"":` [K: ${qK2}; M: ${qM2}; kênh ${all.map(b=>b.room.roomId).join(" ")}; nhận mã ${all.map(b=>!!found3(b)).join("/")}]`));
     await enterArena(K); await enterArena(M);
     ok(K.room.state.phase==="wait","2v2 rời khi chờ: mới có một người mỗi bên thì vẫn chờ");
     await K.room.leave();
