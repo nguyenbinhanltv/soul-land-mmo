@@ -10,12 +10,10 @@ import { type DollTab, type ServerCommand, type SlotRef, acceptsItem, cardAction
 import { addZone, dragSource } from "./dragDrop.ts";
 import { showCard } from "./actionCard.ts";
 import { vohonCard } from "./cards.ts";
-import { boneSvg } from "./boneIcons.ts";
 import { skillImg, artImg } from "./uiArt.ts";
 import { compareRows } from "./bag.ts";
-import { coreSvg } from "./coreIcons.ts";
 import { setTip, type TipSpec, type TipLine } from "./tooltip.ts";
-import { itemColor, itemName, boneOf, coreOf, coreSet, coreLines, wornCores, boneIcon, yearsShort, boneFullText, boneSkillText, skillSpec, SKILL_KEYS,
+import { itemColor, itemName, boneOf, coreOf, coreSet, coreLines, wornCores, boneIcon, boneEmptyIcon, coreIcon, yearsShort, boneFullText, boneSkillText, skillSpec, SKILL_KEYS,
   starSkillText, itemArt, toggleRoster, toggleBag, toggleReso, toggleWorld, toggleFriends, closeNpc, setBagFocus } from "./hud.ts";
 
 /** Bộ chỉ số server gửi (kết quả calcStats). */
@@ -303,7 +301,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
       b.type = "button"; b.style.gridArea = BONE_AREA[s.id]; b.dataset.slot = s.id;
       if (it) { b.style.setProperty("--c", itemColor(it)); b.dataset.tier = String(tierOfYears(it.years)); }
       const kb = it ? boneOf(it) : null, k = kb ? boneSkillOf(kb.beast, s.id) : null, kname = k ? (k.active ? k.sk.name : k.ps.name) : "";
-      b.innerHTML = `${it ? boneIcon(s.id, itemColor(it)) : boneSvg(s.id)}<span>${s.name}</span>${it ? `<small>${yearsShort(it.years)}</small>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${kname ? "<em></em>" : ""}`;
+      b.innerHTML = `${it ? boneIcon(s.id, itemColor(it)) : boneEmptyIcon(s.id)}<span>${s.name}</span>${it ? `<small>${yearsShort(it.years)}</small>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${kname ? "<em></em>" : ""}`;
       if (kname) b.querySelector("em")!.textContent = kname;
       b.setAttribute("aria-label", `Ô ${s.name}: ${it ? itemName(it) : "trống"}`); b.setAttribute("aria-pressed", String(selBone === s.id));
       setTip(b, it ? wornTip(it) : { title: `Ô ${s.name} trống`, lines: [`Hồn cốt ${s.name.toLowerCase()}, kỹ năng ${s.active ? "chủ động" : "bị động"}.`], foot: "Bấm để chọn món trong Túi" });
@@ -334,7 +332,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
       b.style.left = `${50 + 37 * Math.cos(a)}%`; b.style.top = `${50 + 37 * Math.sin(a)}%`;
       if (it) b.style.setProperty("--c", itemColor(it));
       if (n >= CORE_SET_2 && cs) b.style.setProperty("--sc", cs.col);
-      b.innerHTML = `${coreSvg(c?.set ?? "")}${it ? `<small>${it.stars ?? 1}★</small>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}`;
+      b.innerHTML = `${coreIcon(c?.set ?? "")}${it ? `<small>${it.stars ?? 1}★</small>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}`;
       b.setAttribute("aria-label", `Ô hồn hạch ${s + 1}: ${it ? itemName(it) : "trống"}${n >= CORE_SET_2 && cs ? `, bộ ${cs.name} đang kích hoạt` : ""}`); b.setAttribute("aria-pressed", String(selCore === s));
       setTip(b, it ? wornTip(it) : { title: `Ô hồn hạch ${s + 1} trống`, lines: ["Nhận mọi hồn hạch."], foot: "Bấm để chọn món trong Túi" });
       const ref: SlotRef = { tab: "core", slot: s, rowId: v.rowId };
@@ -399,11 +397,11 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
   for (const [set, n] of [...counts6].sort((a, b) => b[1] - a[1] || coreSetIndex(a[0]) - coreSetIndex(b[0]))) {
     const cs = coreSet(set), row = mk("div", "cset" + (n >= CORE_SET_2 ? " on" : ""));
     if (cs) row.style.setProperty("--c", cs.col);
-    row.innerHTML = `${coreSvg(set)}<span><b></b><small></small><small></small></span>`;
+    row.innerHTML = `${coreIcon(set)}<span><b></b><small></small><small></small></span>`;
     row.querySelector("b")!.textContent = `${cs ? `${cs.name} (${cs.tag})` : "Bộ lạ"} · ${n} món`;
     const [s2, s4] = row.querySelectorAll("small");
-    s2.textContent = `${n >= CORE_SET_2 ? "✓" : `${n}/${CORE_SET_2}`} 2 món: ${cs?.set2 ?? "không rõ"}`; s2.classList.toggle("on", n >= CORE_SET_2);
-    s4.textContent = `${n >= CORE_SET_4 ? "✓" : `${n}/${CORE_SET_4}`} 4 món: ${cs?.set4 ?? "không rõ"}`; s4.classList.toggle("on", n >= CORE_SET_4);
+    s2.textContent = `${n >= CORE_SET_2 ? "√" : `${n}/${CORE_SET_2}`} 2 món: ${cs?.set2 ?? "không rõ"}`; s2.classList.toggle("on", n >= CORE_SET_2);
+    s4.textContent = `${n >= CORE_SET_4 ? "√" : `${n}/${CORE_SET_4}`} 4 món: ${cs?.set4 ?? "không rõ"}`; s4.classList.toggle("on", n >= CORE_SET_4);
     setsEl.appendChild(row);
   }
 

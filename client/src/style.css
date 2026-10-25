@@ -6,6 +6,10 @@
 /* Dự phòng: 12 biểu tượng hồn kỹ / giao diện (☄ ☇ ☈ ☠ ☯ ☽ ☾ ⚒ ⚔ ⛓ ⛨ ❦) có ở Ark Pixel mà Galmuri không có; subset Ark chỉ còn các ký tự đó (khoảng 1 KB mỗi cỡ, OFL). */
 @font-face{font-family:"Ark Symbols 12";src:url("./fonts/ark-symbols-12.woff2") format("woff2");font-display:block}
 @font-face{font-family:"Ark Symbols 10";src:url("./fonts/ark-symbols-10.woff2") format("woff2");font-display:block}
+/* Be Vietnam Pro (OFL, client/src/fonts/OFL-be-vietnam-pro.txt): chữ trong cảnh Phaser, radar, bản đồ; tập con Latin + Việt, tự host (không tải Google Fonts). `block`: chờ phông, không vẽ bằng phông hệ thống. */
+@font-face{font-family:"Be Vietnam Pro";font-weight:500;src:url("./fonts/bvp-500.woff2") format("woff2");font-display:block}
+@font-face{font-family:"Be Vietnam Pro";font-weight:600;src:url("./fonts/bvp-600.woff2") format("woff2");font-display:block}
+@font-face{font-family:"Be Vietnam Pro";font-weight:800;src:url("./fonts/bvp-800.woff2") format("woff2");font-display:block}
 /* Bảng màu thủy mặc (art/palettes/_thuy_mac.gpl): giấy ngà, mực, triện son, gỗ trục; chữ mực trên giấy. Lớp "mực" (dải tối trong
    suốt) cho chữ nổi trên cảnh (log, gợi ý). */
 :root{
@@ -529,6 +533,13 @@ body.touch .bslot small{font-size:12px;font-family:var(--f12)}
 .bcell{position:relative;min-height:74px;font:inherit;color:var(--muted);background:var(--wash);border:2px dashed var(--line);cursor:pointer;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 2px}
 .bcell svg.ico.bone{width:34px;height:34px;transform:none;opacity:.35;filter:none;color:var(--muted)}
+/* #695 / #696: ô hồn cốt / hồn hạch dùng ảnh item_*; ô trống mờ như bản SVG cũ */
+.bcell.empty img.ico.art{width:34px;height:34px;opacity:.35;filter:none}
+.ccell img.ico.art{width:28px;height:28px}
+.cset img.ico.art{width:22px;height:22px;flex-shrink:0;margin-top:1px}
+.bpick .bitem img.ico.art.core{width:24px;height:24px;flex-shrink:0}
+#char .ccell img.ico.art{width:24px;height:24px}
+#char .cring6 .ccell img.ico.art{width:70%;height:70%;max-width:32px;max-height:32px}
 .bcell span{font-size:12px;font-family:var(--f12)}
 .bcell small{position:absolute;right:3px;top:1px;font-size:10px;font-family:var(--f10);color:var(--c);text-shadow:0 1px 0 #000;font-variant-numeric:tabular-nums}
 .bcell em{display:block;max-width:100%;padding:0 2px;font-size:10px;font-family:var(--f10);font-style:normal;line-height:normal;color:var(--c);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

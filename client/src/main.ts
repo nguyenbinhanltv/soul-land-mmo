@@ -1,4 +1,5 @@
 import "./style.css";
+import { loadGameFonts } from "./fontLoad";
 import Phaser from "phaser";
 import { ASSET_RETRIES, MAX_PARALLEL } from "./assetUrl.ts";
 import { installLoaderRetry } from "./loaderRetry.ts";
@@ -365,7 +366,7 @@ function play(room: Room, roomMap: string, watch = false) {
 // `?thu=font`: trang thử font tiếng Việt và bộ giao diện thủy mặc / thẻ võ hồn; `?thu=am`: trang nghe thử âm thanh (không cần đăng nhập).
 (async () => {
   initTips(); // chú thích dùng chung (UI-0): ủy quyền `title` của mọi phần tử HUD / bảng
-  await loadUiArt();
+  await Promise.all([loadUiArt(), loadGameFonts()]);
   const thu = new URLSearchParams(location.search).get("thu");
   if (thu === "font") return fontTestScreen(card, overlay);
   if (thu === "am") return audioTestScreen(card, overlay); // `?thu=am`: nghe thử tiếng mẫu CC0 (G2, #393)

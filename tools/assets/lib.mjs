@@ -239,6 +239,9 @@ export function itemIconIds() {
   for (const m of kinds.matchAll(/^\s*([a-z_]+): \{/gm)) ids.add(m[1]);
   const start = src.indexOf("export const BONE_SLOTS"), bones = src.slice(start, src.indexOf("];", start));
   for (const m of bones.matchAll(/\bid: "([a-z_]+)"/g)) ids.add(`hon_cot_${m[1]}`);
+  // Hồn hạch theo bộ (#696): `hon_hach_<bộ>` theo CORE_SETS.
+  const c0 = src.indexOf("export const CORE_SETS"), cores = src.slice(c0, src.indexOf("\n];", c0));
+  for (const m of cores.matchAll(/^\s*\{ id: "([a-z_]+)"/gm)) ids.add(`hon_hach_${m[1]}`);
   // Trang bị hồn sư (E0, mục 5.15): `equip_<mẫu>`, `equip_slot_<ô>`, `equip_frame_<bậc>`; nguyên liệu (EQUIP_STONES, EQUIP_CHARM…) theo mã.
   const block = (name, end) => { const i = src.indexOf(`export const ${name}`); return i < 0 ? "" : src.slice(i, src.indexOf(end, i)); };
   const { slots, tiers } = equipSlotTierIds();
