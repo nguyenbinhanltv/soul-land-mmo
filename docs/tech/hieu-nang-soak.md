@@ -1,7 +1,14 @@
-# Đo hiệu năng chạy dài trên bản đồ ×8 (#167)
+# Đo hiệu năng chạy dài trên bản đồ ×8
 
-Đo theo skill `soak-perf` trên code `257570e` (sau tự săn toàn bản đồ #213 / #218, vùng độc #220, Thủy Triều Dâng #240, tông môn #250).
-So với mốc 11.4 (PR #129) và soak 30 phút của #229. Bot tải, log thô và script đo để ngoài repo (thư mục artifact của phiên).
+Đây là **báo cáo các lượt đo** (mốc thời điểm, không phải luật chơi). Cách đo chuẩn ở skill `soak-perf`; bot tải, log thô và script đo để ngoài repo (thư mục artifact của phiên).
+
+## Kết luận hiện hành
+- 40–60 người tự săn một kênh ×8: tick + bản vá trung bình 7–11 ms trên nhịp 50 ms; nhịp > 50 ms hiếm (≤ 1 / phút), không có nguyên nhân rõ trong code game.
+- Băng thông 5–8 KB/s mỗi client (9–12 KB/s cạnh thú vương). Phòng trống tự hủy, heap về gần mức đầu; heap tăng chỉ do túi đồ bot đầy dần (có trần), không thấy rò.
+- Redis tắt giữa chừng (hai tiến trình): bài `arena` và `friend` đạt, server sống đến cuối (phần 9 bên dưới).
+- Kịch bản 1–2 giờ chưa đo.
+
+Bảng dưới là số liệu từng lượt; mốc đầu đo trên code `257570e`, so với mốc 11.4 và soak 30 phút của #229.
 
 ## Cách đo
 - Máy: Windows 11, i5-12400F 12 luồng, 32 GB, Node 24.12. **Nhiễu:** cùng lúc có 3 phiên agent khác, Chrome và các tiến trình khác (RAM trống 3,5–8 GB), nên `max` từng nhịp nhiễu nhiều.
@@ -160,5 +167,8 @@ npm run bot:local -- --only friend --procs 2 --pg --env REDIS_URL=redis://127.0.
 
 Redis được tắt / bật bởi harness ngoài bài bot đúng giữa lượt; không đưa harness hoặc log tạm vào repo.
 
-## Trang bị hồn sư (E7, #418)
+## Trang bị hồn sư (E7)
 Chạy dài lệnh Thợ rèn / mặc đồ (40 bot × 20 phút, và PostgreSQL 20 bot × 5 phút): tick ~0,9 ms, không chậm dần, bộ nhớ không rò, vào lại đúng trạng thái. Số liệu, cách chạy (`bot:local --only equipsoak`) và kết luận cân bằng ở `docs/trang-bi-kinh-te.md` mục E7.
+
+## Issue liên quan
+#167 (soak ×8), #229, #240, #250, #273 và #375 (nhịp chậm), #394 (hiệu ứng G3), #418 (E7), #496 (Redis).

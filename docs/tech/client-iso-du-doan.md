@@ -1,7 +1,5 @@
 # Client: hiển thị isometric và dự đoán chuyển động
 
-<!-- Tách cơ học từ GAME_DESIGN.md (D1, #619): nguyên văn, chưa viết lại; số mục và tên mục con giữ nguyên. -->
-
 **Hiển thị isometric phía client** (quy tắc hình ở mục 5.11)
 - Server và file Tiled giữ tọa độ thế giới Descartes; client chỉ chiếu khi vẽ. `client/src/iso.ts`: `worldToScreen` / `screenToWorld` (cỡ thoi đổi bằng một hằng `TILE_W`, `TILE_H = TILE_W / 2`), độ sâu vẽ `depthAt` (tỉ lệ x + y của điểm chân), elip mặt đất `fillGround` (`RX` / `RY`), đa giác chiếu `ptsToScreen`, hướng 8 phía `dir8` và hướng gần nhất của sprite 4 hướng cũ `legacyDir`. Hằng hiển thị, không phải số cân bằng.
 - `client/src/isoMap.ts` vẽ lớp `ground` thành ô thoi và lớp `trees` thành vật đứng theo `shared/assets/iso/tiles.json` (nhà / tường thành dựng bằng `isoBuild.ts`), sắp lớp theo độ sâu; ảnh dựng / cất theo khối 8 × 8 ô, chỉ khối trong tầm camera (cộng lề vật cao) có ảnh; mặt đất và lớp phủ mép của mỗi khối nung thành một ảnh canvas (kèm normal map khi có ánh sáng, giữ thêm vài chục khối vừa đi qua), vật đứng vẫn là ảnh riêng; làm mờ vật che chính mình chỉ xét vật của các khối quanh thực thể cần thấy (11.4); `preloadIso` chỉ tải ảnh bản đồ đang vào dùng tới. Gid / ảnh còn thiếu thì vẽ tạm bằng code từ `tiles.png`. Lớp `canopy` chỉ dùng ở chế độ nhìn thẳng.

@@ -56,6 +56,7 @@ Skill trong `.claude/skills/`:
 - `roadmap-step`: làm trọn một bước Lộ trình (đọc thiết kế → code → check → bot → cập nhật thiết kế).
 - `server-feature`: luật chơi, message từ client, đồng bộ schema, dữ liệu riêng của chính chủ, lưu DB.
 - `client-ui`: hiển thị state, HUD thủy mặc, phím / chuột, điều khiển chạm, isometric phía client.
+- `landing-page`: trang giới thiệu ở `/` (game chuyển sang `/choi`), thủy mặc, hiệu năng, SEO; dùng kèm `frontend-design` (thiết kế) và `webapp-testing` (kiểm), hai skill Anthropic chép nguyên văn (Apache-2.0).
 - `db-migration`: file SQL mới và lớp lưu trữ `db.ts`.
 - `balance-data`: mọi con số cân bằng trong `shared/data.ts`.
 - `asset-gen`: làm ảnh (nguồn theo họ asset: Codex, LPC, PixelLab giới hạn, Gemini, ComfyUI, vẽ tay) và dây chuyền `tools/assets`.
