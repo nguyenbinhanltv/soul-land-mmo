@@ -3,7 +3,7 @@
 #   2) chạy container đó + PostgreSQL tạm (service container, DB rỗng) và bot khói vào container (GAME_TEST=1 chỉ ở bước này);
 #   3) Trivy chặn lỗ hổng CRITICAL;
 #   4) đạt cả ba mới đăng nhập GCP (key JSON của service account GCP_SA_KEY, hoặc Workload Identity Federation nếu không có key) và đẩy ĐÚNG image đã thử với tag sha-<7> (+ main nếu mới hơn bản main hiện có).
-# Không tự deploy: đưa lên prod bằng promote.yml (mở PR ở repo GitOps), xem docs/deploy.md. Thiết lập GCP: deploy/gcp/README.md.
+# Không tự deploy: đưa lên prod bằng promote.yml (mở PR ở repo GitOps), xem docs/ops/trien-khai.md. Thiết lập GCP: deploy/gcp/README.md.
 # Thông báo chỉ qua GitHub: lượt chạy ở tab Actions, trạng thái commit `release/image` và bảng tóm tắt (GITHUB_STEP_SUMMARY).
 name: Release
 # Tên lượt = commit được build (workflow_run: commit của CI; chạy tay: đầu main lúc bấm). Một lượt chỉ build đúng commit này.
@@ -259,7 +259,7 @@ jobs:
             echo "| Asset riêng | $([ "$PRIVATE" = yes ] && echo "đã kèm kho riêng" || echo "không có (hình cũ)") |"
             echo "| Thử trước khi đẩy | container + PostgreSQL tạm, bot khói đạt, Trivy không có CRITICAL |"
             echo ""
-            echo "Chưa deploy. Đưa lên prod: chạy workflow **Promote** (nhập \`$TAG\`), xem docs/deploy.md."
+            echo "Chưa deploy. Đưa lên prod: chạy workflow **Promote** (nhập \`$TAG\`), xem docs/ops/trien-khai.md."
           } >>"$GITHUB_STEP_SUMMARY"
       - name: trạng thái commit = kết quả
         if: ${{ always() }}

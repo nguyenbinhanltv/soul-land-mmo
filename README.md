@@ -29,45 +29,7 @@ Bảng phím đầy đủ ở `docs/design/01-luat-chung.md`. Điện thoại c�
 
 ### Lưu dữ liệu
 
-Không cấu hình database thì dữ liệu chỉ lưu trong RAM, tắt server là mất. Biến môi trường mẫu ở [`.env.example`](.env.example) (chép thành `server/.env`).
-
-**PostgreSQL bằng Docker**
-
-```bash
-docker compose up -d
-cp .env.example server/.env      # đã có sẵn DATABASE_URL cho Postgres local
-npm run dev:server
-```
-
-**Nhiều tiến trình với RedisPresence**
-
-Chỉ bật khi chạy hai tiến trình cùng lúc. Dùng cùng `REDIS_URL` cho các tiến trình trong cùng một cụm; mỗi cụm / môi trường phải dùng Redis riêng, không dùng chung Redis của dịch vụ khác.
-
-```bash
-# terminal 1
-PORT=2567 REDIS_URL=redis://127.0.0.1:6379 npm run dev:server
-# terminal 2
-PORT=2568 REDIS_URL=redis://127.0.0.1:6379 npm run dev:server
-```
-
-Mỗi tiến trình cần `PUBLIC_ADDRESS` là địa chỉ client mở WebSocket tới đúng tiến trình đó (ví dụ `PUBLIC_ADDRESS=localhost:2567` và `PUBLIC_ADDRESS=localhost:2568`, hoặc đường dẫn riêng sau proxy). Không đặt thì client chỉ vào được phòng nằm ở tiến trình đã nhận yêu cầu HTTP. Sân đấu luôn mở ở tiến trình ghép trận.
-
-Thử máy mình (Redis cục bộ cổng riêng, không dùng Redis của dịch vụ khác): `redis-server --port 6391 --save "" --appendonly no`, rồi `REDIS_URL=redis://127.0.0.1:6391 REDIS_PREFIX=test:kill npm run test:presence-kill --prefix server` (tiến trình con ghi presence, bị kill, sau TTL dữ liệu phải được dọn) và `npm run bot:local -- --only arena --pg --procs 2 --env REDIS_URL=redis://127.0.0.1:6391` (hai server dùng chung Redis và PostgreSQL; cần `--pg` vì tài khoản RAM không chia sẻ giữa tiến trình).
-
-`RedisPresence` dùng pub/sub và RedisDriver để chia sẻ phòng, số kênh, khóa đổi kênh, phiên tài khoản, thú vương, khóa tinh anh, hàng chờ đấu trường và tổ đội. Lease có TTL 15 giây, heartbeat 5 giây; tiến trình chết không giữ tài khoản hoặc suất vô hạn. `REDIS_PREFIX` chỉ áp cho khóa ioredis của game; kênh pub/sub của `RedisPresence` và registry phòng của `RedisDriver` không có prefix, nên mỗi cụm vẫn cần Redis riêng. Khi không đặt `REDIS_URL`, server tự dùng LocalPresence và RAM như cũ, không cần chạy dịch vụ ngoài. Khi đã bật Redis mà Redis lỗi, server đóng phiên liên quan để tránh hai tiến trình cùng ghi dữ liệu.
-
-**Supabase**
-
-1. Tạo project trên [supabase.com](https://supabase.com), ghi nhớ mật khẩu database, chọn region gần người chơi.
-2. Dashboard → **Connect** → **Connection String** → Type `URI` → Method **Session pooler**, sao chép chuỗi.
-   Đừng dùng "Direct connection" (chỉ chạy qua IPv6) hay "Transaction pooler" (server giữ kết nối lâu dài).
-3. Ghi vào `server/.env`: `DATABASE_URL=postgresql://postgres.<ref>:<mật-khẩu>@aws-0-<region>.pooler.supabase.com:5432/postgres`.
-   Mật khẩu có ký tự đặc biệt thì mã hóa URL (`@` → `%40`, `#` → `%23`, `/` → `%2F`). SSL tự bật khi URL chứa "supabase" (hoặc đặt `PGSSL=true`).
-4. Chạy lại `npm run dev:server`, thấy `✓ Đã kết nối PostgreSQL và cập nhật bảng.` là xong.
-
-Server tự tạo / cập nhật bảng mỗi lần khởi động (chạy mọi file `server/sql/*.sql` theo tên) và bật Row Level Security cho mọi bảng,
-nên Data API công khai của Supabase không đọc được dữ liệu; server kết nối bằng user `postgres` nên vẫn đọc ghi bình thường.
-Gói miễn phí của Supabase tạm dừng project sau khoảng 1 tuần không truy cập; vào dashboard bấm Restore để chạy lại.
+Không cấu hình database thì dữ liệu chỉ lưu trong RAM, tắt server là mất. Có PostgreSQL thì chép [`.env.example`](.env.example) thành `server/.env` (Docker: `docker compose up -d`). Chi tiết PostgreSQL / Supabase test, migration, Redis nhiều tiến trình và sao lưu: [`docs/ops/db-redis-sao-luu.md`](docs/ops/db-redis-sao-luu.md). Lệnh bot, tài khoản test: [`docs/ops/chay-local.md`](docs/ops/chay-local.md).
 
 ## Kiểm thử
 
@@ -141,6 +103,7 @@ npm run bot:local -- --only bag --pg        # lưu PostgreSQL: database riêng, 
 ├─ art/                    # file nguồn không tải trong game: palette.gpl, palettes/ (bảng nhấn từng vùng),
 │                          #   src/ (ảnh thô ComfyUI / Gemini / PixelLab cũ, công thức LPC), CREDITS.md
 ├─ GAME_DESIGN.md          # mục lục + luật chung; chi tiết ở docs/design, docs/art, docs/tech (cho người và AI đọc)
+├─ docs/                   # design (luật chơi), art (mỹ thuật, âm thanh), tech (kiến trúc), ops (chạy máy, CI / CD, deploy), quyet-dinh.md
 ├─ CLAUDE.md               # quy tắc cho AI agent khi sửa code
 ├─ .claude/                # cấu hình Claude Code dùng chung: plugin, hook, skill
 ├─ .githooks/              # pre-commit
@@ -166,14 +129,7 @@ Các bản đồ hiện được sinh bằng `tools/gen-map.mjs`; `npm run map` 
 
 ## Đưa lên mạng
 
-Server phục vụ luôn bản build của client, nên chỉ cần **một dịch vụ, một link**. Với nền tảng chạy được Docker (Render, Railway, Fly.io, VPS…):
-
-1. Tạo dịch vụ từ repo, build bằng `Dockerfile`.
-2. Thêm biến môi trường `DATABASE_URL` (Supabase hoặc Postgres của nền tảng) và `TRUST_PROXY=1` (chạy sau proxy, để giới hạn đăng nhập sai theo đúng IP).
-3. Deploy xong, gửi link cho bạn bè.
-
-Nền tảng cần hỗ trợ WebSocket và nên giữ server chạy liên tục (gói miễn phí thường "ngủ", lần vào đầu chậm).
-Muốn để client ở chỗ khác (Vercel, Netlify…): build client với `VITE_SERVER_URL=https://server-cua-ban` và đặt `CLIENT_ORIGIN` trên server bằng domain của client.
+Server phục vụ luôn bản build của client, nên chỉ cần **một dịch vụ, một link** (WebSocket, chạy liên tục; `TRUST_PROXY=1` khi sau proxy; client ở chỗ khác thì build với `VITE_SERVER_URL` và đặt `CLIENT_ORIGIN`). Prod chính thức: image dựng bằng Release, đưa lên Kubernetes bằng Promote + GitOps + ArgoCD (một bản, không staging; merge `main` không tự deploy). Chi tiết, thiết lập, quay lui, sự cố: [`docs/ops/`](docs/ops/README.md).
 
 ## Phát triển cùng Claude Code
 
