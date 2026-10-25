@@ -1,9 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, existsSync, readFileSync } from "node:fs";
+import { mkdtempSync, existsSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import os from "node:os";
+import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
-import { Img, hex, OUTLINE, ISO_BEAST_FOOT } from "./lib.mjs";
+import { Img, hex, OUTLINE, ISO_BEAST_FOOT, encodePng, readPng } from "./lib.mjs";
 import { ANIMS, COLS, DIRS, BAND_ROWS, animSlot, sheetPlan, sheetCells } from "./beast-sheet-lib.mjs";
 import { fakeSheets } from "./beast-sheet-fake.mjs";
 import { cutSpecies } from "./beast-sheet-cut.mjs";
@@ -129,4 +131,159 @@ test("mẫu prompt: có tên, họ, bậc, kích thước ảnh, hướng và kh
       assert.ok(doc.includes(info.name) && doc.includes(tier));
     }
   }
+});
+
+// Fixture hình học chỉ kiểm công cụ; không phải ảnh hồn thú dùng trong game.
+function geometrySheets(frame = 96, bSize = 1024) {
+  return Object.fromEntries(sheetPlan(frame).map((sh) => {
+    const w = sh.id === 'B' && frame <= 96 ? bSize : sh.w;
+    const h = sh.id === 'B' && frame <= 96 ? bSize : sh.h;
+    const im = new Img(w, h), factor = w / sh.w;
+    for (const c of sheetCells(sh)) {
+      const left = Math.round((c.col * sh.w / sh.cols + 40) * factor);
+      const top = Math.round((c.row * sh.h / sh.rows + 28) * factor);
+      const right = Math.round((c.col * sh.w / sh.cols + 120) * factor);
+      const bottom = Math.round((c.row * sh.h / sh.rows + 100) * factor);
+      for (let y = top; y < bottom; y++) for (let x = left; x < right; x++) im.set(x, y, [90, 110, 70, 255]);
+    }
+    return [sh.id, im];
+  }));
+}
+function opaqueBox(im) {
+  let x0 = im.w, y0 = im.h, x1 = -1, y1 = -1;
+  for (let y = 0; y < im.h; y++) for (let x = 0; x < im.w; x++) if (im.alpha(x, y)) {
+    x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+  }
+  return { w: x1 - x0 + 1, h: y1 - y0 + 1, x0, y0, x1, y1 };
+}
+
+test('chuẩn hóa từng tờ: B1254 cùng đơn vị A, không phình thân vì canvas', () => {
+  const sheets = geometrySheets(96, 1254), before = Buffer.from(sheets.B.data);
+  const legacy = cutSpecies({ species: 'phong_lang', sheets, scale: 0.55 });
+  assert.equal(opaqueBox(legacy.frames.get('e/idle/0')).w, 46);
+  assert.equal(opaqueBox(legacy.frames.get('ne/idle/0')).w, 56);
+  for (const options of [{ scale: 0.55 }, { fill: 0.6 }, {}]) {
+    const res = cutSpecies({ species: 'phong_lang', sheets, ...options, normalizeSize: true });
+    const a = opaqueBox(res.frames.get('e/idle/0')), b = opaqueBox(res.frames.get('ne/idle/0'));
+    assert.ok(Math.abs(a.w - b.w) <= 1, `rộng A=${a.w}, B=${b.w}`);
+    assert.ok(Math.abs(a.h - b.h) <= 1, `cao A=${a.h}, B=${b.h}`);
+    assert.equal(a.y1, b.y1);
+    assert.deepEqual(Buffer.from(sheets.B.data), before);
+    assert.deepEqual(res.report.sheets.B.originalSize, [1254, 1254]);
+    assert.deepEqual(res.report.sheets.B.expectedSize, [1024, 1024]);
+    assert.equal(res.report.sheets.B.factor, 1024 / 1254);
+    assert.equal(res.report.sheets.A.factor, 1);
+    assert.equal(res.report.missing, 0);
+  }
+});
+
+test('chuẩn hóa từ chối sai aspect thay vì kéo riêng hai trục', () => {
+  assert.throws(() => cutSpecies({ species: 'phong_lang', sheets: { B: new Img(1254, 1200) }, normalizeSize: true }), /tỉ lệ.*B|B.*tỉ lệ/);
+});
+
+
+test('cỡ chuẩn: byte đầu ra legacy không đổi, normalize factor1 cũng không đổi (cả A–E)', () => {
+  for (const [species, hash] of [
+    ['phong_lang', 'f126872f4cd9e2b0cfc8357eb1145337121e1a67c1aafac8d1e236ebd051c0d4'],
+    ['thai_than_cu_vien', '2bbc31c9166f69f1356b724be82ab9a84a6dd9495a7b6ec395c46d2e6e379af8'],
+  ]) {
+    const sheets = fakeSheets(species, { seed: 2 });
+    const legacy = cutSpecies({ species, sheets });
+    assert.equal(createHash('sha256').update(legacy.sheet.data).digest('hex'), hash);
+    const normalized = cutSpecies({ species, sheets, normalizeSize: true });
+    assert.deepEqual(normalized.sheet.data, legacy.sheet.data);
+    assert.deepEqual(normalized.report.warnings.filter((w) => !w.includes("hình vượt ô") && !w.includes("mép ảnh nguồn")), legacy.report.warnings);
+  }
+});
+
+test('normalization giữ alpha nhị phân, viền, palette, neo chân và không autofill từng khung', () => {
+  const sheets = geometrySheets(96, 1254);
+  for (let y = 28; y < 100; y++) for (let x = 80; x < 120; x++) sheets.A.set(x, y, [0, 0, 0, 0]);
+  const res = cutSpecies({ species: 'phong_lang', sheets, scale: 0.55, normalizeSize: true });
+  const colors = new Set();
+  for (const im of res.frames.values()) {
+    const b = opaqueBox(im);
+    assert.ok(Math.abs(b.y1 - (96 - ISO_BEAST_FOOT)) <= 1);
+    assert.ok(b.x0 > 0 && b.x1 < 95 && b.y0 > 0 && b.y1 < 95);
+    let outline = 0;
+    for (let i = 0; i < im.data.length; i += 4) {
+      const p = im.data.subarray(i, i + 4);
+      assert.ok(p[3] === 0 || p[3] === 255);
+      if (!p[3]) continue;
+      colors.add(p.slice(0, 3).join(','));
+      if (p[0] === 26 && p[1] === 16 && p[2] === 32) outline++;
+    }
+    assert.ok(outline > 0);
+  }
+  assert.ok(colors.size <= 25);
+  assert.ok(opaqueBox(res.frames.get('s/idle/0')).w < opaqueBox(res.frames.get('s/idle/1')).w * 0.7);
+});
+
+test('normalization không che thiếu khung, sai lưới, hình vượt ô hoặc ảnh nguồn cắt mép', () => {
+  const sheets = geometrySheets(96, 1254);
+  // Xóa một ô thật, vẽ vào ô vốn trống và nối qua ranh giới cột.
+  for (let y = 28; y < 100; y++) for (let x = 40; x < 120; x++) sheets.A.set(x, y, [0, 0, 0, 0]);
+  for (let y = 420; y < 450; y++) for (let x = 720; x < 750; x++) sheets.A.set(x, y, [90, 110, 70, 255]);
+  for (let y = 28; y < 70; y++) for (let x = 0; x < 185; x++) sheets.A.set(x, y, [90, 110, 70, 255]);
+  for (let y = 156; y < 228; y++) for (let x = 40; x < 120; x++) sheets.A.set(x, y, [0, 0, 0, 0]);
+  const res = cutSpecies({ species: 'phong_lang', sheets, scale: 0.55, normalizeSize: true });
+  const warnings = res.report.warnings.join('\n');
+  assert.match(warnings, /THIẾU khung s\/walk\/0/);
+  assert.match(warnings, /ô trống/);
+  assert.match(warnings, /vượt ô/);
+  assert.match(warnings, /mép ảnh nguồn/);
+});
+
+test('CLI normalization báo SHA256 byte RAW, kích thước thật và không ghi lại nguồn', () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'beast-normalize-'));
+  try {
+    const sheets = geometrySheets(96, 1254), files = {};
+    for (const [id, im] of Object.entries(sheets)) {
+      files[id] = path.join(dir, id + '.png');
+      writeFileSync(files[id], encodePng(im));
+    }
+    const before = readFileSync(files.B);
+    const run = spawnSync(process.execPath, ['tools/assets/beast-sheet-cut.mjs', '--species', 'phong_lang', '--sheet', 'A=' + files.A, '--sheet', 'B=' + files.B, '--out', path.join(dir, 'out'), '--normalize-size', '--scale', '0.55'], { encoding: 'utf8' });
+    assert.equal(run.status, 0, run.stderr);
+    const report = JSON.parse(readFileSync(path.join(dir, 'out/_report.json')));
+    assert.equal(report.sheets.B.sourceSha256, createHash('sha256').update(before).digest('hex'));
+    assert.deepEqual(report.sheets.B.size, [1254, 1254]);
+    assert.equal(report.sheets.B.normalizedMode, 'canonical-units');
+    assert.deepEqual(readFileSync(files.B), before);
+    const missing = spawnSync(process.execPath, ['tools/assets/beast-sheet-cut.mjs', '--species', 'phong_lang', '--sheet', 'B=' + files.B, '--out', path.join(dir, 'partial'), '--normalize-size'], { encoding: 'utf8' });
+    assert.match(missing.stderr, /thiếu tờ A/);
+    writeFileSync(files.B, encodePng(new Img(1254, 1200)));
+    const invalid = spawnSync(process.execPath, ['tools/assets/beast-sheet-cut.mjs', '--species', 'phong_lang', '--sheet', 'B=' + files.B, '--out', path.join(dir, 'invalid'), '--normalize-size'], { encoding: 'utf8' });
+    assert.equal(invalid.status, 2);
+    assert.match(invalid.stderr, /sai tỉ lệ/);
+    assert.equal(existsSync(path.join(dir, 'invalid')), false);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+
+test('helper preview tạo bundle offline trước/sau và bằng chứng hash từ RAW, không đổi nguồn', async () => {
+  const { buildComparison } = await import('./beast-sheet-normalization-preview.mjs');
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'beast-preview-bundle-'));
+  try {
+    const sources = {};
+    for (const [id, im] of Object.entries(geometrySheets(96, 1254))) {
+      const file = path.join(dir, id + '.png');
+      writeFileSync(file, encodePng(im)); sources[id] = file;
+    }
+    const hash = createHash('sha256').update(readFileSync(sources.B)).digest('hex');
+    const result = buildComparison('phong_lang', sources, path.join(dir, 'bundle'));
+    assert.equal(result.sources.B.sha256, hash);
+    assert.deepEqual(result.sources.B.size, [1254, 1254]);
+    assert.equal(result.normalization.B.factor, 1024 / 1254);
+    assert.equal(result.frames.before, 110);
+    assert.equal(result.frames.after, 110);
+    assert.equal(result.pixelBytesEqual, false);
+    for (const mode of ['before', 'after']) {
+      assert.ok(existsSync(path.join(dir, 'bundle', mode, 'preview/index.html')));
+      for (const d of DIRS) for (const [a] of ANIMS) assert.ok(existsSync(path.join(dir, 'bundle', mode, 'preview/gif', a + '_' + d + '.gif')));
+      const png = readPng(path.join(dir, 'bundle', mode, 'phong_lang_anim.png'));
+      assert.equal(png.w, 576); assert.equal(png.h, 1920);
+    }
+    assert.equal(createHash('sha256').update(readFileSync(sources.B)).digest('hex'), hash);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });
