@@ -9,7 +9,7 @@ Chạy game ở máy, CI / CD, deploy lên prod. Thiết kế game ở `docs/des
 | Release → Promote → ArgoCD, quay lui, thông số image / pod, thiết lập GCP một lần | [trien-khai.md](trien-khai.md) (cùng `deploy/gcp/README.md`) |
 | Repo GitOps `soul-land-gitops` (chỉ liên kết, không bí mật) | [gitops.md](gitops.md) |
 | DB, migration, Redis, sao lưu | [db-redis-sao-luu.md](db-redis-sao-luu.md) |
-| Đăng nhập Google (`GOOGLE_CLIENT_ID` ConfigMap, `GOOGLE_TICKET_SECRET` Secret `soul-land-env`) | [sso-google.md](sso-google.md) |
+| Đăng nhập Google (`GOOGLE_CLIENT_ID` ConfigMap, `GOOGLE_TICKET_SECRET` Secret riêng ngoài SealedSecret) | [sso-google.md](sso-google.md) |
 | Cache tài sản tĩnh, Cloudflare | [cache-cloudflare.md](cache-cloudflare.md) |
 | Kho asset riêng (gói giấy phép hạn chế) | [../asset-rieng.md](../asset-rieng.md) |
 | Tài khoản test cho chủ repo | [../test-accounts.md](../test-accounts.md) |

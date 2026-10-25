@@ -31,13 +31,13 @@ Release đã chạy bot khói vào chính image đó với DB rỗng. Không ch�
 
 1. Chạy `deploy/gcp/setup.sh` (Artifact Registry, Workload Identity Federation, hai service account), làm theo `deploy/gcp/README.md`.
 2. Đăng nhập GCP của CI: **hoặc** secret `GCP_SA_KEY` (key JSON của SA writer, tạo bằng `deploy/gcp/setup.sh --sa-key`, xoay 90 ngày; `deploy/gcp/README.md` mục 2b), **hoặc** WIF. Có `GCP_SA_KEY` thì workflow dùng key, không thì dùng WIF; thiếu cả hai thì báo lỗi. Với WIF, ở GitHub repo game đặt `GCP_WIF_PROVIDER`, `GCP_SA_EMAIL` (Variable hoặc Secret đều được: release.yml / promote.yml đọc `vars.X || secrets.X`). Cả hai cách đều cần Secret `GITOPS_TOKEN` (hướng dẫn trong README đó).
-3. Repo GitOps (`soul-land-gitops`, private): manifest Kustomize, ArgoCD, SealedSecret `soul-land-env` (`DATABASE_URL`) và pull secret `ar-pull`; khoá `GOOGLE_TICKET_SECRET` chủ repo thêm thẳng vào Secret trên cụm, không qua SealedSecret (`docs/ops/sso-google.md`).
+3. Repo GitOps (`soul-land-gitops`, private): manifest Kustomize, ArgoCD, SealedSecret `soul-land-env` (`DATABASE_URL`) và pull secret `ar-pull`; khoá `GOOGLE_TICKET_SECRET` chủ repo đặt trong một Secret riêng trên cụm (không phải `soul-land-env`), không qua SealedSecret (`docs/ops/sso-google.md`).
 
 ## Thông số image / pod (để khớp repo GitOps)
 
-- Image chạy `node --enable-source-maps dist/index.mjs` (JS do esbuild gộp ở tầng build, không có tsx / esbuild trong image; node là PID 1), user `node` (không root), cổng `2567`, `GET /health`. Có `REDIS_URL` thì `/health` trả 503 khi Redis mất (dùng làm readiness: ngừng chuyển người chơi mới tới, tiến trình không thoát, tự phục hồi); liveness probe dùng `GET /live` (luôn 200 khi tiến trình còn chạy) để k8s không khởi động lại cả tiến trình chỉ vì Redis mất 
+- Image chạy `node --enable-source-maps dist/index.mjs` (JS do esbuild gộp ở tầng build, không có tsx / esbuild trong image; node là PID 1), user `node` (không root), cổng `2567`, `GET /health`. Có `REDIS_URL` thì `/health` trả 503 khi Redis mất (dùng làm readiness: ngừng chuyển người chơi mới tới, tiến trình không thoát, tự phục hồi); liveness probe dùng `GET /live` (luôn 200 khi tiến trình còn chạy) để k8s không khởi động lại cả tiến trình chỉ vì Redis mất (#561).
 - `terminationGracePeriodSeconds` = `SHUTDOWN_SAVE_MS` (`server/src/index.ts`, hiện 6000 ms) + 30 giây = 36 giây, `preStop` ngủ 5 giây. Đổi hằng thì đổi theo ở repo GitOps.
-- Biến môi trường prod: `PORT`, `TRUST_PROXY=1`, `CLIENT_ORIGIN=https://soulland.oleqima.com`, `NODE_ENV=production`, `DATABASE_URL` (từ secret), tuỳ chọn `GOOGLE_CLIENT_ID` (ConfigMap) và `GOOGLE_TICKET_SECRET` (Secret `soul-land-env`, khi nhiều pod; `docs/ops/sso-google.md`). Không đặt `GAME_TEST`, `REDIS_URL`, `PUBLIC_ADDRESS` (pha 1 một bản).
+- Biến môi trường prod: `PORT`, `TRUST_PROXY=1`, `CLIENT_ORIGIN=https://soulland.oleqima.com`, `NODE_ENV=production`, `DATABASE_URL` (từ secret), tuỳ chọn `GOOGLE_CLIENT_ID` (ConfigMap) và `GOOGLE_TICKET_SECRET` (Secret riêng ngoài SealedSecret, khi nhiều pod; `docs/ops/sso-google.md`). Không đặt `GAME_TEST`, `REDIS_URL`, `PUBLIC_ADDRESS` (pha 1 một bản).
 
 ## Issue liên quan
 #406 (không đo tải vào DB prod), #500 (CI/CD K1–K3), #504 (release / promote), #561 (Redis mất giữa chừng, `/live` và `/health`), #645 (tag main chỉ dời tiến, promote dò git log, `prod-<sha7>` idempotent).

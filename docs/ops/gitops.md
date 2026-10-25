@@ -5,7 +5,7 @@ Trạng thái triển khai của prod nằm ở repo riêng **[nguyenbinhanltv/s
 ## Repo GitOps chứa gì
 - Manifest Kustomize cho ứng dụng `soul-land`; overlay prod ở `apps/soul-land/overlays/prod/kustomization.yaml` (trường `newTag` là bản image đang chạy).
 - Cấu hình ArgoCD (tự sync khi PR được merge).
-- ConfigMap (ví dụ `GOOGLE_CLIENT_ID`, `CLIENT_ORIGIN`), SealedSecret `soul-land-env` (`DATABASE_URL`) và pull secret `ar-pull` kéo image từ Artifact Registry. Khoá `GOOGLE_TICKET_SECRET` (khi nhiều pod) chủ repo thêm thẳng vào Secret trên cụm, **không** qua SealedSecret (`docs/ops/sso-google.md`).
+- ConfigMap (ví dụ `GOOGLE_CLIENT_ID`, `CLIENT_ORIGIN`), SealedSecret `soul-land-env` (`DATABASE_URL`) và pull secret `ar-pull` kéo image từ Artifact Registry. Khoá `GOOGLE_TICKET_SECRET` (khi nhiều pod) chủ repo đặt trong một Secret riêng trên cụm (không phải `soul-land-env`), **không** qua SealedSecret (`docs/ops/sso-google.md`).
 - Thông số pod (`terminationGracePeriodSeconds`, `preStop`, probe `/health` / `/live`) phải khớp `server/src/index.ts`: bảng ở `docs/ops/trien-khai.md`.
 
 ## Repo game chạm tới GitOps ở đâu

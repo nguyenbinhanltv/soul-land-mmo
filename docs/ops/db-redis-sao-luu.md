@@ -40,7 +40,7 @@ PORT=2567 REDIS_URL=redis://127.0.0.1:6379 npm run dev:server
 PORT=2568 REDIS_URL=redis://127.0.0.1:6379 npm run dev:server
 ```
 - Lease có TTL 15 giây, heartbeat 5 giây: tiến trình chết không giữ tài khoản hoặc suất vô hạn. Redis đã bật mà lỗi thì server đóng phiên liên quan để tránh hai tiến trình cùng ghi; `/health` trả 503 (readiness), `/live` luôn 200.
-- Thử ở máy với Redis cổng riêng (`redis-server --port 6391 --save "" --appendonly no`): `npm run test:presence-kill --prefix server` và `npm run bot:local -- --only arena --pg --procs 2` (chi tiết ở `docs/ops/chay-local.md`).
+- Thử ở máy với Redis cổng riêng (`redis-server --port 6391 --save "" --appendonly no`): `REDIS_URL=redis://127.0.0.1:6391 REDIS_PREFIX=test:kill npm run test:presence-kill --prefix server`; `npm run bot:local -- --only arena --pg --procs 2` tự bật Redis riêng, không dùng cổng 6391 (chi tiết ở `docs/ops/chay-local.md`).
 
 ## Sao lưu
 - **Supabase (DB test):** Project → Database → Backups; trước thao tác ghi lớn (ví dụ `seed:test --confirm-db`) kiểm bản sao lưu hằng ngày hoặc tạo điểm khôi phục (`docs/test-accounts.md`).

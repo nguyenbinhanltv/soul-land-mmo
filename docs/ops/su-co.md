@@ -10,7 +10,7 @@ Bảng "triệu chứng → nguyên nhân thường gặp → cách xử lý". C
 | `--pg` không nối được | PostgreSQL chung (cổng `BOT_PG_PORT` 5433) chưa chạy / kẹt | `npm run bot:local -- --pg-status`, `--pg-stop` rồi chạy lại | `docs/ops/chay-local.md` |
 | Bot báo bỏ qua phần lớn kiểm tra | server không bật `GAME_TEST=1` hoặc là server cũ | dùng `bot:local` (tự bật đúng); chạy tay thì bật server mới với `GAME_TEST=1` | `docs/ops/chay-local.md` |
 | Một bài bot lúc đỏ lúc xanh | bài chập chờn (chờ bản vá state, lịch boss, đặt giá) | theo skill `bot-flakiness`: tái hiện N lượt, đối chứng `main`, chờ theo state; trượt lại là lỗi thật, đọc dòng chẩn đoán | `.claude/skills/bot-flakiness` |
-| Máy chậm, worker kẹt, lỗi ghi file | ổ C đầy (từng còn 0 GB) | dọn npm cache, worktree mồ côi, thư mục Temp; kiểm dung lượng trước khi mở thêm phiên song song | `docs/ops/chay-local.md` |
+| Máy chậm, worker kẹt, lỗi ghi file | ổ C đầy (từng còn 0 GB) | dọn npm cache, worktree mồ côi, thư mục Temp; kiểm dung lượng trước khi mở thêm phiên song song | ghi chép của orchestrator |
 | Cổng bị chiếm | Chrome CDP 9333 đã có người dùng; server dev khác | dùng cổng riêng, chỉ tắt đúng PID mình bật, không tắt theo cổng hay tên | `docs/ops/chay-local.md` |
 | Chrome chụp ảnh phát nhạc | thiếu cờ | luôn `--mute-audio` | `docs/ops/chay-local.md` |
 | `.git` gốc biến mất sau khi dừng phiên AO | dừng phiên bằng lệnh kill (đã xảy ra hai lần) | dừng phiên bằng `ao session exit-agent`, không dùng kill; khôi phục: clone bare rồi đăng ký lại worktree | ghi chép của orchestrator |
