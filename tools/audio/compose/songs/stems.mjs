@@ -9,6 +9,7 @@ import daiDauHonTruong from "./dai_dau_hon_truong.mjs";
 import giaoChienBoss from "./giao_chien_boss.mjs";
 import haiThanDao from "./hai_than_dao.mjs";
 import lacNhatSamLam from "./lac_nhat_sam_lam.mjs";
+import nacDinhThanh from "./nac_dinh_thanh.mjs";
 import loiTinhDau from "./loi_tinh_dau.mjs";
 import thanhHonThon from "./thanh_hon_thon.mjs";
 import tinhDauNgoaiVi from "./tinh_dau_ngoai_vi.mjs";
@@ -70,7 +71,7 @@ function stem(base, { id, title, of, phase, heavy = false, lufs = -21 }) {
 
 const LAYERS = [
   [thanhHonThon, "Thánh Hồn Thôn"], [tinhDauNgoaiVi, "Tinh Đấu Ngoại vi"], [tinhDauNoiDia, "Tinh Đấu Nội địa"], [lacNhatSamLam, "Lạc Nhật Sâm Lâm"],
-  [cucBacChiDia, "Cực Bắc Chi Địa"], [haiThanDao, "Hải Thần Đảo"], [loiTinhDau, "Lõi Tinh Đấu"], [daiDauHonTruong, "Đại Đấu Hồn Trường"],
+  [cucBacChiDia, "Cực Bắc Chi Địa"], [haiThanDao, "Hải Thần Đảo"], [nacDinhThanh, "Nặc Đinh Thành"], [loiTinhDau, "Lõi Tinh Đấu"], [daiDauHonTruong, "Đại Đấu Hồn Trường"],
 ];
 
 export default [

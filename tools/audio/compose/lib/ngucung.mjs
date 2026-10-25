@@ -54,7 +54,7 @@ export function buildSong(spec) {
   sections.forEach((sec, s) => {
     const s0 = s * 8;
     if (sec.lead) add(sec.leadCh ?? "lead", melody(sec.lead, { tonic, mode, base: sec.leadBase ?? spec.leadBase, startBar: s0, vel: sec.leadVel ?? spec.leadVel ?? 76, legato: 0.98 }));
-    if (sec.erhu) add("erhu", melody(sec.erhu, { tonic, mode, base: spec.erhuBase, startBar: s0, vel: sec.erhuVel ?? 62, legato: 1 }));
+    if (sec.erhu) add("erhu", melody(sec.erhu, { tonic, mode, base: sec.erhuBase ?? spec.erhuBase, startBar: s0, vel: sec.erhuVel ?? 62, legato: 1 }));
     sec.roots.forEach((deg, k) => {
       const bar = s0 + k, r = deg - 1;
       roots.push(deg);
@@ -70,7 +70,7 @@ export function buildSong(spec) {
         notes.push({ ch: "tranh", t: bar * 4 + j * 0.5, d: 2.2, p: note(pool[slot]), v: (spec.arpVel ?? 54) + (j === 0 ? 8 : 0) });
       });
       // Lướt tranh cuối mỗi câu 4 ô, trừ khi đoạn tắt.
-      if (k % 4 === 3 && sec.sweep !== false) add("tranh", sweep({ tonic, mode, from: r + 5, count: 7, t: bar * 4 + 3, step: 0.14, vel: 52, d: 2.5 }));
+      if ((sec.sweepK ?? spec.sweepK ?? [3, 7]).includes(k) && sec.sweep !== false) add("tranh", sweep({ tonic, mode, from: r + 5, count: 7, t: bar * 4 + 3, step: 0.14, vel: 52, d: 2.5 }));
       // Chuông / khánh đầu đoạn (và giữa đoạn nếu bài muốn).
       if (k === 0) notes.push({ ch: "bell", t: bar * 4, d: 3, p: note(r + 10), v: s % 2 === 0 ? 58 : 48 });
       if (k === 4 && spec.bellMid) notes.push({ ch: "bell", t: bar * 4, d: 3, p: note(r + 12), v: 40 });

@@ -10,15 +10,15 @@
         "cuc_bac_chi_dia"
       ],
       "loop": true,
-      "seconds": 109.714,
+      "seconds": 121.905,
       "files": {
         "ogg": {
           "path": "audio/music/cuc_bac_chi_dia.ogg",
-          "bytes": 1156810
+          "bytes": 1069155
         },
         "m4a": {
           "path": "audio/music/cuc_bac_chi_dia.m4a",
-          "bytes": 1344966
+          "bytes": 1252118
         }
       }
     },
@@ -28,15 +28,15 @@
       "kind": "stem",
       "of": "cuc_bac_chi_dia",
       "loop": true,
-      "seconds": 109.714,
+      "seconds": 121.905,
       "files": {
         "ogg": {
           "path": "audio/music/cuc_bac_chi_dia_chien.ogg",
-          "bytes": 420593
+          "bytes": 643978
         },
         "m4a": {
           "path": "audio/music/cuc_bac_chi_dia_chien.m4a",
-          "bytes": 572892
+          "bytes": 757734
         }
       }
     },
@@ -48,15 +48,15 @@
         "dai_dau_hon_truong"
       ],
       "loop": true,
-      "seconds": 85.333,
+      "seconds": 73.143,
       "files": {
         "ogg": {
           "path": "audio/music/dai_dau_hon_truong.ogg",
-          "bytes": 880607
+          "bytes": 830043
         },
         "m4a": {
           "path": "audio/music/dai_dau_hon_truong.m4a",
-          "bytes": 1048872
+          "bytes": 899664
         }
       }
     },
@@ -66,15 +66,15 @@
       "kind": "stem",
       "of": "dai_dau_hon_truong",
       "loop": true,
-      "seconds": 85.333,
+      "seconds": 73.143,
       "files": {
         "ogg": {
           "path": "audio/music/dai_dau_hon_truong_chien.ogg",
-          "bytes": 355368
+          "bytes": 393289
         },
         "m4a": {
           "path": "audio/music/dai_dau_hon_truong_chien.m4a",
-          "bytes": 444044
+          "bytes": 454401
         }
       }
     },
@@ -122,15 +122,15 @@
         "hai_than_dao"
       ],
       "loop": true,
-      "seconds": 109.714,
+      "seconds": 102.4,
       "files": {
         "ogg": {
           "path": "audio/music/hai_than_dao.ogg",
-          "bytes": 1097194
+          "bytes": 1097396
         },
         "m4a": {
           "path": "audio/music/hai_than_dao.m4a",
-          "bytes": 1342336
+          "bytes": 1253303
         }
       }
     },
@@ -140,15 +140,15 @@
       "kind": "stem",
       "of": "hai_than_dao",
       "loop": true,
-      "seconds": 109.714,
+      "seconds": 102.4,
       "files": {
         "ogg": {
           "path": "audio/music/hai_than_dao_chien.ogg",
-          "bytes": 439173
+          "bytes": 538948
         },
         "m4a": {
           "path": "audio/music/hai_than_dao_chien.m4a",
-          "bytes": 568573
+          "bytes": 636755
         }
       }
     },
@@ -268,15 +268,15 @@
         "lac_nhat_sam_lam"
       ],
       "loop": true,
-      "seconds": 85.333,
+      "seconds": 109.714,
       "files": {
         "ogg": {
           "path": "audio/music/lac_nhat_sam_lam.ogg",
-          "bytes": 933261
+          "bytes": 1192733
         },
         "m4a": {
           "path": "audio/music/lac_nhat_sam_lam.m4a",
-          "bytes": 1049199
+          "bytes": 1346812
         }
       }
     },
@@ -286,15 +286,15 @@
       "kind": "stem",
       "of": "lac_nhat_sam_lam",
       "loop": true,
-      "seconds": 85.333,
+      "seconds": 109.714,
       "files": {
         "ogg": {
           "path": "audio/music/lac_nhat_sam_lam_chien.ogg",
-          "bytes": 332589
+          "bytes": 577047
         },
         "m4a": {
           "path": "audio/music/lac_nhat_sam_lam_chien.m4a",
-          "bytes": 445333
+          "bytes": 681808
         }
       }
     },
@@ -306,15 +306,15 @@
         "loi_tinh_dau"
       ],
       "loop": true,
-      "seconds": 78.367,
+      "seconds": 109.714,
       "files": {
         "ogg": {
           "path": "audio/music/loi_tinh_dau.ogg",
-          "bytes": 795404
+          "bytes": 1140671
         },
         "m4a": {
           "path": "audio/music/loi_tinh_dau.m4a",
-          "bytes": 961935
+          "bytes": 1345587
         }
       }
     },
@@ -324,15 +324,15 @@
       "kind": "stem",
       "of": "loi_tinh_dau",
       "loop": true,
-      "seconds": 78.367,
+      "seconds": 109.714,
       "files": {
         "ogg": {
           "path": "audio/music/loi_tinh_dau_chien.ogg",
-          "bytes": 304877
+          "bytes": 580029
         },
         "m4a": {
           "path": "audio/music/loi_tinh_dau_chien.m4a",
-          "bytes": 408266
+          "bytes": 681756
         }
       }
     },
@@ -344,15 +344,33 @@
         "nac_dinh_thanh"
       ],
       "loop": true,
-      "seconds": 73.143,
+      "seconds": 109.714,
       "files": {
         "ogg": {
           "path": "audio/music/nac_dinh_thanh.ogg",
-          "bytes": 823176
+          "bytes": 1151924
         },
         "m4a": {
           "path": "audio/music/nac_dinh_thanh.m4a",
-          "bytes": 896221
+          "bytes": 1344255
+        }
+      }
+    },
+    {
+      "id": "nac_dinh_thanh_chien",
+      "title": "Nặc Đinh Thành (lớp giao chiến)",
+      "kind": "stem",
+      "of": "nac_dinh_thanh",
+      "loop": true,
+      "seconds": 109.714,
+      "files": {
+        "ogg": {
+          "path": "audio/music/nac_dinh_thanh_chien.ogg",
+          "bytes": 585258
+        },
+        "m4a": {
+          "path": "audio/music/nac_dinh_thanh_chien.m4a",
+          "bytes": 681946
         }
       }
     },
@@ -400,15 +418,15 @@
         "thanh_hon_thon"
       ],
       "loop": true,
-      "seconds": 85.333,
+      "seconds": 102.4,
       "files": {
         "ogg": {
           "path": "audio/music/thanh_hon_thon.ogg",
-          "bytes": 880373
+          "bytes": 1094542
         },
         "m4a": {
           "path": "audio/music/thanh_hon_thon.m4a",
-          "bytes": 1046432
+          "bytes": 1255441
         }
       }
     },
@@ -418,15 +436,15 @@
       "kind": "stem",
       "of": "thanh_hon_thon",
       "loop": true,
-      "seconds": 85.333,
+      "seconds": 102.4,
       "files": {
         "ogg": {
           "path": "audio/music/thanh_hon_thon_chien.ogg",
-          "bytes": 330762
+          "bytes": 539250
         },
         "m4a": {
           "path": "audio/music/thanh_hon_thon_chien.m4a",
-          "bytes": 445942
+          "bytes": 636715
         }
       }
     },
@@ -442,11 +460,11 @@
       "files": {
         "ogg": {
           "path": "audio/music/thien_dau_thanh.ogg",
-          "bytes": 990328
+          "bytes": 1091681
         },
         "m4a": {
           "path": "audio/music/thien_dau_thanh.m4a",
-          "bytes": 1251214
+          "bytes": 1253787
         }
       }
     },
@@ -458,15 +476,15 @@
         "tinh_dau_ngoai_vi"
       ],
       "loop": true,
-      "seconds": 109.714,
+      "seconds": 121.905,
       "files": {
         "ogg": {
           "path": "audio/music/tinh_dau_ngoai_vi.ogg",
-          "bytes": 1130426
+          "bytes": 1006715
         },
         "m4a": {
           "path": "audio/music/tinh_dau_ngoai_vi.m4a",
-          "bytes": 1348021
+          "bytes": 1246663
         }
       }
     },
@@ -476,15 +494,15 @@
       "kind": "stem",
       "of": "tinh_dau_ngoai_vi",
       "loop": true,
-      "seconds": 109.714,
+      "seconds": 121.905,
       "files": {
         "ogg": {
           "path": "audio/music/tinh_dau_ngoai_vi_chien.ogg",
-          "bytes": 419201
+          "bytes": 641498
         },
         "m4a": {
           "path": "audio/music/tinh_dau_ngoai_vi_chien.m4a",
-          "bytes": 572609
+          "bytes": 756983
         }
       }
     },
@@ -496,15 +514,15 @@
         "tinh_dau_noi_dia"
       ],
       "loop": true,
-      "seconds": 102.4,
+      "seconds": 109.714,
       "files": {
         "ogg": {
           "path": "audio/music/tinh_dau_noi_dia.ogg",
-          "bytes": 1010367
+          "bytes": 1106126
         },
         "m4a": {
           "path": "audio/music/tinh_dau_noi_dia.m4a",
-          "bytes": 1257174
+          "bytes": 1343173
         }
       }
     },
@@ -514,15 +532,15 @@
       "kind": "stem",
       "of": "tinh_dau_noi_dia",
       "loop": true,
-      "seconds": 102.4,
+      "seconds": 109.714,
       "files": {
         "ogg": {
           "path": "audio/music/tinh_dau_noi_dia_chien.ogg",
-          "bytes": 395063
+          "bytes": 596723
         },
         "m4a": {
           "path": "audio/music/tinh_dau_noi_dia_chien.m4a",
-          "bytes": 534271
+          "bytes": 681422
         }
       }
     }
