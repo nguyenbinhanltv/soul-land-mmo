@@ -68,5 +68,7 @@
       "artifact_directory": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-63/am_kim_khung_trao_hung/A2",
       "status": "candidate được chọn, chưa owner duyệt"
     }
-  ]
+  ],
+  "style_reference_authorization": "Orchestrator cho dùng A2 làm reference phong cách candidate cho B, không duyệt mỹ thuật/runtime.",
+  "identity_conflict": "Static/A upright hai chân so DESC generic quad/all-four-legs; anatomy/family/hướng vẫn cần owner đánh giá."
 }
