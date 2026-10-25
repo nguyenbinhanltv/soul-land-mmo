@@ -1,6 +1,6 @@
 // H3 (#688): chọn khung hoạt ảnh vẽ thật của hồn thú theo hướng / trạng thái; bố cục manifest; lùi về mặc định khi thiếu.
 import assert from "node:assert/strict";
-import { ANIM_DIRS, ART_MS, DEFAULT_LAYOUT as L, animDir, animFrame, dieFrame, dieMs, newBeastAnimState, parseLayout, stepBeastAnim } from "../src/beastAnim.ts";
+import { ANIM_DIRS, ART_MS, DEFAULT_LAYOUT as L, animDir, animFrame, dieFrame, dieMs, lungeKeep, STRIKE_MS, newBeastAnimState, parseLayout, stepBeastAnim } from "../src/beastAnim.ts";
 
 // hướng: 5 hướng vẽ, tây lật ngang
 const flips = { s: ["s", false], se: ["se", false], e: ["e", false], ne: ["ne", false], n: ["n", false], sw: ["se", true], w: ["e", true], nw: ["ne", true] };
@@ -63,6 +63,10 @@ assert.deepEqual([stepBeastAnim(st, L, 116, false, false, 7, "s"), stepBeastAnim
 assert.equal(stepBeastAnim(st, L, 116 + ART_MS.hurt[0] + ART_MS.hurt[1] + 1, false, false, 7, "s").state, "idle");
 st = newBeastAnimState(0, true, 10);
 assert.equal(stepBeastAnim(st, L, 50, false, true, 5, "s").state, "windup", "báo trước ưu tiên hơn trúng đòn");
+
+// quãng lao của code: một nửa, giảm đều về 0 đúng lúc dải ra đòn hết (không còn nhảy khi chuyển sang đứng / đi)
+assert.equal(lungeKeep(0), 0.5); assert.equal(lungeKeep(STRIKE_MS), 0); assert.equal(lungeKeep(STRIKE_MS + 500), 0);
+assert.ok(lungeKeep(STRIKE_MS / 2) < 0.5 && lungeKeep(STRIKE_MS / 2) > 0);
 
 // chết: giữ khung cuối
 assert.equal(dieFrame(L, 2, 0), animFrame(L, "die", 2, 0));

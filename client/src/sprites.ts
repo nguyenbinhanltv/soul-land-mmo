@@ -14,7 +14,7 @@ import { TELE_WARN, PT_FRAME } from "../../shared/data.ts";
 import { SPR, type Dir8 } from "./iso.ts";
 import { lightingOn } from "./lighting.ts";
 import { readFxPrefs } from "./fxSettings.ts";
-import { DEFAULT_LAYOUT, newBeastAnimState, parseLayout, stepBeastAnim, type AnimLayout, type BeastAnimState } from "./beastAnim.ts";
+import { DEFAULT_LAYOUT, lungeKeep, newBeastAnimState, parseLayout, stepBeastAnim, type AnimLayout, type BeastAnimState } from "./beastAnim.ts";
 
 const MANIFEST_KEY = "sprites-manifest";
 const BASE = "sprites/";
@@ -287,8 +287,10 @@ export function animBeastPose(s: Phaser.GameObjects.Sprite, nowMs: number, movin
   family: BeastFamily = "quad", power = 1): StaticPose {
   const P = staticBeastPose(s, nowMs, moving, cast, hp, face, family, power), state = (s.getData("ba") as BeastAnimState | undefined)?.state;
   if (state === "windup") return P;
-  if (state === "attack") { P.dx *= 0.5; P.dy *= 0.5; }
-  else P.dy = 0;
+  const sm = s.getData("sm") as StaticMotionState, hitT = (nowMs - sm.hit) / 1000, H = STATIC_MOTION.hurt, mk = motionScale(nowMs);
+  // Quãng lao của code dài hơn dải ra đòn vẽ (STRIKE_MS): chỉ giữ một nửa, giảm đều về 0 đúng lúc dải hết; ngoài ra chỉ còn lắc khi trúng đòn.
+  const lunge = state === "attack" ? lungeKeep(nowMs - sm.atk) : 0, shake = hitT >= 0 && hitT < H.sec ? Math.sin(hitT * 90) * H.shake * (1 - hitT / H.sec) * mk : 0;
+  P.dx = (P.dx - shake) * lunge + shake; P.dy *= lunge;
   P.sx = 1; P.sy = 1; P.rot = 0;
   return P;
 }

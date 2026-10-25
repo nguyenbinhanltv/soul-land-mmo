@@ -2,6 +2,7 @@
 // (5 hướng vẽ × 4 dải; đứng + trúng đòn chung dải 1). Module thuần (không Phaser) để kiểm bằng node: chọn khung theo hướng / trạng thái.
 import type { Dir8 } from "./iso.ts";
 
+const sum = (a: readonly number[]) => a.reduce((x, y) => x + y, 0);
 export type AnimName = "idle" | "walk" | "attack" | "hurt" | "die";
 /** 5 hướng vẽ thật theo thứ tự khối hàng; sw, w, nw dùng se, e, ne lật ngang. */
 export const ANIM_DIRS = ["s", "se", "e", "ne", "n"] as const;
@@ -58,8 +59,9 @@ export interface BeastAnimState { cast: boolean; atk: number; hp: number; hit: n
 export const newBeastAnimState = (now: number, cast: boolean, hp: number): BeastAnimState =>
   ({ cast, atk: -1e9, hp, hit: -1e9, phase: 0, last: now, moveAt: -1e9, dir: 0, state: "idle" });
 
-const sum = (a: readonly number[]) => a.reduce((x, y) => x + y, 0);
-const STRIKE_MS = sum(ART_MS.attack), HURT_MS = sum(ART_MS.hurt);
+/** Thời gian (ms) chạy hết khung ra đòn 1..5: code chỉ được lao trong khoảng này để không lệch khỏi khung vẽ. */
+export const STRIKE_MS = sum(ART_MS.attack);
+const HURT_MS = sum(ART_MS.hurt);
 
 /**
  * Chọn khung cho một lần vẽ. Trạng thái theo thứ tự ưu tiên: báo trước (giữ khung đầu `attack`) > ra đòn (khung 1.. theo giờ kể từ lúc cast tắt)
@@ -89,6 +91,9 @@ export function stepBeastAnim(st: BeastAnimState, layout: AnimLayout, now: numbe
   const anim: AnimName = state === "windup" || state === "attack" ? "attack" : state;
   return { frame: animFrame(layout, anim, dir, i), flip, state };
 }
+
+/** Hệ số giữ lại của quãng lao do code khi đã có khung `attack` vẽ lao: một nửa, giảm đều về 0 đúng lúc dải ra đòn hết (`sinceMs` kể từ lúc tung chiêu). */
+export const lungeKeep = (sinceMs: number) => 0.5 * Math.max(0, 1 - sinceMs / STRIKE_MS);
 
 /** Khung `die` theo giờ `t` (ms) kể từ lúc ngã; giữ khung cuối. Dùng cho bóng ngã của hồn thú vừa bị kết liễu. */
 export const dieFrame = (layout: AnimLayout, dir: number, t: number) => animFrame(layout, "die", dir, Math.floor(Math.max(0, t) / ART_MS.die));
