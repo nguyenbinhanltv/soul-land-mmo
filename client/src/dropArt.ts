@@ -12,13 +12,13 @@ const TINT_KINDS = ["manh_vo_hon", "ruong", "tien_thao"];
 
 /**
  * Ảnh item_* (và màu tô) cho một món rơi, null nếu không có ảnh nào trong manifest (giữ texture vẽ bằng code).
- * Hồn hoàn / hồn cốt / hồn hạch tô theo màu `col` đã tính ở nơi gọi (niên hạn, bộ); trang bị theo chuỗi mẫu → ô → ảnh chung.
+ * Hồn hoàn / hồn cốt tô theo màu `col` đã tính ở nơi gọi (niên hạn); hồn hạch dùng ảnh riêng của bộ; trang bị theo chuỗi mẫu → ô → ảnh chung.
  */
-export function dropArtSpec(d: { item?: string }, bone: { id: string } | undefined, core: unknown, eq: EquipTemplate | undefined,
+export function dropArtSpec(d: { item?: string }, bone: { id: string } | undefined, core: { id: string } | undefined, eq: EquipTemplate | undefined,
   it: { id: string; kind: string } | undefined, col: string): { key: string; tint?: string } | null {
   if (eq) { const key = equipIconChain(eq.id).find((k) => artUrl(k)); return key ? { key } : null; }
   if (bone) return { key: `item_hon_cot_${bone.id}`, tint: col };
-  if (core) return { key: "item_hon_hach", tint: col };
+  if (core) return artUrl(`item_hon_hach_${core.id}`) ? { key: `item_hon_hach_${core.id}` } : { key: "item_hon_hach", tint: col }; // màu bộ vẽ sẵn (#696)
   if (!d.item) return { key: "item_hon_hoan", tint: col };
   if (!it) return null;
   const key = [`item_${it.id}`, `item_${it.kind}`].find((k) => artUrl(k));
