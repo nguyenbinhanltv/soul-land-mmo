@@ -150,7 +150,7 @@ body.touch #mapviewHelp{display:none}
 #prompt{bottom:96px;border-color:var(--line2)}
 #prompt em{font-style:normal;color:var(--warn)}
 /* Chip trạng thái lệnh đang lái (M5 #751): nền son khi đang chạy, giấy khi chỉ báo lý do; ✕ huỷ lệnh. */
-#cmdChip{position:absolute;left:50%;transform:translateX(-50%);bottom:176px;display:flex;align-items:center;gap:6px;padding:0 0 0 12px;min-height:34px;font-size:13px;font-family:var(--f12);white-space:nowrap;max-width:min(520px,90vw);background:var(--son);color:#fff;border-color:#6a1812}
+#cmdChip{position:absolute;left:50%;transform:translateX(-50%);bottom:176px;display:flex;align-items:center;gap:6px;padding:0 0 0 12px;min-height:34px;font-size:13px;font-family:var(--f12);white-space:nowrap;max-width:min(560px,90vw);background:var(--son);color:#fff;border:2px solid #6a1812;box-shadow:0 0 0 1px rgba(26,16,32,.5);pointer-events:auto}
 #cmdChip[hidden]{display:none}
 #cmdChipText{overflow:hidden;text-overflow:ellipsis}
 #cmdChip.why{background:var(--paper2);color:var(--ink);border-color:var(--wood);padding-right:12px}
