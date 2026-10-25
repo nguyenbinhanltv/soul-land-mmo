@@ -114,7 +114,7 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 #mapview .mvbtn:disabled{opacity:.4;cursor:default}
 #mapview .mvz{min-width:30px;font-weight:bold}
 #mapview .mvx{min-width:44px;min-height:40px;font-size:18px;background:#5a2530;border-color:#a0303c}
-#mapviewHelp{position:absolute;left:50%;transform:translateX(-50%);bottom:8px;width:max-content;max-width:calc(100% - 24px);box-sizing:border-box;text-align:center;font:12px/1.4 var(--f12);color:var(--ink-text);background:rgba(26,16,32,.9);border:1px solid var(--ink2);padding:5px 10px;pointer-events:none}
+#mapviewHelp{position:absolute;left:50%;transform:translateX(-50%);bottom:8px;width:max-content;max-width:calc(100% - 160px);box-sizing:border-box;text-align:center;font:12px/1.4 var(--f12);color:var(--ink-text);background:rgba(26,16,32,.9);border:1px solid var(--ink2);padding:5px 10px;pointer-events:none}
 #mapviewTip{position:absolute;transform:translateX(-50%);white-space:nowrap;max-width:80vw;overflow:hidden;text-overflow:ellipsis;padding:2px 7px;font:13px/18px var(--f12);color:var(--ink-text);background:var(--ink-panel);border:1px solid var(--ink2);pointer-events:none;z-index:2}
 #mapviewTip[hidden]{display:none}
 #mapviewMenu{position:absolute;transform:translateX(-50%);display:flex;gap:6px;z-index:3}
