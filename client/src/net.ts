@@ -1,4 +1,4 @@
-import type { Looks, QuestProgress, QuestStatus, ResEffect, AutoSettings, AutoSummary, SellSettings } from "../../shared/data.ts";
+import type { Looks, QuestProgress, QuestStatus, ResEffect, AutoSettings, AutoSummary, AutoStatus, SellSettings } from "../../shared/data.ts";
 import type { BagDelta } from "../../shared/bagSync.ts";
 
 // Địa chỉ server. Khi chạy dev (vite cổng 5173) -> server ở cổng 2567.
@@ -31,6 +31,8 @@ export interface WorldMsg {
  * phí mỗi ngày, cài đặt (AutoSettings), lý do vừa dừng hoặc từ chối bật, tổng kết lượt vừa dừng (Auto 2).
  */
 export interface AutoMsg { on: boolean; left: number; max: number; bonus: number; cfg: AutoSettings; why?: string; sum?: AutoSummary; }
+/** Tin riêng `autost` (AH2, #609): việc tự săn đang làm, vài điểm đường đi (toạ độ ô phẳng) và thống kê theo giờ. */
+export type AutoStMsg = AutoStatus;
 export interface PortalInfo { name: string; to?: string; toName?: string; level?: [number, number] | null; warn?: boolean; boat?: number; }
 
 /** Tin nhắn riêng "vohons": mọi võ hồn mình sở hữu, đội hình (rowId theo ô, 0 = trống) và võ hồn đang ra trận. Từ 8.1a `skills`: 4 ô
