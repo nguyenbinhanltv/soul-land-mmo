@@ -1,5 +1,7 @@
 # Rừng Săn Hồn Online
 
+> **English:** a non-commercial, browser-based isometric MMO fan game set in *Douluo Dalu* (Đấu La Đại Lục), built for friends with a server-authoritative Colyseus backend and a Phaser 3 client. Short English summary (gameplay, architecture, local setup, docs map, asset licenses, contributing): [docs/en/OVERVIEW.md](docs/en/OVERVIEW.md). The rest of this README and the design docs are in Vietnamese.
+
 > **Người mới vào chơi:** đọc [Hướng dẫn chơi](docs/huong-dan-choi.md) (điều khiển, đội hình, hồn hoàn, bản đồ, boss, đấu trường).
 
 MMO săn hồn thế giới mở chơi trên trình duyệt, lấy bối cảnh **Đấu La Đại Lục**: sưu tầm võ hồn, lập đội 4 võ hồn,
