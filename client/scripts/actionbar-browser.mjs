@@ -1,7 +1,7 @@
 // C8: kiểm tra HUD trong game thật trên server RAM riêng; ảnh chỉ ghi ra thư mục tạm/artifact.
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdir, mkdtemp, realpath, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, realpath, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
@@ -276,9 +276,12 @@ try {
   await writeFile(resolve(out, `${phase}-names.json`), JSON.stringify(nameSamples, null, 2));
   assert.deepEqual(nameFailures, [], "Tên hồn kỹ phải hiển thị đầy đủ bằng pixel, không clamp/overflow/che chữ");
   if (!before && !namesOnly) {
+    const images = new Set(await readdir(out));
     const sections = viewports.map(([w, h, touch]) => {
       const size = `${w}x${h}`, state = touch ? "san-sang" : "ten-day-du";
-      return `<section><h2>${size}</h2><div class="pair"><figure><figcaption>Trước sửa tên</figcaption><a href="before-${size}-${state}.png"><img src="before-${size}-${state}.png" alt="Game trước sửa tên ở ${size}"></a></figure><figure><figcaption>Sau sửa tên</figcaption><a href="after-${size}-${state}.png"><img src="after-${size}-${state}.png" alt="Game sau sửa tên ở ${size}"></a></figure></div><p>${["tooltip", "doi-vo-hon", "thieu-hon-luc", "hoi-chieu"].map((s) => `<a href="after-${size}-${s}.png">${({ tooltip: "Chú thích", "doi-vo-hon": "Đổi võ hồn", "thieu-hon-luc": "Thiếu hồn lực", "hoi-chieu": "Hồi chiêu" })[s]}</a>`).join(" · ")}</p></section>`;
+      const beforeImage = `before-${size}-${state}.png`;
+      const beforeFigure = images.has(beforeImage) ? `<figure><figcaption>Trước sửa tên</figcaption><a href="${beforeImage}"><img src="${beforeImage}" alt="Game trước sửa tên ở ${size}"></a></figure>` : "";
+      return `<section><h2>${size}</h2><div${beforeFigure ? ' class="pair"' : ""}>${beforeFigure}<figure><figcaption>Sau sửa tên</figcaption><a href="after-${size}-${state}.png"><img src="after-${size}-${state}.png" alt="Game sau sửa tên ở ${size}"></a></figure></div><p>${["tooltip", "doi-vo-hon", "thieu-hon-luc", "hoi-chieu"].map((s) => `<a href="after-${size}-${s}.png">${({ tooltip: "Chú thích", "doi-vo-hon": "Đổi võ hồn", "thieu-hon-luc": "Thiếu hồn lực", "hoi-chieu": "Hồi chiêu" })[s]}</a>`).join(" · ")}</p></section>`;
     }).join("");
     await writeFile(resolve(out, "index.html"), `<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>C8 — Thanh kỹ năng và đội hình</title><style>body{margin:24px;background:#211b29;color:#f4ead5;font:16px/1.5 system-ui}h1{font-size:26px}h2{font-size:20px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}figure{margin:0}img{display:block;width:100%;height:auto;image-rendering:pixelated}a{color:#b9dfff}section{margin:32px 0}@media(max-width:800px){.pair{grid-template-columns:1fr}}</style><h1>C8 — Thanh kỹ năng và ô đội hình</h1><p>Ảnh game thật bằng Chrome headless, tắt âm thanh. Server RAM local riêng; không nối DB prod. Bản trước và sau dùng cùng fixture. Tải toàn bộ artifact, giải nén rồi mở index.html. Bấm ảnh để xem PNG gốc ở độ phân giải thực.</p>${sections}</html>`);
   }

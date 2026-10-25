@@ -134,6 +134,8 @@ jobs:
       - run: npm ci --no-audit --no-fund --prefix server && npm ci --no-audit --no-fund --prefix client
       - run: npx --prefix client playwright install --with-deps chrome
       - name: Chụp game thật trước thay đổi
+        # Baseline chỉ phục vụ review C8; các PR sau squash chỉ chạy regression AFTER.
+        if: ${{ github.event.number == 692 }}
         env:
           # C8 sau merge main, trước sửa tên hồn kỹ: baseline còn clamp để đối chiếu cùng fixture.
           BASE: 4ea31e267cd2305cf7dfe1d38c92537d831b9e1b
