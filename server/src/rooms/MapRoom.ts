@@ -38,7 +38,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   BEAST_DEF, defMult, beastMelee, PLAYER_STATUS_PVE, RESIST_AS, PLAYER_CHARM,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, parseSell, autoSellable, type SellSettings } from "../../../shared/data.ts";
 import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
-import { FOG } from "../../../shared/data.ts"; // sương mù khám phá (R8)
+import { FOG, MOVE_NUDGE } from "../../../shared/data.ts"; // sương mù khám phá (R8)
 import { fogDims, fogEmpty, fogFill, fogReveal, fogValid, fogOn as fogMapOn } from "../../../shared/fog.ts";
 import { ASK_CD, BAG_MSG_BURST, BAG_MSG_RATE } from "../../../shared/data.ts"; // nhịp tin client xin lại dữ liệu riêng (#165)
 import { WORLD_CHAT } from "../../../shared/data.ts"; // kênh thế giới (#188)
@@ -7968,7 +7968,7 @@ export class MapRoom extends Room<MapState> {
       p.moving = il > MOVE_DEAD;
       if (p.moving) {
         if (d.absorbing) this.cancelAbsorb(id, "Di chuyển: đã hủy hấp thụ, hồn hoàn vẫn còn trong túi.");
-        this.map.moveEnt(p, ix * sp * dt, iy * sp * dt, PLAYER_HW, PLAYER_HH);
+        this.map.moveEnt(p, ix * sp * dt, iy * sp * dt, PLAYER_HW, PLAYER_HH, MOVE_NUDGE);
         d.dir = { x: ix / il, y: iy / il };
         p.dir = dir4(ix, iy);
       }
