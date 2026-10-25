@@ -297,8 +297,10 @@ const chatKey = (key: string | number, ch: ChatChannel) => `${ch}:${key}`;
 /** Tài khoản -> lúc gửi tin kênh thế giới gần nhất (ms), cho hồi WORLD_CHAT.cdSecs giây. */
 const worldAt = new Map<number, number>();
 
+/** Ký tự bỏ khỏi tin chat (#817): điều khiển C0 trừ tab / xuống dòng (NUL, BEL, ESC…) và DEL, độ rộng 0 (U+200B–200F, U+2060, U+FEFF), đổi chiều văn bản (U+202A–202E, U+2066–2069). */
+const CHAT_STRIP = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2060\u2066-\u2069\ufeff]/g;
 /** Chuẩn hoá nội dung tin: chỉ nhận chuỗi (String() trên object tùy ý client gửi có thể ném lỗi, #164), gộp khoảng trắng. */
-export function chatText(raw: unknown) { return (typeof raw === "string" ? raw : "").replace(/\s+/g, " ").trim(); }
+export function chatText(raw: unknown) { return (typeof raw === "string" ? raw : "").replace(CHAT_STRIP, "").replace(/\s+/g, " ").trim(); }
 
 /**
  * Kiểm tra một tin chat của người chơi `key` (nên dùng accountId để vào lại phòng không được hồi lượt) trên kênh `ch` (mỗi kênh

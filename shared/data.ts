@@ -5894,3 +5894,7 @@ export const LPC_VIEW = {
   dirHoldMs: 140, breatheY: 30, outline: "#1a1020", budgetMs: 4, graceMs: 8000,
   vohon: { dx: 0, dy: 0 },
 };
+
+/** Tên tài khoản cấm khi TẠO MỚI (#818): trùng tên người gửi tin hệ thống / quản trị thì giả được tin hệ thống trong chat (client tô theo tên).
+ *  So khớp nguyên cụm sau khi bỏ dấu, hoa/thường, dấu cách và "_" (server/src/names.ts `isReservedName`); "Admin2" không bị cấm. Tài khoản cũ trùng tên vẫn đăng nhập được. */
+export const RESERVED_NAMES = ["Hệ thống", "System", "GM", "Game Master", "Admin", "Administrator", "Quản trị", "Quản trị viên", "Moderator", "Mod", "Máy chủ", "Server", "Staff"];
