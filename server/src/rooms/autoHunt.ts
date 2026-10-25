@@ -252,7 +252,7 @@ export class AutoHunter {
     if (this.pace > 0) { this.patrol = null; this.go(null); return; }
     // Tổ đội cùng treo (AH4): hết việc mà cách đồng đội xa thì đi lại gần, không đi dạo tách nhau.
     const mate = this.mates().reduce<{ p: PlayerState } | null>((m, q) => (!m || Math.hypot(q.p.x - p.x, q.p.y - p.y) < Math.hypot(m.p.x - p.x, m.p.y - p.y) ? q : m), null);
-    if (mate && Math.hypot(mate.p.x - p.x, mate.p.y - p.y) > AUTO_PARTY.follow) { this.patrol = null; this.go({ x: mate.p.x, y: mate.p.y }); return; }
+    if (mate && Math.hypot(mate.p.x - p.x, mate.p.y - p.y) > AUTO_PARTY.follow && (this.wide || Math.hypot(mate.p.x - this.anchor.x, mate.p.y - this.anchor.y) <= this.R)) { this.patrol = null; this.go({ x: mate.p.x, y: mate.p.y }); return; }
     const far = !this.wide && Math.hypot(p.x - this.anchor.x, p.y - this.anchor.y) > this.R;
     if (far) { this.patrol = null; this.go(this.anchor); return; }
     // Vùng neo trống / cả bản đồ không còn hồn thú hợp lệ (săn khắp bản đồ): đi dạo quanh tâm săn chờ hồn thú hồi sinh.
@@ -298,12 +298,19 @@ export class AutoHunter {
     if (bd.target && !this.ally(bd.target)) return true;
     return !!bd.hitBy && !this.ally(bd.hitBy) && bd.calm < AUTO_CLAIM_SECS;
   }
-  /** Đồng đội tổ đội đang tự săn cùng phòng (AH4, #611): người chơi và bộ tự săn của họ. */
+  /**
+   * Đồng đội tổ đội đang tự săn cùng phòng (AH4, #611): người chơi và bộ tự săn của họ. Chỉ tính người có vùng săn chồng vùng của mình:
+   * khi một trong hai săn "Chỉ quanh chỗ đứng", tâm săn hai người phải cách nhau không quá R + AUTO_PARTY.leash (neo xa nhau thì mỗi người
+   * săn vùng mình, không kéo nhau).
+   */
   mates() {
-    const out: { p: PlayerState; a: AutoHunter }[] = [];
+    const out: { p: PlayerState; a: AutoHunter }[] = [], c = this.center(), me = this.room.pdata.get(this.id);
+    if (!me || !party.partyIdOf(me.accountId)) return out; // không tổ đội: khỏi duyệt cả phòng
     for (const [sid, o] of this.room.pdata) {
       const q = o.auto && o.auto !== this && this.ally(sid) ? this.room.state.players.get(sid) : undefined;
-      if (q && !q.dead) out.push({ p: q, a: o.auto! });
+      if (!q || q.dead) continue;
+      if ((!this.wide || !o.auto!.wide) && Math.hypot(o.auto!.center().x - c.x, o.auto!.center().y - c.y) > this.R + AUTO_PARTY.leash) continue;
+      out.push({ p: q, a: o.auto! });
     }
     return out;
   }
@@ -327,6 +334,8 @@ export class AutoHunter {
     if (bd.hitBy === this.id || bd.elite?.dmgBy.has(this.id)) this.hit = true; // boss nhiều người đánh: đã có đóng góp là đã đánh trúng
     if (b.rank) return this.bossOn(b) && this.room.autoBossOk(d, b) && (this.wide || bd.target === this.id || this.nearAnchor(b));
     if (bd.ret > 0) return false;
+    // Tổ đội cùng treo (AH4): đồng đội vừa bật tự săn mà con này (chưa đánh trúng, không đánh mình) ngoài AUTO_PARTY.leash quanh họ thì bỏ.
+    if (!this.hit && bd.target !== this.id) { const ms = this.mates(); if (ms.length && !ms.some((m) => Math.hypot(b.x - m.p.x, b.y - m.p.y) <= AUTO_PARTY.leash)) return false; }
     if (bd.target === this.id) return Math.hypot(b.x - p.x, b.y - p.y) < this.R * 2;
     if (!this.wide && Math.hypot(b.x - this.anchor.x, b.y - this.anchor.y) > this.R + 2 * TILE) return false;
     return !(this.taken(bid) && !(this.hit && bd.hitBy === this.id));
@@ -419,7 +428,7 @@ export class AutoHunter {
     if (best || !this.wide || nearOnly) return best;
     const { nav } = navOf(this.room.map), me = navNode(nav, p.x, p.y), region = me >= 0 ? nav.region[me] : -1;
     this.room.state.beasts.forEach((b, bid) => {
-      if (Math.hypot(b.x - p.x, b.y - p.y) / spd * AUTO_PARTY.focus >= bcost) return;
+      if (Math.hypot(b.x - p.x, b.y - p.y) / spd * (focus.size ? AUTO_PARTY.focus : 1) >= bcost) return;
       const n = navNode(nav, b.x, b.y); if (n < 0 || nav.region[n] !== region) return;
       consider(bid, b, Infinity);
     });

@@ -5971,7 +5971,7 @@ async function autoTest(){
     await pm(A,"invite",{name:B.name},B); await pm(B,"accept",{name:A.name},A); await waitFor(()=>A.party?.members?.length===2,2000);
     const PT={...AUTO_DEFAULTS,scope:"map",years:[0,MAX_YEARS],bone:false,core:false,ring:-1,slots:[],skills:[],tienCo:false,elite:false,king:false,world:false};
     await test(A,"clear",{all:true,keep:true}); await autoOp(A,"set",{cfg:PT}); await autoOp(B,"set",{cfg:PT});
-    // Hai con cách nhau ngoài AUTO_PARTY.leash: đồng đội nhắm con của nhau, không tách ra hai bên.
+    // Hai con ở hai phía (180 pixel, trong AUTO_PARTY.leash quanh cả hai người): đồng đội dồn vào cùng một con, không tách ra hai bên.
     const t1=(await test(A,"spawn",{tier:0,dx:90,dy:0,years:20,hpx:80}))?.bid, t2=(await test(A,"spawn",{tier:0,dx:-90,dy:0,years:20,hpx:80}))?.bid;
     await test(A,"auto",{pace:0}); await test(B,"auto",{pace:0});
     const ma=await autoOp(A,"on"), mb=await autoOp(B,"on");
@@ -5982,6 +5982,41 @@ async function autoTest(){
       await test(A,"auto",{pace:0}); await test(B,"auto",{pace:0}); await sleep(250); }
     ok(ma?.on&&mb?.on&&mates===1&&same2&&apart<=AUTO_PARTY.leash*2,`AH4 tổ đội cùng treo: thấy đồng đội (${mates}), cùng nhắm một con (${same2}), không tách xa (xa nhất ${(apart/TILE).toFixed(1)} ô, ngưỡng ${AUTO_PARTY.leash*2/TILE})`);
     await autoOp(A,"off"); await autoOp(B,"off"); await test(A,"clear",{all:true,keep:true});
+    // Con cách đồng đội xa hơn AUTO_PARTY.leash (cả hai đứng cạnh nhau) thì không ai nhắm.
+    // (hook spawn giới hạn độ lệch: đặt con ở bên phải rồi dời cả hai người sang trái cho tới khi xa con hơn AUTO_PARTY.leash)
+    await test(A,"goto",home); await test(B,"goto",{x:home.x+16,y:home.y});
+    const fr=(await test(A,"spawn",{tier:0,dx:150,dy:0,years:20,hpx:80}))?.bid, fb0=A.room.state.beasts.get(fr);
+    for(let k=0;k<16;k++){ const a=k*Math.PI/8, r=AUTO_PARTY.leash+100; await test(A,"goto",{x:Math.round(fb0.x+r*Math.cos(a)),y:Math.round(fb0.y+r*Math.sin(a))}); if(Math.hypot(me(A).x-fb0.x,me(A).y-fb0.y)>AUTO_PARTY.leash+20&&!inCamp(me(A).x,me(A).y)) break; }
+    await test(B,"goto",{x:me(A).x-8,y:me(A).y});
+    await sleep(300);
+    const farOk=Math.hypot(me(A).x-fb0.x,me(A).y-fb0.y)>AUTO_PARTY.leash+8&&Math.hypot(me(B).x-fb0.x,me(B).y-fb0.y)>AUTO_PARTY.leash+8;
+    await test(A,"auto",{pace:0}); await test(B,"auto",{pace:0});
+    if(!farOk) console.log("  ⚠ bỏ qua leash: không đứng được đủ xa con");
+    else{
+      await autoOp(A,"on"); await autoOp(B,"on"); let took=false;
+      await sleep(1200); // A bật trước khi B bật nên có thể đã nhắm con đó; sau khi thấy đồng đội thì phải bỏ (keep) và không nhắm lại
+      for(let t=0;t<5000&&!took;t+=250){ took=(await infoA()).target===fr||(await test(B,"auto"))?.target===fr; if(!took) await sleep(250); }
+      { const fe=A.room.state.beasts.get(fr), sa=await infoA(), sb=await test(B,"auto");
+        ok(!took,`AH4 tổ đội: con ở cách đồng đội xa hơn AUTO_PARTY.leash (${AUTO_PARTY.leash/TILE} ô) không ai nhắm`+(took?` [con ${fe?.x.toFixed(0)},${fe?.y.toFixed(0)} (đầu ${fb0.x.toFixed(0)},${fb0.y.toFixed(0)}); A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)} nhắm ${sa.target} ${sa.mates} đồng đội; B ${me(B).x.toFixed(0)},${me(B).y.toFixed(0)} nhắm ${sb?.target}; fr ${fr}]`:"")); }
+      await autoOp(A,"off"); await autoOp(B,"off");
+    }
+    await test(A,"clear",{all:true,keep:true});
+    // "Chỉ quanh chỗ đứng", hai neo cách nhau xa hơn R + leash: không kéo nhau, mỗi người săn con ở vùng mình.
+    const NR={...PT,scope:"near",radius:AUTO_RADIUS_MIN/TILE}; await autoOp(A,"set",{cfg:NR}); await autoOp(B,"set",{cfg:NR});
+    await test(A,"goto",home); let farAt=null;
+    for(const [dx,dy] of [[640,0],[-640,0],[0,640],[0,-640],[560,0],[-560,0],[0,560],[0,-560],[480,0],[-480,0]]){
+      await test(B,"goto",{x:home.x+dx,y:home.y+dy}); if(Math.hypot(me(B).x-home.x,me(B).y-home.y)>AUTO_RADIUS_MIN+AUTO_PARTY.leash+8&&!inCamp(me(B).x,me(B).y)){ farAt={x:me(B).x,y:me(B).y}; break; } }
+    if(!farAt) console.log("  ⚠ bỏ qua neo xa nhau: không tìm được chỗ đứng đủ xa");
+    else{
+      await test(A,"clear",{all:true,keep:true}); await test(B,"clear",{all:true,keep:true});
+      const ba=(await test(A,"spawn",{tier:0,dx:60,dy:0,years:20,hpx:80}))?.bid; await test(B,"goto",farAt); const bb2=(await test(B,"spawn",{tier:0,dx:60,dy:0,years:20,hpx:80}))?.bid;
+      await test(A,"auto",{pace:0}); await test(B,"auto",{pace:0});
+      await autoOp(A,"on"); await autoOp(B,"on"); let ta=false, tb=false, loops=0;
+      for(let t=0;t<6000&&!(ta&&tb);t+=250){ const sa=await infoA(), sb=await test(B,"auto"); ta||=sa.target===ba; tb||=sb?.target===bb2; if(sa.why||sb?.why) loops++; await sleep(250); }
+      ok(ta&&tb&&loops===0,`AH4 tổ đội "chỉ quanh chỗ đứng", neo cách nhau ${(Math.hypot(farAt.x-home.x,farAt.y-home.y)/TILE).toFixed(0)} ô: mỗi người săn con ở vùng mình (A ${ta}, B ${tb}, lần đổi việc vì kẹt ${loops})`);
+      await autoOp(A,"off"); await autoOp(B,"off");
+    }
+    await test(A,"goto",home); await test(B,"goto",{x:home.x+16,y:home.y});
     B.room.send("party",{op:"leave"}); await sleep(300);
   }
 
