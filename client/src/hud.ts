@@ -158,6 +158,17 @@ export function buildChatTabs() {
     b.addEventListener("pointerdown", (e) => { e.preventDefault(); chatSetTab(t.id, true); });
     bar.appendChild(b);
   }
+  const menu = $("#hudMenuBtn"), quick = $("#quickMenu");
+  if (menu && quick && menu.dataset.bound !== "1") {
+    menu.dataset.bound = "1";
+    if (matchMedia("(pointer: coarse)").matches) quick.hidden = true;
+    menu.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      const open = quick.hidden;
+      quick.hidden = !open;
+      menu.setAttribute("aria-expanded", String(open));
+    });
+  }
   renderChat();
 }
 
@@ -532,6 +543,8 @@ let leiTipSet = false;
 let lastVhName = ""; // updateStats chạy mỗi khung: chỉ ghi tên + chú thích khi tên đổi (không gán lại title mỗi khung)
 export function updateStats(p: any) {
   const vhName = VOHON[p.vh].name;
+  $("#vhGlyph").textContent = vhName.slice(0, 1);
+  $("#vhPortrait").setAttribute("aria-label", `Biểu tượng ${vhName}`);
   if (vhName !== lastVhName) { lastVhName = vhName; $("#vhName").textContent = vhName; setTip($("#vhName"), vhName); }
   $("#vhName").style.color = VOHON[p.vh].col;
   $("#lvl").textContent = `Cấp ${p.level}`;
@@ -1514,6 +1527,7 @@ let partyAt = 0;             // performance.now() lúc nhận tin "party" gần 
 let partyInviting = false;   // đang mở ô gõ tên để mời
 let partyOpenNow = false;    // vừa bấm "Mời…": lần vẽ này đặt focus vào ô gõ tên
 let partyDraft = "";         // chữ đang gõ trong ô mời: giữ lại khi khung vẽ lại (sinh lực đồng đội đổi)
+let partyCollapsed = false;
 let partyLast: { v: PartyView; act: PartyActions } | null = null;
 /** Khung tổ đội gần nhất (null = chưa nhận). */
 export const partyNow = () => partyLast?.v ?? null;
@@ -1533,7 +1547,10 @@ export function renderParty(v: PartyView, act: PartyActions) {
     head.append(pbtn(partyInviting ? "Đóng" : "Mời…", "", () => { partyInviting = !partyInviting; partyOpenNow = partyInviting; renderParty(v, act); }, "Mời hồn sư vào tổ đội"));
   if (v.id) head.append(pbtn("Rời đội", "warn", () => act.send("leave"), "Rời tổ đội"));
   head.append(pbtn("Bạn bè", "", () => toggleFriends(), "Bảng bạn bè (phím L)"));
+  head.append(pbtn(partyCollapsed ? "Mở" : "Gọn", "", () => { partyCollapsed = !partyCollapsed; renderParty(v, act); }, partyCollapsed ? "Mở bảng tổ đội" : "Thu gọn bảng tổ đội"));
   box.append(head);
+  if (partyCollapsed) { box.classList.add("collapsed"); placeParty(); return; }
+  box.classList.remove("collapsed");
   if (partyInviting) {
     const f = el("form", "pinv"), inp = el("input"), go = el("button", "pbtn", "Mời");
     inp.placeholder = "Tên hồn sư"; inp.maxLength = 20; inp.autocomplete = "off"; go.type = "submit";
@@ -3749,7 +3766,7 @@ let recall: { label: string; secs: number; t0: number } | null = null;
 export function setAuto(m: AutoMsg) {
   const b = $("#autoBtn"); if (!b) return;
   b.setAttribute("aria-pressed", String(m.on));
-  b.firstChild!.textContent = m.on ? "Đang tự động " : "Tự động ";
+  b.querySelector(".menu-label")!.textContent = m.on ? "Đang tự động" : "Tự động";
   b.title = `${m.on ? "Đang tự săn: tự đi / đánh hoặc phím T để tắt" : "Bảng Tự động: cài đặt và bật tự săn quanh chỗ đang đứng (phím T bật / tắt ngay)"}. Còn ${autoTimeText(m.left)} treo (mỗi ngày ${autoTimeText(m.max)} miễn phí).`;
 }
 export function setRecall(r: { label: string; secs: number } | null) { recall = r ? { ...r, t0: performance.now() } : null; }
