@@ -289,23 +289,6 @@
       "use": "Ngọn lửa: trạng thái Thiêu đốt / Hỏa Long / Tà Hỏa dưới chân"
     },
     {
-      "key": "fx_lua_lam",
-      "kind": "fx",
-      "private": true,
-      "tier": "cong_khai",
-      "pack": "free",
-      "file": "packs/fx_lua_lam.png",
-      "frame": [
-        62,
-        88
-      ],
-      "frames": 61,
-      "fps": 24,
-      "normal": false,
-      "glow": "packs/fx_lua_lam_hao.png",
-      "use": "Lửa lam (hồn hỏa, Băng Hỏa)"
-    },
-    {
       "key": "fx_lua_roi",
       "kind": "fx",
       "private": true,
@@ -321,23 +304,6 @@
       "normal": false,
       "glow": "packs/fx_lua_roi_hao.png",
       "use": "Roi lửa quất: hồn kỹ Tà Hỏa"
-    },
-    {
-      "key": "fx_lua_xanh",
-      "kind": "fx",
-      "private": true,
-      "tier": "rieng",
-      "pack": "fire",
-      "file": "packs/fx_lua_xanh.png",
-      "frame": [
-        20,
-        46
-      ],
-      "frames": 8,
-      "fps": 10,
-      "normal": false,
-      "glow": "packs/fx_lua_xanh_hao.png",
-      "use": "Ngọn lửa lam đứng (Băng Hỏa, hồn hỏa)"
     },
     {
       "key": "fx_lua_xoay",
@@ -508,23 +474,6 @@
       "normal": true,
       "glow": "packs/fx_song_quang_hao.png",
       "use": "Buff hệ Phụ trợ / sóng Quang"
-    },
-    {
-      "key": "fx_tran_phap",
-      "kind": "fx",
-      "private": true,
-      "tier": "cong_khai",
-      "pack": "free",
-      "file": "packs/fx_tran_phap.png",
-      "frame": [
-        38,
-        48
-      ],
-      "frames": 61,
-      "fps": 24,
-      "normal": false,
-      "glow": "packs/fx_tran_phap_hao.png",
-      "use": "Vòng trận pháp bảo hộ (vùng hồi / phòng thủ)"
     },
     {
       "key": "fx_va_cham_nho",

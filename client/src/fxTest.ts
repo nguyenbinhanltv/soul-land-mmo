@@ -156,8 +156,6 @@ class FxTestScene extends Phaser.Scene {
     }
     else if (name.startsWith("hit:")) { const [, he, w] = name.split(":"); playHitFeelSheets(sh, "thit", he as He, d.x, d.y - 10 * SPR, true, +w); } // `hit:man_cong:1` đòn đâm, `hit:cuong_cong:0` đòn nhẹ nhất
     else if (name === "bao") P("fx_bao_truoc", { x: d.x, y: d.y - 40 * SPR, scale: SPR });
-    else if (name === "tran") P("fx_tran_phap", { x: h.x, y: h.y - 2 * SPR, scale: 2 * SPR, ang: 0 });
-    else if (name === "lam") { P("fx_lua_lam", { x: d.x, y: d.y - 8 * SPR, scale: SPR }); P("fx_lua_xanh", { x: h.x, y: h.y - 4 * SPR, scale: SPR }); }
     else if (name === "chemb") { P("fx_chem_sang_b", { x: d.x, y: d.y - 10 * SPR, scale: 2 * SPR }); P("fx_chem_sang_c", { x: d.x, y: d.y - 10 * SPR, scale: 2 * SPR, delay: 400 }); }
     else if (name === "khoi") { P("fx_khoi_luot", { x: h.x, y: h.y - 4 * SPR, ang: 0, scale: SPR }); P("fx_bui_dat", { x: d.x - 30, y: d.y - 2 * SPR, scale: SPR, delay: 80 }); this.fxp.footDust(h.x, h.y + 4 * SPR, 0x9a8b68, footDustCount(fxPrefs.level, fxPrefs.reduce, false) || 6, false); }
   }

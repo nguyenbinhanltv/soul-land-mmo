@@ -560,17 +560,6 @@
       "use": "Đóng băng quanh mục tiêu (hệ Băng, trạng thái Đóng băng)"
     },
     {
-      "key": "fx_lua_lam",
-      "kind": "fx",
-      "pack": "free",
-      "fw": 100,
-      "layout": "grid",
-      "ramp": "set",
-      "fps": 24,
-      "glow": true,
-      "use": "Lửa lam (hồn hỏa, Băng Hỏa)"
-    },
-    {
       "key": "fx_xoay_doc",
       "kind": "fx",
       "pack": "free",
@@ -580,27 +569,6 @@
       "fps": 24,
       "glow": true,
       "use": "Xoáy độc quanh mục tiêu (hệ Độc)"
-    },
-    {
-      "key": "fx_tran_phap",
-      "kind": "fx",
-      "pack": "free",
-      "fw": 100,
-      "layout": "grid",
-      "ramp": "quang",
-      "fps": 24,
-      "glow": true,
-      "use": "Vòng trận pháp bảo hộ (vùng hồi / phòng thủ)"
-    },
-    {
-      "key": "fx_lua_xanh",
-      "kind": "fx",
-      "pack": "fire",
-      "fw": 32,
-      "ramp": "set",
-      "fps": 10,
-      "glow": true,
-      "use": "Ngọn lửa lam đứng (Băng Hỏa, hồn hỏa)"
     },
     {
       "key": "fx_lua_doc",
