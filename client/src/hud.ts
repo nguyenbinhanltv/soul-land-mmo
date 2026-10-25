@@ -2928,8 +2928,8 @@ function renderForgeLuck(el: HTMLElement, bag: BagMsg, act: NpcActions) {
     const p = document.createElement("small"); p.textContent = all.length ? `Khắc may mắn tốn 1 ${soulName} mỗi lần (rơi từ phân giải Chí Bảo). Thất bại mất ${soulName}, giữ may mắn, món không bị phá.` : "Chưa có vũ khí hay dây chuyền nào để khắc may mắn."; box.appendChild(p);
     for (const it of all) {
       const b = document.createElement("button"); b.type = "button"; b.className = "aopt eopt"; b.style.setProperty("--c", EQUIP_TIERS[equipTemplate(parseEquip(it.stats)?.tpl ?? "")?.tier ?? 0]?.col ?? "#9db3a2");
-      b.innerHTML = `${equipIcon(it.stats)}<b></b><i></i><span></span>`;
-      b.querySelector("b")!.textContent = it.name; b.querySelector("i")!.textContent = it.where; b.querySelector("span")!.textContent = `May mắn M${it.luck}/${EQUIP_LUCK_MAX}`;
+      b.innerHTML = `${equipIcon(it.stats)}<b></b><i></i><span class="eluck"></span>`;
+      b.querySelector("b")!.textContent = it.name; b.querySelector("i")!.textContent = it.where; b.querySelector(".eluck")!.textContent = `May mắn M${it.luck}/${EQUIP_LUCK_MAX}`;
       b.addEventListener("click", () => { b.blur(); luckPick = it.id; luckPrev = null; act.equipLuckPreview(it.id); renderNpc(); });
       box.appendChild(b);
     }
