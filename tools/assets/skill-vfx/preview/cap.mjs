@@ -30,7 +30,7 @@ const evalJs = async (e) => (await cdp("Runtime.evaluate", { expression: e, retu
 
 for (const j of jobs) {
   const dir = path.join(out, j.name); rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
-  await cdp("Page.navigate", { url: `${base}/?thu=fx&bar=0&zoom=1&cine=${j.cine ?? 0}&${j.q}` });
+  await cdp("Page.navigate", { url: `${base}/choi/?thu=fx&bar=0&zoom=1&cine=${j.cine ?? 0}&${j.q}` });
   for (let i = 0; i < 100; i++) { await sleep(150); if (await evalJs("!!window.__fx")) break; }
   const frames = []; let n = 0, t0 = null;
   const h = async (d) => {

@@ -18,11 +18,11 @@ Cần Node.js 22 trở lên.
 ```bash
 npm run install:all       # cài thư viện cho server và client
 npm run dev:server        # terminal 1 – server ở http://localhost:2567
-npm run dev:client        # terminal 2 – game ở http://localhost:5173
+npm run dev:client        # terminal 2 – trang giới thiệu ở http://localhost:5173, game ở http://localhost:5173/choi/
 ```
 
-Mở `http://localhost:5173`, nhập tên và mật khẩu bất kỳ (tên mới tự tạo tài khoản), tạo nhân vật rồi qua lễ thức tỉnh.
-Mở thêm một tab ẩn danh với tên khác để thấy hai người chơi cùng lúc. Điện thoại cùng Wi-Fi: mở `http://<IP-máy-tính>:5173`.
+Mở `http://localhost:5173/choi/` (game; `/` là trang giới thiệu, nút "Vào chơi" dẫn sang `/choi`), nhập tên và mật khẩu bất kỳ (tên mới tự tạo tài khoản), tạo nhân vật rồi qua lễ thức tỉnh.
+Mở thêm một tab ẩn danh với tên khác để thấy hai người chơi cùng lúc. Điện thoại cùng Wi-Fi: mở `http://<IP-máy-tính>:5173/choi/`.
 
 Điều khiển chính: WASD / mũi tên đi, J / Space đánh, U / I / O / P hồn kỹ, 1–4 đổi võ hồn, V đội hình, B túi đồ, E nhặt, F đi cổng / nói chuyện, Enter chat.
 Bảng phím đầy đủ ở `docs/design/01-luat-chung.md`. Điện thoại có joystick ảo và nút chạm.

@@ -39,4 +39,4 @@ nội dung"`: `initTips` (gọi ở `main.ts`) ủy quyền ở `document`, chuy
 10. Dữ liệu riêng của chính chủ (túi đồ, bộ sưu tập) chỉ đến qua tin riêng; không giả định đọc được dữ liệu người khác.
 
 ## Xong thì
-`npm run check`, bật `npm run dev:server` + `npm run dev:client`, mở `http://localhost:5173` thử bằng chuột / phím (và giả lập chạm nếu sửa điều khiển điện thoại). Sau đó bot (`npm run bot --prefix client`, server `GAME_TEST=1`).
+`npm run check`, bật `npm run dev:server` + `npm run dev:client`, mở `http://localhost:5173/choi/` (game; `/` là landing) thử bằng chuột / phím (và giả lập chạm nếu sửa điều khiển điện thoại). Sau đó bot (`npm run bot --prefix client`, server `GAME_TEST=1`).

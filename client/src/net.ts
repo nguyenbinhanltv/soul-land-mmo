@@ -65,6 +65,10 @@ export interface EquipEnhPreview { id: string; enhance: number; to: number | nul
   stone: string | null; qty: number; have: number; fee: number; honTe: number; charm: number; busy: boolean; }
 /** Tin "equipenhd" (E3): kết quả một lần cường hóa (`to` null = món bị phá hủy). */
 export interface EquipEnhDone { id: string; from: number; to: number | null; ok: boolean; destroyed: boolean; charmUsed: boolean; stone: string; qty: number; fee: number; }
+/** Tin "equipluckp": xem trước lần khắc may mắn kế tiếp (`to` null = không khắc được, `reason`: slot ô không có may mắn / max món đã đạt trần / worn tổng hai ô đang mặc đã đạt trần). */
+export interface EquipLuckPreview { id: string; luck: number; to: number | null; p: number; reason: "slot" | "max" | "worn" | null; soul: number; max: number; busy: boolean; }
+/** Tin "equipluckd": kết quả một lần khắc may mắn (`to` = may mắn sau khi khắc; thất bại thì bằng `from`). */
+export interface EquipLuckDone { id: string; from: number; to: number; ok: boolean; }
 /** Tin "equipsynd" (E4): kết quả hợp thành 3 → 1 (`made` = id món mới khi thành công; `enhance` = cấp món mới, hoặc cấp món chính còn lại khi thất bại, null = mất cả món chính). */
 export interface EquipSynDone { ok: boolean; from: number; main: string; made: string | null; enhance: number | null; fee: number; essence: number; refund: number; }
 /** Tin "equipsalvd" (E4): kết quả phân giải `n` món: Hồn Tệ và nguyên liệu nhận được (`auto` = tự phân giải). */
