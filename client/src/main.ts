@@ -43,10 +43,18 @@ function loginScreen(err = "") {
       <button class="btn primary" id="go">Vào game</button>
       <div class="err" id="err"></div>
     </form>
-    <aside class="c6-event" aria-label="Sự kiện đang diễn ra">
+    <button class="c6-event-toggle btn" id="eventToggle" type="button" aria-expanded="false" aria-controls="c6Event">Xem sự kiện</button>
+    <aside class="c6-event" id="c6Event" aria-label="Sự kiện đang diễn ra" hidden>
       <img src="/ui/c6/event-banner.png" alt="">
       <div class="c6-event-copy"><small>SỰ KIỆN MÙA SĂN</small><strong>Vòng Hồn Nguyệt Ảnh</strong><span>Thu thập ánh trăng trong Rừng Săn Hồn</span></div>
     </aside>`;
+  const eventToggle = document.getElementById("eventToggle")!, event = document.getElementById("c6Event")!;
+  eventToggle.addEventListener("click", () => {
+    const open = event.hidden;
+    event.hidden = !open;
+    eventToggle.setAttribute("aria-expanded", String(open));
+    eventToggle.textContent = open ? "Ẩn sự kiện" : "Xem sự kiện";
+  });
   const name = document.getElementById("name") as HTMLInputElement, pass = document.getElementById("pass") as HTMLInputElement;
   name.value = storage.get("shh-name") ?? ""; (name.value ? pass : name).focus();
   document.getElementById("err")!.textContent = err;
@@ -193,6 +201,7 @@ let mapId = "";
  */
 async function join(retry = true, roomId?: string | null) {
   overlayScreen("loading"); card.classList.remove("wide");
+  card.classList.add("c6-loading-card");
   card.innerHTML = `<img class="c6-loading-mark" src="/ui/c6/logo.png" alt="" aria-hidden="true">
     <h1>Đang tới ${esc(MAPS[mapId]?.name ?? "bản đồ")}…</h1>
     <p class="c6-loading-note">Bản đồ đang được mở, xin giữ kết nối.</p><div class="c6-loader" role="progressbar" aria-label="Đang tải"><i></i></div>`;
@@ -233,6 +242,7 @@ async function join(retry = true, roomId?: string | null) {
  */
 async function joinArena(roomId: string, watch = false) {
   overlay.hidden = false; card.classList.remove("wide");
+  card.classList.remove("c6-loading-card");
   card.innerHTML = `<h1>${watch ? "Đang vào xem trận…" : "Đang vào Đại Đấu Hồn Trường…"}</h1>`;
   try {
     const room = await new Client(WS).joinById(roomId, { token });

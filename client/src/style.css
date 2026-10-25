@@ -245,8 +245,12 @@ body.touch #prompt{bottom:160px}
 #overlay[data-screen="loading"]{background-image:linear-gradient(90deg,rgba(26,16,32,.62),rgba(26,16,32,.68)),url('/ui/c6/loading-bg.png')}
 #overlay[data-screen="welcome"]{background-image:linear-gradient(90deg,rgba(26,16,32,.72),rgba(26,16,32,.78)),url('/ui/c6/login-bg.png')}
 .card{max-width:440px;width:100%;padding:26px 26px 22px;background:var(--panel);border:2px solid var(--line2);text-align:center}
+.card.c6-loading-card{background:rgba(26,16,32,.92);border-color:#9a8a6c;color:var(--paper)}
+.card.c6-loading-card h1{color:var(--paper)}
+.card.c6-loading-card .c6-loading-note{color:#ece2c8!important}
 .c6-logo{display:block;width:min(210px,58vw);height:auto;margin:-8px auto 0;image-rendering:pixelated;filter:drop-shadow(0 3px 0 #1a1020)}
 .c6-title{display:none}
+.c6-event-toggle{margin-top:12px;padding:7px 12px}
 .c6-event{position:relative;margin-top:16px;min-height:78px;overflow:hidden;border:2px solid var(--line2);background:#1a1020;color:var(--paper);text-align:left}
 .c6-event img{display:block;width:100%;height:92px;object-fit:cover;image-rendering:pixelated;opacity:.86}
 .c6-event-copy{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:8px 14px;background:linear-gradient(90deg,rgba(26,16,32,.88),rgba(26,16,32,.2))}
@@ -361,6 +365,14 @@ body.touch #prompt{bottom:160px}
   #overlay .c6-event-copy{padding:6px 10px}
   #overlay .c6-event-copy strong{font-size:14px}
   #overlay .c6-event-copy span{font-size:9px}
+}
+@media (orientation:landscape) and (max-height:520px){
+  #overlay[data-screen="login"] .card{max-width:560px;padding:8px 14px}
+  #overlay[data-screen="login"] .c6-logo{width:112px;margin:-2px auto 0}
+  #overlay[data-screen="login"] .card form{gap:5px}
+  #overlay[data-screen="login"] .card input{padding:7px 10px}
+  #overlay[data-screen="login"] .card .btn{padding:8px 12px}
+  #overlay[data-screen="login"] .c6-event-toggle{margin-top:6px;padding:5px 10px}
 }
 :where(body.ui-w520) .modes{grid-template-columns:1fr}
 :where(body.ui-w520) .maker.mk-lpc{grid-template-columns:1fr}

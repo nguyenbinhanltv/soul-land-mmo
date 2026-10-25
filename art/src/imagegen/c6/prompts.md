@@ -1,10 +1,10 @@
 # C6 — prompt và hậu kỳ
 
-Nguồn chung: Codex built-in `imagegen` (model do công cụ quản lý), sau đó chạy `node tools/assets/c6-post.mjs`.
+Nguồn chung: Codex built-in `imagegen`, model `gpt-image-1`, sau đó chạy `node tools/assets/c6-post.mjs`.
 
-- `logo-raw.png`: pixel-art emblem “Rừng Săn Hồn”, cây rừng ngọc đậm, vòng hồn màu hổ phách, triện son, nền trong suốt; không watermark.
-- `login-raw.png`: cảnh rừng cổ lúc chạng vạng, đường đá dẫn tới miếu săn hồn, khoảng trống bên phải cho thẻ đăng nhập; 16:9.
-- `loading-raw.png`: bản đồ pixel ngang của rừng, núi, sông, đường và điểm vòng hồn; khoảng trống giữa cho thanh tải; 16:9.
-- `event-raw.png`: miếu rừng dưới trăng, vòng hồn vàng, lá ngọc và dải đỏ; khoảng trống bên trái cho chữ sự kiện; 3:1.
+- `logo-raw.png`: `Use case: logo-brand; Asset type: game logo; Primary request: a transparent-background pixel-art emblem for the game title “Rừng Săn Hồn”, centered and readable at small UI size, stylized ancient forest medallion with dark jade tree silhouette, small amber soul-ring orbit and restrained crimson seal accent; Style: hand-authored pixel art, limited palette, sharp nearest-neighbor edges, no gradients; Constraints: transparent background, no words, no Latin letters, no watermark.`
+- `login-raw.png`: `Use case: stylized-concept; Asset type: wide login-screen background; Primary request: cinematic horizontal pixel-art scene of Rừng Săn Hồn, ancient dark jade forest at dusk, stone path toward a distant soul-hunting shrine, small amber soul rings, quiet dark right third for login card; Style: crisp hand-authored pixel art, limited palette, true pixel clusters, no gradients; Composition: 16:9; Constraints: no words, logos, watermark or copyrighted world.`
+- `loading-raw.png`: `Use case: stylized-concept; Asset type: wide loading-screen background; Primary request: horizontal pixel-art map view of Rừng Săn Hồn with layered mountains, winding river, ancient forest canopy, tiny roads and soul-ring waypoints, centered low-detail area for loading indicator; Style: crisp hand-authored pixel art, limited palette, true pixel clusters, no gradients; Composition: 16:9; Constraints: no words, logos, watermark or copyrighted map.`
+- `event-raw.png`: `Use case: ads-marketing; Asset type: wide event banner; Primary request: horizontal pixel-art event banner with moonlit forest shrine, large glowing golden soul ring, jade leaves and red festival ribbons, empty center-left for Vietnamese event copy; Style: crisp hand-authored pixel art, limited palette, true pixel clusters, no gradients; Composition: 3:1, shrine and ring on right; Constraints: no words, logos, watermark or copyrighted symbols.`
 
 Hậu kỳ: giảm mẫu nearest-neighbor về lưới pixel nhỏ, lượng tử kênh màu theo bước 16, giữ alpha logo, xuất PNG 8-bit RGBA.

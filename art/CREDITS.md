@@ -12,10 +12,10 @@ Quy định ở `GAME_DESIGN.md` mục 5.11 (phần "Nguồn và giấy phép").
 
 | File | Nguồn | Prompt / hậu kỳ | Ngày |
 |---|---|---|---|
-| `shared/assets/ui/c6/logo.png` | Codex built-in `imagegen` | Prompt đầy đủ: `art/src/imagegen/c6/prompts.md`; `node tools/assets/c6-post.mjs`, nền trong suốt, 512×512 | 2026-10-25 |
-| `shared/assets/ui/c6/login-bg.png` | Codex built-in `imagegen` | Prompt đầy đủ: `art/src/imagegen/c6/prompts.md`; `node tools/assets/c6-post.mjs`, 1280×720 | 2026-10-25 |
-| `shared/assets/ui/c6/loading-bg.png` | Codex built-in `imagegen` | Prompt đầy đủ: `art/src/imagegen/c6/prompts.md`; `node tools/assets/c6-post.mjs`, 1280×720 | 2026-10-25 |
-| `shared/assets/ui/c6/event-banner.png` | Codex built-in `imagegen` | Prompt đầy đủ: `art/src/imagegen/c6/prompts.md`; `node tools/assets/c6-post.mjs`, 1536×512 | 2026-10-25 |
+| `shared/assets/ui/c6/logo.png` | Codex built-in `imagegen`, model `gpt-image-1` | Prompt nguyên văn `logo-raw.png` ở `art/src/imagegen/c6/prompts.md`; hậu kỳ `node tools/assets/c6-post.mjs`, nền trong suốt, 512×512 | 2026-10-25 |
+| `shared/assets/ui/c6/login-bg.png` | Codex built-in `imagegen`, model `gpt-image-1` | Prompt nguyên văn `login-raw.png` ở `art/src/imagegen/c6/prompts.md`; hậu kỳ `node tools/assets/c6-post.mjs`, 1280×720 | 2026-10-25 |
+| `shared/assets/ui/c6/loading-bg.png` | Codex built-in `imagegen`, model `gpt-image-1` | Prompt nguyên văn `loading-raw.png` ở `art/src/imagegen/c6/prompts.md`; hậu kỳ `node tools/assets/c6-post.mjs`, 1280×720 | 2026-10-25 |
+| `shared/assets/ui/c6/event-banner.png` | Codex built-in `imagegen`, model `gpt-image-1` | Prompt nguyên văn `event-raw.png` ở `art/src/imagegen/c6/prompts.md`; hậu kỳ `node tools/assets/c6-post.mjs`, 1536×512 | 2026-10-25 |
 
 Mỗi asset một dòng. Thêm ảnh vào `shared/assets/sprites/` thì thêm key vào `manifest.json` và ghi một dòng ở đây.
 
