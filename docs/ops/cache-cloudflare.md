@@ -5,7 +5,7 @@ Origin (`server/src/staticCache.ts`) tự đặt `Cache-Control` cho `client/dis
 | Nhóm | Header origin | Ghi chú |
 | --- | --- | --- |
 | `/assets/<tên>-<hash>.*` (JS, CSS, font do Vite hash) | `public, max-age=31536000, immutable` | Phaser tách chunk riêng (`phaser-<hash>.js`) nên đổi code game không tải lại Phaser |
-| `index.html` | `no-cache` | luôn hỏi lại (ETag, thường 304) vì nó trỏ tới file hash mới |
+| `index.html` (landing ở `/`), `choi/index.html` (game ở `/choi`, có và không dấu gạch cuối; server trả thẳng, không chuyển hướng) | `no-cache` | luôn hỏi lại (ETag, thường 304) vì nó trỏ tới file hash mới |
 | ảnh / âm thanh / bản đồ / manifest không hash (`lpcparts`, `sprites`, `iso`, `mini`, `audio`, `*.json`) khi URL có `?v=` | `public, max-age=31536000, immutable` | client gắn `?v=<hash nội dung shared/assets>` (`client/src/assetUrl.ts`, `vite.config.ts`): asset đổi thì URL đổi, không kẹt cache |
 | như trên, không có `?v=` (bot, trang thử) | ảnh / âm thanh: `max-age=604800, stale-while-revalidate=86400`; json: `no-cache` | |
 

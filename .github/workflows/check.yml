@@ -139,7 +139,9 @@ jobs:
           docker run -d --name game-ci -p 2567:2567 soul-land-game:ci
           for i in $(seq 1 60); do curl -sf localhost:2567/health && break; sleep 1; done
           echo; curl -sf localhost:2567/health
-          curl -sf localhost:2567/ | head -c 200 | grep -qi "<html" || { echo "✗ client đã build không được phục vụ"; docker logs game-ci; exit 1; }
+          curl -sf localhost:2567/ | head -c 200 | grep -qi "<html" || { echo "✗ landing (/) đã build không được phục vụ"; docker logs game-ci; exit 1; }
+          curl -sf localhost:2567/choi | grep -q 'id="stage"' || { echo "✗ game (/choi, không gạch cuối) không được phục vụ"; docker logs game-ci; exit 1; }
+          curl -sf localhost:2567/choi/ | grep -q 'id="stage"' || { echo "✗ game (/choi/) không được phục vụ"; docker logs game-ci; exit 1; }
           [ "$(docker exec game-ci id -u)" != 0 ] || { echo "✗ container chạy bằng root"; exit 1; }
           docker logs game-ci | tail -n 20
       - name: cỡ image

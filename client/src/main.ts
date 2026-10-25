@@ -92,6 +92,15 @@ async function googleLogin(credential: string) {
   }
 }
 
+/** Vé Google do landing để lại (landing.ts), đọc một lần. */
+function takeGoogleTicket(): { ticket: string; suggest: string } | null {
+  try {
+    const raw = sessionStorage.getItem("shh-gticket"); sessionStorage.removeItem("shh-gticket");
+    const j = raw ? JSON.parse(raw) as { ticket?: unknown; suggest?: unknown } : null;
+    return j && typeof j.ticket === "string" && j.ticket ? { ticket: j.ticket, suggest: typeof j.suggest === "string" ? j.suggest : "" } : null;
+  } catch { return null; }
+}
+
 /** Google mới: chọn tên nhân vật (gợi ý từ tên Google) rồi tạo tài khoản, sau đó sang màn tạo ngoại hình như thường. */
 function nameScreen(ticket: string, suggest: string) {
   overlay.hidden = false; card.classList.remove("wide");
@@ -363,6 +372,9 @@ function play(room: Room, roomMap: string, watch = false) {
   if (thu === "fx") return fxTestScreen(card, overlay); // `?thu=fx`: thử hiệu ứng hồn kỹ theo hệ (G3, #394)
   if (thu === "phuthe") return phutheTestScreen(card, overlay); // `?thu=phuthe`: thử chuyển động phụ phụ thể, trước / sau (H7, #490)
   if (thu === "phaptuong") return phapTuongTestScreen(card, overlay); // `?thu=phaptuong`: thử pháp tướng Võ Hồn Chân Thân (#486)
+  // Landing (/) đã cho đăng nhập Google nhưng tài khoản chưa có nhân vật: nó chuyển vé sang đây, hiện luôn màn chọn tên (vé hết hạn thì server báo, nameScreen về đăng nhập).
+  const gt = takeGoogleTicket();
+  if (gt) return nameScreen(gt.ticket, gt.suggest);
   if (!token) return loginScreen();
   await resume();
 })();

@@ -31,7 +31,7 @@ const evalJs = async (e) => (await cdp("Runtime.evaluate", { expression: e, retu
 
 const res=[];
 for (const j of jobs) {
-  await cdp("Page.navigate", { url: `${base}/?thu=fx&bar=0&zoom=1&cine=0&${j.q}` });
+  await cdp("Page.navigate", { url: `${base}/choi/?thu=fx&bar=0&zoom=1&cine=0&${j.q}` });
   for (let i = 0; i < 100; i++) { await sleep(150); if (await evalJs("!!window.__fx")) break; }
   await sleep(3000);
   const s = []; let peakSheets = 0;
