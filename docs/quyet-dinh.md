@@ -40,17 +40,20 @@ Thêm quyết định mới: cộng mã `Q` kế tiếp ở cuối bảng đúng
 | Q19 | 2026-10-23 | **Bỏ PixelLab** (không làm ảnh mới, không gọi MCP, xoá key); ComfyUI tự host là công cụ chính cho ảnh tĩnh. **Điều chỉnh bởi Q22** | #331, #349 | `docs/art/nguon-giay-phep.md` |
 | Q20 | 2026-10-23 | Hồn thú theo **kiểu lai**: ảnh tĩnh 3 hướng (nam, đông, bắc) bằng ComfyUI + chuyển động bằng code; hoạt ảnh 8 hướng bằng ComfyUI / ControlNet dừng (#335, #387 đóng) | #386, #395, #335, #387 | `docs/art/nhan-vat-hon-thu.md` |
 | Q21 | 2026-10-21 (g) | LPC chỉ cho NPC phụ, dân thường, lính gác; **không** cho hồn sư người chơi. **Đã thay bởi Q16** | #96 | `docs/art/hon-su-lpc.md` |
-| Q22 | 2026-10-24 | **Ngoại lệ PixelLab** (gói Tier 1 mua lại): chỉ cho xoay hướng, hoạt ảnh nhiều hướng, hoạt ảnh / sheet hiệu ứng kỹ năng, pháp tướng; không tạo hình nhân vật; ảnh tĩnh vẫn ComfyUI / Gemini | #477, #482, #541 | `docs/art/nguon-giay-phep.md`, `docs/art/phap-tuong.md` |
+| Q22 | 2026-10-24 | **Ngoại lệ PixelLab** (gói Tier 1 mua lại): chỉ cho xoay hướng, hoạt ảnh nhiều hướng, hoạt ảnh / sheet hiệu ứng kỹ năng, pháp tướng; không tạo hình nhân vật; ảnh tĩnh vẫn ComfyUI / Gemini. **Làm rõ bởi Q43** | #477, #482, #541 | `docs/art/nguon-giay-phep.md`, `docs/art/phap-tuong.md` |
 | Q23 | 2026-10-24 | Nguồn LPC / OpenGameArt kết hợp cho hiệu ứng và chuyển động phụ, để tiết kiệm lượt PixelLab; vật phẩm / hiệu ứng LPC do chủ repo duyệt từng ảnh | #201, #482, #490 | `docs/art/phap-tuong.md` |
 | Q24 | 2026-10-24 | H1 duyệt công thức chuẩn làm pháp tướng (một võ hồn, tham số PixelLab, hậu kỳ `phaptuong.mjs`) | #485 | `docs/art/phap-tuong-cong-thuc.md` |
 | Q25 | 2026-10-24 | Danh mục LPC `LPC_PARTS` và 4 hướng cho hồn sư Tự tạo (L0 mẫu thử, chủ repo duyệt 4 hướng) | #507, #508 | `docs/art/hon-su-lpc.md` |
 | Q26 | 2026-10-25 | S2 duyệt công thức chuẩn làm hiệu ứng chiêu (11 chiêu Lam Điện Bá Vương Long + Hạo Thiên Chùy, sheet PixelLab `/v2/vfx`) | #548 | `docs/art/ky-nang-cong-thuc.md` |
-| Q27 | 2026-10-25 | Họ asset **C1–C16** (cảm giác đánh, giao diện, trang phục LPC phương Đông, âm thanh tuyệt kỹ CC0, màn đăng nhập / tải, HUD …) do **Codex (tthoadev)** làm: vẽ bằng code + sinh ảnh model + hậu kỳ pixel; ComfyUI là công cụ của orchestrator cho ảnh tĩnh khi cần; C2–C6 chỉ mở sau duyệt preview C1 | #541, #553, #554, #595, #616 | `docs/art/nguon-giay-phep.md`, `docs/design/giao-dien.md` |
+| Q27 | 2026-10-25 | Họ asset **C1–C16** (cảm giác đánh, giao diện, trang phục LPC phương Đông, âm thanh tuyệt kỹ CC0, màn đăng nhập / tải, HUD …) do **Codex (tthoadev)** làm: vẽ bằng code + sinh ảnh model + hậu kỳ pixel; ComfyUI là công cụ của orchestrator cho ảnh tĩnh khi cần; C2–C6 chỉ mở sau duyệt preview C1 (duyệt C1: không rõ ngày, trước 2026-10-25; chủ repo không nhớ ngày) | #541, #553, #554, #595, #616 | `docs/art/nguon-giay-phep.md`, `docs/design/giao-dien.md` |
 | Q34 | 2026-10-25 | Asset ngoài lấy từ **mọi nguồn** (kể cả gói hỗ trợ AI), nhưng **chỉ tìm và dùng asset miễn phí**, áp cho **cả hình ảnh lẫn âm thanh**; không đề xuất hay mua gói trả phí. Asset săn được **không** chuyển cho task C của tthoadev (C1–C16 vẫn do Codex sinh). Mở rộng Q05 | #622 | `docs/art/nguon-giay-phep.md` |
 | Q35 | 2026-10-25 | Gói asset có giấy phép hạn chế (Gigapack, cây rừng …) nằm ở **kho riêng** `soul-land-assets-private`; repo game chỉ giữ mô tả, manifest, CREDITS, công cụ nhập; CI release kéo kho vào image; không có kho thì game vẫn chạy bằng hình cũ; cấm đưa gói đó vào AI; có màn Ghi công trong game | #622, #623, #629 | `docs/asset-rieng.md` |
 | Q36 | 2026-10-25 | Nhạc nền là **nhạc tu tiên tự sáng tác** (`compose.mjs`, ngũ cung, soundfont miễn phí): mỗi bản đồ một bản + lớp giao chiến (#643); âm nền môi trường CC0 (#644); âm thanh khác theo Q34 | #622, #643, #644 | `docs/art/am-thanh.md` |
 | Q37 | 2026-10-25 | **Bỏ hẳn** các gói công trình Japanese, Chinese roof, Isometric houses: chưa từng đưa vào game (chỉ thử ở nhánh, không có PR) | #622 | `docs/asset-rieng.md` |
 | Q41 | 2026-10-25 | Đợt 2: gỡ `fx_bao_truoc` (dấu "!" của Gigapack) (#641); **không duyệt** vòng trận pháp, lửa lam, ngọn lửa lam ở đợt 2A (#639) | #622, #639, #641 | `docs/asset-rieng.md` |
+| Q42 | 2026-10-25 | **Bảng số trang bị hồn sư (E1–E7) đã được chủ repo duyệt**; bỏ các câu "chờ duyệt" / "ước lượng chưa duyệt" ở hai file trang bị; E7 không đổi số | #411 | `docs/design/trang-bi.md`, `docs/trang-bi-kinh-te.md` |
+| Q43 | 2026-10-25 | Ảnh **concept pháp tướng không thuộc ngoại lệ PixelLab**: PixelLab chỉ cho hoạt ảnh, sheet hiệu ứng, pháp tướng dạng hoạt ảnh và xoay hướng (làm rõ Q22); concept ảnh tĩnh làm bằng công cụ ảnh tĩnh (mục Q44); concept cũ đã có giữ nguyên ghi nguồn | #482, #541 | `docs/art/nguon-giay-phep.md`, `docs/art/phap-tuong.md` |
+| Q44 | 2026-10-25 | **Ảnh sinh bằng model dùng ChatGPT và Codex** (họ C1–C16 vẫn Codex của tthoadev; biểu tượng trang bị E6 làm bằng ChatGPT); ComfyUI vẫn là công cụ ảnh tĩnh của orchestrator; ảnh Gemini cũ đã duyệt giữ nguyên ghi nguồn. Thay quy tắc cũ 2026-10-24 "chỉ Gemini" | #616 | `docs/art/nguon-giay-phep.md`, skill `asset-gen` |
 
 ## Quy trình, CI, triển khai
 
@@ -69,23 +72,18 @@ Thêm quyết định mới: cộng mã `Q` kế tiếp ở cuối bảng đúng
 
 | Mã | Ngày ghi | Nội dung | File |
 |---|---|---|---|
-| P1 | 2026-10-25 | Bảng số trang bị hồn sư ghi "chờ người dùng duyệt" dù E1–E7 đã merge, E7 "không đổi số"; chưa có ghi nhận đã duyệt. Nếu đã duyệt thì thêm Q mới và xoá các câu chờ | `docs/design/trang-bi.md`, `docs/trang-bi-kinh-te.md` |
-| P3 | 2026-10-25 | Ngoại lệ PixelLab (Q22): ảnh tĩnh concept pháp tướng có được tính vào ngoại lệ không; chốt một câu dùng ở mọi nơi | `docs/art/phap-tuong.md` |
-| P4 | 2026-10-25 | `EQUIP_LUCK_UP` (khắc may mắn bằng Thần Hồn) ghi "đề xuất, chờ duyệt", chưa có code: làm hay bỏ | `docs/design/trang-bi.md` |
+| P4 | 2026-10-25 | `EQUIP_LUCK_UP` (khắc may mắn bằng Thần Hồn) ghi "đề xuất, chờ duyệt", chưa có code: làm hay bỏ (issue #662, chủ repo chưa trả lời) | `docs/design/trang-bi.md` |
 | P5 | 2026-10-25 | Trần số người khi tính máu boss: hiện không có trần; xem lại nếu phòng đông (`ROADMAP.md` mục 8) | `ROADMAP.md` |
 | P6 | 2026-10-25 | Chủ nhân và tên hồn kỹ trong truyện của 6 võ hồn: giữ mở (`ROADMAP.md` mục 8) | `ROADMAP.md` |
-| P7 | 2026-10-25 | C2–C6 ghi "chỉ mở sau duyệt preview C1" nhưng C2, C3, C6 đã merge: ghi ngày duyệt C1 vào Q27 | `docs/design/giao-dien.md` |
-| P8 | 2026-10-25 | Ảnh sinh model được dùng công cụ nào (E6 biểu tượng trang bị làm bằng ChatGPT; quy tắc cũ ngày 2026-10-24: chỉ Gemini; #616: Codex): chủ repo chốt rồi ghi vào Q27 | `docs/art/nguon-giay-phep.md` |
 
 P2 (NV0 chờ duyệt bố cục) đã đóng: NV0 đến NV5 xong, ghi ở Q13.
 
 ## Quyết định chỉ có trong bộ nhớ của orchestrator
 
-Bốn quyết định ở bộ nhớ phiên điều phối (M2, M3 đã có bản ghi trong repo ở Q39, Q28); chủ repo xác nhận rồi chuyển hẳn vào bảng trên:
+Ba quyết định ở bộ nhớ phiên điều phối (M2, M3 đã có bản ghi trong repo ở Q39, Q28); chủ repo xác nhận rồi chuyển hẳn vào bảng trên:
 
 | Mã | Nội dung | Gợi ý |
 |---|---|---|
-| M1 | Ảnh người dùng tự tạo trên Gemini web theo bộ prompt, **chỉ Gemini** (2026-10-24) | Lệch với P8; chốt P8 trước |
 | M2 | `DATABASE_URL` = Supabase DB test (2026-10-25) | Đã ghi ở Q39 |
 | M3 | Orchestrator được push, mở PR, merge `main` sau khi review đạt (PR collaborator: sau khi họ tự review và orchestrator kiểm lại) | Gần như đã ở Q28 |
 | M4 | Phiên song song: số worker theo RAM + ổ C, tối đa 2 bot cùng lúc, tắt đúng PID, Chrome luôn `--mute-audio`, cổng CDP 9333 đã có người dùng | Là vận hành, đề xuất đưa vào tài liệu chạy local, không phải quyết định sản phẩm |

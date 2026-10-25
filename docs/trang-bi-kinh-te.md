@@ -2,7 +2,7 @@
 
 Kèm mục 5.15 của `GAME_DESIGN.md`. Số liệu sinh ra bằng `npm run econ:equip --prefix server -- --md` (kịch bản `server/scripts/equip-econ.ts`, dùng đúng hàm và bảng của `shared/data.ts`; đổi bảng số thì chạy lại và dán lại các bảng dưới đây).
 
-**Đây là ước lượng theo giả định, không phải đo thật.** Số cần người dùng duyệt trước khi E1 trở đi bật cho người chơi. Chạy dài đo thật và giả lập theo thời gian ở bước E7 (mục cuối).
+**Đây là ước lượng theo giả định, không phải đo thật.** Bảng số đã được chủ repo duyệt (Q42 ở `docs/quyet-dinh.md`). Chạy dài đo thật và giả lập theo thời gian ở bước E7 (mục cuối).
 
 ## Giả định
 
