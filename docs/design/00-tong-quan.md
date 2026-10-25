@@ -1,6 +1,6 @@
 # Tổng quan: ý tưởng, nguyên tắc, mô hình chơi
 
-<!-- Tách cơ học từ GAME_DESIGN.md (D1, #619): nguyên văn, chưa viết lại; số mục và tên mục con giữ nguyên. -->
+Ý tưởng, nguyên tắc thiết kế và mô hình chơi. Số liệu ở `shared/data.ts`; luật cụ thể ở các file `docs/design/*` (mục lục ở `GAME_DESIGN.md`).
 
 ## 1. Ý tưởng và phạm vi
 MMO thế giới mở pixel 2D trên trình duyệt, lấy bối cảnh **Đấu La Đại Lục**, cơ chế tham khảo game *Đấu La Đại Lục: Thế Giới Săn Hồn*.
