@@ -299,7 +299,7 @@ export class GameScene extends Phaser.Scene {
    * (null = biển hiệu) và nhãn "Nói chuyện" hiện khi đứng gần.
    */
   npcs: { id: string; x: number; y: number; def: NpcDef | undefined; body: Sprite | null; mark: Phaser.GameObjects.Text | null;
-    qmark: Phaser.GameObjects.Text | null }[] = []; // qmark: dấu "!" / "?" của NPC giao nhiệm vụ (6.2)
+    qmark: Phaser.GameObjects.Text | null; nameText: Phaser.GameObjects.Text; titleText: Phaser.GameObjects.Text | null }[] = []; // qmark: dấu "!" / "?" của NPC giao nhiệm vụ (6.2)
   daily: DailyMsg | null = null; // khảo hạch hằng ngày (tin riêng "daily")
   /** Mục tiêu nhiệm vụ chấm trên bản đồ nhỏ (questTargets), tính lại khi tiến độ / cấp đổi (`key`). */
   qt: { key: string; npcs: Pt[]; zones: Rect[]; portals: Rect[] } = { key: "", npcs: [], zones: [], portals: [] };
@@ -351,6 +351,7 @@ export class GameScene extends Phaser.Scene {
   audio!: AudioManager;
   lvVh = -1; lvSeen = 0;            // võ hồn ra trận và cấp ở khung trước: cấp tăng (cùng võ hồn) thì phát khúc ngắn lên cấp
   nameplateEntries: NameplateEntry[] = [];
+  staticNameplateEntries: NameplateEntry[] = [];
 
   constructor() { super("game"); }
   init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string, roomId: string | null) => void; onArena: (roomId: string, watch?: boolean) => void; onBack: () => void; watch?: boolean }) {
@@ -626,8 +627,10 @@ export class GameScene extends Phaser.Scene {
     // Chữ trên đầu NPC: độ lệch so với `top` tính bằng pixel chữ chưa phóng, wtext nhân txtK (và đặt lại khi txtK đổi).
     const style = { fontFamily: FONT, fontStyle: "700", stroke: "#000", strokeThickness: 2, resolution: 8 };
     const npcOffsets = stackNameplate(["name", "title", "action", "quest"]);
-    this.wtext(this.add.text(sx, top, def?.name ?? name, { ...style, fontSize: "7px", color: def?.col ?? "#f2c84b" }).setOrigin(0.5, 1).setDepth(99984), top, npcOffsets.name);
-    if (def) this.wtext(this.add.text(sx, top, def.title, { ...style, fontSize: "5.5px", fontStyle: "600", color: "#d8d2c0" }).setOrigin(0.5, 1).setDepth(99984), top, npcOffsets.title);
+    const nameText = this.add.text(sx, top, def?.name ?? name, { ...style, fontSize: "7px", color: def?.col ?? "#f2c84b" }).setOrigin(0.5, 1).setDepth(99984);
+    this.wtext(nameText, top, npcOffsets.name);
+    const titleText = def ? this.add.text(sx, top, def.title, { ...style, fontSize: "5.5px", fontStyle: "600", color: "#d8d2c0" }).setOrigin(0.5, 1).setDepth(99984) : null;
+    if (titleText) this.wtext(titleText, top, npcOffsets.title);
     let mark: Phaser.GameObjects.Text | null = null;
     if (def) {
       mark = this.add.text(sx, top, document.body.classList.contains("touch") ? "Chạm để nói chuyện" : "Nói chuyện [F]", {
@@ -644,7 +647,15 @@ export class GameScene extends Phaser.Scene {
         .setOrigin(0.5, 1).setDepth(99987).setVisible(false);
       this.wtext(qmark, top, npcOffsets.quest, { dy: 3, ms: 700 });
     }
-    this.npcs.push({ id, x, y, def, body, mark, qmark });
+    this.npcs.push({ id, x, y, def, body, mark, qmark, nameText, titleText });
+    const npcRect = { id: `npc:${id}:${this.npcs.length}`, x: sx, y: top - 14 * this.txtK, width: Math.max(nameText.displayWidth, titleText?.displayWidth ?? 0, mark?.displayWidth ?? 0, qmark?.displayWidth ?? 0) + 6, height: 28 * this.txtK, priority: qmark ? 70 : 30 };
+    this.staticNameplateEntries.push({ rect: npcRect, apply: (placed) => {
+      const dy = placed.y - npcRect.y, scale = placed.compact ? this.txtK * 0.82 : this.txtK;
+      nameText.setScale(scale).setY(top - npcOffsets.name * scale + dy).setVisible(placed.visible);
+      titleText?.setScale(scale).setY(top - npcOffsets.title * scale + dy).setVisible(placed.visible);
+      mark?.setScale(scale).setY(top - npcOffsets.action * scale + dy).setVisible(placed.visible && mark.visible);
+      qmark?.setScale(scale).setY(top - npcOffsets.quest * scale + dy).setVisible(placed.visible && !!hud.questMarker(id));
+    } });
     this.syncQuestMarkers();
   }
 
@@ -2793,8 +2804,9 @@ export class GameScene extends Phaser.Scene {
     this.downAt = this.downAt.filter(q => time - q.t < 2500);
     for (const [id, h] of this.lastHit) if (time - h.t > 5000) this.lastHit.delete(id);
     for (const [id, lb] of this.eliteLabels) if (!seenB.has(id)) { lb.destroy(); this.eliteLabels.delete(id); }
-    const placements = layoutNameplates(this.nameplateEntries.map((x) => x.rect), { maxVisible: 18, gap: 3 });
-    for (const placement of placements) this.nameplateEntries.find((x) => x.rect.id === placement.id)?.apply(placement);
+    const allNameplates = [...this.staticNameplateEntries, ...this.nameplateEntries];
+    const placements = layoutNameplates(allNameplates.map((x) => x.rect), { maxVisible: 18, gap: 3 });
+    for (const placement of placements) allNameplates.find((x) => x.rect.id === placement.id)?.apply(placement);
 
     // hồn hoàn rơi
     const seenD = new Set<string>();
