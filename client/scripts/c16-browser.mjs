@@ -97,6 +97,7 @@ try{
   const bad=measurements.filter(x=>x.ratio<4.5);
   assert.deepEqual(bad,[],file+': tương phản chữ trên nền composite phải >=4,5:1');
  }
+  async function npc(){await page.evaluate(async()=>{const h=await import('/src/hud.ts');const s=window.__c16Scene;const noop=()=>{};h.closeNpc();h.toggleWorld(false);h.openNpc('lo_ren',s.bag,{buy:noop,sell:noop,buyback:noop,expand:noop,enhance:noop,enhanceCore:noop,combat:()=>false,coreSet:noop,quest:noop,arena:noop,tong:noop,shard:noop,shardInfo:noop,gear:()=>s.gear??null,equipEnh:noop,equipEnhPreview:noop,equipLuck:noop,equipLuckPreview:noop,equipSynth:noop,equipSalvage:noop,owned:()=>[],looks:()=>null,changeLooks:noop});});}
  for(const vp of [{width:1280,height:720,touch:false},{width:960,height:540,touch:false},{width:844,height:390,touch:true}]){
   await page.evaluate(()=>document.querySelector('#toasts')?.remove());
   await page.setViewportSize({width:vp.width,height:vp.height});
@@ -106,13 +107,29 @@ try{
   await page.locator('#char [data-tab=bone]').evaluate(el=>el.click());await delay(250);assert.ok(await page.locator('#char').isVisible(),'Phải chụp đúng bảng Nhân vật');await shot(`${before?'before':'after'}-${vp.width}x${vp.height}-nhan-vat-hon-cot.png`);
   await page.locator('#char .cgroup').filter({hasText:/^Phụ$/}).evaluate(el=>el.scrollIntoView({block:'center',inline:'nearest'}));await delay(250);await shot(`${before?'before':'after'}-${vp.width}x${vp.height}-nhan-vat-chi-so-cuon.png`,['Phụ']);await page.locator('#char').evaluate(el=>el.scrollTop=0);
   await page.locator('#char [data-tab=core]').evaluate(el=>el.click());await delay(250);assert.ok(await page.locator('#char').isVisible(),'Phải chụp đúng bảng Nhân vật');await shot(`${before?'before':'after'}-${vp.width}x${vp.height}-nhan-vat-hon-hach.png`);
-  async function npc(){await page.evaluate(async()=>{const h=await import('/src/hud.ts');const s=window.__c16Scene;const noop=()=>{};h.closeNpc();h.toggleWorld(false);h.openNpc('lo_ren',s.bag,{buy:noop,sell:noop,buyback:noop,expand:noop,enhance:noop,enhanceCore:noop,combat:()=>false,coreSet:noop,quest:noop,arena:noop,tong:noop,shard:noop,shardInfo:noop,gear:()=>s.gear??null,equipEnh:noop,equipEnhPreview:noop,equipLuck:noop,equipLuckPreview:noop,equipSynth:noop,equipSalvage:noop,owned:()=>[],looks:()=>null,changeLooks:noop});});}
   for(const [label,file]of [['Cường hóa hồn cốt','tho-ren-cuong-hoa'],['Nâng cấp hồn hạch','tho-ren-nang-cap'],['Hợp thành trang bị (3 → 1)','tho-ren-hop-thanh']]){await npc();await page.getByRole('button',{name:label,exact:true}).evaluate(el=>el.click());await delay(300);if(!before)assert.equal(await page.locator('#npc').getAttribute('data-c16-page'),{'tho-ren-cuong-hoa':'forge','tho-ren-nang-cap':'forgecore','tho-ren-hop-thanh':'forgesynth'}[file]);await shot(`${before?'before':'after'}-${vp.width}x${vp.height}-${file}.png`);}
   if(!before){await npc();assert.equal(await page.locator('#npc').getAttribute('data-c16-page'),null);await page.evaluate(async()=>(await import('/src/hud.ts')).closeNpc());assert.equal(await page.locator('#npc').getAttribute('data-c16-page'),null);}
   await page.evaluate(async()=>{(await import('/src/hud.ts')).closeNpc();const f=await import('/src/feedback.ts');f.toast('level','Cấp 30','Lam Điện Bá Vương Long','#ffe08a');f.lootToasts([],[{id:'c16-baseline-ring',code:'hon_hoan',qty:1,years:10000,stars:null,enhance:0,vohon:null,stats:null}]);});await delay(150);await shot(`${before?'before':'after'}-${vp.width}x${vp.height}-thong-bao.png`);
  }
+ // Trạng thái có món: hook test chỉ chạy trên runtime RAM riêng GAME_TEST=1.
+ await page.evaluate(()=>{const r=window.__c16Scene.room;r.send('test',{op:'give',code:'hon_cot',years:100000,beast:'am_kim_khung_trao_hung',slot:'dau',qty:1});r.send('test',{op:'give',code:'hon_hach',stars:6,set:'phuong_hoang',qty:1});});
+ await page.waitForFunction(()=>window.__c16Scene.bag.items.some(i=>i.code==='hon_cot'&&i.years===100000)&&window.__c16Scene.bag.items.some(i=>i.code==='hon_hach'));
+ await page.evaluate(()=>{const s=window.__c16Scene,b=s.bag.items.find(i=>i.code==='hon_cot'&&i.years===100000);s.room.send('equip',{itemId:b.id,vohonId:s.owned.active});});
+ await page.waitForFunction(()=>window.__c16Scene.bag.items.some(i=>i.code==='hon_cot'&&i.years===100000&&i.vohon===window.__c16Scene.owned.active));
+ for(const vp of [{width:1280,height:720,touch:false},{width:960,height:540,touch:false},{width:844,height:390,touch:true}]){
+  await page.setViewportSize({width:vp.width,height:vp.height});await page.evaluate(t=>{document.body.classList.toggle('touch',t);document.querySelector('#toasts')?.remove();},vp.touch);
+  const cdp=await page.context().newCDPSession(page);await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:vp.touch});await cdp.detach();
+  await page.evaluate(async()=>{(await import('/src/hud.ts')).closeNpc();(await import('/src/charPanel.ts')).toggleChar(true);});
+  await page.locator('#char [data-tab=bone]').evaluate(el=>el.click());await page.locator('#char .cdoll [data-slot=dau]').evaluate(el=>el.click());
+  await page.locator('#char .cpick').evaluate(el=>el.scrollIntoView({block:'center',inline:'nearest'}));await delay(250);
+  await shot(`${before?'before':'after'}-${vp.width}x${vp.height}-nhan-vat-mon-do.png`);
+  for(const [label,file]of [['Cường hóa hồn cốt','cuong-hoa-mon-do'],['Nâng cấp hồn hạch','nang-cap-co-mon']]){
+   await npc();await page.getByRole('button',{name:label,exact:true}).evaluate(el=>el.click());await page.locator('#npc .eopt').first().evaluate(el=>el.click());await delay(250);
+   await shot(`${before?'before':'after'}-${vp.width}x${vp.height}-${file}.png`);
+  }
+ }
  writeFileSync(out+'/contrast.json',JSON.stringify(contrast,null,2));
- writeFileSync(out+'/evidence.json',JSON.stringify({sha,sourceDirty,tool:'Playwright Chrome headless --mute-audio',viewports:['1280x720','960x540','844x390 touch'],runtime:'server RAM riêng, không DB/Redis',fixture:'Game thật; Nhân vật state server; trang NPC gọi openNpc với bag thật/no-op actions, chọn tab/trang bằng DOM handler, toast gọi hàm hiển thị trực tiếp. Không chứng minh server phát sinh sự kiện hay thao tác rèn.',pageErrors:errors,aoBrowser:'Không kiểm E2E AO Browser; thiếu capability'},null,2));
+ writeFileSync(out+'/evidence.json',JSON.stringify({sha,sourceDirty,tool:'Playwright Chrome headless --mute-audio',viewports:['1280x720','960x540','844x390 touch'],runtime:'server RAM riêng, không DB/Redis',fixture:'Game thật; Nhân vật state server; fixture có món dùng hook give/equip trên GAME_TEST RAM; trang NPC gọi openNpc với bag thật/no-op actions, chọn tab/trang bằng DOM handler, toast gọi hàm hiển thị trực tiếp. Không chứng minh server phát sinh sự kiện hay thao tác rèn.',pageErrors:errors,aoBrowser:'Không kiểm E2E AO Browser; thiếu capability'},null,2));
  assert.deepEqual(errors.filter(e=>!(e.jsonLoader&&e.message.startsWith("Unexpected token '<'"))),[], 'Lỗi trình duyệt mới ngoài lỗi JSON loader baseline');
- console.log('Đã chụp 21 ảnh game (3 viewport, gồm nhãn Phụ sau cuộn); lỗi JSON loader baseline:',errors.length);
+ console.log('Đã chụp 30 ảnh game (3 viewport, gồm nhãn Phụ sau cuộn và trạng thái có món); lỗi JSON loader baseline:',errors.length);
 }finally{stopping=true;await browser?.close().catch(()=>{});for(const c of children){try{process.kill(-c.pid);}catch{}}}

@@ -1678,6 +1678,8 @@ body.ui-h500 #credits .cr-head small{display:none}
 .thuymac #npc[data-c16-page] .ht.ngan{color:#cbd6ef}
 .thuymac #npc[data-c16-page] .ht.dong{color:#ffbf8a}
 .thuymac #char .bmid small{background:var(--plate)}
+.thuymac #char .cpick>b{color:var(--text)!important}
+.thuymac #npc[data-c16-page] .epick>small:first-child b,.thuymac #npc[data-c16-page] .eopt b{color:var(--text)}
 
 .thuymac #npc[data-c16-page]::before,.thuymac #npc[data-c16-page]::after{display:none}
 /* Ảnh đan điền 128×128: giữ vùng (0,10)–(106,128), đưa tâm (53,70) về giữa; không kéo méo vòng. */
