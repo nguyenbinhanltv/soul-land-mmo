@@ -95,7 +95,7 @@ Các file này có chủ repo trong `.github/CODEOWNERS`.
    - đổi giao diện / ảnh: ảnh chụp trong game, ảnh cần duyệt gắn thẳng vào PR (trang xem trước); không đưa ảnh thô vào repo;
    - DB để thử: Supabase là **DB test** (`DATABASE_URL` trỏ Supabase được dùng để quay ảnh, đo FPS); prod là PostgreSQL trong cụm, **không bao giờ trỏ**; bot đầy đủ và migration mới vẫn chạy bằng `bot:local`.
 2. `git merge origin/main` lần cuối, chạy lại `npm run check`.
-3. **Tự review PR của mình:** chạy reviewer (review AO: `ao review trigger`, kết quả xem `ao review ls`; hoặc reviewer của agent, ví dụ `/code-review`), sửa hết góp ý, review lại tới khi đạt. PR chỉ sửa `.md` / `docs/**` thì CI ở mức bỏ qua, vẫn chạy `npm run check` (có `docs-check`). Ghi kết quả vào một comment PR có tiêu đề **`Review: đạt`**: công cụ review, SHA head đã review, kết luận. Comment bắt buộc có dòng (SHA đủ 40 ký tự, lấy bằng `git rev-parse HEAD`):
+3. **Tự review PR của mình:** chạy reviewer (review AO: `ao review trigger`, kết quả xem `ao review ls`; hoặc reviewer của agent, ví dụ `/code-review`), sửa hết góp ý, review lại tới khi đạt. PR chỉ sửa `.md` / `docs/**` thì bot CI ở mức bỏ qua (`check-build` vẫn chạy đủ, trong đó `npm run check` có `docs-check`). Ghi kết quả vào một comment PR có tiêu đề **`Review: đạt`**: công cụ review, SHA head đã review, kết luận. Comment bắt buộc có dòng (SHA đủ 40 ký tự, lấy bằng `git rev-parse HEAD`):
    ```
    **Head đã review:** `<SHA 40 ký tự>`
    ```
