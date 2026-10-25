@@ -7630,6 +7630,7 @@ async function buybackProcTest(){
     if(k1){ for(let n=0;n<3;n++) M.room.send("buyback",{key:k1}); await sleep(delay); } else lost++;
     try{ M.bag=null; await enter(M,room2); await waitFor(()=>meOf(M)&&M.bag,4000); }catch(e){ console.log(`    vòng ${k}: phiên thứ hai không vào được (${String(e?.message??e).slice(0,70)})`); }
     await sleep(600);
+    if(!M.bag){ ok(false,`vòng ${k}: phiên thứ hai không nhận được túi: dừng bài`); break; }
     const r1=rings(M).length, c1=M.bag.honTe, ids=new Set(rings(M).map(i=>i.id));
     const dup=r1>r0||c1>c0+(r0-r1)*price||ids.size!==r1; // vượt giá trị đã bán = nhân đồ / tiền
     if(dup) dupes++; done++;
@@ -7640,7 +7641,7 @@ async function buybackProcTest(){
     await T(M,"goto",{x:tn.x,y:tn.y+16});
   }
   // Rời game rồi vào lại: bản lưu DB khớp bản trong RAM; danh sách mua lại bị xóa khi rời game.
-  const r2=rings(M).length, c2=M.bag.honTe;
+  const r2=rings(M).length, c2=M.bag?.honTe;
   await M.room.leave(); await sleep(500); M.bag=null; { const pick=await post("/api/channel",{token:M.token}); M.mapId=pick.mapId; await enter(M,pick.roomId??undefined); } await waitFor(()=>meOf(M)&&M.bag,3000);
   ok(rings(M).length===r2&&M.bag.honTe===c2&&!(M.bag.buyback?.length),`vào lại: hồn hoàn ${rings(M).length}, Hồn Tệ ${M.bag.honTe} khớp lúc rời; danh sách mua lại rỗng (${M.bag.buyback?.length??0})`);
   ok(done>0&&dupes===0,`${done} vòng: không vòng nào nhân đồ / tiền (${lost} vòng danh sách mua lại chưa kịp sang phòng mới)`);
@@ -7665,7 +7666,7 @@ async function socialAuditTest(){
   await T(A,"friend",{fop:"rlreset"});
   const l0=A.logs.length; for(let i=0;i<40;i++) A.room.send("friend",{op:"add",name:`Khong Co ${RUN} ${i}`}); await sleep(2500);
   const lg=A.logs.slice(l0), notFound=lg.filter(x=>/Không có hồn sư nào tên/.test(x)).length, fast=lg.filter(x=>/quá nhanh/.test(x)).length;
-  ok(notFound>=1&&notFound<=13&&fast>=26,`40 tên lạ dồn: ${notFound} lần tra DB trả "không có hồn sư" (burst 10 + hồi 1/giây), ${fast} lần bị chặn "quá nhanh" trước khi tra`);
+  ok(notFound>=10&&notFound<=11&&fast>=29,`40 tên lạ dồn: ${notFound} lần tra DB trả "không có hồn sư" (burst 10 + hồi 1/giây), ${fast} lần bị chặn "quá nhanh" trước khi tra`);
   // ---- (2) dò tên: tên có thật / không có phân biệt được (đã biết, giới hạn bởi friendCheck); tin riêng không lộ tài khoản ngoại tuyến ----
   await T(A,"friend",{fop:"rlreset"});
   const exists=await said(A,"friend",{op:"add",name:off.name.toUpperCase()}), none=await said(A,"friend",{op:"add",name:`Khong Co ${RUN} z`});
@@ -7676,13 +7677,13 @@ async function socialAuditTest(){
   await T(A,"chat",{cop:"rlreset"});
   /** Lỗ hổng đã biết, đã tách issue sửa riêng: chưa sửa thì in ⚠ (không làm trượt), sửa xong thì ✓ (khi đó đổi thành ok để không quay lại). */
   const known=(cond,msg,issue)=>console.log(cond?"  ✓":`  ⚠ biết lỗi #${issue}:`,msg);
-  const BAD_CTRL=/[\u0000-\u0008\u000b-\u001f\u007f]/, BAD_BIDI=/[‪-‮⁦-⁩]/;
-  const probes=[["nul",`a\u0000b ${RUN}`],["rlo",`‮evil ${RUN}`],["zw",`​​​`],["bel",`b\u0007\u001b[31m ${RUN}`],["nl",`d1\n\n\td2 ${RUN}`],["emoji","😀".repeat(60)]];
+  const BAD_CTRL=/[\u0000-\u0008\u000b-\u001f\u007f]/, BAD_BIDI=/[\u202a-\u202e\u2066-\u2069]/;
+  const probes=[["nul",`a\u0000b ${RUN}`],["rlo",`\u202eevil ${RUN}`],["zw",`\u200b\u200b\u200b`],["bel",`b\u0007\u001b[31m ${RUN}`],["nl",`d1\n\n\td2 ${RUN}`],["emoji","😀".repeat(60)]];
   const got={}; for(const [n,txt] of probes){ O.chats.length=0; A.room.send("chat",{text:txt}); await sleep(450); got[n]=O.chats.find(m=>m.name===A.name)?.text; await sleep(250); }
   console.log(`    nhận được: ${Object.entries(got).map(([k,v])=>`${k}=${v===undefined?"(bị bỏ)":JSON.stringify(v).slice(0,24)}`).join(" ")}`);
   ok(got.nl===`d1 d2 ${RUN}`,"xuống dòng / tab gộp thành một dấu cách");
   ok(got.emoji!==undefined,"tin 60 emoji (120 đơn vị) tới nơi, không bị cắt giữa cặp thay thế");
-  known(got.zw===undefined||got.zw.replace(/[​-‏⁠﻿]/g,"").trim()!=="","tin toàn ký tự độ rộng 0 không thành dòng chat trống nhìn thấy được",817);
+  known(got.zw===undefined||got.zw.replace(/[\u200b-\u200f\u2060\ufeff]/g,"").trim()!=="","tin toàn ký tự độ rộng 0 không thành dòng chat trống nhìn thấy được",817);
   known([got.nul,got.bel].every(t=>t===undefined||!BAD_CTRL.test(t))&&(got.rlo===undefined||!BAD_BIDI.test(got.rlo)),"ký tự điều khiển / đổi chiều văn bản bị bỏ trước khi tới người khác",817);
   // ---- (5) chat tông khi chưa có tông ----
   await T(A,"tong",{set:null}); O.chats.length=0;
@@ -7690,7 +7691,9 @@ async function socialAuditTest(){
   }finally{ for(const b of [A,O]) await b.room.leave().catch(()=>{}); }
   // ---- (4) tên "Hệ thống": tài khoản đặt tên trùng tên tin hệ thống ----
   const name="Hệ thống", l=await post("/api/login",{name,password:PASS});
-  if(!l.token){ ok(true,`không đăng ký được tên "${name}" (${JSON.stringify(l).slice(0,80)}): không giả được tin hệ thống`); return; }
+  // Chỉ coi là đạt khi server từ chối TÊN (400). 401 (tài khoản từ lượt chạy trước, mật khẩu ngẫu nhiên khác) / 429 / lỗi khác: bỏ qua, không kết luận.
+  if(l.status===400){ ok(true,`server từ chối tên "${name}" (${l.error}): không giả được tin hệ thống`); return; }
+  if(!l.token){ console.log(`  ⚠ bỏ qua kiểm tên "${name}" (đăng nhập ${l.status}: tài khoản đã có từ lượt trước hoặc hết lượt tạo theo IP); chạy lại trên DB sạch (bot:local) để kiểm #818`); return; }
   if(!l.looks?.chosen) await post("/api/looks",{token:l.token,sex:0,hair:1,hairCol:1,outfitCol:1});
   if(!l.character) await post("/api/awaken",{token:l.token,vohon:"u_minh_linh_mieu"});
   const me=await post("/api/me",{token:l.token}), SP={name,token:l.token,logs:[],owned:null,ownedMsgs:0,looks:me.looks,mapId:me.mapId};
