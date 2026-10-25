@@ -5966,6 +5966,55 @@ async function autoTest(){
       ok(c0>=1,`AH3 B1: ${AUTO_AOE_MIN}+ con quanh thân → tung hồn kỹ diện rộng trước (ô ${aoe.join(",")}, ${c0} lần)`);
     }
     await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true});
+    // B1b: đổi sang võ hồn có hồn kỹ quanh thân (Hạo Thiên Chùy: Chấn Địa Chùy quanh thân, Trọng Kích trước mặt) rồi kiểm luật AoE thật:
+    // đông (≥ AUTO_AOE_MIN) thì tung trước và trúng ≥ 2 con một lần; ít hơn thì không tính là "đông"; bonus cụm không làm săn chậm đi.
+    { const act3=A.owned.active, HV="hao_thien_chuy", Y4=[423,764,1760,5000];
+      await test(A,"grant",{vohon:HV}); await waitFor(()=>A.owned.list.some(v=>v.vohon===HV),1500);
+      const rowH=A.owned.list.find(v=>v.vohon===HV)?.rowId;
+      await test(A,"set",{rowId:rowH,level:40,xp:0,rings:Y4}); await test(A,"rest",{s:10}); await sendTeam(A,[act3,rowH,0,0]);
+      await waitFor(()=>A.room.state.players.get(A.room.sessionId)?.swCd===0,3500); A.room.send("switch",{slot:1});
+      if(!await waitFor(()=>A.owned.active===rowH,1500)) console.log("  ⚠ bỏ qua AH3 hồn kỹ diện rộng thật: không đổi được sang Hạo Thiên Chùy",JSON.stringify({row:rowH,team:A.owned.team,act:A.owned.active,act3,log:A.logs.at(-1),n:A.owned.list.length}));
+      else{
+        await test(A,"ready"); await test(A,"goto",home);
+        const P4={...P3,skills:[1,0,2,3],mp:0}, around=[[20,0],[-20,0],[0,20],[0,-20],[28,14]], hpOf=bid=>A.room.state.beasts.get(bid)?.hp, maxOf=bid=>A.room.state.beasts.get(bid)?.maxHp;
+        await autoOp(A,"set",{cfg:P4});
+        // Dưới ngưỡng (1 con, AUTO_AOE_MIN - 1 con): đánh bình thường, không tính là tung vì đông.
+        for(const n of [1,AUTO_AOE_MIN-1]){
+          await test(A,"clear",{all:true,keep:true}); await test(A,"ready"); await test(A,"goto",home);
+          for(const [dx,dy] of around.slice(0,n)) await test(A,"spawn",{tier:0,dx,dy,years:10,hpx:400});
+          await test(A,"auto",{pace:0}); m=await autoOp(A,"on"); let fought=false;
+          for(let t=0;t<3500;t+=250){ const st=await infoA(); if(st.target) fought=true; await sleep(250); }
+          const st=await infoA();
+          ok(m?.on&&fought&&st.aoeCasts===0,`AH3 B1b: ${n} con quanh thân (dưới ${AUTO_AOE_MIN}) → vẫn đánh, không tung hồn kỹ diện rộng vì đông (${st.aoeCasts} lần)`);
+          await autoOp(A,"off");
+        }
+        // Đủ đông: tung trước, một lần tung trúng ≥ 2 con (con ngoài mục tiêu chỉ mất máu do hồn kỹ diện rộng).
+        await test(A,"clear",{all:true,keep:true}); await test(A,"ready"); await test(A,"goto",home);
+        const crowd=[]; for(const [dx,dy] of around) crowd.push((await test(A,"spawn",{tier:0,dx,dy,years:10,hpx:400}))?.bid);
+        await test(A,"auto",{pace:0}); await autoOp(A,"on"); let c1=0, hurt=0;
+        for(let t=0;t<6000&&!c1;t+=100){ c1=(await infoA()).aoeCasts; if(!c1) await sleep(100); }
+        await sleep(300); hurt=crowd.filter(b=>hpOf(b)!==undefined&&hpOf(b)<maxOf(b)).length;
+        const aoe1=(await infoA()).aoe??[];
+        ok(aoe1.includes(1),`AH3 B1b: Hạo Thiên Chùy có hồn kỹ diện rộng ở ô 1 (ô ${aoe1.join(",")})`);
+        ok(c1>=1&&hurt>=2,`AH3 B1b: ${crowd.length} con quanh thân → hồn kỹ diện rộng tung ${c1} lần, ${hurt} con mất máu ngay lượt đầu`);
+        await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true});
+        // Bonus cụm (AUTO_CLUSTER.bonus) chỉ đổi thứ tự chọn: hạ một cụm không được lâu hơn hạ cùng số con rải xa (>AUTO_CLUSTER.r).
+        const clearTime=async layout=>{
+          await test(A,"ready"); await test(A,"goto",home); await test(A,"clear",{all:true,keep:true});
+          const ids=[]; for(const [dx,dy] of layout) ids.push((await test(A,"spawn",{tier:0,dx,dy,years:10}))?.bid);
+          await test(A,"auto",{pace:0}); await autoOp(A,"on"); const t0=Date.now();
+          while(Date.now()-t0<30000&&ids.some(b=>A.room.state.beasts.has(b))) await sleep(150);
+          const left=ids.filter(b=>A.room.state.beasts.has(b)).length; await autoOp(A,"off"); return {ms:Date.now()-t0,left};
+        };
+        const packL=[[120,0],[140,16],[140,-16],[160,0],[120,24]], spreadL=[[120,0],[-120,0],[0,120],[0,-120],[110,110]];
+        const tp=await clearTime(packL), ts=await clearTime(spreadL);
+        ok(tp.left===0&&ts.left===0&&tp.ms<=ts.ms*1.25+1500,`AH3 B1b: hạ cụm 5 con mất ${tp.ms}ms, 5 con rải xa mất ${ts.ms}ms (còn ${tp.left}/${ts.left}); bonus cụm ${AUTO_CLUSTER.bonus} không làm săn chậm`);
+        // Trả võ hồn ban đầu.
+        await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true}); await test(A,"ready"); await test(A,"rest",{s:10});
+        await waitFor(()=>A.room.state.players.get(A.room.sessionId)?.swCd===0,3500); A.room.send("switch",{slot:0}); await waitFor(()=>A.owned.active===act3,1500);
+        await test(A,"goto",home); await autoOp(A,"set",{cfg:P3});
+      }
+    }
     // B2: hạ một con rồi hết quái: nhớ vùng hồi sinh, đi dạo trong vùng đó ("Đi tới chỗ hồi sinh"). Dọn liên tục để hồn thú hồi sinh không xen vào.
     await test(A,"goto",home); await autoOp(A,"set",{cfg:P3});
     const k1=(await test(A,"spawn",{tier:0,dx:30,dy:0,years:10}))?.bid;
