@@ -1,8 +1,8 @@
 // Chạy một lượt bot ở máy cho nhẹ khi nhiều agent làm song song (#228). Bot đầy đủ vẫn để job CI bot-ram lo.
 //   npm run bot:local -- --only <nhóm> [--pg]   một nhóm BOT_ONLY (danh sách: --help), --pg thì lưu PostgreSQL thay vì RAM
-//   npm run bot:local -- --part <1..4> [--pg]    một nhóm BOT_PART như CI (số nhóm: BOT_PARTS trong bot-test.mjs)
+//   npm run bot:local -- --part <1..6> [--pg]    một nhóm BOT_PART như CI (số nhóm: BOT_PARTS trong bot-test.mjs)
 //   npm run bot:local -- --channels              lượt nhiều kênh (server CHANNEL_MAX=2)
-//   npm run bot:local -- --full [--pg]           bot đầy đủ (~25 phút)
+//   npm run bot:local -- --full [--pg]           bot đầy đủ (~35 phút)
 //   npm run bot:local -- --fatal [--pg]          lỗi nghiêm trọng ngoài phòng (#270, client/scripts/fatal-test.mjs): server lưu rồi thoát mã ≠ 0
 //   npm run bot:local -- --pg-status | --pg-stop PostgreSQL chung của máy: xem / tắt
 // Khác cách cũ (npm start + embedded-postgres riêng mỗi lượt):
@@ -38,7 +38,7 @@ const usage = () => console.log(`Cách dùng: npm run bot:local -- (--only <nhó
   --only     BOT_ONLY: ${onlyNames.join(", ")}
   --part     BOT_PART như job CI bot-ram
   --channels lượt nhiều kênh (server CHANNEL_MAX=2)
-  --full     bot đầy đủ (~25 phút; thường để CI bot-ram chạy)
+  --full     bot đầy đủ (~35 phút; thường để CI bot-ram chạy)
   --fatal    lỗi nghiêm trọng ngoài phòng (#270): hook ném lỗi / promise bị từ chối không ai bắt -> server ghi log, lưu người chơi
              đang online, thoát mã ≠ 0; với --pg bật lại server kiểm dữ liệu đã lưu
   --pg       lưu PostgreSQL (database riêng trên instance chung, xoá khi xong); server bật hai lần liên tiếp (migration chạy lại
