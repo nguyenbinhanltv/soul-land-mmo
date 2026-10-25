@@ -199,7 +199,7 @@ export interface PData {
   // Tự săn (Auto 1, mục 5.13): đang chạy (null = tắt), cài đặt, ngày (giờ Việt Nam) và số giây đã treo trong ngày đó, cờ chưa lưu
   // (bảng auto_hunt; flushAuto ghi trong chuỗi lưu cùng lần lưu thường, trước transaction đi cổng và khi dừng). `autoBonus`: giây
   // treo cộng thêm còn lại từ Ủy Thác Lệnh (Auto 2), chỉ tiêu khi đã treo hết AUTO_DAILY_SECS của hôm nay.
-  auto: AutoHunter | null; autoCfg: AutoSettings; autoDay: string; autoUsed: number; autoBonus: number; autoDirty: boolean; autoTok: number; autoTokAt: number;
+  auto: AutoHunter | null; autoCfg: AutoSettings; autoDay: string; autoUsed: number; autoBonus: number; autoDirty: boolean; autoTok: number; autoTokAt: number; autoSetPend: { cfg: unknown } | null;
   // Ủy thác offline (Auto 3): bảng nhận thưởng đã tính chờ gửi (client xin bằng tin `offline` sau khi đăng ký handler, vì claimOffline
   // có thể xong trước khi client sẵn sàng nhận) và client đã xin chưa.
   offMsg: Record<string, unknown> | null; offAsk: boolean;
@@ -1156,7 +1156,7 @@ export class MapRoom extends Room<MapState> {
       chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests), ...this.tongTasksOf(bag.quests), tongBoardAt: 0, tongPend: [],
       res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, resonanceTopAt: 0, arenaGone: false,
       auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0,
-      autoBonus: auth.auto.bonus, autoDirty: false, autoTok: AUTO_MSG_RATE.burst, autoTokAt: Date.now(), offMsg: null, offAsk: false,
+      autoBonus: auth.auto.bonus, autoDirty: false, autoTok: AUTO_MSG_RATE.burst, autoTokAt: Date.now(), autoSetPend: null, offMsg: null, offAsk: false,
       tong: tongDef(auth.tong.tong)?.id ?? null, tongAt: auth.tong.at };
     p.tong = d.tong ? TONG_MON.findIndex((t) => t.id === d.tong) + 1 : 0;
     this.pdata.set(client.sessionId, d);
@@ -1636,7 +1636,18 @@ export class MapRoom extends Room<MapState> {
     // Nhịp riêng theo người chơi (F2 báo cáo soát): vượt thì bỏ tin, không ghi DB / duyệt pdata.
     const now = Date.now();
     d.autoTok = Math.min(AUTO_MSG_RATE.burst, d.autoTok + (now - d.autoTokAt) / 1000 * AUTO_MSG_RATE.perSec); d.autoTokAt = now;
-    if (d.autoTok < 1) return;
+    if (d.autoTok < 1) {
+      // `set` vượt nhịp: giữ cấu hình cuối, áp một lần khi có token (không để cài đặt cuối bị mất, không tốn DB); tin khác bỏ, trả lại trạng thái thật.
+      if (op === "set") {
+        const wait = !d.autoSetPend;
+        d.autoSetPend = { cfg };
+        if (wait) this.clock.setTimeout(() => {
+          const pend = d.autoSetPend; d.autoSetPend = null;
+          if (pend && this.pdata.get(id) === d) this.autoAction(id, "set", pend.cfg);
+        }, Math.ceil((1 - d.autoTok) / AUTO_MSG_RATE.perSec * 1000) + 20);
+      } else this.sendAuto(id);
+      return;
+    }
     d.autoTok -= 1;
     const day = this.today(); if (day !== d.autoDay) { d.autoDay = day; d.autoUsed = 0; d.autoDirty = true; }
     if (op === "off") { if (d.auto) this.autoStop(id, "đã tắt."); else this.sendAuto(id); return; }
