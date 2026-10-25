@@ -370,7 +370,7 @@ export class IsoMap {
     for (let c = 0; c * 16 < W; c++) {
       const w = Math.min(16, W - c * 16);
       const af = this.atlas?.frame(key, `c${c}`);
-      const im = this.scene.add.image(at.x + c * 16, at.y, af ? this.atlas!.key : key, af ?? `c${c}`).setOrigin(0, 0);
+      const im = this.scene.add.image(at.x + c * 16, at.y, af ? af.key : key, af ? af.frame : `c${c}`).setOrigin(0, 0);
       this.opts.lit?.(im);
       im.setDepth(frontDepth(X0, Y0, X1, Y1, at.x + c * 16 + w / 2));
       group.ims.push(im);
@@ -705,7 +705,7 @@ export class IsoMap {
     if (!im) { im = this.scene.add.image(0, 0, key); this.opts.lit?.(im); }
     if (im.mask) im.clearMask();
     const af = atlas ? this.atlas?.frame(key) : null;
-    return (af ? im.setTexture(this.atlas!.key, af) : im.setTexture(key)).setPosition(x, y).setVisible(true).setAlpha(1).setScale(1).setFlipX(false);
+    return (af ? im.setTexture(af.key, af.frame) : im.setTexture(key)).setPosition(x, y).setVisible(true).setAlpha(1).setScale(1).setFlipX(false);
   }
 
   /**

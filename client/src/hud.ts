@@ -2389,7 +2389,7 @@ let npcAct: NpcActions | null = null;
 let sellConfirm: string | null = null; // "id|số lượng" vừa bấm "Bán" lần đầu với món giá trị (từ 9.8 cả "expand" mở rộng túi): bấm lần nữa mới làm
 /** Bán từ ngần này đồng trở lên (hoặc đồ đã cường hóa) thì phải bấm hai lần (chỉ là xác nhận giao diện, không phải số cân bằng). */
 const SELL_CONFIRM_DONG = 100;
-const NPC_ROLE_NOTE: Record<NpcRole, string> = { talk: "", shop: "Thương nhân: mua đan dược, bán đồ dư.", forge: "Lò rèn: cường hóa hồn cốt, nâng cấp hồn hạch.",
+const NPC_ROLE_NOTE: Record<NpcRole, string> = { talk: "", shop: "Thương nhân: mua đan dược, bán đồ dư.", forge: "Lò rèn: cường hóa hồn cốt, nâng cấp / đổi bộ hồn hạch, rèn trang bị (cường hóa, hợp thành, phân giải, khắc may mắn).",
   arena: "Đấu đội võ hồn 1v1, xếp hạng Elo. Thua không mất gì.",
   looks: `Thợ may: đổi ngoại hình, kể cả đổi giữa Mẫu dựng sẵn và Tự tạo. ${LOOKS_CHANGE.free === 1 ? "Lần đầu" : `${LOOKS_CHANGE.free} lần đầu`} miễn phí, các lần sau tốn Hồn Tệ.`,
   tong: `Gia nhập cần xong chuỗi tân thủ và võ hồn cấp ${TONG_MIN_LEVEL}; đổi tông sau ${TONG_SWITCH_DAYS} ngày, mất điểm tuần đang có. Tông không cộng chỉ số.` };
