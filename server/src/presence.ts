@@ -19,7 +19,7 @@ export function isRedisFailure(e: unknown) {
 }
 
 /** Ghi log lỗi nền tối đa một lần mỗi 10 giây cho mỗi `what` (Redis mất cả phút không làm ngập log). */
-const lastLogged = new Map<string, { at: number; skipped: number }>();
+const lastLogged = new Map<string, { at: number; skipped: number }>(); // map-co-dinh: khóa là nhãn lỗi cố định trong mã, không theo người chơi
 function logLimited(what: string, e: unknown) {
   const now = Date.now(), prev = lastLogged.get(what);
   if (prev && now - prev.at < 10_000) { prev.skipped++; return; }

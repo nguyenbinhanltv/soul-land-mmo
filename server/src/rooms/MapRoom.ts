@@ -349,8 +349,10 @@ interface KingSeat { id: string; owner: string | null; state: "alive" | "down" |
  * của khung đó. Phòng mở lại trong cùng khung nhận lại suất không chủ thay vì sinh con mới, nên hạ thú vương rồi rời bản đồ cho phòng
  * hủy, quay lại cũng không có con mới. Khung hết hạn thì bỏ. Chạy nhiều tiến trình thì phải chuyển sang presence (Redis), như lịch.
  */
-const kingSeats = new Map<string, Map<number, KingSlot>>();
+const kingSeats = new Map<string, Map<number, KingSlot>>(); // map-co-dinh: khóa theo mapId; khung hết hạn bị kingRecs / applyKingDoc bỏ
 const kingClaimCache = new Map<string, Set<number>>();
+/** Bỏ bộ nhớ đệm người đã nhận rương của khung `slot` (khung hết hạn / không còn trong tài liệu): không có thì Map chỉ tăng theo uptime (#739). */
+const dropKingClaims = (mapId: string, slot: number) => { kingClaimCache.delete(`${mapId}:${slot}`); };
 type KingSlotDoc = { slot: number; until: number; boss: string; seats: KingSeat[]; claimed: number[] };
 type KingDoc = Record<string, KingSlotDoc>;
 const kingKey = (mapId: string) => `king:${mapId}`;
@@ -420,7 +422,7 @@ function eliteLockLeft(key: string, acc: number, now = Date.now()): number {
 function kingRecs(mapId: string, now: number) {
   let recs = kingSeats.get(mapId);
   if (!recs) { recs = new Map(); kingSeats.set(mapId, recs); }
-  for (const [slot, r] of recs) if (r.until <= now) recs.delete(slot);
+  for (const [slot, r] of recs) if (r.until <= now) { recs.delete(slot); dropKingClaims(mapId, slot); }
   return recs;
 }
 /**
@@ -442,20 +444,23 @@ function kingSlotNow(mapId: string, now: number): { slot: number; until: number 
  */
 function applyKingDoc(mapId: string, doc: KingDoc | null) {
   if (!doc) return;
-  const recs = new Map<number, KingSlot>();
+  const recs = new Map<number, KingSlot>(), now = Date.now();
   for (const value of Object.values(doc)) {
     const cacheKey = `${mapId}:${value.slot}`, cached = kingClaimCache.get(cacheKey) ?? new Set<number>();
     for (const accountId of value.claimed) cached.add(accountId);
-    kingClaimCache.set(cacheKey, cached);
+    if (value.until > now) kingClaimCache.set(cacheKey, cached); else dropKingClaims(mapId, value.slot);
     recs.set(value.slot, { slot: value.slot, until: value.until, boss: value.boss, seats: value.seats, claimed: new Set(cached) });
   }
+  for (const slot of kingSeats.get(mapId)?.keys() ?? []) if (!recs.has(slot)) dropKingClaims(mapId, slot);
   kingSeats.set(mapId, recs);
 }
+/** Hook kiểm thử (server/scripts/map-leak-test.ts): nạp tài liệu khung, lấy các khung còn hạn, đếm / hỏi bộ nhớ đệm rương. */
+export const kingClaimTest = { apply: applyKingDoc, recs: kingRecs, size: () => kingClaimCache.size, has: (mapId: string, slot: number) => kingClaimCache.has(`${mapId}:${slot}`) };
 async function loadKingState(mapId: string) { applyKingDoc(mapId, await presenceBackend.getJson<KingDoc>(kingKey(mapId))); }
 async function persistKingSeat(mapId: string, slot: number, seat: KingSeat, claimed: Set<number>) {
   const cacheKey = `${mapId}:${slot}`, cached = kingClaimCache.get(cacheKey) ?? new Set<number>();
   for (const accountId of claimed) cached.add(accountId);
-  kingClaimCache.set(cacheKey, cached);
+  if (kingSeats.get(mapId)?.has(slot)) kingClaimCache.set(cacheKey, cached); // khung đã bị bỏ (hết hạn) thì không tạo lại khóa mồ côi
   const owner = `${presenceBackend.workerId}:king:${mapId}:${slot}:${seat.id}`;
   await presenceBackend.withLock<KingDoc>(kingKey(mapId), owner, 5000, (old) => {
     const next = old ?? {}, rec = next[String(slot)];
@@ -471,7 +476,7 @@ async function takeKingSeat(mapId: string, slot: number, until: number, roomId: 
   let result!: { seat: KingSeat; claimed: Set<number>; boss: string };
   const ok = await presenceBackend.withLock<KingDoc>(kingKey(mapId), owner, 5000, (old) => {
     const now = Date.now(), next = old ?? {};
-    for (const [key, value] of Object.entries(next)) if (value.until <= now) delete next[key];
+    for (const [key, value] of Object.entries(next)) if (value.until <= now) { delete next[key]; dropKingClaims(mapId, value.slot); }
     let rec = next[String(slot)];
     if (!rec) { rec = { slot, until, seats: [], claimed: [], boss }; next[String(slot)] = rec; }
     let seat = rec.seats.find((s) => s.owner === null);

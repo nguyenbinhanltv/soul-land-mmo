@@ -130,8 +130,22 @@ export const arenaLiveWatch = (roomId: string, sid: string, acc: number) => live
   const d = book[roomId]; if (d) { delete d.holds[acc]; d.watching[sid] = acc; }
 });
 export const arenaLiveUnwatch = (roomId: string, sid: string) => liveEdit((book) => { delete book[roomId]?.watching[sid]; });
-/** Bên đối thủ của trận ngay trước, giữ trong RAM để arenaPairs tránh ghép lại quá sớm nếu còn bên khác. */
-const lastFoe = new Map<string, string>();
+/** Bên đối thủ của trận ngay trước (và lúc ghép), giữ trong RAM để arenaPairs tránh ghép lại quá sớm nếu còn bên khác. Dọn bởi sweepLastFoe. */
+const lastFoe = new Map<string, { foe: string; at: number }>();
+/**
+ * Xóa mục `lastFoe` của bên `id` khi cả `id` lẫn đối thủ đều không còn trong hàng (`present`) và đã qua ARENA.rematchSettleSecs kể từ lúc ghép:
+ * hết cửa sổ chờ ghép lại thì mục không còn tác dụng, không dọn thì Map tăng theo số đội từng xếp trận (#739). Trả số mục đã xóa.
+ */
+export function sweepLastFoe(present: ReadonlySet<string>, now = Date.now()) {
+  let n = 0;
+  for (const [id, r] of lastFoe) {
+    if (now - r.at < ARENA.rematchSettleSecs * 1000 || present.has(id) || present.has(r.foe)) continue;
+    lastFoe.delete(id); n++;
+  }
+  return n;
+}
+/** Hook kiểm thử: ghi / đếm mục `lastFoe`. */
+export const arenaLastFoeTest = { set: (a: string, b: string, at: number) => { lastFoe.set(a, { foe: b, at }); lastFoe.set(b, { foe: a, at }); }, size: () => lastFoe.size };
 const TICK_MS = 500;
 let timer: ReturnType<typeof setInterval> | null = null;
 let busy = false;
@@ -267,7 +281,7 @@ function startTimer() {
     if (!busy) void pass().catch((err) => console.error("Lượt ghép Đại Đấu Hồn Trường lỗi", err));
   }, TICK_MS);
 }
-function stopTimer() { if (!queue.size && !pendingRemove.size && timer) { clearInterval(timer); timer = null; } }
+function stopTimer() { if (!queue.size && !pendingRemove.size && !lastFoe.size && timer) { clearInterval(timer); timer = null; } }
 /** Trả bên về hàng sau lỗi ghép rồi báo `requeue`; không ghi được hàng chung thì hủy bên đó. */
 function retry(e: ArenaTeamEntry) {
   if (shadows.has(e)) return e.requeue();
@@ -338,16 +352,17 @@ async function pass() {
     const raw = await presenceBackend.getJson<RemoteEntry[]>(QUEUE_KEY) ?? [];
     reconcile(raw, now);
     const remote = await liveRemote(raw);
+    sweepLastFoe(new Set([...queue.keys(), ...remote.map((r) => r.id)]), now);
     const entries = new Map(remote.map((r) => [r.id, queue.get(r.id) ?? shadow(r)] as const));
     const list = [...entries.values()].filter((e) => e.ready()).sort((x, y) => x.since - y.since)
-      .map((e) => ({ id: e.id, size: e.members.length, test: e.members.some((m) => m.test), elo: e.elo, wait: (now - e.since) / 1000, last: lastFoe.get(e.id) }));
+      .map((e) => ({ id: e.id, size: e.members.length, test: e.members.some((m) => m.test), elo: e.elo, wait: (now - e.since) / 1000, last: lastFoe.get(e.id)?.foe }));
     // Nhóm theo cỡ và theo loại tài khoản: tài khoản test (#517) chỉ gặp tài khoản test, người thật chỉ gặp người thật.
     const groups = new Map<string, typeof list>();
     for (const item of list) { const k = `${item.size}${item.test ? "t" : ""}`; groups.set(k, [...(groups.get(k) ?? []), item]); }
     for (const group of groups.values()) for (const [a, b] of arenaPairs(group)) {
       // Ghép lại đúng đối thủ vừa đấu thì chờ ARENA.rematchSettleSecs giây cho người khác kịp xếp hàng (arenaPairs chỉ tránh được khi họ đã có mặt).
       const waited = (id: string) => group.find((x) => x.id === id)!.wait;
-      if ((lastFoe.get(a) === b || lastFoe.get(b) === a) && Math.min(waited(a), waited(b)) < ARENA.rematchSettleSecs) continue;
+      if ((lastFoe.get(a)?.foe === b || lastFoe.get(b)?.foe === a) && Math.min(waited(a), waited(b)) < ARENA.rematchSettleSecs) continue;
       const ea = entries.get(a), eb = entries.get(b); if (!ea || !eb) continue;
       try { if (!await claimRemote(a, b)) continue; } catch (err) { console.error("Không giành được cặp ở hàng chờ đấu trường", err); continue; }
       queue.delete(a); queue.delete(b);
@@ -360,7 +375,7 @@ async function pass() {
         }
         continue;
       }
-      lastFoe.set(a, b); lastFoe.set(b, a);
+      lastFoe.set(a, { foe: b, at: now }); lastFoe.set(b, { foe: a, at: now });
       const m: ArenaMatch = { id: randomUUID(), sides: [ea, eb].map((e) => ({ id: e.id, elo: e.elo,
         members: e.members.map((member) => ({ ...member, rec: { ...member.rec } })) })) };
       arenaMatches.set(m.id, m);
