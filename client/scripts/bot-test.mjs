@@ -83,6 +83,7 @@
 // danh sách và đổi kênh giữ tiến độ, đồng đội tổ đội được xếp chung kênh khi vào game / đi cổng, thú vương mỗi kênh một con, thưởng tinh
 // anh khóa theo tài khoản ở mọi kênh và đổi kênh rồi quay về vẫn giữ đóng góp (#119).
 import { Client } from "colyseus.js";
+import { arenaAuditTest } from "./arena-audit-test.mjs"; // #741
 import { solidGrid, hits, isSolidTile, PLAYER_HW, PLAYER_HH } from "../../shared/move.ts";
 import { findPath, findLongPath, buildNav, navNode, clearLine, pathLength } from "../../shared/path.ts";
 import { autoLeg } from "../../shared/autowalk.ts"; // tự đi tới cờ (R4, #431)
@@ -541,6 +542,7 @@ const STANDALONE=[
   ["boneSub",1,boneSubTest],                  //   3 #187 dòng phụ hồn cốt
   ["split",5,splitTest],                      // ~42 #173 hang chia phần luân phiên (đo ở máy)
   ["arena",3,arenaTest],                      //  96 7.2, 9.7 Đại Đấu Hồn Trường
+  ["arenaAudit",5,arenaAuditRun,true],        // ~50 #741 soát chống gian lận đấu trường (arena-audit-test.mjs; đo ở máy)
   ["friend",5,friendTest,true],               // ~40 #195 bạn bè và chặn (đo ở máy)
   ["chuong3",5,chapter3Test],                 // ~18 #284 chương 3 Hải Thần Đảo (đo ở máy)
   ["bag",4,async()=>{ bagSyncPure(); await shopBuybackTest(); await charBagCmdTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); }], // 127 #215, 9.8; E1 trang bị hồn sư; E2 rơi đồ; E3 cường hóa; E4 hợp thành / phân giải
@@ -663,6 +665,7 @@ if(process.env.BOT_ONLY==="charbag"){ await charBagCmdTest(); console.log(fails?
 if(process.env.BOT_ONLY==="equipsoak"){ await equipSoak(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="cheat2"){ await cheatBagTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="arena"){ await arenaTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="arenaAudit"){ await arenaAuditRun(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="daily"){ await dailyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="friend"){ await friendTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="chat"){ await chatTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -9577,6 +9580,9 @@ async function dailyTest(){
   await test(D,"day",{shift:0}); await test(D,"daily",{shift:0});
   await D.room.leave();
 }
+
+/** #741 soát chống gian lận đấu trường: bài ở module tách, nhận các hàm dùng chung. */
+function arenaAuditRun(){ return arenaAuditTest({bot,enter,test,post,waitFor,sleep,ok,npcSpot,AT,ARENA,MAPS,TEAM_SIZE}); }
 
 /**
  * 7.2 Đại Đấu Hồn Trường: hàm thuần (Elo, cửa sổ ghép nới dần, ghép Elo gần nhất); 3 tài khoản mới ở Thiên Đấu Thành (từ BĐ6a; 7.2 là

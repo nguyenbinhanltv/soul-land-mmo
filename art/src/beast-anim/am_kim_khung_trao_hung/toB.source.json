@@ -1,0 +1,134 @@
+{
+  "species": "am_kim_khung_trao_hung",
+  "sheet": "B",
+  "date": "2026-10-26",
+  "worker": "soul-land-mmo-68",
+  "owner": "ao://sessions/soul-land-mmo/soul-land-mmo-63",
+  "tool": "image_gen.imagegen (builtin; exposed as image_gen__imagegen)",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "No size argument exposed. 1024x1024 requested in prompt only.",
+  "attempts": 2,
+  "selected_attempt": 2,
+  "raw_file": "toB.png",
+  "sha256": "cb558248a52f3e2d5669eb6f71ccc9c66806830a9af9b75be27841580048afbc",
+  "bytes": 2146657,
+  "width": 1254,
+  "height": 1254,
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "size_requirement_met": false,
+  "grid": [
+    6,
+    8
+  ],
+  "expected_visible_cells": 44,
+  "empty_cells": [
+    "H4 C5–6",
+    "H8 C5–6"
+  ],
+  "prompt_file": "toB.prompt.txt",
+  "prompt_sha256": "cdd20507dc1b005659bba270ab904caf78779e4d24b2eba8d0dc062431185c8b",
+  "output_path_returned_by_tool": "/Users/thanhhoa/.codex/generated_images/01a174b3-1780-7461-9533-e52050d2d3fa/exec-00c059f3-743c-4f14-804c-f61c62508605.png",
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/am_kim_khung_trao_hung.png",
+      "role": "identity",
+      "bytes": 6924,
+      "dimensions": [
+        288,
+        96
+      ],
+      "sha256": "80e62d4106511f93d59328fd5dd1463abade6ad49a25969c0015f7b4d49ebbee",
+      "artifact_path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-63/shared/assets/sprites/beast/am_kim_khung_trao_hung.png"
+    },
+    {
+      "path": "art/src/beast-anim/am_kim_khung_trao_hung/toA.png",
+      "role": "style-only candidate",
+      "bytes": 2229475,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "sha256": "6ce9fe1bd580b6b144a625adab9e745bb52341f19a5f7473030bdc507414fcd9",
+      "artifact_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-63/am_kim_khung_trao_hung/A2/toA.png"
+    }
+  ],
+  "transparent_background": false,
+  "reference_order": [
+    "Image 1: static original identity",
+    "Image 2: A2 candidate style only"
+  ],
+  "references_viewed_before_generation": true,
+  "postprocessing": "Không. Raw được kiểm nguyên byte với output tool và artifact worker68; không cắt/resize/hậu kỳ/đổi metadata.",
+  "qa_status": "candidate, chưa duyệt mỹ thuật/runtime; sai kích thước yêu cầu, chờ owner đánh giá raw H4",
+  "suspected_issues": [
+    "Toàn tờ: sai kích thước yêu cầu, không resize.",
+    "R8C3-C4: đầu dạt trái khi nằm, cần owner xem trục thân N; lưng vẫn hiện, không lộ mặt như B1.",
+    "R4C3-C4: cần xem lại trục NE khi thân nằm ngang.",
+    "R1C5-C6 và R5C5-C6: biên độ hurt nhẹ, khó phân biệt rõ với idle.",
+    "R3C3-C4 và R7C3-C4: động tác attack và margin cần owner kiểm tra khi tích hợp."
+  ],
+  "identity_conflict": "DESC generic quad/all-four-legs mâu thuẫn static/A2 upright hai chân. Prompt gốc giữ nguyên, thêm role clarification. Chưa xác nhận anatomy/family/hướng đạt.",
+  "history": [
+    {
+      "id": "B1",
+      "start_utc": "2026-10-25T20:15:06.028Z",
+      "end_utc": "2026-10-25T20:15:49.498Z",
+      "source": "/Users/thanhhoa/.codex/generated_images/01a174b3-1780-7461-9533-e52050d2d3fa/exec-c4351c91-7ba0-46c8-8110-9e24a236c677.png",
+      "suspects": [
+        "R3C3: mặt hiện rõ, lệch sang E/front",
+        "R4C3-C4: die xoay mặt về camera, mất trục NE",
+        "R5C5-C6: hurt xoay sang NE thay vì N",
+        "R8C3-C4: die xoay mặt về camera, mất trục N"
+      ],
+      "raw": {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-68/am_kim_khung_trao_hung/B1.png",
+        "bytes": 2121069,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "sha256": "a1bbd906541cc6991bba70f6b9e01e1ef9dd8d5357efb6b9f3e9c0195c4c25b1"
+      },
+      "prompt": {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-68/am_kim_khung_trao_hung/B1.prompt.txt",
+        "bytes": 4623,
+        "sha256": "db2ab1380ef5b93b878e24d0fb767329df585f6329332fd13d1e50033202b0a0"
+      },
+      "size_requirement_met": false
+    },
+    {
+      "id": "B2",
+      "start_utc": "2026-10-25T20:16:11.972Z",
+      "end_utc": "2026-10-25T20:17:00.064Z",
+      "source": "/Users/thanhhoa/.codex/generated_images/01a174b3-1780-7461-9533-e52050d2d3fa/exec-00c059f3-743c-4f14-804c-f61c62508605.png",
+      "suspects": [
+        "Toàn tờ: sai kích thước yêu cầu, không resize.",
+        "R8C3-C4: đầu dạt trái khi nằm, cần owner xem trục thân N; lưng vẫn hiện, không lộ mặt như B1.",
+        "R4C3-C4: cần xem lại trục NE khi thân nằm ngang.",
+        "R1C5-C6 và R5C5-C6: biên độ hurt nhẹ, khó phân biệt rõ với idle.",
+        "R3C3-C4 và R7C3-C4: động tác attack và margin cần owner kiểm tra khi tích hợp."
+      ],
+      "raw": {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-68/am_kim_khung_trao_hung/B2.png",
+        "bytes": 2146657,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "sha256": "cb558248a52f3e2d5669eb6f71ccc9c66806830a9af9b75be27841580048afbc"
+      },
+      "prompt": {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-68/am_kim_khung_trao_hung/B2.prompt.txt",
+        "bytes": 5247,
+        "sha256": "cdd20507dc1b005659bba270ab904caf78779e4d24b2eba8d0dc062431185c8b"
+      },
+      "size_requirement_met": false
+    }
+  ],
+  "upstream_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-68/am_kim_khung_trao_hung/provenance.json",
+  "provenance_normalization": "Bỏ dimensions sai áp cho file prompt văn bản trong provenance worker68; giữ bytes và SHA-256 đã kiểm. Bản gốc không sửa ở artifact."
+}
