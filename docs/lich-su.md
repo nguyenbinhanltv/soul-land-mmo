@@ -87,7 +87,7 @@
 - [x] Khóa Redis `lock:item:<id>` khi bật nhiều tiến trình (cùng việc #120): #559.
 
 **Giai đoạn 14: Giao diện Nhân vật + Túi** (mục 5.16; theo dõi #453; chỉ client; mỗi bước một PR; **NV0 cần chủ repo duyệt bố cục trước khi làm NV1**).
-- [x] NV0 Thiết kế chi tiết: mục 5.16, bản phác HTML `docs/ban-phac-nhan-vat-tui/`, hợp đồng `client/src/charBagContract.ts` + `npm run test:charbag --prefix client` (#454).
+- [x] NV0 Thiết kế chi tiết: mục 5.16, bản phác HTML `docs/art/ban-phac-nhan-vat-tui/`, hợp đồng `client/src/charBagContract.ts` + `npm run test:charbag --prefix client` (#454).
 - [x] NV1 `DualWindowManager`: mở cả hai, phím B / C, nút ⇆, lớp, bố cục đáp ứng; bỏ đóng chéo Nhân vật / Túi (#455).
 - [x] NV2 Búp bê 4 tab; gắn / tháo hồn cốt, hồn hạch ngay trong bảng; tab Võ hồn (đội, ra trận, vòng) (#456).
 - [x] NV3 Kéo thả, bấm đúp mặc thông minh, thẻ thao tác nhanh, so sánh hai cột (#457).
@@ -105,20 +105,20 @@
 - [x] R8 Sương mù khám phá, SQL `031_map_fog.sql` (#435).
 
 **Nhóm Hình thái Võ Hồn Chân Thân: pháp tướng** (mục 5.18; theo dõi #482; mỗi bước một PR).
-- [x] H0 Bảng đặc tả 25 võ hồn và prompt PixelLab (#483, PR #492, `docs/phap-tuong.md`).
-- [x] H1 Ảnh pháp tướng Lam Điện Bá Vương Long + Hạo Thiên Chùy, công thức chuẩn (#485, PR #499, `docs/phap-tuong-cong-thuc.md`).
+- [x] H0 Bảng đặc tả 25 võ hồn và prompt PixelLab (#483, PR #492, `docs/art/phap-tuong.md`).
+- [x] H1 Ảnh pháp tướng Lam Điện Bá Vương Long + Hạo Thiên Chùy, công thức chuẩn (#485, PR #499, `docs/art/phap-tuong-cong-thuc.md`).
 - [x] H2 Khung code dùng chung (#486, PR #505, mục 5.18): bảng `PHAP_TUONG`, lớp sau / trước thân, vòng thở và động tác đánh có dừng hình, chuỗi biến hình và tan, tiến hóa theo vòng, cut-in, hai pháp tướng, mức hiệu ứng; đã nối ảnh thật H1, 23 võ hồn còn lại dùng hình tạm bằng code tới khi ảnh vào manifest. H3 (#487): lô P4 xong (7 khí võ hồn, PR #513); lô P1 xong (4 sinh vật Hỏa Long, Tà Hỏa Phượng Hoàng, Băng Phượng Hoàng, Kim Vũ Miêu Ưng, PR #528); lô P2 xong (5 thú U Minh Linh Miêu, Nhu Cốt Thỏ, Yêu Hồ, Liệt Hỏa Thương Lang, Bạch Hổ, PR #531); lô P3 xong (Tử Vong Chu Hoàng, Bích Lân Xà Hoàng, Quỷ Mị, Hỏa Ảnh): đủ 25 / 25 ảnh pháp tướng; còn lại là hiệu ứng riêng tuyệt kỹ / hồn kỹ Chân Thân, hoàn thiện (xem #482).
 
 **Nhóm Hình ảnh kỹ năng combat** (theo dõi #541; chỉ hình ảnh và cảm giác đánh, giữ số và cơ chế; mỗi bước một PR).
 - **Chủ sở hữu họ asset C1–C16:** **Codex (tthoadev)**; C1 pilot gồm tia / mảnh va chạm, trạng thái bám thân, bụi / vệt / sóng đất và số sát thương; các bước C2–C6 chỉ mở sau khi chủ repo duyệt preview C1.
-- [x] S0 Bảng đặc tả 25 võ hồn × 11 chiêu, ô Võ Hồn Chân Thân ở vòng 7 (#541, `docs/ky-nang-combat-dac-ta.md`).
+- [x] S0 Bảng đặc tả 25 võ hồn × 11 chiêu, ô Võ Hồn Chân Thân ở vòng 7 (#541, `docs/art/ky-nang-combat-dac-ta.md`).
 - [x] S1 Khung code `SKILL_VISUAL` + cảm giác đánh (#542, PR #546, mục 5.11).
-- [x] S2 Thử trọn bộ 11 chiêu Lam Điện Bá Vương Long + Hạo Thiên Chùy, công thức chuẩn (#548, `docs/ky-nang-cong-thuc.md`, mục 5.11).
+- [x] S2 Thử trọn bộ 11 chiêu Lam Điện Bá Vương Long + Hạo Thiên Chùy, công thức chuẩn (#548, `docs/art/ky-nang-cong-thuc.md`, mục 5.11).
 - [x] S3 lô A: 7 khí võ hồn (Cửu Tinh Thất Sát Kiếm, Nguyệt Nhận, Càn Khôn Hỗn Nguyên Tỏa, Xúc Xích, Thiên Càn Bạch Ngọc Đỉnh, Cửu Bảo Lưu Ly Tháp, Phá Hồn Thương) + dung hợp Yêu Nguyệt (#566, PR #583).
 - [x] S3 lô B 6 thú võ hồn (U Minh Linh Miêu, Nhu Cốt Thố, Kim Vũ Miêu Ưng, Yêu Hồ, Liệt Hỏa Thương Lang, Bạch Hổ) × 11 chiêu + dung hợp Hạo Thiên Nhu Cốt, U Minh Bạch Hổ: 68 sheet (#567, `tools/assets/skill-vfx/lo-b.json`, `FUSION_VISUAL`).
 - [x] S3 lô C 5 võ hồn (Tà Hỏa Phượng Hoàng, Hỏa Long, Hỏa Ảnh, Quỷ Mị, Băng Phượng Hoàng) × 11 chiêu + dung hợp Băng Hỏa Lưỡng Nghi: 56 sheet (#568, `tools/assets/skill-vfx/lo-c.json`, `FUSION_VISUAL`).
 - [x] S3 lô D: 5 võ hồn thực vật / độc (Kỳ Nhung Thông Thiên Cúc, Tử Vong Chu Hoàng, Bích Lân Xà Hoàng, Lam Ngân Thảo, A Ngân) × 11 chiêu + dung hợp Lôi Độc Song Sát: 56 sheet (#569, `tools/assets/skill-vfx/lo-d.json`, `FUSION_VISUAL`).
-- [x] S5 Hoàn thiện (H8 #491, mục 5.11): FPS 40–60 người, tự hạ mức hiệu ứng, Giảm chuyển động / điện thoại ngang, âm thanh T3, kiểm tung mọi chiêu (`docs/hieu-nang-hieu-ung.md`).
+- [x] S5 Hoàn thiện (H8 #491, mục 5.11): FPS 40–60 người, tự hạ mức hiệu ứng, Giảm chuyển động / điện thoại ngang, âm thanh T3, kiểm tung mọi chiêu (`docs/tech/hieu-nang-hieu-ung.md`).
 - [x] H7 Chuyển động phụ của phụ thể bằng code (#490, mục 5.11): cánh vỗ, đuôi vẫy, vũ khí lắc / vung, vật bay bồng bềnh, hư ảnh thở, giật khi đánh; 7 họ × 4 trạng thái, theo mức hiệu ứng + Giảm chuyển động, đo 40 người.
 - [x] S3–S5 các võ hồn còn lại: **không còn võ hồn nào**, S2 + lô A–D phủ đủ 25 / 25; hoàn thiện là S5 ở trên (#541 đóng).
 

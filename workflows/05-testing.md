@@ -118,4 +118,4 @@ npm run test:accounts --prefix server
 - Bot không assert mọi thứ: đọc output (dòng ✗ là lỗi, ⚠ là bị bỏ qua) và log server. Luồng mới thì thêm vào `client/scripts/bot-test.mjs`, gắn đúng một nhóm trong `INLINE` / `STANDALONE`.
 - **Ví dụ sửa chập chờn thật:** bài `tideTest` chờ "hết gầm" bằng sleep cố định → thay bằng chờ điều kiện có hạn chót + chẩn đoán trong dòng ✗ (#364); phần đầu chung `ra khỏi làng để thử tiên cơ` trượt chập chờn → đọc chẩn đoán, tìm chỗ chờ theo giờ (#368). Chi tiết ca cũ nằm trong skill `bot-flakiness` (PR #28, #36, #71, #140).
 - **Ảnh trước / sau:** script mẫu `run<N>.sh` + `shot<N>.mjs` trong thư mục artifact của từng phiên; Chrome luôn `--mute-audio`, cổng CDP riêng, không dùng `9333`.
-- **Đo hiệu năng dài:** skill `soak-perf` (nhiều bot trên bản đồ ×8, đo tick / bản vá / băng thông / bộ nhớ); tài liệu số đo ở `docs/hieu-nang-soak.md`.
+- **Đo hiệu năng dài:** skill `soak-perf` (nhiều bot trên bản đồ ×8, đo tick / bản vá / băng thông / bộ nhớ); tài liệu số đo ở `docs/tech/hieu-nang-soak.md`.
