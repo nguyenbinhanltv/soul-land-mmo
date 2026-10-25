@@ -94,6 +94,15 @@ Icons made by Lorc, Delapouite, Faithtoken (https://game-icons.net, CC BY 3.0). 
 | `gi_menu_arena` | game-icons.net: [crossed sabres](https://game-icons.net/1x1/lorc/crossed-sabres.html) | Lorc (https://lorcblog.blogspot.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
 | `gi_menu_shop` | game-icons.net: [shop](https://game-icons.net/1x1/delapouite/shop.html) | Delapouite (https://delapouite.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
 | `gi_menu_forge` | game-icons.net: [anvil](https://game-icons.net/1x1/lorc/anvil.html) | Lorc (https://lorcblog.blogspot.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
+| `item_hon_hach_phuong_hoang` | game-icons.net: [fire silhouette](https://game-icons.net/1x1/lorc/fire-silhouette.html) | Lorc (https://lorcblog.blogspot.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
+| `item_hon_hach_ba_vuong_long` | game-icons.net: [lightning branches](https://game-icons.net/1x1/lorc/lightning-branches.html) | Lorc (https://lorcblog.blogspot.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
+| `item_hon_hach_xa_hoang` | game-icons.net: [snake spiral](https://game-icons.net/1x1/delapouite/snake-spiral.html) | Delapouite (https://delapouite.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
+| `item_hon_hach_hao_thien` | game-icons.net: [hammer drop](https://game-icons.net/1x1/lorc/hammer-drop.html) | Lorc (https://lorcblog.blogspot.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
+| `item_hon_hach_that_sat` | game-icons.net: [sword brandish](https://game-icons.net/1x1/delapouite/sword-brandish.html) | Delapouite (https://delapouite.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
+| `item_hon_hach_linh_mieu` | game-icons.net: [claw slashes](https://game-icons.net/1x1/lorc/claw-slashes.html) | Lorc (https://lorcblog.blogspot.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
+| `item_hon_hach_lam_ngan` | game-icons.net: [sprout](https://game-icons.net/1x1/lorc/sprout.html) | Lorc (https://lorcblog.blogspot.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
+| `item_hon_hach_luu_ly` | game-icons.net: [pagoda](https://game-icons.net/1x1/delapouite/pagoda.html) | Delapouite (https://delapouite.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
+| `item_hon_hach_tien_co` | game-icons.net: [star swirl](https://game-icons.net/1x1/lorc/star-swirl.html) | Lorc (https://lorcblog.blogspot.com), CC BY 3.0; tô màu, viền, khung bằng `tools/assets/game-icons-pixel.mjs` | 2026-10-25 |
 
 ## C6 — màn đăng nhập, màn tải, logo, banner sự kiện (#557)
 
