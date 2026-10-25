@@ -3586,6 +3586,7 @@ export function updateArenaEnd() {
 // ---------- Cộng minh (mục 5.10, bước 8.2): chỉ hiển thị số server gửi (tin riêng "resonance") ----------
 let resMsg: ResonanceMsg | null = null;
 let resTopMsg: ResonanceTopMsg | null = null;
+let resTab = 0; // tab trụ cột đang xem (chỉ số theo RESONANCE)
 let resTopRequest: (page: number, pageSize: number) => void = () => {};
 /** Tin "resonance" mới: vẽ lại bảng nếu đang mở. */
 export function setResonance(m: ResonanceMsg) { resMsg = m; if (!$("#reso").hidden) renderReso(); }
@@ -3598,8 +3599,8 @@ export function toggleReso(open = $("#reso").hidden) {
   if (open) { toggleRoster(false); toggleBag(false); closeNpc(); toggleWorld(false); toggleFriends(false); toggleChar(false); renderReso(); }
 }
 /**
- * Bảng Cộng minh: tổng % đang cộng cho mọi võ hồn, rồi 5 trụ cột (RESONANCE): tiến độ x/mốc kế tiếp kèm thanh, các mốc (đã đạt
- * sáng màu trụ cột, chưa đạt mờ) và phần cộng của từng mốc.
+ * Bảng Cộng minh: tổng % đang cộng cho mọi võ hồn, tab theo trụ cột (RESONANCE): tiến độ x/mốc kế tiếp kèm thanh, các mốc (đã đạt ✔,
+ * mốc kế nổi bật, còn lại khoá) và phần cộng của từng mốc; bảng xếp hạng ở cuối.
  */
 function renderReso() {
   const el = $("#reso"); el.innerHTML = "";
@@ -3641,26 +3642,42 @@ function renderReso() {
     pages.append(prev, page, next); rank.appendChild(pages);
   }
   el.appendChild(rank);
+  // 5 tab sinh từ RESONANCE (không hardcode số nhánh): tên + x/y mốc + chấm màu; trong tab: thanh tiến độ, mốc đã đạt / mốc kế / mốc khoá
+  if (resTab >= RESONANCE.length) resTab = 0;
+  const tabs = document.createElement("div"); tabs.className = "restabs"; tabs.setAttribute("role", "tablist");
   RESONANCE.forEach((r, i) => {
-    const have = resMsg?.prog[i] ?? 0, lv = resMsg?.lv[i] ?? 0, next = r.steps[lv];
-    const box = document.createElement("section"); box.className = "respil"; box.style.setProperty("--c", r.col);
-    const top = document.createElement("div"); top.className = "restop";
-    const name = document.createElement("b"); name.textContent = `${r.name} · ${lv}/${r.steps.length} mốc`;
-    const prog = document.createElement("span");
-    prog.textContent = next ? `${have}/${next.need} ${r.what}` : `${have} ${r.what} · đã đạt mọi mốc`;
-    top.append(name, prog);
-    const bar = document.createElement("span"); bar.className = "sbar";
-    const fill = document.createElement("i"); fill.style.width = `${next ? Math.min(100, (have / next.need) * 100) : 100}%`; bar.appendChild(fill);
-    const steps = document.createElement("div"); steps.className = "ressteps";
-    r.steps.forEach((s, k) => {
-      const st = document.createElement("span"); st.className = "resstep" + (k < lv ? " on" : "");
-      st.textContent = `${k < lv ? "√ " : ""}${s.need}: ${resonanceText(s.bonus)}`;
-      st.setAttribute("aria-label", `Mốc ${k + 1}: ${s.need} ${r.what}, ${resonanceText(s.bonus)}${k < lv ? ", đã đạt" : ", chưa đạt"}`);
-      steps.appendChild(st);
-    });
-    box.append(top, bar, steps);
-    el.appendChild(box);
+    const lv = resMsg?.lv[i] ?? 0, t = document.createElement("button"); t.type = "button"; t.className = "restab" + (i === resTab ? " on" : "");
+    t.setAttribute("role", "tab"); t.setAttribute("aria-selected", String(i === resTab)); t.style.setProperty("--c", r.col);
+    const n = document.createElement("span"); n.textContent = r.name;
+    const c = document.createElement("small"); c.textContent = `${lv}/${r.steps.length}`;
+    const dot = document.createElement("i");
+    t.append(n, c, dot); t.setAttribute("aria-label", `${r.name}: ${lv}/${r.steps.length} mốc`);
+    t.addEventListener("click", () => { resTab = i; renderReso(); });
+    tabs.appendChild(t);
   });
+  el.insertBefore(tabs, total.nextSibling);
+  const r = RESONANCE[resTab], have = resMsg?.prog[resTab] ?? 0, lv = resMsg?.lv[resTab] ?? 0, next = r.steps[lv];
+  const box = document.createElement("section"); box.className = "respil"; box.setAttribute("role", "tabpanel"); box.style.setProperty("--c", r.col);
+  const top = document.createElement("div"); top.className = "restop";
+  const name = document.createElement("b"); name.textContent = `${r.name} · ${lv}/${r.steps.length} mốc`;
+  const prog = document.createElement("span");
+  prog.textContent = next ? `${have}/${next.need} ${r.what}` : `${have} ${r.what} · đã đạt mọi mốc`;
+  top.append(name, prog);
+  const bar = document.createElement("span"); bar.className = "sbar";
+  const fill = document.createElement("i"); fill.style.width = `${next ? Math.min(100, (have / next.need) * 100) : 100}%`; bar.appendChild(fill);
+  const steps = document.createElement("div"); steps.className = "ressteps";
+  r.steps.forEach((s, k) => {
+    const state = k < lv ? "on" : k === lv ? "next" : "lock";
+    const st = document.createElement("div"); st.className = `resstep ${state}`;
+    const label = document.createElement("b"); label.textContent = `${state === "on" ? "✔ " : state === "lock" ? "🔒 " : ""}${k === lv ? "Mốc kế · " : ""}${s.need} · ${resonanceText(s.bonus)}`;
+    st.appendChild(label);
+    if (state === "next") { const left = document.createElement("span"); left.textContent = `còn ${Math.max(0, s.need - have)}`; st.appendChild(left); }
+    st.setAttribute("aria-label", `Mốc ${k + 1}: ${s.need} ${r.what}, ${resonanceText(s.bonus)}, ${state === "on" ? "đã đạt" : state === "next" ? `mốc kế, còn ${Math.max(0, s.need - have)}` : "chưa mở"}`);
+    steps.appendChild(st);
+  });
+  const auto = document.createElement("small"); auto.className = "resauto"; auto.textContent = "Mốc tự kích hoạt khi đủ điều kiện, không cần nhận.";
+  box.append(top, bar, steps, auto);
+  el.insertBefore(box, rank);
 }
 
 // ---------- Kênh (mục 6 "Nhiều kênh"): chỉ hiển thị số server gửi (PlayerState của phòng: MapState.channel; tin riêng "channels") ----------
