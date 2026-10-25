@@ -5968,6 +5968,12 @@ async function autoTest(){
     ok(hw.best?.zone==="Vùng thấp"&&hw.rows.find(r=>r.zone==="Vùng cao").years===null,`AH4 gợi ý: võ hồn yếu chỉ hợp vùng thấp, vùng cao "quá sức" (${JSON.stringify(hw.rows)})`);
     const g=await autoOp(A,"get"), h=g?.hint;
     ok(h&&h.rows.length>0&&h.best?.years&&h.best.years[0]<=h.best.years[1],`AH4: tin "auto" ở bản đồ săn kèm gợi ý hợp sức (${JSON.stringify(h?.best)})`);
+    // Soát AH3/AH4: tin `auto` vượt nhịp vẫn được trả lời; gợi ý lấy từ bộ nhớ đệm theo chỉ số võ hồn (không tính lại mỗi tin), kết quả phải y nguyên.
+    await test(A,"auto",{rate:true}); A.autoMsg=null; let n=0; A.room.onMessage("auto",()=>{n++;});
+    for(let i=0;i<60;i++) A.room.send("auto",{op:"get"});
+    await waitFor(()=>n>=60,3000); await sleep(100);
+    ok(n>=60&&same(A.autoMsg?.hint,h),`Soát AH4: 60 tin "auto get" dồn dập (vượt nhịp) đều được trả lời, gợi ý không đổi (${n} tin)`);
+    await test(A,"auto",{rate:false});
   }
   { const LP={...AUTO_DEFAULTS,scope:"map",years:[0,MAX_YEARS],bone:false,core:false,ring:-1,slots:[],skills:[],tienCo:false,elite:false,king:false,world:false};
     await test(A,"goto",home); await test(A,"clear",{all:true,keep:true}); await autoOp(A,"set",{cfg:LP});
