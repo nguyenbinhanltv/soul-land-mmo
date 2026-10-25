@@ -28,7 +28,7 @@ export async function arenaAuditTest(h) {
   }
   const ns = npcSpot(AT, "dau_hon_truong"), meOf = (b) => b.room.state.players?.get(b.room.sessionId);
   const at = (b, dx = 0) => test(b, "goto", { x: ns.x + dx, y: ns.y + 16 });
-  const found = (b) => b.arena.filter((m) => m.k === "found").at(-1), endOf = (b) => b.arena.filter((m) => m.k === "end").at(-1);
+  const endOf = (b) => b.arena.filter((m) => m.k === "end").at(-1);
   async function back(b) { b.mapId = (await post("/api/me", { token: b.token })).mapId; await enter(b); await waitFor(() => meOf(b) && b.owned && b.bag && b.squad, 3000); }
   async function warpTown(b) {
     b.travel = null; b.room.send("test", { op: "warp", mapId: AT, x: ns.x, y: ns.y + 16 });
@@ -47,7 +47,7 @@ export async function arenaAuditTest(h) {
   // `live` có nhịp ARENA.topCd (arenaLiveAt); `watch` thì không: mỗi tin tới lượt khóa sổ presence `arena:live` dùng chung mọi tiến trình
   // (arenaLiveHold -> liveEdit -> withLock) kể cả khi mã phòng không có thật. Đo bằng số phản hồi đã được xử lý.
   {
-    const N = 25, l = A.logs.length, n = A.arena.length;
+    const N = 25, n = A.arena.length;
     for (let i = 0; i < N; i++) A.room.send("arena", { op: "live" });
     await sleep(1500);
     const lives = A.arena.slice(n).filter((m) => m.k === "live").length;
@@ -57,8 +57,7 @@ export async function arenaAuditTest(h) {
     await waitFor(() => A.logs.slice(l2).filter((x) => /Chưa vào xem được/.test(x)).length >= N, 3000);
     await sleep(300);
     const watches = A.logs.slice(l2).filter((x) => /không còn diễn ra/.test(x)).length;
-    known(watches <= 2, `watch mã phòng không có thật: ${N} tin dồn, server xử lý ${watches} lượt (mỗi lượt khóa sổ presence dùng chung)`, "tách issue: thêm nhịp cho arena watch");
-    void l;
+    known(watches <= 2, `watch mã phòng không có thật: ${N} tin dồn, server xử lý ${watches} lượt (mỗi lượt khóa sổ presence dùng chung)`, "#789");
   }
 
   // ---- đầu vào lạ cho `arena` (op, roomId sai kiểu / dài 3000 ký tự (dài hơn 4 KB thì ws ngắt kết nối)): không ném lỗi, phòng vẫn sống ----
@@ -113,8 +112,9 @@ export async function arenaAuditTest(h) {
     await test(A, "afast", { s: 0 }); // B không vào sân: hết ARENA.joinSecs
     ok(await waitFor(() => endOf(A), 4000), "hết giờ chờ vào sân: trận kết thúc");
     const e = endOf(A);
+    if (!e) { for (const b of all) await b.room.leave(); return; } // thiếu tin end: đã ghi thất bại ở trên, bỏ phần còn lại của khối
     ok(e.reason === "noshow" && e.score === 1, `A thắng vì B không vào sân (${e.reason})`);
-    known(!(e.elo1 > e.elo0 || e.reward), `thắng bỏ cuộc vẫn đổi Elo ${e.elo0} → ${e.elo1}${e.reward ? " và có thưởng" : ""} (tài khoản phụ xếp hàng rồi bỏ đi nuôi Elo, chỉ bị chặn bởi arena_pairs)`, "tách issue: trận noshow không tính Elo / thưởng");
+    known(!(e.elo1 > e.elo0 || e.reward), `thắng bỏ cuộc vẫn đổi Elo ${e.elo0} → ${e.elo1}${e.reward ? " và có thưởng" : ""} (tài khoản phụ xếp hàng rồi bỏ đi nuôi Elo, chỉ bị chặn bởi arena_pairs)`, "#790");
     await test(A, "afast", { s: 0 });
     await waitFor(() => A.leftCode === 4005, 3000); await back(A);
     await waitFor(() => B.leftCode === 4006, ARENA.joinSecs * 1000 + 2000); await back(B);

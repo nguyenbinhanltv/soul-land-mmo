@@ -539,7 +539,7 @@ const STANDALONE=[
   ["boneSub",1,boneSubTest],                  //   3 #187 dòng phụ hồn cốt
   ["split",5,splitTest],                      // ~42 #173 hang chia phần luân phiên (đo ở máy)
   ["arena",3,arenaTest],                      //  96 7.2, 9.7 Đại Đấu Hồn Trường
-  ["arenaAudit",5,arenaAuditRun,true],        // ~45 #741 soát chống gian lận đấu trường (arena-audit-test.mjs; ước, chưa đo)
+  ["arenaAudit",5,arenaAuditRun,true],        // ~50 #741 soát chống gian lận đấu trường (arena-audit-test.mjs; đo ở máy)
   ["friend",5,friendTest,true],               // ~40 #195 bạn bè và chặn (đo ở máy)
   ["chuong3",5,chapter3Test],                 // ~18 #284 chương 3 Hải Thần Đảo (đo ở máy)
   ["bag",4,async()=>{ bagSyncPure(); await shopBuybackTest(); await charBagCmdTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); }], // 127 #215, 9.8; E1 trang bị hồn sư; E2 rơi đồ; E3 cường hóa; E4 hợp thành / phân giải

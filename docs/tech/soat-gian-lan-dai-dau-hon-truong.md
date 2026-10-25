@@ -3,7 +3,7 @@
 Soát theo skill `anti-cheat-audit`, đóng vai người chơi sửa được client. Luật chơi ở mục 5.9 (`docs/design/to-doi-pvp-dau-truong.md`), kênh và phòng sân ở `docs/tech/kenh-arena.md`.
 Bài kiểm: `client/scripts/arena-audit-test.mjs` (gọi từ `bot-test.mjs`: `npm run bot:local -- --only arenaAudit [--pg]`, nhóm CI 5, cần `GAME_TEST=1`).
 Bài có hai mức: `ok` là hành vi đúng đang giữ (sai thì thất bại), `known` là **lỗ hổng đã biết**: mặc định chỉ in cảnh báo để CI không đỏ, `AUDIT_STRICT=1` thì thất bại (dùng khi kiểm bản vá, rồi đổi thành `ok`).
-PR này chỉ thêm bài kiểm và báo cáo; không sửa `MapRoom.ts` (M3 #783 đang sửa file đó). Mỗi lỗ hổng tách issue sửa riêng (cuối file).
+PR này chỉ thêm bài kiểm và báo cáo; không sửa `MapRoom.ts` (M3 #783 đang sửa file đó). Mỗi lỗ hổng có issue sửa riêng: L1 #789, L2 #790, L3 #791.
 
 ## Bề mặt đã soát
 
@@ -23,19 +23,19 @@ PR này chỉ thêm bài kiểm và báo cáo; không sửa `MapRoom.ts` (M3 #78
 
 ## Phát hiện
 
-### L1 (Vừa): `arena {op:"watch"}` không có nhịp
+### L1 (Vừa, #789): `arena {op:"watch"}` không có nhịp
 `MapRoom.ts:3261` (`arenaWatch`). Khác `top` (`:3293`, `arenaTopAt`) và `live` (`:3245`, `arenaLiveAt`), `watch` không có mốc thời gian. Mỗi tin đứng gần NPC đều đi tới `arenaLiveHold` -> `liveEdit` -> `presenceBackend.withLock` trên khóa `arena:live` dùng chung mọi tiến trình, kể cả khi `roomId` không có thật.
 - **Tái hiện:** bài `arenaAudit`, đứng cạnh NPC Đại Đấu Hồn Trường gửi 25 tin `arena {op:"watch", roomId:"x"}` liên tiếp: server xử lý đủ 25 lượt (25 dòng "Trận đấu không còn diễn ra"), trong khi 25 tin `live` chỉ trả 1 lần.
 - **Tác động:** tải khóa Redis và tranh chấp với `arenaLivePhase` / `arenaLiveOpen` của các trận đang chạy (`arenaLivePhase` thử 3 lần rồi bỏ: pha trong sổ xem trận có thể trễ). Không đổi Elo / tiền.
 - **Sửa đề xuất:** thêm `arenaWatchAt` vào `PData`, kiểm `Date.now() - d.arenaWatchAt < ARENA.topCd * 1000` như `arenaLiveList`; kiểm `roomId` rỗng / quá dài trước khi gọi sổ.
 
-### L2 (Vừa): thắng "đối thủ không vào sân" vẫn tính Elo, thưởng và lượt cặp
+### L2 (Vừa, #790): thắng "đối thủ không vào sân" vẫn tính Elo, thưởng và lượt cặp
 `ArenaRoom.ts:328` (`finish`), nhánh `reason === "noshow"` từ `tick` (`:290`). Bên không vào sân sau `ARENA.joinSecs` giây thua; trận vẫn đếm vào `arena_pairs` (`arenaPairAdd`, `:336`) và bên còn lại nhận đủ Elo, thành tích và thưởng thắng (miễn là trận còn trong hạn `ARENA.pairDaily` của cặp), không phải đánh ai.
 - **Tái hiện:** bài `arenaAudit`: hai tài khoản mới xếp hàng, được ghép, A vào sân, B không vào; hết giờ chờ A thắng `noshow`, Elo 1000 -> 1016 và nhận thưởng.
 - **Tác động:** tài khoản phụ xếp hàng rồi bỏ đi là cách nuôi Elo / thưởng gần như không tốn công; ngoài ra một người có thể cố tình ghép rồi bỏ để đốt lượt `arena_pairs` của đối thủ trong ngày (bên thắng hưởng, cặp hết lượt).
 - **Sửa đề xuất (chủ repo chọn):** (1) `noshow` và `leave` trước giao đấu là giao hữu (không đổi Elo / thưởng, vẫn xử thua), hoặc (2) chỉ tính Elo khi đã có đòn giao đấu hợp lệ (pha `fight` bắt đầu). Kèm đổi bài `known` thành `ok`.
 
-### L3 (Vừa, thiết kế): chưa có trần Elo / thưởng nuôi qua nhiều tài khoản
+### L3 (Vừa, thiết kế, #791): chưa có trần Elo / thưởng nuôi qua nhiều tài khoản
 Chống dàn xếp hiện chỉ theo **cặp** (`ARENA.pairDaily` trận / cặp / ngày, `arena_pairs`) và lượt thưởng theo tài khoản (`ARENA.dailyWins`). Nhiều tài khoản cùng một người tạo nhiều cặp, mỗi cặp một hạn riêng; không có trần Elo tăng theo tài khoản mỗi ngày và không liên kết tài khoản cùng người (không có dữ liệu thiết bị). Mức độ phụ thuộc cách mở đăng ký (tài khoản có miễn phí và không xác minh không).
 - **Sửa đề xuất:** trần Elo tăng mỗi tài khoản mỗi ngày (hằng ở `shared/data.ts`, ghi theo `day` như `arena_pairs`) và/hoặc trần số đối thủ khác nhau mỗi ngày; tính cả tổng Elo thu được từ đối thủ Elo thấp hơn nhiều. Cần chủ repo quyết (mục 5.9).
 
