@@ -9,9 +9,11 @@ PR → CI (check.yml) → merge main → Release (release.yml) → promote (prom
 | Bước | Ai / cái gì | Kết quả |
 | --- | --- | --- |
 | 1. Merge vào `main` | người / agent, sau khi CI xanh | CI chạy lại trên `main` |
-| 2. **Release** (`.github/workflows/release.yml`) | tự chạy khi CI của `main` xanh (`workflow_run`), hoặc chạy tay trên `main` | Dựng image, chạy thử container với PostgreSQL tạm (bot khói), Trivy chặn CRITICAL; đạt mới đẩy `asia-southeast1-docker.pkg.dev/landing-page-455614/soul-land/game:sha-<7 ký tự>` và `:main` |
-| 3. **Promote** (`.github/workflows/promote.yml`) | chủ repo chạy tay (Actions → Promote → Run workflow, nhập SHA hoặc để trống = bản main mới nhất) | Mở PR ở `nguyenbinhanltv/soul-land-gitops` đổi `newTag` trong `apps/soul-land/overlays/prod/kustomization.yaml`; **không tự merge** |
+| 2. **Release** (`.github/workflows/release.yml`) | tự chạy khi CI của `main` xanh (`workflow_run`), hoặc chạy tay trên `main` | Dựng image, chạy thử container với PostgreSQL tạm (bot khói), Trivy chặn CRITICAL; đạt mới đẩy `asia-southeast1-docker.pkg.dev/landing-page-455614/soul-land/game:sha-<7 ký tự>` và `:main`. Tên lượt chạy là `Release <SHA đầy đủ>` = commit được build; bảng tóm tắt ghi lại commit đó. Tag `main` chỉ dời **tiến** (khi commit là đầu main, hoặc mới hơn theo git so với bản main hiện có), không bao giờ lùi |
+| 3. **Promote** (`.github/workflows/promote.yml`) | chủ repo chạy tay (Actions → Promote → Run workflow, nhập SHA hoặc để trống = commit mới nhất trên main đã có tag `sha-*` trên registry, dò ngược 100 commit) | Mở PR ở `nguyenbinhanltv/soul-land-gitops` đổi `newTag` trong `apps/soul-land/overlays/prod/kustomization.yaml`; **không tự merge** |
 | 4. Duyệt + merge PR promote | chủ repo | ArgoCD tự sync; người chơi online bị ngắt khoảng 10–30 giây (đã có `reconnect`) |
+
+Một lượt Release chỉ build đúng một commit (SHA ở tên lượt); image `sha-<7>` chứa mọi commit tới commit đó. Gắn tag `prod-<sha7>` của Promote là idempotent: tag đã trỏ đúng digest thì bỏ qua (service account không có quyền `artifactregistry.tags.delete`, nên không bao giờ gắn đè lên tag có sẵn); trỏ digest khác thì báo lỗi.
 
 Merge `main` **không** tự deploy, vì mỗi lần deploy ngắt người chơi. Kết quả mỗi bước ghi ở GitHub: lượt chạy trong tab Actions (kèm bảng tóm tắt), trạng thái commit `release/image` của commit trên `main`.
 

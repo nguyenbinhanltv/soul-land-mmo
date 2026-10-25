@@ -2,10 +2,12 @@
 #   1) buildx (cache GHA) dựng image, nạp vào docker local;
 #   2) chạy container đó + PostgreSQL tạm (service container, DB rỗng) và bot khói vào container (GAME_TEST=1 chỉ ở bước này);
 #   3) Trivy chặn lỗ hổng CRITICAL;
-#   4) đạt cả ba mới đăng nhập GCP (key JSON của service account GCP_SA_KEY, hoặc Workload Identity Federation nếu không có key) và đẩy ĐÚNG image đã thử với tag sha-<7> (+ main nếu vẫn là bản mới nhất).
+#   4) đạt cả ba mới đăng nhập GCP (key JSON của service account GCP_SA_KEY, hoặc Workload Identity Federation nếu không có key) và đẩy ĐÚNG image đã thử với tag sha-<7> (+ main nếu mới hơn bản main hiện có).
 # Không tự deploy: đưa lên prod bằng promote.yml (mở PR ở repo GitOps), xem docs/deploy.md. Thiết lập GCP: deploy/gcp/README.md.
 # Thông báo chỉ qua GitHub: lượt chạy ở tab Actions, trạng thái commit `release/image` và bảng tóm tắt (GITHUB_STEP_SUMMARY).
 name: Release
+# Tên lượt = commit được build (workflow_run: commit của CI; chạy tay: đầu main lúc bấm). Một lượt chỉ build đúng commit này.
+run-name: Release ${{ github.event.workflow_run.head_sha || github.sha }}
 
 on:
   workflow_run:
@@ -192,7 +194,7 @@ jobs:
           workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER || secrets.GCP_WIF_PROVIDER }}
           service_account: ${{ vars.GCP_SA_EMAIL || secrets.GCP_SA_EMAIL }}
       - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
-      - name: đẩy image (sha-7 ký tự, và main nếu đây vẫn là bản mới nhất)
+      - name: đẩy image (sha-7 ký tự, và main nếu mới hơn bản main hiện có)
         id: push
         env:
           TAG: ${{ steps.meta.outputs.tag }}
@@ -200,14 +202,29 @@ jobs:
         run: |
           gcloud auth configure-docker "$REGISTRY" --quiet # credential helper của gcloud, dùng chung cho key và WIF (không đụng token trong lệnh)
           docker push "$IMAGE:$TAG"
-          # Hai lượt kết thúc lệch thứ tự không được kéo tag main lùi: chỉ gắn main khi commit này vẫn là đầu main.
+          # Chỉ dời tag main tiến lên, không bao giờ lùi: dời khi commit này là đầu main, hoặc mới hơn (theo git) commit của bản main hiện có trên registry.
+          # Trước đây chỉ dời khi còn là đầu main -> merge liên tiếp thì mọi lượt đều thấy "main đã mới hơn" và tag main đứng yên ở bản cũ.
           HEAD_MAIN=$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)
-          if [ "$HEAD_MAIN" = "$SHA" ]; then
+          MOVE=no; WHY=""
+          if [ "$HEAD_MAIN" = "$SHA" ]; then MOVE=yes; WHY="đây là đầu main"
+          else
+            MAIN_V=$(gcloud artifacts docker tags list "$IMAGE" --format='value(tag,version)' | awk '{ n=split($1,a,"/"); if (a[n]=="main") print $2 }')
+            OLD_TAG=""
+            [ -n "$MAIN_V" ] && OLD_TAG=$(gcloud artifacts docker tags list "$IMAGE" --format='value(tag,version)' | awk -v v="$MAIN_V" '{ n=split($1,a,"/"); if ($2==v && a[n] ~ /^sha-/) print a[n] }' | head -n 1)
+            if [ -z "$MAIN_V" ]; then MOVE=yes; WHY="registry chưa có tag main"
+            elif [ -z "$OLD_TAG" ]; then MOVE=yes; WHY="tag main hiện có không kèm sha-* (không so được), coi như cũ"
+            else
+              REL=$(gh api "repos/$GITHUB_REPOSITORY/compare/${OLD_TAG#sha-}...$SHA" --jq .status 2>/dev/null || echo unknown)
+              case "$REL" in ahead|identical) MOVE=yes; WHY="mới hơn bản main hiện có ($OLD_TAG)";; *) WHY="không mới hơn bản main hiện có ($OLD_TAG, quan hệ: $REL)";; esac
+            fi
+          fi
+          if [ "$MOVE" = yes ]; then
             docker tag "$IMAGE:$TAG" "$IMAGE:main"
             docker push "$IMAGE:main"
             echo "main=yes" >>"$GITHUB_OUTPUT"
+            echo "::notice title=release::tag main -> $TAG ($WHY)"
           else
-            echo "::notice title=release::main đã có commit mới hơn (${HEAD_MAIN:0:7}), chỉ đẩy $TAG, không đổi tag main"
+            echo "::notice title=release::chỉ đẩy $TAG, không đổi tag main: $WHY"
             echo "main=no" >>"$GITHUB_OUTPUT"
           fi
           DIGEST=$(docker image inspect "$IMAGE:$TAG" --format '{{index .RepoDigests 0}}' 2>/dev/null || true)
@@ -228,10 +245,10 @@ jobs:
             echo "| | |"
             echo "|---|---|"
             echo "| Image | \`$IMAGE:$TAG\` |"
-            echo "| Tag main | $([ "$MAIN" = yes ] && echo "đã trỏ về bản này" || echo "không đổi (main có commit mới hơn)") |"
+            echo "| Tag main | $([ "$MAIN" = yes ] && echo "đã trỏ về bản này" || echo "không đổi (đã có bản main mới hơn)") |"
             echo "| Digest | \`${DIGEST:-?}\` |"
             echo "| Cỡ | $SIZE |"
-            echo "| Commit | $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$SHA |"
+            echo "| Commit đã build | \`$SHA\` ($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$SHA); image chứa mọi commit tới commit này |"
             echo "| Asset riêng | $([ "$PRIVATE" = yes ] && echo "đã kèm kho riêng" || echo "không có (hình cũ)") |"
             echo "| Thử trước khi đẩy | container + PostgreSQL tạm, bot khói đạt, Trivy không có CRITICAL |"
             echo ""
