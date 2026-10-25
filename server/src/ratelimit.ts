@@ -53,6 +53,27 @@ const SIGNUP_DAY_MS = 24 * 60 * 60_000;
  *  bật GAME_TEST=1; bài test:ratelimit đặt lại bằng _setSignupScale. */
 let signupScale = process.env.GAME_TEST === "1" ? 1000 : 1;
 
+// ---------- Đăng nhập Google (#612) ----------
+/** Token bucket theo IP cho /api/login/google, /api/login/google/create, /api/link/google: liền tối đa 10 lần, hồi 1 lượt mỗi 6 giây
+ *  (mỗi lần tốn một lần xác minh chữ ký ID token và có thể ghi DB). GAME_TEST=1: nhân 1000 như ngưỡng tạo tài khoản. */
+const SSO_BURST = 10;
+const SSO_REFILL_MS = 6_000;
+const ssoOps = new Map<string, { tokens: number; at: number }>();
+
+/** Tính một lượt đăng nhập Google của IP `rawIp`. null = được; có lỗi thì trả 429 kèm `retryAfter` (giây). */
+export function ssoCheck(rawIp: string, now = Date.now()): { error: string; retryAfter: number } | null {
+  const key = ipKey(rawIp), burst = SSO_BURST * signupScale;
+  let e = ssoOps.get(key);
+  if (!e) { e = { tokens: burst, at: now }; ssoOps.set(key, e); }
+  e.tokens = Math.min(burst, e.tokens + (now - e.at) / SSO_REFILL_MS); e.at = now;
+  if (e.tokens < 1) {
+    const sec = Math.ceil(((1 - e.tokens) * SSO_REFILL_MS) / 1000);
+    return { error: `Đăng nhập Google quá nhiều lần. Vui lòng thử lại sau ${waitText(sec)}.`, retryAfter: sec };
+  }
+  e.tokens -= 1;
+  return null;
+}
+
 // ---------- Chat ----------
 /** Độ dài tối đa một tin (khớp maxlength của ô chat trong client/index.html). */
 export const CHAT_MAX_LEN = 120;
@@ -344,13 +365,14 @@ export function sweep(now = Date.now()) {
     if (!e.last.size && now - e.at > CHAT_FORGET_MS) invites.delete(k);
   }
   for (const [k, e] of friendOps) if (now - e.at > CHAT_FORGET_MS) friendOps.delete(k);
+  for (const [k, e] of ssoOps) if (now - e.at >= SSO_BURST * SSO_REFILL_MS) ssoOps.delete(k);
   for (const [k, at] of friendNotes) if (now - at >= FRIEND_NOTE_REPEAT_MS) friendNotes.delete(k);
   for (const [k, e] of rallies) if (now - e.at >= RALLY.burst * RALLY.refillMs) rallies.delete(k); // đã hồi đầy: giống như chưa có
 }
 setInterval(() => sweep(), SWEEP_MS).unref();
 
 /** Chỉ dùng trong kiểm thử: xóa toàn bộ trạng thái. */
-export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); signups.clear(); chat.clear(); worldAt.clear(); invites.clear(); friendOps.clear(); friendNotes.clear(); rallies.clear(); }
+export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); signups.clear(); chat.clear(); worldAt.clear(); invites.clear(); friendOps.clear(); friendNotes.clear(); rallies.clear(); ssoOps.clear(); }
 
 // ---------- Đánh dấu "Tập trung ở đây" của tổ đội (R6 #433) ----------
 /**

@@ -485,6 +485,51 @@ const INLINE={
   ab2:2,  // ~275 giây: 8.1a–8.1d, 8.3, 9.5, 9.6, 3.5, BĐ4
   botC:3, // ~160 giây: bot C đi cổng BĐ2, NPC 6.1, BĐ6a–BĐ6e, BĐ3, tổ đội 7.1
 };
+/**
+ * Đăng nhập Google (SSO1 #612, BOT_ONLY=google): bộ kiểm giả `test:<sub>[:tên]` (chỉ GAME_TEST=1). Google mới -> vé + tên gợi ý -> chọn tên -> vào game;
+ * đăng nhập lại; tên trùng / sai luật; vé giả; liên kết tài khoản mật khẩu (một Google một tài khoản, một tài khoản một Google); credential hỏng.
+ * Server không bật GAME_TEST thì bộ kiểm giả bị từ chối: bài báo bỏ qua phần còn lại.
+ */
+async function googleTest(){
+  console.log("— Đăng nhập Google (#612)");
+  const cfg=await (await fetch(API+"/api/config")).json();
+  const probe=await post("/api/login/google",{credential:`test:probe${RUN}`});
+  if(probe.status!==200){ ok(probe.status===401||probe.status===503,`server không bật GAME_TEST: bộ kiểm giả bị từ chối (${probe.status}), bỏ qua phần còn lại`); return; }
+  ok(typeof cfg.googleClientId==="string","GET /api/config có googleClientId khi bật đăng nhập Google");
+  const A=`test:a${RUN}`, B=`test:b${RUN}`, C=`test:c${RUN}`;
+  ok(probe.needName===true&&!!probe.ticket&&!("token" in probe),"Google mới: chưa có tài khoản, trả vé chọn tên, không cấp token");
+  ok(!JSON.stringify(probe).includes("@"),"phản hồi không chứa email");
+  const a=await post("/api/login/google",{credential:`${A}:Hiệp Sĩ Gợi Ý`});
+  ok(a.needName&&a.suggest==="Hiệp Sĩ Gợi Ý",`tên gợi ý lấy từ tên Google (${a.suggest})`);
+  const name=`Gg ${RUN}`;
+  ok((await post("/api/login/google/create",{ticket:a.ticket,name:"a!"})).status===400,"tên sai luật bị từ chối");
+  ok((await post("/api/login/google/create",{ticket:a.ticket+"x",name})).status===401,"vé bị sửa bị từ chối");
+  ok((await post("/api/login/google/create",{ticket:"",name})).status===401,"thiếu vé bị từ chối");
+  const made=await post("/api/login/google/create",{ticket:a.ticket,name});
+  ok(made.status===200&&!!made.token&&!made.looks?.chosen&&made.character===null,"chọn tên: tạo tài khoản mới, trả token, chưa tạo nhân vật");
+  const ch=await post("/api/channel",{token:made.token}); ok(ch.status===200&&typeof ch.mapId==="string","token Google dùng được cho /api/channel (vào game)");
+  ok((await post("/api/me",{token:made.token})).googleLinked===true,"/api/me báo đã liên kết Google");
+  ok((await post("/api/login/google/create",{ticket:a.ticket,name:`Gg2 ${RUN}`})).status===409,"vé dùng lại sau khi đã có tài khoản: bị từ chối (một Google một tài khoản)");
+  const again=await post("/api/login/google",{credential:A});
+  ok(again.status===200&&!!again.token&&!again.needName&&again.token!==made.token,"đăng nhập Google lần sau: vào thẳng, token mới");
+  const b=await post("/api/login/google",{credential:B});
+  ok((await post("/api/login/google/create",{ticket:b.ticket,name:name.toUpperCase()})).status===409,"tên trùng (khác hoa / thường) bị từ chối");
+  ok((await post("/api/login/google/create",{ticket:b.ticket,name:`Gb ${RUN}`})).status===200,"đổi tên khác thì tạo được (cùng vé)");
+  const pw=await post("/api/login",{name:`Gp ${RUN}`,password:PASS});
+  ok((await post("/api/me",{token:pw.token})).googleLinked===false,"tài khoản mật khẩu: chưa liên kết Google");
+  ok((await post("/api/link/google",{token:"x".repeat(32),credential:C})).status===401,"liên kết cần token đăng nhập hợp lệ");
+  ok((await post("/api/link/google",{token:pw.token,credential:"test:"})).status===401,"credential hỏng bị từ chối");
+  ok((await post("/api/link/google",{token:pw.token,credential:A})).status===409,"Google đã thuộc tài khoản khác: không liên kết được");
+  const lk=await post("/api/link/google",{token:pw.token,credential:C});
+  ok(lk.status===200&&lk.googleLinked,"liên kết Google cho tài khoản mật khẩu");
+  ok((await post("/api/link/google",{token:pw.token,credential:C})).status===200,"liên kết lại đúng Google đó: vẫn ổn");
+  ok((await post("/api/link/google",{token:pw.token,credential:`test:d${RUN}`})).status===409,"một tài khoản tối đa một Google");
+  const viaG=await post("/api/login/google",{credential:C});
+  ok(viaG.status===200&&!viaG.needName&&!!viaG.token,"sau khi liên kết: vào bằng Google");
+  ok((await post("/api/me",{token:viaG.token})).googleLinked===true&&(await post("/api/me",{token:pw.token})).googleLinked===true,"/api/me báo đã liên kết");
+  ok((await post("/api/login/google",{credential:"test:bad id!"})).status===401&&(await post("/api/login/google",{credential:"khong-phai-jwt-hop-le"})).status===401,"credential hỏng bị từ chối");
+}
+
 // Bài độc lập (tự tạo bot, gọi được ở bất kỳ đâu): [khóa, nhóm, hàm, cần hook test]. Thứ tự là thứ tự chạy; số giây đo trên runner CI.
 const STANDALONE=[
   ["cold",1,coldTest],                        //  18 #163 Cực Hàn
@@ -496,6 +541,7 @@ const STANDALONE=[
   ["chuong3",2,chapter3Test],                 // ~18 #284 chương 3 Hải Thần Đảo (đo ở máy)
   ["bag",4,async()=>{ bagSyncPure(); await shopBuybackTest(); await charBagCmdTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); }], // 127 #215, 9.8; E1 trang bị hồn sư; E2 rơi đồ; E3 cường hóa; E4 hợp thành / phân giải
   ["sell",3,sellTest],                        //   5 #216
+  ["google",3,googleTest],                    //  ~1 #612 đăng nhập Google (bộ kiểm giả GAME_TEST): chọn tên, liên kết, trùng tên, vé giả
   ["looks2",3,looks2Test],                    //   2 #509 Looks v2 (preset / lpc)
   ["looks3",3,looks3Test],                    //  ~8 #511 đổi ngoại hình ở thợ may: miễn phí lần đầu, tốn Hồn Tệ lần sau
   ["shardBuy",3,shardBuyTest],                //  ~8 #282 Thương hội đổi mảnh võ hồn (đo ở máy)
@@ -572,6 +618,7 @@ function finish(){
 // BOT_ONLY=daily: chỉ chạy phần khảo hạch hằng ngày (thử nhanh khi sửa phần đó; lần chạy đầy đủ vẫn gồm phần này).
 // Liên kích Hạo Thiên 4 món (#249, comboTest; BOT_ONLY=combo, không chạy trong bot đầy đủ): lặp bài "liên kích ở đòn thứ 3" của
 // nhóm 1 nhiều lượt trên một bot riêng để thử chập chờn.
+if(process.env.BOT_ONLY==="google"){ await googleTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="looks3"){ await looks3Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="looks2"){ await looks2Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="flag"){ await flagTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -5409,6 +5456,56 @@ async function autoTest(){
   ok(m?.on&&await stopped(A,/tự ra đòn/),`tự bấm đánh: tắt (${A.autoMsg?.why})`);
   m=await autoOp(A,"on"); const off=await autoOp(A,"off");
   ok(m?.on&&!off?.on&&/đã tắt/.test(off?.why??""),"bấm lại nút / phím T: tắt");
+
+  // ---- #291: đường thẳng tới mục tiêu thông thì đi thẳng (không tìm đường A*), có ô chặn ở giữa thì theo đường A* ----
+  // Hồn thú đứng yên (BEAST_ROOTED) để đường thẳng không đổi vì nó lang thang; chỗ thử chọn theo lưới ô chặn của file Tiled đang dùng.
+  // Không tung hồn kỹ / tiên cơ (đòn tầm xa trúng từ chỗ đứng): chỉ đánh thường nên phải đi tới sát mới đánh trúng.
+  {
+    const g=solidGrid(JSON.parse(readFileSync(mapUrl(NV),"utf8"))), free=(x,y)=>!hits(g,x,y,PLAYER_HW+1,PLAYER_HH+1);
+    const safes=objsOf(NV).filter(o=>o.type==="safe"), inSafe=(x,y)=>safes.some(o=>x>=o.x-48&&x<=o.x+o.width+48&&y>=o.y-48&&y<=o.y+o.height+48);
+    const okAt=(x,y)=>free(x,y)&&!inCamp(x,y)&&!inSafe(x,y);
+    /** Cặp (chỗ đứng, chỗ hồn thú) gần điểm neo: `wall` thì đường thẳng vướng ô chặn mà A* tới được, không thì đường thẳng thông. */
+    const pick=wall=>{
+      const tx0=Math.floor(home.x/16), ty0=Math.floor(home.y/16), cand=[];
+      for(let dy=-40;dy<=40;dy++) for(let dx=-40;dx<=40;dx++) cand.push([dx,dy]);
+      cand.sort((a,b)=>Math.hypot(...a)-Math.hypot(...b));
+      for(const [dx,dy] of cand){
+        const P={x:(tx0+dx)*16+8,y:(ty0+dy)*16+8}; if(!okAt(P.x,P.y)) continue;
+        for(const d of [80,96,112]) for(const [ux,uy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+          const Q={x:P.x+ux*d,y:P.y+uy*d}; if(!okAt(Q.x,Q.y)) continue;
+          if(!wall){ if(clearLine(g,P,Q)) return {P,Q}; continue; }
+          if(clearLine(g,P,Q)) continue;
+          const path=findPath(g,P,Q,AUTO_MOVE.path), end=path.at(-1);
+          if(end&&Math.hypot(end.x-Q.x,end.y-Q.y)<4&&pathLength(P,path)<=3*d) return {P,Q};
+        }
+      }
+      return null;
+    };
+    /** Bật tự săn đứng ở P với hồn thú đứng yên ở Q; theo dõi hook `auto` tới khi đánh trúng nó. */
+    const run=async({P,Q})=>{
+      await test(A,"goto",P); await test(A,"clear");
+      if(Math.hypot(me(A).x-P.x,me(A).y-P.y)>=1) return null;
+      const bid=(await test(A,"spawn",{species:"thuc_nhan_hoa",tier:0,dx:Q.x-P.x,dy:Q.y-P.y,years:15,hpx:200}))?.bid, bb=()=>A.room.state.beasts.get(bid);
+      const ways=new Set(); let st=null;
+      if(!bid||!(await autoOp(A,"on"))?.on) return null;
+      const t00=Date.now(); let hit=false, ms=0; // waitFor chỉ nhận hàm đồng bộ: hỏi hook `auto` mỗi nhịp để ghi cách đi của từng lúc
+      for(const t0=Date.now();Date.now()-t0<12000&&!hit;await sleep(100)){ st=await test(A,"auto"); if(st?.way) ways.add(st.way); hit=!!bb()&&bb().hp<bb().maxHp; if(hit) ms=Date.now()-t00; }
+      st=await test(A,"auto"); await autoOp(A,"off"); await test(A,"clear");
+      return {hit,ms,ways:[...ways],target:st?.target===bid,plans:st?.plans,lines:st?.lines,start:P,beast:Q};
+    };
+    const L=pick(false), W=pick(true);
+    await autoOp(A,"set",{cfg:{...NEAR,skills:[],tienCo:false}});
+    if(!L||!W) console.log(`  ⚠ bỏ qua #291 đi thẳng / A*: không tìm được chỗ thử quanh điểm neo (thông ${!!L}, vướng ${!!W})`);
+    else{
+      const a=await run(L);
+      ok(a?.hit&&a.target&&a.plans===0&&a.lines>=1&&a.ways.includes("line")&&!a.ways.includes("path"),
+        `#291: đường thẳng thông: đi thẳng tới hồn thú, không tìm đường A* (${JSON.stringify(a)})`);
+      const w=await run(W);
+      ok(w?.hit&&w.target&&w.plans>=1&&w.lines>=1&&w.ways.includes("path"),
+        `#291: có ô chặn ở giữa: đi theo đường A* vòng qua rồi đánh trúng (${JSON.stringify(w)})`);
+    }
+    await autoOp(A,"set",{cfg:NEAR});
+  }
 
   // ---- Không cướp quái: B đang đánh X, A treo cạnh không đánh X mà đánh Y ----
   const B=await bot("Treo cạnh","nguyet_nhan",{sex:1,hair:2,hairCol:0,outfitCol:4}); extra.push(B);

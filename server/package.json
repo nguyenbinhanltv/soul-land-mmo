@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit",
     "test:ratelimit": "tsx scripts/ratelimit-test.ts",
     "test:accounts": "tsx scripts/accounts-test.ts",
+    "test:google": "tsx scripts/google-test.ts",
     "test:presence": "tsx scripts/presence-test.ts",
     "test:itemlock": "tsx scripts/itemlock-test.ts",
     "test:presence-kill": "tsx scripts/presence-kill-test.ts",
@@ -15,6 +16,7 @@
     "test:equip": "tsx scripts/equip-test.ts",
     "test:static-cache": "tsx scripts/static-cache-test.ts",
     "test:radar": "tsx scripts/radar-test.ts",
+    "test:autopath": "tsx scripts/autopath-test.ts",
     "test:looks-migrate": "tsx scripts/looks-migrate-test.ts",
     "test:gm": "tsx scripts/gm-test.ts",
     "test:seed": "tsx scripts/seed-test.ts",
@@ -30,6 +32,7 @@
     "@colyseus/ws-transport": "0.16.5",
     "colyseus": "0.16.5",
     "express": "4.22.3",
+    "google-auth-library": "10.9.1",
     "ioredis": "5.11.1",
     "pg": "8.16.3",
     "rung-san-hon-online": "file:.."

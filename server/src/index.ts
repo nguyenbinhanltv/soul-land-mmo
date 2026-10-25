@@ -9,7 +9,8 @@ import { WebSocketTransport } from "@colyseus/ws-transport";
 import { MapRoom, awakenAccount, chooseLooks, pickChannel, CHANNEL_CAP, saveStats } from "./rooms/MapRoom.ts";
 import { ArenaRoom } from "./rooms/ArenaRoom.ts";
 import { store } from "./db.ts";
-import { loginBegin, loginEnd, signupBegin, signupEnd } from "./ratelimit.ts";
+import { loginBegin, loginEnd, signupBegin, signupEnd, ssoCheck } from "./ratelimit.ts";
+import { GOOGLE, googleClientId, googleEnabled, verifyGoogle, makeTicket, readTicket } from "./google.ts";
 import { cleanName } from "./names.ts";
 import { cacheControlFor } from "./staticCache.ts";
 import { loadMap } from "./map.ts";
@@ -50,11 +51,16 @@ const route = (fn: (req: express.Request, res: express.Response) => Promise<void
 app.get("/health", (_q, r) => { const up = presenceBackend.healthy(); r.status(up ? 200 : 503).json({ ok: up, chMax: CHANNEL_CAP, ...(up ? {} : { redis: "down" }) }); });
 app.get("/live", (_q, r) => { r.json({ ok: true }); });
 
+const NAME_RE = /^[\p{L}\p{N}_ ]{3,20}$/u, NAME_ERR = "Tên 3–20 ký tự, chỉ gồm chữ, số, dấu cách hoặc _.";
+
+// Cấu hình công khai cho client: googleClientId null = ẩn nút Google (GOOGLE_CLIENT_ID không phải bí mật).
+app.get("/api/config", (_q, r) => { r.json({ googleClientId: googleEnabled() ? googleClientId() ?? "" : null }); });
+
 // Đăng nhập (tự tạo tài khoản nếu tên chưa tồn tại).
 app.post("/api/login", route(async (req, res) => {
   // Tên hiển thị sau NFKC (names.ts); store và rate limit tự so sánh theo nameKey(name).
   const name = cleanName(String(req.body?.name ?? "")), password = String(req.body?.password ?? "");
-  if (!/^[\p{L}\p{N}_ ]{3,20}$/u.test(name)) { res.status(400).json({ error: "Tên 3–20 ký tự, chỉ gồm chữ, số, dấu cách hoặc _." }); return; }
+  if (!NAME_RE.test(name)) { res.status(400).json({ error: NAME_ERR }); return; }
   if (password.length < 4) { res.status(400).json({ error: "Mật khẩu tối thiểu 4 ký tự." }); return; }
   // Giới hạn số lần sai theo tên và theo IP (server/src/ratelimit.ts).
   const ip = req.ip ?? req.socket.remoteAddress ?? "?";
@@ -79,13 +85,72 @@ app.post("/api/login", route(async (req, res) => {
   res.json({ token: r.token, character, looks, mapId: loc.mapId });
 }));
 
+// ---------- Đăng nhập Google (SSO, #612) ----------
+/** Phản hồi đăng nhập thành công: giống /api/login. */
+async function loginReply(res: express.Response, accountId: number, token: string) {
+  const [character, looks, loc] = await Promise.all([store.getCharacter(accountId), store.getLooks(accountId), store.getLocation(accountId)]);
+  res.json({ token, character, looks, mapId: loc.mapId });
+}
+/** Chung cho 3 route Google: giới hạn theo IP rồi xác minh credential; trả null nếu đã trả lỗi. */
+async function googleGate(req: express.Request, res: express.Response, credential: unknown) {
+  if (!googleEnabled()) { res.status(503).json({ error: "Máy chủ chưa bật đăng nhập Google." }); return null; }
+  const blocked = ssoCheck(req.ip ?? req.socket.remoteAddress ?? "?");
+  if (blocked) { res.setHeader("Retry-After", String(blocked.retryAfter)); res.status(429).json({ error: blocked.error }); return null; }
+  const g = await verifyGoogle(credential);
+  if ("error" in g) { res.status(401).json({ error: g.error }); return null; }
+  return g;
+}
+
+// Đã liên kết: vào như /api/login. Chưa: trả `needName` + vé ngắn hạn (chỉ chứa mã Google, ký bằng server) và tên gợi ý; client hỏi tên rồi gọi /create.
+app.post("/api/login/google", route(async (req, res) => {
+  const g = await googleGate(req, res, req.body?.credential);
+  if (!g) return;
+  const id = await store.accountByIdentity(GOOGLE, g.sub);
+  if (id !== null) { await loginReply(res, id, await store.startSession(id)); return; }
+  res.json({ needName: true, ticket: makeTicket(g.sub), suggest: cleanName(g.name).replace(/[^\p{L}\p{N}_ ]/gu, "").slice(0, 20) });
+}));
+
+// Tạo tài khoản từ Google mới: tên nhân vật do người chơi chọn, qua cùng luật tên và giới hạn tạo tài khoản mới theo IP như /api/login.
+app.post("/api/login/google/create", route(async (req, res) => {
+  if (!googleEnabled()) { res.status(503).json({ error: "Máy chủ chưa bật đăng nhập Google." }); return; }
+  const ip = req.ip ?? req.socket.remoteAddress ?? "?";
+  const blocked = ssoCheck(ip);
+  if (blocked) { res.setHeader("Retry-After", String(blocked.retryAfter)); res.status(429).json({ error: blocked.error }); return; }
+  const sub = readTicket(req.body?.ticket);
+  if (!sub) { res.status(401).json({ error: "Phiên đăng nhập Google hết hạn, hãy bấm đăng nhập Google lại." }); return; }
+  const name = cleanName(String(req.body?.name ?? ""));
+  if (!NAME_RE.test(name)) { res.status(400).json({ error: NAME_ERR }); return; }
+  const noSignup = signupBegin(ip);
+  if (noSignup) { res.setHeader("Retry-After", String(noSignup.retryAfter)); res.status(429).json({ error: noSignup.error }); return; }
+  let r: Awaited<ReturnType<typeof store.createIdentityAccount>>;
+  try { r = await store.createIdentityAccount(name, GOOGLE, sub); } catch (e) { signupEnd(ip, true, false); throw e; }
+  signupEnd(ip, true, !("error" in r));
+  if ("error" in r) {
+    if (r.error === "linked") { res.status(409).json({ error: "Tài khoản Google này đã có nhân vật, hãy đăng nhập Google lại." }); return; }
+    res.status(409).json({ error: "Tên này đã có người dùng." }); return;
+  }
+  await loginReply(res, r.accountId, await store.startSession(r.accountId));
+}));
+
+// Liên kết Google với tài khoản đang đăng nhập (Cài đặt): một Google một tài khoản, một tài khoản tối đa một Google.
+app.post("/api/link/google", route(async (req, res) => {
+  const acc = await store.accountFromToken(req.body?.token);
+  if (!acc) { res.status(401).json({ error: "Phiên đăng nhập hết hạn." }); return; }
+  const g = await googleGate(req, res, req.body?.credential);
+  if (!g) return;
+  const r = await store.linkIdentity(acc.accountId, GOOGLE, g.sub);
+  if (r === "subject-taken") { res.status(409).json({ error: "Tài khoản Google này đã liên kết với nhân vật khác." }); return; }
+  if (r === "has-provider") { res.status(409).json({ error: "Nhân vật này đã liên kết một tài khoản Google khác." }); return; }
+  res.json({ ok: true, googleLinked: true });
+}));
+
 // Lấy nhân vật của phiên hiện tại: võ hồn ra trận (null = chưa thức tỉnh), ngoại hình (looks.chosen = đã tạo nhân vật)
 // và bản đồ đang đứng (mapId, từ BĐ2): client truyền mapId này khi vào phòng để Colyseus ghép đúng bản đồ.
 app.post("/api/me", route(async (req, res) => {
   const acc = await store.accountFromToken(req.body?.token);
   if (!acc) { res.status(401).json({ error: "Phiên đăng nhập hết hạn." }); return; }
   const [character, looks, loc] = await Promise.all([store.getCharacter(acc.accountId), store.getLooks(acc.accountId), store.getLocation(acc.accountId)]);
-  res.json({ character, looks, mapId: loc.mapId });
+  res.json({ character, looks, mapId: loc.mapId, googleLinked: await store.hasIdentity(acc.accountId, GOOGLE) });
 }));
 
 // Kênh để vào game (mục 6 "Nhiều kênh"): bản đồ đang lưu và phòng (kênh) nên vào: kênh còn chỗ có đồng đội tổ đội, không thì kênh

@@ -170,6 +170,18 @@ export interface Store {
    *  hạn tạo tài khoản mới theo IP, #207). `create` false (IP hết lượt tạo): tên chưa có thì không tạo, trả lỗi kèm `noCreate`. */
   login(name: string, password: string, create?: boolean):
     Promise<{ token: string; accountId: number; created: boolean } | { error: string; noCreate?: true }>;
+  /** Đăng nhập Google (#612): tài khoản đã liên kết với định danh `subject` của `provider` (null = chưa). */
+  accountByIdentity(provider: string, subject: string): Promise<number | null>;
+  /** Mở phiên mới cho tài khoản (đăng nhập qua định danh ngoài, không mật khẩu): trả token như login. */
+  startSession(accountId: number): Promise<string>;
+  /** Tạo tài khoản MỚI chỉ có định danh ngoài (mật khẩu ngẫu nhiên không ai biết) với tên hiển thị `name` (đã cleanName). Tên trùng thì
+   *  `taken`; định danh đã có tài khoản (hai yêu cầu song song) thì `linked`. */
+  createIdentityAccount(name: string, provider: string, subject: string): Promise<{ accountId: number } | { error: "taken" | "linked" }>;
+  /** Liên kết định danh với tài khoản đang đăng nhập: `subject-taken` = định danh đã thuộc tài khoản khác, `has-provider` = tài khoản đã liên kết
+   *  một định danh cùng nhà cung cấp. Liên kết lại đúng định danh đã có của chính tài khoản này là `ok`. */
+  linkIdentity(accountId: number, provider: string, subject: string): Promise<"ok" | "subject-taken" | "has-provider">;
+  /** Tài khoản đã liên kết `provider` chưa (cho Cài đặt: "đã liên kết Google"). */
+  hasIdentity(accountId: number, provider: string): Promise<boolean>;
   /** Tài khoản của phiên `token`; `token` sai định dạng (không phải chuỗi newToken) thì null, không hỏi DB. */
   accountFromToken(token: unknown): Promise<{ accountId: number; name: string } | null>;
   /** Võ hồn đang ra trận (chưa chọn thì là võ hồn sở hữu sớm nhất). null = chưa thức tỉnh. */
@@ -446,6 +458,28 @@ export class MemoryStore implements Store {
     const token = newToken(); this.sessions.set(token, acc.id);
     return { token, accountId: acc.id, created };
   }
+  identities = new Map<string, number>(); // `${provider}|${subject}` -> accountId (bảng account_identities, #612)
+  async accountByIdentity(provider: string, subject: string) { return this.identities.get(`${provider}|${subject}`) ?? null; }
+  async startSession(accountId: number) { const token = newToken(); this.sessions.set(token, accountId); return token; }
+  async createIdentityAccount(name: string, provider: string, subject: string) {
+    const key = nameKey(name), ik = `${provider}|${subject}`;
+    if (this.identities.has(ik)) return { error: "linked" as const };
+    if (this.accounts.has(key)) return { error: "taken" as const };
+    const pass = await hashPass(randomBytes(24).toString("base64url"));
+    // Trong lúc băm có yêu cầu khác vừa tạo cùng tên / cùng định danh.
+    if (this.identities.has(ik)) return { error: "linked" as const };
+    if (this.accounts.has(key)) return { error: "taken" as const };
+    const acc = { id: this.seq++, pass }; this.accounts.set(key, acc); this.names.set(acc.id, name); this.identities.set(ik, acc.id);
+    return { accountId: acc.id };
+  }
+  async linkIdentity(accountId: number, provider: string, subject: string) {
+    const ik = `${provider}|${subject}`, owner = this.identities.get(ik);
+    if (owner === accountId) return "ok" as const;
+    if (owner !== undefined) return "subject-taken" as const;
+    if ([...this.identities].some(([k, a]) => a === accountId && k.startsWith(`${provider}|`))) return "has-provider" as const;
+    this.identities.set(ik, accountId); return "ok" as const;
+  }
+  async hasIdentity(accountId: number, provider: string) { return [...this.identities].some(([k, a]) => a === accountId && k.startsWith(`${provider}|`)); }
   async accountFromToken(token: unknown) {
     const id = tokenOk(token) ? this.sessions.get(token) : undefined; return id ? { accountId: id, name: this.names.get(id)! } : null;
   }
@@ -780,6 +814,7 @@ export class MemoryStore implements Store {
     for (const k of cl) this.claims.delete(k);
     for (const k of pairs) this.pairs.delete(k);
     for (const t of tokens) this.sessions.delete(t);
+    for (const [k, a] of this.identities) if (a === id) this.identities.delete(k);
     for (const m of [this.active, this.teams, this.bags, this.quests, this.wps, this.autos, this.offline, this.tongs, this.arena, this.locs, this.looks, this.looksChanges, this.friends, this.blocks, this.names, this.fogs])
       m.delete(id);
     for (const m of [this.friends, this.blocks]) for (const set of m.values()) set.delete(id);
@@ -860,6 +895,42 @@ export class PgStore implements Store {
     const token = newToken();
     await this.pool.query("INSERT INTO sessions(token, account_id) VALUES ($1,$2)", [token, id]);
     return { token, accountId: id, created };
+  }
+  async accountByIdentity(provider: string, subject: string) {
+    const r = await this.pool.query("SELECT account_id FROM account_identities WHERE provider=$1 AND subject=$2", [provider, subject]);
+    return r.rowCount ? Number(r.rows[0].account_id) : null;
+  }
+  async startSession(accountId: number) {
+    const token = newToken();
+    await this.pool.query("INSERT INTO sessions(token, account_id) VALUES ($1,$2)", [token, accountId]);
+    return token;
+  }
+  async createIdentityAccount(name: string, provider: string, subject: string) {
+    const hash = await hashPass(randomBytes(24).toString("base64url"));
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      const ins = await db.query("INSERT INTO accounts(name, name_key, pass_hash) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING RETURNING id", [name, nameKey(name), hash]);
+      if (!ins.rowCount) { await db.query("ROLLBACK"); return { error: "taken" as const }; }
+      const id = Number(ins.rows[0].id);
+      const idn = await db.query("INSERT INTO account_identities(provider, subject, account_id) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING", [provider, subject, id]);
+      if (!idn.rowCount) { await db.query("ROLLBACK"); return { error: "linked" as const }; }
+      await db.query("COMMIT");
+      return { accountId: id };
+    } catch (e) { await db.query("ROLLBACK").catch(() => {}); throw e; } finally { db.release(); }
+  }
+  async linkIdentity(accountId: number, provider: string, subject: string) {
+    try {
+      const r = await this.pool.query("INSERT INTO account_identities(provider, subject, account_id) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING", [provider, subject, accountId]);
+      if (r.rowCount) return "ok" as const;
+    } catch (e) { if ((e as { code?: string }).code !== "23505") throw e; }
+    // Không chèn được: định danh đã có chủ, hoặc tài khoản đã có định danh cùng nhà cung cấp (UNIQUE account_id, provider).
+    const owner = await this.accountByIdentity(provider, subject);
+    if (owner === accountId) return "ok" as const;
+    return owner === null ? "has-provider" as const : "subject-taken" as const;
+  }
+  async hasIdentity(accountId: number, provider: string) {
+    return !!(await this.pool.query("SELECT 1 FROM account_identities WHERE account_id=$1 AND provider=$2", [accountId, provider])).rowCount;
   }
   async accountFromToken(token: unknown) {
     if (!tokenOk(token)) return null;

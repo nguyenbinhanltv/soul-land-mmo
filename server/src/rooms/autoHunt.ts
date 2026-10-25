@@ -77,8 +77,13 @@ export class AutoHunter {
   last = { x: 0, y: 0 }; stuckT = 0;
   /** Số giây mục tiêu trong tầm mà không đánh được vì đòn sẽ trúng hồn thú người khác đang giao chiến. */
   blockT = 0;
-  /** Đi thẳng tới mục tiêu được không (clearLine), tính lại khi mình hoặc mục tiêu dời quá vài pixel so với lần tính trước. */
+  /**
+   * Đi thẳng tới mục tiêu được không (clearLine), tính lại khi mình hoặc mục tiêu dời quá vài pixel so với lần tính trước; toạ độ NaN là
+   * chưa tính (lần đầu, hoặc mục tiêu ở xa ngoài khung A*) nên lần tới gần luôn tính (#291).
+   */
   los = { px: NaN, py: NaN, bx: NaN, by: NaN, ok: false };
+  /** Hook test (#291): nhịp trước đi thẳng ("line") hay theo đường A* ("path"), số lần tìm đường A* (plan) và số lần tính clearLine. */
+  way: "line" | "path" | null = null; plans = 0; lines = 0;
 
   /** Giây còn phải chờ đồ rơi sau khi vừa hạ một hồn thú thường (AUTO_LOOT_WAIT) trước khi nhắm con mới (#608). */
   lootWait = 0;
@@ -613,6 +618,7 @@ export class AutoHunter {
    */
   steer(p: PlayerState, d: PData, dt: number) {
     const room = this.room, map = navOf(room.map).grid;
+    this.way = null;
     // #218: đang đứng trong vùng báo trước / vùng độc thì đi thẳng tới chỗ né trước mọi việc khác.
     const esc = this.escape(p, dt);
     if (esc) return this.move(p, d, esc, dt, true);
@@ -627,8 +633,12 @@ export class AutoHunter {
       // (ngoài khung A*, săn khắp bản đồ) thì đi theo đường dài, không thử đường thẳng mỗi nhịp.
       const l = this.los, near = Math.max(Math.abs(b.x - p.x), Math.abs(b.y - p.y)) < AUTO_MOVE.path.maxTiles * TILE;
       if (!near) { l.ok = false; l.px = NaN; }
-      else if (Math.hypot(l.px - p.x, l.py - p.y) > 6 || Math.hypot(l.bx - b.x, l.by - b.y) > 6) Object.assign(l, { px: p.x, py: p.y, bx: b.x, by: b.y, ok: clearLine(map, p, b) });
-      if (l.ok) { this.path = []; this.goal = null; to = { x: b.x, y: b.y }; }
+      // So kiểu !(… <= 6): toạ độ NaN (chưa tính) cũng tính lại; `> 6` với NaN luôn sai nên trước #291 không bao giờ đi thẳng.
+      else if (!(Math.hypot(l.px - p.x, l.py - p.y) <= 6 && Math.hypot(l.bx - b.x, l.by - b.y) <= 6)) {
+        this.lines++; Object.assign(l, { px: p.x, py: p.y, bx: b.x, by: b.y, ok: clearLine(map, p, b) });
+      }
+      this.way = l.ok ? "line" : "path";
+      if (l.ok) { this.path = []; this.goal = null; this.pathT = AUTO_MOVE.repath; to = { x: b.x, y: b.y }; } // pathT đầy: chuyển sang A* thì tìm đường ngay, không khựng
       else {
         this.pathT += dt;
         // Đích đổi khi mục tiêu dời quá 2 ô, hoặc khi đã đi hết đường tới đích cũ mà mục tiêu chưa trong tầm (nó dời ít hơn 2 ô, #325).
@@ -638,7 +648,7 @@ export class AutoHunter {
         to = this.path[0] ?? null;
       }
     } else if (this.goal) {
-      this.pathT += dt;
+      this.way = "path"; this.pathT += dt;
       if (!this.path.length && this.pathT >= AUTO_MOVE.repath) this.plan(p);
       to = this.path[0] ?? null;
     }
@@ -671,7 +681,7 @@ export class AutoHunter {
    * đồ thị dẫn đường (#213). Không tới gần được thì bỏ qua mục tiêu / đồ rơi đó một lúc.
    */
   plan(p: PlayerState) {
-    this.pathT = 0;
+    this.pathT = 0; this.plans++;
     if (!this.goal) return;
     const { grid, nav } = navOf(this.room.map), M = AUTO_MOVE.path;
     const far = Math.max(Math.abs(this.goal.x - p.x), Math.abs(this.goal.y - p.y)) > (M.maxTiles - 2) * TILE;

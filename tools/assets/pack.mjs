@@ -232,7 +232,7 @@ function packVohon() {
       grip = ref.hands.length ? ref.hands.reduce((a, b) => (dist(b) < dist(a) ? b : a)) : null;
       if (!grip) console.warn(`[pack] ${sex} ${d}: khung đứng không thấy tay, phụ thể đứng yên theo thân`);
     }
-    const side = grip ? Math.sign(grip.x - ref.mid) : 0;
+    const side = grip && !grips[d]?.free ? Math.sign(grip.x - ref.mid) : 0;
     for (const a of ["idle", "walk", "attack", "cast"]) {
       const [c0, n] = HL.anims[a];
       let last = { dx: 0, dy: 0 };
