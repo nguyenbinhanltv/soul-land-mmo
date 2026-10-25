@@ -81,8 +81,8 @@ jobs:
           if GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts" \
                git clone --depth 1 --quiet "git@github.com:$ASSETS_REPO.git" "$RUNNER_TEMP/assets-private"; then
             mkdir -p shared/assets/private
-            cp -r "$RUNNER_TEMP/assets-private/." shared/assets/private/
-            rm -rf shared/assets/private/.git
+            # Chỉ packs/ + present.json (shared/assets là publicDir của Vite: licenses/, CREDITS-private.md, preview.html không cần phục vụ).
+            cp -r "$RUNNER_TEMP/assets-private/packs" "$RUNNER_TEMP/assets-private/present.json" shared/assets/private/
             echo "private=yes" >>"$GITHUB_OUTPUT"
             echo "Kho asset riêng: $(find shared/assets/private -type f | wc -l) file."
           else

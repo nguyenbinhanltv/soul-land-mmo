@@ -15,7 +15,7 @@ import { Img, decodePng, encodePng, hex, toHex, readGpl, ROOT, OUTLINE } from ".
 
 const args = process.argv.slice(2);
 const opt = (n, d = "") => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
-const only = opt("--only") ? new Set(opt("--only").split(",")) : null;
+const onlyArg = opt("--only"), only = onlyArg ? new Set(onlyArg.split(",")) : null; // opt() gỡ tham số khỏi args: mỗi tham số chỉ đọc một lần
 const outDir = opt("--out"), manifestOut = opt("--manifest"), creditsOut = opt("--credits"), listFile = opt("--list");
 const SPEC = JSON.parse(readFileSync(path.join(ROOT, "tools", "assets", "private-packs.json"), "utf8"));
 const roots = Object.fromEntries(Object.keys(SPEC.packs).map((k) => [k, opt(`--${k}`)])); // --giga --holy --forest --fire --free --bdragon --pimen
@@ -48,7 +48,8 @@ if (listFile) {
   process.exit(0);
 }
 if (!outDir) { console.error("Cách dùng: import-pack.mjs --out <thư mục> [--giga d] [--holy d] [--forest d] [--only k,k] [--manifest f] [--credits f] | --list <png>"); process.exit(1); }
-if (path.resolve(outDir).startsWith(ROOT + path.sep)) { console.error(`--out nằm trong repo game (${ROOT}): ảnh gói giấy phép hạn chế không được vào repo công khai. Dùng thư mục ngoài repo.`); process.exit(1); }
+const fold = (p) => (process.platform === "win32" ? p.toLowerCase() : p); // Windows: chữ ổ đĩa / thư mục không phân biệt hoa thường
+if (fold(path.resolve(outDir)).startsWith(fold(ROOT + path.sep))) { console.error(`--out nằm trong repo game (${ROOT}): ảnh gói giấy phép hạn chế không được vào repo công khai. Dùng thư mục ngoài repo.`); process.exit(1); }
 
 const palette = readGpl(path.join(ROOT, "art", "palette.gpl")).map(hex);
 const nearest = (r, g, b) => { let best = palette[0], bd = 1e9; for (const p of palette) { const d = (p[0] - r) ** 2 + (p[1] - g) ** 2 + (p[2] - b) ** 2; if (d < bd) { bd = d; best = p; } } return best; };
@@ -146,7 +147,10 @@ for (const e of SPEC.entries) {
   manifest.push(rec); used.add(e.pack); done.push(rec);
   console.log(`✓ ${e.key}: ${r.frames} khung ${r.frame.join("×")}${r.files._glow ? " + lớp sáng" : ""}`);
 }
-writeFileSync(path.join(outDir, "present.json"), JSON.stringify({ about: "File có thật trong kho riêng; client chỉ tải những file này (client/src/privateAssets.ts).", files: present.sort() }, null, 1) + "\n");
+// Gộp với present.json cũ khi chạy từng phần (--only): file đã có trong kho vẫn còn trên đĩa nên client vẫn phải tải được.
+const presentFile = path.join(outDir, "present.json");
+const oldFiles = existsSync(presentFile) ? (JSON.parse(readFileSync(presentFile, "utf8")).files ?? []).filter((f) => existsSync(path.join(outDir, f))) : [];
+writeFileSync(presentFile, JSON.stringify({ about: "File có thật trong kho riêng; client chỉ tải những file này (client/src/privateAssets.ts).", files: [...new Set([...oldFiles, ...present])].sort() }, null, 1) + "\n");
 
 mkdirSync(path.join(outDir, "licenses"), { recursive: true });
 for (const p of used) {
