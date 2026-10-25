@@ -514,7 +514,7 @@ export function buildBoneSkills(worn: WornBone[], act: (k: string) => void) {
     const b = document.createElement("button"); b.className = "sk bsk ui-cell" + (sk ? "" : " locked"); b.dataset.b = String(i);
     if (w) b.dataset.tier = String(tierOfYears(w.years)); // cả hồn cốt bị động (ô mờ nhưng giữ viền màu niên hạn)
     b.dataset.cost = String(sk?.cost ?? 0);
-    b.innerHTML = `<b class="key">${BONE_SKILL_KEYS[i]}</b><i></i><span class="ico" style="color:${col}">${boneSvg(slot, "bico")}</span><span></span><div class="ui-cd"></div><em class="cdn"></em>`;
+    b.innerHTML = `<b class="key">${BONE_SKILL_KEYS[i]}</b><i></i><span class="ico skart" style="color:${col}">${boneIcon(slot, col)}</span><span></span><div class="ui-cd"></div><em class="cdn"></em>`;
     b.querySelector("i")!.textContent = sk?.icon ?? "";
     b.querySelectorAll("span")[1].textContent = sk?.name ?? s.name;
     b.setAttribute("aria-label", sk ? `Kỹ năng hồn cốt ${s.name}: ${sk.name}` : `Kỹ năng hồn cốt ${s.name}: chưa có`);
@@ -974,7 +974,7 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
     if (it) b.style.setProperty("--c", itemColor(it));
     // Từ 4.3: tên kỹ năng hồn cốt (chủ động / bị động) hiện trong ô.
     const kb = it ? boneOf(it) : null, k = kb ? boneSkillOf(kb.beast, s.id) : null, kname = k ? (k.active ? k.sk.name : k.ps.name) : "";
-    b.innerHTML = `${it ? boneIcon(s.id, itemColor(it)) : boneSvg(s.id)}<span>${s.name}</span>${it ? `<small>${yearsShort(it.years)}</small>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${kname ? `<em></em>` : ""}`;
+    b.innerHTML = `${it ? boneIcon(s.id, itemColor(it)) : boneEmptyIcon(s.id)}<span>${s.name}</span>${it ? `<small>${yearsShort(it.years)}</small>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${kname ? `<em></em>` : ""}`;
     if (kname) b.querySelector("em")!.textContent = kname;
     b.setAttribute("aria-label", `Ô ${s.name}: ${it ? itemName(it) : "trống"}${kname ? `, kỹ năng ${kname}` : ""}`);
     b.setAttribute("aria-pressed", String(boneCell === s.id));
@@ -1104,7 +1104,7 @@ function renderCores(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
     const it = bySlot.get(s), c = it ? coreOf(it) : null, cs = c ? coreSet(c.set) : undefined, b = document.createElement("button");
     b.type = "button"; b.className = "bcell ccell" + (it ? "" : " empty") + (coreCell === s ? " sel" : "");
     if (it) b.style.setProperty("--c", itemColor(it));
-    b.innerHTML = `${coreSvg(c?.set ?? "")}<span>Ô ${s + 1}</span>${it ? `<small>${it.stars ?? 1}★</small><em></em>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}`;
+    b.innerHTML = `${coreIcon(c?.set ?? "")}<span>Ô ${s + 1}</span>${it ? `<small>${it.stars ?? 1}★</small><em></em>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}`;
     if (it) b.querySelector("em")!.textContent = cs?.name ?? "Bộ lạ";
     b.setAttribute("aria-label", `Ô hồn hạch ${s + 1}: ${it ? itemName(it) : "trống"}`);
     b.setAttribute("aria-pressed", String(coreCell === s));
@@ -1136,7 +1136,7 @@ function renderCores(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
     const cs = coreSet(set), row = document.createElement("div");
     row.className = "cset" + (n >= CORE_SET_2 ? " on" : "");
     if (cs) row.style.setProperty("--c", cs.col);
-    row.innerHTML = `${coreSvg(set)}<span><b></b><small></small><small></small></span>`;
+    row.innerHTML = `${coreIcon(set)}<span><b></b><small></small><small></small></span>`;
     row.querySelector("b")!.textContent = `${cs ? `${cs.name} (${cs.tag})` : "Bộ lạ"} · ${n} món`;
     const [s2, s4] = row.querySelectorAll("small");
     s2.textContent = `${n >= CORE_SET_2 ? "✓" : `${n}/${CORE_SET_2}`} 2 món: ${cs?.set2 ?? "không rõ"}`; s2.classList.toggle("on", n >= CORE_SET_2);
@@ -1194,7 +1194,7 @@ function renderCores(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
     const c = coreOf(it)!, row = document.createElement("div");
     row.className = "bitem" + (it.id === coreFocus ? " sel" : "");
     row.draggable = true; row.style.setProperty("--c", itemColor(it));
-    row.innerHTML = `${coreSvg(c.set)}<span><b></b><small></small></span><button type="button" class="sbtn">Gắn</button>`;
+    row.innerHTML = `${coreIcon(c.set)}<span><b></b><small></small></span><button type="button" class="sbtn">Gắn</button>`;
     row.querySelector("b")!.textContent = itemName(it);
     row.querySelector("small")!.textContent = `${coreStatText(c.main, coreMainValue(c.main, it.stars ?? 1, it.enhance))} · ${c.subs.length} dòng phụ`;
     row.title = coreLines(it).join("\n");
@@ -1784,13 +1784,20 @@ export function itemArt(it: Pick<BagItem, "code" | "years" | "stats">) {
   const tint = it.code === RING_ITEM && it.years !== null ? ringColor(tierOfYears(it.years))
     : kind === "manh_vo_hon" || kind === "ruong" || kind === "tien_thao" ? def!.col : null;
   if (tint) { const u = tintedUrl(`item_${kind}`, tint); if (u) return `<img class="ico art" src="${u}" alt="" draggable="false">`; }
+  if (it.code === CORE_ITEM) { const c = coreOf(it as BagItem); if (c) return coreIcon(c.set); }
   return artImg(`item_${it.code}`, "ico art") || (kind ? artImg(`item_${kind}`, "ico art") : "");
 }
-/** Biểu tượng hồn cốt ở vị trí `slot` tô màu `col` (ảnh xám item_hon_cot_*), không có ảnh thì SVG điểm ảnh cũ. */
+/** Biểu tượng hồn cốt ở vị trí `slot` tô màu `col` (ảnh xám item_hon_cot_*), không có ảnh thì SVG điểm ảnh cũ (#695: mọi chỗ dùng chung một kiểu). */
 export const boneIcon = (slot: string, col: string) => {
   const u = tintedUrl(`item_hon_cot_${slot}`, col);
   return u ? `<img class="ico art bone" src="${u}" alt="" draggable="false">` : boneSvg(slot);
 };
+
+/** Ô hồn cốt trống: cùng ảnh, tô xám (CSS `.bcell.empty` làm mờ). */
+export const boneEmptyIcon = (slot: string) => boneIcon(slot, "#8c8c8c");
+/** Biểu tượng hồn hạch của bộ `set` (item_hon_hach_<bộ>, màu bộ vẽ sẵn), bộ lạ / trống thì ảnh chung item_hon_hach, chưa có ảnh thì SVG cũ (#696). */
+export const coreIcon = (set: string) =>
+  artImg(`item_hon_hach_${set}`, "ico art core") || artImg("item_hon_hach", "ico art core") || coreSvg(set);
 
 /**
  * Một võ hồn trong bộ sưu tập khi chọn nơi hấp thụ hồn hoàn (GameScene tính bằng absorbChance / absorbSecs của shared/data.ts,
@@ -2054,7 +2061,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       const eq = it.code === EQUIP_ITEM ? parseEquip(it.stats) : null, etpl = equipTemplate(eq?.tpl); // trang bị hồn sư (E5): khung theo bậc, "+N", may mắn ở góc
       if (etpl) b.dataset.etier = String(etpl.tier);
       const core = coreOf(it), corner = hasYears(it) ? yearsShort(it.years) : core ? `${it.stars ?? 1}★` : eq?.luck ? `M${eq.luck}` : it.qty > 1 ? String(it.qty) : "";
-      const bone = boneOf(it), icon = itemArt(it) || (bone ? boneSvg(bone.slot) : core ? coreSvg(core.set) : `<i class="ico ${def?.kind ?? "unknown"}"></i>`);
+      const bone = boneOf(it), icon = itemArt(it) || (bone ? boneIcon(bone.slot, itemColor(it)) : core ? coreIcon(core.set) : `<i class="ico ${def?.kind ?? "unknown"}"></i>`);
       b.innerHTML = `${icon}${etpl ? artImg(equipFrameKey(etpl.tier), "efr") : ""}${corner ? `<small>${corner}</small>` : ""}${(bone || core || etpl) && it.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${it.lock ? `<i class="lk" aria-hidden="true"></i>` : ""}${isNew(it.id) ? `<i class="nw" aria-hidden="true"></i>` : ""}<div class="cd"></div>`;
       b.setAttribute("aria-label", (etpl ? `${itemName(it)} (${EQUIP_TIERS[etpl.tier].name})` : hasYears(it) ? `${bone ? "Hồn cốt " : ""}${itemName(it)} (${TIERS[tierOfYears(it.years)].color})` : core ? itemName(it) : `${itemName(it)}, ${it.qty} món`)
         + (it.lock ? ", đang khoá" : ""));
@@ -2235,14 +2242,14 @@ function bagEquipStrip(items: BagItem[], vohon: number, act: BagActions, view: D
   };
   for (const s of BONE_SLOTS) {
     const it = mine.find((i) => boneOf(i)?.slot === s.id), ref: SlotRef = { tab: "bone", slot: s.id, rowId: vohon };
-    const b = cell(`bone${it ? "" : " empty"}`, it ? `${boneIcon(s.id, itemColor(it))}<small>${yearsShort(it.years!)}</small>` : boneSvg(s.id), ref, () => ref);
+    const b = cell(`bone${it ? "" : " empty"}`, it ? `${boneIcon(s.id, itemColor(it))}<small>${yearsShort(it.years!)}</small>` : boneEmptyIcon(s.id), ref, () => ref);
     b.setAttribute("aria-label", `Ô ${s.name}: ${it ? itemName(it) : "trống"}`);
     if (it) { b.dataset.tier = String(tierOfYears(it.years!)); b.style.setProperty("--c", itemColor(it)); }
     setTip(b, { title: it ? itemName(it) : `Ô ${s.name} trống`, color: it ? TIERS[tierOfYears(it.years!)].glow : undefined, sub: `Hồn cốt · ${s.name}`,
       lines: it ? [boneFullText(it as BagItem & { years: number })] : [], foot: "Kéo hồn cốt từ túi thả vào để gắn" });
   }
   const cores = mine.filter((i) => coreOf(i));
-  const cb = cell("core" + (cores.length ? "" : " empty"), `${coreSvg("")}<small>${cores.length}/${CORE_SLOTS}</small>`, { tab: "core", slot: 0, rowId: vohon },
+  const cb = cell("core" + (cores.length ? "" : " empty"), `${coreIcon("")}<small>${cores.length}/${CORE_SLOTS}</small>`, { tab: "core", slot: 0, rowId: vohon },
     (it) => smartTarget(it, { ...view, rowId: vohon }));
   cb.setAttribute("aria-label", `Hồn hạch đang gắn ${cores.length}/${CORE_SLOTS}`);
   setTip(cb, { title: `Hồn hạch ${cores.length}/${CORE_SLOTS}`, lines: cores.map((c) => itemName(c)), foot: "Kéo hồn hạch từ túi thả vào để gắn (vào ô trống đầu tiên)" });
