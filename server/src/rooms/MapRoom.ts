@@ -199,7 +199,7 @@ export interface PData {
   // Tự săn (Auto 1, mục 5.13): đang chạy (null = tắt), cài đặt, ngày (giờ Việt Nam) và số giây đã treo trong ngày đó, cờ chưa lưu
   // (bảng auto_hunt; flushAuto ghi trong chuỗi lưu cùng lần lưu thường, trước transaction đi cổng và khi dừng). `autoBonus`: giây
   // treo cộng thêm còn lại từ Ủy Thác Lệnh (Auto 2), chỉ tiêu khi đã treo hết AUTO_DAILY_SECS của hôm nay.
-  auto: AutoHunter | null; autoCfg: AutoSettings; autoDay: string; autoUsed: number; autoBonus: number; autoDirty: boolean; autoTok: number; autoTokAt: number; autoSetPend: { cfg: unknown } | null; autoRealRate: boolean; autoPace: [number, number];
+  auto: AutoHunter | null; autoCfg: AutoSettings; autoDay: string; autoUsed: number; autoBonus: number; autoDirty: boolean; autoTok: number; autoTokAt: number; autoSetPend: { cfg: unknown } | null; autoRealRate: boolean; autoPace: [number, number]; autoHintC: { key: string; hint: AutoHint } | null;
   // Ủy thác offline (Auto 3): bảng nhận thưởng đã tính chờ gửi (client xin bằng tin `offline` sau khi đăng ký handler, vì claimOffline
   // có thể xong trước khi client sẵn sàng nhận) và client đã xin chưa.
   offMsg: Record<string, unknown> | null; offAsk: boolean;
@@ -1156,7 +1156,7 @@ export class MapRoom extends Room<MapState> {
       chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests), ...this.tongTasksOf(bag.quests), tongBoardAt: 0, tongPend: [],
       res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, resonanceTopAt: 0, arenaGone: false,
       auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0,
-      autoBonus: auth.auto.bonus, autoDirty: false, autoTok: AUTO_MSG_RATE.burst, autoTokAt: Date.now(), autoSetPend: null, autoRealRate: false, autoPace: [0, 0], offMsg: null, offAsk: false,
+      autoBonus: auth.auto.bonus, autoDirty: false, autoTok: AUTO_MSG_RATE.burst, autoTokAt: Date.now(), autoSetPend: null, autoRealRate: false, autoPace: [0, 0], autoHintC: null, offMsg: null, offAsk: false,
       tong: tongDef(auth.tong.tong)?.id ?? null, tongAt: auth.tong.at };
     p.tong = d.tong ? TONG_MON.findIndex((t) => t.id === d.tong) + 1 : 0;
     this.pdata.set(client.sessionId, d);
@@ -1709,9 +1709,14 @@ export class MapRoom extends Room<MapState> {
   /** Gợi ý vùng / khoảng niên hạn hợp sức (AH4, #611) cho võ hồn ra trận của `id` ở bản đồ này (mọi vùng săn có khai báo niên hạn). */
   autoHintOf(id: string): AutoHint | undefined {
     const d = this.pdata.get(id), p = this.state.players.get(id); if (!d || !p) return undefined;
+    // Cùng chỉ số võ hồn thì giữ kết quả lần trước: tin `auto` vượt nhịp vẫn được trả lời (sendAuto), không để mỗi tin chạy lại offlineFight (vùng × loài × tìm nhị phân).
+    const pw = this.offlinePower(d, p), key = `${pw.atk}|${pw.crit}|${pw.critMult}|${pw.maxHp}|${pw.def}`;
+    if (d.autoHintC?.key === key) return d.autoHintC.hint;
     const all = BEASTS.map((b) => b.id);
-    return autoHint(this.offlinePower(d, p), this.map.zones.filter((z) => z.years).map((z) =>
+    const hint = autoHint(pw, this.map.zones.filter((z) => z.years).map((z) =>
       ({ name: z.name, years: z.years!, species: z.beasts.length ? z.beasts.map((b) => BEASTS[b.species].id) : all })));
+    d.autoHintC = { key, hint };
+    return hint;
   }
 
   /** Dòng tự săn để lưu (cài đặt, ngày, giờ đã treo, quỹ cộng thêm; làm tròn 0,1 giây). */

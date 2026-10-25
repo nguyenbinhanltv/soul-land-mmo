@@ -37,6 +37,7 @@ const SECTIONS = [
   [/^Biểu tượng vật phẩm/, "oga"],
   [/^Âm thanh/, "audio"],
   [/^Hiệu ứng âm thanh/, "audio"],
+  [/^Nền môi trường vòng lặp/, "audio"],
   [/^Lịch sử/, "skip"],
   [/^Asset kho riêng/, "doc"],
 ];
