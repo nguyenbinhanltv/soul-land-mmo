@@ -53,12 +53,19 @@
       "crates": 46,
       "plank_bridge": 47,
       "reeds": 48,
-      "bamboo_fence": 49
+      "bamboo_fence": 49,
+      "vat_thong": 50,
+      "vat_soi": 51,
+      "vat_khuc_go": 52,
+      "vat_deco": 53,
+      "vat_nam": 54
     },
     "walk": [
       "lamngan",
       "plank_bridge",
-      "reeds"
+      "reeds",
+      "vat_deco",
+      "vat_nam"
     ],
     "canopy": {
       "17": 21,
@@ -2777,7 +2784,17 @@
         ]
       ]
     },
-    { "type": "row", "kind": "bamboo_fence", "from": [8, 42], "to": [56, 42], "step": 3 }
+    { "type": "row", "kind": "bamboo_fence", "from": [8, 42], "to": [56, 42], "step": 3 },
+    { "type": "scatter", "kind": "vat_thong", "rect": [2, 2, 200, 53], "p": 0.0035, "on": ["grass", "leaf", "moss"] },
+    { "type": "scatter", "kind": "vat_soi", "rect": [2, 2, 200, 53], "p": 0.0025, "on": ["grass", "leaf", "moss"] },
+    { "type": "scatter", "kind": "vat_khuc_go", "rect": [2, 2, 200, 53], "p": 0.0012, "on": ["grass", "leaf", "moss"] },
+    { "type": "scatter", "kind": "vat_deco", "rect": [2, 2, 200, 53], "p": 0.01, "on": ["grass", "leaf", "moss"] },
+    { "type": "scatter", "kind": "vat_nam", "rect": [2, 2, 200, 53], "p": 0.004, "on": ["grass", "leaf", "moss"] },
+    { "type": "scatter", "kind": "vat_thong", "rect": [132, 57, 70, 92], "p": 0.0035, "on": ["grass", "leaf", "moss"] },
+    { "type": "scatter", "kind": "vat_soi", "rect": [132, 57, 70, 92], "p": 0.0025, "on": ["grass", "leaf", "moss"] },
+    { "type": "scatter", "kind": "vat_khuc_go", "rect": [132, 57, 70, 92], "p": 0.0012, "on": ["grass", "leaf", "moss"] },
+    { "type": "scatter", "kind": "vat_deco", "rect": [132, 57, 70, 92], "p": 0.01, "on": ["grass", "leaf", "moss"] },
+    { "type": "scatter", "kind": "vat_nam", "rect": [132, 57, 70, 92], "p": 0.004, "on": ["grass", "leaf", "moss"] }
   ],
   "roads": [
     {

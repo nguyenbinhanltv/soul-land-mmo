@@ -16,6 +16,7 @@ import { TILE_W, TILE_H, TOPDOWN, worldToScreen, screenToWorld, depthAt } from "
 import { Buf, rgba, shade, buildHouse, buildFence, frontDepth, type RGBA, type BuildStyle } from "./isoBuild.ts";
 import { GLOW_PROPS, attachNormal, lightingOn } from "./lighting.ts";
 import { IsoAtlas } from "./isoAtlas.ts";
+import { PRIV_OFF } from "./privateAssets.ts";
 
 /** Độ sâu mặt đất: dưới mọi thứ (vùng cảnh báo, hồn sư, chữ); ô phía trước vẽ sau để che đáy ô phía sau. Lớp phủ mép trên mọi ô. */
 const GROUND_DEPTH = -100000, EDGE_DEPTH = -60000;
@@ -52,16 +53,19 @@ const EDGE_Z = Infinity;
 /** Ô nền: các biến thể ảnh 32×32 (thoi 32×16), ô lớn 64×64 (thoi 64×32, phủ 2×2 ô), tâm mặt trên trong ảnh, thứ bậc lấn mép. */
 interface GroundDef { img: string[]; big?: string[]; c: [number, number]; cBig?: [number, number]; edge: number; flip?: boolean }
 /** Vật đứng: key manifest `prop_{vật}` (ảnh sprites/iso/props/{vật}.png) và điểm chân (chạm tâm ô) trong ảnh. */
-/** `flip`: thiếu thì lật ngang theo băm vị trí, `false` không bao giờ lật, `true` luôn lật (vật có hướng: lật là đổi trục x ↔ y). */
-interface PropDef { key: string; foot: [number, number]; flip?: boolean }
+/** `flip`: thiếu thì lật ngang theo băm vị trí, `false` không bao giờ lật, `true` luôn lật (vật có hướng: lật là đổi trục x ↔ y).
+ *  `private`: ảnh nằm ở kho riêng (`private/<đường dẫn>`, docs/asset-rieng.md), chỉ tải khi `private/present.json` liệt kê; `key` là khóa texture. */
+interface PropDef { key: string; foot: [number, number]; flip?: boolean; private?: string }
 /** Bộ của một bản đồ: gid → tên ô / vật (kèm `~#rrggbb` để nhân màu, `~x1.3` để sáng lên), kiểu nhà. Bộ "*" là mặc định. */
 interface MapSet { ground?: Record<string, string>; props?: Record<string, string | string[]>; build?: BuildStyle }
 interface IsoTiles { ground: Record<string, GroundDef>; props: Record<string, PropDef>; maps: Record<string, MapSet> }
 
-const TILES_KEY = "iso-tiles", BASE = "iso/";
+const TILES_KEY = "iso-tiles", PRIV_KEY = "iso-private-present", BASE = "iso/";
 /** Texture của ảnh ô nền (đường dẫn trong shared/assets/iso). Vật đứng dùng thẳng key manifest. */
 const texKey = (file: string) => `iso:${file}`;
 const propFile = (key: string) => `sprites/iso/props/${key.replace(/^prop_/, "")}.png`;
+/** Một ô của bản đồ có thể ghi "vật_riêng|vật_công khai": dùng vật đầu có ảnh, không có thì vật sau (bản không có kho riêng vẫn có vật chặn đường). */
+const alts = (ref: string) => ref.split("|");
 /** "tên~#rrggbb" → tên và màu nhân. */
 const parseRef = (ref: string) => { const [name, tint] = ref.split("~"); return { name, tint: tint ?? "" }; };
 
@@ -87,9 +91,20 @@ export function preloadIso(scene: Phaser.Scene, mapId: string) {
     for (const f of files) img(texKey(f), BASE + f);
     const comp = Object.values(set.build?.compounds ?? {}).flatMap((c) => [...c.main, ...(c.gate ? [c.gate] : []), ...(c.deco ?? [])]);
     for (const c of Object.values(set.build?.compounds ?? {})) if (c.floor) { const g = data.ground[parseRef(c.floor).name]; for (const f of [...(g?.img ?? []), ...(g?.big ?? [])]) img(texKey(f), BASE + f); }
-    for (const v of [...Object.values(set.props), ...(set.build?.tower ? [set.build.tower] : []), ...comp]) for (const ref of ([] as string[]).concat(v)) {
+    const priv = new Map<string, string>(); // khóa texture → đường dẫn trong kho riêng
+    for (const v of [...Object.values(set.props), ...(set.build?.tower ? [set.build.tower] : []), ...comp]) for (const ref of ([] as string[]).concat(v).flatMap(alts)) {
       const p = data.props[parseRef(ref).name];
-      if (p) img(p.key, propFile(p.key));
+      if (!p) continue;
+      if (p.private) { if (!PRIV_OFF && !scene.textures.exists(p.key)) priv.set(p.key, p.private); }
+      else img(p.key, propFile(p.key));
+    }
+    // Vật kho riêng (#622): chỉ xin file có thật theo present.json (không có kho thì không có file, bản đồ dùng vật công khai thay).
+    if (priv.size) {
+      scene.load.json(PRIV_KEY, "private/present.json");
+      scene.load.once(`filecomplete-json-${PRIV_KEY}`, (_k: string, _t: string, pr: { files?: string[] }) => {
+        const present = new Set(pr?.files ?? []);
+        for (const [key, file] of priv) if (present.has(file)) scene.load.image(key, `private/${file}`);
+      });
     }
   });
 }
@@ -219,8 +234,9 @@ export class IsoMap {
     }
     for (const [gid, v] of Object.entries(set.props)) {
       const list = ([] as string[]).concat(v).flatMap((ref) => {
-        const { name, tint } = parseRef(ref), def = data.props[name];
-        if (!def || !this.scene.textures.exists(def.key)) { console.warn(`[isoMap] thiếu ảnh vật ${name}`); return []; }
+        const all = alts(ref), pick = all.find((r) => { const d = data.props[parseRef(r).name]; return d && this.scene.textures.exists(d.key); });
+        if (!pick) { if (!all.every((r) => data.props[parseRef(r).name]?.private)) console.warn(`[isoMap] thiếu ảnh vật ${all[all.length - 1]}`); return []; }
+        const { name, tint } = parseRef(pick), def = data.props[name];
         this.rise = Math.max(this.rise, def.foot[1]);
         attachNormal(this.scene, def.key);
         return [{ key: this.tinted(def.key, tint), def }];

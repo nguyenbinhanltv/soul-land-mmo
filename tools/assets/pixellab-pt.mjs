@@ -1,4 +1,4 @@
-// Gọi PixelLab REST v2 cho pháp tướng Võ Hồn Chân Thân (#482; công thức chuẩn ở docs/phap-tuong-cong-thuc.md). Mỗi lệnh đo /v2/balance
+// Gọi PixelLab REST v2 cho pháp tướng Võ Hồn Chân Thân (#482; công thức chuẩn ở docs/art/phap-tuong-cong-thuc.md). Mỗi lệnh đo /v2/balance
 // trước và sau để biết số lượt thật. Key đọc từ file lúc chạy (PIXELLAB_KEY_FILE, mặc định ~/.config/pixellab/api-key.txt), không in, không ghi.
 //   node tools/assets/pixellab-pt.mjs concept --id <mã> --desc "<mô tả>" [--seed N]
 //        create-image-pixflux 128×128 hướng nam, nền trong suốt → art/src/pixellab/phap_tuong/<mã>/concept.png
