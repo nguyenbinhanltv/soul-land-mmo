@@ -3,7 +3,7 @@
 Soát theo skill `anti-cheat-audit`, đóng vai người chơi sửa được client. Luật chơi ở mục 5.9 (`docs/design/to-doi-pvp-dau-truong.md`), kênh và phòng sân ở `docs/tech/kenh-arena.md`.
 Bài kiểm: `client/scripts/arena-audit-test.mjs` (gọi từ `bot-test.mjs`: `npm run bot:local -- --only arenaAudit [--pg]`, nhóm CI 5, cần `GAME_TEST=1`).
 Bài có hai mức: `ok` là hành vi đúng đang giữ (sai thì thất bại), `known` là **lỗ hổng đã biết**: mặc định chỉ in cảnh báo để CI không đỏ, `AUDIT_STRICT=1` thì thất bại (dùng khi kiểm bản vá, rồi đổi thành `ok`).
-PR này chỉ thêm bài kiểm và báo cáo; không sửa `MapRoom.ts` (M3 #783 đang sửa file đó). Mỗi lỗ hổng có issue sửa riêng: L1 #789, L2 #790, L3 #791.
+PR #788 chỉ thêm bài kiểm và báo cáo; L1 đã sửa ở #789 (`MapRoom.ts`). Mỗi lỗ hổng có issue sửa riêng: L1 #789, L2 #790, L3 #791.
 
 ## Bề mặt đã soát
 

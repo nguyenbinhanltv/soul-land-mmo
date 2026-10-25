@@ -56,7 +56,7 @@ export async function arenaAuditTest(h) {
     for (let i = 0; i < N; i++) A.room.send("arena", { op: "watch", roomId: "khong-co-that" });
     await sleep(1500);
     const watches = A.logs.slice(l2).filter((x) => /không còn diễn ra/.test(x)).length;
-    ok(watches <= 1, `watch mã phòng không có thật: ${N} tin dồn, server xử lý ${watches} lượt (nhịp ${ARENA.topCd} giây, #789)`);
+    ok(watches === 1, `watch mã phòng không có thật: ${N} tin dồn, server xử lý ${watches} lượt (nhịp ${ARENA.topCd} giây, #789)`);
   }
 
   // ---- đầu vào lạ cho `arena` (op, roomId sai kiểu / dài 3000 ký tự (dài hơn 4 KB thì ws ngắt kết nối)): không ném lỗi, phòng vẫn sống ----
