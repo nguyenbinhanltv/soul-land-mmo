@@ -20,6 +20,7 @@ import { fxTestScreen } from "./fxTest.ts";
 import { phapTuongTestScreen } from "./phapTuongTest.ts";
 import { phutheTestScreen } from "./phutheTest.ts";
 import { sharedAudioContext, stopMusic } from "./audio/music.ts";
+import { mountGoogleButton } from "./google.ts";
 
 const card = document.getElementById("card")!, overlay = document.getElementById("overlay")!;
 if (matchMedia("(pointer: coarse)").matches) document.body.classList.add("touch");
@@ -46,6 +47,8 @@ function loginScreen(err = "") {
       <button class="btn primary" id="go">Vào game</button>
       <div class="err" id="err"></div>
     </form>
+    <div class="gsep" id="gsep" hidden><span>hoặc</span></div>
+    <div class="gbtn" id="gbtn" hidden></div>
     <aside class="c6-event" aria-label="Sự kiện đang diễn ra">
       <img src="/ui/c6/event-banner.png" alt="">
       <div class="c6-event-copy"><small>SỰ KIỆN MÙA SĂN</small><strong>Vòng Hồn Nguyệt Ảnh</strong><span>Thu thập ánh trăng trong Rừng Săn Hồn</span></div>
@@ -53,6 +56,9 @@ function loginScreen(err = "") {
   const name = document.getElementById("name") as HTMLInputElement, pass = document.getElementById("pass") as HTMLInputElement;
   name.value = storage.get("shh-name") ?? ""; (name.value ? pass : name).focus();
   document.getElementById("err")!.textContent = err;
+  const gHost = document.getElementById("gbtn")!, gSep = document.getElementById("gsep")!;
+  void mountGoogleButton(gHost, "Đăng nhập bằng Google", googleLogin, (m) => { document.getElementById("err")!.textContent = m; })
+    .then((shown) => { gSep.hidden = !shown; });
   document.getElementById("f")!.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = document.getElementById("go") as HTMLButtonElement; btn.disabled = true; btn.textContent = "Đang kết nối…";
@@ -63,6 +69,51 @@ function loginScreen(err = "") {
     } catch (er) {
       document.getElementById("err")!.textContent = er instanceof TypeError ? `Không kết nối được server (${API}).` : (er as Error).message;
       btn.disabled = false; btn.textContent = "Vào game";
+    }
+  });
+}
+
+/** Google trả ID token: đã liên kết thì vào như đăng nhập thường; chưa thì hỏi tên nhân vật (server giữ vé, không giữ email). */
+async function googleLogin(credential: string) {
+  const err = document.getElementById("err");
+  if (err) err.textContent = "";
+  try {
+    const r = await post<({ token: string } & Me) | { needName: true; ticket: string; suggest: string }>("/api/login/google", { credential });
+    if ("needName" in r) return nameScreen(r.ticket, r.suggest);
+    token = r.token; storage.set("shh-token", token);
+    route(r);
+  } catch (er) {
+    const m = er instanceof TypeError ? `Không kết nối được server (${API}).` : (er as Error).message;
+    if (err) err.textContent = m; else loginScreen(m);
+  }
+}
+
+/** Google mới: chọn tên nhân vật (gợi ý từ tên Google) rồi tạo tài khoản, sau đó sang màn tạo ngoại hình như thường. */
+function nameScreen(ticket: string, suggest: string) {
+  overlay.hidden = false; card.classList.remove("wide");
+  card.innerHTML = `<h1>Chọn tên nhân vật</h1>
+    <p>Tài khoản Google này chưa có nhân vật. Hãy đặt tên hồn sư (3–20 ký tự: chữ, số, dấu cách hoặc _). Tên không đổi được về sau.</p>
+    <form id="nf">
+      <input id="gname" placeholder="Tên nhân vật" maxlength="20" required autocomplete="off" value="${esc(suggest)}">
+      <button class="btn primary" id="gok">Tạo nhân vật</button>
+      <button class="btn" id="gback" type="button">Quay lại</button>
+      <div class="err" id="err"></div>
+    </form>`;
+  const input = document.getElementById("gname") as HTMLInputElement, ok = document.getElementById("gok") as HTMLButtonElement;
+  input.focus(); input.select();
+  document.getElementById("gback")!.onclick = () => loginScreen();
+  document.getElementById("nf")!.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    ok.disabled = true; ok.textContent = "Đang tạo…";
+    try {
+      const r = await post<{ token: string } & Me>("/api/login/google/create", { ticket, name: input.value.trim() });
+      token = r.token; storage.set("shh-token", token); // không lưu shh-name: tài khoản này chưa có mật khẩu để điền sẵn ở form
+      route(r);
+    } catch (er) {
+      const m = er instanceof TypeError ? `Không kết nối được server (${API}).` : (er as Error).message;
+      // Vé hết hạn (10 phút): quay về đăng nhập để bấm Google lại. Lỗi khác (tên trùng, sai luật) thì ở lại sửa tên.
+      if (/hết hạn/.test(m)) return loginScreen(m);
+      document.getElementById("err")!.textContent = m; ok.disabled = false; ok.textContent = "Tạo nhân vật";
     }
   });
 }
