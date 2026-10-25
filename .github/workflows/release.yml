@@ -208,10 +208,17 @@ jobs:
           MOVE=no; WHY=""
           if [ "$HEAD_MAIN" = "$SHA" ]; then MOVE=yes; WHY="đây là đầu main"
           else
-            MAIN_V=$(gcloud artifacts docker tags list "$IMAGE" --format='value(tag,version)' | awk '{ n=split($1,a,"/"); if (a[n]=="main") print $2 }')
-            OLD_TAG=""
-            [ -n "$MAIN_V" ] && OLD_TAG=$(gcloud artifacts docker tags list "$IMAGE" --format='value(tag,version)' | awk -v v="$MAIN_V" '{ n=split($1,a,"/"); if ($2==v && a[n] ~ /^sha-/) print a[n] }' | head -n 1)
-            if [ -z "$MAIN_V" ]; then MOVE=yes; WHY="registry chưa có tag main"
+            # Ghi ra file (không qua pipe) để lỗi gcloud không bị nuốt; không đọc được registry thì KHÔNG dời main (an toàn, lần release sau dời).
+            if gcloud artifacts docker tags list "$IMAGE" --format='value(tag,version)' >tags.txt; then
+              READ=yes
+              MAIN_V=$(awk '{ n=split($1,a,"/"); if (a[n]=="main") print $2 }' tags.txt)
+              OLD_TAG=""
+              [ -n "$MAIN_V" ] && OLD_TAG=$(awk -v v="$MAIN_V" '{ n=split($1,a,"/"); if ($2==v && a[n] ~ /^sha-/) print a[n] }' tags.txt | head -n 1)
+            else
+              READ=no
+            fi
+            if [ "$READ" = no ]; then WHY="không đọc được tag trên registry (thiếu quyền / lỗi mạng), giữ nguyên main"
+            elif [ -z "$MAIN_V" ]; then MOVE=yes; WHY="registry chưa có tag main"
             elif [ -z "$OLD_TAG" ]; then MOVE=yes; WHY="tag main hiện có không kèm sha-* (không so được), coi như cũ"
             else
               REL=$(gh api "repos/$GITHUB_REPOSITORY/compare/${OLD_TAG#sha-}...$SHA" --jq .status 2>/dev/null || echo unknown)
