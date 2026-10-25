@@ -40,6 +40,18 @@ Không nằm trong repo, tải riêng: **GeneralUser GS** v2.0.3 của S. Christ
 Giấy phép (`documentation/LICENSE.txt`, License v2.0) cho dùng không hạn chế để làm nhạc, kể cả thương mại; âm thanh render ra
 không phải ghi công. Bài chỉ dùng số nhạc cụ General MIDI nên FluidR3_GM (MIT) cũng chạy được (tiếng sẽ khác).
 
+## Nhạc cụ Trung Hoa (bộ tiếng phụ) và bài ngũ cung
+
+Bài thuộc phong cách tu tiên / kiếm hiệp nhẹ nhàng dùng thêm **DSK Asian DreamZ** (soundfont của DSK Music, `DSK Asian DreamZ.SF2`, SHA-256 gói zip
+`f0b8a7943e8d7368b0c5ec492d1803088a6ce2210ec1528ec7b1301c4fa1a9d2`, tải ở `rekkerd.org/samples/DSK_Asian_DreamZ_sf2.zip`; trang DSK Music ghi
+"100% free for private and commercial use", không bắt ghi công): tỳ bà, tỳ bà rung, cổ tranh, nhị hồ, sáo trúc (ban-di), bộ gõ Trung Hoa. Truyền bằng
+`--extra-soundfont <file>` (xếp ở bank 1; kênh bài chọn bằng `bank: 1`, kênh không có `bank` vẫn lấy GeneralUser GS). Tiêu lấy shakuhachi, chuông lấy
+tubular bells, nền lấy warm pad của GeneralUser GS.
+
+`lib/ngucung.mjs`: thang ngũ cung (cung, thương, giốc, chủy, vũ), giai điệu viết theo bậc 1–5 (`melody`), khuôn bài 4 đoạn 8 ô (`buildSong`: sáo / tiêu dẫn, nhị hồ bè,
+tranh rải và lướt, cổ cầm trầm, nền ngân, chuông, mõ) và lớp giao chiến cùng điệu (`chienStem`: tỳ bà gảy nhanh, trống nhỏ, nhị hồ kéo căng).
+Bài ghi `ngucung: { tonic, mode, roots }` để `songs/stems.mjs` dựng `_chien` từ gốc theo ô. Với 63 / 70 / 75 BPM và 32 ô, vòng vẫn là bội của 1024 mẫu.
+
 ## Cách viết bài
 
 - `lib/theory.mjs`: `bars()` đọc câu nhạc dạng `"A4:2 B4:1 D5:1 E5:3 D5:1 | …"` (độ dài theo `unit`, mặc định móc đơn;

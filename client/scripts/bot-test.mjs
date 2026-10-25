@@ -5622,6 +5622,18 @@ async function autoTest(){
   await autoOp(A,"off"); await test(A,"slay",{bid:near}); await test(A,"slay",{bid:far}); await test(A,"energy",{v:0});
   await autoOp(A,"set",{cfg:NEAR});
 
+  // ---- Nhịp tin auto (F2 báo cáo soát): gửi dồn 20 `set`, cấu hình cuối vẫn được áp (không bị bỏ) ----
+  {
+    const R0=AUTO_RADIUS_MIN/16, last=Math.min(R0+3,AUTO_RADIUS/16);
+    await test(A,"auto",{rate:true}); A.autoMsg=null;
+    for(let i=0;i<20;i++) A.room.send("auto",{op:"set",cfg:{...NEAR,radius:i<19?R0:last}});
+    await waitFor(()=>A.autoMsg?.cfg?.radius===last,4000);
+    ok(A.autoMsg?.cfg?.radius===last,`gửi dồn 20 tin set: cấu hình cuối (bán kính ${last}) được áp, không bị nhịp bỏ mất`);
+    A.autoMsg=null; A.room.send("auto",{op:"on"}); await sleep(400);
+    ok(!me(A)?.auto&&A.autoMsg?.on===false,"nhịp thật: tin on ngay sau lượt dồn bị chặn (chỉ nhận lại trạng thái)");
+    await test(A,"auto",{rate:false}); await autoOp(A,"set",{cfg:NEAR}); ok(same(A.autoMsg?.cfg,parseAuto(NEAR)),"đặt lại cấu hình gốc sau lượt gửi dồn");
+  }
+
   // ---- #213: toàn bản đồ. Quanh điểm neo không có hồn thú hợp niên hạn (10–200 năm: Ngoại vi tự sinh 300 năm trở lên) thì tự đi xa,
   // ngoài khung A* thường (AUTO_MOVE.path), theo đường dài có điểm trung gian, hạ con ở đó rồi vẫn tự săn. "Chỉ quanh chỗ đứng" thì không đi.
   {

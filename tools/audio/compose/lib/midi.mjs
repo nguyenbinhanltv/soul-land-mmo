@@ -11,6 +11,7 @@ export const PPQ = 128; // midi-writer-js mặc định 128 tick mỗi phách
  * - `phrase`: số ô một câu; lực nốt nhô lên giữa câu, lắng ở đầu và cuối câu (`phraseAmt`, mặc định 12).
  * - `groove`: nhấn phách mạnh, nhẹ phách lệch (rải, gảy, trống).
  * - `expr`: phồng hơi đầu nốt, lặng dần cuối nốt (CC11), cho kèn sáo / dây / pad. `vibrato`: độ rung CC1 ở nốt dài.
+ * - `bank`: số bank của bộ tiếng phụ (nhạc cụ Trung Hoa, `--extra-soundfont`), mặc định bank 0 của bộ chính.
  * - `bend`: xác suất uốn từ dưới lên khi vào nốt (shakuhachi, sáo), `bendDepth` phần nửa cung (mặc định 0.5).
  */
 export function buildMidi(song, { repeats = 1, preBeats = 1 } = {}) {
@@ -26,6 +27,7 @@ export function buildMidi(song, { repeats = 1, preBeats = 1 } = {}) {
     const tr = new MidiWriter.Track();
     tr.addTrackName(ch.name);
     // ProgramChangeEvent / PitchBendEvent đánh số kênh từ 0, ControllerChangeEvent / NoteEvent đánh từ 1.
+    if (ch.bank !== undefined) tr.addEvent(new MidiWriter.ControllerChangeEvent({ channel: ch.channel, controllerNumber: 0, controllerValue: ch.bank, delta: 0 }));
     if (ch.channel !== 10) tr.addEvent(new MidiWriter.ProgramChangeEvent({ channel: ch.channel - 1, instrument: ch.program, delta: 0 }));
     const cc = { 7: ch.volume ?? 100, 10: ch.pan ?? 64, 91: ch.reverb ?? 40, 93: ch.chorus ?? 0, 11: ch.expr ? 100 : 127, 1: 0 };
     for (const [num, val] of Object.entries(cc)) {

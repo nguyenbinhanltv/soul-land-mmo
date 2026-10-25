@@ -45,6 +45,7 @@ export async function verifyGoogle(credential: unknown): Promise<GoogleUser | { 
 // Khoá ký: GOOGLE_TICKET_SECRET (đặt khi chạy nhiều tiến trình để vé do tiến trình này cấp, tiến trình kia kiểm được); thiếu thì ngẫu nhiên mỗi
 // lần khởi động (vé cũ hỏng khi khởi động lại, người chơi bấm Google lại là xong).
 const secret = process.env.GOOGLE_TICKET_SECRET || randomBytes(32).toString("hex");
+if (!process.env.GOOGLE_TICKET_SECRET && process.env.GOOGLE_CLIENT_ID) console.warn("[google] Thiếu GOOGLE_TICKET_SECRET: dùng khoá ngẫu nhiên, vé chọn tên chỉ hợp lệ trong tiến trình này (nhiều pod thì phải đặt).");
 const sign = (body: string) => createHmac("sha256", secret).update(body).digest("base64url");
 
 /** Vé ký bằng server, chỉ chứa `sub` và hạn dùng (không email, không tên). */
