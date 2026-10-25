@@ -7,7 +7,7 @@ import { bars, midi } from "./theory.mjs";
 export const MODES = {
   cung: [0, 2, 4, 7, 9],
   thuong: [0, 2, 5, 7, 10],
-  giốc: [0, 3, 5, 8, 10],
+  gioc: [0, 3, 5, 8, 10],
   chuy: [0, 2, 5, 7, 9],
   vu: [0, 3, 5, 7, 10],
 };

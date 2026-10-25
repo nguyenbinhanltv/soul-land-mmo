@@ -296,11 +296,11 @@ const now = () => clock;
   assert.equal(m2.status().combat, true);
   assert.deepEqual(lastRamp(st2.connections[0].gain)?.slice(0, 2), ["ramp", 1], "đang đánh lúc lớp tới: lên dần");
 
-  // Bản đồ không có lớp giao chiến (Thiên Đấu Thành): không lỗi, không gắn gì.
+  // Bản đồ thành không có lớp giao chiến: không lỗi, không gắn gì.
   const ctx3 = makeContext(), l3 = makeLoader();
   const m3 = new MusicPlayer(ctx3, { load: l3.load, format: "ogg", now });
   m3.setVolume(1);
-  m3.setMap("thien_dau_thanh");
+  m3.setMap("nac_dinh_thanh");
   m3.combatPulse();
   await m3.whenIdle();
   assert.equal(m3.status().stem, null);

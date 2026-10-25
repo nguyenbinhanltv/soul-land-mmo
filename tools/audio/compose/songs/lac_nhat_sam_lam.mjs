@@ -12,7 +12,7 @@ const R_A = [1, 1, 3, 3, 4, 4, 5, 1];
 const R_B = [4, 4, 5, 5, 2, 2, 3, 3];
 
 const { notes, roots } = buildSong({
-  tonic: "E3", mode: "giốc", leadBase: 10, erhuBase: 5, leadCh: "lead", arp: [0, 1, -1, 2, -1, 1, 2, -1], arpVel: 54, sweepK: [1, 3, 5, 7],
+  tonic: "E3", mode: "gioc", leadBase: 10, erhuBase: 5, leadCh: "lead", arp: [0, 1, -1, 2, -1, 1, 2, -1], arpVel: 54, sweepK: [1, 3, 5, 7],
   sections: [
     { lead: A, roots: R_A },
     { lead: A2, erhu: FOLLOW(R_A), erhuVel: 56, roots: R_A },
@@ -30,7 +30,7 @@ export default {
   bpm: 70,
   beatsPerBar: 4,
   bars: 32,
-  ngucung: { tonic: "E3", mode: "giốc", roots },
+  ngucung: { tonic: "E3", mode: "gioc", roots },
   channels: channels(),
   notes,
 };

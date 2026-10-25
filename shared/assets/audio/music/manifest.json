@@ -357,24 +357,6 @@
       }
     },
     {
-      "id": "nac_dinh_thanh_chien",
-      "title": "Nặc Đinh Thành (lớp giao chiến)",
-      "kind": "stem",
-      "of": "nac_dinh_thanh",
-      "loop": true,
-      "seconds": 109.714,
-      "files": {
-        "ogg": {
-          "path": "audio/music/nac_dinh_thanh_chien.ogg",
-          "bytes": 585258
-        },
-        "m4a": {
-          "path": "audio/music/nac_dinh_thanh_chien.m4a",
-          "bytes": 681946
-        }
-      }
-    },
-    {
       "id": "stinger_chi_mang",
       "title": "Chí mạng lớn",
       "kind": "jingle",
