@@ -1,6 +1,6 @@
 # Hồn hoàn
 
-Hồn hoàn, hấp thụ, hồn kỹ theo vòng, Phục Chế, Võ Hồn Chân Thân. Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`); đặc tả từng hồn kỹ: `docs/art/ky-nang-combat-dac-ta.md`. Số issue ở cuối file.
+Hồn hoàn, hấp thụ, hồn kỹ theo vòng, Phục Chế, Võ Hồn Chân Thân. Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`); đặc tả từng hồn kỹ: `docs/art/ky-nang/README.md`. Số issue ở cuối file.
 
 
 ## 5.2 Hồn hoàn
