@@ -21,6 +21,7 @@ import { radar, type DotSink } from "../radar.ts";
 import { mapview, type MapLabel } from "../mapview.ts";
 import { fog } from "../fog.ts";
 import { toast, lootToasts } from "../feedback.ts";
+import { guideStart, guideEvent, guideHint } from "../guide.ts";
 import { initDualWindows } from "../dualWindow.ts";
 import type { ServerCommand } from "../charBagContract.ts";
 import { toggleChar, cycleCharTab, isCharOpen, onCharOpen, renderChar, charViewRow, charLog, type StatsMsg } from "../charPanel.ts";
@@ -28,7 +29,7 @@ import { Predictor, PREDICT, LAG_MS, DEBUG_TAG, stepSpeed } from "../predict.ts"
 import { findPath, findLongPath, buildNav, type Nav } from "../../../shared/path.ts";
 import { autoLeg, AUTO_STOP } from "../../../shared/autowalk.ts";
 import { getFlag, setFlag, patchFlag, bindFlagBar, mapName } from "../autowalk.ts";
-import { RALLY, ATTACK_REACH } from "../../../shared/data.ts";
+import { RALLY, ATTACK_REACH, QUEST_STARTER, GUIDE_BAG_FREE } from "../../../shared/data.ts";
 import { newGoal, stepGoal, reachGap, type ClickGoal } from "../../../shared/clickgoal.ts";
 import { rallyLeft } from "../../../shared/rally.ts";
 import { addRally, pruneRallies, getRallies } from "../rally.ts";
@@ -235,6 +236,7 @@ function looksOf(p: { sex: number; hair: number; hairCol: number; outfitCol: num
 /** Chuỗi LPC của NPC theo `looks` trong NPCS (LPC dùng thẳng, preset kiểu cũ đổi bằng presetToLpc). */
 const npcLpcStr = (L: Looks): string => encodeLpc(L.mode === "lpc" && L.lpc ? L.lpc : presetToLpc(L));
 
+const MOVE_KEYS = ["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
 export class GameScene extends Phaser.Scene {
   room!: Room<any>;
   mapId = "";
@@ -362,6 +364,7 @@ export class GameScene extends Phaser.Scene {
   targetBeast = "";
   /** Hồn thú đang khoá (M3 #750): server giữ và báo lại bằng tin `lock`; "" = không khoá. `lockPlanT`: lúc tính đường tới nó gần nhất. */
   lockId = ""; lockPlanT = 0;
+  guideOn = false; // đã gắn hướng dẫn lần đầu (guide.ts) cho hồn sư này
   nameplateLayout: NameplatePlacement[] = [];
 
   constructor() { super("game"); }
@@ -755,6 +758,7 @@ export class GameScene extends Phaser.Scene {
       if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }
       this.keys[e.code] = true;
+      if (MOVE_KEYS.includes(e.code)) guideEvent("move");
       if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
       if (e.repeat && e.code !== "KeyJ" && e.code !== "Space") return;
       // Phím số 1–4: đổi sang võ hồn ở ô tương ứng của đội; hồn kỹ dùng U, I, O, P (hud.SKILL_KEYS).
@@ -908,8 +912,8 @@ export class GameScene extends Phaser.Scene {
     if (this.watching) return;
     if (a === "attack") this.room.send("attack");
     else if (a === "pickup") this.room.send("pickup");
-    else if (a.startsWith("skill")) this.room.send("skill", { i: Number(a.slice(5)) });
-    else if (a.startsWith("bone")) this.room.send("boneskill", { i: Number(a.slice(4)) });
+    else if (a.startsWith("skill")) { this.room.send("skill", { i: Number(a.slice(5)) }); guideEvent("skill"); }
+    else if (a.startsWith("bone")) { this.room.send("boneskill", { i: Number(a.slice(4)) }); guideEvent("skill"); }
     else if (a.startsWith("switch")) this.room.send("switch", { slot: Number(a.slice(6)) });
     else if (a === "chanthan") this.room.send("chanthan");
     // Võ Hồn Dung Hợp Kỹ (#193): đang được mời thì hưởng ứng (một lần), không thì mời; server chọn đồng đội và kiểm mọi điều kiện.
@@ -921,6 +925,7 @@ export class GameScene extends Phaser.Scene {
    * Không tới được thì đi tới chỗ tới được gần điểm bấm nhất; không đi được chút nào thì thôi.
    */
   walkTo(w: Pt) {
+    guideEvent("move");
     if (getFlag()?.on) this.flagStop(AUTO_STOP.moved);
     const at = this.pred?.pos ?? this.room.state.players.get(this.me);
     if (!at) return;
@@ -930,7 +935,7 @@ export class GameScene extends Phaser.Scene {
   /** Khoá hồn thú `id` ("" = bỏ khoá): chỉ gửi ý định, server kiểm id / tầm rồi giữ và tự đánh khi tới tầm (rooms/lock.ts). */
   lockTo(id: string) {
     if (this.isArena || this.watching || id === this.lockId) return;
-    this.lockId = id; if (this.goal?.lock) this.goal = null;
+    this.lockId = id; if (id) guideEvent("lock"); if (this.goal?.lock) this.goal = null;
     this.room.send("target", { id });
   }
   /**
@@ -1249,6 +1254,7 @@ export class GameScene extends Phaser.Scene {
       if (hit.bigCrit) this.audio.music?.jingle("crit_big");
       this.hitFeel(m);
       if (m.heal || m.shield) { const hp = this.lifted(m.x, m.y); playPriv(this.svis.sheets, m.heal ? "fx_hoi_mau" : "fx_khien_sang", { x: hp.x, y: hp.y - 10 * SPR, scale: SPR, light: m.id !== this.me }); } // #623: hồi máu / khiên kho riêng
+      if (m.id === this.me && !m.heal && !m.shield && !m.dot && !m.immune) guideHint("hit");
       if (m.id === this.me && !m.heal && !m.shield && getFlag()?.on) this.flagStop(AUTO_STOP.hit);
       if (m.id) { const v = this.players.get(m.id); if (v) { v.hurtT = this.time.now; this.playAct(m.id, "hurt"); } }
       const at = this.lifted(m.x, m.y);
@@ -1355,6 +1361,7 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("quest", (m: QuestMsg) => {
       if (!m || typeof m.chain !== "string") return;
       hud.setQuest(m); this.syncQuestMarkers();
+      if (m.chain === QUEST_STARTER && !this.guideOn) { const nm = this.room.state.players.get(this.me)?.name; if (nm) { this.guideOn = true; guideStart(nm, m.status === "done"); } } // hướng dẫn lần đầu gắn chuỗi tân thủ (M6 #752)
       const c = questChain(m.chain), s = c?.steps[m.step], giver = c && npcDef(c.giver);
       if (!c) return;
       if (m.ev === "accept" && s) toast("quest", `Nhận nhiệm vụ: ${s.name}`, s.goals.map((g) => g.text).join(" · "));
@@ -1446,7 +1453,7 @@ export class GameScene extends Phaser.Scene {
     // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
     // Mảnh võ hồn trong túi (3.4): bảng đội hình hiện tiến độ mở / lên sao nên vẽ lại cùng túi.
     // Từ #215 sau tin "bag" đầu tiên chỉ nhận phần đổi (tin "bagd"); chưa có túi gốc thì bỏ qua (tin "bag" đang tới).
-    const onBag = (m: BagMsg) => { if (lootToasts(this.bag?.items ?? null, m.items) >= RARE_LOOT_MIN) this.audio.playUi("rare"); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
+    const onBag = (m: BagMsg) => { if (m.slots - m.items.filter((i) => i.vohon === null).length <= GUIDE_BAG_FREE) guideHint("bag"); if (lootToasts(this.bag?.items ?? null, m.items) >= RARE_LOOT_MIN) this.audio.playUi("rare"); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
     this.room.onMessage("bag", onBag);
     this.room.onMessage("gear", (m: GearMsg) => { this.gear = m; this.renderBag(); this.renderChar(); this.askStats(); hud.npcRefresh(); }); // trang bị hồn sư (5.15): chỉ số tổng ở tin "stats"
     this.room.onMessage("bagd", (m: BagDeltaMsg) => {
@@ -1475,6 +1482,7 @@ export class GameScene extends Phaser.Scene {
       const v = this.owned?.list.find((o) => o.rowId === m.rowId), def = VOHON[Math.max(0, vohonIndex(v?.vohon ?? ""))];
       const name = v ? def.name : "võ hồn", age = formatYears(m.years), col = TIERS[tierOfYears(m.years)].glow;
       if (m.on) {
+        guideEvent("absorb");
         this.audio.play("ring_absorb_start");
         this.audio.playRingGlow(tierOfYears(m.years));
         const risk = m.fail ? ` (${Math.round(m.fail * 100)}% thất bại)` : "";
@@ -2896,6 +2904,7 @@ export class GameScene extends Phaser.Scene {
         const txt = this.add.text(at.x, at.y + (core ? 18 : bone ? 12 : 4) * SPR, name, { // hồn cốt, hồn hạch: dưới nhãn số năm của hồn hoàn (và hồn cốt) nằm cạnh
           fontFamily: FONT, fontSize: "6px", fontStyle: "700", color: col, stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 0).setDepth(at.y - 1).setScale(this.txtK);
+        if (!d.item && (!d.owner || d.owner === this.me || (!!d.party && d.party === this.party?.id))) guideHint("ring"); // hồn hoàn của mình / tổ đội mình
         const glow = !d.item ? this.add.image(at.x, at.y, `ring${d.tier}`).setDepth(at.y - 2).setScale(SPR) : undefined; // hồn hoàn: vòng sáng elip dưới ảnh (#693)
         v = { img, txt, glow, art: dropArtSpec(d, bone, core, eq, it, col) }; this.drops.set(id, v);
         if (!it && !bone && !core && d.tier >= 1 && d.ttl >= DROP_TTL_SECS - 2 && this.downAt.some(q => time - q.t < 2500 && Math.hypot(q.x - at.x, q.y - at.y) < 140 * SPR)) this.dropGlint(at, hud.ringColor(d.tier)); // hồn hoàn mới rơi: vòng sáng màu niên hạn bay lên
