@@ -114,7 +114,7 @@
    "title": "Lịch sử lộ trình (đã xong)"
   }
  },
- "aliases": {},
+ "aliases": {"docs/tech/bao-mat-dang-nhap.md": "docs/tech/giao-thuc-server.md"},
  "segments": [
   {"a": "# Rừng Săn Hồn (Đấu La Đại Lục) – Tài li", "to": "GAME_DESIGN.md"},
   {"a": "## 1. Ý tưởng và phạm vi", "to": "docs/design/00-tong-quan.md"},

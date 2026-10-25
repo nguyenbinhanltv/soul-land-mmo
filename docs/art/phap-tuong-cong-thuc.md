@@ -1,6 +1,6 @@
 # Công thức chuẩn làm pháp tướng (H1 #485, chủ repo duyệt 2026-10-24)
 
-Chuẩn cho 25 võ hồn (đã làm: Lam Điện Bá Vương Long và Hạo Thiên Chùy). Đặc tả hình, màu, prompt từng võ hồn ở `docs/phap-tuong.md` (PR #492); quy ước chung ở `GAME_DESIGN.md` mục 5.18. Ở đây ghi cách làm, tham số, lượt thực tế và bẫy đã gặp.
+Chuẩn cho 25 võ hồn (đã làm: Lam Điện Bá Vương Long và Hạo Thiên Chùy). Đặc tả hình, màu, prompt từng võ hồn ở `docs/art/phap-tuong.md` (PR #492); quy ước chung ở `GAME_DESIGN.md` mục 5.18. Ở đây ghi cách làm, tham số, lượt thực tế và bẫy đã gặp.
 
 ## 1. Quy trình một võ hồn
 
@@ -19,7 +19,7 @@ Key PixelLab đọc từ file (`PIXELLAB_KEY_FILE`, mặc định `~/.config/pix
 
 ## 2. Tham số PixelLab (đã dùng ở H1)
 
-- **Concept**: `POST /v2/create-image-pixflux`, `image_size` 128×128, `no_background` true, `view` "low top-down", `direction` "south", `outline` "single color black outline", `shading` "medium shading", `detail` "medium detail", `text_guidance_scale` 8, `seed` ghi trong recipe (Rồng 11, Búa 5). Prompt = dòng của võ hồn ở `docs/phap-tuong.md` mục 5 đã rút gọn: vật chính, hình dáng, màu, "isometric game sprite" (Rồng: "giant spectral azure thunder dragon coiling, horned head raised, crackling blue lightning on scales, translucent ghost-like energy, deep blue and cyan, isometric game sprite"; Búa: "giant black war hammer with huge square head and long handle, dark veins, gray glow, heavy and powerful, glowing runes, isometric game sprite, single object"). Ảnh ra đã gần đúng; "spectral / translucent" trong prompt không làm ảnh trong suốt, hư ảnh làm ở hậu kỳ.
+- **Concept**: `POST /v2/create-image-pixflux`, `image_size` 128×128, `no_background` true, `view` "low top-down", `direction` "south", `outline` "single color black outline", `shading` "medium shading", `detail` "medium detail", `text_guidance_scale` 8, `seed` ghi trong recipe (Rồng 11, Búa 5). Prompt = dòng của võ hồn ở `docs/art/phap-tuong.md` mục 5 đã rút gọn: vật chính, hình dáng, màu, "isometric game sprite" (Rồng: "giant spectral azure thunder dragon coiling, horned head raised, crackling blue lightning on scales, translucent ghost-like energy, deep blue and cyan, isometric game sprite"; Búa: "giant black war hammer with huge square head and long handle, dark veins, gray glow, heavy and powerful, glowing runes, isometric game sprite, single object"). Ảnh ra đã gần đúng; "spectral / translucent" trong prompt không làm ảnh trong suốt, hư ảnh làm ở hậu kỳ.
 - **Xoay**: `POST /v2/generate-8-rotations-v3` với `first_frame` = concept, `description` ngắn, `no_background` true. Trả 8 ảnh theo thứ tự **sw, s, se, e, ne, n, nw, w** (chỉ số 0–7); lấy chỉ số 1, 2, 3, 4, 5 cho s, se, e, ne, n. Hình nhất quán giữa các hướng (rồng giữ sừng, sét, thân), đủ dùng không cần sửa.
 - **Hoạt ảnh**: `POST /v2/animate-with-text-v3`, `first_frame` = ảnh hướng, `frame_count` 8 (trả 9 khung gồm khung đầu), `no_background` true, seed ngẫu nhiên. Dùng khung 0–7, bỏ khung 8 (trùng khung 0, vòng lặp liền). Action mẫu:
   - thở: "dragon breathing gently, body slowly rising and falling, tail swaying, lightning crackling along the scales, looping idle";
@@ -38,7 +38,7 @@ Key PixelLab đọc từ file (`PIXELLAB_KEY_FILE`, mặc định `~/.config/pix
 | Thử đánh PixelLab (hỏng) | | 2 | xem mục 4 |
 | **Tổng** | **23** | **3 dùng + 2 thử = 5** | |
 
-Ước tính cho 23 võ hồn còn lại: **sinh vật / hình thú ≈ 23 lượt** (nhóm S, B, T, D: rồng, rắn, chim, thú, nhện, bóng); **vật cứng ≈ 3 lượt** (nhóm V, O, P: kiếm, búa, tháp, đỉnh, thương, xích, hoa). Nhóm theo `docs/phap-tuong.md` mục 4.2. Làm cả bộ ≈ 12 võ hồn sinh vật × 23 + 11 vật cứng × 3 ≈ **310 lượt** (thấp hơn ước tính 750 ở #482). Muốn đẹp hơn có thể làm thêm 1 concept dự phòng (+1 lượt) rồi chọn.
+Ước tính cho 23 võ hồn còn lại: **sinh vật / hình thú ≈ 23 lượt** (nhóm S, B, T, D: rồng, rắn, chim, thú, nhện, bóng); **vật cứng ≈ 3 lượt** (nhóm V, O, P: kiếm, búa, tháp, đỉnh, thương, xích, hoa). Nhóm theo `docs/art/phap-tuong.md` mục 4.2. Làm cả bộ ≈ 12 võ hồn sinh vật × 23 + 11 vật cứng × 3 ≈ **310 lượt** (thấp hơn ước tính 750 ở #482). Muốn đẹp hơn có thể làm thêm 1 concept dự phòng (+1 lượt) rồi chọn.
 
 ## 4. Thở / đánh bằng code cho võ hồn dạng vật (búa)
 
@@ -57,7 +57,7 @@ Key PixelLab đọc từ file (`PIXELLAB_KEY_FILE`, mặc định `~/.config/pix
 - Bỏ điểm alpha ≤ 40, còn lại đục 255. **Độ đục hư ảnh do client áp lúc vẽ** (`pt.ghost` 0,88 ở lớp sau; nhân thêm `frontAlpha` 0,7 ở lớp trước), vì sheet chỉ cho alpha 0 / 255.
 - Viền sáng 2 điểm màu `col` của võ hồn (`VOHON`) quanh hình (điểm ngoài dithering); cả sheet giảm còn **48 màu** (median cut, giữ viền `#1a1020` và màu viền sáng); bảng màu riêng từng võ hồn.
 - Hướng sw / w / nw lật từ se / e / ne (client).
-- **Lớp (H1 chốt): một lớp cho cả khung ở mỗi hướng**, không tách phần sau / phần ló trước trong một khung: `s, se, e` vẽ SAU thân hồn sư; `ne, n` vẽ TRƯỚC thân hồn sư, mờ 70% (`display.back` / `display.front`, `frontAlpha`). Cùng luật cho mọi nhóm (rồng, búa...). Luật này **thay** cách tả lớp theo nhóm ở bản đặc tả H0 đầu (`docs/phap-tuong.md` mục 2 và "hai lớp" ở `GAME_DESIGN.md` 5.18; đã sửa trong PR #492). Bảng nhóm V / S / P / B / T / O / D ở mục 2 đó chỉ còn là gợi ý điểm gắn (dx, dy, tỉ lệ).
+- **Lớp (H1 chốt): một lớp cho cả khung ở mỗi hướng**, không tách phần sau / phần ló trước trong một khung: `s, se, e` vẽ SAU thân hồn sư; `ne, n` vẽ TRƯỚC thân hồn sư, mờ 70% (`display.back` / `display.front`, `frontAlpha`). Cùng luật cho mọi nhóm (rồng, búa...). Luật này **thay** cách tả lớp theo nhóm ở bản đặc tả H0 đầu (`docs/art/phap-tuong.md` mục 2 và "hai lớp" ở `GAME_DESIGN.md` 5.18; đã sửa trong PR #492). Bảng nhóm V / S / P / B / T / O / D ở mục 2 đó chỉ còn là gợi ý điểm gắn (dx, dy, tỉ lệ).
 - `display.scale`, `dx`, `dy` (px, quanh gốc, sau lưng hồn sư): Rồng 1,0 / 0 / 0; Búa 0,85 / +12 / −4 (vác sau vai phải). Chỉnh khi thấy che hồn sư; ghi vào `recipe.json` rồi đăng ký lại (manifest lấy `pt` từ đó).
 - Hồn sư thử ghép: m_0 / f_0 của repo (tóc lam), xem trang xem trước H1.
 

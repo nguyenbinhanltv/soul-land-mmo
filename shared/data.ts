@@ -5273,9 +5273,12 @@ export type AutoRate = [number, number, number];
  */
 export const AUTO_STATUS = { every: 1, rateEvery: 5, dist: 5, path: 6, window: 600, minSecs: 30 };
 export type AutoJob = "loot" | "fight" | "go" | "dodge" | "back" | "rest" | "spawn" | "patrol";
-export interface AutoStatus { k: AutoJob; n?: string; d?: number; path?: number[]; rate?: AutoRate | null; }
+export interface AutoStatus { k: AutoJob; n?: string; d?: number; path?: number[]; rate?: AutoRate | null; w?: AutoWhy; }
 /** Chữ hiển thị của trạng thái tự săn ("Đang đánh Sói Xám", "Đi tới Thú vương (35 ô)"…). */
-export function autoStatusText(s: Pick<AutoStatus, "k" | "n" | "d">): string {
+export function autoStatusText(s: Pick<AutoStatus, "k" | "n" | "d"> & { w?: AutoWhy }): string {
+  return jobText(s) + (s.w ? ` · ${AUTO_WHY[s.w]}` : "");
+}
+function jobText(s: Pick<AutoStatus, "k" | "n" | "d">): string {
   const n = s.n ? ` ${s.n}` : "";
   switch (s.k) {
     case "loot": return `Đang nhặt${n}`;
@@ -5287,6 +5290,52 @@ export function autoStatusText(s: Pick<AutoStatus, "k" | "n" | "d">): string {
     case "spawn": return "Đi tới chỗ hồi sinh";
     default: return "Đang đi dạo";
   }
+}
+/**
+ * Chống kẹt (AH4, #611, mục 5.13): ngoài kẹt tại chỗ (AUTO_MOVE.stuck: định đi mà không nhích), cứ `sample` giây ghi một điểm đứng;
+ * trong `window` giây gần nhất mà đang định di chuyển (tới mục tiêu / đồ / điểm dạo, chưa tới tầm đánh) nhưng mọi điểm đều nằm trong
+ * `radius` pixel quanh nhau thì coi là đi vòng lặp / đứng yên: đổi mục tiêu (bỏ qua nó AUTO_MOVE.skip giây), không có mục tiêu thì đổi
+ * đường (đồ rơi: bỏ qua; đi dạo: chọn điểm khác). `show`: lý do còn hiện ở dòng trạng thái ngần ấy giây.
+ */
+export const AUTO_STUCK = { sample: 1, window: 10, radius: 2 * TILE, show: 4 };
+export type AutoWhy = "stuck" | "loop";
+export const AUTO_WHY: Record<AutoWhy, string> = { stuck: "kẹt, đã đổi mục tiêu / đường", loop: "đi vòng lặp, đã đổi mục tiêu / đường" };
+/**
+ * Tổ đội cùng treo (AH4, #611, mục 5.13): hai người trở lên trong một tổ đội cùng tự săn trên một bản đồ thì chỉ nhắm hồn thú trong
+ * `leash` pixel quanh đồng đội gần nhất (không tách xa); con đồng đội đang nhắm có chi phí nhân `focus` (< 1: cùng hạ một con); không có
+ * việc mà cách đồng đội quá `follow` pixel thì đi lại gần thay vì đi dạo. Nhặt đồ vẫn theo luật chia đồ của tổ đội (canLoot).
+ */
+export const AUTO_PARTY = { leash: 12 * TILE, focus: 0.5, follow: 5 * TILE };
+/**
+ * Gợi ý vùng / khoảng niên hạn hợp sức (AH4, #611): với chỉ số võ hồn ra trận (OfflinePower), mỗi vùng săn của bản đồ đang đứng được
+ * thử bằng offlineFight (loài tệ nhất của vùng); niên hạn cao nhất mà vẫn đánh nổi (ok) và hạ một con trong `maxSecs` giây là mức hợp
+ * sức. Gợi ý tốt nhất là vùng có mức hợp sức cao nhất.
+ */
+export const AUTO_HINT = { maxSecs: 12 };
+export interface AutoHintZone { name: string; years: [number, number]; species: string[]; }
+/** Một dòng gợi ý: `years` là khoảng hợp sức trong vùng ([thấp nhất của vùng, mức cao nhất đánh nổi]); null = vùng quá sức. `secs`: giây hạ một con ở mức cao nhất. */
+export interface AutoHintRow { zone: string; years: [number, number] | null; secs: number; full: boolean; }
+export interface AutoHint { best: AutoHintRow | null; rows: AutoHintRow[]; }
+export function autoHint(pw: OfflinePower, zones: AutoHintZone[]): AutoHint {
+  const rows: AutoHintRow[] = [];
+  for (const z of zones) {
+    const [lo, hi] = z.years, at = (y: number) => { let ok = true, secs = 0; for (const sp of z.species) { const f = offlineFight(pw, y, sp); ok &&= f.ok; secs = Math.max(secs, f.secs); } return { ok, secs }; };
+    const fine = (y: number) => { const f = at(y); return f.ok && f.secs <= AUTO_HINT.maxSecs; };
+    if (!fine(lo)) { rows.push({ zone: z.name, years: null, secs: at(lo).secs, full: false }); continue; }
+    let a = lo, b = hi;
+    if (fine(hi)) a = hi; else while (b - a > 1) { const m = (a + b) >> 1; if (fine(m)) a = m; else b = m; }
+    rows.push({ zone: z.name, years: [lo, a], secs: Math.round(at(a).secs * 10) / 10, full: a >= hi });
+  }
+  // Nhiều vùng cùng tên (bản đồ chia vùng nhỏ): gộp, giữ dòng hợp sức cao nhất.
+  const byName = new Map<string, AutoHintRow>();
+  for (const r of rows.splice(0)) {
+    const o = byName.get(r.zone);
+    if (!o || (r.years && (!o.years || r.years[1] > o.years[1]))) byName.set(r.zone, r);
+  }
+  rows.push(...byName.values());
+  let best: AutoHintRow | null = null;
+  for (const r of rows) if (r.years && (!best || r.years[1] > best.years![1] || (r.years[1] === best.years![1] && r.secs < best.secs))) best = r;
+  return { best, rows };
 }
 /** Chữ thống kê theo giờ: "1,2 N kinh nghiệm / giờ" (số lớn rút gọn). */
 export const autoRateText = (v: number) => v >= 10000 ? `${(v / 1000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} N` : Math.round(v).toLocaleString("vi-VN");

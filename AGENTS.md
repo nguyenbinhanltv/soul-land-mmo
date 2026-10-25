@@ -2,6 +2,8 @@
 
 Repo có nhiều người và nhiều agent cùng làm. Trước khi làm gì:
 
+Số mục (mục 5.3, mục 6…) xem mục lục ở `GAME_DESIGN.md`: mỗi mục nằm ở file nào trong `docs/`.
+
 1. Đọc `CLAUDE.md` (quy tắc code, lệnh, kiểm thử; áp dụng cho mọi agent, không riêng Claude) và `GAME_DESIGN.md` (mục 6 Kiến trúc bắt buộc giữ).
 2. Đọc `CONTRIBUTING.md` và **làm đúng quy trình nhận việc**:
    - chỉ nhận issue mở có `san-sang`, chưa giao cho ai, không có `dang-lam` / `chan`:
