@@ -80,9 +80,35 @@ jobs:
       - run: npm ci --no-audit --no-fund --prefix server && npm ci --no-audit --no-fund --prefix client
       - run: npm run test:audio
       - run: npm run test:audio --prefix client # AudioManager, nhạc nền (client/scripts/*-test.mjs, Node chạy thẳng .ts)
+      - run: npm run test:nameplate --prefix client
       - run: npm run audio:validate
       - run: npm run check
       - run: npm run build
+
+  nameplate-preview:
+    name: nameplate-preview
+    needs: changes
+    if: ${{ needs.changes.outputs.level != 'skip' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund --prefix server && npm ci --no-audit --no-fund --prefix client
+      - run: npx --prefix client playwright install --with-deps chromium
+      - run: npm run test:nameplate-browser --prefix client
+        env:
+          NAMEPLATE_OUTPUT: ${{ runner.temp }}/c9-preview
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: c9-preview-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/c9-preview
+          retention-days: 30
 
   # Bài test đơn vị chạy nhanh (không server, không DB): trang bị, đăng nhập Google, khóa món, GM, cache tĩnh, hiệu ứng client, công cụ ảnh / tài liệu (#660).
   # Gộp ở `npm run test:unit` (gốc package.json); thêm bài mới thì thêm vào đó. Chỉ ubuntu, song song với check-build nên không làm CI chậm thêm.

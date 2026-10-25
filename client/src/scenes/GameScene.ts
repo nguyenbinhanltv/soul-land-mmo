@@ -62,6 +62,7 @@ import { showOffline, type OfflineMsg } from "../offline.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, GearMsg, EquipEnhPreview, EquipEnhDone, EquipLuckPreview, EquipLuckDone, EquipSynDone, EquipSalvDone, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, AutoStMsg, FriendsMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
 import { assetUrl } from "../assetUrl.ts";
+import { layoutNameplates, measureNameplate, nameplateAppearance, nameplatePriority, playerNameplateKind, type NameplateRect, type NameplatePlacement } from "../nameplate.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 type Sprite = Phaser.GameObjects.Sprite;
@@ -85,6 +86,7 @@ interface PView {
   fly: { t0: number; ms: number } | null;   // đang bay (Tà Hỏa Phượng Hoàng, 2.5b): chỉ là hiệu ứng, nhấc hình lên khỏi bóng
   lock: { face: Dir8; until: number } | null; // hướng nhìn theo đòn vừa đánh (tin `fx` có dx, dy), giữ hết animation đánh (10.1)
 }
+interface NameplateGroup { id: string; x: number; y: number; priority: number; lines: Phaser.GameObjects.Text[]; compact: Phaser.GameObjects.Text[]; }
 /** Bấm để đi tới (10.1): còn cách điểm bấm chừng này pixel thế giới thì coi là tới nơi. */
 const GOAL_NEAR = 3;
 /** Nhịp animation đi theo vận tốc (11.1): đi ở tốc độ này thì chạy đúng nhịp vẽ, nhanh / chậm hơn thì nhân theo, kẹp trong khoảng. */
@@ -297,7 +299,7 @@ export class GameScene extends Phaser.Scene {
    * (null = biển hiệu) và nhãn "Nói chuyện" hiện khi đứng gần.
    */
   npcs: { id: string; x: number; y: number; def: NpcDef | undefined; body: Sprite | null; mark: Phaser.GameObjects.Text | null;
-    qmark: Phaser.GameObjects.Text | null }[] = []; // qmark: dấu "!" / "?" của NPC giao nhiệm vụ (6.2)
+    qmark: Phaser.GameObjects.Text | null; nameText: Phaser.GameObjects.Text; titleText: Phaser.GameObjects.Text | null; top: number }[] = []; // qmark: dấu "!" / "?" của NPC giao nhiệm vụ (6.2)
   daily: DailyMsg | null = null; // khảo hạch hằng ngày (tin riêng "daily")
   /** Mục tiêu nhiệm vụ chấm trên bản đồ nhỏ (questTargets), tính lại khi tiến độ / cấp đổi (`key`). */
   qt: { key: string; npcs: Pt[]; zones: Rect[]; portals: Rect[] } = { key: "", npcs: [], zones: [], portals: [] };
@@ -348,6 +350,9 @@ export class GameScene extends Phaser.Scene {
   party: PartyView | null = null;   // tin riêng "party" gần nhất (tổ đội người chơi, 7.1)
   audio!: AudioManager;
   lvVh = -1; lvSeen = 0;            // võ hồn ra trận và cấp ở khung trước: cấp tăng (cùng võ hồn) thì phát khúc ngắn lên cấp
+  selectedPlayer = "";
+  targetBeast = "";
+  nameplateLayout: NameplatePlacement[] = [];
 
   constructor() { super("game"); }
   init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string, roomId: string | null) => void; onArena: (roomId: string, watch?: boolean) => void; onBack: () => void; watch?: boolean }) {
@@ -622,14 +627,13 @@ export class GameScene extends Phaser.Scene {
     }
     // Chữ trên đầu NPC: độ lệch so với `top` tính bằng pixel chữ chưa phóng, wtext nhân txtK (và đặt lại khi txtK đổi).
     const style = { fontFamily: FONT, fontStyle: "700", stroke: "#000", strokeThickness: 2, resolution: 8 };
-    this.wtext(this.add.text(sx, top, def?.name ?? name, { ...style, fontSize: "7px", color: def?.col ?? "#f2c84b" }).setOrigin(0.5, 1).setDepth(99984), top, 0);
-    if (def) this.wtext(this.add.text(sx, top, def.title, { ...style, fontSize: "5.5px", fontStyle: "600", color: "#d8d2c0" }).setOrigin(0.5, 1).setDepth(99984), top, 8);
+    const nameText = this.add.text(sx, top, def?.name ?? name, { ...style, fontSize: "7px", color: def?.col ?? "#f2c84b" }).setOrigin(0.5, 1).setDepth(99984);
+    const titleText = def ? this.add.text(sx, top, def.title, { ...style, fontSize: "5.5px", fontStyle: "600", color: "#d8d2c0" }).setOrigin(0.5, 1).setDepth(99984) : null;
     let mark: Phaser.GameObjects.Text | null = null;
     if (def) {
       mark = this.add.text(sx, top, document.body.classList.contains("touch") ? "Chạm để nói chuyện" : "Nói chuyện [F]", {
         ...style, fontSize: "6px", color: "#fff2b0", backgroundColor: "#000000aa", padding: { x: 3, y: 1 },
       }).setOrigin(0.5, 1).setDepth(99986).setVisible(false);
-      this.wtext(mark, top, 16, { dy: 2, ms: 600 });
       // Vùng bấm phủ cả hình và tên: chuột hoặc chạm đều được.
       this.add.zone(sx, (top + sy) / 2, 22 * SPR, sy - top + 12 * SPR).setInteractive({ useHandCursor: true }).on("pointerdown", () => this.talk(def.id));
     }
@@ -638,24 +642,18 @@ export class GameScene extends Phaser.Scene {
     if (def && hud.QUEST_GIVERS.has(def.id)) {
       qmark = this.add.text(sx, top, "", { ...style, fontSize: "12px", fontStyle: "800", color: "#ffd84a", strokeThickness: 3 })
         .setOrigin(0.5, 1).setDepth(99987).setVisible(false);
-      this.wtext(qmark, top, 25, { dy: 3, ms: 700 });
     }
-    this.npcs.push({ id, x, y, def, body, mark, qmark });
-    this.updateQuestMarks();
+    this.npcs.push({ id, x, y, def, body, mark, qmark, nameText, titleText, top });
+    this.syncQuestMarkers();
   }
 
-  /**
-   * Dấu nhiệm vụ trên đầu NPC giao nhiệm vụ theo tiến độ (6.2): "!" có bài mới, "?" vàng đủ mục tiêu chờ trả, "?" xám đang làm.
-   * Phất Lan Đức gộp cả bộ khảo hạch hằng ngày (hud.questMark).
-   */
-  updateQuestMarks() {
+  /** Đồng bộ dấu nhiệm vụ theo trạng thái chuỗi và khảo hạch hiện tại, không dùng lại trạng thái vẽ cũ. */
+  syncQuestMarkers() {
     for (const n of this.npcs) {
       if (!n.qmark) continue;
-      const st = hud.questMark(n.id);
-      n.qmark.setVisible(!!st);
-      if (st === "offer") n.qmark.setText("!").setColor("#ffd84a");
-      else if (st === "ready") n.qmark.setText("?").setColor("#ffd84a");
-      else if (st === "active") n.qmark.setText("?").setColor("#a8a8a8");
+      const marker = hud.questMarker(n.id);
+      n.qmark.setVisible(!!marker);
+      if (marker) n.qmark.setText(marker.symbol).setColor(marker.color);
     }
   }
 
@@ -690,14 +688,14 @@ export class GameScene extends Phaser.Scene {
    * Chữ tĩnh trong thế giới (tên / chức danh / nhãn NPC, tên cổng): mốc `y0` (pixel màn hình), độ lệch lên `off` tính bằng pixel chữ
    * chưa phóng, nhấp nhô `bob` nếu có. Đổi txtK (đổi cỡ cửa sổ) thì `layoutTexts` đặt lại tỉ lệ, vị trí và tween nhấp nhô.
    */
-  wtexts: { t: Phaser.GameObjects.Text; y0: number; off: number; bob?: { dy: number; ms: number } }[] = [];
+  wtexts: { t: Phaser.GameObjects.Text; x0: number; y0: number; off: number; bob?: { dy: number; ms: number } }[] = [];
   wtext(t: Phaser.GameObjects.Text, y0: number, off: number, bob?: { dy: number; ms: number }) {
-    const e = { t, y0, off, bob }; this.wtexts.push(e); this.placeText(e); return t;
+    const e = { t, x0: t.x, y0, off, bob }; this.wtexts.push(e); this.placeText(e); return t;
   }
   placeText(e: GameScene["wtexts"][number]) {
     const K = this.txtK, y = e.y0 - e.off * K;
     this.tweens.killTweensOf(e.t);
-    e.t.setScale(K).setY(y);
+    e.t.setScale(K).setPosition(e.x0, y);
     if (e.bob) this.tweens.add({ targets: e.t, y: y - e.bob.dy * K, duration: e.bob.ms, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
   }
 
@@ -809,6 +807,7 @@ export class GameScene extends Phaser.Scene {
         if (k < bd) { bd = k; best = { sid: id, name: p.name, level: p.level }; }
       });
       hud.showPlayerMenu(best);
+      this.selectedPlayer = best ? (best as { sid: string }).sid : "";
       if (!best && !over.length && ptr.button === 0) this.walkTo(screenToWorld(ptr.worldX, ptr.worldY));
     });
 
@@ -1293,7 +1292,7 @@ export class GameScene extends Phaser.Scene {
     // trên đầu NPC giao bài, chỉ đường bản đồ nhỏ và thông báo.
     this.room.onMessage("quest", (m: QuestMsg) => {
       if (!m || typeof m.chain !== "string") return;
-      hud.setQuest(m); this.updateQuestMarks();
+      hud.setQuest(m); this.syncQuestMarkers();
       const c = questChain(m.chain), s = c?.steps[m.step], giver = c && npcDef(c.giver);
       if (!c) return;
       if (m.ev === "accept" && s) toast("quest", `Nhận nhiệm vụ: ${s.name}`, s.goals.map((g) => g.text).join(" · "));
@@ -1314,7 +1313,7 @@ export class GameScene extends Phaser.Scene {
     // Khảo hạch hằng ngày: tiến độ do server đếm; client vẽ mục "Hằng ngày", dấu trên đầu Phất Lan Đức, chấm bản đồ nhỏ và thông báo.
     this.room.onMessage("daily", (m: DailyMsg) => {
       if (!m || !Array.isArray(m.list)) return;
-      this.daily = m; hud.setDaily(m); this.updateQuestMarks();
+      this.daily = m; hud.setDaily(m); this.syncQuestMarkers();
       const q = m.list[m.i], s = q && questChain(q.chain)?.steps[0], giver = npcDef(DAILY.giver);
       if (m.ev === "reset") toast("quest", "Khảo hạch hằng ngày đã đổi bài", `Gặp ${giver?.name} ở ${MAPS[DAILY.map].name} nhận ${m.list.length} bài mới`);
       else if (!s) return;
@@ -2665,18 +2664,16 @@ export class GameScene extends Phaser.Scene {
       // Võ Hồn Chân Thân: hồn sư giữ nguyên cỡ, sau lưng hiện pháp tướng (PhapTuongSystem, #486); hào quang vẽ trong drawStatus.
       const vhId = VOHON[p.vh]?.id ?? "";
       this.pt.sync(id, { x: root.x, y: root.y, depth: root.depth, face: v.lpcFace.shown ?? v.face, alpha: a }, { ava: p.ava, dead: p.dead, rings: p.rings.length, vohonId: vhId }, id === this.me, time, dt);
-      const up = 0;
-      if (label.scale !== this.txtK) { label.setScale(this.txtK); title.setScale(this.txtK); tongT.setScale(this.txtK); }
-      // Tên tông (#196) ngay trên đầu, tên và danh hiệu dịch lên một dòng khi có tông.
-      const tg = tongByIndex(p.tong), tu = tg ? 7 * this.txtK : 0;
-      tongT.setPosition(root.x, root.y - HEAD - (this.isArena ? 2 : 0) - up).setVisible(!!tg && !p.dead).setText(tg?.name ?? "");
+      const tg = tongByIndex(p.tong);
+      tongT.setText(tg?.name ?? "");
       if (tg && tongT.style.color !== tg.col) tongT.setColor(tg.col);
-      label.setPosition(root.x, root.y - HEAD - (this.isArena ? 2 : 0) - up - tu).setVisible(!p.dead).setText(`${p.name} (${p.level})`);
-      // Đồng đội trong tổ đội (7.1): tên màu xanh lá.
-      const col = id === this.me ? "#ffe9a0" : this.party?.members.some((m) => !m.me && m.sid === id) ? "#7dff8a" : "#ffffff";
+      const kind = playerNameplateKind(id, this.watching ? this.followSid : this.me,
+        !!this.party?.members.some((m) => m.sid === id), this.isArena ? [...st.sides].map((s: any) => s.sid) : []);
+      label.setText(`${kind === "pk" ? "[PK] " : kind === "party" ? "[Đội] " : ""}${p.name} (${p.level})`);
+      const col = id === this.me ? "#ffe9a0" : nameplateAppearance(kind).color;
       if (label.style.color !== col) label.setColor(col);
       // Danh hiệu theo cấp võ hồn đang ra trận (mục 5.1); đang tự săn (Auto 1) thì thêm chữ "Tự động", màu lục.
-      title.setPosition(root.x, root.y - HEAD - 8 * this.txtK - up - tu).setVisible(!p.dead).setText(p.auto ? `${titleOf(p.level)} · ${id === this.me && autoJobText() || "Tự động"}` : titleOf(p.level));
+      title.setText(p.auto ? `${titleOf(p.level)} · ${id === this.me && autoJobText() || "Tự động"}` : titleOf(p.level));
       const tcol = p.auto ? "#86e0b0" : "#f2c84b"; if (title.style.color !== tcol) title.setColor(tcol);
     });
     if (this.stepT.size > st.players.size) for (const id of this.stepT.keys()) if (!st.players.has(id)) this.stepT.delete(id);
@@ -2750,17 +2747,22 @@ export class GameScene extends Phaser.Scene {
       const fl = this.hitFlash.get(id);
       if (fl !== undefined) { if (time < fl) s.setTintFill(0xffffff); else { this.hitFlash.delete(id); s.clearTint(); } }
       s.setDepth(spr === "static" ? at.y : s.y); // sprite tĩnh: độ sâu theo điểm chân
-      if (b.rank || egg) {
+      {
         let lb = this.eliteLabels.get(id);
+        const kind = egg ? "elite" : b.rank >= 3 ? "boss" : b.rank === 2 ? "king" : b.rank === 1 ? "elite" : "beast";
+        const appearance = nameplateAppearance(kind);
         if (!lb) {
-          lb = this.add.text(s.x, s.y, "", { fontFamily: FONT, fontSize: b.rank >= 2 ? "9px" : "7px", fontStyle: "800",
-            color: egg ? "#c8f5b4" : BOSSES[b.species]?.aura ?? "#ffffff", stroke: "#000", strokeThickness: 2, resolution: 8 }).setOrigin(0.5, 1);
+          lb = this.add.text(s.x, s.y, "", { fontFamily: FONT, fontSize: `${appearance.fontSize}px`, fontStyle: "800",
+            color: appearance.color, stroke: appearance.stroke, strokeThickness: 2, resolution: 8 }).setOrigin(0.5, 1);
           this.eliteLabels.set(id, lb);
         }
         // Boss thế giới (BĐ6e): điểm yếu hệ đang hiện ghi ngay dưới tên.
         const txt = egg ? `Bọc trứng · ${eggLeft(b)}` : beastName(b.rank, b.species) + (b.rank === 3 && b.weak ? `\nĐiểm yếu: ${HE[HE_IDS[b.weak - 1]].name}` : "");
         if (lb.text !== txt) lb.setText(txt);
-        lb.setPosition(s.x, beastTop(s, b.tier) - (b.hp < b.maxHp ? 5 : 2)).setDepth(99984).setScale(this.txtK);
+        const top = beastTop(s, b.tier) - (b.hp < b.maxHp ? 5 : 2);
+        lb.setPosition(s.x, top).setDepth(99984).setScale(this.txtK);
+        const color = egg ? "#c8f5b4" : b.rank ? appearance.color : TIERS[b.tier].glow;
+        if (lb.style.color !== color) lb.setColor(color);
       }
     });
     for (const [id, s] of this.beasts) if (!seenB.has(id)) {
@@ -2903,6 +2905,67 @@ export class GameScene extends Phaser.Scene {
     if (me) {
       this.hudT -= dt;
       if (this.hudT <= 0) { this.hudT = 0.08; this.updateHud(me); this.updateNpcs(me); }
+    }
+    this.layoutOverheadLabels();
+  }
+
+  /** Đo chữ Phaser sau cập nhật nội dung; cùng một khung dùng để né và đặt từng dòng. */
+  layoutOverheadLabels() {
+    const st = this.room.state, view = this.cameras.main.worldView, K = this.txtK;
+    const groups: NameplateGroup[] = [], obstacles: NameplateRect[] = [];
+    const body = (id: string, x: number, y: number, width: number, height: number) => {
+      if (view.contains(x, y)) obstacles.push({ id, x, y: y - height / 2, width, height, priority: 0 });
+    };
+    const add = (group: NameplateGroup) => {
+      for (const t of group.lines) t.setVisible(false);
+      if (view.contains(group.x, group.y + HEAD / 2)) groups.push(group);
+    };
+    const mates = new Set(this.party?.members.map((m) => m.sid) ?? []);
+    this.players.forEach((v, id) => {
+      const p = st.players.get(id);
+      const lines = [v.label, v.tongT, v.title];
+      lines.forEach((t) => t.setVisible(false));
+      if (!p || p.dead) return;
+      body(`player:${id}`, v.root.x, v.root.y, 16 * SPR, HEAD);
+      add({ id: `player:${id}`, x: v.root.x, y: v.root.y - HEAD - 4 * K,
+        priority: nameplatePriority(id === this.selectedPlayer || (this.watching && id === this.followSid), mates.has(id), id === this.me),
+        lines: lines.filter((t) => !!t.text), compact: [v.label] });
+    });
+    this.npcs.forEach((n, i) => {
+      const at = W2S(n.x, n.y), marker = hud.questMarker(n.id);
+      const lines = [n.nameText, n.titleText, n.mark, n.qmark].filter((t): t is Phaser.GameObjects.Text => !!t);
+      lines.forEach((t) => t.setVisible(false));
+      body(`npc:${i}`, at.x, at.y, 16 * SPR, at.y - n.top);
+      const shown = [n.nameText, n.titleText, n.id === this.nearNpc ? n.mark : null, marker ? n.qmark : null]
+        .filter((t): t is Phaser.GameObjects.Text => !!t && !!t.text);
+      add({ id: `npc:${i}`, x: at.x, y: n.top - 4 * K, priority: n.id === this.nearNpc ? 90 : marker ? 60 : 30,
+        lines: shown, compact: [n.nameText, ...(marker && n.qmark ? [n.qmark] : [])] });
+    });
+    this.eliteLabels.forEach((t, id) => {
+      const b = st.beasts.get(id), s = this.beasts.get(id);
+      t.setVisible(false);
+      if (!b || !s || b.dive || b.hp <= 0) return;
+      const top = beastTop(s, b.tier);
+      body(`beast:${id}`, s.x, s.y, Math.min(s.displayWidth, 64), s.y - top);
+      add({ id: `beast:${id}`, x: s.x, y: top - 6 * K, priority: nameplatePriority(id === this.targetBeast, false, false, b.rank), lines: [t], compact: [t] });
+    });
+    // Biển địa điểm cũng tham gia né chữ; biển trùng tên NPC gần đó chỉ giữ một bản.
+    this.wtexts.forEach((e, i) => {
+      e.t.setVisible(false);
+      if (!e.t.text || this.npcs.some((n) => n.nameText.text === e.t.text && Math.hypot(W2S(n.x, n.y).x - e.x0, n.top - e.y0) < 120)) return;
+      add({ id: `sign:${i}`, x: e.x0, y: e.y0 - e.off * K, priority: 10, lines: [e.t], compact: [e.t] });
+    });
+    const measure = (lines: Phaser.GameObjects.Text[]) => measureNameplate(lines.map((t) => ({ width: t.width * K, height: t.height * K })), 2 * K);
+    const measured = new Map(groups.map((g) => [g.id, { group: g, full: measure(g.lines), compact: measure(g.compact) }]));
+    this.nameplateLayout = layoutNameplates(groups.map((g) => {
+      const m = measured.get(g.id)!;
+      return { id: g.id, x: g.x, y: g.y - m.full.height / 2, width: m.full.width, height: m.full.height, priority: g.priority, compactSize: m.compact };
+    }), { gap: 2 * K, maxOffset: 64 * K, maxVisible: 18, viewport: view, obstacles });
+    for (const placement of this.nameplateLayout) {
+      if (!placement.visible) continue;
+      const m = measured.get(placement.id)!, lines = placement.compact ? m.group.compact : m.group.lines;
+      const size = placement.compact ? m.compact : m.full, bottom = placement.y + placement.height / 2;
+      lines.forEach((t, i) => t.setOrigin(0.5, 1).setScale(K).setPosition(placement.x, bottom - size.offsets[i]).setVisible(true));
     }
   }
 
@@ -3294,7 +3357,8 @@ export class GameScene extends Phaser.Scene {
     hud.setChannel(st.channel ?? 0);
 
     let tb: any = null, td = 90;
-    st.beasts.forEach((b: any) => { const d = Math.hypot(b.x - me.x, b.y - me.y); if (d < td) { td = d; tb = b; } });
+    this.targetBeast = "";
+    st.beasts.forEach((b: any, id: string) => { const d = Math.hypot(b.x - me.x, b.y - me.y); if (d < td) { td = d; tb = b; this.targetBeast = id; } });
     const sts = tb ? hud.statusText(tb) : "";
     // Cấp tương đương theo số năm (BĐ3) và mức kinh nghiệm còn nhận khi hồn thú thấp hơn võ hồn ra trận (mục 5.3).
     const tLv = tb ? beastLevel(tb.years) : 0, xpk = tb ? xpLevelScale(me.level, tLv) : 1;
