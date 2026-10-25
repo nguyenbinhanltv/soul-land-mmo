@@ -1,7 +1,7 @@
 // Kiểm thử server/src/ratelimit.ts với đồng hồ giả (không cần bật server).
 // Chạy: npm run test:ratelimit --prefix server
 import assert from "node:assert/strict";
-import { ipKey, loginBegin, loginEnd, signupBegin, signupEnd, chatCheck, worldWait, worldMark, chatReset, sweep, _resetAll, _setSignupScale, CHAT_MAX_LEN, takeToken } from "../src/ratelimit.ts";
+import { ipKey, loginBegin, loginEnd, signupBegin, signupEnd, chatCheck, worldWait, worldMark, chatReset, sweep, _resetAll, _setSignupScale, CHAT_MAX_LEN, takeToken, apiCheck, loginRate, PASSWORD_MAX_LEN } from "../src/ratelimit.ts";
 import { WORLD_CHAT } from "../../shared/data.ts";
 import { nameKey } from "../src/names.ts";
 
@@ -261,6 +261,28 @@ test("Kênh thế giới: hồi WORLD_CHAT.cdSecs giây (#188)", () => {
   sec(1); assert.equal(worldWait(7, now), 0);
   worldMark(7, now); sweep(now); assert.equal(worldWait(7, now), WORLD_CHAT.cdSecs); // sweep không xóa hồi còn chạy
   chatReset(7); assert.equal(worldWait(7, now), 0);
+});
+
+test("REST có token: liền 120 lần theo IP rồi 429, hồi 1 lượt / giây, IPv6 cùng /64 chung bộ đếm (#735)", () => {
+  for (let i = 0; i < 120; i++) assert.equal(apiCheck("9.9.9.9", now), null);
+  const r = apiCheck("9.9.9.9", now)!;
+  assert.match(r.error, /quá nhanh/); assert.equal(r.retryAfter, 1);
+  assert.equal(apiCheck("9.9.9.8", now), null); // IP khác không bị ảnh hưởng
+  sec(1); assert.equal(apiCheck("9.9.9.9", now), null);
+  assert.ok(apiCheck("9.9.9.9", now));
+  for (let i = 0; i < 120; i++) apiCheck("2001:db8:1:2:aaaa::1", now);
+  assert.ok(apiCheck("2001:db8:1:2:bbbb::2", now));
+});
+
+test("Đăng nhập (kể cả đúng): 10 lần / (tên, IP) rồi 429, hồi 1 lượt mỗi 6 giây (#735)", () => {
+  for (let i = 0; i < 10; i++) assert.equal(loginRate("Đường Tam", "3.3.3.3", now), null);
+  const r = loginRate("ĐƯỜNG TAM", "3.3.3.3", now)!;
+  assert.match(r.error, /quá nhiều lần/); assert.equal(r.retryAfter, 6);
+  assert.equal(loginRate("Đường Tam", "3.3.3.4", now), null); // IP khác
+  assert.equal(loginRate("Tiểu Vũ", "3.3.3.3", now), null); // tên khác
+  sec(6); assert.equal(loginRate("Đường Tam", "3.3.3.3", now), null);
+  assert.ok(loginRate("Đường Tam", "3.3.3.3", now));
+  assert.equal(PASSWORD_MAX_LEN, 128);
 });
 
 test("Dọn dẹp xóa trạng thái cũ", () => {

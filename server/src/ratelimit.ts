@@ -74,6 +74,41 @@ export function ssoCheck(rawIp: string, now = Date.now()): { error: string; retr
   return null;
 }
 
+// ---------- REST có token và đăng nhập (#735) ----------
+/** Token bucket theo IP cho nhóm REST có token (/api/me, /api/channel, /api/looks, /api/awaken, /api/link/google): mỗi lần tốn 1 truy vấn DB
+ *  trở lên. Liền tối đa 120, hồi 1 lượt mỗi giây (rộng cho quán net dùng chung IP). GAME_TEST=1: nhân 1000 như ngưỡng tạo tài khoản. */
+const API_BURST = 120;
+const API_REFILL_MS = 1_000;
+/** Token bucket theo (tên, IP) cho MỌI lần đăng nhập đã qua loginBegin, kể cả đúng (mỗi lần chạy scrypt trên threadpool libuv):
+ *  liền tối đa 10, hồi 1 lượt mỗi 6 giây (~10 lần / phút). */
+const LOGIN_OK_BURST = 10;
+const LOGIN_OK_REFILL_MS = 6_000;
+/** Mật khẩu dài tối đa bao nhiêu ký tự (scrypt tốn thời gian theo độ dài; body đã bị chặn 10 KB). */
+export const PASSWORD_MAX_LEN = 128;
+const apiOps = new Map<string, { tokens: number; at: number }>();
+const loginOkOps = new Map<string, { tokens: number; at: number }>();
+
+function bucketTake(m: Map<string, { tokens: number; at: number }>, key: string, burst: number, refillMs: number, now: number): number {
+  let e = m.get(key);
+  if (!e) { e = { tokens: burst, at: now }; m.set(key, e); }
+  e.tokens = Math.min(burst, e.tokens + (now - e.at) / refillMs); e.at = now;
+  if (e.tokens < 1) return Math.ceil(((1 - e.tokens) * refillMs) / 1000);
+  e.tokens -= 1;
+  return 0;
+}
+
+/** Tính một lần gọi REST có token từ IP `rawIp`. null = được; hết lượt thì trả 429 kèm `retryAfter` (giây). */
+export function apiCheck(rawIp: string, now = Date.now()): { error: string; retryAfter: number } | null {
+  const sec = bucketTake(apiOps, ipKey(rawIp), API_BURST * signupScale, API_REFILL_MS, now);
+  return sec ? { error: `Gửi yêu cầu quá nhanh. Vui lòng thử lại sau ${waitText(sec)}.`, retryAfter: sec } : null;
+}
+
+/** Tính một lần đăng nhập (trước khi kiểm tra mật khẩu) của cặp (tên, IP). null = được; hết lượt thì trả 429 kèm `retryAfter` (giây). */
+export function loginRate(name: string, rawIp: string, now = Date.now()): { error: string; retryAfter: number } | null {
+  const sec = bucketTake(loginOkOps, `${nameKey(name)}|${ipKey(rawIp)}`, LOGIN_OK_BURST * signupScale, LOGIN_OK_REFILL_MS, now);
+  return sec ? { error: `Đăng nhập quá nhiều lần. Vui lòng thử lại sau ${waitText(sec)}.`, retryAfter: sec } : null;
+}
+
 // ---------- Chat ----------
 /** Độ dài tối đa một tin (khớp maxlength của ô chat trong client/index.html). */
 export const CHAT_MAX_LEN = 120;
@@ -366,13 +401,15 @@ export function sweep(now = Date.now()) {
   }
   for (const [k, e] of friendOps) if (now - e.at > CHAT_FORGET_MS) friendOps.delete(k);
   for (const [k, e] of ssoOps) if (now - e.at >= SSO_BURST * SSO_REFILL_MS) ssoOps.delete(k);
+  for (const [k, e] of apiOps) if (now - e.at >= API_BURST * API_REFILL_MS) apiOps.delete(k);
+  for (const [k, e] of loginOkOps) if (now - e.at >= LOGIN_OK_BURST * LOGIN_OK_REFILL_MS) loginOkOps.delete(k);
   for (const [k, at] of friendNotes) if (now - at >= FRIEND_NOTE_REPEAT_MS) friendNotes.delete(k);
   for (const [k, e] of rallies) if (now - e.at >= RALLY.burst * RALLY.refillMs) rallies.delete(k); // đã hồi đầy: giống như chưa có
 }
 setInterval(() => sweep(), SWEEP_MS).unref();
 
 /** Chỉ dùng trong kiểm thử: xóa toàn bộ trạng thái. */
-export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); signups.clear(); chat.clear(); worldAt.clear(); invites.clear(); friendOps.clear(); friendNotes.clear(); rallies.clear(); ssoOps.clear(); }
+export function _resetAll() { byPair.map.clear(); byName.map.clear(); byIp.map.clear(); signups.clear(); chat.clear(); worldAt.clear(); invites.clear(); friendOps.clear(); friendNotes.clear(); rallies.clear(); ssoOps.clear(); apiOps.clear(); loginOkOps.clear(); }
 
 // ---------- Đánh dấu "Tập trung ở đây" của tổ đội (R6 #433) ----------
 /**
