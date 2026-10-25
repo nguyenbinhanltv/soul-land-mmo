@@ -44,7 +44,7 @@ PORT=2568 REDIS_URL=redis://127.0.0.1:6379 npm run dev:server
 
 ## Sao lưu
 - **Supabase (DB test):** Project → Database → Backups; trước thao tác ghi lớn (ví dụ `seed:test --confirm-db`) kiểm bản sao lưu hằng ngày hoặc tạo điểm khôi phục (`docs/test-accounts.md`).
-- **Prod (PostgreSQL trong cụm):** chính sách sao lưu và khôi phục **chưa ghi trong repo game**; thuộc cấu hình cụm / repo GitOps (`docs/ops/gitops.md`). Chủ repo bổ sung tại đây khi có (việc đang chờ).
+- **Prod (PostgreSQL trong cụm):** PostgreSQL và Redis **tự host trong cụm trên Longhorn**, CronJob sao lưu ra PVC (Q47 ở `docs/quyet-dinh.md`); manifest, lịch và cách khôi phục chi tiết nằm ở repo GitOps (`docs/ops/gitops.md`), repo game không giữ.
 
 ## Issue liên quan
 #195 / #326 (nhiều tiến trình Redis), #496 (soak Redis), #517 (tài khoản test), #561 (Redis mất giữa chừng).
