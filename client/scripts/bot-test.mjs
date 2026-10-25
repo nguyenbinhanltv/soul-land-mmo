@@ -955,13 +955,27 @@ async function cheatTest(){
   if(down.length) return;
   // Các message còn lại (ngoài đợt này): mọi trường mang cùng giá trị lạ.
   const rest=["auto","offline","absorb","pickup","discard","sortbag","lock","autosell","vohons","boss","bag","use","open","unlock","starup","equip","unequip",
-    "equipcore","unequipcore","enhance","enhancecore","talk","buy","sell","buyback","expand","shardbuy","shardinfo","looks","quest","resonance","chat"];
+    "equipcore","unequipcore","enhance","enhancecore","talk","buy","sell","buyback","expand","shardbuy","shardinfo","looks","quest","resonance","chat",
+    "equipgear","unequipgear","equipenh","equipsynth","equipsalvage","equipenhpreview","equipluck","equipluckpreview","coreset","fusion","tong","rally","friend","gm","stats","fog"];
   for(const type of rest){
-    for(const v of ODD) X.room.send(type,{op:v,id:v,itemId:v,vohonId:v,vohon:v,slot:v,targetId:v,materialIds:[v],npc:v,code:v,qty:v,key:v,cfg:v,chain:v,text:v,looks:v});
+    for(const v of ODD) X.room.send(type,{op:v,id:v,itemId:v,vohonId:v,vohon:v,slot:v,targetId:v,materialIds:[v],npc:v,code:v,qty:v,key:v,cfg:v,chain:v,text:v,looks:v,ids:[v,v],main:v,sacrifice:[v,v],charm:v,set:v,tong:v,cmd:v,rowId:v});
     X.room.send(type,"x"); X.room.send(type,[1]);
   }
   await sleep(500);
   ok(await alive(),`${rest.length} message khác × ${ODD.length+2} giá trị lạ: phòng vẫn chạy`);
+  // Mảng rất dài (vượt giới hạn tải của WebSocket: server đóng kết nối của người gửi) và mảng lồng nhau (200 tầng): bot riêng gửi, phòng của X vẫn chạy.
+  const Z=await bot("Gian lận Z","bich_lan_xa_hoang",{sex:0,hair:0,hairCol:0,outfitCol:0});
+  try{
+    const big=Array.from({length:1e5},(_,i)=>i+1); let nest=[1]; for(let k=0;k<200;k++) nest=[nest];
+    for(const ids of [nest,[nest,nest],[...Array(500).keys()]]) Z.room.send("equipsalvage",{ids});
+    Z.room.send("equipsynth",{main:1,sacrifice:nest}); Z.room.send("enhance",{targetId:1,materialIds:nest});
+    await sleep(500);
+    ok(Z.leftCode===null,"mảng lồng 200 tầng, mảng 500 phần tử: server nhận và bỏ qua, kết nối của người gửi còn nguyên");
+    try{ Z.room.send("equipsalvage",{ids:[big,nest]}); Z.room.send("equipsynth",{main:1,sacrifice:big}); }catch{} // quá cỡ: server đóng kết nối người gửi
+    await sleep(800);
+  } finally { await Promise.race([Z.room.leave().catch(()=>{}),sleep(1000)]); }
+  ok(await alive(),"equipsalvage / equipsynth / enhance với mảng 10^5 phần tử, mảng lồng 200 tầng: phòng vẫn chạy");
+
   // Giới hạn tin ghi túi (#677): dồn 200 tin sortbag thì server bỏ phần dư (không ngắt), tin sau khi hồi token vẫn xử lý.
   await test(X,"baglimit",{on:1}); const lg0=X.logs.length; for(let k=0;k<200;k++) X.room.send("sortbag"); await sleep(800);
   const sorted=X.logs.slice(lg0).filter(t=>/sắp xếp túi/.test(t)).length;
