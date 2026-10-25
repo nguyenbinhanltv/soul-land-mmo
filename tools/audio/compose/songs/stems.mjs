@@ -3,6 +3,7 @@
 // Client phát stem đồng bộ với bài nền (cùng thời điểm bắt đầu, cùng độ dài vòng) và chỉ kéo âm lượng: vào giao chiến thì stem lên,
 // bài nền hạ nhẹ; ra giao chiến 8 s thì về. Stem sinh từ nốt của bài gốc (gốc hợp âm lấy từ kênh bass / cello / dây) nên không cần chép lại giai điệu.
 // `giao_chien_boss_nang` là lớp nâng cấp cho pha 2 của boss thế giới (nổi giận): chồng lên bài giao chiến boss, đặc hơn một nấc.
+import { chienStem } from "../lib/ngucung.mjs";
 import cucBacChiDia from "./cuc_bac_chi_dia.mjs";
 import daiDauHonTruong from "./dai_dau_hon_truong.mjs";
 import giaoChienBoss from "./giao_chien_boss.mjs";
@@ -73,6 +74,10 @@ const LAYERS = [
 ];
 
 export default [
-  ...LAYERS.map(([base, name]) => stem(base, { id: `${base.id}_chien`, title: `${name} (lớp giao chiến)`, of: base.id })),
+  ...LAYERS.map(([base, name]) => {
+    const opts = { id: `${base.id}_chien`, title: `${name} (lớp giao chiến)`, of: base.id };
+    // Bài ngũ cung tu tiên (lib/ngucung.mjs) có lớp giao chiến riêng cùng điệu.
+    return base.ngucung ? chienStem(base, opts) : stem(base, opts);
+  }),
   stem(giaoChienBoss, { id: "giao_chien_boss_nang", title: "Giao chiến boss (pha 2, nâng một nấc)", of: "giao_chien_boss", phase: 2, heavy: true, lufs: -20 }),
 ];
