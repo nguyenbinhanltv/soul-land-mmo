@@ -6,7 +6,7 @@
 // - Mức hiệu ứng (`fxPrefs`): Thấp / Giảm chuyển động bỏ xoắn, xoay và lớp sáng; người khác thấy bản nhẹ hơn (PT_OTHERS_K, không xoay, không lớp trước).
 import Phaser from "phaser";
 import { TIERS, HAO_QUANG as H, PT_FORM, PT_OTHERS_K } from "../../shared/data.ts";
-import { fxPrefs } from "./combatFx.ts";
+import { fxPrefs, fxLevel } from "./combatFx.ts";
 import { SPR } from "./iso.ts";
 import { soulRingKey } from "./textures.ts";
 
@@ -57,7 +57,7 @@ function haloOf(scene: Phaser.Scene, v: RingHost): HaloState {
 
 /** Đặt vị trí, texture, độ đục các vòng và vẽ quầng. Gọi mỗi khung từ animatePlayer. */
 export function animateRings(scene: Phaser.Scene, v: RingHost, p: RingState, time: number, o: RingOpts) {
-  const n = v.ringsB.length, up = p.ava > 0 && !p.dead, mode = fxPrefs.halo, lv = fxPrefs.level, calm = fxPrefs.reduce;
+  const n = v.ringsB.length, up = p.ava > 0 && !p.dead, mode = fxPrefs.halo, lv = fxLevel(), calm = fxPrefs.reduce;
   v.ringsB.setVisible(!p.dead); v.ringsF.setVisible(!p.dead);
   const lit = v.lit && time < v.lit.t0 + RING_LIT_MS ? v.lit.i : -1;
   const ease = Math.min(1, o.delta / 90);
@@ -126,7 +126,7 @@ export function animateRings(scene: Phaser.Scene, v: RingHost, p: RingState, tim
  * Tọa độ pixel nội bộ, gốc ở chân; `fade`: hệ số độ đục chung (quầng tan).
  */
 function drawHalo(h: HaloState, p: RingState, time: number, o: RingOpts, e: number[], F: number, lit: number, litT0: number, fade: number) {
-  const { gB, gF } = h, n = e.length, lv = fxPrefs.level, calm = fxPrefs.reduce;
+  const { gB, gF } = h, n = e.length, lv = fxLevel(), calm = fxPrefs.reduce;
   gB.clear(); gF.clear();
   const rich = o.mine && !calm && lv !== "low"; // xoay, lớp sáng, đầu sao băng, lớp trước
   const ok = o.mine ? 1 : PT_OTHERS_K[lv];

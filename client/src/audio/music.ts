@@ -1,4 +1,5 @@
 import { AUDIO_RANGE } from "./spatial.ts";
+import { fetchAsset } from "../assetUrl.ts";
 
 /** Định dạng nhạc dựng sẵn (tools/audio/compose): Vorbis cho đa số trình duyệt, AAC cho Safari / iOS. */
 export type MusicFormat = "ogg" | "m4a";
@@ -145,7 +146,7 @@ export function combatHit(m: { x: number; y: number; v: number; crit?: boolean; 
 }
 
 export async function fetchBytes(url: string): Promise<ArrayBuffer> {
-  const res = await fetch(url);
+  const res = await fetchAsset(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.arrayBuffer();
 }

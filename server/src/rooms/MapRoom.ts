@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TICK_RATE, tierOfYears, vohonIndex,
   AWAKEN_GIFT, AWAKEN_CHOICES, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, REVIVE_SECS, RESPAWN_SECS, XP_SHARE_ACTIVE, XP_SHARE_BENCH,
-  beastLevel, xpLevelScale, MAX_RINGS, parseTeam, BEASTS, beastIndex, MAPS, MAP_MOVED, DEFAULT_MAP, parseLooks, encodeLpc, dir4, type Looks,
+  beastLevel, xpLevelScale, MAX_RINGS, parseTeam, BEASTS, beastIndex, MAPS, MAP_MOVED, DEFAULT_MAP, parseNewLooks, encodeLpc, lpcGearCode, dir4, type Looks,
   TRAVEL_CAST, BOAT_CAST, WAYPOINT_CAST, waypointFee, RED_BEAST_CHANCE, kingYears, TRAVEL_LEAVE_SECS, CHANNEL_MAX, CHANNEL_CD,
   TIEN_CO, TIEN_CO_MAX, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY, energyGain, tienCoDmgMult, TILE, RALLY,
   itemDef, ITEMS, ITEM_KINDS, BAG_EXPAND, BAG_MAX_SLOTS, bagSlotsOf, BUYBACK_MAX, bagExpandCost, DAN_CD, STARTER_ITEMS, BEAST_COIN, formatHonTe, type ItemDef,
@@ -60,7 +60,8 @@ import { Interest } from "./interest.ts";
 import { AutoHunter } from "./autoHunt.ts";
 import { bagDiff, type BagSent } from "../../../shared/bagSync.ts";
 import { Grounds } from "./ground.ts";
-import { PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS, presenceBackend, accountLeaseKey } from "../presence.ts";
+import { ItemLockBusy, itemLockKey, withItemLocks } from "../itemLock.ts";
+import { PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS, presenceBackend, accountLeaseKey, bg } from "../presence.ts";
 import { ColdStacks } from "./cold.ts";
 import { gmAllow, gmEnabled, isAdmin, parseGm, _gmSetAdmin, type GmCmd } from "../gm.ts"; // lệnh GM của admin (#518)
 import { buildPreset } from "../testPreset.ts";
@@ -152,6 +153,7 @@ export interface PData {
   // Trang bị hồn sư đang mặc (E1, mục 5.15; `items.equip_slot`): không nằm trong `bag` (không chiếm ô túi, không bán / bỏ), ghi DB cùng túi (bagSnapshot).
   // `gearSt` tính lại mỗi lần đổi (gearStats): cộng vào calcStats (recalc), công vũ khí theo đòn (atkOf), giảm sát thương (buffV "def").
   gear: Item[]; gearSt: GearStats;
+  lockIds: Set<string>; // món vừa đổi bằng mặc / tháo / bán / khóa, chờ lần ghi kế: write() giữ khóa Redis lock:item của các món này trong lúc ghi (#559)
   enhBusy: boolean;     // đang xử lý một lệnh cường hóa trang bị (E3): lệnh tới sau bị từ chối ngay ("đang xử lý"), chống đua lệnh / nhân đồ
   salvAt: number;       // mốc (ms) sớm nhất cho lần tự phân giải kế (autoSalvage)
   testSyn: number | null; // hook test `synroll` (ép số tung hợp thành / phân giải 0..1); `enhBusy` dùng chung cho cả cường hóa, hợp thành và phân giải (E4)
@@ -308,6 +310,8 @@ const PERF_SLOW_MS = 50, PERF_GAP_MS = 100;
 /** Lý do từ chối bán / bỏ / hấp thụ / nộp đồ trong lúc phần thưởng boss đang chờ DB xác nhận lượt (claimBusy, #165). */
 const CLAIM_BUSY = "Đang lưu phần thưởng boss / mảnh vừa đổi, đợi một chút."; // claimBusy: rương, thưởng boss, đổi mảnh ở Thương hội (#282)
 /** Đang chờ DB ghi phần thưởng boss (grantChest) hoặc hook test `claimhold` giữ: chặn mở rương, bán / bỏ / hấp thụ / nộp / sắp xếp / tự bán. */
+/** Lần ghi cuối chờ khóa món tối đa FINAL_LOCK_TRIES × FINAL_LOCK_WAIT_MS (#559). */
+const FINAL_LOCK_TRIES = 10, FINAL_LOCK_WAIT_MS = 300;
 const claimHeld = (d: { claimBusy: number; testClaimHold: boolean }) => d.claimBusy > 0 || d.testClaimHold;
 /** Phiên mới chờ phiên cũ lưu xong tối đa bấy nhiêu mili giây; quá thì từ chối vào phòng (không nạp dữ liệu cũ). */
 const HOLD_WAIT_MS = 8000;
@@ -550,7 +554,7 @@ const testOfflineAgo = new Map<number, number>();
 /** Kênh vừa rời của tài khoản ở bản đồ `mapId` nếu còn khóa và kênh đó còn mở, còn chỗ (trong `list`). */
 async function leftLock(accountId: number, mapId: string, list: ChannelInfo[]) {
   const l = (await presenceBackend.getJson<{ mapId: string; roomId: string; ch: number; until: number; travel?: boolean }>(channelLeftKey(accountId))) ?? leftRoom.get(accountId);
-  if (!l || l.until <= Date.now()) { leftRoom.delete(accountId); void presenceBackend.delete(channelLeftKey(accountId)); return null; }
+  if (!l || l.until <= Date.now()) { leftRoom.delete(accountId); bg(presenceBackend.delete(channelLeftKey(accountId)), "presence"); return null; }
   leftRoom.set(accountId, l);
   return l.mapId === mapId ? list.find((c) => c.roomId === l.roomId && !c.full) ?? null : null;
 }
@@ -623,6 +627,8 @@ export async function seatUsed(accountId: number, sessionId: string) {
  */
 export async function seatAccount(token: unknown, mapId: string | null, check?: (accountId: number) => Promise<unknown>): Promise<SeatPass> {
   const full = new ServerError(429, "Đang vào phòng ở nơi khác, hãy thử lại sau giây lát.");
+  // Redis mất (#561): không nhận phiên mới (fail-closed); người chơi thử lại sau giây lát, server tự phục vụ lại khi Redis có lại.
+  if (!presenceBackend.healthy()) throw new ServerError(503, "Máy chủ đang bảo trì kết nối, hãy thử lại sau giây lát.");
   try {
     const acc = await store.accountFromToken(token);
     if (!acc) throw new ServerError(401, "Phiên đăng nhập không hợp lệ.");
@@ -698,6 +704,11 @@ function itemStacks(code: string, qty: number): Item[] {
 type GearStats = ReturnType<typeof equipStats>;
 /** Chỉ số tổng của các món đang mặc (mục 5.15): dữ liệu hỏng / mẫu lạ bị bỏ qua. */
 const gearStats = (gear: Item[]): GearStats => equipStats(gear.flatMap((it) => { const e = parseEquip(it.stats); return e ? [{ ...e, enhance: it.enhance }] : []; }));
+/** Bậc áo / mũ đang mặc (+1, 0 = không) → PlayerState.gearAo / gearMu để người khác thấy trên lớp LPC (HL4 #573); không đồng bộ chỉ số. */
+function gearLook(p: PlayerState, gear: Item[]) {
+  const tier = (slot: string) => { for (const it of gear) { const t = equipTemplate(parseEquip(it.stats)?.tpl); if (t?.slot === slot) return t.tier; } return null; };
+  p.gearAo = lpcGearCode(tier("ao")); p.gearMu = lpcGearCode(tier("mu"));
+}
 const bagUsed = (bag: Item[]) => bag.filter((i) => i.vohonId === null).length;
 /** Thứ tự xếp túi (#215 "Sắp xếp"): nhóm theo ITEM_KINDS, rồi loại theo ITEMS. */
 const KIND_ORDER = Object.keys(ITEM_KINDS), ITEM_ORDER = new Map(ITEMS.map((x, k) => [x.id, k]));
@@ -849,7 +860,9 @@ export class MapRoom extends Room<MapState> {
 
   /** Nhả tài khoản sau lần ghi cuối của phiên `sessionId` (chỉ khi phiên đó vẫn đang giữ). */
   async releaseAccount(accountId: number, sessionId: string) {
-    await presenceBackend.releaseLease(accountLeaseKey(accountId), this.leaseOwner(sessionId));
+    // Redis mất thì không chặn onLeave / onDispose (lần ghi cuối đã xong, tắt server vẫn phải thoát): lease tự hết TTL, phiên mới chờ qua waitOldSession.
+    try { await presenceBackend.releaseLease(accountLeaseKey(accountId), this.leaseOwner(sessionId)); }
+    catch (e) { console.error(`Không nhả được phiên giữ tài khoản #${accountId} (lease tự hết hạn sau ${PRESENCE_TTL_MS / 1000} giây)`, e); }
   }
 
   leaseOwner(sessionId: string) { return `${this.roomId}:${sessionId}`; }
@@ -1113,7 +1126,7 @@ export class MapRoom extends Room<MapState> {
     const { ch, owned, team, looks, loc, bag } = auth;
     // Một tài khoản chỉ được vào một lần: giữ tài khoản cho phiên này, đá phiên cũ ở mọi phòng (kể cả phòng này). onAuth đã
     // chờ phiên cũ lưu xong; lần đá này chặn hai lần vào gần như cùng lúc.
-    if (this.state.channel) { leftRoom.delete(auth.accountId); void presenceBackend.delete(channelLeftKey(auth.accountId)); } // đã vào được (đúng kênh vừa rời, hoặc qua đường server duyệt): bỏ khóa kênh
+    if (this.state.channel) { leftRoom.delete(auth.accountId); bg(presenceBackend.delete(channelLeftKey(auth.accountId)), "presence"); } // đã vào được (đúng kênh vừa rời, hoặc qua đường server duyệt): bỏ khóa kênh
     const leaseOwner = this.leaseOwner(client.sessionId);
     this.holdAccount(auth.accountId, client.sessionId);
     void presenceBackend.getJson<Buyback[]>(buybackKey(auth.accountId)).then((list) => { if (list?.length) buybacks.set(auth.accountId, list); else buybacks.delete(auth.accountId); })
@@ -1125,6 +1138,7 @@ export class MapRoom extends Room<MapState> {
     const p = new PlayerState();
     p.name = ch.name; this.showVohon(p, ch);
     p.sex = looks.sex; p.hair = looks.hair; p.hairCol = looks.hairCol; p.outfitCol = looks.outfitCol; p.skin = looks.skin; p.lpc = looks.lpc ? encodeLpc(looks.lpc) : "";
+    gearLook(p, bag.items.filter((i) => i.equipSlot !== undefined));
     // Vị trí đã lưu; chưa có, kẹt trong ô chặn hoặc ngoài bản đồ thì về `spawn` (mục 6).
     const pos = loc.x !== null && loc.y !== null && this.map.standable(loc.x, loc.y) ? { x: loc.x, y: loc.y } : this.spawnPoint();
     p.x = pos.x; p.y = pos.y;
@@ -1136,7 +1150,7 @@ export class MapRoom extends Room<MapState> {
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
       bag: bag.items.filter((i) => i.equipSlot === undefined), gear: bag.items.filter((i) => i.equipSlot !== undefined), gearSt: gearStats(bag.items.filter((i) => i.equipSlot !== undefined)), honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "",
       sellCfg: parseSell(bag.sell), sold: bag.sold ?? [], sellCheck: true, sellSent: "", soldN: 0, soldCoins: 0, autoSold0: [0, 0], danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0, hanT: 0, charm: null,
-      claims: auth.claims, wclaims: auth.wclaims, shardBuy: { ...auth.shardBuy, pend: 0 }, claimBusy: 0, enhBusy: false, salvAt: 0, testSyn: null, testEnh: null, testEnhSlow: 0, testEquip: null, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
+      claims: auth.claims, wclaims: auth.wclaims, shardBuy: { ...auth.shardBuy, pend: 0 }, claimBusy: 0, lockIds: new Set(), enhBusy: false, salvAt: 0, testSyn: null, testEnh: null, testEnhSlow: 0, testEquip: null, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
       chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests), ...this.tongTasksOf(bag.quests), tongBoardAt: 0, tongPend: [],
@@ -1218,7 +1232,7 @@ export class MapRoom extends Room<MapState> {
       // Rời không qua đi cổng / đổi kênh: khóa vào lại đúng kênh này CHANNEL_CD giây (trước khi nhả tài khoản cho phiên mới).
       if (this.state.channel && !d.travelled && !testNoLeaveLock.delete(d.accountId)) {
         const lock = { mapId: this.state.mapId, roomId: this.roomId, ch: this.state.channel, until: Date.now() + CHANNEL_CD * 1000 };
-        leftRoom.set(d.accountId, lock); void presenceBackend.putJson(channelLeftKey(d.accountId), lock, CHANNEL_CD * 1000);
+        leftRoom.set(d.accountId, lock); bg(presenceBackend.putJson(channelLeftKey(d.accountId), lock, CHANNEL_CD * 1000), "presence");
       }
     }
     this.state.players.delete(id);
@@ -1352,6 +1366,26 @@ export class MapRoom extends Room<MapState> {
    */
   /** Trả true khi dữ liệu đã được ghi (tông vụ #197 chỉ cộng điểm sau lần ghi bài đã trả); lỗi DB thì ném. */
   async write(id: string, final = false): Promise<boolean> {
+    const d = this.pdata.get(id), ids = d ? [...d.lockIds] : [];
+    if (!d || !ids.length) return this.writeNow(id, final);
+    d.lockIds.clear();
+    // Khóa Redis theo món (#559): không lấy được thì ném lỗi, chuỗi lưu ghi log; túi vẫn đang bẩn nên lần ghi sau thử lại (món chưa chụp, chưa mất).
+    // Lần ghi cuối (`final`: rời phòng / đóng phòng) không có lần sau: chờ khóa có hạn, rồi vẫn ghi không khóa (ghi cảnh báo) để không mất tiến độ;
+    // ghi chồng vẫn bị chặn bởi khóa dòng PostgreSQL, `ver` và `Bag.lock`.
+    const lockedWrite = () => withItemLocks(presenceBackend, ids, async (g) => { if (!(await g.held())) throw new ItemLockBusy(ids[0]); return this.writeNow(id, final); });
+    if (final) {
+      for (let k = 0; k < FINAL_LOCK_TRIES; k++) {
+        let ran = false;
+        try { return await withItemLocks(presenceBackend, ids, async (g) => { if (!(await g.held())) throw new ItemLockBusy(ids[0]); ran = true; return this.writeNow(id, final); }); }
+        catch (e) { if (ran) throw e; if (!(e instanceof ItemLockBusy)) break; await new Promise((r) => setTimeout(r, FINAL_LOCK_WAIT_MS)); }
+      }
+      console.error(`Lần ghi cuối tài khoản #${d.accountId}: không lấy được khóa món, ghi không khóa để không mất tiến độ.`);
+      return this.writeNow(id, final);
+    }
+    try { return await lockedWrite(); }
+    catch (e) { for (const i of ids) d.lockIds.add(i); throw e; }
+  }
+  async writeNow(id: string, final = false): Promise<boolean> {
     // Đã đi cổng / đổi kênh (transaction đi cổng là lần ghi cuối của phòng này): không ghi gì nữa.
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelled || d.gmReset) return false;
     await this.flushAuto(d);
@@ -1984,7 +2018,7 @@ export class MapRoom extends Room<MapState> {
     if (why !== null) { if (why) warn(why); return; }
     if (!to) return warn(`Kênh ${ch} không còn mở.`);
     if (to.full) return warn(`Kênh ${ch} đã đầy (${to.n}/${to.max}).`);
-    const switched = Date.now(); channelSwitchAt.set(d.accountId, switched); void presenceBackend.putJson(channelSwitchKey(d.accountId), switched, CHANNEL_CD * 1000);
+    const switched = Date.now(); channelSwitchAt.set(d.accountId, switched); bg(presenceBackend.putJson(channelSwitchKey(d.accountId), switched, CHANNEL_CD * 1000), "presence");
     const p = this.state.players.get(id)!;
     this.log(id, `Đang chuyển sang kênh ${ch}…`);
     this.beginTravel(id, { name: "", to: this.state.mapId, arrive: "", ax: p.x, ay: p.y, level: null, boat: false, x: 0, y: 0, w: 0, h: 0 }, to);
@@ -2536,7 +2570,7 @@ export class MapRoom extends Room<MapState> {
     if (p.dead || d.travelling) return warn("Lúc này không đổi ngoại hình được.");
     const npc = typeof rawNpc === "string" ? this.npcNear(id, { id: rawNpc }) : this.npcNear(id, { role: "looks" });
     if (!npc || npcDef(npc.id)?.role !== "looks") return warn("Hãy lại gần thợ may hơn để đổi ngoại hình.");
-    const looks = parseLooks(raw);
+    const looks = parseNewLooks(raw);
     if (!looks) return warn("Ngoại hình không hợp lệ.");
     const key = (l: { sex: number; hair: number; hairCol: number; outfitCol: number; skin: number; lpc?: string }) => l.lpc ? `L${l.lpc}` : `${l.sex}|${l.hair}|${l.hairCol}|${l.outfitCol}|${l.skin}`;
     if (key({ ...looks, lpc: looks.lpc ? encodeLpc(looks.lpc) : "" }) === key(p)) return warn("Ngoại hình này giống hiện tại, không cần đổi.");
@@ -3367,7 +3401,7 @@ export class MapRoom extends Room<MapState> {
     // Thương nhân giữ bản sao đúng món vừa bán (chỉ số, cấp cường hóa, số lượng) để mua lại (9.8); mới nhất trước, tối đa BUYBACK_MAX.
     const entry: Buyback = { key: randomUUID(), item: { ...it, qty, vohonId: null, stats: it.stats == null ? null : structuredClone(it.stats) }, price };
     editBuyback(d.accountId, (cur) => [entry, ...cur].slice(0, BUYBACK_MAX)).then(() => this.sendBag(id), (err) => console.error("Không lưu được món bán vào danh sách mua lại", err));
-    this.takeItem(d, it, qty);
+    this.takeItem(d, it, qty); d.lockIds.add(it.id);
     this.addCoin(d, gain);
     this.log(id, `Bán ${label}: +${formatHonTe(gain)} (còn ${formatHonTe(d.honTe)}).`, "#f2c84b");
     this.sendBag(id);
@@ -3428,7 +3462,7 @@ export class MapRoom extends Room<MapState> {
     const d = this.pdata.get(id); if (!d || d.travelling) return; // #165: như mọi thao tác túi đồ, không đổi sau khi đã chụp túi để đi cổng
     const it = typeof raw === "string" ? d.bag.find((i) => i.id === raw) : undefined;
     if (!it) return this.log(id, "Không có vật phẩm này trong túi đồ.", "#ffb35c");
-    it.locked = !it.locked; d.bagDirty = true;
+    it.locked = !it.locked; d.bagDirty = true; d.lockIds.add(it.id);
     this.log(id, `${it.locked ? "Đã khoá" : "Đã mở khoá"} ${this.itemLabel(it)}${it.locked ? ": không bán, bỏ hay làm nguyên liệu được" : ""}.`);
     this.sendBag(id);
     this.saveTrade(id, d);
@@ -3594,7 +3628,7 @@ export class MapRoom extends Room<MapState> {
     else if (op === "chan") {
       // Nhiều kênh (mục 6): `reset` xóa thời gian chờ đổi kênh (CHANNEL_CD) của tài khoản; `nolock`: lần rời phòng kế tiếp không khóa
       // vào lại kênh này (leftRoom); trả số người tối đa mỗi kênh, số kênh, phòng.
-      if (o.reset) { channelSwitchAt.delete(d.accountId); leftRoom.delete(d.accountId); void presenceBackend.delete(channelSwitchKey(d.accountId)); void presenceBackend.delete(channelLeftKey(d.accountId)); }
+      if (o.reset) { channelSwitchAt.delete(d.accountId); leftRoom.delete(d.accountId); bg(presenceBackend.delete(channelSwitchKey(d.accountId)), "presence"); bg(presenceBackend.delete(channelLeftKey(d.accountId)), "presence"); }
       if (o.nolock) testNoLeaveLock.add(d.accountId);
       out = { chMax: CHANNEL_CAP, channel: this.state.channel, roomId: this.roomId };
     }
@@ -3604,7 +3638,7 @@ export class MapRoom extends Room<MapState> {
       const sb = typeof o.bid === "string" ? this.state.beasts.get(o.bid) : undefined;
       const x = sb ? { bid: o.bid as string, b: sb } : nearB(); if (x) { this.killBeast(x.bid, id); out = { bid: x.bid, x: x.b.x, y: x.b.y, years: x.b.years }; }
     }
-    else if (op === "chat") { if (o.cop === "rlreset") { chatReset(d.accountId); void presenceBackend.delete(worldChatKey(d.accountId)); } } // #188: xóa bộ đếm chat mọi kênh + hồi kênh thế giới của người gọi
+    else if (op === "chat") { if (o.cop === "rlreset") { chatReset(d.accountId); bg(presenceBackend.delete(worldChatKey(d.accountId)), "presence"); } } // #188: xóa bộ đếm chat mọi kênh + hồi kênh thế giới của người gọi
     else if (op === "rally") { if (o.rop === "rlreset") rallyReset(d.accountId); } // R6 #433: xóa bộ đếm đặt dấu tập trung của người gọi
     else if (op === "friend") { if (o.fop === "rlreset") friendReset(d.accountId); } // #195: xóa bộ đếm thao tác bạn bè của người gọi
     else if (op === "party") {
@@ -3736,6 +3770,14 @@ export class MapRoom extends Room<MapState> {
     // E3: `enhroll {r}` ép số tung cường hóa trang bị (0..100 → 0..1; r < 0 bỏ ép): r nhỏ hơn tỉ lệ nấc thì thành công. `enhslow {ms}` chờ trong chuỗi lưu để bot dồn lệnh.
     else if (op === "enhroll") { const r = int(o.r, -1, 100, -1); d.testEnh = r < 0 ? null : Math.min(0.9999, r / 100); }
     else if (op === "synroll") { const r = int(o.r, -1, 100, -1); d.testSyn = r < 0 ? null : Math.min(0.9999, r / 100); } // E4: ép số tung hợp thành / phân giải (r nhỏ hơn tỉ lệ thì thành công / ra đủ)
+    // #559: `itemlock {id, on}` giữ / nhả khóa Redis `lock:item:<id>` như một tiến trình khác đang xử lý món đó (chỉ có tác dụng khi presence là Redis); trả `redis` và `held`.
+    else if (op === "itemlock") {
+      const item = strIn(o.id), key = itemLockKey(item), ghost = `test-ghost:${item}`;
+      if (presenceBackend.mode === "redis" && item) {
+        if (o.on === true) out = { redis: true, held: (await presenceBackend.acquireFenced(key, ghost, 20_000)) > 0 };
+        else { await presenceBackend.releaseLease(key, ghost); out = { redis: true, held: false }; }
+      } else out = { redis: false, held: false };
+    }
     else if (op === "enhslow") { d.testEnhSlow = int(o.ms, 0, 5000, 0); }
     else if (op === "roll") { const r = int(o.r, -1, 100, -1); d.testRoll = r < 0 ? null : Math.min(0.9999, r / 100); }
     else if (op === "rush") { if (d.absorbing) this.finishAbsorb(id); }
@@ -3858,7 +3900,7 @@ export class MapRoom extends Room<MapState> {
       const h0 = d.hpF, m0 = d.mpF, safe = this.regenPlayer(p, d, int(o.s, 0, 60, 0)); // kể cả võ hồn ngoài sân (benchHp)
       out = { safe, hp: d.hpF - h0, mp: d.mpF - m0, hp0: h0, mp0: m0, maxHp: p.maxHp, maxMp: p.maxMp, level: p.level, vh: p.vh };
     }
-    else if (op === "ready") { d.avaCd.clear(); p.avaCd = 0; fusionReady.delete(d.accountId); void presenceBackend.delete(fusionKey(d.accountId)); p.ctCd = 0; d.skCd.clear(); for (let i = 0; i < 4; i++) p.cds[i] = 0; for (let i = 0; i < p.bcds.length; i++) p.bcds[i] = 0; d.mpF = p.maxMp * int(o.mp, 0, 100, 100) / 100; p.mp = Math.floor(d.mpF); }
+    else if (op === "ready") { d.avaCd.clear(); p.avaCd = 0; fusionReady.delete(d.accountId); bg(presenceBackend.delete(fusionKey(d.accountId)), "presence"); p.ctCd = 0; d.skCd.clear(); for (let i = 0; i < 4; i++) p.cds[i] = 0; for (let i = 0; i < p.bcds.length; i++) p.bcds[i] = 0; d.mpF = p.maxMp * int(o.mp, 0, 100, 100) / 100; p.mp = Math.floor(d.mpF); }
     else if (op === "grant") {
       const vohon = String(o.vohon ?? "");
       if (vohonIndex(vohon) >= 0) {
@@ -4101,7 +4143,7 @@ export class MapRoom extends Room<MapState> {
       // #218: thời gian tick / bản vá trung bình và lớn nhất (ms) của phòng từ lần đặt lại trước (chỉ đo khi server bật PERF_LOG=1);
       // `reset` đặt lại sau khi đọc.
       const a = this.perfAll, n = Math.max(1, a.n);
-      out = { on: this.perfOn, n: a.n, tick: a.tick / n, patch: a.patch / n, max: a.max, auto: a.auto / n, players: this.state.players.size, beasts: this.state.beasts.size };
+      out = { on: this.perfOn, n: a.n, tick: a.tick / n, patch: a.patch / n, max: a.max, auto: a.auto / n, players: this.state.players.size, beasts: this.state.beasts.size, ...(o.mem === true ? (({ rss, heapUsed }) => ({ rss, heap: heapUsed }))(process.memoryUsage()) : {}) };
       if (o.reset) Object.assign(a, { n: 0, tick: 0, patch: 0, max: 0, auto: 0 });
     }
     else if (op === "offline") {
@@ -4707,7 +4749,7 @@ export class MapRoom extends Room<MapState> {
         const go = () => {
           const me = this.state.players.get(id); if (me !== p || me.dead) return;
           const cx = at?.x ?? p.x, cy = at?.y ?? p.y;
-          this.broadcast("fx", { k: "wave", x: cx, y: cy - 6, r: sk.r, col, ...(sk.shake && k === 0 ? { shake: 0.5 } : {}) });
+          this.broadcast("fx", { k: "wave", id, x: cx, y: cy - 6, r: sk.r, col, ...(sk.shake && k === 0 ? { shake: 0.5 } : {}) });
           const ids = near(sk.r, cx, cy), fids = this.foesNear(id, sk.r, cx, cy);
           // Từ 8.1c `shockR`: sét tìm mục tiêu Cảm điện ở xa hơn `r` (cả đối thủ đang Cảm điện); tia sét từ tâm vùng tới từng mục tiêu (fx zap).
           if (sk.shockR) {
@@ -4754,7 +4796,7 @@ export class MapRoom extends Room<MapState> {
         this.projs.push({ x: p.x, y: p.y - 8, vx: Math.cos(a) * PROJ_SPEED, vy: Math.sin(a) * PROJ_SPEED, life: sk.r / PROJ_SPEED, owner: id,
           fire: (bid) => strike(bid, true), foe: (fid) => strikeFoe(fid, true) });
       }
-      this.broadcast("fx", ring ? { k: "burst", x: p.x, y: p.y - 8, col } : { k: "burst", x: p.x, y: p.y - 8, col, n, a0, spread, r: sk.r });
+      this.broadcast("fx", ring ? { k: "burst", id, x: p.x, y: p.y - 8, col } : { k: "burst", id, x: p.x, y: p.y - 8, col, n, a0, spread, r: sk.r });
     } else if (sk.area === "target") {
       const bid = sk.pick === "low" ? this.weakestBeast(p, sk.r) : this.nearestBeast(p, sk.r), b = bid ? this.state.beasts.get(bid) : undefined;
       // Không có hồn thú trong tầm thì nhắm đối thủ gần nhất (Đại Đấu Hồn Trường, 7.2).
@@ -6102,9 +6144,10 @@ export class MapRoom extends Room<MapState> {
   }
 
   // ---------- Trang bị hồn sư (mục 5.15, bước E1) ----------
-  /** Tin riêng "gear": các món đang mặc (`slot` = chỉ số trong EQUIP_SLOTS) và chỉ số tổng `st` (equipStats). Chỉ chính chủ; không vào state công khai. */
+  /** Tin riêng "gear": các món đang mặc (`slot` = chỉ số trong EQUIP_SLOTS) và chỉ số tổng `st` (equipStats). Chỉ chính chủ; không vào state công khai (riêng bậc áo / mũ đang mặc được đẩy sang `gearAo` / `gearMu`, `gearLook`). */
   sendGear(id: string) {
     const d = this.pdata.get(id), c = this.clients.getById(id); if (!d || !c) return;
+    const p = this.state.players.get(id); if (p) gearLook(p, d.gear); // mọi đường đổi d.gear (mặc / tháo / phá huỷ khi cường hóa / hook test) đều gửi tin này
     c.send("gear", { items: d.gear.map((i) => ({ id: i.id, code: i.code, enhance: i.enhance, stats: i.stats, slot: i.equipSlot, ...(i.locked ? { lock: true } : {}) })), st: d.gearSt });
   }
   /** Sau khi đổi trang bị: tính lại chỉ số, báo client, ghi ngay qua chuỗi lưu (túi + ô mặc cùng một transaction). */
@@ -6129,6 +6172,7 @@ export class MapRoom extends Room<MapState> {
     const slot = equipSlotIndex(tpl.slot), oi = d.gear.findIndex((g) => g.equipSlot === slot), old = d.gear[oi];
     if (old) { d.gear.splice(oi, 1); delete old.equipSlot; }
     it.equipSlot = slot; d.bag.splice(idx, 1, ...(old ? [old] : [])); d.gear.push(it);
+    d.lockIds.add(it.id); if (old) d.lockIds.add(old.id);
     this.log(id, `Mặc ${equipName(e.tpl, it.enhance)} (${EQUIP_SLOTS[slot].name}).${old ? ` ${equipName(parseEquip(old.stats)?.tpl, old.enhance)} về túi đồ.` : ""}`, "#e8dcff");
     this.afterGear(id, d);
   }
@@ -6142,7 +6186,7 @@ export class MapRoom extends Room<MapState> {
     if (claimHeld(d)) return warn(CLAIM_BUSY);
     const lock = this.boneLock(p, d, "trang bị"); if (lock) return warn(lock);
     if (bagUsed(d.bag) >= d.bagSlots) return warn(`Túi đồ đã đầy (${d.bagSlots} ô): bỏ bớt vật phẩm rồi mới tháo được trang bị.`);
-    const [it] = d.gear.splice(gi, 1); delete it.equipSlot; d.bag.push(it);
+    const [it] = d.gear.splice(gi, 1); delete it.equipSlot; d.bag.push(it); d.lockIds.add(it.id);
     this.log(id, `Tháo ${equipName(parseEquip(it.stats)?.tpl, it.enhance)} về túi đồ.`);
     this.afterGear(id, d);
   }
@@ -6192,7 +6236,7 @@ export class MapRoom extends Room<MapState> {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     if (d.enhBusy) return this.log(id, "Đang xử lý lệnh cường hóa trước, đợi một chút.", "#ffb35c");
     d.enhBusy = true; d.claimBusy++;
-    this.chain(d, async () => {
+    this.chain(d, () => this.itemLocked(id, [rawId], async () => {
       const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendBag(id); this.equipEnhancePreview(id, rawId); };
       if (d.testEnhSlow) await new Promise((r) => setTimeout(r, d.testEnhSlow));
       const it = this.equipOf(d, rawId), e = it ? parseEquip(it.stats) : null; if (!it || !e) return warn("Không có trang bị này để cường hóa.");
@@ -6228,7 +6272,7 @@ export class MapRoom extends Room<MapState> {
       if (wear) { d.gearSt = gearStats(d.gear); this.afterBones(id, d.ch); this.sendGear(id); }
       this.sendBag(id);
       if (!res.destroyed) this.equipEnhancePreview(id, it.id);
-    }).then(() => { d.enhBusy = false; d.claimBusy--; });
+    })).then(() => { d.enhBusy = false; d.claimBusy--; });
   }
 
   /**
@@ -6248,15 +6292,31 @@ export class MapRoom extends Room<MapState> {
     return () => { for (const g of [...gone].reverse()) d.bag.splice(Math.min(g.at, d.bag.length), 0, g.it); d.bagDirty = true; };
   }
   /**
+   * Chạy `run` khi giữ khóa Redis `lock:item:<id>` của các món `rawIds` (#559; chỉ khi chạy nhiều tiến trình, `withItemLocks`): món đang bị tiến trình /
+   * phiên khác xử lý thì từ chối "đang xử lý" (như claimBusy), Redis lỗi thì từ chối luôn (fail-closed); cả hai trường hợp `run` không chạy nên không đổi gì.
+   * Lỗi của chính `run` (vd. ghi DB) vẫn ném lên chuỗi lưu như trước.
+   */
+  async itemLocked(id: string, rawIds: unknown[], run: () => Promise<void>, quiet = false) {
+    const ids = rawIds.filter((x): x is string => typeof x === "string");
+    let ran = false;
+    try { await withItemLocks(presenceBackend, ids, async () => { ran = true; await run(); }); }
+    catch (e) {
+      if (ran) throw e;
+      if (!quiet) this.log(id, e instanceof ItemLockBusy ? "Trang bị này đang được xử lý, đợi một chút." : "Không khóa được trang bị lúc này, thử lại sau.", "#ffb35c");
+      if (!(e instanceof ItemLockBusy)) console.error(`Không lấy được khóa Redis món đồ của tài khoản ${this.pdata.get(id)?.accountId}`, e);
+      this.sendBag(id);
+    }
+  }
+  /**
    * Hàng đợi chung của các lệnh Thợ rèn trang bị mới (hợp thành, phân giải; E4): cờ `enhBusy` như cường hóa (E3), một lệnh đang xử lý thì lệnh tới
    * sau bị từ chối ngay, lệnh chạy trong chuỗi lưu của tài khoản; `claimBusy` chặn bán / bỏ đồ trong lúc chờ DB. `quiet`: lệnh tự động, không báo từ chối.
    */
-  forgeLane(id: string, d: PData, run: () => Promise<void>, quiet = false) {
+  forgeLane(id: string, d: PData, run: () => Promise<void>, quiet = false, rawIds: unknown[] = []) {
     if (d.enhBusy) { if (!quiet) this.log(id, "Đang xử lý lệnh Thợ rèn trước, đợi một chút.", "#ffb35c"); return; }
     d.enhBusy = true; d.claimBusy++;
     this.chain(d, async () => {
       if (d.testEnhSlow) await new Promise((r) => setTimeout(r, d.testEnhSlow));
-      await run();
+      await this.itemLocked(id, rawIds, run, quiet);
     }).then(() => { d.enhBusy = false; d.claimBusy--; });
   }
   /** Các món trang bị trong túi (không tính món đang mặc) theo danh sách id, kèm dữ liệu đã đọc; trả chuỗi lỗi nếu có id lạ, trùng, đang mặc hoặc khóa. */
@@ -6320,7 +6380,7 @@ export class MapRoom extends Room<MapState> {
       this.log(id, `Hợp thành ${EQUIP_TIERS[tier].name} → ${EQUIP_TIERS[tier + 1].name} ${text} (${cost}).`, res.ok ? "#9cff9c" : "#ffb35c");
       this.clients.getById(id)?.send("equipsynd", { ok: res.ok, from: tier, main: mainId, made: made?.id ?? null, enhance: res.ok ? res.enhance : res.main, fee: step.fee, essence: step.essence, refund });
       this.sendBag(id);
-    });
+    }, false, [rawMain, ...rawSac]);
   }
 
   /**
@@ -6357,7 +6417,7 @@ export class MapRoom extends Room<MapState> {
       this.log(id, `${auto ? "Tự phân giải" : "Phân giải"} ${list.length} trang bị: +${formatHonTe(gain)}${what ? `, ${what}` : ""}.`, "#f2c84b");
       this.clients.getById(id)?.send("equipsalvd", { n: list.length, coin: gain, items, auto });
       this.sendBag(id);
-    }, auto);
+    }, auto, rawIds);
   }
   /** Tự phân giải trang bị (E4, tùy chọn, mặc định tắt): túi còn dưới AUTO_SELL_FREE ô trống thì phân giải các món hợp bộ lọc (equipAutoSalvageable). Thử lại không quá 1 lần / 5 giây. */
   autoSalvage(id: string) {
@@ -6881,12 +6941,12 @@ export class MapRoom extends Room<MapState> {
     if (ev.phase === "warn") {
       this.bossWarn = { ...ev, at: Date.now() + ev.in * 1000 };
       kingWarns.set(ev.mapId, this.bossWarn);
-      void presenceBackend.putJson(`king-warn:${ev.mapId}`, this.bossWarn, (ev.in + ev.life + 60) * 1000);
+      bg(presenceBackend.putJson(`king-warn:${ev.mapId}`, this.bossWarn, (ev.in + ev.life + 60) * 1000), "presence");
       this.broadcast("boss", this.bossMsg(ev, "warn", ev.in));
     } else if (ev.phase === "spawn") {
       if (this.bossWarn?.mapId === ev.mapId) this.bossWarn = null;
       kingWarns.delete(ev.mapId);
-      void presenceBackend.delete(`king-warn:${ev.mapId}`);
+      bg(presenceBackend.delete(`king-warn:${ev.mapId}`), "presence");
       this.broadcast("boss", this.bossMsg(ev, "spawn", 0));
       if (ev.mapId === this.state.mapId) void this.spawnKing(ev.slot, ev.life, ev.king);
     }
@@ -8036,10 +8096,10 @@ export async function awakenAccount(accountId: number, name: string, choice: unk
   return { character };
 }
 
-/** Tạo nhân vật (một lần): client gửi giới tính, kiểu tóc, màu tóc, màu áo, tông da (9.9; thiếu = tông 0); mọi giá trị phải nằm trong bảng ở data.ts. */
+/** Tạo nhân vật (một lần): client gửi ngoại hình LPC (Mẫu dựng sẵn / Tự tạo); preset kiểu cũ (client cũ) được đổi sang LPC gần nhất (HL2 #571, parseNewLooks). */
 export async function chooseLooks(accountId: number, body: unknown):
   Promise<{ looks: AccountLooks } | { status: number; error: string }> {
-  const looks = parseLooks(body);
+  const looks = parseNewLooks(body);
   if (!looks) return { status: 400, error: "Ngoại hình không hợp lệ." };
   if (!(await store.chooseLooks(accountId, looks))) return { status: 409, error: "Bạn đã chọn ngoại hình rồi, không đổi được nữa." };
   return { looks: { ...looks, chosen: true, changes: 0 } };

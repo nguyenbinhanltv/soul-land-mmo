@@ -298,7 +298,13 @@ body.touch #prompt{bottom:160px}
 .pvbar{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;padding:0 4px}
 #dirs .opt.mini{min-width:34px;text-align:center;padding:4px 0}
 .opt.mini{min-height:32px;padding:4px 8px}
-.maker.mk-lpc .pv #rnd{width:calc(100% - 12px);text-align:center;margin:0 6px}
+.maker.mk-lpc .pv #rnd,.maker.mk-lpc .pv #fromTpl{width:calc(100% - 12px);text-align:center;margin:0 6px}
+.maker.mk-tpl .tabbody{max-height:340px}
+.tplgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px}
+.tplcard{font:inherit;font-size:11px;font-family:var(--f12);color:var(--text);background:var(--wash);border:2px solid var(--line);padding:4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:normal}
+.tplcard canvas{width:80px;height:80px;image-rendering:pixelated}
+.tplcard:hover{border-color:var(--line2)}
+.tplcard[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 .tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px;touch-action:pan-x;border-bottom:1px solid var(--line)}
 .tab{font:inherit;font-size:12px;font-family:var(--f12);color:var(--text);background:var(--wash);border:2px solid var(--line);padding:6px 10px;cursor:pointer;white-space:nowrap;min-height:36px;flex:0 0 auto}
 .tab[aria-selected="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
@@ -316,7 +322,8 @@ body.touch #prompt{bottom:160px}
   .maker.mk-lpc .pv{padding:4px 0;gap:3px}
   .pvbar{gap:3px}
   .opt.mini,body.touch .opt.mini{min-height:26px;min-width:0;padding:2px 6px;font-size:11px}
-  .maker.mk-lpc .pv #rnd,body.touch .maker.mk-lpc .pv #rnd{min-height:30px}
+  .maker.mk-lpc .pv #rnd,body.touch .maker.mk-lpc .pv #rnd,.maker.mk-lpc .pv #fromTpl{min-height:30px}
+  .tplcard canvas{width:56px;height:56px}
   .tab,body.touch .tab{min-height:30px;padding:3px 8px}
   .tabs{margin-bottom:2px;padding-bottom:3px}
   .tabbody{max-height:calc(100vh - 180px)}
@@ -532,9 +539,30 @@ body.touch .bpick .bitem{cursor:default}
 .bslot b.enh,.bcell b.enh{position:absolute;left:2px;top:0;font-size:10px;font-family:var(--f10);color:#ffe08a;text-shadow:var(--stroke);font-variant-numeric:tabular-nums}
 .epick>small:first-child b{color:var(--c);font-size:12px;font-family:var(--f12)}
 .epick>small:first-child .sbar{margin-top:3px}
-.aopt.eopt{grid-template-columns:minmax(0,1fr) auto}
-.eopt b{white-space:normal;color:color-mix(in srgb,var(--c) 55%,var(--text));min-width:0;overflow-wrap:anywhere}
-.eopt i{grid-column:2;white-space:nowrap}
+.aopt.eopt{grid-template-columns:36px minmax(0,1fr) auto;align-items:center}
+.eopt b{grid-column:2;grid-row:1;white-space:normal;color:color-mix(in srgb,var(--c) 55%,var(--text));min-width:0;overflow-wrap:anywhere}
+.eopt i{grid-column:3;white-space:nowrap}
+.eopt span:empty{display:none}
+/* E5: biểu tượng món + khung bậc trong danh sách Thợ rèn; túi đồ cũng phủ khung bậc lên ô trang bị hồn sư */
+.eopt .eico{grid-column:1;grid-row:1/3;position:relative;width:32px;height:32px;color:inherit}
+.eopt .eico img,.bslot img.efr{image-rendering:pixelated;pointer-events:none}
+.eopt .eico img{width:32px;height:32px}
+.eopt .eico img.efr{position:absolute;inset:0}
+.bslot img.efr{position:absolute;inset:1px;width:calc(100% - 2px);height:calc(100% - 2px)}
+.bslot[data-etier="4"],.bslot[data-etier="5"]{box-shadow:0 0 7px color-mix(in srgb,var(--c) 75%,transparent)}
+/* Bảng xem trước ở Thợ rèn (E5): nhãn bên trái, giá trị bên phải, kẻ chấm giữa các hàng */
+.forge .erow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:3px 0;border-bottom:1px dotted var(--line);font-size:12px;font-family:var(--f12)}
+.forge .erow b{font-weight:normal;color:var(--muted);flex:none}
+.forge .erow span{text-align:right;min-width:0;overflow-wrap:anywhere}
+.forge .echarm{display:block;margin:6px 0;font-size:12px;font-family:var(--f12)}
+/* Kết quả cường hóa / hợp thành / phân giải: một nhịp sáng (thành), rung đỏ (bại), rung mạnh + mờ dần (vỡ) trên trang Thợ rèn */
+.forge.fx-ok{animation:forge-ok .9s ease-out}
+.forge.fx-fail{animation:forge-fail .5s ease-out}
+.forge.fx-break{animation:forge-break .9s ease-out}
+@keyframes forge-ok{0%{box-shadow:0 0 0 0 rgba(255,224,138,.9),inset 0 0 18px rgba(255,224,138,.5)}100%{box-shadow:0 0 0 14px rgba(255,224,138,0),inset 0 0 0 rgba(255,224,138,0)}}
+@keyframes forge-fail{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px);box-shadow:inset 0 0 16px rgba(210,72,61,.6)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+@keyframes forge-break{0%{transform:translate(0);box-shadow:inset 0 0 26px rgba(210,72,61,.85)}15%{transform:translate(-6px,2px)}30%{transform:translate(6px,-2px)}45%{transform:translate(-4px,1px)}60%{transform:translate(3px,0)}100%{transform:translate(0);box-shadow:inset 0 0 0 rgba(210,72,61,0)}}
+@media (prefers-reduced-motion:reduce){.forge.fx-ok,.forge.fx-fail,.forge.fx-break{animation:none}}
 body.touch .eopt{min-height:40px}
 .buse.eok{background:var(--hp);border-color:var(--hp);color:#fff}
 body.touch .minibtn kbd{display:none}
@@ -1284,6 +1312,8 @@ body.touch :is(.cring,.qhead){min-width:0}
 @keyframes skdim{0%{opacity:0}20%,75%{opacity:.3}100%{opacity:0}}
 @keyframes skslide{0%{transform:translateX(-220px)}48%{transform:translateX(max(8px,calc(50vw - 430px)))}78%{transform:translateX(max(8px,calc(50vw - 430px)));opacity:1}100%{transform:translateX(calc(100vw));opacity:0}}
 @keyframes skname{0%,20%{opacity:0;transform:translate(-50%,-50%) scale(.7)}40%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}55%,78%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+/* H8 (#491): điện thoại ngang (màn thấp): chân dung và tên chiêu nhỏ, đặt cao hơn giữa màn để không che vòng báo trước dưới chân / nút bấm */
+@media (max-height:480px){.skpic{top:32%;width:104px;height:104px;margin-top:-52px;border-width:2px}.skname{top:32%;font-size:26px}.skcine.calm .skname{font-size:22px}}
 .ptcut{position:fixed;inset:0;pointer-events:none;z-index:33;overflow:hidden}
 .ptband{position:absolute;left:0;right:0;top:50%;height:120px;margin-top:-60px;background:linear-gradient(90deg,transparent,var(--col),transparent);opacity:0;animation:ptband var(--dur) ease-out forwards}
 .ptimg{position:absolute;top:50%;left:0;width:240px;height:240px;margin-top:-130px;image-rendering:pixelated;filter:drop-shadow(0 0 10px var(--col));transform:translateX(-260px) skewX(-10deg);animation:ptslide var(--dur) linear forwards}
@@ -1354,9 +1384,9 @@ body.dual-win.ui-wide #bag{left:52%}
 body.dual-win.ui-wide .bgrid{grid-template-columns:repeat(10,1fr)}
 body.dual-win.ui-wide #char .cbody{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}
 /* màn hẹp: một bảng một lúc, thẻ chuyển ở đầu màn hình */
-body.dual-win.ui-w560 :is(#char,#bag){left:2%;width:96%;top:46px;max-height:calc(98% - 46px)}
-body.dual-win.ui-w560[data-pick=char] #bag,body.dual-win.ui-w560[data-pick=bag] #char{display:none}
-body.ui-w560.dual-win #dualTabs:not([hidden]){display:flex;position:absolute;left:2%;right:2%;top:4px;height:36px;z-index:6;pointer-events:auto;gap:4px}
+body.dual-win.ui-w640 :is(#char,#bag){left:2%;width:96%;top:46px;max-height:calc(98% - 46px)}
+body.dual-win.ui-w640[data-pick=char] #bag,body.dual-win.ui-w640[data-pick=bag] #char{display:none}
+body.ui-w640.dual-win #dualTabs:not([hidden]){display:flex;position:absolute;left:2%;right:2%;top:4px;height:36px;z-index:6;pointer-events:auto;gap:4px}
 #dualTabs button{flex:1;font:inherit;font-family:var(--f12);border:2px solid var(--line2);background:var(--panel);color:var(--text);cursor:pointer}
 #dualTabs button.on{background:var(--accent);color:#fff}
 
@@ -1410,3 +1440,29 @@ body .dd-bad.dd-over{outline-color:#ff7a6a!important;background:rgba(210,72,61,.
 .cmpdlg .cnew.t-good span,.cmpdlg .cnew.t-bad span{font-weight:700}
 .cmpdlg .cnone{grid-column:1 / -1;color:var(--muted)}
 body.touch .acard .buse,body.touch .cmpdlg .buse{min-height:44px}
+
+/* ===== NV5 (#459): điện thoại ngang thấp / màn hẹp — hai bảng không tràn, nút gọn nhưng vẫn chạm được (≥ 36 px), tab cuộn ngang thay vì xuống dòng ===== */
+#bag .bequip{flex-wrap:wrap}
+body.ui-h460 :is(#char,#bag){padding-top:6px;padding-bottom:6px}
+body.ui-h460 #char .rhead,body.ui-h460 #bag .rhead{padding-bottom:6px}
+body.ui-h460 #char .ctabs,body.ui-h460 #bag .bfilter{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+body.ui-h460 #char .ctabs::-webkit-scrollbar,body.ui-h460 #bag .bfilter::-webkit-scrollbar{display:none}
+body.ui-h460 #char .ctabs .ui-tab,body.ui-h460 #bag .bfilter .ui-tab{flex:none;white-space:nowrap;min-height:36px;padding:0 var(--sp-3);font-size:11px;line-height:1.2}
+body.ui-h460 #char .cstrip{flex-wrap:nowrap;align-items:center}
+body.ui-h460 #char .cgo{min-height:36px;padding:0 var(--sp-3)}
+body.ui-h460.touch :is(#char .cdtabs .ui-tab,#char .ctabs .ui-tab,#bag .bfilter .ui-tab,#char .cgo){min-height:36px}
+body.ui-h460.touch :is(#bag .bequip .bq){width:36px;height:36px;min-width:0;min-height:0}
+body.ui-h460 #bag .bsortsel{margin-left:0}
+body.ui-h460 #char .emid{min-height:170px}
+/* bốn tab búp bê chia đều một hàng (tên trên, số ô dưới) để thấy đủ không phải cuộn */
+body.ui-h460 #char .cdtabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--sp-1)}
+body.ui-h460 #char .cdtabs .ui-tab{flex-direction:column;justify-content:center;gap:0;min-height:36px;padding:0 2px;font-size:11px;line-height:1.15;text-align:center;white-space:nowrap}
+body.ui-h460 #char .cdtabs .ui-tab::before{display:none}
+body.ui-h460 :is(#char,#bag)>*{flex-shrink:0}
+
+/* G8 (#399): "Giảm chuyển động" trong Cài đặt tắt mọi nhấp nháy / rung / nhịp đập của giao diện (lớp đặt ở combatFx.ts, theo cả tùy chọn hệ điều hành). */
+.reduce-motion #fusion.ask,.reduce-motion .sk.ava.on,.reduce-motion .sk.fus.ask,.reduce-motion .thuymac .sk.ava.on,.reduce-motion .thuymac .sk.fus.ask,
+.reduce-motion .tm.full,.reduce-motion .ui-cell.ready,.reduce-motion .sk.ui-cell.ready,.reduce-motion .tm.ui-cell.ready,.reduce-motion #bossbar .wl span.bad,
+.reduce-motion .forge.fx-ok,.reduce-motion .forge.fx-fail,.reduce-motion .forge.fx-break,.reduce-motion .toast{animation:none!important}
+.reduce-motion .tm.full{box-shadow:0 0 8px color-mix(in srgb,var(--xp) 60%,transparent)}
+.reduce-motion .ui-cell.ready{box-shadow:0 0 6px var(--c)}

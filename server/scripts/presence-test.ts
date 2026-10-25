@@ -1,8 +1,15 @@
 import assert from "node:assert/strict";
-import { createPresenceBackend, presenceBackend } from "../src/presence.ts";
+import { createPresenceBackend, presenceBackend, isRedisFailure } from "../src/presence.ts";
 import { claimBuyback, editBuyback } from "../src/rooms/MapRoom.ts";
 import { arenaDeliver, arenaEnqueue, arenaQueued, arenaLiveOpen, arenaLivePhase, arenaLiveHold, arenaLiveHeld, arenaLiveWatch, arenaLiveUnwatch, arenaLiveOpenList, arenaLiveRelease, arenaLiveClose } from "../src/rooms/arenaQueue.ts";
 import { FriendHub, friends } from "../src/friends.ts";
+
+// #561: chỉ lỗi mang dấu hiệu ioredis mới được coi là lỗi Redis; mã socket chung (pg, fetch) vẫn phải làm server thoát có kiểm soát.
+assert.equal(isRedisFailure(Object.assign(new Error("Reached the max retries per request limit (which is 2)."), { name: "MaxRetriesPerRequestError" })), true);
+assert.equal(isRedisFailure(new Error("Connection is closed.")), true);
+assert.equal(isRedisFailure(Object.assign(new Error("read ECONNRESET"), { code: "ECONNRESET" })), false);
+assert.equal(isRedisFailure(Object.assign(new Error("connect ECONNREFUSED"), { code: "ECONNREFUSED" })), false);
+console.log("✓ isRedisFailure: chỉ nhận dấu hiệu ioredis, không nhận mã socket chung");
 
 const backend = createPresenceBackend({ mode: "local" });
 try {
@@ -104,6 +111,9 @@ try {
   assert.deepEqual(await arenaLiveOpenList(), [], "trận quá hạn không hiện dù chủ còn sống");
   await arenaLiveOpen({ roomId: "r3", mode: "1v1", sides, phase: "fight", secs: 30 });
   assert.deepEqual(Object.keys((await presenceBackend.getJson<Record<string, unknown>>("arena:live")) ?? {}), ["r3"], "lần ghi dọn trận ma");
+  await presenceBackend.delete("arena:live");
+  await arenaLivePhase("r3", "fight", 60);
+  assert.deepEqual(Object.keys((await presenceBackend.getJson<Record<string, unknown>>("arena:live")) ?? {}), ["r3"], "ghi pha mở lại mục đã bị dọn");
   await arenaLiveClose("r3");
   console.log("✓ Sổ xem trận ở presence: pha, giữ chỗ nguyên tử, một trận mỗi tài khoản, dọn trận của tiến trình chết");
   console.log("✓ Mua lại: hai lần nhận cùng một món ở presence chỉ một lần được trao");

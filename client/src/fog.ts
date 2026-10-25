@@ -3,7 +3,7 @@
 // khu vực. Bản đồ trong `FOG.open` không có sương; chưa nhận bitset thì không che gì (khỏi chớp tối lúc mới vào).
 import { FOG } from "../../shared/data.ts";
 import { fogDims, fogGet, fogSet, fogBytes, fogCells, fogValid, fogOn, type FogDims } from "../../shared/fog.ts";
-import { fxPrefs } from "./combatFx.ts";
+import { fxPrefs, fxLevel } from "./combatFx.ts";
 
 /** Màu lớp mờ (mực loãng) và độ đậm của ô chưa khám phá. */
 const INK = [11, 20, 16], ALPHA = 215;
@@ -32,7 +32,7 @@ class Fog {
   /** Tin `fogd`: các ô vừa mở. Chưa có bitset đầy đủ thì bỏ (server sẽ gửi cả bitset khi xin). */
   add(raw: unknown, now = performance.now()) {
     if (!this.on || !this.bits) return;
-    const smooth = !fxPrefs.reduce && fxPrefs.level !== "low";
+    const smooth = !fxPrefs.reduce && fxLevel() !== "low";
     for (const i of fogCells(raw, this.d)) if (fogSet(this.bits, this.d, i)) { if (smooth) this.fade.set(i, now); this.dirty = true; }
   }
 

@@ -4,7 +4,7 @@ import Phaser from "phaser";
 import { SkillDef, VOHON, ringSkill, chanThanOf } from "../../shared/data.ts";
 import { ELEMENTS, elementOf, type Element } from "./audio/soundMap.ts";
 import { SPR } from "./iso.ts";
-import { fxPrefs, type ParticleLayer } from "./combatFx.ts";
+import { fxPrefs, type ParticleLayer, fxLevel } from "./combatFx.ts";
 
 /** 5 kiểu dựng sẵn: phóng (bay tới), vùng tròn (trên mặt đất), chém (vệt cong), hào quang buff (quanh thân), tia trúng (tại mục tiêu). */
 export type FxKind = "proj" | "zone" | "slash" | "aura" | "hit";
@@ -73,10 +73,13 @@ export interface PlayOpts {
   /** Quãng bay (proj), pixel màn hình. */
   dist?: number;
   dur?: number;
+  /** S2 (#548): chỉ phát hạt (sprite + quầng do sheet `SKILL_VISUAL` thay). */
+  partsOnly?: boolean;
 }
 
 export class SkillFx {
   private pool: Phaser.GameObjects.Image[] = [];
+  private bare = false;
   private live = 0;
   constructor(private scene: Phaser.Scene, private fxp: ParticleLayer, private depth = 99982) {
     // Quầng sáng bậc thang (đĩa đồng tâm, không làm mờ mượt) để hợp phong cách pixel; tô màu hệ khi dùng.
@@ -90,7 +93,7 @@ export class SkillFx {
   get active() { return this.live; }
 
   private grab(key: string): Phaser.GameObjects.Image | null {
-    if (this.live >= SPRITE_CAP[fxPrefs.level] || !this.scene.textures.exists(key)) return null;
+    if (this.bare || this.live >= SPRITE_CAP[fxLevel()] || !this.scene.textures.exists(key)) return null;
     let s = this.pool.pop();
     if (!s) s = this.scene.add.image(0, 0, key).setBlendMode(Phaser.BlendModes.ADD);
     s.setTexture(key).clearTint().setActive(true).setVisible(true).setDepth(this.depth).setAlpha(1).setFlip(false, false).setRotation(0).setOrigin(0.5);
@@ -109,6 +112,7 @@ export class SkillFx {
   }
   /** Quầng sáng màu `col` rộng ~`w` pixel màn hình, tắt dần trong `dur` ms (bám lưới: tâm và cỡ làm tròn theo SPR). */
   private halo(x: number, y: number, col: number, w: number, dur: number, follow?: (k: number) => { x: number; y: number }) {
+    if (this.bare) return;
     const s = this.grab(HALO_KEY); if (!s) return;
     s.setTint(col).setScale(Math.max(SPR, snap(w / 32))); s.setPosition(snap(x), snap(y));
     this.run(s, dur, k => { if (follow) { const p = follow(k); s.setPosition(snap(p.x), snap(p.y)); } s.setAlpha((1 - k) * 0.75); });
@@ -117,7 +121,8 @@ export class SkillFx {
   private scaleFor(s: Phaser.GameObjects.Image, w: number) { return Math.max(1, Math.round(w / (s.width * SPR))) * SPR; }
 
   play(kind: FxKind, el: Element, o: PlayOpts) {
-    const c = ELEMENT_COL[el], tc = o.tierCol ?? c.hi, lv = fxPrefs.level, pk = PART_K[lv];
+    this.bare = !!o.partsOnly;
+    const c = ELEMENT_COL[el], tc = o.tierCol ?? c.hi, lv = fxLevel(), pk = PART_K[lv];
     const tex = fxTexKey(el, kind), a = o.ang ?? 0, reduce = fxPrefs.reduce;
     const n = (k: number) => Math.round(k * pk);
     if (kind === "proj") {
@@ -131,7 +136,7 @@ export class SkillFx {
         const k = (j / steps) * 0.9;
         this.fxp.emit(o.x + (x1 - o.x) * k, o.y + (y1 - o.y) * k, j % 2 ? c.hi : c.main, { vx: (Math.random() - 0.5) * 20, vy: -10 - Math.random() * 20, life: 0.4, size: 2, gravity: -12 });
       });
-      this.scene.time.delayedCall(dur, () => this.play("hit", el, { x: x1, y: y1, tierCol: tc }));
+      this.scene.time.delayedCall(dur, () => this.play("hit", el, { x: x1, y: y1, tierCol: tc, partsOnly: o.partsOnly }));
     } else if (kind === "zone") {
       const r = o.r ?? 60 * SPR, dur = o.dur ?? 700, s = this.grab(tex);
       if (s) { const sc = this.scaleFor(s, 2 * r); s.setScale(sc, sc / 2); s.setPosition(snap(o.x), snap(o.y)); this.run(s, dur, k => {

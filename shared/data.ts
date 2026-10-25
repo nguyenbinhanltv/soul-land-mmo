@@ -5596,6 +5596,141 @@ export const LPC_PARTS: LpcPart[] = [
 ];
 
 /**
+ * Bộ LPC dựng sẵn của "Mẫu dựng sẵn" (HL1 #565; GAME_DESIGN.md mục 5.11): mỗi bộ là một LpcLooks hợp lệ (qua parseLpc), màu trầm đọc rõ
+ * trên nền isometric. Màn tạo nhân vật cho chọn bộ rồi chỉnh màu tóc / da / áo trong dải cho phép của LPC_RAMPS; lưu thành Looks.mode = lpc.
+ * `hair`: màu tóc chung của mọi món tóc / mày / râu (đã nằm trong `colors` từng ô); `group`: nhóm hiển thị (học viện, thôn dã, quý tộc…).
+ */
+export interface LpcPreset { id: string; vi: string; group: string; note: string; lpc: LpcLooks }
+const lpcPreset = (id: string, vi: string, group: string, note: string, body: number, skin: string, eye: string, hair: string,
+  items: [slot: string, part: string, color?: string][]): LpcPreset => {
+  const parts: Record<string, string> = { body: "body.body" }, colors: Record<string, string> = { skin, eye };
+  for (const [slot, part, color] of items) { parts[slot] = part; if (color) colors[slot] = color; }
+  for (const slot of ["brow", "beard", "hair", "hairext"]) if (parts[slot]) colors[slot] = hair;
+  return { id, vi, group, note, lpc: { v: 1, body, parts, colors } };
+};
+export const LPC_PRESETS: LpcPreset[] = [
+  lpcPreset("hocvien_nam", "Học viên Sử Lai Khắc (nam)", "Học viện", "Áo chàm gọn gàng, ủng nâu, đai da.", 0, "light", "brown", "black", [
+    ["head", "head.male"], ["brow", "brow.thick"], ["hair", "hair.parted"], ["torso", "torso.longsleeve2", "navy"], ["legs", "legs.pants", "charcoal"],
+    ["feet", "feet.boots_basic", "brown"], ["belt", "belt.leather", "leather"]]),
+  lpcPreset("hocvien_nu", "Học viên Sử Lai Khắc (nữ)", "Học viện", "Áo cánh chàm, váy thẳng, giày nâu.", 1, "light", "brown", "dark_brown", [
+    ["head", "head.female"], ["hair", "hair.ponytail2"], ["torso", "torso.blouse_longsleeve", "navy"], ["legs", "legs.skirt_straight", "navy"],
+    ["feet", "feet.shoes_basic", "brown"], ["belt", "belt.waistband", "tan"]]),
+  lpcPreset("thonda_nam", "Thiếu niên thôn dã (nam)", "Thôn dã", "Áo vải be, quần xắn gấu, dải buộc trán.", 0, "amber", "brown", "dark_brown", [
+    ["head", "head.male_small"], ["hair", "hair.plain"], ["torso", "torso.longsleeve2_vneck", "tan"], ["legs", "legs.cuffed", "brown"],
+    ["feet", "feet.sandals", "brown"], ["belt", "belt.sash_narrow", "brown"], ["hat", "hat.headband_tied", "maroon"]]),
+  lpcPreset("thonda_nu", "Thiếu nữ thôn dã (nữ)", "Thôn dã", "Áo túi nâu, váy vải óc chó, bím tóc.", 1, "amber", "green", "chestnut", [
+    ["head", "head.female_small"], ["hair", "hair.braid"], ["torso", "torso.tunic", "brown"], ["legs", "legs.skirts_plain", "walnut"],
+    ["feet", "feet.shoes_sara", "brown"], ["belt", "belt.waistband", "tan"]]),
+  lpcPreset("quytoc_nam", "Công tử quý tộc (nam)", "Quý tộc", "Áo khoác đỏ thẫm, quần ống rộng đen, búi tóc.", 0, "light", "brown", "black", [
+    ["head", "head.male"], ["brow", "brow.thin"], ["hair", "hair.topknot_short"], ["torso", "torso.longsleeve2_cardigan", "maroon"],
+    ["legs", "legs.pantaloons", "black"], ["feet", "feet.boots_rim", "black"], ["belt", "belt.obi", "tan"], ["hat", "hat.formal_tiara", "tan"]]),
+  lpcPreset("quytoc_nu", "Tiểu thư quý tộc (nữ)", "Quý tộc", "Kimono xẻ đỏ thẫm, váy ngoài tím, trâm cài.", 1, "light", "purple", "black", [
+    ["head", "head.female"], ["hair", "hair.half_up"], ["torso", "torso.kimono_split", "maroon"], ["legs", "legs.skirt_overskirt", "purple"],
+    ["feet", "feet.slippers", "charcoal"], ["belt", "belt.obi", "tan"], ["hat", "hat.formal_tiara", "tan"], ["face", "face.earrings_princess", "purple"]]),
+  lpcPreset("langthang_nam", "Hồn sư lang thang (nam)", "Lang thang", "Áo than, áo choàng xám đá, khăn đỏ thẫm, râu tỉa.", 0, "taupe", "gray", "dark_gray", [
+    ["head", "head.male_gaunt"], ["brow", "brow.thick"], ["beard", "beard.trimmed"], ["hair", "hair.relm_short"], ["torso", "torso.longsleeve", "charcoal"],
+    ["legs", "legs.pants2", "black"], ["feet", "feet.boots_fold", "brown"], ["cape", "cape.solid", "slate"], ["belt", "belt.leather", "walnut"],
+    ["neck", "neck.scarf", "maroon"]]),
+  lpcPreset("langthang_nu", "Hồn sư lang thang (nữ)", "Lang thang", "Áo than, khoác vai lục rừng, quần bó, tóc rèm dài.", 1, "olive", "green", "black", [
+    ["head", "head.female"], ["hair", "hair.curtains_long"], ["torso", "torso.longsleeve2", "charcoal"], ["legs", "legs.leggings", "black"],
+    ["feet", "feet.boots_basic", "brown"], ["cape", "cape.mantal", "forest"], ["belt", "belt.mage", "brown"], ["neck", "neck.scarf", "tan"]]),
+  lpcPreset("kiemkhach_nam", "Kiếm khách (nam)", "Giang hồ", "Áo xám lam, quần rộng be, hộ tay, đuôi ngựa cao.", 0, "bronze", "brown", "black", [
+    ["head", "head.male"], ["brow", "brow.thin"], ["beard", "beard.chevron"], ["hair", "hair.high_ponytail"], ["torso", "torso.longsleeve", "bluegray"],
+    ["legs", "legs.pantaloons", "tan"], ["feet", "feet.sandals", "brown"], ["belt", "belt.obi", "charcoal"], ["arms", "arms.bracers"],
+    ["hat", "hat.headband_thick", "maroon"]]),
+  lpcPreset("tienthu_nu", "Thánh nữ Vũ Hồn Điện (nữ)", "Cung đình", "Áo bào tím, đai trắng, tóc trắng, bùa sao.", 1, "light", "purple", "white", [
+    ["head", "head.female"], ["hair", "hair.long_straight"], ["torso", "torso.robe", "purple"], ["legs", "legs.skirts_plain", "white"],
+    ["feet", "feet.slippers", "white"], ["belt", "belt.robe", "white"], ["neck", "neck.amulet_star", "bronze_purple"]]),
+];
+/** Tìm bộ dựng sẵn theo mã. */
+export const lpcPresetById = (id: string) => LPC_PRESETS.find((p) => p.id === id);
+
+/**
+ * Chuyển ngoại hình preset kiểu cũ (5 số) sang LPC gần nhất (HL2 #571, tài khoản cũ tự chuyển lúc nạp). Giới → thể hình; tông da →
+ * màu da LPC; kiểu tóc / màu tóc → món tóc + màu tóc; màu áo → bộ LPC_PRESETS hợp nhất cùng giới + màu áo. Ba bảng dưới đây ánh xạ theo chỉ số
+ * của SEXES / HAIR_STYLES / HAIR_COLORS / OUTFIT_COLORS / SKIN_TONES (thêm mục vào cuối các bảng đó thì dùng bộ đầu / màu mặc định). Luôn trả
+ * tổ hợp hợp lệ theo parseLpc; số ngoài khoảng được coi như 0.
+ */
+const PRESET_HAIR_PART = [
+  ["hair.plain", "hair.ponytail2", "hair.pixie", "hair.parted_side_bangs"],
+  ["hair.long_straight", "hair.high_ponytail", "hair.braid", "hair.bob"],
+];
+const PRESET_HAIR_COL = ["black", "dark_brown", "light_brown", "gray", "navy", "red"];
+const PRESET_SKIN_COL = ["light", "amber", "bronze"];
+const PRESET_OUTFIT_COL = ["navy", "maroon", "forest", "purple", "white", "charcoal"];
+const PRESET_OUTFIT_SET = [
+  ["hocvien_nam", "quytoc_nam", "thonda_nam", "kiemkhach_nam", "hocvien_nam", "langthang_nam"],
+  ["hocvien_nu", "quytoc_nu", "thonda_nu", "tienthu_nu", "tienthu_nu", "langthang_nu"],
+];
+export function presetToLpc(looks: Looks): LpcLooks {
+  const at = <T>(arr: readonly T[], i: number): T => arr[Number.isInteger(i) && i >= 0 && i < arr.length ? i : 0];
+  const sex = looks.sex === 1 ? 1 : 0;
+  const base = lpcPresetById(at(PRESET_OUTFIT_SET[sex], looks.outfitCol))!;
+  const parts = { ...base.lpc.parts }, colors = { ...base.lpc.colors };
+  delete parts.hairext; delete parts.beard; delete colors.hairext; delete colors.beard;
+  parts.hair = at(PRESET_HAIR_PART[sex], looks.hair);
+  const hairCol = at(PRESET_HAIR_COL, looks.hairCol);
+  for (const slot of ["hair", "brow"]) if (parts[slot]) colors[slot] = hairCol;
+  colors.skin = at(PRESET_SKIN_COL, looks.skin);
+  const torso = parts.torso ? lpcPart(parts.torso) : undefined, outfit = at(PRESET_OUTFIT_COL, looks.outfitCol);
+  if (torso && lpcSlotColors(torso).includes(outfit)) colors.torso = outfit;
+  const lpc = parseLpc({ v: 1, body: sex, parts, colors }) ?? structuredClone(base.lpc);
+  return decodeLpc(encodeLpc(lpc))!; // thứ tự khóa chuẩn (như đọc lại từ DB), để kết quả trùng khít sau khi lưu rồi nạp lại
+}
+/**
+ * Ngoại hình mới do người chơi gửi (tạo nhân vật, thợ may; HL2 #571): như parseLooks nhưng không còn tạo preset kiểu cũ nữa, preset
+ * (client cũ) được đổi ngay sang LPC gần nhất bằng presetToLpc. Server vẫn đọc preset cũ qua parseLooks (tài khoản chưa chuyển).
+ */
+export function parseNewLooks(x: unknown): Looks | null {
+  const l = parseLooks(x);
+  return l && l.mode !== "lpc" ? parseLooks({ mode: "lpc", lpc: presetToLpc(l) }) : l;
+}
+
+/**
+ * Áo / mũ trang bị hiện lên lớp LPC (HL4 #573, GAME_DESIGN 5.11 + 5.15). Mặc áo (ô `ao`) / mũ (ô `mu`) thì đè ô `torso` / `hat` của ngoại hình
+ * LPC; vũ khí vẫn do phụ thể võ hồn. Chỉ phụ thuộc loại ô và bậc (EQUIP_TIERS), không phụ thuộc chỉ số: server chỉ đồng bộ bậc đang mặc
+ * (`PlayerState.gearAo` / `gearMu` = bậc + 1, 0 = không mặc). Mỗi bậc: [mã món, màu] cho nam, `f` nếu nữ khác (món phải đúng thể hình,
+ * màu thuộc dải của món; sai thì lpcGearLooks giữ nguyên ngoại hình). Thêm lớp áo / mũ phương Đông mới (C3 #554) thì chỉ sửa bảng này.
+ */
+export type LpcGearKind = "ao" | "mu";
+export interface LpcGearLook { m: [string, string]; f?: [string, string] }
+export const LPC_GEAR: Record<LpcGearKind, LpcGearLook[]> = {
+  ao: [
+    { m: ["torso.longsleeve_scoop", "white"] },
+    { m: ["torso.longsleeve", "forest"] },
+    { m: ["torso.longsleeve2_vneck", "navy"] },
+    { m: ["torso.longsleeve2_cardigan", "purple"] },
+    { m: ["torso.shortsleeve", "leather"] },
+    { m: ["torso.longsleeve2", "red"] },
+  ],
+  mu: [
+    { m: ["hat.headband_hairtie", "white"] },
+    { m: ["hat.headband_tied", "forest"] },
+    { m: ["hat.bandana2", "navy"] },
+    { m: ["hat.headband_thick", "purple"] },
+    { m: ["hat.hood_cloth", "leather"] },
+    { m: ["hat.formal_crown", "red"] },
+  ],
+};
+const LPC_GEAR_SLOT: Record<LpcGearKind, string> = { ao: "torso", mu: "hat" };
+/** Bậc đang mặc (0..EQUIP_MAX_TIER) → giá trị đồng bộ (bậc + 1); không hợp lệ / không mặc → 0. */
+export const lpcGearCode = (tier: number | null | undefined) => typeof tier === "number" && Number.isInteger(tier) && tier >= 0 && tier <= EQUIP_MAX_TIER ? tier + 1 : 0;
+/**
+ * Ngoại hình LPC khi mặc trang bị: đè ô áo / mũ theo `ao` / `mu` (giá trị đồng bộ, 0 = không mặc, không đổi ô đó). Món không hợp thể hình
+ * hoặc bảng thiếu thì giữ ô của ngoại hình gốc. `hideHat`: không vẽ mũ trang bị (tuỳ chọn "Ẩn mũ"; mũ của ngoại hình gốc vẫn giữ).
+ */
+export function lpcGearLooks(l: LpcLooks, ao: number, mu: number, hideHat = false): LpcLooks {
+  let out = l;
+  for (const [kind, code] of [["ao", ao], ["mu", hideHat ? 0 : mu]] as [LpcGearKind, number][]) {
+    const g = code > 0 ? LPC_GEAR[kind][code - 1] : undefined; if (!g) continue;
+    const [id, col] = (l.body === 1 && g.f) || g.m, slot = LPC_GEAR_SLOT[kind];
+    const next = parseLpc({ v: 1, body: out.body, parts: { ...out.parts, [slot]: id }, colors: { ...Object.fromEntries(Object.entries(out.colors).filter(([k]) => k !== slot)), [slot]: col } });
+    if (next) out = next;
+  }
+  return out;
+}
+
+/**
  * Hiển thị hồn sư chế độ Tự tạo (L3 #510, client/src/lpcRig.ts). Hằng hiển thị, không phải số cân bằng.
  * `dirHoldMs`: hướng nhìn mới (đổi hàng LPC hoặc lật) phải giữ chừng này ms mới đổi hình, để đi chéo không nháy giữa hai hàng.
  * `breatheY`: hàng ảnh (trong khung 64, gốc chân ở 58) chia thân: phần trên nhích xuống 1 điểm ở nửa sau chu kỳ idle của bộ thiếu

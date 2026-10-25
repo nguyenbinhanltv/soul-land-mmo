@@ -2,32 +2,43 @@
 // độ dài / độ mạnh của hiệu ứng, KHÔNG phải số cân bằng (số cân bằng ở shared/data.ts).
 import Phaser from "phaser";
 import type { He, HaoQuangMode } from "../../shared/data.ts";
+import { FxGovernor, GOV, FX_DEFAULT_LEVEL, normalizeFxLevel } from "./combatFeelRules.ts";
 
 export type FxLevel = "low" | "mid" | "high";
 /** Rung màn hình (#437): Tắt (không rung / giật), Chỉ boss (mặc định: tinh anh trở lên, chiêu mạnh vào mình, hồn kỹ lớn), Đầy đủ (thêm chí mạng lên hồn thú thường, trừ khi tự săn). */
 export type ShakeMode = "off" | "boss" | "full";
 export const SHAKE_MODES: [ShakeMode, string][] = [["off", "Tắt"], ["boss", "Chỉ boss"], ["full", "Đầy đủ"]];
-export interface FxPrefs { level: FxLevel; reduce: boolean; shake: ShakeMode; cine: boolean; cutin: boolean; halo: HaoQuangMode }
+export interface FxPrefs { level: FxLevel; reduce: boolean; shake: ShakeMode; cine: boolean; cutin: boolean; halo: HaoQuangMode; hideHat: boolean; /** Tự hạ mức hiệu ứng khi FPS thấp (H8 #491); chỉ hạ, không nâng quá mức người chơi chọn. */ auto: boolean }
 
 const KEY = "soul-land-fx-v1";
 const store = (): Storage | null => { try { return window.localStorage; } catch { return null; } };
 const prefersReduce = () => { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; } };
 
 function load(): FxPrefs {
-  const def: FxPrefs = { level: "mid", reduce: prefersReduce(), shake: "boss", cine: true, cutin: true, halo: "halo" };
+  const def: FxPrefs = { level: FX_DEFAULT_LEVEL, reduce: prefersReduce(), shake: "boss", cine: true, cutin: true, halo: "halo", hideHat: false, auto: true };
   try {
     const raw = JSON.parse(store()?.getItem(KEY) ?? "null");
-    if (raw && typeof raw === "object") return { level: raw.level === "low" || raw.level === "high" ? raw.level : "mid", reduce: typeof raw.reduce === "boolean" ? raw.reduce : def.reduce, shake: raw.shake === "off" || raw.shake === "full" ? raw.shake : "boss", cine: typeof raw.cine === "boolean" ? raw.cine : true, cutin: typeof raw.cutin === "boolean" ? raw.cutin : true, halo: raw.halo === "feet" || raw.halo === "old" ? raw.halo : "halo" }; // bản lưu cũ không có `shake` → Chỉ boss
+    if (raw && typeof raw === "object") return { level: normalizeFxLevel(raw.level), reduce: typeof raw.reduce === "boolean" ? raw.reduce : def.reduce, shake: raw.shake === "off" || raw.shake === "full" ? raw.shake : "boss", cine: typeof raw.cine === "boolean" ? raw.cine : true, cutin: typeof raw.cutin === "boolean" ? raw.cutin : true, halo: raw.halo === "feet" || raw.halo === "old" ? raw.halo : "halo", hideHat: raw.hideHat === true, auto: raw.auto !== false }; // bản lưu cũ không có `shake` → Chỉ boss
   } catch { /* hỏng thì dùng mặc định */ }
   return def;
 }
 
 /** Cài đặt hiệu ứng hiện hành (đối tượng sống, mọi nơi đọc trực tiếp). */
 export const fxPrefs: FxPrefs = load();
+/** Giảm chuyển động (G8 #399): gắn lớp `reduce-motion` lên <html> để CSS tắt cả nháy / rung / nhấp nháy giao diện, không chỉ khi hệ điều hành bật (style.css, cuối file). */
+function applyReduceClass(): void { try { document.documentElement.classList.toggle("reduce-motion", fxPrefs.reduce); } catch { /* không có DOM (bot, kiểm thử) */ } }
+applyReduceClass();
 export function setFxPrefs(p: Partial<FxPrefs>): void {
   Object.assign(fxPrefs, p);
+  applyReduceClass();
   try { store()?.setItem(KEY, JSON.stringify(fxPrefs)); } catch { /* localStorage có thể bị khóa */ }
 }
+
+// ---- H8 (#491): tự hạ mức hiệu ứng khi FPS thấp. Chỉ hiển thị, không đổi lựa chọn đã lưu của người chơi.
+export { GOV };
+export const fxGov = new FxGovernor();
+/** Mức hiệu ứng đang áp dụng: lựa chọn của người chơi, hạ thêm khi FPS thấp (nếu bật `auto`). MỌI nơi vẽ hiệu ứng đọc hàm này, không đọc `fxPrefs.level`. */
+export function fxLevel(): FxLevel { return fxPrefs.auto ? fxGov.effective(fxPrefs.level) : fxPrefs.level; }
 
 /** Trần số hạt cùng lúc theo mức (Thấp: không hạt). */
 export const PARTICLE_CAP: Record<FxLevel, number> = { low: 0, mid: 56, high: 140 };
@@ -35,10 +46,10 @@ export const PARTICLE_CAP: Record<FxLevel, number> = { low: 0, mid: 56, high: 14
 const SHAKE_K: Record<FxLevel, number> = { low: 0, mid: 1, high: 1.6 };
 
 /** Rung màn hình đã nhân theo mức; 0 khi Thấp, Rung màn hình Tắt hoặc Giảm chuyển động. */
-export function shakeK(): number { return fxPrefs.reduce || fxPrefs.shake === "off" ? 0 : SHAKE_K[fxPrefs.level]; }
+export function shakeK(): number { return fxPrefs.reduce || fxPrefs.shake === "off" ? 0 : SHAKE_K[fxLevel()]; }
 export const flashOn = () => !fxPrefs.reduce;
-export const zoomOn = () => !fxPrefs.reduce && fxPrefs.level !== "low" && fxPrefs.shake !== "off";
-export const hitstopOn = () => !fxPrefs.reduce && fxPrefs.level !== "low" && fxPrefs.shake !== "off";
+export const zoomOn = () => !fxPrefs.reduce && fxLevel() !== "low" && fxPrefs.shake !== "off";
+export const hitstopOn = () => !fxPrefs.reduce && fxLevel() !== "low" && fxPrefs.shake !== "off";
 /**
  * Đòn của mình lên hồn thú bậc `rank` (0 thường, 1 tinh anh, 2 thú vương, 3 boss thế giới) có được rung / phóng to / dừng hình không (#437):
  * hồn thú thường không (trừ "Đầy đủ"); đang tự săn chỉ còn thú vương / boss.
@@ -52,10 +63,14 @@ export function beastJerk(rank: number, auto: boolean): boolean {
  * Thời gian dừng hình (ms, 40–80): theo tỉ lệ sát thương / sinh lực tối đa của mục tiêu; chí mạng và kết liễu lâu hơn.
  * `ratio` = sát thương / sinh lực tối đa.
  */
-export function hitstopMs(ratio: number, crit: boolean, kill: boolean): number {
-  if (kill) return 80;
-  return Math.min(80, Math.round(40 + Math.min(1, ratio * 6) * 20 + (crit ? 20 : 0)));
+export function hitstopMs(ratio: number, crit: boolean, kill: boolean, heavy = 0): number {
+  const more = HEAVY_STOP_MS[Math.min(3, heavy)] ?? 0; // chiêu nặng (SKILL_VISUAL.heavy, S1 #542) khựng lâu thêm
+  if (kill) return Math.min(HITSTOP_MAX, 80 + more);
+  return Math.min(HITSTOP_MAX, Math.round(40 + Math.min(1, ratio * 6) * 20 + (crit ? 20 : 0)) + more);
 }
+/** Cộng thêm vào thời gian dừng hình (ms) theo độ nặng khai báo của chiêu (S1 #542); trần chung. */
+export const HEAVY_STOP_MS: readonly number[] = [0, 6, 12, 18];
+export const HITSTOP_MAX = 96;
 /** Cấp rung 0–3 → [ms, cường độ] (trúng thường ≈ 0, chí mạng nhẹ, boss / vòng cao mạnh). */
 export const SHAKE_TIER: [number, number][] = [[0, 0], [90, 0.0015], [170, 0.003], [320, 0.0055]];
 
@@ -85,7 +100,7 @@ export class ParticleLayer {
   }
   get count() { return this.n; }
   emit(x: number, y: number, col: number, o: { vx?: number; vy?: number; life?: number; size?: number; gravity?: number }) {
-    const cap = PARTICLE_CAP[fxPrefs.level];
+    const cap = PARTICLE_CAP[fxLevel()];
     if (this.n >= cap) return;
     const i = this.n++;
     this.x[i] = x; this.y[i] = y; this.vx[i] = o.vx ?? 0; this.vy[i] = o.vy ?? 0; this.gr[i] = o.gravity ?? 0;
@@ -103,6 +118,13 @@ export class ParticleLayer {
     for (let k = 0; k < n; k++) {
       this.emit(cx + (Math.random() - 0.5) * w, cy - Math.random() * h, k % 2 ? 0xffffff : col,
         { vx: (Math.random() - 0.5) * 24, vy: -(18 + Math.random() * 40), life: 0.7 + Math.random() * 0.5, size: 2, gravity: -10 });
+    }
+  }
+  /** Bụi chân nhỏ theo nhịp bước; không dùng lõi trắng để không chớp gắt. */
+  footDust(cx: number, cy: number, col: number, n: number, walking: boolean) {
+    for (let k = 0; k < n; k++) {
+      this.emit(cx + (Math.random() - 0.5) * 8 * this.px, cy - Math.random() * 2 * this.px, k % 2 ? col : 0x4a3c35,
+        { vx: (Math.random() - 0.5) * 18 * this.px, vy: -(8 + Math.random() * (walking ? 16 : 22)) * this.px / 2, life: 0.24 + Math.random() * 0.16, size: walking ? 1.5 : 2, gravity: 8 });
     }
   }
   update(dt: number) {

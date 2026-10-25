@@ -7,7 +7,7 @@ import { comparable, wornFor } from "./bag.ts";
 
 /** Hai cửa sổ. */
 export type PanelId = "char" | "bag";
-/** Đang mở cái nào: chỉ túi (B), chỉ nhân vật (C / H), hay cả hai cạnh nhau. */
+/** Đang mở cái nào: chỉ túi (B), chỉ nhân vật (H), hay cả hai cạnh nhau. */
 export type WindowState = "bag" | "char" | "dual";
 /** Bốn tab búp bê ở cửa sổ Nhân vật. */
 export type DollTab = "equip" | "bone" | "core" | "vohon";

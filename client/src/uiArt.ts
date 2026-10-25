@@ -5,6 +5,7 @@
 // - hồn cốt là bản xám: tô theo màu niên hạn bằng canvas (nhân màu từng điểm ảnh), giữ nguyên điểm ảnh;
 // - tỉ lệ giao diện `--u` theo cài đặt Cỡ giao diện (tự động hoặc 75–150%) và các lớp `ui-w*` / `ui-h*` theo kích thước logic.
 import { TIERS, VOHON_SKILLS } from "../../shared/data.ts";
+import { assetUrl, fetchAsset } from "./assetUrl.ts";
 
 const BASE = "sprites/";
 interface Entry { key: string; iso?: boolean; nine?: number }
@@ -14,7 +15,7 @@ const keys = new Map<string, Entry>();
 function pathOf(key: string) {
   const m = key.match(/^(ui|card|portrait|he|npc|item|status|thu|skill)_([a-z0-9_]+)$/); if (!m) return null;
   const dir = { ui: "ui", card: "ui", portrait: "portrait", he: "he", npc: "npc", item: "item", status: "status", thu: "thu", skill: "skill" }[m[1]];
-  return `${BASE}iso/${dir}/${m[1] === "card" ? "the_" : ""}${m[2]}.png`;
+  return assetUrl(`${BASE}iso/${dir}/${m[1] === "card" ? "the_" : ""}${m[2]}.png`);
 }
 
 /** URL ảnh của key nếu manifest có (key "iso"); không có thì null để nơi gọi dùng kiểu cũ. */
@@ -137,7 +138,7 @@ export function loadUiArt() {
   return ready ??= (async () => {
     try {
       // Quá 5 giây thì bỏ (giao diện vẽ bằng CSS cũ) để màn đăng nhập không treo trắng khi mạng chậm.
-      const r = await fetch(BASE + "manifest.json", { signal: AbortSignal.timeout(5000) });
+      const r = await fetchAsset(BASE + "manifest.json", { signal: AbortSignal.timeout(5000) }, 1);
       const data = (await r.json()) as { sprites?: (string | Entry)[] };
       for (const e of data.sprites ?? []) if (typeof e !== "string" && e.iso) keys.set(e.key, e);
     } catch { return; }

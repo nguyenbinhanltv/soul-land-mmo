@@ -1,5 +1,6 @@
 import http from "node:http";
 import { existsSync } from "node:fs";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import express from "express";
 import { Server, matchMaker } from "colyseus";
@@ -10,10 +11,11 @@ import { ArenaRoom } from "./rooms/ArenaRoom.ts";
 import { store } from "./db.ts";
 import { loginBegin, loginEnd, signupBegin, signupEnd } from "./ratelimit.ts";
 import { cleanName } from "./names.ts";
+import { cacheControlFor } from "./staticCache.ts";
 import { loadMap } from "./map.ts";
 import { startSchedule } from "./schedule.ts";
-import { MAPS } from "../../shared/data.ts";
-import { gamePresence, presenceBackend } from "./presence.ts";
+import { MAPS, parseLooks } from "../../shared/data.ts";
+import { gamePresence, presenceBackend, isRedisFailure, guardClient } from "./presence.ts";
 import { configurePresence as configurePartyPresence } from "./party.ts";
 
 configurePartyPresence(presenceBackend);
@@ -43,7 +45,10 @@ const route = (fn: (req: express.Request, res: express.Response) => Promise<void
 };
 
 // chMax: số người tối đa mỗi kênh (bot đọc để biết server đang hạ CHANNEL_MAX cho phần thử nhiều kênh).
-app.get("/health", (_q, r) => { r.json({ ok: true, chMax: CHANNEL_CAP }); });
+// Redis đã bật mà đang mất (#561): 503 để cân bằng tải / trình quản lý ngừng chuyển người chơi mới tới (fail-closed); tiến trình KHÔNG thoát, tự phục hồi khi
+// Redis có lại. `/live` luôn 200 khi tiến trình còn chạy (dành cho liveness probe, không khởi động lại chỉ vì Redis mất).
+app.get("/health", (_q, r) => { const up = presenceBackend.healthy(); r.status(up ? 200 : 503).json({ ok: up, chMax: CHANNEL_CAP, ...(up ? {} : { redis: "down" }) }); });
+app.get("/live", (_q, r) => { r.json({ ok: true }); });
 
 // Đăng nhập (tự tạo tài khoản nếu tên chưa tồn tại).
 app.post("/api/login", route(async (req, res) => {
@@ -101,6 +106,15 @@ app.post("/api/looks", route(async (req, res) => {
   res.json(r);
 }));
 
+// Hook test (chỉ GAME_TEST=1, HL2 #571): tạo tài khoản kiểu cũ (ngoại hình preset 5 số đã chọn) để bot thử chuyển sang LPC lúc nạp. /api/looks
+// thật không còn tạo preset. Chỉ ghi được khi tài khoản chưa chọn ngoại hình (store.chooseLooks một lần).
+if (process.env.GAME_TEST === "1") app.post("/api/test/legacy-looks", route(async (req, res) => {
+  const acc = await store.accountFromToken(req.body?.token);
+  const looks = parseLooks({ ...req.body, mode: "preset" });
+  if (!acc || !looks) { res.status(400).json({ error: "token hoặc ngoại hình sai." }); return; }
+  res.json({ ok: await store.chooseLooks(acc.accountId, looks) });
+}));
+
 // Lễ thức tỉnh (một lần): client gửi võ hồn SSR muốn chọn, luật kiểm tra nằm trong MapRoom.ts.
 app.post("/api/awaken", route(async (req, res) => {
   const acc = await store.accountFromToken(req.body?.token);
@@ -121,11 +135,24 @@ app.use((err: { status?: number }, _req: express.Request, res: express.Response,
 
 // Khi deploy: phục vụ luôn bản build của client -> chỉ cần một đường link.
 const dist = fileURLToPath(new URL("../../client/dist", import.meta.url));
-if (existsSync(dist)) app.use(express.static(dist));
+if (existsSync(dist)) {
+  // Chỉ để thử tải lỗi (#580): GAME_TEST=1 + ASSET_FAIL_RATE=0.3 trả 504 ngẫu nhiên cho 30% request ảnh / json / âm thanh, kiểm client thử lại.
+  const failRate = process.env.GAME_TEST === "1" ? Math.min(1, Number(process.env.ASSET_FAIL_RATE) || 0) : 0;
+  if (failRate > 0) app.use((req, res, next) => { if (/\.(png|json|ogg|m4a)$/.test(req.path) && Math.random() < failRate) { res.status(504).end(); return; } next(); });
+  // cacheControl: false để setHeaders đặt theo loại file (staticCache.ts); ETag / Last-Modified của express.static giữ nguyên.
+  app.use(express.static(dist, {
+    cacheControl: false,
+    setHeaders: (res, file) => {
+      const rel = "/" + path.relative(dist, file).split(path.sep).join("/");
+      res.setHeader("Cache-Control", cacheControlFor(rel, typeof (res.req as express.Request).query.v === "string"));
+    },
+  }));
+}
 
 const server = http.createServer(app);
 // Một tiến trình dùng LocalPresence và bộ nhớ. Khi có REDIS_URL, pub/sub + registry phòng dùng Redis để nhiều tiến trình nhìn thấy nhau.
 const driver = presenceBackend.mode === "redis" ? new RedisDriver(process.env.REDIS_URL) : undefined;
+if (driver) guardClient("Redis (registry phòng)", (driver as unknown as { _client: Parameters<typeof guardClient>[1] })._client);
 // PUBLIC_ADDRESS (mỗi tiến trình một địa chỉ client tới được, vd "game.example.com/2567"): phòng mở ở tiến trình khác thì chỗ giữ mang địa chỉ này để
 // client mở WebSocket đúng tiến trình giữ phòng (không đặt thì phòng ở tiến trình khác không vào được). Sân đấu luôn mở ở tiến trình ghép trận vì
 // `arenaMatches` (arenaQueue.ts) là bộ nhớ của tiến trình đó; phòng khác giữ cách chọn mặc định của Colyseus (tiến trình ít phòng nhất).
@@ -198,6 +225,12 @@ function shutdown(code: number, why: string) {
  * vì đã có handler khác (`uncaughtException` của nó chỉ process.exit(1) khi là listener duy nhất, tức lúc đang khởi động, chưa có ai để lưu).
  */
 function fatal(kind: string, err: unknown) {
+  // Lỗi kết nối Redis từ một lệnh chạy nền không ai bắt (#561): Redis mất không phải lỗi hỏng trạng thái tiến trình. Ghi log rõ rồi chạy tiếp ở chế độ
+  // không phục vụ (/health 503, từ chối vào phòng mới); phiên mất lease tự bị đóng. Mọi lỗi khác vẫn thoát có kiểm soát như trước.
+  if (!stopping && presenceBackend.mode === "redis" && isRedisFailure(err)) {
+    console.error(`Lỗi Redis không ai bắt (${kind}), bỏ qua, tiến trình vẫn chạy (kiểm lệnh presence thiếu bg / catch):`, err);
+    return;
+  }
   console.error(`Lỗi nghiêm trọng ngoài phòng (${kind})${stopping ? " trong lúc đang tắt server" : ""}:`, err);
   shutdown(1, kind);
 }

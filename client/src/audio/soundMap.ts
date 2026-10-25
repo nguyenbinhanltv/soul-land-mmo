@@ -6,14 +6,17 @@ import { BEASTS, BOSSES, TIERS, VOHON, type VoHonDef } from "../../../shared/dat
 export type Weapon = "kiem" | "chuy" | "thuong" | "trao" | "quyen";
 export type Element = "fire" | "ice" | "lightning" | "poison" | "light" | "dark" | "wood" | "wind";
 export type SkillPhase = "start" | "fly" | "boom";
-export type Material = "thit" | "giap" | "bang" | "go";
+export type Material = "thit" | "giap" | "bang" | "go" | "da" | "linh_the";
 export type Surface = "co" | "dat" | "da" | "tuyet" | "go" | "nuoc";
 export type BeastFamily = "lang" | "hung" | "bao" | "xa" | "chim" | "trung" | "thiem" | "thuc";
 
 export const WEAPONS: readonly Weapon[] = ["kiem", "chuy", "thuong", "trao", "quyen"];
 export const ELEMENTS: readonly Element[] = ["fire", "ice", "lightning", "poison", "light", "dark", "wood", "wind"];
 export const SKILL_PHASES: readonly SkillPhase[] = ["start", "fly", "boom"];
+/** Nhóm âm thanh G2 đã có mẫu; không mở rộng trong C1 để không đổi catalog audio. */
 export const MATERIALS: readonly Material[] = ["thit", "giap", "bang", "go"];
+/** Sáu chất liệu visual C1; `da` / `linh_the` dùng fallback tiếng va chạm chung nếu chưa có mẫu riêng. */
+export const COMBAT_MATERIALS: readonly Material[] = ["thit", "giap", "bang", "go", "da", "linh_the"];
 export const SURFACES: readonly Surface[] = ["co", "dat", "da", "tuyet", "go", "nuoc"];
 export const BEAST_FAMILIES: readonly BeastFamily[] = ["lang", "hung", "bao", "xa", "chim", "trung", "thiem", "thuc"];
 
@@ -46,6 +49,21 @@ export const SKILL_PHASE_OF_FX: Readonly<Record<string, SkillPhase>> = {
   fly: "fly", bolt: "fly", zap: "fly", pull: "fly",
   burst: "boom", wave: "boom", bone: "boom",
 };
+/**
+ * Nhóm tiếng T3 riêng của một võ hồn (C4 #579, `tools/audio/sfx-catalog.json`): `ult` = tuyệt kỹ vòng 10, `ct` = hồn kỹ Chân Thân (cả hai có 3 pha
+ * start / fly / boom), `avatar` = tiếng biến hình (không pha). Tên nhóm dùng gạch ngang thay gạch dưới của mã võ hồn.
+ */
+export function t3Group(kind: "ult" | "ct" | "avatar", vohonId: string, phase?: SkillPhase): string {
+  const id = vohonId.replaceAll("_", "-");
+  return kind === "avatar" ? `skill-t3-avatar-${id}` : `skill-t3-${kind}-${id}-${phase ?? "start"}`;
+}
+/** Sau khi một người tung chiêu T3, các tin `fx` bay / nổ của chính chiêu đó trong chừng này ms cũng dùng tiếng T3 của võ hồn. */
+export const T3_WINDOW_MS = 1600;
+/** Người khác (không phải mình) chỉ được phát tiếng T3 cách nhau tối thiểu chừng này ms (đông người cùng tung không chồng thành một mảng ồn). */
+export const T3_OTHERS_GAP_MS = 700;
+/** Hệ số âm lượng tiếng T3 của người khác. */
+export const T3_OTHERS_GAIN = 0.7;
+
 /** Hồn kỹ nặng: hạ nhạc nền một lúc. */
 export const LOUD_FX: ReadonlySet<string> = new Set(["ult", "avatar", "fusion", "roar"]);
 
@@ -73,8 +91,10 @@ export function beastSpeciesId(species: number, rank: number): string {
   return (rank > 0 ? BOSSES[species]?.species : BEASTS[species]?.id) ?? "";
 }
 
-/** Chất liệu khi đánh trúng hồn thú: băng (loài băng / tuyết), gỗ-cây (họ thực vật), giáp-vỏ (loài giáp), còn lại thịt. */
+/** Chất liệu khi đánh trúng hồn thú: băng (loài băng / tuyết), gỗ-cây (họ thực vật), giáp-vỏ (loài giáp), linh thể (ba boss đặc biệt), còn lại thịt. `da` là nhánh visual dự phòng; hiện BEAST/BOSS đang dùng không có loài đá riêng nên chưa được chọn trong trận. */
 export function materialOfBeast(speciesId: string): Material {
+  if (/thai_than_cu_vien|thien_thanh_nguu_mang|u_linh_hai_mau/.test(speciesId)) return "linh_the";
+  if (/cu_vien|thach|ngoc/.test(speciesId)) return "da";
   if (/bang|tuyet|han_/.test(speciesId)) return "bang";
   if (beastFamilyOf(speciesId) === "thuc") return "go";
   if (speciesId.split("_").some((t) => ["giap", "nguu", "giai", "lan"].includes(t))) return "giap";
@@ -118,3 +138,49 @@ export function ringGlowMix(tier: number): { rate: number; wet: number; gain: nu
   const k = Math.min(1, Math.max(0, tier / Math.max(1, TIERS.length - 1)));
   return { rate: 1.12 - 0.5 * k, wet: 0.1 + 0.65 * k, gain: 0.7 + 0.5 * k };
 }
+
+// ---- Cân âm lượng, giới hạn chồng tiếng, nén / hạ nhạc khi đông tiếng (G8, #399). Chỉ trộn tiếng, không phải số cân bằng gameplay. ----
+
+/** Chỉnh độ to (dB) từng nhóm tiếng mẫu về cùng mức mục tiêu của loại (vung / va chạm / hồn kỹ / T3 / thú / bước chân…). Bảng SINH bằng `node tools/audio/measure-sfx.mjs`
+ * (đo RMS thật của clip, đã chừa đỉnh); chạy lại và dán khi thêm / thay clip. Khóa: nhóm, riêng hồn kỹ theo hệ gộp ba pha (`skill-fire`), T3 theo kiểu + pha. Thiếu khóa = 0 dB. */
+export const GROUP_TRIM_DB: Readonly<Record<string, number>> = {
+  "swing-kiem": 3.5, "swing-chuy": -4, "swing-thuong": -4.5, "swing-trao": 0.5, "swing-quyen": -4.5, "hit-thit": -4, "hit-giap": 4, "hit-bang": 3, "hit-go": 3,
+  "skill-fire": -1, "skill-ice": 1, "skill-lightning": -0.5, "skill-poison": 1.5, "skill-light": 2, "skill-dark": -1, "skill-wood": -2.5, "skill-wind": -6,
+  "beast-lang": -3, "beast-hung": -2.5, "beast-bao": -4.5, "beast-xa": 3.5, "beast-chim": 3.5, "beast-trung": 3, "beast-thiem": 5.5, "beast-thuc": -1, "beast-boss": -3, "beast-die": -3.5,
+  "ring-glow": -1, "ring-drop": 4.5, "step-co": 1.5, "step-dat": -0.5, "step-da": 1.5, "step-tuyet": -4, "step-go": -0.5, "step-nuoc": 1.5,
+  "amb-wind": -3.5, "amb-wave": -4, "amb-bird": -2, "amb-cricket": -4.5, "amb-fire": -1.5, "amb-bell": -1.5,
+  "ui-open": -2, "ui-close": -3, "ui-drag": 3, "ui-drop": -2, "ui-enhance-ok": -3, "ui-enhance-fail": -5, "ui-rare": -0.5,
+  "pk-open": -1, "pk-count": -1.5, "pk-go": 1, "pk-kill": 1, "pk-heartbeat": -3,
+  "skill-t3-ult-start": 5.5, "skill-t3-ult-fly": 4, "skill-t3-ult-boom": 2, "skill-t3-ct-start": 2.5, "skill-t3-ct-fly": 3, "skill-t3-ct-boom": -1, "skill-t3-avatar": 5,
+};
+
+/** Khóa trong GROUP_TRIM_DB của một nhóm tiếng: hồn kỹ theo hệ bỏ pha; T3 bỏ mã võ hồn (còn kiểu + pha). */
+export function groupTrimKey(group: string): string {
+  const t3 = /^skill-t3-(ult|ct)-.*-(start|fly|boom)$/.exec(group);
+  if (t3) return `skill-t3-${t3[1]}-${t3[2]}`;
+  if (group.startsWith("skill-t3-avatar")) return "skill-t3-avatar";
+  return group.replace(/^(skill-[a-z]+)-(start|fly|boom)$/, "$1");
+}
+/** Hệ số khuếch đại (tuyến tính) của nhóm tiếng theo GROUP_TRIM_DB. */
+export function groupTrim(group: string): number { return 10 ** ((GROUP_TRIM_DB[groupTrimKey(group)] ?? 0) / 20); }
+
+/** Loại tiếng để giới hạn chồng: mỗi loại có trần số tiếng đồng thời riêng, nên một loại (40 người cùng đánh) không nuốt hết 16 chỗ của tiếng khác. */
+export type VoiceClass = "melee" | "skill" | "t3" | "beast" | "ring" | "step" | "amb" | "ui" | "pk" | "synth";
+export const VOICE_CAP: Readonly<Record<VoiceClass, number>> = { melee: 5, skill: 5, t3: 3, beast: 4, ring: 2, step: 4, amb: 3, ui: 4, pk: 3, synth: 6 };
+export function voiceClassOf(group: string): VoiceClass {
+  if (/^(swing|hit)-/.test(group)) return "melee";
+  if (group.startsWith("skill-t3-")) return "t3";
+  if (group.startsWith("skill-")) return "skill";
+  if (group.startsWith("beast-")) return "beast";
+  if (group.startsWith("ring-")) return "ring";
+  if (group.startsWith("step-")) return "step";
+  if (group.startsWith("amb-")) return "amb";
+  if (group.startsWith("ui-")) return "ui";
+  if (group.startsWith("pk-")) return "pk";
+  return "synth";
+}
+
+/** Đông tiếng (từ `voices` tiếng đang phát trở lên): hạ nhạc nền còn `music` và môi trường còn `ambient` trong `ms` để tiếng chiến đấu không bị nhạc / nền chồng lên. */
+export const CROWD_DUCK = { voices: 9, music: 0.8, ambient: 0.55, ms: 500 } as const;
+/** Bộ nén chung của ba kênh tiếng (chặn đỉnh khi nhiều tiếng cộng dồn): ngưỡng dB, đầu gối dB, tỉ lệ, vào / ra (giây). */
+export const MASTER_COMPRESSOR = { threshold: -16, knee: 10, ratio: 4, attack: 0.004, release: 0.2 } as const;

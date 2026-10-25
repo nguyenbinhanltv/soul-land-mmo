@@ -52,7 +52,7 @@ const isDouble = (key: string) => { const n = performance.now(), d = lastTap.k =
 const NOTICE_MS = 4000, WARN_COL = "#ffb35c"; // server báo từ chối bằng tin "log" màu này (MapRoom: warn / deny)
 
 /**
- * Mở / đóng bảng (phím C / H, nút "Hồn sư"); mở thì đóng các bảng cùng chỗ giữa màn hình (trừ Túi: NV1 #455, hai bảng mở cạnh nhau)
+ * Mở / đóng bảng (phím H, nút "Hồn sư"); mở thì đóng các bảng cùng chỗ giữa màn hình (trừ Túi: NV1 #455, hai bảng mở cạnh nhau)
  * và xin chỉ số mới; đóng thì Túi thôi chế độ chọn món.
  */
 export function toggleChar(open = $("#char").hidden) {
@@ -63,6 +63,18 @@ export function toggleChar(open = $("#char").hidden) {
   else { charRow = null; selBone = null; selCore = null; selEquip = null; notice = null; setBagFocus(null); }
   panelChanged("char", open);
   return open;
+}
+/**
+ * Phím `[` / `]` (NV5 #459): chuyển sang tab búp bê trước / sau (vòng tròn) khi bảng đang mở; bỏ ô và chế độ chọn món đang bật như bấm tab.
+ * Trả true nếu đã xử lý (bảng mở, không đang kéo thả).
+ */
+export function cycleCharTab(dir: 1 | -1) {
+  if (!isCharOpen() || document.body.classList.contains("dd-active")) return false;
+  const i = TABS.findIndex((t) => t.id === tab);
+  tab = TABS[(i + dir + TABS.length) % TABS.length].id;
+  selBone = null; selCore = null; selEquip = null; notice = null; setBagFocus(null);
+  again?.();
+  return true;
 }
 /** Mở / đóng một trong hai bảng Nhân vật / Túi (dùng cho nút ⇆ và thẻ chuyển). */
 export const setPanel = (p: "char" | "bag", on: boolean) => { if (p === "char") toggleChar(on); else toggleBag(on); };
@@ -122,7 +134,7 @@ function equipTip(it: BagItem, slotName: string): TipSpec {
 function openBagFor() {
   const el = document.getElementById("bag");
   if (el?.hidden) toggleBag(true);
-  raisePanel(document.body.classList.contains("ui-w560") ? "bag" : "char"); // màn hẹp: Túi nổi lên kể cả khi đã mở sẵn (bảng kia bị ẩn)
+  raisePanel(document.body.classList.contains("ui-w640") ? "bag" : "char"); // màn hẹp: Túi nổi lên kể cả khi đã mở sẵn (bảng kia bị ẩn)
 }
 /** Sau khi chọn món: màn hẹp thì đưa bảng Nhân vật nổi lại để thấy kết quả. */
 const backToChar = () => raisePanel("char");
@@ -433,7 +445,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
   const stx = starSkillText(v.stars);
   if (stx) right.appendChild(mk("small", "rnote", stx));
 
-  const foot = mk("small", "rnote", "Số liệu do máy chủ tính, dùng đúng khi đánh. Gắn / tháo ngay trên bảng; nâng cao (thức tỉnh, dung hợp, danh sách võ hồn) ở bảng Đội hình (V). Phím H / C mở / đóng.");
+  const foot = mk("small", "rnote", "Số liệu do máy chủ tính, dùng đúng khi đánh. Gắn / tháo ngay trên bảng; nâng cao (thức tỉnh, dung hợp, danh sách võ hồn) ở bảng Đội hình (V). Phím H mở / đóng, [ và ] chuyển tab, Esc đóng.");
   el.appendChild(foot);
   el.scrollTop = keep;
 
@@ -450,7 +462,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     mkFocus(`core:${v.rowId}:${slot}`, "hon_hach", `Hồn hạch cho ô ${slot + 1} của ${def.name}`, (it) => !!coreOf(it), (it) => act.equipCore(it.id, v.rowId, slot));
   } else if (tab === "equip" && selEquip && !gearBy.has(selEquip)) {
     const slot = selEquip, s = EQUIP_SLOTS.find((x) => x.id === slot)!;
-    mkFocus(`equip:${slot}`, "all", `Trang bị ô ${s.name}`, (it) => it.code === EQUIP_ITEM && equipTemplate(parseEquip(it.stats)?.tpl)?.slot === slot,
+    mkFocus(`equip:${slot}`, "trang_bi_hs", `Trang bị ô ${s.name}`, (it) => it.code === EQUIP_ITEM && equipTemplate(parseEquip(it.stats)?.tpl)?.slot === slot,
       (it) => act.send({ msg: "equipgear", data: { id: it.id } }));
   } else setBagFocus(null);
 }

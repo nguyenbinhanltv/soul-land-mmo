@@ -1,0 +1,481 @@
+{
+ "_": "S3 lô C (#568): đặc tả sheet hiệu ứng chiêu cho 5 võ hồn (Tà Hỏa Phượng Hoàng, Hỏa Long, Hỏa Ảnh, Quỷ Mị, Băng Phượng Hoàng) + dung hợp Băng Hỏa Lưỡng Nghi, theo công thức chuẩn S2 (docs/ky-nang-cong-thuc.md). `d` gửi PixelLab /v2/vfx (lite); palette hậu kỳ: [viền, tối, chủ, nhấn, sáng] xếp tăng dần theo độ sáng. Chạy: node tools/assets/skill-vfx/run.mjs --spec lo-c.json --out <nháp> [--only tên,...]",
+ "common": "Pixel art VFX for an isometric RPG skill, 3/4 top-down view, transparent background, no character, no text, dark outline, limited palette, white-hot core, centered.",
+ "vohon": {
+  "tp": {
+   "palette": [
+    "#1a1020",
+    "#8f2a14",
+    "#ff6a2a",
+    "#ffb347",
+    "#ffe08a"
+   ],
+   "theme": "Purple-red phoenix fire, flame feathers with three-ribbon tails, wide fiery wings, colors orange #ff6a2a, golden #ffb347, dark red #8f2a14, pale yellow."
+  },
+  "hl": {
+   "palette": [
+    "#1a1020",
+    "#7a1c10",
+    "#ff4a2a",
+    "#ffb347",
+    "#ffe08a"
+   ],
+   "theme": "Red dragon fire, burning scales, round fireballs, dragon head and claws, colors red-orange #ff4a2a, orange #ffb347, dark red #7a1c10, pale yellow."
+  },
+  "ha": {
+   "palette": [
+    "#1a1020",
+    "#701822",
+    "#ff3a4a",
+    "#ff9a5a",
+    "#ffe08a"
+   ],
+   "theme": "Dark crimson shadow flame, flame hand-print palms, burning silhouettes, colors crimson #ff3a4a, orange #ff9a5a, dark #701822, pale yellow."
+  },
+  "qm": {
+   "palette": [
+    "#1a1020",
+    "#22224a",
+    "#8a8aff",
+    "#c0c0ff",
+    "#ffffff"
+   ],
+   "theme": "Violet-blue ghost smoke, demon shadow hands, spectral wisps, small glowing specks, colors periwinkle #8a8aff, pale #c0c0ff, dark indigo #22224a, white."
+  },
+  "bp": {
+   "palette": [
+    "#1a1020",
+    "#2a5a8a",
+    "#a8e8ff",
+    "#eafcff",
+    "#ffffff"
+   ],
+   "theme": "Ice phoenix, crystal feathers, snowflakes, frost shards, cold mist, colors pale ice blue #a8e8ff, frost white #eafcff, deep blue #2a5a8a, white."
+  },
+  "bh": {
+   "palette": [
+    "#1a1020",
+    "#7a1c10",
+    "#ff4a2a",
+    "#a8e8ff",
+    "#ffffff"
+   ],
+   "theme": "Fusion of ice phoenix crystals and red dragon fire, yin-yang split, icy cyan #a8e8ff, fire red #ff4a2a, deep blue #2a5a8a, white steam."
+  },
+  "hs": {
+   "palette": [
+    "#1a1020",
+    "#701822",
+    "#e8431e",
+    "#ff9a2a",
+    "#ffe08a"
+   ],
+   "theme": "Living flame shadow, silhouettes made of flames with flickering tongues rising, glowing yellow core fading to orange then dark red, dark smoke edges, flying embers, colors yellow #ffe08a, orange #ff9a2a, red #e8431e, dark red #701822."
+  }
+ },
+ "sheets": [
+  {
+   "n": "tp_slash1",
+   "v": "tp",
+   "t": 1,
+   "f": 8,
+   "d": "Wide curved phoenix-wing slash sweeping across, purple-red flame body with golden-yellow fiery rim, falling embers and a few small burning feathers. Compact."
+  },
+  {
+   "n": "tp_zone2",
+   "v": "tp",
+   "t": 1,
+   "f": 6,
+   "d": "Ground ring around the caster: flat isometric ring of fire sprouting three rotating flame wings, a small phoenix emblem in the center, then fades to burning feathers. Compact."
+  },
+  {
+   "n": "tp_dash3",
+   "v": "tp",
+   "t": 1,
+   "f": 8,
+   "d": "Fast dash: a fiery phoenix streaks past leaving a long wide wing-shaped flame trail, at the end a small fire bird bursts into burning feathers and embers. Compact."
+  },
+  {
+   "n": "tp_zone4",
+   "v": "tp",
+   "t": 1,
+   "f": 6,
+   "d": "Phoenix domain on the ground: flat isometric flame ring, three thin flame wings sweep around it like a pinwheel, embers drift up, fades. Compact."
+  },
+  {
+   "n": "tp_proj5",
+   "v": "tp",
+   "t": 2,
+   "f": 8,
+   "d": "One big purple-red fire feather with a three-ribbon flame tail flying to the right, golden core, a trail of burning feather particles and embers, ends in a small fire bird bursting. Large, clear."
+  },
+  {
+   "n": "tp_dash6",
+   "v": "tp",
+   "t": 2,
+   "f": 8,
+   "d": "Big phoenix dash: a fire phoenix with spread wings streaks across leaving a huge curved wing trail, burning feathers rain behind, ends with a fire bird bursting into feathers and a flame flash. Large, clear."
+  },
+  {
+   "n": "tp_zone8",
+   "v": "tp",
+   "t": 2,
+   "f": 8,
+   "d": "Sea of dark fire on the ground: flat isometric ring of rolling purple-red flame waves, tall flame feathers rise from the fire, a phoenix emblem flares in the middle, embers. Large, clear."
+  },
+  {
+   "n": "tp_zone9",
+   "v": "tp",
+   "t": 2,
+   "f": 8,
+   "d": "A fire phoenix silhouette bursts open around the caster: ground ring of flames with three big flame wings, a fire bird explodes outward into a ring of burning feathers, embers. Large, clear."
+  },
+  {
+   "n": "tp_t3a",
+   "v": "tp",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Rebirth ultimate: a phoenix of purple-red fire rises as a tall fire pillar and flies up, then crashes down exploding into a huge flame ring on the ground, then a small chick-shaped fire blooms in the center. Very large, dramatic."
+  },
+  {
+   "n": "tp_t3b",
+   "v": "tp",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Phoenix feather rain: a phoenix spreads huge fiery wings and sweeps a wide ring of burning flame feathers all around the caster, feathers spiral outward then fall as embers. Very large, dramatic."
+  },
+  {
+   "n": "tp_zone_tc",
+   "v": "tp",
+   "t": 2,
+   "f": 8,
+   "d": "Phoenix cry: a fire shockwave bursts from the caster outward as a ring, a small fire phoenix head flashes at the center, three flame wings flare, feathers and embers. Large."
+  },
+  {
+   "n": "hl_proj1",
+   "v": "hl",
+   "t": 1,
+   "f": 6,
+   "d": "Round fireball with a tail of burning dragon scales flying to the right, a small dragon face glimpsed in the head, ember smoke trail. Compact."
+  },
+  {
+   "n": "hl_hit2",
+   "v": "hl",
+   "t": 1,
+   "f": 6,
+   "d": "Targeting mark appears on a ground point, then a round fireball slams in and bursts into a ring of inferno that scatters into embers and brown smoke. Compact."
+  },
+  {
+   "n": "hl_proj3",
+   "v": "hl",
+   "t": 1,
+   "f": 6,
+   "d": "Small red dragon-head fireball with a spiral flame tail flying to the right, scales and embers shed behind it, bright core. Compact."
+  },
+  {
+   "n": "hl_zone4",
+   "v": "hl",
+   "t": 1,
+   "f": 6,
+   "d": "Thick fire ring on the ground around the caster, two tiny dragons circle along the rim, ring detonates outward into embers and smoke. Compact."
+  },
+  {
+   "n": "hl_proj5",
+   "v": "hl",
+   "t": 2,
+   "f": 8,
+   "d": "Large dragon-breath fireball flying to the right, clear red dragon face with open jaws at the head, long tail of burning scales, ember and brown smoke trail, ends in a flame burst. Large, clear."
+  },
+  {
+   "n": "hl_hit6",
+   "v": "hl",
+   "t": 2,
+   "f": 8,
+   "d": "Targeting mark on a ground point, then a big fire bullet strikes and explodes into a ring of inferno, flame column rising, embers, ember smoke lingers. Large, clear."
+  },
+  {
+   "n": "hl_proj8",
+   "v": "hl",
+   "t": 2,
+   "f": 8,
+   "d": "Large coiled dragon of flame flying to the right in a spiral, dragon head leading with fire breath, burning scales streaming, embers, pulsing glow. Large, clear."
+  },
+  {
+   "n": "hl_zone9",
+   "v": "hl",
+   "t": 2,
+   "f": 8,
+   "d": "Big fire ring on the ground, three small red dragons circle the thick rim then it bursts as a large flame shockwave, embers, smoke. Large, clear."
+  },
+  {
+   "n": "hl_t3a",
+   "v": "hl",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "World-ending ultimate: a giant red dragon head inhales, then breathes a dark-red sea of fire spreading across the whole ground area, ground glows red then cools down to embers. Very large, dramatic."
+  },
+  {
+   "n": "hl_t3b",
+   "v": "hl",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "A huge dragon mouth opens wide, fire is sucked inward from all around into it, then erupts as a tall dragon-fire pillar with a ring of flames on the ground. Very large, dramatic."
+  },
+  {
+   "n": "hl_zone_tc",
+   "v": "hl",
+   "t": 2,
+   "f": 8,
+   "d": "Dragon flame blast around the caster: an explosion ring of fire, a small dragon head flashes at the center, burning scales fly outward, ember smoke. Large."
+  },
+  {
+   "n": "ha_slash1",
+   "v": "ha",
+   "t": 1,
+   "f": 8,
+   "d": "Fan-shaped palm strike: one wide crimson fire palm sweeps across like a fan of flame, orange edge, afterimage fades, red embers and black smoke. Compact."
+  },
+  {
+   "n": "ha_hit2",
+   "v": "ha",
+   "t": 1,
+   "f": 6,
+   "d": "A flame shadow figure lunges and presses a fiery hand-print onto the target spot, the hand-print glows then ignites into flames, red embers. Compact."
+  },
+  {
+   "n": "ha_zone3",
+   "v": "ha",
+   "t": 1,
+   "f": 6,
+   "d": "Fire seal on the ground around the caster: flat isometric round seal with a big palm hand-print mark in the center and a faint shadow figure, flares then fades to embers. Compact."
+  },
+  {
+   "n": "ha_zone4",
+   "v": "ha",
+   "t": 1,
+   "f": 6,
+   "d": "A shadow figure made of flame bursts around the caster: crimson flame silhouette explodes outward into a ring pushing back, embers and black smoke. Compact."
+  },
+  {
+   "n": "ha_slash5",
+   "v": "ha",
+   "t": 2,
+   "f": 8,
+   "d": "Double palm strike: two huge crimson fire palms sweep one after another like twin fans of flame, orange rims, hand-print shapes in the flame, afterimage, embers and smoke. Large, clear."
+  },
+  {
+   "n": "ha_zone6",
+   "v": "ha",
+   "t": 2,
+   "f": 8,
+   "d": "Cage of shadow flame: curved bars of crimson fire arc up and close like a cage on the ground ring, shadow figures flicker between the bars, pulse, then bursts to embers. Large, clear."
+  },
+  {
+   "n": "ha_zone8",
+   "v": "ha",
+   "t": 2,
+   "f": 8,
+   "d": "Big fire seal on the ground: flat isometric round seal with glowing runes around and a huge palm hand-print in the center, flares bright then pulses outward, embers. Large, clear."
+  },
+  {
+   "n": "ha_hit9",
+   "v": "ha",
+   "t": 2,
+   "f": 8,
+   "d": "A shadow figure of flame dashes in and a giant fiery hand-print slams onto the spot, explodes into a blast of crimson fire with a bright flash, embers and black smoke. Large, clear."
+  },
+  {
+   "n": "ha_t3a",
+   "v": "hs",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Ultimate: a huge shadow beast shaped like a leaping fire wolf made of flames with licking flame tongues rising from its body, bright yellow core, orange then dark red body, dark smoke edge, it dives down onto the ground and bursts into a big ring of fire with flying embers. Very large, dramatic."
+  },
+  {
+   "n": "ha_t3b",
+   "v": "hs",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Two flame shadow hands slam down onto the ground around the caster one after another, each blow sends out a big ring shockwave of crimson fire, fire cracks, embers. Very large, dramatic."
+  },
+  {
+   "n": "ha_zone_tc",
+   "v": "ha",
+   "t": 2,
+   "f": 8,
+   "d": "Layered flame silhouettes: several crimson shadow-flame figures stack around the caster one behind another, then all burst together into a ring of fire, embers and smoke. Large."
+  },
+  {
+   "n": "qm_hit1",
+   "v": "qm",
+   "t": 1,
+   "f": 6,
+   "d": "A long violet shadow demon hand reaches in and grabs the target spot, then dissolves into swirling violet-blue smoke and small glowing specks. Compact."
+  },
+  {
+   "n": "qm_aura2",
+   "v": "qm",
+   "t": 1,
+   "f": 6,
+   "d": "Life-drain aura around the caster: violet-blue spectral streaks flow inward toward the center, a faint ring of ghost smoke, small glowing specks. Compact."
+  },
+  {
+   "n": "qm_aura3",
+   "v": "qm",
+   "t": 1,
+   "f": 6,
+   "d": "Power-up aura around the caster: three demon claw marks and violet wisps rise upward, sparkling specks, a faint ring. Compact."
+  },
+  {
+   "n": "qm_aura4",
+   "v": "qm",
+   "t": 1,
+   "f": 6,
+   "d": "Stealth aura around the caster: shimmering ring of violet smoke swirls up and the center fades like a vanishing ghost, specks twinkle. Compact."
+  },
+  {
+   "n": "qm_zone5",
+   "v": "qm",
+   "t": 2,
+   "f": 8,
+   "d": "Ghostly demon jaws snap shut around the caster on the ground ring, violet-blue shadow fangs bite inward several times, smoke swirls, glowing specks. Large, clear."
+  },
+  {
+   "n": "qm_aura6",
+   "v": "qm",
+   "t": 2,
+   "f": 8,
+   "d": "Demon king aura around the caster: violet-blue flames of ghost smoke rise in a crown shape, vampiric spectral streaks flow in, spectral claws, bright specks. Large, clear."
+  },
+  {
+   "n": "qm_aura8",
+   "v": "qm",
+   "t": 2,
+   "f": 8,
+   "d": "Blood-sacrifice aura: a violet-blue summoning circle with glowing runes on the ground around the caster, ghost hands reach up from it, smoke spirals upward, specks. Large, clear."
+  },
+  {
+   "n": "qm_zone9",
+   "v": "qm",
+   "t": 2,
+   "f": 8,
+   "d": "A hundred small ghosts rise and rush out in a swirl around the caster on the ground ring, shadow faces with glowing eyes, violet-blue smoke trails, specks. Large, clear."
+  },
+  {
+   "n": "qm_t3a",
+   "v": "qm",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Layered ghosts ultimate: many overlapping demon shadows rise across the whole area, all open their mouths and suck inward, the scene darkens then brightens as ghosts dissolve into smoke. Very large, dramatic."
+  },
+  {
+   "n": "qm_t3b",
+   "v": "qm",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "A hundred ghosts rush in from all around toward the caster at the center and are absorbed in a swirling vortex of violet-blue smoke, bright flash, smoke ring fades. Very large, dramatic."
+  },
+  {
+   "n": "qm_aura_tc",
+   "v": "qm",
+   "t": 2,
+   "f": 8,
+   "d": "The caster's body dissolves into violet-blue smoke that scatters outward as a ring, ghost wisps swirl and re-gather, a smoke puff reforms at the spot, glowing specks. Large."
+  },
+  {
+   "n": "bp_proj1",
+   "v": "bp",
+   "t": 1,
+   "f": 6,
+   "d": "One crystalline ice feather flying to the right, pale blue with white edges, a tail of frost mist and tiny snow sparkles. Compact."
+  },
+  {
+   "n": "bp_slash2",
+   "v": "bp",
+   "t": 1,
+   "f": 8,
+   "d": "Curved ice-wing slash sweeping across, pale blue with frost-white rim, ice shards flying off, frost mist, tiny sparkles. Compact."
+  },
+  {
+   "n": "bp_zone3",
+   "v": "bp",
+   "t": 1,
+   "f": 6,
+   "d": "Large snowflake ring on the ground around the caster, flat isometric, slowly rotating, ice crystals sprout up from the ground along it, fades to frost. Compact."
+  },
+  {
+   "n": "bp_zone4",
+   "v": "bp",
+   "t": 1,
+   "f": 6,
+   "d": "An ice phoenix emblem slams down around the caster: a ring of frost bursts outward, a six-pointed snowflake flashes, crystal shards ring the edge. Compact."
+  },
+  {
+   "n": "bp_dash5",
+   "v": "bp",
+   "t": 2,
+   "f": 8,
+   "d": "Fast dash: an ice phoenix streaks past leaving a long curved icy wing trail with crystal shards and frost mist, snowflakes sparkle behind it. Large, clear."
+  },
+  {
+   "n": "bp_zone6",
+   "v": "bp",
+   "t": 2,
+   "f": 8,
+   "d": "Frozen domain on the ground: big flat isometric snowflake sigil, tall ice crystals rise from the ground along the ring, a frost shockwave pulses outward, sparkles. Large, clear."
+  },
+  {
+   "n": "bp_proj8",
+   "v": "bp",
+   "t": 2,
+   "f": 8,
+   "d": "Large ice feather with clear crystal facets flying to the right, long tail of frost mist and snowflakes, shards shed behind, ends in a small ice burst. Large, clear."
+  },
+  {
+   "n": "bp_zone9",
+   "v": "bp",
+   "t": 2,
+   "f": 8,
+   "d": "Extreme cold burst around the caster: huge ring of frost expands outward on the ground, big ice crystals erupt along the rim, snowflakes whirl, white mist. Large, clear."
+  },
+  {
+   "n": "bp_t3a",
+   "v": "bp",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Heaven-and-earth freeze ultimate: an ice phoenix spreads its wings, the whole ground area freezes from the outside inward, thick ice crystals grow, then shatter into a rain of glittering shards. Very large, dramatic."
+  },
+  {
+   "n": "bp_t3b",
+   "v": "bp",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Ice wings fan open and a blizzard of crystals sweeps outward from the caster, a huge flat frozen snowflake ring forms on the ground with crystal spikes and swirling snow. Very large, dramatic."
+  },
+  {
+   "n": "bp_zone_tc",
+   "v": "bp",
+   "t": 2,
+   "f": 8,
+   "d": "Ice ring blooming around the caster: a frost ring unfolds like a flower on the ground, a small ice phoenix head flashes at the center, crystals sprout, snow sparkles. Large."
+  },
+  {
+   "n": "bh_t3",
+   "v": "bh",
+   "t": 3,
+   "f": 12,
+   "big": 1,
+   "d": "Fusion ultimate: left half of a circular ground is ice with crystal feathers and snowflakes, right half is red-orange flames with a dragon fire swirl, a yin-yang S-curve between them, then both swirl together into white steam. Strong red fire and cyan ice. Very large."
+  }
+ ]
+}

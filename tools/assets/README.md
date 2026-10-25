@@ -18,7 +18,7 @@ Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` 
 | 8 | Vòng hồn hoàn, nửa trước | Code (`sring…`) | Cung dưới của elip |
 | 9 | Hiệu ứng | Code (`fx` từ server) | Vệt chém, sóng, chữ sát thương |
 
-- **Key:** `hs_{lớp}_{giới}_{kiểu tóc}` (lớp `body` / `outfit` / `hair`, giới `m` / `f`, kiểu tóc 0–3), file `honsu/{lớp}_{giới}_{kiểu tóc}.png`; client lấy bằng `honsuKey(lớp, giới, kiểu tóc)`. Key đã hoán màu là key gốc + `@` + chỉ số màu (`hs_hair_f_2@3`, thân tông da khác `hs_body_f_2@2`), chỉ tạo khi có người dùng.
+- **Đã gỡ khỏi game (HL3 #572):** hồn sư không còn sheet `hs_*` / `honsu/*` trong `shared/assets/sprites` (chỉ còn LPC ghép lúc chạy; dây chuyền bên dưới giữ cho sheet NPC `lpc_<mã>` và lịch sử). Quy cách cũ: **Key:** `hs_{lớp}_{giới}_{kiểu tóc}` (lớp `body` / `outfit` / `hair`, giới `m` / `f`, kiểu tóc 0–3), file `honsu/{lớp}_{giới}_{kiểu tóc}.png`; client lấy bằng `honsuKey(lớp, giới, kiểu tóc)`. Key đã hoán màu là key gốc + `@` + chỉ số màu (`hs_hair_f_2@3`, thân tông da khác `hs_body_f_2@2`), chỉ tạo khi có người dùng.
 - **Màu khóa khi vẽ liền một bộ:** tóc lam sáng, áo / quần / váy xám, giày nâu, da bình thường; `normalize --split` tách 3 lớp trên từng khung, từng hướng.
 - Key isometric ghi `"iso": true` trong manifest. Bộ chưa có ảnh `iso` dùng bộ 32×32 cũ (hướng gần nhất trong 4 hướng, phóng `SPR`) tới khi 10.4b xong; client nhận bố cục theo bề ngang sheet (24 cột) nên hai loại bộ dùng chung một đường code, lớp 64×64 trong hình chứa phóng `SPR` thì phóng 1 / `SPR`.
 
@@ -45,6 +45,7 @@ Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` 
 - Khung 96×96 (khung thân mở rộng 16 mỗi phía), gốc (48, 74). Sheet 24 × 12 (2304×1152): **mỗi giới một nửa** (`ISO_VH_SEXES`), ghép theo thân mẫu `m_0` (hàng 0–4) và `f_0` (hàng 6–10), hàng 5 và 11 trống; client chọn nửa theo giới của lớp thân (`vohonHalf`), các kiểu tóc cùng giới dùng chung nửa sheet.
 - **Điểm neo:** phụ thể vẽ tĩnh 5 hướng (`vohon-part.mjs` đặt ảnh vào khung đứng theo file mô tả: điểm cầm, nửa sau / trước, viền sáng), rồi `pack.mjs --kind vohon` tìm điểm neo trên từng khung thân (`frameAnchors`: tay cầm là đầu mút mảng da cùng phía với tay trong `grip.json`, giữa lưng, đỉnh đầu; phụ thể dưới chân đứng yên theo gốc) và ghép vào sheet `vh_{id}_b` / `vh_{id}_f`. Vũ khí xoay theo góc vung của `attack` (`ISO_ATTACK_SWING`; vũ khí dài góc nhỏ hơn). Người vẽ tự quyết pixel nào nửa sau, nửa trước theo hướng (quay lưng `n`, `ne` thì cánh ở nửa trước, vũ khí ở nửa sau).
 - **Phụ thể vẽ tĩnh 5 hướng đã đặt quanh thân khung đứng** (ảnh Gemini ở `art/src/gemini/phuthe_5huong/<id>/{s,se,e,ne,n}.png`): `node tools/assets/vohon-static5.mjs spec <id>` ghi file mô tả `art/src/gemini/vh_iso/<id>.json` (neo `back`, pivot mỗi giới = điểm neo thân `m_0` / `f_0` ở khung đứng nên ảnh giữ nguyên vị trí ở `idle` khung 0; nửa sau / trước theo hướng ở bảng `LAYERS` trong script: cánh, hoa, chân nhện, hư ảnh ở nửa sau khi quay mặt `s`, `se`, `e` và nửa trước khi quay lưng `ne`, `n`; tai, rắn, vuốt luôn nửa trước), `build <id…>` chạy `vohon-part` → `normalize --kind vohon --foot 74` → `pack --kind vohon --attach back` → `normal` cho cả hai giới. Phần gắn tay (vuốt, tay vảy) theo giữa lưng chứ không theo từng bàn tay; muốn bám tay thì viết mô tả riêng `attach: hand`.
+- **Phụ thể nhiều nhóm neo vẽ bằng code** (Hỏa Long, Liệt Hỏa Thương Lang, #102): `node tools/assets/vohon-chi-tiet.mjs` vẽ ảnh mảnh + `art/src/vh_nho/<id>/spec.json` (mỗi nhóm một neo tay / đầu / lưng; mảnh gắn tay lấy hình cẳng tay từ thân mẫu LPC của `lpc-mannequin.mjs`, thân dựng đúng lớp client ghép), `node tools/assets/vohon-multi.mjs build <id…>` chạy vohon-part → normalize → pack từng nhóm rồi chồng thành một cặp sheet. Hướng se / ne dùng lại hướng e vì client vẽ se / e / ne bằng cùng hàng LPC phải. Mô tả `free: true` ở mảnh gắn tay: pack bám mảnh da gần nhất, không giữ trái / phải (hướng nhìn ngang).
 - Phụ thể chỉ vẽ `idle`, `walk`, `attack`, `cast` (cột 0–16). Ánh xạ khung (`vohonFrame`, cùng cho hai nửa):
 
 | Lớp thân đang ở | Khung phụ thể |
@@ -64,7 +65,7 @@ Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` 
 | Tà Hỏa Phượng Hoàng (`ta_hoa_phuong_hoang`) | Đôi cánh lửa phượng hoàng | Lưng | Cánh vỗ theo nhịp đi; tàn lửa bay lên |
 | U Minh Linh Miêu (`u_minh_linh_mieu`) | Hư ảnh báo U Minh tím phục sau lưng; tai mèo, đuôi, móng vuốt trên tay để sau | Lưng (sau: đầu + tay) | Vệt cào tím; bóng mờ đuổi theo khi lướt |
 | Nguyệt Nhận (`nguyet_nhan`) | Đôi lưỡi trăng khuyết bạc cầm hai tay | Hai tay | Vệt chém hình trăng khuyết, ánh trăng lạnh |
-| Hỏa Long (`hoa_long`) | Hư ảnh rồng lửa nhỏ quấn quanh thân, đầu rồng trên vai | Bao quanh | Hơi nóng gợn quanh người, tia lửa bắn ra khi đánh |
+| Hỏa Long (`hoa_long`) | Rồng lửa nhỏ quấn cẳng tay và vắt chéo thân, đầu rồng có sừng ngóc trên vai (vẽ bằng code, #102) | Bao quanh | Hơi nóng gợn quanh người, tia lửa bắn ra khi đánh |
 | Nhu Cốt Thố (`nhu_cot_tho`) | Tai thỏ dài, đuôi bông; hai chân phát sáng | Đầu + lưng + dưới chân | Vệt sáng hồng hình cung khi lướt và đá |
 | Kim Vũ Miêu Ưng (`kim_vu_mieu_ung`) | Đôi cánh lông vàng kim, vuốt ưng ở tay | Lưng + tay | Lông vũ rơi; tia điện vàng lóe trên mép cánh |
 | Tử Vong Chu Hoàng (`tu_vong_chu_hoang`) | 4 chân nhện tím đen mọc sau lưng | Lưng | Sợi tơ tím; hơi độc mờ bay quanh chân |
@@ -80,7 +81,7 @@ Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` 
 | Cửu Bảo Lưu Ly Tháp (`cuu_bao_luu_ly_thap`) | Tháp lưu ly 9 tầng nhỏ lơ lửng trên tay | Tay (lơ lửng) | Hào quang 7 màu xoay quanh tháp, chiếu tia sáng lên đồng đội |
 | Phá Hồn Thương (`pha_hon_thuong`) | Trường thương cán dài, mũi hình thoi, tua đỏ dưới mũi | Tay phải | Hồn quang lấp lánh ở mũi thương; vệt đâm thẳng khi đánh |
 | A Ngân (`a_ngan`) | Dây Lam Ngân vân vàng quấn hai tay, vương miện cỏ, đóa Lam Ngân Hoàng nở sau lưng | Tay + đầu + lưng | Đốm sáng xanh và vàng li ti |
-| Liệt Hỏa Thương Lang (`liet_hoa_thuong_lang`) | Tai sói xám, đuôi sói to chóp lửa, vuốt lửa hai tay | Đầu + lưng + tay | Tàn lửa bay từ chóp đuôi; vệt cào lửa khi đánh |
+| Liệt Hỏa Thương Lang (`liet_hoa_thuong_lang`) | Tai sói xám, đuôi sói to chóp lửa, vuốt hai tay (vẽ bằng code, #102) | Đầu + lưng + tay | Tàn lửa bay từ chóp đuôi; vệt cào lửa khi đánh |
 | Băng Phượng Hoàng (`bang_phuong_hoang`) | Đôi cánh băng phượng hoàng, mào băng trên đầu | Lưng + đầu | Tinh thể băng hình chữ thập lấp lánh quanh người |
 | Bạch Hổ (`bach_ho`) | Tai hổ trắng, đuôi hổ vằn đen, vuốt hai tay (ảnh Gemini 5 hướng, ghép ở #425) | Đầu + lưng + tay | Vằn sáng và vệt cào trắng khi đánh |
 
@@ -89,6 +90,9 @@ Tài liệu tra cứu cho người làm ảnh và người sửa `tools/assets` 
 - Nguồn ảnh và `recipe.json` (prompt, seed, lượt, cách ghép) ở `art/src/pixellab/phap_tuong/<mã>/`; công cụ `pixellab-pt.mjs` (concept, xoay, hoạt ảnh bằng PixelLab) và `phaptuong.mjs` (hậu kỳ + sheet, thở / đánh bằng code cho vật cứng). Công thức chuẩn, lượt thực tế, bẫy: `docs/phap-tuong-cong-thuc.md`; đặc tả 25 võ hồn: `docs/phap-tuong.md`.
 - Client chưa tải sheet này (H2); độ đục hư ảnh, lớp sau / trước theo hướng, tỉ lệ và độ dời đọc từ `pt` của manifest.
 - Vật thể (khí võ hồn): `phaptuong-khi.mjs` dựng thân + lớp sáng `phaptuong/<mã>_glow.png` (key `pt_<mã>_glow`), kiểm neo bằng `--check`; xem `docs/phap-tuong-cong-thuc.md` mục 6b; nhóm thực vật (uốn ngọn, xoay cánh, `catMau`, `glowMau`) ở mục 6c.
+
+## Hiệu ứng chiêu (S2 #548)
+- Sheet hiệu ứng từng chiêu `fx_sk_<tên>` (+ lớp cộng sáng `_g`) làm bằng PixelLab `/v2/vfx` (`pixellab-vfx.mjs`), đặc tả ở `skill-vfx/pilot.json`, chạy `skill-vfx/run.mjs` → `post.mjs` (nhuộm thang 7 màu, alpha 0/255, bỏ khung rỗng, lớp sáng) → `reg.mjs`; xem `vfx-view.mjs`; công cụ quay / GIF / FPS ở `skill-vfx/preview/`. Công thức chuẩn, lượt, bẫy: `docs/ky-nang-cong-thuc.md`.
 
 ## Hồn thú
 - Khung theo bậc: Trắng, Vàng 64×64 (thú nhỏ, cao 20–40); Tím, Đen 96×96 (dài khoảng 2–3 thoi); Đỏ 128×128; tà hóa thú vương 160×160; boss thế giới 192×192. Gốc giữa đáy, cách mép dưới khoảng 8 (`ISO_BEAST_FOOT`). Tinh anh không có khung riêng: client phóng sprite loài gốc theo `ELITE.scale` (`rankScale` trong `GameScene.ts`); thú vương / boss chưa có sprite riêng thì phóng theo `KING.scale` / `WORLD.scale`.
@@ -197,3 +201,10 @@ shared/assets/iso/
 - Ghép sheet: `node tools/assets/static-sheet.mjs <nam.png> <dong.png> <bac.png> beast/<loài>.png` (ba khung cùng cỡ vuông ra từ `gemini-import --kind beast --size <khung>`); ảnh Gemini có vạch lưới tối giữa các ô thì thêm `gemini-import --unline` (gỡ vạch trước khi tách vật). Boss thế giới dùng khung 192 (`beast_thai_than_cu_vien`, `beast_thien_thanh_nguu_mang`, `map: loi_tinh_dau`).
 - Client (`sprites.ts`): `isStaticBeast`, `STATIC_DIR_MAP` (hướng 8 → khung + lật), `staticBeastPose` / `STATIC_MOTION` (thở, nhún, ngả + vồ, lắc, nháy trắng; bóng ngã khi chết ở `GameScene.fadeBeastGhost`).
 - Họ hoạt ảnh (`beastFamily`, bảng `FAMILY_SPECIES`): thêm loài mới vào đúng họ (chim, rắn, côn trùng, cây / hoa; còn lại là thú bốn chân). Ảnh đông trong sheet phải nhìn sang phải.
+
+## Kiểm chất lượng, nén và atlas (C5 #556)
+- `node tools/assets/quality.mjs --check` đọc `sprites/manifest.json`, đối chiếu cỡ khung, neo gốc, bảng màu, alpha, viền `#1a1020` và dung lượng thực tế. Thiếu viền ở asset độc lập là lỗi làm check thất bại; lớp phụ thể võ hồn `vh_*` ghép theo b/f được kiểm ở mức pipeline ghép nên không kết luận từ từng lớp riêng. Khung / neo được suy ra từ `sheetSpec`; metadata `frame`, `origin`, `bytes` trong manifest nếu có sẽ được kiểm khớp. Lệnh này chạy trong `npm run check` và chỉ đọc asset.
+- `node tools/assets/quality.mjs --compress <dir> --out <dir> --report <file>` nén PNG lossless bằng bộ mã nội bộ, giữ nguyên từng điểm ảnh và chỉ nhận kết quả nhỏ hơn. Không ghi đè ảnh gốc; `report` ghi số byte trước / sau cho từng file.
+- `node tools/assets/quality.mjs --atlas --out <dir> --report <file>` đóng các PNG được manifest tham chiếu thành nhiều trang atlas, kèm `manifest.json` chứa trang, tọa độ, cỡ khung và neo. Atlas là đầu ra tùy chọn cho client; pipeline runtime hiện tại vẫn dùng atlas động của `client/src/isoAtlas.ts`.
+- `node tools/assets/quality.mjs --preview --out <file.html>` tạo một trang xem chung mọi key trong manifest, có ảnh, cỡ khung, neo và dung lượng; mở bằng `ao preview <đường-dẫn-tương-đối>` để chủ repo duyệt.
+- Báo cáo mặc định của `--check` nằm trong thư mục tạm hệ thống; dùng `--report` để lưu báo cáo review ở nơi khác. Không có file sinh tự động nào được thêm vào repo.

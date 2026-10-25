@@ -26,7 +26,7 @@ class PtTestScene extends Phaser.Scene {
     this.load.once("filecomplete-json-m", (_k: string, _t: string, d: { sprites?: ({ key: string } | string)[] }) => {
       for (const e of d?.sprites ?? []) if (typeof e !== "string" && /^pt_/.test(e.key)) this.load.spritesheet(e.key, `sprites/phaptuong/${e.key.slice(3)}.png`, { frameWidth: 160, frameHeight: 160 });
     });
-    for (const l of ["body", "outfit", "hair"]) this.load.spritesheet(`t_${l}`, `sprites/honsu/${l}_m_0.png`, { frameWidth: 64, frameHeight: 64 });
+    this.load.spritesheet("t_body", "sprites/iso/lpc/dan_khach.png", { frameWidth: 64, frameHeight: 64 }); // thân LPC mẫu (HL3 #572: hết sprite hồn sư preset)
   }
   create() {
     this.cameras.main.setZoom(Number(q.get("zoom") ?? 2)).setBackgroundColor("#0c1712").setRoundPixels(true).centerOn(0, -30);
@@ -40,7 +40,7 @@ class PtTestScene extends Phaser.Scene {
     // đúng cách dựng của GameScene: khung chứa phóng SPR, mỗi lớp ảnh phóng 1 / SPR (khung 64×64, chân ở (32, 58))
     const lay = (key: string, tint?: number) => { const sp = this.make.sprite({ x: 0, y: -26 / SPR, key, frame: 0 }, false).setScale(1 / SPR); if (tint) sp.setTint(tint); return sp; };
     const ringsB = this.make.container({}, false), ringsF = this.make.container({}, false);
-    this.hero = this.add.container(0, 20, [this.add.ellipse(0, 0, 22 / SPR, 9 / SPR, 0x000000, 0.4), ringsB, lay("t_body"), lay("t_outfit", 0x9fb4e8), lay("t_hair", 0x6a4a3a), ringsF]).setScale(SPR).setDepth(20);
+    this.hero = this.add.container(0, 20, [this.add.ellipse(0, 0, 22 / SPR, 9 / SPR, 0x000000, 0.4), ringsB, lay("t_body", 0x9fb4e8), ringsF]).setScale(SPR).setDepth(20);
     this.host = { root: this.hero, ringsB, ringsF, ringY: [], lit: null, halo: null };
     this.aura = this.add.graphics().setDepth(19);
     if (q.get("hk") === "1") this.time.addEvent({ delay: 2000, loop: true, callback: () => this.cast() });
