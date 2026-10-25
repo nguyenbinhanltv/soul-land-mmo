@@ -29,5 +29,8 @@ export function replayBufferedMessages(room: Room) {
   bufs.delete(room);
   held.off();
   const dispatch = (room as unknown as { dispatchMessage(t: string | number, m: unknown): void }).dispatchMessage.bind(room);
-  for (const { type, msg } of held.buf) dispatch(type, msg);
+  // Một bộ nghe ném lỗi với tin cũ không được làm hỏng create() của cảnh (bộ nghe thật của colyseus.js cũng chạy cô lập).
+  for (const { type, msg } of held.buf) {
+    try { dispatch(type, msg); } catch (e) { console.error("Phát lại tin lúc vào phòng", type, e); }
+  }
 }
