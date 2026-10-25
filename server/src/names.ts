@@ -19,6 +19,6 @@ export const nameKey = (name: string) =>
 
 /** Khóa so tên cấm: nameKey, bỏ dấu (đ -> d), bỏ dấu cách và "_": "HỆ  Thống", "he_thong", "Ｓystem" ra cùng khóa với tên trong RESERVED_NAMES. */
 const reservedKey = (name: string) => nameKey(name).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/[ _]/g, "");
-const RESERVED_KEYS = new Set(RESERVED_NAMES.map(reservedKey));
+const RESERVED_KEYS = new Set(RESERVED_NAMES.map(reservedKey)); // map-co-dinh: dựng một lần từ RESERVED_NAMES (danh sách cố định trong shared/data.ts)
 /** Tên có trùng tên cấm (RESERVED_NAMES) không. Chỉ dùng cho tên MỚI (tạo tài khoản); tài khoản cũ trùng tên không bị đổi. */
 export const isReservedName = (name: string) => RESERVED_KEYS.has(reservedKey(name));
