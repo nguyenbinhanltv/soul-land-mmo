@@ -1,6 +1,6 @@
 # Đặc tả hình ảnh kỹ năng combat: 25 võ hồn × 11 chiêu (S0, #541)
 
-Tài liệu đặc tả (chỉ ghi, không có mã). Theo dõi: kế hoạch combat 2026-10-24, bước **S0**. **Cách làm (công thức chuẩn S2): `docs/art/ky-nang-cong-thuc.md`.** Làm nền cho S1 (khung code `SKILL_VISUAL`), S2 (thử Lam Điện Bá Vương Long + Hạo Thiên Chùy), S3 (theo lô).
+Tài liệu đặc tả (chỉ ghi, không có mã). **Cách làm (công thức chuẩn): `docs/art/ky-nang-cong-thuc.md`.** Làm nền cho khung code `SKILL_VISUAL` và các lô hiệu ứng theo võ hồn.
 
 **Nguồn khớp:** tên và mô tả chiêu lấy từ `shared/data.ts` (`VOHON_SKILLS`, `VOHON_SKILLS_HIGH`, `chanThanOf`, `tienCoOf`, `FUSIONS`; đổi tên ở đó thì sửa lại bảng này); hình dáng pháp tướng và dấu hiệu theo `docs/art/phap-tuong.md` (H0). Mọi con số cân bằng (sát thương, tầm, hồi chiêu) **không chép vào đây**, nằm ở `shared/data.ts`.
 
@@ -1006,3 +1006,6 @@ Xúc Xích, Quỷ Mị, Thiên Càn Bạch Ngọc Đỉnh, Cửu Bảo Lưu Ly T
 - **S2:** Lam Điện Bá Vương Long (4.2) + Hạo Thiên Chùy (4.19), đủ 11 chiêu + 1 dung hợp (Lôi Độc Song Sát hoặc Hạo Thiên Nhu Cốt).
 - **S3:** theo lô: rồng + chim, thú, khí, thực vật, côn trùng / hư ảnh. Mỗi lô một trang xem trước → chủ repo duyệt → PR.
 - **S5:** âm T3, đo FPS 40–60 người, điện thoại, bot tung mọi chiêu không lỗi.
+
+## Issue liên quan
+#541 (S0, đặc tả), kế hoạch combat 2026-10-24.

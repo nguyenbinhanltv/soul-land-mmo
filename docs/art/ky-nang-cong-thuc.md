@@ -1,6 +1,6 @@
-# Công thức chuẩn làm hiệu ứng chiêu (S2 #548, chủ repo duyệt 2026-10-25)
+# Công thức chuẩn làm hiệu ứng chiêu (chủ repo duyệt 2026-10-25)
 
-Chuẩn cho 23 võ hồn còn lại (S3). Đã làm: Lam Điện Bá Vương Long và Hạo Thiên Chùy, 22 chiêu. Đặc tả hình, màu, ý chiêu từng chiêu ở `docs/art/ky-nang-combat-dac-ta.md` (S0); khung code ở `GAME_DESIGN.md` mục 5.11 (S1). Ở đây ghi cách làm, tham số, lượt thực tế và bẫy. Chỉ hình ảnh + cảm giác đánh: giữ nguyên số và cơ chế, **không rung màn hình** (chỉ boss).
+Chuẩn đã dùng cho 25 võ hồn (thử ở Lam Điện Bá Vương Long và Hạo Thiên Chùy rồi theo lô). Đặc tả hình, màu, ý chiêu từng chiêu ở `docs/art/ky-nang-combat-dac-ta.md` (S0); khung code ở `GAME_DESIGN.md` mục 5.11 (S1). Ở đây ghi cách làm, tham số, lượt thực tế và bẫy. Chỉ hình ảnh + cảm giác đánh: giữ nguyên số và cơ chế, **không rung màn hình** (chỉ boss).
 
 ## 1. Quy trình một võ hồn (11 chiêu)
 
@@ -90,3 +90,6 @@ Mỗi lô gửi chủ repo một **trang xem trước** (HTML tĩnh, đường d
 - Trong trại (`inSafe`) chiêu không tung; vùng cần đứng ngoài trại.
 - Shell của agent có thể mang sẵn `DATABASE_URL` thật: `run-real.sh` phải bỏ nó (đã làm), nếu không server `GAME_TEST` ghi tài khoản test vào DB thật. Đọc dòng đầu log server (phải là RAM presence, không có "Đã kết nối PostgreSQL").
 - Quay game thật: chờ tin riêng `owned` về (thăm tối đa 10 giây) thay vì ngủ cố định 900 ms.
+
+## Issue liên quan
+#541 (S0, đặc tả), #548 (S2, công thức), #482.
