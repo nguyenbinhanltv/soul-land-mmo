@@ -209,7 +209,7 @@ function main() {
   const json = JSON.stringify(res.data) + "\n";
   if (check) {
     if (!existsSync(OUT)) errs.push("Chưa có shared/assets/credits/credits.json: chạy node tools/assets/credits.mjs.");
-    else if (readFileSync(OUT, "utf8") !== json) errs.push("shared/assets/credits/credits.json cũ so với art/CREDITS.md: chạy node tools/assets/credits.mjs rồi commit.");
+    else if (readFileSync(OUT, "utf8").replace(/\r\n/g, "\n") !== json) errs.push("shared/assets/credits/credits.json cũ so với art/CREDITS.md: chạy node tools/assets/credits.mjs rồi commit.");
   }
   if (errs.length) { console.error(`[credits] ${errs.length} lỗi:\n- ${errs.slice(0, 30).join("\n- ")}`); process.exit(1); }
   if (!check) writeFileSync(OUT, json);

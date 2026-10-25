@@ -50,11 +50,11 @@ function loginScreen(err = "") {
     </form>
     <div class="gsep" id="gsep" hidden><span>hoặc</span></div>
     <div class="gbtn" id="gbtn" hidden></div>
+    <button class="c6-credits" id="credits-open" type="button">Ghi công</button>
     <aside class="c6-event" aria-label="Sự kiện đang diễn ra">
       <img src="/ui/c6/event-banner.png" alt="">
       <div class="c6-event-copy"><small>SỰ KIỆN MÙA SĂN</small><strong>Vòng Hồn Nguyệt Ảnh</strong><span>Thu thập ánh trăng trong Rừng Săn Hồn</span></div>
-    </aside>
-    <button class="c6-credits" id="credits-open" type="button">Ghi công</button>`;
+    </aside>`;
   document.getElementById("credits-open")!.addEventListener("click", openCredits);
   const name = document.getElementById("name") as HTMLInputElement, pass = document.getElementById("pass") as HTMLInputElement;
   name.value = storage.get("shh-name") ?? ""; (name.value ? pass : name).focus();
