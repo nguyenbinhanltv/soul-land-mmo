@@ -45,7 +45,7 @@ import { WORLD_CHAT } from "../../../shared/data.ts"; // kênh thế giới (#18
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, bossOffset, bossNow, bossClockMode, type BossEvent } from "../schedule.ts";
-import { store, Character, type AccountLooks, type Location, type Item, type Bag, type AutoRow, type SoldRow, type TongRow, type SocialRow } from "../db.ts";
+import { store, saveFailTest, Character, type AccountLooks, type Location, type Item, type Bag, type AutoRow, type SoldRow, type TongRow, type SocialRow } from "../db.ts";
 import { chatCheck, chatText, chatReset, worldWait, worldMark, inviteCheck, inviteReset, rallyCheck, rallyReset, friendCheck, friendReset, friendNoteOk, takeToken, type TokenBucket, type ChatChannel } from "../ratelimit.ts";
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { SpiderEggs } from "./eggs.ts";
@@ -3654,6 +3654,7 @@ export class MapRoom extends Room<MapState> {
    * cho chính mình; `auto {kn, wn}` đặt số lượt nhận thưởng thú vương / boss thế giới hôm nay trong bộ nhớ, trả thêm trạng thái trận boss
    * của tự săn; `perf {reset}` thời gian tick / bản vá (server PERF_LOG=1).
    * Từ #677: `baglimit {on}` bật / tắt giới hạn tin ghi túi cho chính mình; khi GAME_TEST=1 mặc định TẮT (bot dọn túi hàng trăm ô một lúc), chỉ bài dồn sortbag bật.
+   * Từ #797: `savefail {n, only}` ép n lần ghi túi / tông kế tiếp của chính mình lỗi (saveBag, setTong, saveProgress có túi; `only` "bag" / "tong" chỉ chặn loại đó; n = 0 bỏ ép): thử nhánh hoàn lại khi lỗi DB.
    * Từ #164: `throw` ném lỗi ngay trong handler (không trả lời): thử lớp chặn chung onUncaughtException giữ server sống.
    * Từ #270: `crash {reject}` trả lời rồi ném lỗi NGOÀI phòng (hẹn giờ thường của Node, không qua clock của phòng; `reject`: promise bị từ
    * chối không ai bắt): thử process.on ở index.ts lưu người chơi đang online rồi thoát mã 1. Chỉ bài `bot:local --fatal` gọi.
@@ -3855,6 +3856,7 @@ export class MapRoom extends Room<MapState> {
       } else out = { redis: false, held: false };
     }
     else if (op === "enhslow") { d.testEnhSlow = int(o.ms, 0, 5000, 0); }
+    else if (op === "savefail") { const n = int(o.n, 0, 10, 0); if (n) saveFailTest.set(d.accountId, { n, only: o.only === "bag" || o.only === "tong" ? o.only : "" }); else saveFailTest.delete(d.accountId); out = { n }; } // #797: ép n lần ghi túi / tông kế tiếp lỗi (xem db.ts)
     else if (op === "roll") { const r = int(o.r, -1, 100, -1); d.testRoll = r < 0 ? null : Math.min(0.9999, r / 100); }
     else if (op === "rush") { if (d.absorbing) this.finishAbsorb(id); }
     else if (op === "drain") { d.mpF = Math.floor(d.mpF * (100 - int(o.pct, 0, 100, 0)) / 100); p.mp = Math.floor(d.mpF); }
