@@ -11,6 +11,7 @@ import {
 } from "../../shared/data.ts";
 import { fxPrefs, flashOn, type ParticleLayer, fxLevel } from "./combatFx.ts";
 import type { Dir8 } from "./iso.ts";
+import { wantPhapTuong } from "./vohonLazy.ts";
 import { DIRV, ptRow, ptIsBack, ptStrikeFrame, ptStrikeCurve, clamp01 } from "./phapTuongMath.ts";
 
 const hexN = (c: string) => parseInt(c.replace("#", ""), 16);
@@ -20,12 +21,13 @@ const hexN = (c: string) => parseInt(c.replace("#", ""), 16);
 const tempKeys = new Set<string>();
 /**
  * Chưa có ảnh `pt_<mã>` thì vẽ sheet tạm (cùng bố cục: 16 cột × 5 hàng, khung 160, alpha 0 / 255, viền #1a1020) theo nhóm bố cục.
- * Trả true nếu đã có texture (thật hoặc tạm). Dùng cho đến khi ảnh H1 / P1..P5 vào main.
+ * Trả true nếu đã có texture (thật hoặc tạm), false nếu ảnh thật còn đang tải (hỏi lại khung sau). Dùng cho đến khi ảnh H1 / P1..P5 vào main.
  */
 export function ensurePtSheet(scene: Phaser.Scene, id: string): boolean {
   const def = PHAP_TUONG[id], vh = VOHON.find((v) => v.id === id);
   if (!def || !vh) return false;
   if (scene.textures.exists(def.sheet)) return true;
+  if (wantPhapTuong(scene, id) === "wait") return false; // ảnh thật đang tải lười (vohonLazy.ts): chưa vẽ bản tạm
   const S = 40, K = PT_FRAME / S, W = PT_COLS * PT_FRAME, H = PT_DIRS.length * PT_FRAME;
   const tex = scene.textures.createCanvas(def.sheet, W, H); if (!tex) return false;
   const ctx = tex.getContext(), small = document.createElement("canvas"); small.width = small.height = S;
@@ -158,6 +160,7 @@ export class PhapTuongSystem {
   }
   private release(r: Rig) { for (const s of r.slots) { s.body.setBlendMode(0); this.give(s.body); this.give(s.glow); } r.slots = []; }
   private setSlots(r: Rig, ids: string[]) {
+    // Sheet còn tải lười thì makeSlot trả null: slots ngắn hơn ids nên khung sau hỏi lại (rẻ: chỉ một lần tra texture mỗi khung).
     const have = r.slots.map((s) => s.id).join("|");
     if (have === ids.join("|")) return;
     for (const s of r.slots) { this.give(s.body); this.give(s.glow); }

@@ -475,7 +475,8 @@ export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) =
       const spec = sheetSpec(key, typeof e === "string" ? undefined : e.frame, iso);
       if (!spec) { console.warn(`[sprites] key không hợp lệ trong manifest: ${key}`); continue; }
       // Phụ thể isometric (2304×1152 × 2 lớp × 25 võ hồn) tải theo nhu cầu (vohonLazy.ts), không tải hết mỗi lần vào bản đồ.
-      if (iso && spec.frame && key.startsWith("vh_")) { registerVohonSheet(key, BASE + spec.url, spec.frame); continue; }
+      // Pháp tướng (2560×800 × 35) cũng tải theo nhu cầu (wantPhapTuong).
+      if (iso && spec.frame && /^(vh|pt)_/.test(key)) { registerVohonSheet(key, BASE + spec.url, spec.frame); continue; }
       if (spec.frame) scene.load.spritesheet(key, BASE + spec.url, { frameWidth: spec.frame[0], frameHeight: spec.frame[1] });
       else scene.load.image(key, BASE + spec.url);
       // Normal map của bộ hồn sư / phụ thể isometric (`<ảnh>_n.png`, 10.7): tải riêng, GameScene gắn vào texture (attachNormal).

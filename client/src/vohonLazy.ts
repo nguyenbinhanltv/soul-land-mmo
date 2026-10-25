@@ -3,8 +3,10 @@
 // Nên preloadSprites chỉ ghi spec vào đây; sheet được xin khi có người chơi dùng võ hồn đó (preload: những người đang trong phòng lúc vào;
 // sau đó: lúc người mới tới / đổi võ hồn). Chưa tải xong thì nơi gọi chờ (không vẽ lớp phụ thể); tải lỗi hẳn thì dùng phụ thể vẽ bằng code
 // như khi manifest không có ảnh (vohonTextures).
+// Pháp tướng `pt_<mã>` (+ `_glow`, 2560×800, 35 ảnh; bước 2 của #716) cùng cơ chế: chỉ xin khi có người trong phòng đang Chân Thân (và sheet của
+// chính mình, để cut-in có ảnh), không có normal map; chưa tải xong thì phapTuong.ts chưa dựng hình (không vẽ bản tạm để khỏi nháy).
 import Phaser from "phaser";
-import { VOHON } from "../../shared/data.ts";
+import { PHAP_TUONG, VOHON } from "../../shared/data.ts";
 import { attachNormal, lightingOn } from "./lighting.ts";
 
 interface Spec { url: string; frame: readonly [number, number] }
@@ -14,7 +16,7 @@ const failed = new Set<string>();
 /** Key đang xin theo từng scene (Game bị huỷ mỗi lần đổi bản đồ nên không giữ qua scene). */
 const pending = new WeakMap<Phaser.Scene, Set<string>>();
 
-/** preloadSprites gọi cho mỗi `vh_*` isometric trong manifest. */
+/** preloadSprites gọi cho mỗi `vh_*` / `pt_*` isometric trong manifest. */
 export const registerVohonSheet = (key: string, url: string, frame: readonly [number, number]) => { specs.set(key, { url, frame }); };
 
 export const vohonKeys = (id: string): [string, string] => [`vh_${id}_b`, `vh_${id}_f`];
@@ -24,7 +26,7 @@ function settle(scene: Phaser.Scene) {
   const set = pending.get(scene);
   if (!set) return;
   for (const key of [...set]) {
-    if (scene.textures.exists(key)) attachNormal(scene, key);
+    if (scene.textures.exists(key)) { if (key.startsWith("vh_")) attachNormal(scene, key); }
     else failed.add(key);
     set.delete(key);
   }
@@ -38,9 +40,14 @@ export function wantVohon(scene: Phaser.Scene, id: string, start = true): "ready
   const keys = vohonKeys(id);
   if (keys.every((k) => scene.textures.exists(k))) return "ready";
   if (keys.some((k) => !specs.has(k) || failed.has(k))) return "code";
+  queue(scene, keys, lightingOn(scene.game), start);
+  return "wait";
+}
+
+/** Xếp hàng tải các key chưa có / chưa xin trong scene này; `normals`: kèm `<key>_n`. */
+function queue(scene: Phaser.Scene, keys: string[], normals: boolean, start: boolean) {
   let set = pending.get(scene);
   if (!set) { set = new Set(); pending.set(scene, set); scene.load.on(Phaser.Loader.Events.COMPLETE, () => settle(scene)); }
-  const normals = lightingOn(scene.game);
   let queued = false;
   for (const k of keys) {
     if (set.has(k) || scene.textures.exists(k)) continue;
@@ -50,6 +57,19 @@ export function wantVohon(scene: Phaser.Scene, id: string, start = true): "ready
     if (normals) scene.load.image(`${k}_n`, s.url.replace(/\.png$/, "_n.png"));
   }
   if (queued && start) scene.load.start();
+}
+
+/**
+ * Xin sheet pháp tướng của võ hồn `id`: `"ready"` (đã có thân, lớp sáng có thì cũng đã tới), `"wait"` (đang tải), `"code"` (manifest không có
+ * ảnh thật hoặc tải lỗi: dùng sheet tạm vẽ bằng code, ensurePtSheet). Lớp sáng `_glow` lỗi / không có thì bỏ, như khi manifest không ghi.
+ */
+export function wantPhapTuong(scene: Phaser.Scene, id: string, start = true): "ready" | "wait" | "code" {
+  const def = PHAP_TUONG[id]; if (!def) return "code";
+  const body = def.sheet, glow = `${body}_glow`;
+  if (!specs.has(body) || failed.has(body)) return scene.textures.exists(body) ? "ready" : "code";
+  const keys = [body, ...(specs.has(glow) && !failed.has(glow) ? [glow] : [])];
+  if (keys.every((k) => scene.textures.exists(k))) return "ready";
+  queue(scene, keys, false, start);
   return "wait";
 }
 
