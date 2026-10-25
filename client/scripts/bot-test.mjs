@@ -5986,16 +5986,20 @@ async function autoTest(){
     // (hook spawn giới hạn độ lệch: đặt con ở bên phải rồi dời cả hai người sang trái cho tới khi xa con hơn AUTO_PARTY.leash)
     await test(A,"goto",home); await test(B,"goto",{x:home.x+16,y:home.y});
     const fr=(await test(A,"spawn",{tier:0,dx:150,dy:0,years:20,hpx:80}))?.bid, fb0=A.room.state.beasts.get(fr);
-    for(let k=0;k<16;k++){ const a=k*Math.PI/8, r=AUTO_PARTY.leash+100; await test(A,"goto",{x:Math.round(fb0.x+r*Math.cos(a)),y:Math.round(fb0.y+r*Math.sin(a))}); if(Math.hypot(me(A).x-fb0.x,me(A).y-fb0.y)>AUTO_PARTY.leash+20&&!inCamp(me(A).x,me(A).y)) break; }
+    // Con lang thang tối đa BEAST_WANDER mỗi trục quanh chỗ sinh (chéo ≈ ×1.42): biên phải lớn hơn thế, không thì con lang thang lọt vào leash là hợp lệ.
+    const FAR=AUTO_PARTY.leash+Math.ceil(BEAST_WANDER*1.42)+16;
+    for(let k=0;k<16;k++){ const a=k*Math.PI/8, r=FAR+60; await test(A,"goto",{x:Math.round(fb0.x+r*Math.cos(a)),y:Math.round(fb0.y+r*Math.sin(a))}); if(Math.hypot(me(A).x-fb0.x,me(A).y-fb0.y)>FAR&&!inCamp(me(A).x,me(A).y)) break; }
     await test(B,"goto",{x:me(A).x-8,y:me(A).y});
     await sleep(300);
-    const farOk=Math.hypot(me(A).x-fb0.x,me(A).y-fb0.y)>AUTO_PARTY.leash+8&&Math.hypot(me(B).x-fb0.x,me(B).y-fb0.y)>AUTO_PARTY.leash+8;
+    const farOk=Math.hypot(me(A).x-fb0.x,me(A).y-fb0.y)>FAR&&Math.hypot(me(B).x-fb0.x,me(B).y-fb0.y)>FAR;
     await test(A,"auto",{pace:0}); await test(B,"auto",{pace:0});
     if(!farOk) console.log("  ⚠ bỏ qua leash: không đứng được đủ xa con");
     else{
-      await autoOp(A,"on"); await autoOp(B,"on"); let took=false;
-      await sleep(1200); // A bật trước khi B bật nên có thể đã nhắm con đó; sau khi thấy đồng đội thì phải bỏ (keep) và không nhắm lại
-      for(let t=0;t<5000&&!took;t+=250){ took=(await infoA()).target===fr||(await test(B,"auto"))?.target===fr; if(!took) await sleep(250); }
+      await Promise.all([autoOp(A,"on"),autoOp(B,"on")]); let took=false; // bật cùng lúc: bật lệch thì người bật trước kịp đi tới con, đồng đội đi theo, con lọt vào leash một cách hợp lệ
+      await sleep(1200);
+      // Không có mục tiêu thì hai người đi tuần / đi theo nhau nên có thể tự bước vào leash: chỉ tính vi phạm khi đang nhắm con mà lúc đó nó cách cả hai xa hơn leash (+ biên một nhịp đi).
+      const out=()=>{ const f=A.room.state.beasts.get(fr); return !!f&&Math.hypot(me(A).x-f.x,me(A).y-f.y)>AUTO_PARTY.leash+2*TILE&&Math.hypot(me(B).x-f.x,me(B).y-f.y)>AUTO_PARTY.leash+2*TILE; };
+      for(let t=0;t<5000&&!took;t+=250){ took=((await infoA()).target===fr||(await test(B,"auto"))?.target===fr)&&out(); if(!took) await sleep(250); }
       { const fe=A.room.state.beasts.get(fr), sa=await infoA(), sb=await test(B,"auto");
         ok(!took,`AH4 tổ đội: con ở cách đồng đội xa hơn AUTO_PARTY.leash (${AUTO_PARTY.leash/TILE} ô) không ai nhắm`+(took?` [con ${fe?.x.toFixed(0)},${fe?.y.toFixed(0)} (đầu ${fb0.x.toFixed(0)},${fb0.y.toFixed(0)}); A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)} nhắm ${sa.target} ${sa.mates} đồng đội; B ${me(B).x.toFixed(0)},${me(B).y.toFixed(0)} nhắm ${sb?.target}; fr ${fr}]`:"")); }
       await autoOp(A,"off"); await autoOp(B,"off");
