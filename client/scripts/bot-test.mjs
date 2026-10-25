@@ -11838,7 +11838,7 @@ async function lockTest(){
   console.log("[M3 #750] Khoá mục tiêu: tự đánh, giữ khoá khi bị đánh / Choáng, Space tự quay mặt");
   const F=await bot("Khoá mục tiêu","xuc_xich",{sex:0,hair:2,hairCol:3,outfitCol:2});
   const mo=()=>F.room.state.players?.get(F.room.sessionId), bs=bid=>F.room.state.beasts.get(bid);
-  let lockMsg=null, n=0; F.room.onMessage("lock",m=>{ lockMsg=m.id; n++; });
+  let lockMsg=null, lockWhy=null, n=0; F.room.onMessage("lock",m=>{ lockMsg=m.id; lockWhy=m.why??null; n++; });
   await waitFor(()=>F.owned&&mo(),3000);
   try{
     if(!(await test(F,"ping"))?.enabled){ console.log("  ⚠ bỏ qua khoá mục tiêu (cần hook goto, spawn, clear, pst): bật server bằng GAME_TEST=1"); return; }
@@ -11872,6 +11872,7 @@ async function lockTest(){
     // 5) Quái chết thì server huỷ khoá.
     await test(F,"bhp",{pct:1,bid});
     ok(await waitFor(()=>!bs(bid)&&lockMsg==="",8000),`quái chết: huỷ khoá (lock "${lockMsg}")`);
+    ok(lockWhy==="gone",`quái chết: tin lock mang lý do "gone" (${lockWhy}) để chip báo lý do (M5 #751)`);
     // 6) Chống gian lận: id không có thật / sai kiểu bị bỏ, khoá cũ cũng bỏ.
     await test(F,"clear");
     const b2=(await test(F,"spawn",{tier:0,dx:70}))?.bid; await waitFor(()=>bs(b2),1000);
@@ -11889,6 +11890,16 @@ async function lockTest(){
     const b3=(await test(F,"spawn",{tier:0,dx:22,hpx:6}))?.bid; await waitFor(()=>bs(b3),1000);
     const k0=bs(b3)?.hp; F.room.send("attack");
     ok(await waitFor(()=>bs(b3)&&bs(b3).hp<k0,1200)&&lockMsg==="",`Space chưa khoá, quái ở sau lưng trong tầm: tự quay mặt, đánh trúng (${k0} -> ${bs(b3)?.hp}), không khoá`);
+    // 8) Thứ tự ưu tiên lệnh (M5 #751): khoá > tự săn. Đang khoá thì bật tự săn bị từ chối (nêu lý do); bấm quái khi đang tự săn thì tự săn tắt, khoá thắng.
+    await test(F,"clear"); const b4=(await test(F,"spawn",{tier:0,dx:70}))?.bid; await waitFor(()=>bs(b4),1000);
+    F.room.send("target",{id:b4}); await waitFor(()=>lockMsg===b4,1500);
+    F.autoMsg=null; F.room.send("auto",{op:"on"}); await waitFor(()=>F.autoMsg,1500);
+    ok(F.autoMsg&&!F.autoMsg.on&&/khoá mục tiêu/.test(F.autoMsg.why??"")&&!mo().auto&&lockMsg===b4,`đang khoá: bật tự săn bị từ chối (${F.autoMsg?.why}), khoá vẫn giữ`);
+    F.room.send("target",{id:""}); await waitFor(()=>lockMsg==="",1000);
+    F.autoMsg=null; F.room.send("auto",{op:"on"}); await waitFor(()=>F.autoMsg,1500);
+    ok(F.autoMsg?.on&&await waitFor(()=>mo().auto,1000),"hết khoá: bật được tự săn");
+    F.room.send("target",{id:b4}); await waitFor(()=>lockMsg===b4,1500);
+    ok(await waitFor(()=>!mo().auto&&F.autoMsg&&!F.autoMsg.on,2000)&&lockMsg===b4,"đang tự săn rồi bấm quái: tự săn tắt, khoá thắng");
     await test(F,"clear");
   } finally { await F.room.leave().catch(()=>{}); }
 }

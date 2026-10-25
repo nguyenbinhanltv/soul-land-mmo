@@ -60,7 +60,7 @@
             <button id="mapviewFit" class="mvbtn mvfit" title="Đặt lại zoom: vừa khung cả bản đồ">⟲ Vừa khung</button>
             <button id="mapviewIn" class="mvbtn mvz" title="Phóng to (lăn chuột lên, chụm hai ngón)">+</button>
             <button id="mapviewOut" class="mvbtn mvz" title="Thu nhỏ">−</button>
-            <button id="mapviewClose" class="mvbtn mvx" title="Đóng (N hoặc Esc)" aria-label="Đóng bản đồ khu vực">✕</button>
+            <button id="mapviewClose" class="mvbtn mvx" title="Đóng (N hoặc Esc)" aria-label="Đóng bản đồ khu vực">×</button>
           </div>
         </div>
         <div id="mapviewHelp">Kéo để di chuyển · bấm (điện thoại: chạm giữ) để đặt cờ · chuột phải: "Tập trung ở đây" (tổ đội) · lăn chuột / chụm hai ngón để phóng · ⟲ Vừa khung: đặt lại zoom · N hoặc Esc để đóng</div>
@@ -86,7 +86,7 @@
           <button id="areaBtn" class="minibtn" aria-controls="mapview" aria-expanded="false" title="Bản đồ khu vực (phím N)">Vùng <kbd>N</kbd></button>
           <button id="worldBtn" class="minibtn" aria-controls="world" aria-expanded="false" title="Bản đồ thế giới">Thế giới <kbd>M</kbd></button>
         </div>
-        <div id="flagBar" hidden aria-live="polite"><span id="flagText"></span><button id="flagGo" class="minibtn" title="Tự đi tới cờ (phím Y)">Đi <kbd>Y</kbd></button><button id="flagStop" class="minibtn" title="Dừng tự đi (hoặc bấm phím di chuyển)" hidden>Dừng <kbd>Y</kbd></button><button id="flagClear" class="minibtn" title="Xoá cờ" aria-label="Xoá cờ">✕</button></div>
+        <div id="flagBar" hidden aria-live="polite"><span id="flagText"></span><button id="flagGo" class="minibtn" title="Tự đi tới cờ (phím Y)">Đi <kbd>Y</kbd></button><button id="flagStop" class="minibtn" title="Dừng tự đi (hoặc bấm phím di chuyển)" hidden>Dừng <kbd>Y</kbd></button><button id="flagClear" class="minibtn" title="Xoá cờ" aria-label="Xoá cờ">×</button></div>
         <div id="chans" hidden role="dialog" aria-label="Chọn kênh"></div>
       </section>
       <div id="quest" class="panel" hidden aria-label="Nhiệm vụ đang làm"></div>
@@ -95,6 +95,7 @@
       <div id="bossCd" hidden></div>
       <div id="bossRank" class="panel" hidden></div>
       <div id="target" class="panel"></div>
+      <div id="cmdChip" hidden role="status" aria-live="polite"><span id="cmdChipText"></span><button id="cmdChipX" type="button" title="Huỷ lệnh này" aria-label="Huỷ lệnh này">×</button></div>
       <div id="prompt" class="panel"></div>
       <div id="portal" class="panel" hidden></div>
       <div id="wpbox" class="panel" hidden></div>

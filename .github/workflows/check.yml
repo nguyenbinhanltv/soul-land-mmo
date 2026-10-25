@@ -275,6 +275,8 @@ jobs:
       - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
         run: npm run test:clickgoal --prefix server
       - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
+        run: npm run test:control --prefix server
+      - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
         run: npm run test:ratelimit --prefix server
       - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
         run: npm run test:accounts --prefix server
