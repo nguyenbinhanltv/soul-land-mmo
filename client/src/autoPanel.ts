@@ -136,12 +136,12 @@ export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
     if (b.dataset.preset === "custom") { y("y0").focus(); return; }
     if (b.dataset.preset) { const p = YEAR_PRESETS[Number(b.dataset.preset)]; y("y0").value = String(p.years[0]); y("y1").value = String(p.years[1]); }
     else { const i = y(b.dataset.step!); i.value = String(clampYears(Number(i.value) + Number(b.dataset.d) * YEAR_STEP)); }
-    b.blur(); commit(el);
+    b.blur(); commit(el, true);
   }, on);
   // Ô đánh dấu / chọn / thanh trượt đổi xong thì bỏ tiêu điểm để phím game (Space, mũi tên, số) dùng lại ngay; ô số và chọn sao giữ tiêu điểm.
   el.addEventListener("change", (e) => {
     const t = e.target as HTMLInputElement; if (t.type === "checkbox" || t.type === "radio" || t.type === "range") t.blur();
-    commit(el);
+    commit(el, t.dataset.k === "y0" || t.dataset.k === "y1");
   }, on);
   for (const key of ["skills", "slots"] as const) {
     $(`[data-list=${key}]`, el)!.addEventListener("click", (e) => {
@@ -174,12 +174,15 @@ function checkYears(el: HTMLElement) {
   return ok;
 }
 
-/** Gửi cài đặt sau khi người chơi đổi; niên hạn sai (từ > đến) thì không gửi niên hạn đó (giữ niên hạn đang lưu). Ô niên hạn vượt trần thì kẹp về MAX_YEARS ngay ở ô. */
-function commit(el: HTMLElement) {
+/** Gửi cài đặt sau khi người chơi đổi; niên hạn sai (từ > đến): sửa chính ô niên hạn thì không gửi, đổi ô khác thì gửi kèm niên hạn đang lưu. Ô niên hạn vượt trần thì kẹp về MAX_YEARS ngay ở ô. */
+function commit(el: HTMLElement, yearsChanged = false) {
   const [a, b] = yearsOf(el);
   $<HTMLInputElement>("[data-k=y0]", el)!.value = String(a); $<HTMLInputElement>("[data-k=y1]", el)!.value = String(b);
   const cfg = read(el); if (!cfg) return;
-  if (!checkYears(el)) cfg.years = [...last!.cfg.years]; // niên hạn sai: ô vẫn đỏ, các thay đổi khác vẫn lưu với niên hạn đang có
+  if (!checkYears(el)) {
+    if (yearsChanged) return; // đang sửa niên hạn: không gửi (server trả tin sẽ ghi đè số đang gõ), ô đỏ chờ sửa tiếp
+    cfg.years = [...last!.cfg.years]; // đổi ô khác khi niên hạn đang sai: vẫn lưu, với niên hạn đang có
+  }
   ctx?.send("set", cfg);
 }
 
