@@ -1,0 +1,17 @@
+{
+ "lorc": {
+  "name": "Lorc",
+  "url": "https://lorcblog.blogspot.com",
+  "license": "CC BY 3.0"
+ },
+ "delapouite": {
+  "name": "Delapouite",
+  "url": "https://delapouite.com",
+  "license": "CC BY 3.0"
+ },
+ "faithtoken": {
+  "name": "Faithtoken",
+  "url": "https://fungustoken.deviantart.com",
+  "license": "CC BY 3.0"
+ }
+}
