@@ -3,18 +3,13 @@
 import Phaser from "phaser";
 import { VOHON } from "../../shared/data.ts";
 import { artUrl } from "./uiArt.ts";
+import { readFxPrefs, type FxLevel } from "./fxSettings.ts";
 
-type Level = "low" | "mid" | "high";
-const FX_KEY = "soul-land-fx-v1"; // cùng khoá với tùy chọn hiệu ứng của G1 (#392)
+type Level = FxLevel;
 type Prefs = { level: Level; reduce: boolean; shakeOff?: boolean };
 function prefs(): Prefs {
-  let reduce = false;
-  try { reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { /* không có matchMedia */ }
-  try {
-    const r = JSON.parse(window.localStorage.getItem(FX_KEY) ?? "null");
-    if (r && typeof r === "object") return { level: r.level === "low" || r.level === "high" ? r.level : "mid", reduce: typeof r.reduce === "boolean" ? r.reduce : reduce, shakeOff: r.shake === "off" };
-  } catch { /* hỏng thì dùng mặc định Vừa */ }
-  return { level: "mid", reduce };
+  const p = readFxPrefs();
+  return { level: p.level, reduce: p.reduce, shakeOff: p.shake === "off" };
 }
 
 const FEED_MAX = 4, FEED_MS = 6000, SLOW_MS = 500, SLOW_K = 0.3, LOW_HP = 0.25, SKILL_MS = 3000;
