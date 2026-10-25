@@ -21,6 +21,7 @@ import { phapTuongTestScreen } from "./phapTuongTest.ts";
 import { phutheTestScreen } from "./phutheTest.ts";
 import { sharedAudioContext, stopMusic } from "./audio/music.ts";
 import { mountGoogleButton } from "./google.ts";
+import { openCredits } from "./credits.ts";
 
 const card = document.getElementById("card")!, overlay = document.getElementById("overlay")!;
 if (matchMedia("(pointer: coarse)").matches) document.body.classList.add("touch");
@@ -52,7 +53,9 @@ function loginScreen(err = "") {
     <aside class="c6-event" aria-label="Sự kiện đang diễn ra">
       <img src="/ui/c6/event-banner.png" alt="">
       <div class="c6-event-copy"><small>SỰ KIỆN MÙA SĂN</small><strong>Vòng Hồn Nguyệt Ảnh</strong><span>Thu thập ánh trăng trong Rừng Săn Hồn</span></div>
-    </aside>`;
+    </aside>
+    <button class="c6-credits" id="credits-open" type="button">Ghi công</button>`;
+  document.getElementById("credits-open")!.addEventListener("click", openCredits);
   const name = document.getElementById("name") as HTMLInputElement, pass = document.getElementById("pass") as HTMLInputElement;
   name.value = storage.get("shh-name") ?? ""; (name.value ? pass : name).focus();
   document.getElementById("err")!.textContent = err;
