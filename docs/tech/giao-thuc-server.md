@@ -52,7 +52,7 @@ Matchmake (`joinOrCreate`, `joinById`) giữ chỗ và mở kênh ở bước HT
 - Vé chọn tên ký HMAC (`GOOGLE_TICKET_SECRET`; thiếu thì ngẫu nhiên mỗi lần khởi động, nhiều tiến trình phải đặt chung), chỉ chứa `sub` và hạn 10 phút.
 - Ba route Google dùng chung giới hạn theo IP `ssoCheck` (`ratelimit.ts`); tạo tài khoản còn tính vào giới hạn tạo tài khoản mới.
 - `GOOGLE_CLIENT_ID` là cấu hình công khai, trống thì tắt đăng nhập Google. Bộ kiểm giả (credential `test:<sub>[:tên]`) chỉ bật khi `GAME_TEST=1` và `NODE_ENV` khác `production`.
-- Kiểm thử: `npm run test:google --prefix server`, `npm run bot:local -- --only google [--pg]`. Thiết lập OAuth client: `docs/deploy.md`.
+- Kiểm thử: `npm run test:google --prefix server`, `npm run bot:local -- --only google [--pg]`. Thiết lập OAuth client: `docs/ops/sso-google.md`.
 
 ## Issue liên quan
 #561 (Redis mất giữa chừng), #612 (đăng nhập Google).

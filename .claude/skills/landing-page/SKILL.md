@@ -38,7 +38,7 @@ Landing là trang tĩnh, nhẹ, để người lạ hiểu game và bấm vào c
 
 ## SEO / chia sẻ
 - `<html lang="vi">`, `<title>` và `meta description` riêng, một `h1`, `link rel="canonical"`, thẻ Open Graph + Twitter Card (`og:image` 1200×630 tuyệt đối URL, `og:locale vi_VN`), `theme-color` = nền mực, favicon.
-- `robots.txt` và `sitemap.xml` (gồm `/`, và `/choi` nếu muốn lập chỉ mục) đặt ở `shared/assets/` (thành gốc `dist/`); URL tuyệt đối lấy từ tên miền triển khai (`docs/deploy.md`), không bịa tên miền: chưa biết thì để biến / ghi chú cho chủ repo.
+- `robots.txt` và `sitemap.xml` (gồm `/`, và `/choi` nếu muốn lập chỉ mục) đặt ở `shared/assets/` (thành gốc `dist/`); URL tuyệt đối lấy từ tên miền triển khai (`docs/ops/trien-khai.md`), không bịa tên miền: chưa biết thì để biến / ghi chú cho chủ repo.
 - Dữ liệu có cấu trúc `VideoGame` (JSON-LD) là tuỳ chọn, chỉ ghi điều có thật.
 
 ## Kiểm
