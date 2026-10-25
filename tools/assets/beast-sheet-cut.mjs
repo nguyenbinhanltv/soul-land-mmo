@@ -15,6 +15,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
 import { Img, readPng, encodePng, readGpl, hex, toHex, OUTLINE, ISO_BEAST_FOOT } from "./lib.mjs";
 import { DIRS, ANIMS, COLS, BAND_ROWS, animSlot, sheetPlan, sheetCells, cellRect, speciesInfo } from "./beast-sheet-lib.mjs";
 
@@ -106,7 +107,8 @@ export function assignToCells(img, sheet, mask, opt) {
       push(`${col},${row}`, c);
     }
   }
-  const minArea = Math.max(6, opt.minArea ?? Math.round(cw * ch * 0.0012)), gap = opt.gap ?? Math.round(Math.min(cw, ch) * 0.08);
+  const unit = opt.unit ?? 1;
+  const minArea = Math.max(6, opt.minArea ?? Math.round(cw * unit * ch * unit * 0.0012)) / (unit * unit), gap = opt.gap ?? Math.round(Math.min(cw, ch) * unit * 0.08) / unit;
   const pieces = new Map(); let dropped = 0; const droppedBig = [];
   for (const [k, list] of buckets) {
     list.sort((a, b) => b.area - a.area);
@@ -143,7 +145,7 @@ const nearest = (p, pal) => { let bi = 0, bd = Infinity; for (let i = 0; i < pal
 
 // ---------- Cắt một loài ----------
 /**
- * @param {{ species: string, sheets: Record<string, Img>, frame?: number, key?: number[], tol?: number, colors?: number, palette?: string, fill?: number, scale?: number, minArea?: number }} o
+ * @param {{ species: string, sheets: Record<string, Img>, frame?: number, key?: number[], tol?: number, colors?: number, palette?: string, fill?: number, scale?: number, minArea?: number, normalizeSize?: boolean }} o
  * @returns {{ sheet: Img, entry: object, report: object, frames: Map<string, Img> }} frames: khóa `dir/anim/n`
  */
 export function cutSpecies(o) {
@@ -157,13 +159,16 @@ export function cutSpecies(o) {
   for (const sh of plan) {
     const img = o.sheets[sh.id];
     if (!img) { warns.push(`thiếu tờ ${sh.id} (${sh.dirs.join(", ")})`); continue; }
+    if (o.normalizeSize && img.w * sh.h !== img.h * sh.w) throw new Error(`tờ ${sh.id}: sai tỉ lệ ${img.w}×${img.h}, cần ${sh.w}×${sh.h}; không thể chuẩn hóa đồng đều`);
+    const factor = o.normalizeSize ? sh.w / img.w : 1;
     const key = o.key ?? keyOf(img), mask = foregroundMask(img, key, tol);
-    const { pieces, dropped, droppedBig, stuck } = assignToCells(img, sh, mask, { minArea: o.minArea });
+    const { pieces, dropped, droppedBig, stuck } = assignToCells(img, sh, mask, { minArea: o.minArea, unit: factor });
     rep.dropped += dropped;
-    for (const b of droppedBig) warns.push(`tờ ${sh.id} ô ${b.cell}: bỏ mảnh rời lớn ${b.area} điểm (thân ${b.of}), kiểm tra ảnh`);
+    for (const b of droppedBig) warns.push(`tờ ${sh.id} ô ${b.cell}: bỏ mảnh rời lớn ${Math.round(b.area * factor * factor)} điểm (thân ${Math.round(b.of * factor * factor)}), kiểm tra ảnh`);
     if (stuck) warns.push(`tờ ${sh.id}: ${stuck} hình dính nhiều ô, đã chia theo ô; nên vẽ lại cho các hình cách xa nhau`);
     const used = new Set();
     rep.sheets[sh.id] = { size: [img.w, img.h], key: key && toHex(key), cells: pieces.size };
+    if (o.normalizeSize) Object.assign(rep.sheets[sh.id], { originalSize: [img.w, img.h], expectedSize: [sh.w, sh.h], factor, normalizedMode: "canonical-units" });
     for (const c of sheetCells(sh)) {
       const k = `${c.col},${c.row}`, p = pieces.get(k), name = `${c.dir}/${c.anim}/${c.frame}`;
       used.add(k);
@@ -173,7 +178,12 @@ export function cutSpecies(o) {
       const lowRows = Math.max(1, Math.round(fh * 0.08)); let sx = 0, n = 0;
       for (let y = fh - lowRows; y < fh; y++) for (let x = 0; x < fw; x++) if (im.alpha(x, y)) { sx += x; n++; }
       const r = cellRect(sh, c.col, c.row, img.w, img.h);
-      raw.set(name, { img: im, w: fw, h: fh, footX: n ? sx / n : fw / 2, bottom: y1 + 1 - r.y0, cellH: r.h, anim: c.anim, dir: c.dir });
+      if (o.normalizeSize) {
+        if (x0 < Math.floor(r.x0) || y0 < Math.floor(r.y0) || x1 >= Math.ceil(r.x1) || y1 >= Math.ceil(r.y1)) warns.push(`khung ${name}: hình vượt ô tờ ${sh.id}, kiểm tra lưới; chuẩn hóa không sửa bố cục`);
+        if (x0 === 0 || y0 === 0 || x1 === img.w - 1 || y1 === img.h - 1) warns.push(`khung ${name}: chạm mép ảnh nguồn tờ ${sh.id} (có thể đã bị cắt)`);
+      }
+      // Hình nguồn giữ pixel RAW; mọi phép đo trước common scale dùng đơn vị canonical của tờ.
+      raw.set(name, { img: im, factor, w: fw * factor, h: fh * factor, area: p.px.length * factor * factor, footX: (n ? sx / n : fw / 2) * factor, bottom: (y1 + 1 - r.y0) * factor, cellH: r.h * factor, anim: c.anim, dir: c.dir });
     }
     for (const k of pieces.keys()) if (!used.has(k)) warns.push(`tờ ${sh.id}: có hình ở ô trống ${k} (bỏ qua)`);
   }
@@ -182,9 +192,9 @@ export function cutSpecies(o) {
   for (const dir of DIRS) for (const [anim, n] of ANIMS) {
     const fr = [...Array(n).keys()].map((f) => ({ f, r: raw.get(`${dir}/${anim}/${f}`) })).filter((x) => x.r);
     if (fr.length < 2) continue;
-    const mh = median(fr.map((x) => x.r.h)), mw = median(fr.map((x) => x.r.w)), ma = median(fr.map((x) => x.r.img.data.filter((_, i) => i % 4 === 3 && _).length));
+    const mh = median(fr.map((x) => x.r.h)), mw = median(fr.map((x) => x.r.w)), ma = median(fr.map((x) => x.r.area));
     for (const { f, r } of fr) {
-      const area = r.img.data.filter((_, i) => i % 4 === 3 && _).length, why = [];
+      const area = r.area, why = [];
       if (area > ma * 1.7 || area < ma / 1.7) why.push(`diện tích ${Math.round((area / ma) * 100)}% trung vị`);
       if (anim !== "attack" && anim !== "die" && (r.h > mh * 1.35 || r.h < mh / 1.35)) why.push(`cao ${r.h} (trung vị ${Math.round(mh)})`);
       if (anim !== "attack" && anim !== "die" && (r.w > mw * 1.5 || r.w < mw / 1.5)) why.push(`rộng ${r.w} (trung vị ${Math.round(mw)})`);
@@ -227,9 +237,9 @@ export function cutSpecies(o) {
 
   const frames = new Map(), q = [];
   for (const [name, r] of raw) {
-    const pw = r.w, ph = r.h, idx = new Int16Array(pw * ph).fill(-1);
+    const pw = r.img.w, ph = r.img.h, sourceScale = scale * r.factor, idx = new Int16Array(pw * ph).fill(-1);
     for (let y = 0; y < ph; y++) for (let x = 0; x < pw; x++) if (r.img.alpha(x, y)) idx[y * pw + x] = nearest(r.img.get(x, y), pal);
-    const out = new Img(F, F), sw = pw * scale, y0 = Math.round(foot - ph * scale);
+    const out = new Img(F, F), sw = r.w * scale, y0 = Math.round(foot - r.h * scale);
     // chân về giữa khung; hình lệch ra mép (đòn lao, ngã) thì dời vào trong cho còn chỗ viền, báo nếu phải dời xa
     let x0 = Math.round(F / 2 - r.footX * scale); const want = x0;
     x0 = Math.max(2, Math.min(F - 2 - Math.ceil(sw), x0));
@@ -238,7 +248,7 @@ export function cutSpecies(o) {
     for (let v = 0; v < F; v++) for (let u = 0; u < F; u++) {
       const votes = new Map(); let opaque = 0;
       for (let sy = 0; sy < 4; sy++) for (let sx = 0; sx < 4; sx++) {
-        const X = Math.floor((u - x0 + (sx + 0.5) / 4) / scale), Y = Math.floor((v - y0 + (sy + 0.5) / 4) / scale);
+        const X = Math.floor((u - x0 + (sx + 0.5) / 4) / sourceScale), Y = Math.floor((v - y0 + (sy + 0.5) / 4) / sourceScale);
         if (X < 0 || Y < 0 || X >= pw || Y >= ph) continue;
         const c = idx[Y * pw + X];
         if (c >= 0) { opaque++; votes.set(c, (votes.get(c) ?? 0) + 1); }
@@ -308,6 +318,7 @@ function parseArgs(argv) {
     else if (a === "--fill") o.fill = +next();
     else if (a === "--scale") o.scale = +next();
     else if (a === "--min-area") o.minArea = +next();
+    else if (a === "--normalize-size") o.normalizeSize = true;
     else throw new Error(`tùy chọn lạ: ${a}`);
   }
   return o;
@@ -317,11 +328,16 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     const o = parseArgs(process.argv.slice(2));
     if (!o.species || !o.out || !Object.keys(o.sheets).length) {
-      console.error("Dùng: node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=<ảnh> [--sheet B=<ảnh>] --out <thư mục> [--frame N] [--colors 24] [--palette auto|gpl|<gpl>] [--fill 0.8 | --scale S] [--key #ff00ff] [--tol 60]");
+      console.error("Dùng: node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=<ảnh> [--sheet B=<ảnh>] --out <thư mục> [--normalize-size] [--frame N] [--colors 24] [--palette auto|gpl|<gpl>] [--fill 0.8 | --scale S] [--key #ff00ff] [--tol 60]");
       process.exit(2);
     }
-    for (const id of Object.keys(o.sheets)) o.sheets[id] = readPng(o.sheets[id]);
+    const hashes = {};
+    for (const id of Object.keys(o.sheets)) {
+      if (o.normalizeSize) hashes[id] = createHash("sha256").update(readFileSync(o.sheets[id])).digest("hex");
+      o.sheets[id] = readPng(o.sheets[id]);
+    }
     const res = cutSpecies(o);
+    if (o.normalizeSize) for (const [id, hash] of Object.entries(hashes)) if (res.report.sheets[id]) res.report.sheets[id].sourceSha256 = hash;
     mkdirSync(o.out, { recursive: true });
     writeFileSync(path.join(o.out, `${o.species}_anim.png`), encodePng(res.sheet));
     writeFileSync(path.join(o.out, "manifest-entry.json"), JSON.stringify(res.entry, null, 2) + "\n");
