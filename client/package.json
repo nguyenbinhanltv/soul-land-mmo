@@ -10,13 +10,14 @@
     "test:predict": "node scripts/predict-test.mjs",
     "test:nameplate": "node --experimental-strip-types scripts/nameplate-test.mjs",
     "test:nameplate-browser": "node scripts/nameplate-browser.mjs",
+    "test:actionbar-browser": "node scripts/actionbar-browser.mjs",
     "test:charbag": "node scripts/charbag-test.mjs",
     "test:phaptuong": "node scripts/phaptuong-test.mjs",
     "test:spiritmotion": "node scripts/spiritmotion-test.mjs",
     "test:combatfeel": "node scripts/combatfeel-test.mjs",
     "test:skillvisual": "node scripts/skillvisual-test.mjs",
-    "test:audio": "node scripts/audio-test.mjs && node scripts/music-test.mjs",
-    "test:actionbar-browser": "node scripts/actionbar-browser.mjs"
+    "test:fontglyph": "node scripts/font-glyph-test.mjs",
+    "test:audio": "node scripts/audio-test.mjs && node scripts/music-test.mjs"
   },
   "dependencies": {
     "colyseus.js": "0.16.22",

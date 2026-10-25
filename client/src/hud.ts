@@ -1175,8 +1175,8 @@ function renderCores(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
     row.innerHTML = `${coreSvg(set)}<span><b></b><small></small><small></small></span>`;
     row.querySelector("b")!.textContent = `${cs ? `${cs.name} (${cs.tag})` : "Bộ lạ"} · ${n} món`;
     const [s2, s4] = row.querySelectorAll("small");
-    s2.textContent = `${n >= CORE_SET_2 ? "✓" : `${n}/${CORE_SET_2}`} 2 món: ${cs?.set2 ?? "không rõ"}`; s2.classList.toggle("on", n >= CORE_SET_2);
-    s4.textContent = `${n >= CORE_SET_4 ? "✓" : `${n}/${CORE_SET_4}`} 4 món: ${cs?.set4 ?? "không rõ"}`; s4.classList.toggle("on", n >= CORE_SET_4);
+    s2.textContent = `${n >= CORE_SET_2 ? "√" : `${n}/${CORE_SET_2}`} 2 món: ${cs?.set2 ?? "không rõ"}`; s2.classList.toggle("on", n >= CORE_SET_2);
+    s4.textContent = `${n >= CORE_SET_4 ? "√" : `${n}/${CORE_SET_4}`} 4 món: ${cs?.set4 ?? "không rõ"}`; s4.classList.toggle("on", n >= CORE_SET_4);
     row.setAttribute("aria-label", `Bộ ${cs?.name ?? "lạ"}: ${n} món${n >= CORE_SET_4 ? ", kích hoạt 2 và 4 món" : n >= CORE_SET_2 ? ", kích hoạt 2 món" : ", chưa kích hoạt"}`);
     sets.appendChild(row);
   }
@@ -1669,7 +1669,7 @@ export function showPlayerMenu(t: { sid: string; name: string; level: number } |
   if (!t || !partyLast) { box.hidden = true; return; }
   const { v, act } = partyLast, me = v.members.find((m) => m.me), mem = v.members.find((m) => !m.me && m.name === t.name);
   const close = () => showPlayerMenu(null);
-  const head = el("div", "phead"); head.append(el("b", "", `${t.name} (cấp ${t.level})`), pbtn("✕", "", close, "Đóng"));
+  const head = el("div", "phead"); head.append(el("b", "", `${t.name} (cấp ${t.level})`), pbtn("×", "", close, "Đóng"));
   const btns = el("div", "pbtns");
   if (!mem) btns.append(pbtn("Mời vào tổ đội", "ok", () => { act.send("invite", undefined, t.sid); close(); }, `Mời ${t.name} vào tổ đội`));
   else if (me?.leader) btns.append(pbtn("Nhường trưởng nhóm", "", () => { act.send("lead", t.name); close(); }),
@@ -2991,7 +2991,7 @@ const looseEquip = (bag: BagMsg) => bag.items.flatMap((i) => {
 const honTeText = (n: number) => honTeParts(n).map((x) => `${x.n.toLocaleString("vi-VN")} ${x.unit}`).join(" ") || "0";
 const equipBtn = (box: HTMLElement, it: BagItem, tier: number, note: string, on: boolean, click: () => void) => {
   const b = document.createElement("button"); b.type = "button"; b.className = "aopt eopt" + (on ? " on" : ""); b.style.setProperty("--c", EQUIP_TIERS[tier]?.col ?? "#9db3a2");
-  b.innerHTML = `${equipIcon(it.stats)}<b></b><i></i><span></span>`; b.querySelector("b")!.textContent = (on ? "✓ " : "") + itemName(it); b.querySelector("i")!.textContent = note;
+  b.innerHTML = `${equipIcon(it.stats)}<b></b><i></i><span></span>`; b.querySelector("b")!.textContent = (on ? "√ " : "") + itemName(it); b.querySelector("i")!.textContent = note;
   b.addEventListener("click", () => { b.blur(); click(); }); box.appendChild(b);
 };
 const synFailText = (tier: number) => {
@@ -3157,7 +3157,7 @@ function questGoals(s: QuestStep, prog: number[] | null) {
     const n = prog ? Math.min(g.n, prog[i] ?? 0) : null, row = document.createElement("div");
     row.className = "qg" + (n !== null && n >= g.n ? " ok" : "");
     row.innerHTML = "<span></span><em></em>";
-    row.querySelector("span")!.textContent = (n !== null && n >= g.n ? "✓ " : "• ") + g.text;
+    row.querySelector("span")!.textContent = (n !== null && n >= g.n ? "√ " : "• ") + g.text;
     row.querySelector("em")!.textContent = n === null ? `×${g.n}` : `${n}/${g.n}`;
     box.appendChild(row);
   });
@@ -3683,7 +3683,7 @@ function renderReso() {
     const steps = document.createElement("div"); steps.className = "ressteps";
     r.steps.forEach((s, k) => {
       const st = document.createElement("span"); st.className = "resstep" + (k < lv ? " on" : "");
-      st.textContent = `${k < lv ? "✓ " : ""}${s.need}: ${resonanceText(s.bonus)}`;
+      st.textContent = `${k < lv ? "√ " : ""}${s.need}: ${resonanceText(s.bonus)}`;
       st.setAttribute("aria-label", `Mốc ${k + 1}: ${s.need} ${r.what}, ${resonanceText(s.bonus)}${k < lv ? ", đã đạt" : ", chưa đạt"}`);
       steps.appendChild(st);
     });

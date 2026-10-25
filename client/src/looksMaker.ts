@@ -198,7 +198,7 @@ function lpcEditor(mk: HTMLElement, from: LpcLooks | null, tpl: boolean) {
   const dirs = mk.querySelector<HTMLElement>("#dirs")!, anims = mk.querySelector<HTMLElement>("#anims")!;
 
   const bars = () => {
-    dirs.innerHTML = `<button type="button" class="opt mini" data-spin="1" aria-pressed="${view.isSpinning()}" title="Tự xoay bốn hướng" aria-label="Tự xoay">⟳</button>` +
+    dirs.innerHTML = `<button type="button" class="opt mini" data-spin="1" aria-pressed="${view.isSpinning()}" title="Tự xoay bốn hướng" aria-label="Tự xoay">↻</button>` +
       PREVIEW_DIRS.map((d) => `<button type="button" class="opt mini" data-dir="${d}" aria-pressed="${!view.isSpinning() && view.currentDir() === d}" title="Hướng ${DIR_LABEL[d].toLowerCase()}" aria-label="Hướng ${DIR_LABEL[d].toLowerCase()}">${DIR_ARROW[d]}</button>`).join("");
     anims.innerHTML = ANIMS.map(([a, n]) => `<button type="button" class="opt mini" data-anim="${a}" aria-pressed="${anim === a}">${n}</button>`).join("");
   };
@@ -226,7 +226,7 @@ function lpcEditor(mk: HTMLElement, from: LpcLooks | null, tpl: boolean) {
     // Món không hợp giới đã bị ẩn khỏi danh sách (partsOf); ô trống thì chỉ còn "Không".
     let h = `<h3>${LPC_SLOTS[tab]}${cur ? ` · ${esc(cur.vi)}` : ""}</h3><div class="partgrid">`;
     if (!REQUIRED.includes(tab)) h += `<button type="button" class="opt" data-part="" aria-pressed="${!cur}">Không</button>`;
-    h += list.map((p) => `<button type="button" class="opt" data-part="${p.id}" aria-pressed="${cur?.id === p.id}">${esc(p.vi)}${p.style === "dong" ? ' <i class="cp" title="Hợp cổ phong">✦</i>' : ""}</button>`).join("");
+    h += list.map((p) => `<button type="button" class="opt" data-part="${p.id}" aria-pressed="${cur?.id === p.id}">${esc(p.vi)}${p.style === "dong" ? ' <i class="cp" title="Hợp cổ phong">◆</i>' : ""}</button>`).join("");
     h += "</div>";
     if (!list.length) h += `<p class="rnote">Ô này chưa có món nào hợp thể hình ${SEXES[l.body].toLowerCase()}.</p>`;
     if (cur) {
