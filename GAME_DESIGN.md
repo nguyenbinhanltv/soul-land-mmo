@@ -53,7 +53,7 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/luu-tru-cong-phien.md](docs/tech/luu-tru-cong-phien.md) | 5 | Đi qua cổng và lưu vị trí; Mỗi tài khoản một phiên |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/presence-redis.md](docs/tech/presence-redis.md) | 5 | Thông báo toàn server và lịch boss |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/du-lieu-db.md](docs/tech/du-lieu-db.md) | 5 | Dữ liệu trong `shared/data.ts; Dữ liệu lâu dài |
-| 7 | Lộ trình | [ROADMAP.md](ROADMAP.md) | 5 | Đã có; [ ] Áo hồn sư kiểu khác; [ ] NV6 Ảnh nền búp bê |
+| 7 | Lộ trình | [ROADMAP.md](ROADMAP.md) | 5 | Đã có; [ ] NV6 Ảnh nền búp bê; [ ] Giao diện và cảm giác họ C1–C16 |
 | 7 | Lộ trình | [docs/lich-su.md](docs/lich-su.md) | 5 | Giai đoạn 10; Đã có; Ảnh tĩnh bằng ComfyUI; Giai đoạn 11; Giai đoạn 12; Tự săn; Việc để sau; Giai đoạn 13; Giai đoạn 14; Nhóm Bản đồ khu vực; Nhóm Hình thái Võ Hồn Chân Thân; Nhóm Hình ảnh kỹ năng combat; Nhóm Hồn sư tự tạo bằng LPC |
 | 8 | Câu hỏi còn mở | [ROADMAP.md](ROADMAP.md) | 13 |  |
 
