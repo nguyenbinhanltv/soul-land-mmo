@@ -3,6 +3,7 @@
 // `data-pick` trên <body>. Các bảng khác (Đội hình, Bạn bè, Thế giới…) vẫn tự đóng nhau như cũ ở hud.ts.
 import type { PanelId, WindowState } from "./charBagContract.ts";
 import { hideCard, hideCompare } from "./actionCard.ts";
+import { raiseStack } from "./panelStack.ts";
 
 const EL: Record<PanelId, string> = { char: "char", bag: "bag" };
 const el = (p: PanelId) => document.getElementById(EL[p])!;
@@ -43,7 +44,7 @@ function sync() {
 }
 
 /** Bảng được chọn nổi lên (bấm vào bảng, hoặc vừa mở). */
-export function raisePanel(p: PanelId) { front = p; sync(); }
+export function raisePanel(p: PanelId) { front = p; raiseStack(EL[p]); sync(); } // cả ngăn xếp bảng (Esc đóng bảng trên cùng) lẫn lớp `front`
 
 /** Gọi sau khi hud / charPanel đã đặt `hidden`: giữ lớp và thẻ chuyển khớp. Mở bảng thì bảng đó nổi lên. */
 export function panelChanged(p: PanelId, open: boolean) {
