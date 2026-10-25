@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <!-- Game ở /choi (#656): asset tải bằng URL tương đối (sprites/…, tiles.png) tính từ gốc, không phải từ /choi/. -->
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Rừng Săn Hồn Online</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌲</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="stage">
+    <div id="game"></div>
+    <div id="hud" hidden>
+      <div id="lcol">
+      <section class="panel stats">
+        <div class="who"><div class="portrait" id="vhPortrait" aria-label="Biểu tượng võ hồn"><span id="vhGlyph">魂</span></div><div class="who-main"><span id="vhName">–</span><span id="lvl"></span></div></div>
+        <div class="bar hp"><i id="hpFill"></i><span id="hpTxt"></span></div>
+        <div class="bar mp"><i id="mpFill"></i><span id="mpTxt"></span></div>
+        <div class="bar xp"><i id="xpFill"></i><span id="xpTxt"></span></div>
+        <div class="bar lei" id="leiBar" hidden><i id="leiFill"></i><span id="leiTxt"></span></div>
+        <div class="rings" id="rings"></div>
+        <div class="buffs" id="buffs" aria-label="Hiệu ứng và trạng thái"></div>
+        <div class="buffs" id="bpas" aria-label="Kỹ năng bị động của hồn cốt"></div>
+        <button id="hudMenuBtn" class="hud-menu-btn" type="button" aria-controls="quickMenu" aria-expanded="false" aria-label="Mở menu HUD">☰<span>Menu</span></button>
+        <div class="minirow" id="quickMenu" role="toolbar" aria-label="Menu HUD">
+          <button id="charBtn" class="minibtn" aria-controls="char" aria-expanded="false"><span class="menu-icon" aria-hidden="true">♙</span><span class="menu-label">Hồn sư</span> <kbd>H</kbd></button>
+          <button id="vhBtn" class="minibtn" aria-controls="roster" aria-expanded="false"><span class="menu-icon" aria-hidden="true">♜</span><span class="menu-label">Đội hình</span> <kbd>V</kbd></button>
+          <button id="bagBtn" class="minibtn" aria-controls="bag" aria-expanded="false"><span class="menu-icon" aria-hidden="true">▣</span><span class="menu-label">Túi đồ</span> <kbd>B</kbd></button>
+          <button id="resBtn" class="minibtn" aria-controls="reso" aria-expanded="false"><span class="menu-icon" aria-hidden="true">✥</span><span class="menu-label">Cộng minh</span> <kbd>K</kbd></button>
+          <button id="audioBtn" class="minibtn" aria-controls="audio" aria-expanded="false"><span class="menu-icon" aria-hidden="true">⚙</span><span class="menu-label">Cài đặt</span></button>
+          <button id="autoBtn" class="minibtn" aria-pressed="false" aria-controls="autoPanel" aria-expanded="false" title="Bảng Tự động: cài đặt và bật / tắt tự săn (phím T bật / tắt ngay)"><span class="menu-icon" aria-hidden="true">◉</span><span class="menu-label">Tự động</span> <kbd>T</kbd></button>
+        </div>
+      </section>
+      <section id="party" class="panel" aria-label="Tổ đội"></section>
+      </div>
+      <div id="pmenu" class="panel" hidden role="dialog" aria-label="Hồn sư"></div>
+      <div id="dualTabs" hidden role="tablist" aria-label="Chuyển Nhân vật / Túi"></div>
+      <div id="char" class="panel" hidden role="dialog" aria-label="Bảng nhân vật Hồn sư"></div>
+      <div id="roster" class="panel" hidden></div>
+      <div id="bag" class="panel" hidden></div>
+      <div id="reso" class="panel" hidden role="dialog" aria-label="Cộng minh"></div>
+      <div id="friends" class="panel" hidden role="dialog" aria-label="Bạn bè"></div>
+      <div id="audio" class="panel" hidden role="dialog" aria-label="Cài đặt"></div>
+      <div id="autoPanel" class="panel" hidden role="dialog" aria-label="Tự động"></div>
+      <div id="autoSum" class="panel" hidden role="dialog" aria-label="Tổng kết tự động"></div>
+      <div id="npc" class="panel" hidden role="dialog" aria-label="Hộp thoại NPC"></div>
+      <div id="world" class="panel" hidden role="dialog" aria-label="Bản đồ thế giới"></div>
+      <div id="mapview" hidden role="dialog" aria-label="Bản đồ khu vực">
+        <canvas id="mapviewCv"></canvas>
+        <div id="mapviewBar">
+          <span id="mapviewTitle"></span>
+          <div id="mapviewLayers" role="group" aria-label="Lớp hiển thị"></div>
+          <div class="mvtools">
+            <button id="mapviewMode" class="mvbtn" aria-pressed="false" title="Đổi hướng nhìn: xoay theo màn hình / nhìn thẳng (Bắc lên)">Nhìn thẳng</button>
+            <button id="mapviewGo" class="mvbtn mvgo" title="Tự đi tới cờ (đóng bản đồ)" hidden>Đi tới cờ</button>
+            <button id="mapviewClear" class="mvbtn" title="Xoá cờ" hidden>Xoá cờ</button>
+            <button id="mapviewMe" class="mvbtn" title="Về chỗ mình đứng">Về tôi</button>
+            <button id="mapviewIn" class="mvbtn mvz" title="Phóng to (lăn chuột lên, chụm hai ngón)">+</button>
+            <button id="mapviewOut" class="mvbtn mvz" title="Thu nhỏ">−</button>
+            <button id="mapviewClose" class="mvbtn mvx" title="Đóng (N hoặc Esc)" aria-label="Đóng bản đồ khu vực">✕</button>
+          </div>
+        </div>
+        <div id="mapviewHelp">Kéo để di chuyển · bấm (điện thoại: chạm giữ) để đặt cờ · chuột phải: "Tập trung ở đây" (tổ đội) · lăn chuột / chụm hai ngón để phóng · N hoặc Esc để đóng</div>
+        <div id="mapviewTip" hidden></div>
+        <div id="mapviewMenu" hidden><button id="mapviewMenuFlag" class="mvbtn">Đặt cờ</button><button id="mapviewMenuRally" class="mvbtn">Tập trung ở đây</button></div>
+      </div>
+      <div id="rcol">
+      <section class="panel mapbox">
+        <div id="radar" role="img" aria-label="Radar quanh nhân vật">
+          <canvas id="mini"></canvas>
+          <img id="radarFrame" alt="" hidden>
+          <button id="radarMode" class="rbtn" aria-pressed="false" title="Xoay theo màn hình / Nhìn thẳng">◈</button>
+          <button id="radarIn" class="rbtn" title="Phóng to (lăn chuột lên)">+</button>
+          <button id="radarOut" class="rbtn" title="Thu nhỏ (lăn chuột xuống)">−</button>
+          <div id="radarTip" hidden></div>
+        </div>
+        <div id="zoneName"></div>
+        <div id="radarInfo"></div>
+        <div id="mapLegend" aria-label="Chú giải radar"><span class="lg-mate">Đội</span><span class="lg-npc">NPC</span><span class="lg-gate">Cổng</span><span class="lg-boss">Boss</span></div>
+        <div id="online"></div>
+        <div class="radarbtns">
+          <button id="chanBtn" class="minibtn" aria-controls="chans" aria-expanded="false" title="Chọn kênh" hidden>Kênh ▾</button>
+          <button id="areaBtn" class="minibtn" aria-controls="mapview" aria-expanded="false" title="Bản đồ khu vực (phím N)">Vùng <kbd>N</kbd></button>
+          <button id="worldBtn" class="minibtn" aria-controls="world" aria-expanded="false" title="Bản đồ thế giới">Thế giới <kbd>M</kbd></button>
+        </div>
+        <div id="flagBar" hidden aria-live="polite"><span id="flagText"></span><button id="flagGo" class="minibtn" title="Tự đi tới cờ (phím Y)">Đi <kbd>Y</kbd></button><button id="flagStop" class="minibtn" title="Dừng tự đi (hoặc bấm phím di chuyển)" hidden>Dừng <kbd>Y</kbd></button><button id="flagClear" class="minibtn" title="Xoá cờ" aria-label="Xoá cờ">✕</button></div>
+        <div id="chans" hidden role="dialog" aria-label="Chọn kênh"></div>
+      </section>
+      <div id="quest" class="panel" hidden aria-label="Nhiệm vụ đang làm"></div>
+      </div>
+      <div id="bossbar" class="panel" hidden></div>
+      <div id="bossCd" hidden></div>
+      <div id="bossRank" class="panel" hidden></div>
+      <div id="target" class="panel"></div>
+      <div id="prompt" class="panel"></div>
+      <div id="portal" class="panel" hidden></div>
+      <div id="wpbox" class="panel" hidden></div>
+      <div id="fusion" class="panel" hidden aria-live="polite" aria-label="Võ Hồn Dung Hợp Kỹ"></div>
+      <div id="talk" class="panel" hidden></div>
+      <div id="arenaQ" class="panel" hidden aria-live="polite"></div>
+      <div id="arenaBar" class="panel" hidden aria-label="Trận Đại Đấu Hồn Trường"></div>
+      <div id="arenaEnd" class="panel" hidden role="dialog" aria-label="Kết quả trận đấu hồn"></div>
+      <div id="offline" class="panel" hidden role="dialog" aria-label="Ủy thác offline"></div>
+      <div id="channel"><div class="label">Đang hấp thụ hồn hoàn…</div><div class="bar"><i id="chFill"></i></div></div>
+      <div id="banner"><b></b><span></span></div>
+      <div id="bottombar">
+      <div id="chatbox">
+        <div id="log" aria-live="polite"></div>
+        <div id="chattabs" role="tablist" aria-label="Kênh chat"></div>
+        <input id="chat" maxlength="120" placeholder="Nhấn Enter để chat" autocomplete="off">
+      </div>
+      <div id="actbar">
+        <div id="team" aria-label="Đội hình: nhấn 1–4 để đổi võ hồn"></div>
+        <div id="actrow">
+          <div id="bskills" aria-label="Kỹ năng hồn cốt chủ động: Z, X, C"></div>
+          <div id="skills"></div>
+        </div>
+      </div>
+      </div>
+    </div>
+    <div id="joy"><div id="knob"></div></div>
+    <div id="overlay"><div class="card" id="card"></div></div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

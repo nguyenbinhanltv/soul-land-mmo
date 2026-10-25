@@ -39,7 +39,7 @@ ev2.push((d) => { if (d.method === "Runtime.exceptionThrown") errs.push(JSON.str
 try {
   await cdp("Page.enable"); await cdp("Runtime.enable");
   await cdp("Emulation.setDeviceMetricsOverride", { width: 960, height: 540, deviceScaleFactor: 1, mobile: false });
-  const url = SERVER + `/?nopredict&gio=12:00&light=0&lag=1${TAG === "truoc" ? "&sv=0" : ""}`;
+  const url = SERVER + `/choi/?nopredict&gio=12:00&light=0&lag=1${TAG === "truoc" ? "&sv=0" : ""}`;
   await cdp("Page.navigate", { url }); await sleep(800);
   await ev(`localStorage.setItem("shh-token", ${JSON.stringify(l.token)}), localStorage.setItem("soul-land-fx-v1", ${JSON.stringify(JSON.stringify({ level: "high", reduce: false, shake: "boss", cine: true, cutin: true, halo: "halo" }))}), true`);
   await cdp("Page.navigate", { url });

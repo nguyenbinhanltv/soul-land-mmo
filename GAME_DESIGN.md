@@ -37,7 +37,7 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/nguon-giay-phep.md](docs/art/nguon-giay-phep.md) | 5 | Nguồn và giấy phép |
 | 5.12 | Cảm giác đánh, hiệu ứng chiêu (phần hiển thị) và âm thanh | [docs/art/am-thanh.md](docs/art/am-thanh.md) | 5 | Âm thanh; Âm thanh chiến đấu và hồn thú có tầm; Nhạc nền |
 | 5.12 | Cảm giác đánh, hiệu ứng chiêu (phần hiển thị) và âm thanh | [docs/design/ky-nang-combat-phap-tuong.md](docs/design/ky-nang-combat-phap-tuong.md) | 5 |  |
-| 5.12 | Cảm giác đánh, hiệu ứng chiêu (phần hiển thị) và âm thanh | [docs/art/ky-nang-combat-dac-ta.md](docs/art/ky-nang-combat-dac-ta.md) | 1 |  |
+| 5.12 | Cảm giác đánh, hiệu ứng chiêu (phần hiển thị) và âm thanh | [docs/art/ky-nang/README.md](docs/art/ky-nang/README.md) | 1 |  |
 | 5.12 | Cảm giác đánh, hiệu ứng chiêu (phần hiển thị) và âm thanh | [docs/art/ky-nang-cong-thuc.md](docs/art/ky-nang-cong-thuc.md) | 1 |  |
 | 5.13 | Tự săn (Auto 1, Auto 2) | [docs/design/tu-san-uy-thac.md](docs/design/tu-san-uy-thac.md) | 5 | Tự săn; Ủy thác offline |
 | 5.14 | Tông môn | [docs/design/tong-mon.md](docs/design/tong-mon.md) | 5 |  |

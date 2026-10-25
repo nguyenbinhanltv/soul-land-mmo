@@ -754,6 +754,8 @@ export class MapRoom extends Room<MapState> {
    */
   perfAll = { n: 0, tick: 0, patch: 0, max: 0, auto: 0 };
   perfOn = !!process.env.PERF_LOG;
+  /** PERF_LOG=1 (#664): lần lưu định kỳ trong 10 giây: số lần, ms chụp túi (đồng bộ), ms phần đồng bộ của ghi DB, tổng số món túi + trang bị đã chụp. */
+  perfSave = { n: 0, snap: 0, store: 0, items: 0 };
   /**
    * PERF_LOG=1, nhịp chậm (#273): mốc thời gian các đoạn của tick (đầu, trước vòng người chơi, trước vòng hồn thú, trước thế giới,
    * trước sinh lại, cuối), CPU luồng chính và mốc của nhịp trước; nhịp chậm chờ in ở nhịp sau (bản ghi GC tới muộn một vòng lặp).
@@ -1399,9 +1401,15 @@ export class MapRoom extends Room<MapState> {
       return true;
     }
     // Vị trí, võ hồn và túi trong một transaction có lớp chặn WHERE map_id (#165): DB đã ở bản đồ khác thì không ghi gì, kể cả túi.
+    const t0 = this.perfOn ? performance.now() : 0;
     const list = this.unsaved(id), x = p.x, y = p.y, bag = this.unsavedBag(d);
+    const t1 = this.perfOn ? performance.now() : 0;
     let saved: boolean;
-    try { saved = await store.saveProgress(d.accountId, list, this.state.mapId, x, y, d.testLocFile, bag); }
+    try {
+      const pr = store.saveProgress(d.accountId, list, this.state.mapId, x, y, d.testLocFile, bag);
+      if (this.perfOn) { const f = this.perfSave; f.n++; f.snap += t1 - t0; f.store += performance.now() - t1; f.items += bag?.items.length ?? 0; }
+      saved = await pr;
+    }
     catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; throw e; }
     if (saved) { d.tongPend.splice(0, bag?.tongPts?.length ?? 0); return true; }
     // Lưới an toàn: beginTravel đã đọc lại DB khi đi cổng báo lỗi nên đường thường không tới đây. Nếu tới thì ngắt client để vào lại đúng
@@ -7817,6 +7825,8 @@ export class MapRoom extends Room<MapState> {
     let awake = 0; this.state.beasts.forEach((b) => { if (this.interest.awake(b.x, b.y)) awake++; });
     console.log(`[perf] ${this.state.mapId}#${this.state.channel} tick ${(f.tick / f.n).toFixed(3)} ms, patch ${(f.patch / f.n).toFixed(3)} ms, ` +
       `max ${f.max.toFixed(2)} ms, slow ${this.perfSlowN}, beasts ${this.state.beasts.size} (awake ${awake}), players ${this.state.players.size}`);
+    const sv = this.perfSave;
+    if (sv.n) { console.log(`[perf-save] ${this.state.mapId}#${this.state.channel} ${sv.n} lần lưu, chụp túi ${sv.snap.toFixed(1)} ms, ghi DB (đồng bộ) ${sv.store.toFixed(1)} ms, ${sv.items} món`); Object.assign(sv, { n: 0, snap: 0, store: 0, items: 0 }); }
     Object.assign(f, { n: 0, tick: 0, patch: 0, max: 0, at: Date.now() }); this.perfSlowN = 0;
   }
 

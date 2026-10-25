@@ -38,7 +38,7 @@ function walk(dir, rel = "", out = []) {
 /** Cỡ tối đa (byte, LF) của file .md; lớn hơn thì tách file. */
 export const MAX_MD_BYTES = 48000;
 /** Ngoại lệ có chủ đích: file -> cỡ tối đa. Hạ / bỏ khi tách file đó. */
-export const MD_SIZE_EXCEPT = { "docs/art/ky-nang-combat-dac-ta.md": 330000 };
+export const MD_SIZE_EXCEPT = {};
 const CONST_DOCS = /^docs\/(design|tech|art)\//;
 const CONST_RE = /`([A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+)`/g;
 

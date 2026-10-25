@@ -17,7 +17,7 @@ Prod hiện là một bản, nên `GOOGLE_TICKET_SECRET` chưa bắt buộc. Thi
 4. (Nhiều pod) Tạo `GOOGLE_TICKET_SECRET` bằng `openssl rand -hex 32` hoặc `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`, đặt khoá vào Secret `soul-land-env` trên cụm (chủ repo tạo tay, không Sealed Secrets), rồi `kubectl rollout restart` deployment để pod nhận giá trị mới; không dán giá trị vào repo, issue, PR, log.
 
 ## Kiểm
-Mở trang, thấy nút Google dưới form đăng nhập; chọn tài khoản Google mới → màn "Chọn tên nhân vật" → tạo nhân vật. Tài khoản cũ: đăng nhập tên + mật khẩu → **Cài đặt → Tài khoản Google** để liên kết.
+Landing (`/`) và game (`/choi`) cùng origin nên chỉ cần một origin ở bước 2. Landing có nút Google riêng (bấm là mở cửa sổ Google, xong vào `/choi`; tài khoản mới thì game hiện luôn màn chọn tên, vé chuyển qua `sessionStorage`). Kiểm: mở `/`, bấm "Đăng nhập Google" rồi vào `/choi`; hoặc mở `/choi`, thấy nút Google dưới form đăng nhập; chọn tài khoản Google mới → màn "Chọn tên nhân vật" → tạo nhân vật. Tài khoản cũ: đăng nhập tên + mật khẩu → **Cài đặt → Tài khoản Google** để liên kết.
 
 ## Dữ liệu và thử ở máy
 Server không lưu email, tên hay token Google (chỉ mã người dùng `sub`, bảng `account_identities`). Bộ kiểm giả (`test:<mã>`) chỉ có khi `GAME_TEST=1` và `NODE_ENV` khác `production`; ở prod luôn tắt. Thử: `npm run test:google --prefix server`, `npm run bot:local -- --only google [--pg]`.

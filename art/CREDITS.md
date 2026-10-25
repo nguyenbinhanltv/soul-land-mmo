@@ -106,6 +106,15 @@ Icons made by Lorc, Delapouite, Faithtoken (https://game-icons.net, CC BY 3.0). 
 
 Mỗi asset một dòng. Thêm ảnh vào `shared/assets/sprites/` thì thêm key vào `manifest.json` và ghi một dòng ở đây.
 
+## Landing page (#656)
+
+| File | Nguồn | Hậu kỳ | Ngày |
+|---|---|---|---|
+| `shared/assets/ui/landing/hero.webp`, `logo.webp` | Lấy từ `shared/assets/ui/c6/login-bg.png`, `logo.png` (Codex built-in `imagegen`, xem mục C6) | Xuất WebP | 2026-10-25 |
+| `shared/assets/ui/landing/og.jpg` | Ghép `login-bg.png` và `logo.png` (C6) | Cắt 1200×630, JPEG | 2026-10-25 |
+| `shared/assets/ui/landing/vohon.webp` | 25 chân dung `shared/assets/sprites/iso/portrait/` (Gemini / ComfyUI, xem các mục trên) | Ghép tấm 5×5 ô 64 px, WebP không mất dữ liệu: `tools/landing-sheet.py` | 2026-10-25 |
+| `shared/assets/ui/landing/map_*.webp`, `chup_san.webp`, `the_vo_hon.webp`, `tran.webp` | Ảnh chụp màn hình game thật (Chrome headless, tắt tiếng, máy chủ thử ở RAM) | Thu nhỏ 640×360 hoặc cắt khung, WebP; `tran.webp` là ảnh động 40 khung | 2026-10-25 |
+
 ## Asset tự vẽ
 
 | File | Key | Người vẽ | Concept AI (công cụ, prompt) | Ghi chú |
@@ -1609,6 +1618,7 @@ Người dùng tạo ảnh bằng Microsoft Copilot, rồi nhập bằng `tools/
 | (font) Be Vietnam Pro | Lâm Bảo, Tony Le, Việt Anh Nguyễn | https://fonts.google.com/specimen/Be+Vietnam+Pro | OFL | Không, tải qua Google Fonts |
 | `client/src/fonts/galmuri-11.woff2`, `galmuri-9.woff2` (font "Galmuri 11" / "Galmuri 9", UI-0 #350; thay Ark Pixel của bước 10.8) | Lee Minseo (quiple), Galmuri | https://github.com/quiple/galmuri (bản v2.40.4: Galmuri11 nét 12 px, Galmuri9 nét 10 px) | OFL 1.1 (`client/src/fonts/OFL-galmuri.txt`, không có Reserved Font Name) | Cắt bằng fontTools `pyftsubset --layout-features=*` còn U+0020–007E, U+00A0–024F, U+0300–036F, U+1E00–1EFF, U+2000–206F, U+20AB, U+2190–22FF, U+25A0–27BF (Latin, đủ tiếng Việt, dấu câu, mũi tên, hình học, ★ ☆), xuất woff2; không sửa nét. Đã đếm bằng fontTools: đủ 224/224 chữ Việt dựng sẵn (12 nguyên âm × 5 dấu thanh + không dấu, hoa và thường, đ Đ) ở cả hai cỡ. Không dùng Galmuri11-Bold (thiếu 146/224, mất Ă Đ Ơ Ư…) và Galmuri14 (thiếu 128/224). 12 biểu tượng ☄ ☇ ☈ ☠ ☯ ☽ ☾ ⚒ ⚔ ⛓ ⛨ ❦ không có trong Galmuri: lấy từ Ark Symbols (dòng dưới). Không dùng chữ đậm (đã chốt) |
 | `client/src/fonts/ark-symbols-12.woff2`, `ark-symbols-10.woff2` (font "Ark Symbols 12" / "Ark Symbols 10", dự phòng sau Galmuri, UI-0 #350) | TakWolf (Ark Pixel Font) | https://github.com/TakWolf/ark-pixel-font (bản 2026.10.16, 12px / 10px proportional, bộ `latin`; nguồn trực tiếp: hai tệp Ark Pixel VI của bước 10.8) | OFL 1.1 (`client/src/fonts/OFL-ark-pixel.txt`, không có Reserved Font Name) | Cắt bằng fontTools `pyftsubset` còn đúng 12 ký tự U+2604, 2607, 2608, 2620, 262F, 263D, 263E, 2692, 2694, 26D3, 26E8, 2766 (khoảng 1 KB mỗi cỡ); không sửa nét |
+| `client/src/fonts/wenkai-landing.woff2` (font "WenKai", chữ landing) | LXGW | https://fonts.google.com/specimen/LXGW+WenKai+TC (LXGW WenKai TC Regular) | OFL 1.1 (`client/src/fonts/OFL-wenkai.txt`) | Cắt bằng fontTools còn Latin (U+0020–017F), ơ ư, Latin mở rộng tiếng Việt U+1EA0–1EF9, dấu thanh tổ hợp, dấu câu, mũi tên và 6 chữ Hán 魂斗羅罗大陸 (20 KB) |
 | Bộ tiếng cho nhạc nền (soundfont `DSK Asian DreamZ.SF2`: tỳ bà, cổ tranh, nhị hồ, sáo trúc, bộ gõ Trung Hoa; không nằm trong repo, chỉ dùng lúc render nhạc) | DSK Music | https://www.dskmusic.com/dsk-asian-dreamz/ (tải: https://rekkerd.org/samples/DSK_Asian_DreamZ_sf2.zip, zip SHA-256 `f0b8a7943e8d7368b0c5ec492d1803088a6ce2210ec1528ec7b1301c4fa1a9d2`) | Trang DSK Music: "100% free for private and commercial use" (gói không kèm tệp giấy phép, chỉ readme liên hệ; không bắt ghi công, vẫn ghi ở đây) | Không sửa soundfont; nhạc render ra là bài của dự án |
 | Bộ tiếng cho nhạc nền (soundfont `GeneralUser-GS.sf2` v2.0.3: tiêu, chuông, nền ngân, bộ gõ; không nằm trong repo) | S. Christian Collins | https://github.com/mrbumpy409/GeneralUser-GS (commit `684543d`, SHA-256 `9575028c7a1f589f5770fccc8cff2734566af40cd26ed836944e9a5152688cfe`) | GeneralUser GS License v2.0: dùng không hạn chế để làm nhạc, kể cả thương mại, không bắt ghi công | Không sửa soundfont |
 

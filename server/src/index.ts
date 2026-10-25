@@ -211,6 +211,8 @@ if (existsSync(dist)) {
   // Chỉ để thử tải lỗi (#580): GAME_TEST=1 + ASSET_FAIL_RATE=0.3 trả 504 ngẫu nhiên cho 30% request ảnh / json / âm thanh, kiểm client thử lại.
   const failRate = process.env.GAME_TEST === "1" ? Math.min(1, Number(process.env.ASSET_FAIL_RATE) || 0) : 0;
   if (failRate > 0) app.use((req, res, next) => { if (/\.(png|json|ogg|m4a)$/.test(req.path) && Math.random() < failRate) { res.status(504).end(); return; } next(); });
+  // Game ở /choi (landing ở "/", #656): phục vụ thẳng cả khi không có dấu gạch cuối (express.static chỉ chuyển hướng 301 sang /choi/); query (?thu=…, ?nopredict) giữ nguyên.
+  app.get("/choi", (_q, res) => { res.setHeader("Cache-Control", "no-cache"); res.sendFile(path.join(dist, "choi", "index.html")); });
   // cacheControl: false để setHeaders đặt theo loại file (staticCache.ts); ETag / Last-Modified của express.static giữ nguyên.
   app.use(express.static(dist, {
     cacheControl: false,
