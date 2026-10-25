@@ -12,7 +12,10 @@ const installed = fileURLToPath(new URL("../../", import.meta.url));
 const root = await realpath(resolve(process.env.C8_SOURCE_ROOT ?? installed));
 const out = resolve(process.env.C8_OUTPUT ?? await mkdtemp(resolve(tmpdir(), "c8-preview-")));
 const before = process.env.C8_PHASE === "before", phase = before ? "before" : "after";
-const children = [], samples = [];
+const children = [], samples = [], nameSamples = [], nameFailures = [];
+const viewports = [[960, 540, false], [1280, 720, false], [1920, 1080, false]];
+if (process.env.C8_TOUCH === "1") viewports.push([844, 390, true]);
+const namesOnly = process.env.C8_NAMES_ONLY === "1";
 let browser;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const port = () => new Promise((done, reject) => {
@@ -41,6 +44,33 @@ async function screenshot(page, name, size) {
   await page.screenshot({ path: resolve(out, `${phase}-${size}-${name}.png`) });
 }
 
+async function skillNameBounds(page) {
+  return page.locator("#skills .sk-name").evaluateAll((els) => els.map((el) => {
+    const r = el.getBoundingClientRect(), css = getComputedStyle(el), cell = el.closest("button");
+    const clip = { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+    for (let p = el.parentElement; p; p = p.parentElement) {
+      const s = getComputedStyle(p), b = p.getBoundingClientRect();
+      if (s.overflowX !== "visible") { clip.left = Math.max(clip.left, b.left); clip.right = Math.min(clip.right, b.right); }
+      if (s.overflowY !== "visible") { clip.top = Math.max(clip.top, b.top); clip.bottom = Math.min(clip.bottom, b.bottom); }
+    }
+    const glyphs = [], text = el.firstChild;
+    if (text?.nodeType === Node.TEXT_NODE) for (let i = 0; i < text.length; i++) {
+      if (!text.textContent[i].trim()) continue;
+      const range = document.createRange(); range.setStart(text, i); range.setEnd(text, i + 1);
+      const b = range.getBoundingClientRect(); glyphs.push({ char: text.textContent[i], left: b.left, top: b.top, right: b.right, bottom: b.bottom });
+    }
+    const overlays = [...document.querySelectorAll("#cmdChip, #guide, .sk-state")].filter((e) => {
+      const s = getComputedStyle(e); return e.textContent && !e.hidden && s.display !== "none" && s.visibility !== "hidden";
+    }).map((e) => e.getBoundingClientRect());
+    const clipped = glyphs.filter((g) => g.left < clip.left - 1 || g.right > clip.right + 1 || g.top < clip.top - 1 || g.bottom > clip.bottom + 1);
+    const covered = glyphs.some((g) => overlays.some((o) => g.left < o.right && g.right > o.left && g.top < o.bottom && g.bottom > o.top));
+    const lineCount = new Set(glyphs.map((g) => Math.round(g.top))).size;
+    return { name: el.textContent, width: r.width, height: r.height, fontSize: parseFloat(css.fontSize), lineClamp: css.webkitLineClamp,
+      lineCount, scrollWidth: el.scrollWidth, clientWidth: el.clientWidth, scrollHeight: el.scrollHeight, clientHeight: el.clientHeight,
+      clipped, covered, visible: r.width > 0 && r.height > 0 && css.visibility !== "hidden", cell: cell.getAttribute("aria-label") };
+  }));
+}
+
 try {
   await mkdir(out, { recursive: true });
   const apiPort = await port(), webPort = await port(), api = `http://127.0.0.1:${apiPort}`, web = `http://127.0.0.1:${webPort}`;
@@ -52,7 +82,7 @@ try {
     const data = await r.json(); assert.ok(r.ok, data.error); return data;
   };
   browser = await chromium.launch({ channel: "chrome", headless: true, args: ["--mute-audio", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
-  for (const [width, height, touch] of [[1280, 720, false], [960, 540, false], [844, 390, true]]) {
+  for (const [width, height, touch] of viewports) {
     const size = `${width}x${height}`;
     const { token } = await post("/api/login", { name: `C8 ${width} ${Date.now().toString(36)}`, password: "C8-local-preview!" });
     await post("/api/looks", { token, sex: 0, hair: 0, hairCol: 0, outfitCol: 0 });
@@ -80,6 +110,37 @@ try {
     await page.waitForFunction(() => document.querySelector('.sk[data-i="0"]:not(.locked)'));
     await page.waitForTimeout(9500);
     await screenshot(page, "san-sang", size);
+    if (!touch) {
+      const second = page.locator('#team button[data-slot="1"]');
+      await second.click();
+      await page.waitForFunction((id) => window.__c8Scene.owned.active === id, team[1]);
+      await page.waitForFunction(() => [...document.querySelectorAll("#skills .sk-name")].some((e) => e.textContent === "Chu Võng Thúc Phược"));
+      const labels = await skillNameBounds(page);
+      const clearance = await page.evaluate(() => {
+        const a = document.querySelector("#actrow").getBoundingClientRect();
+        return [...document.querySelectorAll("#guide, #cmdChip")].filter((e) => !e.hidden && getComputedStyle(e).display !== "none").map((e) => {
+          const b = e.getBoundingClientRect();
+          return { id: e.id, overlapping: a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top };
+        });
+      });
+      nameSamples.push({ size, labels, clearance });
+      await screenshot(page, "ten-day-du", size);
+      if (!before && clearance.some((e) => e.overlapping)) nameFailures.push({ size, clearance });
+      for (const name of ["Lam Ngân Tù Lung", "Chu Võng Thúc Phược"]) {
+        const label = labels.find((e) => e.name === name);
+        assert.ok(label, `Thiếu tên hồn kỹ thật: ${name}`);
+        if (before) { assert.ok(label.clipped.length, `Baseline phải tái hiện tên bị cắt: ${name} ở ${size}`); continue; }
+        const clamp = Number(label.lineClamp);
+        if (!label.visible || label.fontSize < 10 || label.clipped.length || label.covered || label.scrollWidth > label.clientWidth + 1 ||
+          label.scrollHeight > label.clientHeight + 1 || (clamp > 0 && label.lineCount > clamp)) nameFailures.push({ size, ...label });
+      }
+      if (namesOnly) { await context.close(); console.log(`Tên hồn kỹ ${phase} ${size}: ${JSON.stringify(labels)}`); continue; }
+      if (await page.locator("#guide").isVisible()) await page.getByRole("button", { name: "Bỏ qua", exact: true }).click();
+      await page.waitForFunction(() => window.__c8Scene.room.state.players.get(window.__c8Scene.me).swCd <= 0);
+      await page.locator('#team button[data-slot="0"]').click();
+      await page.waitForFunction((id) => window.__c8Scene.owned.active === id, team[0]);
+      await page.waitForFunction(() => window.__c8Scene.room.state.players.get(window.__c8Scene.me).swCd <= 0);
+    } else if (namesOnly) { await context.close(); continue; }
     if (!before) {
       assert.equal(await page.locator("#actrow .action-group").count(), 3);
       await page.waitForFunction(() => [...document.querySelectorAll("#bskills .ico img")].every((img) => img.complete && img.naturalWidth > 0));
@@ -212,9 +273,14 @@ try {
     console.log(`✓ ${phase} ${size}: game thật, đội hình, hồi chiêu, thiếu hồn lực${before ? "" : ", vùng chạm, phím, tooltip"}`);
   }
   await writeFile(resolve(out, `${phase}-metrics.json`), JSON.stringify(samples, null, 2));
-  if (!before) {
-    const sections = ["1280x720", "960x540", "844x390"].map((size) => `<section><h2>${size}</h2><div class="pair"><figure><figcaption>Trước C8</figcaption><img src="before-${size}-san-sang.png" alt="Game trước C8 ở ${size}"></figure><figure><figcaption>Sau C8</figcaption><img src="after-${size}-san-sang.png" alt="Game sau C8 ở ${size}"></figure></div><p>${["tooltip", "doi-vo-hon", "thieu-hon-luc", "hoi-chieu"].map((state) => `<a href="after-${size}-${state}.png">${({ tooltip: "Tooltip", "doi-vo-hon": "Đổi võ hồn", "thieu-hon-luc": "Thiếu hồn lực", "hoi-chieu": "Hồi chiêu" })[state]}</a>`).join(" · ")}</p></section>`).join("");
-    await writeFile(resolve(out, "index.html"), `<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>C8 — Thanh kỹ năng và đội hình</title><style>body{margin:24px;background:#211b29;color:#f4ead5;font:16px/1.5 system-ui}h1{font-size:26px}h2{font-size:20px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}figure{margin:0}img{display:block;width:100%;height:auto;image-rendering:pixelated}a{color:#b9dfff}section{margin:32px 0}@media(max-width:800px){.pair{grid-template-columns:1fr}}</style><h1>C8 — Thanh kỹ năng và ô đội hình</h1><p>Ảnh game thật bằng Chrome headless, tắt âm thanh. Server RAM local riêng; không nối DB prod. Bản trước và sau dùng cùng fixture. Tải toàn bộ artifact, giải nén rồi mở index.html.</p>${sections}</html>`);
+  await writeFile(resolve(out, `${phase}-names.json`), JSON.stringify(nameSamples, null, 2));
+  assert.deepEqual(nameFailures, [], "Tên hồn kỹ phải hiển thị đầy đủ bằng pixel, không clamp/overflow/che chữ");
+  if (!before && !namesOnly) {
+    const sections = viewports.map(([w, h, touch]) => {
+      const size = `${w}x${h}`, state = touch ? "san-sang" : "ten-day-du";
+      return `<section><h2>${size}</h2><div class="pair"><figure><figcaption>Trước sửa tên</figcaption><a href="before-${size}-${state}.png"><img src="before-${size}-${state}.png" alt="Game trước sửa tên ở ${size}"></a></figure><figure><figcaption>Sau sửa tên</figcaption><a href="after-${size}-${state}.png"><img src="after-${size}-${state}.png" alt="Game sau sửa tên ở ${size}"></a></figure></div><p>${["tooltip", "doi-vo-hon", "thieu-hon-luc", "hoi-chieu"].map((s) => `<a href="after-${size}-${s}.png">${({ tooltip: "Chú thích", "doi-vo-hon": "Đổi võ hồn", "thieu-hon-luc": "Thiếu hồn lực", "hoi-chieu": "Hồi chiêu" })[s]}</a>`).join(" · ")}</p></section>`;
+    }).join("");
+    await writeFile(resolve(out, "index.html"), `<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>C8 — Thanh kỹ năng và đội hình</title><style>body{margin:24px;background:#211b29;color:#f4ead5;font:16px/1.5 system-ui}h1{font-size:26px}h2{font-size:20px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}figure{margin:0}img{display:block;width:100%;height:auto;image-rendering:pixelated}a{color:#b9dfff}section{margin:32px 0}@media(max-width:800px){.pair{grid-template-columns:1fr}}</style><h1>C8 — Thanh kỹ năng và ô đội hình</h1><p>Ảnh game thật bằng Chrome headless, tắt âm thanh. Server RAM local riêng; không nối DB prod. Bản trước và sau dùng cùng fixture. Tải toàn bộ artifact, giải nén rồi mở index.html. Bấm ảnh để xem PNG gốc ở độ phân giải thực.</p>${sections}</html>`);
   }
   console.log(`Ảnh C8: ${out}`);
 } finally {
