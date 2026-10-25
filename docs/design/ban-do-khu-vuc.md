@@ -98,7 +98,7 @@ Chỗ chưa tới thì mờ trên bản đồ khu vực và radar. Bảng `map_f
 `MapRoom.fogLoad` / `fogMark`. Nạp bitset của bản đồ đang đứng khi vào phòng (trong chuỗi lưu), rồi mỗi `FOG.markSecs` giây mở mọi ô thô chạm đĩa bán kính `FOG.sight` ô quanh **vị trí thật** của từng người (`fogReveal`). Client không gửi gì về sương mù: tin `fog` / `fogd` từ client bị bỏ.
 
 ### Ghi gộp
-- RAM đổi thì đặt cờ `fogDirty`; chỉ ghi DB cùng lần lưu định kỳ (30 giây), khi đi cổng và khi rời phòng (`fogFlush`, trong chuỗi lưu), không ghi mỗi bước.
+- RAM đổi thì đặt cờ `fogDirty`; chỉ ghi DB cùng lần lưu định kỳ của người chơi, khi đi cổng và khi rời phòng (`fogFlush`, trong chuỗi lưu), không ghi mỗi bước.
 - Ghi lỗi thì đánh dấu lại, lần lưu sau ghi tiếp.
 
 ### Gửi xuống

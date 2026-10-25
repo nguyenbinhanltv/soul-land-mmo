@@ -13,8 +13,8 @@ Tối đa `PARTY_MAX` người. Luật ở `server/src/party.ts`; trạng thái 
 - Giữ nguyên khi đi cổng / đổi kênh; rời game quá `PARTY_OFFLINE_SECS` giây thì tự ra khỏi đội.
 
 **Chia thưởng**
-- **Chia kinh nghiệm:** thành viên cùng phòng (cùng bản đồ, cùng kênh), chưa gục, cách chỗ hồn thú gục dưới `PARTY_XP_RANGE` pixel (khoảng 300px) cùng chia; người hạ luôn được chia.
-  - Tổng kinh nghiệm gốc thêm `PARTY_XP_BONUS` cho mỗi người thêm (mỗi người thêm 5%) rồi chia đều (`partyXpShare`).
+- **Chia kinh nghiệm:** thành viên cùng phòng (cùng bản đồ, cùng kênh), chưa gục, cách chỗ hồn thú gục dưới `PARTY_XP_RANGE` pixel cùng chia; người hạ luôn được chia.
+  - Tổng kinh nghiệm gốc nhân (1 + `PARTY_XP_BONUS` × (n − 1)) với n là số người cùng chia, rồi chia đều (`partyXpShare`).
   - Sau đó mỗi người tự giảm theo chênh cấp của mình và chia cho đội võ hồn.
   - Tinh anh chia cùng cách; thú vương / boss thế giới chia theo đóng góp. Hồn Tệ và mảnh vào túi vẫn chỉ của người hạ.
 - **Đồ rơi** ưu tiên cả tổ đội của người được ưu tiên (mục 4).
@@ -111,7 +111,7 @@ Tên chiêu phỏng theo truyện; phần mô tả hiệu ứng là thiết kế
 2. × `ARENA_HE_DMG` theo hệ võ hồn ra trận của A (một hệ số theo hệ người đánh, không có bảng khắc chế theo cặp hệ).
 3. × `ARENA.dmgMult`.
 4. Chí mạng: tỉ lệ của A (gồm Linh Miêu 2 món, tăng chí mạng, ràng buộc) + Thất Sát 4 món nếu B đang Phá giáp; × `critMult`.
-5. Phía B (`hurtPlayer`): × (1 + Dễ thương + Phá giáp theo tầng + Xà Hoàng 4 món nếu B Trúng độc đủ `CORE_FX_RULE.poisonStacks` tầng do người mang bộ gây) × `HE.def` hệ võ hồn ra trận của B × (1 − tăng thủ, tối đa 90%) → khiên đỡ → trừ sinh lực.
+5. Phía B (`hurtPlayer`): × (1 + Dễ thương + Phá giáp theo tầng + Xà Hoàng 4 món nếu B Trúng độc đủ `CORE_FX_RULE.poisonStacks` tầng do người mang bộ gây) × `HE.def` hệ võ hồn ra trận của B × (1 − tăng thủ, có trần) → khiên đỡ → trừ sinh lực.
 
 **Trường hợp riêng**
 - Thiêu đốt / Trúng độc A gây cho B tính một lần lúc gây: công A × hệ số đòn × bước 2 × bước 3 × (1 + Phượng Hoàng / Xà Hoàng 2 món + ràng buộc Tà Hỏa – Hỏa Ảnh), không chí mạng, rồi vào bước 5 mỗi nhịp. Phượng Hoàng 4 món thêm tầng Thiêu đốt tối đa.
