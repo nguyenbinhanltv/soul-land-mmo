@@ -1,7 +1,7 @@
 # CI: typecheck server + client, validate sprite / tiles.json, build client (check-build); bot RAM và bài thử nhanh (bot-ram, #171)
 # cho mọi PR vào main và mỗi push vào main. Status check check-build, bot-ram: chỉ để tham khảo, không bắt buộc (xem CONTRIBUTING.md).
 # Mức bot chọn theo file PR đổi (job `changes`, tools/ci/changes.sh): skip (chỉ ảnh / âm thanh / tài liệu: không chạy bot),
-# smoke (chỉ mã giao diện client: test client + một lượt bot khói ~2 phút), full (còn lại và mọi push vào main: 4 nhóm).
+# smoke (chỉ mã giao diện client: test client + một lượt bot khói ~2 phút), full (còn lại và mọi push vào main: 6 nhóm).
 # Nhãn PR ép mức (đọc lúc chạy, gắn nhãn rồi Re-run hoặc push): ci:full -> full; ci:bot-khoi -> ít nhất smoke. check-build luôn chạy đủ ở mọi mức.
 name: CI
 
@@ -166,7 +166,7 @@ jobs:
         run: docker rm -f game-ci >/dev/null 2>&1 || true
 
   # Bot RAM và các bài thử nhanh (#171), chỉ ubuntu. Chỉ để tham khảo như check-build (không bắt buộc trong bảo vệ nhánh).
-  # Bot đầy đủ chạy ~25 phút trên runner nên chia 4 nhóm song song (BOT_PART; phần nào thuộc nhóm nào khai báo ở INLINE / STANDALONE
+  # Bot đầy đủ chạy ~35 phút trên runner nên chia 6 nhóm song song (BOT_PART; phần nào thuộc nhóm nào khai báo ở INLINE / STANDALONE
   # trong client/scripts/bot-test.mjs, #236), mỗi nhóm một server mới bật, ~7 phút (runner chậm ~9). Thêm / bớt nhóm thì sửa cả BOT_PARTS
   # (bot báo ✗ khi matrix lệch). Nhóm 1 chạy thêm các bài nhanh và lượt nhiều kênh. Job bot-ram (cuối file) gộp kết quả thành một status check.
   bot-ram-part:
@@ -176,7 +176,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        part: [1, 2, 3, 4]
+        part: [1, 2, 3, 4, 5, 6]
     runs-on: ubuntu-latest
     # Lề cho npm ci chậm khi không trúng cache; bot treo thì bước bot tự dừng ở timeout riêng (dưới) để còn log và artifact.
     timeout-minutes: 20
@@ -220,7 +220,7 @@ jobs:
       - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
         run: npm run test:accounts --prefix server
       # Mỗi lượt một server mới bật (GAME_TEST=1, RAM); bot trượt (dòng ✗) thì bước đỏ và in log server. Số ✓ / ✗ / ⚠ in thành annotation (gh run view) và bảng ở trang lượt chạy.
-      # Bình thường ~9 phút; quá 12 phút là treo (hoặc nhóm lệch, xem dòng ⏱ để chia lại).
+      # Bình thường ~7–8 phút (6 nhóm, #684); quá 12 phút là treo (hoặc nhóm lệch, xem dòng ⏱ để chia lại).
       - name: bot nhóm ${{ matrix.part }} (server GAME_TEST=1, RAM)
         if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
         timeout-minutes: 12
@@ -356,7 +356,7 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
-  # Một status check bot-ram cho mọi mức: full gộp 4 nhóm (đỏ khi có nhóm trượt / bị hủy / hết giờ), smoke theo bot-smoke,
+  # Một status check bot-ram cho mọi mức: full gộp 6 nhóm (đỏ khi có nhóm trượt / bị hủy / hết giờ), smoke theo bot-smoke,
   # skip báo success (không chạy bot).
   bot-ram:
     name: bot-ram

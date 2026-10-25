@@ -12,7 +12,7 @@
     "map": "node tools/gen-map.mjs",
     "map:build": "node tools/maps/build.mjs",
     "map:preview": "node tools/maps/preview.mjs",
-    "check": "node tools/check.mjs && node tools/assets/validate.mjs && node tools/assets/quality.mjs --check && node tools/assets/lpc-parts.mjs --check && node tools/audio/compose/validate.mjs && node tools/maps/build.mjs --check && node tools/landing-gen.mjs --check && node tools/audio/validate-sfx.mjs && node tools/ci/check-private-assets.mjs && node tools/assets/credits.mjs --check && node tools/docs-check.mjs --warn",
+    "check": "node tools/check.mjs && node tools/assets/validate.mjs && node tools/assets/quality.mjs --check && node tools/assets/lpc-parts.mjs --check && node tools/audio/compose/validate.mjs && node tools/maps/build.mjs --check && node tools/landing-gen.mjs --check && node tools/audio/validate-sfx.mjs && node tools/ci/check-private-assets.mjs && node tools/assets/credits.mjs --check && node tools/docs-check.mjs",
     "hooks": "git config core.hooksPath .githooks",
     "test:audio": "node --test tools/audio/audio.test.mjs tools/audio/sfx.test.mjs",
     "test:assets": "node --test tools/assets/quality.test.mjs",

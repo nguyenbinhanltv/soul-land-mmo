@@ -9,6 +9,7 @@ Closes #
 - [ ] Bot RAM theo CI `bot-ram` của head cuối: <link lượt chạy, số ✓ / ✗ / ⚠ từng nhóm; đỏ do bài chập chờn có sẵn thì ghi số issue + lượt chạy lại>
 - [ ] Bot với PostgreSQL, server chạy hai lần liên tiếp (bắt buộc khi đổi SQL / `db.ts`; nên làm khi đổi `server/`, `shared/`): <kết quả>
 - [ ] Đã `git merge origin/main` ngay trước khi xin review
+- [ ] Đã cập nhật docs tương ứng (file thiết kế / kỹ thuật của hệ thống đổi; `node tools/docs-check.mjs` xanh)
 
 ## Đổi chỗ dễ xung đột
 - [ ] `shared/data.ts`: <hằng nào>

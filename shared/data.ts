@@ -189,6 +189,12 @@ export const CHANNEL_CD = 10;
  */
 export const ASK_CD = 0.25;
 /**
+ * Giới hạn tin "ghi túi" theo kết nối (#677; sắp xếp, trang bị, bỏ, khóa, dùng, cường hóa, nhặt…): bộ đếm token, tối đa BURST tin dồn,
+ * hồi RATE token / giây; hết thì server bỏ tin (không ngắt). Người chơi thật bấm tối đa vài tin / giây nên rất dư; hằng kỹ thuật.
+ */
+export const BAG_MSG_BURST = 30;
+export const BAG_MSG_RATE = 10;
+/**
  * Đồng bộ theo vùng gần (11.4, mục 6 "Đồng bộ xuống client"). Hằng kỹ thuật, không phải số cân bằng (đặt ở đây cho server và bot dùng
  * chung). Mỗi client chỉ nhận hồn thú thường, đồ rơi, hồn sư khác cách mình dưới `r` pixel thế giới, bỏ khi xa quá `out` (chênh nhau để
  * không vào / ra liên tục ở mép); tinh anh, thú vương, boss thế giới luôn đồng bộ. Tin `fx` / `dmg` chỉ gửi cho client cách điểm hiệu
@@ -435,10 +441,10 @@ export const XP_SHARE_BENCH = 0.2;
 export const PARTY_MAX = 4;
 /**
  * Hạ hồn thú: thành viên tổ đội của người hạ ở cùng phòng (cùng bản đồ, cùng kênh), chưa gục, đứng cách chỗ hồn thú gục dưới ngần
- * này pixel thì cùng chia kinh nghiệm (mục 5.9 "khoảng 300px").
+ * này pixel thì cùng chia kinh nghiệm (mục 5.9 "Đại Đấu Hồn Trường": khoảng 300px).
  */
 export const PARTY_XP_RANGE = 300;
-/** Mỗi người cùng chia làm tổng kinh nghiệm tăng thêm ngần này (mục 5.9 "mỗi người thêm 5%"; đã chốt). */
+/** Mỗi người cùng chia làm tổng kinh nghiệm tăng thêm ngần này (mục 5.9 "Tổ đội người chơi": mỗi người thêm 5%; đã chốt). */
 export const PARTY_XP_BONUS = 0.05;
 /**
  * Phần kinh nghiệm gốc mỗi người nhận khi `n` người cùng chia: tổng = gốc × (1 + PARTY_XP_BONUS × (n − 1)), chia đều (2 người
@@ -1454,7 +1460,7 @@ export const vnHHMM = (ms: number) => { const c = vnClock(ms); return `${String(
  *   cả `every` (võ hồn không bản đồ nào rơi, trọng số 2; từ 8.3 là Phá Hồn Thương, từ 2026-10-20 để trống vì Phá Hồn Thương rơi ở Hải Thần Đảo),
  *   và trước BĐ6 cả võ hồn của bản đồ chưa mở để không võ hồn nào bị khóa hẳn).
  * - Mảnh UR: `ur` (5%, đã chốt) thêm 1 mảnh Hạo Thiên Chùy hoặc Cửu Bảo Lưu Ly Tháp; từ BĐ6 (có boss thế giới, BĐ6e) bỏ: `ur` = 0,
- *   mảnh UR chỉ còn trong rương boss thế giới (WORLD_CHEST, mục 5.3 "Mảnh UR trước BĐ6").
+ *   mảnh UR chỉ còn trong rương boss thế giới (WORLD_CHEST, mục 5.3 "Rơi đặc trưng theo bản đồ").
  * - Hồn hạch sao cao (từ 5.1): luôn 1 món, sao cao nhất của coreStarBand(năm thú vương) (rollCore `high`), bộ theo MapDef.cores của bản
  *   đồ thú vương như hồn hạch rơi. `slots` = 10: 4 ô cho hồn cốt, mảnh, mảnh UR, hồn hạch (mỗi thứ có thể cần một ô mới) + 6 ô cho trang bị (E2: tối đa `EQUIP_DROP.ranks[2].rolls[1]` = 5 lượt rơi + 1 Bùa Hộ Mệnh; test `test:equip` kiểm hai số này khớp nhau).
  */
@@ -5604,7 +5610,7 @@ export const LPC_RAMPS: Record<string, { allow: string[]; ramps: Record<string, 
   } }
 };
 
-/** Danh mục 115 món (kết quả L0 + C3; mã = "<ô>.<tên>"). */
+/** Bảng 115 món (kết quả L0 + C3; mã = "<ô>.<tên>"). */
 export const LPC_PARTS: LpcPart[] = [
   {"id":"body.body","slot":"body","vi":"Thân","style":"trung","sex":"mf","idle":"mf","mats":["body:light"],"colors":[],"z":[10],"lic":["OGA-BY 3.0"],"sa":false},
   {"id":"head.male","slot":"head","vi":"Mặt nam","style":"trung","sex":"mf","idle":"mf","mats":["body:light","eye:blue"],"colors":[],"z":[100],"lic":["OGA-BY 3.0"],"sa":false},

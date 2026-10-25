@@ -110,7 +110,7 @@ Code `5620686` (có `PERF_LOG` ghi `[perf-slow]` theo đoạn và CPU luồng ch
 - Lượt 10 phút: 0 nhịp chậm, `max` mỗi 10 giây ≤ 39 ms.
 - Lượt 25 phút: chỉ **một cụm** nhịp thật vượt 50 ms, lúc 40 bot vừa vào phòng (3 nhịp trong 0,5 giây: 84 / 209 / 36 ms). Ở nhịp 84 ms: `AutoHunter` của một người mất 36,4 ms mà **không có lần tìm đường nào** (`tìm đường 0 lần`), nhịp 209 ms là `vá` 205 ms (đợt người vào, state đầy). Sau đó không còn nhịp nào vượt 50 ms; `AutoHunter.tick` cả 40 người ≤ 2,2 ms, mỗi lần A* ≤ 0,1 ms.
 - Microbench `findPath` / `findLongPath` (4000 cặp điểm ngẫu nhiên, bản đồ ×8): thường p99 0,66 ms, lớn nhất 0,73 ms; dài p99 1,4 ms, lớn nhất 2,9 ms. **A* không thể gây nhịp 50–65 ms.**
-- Các dòng `[perf-slow]` còn lại (khoảng 30 giây một dòng, về sau) chỉ do `gap` > 100 ms với `wall` 2–5 ms: CPU ngoài tick 100–380 ms, tăng dần theo thời gian soak (túi bot đầy). Nguồn chốt ở mục 7.1 (#664).
+- Các dòng `[perf-slow]` còn lại (khoảng 30 giây một dòng, về sau) chỉ do `gap` > 100 ms với `wall` 2–5 ms: CPU ngoài tick 100–380 ms, tăng dần theo thời gian soak (túi bot đầy). Nguồn chốt ở phần 7.1 của file này (#664).
 **Kết luận.** Giả thuyết "A* một lần nặng" bị bác bỏ; nhịp 50–65 ms ở vòng người chơi là nhiễu lúc người vào đông (một `AutoHunter` quyết định lần đầu 36 ms, chưa rõ chỗ, chỉ gặp một lần). Không sửa code luật. Nhịp trễ định kỳ do CPU ngoài tick: xem 7.1.
 
 ### 7.1 Trễ ngoài tick tăng dần khi túi đầy: nguồn là `MemoryStore`, không phải server thật (#664)
