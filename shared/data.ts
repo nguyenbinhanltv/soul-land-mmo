@@ -4180,6 +4180,8 @@ export const formatHonTe = (dong: number) => honTeParts(dong).map((p) => `${p.n.
 export const TILE = 16;
 /** Lách góc (corner nudge, shared/move.ts): trục đi vướng góc ô mà lệch sang bên ≤ chừng này pixel thì tự đẩy nhẹ qua (server + dự đoán client). */
 export const MOVE_NUDGE = 4;
+/** Lách góc chỉ cho người chơi tự bấm phím / cần: tự săn (rooms/autoHunt.ts) tự dò đường A* và kẹt-kiểm theo va chạm thuần, bị đẩy lệch đường thì không tới / không hạ được thú vương (#785). */
+export const moveNudge = (auto: boolean) => (auto ? 0 : MOVE_NUDGE);
 export const TICK_RATE = 20; // số lần server cập nhật mỗi giây
 
 // ---------- NPC, thương nhân và lò rèn (mục 5.8, bước 6.1; mọi số đã chốt) ----------
