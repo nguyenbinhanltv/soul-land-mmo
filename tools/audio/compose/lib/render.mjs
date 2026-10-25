@@ -10,16 +10,18 @@ function arrayBuffer(buf) {
   return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
 }
 
-let bankCache = null;
+const bankCache = new Map();
 function loadBank(path) {
-  if (bankCache?.path !== path) bankCache = { path, bank: SoundBankLoader.fromArrayBuffer(arrayBuffer(readFileSync(path))) };
-  return bankCache.bank;
+  if (!bankCache.has(path)) bankCache.set(path, SoundBankLoader.fromArrayBuffer(arrayBuffer(readFileSync(path))));
+  return bankCache.get(path);
 }
 
 /** Render `total` mẫu stereo của file MIDI. */
-async function synthesize({ midiBytes, soundfont, sampleRate, total }) {
+async function synthesize({ midiBytes, soundfont, extraBanks = [], sampleRate, total }) {
   const synth = new SpessaSynthProcessor(sampleRate, { effectsEnabled: true, eventsEnabled: false, maxBufferSize: BLOCK });
   synth.soundBankManager.addSoundBank(loadBank(soundfont), "main");
+  // Bộ tiếng phụ (nhạc cụ Trung Hoa): xếp ở bank = offset, bài chọn bằng `bank` của kênh.
+  extraBanks.forEach(({ path, offset }, i) => synth.soundBankManager.addSoundBank(loadBank(path), `extra${i}`, offset));
   await synth.processorInitialized;
   const seq = new SpessaSynthSequencer(synth);
   seq.skipToFirstNoteOn = false; // giữ đúng thời điểm, không nhảy tới nốt đầu
@@ -145,10 +147,10 @@ function master(audio, sampleRate, from, to, { lufs = -16, maxLimitDb = 6, eqOpt
  * vòng sau (nối liền đúng từng mẫu với cuối vòng giữa) sang đầu vòng giữa: chỗ nối không có bước nhảy.
  * L nên là bội của 128 mẫu để sự kiện các vòng rơi cùng pha khối render.
  */
-export async function renderLoop({ midiBytes, soundfont, sampleRate, preSeconds, loopSeconds, crossfade = 4096, mix = {} }) {
+export async function renderLoop({ midiBytes, soundfont, extraBanks, sampleRate, preSeconds, loopSeconds, crossfade = 4096, mix = {} }) {
   const start = Math.round((preSeconds + loopSeconds) * sampleRate);
   const length = Math.round(loopSeconds * sampleRate);
-  const full = await synthesize({ midiBytes, soundfont, sampleRate, total: start + length + crossfade });
+  const full = await synthesize({ midiBytes, soundfont, extraBanks, sampleRate, total: start + length + crossfade });
   // mix === false: bỏ xử lý tổng (đo mức thô từng nhạc cụ khi cân mix).
   const gainDb = mix === false ? 0 : master(full, sampleRate, start, start + length, mix);
   const out = { left: full.left.slice(start, start + length), right: full.right.slice(start, start + length), gainDb };
@@ -162,9 +164,9 @@ export async function renderLoop({ midiBytes, soundfont, sampleRate, preSeconds,
 }
 
 /** Khúc ngắn chơi một lần: render tới hết đuôi vang, cắt lặng cuối, mờ 60 ms cuối. */
-export async function renderOnce({ midiBytes, soundfont, sampleRate, preSeconds, seconds, tailSeconds = 2.5, mix = {} }) {
+export async function renderOnce({ midiBytes, soundfont, extraBanks, sampleRate, preSeconds, seconds, tailSeconds = 2.5, mix = {} }) {
   const start = Math.round(preSeconds * sampleRate);
-  const full = await synthesize({ midiBytes, soundfont, sampleRate, total: start + Math.round((seconds + tailSeconds) * sampleRate) });
+  const full = await synthesize({ midiBytes, soundfont, extraBanks, sampleRate, total: start + Math.round((seconds + tailSeconds) * sampleRate) });
   // Đo độ to trên phần có nốt (không tính đuôi vang lặng, nếu không khúc ngắn bị đẩy quá to).
   const gainDb = master(full, sampleRate, start, start + Math.round(seconds * sampleRate), { lufs: -16, ...mix });
   let end = full.left.length;
