@@ -1634,8 +1634,8 @@ export class MapRoom extends Room<MapState> {
   autoAction(id: string, op: unknown, cfg: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     // Nhịp riêng theo người chơi (F2 báo cáo soát): vượt thì bỏ tin, không ghi DB / duyệt pdata.
-    const now = Date.now();
-    d.autoTok = Math.min(AUTO_MSG_RATE.burst, d.autoTok + (now - d.autoTokAt) / 1000 * AUTO_MSG_RATE.perSec); d.autoTokAt = now;
+    const now = Date.now(), scale = process.env.GAME_TEST === "1" ? 1000 : 1; // bot bật / tắt dồn dập: GAME_TEST nới nhịp như ratelimit.ts
+    d.autoTok = Math.min(AUTO_MSG_RATE.burst * scale, d.autoTok + (now - d.autoTokAt) / 1000 * AUTO_MSG_RATE.perSec * scale); d.autoTokAt = now;
     if (d.autoTok < 1) {
       // `set` vượt nhịp: giữ cấu hình cuối, áp một lần khi có token (không để cài đặt cuối bị mất, không tốn DB); tin khác bỏ, trả lại trạng thái thật.
       if (op === "set") {
