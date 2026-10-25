@@ -30,10 +30,15 @@ const vohonOf = (c: Character) => VOHON[Math.max(0, vohonIndex(c.vohon))];
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 const tiersHtml = () => `<div class="tiers">${TIERS.map((t, i) =>
   `<span><i class="ring" style="color:${ringColor(i)};${i === 3 ? `border-color:${t.col}` : ""}"></i>${t.age}</span>`).join("")}</div>`;
+const overlayScreen = (screen: "login" | "loading" | "welcome") => {
+  overlay.dataset.screen = screen;
+  overlay.hidden = false;
+};
 
 function loginScreen(err = "") {
-  overlay.hidden = false; card.classList.remove("wide");
-  card.innerHTML = `<h1>Rừng Săn Hồn</h1>
+  overlayScreen("login"); card.classList.remove("wide");
+  card.innerHTML = `<img class="c6-logo" src="/ui/c6/logo.png" alt="Rừng Săn Hồn">
+    <h1 class="c6-title">Rừng Săn Hồn</h1>
     <p>Thức tỉnh võ hồn, săn hồn thú cùng bạn bè và đoạt hồn hoàn. Tên chưa có sẽ được tạo tài khoản mới.</p>
     ${tiersHtml()}
     <form id="f">
@@ -43,7 +48,11 @@ function loginScreen(err = "") {
       <div class="err" id="err"></div>
     </form>
     <div class="gsep" id="gsep" hidden><span>hoặc</span></div>
-    <div class="gbtn" id="gbtn" hidden></div>`;
+    <div class="gbtn" id="gbtn" hidden></div>
+    <aside class="c6-event" aria-label="Sự kiện đang diễn ra">
+      <img src="/ui/c6/event-banner.png" alt="">
+      <div class="c6-event-copy"><small>SỰ KIỆN MÙA SĂN</small><strong>Vòng Hồn Nguyệt Ảnh</strong><span>Thu thập ánh trăng trong Rừng Săn Hồn</span></div>
+    </aside>`;
   const name = document.getElementById("name") as HTMLInputElement, pass = document.getElementById("pass") as HTMLInputElement;
   name.value = storage.get("shh-name") ?? ""; (name.value ? pass : name).focus();
   document.getElementById("err")!.textContent = err;
@@ -204,7 +213,7 @@ async function awaken(vohon: string) {
 
 function welcomeScreen(c: Character) {
   const v = vohonOf(c);
-  card.classList.remove("wide");
+  overlayScreen("welcome"); card.classList.remove("wide");
   card.innerHTML = `<div class="vh bigcard"></div>
     <div class="vh"><h2>${esc(c.name)}</h2><div class="k">${v.name} ra trận – cấp ${c.level}, ${c.rings.length} hồn hoàn</div>
     <div class="t"><small>Trong game, nhấn V hoặc nút “Đội hình” để xếp đội 4 võ hồn; nhấn 1–4 để đổi võ hồn ngay khi đang đánh.</small></div></div>
@@ -237,8 +246,10 @@ let mapId = "";
  * joinOrCreate: Colyseus chọn kênh còn chỗ, hết chỗ thì mở kênh mới.
  */
 async function join(retry = true, roomId?: string | null) {
-  overlay.hidden = false; card.classList.remove("wide");
-  card.innerHTML = `<h1>Đang tới ${esc(MAPS[mapId]?.name ?? "bản đồ")}…</h1>`;
+  overlayScreen("loading"); card.classList.remove("wide");
+  card.innerHTML = `<img class="c6-loading-mark" src="/ui/c6/logo.png" alt="" aria-hidden="true">
+    <h1>Đang tới ${esc(MAPS[mapId]?.name ?? "bản đồ")}…</h1>
+    <p class="c6-loading-note">Bản đồ đang được mở, xin giữ kết nối.</p><div class="c6-loader" role="progressbar" aria-label="Đang tải"><i></i></div>`;
   try {
     const client = new Client(WS);
     if (roomId === undefined) {

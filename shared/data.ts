@@ -5226,7 +5226,33 @@ export const autoLeft = (used: number, bonus = 0) => Math.max(0, AUTO_DAILY_SECS
  * mọi võ hồn trong đội nhận), Hồn Tệ, đồ đã nhặt hoặc vào thẳng túi (tên món, số lượng; tối đa AUTO_SUM_LOOT dòng, nhiều nhất trước).
  * `sold`: số món đã tự bán trong lượt (#216) và Hồn Tệ thu được (đã nằm trong `coins`); không có thì lượt đó không tự bán gì.
  */
-export interface AutoSummary { secs: number; kills: number; xp: number; coins: number; loot: [string, number][]; sold?: [number, number]; }
+export interface AutoSummary { secs: number; kills: number; xp: number; coins: number; loot: [string, number][]; sold?: [number, number]; rate?: AutoRate; }
+/** Thống kê theo giờ của tự săn (AH2, #609): [kinh nghiệm, Hồn Tệ, số món đồ] mỗi giờ. */
+export type AutoRate = [number, number, number];
+/**
+ * Dòng trạng thái tự săn (AH2, #609, mục 5.13): tin riêng `autost` cho chính người đang treo, không mỗi khung. `every` giây là
+ * khoảng gửi tối thiểu khi việc đổi; `rateEvery` giây gửi lại dù không đổi (để cập nhật thống kê theo giờ); `dist`: làm tròn khoảng
+ * cách (ô) để "Đi tới …" không đổi mỗi bước; `path`: số điểm đường đi gửi để vẽ mờ trên radar; `window`: cửa sổ trượt (giây) của
+ * thống kê theo giờ, `minSecs`: chưa treo đủ ngần ấy giây thì chưa hiện số (còn quá ít mẫu).
+ */
+export const AUTO_STATUS = { every: 1, rateEvery: 5, dist: 5, path: 6, window: 600, minSecs: 30 };
+export type AutoJob = "loot" | "fight" | "go" | "dodge" | "back" | "rest" | "patrol";
+export interface AutoStatus { k: AutoJob; n?: string; d?: number; path?: number[]; rate?: AutoRate | null; }
+/** Chữ hiển thị của trạng thái tự săn ("Đang đánh Sói Xám", "Đi tới Thú vương (35 ô)"…). */
+export function autoStatusText(s: Pick<AutoStatus, "k" | "n" | "d">): string {
+  const n = s.n ? ` ${s.n}` : "";
+  switch (s.k) {
+    case "loot": return `Đang nhặt${n}`;
+    case "fight": return `Đang đánh${n}`;
+    case "go": return `Đi tới${n}${s.d ? ` (${s.d} ô)` : ""}`;
+    case "dodge": return "Đang né";
+    case "back": return "Đang lùi hồi sức";
+    case "rest": return "Đang nghỉ";
+    default: return "Đang đi dạo";
+  }
+}
+/** Chữ thống kê theo giờ: "1,2 N kinh nghiệm / giờ" (số lớn rút gọn). */
+export const autoRateText = (v: number) => v >= 10000 ? `${(v / 1000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} N` : Math.round(v).toLocaleString("vi-VN");
 export const AUTO_SUM_LOOT = 12;
 /** "11 giờ 30 phút" / "45 phút" (làm tròn xuống theo phút): giờ treo còn lại để hiển thị. */
 export const autoTimeText = (secs: number) => {
@@ -5317,6 +5343,8 @@ export const RADAR = {
   tongCol: "#3fd0b0",
   /** Cờ người chơi đặt trên bản đồ khu vực (R3 / R4) vẽ như mức nhiệm vụ. */
   flagCol: "#ff9a3c",
+  /** Đường đi hiện tại của tự săn (AH2, #609): lục mờ để không lấn cờ / chấm. */
+  autoCol: "rgba(134,224,176,.6)",
 };
 
 /**
@@ -5480,7 +5508,7 @@ export const LPC_RAMPS: Record<string, { allow: string[]; ramps: Record<string, 
   } }
 };
 
-/** Danh mục 111 món (kết quả L0; mã = "<ô>.<tên>"). */
+/** Danh mục 115 món (kết quả L0 + C3; mã = "<ô>.<tên>"). */
 export const LPC_PARTS: LpcPart[] = [
   {"id":"body.body","slot":"body","vi":"Thân","style":"trung","sex":"mf","idle":"mf","mats":["body:light"],"colors":[],"z":[10],"lic":["OGA-BY 3.0"],"sa":false},
   {"id":"head.male","slot":"head","vi":"Mặt nam","style":"trung","sex":"mf","idle":"mf","mats":["body:light","eye:blue"],"colors":[],"z":[100],"lic":["OGA-BY 3.0"],"sa":false},
@@ -5530,6 +5558,10 @@ export const LPC_PARTS: LpcPart[] = [
   {"id":"torso.longsleeve2_cardigan","slot":"torso","vi":"Áo khoác mở","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
   {"id":"torso.longsleeve2_vneck","slot":"torso","vi":"Áo cổ chữ V","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
   {"id":"torso.shortsleeve","slot":"torso","vi":"Áo ngắn tay","style":"tay","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
+  {"id":"torso.giao_linh","slot":"torso","vi":"Áo giao lĩnh vạt chéo","style":"dong","sex":"mf","idle":"f","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[35,31],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"torso.ao_bao","slot":"torso","vi":"Áo bào tay rộng","style":"dong","sex":"mf","idle":"f","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red","purple"],"z":[35,31],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"torso.su_lai_khac","slot":"torso","vi":"Đồng phục Sử Lai Khắc","style":"dong","sex":"mf","idle":"f","mats":[],"colors":["navy","forest","white","gray"],"z":[35,31],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"torso.vu_hon_dien","slot":"torso","vi":"Đồng phục Vũ Hồn Điện","style":"dong","sex":"mf","idle":"f","mats":[],"colors":["black","maroon","purple","white"],"z":[35,31],"lic":["CC-BY-SA 3.0"],"sa":true},
   {"id":"torso.robe","slot":"torso","vi":"Áo bào","style":"dong","sex":"f","idle":"","mats":[],"colors":["brown","red","blue","purple"],"z":[35],"lic":["CC-BY-SA 3.0"],"sa":true},
   {"id":"torso.tunic","slot":"torso","vi":"Áo túi (tunic)","style":"trung","sex":"f","idle":"","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
   {"id":"torso.tunic_sara","slot":"torso","vi":"Áo túi Sara","style":"trung","sex":"f","idle":"","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[35],"lic":["OGA-BY 3.0"],"sa":false},
@@ -5558,14 +5590,14 @@ export const LPC_PARTS: LpcPart[] = [
   {"id":"feet.boots_fold","slot":"feet","vi":"Ủng gập mép","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[25],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
   {"id":"feet.boots_rim","slot":"feet","vi":"Ủng viền","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[25],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
   {"id":"feet.sandals","slot":"feet","vi":"Dép quai","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[15],"lic":["OGA-BY 3.0"],"sa":false},
-  {"id":"feet.slippers","slot":"feet","vi":"Dép mềm","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[15],"lic":["CC-BY-SA 3.0"],"sa":true},
+  {"id":"feet.slippers","slot":"feet","vi":"Giày vải mềm","style":"dong","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[15],"lic":["CC-BY-SA 3.0"],"sa":true},
   {"id":"feet.socks_tabi","slot":"feet","vi":"Tất tabi","style":"dong","sex":"mf","idle":"mf","mats":["cloth:brown"],"colors":[],"z":[14],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
   {"id":"feet.socks_high","slot":"feet","vi":"Tất cao","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[14],"lic":["OGA-BY 3.0"],"sa":false},
   {"id":"cape.solid","slot":"cape","vi":"Áo choàng","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[85,5],"lic":["OGA-BY 3.0"],"sa":false},
   {"id":"cape.tattered","slot":"cape","vi":"Áo choàng rách","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[85,5],"lic":["OGA-BY 3.0"],"sa":false},
   {"id":"cape.trim","slot":"cape","vi":"Viền áo choàng","style":"trung","sex":"mf","idle":"mf","mats":["cloth:brown"],"colors":[],"z":[90],"lic":["OGA-BY 3.0"],"sa":false},
   {"id":"cape.mantal","slot":"cape","vi":"Khoác vai (mantle)","style":"trung","sex":"mf","idle":"mf","mats":["cloth:white"],"colors":[],"z":[75],"lic":["OGA-BY 3.0"],"sa":false},
-  {"id":"belt.obi","slot":"belt","vi":"Đai obi","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[65],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
+  {"id":"belt.obi","slot":"belt","vi":"Đai vải giao lĩnh","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[65],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
   {"id":"belt.obi_knot_left","slot":"belt","vi":"Nút đai obi trái","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[66],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
   {"id":"belt.obi_knot_right","slot":"belt","vi":"Nút đai obi phải","style":"dong","sex":"mf","idle":"mf","mats":[],"colors":["black","charcoal","brown","maroon","navy","forest","white","gray","tan","red"],"z":[66],"lic":["OGA-BY 3.0+","CC-BY 3.0+"],"sa":false},
   {"id":"belt.robe","slot":"belt","vi":"Đai áo bào","style":"dong","sex":"mf","idle":"","mats":[],"colors":["white","teal"],"z":[70],"lic":["OGA-BY 3.0"],"sa":false},
@@ -5609,37 +5641,37 @@ const lpcPreset = (id: string, vi: string, group: string, note: string, body: nu
   return { id, vi, group, note, lpc: { v: 1, body, parts, colors } };
 };
 export const LPC_PRESETS: LpcPreset[] = [
-  lpcPreset("hocvien_nam", "Học viên Sử Lai Khắc (nam)", "Học viện", "Áo chàm gọn gàng, ủng nâu, đai da.", 0, "light", "brown", "black", [
-    ["head", "head.male"], ["brow", "brow.thick"], ["hair", "hair.parted"], ["torso", "torso.longsleeve2", "navy"], ["legs", "legs.pants", "charcoal"],
-    ["feet", "feet.boots_basic", "brown"], ["belt", "belt.leather", "leather"]]),
-  lpcPreset("hocvien_nu", "Học viên Sử Lai Khắc (nữ)", "Học viện", "Áo cánh chàm, váy thẳng, giày nâu.", 1, "light", "brown", "dark_brown", [
-    ["head", "head.female"], ["hair", "hair.ponytail2"], ["torso", "torso.blouse_longsleeve", "navy"], ["legs", "legs.skirt_straight", "navy"],
-    ["feet", "feet.shoes_basic", "brown"], ["belt", "belt.waistband", "tan"]]),
+  lpcPreset("hocvien_nam", "Học viên Sử Lai Khắc (nam)", "Học viện", "Giao lĩnh chàm, quần ống rộng, giày vải và đai vải.", 0, "light", "brown", "black", [
+    ["head", "head.male"], ["brow", "brow.thick"], ["hair", "hair.parted"], ["torso", "torso.su_lai_khac", "navy"], ["legs", "legs.pantaloons", "charcoal"],
+    ["feet", "feet.slippers", "brown"], ["belt", "belt.obi", "navy"], ["hat", "hat.headband_tied", "navy"]]),
+  lpcPreset("hocvien_nu", "Học viên Sử Lai Khắc (nữ)", "Học viện", "Giao lĩnh chàm, váy dài, giày vải và khăn buộc tóc.", 1, "light", "brown", "dark_brown", [
+    ["head", "head.female"], ["hair", "hair.ponytail2"], ["torso", "torso.su_lai_khac", "navy"], ["legs", "legs.skirt_overskirt", "navy"],
+    ["feet", "feet.slippers", "brown"], ["belt", "belt.obi", "navy"], ["hat", "hat.headband_tied", "navy"]]),
   lpcPreset("thonda_nam", "Thiếu niên thôn dã (nam)", "Thôn dã", "Áo vải be, quần xắn gấu, dải buộc trán.", 0, "amber", "brown", "dark_brown", [
-    ["head", "head.male_small"], ["hair", "hair.plain"], ["torso", "torso.longsleeve2_vneck", "tan"], ["legs", "legs.cuffed", "brown"],
-    ["feet", "feet.sandals", "brown"], ["belt", "belt.sash_narrow", "brown"], ["hat", "hat.headband_tied", "maroon"]]),
+    ["head", "head.male_small"], ["hair", "hair.plain"], ["torso", "torso.giao_linh", "tan"], ["legs", "legs.pantaloons", "brown"],
+    ["feet", "feet.slippers", "brown"], ["belt", "belt.sash_narrow", "brown"], ["hat", "hat.bandana", "maroon"]]),
   lpcPreset("thonda_nu", "Thiếu nữ thôn dã (nữ)", "Thôn dã", "Áo túi nâu, váy vải óc chó, bím tóc.", 1, "amber", "green", "chestnut", [
-    ["head", "head.female_small"], ["hair", "hair.braid"], ["torso", "torso.tunic", "brown"], ["legs", "legs.skirts_plain", "walnut"],
-    ["feet", "feet.shoes_sara", "brown"], ["belt", "belt.waistband", "tan"]]),
+    ["head", "head.female_small"], ["hair", "hair.braid"], ["torso", "torso.giao_linh", "brown"], ["legs", "legs.skirts_slit", "walnut"],
+    ["feet", "feet.slippers", "brown"], ["belt", "belt.obi", "tan"], ["hat", "hat.bandana", "brown"]]),
   lpcPreset("quytoc_nam", "Công tử quý tộc (nam)", "Quý tộc", "Áo khoác đỏ thẫm, quần ống rộng đen, búi tóc.", 0, "light", "brown", "black", [
-    ["head", "head.male"], ["brow", "brow.thin"], ["hair", "hair.topknot_short"], ["torso", "torso.longsleeve2_cardigan", "maroon"],
+    ["head", "head.male"], ["brow", "brow.thin"], ["hair", "hair.topknot_short"], ["torso", "torso.ao_bao", "maroon"],
     ["legs", "legs.pantaloons", "black"], ["feet", "feet.boots_rim", "black"], ["belt", "belt.obi", "tan"], ["hat", "hat.formal_tiara", "tan"]]),
   lpcPreset("quytoc_nu", "Tiểu thư quý tộc (nữ)", "Quý tộc", "Kimono xẻ đỏ thẫm, váy ngoài tím, trâm cài.", 1, "light", "purple", "black", [
-    ["head", "head.female"], ["hair", "hair.half_up"], ["torso", "torso.kimono_split", "maroon"], ["legs", "legs.skirt_overskirt", "purple"],
+    ["head", "head.female"], ["hair", "hair.half_up"], ["torso", "torso.ao_bao", "maroon"], ["legs", "legs.skirt_overskirt", "purple"],
     ["feet", "feet.slippers", "charcoal"], ["belt", "belt.obi", "tan"], ["hat", "hat.formal_tiara", "tan"], ["face", "face.earrings_princess", "purple"]]),
   lpcPreset("langthang_nam", "Hồn sư lang thang (nam)", "Lang thang", "Áo than, áo choàng xám đá, khăn đỏ thẫm, râu tỉa.", 0, "taupe", "gray", "dark_gray", [
-    ["head", "head.male_gaunt"], ["brow", "brow.thick"], ["beard", "beard.trimmed"], ["hair", "hair.relm_short"], ["torso", "torso.longsleeve", "charcoal"],
+    ["head", "head.male_gaunt"], ["brow", "brow.thick"], ["beard", "beard.trimmed"], ["hair", "hair.relm_short"], ["torso", "torso.ao_bao", "charcoal"],
     ["legs", "legs.pants2", "black"], ["feet", "feet.boots_fold", "brown"], ["cape", "cape.solid", "slate"], ["belt", "belt.leather", "walnut"],
     ["neck", "neck.scarf", "maroon"]]),
   lpcPreset("langthang_nu", "Hồn sư lang thang (nữ)", "Lang thang", "Áo than, khoác vai lục rừng, quần bó, tóc rèm dài.", 1, "olive", "green", "black", [
-    ["head", "head.female"], ["hair", "hair.curtains_long"], ["torso", "torso.longsleeve2", "charcoal"], ["legs", "legs.leggings", "black"],
+    ["head", "head.female"], ["hair", "hair.curtains_long"], ["torso", "torso.ao_bao", "charcoal"], ["legs", "legs.leggings", "black"],
     ["feet", "feet.boots_basic", "brown"], ["cape", "cape.mantal", "forest"], ["belt", "belt.mage", "brown"], ["neck", "neck.scarf", "tan"]]),
   lpcPreset("kiemkhach_nam", "Kiếm khách (nam)", "Giang hồ", "Áo xám lam, quần rộng be, hộ tay, đuôi ngựa cao.", 0, "bronze", "brown", "black", [
-    ["head", "head.male"], ["brow", "brow.thin"], ["beard", "beard.chevron"], ["hair", "hair.high_ponytail"], ["torso", "torso.longsleeve", "bluegray"],
+    ["head", "head.male"], ["brow", "brow.thin"], ["beard", "beard.chevron"], ["hair", "hair.high_ponytail"], ["torso", "torso.giao_linh", "navy"],
     ["legs", "legs.pantaloons", "tan"], ["feet", "feet.sandals", "brown"], ["belt", "belt.obi", "charcoal"], ["arms", "arms.bracers"],
     ["hat", "hat.headband_thick", "maroon"]]),
   lpcPreset("tienthu_nu", "Thánh nữ Vũ Hồn Điện (nữ)", "Cung đình", "Áo bào tím, đai trắng, tóc trắng, bùa sao.", 1, "light", "purple", "white", [
-    ["head", "head.female"], ["hair", "hair.long_straight"], ["torso", "torso.robe", "purple"], ["legs", "legs.skirts_plain", "white"],
+    ["head", "head.female"], ["hair", "hair.long_straight"], ["torso", "torso.vu_hon_dien", "purple"], ["legs", "legs.skirts_plain", "white"],
     ["feet", "feet.slippers", "white"], ["belt", "belt.robe", "white"], ["neck", "neck.amulet_star", "bronze_purple"]]),
 ];
 /** Tìm bộ dựng sẵn theo mã. */
@@ -5696,19 +5728,19 @@ export type LpcGearKind = "ao" | "mu";
 export interface LpcGearLook { m: [string, string]; f?: [string, string] }
 export const LPC_GEAR: Record<LpcGearKind, LpcGearLook[]> = {
   ao: [
-    { m: ["torso.longsleeve_scoop", "white"] },
-    { m: ["torso.longsleeve", "forest"] },
-    { m: ["torso.longsleeve2_vneck", "navy"] },
-    { m: ["torso.longsleeve2_cardigan", "purple"] },
-    { m: ["torso.shortsleeve", "leather"] },
-    { m: ["torso.longsleeve2", "red"] },
+    { m: ["torso.giao_linh", "white"] },
+    { m: ["torso.su_lai_khac", "forest"] },
+    { m: ["torso.giao_linh", "navy"] },
+    { m: ["torso.ao_bao", "purple"] },
+    { m: ["torso.vu_hon_dien", "black"] },
+    { m: ["torso.ao_bao", "red"] },
   ],
   mu: [
-    { m: ["hat.headband_hairtie", "white"] },
+    { m: ["hat.bandana", "white"] },
     { m: ["hat.headband_tied", "forest"] },
     { m: ["hat.bandana2", "navy"] },
     { m: ["hat.headband_thick", "purple"] },
-    { m: ["hat.hood_cloth", "leather"] },
+    { m: ["hat.headband_hairtie", "black"] },
     { m: ["hat.formal_crown", "red"] },
   ],
 };

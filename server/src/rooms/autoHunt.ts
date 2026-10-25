@@ -5,15 +5,16 @@
 // Từ #218 đánh cả tinh anh, thú vương, boss thế giới (mục tiêu chung), né vùng báo trước / vùng độc mỗi nhịp, đổi võ hồn theo cơ chế boss.
 import type { Client } from "colyseus";
 import { TIERS, TILE, ITEMS, BONE_ITEM, CORE_ITEM, RING_ITEM, PICKUP_RANGE, BEAST_AGGRO_R, TIEN_CO_MAX, CHAN_THAN_RING, CHAN_THAN_SKILL_SLOT,
-  AUTO_HZ, AUTO_DAILY_SECS, AUTO_CLAIM_SECS, AUTO_MOVE, AUTO_SUM_LOOT, AUTO_RADIUS, AUTO_PACE, AUTO_BOSS, STATUS, VOHON, offlineFight, loadoutOf, ringSkill,
+  AUTO_HZ, AUTO_DAILY_SECS, AUTO_CLAIM_SECS, AUTO_MOVE, AUTO_SUM_LOOT, AUTO_RADIUS, AUTO_PACE, AUTO_STATUS, AUTO_BOSS, STATUS, VOHON, offlineFight, loadoutOf, ringSkill,
   chanThanOf, autoTimeText, itemDef, xpNeed, formatYears, vohonIndex, isCcStatus, teleHits, teleSafe,
-  type AutoSettings, type AutoSummary, type OfflinePower, type SkillDef, type ItemDef, type He } from "../../../shared/data.ts";
+  type AutoSettings, type AutoSummary, type AutoRate, type OfflinePower, type SkillDef, type ItemDef, type He } from "../../../shared/data.ts";
 import { MOVE_DEAD, type SolidGrid } from "../../../shared/move.ts";
 import { findPath, findLongPath, clearLine, buildNav, navNode, type Pt, type Nav } from "../../../shared/path.ts";
 import type { GameMap } from "../map.ts";
 import * as party from "../party.ts";
 import type { MapRoom, PData } from "./MapRoom.ts";
 import type { PlayerState, BeastState, DropState } from "./schema.ts";
+import { AutoFeed } from "./autoStatus.ts";
 
 /** Đan theo thứ tự ITEMS (đan thường trước đan lớn): uống loại có trong túi đầu tiên. */
 const HP_POTS = ITEMS.filter((d) => d.hp), MP_POTS = ITEMS.filter((d) => d.mp);
@@ -44,8 +45,8 @@ function navOf(map: GameMap) {
 }
 
 /** Ảnh chụp để tính tổng kết (Auto 2): hồn thú đã hạ và kinh nghiệm cộng mọi võ hồn, Hồn Tệ, số món trong túi theo nhãn. */
-interface AutoSnap { kills: number; xp: number; coins: number; bag: Map<string, number>; }
-function snap(room: MapRoom, id: string, d: PData): AutoSnap {
+export interface AutoSnap { kills: number; xp: number; coins: number; bag: Map<string, number>; }
+export function snap(room: MapRoom, id: string, d: PData): AutoSnap {
   room.syncCh(id); // võ hồn ra trận: cấp / kinh nghiệm / số hồn thú đã hạ đang ở state, chép vào d.ch trước khi cộng
   const bag = new Map<string, number>();
   for (const it of d.bag) {
@@ -76,8 +77,13 @@ export class AutoHunter {
   last = { x: 0, y: 0 }; stuckT = 0;
   /** Số giây mục tiêu trong tầm mà không đánh được vì đòn sẽ trúng hồn thú người khác đang giao chiến. */
   blockT = 0;
-  /** Đi thẳng tới mục tiêu được không (clearLine), tính lại khi mình hoặc mục tiêu dời quá vài pixel so với lần tính trước. */
+  /**
+   * Đi thẳng tới mục tiêu được không (clearLine), tính lại khi mình hoặc mục tiêu dời quá vài pixel so với lần tính trước; toạ độ NaN là
+   * chưa tính (lần đầu, hoặc mục tiêu ở xa ngoài khung A*) nên lần tới gần luôn tính (#291).
+   */
   los = { px: NaN, py: NaN, bx: NaN, by: NaN, ok: false };
+  /** Hook test (#291): nhịp trước đi thẳng ("line") hay theo đường A* ("path"), số lần tìm đường A* (plan) và số lần tính clearLine. */
+  way: "line" | "path" | null = null; plans = 0; lines = 0;
 
   /** Nợ nhịp (giây, AUTO_PACE): còn dương thì không nhắm hồn thú mới. `est`: giây tự đánh ước lượng của con vừa hạ (hook test). */
   pace = 0; est = 0;
@@ -93,8 +99,10 @@ export class AutoHunter {
 
   /** Tổng kết: giây đã treo lượt này và ảnh chụp lúc bật. */
   secs = 0; start: AutoSnap;
+  /** Trạng thái và thống kê theo giờ gửi cho chính chủ (AH2, #609). */
+  feed = new AutoFeed();
 
-  constructor(private room: MapRoom, readonly id: string, readonly anchor: Pt, public cfg: AutoSettings) {
+  constructor(readonly room: MapRoom, readonly id: string, readonly anchor: Pt, public cfg: AutoSettings) {
     this.start = snap(room, id, room.pdata.get(id)!);
   }
   /** Săn khắp bản đồ (phạm vi "map", #213) hay chỉ quanh điểm neo ("near"). */
@@ -109,8 +117,10 @@ export class AutoHunter {
     const now = snap(this.room, this.id, d), loot: [string, number][] = [];
     for (const [k, n] of now.bag) { const g = n - (this.start.bag.get(k) ?? 0); if (g > 0) loot.push([k, g]); }
     loot.sort((a, b) => b[1] - a[1]);
-    return { secs: Math.round(this.secs), kills: Math.max(0, now.kills - this.start.kills), xp: Math.max(0, now.xp - this.start.xp),
-      coins: Math.max(0, now.coins - this.start.coins), loot: loot.slice(0, AUTO_SUM_LOOT) };
+    this.feed.sample(this.secs, now);
+    const h = this.secs >= AUTO_STATUS.minSecs ? 3600 / this.secs : 0, xp = Math.max(0, now.xp - this.start.xp), coins = Math.max(0, now.coins - this.start.coins);
+    return { secs: Math.round(this.secs), kills: Math.max(0, now.kills - this.start.kills), xp, coins, loot: loot.slice(0, AUTO_SUM_LOOT),
+      ...(h ? { rate: [Math.round(xp * h), Math.round(coins * h), Math.round(this.feed.gained * h)] as AutoRate } : {}) };
   }
 
   /**
@@ -130,6 +140,7 @@ export class AutoHunter {
     if (why) return room.autoStop(this.id, why);
     if ((this.decT -= dt) <= 0) { this.decT = 1 / AUTO_HZ; this.decide(p, d, c, 1 / AUTO_HZ); }
     if (d.auto !== this) return; // vừa dừng trong lúc quyết định
+    this.feed.tick(this, p, c, () => snap(room, this.id, d));
     this.steer(p, d, dt);
     // Đánh thường mỗi nhịp khi mục tiêu đã trong tầm (như giữ phím J); attack tự kiểm hồi chiêu, Choáng, vùng an toàn.
     // Đòn thường trúng mọi hồn thú quanh điểm trước mặt: vướng hồn thú người khác đang giao chiến thì không đánh (trừ khi mục tiêu đang
@@ -577,6 +588,7 @@ export class AutoHunter {
    */
   steer(p: PlayerState, d: PData, dt: number) {
     const room = this.room, map = navOf(room.map).grid;
+    this.way = null;
     // #218: đang đứng trong vùng báo trước / vùng độc thì đi thẳng tới chỗ né trước mọi việc khác.
     const esc = this.escape(p, dt);
     if (esc) return this.move(p, d, esc, dt, true);
@@ -591,8 +603,12 @@ export class AutoHunter {
       // (ngoài khung A*, săn khắp bản đồ) thì đi theo đường dài, không thử đường thẳng mỗi nhịp.
       const l = this.los, near = Math.max(Math.abs(b.x - p.x), Math.abs(b.y - p.y)) < AUTO_MOVE.path.maxTiles * TILE;
       if (!near) { l.ok = false; l.px = NaN; }
-      else if (Math.hypot(l.px - p.x, l.py - p.y) > 6 || Math.hypot(l.bx - b.x, l.by - b.y) > 6) Object.assign(l, { px: p.x, py: p.y, bx: b.x, by: b.y, ok: clearLine(map, p, b) });
-      if (l.ok) { this.path = []; this.goal = null; to = { x: b.x, y: b.y }; }
+      // So kiểu !(… <= 6): toạ độ NaN (chưa tính) cũng tính lại; `> 6` với NaN luôn sai nên trước #291 không bao giờ đi thẳng.
+      else if (!(Math.hypot(l.px - p.x, l.py - p.y) <= 6 && Math.hypot(l.bx - b.x, l.by - b.y) <= 6)) {
+        this.lines++; Object.assign(l, { px: p.x, py: p.y, bx: b.x, by: b.y, ok: clearLine(map, p, b) });
+      }
+      this.way = l.ok ? "line" : "path";
+      if (l.ok) { this.path = []; this.goal = null; this.pathT = AUTO_MOVE.repath; to = { x: b.x, y: b.y }; } // pathT đầy: chuyển sang A* thì tìm đường ngay, không khựng
       else {
         this.pathT += dt;
         // Đích đổi khi mục tiêu dời quá 2 ô, hoặc khi đã đi hết đường tới đích cũ mà mục tiêu chưa trong tầm (nó dời ít hơn 2 ô, #325).
@@ -602,7 +618,7 @@ export class AutoHunter {
         to = this.path[0] ?? null;
       }
     } else if (this.goal) {
-      this.pathT += dt;
+      this.way = "path"; this.pathT += dt;
       if (!this.path.length && this.pathT >= AUTO_MOVE.repath) this.plan(p);
       to = this.path[0] ?? null;
     }
@@ -635,7 +651,7 @@ export class AutoHunter {
    * đồ thị dẫn đường (#213). Không tới gần được thì bỏ qua mục tiêu / đồ rơi đó một lúc.
    */
   plan(p: PlayerState) {
-    this.pathT = 0;
+    this.pathT = 0; this.plans++;
     if (!this.goal) return;
     const { grid, nav } = navOf(this.room.map), M = AUTO_MOVE.path;
     const far = Math.max(Math.abs(this.goal.x - p.x), Math.abs(this.goal.y - p.y)) > (M.maxTiles - 2) * TILE;
