@@ -1,5 +1,7 @@
 # Hướng dẫn cho AI làm việc trong repo này
 
+Số mục (mục 5.3, mục 6…) xem mục lục ở `GAME_DESIGN.md`: mỗi mục nằm ở file nào trong `docs/`.
+
 Đọc `GAME_DESIGN.md` trước khi sửa bất cứ thứ gì (mục 6 Kiến trúc là bắt buộc giữ).
 
 ## Quy tắc code
