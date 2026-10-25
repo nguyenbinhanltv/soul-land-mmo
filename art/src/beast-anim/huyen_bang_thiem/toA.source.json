@@ -1,0 +1,94 @@
+{
+  "session": "soul-land-mmo-70",
+  "integration_session": "soul-land-mmo-64",
+  "issue": 768,
+  "species": "huyen_bang_thiem",
+  "sheet": "A",
+  "tool": "builtin image_gen.imagegen",
+  "image_model_id": null,
+  "seed": null,
+  "size_selector": false,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "grid": [
+    6,
+    12
+  ],
+  "directions": [
+    "s",
+    "se",
+    "e"
+  ],
+  "tool_arguments": {
+    "referenced_image_paths": [
+      "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/huyen_bang_thiem.png"
+    ],
+    "transparent_background": false,
+    "num_last_images_to_include": "omitted",
+    "prompt": "Exact prompt theo artifact_prompt của từng lượt; toA.prompt.txt là lượt1"
+  },
+  "reference_sha256": "fe85b819d91f822135811c253134829a02eb552482158c990c6d41f40d397fe0",
+  "reference_dimensions": [
+    288,
+    96
+  ],
+  "attempt_count": 2,
+  "selected_candidate": "toA.png",
+  "selection_reason": "A1 lưới đều hơn; A2 E hurt tốt hơn nhưng lệch hàng 128 rõ",
+  "attempts": [
+    {
+      "attempt": 1,
+      "selected": true,
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-70/A1.png",
+      "artifact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-70/A1-prompt.txt",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a174bf-affa-7373-a2ea-738689c736ec/exec-c12ed182-731e-47b5-8f3f-578bf91ebe5c.png",
+      "sha256": "9f32740c6a798889b149835c1ef1e62c68c5c17fbb2a62809c1ff9681bac96d5",
+      "prompt_sha256": "3fd22c7ecf3f41ad414ecd7a353c618323ae63af2c1bdc56db2e076fec426ed5",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2007484,
+      "start_utc": "2026-10-25T20:28:43.592Z",
+      "end_utc": "2026-10-25T20:29:18.313Z"
+    },
+    {
+      "attempt": 2,
+      "selected": false,
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-70/A2.png",
+      "artifact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-70/A2-prompt.txt",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a174bf-affa-7373-a2ea-738689c736ec/exec-f6162849-ba4e-49be-bbe5-f8a7da0cfcb0.png",
+      "sha256": "729249e9bec87cec26a29343411c54b983b0c963a8eb0268305283e0666df033",
+      "prompt_sha256": "d725801b1dd9db5dad3b4489308cd47ea37b0d1c45909c408c94252382617d9c",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2027029,
+      "start_utc": "2026-10-25T20:29:37.508Z",
+      "end_utc": "2026-10-25T20:30:09.724Z"
+    }
+  ],
+  "original_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-70/provenance.md",
+  "original_provenance_sha256": "cfae39f3148a9b824817d275986498c366ba56d3bff6bccd1effeaf78281f2e5",
+  "known_suspects": [
+    "H5 C5 và H9 C5–6: hurt quay gần front, heading sai; mắt nhắm không đều",
+    "H12 C1–4: die E còn góc front3/4, chưa giữ profile",
+    "H3/H7/H11 C3–4: kiểm lunge, miệng và heading",
+    "H4/H8/H12: collapse có thể chưa đủ ngã ngang",
+    "Walk thay chân biên độ nhỏ, chưa kiểm vòng lặp",
+    "Tinh thể/độ tròn thân có thể lệch ảnh tĩnh; chưa duyệt identity",
+    "Chưa kiểm nền/viền từng pixel, không tuyên bố exact palette"
+  ],
+  "unselected_attempt_suspects": [
+    "A2 H2–4/H7–8/H10–12 lệch hàng/đường neo",
+    "A2 H5/H9 C5–6 hurt gần front3/4",
+    "A2 H8/H12 C2–4 die cần soát",
+    "A2 H1 C5–6 mắt chưa chắc nhắm"
+  ],
+  "postprocessing": "Không; sao chép nguyên byte PNG, không resize/cắt/quantize/sửa pixel hoặc metadata",
+  "approval": "Selected STYLE candidate cho B; chưa owner duyệt mỹ thuật/runtime",
+  "fresh_conversation": "Worker70 chỉ sinh Huyền Băng Thiềm A, 2/2 lượt; không sinh B hoặc loài khác"
+}

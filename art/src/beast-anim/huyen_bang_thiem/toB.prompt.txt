@@ -1,0 +1,31 @@
+Create ONE image, exactly 1024x1024 pixels: an animation sprite sheet of a single fantasy creature for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
+
+CREATURE: Huyền Băng Thiềm - mystic ice toad, pale blue frost-covered toad with ice crystals on its back, wide mouth, crouching on four legs. Body type: thú bốn chân. Size class: Tím / Đen. The attached reference image shows this exact creature in three static views (front, side, back): keep the SAME design, proportions, colors, markings and overall size in every frame of the sheet. Do not redesign it.
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
+
+GRID: 6 columns x 8 rows of equal invisible cells (171x128 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with its feet (or lowest body point) standing on the same invisible ground line about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.
+
+LAYOUT (top to bottom):
+Block 1 (rows 1-4): direction "ne" = facing the upper right of the picture (three-quarter back view, head away from the viewer toward the right).
+  row 1: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 2: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 3: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 4: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+Block 2 (rows 5-8): direction "n" = facing away from the viewer (back view from above).
+  row 5: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 6: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 7: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 8: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+
+CONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, standing, walking and hurt frames keep the body at the same scale and the same ground line. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).
+
+STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.
+
+DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions.
+
+Match the creature design, colors, size and line weight of the second attached sheet exactly.
+
+HEADING CLARIFICATION: The first attachment is the identity authority; the second attachment is a STYLE candidate only. Do not copy heading or pose errors from it. Every frame in rows 1-4 must show the back-three-quarter NE view, snout pointing diagonally toward the UPPER RIGHT, rear body nearest the viewer; never an east profile, front or southeast view. Every frame in rows 5-8 must show the N rear view, head pointing away/up, rear body nearest the viewer. HURT must visibly recoil backward then recover while maintaining that heading, without turning toward the viewer. DIE progressively lowers and collapses while maintaining the same head-to-rump direction, without rotating to east/front. Keep the exact six-column eight-row layout: 44 figures, four blank cells at r4c5,r4c6,r8c5,r8c6. Generate a whole new sheet; references supply identity and style only.
+
+CRITICAL WHOLE-SHEET RETRY — directional anatomy must override reference poses. For NE rows 1-4, show the RUMP closest at lower-left and the HEAD farther away at upper-right. View the BACK and BACKS of the shoulders, not the chest or belly. Snout points toward 1:30 on a clock, away from camera; do not show a horizontal side-profile head. For N rows 5-8 the rump is nearest at bottom center and head is hidden beyond shoulders at top center. No face or chest visible in ANY N frame, including hurt and dying. Hurt is a backward squash/recoil of that same rear-facing silhouette, never a tall front-facing pose. Dying is progressive leg folding and lowering of the same rear-facing body; never turn head sideways or toward camera. Show clear but small sequential motion. ALL 44 figures retain their block heading. Four final blank cells remain blank. This must be a completely new full sheet, not edits or copies of previous generated frames.
