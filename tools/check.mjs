@@ -83,5 +83,8 @@ if (assets) {
 if (maps) {
   const r = spawnSync(process.execPath, [path.join(root, "tools", "maps", "build.mjs"), "--check"], { cwd: root, stdio: "inherit" });
   if (r.status !== 0) failed = true;
+  // #747: vật vẽ (nhà, tường, cây, prop chặn) phải khớp ô chặn `collides` (đi xuyên hàng rào = lỗi).
+  const q = spawnSync(process.execPath, [path.join(root, "tools", "maps", "quet-chan.mjs")], { cwd: root, stdio: "inherit" });
+  if (q.status !== 0) failed = true;
 }
 process.exit(failed ? (mode === "--hook" ? 2 : 1) : 0);

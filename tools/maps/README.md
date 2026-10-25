@@ -20,6 +20,10 @@ npm run map:preview -- shared/assets/tinh_dau_ngoai_vi.v2.json toan-canh.png --s
 
 Bản dựng lại của một bản đồ đang có ghi ra `<mapId>.v2.json` và là bản **mặc định** khi có file (11.5); đường lùi: server bật `MAP_V1=<mapId>` (danh sách cách nhau dấu phẩy, `all` = mọi bản đồ) thì dùng lại bản cũ `<mapId>.json`. Server báo tên file cho client qua `MapState.mapFile`. Bot chạy cùng `MAP_V1` với server để đọc đúng file (`BOT_ONLY=bigmap` chỉ chạy phần bản đồ lớn: mọi bản ×8).
 
+## Quét vật vẽ lệch ô chặn (#747)
+
+`node tools/maps/quet-chan.mjs [mapId…]` (có trong `npm run check`): so vật VẼ ở từng file Tiled với lưới ô chặn `collides` (`shared/move.ts`), in danh sách lệch `file [loại] ghi chú: tx,ty` và thoát mã 1 nếu có. Loại: `nhà` (chân nhà / tường cung uyển vẽ mà ô không chặn), `vật` (gid lớp `trees` có vật vẽ nhưng không chặn, và không thuộc `gids.walk` / `plant` của bố cục), `ma` (ô chặn mà vật không có ảnh công khai). Bộ dựng gỡ nhà bị `clearRect` (cổng, điểm đến, waypoint) khoét thành hình chữ L; sửa lệch bằng bố cục, tileset `collides` (qua bộ dựng) hoặc `gids.walk` nếu cố ý đi xuyên.
+
 ## Chỉnh tay
 
 1. `npm run map:build -- <mapId> --hand-init` tạo `tools/maps/hand/<mapId>.json`: hai lớp tham khảo đã khóa (`tham_khao_nen`, `tham_khao_vat`, bản đang sinh) và hai lớp rỗng `tay_nen`, `tay_vat`.
