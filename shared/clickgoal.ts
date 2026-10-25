@@ -1,14 +1,14 @@
 // Bấm để đi (mục 5.11 "Điều khiển", M4 #749): đường A* tới điểm bấm và bước lái theo đường đó mỗi khung hình. Hàm thuần, không dùng
 // Phaser: GameScene lái bằng `stepGoal`, bot và kiểm thử Node import thẳng file này. Vẫn chỉ cho ra hướng đi để gửi trong `input`.
-import { TILE, CLICK_GOAL } from "./data.ts";
+import { TILE, TIERS, CLICK_GOAL, ATTACK_REACH } from "./data.ts";
 import { findPath, type Pt } from "./path.ts";
 import type { SolidGrid } from "./move.ts";
 
 /**
  * Điểm đang đi tới: `path` là đường A*, `i` điểm đang đi tới, `d` / `t` khoảng cách tốt nhất tới điểm đó và lúc cải thiện cuối,
- * `dest` điểm bấm gốc (để tính lại đường), `stuck` lúc bắt đầu bị kẹt (0: không kẹt), `auto` do tự đi tới cờ lái (có logic dừng riêng).
+ * `dest` điểm bấm gốc (để tính lại đường), `stuck` lúc bắt đầu bị kẹt (0: không kẹt), `auto` do tự đi tới cờ lái (có logic dừng riêng), `lock` đang đi tới hồn thú khoá (M3 #750).
  */
-export interface ClickGoal { x: number; y: number; path: Pt[]; i: number; d: number; t: number; auto?: boolean; dest?: Pt; stuck?: number; }
+export interface ClickGoal { x: number; y: number; path: Pt[]; i: number; d: number; t: number; auto?: boolean; dest?: Pt; stuck?: number; lock?: boolean; }
 
 /** Lưới ô chặn kèm ô hồn thú đang đứng (vật cản mềm); không đánh dấu ô mình đứng và ô đích. */
 export function softGrid(g: SolidGrid, at: Pt, to: Pt, beasts: readonly Pt[]): SolidGrid {
@@ -74,4 +74,13 @@ export function stepGoal(g: ClickGoal, e: GoalEnv): GoalStep {
     }
   }
   return { dir: { x: dx / L, y: dy / L } };
+}
+
+/**
+ * Khoảng từ điểm đánh gốc của hồn sư (cao 6 pixel) tới tâm thân hồn thú `b` (cao nửa cỡ thân), kèm tầm tối đa để đòn thường còn trúng
+ * khi quay mặt về nó (cùng hình học với MapRoom.attack). Dùng chung: server tự đánh khi khoá (rooms/lock.ts), client dừng lái khi tới tầm.
+ */
+export function reachGap(p: Pt, b: { x: number; y: number; tier: number }) {
+  const size = TIERS[b.tier].size, dx = b.x - p.x, dy = b.y - size / 2 - (p.y - 6), dist = Math.hypot(dx, dy);
+  return { dx, dy, dist, max: ATTACK_REACH.fwd + ATTACK_REACH.r + size / 2 - 1 };
 }

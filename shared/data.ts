@@ -1559,6 +1559,12 @@ export const buffBit = (b: BuffId) => 1 << BUFF_IDS.indexOf(b);
 export const CRIT = { chance: 0.12, mult: 1.8 };
 /** Hồi chiêu đánh thường (giây); bộ hồn hạch Linh Miêu 4 món chia cho (1 + tăng tốc đánh). */
 export const ATTACK_CD = 0.38;
+/**
+ * Tầm đòn đánh thường và khoá mục tiêu (M3 #750, GAME_DESIGN.md mục 5.11): đòn trúng hồn thú có tâm thân cách điểm đánh (`fwd` pixel trước
+ * mặt, cao 6 pixel) dưới `r` + nửa cỡ thân; `reach` = tầm tính từ hồn sư để tự đánh khi khoá; `pick` = bán kính chọn quanh thân khi bấm;
+ * `leash` = xa hơn thì mất khoá; `tab` = Tab chỉ đổi giữa hồn thú trong bán kính này.
+ */
+export const ATTACK_REACH = { fwd: 10, r: 18, pick: 14, leash: 480, tab: 360 };
 /** Đòn đánh thường (hồn sư: MapRoom.attack; hồn thú: MapRoom.tick) gây công x (1 ± ATK_SPREAD), ngẫu nhiên đều; `r` trong [0, 1). */
 export const ATK_SPREAD = 0.15;
 export const atkRoll = (r: number) => 1 + (2 * r - 1) * ATK_SPREAD;
@@ -4172,6 +4178,8 @@ export function honTeParts(dong: number) {
 export const formatHonTe = (dong: number) => honTeParts(dong).map((p) => `${p.n.toLocaleString("vi-VN")} ${p.unit}`).join(" ");
 
 export const TILE = 16;
+/** Lách góc (corner nudge, shared/move.ts): trục đi vướng góc ô mà lệch sang bên ≤ chừng này pixel thì tự đẩy nhẹ qua (server + dự đoán client). */
+export const MOVE_NUDGE = 4;
 export const TICK_RATE = 20; // số lần server cập nhật mỗi giây
 
 // ---------- NPC, thương nhân và lò rèn (mục 5.8, bước 6.1; mọi số đã chốt) ----------
@@ -5479,8 +5487,8 @@ export const MAPVIEW = {
   ] as { id: string; name: string }[],
   /** Lớp lọc của từng loại chấm radar (`RADAR.levels[].id`); đồ rơi tách riêng bằng tham số `layer` của chấm. */
   layerOf: { beast: "beast", elite: "beast", boss: "beast", player: "player", ally: "player", poi: "npc", quest: "quest" } as Record<string, string>,
-  /** Mức phóng (pixel màn hình mỗi ô) từ đó mới hiện nhãn của từng loại, để khỏi chồng chữ khi thu nhỏ. Vùng săn, hang thú vương luôn hiện tên; dòng mô tả dài của vùng săn (`zoneSub`) chỉ hiện khi phóng tới mức đó, dưới đó chỉ hiện cấp đề xuất. */
-  labelZoom: { npc: 4, gate: 2.5, wp: 2.5, safe: 2, zoneSub: 4 },
+  /** Mức phóng (pixel màn hình mỗi ô) từ đó mới hiện nhãn của từng loại, để khỏi chồng chữ khi thu nhỏ (nhãn đè nhau vẫn bị `mapview.ts` nhường chỗ theo ưu tiên: cổng > truyền tống > NPC > hang > vùng). Vùng săn, hang thú vương luôn hiện tên; dòng mô tả dài của vùng săn (`zoneSub`) chỉ hiện khi phóng tới mức đó, dưới đó chỉ hiện cấp đề xuất. */
+  labelZoom: { npc: 2.5, gate: 1, wp: 1, safe: 1, zoneSub: 4 },
   /** Bán kính bắt chấm / nhãn khi rê chuột hoặc chạm (pixel), và ngưỡng kéo (pixel) để phân biệt chạm với kéo. */
   hitPx: 10, dragPx: 6,
 };

@@ -9,7 +9,7 @@
 // - R8 (#435) sương mù (đã làm): fog.ts vẽ ngay trên nền, dưới chấm; nhãn vùng ở chỗ chưa khám phá bị ẩn (cổng, NPC, truyền tống trận vẫn hiện).
 import { RADAR, MAPVIEW, AUTOWALK, TILE as _TILE } from "../../shared/data.ts";
 import {
-  mapviewToScreen, mapviewToTile, mapviewZoomAt, mapviewPan, mapviewClampCenter, mapviewClampZoom, mapviewLayer, radarRotate, radarNorthAngle,
+  mapviewToScreen, mapviewToTile, mapviewZoomAt, mapviewPan, mapviewClampCenter, mapviewClampZoom, mapviewFit, mapviewLayer, radarRotate, radarNorthAngle,
   radarPick, type MapView,
 } from "../../shared/radar.ts";
 import { drawRadarIcon, strokeRoute, radar, ls, DARK, type DotSink } from "./radar.ts";
@@ -20,6 +20,13 @@ void _TILE;
 const LS_HIDDEN = "soul.mapview.hidden";
 const LEVEL = new Map(RADAR.levels.map((l) => [l.id, l]));
 const PAPER = "#ece2c8";
+/** Nền nhãn: mực tối gần đặc, để chữ sáng luôn đạt tương phản ≥ 4,5:1 bất kể nền bản đồ phía sau. */
+const LABEL_BG = "rgba(26,16,32,.88)";
+/** Thứ tự nhận chỗ khi nhãn đè nhau (nhỏ = trước): cổng > truyền tống > NPC > hang > vùng săn > vùng an toàn. */
+const LABEL_PRIO: Record<MapLabel["k"], number> = { gate: 0, wp: 1, npc: 2, lair: 3, zone: 4, safe: 5 };
+const FONT = '"Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif';
+/** Lề (pixel) chừa quanh bản đồ khi vừa khung. */
+const FIT_MARGIN = 20;
 
 /** Nhãn tĩnh của bản đồ (GameScene dựng từ object Tiled): `x`, `y` là tâm (ô); vùng (`zone`, `safe`, `lair`) có thêm `w`, `h` (ô). */
 export interface MapLabel {
@@ -106,6 +113,7 @@ class MapViewUi implements DotSink {
     press(el("mapviewIn"), () => this.zoomAt(MAPVIEW.zoomStep, 0, 0));
     press(el("mapviewOut"), () => this.zoomAt(1 / MAPVIEW.zoomStep, 0, 0));
     press(el("mapviewMe"), () => this.recenter());
+    press(el("mapviewFit"), () => this.fit());
     press(el("mapviewGo"), () => { const f = getFlag(); if (!f) return; if (f.on) this.flagActs?.stop(); else { this.close(); this.flagActs?.go(); } this.syncFlag(); });
     press(el("mapviewClear"), () => { this.flagActs?.clear(); this.syncFlag(); });
     press(this.modeBtn, () => { radar().setMode(radar().mode === "iso" ? "flat" : "iso"); this.view = { ...this.view, mode: radar().mode }; this.syncUi(); this.redraw(); });
@@ -150,7 +158,7 @@ class MapViewUi implements DotSink {
   /** Bắt đầu một lượt gom: mình ở (tx, ty) ô, nhãn tĩnh của bản đồ, tiêu đề (tên bản đồ · toạ độ · kênh). */
   begin(tx: number, ty: number, now: number, labels: MapLabel[], title: string) {
     this.last = now; this.now = now; this.mx = tx; this.my = ty; this.n = 0; this.nb = 0; this.labels = labels; this.route = null;
-    if (this.needCenter) { this.needCenter = false; this.recenter(); }
+    if (this.needCenter) { this.needCenter = false; this.fit(); }
     if (title !== this.info) { this.info = title; this.title.textContent = title; }
   }
   dot(id: string, tx: number, ty: number, name: string, col = "", ring = "", layer = "") {
@@ -169,6 +177,11 @@ class MapViewUi implements DotSink {
   private recenter() {
     this.view = mapviewClampCenter({ ...this.view, cx: Number.isFinite(this.mx) ? this.mx : this.mapW / 2, cy: Number.isFinite(this.my) ? this.my : this.mapH / 2, mode: radar().mode }, this.mapW, this.mapH);
     this.redraw();
+  }
+  /** Vừa khung: cả bản đồ nằm gọn trong khung vẽ (dưới thanh công cụ), mở ra lần nào cũng vậy. */
+  private fit() {
+    const W = this.cv.clientWidth, H = this.cv.clientHeight; if (!W || !H) { this.recenter(); return; }
+    this.view = mapviewFit(this.mapW, this.mapH, W, H, radar().mode, FIT_MARGIN, el("mapviewBar").offsetHeight); this.syncUi(); this.redraw();
   }
   private zoomAt(f: number, sx: number, sy: number) {
     this.view = mapviewClampCenter(mapviewZoomAt(this.view, f, sx, sy), this.mapW, this.mapH); this.syncUi(); this.redraw();
@@ -314,8 +327,8 @@ class MapViewUi implements DotSink {
       const lv = LEVEL.get(d.id)!; drawRadarIcon(ctx, d, lv.size, lv.blink && !on);
       this.hits.push({ x: d.x - c.x, y: d.y - c.y, prio: d.prio, name: d.name, sub: "", wx: d.wx, wy: d.wy });
     }
-    ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
-    for (const l of this.labels) this.drawLabel(ctx, l, at(l.x, l.y), c, z, v);
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    this.drawLabels(ctx, at, c, z);
     for (const o of this.overlays) if (o.at === "top") { ctx.save(); ctx.translate(c.x, c.y); if (iso) ctx.rotate(Math.PI / 4); ctx.scale(z, z); ctx.translate(-v.cx, -v.cy); o.fn(ctx, v, this.mapW, this.mapH); ctx.restore(); }
     for (const [, m] of this.markers) { const p = at(m.tx, m.ty); this.flag(ctx, p.x, p.y, m.col); this.hits.push({ x: p.x - c.x, y: p.y - c.y, prio: 8, name: m.name, sub: "", wx: m.tx, wy: m.ty }); }
     if (Number.isFinite(this.mx)) {
@@ -330,26 +343,40 @@ class MapViewUi implements DotSink {
     return !(l.k === "zone" || l.k === "safe" || l.k === "lair") || !l.w || !l.h || fog().explored(l.x, l.y);
   }
 
-  private drawLabel(ctx: CanvasRenderingContext2D, l: MapLabel, p: { x: number; y: number }, c: { x: number; y: number }, z: number, v: MapView) {
+  /** Có hiện nhãn này ở mức phóng `z` không (theo `MAPVIEW.labelZoom`, lớp lọc, sương mù). */
+  private shows(l: MapLabel, z: number) {
     const lz = MAPVIEW.labelZoom;
-    if (!this.known(l)) return;
-    if (l.k === "npc" && z < lz.npc) return;
-    if (l.k === "gate" && z < lz.gate) return;
-    if (l.k === "wp" && z < lz.wp) return;
-    if (l.k === "safe" && z < lz.safe) return;
-    if ((l.k === "npc" || l.k === "gate" || l.k === "wp") && !this.visible("npc")) return;
-    if (p.x < -80 || p.y < -30 || p.x > c.x * 2 + 80 || p.y > c.y * 2 + 30) return;
-    const big = l.k === "zone" || l.k === "lair";
-    const col = l.k === "zone" ? "#ffe9a0" : l.k === "safe" ? "#9ae8c4" : l.k === "lair" ? "#ff8a92" : l.k === "gate" ? "#86e0b0" : l.k === "wp" ? (l.open ? "#8fe0ff" : "#9a9aa8") : PAPER;
-    ctx.font = `${big ? "bold 13px" : "12px"} "Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif`;
-    const y = p.y - (big ? 0 : 8);
-    ctx.lineWidth = 3.5; ctx.strokeStyle = DARK; ctx.strokeText(l.text, p.x, y); ctx.fillStyle = col; ctx.fillText(l.text, p.x, y);
-    const sub = z >= lz.zoneSub ? l.sub : l.brief;
-    if (sub && big) {
-      ctx.font = '11px "Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif'; ctx.lineWidth = 3; ctx.strokeText(sub, p.x, y + 14); ctx.fillStyle = PAPER; ctx.fillText(sub, p.x, y + 14);
+    if (!this.known(l)) return false;
+    if (l.k === "npc" && z < lz.npc) return false;
+    if (l.k === "gate" && z < lz.gate) return false;
+    if (l.k === "wp" && z < lz.wp) return false;
+    if (l.k === "safe" && z < lz.safe) return false;
+    return !((l.k === "npc" || l.k === "gate" || l.k === "wp") && !this.visible("npc"));
+  }
+
+  /** Vẽ nhãn theo thứ tự ưu tiên; nhãn nào đè lên nhãn đã đặt thì thử dịch lên / xuống, vẫn đè thì bỏ (phóng to sẽ thấy). */
+  private drawLabels(ctx: CanvasRenderingContext2D, at: (tx: number, ty: number) => { x: number; y: number }, c: { x: number; y: number }, z: number) {
+    const W = c.x * 2, H = c.y * 2, lz = MAPVIEW.labelZoom, placed: { x0: number; y0: number; x1: number; y1: number }[] = [];
+    const list = this.labels.filter((l) => this.shows(l, z)).sort((a, b) => LABEL_PRIO[a.k] - LABEL_PRIO[b.k]);
+    for (const l of list) {
+      const p = at(l.x, l.y);
+      if (p.x < -80 || p.y < -30 || p.x > W + 80 || p.y > H + 30) continue;
+      const big = l.k === "zone" || l.k === "lair", sub = z >= lz.zoneSub ? l.sub : l.brief, two = !!(sub && big);
+      const col = l.k === "zone" ? "#ffe9a0" : l.k === "safe" ? "#9ae8c4" : l.k === "lair" ? "#ff8a92" : l.k === "gate" ? "#86e0b0" : l.k === "wp" ? (l.open ? "#8fe0ff" : "#b4b4c2") : PAPER;
+      ctx.font = `${big ? "bold 13px" : "12px"} ${FONT}`; const w1 = ctx.measureText(l.text).width;
+      let w2 = 0; if (two) { ctx.font = `12px ${FONT}`; w2 = ctx.measureText(sub!).width; }
+      const bw = Math.max(w1, w2) + 12, bh = two ? 36 : 20, bx = p.x - bw / 2, by0 = p.y - (big ? bh / 2 : bh + 4);
+      let by = by0, ok = false;
+      for (const d of [0, -bh - 2, bh + 2, -2 * bh - 4, 2 * bh + 4]) {
+        by = by0 + d; if (!placed.some((r) => bx < r.x1 + 2 && bx + bw > r.x0 - 2 && by < r.y1 + 2 && by + bh > r.y0 - 2)) { ok = true; break; }
+      }
+      if (!ok) continue;
+      placed.push({ x0: bx, y0: by, x1: bx + bw, y1: by + bh });
+      ctx.fillStyle = LABEL_BG; ctx.fillRect(bx, by, bw, bh); ctx.strokeStyle = col; ctx.globalAlpha = 0.55; ctx.lineWidth = 1; ctx.strokeRect(bx + .5, by + .5, bw - 1, bh - 1); ctx.globalAlpha = 1;
+      ctx.fillStyle = col; ctx.font = `${big ? "bold 13px" : "12px"} ${FONT}`; ctx.fillText(l.text, p.x, by + (two ? 11 : bh / 2 + 1));
+      if (two) { ctx.font = `12px ${FONT}`; ctx.fillStyle = PAPER; ctx.fillText(sub!, p.x, by + 27); }
+      if (!big || l.k === "lair") this.hits.push({ x: p.x - c.x, y: p.y - c.y, prio: 3, name: l.text, sub: l.sub ?? "", wx: l.x, wy: l.y });
     }
-    if (!big || l.k === "lair") this.hits.push({ x: p.x - c.x, y: p.y - c.y, prio: 3, name: l.text, sub: l.sub ?? "", wx: l.x, wy: l.y });
-    void v;
   }
 
   /** Cờ nhỏ: cọc + lá cờ màu `col`, chân cọc ở (x, y). */

@@ -839,11 +839,19 @@ export class MemoryStore implements Store {
   }
 }
 
+/** Số nguyên dương từ biến môi trường; thiếu hoặc sai thì dùng mặc định. */
+function envInt(name: string, def: number): number {
+  const n = Number(process.env[name]);
+  return Number.isFinite(n) && n >= 0 && process.env[name] !== undefined && process.env[name] !== "" ? Math.floor(n) : def;
+}
+
 export class PgStore implements Store {
   pool: pg.Pool;
   constructor(url: string) {
     const ssl = process.env.PGSSL === "false" ? false : /supabase|sslmode=require/.test(url) || process.env.PGSSL === "true" ? { rejectUnauthorized: false } : false;
-    this.pool = new pg.Pool({ connectionString: url, ssl, max: 10, connectionTimeoutMillis: 10_000, idleTimeoutMillis: 30_000 });
+    this.pool = new pg.Pool({ connectionString: url, ssl, max: Math.max(1, envInt("PG_POOL_MAX", 10)), connectionTimeoutMillis: 10_000, idleTimeoutMillis: 30_000,
+      // Mặc định tắt (0 = không giới hạn); đặt thì một truy vấn treo bị cắt thay vì giữ kết nối và chuỗi lưu của người chơi đó mãi.
+      ...(envInt("PG_STATEMENT_TIMEOUT_MS", 0) > 0 ? { statement_timeout: envInt("PG_STATEMENT_TIMEOUT_MS", 0), query_timeout: envInt("PG_STATEMENT_TIMEOUT_MS", 0) + 2000 } : {}) });
     // Pooler của Supabase có thể cắt kết nối rảnh; không bắt lỗi này thì Node sẽ sập cả server.
     this.pool.on("error", (e) => console.error("Kết nối PostgreSQL bị ngắt (pool sẽ tự mở lại):", e.message));
   }
@@ -1160,8 +1168,16 @@ export class PgStore implements Store {
          enhance=EXCLUDED.enhance, stats=EXCLUDED.stats, vohon_id=EXCLUDED.vohon_id, locked=EXCLUDED.locked, equip_slot=EXCLUDED.equip_slot,
          -- Thứ tự ô (#215 "Sắp xếp" đặt lại created); cùng mili giây thì giữ giá trị cũ (Item.created chỉ có mili giây).
          created_at=CASE WHEN date_trunc('milliseconds', items.created_at) = EXCLUDED.created_at THEN items.created_at ELSE EXCLUDED.created_at END
-       WHERE items.account_id = EXCLUDED.account_id`, [accountId, rows]);
-    if (r.rowCount !== items.length) throw new Error("Id món đồ thuộc tài khoản khác.");
+       WHERE items.account_id = EXCLUDED.account_id
+         -- #737: món không đổi thì không tạo phiên bản dòng mới (WAL, dead tuple, autovacuum). Cột so sánh = đúng các cột SET ở trên.
+         AND (items.kind IS DISTINCT FROM EXCLUDED.kind OR items.code IS DISTINCT FROM EXCLUDED.code OR items.qty IS DISTINCT FROM EXCLUDED.qty
+           OR items.years IS DISTINCT FROM EXCLUDED.years OR items.stars IS DISTINCT FROM EXCLUDED.stars OR items.enhance IS DISTINCT FROM EXCLUDED.enhance
+           OR items.stats IS DISTINCT FROM EXCLUDED.stats OR items.vohon_id IS DISTINCT FROM EXCLUDED.vohon_id OR items.locked IS DISTINCT FROM EXCLUDED.locked
+           OR items.equip_slot IS DISTINCT FROM EXCLUDED.equip_slot
+           OR date_trunc('milliseconds', items.created_at) <> EXCLUDED.created_at)`, [accountId, rows]);
+    // Dòng không đổi không được trả về, nên rowCount không còn bằng số món: kiểm riêng id thuộc tài khoản khác (khóa chính, rẻ).
+    const other = await db.query("SELECT 1 FROM items WHERE id = ANY($2::uuid[]) AND account_id <> $1 LIMIT 1", [accountId, items.map((i) => i.id)]);
+    if (other.rowCount) throw new Error("Id món đồ thuộc tài khoản khác.");
   }
   /** Ghi cả túi và Hồn Tệ trong transaction đang mở (saveBag, saveTravel). Câu UPDATE accounts đầu tiên khóa dòng tài khoản. */
   async writeBag(db: pg.PoolClient, accountId: number, bag: Bag) {

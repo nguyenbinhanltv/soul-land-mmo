@@ -120,3 +120,14 @@ export function mapviewPan(v: MapView, dx: number, dy: number): MapView {
 
 /** Kẹp tâm khung nhìn vào bản đồ `w`×`h` ô (không kéo ra khỏi bản đồ). */
 export const mapviewClampCenter = (v: MapView, w: number, h: number): MapView => ({ ...v, cx: Math.min(w, Math.max(0, v.cx)), cy: Math.min(h, Math.max(0, v.cy)) });
+
+/**
+ * Khung nhìn vừa khít cả bản đồ `mapW`×`mapH` ô trong khung vẽ `W`×`H` (pixel): chừa lề `margin` mỗi cạnh và dải `top` ở trên (thanh công cụ).
+ * Mức phóng kẹp vào `zoomMin`…`zoomMax`; tâm đặt sao cho giữa bản đồ rơi vào giữa vùng còn lại.
+ */
+export function mapviewFit(mapW: number, mapH: number, W: number, H: number, mode: RadarMode, margin = 16, top = 0): MapView {
+  const bw = mode === "iso" ? (mapW + mapH) * Math.SQRT1_2 : mapW, bh = mode === "iso" ? (mapW + mapH) * Math.SQRT1_2 : mapH;
+  const zoom = mapviewClampZoom(Math.min(Math.max(1, W - 2 * margin) / bw, Math.max(1, H - top - 2 * margin) / bh));
+  const u = radarUnrotate(0, top / 2, mode);
+  return { cx: mapW / 2 - u.x / zoom, cy: mapH / 2 - u.y / zoom, zoom, mode };
+}
