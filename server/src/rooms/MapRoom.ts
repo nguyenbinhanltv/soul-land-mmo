@@ -199,7 +199,7 @@ export interface PData {
   // Tự săn (Auto 1, mục 5.13): đang chạy (null = tắt), cài đặt, ngày (giờ Việt Nam) và số giây đã treo trong ngày đó, cờ chưa lưu
   // (bảng auto_hunt; flushAuto ghi trong chuỗi lưu cùng lần lưu thường, trước transaction đi cổng và khi dừng). `autoBonus`: giây
   // treo cộng thêm còn lại từ Ủy Thác Lệnh (Auto 2), chỉ tiêu khi đã treo hết AUTO_DAILY_SECS của hôm nay.
-  auto: AutoHunter | null; autoCfg: AutoSettings; autoDay: string; autoUsed: number; autoBonus: number; autoDirty: boolean; autoTok: number; autoTokAt: number; autoSetPend: { cfg: unknown } | null; autoPace: [number, number];
+  auto: AutoHunter | null; autoCfg: AutoSettings; autoDay: string; autoUsed: number; autoBonus: number; autoDirty: boolean; autoTok: number; autoTokAt: number; autoSetPend: { cfg: unknown } | null; autoRealRate: boolean; autoPace: [number, number];
   // Ủy thác offline (Auto 3): bảng nhận thưởng đã tính chờ gửi (client xin bằng tin `offline` sau khi đăng ký handler, vì claimOffline
   // có thể xong trước khi client sẵn sàng nhận) và client đã xin chưa.
   offMsg: Record<string, unknown> | null; offAsk: boolean;
@@ -1156,7 +1156,7 @@ export class MapRoom extends Room<MapState> {
       chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests), ...this.tongTasksOf(bag.quests), tongBoardAt: 0, tongPend: [],
       res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, resonanceTopAt: 0, arenaGone: false,
       auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0,
-      autoBonus: auth.auto.bonus, autoDirty: false, autoTok: AUTO_MSG_RATE.burst, autoTokAt: Date.now(), autoSetPend: null, autoPace: [0, 0], offMsg: null, offAsk: false,
+      autoBonus: auth.auto.bonus, autoDirty: false, autoTok: AUTO_MSG_RATE.burst, autoTokAt: Date.now(), autoSetPend: null, autoRealRate: false, autoPace: [0, 0], offMsg: null, offAsk: false,
       tong: tongDef(auth.tong.tong)?.id ?? null, tongAt: auth.tong.at };
     p.tong = d.tong ? TONG_MON.findIndex((t) => t.id === d.tong) + 1 : 0;
     this.pdata.set(client.sessionId, d);
@@ -1634,7 +1634,7 @@ export class MapRoom extends Room<MapState> {
   autoAction(id: string, op: unknown, cfg: unknown) {
     const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
     // Nhịp riêng theo người chơi (F2 báo cáo soát): vượt thì bỏ tin, không ghi DB / duyệt pdata.
-    const now = Date.now(), scale = process.env.GAME_TEST === "1" ? 1000 : 1; // bot bật / tắt dồn dập: GAME_TEST nới nhịp như ratelimit.ts
+    const now = Date.now(), scale = process.env.GAME_TEST === "1" && !d.autoRealRate ? 1000 : 1; // bot bật / tắt dồn dập: GAME_TEST nới nhịp (hook `test auto {rate}` trả về nhịp thật)
     d.autoTok = Math.min(AUTO_MSG_RATE.burst * scale, d.autoTok + (now - d.autoTokAt) / 1000 * AUTO_MSG_RATE.perSec * scale); d.autoTokAt = now;
     if (d.autoTok < 1) {
       // `set` vượt nhịp: giữ cấu hình cuối, áp một lần khi có token (không để cài đặt cuối bị mất, không tốn DB); tin khác bỏ, trả lại trạng thái thật.
@@ -4119,6 +4119,8 @@ export class MapRoom extends Room<MapState> {
       // Auto 2: `bonus` đặt quỹ giờ treo cộng thêm (giây, 0..AUTO_BONUS_MAX).
       if (typeof o.bonus === "number" && Number.isFinite(o.bonus)) { d.autoBonus = Math.max(0, Math.min(AUTO_BONUS_MAX, o.bonus)); d.autoDirty = true; this.sendAuto(id); }
       if (o.pvp && !p.dead) { d.inv = 0; this.hurtPlayer(id, 1, { pvp: { dealt: 0 } }); }
+      // `rate: true` dùng nhịp tin `auto` thật (AUTO_MSG_RATE) và đầy lại lượt; `rate: false` nới lại (thử F2 báo cáo soát).
+      if (typeof o.rate === "boolean") { d.autoRealRate = o.rate; d.autoTok = AUTO_MSG_RATE.burst; d.autoTokAt = Date.now(); d.autoSetPend = null; }
       const a = d.auto;
       // #213: `pace` đặt nợ nhịp (giây) của lượt tự săn đang chạy (thử trần tốc độ AUTO_PACE).
       if (a && typeof o.pace === "number" && Number.isFinite(o.pace)) a.pace = Math.max(-3600, Math.min(3600, o.pace));
