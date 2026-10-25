@@ -56,5 +56,14 @@
       "sha256": "e742607bb7bac61e8c23ee9530d9da333efe493ac72333950993698b6fb9872b",
       "prompt_sha256": "d7c91b21c77232651765303829b570c72de5cb1058cb567f87681bb866e0457d"
     }
+  ],
+  "style_reference_permission": "Owner đã xem static+A2 và xác nhận hash; cho phép A2 làm STYLE reference candidate cho B trong fresh worker67. Chưa duyệt mỹ thuật/runtime.",
+  "known_suspects": [
+    "H1 C5–6: hurt xoay/ngẩng đầu, kiểm hướng nam và giật lùi",
+    "H3 C3–4: kiểm hướng nam khi lao và điểm chân",
+    "H4 C3–4: die đổi trục nam sang phải",
+    "H5–8: se gần e; H8 C2–4 chết đổi trục",
+    "H5/H9 C5–6: hurt ngẩng đầu, kiểm lùi/cỡ/điểm chân",
+    "H9–12: kiểm trục e, nhất là H12 C2–4 khi chết"
   ]
 }

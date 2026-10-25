@@ -1,0 +1,92 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "image_model_id": null,
+  "seed": null,
+  "model_note": "Tool did not expose image model or seed; no inference from harness.",
+  "species": "hac_boi_da_tru",
+  "sheet": "B",
+  "attempt_count": 2,
+  "selected_candidate": "B-attempt2.png",
+  "approval": "Candidate only; no art/runtime approval",
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "dimension_exception": "Both 1254x1254, including retry emphasizing 1024x1024; no size control exposed.",
+  "references": [
+    {
+      "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/hac_boi_da_tru.png",
+      "role": "Static creature identity",
+      "sha256": "9af1eaba968c8d9480811e1dedb9608880007e324e481d7fc8cebef70626236c",
+      "dimensions": [
+        192,
+        64
+      ],
+      "bytes": 5345,
+      "png_color_type": 6
+    },
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-64/toA-attempt2.png",
+      "role": "Sheet A candidate STYLE only; not approved",
+      "sha256": "e742607bb7bac61e8c23ee9530d9da333efe493ac72333950993698b6fb9872b",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2354969,
+      "png_color_type": 2
+    }
+  ],
+  "attempts": [
+    {
+      "attempt": 1,
+      "raw": "B-attempt1.png",
+      "prompt": "B-attempt1-prompt.txt",
+      "start_utc": "2026-10-25 20:08:32 UTC",
+      "end_utc": "2026-10-25 20:09:18 UTC",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a174ad-5087-7ca2-b9b2-01e3658c9656/exec-d308c9c9-e8a3-4aef-b31a-ee56ad32e613.png",
+      "sha256": "360efd22a5c9d6f585c193236c7d73c987e74f12c95735a37c27d0eb55b367bb",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "bytes": 2196859,
+      "png_color_type": 2,
+      "prompt_sha256": "8a55356d4aabbbaab5d736b56b7590eca687576d9a4442e62c15ec1df7846fe3",
+      "copy_matches_original": true
+    },
+    {
+      "attempt": 2,
+      "raw": "B-attempt2.png",
+      "prompt": "B-attempt2-prompt.txt",
+      "start_utc": "2026-10-25 20:09:35 UTC",
+      "end_utc": "2026-10-25 20:10:16 UTC",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a174ad-5087-7ca2-b9b2-01e3658c9656/exec-ebda0976-9ce8-45f1-95dc-7b7876fa4039.png",
+      "sha256": "a52c0c93aa577ed1b04a56151eca78f2bc1d23219e9a999dc739ac3b4adb8709",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "bytes": 2118153,
+      "png_color_type": 2,
+      "prompt_sha256": "08e8d8b688a380e4562fe634ff18f2b2822551e11212d2fdec0412a37beb487a",
+      "copy_matches_original": true
+    }
+  ],
+  "policy": "Nondestructive copies. No resize/crop/quantize/composite/frame-copy/code-poses/cutting or metadata rewrite.",
+  "visual_review": "See provenance.md. Both complete RAWs viewed with view_image. 1-based row/column coordinates.",
+  "session": "soul-land-mmo-67",
+  "issue": 768,
+  "artifact_directory": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-67",
+  "artifact_visual_review": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-67/provenance.md",
+  "import_verification": "Worker64 đối chiếu cả hai raw và prompt với SHA-256, kích thước PNG, raw nguyên byte với original_tool_path và hash hai reference; A trong PR trùng reference A2.",
+  "style_reference_permission": "Owner đã xem static+A2 và xác nhận hash; cho phép A2 làm STYLE reference candidate cho B, không phải duyệt mỹ thuật/runtime A hoặc B.",
+  "tool_parameters_note": "Provenance worker67 ghi builtin tool và hai references; không cung cấp bản serialize toàn bộ tham số tool. Không suy đoán tham số chưa ghi.",
+  "known_suspects": [
+    "H1–H3 C1–6 và H4 C1–3: NE còn gần E, góc lưng chưa rõ",
+    "H4 C3–4: die đổi trục về E",
+    "H7 C3–4: attack N lệch phải, C4 thay đổi độ rộng rõ",
+    "H8 C3–4: die N xoay phải, C4 nằm ngang E",
+    "H1/H5 C5–6: hurt khác ít, cần kiểm độ rõ giật lùi"
+  ]
+}
