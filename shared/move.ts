@@ -33,10 +33,32 @@ export function hits(g: SolidGrid, x: number, y: number, hw: number, hh: number)
   return false;
 }
 
-/** Dời `e` thêm (dx, dy), từng trục một: trục nào vướng ô chặn thì đứng yên theo trục đó (trượt dọc tường). */
-export function moveEnt(g: SolidGrid, e: { x: number; y: number }, dx: number, dy: number, hw: number, hh: number) {
+/**
+ * Dời `e` thêm (dx, dy), từng trục một: trục nào vướng ô chặn thì đứng yên theo trục đó (trượt dọc tường).
+ * `nudge` > 0 (pixel, MOVE_NUDGE): trục vướng chỉ vì GÓC ô (lệch sang bên ≤ nudge là thoát) thì đẩy nhẹ sang phía trống, tối đa
+ * bằng độ dài bước của trục đang đi (không nhanh hơn tốc độ), để lách qua góc thay vì đứng khựng. Server và dự đoán client cùng gọi.
+ */
+export function moveEnt(g: SolidGrid, e: { x: number; y: number }, dx: number, dy: number, hw: number, hh: number, nudge = 0) {
   if (!hits(g, e.x + dx, e.y, hw, hh)) e.x += dx;
+  else if (nudge > 0) e.y += nudgeBy(g, e.x, e.y, dx, 0, hw, hh, nudge, dy);
   if (!hits(g, e.x, e.y + dy, hw, hh)) e.y += dy;
+  else if (nudge > 0) e.x += nudgeBy(g, e.x, e.y, 0, dy, hw, hh, nudge, dx);
+}
+
+/**
+ * Bước lách (có dấu) trên trục vuông góc với bước vướng (dx, dy): tìm độ lệch nhỏ nhất k ≤ nudge để hộp đi tiếp được, rồi lách
+ * min(k, độ dài bước) về phía đó (hai phía cùng thoát thì chọn phía cùng dấu `hint`, thành phần bước của trục kia). 0 nếu quá ngưỡng hoặc đường lách cũng vướng.
+ */
+function nudgeBy(g: SolidGrid, x: number, y: number, dx: number, dy: number, hw: number, hh: number, nudge: number, hint: number): number {
+  const px = dx === 0, len = Math.abs(px ? dy : dx); // lách theo x khi đang đi dọc y
+  const sides = hint < 0 ? [-1, 1] : [1, -1]; // hai phía cùng thoát thì theo chiều người chơi đang bấm ở trục kia
+  for (let k = 1; k <= nudge; k++) for (const sg of sides) {
+    const ox = px ? sg * k : 0, oy = px ? 0 : sg * k;
+    if (hits(g, x + dx + ox, y + dy + oy, hw, hh)) continue;
+    const m = Math.min(k, len);
+    return hits(g, x + (px ? sg * m : 0), y + (px ? 0 : sg * m), hw, hh) ? 0 : sg * m;
+  }
+  return 0;
 }
 
 /** Chuẩn hóa hướng đi client gửi (độ dài ≤ 1), như server đọc message `input`. */

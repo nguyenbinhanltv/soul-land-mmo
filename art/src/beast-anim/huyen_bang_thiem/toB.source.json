@@ -1,0 +1,140 @@
+{
+  "species": "huyen_bang_thiem",
+  "sheet": "B",
+  "issue_context": "H4 #768",
+  "batch_owner": "soul-land-mmo-64",
+  "worker": "soul-land-mmo-72",
+  "pr_context": "https://github.com/nguyenbinhanltv/soul-land-mmo/pull/786",
+  "scope": "artifact-only; no repository or GitHub mutation",
+  "tool": "builtin image_gen__imagegen",
+  "image_model": "unknown: tool exposes no model selector and returned no model identifier",
+  "harness_requested_by_user": "GPT-6.1-Sol effort medium; not independently verified by image tool",
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "size_selector": "unavailable",
+  "seed": "unknown/unavailable",
+  "transparent_background_argument": false,
+  "references_in_order": [
+    {
+      "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/huyen_bang_thiem.png",
+      "sha256": "fe85b819d91f822135811c253134829a02eb552482158c990c6d41f40d397fe0",
+      "bytes": 5444,
+      "dimensions": [
+        288,
+        96
+      ]
+    },
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-70/A1.png",
+      "sha256": "9f32740c6a798889b149835c1ef1e62c68c5c17fbb2a62809c1ff9681bac96d5",
+      "bytes": 2007484,
+      "dimensions": [
+        1024,
+        1536
+      ]
+    }
+  ],
+  "reference_roles": [
+    "identity/proportions/colors authority",
+    "STYLE candidate only; not owner art or runtime acceptance"
+  ],
+  "reference_view_order": "static first, then A1 before both calls",
+  "attempt_count": 2,
+  "max_attempts": 2,
+  "selected": "B2.png",
+  "selected_status": "candidate with known defects; not accepted for art/runtime",
+  "postprocessing": "none; byte-identical copies; original generated images retained",
+  "attempts": [
+    {
+      "attempt": 1,
+      "output": {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-72/B1.png",
+        "sha256": "6246fd85b73da07fa6db6d8875d14b28dfe799b3fecd3525de87c97332cdd8ea",
+        "bytes": 1955523,
+        "dimensions": [
+          1254,
+          1254
+        ]
+      },
+      "original_image_path": "/Users/thanhhoa/.codex/generated_images/01a174c7-0790-7862-ab14-fc8d1f2ccf9a/exec-3e9fc616-2e8c-42ad-a742-b5f0dc781aa3.png",
+      "exact_prompt": {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-72/B1-prompt.txt",
+        "sha256": "b5f581eb3b4099726eec63297db3e7544269be6c23f147733b5a23e6ff02a39d",
+        "bytes": 4459,
+        "dimensions": null
+      },
+      "started": {
+        "current_time": "2026-10-25 20:36:55 UTC"
+      },
+      "finished": {
+        "current_time": "2026-10-25 20:37:33 UTC"
+      },
+      "known_suspects": [
+        "NE rows1-4 mostly east/side-like rather than clear upper-right back-three-quarter. r5c5 hurt turns front. r8c3-c4 dying turns toward camera. Idle/walk pose differences subtle; loop smoothness not runtime verified."
+      ],
+      "visual_check": {
+        "rows": 8,
+        "columns": 6,
+        "figures": 44,
+        "empty_cells": [
+          "r4c5",
+          "r4c6",
+          "r8c5",
+          "r8c6"
+        ],
+        "labels_grid_text_other_creatures": "none observed",
+        "cross_cell_overlap": "none observed",
+        "background": "magenta visually; exact flat FF00FF not pixel-audited"
+      }
+    },
+    {
+      "attempt": 2,
+      "output": {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-72/B2.png",
+        "sha256": "8c4e60d72f1a8e461c7b248ba52d86ec585e462bf0b000358c528db949597814",
+        "bytes": 1997305,
+        "dimensions": [
+          1254,
+          1254
+        ]
+      },
+      "original_image_path": "/Users/thanhhoa/.codex/generated_images/01a174c7-0790-7862-ab14-fc8d1f2ccf9a/exec-08c10041-bb85-4626-ba69-6a781e81ec9c.png",
+      "exact_prompt": {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-72/B2-prompt.txt",
+        "sha256": "a1b1f6e10a1c73dc33ea343cbc4aa085f3ed2b3ba0c20821cffdf7f73784dfb3",
+        "bytes": 5405,
+        "dimensions": null
+      },
+      "started": {
+        "current_time": "2026-10-25 20:37:57 UTC"
+      },
+      "finished": {
+        "current_time": "2026-10-25 20:38:35 UTC"
+      },
+      "known_suspects": [
+        "NE rows1-4 remains too side/east-like; some chest/side face visible. N r8c4 final die appears front-facing; r8c3 may drift toward front. Hurt recoil small; idle/walk changes subtle, loop not runtime verified. N attack action modest. Margins and scale visually mostly consistent but not measured."
+      ],
+      "visual_check": {
+        "rows": 8,
+        "columns": 6,
+        "figures": 44,
+        "empty_cells": [
+          "r4c5",
+          "r4c6",
+          "r8c5",
+          "r8c6"
+        ],
+        "labels_grid_text_other_creatures": "none observed",
+        "cross_cell_overlap": "none observed",
+        "background": "magenta visually; exact flat FF00FF not pixel-audited"
+      }
+    }
+  ],
+  "late_prepared_prompt": "Owner supplemental prepared prompt arrived after both calls; no reset/restart/additional call; preserved exact prompts actually used.",
+  "integration_verification": "Worker64 đã xem B2, đối chiếu cả hai raw nguyên byte với original tool outputs, PNG header/hash, exact prompt hashes và hai reference; A trong PR trùng A1 style reference.",
+  "original_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-72/provenance.json",
+  "original_provenance_sha256": "5c0f2bb2e63a61c95e9de126b85558af24830dcae241464ba2bbe0b2bb80cea9",
+  "handoff": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-72/HANDOFF.md"
+}

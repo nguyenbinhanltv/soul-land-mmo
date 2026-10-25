@@ -84,6 +84,7 @@ jobs:
       - run: npm run audio:validate
       - run: npm run check
       - run: npm run build
+      - run: npm run budget # ngân sách dung lượng bản build (#743): vượt mốc × 1,1 thì đỏ
 
   actionbar-preview:
     name: actionbar-preview
@@ -311,6 +312,10 @@ jobs:
         run: npm run test:radar --prefix server
       - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
         run: npm run test:autopath --prefix server
+      - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
+        run: npm run test:clickgoal --prefix server
+      - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
+        run: npm run test:control --prefix server
       - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}
         run: npm run test:ratelimit --prefix server
       - if: ${{ !cancelled() && steps.deps.outcome == 'success' && matrix.part == 1 }}

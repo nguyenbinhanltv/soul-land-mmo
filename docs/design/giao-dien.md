@@ -107,13 +107,32 @@ Bản phác bố cục: `docs/art/ban-phac-nhan-vat-tui/index.html` (kèm ảnh 
 - **Phím:** H mở / đóng Nhân vật, B mở / đóng Túi, `[` / `]` chuyển tab búp bê, Esc đóng. Phím C không mở bảng Nhân vật vì đè mất kỹ năng hồn cốt tay phải (Z / X / C).
 - **FPS khi kéo** (Chrome headless, GPU thật, đo lúc làm): con trỏ chỉ dời bóng bằng `transform`, bảng không vẽ lại giữa chừng, nên kéo bằng chuột 1280×720 và bằng chạm 844×390 giữ ≥ 100 khung/giây, khung dài nhất ≤ 21 ms.
 
+### Điều khiển: thứ tự ưu tiên lệnh và chip trạng thái (M5 #751)
+Luật ở `shared/control.ts` (hàm thuần `startCmd`, `topCmd`; kiểm thử `server/scripts/control-test.ts`), client phân xử ở `GameScene.begin`, server giữ khoá mục tiêu (`rooms/lock.ts`) và tự săn. Nguồn lệnh lái nhân vật, **ưu tiên giảm dần**:
+
+1. **Phím / cần điều khiển** (giữ phím): thắng mọi lệnh đang chạy (huỷ bấm đi, khoá, cờ, tự săn).
+2. **Bấm nền** (bấm đi tới điểm, M4): huỷ khoá, cờ, tự săn. Bấm hồn thú (khoá) thay điểm bấm cũ; bấm nền và khoá thay nhau, cả hai là thao tác trực tiếp của tay.
+3. **Khoá mục tiêu** (bấm hồn thú / Tab, M3): huỷ cờ và tự săn.
+4. **Cờ tự đi** (phím Y, bản đồ khu vực, dấu Tập trung): huỷ tự săn; **không bật được** khi đang bấm đi hay đang khoá (báo lý do, gỡ lệnh kia rồi thử lại).
+5. **Tự săn** (phím T, bảng Tự động): **không bật được** khi có lệnh nào cao hơn đang chạy. Server cũng từ chối khi đang khoá (`d.target`), vì khoá do server giữ.
+
+Lệnh bị huỷ hoặc không bật được luôn có lý do: dòng log và câu trên chip. Server tự huỷ khoá (hồn thú chết / mất, quá xa, vùng an toàn, hồn sư gục; mã `hunt` chỉ là lưới an toàn, vì bật tự săn khi đang khoá đã bị từ chối) thì tin `lock {id: "", why}` mang mã lý do (`LockWhy`).
+
+**Chip trạng thái** (`client/src/cmdChip.ts`, `#cmdChip`, giữa dưới màn hình, trên nhắc nhặt đồ): hiện lệnh ưu tiên cao nhất đang chạy, nền son: "Đang đánh: <tên> ×", "Đang đi tới… ×", "Tự đi cờ ×", "Tự săn ×". Bấm × huỷ đúng lệnh đó (khoá: bỏ khoá; bấm đi: dừng; cờ: dừng tự đi, cờ còn; tự săn: gửi tắt). Khi một lệnh bị huỷ chip đổi sang nền giấy ghi lý do vài giây (`WHY_MS`) rồi ẩn. Chỉ hiển thị, không thêm số cân bằng.
+
 ### Kiểm thử
 - Bot nhóm `bag` (gồm `charbag`: lệnh `equip` / `unequip`, `equipcore` / `unequipcore`, `equipgear` / `unequipgear`, `team` / `switch` dựng từ `charBagContract`, server nhận đủ), `team`, `bone`, `core` vẫn phải qua.
 - Đổi giao diện thì chụp trước / sau (Chrome headless `--mute-audio`), thử màn ngang ≥ 960 px và điện thoại ngang.
 
+## Hướng dẫn điều khiển lần đầu (M6 #752)
+- Thẻ giấy ở giữa dưới màn hình (`client/src/guide.ts`, `guide.css`; trên thanh kỹ năng, không đè toast / khung nhiệm vụ / khung mục tiêu), hiện khi vào game lần đầu (gắn chuỗi tân thủ của Ngọc Tiểu Cương: tài khoản đã xong chuỗi thì không tự hiện). 4 bước theo việc người chơi vừa làm: đi (WASD / mũi tên / bấm nền), bấm hồn thú để khoá và tự đánh (Tab, Esc, Space), hồn kỹ (U I O P / thanh kỹ năng), nhặt (E) và hấp thụ hồn hoàn (bắt đầu hấp thụ thì xong). Nút "Tiếp" bỏ qua một bước, **"Bỏ qua" tắt cả hướng dẫn** (bắt buộc hiện nhưng không bắt buộc làm, chủ repo duyệt 2026-10-26); nút "Hướng dẫn" (?) ở menu HUD xem lại từ bước 1 mà không đổi trạng thái đã xem.
+- Gợi ý một lần theo tình huống (lần đầu bị đánh, lần đầu có hồn hoàn của mình rơi, lần đầu túi còn không quá `GUIDE_BAG_FREE` ô trống), tự tắt sau ít giây, không hiện khi đang chạy hướng dẫn.
+- "Đã xem" lưu ở localStorage (`soul-guide-v1:<tên hồn sư>`), không có cột DB / migration; đổi trình duyệt thì hướng dẫn hiện lại một lần (có Bỏ qua). Chữ phím phải khớp `GameScene.setupInput` và `hud.SKILL_KEYS`; đổi điều khiển thì sửa `STEPS` / `HINTS`. Kiểm: `npm run test:flow-browser --prefix client`.
+
 ## Lịch sử / issue liên quan
 - Túi dạng lưới UI-1 #351; bảng Nhân vật UI-2 #352 (nay gộp vào 5.16, gắn / tháo ngay trên búp bê, không mở bảng Đội hình).
 - Hai cửa sổ, búp bê 4 tab: #453; thiết kế chốt bởi chủ repo 2026-10-24. Các bước: NV1 hai cửa sổ, NV2 gắn / tháo tại bảng, NV3 kéo thả và thao tác nhanh, NV4 tab Trang bị, NV5 điện thoại / phím / đo (#459); NV6 ảnh nền búp bê thay bằng C2 #553, C16 #595 (việc còn lại ở `ROADMAP.md`).
+- Hướng dẫn lần đầu M6 #752 (việc con của #746).
 - Nhật ký từng bước: `docs/lich-su.md`.
 
 ## Thanh kỹ năng và đội hình trong trận (C8)

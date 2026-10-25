@@ -10,7 +10,7 @@ import path from "node:path";
 const YEAR = "public, max-age=31536000, immutable";
 const WEEK = "public, max-age=604800, stale-while-revalidate=86400";
 const HASHED = /^\/assets\/.+-[A-Za-z0-9_-]{8}\.[a-z0-9]+$/;
-const BINARY = new Set([".png", ".ogg", ".m4a", ".mp3", ".webp", ".jpg", ".jpeg", ".gif", ".svg", ".woff", ".woff2", ".ttf"]);
+const BINARY = new Set([".png", ".ogg", ".m4a", ".mp3", ".webp", ".jpg", ".jpeg", ".gif", ".svg", ".woff", ".woff2", ".ttf"]); // map-co-dinh: hằng số
 
 /** `urlPath`: đường dẫn trong dist (bắt đầu bằng "/"); `versioned`: URL có `?v=`. */
 export function cacheControlFor(urlPath: string, versioned: boolean): string {

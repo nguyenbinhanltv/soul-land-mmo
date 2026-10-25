@@ -15,7 +15,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus, boneSlotIndex,
   CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, coreSetName, coreResetFee, MAX_CORE_STARS, type CoreData,
   CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ROLL, parseEquip, equipStats, equipDefTotal, equipWeaponRoll, equipTemplate, equipSlotIndex, equipName, equipSlotDef, rollEquip, rollEquipDrop, rollEquipCharm, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_TEMPLATES, EQUIP_TIERS, EQUIP_ESSENCE, EQUIP_SOUL, equipLuckStep, EQUIP_SALVAGE_MAX, equipSynthStep, equipSynthOutcome, equipSalvage, equipAutoSalvageable, type EquipData, type EquipDrop,
-  CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, atkRoll, type CoreFx,
+  CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, ATTACK_REACH, atkRoll, type CoreFx,
   BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed, parseBoneSubs, boneAddSubs, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee, SHARD_BUY, shardBuyCost, ARENA_SHARDS,
   CORE_MAX_ENHANCE, CORE_FEED_MAX, coreXp, coreEnhanceNeed, coreEnhancePreview, coreUpgradeSubs, coreStatText,
@@ -38,9 +38,9 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   BEAST_DEF, defMult, beastMelee, PLAYER_STATUS_PVE, RESIST_AS, PLAYER_CHARM,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, parseSell, autoSellable, type SellSettings } from "../../../shared/data.ts";
 import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
-import { FOG } from "../../../shared/data.ts"; // sương mù khám phá (R8)
+import { FOG, moveNudge } from "../../../shared/data.ts"; // sương mù khám phá (R8)
 import { fogDims, fogEmpty, fogFill, fogReveal, fogValid, fogOn as fogMapOn } from "../../../shared/fog.ts";
-import { ASK_CD, BAG_MSG_BURST, BAG_MSG_RATE } from "../../../shared/data.ts"; // nhịp tin client xin lại dữ liệu riêng (#165)
+import { ASK_CD, MSG_GROUP, MSG_HARD, MSG_FLOOD_CODE, type MsgGroup } from "../../../shared/data.ts"; // nhịp tin client xin lại dữ liệu riêng (#165)
 import { WORLD_CHAT } from "../../../shared/data.ts"; // kênh thế giới (#188)
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
@@ -69,8 +69,11 @@ import { ringLimit, coreSubRolls, ARENA_MAP } from "../../../shared/data.ts";
 import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
 import { newItem, itemStacks, gearStats, gearLook, bagUsed, bumpItemClock, KIND_ORDER, ITEM_ORDER, type GearStats } from "./items.ts";
+import { targetMsg, tickLock, setLock, manualAttack } from "./lock.ts";
 
 export interface PData {
+  /** Hồn thú đang khoá (M3 #750, rooms/lock.ts); "" = không khoá. */
+  target: string;
   accountId: number;
   leaseOwner: string;
   leaseT: number;
@@ -120,7 +123,7 @@ export interface PData {
   chListAt: number;     // lần gửi danh sách kênh gần nhất (ms): tin "channels" tối đa 1 lần / giây
   bossAskAt: number;    // lần trả tin boss lúc vào phòng gần nhất (ms, #118): tin "boss" tối đa 1 lần / giây
   chListQueued: boolean; // đã hẹn gửi lại danh sách kênh khi hết 1 giây (client xin dồn)
-  bagLimit: boolean; bagTok: TokenBucket; // bộ đếm token tin ghi túi (#677)
+  msgLimit: boolean; msgTok: Record<MsgGroup | "hard", TokenBucket>; msgOver: number; msgOverAt: number; msgGone: boolean; // giới hạn tin theo nhóm + trần tuyệt đối (#677, #734)
   statsRow: unknown; askAt: Map<string, number>; askQueued: Set<string>; // tin client xin lại dữ liệu riêng (bag, vohons, quest): lần gửi gần nhất (ms), đã hẹn gửi (#165, ask)
   energy: Map<number, number>;  // năng lượng tiên cơ từng võ hồn trong đội (rowId -> 0..TIEN_CO_MAX; không có = 0). Không lưu DB
   shield: number; shieldT: number; // khiên của hồn sư (tiên cơ phụ trợ) và số giây còn lại
@@ -183,7 +186,7 @@ export interface PData {
   tongTasks: QuestProgress[]; tongDay: string; tongBoardAt: number;
   tongPend: { week: number; tong: string; n: number }[]; // điểm tông vụ chờ ghi cùng túi (#320): chỉ bỏ khỏi hàng sau khi lần ghi thành công
   // Đại Đấu Hồn Trường (7.2): đang chờ DB đọc Elo trước khi vào hàng chờ; lúc xin bảng xếp hạng gần nhất (ms, chống xin dồn dập).
-  arenaBusy: boolean; arenaTopAt: number; arenaLiveAt: number; resonanceTopAt: number;
+  arenaBusy: boolean; arenaTopAt: number; arenaLiveAt: number; arenaWatchAt: number; resonanceTopAt: number;
   arenaGone: boolean;   // đã được ghép trận và rời phòng sang sân đấu (7.2): rời phòng lúc đó không phải rời game (giữ danh sách mua lại, 9.8)
   // Võ Hồn Chân Thân (vòng 7, từ 8.1a): võ hồn đang biến hình (`row`), giây còn lại, chỉ số đang cộng (chanThanStats, đọc trong buffV
   // và recalc); `avaCd`: hồi chiêu Chân Thân còn lại của từng võ hồn (rowId -> giây). Không lưu DB.
@@ -323,6 +326,12 @@ const HOLD_WAIT_MS = 8000;
 // có thể ném lỗi.
 /** Số hữu hạn client gửi; khác (chuỗi, object, NaN, Infinity…) thì 0. */
 const numIn = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+/** Bộ đếm token đầy cho mọi nhóm tin của một kết nối (#734). */
+const newMsgBuckets = (): Record<MsgGroup | "hard", TokenBucket> => {
+  const t = Date.now(), b = { hard: { n: MSG_HARD.burst, t } } as Record<MsgGroup | "hard", TokenBucket>;
+  for (const g of Object.keys(MSG_GROUP) as MsgGroup[]) b[g] = { n: MSG_GROUP[g].burst, t };
+  return b;
+};
 /** Số nguyên client gửi; khác thì NaN (hàm nhận tự từ chối). */
 const intIn = (v: unknown) => (typeof v === "number" && Number.isInteger(v) ? v : NaN);
 /** Chuỗi client gửi; khác thì "". */
@@ -346,8 +355,10 @@ interface KingSeat { id: string; owner: string | null; state: "alive" | "down" |
  * của khung đó. Phòng mở lại trong cùng khung nhận lại suất không chủ thay vì sinh con mới, nên hạ thú vương rồi rời bản đồ cho phòng
  * hủy, quay lại cũng không có con mới. Khung hết hạn thì bỏ. Chạy nhiều tiến trình thì phải chuyển sang presence (Redis), như lịch.
  */
-const kingSeats = new Map<string, Map<number, KingSlot>>();
+const kingSeats = new Map<string, Map<number, KingSlot>>(); // map-co-dinh: khóa theo mapId; khung hết hạn bị kingRecs / applyKingDoc bỏ
 const kingClaimCache = new Map<string, Set<number>>();
+/** Bỏ bộ nhớ đệm người đã nhận rương của khung `slot` (khung hết hạn / không còn trong tài liệu): không có thì Map chỉ tăng theo uptime (#739). */
+const dropKingClaims = (mapId: string, slot: number) => { kingClaimCache.delete(`${mapId}:${slot}`); };
 type KingSlotDoc = { slot: number; until: number; boss: string; seats: KingSeat[]; claimed: number[] };
 type KingDoc = Record<string, KingSlotDoc>;
 const kingKey = (mapId: string) => `king:${mapId}`;
@@ -417,7 +428,7 @@ function eliteLockLeft(key: string, acc: number, now = Date.now()): number {
 function kingRecs(mapId: string, now: number) {
   let recs = kingSeats.get(mapId);
   if (!recs) { recs = new Map(); kingSeats.set(mapId, recs); }
-  for (const [slot, r] of recs) if (r.until <= now) recs.delete(slot);
+  for (const [slot, r] of recs) if (r.until <= now) { recs.delete(slot); dropKingClaims(mapId, slot); }
   return recs;
 }
 /**
@@ -439,20 +450,23 @@ function kingSlotNow(mapId: string, now: number): { slot: number; until: number 
  */
 function applyKingDoc(mapId: string, doc: KingDoc | null) {
   if (!doc) return;
-  const recs = new Map<number, KingSlot>();
+  const recs = new Map<number, KingSlot>(), now = Date.now();
   for (const value of Object.values(doc)) {
     const cacheKey = `${mapId}:${value.slot}`, cached = kingClaimCache.get(cacheKey) ?? new Set<number>();
     for (const accountId of value.claimed) cached.add(accountId);
-    kingClaimCache.set(cacheKey, cached);
+    if (value.until > now) kingClaimCache.set(cacheKey, cached); else dropKingClaims(mapId, value.slot);
     recs.set(value.slot, { slot: value.slot, until: value.until, boss: value.boss, seats: value.seats, claimed: new Set(cached) });
   }
+  for (const slot of kingSeats.get(mapId)?.keys() ?? []) if (!recs.has(slot)) dropKingClaims(mapId, slot);
   kingSeats.set(mapId, recs);
 }
+/** Hook kiểm thử (server/scripts/map-leak-test.ts): nạp tài liệu khung, lấy các khung còn hạn, đếm / hỏi bộ nhớ đệm rương. */
+export const kingClaimTest = { apply: applyKingDoc, recs: kingRecs, size: () => kingClaimCache.size, has: (mapId: string, slot: number) => kingClaimCache.has(`${mapId}:${slot}`) };
 async function loadKingState(mapId: string) { applyKingDoc(mapId, await presenceBackend.getJson<KingDoc>(kingKey(mapId))); }
 async function persistKingSeat(mapId: string, slot: number, seat: KingSeat, claimed: Set<number>) {
   const cacheKey = `${mapId}:${slot}`, cached = kingClaimCache.get(cacheKey) ?? new Set<number>();
   for (const accountId of claimed) cached.add(accountId);
-  kingClaimCache.set(cacheKey, cached);
+  if (kingSeats.get(mapId)?.has(slot)) kingClaimCache.set(cacheKey, cached); // khung đã bị bỏ (hết hạn) thì không tạo lại khóa mồ côi
   const owner = `${presenceBackend.workerId}:king:${mapId}:${slot}:${seat.id}`;
   await presenceBackend.withLock<KingDoc>(kingKey(mapId), owner, 5000, (old) => {
     const next = old ?? {}, rec = next[String(slot)];
@@ -468,7 +482,7 @@ async function takeKingSeat(mapId: string, slot: number, until: number, roomId: 
   let result!: { seat: KingSeat; claimed: Set<number>; boss: string };
   const ok = await presenceBackend.withLock<KingDoc>(kingKey(mapId), owner, 5000, (old) => {
     const now = Date.now(), next = old ?? {};
-    for (const [key, value] of Object.entries(next)) if (value.until <= now) delete next[key];
+    for (const [key, value] of Object.entries(next)) if (value.until <= now) { delete next[key]; dropKingClaims(mapId, value.slot); }
     let rec = next[String(slot)];
     if (!rec) { rec = { slot, until, seats: [], claimed: [], boss }; next[String(slot)] = rec; }
     let seat = rec.seats.find((s) => s.owner === null);
@@ -1024,39 +1038,40 @@ export class MapRoom extends Room<MapState> {
       if (p) { if (s > 0 && s <= 0xffffffff) p.seq = s; p.seqT = 0; }
     });
     // Đánh, hồn kỹ, Chân Thân, kỹ năng hồn cốt do người chơi tự bấm thì tắt tự săn trước (tay ưu tiên); tự săn gọi thẳng các hàm này.
-    this.onMessage("attack", (c) => { this.autoHand(c.sessionId); this.attack(c.sessionId); });
+    this.onMessage("attack", (c) => { this.autoHand(c.sessionId); manualAttack(this, c.sessionId); });
+    this.onMessage("target", (c, m: { id?: unknown }) => targetMsg(this, c.sessionId, m?.id)); // khoá mục tiêu (M3 #750)
     this.onMessage("skill", (c, m: { i: number }) => { this.autoHand(c.sessionId); this.skill(c, intIn(m?.i)); });
-    this.onMessage("loadout", (c, m: { rowId: number; skills: unknown }) => this.setLoadout(c, intIn(m?.rowId), m?.skills)); // 8.1a
+    this.onLimitedMsg("social", "loadout", (c, m: { rowId: number; skills: unknown }) => this.setLoadout(c, intIn(m?.rowId), m?.skills)); // 8.1a
     this.onMessage("chanthan", (c) => { this.autoHand(c.sessionId); this.chanThan(c); }); // 8.1a: Võ Hồn Chân Thân (phím R)
     this.onMessage("boneskill", (c, m: { i: number }) => { this.autoHand(c.sessionId); this.boneSkill(c, intIn(m?.i)); });
     this.onMessage("fusion", (c, m: { op: unknown }) => { this.autoHand(c.sessionId); this.fusionAction(c.sessionId, strIn(m?.op)); }); // Võ Hồn Dung Hợp Kỹ (#192)
     this.onMessage("auto", (c, m: { op?: unknown; cfg?: unknown }) => this.autoAction(c.sessionId, m?.op, m?.cfg)); // tự săn (Auto 1)
-    this.onMessage("offline", (c) => { const d = this.pdata.get(c.sessionId); if (d) { d.offAsk = true; this.sendOffline(c.sessionId); } }); // Auto 3
+    this.onLimitedMsg("read", "offline", (c) => { const d = this.pdata.get(c.sessionId); if (d) { d.offAsk = true; this.sendOffline(c.sessionId); } }); // Auto 3
     this.onBagMsg("absorb", (c, m: { itemId: unknown; vohonId: unknown }) => this.tryAbsorb(c, m?.itemId, m?.vohonId));
     this.onBagMsg("pickup", (c) => this.pickup(c.sessionId));
     this.onBagMsg("discard", (c, m: { id: unknown }) => this.discardItem(c.sessionId, m?.id));
     this.onBagMsg("sortbag", (c) => this.sortBag(c.sessionId)); // sắp xếp + gộp chồng cả túi (#215)
     this.onBagMsg("lock", (c, m: { id: unknown }) => this.lockItem(c.sessionId, m?.id)); // khoá / mở khoá một ô (#216)
     this.onBagMsg("autosell", (c, m: { cfg: unknown }) => this.setAutoSell(c.sessionId, m?.cfg)); // bộ lọc tự bán (#216)
-    this.onMessage("vohons", (c) => this.ask(c.sessionId, "vohons", () => this.sendVohons(c)));
-    this.onMessage("fog", (c) => this.ask(c.sessionId, "fog", () => this.sendFog(c.sessionId))); // client xin lại cả bitset (R8); nội dung tin bị bỏ, server tự quyết ô nào đã khám phá
-    this.onMessage("stats", (c, m: { rowId?: unknown }) => { const d = this.pdata.get(c.sessionId); if (d) d.statsRow = m?.rowId; this.ask(c.sessionId, "stats", () => this.sendStats(c.sessionId, this.pdata.get(c.sessionId)?.statsRow)); }); // lần xin dồn trong ASK_CD: gửi võ hồn xin gần nhất // bảng nhân vật (UI-2): chỉ số tổng hợp do server tính
-    this.onMessage("boss", (c) => { // #118: client xin tin boss lúc vào phòng (sau khi đã nghe tin); tối đa 1 lần / giây, xin dồn thì bỏ
+    this.onLimitedMsg("read", "vohons", (c) => this.ask(c.sessionId, "vohons", () => this.sendVohons(c)));
+    this.onLimitedMsg("read", "fog", (c) => this.ask(c.sessionId, "fog", () => this.sendFog(c.sessionId))); // client xin lại cả bitset (R8); nội dung tin bị bỏ, server tự quyết ô nào đã khám phá
+    this.onLimitedMsg("read", "stats", (c, m: { rowId?: unknown }) => { const d = this.pdata.get(c.sessionId); if (d) d.statsRow = m?.rowId; this.ask(c.sessionId, "stats", () => this.sendStats(c.sessionId, this.pdata.get(c.sessionId)?.statsRow)); }); // lần xin dồn trong ASK_CD: gửi võ hồn xin gần nhất // bảng nhân vật (UI-2): chỉ số tổng hợp do server tính
+    this.onLimitedMsg("read", "boss", (c) => { // #118: client xin tin boss lúc vào phòng (sau khi đã nghe tin); tối đa 1 lần / giây, xin dồn thì bỏ
       const d = this.pdata.get(c.sessionId), now = Date.now();
       if (!d || now - d.bossAskAt < 1000) return;
       d.bossAskAt = now; this.sendBossJoin(c);
     });
-    this.onMessage("team", (c, m: { slots: unknown }) => this.setTeam(c, m?.slots));
-    this.onMessage("switch", (c, m: { slot: number }) => { // tự đổi võ hồn khi đang tự săn: tự săn thôi đổi về võ hồn cũ
+    this.onLimitedMsg("social", "team", (c, m: { slots: unknown }) => this.setTeam(c, m?.slots));
+    this.onLimitedMsg("social", "switch", (c, m: { slot: number }) => { // tự đổi võ hồn khi đang tự săn: tự săn thôi đổi về võ hồn cũ
       const a = this.pdata.get(c.sessionId)?.auto; if (a) a.home = null;
       this.switchSlot(c, intIn(m?.slot));
     });
     this.onMessage("test", (c, m: unknown) => this.testHook(c, m));
     this.onMessage("gm", (c, m: { cmd?: unknown }) => this.gmAction(c.sessionId, m?.cmd)); // lệnh GM của tài khoản admin (#518)
-    this.onMessage("travel", (c, m: { portal: string }) => this.travel(c, strIn(m?.portal)));
-    this.onMessage("wp", (c, m: { op: unknown; key: unknown }) => this.waypointAction(c.sessionId, m?.op, m?.key)); // truyền tống trận (11.2)
-    this.onMessage("channels", (c) => this.sendChannels(c)); // danh sách kênh của bản đồ (mục 6 "Nhiều kênh")
-    this.onMessage("channel", (c, m: { ch: unknown }) => this.switchChannel(c, m?.ch)); // đổi kênh trong cùng bản đồ
+    this.onLimitedMsg("social", "travel", (c, m: { portal: string }) => this.travel(c, strIn(m?.portal)));
+    this.onLimitedMsg("social", "wp", (c, m: { op: unknown; key: unknown }) => this.waypointAction(c.sessionId, m?.op, m?.key)); // truyền tống trận (11.2)
+    this.onLimitedMsg("social", "channels", (c) => this.sendChannels(c)); // danh sách kênh của bản đồ (mục 6 "Nhiều kênh")
+    this.onLimitedMsg("social", "channel", (c, m: { ch: unknown }) => this.switchChannel(c, m?.ch)); // đổi kênh trong cùng bản đồ
     this.onMessage("bag", (c) => this.ask(c.sessionId, "bag", () => this.sendBag(c.sessionId, true))); // client xin: cả túi, theo nhịp ASK_CD (#165)
     this.onBagMsg("use", (c, m: { id: unknown; vohonId?: unknown }) => this.useItem(c.sessionId, m?.id, m?.vohonId));
     this.onBagMsg("open", (c, m: { id: unknown }) => this.openChest(c.sessionId, m?.id)); // mở rương thú vương (BĐ5)
@@ -1077,21 +1092,21 @@ export class MapRoom extends Room<MapState> {
     this.onBagMsg("enhance", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceBone(c.sessionId, m?.targetId, m?.materialIds));
     this.onBagMsg("enhancecore", (c, m: { targetId: unknown; materialIds: unknown }) => this.enhanceCore(c.sessionId, m?.targetId, m?.materialIds));
     this.onBagMsg("coreset", (c, m: { id: unknown; set: unknown; npc: unknown }) => this.resetCoreSet(c.sessionId, m?.id, m?.set, m?.npc));
-    this.onMessage("talk", (c, m: { npc: unknown }) => this.talkNpc(c.sessionId, m?.npc)); // NPC (6.1)
-    this.onMessage("tong", (c, m: { op: unknown; tong: unknown; chain?: unknown }) => this.tongAction(c.sessionId, m?.op, m?.tong, m?.chain)); // tông môn (#196, #197)
+    this.onLimitedMsg("read", "talk", (c, m: { npc: unknown }) => this.talkNpc(c.sessionId, m?.npc)); // NPC (6.1)
+    this.onLimitedMsg("social", "tong", (c, m: { op: unknown; tong: unknown; chain?: unknown }) => this.tongAction(c.sessionId, m?.op, m?.tong, m?.chain)); // tông môn (#196, #197)
     // `npc` (#111): mã thương nhân client đang mở hộp thoại (thiếu thì thương nhân gần nhất).
-    this.onMessage("buy", (c, m: { code: unknown; qty: unknown; npc: unknown }) => this.buyItem(c.sessionId, m?.code, m?.qty, m?.npc));
-    this.onMessage("sell", (c, m: { id: unknown; qty: unknown; npc: unknown }) => this.sellItem(c.sessionId, m?.id, m?.qty, m?.npc));
-    this.onMessage("shardbuy", (c, m: { vohon: unknown; qty: unknown; npc: unknown }) => this.buyShards(c.sessionId, m?.vohon, m?.qty, m?.npc)); // #282
-    this.onMessage("looks", (c, m: { looks: unknown; npc?: unknown }) => this.changeLooks(c.sessionId, m?.looks, m?.npc)); // đổi ngoại hình ở thợ may (L4 #511)
-    this.onMessage("shardinfo", (c) => this.sendShardInfo(c.sessionId)); // #282: số mảnh đã đổi hôm nay cho trang Thương hội
-    this.onMessage("buyback", (c, m: { key: unknown; npc: unknown }) => { void this.buybackItem(c.sessionId, m?.key, m?.npc).catch((e) => console.error("Lỗi mua lại", e)); }); // mua lại đồ vừa bán (9.8)
-    this.onMessage("expand", (c, m: { npc: unknown }) => this.expandBag(c.sessionId, m?.npc)); // mở rộng túi (9.8)
-    this.onMessage("party", (c, m: unknown) => { void this.partyAction(c.sessionId, m); }); // tổ đội người chơi (7.1)
-    this.onMessage("rally", (c, m: unknown) => this.rallyAction(c.sessionId, m)); // đánh dấu "Tập trung ở đây" cho tổ đội (R6 #433)
-    this.onMessage("quest", (c, m: { op: unknown; chain: unknown }) => this.questAction(c.sessionId, m?.op, m?.chain)); // nhiệm vụ (6.2; `chain` = khảo hạch hằng ngày)
-    this.onMessage("arena", (c, m: { op: unknown; roomId?: unknown }) => this.arenaAction(c.sessionId, m?.op, m?.roomId)); // Đại Đấu Hồn Trường (7.2)
-    this.onMessage("resonance", (c, m: { op?: unknown; page?: unknown; pageSize?: unknown }) => {
+    this.onLimitedMsg("trade", "buy", (c, m: { code: unknown; qty: unknown; npc: unknown }) => this.buyItem(c.sessionId, m?.code, m?.qty, m?.npc));
+    this.onLimitedMsg("trade", "sell", (c, m: { id: unknown; qty: unknown; npc: unknown }) => this.sellItem(c.sessionId, m?.id, m?.qty, m?.npc));
+    this.onLimitedMsg("trade", "shardbuy", (c, m: { vohon: unknown; qty: unknown; npc: unknown }) => this.buyShards(c.sessionId, m?.vohon, m?.qty, m?.npc)); // #282
+    this.onLimitedMsg("trade", "looks", (c, m: { looks: unknown; npc?: unknown }) => this.changeLooks(c.sessionId, m?.looks, m?.npc)); // đổi ngoại hình ở thợ may (L4 #511)
+    this.onLimitedMsg("read", "shardinfo", (c) => this.sendShardInfo(c.sessionId)); // #282: số mảnh đã đổi hôm nay cho trang Thương hội
+    this.onLimitedMsg("trade", "buyback", (c, m: { key: unknown; npc: unknown }) => { void this.buybackItem(c.sessionId, m?.key, m?.npc).catch((e) => console.error("Lỗi mua lại", e)); }); // mua lại đồ vừa bán (9.8)
+    this.onLimitedMsg("trade", "expand", (c, m: { npc: unknown }) => this.expandBag(c.sessionId, m?.npc)); // mở rộng túi (9.8)
+    this.onLimitedMsg("social", "party", (c, m: unknown) => { void this.partyAction(c.sessionId, m); }); // tổ đội người chơi (7.1)
+    this.onLimitedMsg("social", "rally", (c, m: unknown) => this.rallyAction(c.sessionId, m)); // đánh dấu "Tập trung ở đây" cho tổ đội (R6 #433)
+    this.onLimitedMsg("social", "quest", (c, m: { op: unknown; chain: unknown }) => this.questAction(c.sessionId, m?.op, m?.chain)); // nhiệm vụ (6.2; `chain` = khảo hạch hằng ngày)
+    this.onLimitedMsg("social", "arena", (c, m: { op: unknown; roomId?: unknown }) => this.arenaAction(c.sessionId, m?.op, m?.roomId)); // Đại Đấu Hồn Trường (7.2)
+    this.onLimitedMsg("read", "resonance", (c, m: { op?: unknown; page?: unknown; pageSize?: unknown }) => {
       if (m?.op === "top") return this.resonanceTop(c.sessionId, m.page, m.pageSize);
       this.sendRes(c.sessionId, [], true);
     }); // cộng minh (8.2): bảng tiến độ riêng; op=top là bảng xếp hạng
@@ -1120,9 +1135,9 @@ export class MapRoom extends Room<MapState> {
     const pos = loc.x !== null && loc.y !== null && this.map.standable(loc.x, loc.y) ? { x: loc.x, y: loc.y } : this.spawnPoint();
     p.x = pos.x; p.y = pos.y;
     const d: PData = { accountId: auth.accountId, leaseOwner, leaseT: PRESENCE_HEARTBEAT_MS, owned, team, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 }, walk: false,
-      atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, testBone: null, testCore: null, testHerb: null, looksN: looks.changes, looksBusy: false, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
+      target: "", atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, testBone: null, testCore: null, testHerb: null, looksN: looks.changes, looksBusy: false, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
       benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0,
-      saving: Promise.resolve(), teamQueued: false, tradeQueued: false, latest: new Map(), portalKey: "", travelCast: null, travelling: false, travelled: false, gmReset: false, gmMarked: false, chListAt: 0, chListQueued: false, bossAskAt: 0, bagLimit: process.env.GAME_TEST !== "1", bagTok: { n: BAG_MSG_BURST, t: Date.now() }, statsRow: undefined, askAt: new Map(), askQueued: new Set(),
+      saving: Promise.resolve(), teamQueued: false, tradeQueued: false, latest: new Map(), portalKey: "", travelCast: null, travelling: false, travelled: false, gmReset: false, gmMarked: false, chListAt: 0, chListQueued: false, bossAskAt: 0, msgLimit: process.env.GAME_TEST !== "1", msgTok: newMsgBuckets(), msgOver: 0, msgOverAt: 0, msgGone: false, statsRow: undefined, askAt: new Map(), askQueued: new Set(),
       wps: new Set(auth.wps), wpKey: "", fog: null, fogAdd: [], fogDirty: false,
       energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
       bag: bag.items.filter((i) => i.equipSlot === undefined), gear: bag.items.filter((i) => i.equipSlot !== undefined), gearSt: gearStats(bag.items.filter((i) => i.equipSlot !== undefined)), honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "",
@@ -1131,7 +1146,7 @@ export class MapRoom extends Room<MapState> {
       coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
       quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
       chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...this.dailyOf(bag.quests), ...this.tongTasksOf(bag.quests), tongBoardAt: 0, tongPend: [],
-      res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, resonanceTopAt: 0, arenaGone: false,
+      res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, arenaWatchAt: 0, resonanceTopAt: 0, arenaGone: false,
       auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: this.today(), autoUsed: auth.auto.day === this.today() ? auth.auto.used : 0,
       autoBonus: auth.auto.bonus, autoDirty: false, autoTok: AUTO_MSG_RATE.burst, autoTokAt: Date.now(), autoSetPend: null, autoRealRate: false, autoPace: [0, 0], autoHintC: null, offMsg: null, offAsk: false,
       tong: tongDef(auth.tong.tong)?.id ?? null, tongAt: auth.tong.at };
@@ -1648,6 +1663,7 @@ export class MapRoom extends Room<MapState> {
     if (d.absorbing) return deny("đang hấp thụ hồn hoàn.");
     if (d.travelCast) return deny("đang đi cổng / truyền tống.");
     if (this.map.inSafe(p.x, p.y)) return deny("đang ở vùng an toàn, ra bãi săn rồi bật.");
+    if (d.target) return deny("đang khoá mục tiêu (bấm × hoặc Esc để bỏ khoá; khoá ưu tiên hơn tự săn).");
     if (d.autoUsed >= AUTO_DAILY_SECS && d.autoBonus <= 0) return deny(`hôm nay đã treo đủ ${autoTimeText(AUTO_DAILY_SECS)}.`);
     if (bagUsed(d.bag) >= d.bagSlots && !this.autoSell(id)) return deny(`túi đồ đã đầy (${d.bagSlots} ô)${d.sellCfg.on ? ", không còn món nào hợp bộ lọc tự bán" : ""}.`);
     const grid = this.interest.players, cell = grid.cellOf(p.x, p.y);
@@ -2170,19 +2186,45 @@ export class MapRoom extends Room<MapState> {
     });
   }
 
-  // ---------- Giới hạn tin ghi túi theo kết nối (#677) ----------
+  // ---------- Giới hạn tin theo kết nối (#677, #734) ----------
   /**
-   * Đăng ký tin thuộc nhóm "ghi túi" (sắp xếp, trang bị, bỏ, khóa, dùng, cường hóa…): mỗi tin có thể gộp / sắp xếp lại và gửi lại cả túi,
-   * nên mỗi kết nối chỉ được BAG_MSG_BURST tin dồn và BAG_MSG_RATE tin / giây (bộ đếm token, `takeToken`). Hết token thì BỎ tin, không
-   * ngắt kết nối (người chơi thật bấm nhanh chỉ mất vài lần bấm thừa; mất tin client xin lại bằng `bag`).
+   * Mọi tin của phòng đi qua trần tuyệt đối MSG_HARD (Colyseus 0.16 không có `maxMessagesPerSecond`): hết token thì bỏ tin (trừ `input`), vượt
+   * `maxOver` tin trong một giây thì ngắt kết nối. Tin `test` (chỉ GAME_TEST) và `*` không đếm.
    */
-  onBagMsg<T = unknown>(type: string, cb: (c: Client, m: T) => void) {
+  override onMessage<T = any>(type: "*", callback: (c: Client, type: string | number, message: T) => void): any;
+  override onMessage<T = any>(type: string | number, callback: (c: Client, message: T) => void, validate?: (message: unknown) => T): any;
+  override onMessage(type: string | number, callback: (c: Client, ...a: any[]) => void, validate?: (message: unknown) => unknown) {
+    if (type === "*" || type === "test") return super.onMessage(type as string, callback as (c: Client, m: unknown) => void, validate);
+    return super.onMessage(type, (c: Client, m: unknown) => {
+      const d = this.pdata.get(c.sessionId);
+      if (d?.msgLimit) {
+        if (d.msgGone) return;
+        const now = Date.now();
+        if (!takeToken(d.msgTok.hard, now, MSG_HARD.burst, MSG_HARD.rate)) {
+          if (now - d.msgOverAt >= 1000) { d.msgOverAt = now; d.msgOver = 0; }
+          if (++d.msgOver > MSG_HARD.maxOver) { d.msgGone = true; c.leave(MSG_FLOOD_CODE); return; }
+          if (type !== "input") return;
+        }
+      }
+      callback(c, m);
+    }, validate);
+  }
+
+  /**
+   * Đăng ký tin thuộc một nhóm (`MSG_GROUP`: ghi túi, mua bán, xã hội, đọc dữ liệu): mỗi nhóm một bộ đếm token theo kết nối. Hết token thì
+   * BỎ tin, không ngắt (người chơi thật bấm nhanh chỉ mất vài lần bấm thừa; mất tin client xin lại bằng `bag`…).
+   */
+  onLimitedMsg<T = unknown>(group: MsgGroup, type: string, cb: (c: Client, m: T) => void) {
+    const { burst, rate } = MSG_GROUP[group];
     this.onMessage(type, (c, m: T) => {
       const d = this.pdata.get(c.sessionId); if (!d) return;
-      if (d.bagLimit && !takeToken(d.bagTok, Date.now(), BAG_MSG_BURST, BAG_MSG_RATE)) return;
+      if (d.msgLimit && !takeToken(d.msgTok[group], Date.now(), burst, rate)) return;
       cb(c, m);
     });
   }
+
+  /** Nhóm ghi túi (sắp xếp, trang bị, bỏ, khóa, dùng, cường hóa…): mỗi tin có thể gộp / sắp xếp lại và gửi lại cả túi. */
+  onBagMsg<T = unknown>(type: string, cb: (c: Client, m: T) => void) { this.onLimitedMsg("bag", type, cb); }
 
   // ---------- Tin client xin lại dữ liệu riêng (#165) ----------
   /**
@@ -3261,6 +3303,10 @@ export class MapRoom extends Room<MapState> {
   arenaWatch(id: string, roomId: string) {
     const p = this.state.players.get(id), d = this.pdata.get(id), c = this.clients.getById(id); if (!p || !d || !c) return;
     const no = (text: string) => this.log(id, `${text} Chưa vào xem được.`, "#ffb35c");
+    // L1 #789: nhịp ARENA.topCd như top / live, và mã phòng sai dạng bị bỏ trước khi chạm sổ presence dùng chung.
+    const now = Date.now(); if (now - d.arenaWatchAt < ARENA.topCd * 1000) return;
+    d.arenaWatchAt = now;
+    if (!roomId || roomId.length > 64) return no("Mã trận không hợp lệ.");
     if (!this.npcNear(id, { role: "arena" })) return no("Hãy lại gần Đại Đấu Hồn Trường.");
     const why = this.arenaBusyOne(p, d); if (why) return no(why);
     if (arenaQueued(d.accountId) || d.arenaBusy) return no("Đang xếp hàng: hủy hàng trước khi xem trận.");
@@ -3617,7 +3663,7 @@ export class MapRoom extends Room<MapState> {
     const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = strIn(o.op);
     if (process.env.GAME_TEST !== "1") return c.send("test", { op, enabled: false });
     if (op === "throw") throw new Error("hook test: lỗi cố ý (#164)");
-    if (op === "baglimit") { const d = this.pdata.get(c.sessionId); if (d) d.bagLimit = !!o.on; return c.send("test", { op, on: !!o.on }); } // #677: bật giới hạn tin ghi túi (mặc định tắt khi GAME_TEST=1)
+    if (op === "baglimit") { const d = this.pdata.get(c.sessionId); if (d) d.msgLimit = !!o.on; return c.send("test", { op, on: !!o.on }); } // #677: bật giới hạn tin theo nhóm (mặc định tắt khi GAME_TEST=1)
     if (op === "crash") {
       const reject = !!o.reject;
       c.send("test", { op, reject });
@@ -4457,10 +4503,10 @@ export class MapRoom extends Room<MapState> {
     d.atkCd = ATTACK_CD / (1 + (d.haste > 0 ? d.coreFx.haste ?? 0 : 0));
     if (this.map.inSafe(p.x, p.y)) { d.atkCd = 1; return this.log(id, "Vùng an toàn: không thể giao chiến.", "#ffb35c"); }
     this.unhide(p, d);
-    const ax = p.x + d.dir.x * 10, ay = p.y - 6 + d.dir.y * 10;
+    const ax = p.x + d.dir.x * ATTACK_REACH.fwd, ay = p.y - 6 + d.dir.y * ATTACK_REACH.fwd;
     this.broadcast("fx", { k: "slash", id, dx: d.dir.x, dy: d.dir.y, col: VOHON[p.vh].col });
     const hit: Hit = { kind: "attack", done: false };
-    const near = this.beastsNear(ax, ay, 18 + BEAST_HALF).filter(([, b]) => Math.hypot(b.x - ax, b.y - TIERS[b.tier].size / 2 - ay) < 18 + TIERS[b.tier].size / 2);
+    const near = this.beastsNear(ax, ay, ATTACK_REACH.r + BEAST_HALF).filter(([, b]) => Math.hypot(b.x - ax, b.y - TIERS[b.tier].size / 2 - ay) < ATTACK_REACH.r + TIERS[b.tier].size / 2);
     // Đối thủ trong Đại Đấu Hồn Trường (7.2): tâm thân hồn sư cao hơn chân ARENA.body pixel.
     const foes = this.foesOf(id).filter((f) => { const q = this.state.players.get(f); return q && !q.dead && Math.hypot(q.x - ax, q.y - ARENA.body - ay) < 18 + ARENA.body; });
     // Bộ Hạo Thiên 4 món (5.2): đòn thường trúng thứ comboN liên tiếp (cách nhau không quá comboGap giây) thêm sát thương; trượt thì đếm lại.
@@ -7943,6 +7989,7 @@ export class MapRoom extends Room<MapState> {
       // Tự bán từ xa (#216): túi vừa đổi (sendBag đặt cờ) thì xét một lần, không quét túi mỗi nhịp.
       if (d.sellCheck) { d.sellCheck = false; this.autoSell(id); this.autoSalvage(id); }
       if (p.dead) {
+        if (d.target) setLock(this, id, d, "", false, "dead");
         d.deadT -= dt;
         if (d.deadT <= 0) {
           // Cả đội gục: về doanh trại, cả đội hồi đầy.
@@ -7968,11 +8015,12 @@ export class MapRoom extends Room<MapState> {
       p.moving = il > MOVE_DEAD;
       if (p.moving) {
         if (d.absorbing) this.cancelAbsorb(id, "Di chuyển: đã hủy hấp thụ, hồn hoàn vẫn còn trong túi.");
-        this.map.moveEnt(p, ix * sp * dt, iy * sp * dt, PLAYER_HW, PLAYER_HH);
+        this.map.moveEnt(p, ix * sp * dt, iy * sp * dt, PLAYER_HW, PLAYER_HH, moveNudge(!!d.auto));
         d.dir = { x: ix / il, y: iy / il };
         p.dir = dir4(ix, iy);
       }
       if (d.absorbing) { d.absorbing.t += dt; p.absorb = Math.min(0.999, d.absorbing.t / d.absorbing.dur); if (d.absorbing.t >= d.absorbing.dur) this.finishAbsorb(id); }
+      if (d.target) tickLock(this, id, p, d); // khoá mục tiêu (M3 #750): trong tầm thì quay mặt, đánh thường theo hồi chiêu
       this.portalHint(id, p, d);
       this.waypointTick(id, p, d);
       if (d.travelCast?.wp) {

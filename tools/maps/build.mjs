@@ -386,6 +386,33 @@ export function build(L, hand = null, seedOverride = null) {
   for (let x = 0; x < MW; x++) for (const y of [0, MH - 1]) if (!lock[at(x, y)]) edgeSet(at(x, y));
   for (let y = 0; y < MH; y++) for (const x of [0, MW - 1]) if (!lock[at(x, y)]) edgeSet(at(x, y));
 
+  // Nhà bị khoét (cổng, điểm đến, trại dọn chỗ đứng) không còn hình chữ nhật: client vẫn vẽ nhà / tường cung uyển cả hình chữ nhật bao
+  // (isoMap.ts buildHouses) nên chỗ khoét thành tường vẽ mà đi xuyên được (#747). Gỡ cả nhà đó, đúng như client gom nhà.
+  {
+    const seenH = new Set();
+    for (let i0 = 0; i0 < N; i0++) {
+      if (obj[i0] !== O.roof || seenH.has(i0)) continue;
+      const comp = [i0], inC = new Set([i0]); seenH.add(i0);
+      for (let n = 0; n < comp.length; n++) {
+        const x = comp[n] % MW, y = Math.floor(comp[n] / MW);
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          if (!inside(x + dx, y + dy)) continue; const k = at(x + dx, y + dy);
+          if (obj[k] === O.roof && !seenH.has(k)) { seenH.add(k); inC.add(k); comp.push(k); }
+        }
+      }
+      let x0 = MW, x1 = 0, y0 = MH, y1 = 0;
+      for (const i of comp) { x0 = Math.min(x0, i % MW); x1 = Math.max(x1, i % MW); y0 = Math.min(y0, Math.floor(i / MW)); y1 = Math.max(y1, Math.floor(i / MW)); }
+      const row = (y) => Array.from({ length: x1 - x0 + 1 }, (_, k) => (inside(x0 + k, y) ? at(x0 + k, y) : -1));
+      let yEnd = y1;
+      for (let n = 0; n < 2 && yEnd + 1 < MH; n++) { if (!row(yEnd + 1).every((i) => i >= 0 && obj[i] === O.wall)) break; yEnd++; }
+      let full = true;
+      for (let y = y0; y <= yEnd && full; y++) full = row(y).every((i) => obj[i] === O.roof || obj[i] === O.wall);
+      if (full) continue;
+      for (const i of comp) obj[i] = O.none;
+      for (let y = y1 + 1; y <= Math.min(yEnd + 2, MH - 1); y++) for (const i of row(y)) if (i >= 0 && obj[i] === O.wall && inC.has(i - MW)) { obj[i] = O.none; inC.add(i); }
+    }
+  }
+
   // ---------- 6. Ra gid: biến thể nền theo nhiễu (không lặp mẫu), cây theo tầng ----------
   const GG = L.gids.ground, GO = L.gids.objects;
   for (const n of G_NAMES) if (GG[n] === undefined) throw new Error(`${mapId}: gids.ground thiếu "${n}"`);

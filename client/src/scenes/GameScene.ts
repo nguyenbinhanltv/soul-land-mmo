@@ -21,6 +21,7 @@ import { radar, type DotSink } from "../radar.ts";
 import { mapview, type MapLabel } from "../mapview.ts";
 import { fog } from "../fog.ts";
 import { toast, lootToasts } from "../feedback.ts";
+import { guideStart, guideEvent, guideHint } from "../guide.ts";
 import { initDualWindows } from "../dualWindow.ts";
 import type { ServerCommand } from "../charBagContract.ts";
 import { toggleChar, cycleCharTab, isCharOpen, onCharOpen, renderChar, charViewRow, charLog, type StatsMsg } from "../charPanel.ts";
@@ -28,7 +29,10 @@ import { Predictor, PREDICT, LAG_MS, DEBUG_TAG, stepSpeed } from "../predict.ts"
 import { findPath, findLongPath, buildNav, type Nav } from "../../../shared/path.ts";
 import { autoLeg, AUTO_STOP } from "../../../shared/autowalk.ts";
 import { getFlag, setFlag, patchFlag, bindFlagBar, mapName } from "../autowalk.ts";
-import { RALLY } from "../../../shared/data.ts";
+import { startCmd, topCmd, stoppedText, deniedText, type Cmd } from "../../../shared/control.ts";
+import { bindCmdChip, setCmdChip, flashWhy } from "../cmdChip.ts";
+import { RALLY, ATTACK_REACH, QUEST_STARTER, GUIDE_BAG_FREE } from "../../../shared/data.ts";
+import { newGoal, stepGoal, reachGap, type ClickGoal } from "../../../shared/clickgoal.ts";
 import { rallyLeft } from "../../../shared/rally.ts";
 import { addRally, pruneRallies, getRallies } from "../rally.ts";
 import { Crowd, lpcPreloader, type CrowdMap } from "../crowd.ts";
@@ -234,6 +238,13 @@ function looksOf(p: { sex: number; hair: number; hairCol: number; outfitCol: num
 /** Chuỗi LPC của NPC theo `looks` trong NPCS (LPC dùng thẳng, preset kiểu cũ đổi bằng presetToLpc). */
 const npcLpcStr = (L: Looks): string => encodeLpc(L.mode === "lpc" && L.lpc ? L.lpc : presetToLpc(L));
 
+/** Lý do server tự huỷ khoá mục tiêu (rooms/lock.ts LockWhy) → câu báo. */
+const LOCK_WHY: Record<string, string> = {
+  gone: "Đã huỷ khoá mục tiêu: hồn thú đã hạ hoặc biến mất.", far: "Đã huỷ khoá mục tiêu: hồn thú đã ở quá xa.",
+  safe: "Đã huỷ khoá mục tiêu: vào vùng an toàn.", dead: "Đã huỷ khoá mục tiêu: hồn sư đã gục.", hunt: "Đã huỷ khoá mục tiêu: bật tự săn.",
+};
+
+const MOVE_KEYS = ["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
 export class GameScene extends Phaser.Scene {
   room!: Room<any>;
   mapId = "";
@@ -333,7 +344,7 @@ export class GameScene extends Phaser.Scene {
    * cách tới điểm đang đi và lúc kiểm tra gần nhất để dừng khi bị chặn.
    */
   autoLine: number[] = [];
-  goal: { x: number; y: number; path: Pt[]; i: number; d: number; t: number; auto?: boolean } | null = null;
+  goal: ClickGoal | null = null;
   /** Tự đi tới cờ (R4): đồ thị dẫn đường của bản đồ (dựng khi cần), khoảng cách tốt nhất tới đích và lúc cải thiện cuối, lúc xin qua cổng, lúc tính đường kế. */
   flagNav: Nav | null = null; flagLine: number[] = []; flagBest = Infinity; flagBestT = 0; flagCross = 0; flagPlanT = 0; flagDailyT = 0;
   grid: SolidGrid | null = null;    // lưới ô chặn của bản đồ (shared/move.ts): dự đoán chuyển động, tìm đường khi bấm chuột
@@ -359,6 +370,9 @@ export class GameScene extends Phaser.Scene {
   lvVh = -1; lvSeen = 0;            // võ hồn ra trận và cấp ở khung trước: cấp tăng (cùng võ hồn) thì phát khúc ngắn lên cấp
   selectedPlayer = "";
   targetBeast = "";
+  /** Hồn thú đang khoá (M3 #750): server giữ và báo lại bằng tin `lock`; "" = không khoá. `lockPlanT`: lúc tính đường tới nó gần nhất. */
+  lockId = ""; lockPlanT = 0;
+  guideOn = false; // đã gắn hướng dẫn lần đầu (guide.ts) cho hồn sư này
   nameplateLayout: NameplatePlacement[] = [];
 
   constructor() { super("game"); }
@@ -492,7 +506,7 @@ export class GameScene extends Phaser.Scene {
     // Bảng Tự động (Auto 2): tên võ hồn theo ô đội hình và hồn kỹ ở 4 ô của võ hồn đang ra trận, đọc từ tin `vohons` gần nhất.
     const ownedAt = (rowId: number | undefined) => this.owned?.list.find((v) => v.rowId === rowId);
     bindAutoPanel({
-      send: (op, cfg) => this.room.send("auto", cfg ? { op, cfg } : { op }),
+      send: (op, cfg) => { if (op === "on" && !this.begin("hunt")) return; this.room.send("auto", cfg ? { op, cfg } : { op }); },
       slotName: (i) => { const v = ownedAt(this.owned?.team[i]); return v ? `${VOHON[Math.max(0, vohonIndex(v.vohon))].name} cấp ${v.level}` : ""; },
       skillName: (i) => {
         const v = ownedAt(this.owned?.active); if (!v) return "";
@@ -746,10 +760,13 @@ export class GameScene extends Phaser.Scene {
       if (e.code === "KeyN" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); mapview().toggle(); return; } // bản đồ khu vực (R3): lớp phủ, không dừng game
       if (e.code === "Escape" && mapview().isOpen) { mapview().close(); return; }
       if (e.code === "Escape" && hud.chatClose()) return; // khung chat đang mở (chọn tab): Esc đóng nó trước
+      if (e.code === "Escape" && this.lockId) { this.lockTo(""); return; } // Esc: bỏ khoá mục tiêu trước
+      if (e.code === "Tab") { e.preventDefault(); if (!e.repeat) this.cycleTarget(); return; }
       if (e.code === "Escape") { closeAudioPanel(); closeAutoPanel(); toggleChar(false); hud.toggleRoster(false); hud.toggleBag(false); hud.toggleReso(false); hud.toggleFriends(false); hud.toggleWorld(false); hud.closeNpc(); hud.showPlayerMenu(null); hud.toggleChannels(false); closeAutoSum(); return; }
       if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }
       this.keys[e.code] = true;
+      if (MOVE_KEYS.includes(e.code)) guideEvent("move");
       if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
       if (e.repeat && e.code !== "KeyJ" && e.code !== "Space") return;
       // Phím số 1–4: đổi sang võ hồn ở ô tương ứng của đội; hồn kỹ dùng U, I, O, P (hud.SKILL_KEYS).
@@ -783,6 +800,7 @@ export class GameScene extends Phaser.Scene {
     radar().onRally = (tx, ty) => this.rallyPlace(tx, ty);
     radar().onRallyGo = (tx, ty) => this.rallyGo(tx, ty);
     mapview().flagActs = { go: () => this.flagGo(), stop: () => this.flagStop("Đã dừng tự đi"), clear: () => this.flagClear() };
+    bindCmdChip((c) => this.stopCmd(c, null));
     bindFlagBar(() => this.flagGo(), () => this.flagStop("Đã dừng tự đi"), () => this.flagClear());
     hud.onWorldAuto((map) => this.flagToMap(map));
     document.getElementById("worldBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); this.openWorld(); }, on);
@@ -816,7 +834,11 @@ export class GameScene extends Phaser.Scene {
       });
       hud.showPlayerMenu(best);
       this.selectedPlayer = best ? (best as { sid: string }).sid : "";
-      if (!best && !over.length && ptr.button === 0) this.walkTo(screenToWorld(ptr.worldX, ptr.worldY));
+      if (!best && !over.length && ptr.button === 0) {
+        const bid = this.beastAt(ptr.worldX, ptr.worldY);
+        if (bid) this.lockTo(bid); // bấm hồn thú = khoá mục tiêu: tự đi tới và đánh thường (M3 #750)
+        else { this.begin("click"); this.walkTo(screenToWorld(ptr.worldX, ptr.worldY)); }
+      }
     });
 
     const joyEl = document.getElementById("joy")!, knob = document.getElementById("knob")!;
@@ -893,14 +915,56 @@ export class GameScene extends Phaser.Scene {
   goPortal() { if (this.portal?.name) this.room.send("travel", { portal: this.portal.name }); }
 
   /** Bật / tắt tự săn (phím T, nút trong bảng Tự động): chỉ gửi ý định, server kiểm tra và trả tin `auto`. */
-  toggleAuto() { if (this.watching) return; this.room.send("auto", { op: this.room.state.players.get(this.me)?.auto ? "off" : "on" }); }
+  toggleAuto() {
+    if (this.watching) return;
+    const on = !this.room.state.players.get(this.me)?.auto;
+    if (on && !this.begin("hunt")) return;
+    this.room.send("auto", { op: on ? "on" : "off" });
+  }
+
+  // ---------- Thứ tự ưu tiên lệnh (M5 #751) ----------
+  // Luật ở shared/control.ts: phím / cần > bấm nền > khoá mục tiêu > cờ tự đi > tự săn. Mọi lệnh mới đi qua `begin`; lệnh bị thắng được huỷ
+  // kèm lý do (dòng log + chip), lệnh nền bị lệnh cao hơn chặn thì không bật được.
+
+  /** Các lệnh đang lái nhân vật (theo trạng thái client; tự săn theo state server). */
+  activeCmds(): Cmd[] {
+    const a: Cmd[] = [], g = this.goal;
+    if (g && !g.lock && !g.auto) a.push("click");
+    if (this.lockId) a.push("lock");
+    if (getFlag()?.on) a.push("flag");
+    if (this.autoOn()) a.push("hunt");
+    return a;
+  }
+
+  /** Lệnh `n` bắt đầu: huỷ các lệnh nó thắng (báo lý do); trả false (và báo) nếu lệnh ưu tiên cao hơn đang chạy chặn nó. */
+  begin(n: Cmd): boolean {
+    const r = startCmd(this.activeCmds(), n);
+    if (r.deny) { const t = deniedText(n as "flag" | "hunt", r.deny); hud.log(t, "#ffb35c"); flashWhy(t); return false; }
+    for (const c of r.cancel) this.stopCmd(c, n);
+    return true;
+  }
+
+  /** Dừng lệnh `c`. `by`: lệnh thắng nó (báo lý do); null = người chơi bấm × trên chip. */
+  stopCmd(c: Cmd, by: Cmd | null) {
+    if (c === "click") { if (this.goal && !this.goal.lock && !this.goal.auto) this.goal = null; }
+    else if (c === "lock") this.lockTo("");
+    else if (c === "flag") this.flagStop(null);
+    else if (c === "hunt" && !by) this.room.send("auto", { op: "off" }); // bị phím / bấm / khoá thắng thì server tự dừng khi nhận input / target
+    if (by) { const t = stoppedText(c, by); if (c !== "hunt") hud.log(t, "#ffb35c"); flashWhy(t); }
+  }
+
+  /** Chữ và lệnh của chip trạng thái (lệnh ưu tiên cao nhất đang chạy), vẽ mỗi khung hình ở updateStats. */
+  drawCmdChip() {
+    const c = topCmd(this.activeCmds()), lk = this.lockId ? this.room.state.beasts.get(this.lockId) : null;
+    setCmdChip(c, c === "click" ? "Đang đi tới…" : c === "lock" ? `Đang đánh: ${lk ? beastName(lk.rank, lk.species) : "mục tiêu"}` : c === "flag" ? "Tự đi cờ" : c === "hunt" ? "Tự săn" : "");
+  }
 
   act(a: string) {
     if (this.watching) return;
     if (a === "attack") this.room.send("attack");
     else if (a === "pickup") this.room.send("pickup");
-    else if (a.startsWith("skill")) this.room.send("skill", { i: Number(a.slice(5)) });
-    else if (a.startsWith("bone")) this.room.send("boneskill", { i: Number(a.slice(4)) });
+    else if (a.startsWith("skill")) { this.room.send("skill", { i: Number(a.slice(5)) }); guideEvent("skill"); }
+    else if (a.startsWith("bone")) { this.room.send("boneskill", { i: Number(a.slice(4)) }); guideEvent("skill"); }
     else if (a.startsWith("switch")) this.room.send("switch", { slot: Number(a.slice(6)) });
     else if (a === "chanthan") this.room.send("chanthan");
     // Võ Hồn Dung Hợp Kỹ (#193): đang được mời thì hưởng ứng (một lần), không thì mời; server chọn đồng đội và kiểm mọi điều kiện.
@@ -912,13 +976,57 @@ export class GameScene extends Phaser.Scene {
    * Không tới được thì đi tới chỗ tới được gần điểm bấm nhất; không đi được chút nào thì thôi.
    */
   walkTo(w: Pt) {
-    if (getFlag()?.on) this.flagStop(AUTO_STOP.moved);
+    guideEvent("move");
     const at = this.pred?.pos ?? this.room.state.players.get(this.me);
     if (!at) return;
-    const path = this.grid ? findPath(this.grid, at, w) : [w];
-    if (!path.length) { this.goal = null; return; }
-    const end = path[path.length - 1];
-    this.goal = { x: end.x, y: end.y, path, i: 0, d: Infinity, t: this.time.now };
+    this.goal = newGoal(this.grid, at, w, this.time.now);
+  }
+
+  /** Khoá hồn thú `id` ("" = bỏ khoá): chỉ gửi ý định, server kiểm id / tầm rồi giữ và tự đánh khi tới tầm (rooms/lock.ts). */
+  lockTo(id: string) {
+    if (this.isArena || this.watching || id === this.lockId) return;
+    if (id) { this.begin("lock"); guideEvent("lock"); }
+    this.lockId = id; if (this.goal?.lock) this.goal = null;
+    this.room.send("target", { id });
+  }
+  /**
+   * Mỗi khung hình khi đang khoá mục tiêu: trong tầm đánh (theo vị trí dự đoán) thì đứng lại cho server quay mặt + đánh; ngoài tầm thì
+   * lái đường A* tới hồn thú (cùng bước `stepGoal` như bấm đi, tính lại khi nó đã dời xa điểm đích cũ hoặc mỗi 250 ms).
+   */
+  steerLock(walk: boolean) {
+    const b = this.room.state.beasts.get(this.lockId), at = this.pred?.pos ?? this.room.state.players.get(this.me);
+    if (!b || !at) { if (this.goal?.lock) this.goal = null; return; }
+    const rg = reachGap(at, b);
+    if (rg.dist < rg.max - 2) { if (this.goal?.lock) this.goal = null; return; }
+    const g = this.goal, now = this.time.now;
+    if (g?.lock && Math.hypot((g.dest?.x ?? 0) - b.x, (g.dest?.y ?? 0) - b.y) < 24 && now < this.lockPlanT) return;
+    this.lockPlanT = now + 250;
+    const ng = newGoal(this.grid, at, { x: b.x, y: b.y }, now);
+    if (!ng) return;
+    ng.lock = true;
+    if (g?.lock) { ng.d = g.d; ng.t = g.t; ng.stuck = g.stuck; } // giữ đồng hồ kẹt qua các lần tính lại đường
+    this.goal = ng;
+  }
+  /** Hồn thú dưới điểm bấm (toạ độ màn hình): thân + ATTACK_REACH.pick pixel đệm, con có tâm thân gần điểm bấm nhất. */
+  beastAt(x: number, y: number) {
+    let best = "", bd = Infinity;
+    for (const [id, s] of this.beasts) {
+      if (!this.room.state.beasts.get(id) || this.room.state.beasts.get(id).egg) continue; // trứng không khoá được (như server)
+      const b = beastBody(s), pad = ATTACK_REACH.pick, cx = s.x, cy = (b.top + s.y) / 2;
+      if (x < cx - b.w / 2 - pad || x > cx + b.w / 2 + pad || y < b.top - pad || y > s.y + pad) continue;
+      const k = Math.hypot(x - cx, (y - cy) * 0.7); if (k < bd) { bd = k; best = id; }
+    }
+    return best;
+  }
+  /** Tab: khoá hồn thú kế tiếp (gần → xa) trong ATTACK_REACH.tab quanh hồn sư; hết vòng thì quay lại con gần nhất. */
+  cycleTarget() {
+    const me = this.room.state.players.get(this.me); if (!me) return;
+    const list: [string, number][] = [];
+    this.room.state.beasts.forEach((b: any, id: string) => { const d = Math.hypot(b.x - me.x, b.y - me.y); if (d <= ATTACK_REACH.tab && !b.egg) list.push([id, d]); });
+    if (!list.length) return;
+    list.sort((a, b) => a[1] - b[1]);
+    const i = list.findIndex(([id]) => id === this.lockId);
+    this.lockTo(list[(i + 1) % list.length][0]);
   }
 
   // ---------- Tự đi tới cờ (R4 #431, mục 5.17) ----------
@@ -972,6 +1080,7 @@ export class GameScene extends Phaser.Scene {
   flagGo() {
     const f = getFlag(); if (!f) { hud.log("Chưa có cờ: bấm lên bản đồ khu vực (phím N) để đặt.", "#ffb35c"); return; }
     if (this.watching || this.isArena || !this.grid) return;
+    if (!this.begin("flag")) return; // khoá mục tiêu / bấm đi đang chạy: ưu tiên hơn cờ
     if (this.room.state.players.get(this.me)?.auto) this.room.send("auto", { op: "off" }); // tự săn đang lái nhân vật: tắt trước
     this.flagNav ??= buildNav(this.grid, AUTO_MOVE.nav.block);
     this.flagBest = Infinity; this.flagBestT = this.time.now; this.flagPlanT = 0; this.flagCross = 0; this.goal = null;
@@ -1102,21 +1211,22 @@ export class GameScene extends Phaser.Scene {
     const sy = (k.ArrowDown || k.KeyS ? 1 : 0) - (k.ArrowUp || k.KeyW ? 1 : 0) + this.joy.y;
     let { x, y } = screenDirToWorld(sx, sy);
     if (!sx && !sy && getFlag()?.on) this.flagTick(); // cờ: chọn chặng / đặt `this.goal`, nhánh dưới lái theo goal như khi bấm chuột
-    if (sx || sy) { this.goal = null; if (getFlag()?.on) this.flagStop(AUTO_STOP.moved); } // phím / cần điều khiển thắng điểm bấm và cờ
-    else if (this.goal) {
-      // Bấm để đi tới: lái về từng điểm của đường A*; tới điểm cuối, hoặc nửa giây không gần thêm điểm đang đi tới (bị chặn: hồn thú,
-      // người khác không có trong lưới ô chặn) thì dừng. Lái theo vị trí dự đoán (đi trước như server sẽ tính); tắt dự đoán thì theo
+    if (sx || sy) { this.begin("keys"); this.goal = null; } // phím / cần điều khiển thắng mọi lệnh (shared/control.ts)
+    else {
+      if (this.lockId) this.steerLock(walk);
+      if (this.goal) {
+      // Bấm để đi tới: lái về từng điểm của đường A* (shared/clickgoal.ts); bị chặn tạm (hồn thú, choáng, đẩy lùi) thì tính lại đường,
+      // kẹt thật mới dừng và báo lý do. Lái theo vị trí dự đoán (đi trước như server sẽ tính); tắt dự đoán thì theo
       // vị trí server, không theo hình đang nội suy.
       // Coi là tới điểm khi còn cách dưới quãng đi một khung (chạy nhanh, khung thưa thì một bước dài hơn GOAL_NEAR: không lắc qua lại).
       const at = this.pred?.pos ?? this.room.state.players.get(this.me), g = this.goal, me = this.room.state.players.get(this.me);
       const near = Math.max(GOAL_NEAR, (me ? (this.pred ? stepSpeed(me, walk) : me.spd) : 0) * this.game.loop.delta / 1000);
-      let wp = g.path[g.i], dx = wp.x - (at?.x ?? wp.x), dy = wp.y - (at?.y ?? wp.y), L = Math.hypot(dx, dy);
-      while (L < near && g.i < g.path.length - 1) {
-        wp = g.path[++g.i]; dx = wp.x - (at?.x ?? wp.x); dy = wp.y - (at?.y ?? wp.y); L = Math.hypot(dx, dy); g.d = Infinity; g.t = this.time.now;
+      const beasts: Pt[] = []; this.room.state.beasts.forEach((b: any) => beasts.push(b));
+      const held = !!me && PLAYER_STATUS.some((s) => STATUS[s].noMove && (me.st & statusBit(s)));
+      const r = stepGoal(g, { at: at ?? g, near, now: this.time.now, held, grid: this.grid, beasts });
+      if (r.end) { const lock = this.goal.lock; this.goal = null; if (r.end === "blocked") { hud.log(lock ? "Không tới được mục tiêu, bỏ khoá." : "Đường đi bị chặn, dừng lại.", "#ffb35c"); if (lock) this.lockTo(""); } }
+      else if (r.dir) { x = r.dir.x; y = r.dir.y; }
       }
-      if (L < near) this.goal = null;
-      else if (this.time.now - g.t > 500) { if (L > g.d - 2) this.goal = null; else { g.d = L; g.t = this.time.now; } }
-      if (this.goal) { x = dx / L; y = dy / L; }
     }
     const key = `${x.toFixed(2)},${y.toFixed(2)},${walk}`;
     if (this.pred?.resend) this.lastInput = ""; // server đã tự dừng hướng đi (hook thử goto): gửi lại hướng đang giữ với số mới
@@ -1196,12 +1306,17 @@ export class GameScene extends Phaser.Scene {
       if (hit.bigCrit) this.audio.music?.jingle("crit_big");
       this.hitFeel(m);
       if (m.heal || m.shield) { const hp = this.lifted(m.x, m.y); playPriv(this.svis.sheets, m.heal ? "fx_hoi_mau" : "fx_khien_sang", { x: hp.x, y: hp.y - 10 * SPR, scale: SPR, light: m.id !== this.me }); } // #623: hồi máu / khiên kho riêng
+      if (m.id === this.me && !m.heal && !m.shield && !m.dot && !m.immune) guideHint("hit");
       if (m.id === this.me && !m.heal && !m.shield && getFlag()?.on) this.flagStop(AUTO_STOP.hit);
       if (m.id) { const v = this.players.get(m.id); if (v) { v.hurtT = this.time.now; this.playAct(m.id, "hurt"); } }
       const at = this.lifted(m.x, m.y);
       this.damageText(at.x, at.y - at.lift, m, m.by && !m.dot && !m.heal && !m.shield ? elementOfVohonIndex(this.players.get(m.by)?.vh) : undefined);
     });
     this.room.onMessage("fx", (m: any) => this.fx(m));
+    this.room.onMessage("lock", (m: { id: string; why?: string }) => {
+      this.lockId = m.id; if (!m.id && this.goal?.lock) this.goal = null;
+      const t = !m.id && m.why ? LOCK_WHY[m.why] : ""; if (t) { hud.log(t, "#ffb35c"); flashWhy(t); }
+    }); // server huỷ khoá: hồn thú chết / mất / xa, gục, vào vùng an toàn
     // Cổng: server báo riêng khi bước vào / ra khỏi cổng, và khi đã lưu xong thì cho chuyển bản đồ (mục 6).
     this.room.onMessage("portal", (m: PortalInfo) => { this.portal = m?.name ? m : null; hud.showPortal(this.portal, () => this.goPortal()); });
     // Truyền tống trận (11.2): đứng trên / rời trận, mở khóa trận mới; bảng bản đồ thế giới; thanh niệm truyền tống / Hồi Thành Phù.
@@ -1301,6 +1416,7 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("quest", (m: QuestMsg) => {
       if (!m || typeof m.chain !== "string") return;
       hud.setQuest(m); this.syncQuestMarkers();
+      if (m.chain === QUEST_STARTER && !this.guideOn) { const nm = this.room.state.players.get(this.me)?.name; if (nm) { this.guideOn = true; guideStart(nm, m.status === "done"); } } // hướng dẫn lần đầu gắn chuỗi tân thủ (M6 #752)
       const c = questChain(m.chain), s = c?.steps[m.step], giver = c && npcDef(c.giver);
       if (!c) return;
       if (m.ev === "accept" && s) toast("quest", `Nhận nhiệm vụ: ${s.name}`, s.goals.map((g) => g.text).join(" · "));
@@ -1392,7 +1508,7 @@ export class GameScene extends Phaser.Scene {
     // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
     // Mảnh võ hồn trong túi (3.4): bảng đội hình hiện tiến độ mở / lên sao nên vẽ lại cùng túi.
     // Từ #215 sau tin "bag" đầu tiên chỉ nhận phần đổi (tin "bagd"); chưa có túi gốc thì bỏ qua (tin "bag" đang tới).
-    const onBag = (m: BagMsg) => { if (lootToasts(this.bag?.items ?? null, m.items) >= RARE_LOOT_MIN) this.audio.playUi("rare"); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
+    const onBag = (m: BagMsg) => { if (m.slots - m.items.filter((i) => i.vohon === null).length <= GUIDE_BAG_FREE) guideHint("bag"); if (lootToasts(this.bag?.items ?? null, m.items) >= RARE_LOOT_MIN) this.audio.playUi("rare"); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
     this.room.onMessage("bag", onBag);
     this.room.onMessage("gear", (m: GearMsg) => { this.gear = m; this.renderBag(); this.renderChar(); this.askStats(); hud.npcRefresh(); }); // trang bị hồn sư (5.15): chỉ số tổng ở tin "stats"
     this.room.onMessage("bagd", (m: BagDeltaMsg) => {
@@ -1421,6 +1537,7 @@ export class GameScene extends Phaser.Scene {
       const v = this.owned?.list.find((o) => o.rowId === m.rowId), def = VOHON[Math.max(0, vohonIndex(v?.vohon ?? ""))];
       const name = v ? def.name : "võ hồn", age = formatYears(m.years), col = TIERS[tierOfYears(m.years)].glow;
       if (m.on) {
+        guideEvent("absorb");
         this.audio.play("ring_absorb_start");
         this.audio.playRingGlow(tierOfYears(m.years));
         const risk = m.fail ? ` (${Math.round(m.fail * 100)}% thất bại)` : "";
@@ -2842,6 +2959,7 @@ export class GameScene extends Phaser.Scene {
         const txt = this.add.text(at.x, at.y + (core ? 18 : bone ? 12 : 4) * SPR, name, { // hồn cốt, hồn hạch: dưới nhãn số năm của hồn hoàn (và hồn cốt) nằm cạnh
           fontFamily: FONT, fontSize: "6px", fontStyle: "700", color: col, stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 0).setDepth(at.y - 1).setScale(this.txtK);
+        if (!d.item && (!d.owner || d.owner === this.me || (!!d.party && d.party === this.party?.id))) guideHint("ring"); // hồn hoàn của mình / tổ đội mình
         const glow = !d.item ? this.add.image(at.x, at.y, `ring${d.tier}`).setDepth(at.y - 2).setScale(SPR) : undefined; // hồn hoàn: vòng sáng elip dưới ảnh (#693)
         v = { img, txt, glow, art: dropArtSpec(d, bone, core, eq, it, col) }; this.drops.set(id, v);
         if (!it && !bone && !core && d.tier >= 1 && d.ttl >= DROP_TTL_SECS - 2 && this.downAt.some(q => time - q.t < 2500 && Math.hypot(q.x - at.x, q.y - at.y) < 140 * SPR)) this.dropGlint(at, hud.ringColor(d.tier)); // hồn hoàn mới rơi: vòng sáng màu niên hạn bay lên
@@ -2911,8 +3029,19 @@ export class GameScene extends Phaser.Scene {
       const w = Math.max(12 * SPR, beastBody(s).w * 0.6);
       this.teleG.fillStyle(0x1a1020, 0.35).fillEllipse(s.x, s.y, w, w / 2);
     }
+    // Vòng khoá mục tiêu (M3 #750) dưới chân hồn thú đang khoá: đỏ cam, nhấp nháy, hai vòng.
+    const lb = this.lockId ? st.beasts.get(this.lockId) : null;
+    if (lb) {
+      const R = Math.max(9, TIERS[lb.tier].size * 0.7), k = Math.sin(time / 140);
+      this.teleG.lineStyle(2, 0xff6a3c, 0.8 + 0.2 * k); strokeGround(this.teleG, lb.x, lb.y, R);
+      this.teleG.lineStyle(1, 0xffc27a, 0.55); strokeGround(this.teleG, lb.x, lb.y, R * 0.7 - k);
+    }
     // Điểm đang đi tới (bấm để đi): vòng nhỏ nhấp nháy trên mặt đất.
-    if (this.goal) { this.teleG.lineStyle(1, 0xfff2b0, 0.6 + 0.3 * Math.sin(time / 120)); strokeGround(this.teleG, this.goal.x, this.goal.y, 5); }
+    if (this.goal) {
+      const gx = this.goal.dest?.x ?? this.goal.x, gy = this.goal.dest?.y ?? this.goal.y, k = Math.sin(time / 120);
+      this.teleG.lineStyle(1.5, 0xfff2b0, 0.65 + 0.3 * k); strokeGround(this.teleG, gx, gy, 5 + k);
+      if (!this.goal.auto) { this.teleG.lineStyle(1, 0xfff2b0, 0.4); strokeGround(this.teleG, gx, gy, 9 - 2 * k); }
+    }
     // Cờ đã đặt ở bản đồ này (R4): vòng cam lớn hơn trên mặt đất, nhấp nháy khi đang tự đi.
     const fl = getFlag();
     if (fl && fl.map === this.mapId && fl.tx !== null && fl.ty !== null) { this.teleG.lineStyle(2, 0xff9a3c, fl.on ? 0.6 + 0.35 * Math.sin(time / 150) : 0.8); strokeGround(this.teleG, fl.tx * TILE, fl.ty * TILE, 9); strokeGround(this.teleG, fl.tx * TILE, fl.ty * TILE, 3); }
@@ -3410,7 +3539,9 @@ export class GameScene extends Phaser.Scene {
 
     let tb: any = null, td = 90;
     this.targetBeast = "";
-    st.beasts.forEach((b: any, id: string) => { const d = Math.hypot(b.x - me.x, b.y - me.y); if (d < td) { td = d; tb = b; this.targetBeast = id; } });
+    const lk = this.lockId ? st.beasts.get(this.lockId) : null;
+    if (lk) { tb = lk; this.targetBeast = this.lockId; } // đang khoá: thanh mục tiêu hiện đúng con đó
+    else st.beasts.forEach((b: any, id: string) => { const d = Math.hypot(b.x - me.x, b.y - me.y); if (d < td) { td = d; tb = b; this.targetBeast = id; } });
     const sts = tb ? hud.statusText(tb) : "";
     // Cấp tương đương theo số năm (BĐ3) và mức kinh nghiệm còn nhận khi hồn thú thấp hơn võ hồn ra trận (mục 5.3).
     const tLv = tb ? beastLevel(tb.years) : 0, xpk = tb ? xpLevelScale(me.level, tLv) : 1;
@@ -3434,6 +3565,7 @@ export class GameScene extends Phaser.Scene {
       else hud.showPrompt(dr.item ? `<span class="dot" style="color:${it?.col ?? "#9db3a2"}"></span>${dr.qty} ${it?.name ?? "vật phẩm lạ"}: ${msg}`
         : `<span class="dot" style="color:${hud.ringColor(dr.tier)}"></span>Hồn hoàn ${formatYears(dr.years)} (${TIERS[dr.tier].color}): ${msg}`);
     } else hud.showPrompt(null);
+    this.drawCmdChip();
     this.drawMinimap();
   }
 }

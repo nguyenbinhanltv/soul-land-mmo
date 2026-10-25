@@ -195,6 +195,28 @@ export const ASK_CD = 0.25;
 export const BAG_MSG_BURST = 30;
 export const BAG_MSG_RATE = 10;
 /**
+ * Giới hạn tin theo nhóm (#734, mở rộng #677): mỗi kết nối một bộ đếm token cho mỗi nhóm (`burst` tin dồn, hồi `rate` tin / giây); hết
+ * token thì server BỎ tin, không ngắt. `bag` = nhóm ghi túi (BAG_MSG_*); `trade` = mua bán (mỗi tin ghi DB / Redis); `social` = tổ
+ * đội, tông môn, đấu trường, đổi kênh, đổi đội hình; `read` = xin dữ liệu. Hằng kỹ thuật, người chơi thật bấm nhanh vẫn rất dư.
+ */
+export const MSG_GROUP = {
+  bag: { burst: BAG_MSG_BURST, rate: BAG_MSG_RATE },
+  trade: { burst: 20, rate: 6 },
+  social: { burst: 20, rate: 6 },
+  read: { burst: 40, rate: 20 },
+} as const;
+export type MsgGroup = keyof typeof MSG_GROUP;
+/**
+ * Trần tuyệt đối mọi loại tin của một kết nối (Colyseus 0.16 không có `maxMessagesPerSecond`, nên room tự đếm): `burst` tin dồn, hồi
+ * `rate` tin / giây. Vượt thì BỎ tin, trừ `input` (client không gửi lại tin bị bỏ, màn 144–240 Hz kéo chuột có thể vượt `rate`; bỏ
+ * nhầm tin dừng thì nhân vật đi mãi) vẫn được xử lý nhưng tính là một tin vượt. Vượt quá `maxOver` tin trong một giây thì ngắt kết nối
+ * (mã MSG_FLOOD_CODE): dồn thật sự thì ngắt dù gửi đều tay hay dồn một gói; người chơi thật chỉ vượt vài chục tin / giây.
+ * Kích thước tin: `maxPayload` (MSG_MAX_PAYLOAD) ở server/src/index.ts.
+ */
+export const MSG_HARD = { burst: 240, rate: 120, maxOver: 300 } as const;
+export const MSG_FLOOD_CODE = 4008;
+export const MSG_MAX_PAYLOAD = 4096;
+/**
  * Đồng bộ theo vùng gần (11.4, mục 6 "Đồng bộ xuống client"). Hằng kỹ thuật, không phải số cân bằng (đặt ở đây cho server và bot dùng
  * chung). Mỗi client chỉ nhận hồn thú thường, đồ rơi, hồn sư khác cách mình dưới `r` pixel thế giới, bỏ khi xa quá `out` (chênh nhau để
  * không vào / ra liên tục ở mép); tinh anh, thú vương, boss thế giới luôn đồng bộ. Tin `fx` / `dmg` chỉ gửi cho client cách điểm hiệu
@@ -865,6 +887,11 @@ export const beastMelee = (tier: number, rooted = false) => TIERS[tier].size / 2
  * xét tối đa `maxNodes` ô; không tới được thì đi tới ô tới được gần điểm bấm nhất.
  */
 export const CLICK_PATH = { maxTiles: 40, maxNodes: 8000 };
+/**
+ * Bấm để đi không bỏ dở khi bị chặn tạm (M4 #749): `stallMs` không gần điểm đang đi tới thêm thì tính lại A* từ chỗ đứng (ô có hồn thú
+ * đứng là vật cản mềm); `giveUpMs` bị kẹt liên tục chừng này (không tính lúc bị khống chế: choáng, trói, băng) mới bỏ và báo lý do.
+ */
+export const CLICK_GOAL = { stallMs: 500, giveUpMs: 2000 };
 
 // ---------- Chiêu có báo trước của hồn thú (mục 5.3, 5.4; bước 3.5, mọi số đã chốt) ----------
 /** Hình vùng: vệt (đường thẳng dài `r`, rộng `w`), nón (quạt bán kính `r`, góc `arc` độ), vòng (tròn bán kính `r`). */
@@ -1554,6 +1581,12 @@ export const buffBit = (b: BuffId) => 1 << BUFF_IDS.indexOf(b);
 export const CRIT = { chance: 0.12, mult: 1.8 };
 /** Hồi chiêu đánh thường (giây); bộ hồn hạch Linh Miêu 4 món chia cho (1 + tăng tốc đánh). */
 export const ATTACK_CD = 0.38;
+/**
+ * Tầm đòn đánh thường và khoá mục tiêu (M3 #750, GAME_DESIGN.md mục 5.11): đòn trúng hồn thú có tâm thân cách điểm đánh (`fwd` pixel trước
+ * mặt, cao 6 pixel) dưới `r` + nửa cỡ thân; `reach` = tầm tính từ hồn sư để tự đánh khi khoá; `pick` = bán kính chọn quanh thân khi bấm;
+ * `leash` = xa hơn thì mất khoá; `tab` = Tab chỉ đổi giữa hồn thú trong bán kính này.
+ */
+export const ATTACK_REACH = { fwd: 10, r: 18, pick: 14, leash: 480, tab: 360 };
 /** Đòn đánh thường (hồn sư: MapRoom.attack; hồn thú: MapRoom.tick) gây công x (1 ± ATK_SPREAD), ngẫu nhiên đều; `r` trong [0, 1). */
 export const ATK_SPREAD = 0.15;
 export const atkRoll = (r: number) => 1 + (2 * r - 1) * ATK_SPREAD;
@@ -4167,6 +4200,10 @@ export function honTeParts(dong: number) {
 export const formatHonTe = (dong: number) => honTeParts(dong).map((p) => `${p.n.toLocaleString("vi-VN")} ${p.unit}`).join(" ");
 
 export const TILE = 16;
+/** Lách góc (corner nudge, shared/move.ts): trục đi vướng góc ô mà lệch sang bên ≤ chừng này pixel thì tự đẩy nhẹ qua (server + dự đoán client). */
+export const MOVE_NUDGE = 4;
+/** Lách góc chỉ cho người chơi tự bấm phím / cần: tự săn (rooms/autoHunt.ts) tự dò đường A* và kẹt-kiểm theo va chạm thuần, bị đẩy lệch đường thì không tới / không hạ được thú vương (#785). */
+export const moveNudge = (auto: boolean) => (auto ? 0 : MOVE_NUDGE);
 export const TICK_RATE = 20; // số lần server cập nhật mỗi giây
 
 // ---------- NPC, thương nhân và lò rèn (mục 5.8, bước 6.1; mọi số đã chốt) ----------
@@ -4424,6 +4461,9 @@ export function sellPrice(it: { code: string; years: number | null; stars: numbe
  */
 export const AUTO_SELL_FREE = 5;
 export const AUTO_SELL_BUYBACK = 20;
+
+/** Hướng dẫn M6 (#752): gợi ý "túi gần đầy" hiện một lần khi số ô trống còn không quá mức này (client chỉ hiển thị, không ảnh hưởng luật chơi). */
+export const GUIDE_BAG_FREE = 10;
 /** Hồn hoàn, hồn cốt từ bấy nhiêu năm (vạn năm) trở lên không bao giờ tự bán, trừ khi người chơi bật `high`. */
 export const AUTO_SELL_GUARD = 10000;
 /** Bộ lọc tự bán của tài khoản (`accounts.auto_sell`; chỉnh ở bảng Túi đồ). Món khoá, món đang gắn không bao giờ bán. */
@@ -5474,8 +5514,8 @@ export const MAPVIEW = {
   ] as { id: string; name: string }[],
   /** Lớp lọc của từng loại chấm radar (`RADAR.levels[].id`); đồ rơi tách riêng bằng tham số `layer` của chấm. */
   layerOf: { beast: "beast", elite: "beast", boss: "beast", player: "player", ally: "player", poi: "npc", quest: "quest" } as Record<string, string>,
-  /** Mức phóng (pixel màn hình mỗi ô) từ đó mới hiện nhãn của từng loại, để khỏi chồng chữ khi thu nhỏ. Vùng săn, hang thú vương luôn hiện tên; dòng mô tả dài của vùng săn (`zoneSub`) chỉ hiện khi phóng tới mức đó, dưới đó chỉ hiện cấp đề xuất. */
-  labelZoom: { npc: 4, gate: 2.5, wp: 2.5, safe: 2, zoneSub: 4 },
+  /** Mức phóng (pixel màn hình mỗi ô) từ đó mới hiện nhãn của từng loại, để khỏi chồng chữ khi thu nhỏ (nhãn đè nhau vẫn bị `mapview.ts` nhường chỗ theo ưu tiên: cổng > truyền tống > NPC > hang > vùng). Vùng săn, hang thú vương luôn hiện tên; dòng mô tả dài của vùng săn (`zoneSub`) chỉ hiện khi phóng tới mức đó, dưới đó chỉ hiện cấp đề xuất. */
+  labelZoom: { npc: 2.5, gate: 1, wp: 1, safe: 1, zoneSub: 4 },
   /** Bán kính bắt chấm / nhãn khi rê chuột hoặc chạm (pixel), và ngưỡng kéo (pixel) để phân biệt chạm với kéo. */
   hitPx: 10, dragPx: 6,
 };

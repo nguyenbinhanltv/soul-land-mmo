@@ -51,7 +51,7 @@ export interface GameMap {
   inLair(x: number, y: number): boolean;
   isSolidTile(tx: number, ty: number): boolean;
   hits(x: number, y: number, hw: number, hh: number): boolean;
-  moveEnt(e: { x: number; y: number }, dx: number, dy: number, hw: number, hh: number): void;
+  moveEnt(e: { x: number; y: number }, dx: number, dy: number, hw: number, hh: number, nudge?: number): void;
   inSpawn(x: number, y: number): boolean;
   /** Trong vùng an toàn: không sinh hồn thú, hồn thú không đuổi vào, không giao chiến (mục 5.3, 5.8). */
   inSafe(x: number, y: number): boolean;
@@ -70,8 +70,8 @@ const inRect = (r: Rect, x: number, y: number) => x >= r.x && x <= r.x + r.w && 
  * trường `MAP_V1` liệt kê mapId đó (cách nhau bằng dấu phẩy, `all` = mọi bản đồ) thì dùng bản cũ `<mapId>` (đường lùi). Client đọc
  * tên này ở `MapState.mapFile` để tải đúng file (va chạm, dự đoán chuyển động dùng chung lưới).
  */
-const V1 = new Set((process.env.MAP_V1 ?? "").split(",").map((s) => s.trim()).filter(Boolean));
-const fileCache = new Map<string, string>();
+const V1 = new Set((process.env.MAP_V1 ?? "").split(",").map((s) => s.trim()).filter(Boolean)); // map-co-dinh: đọc một lần từ env
+const fileCache = new Map<string, string>(); // map-co-dinh: khóa theo mapId (số bản đồ cố định)
 export function mapFile(mapId: string): string {
   let f = fileCache.get(mapId);
   if (f === undefined) {
@@ -84,7 +84,7 @@ export function mapFile(mapId: string): string {
 }
 
 /** Object của file Tiled, đọc thô (dùng để kiểm tra cổng trỏ sang bản đồ khác mà không nạp hẳn bản đồ đó). */
-const rawCache = new Map<string, any[]>();
+const rawCache = new Map<string, any[]>(); // map-co-dinh: khóa theo mapId (số bản đồ cố định)
 function rawObjects(mapId: string): any[] {
   let objs = rawCache.get(mapId);
   if (!objs) {
@@ -101,7 +101,7 @@ const rectOf = (o: any): Rect => ({ x: o.x, y: o.y, w: o.width, h: o.height });
  * Chỉ đường giữa các bản đồ (nhiệm vụ hằng ngày, chấm trên bản đồ nhỏ): với mỗi bản đồ đích, bản đồ kề nên đi tới trước (qua cổng
  * `portal` của `from` trỏ sang nó), theo số lần đi cổng ít nhất. Đọc thô object Tiled của mọi bản đồ, tính một lần mỗi `from`.
  */
-const routeCache = new Map<string, Record<string, string>>();
+const routeCache = new Map<string, Record<string, string>>(); // map-co-dinh: khóa theo mapId (số bản đồ cố định)
 export function mapRoute(from: string): Record<string, string> {
   const hit = routeCache.get(from); if (hit) return hit;
   const next = (id: string) => [...new Set(rawObjects(id).filter((o) => o.type === "portal").map((o) => String(propOf(o, "to") ?? ""))
@@ -119,7 +119,7 @@ export function mapRoute(from: string): Record<string, string> {
  * Số lần đi cổng ít nhất từ `from` tới mọi bản đồ đi tới được (chính nó: 0), theo cổng `portal` của các file Tiled. Dùng cho phí
  * truyền tống (waypointFee) và tìm thành gần nhất (Hồi Thành Phù), 11.2.
  */
-const hopCache = new Map<string, Record<string, number>>();
+const hopCache = new Map<string, Record<string, number>>(); // map-co-dinh: khóa theo mapId (số bản đồ cố định)
 export function mapHops(from: string): Record<string, number> {
   const hit = hopCache.get(from); if (hit) return hit;
   const out: Record<string, number> = {};
@@ -173,7 +173,7 @@ export function nearestTown(from: string): { mapId: string; x: number; y: number
 }
 
 /** Bản đồ đã nạp, dùng chung cho mọi kênh (phòng) của cùng `mapId`. */
-const cache = new Map<string, GameMap>();
+const cache = new Map<string, GameMap>(); // map-co-dinh: khóa theo mapId (số bản đồ cố định)
 
 /** Nạp bản đồ theo `mapId` (phải có trong MAPS). Lỗi thì ném ra để phòng không mở được. */
 export function loadMap(mapId: string): GameMap {
@@ -233,7 +233,7 @@ export function loadMap(mapId: string): GameMap {
     mapId, MW, MH, solid, kind, zones, spawn, safe, portals, elites, lair, lake, npcs, waypoints, isSolidTile, hits, hoaDan,
     waypointAt: (x, y) => waypoints.find((w) => inRect(w, x, y)),
     inLair: (x, y) => !!lair && inRect(lair, x, y),
-    moveEnt: (e, dx, dy, hw, hh) => gridMove(grid, e, dx, dy, hw, hh),
+    moveEnt: (e, dx, dy, hw, hh, nudge) => gridMove(grid, e, dx, dy, hw, hh, nudge),
     inSpawn: (x, y) => inRect(spawn, x, y),
     inSafe: (x, y) => kind === "town" || safe.some((r) => inRect(r, x, y)),
     portalAt: (x, y) => portals.find((p) => inRect(p, x, y)),

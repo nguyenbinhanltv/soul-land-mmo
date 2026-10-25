@@ -1,0 +1,31 @@
+Create ONE image, exactly 1024x1024 pixels: an animation sprite sheet of a single fantasy creature for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
+
+CREATURE: Ám Kim Khủng Trảo Hùng - dark gold claw bear, golden-brown shaggy fur, long golden claws, massive shoulders, standing on all four legs. Body type: thú bốn chân. Size class: Tím / Đen. The attached reference image shows this exact creature in three static views (front, side, back): keep the SAME design, proportions, colors, markings and overall size in every frame of the sheet. Do not redesign it.
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
+
+GRID: 6 columns x 8 rows of equal invisible cells (171x128 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with its feet (or lowest body point) standing on the same invisible ground line about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.
+
+LAYOUT (top to bottom):
+Block 1 (rows 1-4): direction "ne" = facing the upper right of the picture (three-quarter back view, head away from the viewer toward the right).
+  row 1: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 2: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 3: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 4: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+Block 2 (rows 5-8): direction "n" = facing away from the viewer (back view from above).
+  row 5: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 6: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 7: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 8: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+
+CONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, standing, walking and hurt frames keep the body at the same scale and the same ground line. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).
+
+STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.
+
+DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions.
+
+Match the creature design, colors, size and line weight of the second attached sheet exactly.
+
+REFERENCE ROLE CLARIFICATION: Image 1 is the original static identity reference. Image 2 is the A2 candidate STYLE-ONLY reference, not an approved pose template. Generate a wholly NEW B sheet only, never edit A or copy its poses. Both references depict this same upright two-legged golden-brown bear with massive shoulders and long golden claws; preserve their identity and proportions rather than redesigning it to force the generic four-legged description. No new creature or features. Rows 1-4 must remain NE three-quarter BACK, facing UPPER-RIGHT, back visible and head away, never E side or front. Rows 5-8 must remain N BACK facing away. Keep these NE/N body axes through HURT and DIE, including recoil and sideways collapse; do not copy A's upturned-face hurt or direction-changing death poses. Exactly 44 occupied cells: rows 1,2,3,5,6,7 have six frames each; rows 4 and 8 have four frames each followed by two empty magenta cells. No frame slipping between blocks. Output only this one new square 1024x1024 B sheet.
+
+ROLE CLARIFICATION FOR THIS FRESH WHOLE-SHEET RETRY: The style-only A reference does not authorize front-facing death poses or E-facing attack poses. In NE row 3 column 3 keep the back toward the viewer and the head turned away upper-right, even at maximum attack extension. In N row 5 columns 5-6 hurt stays exactly BACK, without turning toward NE. NE row 4 columns 3-4 and N row 8 columns 3-4 must collapse with their backs still toward the camera, their heads remaining away; no visible face or front torso. Recreate every frame anew within its original assigned cell. The final canvas must be 1024x1024, not 1254x1254.

@@ -2,8 +2,8 @@
 // seqT -> gục thì đứng -> đi bằng moveEnt) và đường truyền trễ cố định mỗi chiều. Chạy: npm run test:predict --prefix client
 // (Node >= 22.18 tự bỏ kiểu của file .ts).
 import { Predictor } from "../src/predict.ts";
-import { moveEnt, clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../shared/move.ts";
-import { TICK_RATE, TILE, dir4, RUN_MULT } from "../../shared/data.ts";
+import { moveEnt, hits, clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../shared/move.ts";
+import { TICK_RATE, TILE, dir4, RUN_MULT, MOVE_NUDGE, moveNudge } from "../../shared/data.ts";
 import { findPath, clearLine, pathLength } from "../../shared/path.ts";
 
 let fails = 0;
@@ -44,7 +44,7 @@ function run({ keys, lag = 0.1, secs, events = [], onFrame }) {
       sv.spd = SPD * (sv.calm && !sv.walk ? RUN_MULT : 1); // như MapRoom.tick
       if (Math.hypot(sv.input.x, sv.input.y) > MOVE_DEAD) sv.seqT += TICK;
       if (!sv.dead && Math.hypot(sv.input.x, sv.input.y) > MOVE_DEAD) {
-        moveEnt(grid, sv, sv.input.x * sv.spd * TICK, sv.input.y * sv.spd * TICK, PLAYER_HW, PLAYER_HH);
+        moveEnt(grid, sv, sv.input.x * sv.spd * TICK, sv.input.y * sv.spd * TICK, PLAYER_HW, PLAYER_HH, MOVE_NUDGE);
         sv.dir = dir4(sv.input.x, sv.input.y);
       }
       // float32 như schema
@@ -162,6 +162,62 @@ for (const lag of [0.05, 0.15]) {
   ok(boxed.length > 0 && end && Math.hypot(end.x - (43 * TILE + 8), end.y - (6 * TILE + 8)) < 0.01, `A*: điểm bấm trong ô vây kín: tới ô sát vách gần nhất (${end && `${end.x}, ${end.y}`})`);
   const far = findPath(g, { x: 2 * TILE + 8, y: 35 * TILE + 8 }, { x: 59 * TILE + 8, y: 35 * TILE + 8 }, { maxTiles: 10, maxNodes: 8000 });
   ok(far.length > 0 && far.at(-1).x <= 12 * TILE + 8 + 0.01 && far.at(-1).x > 8 * TILE, `A*: điểm bấm ngoài khung ${10} ô: đi tới mép khung (${far.at(-1)?.x})`);
+}
+
+// ---------- Lách góc (moveEnt với nudge = MOVE_NUDGE, #748) ----------
+{
+  const N = 10, mk = (cells) => { const g = { MW: N, MH: N, solid: new Uint8Array(N * N) }; for (const [x, y] of cells) g.solid[y * N + x] = 1; return g; };
+  const walk = (g, e, dx, dy, steps, nudge) => { for (let i = 0; i < steps; i++) moveEnt(g, e, dx, dy, PLAYER_HW, PLAYER_HH, nudge); return e; };
+  // Góc ngoài: ô (5,5) = x 80..96, y 80..96; chân lệch xuống 2 px vào hàng ô 5 -> không nudge thì khựng, có nudge thì lách lên qua đỉnh ô.
+  const corner = mk([[5, 5]]);
+  const a = walk(corner, { x: 60, y: 77 }, 2, 0, 3, 0);
+  ok(a.x < 75 && a.y === 77, "không nudge: vướng góc ô thì đứng khựng");
+  const b = walk(corner, { x: 60, y: 77 }, 2, 0, 40, MOVE_NUDGE);
+  ok(b.x > 100 && b.y < 77, `nudge: lách qua góc ngoài (x=${b.x}, y=${b.y})`);
+  // #785: tự săn không lách (đi thuần va chạm như đường A* của nó đã tính), người chơi tự bấm vẫn lách.
+  const au = walk(corner, { x: 60, y: 77 }, 2, 0, 40, moveNudge(true)), hu = walk(corner, { x: 60, y: 77 }, 2, 0, 40, moveNudge(false));
+  ok(moveNudge(true) === 0 && moveNudge(false) === MOVE_NUDGE && au.x < 75 && au.y === 77 && hu.x > 100, `tự săn không lách góc (x=${au.x}), người chơi lách (x=${hu.x})`);
+  const c = walk(corner, { x: 60, y: 84 }, 2, 0, 40, MOVE_NUDGE);
+  ok(c.x < 75 && c.y === 84, "chạm sâu hơn ngưỡng thì không lách (vẫn chặn)");
+  // Lách xuống phía dưới khi lệch lên trên (đối xứng) và đi dọc trục y (lách theo x).
+  const d = walk(corner, { x: 60, y: 99 }, 2, 0, 40, MOVE_NUDGE);
+  ok(d.x > 100 && d.y > 99, `nudge đối xứng: lách xuống (x=${d.x}, y=${d.y})`);
+  const e = walk(corner, { x: 77, y: 60 }, 0, 2, 40, MOVE_NUDGE);
+  ok(e.y > 100 && e.x < 77, `đi dọc trục y: lách theo trục x (x=${e.x}, y=${e.y})`);
+  // Hành lang 1 ô (hàng 5 trống, hàng 4 và 6 chặn từ cột 5): vào lệch 2 px thì được dẫn vào, không xuyên tường.
+  const wall = []; for (let x = 5; x < N; x++) wall.push([x, 4], [x, 6]);
+  const hall = mk(wall);
+  const f = walk(hall, { x: 40, y: 94 }, 2, 0, 80, MOVE_NUDGE);
+  ok(f.x > 130 && f.y >= 84 && f.y <= 92, `hành lang 1 ô: vào được và ở trong hành lang (x=${f.x}, y=${f.y})`);
+  const f0 = walk(hall, { x: 40, y: 94 }, 2, 0, 80, 0);
+  ok(f0.x < 75, "hành lang 1 ô: không nudge thì kẹt ở cửa");
+  // Đi chéo dọc tường: không nudge thì trượt, có nudge thì cũng trượt y hệt (không bị đẩy ra xa, không xuyên).
+  const floor = mk(Array.from({ length: N }, (_, x) => [x, 6]));
+  const g1 = walk(floor, { x: 10, y: 80 }, 1.5, 1.5, 60, MOVE_NUDGE), g0 = walk(floor, { x: 10, y: 80 }, 1.5, 1.5, 60, 0);
+  ok(g1.x === g0.x && g1.y === g0.y && g1.y <= 91 && g1.x > 90, `đi chéo dọc tường: trượt như cũ (x=${g1.x}, y=${g1.y})`);
+  // Không bao giờ xuyên tường: đi ngẫu nhiên nhiều bước trên bản đồ có nhiều ô chặn, hộp luôn không chạm ô chặn.
+  let seed = 12345; const rnd = () => (seed = (seed * 1103515245 + 12345) >>> 0) / 4294967296;
+  const cells = []; for (let i = 0; i < 22; i++) cells.push([1 + Math.floor(rnd() * 8), 1 + Math.floor(rnd() * 8)]);
+  const maze = mk(cells), q = { x: 8, y: 8 }; let bad = 0;
+  for (let i = 0; i < 20000; i++) {
+    if (i % 40 === 0) { const a2 = rnd() * Math.PI * 2; var vx = Math.cos(a2) * 3, vy = Math.sin(a2) * 3; }
+    moveEnt(maze, q, vx, vy, PLAYER_HW, PLAYER_HH, MOVE_NUDGE);
+    if (hits(maze, q.x, q.y, PLAYER_HW, PLAYER_HH)) bad++;
+  }
+  ok(bad === 0, `không xuyên tường: 20000 bước ngẫu nhiên, ${bad} lần hộp chạm ô chặn`);
+}
+
+// Dự đoán có trễ đi qua góc ô: phát lại bước khi đối chiếu cũng lách như server, vị trí dự đoán cuối khớp server (#748).
+{
+  const N = 120, g2 = { MW: N, MH: N, solid: new Uint8Array(N * N) };
+  for (const [x, y] of [[100, 103], [101, 103], [102, 103]]) g2.solid[y * N + x] = 1; // chân tường ngang trên đường đi
+  const saved = grid.solid; grid.solid = g2.solid; grid.MW = N; grid.MH = N;
+  const sx = 1560, sy = 1664; // đi sang phải, đụng góc dưới của dãy ô chặn (hộp lấn 4 px vào hàng ô)
+  const r = run({ keys: () => ({ x: 1, y: 0 }), lag: 0.15, secs: 4, events: [{ t: 0.01, goto: { x: sx, y: sy } }] });
+  let worstY = 0; for (const f of r.frames.filter((f) => f.t > 1)) worstY = Math.max(worstY, Math.abs(f.at.y - f.sv.y));
+  const last = r.frames.at(-1), off = Math.hypot(last.at.x - last.sv.x, last.at.y - last.sv.y);
+  ok(last.sv.x > 1700 && worstY < 0.1, `dự đoán có trễ qua góc ô: server qua góc (x=${last.sv.x.toFixed(0)}), lệch y tối đa ${worstY.toFixed(2)} px`);
+  grid.solid = saved; grid.MW = W; grid.MH = H;
 }
 
 console.log(fails ? `${fails} kiểm tra trượt` : "Mọi kiểm tra dự đoán chuyển động và tìm đường đều qua");
