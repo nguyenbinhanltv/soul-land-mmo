@@ -67,8 +67,13 @@ Luật chơi và bảng số ở `docs/design/trang-bi.md` (mục 5.15) và `sha
 - `equip-sim.ts` (`npm run sim:equip --prefix server`) mô phỏng một người chơi tự động theo ngày (hồ sơ 1 / 3 / 6 giờ) bằng chính hàm của `shared/data.ts` (`rollEquipDrop`, `equipEnhanceStep`, `EQUIP_SYNTH`, `equipSalvage`, `equipStats`, `calcStats`) và so sức mạnh đấu trường theo mô hình thời gian hạ gục.
 - Bài bot `equipsoak` (mặc đủ 10 ô, lặp cường hóa / hợp thành / phân giải / đổi đồ / vào lại; `ES_N`, `ES_SECS`, `ES_SAMPLE`) kèm `perf {mem: true}` (thêm RSS và heap) đo tick, RSS, heap theo thời gian (`hieu-nang-soak.md`).
 
+## Khắc may mắn
+- `equipLuck` / `equipLuckPreview` (`MapRoom.ts`): tin `equipluck {id}` (trả `equipluckd {id, from, to, ok}`) và `equipluckpreview {id}` (trả `equipluckp`: `equipLuckStep`, Thần Hồn đang có, lý do bị chặn `slot` / `max` / `worn`). Cùng hàng đợi `enhBusy` / `itemLocked` / `saveBag` như cường hóa; `ArenaRoom` chặn.
+- Kiểm: món của chính chủ (túi hoặc đang mặc), ô có `luck`, `equipLuckStep` không null (món chưa đạt `EQUIP_LUCK_MAX`; món đang mặc còn kiểm tổng hai ô đang mặc), có Thần Hồn, gần Thợ rèn, ngoài giao chiến. Không có phí Hồn Tệ.
+- Trừ 1 Thần Hồn **trước** khi tung (`Math.random() < EQUIP_LUCK_UP[n]`, hook `enhroll` ép số tung). Thành công ghi `stats.luck` + 1; thất bại chỉ mất Thần Hồn, món không phá, may mắn và cấp cường hóa giữ. Lỗi ghi thì hoàn lại Thần Hồn và món.
+- Giao diện: trang "Khắc may mắn" ở Thợ rèn (chọn món, tỉ lệ, số Thần Hồn, hiệu ứng thành / bại), nhãn `M<n>` ở túi cập nhật qua tin `bagd` / `gear`. Bài bot `gearLuckTest` (nhóm `bag`).
+
 ## Chưa làm
-- **Khắc may mắn:** hằng `EQUIP_LUCK_UP` ở `shared/data.ts` ghi "đề xuất, chờ duyệt" và chưa có mã server / client nào dùng; thuộc tính `luck` của món hiện chỉ do rơi / `rollEquip` quyết định.
 - Số cân bằng trang bị chưa có ghi chép chủ repo duyệt riêng; `docs/trang-bi-kinh-te.md` vẫn là ước lượng theo giả định.
 
 ## Issue liên quan

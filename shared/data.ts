@@ -3773,7 +3773,7 @@ export const EQUIP_MATERIALS: { id: string; name: string; col: string; stack: nu
   ...EQUIP_STONES.map((s, i) => ({ id: s.id, name: s.name, col: s.col, stack: s.stack, desc: `Nguyên liệu cường hóa trang bị hồn sư (nấc ${i + 1}). Rơi từ hồn thú, phân giải trang bị.` })),
   { id: EQUIP_CHARM, name: "Bùa Hộ Mệnh", col: "#ffd45a", stack: 99, desc: "Cường hóa trang bị thất bại ở +13–15 mà có bùa thì món không bị phá hủy (giữ cấp, mất 1 bùa). Chỉ rơi từ thú vương và boss thế giới." },
   { id: EQUIP_ESSENCE, name: "Tinh Hoa Đường Môn", col: "#ff6a5a", stack: 99, desc: "Tinh hoa từ trang bị Thần Khí / Chí Bảo phân giải. Dùng hợp thành Thần Khí lên Chí Bảo." },
-  { id: EQUIP_SOUL, name: "Thần Hồn", col: "#e8dcff", stack: 99, desc: "Hồn từ trang bị Chí Bảo phân giải. Khắc may mắn lên vũ khí / dây chuyền." },
+  { id: EQUIP_SOUL, name: "Thần Hồn", col: "#e8dcff", stack: 99, desc: "Hồn từ trang bị Chí Bảo phân giải. Mỗi lần khắc may mắn lên vũ khí / dây chuyền ở Thợ rèn tốn 1 Thần Hồn, thất bại vẫn mất, món không bị phá." },
 ];
 
 /** Một nấc cường hóa. `to`: khoảng cấp ĐÍCH (+a … +b) dùng chung điều kiện; `fail`: keep giữ cấp, down tụt `n` cấp, reset về cấp `to` (nếu đang cao hơn), destroy phá hủy món (có Bùa Hộ Mệnh thì giữ cấp). */
@@ -3852,10 +3852,18 @@ export function equipSalvage(tier: number, enhance: number, rnd: () => number): 
   return { coin: Math.round(t.coin * (1 + equipEnhanceClamp(enhance) / 5)), items };
 }
 /**
- * **(đề xuất, chờ duyệt)** Khắc may mắn: 1 Thần Hồn lên vũ khí / dây chuyền từ may mắn n lên n + 1 với tỉ lệ EQUIP_LUCK_UP[n]; thất bại mất
- * Thần Hồn, may mắn giữ nguyên (không phá). Tổng may mắn hai ô tối đa EQUIP_LUCK_MAX.
+ * Khắc may mắn ở Thợ rèn: 1 Thần Hồn lên vũ khí / dây chuyền từ may mắn n lên n + 1 với tỉ lệ EQUIP_LUCK_UP[n]; thất bại mất
+ * Thần Hồn, may mắn giữ nguyên (không phá món, không phí Hồn Tệ). Tổng may mắn hai ô tối đa EQUIP_LUCK_MAX.
  */
 export const EQUIP_LUCK_UP = [1, 0.8, 0.6, 0.45, 0.3, 0.2, 0.12, 0.08, 0.05];
+/**
+ * Tỉ lệ khắc lên may mắn kế tiếp (hàm thuần): `luck` = may mắn của món, `wornLuck` = tổng may mắn hai ô đang mặc khi món đang mặc (null = món trong túi).
+ * null = không khắc được (món đã đạt EQUIP_LUCK_MAX, hoặc món đang mặc mà tổng hai ô đã đạt EQUIP_LUCK_MAX).
+ */
+export const equipLuckStep = (luck: number, wornLuck: number | null): { to: number; p: number } | null => {
+  const l = Math.max(0, Math.floor(luck) || 0);
+  return l >= EQUIP_LUCK_MAX || (wornLuck !== null && wornLuck >= EQUIP_LUCK_MAX) ? null : { to: l + 1, p: EQUIP_LUCK_UP[l] };
+};
 
 /**
  * Rơi trang bị (hàm thuần, server truyền RNG và hệ số). `ranks[bậc hồn thú 0–3]`: `chance` có rơi lượt nào không, `rolls` số lượt [lo, hi],
