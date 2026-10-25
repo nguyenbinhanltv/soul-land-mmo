@@ -1,0 +1,25 @@
+DIRECTION LOCK: SOUTHEAST: FACE LOWER RIGHT, three-quarter FRONT view; show chest and rightward muzzle. Keep this exact direction throughout all frames, including attack, hurt and death.
+
+Create ONE image, exactly 1536x1024 pixels: an animation sprite sheet of a single fantasy creature for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
+
+CREATURE: Thái Thản Cự Viên - titan giant ape, massive dark grey-brown fur, grey stone armor plates on forearms and shoulders, broad chest, lower tusks like ivory, ancient battle scars. Body type: thú bốn chân. Size class: boss thế giới. The attached reference image shows this exact creature in three static views (front, side, back): keep the SAME design, proportions, colors, markings and overall size in every frame of the sheet. Do not redesign it.
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
+
+GRID: 6 columns x 4 rows of equal invisible cells (256x256 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with its feet (or lowest body point) standing on the same invisible ground line about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.
+
+LAYOUT (top to bottom):
+Block 1 (rows 1-4): SOUTHEAST: FACE LOWER RIGHT, three-quarter FRONT view; show chest and rightward muzzle.  direction "se" = facing the lower right of the picture (three-quarter front view, head toward the viewer's right).
+  row 1: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 2: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 3: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 4: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+
+CONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, standing, walking and hurt frames keep the body at the same scale and the same ground line. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).
+
+STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.
+
+DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions.
+
+
+REFERENCE PRIORITY: Image 1 is the original character design: giant ape/gorilla, NO tail, very long heavy arms, short legs, small head, broad chest, grey stone forearm bracers, dark grey-brown fur. Keep exact anatomy and armor placement; no new armor beyond original. Generic quadruped movement means gorilla knuckle-walking using forearms and hind feet. Attack with ape fist/arm swings. Image 2 is candidate sheet A, for consistent design and rendering only, NOT for facing direction. Match the creature design, colors, size and line weight of the second attached sheet exactly. All cells on THIS sheet face the direction locked above, even while dying. Precisely 6+6+6+4 visible creatures, equal invisible 6x4 grid; row4 columns5–6 blank.

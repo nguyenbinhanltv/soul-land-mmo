@@ -1,0 +1,49 @@
+{
+  "species": "thai_than_cu_vien",
+  "sheet": "E",
+  "direction": "n",
+  "date": "2026-10-26",
+  "tool": "image_gen.imagegen tích hợp Codex",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Công cụ không trả model ID/seed, không có size selector.",
+  "attempts": 1,
+  "selected_attempt": 1,
+  "raw_file": "toE.png",
+  "sha256": "1061007e6a0fa01fc4c51e97d6963e1dce7ba05731b7a831f339100c8e0af553",
+  "width": 1536,
+  "height": 1024,
+  "requested_dimensions": [
+    1536,
+    1024
+  ],
+  "grid": [
+    6,
+    4
+  ],
+  "expected_visible_cells": 22,
+  "empty_cells": [
+    "H4 C5",
+    "H4 C6"
+  ],
+  "prompt_file": "toE.prompt.txt",
+  "prompt_sha256": "cd739b0ce4c7d842bae212f03b49c1570300db677823fa9732c80c14028f0f5e",
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/thai_than_cu_vien.png",
+      "sha256": "f7ed1e71f981c53fc0478d6af6c4ecc07690551a1cde00567886bc0b23353255",
+      "role": "thiết kế nhân vật gốc, đã xem trước"
+    },
+    {
+      "path": "art/src/beast-anim/thai_than_cu_vien/toA.png",
+      "sha256": "dce40e4ed49f98a93f02abd739adb41fa0126e572080bdd34679fe6b5cd1230d",
+      "role": "candidate A tham chiếu phong cách, chưa owner duyệt mỹ thuật"
+    }
+  ],
+  "postprocessing": "Không. Sao chép nguyên byte từ output tool; không resize, đổi metadata, cắt, ghép hay nhân pose.",
+  "output_path_returned_by_tool": "/Users/thanhhoa/.codex/generated_images/01a1741d-a578-7c61-8eea-40abb1ff497d/exec-e6096d95-6378-4a84-a0f5-5a9b54c95016.png",
+  "qa_status": "candidate, chưa được owner duyệt mỹ thuật; chưa cắt nên chưa kiểm bằng preview hoạt ảnh",
+  "suspected_issues": [
+    "H1 C5–6 và H3 C2–5: thân xoay nhẹ trong hurt/attack; cần kiểm trục bắc."
+  ]
+}
