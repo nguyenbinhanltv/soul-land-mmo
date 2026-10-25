@@ -33,7 +33,7 @@ Landing là trang tĩnh, nhẹ, để người lạ hiểu game và bấm vào c
 
 ## Hiệu năng (ngân sách)
 - Lighthouse di động (Performance, Accessibility, Best Practices, SEO) **≥ 90**; LCP là ảnh đầu trang hoặc chữ, không chờ JS.
-- JS landing nhỏ (đích < 20 KB gzip, tốt nhất không JS), CSS gọn, không thư viện UI, không tải Phaser / Colyseus. Phông tự host, tập con, `preload` đúng 1 phông tiêu đề. Không tải Google Fonts ở landing (trang game hiện còn tải Be Vietnam Pro từ Google; landing dùng bản tự host nếu cần).
+- JS landing nhỏ (đích < 20 KB gzip, tốt nhất không JS), CSS gọn, không thư viện UI, không tải Phaser / Colyseus. Phông tự host, tập con, `preload` đúng 1 phông tiêu đề. Không tải Google Fonts ở landing (trang game cũng tự host Be Vietnam Pro: `client/src/fonts/bvp-*.woff2`, #694).
 - Ảnh WebP, kích thước đúng, lazy; video không tự phát. Cache theo `server/src/staticCache.ts` (asset có `?v=` hoặc tên có hash).
 
 ## SEO / chia sẻ

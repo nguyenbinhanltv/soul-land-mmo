@@ -341,12 +341,12 @@ class MapViewUi implements DotSink {
     if (p.x < -80 || p.y < -30 || p.x > c.x * 2 + 80 || p.y > c.y * 2 + 30) return;
     const big = l.k === "zone" || l.k === "lair";
     const col = l.k === "zone" ? "#ffe9a0" : l.k === "safe" ? "#9ae8c4" : l.k === "lair" ? "#ff8a92" : l.k === "gate" ? "#86e0b0" : l.k === "wp" ? (l.open ? "#8fe0ff" : "#9a9aa8") : PAPER;
-    ctx.font = `${big ? "bold 13px" : "12px"} "Be Vietnam Pro", system-ui, sans-serif`;
+    ctx.font = `${big ? "bold 13px" : "12px"} "Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif`;
     const y = p.y - (big ? 0 : 8);
     ctx.lineWidth = 3.5; ctx.strokeStyle = DARK; ctx.strokeText(l.text, p.x, y); ctx.fillStyle = col; ctx.fillText(l.text, p.x, y);
     const sub = z >= lz.zoneSub ? l.sub : l.brief;
     if (sub && big) {
-      ctx.font = '11px "Be Vietnam Pro", system-ui, sans-serif'; ctx.lineWidth = 3; ctx.strokeText(sub, p.x, y + 14); ctx.fillStyle = PAPER; ctx.fillText(sub, p.x, y + 14);
+      ctx.font = '11px "Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif'; ctx.lineWidth = 3; ctx.strokeText(sub, p.x, y + 14); ctx.fillStyle = PAPER; ctx.fillText(sub, p.x, y + 14);
     }
     if (!big || l.k === "lair") this.hits.push({ x: p.x - c.x, y: p.y - c.y, prio: 3, name: l.text, sub: l.sub ?? "", wx: l.x, wy: l.y });
     void v;
@@ -365,7 +365,7 @@ class MapViewUi implements DotSink {
     ctx.fillStyle = "rgba(26,16,32,.6)"; ctx.beginPath(); ctx.arc(0, 0, 26, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = "#c9a45a"; ctx.lineWidth = 1; ctx.stroke();
     const na = radarNorthAngle(v.mode); ctx.fillStyle = "#d8262c"; ctx.rotate(na); ctx.beginPath(); ctx.moveTo(20, 0); ctx.lineTo(8, -4); ctx.lineTo(8, 4); ctx.closePath(); ctx.fill(); ctx.rotate(-na);
-    ctx.font = 'bold 10px "Be Vietnam Pro", system-ui, sans-serif'; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = 'bold 10px "Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif'; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     for (const q of [{ t: "B", dx: 0, dy: -1 }, { t: "Đ", dx: 1, dy: 0 }, { t: "N", dx: 0, dy: 1 }, { t: "T", dx: -1, dy: 0 }]) {
       const p = radarRotate(q.dx, q.dy, v.mode); ctx.fillStyle = q.t === "B" ? "#ff5a5a" : PAPER; ctx.fillText(q.t, p.x * 15, p.y * 15);
     }

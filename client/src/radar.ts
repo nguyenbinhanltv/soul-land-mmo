@@ -128,7 +128,7 @@ class Radar implements DotSink {
     const flat = this.mode === "flat";
     this.modeBtn.setAttribute("aria-pressed", String(flat));
     this.modeBtn.title = flat ? "Nhìn thẳng (Bắc lên): bấm để xoay theo màn hình" : "Xoay theo màn hình isometric: bấm để nhìn thẳng";
-    this.modeBtn.textContent = flat ? "⬆" : "◈";
+    this.modeBtn.textContent = flat ? "↑" : "◈";
     (document.getElementById("radarIn") as HTMLButtonElement).disabled = this.zoom === 0;
     (document.getElementById("radarOut") as HTMLButtonElement).disabled = this.zoom === RADAR.zooms.length - 1;
   }
@@ -220,7 +220,7 @@ class Radar implements DotSink {
     for (const q of CARDINALS) { const v = radarRotate(q.dx, q.dy, mode); this.letter(ctx, q.t, v.x * (rPx - 7), v.y * (rPx - 7), q.t === "B" ? "#ff5a5a" : "#ece2c8"); }
   }
   private letter(ctx: CanvasRenderingContext2D, t: string, x: number, y: number, col: string) {
-    ctx.font = 'bold 10px "Be Vietnam Pro", system-ui, sans-serif'; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = 'bold 10px "Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif'; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.lineWidth = 3; ctx.strokeStyle = DARK; ctx.strokeText(t, x, y); ctx.fillStyle = col; ctx.fillText(t, x, y);
   }
 
@@ -230,7 +230,7 @@ class Radar implements DotSink {
     ctx.fillStyle = d.col; ctx.strokeStyle = DARK; ctx.lineWidth = 1.5; const s = Math.max(5, size - 1);
     ctx.beginPath(); ctx.moveTo(s * 0.7, 0); ctx.lineTo(-s * 0.5, -s * 0.6); ctx.lineTo(-s * 0.5, s * 0.6); ctx.closePath(); ctx.stroke(); ctx.fill(); ctx.restore();
     const len = Math.hypot(d.x, d.y) || 1, ix = d.x - (d.x / len) * 11, iy = d.y - (d.y / len) * 11;
-    ctx.font = '9px "Be Vietnam Pro", system-ui, sans-serif'; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = '9px "Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif'; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.lineWidth = 2.5; ctx.strokeStyle = DARK; const t = String(Math.floor(d.tiles)); ctx.strokeText(t, ix, iy); ctx.fillStyle = "#fff"; ctx.fillText(t, ix, iy);
   }
 

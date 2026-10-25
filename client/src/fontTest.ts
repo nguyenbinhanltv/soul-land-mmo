@@ -47,7 +47,7 @@ export function fontTestScreen(card: HTMLElement, overlay: HTMLElement) {
   const sk = card.querySelector("#ftSk")!;
   [["U", "Lam Ngân Tù Lung", "#f2c84b", 0, ""], ["I", "Khóa", "#666", 0, " locked"], ["O", "Hồi chiêu", "#a253e0", 0.6, ""]].forEach(([k, n, c, cd, cls]) => {
     const b = document.createElement("button"); b.className = "sk" + cls;
-    b.innerHTML = `<b>${k}</b><span class="ico" style="color:${c}">✦</span><span>${n}</span><div class="cd" style="height:${Number(cd) * 100}%"></div>`;
+    b.innerHTML = `<b>${k}</b><span class="ico" style="color:${c}">◆</span><span>${n}</span><div class="cd" style="height:${Number(cd) * 100}%"></div>`;
     sk.appendChild(b);
   });
   const st = card.querySelector("#ftSt")!;
