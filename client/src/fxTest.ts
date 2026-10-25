@@ -8,6 +8,8 @@ import { TIERS, VOHON, PHAP_TUONG, ringSkill, chanThanOf, tienCoOf, MAX_RINGS } 
 import { ELEMENTS, type Element } from "./audio/soundMap.ts";
 import { ParticleLayer, fxPrefs, setFxPrefs, hitstopMs, fxGov, fxLevel, type FxLevel } from "./combatFx.ts";
 import { SheetFx, SHEET_TUNE } from "./fxSheet.ts";
+import { loadPrivateAssets, playPriv } from "./privateAssets.ts";
+import { playFx } from "./sprites.ts";
 import { PhapTuongSystem } from "./phapTuong.ts";
 import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, SKILL_VISUAL, FUSION_VISUAL, visualKey } from "./skillVisual.ts";
 import { HIT_HES, KNOCK_PX, damageStyle, hitWeight, materialSparks, playHitFeelSheets, registerHitFeelSheets } from "./hitFeel.ts";
@@ -56,7 +58,7 @@ class FxTestScene extends Phaser.Scene {
     this.drawGround();
     this.fxp = new ParticleLayer(this, 99979, SPR);
     this.skfx = new SkillFx(this, this.fxp);
-    registerCodeSheets(this); registerHitFeelSheets(this); this.svp = new SkillVisualPlayer(new SheetFx(this));
+    registerCodeSheets(this); registerHitFeelSheets(this); this.svp = new SkillVisualPlayer(new SheetFx(this)); void loadPrivateAssets(this); // #623: kho riêng (?pfx=0 để xem hình cũ)
     this.hero = this.person(-70, 12, 0x9fb4e8); this.dummy = this.person(70, 12, 0xd8b090);
     this.events.on("update", (time: number, dt: number) => {
       if (q.get("gov") !== "0") fxGov.feed(dt, fxPrefs.level);
@@ -128,6 +130,19 @@ class FxTestScene extends Phaser.Scene {
     this.tweens.add({ targets: d, x: x + dx, duration: 55, yoyo: true, ease: "Sine.easeOut" });
     const el = document.getElementById("fn"); if (el) el.textContent = `→ nặng ${w} · khựng ${ms} ms · giật lùi ${KNOCK_PX[w]} px · chất liệu ${mat}`;
     if (!fxPrefs.reduce && fxPrefs.level !== "low") { this.tweens.timeScale = 0.06; window.setTimeout(() => { this.tweens.timeScale = 1; }, ms); }
+  }
+  /**
+   * #623: so trước / sau hiệu ứng ngoài kho riêng (`?pfx=0` = hình cũ trong game, mặc định = có kho riêng). `no` nổ tiên cơ (cũ: quả nổ LPC), `hoi` / `khien`
+   * (cũ: chỉ số nổi như game), `quang` hộ thể tiên cơ (cũ: hạt), `khoi` + `bui` lướt (cũ: hạt bụi chân). Va chạm / kết liễu: nút Đánh thử (nặng 1 / 3), sét / chém sáng: hồn kỹ Lôi / Quang T2+.
+   */
+  demo(name: string) {
+    const sh = this.svp.sheets, h = this.hero, d = this.dummy, up = h.y - 10 * SPR;
+    const num = (x: number, y: number, t: string, col: string) => { const e = this.add.text(x, y, t, { fontFamily: "system-ui", fontSize: "13px", fontStyle: "bold", color: col, stroke: "#1a1020", strokeThickness: 3 }).setOrigin(0.5).setDepth(50); this.tweens.add({ targets: e, y: y - 26, alpha: 0, delay: 400, duration: 600, onComplete: () => e.destroy() }); };
+    if (name === "no") { if (!playPriv(sh, "pfx_no", { x: d.x, y: d.y - 10 * SPR, fitW: 1.6 * RX * 56 })) playFx(this, "fx_no", d.x, d.y - 10 * SPR, Math.max(1, Math.round((1.4 * RX * 56) / 32)), 99981); }
+    else if (name === "hoi") { playPriv(sh, "pfx_hoi", { x: h.x, y: up, scale: SPR }); num(h.x, h.y - 70, "+320", "#86e0b0"); }
+    else if (name === "khien") { playPriv(sh, "pfx_khien", { x: h.x, y: up, scale: SPR }); num(h.x, h.y - 70, "+180", "#9ad8ff"); }
+    else if (name === "quang") { this.fxp.burst(h.x, h.y - 10, 0xffe08a, 8, 40 * SPR / 2, 2); playPriv(sh, "pfx_quang", { x: h.x, y: h.y - 8 * SPR, scale: SPR }); }
+    else if (name === "khoi") { playPriv(sh, "pfx_khoi", { x: h.x, y: h.y - 4 * SPR, ang: 0, scale: SPR }); playPriv(sh, "pfx_bui", { x: d.x - 30, y: d.y - 2 * SPR, scale: SPR, delay: 80 }); this.fxp.footDust(h.x, h.y + 4 * SPR, 0x9a8b68, footDustCount(fxPrefs.level, fxPrefs.reduce, false) || 6, false); }
   }
   /** Phát lần lượt cả 5 kiểu của hệ đang chọn (xem nhanh một hệ). */
   fireAll(el = this.el) {
@@ -221,6 +236,7 @@ export function fxTestScreen(card: HTMLElement, overlay: HTMLElement): void {
   $("fs").onchange = () => { const v = $<HTMLSelectElement>("fs").value; if (v) runSkill(v); };
   $("fc").onclick = () => sc().cine.show(VOHON[0].id, "Vô Ngã Kiếm Trận", TIERS[sc().tier].glow, true);
   (window as unknown as { __runSkill: (v: string) => void }).__runSkill = runSkill;
+  (window as unknown as { __demo: (n: string) => void }).__demo = (n) => sc().demo(n);
   /** Tung MỌI chiêu (hồn kỹ, Chân Thân, tiên cơ, dung hợp) lần lượt hai vòng, đo texture / pool (bot kiểm H8 #491). */
   const allKeys = [...sks.map(([k]) => k), ...Object.keys(FUSION_VISUAL).map((n) => "fusion:" + n)];
   (window as unknown as { __castAll: (gap?: number) => Promise<object> }).__castAll = async (gap = 260) => {
