@@ -1,128 +1,210 @@
 <!doctype html>
-<html lang="vi">
+<html lang="vi" data-theme="a">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Rừng Săn Hồn Online</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌲</text></svg>">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;800&display=swap" rel="stylesheet">
+  <title>Rừng Săn Hồn – game săn hồn thú Đấu La trên trình duyệt</title>
+  <meta name="description" content="Rừng Săn Hồn: thức tỉnh võ hồn, săn hồn thú, hấp thụ hồn hoàn, lập tổ đội đánh boss và vào Đại Đấu Hồn Trường. Game Đấu La Đại Lục chơi ngay trên trình duyệt, cùng bạn bè.">
+  <meta name="theme-color" content="#1a1020">
+  <link rel="canonical" href="https://soulland.oleqima.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="vi_VN">
+  <meta property="og:site_name" content="Rừng Săn Hồn">
+  <meta property="og:title" content="Rừng Săn Hồn – săn hồn thú Đấu La trên trình duyệt">
+  <meta property="og:description" content="Thức tỉnh võ hồn, săn hồn hoàn, lập tổ đội đánh boss, thi đấu ở Đại Đấu Hồn Trường. Vào chơi ngay, không cần cài đặt.">
+  <meta property="og:url" content="https://soulland.oleqima.com/">
+  <meta property="og:image" content="https://soulland.oleqima.com/ui/landing/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/ui/landing/logo.webp" type="image/webp">
+  <link rel="preload" href="/src/fonts/wenkai-landing.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/ui/landing/hero.webp" as="image" type="image/webp" fetchpriority="high">
+  <link rel="stylesheet" href="/src/landing.css">
 </head>
 <body>
-  <div id="stage">
-    <div id="game"></div>
-    <div id="hud" hidden>
-      <div id="lcol">
-      <section class="panel stats">
-        <div class="who"><div class="portrait" id="vhPortrait" aria-label="Biểu tượng võ hồn"><span id="vhGlyph">魂</span></div><div class="who-main"><span id="vhName">–</span><span id="lvl"></span></div></div>
-        <div class="bar hp"><i id="hpFill"></i><span id="hpTxt"></span></div>
-        <div class="bar mp"><i id="mpFill"></i><span id="mpTxt"></span></div>
-        <div class="bar xp"><i id="xpFill"></i><span id="xpTxt"></span></div>
-        <div class="bar lei" id="leiBar" hidden><i id="leiFill"></i><span id="leiTxt"></span></div>
-        <div class="rings" id="rings"></div>
-        <div class="buffs" id="buffs" aria-label="Hiệu ứng và trạng thái"></div>
-        <div class="buffs" id="bpas" aria-label="Kỹ năng bị động của hồn cốt"></div>
-        <button id="hudMenuBtn" class="hud-menu-btn" type="button" aria-controls="quickMenu" aria-expanded="false" aria-label="Mở menu HUD">☰<span>Menu</span></button>
-        <div class="minirow" id="quickMenu" role="toolbar" aria-label="Menu HUD">
-          <button id="charBtn" class="minibtn" aria-controls="char" aria-expanded="false"><span class="menu-icon" aria-hidden="true">♙</span><span class="menu-label">Hồn sư</span> <kbd>H</kbd></button>
-          <button id="vhBtn" class="minibtn" aria-controls="roster" aria-expanded="false"><span class="menu-icon" aria-hidden="true">♜</span><span class="menu-label">Đội hình</span> <kbd>V</kbd></button>
-          <button id="bagBtn" class="minibtn" aria-controls="bag" aria-expanded="false"><span class="menu-icon" aria-hidden="true">▣</span><span class="menu-label">Túi đồ</span> <kbd>B</kbd></button>
-          <button id="resBtn" class="minibtn" aria-controls="reso" aria-expanded="false"><span class="menu-icon" aria-hidden="true">✥</span><span class="menu-label">Cộng minh</span> <kbd>K</kbd></button>
-          <button id="audioBtn" class="minibtn" aria-controls="audio" aria-expanded="false"><span class="menu-icon" aria-hidden="true">⚙</span><span class="menu-label">Cài đặt</span></button>
-          <button id="autoBtn" class="minibtn" aria-pressed="false" aria-controls="autoPanel" aria-expanded="false" title="Bảng Tự động: cài đặt và bật / tắt tự săn (phím T bật / tắt ngay)"><span class="menu-icon" aria-hidden="true">◉</span><span class="menu-label">Tự động</span> <kbd>T</kbd></button>
-        </div>
-      </section>
-      <section id="party" class="panel" aria-label="Tổ đội"></section>
-      </div>
-      <div id="pmenu" class="panel" hidden role="dialog" aria-label="Hồn sư"></div>
-      <div id="dualTabs" hidden role="tablist" aria-label="Chuyển Nhân vật / Túi"></div>
-      <div id="char" class="panel" hidden role="dialog" aria-label="Bảng nhân vật Hồn sư"></div>
-      <div id="roster" class="panel" hidden></div>
-      <div id="bag" class="panel" hidden></div>
-      <div id="reso" class="panel" hidden role="dialog" aria-label="Cộng minh"></div>
-      <div id="friends" class="panel" hidden role="dialog" aria-label="Bạn bè"></div>
-      <div id="audio" class="panel" hidden role="dialog" aria-label="Cài đặt"></div>
-      <div id="autoPanel" class="panel" hidden role="dialog" aria-label="Tự động"></div>
-      <div id="autoSum" class="panel" hidden role="dialog" aria-label="Tổng kết tự động"></div>
-      <div id="npc" class="panel" hidden role="dialog" aria-label="Hộp thoại NPC"></div>
-      <div id="world" class="panel" hidden role="dialog" aria-label="Bản đồ thế giới"></div>
-      <div id="mapview" hidden role="dialog" aria-label="Bản đồ khu vực">
-        <canvas id="mapviewCv"></canvas>
-        <div id="mapviewBar">
-          <span id="mapviewTitle"></span>
-          <div id="mapviewLayers" role="group" aria-label="Lớp hiển thị"></div>
-          <div class="mvtools">
-            <button id="mapviewMode" class="mvbtn" aria-pressed="false" title="Đổi hướng nhìn: xoay theo màn hình / nhìn thẳng (Bắc lên)">Nhìn thẳng</button>
-            <button id="mapviewGo" class="mvbtn mvgo" title="Tự đi tới cờ (đóng bản đồ)" hidden>Đi tới cờ</button>
-            <button id="mapviewClear" class="mvbtn" title="Xoá cờ" hidden>Xoá cờ</button>
-            <button id="mapviewMe" class="mvbtn" title="Về chỗ mình đứng">Về tôi</button>
-            <button id="mapviewIn" class="mvbtn mvz" title="Phóng to (lăn chuột lên, chụm hai ngón)">+</button>
-            <button id="mapviewOut" class="mvbtn mvz" title="Thu nhỏ">−</button>
-            <button id="mapviewClose" class="mvbtn mvx" title="Đóng (N hoặc Esc)" aria-label="Đóng bản đồ khu vực">✕</button>
-          </div>
-        </div>
-        <div id="mapviewHelp">Kéo để di chuyển · bấm (điện thoại: chạm giữ) để đặt cờ · chuột phải: "Tập trung ở đây" (tổ đội) · lăn chuột / chụm hai ngón để phóng · N hoặc Esc để đóng</div>
-        <div id="mapviewTip" hidden></div>
-        <div id="mapviewMenu" hidden><button id="mapviewMenuFlag" class="mvbtn">Đặt cờ</button><button id="mapviewMenuRally" class="mvbtn">Tập trung ở đây</button></div>
-      </div>
-      <div id="rcol">
-      <section class="panel mapbox">
-        <div id="radar" role="img" aria-label="Radar quanh nhân vật">
-          <canvas id="mini"></canvas>
-          <img id="radarFrame" alt="" hidden>
-          <button id="radarMode" class="rbtn" aria-pressed="false" title="Xoay theo màn hình / Nhìn thẳng">◈</button>
-          <button id="radarIn" class="rbtn" title="Phóng to (lăn chuột lên)">+</button>
-          <button id="radarOut" class="rbtn" title="Thu nhỏ (lăn chuột xuống)">−</button>
-          <div id="radarTip" hidden></div>
-        </div>
-        <div id="zoneName"></div>
-        <div id="radarInfo"></div>
-        <div id="mapLegend" aria-label="Chú giải radar"><span class="lg-mate">Đội</span><span class="lg-npc">NPC</span><span class="lg-gate">Cổng</span><span class="lg-boss">Boss</span></div>
-        <div id="online"></div>
-        <div class="radarbtns">
-          <button id="chanBtn" class="minibtn" aria-controls="chans" aria-expanded="false" title="Chọn kênh" hidden>Kênh ▾</button>
-          <button id="areaBtn" class="minibtn" aria-controls="mapview" aria-expanded="false" title="Bản đồ khu vực (phím N)">Vùng <kbd>N</kbd></button>
-          <button id="worldBtn" class="minibtn" aria-controls="world" aria-expanded="false" title="Bản đồ thế giới">Thế giới <kbd>M</kbd></button>
-        </div>
-        <div id="flagBar" hidden aria-live="polite"><span id="flagText"></span><button id="flagGo" class="minibtn" title="Tự đi tới cờ (phím Y)">Đi <kbd>Y</kbd></button><button id="flagStop" class="minibtn" title="Dừng tự đi (hoặc bấm phím di chuyển)" hidden>Dừng <kbd>Y</kbd></button><button id="flagClear" class="minibtn" title="Xoá cờ" aria-label="Xoá cờ">✕</button></div>
-        <div id="chans" hidden role="dialog" aria-label="Chọn kênh"></div>
-      </section>
-      <div id="quest" class="panel" hidden aria-label="Nhiệm vụ đang làm"></div>
-      </div>
-      <div id="bossbar" class="panel" hidden></div>
-      <div id="bossCd" hidden></div>
-      <div id="bossRank" class="panel" hidden></div>
-      <div id="target" class="panel"></div>
-      <div id="prompt" class="panel"></div>
-      <div id="portal" class="panel" hidden></div>
-      <div id="wpbox" class="panel" hidden></div>
-      <div id="fusion" class="panel" hidden aria-live="polite" aria-label="Võ Hồn Dung Hợp Kỹ"></div>
-      <div id="talk" class="panel" hidden></div>
-      <div id="arenaQ" class="panel" hidden aria-live="polite"></div>
-      <div id="arenaBar" class="panel" hidden aria-label="Trận Đại Đấu Hồn Trường"></div>
-      <div id="arenaEnd" class="panel" hidden role="dialog" aria-label="Kết quả trận đấu hồn"></div>
-      <div id="offline" class="panel" hidden role="dialog" aria-label="Ủy thác offline"></div>
-      <div id="channel"><div class="label">Đang hấp thụ hồn hoàn…</div><div class="bar"><i id="chFill"></i></div></div>
-      <div id="banner"><b></b><span></span></div>
-      <div id="bottombar">
-      <div id="chatbox">
-        <div id="log" aria-live="polite"></div>
-        <div id="chattabs" role="tablist" aria-label="Kênh chat"></div>
-        <input id="chat" maxlength="120" placeholder="Nhấn Enter để chat" autocomplete="off">
-      </div>
-      <div id="actbar">
-        <div id="team" aria-label="Đội hình: nhấn 1–4 để đổi võ hồn"></div>
-        <div id="actrow">
-          <div id="bskills" aria-label="Kỹ năng hồn cốt chủ động: Z, X, C"></div>
-          <div id="skills"></div>
-        </div>
-      </div>
-      </div>
+<a class="skip" href="#noi-dung">Bỏ qua, tới nội dung</a>
+<header class="nav">
+  <a class="brand" href="/" aria-label="Rừng Săn Hồn, trang chủ"><img src="/ui/landing/logo.webp" width="40" height="40" alt=""><span>Rừng Săn Hồn</span></a>
+  <nav aria-label="Mục chính">
+    <a href="#tinh-nang">Tính năng</a>
+    <a href="#vo-hon">Võ hồn</a>
+    <a href="#ban-do">Bản đồ</a>
+    <a href="#tin-moi">Tin mới</a>
+    <a href="#huong-dan">Hướng dẫn</a>
+  </nav>
+  <a class="btn seal sm" href="/choi">Vào chơi</a>
+</header>
+
+<main id="noi-dung">
+<section class="hero" id="top">
+  <img class="hero-bg" src="/ui/landing/hero.webp" width="1280" height="720" alt="" fetchpriority="high" decoding="async">
+  <div class="hero-in">
+    <img class="hero-logo" src="/ui/landing/logo.webp" width="220" height="220" alt="">
+    <h1>Rừng Săn Hồn</h1>
+    <p class="tag">Thức tỉnh võ hồn, săn hồn hoàn, bước lên đỉnh Đấu La Đại Lục.</p>
+    <p class="sub">Game nhập vai săn hồn thú ngay trên trình duyệt, chơi cùng bạn bè. Không cần cài đặt, máy điện thoại hay máy tính đều chơi được.</p>
+    <div class="cta">
+      <a class="btn seal" href="/choi">Vào chơi</a>
+      <a class="btn alt" href="/choi">Đăng nhập Google</a>
     </div>
-    <div id="joy"><div id="knob"></div></div>
-    <div id="overlay"><div class="card" id="card"></div></div>
+    <p class="status" id="status" role="status"><span class="dot" aria-hidden="true"></span><span id="statusTxt">Máy chủ: đang kiểm tra…</span></p>
   </div>
-  <script type="module" src="/src/main.ts"></script>
+</section>
+
+<section class="sec paper" id="tinh-nang">
+  <div class="wrap">
+    <h2><span class="mark" aria-hidden="true">魂</span>Một đời hồn sư</h2>
+    <p class="lead">Từ lễ thức tỉnh ở Thánh Hồn Thôn tới đỉnh cao Hải Thần Đảo, mỗi chặng đường đều có việc để làm và bạn bè để đi cùng.</p>
+    <ul class="cards">
+      <li><span class="ico" style="--x:2;--y:3" aria-hidden="true"></span><h3>Thức tỉnh võ hồn</h3><p>Chấp sự làm lễ, bạn nhận Lam Ngân Thảo và tự chọn một võ hồn SSR đi cùng. Về sau sưu tầm thêm bằng mảnh võ hồn, xếp đội hình bốn võ hồn và đổi tay ngay giữa trận.</p></li>
+      <li><span class="ico" style="--x:1;--y:3" aria-hidden="true"></span><h3>Săn hồn hoàn</h3><p>Hạ hồn thú, nhặt hồn hoàn rơi xuống đất, vượt bình cảnh rồi hấp thụ. Hồn hoàn càng nhiều năm thì hồn kỹ càng mạnh, nhưng hấp thụ quá sức thì phải trả giá.</p></li>
+      <li><span class="ico" style="--x:0;--y:1" aria-hidden="true"></span><h3>Hồn cốt, hồn hạch</h3><p>Săn thú vạn năm để tìm hồn cốt cho kỹ năng chủ động và bị động ở đầu và hai tay, hồn hạch cho hiệu ứng bộ. Trang bị và hồn cốt cho bạn lối chơi riêng.</p></li>
+      <li><span class="ico" style="--x:2;--y:4" aria-hidden="true"></span><h3>Tự săn</h3><p>Giao việc cho Ủy Thác Lệnh: hồn sư tự đi săn, né chiêu boss, lùi khi ít máu. Thoát game vẫn có phần thưởng chờ khi bạn quay lại.</p></li>
+      <li><span class="ico" style="--x:4;--y:3" aria-hidden="true"></span><h3>Tổ đội</h3><p>Lập đội đánh tinh anh, thú vương và boss thế giới. Hai hồn sư cùng đội có thể tung dung hợp kỹ; còn có tông môn, cộng minh, bạn bè và kênh chat.</p></li>
+      <li><span class="ico" style="--x:4;--y:4" aria-hidden="true"></span><h3>Đại Đấu Hồn Trường</h3><p>Ghép đội hai người, đấu 2 chọi 2, tích điểm Elo và nhận thưởng riêng. Có chế độ xem trực tiếp để học chiêu từ cao thủ.</p></li>
+    </ul>
+  </div>
+</section>
+
+<section class="sec ink" id="tran-danh">
+  <div class="wrap split">
+    <div class="copy">
+      <h2><span class="mark" aria-hidden="true">戰</span>Đánh thật, thấy thật</h2>
+      <p class="lead">Đây là ảnh chụp từ chính trò chơi: hồn kỹ theo hệ, số sát thương bay lên, hồn hoàn rơi xuống đất để nhặt. Mỗi võ hồn có hiệu ứng riêng, mỗi vùng đất có nhạc và thời tiết riêng.</p>
+      <ul class="ticks">
+        <li>Bấm chuột để tự tìm đường, hoặc dùng phím WASD</li>
+        <li>Bốn hồn kỹ, kỹ năng hồn cốt và Võ Hồn Chân Thân</li>
+        <li>Chơi trên điện thoại với cần điều khiển ảo</li>
+      </ul>
+    </div>
+    <figure class="shot">
+      <picture><source media="(prefers-reduced-motion: reduce)" srcset="/ui/landing/chup_san.webp"><img src="/ui/landing/tran.webp" width="640" height="360" loading="lazy" decoding="async" alt="Cảnh chiến đấu trong game: hồn sư tung sấm sét đánh lũ hồn thú ở Tinh Đấu Ngoại vi"></picture>
+      <figcaption>Ảnh động chụp trong game, Tinh Đấu Ngoại vi.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="sec ink2" id="vo-hon">
+  <div class="wrap">
+    <h2><span class="mark" aria-hidden="true">武</span>Thư viện 25 võ hồn</h2>
+    <p class="lead">Bốn hệ: Cường công, Mẫn công, Khống chế, Phụ trợ. Có võ hồn thức tỉnh được ngay, có võ hồn phải gom mảnh mới mở.</p>
+    <ul class="vh-grid">
+<!--vohon:start-->
+      <li data-he="cuong_cong" style="--x:0;--y:0;--c:#cfe3ff"><span class="pt" aria-hidden="true"></span><b>Cửu Tinh Thất Sát Kiếm</b><span class="meta">Cường công · SSR</span><small class="who">Kiếm Đấu La Trần Tâm</small></li>
+      <li data-he="cuong_cong" style="--x:1;--y:0;--c:#5ab8ff"><span class="pt" aria-hidden="true"></span><b>Lam Điện Bá Vương Long</b><span class="meta">Cường công · SSR</span><small class="who">Ngọc Thiên Hằng</small></li>
+      <li data-he="cuong_cong" style="--x:2;--y:0;--c:#ffb347"><span class="pt" aria-hidden="true"></span><b>Kỳ Nhung Thông Thiên Cúc</b><span class="meta">Cường công · SSR</span><small class="who">Cúc Đấu La Nguyệt Quan</small></li>
+      <li data-he="cuong_cong" style="--x:3;--y:0;--c:#ff6a2a"><span class="pt" aria-hidden="true"></span><b>Tà Hỏa Phượng Hoàng</b><span class="meta">Cường công · SSR</span><small class="who">Mã Hồng Tuấn</small></li>
+      <li data-he="man_cong" style="--x:4;--y:0;--c:#b06bff"><span class="pt" aria-hidden="true"></span><b>U Minh Linh Miêu</b><span class="meta">Mẫn công · SSR</span><small class="who">Chu Trúc Thanh</small></li>
+      <li data-he="man_cong" style="--x:0;--y:1;--c:#e6e6f0"><span class="pt" aria-hidden="true"></span><b>Nguyệt Nhận</b><span class="meta">Mẫn công · SSR</span><small class="who">Tà Nguyệt</small></li>
+      <li data-he="man_cong" style="--x:1;--y:1;--c:#ff4a2a"><span class="pt" aria-hidden="true"></span><b>Hỏa Long</b><span class="meta">Mẫn công · SSR</span><small class="who">Hỏa Vô Song</small></li>
+      <li data-he="man_cong" style="--x:2;--y:1;--c:#ffc2e2"><span class="pt" aria-hidden="true"></span><b>Nhu Cốt Thố</b><span class="meta">Mẫn công · SSR</span><small class="who">Tiểu Vũ</small></li>
+      <li data-he="man_cong" style="--x:3;--y:1;--c:#ffd54a"><span class="pt" aria-hidden="true"></span><b>Kim Vũ Miêu Ưng</b><span class="meta">Mẫn công · SSR</span></li>
+      <li data-he="khong_che" style="--x:4;--y:1;--c:#9a4aff"><span class="pt" aria-hidden="true"></span><b>Tử Vong Chu Hoàng</b><span class="meta">Khống chế · SSR</span><small class="who">Bỉ Bỉ Đông</small></li>
+      <li data-he="khong_che" style="--x:0;--y:2;--c:#3ad98a"><span class="pt" aria-hidden="true"></span><b>Bích Lân Xà Hoàng</b><span class="meta">Khống chế · SSR</span><small class="who">Độc Đấu La Độc Cô Bác</small></li>
+      <li data-he="khong_che" style="--x:1;--y:2;--c:#e0b04a"><span class="pt" aria-hidden="true"></span><b>Càn Khôn Hỗn Nguyên Tỏa</b><span class="meta">Khống chế · SSR</span></li>
+      <li data-he="khong_che" style="--x:2;--y:2;--c:#ff3a4a"><span class="pt" aria-hidden="true"></span><b>Hỏa Ảnh</b><span class="meta">Khống chế · SSR</span></li>
+      <li data-he="khong_che" style="--x:3;--y:2;--c:#ff9ad5"><span class="pt" aria-hidden="true"></span><b>Yêu Hồ</b><span class="meta">Khống chế · SSR</span><small class="who">Hồ Liệt Na</small></li>
+      <li data-he="phu_tro" style="--x:4;--y:2;--c:#e8875a"><span class="pt" aria-hidden="true"></span><b>Xúc Xích</b><span class="meta">Phụ trợ · SSR</span><small class="who">Áo Tư Tạp</small></li>
+      <li data-he="phu_tro" style="--x:0;--y:3;--c:#8a8aff"><span class="pt" aria-hidden="true"></span><b>Quỷ Mị</b><span class="meta">Phụ trợ · SSR</span><small class="who">Quỷ Đấu La</small></li>
+      <li data-he="phu_tro" style="--x:1;--y:3;--c:#f0e0a0"><span class="pt" aria-hidden="true"></span><b>Thiên Càn Bạch Ngọc Đỉnh</b><span class="meta">Phụ trợ · SSR</span></li>
+      <li data-he="khong_che" style="--x:2;--y:3;--c:#4ab0ff"><span class="pt" aria-hidden="true"></span><b>Lam Ngân Thảo</b><span class="meta">Khống chế · SR</span><small class="who">Đường Tam</small></li>
+      <li data-he="cuong_cong" style="--x:3;--y:3;--c:#9aa0b4"><span class="pt" aria-hidden="true"></span><b>Hạo Thiên Chùy</b><span class="meta">Cường công · UR</span><small class="who">Đường Hạo</small></li>
+      <li data-he="phu_tro" style="--x:4;--y:3;--c:#7ef0ff"><span class="pt" aria-hidden="true"></span><b>Cửu Bảo Lưu Ly Tháp</b><span class="meta">Phụ trợ · UR</span><small class="who">Ninh Vinh Vinh</small></li>
+      <li data-he="cuong_cong" style="--x:0;--y:4;--c:#7fe0d0"><span class="pt" aria-hidden="true"></span><b>Phá Hồn Thương</b><span class="meta">Cường công · SSR</span></li>
+      <li data-he="phu_tro" style="--x:1;--y:4;--c:#7fd8ff"><span class="pt" aria-hidden="true"></span><b>A Ngân</b><span class="meta">Phụ trợ · SSR</span><small class="who">A Ngân (Lam Ngân Hoàng, mẫu thân Đường Tam)</small></li>
+      <li data-he="man_cong" style="--x:2;--y:4;--c:#ff7a3a"><span class="pt" aria-hidden="true"></span><b>Liệt Hỏa Thương Lang</b><span class="meta">Mẫn công · SR</span></li>
+      <li data-he="khong_che" style="--x:3;--y:4;--c:#a8e8ff"><span class="pt" aria-hidden="true"></span><b>Băng Phượng Hoàng</b><span class="meta">Khống chế · SSR</span><small class="who">Thủy Băng Nhi</small></li>
+      <li data-he="cuong_cong" style="--x:4;--y:4;--c:#f2f2f6"><span class="pt" aria-hidden="true"></span><b>Bạch Hổ</b><span class="meta">Cường công · SSR</span><small class="who">Đái Mộc Bạch</small></li>
+<!--vohon:end-->
+    </ul>
+  </div>
+</section>
+
+<section class="sec paper" id="ban-do">
+  <div class="wrap">
+    <h2><span class="mark" aria-hidden="true">圖</span>Từ làng quê tới Hải Thần Đảo</h2>
+    <p class="lead">Mười bản đồ rộng lớn, đi bằng cổng và truyền tống trận. Mỗi bản đồ chia nhiều kênh nên không lo chật chỗ.</p>
+    <ul class="maps">
+      <li><img src="/ui/landing/map_thanh_hon_thon.webp" width="640" height="360" loading="lazy" decoding="async" alt="Thánh Hồn Thôn: làng quê của Đường Tam, nhà tranh và giếng nước"><b>Thánh Hồn Thôn</b><span>Làng khởi đầu, nơi thức tỉnh võ hồn và nhận nhiệm vụ tân thủ.</span></li>
+      <li><img src="/ui/landing/map_nac_dinh_thanh.webp" width="640" height="360" loading="lazy" decoding="async" alt="Nặc Đinh Thành với đài phun nước và tượng sư tử vàng"><b>Nặc Đinh Thành</b><span>Thành đầu tiên: NPC, cửa hàng và nơi nhận nhiệm vụ.</span></li>
+      <li><img src="/ui/landing/map_tinh_dau_ngoai_vi.webp" width="640" height="360" loading="lazy" decoding="async" alt="Tinh Đấu Ngoại vi: trại cổng giữa rừng sâu, hồn sư đang đánh bầy sói"><b>Tinh Đấu Ngoại vi</b><span>Rừng săn đầu tiên: hồn thú trăm năm, nghìn năm và thú vương đầu tiên.</span></li>
+      <li><img src="/ui/landing/map_tinh_dau_noi_dia.webp" width="640" height="360" loading="lazy" decoding="async" alt="Tinh Đấu Nội địa: rừng xanh lam về đêm"><b>Tinh Đấu Nội địa</b><span>Rừng sâu xanh lam, hồn thú mạnh hơn và thú vương hung hãn hơn.</span></li>
+      <li><img src="/ui/landing/map_thien_dau_thanh.webp" width="640" height="360" loading="lazy" decoding="async" alt="Thiên Đấu Thành lát đá, đèn lồng đỏ và tượng sư tử vàng"><b>Thiên Đấu Thành</b><span>Kinh đô lát đá, đèn lồng đỏ, cửa ngõ tới các vùng xa.</span></li>
+      <li><img src="/ui/landing/map_lac_nhat_sam_lam.webp" width="640" height="360" loading="lazy" decoding="async" alt="Lạc Nhật Sâm Lâm với lá phong đỏ rực"><b>Lạc Nhật Sâm Lâm</b><span>Rừng lá phong đỏ rực, tinh anh và thú vương đang chờ.</span></li>
+      <li><img src="/ui/landing/map_cuc_bac_chi_dia.webp" width="640" height="360" loading="lazy" decoding="async" alt="Cực Bắc Chi Địa phủ tuyết trắng và băng"><b>Cực Bắc Chi Địa</b><span>Băng tuyết quanh năm, hồn thú hệ băng đủ loại.</span></li>
+      <li><img src="/ui/landing/map_hai_than_dao.webp" width="640" height="360" loading="lazy" decoding="async" alt="Hải Thần Đảo: bãi cát, cọ và nhà gỗ ven biển"><b>Hải Thần Đảo</b><span>Hòn đảo của thử thách cuối: nhiệm vụ Hải Thần và hồn cốt quý.</span></li>
+    </ul>
+    <p class="note">Còn Lõi Tinh Đấu, nơi boss thế giới xuất hiện theo lịch, và Đại Đấu Hồn Trường cho các trận đấu đội.</p>
+  </div>
+</section>
+
+<section class="sec ink" id="tin-moi">
+  <div class="wrap">
+    <h2><span class="mark" aria-hidden="true">報</span>Tin cập nhật</h2>
+    <ol class="news">
+      <li><time datetime="2026-10-22">22/10/2026</time><div><h3>Tự săn và Ủy Thác Lệnh</h3><p>Hồn sư tự đi săn khắp bản đồ, đánh cả tinh anh, thú vương và boss thế giới; có ủy thác khi offline, quay lại là nhận thưởng.</p></div></li>
+      <li><time datetime="2026-10-21">21/10/2026</time><div><h3>Bản đồ lớn và truyền tống trận</h3><p>Bản đồ mở rộng gấp nhiều lần, bấm chuột để tự tìm đường, truyền tống trận cùng bản đồ thế giới kiểu thủy mặc và Hồi Thành Phù.</p></div></li>
+      <li><time datetime="2026-10">Tháng 10/2026</time><div><h3>Đại Đấu Hồn Trường 2 chọi 2</h3><p>Hàng chờ tổ đội hai người, Elo và thưởng riêng, chống dàn xếp tỷ số, có xem trực tiếp. Dung hợp kỹ giữa hai hồn sư cùng đội cũng đã ra mắt.</p></div></li>
+      <li><time datetime="2026-10">Tháng 10/2026</time><div><h3>Âm thanh và hiệu ứng</h3><p>Nhạc nền riêng cho từng bản đồ, nhạc giao chiến boss, hơn một trăm tiếng động và hiệu ứng hồn kỹ riêng cho tám hệ.</p></div></li>
+      <li><time datetime="2026-10">Tháng 10/2026</time><div><h3>Đồ họa isometric</h3><p>Toàn bộ hồn sư, hồn thú, boss và 25 phụ thể võ hồn có hình mới; ánh sáng ngày đêm và thời tiết thay đổi theo từng vùng.</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<section class="sec paper" id="huong-dan">
+  <div class="wrap">
+    <h2><span class="mark" aria-hidden="true">導</span>Hướng dẫn nhanh</h2>
+    <div class="split guide">
+      <ol class="steps">
+        <li><b>Đăng nhập.</b> Nhập tên hồn sư và mật khẩu (tên chưa có thì tự tạo tài khoản), hoặc đăng nhập bằng Google.</li>
+        <li><b>Tạo nhân vật, thức tỉnh võ hồn.</b> Chọn ngoại hình rồi tìm chấp sự làm lễ để chọn võ hồn SSR đầu tiên.</li>
+        <li><b>Săn hồn thú.</b> Đánh thường, tung hồn kỹ, nhặt hồn hoàn rơi xuống đất rồi hấp thụ khi đủ cấp.</li>
+        <li><b>Lên đường.</b> Đi qua cổng tới Nặc Đinh Thành, rủ bạn lập tổ đội và tiến sâu vào rừng Tinh Đấu.</li>
+      </ol>
+      <table class="keys">
+        <caption>Phím thường dùng</caption>
+        <tbody>
+          <tr><th scope="row">WASD hoặc bấm chuột</th><td>Đi, tự tìm đường</td></tr>
+          <tr><th scope="row">J hoặc Space</th><td>Đánh thường</td></tr>
+          <tr><th scope="row">U I O P</th><td>Bốn hồn kỹ</td></tr>
+          <tr><th scope="row">1 đến 4</th><td>Đổi võ hồn trong đội hình</td></tr>
+          <tr><th scope="row">E</th><td>Nhặt đồ rơi</td></tr>
+          <tr><th scope="row">F</th><td>Qua cổng, nói chuyện với NPC</td></tr>
+          <tr><th scope="row">V B M</th><td>Đội hình, túi đồ, bản đồ thế giới</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="cta center"><a class="btn seal" href="/choi">Vào chơi ngay</a></p>
+  </div>
+</section>
+
+<section class="sec ink2" id="ghi-cong">
+  <div class="wrap narrow">
+    <h2><span class="mark" aria-hidden="true">謝</span>Ghi công</h2>
+    <p>Rừng Săn Hồn là dự án làm riêng cho bạn bè, lấy cảm hứng từ truyện Đấu La Đại Lục của Đường Gia Tam Thiếu. Đây không phải sản phẩm thương mại và không liên quan tới tác giả hay nhà xuất bản.</p>
+    <p>Chữ: Galmuri (quiple), LXGW WenKai (LXGW), VT323 (Peter Hull), Handjet (Rosetta), đều giấy phép OFL. Hồn sư và NPC phụ dùng bộ ảnh Liberated Pixel Cup; nhạc và tiếng động lấy từ nguồn CC0 và tự làm; các ảnh khác do nhóm tạo. Danh sách đầy đủ tác giả, giấy phép và nguồn nằm ở mục Ghi công trên màn hình đăng nhập của game.</p>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a class="brand" href="/"><img src="/ui/landing/logo.webp" width="32" height="32" alt=""><span>Rừng Săn Hồn</span></a>
+    <p>Chơi miễn phí, làm bởi bạn bè cho bạn bè.</p>
+    <a class="btn seal sm" href="/choi">Vào chơi</a>
+  </div>
+</footer>
+
+<script>
+// Trạng thái máy chủ: một lần gọi /health, lỗi thì báo không kết nối được (không chặn trang).
+(function () {
+  var s = document.getElementById("status"), t = document.getElementById("statusTxt");
+  function set(cls, txt) { s.className = "status " + cls; t.textContent = txt; }
+  fetch("/health", { cache: "no-store" }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok && j.ok }; }); })
+    .then(function (r) { r.ok ? set("up", "Máy chủ: đang mở, vào chơi được") : set("down", "Máy chủ: đang bảo trì, thử lại sau ít phút"); })
+    .catch(function () { set("down", "Máy chủ: chưa kết nối được"); });
+})();
+</script>
 </body>
 </html>

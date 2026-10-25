@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 /**
  * Phiên bản asset tĩnh (#580): hash nội dung shared/assets (tên + nội dung từng file). Client gắn `?v=<hash>` vào URL asset không hash
@@ -26,5 +26,6 @@ export default defineConfig(({ command }) => ({
   define: { __ASSET_V__: JSON.stringify(command === "build" ? assetVersion("../shared/assets") : "") },
   server: { port: 5173, fs: { allow: [".."] } },
   // Phaser (phần lớn dung lượng JS) tách chunk riêng: đổi code game thì trình duyệt giữ chunk Phaser từ cache (tên có hash nội dung).
-  build: { outDir: "dist", chunkSizeWarningLimit: 2000, rollupOptions: { output: { manualChunks: { phaser: ["phaser"] } } } },
+  // Nhiều trang (#656): "/" = landing (không nạp Phaser / net), "/choi" = game.
+  build: { outDir: "dist", chunkSizeWarningLimit: 2000, rollupOptions: { input: { landing: resolve(__dirname, "index.html"), choi: resolve(__dirname, "choi/index.html") }, output: { manualChunks: { phaser: ["phaser"] } } } },
 }));
