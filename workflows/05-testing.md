@@ -36,7 +36,9 @@ flowchart LR
     PR --> B2[bot nhóm 2]
     PR --> B3[bot nhóm 3]
     PR --> B4[bot nhóm 4]
-    B1 & B2 & B3 & B4 --> BR[bot-ram<br/>gộp 4 nhóm thành 1 status]
+    PR --> B5[bot nhóm 5]
+    PR --> B6[bot nhóm 6]
+    B1 & B2 & B3 & B4 & B5 & B6 --> BR[bot-ram<br/>gộp 6 nhóm thành 1 status]
 ```
 
 - **`check-build`**: cài đúng theo lockfile (`npm ci`), chạy lệnh check, build. Chạy trên cả hệ điều hành người dùng dùng.
@@ -99,7 +101,7 @@ npm run build           # build client (tsc + vite)
 
 npm run bot:local -- --only <nhóm>            # một nhóm, RAM, cổng trống, tự dọn
 npm run bot:local -- --only <nhóm> --pg       # thêm PostgreSQL chung (bắt buộc khi đổi SQL / db.ts)
-npm run bot:local -- --part 1                 # một trong 4 nhóm CI (--part 1..4)
+npm run bot:local -- --part 1                 # một trong 6 nhóm CI (--part 1..6)
 npm run bot:local -- --channels               # lượt nhiều kênh (CHANNEL_MAX=2)
 npm run bot:local -- --help                   # liệt kê nhóm
 npm run bot:local -- --pg-status              # xem / --pg-stop tắt PostgreSQL chung
@@ -113,7 +115,7 @@ npm run test:accounts --prefix server
 - `bot:local` build server một lần (esbuild, cache theo hash nguồn), chạy `node` với trần heap 768 MB, `GAME_TEST=1`, cổng trống, state sạch; tối đa **2 lượt cùng lúc trên cả máy** (khóa ở thư mục tạm); PostgreSQL chung cổng 5433, mỗi lượt một database riêng (`soulbot_<phiên>_<pid>`, có dấu `COMMENT ON DATABASE` để công cụ chỉ dọn đúng thứ của nó), **bật server hai lần liên tiếp** (migration phải chạy lại an toàn).
 - `GAME_TEST=1` bật hook `test` cho bot; lịch boss đứng yên ở 12:00 giờ Việt Nam trừ khi `--env BOSS_CLOCK=HH:MM` (hoặc `real`).
 - **Không** dùng `npm run dev:server` để chạy bot (`tsx watch` sinh tiến trình cha tự bật lại server); không tự bật embedded-postgres riêng.
-- CI `.github/workflows/check.yml`: `check-build` (ubuntu + Windows) và `bot-ram` (4 nhóm `bot-ram (nhóm 1..4)` + job gộp `bot-ram`; nhóm 1 chạy thêm `test:predict`, `test:ratelimit`, `test:accounts` và lượt nhiều kênh). Bot đầy đủ ~25 phút → mỗi nhóm ~7 phút; bước bot quá 12 phút coi là treo. Chạy lại một nhóm ở Linux / macOS: `BOT_PART=2 bash tools/ci/bot-run.sh nhom-2`.
+- CI `.github/workflows/check.yml`: `check-build` (ubuntu + Windows) và `bot-ram` (6 nhóm `bot-ram (nhóm 1..6)` + job gộp `bot-ram`; nhóm 1 chạy thêm `test:predict`, `test:ratelimit`, `test:accounts` và lượt nhiều kênh). Bot đầy đủ ~25 phút → mỗi nhóm ~7 phút; bước bot quá 12 phút coi là treo. Chạy lại một nhóm ở Linux / macOS: `BOT_PART=2 bash tools/ci/bot-run.sh nhom-2`.
 - CI **không bắt buộc** trong ruleset (chủ repo chốt) nhưng reviewer luôn đọc.
 - Bot không assert mọi thứ: đọc output (dòng ✗ là lỗi, ⚠ là bị bỏ qua) và log server. Luồng mới thì thêm vào `client/scripts/bot-test.mjs`, gắn đúng một nhóm trong `INLINE` / `STANDALONE`.
 - **Ví dụ sửa chập chờn thật:** bài `tideTest` chờ "hết gầm" bằng sleep cố định → thay bằng chờ điều kiện có hạn chót + chẩn đoán trong dòng ✗ (#364); phần đầu chung `ra khỏi làng để thử tiên cơ` trượt chập chờn → đọc chẩn đoán, tìm chỗ chờ theo giờ (#368). Chi tiết ca cũ nằm trong skill `bot-flakiness` (PR #28, #36, #71, #140).
