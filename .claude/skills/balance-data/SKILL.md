@@ -5,7 +5,7 @@ description: Quy tắc cho số liệu cân bằng game (niên hạn, chỉ số
 
 # Số liệu cân bằng
 
-**Mọi số cân bằng nằm ở `shared/data.ts`.** Server, client và bot cùng import file này; không chép số sang chỗ khác (kể cả SQL, HUD, bot hay `GAME_DESIGN.md` — tài liệu chỉ trỏ tới tên hằng).
+**Mọi số cân bằng nằm ở `shared/data.ts`.** Server, client và bot cùng import file này; không chép số sang chỗ khác (kể cả SQL, HUD, bot hay tài liệu `docs/design/` — tài liệu chỉ trỏ tới tên hằng).
 
 ## Tìm ở đâu trong `shared/data.ts`
 | Hệ thống (mục thiết kế) | Hằng / bảng / hàm |
@@ -33,7 +33,7 @@ description: Quy tắc cho số liệu cân bằng game (niên hạn, chỉ số
 | Chung | `TILE`, `TICK_RATE` |
 
 ## Quy tắc
-1. **Đối chiếu `GAME_DESIGN.md`** mục tương ứng trước khi đặt số. Số khác thiết kế có chủ đích thì ghi lý do (chú thích tiếng Việt cạnh hằng số) và sửa luôn mô tả cơ chế trong `GAME_DESIGN.md` nếu cơ chế đổi.
+1. **Đối chiếu file thiết kế tương ứng** ở `docs/design/` (tra `GAME_DESIGN.md` mục lục; quyết định chủ repo ở `docs/quyet-dinh.md`) trước khi đặt số. Số khác thiết kế có chủ đích thì ghi lý do (chú thích tiếng Việt cạnh hằng số) và sửa luôn mô tả cơ chế trong file thiết kế nếu cơ chế đổi.
 2. **Mã cố định:** `VOHON[].id` (lưu ở `vohons`), `BEASTS[].id`, `BOSSES[].id`, `MAPS`, `NPCS`, `ITEMS` (`items.code`), `HERBS`, `CORE_SETS`, mã nhiệm vụ… dùng trong DB và file Tiled; không bao giờ đổi hoặc xóa mã đã dùng. Thứ tự mảng dùng để đồng bộ (`p.vh`, `b.species`, bit trạng thái), nên **thêm phần tử mới vào cuối**.
 3. Thêm võ hồn: một mục `VOHON` (cuối mảng), `VOHON_SKILLS` (vòng 1–4), `TIEN_CO_RIENG`, `VOHON_SKILLS_HIGH` (vòng 5, 6, 8, 9, 10), `CHAN_THAN` (kèm `skill`); cập nhật bảng võ hồn ở mục 5.1 và bảng dạng phụ thể ở `tools/assets/README.md`. Thêm loài hồn thú: `BEASTS` (cuối), `BEAST_SKILLS` nếu có từ `BEAST_SKILL_YEARS` năm, `BONE_SKILLS`.
 4. Dùng đúng tên gốc Đấu La (võ hồn, chủ nhân, hồn thú, lưu phái).

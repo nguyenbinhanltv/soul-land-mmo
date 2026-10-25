@@ -46,7 +46,7 @@ Câu hỏi bắt buộc: *có API ổn định không? tốn phí / hạn mức 
 
 | Skill | Dùng khi | Ý chính |
 |---|---|---|
-| `roadmap-step` | Được giao một bước Lộ trình hoặc một việc "để sau" | Đọc thiết kế → code → check → bot → cập nhật thiết kế → đánh dấu xong; mỗi gạch đầu dòng mục 7 là **một** lần giao việc |
+| `roadmap-step` | Được giao một bước Lộ trình hoặc một việc "để sau" | Đọc thiết kế → code → check → bot → cập nhật thiết kế → đánh dấu xong; mỗi gạch đầu dòng ở `ROADMAP.md` là **một** lần giao việc |
 | `server-feature` | Làm bất cứ tính năng gameplay | Checklist server-authoritative: message từ client, trạng thái đồng bộ, dữ liệu riêng của chính chủ, lưu DB |
 | `client-ui` | Sửa giao diện / điều khiển phía client | Client chỉ hiển thị + gửi ý định; HUD, phím / chuột, chạm, isometric |
 | `db-migration` | Cần bảng / cột / chuyển dữ liệu | File `server/sql/00N_*.sql` chạy lại an toàn, RLS, cập nhật `PgStore` + `MemoryStore` |
@@ -78,7 +78,7 @@ Năm skill soát chất lượng (`balance-review` → `playtest-triage`) phỏn
 
 | Dịch vụ | Kết cục | Lý do |
 |---|---|---|
-| **PixelLab** (sinh pixel art, nhân vật 8 hướng) | Bỏ hẳn từ 2026-10-23 (MCP gỡ, key xóa) | Gói thử hết lượt nhanh, lỗi 429 vẫn trừ lượt, sau đó tắt lượt miễn phí cho mọi key thử (HTTP 402); ảnh vẫn phải tô lại mắt / áo; hoạt ảnh nhiều nhân vật hỏng; chi phí không dự đoán được |
+| **PixelLab** (sinh pixel art, nhân vật 8 hướng) | Bỏ từ 2026-10-23 (MCP gỡ, key xóa); **dùng lại có giới hạn từ 2026-10-24** (Tier 1, Q22 ở `docs/quyet-dinh.md`): chỉ hoạt ảnh / sheet hiệu ứng kỹ năng, pháp tướng, xoay hướng, không tạo hình nhân vật | Gói thử hết lượt nhanh, lỗi 429 vẫn trừ lượt, sau đó tắt lượt miễn phí cho mọi key thử (HTTP 402); ảnh vẫn phải tô lại mắt / áo; hoạt ảnh nhiều nhân vật hỏng; chi phí không dự đoán được |
 | **Pollinations** | Không dùng | Cần key cho endpoint chính; host cũ có watermark, model nhẹ, ra JPEG |
 | **Hugging Face Inference** | Gỡ MCP | Token chỉ-đọc không có quyền "Inference Providers"; tài khoản miễn phí không có credit suy luận hằng tháng; token nằm cứng trong file cấu hình MCP |
 | **Perchance** | Loại | Không có API, chặn bot |

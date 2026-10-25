@@ -29,7 +29,7 @@ Landing là trang tĩnh, nhẹ, để người lạ hiểu game và bấm vào c
 - Dùng asset sẵn có ở `shared/assets`: `ui/c6/logo.png`, `ui/c6/login-bg.png`, `ui/c6/loading-bg.png`, `ui/c6/event-banner.png`, chân dung ở `sprites/iso/portrait/`, sheet hiệu ứng kỹ năng `sprites/iso/fx/sk_*` (là sheet PNG, muốn ảnh động trên landing thì dựng bằng CSS `steps()` hoặc xuất WebP động / GIF từ sheet, **không** nhúng sheet gốc dung lượng lớn). Ảnh landing xuất WebP riêng (kích thước đúng chỗ dùng, `width` / `height` ghi sẵn, `loading="lazy"` trừ ảnh đầu trang; ảnh đầu trang `fetchpriority="high"`). Không chép ảnh vào nhiều chỗ: ảnh mới của landing để ở `shared/assets/ui/landing/`.
 - Asset ngoài: chỉ miễn phí, giấy phép theo `docs/art/nguon-giay-phep.md` (ghi nguồn + giấy phép ở `art/CREDITS.md`), **đổi tên theo quy ước game** (`fx_*`, `gi_*`, `vat_*`…), tên gốc chỉ ở CREDITS / licenses. Ảnh chụp màn hình game thật là nguồn tốt nhất (quy trình chụp ở skill `webapp-testing`); chụp trong Chrome `--mute-audio`.
 - Ngôn ngữ tiếng Việt, dùng đúng tên gốc Đấu La. Chữ viết cho người chơi, không thuật ngữ kỹ thuật; nút nói đúng việc ("Vào chơi").
-- **Tin cập nhật**: lấy từ `docs/lich-su.md` (mốc đã xong, luật hiện hành ở `GAME_DESIGN.md`). Viết lại thành vài dòng ngắn cho người chơi, ghi ngày; không chép số cân bằng (số chỉ ở `shared/data.ts`), không lộ mục chưa làm.
+- **Tin cập nhật**: lấy từ `docs/lich-su.md` (mốc đã xong, luật hiện hành ở `docs/design/`). Viết lại thành vài dòng ngắn cho người chơi, ghi ngày; không chép số cân bằng (số chỉ ở `shared/data.ts`), không lộ mục chưa làm.
 
 ## Hiệu năng (ngân sách)
 - Lighthouse di động (Performance, Accessibility, Best Practices, SEO) **≥ 90**; LCP là ảnh đầu trang hoặc chữ, không chờ JS.

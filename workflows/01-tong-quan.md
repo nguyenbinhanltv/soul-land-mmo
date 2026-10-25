@@ -60,7 +60,7 @@ Chi tiết nhãn và Project: [03-collaborator.md](03-collaborator.md). Lệnh o
 
 ## Ở Soul Land
 
-- Repo: `<OWNER>/<REPO>`, game MMO 2D isometric (Colyseus + Phaser + PostgreSQL + TypeScript). Luật cho agent: `CLAUDE.md` (quy tắc code, lệnh), `AGENTS.md` (mọi công cụ, không riêng Claude), `CONTRIBUTING.md` (quy trình nhận việc / review / merge), `GAME_DESIGN.md` (mục 6 Kiến trúc bắt buộc giữ, mục 7 Lộ trình trỏ tới số issue).
+- Repo: `<OWNER>/<REPO>`, game MMO 2D isometric (Colyseus + Phaser + PostgreSQL + TypeScript). Luật cho agent: `CLAUDE.md` (quy tắc code, lệnh), `AGENTS.md` (mọi công cụ, không riêng Claude), `CONTRIBUTING.md` (quy trình nhận việc / review / merge), `GAME_DESIGN.md` (mục lục: số mục → file trong `docs/design|art|tech`; kiến trúc bắt buộc giữ ở `docs/tech/`), `ROADMAP.md` (việc đang làm, trỏ tới số issue) và `docs/quyet-dinh.md` (quyết định hiện hành của chủ repo).
 - Orchestrator là phiên `soul_land_game-1`; worker đặt tên `soul_land_game-<số>`; nhãn `agent:ao-orchestrator` cho mọi việc worker của orchestrator.
 - Collaborator có agent riêng (ba người tới 2026-10-23), nhãn `agent:<tên>`; mỗi người một dải cổng riêng (server `3700–3799`, PostgreSQL `5700–5799` cho người thứ ba).
 - Bảng Project 3: trường `Status` (Chờ / Sẵn sàng / Đang làm / Đang review / Xong), `Chủ`, `Giai đoạn`, `Bước lộ trình`, `Ngày xong`, `Priority`, `Size`.
