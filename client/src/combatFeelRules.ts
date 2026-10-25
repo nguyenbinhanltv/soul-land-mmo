@@ -46,24 +46,30 @@ export function damageTextStyle(kind: DamageTextKind, crit: boolean, el?: Elemen
 // ---- H8 (#491): bộ điều tốc mức hiệu ứng theo FPS (thuần, dùng ở combatFx.ts)
 const LEVELS: FeelLevel[] = ["low", "mid", "high"];
 /** Ngưỡng và độ trễ của bộ điều tốc (ms / khung): hạ khi trung bình chậm hơn `SLOW_MS` quá `DROP_AFTER`, nâng lại khi nhanh hơn `FAST_MS` đủ `RISE_AFTER`.
- * Màn khóa nhịp thấp (30 Hz: tiết kiệm pin) không phải máy chậm: chu kỳ vsync ước bằng phân vị `PERIOD_PCT` của `WINDOW` khung gần nhất (tối đa `PERIOD_MAX`),
- * chỉ coi là chậm khi `avg` vượt `SLOW_K` × chu kỳ đó (và vẫn phải vượt `SLOW_MS`). */
+ * Màn khóa nhịp thấp (30 Hz: tiết kiệm pin) không phải máy chậm: chu kỳ vsync ước bằng phân vị `PERIOD_PCT` của `WINDOW` khung, lấy giá trị NHỎ NHẤT từng thấy trong phiên (tối đa `PERIOD_MAX`):
+ * màn từng chạy ~16,7 ms là màn 60 Hz nên khung 33 ms đều trên đó là chậm; chỉ khi chưa bao giờ thấy khung nhanh mới coi là màn khóa 30 Hz.
+ * Chỉ coi là chậm khi `avg` vượt `SLOW_K` × chu kỳ đó (và vẫn phải vượt `SLOW_MS`). */
 export const GOV = { SLOW_MS: 1000 / 50, FAST_MS: 1000 / 57, DROP_AFTER: 2000, RISE_AFTER: 12000, SKIP_MS: 250, ALPHA: 0.06, WINDOW: 120, WARM: 30, PERIOD_PCT: 0.1, PERIOD_MAX: 34, SLOW_K: 1.25 };
 export class FxGovernor {
   /** Trần mức do FPS (không phải do người chơi chọn). */
   cap: FeelLevel = "high";
   avg = 1000 / 60;
   private bad = 0; private good = 0;
-  private win: number[] = []; private wi = 0; private period = 0;
-  /** Ước chu kỳ vsync (ms); 0 khi chưa đủ mẫu. */
+  private win: number[] = []; private wi = 0; private period = 0; private tmp: number[] = [];
+  /** Chu kỳ vsync nhanh nhất từng ước được (ms); 0 khi chưa đủ mẫu. */
   private slowLimit(): number {
     return this.period > 0 ? Math.max(GOV.SLOW_MS, Math.min(this.period, GOV.PERIOD_MAX) * GOV.SLOW_K) : GOV.SLOW_MS;
   }
   private sample(dt: number) {
     if (this.win.length < GOV.WINDOW) this.win.push(dt); else { this.win[this.wi] = dt; this.wi = (this.wi + 1) % GOV.WINDOW; }
-    if (this.win.length >= GOV.WARM && this.win.length % 10 === 0 || this.win.length === GOV.WINDOW && this.wi % 10 === 0) {
-      const a = [...this.win].sort((x, y) => x - y);
-      this.period = a[Math.floor((a.length - 1) * GOV.PERIOD_PCT)];
+    const full = this.win.length === GOV.WINDOW;
+    if (full ? this.wi % 10 === 0 : this.win.length >= GOV.WARM && this.win.length % 10 === 0) {
+      const a = this.tmp; a.length = this.win.length;
+      for (let i = 0; i < a.length; i++) a[i] = this.win[i];
+      a.sort((x, y) => x - y);
+      const p = a[Math.floor((a.length - 1) * GOV.PERIOD_PCT)];
+      // Giữ nhịp nhanh nhất từng thấy: máy 60 Hz giật đều 30 FPS vẫn bị coi là chậm.
+      this.period = this.period > 0 ? Math.min(this.period, p) : p;
     }
   }
   /** Mức hiện hành sau khi trừ trần FPS. */
@@ -83,5 +89,5 @@ export class FxGovernor {
     } else { this.bad = 0; this.good = 0; }
     return false;
   }
-  reset() { this.cap = "high"; this.avg = 1000 / 60; this.bad = this.good = 0; this.win = []; this.wi = 0; this.period = 0; }
+  reset() { this.cap = "high"; this.avg = 1000 / 60; this.bad = this.good = 0; this.win = []; this.wi = 0; /* period giữ nguyên: tần số màn là đặc tính máy */ }
 }
