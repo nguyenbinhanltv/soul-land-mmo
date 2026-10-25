@@ -114,7 +114,7 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 #mapview .mvbtn:disabled{opacity:.4;cursor:default}
 #mapview .mvz{min-width:30px;font-weight:bold}
 #mapview .mvx{min-width:44px;min-height:40px;font-size:18px;background:#5a2530;border-color:#a0303c}
-#mapviewHelp{position:absolute;left:0;right:0;bottom:4px;text-align:center;font:11px var(--f10);color:var(--muted);pointer-events:none;text-shadow:0 1px 2px #000}
+#mapviewHelp{position:absolute;left:50%;transform:translateX(-50%);bottom:8px;width:max-content;max-width:calc(100% - 24px);box-sizing:border-box;text-align:center;font:12px/1.4 var(--f12);color:var(--ink-text);background:rgba(26,16,32,.9);border:1px solid var(--ink2);padding:5px 10px;pointer-events:none}
 #mapviewTip{position:absolute;transform:translateX(-50%);white-space:nowrap;max-width:80vw;overflow:hidden;text-overflow:ellipsis;padding:2px 7px;font:13px/18px var(--f12);color:var(--ink-text);background:var(--ink-panel);border:1px solid var(--ink2);pointer-events:none;z-index:2}
 #mapviewTip[hidden]{display:none}
 #mapviewMenu{position:absolute;transform:translateX(-50%);display:flex;gap:6px;z-index:3}
@@ -126,6 +126,7 @@ body.touch #mapviewHelp{display:none}
 #flagText{flex:1 0 100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#ff9a3c;text-align:center}
 #flagBar .minibtn{flex:1 1 0;width:auto;margin-top:0;min-height:26px;padding:2px 6px}
 #flagBar #flagClear{flex:0 0 32px}
+#mapview .mvfit{background:#7a2a20;border-color:#d8584a}
 #mapview .mvgo{background:#6a4a1c;border-color:#ff9a3c}
 .radarbtns{display:flex;gap:3px;margin-top:4px}
 .radarbtns .minibtn{margin:0;flex:1 1 0;min-width:0;padding:3px 2px;white-space:nowrap;font-size:10px;font-family:var(--f10)}
