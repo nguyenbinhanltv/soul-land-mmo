@@ -86,10 +86,10 @@ export class ArenaRoom extends MapRoom {
       this.liveOpen = true;
     } catch (e) { console.error("Không ghi được trận vào sổ xem trận", e); }
     for (const t of BLOCKED) this.onMessage(t, (c) => this.log(c.sessionId, "Đang ở Đại Đấu Hồn Trường: không làm được việc này trong trận.", "#ffb35c"));
-    this.onLimitedMsg("social", "quest", (c, msg: { op: unknown }) => {
+    this.onMessage("quest", (c, msg: { op: unknown }) => {
       if (msg?.op === "get") this.askQuest(c.sessionId); else this.log(c.sessionId, "Đang ở Đại Đấu Hồn Trường: nhiệm vụ để sau trận.", "#ffb35c");
     });
-    this.onLimitedMsg("social", "arena", (c, msg: { op: unknown }) => {
+    this.onMessage("arena", (c, msg: { op: unknown }) => {
       if (msg?.op === "unwatch" && this.watchers.has(c.sessionId)) c.leave(ARENA_END_CODE); // người xem rời: về bản đồ cũ như hết trận
       else if (msg?.op === "top") this.arenaTop(c.sessionId);
     });
