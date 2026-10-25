@@ -3155,10 +3155,11 @@ export const QUEST_GIVERS = new Set([...QUESTS.map((c) => c.giver), DAILY.giver]
  * Dấu trên đầu NPC `id`: "offer" có bài mới, "ready" có bài chờ trả, "active" đang làm, null = không có gì (xong hết / không giao).
  * Người ra khảo hạch hằng ngày gộp cả bộ bài: chờ trả trước, rồi bài mới, rồi đang làm.
  */
-export function questMark(id: string): "offer" | "ready" | "active" | null {
+export function questMarker(id: string): { symbol: "!" | "?"; color: string } | null {
   const st = questOf(id)?.status;
-  if (st === "offer" || st === "ready" || st === "active") return st;
-  return id === DAILY.giver ? dailyMark() : null;
+  const status = st === "offer" || st === "ready" || st === "active" ? st : id === DAILY.giver ? dailyMark() : null;
+  if (!status) return null;
+  return status === "offer" ? { symbol: "!", color: "#ffd84a" } : { symbol: "?", color: status === "ready" ? "#ffd84a" : "#a8a8a8" };
 }
 function dailyMark(): "offer" | "ready" | "active" | null {
   const l = dailyMsg?.list ?? [];
