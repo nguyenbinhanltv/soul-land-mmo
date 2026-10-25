@@ -940,7 +940,7 @@ export class GameScene extends Phaser.Scene {
     return true;
   }
 
-  /** Dừng lệnh `c`. `by`: lệnh thắng nó (báo lý do); null = người chơi bấm ✕ trên chip. */
+  /** Dừng lệnh `c`. `by`: lệnh thắng nó (báo lý do); null = người chơi bấm × trên chip. */
   stopCmd(c: Cmd, by: Cmd | null) {
     if (c === "click") { if (this.goal && !this.goal.lock && !this.goal.auto) this.goal = null; }
     else if (c === "lock") this.lockTo("");

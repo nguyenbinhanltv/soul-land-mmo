@@ -34,4 +34,4 @@ export const stoppedText = (stopped: Cmd, by: Cmd) => `Đã huỷ ${CMD_NAME[sto
 
 /** Câu báo lệnh `n` không bật được vì `blocker` đang chạy (kèm cách gỡ). */
 export const deniedText = (n: Cmd, blocker: Cmd) =>
-  `Chưa ${n === "flag" ? "tự đi cờ" : "tự săn"} được: đang ${CMD_NAME[blocker]} (ưu tiên hơn). Bấm ✕ để huỷ rồi thử lại.`;
+  `Chưa ${n === "flag" ? "tự đi cờ" : "tự săn"} được: đang ${CMD_NAME[blocker]} (ưu tiên hơn). Bấm × để huỷ rồi thử lại.`;

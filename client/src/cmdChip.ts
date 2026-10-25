@@ -1,5 +1,5 @@
-// Chip trạng thái lệnh đang lái nhân vật (M5 #751, docs/design/giao-dien.md mục 5.16 "Điều khiển"): "Đang đánh: <tên> ✕", "Đang đi tới… ✕",
-// "Tự đi cờ ✕", "Tự săn ✕"; bấm ✕ huỷ lệnh đó. Khi một lệnh bị lệnh khác thắng thì chip hiện lý do vài giây. Chỉ hiển thị: luật ưu tiên ở
+// Chip trạng thái lệnh đang lái nhân vật (M5 #751, docs/design/giao-dien.md mục 5.16 "Điều khiển"): "Đang đánh: <tên> ×", "Đang đi tới… ×",
+// "Tự đi cờ ×", "Tự săn ×"; bấm × huỷ lệnh đó. Khi một lệnh bị lệnh khác thắng thì chip hiện lý do vài giây. Chỉ hiển thị: luật ưu tiên ở
 // shared/control.ts, GameScene giữ trạng thái và gọi `setCmdChip` mỗi khung hình.
 import type { Cmd } from "../../shared/control.ts";
 
@@ -10,7 +10,7 @@ let onCancel: (c: Cmd) => void = () => {};
 let shown = "", cmd: Cmd | null = null, why = "", whyUntil = 0;
 const el = () => document.getElementById("cmdChip") as HTMLElement | null;
 
-/** GameScene gắn một lần mỗi cảnh: bấm ✕ trên chip. */
+/** GameScene gắn một lần mỗi cảnh: bấm × trên chip. */
 export function bindCmdChip(cancel: (c: Cmd) => void) {
   onCancel = cancel;
   const b = document.getElementById("cmdChipX"); if (!b || b.dataset.bound) return; b.dataset.bound = "1";

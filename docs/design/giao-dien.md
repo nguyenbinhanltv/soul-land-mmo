@@ -118,7 +118,7 @@ Luật ở `shared/control.ts` (hàm thuần `startCmd`, `topCmd`; kiểm thử 
 
 Lệnh bị huỷ hoặc không bật được luôn có lý do: dòng log và câu trên chip. Server tự huỷ khoá (hồn thú chết / mất, quá xa, vùng an toàn, hồn sư gục, bật tự săn) thì tin `lock {id: "", why}` mang mã lý do (`LockWhy`).
 
-**Chip trạng thái** (`client/src/cmdChip.ts`, `#cmdChip`, giữa dưới màn hình, trên nhắc nhặt đồ): hiện lệnh ưu tiên cao nhất đang chạy, nền son: "Đang đánh: <tên> ✕", "Đang đi tới… ✕", "Tự đi cờ ✕", "Tự săn ✕". Bấm ✕ huỷ đúng lệnh đó (khoá: bỏ khoá; bấm đi: dừng; cờ: dừng tự đi, cờ còn; tự săn: gửi tắt). Khi một lệnh bị huỷ chip đổi sang nền giấy ghi lý do vài giây (`WHY_MS`) rồi ẩn. Chỉ hiển thị, không thêm số cân bằng.
+**Chip trạng thái** (`client/src/cmdChip.ts`, `#cmdChip`, giữa dưới màn hình, trên nhắc nhặt đồ): hiện lệnh ưu tiên cao nhất đang chạy, nền son: "Đang đánh: <tên> ×", "Đang đi tới… ×", "Tự đi cờ ×", "Tự săn ×". Bấm × huỷ đúng lệnh đó (khoá: bỏ khoá; bấm đi: dừng; cờ: dừng tự đi, cờ còn; tự săn: gửi tắt). Khi một lệnh bị huỷ chip đổi sang nền giấy ghi lý do vài giây (`WHY_MS`) rồi ẩn. Chỉ hiển thị, không thêm số cân bằng.
 
 ### Kiểm thử
 - Bot nhóm `bag` (gồm `charbag`: lệnh `equip` / `unequip`, `equipcore` / `unequipcore`, `equipgear` / `unequipgear`, `team` / `switch` dựng từ `charBagContract`, server nhận đủ), `team`, `bone`, `core` vẫn phải qua.
