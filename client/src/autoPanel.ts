@@ -1,8 +1,8 @@
 // Bảng Tự động (Auto 2, mục 5.13): cài đặt tự săn, nút bật / tắt, giờ treo còn lại, và bảng tổng kết khi tự săn dừng. Client chỉ
 // gửi ý định (`auto {op: "set", cfg}` / `on` / `off`); server kẹp lại bằng parseAuto, lưu theo tài khoản và trả tin `auto`.
 import { AUTO_DEFAULTS, AUTO_LOOT_KINDS, AUTO_RADIUS, AUTO_RADIUS_MIN, ITEM_KINDS, MAX_CORE_STARS, MAX_YEARS, TILE,
-  autoTimeText, formatHonTe, parseAuto, type AutoSettings, type AutoSummary } from "../../shared/data.ts";
-import type { AutoMsg } from "./net.ts";
+  autoTimeText, formatHonTe, autoStatusText, autoRateText, parseAuto, type AutoSettings, type AutoSummary, type AutoRate } from "../../shared/data.ts";
+import type { AutoMsg, AutoStMsg } from "./net.ts";
 
 /** GameScene cung cấp: gửi tin `auto`, tên ô đội hình (theo tin `vohons`) và tên hồn kỹ ở 4 ô của võ hồn đang ra trận. */
 export interface AutoPanelCtx {
@@ -18,6 +18,11 @@ const pct = (v: number) => `${Math.round(v * 100)}%`;
 const dur = (secs: number) => (secs < 60 ? `${Math.max(0, Math.round(secs))} giây` : autoTimeText(secs));
 
 let ctx: AutoPanelCtx | null = null;
+/** Việc tự săn đang làm (tin `autost`, AH2 #609): bảng, chữ trên đầu nhân vật và đường đi trên radar đọc từ đây; null khi không tự săn. */
+let job: AutoStMsg | null = null;
+export const autoJob = () => job;
+/** Chữ ngắn của việc đang làm để hiện trên đầu nhân vật ("Đang đánh Sói Xám"); rỗng khi chưa có tin. */
+export const autoJobText = () => (job ? autoStatusText(job) : "");
 let last: AutoMsg | null = null;
 /** Tổng kết lượt gần nhất (mục "Lượt vừa rồi", kèm giờ treo còn lại lúc dừng): chỉ thay khi tin mới có `sum`, xóa khi bật lại. */
 let lastSum: { sum: AutoSummary; left: number } | null = null;
@@ -53,6 +58,7 @@ export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
     <div class="rhead"><b>Tự động</b><button class="x" type="button" data-a="close" aria-label="Đóng bảng Tự động">×</button></div>
     <small class="anote" data-a="status"></small>
     <button class="buse absorb atoggle" type="button" data-a="toggle"></button>
+    <div class="anote" data-a="job" aria-live="off" hidden><b></b><small data-a="rate"></small></div>
     <section class="asec"><b>Vùng săn</b>
       <label class="achk"><input type="radio" name="ascope" value="map" data-scope> Toàn bản đồ (tự đi tới hồn thú gần nhất, không qua cổng)</label>
       <label class="achk"><input type="radio" name="ascope" value="near" data-scope> Chỉ quanh chỗ đứng</label>
@@ -159,9 +165,28 @@ function fill(m: AutoMsg) {
   for (const k of AUTO_LOOT_KINDS) { const i = $<HTMLInputElement>(`[data-kind=${k}]`, el); if (i) i.checked = c.kinds.includes(k); }
   order(el, "skills", c.skills, (i) => `${SKILL_KEYS[i]} · ${ctx?.skillName(i) || "chưa có hồn kỹ"}`);
   order(el, "slots", c.slots, (i) => `Ô ${i + 1} · ${ctx?.slotName(i) || "trống"}`);
+  fillJob(el);
   const box = $("[data-a=last]", el)!;
   box.hidden = !lastSum;
   if (lastSum) renderSum($(".asum", box)!, lastSum.sum, lastSum.left);
+}
+
+/** Việc đang làm và thống kê theo giờ trong bảng (AH2, #609): ẩn khi không tự săn; chưa đủ AUTO_STATUS.minSecs thì chưa có số. */
+function fillJob(el: HTMLElement) {
+  const box = $("[data-a=job]", el); if (!box) return;
+  box.hidden = !job;
+  if (!job) return;
+  $("b", box)!.textContent = autoStatusText(job);
+  $("[data-a=rate]", box)!.textContent = job.rate ? ` ${rateLine(job.rate)}` : " · Đang đo thống kê theo giờ…";
+}
+/** "· Mỗi giờ: 1,2 N kinh nghiệm · … Hồn Tệ · 30 đồ" (cửa sổ trượt AUTO_STATUS.window giây). */
+const rateLine = (r: AutoRate) => `· Mỗi giờ: ${autoRateText(r[0])} kinh nghiệm · ${r[1] ? formatHonTe(r[1]) : "0"} Hồn Tệ · ${autoRateText(r[2])} đồ`;
+
+/** Tin `autost` mới (việc đang làm); chỉ nhận khi đang tự săn. */
+export function setAutoStatus(m: AutoStMsg) {
+  if (!last?.on) return;
+  job = m;
+  const el = panel(); if (el && !el.hidden) fillJob(el);
 }
 
 /** Danh sách thứ tự: ô bật theo thứ tự ưu tiên, ô tắt ở sau; mỗi dòng một ô chọn và hai nút lên / xuống. */
@@ -187,6 +212,7 @@ function renderSum(box: HTMLElement, s: AutoSummary, left: number) {
     ["Đồ nhặt", s.loot.length ? s.loot.map(([n, q]) => `${n} ×${q}`).join(", ") : "Không có"], ["Giờ treo còn lại", dur(left)]];
   // Tự bán từ xa trong lượt (#216): Hồn Tệ đã tính trong dòng "Hồn Tệ"; đồ đã bán không còn trong "Đồ nhặt".
   if (s.sold) rows.splice(4, 0, ["Đã tự bán", `${s.sold[0].toLocaleString("vi-VN")} món, +${formatHonTe(s.sold[1])}`]);
+  if (s.rate) rows.push(["Mỗi giờ", `${autoRateText(s.rate[0])} kinh nghiệm · ${s.rate[1] ? formatHonTe(s.rate[1]) : "0"} Hồn Tệ · ${autoRateText(s.rate[2])} đồ`]);
   box.innerHTML = "";
   for (const [k, v] of rows) {
     const a = document.createElement("span"), b = document.createElement("b"); a.textContent = k; b.textContent = v; box.append(a, b);
@@ -196,6 +222,7 @@ function renderSum(box: HTMLElement, s: AutoSummary, left: number) {
 /** Tin `auto` mới: cập nhật bảng; có tổng kết (tự săn vừa dừng, đã treo ít nhất 1 giây) thì mở bảng tổng kết kèm lý do dừng. */
 export function setAutoMsg(m: AutoMsg) {
   last = m;
+  if (!m.on) job = null;
   // Tin `auto` không kèm `sum` (đổi cài đặt, từ chối bật…) không xóa mục "Lượt vừa rồi".
   if (m.on) lastSum = null; else if (m.sum) lastSum = { sum: m.sum, left: m.left };
   fill(m);

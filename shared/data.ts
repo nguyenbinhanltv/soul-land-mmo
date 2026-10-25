@@ -5246,7 +5246,33 @@ export const autoLeft = (used: number, bonus = 0) => Math.max(0, AUTO_DAILY_SECS
  * mọi võ hồn trong đội nhận), Hồn Tệ, đồ đã nhặt hoặc vào thẳng túi (tên món, số lượng; tối đa AUTO_SUM_LOOT dòng, nhiều nhất trước).
  * `sold`: số món đã tự bán trong lượt (#216) và Hồn Tệ thu được (đã nằm trong `coins`); không có thì lượt đó không tự bán gì.
  */
-export interface AutoSummary { secs: number; kills: number; xp: number; coins: number; loot: [string, number][]; sold?: [number, number]; }
+export interface AutoSummary { secs: number; kills: number; xp: number; coins: number; loot: [string, number][]; sold?: [number, number]; rate?: AutoRate; }
+/** Thống kê theo giờ của tự săn (AH2, #609): [kinh nghiệm, Hồn Tệ, số món đồ] mỗi giờ. */
+export type AutoRate = [number, number, number];
+/**
+ * Dòng trạng thái tự săn (AH2, #609, mục 5.13): tin riêng `autost` cho chính người đang treo, không mỗi khung. `every` giây là
+ * khoảng gửi tối thiểu khi việc đổi; `rateEvery` giây gửi lại dù không đổi (để cập nhật thống kê theo giờ); `dist`: làm tròn khoảng
+ * cách (ô) để "Đi tới …" không đổi mỗi bước; `path`: số điểm đường đi gửi để vẽ mờ trên radar; `window`: cửa sổ trượt (giây) của
+ * thống kê theo giờ, `minSecs`: chưa treo đủ ngần ấy giây thì chưa hiện số (còn quá ít mẫu).
+ */
+export const AUTO_STATUS = { every: 1, rateEvery: 5, dist: 5, path: 6, window: 600, minSecs: 30 };
+export type AutoJob = "loot" | "fight" | "go" | "dodge" | "back" | "rest" | "patrol";
+export interface AutoStatus { k: AutoJob; n?: string; d?: number; path?: number[]; rate?: AutoRate | null; }
+/** Chữ hiển thị của trạng thái tự săn ("Đang đánh Sói Xám", "Đi tới Thú vương (35 ô)"…). */
+export function autoStatusText(s: Pick<AutoStatus, "k" | "n" | "d">): string {
+  const n = s.n ? ` ${s.n}` : "";
+  switch (s.k) {
+    case "loot": return `Đang nhặt${n}`;
+    case "fight": return `Đang đánh${n}`;
+    case "go": return `Đi tới${n}${s.d ? ` (${s.d} ô)` : ""}`;
+    case "dodge": return "Đang né";
+    case "back": return "Đang lùi hồi sức";
+    case "rest": return "Đang nghỉ";
+    default: return "Đang đi dạo";
+  }
+}
+/** Chữ thống kê theo giờ: "1,2 N kinh nghiệm / giờ" (số lớn rút gọn). */
+export const autoRateText = (v: number) => v >= 10000 ? `${(v / 1000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} N` : Math.round(v).toLocaleString("vi-VN");
 export const AUTO_SUM_LOOT = 12;
 /** "11 giờ 30 phút" / "45 phút" (làm tròn xuống theo phút): giờ treo còn lại để hiển thị. */
 export const autoTimeText = (secs: number) => {
@@ -5337,6 +5363,8 @@ export const RADAR = {
   tongCol: "#3fd0b0",
   /** Cờ người chơi đặt trên bản đồ khu vực (R3 / R4) vẽ như mức nhiệm vụ. */
   flagCol: "#ff9a3c",
+  /** Đường đi hiện tại của tự săn (AH2, #609): lục mờ để không lấn cờ / chấm. */
+  autoCol: "rgba(134,224,176,.6)",
 };
 
 /**

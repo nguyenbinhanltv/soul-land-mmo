@@ -16,7 +16,7 @@ Mục tiêu: nhiều người (mỗi người có agent AI riêng) cùng làm m�
 | Loại | `bug`, `gameplay`, `art`, `tai-lieu`, `bot-test`, `giao-dien`, `am-thanh`… | Loại việc, tùy dự án |
 | Giai đoạn | `giai-doan-<số>` | Thuộc giai đoạn lộ trình |
 
-Nhãn chờ một điều kiện kỹ thuật cụ thể (ví dụ `cho-hoat-anh-8-huong`) nên đi cùng `chan` và trỏ tới issue giải bài toán đó.
+Nhãn chờ một điều kiện kỹ thuật cụ thể (ví dụ chờ một quyết định hay một issue khác) nên đi cùng `chan` và trỏ tới issue giải bài toán đó.
 
 Tạo nhãn: `gh label create "agent:<tên>" --description "Việc do <tên> làm"`.
 
@@ -130,7 +130,7 @@ Mỗi collaborator có một bộ prompt: **cài đặt (một lần)** → **ch
 
 ## Ở Soul Land
 
-- **Nhãn thật:** `san-sang`, `dang-lam`, `cho-review`, `chan`, `cho-hoat-anh-8-huong`, `giai-doan-10`, `giai-doan-11`, `gameplay`, `art`, `tai-lieu`, `bot-test`, `giao-dien`, `am-thanh`, `agent:ao-orchestrator`, `agent:<collaborator>`.
+- **Nhãn thật:** `san-sang`, `dang-lam`, `cho-review`, `chan`, `giai-doan-10`, `giai-doan-11`, `gameplay`, `art`, `tai-lieu`, `bot-test`, `giao-dien`, `am-thanh`, `agent:ao-orchestrator`, `agent:<collaborator>`.
 - **Project 3** (`gh project field-list 3 --owner <OWNER>`): `Status` (Chờ / Sẵn sàng / Đang làm / Đang review / Xong), `Chủ`, `Giai đoạn` (10 / 11 / Gameplay), `Bước lộ trình`, `Ngày xong`, `Priority` (P0–P2), `Size` (XS–XL).
 - **Tài nguyên cần khai số:** file `server/sql/00N_<tên>.sql` (xem `ls server/sql` trên `origin/main` mới nhất).
 - **File hay xung đột:** `shared/data.ts` (thêm hằng cạnh nhóm liên quan, không đổi thứ tự), `server/src/rooms/MapRoom.ts` (tách logic ra file riêng, chỉ thêm lời gọi ngắn), `shared/assets/sprites/manifest.json` (sinh bằng `tools/assets`, không sửa tay), `GAME_DESIGN.md` (chỉ sửa đúng mục), `art/CREDITS.md` (thêm dòng đúng nhóm).

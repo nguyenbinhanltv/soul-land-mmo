@@ -54,11 +54,11 @@ import { ParticleLayer, HIT_SPARK, SHAKE_TIER, beastJerk, shakeK, flashOn, zoomO
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bindUiSounds } from "../audio/uiSounds.ts";
 import { AMBIENT_FIRE_PROPS } from "../audio/ambientLayers.ts";
-import { bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, toggleAutoPanel } from "../autoPanel.ts";
+import { autoJob, autoJobText, bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, setAutoStatus, toggleAutoPanel } from "../autoPanel.ts";
 import { bossPhase, combatHit } from "../audio/music.ts";
 import { ArenaShow } from "../arenaShow.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
-import type { OwnedVohons, Squad, PortalInfo, BagMsg, GearMsg, EquipEnhPreview, EquipEnhDone, EquipSynDone, EquipSalvDone, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "../net.ts";
+import type { OwnedVohons, Squad, PortalInfo, BagMsg, GearMsg, EquipEnhPreview, EquipEnhDone, EquipSynDone, EquipSalvDone, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, AutoStMsg, FriendsMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
 import { assetUrl } from "../assetUrl.ts";
 
@@ -322,6 +322,7 @@ export class GameScene extends Phaser.Scene {
    * Điểm bấm chuột / chạm trên nền để đi tới (thế giới) và đường A* tới đó (`path`, điểm thứ `i` là điểm đang đi tới; 11.1), kèm khoảng
    * cách tới điểm đang đi và lúc kiểm tra gần nhất để dừng khi bị chặn.
    */
+  autoLine: number[] = [];
   goal: { x: number; y: number; path: Pt[]; i: number; d: number; t: number; auto?: boolean } | null = null;
   /** Tự đi tới cờ (R4): đồ thị dẫn đường của bản đồ (dựng khi cần), khoảng cách tốt nhất tới đích và lúc cải thiện cuối, lúc xin qua cổng, lúc tính đường kế. */
   flagNav: Nav | null = null; flagLine: number[] = []; flagBest = Infinity; flagBestT = 0; flagCross = 0; flagPlanT = 0; flagDailyT = 0;
@@ -1057,6 +1058,14 @@ export class GameScene extends Phaser.Scene {
     for (const r of this.rallyHere()) R.dot("rally", r.tx, r.ty, `Tập trung ở đây: ${r.from} (${rallyLeft(r, now)}s)`, RALLY.col);
   }
 
+  /** Đường đi hiện tại của tự săn (tin `autost`, vài điểm; AH2 #609) vẽ mờ trên radar; cờ của người chơi có đường thì nhường cờ. */
+  collectAutoPath(R: DotSink) {
+    const j = autoJob(), me = this.room.state.players.get(this.me);
+    if (!j?.path?.length || !me?.auto || this.goal?.auto) return;
+    const pts = this.autoLine; pts.length = 0; pts.push(me.x / TILE, me.y / TILE, ...j.path);
+    R.line(pts, RADAR.autoCol);
+  }
+
   /** Gom đường đi và cờ cho radar / bản đồ khu vực: đường còn lại của `this.goal`, cờ (hoặc cổng đang đi tới) mức nhiệm vụ để có mũi tên ở mép. */
   collectFlag(R: DotSink, withFlag: boolean) {
     const f = getFlag(); if (!f) return;
@@ -1201,6 +1210,7 @@ export class GameScene extends Phaser.Scene {
     });
     this.room.onMessage("recall", (m: { on: boolean; label?: string; secs?: number }) => hud.setRecall(m?.on ? { label: m.label ?? "", secs: m.secs ?? 1 } : null));
     // Tự săn (Auto 1): trạng thái nút và giờ treo còn lại; server báo lý do dừng / từ chối bằng dòng log.
+    this.room.onMessage("autost", (m: AutoStMsg) => setAutoStatus(m)); // việc tự săn đang làm + thống kê theo giờ (AH2, #609)
     this.room.onMessage("auto", (m: AutoMsg) => { hud.setAuto(m); setAutoMsg(m); }); // bảng Tự động, tổng kết khi dừng (Auto 2)
     // Ủy thác offline (Auto 3): server đã cộng thưởng lúc vào game; xin bảng nhận thưởng sau khi đăng ký handler (có thì server gửi).
     this.room.onMessage("offline", (m: OfflineMsg) => showOffline(m));
@@ -2438,7 +2448,7 @@ export class GameScene extends Phaser.Scene {
     const mx = me.x / TILE, my = me.y / TILE;
     const info = `${MAPS[this.mapId]?.name ?? this.mapId} · ${Math.floor(mx)}, ${Math.floor(my)}${st.channel ? ` · Kênh ${st.channel}` : ""}`;
     // Cùng một bộ chấm cho radar và bản đồ khu vực (mỗi nơi theo nhịp RADAR.hz riêng).
-    if (dueR) { R.begin(mx, my, now); this.collectDots(R, me, mx, my); this.collectRally(R); this.collectFlag(R, true); R.end(info); }
+    if (dueR) { R.begin(mx, my, now); this.collectDots(R, me, mx, my); this.collectRally(R); this.collectFlag(R, true); this.collectAutoPath(R); R.end(info); }
     if (dueV) { V.begin(mx, my, now, this.mapLabels(), info); this.collectDots(V, me, mx, my); this.collectRally(V); this.collectFlag(V, false); V.end(); }
   }
 
@@ -2655,7 +2665,7 @@ export class GameScene extends Phaser.Scene {
       const col = id === this.me ? "#ffe9a0" : this.party?.members.some((m) => !m.me && m.sid === id) ? "#7dff8a" : "#ffffff";
       if (label.style.color !== col) label.setColor(col);
       // Danh hiệu theo cấp võ hồn đang ra trận (mục 5.1); đang tự săn (Auto 1) thì thêm chữ "Tự động", màu lục.
-      title.setPosition(root.x, root.y - HEAD - 8 * this.txtK - up - tu).setVisible(!p.dead).setText(p.auto ? `${titleOf(p.level)} · Tự động` : titleOf(p.level));
+      title.setPosition(root.x, root.y - HEAD - 8 * this.txtK - up - tu).setVisible(!p.dead).setText(p.auto ? `${titleOf(p.level)} · ${id === this.me && autoJobText() || "Tự động"}` : titleOf(p.level));
       const tcol = p.auto ? "#86e0b0" : "#f2c84b"; if (title.style.color !== tcol) title.setColor(tcol);
     });
     if (this.stepT.size > st.players.size) for (const id of this.stepT.keys()) if (!st.players.has(id)) this.stepT.delete(id);
