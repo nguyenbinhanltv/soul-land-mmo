@@ -7689,7 +7689,7 @@ async function saveFailTest(){
   const luckOf=id=>parseEquip(find(id)?.stats)?.luck;
   const wear=async id=>{ S.room.send("equipgear",{id}); await waitFor(()=>S.gear?.items.some(g=>g.id===id),2000); };
   /** Ép 1 lần ghi lỗi rồi chạy `send`; chờ log "Không lưu được" (nhánh hoàn lại đã chạy), trả true nếu thấy. */
-  async function failed(send){ await sleep(300); const l=S.logs.length; await test(S,"savefail",{n:1}); send(); const g=await waitFor(()=>S.logs.slice(l).some(x=>/Không lưu được/.test(x)),3000); await sleep(400); return g; }
+  async function failed(send){ await sleep(300); const l=S.logs.length; await test(S,"savefail",{n:1,only:"bag"}); send(); const g=await waitFor(()=>S.logs.slice(l).some(x=>/Không lưu được/.test(x)),3000); await sleep(400); return g; }
   async function done(send,key){ await sleep(300); const k=S[key]; send(); await waitFor(()=>S[key]>k,3000); await sleep(300); }
   await test(S,"gear",{clear:true}); await test(S,"goto",{x:lr.x,y:lr.y+16}); await test(S,"rest",{s:TEAM_COMBAT_SECS+1}); await test(S,"enhroll",{r:0});
   await coin(1e6); await give(EQUIP_SOUL,6);
@@ -7729,13 +7729,16 @@ async function saveFailTest(){
   const had=new Set(loose().map(i=>i.id)); await test(S,"give",{code:CORE_ITEM,stars:2,set:"lam_ngan"}); await waitFor(()=>loose().some(i=>!had.has(i.id)&&i.code===CORE_ITEM),1500);
   const C=loose().find(i=>!had.has(i.id)&&i.code===CORE_ITEM)?.id;
   ok(!!C,"coreset: có hồn hạch 2★ Lam Ngân để thử");
-  await sleep(300); await test(S,"savefail",{n:1}); { const l=S.logs.length; S.room.send("coreset",{id:C,set:"hao_thien",npc:"lo_ren"}); await waitFor(()=>S.logs.length>l,2000); await sleep(600); }
-  ok(copies(C)===1&&S.bag.honTe<=500+fee&&S.bag.honTe>=500,`coreset khi ghi lỗi: không nhân / mất món, Hồn Tệ trừ tối đa một lần phí (${S.bag.honTe})`);
+  await sleep(300); await test(S,"savefail",{n:1,only:"bag"}); { const l=S.logs.length; S.room.send("coreset",{id:C,set:"hao_thien",npc:"lo_ren"}); await waitFor(()=>S.logs.length>l,2000); await sleep(300); }
+  // coreset không log khi ghi lỗi: chứng minh lượt ép đã bị lần ghi của coreset tiêu thụ (còn 0) bằng `left` của hook.
+  { let left=1; for(let k=0;k<20&&left>0;k++){ left=(await test(S,"savefail",{n:1,only:"bag"})).left; if(left>0) await sleep(200); } await test(S,"savefail",{n:0});
+    ok(left===0,`coreset: lần ghi bị ép lỗi đã chạy (lượt ép còn ${left}), RAM đã đổi bộ và trừ phí (${S.bag.honTe})`); }
+  ok(copies(C)===1&&S.bag.honTe===500&&find(C)?.stats?.set==="hao_thien","coreset khi ghi lỗi: RAM giữ bộ mới và Hồn Tệ 500 (phí trừ một lần), món không nhân / mất; túi bẩn chờ lần ghi kế");
 
   // ---- setTong: ghi lỗi thì DB giữ nguyên ----
   const H=TONG_MON[0];
   await test(S,"tong",{set:H.id}); await sleep(500);
-  await test(S,"savefail",{n:1,only:"tong"}); const tg=await test(S,"tong",{set:""}); await sleep(700);
+  await test(S,"savefail",{n:1,only:"tong"}); const tg=await test(S,"tong",{set:""}); await sleep(500); const tl=(await test(S,"savefail",{n:0})).left; ok(tl===0,`setTong: lần ghi bị ép lỗi đã chạy (lượt ép còn ${tl})`);
 
   // ---- vào lại phòng: đọc lại từ DB ----
   const hte=S.bag.honTe; await rejoin();
