@@ -43,7 +43,7 @@ Thay bản đồ nhỏ cũ (vẽ cả bản đồ ×8 dưới 1 px mỗi ô, nh�
 - **Nhãn:**
   - Vùng săn kèm niên hạn và cấp đề xuất (dòng đầy đủ khi phóng tới `MAPVIEW.labelZoom.zoneSub`, dưới đó chỉ cấp).
   - Vùng an toàn, hang thú vương, NPC; cổng ghi bản đồ đích; truyền tống trận (đã mở / chưa mở).
-  - Nhãn nhỏ chỉ hiện từ mức phóng `MAPVIEW.labelZoom`.
+  - Nhãn nhỏ chỉ hiện từ mức phóng `MAPVIEW.labelZoom`; nhãn có nền mực, đè nhau thì nhường chỗ theo ưu tiên (cổng > truyền tống > NPC > hang > vùng); mở ra thì vừa khung, nút «⟲ Vừa khung» đặt lại.
 - **Bộ lọc lớp** `MAPVIEW.layers` (hồn thú, đồ rơi, NPC / cổng, người chơi, nhiệm vụ; nhớ ở localStorage `soul.mapview.hidden`).
 - **Dữ liệu:** chấm là đúng bộ chấm của radar (GameScene gom một lần cho cả hai, giao diện `DotSink`), nên chỉ có thứ server đã đồng bộ (state trong tầm + tin `mini`), không lộ thêm vị trí.
 - **Chỗ chèn thêm:** `mapview().onTap` nhận ô được bấm kèm chấm / nhãn dưới ngón tay; `setMarker(id, {tx, ty, name, col})` vẽ cờ / dấu trên cùng, luôn hiện; `addOverlay("fog" | "top", fn)` chèn lớp vẽ theo tọa độ ô (sương mù đã vẽ thẳng bằng `client/src/fog.ts`, không qua đây).

@@ -83,6 +83,7 @@
 // danh sách và đổi kênh giữ tiến độ, đồng đội tổ đội được xếp chung kênh khi vào game / đi cổng, thú vương mỗi kênh một con, thưởng tinh
 // anh khóa theo tài khoản ở mọi kênh và đổi kênh rồi quay về vẫn giữ đóng góp (#119).
 import { Client } from "colyseus.js";
+import { arenaAuditTest } from "./arena-audit-test.mjs"; // #741
 import { solidGrid, hits, isSolidTile, PLAYER_HW, PLAYER_HH } from "../../shared/move.ts";
 import { findPath, findLongPath, buildNav, navNode, clearLine, pathLength } from "../../shared/path.ts";
 import { autoLeg } from "../../shared/autowalk.ts"; // tự đi tới cờ (R4, #431)
@@ -541,9 +542,11 @@ const STANDALONE=[
   ["boneSub",1,boneSubTest],                  //   3 #187 dòng phụ hồn cốt
   ["split",5,splitTest],                      // ~42 #173 hang chia phần luân phiên (đo ở máy)
   ["arena",3,arenaTest],                      //  96 7.2, 9.7 Đại Đấu Hồn Trường
+  ["arenaAudit",5,arenaAuditRun,true],        // ~50 #741 soát chống gian lận đấu trường (arena-audit-test.mjs; đo ở máy)
   ["friend",5,friendTest,true],               // ~40 #195 bạn bè và chặn (đo ở máy)
   ["chuong3",5,chapter3Test],                 // ~18 #284 chương 3 Hải Thần Đảo (đo ở máy)
   ["bag",4,async()=>{ bagSyncPure(); await shopBuybackTest(); await charBagCmdTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); }], // 127 #215, 9.8; E1 trang bị hồn sư; E2 rơi đồ; E3 cường hóa; E4 hợp thành / phân giải
+  ["luckRace",6,luckRaceTest],                //  ~6 #740 khắc may mắn: tháo / mặc giữa lúc chờ DB (tài khoản riêng)
   ["luck",6,gearLuckTest],                    //  ~12 #662 khắc may mắn bằng Thần Hồn (tách khỏi nhóm bag, #684)
   ["forgePreview",5,forgePreviewTest,true],    //  ~25 #699 xem trước cường hóa + coreset (ước, chưa đo)
   ["sell",5,sellTest],                        //   5 #216
@@ -639,6 +642,7 @@ if(process.env.BOT_ONLY==="cold"){ await coldTest(); console.log(fails?`✗ ${fa
 if(process.env.BOT_ONLY==="ground"){ await groundTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="tong"){ await tongTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="luckrace"){ await luckRaceTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="luck"){ await gearLuckTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="shardbuy"){ await shardBuyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="sell"){ await sellTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -663,6 +667,7 @@ if(process.env.BOT_ONLY==="charbag"){ await charBagCmdTest(); console.log(fails?
 if(process.env.BOT_ONLY==="equipsoak"){ await equipSoak(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="cheat2"){ await cheatBagTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="arena"){ await arenaTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="arenaAudit"){ await arenaAuditRun(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="daily"){ await dailyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="friend"){ await friendTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="chat"){ await chatTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -7581,6 +7586,60 @@ async function gearLuckTest(){
   }finally{ await S.room.leave().catch(()=>{}); }
 }
 /**
+ * Chống gian lận khắc may mắn (#740, BOT_ONLY=luckrace; tài khoản riêng, túi riêng, không dùng chung trạng thái với bài khác): trong lúc `equipluck` đang chờ
+ * DB (hook enhslow giữ lệnh trong chuỗi lưu) gửi tháo / mặc / đổi món / bỏ / phân giải / hợp thành: tất cả bị chặn (claimBusy + enhBusy), nên trần tổng
+ * hai ô đang mặc (EQUIP_LUCK_MAX) không lách được và món đang khắc không đổi chỗ giữa chừng. Xong lệnh thì tháo / mặc lại được. Nhánh hoàn lại khi lỗi ghi DB
+ * chưa có bài (không có hook làm hỏng ghi; xem docs/tech/chong-gian-lan-khac-may-man-tong-mon.md).
+ */
+async function luckRaceTest(){
+  console.log("[#740] Chống gian lận khắc may mắn: tháo / mặc giữa lúc chờ DB");
+  const S=await bot("Luck race","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
+  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua luckrace (cần hook gear, give, coin, enhroll, enhslow): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  try{
+  const me=()=>S.room.state.players?.get(S.room.sessionId), loose=()=>looseOf(S);
+  S.lucN=0; S.room.onMessage("equipluckd",()=>{ S.lucN++; }); S.room.onMessage("equipluckp",()=>{});
+  S.travel=null; S.room.send("test",{op:"warp",mapId:"nac_dinh_thanh",x:0,y:0}); await waitFor(()=>S.travel,4000);
+  if(S.travel){ const t=S.travel; await S.room.leave(); await sleep(300); S.mapId=t.mapId; await enter(S,t.roomId??undefined); S.lucN=0; S.room.onMessage("equipluckd",()=>{ S.lucN++; }); S.room.onMessage("equipluckp",()=>{}); }
+  await waitFor(()=>me()&&S.bag&&S.gear,4000);
+  const lr=npcSpot("nac_dinh_thanh","lo_ren");
+  const have=code=>loose().filter(i=>i.code===code).reduce((n,i)=>n+i.qty,0);
+  const mk=async(tpl,luck)=>{ const r=await test(S,"gear",{tpl,enhance:0,ilvl:3,luck}); await waitFor(()=>loose().some(i=>i.id===r?.id),1500); return r?.id; };
+  const find=id=>loose().find(i=>i.id===id)??S.gear?.items.find(g=>g.id===id);
+  const luckOf=id=>parseEquip(find(id)?.stats)?.luck;
+  const worn=()=>(S.gear?.items??[]).map(g=>g.id).sort().join(",");
+  const wear=async id=>{ S.room.send("equipgear",{id}); await waitFor(()=>S.gear?.items.some(g=>g.id===id),2000); };
+  await test(S,"gear",{clear:true}); await test(S,"goto",{x:lr.x,y:lr.y+16}); await test(S,"rest",{s:TEAM_COMBAT_SECS+1}); await test(S,"enhroll",{r:0});
+  await test(S,"coin",{n:1e6}); await waitFor(()=>S.bag.honTe===1e6,1500);
+  const W=await mk("vu_khi_pham_khi",EQUIP_LUCK_MAX-4), N=await mk("day_chuyen_pham_khi",3), B=await mk("vu_khi_tu_kim",EQUIP_LUCK_MAX-1), C=await mk("day_chuyen_tu_kim",EQUIP_LUCK_MAX-1);
+  await test(S,"give",{code:EQUIP_SOUL,qty:5}); await waitFor(()=>have(EQUIP_SOUL)===5,2000);
+  await wear(W); await wear(N);
+  let g=await test(S,"stats"); const start=worn(), wornLuck0=g.gear.luck;
+  ok(wornLuck0===EQUIP_LUCK_MAX-1,`mở bài: mặc vũ khí M${EQUIP_LUCK_MAX-4} + dây chuyền M3, tổng ${wornLuck0} = trần − 1`);
+
+  // ---- Trong lúc equipluck chờ DB: mọi cách đổi món đang mặc / đang khắc đều bị chặn ----
+  await test(S,"enhslow",{ms:700}); const n0=S.lucN;
+  S.room.send("equipluck",{id:W}); await sleep(120);
+  S.room.send("equipgear",{id:B});                  // đổi vũ khí khác (M cao) vào chỗ món đang khắc
+  S.room.send("equipgear",{id:C});                  // đổi dây chuyền (M cao) để vượt trần tổng
+  S.room.send("unequipgear",{slot:"vu_khi"});       // tháo chính món đang khắc
+  S.room.send("unequipgear",{slot:"day_chuyen"});
+  S.room.send("discard",{id:W}); S.room.send("discard",{id:B});
+  S.room.send("equipsalvage",{ids:[B,C]});
+  S.room.send("equipsynth",{main:B,sacrifice:[C,C]});
+  await sleep(200);
+  ok(worn()===start,"đang chờ DB: tháo / mặc / đổi món đều bị chặn, hai ô mặc không đổi");
+  await waitFor(()=>S.lucN>n0,3000); await sleep(500); await test(S,"enhslow",{ms:0});
+  g=await test(S,"stats");
+  ok(S.lucN===n0+1&&luckOf(W)===EQUIP_LUCK_MAX-3&&worn()===start&&g.gear.luck===EQUIP_LUCK_MAX&&have(EQUIP_SOUL)===4,`xong lệnh: W M${luckOf(W)}, tổng ${g.gear.luck} ≤ trần ${EQUIP_LUCK_MAX}, đúng 1 Thần Hồn, ô mặc giữ nguyên`);
+  ok(!!find(B)&&!!find(C)&&luckOf(B)===EQUIP_LUCK_MAX-1&&luckOf(C)===EQUIP_LUCK_MAX-1&&!!find(W),"bỏ / phân giải / hợp thành lúc chờ không xóa món nào, không đổi may mắn món trong túi");
+  // Đã chạm trần: khắc tiếp món đang mặc bị chặn, nhưng chặn thoáng qua đã nhả: mặc / tháo lại được.
+  const l0=S.logs.length; S.room.send("equipluck",{id:W}); await waitFor(()=>S.logs.length>l0,2000); await sleep(150);
+  ok(/Tổng may mắn hai ô đang mặc/.test(S.logs.at(-1))&&luckOf(W)===EQUIP_LUCK_MAX-3&&have(EQUIP_SOUL)===4,`tổng đã chạm trần: khắc tiếp bị chặn, giữ Thần Hồn (${S.logs.at(-1)})`);
+  await wear(C); ok(worn().includes(C)&&!worn().includes(N),"sau khi xong lệnh: mặc món khác lại được (cờ chặn đã nhả)");
+  await test(S,"gear",{clear:true}); await test(S,"enhroll",{r:-1});
+  }finally{ await S.room.leave().catch(()=>{}); }
+}
+/**
  * Xem trước cường hóa + đổi bộ hồn hạch ở Thợ rèn (#699, BOT_ONLY=forgepreview, nhóm 5): `equipenhpreview {id}` chỉ đọc (số liệu khớp bảng EQUIP_ENHANCE và kết quả
  * `equipenh` thật, không đổi túi / Hồn Tệ / log; id lạ, món của người khác, vật phẩm không phải trang bị, giá trị lạ: không trả lời; cờ busy khi lệnh đang xử lý;
  * gọi dồn bị bộ đếm token chặn), `coreset {id,set,npc}` (sai sở hữu, không phải hồn hạch, bộ lạ, NPC lạ, đang giao chiến, vừa đủ phí, bấm dồn chỉ trừ phí một lần).
@@ -9577,6 +9636,9 @@ async function dailyTest(){
   await test(D,"day",{shift:0}); await test(D,"daily",{shift:0});
   await D.room.leave();
 }
+
+/** #741 soát chống gian lận đấu trường: bài ở module tách, nhận các hàm dùng chung. */
+function arenaAuditRun(){ return arenaAuditTest({bot,enter,test,post,waitFor,sleep,ok,npcSpot,AT,ARENA,MAPS,TEAM_SIZE}); }
 
 /**
  * 7.2 Đại Đấu Hồn Trường: hàm thuần (Elo, cửa sổ ghép nới dần, ghép Elo gần nhất); 3 tài khoản mới ở Thiên Đấu Thành (từ BĐ6a; 7.2 là

@@ -4180,6 +4180,8 @@ export const formatHonTe = (dong: number) => honTeParts(dong).map((p) => `${p.n.
 export const TILE = 16;
 /** Lách góc (corner nudge, shared/move.ts): trục đi vướng góc ô mà lệch sang bên ≤ chừng này pixel thì tự đẩy nhẹ qua (server + dự đoán client). */
 export const MOVE_NUDGE = 4;
+/** Lách góc chỉ cho người chơi tự bấm phím / cần: tự săn (rooms/autoHunt.ts) tự dò đường A* và kẹt-kiểm theo va chạm thuần, bị đẩy lệch đường thì không tới / không hạ được thú vương (#785). */
+export const moveNudge = (auto: boolean) => (auto ? 0 : MOVE_NUDGE);
 export const TICK_RATE = 20; // số lần server cập nhật mỗi giây
 
 // ---------- NPC, thương nhân và lò rèn (mục 5.8, bước 6.1; mọi số đã chốt) ----------
@@ -5487,8 +5489,8 @@ export const MAPVIEW = {
   ] as { id: string; name: string }[],
   /** Lớp lọc của từng loại chấm radar (`RADAR.levels[].id`); đồ rơi tách riêng bằng tham số `layer` của chấm. */
   layerOf: { beast: "beast", elite: "beast", boss: "beast", player: "player", ally: "player", poi: "npc", quest: "quest" } as Record<string, string>,
-  /** Mức phóng (pixel màn hình mỗi ô) từ đó mới hiện nhãn của từng loại, để khỏi chồng chữ khi thu nhỏ. Vùng săn, hang thú vương luôn hiện tên; dòng mô tả dài của vùng săn (`zoneSub`) chỉ hiện khi phóng tới mức đó, dưới đó chỉ hiện cấp đề xuất. */
-  labelZoom: { npc: 4, gate: 2.5, wp: 2.5, safe: 2, zoneSub: 4 },
+  /** Mức phóng (pixel màn hình mỗi ô) từ đó mới hiện nhãn của từng loại, để khỏi chồng chữ khi thu nhỏ (nhãn đè nhau vẫn bị `mapview.ts` nhường chỗ theo ưu tiên: cổng > truyền tống > NPC > hang > vùng). Vùng săn, hang thú vương luôn hiện tên; dòng mô tả dài của vùng săn (`zoneSub`) chỉ hiện khi phóng tới mức đó, dưới đó chỉ hiện cấp đề xuất. */
+  labelZoom: { npc: 2.5, gate: 1, wp: 1, safe: 1, zoneSub: 4 },
   /** Bán kính bắt chấm / nhãn khi rê chuột hoặc chạm (pixel), và ngưỡng kéo (pixel) để phân biệt chạm với kéo. */
   hitPx: 10, dragPx: 6,
 };

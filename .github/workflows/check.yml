@@ -84,6 +84,7 @@ jobs:
       - run: npm run audio:validate
       - run: npm run check
       - run: npm run build
+      - run: npm run budget # ngân sách dung lượng bản build (#743): vượt mốc × 1,1 thì đỏ
 
   nameplate-preview:
     name: nameplate-preview
