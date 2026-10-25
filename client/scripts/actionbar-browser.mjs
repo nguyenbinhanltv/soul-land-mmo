@@ -142,7 +142,22 @@ try {
       if (touch) await bag.tap(); else await bag.click();
       await page.waitForFunction(() => !document.querySelector("#bag").hidden);
       assert.match(await page.locator("#bag .bfilter .on").innerText(), /Tiêu hao/);
+      if (touch) await bag.tap(); else await bag.click();
+      assert.ok(await page.locator("#bag").isVisible(), "Bấm Tiêu hao lần nữa giữ Túi mở");
       await page.keyboard.press("Escape");
+      for (const [button, panel] of [["audioBtn", "audio"], ["autoBtn", "autoPanel"]]) {
+        const opener = page.locator(`#${button}`);
+        await opener.evaluate((e) => e.click());
+        await page.waitForFunction((id) => !document.getElementById(id).hidden, panel);
+        if (touch) await bag.tap(); else await bag.click();
+        await page.waitForFunction(() => !document.querySelector("#bag").hidden);
+        assert.ok(await page.locator(`#${panel}`).evaluate((e) => e.hidden), `Tiêu hao phải đóng ${panel}`);
+        assert.equal(await opener.getAttribute("aria-expanded"), "false");
+        const filter = page.locator("#bag .bfilter .on");
+        assert.match(await filter.innerText(), /Tiêu hao/);
+        assert.ok(await filter.evaluate((e) => { const r = e.getBoundingClientRect(); return e.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)); }), "Bộ lọc Tiêu hao không bị bảng khác che");
+        await page.keyboard.press("Escape");
+      }
       // Đổi võ hồn qua nút thật, đợi state server rồi đổi về bằng bàn phím.
       const second = page.locator('#team button[data-slot="1"]');
       if (touch) await second.tap(); else await second.click();

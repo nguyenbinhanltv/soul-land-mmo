@@ -428,7 +428,11 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
   bag.innerHTML = `<b class="key">B</b><span class="ico skart">${artImg("gi_menu_bag")}</span><span class="sk-name">Tiêu hao</span>`;
   bag.setAttribute("aria-label", "Mở túi dùng vật phẩm tiêu hao (B)");
   setTip(bag, { title: "Vật phẩm tiêu hao", lines: ["Mở túi để dùng đan, phù và vật phẩm."], foot: "Phím B · Túi đồ" });
-  bag.addEventListener("click", () => { bagGroup = "tieu_hao"; bagPage = 0; bagSel = null; toggleBag(true); bagRefresh?.(); });
+  bag.addEventListener("click", () => {
+    bagGroup = "tieu_hao"; bagPage = 0; bagSel = null;
+    if ($("#bag").hidden) $("#bagBtn").click();
+    bagRefresh?.();
+  });
   $("#itemActions").appendChild(bag);
 }
 
