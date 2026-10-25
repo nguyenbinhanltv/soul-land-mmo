@@ -3649,6 +3649,7 @@ export class MapRoom extends Room<MapState> {
     if (op === "crash") {
       const reject = !!o.reject;
       c.send("test", { op, reject });
+      // CỐ Ý setTimeout toàn cục, KHÔNG đổi sang this.clock (#700): lỗi phải ném ngoài phòng để thử process.on ở index.ts.
       setTimeout(() => {
         if (reject) void Promise.reject(new Error("hook test: promise bị từ chối không ai bắt (#270)"));
         else throw new Error("hook test: lỗi cố ý ngoài phòng (#270)");
@@ -4343,7 +4344,7 @@ export class MapRoom extends Room<MapState> {
         d.gmReset = true; this.freeze(id);
         try { await store.seedTestAccount(p.name, null, buildPreset(cmd.preset)); }
         catch (e) { d.gmReset = false; d.travelling = false; throw e; } // lỗi: trả lại như cũ, người chơi chơi tiếp
-        setTimeout(() => this.clients.getById(id)?.leave(4000), 800);
+        this.clock.setTimeout(() => this.clients.getById(id)?.leave(4000), 800); // clock của phòng: phòng dispose thì tự huỷ (#700)
         return `Đã áp mức "${cmd.preset}": vào lại game để thấy thay đổi.`;
       }
     }

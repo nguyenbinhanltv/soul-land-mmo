@@ -189,7 +189,7 @@ export function fxTestScreen(card: HTMLElement, overlay: HTMLElement): void {
   for (const v of VOHON) { const c = chanThanOf(v.id); if (c) sks.push([`${v.id}:ct`, `${v.name} · Chân Thân · ${c.skill.name}`]); }
   for (const v of VOHON) sks.push([`${v.id}:tc`, `${v.name} · Tiên cơ · ${tienCoOf(v.id).name}`]);
   bar.innerHTML = `
-    <label>Hệ <select id="fe">${opt(ELEMENTS.map((e) => [e, ELEMENT_NAME[e] + (FX_TEX_ELEMENTS.includes(e) ? " ✓ảnh" : "")]), q.get("he") ?? "fire")}</select></label>
+    <label>Hệ <select id="fe">${opt(ELEMENTS.map((e) => [e, ELEMENT_NAME[e] + (FX_TEX_ELEMENTS.includes(e) ? " √ảnh" : "")]), q.get("he") ?? "fire")}</select></label>
     <label>Kiểu <select id="fk">${opt(FX_KINDS.map((k) => [k, FX_KIND_NAME[k]]), q.get("kieu") ?? "proj")}</select></label>
     <label>Niên hạn <select id="ft">${opt(TIERS.map((t, i) => [String(i), t.age]), q.get("tier") ?? "2")}</select></label>
     <label>Hiệu ứng <select id="fl">${opt([["low", "Thấp"], ["mid", "Vừa"], ["high", "Cao"]], fxPrefs.level)}</select></label>
