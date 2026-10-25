@@ -5199,7 +5199,7 @@ export const AUTO_TARGET = { detour: 1.4, tough: 30, value: [2, 4, 8] as const, 
  * - `AUTO_REST` (nghỉ hồi khi hết đan, `AutoSettings.restNoPot`): cần uống đan hồi sinh lực mà hết thì đứng nghỉ (vẫn đánh trả, nhặt đồ)
  *   tới khi sinh lực võ hồn ra trận từ `resume` phần rồi săn tiếp; cài "hết đan thì dừng" (`stopNoPot`) thì dừng như cũ.
  */
-export const AUTO_CLUSTER = { r: 3 * TILE, bonus: 0.25, max: 4 };
+export const AUTO_CLUSTER = { r: 3 * TILE, bonus: 0.1, max: 4 };
 export const AUTO_AOE_MIN = 3;
 export const AUTO_SPAWN = { wait: 1.5, keep: 90, max: 8 };
 export const AUTO_REST = { resume: 0.8 };
