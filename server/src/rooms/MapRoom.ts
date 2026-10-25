@@ -33,7 +33,7 @@ import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TI
   PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
   RESONANCE, RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CD, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResEffect,
   HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
-  ARENA, ARENA_HE_DMG, arenaTeamElo, SYNC_VIEW, RADAR, AUTO_DAILY_SECS, AUTO_MAX_PER_CELL, AUTO_BONUS_MAX, parseAuto, autoLeft, autoTimeText, type AutoSettings, type AutoSummary,
+  ARENA, ARENA_HE_DMG, arenaTeamElo, SYNC_VIEW, RADAR, AUTO_DAILY_SECS, AUTO_STUCK, AUTO_MAX_PER_CELL, AUTO_BONUS_MAX, parseAuto, autoLeft, autoHint, type AutoHint, autoTimeText, type AutoSettings, type AutoSummary,
   BEAST_ATK_CD, OFFLINE, offlineFight, offlineSplit, type OfflinePower,
   BEAST_DEF, defMult, beastMelee, PLAYER_STATUS_PVE, RESIST_AS, PLAYER_CHARM,
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, parseSell, autoSellable, type SellSettings } from "../../../shared/data.ts";
@@ -1685,7 +1685,14 @@ export class MapRoom extends Room<MapState> {
   sendAuto(id: string, why?: string, sum?: AutoSummary) {
     const d = this.pdata.get(id); if (!d) return;
     this.clients.getById(id)?.send("auto", { on: !!d.auto, left: autoLeft(d.autoUsed, d.autoBonus), max: AUTO_DAILY_SECS, bonus: Math.floor(d.autoBonus),
-      cfg: d.autoCfg, ...(why ? { why } : {}), ...(sum ? { sum } : {}) });
+      cfg: d.autoCfg, ...(why ? { why } : {}), ...(sum ? { sum } : {}), ...(this.map.kind === "hunt" ? { hint: this.autoHintOf(id) } : {}) });
+  }
+  /** Gợi ý vùng / khoảng niên hạn hợp sức (AH4, #611) cho võ hồn ra trận của `id` ở bản đồ này (mọi vùng săn có khai báo niên hạn). */
+  autoHintOf(id: string): AutoHint | undefined {
+    const d = this.pdata.get(id), p = this.state.players.get(id); if (!d || !p) return undefined;
+    const all = BEASTS.map((b) => b.id);
+    return autoHint(this.offlinePower(d, p), this.map.zones.filter((z) => z.years).map((z) =>
+      ({ name: z.name, years: z.years!, species: z.beasts.length ? z.beasts.map((b) => BEASTS[b.species].id) : all })));
   }
 
   /** Dòng tự săn để lưu (cài đặt, ngày, giờ đã treo, quỹ cộng thêm; làm tròn 0,1 giây). */
@@ -4103,6 +4110,8 @@ export class MapRoom extends Room<MapState> {
       const a = d.auto;
       // #213: `pace` đặt nợ nhịp (giây) của lượt tự săn đang chạy (thử trần tốc độ AUTO_PACE).
       if (a && typeof o.pace === "number" && Number.isFinite(o.pace)) a.pace = Math.max(-3600, Math.min(3600, o.pace));
+      // AH4 (#611): `loop` điền sẵn các điểm đứng quanh chỗ này (giả lập đi vòng lặp AUTO_STUCK.window giây): mẫu kế tiếp kích hoạt chống kẹt.
+      if (a && o.loop) { a.trail = Array.from({ length: Math.ceil(AUTO_STUCK.window / AUTO_STUCK.sample) - 1 }, () => ({ x: p.x, y: p.y })); a.trailT = 0; }
       // #218: `kn` / `wn` đặt số lượt nhận thưởng thú vương / boss thế giới hôm nay trong bộ nhớ (thử tự săn bỏ boss khi hết lượt; DB vẫn
       // là nguồn chính lúc nhận, claimBoss).
       if (typeof o.kn === "number") Object.assign(d.claims, { day: this.today(), n: int(o.kn, 0, KING.daily, 0) });
@@ -4113,7 +4122,7 @@ export class MapRoom extends Room<MapState> {
       const bid = typeof o.bid === "string" ? o.bid : "", bd = bid ? this.bdata.get(bid) : undefined, skipTo = a?.skip.get(bid);
       const claim: string[] = []; if (bd) for (const [sid, x] of this.pdata) if (x.auto && x.auto !== a && x.auto.target === bid && !a?.ally(sid)) claim.push(sid);
       // `secs`: giây đã treo lượt này theo nhịp server (cùng đồng hồ với nợ nhịp; bot đo cửa sổ trần tốc độ bằng nó, #328).
-      out = { on: !!a, used: d.autoUsed, bonus: d.autoBonus, day: d.autoDay, secs: a?.secs ?? null, target: a?.target ?? null, pace: a?.pace ?? null, est: a?.est ?? null, goal: a?.goal ?? null, path: a?.path.length ?? null,
+      out = { on: !!a, used: d.autoUsed, bonus: d.autoBonus, day: d.autoDay, secs: a?.secs ?? null, target: a?.target ?? null, pace: a?.pace ?? null, est: a?.est ?? null, why: a?.why?.w ?? null, mates: a?.mates().length ?? 0, goal: a?.goal ?? null, path: a?.path.length ?? null,
         drop: a?.loot ? (({ x, y, item, owner, ownerTtl }) => ({ x, y, item, owner, ownerTtl }))(this.state.drops.get(a.loot) ?? ({} as DropState)) : null, loot: a?.loot ?? null, anchor: a?.anchor ?? null, home: a?.home ?? null, cfg: d.autoCfg,
         // #218: mục tiêu là boss, số lần bắt đầu né, chỗ né đang đi tới, đang lùi vì ít máu, hệ võ hồn cơ chế đang cần.
         boss: a?.boss ?? false, dodges: a?.dodges ?? 0, dodge: a?.dodge ?? null, away: a?.away ?? false, warm: a?.warm ?? false, role: a?.role?.he ?? null, cleanse: a?.cleanseRow(d) ?? null,

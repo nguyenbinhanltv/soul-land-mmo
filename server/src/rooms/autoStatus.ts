@@ -1,7 +1,7 @@
 // Trạng thái và thống kê theo giờ của tự săn (AH2, #609, mục 5.13). Chỉ đọc state của AutoHunter, không quyết định gì: AutoHunter.tick gọi
 // `feed.tick` mỗi nhịp; tin riêng `autost` chỉ gửi khi việc đang làm đổi (tối đa AUTO_STATUS.every giây một lần) hoặc đã AUTO_STATUS.rateEvery giây.
 import type { Client } from "colyseus";
-import { AUTO_STATUS, TILE, beastName, itemDef, type AutoJob, type AutoRate, type AutoStatus } from "../../../shared/data.ts";
+import { AUTO_STATUS, AUTO_STUCK, TILE, beastName, itemDef, type AutoJob, type AutoRate, type AutoStatus } from "../../../shared/data.ts";
 import type { PData } from "./MapRoom.ts";
 import type { PlayerState } from "./schema.ts";
 import type { AutoHunter, AutoSnap } from "./autoHunt.ts";
@@ -39,7 +39,7 @@ export class AutoFeed {
   tick(h: AutoHunter, p: PlayerState, c: Client, snap: () => AutoSnap) {
     const due = h.secs - this.sampleAt >= AUTO_STATUS.rateEvery;
     if (due) { this.sampleAt = h.secs; this.sample(h.secs, snap()); }
-    const job = jobOf(h, p), key = `${job.k}|${job.n ?? ""}|${job.d ?? ""}|${job.path?.at(-1) ?? ""}`;
+    const job = jobOf(h, p), key = `${job.k}|${job.n ?? ""}|${job.d ?? ""}|${job.w ?? ""}|${job.path?.at(-1) ?? ""}`;
     const changed = key !== this.sentKey && h.secs - this.sentAt >= AUTO_STATUS.every;
     if (!changed && !(due && h.secs - this.sentAt >= AUTO_STATUS.rateEvery)) return;
     this.sentKey = key; this.sentAt = h.secs;
@@ -64,5 +64,6 @@ function jobOf(h: AutoHunter, p: PlayerState): AutoStatus {
   // Vài điểm đầu của đường đang đi; không có đường (đi thẳng) thì điểm tới.
   const pts = h.path.length ? h.path.slice(0, AUTO_STATUS.path) : to ? [to] : [];
   const path = pts.length ? pts.flatMap((q) => [Math.round((q.x / TILE) * 10) / 10, Math.round((q.y / TILE) * 10) / 10]) : undefined;
-  return { k, ...(n ? { n } : {}), ...(d ? { d } : {}), ...(path ? { path } : {}) };
+  const w = h.why && h.clock - h.why.t < AUTO_STUCK.show ? h.why.w : undefined;
+  return { k, ...(n ? { n } : {}), ...(d ? { d } : {}), ...(path ? { path } : {}), ...(w ? { w } : {}) };
 }
