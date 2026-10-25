@@ -29,7 +29,7 @@
 | Mạng, state, phiên, Redis | `tech/giao-thuc-server`, `dong-bo-state`, `luu-tru-cong-phien`, `presence-redis` |
 | DB / SQL | `tech/du-lieu-db` |
 | Client, isometric, dự đoán | `tech/client-iso-du-doan`, `art/quy-cach-isometric` |
-| Hiệu năng | `tech/hieu-nang-hieu-ung`, `hieu-nang-soak` |
+| Hiệu năng | `tech/hieu-nang-hieu-ung`, `hieu-nang-soak`, `tai-asset-vao-ban-do` |
 | Ảnh, âm thanh | `art/nguon-giay-phep`, `nhan-vat-hon-thu`, `hon-thu-hoat-anh`, `hon-su-lpc`, `am-thanh` |
 | Chạy local, CI, deploy | `ops/` |
 

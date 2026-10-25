@@ -13,6 +13,7 @@ import Phaser from "phaser";
 import { TELE_WARN, PT_FRAME } from "../../shared/data.ts";
 import { SPR, type Dir8 } from "./iso.ts";
 import { lightingOn } from "./lighting.ts";
+import { registerVohonSheet } from "./vohonLazy.ts";
 import { readFxPrefs } from "./fxSettings.ts";
 import { DEFAULT_LAYOUT, lungeKeep, newBeastAnimState, parseLayout, stepBeastAnim, type AnimLayout, type BeastAnimState } from "./beastAnim.ts";
 
@@ -456,7 +457,7 @@ export function loadSpriteKey(scene: Phaser.Scene, key: string) {
  * Gọi trong preload(): đọc manifest rồi xếp hàng tải các ảnh có trong đó. Sheet NPC LPC (`lpc_<tên>`) chỉ cần cho bản đồ đang vào
  * nên không tải hết: `lpc` nhận danh sách tên có trong manifest và tự xếp hàng tải những tên bản đồ dùng (crowd.ts).
  */
-export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) => void) {
+export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) => void, after?: () => void) {
   scene.load.json(MANIFEST_KEY, BASE + "manifest.json");
   scene.load.once(`filecomplete-json-${MANIFEST_KEY}`, (_key: string, _type: string, data: { sprites?: ManifestEntry[] }) => {
     const lpcNames = new Set<string>();
@@ -473,12 +474,15 @@ export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) =
       if (typeof e !== "string" && e.lpc && key.startsWith("beast_")) LPC_BEASTS.add(key);
       const spec = sheetSpec(key, typeof e === "string" ? undefined : e.frame, iso);
       if (!spec) { console.warn(`[sprites] key không hợp lệ trong manifest: ${key}`); continue; }
+      // Phụ thể isometric (2304×1152 × 2 lớp × 25 võ hồn) tải theo nhu cầu (vohonLazy.ts), không tải hết mỗi lần vào bản đồ.
+      if (iso && spec.frame && key.startsWith("vh_")) { registerVohonSheet(key, BASE + spec.url, spec.frame); continue; }
       if (spec.frame) scene.load.spritesheet(key, BASE + spec.url, { frameWidth: spec.frame[0], frameHeight: spec.frame[1] });
       else scene.load.image(key, BASE + spec.url);
       // Normal map của bộ hồn sư / phụ thể isometric (`<ảnh>_n.png`, 10.7): tải riêng, GameScene gắn vào texture (attachNormal).
       if (iso && !key.startsWith("fx_") && !key.startsWith("pt_") && lightingOn(scene.game)) scene.load.image(`${key}_n`, BASE + spec.url.replace(/\.png$/, "_n.png"));
     }
     lpc?.(lpcNames);
+    after?.(); // sau khi manifest đã ghi spec (vohonLazy): nơi gọi xin thêm sheet cần ngay
   });
 }
 
