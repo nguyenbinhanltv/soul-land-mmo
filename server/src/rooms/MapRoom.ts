@@ -1652,6 +1652,7 @@ export class MapRoom extends Room<MapState> {
     if (d.absorbing) return deny("đang hấp thụ hồn hoàn.");
     if (d.travelCast) return deny("đang đi cổng / truyền tống.");
     if (this.map.inSafe(p.x, p.y)) return deny("đang ở vùng an toàn, ra bãi săn rồi bật.");
+    if (d.target) return deny("đang khoá mục tiêu (bấm ✕ hoặc Esc để bỏ khoá; khoá ưu tiên hơn tự săn).");
     if (d.autoUsed >= AUTO_DAILY_SECS && d.autoBonus <= 0) return deny(`hôm nay đã treo đủ ${autoTimeText(AUTO_DAILY_SECS)}.`);
     if (bagUsed(d.bag) >= d.bagSlots && !this.autoSell(id)) return deny(`túi đồ đã đầy (${d.bagSlots} ô)${d.sellCfg.on ? ", không còn món nào hợp bộ lọc tự bán" : ""}.`);
     const grid = this.interest.players, cell = grid.cellOf(p.x, p.y);
@@ -7947,7 +7948,7 @@ export class MapRoom extends Room<MapState> {
       // Tự bán từ xa (#216): túi vừa đổi (sendBag đặt cờ) thì xét một lần, không quét túi mỗi nhịp.
       if (d.sellCheck) { d.sellCheck = false; this.autoSell(id); this.autoSalvage(id); }
       if (p.dead) {
-        if (d.target) setLock(this, id, d, "");
+        if (d.target) setLock(this, id, d, "", false, "dead");
         d.deadT -= dt;
         if (d.deadT <= 0) {
           // Cả đội gục: về doanh trại, cả đội hồi đầy.
