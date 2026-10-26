@@ -9,6 +9,7 @@ import { MAPS } from "../../../shared/data.ts";
 import { fogBytes } from "../../../shared/fog.ts";
 import { pack } from "@colyseus/msgpackr";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
+import { bindVit } from "./vit.mjs";
 
 export const API = process.env.SERVER_URL ?? "http://localhost:2567", WS = API.replace(/^http/, "ws");
 export const post = async (p, b) => { const r = await fetch(API + p, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) }); return { status: r.status, ...await r.json() }; };
@@ -76,6 +77,7 @@ export async function enter(b,roomId){
   const opts={token:b.token,mapId:b.mapId};
   b.room=roomId?await new Client(WS).joinById(roomId,opts):await new Client(WS).joinOrCreate("map",opts);
   b.owned=null; b.ownedMsgs=0; b.portal=null; b.travel=null; b.squad=null;
+  const installVit=bindVit(b.room); // #949: xp, mp, cds… không còn trong state công khai, tin riêng "vit" (gắn lên hồn sư của mình ở cuối enter)
   b.chans=null; b.room.onMessage("channels",m=>{b.chans=m;}); // danh sách kênh (mục 6 "Nhiều kênh")
   b.mini=null; b.room.onMessage("mini",m=>{b.mini=m;}); // bản đồ nhỏ: vị trí cả bản đồ (11.4)
   b.fogBits=null; b.fogMsgs=0; b.fogd=[]; b.room.onMessage("fog",m=>{ b.fogBits=fogBytes(m?.bits); b.fogMsgs++; }); b.room.onMessage("fogd",m=>{ b.fogd.push(m); }); // sương mù khám phá (R8)
@@ -138,6 +140,7 @@ export async function enter(b,roomId){
   // 11.4: state chỉ có thực thể ở gần (lọc đồng bộ theo vùng); bot đọc hồn thú / hồn sư ở xa nên tắt lọc, trừ bot thử lọc (`b.near`).
   if(!b.near){ b.room.send("test",{op:"view",all:true}); await waitFor(()=>b.test,1500); b.test=null; b.owned=null; b.ownedMsgs=0; }
   b.bag=null; b.room.send("vohons"); b.room.send("boss"); b.room.send("bag"); b.room.send("quest",{op:"get"}); b.room.send("resonance");
+  await installVit();
 }
 /**
  * Túi đồ (3.1): tổng số món theo mã, và dấu vân tay cả túi (id, mã, số lượng, số năm từng ô + Hồn Tệ; từ 4.1 loài / vị trí /

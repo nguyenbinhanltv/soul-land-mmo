@@ -117,6 +117,14 @@ export async function friendAction(room: MapRoom, id: string, m: unknown) {
  * tra mọi thứ trong party.ts; lời mời hợp lệ mới tính vào giới hạn tốc độ (ratelimit.inviteCheck, như chat). Lỗi báo riêng.
  */
 export async function partyAction(room: MapRoom, id: string, m: unknown) {
+  try { await partyActionRun(room, id, m); }
+  catch (e) { // tranh khóa presence quá 5 giây (party.remoteMutation) hoặc Redis lỗi: không ném ra ngoài (unhandledRejection làm cả server thoát, #956)
+    console.error("Lỗi thao tác tổ đội", e);
+    room.log(id, "Tổ đội đang bận, thử lại sau.", "#ffb35c");
+    room.sendParty(id, true);
+  }
+}
+async function partyActionRun(room: MapRoom, id: string, m: unknown) {
   const d = room.pdata.get(id); if (!d) return;
   const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = strIn(o.op);
   const warn = (text: string) => room.log(id, text, "#ffb35c");

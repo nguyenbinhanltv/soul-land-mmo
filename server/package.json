@@ -9,7 +9,7 @@
     "test:ratelimit": "tsx scripts/ratelimit-test.ts",
     "test:accounts": "tsx scripts/accounts-test.ts",
     "test:google": "tsx scripts/google-test.ts",
-    "test:presence": "tsx scripts/presence-test.ts",
+    "test:presence": "tsx scripts/presence-test.ts && tsx scripts/party-lock-test.ts",
     "test:itemlock": "tsx scripts/itemlock-test.ts",
     "test:presence-kill": "tsx scripts/presence-kill-test.ts",
     "test:presence-outage": "tsx scripts/presence-outage-test.ts",

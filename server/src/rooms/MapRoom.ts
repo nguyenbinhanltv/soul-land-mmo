@@ -39,6 +39,7 @@ import { TIERS, VOHON, xpNeed, xpBlocked, calcStats, TICK_RATE, tierOfYears, voh
   AUTO_SELL_FREE, AUTO_SELL_BUYBACK, parseSell, autoSellable, type SellSettings } from "../../../shared/data.ts";
 import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
 import { FOG, moveNudge } from "../../../shared/data.ts"; // sương mù khám phá (R8)
+import type { Vitals } from "../../../shared/vitals.ts";
 import { fogDims, fogEmpty, fogFill, fogReveal, fogValid, fogOn as fogMapOn } from "../../../shared/fog.ts";
 import { ASK_CD, MSG_GROUP, MSG_HARD, MSG_FLOOD_CODE, type MsgGroup } from "../../../shared/data.ts"; // nhịp tin client xin lại dữ liệu riêng (#165)
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
@@ -149,6 +150,7 @@ export interface PData {
   bossAskAt: number;    // lần trả tin boss lúc vào phòng gần nhất (ms, #118): tin "boss" tối đa 1 lần / giây
   chListQueued: boolean; // đã hẹn gửi lại danh sách kênh khi hết 1 giây (client xin dồn)
   msgLimit: boolean; msgTok: Record<MsgGroup | "hard", TokenBucket>; msgOver: number; msgOverAt: number; msgGone: boolean; // giới hạn tin theo nhóm + trần tuyệt đối (#677, #734)
+  vit: Vitals | null; vitAt: number; // tin riêng "vit" (#949, rooms/vitals.ts): bản đã gửi gần nhất (null = chưa gửi) và giờ gửi (ms, giờ thật)
   statsRow: unknown; askAt: Map<string, number>; askQueued: Set<string>; // tin client xin lại dữ liệu riêng (bag, vohons, quest): lần gửi gần nhất (ms), đã hẹn gửi (#165, ask)
   energy: Map<number, number>;  // năng lượng tiên cơ từng võ hồn trong đội (rowId -> 0..TIEN_CO_MAX; không có = 0). Không lưu DB
   shield: number; shieldT: number; // khiên của hồn sư (tiên cơ phụ trợ) và số giây còn lại
@@ -571,7 +573,7 @@ async function releaseChannel(mapId: string, roomId: string, ch: number) {
   }, CHANNEL_TTL_MS);
 }
 /** Lần đổi kênh gần nhất của mỗi tài khoản (ms): đổi kênh là đổi phòng (đổi sessionId) nên khóa theo tài khoản (CHANNEL_CD). */
-export const channelSwitchAt = new Map<number, number>(); // map-co-dinh: một dòng mỗi tài khoản từng đổi kênh; đường xóa duy nhất là hook test `chan {reset}` ở gm.ts (như trước khi tách)
+export const channelSwitchAt = new Map<number, number>(); // dòng hết CHANNEL_CD giây bị sweepChannelMaps dọn (#957); hook test `chan {reset}` ở gm.ts xóa tay
 export const channelSwitchKey = (accountId: number) => `channel-switch:${accountId}`;
 /**
  * Kênh vừa rời không qua đường server duyệt (đóng tab, mất mạng, client tự rời; onLeave không ghi khi đi cổng / đổi kênh đã commit): trong
@@ -582,6 +584,18 @@ export const channelSwitchKey = (accountId: number) => `channel-switch:${account
  */
 export const leftRoom = new Map<number, { mapId: string; roomId: string; ch: number; until: number; travel?: boolean }>();
 export const channelLeftKey = (accountId: number) => `channel-left:${accountId}`;
+/**
+ * #957: dọn dòng hết hạn của channelSwitchAt (đã qua CHANNEL_CD giây) và leftRoom (until đã qua): hai Map này khóa theo tài khoản nên
+ * không dọn thì phình theo số tài khoản từng chơi. Chỉ xóa dòng mà luật đổi kênh đã coi như không có (không đổi luật); trả số dòng đã xóa.
+ */
+export function sweepChannelMaps(now: number) {
+  let n = 0;
+  for (const [k, at] of channelSwitchAt) if (now - at >= CHANNEL_CD * 1000) { channelSwitchAt.delete(k); n++; }
+  for (const [k, l] of leftRoom) if (l.until <= now) { leftRoom.delete(k); n++; }
+  return n;
+}
+const CHANNEL_SWEEP_MS = 5 * 60_000;
+setInterval(() => sweepChannelMaps(Date.now()), CHANNEL_SWEEP_MS).unref();
 /** Hook test `chan {nolock}`: lần rời phòng kế tiếp của tài khoản không ghi leftRoom (bot thử chọn kênh khi vào game). */
 export const testNoLeaveLock = new Set<number>(); // map-co-dinh: đường xóa duy nhất là `testNoLeaveLock.delete` ở onLeave (join.ts), như trước khi tách
 /**
@@ -1069,7 +1083,7 @@ export class MapRoom extends Room<MapState> {
     this.onLimitedMsg("read", "shardinfo", (c) => this.sendShardInfo(c.sessionId)); // #282: số mảnh đã đổi hôm nay cho trang Thương hội
     this.onLimitedMsg("trade", "buyback", (c, m: { key: unknown; npc: unknown }) => { void this.buybackItem(c.sessionId, m?.key, m?.npc).catch((e) => console.error("Lỗi mua lại", e)); }); // mua lại đồ vừa bán (9.8)
     this.onLimitedMsg("trade", "expand", (c, m: { npc: unknown }) => this.expandBag(c.sessionId, m?.npc)); // mở rộng túi (9.8)
-    this.onLimitedMsg("social", "party", (c, m: unknown) => { void this.partyAction(c.sessionId, m); }); // tổ đội người chơi (7.1)
+    this.onLimitedMsg("social", "party", (c, m: unknown) => { void this.partyAction(c.sessionId, m).catch((e) => console.error("Lỗi thao tác tổ đội", e)); }); // tổ đội người chơi (7.1)
     this.onLimitedMsg("social", "rally", (c, m: unknown) => this.rallyAction(c.sessionId, m)); // đánh dấu "Tập trung ở đây" cho tổ đội (R6 #433)
     this.onLimitedMsg("social", "quest", (c, m: { op: unknown; chain: unknown }) => this.questAction(c.sessionId, m?.op, m?.chain)); // nhiệm vụ (6.2; `chain` = khảo hạch hằng ngày)
     this.onLimitedMsg("social", "arena", (c, m: { op: unknown; roomId?: unknown }) => this.arenaAction(c.sessionId, m?.op, m?.roomId)); // Đại Đấu Hồn Trường (7.2)
@@ -2704,7 +2718,7 @@ export class MapRoom extends Room<MapState> {
       kingWarns.delete(ev.mapId);
       bg(presenceBackend.delete(`king-warn:${ev.mapId}`), "presence");
       this.broadcast("boss", this.bossMsg(ev, "spawn", 0));
-      if (ev.mapId === this.state.mapId) void this.spawnKing(ev.slot, ev.life, ev.king);
+      if (ev.mapId === this.state.mapId) void this.spawnKing(ev.slot, ev.life, ev.king).catch((e) => console.error("Lỗi sinh thú vương", e));
     }
   }
 
