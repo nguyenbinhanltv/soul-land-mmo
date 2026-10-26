@@ -2,12 +2,18 @@
 import Phaser from "phaser";
 import { assetUrl, retryDelay } from "./assetUrl.ts";
 
+/**
+ * Tin của loader (tham số: file) phát ra đúng một lần cho mỗi file lỗi lần đầu, trước khi thử lại: nơi cần dự phòng ngay (vohonLazy) bắt tin này thay vì chờ hết ~27 s thử lại.
+ * Nơi bắt đặt `file.deferRetry = true` thì loader bỏ file này (loaderror, coi là xong) để đợt tải không bị giữ ~27 s; nơi đó tự xin lại file sau.
+ */
+export const FILE_RETRY = "fileretry";
+
 /** Phaser loader: URL có phiên bản và tải lại có backoff (Phaser tự thử lại ngay lập tức, lỗi 504 thoáng qua thì thử lại ngay cũng lỗi). */
 let installed = false;
 export function installLoaderRetry() {
   if (installed) return;
   installed = true;
-  const F = Phaser.Loader.File.prototype as unknown as { load(): void; onError(): void; onLoad(xhr: XMLHttpRequest, event: Event): void; resetXHR(): void; url: unknown; retryAttempts: number; tries?: number; versioned?: boolean };
+  const F = Phaser.Loader.File.prototype as unknown as { load(): void; onError(): void; onLoad(xhr: XMLHttpRequest, event: Event): void; resetXHR(): void; url: unknown; retryAttempts: number; deferRetry?: boolean; tries?: number; versioned?: boolean };
   const load = F.load;
   F.load = function (this: typeof F) {
     if (!this.versioned && typeof this.url === "string") { this.url = assetUrl(this.url); this.versioned = true; }
@@ -19,11 +25,15 @@ export function installLoaderRetry() {
     if (this.retryAttempts > 0 && xhr.readyState === 4 && (xhr.status >= 500 || xhr.status === 408 || xhr.status === 429)) this.onError();
     else onLoad.call(this, xhr, event);
   };
-  F.onError = function (this: typeof F & { loader: { state: number; nextFile(f: unknown, ok: boolean): void } | null }) {
+  F.onError = function (this: typeof F & { loader: { state: number; nextFile(f: unknown, ok: boolean): void; emit(e: string, f: unknown): void } | null }) {
     this.resetXHR();
     if (this.retryAttempts > 0) {
       this.retryAttempts--;
       this.tries = (this.tries ?? 0) + 1;
+      if (this.tries === 1) {
+        this.loader?.emit(FILE_RETRY, this);
+        if (this.deferRetry) { this.loader?.nextFile(this, false); return; }
+      }
       // Đổi bản đồ trong lúc chờ backoff thì Game / loader đã huỷ: bỏ, không tải tiếp (nextFile trên loader đã huỷ ném lỗi).
       setTimeout(() => { if (this.loader?.state === Phaser.Loader.LOADER_LOADING) load.call(this); }, retryDelay(this.tries - 1));
     } else this.loader?.nextFile(this, false);
