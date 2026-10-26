@@ -58,10 +58,10 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 #hud button,#hud input{pointer-events:auto}
 /* Cột trái (khung chỉ số + tổ đội), cột phải (bản đồ nhỏ + nhiệm vụ), dải dưới (chat | đội hình + hồn kỹ) xếp theo dòng chảy: panel cao thêm
    thì đẩy panel kế bên dưới xuống, không chồng nhau (UI-6). */
-#lcol{position:absolute;left:10px;top:10px;display:flex;flex-direction:column;gap:6px;max-height:calc(100% - 20px)}
-#rcol{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;max-height:calc(100% - 200px)}
+#lcol{position:absolute;left:10px;top:10px;display:flex;flex-direction:column;gap:6px;max-height:calc(100% - 20px - var(--chat-res,200px))} /* chừa chỗ cho khung chat dưới (#722): bảng tổ đội co / cuộn thay vì đè lên chat */
+#rcol{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;max-height:calc(100% - var(--toast-res,200px))}
 #bottombar{position:absolute;left:10px;right:10px;bottom:12px;display:flex;justify-content:space-between;align-items:flex-end;gap:8px}
-.stats{width:210px;padding:8px 10px 10px}
+.stats{width:210px;padding:8px 10px 10px;flex:none}
 .who{display:flex;align-items:center;gap:7px;margin-bottom:6px}
 .who-main{min-width:0;display:flex;justify-content:space-between;align-items:baseline;gap:6px;flex:1}
 .portrait{width:34px;height:34px;flex:0 0 34px;display:flex;align-items:center;justify-content:center;border:2px solid var(--line2);background:var(--ink-panel);color:var(--paper);font:24px var(--f12);text-shadow:var(--stroke);box-shadow:inset 0 0 0 2px var(--paper2)}
@@ -130,7 +130,7 @@ body.touch #mapviewHelp{display:none}
 #mapview .mvgo{background:#6a4a1c;border-color:#ff9a3c}
 .radarbtns{display:flex;gap:3px;margin-top:4px}
 .radarbtns .minibtn{margin:0;flex:1 1 0;min-width:0;padding:3px 2px;white-space:nowrap;font-size:10px;font-family:var(--f10)}
-.radarbtns .minibtn kbd{margin-left:1px;padding:0 1px;font-size:10px}
+.radarbtns .minibtn kbd{display:none} /* phím tắt đã có ở chú thích nút; bỏ để chữ «Thế giới» không bị cắt (#722) */
 .radarbtns .minibtn:disabled{opacity:.45;cursor:default}
 .radarbtns .minibtn[hidden]{display:none}
 #zoneName{font-size:12px;font-family:var(--f12);text-align:center;margin-top:4px}
@@ -195,6 +195,7 @@ body.touch #talk kbd{display:none}
 #channel .bar{height:10px}
 #chatbox{position:relative;width:min(380px,58vw);display:flex;flex-direction:column;gap:3px;z-index:2} /* trên chữ thanh máu (.bar span z-index:1) của bảng tổ đội, dưới các bảng lớn (z-index 3–4) */
 #log{display:flex;flex-direction:column;gap:3px}
+#chatbox:not(.open) #log{max-height:var(--log-max,104px);overflow:hidden;justify-content:flex-end} /* chat đóng: chỉ vài dòng mới nhất, không lấn lên cột trái (#722) */
 #log div{background:var(--ink-panel);color:var(--ink-text);border-left:3px solid var(--son);padding:3px 8px;font-size:12px;font-family:var(--f12);transition:opacity .6s;user-select:text}
 #log div b{margin-right:4px}
 #log div i{font-style:normal;margin-right:4px;text-shadow:var(--stroke)}
@@ -723,8 +724,9 @@ body.touch #bossRank{top:auto;bottom:200px}
 body.touch .shoprow .buse{min-height:38px}
 
 /* Tổ đội người chơi (7.1): khung dưới khung chỉ số, bảng thao tác khi bấm vào hồn sư. */
-#party{width:232px;padding:6px 10px 8px;font-size:12px;font-family:var(--f12);pointer-events:auto;max-height:46vh;overflow:auto}
-#party .phead,#pmenu .phead{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+#party{width:232px;padding:6px 10px 8px;font-size:12px;font-family:var(--f12);pointer-events:auto;max-height:46vh;min-height:0;flex:0 1 auto;overflow:auto}
+#party .phead,#pmenu .phead{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-bottom:4px}
+#party .phead .pbtn{padding:2px 5px}
 #party .phead b,#pmenu .phead b{flex:1;font-size:12px;font-family:var(--f12);color:var(--accent)}
 #pmenu .phead b{color:var(--text)}
 .pbtn{font:inherit;font-size:12px;font-family:var(--f12);padding:2px 8px;min-height:24px;border:1px solid var(--line);background:var(--wash2);color:var(--text);cursor:pointer}
@@ -1685,3 +1687,14 @@ body.ui-h500 #credits .cr-head small{display:none}
 .thuymac #npc[data-c16-page]::before,.thuymac #npc[data-c16-page]::after{display:none}
 /* Ảnh đan điền 128×128: giữ vùng (0,10)–(106,128), đưa tâm (53,70) về giữa; không kéo méo vòng. */
 .thuymac #char .cring6::before{clip-path:inset(7.8125% 17.1875% 0 0);transform:translate(8.59375%,-4.6875%)}
+
+/* Màn thấp vừa (960×540, #722): khung chat 2 dòng; bảng Tổ đội dời sang bên phải khung chỉ số (dưới đó không còn chỗ, đè lên chat); toast gọn, che tạm ô nhiệm vụ thay vì đè radar. */
+/* @media (max-height:560px) → lớp ui-h560 (kích thước logic, uiArt.ts) */
+body:where(.ui-h560){--log-max:50px;--toast-res:290px}
+body:where(.ui-h560) #party{position:absolute;left:calc(100% + 8px);top:0!important;max-height:min(46vh,calc(100vh - 220px))}
+body:where(.ui-h560) #toasts{width:min(200px,60vw)}
+body:where(.ui-h560) #toasts .toast:nth-last-child(n+4){display:none}
+body:where(.ui-h560) #hud:has(#toasts .toast:not(.out)) #quest{visibility:hidden}
+/* Có tổ đội thì dải giữa-trên (thanh máu boss, đếm ngược boss, nhãn mục tiêu) neo theo mép phải bảng Tổ đội (10 + 210 + 8 + 232 = 460, +16) và mép trái cột phải (222), không theo giữa màn: đúng ở mọi cỡ logic có ui-h560 (#722) */
+body:where(.ui-h560) #hud:has(#party:not(:empty)) :is(#bossbar,#bossCd,#target){left:476px;transform:none;width:auto;max-width:max(140px,calc(100% - 476px - 222px));overflow:hidden;text-overflow:ellipsis}
+body:where(.ui-h560) #hud:has(#party:not(:empty)) #bossbar{width:min(268px,calc(100% - 476px - 222px));min-width:140px}

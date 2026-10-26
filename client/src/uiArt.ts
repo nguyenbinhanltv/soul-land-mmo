@@ -113,7 +113,7 @@ export function uiScale() {
 }
 /**
  * Đặt `--u` và các lớp theo kích thước LOGIC (cỡ cửa sổ chia `--u`, vì HUD phóng bằng `zoom`): `ui-w1000` / `ui-w640` / `ui-w560` / `ui-w520` / `ui-w420`
- * khi bề rộng logic ≤ số đó, `ui-h500` / `ui-h460` khi chiều cao logic ≤ số đó, `ui-portrait` khi cao hơn rộng. CSS dùng các lớp này thay
+ * khi bề rộng logic ≤ số đó, `ui-h560` / `ui-h500` / `ui-h460` khi chiều cao logic ≤ số đó, `ui-portrait` khi cao hơn rộng. CSS dùng các lớp này thay
  * `@media (max-width)` để chọn cỡ 150% trên màn 1280 cũng co bố cục đúng như màn hẹp.
  */
 function applyScale() {
@@ -122,7 +122,7 @@ function applyScale() {
   const w = innerWidth / u, h = innerHeight / u, cl = document.body?.classList;
   if (!cl) return;
   for (const n of [1000, 640, 560, 520, 420]) cl.toggle(`ui-w${n}`, w <= n);
-  for (const n of [500, 460]) cl.toggle(`ui-h${n}`, h <= n);
+  for (const n of [560, 500, 460]) cl.toggle(`ui-h${n}`, h <= n);
   cl.toggle("ui-portrait", h > w);
   cl.toggle("ui-wide", w >= 960); // hai bảng Nhân vật / Túi cạnh nhau theo bố cục màn ngang (NV1 #455)
 }
