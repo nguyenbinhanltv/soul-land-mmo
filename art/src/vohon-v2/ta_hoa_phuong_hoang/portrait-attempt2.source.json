@@ -1,0 +1,45 @@
+{
+  "asset": "portrait_ta_hoa_phuong_hoang_attempt2",
+  "worker": "soul-land-mmo-140",
+  "issue": 1024,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": "unknown",
+  "seed": "unknown",
+  "tool_limitations": "Tool không công bố model/seed; không có selector kích thước.",
+  "transparent_background": false,
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "attempt": 2,
+  "attempts_in_block": 2,
+  "block_limit": 3,
+  "raw_file": "portrait-attempt2.png",
+  "selected": false,
+  "prompt_file": "portrait-attempt2.prompt.txt",
+  "prompt_sha256": "388098da53684f73bc5ec42c768dfdc97e192234e82c4ba3179fb5a30076d89d",
+  "sha256": "dd0fdb1cfeb6042cc1a2ed6f0a6c7a254005120e1eaab3fb575ca917ec7ad85f",
+  "bytes": 2358606,
+  "width": 1254,
+  "height": 1254,
+  "prompt_target_dimensions": [
+    64,
+    64
+  ],
+  "target_size_met": false,
+  "references": [],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17a55-6881-7de2-9edb-2af84255fbee/exec-f3026667-81d0-4770-bc65-77cab844f52c.png",
+  "tool_output_hint": "Generated images are saved to /Users/thanhhoa/.codex/generated_images/01a17a55-6881-7de2-9edb-2af84255fbee as /Users/thanhhoa/.codex/generated_images/01a17a55-6881-7de2-9edb-2af84255fbee/exec-f3026667-81d0-4770-bc65-77cab844f52c.png by default.",
+  "tool_response_keys": [
+    "image_url",
+    "output_hint"
+  ],
+  "generated_at": "unknown; tool did not expose timestamp",
+  "known_issues": [
+    "FAIL: vẫn có texture mềm/chi tiết li ti; giảm màu và pixel cluster trong prompt không khắc phục được.",
+    "Không chỉnh/crop/resize; chưa import, chưa artaccepted."
+  ],
+  "qa_status": "FAIL by visual review; not technically processed.",
+  "tool_arguments": {
+    "referenced_image_paths": [],
+    "transparent_background": false
+  },
+  "approval_scope": "Chân dung Tà Hỏa Phượng Hoàng theo docs/art/vo-hon-phong-cach.md mục 4.4 và mục 6; ảnh chỉ để tham khảo duyệt, chưa dùng làm game asset."
+}
