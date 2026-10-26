@@ -98,7 +98,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const st = buildStatus({ only: o.only }), json = JSON.stringify(st, null, 2) + "\n", md = statusMarkdown(st) + "\n";
     const dir = o.out ?? ANIM_ROOT, fj = path.join(dir, "_status.json"), fm = path.join(dir, "_status.md");
     if (o.check) {
-      const same = existsSync(fj) && existsSync(fm) && readFileSync(fj, "utf8") === json && readFileSync(fm, "utf8") === md;
+      const read = (f) => readFileSync(f, "utf8").replaceAll("\r\n", "\n"); // checkout Windows có thể đổi CRLF
+      const same = existsSync(fj) && existsSync(fm) && read(fj) === json && read(fm) === md;
       console.log(same ? "sổ trạng thái đã mới" : "sổ trạng thái lệch: chạy `npm run beast:status` để cập nhật");
       process.exit(same ? 0 : 1);
     }
