@@ -114,11 +114,11 @@ export function arenaAction(room: MapRoom, id: string, raw: unknown, roomId?: un
   Promise.all([Promise.all(rows.map(([, x]) => arenaReadElo(x.accountId, () => store.getArena(x.accountId, ARENA.startElo)))),
     Promise.all(rows.map(([, x]) => store.isTestAccount(x.accountId)))]).then(([recs, tests]) => {
     rows.forEach(([, x]) => { x.arenaBusy = false; });
-    if (rows.some(([sid, x]) => room.pdata.get(sid) !== x) || recs.some((rec) => !rec)) return;
+    if (rows.some(([sid, x]) => room.pdata.get(sid) !== x) || recs.some((rec) => !rec)) return warn("Không xếp hàng được, thử lại.");
     // Tổ đội lẫn tài khoản test và người thật không xếp hàng được (#518): đội test chỉ gặp đội test, nên người thật trong đó sẽ bị đổi Elo bởi trận với tài khoản test.
     if (tests.some(Boolean) && !tests.every(Boolean)) return warn("Tổ đội có cả tài khoản test và người thật: không xếp hàng xếp hạng được.");
     const current = arenaAccounts(room, d.accountId);
-    if (current.length !== accounts.length || current.some((acc) => !accounts.includes(acc))) return;
+    if (current.length !== accounts.length || current.some((acc) => !accounts.includes(acc))) return warn("Tổ đội vừa đổi thành phần: không xếp hàng được, thử lại.");
     const late = arenaBusy(room, id); if (late) return warn(`${late} Chưa xếp hàng được.`);
     const e: ArenaTeamEntry = { id: party.partyIdOf(d.accountId) ? `party:${party.partyIdOf(d.accountId)}` : `solo:${d.accountId}`,
       members: rows.map(([, x], i) => ({ accountId: x.accountId, name: room.state.players.get(rows[i][0])!.name, rec: recs[i]!, ...(tests[i] ? { test: true } : {}) })),
