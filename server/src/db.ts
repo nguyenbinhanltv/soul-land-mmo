@@ -873,6 +873,9 @@ function envInt(name: string, def: number): number {
   return Number.isFinite(n) && n >= 0 && process.env[name] !== undefined && process.env[name] !== "" ? Math.floor(n) : def;
 }
 
+/** Khoá tư vấn PostgreSQL bọc vòng migration lúc khởi động (hằng cố định, mọi tiến trình dùng chung). */
+const MIGRATION_LOCK_KEY = 0x534c4d494752;
+
 export class PgStore implements Store {
   pool: pg.Pool;
   constructor(url: string) {
@@ -888,8 +891,10 @@ export class PgStore implements Store {
     const dir = new URL("../sql/", import.meta.url);
     const files = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort();
     try {
-      for (const f of files) await this.pool.query(readFileSync(new URL(f, dir), "utf8"));
-      await this.backfillNameKeys();
+      await this.withMigrationLock(async () => {
+        for (const f of files) await this.pool.query(readFileSync(new URL(f, dir), "utf8"));
+        await this.backfillNameKeys();
+      });
     } catch (e) {
       const host = (() => { try { return new URL(process.env.DATABASE_URL!).host; } catch { return "?"; } })();
       console.error(`✗ Không kết nối được PostgreSQL (${host}): ${(e as Error).message}`);
@@ -899,6 +904,33 @@ export class PgStore implements Store {
     }
     console.log("✓ Đã kết nối PostgreSQL và cập nhật bảng.");
     await this.warnReservedNames().catch((e) => console.warn("⚠  Không soát được tên cấm:", (e as Error).message)); // chỉ cảnh báo: lỗi ở đây không được chặn khởi động
+  }
+  /**
+   * Chạy `fn` khi giữ khoá tư vấn cấp phiên MIGRATION_LOCK_KEY trên một kết nối riêng: nhiều tiến trình (pod, kênh,
+   * rolling deploy) khởi động cùng lúc thì tiến trình sau chờ tiến trình trước chạy xong migration rồi mới chạy
+   * (file SQL vốn chạy lại an toàn). Luôn nhả khoá; kết nối chết thì Postgres tự nhả. Quá MIGRATION_LOCK_WAIT_MS thì lỗi.
+   */
+  private async withMigrationLock<T>(fn: () => Promise<T>): Promise<T> {
+    const waitMs = Math.max(1000, envInt("MIGRATION_LOCK_WAIT_MS", 120_000));
+    const c = await this.pool.connect();
+    let broken = false;
+    try {
+      const got = (await c.query("SELECT pg_try_advisory_lock($1) AS ok", [MIGRATION_LOCK_KEY])).rows[0].ok as boolean;
+      if (!got) {
+        console.log(`… Tiến trình khác đang chạy migration PostgreSQL, chờ khoá (tối đa ${Math.round(waitMs / 1000)} giây)`);
+        const t0 = Date.now();
+        await c.query(`SET lock_timeout = ${Math.floor(waitMs)}`);
+        await c.query("SELECT pg_advisory_lock($1)", [MIGRATION_LOCK_KEY]);
+        await c.query("RESET lock_timeout");
+        console.log(`… Đã có khoá migration sau ${Date.now() - t0} ms`);
+      }
+      try { return await fn(); }
+      finally {
+        try { await c.query("SELECT pg_advisory_unlock($1)", [MIGRATION_LOCK_KEY]); }
+        catch (e) { broken = true; console.warn("⚠  Không nhả được khoá migration (kết nối sẽ bị đóng):", (e as Error).message); }
+      }
+    } catch (e) { broken = true; throw e; }
+    finally { c.release(broken); }
   }
   /** Chờ các truy vấn đang chạy xong rồi đóng mọi kết nối của pool. */
   async close() { await this.pool.end(); }
