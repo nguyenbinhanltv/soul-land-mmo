@@ -1,0 +1,61 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "imageModel": "unknown (tool did not expose)",
+  "seed": "unknown (tool did not expose)",
+  "attempts": 1,
+  "workerProvenance": {
+    "task": "#776",
+    "species": "doc_cuc_dang",
+    "sheet": "toA",
+    "attempt": "A1",
+    "status": "RAW submitted candidate; art not owner-approved",
+    "tool": "built-in image_gen.imagegen",
+    "model": "unknown (tool did not expose)",
+    "seed": "unknown (tool did not expose)",
+    "attemptCount": 1,
+    "totalSpeciesImagegenCalls": 1,
+    "callTimestampExposed": false,
+    "callTimestampNote": "The image_gen tool response did not provide a call timestamp.",
+    "provenanceRecordedAtUtc": "2026-10-26T15:26:51Z",
+    "exactPrompt": {
+      "path": "toA.prompt.txt",
+      "sha256": "a3c59b0c02e035f3cb939f9cdadaed6bdcbf678410bda45a2bae5a2272e07a2c",
+      "bytes": 6371,
+      "basePromptSha256": "a3c59b0c02e035f3cb939f9cdadaed6bdcbf678410bda45a2bae5a2272e07a2c",
+      "basePromptTemplateMarkdown": "/private/tmp/doc-cuc-dang-prompt/doc_cuc_dang-toA.md",
+      "basePromptTemplateMarkdownSha256": "450e104436bfdbe4456c0f421e0ad576fdcb74dc861fbd00bd8a516ca7d70306"
+    },
+    "generator": {
+      "command": "node tools/assets/beast-sheet-prompt.mjs --species doc_cuc_dang --stage sheet --out /private/tmp/doc-cuc-dang-prompt",
+      "script": "tools/assets/beast-sheet-prompt.mjs",
+      "scriptSha256": "ce67ade6abd84aaacbb2336b8a942fd298330fbf698eabb56d8b31092d4ba625"
+    },
+    "orderedReferences": [
+      {
+        "order": 1,
+        "role": "static identity reference for Độc Cức Đằng",
+        "path": "shared/assets/sprites/beast/doc_cuc_dang.png",
+        "sha256": "22feaff621135a6189d08ad7a7066c1be593c546e81fa78996c0a3c20af28288",
+        "bytes": 3227
+      }
+    ],
+    "toolArguments": {
+      "referenced_image_paths": [
+        "/private/tmp/soul-land-mmo-776-doc-cuc-dang/shared/assets/sprites/beast/doc_cuc_dang.png"
+      ],
+      "transparent_background": false
+    },
+    "originalToolOutputPath": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-1c34a453-4483-42a4-8f20-e7b0c965ccba.png",
+    "raw": {
+      "path": "toA.png",
+      "sha256": "4d48509ddea00698808b0f9ffa93ef4fc5f69e5e538d4fb95deb2a91acea2a06",
+      "bytes": 2087887,
+      "width": 948,
+      "height": 1659,
+      "copiedByteIdenticalFromToolOutput": true
+    },
+    "postprocessing": false,
+    "manualFindings": [],
+    "ownerArtApproval": false
+  }
+}

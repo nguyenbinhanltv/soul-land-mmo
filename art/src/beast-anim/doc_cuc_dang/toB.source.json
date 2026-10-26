@@ -1,0 +1,70 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "imageModel": "unknown (tool did not expose)",
+  "seed": "unknown (tool did not expose)",
+  "attempts": 1,
+  "workerProvenance": {
+    "task": "#776",
+    "species": "doc_cuc_dang",
+    "sheet": "toB",
+    "attempt": "B1",
+    "status": "RAW submitted candidate; art not owner-approved",
+    "tool": "built-in image_gen.imagegen",
+    "model": "unknown (tool did not expose)",
+    "seed": "unknown (tool did not expose)",
+    "attemptCount": 1,
+    "totalSpeciesImagegenCalls": 2,
+    "callTimestampExposed": false,
+    "callTimestampNote": "The image_gen tool response did not provide a call timestamp.",
+    "provenanceRecordedAtUtc": "2026-10-26T15:28:40Z",
+    "exactPrompt": {
+      "path": "toB.prompt.txt",
+      "sha256": "93eddd398c4d28da587efdd071c1bf2bec856b1f8bf63f90ff645a9f1662910b",
+      "bytes": 6319,
+      "basePromptSha256": "c706844ef926b5f8565eda2bbadd328500066ff331caf374963866280793b958",
+      "basePromptTemplateMarkdown": "/private/tmp/doc-cuc-dang-prompt/doc_cuc_dang-toB.md",
+      "basePromptTemplateMarkdownSha256": "e78760a9fa31f41f328d54a37d9b2fc60b3adadf05c19d702b248bca405dfe2e",
+      "addendum": "TRUTHFUL REFERENCE STATUS: image 2 is candidate A1 for technical continuity only; it has not been owner-approved. Match only the creature design, colors, scale and line weight from image 2. This statement does not assert art approval; do not copy poses. A1 has a technical aspect-ratio finding; do not copy its dimensions or poses."
+    },
+    "generator": {
+      "command": "node tools/assets/beast-sheet-prompt.mjs --species doc_cuc_dang --stage sheet --out /private/tmp/doc-cuc-dang-prompt",
+      "script": "tools/assets/beast-sheet-prompt.mjs",
+      "scriptSha256": "ce67ade6abd84aaacbb2336b8a942fd298330fbf698eabb56d8b31092d4ba625"
+    },
+    "orderedReferences": [
+      {
+        "order": 1,
+        "role": "static identity reference for Độc Cức Đằng",
+        "path": "shared/assets/sprites/beast/doc_cuc_dang.png",
+        "sha256": "22feaff621135a6189d08ad7a7066c1be593c546e81fa78996c0a3c20af28288",
+        "bytes": 3227
+      },
+      {
+        "order": 2,
+        "role": "A1 candidate technical reference only; not owner-approved",
+        "path": "art/src/beast-anim/doc_cuc_dang/toA.png",
+        "sha256": "4d48509ddea00698808b0f9ffa93ef4fc5f69e5e538d4fb95deb2a91acea2a06",
+        "bytes": 2087887
+      }
+    ],
+    "toolArguments": {
+      "referenced_image_paths": [
+        "/private/tmp/soul-land-mmo-776-doc-cuc-dang/shared/assets/sprites/beast/doc_cuc_dang.png",
+        "/private/tmp/soul-land-mmo-776-doc-cuc-dang/art/src/beast-anim/doc_cuc_dang/toA.png"
+      ],
+      "transparent_background": false
+    },
+    "originalToolOutputPath": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-f307fcbc-7c22-4a9d-b60c-120ef9977170.png",
+    "raw": {
+      "path": "toB.png",
+      "sha256": "796cc824e9d20f475c9ceea02a6bea57e9311c6bec7cd21bcd7bff8e7e3dc3ee",
+      "bytes": 2113569,
+      "width": 1254,
+      "height": 1254,
+      "copiedByteIdenticalFromToolOutput": true
+    },
+    "postprocessing": false,
+    "manualFindings": [],
+    "ownerArtApproval": false
+  }
+}
