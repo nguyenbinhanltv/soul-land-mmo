@@ -1,7 +1,7 @@
 // Nhập hoạt ảnh vẽ thật của hồn thú vào game MỘT BƯỚC (H4, skill beast-anim Phần B bước 5–7).
 //   node tools/assets/beast-import.mjs --species a,b,c [--dry-run] [--force] [--scale loài=S]... [--patch loài:A:c,r=c,r]... [--sprites <thư mục>] [--src <thư mục>]
 // Mỗi loài: cutter v2 (beast-sheet-cut) trên art/src/beast-anim/<loài>/to*.png → chép <loài>_anim.png vào <sprites>/beast/
-//   → normal.mjs sinh _anim_n.png → thêm / cập nhật entry `beast_<loài>_anim` trong <sprites>/manifest.json
+//   → normal.mjs --frame FxF sinh _anim_n.png → thêm / cập nhật entry `beast_<loài>_anim` trong <sprites>/manifest.json
 //   (đặt ngay sau entry ảnh tĩnh `beast_<loài>`, chép `map` từ đó; không đụng entry khác; chạy lại không đổi gì)
 //   → sau cùng credits.mjs --check (chỉ khi dùng thư mục mặc định) → bảng tóm tắt.
 // Loài có khối CHẶN (cảnh báo mức block của cutter: thiếu khung, vượt khung, tờ thiếu…) thì BỎ QUA và báo khối nào; không nhập nửa vời.
@@ -85,7 +85,7 @@ function importOne(id, o) {
   mkdirSync(path.dirname(png), { recursive: true });
   if (!pngSame) writeFileSync(png, buf);
   if (needNormal) {
-    const n = spawnSync(process.execPath, [path.join(ROOT, "tools", "assets", "normal.mjs"), png], { encoding: "utf8" });
+    const n = spawnSync(process.execPath, [path.join(ROOT, "tools", "assets", "normal.mjs"), png, "--frame", `${r.res.entry.frame[0]}x${r.res.entry.frame[1]}`], { encoding: "utf8" });
     if (n.status !== 0) return { ...row, status: "lỗi", note: `normal.mjs: ${(n.stderr || n.stdout).trim().split("\n").pop()}` };
   }
   if (up.action !== "giữ") writeFileSync(manifestPath, up.text);
