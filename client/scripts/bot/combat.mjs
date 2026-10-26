@@ -19,7 +19,7 @@ export async function lockTest(){
   console.log("[M3 #750] Khoá mục tiêu: tự đánh, giữ khoá khi bị đánh / Choáng, Space tự quay mặt");
   const F=await bot("Khoá mục tiêu","xuc_xich",{sex:0,hair:2,hairCol:3,outfitCol:2});
   const mo=()=>F.room.state.players?.get(F.room.sessionId), bs=bid=>F.room.state.beasts.get(bid);
-  let lockMsg=null, lockWhy=null, n=0; F.room.onMessage("lock",m=>{ lockMsg=m.id; lockWhy=m.why??null; n++; });
+  let lockMsg=null, lockWhy=null, n=0, nWhy=0; F.room.onMessage("lock",m=>{ lockMsg=m.id; lockWhy=m.why??null; if(m.why)nWhy++; n++; });
   await waitFor(()=>F.owned&&mo(),3000);
   try{
     if(!(await test(F,"ping"))?.enabled){ needHookSkip("bỏ qua khoá mục tiêu (cần hook goto, spawn, clear, pst): bật server bằng GAME_TEST=1"); return; }
@@ -65,6 +65,16 @@ export async function lockTest(){
     // 6b) Chưa khoá mà bị từ chối: vẫn nhận tin `lock ""` (client đã đặt khoá tạm, không có tin này sẽ vẽ vòng khoá giả).
     await sleep(200); const n0=n; F.room.send("target",{id:"khong-co-id"});
     ok(await waitFor(()=>n>n0&&lockMsg==="",1000),"chưa khoá, bấm id sai: server vẫn trả lock rỗng để client bỏ khoá tạm");
+    // 6c) Từ chối lúc bấm có lý do (#989): trứng / quá xa / vùng an toàn / gục; cùng lý do bấm dồn thì chỉ báo 1 lần.
+    const deny=async(why,send)=>{ lockWhy=null; const n1=n; send(); await waitFor(()=>n>n1,1000); return lockWhy===why; };
+    await test(F,"clear"); const far=(await test(F,"spawn",{tier:0,dx:70}))?.bid; await waitFor(()=>bs(far),1000);
+    await sleep(1100); const outX=mo().x, outY=mo().y; // chờ hết cửa sổ báo của các lần bấm id sai ở trên
+    ok(await deny("gone",()=>F.room.send("target",{id:"khong-co-id"})),"bấm id không còn: lock rỗng kèm why gone");
+    await sleep(1100); lockWhy=null; const n2=n, w2=nWhy; F.room.send("target",{id:"khong-co-id"}); F.room.send("target",{id:"khong-co-id"});
+    await waitFor(()=>n>=n2+2,1000); ok(nWhy===w2+1&&n===n2+2,"bấm dồn cùng lý do: chỉ lần đầu mang why (lần sau lock rỗng, không why)");
+    await test(F,"goto",{x:sv.x+sv.width/2,y:sv.y+sv.height/2}); await sleep(1100);
+    ok(await deny("safe",()=>F.room.send("target",{id:far})),"đứng trong vùng an toàn bấm hồn thú: why safe");
+    await test(F,"goto",{x:outX,y:outY});
     // 7) Space chưa khoá: quay mặt về quái gần nhất trong tầm (hồn sư đang quay lưng) rồi đánh.
     await test(F,"clear"); F.room.send("input",{x:-1,y:0}); await sleep(250); F.room.send("input",{x:0,y:0}); await sleep(150);
     await test(F,"goto",{x:mo().x,y:mo().y});
