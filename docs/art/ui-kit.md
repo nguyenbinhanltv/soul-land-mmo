@@ -1,6 +1,6 @@
 # UI Kit v2: luật chất liệu, token, luật vẽ AI (bản 1)
 
-Style guide của giao diện HTML (HUD, bảng, hộp thoại). Theo dõi: #877 (UI Kit v2), việc này là #878 (P0). Hướng đã chốt ngày 2026-10-26 (chủ repo, ở #877): **hướng B, hai chất liệu có luật**; chỉ PC (Q40); vùng bấm 44 px cho nút hành động chính; kit **2×** chốt sau thử nghiệm (mục "Kit 1× hay 2×"); phông Galmuri 10 / 12 / 24; icon hybrid; chuyển bằng cờ `ui2`. Luật nằm ở đây, **không** nằm trong issue: issue chỉ chứa việc. Bản 1 ghi luật + token + prompt BOARD; công cụ cắt / kiểm tờ (P1), skill (P2), lớp token và cờ `ui2` (P5) đến sau và sẽ sửa tài liệu này.
+Style guide của giao diện HTML (HUD, bảng, hộp thoại). Theo dõi: #877 (UI Kit v2), việc này là #878 (P0). Hướng đã chốt ngày 2026-10-26 (chủ repo, ở #877): **hướng B, hai chất liệu có luật**; chỉ PC (Q40); vùng bấm 44 px cho nút hành động chính; kit **2×** chốt sau thử nghiệm (mục "Kit 1× hay 2×"); phông Galmuri 10 / 12 / 24; icon hybrid; chuyển bằng cờ `ui2`. Luật nằm ở đây, **không** nằm trong issue: issue chỉ chứa việc. Bản 1 ghi luật + token + prompt BOARD; công cụ cắt / kiểm tờ (P1, đã có: mục "Công cụ tờ UI"), skill (P2), lớp token và cờ `ui2` (P5) đến sau và sẽ sửa tài liệu này.
 
 Liên quan: `docs/design/giao-dien.md` (bố cục, hành vi bảng), skill `client-ui` (cách code), `docs/art/nguon-giay-phep.md` (nguồn / giấy phép ảnh).
 
@@ -155,6 +155,37 @@ Duyệt BOARD (mức B, trang xem trước): chủ repo chọn hướng (A / B /
 - `tools/ui-border-image-probe.mjs`: thử nghiệm kit 1× / 2× ở trên (`--browser chrome|edge`).
 
 Mỗi PR chuyển màn đính ảnh trước / sau ở 3–4 cỡ bằng `ui-shots.mjs`.
+
+## Công cụ tờ UI (P1, #879)
+
+Cùng khung với `beast:check` / cutter hồn thú: **kiểm trước, cắt sau**, mọi phép đo ở máy, không cần Chrome / server. Spec (tỉ lệ, bố cục, tên mảnh, trạng thái, ngân sách KB) ở `art/src/ui-kit/ui-kit.json` (luật: người sửa; `pieces` / `groups` do công cụ ghi, đừng sửa tay).
+
+| Lệnh | Việc |
+|---|---|
+| `npm run ui:check -- <tờ.png> [--kind F/N/O/T/I/D/BOARD] [--out <thư mục>] [--palette <gpl>]` | kiểm tờ RAW; ghi `<tờ>-ui-check.json` / `.md`, tờ liên hệ có nhãn, dòng `LỖI:` nháp; thoát mã 1 khi có mức **chặn** |
+| `npm run ui:cut -- <tờ.png> --out <thư mục> [--no-mirror] [--names a,b] [--prefix p_] [--write-manifest]` | tách mảnh, dựng gương, hạ lưới, lượng tử; ghi `2x/`, `1x/`, `manifest-entry.json`; tờ có mục chặn thì **không cắt** |
+| `npm run ui:cut -- --budget` | tổng KB mảnh đã ghi trong manifest so với ngân sách (kit khung + nút + ô + thanh ≤ 250 KB, icon ≤ 150 KB, tính **riêng từng bản 2× / 1×**) |
+
+Loại tờ suy từ tên file (`toF.png`, `N-2.png`) hoặc `--kind`. Mỗi tờ một họ: **F** khung 3:2 (6 mảnh, 3 + 3), **N** nút 3:2 (12: 5 chính + 5 phụ + 2 tab), **O** ô 1:1 (12: 3 + 5 độ hiếm + 4 kỹ năng), **T** thanh 3:2 (9), **I** icon 1:1 (16), **D** trang trí 2:3 (6 hoặc 9), **BOARD** (chỉ kiểm cỡ). Tên mảnh theo thứ tự đọc, khoá xuất `ui2_<tên>` (tờ icon: đặt `--prefix` theo họ để khoá không trùng).
+
+**Kiểm** (`ui-sheet-check.mjs`; dò lưới / khoá nền tái dùng `beast-sheet-grid` và `beast-sheet-cut`):
+
+| Mức | Mã | Điều kiện |
+|---|---|---|
+| chặn | `kich-thuoc` | tỉ lệ ngoài tập Codex (2:3, 1:1, 3:2, ±1%) hoặc sai tỉ lệ so với loại tờ; cỡ lạ mà đúng tỉ lệ chỉ **nhẹ** (cutter chuẩn hoá) |
+| chặn | `nen` | màu nền cách `#FF00FF` hoặc bốn góc lệch quá dung sai 60 |
+| chặn | `luoi`, `so-hinh`, `hinh-dinh`, `trang-thai` | không dò được dải theo bố cục; thiếu / thừa mảnh; mảnh dính; thiếu trạng thái (liệt kê tên mảnh thiếu) |
+| chặn | `vien-hong` | > 3% điểm viền còn ám hồng sau khi khoá nền (nhẹ nếu > 1%) |
+| chặn | `canh-phang` | > 35% điểm dải mép lệch khỏi thân cạnh khi kéo ×3 (nhẹ nếu > 15%): hoa văn dọc cạnh sẽ lộ khi kéo |
+| chặn | `mau` | > 40 màu đáng kể (≥ 0,5% điểm, ô 3 bit); nhẹ nếu > 32; `ngoai-bang` khi có `--palette` |
+| nhẹ | `cham-mep`, `khoang-cach`, `do-day`, `doi-xung`, `trang-thai-giong`, `chia-9` | chạm mép; cách nhau < 5% cạnh tờ; độ dày viền lệch > 2 điểm master; bốn góc khác nhau (cutter dựng gương nên bỏ qua được); hover ≈ thường; ruột không đồng nhất |
+| cảnh báo | `chu-lac` | nghi chữ / ký tự trong ruột (≥ 3 nét thẳng hàng): **chỉ cảnh báo**, xem tờ liên hệ rồi quyết |
+
+Ghi chú đo: vạch 9-slice đề xuất = max(độ dày viền, tầm với hoa văn góc) đo trên ảnh master (trên nút UI-5 ra 7, hộp thoại ra 14 hoặc 15, trùng manifest cũ). Mảnh trang trí không phải khung thì đặt `"stretch": false` ở spec mảnh: 7 mảnh C2 là tranh vẽ tay, cạnh có hoa văn, coi là khung 9-slice thì bị chặn `canh-phang`, đúng như thiết kế.
+
+**Cắt** (`ui-sheet-cut.mjs`): tách mảnh (khoảng trống + khoá nền + gỡ viền) → hạ lưới theo vùng về **master 2×** (`div` theo loại tờ, nhân thêm tỉ lệ cỡ tờ nên 1024² và 1254² ra cùng cỡ) → khung / nút dựng **đối xứng bằng gương** từ phần tư trên-trái (model chỉ cần vẽ một góc đẹp) → lượng tử ≤ 32 màu + viền `#1a1020`, alpha nhị phân → xuất **2×** và **1×** (1× hạ theo vùng từ 2× rồi lượng tử lại, không nearest trần; khớp khuyến nghị ở mục "Kit 1× hay 2×") → vạch 9-slice đo từ ảnh, **chung trong một bộ trạng thái** (`nine.x2`, `nine.x1` = ⌈x2 / 2⌉). Manifest mỗi mảnh ghi `nine`, `set` + `state` (và `groups`: bộ → trạng thái → khoá), `grid` (master, hệ số hạ, cỡ tờ), `size`, `bytes`, `hash`. **Tất định**: cùng tờ + cùng tuỳ chọn → cùng byte; cắt lại mảnh đã cắt (bảng màu có sẵn) cũng ra đúng byte (kiểm trong `npm run test:assets`).
+
+Chưa làm ở P1: đổi nguồn `--frame-*` / cờ `ui2` (P5), trang xem trước bộ component + CI nhẹ (P2), nhập mảnh vào `shared/assets` (PR từng màn). Fixture thử: 7 mảnh C2 + khung UI-5 thật phóng lên tờ giả, khung tổng hợp có lỗi cố ý (`tools/assets/ui-sheet-fixture.mjs`).
 
 ## Lỗi đã sửa ở P0 (ghi để không lặp)
 
