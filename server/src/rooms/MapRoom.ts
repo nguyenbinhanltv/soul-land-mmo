@@ -36,11 +36,11 @@ import { TIERS, VOHON, xpNeed, xpBlocked, calcStats, TICK_RATE, tierOfYears, voh
   OFFLINE, offlineFight, offlineSplit, type OfflinePower,
   type SellSettings } from "../../../shared/data.ts";
 import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
-import { FOG, } from "../../../shared/data.ts"; // sương mù khám phá (R8)
+import { FOG } from "../../../shared/data.ts"; // sương mù khám phá (R8)
 import type { Vitals } from "../../../shared/vitals.ts";
 import { fogDims, fogEmpty, fogReveal, fogValid, fogOn as fogMapOn } from "../../../shared/fog.ts";
 import { ASK_CD, MSG_GROUP, MSG_HARD, MSG_FLOOD_CODE, type MsgGroup } from "../../../shared/data.ts"; // nhịp tin client xin lại dữ liệu riêng (#165)
-import { clampDir, MOVE_DEAD, } from "../../../shared/move.ts";
+import { clampDir, MOVE_DEAD } from "../../../shared/move.ts";
 import { loadMap, mapFile, mapRoute, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, bossOffset, bossNow, type BossEvent } from "../schedule.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag, type AutoRow, type SoldRow, type TongRow, type SocialRow } from "../db.ts";
@@ -49,17 +49,15 @@ import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
 import * as join from "./join.ts";
 import { friends, FRIEND_TOPIC, type FriendNote } from "../friends.ts";
-import { watchGc, cpuMs, } from "../perf.ts";
-import { arenaDequeue, arenaQueued, arenaReadCancel, } from "./arenaQueue.ts";
+import { watchGc, cpuMs } from "../perf.ts";
+import { arenaDequeue, arenaQueued, arenaReadCancel } from "./arenaQueue.ts";
 import { Interest } from "./interest.ts";
 import { AutoHunter } from "./autoHunt.ts";
 import { type BagSent } from "../../../shared/bagSync.ts";
 import { Grounds } from "./ground.ts";
-import { } from "../itemLock.ts";
 import { presenceBackend, bg } from "../presence.ts";
 import { ColdStacks } from "./cold.ts";
 import { _gmSetAdmin, type GmCmd } from "../gm.ts"; // lệnh GM của admin (#518)
-import { } from "../testPreset.ts";
 import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
 import { newItem, itemStacks, bagUsed, type GearStats } from "./items.ts";
