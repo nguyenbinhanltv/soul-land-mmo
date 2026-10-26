@@ -4,14 +4,14 @@
 import { Room, Client, ServerError, matchMaker, OnMessageException, type RoomException } from "colyseus";
 import { randomUUID } from "node:crypto";
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
-import { TIERS, VOHON, xpNeed, atBottleneck, xpBlocked, MAX_LEVEL, calcStats, TICK_RATE, tierOfYears, vohonIndex,
+import { TIERS, VOHON, xpNeed, xpBlocked, calcStats, TICK_RATE, tierOfYears, vohonIndex,
   AWAKEN_GIFT, AWAKEN_CHOICES, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, REVIVE_SECS, RESPAWN_SECS, XP_SHARE_ACTIVE, XP_SHARE_BENCH,
-  beastLevel, xpLevelScale, MAX_RINGS, parseTeam, BEASTS, beastIndex, MAPS, MAP_MOVED, DEFAULT_MAP, parseNewLooks, encodeLpc, dir4, type Looks,
+  beastLevel, xpLevelScale, parseTeam, BEASTS, beastIndex, MAPS, MAP_MOVED, DEFAULT_MAP, parseNewLooks, encodeLpc, dir4, type Looks,
   TRAVEL_CAST, BOAT_CAST, WAYPOINT_CAST, waypointFee, RED_BEAST_CHANCE, kingYears, TRAVEL_LEAVE_SECS, CHANNEL_MAX, CHANNEL_CD,
   TIEN_CO, TIEN_CO_MAX, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY, energyGain, tienCoDmgMult, TILE, RALLY,
   itemDef, BAG_EXPAND, BAG_MAX_SLOTS, bagSlotsOf, BUYBACK_MAX, bagExpandCost, DAN_CD, STARTER_ITEMS, BEAST_COIN, formatHonTe, type ItemDef,
   MAX_YEARS, tierBand, rollYears, beastStats, formatYears, RING_ITEM, DROP_OWNER_SECS, DROP_TTL_SECS, PICKUP_RANGE,
-  absorbSecs, absorbChance, SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode, starSkillMult, starCdMult, starTienCoMult, starRing,
+  SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode, starSkillMult, starCdMult, starTienCoMult, starRing,
   BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus, boneSlotIndex,
   CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, coreSetName, coreResetFee, MAX_CORE_STARS, type CoreData,
   CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ROLL, parseEquip, equipStats, equipDefTotal, equipWeaponRoll, equipTemplate, equipSlotIndex, equipName, equipSlotDef, rollEquip, rollEquipDrop, rollEquipCharm, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_TEMPLATES, EQUIP_TIERS, EQUIP_ESSENCE, EQUIP_SOUL, equipLuckStep, EQUIP_SALVAGE_MAX, equipSynthStep, equipSynthOutcome, equipSalvage, equipAutoSalvageable, type EquipData, type EquipDrop,
@@ -72,6 +72,7 @@ import { newItem, itemStacks, gearStats, gearLook, bagUsed, bumpItemClock, KIND_
 import { targetMsg, tickLock, setLock, manualAttack } from "./lock.ts";
 import * as equip from "./equip.ts";
 import * as bones from "./bones.ts";
+import * as absorb from "./absorb.ts";
 import * as social from "./social.ts";
 import * as shop from "./shop.ts";
 import * as gm from "./gm.ts";
@@ -3948,97 +3949,10 @@ export class MapRoom extends Room<MapState> {
   resetCoreSet(id: string, rawItem: unknown, rawSet: unknown, rawNpc: unknown) { return bones.resetCoreSet(this, id, rawItem, rawSet, rawNpc); }
 
   // ---------- Hồn hoàn ----------
-  /**
-   * Hấp thụ hồn hoàn trong túi vào một võ hồn (mục 5.2 "Hấp thụ", bước 3.3). Client gửi id ô và `vohonId` (vohons.id; thiếu thì
-   * võ hồn đang ra trận); server kiểm tra ô thuộc túi và võ hồn thuộc bộ sưu tập của chính người gửi. Chỉ khi võ hồn ở bình cảnh
-   * và không giao chiến; vượt giới hạn của vòng (RING_LIMIT) thì thất bại theo bảng ABSORB_FAIL, vượt > 100% thì không cho.
-   * Hồn hoàn nằm trong túi suốt lúc hấp thụ (absorbSecs theo số năm): di chuyển hoặc bị đánh thì hủy, không mất gì.
-   */
-  tryAbsorb(c: Client, raw: unknown, rawVohon: unknown) {
-    const id = c.sessionId, p = this.state.players.get(id), d = this.pdata.get(id);
-    if (!p || !d || p.dead || d.absorbing || d.travelling) return;
-    const warn = (text: string) => this.log(id, text, "#ffb35c");
-    if (d.travelCast) return warn("Đang đi qua cổng, không thể hấp thụ.");
-    if (claimHeld(d)) return warn(CLAIM_BUSY); // #165: hồn hoàn boss thế giới vào túi trước khi DB xác nhận lượt
-    const it = typeof raw === "string" ? d.bag.find((i) => i.id === raw && i.vohonId === null) : undefined;
-    if (!it || it.code !== RING_ITEM || it.years === null) return warn("Hãy chọn một hồn hoàn trong túi đồ để hấp thụ (phím B).");
-    const v = rawVohon === undefined || rawVohon === null ? d.ch : d.owned.find((x) => x.rowId === rawVohon);
-    if (!v) return warn("Bạn không sở hữu võ hồn này.");
-    if (v === d.ch) this.syncCh(id);
-    const name = VOHON[Math.max(0, vohonIndex(v.vohon))].name, slot = v.rings.length + 1, years = it.years;
-    if (v.rings.length >= MAX_RINGS) return warn(`${name} đã đủ ${MAX_RINGS} hồn hoàn, không hấp thụ thêm được.`);
-    if (!atBottleneck(v.level, v.rings.length)) return warn(`${name} cần đạt cấp ${slot * 10} (bình cảnh) mới hấp thụ được hồn hoàn thứ ${slot}.`);
-    if (d.fight < TEAM_COMBAT_SECS) return warn(`Đang giao chiến: rời xa hồn thú ${TEAM_COMBAT_SECS} giây rồi mới hấp thụ được.`);
-    const ch = absorbChance(years, slot);
-    if (ch.fail === null) return warn(`Hồn hoàn ${formatYears(years)} vượt giới hạn vòng thứ ${slot} (${formatYears(ch.limit)}) tới ${ch.over}%: cơ thể không chịu nổi, không thể hấp thụ.`);
-    const dur = absorbSecs(years);
-    d.absorbing = { itemId: it.id, rowId: v.rowId, slot, years, t: 0, dur, fail: ch.fail };
-    p.absorbTier = tierOfYears(years); p.absorb = 0.001;
-    c.send("absorbing", { on: true, rowId: v.rowId, years, slot, secs: dur, over: ch.over, fail: ch.fail });
-    const secs = `${String(dur).replace(".", ",")} giây`;
-    if (ch.fail) this.log(id, `Bắt đầu hấp thụ hồn hoàn ${formatYears(years)} vào ${name}: vượt giới hạn ${ch.over}%, ${Math.round(ch.fail * 100)}% thất bại (mất hồn hoàn). Cần ${secs}.`, "#ffb35c");
-    else this.log(id, `Bắt đầu hấp thụ hồn hoàn ${formatYears(years)} vào ${name} (${secs}). Đừng di chuyển và đừng để bị tấn công.`);
-    this.dailyBag(id); // #165: hồn hoàn đang hấp thụ không còn tính cho bài khảo hạch nộp hồn hoàn
-  }
-
-  /** Hủy hấp thụ (di chuyển, bị đánh): không mất gì, hồn hoàn vẫn trong túi. */
-  cancelAbsorb(id: string, text: string) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d?.absorbing) return;
-    const a = d.absorbing; d.absorbing = null; p.absorb = 0;
-    this.clients.getById(id)?.send("absorbing", { on: false, result: "cancel", rowId: a.rowId, years: a.years });
-    this.log(id, text, "#ffb35c");
-    this.dailyBag(id); // hồn hoàn lại tính cho bài khảo hạch nộp hồn hoàn
-  }
-
-  /**
-   * Hết thời gian hấp thụ: server tung kết quả (hook test `roll` cố định được số ngẫu nhiên). Thành công hay thất bại hồn hoàn đều
-   * rời túi; thất bại không phạt gì thêm. Thành công: lưu số năm vào vòng, lên 1 cấp (tối đa MAX_LEVEL). Hồn kỹ vòng 5–10 chưa có
-   * (bước 8.1): vòng 5+ chỉ tăng chỉ số qua calcStats.
-   */
-  finishAbsorb(id: string) {
-    const p = this.state.players.get(id)!, d = this.pdata.get(id)!, a = d.absorbing!, c = this.clients.getById(id);
-    d.absorbing = null; p.absorb = 0;
-    const it = d.bag.find((i) => i.id === a.itemId), v = d.owned.find((x) => x.rowId === a.rowId);
-    if (v === d.ch) this.syncCh(id);
-    // Hồn hoàn hoặc võ hồn không còn đúng như lúc bắt đầu: bỏ qua, không mất gì.
-    if (!it || it.years !== a.years || !v || v.rings.length + 1 !== a.slot || !atBottleneck(v.level, v.rings.length)) {
-      c?.send("absorbing", { on: false, result: "cancel", rowId: a.rowId, years: a.years });
-      this.dailyBag(id);
-      return;
-    }
-    const years = a.years, tier = tierOfYears(years), age = formatYears(years), name = VOHON[Math.max(0, vohonIndex(v.vohon))].name;
-    // Thành công hay thất bại hồn hoàn đều rời túi (thất bại là vỡ tan).
-    this.takeItem(d, it, 1); this.sendBag(id);
-    const roll = d.testRoll ?? Math.random();
-    if (roll < a.fail) {
-      c?.send("absorbing", { on: false, result: "fail", rowId: v.rowId, years, slot: a.slot });
-      this.log(id, `Thất bại! Hồn hoàn ${age} vỡ tan (vượt giới hạn vòng thứ ${a.slot}). ${name} không bị tổn hại gì thêm.`, "#ff8a8a");
-      this.save(id); return;
-    }
-    v.rings.push(years); v.level = Math.min(MAX_LEVEL, v.level + 1); v.xp = 0;
-    const n = v.rings.length;
-    if (v === d.ch) {
-      this.showVohon(p, v); d.ringYears = [...v.rings];
-      this.recalc(id, true);
-      this.broadcast("fx", { k: "absorbed", id, tier });
-    } else {
-      d.dirty.add(v.rowId);
-      if (!d.down.has(v.rowId)) d.benchHp.delete(v.rowId); // lên cấp thì hồi đầy, như benchXp
-    }
-    c?.send("absorbing", { on: false, result: "ok", rowId: v.rowId, years, slot: n, level: v.level });
-    if (!a.fail) this.questEvent(id, { k: "absorb" }); // 6.2: chỉ hồn hoàn không vượt giới hạn của vòng
-    // Từ 8.1a: vòng 5–10 mở hồn kỹ / Chân Thân nếu võ hồn đã có dữ liệu; chưa có thì vòng này chỉ tăng chỉ số.
-    const nk = ringSkill(v.vohon, n - 1), ct = n === CHAN_THAN_RING ? chanThanOf(v.vohon) : null;
-    const sk = nk ? ` Nhận Hồn kỹ vòng ${n}: ${nk.name}${n > LOADOUT_SIZE ? " (xếp vào 4 ô mang theo ở bảng đội hình, phím V)" : ""}.`
-      : ct ? ` Mở Võ Hồn Chân Thân: ${ct.name} (phím R).` : " Võ hồn này chưa có hồn kỹ vòng này (bản sau); vòng này tăng chỉ số.";
-    const lv = n >= MAX_RINGS ? ` Đủ ${MAX_RINGS} hồn hoàn, cấp tối đa ${v.level}.` : ` Lên cấp ${v.level}.`;
-    this.log(id, `Hấp thụ thành công hồn hoàn ${age} vào ${name} (vòng ${n})!${lv}${sk}`, TIERS[tier].glow);
-    this.broadcast("chat", { sys: true, name: "Hệ thống", text: `${p.name} đã hấp thụ hồn hoàn thứ ${n} (${age}) cho ${name}.` });
-    if (c) this.sendVohons(c);
-    this.resCheck(id); // cộng minh (8.2): tổng hồn hoàn, võ hồn cấp 30+
-    this.save(id);
-  }
-
+  /** Hấp thụ hồn hoàn (bình cảnh, tỉ lệ thất bại, gắn vòng): logic ở `absorb.ts` (#702), các hàm dưới chỉ chuyển tiếp để `onMessage` / `tick` gọi như cũ. */
+  tryAbsorb(c: Client, raw: unknown, rawVohon: unknown) { return absorb.tryAbsorb(this, c, raw, rawVohon); }
+  cancelAbsorb(id: string, text: string) { return absorb.cancelAbsorb(this, id, text); }
+  finishAbsorb(id: string) { return absorb.finishAbsorb(this, id); }
   // ---------- Hồn thú ----------
   /**
    * Sinh một hồn thú trong vùng `zi`: tuổi ngẫu nhiên trong khoảng `years` của vùng (bảng 5.3; vùng thiếu `years` thì tung bậc
