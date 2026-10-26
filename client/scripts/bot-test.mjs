@@ -691,7 +691,9 @@ async function channelTest(){
   const chans=async b=>{ await sleep(1050); b.chans=null; b.room.send("channels"); await waitFor(()=>b.chans,1500); return b.chans; };
   const fresh=async b=>{ b.owned=null; b.bag=null; b.room.send("vohons"); b.room.send("bag"); await waitFor(()=>b.owned&&b.bag&&meC(b),2000); };
   /** Đi theo tin `travel` như client: rời phòng cũ, vào đúng phòng server chọn (roomId null thì joinOrCreate). */
-  const follow=async b=>{ const t=b.travel; await b.room.leave(); await sleep(200); b.mapId=t.mapId; await enter(b,t.roomId??undefined); await fresh(b); };
+  const follow=async b=>{ const t=b.travel; if(!t) return; await b.room.leave(); await sleep(200); b.mapId=t.mapId; await enter(b,t.roomId??undefined); await fresh(b); };
+  /** Chờ tin `travel` (server chỉ gửi sau khi lưu xong, máy tải thì chậm) rồi đi theo; hết giờ thì ✗ kèm log thay vì TypeError. */
+  const followTravel=async(b,what)=>{ const got=await waitFor(()=>b.travel,10000); ok(got,`${what}: nhận travel (log: ${b.logs.slice(-3).join(" | ")})`); if(got) await follow(b); return got; };
   const prog=b=>JSON.stringify(b.owned.list.map(v=>[v.rowId,v.level,v.xp,v.stars,v.rings]));
   const pact=async(b,op,extra,w)=>{ const n=w.partyMsgs; b.room.send("party",{op,...extra}); await waitFor(()=>w.partyMsgs>n,2000); await sleep(120); };
 
@@ -776,7 +778,7 @@ async function channelTest(){
   P2.travel=null; await T(P2,"warp",{mapId:NV,x:0,y:0}); await waitFor(()=>P2.travel,3000);
   ok(P2.travel?.roomId===P3.room.roomId,"đồng đội P2 đi cổng: server chọn đúng kênh của P3");
   await follow(P2);
-  P1.travel=null; await T(P1,"warp",{mapId:NV,x:0,y:0}); await waitFor(()=>P1.travel,3000); await follow(P1);
+  P1.travel=null; await T(P1,"warp",{mapId:NV,x:0,y:0}); await followTravel(P1,"P1 đi cổng");
   ok(chOf(P3)===1&&chOf(P2)===1&&chOf(P1)===2,`Ngoại vi: P3, P2 kênh ${chOf(P3)}; P1 kênh ${chOf(P1)} (kênh 1 đầy)`);
   { // #819: khóa kênh đích sau đổi kênh nằm ở presence dùng chung (chạy --procs 2: phòng đích khác tiến trình vẫn thấy khóa, không chặn nhầm)
     await T(P2,"chan",{reset:1}); P2.travel=null; await say(P2,"channel",{ch:2}); await waitFor(()=>P2.travel,3000);
@@ -785,7 +787,7 @@ async function channelTest(){
     ok(/kênh 2/.test(other)&&other!=="vào được",`#819 Ngoại vi: đổi sang kênh 2 nhưng joinById kênh 1: bị từ chối ("${other}")`);
     await enter(P2,t.roomId); await fresh(P2);
     ok(chOf(P2)===2,"#819: vào đúng kênh server chọn: khóa không chặn nhầm");
-    await T(P2,"chan",{reset:1}); P2.travel=null; await say(P2,"channel",{ch:1}); await waitFor(()=>P2.travel,3000); await follow(P2);
+    await T(P2,"chan",{reset:1}); P2.travel=null; await say(P2,"channel",{ch:1}); await followTravel(P2,"P2 đổi sang kênh 1");
     ok(chOf(P2)===1&&chOf(P1)===2,"#819: P2 về kênh 1 như cũ (khóa cũ đã gỡ, không chặn lần vào hợp lệ kế tiếp)");
   }
 
@@ -803,7 +805,7 @@ async function channelTest(){
   ok(await waitFor(()=>P3.chats.some(m=>/đã bị hạ/.test(m.text)),1500)&&king(P3),`kênh 1 nhận thông báo toàn server ("${P3.chats.find(m=>/bị hạ/.test(m.text))?.text}"), thú vương kênh 1 vẫn còn`);
   await P2.room.leave(); await sleep(300); // kênh 1 còn chỗ
   await T(P1,"rest",{s:TEAM_COMBAT_SECS+1}); await T(P1,"chan",{reset:1});
-  P1.travel=null; await say(P1,"channel",{ch:1}); await waitFor(()=>P1.travel,3000); await follow(P1);
+  P1.travel=null; await say(P1,"channel",{ch:1}); await followTravel(P1,"P1 đổi sang kênh 1");
   ok(chOf(P1)===1&&king(P1),"P1 đổi sang kênh 1 (vẫn trong khung giờ đó, thú vương kênh 1 còn sống)");
   P1.logs=[]; await slayKing(P1); await waitFor(()=>!king(P1),3000); await sleep(400);
   ok(!king(P1)&&chestN(P1)===1&&/đã nhận rương của khung giờ này ở kênh khác/.test(P1.logs.join("\n")),
@@ -861,10 +863,10 @@ async function channelTest(){
   P3.travel=null; await T(P3,"warp",{mapId:TD,x:tdS.x,y:tdS.y}); await waitFor(()=>P3.travel,3000);
   ok(P3.travel?.mapId===TD&&P3.travel.roomId===null,`P3 tới ${MAPS[TD].name}: chưa có kênh nào (roomId null)`);
   await follow(P3);
-  P1.travel=null; await T(P1,"warp",{mapId:TD,x:tdS.x+16,y:tdS.y}); await waitFor(()=>P1.travel,3000);
+  P1.travel=null; await T(P1,"warp",{mapId:TD,x:tdS.x+16,y:tdS.y}); await waitFor(()=>P1.travel,10000);
   ok(P1.travel?.roomId===P3.room.roomId,"P1 tới Thiên Đấu Thành: vào kênh 1 còn chỗ của P3"); await follow(P1);
   { const pick=await post("/api/channel",{token:P2.token}); await enter(P2,pick.roomId??undefined); await fresh(P2); }
-  P2.travel=null; await T(P2,"warp",{mapId:TD,x:tdS.x-16,y:tdS.y}); await waitFor(()=>P2.travel,3000); await follow(P2);
+  P2.travel=null; await T(P2,"warp",{mapId:TD,x:tdS.x-16,y:tdS.y}); await followTravel(P2,"P2 tới Thiên Đấu Thành");
   ok(P2.room.state.mapId===TD&&chOf(P3)===1&&chOf(P1)===1&&chOf(P2)===2&&P2.room.roomId!==P3.room.roomId,
     `Thiên Đấu Thành: P3, P1 kênh ${chOf(P3)}; P2 kênh ${chOf(P2)} (kênh 1 đầy, đồng đội P3 không còn chỗ)`);
   cl=await chans(P2); ok(JSON.stringify(cl?.list.map(c=>[c.ch,c.n]))==="[[1,2],[2,1]]",`danh sách kênh Thiên Đấu Thành: ${JSON.stringify(cl?.list)}`);
