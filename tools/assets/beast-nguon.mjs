@@ -65,6 +65,11 @@ export function buildNguon(id, r, o = {}) {
   L.push("## Lỗi", "");
   if (errors.length) L.push("```text", ...errors, "```"); else L.push("Không có dòng `LỖI:`.");
   L.push("");
+  // Bảng ghi công của loài (#973): `tools/assets/credits.mjs` gom vào màn Ghi công; thay cho việc nối dòng vào art/CREDITS.md (PR song song xung đột)
+  const srcTool = (items.map((s) => readSourceJson(path.join(path.dirname(s.file), `${s.name}.source.json`))?.tool).find(Boolean)) ?? UNKNOWN;
+  L.push("## Ghi công", "", "Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); không nối dòng vào `art/CREDITS.md`.", "",
+    "| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |", "|---|---|---|---|---|---|",
+    `| \`art/src/beast-anim/${id}/\` | - | ${o.tool ?? srcTool} | RAW hoạt ảnh ${info.name}: ${items.map((s) => `${s.name} ${s.size.join("×")}`).join(", ")}; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |`, "");
   return L.join("\n");
 }
 

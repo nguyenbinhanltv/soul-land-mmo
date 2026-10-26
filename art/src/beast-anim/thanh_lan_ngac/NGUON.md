@@ -19,3 +19,11 @@ B104B1: đúng một builtin call, không retry. Yêu cầu1024×1024; thực t�
 Prompt B thật: prefix681byte + nguyên khối BASE3539byte (byte681–4219, từ0) + hai LF + câu bổ sung matching second sheet/body size. `toB.prompt.txt` giữ đúng4342byte; không ghi nhầm suffix là prefix. Hai ref thực đúng thứ tự static identity rồi A101A1 style/body-size candidate, hash và đường dẫn trong source JSON. A còn FAIL, không làm chuẩn hướng/pose.
 
 Quan sát B:44hình semantic;4vị trí blank được đếm pixel riêng trong JSON, không suy art pass. NE die H4C3–4 về E; N H5–7 lộ mặt/mõm, H7C3 về NE, death H8 về chéo/phải; hurt ngửa đầu thay recoil rõ. Không chữ/lưới thấy rõ. Nền và cỡ thân chưa đạt chứng nhận; không waiver offsize1254, không import.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/thanh_lan_ngac/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Thanh Lân Ngạc (H4 đợt 4, Part of #770 và #766): `art/src/beast-anim/thanh_lan_ngac/toA.png` (1024×1536, fresh101 A1) và `toB.png` (1254×1254 thật, yêu cầu1024×1024, fresh104 B1), mỗi tờ đúng một call, không retry, tthoadev sinh ngày 2026-10-26 bằng builtin `image_gen.imagegen`; model ảnh/seed unknown, không size selector. A chỉ static gốc đúng loài qua backup nguyên byte đã VIEW; B ordered static + A101A1 style/body-size candidate còn FAIL. RAW giữ nguyên byte, không hậu kỳ/cắt/resize; FAIL hướng/hurt/nền/lấn ô trống được nộp theo chỉ đạo owner, chưa art accepted hoặc nhập runtime. Exact prompt/base/prefix/hash/refroles/counters và lỗi: [NGUON.md](src/beast-anim/thanh_lan_ngac/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json`, doc generator cùng thư mục. Tổng2calls; B sai size/N/death/hurt; không waiver. Nguồn Q44/điều khoản công cụ. | - | Chuyển một lần từ art/CREDITS.md (#973) |
