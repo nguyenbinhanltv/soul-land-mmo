@@ -1,10 +1,11 @@
 {
   "schema": 1,
   "generatedBy": "tools/assets/beast-status.mjs",
-  "species": 28,
+  "species": 29,
   "imported": 6,
   "tally": {
     "san-sang-nhap": 21,
+    "thieu-to": 1,
     "chan": 7
   },
   "items": [
@@ -315,6 +316,58 @@
       },
       "missing": [],
       "errorLines": []
+    },
+    {
+      "id": "hoi_vu_tuoc",
+      "name": "Hôi Vũ Tước",
+      "family": "bird",
+      "frame": 64,
+      "imported": false,
+      "turnaround": false,
+      "layout": "sheet",
+      "state": "thieu-to",
+      "sheets": [
+        {
+          "sheet": "toA",
+          "file": "art/src/beast-anim/hoi_vu_tuoc/toA.png",
+          "size": [
+            948,
+            1660
+          ],
+          "bytes": 1779427,
+          "sha256": "e265549dd7374c2b1d61ca0d3ba01f76a0253223fc70d41a0c9e96f016869465",
+          "level": "chặn",
+          "block": 1,
+          "light": 0,
+          "note": 0
+        },
+        {
+          "sheet": "toB",
+          "file": "art/src/beast-anim/hoi_vu_tuoc/toB.png",
+          "size": [
+            1254,
+            1254
+          ],
+          "bytes": 1771258,
+          "sha256": "bbfb540aa83a195a8ca5e63b4b11cd89310a9af8631f831bed20e0ef15434b06",
+          "level": "nhẹ",
+          "block": 0,
+          "light": 2,
+          "note": 2
+        }
+      ],
+      "blocks": {
+        "s": "thiếu",
+        "se": "thiếu",
+        "e": "thiếu",
+        "ne": "nhẹ",
+        "n": "nhẹ"
+      },
+      "missing": [],
+      "errorLines": [
+        "LỖI: toA — sai kích thước — toàn tờ — 948×1660 không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2).",
+        "LỖI: toB — cỡ thân lệch — H1–4 (ne), H5–8 (n) — cỡ thân idle 89% so với ảnh tĩnh (lệch 11%); cỡ thân idle 111% so với ảnh tĩnh (lệch 11%)."
+      ]
     },
     {
       "id": "huyen_bang_thiem",

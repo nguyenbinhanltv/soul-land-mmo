@@ -2294,6 +2294,8 @@ Thiết Giáp Cự Giải (H4 đợt 4, Part of #770/#766): `art/src/beast-anim/
 
 Thiết Giáp Tê Ngưu (H4 đợt 4, Part of #770/#766): `art/src/beast-anim/thiet_giap_te_nguu/toA.png` (1024×1536, fresh110 A1) và `toB.png` (1254×1254 thật thay1024×1024 yêu cầu, fresh112 B1), tthoadev sinh ngày2026-10-26 bằng builtin `image_gen.imagegen`; mỗi tờ1call/0retry, tổng2. Model ảnh/seed unknown. A static identity only; B ordered static+A style/body-size candidate còn FAIL. RAW nguyên byte, không hậu kỳ/cắt/resize; nộp mọiFAIL theo owner, không size/art/runtime acceptance. Exact prompts/baseposition/refroles/hash/counters/template conflicts: [NGUON.md](src/beast-anim/thiet_giap_te_nguu/NGUON.md), toA/toB.prompt.txt và toA/toB.source.json cùng thư mục. Nguồn Q44/điều khoản công cụ.
 
+Hôi Vũ Tước (H4 #772): `art/src/beast-anim/hoi_vu_tuoc/toA.png` (948×1660, A1) và `toB.png` (1254×1254, B2); B1 giữ candidate trong `candidates/`. Sinh ngày 2026-10-26 bằng builtin `image_gen.imagegen`, tổng 3 lượt (A1+B1+B2), model/seed unknown. Static đúng loài làm ref A; B dùng static rồi A1 làm candidate ref, chưa owner-approved. RAW nguyên byte, không resize/crop/hậu kỳ. A tỉ lệ sai; B có lỗi NE lộ mặt/mỏ và N D4 chết nằm ngang lệch trục. Checker cũng báo cỡ thân lệch 11%, nhưng theo rule owner đây là cảnh báo kỹ thuật, không phải `LỖI`. Prompt, SHA, refs, lượt và findings: [NGUON.md](src/beast-anim/hoi_vu_tuoc/NGUON.md) cùng `toA/toB.prompt.txt` và `toA/toB.source.json`; chưa artaccepted/imported.
+
 <!-- private-assets:start -->
 ## Asset kho riêng (không nằm trong repo công khai)
 
