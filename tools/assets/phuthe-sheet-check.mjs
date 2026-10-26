@@ -13,7 +13,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readPng, encodePng } from "./lib.mjs";
-import { detectGrid } from "./beast-sheet-grid.mjs";
+import { detectGrid, splitStuckFigures } from "./beast-sheet-grid.mjs";
 import { median } from "./beast-sheet-stats.mjs";
 import { contactSheet } from "./beast-sheet-contact.mjs";
 import { silhouetteDiff, silhouetteIou, BG_LOCK, BG_TOL, EMPTY_CELL_FRAC, BASELINE_FRAC } from "./beast-sheet-check.mjs";
@@ -112,6 +112,7 @@ export function analyzeSheet(file, o) {
     return finish(res);
   }
   const per = figuresPerBand(group), cells = sheetCells(group), byRow = new Map();
+  for (const s of splitStuckFigures(grid, per)) issue(issues, "note", "tach-hinh", `H${s.band + 1} (${dir})`, `dải dò được ${s.from} hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành ${s.to}.`, { dir });
   for (const c of cells) { if (!byRow.has(c.row)) byRow.set(c.row, []); byRow.get(c.row).push(c); }
   const nominalCw = raw.w / COLS, nominalCh = raw.h / BAND_ROWS;
   let gridOk = true;

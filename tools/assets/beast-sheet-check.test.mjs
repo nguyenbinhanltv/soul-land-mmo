@@ -6,7 +6,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, existsSync, readFileSync, rmSync
 import os from "node:os";
 import path from "node:path";
 import { Img, readPng, encodePng, ROOT } from "./lib.mjs";
-import { detectGrid } from "./beast-sheet-grid.mjs";
+import { detectGrid, splitStuckFigures } from "./beast-sheet-grid.mjs";
 import { analyzeSheet, checkSpecies, classifyShape, draftErrorLine, bodyNotes, writeReport, toJson } from "./beast-sheet-check.mjs";
 
 const RAW = path.join(ROOT, "art", "src", "beast-anim");
@@ -96,17 +96,44 @@ test("cỡ thân lệch (kể cả > 25%) chỉ là nhẹ: không chặn, không
   assert.doesNotMatch(draftErrorLine({ sheet: "toX", issues: [...sheet.issues, { sev: "block", code: "hinh-dinh", where: "H2", msg: "dính" }] }), /cỡ thân/);
 });
 
-test("Thái Thản: tờ C và D bị chặn vì hình dính ở hàng 3 (hướng e / ne); dòng LỖI nháp nêu đúng hàng", () => {
+test("tách hình dính (tay vươn chồng sang khung bên): dải 5 hình → 6, không còn chặn; ghi chú tach-hinh nêu dải", () => {
+  for (const [id, l, band] of [["loi_van_hau", "A", 10], ["quy_anh_bao", "A", 10], ["thai_than_cu_vien", "C", 2], ["thai_than_cu_vien", "D", 2]]) {
+    const g = detectGrid(readPng(sheet(id, l)));
+    const done = splitStuckFigures(g, g.bands.map((b, i) => (i % 4 === 3 ? 4 : 6)));
+    assert.deepEqual(done.map((d) => [d.band, d.from, d.to]), [[band, 5, 6]], `${id} to${l}`);
+    const xs = g.bands[band].figures.map((f) => f.x0);
+    assert.deepEqual([...xs].sort((p, q) => p - q), xs, "hình sau tách vẫn theo thứ tự trái → phải");
+  }
   const r = checkSpecies("thai_than_cu_vien");
-  assert.equal(r.level, "chặn");
   for (const l of ["C", "D"]) {
-    const s = r.sheets.find((x) => x.sheet === `to${l}`);
-    assert.equal(s.level, "chặn");
-    const bad = s.issues.find((i) => i.code === "hinh-dinh");
-    assert.ok(bad && bad.where.startsWith("H3"), `to${l}: ${JSON.stringify(s.issues)}`);
-    const d = draftErrorLine(s); assert.match(d, /^LỖI: to[CD] — .*hình dính/); assert.match(d, /H3 \(/);
+    const sh = r.sheets.find((x) => x.sheet === `to${l}`);
+    assert.notEqual(sh.level, "chặn", JSON.stringify(sh.issues));
+    const note = sh.issues.find((i) => i.code === "tach-hinh");
+    assert.ok(note && note.sev === "note" && note.where.startsWith("H3"), JSON.stringify(sh.issues));
+    assert.equal(draftErrorLine(sh)?.includes("hình dính") ?? false, false);
   }
   assert.equal(r.blockLevel.s, "pass");
+});
+
+test("tách hình dính: dải thiếu khung thật không bị 'bịa' hình; hình nằm ngang đặc (die nằm dài, đuôi dài) không có cổ hẹp thì không cắt đôi, vẫn chặn", () => {
+  const W = 200, H = 10, mk = (shape) => { // shape(x, y) → 1 nếu có vật; dải cao H, các hình đặt theo cột x
+    const mask = new Uint8Array(W * H); for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) mask[y * W + x] = shape(x, y) ? 1 : 0;
+    return mask;
+  };
+  const fig = (x0, x1) => ({ x0, x1, y0: 0, y1: H - 1, w: x1 - x0 + 1, h: H, area: (x1 - x0 + 1) * H });
+  const grid = (mask, figs) => ({ w: W, mask, bands: [{ y0: 0, y1: H - 1, figures: figs }] });
+  // thiếu khung thật, không có hình rộng bất thường
+  const g0 = grid(mk(() => 1), [0, 20, 40, 60, 80].map((x) => fig(x, x + 9)));
+  assert.deepEqual(splitStuckFigures(g0, [6]), []);
+  // dải die 4 khung chỉ còn 3 hình, một hình nằm ngang đặc rộng 1,6 lần trung vị: không cổ hẹp → không cắt
+  const solid = mk((x) => (x < 20 || (x >= 40 && x < 60) || (x >= 80 && x < 112)));
+  const g1 = grid(solid, [fig(0, 19), fig(40, 59), fig(80, 111)]);
+  assert.deepEqual(splitStuckFigures(g1, [4]), []);
+  assert.equal(g1.bands[0].figures.length, 3);
+  // cùng hình rộng nhưng là hai khung dính nhau qua cổ hẹp (1 điểm / cột, trung vị 10) → cắt
+  const neck = mk((x, y) => (x < 20 || (x >= 40 && x < 60)) || (x >= 80 && x < 112 && (x < 94 || x > 97 || y === 4)));
+  const g2 = grid(neck, [fig(0, 19), fig(40, 59), fig(80, 111)]);
+  assert.deepEqual(splitStuckFigures(g2, [4]).map((d) => [d.from, d.to]), [[3, 4]]);
 });
 
 test("tờ tổng hợp: tỉ lệ sai, nền lệch màu khoá, không dò được lưới → chặn; cỡ lạ đúng tỉ lệ → nhẹ", () => {

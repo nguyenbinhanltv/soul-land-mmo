@@ -11,7 +11,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readPng, encodePng, ROOT, SPRITES } from "./lib.mjs";
 import { DIRS, ANIMS, COLS, BAND_ROWS, TURNAROUND, sheetCells, A_RATIO_MIN, A_RATIO_MAX, A_MIN_SIDE, canonFactor } from "./beast-sheet-lib.mjs";
-import { detectGrid } from "./beast-sheet-grid.mjs";
+import { detectGrid, splitStuckFigures } from "./beast-sheet-grid.mjs";
 import { median } from "./beast-sheet-stats.mjs";
 import { contactSheet } from "./beast-sheet-contact.mjs";
 
@@ -141,6 +141,10 @@ export function analyzeSheet(file) {
     issue(issues, "block", "luoi", "toàn tờ", `dò được ${grid.bands.length} dải hàng, cần ${plan.rows}: không dò được lưới (hàng dính nhau hoặc vỡ).`);
     res.bands = grid.bands.map((b) => ({ ...b, state: "bad", figures: b.figures.map((f) => ({ ...f, state: "bad" })) }));
     return finish(res);
+  }
+  const wantFigs = isTa ? grid.bands.map(() => TURNAROUND.cols) : grid.bands.map((_, row) => sheetCells(plan).filter((c) => c.row === row).length);
+  for (const s of splitStuckFigures(grid, wantFigs)) {
+    issue(issues, "note", "tach-hinh", `H${s.band + 1}`, `dải dò được ${s.from} hình, tách hình dính (tay / đuôi chồng sang khung bên) tại thung lũng chiếu cột thành ${s.to}.`);
   }
   if (isTa) { // mỗi hàng tư thế (idle / hurt / die) phải đủ 5 hình, một hình mỗi hướng
     grid.bands.forEach((b, row) => {
