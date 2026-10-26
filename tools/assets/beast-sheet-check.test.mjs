@@ -7,7 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { Img, readPng, encodePng, ROOT } from "./lib.mjs";
 import { detectGrid } from "./beast-sheet-grid.mjs";
-import { analyzeSheet, checkSpecies, classifyShape, draftErrorLine, writeReport, toJson } from "./beast-sheet-check.mjs";
+import { analyzeSheet, checkSpecies, classifyShape, draftErrorLine, bodyNotes, writeReport, toJson } from "./beast-sheet-check.mjs";
 
 const RAW = path.join(ROOT, "art", "src", "beast-anim");
 const sheet = (id, l) => path.join(RAW, id, `to${l}.png`);
@@ -85,6 +85,15 @@ test("Quỷ Hổ: B 1254² không bị coi là lỗi; không có mục chặn; c
   assert.deepEqual(b.size, [1254, 1254]);
   assert.ok(!b.issues.some((i) => i.code === "kich-thuoc" && i.sev !== "note"));
   assert.ok(!codes(b, "block").length);
+});
+
+test("cỡ thân lệch (kể cả > 25%) chỉ là nhẹ: không chặn, không có dòng LỖI, có ghi chú kỹ thuật in số % (quyết định chủ repo 2026-10-26 mục 4)", () => {
+  const sheet = { sheet: "toX", issues: [{ sev: "light", code: "co-than", where: "H1–4 (n)", msg: "cỡ thân idle 132% so với ảnh tĩnh (lệch 32%, quá 25%); cutter neo lại, không chặn." }] };
+  assert.equal(draftErrorLine(sheet), null, "cỡ thân không sinh dòng LỖI");
+  assert.deepEqual(bodyNotes(sheet), ["H1–4 (n): " + sheet.issues[0].msg]);
+  assert.match(bodyNotes(sheet)[0], /132%/);
+  assert.match(draftErrorLine({ sheet: "toX", issues: [...sheet.issues, { sev: "block", code: "hinh-dinh", where: "H2", msg: "dính" }] }), /hình dính/);
+  assert.doesNotMatch(draftErrorLine({ sheet: "toX", issues: [...sheet.issues, { sev: "block", code: "hinh-dinh", where: "H2", msg: "dính" }] }), /cỡ thân/);
 });
 
 test("Thái Thản: tờ C và D bị chặn vì hình dính ở hàng 3 (hướng e / ne); dòng LỖI nháp nêu đúng hàng", () => {
