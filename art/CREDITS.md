@@ -2296,7 +2296,7 @@ Thiết Giáp Tê Ngưu (H4 đợt 4, Part of #770/#766): `art/src/beast-anim/th
 
 
 
-Độc Cức Đằng (H4 #776): RAW `art/src/beast-anim/doc_cuc_dang/toA.png` (948×1659, A1/1) và `toB.png` (1254×1254, B1/1), tthoadev sinh ngày 2026-10-26 bằng builtin `image_gen.imagegen`; model/seed unknown (tool không công bố). A tham chiếu static cùng loài; B tham chiếu static rồi A1 chỉ làm candidate kỹ thuật, chưa owner-approved. RAW nguyên byte, không hậu kỳ/cắt/resize. Finding kỹ thuật đã biết: A1 sai tỉ lệ 2:3; B1 đúng cỡ 1:1. Prompt thực, provenance/hash/ref tại [NGUON.md](src/beast-anim/doc_cuc_dang/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json`. Chưa art-accepted, chưa cắt/nhập game.
+Độc Cức Đằng (H4 #776): RAW `art/src/beast-anim/doc_cuc_dang/toA.png` (948×1659, A1/1) và `toB.png` (1254×1254, B1/1), tthoadev sinh ngày 2026-10-26 bằng builtin `image_gen.imagegen`; model/seed unknown (tool không công bố). A tham chiếu static cùng loài; B tham chiếu static rồi A1 chỉ làm candidate kỹ thuật, chưa owner-approved. RAW nguyên byte, không hậu kỳ/cắt/resize. Finding kỹ thuật đã biết: A1 sai tỉ lệ 2:3; B1 đúng cỡ 1:1. Soát mắt B: DIE ne H4 C3–4 và n H8 C3–4 nằm ngang ảnh, không giữ trục hướng. Prompt thực, provenance/hash/ref tại [NGUON.md](src/beast-anim/doc_cuc_dang/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json`. Chưa art-accepted, chưa cắt/nhập game.
 
 <!-- private-assets:start -->
 ## Asset kho riêng (không nằm trong repo công khai)

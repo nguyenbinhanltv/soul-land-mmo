@@ -64,7 +64,10 @@
       "copiedByteIdenticalFromToolOutput": true
     },
     "postprocessing": false,
-    "manualFindings": [],
+    "manualFindings": [
+      "B1, khối ne, hàng DIE (H4), khung 3–4 nằm ngang ảnh, không giữ trục hướng ne.",
+      "B1, khối n, hàng DIE (H8), khung 3–4 nằm ngang ảnh, không giữ trục hướng n."
+    ],
     "ownerArtApproval": false
   }
 }
