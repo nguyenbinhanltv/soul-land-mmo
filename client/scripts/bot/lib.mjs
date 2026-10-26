@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { Client } from "colyseus.js";
 import { SKIN_TONES, presetToLpc, QUEST_STARTER, BONE_ITEM } from "../../../shared/data.ts";
+import { MAPS } from "../../../shared/data.ts";
 import { fogBytes } from "../../../shared/fog.ts";
 import { pack } from "@colyseus/msgpackr";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
