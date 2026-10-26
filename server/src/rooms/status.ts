@@ -3,7 +3,7 @@
 // Hàm nhận phòng (`room: MapRoom`) như combat.ts; nguyên văn từ MapRoom, không đổi số / thứ tự RNG / thứ tự xử lý trong tick. MapRoom chỉ chuyển tiếp 11 hàm
 // (`damageBeast`, `hurtPlayer`, `skill.ts`, `tick.ts`, `arena.ts`, `autoHunt.ts`, `gm.ts` gọi `room.applyStatus` / `room.pctl` ... như cũ).
 import { PlayerState, BeastState } from "./schema.ts";
-import { VOHON, coreFx, isCcStatus, type CoreFx, STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, statusBit, SLOW_CAP, type SkillDef, type StatusId, type StatusApply, PLAYER_STATUS, ARENA, ARENA_HE_DMG, RESIST_AS, PLAYER_CHARM } from "../../../shared/data.ts";
+import { VOHON, isCcStatus, type CoreFx, STATUS, STATUS_TICK, CC_TIER_MULT, statusBit, SLOW_CAP, type StatusId, type StatusApply, PLAYER_STATUS, ARENA, ARENA_HE_DMG, RESIST_AS, PLAYER_CHARM } from "../../../shared/data.ts";
 import type { MapRoom, BData, PData, FusHit, SInst } from "./MapRoom.ts";
 
 /**
