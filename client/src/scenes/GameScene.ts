@@ -1074,12 +1074,12 @@ export class GameScene extends Phaser.Scene {
     }
     return best;
   }
-  /** Tab: khoá hồn thú kế tiếp (gần → xa) trong ATTACK_REACH.tab quanh hồn sư; hết vòng thì quay lại con gần nhất. */
   /** Trong sân không khoá mục tiêu: báo một câu (không quá 1 lần / giây khi bấm dồn). */
   arenaNoLock() {
     if (this.time.now - this.noLockAt < 1000) return;
     this.noLockAt = this.time.now; hud.log("Trong sân không khoá mục tiêu: đánh bằng Space / J.", "#ffb35c");
   }
+  /** Tab: khoá hồn thú kế tiếp (gần → xa) trong ATTACK_REACH.tab quanh hồn sư; hết vòng thì quay lại con gần nhất. */
   cycleTarget() {
     if (this.isArena) return this.watching ? undefined : this.arenaNoLock();
     const me = this.room.state.players.get(this.me); if (!me) return;
