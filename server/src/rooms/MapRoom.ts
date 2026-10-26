@@ -592,7 +592,8 @@ export function sweepChannelMaps(now: number) {
   for (const [k, l] of leftRoom) if (l.until <= now) { leftRoom.delete(k); n++; }
   return n;
 }
-setInterval(() => sweepChannelMaps(Date.now()), 5 * 60_000).unref();
+const CHANNEL_SWEEP_MS = 5 * 60_000;
+setInterval(() => sweepChannelMaps(Date.now()), CHANNEL_SWEEP_MS).unref();
 /** Hook test `chan {nolock}`: lần rời phòng kế tiếp của tài khoản không ghi leftRoom (bot thử chọn kênh khi vào game). */
 export const testNoLeaveLock = new Set<number>(); // map-co-dinh: đường xóa duy nhất là `testNoLeaveLock.delete` ở onLeave (join.ts), như trước khi tách
 /**

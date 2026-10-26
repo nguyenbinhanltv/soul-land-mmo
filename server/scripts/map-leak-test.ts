@@ -1,8 +1,7 @@
 // #739: Map toàn cục không được chỉ tăng theo uptime. Khung thú vương hết hạn thì bỏ khỏi kingClaimCache; mục lastFoe của đấu trường bị dọn
 // khi cả hai bên rời hàng quá hạn (trận + ARENA.rematchSecs).
 import assert from "node:assert/strict";
-import { ARENA } from "../../shared/data.ts";
-import { CHANNEL_CD } from "../../shared/data.ts";
+import { ARENA, CHANNEL_CD } from "../../shared/data.ts";
 import { channelSwitchAt, kingClaimTest, leftRoom, sweepChannelMaps } from "../src/rooms/MapRoom.ts";
 import { LAST_FOE_TTL_MS, arenaLastFoeTest, sweepLastFoe } from "../src/rooms/arenaQueue.ts";
 
