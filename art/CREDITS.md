@@ -2267,6 +2267,8 @@ Băng Phong Bạch Hùng (H4 #767): RAW FAIL candidate để owner duyệt theo 
 
 Độc Vụ Thiềm (H4 #767): RAW FAIL candidate để owner duyệt theo chỉ dẫn user, tại `art/src/beast-anim/doc_vu_thiem/`. A: 1024×1536 thực tế, chọn 1/2, soul-land-mmo-90; B: 1254×1254 thực tế, chọn 2/2, soul-land-mmo-91. Builtin `image_gen.imagegen`, model/seed unknown, không size selector; nguyên byte, không hậu kỳ. Prompt thực/hash/refroles/counters/knownissues tại [NGUON.md](src/beast-anim/doc_vu_thiem/NGUON.md), `toX.prompt.txt`, `toX.source.json`. Nộp không phải nghiệm thu mỹ thuật/runtime hoặc tự nhập game.
 
+Liệt Trảo Hùng (H4 #768): raw `art/src/beast-anim/liet_trao_hung/toA.png` (1024×1536, fresh92 A1 một call) và `toB.png` (1254×1254 thật, FAIL yêu cầu1024×1024, fresh94 B1 một call), tthoadev sinh ngày2026-10-26 bằng builtin `image_gen.imagegen`. A chỉ static identity; B ordered static identity + A92A1 style/body-size candidate còn FAIL. Model/seed unknown, không size selector. Giữ nguyên byte, không hậu kỳ/cắt/resize. Exact prompt, SHA/header/bytes/refs/counters/knownerrors: [NGUON.md](src/beast-anim/liet_trao_hung/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json`. Tổng A1+B1=2calls, không retry; source static upright/side crouched mâu thuẫn basequad được ghi rõ, không tự chốt anatomy. User cho phép publish FAIL để owner kiểm; chưa size/art/runtime acceptance, không autoimport. Part of #768/#766.
+
 <!-- private-assets:start -->
 ## Asset kho riêng (không nằm trong repo công khai)
 

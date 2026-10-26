@@ -1,0 +1,163 @@
+{
+  "species": "liet_trao_hung",
+  "sheet": "B",
+  "attempt": "B1",
+  "session": "soul-land-mmo-94",
+  "issue": 768,
+  "umbrella": 766,
+  "tool": "builtin image_gen.imagegen",
+  "image_model_id": null,
+  "seed": null,
+  "size_selector": false,
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "actual_dimensions": [
+    1254,
+    1254
+  ],
+  "bytes": 1898451,
+  "sha256": "b4536c2298dcc2e11f6052b315e5add9522d08da8eecd1486f19e3ef54c429c1",
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a175ac-96cd-7200-a919-be9a13722ec8/exec-919f5e2d-62fa-4d41-b1ae-ac0af03fee23.png",
+  "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-94/liet_trao_hung-toB-B1-RAW.png",
+  "raw_copy_byte_identical": true,
+  "postprocessing": "NONE",
+  "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-94/liet_trao_hung-toB-B1-prompt.txt",
+  "exact_prompt_sha256": "dde0b18680aab0bb16f98e21eef43ccec203820395acb40f8b759bc13341f5e4",
+  "base_prompt_sha256": "d59b90b7ae7162b9265001f7c7cd3aed104ec03a00044c27febb49357b4b23b6",
+  "prepared_at_utc": "2026-10-26T00:47:38.978188+00:00",
+  "ordered_refs": [
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-64/liet_trao_hung/reference-static-original.png",
+      "sha256": "1f81a4e08166a79647a50ae4b86c3dc57ab70b72549b1646b96f61291c51713b",
+      "role": "original static identity durable backup"
+    },
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-92/liet_trao_hung-toA-A1-RAW.png",
+      "sha256": "1a5dc59c018b1acd9ff0e1ac6796e562afb35242c68a18e937f8e0d34e07e3ca",
+      "role": "A92A1 STYLE/body-size candidate FAIL; not accepted heading reference"
+    }
+  ],
+  "reference_order_evidence": "Worker94 final provenance references_order matches orchestrator44 assignment; raw/reference/prompt hashes verified locally by owner64.",
+  "counters": {
+    "A_prior": 1,
+    "B": 1,
+    "species_call": 2,
+    "retry": 0
+  },
+  "source_conflict": "Static front/back upright with forepaws free, side crouched versus base quad/four-legged trot; exact prompt records discrepancy, no redesign/anatomy approval claimed.",
+  "owner64_readonly_QA": {
+    "semantic_figures_by_eye": 44,
+    "pixel_occupied_cells": 46,
+    "grid": [
+      6,
+      8
+    ],
+    "blank_nonbackground_pixels": {
+      "H4C5": 1029,
+      "H4C6": 1203,
+      "H8C5": 0,
+      "H8C6": 0
+    },
+    "threshold": "alpha>=128, background R>200 G<70 B>200; count by actual1254 canvas integer cell boundaries, no cropped output",
+    "corners_RGBA": [
+      [
+        243,
+        12,
+        241,
+        255
+      ],
+      [
+        246,
+        17,
+        243,
+        255
+      ],
+      [
+        239,
+        35,
+        237,
+        255
+      ],
+      [
+        242,
+        30,
+        239,
+        255
+      ]
+    ],
+    "known_errors": "1254 not1024; NE H4C2-4 and N H8C1-4 death turns right/front; hurt H1/H5C5-6 body lift/yaw; grid bleed; absolute A body scale/loop not QA"
+  },
+  "outcome": "FAIL; publication explicitly authorized, no size/art/runtime acceptance",
+  "requested_at_utc": "2026-10-26T00:47:44.889Z",
+  "completed_at_utc": "2026-10-26T00:48:24.718Z",
+  "source_metadata": {
+    "liet_trao_hung-toB-B1-provenance.json": "17288dd7f1e7c98bdab9de4f4a75fe3e3513f567b2d3afb2a52da7a0cb3643ee",
+    "HANDOFF.md": "19c5ed6d3705ace791fe54a01862629517a6f171788f753ca3846ad792ca0dae"
+  },
+  "worker94_QA": {
+    "semantic_figures_visual": 44,
+    "pixel_occupied_cells_estimate": 46,
+    "occupancy_method": "read-only PIL RGB mask: non-background when NOT(r>180 and b>170 and g<110), rounded equal 6x8 cells; occupancy is NOT semantic figure count",
+    "body_size_QA": "Not exact absolute body size A. B NE idle height124px; A SE idle104–105px; B N idle about130px visually vs A S108px; orientation differs so comparisons approximate, not acceptance. No resize used.",
+    "row_col_QA": [
+      {
+        "row": 1,
+        "direction": "ne",
+        "columns": "C1–4 idle, C5–6 hurt",
+        "visual": "idle rear 3/4 tương đối; C5 lộ mõm ngang E, hurt giật lùi chưa rõ; owner64 xác nhận hurtlift",
+        "status": "FAIL/uncertain hurt; FAIL hurtlift"
+      },
+      {
+        "row": 2,
+        "direction": "ne",
+        "columns": "C1–6 walk",
+        "visual": "6 hình, lưng nhìn thấy, chân thay đổi; không chứng nhận vòng lặp",
+        "status": "unaccepted"
+      },
+      {
+        "row": 3,
+        "direction": "ne",
+        "columns": "C1–6 attack",
+        "visual": "C3 lộ mặt/mõm ngang E; động tác vồ lệch ngang, không luôn hướng upper-right",
+        "status": "FAIL heading"
+      },
+      {
+        "row": 4,
+        "direction": "ne",
+        "columns": "C1–4 die; C5–6 intended blank",
+        "visual": "C2–4 đầu quay E/front; C3–4 nằm ngang. Đầu H5C5–6 xâm nhập ô trống theo lưới đều: bbox x928–989/y604–626 và x1109–1187/y604–626",
+        "status": "FAIL heading/grid/blank"
+      },
+      {
+        "row": 5,
+        "direction": "n",
+        "columns": "C1–4 idle, C5–6 hurt",
+        "visual": "nhìn lưng; hurt nghiêng tay/thân nhưng giật lùi chưa rõ. Phần đầu bắt đầu y~604 trước ranh H5 y627; owner64 xác nhận hurtlift",
+        "status": "FAIL grid; hurt uncertain; FAIL hurtlift"
+      },
+      {
+        "row": 6,
+        "direction": "n",
+        "columns": "C1–6 walk",
+        "visual": "6 hình nhìn lưng; vị trí hàng theo mắt lệch ranh lưới đều",
+        "status": "FAIL grid"
+      },
+      {
+        "row": 7,
+        "direction": "n",
+        "columns": "C1–6 attack",
+        "visual": "6 hình nhìn lưng; C3 tay vung ngang, chưa chứng minh đánh xa camera; một phần hàng trước tràn sang ranh lưới",
+        "status": "FAIL grid; motion unaccepted"
+      },
+      {
+        "row": 8,
+        "direction": "n",
+        "columns": "C1–4 die; C5–6 blank",
+        "visual": "C2 xoay ngang, C3–4 đầu sang phải, C4 thấy mặt; không giữ trục N. C5–6 không thấy hình",
+        "status": "FAIL heading"
+      }
+    ]
+  }
+}
