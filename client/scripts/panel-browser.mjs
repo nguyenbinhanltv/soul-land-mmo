@@ -157,6 +157,23 @@ GameScene.prototype.create = function(...a) {
   check(swapState.bag && !swapState.keyD && swapState.charZ > swapState.bagZ && res.swap.openAfterEsc.join() === "bag", `nút ⇆: ${JSON.stringify(res.swap)}`);
   await page.keyboard.press("Escape"); await page.keyboard.press("Escape");
 
+  // 4c. Nút Cài đặt / Tự động khi bảng khác đang mở (#1044): chỉ còn một bảng; đóng bằng đúng hàm của bảng (hết dual-win, aria-expanded về false).
+  await page.keyboard.press("KeyH"); await page.keyboard.press("KeyB");
+  await page.waitForFunction(() => !document.getElementById("char").hidden && !document.getElementById("bag").hidden);
+  await page.evaluate(() => document.getElementById("audioBtn").click()); await sleep(80);
+  res.settingsOverDual = await page.evaluate(() => ({ dual: document.body.classList.contains("dual-win"), tabs: !!document.getElementById("dualTabs") && !document.getElementById("dualTabs").hidden, bagBtn: document.getElementById("bagBtn").getAttribute("aria-expanded") }));
+  res.settingsOverDual.open = await open();
+  check(res.settingsOverDual.open.join() === "audio" && !res.settingsOverDual.dual && !res.settingsOverDual.tabs && res.settingsOverDual.bagBtn !== "true", `Cài đặt đóng Nhân vật + Túi đúng cách: ${JSON.stringify(res.settingsOverDual)}`);
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("KeyL"); await page.waitForFunction(() => !document.getElementById("friends").hidden);
+  await page.evaluate(() => document.getElementById("autoBtn").click()); await sleep(80);
+  res.autoOverFriends = await open();
+  check(res.autoOverFriends.join() === "autoPanel", `Tự động đóng Bạn bè: ${JSON.stringify(res.autoOverFriends)}`);
+  await page.evaluate(() => document.getElementById("audioBtn").click()); await sleep(80);
+  res.settingsOverAuto = await open();
+  check(res.settingsOverAuto.join() === "audio", `Cài đặt đóng Tự động: ${JSON.stringify(res.settingsOverAuto)}`);
+  await page.keyboard.press("Escape"); await sleep(80);
+
   // 5. 960×540: hotbar / bảng vẫn chặn bấm xuyên (cùng bài 1).
   await page.setViewportSize({ width: 960, height: 540 }); await sleep(500);
   await page.keyboard.press("KeyB"); await sleep(200);

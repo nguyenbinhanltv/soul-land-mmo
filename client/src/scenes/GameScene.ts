@@ -717,13 +717,14 @@ export class GameScene extends Phaser.Scene {
   talk(id: string) { this.room.send("talk", { npc: id }); }
 
   /**
-   * Mỗi lần cập nhật HUD: NPC gần nhất trong NPC_RANGE hiện nhãn "Nói chuyện" và hộp gợi ý (nút bấm / phím F; cổng được ưu tiên),
+   * Mỗi lần cập nhật HUD: NPC gần nhất trong NPC_RANGE hiện nhãn "Nói chuyện" và hộp gợi ý (nút bấm / phím F; cổng và truyền tống trận được ưu tiên),
    * đi xa NPC đang mở hộp thoại thì đóng (server vẫn kiểm tra lại mỗi lần mua / bán).
    */
   updateNpcs(me: any) {
     let near: (typeof this.npcs)[number] | null = null, nd = NPC_RANGE;
     for (const n of this.npcs) { const k = Math.hypot(n.x - me.x, n.y - me.y); if (n.def && k <= nd && !me.dead) { nd = k; near = n; } }
-    const id = near && !this.portal ? near.id : null;
+    // Cùng thứ tự ưu tiên với phím F: cổng > truyền tống trận > NPC; hộp thấp hơn không hiện để nút hiện ra luôn khớp việc F làm.
+    const id = near && !this.portal && !this.wpHere ? near.id : null;
     if (id !== this.nearNpc) {
       this.nearNpc = id;
       for (const n of this.npcs) n.mark?.setVisible(n.id === id);

@@ -6,6 +6,7 @@ import { UI_SCALE_CHOICES, getUiScalePref, setUiScalePref, uiScale } from "../ui
 import { mountGoogleButton } from "../google.ts";
 import { post, storage, type Me } from "../net.ts";
 import { openCredits } from "../credits.ts";
+import { closeCentrePanels } from "../panelStack.ts";
 
 const PANEL_ID = "audio";
 const FX_LEVELS: [FxLevel, string][] = [["low", "Thấp"], ["mid", "Vừa"], ["high", "Cao"]];
@@ -24,7 +25,7 @@ export function toggleAudioPanel(): boolean {
   if (!el) return false;
   const open = el.hidden;
   if (open) {
-    for (const id of ["roster", "bag", "reso", "npc", "world", "pmenu", "autoPanel"]) document.getElementById(id)?.setAttribute("hidden", "");
+    closeCentrePanels(PANEL_ID); // đúng hàm đóng của từng bảng (dualWindow, aria-expanded, thẻ so sánh…), không đặt `hidden` thô (#1044)
     el.hidden = false;
   } else closeAudioPanel();
   document.getElementById("audioBtn")?.setAttribute("aria-expanded", String(open));
