@@ -1,0 +1,67 @@
+{
+  "species": "thanh_lan_doc_co",
+  "sheet": "B",
+  "worker": "soul-land-mmo-136",
+  "issue": 774,
+  "raw_file": "toB.png",
+  "sha256": "c88ee1aba0332b3f92389bdf197be66fca3a79f74380532dcf96af3eacdf0b5d",
+  "bytes": 1876513,
+  "width": 1254,
+  "height": 1254,
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "size_requirement_met": true,
+  "grid": [
+    6,
+    8
+  ],
+  "expected_visible_cells": 44,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Prompt requested square 1:1 aspect ratio only; no size, model or seed selector was exposed.",
+  "transparent_background": false,
+  "selected_attempt": 1,
+  "attempts": 1,
+  "counters": {
+    "A": 1,
+    "B": 1,
+    "species_total": 2
+  },
+  "prompt_file": "toB.prompt.txt",
+  "prompt_sha256": "623b7f340826b7d98ca8376df3f352b6d9530881576ade4b987f3befde2ccaea",
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/thanh_lan_doc_co.png",
+      "role": "static identity, actual image bytes verified",
+      "sha256": "6de0d97071f3730525a80276d0c1a5bacfec5e74187b9e8096f20b0b6e8664e3"
+    },
+    {
+      "path": "art/src/beast-anim/thanh_lan_doc_co/toA.png",
+      "role": "actual A1 candidate, not owner-approved; visual reference only",
+      "sha256": "4dc379a50cf25dca270120142da264e9250b5f695b9454bf421f18b682a48658"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-3ebd0087-b451-42a3-8ef4-5f0845d11ca6.png",
+  "selection_reason": "B1 là lượt đầu và candidate duy nhất hiện có; giữ RAW bất kể lỗi mỹ thuật quan sát được.",
+  "known_issues": [
+    "LỖI: toB — sai hướng — ne — ATTACK H3 C3–4 lộ mặt/mõm.",
+    "LỖI: toB — sai hướng — n — WALK H6 C1–6 quay ngang sang phải thay vì hướng lưng n.",
+    "LỖI: toB — sai hướng — n — ATTACK H7 C3–4 lộ mặt/mõm.",
+    "LỖI: toB — sai pose — n — DIE H8 C1–4 nằm ngang ảnh, không giữ trục hướng n."
+  ],
+  "qa_status": "Candidate; observed art errors; A is not owner-approved.",
+  "publication_policy": "Submit original RAW and findings per owner directive; submission is not art acceptance or import.",
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "error_line": "LỖI: toB — sai hướng — ne — ATTACK H3 C3–4 lộ mặt/mõm. LỖI: toB — sai hướng — n — WALK H6 C1–6 quay ngang sang phải. LỖI: toB — sai hướng — n — ATTACK H7 C3–4 lộ mặt/mõm. LỖI: toB — sai pose — n — DIE H8 C1–4 nằm ngang ảnh, không giữ trục hướng n.",
+  "tool_arguments": {
+    "prompt_file": "toB.prompt.txt",
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-774-thanh-lan-doc-co/shared/assets/sprites/beast/thanh_lan_doc_co.png",
+      "/private/tmp/soul-land-mmo-774-thanh-lan-doc-co/art/src/beast-anim/thanh_lan_doc_co/toA.png"
+    ],
+    "transparent_background": false
+  }
+}
