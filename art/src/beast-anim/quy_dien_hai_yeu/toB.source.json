@@ -1,0 +1,72 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "imageModel": "unknown (tool did not expose)",
+  "seed": "unknown (tool did not expose)",
+  "attempts": 1,
+  "workerProvenance": {
+    "task": "#774",
+    "species": "quy_dien_hai_yeu",
+    "sheet": "toB",
+    "attempt": "B1",
+    "status": "RAW submitted candidate; art not owner-approved",
+    "tool": "built-in image_gen.imagegen",
+    "model": "unknown (tool did not expose)",
+    "seed": "unknown (tool did not expose)",
+    "attemptCount": 1,
+    "totalSpeciesImagegenCalls": 2,
+    "callTimestampExposed": false,
+    "callTimestampNote": "The image_gen tool response did not provide a call timestamp.",
+    "provenanceRecordedAtUtc": "2026-10-26T14:18:02Z",
+    "exactPrompt": {
+      "path": "toB.prompt.txt",
+      "sha256": "e66675d053a64988b746cf57cc4cfdb58e8ac39352521447bcad4ed4e9f1dd97",
+      "bytes": 6401,
+      "basePromptSha256": "458fdc000abe8dc531d6e50153597308f682cb9fc59eea74e42ce5156520f6fa",
+      "basePromptTemplateMarkdown": "/private/tmp/quy-dien-hai-yeu-prompt-b/quy_dien_hai_yeu-toB.md",
+      "basePromptTemplateMarkdownSha256": "49cbd066b86a713c14f5cd6cfe06741cdd0fa116ddf8f5bdd2dcf566596fcfb7",
+      "addendum": "image 2 is candidate A1 for technical continuity only; it has not been owner-approved. Match only the creature design, colors, scale and line weight from image 2. This statement does not assert art approval; do not copy poses."
+    },
+    "generator": {
+      "command": "node tools/assets/beast-sheet-prompt.mjs --species quy_dien_hai_yeu --stage sheet --out /private/tmp/quy-dien-hai-yeu-prompt-b",
+      "script": "tools/assets/beast-sheet-prompt.mjs",
+      "scriptSha256": "ce67ade6abd84aaacbb2336b8a942fd298330fbf698eabb56d8b31092d4ba625"
+    },
+    "orderedReferences": [
+      {
+        "order": 1,
+        "role": "static identity reference for Quỷ Diện Hải Yêu",
+        "path": "shared/assets/sprites/beast/quy_dien_hai_yeu.png",
+        "sha256": "85cd8dafea704560917d0a473bff5e21fcbd98a8ea18d087d22c91c0bbd1b7a1",
+        "bytes": 6248
+      },
+      {
+        "order": 2,
+        "role": "A1 candidate technical reference only; not owner-approved",
+        "path": "art/src/beast-anim/quy_dien_hai_yeu/toA.png",
+        "sha256": "3b8b1ef72228b4c2e1360db3004a23abef35f1382d7e6be6fec59c4b018b440f",
+        "bytes": 2072033
+      }
+    ],
+    "toolArguments": {
+      "referenced_image_paths": [
+        "/private/tmp/soul-land-mmo-774-quy-dien-hai-yeu/shared/assets/sprites/beast/quy_dien_hai_yeu.png",
+        "/private/tmp/soul-land-mmo-774-quy-dien-hai-yeu/art/src/beast-anim/quy_dien_hai_yeu/toA.png"
+      ],
+      "transparent_background": false
+    },
+    "originalToolOutputPath": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-5e12f040-35fa-4918-baa5-18b8fc185160.png",
+    "raw": {
+      "path": "toB.png",
+      "sha256": "0050e1125d35c608334b2c488acc1311536bbb90bb0597b951dae7f8b822718d",
+      "bytes": 1996837,
+      "width": 1254,
+      "height": 1254,
+      "copiedByteIdenticalFromToolOutput": true
+    },
+    "postprocessing": false,
+    "manualFindings": [
+      "B1, khối n, hàng DIE (hàng 8), khung 3–4 nằm ngang ảnh, không giữ trục theo hướng n."
+    ],
+    "ownerArtApproval": false
+  }
+}
