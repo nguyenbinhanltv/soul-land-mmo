@@ -63,24 +63,30 @@ export function layoutNameplates(items: readonly NameplateItem[], options: Namep
       && !placed.some((other) => other.visible && nameplatesOverlap(c, other, gap))
       && !options.obstacles?.some((other) => nameplatesOverlap(c, other, gap));
     const at = (size: NameplateRect, dx: number, up: number): NameplateRect => ({ ...size, x: item.x + dx, y: bottom - size.height / 2 - up });
-    let best: { rect: NameplateRect; slot: NameplateSlot } | undefined;
+    type Cand = { rect: NameplateRect; slot: NameplateSlot };
+    const cands: Cand[] = [];
     for (const [size, compacted] of sizes) {
-      for (let up = 0; up <= maxOffset && !best; up += Math.max(12, size.height + gap)) {
+      for (let up = 0; up <= maxOffset; up += Math.max(12, size.height + gap)) {
         for (const dx of [0, -(size.width + gap), size.width + gap]) {
           const rect = at(size, dx, up);
-          if (free(rect)) { best = { rect, slot: { dx, up, compact: compacted } }; break; }
+          if (free(rect)) cands.push({ rect, slot: { dx, up, compact: compacted } });
         }
       }
-      if (best) break;
+      if (cands.length) break;
     }
+    const best = cands[0];
     let pick = best;
     const prev = options.prev?.get(item.id);
-    const prevSize = prev && sizes.find(([, c]) => c === prev.compact)?.[0];
+    const prevSize = best && prev && sizes.find(([, c]) => c === prev.compact)?.[0];
     if (best && prev && prevSize && slotKey(prev.dx, prev.up, prev.compact) !== slotKey(best.slot.dx, best.slot.up, best.slot.compact)) {
+      // Chỗ cũ còn hợp lệ thì giữ; bị đè thì đổi sang chỗ hợp lệ GẦN chỗ cũ nhất (nhảy ngắn), chưa phải chỗ gốc.
       const rect = at(prevSize, prev.dx, prev.up);
-      if (free(rect)) {
+      const keep: Cand | undefined = free(rect) ? { rect, slot: { dx: prev.dx, up: prev.up, compact: prev.compact } }
+        : cands.filter((c) => c.slot.compact === prev.compact)
+          .sort((a, b) => Math.abs(a.slot.dx - prev.dx) + Math.abs(a.slot.up - prev.up) - Math.abs(b.slot.dx - prev.dx) - Math.abs(b.slot.up - prev.up))[0];
+      if (keep) {
         const want = slotKey(best.slot.dx, best.slot.up, best.slot.compact), since = prev.want === want ? prev.wantSince ?? now : now;
-        if (now - since < hold) pick = { rect, slot: { dx: prev.dx, up: prev.up, compact: prev.compact, want, wantSince: since } };
+        if (now - since < hold) pick = { rect: keep.rect, slot: { ...keep.slot, want, wantSince: since } };
       }
     }
     placed.push(pick ? { ...pick.rect, id: item.id, priority: item.priority, visible: true, compact: pick.slot.compact, slot: pick.slot } : { ...item, visible: false, compact: true });

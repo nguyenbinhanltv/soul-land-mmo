@@ -175,6 +175,16 @@ const MINI_COLORS: Record<string, { ground?: Record<number, string>; obj?: Recor
  *  theo thân đã đo, sheet một hàng theo khung), sprite vẽ bằng code theo bậc (tinh anh phóng ELITE.scale, BĐ4; thú vương KING.scale, BĐ5). */
 const beastTop = (s: Phaser.GameObjects.Sprite, tier: number) =>
   s.texture.key.startsWith("beast_") ? beastBody(s).top : s.y - (TIERS[tier].size + 8) * (s.getData("bscale") ?? 1) * SPR;
+/**
+ * Điểm neo nhãn trên đầu hồn thú, bỏ phần chỉ để diễn (thở / nhún / ngả / đẩy lùi / lấy đà của staticBeastPose, kick, tele): chân theo
+ * vị trí đã nội suy (`lbl` ghi ở vòng cập nhật hồn thú), chiều cao thân theo cỡ gốc. Neo theo sprite sống thì nhãn rung theo từng khung (#828).
+ */
+const beastLabelAnchor = (s: Phaser.GameObjects.Sprite, tier: number) => {
+  const a = s.getData("lbl") as { x: number; y: number; k: number } | undefined;
+  if (!a) return { x: s.x, y: s.y, top: beastTop(s, tier) };
+  const top = s.texture.key.startsWith("beast_") ? a.y - beastBody(s).h * a.k / (s.scaleY || 1) : a.y - (TIERS[tier].size + 8) * (s.getData("bscale") ?? 1) * SPR;
+  return { x: a.x, y: a.y, top };
+};
 /** Hệ số phóng sprite theo bậc hồn thú: tinh anh ELITE.scale (BĐ4), thú vương KING.scale (khoảng 96×96, BĐ5), boss thế giới WORLD.scale (BĐ6e). */
 const rankScale = (rank: number) => (rank === 3 ? WORLD.scale : rank === 2 ? KING.scale : rank === 1 ? ELITE.scale : 1);
 /** Khung cao tối thiểu (pixel ảnh) của sheet thú vương / boss vẽ ở CỠ THẬT (mục 5.11 bảng "Cỡ khung": 160 / 192). */
@@ -2910,6 +2920,7 @@ export class GameScene extends Phaser.Scene {
       if (b.rank && s.getData("bscale") !== k) s.setData("bscale", k);
       // Boss thế giới đang lặn (Du Thủy, BĐ6e): chỉ còn bóng mờ dưới nước.
       s.setAlpha(b.dive ? 0.2 : 1);
+      s.setData("lbl", { x: at.x, y: at.y, k: spr === "static" || spr === "anim" ? k : s.scaleY });
       // Sprite một hàng chỉ vẽ hướng phải: đang đi thì lật theo hướng trượt trên màn hình, đứng yên thì theo `face` của server
       // (sheet isometric tự chọn hướng và lật trong syncBeastSprite).
       const dsx = s.x - ox;
@@ -3143,9 +3154,9 @@ export class GameScene extends Phaser.Scene {
       const b = st.beasts.get(id), s = this.beasts.get(id);
       t.setVisible(false);
       if (!b || !s || b.dive || b.hp <= 0) return;
-      const top = beastTop(s, b.tier);
-      body(`beast:${id}`, s.x, s.y, Math.min(s.displayWidth, 64), s.y - top);
-      add({ id: `beast:${id}`, x: s.x, y: top - 6 * K, priority: nameplatePriority(id === this.targetBeast, false, false, b.rank), lines: [t], compact: [t] });
+      const an = beastLabelAnchor(s, b.tier), top = an.top;
+      body(`beast:${id}`, an.x, an.y, Math.min(s.displayWidth, 64), an.y - top);
+      add({ id: `beast:${id}`, x: an.x, y: top - 6 * K, priority: nameplatePriority(id === this.targetBeast, false, false, b.rank), lines: [t], compact: [t] });
     });
     // Biển địa điểm cũng tham gia né chữ; biển trùng tên NPC gần đó chỉ giữ một bản.
     this.wtexts.forEach((e, i) => {
