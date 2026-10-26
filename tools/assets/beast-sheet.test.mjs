@@ -247,7 +247,10 @@ test('normalization không che thiếu khung, sai lưới, hình vượt ô ho�
   for (let y = 420; y < 450; y++) for (let x = 720; x < 750; x++) sheets.A.set(x, y, [90, 110, 70, 255]);
   for (let y = 28; y < 70; y++) for (let x = 0; x < 185; x++) sheets.A.set(x, y, [90, 110, 70, 255]);
   for (let y = 156; y < 228; y++) for (let x = 40; x < 120; x++) sheets.A.set(x, y, [0, 0, 0, 0]);
-  const res = cutSpecies({ species: 'phong_lang', sheets, scale: 0.55, normalizeSize: true });
+  // lưới theo khoảng trống (mặc định): dải hình dính chia cột đều và ghi rõ; lưới đều (v1): hình vượt ô
+  const gap = cutSpecies({ species: 'phong_lang', sheets, scale: 0.55, normalizeSize: true });
+  assert.match(gap.report.warnings.join('\n'), /số hình ≠ số khung, cột chia đều/);
+  const res = cutSpecies({ species: 'phong_lang', sheets, scale: 0.55, normalizeSize: true, grid: 'uniform' });
   const warnings = res.report.warnings.join('\n');
   assert.match(warnings, /THIẾU khung s\/walk\/0/);
   assert.match(warnings, /ô trống/);
