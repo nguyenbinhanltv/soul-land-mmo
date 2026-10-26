@@ -1,0 +1,70 @@
+{
+  "species": "quy_anh_bao",
+  "sheet": "A",
+  "worker": "soul-land-mmo-100",
+  "tool": "builtin image_gen.imagegen / image_gen__imagegen (worker HANDOFF declaration)",
+  "image_model": null,
+  "seed": null,
+  "model_truth": "Tool did not expose model/seed; no inference from agent.",
+  "provenance_origin": "Owner93 compiled from worker100 HANDOFF; independent byte/hash/IHDR/prompt/ref validation. No separate upstream source JSON supplied.",
+  "upstream_handoff": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-100/HANDOFF.md",
+  "upstream_handoff_sha256": "534661e596141a92162e6f65c880f07748140bd46e029b15ed8ee3f7a57a4c54",
+  "counters_reported_in_handoff": {
+    "session_builtin_calls": 1,
+    "retries": 0,
+    "second_attempt": 0,
+    "species_calls_after_this_sheet": 1
+  },
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a175bf-0f53-7913-8154-06651bfc13e5/exec-fcb24cc9-2dc9-491d-b8e2-e2462d3db4ef.png",
+  "artifact_raw_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-100/quy_anh_bao-A1-RAW.png",
+  "raw_sha256": "8bf92ef81c8930a8002478ab204d6929fc256cc93af8b43e897abdf4c6ef9b90",
+  "bytes": 2010686,
+  "actual_dimensions": [
+    1024,
+    1536
+  ],
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "size_requirement_met": true,
+  "requested_grid": [
+    6,
+    12
+  ],
+  "expected_occupied_cells": 66,
+  "semantic_frame_count_verified": false,
+  "exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-100/exact-A1.prompt.txt",
+  "prompt_sha256": "4f090f63f83dc742db2020ff222382893aaec3f4b60c04473d0c4e31a1cc714a",
+  "base_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-100/base.prompt.txt",
+  "base_sha256": "20f89eafdfe1ca11321305e98b3b20bed02c94633053b980b9d02be6ba9379fc",
+  "base_prefix_byte_identical": true,
+  "ordered_references": [
+    {
+      "order": 1,
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-100/quy_anh_bao-static-reference.png",
+      "sha256": "7d395918a78ce6f72ccda44185b32ed3d0f6b3a49d605a7dcd1b92bab5c54544",
+      "role": "original static identity/rear geometry",
+      "viewed_before_call_reported_by_worker": true
+    }
+  ],
+  "original_equals_artifact": true,
+  "postprocessing": "None; byte copy only. No crop/resize/patch/cutter/layout/runtime.",
+  "owner_viewed_raw": true,
+  "status": "RAW FAIL/provenance verified only; not art/runtime accepted.",
+  "reported_time": {
+    "preflight_utc": "2026-10-26 01:07:52 UTC",
+    "returned_utc": "2026-10-26 01:08:42 UTC",
+    "call_started_utc": null,
+    "meaning": "No exact call-start timestamp recorded; do not infer duration."
+  },
+  "integration": {
+    "repository_raw_file": "toA.png",
+    "repository_prompt_file": "toA.prompt.txt",
+    "script_prompt_file": "quy_anh_bao-toA.md",
+    "script_prompt_sha256": "7f72775b708f1103ec8902fe848ac7075257f61932d40ac82748901e0ebf7312",
+    "compiled_source_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-93/quy_anh_bao-toA.source.json",
+    "compiled_source_artifact_sha256": "d6cfa21e08d056c160d5a51778eb375742385d9564638291b28c96f88aaa5ea1",
+    "raw_original_artifact_repo_byte_identical": true
+  }
+}
