@@ -56,6 +56,16 @@ assert.deepEqual([...new Set(got)], [1, 2, 3, 4, 5], "ra đòn đi hết khung 1
 assert.ok(got.every((v, i) => i === 0 || v >= got[i - 1]));
 assert.equal(stepBeastAnim(st, L, T0 + 600, false, false, 10, "se").state, "idle");
 
+// đòn thường (#1059): bộ đếm atk đổi thì chạy một lượt dải ra đòn; lần đọc đầu và khi không đổi thì không
+st = newBeastAnimState(0, false, 10);
+assert.equal(stepBeastAnim(st, L, 16, false, false, 10, "se", 1, 7).state, "idle", "lần đọc đầu không chạy bù");
+assert.equal(stepBeastAnim(st, L, 32, false, false, 10, "se", 1, 7).state, "idle", "bộ đếm không đổi");
+const g2 = [];
+for (let t = 48; t < 48 + 500; t += 10) { r = stepBeastAnim(st, L, t, false, false, 10, "se", 1, 8); if (r.state === "attack") g2.push(r.frame % 6); }
+assert.deepEqual([...new Set(g2)], [1, 2, 3, 4, 5], "đòn thường đi hết khung 1..5");
+assert.equal(stepBeastAnim(st, L, 48 + 600, false, false, 10, "se", 1, 8).state, "idle", "xong lượt về đứng");
+assert.equal(stepBeastAnim(st, L, 48 + 616, false, false, 10, "se", 1, 0).state, "attack", "quay vòng 255 → 0 vẫn tính là đổi");
+
 // trúng đòn: máu giảm → 2 khung hurt rồi về; đang đánh thì giữ dải đánh
 st = newBeastAnimState(0, false, 10);
 stepBeastAnim(st, L, 100, false, false, 10, "s");

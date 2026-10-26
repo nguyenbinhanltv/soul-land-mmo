@@ -79,6 +79,7 @@ export class BeastState extends Schema {
   @type("uint8") allure: number = 0;   // từ 2.5c: số tầng Mị hoặc (đủ tầng thành Mê hoặc) và Phong ấn (đủ tầng thành Dễ thương)
   @type("uint8") lock: number = 0;
   @type("boolean") cast: boolean = false; // từ 3.5: đang báo trước chiêu (đứng yên, client giữ khung đầu animation attack)
+  @type("uint8") atk: number = 0;       // #1059: bộ đếm đòn thường (tăng mỗi lần cắn, quay vòng 255); client thấy đổi thì chạy một lượt dải attack
   @type("uint8") buff: number = 0;      // từ BĐ4: hiệu ứng có lợi của hồn thú (bit theo BEAST_BUFF_IDS, ví dụ Cuồng nộ của tinh anh)
   @type("uint8") phase: number = 0;     // từ BĐ5: giai đoạn của tà hóa thú vương (1, 2); hồn thú khác 0
   @type("uint8") parts: number = 0;     // từ BĐ5: số người tham gia đang áp vào máu (tinh anh, thú vương); thanh máu boss hiện số này

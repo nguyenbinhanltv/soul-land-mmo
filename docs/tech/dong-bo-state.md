@@ -50,6 +50,7 @@ Thêm / đổi trường ở `schema.ts` thì sửa bảng này (kiểm (h) củ
 | `aggro` | boolean | đang có mục tiêu | `music.ts` |
 | `st`, `burn`, `poison`, `armor`, `allure`, `lock` | uint16 / uint8 | trạng thái dùng chung và số tầng cộng dồn | |
 | `cast` | boolean | đang báo trước chiêu (đứng yên) | |
+| `atk` | uint8 | bộ đếm đòn thường (#1059), tăng mỗi lần cắn, quay vòng 255; client thấy đổi thì chạy một lượt dải `attack` của hoạt ảnh vẽ thật | |
 | `buff` | uint8 | hiệu ứng có lợi của hồn thú (`BEAST_BUFF_IDS`) | |
 | `phase`, `parts` | uint8 | giai đoạn thú vương / boss; số người tham gia đang áp vào máu | `hud.ts` |
 | `weak`, `shield`, `chg`, `brk`, `dive` | uint8 / uint32 / boolean | boss thế giới: điểm yếu hệ, khiên Bá Thể, tích lực, số lần ngắt, đang lặn | `hud.ts` |
