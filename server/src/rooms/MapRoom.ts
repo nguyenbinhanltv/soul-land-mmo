@@ -41,20 +41,19 @@ import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực 
 import { FOG, moveNudge } from "../../../shared/data.ts"; // sương mù khám phá (R8)
 import { fogDims, fogEmpty, fogFill, fogReveal, fogValid, fogOn as fogMapOn } from "../../../shared/fog.ts";
 import { ASK_CD, MSG_GROUP, MSG_HARD, MSG_FLOOD_CODE, type MsgGroup } from "../../../shared/data.ts"; // nhịp tin client xin lại dữ liệu riêng (#165)
-import { WORLD_CHAT } from "../../../shared/data.ts"; // kênh thế giới (#188)
 import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, bossOffset, bossNow, bossClockMode, type BossEvent } from "../schedule.ts";
 import { store, saveFailTest, Character, type AccountLooks, type Location, type Item, type Bag, type AutoRow, type SoldRow, type TongRow, type SocialRow } from "../db.ts";
-import { chatCheck, chatText, chatReset, worldWait, worldMark, inviteCheck, inviteReset, rallyCheck, rallyReset, friendCheck, friendReset, friendNoteOk, takeToken, type TokenBucket, type ChatChannel } from "../ratelimit.ts";
+import { chatReset, worldMark, inviteReset, rallyCheck, rallyReset, friendReset, takeToken, type TokenBucket, type ChatChannel } from "../ratelimit.ts";
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
 import { rallyPoint, type RallyMsg } from "../../../shared/rally.ts";
-import { friends, FRIEND_TOPIC, type FriendNote, type FriendResult } from "../friends.ts";
+import { friends, FRIEND_TOPIC, type FriendNote } from "../friends.ts";
 import { watchGc, gcIn, cpuMs, clock } from "../perf.ts";
 import { arenaLiveOpenList, arenaLiveHold, arenaLiveRelease, arenaWatchMax, setTestWatchMax } from "./arenaQueue.ts";
-import { arenaEnqueue, arenaDequeue, arenaQueued, arenaQueueLocked, arenaQueueSlots, arenaReadActive, arenaReadElo, arenaReadCancel, arenaReadCancelled, arenaTestSlow, type ArenaTeamEntry } from "./arenaQueue.ts";
+import { arenaEnqueue, arenaDequeue, arenaQueued, arenaQueueSlots, arenaReadElo, arenaReadCancel, arenaReadCancelled, arenaTestSlow, type ArenaTeamEntry } from "./arenaQueue.ts";
 import { floorSafeZones, surfaceSpot, BOSS_BOX } from "./worldBoss.ts";
 import { Interest } from "./interest.ts";
 import { AutoHunter } from "./autoHunt.ts";
@@ -72,6 +71,7 @@ import { newItem, itemStacks, gearStats, gearLook, bagUsed, bumpItemClock, KIND_
 import { targetMsg, tickLock, setLock, manualAttack } from "./lock.ts";
 import * as equip from "./equip.ts";
 import * as bones from "./bones.ts";
+import * as social from "./social.ts";
 
 export interface PData {
   /** Hồn thú đang khoá (M3 #750, rooms/lock.ts); "" = không khoá. */
@@ -307,12 +307,12 @@ const uid = (p: string) => p + (nextId++).toString(36);
  * tin `chat` cho người chơi của mình có trong `to`, hoặc thuộc tông `tong` (#198); không có cả hai: mọi người (kênh thế giới). Không
  * lưu lịch sử.
  */
-const CHAT_TOPIC = "chatx";
+export const CHAT_TOPIC = "chatx";
 /** Màu dòng log của bạn bè / chặn (#195). */
 const FRIEND_COL = "#9fd8ff";
-interface ChatRoute { to?: number[]; tong?: string; from?: number; msg: { ch: ChatChannel; name: string; text: string; to?: string } }
+export interface ChatRoute { to?: number[]; tong?: string; from?: number; msg: { ch: ChatChannel; name: string; text: string; to?: string } }
 /** Tài khoản của phiên (client.auth; cả người xem trận, #278). */
-const accOf = (c: Client) => (c.auth as { accountId?: number } | undefined)?.accountId;
+export const accOf = (c: Client) => (c.auth as { accountId?: number } | undefined)?.accountId;
 /** PERF_LOG=1 (#273): nhịp chậm khi từ đầu tick tới hết bản vá quá ngần này ms (= một nhịp TICK_RATE), hoặc từ đầu nhịp trước quá PERF_GAP_MS. */
 const PERF_SLOW_MS = 50, PERF_GAP_MS = 100;
 /** Lý do từ chối bán / bỏ / hấp thụ / nộp đồ trong lúc phần thưởng boss đang chờ DB xác nhận lượt (claimBusy, #165). */
@@ -338,7 +338,7 @@ const newMsgBuckets = (): Record<MsgGroup | "hard", TokenBucket> => {
 /** Số nguyên client gửi; khác thì NaN (hàm nhận tự từ chối). */
 const intIn = (v: unknown) => (typeof v === "number" && Number.isInteger(v) ? v : NaN);
 /** Chuỗi client gửi; khác thì "". */
-const strIn = (v: unknown) => (typeof v === "string" ? v : "");
+export const strIn = (v: unknown) => (typeof v === "string" ? v : "");
 /** Cùng một lỗi bất ngờ ở cùng một chỗ (onUncaughtException) chỉ ghi log tối đa một lần mỗi bấy nhiêu mili giây. */
 const ERR_LOG_MS = 10_000;
 /**
@@ -411,7 +411,7 @@ async function persistEliteLock(key: string, changes: Map<number, number>) {
  */
 const fusionReady = new Map<number, number>();
 const fusionKey = (accountId: number) => `fusion:${accountId}`;
-const worldChatKey = (accountId: number) => `world-chat:${accountId}`;
+export const worldChatKey = (accountId: number) => `world-chat:${accountId}`;
 /** Số giây hồi chiêu dung hợp kỹ còn lại của tài khoản `acc` (0 = dùng được); bỏ mục đã hết hạn. */
 function fusionCdLeft(acc: number) {
   const t = fusionReady.get(acc); if (t === undefined) return 0;
@@ -6958,62 +6958,10 @@ export class MapRoom extends Room<MapState> {
   }
 
   // ---------- Chat (mục 4 "Lệnh chat", #188) ----------
-  /**
-   * Tin chat `chat {text, ch?, to?}`: `ch` thiếu = "map" (mọi người trong phòng, như cũ); "party" = mọi thành viên tổ đội; "whisper" =
-   * hồn sư tên `to` đang trong game (kèm bản sao cho người gửi); "world" = mọi phòng, từ cấp WORLD_CHAT.minLevel, 1 tin /
-   * WORLD_CHAT.cdSecs giây; "tong" (#198) = mọi thành viên cùng tông đang trong game (chưa thuộc tông thì báo). Tổ đội / riêng / thế
-   * giới / tông đi qua presence CHAT_TOPIC tới phòng đang giữ người nhận (có thể ở bản đồ / kênh khác). Kiểm luật kênh trước, rồi mới
-   * tính lượt chống spam (riêng từng kênh, ratelimit.chatCheck). Lỗi báo riêng người gửi.
-   */
-  chatAction(id: string, m: unknown) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
-    const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>;
-    const ch = o.ch === undefined ? "map" : strIn(o.ch);
-    if (ch !== "map" && ch !== "party" && ch !== "whisper" && ch !== "world" && ch !== "tong") return;
-    if (!chatText(o.text)) return;
-    const warn = (text: string) => this.log(id, text, "#ffb35c"), acc = d.accountId, now = Date.now();
-    let to: number[] | undefined, toName: string | undefined;
-    if (ch === "party") {
-      to = party.partyMembers(acc);
-      if (!to.length) return warn("Bạn không ở trong tổ đội nào: mời bằng /moi <tên> trước.");
-    } else if (ch === "whisper") {
-      const name = chatText(o.to).slice(0, 40);
-      if (!name) return warn("Gõ /t <tên> <tin> để nhắn riêng.");
-      const t = party.onlineByName(name);
-      if (!t) return warn(`${name} không trong game: tin không được gửi.`);
-      if (t.acc === acc) return warn("Không thể tự nhắn riêng cho chính mình.");
-      const bw = this.blockDeny(acc, t.acc, t.name, "tin riêng"); if (bw) return warn(bw);
-      to = [acc, t.acc]; toName = t.name;
-    } else if (ch === "world") {
-      if (p.level < WORLD_CHAT.minLevel) return warn(`Kênh thế giới mở từ cấp ${WORLD_CHAT.minLevel}.`);
-      const wait = worldWait(acc, now);
-      if (wait) return warn(`Kênh thế giới: mỗi ${WORLD_CHAT.cdSecs} giây một tin, đợi ${wait} giây.`);
-    } else if (ch === "tong") {
-      if (!d.tong) return warn("Ngươi chưa thuộc tông môn nào: gia nhập ở sứ giả tông môn (Thiên Đấu Thành) rồi mới chat tông (/tm).");
-    }
-    const r = chatCheck(acc, o.text, now, ch);
-    if (!r) return;
-    if ("error" in r) return warn(r.error);
-    // Chat bản đồ: không gửi tới người trong phòng đã chặn người gửi (#195).
-    if (ch === "map") return this.broadcast("chat", { name: p.name, text: r.text }, { except: this.clients.filter((c) => { const a = accOf(c); return a !== undefined && a !== acc && friends.blocked(a, acc); }) });
-    if (ch === "world") {
-      worldMark(acc, now);
-      void presenceBackend.putJson(worldChatKey(acc), now, WORLD_CHAT.cdSecs * 1000).catch((e) => console.error("Không lưu được hồi kênh thế giới trong presence", e));
-    }
-    const route: ChatRoute = { ...(to ? { to } : {}), ...(ch === "tong" ? { tong: d.tong! } : {}), from: acc, msg: { ch, name: p.name, text: r.text, ...(toName ? { to: toName } : {}) } };
-    this.presence.publish(CHAT_TOPIC, route);
-  }
+  chatAction(id: string, m: unknown) { return social.chatAction(this, id, m); }
 
   // ---------- Bạn bè và chặn (mục 5.9 "Bạn bè", #195; trạng thái và luật ở server/src/friends.ts) ----------
-  /**
-   * Lý do không gửi được `what` (tin riêng, lời mời tổ đội) từ `acc` tới `target` (tên `name`) vì chặn: `acc` đang chặn người đó, hoặc
-   * người đó đã chặn `acc`. Không chặn thì null.
-   */
-  blockDeny(acc: number, target: number, name: string, what: string) {
-    if (friends.blocked(acc, target)) return `Bạn đang chặn ${name}: bỏ chặn trước khi gửi ${what}.`;
-    if (friends.blocked(target, acc)) return `Không gửi được: ${name} không nhận ${what} của bạn.`;
-    return null;
-  }
+  blockDeny(acc: number, target: number, name: string, what: string) { return social.blockDeny(acc, target, name, what); }
 
   /**
    * Sau khi tổ đội ghi `acc` vào / rời phòng (`party.goOnline` / `goOffline`, có thể chờ presence, #149): báo những người đã thêm nhau
@@ -7052,49 +7000,7 @@ export class MapRoom extends Room<MapState> {
     this.clients.getById(id)?.send("friends", { ...friends.view(d.accountId, party.whereIs), ...(added ? { added } : {}) });
   }
 
-  /**
-   * Thao tác bạn bè từ client `friend {op, name?}` (#195): `list` (xin bảng), `add` / `block` (theo tên, kể cả người ngoại tuyến: tra
-   * danh sách của mình, người đang trong game rồi mới tới DB), `remove` / `unblock` (tên trong danh sách của mình). Luật ở friends.ts.
-   * Mỗi thao tác có tên (kể cả bị từ chối, vì tra tên có thể tốn một lần đọc DB) tính một lượt chống spam (ratelimit.friendCheck);
-   * thao tác hợp lệ ghi DB phần của chính người gửi qua chuỗi lưu, lỗi ghi thì báo người gửi.
-   */
-  async friendAction(id: string, m: unknown) {
-    const d = this.pdata.get(id); if (!d || d.travelling) return;
-    const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = strIn(o.op);
-    const warn = (text: string) => this.log(id, text, "#ffb35c");
-    if (op === "list") return this.ask(id, "friends", () => this.sendFriends(id)); // theo nhịp ASK_CD như các tin xin lại dữ liệu riêng
-    if (op !== "add" && op !== "remove" && op !== "block" && op !== "unblock") return;
-    const name = strIn(o.name).replace(/\s+/g, " ").trim().slice(0, 40), acc = d.accountId;
-    if (!name) return warn("Gõ tên hồn sư.");
-    const rl = friendCheck(acc, Date.now()); if (rl) return warn(rl.error);
-    let r: FriendResult;
-    if (op === "remove") r = friends.remove(acc, name);
-    else if (op === "unblock") r = friends.unblock(acc, name);
-    else {
-      const on = party.onlineByName(name);
-      const t = friends.known(acc, name) ?? (on ? { id: on.acc, name: on.name } : await store.findAccount(name).catch((e) => {
-        console.error(`Không tra được hồn sư "${name}" (bạn bè)`, e); return undefined;
-      }));
-      if (this.pdata.get(id) !== d || d.travelling) return; // rời phòng / đi cổng trong lúc tra DB
-      if (t === undefined) return warn("Chưa tra được tên hồn sư, thử lại sau.");
-      if (!t) return warn(`Không có hồn sư nào tên "${name}".`);
-      r = op === "add" ? friends.add(acc, t) : friends.block(acc, t);
-    }
-    if ("error" in r) return warn(r.error);
-    // Lời "đã thêm bạn" tới cùng một người chỉ gửi lại sau một lúc (xóa rồi thêm lại liên tục không làm ngập log người kia).
-    for (const n of r.notes) if (n.added && !friendNoteOk(acc, n.to[0], Date.now())) delete n.added;
-    const w = r.write;
-    if (w.block) { // lời mời tổ đội giữa hai người có từ trước khi chặn cũng bỏ (cả hai chiều; qua presence như mọi thao tác tổ đội, #149)
-      void party.dropInvite(acc, w.other).then((had) => { if (had) this.sendParty(id, true); })
-        .catch((e) => console.error("Không bỏ được lời mời tổ đội trong presence", e));
-      this.partyPublish(party.dropInvite(w.other, acc).then((had): party.PartyNote[] => (had ? [{ to: [w.other] }] : [])));
-    }
-    this.chain(d, () => (w.block !== undefined ? store.setBlock(acc, w.other, w.block) : store.setFriend(acc, w.other, !!w.friend)).catch((e) => {
-      this.log(id, "Không lưu được danh sách bạn bè / chặn: thao tác vừa rồi có thể mất khi vào lại game.", "#ff6b6b");
-      throw e; // chuỗi lưu ghi log và giữ chuỗi
-    }));
-    this.friendPublish(r.notes);
-  }
+  friendAction(id: string, m: unknown) { return social.friendAction(this, id, m); }
 
   // ---------- Tổ đội người chơi (mục 5.9, bước 7.1; trạng thái và luật ở server/src/party.ts) ----------
   /** Phát các thông báo tổ đội lên presence: phòng đang giữ người nhận (có thể ở bản đồ khác) gửi lại khung tổ đội và dòng log. */
@@ -7122,54 +7028,7 @@ export class MapRoom extends Room<MapState> {
     this.clients.getById(id)?.send("party", view);
   }
 
-  /**
-   * Thao tác tổ đội từ client `party {op, name?, sid?}` (7.1): `invite` (theo tên, hoặc `sid` của người cùng phòng khi bấm vào hồn sư),
-   * `accept` / `decline` (tên người mời), `leave`, `kick` / `lead` (trưởng nhóm, tên thành viên), `get` (xin khung tổ đội). Server kiểm
-   * tra mọi thứ trong party.ts; lời mời hợp lệ mới tính vào giới hạn tốc độ (ratelimit.inviteCheck, như chat). Lỗi báo riêng.
-   */
-  async partyAction(id: string, m: unknown) {
-    const d = this.pdata.get(id); if (!d) return;
-    const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, op = strIn(o.op);
-    const warn = (text: string) => this.log(id, text, "#ffb35c");
-    let name = strIn(o.name).replace(/\s+/g, " ").trim().slice(0, 40);
-    const now = Date.now(), acc = d.accountId;
-    if (["invite", "accept", "leave", "kick", "lead"].includes(op)) {
-      const locked = arenaQueueLocked(acc) || party.partyMembers(acc).some((member) => arenaQueueLocked(member));
-      if (locked || d.arenaBusy) return warn("Tổ đội đang xếp hàng Đại Đấu Hồn Trường: chờ ghép hoặc hủy trước.");
-    }
-    let r: party.PartyResult;
-    if (op === "get") return this.sendParty(id, true);
-    if (op === "invite") {
-      if (typeof o.sid === "string" && o.sid) {
-        // Chỉ hồn sư client đang thấy (bấm vào trên màn hình): `sid` ở xa (lấy từ tin `mini`) không được đổi ra tên (11.4).
-        const t = this.state.players.get(o.sid);
-        if (!t || !this.interest.sees(id, "p", o.sid)) return warn("Hồn sư này không còn ở đây.");
-        name = t.name;
-      }
-      if (!name) return warn("Gõ tên hồn sư muốn mời, ví dụ /moi Đường Tam.");
-      // #195: kiểm chặn trước, để người bị chặn không đọc được tình trạng tổ đội của người chặn qua lỗi của inviteDeny.
-      const on = party.onlineByName(name), bw = on && this.blockDeny(acc, on.acc, on.name, "lời mời tổ đội"); if (bw) return warn(bw);
-      const ok = party.inviteDeny(acc, name, now);
-      if ("error" in ok) return warn(ok.error);
-      const rl = inviteCheck(acc, ok.target, now);
-      if (rl) return warn(rl.error);
-      r = { notes: await party.addInvite(acc, ok.target, now) };
-    }
-    else if (op === "accept") {
-      // Lời mời được tạo trước khi người mời xếp đơn cũng phải bị chặn; nếu không tổ đội mới sẽ làm mục solo cũ sai thành phần.
-      const inviter = party.inviteFrom(acc, name, now);
-      if (inviter !== null && (arenaQueueLocked(inviter) || arenaReadActive(inviter))) return warn("Người mời đang xếp hàng Đại Đấu Hồn Trường: chờ ghép hoặc hủy trước.");
-      const bw = inviter !== null && this.blockDeny(acc, inviter, name, "lời mời tổ đội"); if (bw) return warn(bw); // #195
-      r = await party.accept(acc, name, now);
-    }
-    else if (op === "decline") r = await party.decline(acc, name, now);
-    else if (op === "leave") r = await party.leave(acc);
-    else if (op === "kick") r = await party.kick(acc, name);
-    else if (op === "lead") r = await party.promote(acc, name);
-    else return;
-    if ("error" in r) { warn(r.error); return this.sendParty(id, true); }
-    this.partyPublish(r.notes);
-  }
+  partyAction(id: string, m: unknown) { return social.partyAction(this, id, m); }
 
   /**
    * Tin `rally {tx, ty}` (R6 #433): thành viên tổ đội đặt dấu "Tập trung ở đây" ở ô (tx, ty) của bản đồ đang đứng. Server kiểm: có ở trong
