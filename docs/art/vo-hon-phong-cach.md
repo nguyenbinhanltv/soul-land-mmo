@@ -11,9 +11,11 @@ Chuẩn phong cách **chung** cho mọi hình võ hồn làm lại (chủ repo c
 | Loại hình | Nơi dùng | Khung | Tài liệu cách làm |
 |---|---|---|---|
 | Phụ thể (hoạt ảnh 5 hướng) | Đeo sau / trước hồn sư khi đi, đánh | 96×96 gốc (48, 74); khung 128 thử cho vật lớn (#1020) | phu-the-hoat-anh.md (đặc tả P0, PR #1028, chưa merge), `nhan-vat-hon-thu.md` |
-| Pháp tướng Võ Hồn Chân Thân | Hư ảnh khổng lồ sau lưng khi Chân Thân (`pt_<mã>`) | 160×160 | `phap-tuong.md`, `phap-tuong-cong-thuc.md` |
+| Pháp tướng Võ Hồn Chân Thân | Hư ảnh khổng lồ sau lưng khi Chân Thân (`pt_<mã>`) | 160×160 | `phap-tuong.md`, `phap-tuong-cong-thuc.md` (chỉ vẽ **mới** cho 11 võ hồn, xem dưới bảng) |
 | Chân dung + thẻ võ hồn | Giao diện HTML (`cards.ts`) | 64×64 (tối đa `PORTRAIT_MAX_COLORS` màu) / thẻ 96×152 | `nhan-vat-hon-thu.md` "Chân dung và thẻ võ hồn", `ui-kit.md` |
 | Icon võ hồn | Menu, đội hình, kho | 24×24 / 32×32 | `nhan-vat-hon-thu.md` (biểu tượng) |
+
+**Pháp tướng chỉ vẽ mới cho 11 võ hồn** đang là ảnh tĩnh + code (chủ repo chốt 2026-10-27, #1020 mục "Chốt 2026-10-27", #1024): Cửu Tinh Thất Sát Kiếm, Kỳ Nhung Thông Thiên Cúc, Nguyệt Nhận, Càn Khôn Hỗn Nguyên Tỏa, Xúc Xích, Thiên Càn Bạch Ngọc Đỉnh, Lam Ngân Thảo, Hạo Thiên Chùy, Cửu Bảo Lưu Ly Tháp, Phá Hồn Thương, A Ngân. **14 pháp tướng PixelLab đã có hoạt ảnh thật giữ nguyên**, không vẽ lại. Pháp tướng mới theo hoạt ảnh: **idle 8 + attack 8 + tuyệt kỹ 6 khung mỗi hướng**; vật cứng (kiếm, búa, tháp, đỉnh, khóa, thương...) = vài tư thế + loop nhẹ, không cần chuyển động toàn thân. Phụ thể, chân dung / thẻ, icon vẫn làm mới cho cả 25.
 
 Giữ nguyên, chỉ chỉnh màu / độ sáng cho khớp nếu cần: vòng hồn hoàn, hiệu ứng hồn kỹ. Một võ hồn phải **đọc ra là cùng một thực thể** ở cả bốn loại hình: cùng silhouette gốc, cùng bảng màu, cùng motif, cùng vật đi kèm (mục 4).
 
@@ -87,7 +89,7 @@ Quy tắc: **ảnh vẽ thật không chứa quầng mờ, gradient, bóng đổ
 
 ## 4. Bảng thiết kế mới cho từng võ hồn (25)
 
-> **Thay thế nguồn cũ (bộ hình v2):** bảng này **thay** `phap-tuong.md` phần 4.1 (cột hình / màu) cho mọi loại hình võ hồn v2, gồm cả pháp tướng. Hình, màu hai bên lệch nhau thì **theo bảng này** (ví dụ Nguyệt Nhận: hai lưỡi liềm tách ra, không phải một vòng trăng; Cửu Tinh: thép xanh đậm). Phần còn lại của `phap-tuong.md` vẫn giữ: khung, gốc, lớp, chuyển động (phần 1–3, 4.2).
+> **Thay thế nguồn cũ (bộ hình v2):** bảng này **thay** `phap-tuong.md` phần 4.1 (cột hình / màu) cho phụ thể, chân dung / thẻ, icon của cả 25 võ hồn, và cho **pháp tướng vẽ mới của 11 võ hồn** (mục 1). **14 võ hồn còn lại giữ pháp tướng PixelLab hiện có, nên bảng này KHÔNG thay `phap-tuong.md` 4.1 cho pháp tướng của 14 võ hồn đó** (chỉ dùng cho phụ thể, chân dung / thẻ, icon). Hình, màu hai bên lệch nhau thì **theo bảng này** ở phạm vi vừa nêu (ví dụ Nguyệt Nhận: hai lưỡi liềm tách ra, không phải một vòng trăng; Cửu Tinh: thép xanh đậm). Phần còn lại của `phap-tuong.md` vẫn giữ: khung, gốc, lớp, chuyển động (phần 1–3, 4.2).
 
 Mỗi dòng: **bá đạo ở đâu** (ý tưởng một câu), **hình mẫu** (hình khối gốc), **bảng màu** (thân = `robe`, nhấn = `col`, thêm màu đối lập), **motif tu tiên**, **vật đi kèm** (vẽ cùng sheet; chân dung / icon lấy lại). Màu chủ đạo gọi theo `robe` / `col` trong `VOHON`; chỉ ghi mã màu cho màu nhấn **thêm**. Hệ và hồn kỹ lấy từ `shared/data.ts`.
 
@@ -120,7 +122,7 @@ Mỗi dòng: **bá đạo ở đâu** (ý tưởng một câu), **hình mẫu** 
 - **Màu:** thân đỏ thẫm theo `robe` (lõi tối gần đen ở ngực), lửa cam theo `col`; nhấn vàng trắng ở lõi + tím than rất ít ở rìa khói (chất "tà").
 - **Motif:** vệt lửa chảy thành đạo văn dọc cánh, vòng liệt hỏa thành trận dưới chân.
 - **Vật đi kèm:** lông lửa rời bay ra; tàn tro bay lên (code).
-- *Demo bộ đầy đủ của #1024 dùng võ hồn này.*
+- *Demo #1024 dùng võ hồn này (phụ thể + chân dung + icon; pháp tướng PixelLab của con này giữ nguyên).*
 
 **19. Hạo Thiên Chùy** (`hao_thien_chuy`)
 - **Bá đạo ở đâu:** búa **trấn thiên hạ**: đầu búa to bằng cả thân người, nặng đến mức đất dưới nó nứt; không cần ra đòn, chỉ vác lên vai đã đủ áp.
@@ -335,8 +337,8 @@ Cách dùng:
 ## 7. Mốc duyệt
 
 1. Tài liệu này (PR của #1032) được review.
-2. **Chủ repo duyệt mục 2, 4 và 6** (bảng thiết kế 25 võ hồn); tthoadev có thể góp ý bảng thiết kế trước khi chốt (đặc biệt Xúc Xích, Nhu Cốt Thố, Yêu Hồ, Bạch Hổ là bốn con dễ lệch phong cách).
-3. Chỉ sau khi duyệt: tthoadev vẽ **bộ đầy đủ Tà Hỏa Phượng Hoàng** làm demo (#1024); đạt thì gộp mọi võ hồn còn lại × mọi loại hình (#1025). **Không vẽ trên nền chưa duyệt.**
+2. **Chủ repo duyệt mục 2, 4 và 6** (bảng thiết kế 25 võ hồn). Chủ repo đã giao **orchestrator tự duyệt mục 2, 4, 6** (CA ĐÊM 2026-10-27); tthoadev có thể góp ý bảng thiết kế trước khi chốt (đặc biệt Xúc Xích, Nhu Cốt Thố, Yêu Hồ, Bạch Hổ là bốn con dễ lệch phong cách).
+3. Chỉ sau khi duyệt: tthoadev vẽ demo (#1024) gồm **Tà Hỏa Phượng Hoàng** (phụ thể + chân dung + icon) và **Hạo Thiên Chùy** (pháp tướng mới, một trong 11); đạt thì gộp mọi võ hồn còn lại × mọi loại hình (#1025). **Không vẽ trên nền chưa duyệt.**
 
 ## Issue liên quan
 #1020 (epic phụ thể v2), #1032 (tài liệu này), #1022 (công cụ prompt `phuthe-sheet-prompt`), #1024 (demo Tà Hỏa Phượng Hoàng), #1025 (gộp), #1028 (đặc tả phụ thể P0).
