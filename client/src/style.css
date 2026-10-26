@@ -1695,6 +1695,6 @@ body:where(.ui-h560) #party{position:absolute;left:calc(100% + 8px);top:0!import
 body:where(.ui-h560) #toasts{width:min(200px,60vw)}
 body:where(.ui-h560) #toasts .toast:nth-last-child(n+4){display:none}
 body:where(.ui-h560) #hud:has(#toasts .toast:not(.out)) #quest{visibility:hidden}
-/* Có tổ đội thì dải giữa-trên (thanh máu boss, đếm ngược boss, nhãn mục tiêu) dời sang phải khỏi bảng Tổ đội (x≈230–465) và co bề rộng để không chạm radar (#722) */
-body:where(.ui-h560) #hud:has(#party:not(:empty)) :is(#bossbar,#bossCd,#target){left:calc(50% + 120px)}
-body:where(.ui-h560) #hud:has(#party:not(:empty)) #bossbar{width:min(268px,40vw)}
+/* Có tổ đội thì dải giữa-trên (thanh máu boss, đếm ngược boss, nhãn mục tiêu) neo theo mép phải bảng Tổ đội (10 + 210 + 8 + 232 = 460, +16) và mép trái cột phải (222), không theo giữa màn: đúng ở mọi cỡ logic có ui-h560 (#722) */
+body:where(.ui-h560) #hud:has(#party:not(:empty)) :is(#bossbar,#bossCd,#target){left:476px;transform:none;width:auto;max-width:max(140px,calc(100% - 476px - 222px));overflow:hidden;text-overflow:ellipsis}
+body:where(.ui-h560) #hud:has(#party:not(:empty)) #bossbar{width:min(268px,calc(100% - 476px - 222px));min-width:140px}
