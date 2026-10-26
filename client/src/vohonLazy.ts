@@ -24,8 +24,13 @@ const specs = new Map<string, Spec>();
 const failed = new Set<string>();
 /** Sheet hoạt ảnh `beast_<loài>_anim` đã lỗi lần đầu (đang thử lại nền): trong lúc chờ, wantBeast dùng sheet tĩnh cùng loài làm dự phòng (#1084). */
 const slow = new Set<string>();
-/** `_anim` đã lỗi lần đầu và được loader bỏ để không giữ đợt tải (deferRetry): đợt tải xong (settle) chưa tính là lỗi hẳn, wantBeast xin lại nền một lần nữa (lần đó thử lại đủ backoff rồi mới tính lỗi hẳn). */
-const deferred = new Set<string>(), requeue = new Set<string>();
+/**
+ * Theo từng scene: `_anim` đã lỗi lần đầu và được loader bỏ để không giữ đợt tải (deferRetry; `first`), và những key đó chờ đợt tải xong
+ * (`requeue`): chưa phải lỗi hẳn, wantBeast xin lại nền một lần nữa (lần đó thử lại đủ backoff rồi mới tính lỗi hẳn). Theo scene (không theo module)
+ * để bản đồ mới lại bỏ lần lỗi đầu của preload, không bị giữ ~27 s.
+ */
+const defers = new WeakMap<Phaser.Scene, { first: Set<string>; requeue: Set<string> }>();
+const deferOf = (scene: Phaser.Scene) => { let d = defers.get(scene); if (!d) defers.set(scene, d = { first: new Set(), requeue: new Set() }); return d; };
 /** Key đang xin theo từng scene (mỗi lần đổi bản đồ là scene mới nên không giữ qua scene). */
 const pending = new WeakMap<Phaser.Scene, Set<string>>();
 
@@ -83,17 +88,25 @@ export const vohonKeys = (id: string): [string, string] => {
 let onBeastSheet: ((scene: Phaser.Scene, key: string) => void) | undefined;
 export const setBeastSheetHook = (f: (scene: Phaser.Scene, key: string) => void) => { onBeastSheet = f; };
 
-/** Xử lý khi loader xong một đợt: sheet đã tới thì gắn normal map, sheet không tới thì đánh dấu lỗi để dùng bản vẽ bằng code. */
+/**
+ * Một file vừa tới (Phaser FILE_COMPLETE): gắn normal map, dựng khung / đo thân ngay, không chờ cả đợt xong (COMPLETE chỉ tới khi file chậm nhất, kể cả
+ * file đang thử lại ~27 s, xong). `<key>_n` tới sau sheet thì gắn normal ở đây.
+ */
+function arrive(scene: Phaser.Scene, file: string) {
+  const key = file.replace(/_n$/, "");
+  if (!pending.get(scene)?.has(key) || !scene.textures.exists(key)) return;
+  if (key.startsWith("vh_") || key.startsWith("beast_")) attachNormal(scene, key);
+  if (file === key && key.startsWith("beast_")) onBeastSheet?.(scene, key);
+}
+
+/** Xử lý khi loader xong một đợt: sheet đã tới thì bỏ khỏi hàng chờ, sheet không tới thì đánh dấu lỗi để dùng bản vẽ bằng code. */
 function settle(scene: Phaser.Scene) {
   const set = pending.get(scene);
   if (!set) return;
+  const d = deferOf(scene);
   for (const key of [...set]) {
-    if (scene.textures.exists(key)) {
-      if (key.startsWith("vh_") || key.startsWith("beast_")) attachNormal(scene, key);
-      if (key.startsWith("beast_")) onBeastSheet?.(scene, key);
-      slow.delete(key);
-    }
-    else if (!requeue.delete(key)) failed.add(key); // `_anim` bị loader bỏ lần đầu (deferRetry) chưa là lỗi hẳn: wantBeast xin lại nền
+    if (scene.textures.exists(key)) slow.delete(key);
+    else if (!d.requeue.delete(key)) failed.add(key); // `_anim` bị loader bỏ lần đầu (deferRetry) chưa là lỗi hẳn: wantBeast xin lại nền
     set.delete(key);
   }
 }
@@ -118,6 +131,7 @@ function queue(scene: Phaser.Scene, keys: string[], normals: boolean, start: boo
   let set = pending.get(scene);
   if (!set) {
     set = new Set(); pending.set(scene, set);
+    scene.load.on(Phaser.Loader.Events.FILE_COMPLETE, (file: string) => arrive(scene, file));
     scene.load.on(Phaser.Loader.Events.COMPLETE, () => settle(scene));
     scene.load.on(FILE_RETRY, (f: { key: string; deferRetry?: boolean }) => beastStaticFallback(scene, f));
   }
@@ -135,17 +149,14 @@ function queue(scene: Phaser.Scene, keys: string[], normals: boolean, start: boo
 /**
  * Hoạt ảnh hồn thú `beast_<loài>_anim` lỗi lần đầu (còn ~27 s thử lại): tải ngay sheet tĩnh cùng loài để hiển thị tạm, `_anim` vẫn thử lại nền và thay khi tới (#1084).
  * Lần đầu loader bỏ `_anim` ngay (deferRetry: đợt tải, và preload của scene, không bị giữ ~27 s); wantBeast xin lại `_anim` nền khi đợt tải xong,
- * lần hai thử lại đủ backoff, lỗi hẳn mới bỏ. Sheet tĩnh (và normal map) có thể tới trước tin COMPLETE: gắn normal map / dựng khung theo từng file.
+ * lần hai thử lại đủ backoff, lỗi hẳn mới bỏ. Mỗi file tới là xử lý ngay (arrive), không chờ tin COMPLETE của cả đợt (đang giữ bởi `_anim` thử lại).
  */
 function beastStaticFallback(scene: Phaser.Scene, file: { key: string; deferRetry?: boolean }) {
   const animKey = file.key, m = /^beast_([a-z_]+)_anim$/.exec(animKey), stat = m && `beast_${m[1]}`;
   if (!stat || !specs.has(animKey) || !specs.has(stat) || failed.has(stat)) return;
   slow.add(animKey);
-  if (!deferred.has(animKey)) { deferred.add(animKey); requeue.add(animKey); file.deferRetry = true; }
-  if (scene.textures.exists(stat) || pending.get(scene)?.has(stat)) return;
-  const done = () => { attachNormal(scene, stat); onBeastSheet?.(scene, stat); };
-  scene.load.once(`${Phaser.Loader.Events.FILE_KEY_COMPLETE}spritesheet-${stat}`, done);
-  scene.load.once(`${Phaser.Loader.Events.FILE_KEY_COMPLETE}image-${stat}_n`, done);
+  const d = deferOf(scene);
+  if (!d.first.has(animKey)) { d.first.add(animKey); d.requeue.add(animKey); file.deferRetry = true; }
   queue(scene, [stat], lightingOn(scene.game), true);
 }
 

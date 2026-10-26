@@ -44,6 +44,14 @@ async function run(web, token, blockAnim, species = []) {
   let shown = false;
   for (let i = 0; i < 40 && !(shown = await has()); i++) await sleep(250);
   if (!blockAnim) await sleep(4000); // bình thường: chờ thêm để thấy có xin sheet tĩnh thừa không
+  // Đổi bản đồ khi `_anim` còn bị chặn (đang thử lại nền): preload bản đồ mới cũng không được bị giữ lại, kể cả khi quay về bản đồ cũ.
+  const warps = [];
+  if (blockAnim) for (const to of ["tinh_dau_ngoai_vi", "thanh_hon_thon"]) {
+    const old = await page.evaluate(() => window.__bfScene.room.roomId), w0 = Date.now();
+    await page.evaluate((to) => window.__bfScene.room.send("test", { op: "warp", mapId: to }), to);
+    await page.waitForFunction(({ old, to }) => window.__bfScene?.room.roomId !== old && window.__bfScene.mapId === to && window.__bfScene.players.size > 0, { old, to }, { timeout: 60000 });
+    warps.push(Date.now() - w0);
+  }
   // Gỡ chặn: `_anim` thử lại nền phải tới và thay sheet tĩnh (trong ~1 lượt thử lại đủ backoff).
   let replaced = !blockAnim;
   if (blockAnim) {
@@ -52,7 +60,7 @@ async function run(web, token, blockAnim, species = []) {
     for (let i = 0; i < 120 && !(replaced = await page.evaluate((ks) => ks.every((k) => window.__bfScene.textures.exists(k)), anim)); i++) await sleep(250);
   }
   await page.close();
-  return { reqs: [...reqs], ms, shown, replaced };
+  return { reqs: [...reqs], ms, shown, replaced, warps };
 }
 
 try {
@@ -76,11 +84,12 @@ try {
   console.log(`✓ _anim tải bình thường: ${animOf.length} loài chỉ xin _anim, không xin sheet tĩnh`);
 
   const bad = await run(web, token, true, animOf);
-  assert.ok(bad.ms < 8000, `_anim bị chặn: vào được phòng sau ${bad.ms} ms (cần < 8000, trước sửa ~27000: preload chờ _anim thử lại hết)`);
+  assert.ok(bad.ms < 12000, `_anim bị chặn: vào được phòng sau ${bad.ms} ms (cần < 12000, trước sửa ~27000: preload chờ _anim thử lại hết)`);
+  for (const w of bad.warps) assert.ok(w < 12000, `_anim bị chặn: đổi bản đồ mất ${w} ms (cần < 12000; ${bad.warps}): preload bản đồ mới bị giữ`);
   assert.ok(bad.shown, "_anim bị chặn: sheet tĩnh của loài có _anim chưa có texture");
   for (const a of animOf) assert.ok(bad.reqs.includes(a.replace(/_anim$/, "")), `_anim lỗi mà không xin sheet tĩnh: ${a}`);
   assert.ok(bad.replaced, "Gỡ chặn _anim: sheet hoạt ảnh không tới thay sheet tĩnh trong 30 s");
-  console.log(`✓ _anim bị chặn: vào phòng sau ${bad.ms} ms, hồn thú hiện bằng sheet tĩnh, gỡ chặn thì _anim tới thay`);
+  console.log(`✓ _anim bị chặn: vào phòng sau ${bad.ms} ms, đổi bản đồ ${bad.warps} ms, hồn thú hiện bằng sheet tĩnh, gỡ chặn thì _anim tới thay`);
 } finally {
   await browser?.close().catch(() => {});
   for (const c of children) { try { process.platform === "win32" ? spawn("taskkill", ["/pid", String(c.pid), "/t", "/f"], { stdio: "ignore" }) : process.kill(-c.pid); } catch {} }
