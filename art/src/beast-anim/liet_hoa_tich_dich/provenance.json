@@ -1,0 +1,321 @@
+{
+  "species": "liet_hoa_tich_dich",
+  "issue": 768,
+  "umbrella": 766,
+  "tool": "builtin image_gen.imagegen",
+  "image_model_id": null,
+  "seed": null,
+  "size_selector": false,
+  "publication_authorization": "User requested committing generated FAIL images for owner review; this is not size, art or runtime acceptance.",
+  "postprocessing": "NONE: byte-identical PNG copies, no resize/crop/cut/quantize/pixel or PNG metadata edits",
+  "counters": {
+    "total_species_calls": 6,
+    "A_calls": 4,
+    "B_calls": 2
+  },
+  "primary": {
+    "A": {
+      "attempt_id": "A4",
+      "raw": "art/src/beast-anim/liet_hoa_tich_dich/toA.png",
+      "prompt": "art/src/beast-anim/liet_hoa_tich_dich/toA.prompt.txt",
+      "sha256": "a09bae2c0be9d1726a83f38aa397ddc521a5b56e78acdaf7d076f22304fbd8b5",
+      "actual_dimensions": [
+        1024,
+        1536
+      ]
+    },
+    "B": {
+      "attempt_id": "B2",
+      "raw": "art/src/beast-anim/liet_hoa_tich_dich/toB.png",
+      "prompt": "art/src/beast-anim/liet_hoa_tich_dich/toB.prompt.txt",
+      "sha256": "27752f25387f1a2be8ab8eba5b575d0fa883265a46b2a134270d1dbaa5ba195e",
+      "actual_dimensions": [
+        1254,
+        1254
+      ]
+    }
+  },
+  "history": [
+    {
+      "id": "A1",
+      "sheet": "A",
+      "session": "soul-land-mmo-82",
+      "species_call": 1,
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-82/liet_hoa_tich_dich-toA/A1-RAW.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a1757a-1402-7bc2-82dd-52b26062d298/exec-1b202870-0a86-4041-aa6e-a2d4efcab3a0.png",
+      "raw_sha256": "3dbd017e545883a7b68387bfdcd497f426aa19641dba72d4fee5c40265e84348",
+      "actual_dimensions": [
+        1024,
+        1536
+      ],
+      "requested_dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 1775748,
+      "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-82/liet_hoa_tich_dich-toA/A1-prompt.txt",
+      "prompt_sha256": "bae5d354854129079ae03d37395aac06d94d543ed1547a3d494550afa8776d53",
+      "ordered_refs": [
+        {
+          "index": 1,
+          "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/liet_hoa_tich_dich.png",
+          "artifact_copy": "reference-original.png",
+          "sha256": "6b188a3f64ddf00a904c15b16ea71ec66a25160d695fb2fb6c9ef1581f7d3d33",
+          "dimensions": [
+            288,
+            96
+          ],
+          "bytes": 4208,
+          "viewed_before_generation": true
+        }
+      ],
+      "source_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-82/liet_hoa_tich_dich-toA/attempt-history.json",
+      "source_provenance_sha256": "6a7c0214fabcc92df7768acade478f5ab46ab2b8177f249665e580f94c8ba38c",
+      "known_issues": [
+        "R3C6 missing",
+        "R11C6 missing",
+        "R1C5-C6 face right instead of front; backward recoil unclear",
+        "R5C5-C6 and R9C5-C6 backward recoil unclear",
+        "R5-R8 front three-quarter distinction needs owner inspection"
+      ],
+      "model_id": null,
+      "seed": null,
+      "size_selector": false
+    },
+    {
+      "id": "A2",
+      "sheet": "A",
+      "session": "soul-land-mmo-82",
+      "species_call": 2,
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-82/liet_hoa_tich_dich-toA/A2-RAW.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a1757a-1402-7bc2-82dd-52b26062d298/exec-5563355f-2b53-482c-9483-1e07bea6ceea.png",
+      "raw_sha256": "fc37e23d2b1e06746c4f205ba620cc40cef51872966d4cefc5b4dc60c600c605",
+      "actual_dimensions": [
+        1024,
+        1536
+      ],
+      "requested_dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 1800485,
+      "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-82/liet_hoa_tich_dich-toA/A2-prompt.txt",
+      "prompt_sha256": "aace1f1d5cb222997b6b226b4f9796f7e1923fbd17c4c7ed05f0992bd0f165af",
+      "ordered_refs": [
+        {
+          "index": 1,
+          "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/liet_hoa_tich_dich.png",
+          "artifact_copy": "reference-original.png",
+          "sha256": "6b188a3f64ddf00a904c15b16ea71ec66a25160d695fb2fb6c9ef1581f7d3d33",
+          "dimensions": [
+            288,
+            96
+          ],
+          "bytes": 4208,
+          "viewed_before_generation": true
+        }
+      ],
+      "source_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-82/liet_hoa_tich_dich-toA/attempt-history.json",
+      "source_provenance_sha256": "6a7c0214fabcc92df7768acade478f5ab46ab2b8177f249665e580f94c8ba38c",
+      "known_issues": [
+        "R1C6 turns right rather than remaining front",
+        "R1C5 recoil subtle, eyes not clearly shut",
+        "R3C2-C4 attack rotates toward right instead of remaining front",
+        "R5C5-C6 backward recoil/closed eyes not clear",
+        "R9C5-C6 backward recoil/closed eyes not clear",
+        "R5-R8 se distinction and head/body identity need owner art inspection"
+      ],
+      "model_id": null,
+      "seed": null,
+      "size_selector": false
+    },
+    {
+      "id": "B1",
+      "sheet": "B",
+      "session": "soul-land-mmo-84",
+      "species_call": 3,
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-84/liet_hoa_tich_dich-toB/B1-RAW.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17582-0a7c-7651-892a-0096b6f21aa1/exec-f492daa4-8fc9-495a-ad02-0fa1e27a639b.png",
+      "raw_sha256": "29b917f6c4ce4acd66681e41401fd39e36ca641de8ef6e1f9ca5c78aa652894e",
+      "actual_dimensions": [
+        1254,
+        1254
+      ],
+      "requested_dimensions": [
+        1024,
+        1024
+      ],
+      "bytes": 1767577,
+      "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-84/liet_hoa_tich_dich-toB/B1.prompt.txt",
+      "prompt_sha256": "73c6a4b3682f02a19d1d5dec83bd87954744aa4a3760147cfff1092b0b4ca4cb",
+      "ordered_refs": [
+        {
+          "order": 1,
+          "role": "authoritative static identity/anatomy",
+          "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/liet_hoa_tich_dich.png",
+          "sha256": "6b188a3f64ddf00a904c15b16ea71ec66a25160d695fb2fb6c9ef1581f7d3d33",
+          "dimensions": [
+            288,
+            96
+          ]
+        },
+        {
+          "order": 2,
+          "role": "A2 STYLE/body-size candidate only; no pose/art approval",
+          "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-82/liet_hoa_tich_dich-toA/A2-RAW.png",
+          "sha256": "fc37e23d2b1e06746c4f205ba620cc40cef51872966d4cefc5b4dc60c600c605",
+          "dimensions": [
+            1024,
+            1536
+          ]
+        }
+      ],
+      "source_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-84/liet_hoa_tich_dich-toB/chunk-metadata.json",
+      "source_provenance_sha256": "199e6ddecdd4eb9d0406d213fe1ac44421bb5348bf58cc3251aa01263dd8717a",
+      "known_issues": [
+        "R3C3 turns E",
+        "R4C2-C4 collapse rotates E/front",
+        "R5C6 N hurt rotates",
+        "R7C4 N attack rotates sideways",
+        "R8C2-C4 N collapse rotates; C3-C4 E",
+        "R4C5 contains N-block spill (owner64 QA)",
+        "R4C6 contains N-block spill (owner64 QA)"
+      ],
+      "model_id": null,
+      "seed": null,
+      "size_selector": false
+    },
+    {
+      "id": "B2",
+      "sheet": "B",
+      "session": "soul-land-mmo-84",
+      "species_call": 4,
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-84/liet_hoa_tich_dich-toB/B2-RAW.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17582-0a7c-7651-892a-0096b6f21aa1/exec-26db2890-cf2e-4a4d-9b6b-a85a2ad0b196.png",
+      "raw_sha256": "27752f25387f1a2be8ab8eba5b575d0fa883265a46b2a134270d1dbaa5ba195e",
+      "actual_dimensions": [
+        1254,
+        1254
+      ],
+      "requested_dimensions": [
+        1024,
+        1024
+      ],
+      "bytes": 1779784,
+      "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-84/liet_hoa_tich_dich-toB/B2.prompt.txt",
+      "prompt_sha256": "4e616035a9f461d68634056eb2d2c54c18289850c8a07bb1aae0e7c1b9184bdd",
+      "ordered_refs": [
+        {
+          "order": 1,
+          "role": "authoritative static identity/anatomy",
+          "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/liet_hoa_tich_dich.png",
+          "sha256": "6b188a3f64ddf00a904c15b16ea71ec66a25160d695fb2fb6c9ef1581f7d3d33",
+          "dimensions": [
+            288,
+            96
+          ]
+        },
+        {
+          "order": 2,
+          "role": "A2 STYLE/body-size candidate only; no pose/art approval",
+          "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-82/liet_hoa_tich_dich-toA/A2-RAW.png",
+          "sha256": "fc37e23d2b1e06746c4f205ba620cc40cef51872966d4cefc5b4dc60c600c605",
+          "dimensions": [
+            1024,
+            1536
+          ]
+        }
+      ],
+      "source_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-84/liet_hoa_tich_dich-toB/chunk-metadata.json",
+      "source_provenance_sha256": "199e6ddecdd4eb9d0406d213fe1ac44421bb5348bf58cc3251aa01263dd8717a",
+      "known_issues": [
+        "R7C2-C3 N attack rotates diagonally NE",
+        "R4C4 NE final death approaches E axis",
+        "R1C5-C6 and R5C5-C6 hurt: recoil not clearly readable",
+        "R4C5 contains N-block spill (owner64 QA)",
+        "R4C6 contains N-block spill (owner64 QA)"
+      ],
+      "model_id": null,
+      "seed": null,
+      "size_selector": false
+    },
+    {
+      "id": "A3",
+      "sheet": "A",
+      "session": "soul-land-mmo-87",
+      "species_call": 5,
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-87/A3.RAW.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17588-fd5a-7232-89ae-de21f06a402f/exec-6aea51ba-35cb-4798-89b7-bb9ede6da605.png",
+      "raw_sha256": "582138b613b8f258c44866528e0112f6ebf452ae0dc86c073606e67e1c87d3f2",
+      "actual_dimensions": [
+        1024,
+        1536
+      ],
+      "requested_dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 1821422,
+      "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-87/A3.exact-prompt.txt",
+      "prompt_sha256": "411e27892e062ab28650320976b0066f649b6d54961053720f3b91461994800e",
+      "ordered_refs": [
+        {
+          "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/liet_hoa_tich_dich.png",
+          "sha256": "6b188a3f64ddf00a904c15b16ea71ec66a25160d695fb2fb6c9ef1581f7d3d33",
+          "role": "static identity only"
+        }
+      ],
+      "source_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-87/A3.provenance.json",
+      "source_provenance_sha256": "5b03fb5f4310717527829fb7d8d85e4fc8fd50161e144ba6ddacb1a327ea30fa",
+      "known_issues": [
+        "See NGUON.md and original HANDOFF for full pose/background/cell QA"
+      ],
+      "model_id": null,
+      "seed": null,
+      "size_selector": false
+    },
+    {
+      "id": "A4",
+      "sheet": "A",
+      "session": "soul-land-mmo-87",
+      "species_call": 6,
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-87/A4.RAW.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17588-fd5a-7232-89ae-de21f06a402f/exec-bbff928d-d577-4365-b7ea-c74ce07b2b4f.png",
+      "raw_sha256": "a09bae2c0be9d1726a83f38aa397ddc521a5b56e78acdaf7d076f22304fbd8b5",
+      "actual_dimensions": [
+        1024,
+        1536
+      ],
+      "requested_dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 1786382,
+      "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-87/A4.exact-prompt.txt",
+      "prompt_sha256": "f3660a21ca775020fff12116c897aca10faee2fe77c1d979aaeee7ba32de665f",
+      "ordered_refs": [
+        {
+          "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/liet_hoa_tich_dich.png",
+          "sha256": "6b188a3f64ddf00a904c15b16ea71ec66a25160d695fb2fb6c9ef1581f7d3d33",
+          "role": "static identity only"
+        }
+      ],
+      "source_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-87/A4.provenance.json",
+      "source_provenance_sha256": "0579c519294caa24b2aba413f2d1d206058525249e66fb48fc71a99c4ea83e04",
+      "known_issues": [
+        "See NGUON.md and original HANDOFF for full pose/background/cell QA"
+      ],
+      "model_id": null,
+      "seed": null,
+      "size_selector": false
+    }
+  ],
+  "status": "FAIL candidates submitted for owner review; no size/art/runtime acceptance or auto-import",
+  "selection_rationale": "See NGUON.md; selection is based on content/grid/reference tradeoffs, not latest attempt.",
+  "comparison": {
+    "raw": "art/src/beast-anim/liet_hoa_tich_dich/candidates/A82A2.png",
+    "sha256": "fc37e23d2b1e06746c4f205ba620cc40cef51872966d4cefc5b4dc60c600c605",
+    "role": "B84 historical STYLE reference, not current primary"
+  },
+  "reference_consistency": "B84 generated with A82A2, NOT A87A4. Historical refs remain unchanged. Identity/body-size/style compatibility of the new primary pair is unconfirmed."
+}

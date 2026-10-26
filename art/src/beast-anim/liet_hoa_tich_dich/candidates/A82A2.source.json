@@ -1,0 +1,50 @@
+{
+  "purpose": "Historical generation reference of B84; compare with primary A87A4, not a second primary or accepted image",
+  "generation": {
+    "id": "A2",
+    "sheet": "A",
+    "session": "soul-land-mmo-82",
+    "species_call": 2,
+    "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-82/liet_hoa_tich_dich-toA/A2-RAW.png",
+    "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a1757a-1402-7bc2-82dd-52b26062d298/exec-5563355f-2b53-482c-9483-1e07bea6ceea.png",
+    "raw_sha256": "fc37e23d2b1e06746c4f205ba620cc40cef51872966d4cefc5b4dc60c600c605",
+    "actual_dimensions": [
+      1024,
+      1536
+    ],
+    "requested_dimensions": [
+      1024,
+      1536
+    ],
+    "bytes": 1800485,
+    "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-82/liet_hoa_tich_dich-toA/A2-prompt.txt",
+    "prompt_sha256": "aace1f1d5cb222997b6b226b4f9796f7e1923fbd17c4c7ed05f0992bd0f165af",
+    "ordered_refs": [
+      {
+        "index": 1,
+        "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/liet_hoa_tich_dich.png",
+        "artifact_copy": "reference-original.png",
+        "sha256": "6b188a3f64ddf00a904c15b16ea71ec66a25160d695fb2fb6c9ef1581f7d3d33",
+        "dimensions": [
+          288,
+          96
+        ],
+        "bytes": 4208,
+        "viewed_before_generation": true
+      }
+    ],
+    "source_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-82/liet_hoa_tich_dich-toA/attempt-history.json",
+    "source_provenance_sha256": "6a7c0214fabcc92df7768acade478f5ab46ab2b8177f249665e580f94c8ba38c",
+    "known_issues": [
+      "R1C6 turns right rather than remaining front",
+      "R1C5 recoil subtle, eyes not clearly shut",
+      "R3C2-C4 attack rotates toward right instead of remaining front",
+      "R5C5-C6 backward recoil/closed eyes not clear",
+      "R9C5-C6 backward recoil/closed eyes not clear",
+      "R5-R8 se distinction and head/body identity need owner art inspection"
+    ],
+    "model_id": null,
+    "seed": null,
+    "size_selector": false
+  }
+}

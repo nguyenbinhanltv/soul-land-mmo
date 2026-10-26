@@ -1,0 +1,33 @@
+Create ONE image, exactly 1024x1024 pixels: an animation sprite sheet of a single fantasy creature for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
+
+CREATURE: Liệt Hỏa Tích Dịch - fire lizard, red-orange scaled lizard with ember-like orange spots and a flame-colored crest, long tail, on four short legs, horizontal body. Body type: thú bốn chân. Size class: Tím / Đen. The attached reference image shows this exact creature in three static views (front, side, back): keep the SAME design, proportions, colors, markings and overall size in every frame of the sheet. Do not redesign it.
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
+
+GRID: 6 columns x 8 rows of equal invisible cells (171x128 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with its feet (or lowest body point) standing on the same invisible ground line about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.
+
+LAYOUT (top to bottom):
+Block 1 (rows 1-4): direction "ne" = facing the upper right of the picture (three-quarter back view, head away from the viewer toward the right).
+  row 1: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 2: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 3: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 4: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+Block 2 (rows 5-8): direction "n" = facing away from the viewer (back view from above).
+  row 5: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 6: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 7: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 8: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+
+CONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, standing, walking and hurt frames keep the body at the same scale and the same ground line. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).
+
+STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.
+
+DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions.
+
+Match the creature design, colors, size and line weight of the second attached sheet exactly.
+ORDERED REFERENCES: Image 1 is the original static Liệt Hỏa Tích Dịch identity reference; image 2 is the selected sheet A2 of this SAME species, a STYLE candidate only, not an accepted pose or direction reference. Keep the static reference authoritative for anatomy/proportions, orange-red palette, long low lizard body and tail; sheet A supplies rendering style and body size. Do not copy A's front-to-right rotations in hurt/attack or exaggerate the round head/body.
+CANVAS AND BODY SCALE: Create exactly 1024x1024 pixels, 6 columns x 8 rows, not 1254x1254. Keep the SAME absolute body pixel size and line weight as the second attached A sheet, not a larger creature scaled to fill a larger square canvas. Draw the complete sheet with 44 occupied cells and only r4c5-r4c6/r8c5-r8c6 empty.
+HEADING LOCK: NE rows 1-4 point diagonally away toward UPPER RIGHT, showing back/rump/back of head, never east side profile or southeast front. N rows 5-8 are strictly rear-facing in ALL idle/hurt/walk/attack/die frames: head beyond shoulders pointing away/up, no eyes, face, mouth or front chest visible in ANY N frame. Hurt clearly recoils backward along the same heading with closed eyes where visible, no turning to front/side. Die lowers and collapses without rotating its head-to-tail axis toward east or the viewer. Preserve the tail and low four-legged lizard anatomy without fire/glow/effects. Redraw whole sheet only; no copying earlier bad poses.
+
+
+TARGETED CLARIFICATION FOR THIS WHOLE-SHEET REDRAW: Keep the complete English specification above unchanged. Heading must remain fixed during EVERY action, especially collapse. In NE R3C3 and R4C2-C4 do not reveal the side of the face or a horizontal east-facing snout: the snout stays farther away and upper-right of the rump even while lying down. In N R5C6, R7C4, and R8C2-C4 do not pivot the spine: the snout is at the TOP/far end and the tail at the BOTTOM/near end in every cell. Rear view only, no eyes or mouth. For the final N death frames, lower and flatten the body with splayed legs while retaining this vertical head-up/tail-down axis; do not draw the familiar east-facing lying lizard. Hurt must show two visibly different backward recoil/recovery poses along that locked axis. Four SHORT legs, LONG LOW lizard torso and long tail from static identity, never upright/chibi dragon. Output exactly 1024x1024 pixels, keep A2 absolute body pixel size, not enlarged; 6x8 equal cells, 44 occupied, only R4C5-C6 and R8C5-C6 blank. Redraw the entire sheet from the two original references in their stated order.
