@@ -309,9 +309,9 @@ Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colo
 high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
 (shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
 no anti-aliasing, hard pixel edges. Light comes from the upper left.
-Cultivation (xianxia) motifs: swirling layered spirit qi, thin talisman / dao-script line patterns,
-ancient seal marks, thin layered formation circles, storm clouds and lightning, golden divine halo,
-cracked ground. Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
 Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
 Transparent background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
 (glow, particles and motion are added in code).
@@ -327,6 +327,7 @@ anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
 ```
 
 Cách dùng:
+- **Menu motif** (tiếng Việt, để chọn cho phần SPIRIT; **không** nằm trong khối gửi đi): linh khí cuộn, đạo văn / phù triện, ấn triện, pháp trận nét mảnh, mây sấm + sét, kim quang / vầng đạo, đất nứt. Mỗi võ hồn chỉ lấy 2–3 thứ theo dòng "motif" ở mục 4 (mục 2: không nhồi cả bộ), dịch sang tiếng Anh vào phần SPIRIT.
 - Mỗi lần gửi: **STYLE + NEGATIVE** (nguyên văn) + **mô tả riêng** (dịch một câu "bá đạo ở đâu" và "hình mẫu", "màu", "motif", "vật đi kèm" của võ hồn ở mục 4 sang tiếng Anh, giữ mã màu) + phần kỹ thuật theo loại hình (lưới sheet, hướng, số khung: `phu-the-hoat-anh.md`, `phap-tuong-cong-thuc.md`, skill `asset-gen`).
 - **Từ cấm** bổ sung theo loại hình: chân dung / thẻ thêm `border, frame, card, text`; icon thêm `tiny whole animal, full body`; pháp tướng thêm `solid opaque body` (pháp tướng nửa trong suốt, mục 3 `phap-tuong.md`).
 - Sau khi sinh: **rà điều cấm** (mục 2) trước khi nhập; vi phạm thì loại, không sửa tay bằng ảnh cũ. Số màu, khung, bảng màu do bước hậu kỳ (`tools/assets`) kiểm.
