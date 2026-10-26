@@ -1194,7 +1194,7 @@ export class PgStore implements Store {
     if (!items.length) return;
     const rows = JSON.stringify(items.map((i) => ({ id: i.id, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars,
       enhance: i.enhance, stats: i.stats ?? null, vohon_id: i.vohonId, created: new Date(i.created).toISOString(), locked: !!i.locked, equip_slot: i.equipSlot ?? null })));
-    const r = await db.query(
+    await db.query(
       `INSERT INTO items(id, account_id, kind, code, qty, years, stars, enhance, stats, vohon_id, created_at, locked, equip_slot)
        SELECT x.id, $1, x.kind, x.code, x.qty, x.years, x.stars, x.enhance, x.stats, x.vohon_id, x.created, x.locked, x.equip_slot
        FROM jsonb_to_recordset($2::jsonb) AS x(id uuid, kind text, code text, qty int, years int, stars smallint, enhance smallint,

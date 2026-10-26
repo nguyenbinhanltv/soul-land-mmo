@@ -9,7 +9,7 @@ import { fxPrefs, fxLevel } from "./combatFx.ts";
 const INK = [11, 20, 16], ALPHA = 215;
 
 class Fog {
-  private key = ""; private d: FogDims = fogDims(1, 1); private on = false;
+  private d: FogDims = fogDims(1, 1); private on = false;
   private bits: Uint8Array | null = null;
   private cv: HTMLCanvasElement | null = null; private img: ImageData | null = null;
   /** Ô đang sáng dần: số ô → thời điểm bắt đầu (ms). */
@@ -18,7 +18,7 @@ class Fog {
 
   /** Báo bản đồ đang đứng (gọi khi dựng cảnh): cỡ theo ô lưới. Đổi bản đồ thì bỏ dữ liệu cũ. */
   setMap(key: string, w: number, h: number) {
-    this.key = key; this.d = fogDims(w, h); this.on = fogOn(key); this.bits = null; this.fade.clear(); this.cv = null; this.img = null; this.dirty = false;
+    this.d = fogDims(w, h); this.on = fogOn(key); this.bits = null; this.fade.clear(); this.cv = null; this.img = null; this.dirty = false;
   }
   /** Có sương mù và đã có dữ liệu (đang che). */
   get active() { return this.on && this.bits !== null; }
