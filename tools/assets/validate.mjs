@@ -57,10 +57,16 @@ function mapColors(key, map) {
   return readGpl(f);
 }
 
-function check(key, frame, iso = false, map = "", nine = 0, stat = false) {
+function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank = false) {
   const spec = sheetSpec(key, frame, iso, stat);
   if (!spec) return err(key, iso ? "key / khung sai quy ước isometric (isoLayout, sheetSpec trong tools/assets/lib.mjs)" : "key sai quy ước (xem sheetSpec trong client/src/sprites.ts)");
   const file = path.join(SPRITES, spec.file);
+  // "blank": nửa phụ thể (vh_*) không có hình, client không tải (#974): không được còn file ảnh / normal; ngược lại sheet không điểm ảnh phải khai blank.
+  if (blank) {
+    if (spec.kind !== "vohon") return err(key, `"blank": true chỉ cho phụ thể võ hồn (vh_*)`);
+    for (const f of [file, file.replace(/\.png$/, "_n.png")]) if (existsSync(f)) err(key, `"blank": true nhưng còn file ${path.relative(ROOT, f)} (xóa file: nửa trống không đưa vào game, nguồn vẽ giữ ở art/src)`);
+    return spec;
+  }
   if (!existsSync(file)) return err(key, `thiếu file ${path.relative(ROOT, file)}`);
   let img;
   try { img = readPng(file); } catch (e) { return err(key, `không đọc được PNG: ${e.message}`); }
@@ -126,7 +132,7 @@ function check(key, frame, iso = false, map = "", nine = 0, stat = false) {
     const stray = [];
     for (let r = 0; r < 4; r++) for (let c = 0; c < SHEET_COLS; c++) if ((r === 3 || c >= 12) && !cellEmpty(img, ...at(r, c), fw, fh)) stray.push([r, c]);
     if (stray.length) err(key, `phụ thể vẽ vào ô client không đọc (cột 12–15 hoặc hàng 3): ` + stray.map(([r, c]) => `(${r},${c})`).join(" "));
-    if (cellEmpty(img, 0, 0, img.w, img.h)) warn(key, "sheet trống hoàn toàn");
+    if (cellEmpty(img, 0, 0, img.w, img.h)) err(key, `sheet trống hoàn toàn: ghi "blank": true vào manifest và xóa file ảnh + _n (client không tải nửa trống)`);
   } else if (spec.kind === "beast" || spec.kind === "fx") {
     if (spec.kind === "fx" && img.h !== fh) err(key, `hiệu ứng phải là dải một hàng khung ${fw}×${fh}`);
     const empty = [];
@@ -142,7 +148,7 @@ function checkIso(key, spec, img, at, fw, fh) {
   const stray = [];
   for (let r = 0; r < L.rows; r++) for (let c = 0; c < L.cols; c++) if (!L.cells.has(`${r},${c}`) && filled(r, c)) stray.push([r, c]);
   if (stray.length) err(key, `vẽ vào ô ngoài bố cục (client không đọc): ` + stray.slice(0, 10).map(([r, c]) => `(${r},${c})`).join(" "));
-  if (spec.kind === "vohon") { if (cellEmpty(img, 0, 0, img.w, img.h)) warn(key, "sheet trống hoàn toàn"); return spec; }
+  if (spec.kind === "vohon") { if (cellEmpty(img, 0, 0, img.w, img.h)) err(key, `sheet trống hoàn toàn: ghi "blank": true vào manifest và xóa file ảnh + _n (client không tải nửa trống)`); return spec; }
   // Pháp tướng: đủ mọi khung idle / attack của 5 hướng; khung vẽ không chạm mép (viền sáng 2 điểm không bị cắt).
   if (spec.kind === "phaptuong") {
     const miss = L.required.filter(([r, c]) => !filled(r, c));
@@ -248,7 +254,7 @@ for (const e of manifest.sprites) {
   const key = entryKey(e);
   if (seen.has(key)) err(key, "trùng key trong manifest");
   seen.add(key);
-  const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "", e.nine ?? 0, !!e.static);
+  const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "", e.nine ?? 0, !!e.static, !!e.blank);
   if (spec) { seen.add(spec.file); seen.add(spec.file.replace(/\.png$/, "_n.png")); }
 }
 // Bộ hồn sư giới × kiểu tóc phải đủ 3 lớp tách từ cùng một hình: thiếu lớp nào thì client vẽ lớp đó bằng code, lệch nét.

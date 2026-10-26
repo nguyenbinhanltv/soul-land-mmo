@@ -1,7 +1,7 @@
 // Miền NPC / nhiệm vụ / khảo hạch hằng ngày (NPC 6.1, nhiệm vụ 6.2, khảo hạch hằng ngày mục 5.8): nói chuyện NPC, nhận / trả chuỗi nhiệm vụ, nhận / trả khảo hạch, tách khỏi MapRoom.ts (#702, bước 8).
 // Hàm nhận phòng (`room: MapRoom`) như equip.ts / shop.ts / tong.ts; nguyên văn từ MapRoom, không đổi hành vi / thứ tự ghi DB qua `room.saveTrade`, `room.save`.
 // MapRoom chỉ chuyển tiếp `talkNpc`, `questAction`, `dailyAction` (đăng ký `onMessage("talk")` / `onMessage("quest")` giữ nguyên thứ tự ở đó). Bộ đếm `questEvent` / `questBump`, `sendQuest`, `sendDaily`, `dailyGive`... còn ở MapRoom (nhiều nơi gọi).
-import { itemDef, npcDef, questChain, questStatus, questRewardText, isDaily, DAILY, MAPS, QUEST_STARTER, QUEST_AFTER, questStart } from "../../../shared/data.ts";
+import { itemDef, npcDef, questChain, questStatus, questRewardText, isDaily, DAILY, MAPS, QUEST_STARTER, QUEST_AFTER } from "../../../shared/data.ts";
 import { CLAIM_BUSY, claimHeld, type MapRoom } from "./MapRoom.ts";
 
 /** Nói chuyện với NPC `raw` (mã trong NPCS): đứng đủ gần thì gửi riêng tin `npc {id}` để client mở hộp thoại (lời thoại ở NPCS). */

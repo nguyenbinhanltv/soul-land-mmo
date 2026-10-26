@@ -1,6 +1,6 @@
 // Nhóm bot "channel" (#703 bước 6, tách nguyên văn từ bot-test.mjs): Nhiều kênh và tài khoản test.
 import { Client } from "colyseus.js";
-import { WS, post, sleep, waitFor, RUN, ok, bot, enter, qtyOf, bagKey, AT, objOf, test } from "./lib.mjs";
+import { WS, post, sleep, waitFor, RUN, ok, bot, enter, qtyOf, bagKey, AT, objOf, test, needHookSkip } from "./lib.mjs";
 import { CHANNEL_CD, TEAM_SIZE, VOHON, formatHonTe, TEAM_COMBAT_SECS, MAPS, MAX_RINGS, MAX_LEVEL, MAX_STARS, BONE_ITEM, BONE_SLOTS, bossIndex, ELITE, beastName, chestCode, CORE_ITEM, CORE_SLOTS, TONG_MON, EQUIP_SLOTS, EQUIP_MAX_ENHANCE } from "../../../shared/data.ts";
 
 /**
@@ -236,7 +236,7 @@ export async function testAccTest(){
   const slot=b.owned.team.findIndex((r,i)=>r&&r!==b.owned.active&&i>0);
   if(slot>=0){ const want=b.owned.team[slot]; b.room.send("switch",{slot}); ok(await waitFor(()=>b.owned?.active===want,3000),`đổi võ hồn sang ô ${slot+1}`); }
   // Đánh hồn thú ở bản đồ săn (hook warp, beast, slay).
-  if(!(await test(b,"ping"))?.enabled){ console.log("  ⚠ bỏ qua đánh hồn thú (cần hook warp, beast, slay): bật server bằng GAME_TEST=1"); }
+  if(!(await test(b,"ping"))?.enabled){ needHookSkip("bỏ qua đánh hồn thú (cần hook warp, beast, slay): bật server bằng GAME_TEST=1"); }
   else{
     b.travel=null; b.room.send("test",{op:"warp",mapId:"tinh_dau_ngoai_vi",x:0,y:0});
     ok(await waitFor(()=>b.travel?.mapId==="tinh_dau_ngoai_vi",4000),"warp -> Tinh Đấu Ngoại vi");

@@ -117,7 +117,7 @@ export function onJoin(room: MapRoom, client: Client, _o: unknown, auth: AuthDat
     bag: bag.items.filter((i) => i.equipSlot === undefined), gear: bag.items.filter((i) => i.equipSlot !== undefined), gearSt: gearStats(bag.items.filter((i) => i.equipSlot !== undefined)), honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "",
     sellCfg: parseSell(bag.sell), sold: bag.sold ?? [], sellCheck: true, sellSent: "", soldN: 0, soldCoins: 0, autoSold0: [0, 0], danCd: 0, starterNote: auth.starter, st: new Map(), dotT: 0, hanT: 0, charm: null,
     claims: auth.claims, wclaims: auth.wclaims, shardBuy: { ...auth.shardBuy, pend: 0 }, claimBusy: 0, lockIds: new Set(), enhBusy: false, tongBusy: false, salvAt: 0, testSyn: null, testEnh: null, testEnhSlow: 0, testEquip: null, testClaimHold: false, testTravelLost: false, testChest: null, passive: { buff: {}, resist: {} },
-    coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
+    vit: null, vitAt: 0, coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
     quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
     chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...room.dailyOf(bag.quests), ...room.tongTasksOf(bag.quests), tongBoardAt: 0, tongPend: [],
     res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, arenaWatchAt: 0, resonanceTopAt: 0, arenaGone: false,

@@ -1,7 +1,7 @@
 // Nhóm bot "sell" (#703 bước 2, tách nguyên văn từ bot-test.mjs).
 import { SELL_DEFAULTS, parseSell, BONE_MAX_ENHANCE, RING_ITEM, CORE_ITEM, BONE_ITEM, MAX_YEARS, autoSellable, AUTO_SELL_GUARD, AUTO_SELL_FREE, ringSellPrice, CORE_SELL, formatHonTe, AUTO_SELL_BUYBACK } from "../../../shared/data.ts";
 import { readFileSync } from "node:fs";
-import { same, bot, test, looseOf, enter, trade, npcSpot, mapUrl, ok, post, sleep, waitFor } from "./lib.mjs";
+import { same, bot, test, looseOf, enter, trade, npcSpot, mapUrl, ok, post, sleep, waitFor, needHookSkip } from "./lib.mjs";
 
 export async function sellTest(){
   console.log("[#216] Tự bán từ xa khi túi đầy");
@@ -16,7 +16,7 @@ export async function sellTest(){
     &&!autoSellable({code:"hoi_huyet_dan",years:null,stars:null,enhance:0},{...all,shard:true,bone:99,core:99}),
     "autoSellable: hồn hoàn dưới ngưỡng, không khoá / gắn, vạn năm cần bật, hồn hạch chưa nâng cấp dưới N sao, hồn cốt dưới mức cường hóa, không bán đan");
   const S=await bot("Tự bán","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
-  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua tự bán (cần hook give, coin, warp, goto): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  if(!(await test(S,"ping"))?.enabled){ needHookSkip("bỏ qua tự bán (cần hook give, coin, warp, goto): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
   try{
   const me=()=>S.room.state.players?.get(S.room.sessionId), loose=()=>looseOf(S), free=()=>S.bag.slots-loose().length;
   async function rejoin(){ await S.room.leave(); await sleep(400); S.mapId=(await post("/api/me",{token:S.token})).mapId; await enter(S); await waitFor(()=>me()&&S.bag,3000); }

@@ -21,3 +21,11 @@ User cho phép nộp cả ảnh fail để chủ repo kiểm sau. Đây là bàn
 
 ## Nguồn
 provenance.json lưu nguyên danh tính từng lượt, raw original path, artifact raw/prompt, hash/header/bytes, ordered refs và vai trò. A chỉ static đúng loài; mọi B dùng static+A74A2 làm STYLE/body-size candidate, chưa accepted. Exact prompt của primary ở toA.prompt.txt / toB.prompt.txt. Mọi raw không chọn và prompt thật tiếp tục giữ ngoài Git; chỉ hai primary vào PR. Ảnh tĩnh giữ nguồn CREDITS cũ.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/lam_loi_te_nguu/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Lam Lôi Tê Ngưu (H4 #768, Part of #766): raw `art/src/beast-anim/lam_loi_te_nguu/toA.png` (A74A2,1024×1536) và `toB.png` (B80B1,1254×1254 thật, FAIL yêu cầu1024×1024). tthoadev dùng builtin `image_gen.imagegen`; image model/seed unknown, không size selector. Chọn theo content/grid/ref, không lấy latest: B1 có44 ô pixel/4 blank, B85 có bleed và B2/B4 N front; vẫn còn heading/die/recoil/scale chưa đạt. Counters A74=2+B80=2+B85=2, tổng6. A chỉ static; B static+A74A2 STYLE candidate. Nộp ảnh FAIL theo user để owner kiểm, không size/art/runtime acceptance hoặc auto-import; raw nguyên byte, không hậu kỳ. Exact prompts, toàn bộ history/hash/ref/known issues ở [NGUON.md](src/beast-anim/lam_loi_te_nguu/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `provenance.json`. Nguồn Q44/điều khoản công cụ. | - | Chuyển một lần từ art/CREDITS.md (#973) |

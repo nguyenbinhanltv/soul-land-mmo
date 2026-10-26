@@ -1,7 +1,7 @@
 // Sổ trạng thái hoạt ảnh hồn thú, tự sinh (#865, theo dõi #861; thay bảng tay ở #766).
-//   npm run beast:status                      ghi art/src/beast-anim/_status.json + _status.md cho mọi loài
-//   npm run beast:status -- --check           so với file đang có; lệch thì thoát mã 1 (chạy lại lệnh trên để cập nhật)
-//   npm run beast:status -- --out <thư mục>   ghi chỗ khác (không đụng repo)
+//   npm run beast:status                      ghi art/src/beast-anim/_status.json + _status.md cho mọi loài (file cục bộ, .gitignore, KHÔNG commit: #973)
+//   npm run beast:status -- --out <thư mục>   ghi chỗ khác (workflow beast-status.yml dùng để dựng comment ghim ở #766)
+// Bản chung của cả đội là comment có dấu `<!-- beast-status -->` ở issue #766, do workflow beast-status.yml sửa sau mỗi lần main đổi art/src/beast-anim/**.
 // Mỗi tờ: tên file, cỡ (IHDR), số byte, SHA256, mức kiểm (pass / nhẹ / chặn) và số mục chặn / nhẹ / lưu ý; mỗi loài: mức theo khối hướng
 // (s, se, e, ne, n), bố cục (sheet / direction), tờ còn thiếu, có turnaround chưa, đã nhập vào game chưa (manifest `beast_<loài>_anim`) và
 // dòng `LỖI:` do công cụ kiểm sinh. Kết quả chỉ phụ thuộc file trong repo (không giờ, không đường dẫn máy) nên so được giữa các máy.
@@ -65,7 +65,7 @@ const LEVEL_MARK = { pass: "đạt", "nhẹ": "nhẹ", "chặn": "**chặn**", "
 /** Bảng Markdown của sổ. */
 export function statusMarkdown(st) {
   const L = ["# Sổ trạng thái hoạt ảnh hồn thú", "",
-    "File này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-status.mjs`); **không sửa tay**, không dán bảng tay vào issue. Mức theo khối hướng là kết quả `beast:check` (cỡ, nền, lưới, số hình, chân, cỡ thân, khung chết); `n` / `ne` lộ mặt, hurt ngửa bụng, die xoay chỉ xem bằng mắt (tờ liên hệ).", "",
+    "Sổ này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-status.mjs`; workflow `beast-status.yml` đăng lên comment ghim ở #766 sau mỗi lần `main` đổi `art/src/beast-anim/**`); **không sửa tay**, không commit file sinh ra, không dán bảng tay vào issue. Mức theo khối hướng là kết quả `beast:check` (cỡ, nền, lưới, số hình, chân, cỡ thân, khung chết); `n` / `ne` lộ mặt, hurt ngửa bụng, die xoay chỉ xem bằng mắt (tờ liên hệ).", "",
     `${st.species} loài có thư mục · ${st.imported} đã nhập vào game · ` + Object.entries(st.tally).map(([k, v]) => `${v} ${STATE_VI[k] ?? k}`).join(" · "), "",
     "| Loài | Mã | Bố cục | Tờ (cỡ, mức) | s | se | e | ne | n | Thiếu | Nhập game | Trạng thái |", "|---|---|---|---|---|---|---|---|---|---|---|---|"];
   for (const s of st.items) {
@@ -84,8 +84,7 @@ function parseArgs(argv) {
   const o = {};
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
-    if (a === "--check") o.check = true;
-    else if (a === "--out") o.out = argv[++i];
+    if (a === "--out") o.out = argv[++i];
     else if (a === "--species") o.only = argv[++i].split(",");
     else throw new Error(`tùy chọn lạ: ${a}`);
   }
@@ -97,12 +96,6 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const o = parseArgs(process.argv.slice(2));
     const st = buildStatus({ only: o.only }), json = JSON.stringify(st, null, 2) + "\n", md = statusMarkdown(st) + "\n";
     const dir = o.out ?? ANIM_ROOT, fj = path.join(dir, "_status.json"), fm = path.join(dir, "_status.md");
-    if (o.check) {
-      const read = (f) => readFileSync(f, "utf8").replaceAll("\r\n", "\n"); // checkout Windows có thể đổi CRLF
-      const same = existsSync(fj) && existsSync(fm) && read(fj) === json && read(fm) === md;
-      console.log(same ? "sổ trạng thái đã mới" : "sổ trạng thái lệch: chạy `npm run beast:status` để cập nhật");
-      process.exit(same ? 0 : 1);
-    }
     mkdirSync(dir, { recursive: true });
     writeFileSync(fj, json); writeFileSync(fm, md);
     console.log(`ghi ${fj} và ${fm}: ${st.species} loài, ${st.imported} đã nhập, ` + Object.entries(st.tally).map(([k, v]) => `${v} ${k}`).join(", "));

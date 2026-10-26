@@ -82,7 +82,7 @@ Nhiều việc cùng sửa các file sau. Sửa đúng chỗ cần, **không for
 | `server/src/rooms/MapRoom.ts` | Tách logic mới thành hàm / file riêng khi được, chỉ thêm lời gọi ngắn trong `MapRoom`. |
 | `shared/assets/sprites/manifest.json` | Sinh bằng dây chuyền `tools/assets`, không sửa tay; xung đột thì lấy bản `main` rồi chạy lại công cụ. |
 | `GAME_DESIGN.md`, `docs/design/`, `docs/art/`, `docs/tech/`, `ROADMAP.md` | Sửa đúng file của hệ thống đổi và đúng dòng của mình ở `ROADMAP.md`; số issue gom cuối file, không chen giữa câu. Quyết định mới của chủ repo ghi thêm một dòng `Q` ở `docs/quyet-dinh.md` (không viết ngược). |
-| `art/CREDITS.md` | Thêm dòng đúng nhóm, không sắp xếp lại. Asset ngoài nào cũng một dòng (tác giả, URL, giấy phép, file, có sửa gì), SA / GPL / NC ghi cờ (luật ở `docs/art/nguon-giay-phep.md`). Asset ngoài chỉ lấy miễn phí; gói giới hạn giấy phép ở kho riêng (`docs/asset-rieng.md`). |
+| `art/CREDITS.md` | Thêm dòng đúng nhóm, không sắp xếp lại (hồn thú hoạt ảnh H2 / H4: ghi ở bảng `## Ghi công` trong `art/src/beast-anim/<loài>/NGUON.md`, không nối vào đây). Asset ngoài nào cũng một dòng (tác giả, URL, giấy phép, file, có sửa gì), SA / GPL / NC ghi cờ (luật ở `docs/art/nguon-giay-phep.md`). Asset ngoài chỉ lấy miễn phí; gói giới hạn giấy phép ở kho riêng (`docs/asset-rieng.md`). |
 
 Các file này có chủ repo trong `.github/CODEOWNERS`.
 

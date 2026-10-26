@@ -31,6 +31,7 @@ function manifestEntries(manifest, root = ROOT) {
     if (seen.has(key)) errors.push(`${key}: trùng key trong manifest`);
     seen.add(key);
     const entry = typeof raw === "string" ? { key: raw } : raw;
+    if (entry.blank) continue; // nửa phụ thể trống: không có file, client không tải (validate.mjs kiểm cờ, #974)
     const spec = sheetSpec(key, entry.frame, !!entry.iso, !!entry.static);
     if (!spec) { errors.push(`${key}: key không khớp sheetSpec`); continue; }
     const file = path.join(root, "shared", "assets", "sprites", spec.file);
