@@ -1,6 +1,6 @@
 // Hạ hồn thú (GAME_DESIGN.md mục 5.2, 5.4, 5.9), tách khỏi MapRoom.ts (#702, bước 24): `killBeast` (kinh nghiệm, Hồn Tệ, đồ rơi, khóa tinh anh, chia tổ đội).
 // Hàm nhận phòng (`room: MapRoom`) như loot.ts; nguyên văn từ MapRoom, không đổi thứ tự xử lý / thứ tự gọi RNG (`roll*` giữ thứ tự cũ). MapRoom chỉ chuyển tiếp `killBeast`.
-import { TIERS, BEASTS, beastIndex, formatHonTe, formatYears, DROP_OWNER_SECS, BOSSES, ELITE, beastName, fitBeast, PARTY_XP_RANGE, partyXpShare } from "../../../shared/data.ts";
+import { TIERS, BEASTS, beastIndex, formatHonTe, formatYears, DROP_OWNER_SECS, BOSSES, ELITE, beastName, fitBeast, partyXpShare } from "../../../shared/data.ts";
 import { type MapRoom, uid, eliteLocks, persistEliteLock, eliteKey, eliteLockLeft } from "./MapRoom.ts";
 
 /**
