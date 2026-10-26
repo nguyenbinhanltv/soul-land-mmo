@@ -39,7 +39,7 @@ Phụ thể là thủ phạm chính: 100 ảnh × 2304×1152 × 4 byte ≈ **1 G
 ## Kế hoạch chia bước (mỗi bước một PR "Part of #716", đo trước / sau bằng script trên)
 
 1. **Phụ thể võ hồn tải theo nhu cầu** (`client/src/vohonLazy.ts`) — **đã làm ở PR đầu**. `preloadSprites` chỉ ghi spec; preload xin sheet của người đang trong phòng lúc vào; người tới sau / đổi võ hồn thì tải lười, lớp phụ thể ẩn tới khi tải xong; ảnh võ hồn trong bảng Đội hình / Nhân vật dựng lại khi sheet tới; tải lỗi hẳn thì dùng phụ thể vẽ bằng code như khi manifest thiếu ảnh. Ảnh hiển thị cuối cùng không đổi.
-2. **Pháp tướng `pt_*` theo nhu cầu**: cùng cơ chế (chỉ tải khi một người trong phòng có pháp tướng của võ hồn đó). Ước tính −1 s, −290 MB điểm ảnh.
+2. **Pháp tướng `pt_*` theo nhu cầu** — **đã làm ở PR thứ hai**. Cùng cơ chế với bước 1 (`wantPhapTuong` trong `vohonLazy.ts`): `preloadSprites` chỉ ghi spec; sheet thân + lớp sáng `_glow` được xin khi có người trong phòng đang Chân Thân (`ava > 0`, lúc vào hoặc lúc `PhapTuongSystem.sync` thấy) và của chính mình (lúc vào / đổi võ hồn, để cut-in có ảnh). Chưa tải xong thì chưa dựng hình pháp tướng và không vẽ bản tạm (khỏi nháy); `setSlots` hỏi lại mỗi khung. Manifest không có ảnh / tải lỗi thì vẫn dùng sheet tạm bằng code. Ảnh hiển thị cuối cùng không đổi.
 3. **Hồn thú theo bản đồ**: manifest đã ghi `map` cho từng loài (`beast_*`); tải loài của bản đồ đang vào (cộng boss thế giới / thú vương xuất hiện ngoài bản đồ nhà). Cần đối chiếu với danh sách loài mỗi bản đồ ở `shared/data.ts` (đừng tải thiếu, loài thiếu rơi về hình vẽ code). 134 → khoảng 20–40 file.
 4. **Hiệu ứng `fx_*` theo nhu cầu**: 601 dải 1 hàng; tải khi hồn kỹ / hiệu ứng cần lần đầu, hoặc theo võ hồn trong đội (cả của người khác trong tầm). `playFx` đã trả `null` khi chưa có texture (nơi gọi giữ hiệu ứng vẽ code), nhưng lần dùng đầu sẽ không có ảnh nên cần xin trước (khi nhận đội hình / khi thấy người dùng võ hồn). Rủi ro cao hơn các bước trên vì đụng thị giác chiến đấu.
 5. **Không huỷ texture dùng chung khi đổi bản đồ** (giữ `Phaser.Game`, đổi scene; hoặc tạm giữ bộ nhớ đệm texture dùng chung): hồn sư, pháp tướng, fx, UI không giải mã lại. Lợi lớn nhất cho đổi bản đồ nhưng đụng `main.ts` / vòng đời scene (sự kiện `filecomplete-json-*` của manifest không bắn khi key đã có trong cache, cần xử lý), phải chạy bot `travel` + soak.
@@ -63,3 +63,23 @@ Mọi bước: đo `load-measure.mjs` (trước / sau), chạy `npm run bot:loca
 | warp lần sau (nóng) | Lõi Tinh Đấu | 6.425 | 2.815 |
 
 Request mỗi lần vào bản đồ: 1.009–1.124 → 913–1.030 (bỏ 96 file); KB mạng lần đầu vào game: 13.258 → 10.646 (−2,6 MB). Lượt "lạnh" (hồ sơ Chrome trống) dao động theo server nên không nêu trung vị: 12,1 / 10,1 / 10,3 s trước, 16,8 / 11,0 / 6,9 s sau.
+
+## Bước 2: số trước / sau (trung vị 3 lượt, ms tới khi sẵn sàng)
+
+Bước 2 bỏ 34 / 35 file `sprites/phaptuong` mỗi lần vào bản đồ (còn lại sheet của chính mình), khoảng 34 × 2560×800×4 B ≈ 280 MB điểm ảnh sau giải mã. Lượt đo này **máy bận** (nhiều phiên khác cùng chạy; có lượt vọt tới 15–28 s ở cả hai bên), nên trung vị dao động mạnh và chênh lệch thời gian nằm trong nhiễu; số file / KB thì chắc chắn.
+
+| Ca | Bản đồ | Trước (ms) | Sau (ms) | Request trước → sau |
+|---|---|---|---|---|
+| vào game, tải lại trang (nóng) | Thánh Hồn Thôn | 3.296 | 3.267 | 1.040 → 1.006 |
+| warp lần đầu | Nặc Đinh Thành | 4.369 | 4.702 | 972 → 938 |
+| warp lần đầu | Tinh Đấu Ngoại vi | 3.609 | 15.432 (3.424 / 18.822 / 15.432) | 966 → 932 |
+| warp lần đầu | Thiên Đấu Thành | 6.098 | 19.526 (6.468 / 24.697 / 19.526) | 982 → 948 |
+| warp lần đầu | Lõi Tinh Đấu | 3.846 | 3.230 | 927 → 893 |
+| warp lần sau (nóng) | Nặc Đinh Thành | 8.592 | 4.321 | 972 → 938 |
+| warp lần sau (nóng) | Tinh Đấu Ngoại vi | 10.602 | 3.803 | 965 → 921 |
+| warp lần sau (nóng) | Thiên Đấu Thành | 9.084 | 6.806 | 982 → 948 |
+| warp lần sau (nóng) | Lõi Tinh Đấu | 3.488 | 12.978 | 935 → 891 |
+
+Mức thấp nhất của ba lượt (ít bị nhiễu nhất): vào game nóng 2.956 → 3.018, Nặc Đinh Thành lần đầu 3.738 → 4.293, Tinh Đấu Ngoại vi 3.100 → 3.424, Lõi Tinh Đấu lần sau 3.478 → 3.124. Nghĩa là **lợi về thời gian không đo được trên máy này** (ước tính −1 s ở đo thử nhóm `pt` chưa tái hiện được dưới tải nền); lợi chắc chắn là −34 file, −3,8 MB mạng lần đầu vào game (16.746 → 12.952 KB, lượt lạnh) và −280 MB điểm ảnh. Nên đo lại khi máy rảnh.
+
+Kiểm tay (Chrome thật, `__scene`): bật `ava` trên người chơi của mình sau khi gỡ texture `pt_lam_dien_ba_vuong_long` → sheet tải lại, `PhapTuongSystem` dựng 1 slot, sheet 81 khung (hoạt ảnh đủ), ảnh pháp tướng hiện sau lưng hồn sư, 0 lỗi console.

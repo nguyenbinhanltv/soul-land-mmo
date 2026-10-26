@@ -11,6 +11,7 @@ import {
 } from "../../shared/data.ts";
 import { fxPrefs, flashOn, type ParticleLayer, fxLevel } from "./combatFx.ts";
 import type { Dir8 } from "./iso.ts";
+import { wantPhapTuong } from "./vohonLazy.ts";
 import { DIRV, ptRow, ptIsBack, ptStrikeFrame, ptStrikeCurve, clamp01 } from "./phapTuongMath.ts";
 
 const hexN = (c: string) => parseInt(c.replace("#", ""), 16);
@@ -20,11 +21,13 @@ const hexN = (c: string) => parseInt(c.replace("#", ""), 16);
 const tempKeys = new Set<string>();
 /**
  * Chưa có ảnh `pt_<mã>` thì vẽ sheet tạm (cùng bố cục: 16 cột × 5 hàng, khung 160, alpha 0 / 255, viền #1a1020) theo nhóm bố cục.
- * Trả true nếu đã có texture (thật hoặc tạm). Dùng cho đến khi ảnh H1 / P1..P5 vào main.
+ * Trả true nếu đã có texture (thật hoặc tạm), false nếu ảnh thật còn đang tải (hỏi lại khung sau). Dùng cho đến khi ảnh H1 / P1..P5 vào main.
  */
 export function ensurePtSheet(scene: Phaser.Scene, id: string): boolean {
   const def = PHAP_TUONG[id], vh = VOHON.find((v) => v.id === id);
   if (!def || !vh) return false;
+  // Hỏi tải lười trước: thân tới trước lớp sáng `_glow` thì cũng chờ (khỏi dựng slot với lớp sáng sai); ảnh thật đang tải thì chưa vẽ bản tạm (vohonLazy.ts)
+  if (wantPhapTuong(scene, id) === "wait") return false;
   if (scene.textures.exists(def.sheet)) return true;
   const S = 40, K = PT_FRAME / S, W = PT_COLS * PT_FRAME, H = PT_DIRS.length * PT_FRAME;
   const tex = scene.textures.createCanvas(def.sheet, W, H); if (!tex) return false;
@@ -158,10 +161,12 @@ export class PhapTuongSystem {
   }
   private release(r: Rig) { for (const s of r.slots) { s.body.setBlendMode(0); this.give(s.body); this.give(s.glow); } r.slots = []; }
   private setSlots(r: Rig, ids: string[]) {
-    const have = r.slots.map((s) => s.id).join("|");
-    if (have === ids.join("|")) return;
-    for (const s of r.slots) { this.give(s.body); this.give(s.glow); }
-    r.slots = ids.map((i) => this.makeSlot(i)).filter((s): s is Slot => !!s);
+    // Sheet còn tải lười thì makeSlot trả null: slots ngắn hơn ids nên khung sau hỏi lại; slot đã dựng được giữ, chỉ dựng phần thiếu.
+    if (r.slots.map((s) => s.id).join("|") === ids.join("|")) return;
+    const old = new Map(r.slots.map((s) => [s.id, s]));
+    const next = ids.map((i) => old.get(i) ?? this.makeSlot(i)).filter((s): s is Slot => !!s);
+    for (const s of r.slots) if (!next.includes(s)) { this.give(s.body); this.give(s.glow); }
+    r.slots = next;
   }
 
   /** Bắt đầu chuỗi biến hình (tin `avatar` bật); `full` false: vào thẳng giai đoạn cuối (người mới vào thấy đang Chân Thân). */

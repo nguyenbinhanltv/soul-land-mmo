@@ -9,7 +9,7 @@ import { MINI_BASE, TIERS, BEASTS, VOHON, RADAR, SYNC_VIEW, MAPS, TILE, titleOf,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
   type QuestProgress, type QuestStatus, formatHonTe, type SkillDef, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS, LPC_VIEW, decodeLpc, encodeLpc, presetToLpc, lpcGearLooks, type Looks } from "../../../shared/data.ts";
 import { makeTextures, vohonTextures, BEAST_ORIGIN } from "../textures.ts";
-import { wantVohon, vohonIdAt, vohonKeys } from "../vohonLazy.ts";
+import { wantVohon, wantPhapTuong, vohonIdAt, vohonKeys } from "../vohonLazy.ts";
 import { buildRings, animateRings, type HaloState } from "../soulRings.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, animBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim, animLayoutOf } from "../sprites.ts";
@@ -399,7 +399,11 @@ export class GameScene extends Phaser.Scene {
     this.load.image("tiles", "tiles.png");
     preloadIso(this, this.mapId);
     // sheet NPC LPC: chỉ của NPC và dân thường bản đồ này (crowd.ts); phụ thể võ hồn: chỉ của người đang trong phòng, người tới sau tải lười (vohonLazy.ts)
-    preloadSprites(this, lpcPreloader(this, this.mapId), () => this.room.state.players?.forEach((p: any) => { if (p.vh >= 0) wantVohon(this, vohonIdAt(p.vh), false); }));
+    preloadSprites(this, lpcPreloader(this, this.mapId), () => this.room.state.players?.forEach((p: any, sid: string) => {
+      if (p.vh < 0) return;
+      wantVohon(this, vohonIdAt(p.vh), false);
+      if (p.ava > 0 || sid === this.me) wantPhapTuong(this, vohonIdAt(p.vh), false); // pháp tướng tải lười (#716): người đang Chân Thân, và của mình (cut-in)
+    }));
   }
 
   create() {
@@ -2827,6 +2831,7 @@ export class GameScene extends Phaser.Scene {
       if (p.vh !== v.vh) {
         // Phụ thể tải lười: chưa tới thì giữ v.vh cũ (hỏi lại khung sau) và animatePlayer ẩn hai lớp; không có ảnh thật thì vẽ bằng code như cũ.
         const st = wantVohon(this, vohonIdAt(p.vh));
+        if (id === this.me) wantPhapTuong(this, vohonIdAt(p.vh)); // đổi võ hồn: sheet pháp tướng của mình sẵn trước khi bấm Chân Thân
         if (st !== "wait") { v.vh = p.vh; const [kb, kf] = st === "ready" ? vohonKeys(vohonIdAt(p.vh)) : vohonTextures(this, p.vh); fitHonsuLayer(v.vb.setTexture(kb), true); fitHonsuLayer(v.vf.setTexture(kf), true); }
       }
       const rings = [...p.rings].join(",");
