@@ -3,7 +3,7 @@
 import { existsSync } from "node:fs";
 import { readPng } from "./lib.mjs";
 import { sheetCells, cellRect } from "./beast-sheet-lib.mjs";
-import { detectGrid } from "./beast-sheet-grid.mjs";
+import { detectGrid, splitStuckFigures } from "./beast-sheet-grid.mjs";
 import { median } from "./beast-sheet-stats.mjs";
 
 // ---------- Bố cục ô ----------
@@ -28,6 +28,7 @@ export function gapLayout(img, sheet, detect = {}) {
   if (grid.bands.length !== sheet.rows) return null;
   const nominalCw = w / sheet.cols, bands = grid.bands, per = Array.from({ length: sheet.rows }, () => 0);
   for (const c of sheetCells(sheet)) per[c.row]++;
+  splitStuckFigures(grid, per);
   const rowTop = bands.map((b, i) => (i ? (bands[i - 1].y1 + b.y0 + 1) / 2 : 0));
   const rowBot = bands.map((b, i) => (i < bands.length - 1 ? (b.y1 + bands[i + 1].y0 + 1) / 2 : h));
   const fallbackRows = [], colEdges = bands.map((b, r) => {
