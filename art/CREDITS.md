@@ -2247,8 +2247,6 @@ HL3 (#572, 2026-10-25): hồn sư chỉ còn LPC (ghép lúc chạy từ các m�
 
 Ghi công hồn thú hoạt ảnh (H2 / H4, ảnh raw chờ preview) **không nối vào file này nữa** (#973): mỗi loài một bảng `## Ghi công` trong `art/src/beast-anim/<loài>/NGUON.md`; `node tools/assets/credits.mjs` tự gom vào màn Ghi công và `--check` báo lỗi nếu loài có tờ mà NGUON.md thiếu bảng. Dòng nhập game (`beast_<loài>_anim`) vẫn ở mục "Asset tạo bằng AI (ChatGPT)" ở trên.
 
-Hàn Nguyệt Ưng (H4 #772, Part of #772): RAW candidate A1 `art/src/beast-anim/han_nguyet_ung/toA.png` (1024×1536) và B2 `toB.png` (1254×1254); B1 giữ trong `candidates/`. Sinh 2026-10-26 bằng builtin `image_gen.imagegen`, A1 lượt 1/1, B2 lượt 2/2, tổng 3; model/seed unknown. A tham chiếu ảnh tĩnh; B tham chiếu ảnh tĩnh rồi A1 chỉ để khớp thiết kế (A1 checker pass, chưa owner-approved). RAW nguyên byte, không hậu kỳ/cắt/resize. Checker A/B exit 0 nhưng B có mục nhẹ cỡ thân N lệch 11%; kiểm mắt ghi lỗi hướng NE/N. Chi tiết hash, prompt, ref, thời gian và candidates: [NGUON.md](src/beast-anim/han_nguyet_ung/NGUON.md), `toA/toB.prompt.txt`, `toA/toB.source.json`. Chưa art accepted/imported.
-
 <!-- private-assets:start -->
 ## Asset kho riêng (không nằm trong repo công khai)
 
