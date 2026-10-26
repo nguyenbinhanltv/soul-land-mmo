@@ -3,7 +3,7 @@
 Soát theo skill `anti-cheat-audit`, đóng vai người chơi sửa được client. Luật chơi ở mục 5.9 (`docs/design/to-doi-pvp-dau-truong.md`), kênh và phòng sân ở `docs/tech/kenh-arena.md`.
 Bài kiểm: `client/scripts/arena-audit-test.mjs` (gọi từ `bot-test.mjs`: `npm run bot:local -- --only arenaAudit [--pg]`, nhóm CI 5, cần `GAME_TEST=1`).
 Bài có hai mức: `ok` là hành vi đúng đang giữ (sai thì thất bại), `known` là **lỗ hổng đã biết**: mặc định chỉ in cảnh báo để CI không đỏ, `AUDIT_STRICT=1` thì thất bại (dùng khi kiểm bản vá, rồi đổi thành `ok`).
-PR #788 chỉ thêm bài kiểm và báo cáo; L1 đã sửa ở #789 (`MapRoom.ts`). Mỗi lỗ hổng có issue sửa riêng: L1 #789, L2 #790, L3 #791.
+PR #788 chỉ thêm bài kiểm và báo cáo; L1 đã sửa ở #789 (`MapRoom.ts`). Mỗi lỗ hổng có issue sửa riêng: L1 #789, L2 #790, L3 #791; cả ba đã sửa (bài `arenaAudit` đổi từ `known` sang `ok`).
 
 ## Bề mặt đã soát
 
@@ -29,15 +29,15 @@ PR #788 chỉ thêm bài kiểm và báo cáo; L1 đã sửa ở #789 (`MapRoom.
 - **Tác động:** tải khóa Redis và tranh chấp với `arenaLivePhase` / `arenaLiveOpen` của các trận đang chạy (`arenaLivePhase` thử 3 lần rồi bỏ: pha trong sổ xem trận có thể trễ). Không đổi Elo / tiền.
 - **Sửa đề xuất:** thêm `arenaWatchAt` vào `PData`, kiểm `Date.now() - d.arenaWatchAt < ARENA.topCd * 1000` như `arenaLiveList`; kiểm `roomId` rỗng / quá dài trước khi gọi sổ.
 
-### L2 (Vừa, #790): thắng "đối thủ không vào sân" vẫn tính Elo, thưởng và lượt cặp
+### L2 (Vừa, #790, ĐÃ SỬA): thắng "đối thủ không vào sân" vẫn tính Elo, thưởng và lượt cặp
 `ArenaRoom.ts:328` (`finish`), nhánh `reason === "noshow"` từ `tick` (`:290`). Bên không vào sân sau `ARENA.joinSecs` giây thua; trận vẫn đếm vào `arena_pairs` (`arenaPairAdd`, `:336`) và bên còn lại nhận đủ Elo, thành tích và thưởng thắng (miễn là trận còn trong hạn `ARENA.pairDaily` của cặp), không phải đánh ai.
 - **Tái hiện:** bài `arenaAudit`: hai tài khoản mới xếp hàng, được ghép, A vào sân, B không vào; hết giờ chờ A thắng `noshow`, Elo 1000 -> 1016 và nhận thưởng.
 - **Tác động:** tài khoản phụ xếp hàng rồi bỏ đi là cách nuôi Elo / thưởng gần như không tốn công; ngoài ra một người có thể cố tình ghép rồi bỏ để đốt lượt `arena_pairs` của đối thủ trong ngày (bên thắng hưởng, cặp hết lượt).
-- **Sửa đề xuất (chủ repo chọn):** (1) `noshow` và `leave` trước giao đấu là giao hữu (không đổi Elo / thưởng, vẫn xử thua), hoặc (2) chỉ tính Elo khi đã có đòn giao đấu hợp lệ (pha `fight` bắt đầu). Kèm đổi bài `known` thành `ok`.
+- **Đã sửa (chủ repo chốt):** bên bỏ cuộc bị trừ Elo như thua, bên kia không đổi Elo / thành tích / thưởng, trận không đếm `arena_pairs` (`ArenaRoom.finish`, `noshow`); bài `arenaAudit` kiểm cả hai phía. Phương án đã cân nhắc: (1) `noshow` và `leave` trước giao đấu là giao hữu (không đổi Elo / thưởng, vẫn xử thua), hoặc (2) chỉ tính Elo khi đã có đòn giao đấu hợp lệ (pha `fight` bắt đầu). Kèm đổi bài `known` thành `ok`.
 
-### L3 (Vừa, thiết kế, #791): chưa có trần Elo / thưởng nuôi qua nhiều tài khoản
+### L3 (Vừa, thiết kế, #791, ĐÃ SỬA): chưa có trần Elo / thưởng nuôi qua nhiều tài khoản
 Chống dàn xếp hiện chỉ theo **cặp** (`ARENA.pairDaily` trận / cặp / ngày, `arena_pairs`) và lượt thưởng theo tài khoản (`ARENA.dailyWins`). Nhiều tài khoản cùng một người tạo nhiều cặp, mỗi cặp một hạn riêng; không có trần Elo tăng theo tài khoản mỗi ngày và không liên kết tài khoản cùng người (không có dữ liệu thiết bị). Mức độ phụ thuộc cách mở đăng ký (tài khoản có miễn phí và không xác minh không).
-- **Sửa đề xuất:** trần Elo tăng mỗi tài khoản mỗi ngày (hằng ở `shared/data.ts`, ghi theo `day` như `arena_pairs`) và/hoặc trần số đối thủ khác nhau mỗi ngày; tính cả tổng Elo thu được từ đối thủ Elo thấp hơn nhiều. Cần chủ repo quyết (mục 5.9).
+- **Đã sửa (chủ repo chốt):** trần Elo cộng thêm mỗi tài khoản mỗi ngày `ARENA.eloDaily` (bảng `arena_elo_day`, `035_arena_elo_day.sql`, kẹp trong transaction `saveArena`; hết chỗ thì không cộng Elo, không thưởng; mục 5.9). Chưa làm: trần số đối thủ khác nhau, liên kết tài khoản cùng người. Đề xuất ban đầu: trần Elo tăng mỗi tài khoản mỗi ngày (hằng ở `shared/data.ts`, ghi theo `day` như `arena_pairs`) và/hoặc trần số đối thủ khác nhau mỗi ngày; tính cả tổng Elo thu được từ đối thủ Elo thấp hơn nhiều. Cần chủ repo quyết (mục 5.9).
 
 ## Giả thuyết đã kiểm, không có lỗ hổng
 - **(c) lách `arenaBusy` bằng rời phòng / gục giữa lúc đọc Elo:** rời phòng không để mục ma (B xếp hàng sau đó không bị ghép với A), tài khoản quay lại xếp hàng được; gục lúc đọc thì `late` từ chối. Đổi kênh đi qua `freeze` -> `arenaReadCancel` như đi cổng (bài `arena` của #225/#227 đã phủ hủy / đi cổng; đổi kênh thật cần `CHANNEL_MAX=2`, chưa phủ riêng).

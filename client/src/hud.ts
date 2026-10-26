@@ -3378,11 +3378,12 @@ export interface ArenaTopMsg {
 }
 /**
  * Tin "arena" k = "end": kết quả trận của mình (score 1 thắng, 0,5 hòa, 0 thua), Elo trước / sau, phần thưởng (null = không có).
- * `friendly` (9.7): cặp đã đấu đủ ARENA.pairDaily trận tính Elo hôm nay, trận này giao hữu (không đổi Elo, không thưởng, không mất lượt).
+ * `friendly` (9.7): cặp đã đấu đủ ARENA.pairDaily trận tính Elo hôm nay, trận này giao hữu (không đổi Elo, không thưởng, không mất lượt);
+ * cũng đặt cho bên thắng trận bỏ cuộc (`reason` "noshow", #790). `eloCapped` (#791): hôm nay đã cộng đủ ARENA.eloDaily Elo, trận không cộng Elo / thưởng.
  */
 export interface ArenaEndMsg {
   score: number; reason: string; why: string; foe: string; elo0: number; elo1: number; rec: ArenaRecord;
-  reward: { honTe: number; code: string; qty: number; coin: number } | null; left: number; secs: number; friendly?: boolean;
+  reward: { honTe: number; code: string; qty: number; coin: number } | null; left: number; secs: number; friendly?: boolean; eloCapped?: boolean;
 }
 let arenaQ: { elo: number; t0: number } | null = null;   // đang xếp hàng: Elo, lúc bắt đầu chờ (performance.now)
 let arenaTopMsg: ArenaTopMsg | null = null;
@@ -3561,15 +3562,18 @@ function renderArenaEnd() {
   el.className = "panel " + (m.score === 1 ? "win" : m.score === 0 ? "lose" : "draw");
   const h = document.createElement("h2"); h.textContent = m.score === 1 ? "Thắng!" : m.score === 0 ? "Thua" : "Hòa"; el.appendChild(h);
   const line = (text: string, cls = "") => { const p = document.createElement("div"); p.className = "aline " + cls; p.textContent = text; el.appendChild(p); };
-  if (m.friendly) line(`Trận giao hữu: hai bạn đã đấu đủ ${ARENA.pairDaily} trận tính Elo hôm nay (đặt lại 00:00 giờ Việt Nam).`, "afriend");
+  const noshow = m.reason === "noshow";
+  if (m.friendly) line(noshow ? "Đối thủ bỏ cuộc: trận không tính Elo, không thưởng." : `Trận giao hữu: hai bạn đã đấu đủ ${ARENA.pairDaily} trận tính Elo hôm nay (đặt lại 00:00 giờ Việt Nam).`, "afriend");
+  else if (m.eloCapped) line(`Hôm nay bạn đã cộng đủ ${ARENA.eloDaily} Elo: trận này không cộng Elo, không thưởng (đặt lại 00:00 giờ Việt Nam).`, "afriend");
   line(`Đối thủ ${m.foe}: ${m.why}.`);
   line(m.friendly ? `Elo giữ nguyên: ${m.elo1}` : `Elo ${m.elo0} → ${m.elo1} (${signed(m.elo1 - m.elo0)})`, "aelo");
   line(`Thành tích: ${m.rec.wins} thắng · ${m.rec.losses} thua · ${m.rec.draws} hòa`);
-  if (m.friendly) line("Giao hữu không thưởng, không tính thành tích, không mất lượt thắng có thưởng.");
+  if (m.friendly) line(noshow ? "Không thưởng, không tính thành tích, không mất lượt thắng có thưởng." : "Giao hữu không thưởng, không tính thành tích, không mất lượt thắng có thưởng.");
   else if (m.reward) {
     const shard = m.reward.qty ? ` + ${m.reward.qty} ${itemDef(m.reward.code)?.name ?? m.reward.code}` : "";
     line(`Thưởng: ${formatHonTe(m.reward.honTe)}${shard}${m.reward.coin ? " (túi đầy: mảnh đổi ra Hồn Tệ)" : ""}`, "arew");
-  } else if (m.score === 1) line("Hết lượt thắng có thưởng hôm nay (Elo vẫn tính).");
+  } else if (m.score === 1 && !m.eloCapped) line("Hết lượt thắng có thưởng hôm nay (Elo vẫn tính).");
+  else if (m.score === 0 && noshow) line("Bỏ cuộc bị tính như thua: trừ Elo, không mất kinh nghiệm hay đồ.");
   else line("Thua không mất gì: không mất kinh nghiệm hay đồ.");
   line(`Còn ${m.left}/${ARENA.dailyWins} trận thắng có thưởng hôm nay.`);
   el.appendChild(arenaRankEl(arenaTopMsg));

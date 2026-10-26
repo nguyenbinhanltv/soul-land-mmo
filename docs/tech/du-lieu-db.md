@@ -25,7 +25,7 @@
 - `tong_points`: điểm tông môn theo tuần (mục 5.14); chỉ mục `tong_points_week_tong (week, tong)` cho bảng xếp hạng (`034_tong_points_week_index.sql`).
 - `boss_claims`: lượt nhận thưởng mỗi ngày (loại: thú vương, boss thế giới, thắng đấu trường `dau_hon_truong`, mảnh đổi ở Thương hội; số lần).
 - `quests`: tiến độ nhiệm vụ, ghi cùng transaction với túi; khảo hạch hằng ngày là chuỗi `daily:<yyyymmdd>:<i>`, chỉ giữ ngày đang chơi.
-- `arena_ratings` (Elo, thắng / thua / hòa), `arena_pairs` (số trận mỗi cặp mỗi ngày).
+- `arena_ratings` (Elo, thắng / thua / hòa), `arena_pairs` (số trận mỗi cặp mỗi ngày), `arena_elo_day` (tổng Elo cộng thêm mỗi tài khoản mỗi ngày, trần `ARENA.eloDaily`, `035_arena_elo_day.sql`).
 - **Cache bảng xếp hạng (#738):** `arenaTop` (danh sách đầu bảng) và `tongBoard` (cả hai tuần) được giữ chung trong tiến trình `RANK_BOARD_CACHE` giây, yêu cầu đến lúc đang tính dùng chung một lần truy vấn; ghi Elo / điểm tông trong cùng tiến trình xoá cache ngay (`rankBoardClear`), nên **độ trễ hiển thị tối đa `RANK_BOARD_CACHE` giây và chỉ khi ghi đến từ tiến trình khác**. Dòng `me` / hạng của mình luôn tính riêng (một truy vấn đếm theo chỉ mục `arena_ratings_rank`). Bảng cộng minh vẫn theo `RESONANCE_RANK_CACHE`, nay chỉ nạp số vòng hồn hoàn (`cardinality(rings)`) thay vì cả mảng. Đo trên PostgreSQL cục bộ 5000 tài khoản, 60 người mở bảng mỗi giây: 321 → 55 truy vấn/s, trễ p95 35 → 5 ms.
 - `characters`, `inventory` (từ `001_init.sql`): bảng cũ, giữ để chuyển dữ liệu, không còn ghi.
 

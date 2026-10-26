@@ -322,6 +322,8 @@ export class ArenaRoom extends MapRoom {
   /**
    * Kết quả trận (một lần): bên `winner` thắng (null = hòa). Trước hết đếm trận này vào mọi cặp tài khoản chéo hôm nay
    * (bảng `arena_pairs`, 9.7); chỉ khi mọi cặp còn lượt thì trận có Elo / thành tích / thưởng, nếu không là giao hữu.
+   * Trận `noshow` (#790): không đếm vào cặp; bên bỏ cuộc bị trừ Elo / ghi thua như thường, bên kia không đổi gì và không thưởng.
+   * Mỗi tài khoản còn trần Elo cộng thêm trong ngày (ARENA.eloDaily, #791): chạm trần thì không cộng Elo, không thưởng.
    * Elo và phần thưởng được tính riêng cho từng tài khoản, ghi qua chuỗi lưu của tài khoản đó. Người không vào sân ghi thẳng;
    * người rời sân không nhận thưởng. Tin `end` gửi sau khi DB xác nhận kết quả.
    */
@@ -333,7 +335,8 @@ export class ArenaRoom extends MapRoom {
     this.state.winner = winner ?? 2;
     const day = this.today();
     const pairs = arenaCrossPairs(this.sides[0].members.map((m) => m.accountId), this.sides[1].members.map((m) => m.accountId));
-    const ranked = Promise.all(pairs.map(([a, b]) => store.arenaPairAdd(day, a, b))).then((counts) => counts.every(arenaRanked));
+    const noshow = reason === "noshow";
+    const ranked = noshow ? Promise.resolve(true) : Promise.all(pairs.map(([a, b]) => store.arenaPairAdd(day, a, b))).then((counts) => counts.every(arenaRanked));
     ranked.then((r) => { this.state.friendly = !r; }, (e) => console.error("Không đếm được trận của cặp đấu hồn", e));
     this.sides.forEach((s, i) => {
       const o = this.sides[1 - i], score = winner === null ? 0.5 : winner === i ? 1 : 0;
@@ -346,17 +349,18 @@ export class ArenaRoom extends MapRoom {
         // Gục thì nằm lại tới khi rời sân; không tự dừng input để client vẫn nhận đúng dự đoán chuyển động.
         if (p && d && p.dead) d.deadT = Infinity;
         // Phần thưởng được chuẩn bị trên bản sao túi; trận giao hữu hoặc thành viên đã rời chỉ bỏ bản sao đó.
-        const reward = score === 1 && p && d && !member.left && member.claims < ARENA.dailyWins ? this.prepareReward(d) : null;
-        const report = (rec: ArenaRecord, paid: boolean, friendly: boolean) => this.clients.getById(sid)?.send("arena", { k: "end", score, reason, why: REASON_TEXT[reason], foe: o.members.map((x) => x.name).join(" / "),
+        const reward = score === 1 && !noshow && p && d && !member.left && member.claims < ARENA.dailyWins ? this.prepareReward(d) : null;
+        const untouched = noshow && score === 1; // bên còn lại của trận bỏ cuộc: không đổi Elo / thành tích, không thưởng
+        const report = (rec: ArenaRecord, paid: boolean, friendly: boolean, eloCapped = false) => this.clients.getById(sid)?.send("arena", { k: "end", score, reason, why: REASON_TEXT[reason], foe: o.members.map((x) => x.name).join(" / "),
           elo0: member.rec.elo, elo1: rec.elo, rec, reward: paid && reward ? { honTe: reward.honTe, code: reward.code, qty: reward.qty, coin: reward.coin } : null,
-          capped: !friendly && !!reward && !paid, friendly, left: Math.max(0, ARENA.dailyWins - member.claims - (paid ? 1 : 0)), secs: this.state.time });
-        const save = () => ranked.then((r) => r
-          ? store.saveArena(member.accountId, ARENA.startElo, delta, reward ? { day, kind: ARENA.claimKind, limit: ARENA.dailyWins, bag: reward.bag } : undefined)
-            .then(({ rec, paid }) => ({ rec, paid, friendly: false }))
-          : store.getArena(member.accountId, ARENA.startElo).then((rec) => ({ rec, paid: false, friendly: true })))
-          .then(({ rec, paid, friendly }) => {
+          capped: !friendly && !!reward && !paid && !eloCapped, eloCapped, friendly, left: Math.max(0, ARENA.dailyWins - member.claims - (paid ? 1 : 0)), secs: this.state.time });
+        const save = () => ranked.then((r) => r && !untouched
+          ? store.saveArena(member.accountId, ARENA.startElo, delta, reward ? { day, kind: ARENA.claimKind, limit: ARENA.dailyWins, bag: reward.bag } : undefined, { day, limit: ARENA.eloDaily })
+            .then(({ rec, paid, eloCapped }) => ({ rec, paid, friendly: false, eloCapped }))
+          : store.getArena(member.accountId, ARENA.startElo).then((rec) => ({ rec, paid: false, friendly: true, eloCapped: false })))
+          .then(({ rec, paid, friendly, eloCapped }) => {
             if (paid && reward && d && this.pdata.get(sid) === d) { d.bag = reward.items; d.honTe = reward.honTeAfter; this.sendBag(sid); }
-            report(rec, paid, friendly);
+            report(rec, paid, friendly, eloCapped);
           }, (e) => {
             this.log(sid, "Không lưu được kết quả trận đấu: Elo và phần thưởng chưa được ghi.", "#ff8a8a");
             report({ elo: member.rec.elo, wins: member.rec.wins, losses: member.rec.losses, draws: member.rec.draws }, false, false);
@@ -368,7 +372,7 @@ export class ArenaRoom extends MapRoom {
     const [a, b] = this.sides, w = winner === null ? null : this.sides[winner];
     const text = w ? `${w.members.map((x) => x.name).join(" / ")} thắng ${this.sides[1 - winner!].members.map((x) => x.name).join(" / ")} (${REASON_TEXT[reason]})`
       : `${a.members.map((x) => x.name).join(" / ")} và ${b.members.map((x) => x.name).join(" / ")} hòa (${REASON_TEXT[reason]})`;
-    ranked.catch(() => true).then((r) => this.broadcast("chat", { sys: true, name: "Hệ thống", text: r ? `${text}.` : `${text}; trận giao hữu, không tính Elo.` }));
+    ranked.catch(() => true).then((r) => this.broadcast("chat", { sys: true, name: "Hệ thống", text: r ? `${text}${noshow ? "; bên bỏ cuộc bị trừ Elo, bên kia không đổi Elo / thưởng" : ""}.` : `${text}; trận giao hữu, không tính Elo.` }));
   }
 
   /**

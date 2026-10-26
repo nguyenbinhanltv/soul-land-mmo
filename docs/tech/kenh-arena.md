@@ -44,7 +44,7 @@
 
 **Ghi kết quả**
 - Mỗi tài khoản một transaction trong chuỗi lưu của chính người đó (`store.saveArena`): Elo, thành tích, lượt thắng có thưởng ở `boss_claims` loại `dau_hon_truong`, túi có phần thưởng. Không có Elo tổ đội.
-- Trận 2v2 đếm đủ bốn cặp chéo trong `arena_pairs` trước lần ghi Elo; nếu một cặp hết lượt thì cả trận là giao hữu.
+- Trận 2v2 đếm đủ bốn cặp chéo trong `arena_pairs` trước lần ghi Elo; nếu một cặp hết lượt thì cả trận là giao hữu. Trận `noshow` không đếm cặp (bên bỏ cuộc bị trừ Elo như thua, bên kia không đổi gì); `saveArena` kẹp phần Elo tăng theo trần ngày `ARENA.eloDaily` (bảng `arena_elo_day`, cùng transaction) và bỏ thưởng khi hết chỗ, tin `end` kèm `eloCapped`.
 - Tài khoản test chỉ ghép với tài khoản test (`du-lieu-db.md`).
 
 ## Issue liên quan

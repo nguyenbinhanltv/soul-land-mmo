@@ -98,9 +98,9 @@ export async function arenaAuditTest(h) {
     await aop(B, "cancel");
   }
 
-  // ---- (a) nuôi Elo: trận bỏ cuộc (noshow) vẫn tính Elo + thưởng + một lượt arena_pairs ----
-  // Tài khoản phụ xếp hàng rồi không vào sân: người còn lại thắng "đối thủ không vào sân" có Elo và phần thưởng đủ, không phải đánh ai.
-  // Trần duy nhất là arena_pairs (ARENA.pairDaily trận / cặp / ngày) và ARENA.dailyWins lượt thưởng / tài khoản / ngày; không có trần Elo theo ngày.
+  // ---- (a) nuôi Elo: trận bỏ cuộc (noshow, #790) ----
+  // Tài khoản phụ xếp hàng rồi không vào sân: trước kia người còn lại thắng "đối thủ không vào sân" có Elo và phần thưởng đủ. Nay bên bỏ cuộc bị trừ Elo như thua,
+  // bên còn lại không đổi Elo, không thưởng, và trận không đếm vào arena_pairs.
   {
     await at(A, -12); await at(B, 12);
     const nA = A.arena.length, nB = B.arena.length;
@@ -113,10 +113,36 @@ export async function arenaAuditTest(h) {
     const e = endOf(A);
     if (!e) { for (const b of all) await b.room.leave(); return; } // thiếu tin end: đã ghi thất bại ở trên, bỏ phần còn lại của khối
     ok(e.reason === "noshow" && e.score === 1, `A thắng vì B không vào sân (${e.reason})`);
-    known(!(e.elo1 > e.elo0 || e.reward), `thắng bỏ cuộc vẫn đổi Elo ${e.elo0} → ${e.elo1}${e.reward ? " và có thưởng" : ""} (tài khoản phụ xếp hàng rồi bỏ đi nuôi Elo, chỉ bị chặn bởi arena_pairs)`, "#790");
+    ok(e.elo1 === e.elo0 && !e.reward && e.friendly, `thắng bỏ cuộc không đổi Elo (${e.elo0} → ${e.elo1}), không thưởng (#790)`);
     await test(A, "afast", { s: 0 });
     await waitFor(() => A.leftCode === 4005, 3000); await back(A);
     await waitFor(() => B.leftCode === 4006, ARENA.joinSecs * 1000 + 2000); await back(B);
+    const nt = B.topN; B.room.send("arena", { op: "top" }); await waitFor(() => B.topN > nt, 2000);
+    ok(B.top?.me?.elo < ARENA.startElo && B.top.me.losses === 1, `B bỏ cuộc bị trừ Elo như thua: ${ARENA.startElo} → ${B.top?.me?.elo}, ${B.top?.me?.losses} thua (#790)`);
+  }
+
+  // ---- (a2) trần Elo cộng thêm mỗi tài khoản mỗi ngày (#791) ----
+  // A đã cộng đủ ARENA.eloDaily Elo hôm nay (hook aelo {gain}): thắng tiếp trận (B rời sân) vẫn đấu, nhưng không cộng Elo, không thưởng; B vẫn bị trừ Elo.
+  {
+    await test(A, "aelo", { elo: ARENA.startElo, gain: ARENA.eloDaily }); await test(B, "aelo", { elo: ARENA.startElo });
+    await at(A, -12); await at(B, 12);
+    const nA = A.arena.length, nB = B.arena.length;
+    await aop(A, "queue"); await aop(B, "queue");
+    const fa = () => A.arena.slice(nA).filter((m) => m.k === "found").at(-1), fb = () => B.arena.slice(nB).filter((m) => m.k === "found").at(-1);
+    ok(await waitFor(() => fa() && fb(), 4000), "A (đã chạm trần Elo hôm nay) và B được ghép");
+    const idA = fa()?.roomId, idB = fb()?.roomId;
+    await A.room.leave(); await enter(A, idA); await waitFor(() => meOf(A) && A.owned && A.bag && A.squad, 3000);
+    await B.room.leave(); await enter(B, idB); await waitFor(() => meOf(B) && B.owned && B.bag && B.squad, 3000);
+    await B.room.leave(); // B rời sân: A thắng
+    ok(await waitFor(() => endOf(A), 5000), "B rời sân: trận kết thúc");
+    const e = endOf(A);
+    if (e) ok(e.score === 1 && !e.friendly && e.eloCapped && e.elo1 === e.elo0 && !e.reward && e.rec.wins >= 1,
+      `chạm trần ${ARENA.eloDaily} Elo / ngày: A vẫn thắng nhưng Elo giữ ${e.elo0} → ${e.elo1}, không thưởng (#791)`);
+    await test(A, "afast", { s: 0 });
+    await waitFor(() => A.leftCode === 4005, 3000); await back(A);
+    await back(B);
+    const nt = B.topN; B.room.send("arena", { op: "top" }); await waitFor(() => B.topN > nt, 2000);
+    ok(B.top?.me?.elo < ARENA.startElo, `B (chưa chạm trần) vẫn bị trừ Elo khi thua: ${ARENA.startElo} → ${B.top?.me?.elo}`);
   }
 
   console.log(`  ${holes ? `⚠ ${holes} lỗ hổng đã biết (xem docs/tech/soat-gian-lan-dai-dau-hon-truong.md)` : "không còn lỗ hổng đã biết"}`);

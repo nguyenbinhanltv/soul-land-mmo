@@ -4809,6 +4809,10 @@ export const ARENA_MAP = "dai_dau_hon_truong";
  *   thưởng; từ trận kế tiếp là **giao hữu** (không đổi Elo / thành tích, không thưởng, không đếm `dailyWins`). Đếm ở bảng
  *   `arena_pairs`. Hàng chờ: trong `rematchSecs` giây chờ đầu không ghép lại đối thủ của trận ngay trước nếu còn người khác
  *   trong cửa sổ (arenaPairs).
+ * - **(đã chốt, #790 / #791)** Trận bỏ cuộc (`noshow`, bên không vào đủ sân sau `joinSecs`): bên bỏ cuộc bị trừ Elo như thua, bên kia
+ *   không đổi Elo, không thưởng; không đếm vào `arena_pairs`. Trần `eloDaily`: tổng Elo CỘNG THÊM của một tài khoản mỗi ngày (giờ
+ *   Việt Nam, bảng `arena_elo_day`); chạm trần thì trận vẫn đấu, vẫn ghi thắng / thua / hòa nhưng không cộng Elo và không thưởng
+ *   (thua vẫn trừ Elo). Số này cỡ ~12 trận thắng cân sức (K = 32, mỗi trận ~+16), người chơi thật hiếm khi chạm.
  * - Xem trực tiếp (#278, mục 5.9): mỗi trận tối đa `watchMax` người xem (sân 4 người đấu + 6 người xem = 10 kết nối; sân nhỏ không lọc
  *   đồng bộ nên tải thấp); danh sách xem trận có tối đa `liveN` trận đang đếm ngược / giao đấu, xin lại theo nhịp `topCd`.
  * - Cân bằng PvP (#277, mục 5.9): `healMult`: hồi sinh lực và khiên trong sân (hồn kỹ, tiên cơ, Chân Thân, kỹ năng hồn cốt; sau
@@ -4824,7 +4828,7 @@ export const ARENA = {
   dmgMult: 0.35, drawPct: 0.005, body: 8,
   winHonTe: 60, winShards: 3, dailyWins: 10, claimKind: "dau_hon_truong",
   topN: 20, topCd: 1, queueCd: 1,
-  pairDaily: 3, rematchSecs: 60, rematchSettleSecs: 1,
+  pairDaily: 3, eloDaily: 200, rematchSecs: 60, rematchSettleSecs: 1,
   watchMax: 6, liveN: 10,
   healMult: 0.5, ccMult: 0.7,
 };
