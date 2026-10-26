@@ -27,7 +27,7 @@ export function gapLayout(img, sheet, detect = {}) {
   const { w, h } = img, grid = detectGrid(img, detect);
   if (grid.bands.length !== sheet.rows) return null;
   const nominalCw = w / sheet.cols, bands = grid.bands, per = Array.from({ length: sheet.rows }, () => 0);
-  for (const c of sheetCells(sheet)) per[c.row]++;
+  for (const c of sheet.cells ?? sheetCells(sheet)) per[c.row]++; // `sheet.cells`: tờ có bố cục ô riêng (phụ thể: phuthe-sheet-lib.mjs)
   const rowTop = bands.map((b, i) => (i ? (bands[i - 1].y1 + b.y0 + 1) / 2 : 0));
   const rowBot = bands.map((b, i) => (i < bands.length - 1 ? (b.y1 + bands[i + 1].y0 + 1) / 2 : h));
   const fallbackRows = [], colEdges = bands.map((b, r) => {
