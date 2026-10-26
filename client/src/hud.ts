@@ -312,7 +312,7 @@ function setCellTip(b: HTMLElement, spec: TipSpec | string) {
   setTip(b, b.dataset.why ? { ...base, foot: b.dataset.why } : base);
 }
 /** Giây còn lại, 1 chữ số thập phân khi dưới 3 giây (như đề xuất UI), làm tròn lên khi từ 3 giây. */
-const cdLabel = (left: number) => (left <= 0 ? "" : left < 3 ? left.toFixed(1).replace(".", ",") : String(Math.ceil(left)));
+const cdLabel = (left: number) => (left < 0.05 ? "" : left < 3 ? left.toFixed(1).replace(".", ",") : String(Math.ceil(left)));
 /**
  * Vẽ lại một ô kỹ năng mỗi khung hình (chỉ ghi DOM khi đổi): lớp quét tròn `--p` (phần hồi chiêu còn lại 0..1) và số giây,
  * nháy `.ready` một lần khi vừa hồi xong, `.nomp` khi hồn lực còn lại thấp hơn tiêu hao (số trên client, server vẫn kiểm lại, buff giảm

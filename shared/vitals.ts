@@ -17,9 +17,10 @@ export const emptyVitals = (): Vitals => ({
   xp: 0, xpNeed: 0, mp: 0, maxMp: 0, cds: new Array(VITALS_CDS).fill(0), bcds: new Array(VITALS_BCDS).fill(0), swCd: 0, avaCd: 0, ctCd: 0,
 });
 
-const dec = (x: number, dt: number) => Math.max(0, x - dt);
+/** Hồi chiêu đang đếm dừng ở `SYNC_VIEW.vitHold` (không về 0) tới khi server xác nhận hết bằng tin `vit`. */
+const dec = (x: number, dt: number) => (x > 0 ? Math.max(SYNC_VIEW.vitHold, x - dt) : 0);
 
-/** Giá trị sau `dt` giây kể từ lúc nhận (hồi chiêu đếm lùi, các số khác giữ nguyên). Client / bot đếm giữa hai tin. */
+/** Giá trị sau `dt` giây kể từ lúc nhận (hồi chiêu đếm lùi nhưng chưa về 0, các số khác giữ nguyên). Client / bot đếm giữa hai tin. */
 export function vitalsAfter(v: Vitals, dt: number): Vitals {
   if (dt <= 0) return v;
   return { ...v, cds: v.cds.map((c) => dec(c, dt)), bcds: v.bcds.map((c) => dec(c, dt)), swCd: dec(v.swCd, dt), avaCd: dec(v.avaCd, dt), ctCd: dec(v.ctCd, dt) };
@@ -46,15 +47,17 @@ export function vitalsParse(m: unknown): Vitals | null {
  * Server: có phải gửi `cur` không, biết bản `sent` đã gửi cách đây `dt` giây (null = chưa gửi lần nào)?
  * - Gửi ngay khi kinh nghiệm / hồn lực tối đa đổi, hồn lực giảm (tốn khi tung chiêu), hoặc một hồi chiêu lệch số client đang tự đếm lùi
  *   (vừa tung chiêu, bị làm mới, hoặc trôi giờ vì nhịp chậm): client đếm nhanh hơn server quá `SYNC_VIEW.vitEarly` giây (sẽ báo sẵn sàng
- *   khi server còn từ chối) hoặc chậm hơn quá `SYNC_VIEW.vitCd` giây.
+ *   khi server còn từ chối) hoặc chậm hơn quá `SYNC_VIEW.vitCd` giây; hồi chiêu vừa bật hoặc vừa hết ở server (client chỉ đếm tới `vitHold`,
+ *   chờ xác nhận) cũng gửi.
  * - Hồn lực chỉ tăng (hồi dần) thì gửi tối đa mỗi `SYNC_VIEW.vitGap` giây.
  */
 export function vitalsDue(sent: Vitals | null, cur: Vitals, dt: number): boolean {
   if (!sent) return true;
   if (cur.xp !== sent.xp || cur.xpNeed !== sent.xpNeed || cur.maxMp !== sent.maxMp || cur.mp < sent.mp) return true;
   const exp = vitalsAfter(sent, dt), late = SYNC_VIEW.vitCd, early = SYNC_VIEW.vitEarly;
-  const off = (c: number, e: number) => e - c > late || c - e > early; // c: số thật, e: số client đang đếm
-  if (off(cur.swCd, exp.swCd) || off(cur.avaCd, exp.avaCd) || off(cur.ctCd, exp.ctCd)) return true;
-  if (cur.cds.some((c, i) => off(c, exp.cds[i])) || cur.bcds.some((c, i) => off(c, exp.bcds[i]))) return true;
+  // c: số thật, s: số đã gửi, e: số client đang đếm
+  const off = (c: number, s: number, e: number) => (c > 0) !== (s > 0) || e - c > late || c - e > early;
+  if (off(cur.swCd, sent.swCd, exp.swCd) || off(cur.avaCd, sent.avaCd, exp.avaCd) || off(cur.ctCd, sent.ctCd, exp.ctCd)) return true;
+  if (cur.cds.some((c, i) => off(c, sent.cds[i], exp.cds[i])) || cur.bcds.some((c, i) => off(c, sent.bcds[i], exp.bcds[i]))) return true;
   return cur.mp > sent.mp && dt >= SYNC_VIEW.vitGap;
 }

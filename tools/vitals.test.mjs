@@ -30,9 +30,13 @@ test("client đếm nhanh hơn server (nhịp chậm) báo sẵn sàng sớm: g�
   assert.equal(vitalsDue(sent, with_({ swCd: 2 - SYNC_VIEW.vitCd / 2 }), 1), false, "server hết sớm trong dung sai vitCd");
   assert.equal(vitalsDue(sent, with_({ swCd: 2 - SYNC_VIEW.vitCd * 2 }), 1), true);
 });
-test("vitalsAfter đếm lùi, không âm; không đổi bản gốc", () => {
+test("hồi chiêu hết ở server (client còn đang đếm): gửi xác nhận; hết rồi thì không gửi lại", () => {
+  assert.equal(vitalsDue(with_({ swCd: 3 }), with_({ swCd: 0 }), 3.02), true);
+  assert.equal(vitalsDue(with_({ swCd: 0 }), with_({ swCd: 0 }), 5), false);
+});
+test("vitalsAfter đếm lùi, dừng ở vitHold chờ server xác nhận (không về 0); ô đang 0 giữ 0; không đổi bản gốc", () => {
   const v = with_({ cds: [1, 2, 0, 0], swCd: 0.5 }), a = vitalsAfter(v, 1);
-  assert.deepEqual(a.cds, [0, 1, 0, 0]); assert.equal(a.swCd, 0); assert.equal(a.mp, 50); assert.deepEqual(v.cds, [1, 2, 0, 0]);
+  assert.deepEqual(a.cds, [SYNC_VIEW.vitHold, 1, 0, 0]); assert.equal(a.swCd, SYNC_VIEW.vitHold); assert.equal(a.mp, 50); assert.deepEqual(v.cds, [1, 2, 0, 0]);
 });
 test("vitalsPack làm tròn; vitalsParse từ chối dữ liệu hỏng", () => {
   const p = vitalsPack(with_({ cds: [1.23456, 0, 0, 0], ctCd: 0.004 }));
