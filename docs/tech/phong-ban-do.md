@@ -39,7 +39,8 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 | Đội hình, võ hồn, cộng hưởng | `setTeam`, `switchSlot`, `activate`, `resCheck`, `sendRes`, `resonanceTop` | chưa |
 | Tự săn, ủy thác | `autoAction`, `sendAuto`, `claimOffline` | `autoHunt.ts`, `autoStatus.ts` |
 | Đi cổng, điểm dịch chuyển | `travel`, `beginTravel`, `waypointAction`, `startWaypoint`, `useRecall`, `finishRecall` | chưa |
-| Túi (phần có phòng): nhặt, dùng, bán, mua lại, mở rộng | `addItem`, `pickup`, `sortBag`, `sendBag`, `useItem`, `buyItem`, `sellItem`, `buybackItem`, `expandBag`, `autoSell` | chưa |
+| Túi (phần có phòng): nhặt, dùng, khóa | `addItem`, `pickup`, `sortBag`, `sendBag`, `useItem`, `lockItem` | chưa |
+| Cửa hàng / thương nhân: mua, bán, mua lại, đổi mảnh, tự bán, mở rộng túi | `buyItem`, `buyShards`, `sellItem`, `buybackItem`, `forgetBuyback`, `setAutoSell`, `autoSell`, `expandBag`, `shardBuyToday`, `sendShardInfo` | `shop.ts` (hàm nhận `room`, `MapRoom` chỉ chuyển tiếp 10 hàm; `ArenaRoom` vẫn override `forgetBuyback`; `shopFor` / `saveTrade` / `bagRoom` / danh sách mua lại `buybacks`, `editBuyback`, `claimBuyback` còn ở `MapRoom`) |
 | NPC, tông môn, nhiệm vụ | `talkNpc`, `tongAction`, `tongTaskAction`, `questAction`, `questEvent`, `dailyAction` | chưa |
 | Đấu trường (phía phòng bản đồ) | `arenaAction`, `arenaFound`, `arenaQueue*`, `arenaWatch` | `arenaQueue.ts`, `ArenaRoom.ts` |
 | GM / hook test | `testHook` (chỉ chạy khi `GAME_TEST`), `gmAction`, `gmRun` | chưa |
@@ -51,4 +52,4 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 | Phạm vi quan tâm, sương mù, radar | `beastsNear`, `fog*`, `sendMini` | `interest.ts` |
 | Vòng `tick` | `tick`, `moveBeast`, `perfLog` | chưa |
 
-Thứ tự tách tiếp (mỗi bước một PR, bot nhóm liên quan xanh): (2) xong: trang bị / Thợ rèn thành hàm nhận phòng (`equip.ts`, giữ `forgeLane` / `itemLocked` nguyên; `CLAIM_BUSY` / `claimHeld` xuất từ `MapRoom`); (3) xong: hồn cốt / hồn hạch thành hàm nhận phòng (`bones.ts`, hấp thụ hồn hoàn chưa tách); (4) xong: xã hội (chat, bạn bè, tổ đội thành hàm nhận phòng ở `social.ts`); (5) cửa hàng / mua lại; (6) `testHook` + GM (chỉ chạy khi `GAME_TEST`); (7) nhiệm vụ / tông môn. Luật mỗi bước: thứ tự `onMessage` đăng ký ở `MapRoom` giữ nguyên; phương thức có `private` thì mô-đun mới nhận `room: MapRoom` như `split.ts`.
+Thứ tự tách tiếp (mỗi bước một PR, bot nhóm liên quan xanh): (2) xong: trang bị / Thợ rèn thành hàm nhận phòng (`equip.ts`, giữ `forgeLane` / `itemLocked` nguyên; `CLAIM_BUSY` / `claimHeld` xuất từ `MapRoom`); (3) xong: hồn cốt / hồn hạch thành hàm nhận phòng (`bones.ts`, hấp thụ hồn hoàn chưa tách); (4) xong: xã hội (chat, bạn bè, tổ đội thành hàm nhận phòng ở `social.ts`); (5) xong: cửa hàng / thương nhân (`shop.ts`); (6) `testHook` + GM (chỉ chạy khi `GAME_TEST`); (7) nhiệm vụ / tông môn. Luật mỗi bước: thứ tự `onMessage` đăng ký ở `MapRoom` giữ nguyên; phương thức có `private` thì mô-đun mới nhận `room: MapRoom` như `split.ts`.
