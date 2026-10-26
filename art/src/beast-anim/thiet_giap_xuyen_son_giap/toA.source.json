@@ -1,0 +1,78 @@
+{
+  "species": "thiet_giap_xuyen_son_giap",
+  "sheet": "A",
+  "attempt": "A1",
+  "session": "soul-land-mmo-111",
+  "integration_session": "soul-land-mmo-101",
+  "issue": 770,
+  "umbrella": 766,
+  "tool": "builtin image_gen.imagegen",
+  "image_model_id": "unknown",
+  "seed": "unknown",
+  "size_selector": false,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "actual_dimensions": [
+    1024,
+    1536
+  ],
+  "bytes": 2047562,
+  "sha256": "bfd673cf713abc6ae8e171feac7408ffaadfb097673d46b6f380b9aad695c800",
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a175d8-ad25-7f23-b840-c6d57ca8bbdd/exec-5ea1b646-9673-4e4e-b68e-d6a80d3699e6.png",
+  "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-111/thiet_giap_xuyen_son_giap-toA-A1-RAW.png",
+  "raw_copy_byte_identical": true,
+  "postprocessing": "NONE",
+  "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-111/thiet_giap_xuyen_son_giap-toA.actual.txt",
+  "exact_prompt_sha256": "496d5c275abcb123f48c6544f6beea714fbaf6147e2832c8a9b543de0c315485",
+  "base_prompt_sha256": "b6c87921ba7741de49f48aac7bab99e8a8c82384a966754f87d71b15e0c8e815",
+  "prepared_prompt_sha256": "496d5c275abcb123f48c6544f6beea714fbaf6147e2832c8a9b543de0c315485",
+  "prompt_structure": {
+    "prefix_bytes": 591,
+    "base_start_byte_zero_based": 591,
+    "base_end_byte_exclusive": 4705,
+    "base_occurrences": 1,
+    "base_is_final_suffix": true,
+    "prefix": "Input image 1 is the original static character reference for this exact species. Preserve its design, proportions, colors and body size. Request exactly 1024x1536 pixels: 6 columns by 12 rows, S then SE then E, 66 figures and 6 blank cells. All N-direction rows must show the rear with NO visible eyes or face, including hurt and death poses. NE is a rear three-quarter view facing upper-right, clearly showing the back. SE faces lower-right, visibly distinct from E side profile. HURT must visibly recoil backward. Use only flat solid #FF00FF background; no letters, labels or drawn grid.\n\n",
+    "suffix": ""
+  },
+  "ordered_refs": [
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-101/refs/thiet_giap_xuyen_son_giap.png",
+      "sha256": "9d2ee9daed1b8115a3ffcb3c03a8e24c8e08218354d440e6c1e943099a1d6c28",
+      "role": "original static identity actual attached by111; durable111 backup separate"
+    }
+  ],
+  "transparent_background": false,
+  "counters": {
+    "worker_calls": 1,
+    "retry": 0,
+    "A": 1,
+    "B_after_this_sheet": 0,
+    "species_calls_after_this_sheet": 1,
+    "owner101_image_gen_calls": 1
+  },
+  "observed_utc": {
+    "before_call": "2026-10-26T01:35:42.066Z",
+    "tool_return": "2026-10-26T01:36:12.832Z"
+  },
+  "outcome": "FAIL; submitted RAW only; no size waiver/art acceptance/runtime import",
+  "error_line": "LỖI: toA — heading/background — R1–4 S; R5–8 SE; R9–12 E — hurt S quay phải, attack/death đổi heading; SE chưa tách rõ E; nền khácFF00FF và không phẳng; giữ RAW FAIL, không retry.",
+  "source_handoff": {
+    "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-111/HANDOFF.md",
+    "sha256": "ed0747af0b3e4a746a8ed15ca683e33bb734cf1694a7aef94e6e215d378d0ef6"
+  },
+  "qa_read_only": {
+    "exact_FF00FF_pixels": 28,
+    "total_pixels": 1572864,
+    "semantic_count_not_certified": true,
+    "motion_loop_verified": false,
+    "pair_body_scale_accepted": false
+  },
+  "template_conflicts": [
+    "A prefix N/NE despite S/SE/E layout",
+    "171x6=1026 while canvas1024",
+    "B mentions SE/E and eyes shut while N rear required"
+  ]
+}
