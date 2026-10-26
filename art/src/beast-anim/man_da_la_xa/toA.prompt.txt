@@ -40,7 +40,7 @@ LESSONS (learned from earlier sheets of other creatures, follow every line):
 - HURT is a small recoil along the facing line: the creature stays upright on its feet and does not roll over, bounce into a new facing or turn its head toward the viewer.
 - DIE is a slow collapse along the facing line: the legs fold, the body lowers, and the final pose keeps the same body axis as the idle pose of that block.
 - DIE of a snake ends stretched out straight along the facing line, never coiled sideways.
-- Keep the body the same height and length in every row of the sheet, matching the reference; never let walking, attacking or hurt frames grow or shrink the creature.
+- Keep the body the same height and length in every row, matching the reference; never let walking, attacking or hurt frames grow or shrink the creature.
 - Draw every frame as its own separate picture: leave clear magenta space between neighbours, never overlap or merge two creatures.
 - Idle frames must show a small visible change from frame to frame (breathing, sway), and HURT must look clearly different from IDLE.
 - A frame that is empty in the layout stays empty magenta: do not fill spare cells with extra poses.
