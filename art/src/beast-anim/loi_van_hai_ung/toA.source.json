@@ -1,0 +1,75 @@
+{
+  "species": "loi_van_hai_ung",
+  "sheet": "A",
+  "worker": "soul-land-mmo-135",
+  "issue": 772,
+  "raw_file": "toA.png",
+  "sha256": "48d07b5b0ddf0cd02ad5785dbdf5510513a901158b1636a906edc5f8f53364bf",
+  "bytes": 2046855,
+  "width": 948,
+  "height": 1659,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "size_requirement_met": false,
+  "grid": [
+    6,
+    12
+  ],
+  "expected_visible_cells": 66,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "No size/model/seed selector exposed; dimensions requested in prompt only.",
+  "transparent_background": false,
+  "selected_attempt": 1,
+  "attempts": 1,
+  "counters": {
+    "A": 1,
+    "B": 2,
+    "species_total": 3
+  },
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "d7d166ce7d217b9c1b63e2fc29d15263c5a123ca076ce233c4025838e4e140e0",
+  "references": [
+    {
+      "path": "/private/tmp/soul-land-mmo-772-loi-van-hai-ung/shared/assets/sprites/beast/loi_van_hai_ung.png",
+      "role": "static identity, actual image bytes verified",
+      "sha256": "950e6abf841c58d4994ac06397cfd10e0612d87e9fad57be3a0314e02390ed15"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-6b5ebcd9-3541-4316-a3f2-3ad61b1eb932.png",
+  "history": [
+    {
+      "attempt": 1,
+      "started_at_utc": "2026-10-26T13:29:10Z",
+      "completed_at_utc": "2026-10-26T13:29:39Z",
+      "duration_seconds": 28.5,
+      "raw_artifact": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-6b5ebcd9-3541-4316-a3f2-3ad61b1eb932.png",
+      "sha256": "48d07b5b0ddf0cd02ad5785dbdf5510513a901158b1636a906edc5f8f53364bf",
+      "bytes": 2046855,
+      "dimensions": [
+        948,
+        1659
+      ],
+      "prompt_file": "toA.prompt.txt",
+      "prompt_sha256": "d7d166ce7d217b9c1b63e2fc29d15263c5a123ca076ce233c4025838e4e140e0"
+    }
+  ],
+  "selection_reason": "A1 is the only and first A candidate; retained unchanged for transparent review despite the technical size mismatch.",
+  "known_issues": [
+    "Technical: 948×1659 does not meet A's required 1024×1536 dimensions; RAW is unchanged.",
+    "Visual review candidate: the final south DIE frame appears to lie sideways rather than along the south facing axis; retain as candidate for owner review."
+  ],
+  "qa_status": "TECHNICAL SIZE FAIL / candidate for owner review; not art-approved, imported, or accepted",
+  "publication_policy": "Submit RAW candidates unchanged with full provenance; submission is not owner art approval or import.",
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "tool_arguments": {
+    "prompt_file": "toA.prompt.txt",
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-772-loi-van-hai-ung/shared/assets/sprites/beast/loi_van_hai_ung.png"
+    ],
+    "transparent_background": false
+  }
+}

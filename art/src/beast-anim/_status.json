@@ -1,12 +1,13 @@
 {
   "schema": 1,
   "generatedBy": "tools/assets/beast-status.mjs",
-  "species": 29,
+  "species": 30,
   "imported": 6,
   "tally": {
     "san-sang-nhap": 21,
     "chua-co-to": 1,
-    "chan": 7
+    "chan": 7,
+    "thieu-to": 1
   },
   "items": [
     {
@@ -585,6 +586,57 @@
       "errorLines": [
         "LỖI: toA — cỡ thân lệch — H1–4 (s) — cỡ thân idle 87% so với ảnh tĩnh (lệch 13%).",
         "LỖI: toB — hình ở ô trống / khung chết — H4 (ne) C5, H4 (ne) C6, H1 (ne) C1–4 — ô trống có hình (3.1% diện tích ô): hình tràn từ ô bên; ô trống có hình (3.63% diện tích ô): hình tràn từ ô bên; idle: mọi khung gần như trùng (xor/hợp tối đa 0.027 < 0.03); hoạt ảnh không chuyển động."
+      ]
+    },
+    {
+      "id": "loi_van_hai_ung",
+      "name": "Lôi Vân Hải Ưng",
+      "family": "bird",
+      "frame": 96,
+      "imported": false,
+      "turnaround": false,
+      "layout": "sheet",
+      "state": "thieu-to",
+      "sheets": [
+        {
+          "sheet": "toA",
+          "file": "art/src/beast-anim/loi_van_hai_ung/toA.png",
+          "size": [
+            948,
+            1659
+          ],
+          "bytes": 2046855,
+          "sha256": "48d07b5b0ddf0cd02ad5785dbdf5510513a901158b1636a906edc5f8f53364bf",
+          "level": "chặn",
+          "block": 1,
+          "light": 0,
+          "note": 0
+        },
+        {
+          "sheet": "toB",
+          "file": "art/src/beast-anim/loi_van_hai_ung/toB.png",
+          "size": [
+            1254,
+            1254
+          ],
+          "bytes": 2088866,
+          "sha256": "d9cc4dc032028ca3800405d6a73baef2c00489fd593c997daaa2a205b3aedb7e",
+          "level": "pass",
+          "block": 0,
+          "light": 0,
+          "note": 2
+        }
+      ],
+      "blocks": {
+        "s": "thiếu",
+        "se": "thiếu",
+        "e": "thiếu",
+        "ne": "pass",
+        "n": "pass"
+      },
+      "missing": [],
+      "errorLines": [
+        "LỖI: toA — sai kích thước — toàn tờ — 948×1659 không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2)."
       ]
     },
     {
