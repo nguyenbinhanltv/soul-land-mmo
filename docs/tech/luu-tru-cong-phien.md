@@ -11,7 +11,7 @@
 - Truyền tống trận và Hồi Thành Phù sang bản đồ khác dùng đúng các bước này (cổng ẩn tới tâm trận đích); phí / phù đã trừ được trả lại khi transaction lỗi.
 - Bản đồ có `MapDef.exit` (Lõi Tinh Đấu): lần ghi cuối khi rời phòng (`write(id, true)`) dùng `saveTravel` về `arrive` của cổng tới `exit`.
 
-**Đăng xuất** (`POST /api/logout`, #999): `store.endSession(token)` xóa đúng phiên của token đó ở server (phiên thiết bị khác giữ nguyên), luôn trả 200 dù token sai / hết hạn; client gọi rồi xóa token cục bộ.
+**Đăng xuất** (`POST /api/logout`, #999): `store.endSession(token)` xóa đúng phiên của token đó ở server (phiên thiết bị khác giữ nguyên), trả 200 dù token sai / hết hạn (trừ khi vượt giới hạn tần suất `apiGate`); client gọi rồi xóa token cục bộ.
 
 **Mỗi tài khoản một phiên** trên mọi phòng
 - `onJoin` phát `kick {accountId, sessionId}` qua presence; mọi phòng đá client trùng tài khoản khác phiên đó (mã 4001).

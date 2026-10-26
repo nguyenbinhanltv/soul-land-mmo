@@ -63,11 +63,11 @@ Client nghe ở `GameScene.ts` (`room.onMessage`, buffer lúc vào ở `roomBuff
 | `absorbing` | riêng | bắt đầu / hủy / kết quả hấp thụ hồn hoàn | `absorb.ts` |
 | `auto`, `autost`, `offline` | riêng | bảng Tự động; việc tự săn đang làm + thống kê; báo cáo ủy thác khi vào | `MapRoom.ts`, `autoStatus.ts` |
 | `fusion` | riêng | `k`: `ask`, `wait`, `cancel`, `done` của Dung Hợp Kỹ | `MapRoom.ts` |
-| `lock` | riêng | mục tiêu khoá bị gỡ / từ chối; `why` (`LockWhy`: `gone`, `far`, `safe`, `dead`, `hunt`, `egg`) để client báo lý do; cùng lý do lặp trong `DENY_GAP_MS` chỉ báo một lần | `lock.ts` |
+| `lock` | riêng | mục tiêu khoá bị gỡ / từ chối; `why` (`LockWhy`: `gone`, `far`, `safe`, `dead`, `hunt`, `egg`) để client báo lý do; bấm chọn bị từ chối mà cùng lý do lặp trong `DENY_GAP_MS` thì tin `lock` không kèm `why` (lúc server tự gỡ khoá thì luôn kèm) | `lock.ts` |
 | `quest`, `daily`, `npc` | riêng | nhiệm vụ chuỗi, khảo hạch hằng ngày, mở hộp thoại NPC | `MapRoom.ts`, `quest.ts` |
 | `tong`, `tongBoard` | riêng | thông tin tông môn; bảng điểm tuần | `MapRoom.ts`, `tong.ts` |
 | `party`, `friends`, `rally` | riêng | tổ đội, bạn bè / chặn, dấu Tập trung | `MapRoom.ts` |
-| `arena`, `arenaTop` | phòng / riêng | trận (`k`: `ready`, `fight`, kết quả `end` kèm `reason` + `why` tiếng Việt, hàng chờ; thao tác bị từ chối trong sân báo lý do bằng tin `log`, cùng câu lặp thì chỉ gửi lại sau một khoảng ngắn); bảng xếp hạng | `arena.ts`, `ArenaRoom.ts` |
+| `arena`, `arenaTop` | phòng / riêng | trận (`k`: `ready`, `fight`, kết quả `end` kèm `reason` + `why` tiếng Việt, hàng chờ; thao tác bị từ chối trong sân báo lý do bằng tin `log`, đánh thường / tin bị chặn (`BLOCKED`) chỉ báo lại sau `DENY_GAP_MS` cho mỗi loại thao tác của từng người); bảng xếp hạng | `arena.ts`, `ArenaRoom.ts` |
 | `channels`, `travel`, `portal`, `wp`, `world`, `recall` | riêng | danh sách kênh; lệnh đổi phòng; cổng đang đứng gần; điểm dịch chuyển; bản đồ thế giới; đếm ngược Hồi thành | `join.ts`, `travel.ts`, `MapRoom.ts` |
 | `vit` | riêng | kinh nghiệm, hồn lực, hồi chiêu của chính chủ (#949): gửi khi đổi, hồn lực hồi dần gộp theo `SYNC_VIEW.vitGap` giây, hồi chiêu client tự đếm lùi (xem `dong-bo-state.md`) | `vitals.ts` |
 | `mini`, `fog`, `fogd` | riêng | radar mỗi `SYNC_VIEW.mini` giây; bitset sương mù; ô mới khám phá | `MapRoom.ts` |
