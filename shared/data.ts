@@ -195,6 +195,28 @@ export const ASK_CD = 0.25;
 export const BAG_MSG_BURST = 30;
 export const BAG_MSG_RATE = 10;
 /**
+ * Giới hạn tin theo nhóm (#734, mở rộng #677): mỗi kết nối một bộ đếm token cho mỗi nhóm (`burst` tin dồn, hồi `rate` tin / giây); hết
+ * token thì server BỎ tin, không ngắt. `bag` = nhóm ghi túi (BAG_MSG_*); `trade` = mua bán (mỗi tin ghi DB / Redis); `social` = tổ
+ * đội, tông môn, đấu trường, đổi kênh, đổi đội hình; `read` = xin dữ liệu. Hằng kỹ thuật, người chơi thật bấm nhanh vẫn rất dư.
+ */
+export const MSG_GROUP = {
+  bag: { burst: BAG_MSG_BURST, rate: BAG_MSG_RATE },
+  trade: { burst: 20, rate: 6 },
+  social: { burst: 20, rate: 6 },
+  read: { burst: 40, rate: 20 },
+} as const;
+export type MsgGroup = keyof typeof MSG_GROUP;
+/**
+ * Trần tuyệt đối mọi loại tin của một kết nối (Colyseus 0.16 không có `maxMessagesPerSecond`, nên room tự đếm): `burst` tin dồn, hồi
+ * `rate` tin / giây. Vượt thì BỎ tin, trừ `input` (client không gửi lại tin bị bỏ, màn 144–240 Hz kéo chuột có thể vượt `rate`; bỏ
+ * nhầm tin dừng thì nhân vật đi mãi) vẫn được xử lý nhưng tính là một tin vượt. Vượt quá `maxOver` tin trong một giây thì ngắt kết nối
+ * (mã MSG_FLOOD_CODE): dồn thật sự thì ngắt dù gửi đều tay hay dồn một gói; người chơi thật chỉ vượt vài chục tin / giây.
+ * Kích thước tin: `maxPayload` (MSG_MAX_PAYLOAD) ở server/src/index.ts.
+ */
+export const MSG_HARD = { burst: 240, rate: 120, maxOver: 300 } as const;
+export const MSG_FLOOD_CODE = 4008;
+export const MSG_MAX_PAYLOAD = 4096;
+/**
  * Đồng bộ theo vùng gần (11.4, mục 6 "Đồng bộ xuống client"). Hằng kỹ thuật, không phải số cân bằng (đặt ở đây cho server và bot dùng
  * chung). Mỗi client chỉ nhận hồn thú thường, đồ rơi, hồn sư khác cách mình dưới `r` pixel thế giới, bỏ khi xa quá `out` (chênh nhau để
  * không vào / ra liên tục ở mép); tinh anh, thú vương, boss thế giới luôn đồng bộ. Tin `fx` / `dmg` chỉ gửi cho client cách điểm hiệu
@@ -4180,6 +4202,8 @@ export const formatHonTe = (dong: number) => honTeParts(dong).map((p) => `${p.n.
 export const TILE = 16;
 /** Lách góc (corner nudge, shared/move.ts): trục đi vướng góc ô mà lệch sang bên ≤ chừng này pixel thì tự đẩy nhẹ qua (server + dự đoán client). */
 export const MOVE_NUDGE = 4;
+/** Lách góc chỉ cho người chơi tự bấm phím / cần: tự săn (rooms/autoHunt.ts) tự dò đường A* và kẹt-kiểm theo va chạm thuần, bị đẩy lệch đường thì không tới / không hạ được thú vương (#785). */
+export const moveNudge = (auto: boolean) => (auto ? 0 : MOVE_NUDGE);
 export const TICK_RATE = 20; // số lần server cập nhật mỗi giây
 
 // ---------- NPC, thương nhân và lò rèn (mục 5.8, bước 6.1; mọi số đã chốt) ----------
@@ -4437,6 +4461,9 @@ export function sellPrice(it: { code: string; years: number | null; stars: numbe
  */
 export const AUTO_SELL_FREE = 5;
 export const AUTO_SELL_BUYBACK = 20;
+
+/** Hướng dẫn M6 (#752): gợi ý "túi gần đầy" hiện một lần khi số ô trống còn không quá mức này (client chỉ hiển thị, không ảnh hưởng luật chơi). */
+export const GUIDE_BAG_FREE = 10;
 /** Hồn hoàn, hồn cốt từ bấy nhiêu năm (vạn năm) trở lên không bao giờ tự bán, trừ khi người chơi bật `high`. */
 export const AUTO_SELL_GUARD = 10000;
 /** Bộ lọc tự bán của tài khoản (`accounts.auto_sell`; chỉnh ở bảng Túi đồ). Món khoá, món đang gắn không bao giờ bán. */
@@ -5059,6 +5086,8 @@ export const RESONANCE_RANK_PAGE_MAX = 20;
 export const RESONANCE_RANK_CD = 2;
 /** Giây giữ bảng xếp hạng cộng minh đã tính (dùng chung mọi phòng); bảng có thể trễ ngần này so với dữ liệu đã lưu. */
 export const RESONANCE_RANK_CACHE = 30;
+/** Giây giữ bảng xếp hạng đấu trường / tông môn đã tính (dùng chung trong tiến trình, #738); ghi Elo / điểm tông trong tiến trình thì xoá ngay, nên chỉ ghi từ tiến trình khác mới trễ tới ngần này. */
+export const RANK_BOARD_CACHE = 8;
 /**
  * 5 trụ cột cộng minh (mục 5.10). Thứ tự là thứ tự mảng tiến độ / mốc (`resonanceProgress`, `resonanceLevels`, tin "resonance");
  * mã `id` cố định. Mốc lấy đúng bảng ví dụ 5.10; **giá trị cộng đã chốt**:

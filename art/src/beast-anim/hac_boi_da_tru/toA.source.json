@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-26",
+  "session": "soul-land-mmo-64",
+  "issue": 768,
+  "tool": "image_gen.imagegen tích hợp Codex",
+  "model_id": null,
+  "seed": null,
+  "size_selector": false,
+  "requested_size": [
+    1024,
+    1536
+  ],
+  "grid": [
+    6,
+    12
+  ],
+  "directions": [
+    "s",
+    "se",
+    "e"
+  ],
+  "reference": "shared/assets/sprites/beast/hac_boi_da_tru.png",
+  "reference_sha256": "9af1eaba968c8d9480811e1dedb9608880007e324e481d7fc8cebef70626236c",
+  "tool_arguments": {
+    "referenced_image_paths": [
+      "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/hac_boi_da_tru.png"
+    ],
+    "transparent_background": false,
+    "prompt": "Nguyên văn từng file artifact_prompt; file nộp toA.prompt.txt là lượt 2"
+  },
+  "fresh_conversation": "Phiên64 chỉ sinh hac_boi_da_tru A; hai lượt cùng tờ, không sinh B hoặc loài khác",
+  "postprocessing": "Không; sao chép nguyên byte, không resize, quantize, cắt, sửa metadata hoặc pixel",
+  "acceptance": "Candidate chưa được owner duyệt mỹ thuật/runtime; chọn lượt 2 để bàn giao",
+  "outputs": [
+    {
+      "sheet": "A",
+      "attempt": 1,
+      "selected": false,
+      "original_output": "/Users/thanhhoa/.codex/generated_images/01a174a4-77e0-7762-a5c1-f78dbeaf9370/exec-83274010-736e-4348-9db2-75546b37014d.png",
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-64/toA-attempt1.png",
+      "artifact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-64/toA-attempt1.prompt.txt",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "f637efb5901a6b25358a5f3b4bc51b88041e60330ee89a574f07999e3fc9369c",
+      "prompt_sha256": "227aaf68cab9ef33ca24a0a9974a6640417cc017cf2ef83ed9a8dbd4d5c5eaf6"
+    },
+    {
+      "sheet": "A",
+      "attempt": 2,
+      "selected": true,
+      "original_output": "/Users/thanhhoa/.codex/generated_images/01a174a4-77e0-7762-a5c1-f78dbeaf9370/exec-9602d4dd-b7c3-4307-9523-4653e679c52b.png",
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-64/toA-attempt2.png",
+      "artifact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-64/toA-attempt2.prompt.txt",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "e742607bb7bac61e8c23ee9530d9da333efe493ac72333950993698b6fb9872b",
+      "prompt_sha256": "d7c91b21c77232651765303829b570c72de5cb1058cb567f87681bb866e0457d"
+    }
+  ],
+  "style_reference_permission": "Owner đã xem static+A2 và xác nhận hash; cho phép A2 làm STYLE reference candidate cho B trong fresh worker67. Chưa duyệt mỹ thuật/runtime.",
+  "known_suspects": [
+    "H1 C5–6: hurt xoay/ngẩng đầu, kiểm hướng nam và giật lùi",
+    "H3 C3–4: kiểm hướng nam khi lao và điểm chân",
+    "H4 C3–4: die đổi trục nam sang phải",
+    "H5–8: se gần e; H8 C2–4 chết đổi trục",
+    "H5/H9 C5–6: hurt ngẩng đầu, kiểm lùi/cỡ/điểm chân",
+    "H9–12: kiểm trục e, nhất là H12 C2–4 khi chết"
+  ]
+}

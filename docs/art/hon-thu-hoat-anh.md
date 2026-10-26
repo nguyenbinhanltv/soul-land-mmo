@@ -46,6 +46,26 @@ Giữ đúng đề xuất: 22 khung / hướng, 110 khung / loài; nhiều hơn 
 5. **Cảnh báo** (không dừng, trừ thiếu khung thì thoát mã 1): thiếu khung / tờ; hình ở ô trống; khung lệch diện tích / cao / rộng so với trung vị cùng hoạt ảnh và hướng; chân lệch quá 15% chiều cao ô; vượt hoặc chạm mép khung; hình dính; mảnh rời lớn bị bỏ.
 6. **Ghi:** `<loài>_anim.png`, `manifest-entry.json`, `_report.json`.
 
+### Chuẩn hóa kích thước dẫn xuất (tùy chọn)
+
+Thêm `--normalize-size` (API `cutSpecies({ ..., normalizeSize: true })`) khi tờ RAW lệch kích thước nhưng vẫn đúng tỉ lệ và lưới đã duyệt. Không có cờ thì cutter giữ hành vi cũ. Yêu cầu kích thước RAW trong bảng bố cục phía trên vẫn giữ nguyên; đây là cách xử lý ngoại lệ ở đầu ra dẫn xuất, không phải duyệt ảnh mọi kích thước.
+
+Mỗi tờ dùng **đơn vị canonical của chính `sheetPlan(frame)`**: hệ số `expectedWidth / actualWidth`, đồng thời phải bằng `expectedHeight / actualHeight` chính xác. Ví dụ B 1254×1254 dùng `1024/1254`, A 1024×1536 dùng 1. Tờ lớn A–E 1536×1024 vẫn dùng ô 256×256; không đổi sang đơn vị ô của tờ nhỏ. Sai tỉ lệ thì dừng với mã 2, không kéo riêng hai trục.
+
+Cutter vẫn tách vật trên RAW; hộp bao, diện tích, chân và phép kiểm vừa khung đổi sang đơn vị canonical trước **một hệ số chung cả loài**. Khi xuất, hệ số từng tờ được gộp vào lần lấy mẫu bỏ phiếu 4×4 hiện có: không tạo ảnh resize trung gian, không nội suy màu, không tự phóng từng khung cho đầy ô. `--scale` và `--min-area` khi bật cờ dùng đơn vị canonical (diện tích là bình phương đơn vị).
+
+`_report.json` giữ `size` thật và thêm `originalSize`, `expectedSize`, `factor`, `normalizedMode: "canonical-units"` theo từng tờ; CLI thêm `sourceSha256` từ byte file RAW. Công cụ chỉ đọc nguồn, không resize hay ghi lại RAW trong `art/src`. Cờ không sửa hướng, pose, số khung hoặc lưới: thiếu khung / ô trống / hình dính vẫn báo; thêm cảnh báo hình vượt ô và chạm mép ảnh nguồn. Ảnh chuẩn có factor 1 cho byte ảnh đầu ra không đổi; cảnh báo bổ sung vẫn có thể xuất hiện.
+
+```bash
+node tools/assets/beast-sheet-cut.mjs --species bang_giap_cu_quy --sheet A=<RAW-A.png> --sheet B=<RAW-B.png> --out <thư-mục-dẫn-xuất> --normalize-size
+```
+
+Để tái tạo bằng chứng size-only: `node tools/assets/beast-sheet-normalization-preview.mjs --out <thư-mục-ngoài-repo>`. Helper tải hai PNG Băng Giáp Cự Quy từ commit nguồn cố định, kiểm SHA256; dùng đủ 5 RAW Thái Thản Cự Viên đã có trong repo và kiểm hash. Mã thực thi cutter/preview luôn là mã checkout hiện tại, không lấy code từ PR ảnh. Đầu ra gồm `index.html`, `evidence.json`, PNG, GIF và report trước/sau; các đường dẫn tương đối mở được offline. Không chứng nhận hướng hoặc pose.
+
+CI `check-build` Ubuntu sinh bundle khi diff PR chạm cutter/helper/test/tài liệu liên quan; Windows không sinh lặp. Tải artifact `beast-normalization-preview-<PR head SHA>` từ GitHub Actions, giải nén rồi mở `index.html` (không phải website công khai). Artifact giữ 30 ngày. Evidence phân biệt `checkoutSha` (có thể là merge thử của CI), `prHeadSha`, `baseSha` và commit/hash RAW nguồn. `normalizedMode`/`factor` theo từng tờ ở report và evidence. Không commit bundle sinh ra vào Git.
+
+**Nhập H4 luôn dùng `--normalize-size`** (tờ B của ChatGPT thường xuất 1254×1254 thay vì 1024×1024; không cờ thì hướng `ne` / `n` lệch cỡ ~15–20% so với `s` / `se` / `e`). Hệ số chung cả loài vẫn tự hạ nếu có khung chạm mép; so bảng cỡ thân idle 5 hướng trước / sau khi nhập. Ba loài đã nhập trước khi có cờ (Ám Kim Khủng Trảo Hùng, Hắc Bối Dã Trư, Huyền Băng Thiềm) đã cắt lại bằng cờ (Part of #767, #768); Phong Lang, Kim Linh Ưng, Thái Thản Cự Viên đúng spec nên giữ nguyên.
+
 Tên theo quy ước game (`beast_<loài>_anim`); không dùng tên gói ngoài.
 
 ## Trang xem trước
@@ -72,4 +92,4 @@ Code ở `client/src/beastAnim.ts` (chọn khung, không phụ thuộc Phaser, c
 - **Thử bằng sheet giả:** `beast-sheet-fake.mjs` + `beast-sheet-cut.mjs` rồi cài tạm vào `shared/assets` (không commit); xem ảnh chụp và số FPS ở mô tả PR.
 
 ## Việc tiếp
-H2 (đã làm cho Phong Lang, #691): sheet `beast_phong_lang_anim` đã nhập vào `shared/assets` (cắt `--scale 0.55`); Kim Linh Ưng cũng đã nhập (`beast_kim_linh_ung_anim`); Thái Thản Cự Viên cũng đã nhập (`beast_thai_than_cu_vien_anim`), cả 3 loài thử xong.
+H2 (đã làm cho Phong Lang, #691): sheet `beast_phong_lang_anim` đã nhập vào `shared/assets` (cắt `--scale 0.55`); Kim Linh Ưng cũng đã nhập (`beast_kim_linh_ung_anim`); Thái Thản Cự Viên cũng đã nhập (`beast_thai_than_cu_vien_anim`), cả 3 loài thử xong. H4 (#766): đợt 1 #767 nhập Ám Kim Khủng Trảo Hùng (`beast_am_kim_khung_trao_hung_anim`, cắt `--scale 0.55` tự hạ về 0,440); đợt 2 #768 nhập Hắc Bối Dã Trư (`beast_hac_boi_da_tru_anim`, khung 64, cắt `--scale 0.38` tự hạ về 0,306); Huyền Băng Thiềm (`beast_huyen_bang_thiem_anim`, khung 96, hệ số tự động 0,467); cả ba cắt lại bằng `--normalize-size` (Ám Kim `--scale 0.55` tự hạ 0,539; Hắc Bối `--scale 0.38` tự hạ 0,361).

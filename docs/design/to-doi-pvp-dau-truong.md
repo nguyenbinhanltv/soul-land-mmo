@@ -128,7 +128,7 @@ Tên chiêu phỏng theo truyện; phần mô tả hiệu ứng là thiết kế
 - **Elo:** khởi đầu `startElo`, K = `k` mọi trận (thắng 1, hòa 0,5, thua 0; `eloAfter`), không dưới 0; lưu ở `arena_ratings` (Elo, thắng, thua, hòa). Với trận tổ đội, mỗi tài khoản tính `eloAfter(Elo riêng, Elo trung bình của bên đối thủ)`.
 - **Thưởng thắng:** mỗi thành viên bên thắng nhận phần thưởng riêng Hồn Tệ `winHonTe` + `winShards` mảnh của một võ hồn ngẫu nhiên trong `ARENA_SHARDS` (túi đầy thì mảnh đổi ra Hồn Tệ theo giá thương nhân), tính theo `dailyWins` của chính thành viên đó; hết lượt vẫn đấu và tính Elo.
 - **Thua / hòa không thưởng, không mất gì.** Trận không đổi kinh nghiệm, đồ, đội hình hay võ hồn ra trận. Không có mùa giải.
-- **Bảng xếp hạng** (nút ở hộp thoại): top `topN` theo Elo, bằng Elo thì nhiều trận thắng hơn rồi ai đạt trước; chỉ tài khoản đã đấu; kèm hạng, thành tích của mình và lượt thưởng còn lại hôm nay.
+- **Bảng xếp hạng** (nút ở hộp thoại): top `topN` theo Elo, bằng Elo thì nhiều trận thắng hơn rồi ai đạt trước; chỉ tài khoản đã đấu; kèm hạng, thành tích của mình và lượt thưởng còn lại hôm nay. Danh sách đầu bảng (và bảng tông môn) được giữ chung trong tiến trình `RANK_BOARD_CACHE` giây nhưng xoá ngay khi tiến trình ghi Elo / điểm; hạng của mình luôn tính mới (chi tiết ở `docs/tech/du-lieu-db.md`).
 
 ### Màn hình trận
 - Thanh trận đấu: hai bên (tên, Elo, % sinh lực cả đội, số võ hồn còn đứng); đồng hồ; thanh máu nhỏ trên đầu hai hồn sư.
