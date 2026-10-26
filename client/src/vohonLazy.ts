@@ -58,6 +58,16 @@ export const vohonBlank = (id: string): [boolean, boolean] => {
   const [b, f] = vohonPair(id).map((k) => blanks.has(k));
   return b && f ? [false, false] : [b, f];
 };
+/** Nửa [sau, trước] của phụ thể hoạt ảnh vẽ thật `vhanim_{id}` là nửa trống (manifest `"blank": true`); nơi vẽ ẩn lớp đó (như vohonBlank). */
+export const vohonAnimBlank = (id: string): [boolean, boolean] => {
+  const [b, f] = [`vhanim_${id}_b`, `vhanim_${id}_f`].map((k) => blanks.has(k));
+  return b && f ? [false, false] : [b, f];
+};
+/** Key sheet hoạt ảnh của võ hồn `id` có trong manifest (không trống, chưa lỗi); rỗng = võ hồn chưa có sheet mới (nhánh cũ). */
+const phuAnimKeys = (id: string): string[] => {
+  const [bb, fb] = vohonAnimBlank(id), ks = [`vhanim_${id}_b`, `vhanim_${id}_f`].filter((_, i) => !(i ? fb : bb));
+  return ks.length && ks.every((k) => specs.has(k) && !failed.has(k)) ? ks : [];
+};
 /** Texture hai lớp phụ thể; nửa trống mượn texture của nửa kia (cùng kích thước / bố cục khung nên mọi phép tính khung giữ nguyên), vohonBlank báo ẩn. */
 export const vohonKeys = (id: string): [string, string] => {
   const [kb, kf] = vohonPair(id), [bb, fb] = vohonBlank(id);
@@ -88,10 +98,12 @@ function settle(scene: Phaser.Scene) {
  */
 export function wantVohon(scene: Phaser.Scene, id: string, start = true): "ready" | "wait" | "code" {
   const [bb, fb] = vohonBlank(id), pair = vohonPair(id), keys = pair.filter((_, i) => !(i ? fb : bb));
-  keys.forEach(touchTexture);
-  if (keys.every((k) => scene.textures.exists(k))) return "ready";
+  const anim = phuAnimKeys(id); // sheet hoạt ảnh vẽ thật (Phụ thể v2): tải kèm sheet tĩnh; lỗi thì bỏ, võ hồn chạy nhánh cũ
+  keys.forEach(touchTexture); anim.forEach(touchTexture);
+  if (keys.every((k) => scene.textures.exists(k)) && anim.every((k) => scene.textures.exists(k))) return "ready";
   if (keys.some((k) => !specs.has(k) || failed.has(k))) return "code";
   queue(scene, keys, lightingOn(scene.game), start);
+  queue(scene, anim, false, start);
   return "wait";
 }
 
@@ -126,11 +138,12 @@ export function wantPhapTuong(scene: Phaser.Scene, id: string, start = true): "r
 }
 
 /**
- * Xin sheet hồn thú loài `species` (mã BEASTS): `"ready"` (đã có ảnh, bản tĩnh / hoạt ảnh đều tới), `"wait"` (đang tải: nơi gọi ẩn sprite), `"code"`
+ * Xin sheet hồn thú loài `species` (mã BEASTS): `"ready"` (đã có ảnh: hoạt ảnh nếu có, không thì bản tĩnh), `"wait"` (đang tải: nơi gọi ẩn sprite), `"code"`
  * (manifest không có ảnh thật của loài hoặc tải lỗi: vẽ bằng code theo bậc như trước).
  */
 export function wantBeast(scene: Phaser.Scene, species: string, start = true): "ready" | "wait" | "code" {
-  const keys = [`beast_${species}`, `beast_${species}_anim`].filter((k) => specs.has(k) && !failed.has(k));
+  // Có hoạt ảnh vẽ thật thì không tải sheet tĩnh cùng loài (syncBeastSprite ưu tiên anim; #1062); anim không có / tải lỗi thì rơi về sheet tĩnh.
+  const anim = `beast_${species}_anim`, keys = [specs.has(anim) && !failed.has(anim) ? anim : `beast_${species}`].filter((k) => specs.has(k) && !failed.has(k));
   if (!keys.length) return "code";
   keys.forEach(touchTexture);
   if (keys.every((k) => scene.textures.exists(k))) return "ready";

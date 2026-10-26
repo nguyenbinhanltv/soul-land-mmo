@@ -76,8 +76,22 @@ export function cellRect(sheet, col, row, w, h) {
 
 /** Mô tả tiếng Anh cho loài chưa có prompt ảnh tĩnh ComfyUI trong art/CREDITS.md (ảnh Gemini của boss). */
 const DESC_OVERRIDE = {
+  thien_thanh_nguu_mang: "sky-blue bull python world boss, giant azure jade-green serpent with a bull's head and two curved horns, thick body coiled in a wide S-curve, forked tongue",
   thai_than_cu_vien: "titan giant ape, massive dark grey-brown fur, grey stone armor plates on forearms and shoulders, broad chest, lower tusks like ivory, ancient battle scars",
 };
+
+/**
+ * Họ hoạt ảnh CHỈ cho công cụ prompt khi họ ở client/src/sprites.ts (chuyển động vẽ bằng code) không hợp hình dạng loài (#1049):
+ * `float` = phù du, không chân (sứa, bạch tuộc: trôi, co bóp, xúc tu); `swim` = thủy sinh, không chân (cá, đuối, cá mập, cá voi: bơi, vẫy đuôi).
+ * Không đổi họ ở client. Loài thêm vào đây thì prompt không còn nhắc feet / legs / roots / ground.
+ */
+export const TOOL_FAMILY = {
+  u_linh_hai_mau: "float", tham_hai_ma_chuong: "float",
+  loi_quang_hai_dieu: "swim", kiem_ngu: "swim", huyet_nha_cu_sa: "swim", tham_hai_ma_kinh: "swim",
+};
+/** Họ không chân: không feet / legs / ground line trong prompt. */
+export const LEGLESS = new Set(["float", "swim"]);
+export const FAMILIES = ["quad", "bird", "snake", "insect", "plant", "float", "swim"];
 
 /** Thông tin một loài: tên, họ hoạt ảnh, khung, mô tả (lấy từ prompt ảnh tĩnh ở art/CREDITS.md), có ảnh tĩnh chưa. */
 export function speciesInfo(id) {
@@ -89,6 +103,7 @@ export function speciesInfo(id) {
   const sp = readFileSync(path.join(ROOT, "client", "src", "sprites.ts"), "utf8");
   let family = "quad";
   for (const m of sp.matchAll(/^\s+(bird|snake|insect|plant): \[([^\]]*)\]/gm)) if (m[2].includes(`"${id}"`)) family = m[1];
+  family = TOOL_FAMILY[id] ?? family;
   let desc = DESC_OVERRIDE[id] ?? name;
   const cred = readFileSync(path.join(ROOT, "art", "CREDITS.md"), "utf8").split("\n").find((l) => l.startsWith(`| \`shared/assets/sprites/beast/${id}.png\``));
   const p = cred?.split("|")[4]?.match(/pixel art, (.*?), (?:full body|game creature sprite)/);
@@ -96,4 +111,4 @@ export function speciesInfo(id) {
   const staticFile = path.join(SPRITES, "beast", `${id}.png`);
   return { id, name, family, frame, desc, staticFile: existsSync(staticFile) ? staticFile : null };
 }
-export const FAMILY_VI = { quad: "thú bốn chân", bird: "chim", snake: "rắn / bò sát", insect: "côn trùng", plant: "cây / hoa" };
+export const FAMILY_VI = { quad: "thú bốn chân", bird: "chim", snake: "rắn / bò sát", insect: "côn trùng", plant: "cây / hoa", float: "phù du, không chân (trôi, co bóp, xúc tu)", swim: "thủy sinh, không chân (bơi)" };
