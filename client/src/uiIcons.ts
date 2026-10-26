@@ -39,6 +39,10 @@ export function setConnectionLabel(connected: boolean) {
   if (el.dataset.state === state) return;
   el.dataset.state = state; el.hidden = false;
   el.classList.remove("c12-with-icon"); el.style.removeProperty("--c12-icon"); delete el.dataset.c12Key;
-  el.textContent = connected ? "Đã kết nối" : "Mất kết nối";
+  const label = connected ? "Đã kết nối" : "Mất kết nối";
+  el.setAttribute("aria-label", label); el.title = label;
+  const fallback = document.createElement("span"); fallback.className = "c12-status-fallback"; fallback.setAttribute("aria-hidden", "true"); fallback.textContent = connected ? "·" : "×";
+  const name = document.createElement("span"); name.className = "c12-status-name"; name.textContent = label;
+  el.replaceChildren(fallback, name);
   decorate(el, `gi_ui_${state}`);
 }
