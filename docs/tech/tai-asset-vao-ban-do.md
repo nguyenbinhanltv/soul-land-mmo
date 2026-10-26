@@ -1,6 +1,6 @@
 # Tải asset khi vào / đổi bản đồ (#716)
 
-Đây là **báo cáo đo + kế hoạch chia bước**, không phải luật chơi. Cách đo: `client/scripts/load-measure.mjs` (Chrome thật qua CDP, `--mute-audio`, cổng gỡ lỗi tự chọn, tắt đúng PID mình bật). Cần `npm run build` rồi server `GAME_TEST=1` không `DATABASE_URL` (MemoryStore), ví dụ `env -u DATABASE_URL GAME_TEST=1 PORT=3716 npx tsx server/src/index.ts`, sau đó:
+Đây là **báo cáo đo + kế hoạch chia bước**, không phải luật chơi. Cách đo: `client/scripts/load-measure.mjs` (Chrome thật qua CDP, `--mute-audio`, cổng gỡ lỗi tự chọn, tắt đúng PID mình bật). Cần `npm run build` rồi server `GAME_TEST=1` không `DATABASE_URL` (MemoryStore), ví dụ `cd server && env -u DATABASE_URL GAME_TEST=1 PORT=3716 npx tsx src/index.ts` (chạy từ thư mục `server` để tsx đọc đúng tsconfig), sau đó:
 
 ```
 node client/scripts/load-measure.mjs --base http://127.0.0.1:3716 [--maps a,b,c] [--json] [--samples] [--shot ảnh.png]
@@ -43,7 +43,7 @@ Phụ thể là thủ phạm chính: 100 ảnh × 2304×1152 × 4 byte ≈ **1 G
 3. **Hồn thú theo loài trong tầm** — **đã làm ở PR thứ ba**. Cùng cơ chế với bước 1 / 2 (`wantBeast` trong `vohonLazy.ts`): `preloadSprites` chỉ ghi spec `beast_*` (cả `_anim` và normal map); preload xin loài của hồn thú đã có trong state lúc vào, hồn thú tới sau (đi vào tầm, boss / thú vương / thú gọi ra) xin lúc xuất hiện (vòng vẽ hồn thú ở `GameScene`). Chọn theo loài thật đang có trong tầm chứ không theo trường `map` của manifest, nên không bao giờ tải thiếu (loài ngoài bản đồ nhà vẫn có ảnh). Chưa tải xong thì ẩn sprite, tên, thanh máu, bóng (không vẽ bản tạm bằng code để khỏi nháy); sheet tới thì dựng animation / đo thân (`setBeastSheetHook` trong `sprites.ts`). Manifest không có ảnh / tải lỗi thì vẽ bằng code theo bậc như trước. Ảnh hiển thị cuối cùng không đổi.
 4. **Hiệu ứng chiêu `fx_sk_*` theo võ hồn** — **đã làm ở PR thứ tư**. Cùng cơ chế với bước 1–3 (`wantSkillFx` trong `vohonLazy.ts`): 560 dải `fx_sk_<tên>` (+ lớp sáng `_g`, 3,3 MB; chiếm ~93% trong 601 dải `fx_*`) chỉ ghi spec; sheet của võ hồn nào được xin khi có người dùng võ hồn đó trong phòng (lúc vào, lúc người mới tới / đổi võ hồn), lớp sáng `_g` chỉ cho chính mình (chiêu người khác không vẽ lớp sáng). Danh sách key suy từ `SKILL_VISUAL` (chỉ chiêu khai ở đó); hiệu ứng hệ `fx_<hệ>_*`, hợp thể (`FUSION_VISUAL`), va chạm... vẫn tải ngay. Chưa tải xong thì `SheetFx.play` trả false và chiêu dùng hiệu ứng vẽ bằng code như khi manifest thiếu ảnh, nên chỉ có thể lệch ở chiêu đầu tiên của người vừa vào tầm trong vài chục ms đầu; ảnh hiển thị lúc ổn định không đổi. Phần còn lại của `fx_*` (~40 dải theo hệ) để dành nếu đo cho thấy còn đáng.
 5. **Giữ `Phaser.Game` khi đổi bản đồ** — **đã làm ở PR thứ năm** (`main.ts`: `leaveThen`, `dropSceneTextures`). Đổi bản đồ chỉ `stop` + `remove` scene `game` rồi thêm scene mới vào cùng Game (canvas ẩn trong lúc chờ vào phòng), không `destroy` nữa nên texture nạp từ file (hồn sư, pháp tướng, `fx_*`, ô nền / vật đứng đã ghé, UI) không phải tải XHR + giải mã lại. Những chỗ phải xử lý: (a) cache JSON / tilemap còn key thì loader bỏ file và sự kiện `filecomplete-json-*` không bắn, nên `preloadSprites` (manifest), `preloadIso` (tiles, kho riêng), `GameScene.preload` (tilemap) gỡ key khỏi cache trước khi tải lại (file nhỏ, HTTP cache); (b) texture vẽ bằng code (canvas: khối nung, nhà, thời tiết, LPC, fx dải...) và mọi hoạt ảnh (tham chiếu khung của chúng) bị bỏ lúc rời bản đồ như khi huỷ Game, để code dựng lại không gặp key cũ; (c) `ScaleManager` thuộc Game nên `GameScene` gỡ listener `resize` khi scene tắt. Đánh đổi: texture file của bản đồ đã ghé ở lại trong bộ nhớ (đo ~650 → ~930 key sau 8 lần đổi bản đồ, ô nền + vật đứng của 5 bản đồ); chưa có cơ chế đuổi, đáng xem nếu soak thấy RAM tăng. Ảnh hiển thị lúc ổn định không đổi.
-6. **Gom atlas** (ảnh nhỏ, `tools/assets`): giảm số request / số texture cho vật đứng, ô nền; đã có `isoAtlas.ts` cho Light2D (nhiều trang từ #718).
+6. **Gom atlas + giới hạn texture giữ qua bản đồ** — **đã làm ở PR thứ sáu**. (a) `tools/assets/iso-atlas.mjs` xếp ô nền + vật đứng công khai của từng bản đồ (đúng tập `preloadIso` xin, kể cả sân cung uyển; bỏ vật kho riêng) thành 1 trang 1024×~400 (+ trang `_n` normal map) ở `shared/assets/iso/atlas/<bản đồ>-<trang>.png` và `index.json` (khung `[trang, x, y, rộng, cao]`, băm nguồn); `iso-atlas.mjs --check` nằm trong `npm run check` (ảnh nguồn / `tiles.json` đổi mà chưa chạy lại thì báo lệch). Ảnh gốc vẫn ở chỗ cũ. `preloadIso` (`isoMap.ts`) tải `atlas/index.json`, ảnh có trong atlas thì tải trang rồi **cắt lại đúng hình chữ nhật** vào canvas cùng key `iso:<file>` / `prop_<vật>` (+ `_n`), ảnh ngoài atlas hay bản đồ không có mục thì tải từng file như trước; trang atlas gỡ ngay sau khi cắt. Texture cắt (không kèm `~màu`) sống qua đổi bản đồ như texture file (`isIsoSlice`, `main.ts`). `?noatlas` bỏ atlas để đo trước / sau. (b) `textureLru.ts`: mỗi lần vào bản đồ là một lượt; texture lười (hồn thú, phụ thể, pháp tướng, `fx_sk`) và ô / vật đứng được xin lượt nào thì ghi lượt đó (`touchTexture`), lúc rời bản đồ gỡ texture không được xin trong `KEEP_VISITS` (4) lượt gần nhất; xin lại thì tải lại từ cache HTTP. Của chính mình được xin mỗi lần vào nên không bị gỡ. Ảnh hiển thị lúc ổn định không đổi (so từng điểm ảnh, xem dưới).
 7. **Cache HTTP, preload theo bản đồ, âm thanh**: HTTP cache đã đúng (#580: `?v=` + immutable). Chưa thấy âm thanh chặn hiển thị (nhạc nền 3 request, ~1,6 MB lần đầu). Xem lại sau khi 1–5 xong.
 
 Mọi bước: đo `load-measure.mjs` (trước / sau), chạy `npm run bot:local -- --only travel`, kiểm tay một bản đồ không lỗi console.
@@ -149,3 +149,47 @@ B = main lúc đó (`93b04c10`, sau bước 4), C = sau bước 5. Mỗi ô: B �
 - Ba lượt lẻ dao động ±40% (máy dùng chung), nên so trung vị và chiều chung.
 
 Kiểm bù cho bước 4 (`fx_sk` tải lười) và kiểm bước 5: `waypoint` đạt 76 / 76, `bigmap` đạt 176 / 176 (bot server; không có nhóm tên `travel`). Kiểm tay (Chrome thật, `--mute-audio`, bản dựng bước 5, `__scene`): vào Thánh Hồn Thôn rồi warp Nặc Đinh Thành → Tinh Đấu Ngoại vi → Thánh Hồn Thôn → Thiên Đấu Thành → Nặc Đinh Thành → Lõi Tinh Đấu → Thánh Hồn Thôn: luôn 1 scene, texture `pt_*` / `vh_*` của mình còn, 32 key `fx_sk_*` của võ hồn mình (xin lúc vào) còn sau mọi lần đổi, 0 lỗi console. Phát một dải `fx_sk_ld_zone1` qua `SkillVisualPlayer.cast` trước và sau một lần warp: trả true, sprite hiện (chiêu dùng sheet thật, không rơi về hiệu ứng vẽ bằng code). Bấm chiêu thật bằng tay không làm được vì tài khoản thử chưa có hồn hoàn (hồn kỹ vòng 1 cần hồn hoàn thứ 1).
+
+## Bước 6: số trước / sau
+
+### RAM client sau 20 lần warp (`load-measure.mjs --ram 20`, xoay vòng 9 bản đồ, 1 Chrome)
+
+Mỗi dòng: số key texture / MB điểm ảnh ước tính (w×h×4, gồm normal map) / heap JS. Trước = main sau #872; sau = bước 6.
+
+| Sau lần warp | Trước (key / MB / heap) | Sau (key / MB / heap) |
+|---|---|---|
+| 0 (vào Thánh Hồn Thôn) | 652 / 194 / 93 | 648 / 192 / 100 |
+| 9 (đi hết 9 bản đồ) | 1.204 / 277 / 133 | 1.000 / 244 / 121 |
+| 12 | 1.282 / 323 / 213 | 1.025 / 302 / 213 |
+| 20 | 1.151 / 267 / 114 | 921 / 245 / 89 |
+
+- Kết luận về rủi ro #872: tăng **có trần** (số key đi ngang ~1.150–1.280 từ lần warp thứ 9 sau khi đã ghé hết 9 bản đồ; heap JS dao động 77–213 MB, không tăng đều), vì tập asset hữu hạn; phần tăng chủ yếu là hồn thú đã thấy (`beast_*` 43 MB), không phải ô / vật đứng (`iso:` + `prop_` chỉ ~17 MB). LRU 4 lượt hạ trần xuống ~920–1.030 key và gỡ ~−35 MB (−12%) điểm ảnh; đỉnh vẫn nằm ở Thiên Đấu Thành (~300 MB, các khối nung + atlas ánh sáng + `lpc` + `vh` của mình, không phải texture file của bản đồ cũ).
+- Nhóm texture lúc cuối (key / MB): `vh` 4 / 61, `lpc` 25 / 56, `isoAtlas` 1 / 32 (Light2D), `isoChunk` 91 / 28, `beast` 38 / 23 (trước LRU: 80 / 43), `fx` 84 / 21.
+
+### Tải bản đồ (trung vị 3 lượt xen kẽ B, C, B, C, B, C, tuần tự 1 Chrome, độ trễ giả lập 60 ms mỗi request, `--latency 60`)
+
+B = `?noatlas` (như main), C = có atlas. Mỗi ô: B → C (ms; request).
+
+| Ca | Bản đồ | Thời gian (ms) | Request |
+|---|---|---|---|
+| vào game, hồ sơ trống (lạnh) | Thánh Hồn Thôn | 8.214 → 4.543 | 361 → 195 |
+| vào game, tải lại trang (nóng) | Thánh Hồn Thôn | 1.520 → 1.936 (lượt lẻ B 3.492 / 1.520 / 1.430) | 362 → 199 |
+| warp lần đầu | Nặc Đinh Thành | 2.387 → 1.857 | 90 → 38 |
+| warp lần đầu | Tinh Đấu Ngoại vi | 1.973 → 1.145 | 93 → 35 |
+| warp lần đầu | Thiên Đấu Thành | 2.887 → 2.876 | 99 → 49 |
+| warp lần đầu | Lõi Tinh Đấu | 1.513 → 877 | 80 → 12 |
+| warp lần sau (nóng) | Nặc Đinh Thành | 1.324 → 1.207 | 26 → 26 |
+| warp lần sau (nóng) | Tinh Đấu Ngoại vi | 716 → 689 | 8 → 8 |
+| warp lần sau (nóng) | Thiên Đấu Thành | 1.957 → 1.861 | 39 → 39 |
+| warp lần sau (nóng) | Lõi Tinh Đấu | 322 → 385 | 7 → 7 |
+
+- Warp lần đầu: request −42…−68 (−52…−85%), thời gian −0,5…−0,9 s ở 3 / 4 bản đồ (Thiên Đấu Thành nhiều file khác nên hòa). Lượt lạnh −3,7 s, request −166. Lần sau không đổi (không có gì để tải, nằm trong nhiễu).
+- **Không có độ trễ mạng (localhost)** lợi về thời gian không đo được (trung vị 3 lượt: lần đầu 1.775 → 1.683, 946 → 836, 2.117 → 2.448, 481 → 647 ms; trong nhiễu ±30%): lợi của atlas là giảm số round-trip, chỉ thấy khi mạng có độ trễ. KB mạng lần đầu tăng nhẹ (+~0,15 MB / bản đồ, vì tải trọn trang atlas cả ảnh chưa cần ngay, kèm normal map): 1.778 → 1.944, 2.827 → 2.975 KB.
+- Ba lượt lẻ dao động ±40% (máy dùng chung), nên so trung vị và chiều chung.
+
+### Kiểm
+
+- `--verify-atlas` (so từng điểm ảnh, ngưỡng ±1 mỗi kênh): 3.192 lượt so texture `iso:*` / `prop_*` (cả `_n`) qua 9 bản đồ sau các lần warp: **lệch 0**.
+- Bot `waypoint` 76 / 76, `bigmap` 176 / 176 (không có nhóm tên `travel`). `npm run check` xanh.
+- Kiểm tay (Chrome thật `--mute-audio`, `__scene`): vào Thánh Hồn Thôn, warp qua 9 bản đồ nhiều vòng (20 lần warp trong lượt `--ram`, 9 lần trong `--verify-atlas`), ảnh chụp Lõi Tinh Đấu bình thường, **0 lỗi console**.
+- Cách chạy: `node client/scripts/load-measure.mjs --ram 20 --maps a,b,c` (RAM), `--latency 60` (độ trễ), `--verify-atlas` (so điểm ảnh), `QS="&noatlas"` (bỏ atlas).

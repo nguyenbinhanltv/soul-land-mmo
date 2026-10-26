@@ -27,6 +27,8 @@ import { sharedAudioContext, stopMusic } from "./audio/music.ts";
 import { stopAmbientBed } from "./audio/ambientBed.ts";
 import { mountGoogleButton } from "./google.ts";
 import { openCredits } from "./credits.ts";
+import { isIsoSlice } from "./isoMap.ts";
+import { evictStaleTextures } from "./textureLru.ts";
 
 const card = document.getElementById("card")!, overlay = document.getElementById("overlay")!;
 if (matchMedia("(pointer: coarse)").matches) document.body.classList.add("touch");
@@ -326,7 +328,7 @@ const ARENA_END_CODE = 4005;
  * tham chiếu khung của chúng nên bỏ hết (dựng lại có kiểm `exists`).
  */
 function dropSceneTextures(g: Phaser.Game) {
-  for (const k of g.textures.getTextureKeys()) if (g.textures.get(k).source[0]?.isCanvas) g.textures.remove(k);
+  for (const k of g.textures.getTextureKeys()) if (g.textures.get(k).source[0]?.isCanvas && !isIsoSlice(k)) g.textures.remove(k);
   for (const a of g.anims.toJSON().anims) g.anims.remove(a.key);
 }
 
@@ -358,7 +360,7 @@ function play(room: Room, roomMap: string, watch = false) {
     // Kết nối đã đóng (server đưa ra khỏi sân, mã 4005) thì không gửi rời phòng nữa: leave() của colyseus.js sẽ không bao giờ xong.
     if (!left) await room.leave().catch(() => {});
     // Giữ Phaser.Game (#716 bước 5): chỉ tắt scene, texture dùng chung (hồn sư, pháp tướng, fx, UI, bản đồ đã ghé) không phải giải mã lại.
-    if (game) { game.scene.stop("game"); game.scene.remove("game"); dropSceneTextures(game); game.canvas.style.visibility = "hidden"; }
+    if (game) { game.scene.stop("game"); game.scene.remove("game"); dropSceneTextures(game); evictStaleTextures(game); game.canvas.style.visibility = "hidden"; }
     document.body.classList.remove("playing"); document.getElementById("hud")!.hidden = true;
     next();
   };
