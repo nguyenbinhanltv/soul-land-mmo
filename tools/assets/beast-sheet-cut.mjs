@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { Img, readPng, encodePng, readGpl, hex, toHex, OUTLINE, ISO_BEAST_FOOT } from "./lib.mjs";
 import { DIRS, ANIMS, COLS, BAND_ROWS, animSlot, sheetPlan, sheetCells, speciesInfo, sheetFits, canonFactor } from "./beast-sheet-lib.mjs";
-import { layoutFor, parsePatch, applyPatches, staticAnchors, blockFactors, levelOf, codeOf, summarize } from "./beast-sheet-cut-lib.mjs";
+import { layoutFor, parsePatch, applyPatches, staticAnchors, blockFactors, equalizeBlocks, levelOf, codeOf, summarize } from "./beast-sheet-cut-lib.mjs";
 
 const K_OUT = hex(OUTLINE);
 export const dist2 = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
@@ -256,6 +256,29 @@ export function cutSpecies(o) {
     }
   }
 
+  // 3b. Chuẩn hóa cỡ giữa 5 khối hướng theo trung vị cao idle (#1085); đặt tay --scale / --fill thì không đụng (giữ byte #870)
+  if (!o.scale && !o.fill && o.equalizeBlocks !== false) {
+    const bodyH = (d) => median(idle.filter(([, r]) => r.dir === d).map(([, r]) => r.h));
+    const heights = Object.fromEntries(DIRS.map((d) => [d, dirScale[d] * (bodyH(d) || 0)]));
+    const eq = equalizeBlocks(heights, o.blockSpread);
+    rep.equalize = { before: +(eq.spread ?? 0).toFixed(3), active: eq.active, target: +eq.target.toFixed(1), heightsBefore: Object.fromEntries(Object.entries(heights).map(([d, h]) => [d, +h.toFixed(1)])), factors: {}, after: null };
+    if (eq.active) {
+      for (const d of DIRS) {
+        const k = eq.factors[d];
+        if (!k || k === 1) continue;
+        let sd = dirScale[d] * k;
+        const f = fitOf(all.filter((r) => r.dir === d));
+        if (f < sd) { if (f >= sd * 0.8) sd = f; else warns.push(`khối ${d}: hệ số ${sd.toFixed(3)} làm khung vượt khung ${F}×${F} (vừa tối đa ${f.toFixed(3)}), bị cắt mép`); }
+        warns.push(`khối ${d}: cao idle ${heights[d].toFixed(1)} so với trung vị 5 hướng ${eq.target.toFixed(1)}, chuẩn hóa ×${(sd / dirScale[d]).toFixed(3)} → ${sd.toFixed(3)}`);
+        rep.equalize.factors[d] = +(sd / dirScale[d]).toFixed(3);
+        dirScale[d] = sd;
+        if (rep.blocks?.[d]) rep.blocks[d].scale = +sd.toFixed(4);
+      }
+      const after = DIRS.map((d) => dirScale[d] * (bodyH(d) || 0)).filter(Boolean);
+      rep.equalize.after = +(Math.max(...after) / Math.min(...after)).toFixed(3);
+    }
+  }
+
   // 4. Bảng màu
   const samples = [];
   // lấy thưa để median cut vẫn nhanh với khung lớn (boss 192: hàng triệu điểm vật)
@@ -375,6 +398,8 @@ function parseArgs(argv) {
     else if (a === "--patch") (o.patches ??= []).push(parsePatch(next()));
     else if (a === "--no-anchor-blocks") o.anchorBlocks = false;
     else if (a === "--block-tol") o.blockTol = +next();
+    else if (a === "--no-equalize-blocks") o.equalizeBlocks = false;
+    else if (a === "--block-spread") o.blockSpread = +next();
     else if (a === "--strict") o.strict = true;
     else if (a === "--verbose") o.verbose = true;
     else throw new Error(`tùy chọn lạ: ${a}`);
@@ -386,7 +411,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     const o = parseArgs(process.argv.slice(2));
     if (!o.species || !o.out || !Object.keys(o.sheets).length) {
-      console.error("Dùng: node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=<ảnh> [--sheet B=<ảnh>] --out <thư mục> [--no-normalize-size] [--frame N] [--colors 24] [--palette auto|gpl|<gpl>] [--fill 0.8 | --scale S] [--key #ff00ff] [--tol 60] [--grid auto|uniform] [--layout auto|direction] [--patch A:c,r=c,r|A:c,r=-]... [--no-anchor-blocks] [--block-tol 0.12] [--strict] [--verbose]");
+      console.error("Dùng: node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=<ảnh> [--sheet B=<ảnh>] --out <thư mục> [--no-normalize-size] [--frame N] [--colors 24] [--palette auto|gpl|<gpl>] [--fill 0.8 | --scale S] [--key #ff00ff] [--tol 60] [--grid auto|uniform] [--layout auto|direction] [--patch A:c,r=c,r|A:c,r=-]... [--no-anchor-blocks] [--block-tol 0.12] [--no-equalize-blocks] [--block-spread 1.3] [--strict] [--verbose]");
       process.exit(2);
     }
     const hashes = {};

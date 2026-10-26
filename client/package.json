@@ -15,6 +15,7 @@
     "test:flow-browser": "node scripts/flow-browser.mjs",
     "test:panel-browser": "node scripts/panel-browser.mjs",
     "test:join-browser": "node scripts/join-browser.mjs",
+    "test:beastfallback-browser": "node scripts/beastfallback-browser.mjs",
     "test:charbag": "node scripts/charbag-test.mjs",
     "test:phaptuong": "node scripts/phaptuong-test.mjs",
     "test:beastanim": "node --experimental-strip-types scripts/beastanim-test.mjs",

@@ -6,7 +6,7 @@ import path from "node:path";
 import { readPng, ROOT } from "./lib.mjs";
 import { cutSpecies } from "./beast-sheet-cut.mjs";
 import { fakeSheets } from "./beast-sheet-fake.mjs";
-import { layoutFor, parsePatch, applyPatches, blockFactors, levelOf, summarize } from "./beast-sheet-cut-lib.mjs";
+import { layoutFor, parsePatch, applyPatches, blockFactors, equalizeBlocks, levelOf, summarize } from "./beast-sheet-cut-lib.mjs";
 import { sheetPlan } from "./beast-sheet-lib.mjs";
 import { Img } from "./lib.mjs";
 
@@ -95,4 +95,30 @@ test("--grid lạ bị từ chối; beast-recut-all từ chối --out trong repo
   const run = spawnSync(process.execPath, ["tools/assets/beast-recut-all.mjs", "--out", path.join(ROOT, "shared", "x")], { encoding: "utf8", cwd: ROOT });
   assert.equal(run.status, 2);
   assert.match(run.stderr, /thư mục repo/);
+});
+
+test("chuẩn hóa cỡ giữa khối hướng (#1085): chỉ chạm khi max/min vượt ngưỡng, kéo về trung vị", () => {
+  const ok = equalizeBlocks({ s: 50, se: 52, e: 48, ne: 51, n: 55 });
+  assert.equal(ok.active, false);
+  assert.deepEqual(Object.values(ok.factors), [1, 1, 1, 1, 1]);
+  const eq = equalizeBlocks({ s: 59, se: 46.5, e: 34, ne: 48, n: 56 });
+  assert.equal(eq.active, true);
+  assert.equal(eq.target, 48);
+  assert.equal(eq.factors.se, 1, "trong ±15% trung vị thì giữ");
+  assert.ok(Math.abs(eq.factors.e * 34 - 48) < 1e-9 && Math.abs(eq.factors.s * 59 - 48) < 1e-9);
+  assert.equal(equalizeBlocks({ s: 35, n: 100, e: 35 }).factors.n, 0.6, "kẹp 0,6–1,6");
+  assert.equal(equalizeBlocks({ s: 59, e: 34, n: 56 }, 2).active, false, "ngưỡng tùy chỉnh");
+});
+
+test("Quỷ Ảnh Báo: cutter v2 kéo max/min cao idle từ 1,74 về ≤1,15, --no-equalize-blocks giữ như cũ, --scale tay không đụng", () => {
+  const sheets = raw("quy_anh_bao");
+  const res = cutSpecies({ species: "quy_anh_bao", sheets });
+  assert.equal(res.report.equalize.active, true);
+  assert.ok(res.report.equalize.before > 1.7 && res.report.equalize.after <= 1.15);
+  const off = cutSpecies({ species: "quy_anh_bao", sheets, equalizeBlocks: false });
+  assert.equal(off.report.equalize, undefined);
+  const hand = cutSpecies({ species: "quy_anh_bao", sheets, scale: 0.39 });
+  assert.equal(hand.report.equalize, undefined);
+  const fill = cutSpecies({ species: "quy_anh_bao", sheets, fill: 0.8 });
+  assert.equal(fill.report.equalize, undefined, "--fill cũng không chuẩn hóa (như bước neo)");
 });
