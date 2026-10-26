@@ -1,0 +1,74 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "imageModel": "unknown (tool did not expose)",
+  "seed": "unknown (tool did not expose)",
+  "attempts": 1,
+  "workerProvenance": {
+    "task": "#774",
+    "species": "xich_lan_mang",
+    "sheet": "toB",
+    "attempt": "B1",
+    "status": "RAW submitted candidate; art not owner-approved",
+    "tool": "built-in image_gen.imagegen",
+    "model": "unknown (tool did not expose)",
+    "seed": "unknown (tool did not expose)",
+    "attemptCount": 1,
+    "totalSpeciesImagegenCalls": 2,
+    "durationSeconds": 39.9,
+    "callTimestampExposed": false,
+    "callTimestampNote": "The image_gen tool response did not provide a call timestamp.",
+    "provenanceRecordedAtUtc": "2026-10-26T14:57:42Z",
+    "exactPrompt": {
+      "path": "toB.prompt.txt",
+      "sha256": "48310fac1f5f6359625dbc2dc0c19d9e1ee3090c6d0b8686c54df647aafeae36",
+      "bytes": 6699,
+      "basePromptSha256": "6f38ca64169e288f112bbf3c05d8f87811384f2bc7657bba4683b6a002dd6f99",
+      "basePromptTemplateMarkdown": "xich_lan_mang-toB.md",
+      "basePromptTemplateMarkdownSha256": "e48500f544a2db7a4faf9cecd47ff3a7c0ae50348ee69c5efaba6d95fff0391b",
+      "executionAddendum": "The generated template says the A sheet is approved; the appended execution addendum clarifies A1 is only a technical candidate and not owner art-approved.",
+      "executionAddendumApplied": true
+    },
+    "generator": {
+      "command": "node tools/assets/beast-sheet-prompt.mjs --species xich_lan_mang --stage sheet --out art/src/beast-anim/xich_lan_mang",
+      "script": "tools/assets/beast-sheet-prompt.mjs",
+      "scriptSha256": "ce67ade6abd84aaacbb2336b8a942fd298330fbf698eabb56d8b31092d4ba625"
+    },
+    "orderedReferences": [
+      {
+        "order": 1,
+        "role": "static identity reference for Xích Lân Mãng",
+        "path": "shared/assets/sprites/beast/xich_lan_mang.png",
+        "sha256": "3567bfd5342f25ff1f3e86fd9edea1fd2c42ae9190c640bda26d398906059c57",
+        "bytes": 3324
+      },
+      {
+        "order": 2,
+        "role": "actual A1 RAW technical candidate; not owner art-approved",
+        "path": "art/src/beast-anim/xich_lan_mang/toA.png",
+        "sha256": "d1e8c8455f6b2bbdf960ac56a2b42917436639bcadfa0bee4c0d218aad02aaa1",
+        "bytes": 1841914,
+        "width": 948,
+        "height": 1659
+      }
+    ],
+    "toolArguments": {
+      "referenced_image_paths": [
+        "/private/tmp/soul-land-mmo-774-xich-lan-mang/shared/assets/sprites/beast/xich_lan_mang.png",
+        "/private/tmp/soul-land-mmo-774-xich-lan-mang/art/src/beast-anim/xich_lan_mang/toA.png"
+      ],
+      "transparent_background": false
+    },
+    "originalToolOutputPath": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-9d27d23c-1428-403a-8914-f73db9dff83a.png",
+    "raw": {
+      "path": "toB.png",
+      "sha256": "c15ddce0dd95e64fc6d11674eae1810497a6604b8aef016760f8b6602bb5b675",
+      "bytes": 1879248,
+      "width": 1254,
+      "height": 1254,
+      "copiedByteIdenticalFromToolOutput": true
+    },
+    "postprocessing": false,
+    "manualFindings": [],
+    "ownerArtApproval": false
+  }
+}
