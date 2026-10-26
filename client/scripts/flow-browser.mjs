@@ -156,6 +156,35 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
   await guide.waitFor({ state: "hidden" });
   step("hướng dẫn lần đầu: bước theo phím, Bỏ qua, nút ? xem lại");
 
+  // 5b'. #1027: bấm nút HUD đè lên vùng bấm của trận truyền tống (Phaser nghe mousedown cấp window) không được mở bảng Bản đồ thế giới.
+  // Bản chập chờn ở CI: nút Đóng của #guide rơi trúng vùng trận tùy máy chạy chậm / nhanh nên bảng #world mở đè lên và chặn chuột.
+  const zones = await page.evaluate(() => {
+    const s = window.__scene, cam = s.cameras.main, out = [];
+    for (const z of s.children.list) if (z.type === "Zone" && z.input?.enabled) out.push({ x: z.x, y: z.y });
+    // Dừng camera theo nhân vật, đặt giữa vùng bấm đầu tiên để pixel màn hình của nó biết chắc (zone nằm ở toạ độ thế giới).
+    const z0 = out[0]; if (!z0) return 0;
+    cam.stopFollow(); cam.centerOn(z0.x, z0.y);
+    return out.length;
+  });
+  assert.ok(zones > 0, "không có vùng bấm (Zone) nào để kiểm");
+  await page.evaluate(() => {
+    const el = document.getElementById("guideBtn"), r = window.__scene.game.canvas.getBoundingClientRect();
+    // Mọi vùng bấm: gửi mousedown giả lên nút HUD tại đúng giữa vùng đó.
+    const cam = window.__scene.cameras.main;
+    for (const z of window.__scene.children.list) {
+      if (z.type !== "Zone" || !z.input?.enabled) continue;
+      const gx = (z.x - cam.scrollX - cam.width / 2) * cam.zoom + cam.width / 2, gy = (z.y - cam.scrollY - cam.height / 2) * cam.zoom + cam.height / 2;
+      if (gx < 0 || gy < 0 || gx > cam.width || gy > cam.height) continue; // vùng ngoài màn hình thì không có gì để bấm trúng
+      const cx = r.left + gx * r.width / cam.width, cy = r.top + gy * r.height / cam.height;
+      el.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, clientX: cx, clientY: cy, button: 0, buttons: 1 }));
+      window.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, clientX: cx, clientY: cy, button: 0 }));
+    }
+  });
+  await sleep(200);
+  assert.ok(await page.locator("#world").isHidden(), "bấm nút HUD đè lên vùng trận truyền tống làm mở bảng Bản đồ thế giới");
+  assert.ok(await page.locator("#npc").isHidden(), "bấm nút HUD đè lên vùng NPC làm mở hộp thoại NPC");
+  step("bấm nút HUD đè lên vùng trận / NPC không mở bảng");
+
   // 5c. #990: gõ dở trong ô chat rồi bấm xuống bản đồ: ô chat mất tiêu điểm (chữ dở còn), W đi được và không rơi vào ô chat; Esc vẫn thoát ô.
   const chatState = () => page.evaluate(() => ({ focus: document.activeElement?.id ?? "", value: document.getElementById("chat").value, keyW: !!window.__scene.keys.KeyW }));
   await page.keyboard.press("Enter"); await page.keyboard.type("ab");

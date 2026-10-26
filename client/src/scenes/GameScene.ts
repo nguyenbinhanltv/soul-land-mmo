@@ -577,6 +577,8 @@ export class GameScene extends Phaser.Scene {
    * Truyền tống trận (11.2): tên trên trận (◆, mờ khi chưa mở) và vùng bấm / chạm mở bản đồ thế giới. Vòng trận phát sáng vẽ mỗi khung ở
    * `paintWaypoints` (phong cách A: hồn lực sáng màu lam ngọc; chưa mở thì xám mờ), không dùng ảnh.
    */
+  /** Phaser còn nghe mousedown ở cấp window: bấm nút / bảng HUD đè lên vùng bấm của trận truyền tống, NPC không được tính là bấm vào chúng (#1027). */
+  onCanvas(ptr: Phaser.Input.Pointer) { return !ptr.downElement || ptr.downElement === this.game.canvas; }
   drawWaypoints() {
     for (const w of this.waypoints) {
       const c = W2S(w.x + w.w / 2, w.y + w.h / 2), top = c.y - 10 * SPR;
@@ -584,7 +586,7 @@ export class GameScene extends Phaser.Scene {
         fontFamily: FONT, fontSize: "6.5px", fontStyle: "700", color: "#bfefff", stroke: "#000", strokeThickness: 2, resolution: 8,
       }).setOrigin(0.5, 1).setDepth(99984);
       this.wtext(w.text, top, 0);
-      this.add.zone(c.x, c.y, 26 * SPR, 14 * SPR).setInteractive({ useHandCursor: true }).on("pointerdown", () => this.openWorld(true));
+      this.add.zone(c.x, c.y, 26 * SPR, 14 * SPR).setInteractive({ useHandCursor: true }).on("pointerdown", (ptr: Phaser.Input.Pointer) => { if (this.onCanvas(ptr)) this.openWorld(true); });
     }
     this.labelWaypoints();
   }
@@ -691,7 +693,7 @@ export class GameScene extends Phaser.Scene {
         ...style, fontSize: "6px", color: "#fff2b0", backgroundColor: "#000000aa", padding: { x: 3, y: 1 },
       }).setOrigin(0.5, 1).setDepth(99986).setVisible(false);
       // Vùng bấm phủ cả hình và tên: chuột hoặc chạm đều được.
-      this.add.zone(sx, (top + sy) / 2, 22 * SPR, sy - top + 12 * SPR).setInteractive({ useHandCursor: true }).on("pointerdown", () => this.talk(def.id));
+      this.add.zone(sx, (top + sy) / 2, 22 * SPR, sy - top + 12 * SPR).setInteractive({ useHandCursor: true }).on("pointerdown", (ptr: Phaser.Input.Pointer) => { if (this.onCanvas(ptr)) this.talk(def.id); });
     }
     // 6.2: NPC giao nhiệm vụ có dấu "!" (bài mới) / "?" (chờ trả, xám khi đang làm) phía trên nhãn "Nói chuyện".
     let qmark: Phaser.GameObjects.Text | null = null;
@@ -863,7 +865,7 @@ export class GameScene extends Phaser.Scene {
     // đi gửi trong `input` như khi giữ phím, server vẫn tính vị trí và va chạm (10.1).
     this.input.on("pointerdown", (ptr: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) => {
       // Phaser còn nghe mousedown ở cấp window: bấm rơi vào bảng / nút HUD (không phải canvas) không được thành lệnh đi, khoá hay chọn người (U1 #754).
-      if (ptr.downElement && ptr.downElement !== this.game.canvas) return;
+      if (!this.onCanvas(ptr)) return;
       // Phaser preventDefault mousedown của canvas nên trình duyệt không tự đưa tiêu điểm khỏi ô nhập (#990): bấm xuống bản đồ thì bỏ tiêu điểm ô chat / ô nhập,
       // không thì WASD, Space, U/I/O/P bị gõ vào ô. Chữ gõ dở giữ nguyên (Enter lại thì gõ tiếp); chỉ blur, không gửi, không xoá.
       const f = document.activeElement;
