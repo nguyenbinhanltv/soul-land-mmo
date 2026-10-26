@@ -2,7 +2,7 @@
    nạp sau style.css (import ở feedback.ts) nên đè được kiểu cũ cùng độ ưu tiên. */
 
 /* ----- Toast: chồng ở góc dưới phải, không che giữa màn hình ----- */
-#toasts{position:absolute;right:10px;bottom:132px;z-index:2;display:flex;flex-direction:column;gap:4px;width:min(236px,60vw);pointer-events:none}
+#toasts{position:absolute;right:10px;bottom:144px;z-index:2;display:flex;flex-direction:column;gap:4px;width:min(236px,60vw);pointer-events:none}
 body.touch #toasts{bottom:230px}
 .toast{--c:var(--paper3);pointer-events:auto;cursor:pointer;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:0 8px;
   padding:4px 8px 5px 6px;background:var(--plate);color:var(--plate-text);border:1px solid var(--ink2);border-left:4px solid var(--c);

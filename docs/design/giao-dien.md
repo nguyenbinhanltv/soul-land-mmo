@@ -98,6 +98,7 @@ Bản phác bố cục: `docs/art/ban-phac-nhan-vat-tui/index.html` (kèm ảnh 
 - Hàm thuần: `acceptsItem` (ô có nhận món không), `smartTarget(item, view)` (ô đúng của món, một chỗ duy nhất), `mountCommand` / `unmountCommand` (ánh xạ sang lệnh server).
 
 ### Điện thoại, phím tắt, hiệu năng
+- **HUD laptop (#722):** cột trái chừa chỗ cho khung chat (`--chat-res`), chat đóng chỉ giữ vài dòng mới nhất (`--log-max`); đầu bảng Tổ đội xuống dòng thay vì cắt nút. Màn logic ≤ 560 px cao (`ui-h560`, vd 960×540): chat 2 dòng, bảng Tổ đội dời sang bên phải khung chỉ số, toast tối đa 3 dòng và che tạm ô nhiệm vụ; không đổi logic toast (phân luồng chat là U2 #755).
 - **Màn thấp (`ui-h460`, điện thoại ngang 844×390 trở xuống):**
   - Đầu bảng gọn; dải chọn võ hồn và nhóm lọc của Túi một hàng cuộn ngang (không xuống dòng).
   - Bốn tab búp bê chia đều một hàng (tên trên, số ô dưới); nút chạm ≥ 36 px.
