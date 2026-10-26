@@ -1,0 +1,99 @@
+{
+  "species": "doc_vu_thiem",
+  "sheet": "B",
+  "worker": "soul-land-mmo-91",
+  "issue": 767,
+  "raw_file": "toB.png",
+  "sha256": "35bd1962e17968cd4848b2b29c8a5d0ae67a522338f500a8a71e7cb798e99d97",
+  "bytes": 1923240,
+  "width": 1254,
+  "height": 1254,
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "size_requirement_met": false,
+  "grid": [
+    6,
+    8
+  ],
+  "expected_visible_cells": 44,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "No size/model/seed selector exposed; dimensions requested in prompt only.",
+  "transparent_background": false,
+  "selected_attempt": 2,
+  "attempts": 2,
+  "counters": {
+    "A": 2,
+    "B": 2,
+    "species_total": 4
+  },
+  "prompt_file": "toB.prompt.txt",
+  "prompt_sha256": "2c43526907d398f616c8e2c73ae4fbe661df5a4aa3b045a3eb99caf702a8d73b",
+  "references": [
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-63/references/doc_vu_thiem.png",
+      "role": "authoritative static identity",
+      "sha256": "4194510810d860ef6b94314696b6cdb9244f0fbdc3e30031f1812acc4c8ee327"
+    },
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-90/doc_vu_thiem-A2-RAW.png",
+      "role": "A2 palette/body size/line style only; NOT accepted pose/layout",
+      "sha256": "258a36d3086df68c1bac9c707a4a4b4c42de68c4af7134a041406b8404efbd80"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a1759f-d2dc-7c92-a9bc-3f9d8524c1a5/exec-bb744b04-5d94-4f9b-a7a1-f0917369095b.png",
+  "upstream_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-91/provenance.json",
+  "history": [
+    {
+      "attempt": 1,
+      "raw_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-91/doc_vu_thiem-B1-RAW.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a1759f-d2dc-7c92-a9bc-3f9d8524c1a5/exec-cd86d598-bc93-4cc7-a168-c727a9496fc9.png",
+      "sha256": "df082cc2d872b584cc2d3f4554794723a38000b480f2a07cad4da702cfe15490",
+      "bytes": 1931698,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-91/prompts/doc_vu_thiem-B1.actual.txt",
+      "prompt_sha256": "62e73304e62eb4c5fc46ddcc35b3f158a7faaf8b236eb76e4723be958eb612ab"
+    },
+    {
+      "attempt": 2,
+      "raw_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-91/doc_vu_thiem-B2-RAW.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a1759f-d2dc-7c92-a9bc-3f9d8524c1a5/exec-bb744b04-5d94-4f9b-a7a1-f0917369095b.png",
+      "sha256": "35bd1962e17968cd4848b2b29c8a5d0ae67a522338f500a8a71e7cb798e99d97",
+      "bytes": 1923240,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-91/prompts/doc_vu_thiem-B2.actual.txt",
+      "prompt_sha256": "2c43526907d398f616c8e2c73ae4fbe661df5a4aa3b045a3eb99caf702a8d73b"
+    }
+  ],
+  "selection_reason": "Chọn B2 vì N death R8C3–4 giữ trục rear tốt hơn B1 quay ngang, attack không há miệng lớn như B1. NE/grid/pose còn lỗi; nộp để owner xem, không phải đạt.",
+  "known_issues": [
+    "FAIL actual1254×1254 thay1024×1024; giữ nguyên RAW, không resize.",
+    "R1–R4 NE lộ mặt/mắt/miệng phải, chưa rear3/4; R4C3–4 death nghiêng E.",
+    "R1C5–6/R5C5–6 hurt chưa rõ recoil; R3C2 ngẩng, R3C3 lunge yếu; R7 attack ít biến đổi.",
+    "R1 tràn xuống R2 C1/C3/C5/C6; R7 thiếu margin trên, R8C1 sát ranh. Foot clearance 0–34%, không đều12%; R4C4/R8C4 thiếu margin ngang.",
+    "Nền gần magenta nhưng không flatFF00FF. Upstream mask tol60 có4ôtrống0pixel; đây không phải đếm thú semantic hoặc chứng nhận nền.",
+    "R5–R8 N/death tốt hơn B1; body size tương ứng A/loop/anatomy vẫn chưa nghiệm thu."
+  ],
+  "qa_status": "FAIL / candidate for owner review; not art/runtime/size accepted",
+  "publication_policy": "User explicitly requested committing failed raw candidates for owner review; submission is not acceptance or import.",
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "error_line": "LỖI: toB — kích thước/nền/hướng/pose/căn ô — B2 R1–R4 NE, R1–R2, R7–R8 — RAW 1254×1254; nền không phẳng FF00FF; NE lộ mặt; hurt/attack chưa rõ; tràn hàng và lệch chân.",
+  "tool_arguments": {
+    "promptFile": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-91/prompts/doc_vu_thiem-B2.actual.txt",
+    "referenced_image_paths": [
+      "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-63/references/doc_vu_thiem.png",
+      "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-90/doc_vu_thiem-A2-RAW.png"
+    ],
+    "transparent_background": false
+  },
+  "reference_note": "B dùng A90/A2 style-only thực tế; primary A1 của PR là quyết định chọn sau QA, không thay reference đã dùng."
+}
