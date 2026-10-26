@@ -29,3 +29,11 @@ LỖI: toA — cỡ thân lệch — H1–4 (s), H5–8 (se) — cỡ thân idle
 LỖI: toA — sai hướng — S H3 C3–4 — khung 3–4 quay sang phải thay vì hướng s (mắt)
 LỖI: toB — sai pose — N H8 C3–4 — DIE khung 3–4 nằm ngang ảnh, không giữ trục n (mắt)
 ```
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/quy_dien_hai_yeu/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Quỷ Diện Hải Yêu (H4 #774; Part of #774 và #766): RAW art/src/beast-anim/quy_dien_hai_yeu/toA.png (1024×1536, A1/1) và toB.png (1254×1254, B1/1), tthoadev sinh ngày 2026-10-26 bằng builtin Codex image_gen.imagegen, tổng 2 lượt gọi, model/seed unknown (tool không công bố). A chỉ tham chiếu static đúng loài; B tham chiếu static rồi A1 candidate kỹ thuật chưa owner-approved. RAW giữ nguyên byte, không hậu kỳ/cắt/resize. Soát mắt: A s/ATTACK H3 C3–4 quay sang phải; B n/DIE H8 C3–4 đổ ngang ảnh. Prompt/hash/ref/source và NGUON tự sinh nằm trong art/src/beast-anim/quy_dien_hai_yeu/. Chưa art accepted hoặc imported. | - | Chuyển một lần từ art/CREDITS.md (#973) |

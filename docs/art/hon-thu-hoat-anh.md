@@ -57,10 +57,11 @@ Duyệt theo **khối hướng** (`s`, `se`, `e`, `ne`, `n`), không theo cả t
 - **Bài học** (từ báo cáo H4, #766, #767–#781) nằm ở một file `art/src/beast-anim/lessons.md`, mỗi dòng gắn giai đoạn / họ; `beast-sheet-lessons.mjs` chèn vào mục `LESSONS` của prompt. Bài học mới thêm vào file đó, không để ở issue. Tối đa 3 lượt mỗi khối; quá thì dừng (skill `beast-anim`, mục A5).
 
 ### NGUON và dòng `LỖI:` do công cụ sinh
+**Ghi công theo loài (#973):** PR H4 chỉ sửa file trong `art/src/beast-anim/<loài>/`. Dòng ghi công của loài nằm ở bảng `## Ghi công` cuối `NGUON.md` (cột `File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú`, như các mục AI của `art/CREDITS.md`; `beast-nguon.mjs` sinh sẵn một dòng), **không** nối vào `art/CREDITS.md` (mục "Hồn thú hoạt ảnh" ở đó chỉ còn câu trỏ). `node tools/assets/credits.mjs` gom bảng này vào màn Ghi công; `--check` (có trong `npm run check`) báo lỗi nếu loài có tờ mà `NGUON.md` thiếu bảng. Dòng nhập game `beast_<loài>_anim` (bước nhập) vẫn thêm ở mục "Asset tạo bằng AI (ChatGPT)" của `art/CREDITS.md`.
 `node tools/assets/beast-nguon.mjs --species <loài> [--write] [--model … --seed … --attempts toA=2] [--eye "toB=hướng — N H8 C3–4 — die lộ mặt"] [--eye-ok toA]` ghi `NGUON.md`: cỡ thật (IHDR), số byte, SHA256, prompt đi kèm (hash), nguồn sinh (cờ hoặc `to<X>.source.json`; công cụ sinh ảnh không công bố model / seed thì ghi `unknown`, không đoán), mức kiểm và dòng `LỖI: to<X> — <loại> — <hàng / hướng> — <ghi chú>` từ `beast-sheet-check`; mục xem bằng mắt khai bằng `--eye` (thêm `(mắt)`), `--eye-ok` cho tờ đã xem không lỗi, tờ chưa khai ghi "chưa duyệt bằng mắt". `--write` không ghi đè NGUON có sẵn (trừ `--force`). Không viết NGUON / dòng `LỖI:` bằng tay.
 
 ### Sổ trạng thái tự sinh
-`npm run beast:status` ghi `art/src/beast-anim/_status.json` + `_status.md` (thay bảng tay ở #766): mỗi loài có tờ nào (cỡ, byte, SHA256, mức kiểm), mức theo khối hướng, tờ thiếu, đã nhập game chưa (manifest `beast_<loài>_anim`), dòng `LỖI:` tự sinh. Kết quả chỉ phụ thuộc file trong repo; `-- --check` báo lệch (không nằm trong `npm run check` để PR chỉ thêm ảnh không bị chặn). Cập nhật sổ trong PR nhập game / duyệt.
+`npm run beast:status` ghi `art/src/beast-anim/_status.json` + `_status.md` (thay bảng tay ở #766): mỗi loài có tờ nào (cỡ, byte, SHA256, mức kiểm), mức theo khối hướng, tờ thiếu, đã nhập game chưa (manifest `beast_<loài>_anim`), dòng `LỖI:` tự sinh. Kết quả chỉ phụ thuộc file trong repo. **Hai file này không nằm trong git** (`.gitignore`; #973): PR không commit, không sinh lại, không giải xung đột. Bản chung là comment ghim có dấu `<!-- beast-status -->` ở issue #766, workflow `.github/workflows/beast-status.yml` sửa lại sau mỗi lần `main` đổi `art/src/beast-anim/**` (hoặc chạy tay `workflow_dispatch`); muốn xem ngay ở máy thì chạy `npm run beast:status`.
 
 ## Công cụ cắt `beast-sheet-cut.mjs`
 `node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=<ảnh> [--sheet B=…] --out <thư mục> [--no-normalize-size] [--colors 24] [--palette auto|gpl|<gpl>] [--fill 0.8 | --scale S] [--key #ff00ff] [--tol 60] [--frame N]`
@@ -104,7 +105,7 @@ Tùy chọn thêm: `[--grid auto|uniform] [--patch A:c,r=c,r | A:c,r=- ]... [--n
 - **Cắt lại hàng loạt (chỉ chạy thử):** `node tools/assets/beast-recut-all.mjs --out <thư mục ngoài repo> [--only a,b] [--scale loài=S] [--compare]` cắt mọi loài trong `art/src/beast-anim`, ghi sheet + report từng loài và `_tom-tat.md` (hệ số tự động vs dùng, lưới, số cảnh báo theo mức; `--compare` thêm cột lưới đều + một hệ số). Không ghi vào `shared/` hay `art/src`; nhập lại vào game vẫn làm từng loài qua trang xem trước.
 
 ## Kiểm tờ trước khi nộp / cắt (`beast-sheet-check.mjs`, #863)
-`npm run beast:check -- <loài> [--out <thư mục>] [--no-image]` (loài = thư mục trong `art/src/beast-anim`; `--all` in bảng tóm tắt mọi loài). Chỉ đọc tờ RAW, không cắt, không ghi vào repo (mặc định ghi ở thư mục tạm của máy). Ghi `<loài>-check.json`, `<loài>-check.md`, `<loài>-to<X>-lien-he.png` (tờ gốc + nhãn hàng `H`, cột `C`, hướng, nhãn khung `I/W/A/H/D` + số; hộp xanh = đạt, vàng = nhẹ, đỏ = chặn) và in dòng `LỖI:` nháp theo mẫu `NGUON.md`. Thoát mã 1 khi có tờ chặn.
+`npm run beast:check -- <loài> [--out <thư mục>] [--no-image]` (loài = thư mục trong `art/src/beast-anim`; `--all` in bảng tóm tắt mọi loài, loài chưa có tờ in `bỏ qua <loài> (chưa có tờ)`). Kiểm cả `turnaround.png` (3:2, nền, lưới 5×3; cùng mức chặn / CI như tờ; `candidates/*.png` không có quy cách cứng nên không kiểm). Chỉ đọc tờ RAW, không cắt, không ghi vào repo (mặc định ghi ở thư mục tạm của máy). Ghi `<loài>-check.json`, `<loài>-check.md`, `<loài>-to<X>-lien-he.png` (tờ gốc + nhãn hàng `H`, cột `C`, hướng, nhãn khung `I/W/A/H/D` + số; hộp xanh = đạt, vàng = nhẹ, đỏ = chặn) và in dòng `LỖI:` nháp theo mẫu `NGUON.md`. Thoát mã 1 khi có tờ chặn.
 - **Cỡ theo tỉ lệ** (quyết định #861): A 2:3 (1024×1536), B 1:1 (**1254² hoặc 1024²**, không còn là lỗi), một hướng 3:2 (1536×1024). Đúng tỉ lệ mà cỡ lạ → nhẹ; sai tỉ lệ → chặn. **Nền** khoá dung sai 60 quanh `#FF00FF` (gradient / vignette trong dung sai không phải lỗi).
 - **Lưới dò theo khoảng trống** (`beast-sheet-grid.mjs`, dùng lại cho cutter): chiếu vật lên trục y ra dải hàng, lên trục x ra hình. **Chặn:** số dải hàng sai, số hình mỗi dải sai (hình dính / thiếu khung / mảnh rời), nền ngoài dung sai, cỡ thân idle lệch > 25% so với ảnh tĩnh (hệ số chung cả loài, `se` / `ne` nội suy từ `s` / `e` / `n`). **Nhẹ:** hình vào ô trống, chân lệch > 12% so với trung vị dải, cỡ thân lệch 10–25%, khung chết (idle / walk gần trùng), hurt trùng idle, chạm mép tờ. **Lưu ý (không tính mức):** `se` ≈ `e` (hình bóng, chỉ gần đúng).
 - **Không kiểm bằng code, xem tờ liên hệ bằng mắt:** `n` / `ne` lộ mặt, hurt ngửa bụng / quay mặt, die xoay, nhận diện loài. Ngưỡng ở đầu `beast-sheet-check.mjs`, đo trên các tờ đã merge (lưới đúng mọi tờ; 5 dải hình dính: Lôi Văn Hầu A, Quỷ Ảnh Báo A, Tuyết Ma Viên A, Thái Thản C và D).
@@ -133,11 +134,11 @@ Code ở `client/src/beastAnim.ts` (chọn khung, không phụ thuộc Phaser, c
 - **Thử bằng sheet giả:** `beast-sheet-fake.mjs` + `beast-sheet-cut.mjs` rồi cài tạm vào `shared/assets` (không commit); xem ảnh chụp và số FPS ở mô tả PR.
 
 ## Việc tiếp
-Trạng thái từng loài (tờ, mức theo khối hướng, đã nhập game hay chưa) nằm ở sổ tự sinh `art/src/beast-anim/_status.md` (`npm run beast:status`); **không chép bảng loài vào đây**.
+Trạng thái từng loài (tờ, mức theo khối hướng, đã nhập game hay chưa) nằm ở sổ tự sinh (comment ghim `<!-- beast-status -->` ở #766, hoặc `npm run beast:status` ở máy); **không chép bảng loài vào đây**.
 
 | Việc | Issue | Trạng thái |
 |---|---|---|
-| H4: vẽ thật 64 loài còn lại (đợt #767–#781) | #766 | mở, theo `_status.md` |
+| H4: vẽ thật 64 loài còn lại (đợt #767–#781) | #766 | mở, theo sổ ở #766 |
 | Hồn thú v2 P0–P3: đặc tả, `beast:check`, cutter v2, skill `beast-anim`, xoay vòng hướng + CI nhẹ | #862–#866 | đã đóng |
 | Hồn thú v2 P4: thử turnaround + mỗi hướng một tờ trên 3 loài | #867 | mở |
 | Hồn thú v2 P5: phân loại tờ H4 đã nộp, vẽ lại chọn lọc theo khối hướng | #868 | mở |

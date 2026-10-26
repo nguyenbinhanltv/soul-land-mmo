@@ -1,5 +1,5 @@
 // Nhóm bot "resonance" (#703 bước 3, tách nguyên văn từ bot-test.mjs).
-import { post, sleep, waitFor, ok, bot, enter, sendTeam, test } from "./lib.mjs";
+import { post, sleep, waitFor, ok, bot, enter, sendTeam, test, needHookSkip } from "./lib.mjs";
 import { BEASTS, VOHON, vohonIndex, calcStats, tierOfYears, RING_ITEM, starCost, shardCode, BONE_ITEM, BONE_SLOTS, CORE_ITEM, RESONANCE, RES_VOHON_LEVEL, RESONANCE_RANK_CD, RESONANCE_RANK_PAGE_MAX, RES_BONE_ENHANCE, RES_CORE_STARS, RESONANCE_EFFECT_CAP, resonanceProgress, resonanceLevels, resonanceBonus } from "../../../shared/data.ts";
 
 /**
@@ -28,7 +28,7 @@ export async function resonanceTest(){
   const rme=()=>R.room.state.players?.get(R.room.sessionId);
   await waitFor(()=>R.owned&&R.bag&&R.res&&rme(),3000);
   ok(R.res&&R.res.lv.every(x=>x===0)&&R.res.bonus.hp===0&&R.res.bonus.atk===0,`tài khoản mới: chưa đạt mốc nào (${JSON.stringify(R.res)})`);
-  if(!(await test(R,"ping"))?.enabled){ console.log("  ⚠ bỏ qua đạt mốc cộng minh (cần hook grant, set, give): bật server bằng GAME_TEST=1"); await R.room.leave(); return; }
+  if(!(await test(R,"ping"))?.enabled){ needHookSkip("bỏ qua đạt mốc cộng minh (cần hook grant, set, give): bật server bằng GAME_TEST=1"); await R.room.leave(); return; }
   const lvOf=()=>JSON.stringify(R.res?.lv), sameStats=(a,b)=>a&&b&&a.maxHp===b.maxHp&&a.maxMp===b.maxMp&&Math.abs(a.atk-b.atk)<1e-6;
   /** Kiểm tra chỉ số của mọi võ hồn sở hữu (hook stats) = calcStats kèm cộng minh `lv`; võ hồn ra trận: chỉ số đang dùng cũng vậy. */
   async function checkAll(lv,label){

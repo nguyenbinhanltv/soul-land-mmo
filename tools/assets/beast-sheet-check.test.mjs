@@ -89,3 +89,63 @@ test("ghi báo cáo: JSON + MD + tờ liên hệ có nhãn cho từng tờ", () 
     assert.ok(png.w > 1000 && png.h > 1500, "ảnh liên hệ phải gồm tờ + lề nhãn");
   } finally { rmSync(out, { recursive: true, force: true }); }
 });
+
+test("turnaround.png (#972): 1000×1000 → chặn kich-thuoc; 1536×1024 đủ lưới 5×3 → qua; thiếu hình → chặn", () => {
+  const tmp = mkdtempSync(path.join(os.tmpdir(), "beast-ta-test-"));
+  try {
+    const MG = [255, 0, 255, 255], FG = [40, 40, 40, 255];
+    const mk = (w, h, figs) => {
+      const im = new Img(w, h);
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) im.set(x, y, MG);
+      for (let r = 0; r < 3; r++) for (let c = 0; c < figs[r]; c++) {
+        const x0 = Math.round((c + 0.3) * w / 5), y0 = Math.round((r + 0.2) * h / 3);
+        for (let y = y0; y < y0 + Math.round(h / 5); y++) for (let x = x0; x < x0 + Math.round(w / 12); x++) im.set(x, y, FG);
+      }
+      return im;
+    };
+    const put = (im) => { writeFileSync(path.join(tmp, "turnaround.png"), encodePng(im)); return path.join(tmp, "turnaround.png"); };
+    assert.deepEqual(codes(analyzeSheet(put(mk(1000, 1000, [5, 5, 5]))), "block"), ["kich-thuoc"]);
+    const ok = analyzeSheet(put(mk(1536, 1024, [5, 5, 5])));
+    assert.equal(ok.level, "pass", JSON.stringify(ok.issues));
+    const bad = analyzeSheet(put(mk(1536, 1024, [5, 4, 5])));
+    assert.equal(bad.level, "chặn");
+    assert.ok(codes(bad, "block").includes("so-hinh"));
+    // thư mục chỉ có turnaround.png vẫn kiểm được (không ném 'không có tờ'), kèm ghi báo cáo + tờ liên hệ
+    put(mk(1536, 1024, [5, 5, 5]));
+    const r = checkSpecies("zz_khong_co", { dir: tmp });
+    assert.deepEqual(r.sheets, []);
+    assert.equal(r.turnaround.sheet, "turnaround");
+    assert.deepEqual(r.blockLevel, {}, "turnaround không góp mức khối hướng");
+    const out = path.join(tmp, "out");
+    assert.equal(writeReport(r, out).length, 3);
+  } finally { rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test("CLI --all (#972): loài chưa có tờ in 'bỏ qua', không thoát 2; in đủ mọi loài", async () => {
+  const { spawnSync } = await import("node:child_process");
+  const { readdirSync } = await import("node:fs");
+  const empty = path.join(RAW, "zz_test_972");
+  mkdirSync(empty, { recursive: true });
+  try {
+    const r = spawnSync(process.execPath, [path.join(ROOT, "tools/assets/beast-sheet-check.mjs"), "--all", "--no-image"], { cwd: ROOT, encoding: "utf8" });
+    assert.notEqual(r.status, 2, r.stderr);
+    assert.match(r.stdout, /bỏ qua zz_test_972 \(chưa có tờ\)/);
+    const n = readdirSync(RAW, { withFileTypes: true }).filter((d) => d.isDirectory()).length;
+    assert.equal(r.stdout.split("\n").filter((l) => /^(pass|nhẹ|chặn)\s|^bỏ qua /.test(l)).length, n);
+  } finally { rmSync(empty, { recursive: true, force: true }); }
+});
+
+test("turnaround không làm hỏng blockLevel / layout của beast-status (#972)", async () => {
+  const { speciesStatus } = await import("./beast-status.mjs");
+  const dir = path.join(RAW, "phong_lang"), ta = path.join(dir, "turnaround.png");
+  assert.ok(!existsSync(ta));
+  const before = speciesStatus("phong_lang");
+  try {
+    writeFileSync(ta, readFileSync(path.join(RAW, "bang_vu_ung", "turnaround.png")));
+    const after = speciesStatus("phong_lang");
+    assert.deepEqual(after.blocks, before.blocks);
+    assert.equal(after.state, before.state);
+    assert.equal(after.layout, before.layout);
+    assert.deepEqual(after.missing, before.missing);
+  } finally { rmSync(ta, { force: true }); }
+});

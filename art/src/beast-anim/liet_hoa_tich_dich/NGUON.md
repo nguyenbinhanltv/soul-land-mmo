@@ -21,3 +21,11 @@ User cho phép commit ảnh fail để phía chủ repo kiểm sau. Không size/
 
 ## Reference và hồ sơ
 A82/A87 chỉ đính static gốc đúng loài. B84 đính ordered static+A82A2 STYLE candidate. Primary A4 không tham gia generation B84; provenance.json giữ hash/path/counters thật, source provenance hash và role từng reference. candidates/A82A2.source.json cho owner đối chiếu nguồn của bản so sánh; exact prompts primary ở toA.prompt.txt và toB.prompt.txt. Tham số/schema được giữ theo dữ liệu tool công bố, không suy image model từ model agent.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/liet_hoa_tich_dich/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Liệt Hỏa Tích Dịch (H4 #768, Part of #766): raw `art/src/beast-anim/liet_hoa_tich_dich/toA.png` (A87A4,1024×1536) và `toB.png` (B84B2,1254×1254 thật, FAIL yêu cầu1024×1024). tthoadev dùng builtin `image_gen.imagegen`; image model/seed unknown, không selector. A4 cải thiện S death nhưng còn attack/SE/background fail; B2 cải thiện N death nhưng yaw/bleed/hurt/scale fail. B84 reference static+A82A2 lịch sử, KHÔNG phải primaryA4; chưa claim pair consistent. Giữ một comparison nguyên byte `candidates/A82A2.png` cùng prompt/source để owner so tradeoff. Counters A82=2+B84=2+A87=2,total6; raw không chọn giữ artifact. Nộp FAIL theo user để owner kiểm, không size/art/runtime acceptance/auto-import; không hậu kỳ/resize/rawedit. [NGUON.md](src/beast-anim/liet_hoa_tich_dich/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `provenance.json` giữ exact prompt/hash/header/roles/known issues. Nguồn Q44/điều khoản công cụ. | - | Chuyển một lần từ art/CREDITS.md (#973) |

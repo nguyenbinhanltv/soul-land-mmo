@@ -1,5 +1,5 @@
 // Nhóm bot gear (#703 bước 4): khắc may mắn, xem trước cường hóa, ghi DB lỗi, mua lại, soát xã hội, equipSoak. Tách nguyên văn từ bot-test.mjs.
-import { post, sleep, waitFor, PASS, RUN, ok, bot, enter, bagKey, npcSpot, looseOf, same, test } from "./lib.mjs";
+import { post, sleep, waitFor, PASS, RUN, ok, bot, enter, bagKey, npcSpot, looseOf, same, test, needHookSkip } from "./lib.mjs";
 import * as SD from "../../../shared/data.ts";
 import { TIERS, CHANNEL_CD, TEAM_COMBAT_SECS, RING_ITEM, CORE_ITEM, coreResetFee, sellPrice, TONG_MON, AWAKEN_CHOICES, TICK_RATE, BAG_MSG_BURST, BAG_MSG_RATE, EQUIP_MAX_ENHANCE, EQUIP_LUCK_MAX, parseEquip, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, EQUIP_SOUL, EQUIP_LUCK_UP, equipLuckStep } from "../../../shared/data.ts";
 
@@ -15,7 +15,7 @@ export async function gearLuckTest(){
     &&equipLuckStep(3,EQUIP_LUCK_MAX)===null&&equipLuckStep(3,EQUIP_LUCK_MAX-1)?.to===4&&equipLuckStep(EQUIP_LUCK_MAX,3)===null,
     "equipLuckStep: món trong túi chặn ở EQUIP_LUCK_MAX, món đang mặc còn chặn khi tổng hai ô đã đạt EQUIP_LUCK_MAX");
   const S=await bot("Khac may man","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
-  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua khắc may mắn (cần hook gear, give, coin, enhroll, enhslow): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  if(!(await test(S,"ping"))?.enabled){ needHookSkip("bỏ qua khắc may mắn (cần hook gear, give, coin, enhroll, enhslow): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
   try{
   const me=()=>S.room.state.players?.get(S.room.sessionId), loose=()=>looseOf(S), find=id=>loose().find(i=>i.id===id)??S.gear?.items.find(g=>g.id===id);
   const watch=()=>{ S.lucN=0; S.lucLast=null; S.room.onMessage("equipluckd",m=>{ S.lucLast=m; S.lucN++; }); S.room.onMessage("equipluckp",()=>{}); };
@@ -85,7 +85,7 @@ export async function gearLuckTest(){
 export async function forgePreviewTest(){
   console.log("[#699] Thợ rèn: xem trước cường hóa và đổi bộ hồn hạch");
   const S=await bot("Xem truoc","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
-  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua xem trước cường hóa (cần hook gear, give, coin, enhroll, enhslow): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  if(!(await test(S,"ping"))?.enabled){ needHookSkip("bỏ qua xem trước cường hóa (cần hook gear, give, coin, enhroll, enhslow): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
   const Q=await bot("Xem truoc Q","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
   try{
   const me=()=>S.room.state.players?.get(S.room.sessionId), loose=()=>looseOf(S), find=id=>loose().find(i=>i.id===id)??S.gear?.items.find(g=>g.id===id);
@@ -220,7 +220,7 @@ export async function forgePreviewTest(){
 export async function luckRaceTest(){
   console.log("[#740] Chống gian lận khắc may mắn: tháo / mặc giữa lúc chờ DB");
   const S=await bot("Luck race","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
-  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua luckrace (cần hook gear, give, coin, enhroll, enhslow): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  if(!(await test(S,"ping"))?.enabled){ needHookSkip("bỏ qua luckrace (cần hook gear, give, coin, enhroll, enhslow): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
   try{
   const me=()=>S.room.state.players?.get(S.room.sessionId), loose=()=>looseOf(S);
   S.lucN=0; S.room.onMessage("equipluckd",()=>{ S.lucN++; }); S.room.onMessage("equipluckp",()=>{});
@@ -275,7 +275,7 @@ export async function luckRaceTest(){
 export async function saveFailTest(){
   console.log("[#797] Hoàn lại khi ghi DB lỗi: luck / enhance / coreset / tông");
   const S=await bot("Save fail","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
-  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua savefail (cần hook gear, give, coin, enhroll, savefail): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  if(!(await test(S,"ping"))?.enabled){ needHookSkip("bỏ qua savefail (cần hook gear, give, coin, enhroll, savefail): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
   try{
   const me=()=>S.room.state.players?.get(S.room.sessionId), loose=()=>looseOf(S);
   const watch=()=>{ S.lucN=0; S.enhN=0; S.room.onMessage("equipluckd",()=>{ S.lucN++; }); S.room.onMessage("equipluckp",()=>{}); S.room.onMessage("equipenhd",()=>{ S.enhN++; }); S.room.onMessage("equipenhp",()=>{}); };
@@ -369,7 +369,7 @@ export async function buybackProcTest(){
   const F=[]; for(let i=1;i<=4;i++) F.push(await bot(`Mua lai F${i}`,"u_minh_linh_mieu",{sex:0,hair:1,hairCol:1,outfitCol:1}));
   const M=await bot("Mua lai M","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
   const all=[...F,M], bye=b=>b.room.connection?.isOpen?b.room.leave().catch(()=>{}):null;
-  if(!(await T(M,"ping"))?.enabled){ console.log("  ⚠ bỏ qua buybackproc (cần hook warp, goto, coin, give, chan): bật server bằng GAME_TEST=1"); for(const b of all) await bye(b); return; }
+  if(!(await T(M,"ping"))?.enabled){ needHookSkip("bỏ qua buybackproc (cần hook warp, goto, coin, give, chan): bật server bằng GAME_TEST=1"); for(const b of all) await bye(b); return; }
   const meOf=b=>b.room.state.players?.get(b.room.sessionId), rings=b=>looseOf(b).filter(i=>i.code===RING_ITEM);
   const warp=async b=>{ b.travel=null; await T(b,"warp",{mapId:"nac_dinh_thanh",x:0,y:0}); await waitFor(()=>b.travel,4000); const t=b.travel; await b.room.leave(); await sleep(250); b.mapId=t.mapId; await enter(b,t.roomId??undefined); await waitFor(()=>meOf(b)&&b.bag,3000); };
   const follow=async b=>{ const t=b.travel; if(b.room.connection?.isOpen) await b.room.leave(); await sleep(150); b.mapId=t.mapId; await enter(b,t.roomId??undefined); await waitFor(()=>meOf(b)&&b.bag,3000); };
@@ -427,7 +427,7 @@ export async function socialAuditTest(){
   const T=async(b,op,extra={})=>{ b.test=null; b.room.send("test",{op,...extra}); await waitFor(()=>b.test,2000); await sleep(80); return b.test; };
   const A=await bot("Soat A","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2}), O=await bot("Soat O","bich_lan_xa_hoang",{sex:0,hair:1,hairCol:1,outfitCol:1});
   const off=await bot("Soat Off","u_minh_linh_mieu",{sex:1,hair:1,hairCol:0,outfitCol:3});
-  if(!(await T(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua socialaudit (cần hook chat / friend rlreset): bật server bằng GAME_TEST=1"); for(const b of [A,O,off]) await b.room.leave().catch(()=>{}); return; }
+  if(!(await T(A,"ping"))?.enabled){ needHookSkip("bỏ qua socialaudit (cần hook chat / friend rlreset): bật server bằng GAME_TEST=1"); for(const b of [A,O,off]) await b.room.leave().catch(()=>{}); return; }
   await off.room.leave(); await sleep(400); // đã thức tỉnh, nay ngoại tuyến
   try{
   const said=async(b,type,msg,w=700)=>{ const l=b.logs.length; b.room.send(type,msg); await sleep(w); return b.logs.slice(l).join(" | "); };
@@ -491,7 +491,7 @@ export async function equipSoak(){
   const B=[]; for(let i=0;i<N;i++) B.push(await bot(`Soak TB ${i}`,AWAKEN_CHOICES[i%AWAKEN_CHOICES.length].id,{sex:i%2,hair:i%4,hairCol:i%5,outfitCol:i%6}));
   const O=await bot("Soak TB obs","u_minh_linh_mieu",{sex:0,hair:0,hairCol:0,outfitCol:0}), H=B[0], mo=b=>b.room.state.players?.get(b.room.sessionId);
   try{
-    if(!(await test(H,"ping"))?.enabled){ console.log("  ⚠ bỏ qua: bật server bằng GAME_TEST=1"); return; }
+    if(!(await test(H,"ping"))?.enabled){ needHookSkip("bỏ qua: bật server bằng GAME_TEST=1"); return; }
     const lr=npcSpot("nac_dinh_thanh","lo_ren"), lat={enh:[],syn:[],salv:[],wear:[]}, cnt={enh:0,syn:0,salv:0,wear:0,rejoin:0,fail:0,destroyed:0,charm:0,synOk:0};
     const watch=b=>{ b.enhN=0; b.synN=0; b.salvN=0;
       b.room.onMessage("equipenhd",m=>{ b.enhLast=m; b.enhN++; }); b.room.onMessage("equipenhp",()=>{});

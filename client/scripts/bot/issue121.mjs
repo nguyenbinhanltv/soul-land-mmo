@@ -1,5 +1,5 @@
 // Nhóm bot "issue121" (#703 bước 6, tách nguyên văn từ bot-test.mjs): Kiểm thử bổ sung #121 và biên đấu trường.
-import { post, sleep, waitFor, ok, bot, enter, bagKey, AT, npcSpot, trade, test } from "./lib.mjs";
+import { post, sleep, waitFor, ok, bot, enter, bagKey, AT, npcSpot, trade, test, needHookSkip } from "./lib.mjs";
 import { TEAM_COMBAT_SECS, RING_ITEM, ARENA } from "../../../shared/data.ts";
 
 /**
@@ -15,7 +15,7 @@ export async function absorbSellTest(){
   const C=await bot("B121Sell","bich_lan_xa_hoang",{sex:0,hair:1,hairCol:1,outfitCol:1});
   const tn=npcSpot("nac_dinh_thanh","thuong_nhan");
   try{
-    if(!(await test(C,"ping"))?.enabled){ console.log("  ⚠ bỏ qua bán hồn hoàn đang hấp thụ (cần GAME_TEST=1)"); return; }
+    if(!(await test(C,"ping"))?.enabled){ needHookSkip("bỏ qua bán hồn hoàn đang hấp thụ (cần GAME_TEST=1)"); return; }
     C.travel=null; await test(C,"warp",{mapId:"nac_dinh_thanh",x:tn.x,y:tn.y+16});
     ok(await waitFor(()=>C.travel?.mapId==="nac_dinh_thanh",4000),"#121: đi tới Nặc Đinh Thành để thử bán");
     const travel=C.travel; await C.room.leave(); await sleep(300); C.mapId=travel.mapId; await enter(C,travel.roomId??undefined);
@@ -57,7 +57,7 @@ export async function arenaEdgeTest(){
   const W=await bot("B121Win","bich_lan_xa_hoang",{sex:1,hair:1,hairCol:4,outfitCol:4});
   const opponents=[];
   try{
-    if(!(await test(D,"ping"))?.enabled){ console.log("  ⚠ bỏ qua đấu trường bổ sung (cần GAME_TEST=1)"); return; }
+    if(!(await test(D,"ping"))?.enabled){ needHookSkip("bỏ qua đấu trường bổ sung (cần GAME_TEST=1)"); return; }
     for(const b of [D,E,W]) await warpTown(b);
 
     // Hai bên đầy sinh lực, không ai tác động trong trận: hết giờ phải là hòa, không thưởng, Elo / thành tích ghi hòa.

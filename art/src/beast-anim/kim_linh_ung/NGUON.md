@@ -24,3 +24,11 @@ Chưa duyệt mỹ thuật. Soát bằng mắt trên raw, chưa cắt hay phát 
 Bố cục nhìn thấy đủ 110 vị trí có thú, các ô trống A H4/H8/H12 C5–6 và B H4/H8 C5–6. Đây là candidate để owner H3 cắt/preview, không phải xác nhận 110 khung đã đạt mỹ thuật hoặc runtime.
 
 Quyết định raw khác cỡ: https://github.com/nguyenbinhanltv/soul-land-mmo/pull/709#issuecomment-6400336691 . PR của loài này: https://github.com/nguyenbinhanltv/soul-land-mmo/pull/725 . Không đóng issue #691; không làm H3 hoặc loài khác.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/kim_linh_ung/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Kim Linh Ưng: `art/src/beast-anim/kim_linh_ung/toA.png` (1024×1536, lượt 2), `toB.png` (1254×1254, lượt 2); tthoadev sinh ngày 2026-10-26 bằng `image_gen.imagegen` tích hợp Codex, chỉ reference ảnh tĩnh gốc `shared/assets/sprites/beast/kim_linh_ung.png`. Tool không trả model ID hoặc seed. Raw nguyên byte, không hậu kỳ/cắt/resize/sửa metadata; đã được chủ repo duyệt và nhập game ở `beast_kim_linh_ung_anim`. Prompt thật, SHA-256, lịch sử 2 lượt mỗi tờ và ô nghi lỗi: [NGUON.md](src/beast-anim/kim_linh_ung/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `provenance.json` cùng thư mục. Part of #691 và #688; PR #725. | - | Chuyển một lần từ art/CREDITS.md (#973) |

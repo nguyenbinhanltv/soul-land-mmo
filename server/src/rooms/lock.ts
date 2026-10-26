@@ -13,8 +13,12 @@ const BEAST_HALF = Math.max(...TIERS.map((t) => t.size)) / 2;
 /** Hồn thú `b` nằm trong tầm đòn thường của hồn sư `p` (quay mặt về nó thì đòn trúng). */
 export const inReach = (p: PlayerState, b: BeastState) => { const g = reachGap(p, b); return g.dist < g.max; };
 
-/** Lý do server huỷ khoá (M5 #751), client đổi thành câu báo ở chip trạng thái: hồn thú chết / mất, quá xa, vùng an toàn, hồn sư gục, tự săn bật. */
-export type LockWhy = "gone" | "far" | "safe" | "dead" | "hunt";
+/** Lý do server huỷ khoá (M5 #751), client đổi thành câu báo ở chip trạng thái: hồn thú chết / mất, quá xa, vùng an toàn, hồn sư gục, tự săn bật; `egg` chỉ khi bấm bị từ chối (trứng không khoá được). */
+export type LockWhy = "gone" | "far" | "safe" | "dead" | "hunt" | "egg";
+
+/** Lần gần nhất báo lý do từ chối lúc bấm, theo người chơi: cùng một lý do lặp trong khoảng này thì chỉ báo 1 lần (như `combat.ts` vùng an toàn). */
+const DENY_GAP_MS = 1000;
+const lastDeny = new WeakMap<PData, { why: LockWhy; t: number }>();
 
 /** Gửi riêng cho người chơi mục tiêu đang khoá ("" = không khoá) để client vẽ vòng chọn và thanh mục tiêu; `why` khi server tự huỷ. */
 function tell(room: MapRoom, id: string, tid: string, why?: LockWhy) { room.clients.getById(id)?.send("lock", why ? { id: tid, why } : { id: tid }); }
@@ -40,7 +44,13 @@ export function targetMsg(room: MapRoom, id: string, tid: unknown) {
   if (typeof tid !== "string" || !tid) return setLock(room, id, d, "", true);
   const b = room.state.beasts.get(tid);
   // Từ chối thì luôn báo lại `lock ""`: client đặt khoá tạm ngay khi bấm, không có tin này sẽ vẽ vòng khoá và lái tới một con server không khoá.
-  if (!b || b.egg || p.dead || room.map.inSafe(p.x, p.y) || Math.hypot(b.x - p.x, b.y - p.y) > ATTACK_REACH.leash) return setLock(room, id, d, "", true);
+  // Kèm `why` (trừ khi cùng lý do vừa báo trong DENY_GAP_MS) để người chơi biết vì sao.
+  const why: LockWhy | undefined = p.dead ? "dead" : room.map.inSafe(p.x, p.y) ? "safe" : !b ? "gone" : b.egg ? "egg" : Math.hypot(b.x - p.x, b.y - p.y) > ATTACK_REACH.leash ? "far" : undefined;
+  if (why) {
+    const now = Date.now(), last = lastDeny.get(d), quiet = last && last.why === why && now - last.t < DENY_GAP_MS;
+    if (!quiet) lastDeny.set(d, { why, t: now });
+    return setLock(room, id, d, "", true, quiet ? undefined : why);
+  }
   room.autoHand(id);
   setLock(room, id, d, tid);
 }

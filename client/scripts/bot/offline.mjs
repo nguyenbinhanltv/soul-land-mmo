@@ -1,6 +1,6 @@
 // Nhóm bot "offline" (#703 bước 6, tách nguyên văn từ bot-test.mjs): Ủy thác offline (Auto 3).
 import { readFileSync } from "node:fs";
-import { post, sleep, waitFor, ok, mapUrl, bot, enter, qtyOf, npcSpot, looseOf, same, test } from "./lib.mjs";
+import { post, sleep, waitFor, ok, mapUrl, bot, enter, qtyOf, npcSpot, looseOf, same, test, needHookSkip } from "./lib.mjs";
 import { formatHonTe, parseLevelRange, RING_ITEM, AUTO_DAILY_SECS, autoTimeText, OFFLINE, offlineSplit, offlineFight } from "../../../shared/data.ts";
 
 /**
@@ -29,7 +29,7 @@ export async function offlineTest(){
   ok(f1.ok&&f1.secs>OFFLINE.seek&&!f2.ok&&f2.secs===OFFLINE.seek,`offlineFight: mạnh hạ được (${f1.secs.toFixed(1)} giây/con), yếu thì quá sức (${f2.secs} giây bỏ qua)`);
 
   const A=await bot("Ủy thác","u_minh_linh_mieu",{sex:1,hair:0,hairCol:3,outfitCol:2});
-  if(!(await test(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua ủy thác offline (cần hook offline, goto, set, auto): bật server bằng GAME_TEST=1"); await A.room.leave(); return; }
+  if(!(await test(A,"ping"))?.enabled){ needHookSkip("bỏ qua ủy thác offline (cần hook offline, goto, set, auto): bật server bằng GAME_TEST=1"); await A.room.leave(); return; }
   try{
   const NV="tinh_dau_ngoai_vi", me=b=>b.room.state.players?.get(b.room.sessionId);
   const objsOf=m=>JSON.parse(readFileSync(mapUrl(m),"utf8")).layers.flatMap(l=>l.objects??[]);

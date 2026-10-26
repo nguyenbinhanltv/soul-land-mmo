@@ -45,7 +45,7 @@ export function contactSheet(src, o) {
   fillRect(im, 0, 0, im.w, im.h, BLACK);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) im.set(L + x, T + y, src.get(Math.min(src.w - 1, Math.round(x / k)), Math.min(src.h - 1, Math.round(y / k))));
   drawText(im, 4, 4, o.title, 2, WHITE);
-  const cols = 6, rows = o.plan.rows;
+  const cols = o.plan.cols ?? 6, rows = o.plan.rows;
   for (let c = 0; c < cols; c++) {
     const x = L + Math.round((c / cols) * W);
     fillRect(im, x, T, 1, H, COLORS.grid);
