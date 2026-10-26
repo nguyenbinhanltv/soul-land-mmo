@@ -91,6 +91,8 @@ import { bagDiff, applyBagDelta } from "../../shared/bagSync.ts";
 import { pack } from "@colyseus/msgpackr"; // đo byte tin túi đồ như trên dây (Colyseus mã hóa tin bằng msgpack)
 import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
+import { API, WS, post, sleep, waitFor, PASS, RUN, ok, failCount } from "./bot/lib.mjs"; // tiện ích chung (#703)
+import { googleTest } from "./bot/google.mjs"; // #612
 import { TIERS, TRAVEL_CAST, CHANNEL_CD, TEAM_SIZE, XP_SHARE_ACTIVE, XP_SHARE_BENCH, REVIVE_SECS, RESPAWN_SECS, xpNeed, beastLevel, xpLevelScale,
   BEASTS, MAP_MOVED, XP_LEVEL_CAP,
   VOHON, HE, vohonIndex, calcStats, tierOfYears, TIEN_CO, TIEN_CO_MAX, TIEN_CO_GAIN, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY,
@@ -153,18 +155,12 @@ import { FUSION, FUSIONS, fusionIndex } from "../../shared/data.ts"; // Võ Hồ
 import { TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, TONG_POOL, TONG_BOARD_CD, tongTaskIds, tongTaskPicks, isTongTask, tongWeekDay, tongTop } from "../../shared/data.ts"; // tông môn 2 (#197)
 import { ARENA_HE_DMG, CORE_FX_RULE } from "../../shared/data.ts"; // cân bằng PvP trong sân (#277)
 import { ATK_SPREAD, xpBlocked } from "../../shared/data.ts"; // #238: dải ngẫu nhiên đòn đánh thường (cận trên đòn đánh bọc trứng), bình cảnh
-const API=process.env.SERVER_URL??"http://localhost:2567", WS=API.replace(/^http/,"ws");
-const post=async(p,b)=>{const r=await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); return {status:r.status,...await r.json()};};
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const waitFor=async(fn,ms=2000)=>{for(let t=0;t<ms;t+=50){if(fn()) return true; await sleep(50);} return false;};
 // Mật khẩu bot sinh ngẫu nhiên mỗi lần chạy (không ghi cứng trong mã); tên bot kèm hậu tố lần chạy nên luôn là tài khoản mới.
-const PASS=randomUUID(), RUN=Date.now().toString(36).slice(-5);
 // 11.5: server dùng bản dựng bằng tools/maps (`<mapId>.v2.json`) khi có file; bật đường lùi MAP_V1 (bản cũ) thì chạy bot với cùng
 // MAP_V1 để đọc đúng file Tiled.
 const MAP_V1=new Set((process.env.MAP_V1??"").split(",").map(s=>s.trim()).filter(Boolean));
 const mapFileOf=m=>!(MAP_V1.has(m)||MAP_V1.has("all"))&&existsSync(new URL(`../../shared/assets/${m}.v2.json`,import.meta.url))?`${m}.v2`:m;
 const mapUrl=m=>new URL(`../../shared/assets/${mapFileOf(m)}.json`,import.meta.url);
-let fails=0; const ok=(cond,msg)=>{console.log(cond?"  ✓":"  ✗",msg); if(!cond) fails++;};
 
 // Tạo nhân vật (một lần, trước lễ thức tỉnh; tài khoản cũ chọn lại một lần), rồi lễ thức tỉnh:
 // tài khoản mới tự chọn 1 SSR (kèm Lam Ngân Thảo); tài khoản cũ không thức tỉnh lại được.
@@ -477,7 +473,7 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 // ---- Nhiều kênh (mục 6): cần server hạ số người mỗi kênh, CHANNEL_MAX=2 GAME_TEST=1 npm run dev:server. Khi đó bot chỉ chạy phần
 // này rồi thoát (các phần khác cần nhiều bot chung một phòng); server bình thường (60 người / kênh) thì bỏ qua phần này. ----
 const health=await fetch(API+"/health").then(r=>r.json()).catch(()=>({}));
-if(health.chMax===2){ await channelTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(health.chMax===2){ await channelTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 // ---- Chia nhóm BOT_PART=1..BOT_PARTS (job bot-ram của CI chạy song song, .github/workflows/check.yml; #236). Mọi nhóm chạy phần chung
 // (A, B, 2.3b, 2.4, vào lại của A, ~80 giây trên runner CI); mỗi phần còn lại thuộc đúng một nhóm, khai báo một chỗ ở INLINE và STANDALONE
 // dưới đây. Không đặt BOT_PART thì chạy hết. Cuối mỗi lượt in dòng "⏱" (thời gian từng phần) để chia lại cho cân: mỗi nhóm ~7 phút
@@ -489,51 +485,6 @@ const INLINE={
   ab2:2,  // ~275 giây: 8.1a–8.1d, 8.3, 9.5, 9.6, 3.5, BĐ4
   botC:3, // ~160 giây: bot C đi cổng BĐ2, NPC 6.1, BĐ6a–BĐ6e, BĐ3, tổ đội 7.1
 };
-/**
- * Đăng nhập Google (SSO1 #612, BOT_ONLY=google): bộ kiểm giả `test:<sub>[:tên]` (chỉ GAME_TEST=1). Google mới -> vé + tên gợi ý -> chọn tên -> vào game;
- * đăng nhập lại; tên trùng / sai luật; vé giả; liên kết tài khoản mật khẩu (một Google một tài khoản, một tài khoản một Google); credential hỏng.
- * Server không bật GAME_TEST thì bộ kiểm giả bị từ chối: bài báo bỏ qua phần còn lại.
- */
-async function googleTest(){
-  console.log("— Đăng nhập Google (#612)");
-  const cfg=await (await fetch(API+"/api/config")).json();
-  const probe=await post("/api/login/google",{credential:`test:probe${RUN}`});
-  if(probe.status!==200){ ok(probe.status===401||probe.status===503,`server không bật GAME_TEST: bộ kiểm giả bị từ chối (${probe.status}), bỏ qua phần còn lại`); return; }
-  ok(typeof cfg.googleClientId==="string","GET /api/config có googleClientId khi bật đăng nhập Google");
-  const A=`test:a${RUN}`, B=`test:b${RUN}`, C=`test:c${RUN}`;
-  ok(probe.needName===true&&!!probe.ticket&&!("token" in probe),"Google mới: chưa có tài khoản, trả vé chọn tên, không cấp token");
-  ok(!JSON.stringify(probe).includes("@"),"phản hồi không chứa email");
-  const a=await post("/api/login/google",{credential:`${A}:Hiệp Sĩ Gợi Ý`});
-  ok(a.needName&&a.suggest==="Hiệp Sĩ Gợi Ý",`tên gợi ý lấy từ tên Google (${a.suggest})`);
-  const name=`Gg ${RUN}`;
-  ok((await post("/api/login/google/create",{ticket:a.ticket,name:"a!"})).status===400,"tên sai luật bị từ chối");
-  ok((await post("/api/login/google/create",{ticket:a.ticket+"x",name})).status===401,"vé bị sửa bị từ chối");
-  ok((await post("/api/login/google/create",{ticket:"",name})).status===401,"thiếu vé bị từ chối");
-  const made=await post("/api/login/google/create",{ticket:a.ticket,name});
-  ok(made.status===200&&!!made.token&&!made.looks?.chosen&&made.character===null,"chọn tên: tạo tài khoản mới, trả token, chưa tạo nhân vật");
-  const ch=await post("/api/channel",{token:made.token}); ok(ch.status===200&&typeof ch.mapId==="string","token Google dùng được cho /api/channel (vào game)");
-  ok((await post("/api/me",{token:made.token})).googleLinked===true,"/api/me báo đã liên kết Google");
-  ok((await post("/api/login/google/create",{ticket:a.ticket,name:`Gg2 ${RUN}`})).status===409,"vé dùng lại sau khi đã có tài khoản: bị từ chối (một Google một tài khoản)");
-  const again=await post("/api/login/google",{credential:A});
-  ok(again.status===200&&!!again.token&&!again.needName&&again.token!==made.token,"đăng nhập Google lần sau: vào thẳng, token mới");
-  const b=await post("/api/login/google",{credential:B});
-  ok((await post("/api/login/google/create",{ticket:b.ticket,name:name.toUpperCase()})).status===409,"tên trùng (khác hoa / thường) bị từ chối");
-  ok((await post("/api/login/google/create",{ticket:b.ticket,name:`Gb ${RUN}`})).status===200,"đổi tên khác thì tạo được (cùng vé)");
-  const pw=await post("/api/login",{name:`Gp ${RUN}`,password:PASS});
-  ok((await post("/api/me",{token:pw.token})).googleLinked===false,"tài khoản mật khẩu: chưa liên kết Google");
-  ok((await post("/api/link/google",{token:"x".repeat(32),credential:C})).status===401,"liên kết cần token đăng nhập hợp lệ");
-  ok((await post("/api/link/google",{token:pw.token,credential:"test:"})).status===401,"credential hỏng bị từ chối");
-  ok((await post("/api/link/google",{token:pw.token,credential:A})).status===409,"Google đã thuộc tài khoản khác: không liên kết được");
-  const lk=await post("/api/link/google",{token:pw.token,credential:C});
-  ok(lk.status===200&&lk.googleLinked,"liên kết Google cho tài khoản mật khẩu");
-  ok((await post("/api/link/google",{token:pw.token,credential:C})).status===200,"liên kết lại đúng Google đó: vẫn ổn");
-  ok((await post("/api/link/google",{token:pw.token,credential:`test:d${RUN}`})).status===409,"một tài khoản tối đa một Google");
-  const viaG=await post("/api/login/google",{credential:C});
-  ok(viaG.status===200&&!viaG.needName&&!!viaG.token,"sau khi liên kết: vào bằng Google");
-  ok((await post("/api/me",{token:viaG.token})).googleLinked===true&&(await post("/api/me",{token:pw.token})).googleLinked===true,"/api/me báo đã liên kết");
-  ok((await post("/api/login/google",{credential:"test:bad id!"})).status===401&&(await post("/api/login/google",{credential:"khong-phai-jwt-hop-le"})).status===401,"credential hỏng bị từ chối");
-}
-
 // Bài độc lập (tự tạo bot, gọi được ở bất kỳ đâu): [khóa, nhóm, hàm, cần hook test]. Thứ tự là thứ tự chạy; số giây đo trên runner CI.
 const STANDALONE=[
   ["cold",1,coldTest],                        //  18 #163 Cực Hàn
@@ -610,7 +561,7 @@ async function runStandalone(hook){
 /** In thời gian từng phần và kết quả rồi thoát. */
 function finish(){
   console.log(`⏱ thời gian (giây) nhóm ${PART||"đầy đủ"}: tổng ${Math.round((Date.now()-T0)/1000)}; ${timing.join(", ")}`);
-  console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0);
+  console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0);
 }
 // Tự săn đánh tinh anh, thú vương, boss thế giới (#218, autoBossTest; BOT_ONLY=autoboss): né chiêu báo trước / vũng độc,
 // đóng góp, khóa ELITE.lock, hết lượt KING.daily, lùi khi ít máu, ngắt tích lực, né chiêu toàn sàn, thanh tẩy, Cực Hàn tới Hỏa Đàn xả
@@ -629,54 +580,54 @@ function finish(){
 // BOT_ONLY=daily: chỉ chạy phần khảo hạch hằng ngày (thử nhanh khi sửa phần đó; lần chạy đầy đủ vẫn gồm phần này).
 // Liên kích Hạo Thiên 4 món (#249, comboTest; BOT_ONLY=combo, không chạy trong bot đầy đủ): lặp bài "liên kích ở đòn thứ 3" của
 // nhóm 1 nhiều lượt trên một bot riêng để thử chập chờn.
-if(process.env.BOT_ONLY==="google"){ await googleTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="looks3"){ await looks3Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="looks2"){ await looks2Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="flag"){ await flagTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="waypoint"){ await waypointTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="camp"){ await campTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="bigmap"){ await bigMapTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="view"){ await syncViewTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="lock"){ await lockTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="ink"){ await inkTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="cold"){ await coldTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="ground"){ await groundTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="tong"){ await tongTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="buybackproc"){ await buybackProcTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="socialaudit"){ await socialAuditTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="savefail"){ await saveFailTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="luckrace"){ await luckRaceTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="luck"){ await gearLuckTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="shardbuy"){ await shardBuyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="sell"){ await sellTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="fog"){ await fogTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="rally"){ await rallyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="gm"){ await gmTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="testacc"){ await testAccTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="forgepreview"){ await forgePreviewTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); await charBagCmdTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="offline"){ await offlineTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="chuong3"){ await chapter3Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="chuong2"){ await chapter2Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="split"){ await splitTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="tide"){ await tideTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="bonesub"){ await boneSubTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="fusion"){ await fusionTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="combo"){ await comboTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="egg"){ await eggTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="autoboss"){ await autoBossTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="autobossperf"){ await autoBossPerf(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="charbag"){ await charBagCmdTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="equipsoak"){ await equipSoak(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="cheat2"){ await cheatBagTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="arena"){ await arenaTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="arenaAudit"){ await arenaAuditRun(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="daily"){ await dailyTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="friend"){ await friendTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="chat"){ await chatTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="cheat"){ await cheatTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
-if(process.env.BOT_ONLY==="issue121"){ await issue121Test(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="google"){ await googleTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="looks3"){ await looks3Test(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="looks2"){ await looks2Test(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="flag"){ await flagTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="waypoint"){ await waypointTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="camp"){ await campTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="bigmap"){ await bigMapTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="view"){ await syncViewTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="lock"){ await lockTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="ink"){ await inkTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="cold"){ await coldTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="ground"){ await groundTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="tong"){ await tongTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="buybackproc"){ await buybackProcTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="socialaudit"){ await socialAuditTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="savefail"){ await saveFailTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="luckrace"){ await luckRaceTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="luck"){ await gearLuckTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="shardbuy"){ await shardBuyTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="sell"){ await sellTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="fog"){ await fogTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="rally"){ await rallyTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="gm"){ await gmTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="testacc"){ await testAccTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="forgepreview"){ await forgePreviewTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="bag"){ bagSyncPure(); await shopBuybackTest(); await charBagCmdTest(); await gearTest(); await gearEnhanceTest(); await gearSynthTest(); await equipDropTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="offline"){ await offlineTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="chuong3"){ await chapter3Test(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="chuong2"){ await chapter2Test(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="split"){ await splitTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="tide"){ await tideTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="bonesub"){ await boneSubTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="fusion"){ await fusionTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="combo"){ await comboTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="egg"){ await eggTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="autoboss"){ await autoBossTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="autobossperf"){ await autoBossPerf(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="charbag"){ await charBagCmdTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="equipsoak"){ await equipSoak(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="cheat2"){ await cheatBagTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="arena"){ await arenaTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="arenaAudit"){ await arenaAuditRun(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="daily"){ await dailyTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="friend"){ await friendTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="chat"){ await chatTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="cheat"){ await cheatTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="issue121"){ await issue121Test(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 console.log(`  ⚠ bỏ qua kiểm tra nhiều kênh (server ${health.chMax??"?"} người / kênh): chạy thêm một lần với server CHANNEL_MAX=2 GAME_TEST=1`);
 /**
  * Bot thứ 3 vào kênh 2; danh sách kênh; đổi kênh (từ chối khi đầy / chưa mở / đang ở / giao chiến / vừa đổi) giữ tiến độ chưa lưu và
@@ -5061,7 +5012,7 @@ let joinErr=""; try{ const r=await new Client(WS).joinOrCreate("map",{token:C.to
 ok(/Sai bản đồ/.test(joinErr),`vào bản đồ khác bản đồ đã lưu bị từ chối: ${joinErr}`);
 ok(C.room.state.mapId==="thanh_hon_thon","C ở Thánh Hồn Thôn");
 // BOT_ONLY=world: sau khi có bot C (ở Thánh Hồn Thôn), chỉ chạy phần boss thế giới ở Lõi Tinh Đấu (BĐ6e, #118).
-if(process.env.BOT_ONLY==="world"){ await loiTinhDauTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="world"){ await loiTinhDauTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 /** Đi theo vector (x,y) đến khi cond() đúng hoặc hết giờ, rồi dừng. */
 async function walk(x,y,cond,ms=12000){ C.room.send("input",{x,y}); const r=await waitFor(cond,ms); C.room.send("input",{x:0,y:0}); await sleep(150); return r; }
 /**
