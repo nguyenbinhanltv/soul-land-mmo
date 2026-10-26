@@ -71,7 +71,7 @@ Prompt và hướng dẫn tiếng Việt do công cụ sinh (`<loài>-turnaround
 
 Thứ tự: **check → tờ liên hệ → trang xoay vòng → phiếu → cutter v2 → GIF → nhập → sổ**.
 
-1. **Kiểm:** `npm run beast:check -- <loài> --out <thư mục ngoài repo>`. CI (`beast-sheet-ci.mjs`) chỉ chặn bốn nhóm (cỡ ngoài tập, nền ngoài dung sai, thiếu khung, không dò được lưới); còn lại ở bảng cảnh báo.
+1. **Kiểm:** `npm run beast:check -- <loài> --out <thư mục ngoài repo>`. CI (`beast-sheet-ci.mjs`) chỉ chặn bốn nhóm (cỡ ngoài tập, nền ngoài dung sai, thiếu khung, không dò được lưới); còn lại ở bảng cảnh báo. **Trước khi mở PR** `npm run check` (hoặc `node tools/assets/beast-sheet-ci.mjs --local`) chạy đúng kiểm này trên tờ đổi; hook pre-commit cũng chặn tờ sai cỡ (tờ A phải 2:3 = 1024×1536; model trả sai thì sinh lại, không resize RAW).
 2. **Tờ liên hệ:** mở từng `<loài>-to<X>-lien-he.png` (≈ 2 phút / loài). Với `n` / `ne` lộ mặt, hurt, die: xem bằng mắt (công cụ không kiểm).
 3. **Cắt tạm và xem trước:** `node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=… … --out <thư mục>` (tờ 3:2 tự nhận bố cục theo hướng; `--layout direction` để ép), rồi `node tools/assets/beast-sheet-preview.mjs --species <loài> --dir <thư mục>`; mở `preview/xoay-vong.html`: GIF xoay `s→se→e→ne→n` cạnh ảnh tĩnh; 5 giây là thấy `se` ≈ `e`, `n` lộ mặt, hurt ngửa bụng, die xoay.
 4. **Phiếu theo khối hướng** (`s`, `se`, `e`, `ne`, `n`), mỗi khối một mức:
