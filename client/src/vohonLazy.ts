@@ -8,9 +8,13 @@
 // Hồn thú `beast_<loài>` (+ `_anim` nếu có; bước 3 của #716) cùng cơ chế: chỉ xin loài đang có hồn thú trong tầm (lúc vào: hồn thú đã trong state;
 // sau đó: lúc hồn thú xuất hiện), nên chỉ tải loài của bản đồ đang vào + boss / thú vương / thú gọi ra; chưa tải xong thì ẩn sprite (không vẽ bản
 // tạm bằng code để khỏi nháy).
+// Hiệu ứng chiêu `fx_sk_<tên>` + lớp sáng `_g` (≈550 dải, 3,3 MB; bước 4 của #716) cùng cơ chế theo võ hồn: chỉ xin sheet chiêu của võ hồn đang có
+// người dùng trong phòng (lớp sáng chỉ của chính mình, vì chiêu người khác không vẽ lớp sáng). Chưa tải xong thì chiêu rơi về hiệu ứng vẽ bằng code
+// như khi manifest thiếu ảnh (SheetFx.play trả false); chỉ nhận chiêu khai trong SKILL_VISUAL, hiệu ứng khác (hệ, hợp thể) vẫn tải ngay.
 import Phaser from "phaser";
 import { PHAP_TUONG, VOHON } from "../../shared/data.ts";
 import { attachNormal, lightingOn } from "./lighting.ts";
+import { SKILL_VISUAL, type VisualSheet } from "./skillVisual.ts";
 
 interface Spec { url: string; frame: readonly [number, number] }
 const specs = new Map<string, Spec>();
@@ -21,6 +25,27 @@ const pending = new WeakMap<Phaser.Scene, Set<string>>();
 
 /** preloadSprites gọi cho mỗi `vh_*` / `pt_*` isometric trong manifest. */
 export const registerVohonSheet = (key: string, url: string, frame: readonly [number, number]) => { specs.set(key, { url, frame }); };
+
+/** Key `fx_sk_*` của chiêu từng võ hồn (thân, lớp sáng) suy từ SKILL_VISUAL; dựng một lần khi cần. */
+let skillFxOf: Map<string, { body: string[]; glow: string[] }> | undefined;
+let skillFxAll: Set<string> | undefined;
+function skillFxTable() {
+  if (!skillFxOf) {
+    skillFxOf = new Map(); skillFxAll = new Set();
+    for (const [k, v] of Object.entries(SKILL_VISUAL)) {
+      const id = k.slice(0, k.indexOf(":"));
+      const e = skillFxOf.get(id) ?? { body: [], glow: [] }; skillFxOf.set(id, e);
+      for (const sh of [v.sheet, v.windupSheet, v.aftershock?.sheet] as (VisualSheet | undefined)[]) {
+        if (!sh?.key.startsWith("fx_sk_")) continue;
+        e.body.push(sh.key); skillFxAll.add(sh.key);
+        if (sh.glow) { e.glow.push(sh.glow); skillFxAll.add(sh.glow); }
+      }
+    }
+  }
+  return skillFxOf;
+}
+/** preloadSprites hỏi: key `fx_sk_*` này do vohonLazy tải theo võ hồn (true) hay vẫn tải ngay như các hiệu ứng khác. */
+export const isLazySkillFx = (key: string) => (skillFxTable(), skillFxAll!.has(key));
 
 export const vohonKeys = (id: string): [string, string] => [`vh_${id}_b`, `vh_${id}_f`];
 
@@ -93,6 +118,14 @@ export function wantBeast(scene: Phaser.Scene, species: string, start = true): "
   if (keys.every((k) => scene.textures.exists(k))) return "ready";
   queue(scene, keys, lightingOn(scene.game), start);
   return "wait";
+}
+
+/**
+ * Xin sheet hiệu ứng chiêu của võ hồn `id` (không chặn, không ai chờ: chưa tới thì chiêu dùng hiệu ứng vẽ bằng code). `mine`: kèm lớp sáng `_g`.
+ */
+export function wantSkillFx(scene: Phaser.Scene, id: string, mine: boolean, start = true) {
+  const e = skillFxTable().get(id); if (!e) return;
+  queue(scene, [...new Set([...e.body, ...(mine ? e.glow : [])])].filter((k) => specs.has(k) && !failed.has(k)), false, start);
 }
 
 /** Phụ thể của võ hồn thứ `i` trong VOHON (chỉ số server gửi ở `p.vh`; ngoài khoảng thì võ hồn đầu như vohonTextures). */
