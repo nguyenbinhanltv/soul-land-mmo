@@ -1,10 +1,11 @@
 {
   "schema": 1,
   "generatedBy": "tools/assets/beast-status.mjs",
-  "species": 28,
+  "species": 29,
   "imported": 6,
   "tally": {
     "san-sang-nhap": 21,
+    "chua-co-to": 1,
     "chan": 7
   },
   "items": [
@@ -163,6 +164,20 @@
         "LỖI: toA — hình ở ô trống — H8 (se) C5, H8 (se) C6 — ô trống có hình (6.11% diện tích ô): hình tràn từ ô bên; ô trống có hình (5.01% diện tích ô): hình tràn từ ô bên.",
         "LỖI: toB — hình ở ô trống / khung chết / cỡ thân lệch — H4 (ne) C6, H1 (ne) C1–4, H5 (n) C1–4, H5–8 (n) — ô trống có hình (0.36% diện tích ô): hình tràn từ ô bên; idle: mọi khung gần như trùng (xor/hợp tối đa 0.019 < 0.03); hoạt ảnh không chuyển động; idle: mọi khung gần như trùng (xor/hợp tối đa 0.019 < 0.03); hoạt ảnh không chuyển động; cỡ thân idle 124% so với ảnh tĩnh (lệch 24%)."
       ]
+    },
+    {
+      "id": "bang_vu_ung",
+      "name": "Băng Vũ Ưng",
+      "family": "bird",
+      "frame": 96,
+      "imported": false,
+      "turnaround": true,
+      "layout": null,
+      "state": "chua-co-to",
+      "sheets": [],
+      "blocks": {},
+      "missing": [],
+      "errorLines": []
     },
     {
       "id": "dien_thu",
