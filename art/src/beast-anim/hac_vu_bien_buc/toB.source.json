@@ -45,5 +45,11 @@
     ],
     "transparent_background": false
   },
-  "postprocessing": "Không; sao chép nguyên byte PNG."
+  "postprocessing": "Không; sao chép nguyên byte PNG.",
+  "selected_attempt": 1,
+  "counters": {
+    "A": 3,
+    "B": 1,
+    "species_total": 4
+  }
 }

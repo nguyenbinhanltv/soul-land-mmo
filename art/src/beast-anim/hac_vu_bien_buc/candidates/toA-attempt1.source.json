@@ -3,7 +3,7 @@
   "sheet": "A",
   "worker": "soul-land-mmo-136",
   "issue": 772,
-  "raw_file": "toA.png",
+  "raw_file": "toA-attempt1.png",
   "sha256": "e7672a3a06cf746326a838920a5a3001abd971f056cb2ce792a441cc8bd55b49",
   "bytes": 1735552,
   "width": 948,
@@ -20,14 +20,14 @@
   "seed": null,
   "tool_limitations": "Tool không công bố model/seed; prompt yêu cầu tỉ lệ 2:3, không chọn pixel size.",
   "transparent_background": false,
-  "selected_attempt": 1,
-  "attempts": 1,
+  "selected_attempt": 3,
+  "attempts": 3,
   "counters": {
-    "A": 1,
-    "B": 0,
-    "species_total": 1
+    "A": 3,
+    "B": 1,
+    "species_total": 4
   },
-  "prompt_file": "toA.prompt.txt",
+  "prompt_file": "toA-attempt1.prompt.txt",
   "prompt_sha256": "4a9b461e1a73ba839fb5acc43d19fc39111cc13b884ad16e8618ba876b6d118c",
   "references": [
     {
@@ -43,5 +43,8 @@
     ],
     "transparent_background": false
   },
-  "postprocessing": "Không; sao chép nguyên byte PNG, không resize hay sửa metadata."
+  "postprocessing": "Không; sao chép nguyên byte PNG, không resize hay sửa metadata.",
+  "attempt": 1,
+  "selected": false,
+  "selection_reason": "Không chọn; giữ nguyên candidate để lưu lịch sử."
 }

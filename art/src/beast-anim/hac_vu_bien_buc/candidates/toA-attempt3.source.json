@@ -23,5 +23,13 @@
   },
   "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-7059b05c-1dfb-41ee-88e4-9b43a083857e.png",
   "postprocessing": "Không; sao chép nguyên byte PNG.",
-  "check": "chặn — sai kích thước (948×1659, ngoài 2:3 ±1%)."
+  "check": "chặn — sai kích thước (948×1659, ngoài 2:3 ±1%).",
+  "selected_attempt": 3,
+  "selected": true,
+  "counters": {
+    "A": 3,
+    "B": 1,
+    "species_total": 4
+  },
+  "selection_reason": "Được chọn làm toA.png; trong ba kết quả sai tỉ lệ, đây là tỉ lệ gần 2:3 nhất."
 }
