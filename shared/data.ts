@@ -5574,6 +5574,9 @@ export const RALLY = { secs: 40, burst: 3, refillMs: 1700, col: "#ffe14a", nameM
  * - `fadeMs`: client làm sáng dần ô vừa mở (tắt khi Giảm chuyển động / hiệu ứng Thấp);
  * - `maxCells`: trần số ô thô mỗi bản đồ server chịu lưu (bitset lớn hơn là dữ liệu lạ, bị bỏ).
  */
+/** Nhịp lưu định kỳ mỗi người chơi (giây; #1001): mỗi người một đồng hồ riêng, chỉ ghi DB khi có đổi. Lần ghi cuối khi rời phòng không phụ thuộc. */
+export const SAVE_EVERY_SECS = 30;
+
 export const FOG = {
   cell: 8, sight: 12,
   open: ["thanh_hon_thon", "nac_dinh_thanh", "thien_dau_thanh", "dai_dau_hon_truong"] as string[],
