@@ -154,7 +154,7 @@ ${RULES}${lessonsBlock("turnaround", info.group, lessons)}`;
 }
 
 const COMMON_TAIL = (stage) => `
-- **Không vẽ** hào quang, hạt, bóng, pháp trận, thân / mặt / tay chân người: client và code tự thêm (\`docs/art/vo-hon-phong-cach.md\` mục 3.4).
+- **Không vẽ** hào quang, hạt, bóng, pháp trận, thân / mặt / tay chân người: client và code tự thêm (\`docs/art/vo-hon-phong-cach.md\` phần 3.4).
 - **Bài học** chèn trong prompt lấy từ \`art/src/phuthe-anim/lessons.md\` (một nguồn duy nhất); lượt vẽ hỏng cho bài học mới thì thêm vào file đó, không viết tay vào prompt.
 - **Không** dùng ảnh phụ thể cũ (\`art/src/gemini/phuthe_5huong/…\`, \`vh_{id}_b/_f\`) và **không** dùng tờ / ảnh bị lỗi làm tham chiếu: tham chiếu chỉ là bảng nộm, turnaround đã duyệt và tờ đã qua \`phuthe:check\` không có khối chặn.
 - Giới hạn: **tối đa 3 lượt** cho mỗi ${stage === "turnaround" ? "ảnh turnaround" : "tờ"}; quá 3 lượt thì dừng và báo orchestrator (skill \`beast-anim\`, mục "Quá 3 lượt"; võ hồn giữ nhánh cũ nếu còn khối chặn).`;
