@@ -129,7 +129,7 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.level != 'skip' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -138,7 +138,24 @@ jobs:
         with:
           node-version: 22
       - run: npm ci --no-audit --no-fund --prefix server && npm ci --no-audit --no-fund --prefix client
-      - run: npx --prefix client playwright install --with-deps chromium
+      # Cache Chrome của Playwright theo phiên bản trong lock (#933): trúng cache chỉ cài thư viện hệ thống, trượt mới tải lại.
+      - name: Phiên bản Playwright
+        id: pw
+        run: echo "version=$(node -p "require('./client/package-lock.json').packages['node_modules/playwright'].version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Chrome Playwright
+        id: pw-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: Cài Chrome Playwright
+        timeout-minutes: 8
+        run: |
+          if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
+            npx --prefix client playwright install-deps chromium
+          else
+            npx --prefix client playwright install --with-deps chromium
+          fi
       - run: npm run test:nameplate-browser --prefix client
         env:
           NAMEPLATE_OUTPUT: ${{ runner.temp }}/c9-preview
@@ -156,7 +173,7 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.level != 'skip' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -166,7 +183,24 @@ jobs:
           node-version: 22
       - run: npm ci --no-audit --no-fund
       - run: npm ci --no-audit --no-fund --prefix server && npm ci --no-audit --no-fund --prefix client
-      - run: npx --prefix client playwright install --with-deps chromium
+      # Cache Chrome của Playwright theo phiên bản trong lock (#933): trúng cache chỉ cài thư viện hệ thống, trượt mới tải lại.
+      - name: Phiên bản Playwright
+        id: pw
+        run: echo "version=$(node -p "require('./client/package-lock.json').packages['node_modules/playwright'].version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Chrome Playwright
+        id: pw-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: Cài Chrome Playwright
+        timeout-minutes: 8
+        run: |
+          if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
+            npx --prefix client playwright install-deps chromium
+          else
+            npx --prefix client playwright install --with-deps chromium
+          fi
       - run: npm run test:flow-browser --prefix client
         timeout-minutes: 5
         env:
