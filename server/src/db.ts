@@ -891,13 +891,15 @@ export class PgStore implements Store {
     const dir = new URL("../sql/", import.meta.url);
     const files = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort();
     try {
-      await this.withMigrationLock(async () => {
-        for (const f of files) await this.pool.query(readFileSync(new URL(f, dir), "utf8"));
-        await this.backfillNameKeys();
+      // Chạy ngay trên kết nối giữ khoá (không qua pool): PG_POOL_MAX=1 vẫn khởi động được.
+      await this.withMigrationLock(async (c) => {
+        for (const f of files) await c.query(readFileSync(new URL(f, dir), "utf8"));
+        await this.backfillNameKeys(c);
       });
     } catch (e) {
       const host = (() => { try { return new URL(process.env.DATABASE_URL!).host; } catch { return "?"; } })();
-      console.error(`✗ Không kết nối được PostgreSQL (${host}): ${(e as Error).message}`);
+      if ((e as { code?: string }).code === "55P03") console.error("✗ Quá thời gian chờ khoá migration: tiến trình khác giữ khoá quá lâu (tăng MIGRATION_LOCK_WAIT_MS nếu migration chậm).");
+      else console.error(`✗ Không kết nối được PostgreSQL (${host}): ${(e as Error).message}`);
       if (/db\.[a-z0-9]+\.supabase\.co/.test(host))
         console.error("  Gợi ý: kết nối trực tiếp db.<ref>.supabase.co chỉ hỗ trợ IPv6. Dùng chuỗi \"Session pooler\" (…pooler.supabase.com:5432).");
       throw e;
@@ -910,7 +912,7 @@ export class PgStore implements Store {
    * rolling deploy) khởi động cùng lúc thì tiến trình sau chờ tiến trình trước chạy xong migration rồi mới chạy
    * (file SQL vốn chạy lại an toàn). Luôn nhả khoá; kết nối chết thì Postgres tự nhả. Quá MIGRATION_LOCK_WAIT_MS thì lỗi.
    */
-  private async withMigrationLock<T>(fn: () => Promise<T>): Promise<T> {
+  private async withMigrationLock<T>(fn: (c: pg.PoolClient) => Promise<T>): Promise<T> {
     const waitMs = Math.max(1000, envInt("MIGRATION_LOCK_WAIT_MS", 120_000));
     const c = await this.pool.connect();
     let broken = false;
@@ -920,11 +922,13 @@ export class PgStore implements Store {
         console.log(`… Tiến trình khác đang chạy migration PostgreSQL, chờ khoá (tối đa ${Math.round(waitMs / 1000)} giây)`);
         const t0 = Date.now();
         await c.query(`SET lock_timeout = ${Math.floor(waitMs)}`);
+        await c.query("SET statement_timeout = 0"); // PG_STATEMENT_TIMEOUT_MS không được cắt việc chờ khoá sớm hơn MIGRATION_LOCK_WAIT_MS
         await c.query("SELECT pg_advisory_lock($1)", [MIGRATION_LOCK_KEY]);
         await c.query("RESET lock_timeout");
+        await c.query("RESET statement_timeout");
         console.log(`… Đã có khoá migration sau ${Date.now() - t0} ms`);
       }
-      try { return await fn(); }
+      try { return await fn(c); }
       finally {
         try { await c.query("SELECT pg_advisory_unlock($1)", [MIGRATION_LOCK_KEY]); }
         catch (e) { broken = true; console.warn("⚠  Không nhả được khoá migration (kết nối sẽ bị đóng):", (e as Error).message); }
@@ -942,14 +946,14 @@ export class PgStore implements Store {
    * (mọi cách viết) và mật khẩu RIÊNG của mình (xem login), nên người tạo sau không bị kẻ chiếm tên trước khóa ngoài.
    * Xử lý tay: đổi tên nó (UPDATE accounts SET name='…' WHERE id=…), lần khởi động sau tự điền.
    */
-  async backfillNameKeys() {
-    const r = await this.pool.query("SELECT id, name FROM accounts WHERE name_key IS NULL ORDER BY created_at, id");
+  async backfillNameKeys(db: Pick<pg.Pool, "query"> = this.pool) {
+    const r = await db.query("SELECT id, name FROM accounts WHERE name_key IS NULL ORDER BY created_at, id");
     for (const a of r.rows) {
       const key = nameKey(a.name);
-      const u = await this.pool.query(
+      const u = await db.query(
         "UPDATE accounts SET name_key=$2 WHERE id=$1 AND NOT EXISTS (SELECT 1 FROM accounts WHERE name_key=$2) RETURNING id", [a.id, key]);
       if (u.rowCount) continue;
-      const owner = await this.pool.query("SELECT id, name FROM accounts WHERE name_key=$1", [key]);
+      const owner = await db.query("SELECT id, name FROM accounts WHERE name_key=$1", [key]);
       console.warn(`⚠  Tài khoản #${a.id} "${a.name}" trùng tên với tài khoản cũ hơn #${owner.rows[0]?.id} "${owner.rows[0]?.name}" `
         + `sau khi chuẩn hóa. Giữ nguyên dữ liệu; chủ #${a.id} vẫn vào được bằng mật khẩu riêng. Nên đổi tên #${a.id}.`);
     }
