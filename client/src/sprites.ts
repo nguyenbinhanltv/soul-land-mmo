@@ -13,6 +13,7 @@ import Phaser from "phaser";
 import { TELE_WARN, PT_FRAME } from "../../shared/data.ts";
 import { SPR, type Dir8 } from "./iso.ts";
 import { lightingOn } from "./lighting.ts";
+import { phuClipOf, phuClipIndex, phuDirRow, phuFrame, phuHalf, phuOriginY, phuSheetFits, parsePhuLayout, type PhuLayout } from "./phutheAnim.ts";
 import { registerVohonSheet, registerBlankSheet, setBeastSheetHook, isLazySkillFx } from "./vohonLazy.ts";
 import { readFxPrefs } from "./fxSettings.ts";
 import { DEFAULT_LAYOUT, lungeKeep, newBeastAnimState, parseLayout, stepBeastAnim, type AnimLayout, type BeastAnimState } from "./beastAnim.ts";
@@ -147,6 +148,12 @@ export function isAnimBeast(scene: Phaser.Scene, key: string) {
   const src = scene.textures.get(key).source[0], L = ANIM_LAYOUTS.get(key) ?? DEFAULT_LAYOUT;
   return src.width * L.dirs.length * L.rowsPerDir === L.cols * src.height;
 }
+/** Bố cục của từng sheet phụ thể hoạt ảnh vẽ thật `vhanim_{id}_{b|f}` (manifest `anim` + `frame`), ghi lúc tải manifest; hỏng thì không có (nhánh cũ). */
+const PHU_LAYOUTS = new Map<string, PhuLayout>();
+/** Ghi bố cục của một sheet `vhanim_*` ngoài manifest (trang thử `?thu=phuthe` dựng sheet giả lúc chạy). */
+export const setPhuLayout = (key: string, L: PhuLayout) => { PHU_LAYOUTS.set(key, L); };
+/** Bố cục sheet phụ thể hoạt ảnh của key `vhanim_*`, nếu manifest ghi hợp lệ. */
+export const phuLayoutOf = (key: string): PhuLayout | undefined => PHU_LAYOUTS.get(key);
 /** Khung của sheet tĩnh theo thứ tự cột. */
 export const STATIC_DIRS = ["s", "e", "n"] as const;
 /** Hướng 8 trên màn hình → khung ảnh tĩnh và cờ lật ngang: se / sw nhìn nghiêng nên dùng ảnh đông, ne / nw dùng ảnh bắc. */
@@ -431,6 +438,8 @@ type ManifestEntry = string | { key: string; frame?: [number, number]; iso?: boo
 function sheetSpec(key: string, frame?: readonly [number, number], iso = false): SheetSpec | null {
   let m: RegExpMatchArray | null;
   if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return { url: `vohon/${m[1]}.png`, frame: iso ? [ISO_VH_FRAME, ISO_VH_FRAME] : [VH_FRAME, VH_FRAME] };
+  // Phụ thể hoạt ảnh vẽ thật (Phụ thể v2 P2, #1023): nửa sau / trước; khung vuông 96 hoặc 128 do manifest ghi (`frame`), mặc định 96.
+  if ((m = key.match(/^vhanim_([a-z_]+_[bf])$/))) return { url: `vohonanim/${m[1]}.png`, frame: frame ?? [ISO_VH_FRAME, ISO_VH_FRAME] };
   if ((m = key.match(/^b(\d)$/)) && BEAST_FRAMES[+m[1]]) return { url: `beast/${key}.png`, frame: frame ?? BEAST_FRAMES[+m[1]] };
   // Khung của từng loài phụ thuộc bậc của loài, nên manifest phải ghi `frame`.
   if ((m = key.match(/^beast_([a-z_]+)$/)) && frame) return { url: `beast/${m[1]}.png`, frame };
@@ -470,18 +479,19 @@ export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) =
       // NPC, vật phẩm do giao diện HTML đọc manifest (uiArt.ts); hiệu ứng `fx_*` (#201) là dải một hàng, chạy bằng playFx.
       const key = typeof e === "string" ? e : e.key, iso = typeof e !== "string" && !!e.iso;
       if (/^lpc_/.test(key)) { lpcNames.add(key.slice(4)); continue; }
-      if (iso && !/^(vh|beast|fx|pt)_/.test(key)) continue;
+      if (iso && !/^(vh|vhanim|beast|fx|pt)_/.test(key)) continue;
       if (typeof e !== "string" && e.anim && /^beast_[a-z_]+_anim$/.test(key)) ANIM_LAYOUTS.set(key, parseLayout(e.anim));
+      if (typeof e !== "string" && /^vhanim_[a-z_]+_[bf]$/.test(key)) { const L = parsePhuLayout(e.anim, e.frame); if (L) PHU_LAYOUTS.set(key, L); else console.warn(`[sprites] anim của ${key} không hợp lệ: phụ thể chạy nhánh cũ`); }
       if (typeof e !== "string" && e.lpc && key.startsWith("beast_")) LPC_BEASTS.add(key);
       // Nửa phụ thể trống hoàn toàn (#974): không có file, không tải (cả normal map); lớp đó ẩn (vohonBlank).
-      if (typeof e !== "string" && e.blank && key.startsWith("vh_")) { registerBlankSheet(key); continue; }
+      if (typeof e !== "string" && e.blank && /^vh(anim)?_/.test(key)) { registerBlankSheet(key); continue; }
       const spec = sheetSpec(key, typeof e === "string" ? undefined : e.frame, iso);
       if (!spec) { console.warn(`[sprites] key không hợp lệ trong manifest: ${key}`); continue; }
       // Phụ thể isometric (2304×1152 × 2 lớp × 25 võ hồn) tải theo nhu cầu (vohonLazy.ts), không tải hết mỗi lần vào bản đồ.
       // Pháp tướng (2560×800 × 35) cũng tải theo nhu cầu (wantPhapTuong).
       // Hồn thú (134 file) cũng tải theo loài đang có trong tầm (wantBeast).
       // Hiệu ứng chiêu `fx_sk_*` theo võ hồn (wantSkillFx, bước 4).
-      if (iso && spec.frame && (/^(vh|pt|beast)_/.test(key) || isLazySkillFx(key))) { registerVohonSheet(key, BASE + spec.url, spec.frame); continue; }
+      if (iso && spec.frame && (/^(vh|vhanim|pt|beast)_/.test(key) || isLazySkillFx(key))) { registerVohonSheet(key, BASE + spec.url, spec.frame); continue; }
       if (spec.frame) scene.load.spritesheet(key, BASE + spec.url, { frameWidth: spec.frame[0], frameHeight: spec.frame[1] });
       else scene.load.image(key, BASE + spec.url);
       // Normal map của bộ hồn sư / phụ thể isometric (`<ảnh>_n.png`, 10.7): tải riêng, GameScene gắn vào texture (attachNormal).
@@ -615,4 +625,46 @@ export function syncLayers(body: Phaser.GameObjects.Sprite, vohon: Phaser.GameOb
     s.setVisible(v !== null).setFlipX(body.flipX);
     if (v) s.setFrame(v.frame + half).setAlpha(v.alpha);
   }
+}
+
+/** Phụ thể hoạt ảnh vẽ thật của một hồn sư (võ hồn có `vhanim_{id}`): bố cục và texture [sau, trước]; thiếu thì võ hồn chạy nhánh cũ (syncLayers). */
+export interface PhuAnimSet { layout: PhuLayout; keys: [string, string] }
+/** Key `vhanim_{id}_b` / `_f` (nửa trống mượn texture nửa kia, như vohonKeys). */
+export const isPhuAnimKey = (key: string) => key.startsWith("vhanim_");
+
+/** Gốc và hệ số phóng của lớp phụ thể hoạt ảnh (khung 96: gốc (48, 74); 128: (64, 90)); hình chứa phóng SPR nên lớp phóng 1 / SPR. */
+export function fitPhuLayer<T extends Phaser.GameObjects.Sprite>(s: T, L: PhuLayout): T {
+  const oy = phuOriginY(L.frame);
+  if (s.originY !== oy || s.originX !== 0.5) s.setOrigin(0.5, oy);
+  if (s.scaleX !== 1 / SPR) s.setScale(1 / SPR);
+  return s;
+}
+
+/** Bố cục + texture phụ thể hoạt ảnh của võ hồn `id` nếu cả hai nửa (không trống) đã có trong texture và đúng kích thước; không thì null (nhánh cũ). */
+export function phuAnimSetOf(scene: Phaser.Scene, id: string, blank: readonly [boolean, boolean]): PhuAnimSet | null {
+  const kb = `vhanim_${id}_b`, kf = `vhanim_${id}_f`, L = PHU_LAYOUTS.get(kb) ?? PHU_LAYOUTS.get(kf);
+  if (!L || (!blank[0] && !PHU_LAYOUTS.has(kb)) || (!blank[1] && !PHU_LAYOUTS.has(kf))) return null;
+  const keys: [string, string] = [blank[0] ? kf : kb, blank[1] ? kb : kf];
+  for (const k of keys) {
+    if (!scene.textures.exists(k)) return null;
+    const src = scene.textures.get(k).source[0];
+    if (!phuSheetFits(src.width, src.height, PHU_LAYOUTS.get(k) ?? L)) return null;
+  }
+  return { layout: L, keys };
+}
+
+/**
+ * Đặt khung lớp phụ thể hoạt ảnh vẽ thật theo hoạt ảnh thân `anim` đang hiển thị (không dùng animation của Phaser, không tạo object): hàng theo
+ * hướng 5 (`face`, phuFaceOf), cột theo clip; vòng lặp theo bước thân hiện tại, một lần theo tuổi `age` (ms từ lúc bắt đầu hoạt ảnh, -1 nếu không biết).
+ * `die`: ẩn; `absorb`: clip idle, mờ 60%. Trả clip đang phát (để nơi gọi cộng độ dời `layout.offset[clip]`), null khi ẩn.
+ */
+export function syncPhuLayers(body: Phaser.GameObjects.Sprite, layers: Phaser.GameObjects.Sprite[], pa: PhuAnimSet, anim: HsAnim, face: Dir8, age: number): ReturnType<typeof phuClipOf> {
+  const clip = phuClipOf(anim), L = pa.layout;
+  if (!clip) { for (const s of layers) s.setVisible(false); return null; }
+  const A = ISO_HS_ANIMS[anim], steps = A.ms.length, step = Number(body.frame.name) % ISO_SHEET_COLS - A.col;
+  const i = phuClipIndex(L.clips[clip].n, steps, step, A.loop, age, honsuAnimMs(anim));
+  const half = phuHalf(layers[0].texture.source[0].height, L, /^lpcc_f_/.test(body.texture.key));
+  const f = phuFrame(L, clip, phuDirRow(face), half, i), a = anim === "absorb" ? 0.6 : 1;
+  for (const s of layers) { s.setVisible(true).setFlipX(body.flipX); s.setFrame(f).setAlpha(a); }
+  return clip;
 }

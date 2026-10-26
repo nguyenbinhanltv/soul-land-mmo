@@ -596,6 +596,11 @@ body.touch .bpick .bitem{cursor:default}
 .eopt b{grid-column:2;grid-row:1;white-space:normal;color:color-mix(in srgb,var(--c) 55%,var(--text));min-width:0;overflow-wrap:anywhere}
 .eopt i{grid-column:3;white-space:nowrap}
 .eopt span:empty{display:none}
+/* hàng không có biểu tượng (hồn cốt / hồn hạch): bỏ cột 1, dòng phụ thẳng hàng với tên */
+.aopt.eopt.noico{grid-template-columns:minmax(0,1fr) auto}
+.eopt.noico b{grid-column:1}
+.eopt.noico i{grid-column:2}
+.eopt.noico span:not(:empty){grid-column:1/3;grid-row:2}
 .eopt .eluck{grid-column:2/4;grid-row:2;white-space:nowrap;font-size:11px;font-family:var(--f10);color:var(--muted)}
 /* E5: biểu tượng món + khung bậc trong danh sách Thợ rèn; túi đồ cũng phủ khung bậc lên ô trang bị hồn sư */
 .eopt .eico{grid-column:1;grid-row:1/3;position:relative;width:32px;height:32px;color:inherit}
