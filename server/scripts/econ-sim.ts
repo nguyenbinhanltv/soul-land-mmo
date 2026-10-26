@@ -3,11 +3,14 @@
 // còn thiếu (mảnh Thương hội, phí cường hóa hồn cốt / hồn hạch theo số võ hồn trang bị, mở rộng túi, đổi ngoại hình, cường hóa trang bị).
 // Mọi số game đọc từ `shared/data.ts`; số ra là ƯỚC LƯỢNG theo giả định ở đầu file (chưa đo thật), KHÔNG đổi số cân bằng nào.
 // Chạy: npm run sim:econ --prefix server   (thêm --md để in bảng Markdown)
+// Bán hồn hoàn (#1040): mặc định tắt; `--sell-rings` = người chơi bán MỌI hồn hoàn rơi (hạ nào cũng rơi 1 chiếc, kill.ts); `--sell-rings=guard` = chỉ bán
+// hồn hoàn dưới AUTO_SELL_GUARD năm (giữ hồn hoàn lớn để hấp thụ, như tự bán khi tắt `high`). Cột E1 luôn tách sẵn hai phần để so.
 import {
   MAPS, BEAST_COIN, TIERS, rollYears, tierOfYears, beastStats, beastLevel, xpNeed, xpLevelScale, XP_SHARE_ACTIVE, ELITE,
   VOHON, calcStats, offlineFight, type OfflinePower, AUTO_DAILY_SECS, AUTO_TOKEN_PRICE, AUTO_TOKEN_SECS, AUTO_BONUS_MAX,
   sellPrice, ringSellPrice, BONE_ITEM, CORE_ITEM, shardCode, vohonIndex, boneChance, coreChance, coreStarBand, CORE_STAR_W, shardChance, SHARD_SELL, SHARD_QTY,
   SHARD_BUY, shardBuyCost, BAG_EXPAND_COST, LOOKS_CHANGE, BONE_SLOTS, BONE_ENHANCE_FEE, BONE_MAX_ENHANCE, CORE_SLOTS, CORE_ENHANCE_FEE, CORE_MAX_ENHANCE, TEAM_SIZE,
+  AUTO_SELL_GUARD, OFFLINE,
   EQUIP_SLOTS, EQUIP_MAX_ENHANCE, equipEnhanceStep, equipEnhanceResult, rollEquipDrop, equipSalvage, equipTemplate, EQUIP_DROP,
 } from "../../shared/data.ts";
 
@@ -41,6 +44,8 @@ const VOHON_COUNTS = [1, 2, TEAM_SIZE];
 /** Ngoại hình: giả định 1 lần đổi trả phí mỗi 30 ngày. */
 const LOOKS_EVERY = 30;
 const md = process.argv.includes("--md");
+/** Bán hồn hoàn rơi ở giá thương nhân (`ringSellPrice`): "off" (mặc định) | "all" | "guard" (chỉ dưới AUTO_SELL_GUARD năm). */
+const SELL_RINGS: "off" | "all" | "guard" = process.argv.includes("--sell-rings") ? "all" : process.argv.includes("--sell-rings=guard") ? "guard" : "off";
 
 function rng(seed: number) { let a = seed >>> 0; return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 const f = (x: number, d = 1) => (Number.isFinite(x) ? x.toLocaleString("vi-VN", { maximumFractionDigits: d, minimumFractionDigits: 0 }) : "∞");
@@ -96,26 +101,36 @@ function equipSalvagePerKill(mapId: string, rank: number) {
   for (let i = 0; i < N; i++) for (const d of rollEquipDrop(rank, mapId, r)) if (d.kind === "equip") c += equipSalvage(equipTemplate(d.item.tpl)!.tier, 0, r).coin;
   return (v[rank] = c / N);
 }
-interface MapIncome { map: string; perKillCoin: number; perKillSell: number; perKillSalv: number; eliteHour: number; autoSecs: number; autoKillsHour: number; autoCoinHour: number; autoSellHour: number; autoSalvHour: number; handCoinHour: number; handSellHour: number; handSalvHour: number }
+interface MapIncome { map: string; perKillCoin: number; perKillSell: number; perKillSalv: number; perKillRingLow: number; perKillRingHigh: number; eliteRingLow: number; eliteRingHigh: number; eliteHour: number; autoSecs: number; autoKillsHour: number; autoCoinHour: number; autoSellHour: number; autoSalvHour: number; handCoinHour: number; handSellHour: number; handSalvHour: number; handRingLowHour: number; handRingHighHour: number; autoRingLowHour: number; autoRingHighHour: number }
 function incomeAt(mapId: string, lv: number, rings: number[], sc: Scenario): MapIncome {
   const m = MAPS[mapId], [lo, hi] = m.years!, r = rng(1234), st = calcStats(vhCuong, lv, rings);
   const pw: OfflinePower = { atk: st.atk, crit: st.crit, critMult: st.critMult, maxHp: st.maxHp, def: VOHON[vhCuong].def };
-  let coin = 0, sell = 0, secs = 0, killSecs = 0, killed = 0;
+  let coin = 0, sell = 0, ringLow = 0, ringHigh = 0, secs = 0, killSecs = 0, killed = 0;
   for (let i = 0; i < SAMPLES; i++) {
     const y = rollYears(lo, hi, r()), fight = offlineFight(pw, y, SPECIES);
     secs += fight.secs; if (fight.ok) killed++;
     const c = sc.coin(y);
     const s = sc.sell * (boneChance(y) * (sellPrice({ code: BONE_ITEM, years: y, stars: null, enhance: 0 }) ?? 0) + coreChance(y) * starAvgSell(y, 1) + shardChance(y) * shardSell(mapId));
+    const ring = ringSellPrice(y); if (y < AUTO_SELL_GUARD) ringLow += ring; else ringHigh += ring; // mỗi con hạ rơi đúng 1 hồn hoàn cùng số năm
     coin += c; sell += s; if (fight.ok) killSecs += fight.secs;
   }
   const perKillCoin = coin / SAMPLES, perKillSell = sell / SAMPLES, perKillSalv = equipSalvagePerKill(mapId, 0);
   // Tinh anh: Hồn Tệ theo bậc của mức trên bản đồ, hồn hạch chắc chắn, hồn cốt × ELITE.bone, trang bị hạng 1.
   const eliteCoin = sc.coin(hi), eliteSell = sc.sell * (boneChance(hi, ELITE.bone) * (sellPrice({ code: BONE_ITEM, years: hi, stars: null, enhance: 0 }) ?? 0) + starAvgSell(hi, 1)), eliteSalv = equipSalvagePerKill(mapId, 1);
+  // Tinh anh cũng rơi 1 hồn hoàn theo niên hạn của nó (kill.ts), ta lấy mức trên bản đồ như hồn Tệ / hồn cốt ở trên.
+  const eliteRing = ringSellPrice(hi), eliteRingLow = hi < AUTO_SELL_GUARD ? eliteRing : 0, eliteRingHigh = hi < AUTO_SELL_GUARD ? 0 : eliteRing;
+  const perKillRingLow = ringLow / SAMPLES, perKillRingHigh = ringHigh / SAMPLES;
   const autoSecs = secs / SAMPLES, autoKillsHour = killed ? 3600 / Math.max(killSecs / killed, AUTO_REAL_SECS) * (killed / SAMPLES) : 0;
-  return { map: mapId, perKillCoin, perKillSell, perKillSalv, eliteHour: ELITE_PER_HOUR * (eliteCoin + eliteSell + eliteSalv), autoSecs, autoKillsHour,
+  return { map: mapId, perKillCoin, perKillSell, perKillSalv, perKillRingLow, perKillRingHigh, eliteRingLow, eliteRingHigh, eliteHour: ELITE_PER_HOUR * (eliteCoin + eliteSell + eliteSalv), autoSecs, autoKillsHour,
     autoCoinHour: autoKillsHour * perKillCoin, autoSellHour: autoKillsHour * perKillSell, autoSalvHour: autoKillsHour * perKillSalv,
-    handCoinHour: HAND_KILLS_PER_HOUR * perKillCoin + ELITE_PER_HOUR * eliteCoin, handSellHour: HAND_KILLS_PER_HOUR * perKillSell + ELITE_PER_HOUR * eliteSell, handSalvHour: HAND_KILLS_PER_HOUR * perKillSalv + ELITE_PER_HOUR * eliteSalv };
+    handCoinHour: HAND_KILLS_PER_HOUR * perKillCoin + ELITE_PER_HOUR * eliteCoin, handSellHour: HAND_KILLS_PER_HOUR * perKillSell + ELITE_PER_HOUR * eliteSell, handSalvHour: HAND_KILLS_PER_HOUR * perKillSalv + ELITE_PER_HOUR * eliteSalv,
+    handRingLowHour: HAND_KILLS_PER_HOUR * perKillRingLow + ELITE_PER_HOUR * eliteRingLow, handRingHighHour: HAND_KILLS_PER_HOUR * perKillRingHigh + ELITE_PER_HOUR * eliteRingHigh,
+    autoRingLowHour: autoKillsHour * perKillRingLow, autoRingHighHour: autoKillsHour * perKillRingHigh };
 }
+/** Hồn Tệ/giờ từ bán hồn hoàn theo chế độ đang chọn (0 khi tắt); `high` bán cả hồn hoàn ≥ AUTO_SELL_GUARD năm chỉ ở chế độ "all". */
+const ringHour = (low: number, high: number) => (SELL_RINGS === "off" ? 0 : SELL_RINGS === "guard" ? low : low + high);
+/** Hệ số trần OFFLINE.rings: tự săn mỗi lượt nhận chỉ nhặt tối đa bấy nhiêu hồn hoàn (giả định 1 lượt nhận mỗi ngày) trên `hours` giờ treo. */
+const autoRingFactor = (killsHour: number, hours: number) => (killsHour > 0 && hours > 0 ? Math.min(1, OFFLINE.rings / (killsHour * hours)) : 0);
 const incomeCache = new Map<string, MapIncome>();
 const incomeFor = (day: number, pace: number, sc: Scenario) => {
   const eff = Math.floor(day * pace / 3), ph = [...ROUTE].reverse().find((p) => eff >= p.from)!, key = `${sc.name}|${ph.map}`;
@@ -135,7 +150,7 @@ const EQUIP_FEE_FULL = equipFeePerItem() * EQUIP_SLOTS.length, BAG_FULL = sum(BA
 const SHARD_DAY = shardBuyCost(0, SHARD_BUY.daily);
 
 // ---------- Mô phỏng theo ngày ----------
-interface Day { day: number; map: string; inHunt: number; inSell: number; inSalv: number; outShard: number; outLooks: number; outPool: number; stock: number; cumIn: number; cumOut: number; poolLeft: number }
+interface Day { day: number; map: string; inHunt: number; inSell: number; inSalv: number; inRing: number; outShard: number; outLooks: number; outPool: number; stock: number; cumIn: number; cumOut: number; poolLeft: number }
 function simulate(p: typeof PROFILES[0], nVohon: number, sc: Scenario, shardDaily = SHARD_BUY.daily) {
   // Sink "một lần" xếp sau mảnh Thương hội mỗi ngày: túi → hồn cốt / hồn hạch (theo số võ hồn) → trang bị. Trần sức chứa: bỏ qua thời điểm có đồ để nâng.
   let pool = BAG_FULL + nVohon * (BONE_SLOTS.length * BONE_FEE_FULL + CORE_SLOTS * CORE_FEE_FULL) + EQUIP_FEE_FULL;
@@ -144,13 +159,15 @@ function simulate(p: typeof PROFILES[0], nVohon: number, sc: Scenario, shardDail
   for (let d = 1; d <= DAYS; d++) {
     const inc = incomeFor(d, p.pace, sc);
     const inHunt = p.hand * inc.handCoinHour + (p.auto > 0 ? p.auto * inc.autoCoinHour : 0), inSell = p.hand * inc.handSellHour + (p.auto > 0 ? p.auto * inc.autoSellHour : 0), inSalv = p.hand * inc.handSalvHour + (p.auto > 0 ? p.auto * inc.autoSalvHour : 0);
-    const income = inHunt + inSell + inSalv; coin += income; cumIn += income;
+    // Tự săn chỉ nhặt tối đa OFFLINE.rings hồn hoàn mỗi lượt nhận (MapRoom.claimOffline); giả định 1 lượt nhận mỗi ngày.
+    const inRing = p.hand * ringHour(inc.handRingLowHour, inc.handRingHighHour) + p.auto * autoRingFactor(inc.autoKillsHour, p.auto) * ringHour(inc.autoRingLowHour, inc.autoRingHighHour);
+    const income = inHunt + inSell + inSalv + inRing; coin += income; cumIn += income;
     let outShard = 0, outLooks = 0, outPool = 0;
     for (let k = 0; k < shardDaily; k++) { const price = shardBuyCost(k, 1); if (coin >= price) { coin -= price; outShard += price; } else break; }
     if (d % LOOKS_EVERY === 0 && coin >= LOOKS_CHANGE.cost) { coin -= LOOKS_CHANGE.cost; outLooks += LOOKS_CHANGE.cost; looks++; }
     const pay = Math.min(coin, pool); coin -= pay; pool -= pay; outPool = pay; if (!drained && pool <= 0) drained = d;
     cumOut += outShard + outLooks + outPool;
-    days.push({ day: d, map: inc.map, inHunt, inSell, inSalv, outShard, outLooks, outPool, stock: coin, cumIn, cumOut, poolLeft: pool });
+    days.push({ day: d, map: inc.map, inHunt, inSell, inSalv, inRing, outShard, outLooks, outPool, stock: coin, cumIn, cumOut, poolLeft: pool });
   }
   void looks; void pool0;
   return { days, drained };
@@ -158,16 +175,17 @@ function simulate(p: typeof PROFILES[0], nVohon: number, sc: Scenario, shardDail
 const at = (days: Day[], d: number) => days[d - 1];
 const MILE = [7, 30, 60, 90, 120];
 
+console.log(`Bán hồn hoàn: ${SELL_RINGS === "off" ? "TẮT (thêm --sell-rings hoặc --sell-rings=guard)" : SELL_RINGS === "all" ? "BẬT, bán mọi hồn hoàn rơi" : `BẬT, chỉ hồn hoàn dưới ${f(AUTO_SELL_GUARD, 0)} năm`}; tự săn nhặt tối đa ${OFFLINE.rings} hồn hoàn mỗi lượt nhận (giả định 1 lượt/ngày).`);
 console.log(`Giả lập dòng Hồn Tệ ${DAYS} ngày (kỳ vọng, không tung ngẫu nhiên theo ngày; tung mẫu ${SAMPLES} niên hạn mỗi bản đồ). ƯỚC LƯỢNG, CHƯA ĐO.`);
 console.log(`Sink: mảnh Thương hội ${SHARD_BUY.daily}/ngày = ${f(SHARD_DAY, 0)}; túi ${f(BAG_FULL, 0)}; hồn cốt ${f(BONE_FEE_FULL, 0)} × ${BONE_SLOTS.length} ô và hồn hạch ${f(CORE_FEE_FULL, 0)} × ${CORE_SLOTS} ô mỗi võ hồn; trang bị ${f(EQUIP_FEE_FULL, 0)} cho ${EQUIP_SLOTS.length} ô (+${EQUIP_MAX_ENHANCE}); đổi ngoại hình ${f(LOOKS_CHANGE.cost, 0)} mỗi ${LOOKS_EVERY} ngày.`);
 void EQUIP_DROP;
 
 // ================= E1: thu nhập mỗi giờ theo bản đồ =================
 title("E1. Thu nhập kỳ vọng mỗi giờ theo bản đồ (Hồn Tệ; hiện tại), một võ hồn Cường công ở cấp / hồn hoàn của lộ trình, chưa trang bị");
-console.log(head(["Bản đồ", "Giây/con khi treo", "Con/giờ khi treo", "Tay: rơi tiền", "Tay: bán đồ", "Tay: phân giải", "Tay: tổng/giờ", "Treo: tổng/giờ", "Treo/Tay", "Lệnh 2h trả giá/giờ treo"]));
+console.log(head(["Bản đồ", "Giây/con khi treo", "Con/giờ khi treo", "Tay: rơi tiền", "Tay: bán đồ", "Tay: phân giải", `Tay: hồn hoàn <${f(AUTO_SELL_GUARD, 0)}y (${SELL_RINGS === "off" ? "chưa tính" : "đã tính"})`, `Tay: hồn hoàn ≥${f(AUTO_SELL_GUARD, 0)}y (${SELL_RINGS === "all" ? "đã tính" : "chưa tính"})`, "Tay: tổng/giờ", "Treo: tổng/giờ", "Treo/Tay", "Lệnh 2h trả giá/giờ treo"]));
 for (const ph of ROUTE) {
-  const x = incomeFor(ph.from * 3, 1, SCENARIOS[0]), hand = x.handCoinHour + x.handSellHour + x.handSalvHour, auto = x.autoCoinHour + x.autoSellHour + x.autoSalvHour;
-  console.log(row([MAPS[x.map].name, f(x.autoSecs), f(x.autoKillsHour, 0), f(x.handCoinHour, 0), f(x.handSellHour, 0), f(x.handSalvHour, 0), f(hand, 0), f(auto, 0), f(auto / hand, 2), `${f(AUTO_TOKEN_PRICE / AUTO_TOKEN_SECS * 3600, 0)} (${f(AUTO_TOKEN_PRICE / AUTO_TOKEN_SECS * 3600 / auto * 100, 2)}% thu/giờ)`]));
+  const x = incomeFor(ph.from * 3, 1, SCENARIOS[0]), hand = x.handCoinHour + x.handSellHour + x.handSalvHour + ringHour(x.handRingLowHour, x.handRingHighHour), auto = x.autoCoinHour + x.autoSellHour + x.autoSalvHour + autoRingFactor(x.autoKillsHour, AUTO_HOURS) * ringHour(x.autoRingLowHour, x.autoRingHighHour);
+  console.log(row([MAPS[x.map].name, f(x.autoSecs), f(x.autoKillsHour, 0), f(x.handCoinHour, 0), f(x.handSellHour, 0), f(x.handSalvHour, 0), f(x.handRingLowHour, 0), f(x.handRingHighHour, 0), f(hand, 0), f(auto, 0), f(auto / hand, 2), `${f(AUTO_TOKEN_PRICE / AUTO_TOKEN_SECS * 3600, 0)} (${f(AUTO_TOKEN_PRICE / AUTO_TOKEN_SECS * 3600 / auto * 100, 2)}% thu/giờ)`]));
 }
 console.log(`\nLệnh Ủy Thác: ${f(AUTO_TOKEN_PRICE, 0)} Hồn Tệ cho ${AUTO_TOKEN_SECS / 3600} giờ treo thêm (tích tối đa ${AUTO_BONUS_MAX / 3600} giờ); chỉ tiêu sau khi đã treo hết ${AUTO_DAILY_SECS / 3600} giờ miễn phí.`);
 
@@ -175,8 +193,8 @@ console.log(`\nLệnh Ủy Thác: ${f(AUTO_TOKEN_PRICE, 0)} Hồn Tệ cho ${AUT
 for (const p of PROFILES) {
   title(`E2. ${p.name}: Hồn Tệ vào / ra theo ngày (hiện tại; ${TEAM_SIZE} võ hồn đủ hồn cốt / hồn hạch ở sink một lần)`);
   const { days, drained } = simulate(p, TEAM_SIZE, SCENARIOS[0]);
-  console.log(head(["Ngày", "Bản đồ", "Vào/ngày", "  rơi tiền", "  bán đồ", "  phân giải trang bị", "Ra: mảnh", "Ra: một lần", "Tồn", "Tổng vào", "Ra/Vào %"]));
-  for (const d of MILE) { const x = at(days, d); console.log(row([d, MAPS[x.map].name, f(x.inHunt + x.inSell + x.inSalv, 0), f(x.inHunt, 0), f(x.inSell, 0), f(x.inSalv, 0), f(x.outShard, 0), f(x.outPool + x.outLooks, 0), f(x.stock, 0), f(x.cumIn, 0), f(x.cumOut / x.cumIn * 100)])); }
+  console.log(head(["Ngày", "Bản đồ", "Vào/ngày", "  rơi tiền", "  bán đồ", "  phân giải trang bị", "  bán hồn hoàn", "Ra: mảnh", "Ra: một lần", "Tồn", "Tổng vào", "Ra/Vào %"]));
+  for (const d of MILE) { const x = at(days, d); console.log(row([d, MAPS[x.map].name, f(x.inHunt + x.inSell + x.inSalv + x.inRing, 0), f(x.inHunt, 0), f(x.inSell, 0), f(x.inSalv, 0), f(x.inRing, 0), f(x.outShard, 0), f(x.outPool + x.outLooks, 0), f(x.stock, 0), f(x.cumIn, 0), f(x.cumOut / x.cumIn * 100)])); }
   console.log(`\nSink một lần (túi + hồn cốt + hồn hạch + trang bị) cạn ở ngày: ${drained || `chưa cạn trong ${DAYS} ngày`}.`);
 }
 
@@ -191,12 +209,12 @@ Sink một lần tối đa (túi + hồn cốt + hồn hạch + trang bị; khô
 title(`E4. Kịch bản chỉnh số (CHỈ ước lượng, không sửa shared/data.ts): hồ sơ "${PROFILES[2].name}", ${TEAM_SIZE} võ hồn`);
 console.log(head(["Kịch bản", "Vào/ngày ở Lạc Nhật (ngày 30)", "Vào/ngày ở Hải Thần (ngày 120)", "Tồn ngày 120", "Ra/Vào % ngày 120", "Lệnh 2h / thu 2h treo Hải Thần %"]));
 for (const sc of SCENARIOS) {
-  const { days } = simulate(PROFILES[2], TEAM_SIZE, sc), a = at(days, 30), b = at(days, DAYS), inc = incomeFor(DAYS, PROFILES[2].pace, sc), auto2h = AUTO_TOKEN_SECS / 3600 * (inc.autoCoinHour + inc.autoSellHour + inc.autoSalvHour);
-  console.log(row([sc.name, f(a.inHunt + a.inSell + a.inSalv, 0), f(b.inHunt + b.inSell + b.inSalv, 0), f(b.stock, 0), f(b.cumOut / b.cumIn * 100), f(sc.tokenPrice / auto2h * 100, 2)]));
+  const { days } = simulate(PROFILES[2], TEAM_SIZE, sc), a = at(days, 30), b = at(days, DAYS), inc = incomeFor(DAYS, PROFILES[2].pace, sc), auto2h = AUTO_TOKEN_SECS / 3600 * (inc.autoCoinHour + inc.autoSellHour + inc.autoSalvHour + autoRingFactor(inc.autoKillsHour, AUTO_TOKEN_SECS / 3600) * ringHour(inc.autoRingLowHour, inc.autoRingHighHour));
+  console.log(row([sc.name, f(a.inHunt + a.inSell + a.inSalv + a.inRing, 0), f(b.inHunt + b.inSell + b.inSalv + b.inRing, 0), f(b.stock, 0), f(b.cumOut / b.cumIn * 100), f(sc.tokenPrice / auto2h * 100, 2)]));
 }
 title(`E4b. Cùng kịch bản, hồ sơ "${PROFILES[1].name}" (không treo)`);
 console.log(head(["Kịch bản", "Vào/ngày ở Hải Thần", "Tồn ngày 120", "Ra/Vào % ngày 120"]));
-for (const sc of SCENARIOS) { const { days } = simulate(PROFILES[1], TEAM_SIZE, sc), b = at(days, DAYS); console.log(row([sc.name, f(b.inHunt + b.inSell + b.inSalv, 0), f(b.stock, 0), f(b.cumOut / b.cumIn * 100)])); }
+for (const sc of SCENARIOS) { const { days } = simulate(PROFILES[1], TEAM_SIZE, sc), b = at(days, DAYS); console.log(row([sc.name, f(b.inHunt + b.inSell + b.inSalv + b.inRing, 0), f(b.stock, 0), f(b.cumOut / b.cumIn * 100)])); }
 
 // ================= E5: vách đá BEAST_COIN theo bản đồ =================
 title("E5. Vách đá BEAST_COIN: bản đồ có bao nhiêu con ≥ 10.000 / ≥ 100.000 năm, Hồn Tệ mỗi con, và số con cần để lên cấp");
@@ -215,4 +233,3 @@ for (const m of Object.values(MAPS)) {
   console.log(row([m.name, `${f(lo, 0)}–${f(hi, 0)}`, f(over1 / n * 100), f(over2 / n * 100), f(curHi / cur * 100), f(coinPerKill, 1), f(smo / n, 1), f(smo / cur, 2), f(xp / n, 0), ks.map((k) => f(k, 1)).join(" / "), ks.map((k) => f(k * coinPerKill, 0)).join(" / ")]));
 }
 console.log(`\n"Con để lên cấp" = xpNeed(cấp) ÷ (XP_SHARE_ACTIVE × kinh nghiệm TB một con của bản đồ): CHỈ tính kinh nghiệm võ hồn ra trận (võ hồn dự bị nhận XP_SHARE_BENCH thêm, bình cảnh chặn lên cấp không tính).`);
-void ringSellPrice;
