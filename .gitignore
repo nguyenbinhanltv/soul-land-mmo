@@ -14,3 +14,7 @@ art/src/private/
 # Sổ trạng thái hoạt ảnh hồn thú: tự sinh cục bộ bằng `npm run beast:status`, không commit (#973); bản chung ở comment ghim #766
 art/src/beast-anim/_status.json
 art/src/beast-anim/_status.md
+
+# Sổ trạng thái hoạt ảnh phụ thể võ hồn v2: tự sinh cục bộ bằng `npm run phuthe:status`, không commit (#1022)
+art/src/phuthe-anim/_status.json
+art/src/phuthe-anim/_status.md

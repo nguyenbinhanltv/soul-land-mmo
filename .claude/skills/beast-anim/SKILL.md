@@ -95,3 +95,6 @@ Lượt vẽ hỏng cho bài học mới thì thêm **một dòng** vào `art/sr
 
 ## Kiểm sau khi sửa công cụ
 `npm run check` + `npm run test:assets`; thử mỗi giai đoạn bằng `node tools/assets/beast-sheet-prompt.mjs --species phong_lang --stage turnaround|direction|sheet`  và `npm run beast:status` (ghi cục bộ).
+
+## Phụ thể võ hồn v2 (cùng đường đi, công cụ riêng)
+Phụ thể võ hồn v2 (epic #1020, `docs/art/phu-the-hoat-anh.md`) đi **cùng quy trình** (turnaround → từng hướng, tối đa 3 lượt, RAW nguyên byte, prompt tự sinh, phiếu chặn / nhẹ / đẹp theo khối hướng) nhưng dùng bộ `phuthe-sheet-*`: tờ có **hình nộm LPC** màu khóa đính kèm (`phuthe-sheet-prompt.mjs` ghi bảng nộm cạnh prompt), RAW ở `art/src/phuthe-anim/<id>/`, kiểm `npm run phuthe:check -- <võ hồn>`, cắt `phuthe-sheet-cut.mjs` (ra hai nửa `vhanim_<id>_b` / `_f`), xem trước `phuthe-sheet-preview.mjs`, sổ `npm run phuthe:status`, bài học `art/src/phuthe-anim/lessons.md`. Một võ hồn có khối chặn thì **không nhập cả võ hồn** (giữ nhánh cũ).
