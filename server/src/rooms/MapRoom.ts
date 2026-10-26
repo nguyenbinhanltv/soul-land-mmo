@@ -74,6 +74,8 @@ import * as bones from "./bones.ts";
 import * as social from "./social.ts";
 import * as shop from "./shop.ts";
 import * as gm from "./gm.ts";
+import * as tong from "./tong.ts";
+import * as quest from "./quest.ts";
 
 export interface PData {
   /** Hồn thú đang khoá (M3 #750, rooms/lock.ts); "" = không khoá. */
@@ -2621,18 +2623,8 @@ export class MapRoom extends Room<MapState> {
     return best;
   }
 
-  /** Nói chuyện với NPC `raw` (mã trong NPCS): đứng đủ gần thì gửi riêng tin `npc {id}` để client mở hộp thoại (lời thoại ở NPCS). */
-  talkNpc(id: string, raw: unknown) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
-    const def = npcDef(raw), spot = def && this.map.npcs.find((n) => n.id === def.id);
-    if (!def || !spot) return this.log(id, "Không có NPC này ở đây.", "#ffb35c");
-    if (p.dead) return this.log(id, "Đã gục ngã, không thể nói chuyện.", "#ffb35c");
-    if (!this.npcNear(id, { id: def.id })) return this.log(id, `Hãy lại gần ${def.name} hơn để nói chuyện.`, "#ffb35c");
-    this.questEvent(id, { k: "talk", npc: def.id, map: this.state.mapId }); // 6.2: trước tin npc để hộp thoại mở ra với tiến độ mới
-    if (def.role === "tong") this.sendTong(id); // #196: trước tin npc để hộp thoại có trạng thái tông
-    if (def.role === "looks") this.sendLooksInfo(id); // L4 (#511): số lần đã đổi, để hộp thoại hiện giá
-    this.clients.getById(id)?.send("npc", { id: def.id });
-  }
+  /** Nói chuyện với NPC (xem rooms/quest.ts): gửi tin riêng `npc {id}` để client mở hộp thoại. */
+  talkNpc(id: string, raw: unknown) { quest.talkNpc(this, id, raw); }
 
   // ---------- Đổi ngoại hình ở thợ may (L4 #511, mục 5.11) ----------
   /** Tin riêng `looksinfo`: số lần đã đổi (giá lần kế tiếp client tính bằng looksChangeCost, số ở shared/data.ts); `err` = lý do từ chối lần đổi vừa gửi. */
@@ -2705,179 +2697,8 @@ export class MapRoom extends Room<MapState> {
     return true;
   }
 
-  /**
-   * Tin client `tong {op, tong}`: `join` gia nhập hoặc đổi sang tông `tong` (đứng gần sứ giả của tông đó; xong chuỗi tân thủ, võ hồn
-   * cao nhất từ TONG_MIN_LEVEL, từ lần gia nhập trước đủ TONG_SWITCH_DAYS ngày; xoá điểm tuần hiện tại), `leave` rời tông (đứng gần
-   * một sứ giả; giữ `tongAt` nên không rời rồi vào tông khác để lách thời gian chờ). Ghi DB qua chuỗi lưu. Từ #197: `accept` / `turnin`
-   * tông vụ `chain` (tongTaskAction), `board` xin bảng tông tuần (tongBoard), `claim` nhận thưởng tuần trước (tongClaim), `get` xin lại tin.
-   */
-  tongAction(id: string, op: unknown, raw: unknown, chain?: unknown) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
-    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendTong(id); };
-    if (op === "get") return this.sendTong(id);
-    if (op === "accept" || op === "turnin") return this.tongTaskAction(id, op, chain);
-    if (op === "board") return this.tongBoard(id);
-    if (op === "claim") return this.tongClaim(id);
-    if (op !== "join" && op !== "leave") return warn("Thao tác tông môn không hợp lệ.");
-    if (p.dead) return warn("Đã gục ngã, không thể nói chuyện.");
-    if (op === "leave") {
-      if (!d.tong) return warn("Ngươi chưa thuộc tông môn nào.");
-      if (!this.npcNear(id, { role: "tong" })) return warn("Hãy lại gần sứ giả tông môn để rời tông.");
-      if (d.tongBusy) return warn("Đang xử lý lệnh tông môn trước, đợi một chút.");
-      const old = tongDef(d.tong)!;
-      this.tongWrite(id, d, () => store.setTong(d.accountId, null, null, tongWeek(this.tongNow())), () => {
-        d.tong = null; p.tong = 0; d.tongPend = [];
-        this.log(id, `Ngươi đã rời ${old.name}; điểm tuần này đã bỏ.`, old.col);
-        this.sendTong(id);
-      });
-      return;
-    }
-    const t = tongDef(raw);
-    if (!t) return warn("Tông môn không tồn tại.");
-    const npc = npcDef(t.npc)!;
-    if (!this.npcNear(id, { id: t.npc })) return warn(`Hãy lại gần ${npc.name} hơn để gia nhập.`);
-    if (d.tong === t.id) return warn(`Ngươi đã là người của ${t.name}.`);
-    if (questStatus(d.quest) !== "done") return warn(`Hãy hoàn thành chuỗi "Bài học của Đại Sư" trước khi gia nhập tông môn.`);
-    if (Math.max(p.level, ...d.owned.map((v) => v.level)) < TONG_MIN_LEVEL) return warn(`Cần võ hồn cấp ${TONG_MIN_LEVEL} trở lên để gia nhập tông môn.`);
-    const now = Date.now();
-    if (d.tongAt !== null && now < d.tongAt + TONG_SWITCH_DAYS * 86400000)
-      return warn(`Mới gia nhập gần đây: còn ${Math.ceil((d.tongAt + TONG_SWITCH_DAYS * 86400000 - now) / 86400000)} ngày nữa mới đổi được tông.`);
-    if (d.tongBusy) return warn("Đang xử lý lệnh tông môn trước, đợi một chút.");
-    const from = d.tong ? tongDef(d.tong) : null;
-    this.tongWrite(id, d, () => store.setTong(d.accountId, t.id, now, tongWeek(this.tongNow())), () => {
-      d.tong = t.id; d.tongAt = now; d.tongPend = []; p.tong = TONG_MON.findIndex((x) => x.id === t.id) + 1;
-      this.log(id, from ? `Ngươi đã rời ${from.name} và gia nhập ${t.name}; điểm tuần này đã bỏ.` : `Chúc mừng, ngươi đã gia nhập ${t.name}!`, t.col);
-      this.questEvent(id, { k: "tong" }); // #286: gia nhập hoặc đổi tông
-      this.sendTong(id);
-    });
-  }
-
-  /**
-   * Gia nhập / rời tông (#796): ghi DB trong chuỗi lưu TRƯỚC, chỉ khi ghi xong mới chạy `apply` (đổi bộ nhớ, báo, gửi tin). Ghi lỗi thì bộ nhớ giữ nguyên,
-   * báo lỗi và gửi lại tin tông (không lệch DB, không báo "đã gia nhập" khi chưa lưu). `tongBusy` chặn lệnh tông thứ hai trong lúc chờ (kể cả khi
-   * chuỗi bị bỏ qua sau `/gm preset`: cờ nhả ở `.then`).
-   */
-  tongWrite(id: string, d: PData, write: () => Promise<void>, apply: () => void) {
-    d.tongBusy = true;
-    this.chain(d, async () => {
-      try { await write(); }
-      catch (err) { this.log(id, "Không lưu được thay đổi tông môn, hãy thử lại sau.", "#ffb35c"); this.sendTong(id); throw err; }
-      if (this.pdata.get(id) === d && this.state.players.get(id)) apply();
-    }).then(() => { d.tongBusy = false; });
-  }
-
-  /**
-   * Nhận / trả tông vụ `chainId` hôm nay (#197): phải thuộc một tông, đứng trong NPC_RANGE của sứ giả **tông mình**, không gục. Như
-   * dailyAction: mục tiêu `give` bớt đồ khỏi túi lúc trả (rẻ nhất trước). Trả bài: Hồn Tệ của mẫu, rồi trong chuỗi lưu ghi túi (bài đã
-   * xong, Hồn Tệ, đồ đã nộp) và **chỉ khi đã ghi** mới cộng TONG_POINTS điểm vào tuần hiện tại của tông đang thuộc (tong_points), nên ghi
-   * lỗi thì không có điểm, bài vẫn trả lại được.
-   */
-  tongTaskAction(id: string, op: "accept" | "turnin", chainId: unknown) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
-    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendTong(id); };
-    this.tongFresh(d);
-    const t = d.tong ? tongDef(d.tong) : undefined;
-    if (!t) return warn("Chỉ người trong tông môn mới nhận được tông vụ.");
-    const i = typeof chainId === "string" ? d.tongTasks.findIndex((q) => q.chain === chainId) : -1;
-    if (i < 0) return warn("Tông vụ đó đã hết hạn: hôm nay có bài mới.");
-    const npc = npcDef(t.npc)!, verb = op === "accept" ? "nhận" : "trả";
-    if (p.dead) return warn("Đã gục ngã, không thể nói chuyện.");
-    if (!this.npcNear(id, { id: t.npc })) return warn(`Hãy lại gần ${npc.name} (sứ giả ${t.name}) để ${verb} tông vụ.`);
-    const step = questChain(d.tongTasks[i].chain)!.steps[0];
-    this.dailyGive(d, d.tongTasks);
-    const st = questStatus(d.tongTasks[i]);
-    if (st === "done") return warn(`Đã xong "${step.name}" hôm nay: mai có tông vụ mới.`);
-    if (op === "accept") {
-      if (st !== "offer") return warn(`Đang làm "${step.name}": xong rồi quay lại trả bài.`);
-      d.tongTasks[i] = { chain: d.tongTasks[i].chain, step: 0, accepted: true, prog: step.goals.map(() => 0) };
-      d.bagDirty = true;
-      this.dailyGive(d, d.tongTasks);
-      this.log(id, `Nhận tông vụ "${step.name}": ${step.desc}`, t.col);
-      if (questStatus(d.tongTasks[i]) === "ready") this.log(id, `Đã đạt sẵn mục tiêu của "${step.name}": trả bài ngay để nhận thưởng.`, "#86e0b0");
-      this.sendTong(id);
-      this.saveTrade(id, d);
-      return;
-    }
-    if (st === "offer") return warn(`Chưa nhận "${step.name}".`);
-    if (st !== "ready") return warn(`Chưa xong "${step.name}": ${step.goals.map((g, k) => `${g.text} ${d.tongTasks[i].prog[k] ?? 0}/${g.n}`).join(", ")}.`);
-    const gives = step.goals.some((g) => g.k === "give");
-    if (gives && claimHeld(d)) return warn(CLAIM_BUSY); // #165: như bán / bỏ đồ
-    if (gives) d.bag = d.bag.map((it) => ({ ...it }));
-    for (const g of step.goals) {
-      if (g.k !== "give" || !g.item) continue;
-      let left = g.n;
-      for (const it of this.giveItems(d, g.item)) { if (left <= 0) break; const n = Math.min(left, it.qty); this.takeItem(d, it, n); left -= n; }
-    }
-    this.addCoin(d, step.reward.honTe);
-    d.tongTasks[i] = { chain: d.tongTasks[i].chain, step: 1, accepted: false, prog: [] };
-    d.bagDirty = true;
-    const week = tongWeek(this.tongNow()), tong = t.id;
-    const given = step.goals.filter((g) => g.k === "give").map((g) => `${g.n} ${itemDef(g.item ?? "")?.name ?? g.item}`).join(", ");
-    this.log(id, `Trả tông vụ "${step.name}"${given ? ` (nộp ${given})` : ""}: nhận ${formatHonTe(step.reward.honTe)} và ${TONG_POINTS} điểm ${t.name}.`, "#f2c84b");
-    this.sendBag(id);
-    this.sendTong(id);
-    d.tongPend.push({ week, tong, n: TONG_POINTS });
-    this.saveTrade(id, d);
-  }
-
-  /**
-   * Tin riêng `tongBoard` (#197), cách nhau TONG_BOARD_CD giây: tuần hiện tại (`week`, bảng `cur`: điểm trung bình thành viên hoạt động
-   * từng tông và top TONG_TOP_N cá nhân mỗi tông, điểm của mình `me`), và tuần trước (`last`: bảng, tông hạng 1, điểm của mình, phần
-   * thưởng `reward` top / rest / null = không hoạt động, đã nhận `claimed`).
-   */
-  tongBoard(id: string, force = false) {
-    const d = this.pdata.get(id); if (!d) return;
-    const now = Date.now(); if (!force && now - d.tongBoardAt < TONG_BOARD_CD * 1000) return;
-    d.tongBoardAt = now;
-    const week = tongWeek(this.tongNow()), last = week - 7;
-    Promise.all([store.tongBoard(week, TONG_WEEK_MIN, TONG_TOP_N), store.tongBoard(last, TONG_WEEK_MIN, TONG_TOP_N), store.tongPoints(d.accountId, week),
-      store.tongPoints(d.accountId, last), store.bossClaims(d.accountId, tongWeekDay(last), TONG_WEEK_KIND)]).then(([cur, prev, mine, mineLast, claimed]) => {
-      const first = tongTop(prev.tongs), active = !!mineLast && mineLast.points >= TONG_WEEK_MIN;
-      this.clients.getById(id)?.send("tongBoard", { week, min: TONG_WEEK_MIN, cur, me: mine && mine.tong === d.tong ? mine.points : 0,
-        last: { week: last, board: prev, first, tong: mineLast?.tong ?? "", points: mineLast?.points ?? 0,
-          reward: active ? (first.includes(mineLast!.tong) ? "top" : "rest") : null, claimed: claimed > 0 } });
-    }, (e) => console.error("Không đọc được bảng tông môn", e));
-  }
-
-  /**
-   * Nhận thưởng tuần trước (#197) ở một sứ giả tông môn, đúng một lần: thành viên hoạt động tuần trước (từ TONG_WEEK_MIN điểm ở tông khi
-   * đó) nhận TONG_WEEK_REWARD.top nếu tông đó hạng 1 tuần trước (tongTop), không thì `rest`. Như đổi mảnh ở Thương hội (#282): trong
-   * chuỗi lưu, cộng thưởng vào túi rồi ghi lượt (boss_claims loại TONG_WEEK_KIND, ngày thứ Hai của tuần được thưởng) cùng túi trong một
-   * transaction (claimBoss); đã nhận / lỗi thì trả lại túi như cũ. Túi không đủ chỗ cho mảnh thì từ chối (không mất lượt).
-   */
-  tongClaim(id: string) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
-    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.tongBoard(id, true); };
-    if (p.dead) return warn("Đã gục ngã, không thể nói chuyện.");
-    if (!this.npcNear(id, { role: "tong" })) return warn("Hãy lại gần sứ giả tông môn để nhận thưởng tuần.");
-    if (claimHeld(d)) return warn(CLAIM_BUSY);
-    d.claimBusy++;
-    this.chain(d, async () => {
-      const last = tongWeek(this.tongNow()) - 7, day = tongWeekDay(last);
-      const mine = await store.tongPoints(d.accountId, last);
-      if (!mine || mine.points < TONG_WEEK_MIN) return warn(`Tuần trước ngươi chưa đủ ${TONG_WEEK_MIN} điểm tông (có ${mine?.points ?? 0}): không có thưởng tuần.`);
-      const t = tongDef(mine.tong), board = await store.tongBoard(last, TONG_WEEK_MIN, 0);
-      const top = tongTop(board.tongs).includes(mine.tong), R = top ? TONG_WEEK_REWARD.top : TONG_WEEK_REWARD.rest;
-      const code = shardCode(ARENA_SHARDS[Math.floor(Math.random() * ARENA_SHARDS.length)]), def = itemDef(code)!;
-      if (this.bagRoom(d, code) < R.shards) return warn(`Túi đồ không đủ chỗ cho ${R.shards} ${def.name}: bỏ hoặc bán bớt đồ rồi nhận lại.`);
-      const coin0 = d.honTe;
-      this.addCoin(d, R.honTe); this.addItem(d, code, R.shards); d.bagDirty = true;
-      const takeBack = () => {
-        d.honTe = coin0; d.bagDirty = true;
-        let n = R.shards;
-        for (const x of d.bag.filter((i) => i.code === code && i.vohonId === null).reverse()) { const k = Math.min(n, x.qty); this.takeItem(d, x, k); n -= k; if (!n) break; }
-      };
-      let n: number | null;
-      try { n = await store.claimBoss(d.accountId, day, TONG_WEEK_KIND, 1, this.bagSnapshot(d)); }
-      catch (e) { takeBack(); warn("Không lưu được lần nhận thưởng tuần, thử lại sau."); throw e; }
-      if (n === null) { takeBack(); return warn("Đã nhận thưởng tuần trước rồi."); }
-      this.log(id, `Thưởng tuần ${t?.name ?? mine.tong}${top ? " (tông hạng nhất)" : ""}: ${formatHonTe(R.honTe)} và ${R.shards} ${def.name}.`, t?.col ?? "#f2c84b");
-      this.tongBoard(id, true);
-    }).then(() => {
-      d.claimBusy--;
-      if (this.pdata.get(id) === d) this.sendBag(id);
-    });
-  }
+  /** Tin client `tong` (xem rooms/tong.ts): gia nhập / rời tông, tông vụ, bảng tuần, thưởng tuần. */
+  tongAction(id: string, op: unknown, raw: unknown, chain?: unknown) { tong.tongAction(this, id, op, raw, chain); }
 
   /**
    * Thương nhân để mua / bán / mua lại / mở rộng túi (#111): `rawNpc` là mã thương nhân client đang mở hộp thoại (thiếu thì thương nhân
@@ -2998,52 +2819,8 @@ export class MapRoom extends Room<MapState> {
     return [questRewardText({ ...r, bones: [] }), ...bones].filter(Boolean).join(", ");
   }
 
-  /**
-   * Nhận (`accept`) / trả (`turnin`) bước đang làm của chuỗi tân thủ, hoặc xin tiến độ (`get`). Nhận và trả chỉ khi NPC giao nhiệm vụ
-   * có ở bản đồ này, người chơi không gục, không đang chuyển bản đồ và đứng trong NPC_RANGE (như 6.1). Nhận: mục tiêu `have` đã đạt
-   * sẵn thì tính xong ngay. Trả: đủ mọi mục tiêu và túi đủ chỗ cho cả phần thưởng (không thì từ chối hết), Hồn Tệ, vật phẩm và
-   * hồn cốt (grantReward) vào túi, sang bước kế (chưa nhận; bước đã trả không trả lại được); ghi ngay qua chuỗi lưu, cùng một lần ghi
-   * với túi đồ.
-   */
-  questAction(id: string, op: unknown, chainId?: unknown) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
-    if (op === "get") return this.askQuest(id);
-    if (typeof chainId === "string" && isDaily(chainId)) return this.dailyAction(id, op, chainId);
-    const q = this.fixedQuest(d, typeof chainId === "string" ? chainId : QUEST_STARTER), chain = q && questChain(q.chain); if (!q || !chain) return;
-    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendQuest(id, undefined, undefined, q.chain); };
-    if (op !== "accept" && op !== "turnin") return warn("Thao tác nhiệm vụ không hợp lệ.");
-    const giver = npcDef(chain.giver)!, verb = op === "accept" ? "nhận" : "trả";
-    if (!this.map.npcs.some((n) => n.id === chain.giver)) return warn(`${giver.name} không ở đây: tới ${MAPS[chain.map].name} để ${verb} nhiệm vụ.`);
-    if (p.dead) return warn("Đã gục ngã, không thể nói chuyện.");
-    if (!this.npcNear(id, { id: chain.giver })) return warn(`Hãy lại gần ${giver.name} hơn để ${verb} nhiệm vụ.`);
-    const st = questStatus(q), step = chain.steps[q.step];
-    if (st === "done") return warn(`Đã học xong cả chuỗi "${chain.name}".`);
-    if (!this.questOpen(d, chain.id)) return warn(`Chưa mở chuỗi "${chain.name}": hoàn thành chuỗi "${questChain(QUEST_AFTER[chain.id])?.name}" trước.`);
-    if (op === "accept") {
-      if (st !== "offer") return warn(`Đang làm "${step.name}": xong rồi quay lại trả nhiệm vụ.`);
-      Object.assign(q, { accepted: true, prog: step.goals.map((g) => (g.have && this.questHave(d, g) ? g.n : 0)) });
-      d.bagDirty = true;
-      this.log(id, `Nhận nhiệm vụ "${step.name}" (bài ${q.step + 1}/${chain.steps.length}): ${step.desc}`, giver.col);
-      const ready = questStatus(q) === "ready";
-      if (ready) this.log(id, `Đã đạt sẵn mục tiêu của "${step.name}": trả nhiệm vụ ngay để nhận thưởng.`, "#86e0b0");
-      this.sendQuest(id, ready ? "ready" : "accept", undefined, q.chain);
-      this.saveTrade(id, d);
-      return;
-    }
-    if (st === "offer") return warn(`Chưa nhận "${step.name}".`);
-    if (st !== "ready") return warn(`Chưa xong "${step.name}": ${step.goals.map((g, i) => `${g.text} ${q.prog[i] ?? 0}/${g.n}`).join(", ")}.`);
-    if (!this.rewardFits(d, step.reward))
-      return warn(`Túi đồ không đủ chỗ cho phần thưởng (${questRewardText(step.reward)}): bỏ hoặc bán bớt đồ trước.`);
-    const got = this.grantReward(d, step.reward);
-    Object.assign(q, { step: q.step + 1, accepted: false, prog: [] });
-    d.bagDirty = true;
-    this.log(id, `Trả nhiệm vụ "${step.name}": nhận ${got}.`, "#f2c84b");
-    const finish = questStatus(q) === "done";
-    if (finish) this.log(id, `Hoàn thành chuỗi nhiệm vụ "${chain.name}"!`, giver.col);
-    this.sendBag(id);
-    this.sendQuest(id, finish ? "finish" : "reward", step.id, q.chain);
-    this.save(id); // phần thưởng và bước mới ghi ngay, cùng một lần ghi túi đồ
-  }
+  /** Tin client `quest` (xem rooms/quest.ts): nhận / trả bước chuỗi nhiệm vụ, hoặc xin tiến độ; `chainId` khảo hạch thì chuyển `dailyAction`. */
+  questAction(id: string, op: unknown, chainId?: unknown) { quest.questAction(this, id, op, chainId); }
 
   // ---------- Khảo hạch hằng ngày của Phất Lan Đức (mục 5.8 "Nhiệm vụ hằng ngày") ----------
   /**
@@ -3114,64 +2891,8 @@ export class MapRoom extends Room<MapState> {
     if (ready >= 0) this.log(id, `Đã đủ đồ cho khảo hạch "${questChain(d.daily[ready].chain)?.steps[0].name}": mang tới nộp cho ${npcDef(DAILY.giver)?.name} ở ${MAPS[DAILY.map].name}.`, "#86e0b0");
     this.sendDaily(id, ready >= 0 ? "ready" : undefined, ready);
   }
-  /**
-   * Nhận / trả bài khảo hạch `chainId` của hôm nay: như questAction (NPC DAILY.giver có ở bản đồ này, không gục, đứng trong NPC_RANGE).
-   * Trả bài: đủ mục tiêu; mục tiêu `give` bớt đồ khỏi túi trước (rẻ nhất trước) rồi mới kiểm tra túi đủ chỗ cho phần thưởng (thiếu thì
-   * trả lại túi như cũ, giữ tiến độ). Bài của ngày đã qua thì từ chối. Ghi ngay qua chuỗi lưu như questAction.
-   */
-  dailyAction(id: string, op: unknown, chainId: string) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
-    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendDaily(id); };
-    if (this.dailyFresh(d)) this.sendDaily(id, "reset");
-    const i = d.daily.findIndex((q) => q.chain === chainId);
-    if (i < 0) return warn(`Bài khảo hạch đó đã hết hạn: hôm nay ${npcDef(DAILY.giver)?.name} ra bài mới.`);
-    if (op !== "accept" && op !== "turnin") return warn("Thao tác nhiệm vụ không hợp lệ.");
-    const giver = npcDef(DAILY.giver)!, verb = op === "accept" ? "nhận" : "trả";
-    if (!this.map.npcs.some((n) => n.id === DAILY.giver)) return warn(`${giver.name} không ở đây: tới ${MAPS[DAILY.map].name} để ${verb} khảo hạch.`);
-    if (p.dead) return warn("Đã gục ngã, không thể nói chuyện.");
-    if (!this.npcNear(id, { id: DAILY.giver })) return warn(`Hãy lại gần ${giver.name} hơn để ${verb} khảo hạch.`);
-    const step = questChain(chainId)!.steps[0];
-    this.dailyGive(d);
-    const st = questStatus(d.daily[i]);
-    if (st === "done") return warn(`Đã xong "${step.name}" hôm nay: mai có bài mới.`);
-    if (op === "accept") {
-      if (st !== "offer") return warn(`Đang làm "${step.name}": xong rồi quay lại trả bài.`);
-      d.daily[i] = { chain: chainId, step: 0, accepted: true, prog: step.goals.map(() => 0) };
-      d.bagDirty = true;
-      this.dailyGive(d);
-      this.log(id, `Nhận khảo hạch "${step.name}": ${step.desc}`, giver.col);
-      const ready = questStatus(d.daily[i]) === "ready";
-      if (ready) this.log(id, `Đã đạt sẵn mục tiêu của "${step.name}": trả bài ngay để nhận thưởng.`, "#86e0b0");
-      this.sendDaily(id, ready ? "ready" : "accept", i);
-      this.saveTrade(id, d);
-      return;
-    }
-    if (st === "offer") return warn(`Chưa nhận "${step.name}".`);
-    if (st !== "ready") return warn(`Chưa xong "${step.name}": ${step.goals.map((g, k) => `${g.text} ${d.daily[i].prog[k] ?? 0}/${g.n}`).join(", ")}.`);
-    const gives = step.goals.some((g) => g.k === "give");
-    if (gives && claimHeld(d)) return warn(CLAIM_BUSY); // #165: như bán / bỏ đồ
-    // Nộp vật phẩm trên bản sao túi: túi không đủ chỗ cho phần thưởng thì trả lại túi cũ. Bài không nộp đồ thì không chép túi (#165:
-    // các món đang chờ DB xác nhận, như phần thưởng boss, giữ nguyên đối tượng).
-    const keep = d.bag, dirty = d.bagDirty;
-    if (gives) d.bag = d.bag.map((it) => ({ ...it }));
-    for (const g of step.goals) {
-      if (g.k !== "give" || !g.item) continue;
-      let left = g.n;
-      for (const it of this.giveItems(d, g.item)) { if (left <= 0) break; const n = Math.min(left, it.qty); this.takeItem(d, it, n); left -= n; }
-    }
-    if (!this.rewardFits(d, step.reward)) {
-      d.bag = keep; d.bagDirty = dirty;
-      return warn(`Túi đồ không đủ chỗ cho phần thưởng (${questRewardText(step.reward)}): bỏ hoặc bán bớt đồ trước.`);
-    }
-    const got = this.grantReward(d, step.reward);
-    d.daily[i] = { chain: chainId, step: 1, accepted: false, prog: [] };
-    d.bagDirty = true;
-    const given = step.goals.filter((g) => g.k === "give").map((g) => `${g.n} ${itemDef(g.item ?? "")?.name ?? g.item}`).join(", ");
-    this.log(id, `Trả khảo hạch "${step.name}"${given ? ` (nộp ${given})` : ""}: nhận ${got}.`, "#f2c84b");
-    this.sendBag(id);
-    this.sendDaily(id, "reward", i);
-    this.save(id); // phần thưởng, đồ đã nộp và bài đã xong ghi ngay, cùng một lần ghi túi đồ
-  }
+  /** Nhận / trả bài khảo hạch hằng ngày (xem rooms/quest.ts). */
+  dailyAction(id: string, op: unknown, chainId: string) { quest.dailyAction(this, id, op, chainId); }
 
   // ---------- Đại Đấu Hồn Trường: xếp hàng ở NPC, bảng xếp hạng (mục 5.9, bước 7.2; trận đấu ở ArenaRoom) ----------
   /**

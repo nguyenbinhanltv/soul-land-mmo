@@ -2,6 +2,8 @@
 //   node tools/assets/beast-sheet-preview.mjs --species phong_lang --dir <thư mục beast-sheet-cut> [--scale 3]
 // Đọc <dir>/<loài>_anim.png + manifest-entry.json, ghi <dir>/preview/index.html, gif/<hoạt ảnh>_<hướng>.gif, tinh/<hướng>.png.
 // Hướng tây (sw / w / nw) hiện bằng lật ngang bằng CSS như client sẽ làm.
+// Thêm trang <dir>/preview/xoay-vong.html (#866): GIF xoay vòng hướng s→se→e→ne→n (khung đại diện từng hướng) cạnh ảnh tĩnh s / e / n,
+// và lưới so cạnh từng hành động theo hướng có la bàn, để thấy ngay se≈e, n lộ mặt, hurt ngửa bụng.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,6 +14,10 @@ import { DIRS, DIR_VI, ANIMS, ANIM_VI, speciesInfo } from "./beast-sheet-lib.mjs
 const MS = { idle: 170, walk: 100, attack: 90, hurt: 120, die: 170 };
 /** Khung tĩnh theo hướng 5 (STATIC_DIR_MAP trong client/src/sprites.ts: se → đông, ne → bắc). */
 const STATIC_COL = { s: 0, se: 1, e: 1, ne: 2, n: 2 };
+/** Khung đại diện từng hoạt ảnh khi xoay vòng hướng (hurt: khung trúng đòn; die: khung cuối; còn lại khung giữa nhịp). */
+const POSE = { idle: 0, walk: 1, attack: 2, hurt: 1, die: 3 };
+/** Góc la bàn (độ, 0 = lên trên màn hình, theo chiều kim đồng hồ) của 5 hướng vẽ thật. */
+const COMPASS = { s: 180, se: 135, e: 90, ne: 45, n: 0 };
 const FLIPPED = [["sw", "se"], ["w", "e"], ["nw", "ne"]];
 
 function lzw(idx, minBits) {
@@ -60,6 +66,23 @@ export function encodeGif(frames, ms, k, hold = 0) {
 const crop = (src, x0, y0, w, h) => { const im = new Img(w, h); im.blit(src, x0, y0, w, h, 0, 0); return im; };
 const bigger = (im, k) => { const o = new Img(im.w * k, im.h * k); for (let y = 0; y < o.h; y++) for (let x = 0; x < o.w; x++) o.set(x, y, im.get((x / k) | 0, (y / k) | 0)); return o; };
 
+const compass = (d) => `<svg viewBox="-12 -12 24 24" width="22" height="22"><circle r="10" fill="none" stroke="#6a5f78"/><path d="M0 -8L4 3L0 1L-4 3Z" fill="#e8c870" transform="rotate(${COMPASS[d]})"/></svg>`;
+
+/** Trang xoay vòng hướng + lưới so cạnh từng hành động (5 hướng vẽ thật, ảnh tĩnh s / e / n làm chuẩn). */
+function turnaroundHtml(info, species, F, k, staticOk) {
+  const px = F * k, img = (src, alt) => `<img class="g" src="${src}" width="${px}" height="${px}" alt="${alt}">`;
+  const still = staticOk ? ["s", "e", "n"].map((d) => `<figure>${img(`tinh/${d}.png`, `tĩnh ${d}`)}<figcaption>${compass(d)} ảnh tĩnh ${d}</figcaption></figure>`).join("") : '<p class="n">Loài chưa có ảnh tĩnh để đối chiếu.</p>';
+  const row = (anim) => `<h2>${ANIM_VI[anim]} <small>(${anim})</small></h2><div class="r"><figure class="big">${img(`gif/xoay_${anim}.gif`, `xoay ${anim}`)}<figcaption>xoay vòng s→se→e→ne→n</figcaption></figure>${DIRS.map((d) => `<figure>${img(`gif/${anim}_${d}.gif`, `${anim} ${d}`)}<figcaption>${compass(d)} ${d} · ${DIR_VI[d]}</figcaption></figure>`).join("")}</div>`;
+  return `<!doctype html><html lang="vi"><meta charset="utf-8"><title>Xoay vòng hướng ${info.name}</title>
+<style>body{background:#2a2430;color:#e8dfc8;font:13px/1.4 sans-serif;margin:16px}h1{font-size:18px}h2{font-size:15px;margin:18px 0 6px}a{color:#e8c870}figure{margin:0;text-align:center}figcaption{color:#9a8fa8;display:flex;gap:4px;align-items:center;justify-content:center}.r{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end}img.g{image-rendering:pixelated;display:block;background:repeating-conic-gradient(#352d3d 0 25%,#2f2837 0 50%) 0 0/16px 16px}.big img.g{outline:2px solid #e8c870}.n{color:#9a8fa8;margin:6px 0 12px}</style>
+<h1>${info.name} <small>(${species}, khung ${F}×${F}, phóng ×${k})</small>: xoay vòng hướng</h1>
+<p class="n"><a href="index.html">← Trang đủ 8 hướng</a>. Khung viền vàng xoay qua 5 hướng vẽ thật: nếu <b>se</b> ≈ <b>e</b> thì hình gần như đứng yên giữa hai nhịp; <b>n</b> / <b>ne</b> phải quay lưng (không lộ mặt); <b>hurt</b> phải lùi theo hướng, không ngửa bụng hay quay mặt; <b>die</b> giữ hướng.</p>
+<h2>Ảnh tĩnh để đối chiếu</h2><div class="r">${still}</div>
+${ANIMS.map(([a]) => row(a)).join("\n")}
+</html>
+`;
+}
+
 /** Dựng trang xem trước vào `<dir>/preview`; trả đường dẫn index.html. */
 export function buildPreview(species, dir, scaleArg) {
   const info = speciesInfo(species), entry = JSON.parse(readFileSync(path.join(dir, "manifest-entry.json"), "utf8")), F = entry.frame[0];
@@ -77,6 +100,12 @@ export function buildPreview(species, dir, scaleArg) {
     for (const d of DIRS) writeFileSync(path.join(root, "tinh", `${d}.png`), encodePng(bigger(crop(st, STATIC_COL[d] * sf, 0, sf, sf), Math.max(1, Math.round((F * k) / sf)))));
     staticOk = true;
   }
+  // Xoay vòng: mỗi hoạt ảnh một GIF chạy qua 5 hướng (khung đại diện), giữ lâu mỗi hướng để mắt kịp nhìn.
+  for (const [anim] of ANIMS) {
+    const { band, col } = A.anims[anim];
+    const fr = DIRS.map((d) => crop(sheet, (col + POSE[anim]) * F, (DIRS.indexOf(d) * A.rowsPerDir + band) * F, F, F));
+    writeFileSync(path.join(root, "gif", `xoay_${anim}.gif`), encodeGif(fr, 700, k, 300));
+  }
   const cols = [...DIRS.map((d) => [d, d, false]), ...FLIPPED.map(([d, src]) => [d, src, true])];
   const cell = (anim, [d, src, flip]) => `<td><img class="g${flip ? " f" : ""}" src="gif/${anim}_${src}.gif" width="${F * k}" height="${F * k}" alt="${anim} ${d}"></td>`;
   const staticRow = staticOk ? `<tr class="st"><th>ảnh tĩnh hiện tại</th>${cols.map(([d, src, flip]) => `<td><img class="g${flip ? " f" : ""}" src="tinh/${src}.png" width="${F * k}" height="${F * k}" alt="tĩnh ${d}"></td>`).join("")}</tr>` : "";
@@ -89,7 +118,8 @@ ${staticRow}
 ${ANIMS.map(([anim]) => `<tr><th>${ANIM_VI[anim]}<br><small>${anim}</small></th>${cols.map((c) => cell(anim, c)).join("")}</tr>`).join("\n")}
 </table></html>
 `;
-  writeFileSync(path.join(root, "index.html"), html);
+  writeFileSync(path.join(root, "index.html"), html.replace("<table>", '<p class="n"><a href="xoay-vong.html" style="color:#e8c870">Trang xoay vòng hướng và so cạnh theo hành động →</a></p>\n<table>'));
+  writeFileSync(path.join(root, "xoay-vong.html"), turnaroundHtml(info, species, F, k, staticOk));
   return path.join(root, "index.html");
 }
 
