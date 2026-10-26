@@ -1,0 +1,159 @@
+{
+  "workerProvenance": {
+    "prompt": "Create ONE image, exactly 1024x1024 pixels: an animation sprite sheet of a single fantasy creature for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.\n\nCREATURE: Tuyết Vĩ Yêu Hồ - snow-tail demon fox, silver-grey fur with a huge fluffy pale grey tail, slender fox, pointed ears, standing on all four legs. Body type: thú bốn chân. Size class: Tím / Đen. The attached reference image shows this exact creature in three static views (front, side, back): keep the SAME design, proportions, colors, markings and overall size in every frame of the sheet. Do not redesign it.\n\nBACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.\n\nGRID: 6 columns x 8 rows of equal invisible cells (171x128 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with its feet (or lowest body point) standing on the same invisible ground line about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.\n\nLAYOUT (top to bottom):\nBlock 1 (rows 1-4): direction \"ne\" = facing the upper right of the picture (three-quarter back view, head away from the viewer toward the right).\n  row 1: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).\n  row 2: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).\n  row 3: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).\n  row 4: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.\nBlock 2 (rows 5-8): direction \"n\" = facing away from the viewer (back view from above).\n  row 5: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).\n  row 6: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).\n  row 7: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).\n  row 8: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.\n\nCONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, standing, walking and hurt frames keep the body at the same scale and the same ground line. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).\n\nSTYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.\n\nDO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions.\n\nDIRECTION AND POSE CLARIFICATION: Keep the exact creature anatomy of reference image 1; do not redesign it to match generic family wording. In every animation row, keep the specified direction. SE faces lower-right, clearly distinct from E side profile; NE faces upper-right with the back visible; N shows the rear in all four rows, including attack, hurt and death. HURT frames must visibly recoil backward. Keep a flat #FF00FF background, no letters, labels or grid lines. Request exactly 1024x1024 pixels. Match the creature design, colors, body size and line weight of reference image 2 (sheet A) exactly; preserve the same body size as A, not a larger body because B has fewer rows.",
+    "actual_prompt": {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/tuyet_vi_yeu_ho/tuyet_vi_yeu_ho-toB.actual.txt",
+      "sha256": "0a536743dcf1d6565a5fda01c675a40b3833b2ca503fcf4a863f942b3539e1ba",
+      "bytes": 4199
+    },
+    "base_prompt": {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/tuyet_vi_yeu_ho/tuyet_vi_yeu_ho-toB.base.txt",
+      "sha256": "6ff70c799fa48ba82d1a892e604d54dc063aee120f774f9a81c1b02a74c42e05",
+      "bytes": 3510
+    },
+    "generatorMD": {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/tuyet_vi_yeu_ho/tuyet_vi_yeu_ho-toB.md",
+      "sha256": "a1bd8fd1cec52366a4c91feb8d7c8d5d9e8d2002ecd6853d3163808fce75f94c",
+      "bytes": 6678
+    },
+    "ordered_references": [
+      {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-119/tuyet_vi_yeu_ho-A1/tuyet_vi_yeu_ho-static.png",
+        "sha256": "bc3b69cd69ce18b1c651dc0349cb439539ceff93100e0f711f4bd48382a162ef",
+        "bytes": 4237
+      },
+      {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-119/tuyet_vi_yeu_ho-A1/tuyet_vi_yeu_ho-toA-RAW.png",
+        "sha256": "d1e1fe1031e28f43ffb0de667105ae3475c1d3e4c392f47634039d650de81f00",
+        "bytes": 1981647
+      }
+    ],
+    "before_call_utc": "2026-10-26T02:08:23.633447+00:00",
+    "call_started_utc": "2026-10-26T02:08:35.138Z",
+    "call_finished_utc": "2026-10-26T02:09:13.882Z",
+    "prompt_utf8_bytes_at_call_verified": true,
+    "generator": "built-in image_gen",
+    "model": "UNKNOWN",
+    "seed": "UNKNOWN",
+    "original_tool_output_path": "/Users/thanhhoa/.codex/generated_images/01a175f6-dbce-7250-b6f4-b9c8a3201c6f/exec-ef7d60a4-3b0f-4173-9535-48c2d53b7073.png",
+    "requested_size": [
+      1024,
+      1024
+    ],
+    "size_selector_exposed": false,
+    "counters": {
+      "session_initial_calls": 1,
+      "session_retries": 0,
+      "species_prior_A119": 1,
+      "species_B1": 1,
+      "species_total": 2,
+      "B2": 0
+    },
+    "STOPGEN": "PERMANENT",
+    "known_issues": [
+      "Actual 1254x1254, not requested 1024x1024.",
+      "N attack/death rows turn to right-facing profile rather than rear throughout.",
+      "NE death drifts to side profile; hurt recoil not clearly shown.",
+      "A119 selected STYLE/BODY-SIZE ONLY; prior A heading/hurt FAIL; not accepted.",
+      "Exact body-size match to A not established; no art acceptance claimed."
+    ],
+    "slot_release": {
+      "before_metadata": true,
+      "recipients": [
+        "soul-land-mmo-113",
+        "soul-land-mmo-44"
+      ],
+      "initial_sandbox_denied": true,
+      "escalated_resend_success": true
+    },
+    "raw": {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-121/tuyet_vi_yeu_ho-B1/tuyet_vi_yeu_ho-toB-RAW.png",
+      "bytes": 1886173,
+      "sha256": "bfc8d53a6332b13310ce340572b608a6dbcb107233380854124c7b07080ce817",
+      "IHDR": {
+        "width": 1254,
+        "height": 1254,
+        "bit_depth": 8,
+        "color_type": 2,
+        "compression": 0,
+        "filter": 0,
+        "interlace": 0
+      }
+    },
+    "recorded_utc": "2026-10-26T02:10:14.666311+00:00",
+    "status": "FAIL_RAW_SUBMITTED"
+  },
+  "integration": {
+    "workerId": "121",
+    "originalWorkerHandoffPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-121/tuyet_vi_yeu_ho-B1/HANDOFF.md",
+    "originalWorkerMetadataPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-121/tuyet_vi_yeu_ho-B1/metadata.json",
+    "rawOriginalToolPath": "/Users/thanhhoa/.codex/generated_images/01a175f6-dbce-7250-b6f4-b9c8a3201c6f/exec-ef7d60a4-3b0f-4173-9535-48c2d53b7073.png",
+    "rawShippingPath": "art/src/beast-anim/tuyet_vi_yeu_ho/toB.png",
+    "rawSha256": "bfc8d53a6332b13310ce340572b608a6dbcb107233380854124c7b07080ce817",
+    "rawBytes": 1886173,
+    "IHDR": {
+      "width": 1254,
+      "height": 1254,
+      "bit_depth": 8,
+      "color_type": 2,
+      "payloadHex": "000004e6000004e60802000000"
+    },
+    "requestedSize": [
+      1024,
+      1024
+    ],
+    "exactActualPromptPath": "art/src/beast-anim/tuyet_vi_yeu_ho/toB.prompt.txt",
+    "exactActualPromptSha256": "0a536743dcf1d6565a5fda01c675a40b3833b2ca503fcf4a863f942b3539e1ba",
+    "basePromptPath": "art/src/beast-anim/tuyet_vi_yeu_ho/toB.base.txt",
+    "basePromptSha256": "6ff70c799fa48ba82d1a892e604d54dc063aee120f774f9a81c1b02a74c42e05",
+    "generatorPath": "tools/assets/beast-sheet-prompt.mjs",
+    "generatorSha256": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba",
+    "generatorMarkdownPath": "art/src/beast-anim/tuyet_vi_yeu_ho/tuyet_vi_yeu_ho-toB.md",
+    "generatorMarkdownSha256": "a1bd8fd1cec52366a4c91feb8d7c8d5d9e8d2002ecd6853d3163808fce75f94c",
+    "baseExtraction": {
+      "startByteZeroBased": 2148,
+      "endByteExclusive": 5658,
+      "trimmed": false
+    },
+    "clarifier": {
+      "position": "suffix",
+      "prefix": "",
+      "suffix": "\n\nDIRECTION AND POSE CLARIFICATION: Keep the exact creature anatomy of reference image 1; do not redesign it to match generic family wording. In every animation row, keep the specified direction. SE faces lower-right, clearly distinct from E side profile; NE faces upper-right with the back visible; N shows the rear in all four rows, including attack, hurt and death. HURT frames must visibly recoil backward. Keep a flat #FF00FF background, no letters, labels or grid lines. Request exactly 1024x1024 pixels. Match the creature design, colors, body size and line weight of reference image 2 (sheet A) exactly; preserve the same body size as A, not a larger body because B has fewer rows.",
+      "baseStartByteZeroBased": 0,
+      "suffixStartByteZeroBased": 3510
+    },
+    "generatorInputHashes": {
+      "tools/assets/beast-sheet-prompt.mjs": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba",
+      "tools/assets/beast-sheet-lib.mjs": "16f13e9bbabaedb495671d5cbfcab4cc0f30b8e9529cefe5e9c5ead919e914a7",
+      "tools/assets/lib.mjs": "9f478b04b1ccfd9ce5cf447be5038b668886b38035b8e9fcf0d603acbbd2dd7c",
+      "docs/art/hon-thu-hoat-anh.md": "be83e519cb7db7126b42781dc02b13b1d306bc286e1c3fca8e9cc65b2b8d83d1",
+      "art/CREDITS.md": "6be9a475ee6e46997a375e58ad4a6924878f9e9dfa30eb94d4933c393273fa61",
+      "shared/data.ts": "a79619376f595c4a9ef24ed280f919b63f2e05b7e6ec0c867992cb297fc1160a",
+      "client/src/sprites.ts": "d84f83626bad0309e2eecd665f4d82a997333d97f890f3588eb616643c3f1e66",
+      "shared/assets/sprites/manifest.json": "5c979fd4042514250cdc2e48e99d683ce8dc39331147bf4e8e183c3ab563775a"
+    },
+    "actualReferencesInToolOrder": [
+      {
+        "order": 1,
+        "role": "static identity (actual attached reference)",
+        "actualToolAttachedPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-119/tuyet_vi_yeu_ho-A1/tuyet_vi_yeu_ho-static.png",
+        "sha256": "bc3b69cd69ce18b1c651dc0349cb439539ceff93100e0f711f4bd48382a162ef"
+      },
+      {
+        "order": 2,
+        "role": "same-species A1 STYLE/body-size only; A1 RAWFAIL, not art accepted",
+        "actualToolAttachedPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-119/tuyet_vi_yeu_ho-A1/tuyet_vi_yeu_ho-toA-RAW.png",
+        "sha256": "d1e1fe1031e28f43ffb0de667105ae3475c1d3e4c392f47634039d650de81f00"
+      }
+    ],
+    "anatomyConflictAssessment": "Ảnh tĩnh có các hình hồ ly nghiêng, không đủ front/side/back như câu mẫu. Giữ tai dài, thân trắng và đuôi theo ảnh; không tự thiết kế lại.",
+    "callsThisFreshWorker": 1,
+    "retry": 0,
+    "speciesTotalAfterPair": 2,
+    "postprocessing": false,
+    "knownFailureLine": "LỖI: toB — size/heading/hurt — 1254×1254; N attack/death, NE death — N không giữ rear ở attack/death; NE death lệch side profile; hurt recoil chưa rõ.",
+    "artAccepted": false,
+    "runtimeAccepted": false,
+    "imported": false
+  }
+}
