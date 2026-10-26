@@ -1069,7 +1069,7 @@ export class MapRoom extends Room<MapState> {
     this.onLimitedMsg("read", "shardinfo", (c) => this.sendShardInfo(c.sessionId)); // #282: số mảnh đã đổi hôm nay cho trang Thương hội
     this.onLimitedMsg("trade", "buyback", (c, m: { key: unknown; npc: unknown }) => { void this.buybackItem(c.sessionId, m?.key, m?.npc).catch((e) => console.error("Lỗi mua lại", e)); }); // mua lại đồ vừa bán (9.8)
     this.onLimitedMsg("trade", "expand", (c, m: { npc: unknown }) => this.expandBag(c.sessionId, m?.npc)); // mở rộng túi (9.8)
-    this.onLimitedMsg("social", "party", (c, m: unknown) => { void this.partyAction(c.sessionId, m); }); // tổ đội người chơi (7.1)
+    this.onLimitedMsg("social", "party", (c, m: unknown) => { void this.partyAction(c.sessionId, m).catch((e) => console.error("Lỗi thao tác tổ đội", e)); }); // tổ đội người chơi (7.1)
     this.onLimitedMsg("social", "rally", (c, m: unknown) => this.rallyAction(c.sessionId, m)); // đánh dấu "Tập trung ở đây" cho tổ đội (R6 #433)
     this.onLimitedMsg("social", "quest", (c, m: { op: unknown; chain: unknown }) => this.questAction(c.sessionId, m?.op, m?.chain)); // nhiệm vụ (6.2; `chain` = khảo hạch hằng ngày)
     this.onLimitedMsg("social", "arena", (c, m: { op: unknown; roomId?: unknown }) => this.arenaAction(c.sessionId, m?.op, m?.roomId)); // Đại Đấu Hồn Trường (7.2)
@@ -2704,7 +2704,7 @@ export class MapRoom extends Room<MapState> {
       kingWarns.delete(ev.mapId);
       bg(presenceBackend.delete(`king-warn:${ev.mapId}`), "presence");
       this.broadcast("boss", this.bossMsg(ev, "spawn", 0));
-      if (ev.mapId === this.state.mapId) void this.spawnKing(ev.slot, ev.life, ev.king);
+      if (ev.mapId === this.state.mapId) void this.spawnKing(ev.slot, ev.life, ev.king).catch((e) => console.error("Lỗi sinh thú vương", e));
     }
   }
 
