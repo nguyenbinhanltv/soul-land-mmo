@@ -40,7 +40,7 @@ Phụ thể là thủ phạm chính: 100 ảnh × 2304×1152 × 4 byte ≈ **1 G
 
 1. **Phụ thể võ hồn tải theo nhu cầu** (`client/src/vohonLazy.ts`) — **đã làm ở PR đầu**. `preloadSprites` chỉ ghi spec; preload xin sheet của người đang trong phòng lúc vào; người tới sau / đổi võ hồn thì tải lười, lớp phụ thể ẩn tới khi tải xong; ảnh võ hồn trong bảng Đội hình / Nhân vật dựng lại khi sheet tới; tải lỗi hẳn thì dùng phụ thể vẽ bằng code như khi manifest thiếu ảnh. Ảnh hiển thị cuối cùng không đổi.
 2. **Pháp tướng `pt_*` theo nhu cầu** — **đã làm ở PR thứ hai**. Cùng cơ chế với bước 1 (`wantPhapTuong` trong `vohonLazy.ts`): `preloadSprites` chỉ ghi spec; sheet thân + lớp sáng `_glow` được xin khi có người trong phòng đang Chân Thân (`ava > 0`, lúc vào hoặc lúc `PhapTuongSystem.sync` thấy) và của chính mình (lúc vào / đổi võ hồn, để cut-in có ảnh). Chưa tải xong thì chưa dựng hình pháp tướng và không vẽ bản tạm (khỏi nháy); `setSlots` hỏi lại mỗi khung. Manifest không có ảnh / tải lỗi thì vẫn dùng sheet tạm bằng code. Ảnh hiển thị cuối cùng không đổi.
-3. **Hồn thú theo bản đồ**: manifest đã ghi `map` cho từng loài (`beast_*`); tải loài của bản đồ đang vào (cộng boss thế giới / thú vương xuất hiện ngoài bản đồ nhà). Cần đối chiếu với danh sách loài mỗi bản đồ ở `shared/data.ts` (đừng tải thiếu, loài thiếu rơi về hình vẽ code). 134 → khoảng 20–40 file.
+3. **Hồn thú theo loài trong tầm** — **đã làm ở PR thứ ba**. Cùng cơ chế với bước 1 / 2 (`wantBeast` trong `vohonLazy.ts`): `preloadSprites` chỉ ghi spec `beast_*` (cả `_anim` và normal map); preload xin loài của hồn thú đã có trong state lúc vào, hồn thú tới sau (đi vào tầm, boss / thú vương / thú gọi ra) xin lúc xuất hiện (vòng vẽ hồn thú ở `GameScene`). Chọn theo loài thật đang có trong tầm chứ không theo trường `map` của manifest, nên không bao giờ tải thiếu (loài ngoài bản đồ nhà vẫn có ảnh). Chưa tải xong thì ẩn sprite, tên, thanh máu, bóng (không vẽ bản tạm bằng code để khỏi nháy); sheet tới thì dựng animation / đo thân (`setBeastSheetHook` trong `sprites.ts`). Manifest không có ảnh / tải lỗi thì vẽ bằng code theo bậc như trước. Ảnh hiển thị cuối cùng không đổi.
 4. **Hiệu ứng `fx_*` theo nhu cầu**: 601 dải 1 hàng; tải khi hồn kỹ / hiệu ứng cần lần đầu, hoặc theo võ hồn trong đội (cả của người khác trong tầm). `playFx` đã trả `null` khi chưa có texture (nơi gọi giữ hiệu ứng vẽ code), nhưng lần dùng đầu sẽ không có ảnh nên cần xin trước (khi nhận đội hình / khi thấy người dùng võ hồn). Rủi ro cao hơn các bước trên vì đụng thị giác chiến đấu.
 5. **Không huỷ texture dùng chung khi đổi bản đồ** (giữ `Phaser.Game`, đổi scene; hoặc tạm giữ bộ nhớ đệm texture dùng chung): hồn sư, pháp tướng, fx, UI không giải mã lại. Lợi lớn nhất cho đổi bản đồ nhưng đụng `main.ts` / vòng đời scene (sự kiện `filecomplete-json-*` của manifest không bắn khi key đã có trong cache, cần xử lý), phải chạy bot `travel` + soak.
 6. **Gom atlas** (ảnh nhỏ, `tools/assets`): giảm số request / số texture cho vật đứng, ô nền; đã có `isoAtlas.ts` cho Light2D (nhiều trang từ #718).
@@ -83,3 +83,25 @@ Bước 2 bỏ 34 / 35 file `sprites/phaptuong` mỗi lần vào bản đồ (c�
 Mức thấp nhất của ba lượt (ít bị nhiễu nhất): vào game nóng 2.956 → 3.018, Nặc Đinh Thành lần đầu 3.738 → 4.293, Tinh Đấu Ngoại vi 3.100 → 3.424, Lõi Tinh Đấu lần sau 3.478 → 3.124. Nghĩa là **lợi về thời gian không đo được trên máy này** (ước tính −1 s ở đo thử nhóm `pt` chưa tái hiện được dưới tải nền); lợi chắc chắn là −34 file, −3,8 MB mạng lần đầu vào game (16.746 → 12.952 KB, lượt lạnh) và −280 MB điểm ảnh. Nên đo lại khi máy rảnh.
 
 Kiểm tay (Chrome thật, `__scene`): bật `ava` trên người chơi của mình sau khi gỡ texture `pt_lam_dien_ba_vuong_long` → sheet tải lại, `PhapTuongSystem` dựng 1 slot, sheet 81 khung (hoạt ảnh đủ), ảnh pháp tướng hiện sau lưng hồn sư, 0 lỗi console.
+
+## Đo lại bước 2 khi máy nhẹ, và bước 3 (trung vị 3 lượt xen kẽ, ms tới khi sẵn sàng)
+
+Lượt đo này máy nhẹ (CPU ~15%): ba bản dựng chạy xen kẽ A, B, C, A, B, C, A, B, C trên cùng một server để nhiễu nền chia đều. A = ngay trước bước 2 (`bd13d2a4^`), B = sau bước 2 (main lúc đó), C = sau bước 3. Mỗi ô: A → B → C.
+
+| Ca | Bản đồ | Thời gian (ms) | Request |
+|---|---|---|---|
+| vào game, tải lại trang (nóng) | Thánh Hồn Thôn | 3.106 → 2.578 → 2.359 | 1.040 → 1.018 → 888 |
+| warp lần đầu | Nặc Đinh Thành | 3.784 → 3.156 → 3.301 | 972 → 939 → 793 |
+| warp lần đầu | Tinh Đấu Ngoại vi | 4.681 → 2.685 → 2.053 | 966 → 933 → 799 |
+| warp lần đầu | Thiên Đấu Thành | 4.457 → 3.892 → 3.240 | 982 → 949 → 803 |
+| warp lần đầu | Lõi Tinh Đấu | 2.851 → 2.161 → 1.978 | 927 → 894 → 748 |
+| warp lần sau (nóng) | Nặc Đinh Thành | 3.263 → 3.216 → 2.395 | 972 → 939 → 792 |
+| warp lần sau (nóng) | Tinh Đấu Ngoại vi | 2.821 → 2.160 → 1.744 | 965 → 932 → 788 |
+| warp lần sau (nóng) | Thiên Đấu Thành | 4.235 → 3.928 → 3.152 | 982 → 949 → 803 |
+| warp lần sau (nóng) | Lõi Tinh Đấu | 2.502 → 2.427 → 1.521 | 925 → 892 → 746 |
+
+- **Bước 2** (A → B): thời gian giảm ở 9 / 9 ca (−0,05…−2 s; Nặc Đinh Thành lần sau gần như không đổi), đúng chiều ước tính ban đầu (khoảng −1 s) khi máy không bận.
+- **Bước 3** (B → C): thời gian giảm thêm ở 8 / 9 ca (−0,2…−0,9 s; ca Nặc Đinh Thành lần đầu +0,15 s nằm trong nhiễu); request mỗi lần vào bản đồ −130…−145 (1.018 → 888 ở vào game, 939 → 793 ở Nặc Đinh Thành). KB mạng lượt lạnh vào game: 12.959 → 6.002 (−7 MB); đổi sang bản đồ có loài chưa thấy thì tải thêm đúng loài đó (Tinh Đấu Ngoại vi lần đầu 2.169 → 2.827 KB, bù lại không tải 134 file của mọi bản đồ lúc vào game).
+- Số ba lượt lẻ lẻ dao động ±30% (có lượt vọt gấp đôi ở cả hai bên), nên so trung vị và chiều chung, không so từng ô.
+
+Kiểm tay (Chrome thật, `__scene`, bản dựng bước 3): ở Thánh Hồn Thôn sinh thêm hồn thú loài có sheet hoạt ảnh vẽ thật (Kim Linh Ưng, Phong Lang, Thái Thản Cự Viên, Huyền Băng Thiềm) và tinh anh Huyết Nhãn Phong Lang sau lúc vào (đường tải lười): cả 35 hồn thú đều dùng đúng sheet `beast_<loài>` hoặc `beast_<loài>_anim`, không con nào ẩn / rơi về hình vẽ code; warp sang Tinh Đấu Ngoại vi và Lạc Nhật Sâm Lâm (đường preload): 37 / 37 con dùng sheet thật; 0 lỗi console; nhãn tên (hotfix #829) hiện bình thường. Bot `waypoint` đạt 76 / 76.
