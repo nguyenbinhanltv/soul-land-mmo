@@ -1,6 +1,6 @@
 // Nhóm bot chuong3 (#703 bước 4): chương 3 Hải Thần Đảo (#284). Tách nguyên văn từ bot-test.mjs.
 import { readFileSync } from "node:fs";
-import { post, sleep, waitFor, ok, mapUrl, bot, enter, qtyOf, bonesOf, npcSpot, talk, looseOf, test } from "./lib.mjs";
+import { post, sleep, waitFor, ok, mapUrl, bot, enter, qtyOf, bonesOf, npcSpot, talk, looseOf, test, needHookSkip } from "./lib.mjs";
 import { VOHON, vohonIndex, itemDef, formatYears, MAPS, SHARD_UNLOCK, shardCode, BONE_SLOTS, boneName, BOSSES, bossIndex, beastIndex, parseBoneSubs, npcDef, QUEST_STARTER, QUEST_CH2, QUEST_CH3, QUEST_AFTER, questChain, parseQuest, questStatus, questGoalHit, questRewardText, TONG_MON, tongDef, CAMP_MERCHANT, CAMP_PT_GAP, FUSION } from "../../../shared/data.ts";
 import { campMerchantSpot } from "../../../shared/camp.ts";
 
@@ -47,7 +47,7 @@ export async function chapter3Test(){
   ok(old8.step===8&&questStatus(old8)==="offer","tiến độ cũ đã xong 8 bài: thành bài 9 chưa nhận");
   const D=await bot("Hải Thần","yeu_ho",{sex:0,hair:1,hairCol:2,outfitCol:4}); // Yêu Hồ: cặp Yêu Nguyệt với E ở bài 9 (#286)
   const dme=()=>D.room.state.players?.get(D.room.sessionId);
-  if(!(await test(D,"ping"))?.enabled){ console.log("  ⚠ bỏ qua phần server (cần hook warp, goto, quest, king…): bật server bằng GAME_TEST=1"); await D.room.leave(); return; }
+  if(!(await test(D,"ping"))?.enabled){ needHookSkip("bỏ qua phần server (cần hook warp, goto, quest, king…): bật server bằng GAME_TEST=1"); await D.room.leave(); return; }
   const q3=()=>D.chains[QUEST_CH3], cnt=(i=0)=>q3().prog?.[i]??0;
   async function warp(mapId,x=0,y=0,b=D){
     b.travel=null; b.room.send("test",{op:"warp",mapId,x,y});

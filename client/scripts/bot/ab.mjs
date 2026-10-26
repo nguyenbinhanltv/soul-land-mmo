@@ -4,7 +4,7 @@
 import { solidGrid, hits, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { findPath, clearLine, pathLength } from "../../../shared/path.ts";
 import { existsSync, readFileSync } from "node:fs";
-import { goTo, checkBeastYears, bossClock, API, sleep, waitFor, ok, mapUrl, zonesByName, bot, enter, qtyOf, bagKey, bonesOf, sj, useItem, lastLog, sendTeam, same, test, step } from "./lib.mjs"; // tiện ích chung + bot / enter / test … (#703)
+import { goTo, checkBeastYears, bossClock, API, sleep, waitFor, ok, mapUrl, zonesByName, bot, enter, qtyOf, bagKey, bonesOf, sj, useItem, lastLog, sendTeam, same, test, step, needHookSkip } from "./lib.mjs"; // tiện ích chung + bot / enter / test … (#703)
 import { ab1Block1, ab1Block2, ab1Block3 } from "./ab1.mjs"; // khối ab1 của INLINE (#703 bước 5)
 import { ab2Block1, ab2Block2, ab2Block3, ab2Block4, ab2Block5, ab2Block6, ab2Block7, ab2Block8, ab2Block9 } from "./ab2.mjs"; // khối ab2 của INLINE
 import { villageKit, skillCast, comboHits } from "./village.mjs"; // hàm phụ làng / hồn kỹ dùng chung với luồng A / B
@@ -341,7 +341,7 @@ const TS=tiled.tilewidth, blocked=(x,y)=>{ for(let ty=Math.floor((y-4)/TS);ty<=M
 /** Hướng (dx, dy) dài `len` pixel từ vị trí (x, y) mà đường đi không vướng ô chặn (và `back` pixel phía sau lưng, cho hồn thú sinh sau lưng). */
 const clearDir=(x,y,len,back=0)=>[[1,0],[-1,0],[0,1],[0,-1],[0.7,0.7],[-0.7,0.7],[0.7,-0.7],[-0.7,-0.7]].find(([ux,uy])=>{ for(let d=2-back;d<=len;d+=2) if(blocked(x+ux*d,y+uy*d)) return false; return true; })??[1,0];
 const inCamp=()=>p.x>=spawnObj.x&&p.x<=spawnObj.x+spawnObj.width&&p.y>=spawnObj.y&&p.y<=spawnObj.y+spawnObj.height;
-if(!(await test(A,"ping"))?.enabled) console.log("  ⚠ bỏ qua kiểm tra 2.3b (gục, hồi sinh, chia kinh nghiệm): bật server bằng GAME_TEST=1");
+if(!(await test(A,"ping"))?.enabled) needHookSkip("bỏ qua kiểm tra 2.3b (gục, hồi sinh, chia kinh nghiệm): bật server bằng GAME_TEST=1");
 else {
   await waitFor(()=>p.swCd===0&&p.absorb===0,8000); // lần thử hấp thụ ở trên có thể còn đang chạy
   {

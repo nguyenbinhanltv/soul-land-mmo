@@ -4,7 +4,7 @@ import { solidGrid, hits, isSolidTile, PLAYER_HW, PLAYER_HH } from "../../../sha
 import { findLongPath, buildNav, navNode, clearLine, pathLength } from "../../../shared/path.ts";
 import { autoLeg } from "../../../shared/autowalk.ts";
 import { readFileSync } from "node:fs";
-import { checkBeastYears, checkGateClear, post, sleep, waitFor, ok, mapFileOf, mapUrl, zonesByName, bot, enter, qtyOf, bagKey, npcSpot, talk, trade, same, test } from "./lib.mjs";
+import { checkBeastYears, checkGateClear, post, sleep, waitFor, ok, mapFileOf, mapUrl, zonesByName, bot, enter, qtyOf, bagKey, npcSpot, talk, trade, same, test, needHookSkip } from "./lib.mjs";
 import { TRAVEL_CAST, itemDef, formatHonTe, TEAM_COMBAT_SECS, MAPS, parseLevelRange, RING_ITEM, BOAT_CAST, npcDef, NPC_RANGE, SHOP, sellPrice, PLAYER_SPEED, TICK_RATE, WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, shopOf, shopExpands, RADAR, RALLY, MAPS as RALLY_MAPS, FOG, AUTO_MOVE, AUTOWALK, TILE } from "../../../shared/data.ts";
 import { rallyUpsert, rallyPrune } from "../../../shared/rally.ts";
 import { fogDims, fogCount, fogGet, fogCellOf, fogValid } from "../../../shared/fog.ts";
@@ -16,7 +16,7 @@ export async function syncViewTest(){
   ok(SYNC_VIEW.r<SYNC_VIEW.out&&SYNC_VIEW.out<SYNC_VIEW.fx&&SYNC_VIEW.wake>=SYNC_VIEW.out,`SYNC_VIEW: vào ${SYNC_VIEW.r} < ra ${SYNC_VIEW.out} < fx ${SYNC_VIEW.fx}, ngủ ngoài ${SYNC_VIEW.wake} pixel`);
   const V=await bot("Gần","lam_dien_ba_vuong_long",{sex:0,hair:1,hairCol:2,outfitCol:1},true);
   const W=await bot("Xa","lam_dien_ba_vuong_long",{sex:1,hair:1,hairCol:1,outfitCol:3},true);
-  if(!(await test(V,"ping"))?.enabled){ console.log("  ⚠ bỏ qua 11.4 (cần hook view, warp, goto): bật server bằng GAME_TEST=1"); await V.room.leave(); await W.room.leave(); return; }
+  if(!(await test(V,"ping"))?.enabled){ needHookSkip("bỏ qua 11.4 (cần hook view, warp, goto): bật server bằng GAME_TEST=1"); await V.room.leave(); await W.room.leave(); return; }
   const MAP="tinh_dau_ngoai_vi", objs=JSON.parse(readFileSync(new URL(`../../../shared/assets/${mapFileOf(MAP)}.json`,import.meta.url),"utf8")).layers.flatMap(l=>l.objects??[]);
   const wpAt=n=>{ const o=objs.find(o=>o.type==="waypoint"&&o.name===n); return {x:o.x+o.width/2,y:o.y+o.height/2}; };
   const west=wpAt("trai_cong"), east=wpAt("tram_gac");
@@ -170,7 +170,7 @@ export async function flagTest(){
   /** Ô thoáng cách (cx, cy) chừng `r` ô theo hướng a, đi bộ tới được từ vị trí đang đứng (cùng vùng liên thông, không phải ô chặn). */
   const reachable=(g,nv,from,p)=>{ const a=navNode(nv,from.x,from.y), b=navNode(nv,p.x,p.y); return a>=0&&b>=0&&nv.region[a]===nv.region[b]; };
 
-  if(!(await test(T,"ping"))?.enabled){ console.log("  ⚠ bỏ qua tự đi tới cờ (cần hook goto, down): bật server bằng GAME_TEST=1"); await T.room.leave(); return; }
+  if(!(await test(T,"ping"))?.enabled){ needHookSkip("bỏ qua tự đi tới cờ (cần hook goto, down): bật server bằng GAME_TEST=1"); await T.room.leave(); return; }
   // 1. Cùng bản đồ: cờ xa (≥ 50 ô), phải đi vòng vật cản bằng đường dài.
   await test(T,"clear",{all:true}); T.room.send("input",{x:0,y:0});
   { const g=gridOf(HT), nv=nav(HT,g), p0={x:me().x,y:me().y}; let flag=null;
@@ -253,7 +253,7 @@ export async function waypointTest(){
   const phu=itemDef("hoi_thanh_phu"), phuPrice=SHOP.find(r=>r.code==="hoi_thanh_phu")?.price;
   ok(phu?.recall&&phu.kind==="phu"&&phuPrice>0&&sellPrice({code:"hoi_thanh_phu",years:null,stars:null,enhance:0})===null,`Hồi Thành Phù: thương nhân bán ${formatHonTe(phuPrice??0)}, không mua lại`);
   const T=await bot("Du hành","kim_vu_mieu_ung",{sex:1,hair:0,hairCol:3,outfitCol:2});
-  if(!(await test(T,"ping"))?.enabled){ console.log("  ⚠ bỏ qua truyền tống (cần hook warp, goto, coin, hurt): bật server bằng GAME_TEST=1"); await T.room.leave(); return; }
+  if(!(await test(T,"ping"))?.enabled){ needHookSkip("bỏ qua truyền tống (cần hook warp, goto, coin, hurt): bật server bằng GAME_TEST=1"); await T.room.leave(); return; }
   const tme=()=>T.room.state.players?.get(T.room.sessionId);
   await waitFor(()=>tme()&&T.bag,3000);
   const world=async()=>{ T.world=null; T.room.send("wp",{op:"list"}); await waitFor(()=>T.world,1500); return T.world; };
@@ -372,7 +372,7 @@ export async function campTest(){
   ok(CAMP_SHOP.every(r=>town(r.code)&&r.price>=town(r.code))&&!price("dai_hoi_huyet_dan")&&price("hoi_thanh_phu"),
     `bảng hàng trại: ${CAMP_SHOP.map(r=>`${itemDef(r.code).name} ${formatHonTe(r.price)}`).join(", ")} (không rẻ hơn trong thành, không có đan lớn)`);
   const M=await bot("Lữ khách","kim_vu_mieu_ung",{sex:0,hair:1,hairCol:2,outfitCol:3});
-  if(!(await test(M,"ping"))?.enabled){ console.log("  ⚠ bỏ qua thương nhân lưu động (cần hook warp, goto, coin, give): bật server bằng GAME_TEST=1"); await M.room.leave(); return; }
+  if(!(await test(M,"ping"))?.enabled){ needHookSkip("bỏ qua thương nhân lưu động (cần hook warp, goto, coin, give): bật server bằng GAME_TEST=1"); await M.room.leave(); return; }
   const mme=()=>M.room.state.players?.get(M.room.sessionId);
   await waitFor(()=>mme()&&M.bag,3000);
   async function rejoin(){ await M.room.leave(); await sleep(300); M.mapId=(await post("/api/me",{token:M.token})).mapId; await enter(M); await waitFor(()=>mme()&&M.bag,3000); }
@@ -466,7 +466,7 @@ export async function bigMapTest(){
       if(ol) ok(lk&&wet.has(gd?.[Math.floor(lk.y/16)*raw.width+Math.floor(lk.x/16)]),`${nm}: giữ điểm giữa hồ "${ol.name}" (${lk?`${lk.x/16}, ${lk.y/16}, nền gid ${gd?.[Math.floor(lk.y/16)*raw.width+Math.floor(lk.x/16)]}`:"thiếu"})`); }
   }
   const B=await bot("Rừng lớn","kim_vu_mieu_ung",{sex:0,hair:2,hairCol:1,outfitCol:3});
-  if(!(await test(B,"ping"))?.enabled){ console.log("  ⚠ bỏ qua phần đi trên bản đồ ×8 (cần hook warp, goto): bật server bằng GAME_TEST=1"); await B.room.leave(); return; }
+  if(!(await test(B,"ping"))?.enabled){ needHookSkip("bỏ qua phần đi trên bản đồ ×8 (cần hook warp, goto): bật server bằng GAME_TEST=1"); await B.room.leave(); return; }
   const bme=()=>B.room.state.players?.get(B.room.sessionId);
   async function rejoin(){ await B.room.leave(); await sleep(300); B.mapId=(await post("/api/me",{token:B.token})).mapId; await enter(B); await waitFor(()=>bme()&&B.bag,3000); }
   async function warp(mapId,x,y){ B.travel=null; B.room.send("test",{op:"warp",mapId,x,y}); await waitFor(()=>B.travel?.mapId===mapId,4000); await rejoin(); }
@@ -523,7 +523,7 @@ export async function bigMapTest(){
 export async function fogTest(){
   console.log("[#435] Sương mù khám phá");
   const A=await bot("Fog A","yeu_ho",{sex:0,hair:1,hairCol:2,outfitCol:3}), B=await bot("Fog B","kim_vu_mieu_ung",{sex:1,hair:0,hairCol:1,outfitCol:1});
-  if(!(await test(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua sương mù (cần hook goto, warp, gmadmin): bật server bằng GAME_TEST=1"); await A.room.leave(); await B.room.leave(); return; }
+  if(!(await test(A,"ping"))?.enabled){ needHookSkip("bỏ qua sương mù (cần hook goto, warp, gmadmin): bật server bằng GAME_TEST=1"); await A.room.leave(); await B.room.leave(); return; }
   const me=b=>b.room.state.players?.get(b.room.sessionId), M1="tinh_dau_ngoai_vi", M2="tinh_dau_noi_dia";
   const dimsOf=id=>{ const m=loadMap(id); return fogDims(m.MW,m.MH); };
   const askFog=async b=>{ await sleep(300); b.fogBits=null; b.room.send("fog"); await waitFor(()=>b.fogBits,3000); return b.fogBits; };
@@ -601,7 +601,7 @@ export async function rallyTest(){
   console.log("[R6 #433] Dấu Tập trung ở đây của tổ đội");
   const A=await bot("Tập A","yeu_ho",{sex:0,hair:1,hairCol:2,outfitCol:3}), B=await bot("Tập B","kim_vu_mieu_ung",{sex:1,hair:0,hairCol:1,outfitCol:1}),
     E=await bot("Tập E","bich_lan_xa_hoang",{sex:0,hair:2,hairCol:3,outfitCol:2}), C=await bot("Tập C","yeu_ho",{sex:1,hair:3,hairCol:1,outfitCol:4});
-  if(!(await test(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua dấu tập trung (cần hook test): bật server bằng GAME_TEST=1"); for(const b of [A,B,E,C]) await b.room.leave(); return; }
+  if(!(await test(A,"ping"))?.enabled){ needHookSkip("bỏ qua dấu tập trung (cần hook test): bật server bằng GAME_TEST=1"); for(const b of [A,B,E,C]) await b.room.leave(); return; }
   const me=b=>b.room.state.players?.get(b.room.sessionId), map=loadMap(A.mapId), M2="tinh_dau_ngoai_vi";
   await waitFor(()=>[A,B,E,C].every(b=>me(b)&&b.bag&&b.party),4000);
   const rl=async b=>{ await test(b,"rally",{rop:"rlreset"}); };
