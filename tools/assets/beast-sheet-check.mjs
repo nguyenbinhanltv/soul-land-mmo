@@ -3,7 +3,7 @@
 //   npm run beast:check -- --all            (mọi loài trong art/src/beast-anim, chỉ in bảng tóm tắt)
 // Chỉ đọc tờ RAW: cỡ / tỉ lệ ∈ tập cho phép, khóa nền (dung sai), dò lưới theo khoảng trống, số hình mỗi dải, ô trống có hình, hình dính,
 // chân lệch, cỡ thân từng khối so với ảnh tĩnh, khung chết, hurt = idle, se ≈ e. Ghi <out>/<loài>-check.json + .md + tờ liên hệ có nhãn
-// (<loài>-to<X>-lien-he.png) + dòng `LỖI:` nháp. Mức: pass / nhẹ / chặn (thoát mã 1 khi có chặn). Hướng mặt (`n` / `ne` lộ mặt), hurt ngửa
+// (<loài>-to<X>-lien-he.png) + dòng `LỖI:` nháp. Mức: pass / nhẹ / chặn (thoát mã 1 khi có chặn; cỡ thân lệch chỉ là nhẹ, không bao giờ chặn: quyết định chủ repo 2026-10-26 mục 4). Hướng mặt (`n` / `ne` lộ mặt), hurt ngửa
 // bụng, die xoay: KHÔNG kiểm bằng code; xem tờ liên hệ bằng mắt. Không sửa tờ, không ghi vào repo (mặc định ghi ở thư mục tạm).
 import { mkdirSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import os from "node:os";
@@ -29,7 +29,7 @@ export const RATIO_TOL = 0.01;
 export const BG_LOCK = [255, 0, 255], BG_TOL = 60;
 export const EMPTY_CELL_FRAC = 0.003;
 export const BASELINE_FRAC = 0.12;
-export const BODY_BLOCK = 0.25, BODY_LIGHT = 0.1;
+export const BODY_BLOCK = 0.25, BODY_LIGHT = 0.1; // BODY_BLOCK chỉ còn để ghi chú "quá 25%": cỡ thân không bao giờ chặn (quyết định chủ repo 2026-10-26 mục 4)
 export const DEAD_DIFF = 0.03, HURT_IDLE_DIFF = 0.08, SE_E_IOU = 0.8;
 const LEVEL_RANK = { pass: 0, "nhẹ": 1, "chặn": 2 };
 const SEV_LEVEL = { block: "chặn", light: "nhẹ", note: "pass" };
@@ -253,8 +253,8 @@ export function checkSpecies(id, { dir = path.join(ROOT, "art", "src", "beast-an
   for (const b of blocks) {
     b.rel = (anchored ? b.h / anchorOf(st, b.dir) : b.h) / k;
     const dev = Math.abs(b.rel - 1), ref = anchored ? "ảnh tĩnh" : "trung vị các hướng", where = `H${b.row + 1}–${b.row + BAND_ROWS} (${b.dir})`;
-    if (dev > BODY_BLOCK) issue(b.sheet.issues, "block", "co-than", where, `cỡ thân idle ${round(b.rel * 100, 0)}% so với ${ref} (lệch > ${BODY_BLOCK * 100}%).`, { dir: b.dir });
-    else if (dev > BODY_LIGHT) issue(b.sheet.issues, "light", "co-than", where, `cỡ thân idle ${round(b.rel * 100, 0)}% so với ${ref} (lệch ${round(dev * 100, 0)}%).`, { dir: b.dir });
+    // Theo quyết định chủ repo 2026-10-26 mục 4 (#766): lệch cỡ thân KHÔNG chặn (cutter neo lại cỡ theo ảnh tĩnh); chỉ cảnh báo kỹ thuật, vẫn in số %.
+    if (dev > BODY_LIGHT) issue(b.sheet.issues, "light", "co-than", where, `cỡ thân idle ${round(b.rel * 100, 0)}% so với ${ref} (lệch ${round(dev * 100, 0)}%${dev > BODY_BLOCK ? `, quá ${BODY_BLOCK * 100}%` : ""}); cutter neo lại, không chặn.`, { dir: b.dir });
     b.sheet.bodyRel = { ...(b.sheet.bodyRel ?? {}), [b.dir]: round(b.rel) };
   }
   let level = turnaround ? turnaround.level : "pass";
@@ -273,10 +273,14 @@ export function checkSpecies(id, { dir = path.join(ROOT, "art", "src", "beast-an
 export const allSheets = (r) => [...r.sheets, ...(r.turnaround ? [r.turnaround] : [])];
 
 // ---------- Dòng LỖI nháp ----------
-const CODE_VI = { "kich-thuoc": "sai kích thước", nen: "nền ngoài dung sai", luoi: "không dò được lưới", "so-hinh": "sai số hình", "hinh-dinh": "hình dính", "o-trong": "hình ở ô trống", "cham-mep": "chạm mép tờ", "chan-lech": "chân lệch", "co-than": "cỡ thân lệch", "khung-chet": "khung chết", "hurt-idle": "hurt trùng idle" };
-/** Dòng `LỖI:` nháp theo mẫu NGUON.md: tờ — loại / loại — vị trí — mô tả. Chỉ gồm mục nhẹ và chặn; null nếu không có. */
+const CODE_VI = { "kich-thuoc": "sai kích thước", nen: "nền ngoài dung sai", luoi: "không dò được lưới", "so-hinh": "sai số hình", "hinh-dinh": "hình dính", "o-trong": "hình ở ô trống", "cham-mep": "chạm mép tờ", "chan-lech": "chân lệch", "khung-chet": "khung chết", "hurt-idle": "hurt trùng idle" };
+/** Ghi chú kỹ thuật cỡ thân của một tờ (không phải lỗi, không có tiền tố `LỖI:`): mảng chuỗi, rỗng nếu không lệch. */
+export function bodyNotes(sheet) {
+  return sheet.issues.filter((i) => i.code === "co-than").map((i) => `${i.where}: ${i.msg}`);
+}
+/** Dòng `LỖI:` nháp theo mẫu NGUON.md: tờ — loại / loại — vị trí — mô tả. Chỉ gồm mục nhẹ và chặn, trừ cỡ thân (ghi chú kỹ thuật, `bodyNotes`); null nếu không có. */
 export function draftErrorLine(sheet) {
-  const list = sheet.issues.filter((i) => i.sev !== "note");
+  const list = sheet.issues.filter((i) => i.sev !== "note" && i.code !== "co-than");
   if (!list.length) return null;
   const codes = [...new Set(list.map((i) => CODE_VI[i.code] ?? i.code))];
   return `LỖI: ${sheet.sheet} — ${codes.join(" / ")} — ${list.map((i) => i.where).join(", ")} — ${list.map((i) => i.msg.replace(/\.$/, "")).join("; ")}.`;
@@ -304,6 +308,8 @@ export function toMarkdown(r) {
     if (!s.issues.length) L.push("Không có phát hiện.");
     for (const i of s.issues) L.push(`- **${{ block: "CHẶN", light: "nhẹ", note: "lưu ý" }[i.sev]}** \`${i.code}\` ${i.where}: ${i.msg}`);
     const d = draftErrorLine(s);
+    const bn = bodyNotes(s);
+    if (bn.length) L.push("", "Ghi chú kỹ thuật (cỡ thân, không phải lỗi; theo quyết định chủ repo 2026-10-26 mục 4):", ...bn.map((x) => `- ${x}`));
     L.push("", d ? ["Dòng nháp cho NGUON.md (soát lại bằng mắt trước khi dán):", "", "```", d, "```"].join("\n") : "Không có dòng `LỖI:` tự sinh.", "");
   }
   L.push("## Việc còn lại cho mắt người", "", "Công cụ không kiểm: `n` / `ne` lộ mặt (kể cả hurt), `se` khác `e` thật sự, hurt lùi đúng hướng (không ngửa bụng / quay mặt), die giữ hướng, nhận diện đúng loài.",

@@ -65,7 +65,7 @@ const LEVEL_MARK = { pass: "đạt", "nhẹ": "nhẹ", "chặn": "**chặn**", "
 /** Bảng Markdown của sổ. */
 export function statusMarkdown(st) {
   const L = ["# Sổ trạng thái hoạt ảnh hồn thú", "",
-    "Sổ này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-status.mjs`; workflow `beast-status.yml` đăng lên comment ghim ở #766 sau mỗi lần `main` đổi `art/src/beast-anim/**`); **không sửa tay**, không commit file sinh ra, không dán bảng tay vào issue. Mức theo khối hướng là kết quả `beast:check` (cỡ, nền, lưới, số hình, chân, cỡ thân, khung chết); `n` / `ne` lộ mặt, hurt ngửa bụng, die xoay chỉ xem bằng mắt (tờ liên hệ).", "",
+    "Sổ này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-status.mjs`; workflow `beast-status.yml` đăng lên comment ghim ở #766 sau mỗi lần `main` đổi `art/src/beast-anim/**`); **không sửa tay**, không commit file sinh ra, không dán bảng tay vào issue. Mức theo khối hướng là kết quả `beast:check` (cỡ, nền, lưới, số hình, chân, khung chết; cỡ thân lệch chỉ là nhẹ, không chặn: quyết định chủ repo 2026-10-26 mục 4); `n` / `ne` lộ mặt, hurt ngửa bụng, die xoay chỉ xem bằng mắt (tờ liên hệ).", "",
     `${st.species} loài có thư mục · ${st.imported} đã nhập vào game · ` + Object.entries(st.tally).map(([k, v]) => `${v} ${STATE_VI[k] ?? k}`).join(" · "), "",
     "| Loài | Mã | Bố cục | Tờ (cỡ, mức) | s | se | e | ne | n | Thiếu | Nhập game | Trạng thái |", "|---|---|---|---|---|---|---|---|---|---|---|---|"];
   for (const s of st.items) {
