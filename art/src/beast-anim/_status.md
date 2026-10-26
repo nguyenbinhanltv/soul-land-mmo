@@ -2,7 +2,7 @@
 
 File này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-status.mjs`); **không sửa tay**, không dán bảng tay vào issue. Mức theo khối hướng là kết quả `beast:check` (cỡ, nền, lưới, số hình, chân, cỡ thân, khung chết); `n` / `ne` lộ mặt, hurt ngửa bụng, die xoay chỉ xem bằng mắt (tờ liên hệ).
 
-29 loài có thư mục · 6 đã nhập vào game · 21 sẵn sàng nhập · 1 chưa có tờ · 7 có khối chặn
+30 loài có thư mục · 6 đã nhập vào game · 21 sẵn sàng nhập · 1 chưa có tờ · 7 có khối chặn · 1 thiếu tờ
 
 | Loài | Mã | Bố cục | Tờ (cỡ, mức) | s | se | e | ne | n | Thiếu | Nhập game | Trạng thái |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -25,6 +25,7 @@ File này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-statu
 | Quỷ Ảnh Báo | `quy_anh_bao` | sheet | A 1024×1536 **chặn**<br>B 1254×1254 nhẹ | nhẹ | đạt | **chặn** | đạt | nhẹ | - | chưa | có khối chặn |
 | Quỷ Hổ | `quy_ho` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | đạt | nhẹ | đạt | đạt | nhẹ | - | chưa | sẵn sàng nhập |
 | Thái Thản Cự Viên | `thai_than_cu_vien` | sheet | A 1536×1024 đạt<br>B 1536×1024 nhẹ<br>C 1536×1024 **chặn**<br>D 1536×1024 **chặn**<br>E 1536×1024 đạt | đạt | nhẹ | **chặn** | **chặn** | đạt | - | đã nhập | có khối chặn |
+| Thanh Lân Độc Cổ | `thanh_lan_doc_co` | sheet | A 941×1672 **chặn**<br>B 1254×1254 nhẹ | thiếu | thiếu | thiếu | nhẹ | nhẹ | - | chưa | thiếu tờ |
 | Thanh Lân Ngạc | `thanh_lan_ngac` | sheet | A 1024×1536 **chặn**<br>B 1254×1254 nhẹ | **chặn** | nhẹ | đạt | nhẹ | nhẹ | - | chưa | có khối chặn |
 | Thất Tinh Độc Thiềm | `that_tinh_doc_thiem` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | nhẹ | nhẹ | đạt | đạt | nhẹ | - | chưa | sẵn sàng nhập |
 | Thiết Giáp Cự Giải | `thiet_giap_cu_giai` | sheet | A 1024×1536 đạt<br>B 1254×1254 nhẹ | đạt | đạt | đạt | đạt | nhẹ | - | chưa | sẵn sàng nhập |
@@ -148,6 +149,13 @@ LỖI: toB — cỡ thân lệch — H5–8 (n) — cỡ thân idle 117% so vớ
 LỖI: toB — hình ở ô trống — H4 (se) C5, H4 (se) C6 — ô trống có hình (1.67% diện tích ô): hình tràn từ ô bên; ô trống có hình (0.57% diện tích ô): hình tràn từ ô bên.
 LỖI: toC — hình dính — H3 (e) — dải có 5 hình, cần 6: hình dính nhau.
 LỖI: toD — hình dính / hình ở ô trống — H3 (ne), H4 (ne) C5 — dải có 5 hình, cần 6: hình dính nhau; ô trống có hình (1.5% diện tích ô): hình tràn từ ô bên.
+```
+
+### Thanh Lân Độc Cổ (`thanh_lan_doc_co`)
+
+```
+LỖI: toA — sai kích thước — toàn tờ — 941×1672 không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2).
+LỖI: toB — chân lệch / hình ở ô trống — H3 (ne) C3–4, H4 (ne) C5, H4 (ne) C6, H7 (n) C3–4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 18%); ô trống có hình (1.07% diện tích ô): hình tràn từ ô bên; ô trống có hình (1.55% diện tích ô): hình tràn từ ô bên; chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 17%).
 ```
 
 ### Thanh Lân Ngạc (`thanh_lan_ngac`)

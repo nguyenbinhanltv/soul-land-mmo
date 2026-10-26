@@ -1,12 +1,13 @@
 {
   "schema": 1,
   "generatedBy": "tools/assets/beast-status.mjs",
-  "species": 29,
+  "species": 30,
   "imported": 6,
   "tally": {
     "san-sang-nhap": 21,
     "chua-co-to": 1,
-    "chan": 7
+    "chan": 7,
+    "thieu-to": 1
   },
   "items": [
     {
@@ -991,6 +992,58 @@
         "LỖI: toB — hình ở ô trống — H4 (se) C5, H4 (se) C6 — ô trống có hình (1.67% diện tích ô): hình tràn từ ô bên; ô trống có hình (0.57% diện tích ô): hình tràn từ ô bên.",
         "LỖI: toC — hình dính — H3 (e) — dải có 5 hình, cần 6: hình dính nhau.",
         "LỖI: toD — hình dính / hình ở ô trống — H3 (ne), H4 (ne) C5 — dải có 5 hình, cần 6: hình dính nhau; ô trống có hình (1.5% diện tích ô): hình tràn từ ô bên."
+      ]
+    },
+    {
+      "id": "thanh_lan_doc_co",
+      "name": "Thanh Lân Độc Cổ",
+      "family": "snake",
+      "frame": 96,
+      "imported": false,
+      "turnaround": false,
+      "layout": "sheet",
+      "state": "thieu-to",
+      "sheets": [
+        {
+          "sheet": "toA",
+          "file": "art/src/beast-anim/thanh_lan_doc_co/toA.png",
+          "size": [
+            941,
+            1672
+          ],
+          "bytes": 1852705,
+          "sha256": "4dc379a50cf25dca270120142da264e9250b5f695b9454bf421f18b682a48658",
+          "level": "chặn",
+          "block": 1,
+          "light": 0,
+          "note": 0
+        },
+        {
+          "sheet": "toB",
+          "file": "art/src/beast-anim/thanh_lan_doc_co/toB.png",
+          "size": [
+            1254,
+            1254
+          ],
+          "bytes": 1876513,
+          "sha256": "c88ee1aba0332b3f92389bdf197be66fca3a79f74380532dcf96af3eacdf0b5d",
+          "level": "nhẹ",
+          "block": 0,
+          "light": 4,
+          "note": 2
+        }
+      ],
+      "blocks": {
+        "s": "thiếu",
+        "se": "thiếu",
+        "e": "thiếu",
+        "ne": "nhẹ",
+        "n": "nhẹ"
+      },
+      "missing": [],
+      "errorLines": [
+        "LỖI: toA — sai kích thước — toàn tờ — 941×1672 không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2).",
+        "LỖI: toB — chân lệch / hình ở ô trống — H3 (ne) C3–4, H4 (ne) C5, H4 (ne) C6, H7 (n) C3–4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 18%); ô trống có hình (1.07% diện tích ô): hình tràn từ ô bên; ô trống có hình (1.55% diện tích ô): hình tràn từ ô bên; chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 17%)."
       ]
     },
     {
