@@ -316,11 +316,13 @@ if(dr){
   ok(await waitFor(()=>(A.bag?.items??[]).filter(i=>i.code===RING_ITEM).length===n0+1),`nhặt hồn hoàn: túi có ${A.bag?.items.filter(i=>i.code===RING_ITEM).map(i=>i.years).join(", ")} năm`+
     ` [cách hồn hoàn ${Math.hypot(dr.x-p.x,dr.y-p.y).toFixed(0)}, còn dưới đất ${[...st.drops.values()].includes(dr)}, st ${p.st}, sinh lực ${p.hp}/${p.maxHp}, log ${JSON.stringify(A.logs.slice(-3))}]`);
   const it=A.bag?.items.find(i=>i.code===RING_ITEM&&i.years===yrs);
-  // Nhặt đã ✓ thì hồn hoàn phải có trong túi; gửi hấp thụ thì server phải bắt đầu (tin absorbing {on:true}), không chỉ in log.
+  // Nhặt đã ✓ thì hồn hoàn phải có trong túi. A chưa tới bình cảnh cấp 10 của hồn hoàn thứ 1: server phải từ chối bằng
+  // log lý do (hấp thụ thành công đã kiểm ở ab1.mjs 3.3), không im lặng hay bắt đầu hấp thụ.
   ok(!!it,`hồn hoàn ${yrs} năm vừa nhặt có trong túi để hấp thụ`);
   if(it){
-    A.absorbing=null; A.room.send("absorb",{itemId:it.id});
-    ok(await waitFor(()=>A.absorbing?.on,1500),`hấp thụ hồn hoàn ${yrs} năm: server bắt đầu hấp thụ`+(A.absorbing?.on?"":` [absorbing ${JSON.stringify(A.absorbing)}, log ${JSON.stringify(A.logs.slice(-2))}]`));
+    const l=A.logs.length; A.absorbing=null; A.room.send("absorb",{itemId:it.id});
+    ok(await waitFor(()=>A.logs.length>l&&/cần đạt cấp \d+ \(bình cảnh\) mới hấp thụ được hồn hoàn thứ 1/.test(A.logs.at(-1)))&&!A.absorbing?.on&&A.bag?.items.some(i=>i.id===it.id),
+      `hấp thụ hồn hoàn ${yrs} năm khi chưa tới bình cảnh: server từ chối, hồn hoàn còn trong túi [cấp ${p.level}, absorbing ${JSON.stringify(A.absorbing)}, log ${JSON.stringify(A.logs.slice(-2))}]`);
   }
 }
 // ---------- 2.3b: gục từng võ hồn, hồi sinh, chia kinh nghiệm 40/20 cho đội ----------
