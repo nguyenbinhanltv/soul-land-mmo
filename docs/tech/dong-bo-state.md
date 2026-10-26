@@ -9,6 +9,84 @@ Server là nguồn duy nhất của luật chơi; client chỉ nhận state đ�
 - Chọn kiểu nhỏ nhất đủ dùng. Trường bit (`BeastState.st` theo `STATUS_IDS`, `PlayerState.buff` theo `BUFF_IDS`) chỉ thêm vào cuối.
 - Trường mới khai báo trong `schema.ts`, không đưa dữ liệu riêng của một người vào đây.
 
+## Bảng trường `schema.ts`
+Thêm / đổi trường ở `schema.ts` thì sửa bảng này (kiểm (h) của `tools/docs-check.mjs` báo trường thiếu). Mặc định client đọc ở `client/src/scenes/GameScene.ts`; cột "Đọc thêm" ghi nơi khác.
+
+**`PlayerState`**
+
+| Trường | Kiểu | Ý nghĩa | Đọc thêm |
+|---|---|---|---|
+| `name` | string | tên hồn sư | |
+| `vh` | uint8 | chỉ số võ hồn đang ra trận | |
+| `sex`, `hair`, `hairCol`, `outfitCol`, `skin` | uint8 | ngoại hình chế độ Mẫu dựng sẵn (mục 5.11) | `sprites.ts` |
+| `lpc` | string | ngoại hình chế độ Tự tạo (`encodeLpc`); rỗng = chế độ Mẫu | `lpcRig.ts`, `looksMaker.ts` |
+| `gearAo`, `gearMu` | uint8 | bậc áo / mũ trang bị + 1 (0 = không mặc), chỉ để vẽ lớp LPC | |
+| `x`, `y` | float32 | vị trí | |
+| `dir` | uint8 | hướng nhìn 4 phía (`DIRS4`) | |
+| `moving`, `walk`, `calm` | boolean | đang đi; giữ Shift (đi bộ); ngoài giao chiến (được chạy) | `predict.ts` |
+| `seq`, `seqT`, `spd` | uint32 / float32 | số thứ tự `input` cuối đã nhận, giây hướng đi đã áp, tốc độ thật (dự đoán chuyển động) | `predict.ts` |
+| `level`, `xp`, `xpNeed` | uint8 / uint32 | cấp, kinh nghiệm, kinh nghiệm cần | `hud.ts` |
+| `hp`, `maxHp`, `mp`, `maxMp` | uint32 | sinh lực, năng lượng (tiên cơ) | `hud.ts` |
+| `rings` | uint8[] | hồn hoàn đang có (bậc theo thứ tự) | |
+| `cds`, `bcds`, `swCd` | float32[] / float32 | hồi chiêu hồn kỹ; hồi chiêu kỹ năng hồn cốt chủ động; hồi đổi võ hồn | `hud.ts` |
+| `shield` | uint32 | khiên còn lại | |
+| `buff` | uint16 | hiệu ứng có lợi (bit theo `BUFF_IDS`) | |
+| `st` | uint16 | trạng thái xấu do chiêu hồn thú gây (bit theo `STATUS_IDS`) | |
+| `han` | uint8 | số tầng Hàn (Cực Hàn) | `hud.ts` |
+| `lei` | uint8 | Phong Lôi Chi Lực của Lam Điện Bá Vương Long | `hud.ts` |
+| `ava`, `avaCd`, `ctCd` | float32 | giây Chân Thân còn lại; hồi chiêu Chân Thân (nút R); hồi chiêu hồn kỹ Chân Thân | `hud.ts` (`avaCd`, `ctCd`) |
+| `absorb`, `absorbTier` | float32 / uint8 | tiến độ hấp thụ 0..1; bậc hồn hoàn đang hấp thụ | |
+| `dead` | boolean | đã gục | |
+| `kills` | uint32 | số lần hạ (bảng kết quả sân đấu) | `arenaShow.ts` |
+| `auto` | boolean | đang tự săn (chữ "Tự động" trên đầu) | |
+| `tong` | uint8 | tông môn + 1 (0 = không) | |
+
+**`BeastState`**
+
+| Trường | Kiểu | Ý nghĩa | Đọc thêm |
+|---|---|---|---|
+| `x`, `y`, `face`, `moving` | float32 / int8 / boolean | vị trí, hướng, đang di chuyển | |
+| `tier`, `years`, `species`, `rank` | uint8 / uint32 | bậc theo số năm, tuổi, loài, hạng (0 thường … 3 boss thế giới) | |
+| `hp`, `maxHp` | uint32 | sinh lực | |
+| `aggro` | boolean | đang có mục tiêu | `music.ts` |
+| `st`, `burn`, `poison`, `armor`, `allure`, `lock` | uint16 / uint8 | trạng thái dùng chung và số tầng cộng dồn | |
+| `cast` | boolean | đang báo trước chiêu (đứng yên) | |
+| `buff` | uint8 | hiệu ứng có lợi của hồn thú (`BEAST_BUFF_IDS`) | |
+| `phase`, `parts` | uint8 | giai đoạn thú vương / boss; số người tham gia đang áp vào máu | `hud.ts` |
+| `weak`, `shield`, `chg`, `brk`, `dive` | uint8 / uint32 / boolean | boss thế giới: điểm yếu hệ, khiên Bá Thể, tích lực, số lần ngắt, đang lặn | `hud.ts` |
+| `egg` | uint8 | bọc trứng: phần mười giây còn lại trước khi nở | |
+| `form`, `formWarn` | uint8 / boolean | dạng đang có (+1) và đang báo đổi dạng | |
+
+**`DropState`**
+
+| Trường | Kiểu | Ý nghĩa | Đọc thêm |
+|---|---|---|---|
+| `x`, `y`, `tier`, `years` | float32 / uint8 / uint32 | vị trí, bậc và số năm của hồn hoàn | |
+| `item`, `qty` | string / uint16 | mã vật phẩm khác hồn hoàn và số món; rỗng = hồn hoàn | |
+| `species`, `slot` | uint8 | hồn cốt: loài, vị trí | |
+| `stars`, `cset` | uint8 | hồn hạch: sao, bộ; trang bị: bậc + 1, chỉ số mẫu | |
+| `owner`, `party`, `ownerTtl` | string / uint32 / float32 | người / tổ đội được ưu tiên nhặt và giây còn lại | `contextCursor.ts` (`ownerTtl`) |
+| `ttl` | float32 | giây còn lại trước khi biến mất | |
+
+**`GroundState`** (vùng lưu lại trên mặt đất, #161)
+
+| Trường | Kiểu | Ý nghĩa | Đọc thêm |
+|---|---|---|---|
+| `kind`, `shape` | uint8 | loại (`GROUND_KINDS`), hình (`TELE_SHAPES`) | `hitFeel.ts` |
+| `x`, `y`, `ang`, `r`, `w`, `arc` | float32 / uint16 | vị trí, góc, bán kính, bề rộng, cung | |
+| `ttl`, `wait` | uint16 / uint8 | giây còn lại; giây báo trước còn lại | |
+
+**`MapState`** và sân đấu
+
+| Trường | Kiểu | Ý nghĩa | Đọc thêm |
+|---|---|---|---|
+| `mapId`, `mapFile`, `channel` | string / uint16 | mã bản đồ, tên file Tiled khác `<mapId>`, số kênh | |
+| `players`, `beasts`, `drops`, `grounds` | map | thực thể, gắn `@view()` (chỉ gần client) | |
+| `online` | uint16 | số hồn sư cả phòng | |
+| `phase`, `time`, `sides` | string / float32 / mảng | `ArenaState`: pha trận, giây còn lại, hai bên | `arenaShow.ts`, `hud.ts` |
+| `winner`, `watchers`, `friendly` | int8 / uint8 / boolean | `ArenaState`: bên thắng (-1 chưa xong, 2 hòa), số người xem, trận giao hữu | `hud.ts` |
+| `sid`, `elo`, `pct`, `alive`, `total` | string / uint16 / float32 / uint8 | `ArenaSide`: phiên, Elo, sinh lực đội %, võ hồn còn / tổng (kèm `name`) | `hud.ts` |
+
 ## Dữ liệu riêng (tin riêng cho chính chủ)
 - Túi đồ, bộ sưu tập, đội hình, năng lượng tiên cơ, nhiệm vụ, tổ đội, cộng minh, đấu trường… chỉ gửi cho chính chủ bằng tin riêng. Tên tin xem `MapRoom.ts` (`vohons`, `squad`, `bag` / `bagd`, `gear`, `quest`, `tong`, `party`, `resonance`, `arena`, `npc`, `travel`, `channels`, `daily`, `wp`, `auto`, `offline`, `friends`, `mini`, `fog`, `rally`, `stats`…).
 - Bảng cộng minh công khai chỉ che giấu `account_id`, cấp / đồ / tiến độ chi tiết của người khác. Người khác chỉ thấy ngoại hình hồn sư, võ hồn đang ra trận, cấp và hồn hoàn của nó.
