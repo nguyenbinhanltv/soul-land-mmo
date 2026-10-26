@@ -458,6 +458,7 @@ export function loadSpriteKey(scene: Phaser.Scene, key: string) {
  * nên không tải hết: `lpc` nhận danh sách tên có trong manifest và tự xếp hàng tải những tên bản đồ dùng (crowd.ts).
  */
 export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) => void, after?: () => void) {
+  scene.cache.json.remove(MANIFEST_KEY); // Game giữ qua các bản đồ (#716 bước 5): cache JSON còn thì loader bỏ qua file, sự kiện filecomplete không bắn
   scene.load.json(MANIFEST_KEY, BASE + "manifest.json");
   scene.load.once(`filecomplete-json-${MANIFEST_KEY}`, (_key: string, _type: string, data: { sprites?: ManifestEntry[] }) => {
     const lpcNames = new Set<string>();

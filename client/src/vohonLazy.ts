@@ -20,7 +20,7 @@ interface Spec { url: string; frame: readonly [number, number] }
 const specs = new Map<string, Spec>();
 /** Key tải lỗi hẳn (sau các lần thử lại của loader): coi như không có ảnh thật. */
 const failed = new Set<string>();
-/** Key đang xin theo từng scene (Game bị huỷ mỗi lần đổi bản đồ nên không giữ qua scene). */
+/** Key đang xin theo từng scene (mỗi lần đổi bản đồ là scene mới nên không giữ qua scene). */
 const pending = new WeakMap<Phaser.Scene, Set<string>>();
 
 /** preloadSprites gọi cho mỗi `vh_*` / `pt_*` isometric trong manifest. */

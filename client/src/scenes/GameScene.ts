@@ -410,6 +410,7 @@ export class GameScene extends Phaser.Scene {
   preload() {
     // Mỗi bản đồ một file Tiled: shared/assets/<mapId>.json (vite phục vụ shared/assets làm thư mục public).
     // 11.3 / 11.5: server dùng bản dựng bằng tools/maps (`<mapId>.v2`) thì báo tên file ở `mapFile` (cùng lưới va chạm với server).
+    this.cache.tilemap.remove(this.mapId); // Game giữ qua bản đồ (#716 bước 5): tải lại để filecomplete-tilemapJSON (crowd.ts) bắn
     this.load.tilemapTiledJSON(this.mapId, `${this.room.state.mapFile || this.mapId}.json`);
     this.load.image("tiles", "tiles.png");
     preloadIso(this, this.mapId);
@@ -510,7 +511,10 @@ export class GameScene extends Phaser.Scene {
     const bb = this.isoMap.bounds();
     cam.setBounds(bb.x, bb.y, bb.w, bb.h).setRoundPixels(true);
     this.fitZoom();
-    this.scale.on("resize", () => this.fitZoom());
+    // ScaleManager thuộc Game (sống qua các bản đồ): gỡ listener khi scene tắt, không thì gọi vào scene đã huỷ.
+    const onResize = () => this.fitZoom();
+    this.scale.on("resize", onResize);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off("resize", onResize));
 
     this.weather = new Weather(this, this.mapId, this.isoMap, this.light, this.mapH);
     this.ink = new InkVeil(this);
