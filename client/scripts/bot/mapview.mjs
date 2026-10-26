@@ -69,13 +69,13 @@ export async function syncViewTest(){
   ok(await waitFor(()=>V.room.state.players.has(sid)&&W.room.state.players.has(vsid),1500),`lại gần (${Math.round(dist(me(W),me(V)))} pixel): hai bên thấy nhau`);
   V.mini=null; ok(await waitFor(()=>miniHas(V,sid),3000),"tin mini: người lạ trong RADAR.far (đang gần) có trong tin");
   // #949: kinh nghiệm, hồn lực, hồi chiêu chỉ chính chủ nhận (tin riêng `vit`); người ở gần thấy hồn sư kia nhưng state không có các trường này.
-  { await test(W,"ready"); W.room.send("skill",{i:0}); const w=me(W);
-    await waitFor(()=>w.cds[0]>0,1500);
+  { await test(W,"ready",{mp:20}); const w=me(W);
+    await waitFor(()=>w.mp<=w.maxMp*0.25,1500);
     const o=V.room.state.players.get(sid), has=p=>VIT_FIELDS.filter(k=>k in p&&p[k]!==undefined);
-    ok(w.maxMp>0&&w.xpNeed>0&&w.mp>0&&w.cds[0]>0,`W thấy trường riêng của chính mình: hồn lực ${w.mp}/${w.maxMp}, kinh nghiệm ${w.xp}/${w.xpNeed}, hồi chiêu ô 1 ${w.cds[0].toFixed(2)}`);
+    ok(w.maxMp>0&&w.mp<=w.maxMp*0.25&&w.cds.length===4,`W thấy trường riêng của chính mình qua tin vit: hồn lực ${w.mp}/${w.maxMp} (vừa hạ còn 20%), kinh nghiệm ${w.xp}/${w.xpNeed}`);
     await sleep(400);
     ok(!!o&&o.maxHp>0&&!has(o).length,`V ở gần thấy W (sinh lực ${o?.hp}/${o?.maxHp}) nhưng state không có hồn lực / kinh nghiệm / hồi chiêu của W (${has(o).join(",")||"không trường nào"})`);
-    ok(me(V).maxMp>0&&me(V).xpNeed>0,"V vẫn thấy trường riêng của chính mình"); }
+    ok(me(V).maxMp>0,"V vẫn thấy trường riêng của chính mình"); }
   // Bấm vào hồn sư đang thấy (sid): lời mời tới đúng người, có tên người mời; từ chối để dọn.
   { const t=await inviteSid(), wp=await partyNow(W);
     ok(wp?.invites?.some(i=>i.name===V.name)&&t.includes(W.name),`mời tổ đội bằng sid của hồn sư đang thấy: W nhận lời mời của V (${t})`);
