@@ -1,0 +1,86 @@
+{
+  "species": "loi_duc_ung",
+  "worker": "soul-land-mmo-136",
+  "issue": 772,
+  "tool": "Codex image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Codex image_gen không công bố model/seed; không có selector kích thước.",
+  "transparent_background": false,
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "sheet": "A",
+  "attempt": 1,
+  "raw_file": "toA.png",
+  "selected": true,
+  "selected_attempt": 1,
+  "attempts": 1,
+  "counters": {
+    "A": 1,
+    "B": 2,
+    "species_total": 3
+  },
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "1d29763bad7e222a6cb645b5f6951c2fb2ae5e2db563f8cd1083f29822374ef1",
+  "sha256": "730d7bfd27da7ee33b5d04565ba50f529cd752e43f957a5f57894afa792f0586",
+  "bytes": 2003281,
+  "width": 948,
+  "height": 1659,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "size_requirement_met": false,
+  "actual_aspect_ratio": "948:1659",
+  "grid": [
+    6,
+    12
+  ],
+  "expected_visible_cells": 66,
+  "references": [
+    {
+      "path": "/private/tmp/soul-land-mmo-772-loi-duc-ung/shared/assets/sprites/beast/loi_duc_ung.png",
+      "role": "static identity reference, three views",
+      "sha256": "815b668c08dd72d226f8c727d78cfcf28bf7f49b57851b911689b31569e94c45",
+      "original_input_path": "/private/tmp/soul-land-mmo-772-loi-duc-ung/shared/assets/sprites/beast/loi_duc_ung.png"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-46a40e23-8762-4965-bd15-24a5f7fa1d5f.png",
+  "original_file_mtime": "2026-10-26T20:16:21+0700",
+  "known_issues": [
+    "RAW 948×1659 sai tỉ lệ A 2:3; giữ nguyên byte.",
+    "Soát mắt: hướng s, hàng 4 khung 4 (D4) chết nằm ngang lệch trục."
+  ],
+  "qa_status": "A1 chưa owner-approved; lỗi hướng/pose đã ghi nhận, kiểm kỹ thuật chờ slot heavy.",
+  "selection_reason": "A1 là lượt duy nhất; giữ nguyên để nộp theo directive, không redraw để sửa cỡ.",
+  "publication_policy": "Submitting raw candidates does not mean art accepted or imported.",
+  "tool_arguments": {
+    "prompt_file": "toA.prompt.txt",
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-772-loi-duc-ung/shared/assets/sprites/beast/loi_duc_ung.png"
+    ],
+    "transparent_background": false
+  },
+  "history": [
+    {
+      "attempt": 1,
+      "raw_artifact": "/private/tmp/soul-land-mmo-772-loi-duc-ung/art/src/beast-anim/loi_duc_ung/toA.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-46a40e23-8762-4965-bd15-24a5f7fa1d5f.png",
+      "sha256": "730d7bfd27da7ee33b5d04565ba50f529cd752e43f957a5f57894afa792f0586",
+      "bytes": 2003281,
+      "dimensions": [
+        948,
+        1659
+      ],
+      "prompt_artifact": "/private/tmp/soul-land-mmo-772-loi-duc-ung/art/src/beast-anim/loi_duc_ung/toA.prompt.txt",
+      "prompt_sha256": "1d29763bad7e222a6cb645b5f6951c2fb2ae5e2db563f8cd1083f29822374ef1",
+      "references": [
+        {
+          "path": "/private/tmp/soul-land-mmo-772-loi-duc-ung/shared/assets/sprites/beast/loi_duc_ung.png",
+          "sha256": "815b668c08dd72d226f8c727d78cfcf28bf7f49b57851b911689b31569e94c45",
+          "role": "static identity reference, three views"
+        }
+      ],
+      "copied_at": "2026-10-26T13:18:20.016Z"
+    }
+  ]
+}
