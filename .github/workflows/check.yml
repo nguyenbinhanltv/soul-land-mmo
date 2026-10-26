@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 # Push mới lên cùng PR thì hủy lượt cũ của PR đó; push mới lên main hủy lượt CI cũ của main (#1079). Nhóm theo số PR (PR khác nhau không hủy nhau) hoặc theo ref (main).
-# Lượt bị hủy có conclusion cancelled nên release.yml (gate chỉ nhận success) không chạy Release cho nó; lượt cuối của main vẫn chạy đủ và quét cả cây.
+# Lượt bị hủy có conclusion cancelled nên release.yml (gate chỉ nhận success) không chạy Release cho nó; push main chọn mức so với commit của lượt CI main thành công gần nhất (job `changes`), nên lượt bị hủy không làm lượt sau ra `skip`.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -31,6 +31,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+      actions: read # push: tìm lượt CI main thành công gần nhất qua API
     outputs:
       level: ${{ steps.level.outputs.level }}
     steps:
@@ -48,6 +49,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
         run: |
           if [ "$EVENT" = pull_request ]; then
             # Nhãn đọc lúc chạy: gắn ci:full rồi bấm Re-run (hoặc push) là có hiệu lực.
@@ -55,8 +57,12 @@ jobs:
             export LABELS
             git diff --name-only "$BASE...$HEAD" | bash tools/ci/changes.sh
           else
-            # Push vào main: so với commit trước của nhánh. Không so được (push đầu, force push, lịch sử mất) thì danh sách rỗng -> full.
-            { git diff --name-only "$BEFORE" "$SHA" 2>/dev/null || true; } | PUSH=1 bash tools/ci/changes.sh
+            # Push vào main: mốc so sánh = commit của lượt CI main gần nhất có conclusion success (không phải commit ngay trước), vì lượt bị hủy (#1079)
+            # chưa quét mã của nó: merge A (server, full) rồi B (docs) mà lượt A bị hủy thì B so với mốc thành công trước A, nên vẫn thấy server/** -> full.
+            # Mốc không là tổ tiên của SHA thì không dùng; API lỗi / không có lượt thành công thì dự phòng github.event.before. Không so được thì danh sách rỗng -> full.
+            prev=$(gh api "repos/$REPO/actions/workflows/check.yml/runs?branch=main&event=push&status=success&per_page=50" --jq "[.workflow_runs[] | select(.id < $RUN_ID)] | sort_by(.id) | last | .head_sha // empty" 2>/dev/null) || prev=
+            if [ -z "$prev" ] || ! git merge-base --is-ancestor "$prev" "$SHA" 2>/dev/null; then prev=$BEFORE; fi
+            { git diff --name-only "$prev" "$SHA" 2>/dev/null || true; } | PUSH=1 bash tools/ci/changes.sh
           fi
 
   check-build:
