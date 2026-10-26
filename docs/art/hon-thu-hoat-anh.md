@@ -78,7 +78,7 @@ CI `check-build` Ubuntu sinh bundle khi diff PR chạm cutter/helper/test/tài l
 
 **Nhập H4: không cần cờ** (chuẩn hóa mặc định bật; tờ B của Codex `image_gen` ra 1254×1254, không chuẩn hóa thì `ne` / `n` to hơn `s` / `se` / `e` khoảng 15–20%). Hệ số chung cả loài vẫn tự hạ nếu có khung chạm mép; so bảng cỡ thân idle 5 hướng trước / sau khi nhập. Ba loài đã nhập trước khi có cờ (Ám Kim Khủng Trảo Hùng, Hắc Bối Dã Trư, Huyền Băng Thiềm) đã cắt lại (Part of #767, #768).
 
-**Đính chính #826:** #826 ghi Phong Lang, Kim Linh Ưng "đúng spec nên giữ nguyên" là **sai**: cả hai có tờ B 1254×1254 (công cụ sinh ảnh luôn ra cỡ này cho tỉ lệ 1:1), `ne` / `n` to 1,18–1,49× so với `s` / `e`. Hai loài đã cắt lại bằng cutter v2 mặc định (#862): cao `ne` / `e` Phong Lang 1,39 → 1,14, Kim Linh Ưng 1,43 → 1,16 (`n` Kim Linh Ưng còn 1,33: neo cỡ theo ảnh tĩnh là #864).
+**Đính chính #826:** #826 ghi Phong Lang, Kim Linh Ưng "đúng spec nên giữ nguyên" là **sai**: cả hai có tờ B 1254×1254 (công cụ sinh ảnh luôn ra cỡ này cho tỉ lệ 1:1), `ne` / `n` to 1,18–1,49× so với `s` / `e`. Hai loài đã cắt lại bằng cutter v2 mặc định (#862): dùng `--scale` giữ nguyên cỡ s / se / e trong game (Phong Lang 0.462, Kim Linh Ưng 0.453; chỉ kéo `ne` / `n` về cỡ của chúng): cao `ne` / `e` Phong Lang 1,39 → 1,13, Kim Linh Ưng 1,43 → 1,17 (`n` Kim Linh Ưng còn 1,31: neo cỡ theo ảnh tĩnh là #864).
 
 Tên theo quy ước game (`beast_<loài>_anim`); không dùng tên gói ngoài.
 
