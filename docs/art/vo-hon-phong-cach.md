@@ -87,6 +87,8 @@ Quy tắc: **ảnh vẽ thật không chứa quầng mờ, gradient, bóng đổ
 
 ## 4. Bảng thiết kế mới cho từng võ hồn (25)
 
+> **Thay thế nguồn cũ (bộ hình v2):** bảng này **thay** `phap-tuong.md` phần 4.1 (cột hình / màu) cho mọi loại hình võ hồn v2, gồm cả pháp tướng. Hình, màu hai bên lệch nhau thì **theo bảng này** (ví dụ Nguyệt Nhận: hai lưỡi liềm tách ra, không phải một vòng trăng; Cửu Tinh: thép xanh đậm). Phần còn lại của `phap-tuong.md` vẫn giữ: khung, gốc, lớp, chuyển động (phần 1–3, 4.2).
+
 Mỗi dòng: **bá đạo ở đâu** (ý tưởng một câu), **hình mẫu** (hình khối gốc), **bảng màu** (thân = `robe`, nhấn = `col`, thêm màu đối lập), **motif tu tiên**, **vật đi kèm** (vẽ cùng sheet; chân dung / icon lấy lại). Màu chủ đạo gọi theo `robe` / `col` trong `VOHON`; chỉ ghi mã màu cho màu nhấn **thêm**. Hệ và hồn kỹ lấy từ `shared/data.ts`.
 
 ### 4.1 Cường công
@@ -293,6 +295,8 @@ Cùng một võ hồn, **hồn hoàn thấp bậc ít hào quang, cao bậc nhi�
 - Ghi chú cho thiết kế: nếu chủ repo muốn **hai biến thể ảnh vẽ** (thường / cao bậc, ví dụ thêm sừng, cánh phụ) thì mở thành việc riêng; mặc định một bộ ảnh.
 
 ## 6. Khối prompt phong cách (tiếng Anh) dùng chung cho Codex / ChatGPT
+
+> **Thay thế nguồn cũ (bộ hình v2):** khối STYLE / NEGATIVE và cách ghép prompt dưới đây **thay** `phap-tuong.md` mục 5 (prompt PixelLab, có `soft inner glow`, `translucent ghost-like`; `soft` bị cấm ở đây). Không dùng prompt mục 5 cũ để vẽ bản v2.
 
 Chèn nguyên khối vào đầu mọi prompt (kể cả `phuthe-sheet-prompt`, #1022), rồi nối mô tả riêng từng võ hồn lấy từ mục 4 (silhouette, màu, motif, vật đi kèm). **Không** đưa ảnh cũ vào làm ảnh dẫn.
 
