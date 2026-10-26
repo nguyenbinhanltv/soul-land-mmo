@@ -2246,6 +2246,8 @@ Thái Thản Cự Viên: `art/src/beast-anim/thai_than_cu_vien/toA.png` đến `
 
 Băng Giáp Cự Quy (H4 #767): raw `art/src/beast-anim/bang_giap_cu_quy/toA.png` (1024×1536, fresh worker69, A2/2) và `toB.png` (1254×1254 thực tế, sai yêu cầu1024×1024, fresh worker71, B2/2), tthoadev sinh ngày2026-10-26 bằng builtin `image_gen.imagegen`. A reference static identity; B reference static identity + A2 style-only candidate. Model/seed unknown, không có size selector. Giữ nguyên byte, không hậu kỳ. [Nguồn/knownissues](src/beast-anim/bang_giap_cu_quy/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json` cùng thư mục. Chưa owner duyệt mỹ thuật/runtime hoặc BsizeH4; tổng batch4/10 raw khi nộp cặp này.
 
+Liệt Trảo Hùng (H4 #768): raw `art/src/beast-anim/liet_trao_hung/toA.png` (1024×1536, fresh92 A1 một call) và `toB.png` (1254×1254 thật, FAIL yêu cầu1024×1024, fresh94 B1 một call), tthoadev sinh ngày2026-10-26 bằng builtin `image_gen.imagegen`. A chỉ static identity; B ordered static identity + A92A1 style/body-size candidate còn FAIL. Model/seed unknown, không size selector. Giữ nguyên byte, không hậu kỳ/cắt/resize. Exact prompt, SHA/header/bytes/refs/counters/knownerrors: [NGUON.md](src/beast-anim/liet_trao_hung/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json`. Tổng A1+B1=2calls, không retry; source static upright/side crouched mâu thuẫn basequad được ghi rõ, không tự chốt anatomy. User cho phép publish FAIL để owner kiểm; chưa size/art/runtime acceptance, không autoimport. Part of #768/#766.
+
 <!-- private-assets:start -->
 ## Asset kho riêng (không nằm trong repo công khai)
 

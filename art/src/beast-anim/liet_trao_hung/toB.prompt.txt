@@ -1,0 +1,31 @@
+Create ONE image, exactly 1024x1024 pixels: an animation sprite sheet of a single fantasy creature for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
+
+CREATURE: Liệt Trảo Hùng - fierce claw bear, dark brown shaggy fur, long sharp claws, massive shoulders. Body type: thú bốn chân. Size class: Tím / Đen. The attached reference image shows this exact creature in three static views (front, side, back): keep the SAME design, proportions, colors, markings and overall size in every frame of the sheet. Do not redesign it.
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
+
+GRID: 6 columns x 8 rows of equal invisible cells (171x128 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with its feet (or lowest body point) standing on the same invisible ground line about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.
+
+LAYOUT (top to bottom):
+Block 1 (rows 1-4): direction "ne" = facing the upper right of the picture (three-quarter back view, head away from the viewer toward the right).
+  row 1: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 2: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 3: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 4: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+Block 2 (rows 5-8): direction "n" = facing away from the viewer (back view from above).
+  row 5: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 6: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 7: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 8: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+
+CONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, standing, walking and hurt frames keep the body at the same scale and the same ground line. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).
+
+STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.
+
+DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions.
+
+Match the creature design, colors, size and line weight of the second attached sheet exactly. same body size as sheet A.
+
+REFERENCE ROLES: Image 1 is the original static identity reference: brown shaggy bear, massive shoulders and long claws. Image 2 is sheet A92, a style/body-size reference only, not an accepted pose reference. Preserve its palette, line weight and absolute body size in pixels, not its sheet proportions or its incorrect hurt turns / ambiguous SE-E poses / near-magenta background. Do not copy those pose mistakes. The static reference shows upright front/back poses and a crouched side pose, while the unchanged base script says quadruped; this source discrepancy is not permission to redesign the creature.
+OUTPUT: Request exactly 1024x1024 pixels, 6 columns and 8 rows, exactly 44 occupied cells with one semantic creature frame each; row 4 columns 5-6 and row 8 columns 5-6 are blank flat #FF00FF. Keep the same absolute body size as sheet A. No extra rows or columns.
+HEADING: NE rows 1-4 are rear three-quarter views, head toward upper right with back visible, never east-facing side views. N rows 5-8 are seen FROM THE BACK for idle, hurt, walk, attack and death, with no face or eyes turned toward the camera. Hurt clearly recoils backward without changing heading. Death preserves the same head/body direction axis, no east or front yaw. NE attack goes away toward upper right, never turning frontward. Preserve margins and blank cells; no cross-row body parts, fog, particles, glow, shadow, grid, labels or text. Background is flat exact #FF00FF.
