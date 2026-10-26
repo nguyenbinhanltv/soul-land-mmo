@@ -2,7 +2,7 @@
 
 File này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-status.mjs`); **không sửa tay**, không dán bảng tay vào issue. Mức theo khối hướng là kết quả `beast:check` (cỡ, nền, lưới, số hình, chân, cỡ thân, khung chết); `n` / `ne` lộ mặt, hurt ngửa bụng, die xoay chỉ xem bằng mắt (tờ liên hệ).
 
-30 loài có thư mục · 6 đã nhập vào game · 22 sẵn sàng nhập · 1 chưa có tờ · 7 có khối chặn
+31 loài có thư mục · 6 đã nhập vào game · 22 sẵn sàng nhập · 1 chưa có tờ · 1 thiếu tờ · 7 có khối chặn
 
 | Loài | Mã | Bố cục | Tờ (cỡ, mức) | s | se | e | ne | n | Thiếu | Nhập game | Trạng thái |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -11,6 +11,7 @@ File này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-statu
 | Băng Phong Bạch Hùng | `bang_phong_bach_hung` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | đạt | nhẹ | đạt | nhẹ | nhẹ | - | chưa | sẵn sàng nhập |
 | Băng Vũ Ưng | `bang_vu_ung` | - | - | - | - | - | - | - | - | chưa | chưa có tờ |
 | Điền Thử | `dien_thu` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 đạt | nhẹ | nhẹ | đạt | đạt | đạt | - | chưa | sẵn sàng nhập |
+| Độc Châm Phong | `doc_cham_phong` | sheet | A 948×1659 **chặn**<br>B 1254×1254 nhẹ | thiếu | thiếu | thiếu | nhẹ | nhẹ | - | chưa | thiếu tờ |
 | Độc Vụ Thiềm | `doc_vu_thiem` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | nhẹ | đạt | đạt | đạt | nhẹ | - | chưa | sẵn sàng nhập |
 | Hắc Bối Dã Trư | `hac_boi_da_tru` | sheet | A 1024×1536 đạt<br>B 1254×1254 đạt | đạt | đạt | đạt | đạt | đạt | - | đã nhập | sẵn sàng nhập |
 | Huyền Băng Thiềm | `huyen_bang_thiem` | sheet | A 1024×1536 đạt<br>B 1254×1254 nhẹ | đạt | đạt | đạt | nhẹ | đạt | - | đã nhập | sẵn sàng nhập |
@@ -66,6 +67,13 @@ LỖI: toB — hình ở ô trống / khung chết / cỡ thân lệch — H4 (n
 
 ```
 LỖI: toA — hình ở ô trống / cỡ thân lệch — H8 (se) C5, H8 (se) C6, H1–4 (s) — ô trống có hình (2.99% diện tích ô): hình tràn từ ô bên; ô trống có hình (1.56% diện tích ô): hình tràn từ ô bên; cỡ thân idle 89% so với ảnh tĩnh (lệch 11%).
+```
+
+### Độc Châm Phong (`doc_cham_phong`)
+
+```
+LỖI: toA — sai kích thước — toàn tờ — 948×1659 không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2).
+LỖI: toB — chân lệch / cỡ thân lệch — H8 (n) C4, H1–4 (ne), H5–8 (n) — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 13%); cỡ thân idle 89% so với ảnh tĩnh (lệch 11%); cỡ thân idle 111% so với ảnh tĩnh (lệch 11%).
 ```
 
 ### Độc Vụ Thiềm (`doc_vu_thiem`)

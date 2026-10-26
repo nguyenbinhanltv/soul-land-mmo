@@ -1,11 +1,12 @@
 {
   "schema": 1,
   "generatedBy": "tools/assets/beast-status.mjs",
-  "species": 30,
+  "species": 31,
   "imported": 6,
   "tally": {
     "san-sang-nhap": 22,
     "chua-co-to": 1,
+    "thieu-to": 1,
     "chan": 7
   },
   "items": [
@@ -228,6 +229,58 @@
       "missing": [],
       "errorLines": [
         "LỖI: toA — hình ở ô trống / cỡ thân lệch — H8 (se) C5, H8 (se) C6, H1–4 (s) — ô trống có hình (2.99% diện tích ô): hình tràn từ ô bên; ô trống có hình (1.56% diện tích ô): hình tràn từ ô bên; cỡ thân idle 89% so với ảnh tĩnh (lệch 11%)."
+      ]
+    },
+    {
+      "id": "doc_cham_phong",
+      "name": "Độc Châm Phong",
+      "family": "insect",
+      "frame": 64,
+      "imported": false,
+      "turnaround": false,
+      "layout": "sheet",
+      "state": "thieu-to",
+      "sheets": [
+        {
+          "sheet": "toA",
+          "file": "art/src/beast-anim/doc_cham_phong/toA.png",
+          "size": [
+            948,
+            1659
+          ],
+          "bytes": 1838198,
+          "sha256": "e51c299e40803ae3e3ddfe71f9fcca2a6bd437e0b2d1c807ed36e93728f57ebf",
+          "level": "chặn",
+          "block": 1,
+          "light": 0,
+          "note": 0
+        },
+        {
+          "sheet": "toB",
+          "file": "art/src/beast-anim/doc_cham_phong/toB.png",
+          "size": [
+            1254,
+            1254
+          ],
+          "bytes": 1879248,
+          "sha256": "c15ddce0dd95e64fc6d11674eae1810497a6604b8aef016760f8b6602bb5b675",
+          "level": "nhẹ",
+          "block": 0,
+          "light": 3,
+          "note": 2
+        }
+      ],
+      "blocks": {
+        "s": "thiếu",
+        "se": "thiếu",
+        "e": "thiếu",
+        "ne": "nhẹ",
+        "n": "nhẹ"
+      },
+      "missing": [],
+      "errorLines": [
+        "LỖI: toA — sai kích thước — toàn tờ — 948×1659 không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2).",
+        "LỖI: toB — chân lệch / cỡ thân lệch — H8 (n) C4, H1–4 (ne), H5–8 (n) — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 13%); cỡ thân idle 89% so với ảnh tĩnh (lệch 11%); cỡ thân idle 111% so với ảnh tĩnh (lệch 11%)."
       ]
     },
     {
