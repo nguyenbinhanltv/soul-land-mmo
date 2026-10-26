@@ -1,0 +1,90 @@
+{
+  "species": "doc_vu_thiem",
+  "sheet": "A",
+  "worker": "soul-land-mmo-90",
+  "issue": 767,
+  "raw_file": "toA.png",
+  "sha256": "a4cdd35ec76a6b366693d9088b4249997757745c67ee844d6e939503685173de",
+  "bytes": 2016727,
+  "width": 1024,
+  "height": 1536,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "size_requirement_met": true,
+  "grid": [
+    6,
+    12
+  ],
+  "expected_visible_cells": 66,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "No size/model/seed selector exposed; dimensions requested in prompt only.",
+  "transparent_background": false,
+  "selected_attempt": 1,
+  "attempts": 2,
+  "counters": {
+    "A": 2,
+    "B": 2,
+    "species_total": 4
+  },
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "9b3ac00b05031a8246a18316b83bf1ec21d12a88ca4c6cadd44b83a959eec7fa",
+  "references": [
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-63/references/doc_vu_thiem.png",
+      "role": "static identity; no tail or fog FX",
+      "sha256": "4194510810d860ef6b94314696b6cdb9244f0fbdc3e30031f1812acc4c8ee327",
+      "original_input_path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-63/shared/assets/sprites/beast/doc_vu_thiem.png"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17591-a2e8-7f53-8a77-9e37e10a24fc/exec-0d35209d-aabd-4a18-a483-3f8223c82476.png",
+  "upstream_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-90/provenance.json",
+  "history": [
+    {
+      "attempt": 1,
+      "raw_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-90/doc_vu_thiem-A1-RAW.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17591-a2e8-7f53-8a77-9e37e10a24fc/exec-0d35209d-aabd-4a18-a483-3f8223c82476.png",
+      "sha256": "a4cdd35ec76a6b366693d9088b4249997757745c67ee844d6e939503685173de",
+      "bytes": 2016727,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "prompt_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-90/A1-exact-prompt.txt",
+      "prompt_sha256": "9b3ac00b05031a8246a18316b83bf1ec21d12a88ca4c6cadd44b83a959eec7fa"
+    },
+    {
+      "attempt": 2,
+      "raw_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-90/doc_vu_thiem-A2-RAW.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17591-a2e8-7f53-8a77-9e37e10a24fc/exec-f30e49f0-fac2-4fbe-ba35-4e9713da3b28.png",
+      "sha256": "258a36d3086df68c1bac9c707a4a4b4c42de68c4af7134a041406b8404efbd80",
+      "bytes": 2045829,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "prompt_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-90/A2-exact-prompt.txt",
+      "prompt_sha256": "f043f319cfda137ba179c69182f72fa7fe4c3c64c820995b49e019b95abc4ce8"
+    }
+  ],
+  "selection_reason": "Chọn A1 làm chính vì grid tốt hơn A2:6ôtrống khôngpixelvượt nền tol40. A2Eprofilebetter nhưng bleedH8C5=1528/H8C6=960, nhiều ô chạm ranh; không chọn latest máy móc.",
+  "known_issues": [
+    "FAIL E H9–12 còn3/4, chưa strict profile. Hurt ngẩng/đổi mặt, recoil yếu; H12C3–4deathviewer.",
+    "Identity cóc thấp/da sần giữ nhìn tổng thể, không tail/FX; từngchi/loop chưa nghiệm thu.",
+    "Nền phổ biến RGB251,2,250 khôngflatFF; A1tol40occupied66/6ôtrống0 không chứng minh tất cả #FF00FF."
+  ],
+  "qa_status": "FAIL / candidate for owner review; not art/runtime/size accepted",
+  "publication_policy": "User explicitly requested committing failed raw candidates for owner review; submission is not acceptance or import.",
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "error_line": "LỖI: toA — hướng/pose/nền — E H9–12/H12C3–4, hurt H1/H5/H9C5–6 — E còn3/4, deathviewer/recoil yếu, nền RGB251,2,250 khôngflat.",
+  "tool_arguments": {
+    "prompt_file": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-90/A1-exact-prompt.txt",
+    "referenced_image_paths": [
+      "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-63/shared/assets/sprites/beast/doc_vu_thiem.png"
+    ],
+    "transparent_background": false
+  }
+}
