@@ -890,7 +890,6 @@ export class PgStore implements Store {
     try {
       for (const f of files) await this.pool.query(readFileSync(new URL(f, dir), "utf8"));
       await this.backfillNameKeys();
-      await this.warnReservedNames();
     } catch (e) {
       const host = (() => { try { return new URL(process.env.DATABASE_URL!).host; } catch { return "?"; } })();
       console.error(`✗ Không kết nối được PostgreSQL (${host}): ${(e as Error).message}`);
@@ -899,6 +898,7 @@ export class PgStore implements Store {
       throw e;
     }
     console.log("✓ Đã kết nối PostgreSQL và cập nhật bảng.");
+    await this.warnReservedNames().catch((e) => console.warn("⚠  Không soát được tên cấm:", (e as Error).message)); // chỉ cảnh báo: lỗi ở đây không được chặn khởi động
   }
   /** Chờ các truy vấn đang chạy xong rồi đóng mọi kết nối của pool. */
   async close() { await this.pool.end(); }
