@@ -14,6 +14,7 @@
 import Phaser from "phaser";
 import { PHAP_TUONG, VOHON } from "../../shared/data.ts";
 import { attachNormal, lightingOn } from "./lighting.ts";
+import { touchTexture } from "./textureLru.ts";
 import { SKILL_VISUAL, type VisualSheet } from "./skillVisual.ts";
 
 interface Spec { url: string; frame: readonly [number, number] }
@@ -73,6 +74,7 @@ function settle(scene: Phaser.Scene) {
  */
 export function wantVohon(scene: Phaser.Scene, id: string, start = true): "ready" | "wait" | "code" {
   const keys = vohonKeys(id);
+  keys.forEach(touchTexture);
   if (keys.every((k) => scene.textures.exists(k))) return "ready";
   if (keys.some((k) => !specs.has(k) || failed.has(k))) return "code";
   queue(scene, keys, lightingOn(scene.game), start);
@@ -103,6 +105,7 @@ export function wantPhapTuong(scene: Phaser.Scene, id: string, start = true): "r
   const body = def.sheet, glow = `${body}_glow`;
   if (!specs.has(body) || failed.has(body)) return scene.textures.exists(body) ? "ready" : "code";
   const keys = [body, ...(specs.has(glow) && !failed.has(glow) ? [glow] : [])];
+  keys.forEach(touchTexture);
   if (keys.every((k) => scene.textures.exists(k))) return "ready";
   queue(scene, keys, false, start);
   return "wait";
@@ -115,6 +118,7 @@ export function wantPhapTuong(scene: Phaser.Scene, id: string, start = true): "r
 export function wantBeast(scene: Phaser.Scene, species: string, start = true): "ready" | "wait" | "code" {
   const keys = [`beast_${species}`, `beast_${species}_anim`].filter((k) => specs.has(k) && !failed.has(k));
   if (!keys.length) return "code";
+  keys.forEach(touchTexture);
   if (keys.every((k) => scene.textures.exists(k))) return "ready";
   queue(scene, keys, lightingOn(scene.game), start);
   return "wait";
@@ -125,7 +129,9 @@ export function wantBeast(scene: Phaser.Scene, species: string, start = true): "
  */
 export function wantSkillFx(scene: Phaser.Scene, id: string, mine: boolean, start = true) {
   const e = skillFxTable().get(id); if (!e) return;
-  queue(scene, [...new Set([...e.body, ...(mine ? e.glow : [])])].filter((k) => specs.has(k) && !failed.has(k)), false, start);
+  const keys = [...new Set([...e.body, ...(mine ? e.glow : [])])].filter((k) => specs.has(k) && !failed.has(k));
+  keys.forEach(touchTexture);
+  queue(scene, keys, false, start);
 }
 
 /** Phụ thể của võ hồn thứ `i` trong VOHON (chỉ số server gửi ở `p.vh`; ngoài khoảng thì võ hồn đầu như vohonTextures). */

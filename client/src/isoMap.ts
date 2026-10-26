@@ -16,6 +16,7 @@ import { TILE_W, TILE_H, TOPDOWN, worldToScreen, screenToWorld, depthAt } from "
 import { Buf, rgba, shade, buildHouse, buildFence, frontDepth, type RGBA, type BuildStyle } from "./isoBuild.ts";
 import { GLOW_PROPS, attachNormal, lightingOn } from "./lighting.ts";
 import { IsoAtlas } from "./isoAtlas.ts";
+import { touchTexture } from "./textureLru.ts";
 import { PRIV_OFF } from "./privateAssets.ts";
 
 /** Độ sâu mặt đất: dưới mọi thứ (vùng cảnh báo, hồn sư, chữ); ô phía trước vẽ sau để che đáy ô phía sau. Lớp phủ mép trên mọi ô. */
@@ -60,7 +61,13 @@ interface PropDef { key: string; foot: [number, number]; flip?: boolean; private
 interface MapSet { ground?: Record<string, string>; props?: Record<string, string | string[]>; build?: BuildStyle }
 interface IsoTiles { ground: Record<string, GroundDef>; props: Record<string, PropDef>; maps: Record<string, MapSet> }
 
-const TILES_KEY = "iso-tiles", PRIV_KEY = "iso-private-present", BASE = "iso/";
+/** Mục atlas của một bản đồ trong iso/atlas/index.json: ảnh → [trang, x, y, rộng, cao]. */
+interface IsoAtlasEntry { frames: Record<string, [number, number, number, number, number]> }
+/** `?noatlas`: bỏ atlas, tải từng file như trước (để đo trước / sau bằng client/scripts/load-measure.mjs, QS="&noatlas"). */
+const NO_ATLAS = new URLSearchParams(location.search).has("noatlas");
+const ATLAS_KEY = "iso-atlas-index", TILES_KEY = "iso-tiles", PRIV_KEY = "iso-private-present", BASE = "iso/";
+/** Texture ô nền / vật đứng cắt từ atlas là canvas (bản nhân màu `tên~màu` do IsoMap vẽ thì bỏ theo scene như trước) nhưng sống qua các bản đồ như texture nạp từ file (main.ts: dropSceneTextures). */
+export const isIsoSlice = (k: string) => (k.startsWith("iso:") || k.startsWith("prop_")) && !k.includes("~");
 /** Texture của ảnh ô nền (đường dẫn trong shared/assets/iso). Vật đứng dùng thẳng key manifest. */
 const texKey = (file: string) => `iso:${file}`;
 const propFile = (key: string) => `sprites/iso/props/${key.replace(/^prop_/, "")}.png`;
@@ -84,10 +91,10 @@ export function preloadIso(scene: Phaser.Scene, mapId: string) {
     const set = mapSet(data, mapId), files = new Set<string>();
     for (const ref of Object.values(set.ground)) { const g = data.ground[parseRef(ref).name]; for (const f of [...(g?.img ?? []), ...(g?.big ?? [])]) files.add(f); }
     // Normal map tự sinh (`<ảnh>_n.png`, tools/assets/normal.mjs) cho Light2D (10.7): tải riêng, gắn vào texture trong resolve().
-    const normals = lightingOn(scene.game), img = (key: string, url: string) => {
-      if (scene.textures.exists(key)) return;
-      scene.load.image(key, url);
-      if (normals) scene.load.image(`${key}_n`, url.replace(/\.png$/, "_n.png"));
+    const normals = lightingOn(scene.game), list: [string, string][] = [];
+    const img = (key: string, url: string) => {
+      touchTexture(key);
+      if (!scene.textures.exists(key) && !list.some((e) => e[0] === key)) list.push([key, url]);
     };
     for (const f of files) img(texKey(f), BASE + f);
     const comp = Object.values(set.build?.compounds ?? {}).flatMap((c) => [...c.main, ...(c.gate ? [c.gate] : []), ...(c.deco ?? [])]);
@@ -96,8 +103,49 @@ export function preloadIso(scene: Phaser.Scene, mapId: string) {
     for (const v of [...Object.values(set.props), ...(set.build?.tower ? [set.build.tower] : []), ...comp]) for (const ref of ([] as string[]).concat(v).flatMap(alts)) {
       const p = data.props[parseRef(ref).name];
       if (!p) continue;
-      if (p.private) { if (!PRIV_OFF && !scene.textures.exists(p.key)) priv.set(p.key, p.private); }
+      if (p.private) { if (!PRIV_OFF) { touchTexture(p.key); if (!scene.textures.exists(p.key)) priv.set(p.key, p.private); } }
       else img(p.key, propFile(p.key));
+    }
+    // Atlas (#716 bước 6, tools/assets/iso-atlas.mjs): ảnh có trong atlas của bản đồ tải theo trang rồi cắt lại đúng hình chữ nhật (một file
+    // thay vì mỗi ảnh một file); ảnh ngoài atlas, hay bản đồ không có atlas, tải từng file như trước.
+    if (list.length) {
+      /** Tải riêng từng file (không atlas): `only` = chỉ màu hoặc chỉ normal map. */
+      const solo = (key: string, url: string, only?: "color" | "normal") => {
+        if (only !== "normal") scene.load.image(key, url);
+        if (normals && only !== "color") scene.load.image(`${key}_n`, url.replace(/\.png$/, "_n.png"));
+      };
+      // Atlas / trang atlas tải lỗi (mạng, 404, JSON hỏng) thì các ảnh phụ thuộc quay về tải từng file như trước.
+      const onFail = new Map<string, () => void>();
+      const failed = (file: Phaser.Loader.File) => { const f = onFail.get(file.key); if (f) { onFail.delete(file.key); f(); } };
+      scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, failed);
+      scene.load.once(Phaser.Loader.Events.COMPLETE, () => scene.load.off(Phaser.Loader.Events.FILE_LOAD_ERROR, failed));
+      onFail.set(ATLAS_KEY, () => { for (const [key, url] of list) solo(key, url); });
+      scene.cache.json.remove(ATLAS_KEY);
+      scene.load.json(ATLAS_KEY, BASE + "atlas/index.json");
+      scene.load.once(`filecomplete-json-${ATLAS_KEY}`, (_k: string, _t: string, idx: Record<string, IsoAtlasEntry>) => {
+        onFail.delete(ATLAS_KEY);
+        const e = NO_ATLAS ? undefined : idx?.[mapId], pageKeys = new Map<number, [string, string][]>();
+        for (const [key, url] of list) {
+          const fr = e?.frames[key];
+          if (!fr) solo(key, url); else pageKeys.set(fr[0], [...(pageKeys.get(fr[0]) ?? []), [key, url]]);
+        }
+        for (const [page, items] of pageKeys) for (const n of normals ? [false, true] : [false]) {
+          const pk = `isoPg|${mapId}|${page}${n ? "_n" : ""}`, url = `${BASE}atlas/${mapId}-${page}${n ? "_n" : ""}.png`;
+          scene.textures.exists(pk) && scene.textures.remove(pk);
+          scene.load.image(pk, url);
+          onFail.set(pk, () => { for (const [key, u] of items) solo(key, u, n ? "normal" : "color"); });
+          scene.load.once(`filecomplete-image-${pk}`, () => {
+            onFail.delete(pk);
+            const src = scene.textures.get(pk).getSourceImage() as HTMLImageElement;
+            for (const [key] of items) {
+              const [, x, y, w, h] = e!.frames[key], cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+              cv.getContext("2d")!.drawImage(src, x, y, w, h, 0, 0, w, h);
+              scene.textures.addCanvas(n ? `${key}_n` : key, cv);
+            }
+            scene.textures.remove(pk);
+          });
+        }
+      });
     }
     // Vật kho riêng (#622): chỉ xin file có thật theo present.json (không có kho thì không có file, bản đồ dùng vật công khai thay).
     if (priv.size) {
