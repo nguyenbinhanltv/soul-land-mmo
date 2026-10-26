@@ -4,7 +4,7 @@
 
 Chuẩn phong cách **chung** cho mọi hình võ hồn làm lại (chủ repo chốt 2026-10-27: vẽ lại toàn bộ assets võ hồn vì bản cũ quá xấu; muốn **bá đạo, ngầu, đậm chất tu tiên**). Mọi prompt gửi tthoadev (ChatGPT / Codex) và mọi bộ hình v2 dùng đúng một định hướng ở đây. Tài liệu chỉ nói về hình; luật chơi và số cân bằng không đổi (`shared/data.ts`: `VOHON`, `TIERS`, `HAO_QUANG`).
 
-**Trạng thái: ĐỀ XUẤT, chờ chủ repo duyệt.** Mục 4 (bảng thiết kế) và mục 6 (khối prompt) chưa được vẽ trên nền nào cho tới khi chủ repo chốt; tthoadev có thể góp ý trước. Ảnh cũ (phụ thể, pháp tướng PixelLab, chân dung, icon) **chỉ để tham khảo ý**, không dùng làm ảnh nguồn / ảnh dẫn cho bản v2.
+**Trạng thái: ĐÃ DUYỆT (orchestrator tự duyệt trong CA ĐÊM 2026-10-27; chủ repo xem lại sau).** Mục 2 (định hướng), mục 4 (bảng thiết kế) và mục 6 (khối prompt) đã được duyệt, nhưng chưa vẽ gì; tthoadev vẫn có thể góp ý, chủ repo xem lại thì sửa theo. Ảnh cũ (phụ thể, pháp tướng PixelLab, chân dung, icon) **chỉ để tham khảo ý**, không dùng làm ảnh nguồn / ảnh dẫn cho bản v2.
 
 ## 1. Phạm vi "assets võ hồn v2"
 
@@ -337,8 +337,8 @@ Cách dùng:
 ## 7. Mốc duyệt
 
 1. Tài liệu này (PR của #1032) được review.
-2. **Chủ repo duyệt mục 2, 4 và 6** (bảng thiết kế 25 võ hồn). Chủ repo đã giao **orchestrator tự duyệt mục 2, 4, 6** (CA ĐÊM 2026-10-27); tthoadev có thể góp ý bảng thiết kế trước khi chốt (đặc biệt Xúc Xích, Nhu Cốt Thố, Yêu Hồ, Bạch Hổ là bốn con dễ lệch phong cách).
-3. Chỉ sau khi duyệt: tthoadev vẽ demo (#1024) gồm **Tà Hỏa Phượng Hoàng** (phụ thể + chân dung + icon) và **Hạo Thiên Chùy** (pháp tướng mới, một trong 11); đạt thì gộp mọi võ hồn còn lại × mọi loại hình (#1025). **Không vẽ trên nền chưa duyệt.**
+2. **Mục 2, 4 và 6 đã được duyệt** (bảng thiết kế 25 võ hồn): chủ repo giao orchestrator tự duyệt, orchestrator duyệt trong CA ĐÊM 2026-10-27; chủ repo xem lại sau, chưa vẽ gì. tthoadev có thể góp ý bảng thiết kế (đặc biệt Xúc Xích, Nhu Cốt Thố, Yêu Hồ, Bạch Hổ là bốn con dễ lệch phong cách).
+3. Sau khi duyệt: tthoadev vẽ demo (#1024) gồm **Tà Hỏa Phượng Hoàng** (phụ thể + chân dung + icon) và **Hạo Thiên Chùy** (pháp tướng mới, một trong 11); đạt thì gộp (#1025): phụ thể + chân dung / thẻ + icon cho các võ hồn còn lại, còn pháp tướng chỉ cho 10 võ hồn còn lại trong nhóm 11 (trừ Hạo Thiên Chùy đã làm ở demo). 14 pháp tướng PixelLab giữ nguyên.
 
 ## Issue liên quan
 #1020 (epic phụ thể v2), #1032 (tài liệu này), #1022 (công cụ prompt `phuthe-sheet-prompt`), #1024 (demo Tà Hỏa Phượng Hoàng), #1025 (gộp), #1028 (đặc tả phụ thể P0).
