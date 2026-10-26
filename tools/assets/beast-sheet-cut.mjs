@@ -22,8 +22,8 @@ import { DIRS, ANIMS, COLS, BAND_ROWS, animSlot, sheetPlan, sheetCells, speciesI
 import { layoutFor, parsePatch, applyPatches, staticAnchors, blockFactors, levelOf, codeOf, summarize } from "./beast-sheet-cut-lib.mjs";
 
 const K_OUT = hex(OUTLINE);
-const dist2 = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
-const median = (xs) => { const s = [...xs].sort((a, b) => a - b); return s.length ? (s.length % 2 ? s[s.length >> 1] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2) : 0; };
+export const dist2 = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
+export const median = (xs) => { const s = [...xs].sort((a, b) => a - b); return s.length ? (s.length % 2 ? s[s.length >> 1] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2) : 0; };
 
 // ---------- Nền ----------
 /** Màu khóa: màu nhiều phiếu nhất ở 4 góc (ảnh có alpha thấp ở góc thì không cần khóa). */
@@ -130,7 +130,7 @@ export function assignToCells(img, sheet, mask, opt) {
 }
 
 // ---------- Màu ----------
-function medianCut(pixels, n) {
+export function medianCut(pixels, n) {
   const boxes = [pixels];
   while (boxes.length < n) {
     let bi = -1, bs = 0;
@@ -143,7 +143,7 @@ function medianCut(pixels, n) {
   }
   return boxes.map((b) => [0, 1, 2].map((c) => Math.round(b.reduce((s, p) => s + p[c], 0) / b.length)));
 }
-const nearest = (p, pal) => { let bi = 0, bd = Infinity; for (let i = 0; i < pal.length; i++) { const d = dist2(p, pal[i]); if (d < bd) { bd = d; bi = i; } } return bi; };
+export const nearest = (p, pal) => { let bi = 0, bd = Infinity; for (let i = 0; i < pal.length; i++) { const d = dist2(p, pal[i]); if (d < bd) { bd = d; bi = i; } } return bi; };
 
 // ---------- Cắt một loài ----------
 /**

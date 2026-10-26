@@ -63,7 +63,7 @@ Dùng lại bố cục **mỗi hướng một tờ** của hồn thú (`sheetPla
 - **Turnaround trước** (như hồn thú): một ảnh 3:2, 5 cột hướng × 3 hàng (`idle`, `attack` đỉnh, `hurt`) = 15 hình, kèm nộm, để duyệt thiết kế và nét. Chỉ duyệt bằng mắt; làm ảnh mẫu cho 5 tờ.
 - **Thứ tự ảnh tham chiếu cố định:** (1) bảng nộm của tờ đó (do P1 dựng); (2) turnaround đã duyệt; (3, tùy chọn) một tờ hướng của chính võ hồn đã qua kiểm không chặn. **Không đính ảnh phụ thể cũ.**
 - **Dung sai lưới, nền, cỡ ảnh theo tỉ lệ** (tờ 3:2 một hướng): như `hon-thu-hoat-anh.md` mục "Bố cục tờ ảnh"; đếm hàng và số hình mỗi hàng, không đòi ô đều.
-- Công cụ dự kiến (P1): `phuthe-sheet-dummy.mjs` (dựng nộm), `phuthe-sheet-prompt.mjs` (sinh prompt + hướng dẫn tiếng Việt; mô tả ngoại hình lấy từ `vo-hon-phong-cach.md` phần 4, phần kỹ thuật (nộm, lưới, nhóm, khung) từ file này), `phuthe-sheet-check.mjs` (kiểm tờ RAW), `phuthe-sheet-cut.mjs` (trừ nộm, mặt nạ, căn neo, ghi sheet), `phuthe-sheet-preview.mjs` (xem trước), tái dùng `beast-sheet-grid.mjs`. **Prompt tự sinh, không viết tay** (cùng luật `beast-anim`).
+- Công cụ (P1, #1022, mục "Công cụ `phuthe-sheet-*`" bên dưới): `phuthe-sheet-dummy.mjs` (dựng nộm), `phuthe-sheet-prompt.mjs` (sinh prompt + hướng dẫn tiếng Việt; mô tả ngoại hình lấy từ `vo-hon-phong-cach.md` phần 4, phần kỹ thuật (nộm, lưới, nhóm, khung) từ file này), `phuthe-sheet-check.mjs` (`npm run phuthe:check`), `phuthe-sheet-cut.mjs` (trừ nộm, mặt nạ, căn neo, ghi sheet), `phuthe-sheet-preview.mjs` (xem trước), `phuthe-sheet-status.mjs` (`npm run phuthe:status`), tái dùng `beast-sheet-grid.mjs`. **Prompt tự sinh, không viết tay** (cùng luật `beast-anim`).
 
 ## Khung 96 / 128 và neo theo khung thân
 - **Khung vuông 96** mặc định: khung thân mở rộng 16 mỗi phía, gốc `(48, 74)` như sheet phụ thể hiện tại, nên bóng, vòng hồn hoàn và lớp ghép không đổi. **Khung 128** cho vật lớn / cánh sải rộng (thân vẫn 64, mở rộng đều 32 mỗi phía): gốc `(64, 90)` (= gốc thân `(32, 58)` + 32 mỗi trục), cách mép dưới `128 − 90 = 38` điểm; khung 96 thì `(48, 74)`, cách mép dưới `96 − 74 = 22` (khoảng này **không** giữ nguyên giữa hai khung). Mỗi võ hồn chọn **một** khung cho cả sheet, ghi trong manifest (`frame`). Ứng viên 128: Hạo Thiên Chùy (thử ở P3), Cửu Bảo Lưu Ly Tháp, Phá Hồn Thương, Kỳ Nhung Thông Thiên Cúc, Tử Vong Chu Hoàng; quyết định theo kết quả P3 và đo FPS (sheet 128 lớn gấp 1,78 lần diện tích).
@@ -117,11 +117,11 @@ Duyệt theo **khối hướng** (`s`, `se`, `e`, `ne`, `n`), như hồn thú. K
 
 | Loại | Tiêu chí |
 |---|---|
-| **Chặn** | cỡ ảnh ngoài tập hợp lệ; nền không tách được; **còn điểm ảnh nộm** sau cutter (nộm lẫn vào phụ thể, hoặc mất cả phụ thể vì trùng màu khoá); thiếu khung / hình dính / không dò được hàng; **điểm gắn trôi** (cánh / vũ khí không dính vào nộm ở khung đứng, hoặc lệch quá ngưỡng neo giữa các khung của clip); sai nhận diện võ hồn so với bảng mô tả; **vẽ lại thân hoặc vẽ khuôn mặt, tay chân người** thay vì chỉ phụ thể; nộm bị vẽ thêm mặt ở `n` / `ne`; khung rỗng ở clip không phải `hurt`; cỡ phụ thể lệch quá ±25% so với khung `s` cùng clip |
-| **Nhẹ** | `hurt` biên độ nhỏ; mặt nạ cần vá vài vùng (`lop.json` chỉnh tay); vài khung vượt ô nhưng cắt được; cỡ lệch 10–25%; nền gradient, cỡ ảnh theo tỉ lệ khác 1536×1024 (đã chuẩn hóa); pose vật cứng hơi giống nhau giữa các khung |
+| **Chặn** | cỡ ảnh ngoài tập hợp lệ; nền không tách được; **còn điểm ảnh nộm** sau cutter (nộm lẫn vào phụ thể, hoặc mất cả phụ thể vì trùng màu khoá); thiếu khung / hình dính / không dò được hàng; **điểm gắn trôi** (cánh / vũ khí không dính vào nộm ở khung đứng, hoặc lệch quá ngưỡng neo giữa các khung của clip); sai nhận diện võ hồn so với bảng mô tả; **vẽ lại thân hoặc vẽ khuôn mặt, tay chân người** thay vì chỉ phụ thể; nộm bị vẽ thêm mặt ở `n` / `ne`; khung rỗng ở clip không phải `hurt` |
+| **Nhẹ** | cỡ phụ thể lệch so với khối `s` cùng clip (mọi mức, **không chặn**: theo quyết định chủ repo 2026-10-26 mục 4 áp cho phụ thể như hồn thú; công cụ chỉ in số %, cutter không chỉnh cỡ theo khối, chuẩn hóa chỉ theo tỉ lệ tờ); `hurt` biên độ nhỏ; mặt nạ cần vá vài vùng (`lop.json` chỉnh tay); vài khung vượt ô nhưng cắt được; khung lệch diện tích so với trung vị cùng clip; nền gradient, cỡ ảnh theo tỉ lệ khác 1536×1024 (đã chuẩn hóa); pose vật cứng hơi giống nhau giữa các khung |
 | **Đạt đẹp** | `idle` / `walk` lặp mượt, `attack` vung đúng pha thân, `cast` rõ hơn `attack`, hai nửa sau / trước ghép khít không thấy đường cắt, `se` khác `e`, `ne` khác `e` |
 
-- **Kiểm bằng code (P1):** cỡ, nền, lưới, màu nộm còn sót, neo lệch, khung rỗng, cỡ so với `s`; ngưỡng ở đầu `phuthe-sheet-check.mjs`, đo trên các tờ thử rồi chỉnh.
+- **Kiểm bằng code (P1):** cỡ, nền, lưới, nộm còn tìm thấy / bị dời, màu nộm còn sót sau cutter, khung rỗng, điểm gắn (khoảng cách phụ thể tới nộm ở khung đứng), khung chết, hurt = idle, cỡ so với `s` (nhẹ); ngưỡng ở đầu `phuthe-sheet-check.mjs`, **mới đo trên tờ tổng hợp** (`phuthe-sheet-fake.mjs`), chỉnh lại khi P3 có tờ model thật.
 - **Bằng mắt (tờ liên hệ + trang xoay vòng hướng + GIF ghép lên thân thật):** nhận diện võ hồn, `se` / `ne` khác `e`, khớp neo khi ghép lên thân LPC đang đi / đánh, hai nửa sau / trước, `hurt` lùi đúng hướng, không lộ viền nộm. Orchestrator tự duyệt theo phiếu; chủ repo chỉ duyệt mẫu từng nhóm (A / B / C) và tranh chấp.
 - Mẫu comment một dòng mỗi khối: `s: đạt` · `se: nhẹ — hurt nhỏ` · `ne: chặn — cánh trôi khỏi vai ở walk 4`.
 
@@ -203,11 +203,32 @@ Lý do thứ tự: **B trước** vì là nhóm đông nhất (11 / 25), chi th�
 
 Tổng 3 (P3) + 2 + 5 + 3 + 3 + 4 + 2 + 3 = **25**. Mỗi đợt xong thì nhập từng võ hồn (cắt, xem trước, ghép lên thân thật, `npm run check`) rồi mới sang đợt sau; thấy mặt nạ / neo hỏng ở đợt nào thì sửa công cụ (P1) trước khi tiếp. Số đợt, thứ tự trong nhóm và ứng viên khung 128 đều có thể đổi sau P3; chủ repo duyệt mẫu từng nhóm, phần còn lại orchestrator tự duyệt theo phiếu.
 
+## Công cụ `phuthe-sheet-*` (P1, #1022)
+Fork của `beast-sheet-*` (cùng luật: RAW nguyên byte, prompt tự sinh, tối đa 3 lượt mỗi khối; skill `beast-anim`). Không đổi client, server, số cân bằng; sheet đầu ra chưa vào `shared/assets` (P2 nối client, P3 nhập).
+
+| Việc | Lệnh |
+|---|---|
+| Dựng bảng nộm (ảnh tham chiếu số 1) | `node tools/assets/phuthe-sheet-dummy.mjs --id <võ hồn> --out <thư mục> [--frame 96|128] [--dummy-key #00D0D0]` |
+| Prompt + hướng dẫn + bảng nộm | `node tools/assets/phuthe-sheet-prompt.mjs --id <võ hồn> --stage turnaround|direction [--dir s,se,…] --out <thư mục>` (`--all`: 25 võ hồn, nhóm, khung, màu nộm) |
+| Bài học (một nguồn) | `art/src/phuthe-anim/lessons.md` (nhóm `@A` / `@B` / `@C`; parser `phuthe-sheet-lessons.mjs`) |
+| Kiểm tờ RAW | `npm run phuthe:check -- <võ hồn> [--out <thư mục>]` (tờ ở `art/src/phuthe-anim/<id>/to{A..E}.png`, `turnaround.png`; `--all`) |
+| Cắt | `node tools/assets/phuthe-sheet-cut.mjs --id <võ hồn> --sheet A=… --sheet E=… --out <thư mục> [--lop <lop.json>] [--dummy-key …] [--dummy-sex m|f]` |
+| Xem trước | `node tools/assets/phuthe-sheet-preview.mjs --id <võ hồn> --dir <thư mục cắt>` (GIF ghép lên thân LPC nam / nữ, trang xoay 5 hướng) |
+| Sổ trạng thái | `npm run phuthe:status` (`art/src/phuthe-anim/_status.*`, không commit) |
+| Tờ giả để thử | `node tools/assets/phuthe-sheet-fake.mjs --id <võ hồn> --out <thư mục> [--bad]` (không phải ảnh model) |
+
+- **Prompt:** khối STYLE + NEGATIVE chèn **nguyên văn** từ `vo-hon-phong-cach.md` mục 6 (có test); mô tả riêng lấy từ **mục 4 của chính file đó** (giữ tiếng Việt, nhãn dịch sang tiếng Anh, mã màu giữ nguyên) cộng `robe` / `col` trong `VOHON`; phần kỹ thuật từ bảng phần riêng ở trên (nhóm, khung, ghi chú điểm gắn / clip). Dòng "Transparent background" của STYLE bị ghi đè bằng nền #FF00FF. Không dùng ảnh phụ thể cũ làm ảnh dẫn hay nguồn mô tả. Ảnh tham chiếu theo thứ tự cố định: bảng nộm → turnaround đã duyệt → (tùy chọn) một tờ hướng đã qua kiểm.
+- **Nộm:** dựng từ lớp thân LPC `m_0` / `f_0` (`lpcparts`), tô một màu khóa phẳng, đặt ở gốc chân của khung phụ thể phóng `256 / khung` trong ô; khung thân theo bảng ánh xạ ở trên (hằng `bodySteps` / `clipFrameAt` trong `phuthe-sheet-lib.mjs` có test đối chiếu bảng này và `LPC_SHEET`; P2 dùng lại). Ô thừa của tờ không có nộm. Tờ vẽ trên nộm **nam**; nửa nữ chỉ dời theo chênh điểm neo `back` (`frameAnchors`) của thân nữ.
+- **Cutter:** chuẩn hóa tờ cỡ bất kỳ 3:2 về 1536×1024; khóa nền, trừ nộm (dung sai `--dummy-tol` 40 so với nền 60), **đăng ký nộm từng ô** (tương quan hình bóng với nộm danh nghĩa) để biết model dời nộm bao nhiêu rồi lấy cửa sổ khung 256×256 theo nộm; mảnh vụn nhỏ bỏ, mảnh rời lớn **giữ** (cánh bị thân cắt đôi vẫn là một khung); một bảng màu (mặc định 32) cho cả võ hồn, thu 256 → khung 96 / 128 bằng bỏ phiếu, viền ngoài `#1a1020`. Báo `block` khi khung rỗng (trừ hurt), thiếu tờ, còn điểm ảnh màu nộm trong đầu ra.
+- **Sheet đầu ra:** `vhanim_{id}_b.png` (sau thân) và `vhanim_{id}_f.png` (trước thân), mỗi nửa `gameCols × 10` ô: cột theo thứ tự clip (`idle`, `walk`, `attack`, `cast`, `hurt`; B / C 22 cột, A 13 cột), hàng = giới trước hướng sau (`m`: `s, se, e, ne, n` = hàng 0–4; `f`: hàng 5–9). Nửa không có điểm ảnh thì **không ghi** (`blank`). `manifest-entry.json` là mảng một mục cho mỗi nửa không rỗng: `{ key: "vhanim_{id}_b|f", frame: [F, F], iso: true, anim: { group, layer, dirs, sexes, cols, rows: 10, rowsPerSex: 5, anims: { <clip>: { col, n } }, origin: [F/2, F/2 + 26] } }`; P2 có thể đổi dạng khi nối client (ghi ở đây).
+- **`lop.json`** (tùy chọn, `art/src/phuthe-anim/<id>/lop.json`, đọc bằng `parseLop`): `{ "huong": { "<hướng>": { "mac_dinh": "sau"|"truoc", "vung": [ { "nhan": "truoc", "hop": [x0, y0, x1, y1] } | { "nhan": "sau", "da_giac": [[x, y], …] } ] } }, "khung": { "e/attack/3": [ vùng… ] } }`. Toạ độ là điểm ảnh **khung phụ thể tính từ gốc chân** (x sang phải, y xuống). Thứ tự: vùng riêng theo khung > vùng của hướng (vùng `sau` thắng `truoc`) > `mac_dinh` của hướng > quy tắc có sẵn: hướng quay lưng (`ne`, `n`) mọi điểm `truoc`; hướng còn lại mỗi **mảnh liền** đè lên nộm (≥ 8 điểm hoặc 5% mảnh, nộm nở 1 điểm) là `truoc` nguyên mảnh, mảnh còn lại `sau`.
+- **Kiểm tờ:** tờ hướng phải có đúng 4 dải hàng với 6 / 6 / 6 / 4 hình (nhóm A: 3 / 4 / 4 / 2) vì nộm có trong mọi ô dùng và không có ở ô thừa; hình rời (phụ thể tách khỏi nộm ngang ≥ 4 điểm) tính là hình thừa nên lưới hỏng, phụ thể tách theo chiều dọc mà vẫn cùng dải thì bị `diem-gan` (cách nộm > 12% ô ở khung đứng: chặn B / C, nhẹ A). Các mã: `kich-thuoc`, `nen`, `luoi`, `so-hinh` / `hinh-dinh`, `o-trong`, `nom-mat` (điểm khớp < 0,25 chặn, < 0,5 nhẹ), `nom-lech` (so với trung vị tờ, > 16 nhẹ, > 40 chặn), `khung-rong`, `hurt-rong`, `diem-gan`, `khung-lech`, `khung-chet`, `hurt-idle`, `co-phu-the` (cỡ, chỉ nhẹ). `splitStuckFigures` (PR #1063, tách hình dính theo thung lũng chiếu cột) đã dùng ở `gapLayout` của cutter và ở check (ghi `tach-hinh` mức lưu ý), nên phụ thể vươn sang ô bên một chút không còn làm hỏng lưới; tách không được thì vẫn là lỗi lưới.
+
 ## Việc tiếp
 | Việc | Pha | Trạng thái |
 |---|---|---|
-| Đặc tả + audit + bảng mô tả (file này) | P0 #1021 | PR này |
-| Công cụ `phuthe-sheet-*` (nộm, prompt, check, cut, preview) | P1 | mở |
+| Đặc tả + audit + bảng mô tả (file này) | P0 #1021 | xong |
+| Công cụ `phuthe-sheet-*` (nộm, prompt, check, cut, preview, status) | P1 #1022 | PR này |
 | Client phát clip + neo theo khung thân, fallback, `spiritMotion` hệ số giảm | P2 #1023 | xong (mục "Client phát clip (P2)") |
 | Thử 3 võ hồn (Tà Hỏa Phượng Hoàng, Hạo Thiên Chùy, Lam Ngân Thảo) | P3 | mở |
 | Rollout 22 võ hồn còn lại theo đợt | P4 | mở |
