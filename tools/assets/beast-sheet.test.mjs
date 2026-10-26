@@ -125,7 +125,11 @@ test("mẫu prompt: có tên, họ, bậc, kích thước ảnh, hướng và kh
     assert.equal(info.family, family);
     for (const sh of plan) {
       const p = buildPrompt(info, sh, info.desc), doc = buildDoc(info, sh, plan, info.desc);
-      assert.match(p, new RegExp(`exactly ${sh.w}x${sh.h} pixels`));
+      assert.doesNotMatch(p, /exactly \d+x\d+/);
+      assert.doesNotMatch(doc, /chọn kích thước/);
+      assert.match(p, /aspect ratio/);
+      assert.match(p, /never turns its head toward the viewer/);
+      assert.doesNotMatch(p, /eyes shut|collapse sideways|lying on its (side|back)/);
       assert.match(p, /#FF00FF/);
       for (const d of sh.dirs) assert.match(p, new RegExp(`direction "${d}"`));
       assert.ok(doc.includes(info.name) && doc.includes(tier));
@@ -159,7 +163,7 @@ function opaqueBox(im) {
 
 test('chuẩn hóa từng tờ: B1254 cùng đơn vị A, không phình thân vì canvas', () => {
   const sheets = geometrySheets(96, 1254), before = Buffer.from(sheets.B.data);
-  const legacy = cutSpecies({ species: 'phong_lang', sheets, scale: 0.55 });
+  const legacy = cutSpecies({ species: 'phong_lang', sheets, scale: 0.55, normalizeSize: false });
   assert.equal(opaqueBox(legacy.frames.get('e/idle/0')).w, 46);
   assert.equal(opaqueBox(legacy.frames.get('ne/idle/0')).w, 56);
   for (const options of [{ scale: 0.55 }, { fill: 0.6 }, {}]) {
@@ -177,6 +181,19 @@ test('chuẩn hóa từng tờ: B1254 cùng đơn vị A, không phình thân v�
   }
 });
 
+test('chuẩn hóa MẶC ĐỊNH bật: không cờ vẫn đưa B 1254² về cùng đơn vị, --no-normalize-size (false) tắt', () => {
+  const sheets = geometrySheets(96, 1254);
+  const def = cutSpecies({ species: 'phong_lang', sheets, scale: 0.55 });
+  const on = cutSpecies({ species: 'phong_lang', sheets, scale: 0.55, normalizeSize: true });
+  assert.deepEqual(def.sheet.data, on.sheet.data);
+  assert.equal(def.report.sheets.B.factor, 1024 / 1254);
+  const off = cutSpecies({ species: 'phong_lang', sheets, scale: 0.55, normalizeSize: false });
+  assert.equal(off.report.sheets.B.factor, undefined);
+  assert.equal(opaqueBox(off.frames.get('ne/idle/0')).w, 56);
+  const a = opaqueBox(def.frames.get('e/idle/0')), b = opaqueBox(def.frames.get('ne/idle/0'));
+  assert.ok(Math.abs(a.w - b.w) <= 1);
+});
+
 test('chuẩn hóa từ chối sai aspect thay vì kéo riêng hai trục', () => {
   assert.throws(() => cutSpecies({ species: 'phong_lang', sheets: { B: new Img(1254, 1200) }, normalizeSize: true }), /tỉ lệ.*B|B.*tỉ lệ/);
 });
@@ -188,7 +205,7 @@ test('cỡ chuẩn: byte đầu ra legacy không đổi, normalize factor1 cũng
     ['thai_than_cu_vien', '2bbc31c9166f69f1356b724be82ab9a84a6dd9495a7b6ec395c46d2e6e379af8'],
   ]) {
     const sheets = fakeSheets(species, { seed: 2 });
-    const legacy = cutSpecies({ species, sheets });
+    const legacy = cutSpecies({ species, sheets, normalizeSize: false });
     assert.equal(createHash('sha256').update(legacy.sheet.data).digest('hex'), hash);
     const normalized = cutSpecies({ species, sheets, normalizeSize: true });
     assert.deepEqual(normalized.sheet.data, legacy.sheet.data);
@@ -257,6 +274,14 @@ test('CLI normalization báo SHA256 byte RAW, kích thước thật và không g
     assert.equal(invalid.status, 2);
     assert.match(invalid.stderr, /sai tỉ lệ/);
     assert.equal(existsSync(path.join(dir, 'invalid')), false);
+    // không cờ: vẫn chuẩn hóa (mặc định bật); --no-normalize-size tắt (không kiểm tỉ lệ, không sourceSha256)
+    writeFileSync(files.B, before);
+    const defRun = spawnSync(process.execPath, ['tools/assets/beast-sheet-cut.mjs', '--species', 'phong_lang', '--sheet', 'A=' + files.A, '--sheet', 'B=' + files.B, '--out', path.join(dir, 'def'), '--scale', '0.55'], { encoding: 'utf8' });
+    assert.equal(defRun.status, 0, defRun.stderr);
+    assert.equal(JSON.parse(readFileSync(path.join(dir, 'def/_report.json'))).sheets.B.normalizedMode, 'canonical-units');
+    const offRun = spawnSync(process.execPath, ['tools/assets/beast-sheet-cut.mjs', '--species', 'phong_lang', '--sheet', 'A=' + files.A, '--sheet', 'B=' + files.B, '--out', path.join(dir, 'off'), '--scale', '0.55', '--no-normalize-size'], { encoding: 'utf8' });
+    assert.equal(offRun.status, 0, offRun.stderr);
+    assert.equal(JSON.parse(readFileSync(path.join(dir, 'off/_report.json'))).sheets.B.normalizedMode, undefined);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
