@@ -220,3 +220,11 @@ B = `?noatlas` (như main), C = có atlas. Mỗi ô: B → C (ms; request).
 - **Mục tiêu #716 (giảm số request và thời gian vào / đổi bản đồ) đạt**: từ ~2.100 request, 5–8 s dù có cache xuống 7–49 request, 0,5–1,8 s khi warp lại bản đồ đã ghé. Phần còn lại, **ngoài phạm vi issue** (không còn là request): thời gian dựng của bản đồ nặng (Thiên Đấu Thành ~1,8 s ngay cả khi mọi file đã có cache; các khối nung + atlas ánh sáng + LPC trên luồng chính) và ~135 file `sprites/iso` lẻ (hiệu ứng `fx_<hệ>_*`, `gi_*`, vật phẩm) tải lúc vào game lần đầu. Nếu cần nữa nên mở issue riêng về chi phí dựng bản đồ.
 - Kiểm: bot `waypoint` 76 / 76, `bigmap` 176 / 176 (`npm run bot:local`); kiểm tay Chrome thật `--mute-audio`: 20 lần warp xoay vòng 5 bản đồ + `--verify-atlas`, **0 lỗi console**.
 
+
+## Trần byte cho `textureLru` và bỏ sheet tĩnh khi có `_anim` (#1062)
+
+Sheet `beast_<loài>_anim` (6 × 20 khung) tính cả `_n`: khung 64 → 3,9 MB, 96 → 8,8 MB, 128 → ~15,7 MB, 192 → 35 MB mỗi loài. Dự phóng đủ 67 loài ~626 MB; một bản đồ săn ~11–12 loài ~100 MB. `KEEP_VISITS` chỉ theo lượt nên 4 bản đồ săn liên tiếp có thể giữ ~400 MB (cộng `vh`, atlas ánh sáng) → nguy cơ OOM / mất context WebGL trên điện thoại.
+
+- `client/src/textureLru.ts`: thêm `MAX_BYTES` (192 MB, ước tính w×h×4 cả `_n`; không phải số cân bằng gameplay). Lúc rời bản đồ, sau khi gỡ theo lượt, nếu tổng texture được theo dõi vẫn vượt trần thì gỡ tiếp từ lượt cũ nhất. Texture của lượt vừa rời (bản đồ đang dùng, hoặc của mình, xin lại mỗi lần vào) không bị gỡ, nên trần là trần mềm: một bản đồ đơn lẻ vượt trần vẫn được giữ.
+- `client/src/vohonLazy.ts` `wantBeast`: loài có `_anim` (và chưa lỗi) chỉ tải `_anim`, không tải sheet tĩnh `beast_<loài>` kèm theo (`syncBeastSprite` ưu tiên anim). Anim không có / tải lỗi thì rơi về sheet tĩnh như cũ.
+- Số đo (`load-measure.mjs --ram 20`, 6 bản đồ săn, 1 Chrome): trước → sau, lần warp 20: key 753 → 727, điểm ảnh 127 → 125 MB, nhóm `beast` 28 key / 28 MB → 22 key / 27 MB. Chênh nhỏ vì bản đồ thử ít loài có `_anim`; trần 192 MB chưa bị chạm (tổng đỉnh ~130 MB), nên lợi lớn xuất hiện khi nhập đủ anim. Logic gỡ kiểm bằng giả lập: 3 loài × 80 MB ở lượt 0 giữ nguyên (lượt vừa rời), sang lượt 1 chỉ xin 1 loài thì gỡ 2 loài cũ nhất tới khi dưới trần.
