@@ -89,6 +89,8 @@ import * as persist from "./persist.ts";
 import * as tick from "./tick.ts";
 import * as loot from "./loot.ts";
 import * as spawn from "./spawn.ts";
+import * as status from "./status.ts";
+import * as cast from "./cast.ts";
 
 export interface PData {
   /** Hồn thú đang khoá (M3 #750, rooms/lock.ts); "" = không khoá. */
@@ -240,7 +242,7 @@ export interface AuthData { accountId: number; ch: Character; owned: Character[]
  */
 export interface RecallCast { label: string; fee: number; itemId?: string; x0: number; y0: number; dur: number; }
 /** Một trạng thái trên hồn thú: giây còn lại, số tầng, độ lớn mỗi tầng (sát thương mỗi giây hoặc tỉ lệ), người gây. */
-interface SInst { t: number; n: number; v: number; src: string; pair?: string; } // pair (#192): đồng đội dung hợp chia đôi đóng góp
+export interface SInst { t: number; n: number; v: number; src: string; pair?: string; } // pair (#192): đồng đội dung hợp chia đôi đóng góp
 export interface BData {
   zone: number; hx: number; hy: number; tx: number; ty: number; wt: number; cd: number; kx: number; ky: number; target: string | null; hitBy: string | null; anim: number;
   ret: number;              // 11.1: > 0 là đang bỏ đuổi, chạy về chỗ sinh (còn ngần ấy giây, BEAST_LEASH)
@@ -2372,79 +2374,13 @@ export class MapRoom extends Room<MapState> {
   runSkill(id: string, sk: SkillDef, power: number, bpow: number, col: string, hit?: Hit, share?: string, fus?: FusHit & { at: { x: number; y: number } }) { return skill.runSkill(this, id, sk, power, bpow, col, hit, share, fus); }
 
   // ---------- Trạng thái dùng chung trên hồn thú (mục 5.1) ----------
-  /**
-   * Gây trạng thái `a` lên hồn thú `bid`, người gây `by`, sức mạnh hồn kỹ `power`. Cộng dồn tầng tới STATUS.max, thời gian lấy
-   * phần còn lại dài hơn, độ lớn lấy giá trị mạnh hơn. Khống chế ngắn hơn với hồn thú bậc cao (CC_TIER_MULT).
-   * `fus` (#192): gây bởi Võ Hồn Dung Hợp Kỹ: công `fus.atk` thay công của `by`, không nhận ràng buộc, sát thương theo thời gian chia
-   * đôi đóng góp với đồng đội `fus.pair`.
-   */
-  applyStatus(bid: string, a: StatusApply, by: string, power = 1, fus?: FusHit) {
-    const pair = fus?.pair;
-    const b = this.state.beasts.get(bid), bd = this.bdata.get(bid), pd = this.pdata.get(by), p = this.state.players.get(by);
-    // Như damageBeast: đang chuyển bản đồ hoặc đứng trong vùng an toàn thì không gây trạng thái.
-    if (!b || !bd || b.hp <= 0 || !pd || !p || pd.travelling || this.map.inSafe(p.x, p.y)) return;
-    const def = STATUS[a.s], fx = pd.coreFx, w = bd.elite?.king?.world, cc = def.noMove || def.noAtk || def.noSkill || def.wander;
-    // Thú vương đang gầm chuyển giai đoạn (BĐ5): không nhận khống chế.
-    if (bd.elite?.king?.roar && cc) return;
-    // Boss thế giới (BĐ6e): đang lặn thì không nhận gì; không nhận khống chế (bá thể), chỉ tính lần ngắt tích lực của võ hồn Khống chế.
-    if (w && (w.dive > 0 || cc)) { if (cc && w.dive <= 0) this.worldBreak(bid, b, bd, w, by); return; }
-    if (a.s === "allure" && bd.st.has("charm")) return; // đang Mê hoặc thì không cộng Mị hoặc (không khống chế nối liền)
-    // Bộ hồn hạch Lam Ngân 2 món (5.2): khống chế do hồn sư gây kéo dài hơn.
-    const secs = (a.secs ?? def.secs) * (def.noMove || def.noAtk ? CC_TIER_MULT[b.tier] ?? 1 : 1) * (isCcStatus(a.s) ? 1 + (fx.cc ?? 0) : 1);
-    // Ràng buộc Tà Hỏa – Hỏa Ảnh (2.5d), bộ hồn hạch Phượng Hoàng / Xà Hoàng 2 món (5.2): Thiêu đốt / Trúng độc của hồn sư mạnh
-    // thêm, tính lúc gây như tăng công.
-    const amp = a.s === "burn" ? (pair ? 0 : this.bondV(pd, "burn")) + (fx.burn ?? 0) : a.s === "poison" ? fx.poison ?? 0 : 0;
-    const v = def.dot ? (fus ? fus.atk : this.atkOf(pd, true, "mid")) * def.dot * power * (1 + amp) : def.amp;
-    // Bộ Phượng Hoàng 4 món: Thiêu đốt của hồn sư thêm tầng tối đa (người khác gây tiếp không làm giảm số tầng đang có).
-    const max = def.max + (a.s === "burn" ? fx.burnMax ?? 0 : 0);
-    const cur = bd.st.get(a.s), n = a.n ?? 1;
-    if (cur) { cur.n = Math.max(cur.n, Math.min(max, cur.n + n)); cur.t = Math.max(cur.t, secs); cur.v = Math.max(cur.v, v); cur.src = by; cur.pair = pair; }
-    else bd.st.set(a.s, { t: secs, n: Math.min(max, n), v, src: by, pair });
-    if (def.noMove) { bd.kx = 0; bd.ky = 0; }
-    // Đủ tầng thì bùng phát (2.5c): Mị hoặc thành Mê hoặc, Phong ấn thành Dễ thương 6,8 giây; tầng về 0.
-    if (def.burst && bd.st.get(a.s)!.n >= def.max) {
-      bd.st.delete(a.s);
-      this.applyStatus(bid, { s: def.burst.s, ...(def.burst.secs ? { secs: def.burst.secs } : {}) }, by, power, fus);
-      if (STATUS[def.burst.s].wander) { bd.target = null; b.aggro = false; }
-    }
-    this.syncStatus(b, bd);
-  }
+  applyStatus(bid: string, a: StatusApply, by: string, power = 1, fus?: FusHit) { return status.applyStatus(this, bid, a, by, power, fus); }
 
-  /** Đồng bộ trạng thái hồn thú cho client: bit theo STATUS_IDS và số tầng Thiêu đốt / Trúng độc / Phá giáp / Mị hoặc / Phong ấn. */
-  syncStatus(b: BeastState, bd: BData) {
-    let m = 0; for (const s of bd.st.keys()) m |= statusBit(s);
-    b.st = m; b.burn = bd.st.get("burn")?.n ?? 0; b.poison = bd.st.get("poison")?.n ?? 0; b.armor = bd.st.get("armor")?.n ?? 0;
-    b.allure = bd.st.get("allure")?.n ?? 0; b.lock = bd.st.get("lock")?.n ?? 0;
-  }
+  syncStatus(b: BeastState, bd: BData) { return status.syncStatus(this, b, bd); }
 
-  /**
-   * Viêm bạo: kích nổ mọi tầng Thiêu đốt còn lại cùng lúc (sát thương còn lại × boom), xóa Thiêu đốt. Hỏa Long dùng (SkillDef.boom, 2.5b).
-   * `by`: người kích nổ; bộ hồn hạch Phượng Hoàng 4 món của người đó (không có `by` thì của người gây Thiêu đốt) thêm sát thương (5.2).
-   * `extra`: hồn kỹ nổ mạnh thêm (SkillDef.boom.mult, tuyệt kỹ Hỏa Long 8.1b), cộng với bộ hồn hạch.
-   */
-  detonateBurn(bid: string, by?: string, extra = 0) {
-    const bd = this.bdata.get(bid), s = bd?.st.get("burn"); if (!bd || !s) return;
-    bd.st.delete("burn"); this.syncStatus(this.state.beasts.get(bid)!, bd);
-    const boom = 1 + (this.pdata.get(by ?? s.src)?.coreFx.boom ?? 0) + extra;
-    this.damageBeast(bid, s.v * s.n * s.t * STATUS.burn.boom * boom, s.src, STATUS.burn.col, undefined, { direct: false, pair: s.pair });
-  }
+  detonateBurn(bid: string, by?: string, extra = 0) { return status.detonateBurn(this, bid, by, extra); }
 
-  /** Mỗi tick: trạng thái hết giờ thì bỏ; mỗi STATUS_TICK giây Thiêu đốt / Trúng độc gây sát thương (người gây đã rời thì bỏ). */
-  tickStatus(bid: string, dt: number) {
-    const b = this.state.beasts.get(bid), bd = this.bdata.get(bid); if (!b || !bd || !bd.st.size) return;
-    bd.dotT += dt;
-    const dots: [StatusId, SInst][] = [];
-    if (bd.dotT >= STATUS_TICK) { bd.dotT -= STATUS_TICK; for (const [s, x] of bd.st) if (STATUS[s].dot) dots.push([s, { ...x }]); }
-    let changed = false;
-    for (const [s, x] of bd.st) { x.t -= dt; if (x.t <= 0) { bd.st.delete(s); changed = true; } }
-    if (changed) this.syncStatus(b, bd);
-    for (const [s, x] of dots) {
-      if (!this.state.players.has(x.src)) { bd.st.delete(s); this.syncStatus(b, bd); continue; }
-      if (!this.state.beasts.has(bid)) return;
-      this.damageBeast(bid, x.v * x.n, x.src, STATUS[s].col, undefined, { direct: false, pair: x.pair });
-    }
-    if (!bd.st.size) bd.dotT = 0;
-  }
+  tickStatus(bid: string, dt: number) { return status.tickStatus(this, bid, dt); }
 
   /**
    * Hồi sinh lực / hồn lực của hồn sư trong `dt` giây (mục 4, hpRegen / mpRegen); vùng an toàn hồi nhanh hơn (SAFE_REGEN_MULT).
@@ -2471,206 +2407,35 @@ export class MapRoom extends Room<MapState> {
   }
 
   // ---------- Chiêu có báo trước của hồn thú (mục 5.3, 5.4; bước 3.5) ----------
-  /**
-   * Hồn thú `bid` bắt đầu báo trước chiêu `s` nhắm hồn sư `pid`: khóa vùng (hướng vệt / nón, tâm vòng dưới chân mục tiêu) theo vị
-   * trí lúc này, gửi `fx tele` (vùng và thời lượng) cho mọi người. Hồn thú đứng yên, không đánh thường cho tới khi tung.
-   */
-  beginCast(bid: string, b: BeastState, bd: BData, s: BData["skills"][number], pid: string, tgt: { x: number; y: number }) {
-    const def = s.def, ang = Math.atan2(tgt.y - b.y, tgt.x - b.x);
-    // Từ BĐ4 một chiêu có thể có nhiều vùng (teleZones); fx gửi vùng đầu như 3.5, các vùng còn lại trong `parts`.
-    // Từ BĐ5 vòng rơi ngẫu nhiên (`scatter`, Độc Châm Vũ) do server tung.
-    const teles = def.floor ? this.floorTeles() : teleZones(def, b.x, b.y, tgt.x, tgt.y, Math.random);
-    // Chiêu toàn sàn né được (#118): vòng an toàn rải trong sàn, khóa cùng lúc với vùng.
-    const safe = def.floor && def.safe ? floorSafeZones(this.map, { x: bd.hx, y: bd.hy }, def.safe.n, def.safe.r, Math.random) : undefined;
-    // Hồn thú đổi dạng (#173): trạng thái theo dạng lúc này (đổi dạng giữa lúc báo trước không đổi chiêu đang tung).
-    const status = def.forms && bd.elite ? def.forms[bd.elite.form] : undefined;
-    bd.cast = { def, teles, t: def.warn, target: pid, safe, status }; this.casting.add(bid);
-    s.cd = def.cd * (0.8 + Math.random() * 0.4) * (bd.elite?.king?.world?.rage ? WORLD.rageCd : 1); // boss thế giới nổi giận: hồi chiêu nhanh hơn
-    b.cast = true; b.moving = false; if (Math.abs(Math.cos(ang)) > 0.1) b.face = Math.cos(ang) > 0 ? 1 : -1;
-    this.broadcast("fx", { k: "tele", bid, name: def.name, ...teles[0], parts: teles.slice(1), t: def.warn, ...(safe ? { safe } : {}) });
-  }
+  beginCast(bid: string, b: BeastState, bd: BData, s: BData["skills"][number], pid: string, tgt: { x: number; y: number }) { return cast.beginCast(this, bid, b, bd, s, pid, tgt); }
 
-  /**
-   * Vùng của chiêu toàn sàn (BeastSkillDef.floor, BĐ6e): một dải phủ đúng chữ nhật sàn đấu (object `boss`), nên teleHits trúng đúng
-   * người đứng trong sàn và client vẽ như mọi vệt. Vòng an toàn (BeastSkillDef.safe, #118) ở `cast.safe`, chọn trong beginCast.
-   */
-  floorTeles(): Tele[] {
-    const l = this.map.lair; if (!l) return [];
-    return [{ shape: "line", x: l.x, y: l.y + l.h / 2, ang: 0, r: l.w, w: l.h, arc: 0 }];
-  }
+  floorTeles(): Tele[] { return cast.floorTeles(this); }
 
   /** Các chiêu đang báo trước của phòng (vùng đã khóa, giây còn lại, vòng an toàn): tự săn đọc để né (#218). */
   *activeCasts() {
     for (const bid of this.casting) { const c = this.bdata.get(bid)?.cast; if (c) yield c; else this.casting.delete(bid); }
   }
 
-  /** Bỏ chiêu đang báo trước (hồn thú bị Choáng / Câm lặng / Mê hoặc: "ngắt chiêu"); client xóa vùng cảnh báo. */
-  cancelCast(bid: string, b: BeastState, bd: BData) {
-    if (!bd.cast) return;
-    bd.cast = null; b.cast = false; bd.skT = Math.max(bd.skT, 1); b.brk = 0; b.chg = false;
-    this.broadcast("fx", { k: "teleEnd", bid });
-  }
+  cancelCast(bid: string, b: BeastState, bd: BData) { return cast.cancelCast(this, bid, b, bd); }
 
-  /**
-   * Hết thời gian báo trước: tính trúng theo vị trí THẬT của mọi hồn sư lúc này (teleHits). Không trúng người đã gục, đang chuyển
-   * bản đồ hay đứng trong vùng an toàn (mục 5.3), hay đứng trong vòng an toàn của chiêu toàn sàn (teleSafe, #118); hurtPlayer bỏ qua
-   * người đang bất tử / miễn sát thương (khi đó cũng không dính trạng thái). Có `dash` thì hồn thú lao tới cuối vệt / tâm vòng (dừng
-   * khi vướng, không vào vùng an toàn).
-   */
-  fireCast(bid: string, b: BeastState, bd: BData) {
-    const c = bd.cast!, def = c.def, x0 = b.x, y0 = b.y, main = c.teles[Math.floor(c.teles.length / 2)], base = this.beastDmg(bd);
-    bd.cast = null; b.cast = false; bd.skT = Math.max(bd.skT, 1.2); b.brk = 0; b.chg = false;
-    // Tích lực không bị ngắt (BĐ6e): cả sàn trúng, báo cho cả phòng.
-    if (c.charge) this.broadcast("boss", { k: "chargeHit", bid, name: def.name });
-    const hit: string[] = [];
-    this.state.players.forEach((p, pid) => {
-      const d = this.pdata.get(pid);
-      if (d && !p.dead && !d.travelling && !this.map.inSafe(p.x, p.y) && c.teles.some((t) => teleHits(t, p.x, p.y))
-        && !c.safe?.some((t) => teleSafe(t, p.x, p.y))) hit.push(pid);
-    });
-    if (def.dash && !bd.rooted) {
-      // Nhiều vùng (BĐ4): lao theo vùng giữa.
-      const tx = def.shape === "line" ? main.x + Math.cos(main.ang) * def.r : main.x, ty = def.shape === "line" ? main.y + Math.sin(main.ang) * def.r : main.y;
-      const hw = Math.max(3, TIERS[b.tier].size / 3), n = Math.ceil(Math.hypot(tx - b.x, ty - b.y) / 6);
-      for (let k = 0; k < n; k++) this.moveBeast(b, (tx - x0) / n, (ty - y0) / n, hw);
-    }
-    this.broadcast("fx", { k: "teleHit", bid, name: def.name, ...c.teles[0], parts: c.teles.slice(1), hit, x0, y0, x1: b.x, y1: b.y, ...(c.safe ? { safe: c.safe } : {}) });
-    for (const pid of hit) {
-      const rooted = !!def.drain && !!this.pdata.get(pid)?.st.has("root"); // BĐ6b Hút Sinh: xét Trói trước khi chiêu gây trạng thái mới
-      if (!this.hurtPlayer(pid, base * def.dmg * (0.9 + Math.random() * 0.2))) continue;
-      for (const a of c.status ?? def.status ?? []) this.applyPStatus(pid, a, base);
-      if (def.pull) this.pullPlayer(pid, b, def.pull);
-      if (rooted && b.hp > 0) {
-        const add = Math.min(b.maxHp - b.hp, Math.ceil(b.maxHp * def.drain!));
-        if (add > 0) { b.hp += add; this.broadcast("dmg", { x: b.x, y: b.y - 10, v: add, c: "#7dff8a" }); } // số xanh: hồi máu
-      }
-    }
-    if (def.eggs) this.eggs.lay(bid, b, def.eggs); // #162: đẻ bọc trứng, phá kịp thì không nở
-    if (def.summon) this.summonPack(b, bd, def.summon, c.target);
-    if (def.ground) this.grounds.add(bid, def.ground, c.teles, base); // #161: vũng / sương độc lưu lại
-  }
+  fireCast(bid: string, b: BeastState, bd: BData) { return cast.fireCast(this, bid, b, bd); }
 
-  /** Kéo hồn sư `id` về phía hồn thú `b` tối đa `dist` pixel (Quấn Kéo, Lưỡi Quất; BĐ4): dừng khi vướng, sát hồn thú hoặc sắp vào vùng an toàn. */
-  pullPlayer(id: string, b: BeastState, dist: number) {
-    const p = this.state.players.get(id); if (!p) return;
-    this.dragPlayer(id, b.x, b.y, Math.min(dist, Math.hypot(b.x - p.x, b.y - p.y) - TIERS[b.tier].size / 2 - 8));
-  }
+  pullPlayer(id: string, b: BeastState, dist: number) { return cast.pullPlayer(this, id, b, dist); }
 
-  /**
-   * Kéo hồn sư `id` thẳng về phía (tx, ty) tối đa `dist` pixel, không quá điểm đó (bước tối đa 2 pixel): dừng khi vướng hoặc sắp vào vùng
-   * an toàn; không kéo người đã gục / đang đi cổng / đang đứng trong vùng an toàn. Dùng cho chiêu có `pull` (pullPlayer) và xoáy nước
-   * (GroundDef.pull, #174).
-   */
-  dragPlayer(id: string, tx: number, ty: number, dist: number) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || p.dead || d.travelling || this.map.inSafe(p.x, p.y)) return;
-    const dd = Math.hypot(tx - p.x, ty - p.y), go = Math.min(dist, dd); if (go <= 0) return;
-    const ux = (tx - p.x) / dd, uy = (ty - p.y) / dd;
-    for (let moved = 0; moved < go; moved += 2) {
-      const ox = p.x, oy = p.y, st = Math.min(2, go - moved);
-      this.map.moveEnt(p, ux * st, uy * st, PLAYER_HW, PLAYER_HH);
-      if (this.map.inSafe(p.x, p.y)) { p.x = ox; p.y = oy; break; }
-      if (p.x === ox && p.y === oy) break;
-    }
-  }
+  dragPlayer(id: string, tx: number, ty: number, dist: number) { return cast.dragPlayer(this, id, tx, ty, dist); }
 
-  /**
-   * Gọi bầy (Hú Bầy; BeastSkillDef.summon, BĐ4): thêm hồn thú loài `s.species` quanh thân tới khi đủ `s.n` con do hồn thú này gọi còn
-   * sống. Hồn thú gọi ra thuộc vùng của người gọi (tính vào `count` của vùng, nên vùng không sinh thêm cho tới khi chúng bị hạ), tuổi tung
-   * trong `years` của vùng, lao ngay vào mục tiêu của người gọi.
-   */
-  summonPack(b: BeastState, bd: BData, s: NonNullable<BeastSkillDef["summon"]>, target: string) {
-    const sp = beastIndex(s.species), z = this.map.zones[bd.zone]; if (sp < 0 || !z) return;
-    for (const m of bd.minions) if (!this.state.beasts.has(m)) bd.minions.delete(m);
-    for (let tries = 0; bd.minions.size < s.n && tries < 20; tries++) {
-      const a = Math.random() * Math.PI * 2, x = b.x + Math.cos(a) * 28, y = b.y + Math.sin(a) * 20;
-      if (this.map.hits(x, y, 6, 4) || this.map.inSafe(x, y)) continue;
-      // Thú vương gọi nhện con trẻ hơn (summon.years); hồn thú gọi ra là hồn thú thường nên không bao giờ đúng MAX_YEARS (mục 5.3).
-      const yr = s.years ?? z.years, years = Math.min(MAX_YEARS - 1, yr ? rollYears(yr[0], yr[1], Math.random()) : b.years);
-      const mid = this.addBeast(bd.zone, years, sp, x, y), mb = this.bdata.get(mid)!;
-      if (this.state.players.has(target)) { mb.target = target; this.state.beasts.get(mid)!.aggro = true; mb.skT = TELE_FIRST[1]; }
-      bd.minions.add(mid);
-      this.broadcast("fx", { k: "wave", x, y, r: 14, col: b.rank ? BOSSES[b.species]?.aura : TIERS[b.tier].glow });
-    }
-  }
+  summonPack(b: BeastState, bd: BData, s: NonNullable<BeastSkillDef["summon"]>, target: string) { return cast.summonPack(this, b, bd, s, target); }
 
-  /** Mỗi tick của hồn thú đang báo trước: Choáng / Câm lặng / Mê hoặc ngắt chiêu; hết giờ thì tung. */
-  tickCast(bid: string, b: BeastState, bd: BData, dt: number, interrupt: boolean) {
-    if (!bd.cast) return;
-    if (interrupt) return this.cancelCast(bid, b, bd);
-    if ((bd.cast.t -= dt) <= 0) this.fireCast(bid, b, bd);
-  }
+  tickCast(bid: string, b: BeastState, bd: BData, dt: number, interrupt: boolean) { return cast.tickCast(this, bid, b, bd, dt, interrupt); }
 
   // ---------- Trạng thái trên hồn sư (từ 3.5, PLAYER_STATUS) ----------
-  /**
-   * Gây trạng thái `a` lên hồn sư `id` (do chiêu báo trước, `base`: sát thương đòn thường của hồn thú, nhân `dot` thành sát thương
-   * mỗi giây mỗi tầng). Cùng luật cộng tầng với hồn thú (applyStatus). Không gây cho người đã gục, đang chuyển bản đồ, trong vùng an toàn.
-   * `src`: đối thủ gây (Đại Đấu Hồn Trường, #277; `base` đã × ARENA.dmgMult): khống chế × ARENA.ccMult sau kháng; Thiêu đốt / Trúng độc ×
-   * ARENA_HE_DMG theo hệ người gây × (1 + bộ Phượng Hoàng / Xà Hoàng 2 món + ràng buộc Tà Hỏa – Hỏa Ảnh), tính một lần lúc gây; bộ
-   * Phượng Hoàng 4 món thêm tầng Thiêu đốt tối đa; Trúng độc ghi người gây (Xà Hoàng 4 món, hurtPlayer).
-   */
-  applyPStatus(id: string, a: StatusApply, base: number, src?: string): void {
-    const p = this.state.players.get(id), d = this.pdata.get(id);
-    if (!p || !d || p.dead || d.travelling || this.map.inSafe(p.x, p.y) || !PLAYER_STATUS.includes(a.s)) return;
-    // Kháng trạng thái của bị động hồn cốt (4.3): thời gian ngắn đi theo tỉ lệ.
-    // Đóng băng / Mê hoặc (#116) dùng kháng Choáng khi bị động không ghi riêng (RESIST_AS).
-    const res = d.passive.resist[a.s] ?? (RESIST_AS[a.s] ? d.passive.resist[RESIST_AS[a.s]!] ?? 0 : 0);
-    const sd = src ? this.pdata.get(src) : undefined, sp = src ? this.state.players.get(src) : undefined, fx: CoreFx = sd?.coreFx ?? {};
-    const def = STATUS[a.s], secs = (a.secs ?? def.secs) * (1 - res) * (sd && isCcStatus(a.s) ? ARENA.ccMult : 1);
-    const amp = !sd ? 0 : a.s === "burn" ? this.bondV(sd, "burn") + (fx.burn ?? 0) : a.s === "poison" ? fx.poison ?? 0 : 0;
-    const he = sp ? VOHON[sp.vh]?.he : undefined, pvp = he ? ARENA_HE_DMG[he] * (1 + amp) : 1;
-    const v = def.dot ? base * def.dot * pvp : def.amp, max = def.max + (sd && a.s === "burn" ? fx.burnMax ?? 0 : 0), cur = d.st.get(a.s), n = a.n ?? 1;
-    if (cur) { cur.n = Math.max(cur.n, Math.min(max, cur.n + n)); cur.t = Math.max(cur.t, secs); cur.v = Math.max(cur.v, v); if (src) cur.src = src; }
-    else d.st.set(a.s, { t: secs, n: Math.min(max, n), v, src: src ?? "" });
-    if (def.wander) d.charm = null; // Mê hoặc mới (#116): đi lung tung quanh chỗ đang đứng lúc trúng
-    // Đủ tầng thì bùng phát (#163, tầng Hàn thành Đóng băng): bỏ trạng thái này, gây trạng thái `burst.s` (qua kháng như mọi lần gây).
-    if (def.burst && d.st.get(a.s)!.n >= def.max) {
-      d.st.delete(a.s); this.syncPStatus(p, d);
-      return this.applyPStatus(id, { s: def.burst.s, secs: def.burst.secs }, base, src);
-    }
-    this.syncPStatus(p, d); // Trói / Choáng: tick bỏ qua input (giữ nguyên hướng phím, hết khống chế thì đi tiếp)
-  }
-  syncPStatus(p: PlayerState, d: PData) { let m = 0; for (const s of d.st.keys()) m |= statusBit(s); p.st = m; p.han = d.st.get("chill")?.n ?? 0; }
-  clearPStatus(p: PlayerState, d: PData) { d.hanT = 0; if (d.st.size) { d.st.clear(); d.dotT = 0; d.charm = null; this.syncPStatus(p, d); } }
-  /**
-   * Khống chế đang có trên hồn sư: không đi (Choáng, Đóng băng, Trói), không đánh (Choáng, Đóng băng, Mê hoặc), không dùng hồn kỹ (thêm
-   * Câm lặng), đi lung tung (Mê hoặc, #116), làm chậm.
-   */
-  pctl(d: PData) {
-    let noMove = false, noAtk = false, noSkill = false, wander = false, slow = 0;
-    for (const [s, x] of d.st) { const def = STATUS[s]; noMove ||= def.noMove; noAtk ||= def.noAtk; noSkill ||= def.noAtk || def.noSkill; wander ||= def.wander; slow += def.slow * x.n; }
-    return { noMove, noAtk, noSkill, wander, slow: Math.min(SLOW_CAP, slow) };
-  }
-  /** Tên khống chế đang chặn hồn kỹ (`move`: đang chặn đi, cho đi cổng / truyền tống) của hồn sư, cho tin từ chối. */
-  ccName(d: PData, move = false) {
-    const order = move ? (["freeze", "stun", "charm", "root"] as const) : (["freeze", "stun", "charm", "silence"] as const);
-    return STATUS[order.find((s) => d.st.has(s)) ?? order[order.length - 1]].name;
-  }
-  /**
-   * Hồn sư đang Mê hoặc (#116, PLAYER_CHARM): hướng đi server tự chọn tới một điểm ngẫu nhiên quanh chỗ bị Mê hoặc, đổi điểm mỗi
-   * `turn` giây; tới nơi thì đứng.
-   */
-  charmDir(p: PlayerState, d: PData, dt: number) {
-    const c = d.charm ??= { ox: p.x, oy: p.y, tx: p.x, ty: p.y, t: 0 }, [t0, t1] = PLAYER_CHARM.turn;
-    if ((c.t -= dt) <= 0) {
-      c.t = t0 + Math.random() * (t1 - t0);
-      c.tx = c.ox + (Math.random() * 2 - 1) * PLAYER_CHARM.r; c.ty = c.oy + (Math.random() * 2 - 1) * PLAYER_CHARM.r;
-    }
-    const dx = c.tx - p.x, dy = c.ty - p.y, dd = Math.hypot(dx, dy);
-    return dd > 2 ? { x: dx / dd, y: dy / dd } : { x: 0, y: 0 };
-  }
-  /** Mỗi tick: vào vùng an toàn thì hết mọi trạng thái; hết giờ thì bỏ; mỗi STATUS_TICK giây Trúng độc / Thiêu đốt gây sát thương. */
-  tickPStatus(id: string, p: PlayerState, d: PData, dt: number) {
-    if (!d.st.size) return;
-    if (this.map.inSafe(p.x, p.y)) return this.clearPStatus(p, d);
-    d.dotT += dt;
-    let dot = 0;
-    if (d.dotT >= STATUS_TICK) { d.dotT -= STATUS_TICK; for (const [s, x] of d.st) if (STATUS[s].dot) dot += x.v * x.n; }
-    let changed = false;
-    for (const [s, x] of d.st) { x.t -= dt; if (x.t <= 0) { d.st.delete(s); changed = true; } }
-    if (changed) this.syncPStatus(p, d);
-    if (!d.st.size) d.dotT = 0;
-    if (dot > 0) this.hurtPlayer(id, dot, { dot: true });
-  }
+  applyPStatus(id: string, a: StatusApply, base: number, src?: string): void { return status.applyPStatus(this, id, a, base, src); }
+  syncPStatus(p: PlayerState, d: PData) { return status.syncPStatus(this, p, d); }
+  clearPStatus(p: PlayerState, d: PData) { return status.clearPStatus(this, p, d); }
+  pctl(d: PData) { return status.pctl(this, d); }
+  ccName(d: PData, move = false) { return status.ccName(this, d, move); }
+  charmDir(p: PlayerState, d: PData, dt: number) { return status.charmDir(this, p, d, dt); }
+  tickPStatus(id: string, p: PlayerState, d: PData, dt: number) { return status.tickPStatus(this, id, p, d, dt); }
 
   skill(c: Client, i: number) { return skill.skill(this, c, i); }
 
