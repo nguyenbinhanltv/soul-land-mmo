@@ -27,6 +27,7 @@ import { BAG_GROUPS, BAG_SORTS, type BagSort, inGroup, rarityOf, noteSeen, isNew
 import { type CardActionId, type DollView, type DragSession, type ServerCommand, type SlotRef, acceptsItem, cardActions, currentFor, mountCommand, quickCommand, smartTarget, unmountCommand } from "./charBagContract.ts";
 import { addZone, dragSource } from "./dragDrop.ts";
 import { cardFor, compareFor, hideCard, hideCompare, showCard, showCompare } from "./actionCard.ts";
+import type { Vitals } from "../../shared/vitals.ts";
 import { EQUIP_ITEM, EQUIP_LUCK_MAX, EQUIP_SOUL, equipFrameKey, equipIconChain, EQUIP_SLOTS, EQUIP_TIERS, EQUIP_MAX_TIER, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SALVAGE_MAX, EQUIP_SYNTH_KEEP, equipName, equipTemplate, equipSlotDef, equipStats, equipSynthStep, equipAutoSalvageable, parseEquip } from "../../shared/data.ts";
 import { toast } from "./feedback.ts";
 import { resolveQuestMarker } from "./nameplate.ts";
@@ -555,7 +556,8 @@ function statusChip(id: string, name: string, col: string, cls = "") {
 }
 let leiTipSet = false;
 let lastVhName = ""; // updateStats chạy mỗi khung: chỉ ghi tên + chú thích khi tên đổi (không gán lại title mỗi khung)
-export function updateStats(p: any) {
+/** `v`: dữ liệu riêng của chính mình (tin `vit`, đã đếm lùi hồi chiêu tới khung này): hồn lực, kinh nghiệm, hồi chiêu (#949). */
+export function updateStats(p: any, v: Vitals) {
   const vhName = VOHON[p.vh].name;
   $("#vhGlyph").textContent = vhName.slice(0, 1);
   $("#vhPortrait").setAttribute("aria-label", `Biểu tượng ${vhName}`);
@@ -563,12 +565,12 @@ export function updateStats(p: any) {
   $("#vhName").style.color = VOHON[p.vh].col;
   $("#lvl").textContent = `Cấp ${p.level}`;
   $("#hpFill").style.width = (p.hp / Math.max(1, p.maxHp)) * 100 + "%"; $("#hpTxt").textContent = `Sinh lực ${p.hp} / ${p.maxHp}`;
-  $("#mpFill").style.width = (p.mp / Math.max(1, p.maxMp)) * 100 + "%"; $("#mpTxt").textContent = `Hồn lực ${p.mp} / ${p.maxMp}`;
-  if (!p.xpNeed) {
+  $("#mpFill").style.width = (v.mp / Math.max(1, v.maxMp)) * 100 + "%"; $("#mpTxt").textContent = `Hồn lực ${v.mp} / ${v.maxMp}`;
+  if (!v.xpNeed) {
     $("#xpFill").style.width = "100%";
     $("#xpTxt").textContent = atBottleneck(p.level, p.rings.length) ? `Bình cảnh: cần hồn hoàn thứ ${p.rings.length + 1}` : `Cấp tối đa ${MAX_LEVEL}`;
   }
-  else { $("#xpFill").style.width = (p.xp / p.xpNeed) * 100 + "%"; $("#xpTxt").textContent = `Kinh nghiệm ${p.xp} / ${p.xpNeed}`; }
+  else { $("#xpFill").style.width = (v.xp / v.xpNeed) * 100 + "%"; $("#xpTxt").textContent = `Kinh nghiệm ${v.xp} / ${v.xpNeed}`; }
   // Phong Lôi Chi Lực (2.5c): chỉ hiện khi Lam Điện Bá Vương Long ra trận; đầy thì sáng viền (tự tung Lôi Động Minh Thiên khi đánh trúng).
   const lei = VOHON[p.vh].id === PHONG_LOI.vohon, bar = $("#leiBar");
   bar.hidden = !lei; if (!leiTipSet) { leiTipSet = true; setTip(bar, PHONG_LOI.skill.desc); } // chú thích đặt một lần, không gán lại mỗi khung
@@ -601,21 +603,21 @@ export function updateStats(p: any) {
   // Hồn kỹ Chân Thân (9.6): đang biến hình thì nút P mang hồn kỹ Chân Thân, hồi chiêu riêng `ctCd`; hết thì trả nút P cũ.
   const pb = document.querySelector<HTMLElement>(`.sk[data-i="${CHAN_THAN_SKILL_SLOT}"]`), ctOn = !!ctSlot && p.ava > 0;
   if (pb && pb.classList.contains("ct") !== ctOn) setCtSlot(pb, ctOn);
-  lastMp = p.mp;
+  lastMp = v.mp;
   document.querySelectorAll<HTMLElement>(".sk[data-i]").forEach((b) => {
     const i = Number(b.dataset.i), ct = b.classList.contains("ct");
-    paintCell(b, ct ? p.ctCd ?? 0 : p.cds[i], ct ? CHAN_THAN_SKILL_CD : slotCd[i] || 1, p.mp, Number(b.dataset.cost));
+    paintCell(b, ct ? v.ctCd : v.cds[i] ?? 0, ct ? CHAN_THAN_SKILL_CD : slotCd[i] || 1, v.mp, Number(b.dataset.cost));
   });
   // Võ Hồn Chân Thân (8.1a): đang biến hình thì nút sáng kèm giây còn lại, xong thì hiện hồi chiêu.
   const av = document.querySelector<HTMLElement>(".sk.ava");
   if (av && avaDef) {
     av.classList.toggle("on", p.ava > 0);
-    paintCell(av, p.ava > 0 ? 0 : p.avaCd ?? 0, avaDef.cd, p.mp, p.ava > 0 ? 0 : avaDef.cost);
+    paintCell(av, p.ava > 0 ? 0 : v.avaCd, avaDef.cd, v.mp, p.ava > 0 ? 0 : avaDef.cost);
     const label = av.querySelectorAll("span")[1], txt = av.classList.contains("locked") ? `Vòng ${CHAN_THAN_RING}` : p.ava > 0 ? `${Math.ceil(p.ava)} giây` : "Chân Thân";
     if (label.textContent !== txt) label.textContent = txt;
   }
   document.querySelectorAll<HTMLElement>(".sk[data-b]").forEach((b) => {
-    const i = Number(b.dataset.b); paintCell(b, p.bcds?.[i] ?? 0, boneCd[i] || 1, p.mp, Number(b.dataset.cost));
+    const i = Number(b.dataset.b); paintCell(b, v.bcds[i] ?? 0, boneCd[i] || 1, v.mp, Number(b.dataset.cost));
   });
   const ch = $("#channel");
   if (p.absorb > 0) {
@@ -674,8 +676,8 @@ export function setSquad(s: Squad) {
  * hồi, thanh năng lượng tiên cơ (ô chưa ra trận đầy năng lượng thì sáng viền, chữ "Tiên cơ!"), và hồi chiêu đổi võ hồn
  * (swCd / SWITCH_CD) phủ lên các ô chưa ra trận.
  */
-export function updateTeam(me: { swCd: number; hp: number; maxHp: number }) {
-  const k = Math.max(0, Math.min(1, me.swCd / SWITCH_CD));
+export function updateTeam(me: { hp: number; maxHp: number }, v: Vitals) {
+  const k = Math.max(0, Math.min(1, v.swCd / SWITCH_CD));
   document.querySelectorAll<HTMLElement>(".tm").forEach((b) => {
     const on = b.classList.contains("on"), s = squad.list.find((x) => String(x.rowId) === b.dataset.row);
     const down = !!s?.down, hp = on ? me.hp : s?.hp ?? 0, max = on ? me.maxHp : s?.maxHp ?? 0, en = s?.en ?? 0;
@@ -695,7 +697,7 @@ export function updateTeam(me: { swCd: number; hp: number; maxHp: number }) {
         : b.dataset.tc ? `Thanh vàng là năng lượng tiên cơ: tích khi võ hồn ra trận đánh trúng, đầy thì đổi vào sẽ tung ${b.dataset.tc}.` : "";
       if (b.dataset.label) b.setAttribute("aria-label", b.dataset.label + (full ? ", đủ năng lượng tiên cơ" : ""));
     }
-    const left = on || down || b.classList.contains("locked") ? 0 : Math.max(0, me.swCd), p = left > 0 ? Math.round(k * 100) / 100 : 0;
+    const left = on || down || b.classList.contains("locked") ? 0 : Math.max(0, v.swCd), p = left > 0 ? Math.round(k * 100) / 100 : 0;
     if (b.dataset.p !== String(p)) { b.dataset.p = String(p); (b.querySelector(".ui-cd") as HTMLElement).style.setProperty("--p", String(p)); }
     const num = b.querySelector(".cdn"), txt = cdLabel(left); if (num && num.textContent !== txt) num.textContent = txt;
   });

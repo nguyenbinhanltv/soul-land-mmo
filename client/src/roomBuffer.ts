@@ -7,7 +7,7 @@ import type { Room } from "colyseus.js";
  */
 type Held = { type: string | number; msg: unknown };
 const bufs = new WeakMap<Room, { buf: Held[]; off: () => void }>();
-/** Tin vẽ tức thời, quá hạn khi chờ: bỏ. `mini` (bản đồ nhỏ, mỗi giây một lần) chỉ giữ tin mới nhất. */
+/** Tin vẽ tức thời, quá hạn khi chờ: bỏ. `mini` (bản đồ nhỏ, mỗi giây một lần) và `vit` (dữ liệu riêng của mình, #949) chỉ giữ tin mới nhất. */
 const STALE = new Set<string | number>(["dmg", "fx"]);
 const MAX = 400;
 
@@ -16,7 +16,7 @@ export function bufferRoomMessages(room: Room) {
   // "*" chỉ nhận tin chưa có bộ nghe riêng: cảnh đăng ký xong thì tin mới đi thẳng tới nó.
   const off = room.onMessage("*", (type: string | number, msg: unknown) => {
     if (STALE.has(type) || buf.length >= MAX) return;
-    if (type === "mini") { const i = buf.findIndex((b) => b.type === "mini"); if (i >= 0) buf.splice(i, 1); }
+    if (type === "mini" || type === "vit") { const i = buf.findIndex((b) => b.type === type); if (i >= 0) buf.splice(i, 1); }
     buf.push({ type, msg });
   });
   bufs.set(room, { buf, off });
