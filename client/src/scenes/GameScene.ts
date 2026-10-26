@@ -10,7 +10,7 @@ import { MINI_BASE, TIERS, BEASTS, VOHON, RADAR, SYNC_VIEW, MAPS, TILE, titleOf,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
   type QuestProgress, type QuestStatus, formatHonTe, type SkillDef, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS, LPC_VIEW, decodeLpc, encodeLpc, presetToLpc, lpcGearLooks, type Looks } from "../../../shared/data.ts";
 import { makeTextures, vohonTextures, BEAST_ORIGIN } from "../textures.ts";
-import { wantVohon, wantPhapTuong, wantBeast, wantSkillFx, vohonIdAt, vohonKeys } from "../vohonLazy.ts";
+import { wantVohon, wantPhapTuong, wantBeast, wantSkillFx, vohonIdAt, vohonKeys, vohonBlank } from "../vohonLazy.ts";
 import { buildRings, animateRings, type HaloState } from "../soulRings.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, animBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim, animLayoutOf } from "../sprites.ts";
@@ -87,6 +87,7 @@ interface PView {
   ringsB: Phaser.GameObjects.Container; ringsF: Phaser.GameObjects.Container;
   label: Phaser.GameObjects.Text; title: Phaser.GameObjects.Text; tongT: Phaser.GameObjects.Text; // tongT: tên tông môn dưới tên (#196)
   looks: string; vh: number; rings: string; playing: string;
+  vhBlank: [boolean, boolean];              // nửa [sau, trước] của phụ thể không có ảnh (manifest "blank", #974): lớp mượn texture nửa kia và luôn trong suốt
   lpcKey: string;                           // texture LPC ghép lúc chạy của hồn sư (lpcRig.ts); "" khi chưa dựng
   lpcFace: { shown: Dir8 | null; pend: { d: Dir8; t0: number } | null }; // hướng LPC đang hiện và hướng mới đang chờ giữ đủ LPC_VIEW.dirHoldMs
   act: { anim: HsAnim; t0: number } | null; // animation chạy một lần: attack, cast, hurt
@@ -2823,7 +2824,7 @@ export class GameScene extends Phaser.Scene {
           fontFamily: '"Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif', fontSize: "5.5px", fontStyle: "700",
           color: "#ffffff", stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 1).setDepth(99985);
-        v = { root, wx: p.x, wy: p.y, face: "s", body, vb, vf, ringsB, ringsF, label, title, tongT, looks: "", vh: -1, rings: "", playing: "", lpcKey: "", lpcFace: { shown: null, pend: null },
+        v = { root, wx: p.x, wy: p.y, face: "s", body, vb, vf, ringsB, ringsF, label, title, tongT, looks: "", vh: -1, vhBlank: [false, false], rings: "", playing: "", lpcKey: "", lpcFace: { shown: null, pend: null },
           act: null, hurtT: -1e9, lit: null, halo: null, ringY: [], fly: null, lock: null };
         this.players.set(id, v);
         if (id === this.me) this.cameras.main.startFollow(root, true, 0.2, 0.2);
@@ -2862,7 +2863,7 @@ export class GameScene extends Phaser.Scene {
         const st = wantVohon(this, vohonIdAt(p.vh));
         wantSkillFx(this, vohonIdAt(p.vh), id === this.me);
         if (id === this.me) wantPhapTuong(this, vohonIdAt(p.vh)); // đổi võ hồn: sheet pháp tướng của mình sẵn trước khi bấm Chân Thân
-        if (st !== "wait") { v.vh = p.vh; const [kb, kf] = st === "ready" ? vohonKeys(vohonIdAt(p.vh)) : vohonTextures(this, p.vh); fitHonsuLayer(v.vb.setTexture(kb), true); fitHonsuLayer(v.vf.setTexture(kf), true); }
+        if (st !== "wait") { v.vh = p.vh; v.vhBlank = st === "ready" ? vohonBlank(vohonIdAt(p.vh)) : [false, false]; const [kb, kf] = st === "ready" ? vohonKeys(vohonIdAt(p.vh)) : vohonTextures(this, p.vh); fitHonsuLayer(v.vb.setTexture(kb), true); fitHonsuLayer(v.vf.setTexture(kf), true); }
       }
       const rings = [...p.rings].join(",");
       if (rings !== v.rings) { v.rings = rings; buildRings(this, v, [...p.rings]); }
@@ -3302,6 +3303,8 @@ export class GameScene extends Phaser.Scene {
     v.body.anims.timeScale = anim === "walk" ? Phaser.Math.Clamp(spd / WALK_ANIM_SPEED, WALK_ANIM_SCALE[0], WALK_ANIM_SCALE[1]) : 1;
     v.body.setFlipX(flip);
     syncLayers(v.body, [v.vb, v.vf]);
+    if (v.vhBlank[0]) v.vb.setAlpha(0); // nửa phụ thể không có ảnh: giữ visible (spiritMotion đọc) nhưng không hiện
+    if (v.vhBlank[1]) v.vf.setAlpha(0);
     if (p.vh !== v.vh) { v.vb.setVisible(false); v.vf.setVisible(false); } // phụ thể đang tải lười (vohonLazy.ts)
     // Bay (2.5b): nhấc mọi lớp trừ bóng lên tối đa 10 pixel theo nửa sóng sin.
     const fe = v.fly ? (time - v.fly.t0) / v.fly.ms : 1; if (fe >= 1) v.fly = null;
@@ -3417,7 +3420,10 @@ export class GameScene extends Phaser.Scene {
       ctx.drawImage(f.source.image as CanvasImageSource, f.cutX, f.cutY, f.cutWidth, f.cutHeight,
         24 * k - f.cutWidth * s * o.x, 40 * k - f.cutHeight * s * o.y, f.cutWidth * s, f.cutHeight * s);
     };
-    draw(kb, true); draw(lk); draw(kf, true);
+    const [bb, fb] = st === "ready" ? vohonBlank(vohonIdAt(vi)) : [false, false];
+    if (!bb) draw(kb, true);
+    draw(lk);
+    if (!fb) draw(kf, true);
     const url = cv.toDataURL();
     this.portraits.set(vohon, url);
     return url;

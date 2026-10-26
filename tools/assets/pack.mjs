@@ -36,7 +36,7 @@
 //   head: giữa hàng trên cùng; back: trọng tâm phần thân trên; feet: phụ thể mọc trên đất (thảm cỏ, vòng) đứng yên theo gốc chân.
 // Ghi <out>/<id>_b.png và <out>/<id>_f.png (mặc định shared/assets/sprites/vohon). Phụ thể không có ảnh hướng nào thì ô
 // hướng đó để trống.
-import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from "node:fs";
 import path from "node:path";
 import { readPng, encodePng, Img, SPRITES, HS_LAYERS, ISO_DIRS, ISO_FLIP, ISO_BEAST_TIER, ISO_BEAST_SIZES, ISO_HS_FRAME, ISO_HS_ORIGIN, ISO_HS_ROWS, ISO_VH_FRAME, ISO_VH_SEXES, vohonBodies, ISO_ATTACK_SWING, ISO_HIP, ISO_KNEEL, ISO_SIT, ISO_LIE_HALF, ANCHORS, isoLayout, frameAnchors } from "./lib.mjs";
 
@@ -264,7 +264,14 @@ function packVohon() {
   }
   const dst = out || path.join(SPRITES, "vohon");
   mkdirSync(dst, { recursive: true });
-  for (const [h, img] of [["b", outB], ["f", outF]]) writeFileSync(path.join(dst, `${id}_${h}.png`), encodePng(img));
+  // Nửa không có điểm ảnh nào (phụ thể neo sau lưng chỉ vẽ một nửa) không ghi ra file: client không tải nửa trống (#974); ghi "blank": true ở manifest.
+  for (const [h, img] of [["b", outB], ["f", outF]]) {
+    const f = path.join(dst, `${id}_${h}.png`);
+    if (img.data.every((v, i) => i % 4 !== 3 || !v)) {
+      for (const g of [f, f.replace(/\.png$/, "_n.png")]) rmSync(g, { force: true });
+      console.log(`[pack] ${id}_${h}: nửa trống, không ghi file; thêm "blank": true cho key vh_${id}_${h} trong manifest.json`);
+    } else writeFileSync(f, encodePng(img));
+  }
   console.log(`[pack] ${path.join(dst, `${id}_{b,f}.png`)}: ${outB.w}×${outB.h}, ${placed} khung, neo ${attach}${swing ? " + vung" : ""}`);
 }
 
