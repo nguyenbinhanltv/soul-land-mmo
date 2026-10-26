@@ -20,6 +20,58 @@
 | Xã hội | `chat {text, ch?, to?}` (`ch`: thiếu = bản đồ, `party`, `whisper` với `to` = tên, `world`, `tong`; mục 4 "Kênh chat"), `party {op, name?, sid?}`, `friend {op, name?}` (`list`, `add`, `remove`, `block`, `unblock`; mục 5.9 "Bạn bè"), `arena {op, roomId?}` (`queue`, `cancel`, `top`, `live`, `watch` với `roomId`; trong sân người xem gửi `unwatch`), `resonance` |
 | Quản trị, kiểm thử | `gm {cmd}` (lệnh `/gm …`, chỉ tài khoản trong `ADMIN_ACCOUNTS`, xem `du-lieu-db.md`), `test {op}` (chỉ khi server bật `GAME_TEST=1`) |
 
+## Danh mục tin client → server (đăng ký chuỗi cố định)
+Mọi tin đăng ký trong `MapRoom.onCreate` (`onMessage` / `onLimitedMsg(nhóm, tên)` / `onBagMsg`); `ArenaRoom` chặn phần lớn (`BLOCKED`) và chỉ nhận thêm `quest {op:"get"}`, `arena {op:"top"|"unwatch"}`. **Client gửi từ `client/src/scenes/GameScene.ts`** (trừ ghi chú). Cột "Nhóm" là nhóm giới hạn `MSG_GROUP` (`-` = không giới hạn theo nhóm). Hàm xử lý nằm trong `MapRoom.ts` trừ khi ghi file khác (`rooms/<file>.ts`, #702). `tools/docs-check.mjs` (kiểm h) so danh mục này với code: thêm tin mới thì thêm hàng ở đây.
+
+| Tin | Khi nào client gửi | Nhóm | Xử lý |
+|---|---|---|---|
+| `input` | mỗi nhịp có hướng đi / nhả phím (kèm `s` số thứ tự để dự đoán) | - | `applyInput` |
+| `attack`, `skill`, `chanthan`, `boneskill` | phím đánh thường, hồn kỹ, Chân Thân (R), kỹ năng hồn cốt | - | `manualAttack`, `skill`, `chanThan`, `boneSkill` |
+| `target` | khoá / bỏ khoá mục tiêu (#750) | - | `lock.ts` `targetMsg` |
+| `fusion` | mời / hưởng ứng Dung Hợp Kỹ | - | `fusionAction` |
+| `auto`, `offline` | mở bảng Tự động, bật / tắt / đổi cấu hình tự săn; xin báo cáo ủy thác | - / read | `autoHunt.ts` `autoAction`, `sendOffline` |
+| `vohons`, `team`, `switch`, `loadout` | mở bảng võ hồn; đổi đội hình, võ hồn ra trận, hồn kỹ | read / social | `team.ts`, `setLoadout` |
+| `stats`, `fog`, `boss`, `talk`, `resonance`, `shardinfo` | xin dữ liệu riêng (bảng Nhân vật, sương mù, boss lúc vào phòng, NPC, cộng minh, mảnh đã đổi) | read | `sendStats`, `sendFog`, `sendBossJoin`, `talkNpc`, `team.ts` `sendRes` / `resonanceTop`, `shop.ts` `sendShardInfo` |
+| `bag` | xin cả túi (theo `ASK_CD`) | - | `bag.ts` `sendBag` |
+| `pickup`, `discard`, `sortbag`, `lock`, `autosell`, `use`, `open`, `unlock`, `starup` | thao tác túi, mở khóa / thăng sao võ hồn | bag | `pickup`, `discardItem`, `sortBag`, `lockItem`, `setAutoSell`, `useItem`, `openChest`, `unlockVohon`, `starUp` |
+| `absorb` | hấp thụ hồn hoàn | bag | `absorb.ts` `tryAbsorb` |
+| `equip`, `unequip`, `equipcore`, `unequipcore`, `enhance`, `enhancecore`, `coreset` | hồn cốt, hồn hạch | bag | `bones.ts` |
+| `equipgear`, `unequipgear`, `equipenh`, `equipenhpreview`, `equipsynth`, `equipsalvage`, `equipluck`, `equipluckpreview` | trang bị hồn sư, Thợ rèn | bag | `equip.ts` |
+| `buy`, `sell`, `shardbuy`, `buyback`, `expand`, `looks` | cửa hàng, mảnh võ hồn, mua lại, mở rộng túi, đổi ngoại hình ở thợ may | trade | `shop.ts`, `changeLooks` |
+| `travel`, `wp`, `channels`, `channel` | đi cổng, điểm dịch chuyển (`op`), xin / đổi kênh | social | `travel.ts`, `join.ts` |
+| `quest`, `tong`, `arena` | nhiệm vụ / khảo hạch, tông môn, Đại Đấu Hồn Trường (xem / hàng chờ / `unwatch`) | social | `quest.ts`, `tong.ts`, `arena.ts` |
+| `party`, `rally`, `chat`, `friend` | tổ đội, dấu Tập trung, chat, bạn bè | social / - | `social.ts`, `rallyAction` |
+| `gm`, `test` | lệnh `/gm`, hook kiểm thử | - | `gm.ts` |
+
+## Danh mục tin server → client (chuỗi cố định)
+Client nghe ở `GameScene.ts` (`room.onMessage`, buffer lúc vào ở `roomBuffer.ts`). Cột "Đối tượng": **riêng** = một client (`clients.getById(id)?.send`), **phòng** = `broadcast` cả phòng, **gần** = `broadcast` nhưng lọc theo `SYNC_VIEW.fx` (xem `dong-bo-state.md`). Tin lẻ theo `k` / `op` là một tin nhiều loại.
+
+| Tin | Đối tượng | Khi nào gửi | File gửi |
+|---|---|---|---|
+| `log`, `chat` | riêng / phòng | lý do từ chối, thông báo; chat các kênh, tin hệ thống `sys: true` | `MapRoom.ts`, `social.ts`, `join.ts`, `absorb.ts`, `ArenaRoom.ts` |
+| `fx`, `dmg` | gần | hiệu ứng hình ảnh (`k`) và số sát thương / hồi máu, không ảnh hưởng luật | `MapRoom.ts`, `absorb.ts`, `eggs.ts`, `team.ts`, `travel.ts` |
+| `elite`, `boss` | phòng / riêng | tinh anh xuất hiện / hạ; thú vương, boss thế giới (đếm ngược, nổi giận, điểm yếu, người vào giữa chừng) | `MapRoom.ts` |
+| `bag`, `bagd` | riêng | cả túi khi xin; thay đổi túi (`bagSync.ts`) | `bag.ts` |
+| `gear` | riêng | các món đang mặc + chỉ số tổng | `equip.ts` |
+| `equipenhp`, `equipenhd`, `equipluckp`, `equipluckd`, `equipsynd`, `equipsalvd` | riêng | xem trước / kết quả cường hóa, khắc may mắn, hợp thành, phân giải trang bị | `equip.ts` |
+| `enhanced`, `enhancedcore` | riêng | kết quả cường hóa hồn cốt / hồn hạch | `bones.ts` |
+| `autosold` | riêng | tổng kết bán tự động | `shop.ts` |
+| `shardinfo`, `looksinfo` | riêng | mảnh võ hồn đã đổi hôm nay; số lần đổi ngoại hình / lỗi | `shop.ts`, `MapRoom.ts` |
+| `vohons`, `squad`, `ko` | riêng | võ hồn sở hữu + đội hình; trạng thái đội; võ hồn gục và võ hồn kế | `team.ts`, `MapRoom.ts` |
+| `stats` | riêng | chỉ số tổng hợp bảng Nhân vật | `MapRoom.ts` |
+| `resonance`, `resonanceTop` | riêng | tiến độ cộng minh; bảng xếp hạng | `team.ts` |
+| `absorbing` | riêng | bắt đầu / hủy / kết quả hấp thụ hồn hoàn | `absorb.ts` |
+| `auto`, `autost`, `offline` | riêng | bảng Tự động; việc tự săn đang làm + thống kê; báo cáo ủy thác khi vào | `MapRoom.ts`, `autoStatus.ts` |
+| `fusion` | riêng | `k`: `ask`, `wait`, `cancel`, `done` của Dung Hợp Kỹ | `MapRoom.ts` |
+| `lock` | riêng | mục tiêu khoá bị gỡ / từ chối (`why`) | `lock.ts` |
+| `quest`, `daily`, `npc` | riêng | nhiệm vụ chuỗi, khảo hạch hằng ngày, mở hộp thoại NPC | `MapRoom.ts`, `quest.ts` |
+| `tong`, `tongBoard` | riêng | thông tin tông môn; bảng điểm tuần | `MapRoom.ts`, `tong.ts` |
+| `party`, `friends`, `rally` | riêng | tổ đội, bạn bè / chặn, dấu Tập trung | `MapRoom.ts` |
+| `arena`, `arenaTop` | phòng / riêng | trận (`k`: `ready`, `fight`, kết quả, hàng chờ); bảng xếp hạng | `arena.ts`, `ArenaRoom.ts` |
+| `channels`, `travel`, `portal`, `wp`, `world`, `recall` | riêng | danh sách kênh; lệnh đổi phòng; cổng đang đứng gần; điểm dịch chuyển; bản đồ thế giới; đếm ngược Hồi thành | `join.ts`, `travel.ts`, `MapRoom.ts` |
+| `mini`, `fog`, `fogd` | riêng | radar mỗi `SYNC_VIEW.mini` giây; bitset sương mù; ô mới khám phá | `MapRoom.ts` |
+| `test` | riêng | trả lời hook kiểm thử (chỉ khi `GAME_TEST=1`) | `gm.ts`, `ArenaRoom.ts` |
+
 ## Quy tắc xử lý mỗi message
 - Mỗi message: ép kiểu và kẹp giá trị bằng kiểm `typeof` (`numIn` / `intIn` / `strIn` trong `MapRoom.ts`), không `Number()` / `String()` / so sánh trên giá trị thô (đổi kiểu một object tùy ý có thể ném lỗi).
 - Kiểm id có thật và thuộc chính người gửi; kiểm trạng thái (gục, hấp thụ, đi cổng, giao chiến, vùng an toàn); hồi chiêu do server đếm.

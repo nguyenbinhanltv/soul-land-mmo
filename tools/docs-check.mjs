@@ -10,6 +10,11 @@
 // (e) link markdown tương đối [chữ](đường/dẫn.md#neo) trong *.md phải trỏ tới file có thật;
 // (f) cỡ file *.md (docs/**, file gốc) tối đa MAX_MD_BYTES; ngoại lệ có chủ đích ở MD_SIZE_EXCEPT (hạ dần khi tách file).
 // (g) mục lục GAME_DESIGN.md đủ: mọi docs/design|tech|art/*.md phải được nhắc tới trong đó;
+// (h) giao thức / schema khớp tài liệu: tin đăng ký / gửi bằng chuỗi cố định ở server/src/rooms/*.ts phải có trong `docs/tech/giao-thuc-server.md`
+//     (dạng `tên`), trường `@type` của rooms/schema.ts phải có trong `docs/tech/dong-bo-state.md`. Thiếu mà chưa ghi ở KNOWN_MISSING chỉ là cảnh báo cũ: ghi vào đó
+//     thì không làm đỏ CI (hạ dần); thiếu mới ngoài danh sách thì lỗi;
+// (i) bảng miền #702 ở `docs/tech/phong-ban-do.md`: tên hàm cột "Hàm" phải có trong server/src/rooms/*.ts (đuôi `*` = tiền tố). CHỈ CẢNH BÁO (không làm đỏ),
+//     vì PR tách MapRoom đổi tên file / hàm liên tục; tên đã tách sang file mới vẫn khớp vì quét cả thư mục.
 // Chữ "mục" nghĩa thường (mục tiêu, mục con…) không bị coi là tham chiếu vì không có số theo sau; "Danh mục / Hạng mục / Đề mục / Tiết mục N" được loại bằng lookbehind ở (a); "mục" dính chữ đứng trước cũng bị loại.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -39,6 +44,8 @@ function walk(dir, rel = "", out = []) {
 export const MAX_MD_BYTES = 48000;
 /** Ngoại lệ có chủ đích: file -> cỡ tối đa. Hạ / bỏ khi tách file đó. */
 export const MD_SIZE_EXCEPT = {};
+/** (h) đã biết thiếu trong tài liệu: không làm đỏ, chỉ đếm. Hạ dần (xóa tên khi đã viết vào doc); tên không còn thiếu nữa thì kiểm báo "có thể gỡ". */
+export const KNOWN_MISSING = { msg: new Set(), field: new Set() };
 const CONST_DOCS = /^docs\/(design|tech|art)\//;
 const CONST_RE = /`([A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+)`/g;
 
@@ -102,6 +109,48 @@ export function check({ root = repoRoot, overlay = null, list = 15 } = {}) {
     g.total++;
     if (!gd.includes(rel)) g.orphans.push(`${rel}  chưa có trong mục lục GAME_DESIGN.md`);
   }
+  // (h) tin / trường so với tài liệu, (i) bảng miền #702 so với server/src/rooms
+  const roomFiles = [...files].filter(([r]) => /^server\/src\/rooms\/[^/]+\.ts$/.test(r));
+  const roomsCode = roomFiles.map(([, t]) => t).join("\n");
+  const h = { total: 0, orphans: [], known: [], stale: [] }, iw = { total: 0, orphans: [] };
+  const tokenIn = (doc, n) => new RegExp("`" + n + "(?![A-Za-z0-9_])").test(doc);
+  const protoDoc = files.get("docs/tech/giao-thuc-server.md"), stateDoc = files.get("docs/tech/dong-bo-state.md");
+  const hNote = (kind, name, doc, docPath, where) => {
+    h.total++;
+    const known = KNOWN_MISSING[kind].has(name), ok = tokenIn(doc, name);
+    if (ok) { if (known) h.stale.push(`${kind} ${name}  đã có trong ${docPath}, gỡ khỏi KNOWN_MISSING`); return; }
+    (known ? h.known : h.orphans).push(`${where}  ${kind === "msg" ? "tin" : "trường"} \`${name}\`  chưa có trong ${docPath}`);
+  };
+  if (protoDoc !== undefined) {
+    const seen = new Map();
+    for (const [rel, t] of roomFiles) {
+      for (const m of t.matchAll(/(?<![A-Za-z0-9_])on(?:Message|BagMsg)\(\s*"([A-Za-z]\w*)"|(?<![A-Za-z0-9_])onLimitedMsg\(\s*"\w+",\s*"(\w+)"|(?<![A-Za-z0-9_])(?:send|broadcast)\(\s*"([A-Za-z]\w*)"/g)) {
+        const n = m[1] ?? m[2] ?? m[3];
+        if (!seen.has(n)) seen.set(n, rel);
+      }
+    }
+    for (const [n, rel] of [...seen].sort()) hNote("msg", n, protoDoc, "docs/tech/giao-thuc-server.md", rel);
+  }
+  const schema = files.get("server/src/rooms/schema.ts");
+  if (schema !== undefined && stateDoc !== undefined) {
+    const seen = new Set();
+    for (const m of schema.matchAll(/@type\((?:[^()]|\([^()]*\))*\)\s+(\w+)/g)) if (!seen.has(m[1])) { seen.add(m[1]); hNote("field", m[1], stateDoc, "docs/tech/dong-bo-state.md", "server/src/rooms/schema.ts"); }
+  }
+  const mapDoc = files.get("docs/tech/phong-ban-do.md");
+  if (mapDoc !== undefined) {
+    let inTable = false;
+    mapDoc.split("\n").forEach((line, k) => {
+      if (/^\| Miền \|/.test(line)) { inTable = true; return; }
+      if (!inTable) return;
+      if (!line.startsWith("|")) { inTable = false; return; }
+      const cell = line.split("|")[2] ?? "";
+      for (const m of cell.matchAll(/`([A-Za-z_]\w*)(\*?)`/g)) {
+        if (/^[A-Z][A-Z0-9_]*$/.test(m[1])) continue; // hằng số, đã có kiểm (d)
+        iw.total++;
+        if (!new RegExp(`(?<![A-Za-z0-9_])${m[1]}${m[2] ? "" : "(?![A-Za-z0-9_])"}`).test(roomsCode)) iw.orphans.push(`docs/tech/phong-ban-do.md:${k + 1}  \`${m[1]}${m[2]}\` không có trong server/src/rooms`);
+      }
+    });
+  }
   let code = "";
   for (const [rel, text] of files) if (/\.(ts|mjs)$/.test(rel)) code += text + "\n";
   const constOk = new Map();
@@ -148,21 +197,23 @@ export function check({ root = repoRoot, overlay = null, list = 15 } = {}) {
       }
     });
   }
-  return { mode: tocMode ? "mục-lục" : "tiêu-đề", sections: sections.size, files: files.size, a, b, c, d, e, f, g, list };
+  return { mode: tocMode ? "mục-lục" : "tiêu-đề", sections: sections.size, files: files.size, a, b, c, d, e, f, g, h, i: iw, list };
 }
 
 function main() {
   const r = check({ root: path.resolve(arg("--root", repoRoot)), overlay: arg("--overlay", null) && path.resolve(arg("--overlay")), list: +arg("--list", 15) });
-  if (has("--json")) { console.log(JSON.stringify({ mode: r.mode, sections: r.sections, files: r.files, a: [r.a.total, r.a.orphans.length], b: [r.b.total, r.b.orphans.length], c: [r.c.total, r.c.orphans.length], d: [r.d.total, r.d.orphans.length], e: [r.e.total, r.e.orphans.length], f: [r.f.total, r.f.orphans.length], g: [r.g.total, r.g.orphans.length], orphans: { a: r.a.orphans, b: r.b.orphans, c: r.c.orphans, d: r.d.orphans, e: r.e.orphans, f: r.f.orphans, g: r.g.orphans } }, null, 1)); }
+  if (has("--json")) { console.log(JSON.stringify({ mode: r.mode, sections: r.sections, files: r.files, a: [r.a.total, r.a.orphans.length], b: [r.b.total, r.b.orphans.length], c: [r.c.total, r.c.orphans.length], d: [r.d.total, r.d.orphans.length], e: [r.e.total, r.e.orphans.length], f: [r.f.total, r.f.orphans.length], g: [r.g.total, r.g.orphans.length], h: [r.h.total, r.h.orphans.length, r.h.known.length], i: [r.i.total, r.i.orphans.length], orphans: { a: r.a.orphans, b: r.b.orphans, c: r.c.orphans, d: r.d.orphans, e: r.e.orphans, f: r.f.orphans, g: r.g.orphans, h: r.h.orphans, i: r.i.orphans } }, null, 1)); }
   else {
     console.log(`docs-check: chế độ ${r.mode} (${r.sections} mục, quét ${r.files} file)`);
-    for (const [k, label, g] of [["a", "(a) tham chiếu \"mục N\" có thật", r.a], ["b", "(b) tên mục con \"mục N \"Tên\"\" tìm thấy", r.b], ["c", "(c) đường dẫn docs/… tồn tại", r.c], ["d", "(d) tên hằng trong backtick có trong code", r.d], ["e", "(e) link markdown tương đối tồn tại", r.e], ["f", "(f) cỡ file .md trong ngưỡng", r.f], ["g", "(g) mục lục GAME_DESIGN đủ file docs/design|tech|art", r.g]]) {
-      console.log(`${g.orphans.length ? "✗" : "✓"} ${label}: ${g.total - g.orphans.length}/${g.total}, mồ côi ${g.orphans.length}`);
+    for (const [k, label, g] of [["a", "(a) tham chiếu \"mục N\" có thật", r.a], ["b", "(b) tên mục con \"mục N \"Tên\"\" tìm thấy", r.b], ["c", "(c) đường dẫn docs/… tồn tại", r.c], ["d", "(d) tên hằng trong backtick có trong code", r.d], ["e", "(e) link markdown tương đối tồn tại", r.e], ["f", "(f) cỡ file .md trong ngưỡng", r.f], ["g", "(g) mục lục GAME_DESIGN đủ file docs/design|tech|art", r.g], ["h", "(h) tin giao thức + trường schema có trong docs/tech", r.h], ["i", "(i) tên hàm bảng miền phong-ban-do.md có trong rooms (chỉ cảnh báo)", r.i]]) {
+      console.log(`${g.orphans.length ? (k === "i" ? "!" : "✗") : "✓"} ${label}: ${g.total - g.orphans.length}/${g.total}, mồ côi ${g.orphans.length}`);
       for (const o of g.orphans.slice(0, r.list)) console.log("    " + o);
+      if (g.known?.length) console.log(`    (${g.known.length} mục đã biết thiếu, ghi ở KNOWN_MISSING, không tính lỗi)`);
+      for (const o of (g.stale ?? []).slice(0, r.list)) console.log("    " + o);
       if (g.orphans.length > r.list) console.log(`    … và ${g.orphans.length - r.list} chỗ nữa (--list ${g.orphans.length} để xem hết)`);
     }
   }
-  if (!has("--warn") && [r.a, r.b, r.c, r.d, r.e, r.f, r.g].some((g) => g.orphans.length)) process.exit(1);
+  if (!has("--warn") && [r.a, r.b, r.c, r.d, r.e, r.f, r.g, r.h].some((g) => g.orphans.length)) process.exit(1);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();
