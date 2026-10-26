@@ -18,7 +18,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { Img, readPng, encodePng, readGpl, hex, toHex, OUTLINE, ISO_BEAST_FOOT } from "./lib.mjs";
-import { DIRS, ANIMS, COLS, BAND_ROWS, animSlot, sheetPlan, sheetCells, cellRect, speciesInfo } from "./beast-sheet-lib.mjs";
+import { DIRS, ANIMS, COLS, BAND_ROWS, animSlot, sheetPlan, sheetCells, speciesInfo } from "./beast-sheet-lib.mjs";
+import { layoutFor, parsePatch, applyPatches, staticAnchors, blockFactors, levelOf, codeOf, summarize } from "./beast-sheet-cut-lib.mjs";
 
 const K_OUT = hex(OUTLINE);
 const dist2 = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
@@ -94,7 +95,7 @@ const pieceOf = (px, w) => {
  */
 export function assignToCells(img, sheet, mask, opt) {
   const { w, h } = img, cw = w / sheet.cols, ch = h / sheet.rows;
-  const cellOf = (x, y) => ({ col: Math.min(sheet.cols - 1, (x / cw) | 0), row: Math.min(sheet.rows - 1, (y / ch) | 0) });
+  const cellOf = opt.layout?.cellOf ?? ((x, y) => ({ col: Math.min(sheet.cols - 1, (x / cw) | 0), row: Math.min(sheet.rows - 1, (y / ch) | 0) }));
   const buckets = new Map(); let stuck = 0;
   const push = (k, p) => { if (!buckets.has(k)) buckets.set(k, []); buckets.get(k).push(p); };
   for (const c of components(mask, w, h)) {
@@ -152,7 +153,7 @@ const nearest = (p, pal) => { let bi = 0, bd = Infinity; for (let i = 0; i < pal
 export function cutSpecies(o) {
   const info = speciesInfo(o.species), F = o.frame ?? info.frame;
   if (!F) throw new Error(`loài ${o.species} chưa có khung trong manifest: đặt --frame`);
-  const plan = sheetPlan(F), warns = [], rep = { species: o.species, frame: F, sheets: {}, scale: 0, dropped: 0 };
+  const plan = sheetPlan(F), warns = [], gapGrid = {}, rep = { species: o.species, frame: F, sheets: {}, scale: 0, dropped: 0 };
   const foot = F - ISO_BEAST_FOOT, tol = o.tol ?? 60, normalize = o.normalizeSize !== false; // mặc định bật (#862)
 
   // 1–2. Tách hình, gán ô
@@ -163,12 +164,17 @@ export function cutSpecies(o) {
     if (normalize && Math.abs(img.w * sh.h - img.h * sh.w) > 0.01 * img.h * sh.w) throw new Error(`tờ ${sh.id}: sai tỉ lệ ${img.w}×${img.h}, cần ${sh.w}×${sh.h}; không thể chuẩn hóa đồng đều`);
     const factor = normalize ? sh.w / img.w : 1;
     const key = o.key ?? keyOf(img), mask = foregroundMask(img, key, tol);
-    const { pieces, dropped, droppedBig, stuck } = assignToCells(img, sh, mask, { minArea: o.minArea, unit: factor });
+    const layout = layoutFor(img, sh, o.grid ?? "auto", { ...(o.key ? { key: o.key.slice(0, 3) } : {}), ...(o.tol ? { tol: o.tol } : {}) });
+    const { pieces, dropped, droppedBig, stuck } = assignToCells(img, sh, mask, { minArea: o.minArea, unit: factor, layout });
+    const patched = applyPatches(pieces, o.patches ?? [], sh.id, new Set(sheetCells(sh).map((c) => `${c.col},${c.row}`)));
     rep.dropped += dropped;
+    gapGrid[sh.id] = layout.mode.startsWith("gap");
+    for (const n of [...layout.notes.map((x) => `tờ ${sh.id}: ${x}`), ...patched.map((x) => `tờ ${sh.id} --patch: ${x}`)]) warns.push(n);
     for (const b of droppedBig) warns.push(`tờ ${sh.id} ô ${b.cell}: bỏ mảnh rời lớn ${Math.round(b.area * factor * factor)} điểm (thân ${Math.round(b.of * factor * factor)}), kiểm tra ảnh`);
     if (stuck) warns.push(`tờ ${sh.id}: ${stuck} hình dính nhiều ô, đã chia theo ô; nên vẽ lại cho các hình cách xa nhau`);
     const used = new Set();
-    rep.sheets[sh.id] = { size: [img.w, img.h], key: key && toHex(key), cells: pieces.size };
+    rep.sheets[sh.id] = { size: [img.w, img.h], key: key && toHex(key), cells: pieces.size, grid: layout.mode };
+    if (patched.length) rep.sheets[sh.id].patches = patched;
     if (normalize) Object.assign(rep.sheets[sh.id], { originalSize: [img.w, img.h], expectedSize: [sh.w, sh.h], factor, normalizedMode: "canonical-units" });
     for (const c of sheetCells(sh)) {
       const k = `${c.col},${c.row}`, p = pieces.get(k), name = `${c.dir}/${c.anim}/${c.frame}`;
@@ -178,9 +184,9 @@ export function cutSpecies(o) {
       for (const i of p.px) im.set((i % img.w) - x0, ((i / img.w) | 0) - y0, img.get(i % img.w, (i / img.w) | 0));
       const lowRows = Math.max(1, Math.round(fh * 0.08)); let sx = 0, n = 0;
       for (let y = fh - lowRows; y < fh; y++) for (let x = 0; x < fw; x++) if (im.alpha(x, y)) { sx += x; n++; }
-      const r = cellRect(sh, c.col, c.row, img.w, img.h);
+      const r = layout.rect(c.col, c.row);
       if (normalize) {
-        if (x0 < Math.floor(r.x0) || y0 < Math.floor(r.y0) || x1 >= Math.ceil(r.x1) || y1 >= Math.ceil(r.y1)) warns.push(`khung ${name}: hình vượt ô tờ ${sh.id}, kiểm tra lưới; chuẩn hóa không sửa bố cục`);
+        if (x0 < Math.floor(r.x0) || y0 < Math.floor(r.y0) || x1 >= Math.ceil(r.x1) || y1 >= Math.ceil(r.y1)) warns.push(`khung ${name}: hình vượt ô tờ ${sh.id}, kiểm tra lưới; chuẩn hóa không sửa bố cục${layout.fallbackRows?.includes(c.row) ? " (dải dự phòng lưới đều)" : ""}`);
         if (x0 === 0 || y0 === 0 || x1 === img.w - 1 || y1 === img.h - 1) warns.push(`khung ${name}: chạm mép ảnh nguồn tờ ${sh.id} (có thể đã bị cắt)`);
       }
       // Hình nguồn giữ pixel RAW; mọi phép đo trước common scale dùng đơn vị canonical của tờ.
@@ -205,26 +211,49 @@ export function cutSpecies(o) {
     for (const { f, r } of fr) if (anim !== "attack" && Math.abs(r.bottom / r.cellH - mb) > 0.15) warns.push(`khung ${dir}/${anim}/${f}: chân lệch ${Math.round(Math.abs(r.bottom / r.cellH - mb) * 100)}% chiều cao ô so với các khung cùng hoạt ảnh`);
   }
 
-  // 3. Hệ số thu chung
+  // 3. Hệ số thu: MỘT hệ số chung cả loài (hành vi v1), rồi hiệu chỉnh từng khối hướng theo ảnh tĩnh (chỉ khi tự động, #864)
   const idle = [...raw.entries()].filter(([, r]) => r.anim === "idle");
   const all = [...raw.values()];
   if (!all.length) throw new Error("không cắt được khung nào");
-  let scale = o.scale;
+  const fitOf = (rs) => Math.min(...rs.map((r) => Math.min((F - 4) / r.w, (foot - 2) / r.h)));
+  let scale = o.scale, source = o.scale ? "--scale" : "tự động";
   const ref = info.staticFile && !o.fill ? staticRef(info.staticFile, F) : null;
   if (!scale) {
     if (ref) {
       // khớp cỡ ảnh tĩnh: chiều cao thân đứng khung đông (hoặc nam) của sheet tĩnh bằng chiều cao trung vị khung đứng cùng hướng
       const hs = idle.filter(([k]) => k.startsWith(ref.dir + "/")).map(([, r]) => r.h);
       scale = (hs.length ? ref.h / median(hs) : null);
+      if (scale) source = "tự động (khớp ảnh tĩnh)";
     }
+    if (!scale) source = "tự động (--fill)";
     scale ??= ((o.fill ?? 0.8) * F) / Math.max(median(idle.map(([, r]) => r.w)), median(idle.map(([, r]) => r.h)));
   }
-  const fit = Math.min(...all.map((r) => Math.min((F - 4) / r.w, (foot - 2) / r.h)));
+  const scaleAuto = scale, fit = fitOf(all);
   if (fit < scale) {
     if (fit >= scale * 0.8) scale = fit;
-    else warns.push(`một số khung vượt khung ${F}×${F} ở hệ số ${scale.toFixed(3)} (nhỏ nhất vừa: ${fit.toFixed(3)}), bị cắt mép`);
+    else warns.push(`một số khung vượt khung ${F}×${F} ở hệ số ${scale.toFixed(3)} (nhỏ nhất vừa: ${fit.toFixed(3)}), bị cắt mép; đề xuất --scale ${(Math.floor(fit * 1000) / 1000).toFixed(3)}`);
   }
   rep.scale = +scale.toFixed(4);
+  rep.scaleInfo = { source, auto: +scaleAuto.toFixed(4), used: rep.scale, fit: +fit.toFixed(4), suggested: fit < scale ? Math.floor(fit * 1000) / 1000 : null };
+  warns.push(`hệ số thu: ${source} ${scaleAuto.toFixed(3)}, dùng ${scale.toFixed(3)}${scale < scaleAuto ? " (hạ cho vừa khung)" : ""}; vừa khung tối đa ${fit.toFixed(3)}`);
+
+  const dirScale = Object.fromEntries(DIRS.map((d) => [d, scale]));
+  const anchors = !o.scale && o.anchorBlocks !== false && info.staticFile && !o.fill ? staticAnchors(info.staticFile, F) : null;
+  if (anchors) {
+    const idleH = Object.fromEntries(DIRS.map((d) => [d, idle.filter(([, r]) => r.dir === d).map(([, r]) => r.h)]));
+    const bf = blockFactors(idleH, anchors, scale, o.blockTol);
+    rep.blocks = {};
+    for (const [dir, b] of Object.entries(bf)) {
+      let sd = scale * b.factor;
+      if (b.factor !== 1) {
+        const f = fitOf(all.filter((r) => r.dir === dir));
+        if (f < sd) { if (f >= sd * 0.8) sd = f; else warns.push(`khối ${dir}: hệ số ${sd.toFixed(3)} làm khung vượt khung ${F}×${F} (vừa tối đa ${f.toFixed(3)}), bị cắt mép`); }
+        warns.push(`khối ${dir}: cao thân ${(b.ratio * 100).toFixed(0)}% so với ảnh tĩnh ở hệ số chung, hiệu chỉnh ×${(sd / scale).toFixed(3)} → ${sd.toFixed(3)}`);
+      }
+      dirScale[dir] = sd;
+      rep.blocks[dir] = { bodyH: +b.bodyH.toFixed(1), anchor: +b.anchor.toFixed(1), ratioShared: +b.ratio.toFixed(3), scale: +sd.toFixed(4), ratioAfter: +((sd * b.bodyH) / b.anchor).toFixed(3) };
+    }
+  }
 
   // 4. Bảng màu
   const samples = [];
@@ -238,7 +267,7 @@ export function cutSpecies(o) {
 
   const frames = new Map(), q = [];
   for (const [name, r] of raw) {
-    const pw = r.img.w, ph = r.img.h, sourceScale = scale * r.factor, idx = new Int16Array(pw * ph).fill(-1);
+    const pw = r.img.w, ph = r.img.h, scale = dirScale[r.dir], sourceScale = scale * r.factor, idx = new Int16Array(pw * ph).fill(-1);
     for (let y = 0; y < ph; y++) for (let x = 0; x < pw; x++) if (r.img.alpha(x, y)) idx[y * pw + x] = nearest(r.img.get(x, y), pal);
     const out = new Img(F, F), sw = r.w * scale, y0 = Math.round(foot - r.h * scale);
     // chân về giữa khung; hình lệch ra mép (đòn lao, ngã) thì dời vào trong cho còn chỗ viền, báo nếu phải dời xa
@@ -280,7 +309,10 @@ export function cutSpecies(o) {
   }
   const anims = Object.fromEntries(ANIMS.map(([a, n]) => [a, { band: animSlot(a).band, col: animSlot(a).col, n }]));
   const entry = { key: `beast_${o.species}_anim`, frame: [F, F], iso: true, anim: { dirs: DIRS, cols: COLS, rowsPerDir: BAND_ROWS, anims, origin: [F >> 1, foot] } };
-  rep.warnings = warns; rep.frames = frames.size; rep.missing = warns.filter((w) => w.startsWith("THIẾU")).length;
+  rep.warnings = warns;
+  rep.issues = warns.map((msg) => ({ level: levelOf(msg, { gapGrid: gapGrid[/tờ ([A-E])/.exec(msg)?.[1]] ?? false }), code: codeOf(msg), msg }));
+  rep.summary = summarize(rep.issues);
+  rep.frames = frames.size; rep.missing = warns.filter((w) => w.startsWith("THIẾU")).length;
   return { sheet, entry, report: rep, frames };
 }
 
@@ -303,6 +335,22 @@ function clippedEdge(im) {
   return false;
 }
 
+/** In tóm tắt phân mức: block / warn từng dòng (tối đa `cap` mỗi mức, dòng cùng mã gộp đếm), info chỉ đếm theo mã (--verbose in hết). */
+export function formatSummary(rep, verbose = false, cap = 8) {
+  const s = rep.summary, lines = [`  Cảnh báo: ${s.block} block · ${s.warn} warn · ${s.info} info (tổng ${s.total}); lưới: ${Object.entries(rep.sheets).map(([id, x]) => `${id}=${x.grid}`).join(", ")}`];
+  const si = rep.scaleInfo;
+  if (si) lines.push(`  Hệ số thu: tự động ${si.auto} (${si.source}) · dùng ${si.used} · vừa khung tối đa ${si.fit}${si.suggested ? ` · ĐỀ XUẤT --scale ${si.suggested}` : ""}`);
+  if (rep.blocks) lines.push(`  Khối hướng so với ảnh tĩnh (cao thân chung → sau hiệu chỉnh): ${Object.entries(rep.blocks).map(([d, b]) => `${d} ${b.ratioShared}→${b.ratioAfter}`).join(", ")}`);
+  for (const level of ["block", "warn"]) {
+    const list = rep.issues.filter((i) => i.level === level), shown = verbose ? list : list.slice(0, cap);
+    for (const i of shown) lines.push(`  [${level}] ${i.msg}`);
+    if (list.length > shown.length) lines.push(`  [${level}] … và ${list.length - shown.length} dòng nữa (xem _report.json)`);
+  }
+  if (!verbose && s.info) lines.push(`  info: ${Object.entries(rep.issues.filter((i) => i.level === "info").reduce((m, i) => ({ ...m, [i.code]: (m[i.code] ?? 0) + 1 }), {})).map(([c, n]) => `${c}×${n}`).join(", ")} (--verbose để in hết)`);
+  if (verbose) for (const i of rep.issues.filter((x) => x.level === "info")) lines.push(`  [info] ${i.msg}`);
+  return lines.join("\n");
+}
+
 // ---------- CLI ----------
 function parseArgs(argv) {
   const o = { sheets: {} };
@@ -321,6 +369,12 @@ function parseArgs(argv) {
     else if (a === "--min-area") o.minArea = +next();
     else if (a === "--normalize-size") o.normalizeSize = true;
     else if (a === "--no-normalize-size") o.normalizeSize = false;
+    else if (a === "--grid") o.grid = next();
+    else if (a === "--patch") (o.patches ??= []).push(parsePatch(next()));
+    else if (a === "--no-anchor-blocks") o.anchorBlocks = false;
+    else if (a === "--block-tol") o.blockTol = +next();
+    else if (a === "--strict") o.strict = true;
+    else if (a === "--verbose") o.verbose = true;
     else throw new Error(`tùy chọn lạ: ${a}`);
   }
   return o;
@@ -330,7 +384,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     const o = parseArgs(process.argv.slice(2));
     if (!o.species || !o.out || !Object.keys(o.sheets).length) {
-      console.error("Dùng: node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=<ảnh> [--sheet B=<ảnh>] --out <thư mục> [--no-normalize-size] [--frame N] [--colors 24] [--palette auto|gpl|<gpl>] [--fill 0.8 | --scale S] [--key #ff00ff] [--tol 60]");
+      console.error("Dùng: node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=<ảnh> [--sheet B=<ảnh>] --out <thư mục> [--no-normalize-size] [--frame N] [--colors 24] [--palette auto|gpl|<gpl>] [--fill 0.8 | --scale S] [--key #ff00ff] [--tol 60] [--grid auto|uniform] [--patch A:c,r=c,r|A:c,r=-]... [--no-anchor-blocks] [--block-tol 0.12] [--strict] [--verbose]");
       process.exit(2);
     }
     const hashes = {};
@@ -345,7 +399,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     writeFileSync(path.join(o.out, "manifest-entry.json"), JSON.stringify(res.entry, null, 2) + "\n");
     writeFileSync(path.join(o.out, "_report.json"), JSON.stringify(res.report, null, 2) + "\n");
     console.log(`${o.species}: ${res.report.frames} khung, hệ số thu ${res.report.scale}, ${res.report.palette} màu, bỏ ${res.report.dropped} mảnh vụn → ${path.join(o.out, `${o.species}_anim.png`)}`);
-    for (const w of res.report.warnings) console.warn(`  ! ${w}`);
+    console.warn(formatSummary(res.report, o.verbose));
     if (res.report.missing) { console.error(`${res.report.missing} khung thiếu: vẽ lại tờ đó.`); process.exit(1); }
+    if (o.strict && res.report.summary.block) { console.error(`${res.report.summary.block} cảnh báo mức block (--strict).`); process.exit(1); }
   } catch (e) { console.error(e.message); process.exit(2); }
 }
