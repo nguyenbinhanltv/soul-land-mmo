@@ -279,8 +279,13 @@ for(let i=0;i<300;i++){
 }
 A.room.send("input",{x:0,y:0});
 console.log("drops",st.drops.size,"kills",p.kills,"xp",p.xp,"lvl",p.level,"logs",A.logs.slice(-2));
+// Không hạ được hồn thú thử trong 30 giây (máy chậm, hồn thú hoang xen vào) là chập chờn chứ không phải lỗi luật: in ⚠ có lý do và
+// danh sách kiểm tra bị bỏ, không để cả loạt ✓ biến mất lặng lẽ (#959). Các kiểm tra dưới đây chắc chắn khi đã hạ được.
+const hunted=p.kills>kills0;
+if(!hunted) console.log(`  ⚠ săn hồn thú thử: không hạ được con nào (hồn thú thử ${huntBid??"không có"}, kills ${p.kills}, sinh lực ${p.hp}/${p.maxHp}, log ${JSON.stringify(A.logs.slice(-3))}): `+
+  "bỏ qua tích năng lượng tiên cơ, Hồn Tệ, đổi võ hồn khi giao chiến, chặn xếp đội, hồn hoàn rơi / nhặt / hấp thụ");
 // Năng lượng tiên cơ (2.4): đánh thường trúng thì võ hồn khác trong đội tích năng lượng, võ hồn ra trận không tự tích.
-if(p.kills){
+if(hunted){
   const benchRow=A.owned.team.find(r=>r&&r!==A.owned.active), en=A.squad?.list.find(s=>s.rowId===benchRow)?.en??0;
   const vh=r=>A.owned.list.find(v=>v.rowId===r)?.vohon;
   ok(en>0&&(en===TIEN_CO_MAX||en%TIEN_CO_GAIN.attack===0),`đánh hồn thú: võ hồn ngoài sân tích ${en}/${TIEN_CO_MAX} năng lượng tiên cơ`+(en>0?"":
@@ -288,9 +293,9 @@ if(p.kills){
   ok((A.squad?.list.find(s=>s.rowId===A.owned.active)?.en??0)===0,"võ hồn ra trận không tự tích năng lượng");
 }
 // Hồn Tệ (3.1): hạ hồn thú thì người hạ nhận vài đồng.
-if(p.kills>kills0) ok(await waitFor(()=>A.bag?.honTe>0)&&A.logs.some(t=>/^Hạ .*Hồn Tệ/.test(t)),`hạ ${p.kills-kills0} hồn thú: Hồn Tệ ${A.bag?.honTe} đồng (${formatHonTe(A.bag?.honTe??0)})`);
+if(hunted) ok(await waitFor(()=>A.bag?.honTe>0)&&A.logs.some(t=>/^Hạ .*Hồn Tệ/.test(t)),`hạ ${p.kills-kills0} hồn thú: Hồn Tệ ${A.bag?.honTe} đồng (${formatHonTe(A.bag?.honTe??0)})`);
 // Vừa đánh xong (đang giao chiến): đổi võ hồn trong đội được, xếp đội thì không.
-if(p.kills>kills0){
+if(hunted){
   await waitFor(()=>p.swCd===0,3500);
   const want=A.owned.team.find(r=>r&&r!==A.owned.active), t0=[...A.owned.team];
   A.room.send("switch",{slot:A.owned.team.indexOf(want)});
@@ -299,6 +304,7 @@ if(p.kills>kills0){
 }
 // Chỉ hồn hoàn (item === ""): túi đã đầy thì mảnh / tiên thảo / trang bị rơi cạnh hồn hoàn cũng của A, cái rơi sau mang years 0.
 let dr=null; st.drops.forEach(d=>{ if(d.owner===A.room.sessionId&&!d.item) dr=d; });
+if(hunted&&!dr) console.log(`  ⚠ săn hồn thú thử: đã hạ ${p.kills-kills0} con nhưng không có hồn hoàn rơi của A (${st.drops.size} vật rơi dưới đất): bỏ qua nhặt / hấp thụ hồn hoàn`);
 if(dr){
   // 3.2: hồn hoàn dưới đất mang số năm của hồn thú; đi tới, nhấn E (pickup) thì vào túi đồ.
   const yrs=dr.years, n0=(A.bag?.items??[]).filter(i=>i.code===RING_ITEM).length;
@@ -310,7 +316,14 @@ if(dr){
   ok(await waitFor(()=>(A.bag?.items??[]).filter(i=>i.code===RING_ITEM).length===n0+1),`nhặt hồn hoàn: túi có ${A.bag?.items.filter(i=>i.code===RING_ITEM).map(i=>i.years).join(", ")} năm`+
     ` [cách hồn hoàn ${Math.hypot(dr.x-p.x,dr.y-p.y).toFixed(0)}, còn dưới đất ${[...st.drops.values()].includes(dr)}, st ${p.st}, sinh lực ${p.hp}/${p.maxHp}, log ${JSON.stringify(A.logs.slice(-3))}]`);
   const it=A.bag?.items.find(i=>i.code===RING_ITEM&&i.years===yrs);
-  if(it){ A.room.send("absorb",{itemId:it.id}); await sleep(300); console.log("absorb:",A.logs.at(-1)); }
+  // Nhặt đã ✓ thì hồn hoàn phải có trong túi. A chưa tới bình cảnh cấp 10 của hồn hoàn thứ 1: server phải từ chối bằng
+  // log lý do (hấp thụ thành công đã kiểm ở ab1.mjs 3.3), không im lặng hay bắt đầu hấp thụ.
+  ok(!!it,`hồn hoàn ${yrs} năm vừa nhặt có trong túi để hấp thụ`);
+  if(it){
+    const l=A.logs.length; A.absorbing=null; A.room.send("absorb",{itemId:it.id});
+    ok(await waitFor(()=>A.logs.length>l&&/cần đạt cấp \d+ \(bình cảnh\) mới hấp thụ được hồn hoàn thứ 1/.test(A.logs.at(-1)))&&!A.absorbing?.on&&A.bag?.items.some(i=>i.id===it.id),
+      `hấp thụ hồn hoàn ${yrs} năm khi chưa tới bình cảnh: server từ chối, hồn hoàn còn trong túi [cấp ${p.level}, absorbing ${JSON.stringify(A.absorbing)}, log ${JSON.stringify(A.logs.slice(-2))}]`);
+  }
 }
 // ---------- 2.3b: gục từng võ hồn, hồi sinh, chia kinh nghiệm 40/20 cho đội ----------
 // Hàm luật thuần trong shared/data.ts: cấp tương đương theo số năm (BĐ3, bảng "Quy cấp theo niên hạn" ở 5.3, tính từ giới hạn
