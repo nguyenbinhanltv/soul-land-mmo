@@ -16,3 +16,11 @@ Loài `bang_vu_ung` (Băng Vũ Ưng), họ `bird`, khung game 96×96. Mức ki�
 ## Lỗi
 
 Không có dòng `LỖI:`.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/bang_vu_ung/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Băng Vũ Ưng (H4 #772, turnaround; Part of #867 và #772): RAW `art/src/beast-anim/bang_vu_ung/turnaround.png` (1536×1024, lượt 1/1, sinh ngày 2026-10-26 bằng builtin Codex `image_gen.imagegen`; model và seed unknown). Chỉ tham chiếu ảnh tĩnh cùng loài `shared/assets/sprites/beast/bang_vu_ung.png`. RAW nguyên byte, không resize / cắt / chỉnh; prompt và provenance nằm cùng thư mục ở `turnaround.prompt.txt`, `turnaround.source.json`, `NGUON.md`. Chờ chủ repo duyệt art; chưa cắt hoặc nhập game. | - | Chuyển một lần từ art/CREDITS.md (#973) |

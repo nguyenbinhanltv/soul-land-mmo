@@ -21,3 +21,11 @@ Các ảnh là candidate để owner cắt và xem, chưa tự nhận đạt m�
 - Tờ E: H1 C5–6 và H3 C2–5: thân xoay nhẹ trong hurt/attack; cần kiểm trục bắc.
 
 Không sửa shared/assets, manifest, client, server, DB hoặc cân bằng. Không đóng #691; phần cắt/preview/nối game thuộc owner.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/thai_than_cu_vien/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Thái Thản Cự Viên: `art/src/beast-anim/thai_than_cu_vien/toA.png` đến `toE.png` (mỗi tờ 1536×1024, 22 hình; hướng s/se/e/ne/n), sinh ngày 2026-10-26 bằng `image_gen.imagegen` tích hợp Codex. Reference thiết kế là ảnh tĩnh gốc `shared/assets/sprites/beast/thai_than_cu_vien.png`; B–E thêm candidate A tham chiếu nét/màu. A/B/D/E một lượt, C chọn lượt hai. Công cụ không trả model ID hoặc seed. Giữ nguyên byte, không hậu kỳ/cắt/resize/đổi metadata. Prompt thực và provenance từng tờ: [NGUON.md](src/beast-anim/thai_than_cu_vien/NGUON.md), `toX.prompt.txt`, `toX.source.json` cùng thư mục. Candidate còn nghi lỗi hướng/mép ô, đã được duyệt và nhập game ở `beast_thai_than_cu_vien_anim` (Part of #688). Part of #691, #688; PR #726. | - | Chuyển một lần từ art/CREDITS.md (#973) |

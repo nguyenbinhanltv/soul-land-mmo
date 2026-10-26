@@ -32,3 +32,11 @@ Kích thước thật 1254×1254, yêu cầu [1024, 1024]; SHA-256 `35bd1962e179
 Mỗi tờ sinh trong fresh session, retry trong cùng tờ; builtin không trả model/seed hay size selector. `toX.prompt.txt` là prompt thực nguyên văn, `toX.source.json` chứa hash/byte/header/ref roles/original path/counters/lịch sử. Mẫu script giữ nguyên trong `<loài>-toX.md`. Raw trong PR đã đối chiếu nguyên byte output. Không khẳng định mỹ thuật, hướng, anatomy, grid/nền, loop, cùng cỡ thân hoặc runtime đạt. Các lỗi do ảnh được giữ để owner quyết định. Không sửa client/runtime/manifest/cutter/server/shared/DB/balance.
 
 Counters A2+B2=4, không reset. A1 chính vì grid ít bleed hơn A2; A2 và mọi lượt không chọn giữ tại artifact90/91. B91 thực tế đính static + A90/A2 STYLEONLY; refhash vẫn là A2, không đổi thành primary A1. Số đo pixel ở upstream provenance dùng tolerance, không đếm thú bằng exactFF00FF. User yêu cầu nộp ảnh lỗi, không nhập game hoặc nghiệm thu.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/doc_vu_thiem/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Độc Vụ Thiềm (H4 #767): RAW FAIL candidate để owner duyệt theo chỉ dẫn user, tại `art/src/beast-anim/doc_vu_thiem/`. A: 1024×1536 thực tế, chọn 1/2, soul-land-mmo-90; B: 1254×1254 thực tế, chọn 2/2, soul-land-mmo-91. Builtin `image_gen.imagegen`, model/seed unknown, không size selector; nguyên byte, không hậu kỳ. Prompt thực/hash/refroles/counters/knownissues tại [NGUON.md](src/beast-anim/doc_vu_thiem/NGUON.md), `toX.prompt.txt`, `toX.source.json`. Nộp không phải nghiệm thu mỹ thuật/runtime hoặc tự nhập game. | - | Chuyển một lần từ art/CREDITS.md (#973) |
