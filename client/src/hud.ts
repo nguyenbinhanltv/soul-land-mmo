@@ -3811,7 +3811,7 @@ function renderWorld() {
     const sec = document.createElement("section"); sec.className = "wsec" + (id === m.map ? " cur" : ""); sec.dataset.map = id;
     const top = document.createElement("div"); top.className = "restop";
     const name = document.createElement("b"); name.textContent = def.name + (id === m.map ? " · đang ở đây" : "");
-    const lv = document.createElement("span"); lv.textContent = def.kind === "town" ? "Thành" : def.level ? `cấp ${def.level[0]}–${def.level[1]}` : "";
+    const lv = document.createElement("span"); lv.textContent = def.kind === "town" ? "an toàn" : def.level ? `cấp ${def.level[0]}–${def.level[1]}` : "";
     top.append(name, lv);
     if (id !== m.map) {
       const walk = document.createElement("button"); walk.type = "button"; walk.className = "wwalk"; walk.textContent = "Tự đi tới";
