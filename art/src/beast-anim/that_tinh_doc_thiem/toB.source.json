@@ -1,0 +1,83 @@
+{
+  "species": "that_tinh_doc_thiem",
+  "sheet": "B",
+  "attempt": "B1",
+  "session": "soul-land-mmo-108",
+  "integration_session": "soul-land-mmo-101",
+  "issue": 770,
+  "umbrella": 766,
+  "tool": "builtin image_gen.imagegen",
+  "image_model_id": "unknown",
+  "seed": "unknown",
+  "size_selector": false,
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "actual_dimensions": [
+    1254,
+    1254
+  ],
+  "bytes": 1989978,
+  "sha256": "97c1d110b59088780fb4becc1c73b2206e0bd2e0f2b74117168d6b10a3c6b698",
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a175d3-669e-7d13-9aaa-4a0656f1cdae/exec-4726941c-bad2-4239-97d5-b7b852255580.png",
+  "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-108/that_tinh_doc_thiem-toB1-RAW.png",
+  "raw_copy_byte_identical": true,
+  "postprocessing": "NONE",
+  "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-108/that_tinh_doc_thiem-toB1.actual.txt",
+  "exact_prompt_sha256": "6d9af25f95a7182b58cc83d79f8aa3393df1c6d0f017ddd0d7a3fdefb7871fd9",
+  "base_prompt_sha256": "d4cec21a47d5a3ce9d0fb91ca768c93fe529cf4e97ad034d5561f47a00694d9f",
+  "prepared_prompt_sha256": "4fac9bb49447392bbe780601512cce9a0575a597c3fe715bc860225df7d2aee7",
+  "prompt_structure": {
+    "prefix_bytes": 681,
+    "base_start_byte_zero_based": 681,
+    "base_end_byte_exclusive": 4201,
+    "base_occurrences": 1,
+    "base_is_final_suffix": false,
+    "prefix": "Input image 1 is the original static character reference for this exact species. Preserve its design, proportions, colors and body size. Input image 2 is the raw sheet A of the SAME species, used only for matching design, palette, line weight and the SAME BODY SIZE as A and the static reference. Request exactly 1024x1024 pixels. All N-direction rows must show the rear with NO visible eyes or face, including hurt and death poses. NE is a rear three-quarter view facing upper-right, clearly showing the back. SE faces lower-right, visibly distinct from E side profile. HURT must visibly recoil backward. Use only flat solid #FF00FF background; no letters, labels or drawn grid.\n\n",
+    "suffix": "\n\nMatch the creature design, colors, size and line weight of the second attached sheet exactly. same body size as sheet A."
+  },
+  "ordered_refs": [
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-106/refs/that_tinh_doc_thiem.png",
+      "sha256": "11bfa23cc427bbd7d901781f738a6422c3c27c43b5d99a20b09dae95a3915990",
+      "role": "original static character identity reference"
+    },
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-106/that_tinh_doc_thiem-toA1-RAW.png",
+      "sha256": "d0a90637427df051b648a7996e9aad71149947151b3fb63abc7c1a61b745e5e3",
+      "role": "same-species A106A1 style/palette/line weight/body-size candidate; FAIL pose/heading not accepted"
+    }
+  ],
+  "transparent_background": false,
+  "counters": {
+    "worker_calls": 1,
+    "retry": 0,
+    "A": 1,
+    "B_after_this_sheet": 1,
+    "species_calls_after_this_sheet": 2,
+    "owner101_image_gen_calls": 1
+  },
+  "outcome": "FAIL; RAW submitted, no size waiver/art acceptance/runtime import",
+  "error_line": "LỖI: toB — sai kích thước, heading/hurt/death và nền — R1–4 NE / R5–8 N; R1/R5 C5–6; R7C3; R8 — actual1254×1254 thay1024×1024; hurt ngửa bụng, attack/death đổi heading, nền lệch FF00FF; giữ RAW FAIL, không retry.",
+  "source_handoff": {
+    "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-108/HANDOFF.md",
+    "sha256": "e3c7518bb8c42a4d37650df34d9e03a1c33203b0cc83b20afaaeee4225cd8113"
+  },
+  "qa_read_only": {
+    "exact_FF00FF_pixels": 17,
+    "total_pixels": 1572516,
+    "semantic_figure_count_accepted": false,
+    "motion_loop_verified": false,
+    "pair_body_scale_accepted": false
+  },
+  "template_conflicts": [
+    "quad tail sway despite tailless toad",
+    "rounded cell width171 x6=1026 while canvas1024",
+    "hurt eyes-shut and die collapse-sideways may conflict with rear heading"
+  ],
+  "observed_utc": {
+    "before_call": "2026-10-26T01:29:54Z",
+    "tool_return": "2026-10-26T01:30:41Z"
+  }
+}
