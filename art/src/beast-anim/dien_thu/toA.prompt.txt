@@ -1,0 +1,34 @@
+Create ONE image, exactly 1024x1536 pixels: an animation sprite sheet of a single fantasy creature for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
+
+CREATURE: Điền Thử - large field rat, large brown rat with long thin tail and whiskers, quadruped on all four legs, filling the frame. Body type: thú bốn chân. Size class: Trắng / Vàng. The attached reference image shows this exact creature in three static views (front, side, back): keep the SAME design, proportions, colors, markings and overall size in every frame of the sheet. Do not redesign it.
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
+
+GRID: 6 columns x 12 rows of equal invisible cells (171x128 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with its feet (or lowest body point) standing on the same invisible ground line about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.
+
+LAYOUT (top to bottom):
+Block 1 (rows 1-4): direction "s" = facing the viewer (front view, three-quarter from above).
+  row 1: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 2: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 3: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 4: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+Block 2 (rows 5-8): direction "se" = facing the lower right of the picture (three-quarter front view, head toward the viewer's right).
+  row 5: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 6: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 7: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 8: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+Block 3 (rows 9-12): direction "e" = facing right (side profile, seen from slightly above).
+  row 9: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 10: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 11: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 12: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+
+CONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, standing, walking and hurt frames keep the body at the same scale and the same ground line. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).
+
+STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.
+
+DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions.
+
+CLARIFICATION FOR THIS SHEET A: Điền Thử is a natural large BROWN FIELD RAT, not an electric mouse: no lightning, magic or glow. Exactly 66 occupied cells and 6 blank cells: R4C5-C6, R8C5-C6, R12C5-C6 are pure magenta. Exactly 12 evenly spaced rows and 6 evenly spaced columns. One complete rat per occupied cell; never extra heads or bodies; long thin tails and whiskers remain inside each cell's 8% margins. The SE block R5-R8 MUST face clearly DIAGONALLY LOWER RIGHT FRONT, with visible frontal muzzle and both eyes in three-quarter perspective; it must be distinct from E RIGHT SIDE PROFILE R9-R12. Keep the block's direction unchanged during every attack and death frame; sideways collapse means rolling onto the side without turning the head toward another compass direction. HURT in R1/R5/R9 C5-C6 must be a clearly visible BACKWARD flinch, head recoiling backward and eyes closed. Preserve reference identity and identical body scale, natural muted brown palette and #1a1020 outline throughout. Request exact 1024x1536 canvas. Do not draw labels or grid lines.
+
+A2 TARGETED CLARIFICATION — REGENERATE THE ENTIRE SHEET FROM THE ATTACHED STATIC RAT REFERENCE ONLY. Previous failure to avoid: FRONT attack row 3 turned to side views and death rows turned left; do not do this. In ALL of R1-R4, the rat's nose points toward the viewer/bottom of the image; R3C1-C6 bite attacks happen straight TOWARD THE VIEWER, always a centered frontal head, never left or right profile. R4C1-C4 collapse while keeping the head oriented toward the bottom; no left-facing head. In ALL of R5-R8 the nose points DIAGONALLY DOWN AND RIGHT: an unmistakable front-right three-quarter head with BOTH EYES visible, front chest visible and hindquarters up-left. R5-R8 must not look like the right side profile in R9-R12. R7C1-C6 lunge along that SAME DOWN-RIGHT diagonal. R8C1-C4 collapse without rotating compass direction. In ALL of R9-R12 keep RIGHT PROFILE, including death R12C1-C4; never face left in R12C1. HURT R1/R5/R9 C5-C6: lean and jerk backward AWAY from the block's forward direction, eyes tightly closed, retaining the same viewing angle; do not turn sideways or stand vertically. Walk R2/R6/R10 must have visibly alternating diagonal foreleg and hindleg contact/lift positions, still small smooth successive changes. No extra heads, no extra bodies, no duplicate rat in any cell. Keep exactly twelve rows. Exactly 66 rats and six blank cells. Request exact 1024x1536 pixels. All prior requirements still apply.

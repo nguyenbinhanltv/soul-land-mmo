@@ -1,4 +1,6 @@
 import "./style.css";
+import "./uiIcons.css";
+import { setConnectionLabel } from "./uiIcons.ts";
 import { loadGameFonts } from "./fontLoad";
 import Phaser from "phaser";
 import { ASSET_RETRIES, MAX_PARALLEL } from "./assetUrl.ts";
@@ -325,12 +327,14 @@ const ARENA_END_CODE = 4005;
  * khi vào sân, server giữ vị trí cũ; kênh chọn lại qua /api/channel).
  */
 function play(room: Room, roomMap: string, watch = false) {
+  setConnectionLabel(true);
   overlay.hidden = true;
   addLag(room); // ?lag=<ms>: giả lập ping cao để thử dự đoán chuyển động
   let travelling = false, left = false;
   const isArena = MAPS[roomMap]?.kind === "arena";
   room.onLeave((code) => {
     left = true;
+    setConnectionLabel(false);
     if (travelling) return;
     if (isArena && code === ARENA_END_CODE) { onTravel(mapId); return; }
     closeLooks(); document.body.classList.remove("playing"); overlay.hidden = false; stopMusic(); stopAmbientBed();

@@ -1,0 +1,89 @@
+{
+  "species": "dien_thu",
+  "sheet": "A",
+  "worker": "soul-land-mmo-83",
+  "issue": 767,
+  "raw_file": "toA.png",
+  "sha256": "b1e07016cca64b74a4459227ca1fbde9274c8c853cf2015ced03c2c50ddad2ed",
+  "bytes": 1949362,
+  "width": 1024,
+  "height": 1536,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "size_requirement_met": true,
+  "grid": [
+    6,
+    12
+  ],
+  "expected_visible_cells": 66,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "No size/model/seed selector exposed; dimensions requested in prompt only.",
+  "transparent_background": false,
+  "selected_attempt": 2,
+  "attempts": 2,
+  "counters": {
+    "A": 2,
+    "B": 2,
+    "species_total": 4
+  },
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "3483f66cd8aef1a9256c6b406e18584152e53717d67d530302f363937632c9dc",
+  "references": [
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-63/references/dien_thu.png",
+      "role": "static identity",
+      "sha256": "cd84ee63b9844fb2df3d1ad98f71648890f1b9c72df725e161a73b5e33d8d050"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a1757e-10ad-7a71-bb6b-295dc06f667a/exec-6d1fd72d-25e1-49fe-a20b-e834f7aba070.png",
+  "upstream_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-83/dien_thu-toA.manifest.json",
+  "history": [
+    {
+      "attempt": 1,
+      "raw_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-83/dien_thu-toA-A1.raw.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a1757e-10ad-7a71-bb6b-295dc06f667a/exec-87eae452-0f64-489b-9552-e617f5b1eea8.png",
+      "sha256": "82377af68f867bbf87217b8d6c8e0db74ed6d49d833bf865ec3acd1509b0e1c0",
+      "bytes": 1784604,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "prompt_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-83/dien_thu-toA-A1.prompt.txt",
+      "prompt_sha256": "47c8a38cbcec813a23d2d7661bfc15774ccc1b6e08d1f89e927d7354e620c8cc"
+    },
+    {
+      "attempt": 2,
+      "raw_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-83/dien_thu-toA-A2.raw.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a1757e-10ad-7a71-bb6b-295dc06f667a/exec-6d1fd72d-25e1-49fe-a20b-e834f7aba070.png",
+      "sha256": "b1e07016cca64b74a4459227ca1fbde9274c8c853cf2015ced03c2c50ddad2ed",
+      "bytes": 1949362,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "prompt_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-83/dien_thu-toA-A2.prompt.txt",
+      "prompt_sha256": "3483f66cd8aef1a9256c6b406e18584152e53717d67d530302f363937632c9dc"
+    }
+  ],
+  "selection_reason": "Chọn A2 vì attack S/SE cải thiện so A1, còn hurt/death hướng sai đã ghi. Không lấy pose lỗi làm chuẩn.",
+  "known_issues": [
+    "FAIL H1C5–6hurt quay phải; H4C3–4death phải; H5C5–6hurt dựng/profile, recoil yếu.",
+    "H7C3 limb anatomy cần xem; H8C3–4death side-on; loop chưa kiểm."
+  ],
+  "qa_status": "FAIL / candidate for owner review; not art/runtime/size accepted",
+  "publication_policy": "User explicitly requested committing failed raw candidates for owner review; submission is not acceptance or import.",
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "error_line": "LỖI: toA — hướng/pose/anatomy — S H1C5–6/H4C3–4, SE H5C5–6/H7C3 — hurt/death quay phải, recoil yếu, chi cần owner xem.",
+  "tool_arguments": {
+    "prompt_file": "toA.prompt.txt",
+    "referenced_image_paths": [
+      "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-63/references/dien_thu.png"
+    ],
+    "transparent_background": false
+  },
+  "reference_path_note": "references.path may be byte-identical stable audit copy; tool_arguments lists actual input paths from upstream provenance."
+}

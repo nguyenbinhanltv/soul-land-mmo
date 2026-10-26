@@ -1,0 +1,342 @@
+{
+  "species": "lam_loi_te_nguu",
+  "issue": 768,
+  "umbrella": 766,
+  "tool": "builtin image_gen.imagegen",
+  "image_model_id": null,
+  "seed": null,
+  "size_selector": false,
+  "publication_authorization": "User requested committing generated FAIL images for owner review; this is not size, art or runtime acceptance.",
+  "postprocessing": "NONE: byte-identical PNG copies, no resize/crop/cut/quantize/pixel or PNG metadata edits",
+  "counters": {
+    "total_species_calls": 6,
+    "A_calls": 2,
+    "B_calls": 4
+  },
+  "primary": {
+    "A": {
+      "attempt_id": "A2",
+      "raw": "art/src/beast-anim/lam_loi_te_nguu/toA.png",
+      "prompt": "art/src/beast-anim/lam_loi_te_nguu/toA.prompt.txt",
+      "sha256": "cb87716791c57a2caea4422646e1c627f657f14e555c1f054a56137e327c0bf5",
+      "actual_dimensions": [
+        1024,
+        1536
+      ]
+    },
+    "B": {
+      "attempt_id": "B1",
+      "raw": "art/src/beast-anim/lam_loi_te_nguu/toB.png",
+      "prompt": "art/src/beast-anim/lam_loi_te_nguu/toB.prompt.txt",
+      "sha256": "6047cea613bc24552f63ae04778e3a13b98932e855712fe854b6e57f539d3da9",
+      "actual_dimensions": [
+        1254,
+        1254
+      ]
+    }
+  },
+  "history": [
+    {
+      "id": "A1",
+      "sheet": "A",
+      "session": "soul-land-mmo-74",
+      "species_call": 1,
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-74/A1.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a174cd-052d-7e43-9313-8d32bbc86d8b/exec-18c207b8-fabb-474e-a21d-bdf1e56d62dd.png",
+      "raw_sha256": "8a5b43c01d89c7ddeef29913e7387386e3ba12d336e20bbddc30ae3e7b859a73",
+      "actual_dimensions": [
+        1024,
+        1536
+      ],
+      "requested_dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2284246,
+      "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-74/A1-prompt.txt",
+      "prompt_sha256": "3e7065470b20990b2463d45e8e8a004ebca4829c9b6a45a8020ebb1c3a3d50f8",
+      "ordered_refs": [
+        {
+          "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/lam_loi_te_nguu.png",
+          "sha256": "1528f586454e37463e553aae3f27317059cdaf8815a9d0d498ed21f8c920d5d6",
+          "bytes": 6570,
+          "dimensions": [
+            288,
+            96
+          ]
+        }
+      ],
+      "source_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-74/provenance.json",
+      "source_provenance_sha256": "3608031bf3f171d0ea98c9c93cae165c518046a80d8bc6e5417d963af77837de",
+      "known_issues": [
+        "r3c3: S attack turns right.",
+        "r4c1-c4: S die rotates toward right, fails locked heading.",
+        "r1c5-c6,r5c5-c6,r9c5-c6: hurt recoil/eyes-shut is weak.",
+        "r5-r8: SE leans toward side view; distinction from E could be stronger.",
+        "Idle/walk loop smoothness not verified in motion; static visual inspection only."
+      ],
+      "model_id": null,
+      "seed": null,
+      "size_selector": false
+    },
+    {
+      "id": "A2",
+      "sheet": "A",
+      "session": "soul-land-mmo-74",
+      "species_call": 2,
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-74/A2.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a174cd-052d-7e43-9313-8d32bbc86d8b/exec-3f2bcd4f-fe02-41db-935f-beefcd16064b.png",
+      "raw_sha256": "cb87716791c57a2caea4422646e1c627f657f14e555c1f054a56137e327c0bf5",
+      "actual_dimensions": [
+        1024,
+        1536
+      ],
+      "requested_dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2253682,
+      "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-74/A2-prompt.txt",
+      "prompt_sha256": "dba62a3d4e15e615281defd6720a52ee91197e92ed223d85398ca812b150d96c",
+      "ordered_refs": [
+        {
+          "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/lam_loi_te_nguu.png",
+          "sha256": "1528f586454e37463e553aae3f27317059cdaf8815a9d0d498ed21f8c920d5d6",
+          "bytes": 6570,
+          "dimensions": [
+            288,
+            96
+          ]
+        }
+      ],
+      "source_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-74/provenance.json",
+      "source_provenance_sha256": "3608031bf3f171d0ea98c9c93cae165c518046a80d8bc6e5417d963af77837de",
+      "known_issues": [
+        "r1c5-c6: hurt shows yaw/lean as well as recoil; locked S heading and eyes-shut need owner review.",
+        "r5c5-c6,r9c5-c6: backward recoil/eyes-shut remains subtle; may read as idle variation.",
+        "r4c1-c2,r8c1-c2,r12c1-c2: stagger subtle; early die resembles standing.",
+        "r8c3-c4,r12c3-c4: collapse head/horn projection changes; verify heading/anatomy.",
+        "r2c1-c6,r6c1-c6,r10c1-c6: gait phase and last-to-first continuity need runtime/owner review; no animation made.",
+        "Palette/proportions/scars/outline visually close to static reference, not measured color-exact; exact margins/ground not certified."
+      ],
+      "model_id": null,
+      "seed": null,
+      "size_selector": false
+    },
+    {
+      "id": "B1",
+      "sheet": "B",
+      "session": "soul-land-mmo-80",
+      "species_call": 3,
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-80/B1.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17541-9fec-7691-8b8f-48ea62fd1250/exec-36e8a83d-bd94-442d-a23b-698c0cc275bb.png",
+      "raw_sha256": "6047cea613bc24552f63ae04778e3a13b98932e855712fe854b6e57f539d3da9",
+      "actual_dimensions": [
+        1254,
+        1254
+      ],
+      "requested_dimensions": [
+        1024,
+        1024
+      ],
+      "bytes": 2137893,
+      "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-80/B1.prompt.txt",
+      "prompt_sha256": "52fa69de0e5f9834a005f07f24687cef55c4116ed78d22dda0189e3e63f7a2e1",
+      "ordered_refs": [
+        {
+          "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/lam_loi_te_nguu.png",
+          "sha256": "1528f586454e37463e553aae3f27317059cdaf8815a9d0d498ed21f8c920d5d6",
+          "bytes": 6570,
+          "dimensions": [
+            288,
+            96
+          ]
+        },
+        {
+          "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-74/A2.png",
+          "sha256": "cb87716791c57a2caea4422646e1c627f657f14e555c1f054a56137e327c0bf5",
+          "bytes": 2253682,
+          "dimensions": [
+            1024,
+            1536
+          ]
+        }
+      ],
+      "source_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-80/provenance.json",
+      "source_provenance_sha256": "c11530e44f3d54276f544cf134d35d1a8d9e85927a1dc6bba7a1116dd07d7448",
+      "known_issues": {
+        "grid": "Quan sát đủ 6x8, 44 hình và ô r4c5,r4c6,r8c5,r8c6 trống. Chưa cắt hay kiểm runtime.",
+        "heading": "r1-r3 NE thấy lưng, đầu phía phải xa; góc còn gần ngang ở một số khung. r4c3-c4 xoay gần E khi ngã. r5-r7 N nhìn sau, không thấy mặt ở cạnh dưới. r8 nhìn sau nhưng r8c4 cần owner kiểm kỹ hình đầu/chân phải.",
+        "hurt": "r1c5-c6 có đổi chân và nghiêng thân; r5c5-c6 có lệch thân nhẹ, recoil chưa mạnh.",
+        "die": "r4 và r8 có 4 giai đoạn đứng/ngã/nằm; r4c4 heading sai/nghi sai E.",
+        "attack": "r3/r7 có đổi tư thế rõ hơn walk, nhưng windup/lunge cần owner xem chuỗi.",
+        "scale": "Chưa đạt xác nhận same body size A; canvas phóng lớn và thân có vẻ lớn hơn A ở pixel tuyệt đối. Chỉ đo bbox đọc ảnh nếu có Pillow, không hậu kỳ.",
+        "status": "REJECTED_SIZE; RAW_CANDIDATE_ONLY"
+      },
+      "model_id": null,
+      "seed": null,
+      "size_selector": false
+    },
+    {
+      "id": "B2",
+      "sheet": "B",
+      "session": "soul-land-mmo-80",
+      "species_call": 4,
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-80/B2.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17541-9fec-7691-8b8f-48ea62fd1250/exec-6a638138-b0b3-4a28-9465-f53ddcbc66a0.png",
+      "raw_sha256": "9551bb06c317a34b75f2571ded51a4aa99ac042753bf86a40629e5d0b3068130",
+      "actual_dimensions": [
+        1254,
+        1254
+      ],
+      "requested_dimensions": [
+        1024,
+        1024
+      ],
+      "bytes": 2147625,
+      "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-80/B2.prompt.txt",
+      "prompt_sha256": "d88478a413f35dcead8a9dd5697adf0ceb5497cb8dd3c7455cd8bf8292819bf4",
+      "ordered_refs": [
+        {
+          "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/lam_loi_te_nguu.png",
+          "sha256": "1528f586454e37463e553aae3f27317059cdaf8815a9d0d498ed21f8c920d5d6",
+          "bytes": 6570,
+          "dimensions": [
+            288,
+            96
+          ]
+        },
+        {
+          "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-74/A2.png",
+          "sha256": "cb87716791c57a2caea4422646e1c627f657f14e555c1f054a56137e327c0bf5",
+          "bytes": 2253682,
+          "dimensions": [
+            1024,
+            1536
+          ]
+        }
+      ],
+      "source_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-80/provenance.json",
+      "source_provenance_sha256": "c11530e44f3d54276f544cf134d35d1a8d9e85927a1dc6bba7a1116dd07d7448",
+      "known_issues": {
+        "grid": "Quan sát đủ 6x8, 44 hình và 4 ô cuối die trống.",
+        "heading": "NE r1-r4 gần E/SE hơn upper-right rear, r4c4 ngã ngang. N r5c1-c5 và r8 nhìn sau; r5c6 và toàn bộ r6c1-c6,r7c1-c6 quay mặt về người xem: FAIL.",
+        "hurt": "r5c6 đổi hướng front, không đạt; r1c5-c6 lệch dáng nhưng heading chưa chuẩn.",
+        "die": "r4c4 ngã ngang, r8c4 nhìn sau nhưng chi tiết bên phải cần kiểm; không có runtime acceptance.",
+        "attack": "N r7 quay front toàn hàng: FAIL dù khác walk.",
+        "scale": "Không xác nhận đồng cỡ A; thân NE lớn hơn A ở pixel tuyệt đối.",
+        "status": "REJECTED_SIZE_AND_HEADING"
+      },
+      "model_id": null,
+      "seed": null,
+      "size_selector": false
+    },
+    {
+      "id": "B3",
+      "sheet": "B",
+      "session": "soul-land-mmo-85",
+      "species_call": 5,
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-85/B3.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17584-a301-7a41-8d6b-54ccff1b4a67/exec-872f9ce0-e564-496b-b558-cc4c23393191.png",
+      "raw_sha256": "30195d709321f3dd17415b92bc4057c36348811267a2b50d69364e33a77d7f38",
+      "actual_dimensions": [
+        1254,
+        1254
+      ],
+      "requested_dimensions": [
+        1024,
+        1024
+      ],
+      "bytes": 2128009,
+      "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-85/B3.prompt.txt",
+      "prompt_sha256": "c77e65002bc4dded7c6ccda69703d5a9189090a4158f96c872c5ea67586c8071",
+      "ordered_refs": [
+        {
+          "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/lam_loi_te_nguu.png",
+          "bytes": 6570,
+          "sha256": "1528f586454e37463e553aae3f27317059cdaf8815a9d0d498ed21f8c920d5d6",
+          "IHDR_dimensions": [
+            288,
+            96
+          ]
+        },
+        {
+          "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-74/A2.png",
+          "bytes": 2253682,
+          "sha256": "cb87716791c57a2caea4422646e1c627f657f14e555c1f054a56137e327c0bf5",
+          "IHDR_dimensions": [
+            1024,
+            1536
+          ]
+        }
+      ],
+      "source_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-85/provenance.json",
+      "source_provenance_sha256": "3e56e6d48553b36713a58214bddf86ec9838f44bfa76816c66343f3743e545da",
+      "known_issues": [
+        "R1-R3 C1-C6: NE orientation shallow/too lateral, face and eye visible; needs owner review",
+        "R1C5-C6: hurt compression visible but modest",
+        "R4C2-C4: death lowers into E/lateral pose; C4 head right/lower rather than far upper-right; FAIL NE axis",
+        "R5-R8: rear armor/tail preserved, no obvious front face",
+        "R5C5-C6: hurt pose too subtle; R7C1-C6 thrust away weak",
+        "Owner64 QA: R4C5-C6 contain N block spill; 46 cells with pixels, not 46 figures."
+      ],
+      "model_id": null,
+      "seed": null,
+      "size_selector": false
+    },
+    {
+      "id": "B4",
+      "sheet": "B",
+      "session": "soul-land-mmo-85",
+      "species_call": 6,
+      "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-85/B4.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17584-a301-7a41-8d6b-54ccff1b4a67/exec-f692846e-72bf-44a5-a28b-0149f03aef12.png",
+      "raw_sha256": "15bcdb32765204861a49ab2ef50d93783f0275c37f87f887674993e4325cfbc5",
+      "actual_dimensions": [
+        1254,
+        1254
+      ],
+      "requested_dimensions": [
+        1024,
+        1024
+      ],
+      "bytes": 2122769,
+      "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-85/B4.prompt.txt",
+      "prompt_sha256": "46210b3045c9bcc09149b8269e76230108905d72aacd3399965d25e4ab065ec3",
+      "ordered_refs": [
+        {
+          "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/lam_loi_te_nguu.png",
+          "bytes": 6570,
+          "sha256": "1528f586454e37463e553aae3f27317059cdaf8815a9d0d498ed21f8c920d5d6",
+          "IHDR_dimensions": [
+            288,
+            96
+          ]
+        },
+        {
+          "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-74/A2.png",
+          "bytes": 2253682,
+          "sha256": "cb87716791c57a2caea4422646e1c627f657f14e555c1f054a56137e327c0bf5",
+          "IHDR_dimensions": [
+            1024,
+            1536
+          ]
+        }
+      ],
+      "source_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-85/provenance.json",
+      "source_provenance_sha256": "3e56e6d48553b36713a58214bddf86ec9838f44bfa76816c66343f3743e545da",
+      "known_issues": [
+        "R4C2-C4: NE death still lateral/E; C2 little buckling; C3-C4 lower but head remains right foreground",
+        "R5C1-C6 R6C1-C6 R7C1-C6 R8C1-C3: obvious face/eyes/snout toward camera; FAIL N rear across all action rows",
+        "R8C4: head detail unclear but whole N die sequence fails rear consistency",
+        "R1C5-C6 hurt modest, cannot rescue failed N orientation",
+        "Owner64 QA: R4C5-C6 contain N block spill; 46 cells with pixels, not 46 figures."
+      ],
+      "model_id": null,
+      "seed": null,
+      "size_selector": false
+    }
+  ],
+  "status": "FAIL candidates submitted for owner review; no size/art/runtime acceptance or auto-import",
+  "selection_rationale": "See NGUON.md; selection is based on content/grid/reference tradeoffs, not latest attempt."
+}

@@ -1,0 +1,37 @@
+Create ONE image, exactly 1024x1536 pixels: an animation sprite sheet of a single fantasy creature for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
+
+CREATURE: Băng Phong Bạch Hùng - ice wind white bear, pale blue-grey thick fur with icy tufts, huge polar bear, standing on all four legs. Body type: thú bốn chân. Size class: Tím / Đen. The attached reference image shows this exact creature in three static views (front, side, back): keep the SAME design, proportions, colors, markings and overall size in every frame of the sheet. Do not redesign it.
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
+
+GRID: 6 columns x 12 rows of equal invisible cells (171x128 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with its feet (or lowest body point) standing on the same invisible ground line about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.
+
+LAYOUT (top to bottom):
+Block 1 (rows 1-4): direction "s" = facing the viewer (front view, three-quarter from above).
+  row 1: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 2: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 3: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 4: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+Block 2 (rows 5-8): direction "se" = facing the lower right of the picture (three-quarter front view, head toward the viewer's right).
+  row 5: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 6: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 7: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 8: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+Block 3 (rows 9-12): direction "e" = facing right (side profile, seen from slightly above).
+  row 9: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 10: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 11: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 12: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+
+CONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, standing, walking and hurt frames keep the body at the same scale and the same ground line. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).
+
+STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.
+
+DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions.
+
+REFERENCE ROLE AND ANATOMY CONFLICT CLARIFICATION: The ONLY attached image is the character identity reference, not a layout template. Its three static views show a tall, high-shouldered white ice bear with very long near-vertical forelimbs, compact hindquarters, small rounded ears, pale blue-grey shading and jagged icy fur tufts. The generated script above says "standing on all four legs" and "four-legged trot"; this generic family wording must NOT redesign the existing reference into a low, long-bodied ordinary polar bear. Preserve the actual reference anatomy, proportions, colors and markings throughout, and articulate its existing limbs for movement. This explicitly records a reference-versus-generic-anatomy conflict; it does not assert owner acceptance or change the source specification. Do not copy the small dark back-view silhouette as a separate creature.
+
+DIRECTION AND ACTION CLARIFICATION: All of rows 1-4 remain SOUTH/front-facing, including hurt and collapse. All of rows 5-8 remain SOUTHEAST: unmistakable three-quarter FRONT aimed toward the lower RIGHT, with front chest and both sides of the muzzle still readable; never substitute the pure right-facing profile used only in rows 9-12. All of rows 9-12 remain EAST/right profile. Hurt is recoil opposite the movement direction without turning the head or body to a different heading. Death collapses progressively while preserving its assigned heading, no spinning or rotation into another view. Exactly 66 complete figures plus 6 blank cells: R4C5-6, R8C5-6, R12C5-6 blank. Draw the entire sheet anew, as one 1024x1536 portrait image. No cell borders, text, labels, ground shadows, aura or effects. Keep adequate empty margin and a consistent scale and ground line in every cell.
+
+
+FULL-SHEET RETRY, STRICT HEADING LOCK (not a new character design): Redraw ALL 72 invisible cells from the sole original static reference. Do not use any earlier generated sheet as reference. The front direction must remain FRONT even during hurt, attack and death. In R1C5-6 use a symmetric backward flinch: muzzle still points directly toward the viewer, eyes squeezed shut, shoulders recoil upward/backward; absolutely no head turn to the right. In R3C1-6 the front attack reaches toward the viewer with foreshortened paws, never a rightward side swipe that turns the torso into SE. In R4C1-4 show the SOUTH death from the same front camera: knees buckle, shoulder drops sideways within the cell, body sinks and lies with face still toward viewer; no right-facing muzzle/profile. In R5C5-6 and R9C5-6 close the eyes visibly and recoil WITHOUT changing heading. R8C1-4 must remain diagonal front lower-right; R12C1-4 must remain pure right profile. Southeast R5-8 must clearly show front chest, both muzzle sides and one receding flank; east R9-12 must show one side only. Keep the tall high-shouldered long-forelimbed silhouette and compact hindquarters from the original static reference. Subtle idle changes, visible alternating walking steps, progressive distinct die poses. Exactly 6 columns and 12 rows, 66 figures, only R4C5-6/R8C5-6/R12C5-6 empty.
