@@ -4,13 +4,14 @@
 
 ## 4. Luật chung
 ### Điều khiển
-Chuột / phím là chính; điện thoại có joystick ảo và nút chạm cho mọi thao tác.
+Chuột / phím là chính; chỉ chơi trên máy tính. Giao diện điện thoại (joystick ảo, nút chạm cho mọi thao tác) hoãn, chưa hỗ trợ đầy đủ (Q40). Bấm chuột: bấm hồn thú để khoá mục tiêu, bấm xuống đất để đi tới điểm đó; ai thắng ai khi nhiều lệnh cùng lúc xem `giao-dien.md` "Điều khiển: thứ tự ưu tiên lệnh và chip trạng thái".
 
 | Phím | Việc |
 |---|---|
-| WASD / mũi tên | Đi (ngoài giao chiến tự chạy) |
+| WASD / mũi tên, hoặc bấm chuột xuống đất | Đi (ngoài giao chiến tự chạy); bấm chuột thì tự tìm đường tới điểm bấm |
 | Shift (giữ) | Đi bộ thay vì chạy |
 | J / Space | Đánh thường |
+| Tab, hoặc bấm vào hồn thú | Khoá mục tiêu: Tab khoá hồn thú kế tiếp ở gần (từ gần ra xa, hết vòng quay lại con gần nhất); bấm vào hồn thú khoá con đó. Nhân vật tự đi tới và đánh khi trong tầm |
 | U / I / O / P | 4 ô hồn kỹ mang theo (mục 5.2) |
 | R | Võ Hồn Chân Thân (vòng 7) |
 | Z / X / C | Kỹ năng hồn cốt chủ động: đầu, tay trái, tay phải (mục 5.5) |
@@ -25,7 +26,8 @@ Chuột / phím là chính; điện thoại có joystick ảo và nút chạm ch
 | N | Bản đồ khu vực của bản đồ đang đứng (nút "Vùng" dưới radar hoặc bấm radar; mục 5.17) |
 | Y | Đi / dừng tự đi tới cờ đã đặt (mục 5.17) |
 | T | Bật / tắt tự săn ngay (nút "Tự động" ở khung chỉ số mở bảng Tự động, mục 5.13) |
-| Enter / Esc | Chat / đóng bảng, hộp thoại (Esc huỷ lần kéo thả hoặc thẻ thao tác trước, rồi mới đóng bảng) |
+| Enter | Mở chat |
+| Esc | Đóng từng lớp, mỗi lần nhấn một lớp: huỷ kéo thả / thẻ thao tác, bản đồ khu vực, khung chat đang mở, bảng trên cùng; hết bảng thì bỏ khoá mục tiêu (xem `giao-dien.md` "Quản lý bảng và Esc") |
 
 ### Lệnh chat
 `/b <tin>` bản đồ, `/d <tin>` tổ đội, `/t <tên> <tin>` tin riêng (tên có dấu cách thì để trong ngoặc kép, hoặc client khớp tên đang thấy / đồng đội), `/r <tin>` trả lời người vừa nhắn riêng, `/tm <tin>` tông môn, `/tg <tin>` kênh thế giới, `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội, `/hat` bật / tắt hạt bay. Bấm / chạm vào hồn sư khác mở menu người chơi (mời tổ đội, nhắn riêng, kết bạn, chặn / bỏ chặn).
