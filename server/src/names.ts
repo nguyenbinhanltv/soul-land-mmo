@@ -1,3 +1,5 @@
+import { RESERVED_NAMES } from "../../shared/data.ts";
+
 // Chuẩn hóa tên tài khoản. Chỗ DUY NHẤT quyết định hai tên có phải cùng một tài khoản hay không:
 // db.ts (tìm/tạo tài khoản) và ratelimit.ts (bộ đếm đăng nhập sai) đều dùng nameKey, nên không thể lệch nhau.
 
@@ -14,3 +16,9 @@ export const cleanName = (name: string) => name.normalize("NFKC").trim();
  */
 export const nameKey = (name: string) =>
   cleanName(name).toLowerCase().replace(/i̇/g, "i").replace(/ς/g, "σ");
+
+/** Khóa so tên cấm: nameKey, bỏ dấu (đ -> d), bỏ dấu cách và "_": "HỆ  Thống", "he_thong", "Ｓystem" ra cùng khóa với tên trong RESERVED_NAMES. */
+const reservedKey = (name: string) => nameKey(name).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/[ _]/g, "");
+const RESERVED_KEYS = new Set(RESERVED_NAMES.map(reservedKey)); // map-co-dinh: dựng một lần từ RESERVED_NAMES (danh sách cố định trong shared/data.ts)
+/** Tên có trùng tên cấm (RESERVED_NAMES) không. Chỉ dùng cho tên MỚI (tạo tài khoản); tài khoản cũ trùng tên không bị đổi. */
+export const isReservedName = (name: string) => RESERVED_KEYS.has(reservedKey(name));

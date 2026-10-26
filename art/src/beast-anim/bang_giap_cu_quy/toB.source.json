@@ -1,0 +1,117 @@
+{
+  "species": "bang_giap_cu_quy",
+  "sheet": "B",
+  "worker": "soul-land-mmo-71",
+  "issue": 767,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "No size/model/seed selector exposed; size requested in prompt.",
+  "attempts": 2,
+  "selected_attempt": 2,
+  "raw_file": "toB.png",
+  "sha256": "386b0a90b00f1146a9e4416604acd8fc751b1c5eaa1630e26c7b255b447da25a",
+  "bytes": 2048867,
+  "width": 1254,
+  "height": 1254,
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "size_requirement_met": false,
+  "grid": [
+    6,
+    8
+  ],
+  "expected_visible_cells": 44,
+  "empty_cells": [
+    "H4 C5–6",
+    "H8 C5–6"
+  ],
+  "prompt_file": "toB.prompt.txt",
+  "prompt_sha256": "c8b5c3a02f734cdf5cefd2e54600ff380c92982e05bbd68c4123af291c3ee191",
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/bang_giap_cu_quy.png",
+      "sha256": "43cb6801eaa86ea44a31c8d90533b43bd1f04d778c8ee5c275c0378fb1c4feb2",
+      "bytes": 6241,
+      "dimensions": [
+        288,
+        96
+      ],
+      "role": "static identity/proportions/colors",
+      "artifact_path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-63/shared/assets/sprites/beast/bang_giap_cu_quy.png"
+    },
+    {
+      "path": "art/src/beast-anim/bang_giap_cu_quy/toA.png",
+      "sha256": "7816619a51c15e87d562e6db3d6224d7152e6493af26c0215371b9f2f7c649f0",
+      "bytes": 2157709,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "role": "A2 style/size/palette/lineweight candidate only; no art/runtime acceptance",
+      "artifact_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-69/A2.png"
+    }
+  ],
+  "transparent_background": false,
+  "output_path_returned_by_tool": "/Users/thanhhoa/.codex/generated_images/01a174c6-daa5-7c70-85bc-c022c7a164b6/exec-89cb83b9-4478-4ed8-b97f-f3454e1087c8.png",
+  "upstream_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-71/provenance.json",
+  "history": [
+    {
+      "attempt": 1,
+      "output": {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-71/B1.png",
+        "sha256": "7d9b5d8ee82dc1a6455c281da6309d514f7e077deefb2106ef29e3cecc7052ea",
+        "bytes": 2027502,
+        "dimensions": [
+          1254,
+          1254
+        ]
+      },
+      "prompt": {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-71/B1.prompt.txt",
+        "sha256": "90bbe6b447a5dc1a8c2c05dddf34dfbee2bb046ad2cfcbaa3de9f3ad7cfd0614"
+      },
+      "original_image_path": "/Users/thanhhoa/.codex/generated_images/01a174c6-daa5-7c70-85bc-c022c7a164b6/exec-44e08f66-58c6-4127-b749-85e04d573c7c.png",
+      "original_retained": true,
+      "raw_bytes_identical": true,
+      "start_utc": "2026-10-25T20:36:43.181Z",
+      "end_utc": "2026-10-25T20:37:19.645Z"
+    },
+    {
+      "attempt": 2,
+      "output": {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-71/B2.png",
+        "sha256": "386b0a90b00f1146a9e4416604acd8fc751b1c5eaa1630e26c7b255b447da25a",
+        "bytes": 2048867,
+        "dimensions": [
+          1254,
+          1254
+        ]
+      },
+      "prompt": {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-71/B2.prompt.txt",
+        "sha256": "c8b5c3a02f734cdf5cefd2e54600ff380c92982e05bbd68c4123af291c3ee191"
+      },
+      "original_image_path": "/Users/thanhhoa/.codex/generated_images/01a174c6-daa5-7c70-85bc-c022c7a164b6/exec-89cb83b9-4478-4ed8-b97f-f3454e1087c8.png",
+      "original_retained": true,
+      "raw_bytes_identical": true,
+      "start_utc": "2026-10-25T20:37:34.791Z",
+      "end_utc": "2026-10-25T20:38:16.050Z"
+    }
+  ],
+  "postprocessing": "None; byte-identical copy, no cut/resize/quantize/pixel edits.",
+  "qa_status": "raw candidate; not owner art/runtime accepted; size exception B not H4 acceptance",
+  "suspected_issues": [
+    "grid: Both visually 6 columns x 8 rows, 44 figures, empty r4c5/r4c6/r8c5/r8c6.",
+    "heading: B2 NE better, still fairly side-biased; N top protrusion suggests head away but lower protrusions remain face-like.",
+    "hurt: Small head/neck change; recoil weak or ambiguous in r1c5-c6 and r5c5-c6.",
+    "die: B1 r4c4 rotates sideways; B2 r4c4 possible duplicated head at right, direction/anatomy suspect. B2 N collapse lowers shell but lower face-like protrusion remains.",
+    "loops: Idle/walk pose changes subtle, some near duplicates; smooth loops unproven without animation.",
+    "margins_scale: No obvious touching/crossing at whole-sheet inspection; some scale/groundline variation, especially attack/death. Precise per-cell checks not run.",
+    "background: Visually flat magenta; exact all-pixel FF00FF and outline hex not certified.",
+    "style: Blue ice shell/brown thick limbs generally match A2. Static identity details not fully reproduced; candidate only.",
+    "other: No visible labels/grid/text/aura/weapons/other species. B2 r4c4 anatomy suspect."
+  ]
+}
