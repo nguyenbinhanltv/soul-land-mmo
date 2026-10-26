@@ -55,22 +55,25 @@ export function animFrame(layout: AnimLayout, anim: AnimName, dir: number, i: nu
 
 export type AnimState = "idle" | "walk" | "windup" | "attack" | "hurt";
 /** Trạng thái theo từng sprite (giữ giữa các khung hình). */
-export interface BeastAnimState { cast: boolean; atk: number; hp: number; hit: number; phase: number; last: number; moveAt: number; dir: number; state: AnimState }
+export interface BeastAnimState { cast: boolean; atkN: number; atk: number; hp: number; hit: number; phase: number; last: number; moveAt: number; dir: number; state: AnimState }
 export const newBeastAnimState = (now: number, cast: boolean, hp: number): BeastAnimState =>
-  ({ cast, atk: -1e9, hp, hit: -1e9, phase: 0, last: now, moveAt: -1e9, dir: 0, state: "idle" });
+  ({ cast, atkN: -1, atk: -1e9, hp, hit: -1e9, phase: 0, last: now, moveAt: -1e9, dir: 0, state: "idle" });
 
 /** Thời gian (ms) chạy hết khung ra đòn 1..5: code chỉ được lao trong khoảng này để không lệch khỏi khung vẽ. */
 export const STRIKE_MS = sum(ART_MS.attack);
 const HURT_MS = sum(ART_MS.hurt);
 
 /**
- * Chọn khung cho một lần vẽ. Trạng thái theo thứ tự ưu tiên: báo trước (giữ khung đầu `attack`) > ra đòn (khung 1.. theo giờ kể từ lúc cast tắt)
+ * Chọn khung cho một lần vẽ. Trạng thái theo thứ tự ưu tiên: báo trước (giữ khung đầu `attack`) > ra đòn (khung 1.. theo giờ kể từ lúc cast tắt hoặc từ lúc bộ đếm đòn thường đổi)
  * > trúng đòn (máu giảm) > đi > đứng. Khung chọn theo giờ trong trạng thái chứ không theo animation của Phaser nên đổi hướng giữa chừng
  * chỉ đổi hàng, giữ nguyên số khung (không nhảy về khung đầu). `walkScale` nhân nhịp đi (đuổi nhanh hơn lang thang), cộng dồn pha nên đổi tỉ lệ không giật.
  */
-export function stepBeastAnim(st: BeastAnimState, layout: AnimLayout, now: number, moving: boolean, cast: boolean, hp: number, face: Dir8, walkScale = 1):
+export function stepBeastAnim(st: BeastAnimState, layout: AnimLayout, now: number, moving: boolean, cast: boolean, hp: number, face: Dir8, walkScale = 1, atkN = -1):
   { frame: number; flip: boolean; state: AnimState } {
   if (st.cast && !cast) st.atk = now;
+  // Đòn thường (#1059): bộ đếm `atk` của server đổi thì chạy một lượt dải ra đòn; lần đọc đầu chỉ ghi nhớ (không chạy bù).
+  if (atkN >= 0 && st.atkN >= 0 && atkN !== st.atkN && !cast) st.atk = now;
+  if (atkN >= 0) st.atkN = atkN;
   if (hp < st.hp) st.hit = now;
   st.cast = cast; st.hp = hp;
   if (moving) st.moveAt = now;

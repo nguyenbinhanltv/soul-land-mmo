@@ -370,7 +370,7 @@ export function beastBody(s: Phaser.GameObjects.Sprite): BeastBodyPx & { h: numb
  * chỉ chọn khung và cờ lật theo hướng; chuyển động do nơi gọi áp staticBeastPose.
  */
 export function syncBeastSprite(s: Phaser.GameObjects.Sprite, species: string | undefined, moving: boolean, aggro: boolean, cast = false,
-  face: Dir8 = "se", art?: { now: number; hp: number; walkScale: number }): false | "iso" | "flat" | "static" | "anim" {
+  face: Dir8 = "se", art?: { now: number; hp: number; walkScale: number; atk?: number }): false | "iso" | "flat" | "static" | "anim" {
   const key = `beast_${species}`, akey = species && art ? animKeyOf(s.scene, species) : undefined;
   // Hoạt ảnh vẽ thật (H3, #688): ưu tiên hơn ảnh tĩnh; loài chưa có sheet rơi xuống các nhánh cũ nguyên vẹn.
   if (species && art && akey) {
@@ -383,7 +383,7 @@ export function syncBeastSprite(s: Phaser.GameObjects.Sprite, species: string | 
       s.setData("sm", undefined); st = undefined;
     }
     if (!st) { st = newBeastAnimState(art.now, cast, art.hp); s.setData("ba", st); }
-    const r = stepBeastAnim(st, L, art.now, moving, cast, art.hp, face, art.walkScale);
+    const r = stepBeastAnim(st, L, art.now, moving, cast, art.hp, face, art.walkScale, art.atk);
     if (s.frame.name !== String(r.frame)) s.setFrame(r.frame);
     if (s.flipX !== r.flip) s.setFlipX(r.flip);
     if (aggro) s.setTint(0xffb4b4); else s.clearTint();
