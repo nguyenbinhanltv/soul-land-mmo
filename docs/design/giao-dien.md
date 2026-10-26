@@ -120,9 +120,22 @@ Lệnh bị huỷ hoặc không bật được luôn có lý do: dòng log và c
 
 **Chip trạng thái** (`client/src/cmdChip.ts`, `#cmdChip`, giữa dưới màn hình, trên nhắc nhặt đồ): hiện lệnh ưu tiên cao nhất đang chạy, nền son: "Đang đánh: <tên> ×", "Đang đi tới… ×", "Tự đi cờ ×", "Tự săn ×". Bấm × huỷ đúng lệnh đó (khoá: bỏ khoá; bấm đi: dừng; cờ: dừng tự đi, cờ còn; tự săn: gửi tắt). Khi một lệnh bị huỷ chip đổi sang nền giấy ghi lý do vài giây (`WHY_MS`) rồi ẩn. Chỉ hiển thị, không thêm số cân bằng.
 
+### Quản lý bảng và Esc (U1 #754)
+Lớp mỏng `client/src/panelStack.ts` (không khung mới, không đọc state game): theo dõi `hidden` của các bảng (Nhân vật, Túi, Đội hình, Cộng minh, Bạn bè, Thế giới, hội thoại NPC, Tự động, Cài đặt; thêm cửa nhỏ: menu người chơi, danh sách kênh, tổng kết tự săn) và giữ thứ tự **dưới → trên**: bảng vừa mở hoặc vừa bấm vào (kể cả bấm viền / khe) ở trên cùng và có lớp (`z-index`) cao nhất; `dualWindow.ts` chuyển thẻ Nhân vật / Túi cũng nâng bảng trong ngăn xếp.
+- **Esc** (`GameScene.setupInput`), thứ tự: màn đổi ngoại hình → bản đồ vùng (N) → khung chat đang mở → **bảng trên cùng (chỉ một bảng mỗi lần nhấn)** → bỏ khoá mục tiêu (M3). Có bảng mở thì Esc không đụng khoá; hết bảng thì Esc bỏ khoá như cũ. Ô nhập đang focus: Esc rời ô rồi mới đến bước trên.
+- **Bấm xuyên:** Phaser còn nghe `mousedown` ở cấp window nên `pointerdown` của scene chỉ xử lý khi `downElement` là canvas; bấm vào bảng / nút HUD không `walkTo`, không khoá hồn thú, không chọn người chơi, kể cả khi trạng thái "chuột trên canvas" của Phaser còn cũ.
+- **Phím:** mở một bảng (không tính cửa nhỏ) thì nhả phím đang giữ và dừng cần điều khiển; phím đang giữ gửi `keydown` lặp bị bỏ tới khi nhả rồi bấm lại. Tiêu điểm đang ở trong bảng: **Tab** xoay vòng trong bảng (không đổi mục tiêu), **Space / Enter** thuộc nút đó khi tiêu điểm do bàn phím (`:focus-visible`); nút vừa bấm chuột không tính nên Space vẫn đánh.
+- Không đổi thứ tự ưu tiên lệnh M5 và thẻ hướng dẫn M6; kiểm thử `npm run test:panel-browser --prefix client` (bấm 6 điểm trên bảng, bấm dưới con trỏ đứng yên, `mousedown` rơi vào bảng, bấm nền vẫn đi, Esc nhiều lớp có khoá, nhả phím, 960×540).
+
 ### Kiểm thử
 - Bot nhóm `bag` (gồm `charbag`: lệnh `equip` / `unequip`, `equipcore` / `unequipcore`, `equipgear` / `unequipgear`, `team` / `switch` dựng từ `charBagContract`, server nhận đủ), `team`, `bone`, `core` vẫn phải qua.
 - Đổi giao diện thì chụp trước / sau (Chrome headless `--mute-audio`), thử màn ngang ≥ 960 px và điện thoại ngang.
+
+### Khung C2 trong Nhân vật, Thợ rèn và thông báo (C16)
+- Nhân vật dùng một khung ngoài C2, dải tab trang trí, lục giác cho ô hồn cốt và vòng đan điền cho hồn hạch; nút và ô giữ viền mảnh. Không đổi bố cục, dữ liệu, bàn phím hay kéo thả.
+- Chỉ ba trang Thợ rèn dùng khung C2: Cường hóa hồn cốt, Nâng cấp hồn hạch, Hợp thành trang bị. Các trang cường hóa trang bị, khắc may mắn, phân giải và đổi bộ giữ nguyên.
+- Toast lên cấp và toast **nhận hồn hoàn** đạt `rarityOf >= RARE_LOOT_MIN` dùng khung C2. Banner hấp thụ giữ nguyên; không đổi ngưỡng hiếm, âm thanh, thời gian sống hay gộp toast. Marker lấy từ loại món và độ hiếm, không dò tên hoặc màu.
+- Chữ sáng trên nền mực đặc; đo tương phản ít nhất 4,5:1. Góc ảnh giữ bằng nine-slice, không kéo méo ảnh lục giác / đan điền. Giữ vùng toast, thanh thao tác, chip trạng thái và thẻ hướng dẫn hiện có; không mở rộng thiết kế điện thoại (Q40).
 
 ## Hướng dẫn điều khiển lần đầu (M6 #752)
 - Thẻ giấy ở giữa dưới màn hình (`client/src/guide.ts`, `guide.css`; trên thanh kỹ năng, không đè toast / khung nhiệm vụ / khung mục tiêu), hiện khi vào game lần đầu (gắn chuỗi tân thủ của Ngọc Tiểu Cương: tài khoản đã xong chuỗi thì không tự hiện). 4 bước theo việc người chơi vừa làm: đi (WASD / mũi tên / bấm nền), bấm hồn thú để khoá và tự đánh (Tab, Esc, Space), hồn kỹ (U I O P / thanh kỹ năng), nhặt (E) và hấp thụ hồn hoàn (bắt đầu hấp thụ thì xong). Nút "Tiếp" bỏ qua một bước, **"Bỏ qua" tắt cả hướng dẫn** (bắt buộc hiện nhưng không bắt buộc làm, chủ repo duyệt 2026-10-26); nút "Hướng dẫn" (?) ở menu HUD xem lại từ bước 1 mà không đổi trạng thái đã xem.
@@ -133,4 +146,5 @@ Lệnh bị huỷ hoặc không bật được luôn có lý do: dòng log và c
 - Túi dạng lưới UI-1 #351; bảng Nhân vật UI-2 #352 (nay gộp vào 5.16, gắn / tháo ngay trên búp bê, không mở bảng Đội hình).
 - Hai cửa sổ, búp bê 4 tab: #453; thiết kế chốt bởi chủ repo 2026-10-24. Các bước: NV1 hai cửa sổ, NV2 gắn / tháo tại bảng, NV3 kéo thả và thao tác nhanh, NV4 tab Trang bị, NV5 điện thoại / phím / đo (#459); NV6 ảnh nền búp bê thay bằng C2 #553, C16 #595 (việc còn lại ở `ROADMAP.md`).
 - Hướng dẫn lần đầu M6 #752 (việc con của #746).
+- Tích hợp khung C2 C16 #595; mapping được chủ repo chốt trong issue.
 - Nhật ký từng bước: `docs/lich-su.md`.

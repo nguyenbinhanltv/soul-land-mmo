@@ -778,6 +778,16 @@ async function channelTest(){
   await follow(P2);
   P1.travel=null; await T(P1,"warp",{mapId:NV,x:0,y:0}); await waitFor(()=>P1.travel,3000); await follow(P1);
   ok(chOf(P3)===1&&chOf(P2)===1&&chOf(P1)===2,`Ngoại vi: P3, P2 kênh ${chOf(P3)}; P1 kênh ${chOf(P1)} (kênh 1 đầy)`);
+  { // #819: khóa kênh đích sau đổi kênh nằm ở presence dùng chung (chạy --procs 2: phòng đích khác tiến trình vẫn thấy khóa, không chặn nhầm)
+    await T(P2,"chan",{reset:1}); P2.travel=null; await say(P2,"channel",{ch:2}); await waitFor(()=>P2.travel,3000);
+    const t=P2.travel; await P2.room.leave(); await sleep(200);
+    let other=""; try{ const r=await new Client(WS).joinById(P3.room.roomId,{token:P2.token,mapId:NV}); await r.leave(); other="vào được"; }catch(e){ other=String(e?.message??e); }
+    ok(/kênh 2/.test(other)&&other!=="vào được",`#819 Ngoại vi: đổi sang kênh 2 nhưng joinById kênh 1: bị từ chối ("${other}")`);
+    await enter(P2,t.roomId); await fresh(P2);
+    ok(chOf(P2)===2,"#819: vào đúng kênh server chọn: khóa không chặn nhầm");
+    await T(P2,"chan",{reset:1}); P2.travel=null; await say(P2,"channel",{ch:1}); await waitFor(()=>P2.travel,3000); await follow(P2);
+    ok(chOf(P2)===1&&chOf(P1)===2,"#819: P2 về kênh 1 như cũ (khóa cũ đã gỡ, không chặn lần vào hợp lệ kế tiếp)");
+  }
 
   // ---- Thú vương: mỗi kênh một con (suất theo bản đồ), báo toàn server mọi kênh, mỗi khung giờ một rương dù đổi kênh ----
   const king=b=>[...b.room.state.beasts.values()].find(x=>x.rank===2), chestN=b=>qtyOf(b,chestCode("huyet_nguyet_lang_vuong"));
@@ -6939,6 +6949,20 @@ async function tongTest(){
   await test(S,"tong",{back:TONG_SWITCH_DAYS+1}); await rejoin(S); await test(S,"goto",{x:spot(L.npc).x,y:spot(L.npc).y+16});
   ok(me(S).tong===0&&await talk(S,L.npc)===L.npc&&S.tong?.tong==="","vào lại: vẫn không thuộc tông (rời đã lưu)");
   t=await act(S,"join",L.id); ok(S.tong.tong===L.id&&me(S).tong===3&&/Chúc mừng/.test(t),`hết thời gian chờ: gia nhập ${L.name} (${t})`);
+  // #796: ghi DB lỗi (hook savefail only=tong, #797): rời / gia nhập không đổi gì, báo lỗi, DB giữ nguyên; lệnh thứ hai trong lúc chờ bị chặn.
+  { const lag=async()=>{ await sleep(300); return (await test(S,"savefail",{n:0})).left; };
+    await near(S,L.npc); await sleep(300); await test(S,"savefail",{n:1,only:"tong"});
+    t=await act(S,"leave"); ok(/Không lưu được/.test(t)&&!/đã rời/.test(t)&&S.tong.tong===L.id&&me(S).tong===3&&await lag()===0,`rời tông khi ghi DB lỗi: báo lỗi, vẫn thuộc ${L.name} (${t})`);
+    await rejoin(S); await test(S,"goto",{x:spot(L.npc).x,y:spot(L.npc).y+16});
+    ok(me(S).tong===3&&await talk(S,L.npc)===L.npc&&S.tong?.tong===L.id,"vào lại sau lần rời lỗi: DB vẫn tông cũ, không lệch");
+    t=await act(S,"leave"); ok(S.tong.tong===""&&me(S).tong===0&&/rời/.test(t),`rời tông lại (không lỗi): đúng (${t})`);
+    await test(S,"tong",{back:TONG_SWITCH_DAYS+1}); await near(S,H.npc); await sleep(300); await test(S,"savefail",{n:1,only:"tong"});
+    t=await act(S,"join",H.id); ok(/Không lưu được/.test(t)&&!/gia nhập/.test(t.replace(/Không lưu được[^|]*/,""))&&S.tong.tong===""&&me(S).tong===0&&await lag()===0,`gia nhập khi ghi DB lỗi: báo lỗi, chưa thuộc tông nào (${t})`);
+    await rejoin(S); await test(S,"goto",{x:spot(H.npc).x,y:spot(H.npc).y+16}); await talk(S,H.npc);
+    ok(me(S).tong===0&&S.tong?.tong===""&&S.tong.wait===0,"vào lại sau lần gia nhập lỗi: vẫn chưa thuộc tông, tongAt không bị ghi (không phải chờ)");
+    const l0=S.logs.length, n0=S.tongN; for(let k=0;k<3;k++) S.room.send("tong",{op:"join",tong:H.id});
+    await waitFor(()=>S.tongN>n0+1,2000); await sleep(400);
+    ok(S.tong.tong===H.id&&me(S).tong===1&&S.logs.slice(l0).filter(x=>/Chúc mừng/.test(x)).length===1,`gia nhập bấm dồn 3 lần: chỉ một lần thành công (lệnh sau bị chặn "đang xử lý" hoặc "đã là người") (tông ${S.tong.tong}, ${me(S).tong}, ${JSON.stringify(S.logs.slice(l0))})`); }
   t=await act(S,"leave"); ok(S.tong.tong==="","rời tông cuối"); 
   }finally{ await S.room.leave().catch(()=>{}); await O.room.leave().catch(()=>{}); }
   await tongWeekTest();

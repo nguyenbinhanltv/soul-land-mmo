@@ -4,9 +4,12 @@ import "./feedback.css";
 import type { BagItem } from "./net.ts";
 import { bagItemInfo } from "./hud.ts";
 import { rarityOf } from "./bag.ts";
+import { RING_ITEM } from "../../shared/data.ts";
+import { RARE_LOOT_MIN } from "./audio/soundMap.ts";
 
 /** Loại toast: nhãn nhỏ ở đầu dòng và màu vạch trái (đặt ở CSS theo `data-k`, màu niên hạn của đồ rơi theo `--c`). */
 export type ToastKind = "loot" | "level" | "quest" | "boss" | "info";
+type ToastFrame = "rare-ring";
 const LABEL: Record<ToastKind, string> = { loot: "Nhận", level: "Lên cấp", quest: "Nhiệm vụ", boss: "Boss", info: "Tin" };
 /** Số toast hiện cùng lúc (cũ nhất bị đẩy đi) và thời gian sống (ms). */
 const MAX = 4, LIFE_MS = 4200, FADE_MS = 400;
@@ -20,15 +23,17 @@ function root() {
 }
 
 /** Hiện một toast; cùng loại và cùng tiêu đề đang hiện thì gộp ("×2") thay vì xếp thêm. `color` = màu vạch trái / nhãn (mặc định theo loại). */
-export function toast(kind: ToastKind, title: string, sub = "", color?: string) {
+export function toast(kind: ToastKind, title: string, sub = "", color?: string, frame?: ToastFrame) {
   const el0 = root();
   for (const t of Array.from(el0.children) as HTMLElement[]) {
     if (t.dataset.k !== kind || t.dataset.title !== title || t.classList.contains("out")) continue;
+    if (kind === "loot" && frame) t.dataset.frame = frame;
     const n = Number(t.dataset.n ?? "1") + 1; t.dataset.n = String(n);
     (t.querySelector(".tn") as HTMLElement).textContent = `×${n}`;
     arm(t); return;
   }
   const t = document.createElement("div"); t.className = "toast"; t.dataset.k = kind; t.dataset.title = title;
+  if (kind === "loot" && frame) t.dataset.frame = frame;
   if (color) t.style.setProperty("--c", color);
   t.innerHTML = `<i class="tk"></i><div><b></b><small></small></div><em class="tn"></em>`;
   t.querySelector(".tk")!.textContent = LABEL[kind];
@@ -57,7 +62,10 @@ export function lootToasts(prev: BagItem[] | null, next: BagItem[]): number {
   const sum = (a: BagItem[]) => { const m = new Map<string, { it: BagItem; n: number }>(); for (const it of a) { const k = stackKey(it), e = m.get(k); if (e) e.n += it.qty; else m.set(k, { it, n: it.qty }); } return m; };
   const before = sum(prev), after = sum(next), gained: { it: BagItem; n: number }[] = [];
   for (const [k, e] of after) { const d = e.n - (before.get(k)?.n ?? 0); if (d > 0) gained.push({ it: e.it, n: d }); }
-  gained.slice(0, 3).forEach(({ it, n }) => { const info = bagItemInfo(it); toast("loot", n > 1 ? `${info.name} ×${n}` : info.name, "", info.color); });
+  gained.slice(0, 3).forEach(({ it, n }) => {
+    const info = bagItemInfo(it), frame = it.code === RING_ITEM && rarityOf(it) >= RARE_LOOT_MIN ? "rare-ring" : undefined;
+    toast("loot", n > 1 ? `${info.name} ×${n}` : info.name, "", info.color, frame);
+  });
   if (gained.length > 3) toast("loot", `+${gained.length - 3} món khác`, "Xem trong túi đồ (phím B)");
   return gained.reduce((best, g) => Math.max(best, rarityOf(g.it)), -1); // độ hiếm cao nhất vừa nhận, cho tiếng đồ hiếm
 }
