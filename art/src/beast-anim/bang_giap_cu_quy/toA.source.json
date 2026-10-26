@@ -1,0 +1,113 @@
+{
+  "species": "bang_giap_cu_quy",
+  "sheet": "A",
+  "worker": "soul-land-mmo-69",
+  "issue": 767,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "No size/model/seed selector exposed; size requested in prompt.",
+  "attempts": 2,
+  "selected_attempt": 2,
+  "raw_file": "toA.png",
+  "sha256": "7816619a51c15e87d562e6db3d6224d7152e6493af26c0215371b9f2f7c649f0",
+  "bytes": 2157709,
+  "width": 1024,
+  "height": 1536,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "size_requirement_met": true,
+  "grid": [
+    6,
+    12
+  ],
+  "expected_visible_cells": 66,
+  "empty_cells": [
+    "H4 C5–6",
+    "H8 C5–6",
+    "H12 C5–6"
+  ],
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "fc336b4251f18fd3155dccd2a0175a26e0bb7cbd458b60cbb09003de82de5582",
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/bang_giap_cu_quy.png",
+      "sha256": "43cb6801eaa86ea44a31c8d90533b43bd1f04d778c8ee5c275c0378fb1c4feb2",
+      "role": "static identity",
+      "artifact_path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-63/shared/assets/sprites/beast/bang_giap_cu_quy.png"
+    }
+  ],
+  "transparent_background": false,
+  "output_path_returned_by_tool": "/Users/thanhhoa/.codex/generated_images/01a174bf-84f5-73b2-bbb1-e6ab01d05d73/exec-1351b2e4-a2cd-4623-b310-f13ea432147a.png",
+  "upstream_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-69/provenance.json",
+  "history": [
+    {
+      "attempt": 1,
+      "start": {
+        "current_time": "2026-10-25 20:28:33 UTC"
+      },
+      "end": {
+        "current_time": "2026-10-25 20:29:03 UTC"
+      },
+      "source_original_path": "/Users/thanhhoa/.codex/generated_images/01a174bf-84f5-73b2-bbb1-e6ab01d05d73/exec-b1fa1e0c-2916-4758-b32a-136b3d5a3b67.png",
+      "output": "A1.png",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "sha256": "658c36170e5a2d253fdfe98f4524a62957f15128306e960826ff7af9118375e9",
+      "prompt": "A1-prompt.txt",
+      "known_suspects": [
+        "r4c1-c4: S die turns toward right / SE instead of retaining front facing",
+        "r1,r5,r9 c5-c6: hurt recoil subtle; eyes shut / backward motion not clear",
+        "r5-r8: SE head tends horizontally right; needs owner direction review",
+        "grid baseline placement needs owner cutter inspection"
+      ],
+      "status": "raw candidate; not owner art approval or runtime approval",
+      "prompt_sha256": "831ceb21a0dd0d55a9cbf8a4a060d093d11817c8292fc6aede66c5095893b7bc",
+      "copy_sha256": "658c36170e5a2d253fdfe98f4524a62957f15128306e960826ff7af9118375e9",
+      "copy_matches_original": true
+    },
+    {
+      "attempt": 2,
+      "start": {
+        "current_time": "2026-10-25 20:29:39 UTC"
+      },
+      "end": {
+        "current_time": "2026-10-25 20:30:12 UTC"
+      },
+      "source_original_path": "/Users/thanhhoa/.codex/generated_images/01a174bf-84f5-73b2-bbb1-e6ab01d05d73/exec-1351b2e4-a2cd-4623-b310-f13ea432147a.png",
+      "output": "A2.png",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "sha256": "7816619a51c15e87d562e6db3d6224d7152e6493af26c0215371b9f2f7c649f0",
+      "prompt": "A2-prompt.txt",
+      "known_suspects": [
+        "r5-r8: SE is shallow three-quarter and head remains rather horizontal; owner must judge distinctness from E",
+        "r5c5-c6 and r9c5-c6: hurt recoil / shut eyes not strongly readable",
+        "r7c1-c6 and r11c1-c6: attack extension subtle; no obvious strong bite at all frames",
+        "r4c3-c4: front-facing lowered/splayed death instead of pronounced sideways roll",
+        "r8c3-c4 and r12c3-c4: body lowers but final lying silhouette may be insufficient",
+        "reference palette/markings broadly followed but frost/shell detail simplified; no approval implied"
+      ],
+      "status": "selected raw candidate for owner review only; not owner art or runtime approval",
+      "prompt_sha256": "fc336b4251f18fd3155dccd2a0175a26e0bb7cbd458b60cbb09003de82de5582",
+      "copy_sha256": "7816619a51c15e87d562e6db3d6224d7152e6493af26c0215371b9f2f7c649f0",
+      "copy_matches_original": true
+    }
+  ],
+  "postprocessing": "None; byte-identical copy, no cut/resize/quantize/pixel edits.",
+  "qa_status": "raw candidate; not owner art/runtime accepted; size exception B not H4 acceptance",
+  "suspected_issues": [
+    "r5-r8: SE is shallow three-quarter and head remains rather horizontal; owner must judge distinctness from E",
+    "r5c5-c6 and r9c5-c6: hurt recoil / shut eyes not strongly readable",
+    "r7c1-c6 and r11c1-c6: attack extension subtle; no obvious strong bite at all frames",
+    "r4c3-c4: front-facing lowered/splayed death instead of pronounced sideways roll",
+    "r8c3-c4 and r12c3-c4: body lowers but final lying silhouette may be insufficient",
+    "reference palette/markings broadly followed but frost/shell detail simplified; no approval implied"
+  ]
+}

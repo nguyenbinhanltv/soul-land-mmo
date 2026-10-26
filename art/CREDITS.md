@@ -2244,6 +2244,8 @@ Thái Thản Cự Viên: `art/src/beast-anim/thai_than_cu_vien/toA.png` đến `
 
 Ám Kim Khủng Trảo Hùng (H4 #767): raw `art/src/beast-anim/am_kim_khung_trao_hung/toA.png` (1024×1536, chọn lượt 2/2, fresh worker63) và `toB.png` (1254×1254 thực tế, sai yêu cầu 1024×1024, chọn lượt 2/2, fresh worker68). tthoadev sinh ngày 2026-10-26 bằng `image_gen.imagegen` tích hợp Codex. A reference static đúng loài; B reference static (identity) + A2 (style-only candidate). Tool không trả model ID/seed, không có size/model selector. Giữ nguyên byte, không hậu kỳ/resize. Prompt thực, nguồn và hash: [NGUON.md](src/beast-anim/am_kim_khung_trao_hung/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json`. Candidate chờ owner cắt/preview; chưa xác nhận mỹ thuật/runtime, anatomy/family hoặc acceptance H4. Tiến độ batch 2/10 raw.
 
+Băng Giáp Cự Quy (H4 #767): raw `art/src/beast-anim/bang_giap_cu_quy/toA.png` (1024×1536, fresh worker69, A2/2) và `toB.png` (1254×1254 thực tế, sai yêu cầu1024×1024, fresh worker71, B2/2), tthoadev sinh ngày2026-10-26 bằng builtin `image_gen.imagegen`. A reference static identity; B reference static identity + A2 style-only candidate. Model/seed unknown, không có size selector. Giữ nguyên byte, không hậu kỳ. [Nguồn/knownissues](src/beast-anim/bang_giap_cu_quy/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json` cùng thư mục. Chưa owner duyệt mỹ thuật/runtime hoặc BsizeH4; tổng batch4/10 raw khi nộp cặp này.
+
 <!-- private-assets:start -->
 ## Asset kho riêng (không nằm trong repo công khai)
 
