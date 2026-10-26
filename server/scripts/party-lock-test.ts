@@ -1,5 +1,5 @@
 // #956: tranh khóa presence tổ đội quá hạn (remoteMutation ném lỗi) không được thành unhandledRejection làm cả server thoát.
-// Chạy: npm run test:party-lock --prefix server
+// Chạy: npm run test:presence --prefix server (hoặc npx tsx scripts/party-lock-test.ts)
 import assert from "node:assert/strict";
 import * as party from "../src/party.ts";
 import { partyAction } from "../src/rooms/social.ts";
@@ -41,5 +41,6 @@ try {
 await new Promise((r) => setTimeout(r, 20));
 assert.equal(rejections.length, 0, "không có unhandledRejection");
 assert.ok(logs.includes("Tổ đội đang bận, thử lại sau."), `người chơi nhận thông báo bận: ${logs.join("|")}`);
+assert.ok(sent.includes("a"), "khung tổ đội được gửi lại");
 console.log("✓ partyAction: khóa presence tổ đội quá hạn thì báo bận, không ném ra ngoài");
 process.exit(0);
