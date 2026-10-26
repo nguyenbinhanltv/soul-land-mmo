@@ -1,0 +1,214 @@
+{
+  "task": "H4#771 Tử Văn Báo B1 artifact-only",
+  "owner": "113",
+  "coordinator": "44",
+  "worker": "116",
+  "status": "FAIL; RAW submitted; no art/runtime acceptance",
+  "tool": "builtin image_gen__imagegen",
+  "imageModel": "unknown; tool did not expose",
+  "seed": "unknown; tool did not expose",
+  "agentRequestedByUser": "gpt-6.1-sol medium; not evidence of image model",
+  "callStartedUtc": "2026-10-26T01:47:08.817Z",
+  "callFinishedUtc": "2026-10-26T01:47:52.208Z",
+  "counters": {
+    "workerBuiltinCalls": 1,
+    "workerRetries": 0,
+    "speciesPriorA1": 1,
+    "speciesAfterB1Total": 2,
+    "B2": 0,
+    "otherSpeciesCalls": 0,
+    "parallelCalls": 0,
+    "spawn": 0
+  },
+  "prompt": {
+    "sourceActualPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/tu_van_bao/tu_van_bao-toB.actual.txt",
+    "submittedExactPromptPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-116/tu_van_bao-B1/actual.txt",
+    "actualSha256": "bdd8ce356e624883abe8c23f4fec964f5ecf2f0e61459239f9b21d17e1142baf",
+    "actualBytes": 4202,
+    "basePath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-116/tu_van_bao-B1/base.txt",
+    "baseSha256": "eacd93d0e918c26c06e7886e466cc2d8e05881027a8aa5688115ef8bbe658090",
+    "baseBytes": 3513,
+    "baseIsExactPrefix": true,
+    "clarifierPosition": "suffix",
+    "suffixStartByteZeroBased": 3513,
+    "suffix": "\n\nDIRECTION AND POSE CLARIFICATION: Keep the exact creature anatomy of reference image 1; do not redesign it to match generic family wording. In every animation row, keep the specified direction. SE faces lower-right, clearly distinct from E side profile; NE faces upper-right with the back visible; N shows the rear in all four rows, including attack, hurt and death. HURT frames must visibly recoil backward. Keep a flat #FF00FF background, no letters, labels or grid lines. Request exactly 1024x1024 pixels. Match the creature design, colors, body size and line weight of reference image 2 (sheet A) exactly; preserve the same body size as A, not a larger body because B has fewer rows.",
+    "generatorMarkdownPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-116/tu_van_bao-B1/generator-output.md",
+    "generatorMarkdownSha256": "856adf78ebb0fe009daf4e6f9d4d84650724b9d1c17fd5b5f3bcb9cabc0115d7",
+    "baseExtractionMdByteRange": [
+      2109,
+      5622
+    ],
+    "baseExtractionVerified": true,
+    "generatorFilePath": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-116/tools/assets/beast-sheet-prompt.mjs",
+    "generatorFileSha256IndependentlyComputed": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba",
+    "generatorModified": false,
+    "durableGeneratorSourcePath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-116/tu_van_bao-B1/source/beast-sheet-prompt.mjs",
+    "durableGeneratorSourceSha256": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba"
+  },
+  "referencesInToolOrder": [
+    {
+      "order": 1,
+      "role": "static identity; anatomy, palette, proportions",
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/tu_van_bao/tu_van_bao-static.png",
+      "sha256": "a0aba371be1612bf5d23e95438a9a9715e8054b6a021ce9da87dff3c781135d3",
+      "viewed": true
+    },
+    {
+      "order": 2,
+      "role": "original A1 tool output; style/body size only; known FAIL poses/background are not acceptance",
+      "path": "/Users/thanhhoa/.codex/generated_images/01a175db-f87b-7a70-817b-0a3c31e0c095/exec-94197346-a4c5-45f4-96fd-c2871815f0a6.png",
+      "sha256": "3ecc1d4a38cd722f232dff8456c903a4b8ec232112557ef2f2262a0e23990a62",
+      "viewed": true
+    }
+  ],
+  "requested": {
+    "size": [
+      1024,
+      1024
+    ],
+    "grid": [
+      6,
+      8
+    ],
+    "semanticFigures": 44,
+    "blankCells": [
+      "R4C5",
+      "R4C6",
+      "R8C5",
+      "R8C6"
+    ],
+    "transparent_background": false
+  },
+  "raw": {
+    "toolOriginalPath": "/Users/thanhhoa/.codex/generated_images/01a175e3-49b1-75d1-8b3c-100a11650631/exec-ba30e5e0-0492-4a42-b182-c622920992c4.png",
+    "durablePath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-116/tu_van_bao-B1/toB.raw.png",
+    "sha256": "ad361f1c06ce5442c24009a568aff1a46b6309fba8aa3578cde0b9721ecbf9b8",
+    "copySha256": "ad361f1c06ce5442c24009a568aff1a46b6309fba8aa3578cde0b9721ecbf9b8",
+    "byteIdenticalVerified": true,
+    "bytes": 1867770,
+    "pngSignature": "89504e470d0a1a0a",
+    "IHDR": {
+      "width": 1254,
+      "height": 1254,
+      "bitDepth": 8,
+      "colorType": 2,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0
+    }
+  },
+  "observations": {
+    "semanticFiguresByVisualInspection": 44,
+    "visualGrid": [
+      6,
+      8
+    ],
+    "pixelOccupancyMethod": "Read-only RGB test: non-background if NOT (R>200 and B>180 and G<70); rational 6x8 cells rounded to nearest boundary. Pixel occupancy is not semantic figure count or acceptance.",
+    "nonBackgroundPixelCounts": [
+      [
+        7312,
+        7296,
+        7234,
+        7283,
+        7308,
+        6884
+      ],
+      [
+        6991,
+        7031,
+        7003,
+        6999,
+        6963,
+        7027
+      ],
+      [
+        7474,
+        7369,
+        7276,
+        7742,
+        7323,
+        7368
+      ],
+      [
+        7082,
+        7131,
+        7335,
+        6387,
+        0,
+        0
+      ],
+      [
+        5576,
+        5559,
+        5460,
+        5483,
+        5882,
+        6154
+      ],
+      [
+        5582,
+        5935,
+        6206,
+        6025,
+        6418,
+        6184
+      ],
+      [
+        6964,
+        6998,
+        6495,
+        7529,
+        6785,
+        5911
+      ],
+      [
+        6908,
+        7621,
+        6671,
+        6299,
+        0,
+        0
+      ]
+    ],
+    "occupiedPixelCells": 44,
+    "blankCellNonBackgroundCounts": {
+      "R4C5": 0,
+      "R4C6": 0,
+      "R8C5": 0,
+      "R8C6": 0
+    },
+    "exactFF00FFPixels": 15,
+    "errorRecord": "LỖI — B1 FAIL: RAW 1254×1254 thay vì 1024×1024; nền không phẳng đúng #FF00FF (chỉ 15 pixel khớp tuyệt đối); NE R1–R4 còn nghiêng ngang gần E, thiếu góc lưng rõ; hurt R1/R5 C5–C6 chưa cho thấy giật lùi rõ; N R7 lệch chéo và R8C2 quay lộ mặt, R8C4 nằm nghiêng lộ mặt, không giữ đầu quay xa ở toàn bộ dải chết. Cỡ thân giữa các pose chưa được chứng nhận khớp A. Giữ RAW, không retry/redraw/hậu kỳ; không art/runtime acceptance."
+  },
+  "postprocessing": false,
+  "resize": false,
+  "crop": false,
+  "patch": false,
+  "cutter": false,
+  "assembly": false,
+  "runtimeWork": false,
+  "slotReleasedBeforeFinalize": true,
+  "slotReleaseDeliveredTo": [
+    "soul-land-mmo-113",
+    "soul-land-mmo-44"
+  ],
+  "publishing": "Owner 113 handles publishing, including FAIL; worker made no repo changes or publishing actions.",
+  "integration": {
+    "owner": "soul-land-mmo-113",
+    "issue": 771,
+    "pr": 849,
+    "scope": "Tử Văn Báo A113+B116 only; includes FAIL; owner handles Ready",
+    "stopgen": true
+  },
+  "shipping": {
+    "rawPath": "art/src/beast-anim/tu_van_bao/toB.png",
+    "promptPath": "art/src/beast-anim/tu_van_bao/toB.prompt.txt",
+    "basePath": "art/src/beast-anim/tu_van_bao/toB.base.txt",
+    "generatorMarkdownPath": "art/src/beast-anim/tu_van_bao/tu_van_bao-toB.md",
+    "knownFailureLine": "LỖI: toB — size/background/heading/hurt — toàn tờ, R1–4/NE, R1/R5C5–6, R7–8/N — RAW 1254×1254 khác yêu cầu 1024×1024; nền chưa phẳng #FF00FF; NE gần E, hurt chưa giật lùi rõ; N attack/death có khung lộ mặt.",
+    "artAccepted": false,
+    "runtimeAccepted": false,
+    "imported": false,
+    "originalWorkerProvenancePreserved": true
+  }
+}
