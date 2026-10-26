@@ -1,0 +1,46 @@
+# Làm ấm cache Chrome của Playwright trên main (#933): PR chỉ đọc được cache do main (hoặc chính PR) lưu, và cache bị xoá sau 7 ngày không dùng.
+# Cùng khóa với job nameplate-preview / flow-browser trong check.yml.
+name: Làm ấm cache Playwright
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - client/package-lock.json
+      - .github/workflows/playwright-cache.yml
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  warm:
+    name: warm-playwright-cache
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Phiên bản Playwright
+        id: pw
+        run: echo "version=$(node -p "require('./client/package-lock.json').packages['node_modules/playwright'].version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Chrome Playwright
+        id: pw-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: Cài Chrome Playwright
+        id: pw-install
+        if: ${{ steps.pw-cache.outputs.cache-hit != 'true' }}
+        timeout-minutes: 15
+        run: npx --yes playwright@${{ steps.pw.outputs.version }} install chromium
+      - name: Lưu cache Chrome Playwright
+        if: ${{ steps.pw-install.outcome == 'success' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
