@@ -7,7 +7,9 @@ import { analyzeUiSheet, draftErrorLine, toJson } from "./ui-sheet-check.mjs";
 import { cutUiSheet, budgetOf, mergeIntoKit } from "./ui-sheet-cut.mjs";
 import { c2Sheet, C2_KIND, ui5Sheet, buildSheet, fakeFrame, readUi } from "./ui-sheet-fixture.mjs";
 
-const kit = loadKit();
+const realKit = loadKit();
+// luật (shapes, kinds, budget) lấy từ manifest thật; mảnh / nhóm để rỗng để test không phụ thuộc mảnh đã commit sau này
+const kit = { ...realKit, pieces: [], groups: {} };
 const codes = (r, sev) => r.issues.filter((i) => i.sev === sev).map((i) => i.code);
 const frames = (n, o = {}) => Array.from({ length: n }, () => fakeFrame(60, 44, o));
 const fSheet = (o = {}, sheetOpt = {}) => buildSheet([frames(3, o), frames(3, o)], { k: 4, ...sheetOpt });
@@ -73,6 +75,12 @@ test("khung tổng hợp sạch: đạt; cạnh sọc bị chặn; chữ trong r
   assert.ok(codes(text, "warn").includes("chu-lac"), JSON.stringify(text.issues));
   assert.ok(!codes(text, "block").length);
   assert.match(draftErrorLine(text), /^LỖI: toF — nghi chữ trong ảnh/);
+});
+
+test("ruột không đồng nhất (dốc màu) làm vạch 9-slice chạm trần: nhẹ chia-9", () => {
+  const r = check(fSheet({ gradient: true }));
+  assert.ok(codes(r, "light").includes("chia-9"), JSON.stringify(r.issues.map((i) => i.code)));
+  assert.ok(!codes(check(fSheet()), "light").includes("chia-9"));
 });
 
 test("nền, cỡ, số mảnh, trạng thái: chặn đúng mã", () => {

@@ -168,7 +168,7 @@ export function analyzeUiSheet(src, o = {}) {
       issue(issues, "warn", "chu-lac", r.name, `${r.name}: nghi có chữ / ký tự trong ruột (${r.text.map((x) => `${x.n} nét thẳng hàng ở (${x.x},${x.y})`).join("; ")}); chỉ cảnh báo, xem tờ liên hệ rồi quyết.`, { piece: r.name, at: t });
       pieceState(r.name, "warn");
     }
-    if (r.nine != null && 2 * r.nine >= Math.min(r.size[0], r.size[1])) issue(issues, "light", "chia-9", r.name, `${r.name}: vạch 9-slice đề xuất ${r.nine} chiếm gần hết mảnh ${r.size.join("×")}: ruột không đồng nhất, khó kéo.`, { piece: r.name });
+    if (r.nine != null && r.nine >= (Math.min(r.size[0], r.size[1]) >> 1) - 1) issue(issues, "light", "chia-9", r.name, `${r.name}: vạch 9-slice đề xuất ${r.nine} chạm trần (nửa mảnh) của mảnh ${r.size.join("×")}: ruột không đồng nhất, khó kéo.`, { piece: r.name });
   }
 
   // độ dày viền lệch giữa các khung cùng tờ / cùng bộ

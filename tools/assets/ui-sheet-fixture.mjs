@@ -13,12 +13,12 @@ export const readUi = (n) => readPng(path.join(UI_DIR, `${n}.png`));
 const KEY = [255, 0, 255, 255];
 export const scaled = (im, k) => { const o = new Img(im.w * k, im.h * k); for (let y = 0; y < o.h; y++) for (let x = 0; x < o.w; x++) o.set(x, y, im.get((x / k) | 0, (y / k) | 0)); return o; };
 
-/** Khung tổng hợp w×h: viền ngoài 1 điểm mực, dải viền dày t, ruột. cap = hoa văn vuông ở bốn góc và giữa cạnh; stripes = viền sọc (lỗi); text = chữ trong ruột (lỗi). */
-export function fakeFrame(w, h, { t = 4, cap = 8, stripes = false, text = null, inner = [60, 40, 70], band = [176, 138, 74], ink = [26, 16, 32], capColor = [200, 60, 50], round = true } = {}) {
+/** Khung tổng hợp w×h: viền ngoài 1 điểm mực, dải viền dày t, ruột. cap = hoa văn vuông ở bốn góc và giữa cạnh; stripes = viền sọc (lỗi); gradient = ruột sọc ngang sáng tối xen kẽ (ruột không đồng nhất); text = chữ trong ruột (lỗi). */
+export function fakeFrame(w, h, { t = 4, cap = 8, stripes = false, gradient = false, text = null, inner = [60, 40, 70], band = [176, 138, 74], ink = [26, 16, 32], capColor = [200, 60, 50], round = true } = {}) {
   const im = new Img(w, h);
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     const d = Math.min(x, y, w - 1 - x, h - 1 - y);
-    let c = d === 0 ? ink : d < t ? band : inner;
+    let c = d === 0 ? ink : d < t ? band : gradient ? [y % 2 ? 20 : 230, 40, 70] : inner;
     if (stripes && d > 0 && d < t && (x + y) % 6 < 3) c = [120, 200, 120];
     im.set(x, y, [...c, 255]);
   }
