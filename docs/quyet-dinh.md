@@ -89,10 +89,8 @@ P2 (NV0 chờ duyệt bố cục) đã đóng: NV0 đến NV5 xong, ghi ở Q13.
 
 ## Quyết định chỉ có trong bộ nhớ của orchestrator
 
-Ba quyết định ở bộ nhớ phiên điều phối (M2, M3 đã có bản ghi trong repo ở Q39, Q28); chủ repo xác nhận rồi chuyển hẳn vào bảng trên:
+Quyết định còn ở bộ nhớ phiên điều phối (M2 → Q39, M3 → Q28 đã chuyển hẳn vào bảng trên, không giữ lại ở đây); chủ repo xác nhận rồi chuyển phần còn lại:
 
 | Mã | Nội dung | Gợi ý |
 |---|---|---|
-| M2 | `DATABASE_URL` = Supabase DB test (2026-10-25) | Đã ghi ở Q39 |
-| M3 | Orchestrator được push, mở PR, merge `main` sau khi review đạt (PR collaborator: sau khi họ tự review và orchestrator kiểm lại) | Gần như đã ở Q28 |
 | M4 | Phiên song song: số worker theo RAM + ổ C, tối đa 2 bot cùng lúc, tắt đúng PID, Chrome luôn `--mute-audio`, cổng CDP 9333 đã có người dùng | Là vận hành, đề xuất đưa vào tài liệu chạy local, không phải quyết định sản phẩm |

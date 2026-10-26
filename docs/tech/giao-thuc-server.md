@@ -69,6 +69,7 @@ Client nghe ở `GameScene.ts` (`room.onMessage`, buffer lúc vào ở `roomBuff
 | `party`, `friends`, `rally` | riêng | tổ đội, bạn bè / chặn, dấu Tập trung | `MapRoom.ts` |
 | `arena`, `arenaTop` | phòng / riêng | trận (`k`: `ready`, `fight`, kết quả, hàng chờ); bảng xếp hạng | `arena.ts`, `ArenaRoom.ts` |
 | `channels`, `travel`, `portal`, `wp`, `world`, `recall` | riêng | danh sách kênh; lệnh đổi phòng; cổng đang đứng gần; điểm dịch chuyển; bản đồ thế giới; đếm ngược Hồi thành | `join.ts`, `travel.ts`, `MapRoom.ts` |
+| `vit` | riêng | kinh nghiệm, hồn lực, hồi chiêu của chính chủ (#949): gửi khi đổi, hồn lực hồi dần gộp theo `SYNC_VIEW.vitGap` giây, hồi chiêu client tự đếm lùi (xem `dong-bo-state.md`) | `vitals.ts` |
 | `mini`, `fog`, `fogd` | riêng | radar mỗi `SYNC_VIEW.mini` giây; bitset sương mù; ô mới khám phá | `MapRoom.ts` |
 | `test` | riêng | trả lời hook kiểm thử (chỉ khi `GAME_TEST=1`) | `gm.ts`, `ArenaRoom.ts` |
 

@@ -29,22 +29,25 @@ export class PlayerState extends Schema {
   @type("boolean") calm: boolean = true;
   @type("boolean") walk: boolean = false;
   @type("uint8") level: number = 1;
-  @type("uint32") xp: number = 0;
-  @type("uint32") xpNeed: number = 0;
   @type("uint32") hp: number = 0;
   @type("uint32") maxHp: number = 0;
-  @type("uint32") mp: number = 0;
-  @type("uint32") maxMp: number = 0;
   @type(["uint8"]) rings = new ArraySchema<number>();
-  @type(["float32"]) cds = new ArraySchema<number>(0, 0, 0, 0);
-  @type(["float32"]) bcds = new ArraySchema<number>(0, 0, 0); // từ 4.3: hồi chiêu kỹ năng hồn cốt chủ động (BONE_ACTIVE_SLOTS: đầu, tay trái, tay phải)
-  @type("float32") swCd: number = 0;     // giây còn lại trước khi được đổi võ hồn trong đội lần tiếp (SWITCH_CD)
+  // Dữ liệu riêng của chính chủ (#949): KHÔNG đồng bộ (không @type), server vẫn giữ ở đây để tính luật; chính chủ nhận bằng tin riêng
+  // `vit` (rooms/vitals.ts, shared/vitals.ts), người khác không thấy. Hồi chiêu giây còn lại: hồn kỹ theo ô, kỹ năng hồn cốt chủ động
+  // (BONE_ACTIVE_SLOTS: đầu, tay trái, tay phải), đổi võ hồn (SWITCH_CD), Chân Thân (nút R, 8.1a), hồn kỹ Chân Thân (ô P, 9.6).
+  xp: number = 0;
+  xpNeed: number = 0;
+  mp: number = 0;
+  maxMp: number = 0;
+  cds: number[] = [0, 0, 0, 0];
+  bcds: number[] = [0, 0, 0];
+  swCd: number = 0;
+  avaCd: number = 0;
+  ctCd: number = 0;
   @type("uint32") shield: number = 0;    // khiên còn lại (chiêu tiên cơ phụ trợ, mục 5.1); ai cũng thấy để vẽ vòng khiên
   @type("uint16") buff: number = 0;     // hiệu ứng có lợi đang có (bit theo BUFF_IDS trong shared/data.ts; uint16 từ 2.5d); ai cũng thấy để vẽ hào quang
   @type("uint8") lei: number = 0;       // Phong Lôi Chi Lực (PHONG_LOI, bước 2.5c) của Lam Điện Bá Vương Long: 0..max; ai cũng thấy tia sét quanh thân
   @type("float32") ava: number = 0;     // từ 8.1a: giây còn lại của Võ Hồn Chân Thân (0 = không); ai cũng thấy hình biến thân
-  @type("float32") avaCd: number = 0;   // từ 8.1a: hồi chiêu Chân Thân còn lại của võ hồn ra trận (nút R của chính mình)
-  @type("float32") ctCd: number = 0;    // từ 9.6: hồi chiêu hồn kỹ Chân Thân (ô P khi đang Chân Thân, CHAN_THAN_SKILL_CD); hồi chiêu ô P cũ vẫn ở cds
   @type("uint16") st: number = 0;       // từ 3.5: trạng thái trên hồn sư do chiêu báo trước của hồn thú gây (bit theo STATUS_IDS, PLAYER_STATUS)
   // #175: Che tầm nhìn (`ink`) là bit 15, bit cuối của uint16; thêm trạng thái nữa thì đổi `st` ở đây và ở BeastState sang uint32.
   @type("uint8") han: number = 0;       // từ #163: số tầng Hàn (Cực Hàn, STATUS.chill); ai cũng thấy chấm tầng dưới biểu tượng trên đầu

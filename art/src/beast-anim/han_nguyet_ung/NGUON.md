@@ -28,3 +28,11 @@ Loài `han_nguyet_ung` (Hàn Nguyệt Ưng), họ `bird`, khung game 96×96. M�
 LỖI: toB — cỡ thân lệch — H5–8 (n) — cỡ thân idle 111% so với ảnh tĩnh (lệch 11%).
 LỖI: toB — hướng — NE H1–H2, H3 A2–A3, H4 D0–D3; N H6 W2–W3, H7 A2–A3, H8 D3 — lộ mặt/mỏ (mắt)
 ```
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); không nối dòng vào `art/CREDITS.md`.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/han_nguyet_ung/` | - | builtin image_gen.imagegen | RAW hoạt ảnh Hàn Nguyệt Ưng: toA 1024×1536, toB 1254×1254; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |

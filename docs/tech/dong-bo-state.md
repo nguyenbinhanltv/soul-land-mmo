@@ -7,7 +7,7 @@ Server là nguồn duy nhất của luật chơi; client chỉ nhận state đ�
 ## Trạng thái công khai
 - Qua Colyseus Schema ở `server/src/rooms/schema.ts`: `MapState`, `PlayerState`, `BeastState`, `DropState`, `GroundState`; phòng sân có thêm `ArenaState` / `ArenaSide`. Client đọc ở `client/src/scenes/GameScene.ts`.
 - Chọn kiểu nhỏ nhất đủ dùng. Trường bit (`BeastState.st` theo `STATUS_IDS`, `PlayerState.buff` theo `BUFF_IDS`) chỉ thêm vào cuối.
-- Trường mới khai báo trong `schema.ts`, không đưa dữ liệu riêng của một người vào đây.
+- Trường mới khai báo trong `schema.ts`, không đưa dữ liệu riêng của một người vào đây: mọi trường của `PlayerState` đi tới **mọi client ở gần** (`@view()` theo khoảng cách, không theo chủ), nên hồi chiêu, hồn lực, kinh nghiệm của người này mà lọt vào đây là đối thủ Đại Đấu Hồn Trường đọc được. Chính chủ cần thì dùng tin riêng (mục "Dữ liệu riêng" dưới đây).
 
 ## Bảng trường `schema.ts`
 Thêm / đổi trường ở `schema.ts` thì sửa bảng này (kiểm (h) của `tools/docs-check.mjs` báo trường thiếu). Mặc định client đọc ở `client/src/scenes/GameScene.ts`; cột "Đọc thêm" ghi nơi khác.
@@ -25,16 +25,15 @@ Thêm / đổi trường ở `schema.ts` thì sửa bảng này (kiểm (h) củ
 | `dir` | uint8 | hướng nhìn 4 phía (`DIRS4`) | |
 | `moving`, `walk`, `calm` | boolean | đang đi; giữ Shift (đi bộ); ngoài giao chiến (được chạy) | `predict.ts` |
 | `seq`, `seqT`, `spd` | uint32 / float32 | số thứ tự `input` cuối đã nhận, giây hướng đi đã áp, tốc độ thật (dự đoán chuyển động) | `predict.ts` |
-| `level`, `xp`, `xpNeed` | uint8 / uint32 | cấp, kinh nghiệm, kinh nghiệm cần | `hud.ts` |
-| `hp`, `maxHp`, `mp`, `maxMp` | uint32 | sinh lực, năng lượng (tiên cơ) | `hud.ts` |
+| `level` | uint8 | cấp | `hud.ts` |
+| `hp`, `maxHp` | uint32 | sinh lực | `hud.ts` |
 | `rings` | uint8[] | hồn hoàn đang có (bậc theo thứ tự) | |
-| `cds`, `bcds`, `swCd` | float32[] / float32 | hồi chiêu hồn kỹ; hồi chiêu kỹ năng hồn cốt chủ động; hồi đổi võ hồn | `hud.ts` |
 | `shield` | uint32 | khiên còn lại | |
 | `buff` | uint16 | hiệu ứng có lợi (bit theo `BUFF_IDS`) | |
 | `st` | uint16 | trạng thái xấu do chiêu hồn thú gây (bit theo `STATUS_IDS`) | |
 | `han` | uint8 | số tầng Hàn (Cực Hàn) | `hud.ts` |
 | `lei` | uint8 | Phong Lôi Chi Lực của Lam Điện Bá Vương Long | `hud.ts` |
-| `ava`, `avaCd`, `ctCd` | float32 | giây Chân Thân còn lại; hồi chiêu Chân Thân (nút R); hồi chiêu hồn kỹ Chân Thân | `hud.ts` (`avaCd`, `ctCd`) |
+| `ava` | float32 | giây Chân Thân còn lại | `hud.ts` |
 | `absorb`, `absorbTier` | float32 / uint8 | tiến độ hấp thụ 0..1; bậc hồn hoàn đang hấp thụ | |
 | `dead` | boolean | đã gục | |
 | `kills` | uint32 | số lần hạ (bảng kết quả sân đấu) | `arenaShow.ts` |
@@ -88,6 +87,7 @@ Thêm / đổi trường ở `schema.ts` thì sửa bảng này (kiểm (h) củ
 | `sid`, `elo`, `pct`, `alive`, `total` | string / uint16 / float32 / uint8 | `ArenaSide`: phiên, Elo, sinh lực đội %, võ hồn còn / tổng (kèm `name`) | `hud.ts` |
 
 ## Dữ liệu riêng (tin riêng cho chính chủ)
+- **Kinh nghiệm, hồn lực, hồi chiêu** (#949): `xp`, `xpNeed`, `mp`, `maxMp`, `cds`, `bcds`, `swCd`, `avaCd`, `ctCd` vẫn là trường thường của `PlayerState` ở server (không `@type`, không đồng bộ; luật chơi giữ nguyên) và đi bằng tin riêng `vit` (`server/src/rooms/vitals.ts`, hàm thuần `shared/vitals.ts`, hằng `SYNC_VIEW.vitGap`, `SYNC_VIEW.vitCd`). Gửi ngay khi kinh nghiệm / hồn lực tối đa đổi, hồn lực giảm hoặc một hồi chiêu lệch số client đang đếm lùi quá `vitCd` giây (vừa tung chiêu, bị làm mới); hồn lực chỉ hồi dần thì gộp tối đa mỗi `vitGap` giây. Hồi chiêu giảm theo thời gian nên KHÔNG gửi mỗi nhịp: client (`GameScene.vit` + `vitalsAfter`) và bot (`client/scripts/bot/vit.mjs`) tự đếm lùi. Hồn sư khác trong `room.state` không có các trường này (bài `view` của bot kiểm). Không dùng `@view(tag)` của Colyseus cho việc này: thực thể vừa thêm vào view bị coi "invisible" nên lần đồng bộ đầu gửi cả trường gắn tag (đã thử, lộ `mp`, `xpNeed` sang người ở gần).
 - Túi đồ, bộ sưu tập, đội hình, năng lượng tiên cơ, nhiệm vụ, tổ đội, cộng minh, đấu trường… chỉ gửi cho chính chủ bằng tin riêng. Tên tin xem `MapRoom.ts` (`vohons`, `squad`, `bag` / `bagd`, `gear`, `quest`, `tong`, `party`, `resonance`, `arena`, `npc`, `travel`, `channels`, `daily`, `wp`, `auto`, `offline`, `friends`, `mini`, `fog`, `rally`, `stats`…).
 - Bảng cộng minh công khai chỉ che giấu `account_id`, cấp / đồ / tiến độ chi tiết của người khác. Người khác chỉ thấy ngoại hình hồn sư, võ hồn đang ra trận, cấp và hồn hoàn của nó.
 

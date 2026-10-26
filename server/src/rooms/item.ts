@@ -4,7 +4,7 @@
 // (`onMessage("pickup" / "use")`, `autoHunt.ts` gọi `room.pickup` như cũ). Còn ở MapRoom: `addItem` / `addRing` / `addBone` / `addEquip`, `takeItem`, `canLoot`, `lootNote` / `shardNote`, `useAutoToken`.
 import type { MapRoom, PData } from "./MapRoom.ts";
 import { DropState } from "./schema.ts";
-import { TIERS, VOHON, vohonIndex, BEASTS, itemDef, DAN_CD, formatYears, DROP_OWNER_SECS, PICKUP_RANGE, BONE_ITEM, BONE_SLOTS, boneName, CORE_ITEM, CORE_SETS, coreName, EQUIP_ITEM, equipName, EQUIP_TEMPLATES, EQUIP_TIERS, HERB_MAX, HERB_PCT, herbDef, herbText } from "../../../shared/data.ts";
+import { TIERS, VOHON, vohonIndex, BEASTS, itemDef, DAN_CD, formatYears, PICKUP_RANGE, BONE_ITEM, BONE_SLOTS, boneName, CORE_ITEM, CORE_SETS, coreName, EQUIP_ITEM, equipName, EQUIP_TEMPLATES, EQUIP_TIERS, HERB_MAX, herbDef, herbText } from "../../../shared/data.ts";
 import { store, type Item } from "../db.ts";
 
 /**

@@ -23,3 +23,11 @@ Lưới A khoảng6×12, B khoảng6×8 khi xem toàn tờ. 66/44 hình là quan
 Mâu thuẫn giữ nguyên: ô171×6=1026 khácwidth1024; static được mô tả front/side/back nhưng hai khung cuối quan sát giống cùng hướng ngang phải, chưa có rear được xác minh; template nhắcNE dù tờA chỉS/SE/E. B hurt eyes-shut bị ràng buộc N không lộ mặt/mắt ở phần nối. Giữ input gốc, không tự thiết kế lại hoặc suy owner chốt anatomy/pose.
 
 Nguồn/giấy phép: Q44 và `docs/art/nguon-giay-phep.md`, output công cụ ChatGPT/Codex, không tự gán CC0/CC. Static là ảnh dự án có nguồn gốc trong CREDITS. RAW giữ FAIL để owner xem sau; không phải art/runtime pass, không sửa static/shared/manifest/client/server/cân bằng hoặc tự nhập game/đóngissue.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/phong_lang_con/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Phong Lang con (H4 #769): RAW `art/src/beast-anim/phong_lang_con/toA.png` (1024×1536 IHDR, A1/1, session98) và `toB.png` (1254×1254 IHDR, sai yêu cầu1024×1024, B1/1, session99), tthoadev sinh ngày2026-10-26 bằng builtin imagegen. A ref static identity; B static98 rồi A98 style/body-size known FAIL. Model ảnh/seed unknown, không suy từ agent; cỡ chỉ yêu cầu trong prompt. Nguyên byte, không hậu kỳ/cắt/resize. [Nguồn/lỗi](src/beast-anim/phong_lang_con/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json`. B source do owner93 biên soạn minh bạch từ HANDOFF99 và byte/hash kiểm chứng; A giữ JSON98. Q44/điều khoản công cụ, không tự gán CC0. Còn lỗi cỡB/nền/heading/hurt/groundline; chưa art/runtime acceptance. Phần này2tờ, Part of #769 và #766. | - | Chuyển một lần từ art/CREDITS.md (#973) |

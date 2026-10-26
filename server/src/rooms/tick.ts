@@ -3,13 +3,14 @@
 // `moveBeast` và `perfLog` (PERF_LOG=1). Hàm nhận phòng (`room: MapRoom`) như combat.ts; nguyên văn từ MapRoom, không đổi số / thứ tự RNG / thứ tự xử lý trong tick.
 // MapRoom chỉ chuyển tiếp 3 hàm (`setSimulationInterval` trong `setup` gọi `tick` / `perfLog`; `ArenaRoom.tick` vẫn gọi `super.tick`).
 import { TIERS, STATUS, ARENA, BEAST_REGEN, BEAST_LEASH, BEAST_GAIT, BEAST_AGGRO_R, BEAST_ATK_CD, BEAST_WANDER, ELITE, ELITE_RAGE, TELE_FIRST, SLOW_CAP,
-  RUN_MULT, dir4, TEAM_COMBAT_SECS, PLAYER_CHARM, SYNC_VIEW, FOG, moveNudge, atkRoll, beastMelee } from "../../../shared/data.ts";
+  RUN_MULT, dir4, TEAM_COMBAT_SECS, PLAYER_CHARM, SYNC_VIEW, FOG, moveNudge, atkRoll, beastMelee, RESPAWN_INVULN_SECS } from "../../../shared/data.ts";
 import { MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS, presenceBackend, accountLeaseKey } from "../presence.ts";
 import { touchChannel, type MapRoom } from "./MapRoom.ts";
 import * as party from "../party.ts";
 import { gcIn, cpuMs, clock } from "../perf.ts";
 import { setLock, tickLock } from "./lock.ts";
+import { sendVitals } from "./vitals.ts";
 import type { BeastState, PlayerState } from "./schema.ts";
 
 /** PERF_LOG=1 (#273): nhịp chậm khi từ đầu tick tới hết bản vá quá ngần này ms (= một nhịp TICK_RATE), hoặc từ đầu nhịp trước quá PERF_GAP_MS. */
@@ -123,7 +124,7 @@ export function tick(room: MapRoom, dt: number) {
       d.deadT -= dt;
       if (d.deadT <= 0) {
         // Cả đội gục: về doanh trại, cả đội hồi đầy.
-        const s = room.spawnPoint(); p.x = s.x; p.y = s.y; p.dead = false; d.inv = 1.5;
+        const s = room.spawnPoint(); p.x = s.x; p.y = s.y; p.dead = false; d.inv = RESPAWN_INVULN_SECS;
         d.down.clear(); d.benchHp.clear(); room.recalc(id, true);
         room.log(id, "Đã về doanh trại, cả đội hồi phục.", "#86e0b0");
         room.sendSquad(id, true);
@@ -338,6 +339,9 @@ export function tick(room: MapRoom, dt: number) {
     if ((room.fogT -= dt) <= 0) { room.fogT = FOG.markSecs; room.fogMark(); }
     if ((room.fogSendT -= dt) <= 0) { room.fogSendT = FOG.sendSecs; room.fogSend(); }
   }
+
+  // tin riêng "vit" (#949): kinh nghiệm, hồn lực, hồi chiêu chỉ gửi cho chính chủ, sau khi mọi thay đổi của nhịp đã xong
+  sendVitals(room);
 
   // lưu định kỳ (bỏ qua người đang chuyển bản đồ: transaction đi cổng là lần ghi cuối của phòng này cho người đó)
   room.saveT += dt;

@@ -1,5 +1,6 @@
 // CI nhẹ cho tờ UI Kit (#880, theo dõi #877; mẫu beast-sheet-ci.mjs của #866; docs/ops/ci.md mục "CI nhẹ cho tờ UI"): không Chrome / server / bot.
 //   node tools/assets/ui-sheet-ci.mjs --files <danh-sách-file-đổi.txt> --out <thư mục> [--summary <file.md>]
+//   node tools/assets/ui-sheet-ci.mjs --local [--staged]   (ở máy, #971: tự lấy file đổi từ git; --staged chỉ file đã add; không ghi artifact)
 //   node tools/assets/ui-sheet-ci.mjs --sheets art/src/ui-kit/toF.png,… --out <thư mục>
 // Tờ cần kiểm = file PNG đổi dưới art/src/ui-kit/ có tên suy được loại tờ (toF.png, N-2.png, BOARD.png…). Chỉ đổi công cụ / spec
 // (tools/assets/ui-sheet-*, ui-kit-*, art/src/ui-kit/ui-kit.json, lessons.md) thì kiểm mọi tờ đang có chỉ để báo cáo, KHÔNG chặn.
@@ -12,6 +13,7 @@ import { fileURLToPath } from "node:url";
 import { ROOT } from "./lib.mjs";
 import { loadKit, kindFromName } from "./ui-kit-lib.mjs";
 import { analyzeUiSheet, draftErrorLine, writeReport } from "./ui-sheet-check.mjs";
+import { localChangedFiles, SIZE_HINT } from "./sheet-local.mjs";
 
 export const KIT_PREFIX = "art/src/ui-kit/";
 const TOOL_RE = /^(tools\/assets\/(ui-sheet-|ui-kit-)[^/]+|art\/src\/ui-kit\/(ui-kit\.json|lessons\.md))$/;
@@ -81,7 +83,9 @@ function parseArgs(argv) {
   const o = {};
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
-    if (a === "--files") o.files = argv[++i];
+    if (a === "--local") o.local = true;
+    else if (a === "--staged") o.staged = true;
+    else if (a === "--files") o.files = argv[++i];
     else if (a === "--sheets") o.sheets = argv[++i].split(",").filter(Boolean);
     else if (a === "--out") o.out = argv[++i];
     else if (a === "--summary") o.summary = argv[++i];
@@ -90,9 +94,23 @@ function parseArgs(argv) {
   return o;
 }
 
+/** Chế độ ở máy (#971): cùng changedFromFiles / evaluate / isCiBlocker với CI; in `LỖI:` + cách sửa, thoát 1 nếu có lỗi chặn. */
+export function runLocal({ staged = false } = {}) {
+  const ch = changedFromFiles(localChangedFiles({ staged, paths: [KIT_PREFIX] }));
+  const kit = ch.sheets.length ? loadKit() : null, bad = [];
+  for (const f of ch.sheets) {
+    if (!existsSync(path.resolve(ROOT, f))) continue;
+    for (const i of evaluate(f, kit).blockers) bad.push(`LỖI: ${f} — ${i.where} — ${i.msg}`);
+  }
+  if (!bad.length) { console.log(`[ui-sheet] ${ch.sheets.length} tờ UI Kit đổi: không có lỗi chặn CI.`); return 0; }
+  console.error(`[ui-sheet] tờ UI Kit sẽ làm job CI ui-sheet-check đỏ:\n${bad.join("\n")}\n${SIZE_HINT}`);
+  return 1;
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const o = parseArgs(process.argv.slice(2));
+    if (o.local) process.exit(runLocal(o));
     if (!o.out || (!o.files && !o.sheets)) { console.error("Dùng: node tools/assets/ui-sheet-ci.mjs (--files <file> | --sheets a.png,b.png) --out <thư mục> [--summary <file.md>]"); process.exit(2); }
     let sheets = o.sheets, toolsOnly = false, toolsChanged = false;
     if (!sheets) {

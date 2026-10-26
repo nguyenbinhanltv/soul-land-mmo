@@ -1,5 +1,5 @@
 // Nhóm bot chuong2 (#703 bước 4): chương 2 Sử Lai Khắc Thất Quái (#189, #256). Tách nguyên văn từ bot-test.mjs.
-import { post, sleep, waitFor, ok, bot, enter, qtyOf, npcSpot, talk, same, test } from "./lib.mjs";
+import { post, sleep, waitFor, ok, bot, enter, qtyOf, npcSpot, talk, same, test, needHookSkip } from "./lib.mjs";
 import { VOHON, itemDef, MAPS, shardCode, BOSSES, bossIndex, npcDef, QUEST_STARTER, QUEST_CH2, QUEST_AFTER, questChain, parseQuest, questStatus, questGoalHit, questRewardText } from "../../../shared/data.ts";
 
 /**
@@ -22,7 +22,7 @@ export async function chapter2Test(){
   ok(same(parseQuest({step:99,accepted:true,prog:[5]},QUEST_CH2),{chain:QUEST_CH2,step:9,accepted:false,prog:[]}),"parseQuest kẹp bước của chương 2");
   const D=await bot("Thất Quái","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
   const dme=()=>D.room.state.players?.get(D.room.sessionId);
-  if(!(await test(D,"ping"))?.enabled){ console.log("  ⚠ bỏ qua phần server (cần hook warp, goto, quest…): bật server bằng GAME_TEST=1"); await D.room.leave(); return; }
+  if(!(await test(D,"ping"))?.enabled){ needHookSkip("bỏ qua phần server (cần hook warp, goto, quest…): bật server bằng GAME_TEST=1"); await D.room.leave(); return; }
   async function warp(mapId,x,y){
     D.travel=null; D.room.send("test",{op:"warp",mapId,x,y});
     ok(await waitFor(()=>D.travel?.mapId===mapId,4000),`warp -> ${mapId}`);
