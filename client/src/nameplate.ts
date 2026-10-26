@@ -1,8 +1,8 @@
 export type NameplateKind = "npc" | "player" | "party" | "pk" | "beast" | "elite" | "king" | "boss";
 export interface NameplateRect { id: string; x: number; y: number; width: number; height: number; priority: number; }
 export interface NameplateItem extends NameplateRect { compactSize?: { width: number; height: number }; }
-/** Chỗ đã chọn của một nhãn: lệch ngang `dx`, nhấc lên `up` so với chỗ gốc trên đầu; `want` / `wantSince`: chỗ tốt hơn đang chờ đủ `hold` ms. */
-export interface NameplateSlot { dx: number; up: number; compact: boolean; want?: string; wantSince?: number }
+/** Chỗ đã chọn của một nhãn: lệch ngang `dx`, nhấc lên `up` so với chỗ gốc trên đầu; `want` / `wantSince`: chỗ tốt hơn đang chờ đủ `hold` ms; `bad`: từ lúc nào chỗ này bị đè liên tục (chờ `settle` ms mới rời). */
+export interface NameplateSlot { dx: number; up: number; compact: boolean; want?: string; wantSince?: number; bad?: number }
 export interface NameplatePlacement extends NameplateRect { visible: boolean; compact: boolean; slot?: NameplateSlot; }
 export interface NameplateLayoutOptions {
   gap?: number; maxVisible?: number; maxOffset?: number;
@@ -10,6 +10,8 @@ export interface NameplateLayoutOptions {
   obstacles?: readonly NameplateRect[];
   /** Chỗ khung trước (từ `placement.slot`): còn hợp lệ thì giữ, chỉ đổi sang chỗ tốt hơn khi nó trống liên tục `hold` ms (mặc định 450). */
   prev?: ReadonlyMap<string, NameplateSlot>; now?: number; hold?: number;
+  /** Chỗ cũ bị đè liên tục chưa tới `settle` ms (mặc định 200) thì vẫn ở yên: thân / nhãn khác đi ngang thoáng qua không đẩy nhãn đi (#1064). */
+  settle?: number;
 }
 export interface NameplateAppearance { color: string; stroke: string; fontSize: number; compactFontSize: number; }
 
@@ -50,7 +52,7 @@ const slotKey = (dx: number, up: number, compact: boolean) => `${Math.round(dx)}
  */
 export function layoutNameplates(items: readonly NameplateItem[], options: NameplateLayoutOptions = {}): NameplatePlacement[] {
   const gap = options.gap ?? 3, maxVisible = options.maxVisible ?? 18, maxOffset = options.maxOffset ?? 96;
-  const now = options.now ?? 0, hold = options.hold ?? 450, v = options.viewport;
+  const now = options.now ?? 0, hold = options.hold ?? 450, settle = options.settle ?? 200, v = options.viewport;
   const placed: NameplatePlacement[] = [];
   let count = 0;
   for (const item of [...items].sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id))) {
@@ -58,10 +60,12 @@ export function layoutNameplates(items: readonly NameplateItem[], options: Namep
     const compact = item.compactSize ? { ...item, ...item.compactSize } : item;
     const sizes = items.length > maxVisible ? [[compact, true]] as const : [[item, false], [compact, true]] as const;
     const bottom = item.y + item.height / 2;
-    const free = (c: NameplateRect) =>
+    // Hai loại cản: nhãn đã nhận / mép màn hình (không bao giờ vẽ chồng) và vật cản (thân, biển: đè thoáng qua thì chờ `settle`).
+    const clearOfPlates = (c: NameplateRect) =>
       !(v && (c.x - c.width / 2 < v.x || c.x + c.width / 2 > v.x + v.width || c.y - c.height / 2 < v.y || c.y + c.height / 2 > v.y + v.height))
-      && !placed.some((other) => other.visible && nameplatesOverlap(c, other, gap))
-      && !options.obstacles?.some((other) => nameplatesOverlap(c, other, gap));
+      && !placed.some((other) => other.visible && nameplatesOverlap(c, other, gap));
+    const clearOfBodies = (c: NameplateRect) => !options.obstacles?.some((other) => nameplatesOverlap(c, other, gap));
+    const free = (c: NameplateRect) => clearOfPlates(c) && clearOfBodies(c);
     const at = (size: NameplateRect, dx: number, up: number): NameplateRect => ({ ...size, x: item.x + dx, y: bottom - size.height / 2 - up });
     type Cand = { rect: NameplateRect; slot: NameplateSlot };
     const cands: Cand[] = [];
@@ -80,11 +84,15 @@ export function layoutNameplates(items: readonly NameplateItem[], options: Namep
     const prevSize = best && prev && sizes.find(([, c]) => c === prev.compact)?.[0];
     if (best && prev && prevSize && slotKey(prev.dx, prev.up, prev.compact) !== slotKey(best.slot.dx, best.slot.up, best.slot.compact)) {
       // Chỗ cũ còn hợp lệ thì giữ; bị đè thì đổi sang chỗ hợp lệ GẦN chỗ cũ nhất (nhảy ngắn), chưa phải chỗ gốc.
-      const rect = at(prevSize, prev.dx, prev.up);
-      const keep: Cand | undefined = free(rect) ? { rect, slot: { dx: prev.dx, up: prev.up, compact: prev.compact } }
+      const rect = at(prevSize, prev.dx, prev.up), blocked = !free(rect), bad = blocked ? prev.bad ?? now : undefined;
+      // Chỉ vật cản đè (còn sạch nhãn khác và trong màn hình) chưa đủ `settle` thì chờ ở chỗ cũ; đè nhãn / ra mép thì đổi ngay. Giữ nguyên bộ đếm `hold`.
+      const keep: Cand | undefined = blocked && clearOfPlates(rect) && now - bad! < settle
+        ? { rect, slot: { dx: prev.dx, up: prev.up, compact: prev.compact, bad, want: prev.want, wantSince: prev.wantSince } }
+        : !blocked ? { rect, slot: { dx: prev.dx, up: prev.up, compact: prev.compact } }
         : cands.filter((c) => c.slot.compact === prev.compact)
           .sort((a, b) => Math.abs(a.slot.dx - prev.dx) + Math.abs(a.slot.up - prev.up) - Math.abs(b.slot.dx - prev.dx) - Math.abs(b.slot.up - prev.up))[0];
-      if (keep) {
+      if (keep && keep.slot.bad !== undefined) pick = keep;
+      else if (keep) {
         const want = slotKey(best.slot.dx, best.slot.up, best.slot.compact), since = prev.want === want ? prev.wantSince ?? now : now;
         if (now - since < hold) pick = { rect: keep.rect, slot: { ...keep.slot, want, wantSince: since } };
       }
@@ -94,6 +102,10 @@ export function layoutNameplates(items: readonly NameplateItem[], options: Namep
   }
   return placed;
 }
+
+/** Làm mượt bước đổi ô: vị trí vẽ đuổi theo ô đích kiểu mũ (xong ~95% sau 3·tau ≈ 135 ms), không phụ thuộc nhịp khung. Chưa có `from` (nhãn mới) thì hiện ngay đúng chỗ. */
+export const easeNameplate = (from: number | undefined, to: number, dtMs: number, tau = 45) =>
+  from === undefined || Math.abs(to - from) < 0.25 ? to : to + (from - to) * Math.exp(-Math.max(0, dtMs) / tau);
 
 export const nameplatePriority = (selected: boolean, party: boolean, self: boolean, rank = 0) =>
   selected ? 120 : party ? 110 : self ? 100 : rank >= 2 ? 70 : rank === 1 ? 50 : 20;
