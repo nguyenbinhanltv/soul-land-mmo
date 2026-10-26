@@ -113,7 +113,9 @@ test("turnaround.png (#972): 1000×1000 → chặn kich-thuoc; 1536×1024 đủ 
     // thư mục chỉ có turnaround.png vẫn kiểm được (không ném 'không có tờ'), kèm ghi báo cáo + tờ liên hệ
     put(mk(1536, 1024, [5, 5, 5]));
     const r = checkSpecies("zz_khong_co", { dir: tmp });
-    assert.deepEqual(r.sheets.map((s) => s.sheet), ["turnaround"]);
+    assert.deepEqual(r.sheets, []);
+    assert.equal(r.turnaround.sheet, "turnaround");
+    assert.deepEqual(r.blockLevel, {}, "turnaround không góp mức khối hướng");
     const out = path.join(tmp, "out");
     assert.equal(writeReport(r, out).length, 3);
   } finally { rmSync(tmp, { recursive: true, force: true }); }
@@ -131,4 +133,19 @@ test("CLI --all (#972): loài chưa có tờ in 'bỏ qua', không thoát 2; in 
     const n = readdirSync(RAW, { withFileTypes: true }).filter((d) => d.isDirectory()).length;
     assert.equal(r.stdout.split("\n").filter((l) => /^(pass|nhẹ|chặn)\s|^bỏ qua /.test(l)).length, n);
   } finally { rmSync(empty, { recursive: true, force: true }); }
+});
+
+test("turnaround không làm hỏng blockLevel / layout của beast-status (#972)", async () => {
+  const { speciesStatus } = await import("./beast-status.mjs");
+  const dir = path.join(RAW, "phong_lang"), ta = path.join(dir, "turnaround.png");
+  assert.ok(!existsSync(ta));
+  const before = speciesStatus("phong_lang");
+  try {
+    writeFileSync(ta, readFileSync(path.join(RAW, "bang_vu_ung", "turnaround.png")));
+    const after = speciesStatus("phong_lang");
+    assert.deepEqual(after.blocks, before.blocks);
+    assert.equal(after.state, before.state);
+    assert.equal(after.layout, before.layout);
+    assert.deepEqual(after.missing, before.missing);
+  } finally { rmSync(ta, { force: true }); }
 });

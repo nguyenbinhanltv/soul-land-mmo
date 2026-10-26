@@ -236,9 +236,11 @@ export function turnaroundFile(dir) {
 
 /** Kiểm mọi tờ của một loài, thêm kiểm cỡ thân (hệ số chung cả loài, neo theo ảnh tĩnh). */
 export function checkSpecies(id, { dir = path.join(ROOT, "art", "src", "beast-anim", id) } = {}) {
-  const ta = turnaroundFile(dir), files = [...sheetFiles(dir), ...(ta ? [ta] : [])];
-  if (!files.length) throw new Error(`không có tờ toA.png… trong ${dir}`);
+  const ta = turnaroundFile(dir), files = sheetFiles(dir);
+  if (!files.length && !ta) throw new Error(`không có tờ toA.png… trong ${dir}`);
   const sheets = files.map((f) => analyzeSheet(f));
+  // turnaround tách riêng khỏi `sheets` (không thuộc khối hướng nào): không góp blockLevel / layout; `allSheets(r)` gộp khi cần báo cáo
+  const turnaround = ta ? finish(analyzeSheet(ta)) : null;
   const st = staticHeights(id), blocks = sheets.flatMap((s) => s.blocks.map((b) => ({ ...b, sheet: s, h: b.idleH * s.canonFactor })));
   const anchored = Boolean(blocks.length && st);
   const k = !blocks.length ? 1 : anchored ? median(blocks.map((b) => b.h / anchorOf(st, b.dir))) : median(blocks.map((b) => b.h));
@@ -249,7 +251,7 @@ export function checkSpecies(id, { dir = path.join(ROOT, "art", "src", "beast-an
     else if (dev > BODY_LIGHT) issue(b.sheet.issues, "light", "co-than", where, `cỡ thân idle ${round(b.rel * 100, 0)}% so với ${ref} (lệch ${round(dev * 100, 0)}%).`, { dir: b.dir });
     b.sheet.bodyRel = { ...(b.sheet.bodyRel ?? {}), [b.dir]: round(b.rel) };
   }
-  let level = "pass";
+  let level = turnaround ? turnaround.level : "pass";
   const blockLevel = {};
   for (const s of sheets) {
     finish(s); level = maxLevel(level, s.level);
@@ -258,8 +260,11 @@ export function checkSpecies(id, { dir = path.join(ROOT, "art", "src", "beast-an
       blockLevel[d] = maxLevel(blockLevel[d] ?? "pass", l);
     }
   }
-  return { id, dir, level, anchored, staticHeights: st, bodyScale: round(k, 4), sheets, blockLevel };
+  return { id, dir, level, anchored, staticHeights: st, bodyScale: round(k, 4), sheets, turnaround, blockLevel };
 }
+
+/** Mọi tờ đã kiểm của loài: toA–toE rồi turnaround (nếu có). */
+export const allSheets = (r) => [...r.sheets, ...(r.turnaround ? [r.turnaround] : [])];
 
 // ---------- Dòng LỖI nháp ----------
 const CODE_VI = { "kich-thuoc": "sai kích thước", nen: "nền ngoài dung sai", luoi: "không dò được lưới", "so-hinh": "sai số hình", "hinh-dinh": "hình dính", "o-trong": "hình ở ô trống", "cham-mep": "chạm mép tờ", "chan-lech": "chân lệch", "co-than": "cỡ thân lệch", "khung-chet": "khung chết", "hurt-idle": "hurt trùng idle" };
@@ -275,7 +280,7 @@ export function draftErrorLine(sheet) {
 export function toJson(r) {
   return {
     species: r.id, level: r.level, bodyScale: r.bodyScale, anchoredToStatic: r.anchored, staticHeights: r.staticHeights, blockLevel: r.blockLevel,
-    sheets: r.sheets.map((s) => ({
+    sheets: allSheets(r).map((s) => ({
       sheet: s.sheet, size: s.size, kind: s.kind ?? null, level: s.level, dirs: s.dirs ?? null, background: s.background ?? null, bodyRel: s.bodyRel ?? {}, seVsE: s.seVsE ?? null,
       bands: s.bands.map((b) => ({ row: (b.row ?? 0) + 1, dir: b.dir ?? null, y: [b.y0, b.y1], figures: b.figures.length, state: b.state })),
       motion: s.dead, issues: s.issues.map(({ sev, code, where, msg }) => ({ sev, code, where, msg })), draft: draftErrorLine(s),
@@ -286,9 +291,9 @@ export function toMarkdown(r) {
   const n = (s, sev) => s.issues.filter((i) => i.sev === sev).length;
   const L = [`# Kiểm tờ hoạt ảnh: ${r.id}`, "", `**Mức chung: ${r.level.toUpperCase()}** · hệ số cỡ thân ${r.bodyScale} (${r.anchored ? "neo ảnh tĩnh" : "không có ảnh tĩnh, neo trung vị"}).`, "",
     "| Tờ | Cỡ | Loại | Mức | Chặn | Nhẹ | Lưu ý |", "|---|---|---|---|---|---|---|"];
-  for (const s of r.sheets) L.push(`| ${s.sheet} | ${s.size.join("×")} | ${s.kind ?? "?"} | ${s.level} | ${n(s, "block")} | ${n(s, "light")} | ${n(s, "note")} |`);
+  for (const s of allSheets(r)) L.push(`| ${s.sheet} | ${s.size.join("×")} | ${s.kind ?? "?"} | ${s.level} | ${n(s, "block")} | ${n(s, "light")} | ${n(s, "note")} |`);
   L.push("", "Mức theo khối hướng: " + DIRS.filter((d) => r.blockLevel[d]).map((d) => `${d} ${r.blockLevel[d]}`).join(" · "), "");
-  for (const s of r.sheets) {
+  for (const s of allSheets(r)) {
     L.push(`## ${s.sheet} — ${s.level}`, "", `Ảnh liên hệ: \`${r.id}-${s.sheet}-lien-he.png\` (xanh = đạt, vàng = nhẹ, đỏ = chặn; nhãn I/W/A/H/D + số khung).`, "");
     if (!s.issues.length) L.push("Không có phát hiện.");
     for (const i of s.issues) L.push(`- **${{ block: "CHẶN", light: "nhẹ", note: "lưu ý" }[i.sev]}** \`${i.code}\` ${i.where}: ${i.msg}`);
@@ -307,7 +312,7 @@ export function writeReport(r, out, { images = true } = {}) {
   const put = (name, data) => { const f = path.join(out, name); writeFileSync(f, data); files.push(f); };
   put(`${r.id}-check.json`, JSON.stringify(toJson(r), null, 2) + "\n");
   put(`${r.id}-check.md`, toMarkdown(r));
-  if (images) for (const s of r.sheets) {
+  if (images) for (const s of allSheets(r)) {
     const plan = s.plan ?? { dirs: [], rows: Math.max(1, s.bands.length) };
     const rowLabels = s.sheet === TURNAROUND_SHEET ? TURNAROUND.poses.map((p) => p.toUpperCase())
       : Array.from({ length: plan.rows }, (_, i) => `${(plan.dirs[(i / BAND_ROWS) | 0] ?? "?").toUpperCase()} ${["IDLE+HURT", "WALK", "ATTACK", "DIE"][i % BAND_ROWS]}`);
@@ -330,7 +335,7 @@ function parseArgs(argv) {
   }
   return o;
 }
-const summary = (r) => `${r.level.padEnd(5)} ${r.id}: ${r.sheets.map((s) => `${s.sheet}=${s.level}(${s.issues.filter((i) => i.sev === "block").length}/${s.issues.filter((i) => i.sev === "light").length})`).join(" ")}`;
+const summary = (r) => `${r.level.padEnd(5)} ${r.id}: ${allSheets(r).map((s) => `${s.sheet}=${s.level}(${s.issues.filter((i) => i.sev === "block").length}/${s.issues.filter((i) => i.sev === "light").length})`).join(" ")}`;
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
@@ -350,7 +355,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       if (r.level === "chặn") blocked++;
       if (!o.all) {
         const files = writeReport(r, o.species.length > 1 ? path.join(base, id) : base, { images: o.images });
-        for (const s of r.sheets) { const d = draftErrorLine(s); if (d) console.log(d); }
+        for (const s of allSheets(r)) { const d = draftErrorLine(s); if (d) console.log(d); }
         console.log(`Đã ghi ${files.length} file vào ${path.dirname(files[0])}`);
       }
     }

@@ -10,7 +10,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, write
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ROOT } from "./lib.mjs";
-import { checkSpecies, draftErrorLine, writeReport } from "./beast-sheet-check.mjs";
+import { allSheets, checkSpecies, draftErrorLine, writeReport } from "./beast-sheet-check.mjs";
 import { localChangedFiles, SIZE_HINT } from "./sheet-local.mjs";
 
 const ANIM_DIR = "art/src/beast-anim/";
@@ -40,7 +40,7 @@ export function changedFromFiles(files) {
 /** Kiểm một loài → hàng tóm tắt (blockers: phát hiện chặn CI; warns: các phát hiện khác ở mức chặn / nhẹ của công cụ). */
 export function evaluate(id, dir) {
   const r = checkSpecies(id, dir ? { dir } : {});
-  const all = r.sheets.flatMap((s) => s.issues.map((i) => ({ ...i, sheet: s.sheet })));
+  const all = allSheets(r).flatMap((s) => s.issues.map((i) => ({ ...i, sheet: s.sheet })));
   const blockers = all.filter(isCiBlocker), warns = all.filter((i) => i.sev !== "note" && !isCiBlocker(i));
   return { id, r, blockers, warns };
 }
@@ -57,7 +57,7 @@ export function summaryMarkdown(rows, { skipped = [], toolsOnly = false } = {}) 
     L.push("", `### ${x.id}`);
     for (const i of x.blockers) L.push(`- ⛔ **chặn** \`${i.code}\` ${i.sheet} ${i.where}: ${i.msg}`);
     for (const i of x.warns) L.push(`- ⚠ \`${i.code}\` ${i.sheet} ${i.where}: ${i.msg}`);
-    const drafts = x.r.sheets.map(draftErrorLine).filter(Boolean);
+    const drafts = allSheets(x.r).map(draftErrorLine).filter(Boolean);
     if (drafts.length) L.push("", "Dòng `LỖI:` nháp (soát bằng mắt trước khi dán vào NGUON.md):", "", "```", ...drafts, "```");
   }
   if (skipped.length) L.push("", `Bỏ qua (không còn tờ toA.png… trong thư mục, ví dụ vừa xóa): ${skipped.join(", ")}.`);
