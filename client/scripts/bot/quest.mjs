@@ -1,6 +1,6 @@
 // Nhóm bot "quest" (#703 bước 3, tách nguyên văn từ bot-test.mjs).
 import { readFileSync } from "node:fs";
-import { post, sleep, waitFor, ok, mapUrl, zonesByName, bot, enter, qtyOf, bagKey, npcSpot, talk, looseOf, same, test } from "./lib.mjs";
+import { post, sleep, waitFor, ok, mapUrl, zonesByName, bot, enter, qtyOf, bagKey, npcSpot, talk, looseOf, same, test, needHookSkip } from "./lib.mjs";
 import { BAG_SLOTS, itemDef, formatHonTe, MAPS, RING_ITEM, ringLimit, CORE_ITEM, npcDef, QUEST_STARTER, questChain, questStart, parseQuest, questStatus, questRewardText, SWITCH_CD } from "../../../shared/data.ts";
 
 /**
@@ -29,7 +29,7 @@ export async function questTest({blocked}){
   ok(await waitFor(()=>D.quest,2000)&&D.quest.chain===QUEST_STARTER&&D.quest.step===0&&!D.quest.accepted&&D.quest.status==="offer",`tài khoản mới: bài 1 chưa nhận (${JSON.stringify(D.quest)})`);
   let t=await qop("accept"); ok(/không ở đây/.test(t)&&!D.quest.accepted,`ở Thánh Hồn Thôn: không nhận được nhiệm vụ (${t})`);
   t=await qop("lung_tung"); ok(/không hợp lệ/.test(t),`thao tác lạ bị từ chối (${t})`);
-  if(!(await test(D,"ping"))?.enabled){ console.log("  ⚠ bỏ qua đi hết chuỗi (cần hook warp, goto, beast, give…): bật server bằng GAME_TEST=1"); await D.room.leave(); return; }
+  if(!(await test(D,"ping"))?.enabled){ needHookSkip("bỏ qua đi hết chuỗi (cần hook warp, goto, beast, give…): bật server bằng GAME_TEST=1"); await D.room.leave(); return; }
   /** Hook warp: sang `mapId` tại (x, y) qua transaction đi cổng, rồi rời phòng và vào phòng mới như đi cổng thật. */
   async function warp(mapId,x,y){
     const q0=JSON.stringify([D.quest.step,D.quest.accepted,D.quest.prog]), bk=bagKey(D);

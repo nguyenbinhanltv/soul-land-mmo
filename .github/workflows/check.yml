@@ -575,6 +575,8 @@ jobs:
       - name: bot arena hai tiến trình (--procs 2)
         if: ${{ !cancelled() }}
         timeout-minutes: 8
+        env:
+          BOT_STRICT_HOOK: "1" # bài bỏ qua vì thiếu hook test ghi ✗ (#958)
         run: npm run bot:local -- --only arena --procs 2 --pg --env REDIS_URL="$REDIS_URL"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ failure() }}

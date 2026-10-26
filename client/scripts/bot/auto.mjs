@@ -3,7 +3,7 @@ import { solidGrid, hits, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { findPath, clearLine, pathLength } from "../../../shared/path.ts";
 import { pack } from "@colyseus/msgpackr";
 import { readFileSync } from "node:fs";
-import { post, sleep, waitFor, ok, mapUrl, bot, enter, qtyOf, bonesOf, npcSpot, trade, looseOf, sendTeam, same, test, step } from "./lib.mjs";
+import { post, sleep, waitFor, ok, mapUrl, bot, enter, qtyOf, bonesOf, npcSpot, trade, looseOf, sendTeam, same, test, step, needHookSkip } from "./lib.mjs";
 import { TIERS, TEAM_SIZE, RESPAWN_SECS, TIEN_CO_MAX, itemDef, formatHonTe, BEAST_AGGRO_R, BEAST_WANDER, MAPS, MAX_YEARS, RING_ITEM, BONE_ITEM, CORE_ITEM, MAX_CORE_STARS, ITEMS, SHOP, sellPrice, SWITCH_CD, SYNC_VIEW, CAMP_SHOP, AUTO_AOE_MIN, AUTO_CLUSTER, AUTO_REST, AUTO_LOOT_WAIT, AUTO_BOSS_DETOUR, AUTO_DAILY_SECS, AUTO_RADIUS, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, AUTO_MOVE, AUTO_PACE, AUTO_STATUS, AUTO_PARTY, AUTO_STUCK, AUTO_HINT, autoHint, parseAuto, autoLeft, autoTimeText, AUTO_RADIUS_MIN, AUTO_LOOT_KINDS, AUTO_TOKEN, AUTO_TOKEN_SECS, AUTO_TOKEN_PRICE, AUTO_BONUS_MAX, OFFLINE, offlineFight, BEAST_ROOTED, TILE } from "../../../shared/data.ts";
 
 /**
@@ -42,7 +42,7 @@ export async function autoTest(){
   // Các phần Auto 1 / Auto 2 bên dưới thử vùng neo: chạy với phạm vi "Chỉ quanh chỗ đứng"; phần #213 thử toàn bản đồ riêng.
   const NEAR={...AUTO_DEFAULTS,scope:"near"};
   const A=await bot("Treo máy","u_minh_linh_mieu",{sex:0,hair:1,hairCol:2,outfitCol:1});
-  if(!(await test(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua tự săn (cần hook warp, goto, spawn, auto): bật server bằng GAME_TEST=1"); await A.room.leave(); return; }
+  if(!(await test(A,"ping"))?.enabled){ needHookSkip("bỏ qua tự săn (cần hook warp, goto, spawn, auto): bật server bằng GAME_TEST=1"); await A.room.leave(); return; }
   const extra=[];
   try{
   const NV="tinh_dau_ngoai_vi", me=b=>b.room.state.players?.get(b.room.sessionId);

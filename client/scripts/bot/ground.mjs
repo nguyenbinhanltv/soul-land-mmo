@@ -1,6 +1,6 @@
 // Nhóm bot "ground" (#703 bước 3, tách nguyên văn từ bot-test.mjs).
 import { readFileSync } from "node:fs";
-import { sleep, waitFor, ok, mapUrl, bot, test } from "./lib.mjs";
+import { sleep, waitFor, ok, mapUrl, bot, test, needHookSkip } from "./lib.mjs";
 import { statusBit, beastSkillOf, TELE_PAD, BOSSES, bossIndex, SYNC_VIEW, GROUND_KINDS, GROUND_TICK, TELE_SHAPES } from "../../../shared/data.ts";
 
 export async function groundTest(){
@@ -12,7 +12,7 @@ export async function groundTest(){
     &&[tt,dv,kb,sd].every(poisonGround)&&GROUND_KINDS.every(k=>!/^#ff/i.test(k.col)),
     `4 chiêu để lại vùng: ${[tt,dv,kb,sd].map(s=>`${s?.name} ${GROUND_KINDS.find(k=>k.id===s?.ground?.kind)?.name} ${s?.ground?.secs} giây`).join(", ")}; màu không đỏ`);
   const G=await bot("Độc Vụ","u_minh_linh_mieu",{sex:0,hair:2,hairCol:1,outfitCol:2}), V=await bot("Xa Độc","u_minh_linh_mieu",{sex:1,hair:1,hairCol:2,outfitCol:3},true);
-  if(!(await test(G,"ping"))?.enabled){ console.log("  ⚠ bỏ qua vùng lưu lại (cần hook goto, spawn, tele, ground): bật server bằng GAME_TEST=1"); for(const b of [G,V]) await b.room.leave(); return; }
+  if(!(await test(G,"ping"))?.enabled){ needHookSkip("bỏ qua vùng lưu lại (cần hook goto, spawn, tele, ground): bật server bằng GAME_TEST=1"); for(const b of [G,V]) await b.room.leave(); return; }
   try{
   const me=b=>b.room.state.players?.get(b.room.sessionId), dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
   await waitFor(()=>me(G)&&G.owned&&me(V)&&V.owned,3000);
