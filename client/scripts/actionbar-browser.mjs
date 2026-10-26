@@ -240,7 +240,9 @@ try {
         assert.ok(await filter.evaluate((e) => { const r = e.getBoundingClientRect(); return e.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)); }), "Bộ lọc Tiêu hao không bị bảng khác che");
         await page.keyboard.press("Escape");
       }
-      // Đổi võ hồn qua nút thật, đợi state server rồi đổi về bằng bàn phím.
+      // Server bỏ qua lệnh đổi khi còn hồi chiêu: đợi sẵn sàng trước thao tác thật.
+      await page.waitForFunction(() => document.querySelector("#bag").hidden);
+      await page.waitForFunction(() => window.__c8Scene.room.state.players.get(window.__c8Scene.me).swCd <= 0);
       const second = page.locator('#team button[data-slot="1"]');
       if (touch) await second.tap(); else await second.click();
       await page.waitForFunction((rowId) => window.__c8Scene.owned.active === rowId, team[1]);
