@@ -755,11 +755,13 @@ export async function autoTest(){
         ok(c1>=1&&hurt>=2,`AH3 B1b: ${crowd.length} con quanh thân → hồn kỹ diện rộng tung ${c1} lần, ${hurt} con mất máu ngay lượt đầu`);
         await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true});
         // Bonus cụm (AUTO_CLUSTER.bonus) chỉ đổi thứ tự chọn: hạ một cụm không được lâu hơn hạ cùng số con rải xa (>AUTO_CLUSTER.r).
+        // Hạ 5 con mất ~15–18 giây ngay ở máy dev (3 giây / con, #1000): trần 30 giây cũ chỉ dư ~1,6 lần nên runner CI chậm thì ✗ lặng. Trần chỉ chặn treo; so sánh cụm / rải dùng ms đo được.
+        const CLEAR_CAP=90000;
         const clearTime=async layout=>{
           await test(A,"ready"); await test(A,"goto",home); await test(A,"clear",{all:true,keep:true});
           const ids=[]; for(const [dx,dy] of layout) ids.push((await test(A,"spawn",{tier:0,dx,dy,years:10}))?.bid);
           await test(A,"auto",{pace:0}); await autoOp(A,"on"); const t0=Date.now();
-          while(Date.now()-t0<30000&&ids.some(b=>A.room.state.beasts.has(b))){ await test(A,"clear",{all:true,keep:true,but:ids}); await sleep(150); } // chỉ đo 5 con của bài
+          while(Date.now()-t0<CLEAR_CAP&&ids.some(b=>A.room.state.beasts.has(b))){ await test(A,"clear",{all:true,keep:true,but:ids}); await sleep(150); } // chỉ đo 5 con của bài
           const left=ids.filter(b=>A.room.state.beasts.has(b)).length; await autoOp(A,"off"); return {ms:Date.now()-t0,left};
         };
         const packL=[[120,0],[140,16],[140,-16],[160,0],[120,24]], spreadL=[[120,0],[-120,0],[0,120],[0,-120],[110,110]];

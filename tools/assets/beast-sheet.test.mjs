@@ -185,6 +185,21 @@ test('chuẩn hóa từng tờ: B1254 cùng đơn vị A, không phình thân v�
   }
 });
 
+test('tờ A cỡ Codex 948×1659 (quyết định chủ repo 2026-10-26 mục 2): cutter nhận, hệ số theo diện tích ≈ 1; tỉ lệ lạ vẫn bị từ chối', () => {
+  const sheets = geometrySheets(96, 1024), A = sheets.A, sh = sheetPlan(96)[0];
+  const W = 948, H = 1659, im = new Img(W, H), sx = W / A.w, sy = H / A.h;
+  for (const c of sheetCells(sh)) {
+    const x0 = Math.round((c.col * sh.w / sh.cols + 40) * sx), x1 = Math.round((c.col * sh.w / sh.cols + 120) * sx);
+    const y0 = Math.round((c.row * sh.h / sh.rows + 28) * sy), y1 = Math.round((c.row * sh.h / sh.rows + 100) * sy);
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) im.set(x, y, [90, 110, 70, 255]);
+  }
+  const res = cutSpecies({ species: 'phong_lang', sheets: { ...sheets, A: im }, scale: 0.55 });
+  assert.deepEqual(res.report.sheets.A.originalSize, [W, H]);
+  assert.ok(Math.abs(res.report.sheets.A.factor - 1) < 0.001, `factor ${res.report.sheets.A.factor}`);
+  assert.equal(res.report.missing, 0);
+  assert.throws(() => cutSpecies({ species: 'phong_lang', sheets: { ...sheets, A: new Img(1000, 2000) }, scale: 0.55 }), /tỉ lệ/);
+});
+
 test('chuẩn hóa MẶC ĐỊNH bật: không cờ vẫn đưa B 1254² về cùng đơn vị, --no-normalize-size (false) tắt', () => {
   const sheets = geometrySheets(96, 1254);
   const def = cutSpecies({ species: 'phong_lang', sheets, scale: 0.55 });

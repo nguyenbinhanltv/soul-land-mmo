@@ -3,7 +3,7 @@
 //
 // Các bước (mỗi tờ theo bố cục sheetPlan của beast-sheet-lib.mjs: lưới cố định, hàng = dải hoạt ảnh, cột = khung):
 //   1. Xóa nền (màu khóa mặc định đọc ở góc, thường #FF00FF; hoặc alpha thấp), gỡ 3 lớp viền nhiễm màu nền.
-//   (Cỡ tờ theo TỈ LỆ, mặc định chuẩn hóa về đơn vị canonical của sheetPlan: B 1254×1254 hợp lệ; --no-normalize-size để tắt.)
+//   (Cỡ tờ theo TỈ LỆ, mặc định chuẩn hóa về đơn vị canonical của sheetPlan theo diện tích: B 1254×1254 và A 948×1659 / 941×1672 hợp lệ; --no-normalize-size để tắt.)
 //   2. Tách hình theo thành phần liên thông; mỗi thành phần về ô lưới chứa trọng tâm của nó (hình dính nhiều ô thì chia theo ô);
 //      mảnh vụn nhỏ hoặc xa thân bị bỏ (đếm trong báo cáo), mảnh nhỏ sát thân gộp vào thân.
 //   3. Mỗi khung: chân = đáy hộp bao, tâm chân ngang = trung bình x của các hàng đáy; MỘT hệ số thu chung cho cả loài
@@ -18,7 +18,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { Img, readPng, encodePng, readGpl, hex, toHex, OUTLINE, ISO_BEAST_FOOT } from "./lib.mjs";
-import { DIRS, ANIMS, COLS, BAND_ROWS, animSlot, sheetPlan, sheetCells, speciesInfo } from "./beast-sheet-lib.mjs";
+import { DIRS, ANIMS, COLS, BAND_ROWS, animSlot, sheetPlan, sheetCells, speciesInfo, sheetFits, canonFactor } from "./beast-sheet-lib.mjs";
 import { layoutFor, parsePatch, applyPatches, staticAnchors, blockFactors, levelOf, codeOf, summarize } from "./beast-sheet-cut-lib.mjs";
 
 const K_OUT = hex(OUTLINE);
@@ -162,8 +162,8 @@ export function cutSpecies(o) {
   for (const sh of plan) {
     const img = o.sheets[sh.id];
     if (!img) { warns.push(`thiếu tờ ${sh.id} (${sh.dirs.join(", ")})`); continue; }
-    if (normalize && Math.abs(img.w * sh.h - img.h * sh.w) > 0.01 * img.h * sh.w) throw new Error(`tờ ${sh.id}: sai tỉ lệ ${img.w}×${img.h}, cần ${sh.w}×${sh.h}; không thể chuẩn hóa đồng đều`);
-    const factor = normalize ? sh.w / img.w : 1;
+    if (normalize && !sheetFits(img.w, img.h, sh)) throw new Error(`tờ ${sh.id}: sai tỉ lệ ${img.w}×${img.h}, cần ${sh.w}×${sh.h}${sh.w * 3 === sh.h * 2 ? " (tờ A nhận tỉ lệ 0,55–0,70, vd Codex 948×1659)" : ""}; không thể chuẩn hóa đồng đều`);
+    const factor = normalize ? canonFactor(img.w, img.h, sh.w, sh.h) : 1; // theo diện tích: tờ A 948×1659 ≈ 1,0 (quyết định chủ repo 2026-10-26 mục 2)
     const key = o.key ?? keyOf(img), mask = foregroundMask(img, key, tol);
     const layout = layoutFor(img, sh, o.grid ?? "auto", { ...(o.key ? { key: o.key.slice(0, 3) } : {}), ...(o.tol ? { tol: o.tol } : {}) });
     const { pieces, dropped, droppedBig, stuck } = assignToCells(img, sh, mask, { minArea: o.minArea, unit: factor, layout });

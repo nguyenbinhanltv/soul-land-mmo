@@ -1,0 +1,81 @@
+{
+  "species": "han_nguyet_ung",
+  "worker": "soul-land-mmo-136",
+  "issue": 772,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Codex image_gen không công bố model/seed; không có selector kích thước.",
+  "transparent_background": false,
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "sheet": "A",
+  "raw_file": "toA.png",
+  "sha256": "2f320899f8fe85888442f4963f363dcd848e305923eab41ba850b8d9dae6f733",
+  "bytes": 1872555,
+  "width": 1024,
+  "height": 1536,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "size_requirement_met": true,
+  "grid": [
+    6,
+    12
+  ],
+  "expected_visible_cells": 66,
+  "selected_attempt": 1,
+  "attempts": 1,
+  "counters": {
+    "A": 1,
+    "B": 2,
+    "species_total": 3
+  },
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "21ee88c2eb792f217e6c896ade0ffa3b845ae9eaf2c450e776aca8e1486d1251",
+  "references": [
+    {
+      "path": "/private/tmp/soul-land-mmo-772-han-nguyet-ung/shared/assets/sprites/beast/han_nguyet_ung.png",
+      "role": "static identity reference, three views",
+      "sha256": "f7de63bc996157ebaf1bccbe1d45f0d655a9ef2495deff90d01fc87688e44e73",
+      "original_input_path": "/private/tmp/soul-land-mmo-772-han-nguyet-ung/shared/assets/sprites/beast/han_nguyet_ung.png"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-cf6195c1-da6c-4e5a-ad82-21b6c59db135.png",
+  "history": [
+    {
+      "attempt": 1,
+      "raw_artifact": "/private/tmp/soul-land-mmo-772-han-nguyet-ung/art/src/beast-anim/han_nguyet_ung/toA.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-cf6195c1-da6c-4e5a-ad82-21b6c59db135.png",
+      "sha256": "2f320899f8fe85888442f4963f363dcd848e305923eab41ba850b8d9dae6f733",
+      "bytes": 1872555,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "generated_at": "2026-10-26T12:26:40.205Z",
+      "prompt_artifact": "/private/tmp/soul-land-mmo-772-han-nguyet-ung/art/src/beast-anim/han_nguyet_ung/toA.prompt.txt",
+      "prompt_sha256": "21ee88c2eb792f217e6c896ade0ffa3b845ae9eaf2c450e776aca8e1486d1251",
+      "references": [
+        {
+          "path": "/private/tmp/soul-land-mmo-772-han-nguyet-ung/shared/assets/sprites/beast/han_nguyet_ung.png",
+          "sha256": "f7de63bc996157ebaf1bccbe1d45f0d655a9ef2495deff90d01fc87688e44e73",
+          "role": "static identity reference, three views"
+        }
+      ],
+      "copied_at": "2026-10-26T12:27:29.919Z"
+    }
+  ],
+  "selection_reason": "A1 là lượt duy nhất; qua beast:check và không thấy lỗi khi soát mắt.",
+  "known_issues": [],
+  "qa_status": "Automated pass; worker visual review found no issue; owner approval pending.",
+  "publication_policy": "Submitting raw candidates does not mean art accepted or imported.",
+  "tool_arguments": {
+    "prompt_file": "toA.prompt.txt",
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-772-han-nguyet-ung/shared/assets/sprites/beast/han_nguyet_ung.png"
+    ],
+    "transparent_background": false
+  },
+  "generated_at": "2026-10-26T12:26:40.205Z"
+}
