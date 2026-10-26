@@ -68,6 +68,12 @@ CI `check-build` Ubuntu sinh bundle khi diff PR chạm cutter/helper/test/tài l
 
 Tên theo quy ước game (`beast_<loài>_anim`); không dùng tên gói ngoài.
 
+## Kiểm tờ trước khi nộp / cắt (`beast-sheet-check.mjs`, #863)
+`npm run beast:check -- <loài> [--out <thư mục>] [--no-image]` (loài = thư mục trong `art/src/beast-anim`; `--all` in bảng tóm tắt mọi loài). Chỉ đọc tờ RAW, không cắt, không ghi vào repo (mặc định ghi ở thư mục tạm của máy). Ghi `<loài>-check.json`, `<loài>-check.md`, `<loài>-to<X>-lien-he.png` (tờ gốc + nhãn hàng `H`, cột `C`, hướng, nhãn khung `I/W/A/H/D` + số; hộp xanh = đạt, vàng = nhẹ, đỏ = chặn) và in dòng `LỖI:` nháp theo mẫu `NGUON.md`. Thoát mã 1 khi có tờ chặn.
+- **Cỡ theo tỉ lệ** (quyết định #861): A 2:3 (1024×1536), B 1:1 (**1254² hoặc 1024²**, không còn là lỗi), một hướng 3:2 (1536×1024). Đúng tỉ lệ mà cỡ lạ → nhẹ; sai tỉ lệ → chặn. **Nền** khoá dung sai 60 quanh `#FF00FF` (gradient / vignette trong dung sai không phải lỗi).
+- **Lưới dò theo khoảng trống** (`beast-sheet-grid.mjs`, dùng lại cho cutter): chiếu vật lên trục y ra dải hàng, lên trục x ra hình. **Chặn:** số dải hàng sai, số hình mỗi dải sai (hình dính / thiếu khung / mảnh rời), nền ngoài dung sai, cỡ thân idle lệch > 25% so với ảnh tĩnh (hệ số chung cả loài, `se` / `ne` nội suy từ `s` / `e` / `n`). **Nhẹ:** hình vào ô trống, chân lệch > 12% so với trung vị dải, cỡ thân lệch 10–25%, khung chết (idle / walk gần trùng), hurt trùng idle, chạm mép tờ. **Lưu ý (không tính mức):** `se` ≈ `e` (hình bóng, chỉ gần đúng).
+- **Không kiểm bằng code, xem tờ liên hệ bằng mắt:** `n` / `ne` lộ mặt, hurt ngửa bụng / quay mặt, die xoay, nhận diện loài. Ngưỡng ở đầu `beast-sheet-check.mjs`, đo trên các tờ đã merge (lưới đúng mọi tờ; 5 dải hình dính: Lôi Văn Hầu A, Quỷ Ảnh Báo A, Tuyết Ma Viên A, Thái Thản C và D).
+
 ## Trang xem trước
 `node tools/assets/beast-sheet-preview.mjs --species <loài> --dir <thư mục đã cắt>` ghi `preview/index.html`: lưới **hoạt ảnh × 8 hướng** (5 vẽ thật + 3 tây lật ngang bằng CSS), mỗi ô một GIF lặp (phóng nguyên lần), hàng trên cùng là **ảnh tĩnh hiện tại** đúng hướng (`STATIC_DIR_MAP`) để so cỡ, màu, nét. Chết giữ khung cuối gần 1 giây. Duyệt trang này rồi mới nối client.
 
