@@ -2,7 +2,7 @@
 
 File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species xich_lan_mang`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, cỡ thân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Nộp ảnh không phải đã duyệt hay đã nhập game.
 
-Loài `xich_lan_mang` (Xích Lân Mãng), họ `snake`, khung game 96×96. Mức kiểm chung: **chặn**.
+Loài `xich_lan_mang` (Xích Lân Mãng), họ `snake`, khung game 96×96. Mức kiểm chung: **nhẹ**.
 
 ## toA
 
@@ -10,8 +10,8 @@ Loài `xich_lan_mang` (Xích Lân Mãng), họ `snake`, khung game 96×96. Mức
 - Công cụ: built-in image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toA.prompt.txt` (SHA256 `9dc205c6ed2f26ff3dd7b8f7923b16d75ce2250543bcc5b767c95c49f4f79310`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
-- Mức kiểm: **chặn** (khối hướng: ?).
-- Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
+- Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se nhẹ, e nhẹ).
+- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## toB
 
@@ -20,13 +20,17 @@ Loài `xich_lan_mang` (Xích Lân Mãng), họ `snake`, khung game 96×96. Mức
 - Prompt: `toB.prompt.txt` (SHA256 `48310fac1f5f6359625dbc2dc0c19d9e1ee3090c6d0b8686c54df647aafeae36`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne pass, n nhẹ).
-- Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
+- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## Lỗi
 
 ```text
-LỖI: toA — sai kích thước — toàn tờ — 948×1659 không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2).
-LỖI: toB — chân lệch — H8 (n) C4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 13%).
+LỖI: toA — chân lệch / hình ở ô trống / cỡ thân lệch — H4 (s) C1, H8 (se) C5, H8 (se) C6, H8 (se) C1, H12 (e) C1, H1–4 (s), H9–12 (e) — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 18%); ô trống có hình (7.1% diện tích ô): hình tràn từ ô bên; ô trống có hình (7.11% diện tích ô): hình tràn từ ô bên; chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 14%); chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 20%); cỡ thân idle 88% so với ảnh tĩnh (lệch 12%); cỡ thân idle 121% so với ảnh tĩnh (lệch 21%).
+LỖI: toA — walk lệch hướng — S H2 và SE H6 — quay ngang sang phải (mắt)
+LỖI: toA — die nằm ngang — S H4 và SE H8 — lệch trục hướng (mắt)
+LỖI: toB — chân lệch / cỡ thân lệch — H8 (n) C4, H5–8 (n) — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 13%); cỡ thân idle 89% so với ảnh tĩnh (lệch 11%).
+LỖI: toB — lộ mặt — NE H1 hurt, H2 walk, H3 attack; N H6 walk, H7 attack — vi phạm quy tắc n/ne không thấy mặt (mắt)
+LỖI: toB — die nằm ngang — NE H4 và N H8 — lệch trục hướng (mắt)
 ```
 
 ## Ghi công
