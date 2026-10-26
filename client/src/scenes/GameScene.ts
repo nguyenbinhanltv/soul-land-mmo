@@ -1337,7 +1337,7 @@ export class GameScene extends Phaser.Scene {
         return hud.chatWhisper(mine ? m.to! : m.name, mine, m.text);
       }
       if (m.ch === "party" || m.ch === "world" || m.ch === "tong") return hud.chatLine(m.ch, m.text, hud.CHAT_COL[m.ch], m.name);
-      hud.chatLine("map", m.text, m.name === "Hệ thống" ? "#86e0b0" : hud.CHAT_COL.map, m.name);
+      hud.chatLine("map", m.text, m.sys === true ? "#86e0b0" : hud.CHAT_COL.map, m.name);
     });
     // `heal` / `shield` (9.1): số hồi sinh lực / khiên đồng đội tổ đội nhận từ hiệu ứng phụ trợ, hiện kèm dấu "+".
     this.room.onMessage("dmg", (m: { x: number; y: number; v: number; crit?: boolean; c: string; id?: string; bid?: string; kill?: boolean; by?: string; dot?: boolean; immune?: boolean; heal?: boolean; shield?: boolean }) => {

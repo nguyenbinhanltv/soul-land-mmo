@@ -368,7 +368,7 @@ export class ArenaRoom extends MapRoom {
     const [a, b] = this.sides, w = winner === null ? null : this.sides[winner];
     const text = w ? `${w.members.map((x) => x.name).join(" / ")} thắng ${this.sides[1 - winner!].members.map((x) => x.name).join(" / ")} (${REASON_TEXT[reason]})`
       : `${a.members.map((x) => x.name).join(" / ")} và ${b.members.map((x) => x.name).join(" / ")} hòa (${REASON_TEXT[reason]})`;
-    ranked.catch(() => true).then((r) => this.broadcast("chat", { name: "Hệ thống", text: r ? `${text}.` : `${text}; trận giao hữu, không tính Elo.` }));
+    ranked.catch(() => true).then((r) => this.broadcast("chat", { sys: true, name: "Hệ thống", text: r ? `${text}.` : `${text}; trận giao hữu, không tính Elo.` }));
   }
 
   /**
