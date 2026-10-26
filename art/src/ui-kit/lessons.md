@@ -1,0 +1,36 @@
+# Bài học vẽ tờ UI Kit (một nguồn duy nhất)
+
+Đọc bởi `tools/assets/ui-sheet-prompt.mjs` (qua `ui-sheet-lessons.mjs`): mỗi dòng bài học dưới đây được chèn vào mục `LESSONS` của khối prompt tiếng Anh. Bài học mới (từ review, từ lượt vẽ hỏng) **thêm vào đây**, không để ở issue, comment PR hay prompt viết tay. Sửa xong chạy `node --test tools/assets/ui-sheet.test.mjs`.
+
+## Cú pháp
+`- [phạm vi] câu tiếng Anh cho model // ghi chú tiếng Việt (không vào prompt)`
+- Phạm vi: danh sách cách nhau dấu phẩy hoặc dấu cách, gồm loại tờ (`BOARD`, `F`, `N`, `O`, `T`, `I`, `D`, hoặc `all`). Bỏ trống hoặc `all` = mọi loại.
+- Câu tiếng Anh viết một dòng, ra lệnh trực tiếp, không số pixel, không số cân bằng game.
+- Nguồn: luật vẽ AI ở `docs/art/ui-kit.md`, bài học hồn thú (#861–#870) và bảng triệu chứng ở skill `ui-kit`.
+
+## Chữ và ký tự
+- [all] Draw no text, numbers, letters, glyphs, runes, logos or symbols that could be read as characters anywhere in the image; where a label would go, draw an empty bar or a flat block of colour. // chữ do phông game vẽ; model làm hỏng chữ Việt
+- [F, N, T, BOARD] Do not draw fake labels, button captions or placeholder squiggles inside the frames: the inside stays an empty flat fill. // chữ lạc trong ruột
+
+## Nền và bố cục tờ
+- [all] Keep at least five percent of the image width of empty magenta between neighbouring pieces and between any piece and the image edge; never let two pieces touch. // hình dính nhau là lỗi chặn
+- [F, N, O, T, I, D] Arrange the pieces on an even grid, left to right, top to bottom, exactly in the order and row counts given; draw each piece once, never repeat, mirror or crop a piece. // đếm hàng và số mảnh mỗi hàng
+- [all] Cast no shadow and no glow onto the magenta background; a soft shadow or halo turns into a pink fringe after the background is keyed out. // viền ám hồng
+
+## Khung và nút (9-slice)
+- [F, N] Put ornament only at the four corners and at the middle of each side; the straight side between them is a flat band of one or two colours with no pattern along it, so it can be stretched without showing repeats. // thân cạnh phẳng mới kéo giãn được
+- [F, N] All four corners have the same size and the same border thickness; draw one beautiful top-left corner and keep the others consistent with it, the tool mirrors them. // công cụ dựng gương
+- [F, N] The inside of a frame or button is a flat or very gently shaded uniform fill, with no motif, vignette or light spot near the centre. // ruột đồng nhất để chia 9 không lộ
+- [N] The pressed state looks sunk (darker, one pixel lower, inner shadow), the hover state looks lit (lighter rim); the disabled state is desaturated and flat. The five states of one button type share exactly the same shape, size and outline. // trạng thái không chỉ đổi màu
+- [N] Primary buttons use vermilion red (son) with a pale bronze rim; secondary buttons use dark ink with the same bronze rim; the two tab pieces are open on the bottom edge. // vai trò vật liệu
+
+## Chất liệu, bảng màu, phong cách
+- [all] Limit the whole image to a small palette of at most 32 colours with one consistent dark outline (#1a1020); sharp pixel edges, no anti-aliased blur, no large gradients, no noise texture. // bảng màu ≤ 32 màu
+- [F, N, T, O, BOARD] Two materials share the same corner set, outline weight and bronze rim: INK (near-black wood with ink-wash grain, pale bronze rim) and PAPER (ivory rice paper, thin vermilion rim, wooden roller); only the fill and the text colour differ. // hai chất liệu Mực / Giấy
+- [all] Match the style, materials and palette of the attached approved reference exactly; never copy its layout. // tham chiếu để khớp nét
+- [O] Rarity borders must differ by shape (corner style or a small notch mark) as well as by colour, never colour alone. // độ hiếm không chỉ bằng màu
+- [O] The four skill-slot states must be distinguishable in greyscale: ready is bright with a lit rim, cooldown is dimmed with a clear dark overlay quarter, locked is flat grey with a small padlock-like notch, no-mana is bright but with a blue-grey tint and a broken rim. // hồn kỹ khóa / sẵn sàng hiện gần giống nhau
+- [I] One icon family per sheet: the same stroke weight, the same corner rounding, the same colour budget; each icon is a single readable silhouette centred in its cell, roughly sixty percent of the cell size. // mỗi tờ một họ
+- [I] Icons stay legible when reduced to a quarter of their size: no hairlines, no more than three tones per icon plus the outline. // hạ 32 / 24
+- [D] Decorations are loose standalone ornaments (title rule, corner flourish, seal, ribbon); each is a single separated piece that does not need a frame around it. // trang trí rời
+- [BOARD] The sample screen is for approval and as a style reference only: it shows the HUD, two panels, one dialog and the action row, with all labels drawn as empty bars. // không cắt
