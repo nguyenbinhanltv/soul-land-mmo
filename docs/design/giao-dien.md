@@ -117,7 +117,7 @@ Luật ở `shared/control.ts` (hàm thuần `startCmd`, `topCmd`; kiểm thử 
 4. **Cờ tự đi** (phím Y, bản đồ khu vực, dấu Tập trung): huỷ tự săn; **không bật được** khi đang bấm đi hay đang khoá (báo lý do, gỡ lệnh kia rồi thử lại).
 5. **Tự săn** (phím T, bảng Tự động): **không bật được** khi có lệnh nào cao hơn đang chạy. Server cũng từ chối khi đang khoá (`d.target`), vì khoá do server giữ.
 
-Lệnh bị huỷ hoặc không bật được luôn có lý do: dòng log và câu trên chip. Server tự huỷ khoá (hồn thú chết / mất, quá xa, vùng an toàn, hồn sư gục; mã `hunt` chỉ là lưới an toàn, vì bật tự săn khi đang khoá đã bị từ chối) thì tin `lock {id: "", why}` mang mã lý do (`LockWhy`).
+Lệnh bị huỷ hoặc không bật được luôn có lý do: dòng log và câu trên chip. Server tự huỷ khoá (hồn thú chết / mất, quá xa, vùng an toàn, hồn sư gục; mã `hunt` chỉ là lưới an toàn, vì bật tự săn khi đang khoá đã bị từ chối) thì tin `lock {id: "", why}` mang mã lý do (`LockWhy`). Bấm / Tab bị từ chối ngay lúc bấm (gục, vùng an toàn, quá xa, hồn thú mất, trứng `egg`) cũng trả `lock {id: "", why}`; cùng lý do lặp trong 1 giây chỉ báo 1 lần (vẫn trả `lock ""` để bỏ khoá ảo).
 
 **Chip trạng thái** (`client/src/cmdChip.ts`, `#cmdChip`, giữa dưới màn hình, trên nhắc nhặt đồ): hiện lệnh ưu tiên cao nhất đang chạy, nền son: "Đang đánh: <tên> ×", "Đang đi tới… ×", "Tự đi cờ ×", "Tự săn ×". Bấm × huỷ đúng lệnh đó (khoá: bỏ khoá; bấm đi: dừng; cờ: dừng tự đi, cờ còn; tự săn: gửi tắt). Khi một lệnh bị huỷ chip đổi sang nền giấy ghi lý do vài giây (`WHY_MS`) rồi ẩn. Chỉ hiển thị, không thêm số cân bằng.
 

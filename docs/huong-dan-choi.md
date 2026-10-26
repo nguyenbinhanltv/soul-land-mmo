@@ -61,7 +61,7 @@ Chơi được bằng chuột / bàn phím hoặc chạm trên điện thoại.
 | Enter / Esc | Mở chat / đóng bảng, hộp thoại (xem "Esc" dưới đây) |
 
 **Khoá mục tiêu và bấm-để-đi**
-- **Bấm vào hồn thú** (hoặc Tab) là **khoá mục tiêu**: nhân vật tự đi tới con đó rồi tự đánh thường khi đã trong tầm. Dưới chân con bị khoá có vòng đỏ cam nhấp nháy; hồn thú chết, chạy quá xa, bạn vào vùng an toàn hoặc gục thì khoá tự huỷ và có báo lý do.
+- **Bấm vào hồn thú** (hoặc Tab) là **khoá mục tiêu**: nhân vật tự đi tới con đó rồi tự đánh thường khi đã trong tầm. Dưới chân con bị khoá có vòng đỏ cam nhấp nháy; hồn thú chết, chạy quá xa, bạn vào vùng an toàn hoặc gục thì khoá tự huỷ và có báo lý do; bấm khi đang ở vùng an toàn, đã gục, hồn thú quá xa / đã mất / còn là trứng thì không khoá được và cũng có báo lý do.
 - **Bấm xuống đất** là bấm-để-đi: nhân vật tự tìm đường tới điểm đó. Bấm hồn thú rồi bấm đất (hoặc ngược lại) thì lệnh sau thay lệnh trước.
 - **Chip trạng thái** (giữa dưới màn hình) cho biết nhân vật đang nghe lệnh nào: "Đang đánh: …", "Đang đi tới…", "Tự đi cờ", "Tự săn". Bấm **×** trên chip để huỷ đúng lệnh đó. Lệnh bị huỷ hay không bật được thì chip báo lý do vài giây.
 - **Ai thắng ai:** tay bạn luôn thắng. Giữ phím di chuyển / cần điều khiển thì huỷ mọi lệnh tự chạy; bấm nền hoặc khoá hồn thú thì huỷ cờ tự đi và tự săn; cờ tự đi và tự săn **không bật được** khi bạn đang bấm đi hoặc đang khoá (chip báo, huỷ lệnh kia rồi bật lại).

@@ -252,10 +252,11 @@ function looksOf(p: { sex: number; hair: number; hairCol: number; outfitCol: num
 /** Chuỗi LPC của NPC theo `looks` trong NPCS (LPC dùng thẳng, preset kiểu cũ đổi bằng presetToLpc). */
 const npcLpcStr = (L: Looks): string => encodeLpc(L.mode === "lpc" && L.lpc ? L.lpc : presetToLpc(L));
 
-/** Lý do server tự huỷ khoá mục tiêu (rooms/lock.ts LockWhy) → câu báo. */
+/** Lý do server huỷ khoá hoặc từ chối lúc bấm (rooms/lock.ts LockWhy) → câu báo. */
 const LOCK_WHY: Record<string, string> = {
   gone: "Đã huỷ khoá mục tiêu: hồn thú đã hạ hoặc biến mất.", far: "Đã huỷ khoá mục tiêu: hồn thú đã ở quá xa.",
   safe: "Đã huỷ khoá mục tiêu: vào vùng an toàn.", dead: "Đã huỷ khoá mục tiêu: hồn sư đã gục.", hunt: "Đã huỷ khoá mục tiêu: bật tự săn.",
+  egg: "Không khoá được: trứng hồn thú chưa nở.",
 };
 
 const MOVE_KEYS = ["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
