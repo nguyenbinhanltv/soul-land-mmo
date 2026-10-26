@@ -2,7 +2,7 @@
 // bộ máy hồn kỹ `runSkill`, tung hồn kỹ ô U/I/O/P `skill`, Phục Chế `copySource`, xếp ô `setLoadout`, kỹ năng hồn cốt `boneSkill`, dung hợp kỹ
 // `fusion*` / `tickFusion`. Hàm nhận phòng (`room: MapRoom`) như boss.ts; nguyên văn từ MapRoom, không đổi số / thứ tự RNG / thứ tự xử lý trong tick /
 // thứ tự ghi DB qua `room.chainLatest`. MapRoom chỉ chuyển tiếp 7 hàm (`onMessage`, `tick`, `gm.ts`, `autoHunt.ts`, tiên cơ, `ArenaRoom.boneSkill` gọi như cũ).
-// Còn ở MapRoom: `applyStatus` / `applyPStatus` / `damageBeast` / `damageFoe` / `hurtPlayer` / `attack`, `chanThan` / `endAva` / `tickAva`, `selfEffect` / `partyShare`.
+// Còn ở MapRoom: `applyStatus` / `applyPStatus` (đánh thường / sát thương đã sang combat.ts), `chanThan` / `endAva` / `tickAva`, `selfEffect` / `partyShare`.
 import type { Client } from "colyseus";
 import { TIERS, VOHON, tierOfYears, vohonIndex, beastIndex, starSkillMult, starCdMult, starRing, BONE_SLOTS, boneSlotIndex, isCcStatus, BONE_ACTIVE_SLOTS,
   boneSkillOf, boneSkillMult, skillPower, buffPower, PCT_HP_CAP, PROJ_SPEED, skillsOf, FUSION, FUSIONS, fusionIndex, fusionsOf, ringSkill, loadoutOf,
