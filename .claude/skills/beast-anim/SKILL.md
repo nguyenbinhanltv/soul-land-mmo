@@ -13,7 +13,7 @@ Một skill hai phần để người sinh ảnh và người duyệt dùng **c�
 | Bài học (một nguồn) | `art/src/beast-anim/lessons.md` (parser `beast-sheet-lessons.mjs`) |
 | Kiểm tờ RAW | `npm run beast:check -- <loài> [--out <thư mục>]` (`--all` in bảng) |
 | NGUON + dòng `LỖI:` | `node tools/assets/beast-nguon.mjs --species <loài> …` (`npm run beast:nguon -- …`) |
-| Sổ trạng thái | `npm run beast:status` → `art/src/beast-anim/_status.json` + `_status.md` |
+| Sổ trạng thái | comment ghim `<!-- beast-status -->` ở #766 (workflow sinh sau khi merge); ở máy `npm run beast:status` → `art/src/beast-anim/_status.*` (không commit) |
 | Cắt, xem trước | `beast-sheet-cut.mjs`, `beast-sheet-preview.mjs`, `beast-recut-all.mjs` |
 
 Mọi lệnh chỉ đọc RAW; không resize / sửa ảnh gốc, không ghi key / bí mật.
@@ -82,7 +82,7 @@ Thứ tự: **check → tờ liên hệ → trang xoay vòng → phiếu → cut
 5. **Cắt thật bằng cutter v2:** chuẩn hóa kích thước mặc định bật, lưới dò theo khoảng trống, neo cỡ khối theo ảnh tĩnh. Có khối chặn thì **không nhập khối đó**: hoặc nhập loài đủ khối không chặn, hoặc trả vẽ lại **chỉ khối** (A5); ô gán sai vài khung dùng `--patch` thay vì vẽ lại tờ. So bảng cỡ thân idle 5 hướng trước / sau (report `blocks`).
 6. **GIF:** xem lại `preview/index.html` (hoạt ảnh × 8 hướng, hàng đầu là ảnh tĩnh để so cỡ / màu / nét) trước khi nối client.
 7. **Nhập game** (quy trình của loài đã nhập, ví dụ `beast_phong_lang_anim`): chép `<loài>_anim.png` vào `shared/assets/sprites/beast/`, `node tools/assets/normal.mjs <file>` sinh `_n.png`, thêm entry của `manifest-entry.json` vào `shared/assets/sprites/manifest.json`, ghi dòng nguồn ở `art/CREDITS.md` (`node tools/assets/credits.mjs --check`), chạy `npm run check`. Loài đủ tờ đạt mới nhập; loài có khối chặn giữ ảnh tĩnh.
-8. **Sổ trạng thái:** `npm run beast:status` cập nhật `art/src/beast-anim/_status.json` + `_status.md` (bảng tự sinh thay bảng tay ở #766; mỗi tờ: cỡ, byte, SHA256, mức kiểm, khối hướng, đã nhập chưa); commit cùng PR. Kiểm sổ mới: `npm run beast:status -- --check`.
+8. **Sổ trạng thái:** không commit. `_status.json` / `_status.md` nằm trong `.gitignore` (#973); workflow `beast-status.yml` sinh lại và sửa comment ghim ở #766 sau khi PR merge vào `main`. Muốn xem ngay: `npm run beast:status` (ghi cục bộ, bảng tự sinh thay bảng tay ở #766).
 
 Chủ repo chỉ duyệt mẫu (loài đầu mỗi họ: bốn chân / chim / rắn / côn trùng / cây / boss) và tranh chấp; loài còn lại orchestrator tự duyệt theo phiếu trên.
 
@@ -92,4 +92,4 @@ Chủ repo chỉ duyệt mẫu (loài đầu mỗi họ: bốn chân / chim / r�
 Lượt vẽ hỏng cho bài học mới thì thêm **một dòng** vào `art/src/beast-anim/lessons.md` (`- [phạm vi] câu tiếng Anh // ghi chú tiếng Việt`), chạy `node --test tools/assets/beast-anim-v2.test.mjs` rồi sinh lại prompt. Không đặt bài học ở issue, comment PR hay prompt viết tay.
 
 ## Kiểm sau khi sửa công cụ
-`npm run check` + `npm run test:assets`; thử mỗi giai đoạn bằng `node tools/assets/beast-sheet-prompt.mjs --species phong_lang --stage turnaround|direction|sheet` và `npm run beast:status -- --check`.
+`npm run check` + `npm run test:assets`; thử mỗi giai đoạn bằng `node tools/assets/beast-sheet-prompt.mjs --species phong_lang --stage turnaround|direction|sheet`  và `npm run beast:status` (ghi cục bộ).

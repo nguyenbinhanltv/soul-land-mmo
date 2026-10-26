@@ -10,3 +10,7 @@ soul-land-ci-push-key.json
 # Kho asset riêng (#623, docs/asset-rieng.md): ảnh gói giấy phép hạn chế KHÔNG được vào repo công khai
 shared/assets/private/
 art/src/private/
+
+# Sổ trạng thái hoạt ảnh hồn thú: tự sinh cục bộ bằng `npm run beast:status`, không commit (#973); bản chung ở comment ghim #766
+art/src/beast-anim/_status.json
+art/src/beast-anim/_status.md
