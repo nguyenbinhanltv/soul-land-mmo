@@ -2,7 +2,7 @@
 
 File này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-status.mjs`); **không sửa tay**, không dán bảng tay vào issue. Mức theo khối hướng là kết quả `beast:check` (cỡ, nền, lưới, số hình, chân, cỡ thân, khung chết); `n` / `ne` lộ mặt, hurt ngửa bụng, die xoay chỉ xem bằng mắt (tờ liên hệ).
 
-30 loài có thư mục · 6 đã nhập vào game · 22 sẵn sàng nhập · 1 chưa có tờ · 7 có khối chặn
+31 loài có thư mục · 6 đã nhập vào game · 22 sẵn sàng nhập · 1 chưa có tờ · 7 có khối chặn · 1 thiếu tờ
 
 | Loài | Mã | Bố cục | Tờ (cỡ, mức) | s | se | e | ne | n | Thiếu | Nhập game | Trạng thái |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -36,6 +36,7 @@ File này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-statu
 | Tuyết Ma Viên | `tuyet_ma_vien` | sheet | A 1024×1536 **chặn**<br>B 1254×1254 nhẹ | đạt | đạt | **chặn** | nhẹ | nhẹ | - | chưa | có khối chặn |
 | Tuyết Vĩ Yêu Hồ | `tuyet_vi_yeu_ho` | sheet | A 1024×1536 đạt<br>B 1254×1254 nhẹ | đạt | đạt | đạt | nhẹ | đạt | - | chưa | sẵn sàng nhập |
 | U Minh Lang | `u_minh_lang` | sheet | A 1024×1536 đạt<br>B 1254×1254 nhẹ | đạt | đạt | đạt | đạt | nhẹ | - | chưa | sẵn sàng nhập |
+| Xích Lân Mãng | `xich_lan_mang` | sheet | A 948×1659 **chặn**<br>B 1254×1254 nhẹ | thiếu | thiếu | thiếu | đạt | nhẹ | - | chưa | thiếu tờ |
 
 ## Dòng `LỖI:` do công cụ sinh
 
@@ -220,5 +221,12 @@ LỖI: toB — hình ở ô trống / chân lệch — H4 (ne) C5, H4 (ne) C6, H
 
 ```
 LỖI: toB — cỡ thân lệch — H5–8 (n) — cỡ thân idle 116% so với ảnh tĩnh (lệch 16%).
+```
+
+### Xích Lân Mãng (`xich_lan_mang`)
+
+```
+LỖI: toA — sai kích thước — toàn tờ — 948×1659 không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2).
+LỖI: toB — chân lệch — H8 (n) C4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 13%).
 ```
 

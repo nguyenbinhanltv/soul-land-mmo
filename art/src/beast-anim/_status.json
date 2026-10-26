@@ -1,12 +1,13 @@
 {
   "schema": 1,
   "generatedBy": "tools/assets/beast-status.mjs",
-  "species": 30,
+  "species": 31,
   "imported": 6,
   "tally": {
     "san-sang-nhap": 22,
     "chua-co-to": 1,
-    "chan": 7
+    "chan": 7,
+    "thieu-to": 1
   },
   "items": [
     {
@@ -1557,6 +1558,58 @@
       "missing": [],
       "errorLines": [
         "LỖI: toB — cỡ thân lệch — H5–8 (n) — cỡ thân idle 116% so với ảnh tĩnh (lệch 16%)."
+      ]
+    },
+    {
+      "id": "xich_lan_mang",
+      "name": "Xích Lân Mãng",
+      "family": "snake",
+      "frame": 96,
+      "imported": false,
+      "turnaround": false,
+      "layout": "sheet",
+      "state": "thieu-to",
+      "sheets": [
+        {
+          "sheet": "toA",
+          "file": "art/src/beast-anim/xich_lan_mang/toA.png",
+          "size": [
+            948,
+            1659
+          ],
+          "bytes": 1841914,
+          "sha256": "d1e8c8455f6b2bbdf960ac56a2b42917436639bcadfa0bee4c0d218aad02aaa1",
+          "level": "chặn",
+          "block": 1,
+          "light": 0,
+          "note": 0
+        },
+        {
+          "sheet": "toB",
+          "file": "art/src/beast-anim/xich_lan_mang/toB.png",
+          "size": [
+            1254,
+            1254
+          ],
+          "bytes": 1879248,
+          "sha256": "c15ddce0dd95e64fc6d11674eae1810497a6604b8aef016760f8b6602bb5b675",
+          "level": "nhẹ",
+          "block": 0,
+          "light": 1,
+          "note": 2
+        }
+      ],
+      "blocks": {
+        "s": "thiếu",
+        "se": "thiếu",
+        "e": "thiếu",
+        "ne": "pass",
+        "n": "nhẹ"
+      },
+      "missing": [],
+      "errorLines": [
+        "LỖI: toA — sai kích thước — toàn tờ — 948×1659 không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2).",
+        "LỖI: toB — chân lệch — H8 (n) C4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 13%)."
       ]
     }
   ]

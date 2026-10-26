@@ -57,7 +57,8 @@
     },
     "postprocessing": false,
     "manualFindings": [
-      "A1 has a 948x1659 aspect/size mismatch for an A sheet (2:3); RAW retained unchanged."
+      "S H2 W0–W5 và SE H6 W0–W5 walk quay ngang sang phải, lệch hướng khối.",
+      "S H4 D2–D3 và SE H8 D2–D3 die nằm ngang, lệch trục hướng."
     ],
     "ownerArtApproval": false
   }
