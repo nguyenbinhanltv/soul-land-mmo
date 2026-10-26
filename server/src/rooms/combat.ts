@@ -4,7 +4,7 @@
 // (`onMessage`, `tick`, `skill.ts`, `boss.ts`, `autoHunt.ts`, `gm.ts`, `ArenaRoom` gọi như cũ).
 // Còn ở MapRoom: `killBeast`, `applyStatus` / `applyPStatus`, `chanThan` / `endAva` / `tickAva`, `selfEffect` / `partyShare`, tiên cơ (`tienCo`, `gainEnergy`), `buffV` / `atkOf`.
 import { TIERS, VOHON, vohonIndex, TEAM_SIZE, REVIVE_SECS, RESPAWN_SECS, PHONG_LOI, ATTACK_CD, ATTACK_REACH, atkRoll, CORE_FX_RULE, CORE_SETS, coreSetIndex,
-  STATUS, ARENA, ARENA_HE_DMG, WORLD, defMult, HIT_INVULN_SECS, MELEE_REACH } from "../../../shared/data.ts";
+  STATUS, ARENA, ARENA_HE_DMG, WORLD, defMult, HIT_INVULN_SECS } from "../../../shared/data.ts";
 import type { Character } from "../db.ts";
 import { BEAST_HALF, type MapRoom, type Hit, type DmgOpt } from "./MapRoom.ts";
 
@@ -100,7 +100,7 @@ export function attack(room: MapRoom, id: string) {
   const hit: Hit = { kind: "attack", done: false };
   const near = room.beastsNear(ax, ay, ATTACK_REACH.r + BEAST_HALF).filter(([, b]) => Math.hypot(b.x - ax, b.y - TIERS[b.tier].size / 2 - ay) < ATTACK_REACH.r + TIERS[b.tier].size / 2);
   // Đối thủ trong Đại Đấu Hồn Trường (7.2): tâm thân hồn sư cao hơn chân ARENA.body pixel.
-  const foes = room.foesOf(id).filter((f) => { const q = room.state.players.get(f); return q && !q.dead && Math.hypot(q.x - ax, q.y - ARENA.body - ay) < MELEE_REACH + ARENA.body; });
+  const foes = room.foesOf(id).filter((f) => { const q = room.state.players.get(f); return q && !q.dead && Math.hypot(q.x - ax, q.y - ARENA.body - ay) < ATTACK_REACH.r + ARENA.body; });
   // Bộ Hạo Thiên 4 món (5.2): đòn thường trúng thứ comboN liên tiếp (cách nhau không quá comboGap giây) thêm sát thương; trượt thì đếm lại.
   let mult = 1;
   if (d.coreFx.combo) {

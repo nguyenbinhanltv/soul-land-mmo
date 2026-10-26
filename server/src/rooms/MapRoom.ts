@@ -2953,7 +2953,7 @@ export async function awakenAccount(accountId: number, name: string, choice: unk
   if (!pick) return { status: 400, error: "Hãy chọn một võ hồn SSR trong danh sách." };
   // Tạo nhân vật diễn ra ngay trước bước chọn SSR của lễ thức tỉnh.
   if (!(await store.getLooks(accountId)).chosen) return { status: 409, error: "Hãy tạo nhân vật trước lễ thức tỉnh." };
-  // Hồn lực bẩm sinh 1–10 thuộc về hồn sư: làm cấp khởi đầu của cả hai võ hồn.
+  // Hồn lực bẩm sinh (1 đến AWAKEN_LEVEL.max) thuộc về hồn sư: làm cấp khởi đầu của cả hai võ hồn.
   const level = Math.random() < AWAKEN_LEVEL.maxChance ? AWAKEN_LEVEL.max : 1 + Math.floor(Math.pow(Math.random(), AWAKEN_LEVEL.curve) * (AWAKEN_LEVEL.max - 1));
   const character = await store.awaken(accountId, name, [AWAKEN_GIFT, pick.id], pick.id, level);
   if (!character) return { status: 409, error: "Tài khoản đã thức tỉnh võ hồn rồi." };

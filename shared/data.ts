@@ -4797,6 +4797,19 @@ export const questRewardText = (r: QuestReward) =>
 // ---------- Đại Đấu Hồn Trường (mục 5.9, bước 7.2; mọi số đã chốt) ----------
 /** Mã bản đồ sân đấu (MAPS, kind `arena`): shared/assets/dai_dau_hon_truong.json, chỉ phòng ArenaRoom dùng. */
 export const ARENA_MAP = "dai_dau_hon_truong";
+/** Chiêu tiên cơ Mẫn công lướt tới: bất tử (giây) trong lúc lướt. */
+export const TIEN_CO_DASH_INV = 0.35;
+/** Nón trúng của hồn kỹ có hướng: cos góc giữa hướng nhìn và hướng tới mục tiêu phải lớn hơn mức này (0,2 ≈ nón 78° mỗi bên). */
+export const SKILL_CONE_COS = 0.2;
+/** Vòng hồn thú gọi bầy (`summon`) xuất hiện quanh kẻ gọi: bán kính ngang × dọc (pixel, vòng elip theo hình thoi isometric). */
+export const SUMMON_RING = { rx: 28, ry: 20 } as const;
+/** Tự phân giải trang bị: thử lại không quá 1 lần mỗi khoảng này (mili giây). */
+export const AUTO_SALVAGE_RETRY_MS = 5000;
+/** Lễ thức tỉnh: hồn lực bẩm sinh (cấp khởi đầu của cả hai võ hồn). `maxChance` xác suất ra thẳng cấp `max`, còn lại
+ *  `1 + floor(u^curve × (max − 1))` với u đều trong [0, 1) (curve > 1 thì lệch về cấp thấp). */
+export const AWAKEN_LEVEL = { max: 10, maxChance: 0.04, curve: 1.6 } as const;
+
+
 /**
  * **(đã chốt)** Số liệu Đại Đấu Hồn Trường (mục 5.9, bước 7.2).
  * - `startElo`: Elo khởi đầu (chưa đấu trận nào); `k`: hệ số K của Elo (mọi trận như nhau); Elo không xuống dưới 0.
@@ -4827,20 +4840,6 @@ export const ARENA_MAP = "dai_dau_hon_truong";
  *   `ccMult`: thời gian khống chế (isCcStatus) đối thủ gây lên hồn sư × ngần ấy, sau kháng của bị động hồn cốt: đối thủ trong sân
  *   như mục tiêu bậc cao (ngoài rừng là CC_TIER_MULT), tránh khóa chết.
  */
-/** Tầm chém cơ bản (pixel) cộng với nửa / cỡ mục tiêu: bán kính trúng của đòn đánh thường và nhát chém chiêu tiên cơ Mẫn công. */
-export const MELEE_REACH = 18;
-/** Chiêu tiên cơ Mẫn công lướt tới: bất tử (giây) trong lúc lướt. */
-export const TIEN_CO_DASH_INV = 0.35;
-/** Nón trúng của hồn kỹ có hướng: cos góc giữa hướng nhìn và hướng tới mục tiêu phải lớn hơn mức này (0,2 ≈ nón 78° mỗi bên). */
-export const SKILL_CONE_COS = 0.2;
-/** Vòng hồn thú gọi bầy (`summon`) xuất hiện quanh kẻ gọi: bán kính ngang × dọc (pixel, vòng elip theo hình thoi isometric). */
-export const SUMMON_RING = { rx: 28, ry: 20 } as const;
-/** Tự phân giải trang bị: thử lại không quá 1 lần mỗi khoảng này (mili giây). */
-export const AUTO_SALVAGE_RETRY_MS = 5000;
-/** Lễ thức tỉnh: hồn lực bẩm sinh (cấp khởi đầu của cả hai võ hồn). `maxChance` xác suất ra thẳng cấp `max`, còn lại
- *  `1 + floor(u^curve × (max − 1))` với u đều trong [0, 1) (curve > 1 thì lệch về cấp thấp). */
-export const AWAKEN_LEVEL = { max: 10, maxChance: 0.04, curve: 1.6 } as const;
-
 export const ARENA = {
   startElo: 1000, k: 32,
   window: { base: 100, perSec: 25, max: 2000 },
