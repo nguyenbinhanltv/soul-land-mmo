@@ -86,5 +86,14 @@
   "qa_status": "FAIL / candidate for owner review; not art/runtime/size accepted",
   "publication_policy": "User explicitly requested committing failed raw candidates for owner review; submission is not acceptance or import.",
   "postprocessing": "None; byte-identical copy of original tool output.",
-  "error_line": "LỖI: toB — size/hướng/pose/grid/nền — NE H1C5/H3C5/H4C4, N H8C4, blank H4C5 — actual1254×1254, death yawE, hurt yếu, bleed3px tol60, nền RGB250,3,249 khôngflat."
+  "error_line": "LỖI: toB — size/hướng/pose/grid/nền — NE H1C5/H3C5/H4C4, N H8C4, blank H4C5 — actual1254×1254, death yawE, hurt yếu, bleed3px tol60, nền RGB250,3,249 khôngflat.",
+  "tool_arguments": {
+    "prompt_file": "toB.prompt.txt",
+    "referenced_image_paths": [
+      "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-63/references/dien_thu.png",
+      "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-83/dien_thu-toA-A2.raw.png"
+    ],
+    "transparent_background": false
+  },
+  "reference_path_note": "references.path may be byte-identical stable audit copy; tool_arguments lists actual input paths from upstream provenance."
 }

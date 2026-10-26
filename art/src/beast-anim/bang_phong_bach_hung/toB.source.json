@@ -110,5 +110,14 @@
   "qa_status": "FAIL / candidate for owner review; not art/runtime/size accepted",
   "publication_policy": "User explicitly requested committing failed raw candidates for owner review; submission is not acceptance or import.",
   "postprocessing": "None; byte-identical copy of original tool output.",
-  "error_line": "LỖI: toB — size/hướng/pose/anatomy — NE H4C4, N H7C2–4/H8C3–4 — actual1254×1254; NE die lộ mặt bên, N attack lệch phải, chân chết khó đọc/hurt yếu."
+  "error_line": "LỖI: toB — size/hướng/pose/anatomy — NE H4C4, N H7C2–4/H8C3–4 — actual1254×1254; NE die lộ mặt bên, N attack lệch phải, chân chết khó đọc/hurt yếu.",
+  "tool_arguments": {
+    "prompt_file": "toB.prompt.txt",
+    "referenced_image_paths": [
+      "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-63/references/bang_phong_bach_hung.png",
+      "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-73/A2.png"
+    ],
+    "transparent_background": false
+  },
+  "reference_path_note": "references.path may be byte-identical stable audit copy; tool_arguments lists actual input paths from upstream provenance."
 }

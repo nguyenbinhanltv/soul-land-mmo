@@ -77,5 +77,13 @@
   "qa_status": "FAIL / candidate for owner review; not art/runtime/size accepted",
   "publication_policy": "User explicitly requested committing failed raw candidates for owner review; submission is not acceptance or import.",
   "postprocessing": "None; byte-identical copy of original tool output.",
-  "error_line": "LỖI: toA — hướng/pose/anatomy — S H1C5–6/H4C3–4, SE H5C5–6/H7C3 — hurt/death quay phải, recoil yếu, chi cần owner xem."
+  "error_line": "LỖI: toA — hướng/pose/anatomy — S H1C5–6/H4C3–4, SE H5C5–6/H7C3 — hurt/death quay phải, recoil yếu, chi cần owner xem.",
+  "tool_arguments": {
+    "prompt_file": "toA.prompt.txt",
+    "referenced_image_paths": [
+      "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-63/references/dien_thu.png"
+    ],
+    "transparent_background": false
+  },
+  "reference_path_note": "references.path may be byte-identical stable audit copy; tool_arguments lists actual input paths from upstream provenance."
 }

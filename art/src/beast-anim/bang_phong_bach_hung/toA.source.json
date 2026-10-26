@@ -36,7 +36,8 @@
     {
       "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-63/references/bang_phong_bach_hung.png",
       "role": "static identity, actual image bytes verified",
-      "sha256": "d45e9b847c047f61904d64aa18062bea01e10dc217d69484488762a1853561b5"
+      "sha256": "d45e9b847c047f61904d64aa18062bea01e10dc217d69484488762a1853561b5",
+      "original_input_path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-63/shared/assets/sprites/beast/bang_phong_bach_hung.png"
     }
   ],
   "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a174cb-83ca-7a21-bdf6-11c5c4a2216e/exec-def3fbc9-0203-4e3a-8067-5003a92c5c81.png",
@@ -78,5 +79,13 @@
   "qa_status": "FAIL / candidate for owner review; not art/runtime/size accepted",
   "publication_policy": "User explicitly requested committing failed raw candidates for owner review; submission is not acceptance or import.",
   "postprocessing": "None; byte-identical copy of original tool output.",
-  "error_line": "LỖI: toA — hướng/pose — S H2C1–6, E H11C2–4, hurt/death — walk S nghiêng SE; hurt yếu; die nằm sấp/đổi trục."
+  "error_line": "LỖI: toA — hướng/pose — S H2C1–6, E H11C2–4, hurt/death — walk S nghiêng SE; hurt yếu; die nằm sấp/đổi trục.",
+  "tool_arguments": {
+    "prompt_file": "toA.prompt.txt",
+    "referenced_image_paths": [
+      "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-63/shared/assets/sprites/beast/bang_phong_bach_hung.png"
+    ],
+    "transparent_background": false
+  },
+  "reference_path_note": "references.path may be byte-identical stable audit copy; tool_arguments lists actual input paths from upstream provenance."
 }
