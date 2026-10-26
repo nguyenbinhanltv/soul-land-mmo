@@ -1,0 +1,60 @@
+{
+  "species": "bang_vu_ung",
+  "stage": "turnaround",
+  "issue": 867,
+  "raw_file": "turnaround.png",
+  "sha256": "36947ef5fb200343db9a1ad316635a03c12b6d06c85d6378cb66b2f632af42e8",
+  "bytes": 1757194,
+  "width": 1536,
+  "height": 1024,
+  "output_aspect_ratio": "3:2",
+  "grid": [
+    5,
+    3
+  ],
+  "expected_visible_cells": 15,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Builtin tool output did not expose model ID, seed, or exact-size selector; prompt requested 3:2 aspect ratio.",
+  "transparent_background": false,
+  "selected_attempt": 1,
+  "attempts": 1,
+  "attempt_limit": 3,
+  "generated_at_utc": "2026-10-26T12:03:27Z",
+  "elapsed_seconds": 20.7,
+  "prompt_file": "turnaround.prompt.txt",
+  "prompt_sha256": "c734f97055ac215e9422eab08b5a0a02d5d7b92ce4b0c3257e7b472076791173",
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/bang_vu_ung.png",
+      "role": "static identity reference for Băng Vũ Ưng, viewed before generation",
+      "sha256": "f623fc6c57d5539d28374d0d49b821766afdcd4c1fcad6728cea0cb2760e5ee1",
+      "input_path": "/private/tmp/soul-land-mmo-867-bang-vu-ung-turnaround/shared/assets/sprites/beast/bang_vu_ung.png"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-036b7f16-7398-448d-9be4-a8f74a591804.png",
+  "history": [
+    {
+      "attempt": 1,
+      "sha256": "36947ef5fb200343db9a1ad316635a03c12b6d06c85d6378cb66b2f632af42e8",
+      "bytes": 1757194,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt_file": "turnaround.prompt.txt",
+      "prompt_sha256": "c734f97055ac215e9422eab08b5a0a02d5d7b92ce4b0c3257e7b472076791173"
+    }
+  ],
+  "selection_reason": "Giữ lượt 1 để chủ repo xem turnaround; chưa được xác nhận art accepted.",
+  "known_issues": [],
+  "qa_status": "submitted for owner art review; not art-accepted or imported",
+  "postprocessing": "None; byte-identical copy of original image_gen output.",
+  "tool_arguments": {
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-867-bang-vu-ung-turnaround/shared/assets/sprites/beast/bang_vu_ung.png"
+    ],
+    "transparent_background": false
+  }
+}

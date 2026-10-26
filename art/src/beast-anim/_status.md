@@ -2,13 +2,14 @@
 
 File này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-status.mjs`); **không sửa tay**, không dán bảng tay vào issue. Mức theo khối hướng là kết quả `beast:check` (cỡ, nền, lưới, số hình, chân, cỡ thân, khung chết); `n` / `ne` lộ mặt, hurt ngửa bụng, die xoay chỉ xem bằng mắt (tờ liên hệ).
 
-28 loài có thư mục · 6 đã nhập vào game · 21 sẵn sàng nhập · 7 có khối chặn
+29 loài có thư mục · 6 đã nhập vào game · 21 sẵn sàng nhập · 1 chưa có tờ · 7 có khối chặn
 
 | Loài | Mã | Bố cục | Tờ (cỡ, mức) | s | se | e | ne | n | Thiếu | Nhập game | Trạng thái |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | Ám Kim Khủng Trảo Hùng | `am_kim_khung_trao_hung` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | nhẹ | nhẹ | nhẹ | nhẹ | nhẹ | - | đã nhập | sẵn sàng nhập |
 | Băng Giáp Cự Quy | `bang_giap_cu_quy` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | nhẹ | đạt | nhẹ | đạt | nhẹ | - | chưa | sẵn sàng nhập |
 | Băng Phong Bạch Hùng | `bang_phong_bach_hung` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | đạt | nhẹ | đạt | nhẹ | nhẹ | - | chưa | sẵn sàng nhập |
+| Băng Vũ Ưng | `bang_vu_ung` | - | - | - | - | - | - | - | - | chưa | chưa có tờ |
 | Điền Thử | `dien_thu` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 đạt | nhẹ | nhẹ | đạt | đạt | đạt | - | chưa | sẵn sàng nhập |
 | Độc Vụ Thiềm | `doc_vu_thiem` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | nhẹ | đạt | đạt | đạt | nhẹ | - | chưa | sẵn sàng nhập |
 | Hắc Bối Dã Trư | `hac_boi_da_tru` | sheet | A 1024×1536 đạt<br>B 1254×1254 đạt | đạt | đạt | đạt | đạt | đạt | - | đã nhập | sẵn sàng nhập |
