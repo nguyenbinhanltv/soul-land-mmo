@@ -1,0 +1,88 @@
+{
+  "species": "tu_van_bao",
+  "sheet": "A",
+  "status": "RAW submitted; FAIL; selected style reference only",
+  "imageGenerationCalls": 1,
+  "retryCalls": 0,
+  "generationTime": null,
+  "imageModel": "unknown; builtin tool did not expose model ID",
+  "seed": "unknown; builtin tool did not expose seed",
+  "agentRequestedByUser": "gpt-6.1-sol medium; not evidence of image model",
+  "generatorPath": "tools/assets/beast-sheet-prompt.mjs",
+  "generatorSha256": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba",
+  "generatorMarkdownPath": "art/src/beast-anim/tu_van_bao/tu_van_bao-toA.md",
+  "generatorMarkdownSha256": "b456f91a517bdeb4e92c10865a16edbef305b45afb9a4bdeea63532e953e9474",
+  "basePromptPath": "art/src/beast-anim/tu_van_bao/toA.base.txt",
+  "basePromptSha256": "ef5de7ecaace724068a1bc9065927bddbb3051175afc909a2963f91fad2182bb",
+  "baseExtraction": {
+    "startByteZeroBased": 1924,
+    "endByteExclusive": 6014,
+    "trimmed": false
+  },
+  "actualPromptPath": "art/src/beast-anim/tu_van_bao/toA.prompt.txt",
+  "actualPromptSha256": "4b3eb37d92040edc5ca5bc48c7a69f305bcbd4715c39e0d38b08daef8d5dfc2c",
+  "clarifier": {
+    "position": "suffix",
+    "prefix": "",
+    "suffix": "\n\nDIRECTION AND POSE CLARIFICATION: Keep the exact creature anatomy of reference image 1; do not redesign it to match generic family wording. In every animation row, keep the specified direction. SE faces lower-right, clearly distinct from E side profile; NE faces upper-right with the back visible; N shows the rear in all four rows, including attack, hurt and death. HURT frames must visibly recoil backward. Keep a flat #FF00FF background, no letters, labels or grid lines. This sheet A must be exactly 1024x1536 pixels, 6 columns by 12 rows. Rows 1-4 face S (front), rows 5-8 face SE (lower-right three-quarter front), rows 9-12 face E (right side profile). Draw exactly 66 creature figures and leave exactly 6 cells empty solid magenta: row 4 columns 5-6, row 8 columns 5-6, row 12 columns 5-6. In the death rows keep the same block heading as the creature collapses, without switching to another direction. The original static reference has repeated oblique views and a rear view rather than three distinct front/side/back views; preserve that reference creature anatomy, long legs, purple markings and curved tail while drawing the specified sheet directions.",
+    "baseStartByteZeroBased": 0,
+    "suffixStartByteZeroBased": 4090
+  },
+  "references": [
+    {
+      "order": 1,
+      "role": "static design, anatomy, palette and proportions reference",
+      "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-113/shared/assets/sprites/beast/tu_van_bao.png",
+      "repositoryPath": "shared/assets/sprites/beast/tu_van_bao.png",
+      "sha256": "a0aba371be1612bf5d23e95438a9a9715e8054b6a021ce9da87dff3c781135d3",
+      "durableBackupPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/tu_van_bao/tu_van_bao-static.png"
+    }
+  ],
+  "requestedSize": [
+    1024,
+    1536
+  ],
+  "grid": [
+    6,
+    12
+  ],
+  "plannedOutputPath": "art/src/beast-anim/tu_van_bao/toA.png",
+  "rawOutputPath": "art/src/beast-anim/tu_van_bao/toA.png",
+  "rawSha256": "3ecc1d4a38cd722f232dff8456c903a4b8ec232112557ef2f2262a0e23990a62",
+  "rawSize": [
+    1024,
+    1536
+  ],
+  "postprocessing": false,
+  "anatomyConflictAssessment": "Ảnh tĩnh có hai hình nghiêng sang phải và một hình lưng; không có mặt trước rõ như câu mẫu three static views. Giữ hình thể báo tím, chân dài, đuôi cong; không tự thiết kế lại.",
+  "sourceInputs": {
+    "tools/assets/beast-sheet-prompt.mjs": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba",
+    "tools/assets/beast-sheet-lib.mjs": "16f13e9bbabaedb495671d5cbfcab4cc0f30b8e9529cefe5e9c5ead919e914a7",
+    "tools/assets/lib.mjs": "9f478b04b1ccfd9ce5cf447be5038b668886b38035b8e9fcf0d603acbbd2dd7c",
+    "docs/art/hon-thu-hoat-anh.md": "be83e519cb7db7126b42781dc02b13b1d306bc286e1c3fca8e9cc65b2b8d83d1",
+    "art/CREDITS.md": "6be9a475ee6e46997a375e58ad4a6924878f9e9dfa30eb94d4933c393273fa61",
+    "shared/data.ts": "a79619376f595c4a9ef24ed280f919b63f2e05b7e6ec0c867992cb297fc1160a",
+    "client/src/sprites.ts": "d84f83626bad0309e2eecd665f4d82a997333d97f890f3588eb616643c3f1e66",
+    "shared/assets/sprites/manifest.json": "5c979fd4042514250cdc2e48e99d683ce8dc39331147bf4e8e183c3ab563775a"
+  },
+  "sessionId": "soul-land-mmo-113",
+  "sessionGenerationPermanentlyStopped": true,
+  "tool": "image_gen.imagegen builtin",
+  "generationTimeNote": "Không ghi timestamp bắt đầu/kết thúc tool; không suy diễn thời gian sinh từ thời gian sao chép.",
+  "originalToolOutputPath": "/Users/thanhhoa/.codex/generated_images/01a175db-f87b-7a70-817b-0a3c31e0c095/exec-94197346-a4c5-45f4-96fd-c2871815f0a6.png",
+  "pngIHDR": {
+    "width": 1024,
+    "height": 1536,
+    "bitDepth": 8,
+    "colorType": 2
+  },
+  "durableRawBackupPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/tu_van_bao/toA.raw.png",
+  "assessment": {
+    "technicalSizeMatchesRequest": true,
+    "knownFailureLine": "LỖI: toA — heading/hurt/style — R3–4/S, R7–8/SE, R9C5–6/E, R11–12/E — một số pose đánh/chết lệch hướng khối, hurt chưa giật lùi rõ, nét/thân dày hơn static.",
+    "artAccepted": false,
+    "runtimeAccepted": false,
+    "imported": false,
+    "selection": "A1 only; style reference candidate for B; not art acceptance"
+  }
+}

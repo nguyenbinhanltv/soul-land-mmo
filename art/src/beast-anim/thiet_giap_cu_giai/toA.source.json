@@ -1,0 +1,78 @@
+{
+  "species": "thiet_giap_cu_giai",
+  "sheet": "A",
+  "attempt": "A1",
+  "session": "soul-land-mmo-107",
+  "integration_session": "soul-land-mmo-101",
+  "issue": 770,
+  "umbrella": 766,
+  "tool": "builtin image_gen.imagegen",
+  "image_model_id": "unknown",
+  "seed": "unknown",
+  "size_selector": false,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "actual_dimensions": [
+    1024,
+    1536
+  ],
+  "bytes": 2030674,
+  "sha256": "7c7d6e0efe8a1b3aa303432e1e154622e9aaf56fe5b3532f9742e2966e75f6dd",
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a175d0-103b-70e3-971e-2bdbe54d587a/exec-9108800c-2296-42bf-9a01-f64aa87c82be.png",
+  "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-107/raw/thiet_giap_cu_giai-toA-A1.png",
+  "raw_copy_byte_identical": true,
+  "postprocessing": "NONE",
+  "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-107/prompts/thiet_giap_cu_giai-toA.actual.txt",
+  "exact_prompt_sha256": "1a1351d562c7e6b8f543cde594cc5ffdf44fec59c2bcc0c67621c33519cfb87d",
+  "base_prompt_sha256": "2acf08ed5d70812940c8bf52dae486619a33fb8157fb32ed34395a0c2ce623dd",
+  "prepared_prompt_sha256": "1a1351d562c7e6b8f543cde594cc5ffdf44fec59c2bcc0c67621c33519cfb87d",
+  "prompt_structure": {
+    "prefix_bytes": 591,
+    "base_start_byte_zero_based": 591,
+    "base_end_byte_exclusive": 4639,
+    "base_occurrences": 1,
+    "base_is_final_suffix": true,
+    "prefix": "Input image 1 is the original static character reference for this exact species. Preserve its design, proportions, colors and body size. Request exactly 1024x1536 pixels: 6 columns by 12 rows, S then SE then E, 66 figures and 6 blank cells. All N-direction rows must show the rear with NO visible eyes or face, including hurt and death poses. NE is a rear three-quarter view facing upper-right, clearly showing the back. SE faces lower-right, visibly distinct from E side profile. HURT must visibly recoil backward. Use only flat solid #FF00FF background; no letters, labels or drawn grid.\n\n",
+    "suffix": ""
+  },
+  "ordered_refs": [
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-107/refs/thiet_giap_cu_giai.png",
+      "sha256": "943ead8f78a7ceec9eb814438e421fd48abf6482085c2c5ea151d97704271eb4",
+      "role": "original static character identity; actual attached path confirmed by worker107"
+    }
+  ],
+  "transparent_background": false,
+  "counters": {
+    "worker_calls": 1,
+    "retry": 0,
+    "A": 1,
+    "B_after_this_sheet": 0,
+    "species_calls_after_this_sheet": 1,
+    "owner101_image_gen_calls": 1
+  },
+  "observed_utc": {
+    "before_call": "2026-10-26T01:26:22Z",
+    "tool_return": "2026-10-26T01:26:51Z"
+  },
+  "outcome": "FAIL; submitted RAW only; no size waiver/art acceptance/runtime import",
+  "error_line": "LỖI: toA — pose/heading/background — R1–4 S; R5–8 SE; R9–12 E — hurt C5–6 ở R1/R5/R9 chủ yếu nâng càng, chưa giật lùi rõ; E còn thấy mặt/hai phía thân, chết R8/R12 gần chính diện; nền không phẳng FF00FF; giữ RAW, không retry.",
+  "source_handoff": {
+    "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-107/HANDOFF.md",
+    "sha256": "887c0e9fd7eb385a9b16c297d7117a81ba134affcd8d8e9b0edb4b883a612fed"
+  },
+  "qa_read_only": {
+    "exact_FF00FF_pixels": 9,
+    "total_pixels": 1572864,
+    "semantic_count_not_certified": true,
+    "motion_loop_verified": false,
+    "pair_body_scale_accepted": false
+  },
+  "template_conflicts": [
+    "crab six legs+two claws versus quad/four-legged trot template",
+    "171x6=1026 while requested canvas1024",
+    "A prefix mentions N/NE despite S/SE/E layout"
+  ]
+}
