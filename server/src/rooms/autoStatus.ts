@@ -2,7 +2,6 @@
 // `feed.tick` mỗi nhịp; tin riêng `autost` chỉ gửi khi việc đang làm đổi (tối đa AUTO_STATUS.every giây một lần) hoặc đã AUTO_STATUS.rateEvery giây.
 import type { Client } from "colyseus";
 import { AUTO_STATUS, AUTO_STUCK, TILE, beastName, itemDef, type AutoJob, type AutoRate, type AutoStatus } from "../../../shared/data.ts";
-import type { PData } from "./MapRoom.ts";
 import type { PlayerState } from "./schema.ts";
 import type { AutoHunter, AutoSnap } from "./autoHunt.ts";
 

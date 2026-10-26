@@ -9,7 +9,7 @@ import { Client, type Room } from "colyseus.js";
 import { GameScene } from "./scenes/GameScene.ts";
 import { bufferRoomMessages } from "./roomBuffer.ts";
 import { addLag } from "./predict.ts";
-import { TIERS, VOHON, HE, MAPS, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES,
+import { TIERS, VOHON, HE, MAPS, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES, AWAKEN_LEVEL,
   type He } from "../../shared/data.ts";
 import { API, WS, post, storage, type Character, type Me } from "./net.ts";
 import { ringColor, closeLooks } from "./hud.ts";
@@ -43,6 +43,13 @@ const overlayScreen = (screen: "login" | "loading" | "welcome") => {
   overlay.hidden = false;
 };
 
+/** Đăng xuất: thu hồi phiên ở server (#999) rồi xóa token cục bộ; lỗi mạng cũng không cản việc xóa cục bộ. */
+function logout() {
+  const t = token; token = ""; storage.del("shh-token");
+  if (t) void post("/api/logout", { token: t }).catch(() => {});
+  loginScreen();
+}
+
 function loginScreen(err = "") {
   overlayScreen("login"); card.classList.remove("wide");
   card.innerHTML = `<img class="c6-logo" src="/ui/c6/logo.png" alt="Rừng Săn Hồn">
@@ -58,9 +65,9 @@ function loginScreen(err = "") {
     <div class="gsep" id="gsep" hidden><span>hoặc</span></div>
     <div class="gbtn" id="gbtn" hidden></div>
     <button class="c6-credits" id="credits-open" type="button">Ghi công</button>
-    <aside class="c6-event" aria-label="Sự kiện đang diễn ra">
+    <aside class="c6-event" aria-label="Mẹo chơi">
       <img src="/ui/c6/event-banner.png" alt="">
-      <div class="c6-event-copy"><small>SỰ KIỆN MÙA SĂN</small><strong>Vòng Hồn Nguyệt Ảnh</strong><span>Thu thập ánh trăng trong Rừng Săn Hồn</span></div>
+      <div class="c6-event-copy"><small>MẸO SĂN HỒN</small><strong>Né vùng đỏ</strong><span>Chạy ra khỏi vùng đỏ trước khi nó đầy</span></div>
     </aside>`;
   document.getElementById("credits-open")!.addEventListener("click", openCredits);
   const name = document.getElementById("name") as HTMLInputElement, pass = document.getElementById("pass") as HTMLInputElement;
@@ -174,7 +181,7 @@ function createScreen(me: Me) {
         throw e;
       }
     },
-    cancel: { label: "Đổi tài khoản", fn: () => { stop(); card.classList.remove("mk"); storage.del("shh-token"); loginScreen(); } },
+    cancel: { label: "Đổi tài khoản", fn: () => { stop(); card.classList.remove("mk"); logout(); } },
   });
 }
 
@@ -205,7 +212,7 @@ function awakenIntro() {
     aw.disabled = false; aw.textContent = `Thức tỉnh ${v.name}`;
   }));
   aw.onclick = () => { if (chosen) awaken(chosen); };
-  document.getElementById("out")!.onclick = () => { storage.del("shh-token"); loginScreen(); };
+  document.getElementById("out")!.onclick = () => { logout(); };
 }
 
 async function awaken(vohon: string) {
@@ -217,7 +224,7 @@ async function awaken(vohon: string) {
     card.innerHTML = `<div class="vh bigcard"></div>
       <div class="vh"><h2>${v.name}</h2><div class="k">${v.rarity} · ${HE[v.he].name}${v.owner ? ` · ${v.owner}` : ""}</div>
       <div class="t">${v.trait}<br>Kèm theo võ hồn <b style="color:${gift.col}">${gift.name}</b>.
-      <br>Hồn lực bẩm sinh: <b>cấp ${c.level}</b>${c.level === 10 ? " – tiên thiên mãn hồn lực!" : ""}</div></div>
+      <br>Hồn lực bẩm sinh: <b>cấp ${c.level}</b>${c.level === AWAKEN_LEVEL.max ? " – tiên thiên mãn hồn lực!" : ""}</div></div>
       <div class="btns"><button class="btn primary" id="go">Tới ${esc(MAPS[mapId]?.name ?? "bản đồ")}</button></div>`;
     card.querySelector(".bigcard")!.appendChild(vohonCard(v, { level: c.level, stars: c.stars, rings: c.rings }));
     document.getElementById("go")!.onclick = () => join();
@@ -239,7 +246,7 @@ function welcomeScreen(c: Character) {
     <div class="btns"><button class="btn primary" id="go">Vào ${esc(MAPS[mapId]?.name ?? "game")}</button><button class="btn" id="out">Đổi tài khoản</button></div>`;
   card.querySelector(".bigcard")!.appendChild(vohonCard(v, { level: c.level, stars: c.stars, rings: c.rings }));
   document.getElementById("go")!.onclick = () => join();
-  document.getElementById("out")!.onclick = () => { storage.del("shh-token"); loginScreen(); };
+  document.getElementById("out")!.onclick = () => { logout(); };
   document.getElementById("go")!.focus();
 }
 

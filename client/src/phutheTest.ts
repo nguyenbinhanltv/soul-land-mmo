@@ -32,19 +32,28 @@ class PhutheScene extends Phaser.Scene {
   dir = DIR_ROW[q.get("huong") ?? ""] ? q.get("huong")! : "e";
   state: SpiritState = (STATES as string[]).includes(q.get("trang") ?? "") ? (q.get("trang") as SpiritState) : "walk";
   heroes: Hero[] = []; pose = newSpiritPose(); shift = { x: 0, y: 0 };
+  blank = new Set<string>();
   fake: number | null = null; stateT0 = 0; other = q.get("khac") === "1"; spentMs = 0; spentN = 0;
   constructor() { super("phuthe"); }
   preload() {
     this.load.spritesheet("t_body", "sprites/iso/lpc/dan_khach.png", { frameWidth: 64, frameHeight: 64 });
-    for (const v of VOHON) for (const h of ["b", "f"]) this.load.spritesheet(`vh_${v.id}_${h}`, `sprites/vohon/${v.id}_${h}.png`, { frameWidth: 96, frameHeight: 96 });
+    // Nửa phụ thể `"blank": true` trong manifest không có file (#974): không tải, hero() mượn texture nửa kia và ẩn lớp đó.
+    this.load.json("t_manifest", "sprites/manifest.json");
+    this.load.once("filecomplete-json-t_manifest", (_k: string, _t: string, data: { sprites?: ({ key: string; blank?: boolean } | string)[] }) => {
+      for (const e of data.sprites ?? []) if (typeof e !== "string" && e.blank && e.key.startsWith("vh_")) this.blank.add(e.key);
+      for (const v of VOHON) for (const h of ["b", "f"]) if (!this.blank.has(`vh_${v.id}_${h}`)) this.load.spritesheet(`vh_${v.id}_${h}`, `sprites/vohon/${v.id}_${h}.png`, { frameWidth: 96, frameHeight: 96 });
+    });
   }
   hero(x: number, y: number, id: string, on: boolean): Hero {
     // chưa có ảnh phụ thể thật (hoa_long, liet_hoa_thuong_lang): dùng hình tạm vẽ bằng code 48×48 như trong game (textures.ts)
-    const [kb, kf] = this.textures.exists(`vh_${id}_b`) && this.textures.get(`vh_${id}_b`).key !== "__MISSING" ? [`vh_${id}_b`, `vh_${id}_f`] : vohonTextures(this, VOHON.findIndex((v) => v.id === id));
+    const [bb, fb] = [this.blank.has(`vh_${id}_b`), this.blank.has(`vh_${id}_f`)], real = (k: string) => this.textures.exists(k) && this.textures.get(k).key !== "__MISSING";
+    const [kb, kf] = real(`vh_${id}_${bb ? "f" : "b"}`) ? [`vh_${id}_${bb ? "f" : "b"}`, `vh_${id}_${fb ? "b" : "f"}`] : vohonTextures(this, VOHON.findIndex((v) => v.id === id));
     const mk = (key: string, vohon: boolean) => fitHonsuLayer(this.make.sprite({ key, frame: 0 }, false), vohon);
     const vb = mk(kb, true), body = mk("t_body", false), vf = mk(kf, true);
     const root = this.add.container(x, y, [this.add.ellipse(0, 0, 22 / SPR, 9 / SPR, 0x000000, 0.4), vb, body, vf]).setScale(SPR).setDepth(y);
     const h: Hero = { root, vb, body, vf, fam: SPIRIT_FAMILY[id] ?? "", phase: spiritPhase(id + x), on, id, iso: isIsoSheet(this, kb) };
+    if (bb) vb.setAlpha(0);
+    if (fb) vf.setAlpha(0);
     this.heroes.push(h); return h;
   }
   create() {

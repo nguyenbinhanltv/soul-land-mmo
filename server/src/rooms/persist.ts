@@ -3,7 +3,6 @@
 // MapRoom chỉ chuyển tiếp (mọi miền, `autoHunt.ts`, `gm.ts` gọi `room.chain` / `room.save` như cũ; `ArenaRoom` vẫn override `write`).
 
 import { store } from "../db.ts";
-import type { Character, Bag } from "../db.ts";
 import { MAPS } from "../../../shared/data.ts";
 import { ItemLockBusy, withItemLocks } from "../itemLock.ts";
 import { presenceBackend } from "../presence.ts";

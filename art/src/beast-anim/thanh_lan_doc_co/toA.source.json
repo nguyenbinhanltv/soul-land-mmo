@@ -12,7 +12,7 @@
     1024,
     1536
   ],
-  "size_requirement_met": false,
+  "size_requirement_met": true,
   "grid": [
     6,
     12
@@ -40,13 +40,12 @@
     }
   ],
   "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-72641356-2f73-4d40-9ebc-73c759433e30.png",
-  "selection_reason": "A1 là lượt đầu và candidate duy nhất hiện có; giữ RAW dù sai tỉ lệ, không thêm lượt A.",
+  "selection_reason": "A1 là lượt đầu và candidate duy nhất hiện có; giữ RAW, không redraw chỉ vì cỡ đã được #1007 chấp nhận.",
   "known_issues": [
-    "Finding kỹ thuật: RAW A1 là 941×1672, không đúng tỉ lệ A 2:3; không resize hoặc crop.",
     "LỖI: toA — sai hướng — s — ATTACK H3 C3–4 quay sang phải thay vì giữ hướng s.",
     "LỖI: toA — sai pose — s — DIE H4 C1–4 nằm ngang ảnh, không giữ trục hướng s."
   ],
-  "qa_status": "Candidate; technical ratio finding and observed art errors; not owner-approved.",
+  "qa_status": "Candidate; observed checker and art findings; not owner-approved.",
   "publication_policy": "Submit original RAW and findings per owner directive; submission is not art acceptance or import.",
   "postprocessing": "None; byte-identical copy of original tool output.",
   "error_line": "LỖI: toA — sai hướng — s — ATTACK H3 C3–4 quay sang phải thay vì giữ hướng s. LỖI: toA — sai pose — s — DIE H4 C1–4 nằm ngang ảnh, không giữ trục hướng s.",

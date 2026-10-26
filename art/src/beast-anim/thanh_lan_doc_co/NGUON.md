@@ -10,7 +10,7 @@ Loài `thanh_lan_doc_co` (Thanh Lân Độc Cổ), họ `snake`, khung game 96×
 - Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toA.prompt.txt` (SHA256 `4a58cb9b873c896ebe14816aa5ccedd731f477e790c1fc3e0feaa6de2b62df75`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
-- Mức kiểm: **chặn** (khối hướng: ?).
+- Mức kiểm: **chặn** (khối hướng: s nhẹ, se nhẹ, e chặn).
 - Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## toB
@@ -25,12 +25,20 @@ Loài `thanh_lan_doc_co` (Thanh Lân Độc Cổ), họ `snake`, khung game 96×
 ## Lỗi
 
 ```text
-LỖI: toA — sai kích thước — toàn tờ — 941×1672 không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2).
-LỖI: toA — sai hướng — s — ATTACK H3 C3–4 quay sang phải, không giữ hướng s (mắt)
-LỖI: toA — sai pose — s — DIE H4 C1–4 nằm ngang ảnh, không giữ trục hướng s (mắt)
+LỖI: toA — chân lệch / cỡ thân lệch — H3 (s) C3–4, H7 (se) C3–4, H11 (e) C3–4, H1–4 (s), H9–12 (e) — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 20%); chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 22%); chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 20%); cỡ thân idle 77% so với ảnh tĩnh (lệch 23%); cỡ thân idle 135% so với ảnh tĩnh (lệch > 25%).
+LỖI: toA — hướng — s H3 C3–4 quay sang phải, không giữ hướng s (mắt)
+LỖI: toA — pose — s H4 C1–4 nằm ngang ảnh, không giữ trục hướng s (mắt)
 LỖI: toB — chân lệch / hình ở ô trống — H3 (ne) C3–4, H4 (ne) C5, H4 (ne) C6, H7 (n) C3–4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 18%); ô trống có hình (1.07% diện tích ô): hình tràn từ ô bên; ô trống có hình (1.55% diện tích ô): hình tràn từ ô bên; chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 17%).
-LỖI: toB — sai hướng — ne — ATTACK H3 C3–4 lộ mặt/mõm (mắt)
-LỖI: toB — sai hướng — n — WALK H6 C1–6 quay ngang sang phải, không giữ hướng n (mắt)
-LỖI: toB — sai hướng — n — ATTACK H7 C3–4 lộ mặt/mõm (mắt)
-LỖI: toB — sai pose — n — DIE H8 C1–4 nằm ngang ảnh, không giữ trục hướng n (mắt)
+LỖI: toB — hướng — ne H3 C3–4 lộ mặt/mõm (mắt)
+LỖI: toB — hướng — n H6 C1–6 quay ngang sang phải, không giữ hướng n (mắt)
+LỖI: toB — hướng — n H7 C3–4 lộ mặt/mõm (mắt)
+LỖI: toB — pose — n H8 C1–4 nằm ngang ảnh, không giữ trục hướng n (mắt)
 ```
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); không nối dòng vào `art/CREDITS.md`.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/thanh_lan_doc_co/` | - | builtin Codex `image_gen.imagegen` | Thanh Lân Độc Cổ (H4 #774): RAW `art/src/beast-anim/thanh_lan_doc_co/toA.png` (941×1672, A1/1; sai tỉ lệ A 2:3) và `toB.png` (1254×1254, B1/1; cỡ B hợp lệ), sinh ngày 2026-10-26 bằng builtin Codex `image_gen.imagegen`. A chỉ tham chiếu static `shared/assets/sprites/beast/thanh_lan_doc_co.png`; B tham chiếu static rồi A1 candidate chưa được owner duyệt. Model/seed không được công cụ công bố. RAW nguyên byte, không hậu kỳ/cắt/resize. Prompt và provenance ở `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json`; lỗi quan sát được ghi trong provenance/NGUON khi công cụ sinh. Chờ review; chưa artaccepted/imported. Part of #774. | 2026-10-26 | Cập nhật #1007: A 941×1672 hợp lệ, không redraw vì size. Vẫn còn finding checker và mỹ thuật như mục Lỗi; chưa artaccepted/imported. |

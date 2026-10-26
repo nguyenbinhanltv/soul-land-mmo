@@ -1,6 +1,6 @@
 // Nhóm bot "combat" (#703 bước 6, tách nguyên văn từ bot-test.mjs): Chiến đấu: khoá mục tiêu, che tầm nhìn, Cực Hàn, hang chia phần, dòng phụ hồn cốt, liên kích.
 import { readFileSync } from "node:fs";
-import { post, sleep, waitFor, ok, mapUrl, bot, enter, bonesOf, npcSpot, sendTeam, same, test, step } from "./lib.mjs";
+import { post, sleep, waitFor, ok, mapUrl, bot, enter, bonesOf, npcSpot, sendTeam, same, test, step, needHookSkip } from "./lib.mjs";
 import { TIERS, calcStats, TIEN_CO_MAX, formatHonTe, TIEN_CO_RIENG, STATUS, STATUS_IDS, statusBit, CRIT, TEAM_COMBAT_SECS, MAPS, MAX_YEARS, BONE_ITEM, BONE_SLOTS, boneStats, boneBonus, TELE_PAD, BOSSES, bossIndex, KING, BONE_MAX_ENHANCE, BONE_ENHANCE_FEE, enhanceFee, BONE_MAX_SUBS, BONE_SUB_K, BONE_SUB_POOL, BONE_ENHANCE_MILESTONES, boneSubMax, boneSubsDue, parseBoneSubs, boneAddSubs, CORE_ITEM, CORE_SUB_ROLL, CORE_STATS, CORE_STAT_IDS, coreStatText, PLAYER_STATUS, AUTO_DEFAULTS, GROUND_KINDS } from "../../../shared/data.ts";
 import { hoaDanSpot } from "../../../shared/hoaDan.ts";
 import { comboHits } from "./village.mjs";
@@ -19,10 +19,10 @@ export async function lockTest(){
   console.log("[M3 #750] Khoá mục tiêu: tự đánh, giữ khoá khi bị đánh / Choáng, Space tự quay mặt");
   const F=await bot("Khoá mục tiêu","xuc_xich",{sex:0,hair:2,hairCol:3,outfitCol:2});
   const mo=()=>F.room.state.players?.get(F.room.sessionId), bs=bid=>F.room.state.beasts.get(bid);
-  let lockMsg=null, lockWhy=null, n=0; F.room.onMessage("lock",m=>{ lockMsg=m.id; lockWhy=m.why??null; n++; });
+  let lockMsg=null, lockWhy=null, n=0, nWhy=0; F.room.onMessage("lock",m=>{ lockMsg=m.id; lockWhy=m.why??null; if(m.why)nWhy++; n++; });
   await waitFor(()=>F.owned&&mo(),3000);
   try{
-    if(!(await test(F,"ping"))?.enabled){ console.log("  ⚠ bỏ qua khoá mục tiêu (cần hook goto, spawn, clear, pst): bật server bằng GAME_TEST=1"); return; }
+    if(!(await test(F,"ping"))?.enabled){ needHookSkip("bỏ qua khoá mục tiêu (cần hook goto, spawn, clear, pst): bật server bằng GAME_TEST=1"); return; }
     // Ra ngoài vùng an toàn của làng (không đánh được trong làng).
     const sv=JSON.parse(readFileSync(mapUrl("thanh_hon_thon"),"utf8")).layers.flatMap(l=>l.objects??[]).find(o=>o.type==="safe"), tv=npcSpot("thanh_hon_thon","to_van_dao");
     let out=false;
@@ -65,6 +65,16 @@ export async function lockTest(){
     // 6b) Chưa khoá mà bị từ chối: vẫn nhận tin `lock ""` (client đã đặt khoá tạm, không có tin này sẽ vẽ vòng khoá giả).
     await sleep(200); const n0=n; F.room.send("target",{id:"khong-co-id"});
     ok(await waitFor(()=>n>n0&&lockMsg==="",1000),"chưa khoá, bấm id sai: server vẫn trả lock rỗng để client bỏ khoá tạm");
+    // 6c) Từ chối lúc bấm có lý do (#989): trứng / quá xa / vùng an toàn / gục; cùng lý do bấm dồn thì chỉ báo 1 lần.
+    const deny=async(why,send)=>{ lockWhy=null; const n1=n; send(); await waitFor(()=>n>n1,1000); return lockWhy===why; };
+    await test(F,"clear"); const far=(await test(F,"spawn",{tier:0,dx:70}))?.bid; await waitFor(()=>bs(far),1000);
+    await sleep(1100); const outX=mo().x, outY=mo().y; // chờ hết cửa sổ báo của các lần bấm id sai ở trên
+    ok(await deny("gone",()=>F.room.send("target",{id:"khong-co-id"})),"bấm id không còn: lock rỗng kèm why gone");
+    await sleep(1100); lockWhy=null; const n2=n, w2=nWhy; F.room.send("target",{id:"khong-co-id"}); F.room.send("target",{id:"khong-co-id"});
+    await waitFor(()=>n>=n2+2,1000); ok(nWhy===w2+1&&n===n2+2,"bấm dồn cùng lý do: chỉ lần đầu mang why (lần sau lock rỗng, không why)");
+    await test(F,"goto",{x:sv.x+sv.width/2,y:sv.y+sv.height/2}); await sleep(1100);
+    ok(await deny("safe",()=>F.room.send("target",{id:far})),"đứng trong vùng an toàn bấm hồn thú: why safe");
+    await test(F,"goto",{x:outX,y:outY});
     // 7) Space chưa khoá: quay mặt về quái gần nhất trong tầm (hồn sư đang quay lưng) rồi đánh.
     await test(F,"clear"); F.room.send("input",{x:-1,y:0}); await sleep(250); F.room.send("input",{x:0,y:0}); await sleep(150);
     await test(F,"goto",{x:mo().x,y:mo().y});
@@ -98,7 +108,7 @@ export async function inkTest(){
   const pst=async()=>(await test(F,"cold")).st; // hook cold trả trạng thái trên người gọi (thời gian còn lại)
   await waitFor(()=>F.owned&&mo(),3000);
   try{
-    if(!(await test(F,"ping"))?.enabled){ console.log("  ⚠ bỏ qua Phun Mực (cần hook warp, erespawn, tele): bật server bằng GAME_TEST=1"); return; }
+    if(!(await test(F,"ping"))?.enabled){ needHookSkip("bỏ qua Phun Mực (cần hook warp, erespawn, tele): bật server bằng GAME_TEST=1"); return; }
     const xr=F.owned.list.find(v=>v.vohon==="xuc_xich")?.rowId, lr=F.owned.list.find(v=>v.vohon==="lam_ngan_thao")?.rowId;
     for(const r of [xr,lr]) await test(F,"set",{rowId:r,level:100,xp:0,rings:[423,764,1760,5000,12000]});
     F.travel=null; await test(F,"warp",{mapId:HT,x:0,y:0}); await waitFor(()=>F.travel,3000); const tv=F.travel;
@@ -262,7 +272,7 @@ export async function splitTest(){
   ok(["ice","fire","web"].every(k=>GROUND_KINDS.some(g=>g.id===k)),"kiểu vùng băng / lửa / tơ có trong GROUND_KINDS (client vẽ)");
   if(!LS||!VS||!FD) return;
   const F=await bot("Lưỡng Nghi F","xuc_xich",{sex:1,hair:1,hairCol:2,outfitCol:4});
-  if(!(await test(F,"ping"))?.enabled){ console.log("  ⚠ bỏ qua hang chia phần (cần hook warp, king, split, form): bật server bằng GAME_TEST=1"); await F.room.leave(); return; }
+  if(!(await test(F,"ping"))?.enabled){ needHookSkip("bỏ qua hang chia phần (cần hook warp, king, split, form): bật server bằng GAME_TEST=1"); await F.room.leave(); return; }
   const mo=()=>F.room.state.players?.get(F.room.sessionId), kingB=()=>[...F.room.state.beasts.values()].find(b=>b.rank===2);
   const has=s=>((mo()?.st??0)&statusBit(s))!==0, heal=()=>test(F,"pregen",{hp:100,mp:100,s:0});
   const autoOp=async(op,more={})=>{ F.autoMsg=null; F.room.send("auto",{op,...more}); await waitFor(()=>F.autoMsg,1500); return F.autoMsg; };
@@ -433,7 +443,7 @@ export async function boneSubTest(){
   const S=await bot("Cốt Phụ","u_minh_linh_mieu",{sex:1,hair:0,hairCol:2,outfitCol:1});
   const me=()=>S.room.state.players?.get(S.room.sessionId);
   await waitFor(()=>S.owned&&S.bag&&me(),3000);
-  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua dòng phụ hồn cốt trong game (cần hook give, stats): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  if(!(await test(S,"ping"))?.enabled){ needHookSkip("bỏ qua dòng phụ hồn cốt trong game (cần hook give, stats): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
   try{
     const AK="am_kim_khung_trao_hung", act=S.owned.active, itemOf=id=>S.bag.items.find(i=>i.id===id);
     async function op(type,msg){ const n=S.bagMsgs??0, l=S.logs.length; S.room.send(type,msg); await waitFor(()=>(S.bagMsgs??0)>n&&S.logs.length>l,2000); await sleep(80); return S.logs.at(-1)??""; }
@@ -503,7 +513,7 @@ export async function comboTest(){
   console.log("[#249] Hạo Thiên 4 món: liên kích ở đòn thứ 3, lặp nhiều lượt");
   const H=await bot("Liên Kích","u_minh_linh_mieu",{sex:0,hair:1,hairCol:3,outfitCol:2}), me=()=>H.room.state.players?.get(H.room.sessionId);
   await waitFor(()=>H.owned&&H.bag&&me(),3000);
-  if(!(await test(H,"ping"))?.enabled){ console.log("  ⚠ bỏ qua liên kích (cần hook give, beast, status): bật server bằng GAME_TEST=1"); await H.room.leave(); return; }
+  if(!(await test(H,"ping"))?.enabled){ needHookSkip("bỏ qua liên kích (cần hook give, beast, status): bật server bằng GAME_TEST=1"); await H.room.leave(); return; }
   try{
     const act=H.owned.active, cores=()=>(H.bag?.items??[]).filter(i=>i.code===CORE_ITEM);
     await test(H,"set",{rowId:act,level:100,xp:0,rings:[400,700,1700,5000,12000,20000,50000,100000,100000]});
