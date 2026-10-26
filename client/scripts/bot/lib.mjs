@@ -183,3 +183,10 @@ export function zonesByName(objs){
   }
   return m;
 }
+
+/** Bước một chút theo (x, y) để quay mặt: chờ thấy bước rồi mới dừng. Gửi dừng sau một khoảng cố định thì server bận có thể nhận
+ *  cả hai tin trong cùng một nhịp, không bước, hướng nhìn (chỉ đổi khi bước) giữ hướng cũ và đòn đánh / hồn kỹ có hướng bắn trượt. */
+export async function step(b,x,y){
+  const q=b.room.state.players.get(b.room.sessionId), x0=q.x, y0=q.y;
+  b.room.send("input",{x,y}); await waitFor(()=>Math.hypot(q.x-x0,q.y-y0)>=1,1000); b.room.send("input",{x:0,y:0}); await sleep(100);
+}
