@@ -230,11 +230,14 @@ Máu của tinh anh, thú vương và boss thế giới **tăng theo số ngư�
 - Bảng xếp hạng mở từ hộp thoại biển đấu trường. Xong trận thì về đúng chỗ cũ.
 
 ## 16. Cộng minh
-Giai đoạn cuối: nuôi **đều nhiều võ hồn** thì **mọi** võ hồn của tài khoản (kể cả mở sau) được cộng % sinh lực / hồn lực / công. Bảng Cộng minh (phím K hoặc nút "Cộng minh") có 4 trụ cột, mỗi trụ cột vài mốc:
+Giai đoạn cuối: nuôi **đều nhiều võ hồn** thì **mọi** võ hồn của tài khoản (kể cả mở sau) được cộng thêm chỉ số: % sinh lực / hồn lực / công, và (trụ Sao) chí mạng, giảm sát thương nhận, tốc chạy. Bảng Cộng minh (phím K hoặc nút "Cộng minh") có 5 trụ cột, mỗi trụ cột vài mốc (số mốc và mức cộng xem `RESONANCE` trong `shared/data.ts`):
 - **Võ hồn:** số võ hồn đạt đủ cấp.
 - **Hồn hoàn:** tổng số hồn hoàn đã hấp thụ trên mọi võ hồn.
 - **Hồn cốt:** số hồn cốt **đang gắn** đã cường hóa đủ cấp.
 - **Hồn hạch:** số hồn hạch **đang gắn** đủ sao.
+- **Sao võ hồn:** tổng sao cộng thêm trên mọi võ hồn (lên sao cũng cập nhật mốc ngay).
+
+Chi tiết luật: [`design/cong-minh.md`](design/cong-minh.md).
 
 Chỉ đồ đang gắn mới tính (đồ trong túi không tính); tháo đồ làm tụt mốc thì mất phần cộng, có báo.
 
