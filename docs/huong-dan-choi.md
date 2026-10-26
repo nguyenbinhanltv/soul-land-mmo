@@ -20,8 +20,9 @@ Mọi con số (tỉ lệ, giá, giờ boss, giới hạn niên hạn…) đều
 14. [Tổ đội](#14-tổ-đội)
 15. [Đại Đấu Hồn Trường](#15-đại-đấu-hồn-trường)
 16. [Cộng minh](#16-cộng-minh)
-17. [Gục, hồi sinh, vùng an toàn](#17-gục-hồi-sinh-vùng-an-toàn)
-18. [Mẹo nhanh](#18-mẹo-nhanh)
+17. [Các hệ thống nâng cao](#17-các-hệ-thống-nâng-cao) (tông môn, bạn bè, tự săn, radar, trang bị hồn sư, giao diện Nhân vật + Túi: [trang riêng](huong-dan-choi-he-thong.md))
+18. [Gục, hồi sinh, vùng an toàn](#18-gục-hồi-sinh-vùng-an-toàn)
+19. [Mẹo nhanh](#19-mẹo-nhanh)
 
 ---
 
@@ -41,19 +42,39 @@ Chơi được bằng chuột / bàn phím hoặc chạm trên điện thoại.
 | WASD / mũi tên, hoặc **bấm chuột xuống đất** | Đi (bấm chuột thì tự tìm đường vòng vật cản) |
 | Shift (giữ) | Đi bộ thay vì chạy (ngoài giao chiến tự chạy) |
 | J / Space | Đánh thường |
+| **Tab** | Khoá hồn thú kế tiếp ở gần (từ gần ra xa, hết vòng quay lại con gần nhất) |
 | U / I / O / P | 4 hồn kỹ đang mang theo |
 | R | Võ Hồn Chân Thân (mở ở vòng 7) |
 | Z / X / C | Kỹ năng hồn cốt chủ động: đầu, tay trái, tay phải |
+| G | Võ Hồn Dung Hợp Kỹ với đồng đội tổ đội (mời, hoặc hưởng ứng khi được mời) |
 | 1–4 | Đổi sang võ hồn ở ô tương ứng của đội |
 | E | Nhặt đồ rơi gần nhất |
 | F | Đi qua cổng đang đứng / mở bản đồ thế giới khi đứng trên truyền tống trận / nói chuyện với NPC gần nhất |
 | V / B / K | Bảng đội hình / túi đồ / Cộng minh |
+| H | Bảng Nhân vật (búp bê trang bị); B và H mở cạnh nhau được. **C không mở bảng** vì C là kỹ năng hồn cốt tay phải |
+| [ / ] | Khi bảng Nhân vật đang mở: chuyển tab búp bê trước / sau |
+| L | Bảng Bạn bè |
 | M | Bản đồ thế giới |
-| Enter / Esc | Mở chat / đóng bảng, hộp thoại |
+| N | Bản đồ khu vực của bản đồ đang đứng |
+| Y | Đi / dừng tự đi tới cờ đã đặt |
+| T | Bật / tắt tự săn |
+| Enter / Esc | Mở chat / đóng bảng, hộp thoại (xem "Esc" dưới đây) |
 
-- **Chuột:** bấm vào hồn sư khác để mở menu người chơi (mời tổ đội), bấm vào NPC để nói chuyện. Các nút "Đội hình", "Túi đồ", "Cộng minh", "Âm thanh" ở khung chỉ số; "Thế giới" và "Kênh N" ở bản đồ nhỏ.
+**Khoá mục tiêu và bấm-để-đi**
+- **Bấm vào hồn thú** (hoặc Tab) là **khoá mục tiêu**: nhân vật tự đi tới con đó rồi tự đánh thường khi đã trong tầm. Dưới chân con bị khoá có vòng đỏ cam nhấp nháy; hồn thú chết, chạy quá xa, bạn vào vùng an toàn hoặc gục thì khoá tự huỷ và có báo lý do.
+- **Bấm xuống đất** là bấm-để-đi: nhân vật tự tìm đường tới điểm đó. Bấm hồn thú rồi bấm đất (hoặc ngược lại) thì lệnh sau thay lệnh trước.
+- **Chip trạng thái** (giữa dưới màn hình) cho biết nhân vật đang nghe lệnh nào: "Đang đánh: …", "Đang đi tới…", "Tự đi cờ", "Tự săn". Bấm **×** trên chip để huỷ đúng lệnh đó. Lệnh bị huỷ hay không bật được thì chip báo lý do vài giây.
+- **Ai thắng ai:** tay bạn luôn thắng. Giữ phím di chuyển / cần điều khiển thì huỷ mọi lệnh tự chạy; bấm nền hoặc khoá hồn thú thì huỷ cờ tự đi và tự săn; cờ tự đi và tự săn **không bật được** khi bạn đang bấm đi hoặc đang khoá (chip báo, huỷ lệnh kia rồi bật lại).
+- **Space / J** quay mặt về con bạn đang khoá nếu nó trong tầm; chưa khoá (hoặc chưa tới tầm) thì quay về **hồn thú gần nhất trong tầm đánh** rồi đánh; không có con nào thì đánh theo hướng đang quay.
+- **Esc** đóng từng lớp một, mỗi lần nhấn đóng **một** thứ: bản đồ khu vực, khung chat đang mở, rồi bảng trên cùng (bảng vừa mở hoặc vừa bấm vào ở trên cùng); hết bảng mới bỏ khoá mục tiêu.
+- Khi tiêu điểm bàn phím đang ở một nút trong bảng, Tab xoay vòng trong bảng và Space / Enter bấm nút đó, không thành đổi mục tiêu hay đánh. Nút vừa bấm chuột không tính, nên chơi bằng chuột rồi bấm Space vẫn đánh được.
+
+**Hướng dẫn lần đầu:** vào game lần đầu có thẻ giấy 4 bước (đi, khoá hồn thú và tự đánh, hồn kỹ, nhặt và hấp thụ hồn hoàn). "Tiếp" bỏ qua một bước, "Bỏ qua" tắt cả hướng dẫn; nút "Hướng dẫn" (?) ở menu xem lại từ đầu.
+
+- **Chuột:** bấm vào hồn sư khác để mở menu người chơi (mời tổ đội, nhắn riêng, kết bạn, chặn), bấm vào NPC để nói chuyện. Các nút "Đội hình", "Túi đồ", "Cộng minh", "Âm thanh" ở khung chỉ số; "Thế giới", "Vùng" và "Kênh N" quanh radar.
 - **Điện thoại:** cần điều khiển ảo để đi (kéo một phần thì đi chậm), nút "Đánh", "Nhặt", "Chân Thân", 4 nút hồn kỹ, 3 nút nhỏ bên trái thanh hồn kỹ cho kỹ năng hồn cốt; chạm ô trên thanh đội hình để đổi võ hồn; chạm NPC ("Chạm để nói chuyện"), chạm truyền tống trận, chạm nút trong hộp cổng.
-- **Lệnh chat:** `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội, `/hat` bật / tắt hạt bay và thời tiết.
+- **Lệnh chat:** `/b` chat bản đồ, `/d` tổ đội, `/t <tên>` tin riêng, `/r` trả lời, `/tm` tông môn, `/tg` kênh thế giới (có yêu cầu cấp và nhịp gửi), `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội, `/hat` bật / tắt hạt bay và thời tiết. Ô chat có tab Tất cả / Bản đồ / Tổ đội / Riêng / Tông / Thế giới; tin thường gửi theo tab đang chọn.
+- **Cỡ giao diện:** mặc định **tự động theo màn**: màn lớn thì giao diện phóng to theo từng bậc (màn 1366 giữ cỡ gốc, màn rộng hơn lên các bậc lớn hơn). Muốn tự chọn thì vào Cài đặt (nút "Cài đặt âm thanh và giao diện") → "Cỡ giao diện", chọn Tự động hoặc một mức cố định; lựa chọn được nhớ trong trình duyệt. Màn hẹp (điện thoại) thì Nhân vật và Túi chỉ hiện một bảng một lúc, đổi qua lại bằng thẻ ở đầu màn hình.
 - Máy yếu, khung hình giật: game tự tắt hiệu ứng ánh sáng và báo trong khung tin; có thể mở game với `?light=0` ở cuối địa chỉ để luôn tắt.
 
 ## 3. Vòng chơi chính
@@ -217,14 +238,23 @@ Giai đoạn cuối: nuôi **đều nhiều võ hồn** thì **mọi** võ hồn
 
 Chỉ đồ đang gắn mới tính (đồ trong túi không tính); tháo đồ làm tụt mốc thì mất phần cộng, có báo.
 
-## 17. Gục, hồi sinh, vùng an toàn
+## 17. Các hệ thống nâng cao
+Phần này nằm ở trang riêng: **[Hướng dẫn chơi: các hệ thống nâng cao](huong-dan-choi-he-thong.md)**.
+- [Tông môn](huong-dan-choi-he-thong.md#1-tông-môn): bốn phe, tông vụ hằng ngày, điểm và thưởng tuần, chat `/tm`.
+- [Bạn bè và chặn](huong-dan-choi-he-thong.md#2-bạn-bè-và-chặn): phím L, kết bạn hai chiều, chặn.
+- [Tự săn và ủy thác offline](huong-dan-choi-he-thong.md#3-tự-săn-và-ủy-thác-offline): phím T, bảng Tự động, giờ treo, nhận thưởng khi vào lại.
+- [Radar và bản đồ khu vực](huong-dan-choi-he-thong.md#4-radar-và-bản-đồ-khu-vực): phím N, sương mù, tự đi tới cờ (Y), "Tập trung ở đây".
+- [Trang bị hồn sư và Thợ rèn](huong-dan-choi-he-thong.md#5-trang-bị-hồn-sư-và-thợ-rèn): 10 ô, 6 bậc, cường hóa có rủi ro, khắc may mắn.
+- [Giao diện Nhân vật và Túi](huong-dan-choi-he-thong.md#6-giao-diện-nhân-vật-và-túi): phím H / B, búp bê 4 tab, gắn nhanh, kéo thả.
+
+## 18. Gục, hồi sinh, vùng an toàn
 - **Giao chiến:** đánh trúng hoặc bị đánh thì bạn "đang giao chiến" một lúc. Lúc đó luôn đi bộ và **không** xếp đội, đổi hồn kỹ mang theo, gắn / tháo / cường hóa đồ, hấp thụ, đổi kênh, dùng truyền tống trận hay xếp hàng đấu trường. Dùng đan, tiên thảo, mở võ hồn, lên sao thì vẫn được.
 - **Vùng an toàn:** cả bản đồ thành và làng Thánh Hồn Thôn. Không có hồn thú, không ai bị đánh; sinh lực và hồn lực hồi nhanh hơn ngoài rừng. Đứng nghỉ ở đây trước khi vào vùng sâu.
 - **Võ hồn ra trận gục** thì tự đổi sang võ hồn kế tiếp. Võ hồn đã gục hồi lại khi về trại hoặc sau một lúc ngoài giao chiến.
 - **Cả đội gục** thì sau một lúc về điểm hồi sinh của bản đồ (trại cổng), cả đội hồi đầy, **không mất kinh nghiệm hay đồ**.
 - Hồn thú có **chiêu báo trước**: vùng đỏ đầy dần dưới đất (vệt, nón hoặc vòng). **Chạy ra khỏi vùng đỏ trước khi nó đầy** là né được. Hồn thú thường và tinh anh đuổi quá xa chỗ sinh thì bỏ mục tiêu và chạy về, nên chạy xa là cách thoát khi lỡ kéo quá nhiều.
 
-## 18. Mẹo nhanh
+## 19. Mẹo nhanh
 - Làm theo **Bài học của Đại Sư** trước tiên; xong bài 7 là bạn đã biết gần hết hệ thống.
 - **Chưa chạm bình cảnh thì cứ để hồn hoàn trong túi**; giữ những chiếc sát giới hạn cho vòng kế tiếp, xem bảng chọn trước khi xác nhận.
 - Luôn để **đủ 4 võ hồn** trong đội: cả đội cùng ăn kinh nghiệm, và có người tích tiên cơ.
@@ -233,4 +263,6 @@ Chỉ đồ đang gắn mới tính (đồ trong túi không tính); tháo đồ
 - Dẫm lên mọi **truyền tống trận** gặp được để mở khóa.
 - Đồ dư là nguyên liệu cường hóa / nâng cấp; chỉ bán khi chắc không cần. Bán nhầm thì mua lại trước khi thoát game.
 - Theo dõi thông báo toàn server về thú vương và boss thế giới; rủ tổ đội đi cùng, **đừng thoát game hay đổi kênh giữa trận boss**.
+- Chưa quen thì bấm hồn thú để khoá rồi để nhân vật tự đánh; Tab chuyển con kế, Esc bỏ khoá.
+- Việc lặp lại (săn, đi xa) thì dùng **tự săn** (T) và **tự đi tới cờ** (Y); thoát game ngoài rừng còn có ủy thác offline.
 - Không có gì để mất khi gục: cứ thử vùng sâu, thử đấu trường.
