@@ -47,7 +47,7 @@ try {
   await post("/api/looks", { token, sex: 0, hair: 0, hairCol: 0, outfitCol: 0 });
   await post("/api/awaken", { token, vohon: "lam_dien_ba_vuong_long" });
 
-  browser = await chromium.launch({ headless: true, args: ["--mute-audio", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
+  browser = await chromium.launch({ headless: true, channel: process.env.FLOW_CHANNEL || undefined, args: ["--mute-audio", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   page.on("pageerror", (e) => console.error("[trình duyệt]", e.message));
   await page.addInitScript((t) => localStorage.setItem("shh-token", t), token);
@@ -111,6 +111,16 @@ GameScene.prototype.create = function(...a) {
   res.clickOnGround = await counts();
   check(res.clickOnGround.walk >= 1, `bấm nền phải đi: ${JSON.stringify(res.clickOnGround)}`);
 
+  // 2b. Bản đồ khu vực (N) đang mở rồi bấm phím mở bảng (#1045): bản đồ đóng, bảng hiện (không chìm sau lớp phủ).
+  for (const [key, id] of [["KeyB", "bag"], ["KeyH", "char"], ["KeyV", "roster"], ["KeyL", "friends"]]) {
+    await page.keyboard.press("KeyN"); await page.waitForFunction(() => !document.getElementById("mapview").hidden);
+    await page.keyboard.press(key); await sleep(80);
+    const st = await page.evaluate((i) => ({ map: !document.getElementById("mapview").hidden, shown: !document.getElementById(i).hidden }), id);
+    res["mapThen" + key] = st;
+    check(!st.map && st.shown, `N rồi ${key}: bản đồ đóng, ${id} hiện: ${JSON.stringify(st)}`);
+    await page.keyboard.press("Escape"); await sleep(60);
+  }
+
   // 3. Esc nhiều lớp: có khoá + hai bảng → Esc 1 đóng bảng trên cùng (bảng vừa bấm), Esc 2 đóng bảng còn lại, Esc 3 mới huỷ khoá.
   await page.keyboard.press("KeyH"); await page.keyboard.press("KeyB");
   await page.waitForFunction(() => !document.getElementById("char").hidden && !document.getElementById("bag").hidden);
@@ -146,6 +156,23 @@ GameScene.prototype.create = function(...a) {
   res.swap = { ...swapState, openAfterEsc: await open() };
   check(swapState.bag && !swapState.keyD && swapState.charZ > swapState.bagZ && res.swap.openAfterEsc.join() === "bag", `nút ⇆: ${JSON.stringify(res.swap)}`);
   await page.keyboard.press("Escape"); await page.keyboard.press("Escape");
+
+  // 4c. Nút Cài đặt / Tự động khi bảng khác đang mở (#1044): chỉ còn một bảng; đóng bằng đúng hàm của bảng (hết dual-win, aria-expanded về false).
+  await page.keyboard.press("KeyH"); await page.keyboard.press("KeyB");
+  await page.waitForFunction(() => !document.getElementById("char").hidden && !document.getElementById("bag").hidden);
+  await page.evaluate(() => document.getElementById("audioBtn").click()); await sleep(80);
+  res.settingsOverDual = await page.evaluate(() => ({ dual: document.body.classList.contains("dual-win"), tabs: !!document.getElementById("dualTabs") && !document.getElementById("dualTabs").hidden, bagBtn: document.getElementById("bagBtn").getAttribute("aria-expanded") }));
+  res.settingsOverDual.open = await open();
+  check(res.settingsOverDual.open.join() === "audio" && !res.settingsOverDual.dual && !res.settingsOverDual.tabs && res.settingsOverDual.bagBtn !== "true", `Cài đặt đóng Nhân vật + Túi đúng cách: ${JSON.stringify(res.settingsOverDual)}`);
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("KeyL"); await page.waitForFunction(() => !document.getElementById("friends").hidden);
+  await page.evaluate(() => document.getElementById("autoBtn").click()); await sleep(80);
+  res.autoOverFriends = await open();
+  check(res.autoOverFriends.join() === "autoPanel", `Tự động đóng Bạn bè: ${JSON.stringify(res.autoOverFriends)}`);
+  await page.evaluate(() => document.getElementById("audioBtn").click()); await sleep(80);
+  res.settingsOverAuto = await open();
+  check(res.settingsOverAuto.join() === "audio", `Cài đặt đóng Tự động: ${JSON.stringify(res.settingsOverAuto)}`);
+  await page.keyboard.press("Escape"); await sleep(80);
 
   // 5. 960×540: hotbar / bảng vẫn chặn bấm xuyên (cùng bài 1).
   await page.setViewportSize({ width: 960, height: 540 }); await sleep(500);

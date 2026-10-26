@@ -11,6 +11,8 @@
 - Truyền tống trận và Hồi Thành Phù sang bản đồ khác dùng đúng các bước này (cổng ẩn tới tâm trận đích); phí / phù đã trừ được trả lại khi transaction lỗi.
 - Bản đồ có `MapDef.exit` (Lõi Tinh Đấu): lần ghi cuối khi rời phòng (`write(id, true)`) dùng `saveTravel` về `arrive` của cổng tới `exit`.
 
+**Đăng xuất** (`POST /api/logout`, #999): `store.endSession(token)` xóa đúng phiên của token đó ở server (phiên thiết bị khác giữ nguyên), trả 200 dù token sai / hết hạn (trừ khi vượt giới hạn tần suất `apiGate`); client gọi rồi xóa token cục bộ.
+
 **Mỗi tài khoản một phiên** trên mọi phòng
 - `onJoin` phát `kick {accountId, sessionId}` qua presence; mọi phòng đá client trùng tài khoản khác phiên đó (mã 4001).
 - **Phiên mới chỉ nạp DB sau lần ghi cuối của phiên cũ:** lease `accountHold:<accountId>` có fencing token `<roomId>:<sessionId>`, TTL 15 giây và heartbeat 5 giây; `onLeave` / `onDispose` chỉ xóa sau khi lần ghi cuối trong chuỗi `saving` xong. `onAuth`, trước mọi lần đọc DB, thấy tài khoản đang có lease thì phát `kick` rồi chờ phiên đó nhả (`waitOldSession`, có hạn; quá thì từ chối, không nạp bản cũ). Tiến trình chết không cần cleanup riêng: TTL tự nhả lease.

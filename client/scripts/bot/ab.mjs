@@ -320,9 +320,15 @@ if(dr){
   // log lý do (hấp thụ thành công đã kiểm ở ab1.mjs 3.3), không im lặng hay bắt đầu hấp thụ.
   ok(!!it,`hồn hoàn ${yrs} năm vừa nhặt có trong túi để hấp thụ`);
   if(it){
+    // Võ hồn ra trận có thể đã ở cấp 10 (võ hồn đổi vào lúc săn): khi đó đã tới bình cảnh, server chuyển sang kiểm giao chiến (rời xa hồn thú
+    // TEAM_COMBAT_SECS) nên câu từ chối không còn là câu bình cảnh (#1057). Đặt hẳn võ hồn ra trận về cấp 5 không hồn hoàn trước khi thử, thử xong trả lại.
+    const act=A.owned.list.find(v=>v.rowId===A.owned.active), keep={rowId:act.rowId,level:act.level,xp:act.xp,rings:[...act.rings]};
+    await test(A,"set",{rowId:keep.rowId,level:5,xp:0,rings:[]});
+    ok(await waitFor(()=>A.owned.list.find(v=>v.rowId===keep.rowId)?.level===5),`đặt võ hồn ra trận về cấp 5 để thử hấp thụ trước bình cảnh (trước đó cấp ${keep.level}, ${keep.rings.length} hồn hoàn)`);
     const l=A.logs.length; A.absorbing=null; A.room.send("absorb",{itemId:it.id});
     ok(await waitFor(()=>A.logs.length>l&&/cần đạt cấp \d+ \(bình cảnh\) mới hấp thụ được hồn hoàn thứ 1/.test(A.logs.at(-1)))&&!A.absorbing?.on&&A.bag?.items.some(i=>i.id===it.id),
       `hấp thụ hồn hoàn ${yrs} năm khi chưa tới bình cảnh: server từ chối, hồn hoàn còn trong túi [cấp ${p.level}, absorbing ${JSON.stringify(A.absorbing)}, log ${JSON.stringify(A.logs.slice(-2))}]`);
+    await test(A,"set",keep);
   }
 }
 // ---------- 2.3b: gục từng võ hồn, hồi sinh, chia kinh nghiệm 40/20 cho đội ----------

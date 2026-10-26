@@ -1,0 +1,101 @@
+{
+  "species": "loi_duc_ung",
+  "worker": "soul-land-mmo-136",
+  "issue": 772,
+  "tool": "Codex image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Codex image_gen không công bố model/seed; không có selector kích thước.",
+  "transparent_background": false,
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "sheet": "B",
+  "attempt": 1,
+  "raw_file": "candidates/toB-attempt1.png",
+  "selected": false,
+  "selected_attempt": 2,
+  "attempts": 2,
+  "counters": {
+    "A": 1,
+    "B": 2,
+    "species_total": 3
+  },
+  "prompt_file": "candidates/toB-attempt1.prompt.txt",
+  "prompt_sha256": "4965efbccf71a3799e833066ec88123624ecb76096e10d6024ab8a86ca70ecb2",
+  "sha256": "ece46b484c9bce7bd5c8790e1c88a298a30692c7e87c90a9f1bd7dcc38855790",
+  "bytes": 2029323,
+  "width": 1254,
+  "height": 1254,
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "size_requirement_met": true,
+  "actual_aspect_ratio": "1:1",
+  "grid": [
+    6,
+    8
+  ],
+  "expected_visible_cells": 44,
+  "references": [
+    {
+      "path": "/private/tmp/soul-land-mmo-772-loi-duc-ung/shared/assets/sprites/beast/loi_duc_ung.png",
+      "role": "static identity reference, three views",
+      "sha256": "815b668c08dd72d226f8c727d78cfcf28bf7f49b57851b911689b31569e94c45",
+      "original_input_path": "/private/tmp/soul-land-mmo-772-loi-duc-ung/shared/assets/sprites/beast/loi_duc_ung.png"
+    },
+    {
+      "path": "/private/tmp/soul-land-mmo-772-loi-duc-ung/art/src/beast-anim/loi_duc_ung/toA.png",
+      "role": "A1 candidate style/design reference; not owner-approved",
+      "sha256": "730d7bfd27da7ee33b5d04565ba50f529cd752e43f957a5f57894afa792f0586",
+      "original_input_path": "/private/tmp/soul-land-mmo-772-loi-duc-ung/art/src/beast-anim/loi_duc_ung/toA.png"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-726a5a98-13f9-4d1f-bb16-8e39285bc1fa.png",
+  "original_file_mtime": "2026-10-26T20:19:25+0700",
+  "known_issues": [
+    "Soát mắt: NE H4 D4 chết nằm ngang lệch trục hướng.",
+    "Soát mắt: N H8 D4 chết nằm ngang lệch trục hướng."
+  ],
+  "qa_status": "B1 candidate, không owner-approved; hai khung D4 sai trục chết.",
+  "selection_reason": "Giữ candidate nguyên byte; không dùng lại làm tham chiếu B2 và không dừng pipeline.",
+  "publication_policy": "Submitting raw candidates does not mean art accepted or imported.",
+  "tool_arguments": {
+    "prompt_file": "candidates/toB-attempt1.prompt.txt",
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-772-loi-duc-ung/shared/assets/sprites/beast/loi_duc_ung.png",
+      "/private/tmp/soul-land-mmo-772-loi-duc-ung/art/src/beast-anim/loi_duc_ung/toA.png"
+    ],
+    "transparent_background": false
+  },
+  "history": [
+    {
+      "attempt": 1,
+      "raw_artifact": "/private/tmp/soul-land-mmo-772-loi-duc-ung/art/src/beast-anim/loi_duc_ung/candidates/toB-attempt1.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-726a5a98-13f9-4d1f-bb16-8e39285bc1fa.png",
+      "sha256": "ece46b484c9bce7bd5c8790e1c88a298a30692c7e87c90a9f1bd7dcc38855790",
+      "bytes": 2029323,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_artifact": "/private/tmp/soul-land-mmo-772-loi-duc-ung/art/src/beast-anim/loi_duc_ung/candidates/toB-attempt1.prompt.txt",
+      "prompt_sha256": "4965efbccf71a3799e833066ec88123624ecb76096e10d6024ab8a86ca70ecb2",
+      "references": [
+        {
+          "path": "/private/tmp/soul-land-mmo-772-loi-duc-ung/shared/assets/sprites/beast/loi_duc_ung.png",
+          "sha256": "815b668c08dd72d226f8c727d78cfcf28bf7f49b57851b911689b31569e94c45",
+          "role": "static identity reference, three views"
+        },
+        {
+          "path": "/private/tmp/soul-land-mmo-772-loi-duc-ung/art/src/beast-anim/loi_duc_ung/toA.png",
+          "sha256": "730d7bfd27da7ee33b5d04565ba50f529cd752e43f957a5f57894afa792f0586",
+          "role": "A1 candidate style/design reference; not owner-approved"
+        }
+      ],
+      "copied_at": "2026-10-26T13:20:09.850Z"
+    }
+  ],
+  "prompt_adjustments": [
+    "Thay câu prompt generator gọi A là approved thành A1 candidate chưa owner-approved; A1 vẫn chỉ là ref kỹ thuật."
+  ]
+}

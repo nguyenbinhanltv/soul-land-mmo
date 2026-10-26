@@ -38,6 +38,8 @@ Quy tắc lớp (H1 chốt): hướng `s` (hồn sư nhìn về phía người x
 
 ## 4. Bảng 25 võ hồn
 
+> **v2:** bộ hình làm lại (bá đạo, tu tiên) theo `docs/art/vo-hon-phong-cach.md`; cột hình / màu ở 4.1 chỉ là bản cũ để tham khảo, không dùng để vẽ v2. Phần 4.2 (chuyển động) vẫn giữ.
+
 ### 4.1 Hình, màu
 
 | # | Võ hồn (`id`) | Hệ | Màu `col` / `robe` | Hình pháp tướng |
@@ -101,6 +103,8 @@ Cột "Hồn kỹ Chân Thân" là hồn kỹ ô P khi đang Chân Thân (`CHAN_
 | 25 | Bạch Hổ | T | Thân hổ phập phồng, đuôi vằn đập chậm, râu bay. | Hổ chồm tới gầm lớn, chân trước tát ra, vệt trắng. | Bạch Hổ Phá Thiên Trảo | Bạch Hổ · Thiên Hổ Chấn Thế (phỏng theo) | Bạch Hổ Chấn Thiên |
 
 ## 5. Prompt PixelLab (concept)
+
+> **v2:** prompt dưới đây là bản cũ (PixelLab). Bản v2 dùng khối STYLE / NEGATIVE ở `docs/art/vo-hon-phong-cach.md` mục 6.
 
 Quy trình PixelLab (REST v2, key đọc từ file cấu hình máy, không ghi vào repo; đo `/v2/balance` trước và sau mỗi lệnh): (1) `create-image-pixflux` 128×128, nền trong suốt, nhìn chéo từ trên xuống hướng nam → concept `s`; (2) `generate-8-rotations-v3` từ concept → lấy 5 hướng `s`, `se`, `e`, `ne`, `n` (thứ tự trả về của 8 ảnh là `sw, s, se, e, ne, n, nw, w`); (3) `animate-with-text-v3` 8 khung cho từng hướng, hai lần: vòng "thở" và động tác đánh; (4) hậu kỳ bằng `tools/assets/phaptuong.mjs` (khung 160×160, nền trong suốt, gốc theo mục 2, một lớp cho cả khung ở mỗi hướng theo mục 1, bảng màu riêng ≤ 48 màu; **không** qua `normalize` / `pack`), rồi `validate.mjs --register pt_<mã>`. Lệnh, tham số, bước làm chi tiết và lượt thực tế (rồng 23, búa 3 + 2 thử hỏng; vật cứng thở / đánh bằng code) ở `docs/art/phap-tuong-cong-thuc.md` (PR #499, H1 #485). Prompt tiếng Anh, không nhắc hồn sư (ảnh đơn lẻ, hướng nhìn quy định ở bước xoay), tả hình chung (không tên nhân vật hay thương hiệu có bản quyền); màu theo `col` / `robe` của từng võ hồn.
 
