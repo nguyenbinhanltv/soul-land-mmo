@@ -34,6 +34,7 @@ import { getFlag, setFlag, patchFlag, bindFlagBar, mapName } from "../autowalk.t
 import { startCmd, topCmd, stoppedText, deniedText, type Cmd } from "../../../shared/control.ts";
 import { bindCmdChip, setCmdChip, flashWhy } from "../cmdChip.ts";
 import { RALLY, ATTACK_REACH, QUEST_STARTER, GUIDE_BAG_FREE } from "../../../shared/data.ts";
+import { emptyVitals, vitalsAfter, vitalsParse, type Vitals } from "../../../shared/vitals.ts";
 import { newGoal, stepGoal, reachGap, type ClickGoal } from "../../../shared/clickgoal.ts";
 import { rallyLeft } from "../../../shared/rally.ts";
 import { addRally, pruneRallies, getRallies } from "../rally.ts";
@@ -370,6 +371,8 @@ export class GameScene extends Phaser.Scene {
   hudT = 0;
   /** Tin `mini` gần nhất (11.4): vị trí theo ô của mọi hồn sư [sid, x, y], hồn thú từ nghìn năm và đồ rơi [x, y, bậc] cả bản đồ. */
   far: { p: (string | number)[]; b: number[]; d: number[] } = { p: [], b: [], d: [] };
+  /** Dữ liệu riêng của mình (#949, tin `vit`: kinh nghiệm, hồn lực, hồi chiêu; không nằm trong state công khai) và giờ nhận (ms), hồi chiêu đếm lùi từ đó. */
+  vit: Vitals = emptyVitals(); vitAt = 0;
   mapW = 0; mapH = 0;
   owned: OwnedVohons | null = null; // tin riêng "vohons" gần nhất (tên võ hồn theo ô khi báo đủ năng lượng tiên cơ)
   bag: BagMsg | null = null;        // tin riêng "bag" gần nhất: vẽ lại túi khi cấp / số hồn hoàn đổi (câu gợi ý hấp thụ)
@@ -1505,6 +1508,7 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("channels", (m: ChannelsMsg) => hud.setChannels(m)); // danh sách kênh của bản đồ (mục 6 "Nhiều kênh")
     // Bản đồ nhỏ (11.4): state chỉ còn thực thể ở gần, vị trí cả bản đồ đến mỗi giây qua tin này.
     this.room.onMessage("mini", (m: GameScene["far"]) => { if (m && Array.isArray(m.p) && Array.isArray(m.b) && Array.isArray(m.d)) this.far = m; });
+    this.room.onMessage("vit", (m: unknown) => { const v = vitalsParse(m); if (v) { this.vit = v; this.vitAt = performance.now(); } });
     // Sương mù khám phá (R8): server quyết định ô nào đã khám phá; `fog` cả bitset (khi xin), `fogd` các ô vừa mở. Client chỉ giữ bản sao để vẽ.
     this.room.onMessage("fog", (m: { bits?: unknown }) => fog().setFull(m?.bits));
     this.room.onMessage("fogd", (m: { add?: unknown }) => fog().add(m?.add));
@@ -3594,9 +3598,10 @@ export class GameScene extends Phaser.Scene {
     }) : [];
     const bKey = JSON.stringify(worn);
     if (bKey !== this.boneSkKey) { this.boneSkKey = bKey; hud.buildBoneSkills(worn, (a) => this.act(a)); }
-    hud.updateStats(me);
+    const vit = vitalsAfter(this.vit, (performance.now() - this.vitAt) / 1000);
+    hud.updateStats(me, vit);
     hud.updateFusion();
-    hud.updateTeam(me);
+    hud.updateTeam(me, vit);
     hud.updateBag();
     hud.updateParty();
     // Thú vương (BĐ5): thanh máu lớn đọc thẳng BeastState; bảng xếp hạng khi mình đang tham gia (có trong danh sách đóng góp).

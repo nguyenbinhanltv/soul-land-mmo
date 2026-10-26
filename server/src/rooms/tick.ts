@@ -10,6 +10,7 @@ import { touchChannel, type MapRoom } from "./MapRoom.ts";
 import * as party from "../party.ts";
 import { gcIn, cpuMs, clock } from "../perf.ts";
 import { setLock, tickLock } from "./lock.ts";
+import { sendVitals } from "./vitals.ts";
 import type { BeastState, PlayerState } from "./schema.ts";
 
 /** PERF_LOG=1 (#273): nhịp chậm khi từ đầu tick tới hết bản vá quá ngần này ms (= một nhịp TICK_RATE), hoặc từ đầu nhịp trước quá PERF_GAP_MS. */
@@ -338,6 +339,9 @@ export function tick(room: MapRoom, dt: number) {
     if ((room.fogT -= dt) <= 0) { room.fogT = FOG.markSecs; room.fogMark(); }
     if ((room.fogSendT -= dt) <= 0) { room.fogSendT = FOG.sendSecs; room.fogSend(); }
   }
+
+  // tin riêng "vit" (#949): kinh nghiệm, hồn lực, hồi chiêu chỉ gửi cho chính chủ, sau khi mọi thay đổi của nhịp đã xong
+  sendVitals(room);
 
   // lưu định kỳ (bỏ qua người đang chuyển bản đồ: transaction đi cổng là lần ghi cuối của phòng này cho người đó)
   room.saveT += dt;

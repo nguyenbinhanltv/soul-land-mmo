@@ -224,8 +224,12 @@ export const MSG_MAX_PAYLOAD = 4096;
  * tìm mục tiêu; vẫn hồi máu, trạng thái vẫn chạy); `wake` ≥ `out` nên hồn thú client đang thấy luôn thức. Lưới không gian ô `cell`
  * pixel. Bản đồ nhỏ nhận vị trí hồn sư, hồn thú từ nghìn năm, đồ rơi cả bản đồ mỗi `mini` giây
  * (tin `mini`). Khung camera VIEW_W × VIEW_H chiếu isometric phủ khoảng 340 pixel thế giới quanh mình.
+ * Tin riêng `vit` (#949: kinh nghiệm, hồn lực, hồi chiêu của chính chủ, shared/vitals.ts): hồn lực chỉ hồi dần thì gửi tối đa mỗi `vitGap`
+ * giây; hồi chiêu client tự đếm lùi giữa hai tin, server gửi lại khi số thật lệch số client đang đếm: client đếm quá nhanh (sẽ báo
+ * "sẵn sàng" khi server còn hồi chiêu) quá `vitEarly` giây, hoặc quá chậm quá `vitCd` giây. Hồi chiêu đang đếm không tự về 0 ở client mà dừng ở
+ * `vitHold` giây tới khi server báo đã hết (tin `vit` xác nhận), để không bao giờ thấy "sẵn sàng" trước server (server từ chối nếu còn hồi chiêu).
  */
-export const SYNC_VIEW = { r: 560, out: 660, fx: 760, wake: 660, cell: 128, mini: 1 };
+export const SYNC_VIEW = { r: 560, out: 660, fx: 760, wake: 660, cell: 128, mini: 1, vitGap: 0.2, vitCd: 0.3, vitEarly: 0.05, vitHold: 0.01 };
 
 export interface BeastDef {
   /** Mã cố định (sprite `beast_{id}`, thuộc tính `beasts` của vùng trong Tiled). Không đổi mã đã dùng. */
