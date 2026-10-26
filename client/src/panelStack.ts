@@ -55,6 +55,13 @@ export function closeTopPanel(): boolean {
   return true;
 }
 
+/** Đóng mọi bảng giữa màn hình đang mở (kèm menu người chơi) bằng đúng hàm đóng của từng bảng, trừ `except`: nút Cài đặt / Tự động dùng trước khi mở (#1044). */
+export function closeCentrePanels(except?: string) {
+  sync();
+  for (const p of [...list]) if (p.id !== except && (!p.popup || p.id === "pmenu") && isOpen(p.id)) p.close();
+  order = order.filter((x) => isOpen(x)); layer();
+}
+
 /** Bảng đang mở chứa phần tử `t` (tiêu điểm bàn phím) hay không; chỉ tính bảng trong ngăn xếp. */
 export function panelOf(t: Element | null): string | null {
   for (const p of list) { const e = elOf(p.id); if (e && !e.hidden && t && e.contains(t)) return p.id; }
