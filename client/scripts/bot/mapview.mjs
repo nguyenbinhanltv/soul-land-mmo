@@ -6,6 +6,7 @@ import { autoLeg } from "../../../shared/autowalk.ts";
 import { readFileSync } from "node:fs";
 import { checkBeastYears, checkGateClear, post, sleep, waitFor, ok, mapFileOf, mapUrl, zonesByName, bot, enter, qtyOf, bagKey, npcSpot, talk, trade, same, test, needHookSkip } from "./lib.mjs";
 import { TRAVEL_CAST, itemDef, formatHonTe, TEAM_COMBAT_SECS, MAPS, parseLevelRange, RING_ITEM, BOAT_CAST, npcDef, NPC_RANGE, SHOP, sellPrice, PLAYER_SPEED, TICK_RATE, WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, shopOf, shopExpands, RADAR, RALLY, MAPS as RALLY_MAPS, FOG, AUTO_MOVE, AUTOWALK, TILE } from "../../../shared/data.ts";
+import { VIT_FIELDS } from "./vit.mjs";
 import { rallyUpsert, rallyPrune } from "../../../shared/rally.ts";
 import { fogDims, fogCount, fogGet, fogCellOf, fogValid } from "../../../shared/fog.ts";
 import { loadMap } from "../../../server/src/map.ts";
@@ -67,6 +68,14 @@ export async function syncViewTest(){
   await place(W,{x:west.x+48,y:west.y+16});
   ok(await waitFor(()=>V.room.state.players.has(sid)&&W.room.state.players.has(vsid),1500),`lại gần (${Math.round(dist(me(W),me(V)))} pixel): hai bên thấy nhau`);
   V.mini=null; ok(await waitFor(()=>miniHas(V,sid),3000),"tin mini: người lạ trong RADAR.far (đang gần) có trong tin");
+  // #949: kinh nghiệm, hồn lực, hồi chiêu chỉ chính chủ nhận (tin riêng `vit`); người ở gần thấy hồn sư kia nhưng state không có các trường này.
+  { await test(W,"ready",{mp:20}); const w=me(W);
+    await waitFor(()=>w.mp<=w.maxMp*0.25,1500);
+    const o=V.room.state.players.get(sid), has=p=>VIT_FIELDS.filter(k=>k in p&&p[k]!==undefined);
+    ok(w.maxMp>0&&w.mp<=w.maxMp*0.25&&w.cds.length===4,`W thấy trường riêng của chính mình qua tin vit: hồn lực ${w.mp}/${w.maxMp} (vừa hạ còn 20%), kinh nghiệm ${w.xp}/${w.xpNeed}`);
+    await sleep(400);
+    ok(!!o&&o.maxHp>0&&!has(o).length,`V ở gần thấy W (sinh lực ${o?.hp}/${o?.maxHp}) nhưng state không có hồn lực / kinh nghiệm / hồi chiêu của W (${has(o).join(",")||"không trường nào"})`);
+    ok(me(V).maxMp>0,"V vẫn thấy trường riêng của chính mình"); }
   // Bấm vào hồn sư đang thấy (sid): lời mời tới đúng người, có tên người mời; từ chối để dọn.
   { const t=await inviteSid(), wp=await partyNow(W);
     ok(wp?.invites?.some(i=>i.name===V.name)&&t.includes(W.name),`mời tổ đội bằng sid của hồn sư đang thấy: W nhận lời mời của V (${t})`);

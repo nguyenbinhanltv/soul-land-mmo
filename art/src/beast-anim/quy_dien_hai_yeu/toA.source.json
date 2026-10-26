@@ -1,0 +1,63 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "imageModel": "unknown (tool did not expose)",
+  "seed": "unknown (tool did not expose)",
+  "attempts": 1,
+  "workerProvenance": {
+    "task": "#774",
+    "species": "quy_dien_hai_yeu",
+    "sheet": "toA",
+    "attempt": "A1",
+    "status": "RAW submitted candidate; art not owner-approved",
+    "tool": "built-in image_gen.imagegen",
+    "model": "unknown (tool did not expose)",
+    "seed": "unknown (tool did not expose)",
+    "attemptCount": 1,
+    "totalSpeciesImagegenCalls": 2,
+    "callTimestampExposed": false,
+    "callTimestampNote": "The image_gen tool response did not provide a call timestamp.",
+    "provenanceRecordedAtUtc": "2026-10-26T14:18:02Z",
+    "exactPrompt": {
+      "path": "toA.prompt.txt",
+      "sha256": "909c61dfe447e493e08cb9403b9650ac103312095f52f6b8b73bfdb4be8e6ad6",
+      "bytes": 6573,
+      "basePromptSha256": "909c61dfe447e493e08cb9403b9650ac103312095f52f6b8b73bfdb4be8e6ad6",
+      "basePromptTemplateMarkdown": "/private/tmp/quy-dien-hai-yeu-prompt/quy_dien_hai_yeu-toA.md",
+      "basePromptTemplateMarkdownSha256": "07389c7353338a8de6e8ea3ad447dde06391118f2dadb223d167ee48e4a760f5"
+    },
+    "generator": {
+      "command": "node tools/assets/beast-sheet-prompt.mjs --species quy_dien_hai_yeu --stage sheet --out /private/tmp/quy-dien-hai-yeu-prompt",
+      "script": "tools/assets/beast-sheet-prompt.mjs",
+      "scriptSha256": "ce67ade6abd84aaacbb2336b8a942fd298330fbf698eabb56d8b31092d4ba625"
+    },
+    "orderedReferences": [
+      {
+        "order": 1,
+        "role": "static identity reference for Quỷ Diện Hải Yêu",
+        "path": "shared/assets/sprites/beast/quy_dien_hai_yeu.png",
+        "sha256": "85cd8dafea704560917d0a473bff5e21fcbd98a8ea18d087d22c91c0bbd1b7a1",
+        "bytes": 6248
+      }
+    ],
+    "toolArguments": {
+      "referenced_image_paths": [
+        "/private/tmp/soul-land-mmo-774-quy-dien-hai-yeu/shared/assets/sprites/beast/quy_dien_hai_yeu.png"
+      ],
+      "transparent_background": false
+    },
+    "originalToolOutputPath": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-a49bba02-bbe5-4b81-a188-942c3a7fc770.png",
+    "raw": {
+      "path": "toA.png",
+      "sha256": "3b8b1ef72228b4c2e1360db3004a23abef35f1382d7e6be6fec59c4b018b440f",
+      "bytes": 2072033,
+      "width": 1024,
+      "height": 1536,
+      "copiedByteIdenticalFromToolOutput": true
+    },
+    "postprocessing": false,
+    "manualFindings": [
+      "A1, khối s, hàng ATTACK (hàng 3), khung 3–4 quay mặt sang phải thay vì giữ hướng s."
+    ],
+    "ownerArtApproval": false
+  }
+}
