@@ -331,9 +331,9 @@ const CODE_VI = { "kich-thuoc": "sai kích thước", nen: "nền ngoài dung sa
 export function bodyNotes(sheet) {
   return sheet.issues.filter((i) => i.code === "co-than").map((i) => `${i.where}: ${i.msg}`);
 }
-/** Gợi ý `--eye` cho beast-nguon từ các nghi ngờ tư thế (die-ngang / hurt-lat): mảng chuỗi `toB=pose — <vị trí> — <ghi chú> (nghi, công cụ)`; KHÔNG phải `LỖI:`, người xem ảnh quyết. */
+/** Gợi ý `--eye` cho beast-nguon từ các nghi ngờ tư thế (die-ngang / hurt-lat): mảng chuỗi `--eye "toB=pose — <vị trí> — <ghi chú>"` (giá trị đúng mẫu NGUON, không chữ "nghi"; lời dặn nằm ở tiền tố CLI / tiêu đề md / stderr); KHÔNG phải `LỖI:`, người xem ảnh quyết. */
 export function poseHints(sheet) {
-  return sheet.issues.filter((i) => POSE_CODES.includes(i.code)).map((i) => `--eye "${sheet.sheet}=pose — ${i.where} — ${i.code === "die-ngang" ? "die nằm ngang, lệch trục hướng" : "hurt ngửa bụng / dựng đứng"} (nghi, đã xem ảnh thì giữ / bỏ)"`);
+  return sheet.issues.filter((i) => POSE_CODES.includes(i.code)).map((i) => `--eye "${sheet.sheet}=pose — ${i.where} — ${i.code === "die-ngang" ? "die nằm ngang, lệch trục hướng" : "hurt ngửa bụng / dựng đứng"}"`);
 }
 /** Dòng `LỖI:` nháp theo mẫu NGUON.md: tờ — loại / loại — vị trí — mô tả. Chỉ gồm mục nhẹ và chặn, trừ cỡ thân (ghi chú kỹ thuật, `bodyNotes`); null nếu không có. */
 export function draftErrorLine(sheet) {

@@ -233,7 +233,8 @@ test("tư thế die / hurt (#1080): nghi nằm ngang / ngửa bụng ở mức n
   assert.ok(die && die.sev === "light" && die.dir === "n", JSON.stringify(toB.issues));
   assert.ok(toB.bands[7].figures[3].state === "warn", "khung die cuối của n phải vàng trên tờ liên hệ");
   assert.equal(poseHints(toB).length, 1);
-  assert.match(poseHints(toB)[0], /^--eye "toB=pose — H8 \(n\) C4 — die nằm ngang/);
+  assert.match(poseHints(toB)[0], /^--eye "toB=pose — H8 \(n\) C4 — die nằm ngang, lệch trục hướng"$/);
+  assert.ok(!/nghi/.test(poseHints(toB)[0]), "giá trị --eye không mang chữ nghi / chỉ dẫn");
   assert.ok(!/die-ngang|nằm ngang/.test(draftErrorLine(toB) ?? ""), "không tự ghi LỖI: từ nghi ngờ tư thế");
   assert.ok(!allBlock(r), "không bao giờ chặn");
   const ts = checkSpecies("that_tinh_doc_thiem").sheets.find((x) => x.sheet === "toA");
