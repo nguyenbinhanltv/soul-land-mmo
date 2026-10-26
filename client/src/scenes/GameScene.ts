@@ -573,12 +573,12 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /** Phaser còn nghe mousedown ở cấp window: bấm nút / bảng HUD đè lên vùng bấm của trận truyền tống, NPC không được tính là bấm vào chúng (#1027). */
+  onCanvas(ptr: Phaser.Input.Pointer) { return !ptr.downElement || ptr.downElement === this.game.canvas; }
   /**
    * Truyền tống trận (11.2): tên trên trận (◆, mờ khi chưa mở) và vùng bấm / chạm mở bản đồ thế giới. Vòng trận phát sáng vẽ mỗi khung ở
    * `paintWaypoints` (phong cách A: hồn lực sáng màu lam ngọc; chưa mở thì xám mờ), không dùng ảnh.
    */
-  /** Phaser còn nghe mousedown ở cấp window: bấm nút / bảng HUD đè lên vùng bấm của trận truyền tống, NPC không được tính là bấm vào chúng (#1027). */
-  onCanvas(ptr: Phaser.Input.Pointer) { return !ptr.downElement || ptr.downElement === this.game.canvas; }
   drawWaypoints() {
     for (const w of this.waypoints) {
       const c = W2S(w.x + w.w / 2, w.y + w.h / 2), top = c.y - 10 * SPR;
