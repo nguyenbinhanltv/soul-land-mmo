@@ -87,6 +87,7 @@ import * as arena from "./arena.ts";
 import * as travel from "./travel.ts";
 import * as persist from "./persist.ts";
 import * as tick from "./tick.ts";
+import * as loot from "./loot.ts";
 
 export interface PData {
   /** Hồn thú đang khoá (M3 #750, rooms/lock.ts); "" = không khoá. */
@@ -1656,41 +1657,7 @@ export class MapRoom extends Room<MapState> {
   /** RNG cho rơi trang bị của `d`: hook test `edrop` đặt RNG có hạt, thường là Math.random. */
   equipRng(d: PData) { return d.testEquip ?? Math.random; }
 
-  /**
-   * Trang bị khi hạ hồn thú thường / tinh anh (E2, mục 5.15): `rollEquipDrop(rank, bản đồ, rng, rate)`. Đá cường hóa vào thẳng túi người
-   * hạ `id` (túi đầy thì phần dư rơi xuống đất như mảnh võ hồn); mỗi món trang bị rơi xuống đất cạnh hồn hoàn, cùng luật ưu tiên `owner`.
-   * `rate` = 0 cho tới khi có nguồn sự kiện máy chủ. Bản đồ không có trong EQUIP_MAPS thì không rơi gì.
-   */
-  rollEquipGround(id: string, owner: string, rank: number, x: number, y: number, why?: string) {
-    const d = this.pdata.get(id); if (!d) return;
-    const drops = rollEquipDrop(rank, this.state.mapId, this.equipRng(d), 0); if (!drops.length) return;
-    const spots = [[x - 16, y], [x, y - 8], [x + 8, y - 8], [x - 8, y + 8], [x + 16, y + 8]];
-    let k = 0, bagged = false;
-    for (const e of drops) {
-      if (e.kind === "stone") {
-        const def = itemDef(e.code); if (!def) continue;
-        const got = this.addItem(d, e.code, e.qty);
-        if (got) { this.log(id, `Nhận ${got} ${def.name}.`, def.col); bagged = true; }
-        if (got < e.qty) {
-          const drop = this.map.standable(x + 8, y) ? this.newDrop(x + 8, y, id) : this.newDrop(x, y, id);
-          drop.item = e.code; drop.qty = e.qty - got;
-          this.state.drops.set(uid("d"), drop);
-          this.log(id, `Túi đồ đã đầy (${d.bagSlots} ô): ${drop.qty} ${def.name} rơi xuống đất, ${this.lootNote(id, id)}`, "#ffb35c");
-        }
-        continue;
-      }
-      const ti = EQUIP_TEMPLATES.findIndex((t) => t.id === e.item.tpl), tpl = EQUIP_TEMPLATES[ti]; if (!tpl) continue;
-      const [cx, cy] = spots.slice(k).find(([a, b]) => this.map.standable(a, b)) ?? [x, y]; k = Math.min(spots.length - 1, k + 1);
-      const drop = this.newDrop(cx, cy, owner), col = EQUIP_TIERS[tpl.tier].col, did = uid("d");
-      drop.item = EQUIP_ITEM; drop.qty = 1; drop.stars = tpl.tier + 1; drop.cset = ti;
-      this.equipDrops.set(did, e.item); this.state.drops.set(did, drop);
-      this.broadcast("fx", { k: "wave", x: drop.x, y: drop.y, r: 30, col });
-      const msg = `${equipName(tpl.id)} (${EQUIP_TIERS[tpl.tier].color}) rơi xuống đất!`;
-      this.log(id, `${msg} ${this.lootNote(owner, id, why)}`, col);
-      if (owner !== id) this.log(owner, `${msg} ${this.lootNote(owner, owner)}`, col);
-    }
-    if (bagged) this.sendBag(id);
-  }
+  rollEquipGround(id: string, owner: string, rank: number, x: number, y: number, why?: string) { loot.rollEquipGround(this, id, owner, rank, x, y, why); }
 
   /**
    * Phần trang bị của rương thú vương / boss thế giới (E2): tung rollEquipDrop(bậc, bản đồ) và cộng Bùa Hộ Mệnh (rollEquipCharm) ngay
@@ -2142,54 +2109,9 @@ export class MapRoom extends Room<MapState> {
   gmAction(id: string, raw: unknown) { gm.gmAction(this, id, raw); }
   gmRun(id: string, d: PData, cmd: GmCmd): Promise<string> { return gm.gmRun(this, id, d, cmd); }
 
-  /**
-   * Kinh nghiệm hạ hồn thú `years` năm (mục 5.1, 5.3; tăng theo số năm, beastStats): giảm theo chênh cấp giữa võ hồn ra trận và
-   * cấp tương đương của số năm (beastLevel, từ BĐ3) một lần, rồi chia cho đội:
-   * võ hồn ra trận XP_SHARE_ACTIVE, mỗi võ hồn khác trong đội XP_SHARE_BENCH (kể cả võ hồn đã gục). Ô trống và võ hồn
-   * ở bình cảnh không nhận, phần đó không chia lại. `mult`: hệ số theo bậc hồn thú (tinh anh ELITE.xp, BĐ4).
-   */
-  rewardKill(id: string, years: number, mult = 1) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
-    const base = beastStats(years).xp * mult * xpLevelScale(p.level, beastLevel(years));
-    for (const r of d.team) {
-      const v = d.owned.find((o) => o.rowId === r); if (!v) continue;
-      if (v === d.ch) this.addXp(id, Math.round(base * XP_SHARE_ACTIVE));
-      else this.benchXp(id, v, Math.round(base * XP_SHARE_BENCH));
-    }
-  }
-
-  /** Kinh nghiệm cho võ hồn trong đội đang không ra trận (cùng luật lên cấp, bình cảnh như addXp). */
-  benchXp(id: string, v: Character, n: number) {
-    if (n <= 0 || xpBlocked(v.level, v.rings.length)) return;
-    const d = this.pdata.get(id)!, name = VOHON[Math.max(0, vohonIndex(v.vohon))].name, lv0 = v.level;
-    v.xp += n; d.dirty.add(v.rowId);
-    while (!xpBlocked(v.level, v.rings.length) && v.xp >= xpNeed(v.level)) {
-      v.xp -= xpNeed(v.level); v.level++;
-      if (!d.down.has(v.rowId)) d.benchHp.delete(v.rowId); // lên cấp thì hồi đầy, như võ hồn ra trận
-      if (xpBlocked(v.level, v.rings.length)) {
-        v.xp = 0;
-        this.log(id, `${name} đạt cấp ${v.level}: bình cảnh! Cần hấp thụ hồn hoàn thứ ${v.rings.length + 1}.`, "#ffe08a");
-      } else this.log(id, `${name} lên cấp ${v.level}.`);
-    }
-    if (v.level !== lv0) this.resCheck(id); // cộng minh (8.2)
-  }
-
-  addXp(id: string, n: number) {
-    const p = this.state.players.get(id)!, lv0 = p.level;
-    if (n <= 0 || xpBlocked(p.level, p.rings.length)) return;
-    p.xp += n;
-    while (!xpBlocked(p.level, p.rings.length) && p.xp >= xpNeed(p.level)) {
-      p.xp -= xpNeed(p.level); p.level++;
-      this.recalc(id, false); this.pdata.get(id)!.hpF = p.maxHp;
-      this.broadcast("fx", { k: "wave", x: p.x, y: p.y, r: 30, col: "#ffe9a0" });
-      if (xpBlocked(p.level, p.rings.length)) {
-        p.xp = 0;
-        this.log(id, `Đạt cấp ${p.level}: bình cảnh! Hãy săn hồn thú và hấp thụ hồn hoàn thứ ${p.rings.length + 1}.`, "#ffe08a");
-      } else this.log(id, `Lên cấp ${p.level}.`);
-    }
-    this.recalc(id, false);
-    if (p.level !== lv0) this.resCheck(id); // cộng minh (8.2): võ hồn cấp 30+
-  }
+  rewardKill(id: string, years: number, mult = 1) { loot.rewardKill(this, id, years, mult); }
+  benchXp(id: string, v: Character, n: number) { loot.benchXp(this, id, v, n); }
+  addXp(id: string, n: number) { loot.addXp(this, id, n); }
 
   hurtPlayer(id: string, dmg: number, o: { dot?: boolean; chain?: boolean; pvp?: { dealt: number }; crit?: boolean } = {}): boolean { return combat.hurtPlayer(this, id, dmg, o); }
 
@@ -3028,104 +2950,11 @@ export class MapRoom extends Room<MapState> {
     this.rollEquipGround(by, drOwner, elite ? 1 : 0, b.x, b.y, why);
   }
 
-  /**
-   * Hồn hạch (bước 5.1, bảng rơi 5.3): hạ hồn thú `years` năm thì tung coreChance (tinh anh `sure`: chắc chắn rơi, mục 5.4); trúng thì
-   * một hồn hạch sao theo niên hạn, bộ đặc trưng của bản đồ (MapDef.cores) hoặc bộ bất kỳ, chỉ số chính / phụ tung ngay lúc rơi
-   * (giữ trong coreDrops). Rơi xuống đất cạnh hồn hoàn, cùng luật đồ rơi: `owner` ưu tiên DROP_OWNER_SECS giây, nhặt (E) vào túi,
-   * túi đầy thì báo. Hook test `core` của người hạ `id` cố định được số ngẫu nhiên, sao và bộ.
-   * Rương tà hóa thú vương (BĐ5, openChest) cho hồn hạch thẳng vào túi bằng `rollCore(..., { high: true })` rồi `addCore`.
-   */
-  rollCoreDrop(id: string, owner: string, years: number, x: number, y: number, sure = false, why?: string) {
-    const d = this.pdata.get(id); if (!d) return;
-    const t = d.testCore;
-    if ((t ? t.r : Math.random()) >= (sure ? 1 : coreChance(years))) return;
-    const core = rollCore(years, MAPS[this.state.mapId]?.cores ?? [], Math.random, t ? { stars: t.stars, set: t.set >= 0 ? t.set : undefined } : {});
-    // Bên phải hồn hoàn (hồn cốt nằm bên trái, mảnh võ hồn khi túi đầy sát bên phải) để biểu tượng và nhãn không chồng lên nhau.
-    // Không chỗ nào đứng được (hồn thú gục sát vật cản) thì nằm đúng chỗ hồn hoàn, như hồn hoàn.
-    const [cx, cy] = [[x + 16, y], [x, y + 8]].find(([a, b]) => this.map.standable(a, b)) ?? [x, y];
-    const drop = this.newDrop(cx, cy, owner);
-    const si = Math.max(0, coreSetIndex(core.data.set)), col = CORE_SETS[si].col;
-    drop.item = CORE_ITEM; drop.qty = 1; drop.tier = tierOfYears(years); drop.years = years; drop.stars = core.stars; drop.cset = si;
-    const did = uid("d");
-    this.coreDrops.set(did, core); this.state.drops.set(did, drop);
-    this.broadcast("fx", { k: "wave", x: drop.x, y: drop.y, r: 30, col });
-    const msg = `${coreName(core.data.set, core.stars)} rơi xuống đất!`;
-    this.log(id, `${msg} ${this.lootNote(owner, id, why)}`, col);
-    if (owner !== id) this.log(owner, `${msg} ${this.lootNote(owner, owner)}`, col);
-  }
-
-  /**
-   * Hồn cốt (bước 4.1, bảng rơi 5.3): hạ hồn thú `years` năm thì tung boneChance; trúng thì một hồn cốt cùng loài, cùng số năm, vị
-   * trí ngẫu nhiên trong 6 vị trí, rơi xuống đất cạnh hồn hoàn. Cùng luật đồ rơi như hồn hoàn: người hạ ưu tiên DROP_OWNER_SECS
-   * giây, nhặt (E) vào túi, túi đầy thì báo. Hook test `bone` của người hạ `id` cố định được số ngẫu nhiên và vị trí.
-   * Tinh anh (BĐ4): `mult` = ELITE.bone, quyền ưu tiên thuộc `owner` (người đóng góp nhiều nhất, như hồn hoàn).
-   */
-  rollBone(id: string, owner: string, species: number, years: number, tier: number, x: number, y: number, mult = 1, why?: string) {
-    const d = this.pdata.get(id); if (!d) return;
-    const t = d.testBone;
-    if ((t ? t.r : Math.random()) >= boneChance(years, mult)) return;
-    const slot = t && t.s >= 0 ? t.s % BONE_SLOTS.length : Math.floor(Math.random() * BONE_SLOTS.length);
-    const drop = this.map.standable(x - 8, y) ? this.newDrop(x - 8, y, owner) : this.newDrop(x, y, owner);
-    drop.item = BONE_ITEM; drop.qty = 1; drop.tier = tier; drop.years = years; drop.species = species; drop.slot = slot;
-    this.state.drops.set(uid("d"), drop);
-    this.broadcast("fx", { k: "wave", x: drop.x, y: drop.y, r: 30, col: TIERS[tier].glow });
-    const bone = `Hồn cốt ${boneName(BEASTS[species]?.id ?? "", BONE_SLOTS[slot].id, years)} rơi xuống đất!`;
-    this.log(id, `${bone} ${this.lootNote(owner, id, why)}`, TIERS[tier].glow);
-    if (owner !== id) this.log(owner, `${bone} ${this.lootNote(owner, owner)}`, TIERS[tier].glow);
-  }
-
-  /**
-   * Đồ rơi tại (x, y): người hạ `owner` được ưu tiên nhặt DROP_OWNER_SECS giây, tồn tại DROP_TTL_SECS giây (mục 4, 5.2). Từ 7.1 chụp
-   * tổ đội của `owner` lúc rơi: cả tổ đội cùng được ưu tiên (người vào đội sau lúc rơi thì không, người rời đội thì mất quyền).
-   */
-  newDrop(x: number, y: number, owner: string) {
-    const drop = new DropState(), od = this.pdata.get(owner);
-    drop.x = x; drop.y = y; drop.owner = owner; drop.ownerTtl = DROP_OWNER_SECS; drop.ttl = DROP_TTL_SECS;
-    drop.party = od ? party.partyIdOf(od.accountId) : 0;
-    return drop;
-  }
-
-  // ---------- Mảnh võ hồn, mở võ hồn, lên sao (mục 5.1 "Sưu tầm võ hồn", 5.3 "Rơi đặc trưng", bước 3.4) ----------
-  /**
-   * Hạ hồn thú `years` năm: tung tỉ lệ rơi mảnh (shardChance, bảng rơi 5.3); trúng thì SHARD_QTY mảnh của một võ hồn ngẫu nhiên
-   * trong MAPS[bản đồ].shards vào thẳng túi người hạ. Túi đầy thì phần không nhận rơi xuống đất cạnh hồn hoàn, cùng luật ưu tiên
-   * người hạ như hồn hoàn (3.2). Hook test `shard` cố định được số ngẫu nhiên và võ hồn được chọn.
-   */
-  rollShard(id: string, years: number, x: number, y: number) {
-    const d = this.pdata.get(id), list = MAPS[this.state.mapId].shards; if (!d || !list.length) return;
-    const t = d.testShard;
-    if ((t ? t.r : Math.random()) >= shardChance(years)) return;
-    const vohon = list[t && t.i >= 0 ? t.i % list.length : Math.floor(Math.random() * list.length)], code = shardCode(vohon), def = itemDef(code);
-    if (!def) return;
-    const got = this.addItem(d, code, SHARD_QTY);
-    if (got) { this.log(id, `Nhận ${got} ${def.name}${this.shardNote(d, code)}.`, def.col); this.sendBag(id); }
-    if (got < SHARD_QTY) {
-      // Cạnh hồn hoàn nếu chỗ đó đứng được (không thì chồng lên hồn hoàn; nhấn E lần nữa để nhặt nốt).
-      const drop = this.map.standable(x + 8, y) ? this.newDrop(x + 8, y, id) : this.newDrop(x, y, id);
-      drop.item = code; drop.qty = SHARD_QTY - got;
-      this.state.drops.set(uid("d"), drop);
-      this.log(id, `Túi đồ đã đầy (${d.bagSlots} ô): ${drop.qty} ${def.name} rơi xuống đất, ${this.lootNote(id, id)}`, "#ffb35c");
-    }
-  }
-
-  // ---------- Tiên thảo (mục 5.3 "Lạc Nhật Sâm Lâm", 5.7; bước BĐ6b) ----------
-  /**
-   * Hạ hồn thú ở vùng `zone` (tên vùng nơi hồn thú bị hạ): bản đồ có MapDef.herbs thì tung herbChance (tinh anh x HERB_ELITE); trúng
-   * thì 1 tiên thảo ngẫu nhiên trong HERBS vào thẳng túi người hạ như mảnh võ hồn; túi đầy thì rơi xuống đất cạnh hồn hoàn, người hạ ưu
-   * tiên nhặt. Hook test `herb` của người hạ cố định được số ngẫu nhiên và loại.
-   */
-  rollHerb(id: string, zone: string | undefined, x: number, y: number, elite: boolean) {
-    const d = this.pdata.get(id), chance = herbChance(this.state.mapId, zone, elite); if (!d || chance <= 0) return;
-    const t = d.testHerb;
-    if ((t ? t.r : Math.random()) >= chance) return;
-    const h = HERBS[t && t.i >= 0 ? t.i % HERBS.length : Math.floor(Math.random() * HERBS.length)], def = itemDef(h.id); if (!def) return;
-    this.broadcast("fx", { k: "wave", x, y: y - 6, r: 26, col: h.col });
-    if (this.addItem(d, h.id, 1)) { this.log(id, `Tìm được tiên thảo ${h.name}! (túi đồ: dùng cho một võ hồn)`, h.col); this.sendBag(id); return; }
-    const drop = this.map.standable(x, y + 8) ? this.newDrop(x, y + 8, id) : this.newDrop(x, y, id);
-    drop.item = h.id; drop.qty = 1;
-    this.state.drops.set(uid("d"), drop);
-    this.log(id, `Túi đồ đã đầy (${d.bagSlots} ô): tiên thảo ${h.name} rơi xuống đất, ${this.lootNote(id, id)}`, "#ffb35c");
-  }
+  rollCoreDrop(id: string, owner: string, years: number, x: number, y: number, sure = false, why?: string) { loot.rollCoreDrop(this, id, owner, years, x, y, sure, why); }
+  rollBone(id: string, owner: string, species: number, years: number, tier: number, x: number, y: number, mult = 1, why?: string) { loot.rollBone(this, id, owner, species, years, tier, x, y, mult, why); }
+  newDrop(x: number, y: number, owner: string) { return loot.newDrop(this, x, y, owner); }
+  rollShard(id: string, years: number, x: number, y: number) { loot.rollShard(this, id, years, x, y); }
+  rollHerb(id: string, zone: string | undefined, x: number, y: number, elite: boolean) { loot.rollHerb(this, id, zone, x, y, elite); }
 
   /**
    * Dùng tiên thảo `it` cho võ hồn `raw` (vohons.id, phải là võ hồn của chính người gửi): võ hồn đó +HERB_PCT % chỉ số của loại tiên
