@@ -14,16 +14,16 @@ import { sheetFiles } from "./beast-sheet-check.mjs";
 
 const SRC = path.join(ROOT, "art", "src", "beast-anim");
 
-function loadSheets(id) {
-  const files = sheetFiles(path.join(SRC, id)), sheets = {};
+function loadSheets(id, src = SRC) {
+  const files = sheetFiles(path.join(src, id)), sheets = {};
   for (const f of files) sheets[path.basename(f, ".png").replace(/^to/, "")] = readPng(f);
   return sheets;
 }
 
 /** Cắt một loài (không ghi file). Trả về { rep, res } hoặc { error }. */
-export function recutOne(id, opt = {}) {
+export function recutOne(id, opt = {}, src = SRC) {
   try {
-    const sheets = loadSheets(id);
+    const sheets = loadSheets(id, src);
     if (!Object.keys(sheets).length) return { error: "không có tờ RAW" };
     const res = cutSpecies({ species: id, sheets, ...opt });
     return { res, rep: res.report };

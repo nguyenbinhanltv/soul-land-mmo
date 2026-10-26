@@ -207,8 +207,10 @@ test("CLI --all (#972): loài chưa có tờ in 'bỏ qua', không thoát 2; in 
     const r = spawnSync(process.execPath, [path.join(ROOT, "tools/assets/beast-sheet-check.mjs"), "--all", "--no-image"], { cwd: ROOT, encoding: "utf8" });
     assert.notEqual(r.status, 2, r.stderr);
     assert.match(r.stdout, /bỏ qua zz_test_972 \(chưa có tờ\)/);
-    const n = readdirSync(RAW, { withFileTypes: true }).filter((d) => d.isDirectory()).length;
-    assert.equal(r.stdout.split("\n").filter((l) => /^(pass|nhẹ|chặn)\s|^bỏ qua /.test(l)).length, n);
+    // Bỏ các thư mục zz_test_*: test khác (beast-sheet-ci, chạy song song) tạo / xóa chúng trong cùng thư mục nên số đếm lệch (chập chờn trên CI).
+    const real = (name) => !name.startsWith("zz_test_");
+    const n = readdirSync(RAW, { withFileTypes: true }).filter((d) => d.isDirectory() && real(d.name)).length;
+    assert.equal(r.stdout.split("\n").filter((l) => /^(pass|nhẹ|chặn)\s|^bỏ qua /.test(l) && !/zz_test_/.test(l)).length, n);
   } finally { rmSync(empty, { recursive: true, force: true }); }
 });
 
