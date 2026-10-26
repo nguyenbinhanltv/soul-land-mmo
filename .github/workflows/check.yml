@@ -181,6 +181,43 @@ jobs:
 
   # Bài test đơn vị chạy nhanh (không server, không DB): trang bị, đăng nhập Google, khóa món, GM, cache tĩnh, hiệu ứng client, công cụ ảnh / tài liệu (#660).
   # Gộp ở `npm run test:unit` (gốc package.json); thêm bài mới thì thêm vào đó. Chỉ ubuntu, song song với check-build nên không làm CI chậm thêm.
+  # Kiểm tờ hoạt ảnh hồn thú (#866, theo dõi #861): PR đổi art/src/beast-anim/** hoặc tools/assets/beast-sheet-* thì chạy beast:check cho loài có tờ đổi.
+  # Nhẹ: không npm ci (script chỉ dùng node:* và tools/assets), không Chrome / server; không needs nên chạy cả khi mức bot là skip.
+  # Chặn chỉ khi cỡ ngoài tập / nền ngoài dung sai / thiếu khung / không dò được lưới; còn lại cảnh báo.
+  beast-sheet-check:
+    name: beast-sheet-check
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Danh sách file đổi
+        id: files
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "$BASE_SHA" "$HEAD_SHA"
+          git diff --name-only "$BASE_SHA" "$HEAD_SHA" > "$RUNNER_TEMP/changed.txt"
+          if grep -Eq '^(art/src/beast-anim/|tools/assets/beast-sheet-)' "$RUNNER_TEMP/changed.txt"; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "run=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Kiểm tờ (beast:check cho loài đổi)
+        if: ${{ steps.files.outputs.run == 'true' }}
+        run: node tools/assets/beast-sheet-ci.mjs --files "$RUNNER_TEMP/changed.txt" --out "$RUNNER_TEMP/beast-check"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: ${{ always() && steps.files.outputs.run == 'true' }}
+        with:
+          name: beast-check-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/beast-check
+          retention-days: 30
+          if-no-files-found: ignore
+
   test-unit:
     name: test-unit
     runs-on: ubuntu-latest
