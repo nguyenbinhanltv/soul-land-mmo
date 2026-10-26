@@ -1,14 +1,15 @@
 // Miền xã hội: chat, bạn bè / chặn, tổ đội (GAME_DESIGN.md mục 4 "Lệnh chat", 5.9), tách khỏi MapRoom.ts (#702, bước 4).
 // Hàm nhận phòng (`room: MapRoom`) như equip.ts / bones.ts; nguyên văn từ MapRoom, không đổi hành vi. MapRoom chỉ chuyển tiếp (đăng ký `onMessage` giữ
-// nguyên ở đó; ArenaRoom vẫn override `partyAction`). Phần phát / nhận presence (`friendNote`, `partyNote`, `sendParty`, `rallyAction`...) còn ở MapRoom.
-import { WORLD_CHAT } from "../../../shared/data.ts";
+// nguyên ở đó; ArenaRoom vẫn override `partyAction`). Bước 24: phần phát / nhận presence (`friendAfter` / `friendPublish` / `friendNote` / `sendFriends`, `partyPublish` / `partyNote` / `sendParty`, `rallyAction` / `rallyNote`) cũng ở đây, MapRoom chỉ chuyển tiếp.
+import { WORLD_CHAT, MAPS, RALLY, TILE } from "../../../shared/data.ts";
 import { store } from "../db.ts";
-import { chatCheck, chatText, worldWait, worldMark, inviteCheck, friendCheck, friendNoteOk } from "../ratelimit.ts";
+import { chatCheck, chatText, worldWait, worldMark, rallyCheck, inviteCheck, friendCheck, friendNoteOk } from "../ratelimit.ts";
 import * as party from "../party.ts";
-import { friends, type FriendResult } from "../friends.ts";
+import { rallyPoint, type RallyMsg } from "../../../shared/rally.ts";
+import { friends, FRIEND_TOPIC, type FriendNote, type FriendResult } from "../friends.ts";
 import { presenceBackend } from "../presence.ts";
 import { arenaQueueLocked, arenaReadActive } from "./arenaQueue.ts";
-import { CHAT_TOPIC, accOf, strIn, worldChatKey, type ChatRoute, type MapRoom } from "./MapRoom.ts";
+import { CHAT_TOPIC, FRIEND_COL, accOf, strIn, worldChatKey, type ChatRoute, type MapRoom } from "./MapRoom.ts";
 
 /**
  * Tin chat `chat {text, ch?, to?}`: `ch` thiếu = "map" (mọi người trong phòng, như cũ); "party" = mọi thành viên tổ đội; "whisper" =
@@ -157,4 +158,100 @@ export async function partyAction(room: MapRoom, id: string, m: unknown) {
   else return;
   if ("error" in r) { warn(r.error); return room.sendParty(id, true); }
   room.partyPublish(r.notes);
+}
+
+// ---------- Presence bạn bè / tổ đội / dấu tập trung (bước 24) ----------
+/**
+ * Sau khi tổ đội ghi `acc` vào / rời phòng (`party.goOnline` / `goOffline`, có thể chờ presence, #149): báo những người đã thêm nhau
+ * với `acc` đang trong game gửi lại bảng bạn bè. `leaveSid`: phiên vừa rời, bỏ danh sách của nó khỏi RAM ngay (danh sách người cần báo
+ * chụp trước khi bỏ). Tổ đội lỗi presence thì vẫn báo.
+ */
+export function friendAfter(room: MapRoom, done: Promise<unknown>, acc: number, leaveSid?: string) {
+  const mates = friends.mutualOnline(acc);
+  if (leaveSid !== undefined) friends.leave(acc, leaveSid);
+  const ping = () => room.friendPublish([{ to: leaveSid === undefined ? friends.mutualOnline(acc) : mates }]);
+  void done.then(ping, ping);
+}
+
+/** Phát các thông báo bạn bè lên presence: phòng đang giữ người nhận (có thể ở bản đồ khác) gửi lại bảng bạn bè và dòng log. */
+export function friendPublish(room: MapRoom, notes: FriendNote[]) { for (const n of notes) if (n.to.length) room.presence.publish(FRIEND_TOPIC, n); }
+
+/** Thông báo bạn bè trên presence: người của phòng này có trong `to` nhận dòng log (nếu có) và bảng bạn bè mới. */
+export function friendNote(room: MapRoom, n: FriendNote) {
+  if (!Array.isArray(n?.to)) return;
+  for (const [id, d] of room.pdata) {
+    if (!n.to.includes(d.accountId)) continue;
+    if (n.text) room.log(id, n.text, FRIEND_COL);
+    // Lời thêm bạn của người mình đã chặn không được gửi (mục 5.9).
+    const add = n.added && !friends.blocked(d.accountId, n.added.acc) ? n.added : undefined;
+    room.sendFriends(id, add && { name: add.name, back: friends.has(d.accountId, add.acc) });
+  }
+}
+
+/**
+ * Tin riêng "friends" (bảng bạn bè của chính chủ): danh sách bạn (đã thêm nhau chưa; bản đồ / kênh chỉ khi đã thêm nhau và đang trong
+ * game), danh sách chặn. `added`: người vừa thêm mình (`back`: mình đã có người đó, tức hai bên đã là bạn bè; không thì client hiện
+ * nút "Thêm lại").
+ */
+export function sendFriends(room: MapRoom, id: string, added?: { name: string; back: boolean }) {
+  const d = room.pdata.get(id); if (!d) return;
+  room.clients.getById(id)?.send("friends", { ...friends.view(d.accountId, party.whereIs), ...(added ? { added } : {}) });
+}
+
+/** Phát các thông báo tổ đội lên presence: phòng đang giữ người nhận (có thể ở bản đồ khác) gửi lại khung tổ đội và dòng log. */
+export function partyPublish(room: MapRoom, notes: party.PartyNote[] | Promise<party.PartyNote[]>) {
+  void Promise.resolve(notes).then((list) => { for (const n of list) void room.presence.publish(party.PARTY_TOPIC, n); })
+    .catch((e) => console.error("Không cập nhật được tổ đội trong presence", e));
+}
+
+/** Thông báo tổ đội trên presence: người của phòng này có trong `to` nhận dòng log (nếu có) và khung tổ đội mới. */
+export function partyNote(room: MapRoom, n: party.PartyNote) {
+  if (!Array.isArray(n?.to)) return;
+  for (const [id, d] of room.pdata) {
+    if (!n.to.includes(d.accountId)) continue;
+    if (n.text) room.log(id, n.text, n.col);
+    room.sendParty(id, true);
+  }
+}
+
+/** Tin riêng "party" (khung tổ đội, party.partyView): chỉ gửi khi nội dung đổi, trừ khi `force`. */
+export function sendParty(room: MapRoom, id: string, force = false) {
+  const d = room.pdata.get(id); if (!d) return;
+  const { view, key } = party.partyView(d.accountId, room.roomId, Date.now());
+  if (!force && key === d.partyKey) return;
+  d.partyKey = key;
+  room.clients.getById(id)?.send("party", view);
+}
+
+/**
+ * Tin `rally {tx, ty}` (R6 #433): thành viên tổ đội đặt dấu "Tập trung ở đây" ở ô (tx, ty) của bản đồ đang đứng. Server kiểm: có ở trong
+ * tổ đội, không ở Đại Đấu Hồn Trường / đang đổi bản đồ, ô nằm trong bản đồ và đi được, rồi mới tính giới hạn tốc độ (ratelimit.rallyCheck).
+ * Bản đồ và kênh lấy từ chính phòng này (client không gửi). Hợp lệ thì phát `RALLY_TOPIC` tới thành viên tổ đội (kể cả tiến trình khác);
+ * server không giữ dấu, mỗi nơi nhận tự đếm `RALLY.secs`. Lỗi báo riêng người đặt.
+ */
+export function rallyAction(room: MapRoom, id: string, m: unknown) {
+  const p = room.state.players.get(id), d = room.pdata.get(id); if (!p || !d || d.travelling) return;
+  const o = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>, warn = (text: string) => room.log(id, text, "#ffb35c");
+  if (room.map.kind === "arena") return warn("Đại Đấu Hồn Trường không có dấu tập trung.");
+  const acc = d.accountId, members = party.partyMembers(acc);
+  if (members.length < 2) return warn("Cần ở trong tổ đội để đặt dấu Tập trung ở đây.");
+  const pt = rallyPoint(o.tx, o.ty, room.map.MW, room.map.MH);
+  if (!pt || !room.map.standable(pt.tx * TILE, pt.ty * TILE)) return warn("Chỗ đó không đi được, hãy đặt dấu ở chỗ trống.");
+  const rl = rallyCheck(acc, Date.now()); if (rl) return warn(rl.error);
+  const msg: RallyMsg = { from: p.name, map: room.state.mapId, ch: room.state.channel, tx: pt.tx, ty: pt.ty, secs: RALLY.secs };
+  void room.presence.publish(party.RALLY_TOPIC, { to: members, pid: party.partyIdOf(acc), from: acc, msg, map: MAPS[room.state.mapId]?.name ?? room.state.mapId } satisfies party.RallyRoute);
+}
+
+/** Dấu tập trung trên presence: người của phòng này có trong `to` (và còn trong đúng tổ đội đó, không chặn người đặt) nhận tin riêng `rally` kèm một dòng chat hệ thống. */
+export function rallyNote(room: MapRoom, r: party.RallyRoute) {
+  if (!Array.isArray(r?.to) || !r.msg) return;
+  const here = r.msg.map === room.state.mapId && r.msg.ch === room.state.channel;
+  for (const [id, d] of room.pdata) {
+    if (!r.to.includes(d.accountId) || party.partyIdOf(d.accountId) !== r.pid || d.travelling) continue;
+    if (d.accountId !== r.from && friends.blocked(d.accountId, r.from)) continue;
+    const c = room.clients.getById(id); if (!c) continue;
+    c.send("rally", r.msg);
+    const at = here ? "" : ` (${r.map}${r.msg.ch ? ` · Kênh ${r.msg.ch}` : ""})`;
+    c.send("chat", { ch: "party", sys: true, name: "Hệ thống", text: `${r.msg.from} đánh dấu Tập trung ở đây${at}.` });
+  }
 }
