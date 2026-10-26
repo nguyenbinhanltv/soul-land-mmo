@@ -30,7 +30,7 @@
   "completed_at_utc": "2026-10-26T00:41:07.175282+00:00",
   "ordered_refs": [
     {
-      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-64/liet_trao_hung/reference-static-original.png",
+      "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-64/shared/assets/sprites/beast/liet_trao_hung.png",
       "sha256": "1f81a4e08166a79647a50ae4b86c3dc57ab70b72549b1646b96f61291c51713b",
       "role": "original static identity; source front/back upright, side crouched"
     }
@@ -47,5 +47,10 @@
     "request.json": "fcad8fa47a5195d1add90c619d2b98b1fb82722e74c867590b3b741d0f855800",
     "output.json": "0624479fec4befb8fb9b88ce9bc61a90444d99ede9917d2c449bd62bbf49ae5f",
     "HANDOFF.md": "dfc594527ebc3496219fdbdbfbb1ec9dc3c371c542868769bc0774673e501d5a"
+  },
+  "durable_reference_backup": {
+    "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-64/liet_trao_hung/reference-static-original.png",
+    "sha256": "1f81a4e08166a79647a50ae4b86c3dc57ab70b72549b1646b96f61291c51713b",
+    "role": "byte-identical backup; not the reference path attached by92"
   }
 }
