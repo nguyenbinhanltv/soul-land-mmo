@@ -1,5 +1,6 @@
 // Tiện ích chung của bài bot (#703): bot-test.mjs (bộ chạy + bảng nhóm) và các nhóm trong bot/<nhóm>.mjs cùng dùng.
 // Biến toàn cục cũ (API, RUN, PASS, đếm lỗi) nằm ở đây và được export; đếm lỗi đọc qua failCount() vì không export được `let` ghi đè.
+import { TICK_RATE, parseLevelRange, beastStats, ELITE, BEASTS, tierOfYears, bossHpMult, BOSSES, SPAWN_CLEAR, BEAST_WANDER, BEAST_AGGRO_R } from "../../../shared/data.ts";
 import { randomUUID } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { Client } from "colyseus.js";
@@ -190,3 +191,51 @@ export async function step(b,x,y){
   const q=b.room.state.players.get(b.room.sessionId), x0=q.x, y0=q.y;
   b.room.send("input",{x,y}); await waitFor(()=>Math.hypot(q.x-x0,q.y-y0)>=1,1000); b.room.send("input",{x:0,y:0}); await sleep(100);
 }
+
+/**
+ * Đi thẳng tới (tx, ty), mỗi 50 ms chỉnh lại hướng; trả về true khi tới cách dưới 3 pixel. Từ 11.1 ngoài giao chiến chạy tới
+ * spd / TICK_RATE ≈ 7,6 pixel mỗi nhịp, dài hơn khoảng ±3 pixel: đi hết cỡ thì có thể bước qua đích rồi lắc qua lại. Gần đích
+ * thì đẩy cần nhẹ (server nhân tốc độ theo độ dài input), mỗi nhịp đi khoảng nửa quãng còn lại nên hội tụ dù input tới trễ một nhịp.
+ */
+export async function goTo(b,tx,ty,ms=8000){
+  const q=b.room.state.players.get(b.room.sessionId);
+  const ok=await waitFor(()=>{ const dx=tx-q.x, dy=ty-q.y, d=Math.hypot(dx,dy); if(d<3) return true;
+    const k=Math.min(1,d/(2*Math.max(q.spd,1)/TICK_RATE));
+    b.room.send("input",{x:+(k*dx/d).toFixed(2),y:+(k*dy/d).toFixed(2)}); return false; },ms);
+  b.room.send("input",{x:0,y:0}); await sleep(150); return ok;
+}
+/** Mọi hồn thú trong phòng của bot `b` có tuổi nằm trong khoảng `years` của một vùng gần đó (bảng 5.3), bậc và máu suy từ số năm. */
+export function checkBeastYears(b){
+  const s=b.room.state, map=JSON.parse(readFileSync(mapUrl(s.mapId),"utf8"));
+  const prop=(o,n)=>(o.properties??[]).find(q=>q.name===n)?.value;
+  const zs=map.layers.flatMap(l=>l.objects??[]).filter(o=>(o.type??o.class)==="zone").map(o=>({...o,yr:parseLevelRange(prop(o,"years")),
+    sp:String(prop(o,"beasts")??"").split(",").map(x=>x.split(":")[0].trim()).filter(Boolean)}));
+  const bad=[], ys=[]; let n=0;
+  s.beasts.forEach(x=>{ if(x.rank===2) return; // thú vương (BĐ5) kiểm riêng: niên hạn kingYears, có thể khác mức trên của vùng (BĐ6d)
+    n++; ys.push(x.years);
+    // Hồn thú đi lang thang / đuổi người tối đa 220 pixel quanh chỗ sinh: so với các vùng trong phạm vi đó.
+    const near=zs.filter(z=>z.yr&&x.x>=z.x-240&&x.x<=z.x+z.width+240&&x.y>=z.y-240&&x.y<=z.y+z.height+240);
+    // Loài và số năm phải khớp cùng một vùng (bảng 5.3): loài khai báo ở `beasts`, tuổi trong `years`.
+    // Tinh anh (BĐ4, `rank` 1): niên hạn bằng mức trên của vùng, máu x ELITE.hp (nhân thêm theo số người tham gia nếu đang giao chiến).
+    const base=x.rank?Math.round(beastStats(x.years).hp*ELITE.hp):beastStats(x.years).hp;
+    if(!near.some(z=>x.rank?x.years===z.yr[1]:x.years>=z.yr[0]&&x.years<=z.yr[1]&&z.sp.includes(BEASTS[x.species]?.id))||x.tier!==tierOfYears(x.years)
+      ||!(x.maxHp===base||x.rank&&[2,3,4,5,6].some(n=>x.maxHp===Math.round(base*bossHpMult(n)))))
+      bad.push(`${x.rank?BOSSES[x.species]?.id:BEASTS[x.species]?.id} ${x.years}@${x.x.toFixed(0)},${x.y.toFixed(0)}`); });
+  const [lo,hi]=MAPS[s.mapId].years??[0,0];
+  ok(zs.every(z=>z.yr)&&n>0&&!bad.length&&ys.every(y=>y>=lo&&y<=hi),
+    `${s.mapId}: ${n} hồn thú có loài và số năm đúng vùng (${Math.min(...ys)}–${Math.max(...ys)} năm, bản đồ ${lo}–${hi})`+(bad.length?` sai: ${bad.join(" ")}`:""));
+  return map;
+}
+/**
+ * Không hồn thú nào sát trại cổng / cổng / điểm xuất hiện (mục 5.8: không sinh trong SPAWN_CLEAR pixel mỗi trục quanh chúng; hồn thú
+ * lang thang tối đa BEAST_WANDER pixel mỗi trục quanh chỗ sinh, nên không con nào trong SPAWN_CLEAR − BEAST_WANDER pixel: ngoài tầm
+ * phát hiện của người đứng ở đó). Gọi lúc vừa vào bản đồ, khi chưa kéo hồn thú nào về.
+ */
+export function checkGateClear(b,map){
+  const gates=map.layers.flatMap(l=>l.objects??[]).filter(o=>["spawn","portal","arrive"].includes(o.type)), r=SPAWN_CLEAR-BEAST_WANDER;
+  const inBox=(g,x,y)=>x>g.x-r&&x<g.x+(g.width??0)+r&&y>g.y-r&&y<g.y+(g.height??0)+r;
+  const near=[]; b.room.state.beasts.forEach(x=>{ for(const g of gates) if(inBox(g,x.x,x.y)) near.push(`${g.name}: ${x.years} năm ở ${x.x.toFixed(0)},${x.y.toFixed(0)}`); });
+  ok(r>=BEAST_AGGRO_R&&!near.length,`${b.room.state.mapId}: không hồn thú nào trong ${r} pixel quanh ${gates.length} trại cổng / cổng / điểm xuất hiện`+(near.length?` (${near.join("; ")})`:""));
+}
+export const inZone=(z,x,y)=>!!z&&z.rects.some(r=>x>=r.x&&x<=r.x+r.width&&y>=r.y&&y<=r.y+r.height);
+export async function bossClock(b){ const k=await test(b,"king"); return {now:k?.clock??Date.now(),mode:k?.clockMode??"real"}; }
