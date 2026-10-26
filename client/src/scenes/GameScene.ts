@@ -863,6 +863,10 @@ export class GameScene extends Phaser.Scene {
     this.input.on("pointerdown", (ptr: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) => {
       // Phaser còn nghe mousedown ở cấp window: bấm rơi vào bảng / nút HUD (không phải canvas) không được thành lệnh đi, khoá hay chọn người (U1 #754).
       if (ptr.downElement && ptr.downElement !== this.game.canvas) return;
+      // Phaser preventDefault mousedown của canvas nên trình duyệt không tự đưa tiêu điểm khỏi ô nhập (#990): bấm xuống bản đồ thì bỏ tiêu điểm ô chat / ô nhập,
+      // không thì WASD, Space, U/I/O/P bị gõ vào ô. Chữ gõ dở giữ nguyên (Enter lại thì gõ tiếp); chỉ blur, không gửi, không xoá.
+      const f = document.activeElement;
+      if (field(f)) (f as HTMLElement).blur();
       if (this.watching) { // người xem: bấm / chạm hồn sư để theo dõi người đó, không đi, không mời đội
         let sid = "", bd = 14 * SPR;
         this.players.forEach((v, id) => { const k = Math.hypot(ptr.worldX - v.root.x, (ptr.worldY - (v.root.y - 12 * SPR)) * 0.7); if (k < bd) { bd = k; sid = id; } });
