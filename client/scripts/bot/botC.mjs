@@ -1,6 +1,6 @@
 // Khối botC của INLINE: bot C đi cổng BĐ2, NPC 6.1, BĐ6a–BĐ6e, BĐ3, tổ đội 7.1 (nhóm 3) (#703 bước 5, tách nguyên văn từ bot-test.mjs).
 // `C` là bot của luồng này: botCFlow gán, các hàm bên dưới (npcTown, thienDauTest, …) dùng chung.
-import { inZone } from "./lib.mjs";
+import { inZone, test } from "./lib.mjs";
 import { bossClock } from "./lib.mjs";
 import { waitFor, sleep, goTo, ok, bagKey, post, enter, bot, WS, failCount, lastLog, npcSpot, talk, trade, objOf, qtyOf, bonesOf, sj, useItem, checkGateClear, checkBeastYears, mapUrl, PASS, same, AT, looseOf, zonesByName, RUN } from "./lib.mjs";
 import * as SD from "../../../shared/data.ts";
