@@ -42,7 +42,7 @@ Phụ thể là thủ phạm chính: 100 ảnh × 2304×1152 × 4 byte ≈ **1 G
 2. **Pháp tướng `pt_*` theo nhu cầu** — **đã làm ở PR thứ hai**. Cùng cơ chế với bước 1 (`wantPhapTuong` trong `vohonLazy.ts`): `preloadSprites` chỉ ghi spec; sheet thân + lớp sáng `_glow` được xin khi có người trong phòng đang Chân Thân (`ava > 0`, lúc vào hoặc lúc `PhapTuongSystem.sync` thấy) và của chính mình (lúc vào / đổi võ hồn, để cut-in có ảnh). Chưa tải xong thì chưa dựng hình pháp tướng và không vẽ bản tạm (khỏi nháy); `setSlots` hỏi lại mỗi khung. Manifest không có ảnh / tải lỗi thì vẫn dùng sheet tạm bằng code. Ảnh hiển thị cuối cùng không đổi.
 3. **Hồn thú theo loài trong tầm** — **đã làm ở PR thứ ba**. Cùng cơ chế với bước 1 / 2 (`wantBeast` trong `vohonLazy.ts`): `preloadSprites` chỉ ghi spec `beast_*` (cả `_anim` và normal map); preload xin loài của hồn thú đã có trong state lúc vào, hồn thú tới sau (đi vào tầm, boss / thú vương / thú gọi ra) xin lúc xuất hiện (vòng vẽ hồn thú ở `GameScene`). Chọn theo loài thật đang có trong tầm chứ không theo trường `map` của manifest, nên không bao giờ tải thiếu (loài ngoài bản đồ nhà vẫn có ảnh). Chưa tải xong thì ẩn sprite, tên, thanh máu, bóng (không vẽ bản tạm bằng code để khỏi nháy); sheet tới thì dựng animation / đo thân (`setBeastSheetHook` trong `sprites.ts`). Manifest không có ảnh / tải lỗi thì vẽ bằng code theo bậc như trước. Ảnh hiển thị cuối cùng không đổi.
 4. **Hiệu ứng chiêu `fx_sk_*` theo võ hồn** — **đã làm ở PR thứ tư**. Cùng cơ chế với bước 1–3 (`wantSkillFx` trong `vohonLazy.ts`): 560 dải `fx_sk_<tên>` (+ lớp sáng `_g`, 3,3 MB; chiếm ~93% trong 601 dải `fx_*`) chỉ ghi spec; sheet của võ hồn nào được xin khi có người dùng võ hồn đó trong phòng (lúc vào, lúc người mới tới / đổi võ hồn), lớp sáng `_g` chỉ cho chính mình (chiêu người khác không vẽ lớp sáng). Danh sách key suy từ `SKILL_VISUAL` (chỉ chiêu khai ở đó); hiệu ứng hệ `fx_<hệ>_*`, hợp thể (`FUSION_VISUAL`), va chạm... vẫn tải ngay. Chưa tải xong thì `SheetFx.play` trả false và chiêu dùng hiệu ứng vẽ bằng code như khi manifest thiếu ảnh, nên chỉ có thể lệch ở chiêu đầu tiên của người vừa vào tầm trong vài chục ms đầu; ảnh hiển thị lúc ổn định không đổi. Phần còn lại của `fx_*` (~40 dải theo hệ) để dành nếu đo cho thấy còn đáng.
-5. **Không huỷ texture dùng chung khi đổi bản đồ** (giữ `Phaser.Game`, đổi scene; hoặc tạm giữ bộ nhớ đệm texture dùng chung): hồn sư, pháp tướng, fx, UI không giải mã lại. Lợi lớn nhất cho đổi bản đồ nhưng đụng `main.ts` / vòng đời scene (sự kiện `filecomplete-json-*` của manifest không bắn khi key đã có trong cache, cần xử lý), phải chạy bot `travel` + soak.
+5. **Giữ `Phaser.Game` khi đổi bản đồ** — **đã làm ở PR thứ năm** (`main.ts`: `leaveThen`, `dropSceneTextures`). Đổi bản đồ chỉ `stop` + `remove` scene `game` rồi thêm scene mới vào cùng Game (canvas ẩn trong lúc chờ vào phòng), không `destroy` nữa nên texture nạp từ file (hồn sư, pháp tướng, `fx_*`, ô nền / vật đứng đã ghé, UI) không phải tải XHR + giải mã lại. Những chỗ phải xử lý: (a) cache JSON / tilemap còn key thì loader bỏ file và sự kiện `filecomplete-json-*` không bắn, nên `preloadSprites` (manifest), `preloadIso` (tiles, kho riêng), `GameScene.preload` (tilemap) gỡ key khỏi cache trước khi tải lại (file nhỏ, HTTP cache); (b) texture vẽ bằng code (canvas: khối nung, nhà, thời tiết, LPC, fx dải...) và mọi hoạt ảnh (tham chiếu khung của chúng) bị bỏ lúc rời bản đồ như khi huỷ Game, để code dựng lại không gặp key cũ; (c) `ScaleManager` thuộc Game nên `GameScene` gỡ listener `resize` khi scene tắt. Đánh đổi: texture file của bản đồ đã ghé ở lại trong bộ nhớ (đo ~650 → ~930 key sau 8 lần đổi bản đồ, ô nền + vật đứng của 5 bản đồ); chưa có cơ chế đuổi, đáng xem nếu soak thấy RAM tăng. Ảnh hiển thị lúc ổn định không đổi.
 6. **Gom atlas** (ảnh nhỏ, `tools/assets`): giảm số request / số texture cho vật đứng, ô nền; đã có `isoAtlas.ts` cho Light2D (nhiều trang từ #718).
 7. **Cache HTTP, preload theo bản đồ, âm thanh**: HTTP cache đã đúng (#580: `?v=` + immutable). Chưa thấy âm thanh chặn hiển thị (nhạc nền 3 request, ~1,6 MB lần đầu). Xem lại sau khi 1–5 xong.
 
@@ -126,3 +126,26 @@ B = main lúc đó (`132e97ff`, sau bước 3), C = sau bước 4. Mỗi ô: B �
 - Request mỗi lần vào bản đồ giảm **~530** (−65…−70%); KB mạng lượt lạnh vào game 6.129 → 3.377 (−2,7 MB). Thời gian giảm ở 9 / 10 ca (−0,5…−1,2 s ở warp, lượt lạnh −6,8 s); ca Lõi Tinh Đấu lần đầu +0,18 s nằm trong nhiễu (lượt riêng 1.321 / 2.370 / 4.249 ms).
 - Ba lượt lẻ dao động ±40% (máy dùng chung), nên so trung vị và chiều chung. Lượt đo đầu của đợt này bị hỏng vì hai vòng đo chạy song song, đã bỏ và đo lại tuần tự.
 - Kiểm: `skillvisual-test` đạt; `npm run check` xanh.
+
+## Bước 5: số trước / sau (trung vị 3 lượt xen kẽ B, C, B, C, B, C trên cùng server, tuần tự 1 Chrome)
+
+B = main lúc đó (`93b04c10`, sau bước 4), C = sau bước 5. Mỗi ô: B → C.
+
+| Ca | Bản đồ | Thời gian (ms) | Request |
+|---|---|---|---|
+| vào game, hồ sơ trống (lạnh) | Thánh Hồn Thôn | 4.978 → 4.264 | 360 → 359 |
+| vào game, tải lại trang (nóng) | Thánh Hồn Thôn | 1.218 → 2.233 (lượt lẻ C: 1.182 / 5.237 / 2.233) | 361 → 362 |
+| warp lần đầu | Nặc Đinh Thành | 3.519 → 3.156 | 263 → 91 |
+| warp lần đầu | Tinh Đấu Ngoại vi | 1.233 → 804 | 261 → 92 |
+| warp lần đầu | Thiên Đấu Thành | 2.435 → 2.289 | 275 → 98 |
+| warp lần đầu | Lõi Tinh Đấu | 888 → 907 | 220 → 79 |
+| warp lần sau (nóng) | Nặc Đinh Thành | 1.727 → 1.074 | 264 → 24 |
+| warp lần sau (nóng) | Tinh Đấu Ngoại vi | 1.103 → 444 | 260 → 8 |
+| warp lần sau (nóng) | Thiên Đấu Thành | 2.650 → 1.752 | 275 → 39 |
+| warp lần sau (nóng) | Lõi Tinh Đấu | 835 → 168 | 218 → 7 |
+
+- Đổi bản đồ: request mỗi lần vào giảm 170–260 ở lần đầu, 230–250 ở lần sau (còn 7–39); **thời gian lần sau giảm 0,6–1 s (−35…−80%)**, lần đầu −0,1…−0,4 s (Lõi Tinh Đấu +19 ms, trong nhiễu). Vào game (lần đầu mở phiên) không đổi vì chưa có gì để giữ; lượt "tải lại trang" nóng lệch do một lượt vọt 5,2 s ở bên C (hai lượt kia 1,2 / 2,2 s), không phải hiệu ứng của thay đổi (cùng một đường chạy với B).
+- KB mạng không đổi (HTTP cache đã đúng từ #580): lợi hoàn toàn nằm ở XHR + giải mã + nạp texture trên luồng chính.
+- Ba lượt lẻ dao động ±40% (máy dùng chung), nên so trung vị và chiều chung.
+
+Kiểm bù cho bước 4 (`fx_sk` tải lười) và kiểm bước 5: `waypoint` đạt 76 / 76, `bigmap` đạt 176 / 176 (bot server; không có nhóm tên `travel`). Kiểm tay (Chrome thật, `--mute-audio`, bản dựng bước 5, `__scene`): vào Thánh Hồn Thôn rồi warp Nặc Đinh Thành → Tinh Đấu Ngoại vi → Thánh Hồn Thôn → Thiên Đấu Thành → Nặc Đinh Thành → Lõi Tinh Đấu → Thánh Hồn Thôn: luôn 1 scene, texture `pt_*` / `vh_*` của mình còn, 32 key `fx_sk_*` của võ hồn mình (xin lúc vào) còn sau mọi lần đổi, 0 lỗi console. Phát một dải `fx_sk_ld_zone1` qua `SkillVisualPlayer.cast` trước và sau một lần warp: trả true, sprite hiện (chiêu dùng sheet thật, không rơi về hiệu ứng vẽ bằng code). Bấm chiêu thật bằng tay không làm được vì tài khoản thử chưa có hồn hoàn (hồn kỹ vòng 1 cần hồn hoàn thứ 1).

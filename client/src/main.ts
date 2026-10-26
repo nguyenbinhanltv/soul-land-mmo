@@ -321,6 +321,16 @@ async function joinArena(roomId: string, watch = false) {
 const ARENA_END_CODE = 4005;
 
 /**
+ * Đổi bản đồ giữ Game (#716 bước 5): texture nạp từ file (hồn sư, pháp tướng, fx, ô nền, vật đứng đã ghé) giữ lại, không giải mã lại.
+ * Texture vẽ bằng code (canvas: khối nung, nhà, thời tiết, lpc, fx dải...) do scene dựng nên bỏ theo scene như khi huỷ Game; hoạt ảnh
+ * tham chiếu khung của chúng nên bỏ hết (dựng lại có kiểm `exists`).
+ */
+function dropSceneTextures(g: Phaser.Game) {
+  for (const k of g.textures.getTextureKeys()) if (g.textures.get(k).source[0]?.isCanvas) g.textures.remove(k);
+  for (const a of g.anims.toJSON().anims) g.anims.remove(a.key);
+}
+
+/**
  * Mở Phaser cho phòng vừa vào. Server cho đi cổng hoặc đổi kênh (`travel {mapId, roomId}`) thì rời phòng cũ, hủy scene và vào phòng
  * (kênh) server đã chọn ở bản đồ đích.
  * Từ 7.2: ghép được trận thì rời bản đồ, vào phòng sân đấu; xong trận (hoặc bấm rời sân) thì về lại bản đồ đang đứng (`mapId` không đổi
@@ -347,7 +357,8 @@ function play(room: Room, roomMap: string, watch = false) {
     travelling = true;
     // Kết nối đã đóng (server đưa ra khỏi sân, mã 4005) thì không gửi rời phòng nữa: leave() của colyseus.js sẽ không bao giờ xong.
     if (!left) await room.leave().catch(() => {});
-    game?.destroy(true); game = null;
+    // Giữ Phaser.Game (#716 bước 5): chỉ tắt scene, texture dùng chung (hồn sư, pháp tướng, fx, UI, bản đồ đã ghé) không phải giải mã lại.
+    if (game) { game.scene.stop("game"); game.scene.remove("game"); dropSceneTextures(game); game.canvas.style.visibility = "hidden"; }
     document.body.classList.remove("playing"); document.getElementById("hud")!.hidden = true;
     next();
   };
@@ -356,7 +367,8 @@ function play(room: Room, roomMap: string, watch = false) {
   const onArena = (roomId: string, w = false) => leaveThen(() => joinArena(roomId, w));
   const onBack = () => onTravel(mapId);
   installLoaderRetry();
-  game = new Phaser.Game({
+  if (game) game.canvas.style.visibility = "";
+  else game = new Phaser.Game({
     // `?canvas`: ép Canvas để thử đường lùi không có WebGL (ánh sáng tắt hẳn, 10.7). maxLights: số đèn Light2D (lighting.ts).
     type: new URLSearchParams(location.search).has("canvas") ? Phaser.CANVAS : Phaser.AUTO, parent: "game", backgroundColor: "#0c1712", pixelArt: true, roundPixels: true,
     maxLights: MAX_LIGHTS,

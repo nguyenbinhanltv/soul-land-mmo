@@ -78,6 +78,7 @@ function mapSet(data: IsoTiles | undefined, mapId: string) {
 /** Tải tiles.json rồi chỉ những ảnh bản đồ `mapId` dùng tới (tránh tải ảnh của vùng khác). Gọi trong preload(). */
 export function preloadIso(scene: Phaser.Scene, mapId: string) {
   if (TOPDOWN) return;
+  scene.cache.json.remove(TILES_KEY); // như manifest: Game giữ qua bản đồ, phải tải lại JSON để sự kiện filecomplete bắn
   scene.load.json(TILES_KEY, BASE + "tiles.json");
   scene.load.once(`filecomplete-json-${TILES_KEY}`, (_k: string, _t: string, data: IsoTiles) => {
     const set = mapSet(data, mapId), files = new Set<string>();
@@ -100,6 +101,7 @@ export function preloadIso(scene: Phaser.Scene, mapId: string) {
     }
     // Vật kho riêng (#622): chỉ xin file có thật theo present.json (không có kho thì không có file, bản đồ dùng vật công khai thay).
     if (priv.size) {
+      scene.cache.json.remove(PRIV_KEY);
       scene.load.json(PRIV_KEY, "private/present.json");
       scene.load.once(`filecomplete-json-${PRIV_KEY}`, (_k: string, _t: string, pr: { files?: string[] }) => {
         const present = new Set(pr?.files ?? []);
