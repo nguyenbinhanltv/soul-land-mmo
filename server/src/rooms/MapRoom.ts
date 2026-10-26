@@ -4186,8 +4186,10 @@ export class MapRoom extends Room<MapState> {
     else if (op === "awatch") { const n = int(o.max, 0, ARENA.watchMax, -1); setTestWatchMax(n < 0 ? null : n); out = { max: arenaWatchMax() }; } // #278: số người xem tối đa
     else if (op === "aelo") {
       // 7.2: ghi Elo / thành tích Đại Đấu Hồn Trường của người gọi (qua chuỗi lưu, không thưởng) để thử ghép theo Elo và bảng xếp hạng.
-      const rec = { elo: int(o.elo, 0, 1e6, ARENA.startElo), wins: int(o.wins, 0, 1e6, 0), losses: int(o.losses, 0, 1e6, 0), draws: int(o.draws, 0, 1e6, 0) };
+      // `gain` (#791): trước đó ghi thêm ngần ấy Elo vào tổng cộng thêm hôm nay (kẹp ở ARENA.eloDaily) để thử trần; Elo rồi bị `elo` đặt lại như thường.
+      const gain = int(o.gain, 0, 1e6, 0), rec = { elo: int(o.elo, 0, 1e6, ARENA.startElo), wins: int(o.wins, 0, 1e6, 0), losses: int(o.losses, 0, 1e6, 0), draws: int(o.draws, 0, 1e6, 0) };
       this.chain(d, async () => {
+        if (gain) await store.saveArena(d.accountId, ARENA.startElo, { elo: gain, wins: 0, losses: 0, draws: 0 }, undefined, { day: this.today(), limit: ARENA.eloDaily });
         const cur = await store.getArena(d.accountId, ARENA.startElo);
         await store.saveArena(d.accountId, ARENA.startElo, { elo: rec.elo - cur.elo, wins: rec.wins - cur.wins, losses: rec.losses - cur.losses, draws: rec.draws - cur.draws });
       }).then(() => { this.sendVohons(c); c.send("test", { op, enabled: true, rec }); });

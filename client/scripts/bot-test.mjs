@@ -10151,11 +10151,14 @@ async function arenaTest(){
   const bagF3=snap(F), eloG3=G.aq.elo; ok(eloG3===eloG1,`G thua trận 1: Elo ${eloG3} (= eloAfter(1040, 1000, 0))`);
   await enterArena(F); await test(F,"afast",{s:0});
   ok(await waitFor(()=>endOf(F),3000),"G không vào sân: hết giờ chờ thì trận có kết quả");
-  m=checkEnd(F,1,"noshow",eloF2,eloG3,"Trận 3"); await checkReward(F,m,bagF3,ARENA.dailyWins-1);
+  // #790: bỏ cuộc trước giao đấu: F (bên còn lại) không đổi Elo, không thưởng; G (người bỏ cuộc) bị trừ Elo như thua (kiểm ở bảng xếp hạng bên dưới).
+  m=endOf(F);
+  ok(m&&m.score===1&&m.reason==="noshow"&&m.friendly&&m.elo0===eloF2&&m.elo1===eloF2&&!m.reward&&m.rec.wins===0&&bagKey(F)===bagF3.key,
+    `Trận 3: F thắng vì G bỏ cuộc nhưng không đổi Elo (${m?.elo0} → ${m?.elo1}), không thưởng, không tính thắng`);
   await G.room.leave(); await sleep(300); await back(G);
   ok(G.room.state.mapId===AT,`G (đã ghép mà không vào sân) vẫn ở ${MAPS[AT].name}`);
   await kickBack(F);
-  const eloF3=m.elo1, eloG4=eloAfter(eloG3,eloF2,0);
+  const eloF3=m.elo1, eloG4=eloAfter(eloG3,eloF2,0); // G bỏ cuộc: trừ Elo đúng như thua
 
   // 8.1c (lưu phái Cảm điện): E đưa Lam Điện Bá Vương Long và Yêu Hồ đủ 10 hồn hoàn vào đội, mang tuyệt kỹ ở ô U.
   const LD="lam_dien_ba_vuong_long", YH="yeu_ho";
@@ -10626,7 +10629,8 @@ async function arenaEdgeTest(){
 
     // Mỗi đối thủ chỉ dùng tối đa 3 lần để không rơi vào trận giao hữu; 4 đối thủ đủ 11 trận thắng xếp hạng cho một tài khoản.
     for(let i=0;i<4;i++){ const b=await bot("B121O"+(i+1),i%2?"u_minh_linh_mieu":"hoa_anh",{sex:i%2,hair:i%3,hairCol:i%5,outfitCol:(i+1)%6}); await warpTown(b); opponents.push(b); }
-    for(let i=0;i<ARENA.dailyWins+1;i++){
+    // Trận đầu là noshow (#790: không Elo, không thưởng, không đếm cặp); các trận sau tính một lượt thưởng mỗi trận.
+    for(let i=0;i<ARENA.dailyWins+2;i++){
       const O=opponents[i%opponents.length];
       if(O.leftCode!==null) await back(O);
       await at(W); await at(O);
@@ -10639,8 +10643,10 @@ async function arenaEdgeTest(){
       if(slow) ok(await waitFor(()=>O.leftCode===4006,ARENA.joinSecs*1000+2000),"#121: server ngắt kết nối người chưa vào sân (mã "+O.leftCode+")");
       else { await enterArena(O); await close(O); }
       ok(await waitFor(()=>ended(W),5000),"#121: trận thưởng "+(i+1)+" kết thúc ("+(slow?"noshow":"đối thủ rời sân")+")");
-      const m=ended(W), paid=i<ARENA.dailyWins;
-      ok(!m?.friendly&&m?.score===1&&m.reason===(slow?"noshow":"leave")&&(paid ? !!m.reward&&!m.capped : !m.reward&&m.left===0)&&m.left===Math.max(0,ARENA.dailyWins-i-1),
+      const m=ended(W), k=i-1, paid=!slow&&k<ARENA.dailyWins;
+      if(slow) ok(m?.score===1&&m.reason==="noshow"&&m.friendly&&!m.reward&&m.elo1===m.elo0&&m.left===ARENA.dailyWins,
+        "#790: trận bỏ cuộc: bên còn lại không đổi Elo ("+m?.elo0+" → "+m?.elo1+"), không thưởng, không mất lượt (left "+m?.left+")");
+      else ok(!m?.friendly&&!m.eloCapped&&m?.score===1&&m.reason==="leave"&&(paid ? !!m.reward&&!m.capped : !m.reward&&m.left===0)&&m.left===Math.max(0,ARENA.dailyWins-k-1),
         "#121: trận "+(i+1)+" "+(paid?"còn lượt thưởng":"hết lượt thưởng, không thưởng")+" (left "+m?.left+", capped "+m?.capped+")");
       await leaveArena(W);
     }

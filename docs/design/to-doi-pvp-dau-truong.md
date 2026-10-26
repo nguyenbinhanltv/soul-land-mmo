@@ -85,7 +85,9 @@ Tên chiêu phỏng theo truyện; phần mô tả hiệu ứng là thiết kế
   - Hàng chờ chung mọi kênh. Ô "Đang tìm đối thủ…" hiển thị Elo đội (trung bình Elo từng tài khoản), thời gian chờ, thành viên và nút Hủy.
 - **Ghép theo Elo gần nhất** (`arenaPairs`): người / bên chờ lâu nhất gặp bên có Elo đội gần nhất trong cửa sổ nới dần theo thời gian chờ (`arenaWindow`). Elo mỗi tài khoản vẫn được đọc riêng từ DB. Không lưu Elo tổ đội lâu dài.
 - **Chống dàn xếp:**
-  - 1v1 kiểm một cặp; 2v2 kiểm đủ bốn cặp tài khoản chéo giữa hai bên. Chỉ khi mọi cặp còn lượt thì trận tính Elo / thưởng (`arenaRanked`, đếm ở bảng `arena_pairs`); từ trận kế tiếp là **giao hữu**. Trận bỏ / không vào sân cũng đếm vào cặp; trận hủy (không ai vào sân) thì không.
+  - 1v1 kiểm một cặp; 2v2 kiểm đủ bốn cặp tài khoản chéo giữa hai bên. Chỉ khi mọi cặp còn lượt thì trận tính Elo / thưởng (`arenaRanked`, đếm ở bảng `arena_pairs`); từ trận kế tiếp là **giao hữu**. Trận hủy (không ai vào sân) không đếm.
+  - **Trận bỏ cuộc** (`noshow`, bên không vào đủ sân trong `ARENA.joinSecs` giây; chủ repo chốt #790): bên bỏ cuộc **bị trừ Elo như thua** (ghi thêm một trận thua); bên còn lại **không đổi Elo / thành tích, không thưởng, không mất lượt thắng có thưởng**; trận **không đếm vào `arena_pairs`** (không ai đốt được lượt cặp của người khác bằng cách ghép rồi bỏ).
+  - **Trần Elo cộng thêm mỗi ngày** (`ARENA.eloDaily`, chủ repo chốt #791; bảng `arena_elo_day`, ngày giờ Việt Nam, đặt lại 00:00): tổng Elo **tăng** của một tài khoản trong ngày không vượt trần; phần tăng còn lại dưới trần được kẹp, hết chỗ thì trận vẫn đấu, vẫn ghi thắng / thua / hòa nhưng **không cộng Elo và không thưởng**. Thua vẫn trừ Elo (không hoàn lại trần). Giữ nguyên chặn theo cặp `arena_pairs`; trần này chặn thêm nuôi Elo qua nhiều tài khoản phụ (mỗi cặp một hạn riêng).
   - Trong `rematchSecs` giây chờ đầu, không ghép lại cùng bên đối thủ trước nếu còn bên khác trong cửa sổ (đối thủ trước giữ ở RAM).
   - Cặp vừa đấu nhau chỉ được ghép lại sau `rematchSettleSecs` giây chờ (người khác xếp hàng ngay sau đó kịp có mặt trước khi vòng ghép xét).
 
