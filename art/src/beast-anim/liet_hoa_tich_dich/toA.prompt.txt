@@ -1,0 +1,36 @@
+Create ONE image, exactly 1024x1536 pixels: an animation sprite sheet of a single fantasy creature for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
+
+CREATURE: Liệt Hỏa Tích Dịch - fire lizard, red-orange scaled lizard with ember-like orange spots and a flame-colored crest, long tail, on four short legs, horizontal body. Body type: thú bốn chân. Size class: Tím / Đen. The attached reference image shows this exact creature in three static views (front, side, back): keep the SAME design, proportions, colors, markings and overall size in every frame of the sheet. Do not redesign it.
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
+
+GRID: 6 columns x 12 rows of equal invisible cells (171x128 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with its feet (or lowest body point) standing on the same invisible ground line about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.
+
+LAYOUT (top to bottom):
+Block 1 (rows 1-4): direction "s" = facing the viewer (front view, three-quarter from above).
+  row 1: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 2: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 3: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 4: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+Block 2 (rows 5-8): direction "se" = facing the lower right of the picture (three-quarter front view, head toward the viewer's right).
+  row 5: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 6: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 7: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 8: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+Block 3 (rows 9-12): direction "e" = facing right (side profile, seen from slightly above).
+  row 9: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 10: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 11: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 12: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+
+CONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, standing, walking and hurt frames keep the body at the same scale and the same ground line. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).
+
+STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.
+
+DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions.
+
+TARGETED WHOLE-SHEET RETRY CHUNK: Keep the complete original 6x12 layout, all 66 figures and the six prescribed blank cells. The only attached reference is the ORIGINAL static identity sheet, not a previous generated candidate. Match its long low lizard torso, elongated narrow head, red-orange scales, crest and long tapering tail; avoid a round oversized head or a squat chibi redesign.
+SOUTH ATTACK STORYBOARD, row 3, columns 1-6: (1) front-facing crouch, (2) plant both front feet symmetrically and draw head backward, (3) thrust the head straight TOWARD THE VIEWER with both eyes/front cheeks visible, (4) frontal open-mouth contact, (5) frontal head retracts, (6) frontal recovery. Movement is into/out of the image, NEVER a turn or horizontal rightward lunge. Each nose stays on that cell's vertical center axis. South hurt row1 C5-C6 uses the SAME front-facing head axis: head retracts behind the forefeet, then returns; tilt/squash backward without yawing right. A closed eye must not reveal a side-profile head.
+For SE rows5-8, head points diagonally DOWN-RIGHT and the front of the face remains visible; for E rows9-12 the head is a right-facing profile. HURT row5 C5-C6 recoils upper-left while retaining SE; row9 C5-C6 recoils left while retaining E. Keep the 6th attack recovery figures in rows3,7,11 occupied. Death may tilt the body, but the nose-to-tail compass axis stays unchanged within each block. Do not copy pose errors from any previous sheet. Render an entirely new sheet; no labels/grid/fire/glow.
+
+TARGETED A4 CORRECTION FROM A3: In SOUTH death row4 C1-C4, do not turn the lizard into a right-facing side view as it collapses. Keep the nose on the cell vertical centerline, facing the viewer, with tail behind it along that same vertical axis in ALL four death frames; lower and flatten the body in place while showing both sides of the face. A fall is a change of height/roll, NEVER a compass-heading change. Retain the existing narrow-head identity and all other original storyboard constraints.
