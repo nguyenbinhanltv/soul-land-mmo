@@ -717,6 +717,57 @@
       "map": "hai_than_dao"
     },
     {
+      "key": "beast_quy_dien_hai_yeu_anim",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          48,
+          88
+        ]
+      },
+      "map": "hai_than_dao"
+    },
+    {
       "key": "beast_quy_ho",
       "frame": [
         96,
@@ -888,6 +939,57 @@
       "map": "thanh_hon_thon"
     },
     {
+      "key": "beast_thiet_giap_xuyen_son_giap_anim",
+      "frame": [
+        64,
+        64
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          32,
+          56
+        ]
+      },
+      "map": "thanh_hon_thon"
+    },
+    {
       "key": "beast_thuc_nhan_hoa",
       "frame": [
         96,
@@ -918,6 +1020,57 @@
       "map": "cuc_bac_chi_dia"
     },
     {
+      "key": "beast_tuyet_lang_anim",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          48,
+          88
+        ]
+      },
+      "map": "cuc_bac_chi_dia"
+    },
+    {
       "key": "beast_tuyet_ma_vien",
       "frame": [
         96,
@@ -938,6 +1091,57 @@
       "map": "cuc_bac_chi_dia"
     },
     {
+      "key": "beast_tuyet_vi_yeu_ho_anim",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          48,
+          88
+        ]
+      },
+      "map": "cuc_bac_chi_dia"
+    },
+    {
       "key": "beast_u_linh_hai_mau",
       "frame": [
         96,
@@ -955,6 +1159,57 @@
       ],
       "iso": true,
       "static": true,
+      "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "beast_u_minh_lang_anim",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          48,
+          88
+        ]
+      },
       "map": "tinh_dau_noi_dia"
     },
     {
