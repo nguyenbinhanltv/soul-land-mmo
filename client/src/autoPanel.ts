@@ -3,6 +3,7 @@
 import { AUTO_DEFAULTS, AUTO_LOOT_KINDS, AUTO_RADIUS, AUTO_RADIUS_MIN, ITEM_KINDS, MAX_CORE_STARS, MAX_YEARS, TILE,
   autoTimeText, formatHonTe, autoStatusText, autoRateText, parseAuto, type AutoSettings, type AutoSummary, type AutoRate, AUTO_HINT } from "../../shared/data.ts";
 import type { AutoMsg, AutoStMsg } from "./net.ts";
+import { closeCentrePanels } from "./panelStack.ts";
 
 /** GameScene cung cấp: gửi tin `auto`, tên ô đội hình (theo tin `vohons`) và tên hồn kỹ ở 4 ô của võ hồn đang ra trận. */
 export interface AutoPanelCtx {
@@ -50,7 +51,7 @@ export function closeAutoPanel() {
 export function toggleAutoPanel(open = !!panel()?.hidden) {
   const el = panel(); if (!el) return false;
   if (!open) { closeAutoPanel(); return false; }
-  for (const id of ["roster", "bag", "reso", "npc", "world", "pmenu", "audio"]) document.getElementById(id)?.setAttribute("hidden", "");
+  closeCentrePanels("autoPanel"); // đúng hàm đóng của từng bảng, không đặt `hidden` thô (#1044)
   el.hidden = false;
   document.getElementById("autoBtn")?.setAttribute("aria-expanded", "true");
   if (last) fill(last); // tên võ hồn / hồn kỹ có thể đã đổi từ lần trước
