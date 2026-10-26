@@ -1,11 +1,15 @@
 export type NameplateKind = "npc" | "player" | "party" | "pk" | "beast" | "elite" | "king" | "boss";
 export interface NameplateRect { id: string; x: number; y: number; width: number; height: number; priority: number; }
 export interface NameplateItem extends NameplateRect { compactSize?: { width: number; height: number }; }
-export interface NameplatePlacement extends NameplateRect { visible: boolean; compact: boolean; }
+/** Chỗ đã chọn của một nhãn: lệch ngang `dx`, nhấc lên `up` so với chỗ gốc trên đầu; `want` / `wantSince`: chỗ tốt hơn đang chờ đủ `hold` ms. */
+export interface NameplateSlot { dx: number; up: number; compact: boolean; want?: string; wantSince?: number }
+export interface NameplatePlacement extends NameplateRect { visible: boolean; compact: boolean; slot?: NameplateSlot; }
 export interface NameplateLayoutOptions {
   gap?: number; maxVisible?: number; maxOffset?: number;
   viewport?: { x: number; y: number; width: number; height: number };
   obstacles?: readonly NameplateRect[];
+  /** Chỗ khung trước (từ `placement.slot`): còn hợp lệ thì giữ, chỉ đổi sang chỗ tốt hơn khi nó trống liên tục `hold` ms (mặc định 450). */
+  prev?: ReadonlyMap<string, NameplateSlot>; now?: number; hold?: number;
 }
 export interface NameplateAppearance { color: string; stroke: string; fontSize: number; compactFontSize: number; }
 
@@ -37,32 +41,56 @@ export function nameplatesOverlap(a: NameplateRect, b: NameplateRect, gap = 0) {
   return Math.abs(a.x - b.x) < (a.width + b.width) / 2 + gap && Math.abs(a.y - b.y) < (a.height + b.height) / 2 + gap;
 }
 
-/** Xếp khung chữ thật lên trên đầu, không đè nhãn đã nhận hoặc thân nhân vật; hết chỗ thì ẩn. */
+const slotKey = (dx: number, up: number, compact: boolean) => `${Math.round(dx)}|${Math.round(up)}|${compact ? 1 : 0}`;
+
+/**
+ * Xếp khung chữ thật lên trên đầu, không đè nhãn đã nhận hoặc thân nhân vật; hết chỗ thì ẩn.
+ * Có `prev` thì nhãn giữ chỗ cũ (tính theo độ lệch so với đầu, nên đi theo thân) khi chỗ đó còn hợp lệ: người đi ngang nhau không làm
+ * nhãn đổi chỗ qua lại mỗi khung; bị đè thật thì đổi ngay, còn quay về chỗ gốc chỉ sau khi chỗ gốc trống đủ `hold`.
+ */
 export function layoutNameplates(items: readonly NameplateItem[], options: NameplateLayoutOptions = {}): NameplatePlacement[] {
   const gap = options.gap ?? 3, maxVisible = options.maxVisible ?? 18, maxOffset = options.maxOffset ?? 96;
+  const now = options.now ?? 0, hold = options.hold ?? 450, v = options.viewport;
   const placed: NameplatePlacement[] = [];
   let count = 0;
   for (const item of [...items].sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id))) {
     if (count >= maxVisible) { placed.push({ ...item, visible: false, compact: true }); continue; }
     const compact = item.compactSize ? { ...item, ...item.compactSize } : item;
     const sizes = items.length > maxVisible ? [[compact, true]] as const : [[item, false], [compact, true]] as const;
-    let picked: NameplateRect | undefined, isCompact = false;
     const bottom = item.y + item.height / 2;
+    const free = (c: NameplateRect) =>
+      !(v && (c.x - c.width / 2 < v.x || c.x + c.width / 2 > v.x + v.width || c.y - c.height / 2 < v.y || c.y + c.height / 2 > v.y + v.height))
+      && !placed.some((other) => other.visible && nameplatesOverlap(c, other, gap))
+      && !options.obstacles?.some((other) => nameplatesOverlap(c, other, gap));
+    const at = (size: NameplateRect, dx: number, up: number): NameplateRect => ({ ...size, x: item.x + dx, y: bottom - size.height / 2 - up });
+    type Cand = { rect: NameplateRect; slot: NameplateSlot };
+    const cands: Cand[] = [];
     for (const [size, compacted] of sizes) {
-      for (let up = 0; up <= maxOffset && !picked; up += Math.max(12, size.height + gap)) {
+      for (let up = 0; up <= maxOffset; up += Math.max(12, size.height + gap)) {
         for (const dx of [0, -(size.width + gap), size.width + gap]) {
-          const candidate = { ...size, x: item.x + dx, y: bottom - size.height / 2 - up };
-          const v = options.viewport;
-          if (v && (candidate.x - candidate.width / 2 < v.x || candidate.x + candidate.width / 2 > v.x + v.width || candidate.y - candidate.height / 2 < v.y || candidate.y + candidate.height / 2 > v.y + v.height)) continue;
-          if (placed.some((other) => other.visible && nameplatesOverlap(candidate, other, gap))) continue;
-          if (options.obstacles?.some((other) => nameplatesOverlap(candidate, other, gap))) continue;
-          picked = candidate; isCompact = compacted; break;
+          const rect = at(size, dx, up);
+          if (free(rect)) cands.push({ rect, slot: { dx, up, compact: compacted } });
         }
       }
-      if (picked) break;
+      if (cands.length) break;
     }
-    placed.push(picked ? { ...picked, visible: true, compact: isCompact } : { ...item, visible: false, compact: true });
-    if (picked) count++;
+    const best = cands[0];
+    let pick = best;
+    const prev = options.prev?.get(item.id);
+    const prevSize = best && prev && sizes.find(([, c]) => c === prev.compact)?.[0];
+    if (best && prev && prevSize && slotKey(prev.dx, prev.up, prev.compact) !== slotKey(best.slot.dx, best.slot.up, best.slot.compact)) {
+      // Chỗ cũ còn hợp lệ thì giữ; bị đè thì đổi sang chỗ hợp lệ GẦN chỗ cũ nhất (nhảy ngắn), chưa phải chỗ gốc.
+      const rect = at(prevSize, prev.dx, prev.up);
+      const keep: Cand | undefined = free(rect) ? { rect, slot: { dx: prev.dx, up: prev.up, compact: prev.compact } }
+        : cands.filter((c) => c.slot.compact === prev.compact)
+          .sort((a, b) => Math.abs(a.slot.dx - prev.dx) + Math.abs(a.slot.up - prev.up) - Math.abs(b.slot.dx - prev.dx) - Math.abs(b.slot.up - prev.up))[0];
+      if (keep) {
+        const want = slotKey(best.slot.dx, best.slot.up, best.slot.compact), since = prev.want === want ? prev.wantSince ?? now : now;
+        if (now - since < hold) pick = { rect: keep.rect, slot: { ...keep.slot, want, wantSince: since } };
+      }
+    }
+    placed.push(pick ? { ...pick.rect, id: item.id, priority: item.priority, visible: true, compact: pick.slot.compact, slot: pick.slot } : { ...item, visible: false, compact: true });
+    if (pick) count++;
   }
   return placed;
 }
