@@ -15,10 +15,11 @@ on:
 permissions:
   contents: read
 
-# Push mới lên cùng PR thì hủy lượt cũ. Trên main mỗi commit một nhóm riêng (theo SHA), nên không lượt nào bị hủy hay bị bỏ.
+# Push mới lên cùng PR thì hủy lượt cũ của PR đó; push mới lên main hủy lượt CI cũ của main (#1079). Nhóm theo số PR (PR khác nhau không hủy nhau) hoặc theo ref (main).
+# Lượt bị hủy có conclusion cancelled nên release.yml (gate chỉ nhận success) không chạy Release cho nó; lượt cuối của main vẫn chạy đủ và quét cả cây.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   # Chọn mức bot (skip | smoke | full) theo file đổi so với base của PR; push vào main luôn full. Quy tắc ở tools/ci/changes.sh.
