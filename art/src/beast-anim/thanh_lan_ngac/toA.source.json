@@ -1,0 +1,87 @@
+{
+  "species": "thanh_lan_ngac",
+  "sheet": "A",
+  "attempt": "A1",
+  "session": "soul-land-mmo-101",
+  "issue": 770,
+  "umbrella": 766,
+  "tool": "builtin image_gen.imagegen",
+  "image_model_id": "unknown",
+  "seed": "unknown",
+  "size_selector": false,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "actual_dimensions": [
+    1024,
+    1536
+  ],
+  "bytes": 2123584,
+  "sha256": "fa6ee41de8f7bfc5f4c577629b5d24497446d0e0951b6f7c3d561457c9af7742",
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a175c2-6b9c-78a1-9818-d62fecc41064/exec-b657ebfe-7afa-4572-9612-c4d7007b61fa.png",
+  "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-101/thanh_lan_ngac-toA-A1-RAW.png",
+  "raw_copy_byte_identical": true,
+  "postprocessing": "NONE",
+  "exact_prompt_sha256": "7d0b25903d41a869a1397b751e4b8cba3a922cfcd780badb43dd2c122ee771e1",
+  "base_prompt_sha256": "7a3e20b75eeb268f84fc30b1eb4255d3809a13c2f193d9c15162ff9a9aa3dafb",
+  "prefix": "Input image 1 is the original static character reference for this exact species. Preserve its design, proportions, colors and body size. Request exactly 1024x1536 pixels: 6 columns by 12 rows, S then SE then E, 66 figures and 6 blank cells. All N-direction rows must show the rear with NO visible eyes or face, including hurt and death poses. NE is a rear three-quarter view facing upper-right, clearly showing the back. SE faces lower-right, visibly distinct from E side profile. HURT must visibly recoil backward. Use only flat solid #FF00FF background; no letters, labels or drawn grid.\n\n",
+  "ordered_refs": [
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-101/refs/thanh_lan_ngac.png",
+      "original_path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-101/shared/assets/sprites/beast/thanh_lan_ngac.png",
+      "sha256": "f3199516b5d5d8f0a7ff9c9d8c69c0fe908ec715cdd9effc19114ecfe0f1ae41",
+      "role": "original static character identity reference; byte-identical backup; only actual attached reference"
+    }
+  ],
+  "transparent_background": false,
+  "counters": {
+    "A": 1,
+    "B_at_generation": 0,
+    "species_calls_at_generation": 1,
+    "session_image_gen_calls": 1,
+    "retry": 0
+  },
+  "outcome": "FAIL; submitted raw source only; no art acceptance; no runtime import",
+  "error_line": "LỖI: toA — sai hướng S/SE/E, hurt chưa recoil rõ, nền chưa phẳng FF00FF, lấn ô trống — H1/H5/H9 C5–6; H7/H11 C6; H9 C1; H4/H8 C5–6 — E H9C1 quay trái, attack H7/H11C6 quay front; ô trống có117/646/19/965 pixel ngoài nền theo ngưỡng; giữ RAW FAIL, không retry.",
+  "qa_read_only": {
+    "exact_FF00FF_pixels": 26,
+    "total_pixels": 1572864,
+    "nominal_blank_cells": [
+      {
+        "row": 4,
+        "column": 5,
+        "non_magenta_pixels_threshold_Rgt200_Glt70_Bgt200": 117
+      },
+      {
+        "row": 4,
+        "column": 6,
+        "non_magenta_pixels_threshold_Rgt200_Glt70_Bgt200": 646
+      },
+      {
+        "row": 8,
+        "column": 5,
+        "non_magenta_pixels_threshold_Rgt200_Glt70_Bgt200": 19
+      },
+      {
+        "row": 8,
+        "column": 6,
+        "non_magenta_pixels_threshold_Rgt200_Glt70_Bgt200": 965
+      },
+      {
+        "row": 12,
+        "column": 5,
+        "non_magenta_pixels_threshold_Rgt200_Glt70_Bgt200": 0
+      },
+      {
+        "row": 12,
+        "column": 6,
+        "non_magenta_pixels_threshold_Rgt200_Glt70_Bgt200": 0
+      }
+    ],
+    "visual_figure_count": 66,
+    "visual_figure_count_method": "Đếm bằng mắt trên toàn tờ hiển thị; không cutter, chưa dựng chuyển động",
+    "motion_loop_verified": false
+  },
+  "completed_observed_at_utc": "2026-10-26T01:17:01.734136+00:00"
+}

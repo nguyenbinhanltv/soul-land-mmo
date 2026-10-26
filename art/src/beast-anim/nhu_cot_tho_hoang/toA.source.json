@@ -1,0 +1,488 @@
+{
+  "session": "soul-land-mmo-96",
+  "owner": "soul-land-mmo-93",
+  "orchestrator": "soul-land-mmo-44",
+  "species": "nhu_cot_tho_hoang",
+  "sheet": "A",
+  "attempt": "A1",
+  "tool": "builtin image_gen__imagegen",
+  "image_model": "unknown (not exposed by tool)",
+  "seed": "unknown (not exposed by tool)",
+  "agent_model": "GPT-6.1-Sol medium requested by user; runtime model/effort not independently exposed",
+  "call_started_utc": "2026-10-26T00:54:40.399Z",
+  "call_completed_utc": "2026-10-26T00:55:11.268Z",
+  "counters": {
+    "session_builtin_calls": 1,
+    "species_total_calls_after_A1": 1,
+    "retries": 0,
+    "A2": 0,
+    "B": 0
+  },
+  "requested_size": [
+    1024,
+    1536
+  ],
+  "size_control": "prompt only",
+  "transparent_background": false,
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a175b2-fab7-7630-9c03-3270a4e71cf8/exec-7254c822-def1-42ed-9e03-fd84af06a87d.png",
+  "base_source": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-93/prompts/nhu_cot_tho_hoang-toA.prompt.txt",
+  "reference_source": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-93/shared/assets/sprites/beast/nhu_cot_tho_hoang.png",
+  "reference_viewed_before_call": true,
+  "selection": "Aselected/style-only; not art/runtime acceptance",
+  "known_issues": [
+    {
+      "cells": "R3C3 / S",
+      "note": "Visual observation: attack turns to right-facing profile."
+    },
+    {
+      "cells": "R4C1-C4 / S",
+      "note": "Visual observation: death sequence turns to right/side rather than retaining S heading."
+    },
+    {
+      "cells": "R1C5-C6, R5C5-C6, R9C5-C6 / hurt",
+      "note": "Visual observation: head changes; clear backward recoil is not established."
+    }
+  ],
+  "spec_conflicts": [
+    "Base uses 171 px cell width; six columns would be 1026 px. Base retained, short suffix clarifies equal partition of full 1024 px width.",
+    "Static source has front/side/back only; SE is requested new front-right three-quarter heading.",
+    "Repository default retry/cutter/normalization/PR workflows not applied; task expressly requires one call and RAW-only submission."
+  ],
+  "processing": "None: byte copy only, no resize/crop/patch/cutter/assembly/runtime.",
+  "output": {
+    "artifact_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-96/nhu_cot_tho_hoang-toA-A1-RAW.png",
+    "bytes": 1774437,
+    "sha256": "af30c4b29b5a7fe6df1a7239eed101eb7128d4e9ec302f4afed648d8c89bc330",
+    "IHDR": {
+      "width": 1024,
+      "height": 1536,
+      "bit_depth": 8,
+      "color_type": 2,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0
+    },
+    "byte_identical_copy": true
+  },
+  "base": {
+    "artifact_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-96/base.prompt.txt",
+    "sha256": "a5711f32c86127f8a675c75218e45e5f7c1c6ef357773e183f6742cb4d91fec1",
+    "bytes": 4084
+  },
+  "exact_prompt": {
+    "artifact_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-96/exact.prompt.txt",
+    "sha256": "f839a14f70bcb7048a7bef8026c37b0bfe0b48516f5f57c91010282adc2d192c",
+    "bytes": 5075
+  },
+  "reference": {
+    "artifact_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-96/nhu_cot_tho_hoang-static-reference.png",
+    "sha256": "65252743f4a79461c2ac9b469d76165c3589e5742e87e0530e80ce8f3324fcca",
+    "bytes": 1718
+  },
+  "base_prefix_byte_identical": true,
+  "pixel_measurement": {
+    "method": "read-only Pillow RGBA decoding; equal integer partitions; alpha>=128; exact RGB and max-channel-distance>60 counts. Pixel occupancy does not count semantic animals.",
+    "cells_R1_to_R12_C1_to_C6": [
+      [
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 2603
+        },
+        {
+          "exact_non_magenta_pixels": 21887,
+          "tol60_non_background_pixels": 2792
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 2796
+        },
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 2682
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 2774
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 2816
+        }
+      ],
+      [
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 2642
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 2680
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 2798
+        },
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 2635
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 2574
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 2538
+        }
+      ],
+      [
+        {
+          "exact_non_magenta_pixels": 21758,
+          "tol60_non_background_pixels": 3137
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 2989
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 3785
+        },
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 3651
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 3069
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 3050
+        }
+      ],
+      [
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 3280
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 3230
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 3547
+        },
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 3547
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 0
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 0
+        }
+      ],
+      [
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 3805
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 3755
+        },
+        {
+          "exact_non_magenta_pixels": 21885,
+          "tol60_non_background_pixels": 3710
+        },
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 3719
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 3632
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 3552
+        }
+      ],
+      [
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 4000
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 3980
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 4095
+        },
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 3799
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 3774
+        },
+        {
+          "exact_non_magenta_pixels": 21887,
+          "tol60_non_background_pixels": 3776
+        }
+      ],
+      [
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 4123
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 4172
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 4183
+        },
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 4301
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 4017
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 4014
+        }
+      ],
+      [
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 4233
+        },
+        {
+          "exact_non_magenta_pixels": 21887,
+          "tol60_non_background_pixels": 4124
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 4186
+        },
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 3548
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 0
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 0
+        }
+      ],
+      [
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 4580
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 4592
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 4609
+        },
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 4720
+        },
+        {
+          "exact_non_magenta_pixels": 21887,
+          "tol60_non_background_pixels": 4504
+        },
+        {
+          "exact_non_magenta_pixels": 21887,
+          "tol60_non_background_pixels": 4320
+        }
+      ],
+      [
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 4767
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 4762
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 4534
+        },
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 4663
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 4289
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 4667
+        }
+      ],
+      [
+        {
+          "exact_non_magenta_pixels": 21759,
+          "tol60_non_background_pixels": 4467
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 4985
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 4892
+        },
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 4621
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 4462
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 4446
+        }
+      ],
+      [
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 4193
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 4256
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 3931
+        },
+        {
+          "exact_non_magenta_pixels": 21760,
+          "tol60_non_background_pixels": 3446
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 0
+        },
+        {
+          "exact_non_magenta_pixels": 21888,
+          "tol60_non_background_pixels": 0
+        }
+      ]
+    ],
+    "blank_cells": {
+      "R4C5": {
+        "exact_non_magenta_pixels": 21888,
+        "tol60_non_background_pixels": 0
+      },
+      "R4C6": {
+        "exact_non_magenta_pixels": 21888,
+        "tol60_non_background_pixels": 0
+      },
+      "R8C5": {
+        "exact_non_magenta_pixels": 21888,
+        "tol60_non_background_pixels": 0
+      },
+      "R8C6": {
+        "exact_non_magenta_pixels": 21888,
+        "tol60_non_background_pixels": 0
+      },
+      "R12C5": {
+        "exact_non_magenta_pixels": 21888,
+        "tol60_non_background_pixels": 0
+      },
+      "R12C6": {
+        "exact_non_magenta_pixels": 21888,
+        "tol60_non_background_pixels": 0
+      }
+    },
+    "semantic_animal_count": "66 apparent by visual inspection only; no semantic detector",
+    "occupied_cells_tol60": 66,
+    "background_observations": {
+      "R4C5_C6_unique_RGB_count": 71,
+      "most_common_RGB": [
+        251,
+        3,
+        249
+      ],
+      "corners_RGB": [
+        [
+          241,
+          12,
+          240
+        ],
+        [
+          245,
+          17,
+          241
+        ],
+        [
+          237,
+          36,
+          236
+        ],
+        [
+          242,
+          31,
+          240
+        ]
+      ],
+      "flat_exact_FF00FF": false,
+      "true_alpha": false
+    }
+  },
+  "saved_utc": "2026-10-26T00:56:11.500965+00:00",
+  "technical_status": "RAW/provenance verified; exact flat FF00FF background fails. No art/runtime acceptance.",
+  "handoff_file": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-96/HANDOFF.md",
+  "integration": {
+    "repository_raw_file": "toA.png",
+    "repository_prompt_file": "toA.prompt.txt",
+    "script_prompt_file": "nhu_cot_tho_hoang-toA.md",
+    "upstream_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-96/provenance.json",
+    "upstream_provenance_sha256": "a2da436c4b1a470d9c81690a57212da820e4e1b3d89e23c8a8d7172a6e674469",
+    "raw_sha256": "af30c4b29b5a7fe6df1a7239eed101eb7128d4e9ec302f4afed648d8c89bc330",
+    "raw_bytes": 1774437,
+    "actual_dimensions": [
+      1024,
+      1536
+    ],
+    "requested_dimensions": [
+      1024,
+      1536
+    ],
+    "size_requirement_met": true,
+    "original_artifact_repo_byte_identical": true,
+    "reference_count": 1,
+    "reference_roles": "original species static identity only",
+    "postprocessing": "None; byte copy only. No resize/crop/patch/cutter/layout/assembly/runtime.",
+    "semantic_frame_count_verified": false,
+    "technical_status": "RAW/provenance only; art/runtime not accepted.",
+    "script_prompt_sha256": "1efaf94834d994b8be879076443f6193ac8e64487403ab52c9bc37163b4a3c5e"
+  }
+}

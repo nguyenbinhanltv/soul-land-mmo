@@ -1,0 +1,106 @@
+{
+  "species": "phong_lang_con",
+  "sheet": "B",
+  "worker": "soul-land-mmo-99",
+  "owner": "soul-land-mmo-93",
+  "tool": "builtin image_gen.imagegen (worker HANDOFF declaration)",
+  "image_model": null,
+  "seed": null,
+  "model_truth": "Tool model/seed not disclosed; no inference from agent model.",
+  "provenance_origin": "Compiled by owner93 from worker99 HANDOFF.md and independently verified local bytes/PNG header/prompt/ordered reference hashes. Worker99 did not supply a separate JSON provenance.",
+  "upstream_handoff": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-99/HANDOFF.md",
+  "upstream_handoff_sha256": "003f4a94453fcf7f78fe3089232126c6ab798a45bd9c8b2449ce3ce0bff33c91",
+  "reported_call_started_utc": "2026-10-26T01:07:38.699Z",
+  "reported_call_returned_utc": "2026-10-26T01:08:18.282Z",
+  "counters_reported_in_handoff": {
+    "session_builtin_calls": 1,
+    "retries": 0,
+    "B2": 0,
+    "prior_A98": 1,
+    "species_calls_after_B1": 2
+  },
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a175be-e4a0-75a0-be08-c91e097da543/exec-07275d77-f5e6-42a0-b0ad-16fc0e913998.png",
+  "artifact_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-99/phong_lang_con-B1-RAW.png",
+  "raw_sha256": "d397b67cd226075d9deee320ae99c6878d32c926436b32e8127f859e964fffd5",
+  "bytes": 1731731,
+  "actual_dimensions": [
+    1254,
+    1254
+  ],
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "size_requirement_met": false,
+  "requested_grid": [
+    6,
+    8
+  ],
+  "requested_directions": [
+    "ne",
+    "n"
+  ],
+  "expected_occupied_cells": 44,
+  "expected_blank_cells": [
+    "H4 C5–6",
+    "H8 C5–6"
+  ],
+  "semantic_frame_count_verified": false,
+  "prompt_file": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-99/phong_lang_con-B1-exact.prompt.txt",
+  "prompt_sha256": "a4edf6f95a89c7cd3922cdd693ace78afc3ac21f8e054cff62116c949cfa28ff",
+  "base_file": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-99/phong_lang_con-B1-base.prompt.txt",
+  "base_sha256": "10a17a9d2a26d69825e343d203fb2d0383ff35ecdcdd109db33b8ed97e1a94b6",
+  "base_prefix_byte_identical": true,
+  "ordered_references": [
+    {
+      "order": 1,
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-98/refs/phong_lang_con-static.png",
+      "sha256": "880962e646524962dad5bc05312f49c7593e6bf44a9901fb5b577a117097a2a9",
+      "role": "original static identity",
+      "viewed_before_call_reported_by_worker": true
+    },
+    {
+      "order": 2,
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-98/phong_lang_con-A1-RAW.png",
+      "sha256": "bd641523725ab8b021d004da78f03959e3020e28ef81f1d97745e93d655e2faa",
+      "role": "A98 style/body size only, known FAIL; incorrect poses/background excluded",
+      "viewed_before_call_reported_by_worker": true
+    }
+  ],
+  "transparent_background": false,
+  "postprocessing": "None; byte copy only. Original and artifact byte-identical. No resize/crop/patch/cutter/layout/runtime.",
+  "worker_visual_findings": [
+    "NE H1–4 exposes face/reads near E; hurt recoil weak; death yaw changes.",
+    "N H7/H8 changes heading and exposes face, does not retain back-facing axis.",
+    "Background varies from exact FF00FF; reported corners (240,13,233),(244,16,232),(234,33,225),(240,28,230)."
+  ],
+  "measurement_limits": "HANDOFF visual44 figures and pixel measurements are observations, not semantic valid-frame or art/runtime certification. No independent semantic frame count here.",
+  "template_conflicts": [
+    "Base171x6=1026 vs requestedwidth1024; retained.",
+    "Hurt eyes-shut vs N no visible eyes constrained in appended prompt.",
+    "Static source/A98 known FAIL not approved anatomy/pose; preserve inputs."
+  ],
+  "technical_status": "RAW/provenance verified only; FAIL preserved, no art/runtime acceptance.",
+  "integration": {
+    "repository_raw_file": "toB.png",
+    "repository_prompt_file": "toB.prompt.txt",
+    "script_prompt_file": "phong_lang_con-toB.md",
+    "script_prompt_sha256": "9c19bcdcaef8e358fd8c0edb597bd4f74f388853b4098d75f7f72e8dbf0f3105",
+    "upstream_source": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-99/HANDOFF.md",
+    "upstream_source_sha256": "003f4a94453fcf7f78fe3089232126c6ab798a45bd9c8b2449ce3ce0bff33c91",
+    "raw_sha256": "d397b67cd226075d9deee320ae99c6878d32c926436b32e8127f859e964fffd5",
+    "raw_bytes": 1731731,
+    "actual_dimensions": [
+      1254,
+      1254
+    ],
+    "requested_dimensions": [
+      1024,
+      1024
+    ],
+    "size_requirement_met": false,
+    "original_artifact_repo_byte_identical": true,
+    "semantic_frame_count_verified": false,
+    "status": "RAW/provenance only; art/runtime not accepted."
+  }
+}

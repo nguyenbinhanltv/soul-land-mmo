@@ -1,0 +1,116 @@
+{
+  "task": "ARTIFACT-ONLY H4#769",
+  "species": "nhu_cot_tho_hoang",
+  "sheet": "B1",
+  "worker": "soul-land-mmo-97",
+  "owner": "soul-land-mmo-93",
+  "orchestrator": "soul-land-mmo-44",
+  "status": "FAIL",
+  "generator": "builtin image_gen__imagegen",
+  "image_model": "unknown: tool exposes no model identifier",
+  "image_seed": "unknown: tool exposes no seed",
+  "agent_requested": "GPT-6.1-Sol medium (user assigned); runtime model/effort not independently exposed",
+  "started_utc": "2026-10-26 01:01:12 UTC",
+  "returned_utc": "2026-10-26 01:01:48 UTC",
+  "completed_utc": "2026-10-26T01:03:33.530212+00:00",
+  "counters": {
+    "session_builtin_calls": 1,
+    "retries": 0,
+    "prior_species_calls_A96": 1,
+    "species_calls_after_B1": 2,
+    "B2_calls": 0,
+    "other_sheet_or_species_calls": 0,
+    "fallback_calls": 0
+  },
+  "references_ordered": [
+    {
+      "order": 1,
+      "role": "static identity/back geometry",
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-96/nhu_cot_tho_hoang-static-reference.png",
+      "bytes": 1718,
+      "sha256": "65252743f4a79461c2ac9b469d76165c3589e5742e87e0530e80ce8f3324fcca",
+      "viewed": true
+    },
+    {
+      "order": 2,
+      "role": "sheet A style/body size only",
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-96/nhu_cot_tho_hoang-toA-A1-RAW.png",
+      "bytes": 1774437,
+      "sha256": "af30c4b29b5a7fe6df1a7239eed101eb7128d4e9ec302f4afed648d8c89bc330",
+      "viewed": true
+    }
+  ],
+  "prompt": {
+    "base_source": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-93/prompts/nhu_cot_tho_hoang-toB.prompt.txt",
+    "base_sha256": "19071f8d8d38ece797279da4778fab084d94d6cf2e12275a4c57ebf01ca4553c",
+    "base_bytes": 3507,
+    "exact_file": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-97/nhu_cot_tho_hoang-toB-B1-exactprompt.txt",
+    "exact_sha256": "4578a48566654c557d38b2537c3170e2c96ce6c39b6cd303d395b8e5bd7e9306",
+    "exact_bytes": 4475,
+    "base_prefix_byte_identical": true
+  },
+  "tool_arguments": {
+    "referenced_image_paths": [
+      "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-96/nhu_cot_tho_hoang-static-reference.png",
+      "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-96/nhu_cot_tho_hoang-toA-A1-RAW.png"
+    ],
+    "transparent_background": false,
+    "prompt_source": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-97/nhu_cot_tho_hoang-toB-B1-exactprompt.txt"
+  },
+  "raw": {
+    "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a175b8-e8df-72a0-9b3a-ce4826fb8170/exec-29937edb-612f-411c-994a-59b66f2656d4.png",
+    "raw_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-97/nhu_cot_tho_hoang-toB-B1-RAW.png",
+    "bytes": 1679361,
+    "sha256": "10520944726e1d402171a006699b55d6f7162888677a3aaa213e07fbf2d5a33c",
+    "original_sha256": "10520944726e1d402171a006699b55d6f7162888677a3aaa213e07fbf2d5a33c",
+    "byte_identical": true,
+    "IHDR": {
+      "width": 1254,
+      "height": 1254,
+      "bit_depth": 8,
+      "color_type": 2,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0
+    },
+    "mode": "RGB"
+  },
+  "inspection_file": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-97/inspection.json",
+  "slotreleased": {
+    "sent_to": [
+      "soul-land-mmo-93",
+      "soul-land-mmo-44"
+    ],
+    "checkpoint_recorded": true,
+    "first_attempt": "sandbox denied local daemon; resent successfully with escalation, AO_SESSION_ID explicitly set for report"
+  },
+  "processing": "Only byte copy and read-only PNG/pixel inspection. No resize/crop/patch/postprocess/cutter/layout/assembly/runtime.",
+  "art_pass": false,
+  "runtime_pass": "not evaluated",
+  "repo_modified": false,
+  "integration": {
+    "repository_raw_file": "toB.png",
+    "repository_prompt_file": "toB.prompt.txt",
+    "script_prompt_file": "nhu_cot_tho_hoang-toB.md",
+    "upstream_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-97/provenance.json",
+    "upstream_provenance_sha256": "20a03d61cf25bd57f5b19e69e4b195a2c513c6a3d8931844fea3371a4c2c8777",
+    "raw_sha256": "10520944726e1d402171a006699b55d6f7162888677a3aaa213e07fbf2d5a33c",
+    "raw_bytes": 1679361,
+    "actual_dimensions": [
+      1254,
+      1254
+    ],
+    "requested_dimensions": [
+      1024,
+      1024
+    ],
+    "size_requirement_met": false,
+    "original_artifact_repo_byte_identical": true,
+    "reference_count": 2,
+    "reference_roles": "ordered static identity/back geometry then A96 style/body size only",
+    "postprocessing": "None; byte copy only. No resize/crop/patch/cutter/layout/assembly/runtime.",
+    "semantic_frame_count_verified": false,
+    "technical_status": "RAW/provenance only; art/runtime not accepted.",
+    "script_prompt_sha256": "477950b38fbb34ef8388ad366bf1fcf136aa3a4238994d5615d014d0a0896503"
+  }
+}

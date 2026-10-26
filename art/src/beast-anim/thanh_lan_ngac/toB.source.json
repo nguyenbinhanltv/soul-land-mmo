@@ -1,0 +1,99 @@
+{
+  "species": "thanh_lan_ngac",
+  "sheet": "B",
+  "attempt": "B1",
+  "session": "soul-land-mmo-104",
+  "integration_session": "soul-land-mmo-101",
+  "issue": 770,
+  "umbrella": 766,
+  "tool": "builtin image_gen.imagegen",
+  "image_model_id": "unknown",
+  "seed": "unknown",
+  "size_selector": false,
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "actual_dimensions": [
+    1254,
+    1254
+  ],
+  "bytes": 2010045,
+  "sha256": "e24fc47f90d9788261c914b4cee917b00a7399d2a9cb3b30410d304d273a6d1b",
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a175cb-0995-7191-beb8-8ee6e4db3eed/exec-0563569f-bdc3-43c8-8403-e43eceaa3068.png",
+  "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-104/thanh_lan_ngac-toB-B1-RAW.png",
+  "raw_copy_byte_identical": true,
+  "postprocessing": "NONE",
+  "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-104/thanh_lan_ngac-toB-B1.exact-prompt.txt",
+  "exact_prompt_sha256": "99236a5aa9f49b1c9a3d246ce68becf938cad002acd4c4b3eb62f76c038f3c20",
+  "base_prompt_sha256": "d3cde6ae63446eaa86915f844c73769854a41ce48baca61d3063c7857e716d18",
+  "prepared_prompt_sha256": "2e8f491187a4fd7461072ccea881ea4f7ace0b2edec6f55ca5c6adbc04d14c7b",
+  "prompt_structure": {
+    "prefix_bytes": 681,
+    "base_start_byte_zero_based": 681,
+    "base_end_byte_exclusive": 4220,
+    "base_occurrences": 1,
+    "prefix": "Input image 1 is the original static character reference for this exact species. Preserve its design, proportions, colors and body size. Input image 2 is the raw sheet A of the SAME species, used only for matching design, palette, line weight and the SAME BODY SIZE as A and the static reference. Request exactly 1024x1024 pixels. All N-direction rows must show the rear with NO visible eyes or face, including hurt and death poses. NE is a rear three-quarter view facing upper-right, clearly showing the back. SE faces lower-right, visibly distinct from E side profile. HURT must visibly recoil backward. Use only flat solid #FF00FF background; no letters, labels or drawn grid.\n\n",
+    "suffix": "\n\nMatch the creature design, colors, size and line weight of the second attached sheet exactly. same body size as sheet A."
+  },
+  "ordered_refs": [
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-101/refs/thanh_lan_ngac.png",
+      "sha256": "f3199516b5d5d8f0a7ff9c9d8c69c0fe908ec715cdd9effc19114ecfe0f1ae41",
+      "role": "static character identity reference"
+    },
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-101/thanh_lan_ngac-toA-A1-RAW.png",
+      "sha256": "fa6ee41de8f7bfc5f4c577629b5d24497446d0e0951b6f7c3d561457c9af7742",
+      "role": "same-species A101A1 RAW style/body-size candidate; FAIL pose/heading not accepted"
+    }
+  ],
+  "transparent_background": false,
+  "counters": {
+    "A_prior": 1,
+    "B": 1,
+    "species_calls_after_B1": 2,
+    "worker104_calls": 1,
+    "owner101_calls": 1,
+    "retry": 0
+  },
+  "started_observed_at_utc": "2026-10-26T01:20:41Z",
+  "completed_observed_at_utc": "2026-10-26T01:21:19Z",
+  "outcome": "FAIL; submitted raw source only; no size waiver, art acceptance or runtime import",
+  "error_line": "LỖI: toB — sai kích thước, hướng N/death, hurt yếu, lấn ô trống — R1/R5 C5–6; R4 C3–4 NE; R5–8 N; R4C5–6/R8C5 — RAW1254×1254; N lộ mặt/đuôi xa, R7C3 lệch NE, death đổi hướng; blank có399/594/116 pixel ngoài nền theo ngưỡng; giữ RAW, không retry.",
+  "source_handoff": {
+    "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-104/HANDOFF.md",
+    "sha256": "808b285d411f5182c33a2aa54c1ab60dcbd60f8983537ba9837bd0703b7d6625"
+  },
+  "qa_read_only": {
+    "visual_figure_count": 44,
+    "visual_figure_count_method": "Direct whole-sheet visual review; distinct from pixel occupancy",
+    "blank_threshold": "alpha>=128; background R>200,G<70,B>200",
+    "nominal_blank_cells": [
+      {
+        "row": 4,
+        "column": 5,
+        "non_magenta_pixels": 399
+      },
+      {
+        "row": 4,
+        "column": 6,
+        "non_magenta_pixels": 594
+      },
+      {
+        "row": 8,
+        "column": 5,
+        "non_magenta_pixels": 116
+      },
+      {
+        "row": 8,
+        "column": 6,
+        "non_magenta_pixels": 0
+      }
+    ],
+    "exact_FF00FF_pixels": 28,
+    "total_pixels": 1572516,
+    "motion_loop_verified": false,
+    "pair_body_scale_accepted": false
+  }
+}
