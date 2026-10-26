@@ -11,6 +11,8 @@ import * as party from "../party.ts";
 import { gcIn, cpuMs, clock } from "../perf.ts";
 import { setLock, tickLock } from "./lock.ts";
 import { sendVitals } from "./vitals.ts";
+import { savePeriodic } from "./persist.ts";
+import { SAVE_EVERY_SECS } from "../../../shared/data.ts";
 import type { BeastState, PlayerState } from "./schema.ts";
 
 /** PERF_LOG=1 (#273): nhịp chậm khi từ đầu tick tới hết bản vá quá ngần này ms (= một nhịp TICK_RATE), hoặc từ đầu nhịp trước quá PERF_GAP_MS. */
@@ -351,9 +353,9 @@ export function tick(room: MapRoom, dt: number) {
   // tin riêng "vit" (#949): kinh nghiệm, hồn lực, hồi chiêu chỉ gửi cho chính chủ, sau khi mọi thay đổi của nhịp đã xong
   sendVitals(room);
 
-  // lưu định kỳ (bỏ qua người đang chuyển bản đồ: transaction đi cổng là lần ghi cuối của phòng này cho người đó)
-  room.saveT += dt;
-  if (room.saveT > 30) { room.saveT = 0; room.pdata.forEach((d, id) => { if (!d.travelling) room.save(id); }); }
+  // lưu định kỳ (bỏ qua người đang chuyển bản đồ: transaction đi cổng là lần ghi cuối của phòng này cho người đó);
+  // mỗi người một đồng hồ riêng (không dồn cả phòng một tick) và chỉ ghi khi có đổi (#1001, persist.savePeriodic)
+  room.pdata.forEach((d, id) => { if ((d.saveIn -= dt) <= 0) { d.saveIn = SAVE_EVERY_SECS; if (!d.travelling) savePeriodic(room, id); } });
   if (pt) pt[5] = performance.now();
 }
 

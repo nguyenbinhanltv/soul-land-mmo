@@ -121,6 +121,8 @@ export interface PData {
   fight: number;        // số giây kể từ lần cuối đánh trúng hoặc bị đánh
   // Mọi lần ghi DB về người chơi này nối tiếp nhau trong một chuỗi (mục 6): tối đa một lần ghi đang chạy, commit đúng thứ tự.
   saving: Promise<void>;
+  saveSig: string;      // dấu vết tiến độ + vị trí ở lần ghi định kỳ gần nhất (#1001): không đổi thì lần lưu định kỳ kế bỏ qua
+  saveIn: number;       // giây còn lại tới lần lưu định kỳ kế của người này (rải đều theo người, #1001)
   teamQueued: boolean;  // đã có một lần lưu đội hình đang chờ trong chuỗi (lần đó ghi bản mới nhất lúc chạy)
   tradeQueued: boolean; // đã có một lần lưu sau mua / bán ở thương nhân đang chờ trong chuỗi (6.1; lần đó chụp túi mới nhất lúc chạy)
   latest: Map<string, () => unknown>; // lần ghi gộp đang chờ trong chuỗi theo khóa (chainLatest, #164): hàm ghi mới nhất của khóa đó
@@ -789,7 +791,6 @@ export class MapRoom extends Room<MapState> {
   errLog = new Map<string, { at: number; n: number }>();
   spawnT = 0;
   testRed: number | null = null; // hook test `red` (BĐ6d): cố định số ngẫu nhiên ra hồn thú MAX_YEARS năm ở vùng có mức trên MAX_YEARS
-  saveT = 0;
   /** Ô tinh anh (object `elite` của bản đồ, BĐ4): hồn thú đang sống (`bid`), hoặc số giây còn lại trước khi hồi sinh (`t`). */
   elites: { spot: EliteSpot; bid: string | null; t: number }[] = [];
   /**
