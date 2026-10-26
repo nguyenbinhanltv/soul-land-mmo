@@ -3,17 +3,17 @@
 // Hàm nhận phòng (`room: MapRoom`) như skill.ts; nguyên văn từ MapRoom, không đổi số / thứ tự RNG / thứ tự xử lý trong tick. MapRoom chỉ chuyển tiếp 6 hàm
 // (`onMessage`, `tick`, `skill.ts`, `boss.ts`, `autoHunt.ts`, `gm.ts`, `ArenaRoom` gọi như cũ).
 // Còn ở MapRoom: `killBeast`, `applyStatus` / `applyPStatus`, `chanThan` / `endAva` / `tickAva`, `selfEffect` / `partyShare`, tiên cơ (`tienCo`, `gainEnergy`), `buffV` / `atkOf`.
+import { TIERS, VOHON, vohonIndex, TEAM_SIZE, REVIVE_SECS, RESPAWN_SECS, PHONG_LOI, ATTACK_CD, ATTACK_REACH, atkRoll, CORE_FX_RULE, CORE_SETS, coreSetIndex,
+  STATUS, ARENA, ARENA_HE_DMG, WORLD, defMult } from "../../../shared/data.ts";
+import type { Character } from "../db.ts";
+import { BEAST_HALF, type MapRoom, type Hit, type DmgOpt } from "./MapRoom.ts";
+
 /**
  * Hồn thú gây `dmg` cho hồn sư `id`. Trả về true nếu đòn trúng (kể cả khiên đỡ hết), false nếu bị bỏ qua (vừa bị đánh, bất tử,
  * miễn sát thương, đang chuyển bản đồ). Từ 3.5: Dễ thương / Phá giáp trên hồn sư tăng sát thương nhận; `dot`: sát thương theo
  * thời gian (Trúng độc, Thiêu đốt: bỏ qua và không đặt khung bất tử 0,45 giây, không lan Cảm điện); đòn trực tiếp trúng hồn sư
  * Cảm điện thì lan STATUS.shock.chain sang hồn sư Cảm điện khác gần đó (`chain`: phần lan, không lan tiếp).
  */
-import { TIERS, VOHON, vohonIndex, TEAM_SIZE, REVIVE_SECS, RESPAWN_SECS, PHONG_LOI, ATTACK_CD, ATTACK_REACH, atkRoll, CORE_FX_RULE, CORE_SETS, coreSetIndex,
-  STATUS, ARENA, ARENA_HE_DMG, WORLD, defMult } from "../../../shared/data.ts";
-import type { Character } from "../db.ts";
-import { BEAST_HALF, type MapRoom, type Hit, type DmgOpt } from "./MapRoom.ts";
-
 export function hurtPlayer(room: MapRoom, id: string, dmg: number, o: { dot?: boolean; chain?: boolean; pvp?: { dealt: number }; crit?: boolean } = {}): boolean {
   const p = room.state.players.get(id)!, d = room.pdata.get(id)!, direct = !o.dot && !o.chain;
   if ((direct && d.inv > 0) || p.dead || d.travelling) return false; // trong vùng an toàn hồn thú đã bỏ mục tiêu (tick) nên không đánh tới
