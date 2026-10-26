@@ -41,26 +41,27 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
-          fetch-depth: 0 # đủ lịch sử để so với lượt push trước
+          fetch-depth: 0 # đủ lịch sử để so với lượt Release trước
           persist-credentials: false
       - id: need
         env:
           EVENT: ${{ github.event_name }}
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
-          RUN_NUMBER: ${{ github.event.workflow_run.run_number }}
+          RUN_ID: ${{ github.run_id }}
         run: |
           build=true
           if [ "$EVENT" = workflow_run ]; then
-            # So với head của lượt CI push trước trên main (cả lượt push, kể cả rebase-merge nhiều commit), không chỉ commit cha.
-            # Không tìm được lượt trước hoặc nó không phải tổ tiên thì dựng.
-            prev=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/check.yml/runs?branch=main&event=push&per_page=50"               --jq "[.workflow_runs[] | select(.run_number < $RUN_NUMBER and .head_sha != \"$SHA\")] | sort_by(.run_number) | last | .head_sha // empty") || prev=
+            # Mốc so sánh = commit của lượt Release gần nhất đã THÀNH CÔNG (dựng xong, hoặc gate bỏ qua hợp lệ: quy nạp thì image ở mốc đó đúng).
+            # Không lấy lượt CI trước (CI đỏ, hoặc Release trượt / hủy thì mã commit đó chưa vào image). Tên lượt (run-name) là "Release <sha>".
+            # Rebase-merge nhiều commit vẫn đúng vì so cả khoảng mốc..SHA. Không tìm được mốc hoặc mốc không là tổ tiên thì dựng.
+            prev=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/release.yml/runs?status=success&per_page=50" --jq "[.workflow_runs[] | select(.id < $RUN_ID)] | sort_by(.id) | last | .display_title // empty" | sed -n 's/^Release //p') || prev=
             if [ -n "$prev" ] && git merge-base --is-ancestor "$prev" "$SHA" 2>/dev/null && files=$(git diff --name-only "$prev" "$SHA" 2>/dev/null) && [ -n "$files" ]; then
-              echo "so với lượt CI push trước: $prev"
+              echo "so với lượt Release thành công trước: $prev"
               echo "$files"
               if ! echo "$files" | grep -Eq '^(server|client|shared)/|^Dockerfile$|^\.dockerignore$|^package(-lock)?\.json$'; then build=false; fi
             else
-              echo "không so được với lượt CI push trước: dựng"
+              echo "không so được với lượt Release thành công trước: dựng"
             fi
           fi
           echo "build=$build" >>"$GITHUB_OUTPUT"
