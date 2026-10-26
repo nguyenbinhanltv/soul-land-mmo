@@ -1,0 +1,51 @@
+{
+  "species": "liet_trao_hung",
+  "sheet": "A",
+  "attempt": "A1",
+  "session": "soul-land-mmo-92",
+  "issue": 768,
+  "umbrella": 766,
+  "tool": "builtin image_gen.imagegen",
+  "image_model_id": null,
+  "seed": null,
+  "size_selector": false,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "actual_dimensions": [
+    1024,
+    1536
+  ],
+  "bytes": 2046990,
+  "sha256": "1a5dc59c018b1acd9ff0e1ac6796e562afb35242c68a18e937f8e0d34e07e3ca",
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a175a5-ee52-7e21-a805-63d46d7b2e08/exec-31ffffd3-c17e-4ded-acde-ea3c91842e46.png",
+  "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-92/liet_trao_hung-toA-A1-RAW.png",
+  "raw_copy_byte_identical": true,
+  "postprocessing": "NONE",
+  "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-92/exact-prompt.txt",
+  "exact_prompt_sha256": "361882f632b16bb9df667cd61f179526299f3202586cf6641a21be9e42297788",
+  "base_prompt_sha256": "b362e3071cb0cf807df85a109a4ce7d51e4a3f9102e6408727f087e3fc12cee1",
+  "requested_at_utc": "2026-10-26T00:40:24.437958+00:00",
+  "completed_at_utc": "2026-10-26T00:41:07.175282+00:00",
+  "ordered_refs": [
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-64/liet_trao_hung/reference-static-original.png",
+      "sha256": "1f81a4e08166a79647a50ae4b86c3dc57ab70b72549b1646b96f61291c51713b",
+      "role": "original static identity; source front/back upright, side crouched"
+    }
+  ],
+  "counters": {
+    "A": 1,
+    "B_at_generation": 0,
+    "species_call": 1,
+    "retry": 0
+  },
+  "source_conflict": "Base quad/four-legged trot versus static front/back upright; actual prompt appended stance clarification. No new owner anatomy approval claimed.",
+  "outcome": "FAIL; user authorizes publication for owner review; no art/size/runtime acceptance",
+  "source_metadata": {
+    "request.json": "fcad8fa47a5195d1add90c619d2b98b1fb82722e74c867590b3b741d0f855800",
+    "output.json": "0624479fec4befb8fb9b88ce9bc61a90444d99ede9917d2c449bd62bbf49ae5f",
+    "HANDOFF.md": "dfc594527ebc3496219fdbdbfbb1ec9dc3c371c542868769bc0774673e501d5a"
+  }
+}
