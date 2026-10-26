@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "generatedBy": "tools/assets/beast-status.mjs",
-  "species": 28,
+  "species": 29,
   "imported": 6,
   "tally": {
-    "san-sang-nhap": 21,
+    "san-sang-nhap": 22,
     "chan": 7
   },
   "items": [
@@ -315,6 +315,57 @@
       },
       "missing": [],
       "errorLines": []
+    },
+    {
+      "id": "han_nguyet_ung",
+      "name": "Hàn Nguyệt Ưng",
+      "family": "bird",
+      "frame": 96,
+      "imported": false,
+      "turnaround": false,
+      "layout": "sheet",
+      "state": "san-sang-nhap",
+      "sheets": [
+        {
+          "sheet": "toA",
+          "file": "art/src/beast-anim/han_nguyet_ung/toA.png",
+          "size": [
+            1024,
+            1536
+          ],
+          "bytes": 1872555,
+          "sha256": "2f320899f8fe85888442f4963f363dcd848e305923eab41ba850b8d9dae6f733",
+          "level": "pass",
+          "block": 0,
+          "light": 0,
+          "note": 0
+        },
+        {
+          "sheet": "toB",
+          "file": "art/src/beast-anim/han_nguyet_ung/toB.png",
+          "size": [
+            1254,
+            1254
+          ],
+          "bytes": 1915826,
+          "sha256": "3ac35204366ceba8089440c8f96b59ab65981c446db8c4288d7a0e416d976ac0",
+          "level": "nhẹ",
+          "block": 0,
+          "light": 1,
+          "note": 2
+        }
+      ],
+      "blocks": {
+        "s": "pass",
+        "se": "pass",
+        "e": "pass",
+        "ne": "pass",
+        "n": "nhẹ"
+      },
+      "missing": [],
+      "errorLines": [
+        "LỖI: toB — cỡ thân lệch — H5–8 (n) — cỡ thân idle 111% so với ảnh tĩnh (lệch 11%)."
+      ]
     },
     {
       "id": "huyen_bang_thiem",
