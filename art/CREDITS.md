@@ -2265,6 +2265,8 @@ Băng Phong Bạch Hùng (H4 #767): RAW FAIL candidate để owner duyệt theo 
 
 Điền Thử (H4 #767): RAW FAIL candidate để owner duyệt theo chỉ dẫn user, tại `art/src/beast-anim/dien_thu/`. A: 1024×1536 thực tế, chọn 2/2, soul-land-mmo-83; B: 1254×1254 thực tế, chọn 1/2, soul-land-mmo-89. Builtin `image_gen.imagegen`, model/seed unknown, không size selector; nguyên byte, không hậu kỳ. Prompt thực/hash/refroles/counters/knownissues tại [NGUON.md](src/beast-anim/dien_thu/NGUON.md), `toX.prompt.txt`, `toX.source.json`. Nộp không phải nghiệm thu mỹ thuật/runtime hoặc tự nhập game.
 
+Lôi Văn Hầu (H4 #769): RAW `art/src/beast-anim/loi_van_hau/toA.png` (1024×1536 IHDR, A1/1), tthoadev sinh ngày 2026-10-26 bằng builtin `image_gen.imagegen`; chỉ reference static gốc đúng loài. Model ID/seed không được tool cung cấp; cỡ chỉ yêu cầu trong prompt. Giữ nguyên byte, không hậu kỳ/cắt/resize. [Nguồn và lỗi](src/beast-anim/loi_van_hau/NGUON.md), `toA.prompt.txt`, `toA.source.json` cùng thư mục. Q44/điều khoản công cụ, không tự gán CC0. Candidate còn lỗi hướng chết/xoay đầu/hurt/style, chưa owner duyệt mỹ thuật/runtime. Mới 1/10 tờ; Part of #769 và #766.
+
 <!-- private-assets:start -->
 ## Asset kho riêng (không nằm trong repo công khai)
 
