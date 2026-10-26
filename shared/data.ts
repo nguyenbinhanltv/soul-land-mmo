@@ -3795,7 +3795,7 @@ export const EQUIP_ENHANCE_STAT = 0.016;
 export const equipEnhanceClamp = (e: unknown) => Math.max(0, Math.min(EQUIP_MAX_ENHANCE, Math.floor(Number(e)) || 0));
 export const equipEnhanceMult = (enhance: number) => 1 + EQUIP_ENHANCE_STAT * Math.pow(equipEnhanceClamp(enhance), 1.5);
 
-/** Đá Cường Hóa I–V (`items.code`, gộp tối đa `stack`): `drop` = số đá mỗi lần rơi ở nhóm "đồ tạp" (EQUIP_DROP.ranks), `buy` = giá thương nhân dự kiến, CHƯA DÙNG (không đâu đọc; đá chưa bán được, chờ quyết ở #907). */
+/** Đá Cường Hóa I–V (`items.code`, gộp tối đa `stack`): `drop` = số đá mỗi lần rơi ở nhóm "đồ tạp" (EQUIP_DROP.ranks), `buy` = giá thương nhân dự kiến, CHƯA DÙNG (không đâu đọc; đá chưa bán được, chờ chủ repo quyết). */
 export const EQUIP_STONES: { id: string; name: string; col: string; stack: number; drop: [number, number]; buy: number }[] = [
   { id: "da_cuong_hoa_1", name: "Đá Cường Hóa I",   col: "#b8c0c8", stack: 999, drop: [1, 3], buy: 40 },
   { id: "da_cuong_hoa_2", name: "Đá Cường Hóa II",  col: "#7fd0a0", stack: 999, drop: [1, 2], buy: 150 },
