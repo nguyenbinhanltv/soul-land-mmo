@@ -2,7 +2,7 @@
 // hồn hạch `rollCoreDrop`, mảnh võ hồn `rollShard`, tiên thảo `rollHerb`, trang bị `rollEquipGround`, tách khỏi MapRoom.ts (#702, bước 20).
 // Hàm nhận phòng (`room: MapRoom`) như combat.ts / tick.ts; nguyên văn từ MapRoom, không đổi số / thứ tự RNG / thứ tự xử lý. MapRoom chỉ chuyển tiếp 9 hàm
 // (`killBeast`, `boss.ts`, `autoHunt.ts`, `gm.ts` gọi `room.rollX` / `room.rewardKill` / `room.addXp` như cũ).
-// Còn ở MapRoom: `killBeast`, `useItem` / `pickup` / `useHerb`, `addRing` / `addBone` / `addEquip`, `chestEquip`, `lootNote` / `shardNote` / `canLoot`.
+// Còn ở MapRoom: `killBeast`, `addRing` / `addBone` / `addEquip`, `chestEquip`, `lootNote` / `shardNote` / `canLoot`.
 import { TIERS, VOHON, xpNeed, xpBlocked, tierOfYears, vohonIndex, XP_SHARE_ACTIVE, XP_SHARE_BENCH, beastLevel, xpLevelScale, BEASTS, MAPS, itemDef, beastStats, DROP_OWNER_SECS, DROP_TTL_SECS, SHARD_QTY, shardChance, shardCode, BONE_ITEM, BONE_SLOTS, boneChance, boneName, CORE_ITEM, CORE_SETS, coreChance, rollCore, coreName, coreSetIndex, EQUIP_ITEM, equipName, rollEquipDrop, EQUIP_TEMPLATES, EQUIP_TIERS, herbChance, HERBS } from "../../../shared/data.ts";
 import type { Character } from "../db.ts";
 import * as party from "../party.ts";
