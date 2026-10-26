@@ -2264,6 +2264,10 @@ HL3 (#572, 2026-10-25): hồn sư chỉ còn LPC (ghép lúc chạy từ các m�
 
 Ghi công hồn thú hoạt ảnh (H2 / H4, ảnh raw chờ preview) **không nối vào file này nữa** (#973): mỗi loài một bảng `## Ghi công` trong `art/src/beast-anim/<loài>/NGUON.md`; `node tools/assets/credits.mjs` tự gom vào màn Ghi công và `--check` báo lỗi nếu loài có tờ mà NGUON.md thiếu bảng. Dòng nhập game (`beast_<loài>_anim`) vẫn ở mục "Asset tạo bằng AI (ChatGPT)" ở trên.
 
+
+
+Độc Châm Phong (H4 #775): RAW candidate A1 `art/src/beast-anim/doc_cham_phong/toA.png` (948×1659, tỉ lệ được #1007 chấp nhận) và B2 primary `toB.png` (1254×1254), tthoadev sinh bằng builtin `image_gen.imagegen`; B1 được giữ nguyên tại `candidates/` cùng prompt/source và đã xác minh trùng output #969 (Xích Lân Mãng), SHA-256 `c15ddce0dd95e64fc6d11674eae1810497a6604b8aef016760f8b6602bb5b675`. B tham chiếu static đúng loài rồi A1 làm candidate thiết kế, chưa owner-approved; RAW nguyên byte, không hậu kỳ/cắt/resize. Finding mắt: A DIE hướng s H4 C3–4 nằm ngang; B2 khối ne vẫn lộ mặt. Checker toàn tờ có finding tràn ô/chân/cỡ; CI H4 hiện 0 blocker (cảnh báo riêng). Prompt, hash, provenance và B1: [NGUON.md](src/beast-anim/doc_cham_phong/NGUON.md), `toA/toB.prompt.txt`, `toA/toB.source.json`, `toB.source.json`, `candidates/`. Chưa owner art-accepted, cắt hoặc nhập game.
+
 <!-- private-assets:start -->
 ## Asset kho riêng (không nằm trong repo công khai)
 

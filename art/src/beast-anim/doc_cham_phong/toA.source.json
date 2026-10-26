@@ -1,0 +1,62 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "imageModel": "unknown (tool did not expose)",
+  "seed": "unknown (tool did not expose)",
+  "attempts": 1,
+  "workerProvenance": {
+    "task": "#775",
+    "species": "doc_cham_phong",
+    "sheet": "toA",
+    "attempt": "A1",
+    "status": "RAW submitted candidate; art not owner-approved",
+    "tool": "built-in image_gen.imagegen",
+    "model": "unknown (tool did not expose)",
+    "seed": "unknown (tool did not expose)",
+    "attemptCount": 1,
+    "totalSpeciesImagegenCalls": 2,
+    "callTimestampExposed": false,
+    "callTimestampNote": "The image_gen tool response did not provide a call timestamp.",
+    "exactPrompt": {
+      "path": "toA.prompt.txt",
+      "sha256": "546e8248060e15db5eff2708fdc0b2421a048b60ff9e54f156cfa268dec1ca61",
+      "bytes": 6598,
+      "basePromptTemplateMarkdownSha256": "e95ca119a95cf883c66080cb72c4d7dcebd0d09d63816f89bb8e0a263cf8a21f",
+      "basePromptSha256": "546e8248060e15db5eff2708fdc0b2421a048b60ff9e54f156cfa268dec1ca61",
+      "basePromptTemplateMarkdown": "/private/tmp/doc-cham-phong-prompt/doc_cham_phong-toA.md"
+    },
+    "generator": {
+      "command": "node tools/assets/beast-sheet-prompt.mjs --species doc_cham_phong --stage sheet --out /private/tmp/doc-cham-phong-prompt",
+      "script": "tools/assets/beast-sheet-prompt.mjs",
+      "scriptSha256": "ce67ade6abd84aaacbb2336b8a942fd298330fbf698eabb56d8b31092d4ba625"
+    },
+    "orderedReferences": [
+      {
+        "order": 1,
+        "role": "static identity reference for Doc Cham Phong",
+        "path": "shared/assets/sprites/beast/doc_cham_phong.png",
+        "sha256": "7e5ab74f8c0214076abe9e821aa68a0cf693ef79fdba766bf0747d6bf775138c",
+        "bytes": 1172
+      }
+    ],
+    "toolArguments": {
+      "referenced_image_paths": [
+        "/private/tmp/soul-land-mmo-775-doc-cham-phong/shared/assets/sprites/beast/doc_cham_phong.png"
+      ],
+      "transparent_background": false
+    },
+    "originalToolOutputPath": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-c4779e36-8c17-4271-8146-b4f459c9b82e.png",
+    "raw": {
+      "path": "toA.png",
+      "sha256": "e51c299e40803ae3e3ddfe71f9fcca2a6bd437e0b2d1c807ed36e93728f57ebf",
+      "bytes": 1838198,
+      "width": 948,
+      "height": 1659,
+      "copiedByteIdenticalFromToolOutput": true
+    },
+    "postprocessing": false,
+    "manualFindings": [
+      "toA, khối s, hàng DIE (hàng 4), khung 3–4 nằm ngang ảnh, không giữ trục theo hướng s."
+    ],
+    "ownerArtApproval": false
+  }
+}
