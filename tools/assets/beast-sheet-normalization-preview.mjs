@@ -42,7 +42,7 @@ export function buildComparison(species, sourceFiles, out) {
     const bytes = readFileSync(file), im = readPng(file);
     sheets[id] = im; sources[id] = { sha256: sha256(bytes), size: [im.w, im.h] };
   }
-  const before = cutSpecies({ species, sheets }), after = cutSpecies({ species, sheets, normalizeSize: true });
+  const before = cutSpecies({ species, sheets, normalizeSize: false }), after = cutSpecies({ species, sheets, normalizeSize: true });
   for (const [id, source] of Object.entries(sources)) after.report.sheets[id].sourceSha256 = source.sha256;
   for (const [mode, res] of [["before", before], ["after", after]]) {
     const dir = path.join(out, mode); mkdirSync(dir, { recursive: true });

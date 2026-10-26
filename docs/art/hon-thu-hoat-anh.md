@@ -19,26 +19,38 @@ Hồn thú lai hiện chỉ có 3 ảnh tĩnh (nam, đông, bắc) + chuyển đ
 Giữ đúng đề xuất: 22 khung / hướng, 110 khung / loài; nhiều hơn thì không vừa ảnh ChatGPT (xem dưới), ít hơn thì chu kỳ đi giật. Hằng nằm ở `tools/assets/beast-sheet-lib.mjs` (`ANIMS`); không phải số cân bằng.
 
 ## Bố cục tờ ảnh
-- **Lưới cố định, không chữ trong ảnh:** model vẽ nhãn chữ không đáng tin và chữ lẫn vào hình, nên hàng / cột là nhãn (vị trí quyết định hướng, hoạt ảnh, khung). Mỗi hướng một **khối 4 hàng × 6 cột**: hàng 1 = đứng (cột 1–4) + trúng đòn (cột 5–6), hàng 2 = đi (6), hàng 3 = đánh (6), hàng 4 = chết (cột 1–4, hai ô cuối để trống). Ghép đứng + trúng đòn một hàng để ô gần vuông.
-- **Nền** `#FF00FF` phẳng (như `gemini-import`) hoặc trong suốt thật; công cụ nhận cả hai (nền lấy từ 4 góc, điểm alpha < 128 là nền).
-- **Giới hạn ChatGPT:** chỉ 1024×1024, 1536×1024, 1024×1536. Ô vẽ phải lớn hơn khung game (`ISO_BEAST_SIZES`: 64 / 96 / 128 / 160 / 192) để thu về lưới pixel không phải phóng to, nên số hướng mỗi tờ phụ thuộc bậc:
+- **Lưới theo hàng / cột, không chữ trong ảnh:** model vẽ nhãn chữ không đáng tin và chữ lẫn vào hình, nên hàng / cột là nhãn (vị trí quyết định hướng, hoạt ảnh, khung). Mỗi hướng một **khối 4 hàng × 6 cột**: hàng 1 = đứng (cột 1–4) + trúng đòn (cột 5–6), hàng 2 = đi (6), hàng 3 = đánh (6), hàng 4 = chết (cột 1–4, hai ô cuối để trống). Ghép đứng + trúng đòn một hàng để ô gần vuông.
+- **Nền (dung sai):** prompt xin `#FF00FF` phẳng nhưng model không làm được đúng (đo: mốc `(252,4,252)`, dốc dọc nhẹ); **gradient nhẹ được phép**. Chỉ cần mọi điểm nền nằm trong khoảng cách ≤ `--tol` (mặc định 60) so với màu khóa đọc ở 4 góc, hoặc nền trong suốt thật (alpha < 128): công cụ tự tách. Nền lệch quá dung sai (không tách sạch) mới là lỗi.
+- **Cỡ ảnh theo TỈ LỆ (v2, #861 / #862):** công cụ sinh ảnh (Codex `image_gen`) không có tham số cỡ, chỉ có tỉ lệ khung, nên người nộp **không** chọn cỡ và không resize. Cỡ hợp lệ (±1%): **A 1024×1536** (2:3), **B 1254×1254 hoặc 1024×1024** (1:1), **boss 1536×1024** (3:2). Cỡ lệch trong tập này **không phải lỗi**; cutter chuẩn hóa về đơn vị của `sheetPlan` (mục dưới). Ô vẽ phải lớn hơn khung game (`ISO_BEAST_SIZES`: 64 / 96 / 128 / 160 / 192) để thu về lưới pixel không phải phóng to, nên số hướng mỗi tờ phụ thuộc bậc:
 
-| Bậc (khung) | Tờ | Hướng | Ảnh | Lưới | Ô |
+| Bậc (khung) | Tờ | Hướng | Ảnh (chuẩn; cỡ hợp lệ) | Lưới | Ô |
 |---|---|---|---|---|---|
 | Trắng / Vàng (64), Tím / Đen (96) | A | `s`, `se`, `e` | 1024×1536 | 6 × 12 | ≈ 170×128 |
-| | B | `ne`, `n` | 1024×1024 | 6 × 8 | ≈ 170×128 |
+| | B | `ne`, `n` | 1024×1024 (1254×1254 cũng hợp lệ) | 6 × 8 | ≈ 170×128 |
 | Đỏ (128), thú vương (160), boss (192) | A–E | một hướng mỗi tờ, theo thứ tự `s`, `se`, `e`, `ne`, `n` | 1536×1024 | 6 × 4 | 256×256 |
 
   Tờ B, C… của cùng loài đính thêm tờ A đã duyệt làm tham chiếu phong cách. Khung 128 cũng dùng 5 tờ một hướng (ô 256 thu về không phóng to); nếu thử thấy ô 170×128 đủ cho khung 128 thì gộp lại sau.
+- **Dung sai lưới:** ô chỉ là nhãn danh nghĩa chia theo cỡ thực của ảnh. Hình **được phép** lệch hoặc tràn ra ngoài ô vài điểm (không đòi "không chạm mép ô"); cái cần đúng là **số hàng và số hình mỗi hàng** (hình thuộc hàng / cột nào thì là khung đó). Hình dính nhiều ô, ô trống có hình, hoặc thiếu hình mới là lỗi. Dò lưới theo khoảng trống thay lưới chia đều: việc của #864, chưa làm ở đây.
 - **Điểm neo chân:** chân (đáy hộp bao) đặt giữa khung ngang, cách mép dưới `ISO_BEAST_FOOT` (giống sheet tĩnh, để bóng và vòng hồn hoàn của client khớp). Prompt yêu cầu mọi khung đứng trên một đường nền ẩn cao khoảng 12% ô; công cụ căn lại theo đáy hình từng khung (khung nhảy / bay mất độ cao, chấp nhận; code vẫn nhấc sprite khi cần).
 - **Góc nhìn và phong cách:** isometric 2:1 nhìn từ trên xuống khoảng 30°, thủy mặc trầm (A / B ở `quy-cach-isometric.md`), 3 sắc độ mỗi vùng, viền `#1a1020`; **không** mắt sáng, hào quang, bóng, hiệu ứng (client vẽ).
 - **Khung game (đầu ra):** vuông theo bậc, sheet **6 cột × 20 hàng** (5 hướng × 4 dải, cùng thứ tự dải với tờ), file `<loài>_anim.png`, key `beast_<loài>_anim`; `manifest-entry.json` ghi `anim` (hướng, dải và cột đầu từng hoạt ảnh, số khung, gốc chân). Chép vào `shared/assets/sprites/beast/`, manifest và đổi client là việc của PR nối client (H2), **chưa làm ở đây**. Normal map `_n` sinh bằng `normal.mjs` lúc nhập.
 
+## Tiêu chí đạt v2: chặn / nhẹ (theo khối hướng)
+Duyệt theo **khối hướng** (`s`, `se`, `e`, `ne`, `n`), không theo cả tờ: khối chặn thì không nhập khối đó, khối nhẹ nhập và ghi sổ. Nguồn: báo cáo H4 mục 5.3 C (công cụ kiểm tự động là #863, chưa có; hiện duyệt bằng mắt + `_report.json`).
+
+| Loại | Tiêu chí |
+|---|---|
+| **Chặn** | cỡ ảnh ngoài tập hợp lệ ở trên; nền không tách được; thiếu khung / không dò được hàng; hình dính; `n` / `ne` thấy mặt ở idle / walk / attack (hurt, die cũng không được); `se` không khác `e`; sai nhận diện loài; cỡ thân lệch quá ±25% so với ảnh tĩnh cùng hướng |
+| **Nhẹ** | hurt biên độ nhỏ; die hơi xoay nhưng còn đọc được; vài khung vượt ô nhưng cắt được; cỡ thân lệch 10–25%; nền gradient, cỡ 1254² (đã chuẩn hóa) |
+| **Đạt đẹp** | idle / walk lặp mượt, hurt lùi rõ theo hướng, die đổ dọc theo hướng |
+
+**Hurt và die (đã chốt 2026-10-26):** vẫn vẽ đủ hoạt ảnh (2 và 4 khung), nhưng hurt chỉ **lùi một đoạn ngắn theo hướng đang quay**, thân và chân giữ trục, **không** ngửa bụng, **không** quay mặt về người xem; die **đổ dọc theo hướng đang quay** và nằm xương sống song song hướng đó, **không** xoay thân 90°. Ở `n` / `ne` không thấy mắt / mặt trong bất kỳ khung nào, kể cả hurt. Mẫu prompt đã có các câu này (`beast-sheet-prompt.mjs`).
+
 ## Mẫu prompt (tự sinh từ BEASTS)
-`node tools/assets/beast-sheet-prompt.mjs --species <loài> --out <thư mục>` ghi mỗi tờ một file `<loài>-to<A|B…>.md`: bảng tóm tắt, **cách làm** cho tthoadev, **khối prompt tiếng Anh**, chú thích tiếng Việt, lệnh cắt. Tên, họ hoạt ảnh (`beastFamily`), bậc / khung lấy tự động từ `BEASTS`, manifest và `client/src/sprites.ts`; mô tả ngoại hình lấy từ prompt ảnh tĩnh ở `art/CREDITS.md` (`--desc` ghi đè; loài chưa có prompt dùng bảng `DESC_OVERRIDE` trong `beast-sheet-lib.mjs`). `--all` liệt kê mọi loài đã có ảnh tĩnh. Prompt gồm: ảnh tĩnh loài đính kèm làm tham chiếu nhân vật (giữ y nguyên thiết kế, tỉ lệ, màu, cỡ); lưới và bố cục từng hàng; gợi ý chuyển động theo họ (bốn chân / chim / rắn / côn trùng / cây); câu **nhất quán** (cùng cỡ, bảng màu, nét viền, chỉ đổi tư thế, vòng lặp mượt, hướng nghiêng nhìn phải); danh sách không vẽ. Mỗi tờ một cuộc trò chuyện ChatGPT mới; hỏng thì vẽ lại cả tờ.
+`node tools/assets/beast-sheet-prompt.mjs --species <loài> --out <thư mục>` ghi mỗi tờ một file `<loài>-to<A|B…>.md`: bảng tóm tắt, **cách làm** cho tthoadev, **khối prompt tiếng Anh**, chú thích tiếng Việt, lệnh cắt. Tên, họ hoạt ảnh (`beastFamily`), bậc / khung lấy tự động từ `BEASTS`, manifest và `client/src/sprites.ts`; mô tả ngoại hình lấy từ prompt ảnh tĩnh ở `art/CREDITS.md` (`--desc` ghi đè; loài chưa có prompt dùng bảng `DESC_OVERRIDE` trong `beast-sheet-lib.mjs`). `--all` liệt kê mọi loài đã có ảnh tĩnh. Prompt gồm: ảnh tĩnh loài đính kèm làm tham chiếu nhân vật (giữ y nguyên thiết kế, tỉ lệ, màu, cỡ); lưới và bố cục từng hàng; gợi ý chuyển động theo họ (bốn chân / chim / rắn / côn trùng / cây); câu **nhất quán** (cùng cỡ, bảng màu, nét viền, chỉ đổi tư thế, vòng lặp mượt, hướng nghiêng nhìn phải); danh sách không vẽ. Prompt xin tỉ lệ khung (không đòi số pixel). Mỗi tờ một cuộc trò chuyện mới; hỏng thì vẽ lại cả tờ.
 
 ## Công cụ cắt `beast-sheet-cut.mjs`
-`node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=<ảnh> [--sheet B=…] --out <thư mục> [--colors 24] [--palette auto|gpl|<gpl>] [--fill 0.8 | --scale S] [--key #ff00ff] [--tol 60] [--frame N]`
+`node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=<ảnh> [--sheet B=…] --out <thư mục> [--no-normalize-size] [--colors 24] [--palette auto|gpl|<gpl>] [--fill 0.8 | --scale S] [--key #ff00ff] [--tol 60] [--frame N]`
 1. **Tách:** bỏ nền, gỡ 3 lớp viền ngả màu nền, thành phần liên thông 8 hướng; mỗi thành phần về ô lưới chứa trọng tâm; **hình dính nhiều ô** thì chia theo ô và cảnh báo; mảnh nhỏ sát thân gộp vào thân, mảnh vụn và ô chỉ có đốm bị bỏ (đếm ở báo cáo; mảnh rời lớn bị bỏ thì cảnh báo).
 2. **Căn chân:** đáy hộp bao về hàng neo, tâm chân (trung bình x các hàng đáy) về giữa khung; hình lệch mép được dời vào trong, cảnh báo nếu dời xa.
 3. **Đồng cỡ:** **một** hệ số thu cho cả loài, mặc định khớp chiều cao thân khung đông của ảnh tĩnh hiện có (không có thì `--fill` × khung); vượt khung thì hạ tối đa 20%, còn vượt nữa thì cảnh báo cắt mép.
@@ -46,25 +58,27 @@ Giữ đúng đề xuất: 22 khung / hướng, 110 khung / loài; nhiều hơn 
 5. **Cảnh báo** (không dừng, trừ thiếu khung thì thoát mã 1): thiếu khung / tờ; hình ở ô trống; khung lệch diện tích / cao / rộng so với trung vị cùng hoạt ảnh và hướng; chân lệch quá 15% chiều cao ô; vượt hoặc chạm mép khung; hình dính; mảnh rời lớn bị bỏ.
 6. **Ghi:** `<loài>_anim.png`, `manifest-entry.json`, `_report.json`.
 
-### Chuẩn hóa kích thước dẫn xuất (tùy chọn)
+### Chuẩn hóa kích thước (MẶC ĐỊNH BẬT)
 
-Thêm `--normalize-size` (API `cutSpecies({ ..., normalizeSize: true })`) khi tờ RAW lệch kích thước nhưng vẫn đúng tỉ lệ và lưới đã duyệt. Không có cờ thì cutter giữ hành vi cũ. Yêu cầu kích thước RAW trong bảng bố cục phía trên vẫn giữ nguyên; đây là cách xử lý ngoại lệ ở đầu ra dẫn xuất, không phải duyệt ảnh mọi kích thước.
+Từ v2 (#862) cutter **luôn** chuẩn hóa kích thước (API `cutSpecies({ ..., normalizeSize })` mặc định `true`); `--no-normalize-size` (hoặc `normalizeSize: false`) tắt, chỉ để so trước / sau hoặc tái hiện hành vi cũ. Không còn khái niệm "ngoại lệ": mọi tờ đúng tỉ lệ của `sheetPlan` đều hợp lệ (B 1254×1254 hay 1024×1024), tờ sai tỉ lệ thì dừng với mã 2.
 
-Mỗi tờ dùng **đơn vị canonical của chính `sheetPlan(frame)`**: hệ số `expectedWidth / actualWidth`, đồng thời phải bằng `expectedHeight / actualHeight` chính xác. Ví dụ B 1254×1254 dùng `1024/1254`, A 1024×1536 dùng 1. Tờ lớn A–E 1536×1024 vẫn dùng ô 256×256; không đổi sang đơn vị ô của tờ nhỏ. Sai tỉ lệ thì dừng với mã 2, không kéo riêng hai trục.
+Mỗi tờ dùng **đơn vị canonical của chính `sheetPlan(frame)`**: hệ số `expectedWidth / actualWidth`, đồng thời tỉ lệ rộng / cao của ảnh phải khớp `sheetPlan` trong ±1% (lệch hơn thì dừng). Ví dụ B 1254×1254 dùng `1024/1254`, A 1024×1536 dùng 1. Tờ lớn A–E 1536×1024 vẫn dùng ô 256×256; không đổi sang đơn vị ô của tờ nhỏ. Sai tỉ lệ thì dừng với mã 2, không kéo riêng hai trục.
 
 Cutter vẫn tách vật trên RAW; hộp bao, diện tích, chân và phép kiểm vừa khung đổi sang đơn vị canonical trước **một hệ số chung cả loài**. Khi xuất, hệ số từng tờ được gộp vào lần lấy mẫu bỏ phiếu 4×4 hiện có: không tạo ảnh resize trung gian, không nội suy màu, không tự phóng từng khung cho đầy ô. `--scale` và `--min-area` khi bật cờ dùng đơn vị canonical (diện tích là bình phương đơn vị).
 
-`_report.json` giữ `size` thật và thêm `originalSize`, `expectedSize`, `factor`, `normalizedMode: "canonical-units"` theo từng tờ; CLI thêm `sourceSha256` từ byte file RAW. Công cụ chỉ đọc nguồn, không resize hay ghi lại RAW trong `art/src`. Cờ không sửa hướng, pose, số khung hoặc lưới: thiếu khung / ô trống / hình dính vẫn báo; thêm cảnh báo hình vượt ô và chạm mép ảnh nguồn. Ảnh chuẩn có factor 1 cho byte ảnh đầu ra không đổi; cảnh báo bổ sung vẫn có thể xuất hiện.
+`_report.json` giữ `size` thật và thêm `originalSize`, `expectedSize`, `factor`, `normalizedMode: "canonical-units"` theo từng tờ; CLI thêm `sourceSha256` từ byte file RAW. Công cụ chỉ đọc nguồn, không resize hay ghi lại RAW trong `art/src`. Cờ không sửa hướng, pose, số khung hoặc lưới: thiếu khung / ô trống / hình dính vẫn báo; thêm cảnh báo hình vượt ô và chạm mép ảnh nguồn. Ảnh cỡ chuẩn (factor 1) cho byte ảnh đầu ra y hệt khi tắt cờ (có test); cảnh báo bổ sung `vượt ô` / `chạm mép ảnh nguồn` giờ xuất hiện với mọi tờ, vì cờ mặc định bật.
 
 ```bash
-node tools/assets/beast-sheet-cut.mjs --species bang_giap_cu_quy --sheet A=<RAW-A.png> --sheet B=<RAW-B.png> --out <thư-mục-dẫn-xuất> --normalize-size
+node tools/assets/beast-sheet-cut.mjs --species bang_giap_cu_quy --sheet A=<RAW-A.png> --sheet B=<RAW-B.png> --out <thư-mục-dẫn-xuất>
 ```
 
 Để tái tạo bằng chứng size-only: `node tools/assets/beast-sheet-normalization-preview.mjs --out <thư-mục-ngoài-repo>`. Helper tải hai PNG Băng Giáp Cự Quy từ commit nguồn cố định, kiểm SHA256; dùng đủ 5 RAW Thái Thản Cự Viên đã có trong repo và kiểm hash. Mã thực thi cutter/preview luôn là mã checkout hiện tại, không lấy code từ PR ảnh. Đầu ra gồm `index.html`, `evidence.json`, PNG, GIF và report trước/sau; các đường dẫn tương đối mở được offline. Không chứng nhận hướng hoặc pose.
 
 CI `check-build` Ubuntu sinh bundle khi diff PR chạm cutter/helper/test/tài liệu liên quan; Windows không sinh lặp. Tải artifact `beast-normalization-preview-<PR head SHA>` từ GitHub Actions, giải nén rồi mở `index.html` (không phải website công khai). Artifact giữ 30 ngày. Evidence phân biệt `checkoutSha` (có thể là merge thử của CI), `prHeadSha`, `baseSha` và commit/hash RAW nguồn. `normalizedMode`/`factor` theo từng tờ ở report và evidence. Không commit bundle sinh ra vào Git.
 
-**Nhập H4 luôn dùng `--normalize-size`** (tờ B của ChatGPT thường xuất 1254×1254 thay vì 1024×1024; không cờ thì hướng `ne` / `n` lệch cỡ ~15–20% so với `s` / `se` / `e`). Hệ số chung cả loài vẫn tự hạ nếu có khung chạm mép; so bảng cỡ thân idle 5 hướng trước / sau khi nhập. Ba loài đã nhập trước khi có cờ (Ám Kim Khủng Trảo Hùng, Hắc Bối Dã Trư, Huyền Băng Thiềm) đã cắt lại bằng cờ (Part of #767, #768); Phong Lang, Kim Linh Ưng, Thái Thản Cự Viên đúng spec nên giữ nguyên.
+**Nhập H4: không cần cờ** (chuẩn hóa mặc định bật; tờ B của Codex `image_gen` ra 1254×1254, không chuẩn hóa thì `ne` / `n` to hơn `s` / `se` / `e` khoảng 15–20%). Hệ số chung cả loài vẫn tự hạ nếu có khung chạm mép; so bảng cỡ thân idle 5 hướng trước / sau khi nhập. Ba loài đã nhập trước khi có cờ (Ám Kim Khủng Trảo Hùng, Hắc Bối Dã Trư, Huyền Băng Thiềm) đã cắt lại (Part of #767, #768).
+
+**Đính chính #826:** #826 ghi Phong Lang, Kim Linh Ưng "đúng spec nên giữ nguyên" là **sai**: cả hai có tờ B 1254×1254 (công cụ sinh ảnh luôn ra cỡ này cho tỉ lệ 1:1), `ne` / `n` to 1,18–1,49× so với `s` / `e`. Hai loài đã cắt lại bằng cutter v2 mặc định (#862): cao `ne` / `e` Phong Lang 1,39 → 1,14, Kim Linh Ưng 1,43 → 1,16 (`n` Kim Linh Ưng còn 1,33: neo cỡ theo ảnh tĩnh là #864).
 
 Tên theo quy ước game (`beast_<loài>_anim`); không dùng tên gói ngoài.
 
@@ -92,4 +106,4 @@ Code ở `client/src/beastAnim.ts` (chọn khung, không phụ thuộc Phaser, c
 - **Thử bằng sheet giả:** `beast-sheet-fake.mjs` + `beast-sheet-cut.mjs` rồi cài tạm vào `shared/assets` (không commit); xem ảnh chụp và số FPS ở mô tả PR.
 
 ## Việc tiếp
-H2 (đã làm cho Phong Lang, #691): sheet `beast_phong_lang_anim` đã nhập vào `shared/assets` (cắt `--scale 0.55`); Kim Linh Ưng cũng đã nhập (`beast_kim_linh_ung_anim`); Thái Thản Cự Viên cũng đã nhập (`beast_thai_than_cu_vien_anim`), cả 3 loài thử xong. H4 (#766): đợt 1 #767 nhập Ám Kim Khủng Trảo Hùng (`beast_am_kim_khung_trao_hung_anim`, cắt `--scale 0.55` tự hạ về 0,440); đợt 2 #768 nhập Hắc Bối Dã Trư (`beast_hac_boi_da_tru_anim`, khung 64, cắt `--scale 0.38` tự hạ về 0,306); Huyền Băng Thiềm (`beast_huyen_bang_thiem_anim`, khung 96, hệ số tự động 0,467); cả ba cắt lại bằng `--normalize-size` (Ám Kim `--scale 0.55` tự hạ 0,539; Hắc Bối `--scale 0.38` tự hạ 0,361).
+H2 (đã làm cho Phong Lang, #691): sheet `beast_phong_lang_anim` đã nhập vào `shared/assets` (cắt `--scale 0.55`); Kim Linh Ưng cũng đã nhập (`beast_kim_linh_ung_anim`); Thái Thản Cự Viên cũng đã nhập (`beast_thai_than_cu_vien_anim`), cả 3 loài thử xong. H4 (#766): đợt 1 #767 nhập Ám Kim Khủng Trảo Hùng (`beast_am_kim_khung_trao_hung_anim`, cắt `--scale 0.55` tự hạ về 0,440); đợt 2 #768 nhập Hắc Bối Dã Trư (`beast_hac_boi_da_tru_anim`, khung 64, cắt `--scale 0.38` tự hạ về 0,306); Huyền Băng Thiềm (`beast_huyen_bang_thiem_anim`, khung 96, hệ số tự động 0,467); cả ba cắt lại bằng chuẩn hóa kích thước (Ám Kim `--scale 0.55` tự hạ 0,539; Hắc Bối `--scale 0.38` tự hạ 0,361).

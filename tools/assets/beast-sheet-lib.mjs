@@ -27,8 +27,8 @@ export function animSlot(anim) {
 /** Tên bậc theo cỡ khung (ISO_BEAST_SIZES). */
 export const FRAME_TIER = ["Trắng / Vàng", "Tím / Đen", "Đỏ", "thú vương", "boss thế giới"];
 export const tierNameOfFrame = (f) => FRAME_TIER[ISO_BEAST_SIZES.indexOf(f)] ?? `khung ${f}`;
-/** Tờ ảnh ChatGPT chấp nhận 1024×1024, 1536×1024, 1024×1536. */
-export const SHEET_SIZES = [[1024, 1024], [1536, 1024], [1024, 1536]];
+/** Cỡ ảnh RAW hợp lệ theo TỈ LỆ (v2, #862): 1:1 ra 1254×1254 hoặc 1024×1024, 2:3 ra 1024×1536, 3:2 ra 1536×1024; cutter chuẩn hóa về `sheetPlan`. */
+export const SHEET_SIZES = [[1024, 1024], [1254, 1254], [1536, 1024], [1024, 1536]];
 
 /** Chia các hướng ra các tờ theo cỡ khung: khung ≤ 96 gộp 3 + 2 hướng (ô ≈ 170×128), khung lớn mỗi hướng một tờ (ô 256×256). */
 export function sheetPlan(frame) {

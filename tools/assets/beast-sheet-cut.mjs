@@ -3,6 +3,7 @@
 //
 // Các bước (mỗi tờ theo bố cục sheetPlan của beast-sheet-lib.mjs: lưới cố định, hàng = dải hoạt ảnh, cột = khung):
 //   1. Xóa nền (màu khóa mặc định đọc ở góc, thường #FF00FF; hoặc alpha thấp), gỡ 3 lớp viền nhiễm màu nền.
+//   (Cỡ tờ theo TỈ LỆ, mặc định chuẩn hóa về đơn vị canonical của sheetPlan: B 1254×1254 hợp lệ; --no-normalize-size để tắt.)
 //   2. Tách hình theo thành phần liên thông; mỗi thành phần về ô lưới chứa trọng tâm của nó (hình dính nhiều ô thì chia theo ô);
 //      mảnh vụn nhỏ hoặc xa thân bị bỏ (đếm trong báo cáo), mảnh nhỏ sát thân gộp vào thân.
 //   3. Mỗi khung: chân = đáy hộp bao, tâm chân ngang = trung bình x của các hàng đáy; MỘT hệ số thu chung cho cả loài
@@ -145,22 +146,22 @@ const nearest = (p, pal) => { let bi = 0, bd = Infinity; for (let i = 0; i < pal
 
 // ---------- Cắt một loài ----------
 /**
- * @param {{ species: string, sheets: Record<string, Img>, frame?: number, key?: number[], tol?: number, colors?: number, palette?: string, fill?: number, scale?: number, minArea?: number, normalizeSize?: boolean }} o
+ * @param {{ species: string, sheets: Record<string, Img>, frame?: number, key?: number[], tol?: number, colors?: number, palette?: string, fill?: number, scale?: number, minArea?: number, normalizeSize?: boolean (mặc định true) }} o
  * @returns {{ sheet: Img, entry: object, report: object, frames: Map<string, Img> }} frames: khóa `dir/anim/n`
  */
 export function cutSpecies(o) {
   const info = speciesInfo(o.species), F = o.frame ?? info.frame;
   if (!F) throw new Error(`loài ${o.species} chưa có khung trong manifest: đặt --frame`);
   const plan = sheetPlan(F), warns = [], rep = { species: o.species, frame: F, sheets: {}, scale: 0, dropped: 0 };
-  const foot = F - ISO_BEAST_FOOT, tol = o.tol ?? 60;
+  const foot = F - ISO_BEAST_FOOT, tol = o.tol ?? 60, normalize = o.normalizeSize !== false; // mặc định bật (#862)
 
   // 1–2. Tách hình, gán ô
   const raw = new Map(); // `dir/anim/n` → { img: Img (cắt, alpha 0/255), footX, w, h, cellBottom, cellH }
   for (const sh of plan) {
     const img = o.sheets[sh.id];
     if (!img) { warns.push(`thiếu tờ ${sh.id} (${sh.dirs.join(", ")})`); continue; }
-    if (o.normalizeSize && img.w * sh.h !== img.h * sh.w) throw new Error(`tờ ${sh.id}: sai tỉ lệ ${img.w}×${img.h}, cần ${sh.w}×${sh.h}; không thể chuẩn hóa đồng đều`);
-    const factor = o.normalizeSize ? sh.w / img.w : 1;
+    if (normalize && Math.abs(img.w * sh.h - img.h * sh.w) > 0.01 * img.h * sh.w) throw new Error(`tờ ${sh.id}: sai tỉ lệ ${img.w}×${img.h}, cần ${sh.w}×${sh.h}; không thể chuẩn hóa đồng đều`);
+    const factor = normalize ? sh.w / img.w : 1;
     const key = o.key ?? keyOf(img), mask = foregroundMask(img, key, tol);
     const { pieces, dropped, droppedBig, stuck } = assignToCells(img, sh, mask, { minArea: o.minArea, unit: factor });
     rep.dropped += dropped;
@@ -168,7 +169,7 @@ export function cutSpecies(o) {
     if (stuck) warns.push(`tờ ${sh.id}: ${stuck} hình dính nhiều ô, đã chia theo ô; nên vẽ lại cho các hình cách xa nhau`);
     const used = new Set();
     rep.sheets[sh.id] = { size: [img.w, img.h], key: key && toHex(key), cells: pieces.size };
-    if (o.normalizeSize) Object.assign(rep.sheets[sh.id], { originalSize: [img.w, img.h], expectedSize: [sh.w, sh.h], factor, normalizedMode: "canonical-units" });
+    if (normalize) Object.assign(rep.sheets[sh.id], { originalSize: [img.w, img.h], expectedSize: [sh.w, sh.h], factor, normalizedMode: "canonical-units" });
     for (const c of sheetCells(sh)) {
       const k = `${c.col},${c.row}`, p = pieces.get(k), name = `${c.dir}/${c.anim}/${c.frame}`;
       used.add(k);
@@ -178,7 +179,7 @@ export function cutSpecies(o) {
       const lowRows = Math.max(1, Math.round(fh * 0.08)); let sx = 0, n = 0;
       for (let y = fh - lowRows; y < fh; y++) for (let x = 0; x < fw; x++) if (im.alpha(x, y)) { sx += x; n++; }
       const r = cellRect(sh, c.col, c.row, img.w, img.h);
-      if (o.normalizeSize) {
+      if (normalize) {
         if (x0 < Math.floor(r.x0) || y0 < Math.floor(r.y0) || x1 >= Math.ceil(r.x1) || y1 >= Math.ceil(r.y1)) warns.push(`khung ${name}: hình vượt ô tờ ${sh.id}, kiểm tra lưới; chuẩn hóa không sửa bố cục`);
         if (x0 === 0 || y0 === 0 || x1 === img.w - 1 || y1 === img.h - 1) warns.push(`khung ${name}: chạm mép ảnh nguồn tờ ${sh.id} (có thể đã bị cắt)`);
       }
@@ -319,6 +320,7 @@ function parseArgs(argv) {
     else if (a === "--scale") o.scale = +next();
     else if (a === "--min-area") o.minArea = +next();
     else if (a === "--normalize-size") o.normalizeSize = true;
+    else if (a === "--no-normalize-size") o.normalizeSize = false;
     else throw new Error(`tùy chọn lạ: ${a}`);
   }
   return o;
@@ -328,16 +330,16 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     const o = parseArgs(process.argv.slice(2));
     if (!o.species || !o.out || !Object.keys(o.sheets).length) {
-      console.error("Dùng: node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=<ảnh> [--sheet B=<ảnh>] --out <thư mục> [--normalize-size] [--frame N] [--colors 24] [--palette auto|gpl|<gpl>] [--fill 0.8 | --scale S] [--key #ff00ff] [--tol 60]");
+      console.error("Dùng: node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=<ảnh> [--sheet B=<ảnh>] --out <thư mục> [--no-normalize-size] [--frame N] [--colors 24] [--palette auto|gpl|<gpl>] [--fill 0.8 | --scale S] [--key #ff00ff] [--tol 60]");
       process.exit(2);
     }
     const hashes = {};
     for (const id of Object.keys(o.sheets)) {
-      if (o.normalizeSize) hashes[id] = createHash("sha256").update(readFileSync(o.sheets[id])).digest("hex");
+      if (o.normalizeSize !== false) hashes[id] = createHash("sha256").update(readFileSync(o.sheets[id])).digest("hex");
       o.sheets[id] = readPng(o.sheets[id]);
     }
     const res = cutSpecies(o);
-    if (o.normalizeSize) for (const [id, hash] of Object.entries(hashes)) if (res.report.sheets[id]) res.report.sheets[id].sourceSha256 = hash;
+    if (o.normalizeSize !== false) for (const [id, hash] of Object.entries(hashes)) if (res.report.sheets[id]) res.report.sheets[id].sourceSha256 = hash;
     mkdirSync(o.out, { recursive: true });
     writeFileSync(path.join(o.out, `${o.species}_anim.png`), encodePng(res.sheet));
     writeFileSync(path.join(o.out, "manifest-entry.json"), JSON.stringify(res.entry, null, 2) + "\n");
