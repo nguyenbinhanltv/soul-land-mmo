@@ -25,7 +25,7 @@ Mọi lệnh chỉ đọc RAW; không resize / sửa ảnh gốc, không ghi key
 ### A1. Spec v2 đầu vào (đã chốt, bảng tóm tắt; luật đầy đủ ở docs)
 | Mục | Quy định |
 |---|---|
-| Cỡ ảnh | Theo **tỉ lệ**, không đòi pixel: 2:3 → 1024×1536; 1:1 → 1254² hoặc 1024²; 3:2 → 1536×1024. Công cụ Codex `image_gen` chỉ nhận prompt / tham chiếu / nền, **không có ô chọn cỡ**: ra cỡ nào hợp tỉ lệ cũng hợp lệ, cutter chuẩn hóa. |
+| Cỡ ảnh | Theo **tỉ lệ**, không đòi pixel: 2:3 → 1024×1536 (Codex cũng xuất 948×1659 / 941×1672 ≈ 4:7: **hợp lệ** nếu lưới đúng, theo quyết định chủ repo 2026-10-26 mục 2); 1:1 → 1254² hoặc 1024²; 3:2 → 1536×1024. Công cụ Codex `image_gen` chỉ nhận prompt / tham chiếu / nền, **không có ô chọn cỡ**: ra cỡ nào hợp tỉ lệ cũng hợp lệ, cutter chuẩn hóa. |
 | Nền | `#FF00FF` phẳng; dung sai khóa nền 60 (gradient nhẹ / vignette không phải lỗi). Nền trong suốt thật cũng nhận. |
 | Lưới | Đếm **hàng** và **số hình mỗi hàng** (6 hình hàng idle+hurt / walk / attack, 4 hình hàng die), không đòi ô đều; hình được lệch / chạm mép ô vài điểm. Hình dính nhau hoặc thiếu hình mới là lỗi. |
 | Hướng | Chỉ vẽ `s`, `se`, `e`, `ne`, `n` (thứ tự cố định); tây lật ngang → mọi hướng nghiêng **nhìn sang phải**. |
@@ -71,7 +71,7 @@ Prompt và hướng dẫn tiếng Việt do công cụ sinh (`<loài>-turnaround
 
 Thứ tự: **check → tờ liên hệ → trang xoay vòng → phiếu → cutter v2 → GIF → nhập → sổ**.
 
-1. **Kiểm:** `npm run beast:check -- <loài> --out <thư mục ngoài repo>`. CI (`beast-sheet-ci.mjs`) chỉ chặn bốn nhóm (cỡ ngoài tập, nền ngoài dung sai, thiếu khung, không dò được lưới); còn lại ở bảng cảnh báo. **Trước khi mở PR** `npm run check` (hoặc `node tools/assets/beast-sheet-ci.mjs --local`) chạy đúng kiểm này trên tờ đổi; hook pre-commit cũng chặn tờ sai cỡ (tờ A phải 2:3 = 1024×1536; model trả sai thì sinh lại, không resize RAW).
+1. **Kiểm:** `npm run beast:check -- <loài> --out <thư mục ngoài repo>`. CI (`beast-sheet-ci.mjs`) chỉ chặn bốn nhóm (cỡ ngoài tập, nền ngoài dung sai, thiếu khung, không dò được lưới); còn lại ở bảng cảnh báo. **Trước khi mở PR** `npm run check` (hoặc `node tools/assets/beast-sheet-ci.mjs --local`) chạy đúng kiểm này trên tờ đổi; hook pre-commit cũng chặn tờ sai tỉ lệ (tờ A rộng / cao 0,55–0,70, kể cả Codex 948×1659 / 941×1672; tỉ lệ lạ thì sinh lại, không resize RAW; tờ A lưới sai như 9 hàng hay thiếu / thừa hình vẫn bị chặn).
 2. **Tờ liên hệ:** mở từng `<loài>-to<X>-lien-he.png` (≈ 2 phút / loài). Với `n` / `ne` lộ mặt, hurt, die: xem bằng mắt (công cụ không kiểm).
 3. **Cắt tạm và xem trước:** `node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=… … --out <thư mục>` (tờ 3:2 tự nhận bố cục theo hướng; `--layout direction` để ép), rồi `node tools/assets/beast-sheet-preview.mjs --species <loài> --dir <thư mục>`; mở `preview/xoay-vong.html`: GIF xoay `s→se→e→ne→n` cạnh ảnh tĩnh; 5 giây là thấy `se` ≈ `e`, `n` lộ mặt, hurt ngửa bụng, die xoay.
 4. **Phiếu theo khối hướng** (`s`, `se`, `e`, `ne`, `n`), mỗi khối một mức:

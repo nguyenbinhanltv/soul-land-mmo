@@ -186,6 +186,8 @@ export interface Store {
   hasIdentity(accountId: number, provider: string): Promise<boolean>;
   /** Tài khoản của phiên `token`; `token` sai định dạng (không phải chuỗi newToken) thì null, không hỏi DB. */
   accountFromToken(token: unknown): Promise<{ accountId: number; name: string } | null>;
+  /** Đăng xuất (#999): xóa đúng phiên `token` (phiên khác của cùng tài khoản giữ nguyên). true = có phiên bị xóa; token sai dạng thì false, không hỏi DB. */
+  endSession(token: unknown): Promise<boolean>;
   /** Võ hồn đang ra trận (chưa chọn thì là võ hồn sở hữu sớm nhất). null = chưa thức tỉnh. */
   getCharacter(accountId: number): Promise<Character | null>;
   /** Mọi võ hồn tài khoản sở hữu, theo thứ tự nhận được. */
@@ -490,6 +492,7 @@ export class MemoryStore implements Store {
     own.forEach(([t, s], i) => { if (now - s.at > SESSION_DAYS * 864e5 || i >= SESSION_KEEP - 1) this.sessions.delete(t); });
     const token = newToken(); this.sessions.set(token, { accountId, at: now }); return token;
   }
+  async endSession(token: unknown) { return tokenOk(token) && this.sessions.delete(token); }
   async pruneSessions() {
     const cut = Date.now() - SESSION_DAYS * 864e5; let n = 0;
     for (const [t, s] of this.sessions) if (s.at < cut && n < SESSION_SWEEP_LIMIT) { this.sessions.delete(t); n++; }
@@ -873,6 +876,9 @@ function envInt(name: string, def: number): number {
   return Number.isFinite(n) && n >= 0 && process.env[name] !== undefined && process.env[name] !== "" ? Math.floor(n) : def;
 }
 
+/** Khoá tư vấn PostgreSQL bọc vòng migration lúc khởi động (hằng cố định, mọi tiến trình dùng chung). */
+const MIGRATION_LOCK_KEY = 0x534c4d494752;
+
 export class PgStore implements Store {
   pool: pg.Pool;
   constructor(url: string) {
@@ -888,17 +894,50 @@ export class PgStore implements Store {
     const dir = new URL("../sql/", import.meta.url);
     const files = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort();
     try {
-      for (const f of files) await this.pool.query(readFileSync(new URL(f, dir), "utf8"));
-      await this.backfillNameKeys();
+      // Chạy ngay trên kết nối giữ khoá (không qua pool): PG_POOL_MAX=1 vẫn khởi động được.
+      await this.withMigrationLock(async (c) => {
+        for (const f of files) await c.query(readFileSync(new URL(f, dir), "utf8"));
+        await this.backfillNameKeys(c);
+      });
     } catch (e) {
       const host = (() => { try { return new URL(process.env.DATABASE_URL!).host; } catch { return "?"; } })();
-      console.error(`✗ Không kết nối được PostgreSQL (${host}): ${(e as Error).message}`);
+      if ((e as { code?: string }).code === "55P03") console.error("✗ Quá thời gian chờ khoá migration: tiến trình khác giữ khoá quá lâu (tăng MIGRATION_LOCK_WAIT_MS nếu migration chậm).");
+      else console.error(`✗ Không kết nối được PostgreSQL (${host}): ${(e as Error).message}`);
       if (/db\.[a-z0-9]+\.supabase\.co/.test(host))
         console.error("  Gợi ý: kết nối trực tiếp db.<ref>.supabase.co chỉ hỗ trợ IPv6. Dùng chuỗi \"Session pooler\" (…pooler.supabase.com:5432).");
       throw e;
     }
     console.log("✓ Đã kết nối PostgreSQL và cập nhật bảng.");
     await this.warnReservedNames().catch((e) => console.warn("⚠  Không soát được tên cấm:", (e as Error).message)); // chỉ cảnh báo: lỗi ở đây không được chặn khởi động
+  }
+  /**
+   * Chạy `fn` khi giữ khoá tư vấn cấp phiên MIGRATION_LOCK_KEY trên một kết nối riêng: nhiều tiến trình (pod, kênh,
+   * rolling deploy) khởi động cùng lúc thì tiến trình sau chờ tiến trình trước chạy xong migration rồi mới chạy
+   * (file SQL vốn chạy lại an toàn). Luôn nhả khoá; kết nối chết thì Postgres tự nhả. Quá MIGRATION_LOCK_WAIT_MS thì lỗi (mã 55P03).
+   */
+  private async withMigrationLock<T>(fn: (c: pg.PoolClient) => Promise<T>): Promise<T> {
+    const waitMs = Math.max(1000, envInt("MIGRATION_LOCK_WAIT_MS", 120_000));
+    const c = await this.pool.connect();
+    let broken = false;
+    try {
+      const tryLock = async () => (await c.query("SELECT pg_try_advisory_lock($1) AS ok", [MIGRATION_LOCK_KEY])).rows[0].ok as boolean;
+      if (!(await tryLock())) {
+        // Thăm dò bằng truy vấn ngắn thay vì pg_advisory_lock chặn: không dính statement_timeout / query_timeout của pool.
+        console.log(`… Tiến trình khác đang chạy migration PostgreSQL, chờ khoá (tối đa ${Math.round(waitMs / 1000)} giây)`);
+        const t0 = Date.now();
+        while (!(await tryLock())) {
+          if (Date.now() - t0 > waitMs) throw Object.assign(new Error(`chờ khoá migration quá ${waitMs} ms`), { code: "55P03" });
+          await new Promise((r) => setTimeout(r, 250));
+        }
+        console.log(`… Đã có khoá migration sau ${Date.now() - t0} ms`);
+      }
+      try { return await fn(c); }
+      finally {
+        try { await c.query("SELECT pg_advisory_unlock($1)", [MIGRATION_LOCK_KEY]); }
+        catch (e) { broken = true; console.warn("⚠  Không nhả được khoá migration (kết nối sẽ bị đóng):", (e as Error).message); }
+      }
+    } catch (e) { broken = true; throw e; }
+    finally { c.release(broken); }
   }
   /** Chờ các truy vấn đang chạy xong rồi đóng mọi kết nối của pool. */
   async close() { await this.pool.end(); }
@@ -910,14 +949,14 @@ export class PgStore implements Store {
    * (mọi cách viết) và mật khẩu RIÊNG của mình (xem login), nên người tạo sau không bị kẻ chiếm tên trước khóa ngoài.
    * Xử lý tay: đổi tên nó (UPDATE accounts SET name='…' WHERE id=…), lần khởi động sau tự điền.
    */
-  async backfillNameKeys() {
-    const r = await this.pool.query("SELECT id, name FROM accounts WHERE name_key IS NULL ORDER BY created_at, id");
+  async backfillNameKeys(db: Pick<pg.Pool, "query"> = this.pool) {
+    const r = await db.query("SELECT id, name FROM accounts WHERE name_key IS NULL ORDER BY created_at, id");
     for (const a of r.rows) {
       const key = nameKey(a.name);
-      const u = await this.pool.query(
+      const u = await db.query(
         "UPDATE accounts SET name_key=$2 WHERE id=$1 AND NOT EXISTS (SELECT 1 FROM accounts WHERE name_key=$2) RETURNING id", [a.id, key]);
       if (u.rowCount) continue;
-      const owner = await this.pool.query("SELECT id, name FROM accounts WHERE name_key=$1", [key]);
+      const owner = await db.query("SELECT id, name FROM accounts WHERE name_key=$1", [key]);
       console.warn(`⚠  Tài khoản #${a.id} "${a.name}" trùng tên với tài khoản cũ hơn #${owner.rows[0]?.id} "${owner.rows[0]?.name}" `
         + `sau khi chuẩn hóa. Giữ nguyên dữ liệu; chủ #${a.id} vẫn vào được bằng mật khẩu riêng. Nên đổi tên #${a.id}.`);
     }
@@ -971,6 +1010,9 @@ export class PgStore implements Store {
     await this.pool.query(
       `DELETE FROM sessions WHERE account_id=$1 AND (created_at < now() - make_interval(days => $2) OR token NOT IN
          (SELECT token FROM sessions WHERE account_id=$1 ORDER BY created_at DESC, token LIMIT $3))`, [accountId, SESSION_DAYS, SESSION_KEEP]);
+  }
+  async endSession(token: unknown) {
+    return tokenOk(token) && !!(await this.pool.query("DELETE FROM sessions WHERE token=$1", [token])).rowCount;
   }
   async pruneSessions() {
     const r = await this.pool.query(

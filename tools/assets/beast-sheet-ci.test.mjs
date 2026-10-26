@@ -26,7 +26,7 @@ test("evaluate + summaryMarkdown chạy trên loài thật, không chặn khi lo
   assert.match(md, /Không có lỗi chặn CI/);
 });
 
-test("runLocal (#971): tờ toA 948×1659 (file tạm, xoá sau khi thử) → thoát 1, in 'sai kích thước' + cách sửa", async () => {
+test("runLocal (#971): tờ toA 948×1659 trắng (file tạm, xoá sau khi thử; cỡ nay hợp lệ nhưng nền / lưới sai) → thoát 1, in LỖI + cỡ", async () => {
   const { mkdirSync, rmSync, writeFileSync } = await import("node:fs");
   const { spawnSync } = await import("node:child_process");
   const { default: path } = await import("node:path");
@@ -46,8 +46,11 @@ test("runLocal (#971): tờ toA 948×1659 (file tạm, xoá sau khi thử) → t
     const r = spawnSync(process.execPath, [path.join(ROOT, "tools/assets/beast-sheet-ci.mjs"), "--local"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(r.status, 1);
     assert.match(r.stderr, /LỖI: zz_test_971\/toA/);
-    assert.match(r.stderr, /948×1659/);
-    assert.match(r.stderr, /1024×1536/);
+    const loi = r.stderr.split("\n").filter((l) => l.startsWith("LỖI: zz_test_971/toA")).join("\n");
+    assert.doesNotMatch(loi, /kích thước/, "948×1659 là cỡ hợp lệ, không còn lỗi kích thước");
+    assert.match(loi, /nền|lưới/, "lỗi đến từ nền / lưới trắng của file thử");
+    assert.doesNotMatch(r.stderr, /SINH LẠI tờ đó/, "hint mới không bảo sinh lại 948×1659");
+    assert.match(r.stderr, /948×1659 \/ 941×1672/, "hint nêu cỡ Codex hợp lệ");
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 

@@ -1,0 +1,98 @@
+{
+  "species": "hoi_vu_tuoc",
+  "worker": "soul-land-mmo-136",
+  "issue": 772,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Codex image_gen không công bố model/seed; không có selector kích thước.",
+  "transparent_background": false,
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "sheet": "B",
+  "attempt": 1,
+  "raw_file": "toB-attempt1.png",
+  "selected": false,
+  "selected_attempt": 2,
+  "attempts": 2,
+  "counters": {
+    "A": 1,
+    "B": 2,
+    "species_total": 3
+  },
+  "prompt_file": "candidates/toB-attempt1.prompt.txt",
+  "prompt_sha256": "549a4ff2b1f1d292979c95a610e6a90ea67914cd43deac861a0db78ab96970c1",
+  "sha256": "a5b1b5ca3e4283bbd4e9f67311fa25cfbe7f32422bfabb691b7326660f062f50",
+  "bytes": 1717277,
+  "width": 1254,
+  "height": 1254,
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "size_requirement_met": true,
+  "actual_aspect_ratio": "1254:1254",
+  "grid": [
+    6,
+    8
+  ],
+  "expected_visible_cells": 44,
+  "references": [
+    {
+      "path": "/private/tmp/soul-land-mmo-772-hoi-vu-tuoc/shared/assets/sprites/beast/hoi_vu_tuoc.png",
+      "role": "static identity reference, three views",
+      "sha256": "ace925629cffe45d838f0f2dd6b7b81d3ed5c38ec0d2978cd121d84231d0cf87",
+      "original_input_path": "/private/tmp/soul-land-mmo-772-hoi-vu-tuoc/shared/assets/sprites/beast/hoi_vu_tuoc.png"
+    },
+    {
+      "path": "/private/tmp/soul-land-mmo-772-hoi-vu-tuoc/art/src/beast-anim/hoi_vu_tuoc/toA.png",
+      "role": "technical design/style reference only; A1 candidate, not owner-approved; checker reports aspect ratio outside its accepted set",
+      "sha256": "e265549dd7374c2b1d61ca0d3ba01f76a0253223fc70d41a0c9e96f016869465",
+      "original_input_path": "/private/tmp/soul-land-mmo-772-hoi-vu-tuoc/art/src/beast-anim/hoi_vu_tuoc/toA.png"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-68285e23-55e1-4a77-bdda-a94bd285c2f7.png",
+  "generated_at": "2026-10-26T13:01:30.909Z",
+  "known_issues": [
+    "Soát mắt: NE H1–H4 lộ mắt/mỏ."
+  ],
+  "qa_status": "Visual review found NE direction errors; retained as candidate, not selected.",
+  "selection_reason": "B1 không chọn vì NE H1–H4 lộ mặt/mỏ; B1 giữ nguyên làm candidate.",
+  "publication_policy": "Submitting raw candidates does not mean art accepted or imported.",
+  "tool_arguments": {
+    "prompt_file": "candidates/toB-attempt1.prompt.txt",
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-772-hoi-vu-tuoc/shared/assets/sprites/beast/hoi_vu_tuoc.png",
+      "/private/tmp/soul-land-mmo-772-hoi-vu-tuoc/art/src/beast-anim/hoi_vu_tuoc/toA.png"
+    ],
+    "transparent_background": false
+  },
+  "history": [
+    {
+      "attempt": 1,
+      "raw_artifact": "/private/tmp/soul-land-mmo-772-hoi-vu-tuoc/art/src/beast-anim/hoi_vu_tuoc/candidates/toB-attempt1.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-68285e23-55e1-4a77-bdda-a94bd285c2f7.png",
+      "sha256": "a5b1b5ca3e4283bbd4e9f67311fa25cfbe7f32422bfabb691b7326660f062f50",
+      "bytes": 1717277,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "generated_at": "2026-10-26T13:01:30.909Z",
+      "prompt_artifact": "/private/tmp/soul-land-mmo-772-hoi-vu-tuoc/art/src/beast-anim/hoi_vu_tuoc/candidates/toB-attempt1.prompt.txt",
+      "prompt_sha256": "549a4ff2b1f1d292979c95a610e6a90ea67914cd43deac861a0db78ab96970c1",
+      "references": [
+        {
+          "path": "/private/tmp/soul-land-mmo-772-hoi-vu-tuoc/shared/assets/sprites/beast/hoi_vu_tuoc.png",
+          "sha256": "ace925629cffe45d838f0f2dd6b7b81d3ed5c38ec0d2978cd121d84231d0cf87",
+          "role": "static identity reference, three views"
+        },
+        {
+          "path": "/private/tmp/soul-land-mmo-772-hoi-vu-tuoc/art/src/beast-anim/hoi_vu_tuoc/toA.png",
+          "sha256": "e265549dd7374c2b1d61ca0d3ba01f76a0253223fc70d41a0c9e96f016869465",
+          "role": "technical design/style reference only; A1 candidate, not owner-approved; checker reports aspect ratio outside its accepted set"
+        }
+      ],
+      "copied_at": "2026-10-26T13:05:32.079Z"
+    }
+  ]
+}

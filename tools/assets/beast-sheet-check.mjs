@@ -10,17 +10,20 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readPng, encodePng, ROOT, SPRITES } from "./lib.mjs";
-import { DIRS, ANIMS, COLS, BAND_ROWS, TURNAROUND, sheetCells } from "./beast-sheet-lib.mjs";
+import { DIRS, ANIMS, COLS, BAND_ROWS, TURNAROUND, sheetCells, A_RATIO_MIN, A_RATIO_MAX, A_MIN_SIDE, canonFactor } from "./beast-sheet-lib.mjs";
 import { detectGrid } from "./beast-sheet-grid.mjs";
 import { median } from "./beast-sheet-stats.mjs";
 import { contactSheet } from "./beast-sheet-contact.mjs";
 
 // ---------- Ngưỡng (đo trên tờ thật, bao-cao-h4.md Phụ lục A) ----------
-/** Cỡ hợp lệ theo tỉ lệ (quyết định chủ repo #861): A 2:3, B 1:1 (1254² hoặc 1024²), một hướng mỗi tờ 3:2. Tỉ lệ ±1%. */
+/**
+ * Cỡ hợp lệ theo tỉ lệ (quyết định chủ repo #861, 2026-10-26 mục 2): A 2:3 (1024×1536; Codex thật còn xuất 948×1659 / 941×1672 ≈ 4:7, nhận mọi tỉ lệ
+ * trong [A_RATIO_MIN, A_RATIO_MAX] nếu lưới đúng), B 1:1 (1254² hoặc 1024²), một hướng mỗi tờ 3:2. Tỉ lệ B / boss ±1%. `canonSize` = cỡ chuẩn hoá (theo diện tích).
+ */
 export const SHAPES = {
-  A: { ratio: 2 / 3, sizes: [[1024, 1536]], canon: 1024, dirs: ["s", "se", "e"] },
-  B: { ratio: 1, sizes: [[1254, 1254], [1024, 1024]], canon: 1024, dirs: ["ne", "n"] },
-  boss: { ratio: 3 / 2, sizes: [[1536, 1024]], canon: 1536, dirs: null },
+  A: { ratio: 2 / 3, ratioMin: A_RATIO_MIN, ratioMax: A_RATIO_MAX, minSide: A_MIN_SIDE, sizes: [[1024, 1536], [948, 1659], [941, 1672]], canon: 1024, canonSize: [1024, 1536], dirs: ["s", "se", "e"] },
+  B: { ratio: 1, sizes: [[1254, 1254], [1024, 1024]], canon: 1024, canonSize: [1024, 1024], dirs: ["ne", "n"] },
+  boss: { ratio: 3 / 2, sizes: [[1536, 1024]], canon: 1536, canonSize: [1536, 1024], dirs: null },
 };
 export const RATIO_TOL = 0.01;
 export const BG_LOCK = [255, 0, 255], BG_TOL = 60;
@@ -39,7 +42,9 @@ const colsText = (cols) => { const a = Math.min(...cols) + 1, b = Math.max(...co
 
 /** Phân loại tờ theo tỉ lệ → { kind, shape } hoặc null. */
 export function classifyShape(w, h) {
-  for (const [kind, shape] of Object.entries(SHAPES)) if (Math.abs(w / h - shape.ratio) <= RATIO_TOL * shape.ratio) return { kind, shape };
+  for (const [kind, shape] of Object.entries(SHAPES)) {
+    if (shape.ratioMin ? Math.min(w, h) >= shape.minSide && w / h >= shape.ratioMin && w / h <= shape.ratioMax : Math.abs(w / h - shape.ratio) <= RATIO_TOL * shape.ratio) return { kind, shape };
+  }
   return null;
 }
 
@@ -106,20 +111,21 @@ export function analyzeSheet(file) {
   const img = readPng(file), name = path.basename(file, ".png"), letter = name.replace(/^to/, "");
   const issues = [], res = { sheet: name, file, size: [img.w, img.h], issues, blocks: [], cells: [], bands: [], dead: [], img };
   const isTa = name === TURNAROUND_SHEET;
-  const taShape = { ratio: TURNAROUND.w / TURNAROUND.h, sizes: [[TURNAROUND.w, TURNAROUND.h]], canon: TURNAROUND.w, dirs: DIRS };
+  const taShape = { ratio: TURNAROUND.w / TURNAROUND.h, sizes: [[TURNAROUND.w, TURNAROUND.h]], canon: TURNAROUND.w, canonSize: [TURNAROUND.w, TURNAROUND.h], dirs: DIRS };
   const cls = isTa ? (Math.abs(img.w / img.h - taShape.ratio) <= RATIO_TOL * taShape.ratio ? { kind: "turnaround", shape: taShape } : null) : classifyShape(img.w, img.h);
   if (!cls) {
-    issue(issues, "block", "kich-thuoc", "toàn tờ", isTa ? `${img.w}×${img.h} không đúng tỉ lệ 3:2 của turnaround (${TURNAROUND.w}×${TURNAROUND.h}).` : `${img.w}×${img.h} không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2).`);
+    issue(issues, "block", "kich-thuoc", "toàn tờ", isTa ? `${img.w}×${img.h} không đúng tỉ lệ 3:2 của turnaround (${TURNAROUND.w}×${TURNAROUND.h}).` : `${img.w}×${img.h} không đúng tỉ lệ nào trong tập cho phép (A 2:3 hoặc ≈ 4:7 như Codex 948×1659, tức rộng/cao ${A_RATIO_MIN}–${A_RATIO_MAX}; B 1:1; một hướng 3:2).`);
     return finish(res);
   }
   const { kind, shape } = cls;
   res.kind = kind;
-  const exact = shape.sizes.some(([w, h]) => w === img.w && h === img.h);
-  if (!exact) issue(issues, "light", "kich-thuoc", "toàn tờ", `cỡ ${img.w}×${img.h} đúng tỉ lệ nhưng ngoài danh sách (${shape.sizes.map((s) => s.join("×")).join(", ")}); cutter chuẩn hoá được.`);
-  else if (img.w !== shape.canon) issue(issues, "note", "kich-thuoc", "toàn tờ", `${img.w}×${img.h} hợp lệ (quyết định #861); hệ số chuẩn hoá ${round(shape.canon / img.w, 4)}.`);
+  const factor = canonFactor(img.w, img.h, ...shape.canonSize), canonical = img.w === shape.canonSize[0] && img.h === shape.canonSize[1];
+  const known = shape.sizes.some(([w, h]) => w === img.w && h === img.h), closeArea = Math.abs(factor - 1) <= 0.15;
+  if (!canonical && (known || closeArea)) issue(issues, "note", "kich-thuoc", "toàn tờ", `${img.w}×${img.h} hợp lệ (quyết định chủ repo 2026-10-26 mục 2: cỡ theo tỉ lệ); hệ số chuẩn hoá ${round(factor, 4)}.`);
+  else if (!canonical) issue(issues, "light", "kich-thuoc", "toàn tờ", `cỡ ${img.w}×${img.h} đúng tỉ lệ nhưng khác xa danh sách (${shape.sizes.map((s) => s.join("×")).join(", ")}); cutter chuẩn hoá được (hệ số ${round(factor, 4)}), nhưng nên kiểm lưới.`);
   const dirs = shape.dirs ?? [DIRS["ABCDE".indexOf(letter)] ?? DIRS[0]];
   const plan = isTa ? { dirs, cols: TURNAROUND.cols, rows: TURNAROUND.rows } : { dirs, cols: COLS, rows: dirs.length * BAND_ROWS };
-  res.dirs = dirs; res.plan = plan; res.canonFactor = shape.canon / img.w;
+  res.dirs = dirs; res.plan = plan; res.canonFactor = factor;
 
   const grid = detectGrid(img);
   res.grid = grid;
