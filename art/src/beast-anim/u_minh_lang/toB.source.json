@@ -1,0 +1,196 @@
+{
+  "workerProvenance": {
+    "handoffText": "LỖI: toB — PNG gốc 1254×1254, không đạt kích thước yêu cầu 1024×1024; giao RAW nguyên byte cho owner publish trực tiếp.\n",
+    "metadata": {
+      "task": "H4#771 u_minh_lang toB B1",
+      "owner_session": "soul-land-mmo-113",
+      "slot": "122 RELEASED",
+      "calls": {
+        "initial_builtin_image_gen": 1,
+        "retry": 0,
+        "B2_or_other_image": 0,
+        "species_total_known": 2,
+        "basis": "prior A122=1 + B1=1"
+      },
+      "generation_time_utc": "2026-10-26T02:17:52.235521983Z",
+      "image_model": "unknown; builtin tool did not expose it",
+      "seed": "unknown; builtin tool did not expose it",
+      "tool_output_path": "/Users/thanhhoa/.codex/generated_images/01a175ff-2545-70b0-a988-5b8fd49d8613/exec-559228c0-13a0-4803-83c5-ac0f58524f2d.png",
+      "raw_copy_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-123/H4-771-u_minh_lang-toB/u_minh_lang-toB.RAW.png",
+      "raw_sha256": "a1946d7378d9c91431244251671de9d600ab750cd044a523d06b32b18bcc7a7b",
+      "raw_bytes": 1903620,
+      "png_ihdr_first_24_bytes_hex": "89504e470d0a1a0a0000000d49484452000004e6000004e6",
+      "raw_dimensions_from_ihdr": [
+        1254,
+        1254
+      ],
+      "requested_dimensions": [
+        1024,
+        1024
+      ],
+      "actual_prompt_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-toB.actual.txt",
+      "actual_prompt_sha256": "6224329d4c3218afd3761b943a68b262c95da2b100da723c702c9442680c7d14",
+      "base_prompt_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-toB.base.txt",
+      "base_prompt_sha256": "47ba44c24139cb3f6df2912e83e4bbc094d474feaf8b7ea252d7aef1d4aa496b",
+      "generator_markdown_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-toB.md",
+      "generator_markdown_sha256": "b9fce8ee13d2a7d8536f7ce6b6600e41986163062f3ee1495c5369e0490d29aa",
+      "generator_sha256": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba",
+      "prepared_json_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-toB.prepared.json",
+      "references_at_call_ordered": [
+        {
+          "order": 1,
+          "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-static.png",
+          "sha256": "6bc125daf4c235c913fd9dc4930afe0cbf34c720c87327fd50425c366ce2af90"
+        },
+        {
+          "order": 2,
+          "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-122/u_minh_lang-toA-A1.RAW.png",
+          "sha256": "ee74b175b1b5ca39125d8bb69dfd07551a61f01e8f0a29afc25e49bf4054f74c"
+        }
+      ],
+      "known_issue": "Dimensions fail requested 1024x1024; raw is delivered unchanged. No resize, crop, postprocess, retry, or art gate was performed.",
+      "tool_response_evidence_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-123/H4-771-u_minh_lang-toB/recovery-evidence.json",
+      "tool_response_status": "returned image_url data URL and output_hint; see exact returned output_hint and byte counts in recovery evidence",
+      "provenance_handoff_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-123/H4-771-u_minh_lang-toB/PROVENANCE-HANDOFF.md",
+      "tool_response_initial_display_note": "Wrapper emitted no MCP content/image blocks because it printed only r.content; exact returned object itself had image_url and output_hint and was not empty.",
+      "tool_response_exact_small_fields": {
+        "keys": [
+          "image_url",
+          "output_hint"
+        ],
+        "image_url_prefix": "data:image/png;base64,",
+        "output_hint_path": "/Users/thanhhoa/.codex/generated_images/01a175ff-2545-70b0-a988-5b8fd49d8613/exec-559228c0-13a0-4803-83c5-ac0f58524f2d.png",
+        "call_identifier": "none exposed"
+      },
+      "path_discovery_method": "After call, ls -lat showed the new generated_images directory; find was limited to that directory and found one PNG. Later inspection of the stored exact tool return showed output_hint directly names this path, confirming linkage; recency/listing alone was only candidate evidence."
+    },
+    "recoveryEvidence": {
+      "evidence_source": "stored exact return value from initial built-in image_gen call; no new call",
+      "exact_result_object_keys": [
+        "image_url",
+        "output_hint"
+      ],
+      "image_url": {
+        "value_prefix": "data:image/png;base64,",
+        "base64_character_count": 2538160,
+        "decoded_png_byte_count": 1903620,
+        "png_ihdr_first_24_bytes_hex": "89504e470d0a1a0a0000000d49484452000004e6000004e6",
+        "dimensions": [
+          1254,
+          1254
+        ]
+      },
+      "output_hint_exact": "Generated images are saved to /Users/thanhhoa/.codex/generated_images/01a175ff-2545-70b0-a988-5b8fd49d8613 as /Users/thanhhoa/.codex/generated_images/01a175ff-2545-70b0-a988-5b8fd49d8613/exec-559228c0-13a0-4803-83c5-ac0f58524f2d.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link.",
+      "original_output_path": "/Users/thanhhoa/.codex/generated_images/01a175ff-2545-70b0-a988-5b8fd49d8613/exec-559228c0-13a0-4803-83c5-ac0f58524f2d.png",
+      "copied_raw_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-123/H4-771-u_minh_lang-toB/u_minh_lang-toB.RAW.png",
+      "original_and_copy_sha256": "a1946d7378d9c91431244251671de9d600ab750cd044a523d06b32b18bcc7a7b",
+      "generation_time_from_embedded_c2pa_utc": "2026-10-26T02:17:52.235521983Z",
+      "model": "unknown",
+      "seed": "unknown",
+      "call_count": 1,
+      "retry_count": 0,
+      "prompt_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-toB.actual.txt",
+      "prompt_sha256": "6224329d4c3218afd3761b943a68b262c95da2b100da723c702c9442680c7d14",
+      "ordered_references": [
+        {
+          "order": 1,
+          "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-static.png",
+          "sha256": "6bc125daf4c235c913fd9dc4930afe0cbf34c720c87327fd50425c366ce2af90"
+        },
+        {
+          "order": 2,
+          "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-122/u_minh_lang-toA-A1.RAW.png",
+          "sha256": "ee74b175b1b5ca39125d8bb69dfd07551a61f01e8f0a29afc25e49bf4054f74c"
+        }
+      ],
+      "counters": {
+        "B1": 1,
+        "prior_A122": 1,
+        "species_total": 2,
+        "further_calls": 0
+      },
+      "recovery_note": "Initial response was previously misreported as empty because the output loop handled MCP content blocks only. The exact stored tool return is a JS object with image_url and output_hint, and directly names the original PNG path above. The output is therefore linked to this call; no other generated-image paths were searched."
+    },
+    "recoveryEvidencePath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-123/H4-771-u_minh_lang-toB/recovery-evidence.json",
+    "recoveryEvidenceSha256": "1005a592da07bdd59a868e781cc88f268c85fcc2d0d591681ecb25a41166a8a7"
+  },
+  "integration": {
+    "workerId": "123",
+    "originalWorkerHandoffPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-123/H4-771-u_minh_lang-toB/HANDOFF.txt",
+    "originalWorkerMetadataPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-123/H4-771-u_minh_lang-toB/metadata.json",
+    "rawOriginalToolPath": "/Users/thanhhoa/.codex/generated_images/01a175ff-2545-70b0-a988-5b8fd49d8613/exec-559228c0-13a0-4803-83c5-ac0f58524f2d.png",
+    "rawShippingPath": "art/src/beast-anim/u_minh_lang/toB.png",
+    "rawSha256": "a1946d7378d9c91431244251671de9d600ab750cd044a523d06b32b18bcc7a7b",
+    "rawBytes": 1903620,
+    "IHDR": {
+      "width": 1254,
+      "height": 1254,
+      "bit_depth": 8,
+      "color_type": 2,
+      "payloadHex": "000004e6000004e60802000000"
+    },
+    "requestedSize": [
+      1024,
+      1024
+    ],
+    "exactActualPromptPath": "art/src/beast-anim/u_minh_lang/toB.prompt.txt",
+    "exactActualPromptSha256": "6224329d4c3218afd3761b943a68b262c95da2b100da723c702c9442680c7d14",
+    "basePromptPath": "art/src/beast-anim/u_minh_lang/toB.base.txt",
+    "basePromptSha256": "47ba44c24139cb3f6df2912e83e4bbc094d474feaf8b7ea252d7aef1d4aa496b",
+    "generatorPath": "tools/assets/beast-sheet-prompt.mjs",
+    "generatorSha256": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba",
+    "generatorMarkdownPath": "art/src/beast-anim/u_minh_lang/u_minh_lang-toB.md",
+    "generatorMarkdownSha256": "b9fce8ee13d2a7d8536f7ce6b6600e41986163062f3ee1495c5369e0490d29aa",
+    "baseExtraction": {
+      "startByteZeroBased": 2108,
+      "endByteExclusive": 5614,
+      "trimmed": false
+    },
+    "clarifier": {
+      "position": "suffix",
+      "prefix": "",
+      "suffix": "\n\nDIRECTION AND POSE CLARIFICATION: Keep the exact creature anatomy of reference image 1; do not redesign it to match generic family wording. In every animation row, keep the specified direction. SE faces lower-right, clearly distinct from E side profile; NE faces upper-right with the back visible; N shows the rear in all four rows, including attack, hurt and death. HURT frames must visibly recoil backward. Keep a flat #FF00FF background, no letters, labels or grid lines. Request exactly 1024x1024 pixels. Match the creature design, colors, body size and line weight of reference image 2 (sheet A) exactly; preserve the same body size as A, not a larger body because B has fewer rows.",
+      "baseStartByteZeroBased": 0,
+      "suffixStartByteZeroBased": 3506
+    },
+    "generatorInputHashes": {
+      "tools/assets/beast-sheet-prompt.mjs": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba",
+      "tools/assets/beast-sheet-lib.mjs": "16f13e9bbabaedb495671d5cbfcab4cc0f30b8e9529cefe5e9c5ead919e914a7",
+      "tools/assets/lib.mjs": "9f478b04b1ccfd9ce5cf447be5038b668886b38035b8e9fcf0d603acbbd2dd7c",
+      "docs/art/hon-thu-hoat-anh.md": "be83e519cb7db7126b42781dc02b13b1d306bc286e1c3fca8e9cc65b2b8d83d1",
+      "art/CREDITS.md": "6be9a475ee6e46997a375e58ad4a6924878f9e9dfa30eb94d4933c393273fa61",
+      "shared/data.ts": "a79619376f595c4a9ef24ed280f919b63f2e05b7e6ec0c867992cb297fc1160a",
+      "client/src/sprites.ts": "d84f83626bad0309e2eecd665f4d82a997333d97f890f3588eb616643c3f1e66",
+      "shared/assets/sprites/manifest.json": "5c979fd4042514250cdc2e48e99d683ce8dc39331147bf4e8e183c3ab563775a"
+    },
+    "actualReferencesInToolOrder": [
+      {
+        "order": 1,
+        "role": "static identity; actual attached path",
+        "actualToolAttachedPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-static.png",
+        "sha256": "6bc125daf4c235c913fd9dc4930afe0cbf34c720c87327fd50425c366ce2af90"
+      },
+      {
+        "order": 2,
+        "role": "same-species A122 STYLE/body-size only; A122 is RAWFAIL and not accepted",
+        "actualToolAttachedPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-122/u_minh_lang-toA-A1.RAW.png",
+        "sha256": "ee74b175b1b5ca39125d8bb69dfd07551a61f01e8f0a29afc25e49bf4054f74c"
+      }
+    ],
+    "anatomyConflictAssessment": "Ảnh tĩnh có hai hình sói nghiêng và một hình lưng. Giữ hình thể sói tím theo ảnh, không tự thiết kế lại.",
+    "callsThisFreshWorker": 1,
+    "retry": 0,
+    "speciesTotalAfterPair": 2,
+    "postprocessing": false,
+    "knownFailureLine": "LỖI: toB — size/heading — 1254×1254; N rows 5,7–8 — RAW vượt yêu cầu 1024×1024; qua VIEW, N row5 lộ mặt và rows7–8 lệch rear (nhận xét trực quan owner, không phải worker metadata).",
+    "artAccepted": false,
+    "runtimeAccepted": false,
+    "imported": false,
+    "ownerVisualInspectionInference": {
+      "speciesConfirmation": "Visible creature is the same purple four-legged wolf shown in static and A122.",
+      "heading": "N block row5 exposes the face; rows7–8 include side-facing poses. Owner visual inference.",
+      "background": "Looks magenta; exact flatness was not pixel-tested.",
+      "acceptance": false
+    }
+  }
+}

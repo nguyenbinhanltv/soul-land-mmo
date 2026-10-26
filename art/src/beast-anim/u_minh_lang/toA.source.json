@@ -1,0 +1,179 @@
+{
+  "workerProvenance": {
+    "handoffText": "# HANDOFF — H4 #771 U Minh Lang toA A1\n\nOwner: soul-land-mmo-113. Worker: soul-land-mmo-122. Artifact-only.\n\nLỖI: u_minh_lang toA A1 — FAIL style candidate theo chỉ định; HURT có đổi hướng, SE chưa rõ xuống phải; owner chuẩn bị fresh B ở phiên riêng nếu cần.\n\n- RAW: [u_minh_lang-toA-A1.RAW.png](u_minh_lang-toA-A1.RAW.png), nguyên byte gốc, không xử lý.\n- Metadata: [u_minh_lang-toA-A1.metadata.json](u_minh_lang-toA-A1.metadata.json).\n- Kích thước IHDR: 1024×1536, RGB 8 bit; 1.923.136 byte.\n- RAW SHA256: ee74b175b1b5ca39125d8bb69dfd07551a61f01e8f0a29afc25e49bf4054f74c.\n- Exact prompt SHA256: 0ea917ab6afbef85844ed8738ffd622e427a04b41db996c03acb5f6382876d51.\n- Base SHA256: 6d6c5697be70892a18307638ff967b41b946e6e221f3a255479bc975a2aa3173.\n- GeneratorMD SHA256: 43721f65aef902789648329184bc5a7edf23a6d42a504dec44eb4962089ad7b0.\n- Ref thứ 1, đã VIEW trước call: /Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-static.png; SHA256 6bc125daf4c235c913fd9dc4930afe0cbf34c720c87327fd50425c366ce2af90. Không có ref khác.\n- Call UTC: 2026-10-26T02:08:22.215Z → 2026-10-26T02:08:55.358Z; 33,143 giây theo đồng hồ thực. Model/seed: UNKNOWN, tool không exposed.\n- Counters: initial=1, retry=0, thêm=0, prior species=0, total species=1. STOPGEN vĩnh viễn phiên này; không A2/B.\n- Original tool output: /Users/thanhhoa/.codex/generated_images/01a175f6-9dda-75a2-8be1-de5972b7e86a/exec-608897b9-456e-4287-acf2-a7709d8a828d.png.\n- SLOTRELEASED explicit đã gửi thành công cho owner113 và phiên44 bằng quyền daemon, trước metadata. Lần gửi thường bị sandbox chặn.\n- Known input issue: static thiếu front rõ; giữ nguyên ACTUAL base+suffix. Không art gate, waiver, resize, crop, postprocess; không chờ approval/PR/merge.\n- Các bản exact ACTUAL, base, generatorMD và prepared JSON được sao chép cùng thư mục; hash được tách riêng trong metadata.\n",
+    "metadata": {
+      "task": "#771",
+      "worker": "soul-land-mmo-122",
+      "owner": "soul-land-mmo-113",
+      "species": "u_minh_lang",
+      "sheet": "toA",
+      "attempt": "A1",
+      "status": "FAIL — style candidate theo chỉ định; bàn giao RAW, không art gate",
+      "tool": "built-in image_gen.imagegen",
+      "callStartedUtc": "2026-10-26T02:08:22.215Z",
+      "callReturnedUtc": "2026-10-26T02:08:55.358Z",
+      "elapsedSeconds": 33.143,
+      "imageModel": "UNKNOWN",
+      "seed": "UNKNOWN",
+      "counters": {
+        "initialImagegenCalls": 1,
+        "retryCalls": 0,
+        "additionalImageCalls": 0,
+        "priorSpeciesCalls": 0,
+        "totalSpeciesCalls": 1
+      },
+      "STOPGEN": true,
+      "actualPrompt": {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-toA.actual.txt",
+        "sha256": "0ea917ab6afbef85844ed8738ffd622e427a04b41db996c03acb5f6382876d51",
+        "bytes": 4559
+      },
+      "basePrompt": {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-toA.base.txt",
+        "sha256": "6d6c5697be70892a18307638ff967b41b946e6e221f3a255479bc975a2aa3173",
+        "bytes": 4083
+      },
+      "generatorMarkdown": {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-toA.md",
+        "sha256": "43721f65aef902789648329184bc5a7edf23a6d42a504dec44eb4962089ad7b0",
+        "bytes": 7026
+      },
+      "preparedJson": {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-toA.prepared.json",
+        "sha256": "690856330af31c30a506d2cf950ce47c61a6936a961ff53c571ab71f3b36a980",
+        "bytes": 3540
+      },
+      "orderedReferences": [
+        {
+          "order": 1,
+          "role": "original static identity reference; viewed before call",
+          "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-static.png",
+          "sha256": "6bc125daf4c235c913fd9dc4930afe0cbf34c720c87327fd50425c366ce2af90",
+          "bytes": 5679
+        }
+      ],
+      "referenceHashTiming": "Đọc và SHA256 snapshot ngay trước call; đúng path trong referenced_image_paths; không có tham chiếu khác.",
+      "toolArguments": {
+        "referenced_image_paths": [
+          "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-static.png"
+        ],
+        "transparent_background": false,
+        "prompt": "Nguyên UTF-8 từ actualPrompt; không rewrite; bản byte giữ trong cùng thư mục."
+      },
+      "requested": {
+        "width": 1024,
+        "height": 1536,
+        "columns": 6,
+        "rows": 12,
+        "directions": [
+          "S",
+          "SE",
+          "E"
+        ],
+        "figures": 66,
+        "blankCells": 6,
+        "background": "#FF00FF"
+      },
+      "originalToolOutputPath": "/Users/thanhhoa/.codex/generated_images/01a175f6-9dda-75a2-8be1-de5972b7e86a/exec-608897b9-456e-4287-acf2-a7709d8a828d.png",
+      "toolOutputHint": "Generated images are saved to /Users/thanhhoa/.codex/generated_images/01a175f6-9dda-75a2-8be1-de5972b7e86a as /Users/thanhhoa/.codex/generated_images/01a175f6-9dda-75a2-8be1-de5972b7e86a/exec-608897b9-456e-4287-acf2-a7709d8a828d.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link.",
+      "raw": {
+        "file": "u_minh_lang-toA-A1.RAW.png",
+        "bytes": 1923136,
+        "sha256": "ee74b175b1b5ca39125d8bb69dfd07551a61f01e8f0a29afc25e49bf4054f74c",
+        "IHDR": {
+          "width": 1024,
+          "height": 1536,
+          "bitDepth": 8,
+          "colorType": 2,
+          "compression": 0,
+          "filter": 0,
+          "interlace": 0
+        },
+        "savedPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-122/u_minh_lang-toA-A1.RAW.png"
+      },
+      "postprocessing": false,
+      "knownIssues": [
+        "Static có hai góc nghiêng và một góc lưng; thiếu front rõ.",
+        "HURT có frame đổi hướng; SE chưa thể hiện rõ hướng xuống phải qua quan sát RAW.",
+        "A1 là style candidate FAIL theo chỉ định; không kiểm art gate/waiver; không xác nhận toàn bộ số figure, blank hay pixel nền bằng phân tích tự động."
+      ],
+      "slotRelease": {
+        "recipients": [
+          "soul-land-mmo-113",
+          "soul-land-mmo-44"
+        ],
+        "firstSend": "Sandbox từ chối loopback daemon",
+        "resentWithRequiredPermission": "Thành công cả hai, trước tạo metadata/handoff"
+      },
+      "generationScope": "Không A2, không B; không source/Git/metadata issue/PR, build/test/bot/DB; không spawn.",
+      "reportedSourceGeneratorScriptSha256FromPrepared": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba"
+    }
+  },
+  "integration": {
+    "workerId": "122",
+    "originalWorkerHandoffPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-122/HANDOFF.md",
+    "originalWorkerMetadataPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-122/u_minh_lang-toA-A1.metadata.json",
+    "rawOriginalToolPath": "/Users/thanhhoa/.codex/generated_images/01a175f6-9dda-75a2-8be1-de5972b7e86a/exec-608897b9-456e-4287-acf2-a7709d8a828d.png",
+    "rawShippingPath": "art/src/beast-anim/u_minh_lang/toA.png",
+    "rawSha256": "ee74b175b1b5ca39125d8bb69dfd07551a61f01e8f0a29afc25e49bf4054f74c",
+    "rawBytes": 1923136,
+    "IHDR": {
+      "width": 1024,
+      "height": 1536,
+      "bit_depth": 8,
+      "color_type": 2,
+      "payloadHex": "00000400000006000802000000"
+    },
+    "requestedSize": [
+      1024,
+      1536
+    ],
+    "exactActualPromptPath": "art/src/beast-anim/u_minh_lang/toA.prompt.txt",
+    "exactActualPromptSha256": "0ea917ab6afbef85844ed8738ffd622e427a04b41db996c03acb5f6382876d51",
+    "basePromptPath": "art/src/beast-anim/u_minh_lang/toA.base.txt",
+    "basePromptSha256": "6d6c5697be70892a18307638ff967b41b946e6e221f3a255479bc975a2aa3173",
+    "generatorPath": "tools/assets/beast-sheet-prompt.mjs",
+    "generatorSha256": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba",
+    "generatorMarkdownPath": "art/src/beast-anim/u_minh_lang/u_minh_lang-toA.md",
+    "generatorMarkdownSha256": "43721f65aef902789648329184bc5a7edf23a6d42a504dec44eb4962089ad7b0",
+    "baseExtraction": {
+      "startByteZeroBased": 1923,
+      "endByteExclusive": 6006,
+      "trimmed": false
+    },
+    "clarifier": {
+      "position": "suffix",
+      "prefix": "",
+      "suffix": "\n\nDIRECTION AND POSE CLARIFICATION: Keep the exact creature anatomy of reference image 1; do not redesign it to match generic family wording. In every animation row, keep the specified direction. SE faces lower-right, clearly distinct from E side profile; NE faces upper-right with the back visible; N shows the rear in all four rows, including attack, hurt and death. HURT frames must visibly recoil backward. Keep a flat #FF00FF background, no letters, labels or grid lines.",
+      "baseStartByteZeroBased": 0,
+      "suffixStartByteZeroBased": 4083
+    },
+    "generatorInputHashes": {
+      "tools/assets/beast-sheet-prompt.mjs": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba",
+      "tools/assets/beast-sheet-lib.mjs": "16f13e9bbabaedb495671d5cbfcab4cc0f30b8e9529cefe5e9c5ead919e914a7",
+      "tools/assets/lib.mjs": "9f478b04b1ccfd9ce5cf447be5038b668886b38035b8e9fcf0d603acbbd2dd7c",
+      "docs/art/hon-thu-hoat-anh.md": "be83e519cb7db7126b42781dc02b13b1d306bc286e1c3fca8e9cc65b2b8d83d1",
+      "art/CREDITS.md": "6be9a475ee6e46997a375e58ad4a6924878f9e9dfa30eb94d4933c393273fa61",
+      "shared/data.ts": "a79619376f595c4a9ef24ed280f919b63f2e05b7e6ec0c867992cb297fc1160a",
+      "client/src/sprites.ts": "d84f83626bad0309e2eecd665f4d82a997333d97f890f3588eb616643c3f1e66",
+      "shared/assets/sprites/manifest.json": "5c979fd4042514250cdc2e48e99d683ce8dc39331147bf4e8e183c3ab563775a"
+    },
+    "actualReferencesInToolOrder": [
+      {
+        "order": 1,
+        "role": "static identity; actual attached path",
+        "actualToolAttachedPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-static.png",
+        "sha256": "6bc125daf4c235c913fd9dc4930afe0cbf34c720c87327fd50425c366ce2af90"
+      }
+    ],
+    "anatomyConflictAssessment": "Ảnh tĩnh có hai hình sói nghiêng và một hình lưng. Giữ hình thể sói tím theo ảnh, không tự thiết kế lại.",
+    "callsThisFreshWorker": 1,
+    "retry": 0,
+    "speciesTotalAfterPair": 2,
+    "postprocessing": false,
+    "knownFailureLine": "LỖI: toA — heading/hurt — HURT, SE — HURT có đổi hướng; SE chưa rõ hướng xuống phải (theo HANDOFF worker122).",
+    "artAccepted": false,
+    "runtimeAccepted": false,
+    "imported": false
+  }
+}
