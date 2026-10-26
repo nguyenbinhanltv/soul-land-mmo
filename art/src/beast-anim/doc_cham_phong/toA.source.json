@@ -18,8 +18,11 @@
     "callTimestampNote": "The image_gen tool response did not provide a call timestamp.",
     "exactPrompt": {
       "path": "toA.prompt.txt",
-      "sha256": "0976278213b8c8afe14185e30ea1db5ea2fe7ae27fdb96c126d007df675090c7",
-      "bytes": 6599
+      "sha256": "546e8248060e15db5eff2708fdc0b2421a048b60ff9e54f156cfa268dec1ca61",
+      "bytes": 6598,
+      "basePromptTemplateMarkdownSha256": "e95ca119a95cf883c66080cb72c4d7dcebd0d09d63816f89bb8e0a263cf8a21f",
+      "basePromptSha256": "546e8248060e15db5eff2708fdc0b2421a048b60ff9e54f156cfa268dec1ca61",
+      "basePromptTemplateMarkdown": "/private/tmp/doc-cham-phong-prompt/doc_cham_phong-toA.md"
     },
     "generator": {
       "command": "node tools/assets/beast-sheet-prompt.mjs --species doc_cham_phong --stage sheet --out /private/tmp/doc-cham-phong-prompt",

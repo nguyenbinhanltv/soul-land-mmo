@@ -18,8 +18,12 @@
     "callTimestampNote": "The image_gen tool response did not provide a call timestamp.",
     "exactPrompt": {
       "path": "toB.prompt.txt",
-      "sha256": "032b7128f3530e25ceb30bd1b0cea96a2181a0f90e71bcd171e1d8017fc1e61f",
-      "bytes": 6470
+      "sha256": "763d4e3860061e877c3af935a0fb7167ca48ecb230ec63605da025f223e4377d",
+      "bytes": 6469,
+      "basePromptTemplateMarkdownSha256": "9f1e56fde7c72282d936fc3ac3a78f81052b6e828778440022d3864caf924959",
+      "basePromptSha256": "f9f782dc4351b2367a3a868512a83e84b4751ba57bbe3355751856522a0af780",
+      "addendum": "TRUTHFUL REFERENCE STATUS: image 2 is candidate A1 for technical continuity only; it has not been owner-approved. Match only the creature design, colors, scale and line weight from image 2. This statement does not assert art approval; do not copy poses. A1 has a technical aspect-ratio finding; do not copy its dimensions or poses.",
+      "basePromptTemplateMarkdown": "/private/tmp/doc-cham-phong-prompt/doc_cham_phong-toB.md"
     },
     "generator": {
       "command": "node tools/assets/beast-sheet-prompt.mjs --species doc_cham_phong --stage sheet --out /private/tmp/doc-cham-phong-prompt",
