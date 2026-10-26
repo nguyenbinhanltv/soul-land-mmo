@@ -1,0 +1,42 @@
+{
+  "asset": "phap_tuong_hao_thien_chuy_concept_turnaround_attempt1",
+  "worker": "soul-land-mmo-140",
+  "issue": 1024,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": "unknown",
+  "seed": "unknown",
+  "tool_limitations": "Tool không công bố model/seed; không có selector kích thước.",
+  "transparent_background": true,
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "attempt": 1,
+  "attempts_in_block": 1,
+  "block_limit": 3,
+  "raw_file": "concept-turnaround-attempt1.png",
+  "selected": false,
+  "prompt_file": "concept-turnaround-attempt1.prompt.txt",
+  "prompt_sha256": "dbfa604645fbf4d82e8c6199bc732d069ec2d5b5309b4f9c084124a7c6a24cb7",
+  "sha256": "9cab9a9851e7cad8727148a8d63ce687bb32e50b093af368c1392ed890cfea1e",
+  "bytes": 1381234,
+  "width": 1983,
+  "height": 793,
+  "prompt_target_dimensions": null,
+  "target_size_met": null,
+  "references": [],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17a55-6881-7de2-9edb-2af84255fbee/exec-25f68736-0cfa-4286-9b95-34bd6b306183.png",
+  "tool_output_hint": "Generated images are saved to /Users/thanhhoa/.codex/generated_images/01a17a55-6881-7de2-9edb-2af84255fbee as /Users/thanhhoa/.codex/generated_images/01a17a55-6881-7de2-9edb-2af84255fbee/exec-25f68736-0cfa-4286-9b95-34bd6b306183.png by default.",
+  "tool_response_keys": [
+    "image_url",
+    "output_hint"
+  ],
+  "generated_at": "unknown; tool did not expose timestamp",
+  "known_issues": [
+    "FAIL for asset use: turnaround shows five hammer views but output uses painterly/high-detail texture rather than hard pixel clusters.",
+    "Concept is not owner-approved; no animation generated. No crop/resize/postprocessing."
+  ],
+  "qa_status": "FAIL by visual style review; concept-only candidate, approval pending.",
+  "tool_arguments": {
+    "referenced_image_paths": [],
+    "transparent_background": true
+  },
+  "approval_scope": "Hạo Thiên Chùy pháp tướng concept/turnaround 5 hướng only; concept approval must precede idle/attack/tuyệt kỹ animation."
+}
