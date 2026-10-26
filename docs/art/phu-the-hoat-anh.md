@@ -75,7 +75,7 @@ Thân (`LPC_SHEET.anims`, `ms` từng bước): `idle` 4 bước × 200 ms (`idx
 
 | Clip | Khung phụ thể (B, C) | Bước thân của từng khung | Khung phụ thể (A) | Bước thân (A) |
 |---|---|---|---|---|
-| `idle` | 4 | 0, 1, 2, 3 (khớp 1-1; `idx` 0, 0, 1, 1 nên hai khung đầu cùng hình thân) | 2 | 0, 2 (bước đầu mỗi nửa, `idx` 0 và 1) |
+| `idle` | 4 | 0, 1, 2, 3 (khớp 1-1; `idx` 0, 0, 1, 1 nên hai khung đầu cùng hình thân) | 2 | 1, 3 (tâm 200 ms và 600 ms rơi đúng ranh giới nên lấy bước sau; `idx` 0 và 1) |
 | `walk` | 6 | 0, 1, 2, 3, 4, 5 (khớp 1-1) | 4 | 0, 2, 3, 5 |
 | `attack` | 6 | 0, 1, 2, 2, 3, 3 | 4 | 0, 1, 2, 3 |
 | `cast` | 4 | 0, 1, 1, 2 | 2 | 1, 2 |
@@ -84,10 +84,11 @@ Thân (`LPC_SHEET.anims`, `ms` từng bước): `idle` 4 bước × 200 ms (`idx
 (Bước thân là vị trí trong danh sách `anims.<clip>.ms` (0…); khi tâm rơi đúng ranh giới hai bước thì lấy bước sau; cột khung thật của thân lấy qua `idx` như `compose` ở `lpcRig.ts`.) P1 ghi bảng này thành hằng ở `phuthe-sheet-lib.mjs`, P2 dùng lại đúng hằng đó; có test so với `LPC_SHEET.anims` để đổi `idx` / `ms` của thân thì bắt được.
 
 ### Nộm và neo của clip `hurt` ở các hướng
-Thân chỉ có `hurt` (và `die`, `absorb`) ở hướng `s` (`LPC_SHEET.anims.hurt.dirs = "s"`, hàng `rows.hurt`); không có khung thân bị đánh cho `se`, `e`, `ne`, `n`. Quy tắc:
-- **`s`:** nộm và neo lấy từ khung thân `hurt` thật theo bảng trên.
-- **`se`, `e`, `ne`, `n`:** thân không đổi tư thế, nên nộm và neo của **cả hai khung `hurt`** lấy từ khung thân **`idle` bước 0 cùng hàng thân của hướng đó** (hàng `e` cho `se` / `e` / `ne`, hàng `n` cho `n`), **neo đứng yên** trong clip. Phần lùi / giật là của phụ thể (vẽ trong clip, lùi ngắn dọc hướng đang quay) và của lắc `hurt` bằng code (`spiritMotion`), không theo thân.
-- Client ở P2 dùng cùng quy tắc: trúng đòn ở hướng ≠ `s` thì phát clip `hurt` phụ thể trên thân đang `idle` / đi (đặt theo khung thân hiển thị, không đợi khung `hurt` của thân). Hướng `s` vẫn theo thân `hurt`.
+Thân chỉ vẽ `hurt` (và `die`, `absorb`) ở hướng xuống (`LPC_SHEET.anims.hurt.dirs = "s"`, hàng `rows.hurt`), nhưng client **vẫn đổi tư thế thân khi trúng đòn ở mọi hướng**: `lpcRig.ts` (`build`, `FIRST_DOWN_ONLY_COL`) ánh xạ mọi hàng logic (`s`, `se`, `e`, `ne`, `n`) ở cột `hurt` / `die` về hàng vật lý 0, nên hồn sư quay `e` bị đánh vẫn hiện khung `hurt` hướng xuống. Chọn **(a), khớp thân hiện nay** (không đổi thân, không đổi hành vi `die`):
+- **Mọi hướng (`s`, `se`, `e`, `ne`, `n`):** nộm và neo của **cả hai khung `hurt`** lấy từ khung thân `hurt` thật (hướng xuống, bước 0 và 1 theo bảng trên), **giống nhau ở cả 5 hướng**. Tờ vẽ `hurt` của hướng `e` (hay `se`, `ne`, `n`) vẫn vẽ phụ thể **theo hướng đó** (cánh, vũ khí nhìn từ hướng đó, lùi ngắn dọc hướng đang quay) nhưng đặt trên **nộm dáng bị đánh quay xuống**, để điểm gắn trùng thân đang hiển thị.
+- Client (P2): trúng đòn thì phụ thể phát clip `hurt` của **hướng thân logic hiện tại** nhưng neo theo khung thân `hurt` (hàng vật lý 0), cùng cách như áo / tóc; hết `hurt` quay về `idle` / đi.
+- Lựa chọn (b) (đổi thân giữ hướng khi `hurt`, dùng khung `idle` cùng hàng) là **thay đổi hành vi thân**, ngoài phạm vi phụ thể; nếu sau này làm, phải đổi lại mục này (nộm `hurt` theo `idle` cùng hàng) và cân nhắc `die` / `absorb` (đang hướng xuống cho mọi hướng).
+- `die` và `absorb`: không có clip phụ thể (ẩn / mờ), nên không ảnh hưởng.
 
 - **Hàng thân ↔ hướng phụ thể:**
 
