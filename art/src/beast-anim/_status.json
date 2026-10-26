@@ -1,12 +1,13 @@
 {
   "schema": 1,
   "generatedBy": "tools/assets/beast-status.mjs",
-  "species": 29,
+  "species": 30,
   "imported": 6,
   "tally": {
     "san-sang-nhap": 21,
     "chua-co-to": 1,
-    "chan": 7
+    "chan": 7,
+    "thieu-to": 1
   },
   "items": [
     {
@@ -637,6 +638,57 @@
       "errorLines": [
         "LỖI: toA — hình dính / cỡ thân lệch — H11 (e), H9–12 (e) — dải có 5 hình, cần 6: hình dính nhau; cỡ thân idle 86% so với ảnh tĩnh (lệch 14%).",
         "LỖI: toB — chân lệch / hình ở ô trống / cỡ thân lệch — H4 (ne) C1, H8 (n) C5, H5–8 (n) — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 13%); ô trống có hình (0.46% diện tích ô): hình tràn từ ô bên; cỡ thân idle 118% so với ảnh tĩnh (lệch 18%)."
+      ]
+    },
+    {
+      "id": "man_da_la_xa",
+      "name": "Mạn Đà La Xà",
+      "family": "snake",
+      "frame": 96,
+      "imported": false,
+      "turnaround": false,
+      "layout": "sheet",
+      "state": "thieu-to",
+      "sheets": [
+        {
+          "sheet": "toA",
+          "file": "art/src/beast-anim/man_da_la_xa/toA.png",
+          "size": [
+            948,
+            1659
+          ],
+          "bytes": 1849972,
+          "sha256": "f5e1233f246cdfc7e8b52288f23fc24ecd8f29261c60745e84a354d4cc5825a3",
+          "level": "chặn",
+          "block": 1,
+          "light": 0,
+          "note": 0
+        },
+        {
+          "sheet": "toB",
+          "file": "art/src/beast-anim/man_da_la_xa/toB.png",
+          "size": [
+            1254,
+            1254
+          ],
+          "bytes": 1828701,
+          "sha256": "7dbc21ef9fb44b8a8258a6ba65e257b09dfe84da9fcf86cf3e1f782c6cf50545",
+          "level": "pass",
+          "block": 0,
+          "light": 0,
+          "note": 2
+        }
+      ],
+      "blocks": {
+        "s": "thiếu",
+        "se": "thiếu",
+        "e": "thiếu",
+        "ne": "pass",
+        "n": "pass"
+      },
+      "missing": [],
+      "errorLines": [
+        "LỖI: toA — sai kích thước — toàn tờ — 948×1659 không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2)."
       ]
     },
     {

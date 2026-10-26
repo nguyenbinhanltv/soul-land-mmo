@@ -2,7 +2,7 @@
 
 File này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-status.mjs`); **không sửa tay**, không dán bảng tay vào issue. Mức theo khối hướng là kết quả `beast:check` (cỡ, nền, lưới, số hình, chân, cỡ thân, khung chết); `n` / `ne` lộ mặt, hurt ngửa bụng, die xoay chỉ xem bằng mắt (tờ liên hệ).
 
-29 loài có thư mục · 6 đã nhập vào game · 21 sẵn sàng nhập · 1 chưa có tờ · 7 có khối chặn
+30 loài có thư mục · 6 đã nhập vào game · 21 sẵn sàng nhập · 1 chưa có tờ · 7 có khối chặn · 1 thiếu tờ
 
 | Loài | Mã | Bố cục | Tờ (cỡ, mức) | s | se | e | ne | n | Thiếu | Nhập game | Trạng thái |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -19,6 +19,7 @@ File này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-statu
 | Liệt Hỏa Tích Dịch | `liet_hoa_tich_dich` | sheet | A 1024×1536 **chặn**<br>B 1254×1254 nhẹ | **chặn** | **chặn** | đạt | nhẹ | đạt | - | chưa | có khối chặn |
 | Liệt Trảo Hùng | `liet_trao_hung` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | nhẹ | đạt | đạt | nhẹ | đạt | - | chưa | sẵn sàng nhập |
 | Lôi Văn Hầu | `loi_van_hau` | sheet | A 1024×1536 **chặn**<br>B 1254×1254 nhẹ | đạt | đạt | **chặn** | nhẹ | nhẹ | - | chưa | có khối chặn |
+| Mạn Đà La Xà | `man_da_la_xa` | sheet | A 948×1659 **chặn**<br>B 1254×1254 đạt | thiếu | thiếu | thiếu | đạt | đạt | - | chưa | thiếu tờ |
 | Nhu Cốt Thỏ hoang | `nhu_cot_tho_hoang` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 đạt | đạt | nhẹ | nhẹ | đạt | đạt | - | chưa | sẵn sàng nhập |
 | Phong Lang | `phong_lang` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | nhẹ | nhẹ | nhẹ | nhẹ | nhẹ | - | đã nhập | sẵn sàng nhập |
 | Phong Lang con | `phong_lang_con` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | nhẹ | đạt | đạt | đạt | nhẹ | - | chưa | sẵn sàng nhập |
@@ -106,6 +107,12 @@ LỖI: toB — hình ở ô trống / khung chết — H4 (ne) C5, H4 (ne) C6, H
 ```
 LỖI: toA — hình dính / cỡ thân lệch — H11 (e), H9–12 (e) — dải có 5 hình, cần 6: hình dính nhau; cỡ thân idle 86% so với ảnh tĩnh (lệch 14%).
 LỖI: toB — chân lệch / hình ở ô trống / cỡ thân lệch — H4 (ne) C1, H8 (n) C5, H5–8 (n) — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 13%); ô trống có hình (0.46% diện tích ô): hình tràn từ ô bên; cỡ thân idle 118% so với ảnh tĩnh (lệch 18%).
+```
+
+### Mạn Đà La Xà (`man_da_la_xa`)
+
+```
+LỖI: toA — sai kích thước — toàn tờ — 948×1659 không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2).
 ```
 
 ### Nhu Cốt Thỏ hoang (`nhu_cot_tho_hoang`)
