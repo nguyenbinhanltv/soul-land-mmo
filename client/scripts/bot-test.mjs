@@ -7726,7 +7726,8 @@ async function socialAuditTest(){
   const got={}; for(const [n,txt] of probes){ O.chats.length=0; A.room.send("chat",{text:txt}); await sleep(450); got[n]=O.chats.find(m=>m.name===A.name)?.text; await sleep(250); }
   console.log(`    nhận được: ${Object.entries(got).map(([k,v])=>`${k}=${v===undefined?"(bị bỏ)":JSON.stringify(v).slice(0,24)}`).join(" ")}`);
   O.chats.length=0; A.room.send("chat",{text:`sys ${RUN}`}); await sleep(500);
-  ok(O.chats.find(m=>m.text===`sys ${RUN}`)?.sys===undefined,"tin người chơi không mang cờ sys (#827): client không tô như tin hệ thống");
+  const pm=O.chats.find(m=>m.text===`sys ${RUN}`);
+  ok(pm!==undefined&&pm.sys===undefined,"tin người chơi tới nơi và không mang cờ sys (#827): client không tô như tin hệ thống");
   ok(got.nl===`d1 d2 ${RUN}`,"xuống dòng / tab gộp thành một dấu cách");
   ok(got.emoji!==undefined,"tin 60 emoji (120 đơn vị) tới nơi, không bị cắt giữa cặp thay thế");
   ok(got.zw===undefined,"tin toàn ký tự độ rộng 0 bị bỏ như tin rỗng, không thành dòng chat trống (#817)");
@@ -7748,7 +7749,7 @@ async function socialAuditTest(){
   try{
     await sleep(300); V.chats.length=0; SP.room.send("chat",{text:`Bảo trì, hãy nhập lại mật khẩu ${RUN}`}); await sleep(700);
     const seen=V.chats.find(m=>m.text.includes(RUN));
-    console.log(!seen||seen.sys!==true?"  ✓":"  ✗ #827:","tài khoản cũ tên \"Hệ thống\" (tạo trước khi có tên cấm) không giả được tin hệ thống trong chat bản đồ");
+    ok(seen!==undefined&&seen.sys!==true,"tài khoản cũ tên \"Hệ thống\" (tạo trước khi có tên cấm) không giả được tin hệ thống trong chat bản đồ");
   }finally{ await SP.room.leave().catch(()=>{}); await V.room.leave().catch(()=>{}); }
 }
 /**
