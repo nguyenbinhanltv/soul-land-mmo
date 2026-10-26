@@ -224,6 +224,7 @@ Máu của tinh anh, thú vương và boss thế giới **tăng theo số ngư�
 Đấu **đội võ hồn 1 đấu 1 hoặc 2 đấu 2**, xếp hạng theo Elo từng tài khoản.
 - **Xếp hàng:** người chơi đơn tự xếp. Tổ đội **đúng 2 người** do trưởng nhóm xếp cho cả đội; hai người phải cùng kênh và cùng đứng gần biển **Đại Đấu Hồn Trường** trước cửa đấu trường (góc đông nam Thiên Đấu Thành). Khi chờ ghép, thành phần tổ đội bị khóa; cả hai có thể hủy. Ngoài giao chiến. Đi bản đồ khác hoặc thoát game thì cả bên ra khỏi hàng.
 - Ghép xong hai bên vào sân riêng (2v2 tối đa 4 người), **cả đội hồi đầy**, đếm ngược rồi giao đấu có giới hạn thời gian. Dùng mọi thứ như ngoài rừng: hồn kỹ, Chân Thân, hồn cốt, tiên cơ, đổi tay. Không xếp đội, không dùng vật phẩm trong sân.
+- **Trong sân:** chỉ đánh được khi đã giao đấu (đang chờ / đếm ngược / đã xong thì bấm đánh có báo lý do). **Không khoá mục tiêu** (Tab, bấm hồn thú): đánh bằng Space / J. Dung hợp kỹ (G) và việc dùng đồ, đổi đội hình đều bị cấm, có báo.
 - **Thắng:** hạ hết đội đối thủ, hoặc hết giờ mà còn nhiều % sinh lực cả đội hơn (chênh ít thì hòa). Rời sân hoặc không vào sân kịp là thua.
 - **Thưởng thắng:** Hồn Tệ và mảnh võ hồn, có giới hạn số trận thắng có thưởng mỗi ngày. **Thua / hòa không mất gì.**
 - Cùng một đối thủ chỉ tính Elo và thưởng vài trận mỗi ngày; sau đó là **giao hữu** (vẫn đấu, không đổi Elo).
