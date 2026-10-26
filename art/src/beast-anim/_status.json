@@ -890,7 +890,7 @@
       "frame": 192,
       "imported": true,
       "turnaround": false,
-      "layout": "direction",
+      "layout": "sheet",
       "state": "chan",
       "sheets": [
         {

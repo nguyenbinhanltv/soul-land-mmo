@@ -23,7 +23,7 @@ File này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-statu
 | Phong Lang con | `phong_lang_con` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | nhẹ | đạt | đạt | đạt | nhẹ | - | chưa | sẵn sàng nhập |
 | Quỷ Ảnh Báo | `quy_anh_bao` | sheet | A 1024×1536 **chặn**<br>B 1254×1254 nhẹ | nhẹ | đạt | **chặn** | đạt | nhẹ | - | chưa | có khối chặn |
 | Quỷ Hổ | `quy_ho` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | đạt | nhẹ | đạt | đạt | nhẹ | - | chưa | sẵn sàng nhập |
-| Thái Thản Cự Viên | `thai_than_cu_vien` | direction | A 1536×1024 đạt<br>B 1536×1024 nhẹ<br>C 1536×1024 **chặn**<br>D 1536×1024 **chặn**<br>E 1536×1024 đạt | đạt | nhẹ | **chặn** | **chặn** | đạt | - | đã nhập | có khối chặn |
+| Thái Thản Cự Viên | `thai_than_cu_vien` | sheet | A 1536×1024 đạt<br>B 1536×1024 nhẹ<br>C 1536×1024 **chặn**<br>D 1536×1024 **chặn**<br>E 1536×1024 đạt | đạt | nhẹ | **chặn** | **chặn** | đạt | - | đã nhập | có khối chặn |
 | Thanh Lân Ngạc | `thanh_lan_ngac` | sheet | A 1024×1536 **chặn**<br>B 1254×1254 nhẹ | **chặn** | nhẹ | đạt | nhẹ | nhẹ | - | chưa | có khối chặn |
 | Thất Tinh Độc Thiềm | `that_tinh_doc_thiem` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | nhẹ | nhẹ | đạt | đạt | nhẹ | - | chưa | sẵn sàng nhập |
 | Thiết Giáp Cự Giải | `thiet_giap_cu_giai` | sheet | A 1024×1536 đạt<br>B 1254×1254 nhẹ | đạt | đạt | đạt | đạt | nhẹ | - | chưa | sẵn sàng nhập |

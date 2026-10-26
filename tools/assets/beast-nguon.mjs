@@ -6,12 +6,14 @@
 // lấy từ cờ, hoặc `toX.source.json` nếu có, không thì ghi `unknown`: công cụ sinh ảnh không công bố model / seed thì KHÔNG đoán), mức kiểm
 // và dòng `LỖI:` do `beast-sheet-check` sinh. Mục xem bằng mắt (`n` / `ne` lộ mặt, hurt, die) khai bằng `--eye` (thành dòng `LỖI: … (mắt)`)
 // hoặc `--eye-ok` (đã xem, không lỗi); tờ chưa khai thì NGUON ghi rõ "chưa duyệt bằng mắt". Mặc định in ra màn hình; `--write` ghi
-// art/src/beast-anim/<loài>/NGUON.md và từ chối ghi đè file có sẵn (trừ `--force`). Chỉ đọc tờ RAW, không sửa ảnh.
+// art/src/beast-anim/<loài>/NGUON.md và từ chối ghi đè file có sẵn (trừ `--force`); `--out <file>` ghi đúng file chỉ định (ghi đè, dùng để sinh bản thử).
+// `turnaround.png` (nếu có) cũng được ghi (cỡ, byte, SHA256, `turnaround.prompt.txt` / `turnaround.source.json`, `--eye turnaround=…`), kể cả khi loài
+// chưa có tờ toA..toE; ảnh mẫu không có kiểm tự động. Chỉ đọc RAW, không sửa ảnh.
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ROOT } from "./lib.mjs";
+import { ROOT, readPng } from "./lib.mjs";
 import { speciesInfo } from "./beast-sheet-lib.mjs";
 import { checkSpecies, draftErrorLine } from "./beast-sheet-check.mjs";
 
@@ -34,26 +36,31 @@ const parseKv = (s) => Object.fromEntries((s ?? "").split(",").filter(Boolean).m
 
 /** Dựng NGUON.md (chuỗi) từ kết quả kiểm + khai báo. `o`: { tool, model, seed, attempts, agent, eye: [{sheet, text}], eyeOk: Set, issue }. */
 export function buildNguon(id, r, o = {}) {
+  const dir = o.dir ?? path.join(ROOT, "art", "src", "beast-anim", id);
   const info = speciesInfo(id), attempts = parseKv(o.attempts), eyeOk = new Set(o.eyeOk ?? []);
   const eye = o.eye ?? [];
   const L = [`# ${info.name} — RAW hoạt ảnh${o.issue ? ` (#${o.issue})` : ""}`, "",
     `File này **tự sinh** bằng \`node tools/assets/beast-nguon.mjs --species ${id}\`; không sửa tay (sửa khai báo rồi sinh lại). Dòng \`LỖI:\` đến từ \`beast-sheet-check.mjs\` (cỡ, nền, lưới, số hình, chân, cỡ thân, khung chết) và từ khai báo \`--eye\` (mắt người); không có nguồn nào khác. Nộp ảnh không phải đã duyệt hay đã nhập game.`, "",
     `Loài \`${id}\` (${info.name}), họ \`${info.family}\`, khung game ${info.frame}×${info.frame}. Mức kiểm chung: **${r.level}**.`, ""];
   const errors = [];
-  for (const s of r.sheets) {
-    const buf = readFileSync(s.file), src = readSourceJson(path.join(path.dirname(s.file), `${s.sheet}.source.json`)) ?? {};
-    const promptFile = path.join(path.dirname(s.file), `${s.sheet}.prompt.txt`), prompt = existsSync(promptFile) ? `\`${s.sheet}.prompt.txt\` (SHA256 \`${sha(readFileSync(promptFile))}\`)` : "không có file prompt (không biết prompt thật đã gửi)";
+  // turnaround.png (ảnh mẫu hướng, không cắt): chỉ ghi cỡ, hash, nguồn, prompt; không kiểm tự động, chỉ mục xem bằng mắt (--eye turnaround=…)
+  const items = r.sheets.map((s) => ({ name: s.sheet, file: s.file, size: s.size, level: `**${s.level}** (khối hướng: ${(s.dirs ?? []).map((d) => `${d} ${r.blockLevel[d] ?? "?"}`).join(", ") || "?"})`, auto: draftErrorLine(s) }));
+  const tFile = path.join(dir, "turnaround.png");
+  if (existsSync(tFile)) { const im = readPng(tFile); items.unshift({ name: "turnaround", file: tFile, size: [im.w, im.h], level: "không kiểm tự động (ảnh mẫu 5 hướng, chỉ xem bằng mắt)", auto: null }); }
+  for (const s of items) {
+    const buf = readFileSync(s.file), src = readSourceJson(path.join(path.dirname(s.file), `${s.name}.source.json`)) ?? {};
+    const promptFile = path.join(path.dirname(s.file), `${s.name}.prompt.txt`), prompt = existsSync(promptFile) ? `\`${s.name}.prompt.txt\` (SHA256 \`${sha(readFileSync(promptFile))}\`)` : "không có file prompt (không biết prompt thật đã gửi)";
     const val = (flag, fromSrc) => flag ?? fromSrc ?? UNKNOWN;
-    L.push(`## ${s.sheet}`, "",
-      `- File: \`${s.sheet}.png\`, **${s.size.join("×")}**, ${buf.length} byte, SHA256 \`${sha(buf)}\`.`,
-      `- Công cụ: ${val(o.tool, src.tool)}; model: ${val(o.model, src.model)}; seed: ${val(o.seed, src.seed)}; số lượt: ${attempts[s.sheet] ?? src.attempts ?? "chưa khai báo"}${o.agent ? `; phiên: ${o.agent}` : ""}.`,
+    L.push(`## ${s.name}`, "",
+      `- File: \`${s.name}.png\`, **${s.size.join("×")}**, ${buf.length} byte, SHA256 \`${sha(buf)}\`.`,
+      `- Công cụ: ${val(o.tool, src.tool)}; model: ${val(o.model, src.model)}; seed: ${val(o.seed, src.seed)}; số lượt: ${attempts[s.name] ?? src.attempts ?? "chưa khai báo"}${o.agent ? `; phiên: ${o.agent}` : ""}.`,
       `- Prompt: ${prompt}.`,
       `- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.`,
-      `- Mức kiểm: **${s.level}** (khối hướng: ${(s.dirs ?? []).map((d) => `${d} ${r.blockLevel[d] ?? "?"}`).join(", ") || "?"}).`);
-    const auto = draftErrorLine(s), mine = eye.filter((e) => e.sheet === s.sheet);
-    if (auto) errors.push(auto);
-    for (const e of mine) errors.push(`LỖI: ${s.sheet} — ${e.text} (mắt)`);
-    L.push(mine.length || eyeOk.has(s.sheet) ? `- Duyệt bằng mắt: ${mine.length ? `${mine.length} mục lỗi (dòng \`LỖI:\` bên dưới)` : "đã xem tờ liên hệ, không thấy lỗi"}.` : "- Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).", "");
+      `- Mức kiểm: ${s.level}.`);
+    const mine = eye.filter((e) => e.sheet === s.name);
+    if (s.auto) errors.push(s.auto);
+    for (const e of mine) errors.push(`LỖI: ${s.name} — ${e.text} (mắt)`);
+    L.push(mine.length || eyeOk.has(s.name) ? `- Duyệt bằng mắt: ${mine.length ? `${mine.length} mục lỗi (dòng \`LỖI:\` bên dưới)` : "đã xem, không thấy lỗi"}.` : "- Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).", "");
   }
   L.push("## Lỗi", "");
   if (errors.length) L.push("```text", ...errors, "```"); else L.push("Không có dòng `LỖI:`.");
@@ -88,7 +95,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const o = parseArgs(process.argv.slice(2));
     if (!o.species) { console.error("Dùng: node tools/assets/beast-nguon.mjs --species <loài> [--dir <thư mục>] [--out <file> | --write [--force]] [--tool T] [--model M] [--seed S] [--attempts toA=2] [--agent X] [--eye 'toB=loại — vị trí — ghi chú'] [--eye-ok toA,toB] [--issue N]"); process.exit(2); }
     const dir = o.dir ?? path.join(ROOT, "art", "src", "beast-anim", o.species);
-    const md = buildNguon(o.species, checkSpecies(o.species, { dir }), o);
+    const hasSheets = "ABCDE".split("").some((l) => existsSync(path.join(dir, `to${l}.png`)));
+    if (!hasSheets && !existsSync(path.join(dir, "turnaround.png"))) throw new Error(`không có tờ toA.png… hay turnaround.png trong ${dir}`);
+    const r = hasSheets ? checkSpecies(o.species, { dir }) : { level: "chưa có tờ", sheets: [], blockLevel: {} };
+    const md = buildNguon(o.species, r, { ...o, dir });
     const target = o.out ?? (o.write ? path.join(dir, "NGUON.md") : null);
     if (!target) console.log(md);
     else if (existsSync(target) && !o.force && !o.out) { console.error(`${target} đã có: thêm --force để ghi đè hoặc --out <file> để ghi chỗ khác`); process.exit(1); }

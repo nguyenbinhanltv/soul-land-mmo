@@ -30,8 +30,8 @@ export function speciesStatus(id, { root = ANIM_ROOT, imported = importedSet() }
   const out = { id, name: info.name, family: info.family, frame: info.frame, imported: imported.has(id), turnaround: existsSync(path.join(dir, "turnaround.png")) };
   if (!hasSheets) return { ...out, layout: null, state: "chua-co-to", sheets: [], blocks: {}, missing: [], errorLines: [] };
   const r = checkSpecies(id, { dir });
-  // tờ 3:2 của loài khung ≤ 96 là bố cục theo hướng (v2); ngoài ra theo cỡ khung (sheetPlan auto)
-  const layout = r.sheets.length && r.sheets.every((s) => s.kind === "boss") ? "direction" : "sheet";
+  // `direction` chỉ khi loài khung ≤ 96 nộp tờ 3:2 (v2); khung lớn vốn đã mỗi hướng một tờ (sheetPlan auto) nên vẫn gọi `sheet`
+  const layout = info.frame <= 96 && r.sheets.length && r.sheets.every((s) => s.kind === "boss") ? "direction" : "sheet";
   const plan = sheetPlan(info.frame, layout === "direction" ? "direction" : "auto"), have = new Set(r.sheets.map((s) => s.sheet.replace(/^to/, "")));
   const missing = plan.filter((p) => !have.has(p.id)).map((p) => `to${p.id}`);
   const blocks = Object.fromEntries(DIRS.map((d) => [d, r.blockLevel[d] ?? "thiếu"]));

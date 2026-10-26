@@ -43,7 +43,7 @@ Prompt và hướng dẫn tiếng Việt do công cụ sinh (`<loài>-turnaround
 1. Đặt RAW **nguyên byte** vào `art/src/beast-anim/<loài>/to<X>.png` (turnaround: `turnaround.png`), kèm `to<X>.prompt.txt` (prompt thật đã gửi).
 2. `npm run beast:check -- <loài>`; mở các `*-lien-he.png` (xanh đạt, vàng nhẹ, đỏ chặn; nhãn `I/W/A/H/D` + số khung). Phải sạch mục **chặn**: cỡ ngoài tập, nền, thiếu khung / hình dính / không dò được lưới, cỡ thân lệch > 25%.
 3. **Bằng mắt** (công cụ không kiểm): `n` / `ne` không thấy mặt (kể cả hurt, die); `se` khác `e` (thấy mặt chếch xuống); hurt lùi đúng hướng; die giữ hướng; đúng loài; cùng cỡ với tờ chuẩn.
-4. Sinh NGUON: `node tools/assets/beast-nguon.mjs --species <loài> --write [--model … --seed … --attempts toA=2] [--eye "toB=hướng — N H8 C3–4 — die lộ mặt"] [--eye-ok toA]`. Công cụ ghi cỡ thật, byte, SHA256, prompt và dòng `LỖI:` từ kiểm tự động; mục xem bằng mắt khai bằng `--eye` / `--eye-ok`. **Không viết NGUON hay dòng `LỖI:` bằng tay**; model / seed công cụ không công bố thì để `unknown`, không đoán.
+4. Sinh NGUON: `node tools/assets/beast-nguon.mjs --species <loài> --write [--model … --seed … --attempts toA=2] [--eye "toB=hướng — N H8 C3–4 — die lộ mặt"] [--eye-ok toA]`. Công cụ ghi cỡ thật, byte, SHA256, prompt (`to<X>.prompt.txt`, `turnaround.prompt.txt`) và dòng `LỖI:` từ kiểm tự động; `turnaround.png` có mục riêng (không kiểm tự động, chỉ `--eye turnaround=…`), loài mới chỉ có turnaround cũng sinh được; mục xem bằng mắt khai bằng `--eye` / `--eye-ok`. **Không viết NGUON hay dòng `LỖI:` bằng tay**; model / seed công cụ không công bố thì để `unknown`, không đoán.
 5. PR: ghi `Part of #<đợt>`; ảnh gốc đi kèm NGUON tự sinh. Không cắt, không sửa client.
 
 ### A4. Bảng triệu chứng → sửa prompt

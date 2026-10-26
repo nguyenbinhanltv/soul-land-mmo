@@ -1,11 +1,11 @@
 // Thử công cụ hoạt ảnh hồn thú v2 (#865): bài học, prompt theo giai đoạn, sổ trạng thái, NGUON tự sinh, bố cục theo hướng.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, mkdtempSync, writeFileSync, existsSync, rmSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
-import { ROOT, readPng } from "./lib.mjs";
+import { ROOT, Img, readPng, encodePng } from "./lib.mjs";
 import { cutSpecies } from "./beast-sheet-cut.mjs";
 import { sheetPlan, speciesInfo, TURNAROUND, DIRS } from "./beast-sheet-lib.mjs";
 import { parseLessons, lessonsFor, LESSONS_FILE } from "./beast-sheet-lessons.mjs";
@@ -115,17 +115,33 @@ test("NGUON tự sinh: hash, cỡ, nguồn unknown không đoán, dòng LỖI t�
   assert.match(md, /\*\*1254×1254\*\*/);
   assert.match(md, /seed: unknown/);
   assert.match(md, /^LỖI: toB — hướng — N H8 C3–4 — die lộ mặt \(mắt\)$/m);
-  assert.match(md, /Duyệt bằng mắt: đã xem tờ liên hệ/);
+  assert.match(md, /Duyệt bằng mắt: đã xem/);
   const none = buildNguon("quy_ho", r, {});
   assert.equal((none.match(/chưa duyệt bằng mắt/g) ?? []).length, 2);
   assert.doesNotMatch(none, /\(mắt\)/);
   assert.equal(readSourceJson(path.join(os.tmpdir(), "khong-co.json")), null);
 });
 
-test("NGUON --write không ghi đè NGUON có sẵn", () => {
-  const res = spawnSync(process.execPath, [path.join(ROOT, "tools", "assets", "beast-nguon.mjs"), "--species", "quy_ho", "--write"], { encoding: "utf8" });
-  assert.equal(res.status, 1);
-  assert.match(res.stderr, /đã có/);
+test("NGUON: turnaround.png được ghi (hash, cỡ, prompt, --eye), loài chỉ có turnaround không ném lỗi; --write không ghi đè NGUON có sẵn", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "beast-nguon-")), run = (...args) => spawnSync(process.execPath, [path.join(ROOT, "tools", "assets", "beast-nguon.mjs"), "--species", "quy_ho", "--dir", dir, ...args], { encoding: "utf8" });
+  try {
+    assert.equal(run().status, 2); // chưa có gì
+    const im = new Img(8, 6); im.set(1, 1, [200, 10, 10, 255]);
+    writeFileSync(path.join(dir, "turnaround.png"), encodePng(im));
+    writeFileSync(path.join(dir, "turnaround.prompt.txt"), "prompt thử");
+    const ok = run("--eye", "turnaround=hướng — ne — vẽ ngang", "--model", "m-thử");
+    assert.equal(ok.status, 0, ok.stderr);
+    assert.match(ok.stdout, /## turnaround/);
+    assert.ok(ok.stdout.includes("**8×6**"));
+    assert.ok(ok.stdout.includes("turnaround.prompt.txt"));
+    assert.match(ok.stdout, /model: m-thử/);
+    assert.ok(ok.stdout.split("\n").includes("LỖI: turnaround — hướng — ne — vẽ ngang (mắt)"));
+    assert.equal(run("--write").status, 0);
+    assert.ok(existsSync(path.join(dir, "NGUON.md")));
+    const again = run("--write");
+    assert.equal(again.status, 1);
+    assert.match(again.stderr, /đã có/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
 test("cutter: loài khung nhỏ cắt được 5 tờ 3:2 theo hướng (tự nhận bố cục), đủ 5 hướng × 22 khung", () => {
