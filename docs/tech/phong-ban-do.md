@@ -46,9 +46,9 @@ Thuộc tính sai (loài không có, cổng tới bản đồ không có, `arriv
 | Chiến đấu người chơi: kỹ năng, trạng thái, hợp thể | `attack`, `skill`, `runSkill`, `applyStatus`, `applyPStatus`, `fusion*`, `boneSkill` | chưa |
 | Hồn thú, tinh anh, thú vương, boss thế giới | `spawnBeast`, `tickElite`, `tickKing`, `world*`, `killKing`, `openChest` | `worldBoss.ts`, `split.ts`, `tide.ts`, `eggs.ts`, `ground.ts`, `cold.ts`, `beastTraits.ts` |
 | Hấp thụ hồn hoàn, hồn cốt, hồn hạch | `tryAbsorb`, `finishAbsorb`, `equipBone`, `enhanceBone`, `equipCore`, `enhanceCore`, `resetCoreSet` | chưa |
-| Trang bị / Thợ rèn | `equipGear`, `equipEnhance`, `equipLuck`, `equipSynth`, `salvageEquip`, `forgeLane` | chưa (hàm thuần mặc đồ đã ở `items.ts`) |
+| Trang bị / Thợ rèn | `equipGear`, `equipEnhance`, `equipLuck`, `equipSynth`, `salvageEquip`, `forgeLane`, `itemLocked` | `equip.ts` (hàm nhận `room`; `MapRoom` chỉ chuyển tiếp 10 hàm cho `onMessage` / `tick`; hàm thuần mặc đồ ở `items.ts`) |
 | Xã hội: chat, bạn bè, tổ đội, tập hợp | `chatAction`, `friendAction`, `partyAction`, `rallyAction` | chưa |
 | Phạm vi quan tâm, sương mù, radar | `beastsNear`, `fog*`, `sendMini` | `interest.ts` |
 | Vòng `tick` | `tick`, `moveBeast`, `perfLog` | chưa |
 
-Thứ tự tách tiếp (mỗi bước một PR, bot nhóm liên quan xanh): (2) trang bị / Thợ rèn thành hàm nhận phòng (`equip.ts`, giữ `forgeLane` / `itemLocked` nguyên); (3) hồn cốt / hồn hạch; (4) xã hội (chat, bạn bè, tổ đội); (5) cửa hàng / mua lại; (6) `testHook` + GM (chỉ chạy khi `GAME_TEST`); (7) nhiệm vụ / tông môn. Luật mỗi bước: thứ tự `onMessage` đăng ký ở `MapRoom` giữ nguyên; phương thức có `private` thì mô-đun mới nhận `room: MapRoom` như `split.ts`.
+Thứ tự tách tiếp (mỗi bước một PR, bot nhóm liên quan xanh): (2) xong: trang bị / Thợ rèn thành hàm nhận phòng (`equip.ts`, giữ `forgeLane` / `itemLocked` nguyên; `CLAIM_BUSY` / `claimHeld` xuất từ `MapRoom`); (3) hồn cốt / hồn hạch; (4) xã hội (chat, bạn bè, tổ đội); (5) cửa hàng / mua lại; (6) `testHook` + GM (chỉ chạy khi `GAME_TEST`); (7) nhiệm vụ / tông môn. Luật mỗi bước: thứ tự `onMessage` đăng ký ở `MapRoom` giữ nguyên; phương thức có `private` thì mô-đun mới nhận `room: MapRoom` như `split.ts`.
