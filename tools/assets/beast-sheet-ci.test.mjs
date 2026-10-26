@@ -26,7 +26,7 @@ test("evaluate + summaryMarkdown chạy trên loài thật, không chặn khi lo
   assert.match(md, /Không có lỗi chặn CI/);
 });
 
-test("runLocal (#971): tờ toA 948×1659 (file tạm, xoá sau khi thử) → thoát 1, in 'sai kích thước' + cách sửa", async () => {
+test("runLocal (#971): tờ toA 948×1659 trắng (file tạm, xoá sau khi thử; cỡ nay hợp lệ nhưng nền / lưới sai) → thoát 1, in LỖI + cỡ", async () => {
   const { mkdirSync, rmSync, writeFileSync } = await import("node:fs");
   const { spawnSync } = await import("node:child_process");
   const { default: path } = await import("node:path");
