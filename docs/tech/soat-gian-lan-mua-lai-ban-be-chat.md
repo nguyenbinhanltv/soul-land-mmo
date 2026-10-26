@@ -37,7 +37,7 @@ Khi đi cổng / đổi kênh, `MapRoom.ts` ghi `leftRoom.set(…, { roomId: des
 - Vào phòng ở tiến trình khác tiến trình gốc: không thấy khóa, client `joinById` được kênh server không chọn (luật #164). Đọc mã, **chưa dựng bài lách hoàn chỉnh** (cần ba kênh trải hai tiến trình).
 - Khóa cũ ở tiến trình đã giữ lần đi cổng trước còn sống tới hết `CHANNEL_CD` và chặn nhầm lần vào hợp lệ kế tiếp: **tái hiện được** (lần chạy đầu của bài: 409 "Hãy vào kênh 1 (kênh server đã chọn)" dù server vừa chỉ kênh 2; ghi log `this` / `back` / bản RAM / bản presence cho thấy khóa kênh 1 cũ trong RAM, presence rỗng).
 
-Sửa: ghi khóa `travel` vào presence cùng chỗ `leftRoom.set` và xóa ở hook `chan reset`; bài hai tiến trình kênh đích khác tiến trình, `joinById` kênh khác phải 409.
+Đã sửa (#819, PR #824): ghi khóa `travel` vào presence cùng chỗ `leftRoom.set` và xóa ở hook `chan reset`; bài hai tiến trình kênh đích khác tiến trình, `joinById` kênh khác phải 409.
 
 ### 3d. Rời game lúc `editBuyback` chưa xong (chưa thử, Thấp)
 
@@ -60,7 +60,7 @@ Message: `sell`, `buyback` (và `buy`, `expand` ở mức luồng bán / mua l�
 
 ## Khoảng trống
 
-- 3c mục 1 (lách luật kênh giữa tiến trình) chưa có bài: cần ba kênh trải hai tiến trình; làm cùng bản sửa #819.
+- 3c mục 1 (lách luật kênh giữa tiến trình) đã có bài ở `client/scripts/bot/channel.mjs` (chạy `--procs 2`), kèm bản sửa #819 (khóa `travel` ghi vào presence).
 - 3d chưa thử.
 - Bài `buybackproc` không chạy trong CI (cần Redis cục bộ, ~90 giây): chạy tay khi đụng `buybackItem`, `editBuyback`, `leftRoom`, presence.
 
