@@ -5567,6 +5567,9 @@ export const AUTOWALK = { arrive: 1.5, stuckSecs: 5, progress: 1.5, gateSecs: 6,
  */
 export const RALLY = { secs: 40, burst: 3, refillMs: 1700, col: "#ffe14a", nameMax: 24 };
 
+/** Nhịp lưu định kỳ mỗi người chơi (giây; #1001): mỗi người một đồng hồ riêng, chỉ ghi DB khi có đổi. Lần ghi cuối khi rời phòng không phụ thuộc. */
+export const SAVE_EVERY_SECS = 30;
+
 /**
  * Sương mù khám phá (R8 #435, GAME_DESIGN.md mục 5.17): ô thô `cell`×`cell` ô lưới, bán kính nhìn `sight` ô; bản đồ trong `open` mở sẵn (thành, Thánh Hồn Thôn, đấu trường).
  * - `markSecs`: giãn cách server đánh dấu ô quanh từng người (không đánh dấu mỗi tick);

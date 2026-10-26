@@ -38,6 +38,28 @@ export function save(room: MapRoom, id: string) {
   return room.chain(d, () => room.write(id));
 }
 
+/** Dấu vết những gì lần ghi định kỳ lưu được: võ hồn ra trận (cấp, kinh nghiệm, hồn hoàn, sao, tiên thảo, số hạ) và vị trí; không gồm túi / võ hồn khác (đã có cờ `bagDirty` / `dirty`). */
+function progressSig(room: MapRoom, id: string, d: PData) {
+  const p = room.state.players.get(id)!; room.syncCh(id);
+  const c = d.ch;
+  return `${room.state.mapId}|${Math.round(p.x)},${Math.round(p.y)}|${c.level},${c.xp},${c.stars},${c.kills},${c.rings.join(",")}|${JSON.stringify(c.herbs ?? null)}`;
+}
+
+/**
+ * Lưu định kỳ (#1001): như `save` nhưng bỏ qua khi người chơi không đổi gì từ lần ghi định kỳ trước (không cờ bẩn: `bagDirty`, `dirty`,
+ * `tongPend`, `autoDirty`, `fogDirty`, `lockIds`; cùng tiến độ và vị trí), tránh một transaction mỗi 30 giây cho người đứng yên.
+ * Kiểm tra chạy trong chuỗi lưu (dữ liệu mới nhất); `writeNow` ghi dấu vết sau khi ghi thành công. Lưu khi rời phòng / đóng phòng / đi cổng không qua đây.
+ */
+export function savePeriodic(room: MapRoom, id: string) {
+  const d = room.pdata.get(id); if (!d) return Promise.resolve();
+  return room.chain(d, () => {
+    if (!room.state.players.get(id)) return;
+    const clean = !d.bagDirty && !d.dirty.size && !d.tongPend.length && !d.autoDirty && !d.fogDirty && !d.lockIds.size;
+    if (clean && d.saveSig === progressSig(room, id, d)) return;
+    return room.write(id);
+  });
+}
+
 /** Chụp tiến độ chưa lưu: võ hồn ra trận và các võ hồn khác vừa nhận kinh nghiệm chia cho đội (xóa đánh dấu `dirty`). */
 export function unsaved(room: MapRoom, id: string) {
   const d = room.pdata.get(id)!;
@@ -91,6 +113,7 @@ export async function writeNow(room: MapRoom, id: string, final = false): Promis
   }
   // Vị trí, võ hồn và túi trong một transaction có lớp chặn WHERE map_id (#165): DB đã ở bản đồ khác thì không ghi gì, kể cả túi.
   const t0 = room.perfOn ? performance.now() : 0;
+  const sig = progressSig(room, id, d);
   const list = room.unsaved(id), x = p.x, y = p.y, bag = room.unsavedBag(d);
   const t1 = room.perfOn ? performance.now() : 0;
   let saved: boolean;
@@ -100,7 +123,7 @@ export async function writeNow(room: MapRoom, id: string, final = false): Promis
     saved = await pr;
   }
   catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; throw e; }
-  if (saved) { d.tongPend.splice(0, bag?.tongPts?.length ?? 0); return true; }
+  if (saved) { d.saveSig = sig; d.tongPend.splice(0, bag?.tongPts?.length ?? 0); return true; }
   // Lưới an toàn: beginTravel đã đọc lại DB khi đi cổng báo lỗi nên đường thường không tới đây. Nếu tới thì ngắt client để vào lại đúng
   // bản đồ trong DB (/api/me), thay vì ở lại phòng mà mọi lần lưu sau đều bị bỏ.
   console.error(`Bỏ lần lưu tài khoản #${d.accountId}: DB không còn ở bản đồ ${room.state.mapId}; ngắt kết nối để vào lại.`);

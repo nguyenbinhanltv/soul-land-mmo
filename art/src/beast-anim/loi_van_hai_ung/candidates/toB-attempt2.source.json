@@ -1,0 +1,95 @@
+{
+  "species": "loi_van_hai_ung",
+  "sheet": "B",
+  "worker": "soul-land-mmo-135",
+  "issue": 772,
+  "raw_file": "toB-attempt2.png",
+  "sha256": "91c4af72b4090379bef800a35b4dccbd640a9a4f967770f8f7b3dd2cdd2d6bab",
+  "bytes": 2100517,
+  "width": 1254,
+  "height": 1254,
+  "requested_dimensions": null,
+  "size_requirement_met": true,
+  "grid": [
+    6,
+    8
+  ],
+  "expected_visible_cells": 44,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "No size/model/seed selector exposed; prompt specified square 1:1 only.",
+  "transparent_background": false,
+  "selected_attempt": 1,
+  "attempts": 2,
+  "counters": {
+    "A": 1,
+    "B": 2,
+    "species_total": 3
+  },
+  "prompt_file": "toB-attempt2.prompt.txt",
+  "prompt_sha256": "ecdffedcae24589fb0bc88d408a88b24cbd05e10fdc528acf04e1df3acc11e33",
+  "references": [
+    {
+      "path": "/private/tmp/soul-land-mmo-772-loi-van-hai-ung/shared/assets/sprites/beast/loi_van_hai_ung.png",
+      "role": "static identity, actual image bytes verified",
+      "sha256": "950e6abf841c58d4994ac06397cfd10e0612d87e9fad57be3a0314e02390ed15"
+    },
+    {
+      "path": "/private/tmp/soul-land-mmo-772-loi-van-hai-ung/art/src/beast-anim/loi_van_hai_ung/toA.png",
+      "role": "A1 technical candidate for identity/style reference; not owner art-approved",
+      "sha256": "48d07b5b0ddf0cd02ad5785dbdf5510513a901158b1636a906edc5f8f53364bf"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-66d024cc-7733-4bef-a1a6-16b3808ddddf.png",
+  "history": [
+    {
+      "attempt": 1,
+      "started_at_utc": "2026-10-26T13:32:50Z",
+      "completed_at_utc": "2026-10-26T13:33:32Z",
+      "duration_seconds": 42.4,
+      "raw_artifact": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-e2cdce58-356c-4dc1-a089-0b52f97b8b6e.png",
+      "sha256": "d9cc4dc032028ca3800405d6a73baef2c00489fd593c997daaa2a205b3aedb7e",
+      "bytes": 2088866,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_file": "toB-attempt1.prompt.txt",
+      "prompt_sha256": "ecdffedcae24589fb0bc88d408a88b24cbd05e10fdc528acf04e1df3acc11e33"
+    },
+    {
+      "attempt": 2,
+      "started_at_utc": "2026-10-26T13:34:17Z",
+      "completed_at_utc": "2026-10-26T13:34:50Z",
+      "duration_seconds": 32.9,
+      "raw_artifact": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-66d024cc-7733-4bef-a1a6-16b3808ddddf.png",
+      "sha256": "91c4af72b4090379bef800a35b4dccbd640a9a4f967770f8f7b3dd2cdd2d6bab",
+      "bytes": 2100517,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_file": "toB.prompt.txt",
+      "prompt_sha256": "ecdffedcae24589fb0bc88d408a88b24cbd05e10fdc528acf04e1df3acc11e33"
+    }
+  ],
+  "selection_reason": "Retained as B2 comparison candidate; checker level tied B1 and visual NE/N direction errors remained, so the initial B1 was selected.",
+  "known_issues": [
+    "Visual: NE block H1-H4 shows face/beak as a side view instead of a three-quarter back view.",
+    "Visual: N block H5-H8 shows the front face instead of a pure back view.",
+    "Visual: N die frame H8 C4 lies sideways, off the north facing axis."
+  ],
+  "qa_status": "VISUAL FAIL / retained comparison candidate; not art-approved, imported, or accepted",
+  "publication_policy": "Submit RAW candidates unchanged with full provenance; submission is not owner art approval or import.",
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "tool_arguments": {
+    "prompt_file": "toB.prompt.txt",
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-772-loi-van-hai-ung/shared/assets/sprites/beast/loi_van_hai_ung.png",
+      "/private/tmp/soul-land-mmo-772-loi-van-hai-ung/art/src/beast-anim/loi_van_hai_ung/toA.png"
+    ],
+    "transparent_background": false
+  },
+  "selection_status": "comparison candidate; not selected"
+}

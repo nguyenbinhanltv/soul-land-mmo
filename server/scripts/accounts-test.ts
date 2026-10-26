@@ -4,7 +4,7 @@
 // để thử cả PgStore: test tạo tài khoản rác và chèn thẳng tài khoản trùng tên, KHÔNG trỏ vào DB thật.
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
-import { MemoryStore, PgStore, type Store, type Item, type Bag } from "../src/db.ts";
+import { MemoryStore, PgStore, hashToken, type Store, type Item, type Bag } from "../src/db.ts";
 import { cleanName, nameKey } from "../src/names.ts";
 import { mapFile } from "../src/map.ts";
 import { DEFAULT_MAP, MAP_MOVED, BAG_SLOTS, MAPS } from "../../shared/data.ts";
@@ -254,7 +254,12 @@ async function common(label: string, s: Store, u = "") {
   const m = new MemoryStore();
   await common("MemoryStore", m);
   await logoutTest("MemoryStore", m, "");
-  await sessionsTest("MemoryStore", m, "", async (t, d) => { m.sessions.get(t)!.at -= d * 864e5; });
+  await test("MemoryStore: phiên lưu theo sha256(token), không giữ token rõ (#1011)", async () => {
+    const id = ok(await m.login(cleanName("BămM"), PW[4])), t = await m.startSession(id);
+    assert.equal(hashToken(t).length, 64); assert.ok(!m.sessions.has(t)); assert.ok(m.sessions.has(hashToken(t)));
+    assert.equal((await m.accountFromToken(t))?.accountId, id);
+  });
+  await sessionsTest("MemoryStore", m, "", async (t, d) => { m.sessions.get(hashToken(t))!.at -= d * 864e5; });
 }
 
 const url = process.env.TEST_DATABASE_URL;
@@ -265,7 +270,25 @@ else {
   const u = " " + randomBytes(3).toString("hex");
   await common("PgStore", s, u);
   await logoutTest("PgStore", s, u);
-  await sessionsTest("PgStore", s, u, async (t, d) => { await s.pool.query("UPDATE sessions SET created_at = created_at - make_interval(days => $2) WHERE token=$1", [t, d]); });
+  await test("PgStore: DB chỉ giữ sha256(token); dòng token rõ cũ được băm tại chỗ khi migration chạy lại và khi tra; đăng xuất xóa cả hai dạng (#1011)", async () => {
+    const id = ok(await s.login(cleanName(`BămP${u}`), PW[4])), t = await s.startSession(id);
+    const row = (h: string) => s.pool.query("SELECT token, token_hash FROM sessions WHERE token_hash=$1", [h]);
+    assert.deepEqual((await row(hashToken(t))).rows, [{ token: null, token_hash: hashToken(t) }]);
+    assert.equal((await s.pool.query("SELECT 1 FROM sessions WHERE token=$1", [t])).rowCount, 0);
+    // Phiên kiểu cũ (token rõ, chưa có hash), như bản server cũ chèn trước khi migration chạy.
+    const legacy = async () => { const x = randomBytes(24).toString("base64url"); await s.pool.query("INSERT INTO sessions(token, account_id) VALUES ($1,$2)", [x, id]); return x; };
+    const a = await legacy(), b = await legacy();
+    await s.init();                                                    // migration chạy lại: băm tại chỗ, không ai bị văng
+    assert.deepEqual((await row(hashToken(a))).rows, [{ token: null, token_hash: hashToken(a) }]);
+    assert.equal((await s.accountFromToken(a))?.accountId, id);
+    const c = await legacy();                                          // chèn sau migration: accountFromToken nâng cấp dần
+    assert.equal((await s.accountFromToken(c))?.accountId, id);
+    assert.deepEqual((await row(hashToken(c))).rows, [{ token: null, token_hash: hashToken(c) }]);
+    const d = await legacy(); assert.equal(await s.endSession(d), true); assert.equal(await s.accountFromToken(d), null); // đăng xuất phiên còn token rõ
+    assert.equal(await s.endSession(b), true); assert.equal(await s.accountFromToken(b), null);
+    assert.equal((await s.pool.query("SELECT 1 FROM sessions WHERE token IS NOT NULL")).rowCount, 0);
+  });
+  await sessionsTest("PgStore", s, u, async (t, d) => { await s.pool.query("UPDATE sessions SET created_at = created_at - make_interval(days => $2) WHERE token_hash=$1", [hashToken(t), d]); });
 
   await test("PgStore: DB cũ có hai tài khoản trùng tên sau chuẩn hóa -> giữ tài khoản cũ nhất, không xóa tài khoản nào", async () => {
     // Giả lập dữ liệu tạo trước 004: chèn thẳng, name_key NULL. "ＶＩＮＨ…" tạo trước nên phải giữ tên.

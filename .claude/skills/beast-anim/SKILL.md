@@ -41,7 +41,7 @@ Prompt và hướng dẫn tiếng Việt do công cụ sinh (`<loài>-turnaround
 
 ### A3. Checklist trước khi nộp
 1. Đặt RAW **nguyên byte** vào `art/src/beast-anim/<loài>/to<X>.png` (turnaround: `turnaround.png`), kèm `to<X>.prompt.txt` (prompt thật đã gửi).
-2. `npm run beast:check -- <loài>`; mở các `*-lien-he.png` (xanh đạt, vàng nhẹ, đỏ chặn; nhãn `I/W/A/H/D` + số khung). Phải sạch mục **chặn**: cỡ ngoài tập, nền, thiếu khung / hình dính / không dò được lưới, cỡ thân lệch > 25%.
+2. `npm run beast:check -- <loài>`; mở các `*-lien-he.png` (xanh đạt, vàng nhẹ, đỏ chặn; nhãn `I/W/A/H/D` + số khung). Phải sạch mục **chặn**: cỡ ngoài tập, nền, thiếu khung / hình dính / không dò được lưới. Cỡ thân lệch chỉ là cảnh báo kỹ thuật (nhẹ, in số %; theo quyết định chủ repo 2026-10-26 mục 4), `beast:check` không thoát 1 vì nó, NGUON ghi "Ghi chú kỹ thuật" không phải `LỖI:`.
 3. **Bằng mắt** (công cụ không kiểm): `n` / `ne` không thấy mặt (kể cả hurt, die); `se` khác `e` (thấy mặt chếch xuống); hurt lùi đúng hướng; die giữ hướng; đúng loài; cùng cỡ với tờ chuẩn.
 4. Sinh NGUON: `node tools/assets/beast-nguon.mjs --species <loài> --write [--model … --seed … --attempts toA=2] [--eye "toB=hướng — N H8 C3–4 — die lộ mặt"] [--eye-ok toA]`. Công cụ ghi cỡ thật, byte, SHA256, prompt (`to<X>.prompt.txt`, `turnaround.prompt.txt`) và dòng `LỖI:` từ kiểm tự động; `turnaround.png` có mục riêng (không kiểm tự động, chỉ `--eye turnaround=…`), loài mới chỉ có turnaround cũng sinh được; mục xem bằng mắt khai bằng `--eye` / `--eye-ok`. **Không viết NGUON hay dòng `LỖI:` bằng tay**; model / seed công cụ không công bố thì để `unknown`, không đoán.
 5. PR: ghi `Part of #<đợt>`; ảnh gốc đi kèm NGUON tự sinh. Không cắt, không sửa client.
@@ -55,7 +55,7 @@ Prompt và hướng dẫn tiếng Việt do công cụ sinh (`<loài>-turnaround
 | hurt ngửa bụng / quay mặt | Dùng câu hurt của họ (lùi ngắn dọc hướng, chân giữ đất); thú thấp (ếch, rùa, heo) thêm "hunker lower". |
 | die xoay 90° / nằm ngang | Dùng câu die ("đổ dọc hướng, giữ trục xương sống"). |
 | Khung sao chép khuôn (idle trùng nhau, hurt = idle) | Thêm bài học "mỗi khung đổi nhẹ"; vẽ lại cả tờ hướng. |
-| Cỡ thân `n` / `ne` to hơn | Cỡ khác prompt: **bỏ qua** (cutter neo cỡ theo ảnh tĩnh); chỉ vẽ lại nếu lệch cỡ thân trong **cùng** tờ. |
+| Cỡ thân `n` / `ne` to hơn | Cỡ khác prompt: **bỏ qua** (cutter neo cỡ theo ảnh tĩnh); lệch cỡ thân không phải lỗi, không vẽ lại vì cỡ (2026-10-26 mục 4); chỉ vẽ lại nếu sai hướng / tư thế / loài / thiếu-dính khung. |
 | Nền gradient / cỡ 1254² | Bỏ qua (công cụ xử lý). |
 | Hình dính nhau / thiếu khung | Vẽ lại **chỉ khối (tờ) đó**: thêm "clear magenta space between neighbours". |
 | Tờ phụ lệch phong cách so với tờ chuẩn | Đính tờ hướng đã **đạt** làm tham chiếu thứ ba; không dùng tờ lỗi. |
@@ -75,8 +75,8 @@ Thứ tự: **check → tờ liên hệ → trang xoay vòng → phiếu → cut
 2. **Tờ liên hệ:** mở từng `<loài>-to<X>-lien-he.png` (≈ 2 phút / loài). Với `n` / `ne` lộ mặt, hurt, die: xem bằng mắt (công cụ không kiểm).
 3. **Cắt tạm và xem trước:** `node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=… … --out <thư mục>` (tờ 3:2 tự nhận bố cục theo hướng; `--layout direction` để ép), rồi `node tools/assets/beast-sheet-preview.mjs --species <loài> --dir <thư mục>`; mở `preview/xoay-vong.html`: GIF xoay `s→se→e→ne→n` cạnh ảnh tĩnh; 5 giây là thấy `se` ≈ `e`, `n` lộ mặt, hurt ngửa bụng, die xoay.
 4. **Phiếu theo khối hướng** (`s`, `se`, `e`, `ne`, `n`), mỗi khối một mức:
-   - **Chặn** (không nhập khối đó): cỡ ngoài tập / nền / thiếu khung / hình dính; `n` / `ne` thấy mặt ở idle / walk / attack (hurt, die cũng không được); `se` không khác `e`; sai loài; cỡ thân lệch quá ±25% so với ảnh tĩnh.
-   - **Nhẹ** (nhập, ghi sổ): hurt biên độ nhỏ; die hơi xoay nhưng còn đọc được; vài khung vượt ô cắt được; cỡ thân lệch 10–25%; nền gradient / 1254².
+   - **Chặn** (không nhập khối đó): cỡ ngoài tập / nền / thiếu khung / hình dính; `n` / `ne` thấy mặt ở idle / walk / attack (hurt, die cũng không được); `se` không khác `e`; sai loài.
+   - **Nhẹ** (nhập, ghi sổ): hurt biên độ nhỏ; die hơi xoay nhưng còn đọc được; vài khung vượt ô cắt được; cỡ thân lệch (mọi mức, không chặn); nền gradient / 1254².
    - **Đạt đẹp:** idle / walk lặp mượt, hurt lùi rõ, die giữ hướng.
    Mẫu comment một dòng mỗi khối: `s: đạt` · `se: nhẹ — hurt biên độ nhỏ` · `ne: chặn — H4 C1–4 thấy mặt`.
 5. **Cắt thật bằng cutter v2:** chuẩn hóa kích thước mặc định bật, lưới dò theo khoảng trống, neo cỡ khối theo ảnh tĩnh. Có khối chặn thì **không nhập khối đó**: hoặc nhập loài đủ khối không chặn, hoặc trả vẽ lại **chỉ khối** (A5); ô gán sai vài khung dùng `--patch` thay vì vẽ lại tờ. So bảng cỡ thân idle 5 hướng trước / sau (report `blocks`).

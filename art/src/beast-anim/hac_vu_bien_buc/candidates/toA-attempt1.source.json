@@ -1,0 +1,50 @@
+{
+  "species": "hac_vu_bien_buc",
+  "sheet": "A",
+  "worker": "soul-land-mmo-136",
+  "issue": 772,
+  "raw_file": "toA-attempt1.png",
+  "sha256": "e7672a3a06cf746326a838920a5a3001abd971f056cb2ce792a441cc8bd55b49",
+  "bytes": 1735552,
+  "width": 948,
+  "height": 1660,
+  "requested_aspect_ratio": "2:3",
+  "aspect_requirement_met": false,
+  "grid": [
+    6,
+    12
+  ],
+  "expected_visible_cells": 66,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Tool không công bố model/seed; prompt yêu cầu tỉ lệ 2:3, không chọn pixel size.",
+  "transparent_background": false,
+  "selected_attempt": 3,
+  "attempts": 3,
+  "counters": {
+    "A": 3,
+    "B": 1,
+    "species_total": 4
+  },
+  "prompt_file": "toA-attempt1.prompt.txt",
+  "prompt_sha256": "4a9b461e1a73ba839fb5acc43d19fc39111cc13b884ad16e8618ba876b6d118c",
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/hac_vu_bien_buc.png",
+      "role": "static identity reference",
+      "sha256": "da0913bbb81326284b25ee25276a923050ae8c2be484b85243f41b8892f34547"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-713341d0-dc59-416a-9056-ca8a9c5657db.png",
+  "tool_arguments": {
+    "referenced_image_paths": [
+      "shared/assets/sprites/beast/hac_vu_bien_buc.png"
+    ],
+    "transparent_background": false
+  },
+  "postprocessing": "Không; sao chép nguyên byte PNG, không resize hay sửa metadata.",
+  "attempt": 1,
+  "selected": false,
+  "selection_reason": "Không chọn; giữ nguyên candidate để lưu lịch sử."
+}

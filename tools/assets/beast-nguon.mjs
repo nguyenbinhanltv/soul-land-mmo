@@ -15,7 +15,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ROOT } from "./lib.mjs";
 import { speciesInfo } from "./beast-sheet-lib.mjs";
-import { checkSpecies, draftErrorLine } from "./beast-sheet-check.mjs";
+import { checkSpecies, draftErrorLine, bodyNotes } from "./beast-sheet-check.mjs";
 
 const sha = (buf) => createHash("sha256").update(buf).digest("hex");
 const UNKNOWN = "unknown (công cụ sinh ảnh không công bố)";
@@ -40,11 +40,11 @@ export function buildNguon(id, r, o = {}) {
   const info = speciesInfo(id), attempts = parseKv(o.attempts), eyeOk = new Set(o.eyeOk ?? []);
   const eye = o.eye ?? [];
   const L = [`# ${info.name} — RAW hoạt ảnh${o.issue ? ` (#${o.issue})` : ""}`, "",
-    `File này **tự sinh** bằng \`node tools/assets/beast-nguon.mjs --species ${id}\`; không sửa tay (sửa khai báo rồi sinh lại). Dòng \`LỖI:\` đến từ \`beast-sheet-check.mjs\` (cỡ, nền, lưới, số hình, chân, cỡ thân, khung chết) và từ khai báo \`--eye\` (mắt người); không có nguồn nào khác. Nộp ảnh không phải đã duyệt hay đã nhập game.`, "",
+    `File này **tự sinh** bằng \`node tools/assets/beast-nguon.mjs --species ${id}\`; không sửa tay (sửa khai báo rồi sinh lại). Dòng \`LỖI:\` đến từ \`beast-sheet-check.mjs\` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo \`--eye\` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng \`Ghi chú kỹ thuật\` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.`, "",
     `Loài \`${id}\` (${info.name}), họ \`${info.family}\`, khung game ${info.frame}×${info.frame}. Mức kiểm chung: **${r.level}**.`, ""];
   const errors = [];
   // turnaround.png (ảnh mẫu hướng, không cắt) nằm ở r.turnaround (#972): kiểm cỡ / nền / lưới như tờ khác, không có khối hướng; mục xem bằng mắt qua --eye turnaround=…
-  const items = [...(r.turnaround ? [r.turnaround] : []), ...r.sheets].map((s) => ({ name: s.sheet, file: s.file, size: s.size, level: s.sheet === "turnaround" ? `**${s.level}** (ảnh mẫu 5 hướng, không có khối hướng)` : `**${s.level}** (khối hướng: ${(s.dirs ?? []).map((d) => `${d} ${r.blockLevel[d] ?? "?"}`).join(", ") || "?"})`, auto: draftErrorLine(s) }));
+  const items = [...(r.turnaround ? [r.turnaround] : []), ...r.sheets].map((s) => ({ name: s.sheet, file: s.file, size: s.size, level: s.sheet === "turnaround" ? `**${s.level}** (ảnh mẫu 5 hướng, không có khối hướng)` : `**${s.level}** (khối hướng: ${(s.dirs ?? []).map((d) => `${d} ${r.blockLevel[d] ?? "?"}`).join(", ") || "?"})`, auto: draftErrorLine(s), body: bodyNotes(s) }));
   for (const s of items) {
     const buf = readFileSync(s.file), src = readSourceJson(path.join(path.dirname(s.file), `${s.name}.source.json`)) ?? {};
     const promptFile = path.join(path.dirname(s.file), `${s.name}.prompt.txt`), prompt = existsSync(promptFile) ? `\`${s.name}.prompt.txt\` (SHA256 \`${sha(readFileSync(promptFile))}\`)` : "không có file prompt (không biết prompt thật đã gửi)";
@@ -54,7 +54,8 @@ export function buildNguon(id, r, o = {}) {
       `- Công cụ: ${val(o.tool, src.tool)}; model: ${val(o.model, src.model)}; seed: ${val(o.seed, src.seed)}; số lượt: ${attempts[s.name] ?? src.attempts ?? "chưa khai báo"}${o.agent ? `; phiên: ${o.agent}` : ""}.`,
       `- Prompt: ${prompt}.`,
       `- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.`,
-      `- Mức kiểm: ${s.level}.`);
+      `- Mức kiểm: ${s.level}.`,
+      ...s.body.map((b) => `- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): ${b}`));
     const mine = eye.filter((e) => e.sheet === s.name);
     if (s.auto) errors.push(s.auto);
     for (const e of mine) errors.push(`LỖI: ${s.name} — ${e.text} (mắt)`);

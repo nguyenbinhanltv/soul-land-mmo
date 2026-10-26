@@ -1,0 +1,102 @@
+{
+  "species": "loi_duc_ung",
+  "worker": "soul-land-mmo-136",
+  "issue": 772,
+  "tool": "Codex image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Codex image_gen không công bố model/seed; không có selector kích thước.",
+  "transparent_background": false,
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "sheet": "B",
+  "attempt": 2,
+  "raw_file": "toB.png",
+  "selected": true,
+  "selected_attempt": 2,
+  "attempts": 2,
+  "counters": {
+    "A": 1,
+    "B": 2,
+    "species_total": 3
+  },
+  "prompt_file": "toB.prompt.txt",
+  "prompt_sha256": "f0389cb0609cb228906eea8676818ea4130bce800327b6dd51b72d9a762e7c41",
+  "sha256": "f32a4d79d697682700baff856d34e496a82b7b06f0c2a3fcac3a602c4193fc5d",
+  "bytes": 1992399,
+  "width": 1254,
+  "height": 1254,
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "size_requirement_met": true,
+  "actual_aspect_ratio": "1:1",
+  "grid": [
+    6,
+    8
+  ],
+  "expected_visible_cells": 44,
+  "references": [
+    {
+      "path": "/private/tmp/soul-land-mmo-772-loi-duc-ung/shared/assets/sprites/beast/loi_duc_ung.png",
+      "role": "static identity reference, three views",
+      "sha256": "815b668c08dd72d226f8c727d78cfcf28bf7f49b57851b911689b31569e94c45",
+      "original_input_path": "/private/tmp/soul-land-mmo-772-loi-duc-ung/shared/assets/sprites/beast/loi_duc_ung.png"
+    },
+    {
+      "path": "/private/tmp/soul-land-mmo-772-loi-duc-ung/art/src/beast-anim/loi_duc_ung/toA.png",
+      "role": "A1 candidate style/design reference; not owner-approved",
+      "sha256": "730d7bfd27da7ee33b5d04565ba50f529cd752e43f957a5f57894afa792f0586",
+      "original_input_path": "/private/tmp/soul-land-mmo-772-loi-duc-ung/art/src/beast-anim/loi_duc_ung/toA.png"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-7735aff5-5360-401a-a5d8-4fc402a32802.png",
+  "original_file_mtime": "2026-10-26T20:21:08+0700",
+  "known_issues": [
+    "Soát mắt: NE H4 D4 chết nằm ngang, lệch trục hướng.",
+    "A1 tham chiếu chưa owner-approved; A1 có tỉ lệ sai và lỗi S D4 được giữ để nộp."
+  ],
+  "qa_status": "B2 candidate được chọn sau 2 lượt B; còn lỗi NE D4. Chưa owner-approved.",
+  "selection_reason": "B2 cải thiện trục chết N so với B1; NE D4 vẫn nằm ngang. Không tạo B3 theo directive.",
+  "publication_policy": "Submitting raw candidates does not mean art accepted or imported.",
+  "tool_arguments": {
+    "prompt_file": "toB.prompt.txt",
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-772-loi-duc-ung/shared/assets/sprites/beast/loi_duc_ung.png",
+      "/private/tmp/soul-land-mmo-772-loi-duc-ung/art/src/beast-anim/loi_duc_ung/toA.png"
+    ],
+    "transparent_background": false
+  },
+  "history": [
+    {
+      "attempt": 2,
+      "raw_artifact": "/private/tmp/soul-land-mmo-772-loi-duc-ung/art/src/beast-anim/loi_duc_ung/toB.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-7735aff5-5360-401a-a5d8-4fc402a32802.png",
+      "sha256": "f32a4d79d697682700baff856d34e496a82b7b06f0c2a3fcac3a602c4193fc5d",
+      "bytes": 1992399,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_artifact": "/private/tmp/soul-land-mmo-772-loi-duc-ung/art/src/beast-anim/loi_duc_ung/toB.prompt.txt",
+      "prompt_sha256": "f0389cb0609cb228906eea8676818ea4130bce800327b6dd51b72d9a762e7c41",
+      "references": [
+        {
+          "path": "/private/tmp/soul-land-mmo-772-loi-duc-ung/shared/assets/sprites/beast/loi_duc_ung.png",
+          "sha256": "815b668c08dd72d226f8c727d78cfcf28bf7f49b57851b911689b31569e94c45",
+          "role": "static identity reference, three views"
+        },
+        {
+          "path": "/private/tmp/soul-land-mmo-772-loi-duc-ung/art/src/beast-anim/loi_duc_ung/toA.png",
+          "sha256": "730d7bfd27da7ee33b5d04565ba50f529cd752e43f957a5f57894afa792f0586",
+          "role": "A1 candidate style/design reference; not owner-approved"
+        }
+      ],
+      "copied_at": "2026-10-26T13:22:08.418Z"
+    }
+  ],
+  "prompt_adjustments": [
+    "Thay câu prompt generator gọi A là approved thành A1 candidate chưa owner-approved; A1 vẫn chỉ là ref kỹ thuật.",
+    "Thêm hướng dẫn riêng sau B1: D4 NE theo trục chéo và D4 N theo trục chiều sâu, không nằm ngang; B2 vẫn còn lỗi NE D4."
+  ]
+}

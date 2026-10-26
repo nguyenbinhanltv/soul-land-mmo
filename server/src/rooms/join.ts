@@ -5,6 +5,7 @@
 import { ServerError, type Client } from "colyseus";
 import { PlayerState } from "./schema.ts";
 import { store } from "../db.ts";
+import { SAVE_EVERY_SECS } from "../../../shared/data.ts";
 import { PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS, presenceBackend, accountLeaseKey, bg } from "../presence.ts";
 import { worldMark } from "../ratelimit.ts";
 import { friends } from "../friends.ts";
@@ -111,7 +112,7 @@ export function onJoin(room: MapRoom, client: Client, _o: unknown, auth: AuthDat
   const d: PData = { accountId: auth.accountId, leaseOwner, leaseT: PRESENCE_HEARTBEAT_MS, owned, team, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 }, walk: false,
     target: "", atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, testBone: null, testCore: null, testHerb: null, looksN: looks.changes, looksBusy: false, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
     benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0,
-    saving: Promise.resolve(), teamQueued: false, tradeQueued: false, latest: new Map(), portalKey: "", travelCast: null, travelling: false, travelled: false, gmReset: false, gmMarked: false, chListAt: 0, chListQueued: false, bossAskAt: 0, msgLimit: process.env.GAME_TEST !== "1", msgTok: newMsgBuckets(), msgOver: 0, msgOverAt: 0, msgGone: false, statsRow: undefined, askAt: new Map(), askQueued: new Set(),
+    saving: Promise.resolve(), saveSig: "", saveIn: SAVE_EVERY_SECS * (0.5 + Math.random() * 0.5), teamQueued: false, tradeQueued: false, latest: new Map(), portalKey: "", travelCast: null, travelling: false, travelled: false, gmReset: false, gmMarked: false, chListAt: 0, chListQueued: false, bossAskAt: 0, msgLimit: process.env.GAME_TEST !== "1", msgTok: newMsgBuckets(), msgOver: 0, msgOverAt: 0, msgGone: false, statsRow: undefined, askAt: new Map(), askQueued: new Set(),
     wps: new Set(auth.wps), wpKey: "", fog: null, fogAdd: [], fogDirty: false,
     energy: new Map(), shield: 0, shieldT: 0, buffs: new Map(), lei: 0, leiQueued: false, lastSkill: null,
     bag: bag.items.filter((i) => i.equipSlot === undefined), gear: bag.items.filter((i) => i.equipSlot !== undefined), gearSt: gearStats(bag.items.filter((i) => i.equipSlot !== undefined)), honTe: bag.honTe, bagSlots: bagSlotsOf(bag.slots), bagDirty: false, bagSent: null, bagBuyback: "",
