@@ -2254,7 +2254,7 @@ Ghi công hồn thú hoạt ảnh (H2 / H4, ảnh raw chờ preview) **không n�
 
 
 
-Độc Châm Phong (H4 #775): RAW candidate `art/src/beast-anim/doc_cham_phong/toA.png` (948×1659, A1/1) và `toB.png` (1254×1254, B1/1), tthoadev sinh ngày 2026-10-26 bằng builtin `image_gen.imagegen`; model/seed unknown (tool không công bố). A tham chiếu static đúng loài; B tham chiếu static rồi A1 chỉ làm candidate kỹ thuật, chưa owner-approved. RAW nguyên byte, không hậu kỳ/cắt/resize. Finding kỹ thuật: A1 sai tỉ lệ A 2:3; lỗi mỹ thuật A: DIE hướng s H4 C3–4 nằm ngang ảnh; B: sai loài, ảnh rắn thay Độc Châm Phong. Prompt thực, provenance/hash/ref: [NGUON.md](src/beast-anim/doc_cham_phong/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json`. Chưa owner art-accepted, cắt hoặc nhập game.
+Độc Châm Phong (H4 #775): RAW candidate A1 `art/src/beast-anim/doc_cham_phong/toA.png` (948×1659, tỉ lệ được #1007 chấp nhận) và B2 primary `toB.png` (1254×1254), tthoadev sinh bằng builtin `image_gen.imagegen`; B1 được giữ nguyên tại `candidates/` cùng prompt/source và đã xác minh trùng output #969 (Xích Lân Mãng), SHA-256 `c15ddce0dd95e64fc6d11674eae1810497a6604b8aef016760f8b6602bb5b675`. B tham chiếu static đúng loài rồi A1 làm candidate thiết kế, chưa owner-approved; RAW nguyên byte, không hậu kỳ/cắt/resize. Finding mắt: A DIE hướng s H4 C3–4 nằm ngang; B2 khối ne vẫn lộ mặt. Checker toàn tờ có finding tràn ô/chân/cỡ; CI H4 hiện 0 blocker (cảnh báo riêng). Prompt, hash, provenance và B1: [NGUON.md](src/beast-anim/doc_cham_phong/NGUON.md), `toA/toB.prompt.txt`, `toA/toB.source.json`, `toB.source.json`, `candidates/`. Chưa owner art-accepted, cắt hoặc nhập game.
 
 <!-- private-assets:start -->
 ## Asset kho riêng (không nằm trong repo công khai)
