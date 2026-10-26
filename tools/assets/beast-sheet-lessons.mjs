@@ -3,10 +3,10 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { ROOT } from "./lib.mjs";
+import { FAMILIES } from "./beast-sheet-lib.mjs";
 
 export const LESSONS_FILE = path.join(ROOT, "art", "src", "beast-anim", "lessons.md");
 export const STAGES = ["turnaround", "direction", "sheet"];
-const FAMILIES = ["quad", "bird", "snake", "insect", "plant", "float", "swim"];
 
 /** Phân tích nội dung lessons.md → [{ stages: Set | null, families: Set | null, notFamilies: Set | null, text, note }]; dòng sai cú pháp ném lỗi (để test bắt). */
 export function parseLessons(md) {

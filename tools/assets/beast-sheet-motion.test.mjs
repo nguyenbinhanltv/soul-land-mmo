@@ -35,11 +35,11 @@ test("direction mode: có turnaround rồi thì 5 tờ hướng như cũ, tham c
   for (const [, md] of docs) assert.match(md, /image 2 = the approved TURNAROUND/);
 });
 
-test("loài chưa có thư mục turnaround trong repo mặc định đi qua bước turnaround (kiểm bằng file thật)", () => {
-  const docs = stageDocs(speciesInfo("u_linh_hai_mau"), "direction", "x");
+test("kiểm turnaround mặc định bằng file thật: id không có thư mục thì qua bước turnaround; loài đã có turnaround.png giữ 5 tờ", () => {
+  const docs = stageDocs({ ...speciesInfo("u_linh_hai_mau"), id: "__khong_co__" }, "direction", "x");
   assert.equal(docs.length, 1);
   assert.match(docs[0][0], /turnaround\.md$/);
-  // bang_vu_ung đã có turnaround.png trong repo: giữ 5 tờ hướng.
+  // bang_vu_ung đã có turnaround.png trong repo.
   assert.equal(stageDocs(speciesInfo("bang_vu_ung"), "direction", "x").length, 5);
 });
 

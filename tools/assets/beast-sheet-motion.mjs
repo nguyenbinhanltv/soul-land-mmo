@@ -1,7 +1,6 @@
 // Gợi ý chuyển động trong prompt hoạt ảnh hồn thú (#688, #865, sửa #1049): bảng theo họ + bảng ghi đè theo loài.
 // Họ (khớp client/src/sprites.ts: beastFamily, cộng `float` / `swim` chỉ ở công cụ, xem TOOL_FAMILY ở beast-sheet-lib.mjs).
 // Bảng ghi đè theo loài: câu hành động hợp đặc điểm loài (ngà, vòi, nọc, xúc tu…) thay cho câu chung của họ; loài không ghi ở đây dùng câu của họ.
-import { LEGLESS } from "./beast-sheet-lib.mjs";
 
 /** Câu chuyển động theo họ. Họ không chân (`float`, `swim`) không nhắc feet / legs / ground. */
 export const MOVE = {
@@ -44,4 +43,3 @@ export const MOVE_OVERRIDE = {
 
 /** Chuyển động của một loài: câu của họ, các khóa có ghi đè theo loài thay thế. */
 export const moveFor = (info) => ({ ...MOVE[info.family], ...MOVE_OVERRIDE[info.id] });
-export const isLegless = (family) => LEGLESS.has(family);
