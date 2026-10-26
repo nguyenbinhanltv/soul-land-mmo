@@ -28,7 +28,7 @@ import { initPanelStack, closeTopPanel, panelOf, trapTab } from "../panelStack.t
 import type { ServerCommand } from "../charBagContract.ts";
 import { toggleChar, cycleCharTab, isCharOpen, onCharOpen, renderChar, charViewRow, charLog, type StatsMsg } from "../charPanel.ts";
 import { Predictor, PREDICT, LAG_MS, DEBUG_TAG, stepSpeed } from "../predict.ts";
-import { findPath, findLongPath, buildNav, type Nav } from "../../../shared/path.ts";
+import { findLongPath, buildNav, type Nav } from "../../../shared/path.ts";
 import { autoLeg, AUTO_STOP } from "../../../shared/autowalk.ts";
 import { getFlag, setFlag, patchFlag, bindFlagBar, mapName } from "../autowalk.ts";
 import { startCmd, topCmd, stoppedText, deniedText, type Cmd } from "../../../shared/control.ts";
