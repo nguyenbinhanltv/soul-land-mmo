@@ -150,6 +150,13 @@ test("pixelizePhapTuong: 5 khung 160×160, cùng một tỉ lệ thu, giữa-đ�
   const f128 = P.pixelizePhapTuong(poses, { frame: 128 }); assert.ok(f128.frames.every((f) => f.w === 128) && P.bbox(f128.frames[0]).h <= 96);
 });
 
+test("pixelizePhapTuong: điểm sáng sát mép hình vẫn được tính còn (đo trên ảnh chưa đệm, không lệch 2 điểm)", () => {
+  const poses = [];
+  for (let k = 0; k < 5; k++) { const im = new Img(60, 200); fill(im, 0, 0, 60, 200, [90, 90, 110]); fill(im, 54, 2, 6, 12, [255, 230, 150]); fill(im, 0, 186, 6, 12, [255, 230, 150]); poses.push(im); }
+  const res = P.pixelizePhapTuong(poses, { frame: 160 });
+  assert.ok(res.report.accent.total >= 10 && res.report.accent.kept === res.report.accent.total, JSON.stringify(res.report.accent));
+});
+
 // ---------- Kiểm RAW ----------
 test("softness: ảnh khối cứng ≈ 0, ảnh nhiễu mềm cao; gridRatio cao với ảnh phóng nguyên khối", () => {
   const hard = new Img(128, 128); for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) fill(hard, x * 16, y * 16, 16, 16, [(x * 31) % 256, (y * 53) % 256, ((x + y) * 17) % 256]);

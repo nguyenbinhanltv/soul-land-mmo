@@ -89,7 +89,7 @@ export function checkRaw(img, { type, id } = {}) {
   if (!TYPES.includes(type)) throw new Error(`--type phải là ${TYPES.join(" | ")}`);
   const issues = [], m = { w: img.w, h: img.h }, colors = id ? vohonColors(id) && (() => { const [col, robe] = vohonColors(id); return { col, robe }; })() : null;
   const ratio = img.w / img.h; m.ratio = +ratio.toFixed(3);
-  if (type === "phaptuong") { if (ratio < 1.6 || ratio > 3.6) issues.push(issue("block", "ti-le", `tờ pháp tướng tỉ lệ ${m.ratio}, cần một hàng 5 hướng (khoảng 1,8–3,2:1)`)); }
+  if (type === "phaptuong") { if (ratio < 1.6 || ratio > 3.6) issues.push(issue("block", "ti-le", `tờ pháp tướng tỉ lệ ${m.ratio}, cần một hàng 5 hướng (1,6–3,6:1)`)); }
   else if (Math.abs(ratio - 1) > 0.08) issues.push(issue("block", "ti-le", `${TYPE_VI[type]} cần ảnh vuông, nhận ${img.w}×${img.h}`));
 
   const bk = borderKey(img); m.border = { clear: +bk.clear.toFixed(2), flat70: +bk.near70.toFixed(2) };

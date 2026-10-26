@@ -3,8 +3,8 @@
 //   node tools/assets/vohon-pixelize.mjs --type icon      --id <võ hồn> --in <raw.png> --out <thư mục>      (ra <id>-icon-32.png và -24.png)
 //   node tools/assets/vohon-pixelize.mjs --type phaptuong --id <võ hồn> --in <tờ 5 hướng.png> --out <thư mục> [--frame 160|128]
 // Chung: --colors N (mặc định theo loại: PORTRAIT_MAX_COLORS / PT_MAX_COLORS) --palette auto|gpl (gpl = chỉ chọn trong art/palette.gpl + màu võ hồn)
-//        --merge D (gộp màu gần hơn D, mặc định 18) --min-cluster N (mặc định 2) --passes N (làm cứng cạnh, mặc định 1) --accent K (ưu tiên điểm sáng, 1,5)
-//        --bg auto|none|#rrggbb (bỏ nền; chân dung mặc định none) --outline on|off --lift auto|off|<0..1> (icon: nâng sáng ảnh tối, mặc định auto 0,85) --no-check
+//        --merge D (gộp màu gần hơn D) --min-cluster N --passes N (làm cứng cạnh) --accent K (ưu tiên điểm sáng): mặc định theo loại, xem DEFAULTS_BY_TYPE ở vohon-pixelize-lib.mjs
+//        --bg auto|none|#rrggbb (bỏ nền; chân dung mặc định none) --outline on|off --lift auto|off|<0..1> (icon: nâng sáng ảnh tối, mặc định auto 0,8) --no-check (chỉ tắt in kết quả kiểm; vẫn thoát mã 1 nếu CHẶN)
 // Ghi `<id>-<loại>[-cỡ].png`, `.report.json` (cắt, màu, điểm sáng còn / mất) và in kết quả `vohon-check pixel`. Thoát mã 1 nếu có mục CHẶN.
 // Ảnh RAW KHÔNG vào game từ đây: đây chỉ là bản thử để duyệt bằng mắt (vohon-preview.mjs); nhập game theo skill asset-gen sau khi chủ repo duyệt.
 import { mkdirSync, writeFileSync } from "node:fs";

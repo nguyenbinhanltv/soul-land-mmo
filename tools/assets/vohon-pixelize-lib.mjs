@@ -373,10 +373,10 @@ export function pixelizePhapTuong(poses, o = {}) {
   const pal = buildPalette(smalls, colors - 1, { mode: o.palette ?? "auto", pool: o.pool ?? [], merge: dflt("phaptuong", o, "merge") }), frames = [], surv = [];
   smalls.forEach((s, i) => {
     const idx = toIndexed(s, pal); harden(idx, s.w, s.h, pal, { minCluster: dflt("phaptuong", o, "minCluster"), passes: dflt("phaptuong", o, "passes") });
-    const padded = new Img(s.w + 4, s.h + 4); padded.blit(fromIndexed(idx, s.w, s.h, pal), 0, 0, s.w, s.h, 2, 2); outlineOutside(padded);
+    const pix = fromIndexed(idx, s.w, s.h, pal), padded = new Img(s.w + 4, s.h + 4); padded.blit(pix, 0, 0, s.w, s.h, 2, 2); outlineOutside(padded);
     const f = new Img(F, F), [ox, oy] = fr.origin, dx = Math.round(ox - padded.w / 2), dy = oy - padded.h + 2;
     f.blit(padded, 0, 0, padded.w, padded.h, dx, dy); frames.push(f);
-    surv.push(accentSurvival(blobs[i], padded));
+    surv.push(accentSurvival(blobs[i], pix)); // đo trên ảnh chưa đệm: đốm nguồn tính theo hộp bao của hướng
   });
   return { frames, palette: pal, report: { type: "phaptuong", frame: F, scale: +k.toFixed(4), colors: pal.length + 1, accent: surv.reduce((a, s) => ({ kept: a.kept + s.kept, total: a.total + s.total }), { kept: 0, total: 0 }) } };
 }

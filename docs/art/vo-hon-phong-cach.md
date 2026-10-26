@@ -361,7 +361,7 @@ Bước 4 không tự nhập game: ảnh ra chỉ là bản thử để duyệt.
 | Mức | Chân dung / thẻ | Icon | Pháp tướng |
 |---|---|---|---|
 | **CHẶN** (vẽ lại) | không vuông (> 8% lệch); có khung / viền chạy quanh ảnh; màu lạc họ `robe` / `col` của võ hồn (< 20% điểm sáng cùng họ: nhiều khả năng sai võ hồn) | như chân dung; nền không tách (viền không trong suốt và không một màu phẳng); hình < 12% khung | tỉ lệ ngoài 1,6–3,6:1; không tách đúng 5 hướng; 5 hướng lệch cỡ (cao > 1,45×); nền không tách; khung; sai màu |
-| **NHẸ** (vẫn chuyển được) | texture mềm (> 35% cặp điểm kề chỉ chênh nhẹ); > 160 màu đáng kể; chưa đúng lưới khối (tỉ số biên < 3); màu lệch (< 50% cùng họ); nền sáng; thu về 32×32 mất > 50% điểm sáng | như chân dung | như chân dung (trừ thu nhỏ) |
+| **NHẸ** (vẫn chuyển được) | texture mềm (> 35% cặp điểm kề chỉ chênh nhẹ); > 160 màu đáng kể; chưa đúng lưới khối (tỉ số biên < 3); màu lệch (< 50% cùng họ); nền sáng; thu về cỡ ra (64 chân dung, 32 icon) mất > 50% điểm sáng | như chân dung | như chân dung (trừ thu nhỏ) |
 | **ĐẸP** | không CHẶN / NHẸ, ≥ 60% điểm sáng cùng họ màu mục 4, thu nhỏ còn giữ điểm sáng | như chân dung | như chân dung |
 
 Máy **không** đo được và vẫn phải duyệt bằng mắt (danh sách "cần mắt" in cuối báo cáo): đúng võ hồn (hình mẫu, vật đi kèm; không cute / chibi), **không có chữ**, ký hiệu đọc được, logo; 5 hướng pháp tướng cùng một hình, thân đặc. **Texture mềm và chưa đúng lưới là NHẸ chứ không CHẶN** vì model không làm được hai thứ này; công cụ chuyển pixel xử lý, đừng vẽ lại chỉ vì chúng. Cả hai RAW của #1083 (kể cả chân dung lượt 1 và 2) đều NHẸ, không CHẶN.
