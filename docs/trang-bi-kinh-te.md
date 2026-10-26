@@ -310,3 +310,134 @@ Bài `equipsoak` (BOT_ONLY, không nằm trong bot đầy đủ / CI): N bot đ�
 - **Tuần đầu tranh Hồn Tệ:** hạ `EQUIP_ENHANCE[0].fee` (200) hoặc `EQUIP_SYNTH[0].fee` (100) nếu người mới báo hết Hồn Tệ.
 - **Cuối game dư Hồn Tệ:** tăng `fee` các nấc 10–12 / 13–15 của `EQUIP_ENHANCE` (8.000 / 30.000) hoặc `EQUIP_SYNTH[3..4].fee` làm nguồn tiêu; không đổi tốc độ lên vì nút cổ chai là đá và bùa.
 - **+15 quá chậm / quá nhanh:** `EQUIP_DROP.ranks[2..3].charm` (0,25 / 0,6) là đòn bẩy trực tiếp lên số ngày; chạy lại `npm run sim:equip --prefix server` để so trước / sau.
+
+## Dòng Hồn Tệ tổng theo ngày: treo 12 giờ + mọi sink (#906, theo dõi #253 / #168 / #418)
+
+Sinh bằng `npm run sim:econ --prefix server -- --md` (`server/scripts/econ-sim.ts`, dùng đúng hàm và bảng của `shared/data.ts`; thêm `--auto-fast` để chỉ dùng ước lượng `offlineFight` mà không chặn bằng nhịp tay). Bổ sung bảng A2 của E7 (chỉ có săn tay + phí trang bị): thêm **tự săn** (`AUTO_PACE`, `AUTO_DAILY_SECS`), **bán đồ rơi** (`sellPrice`) và các sink còn thiếu. **Đây là ước lượng theo giả định, chưa đo; không đổi số cân bằng nào trong PR này.**
+
+### Giả định (ước lượng, chưa đo)
+
+| Giả định | Giá trị | Ghi chú |
+|---|---|---|
+| Hạ tay mỗi giờ | 500 thường + 5 tinh anh | như E0 (≈ 7 giây một con) |
+| Treo | 12 giờ/ngày (`AUTO_DAILY_SECS`), mỗi con tốn max(≈ 7 giây thật, `offlineFight`) | trần `AUTO_PACE`: số thật chưa đo; `--auto-fast` bỏ nhịp thật (treo hơn tay 1,2–1,7 lần mỗi giờ) |
+| Chỉ số võ hồn khi treo | Cường công, cấp / hồn hoàn của lộ trình ở `ROUTE`, chưa trang bị | trang bị làm hạ nhanh hơn: nghiêng về thu nhập thấp hơn thật |
+| Lộ trình bản đồ | như `equip-sim`: Hải Thần từ ngày 45 (chuẩn 3 giờ/ngày); dòng "theo 15 giờ" = cận trên (đẩy lộ trình theo cả giờ treo) | |
+| Bán đồ | bán hết hồn cốt / hồn hạch / mảnh rơi ở giá thương nhân (`sellPrice`); không bán hồn hoàn (tự săn mặc định không nhặt) | cận trên của thu nhập từ đồ; hồn cốt / hồn hạch đang dùng không bán |
+| Không tính | thú vương, boss thế giới, nhiệm vụ, `DAILY`, đấu trường, phí truyền tống, đặt lại hồn hạch, hợp thành trang bị | |
+| Sink | mua mảnh Thương hội tối đa mỗi ngày (`SHARD_BUY.daily`), mở rộng túi, cường hóa hồn cốt (+20) / hồn hạch (+15) đủ 6 ô cho mỗi võ hồn, cường hóa 10 ô trang bị tới +15, đổi ngoại hình 1 lần trả phí mỗi 30 ngày (`LOOKS_CHANGE`) | **trần sức chứa**: coi như có đồ để nâng ngay; trang bị còn bị đá / bùa chặn (E7) nên phần này khó đạt bằng Hồn Tệ |
+| Chính sách tiêu | mỗi ngày mua mảnh trước, rồi sink một lần, còn lại là "Tồn" | "Ra/Vào 100%" nghĩa là tiêu hết mọi thứ có thể |
+
+Số tồn lớn cuối game **chưa phải kết luận "sai"**: `docs/design/kinh-te-tui-do.md` chưa ghi mục tiêu tồn Hồn Tệ, nên theo `balance-review` là **Chưa đánh giá: thiếu mục tiêu**; bảng chỉ cho thấy sink cạn khi nào.
+
+### E1. Thu nhập kỳ vọng mỗi giờ theo bản đồ (Hồn Tệ; hiện tại), một võ hồn Cường công ở cấp / hồn hoàn của lộ trình, chưa trang bị
+
+| Bản đồ | Giây/con khi treo | Con/giờ khi treo | Tay: rơi tiền | Tay: bán đồ | Tay: phân giải | Tay: tổng/giờ | Treo: tổng/giờ | Treo/Tay | Lệnh 2h trả giá/giờ treo |
+|---|---|---|---|---|---|---|---|---|---|
+| Thánh Hồn Thôn | 4,1 | 500 | 2.027 | 833 | 235 | 3.095 | 2.906 | 0,94 | 250 (8,6% thu/giờ) |
+| Tinh Đấu Ngoại vi | 4,2 | 500 | 7.345 | 2.557 | 312 | 10.214 | 9.695 | 0,95 | 250 (2,58% thu/giờ) |
+| Tinh Đấu Nội địa | 5,3 | 500 | 26.869 | 15.377 | 312 | 42.558 | 40.780 | 0,96 | 250 (0,61% thu/giờ) |
+| Lạc Nhật Sâm Lâm | 4,6 | 500 | 37.977 | 24.007 | 354 | 62.337 | 60.438 | 0,97 | 250 (0,41% thu/giờ) |
+| Cực Bắc Chi Địa | 5,3 | 500 | 53.025 | 47.361 | 354 | 100.739 | 98.410 | 0,98 | 250 (0,25% thu/giờ) |
+| Hải Thần Đảo | 5,4 | 500 | 55.250 | 62.482 | 354 | 118.086 | 106.772 | 0,9 | 250 (0,23% thu/giờ) |
+
+Lệnh Ủy Thác: 500 Hồn Tệ cho 2 giờ treo thêm (tích tối đa 24 giờ); chỉ tiêu sau khi đã treo hết 12 giờ miễn phí.
+
+### E2. 1 giờ tay: Hồn Tệ vào / ra theo ngày (hiện tại; 4 võ hồn đủ hồn cốt / hồn hạch ở sink một lần)
+
+| Ngày | Bản đồ | Vào/ngày |   rơi tiền |   bán đồ |   phân giải trang bị | Ra: mảnh | Ra: một lần | Tồn | Tổng vào | Ra/Vào % |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 7 | Thánh Hồn Thôn | 3.095 | 2.027 | 833 | 235 | 2.000 | 1.095 | 0 | 21.668 | 100 |
+| 30 | Tinh Đấu Nội địa | 42.558 | 26.869 | 15.377 | 312 | 41.600 | 958 | 0 | 378.845 | 100 |
+| 60 | Lạc Nhật Sâm Lâm | 62.337 | 37.977 | 24.007 | 354 | 41.600 | 20.737 | 0 | 1.794.039 | 100 |
+| 90 | Cực Bắc Chi Địa | 100.739 | 53.025 | 47.361 | 354 | 98.600 | 2.139 | 0 | 3.702.564 | 100 |
+| 120 | Cực Bắc Chi Địa | 100.739 | 53.025 | 47.361 | 354 | 98.600 | 2.139 | 0 | 6.724.746 | 100 |
+
+Sink một lần (túi + hồn cốt + hồn hạch + trang bị) cạn ở ngày: chưa cạn trong 120 ngày.
+
+### E2. 3 giờ tay: Hồn Tệ vào / ra theo ngày (hiện tại; 4 võ hồn đủ hồn cốt / hồn hạch ở sink một lần)
+
+| Ngày | Bản đồ | Vào/ngày |   rơi tiền |   bán đồ |   phân giải trang bị | Ra: mảnh | Ra: một lần | Tồn | Tổng vào | Ra/Vào % |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 7 | Tinh Đấu Ngoại vi | 30.642 | 22.034 | 7.672 | 935 | 26.400 | 4.242 | 0 | 171.781 | 100 |
+| 30 | Cực Bắc Chi Địa | 302.218 | 159.075 | 142.082 | 1.061 | 226.800 | 75.418 | 0 | 3.897.851 | 100 |
+| 60 | Hải Thần Đảo | 354.259 | 165.750 | 187.447 | 1.061 | 226.800 | 127.459 | 0 | 13.797.043 | 100 |
+| 90 | Hải Thần Đảo | 354.259 | 165.750 | 187.447 | 1.061 | 226.800 | 127.459 | 0 | 24.424.799 | 100 |
+| 120 | Hải Thần Đảo | 354.259 | 165.750 | 187.447 | 1.061 | 226.800 | 127.459 | 0 | 35.052.555 | 100 |
+
+Sink một lần (túi + hồn cốt + hồn hạch + trang bị) cạn ở ngày: chưa cạn trong 120 ngày.
+
+### E2. 3 giờ tay + 12 giờ treo (lộ trình theo 3 giờ): Hồn Tệ vào / ra theo ngày (hiện tại; 4 võ hồn đủ hồn cốt / hồn hạch ở sink một lần)
+
+| Ngày | Bản đồ | Vào/ngày |   rơi tiền |   bán đồ |   phân giải trang bị | Ra: mảnh | Ra: một lần | Tồn | Tổng vào | Ra/Vào % |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 7 | Tinh Đấu Ngoại vi | 146.979 | 108.519 | 36.053 | 2.407 | 98.600 | 48.379 | 0 | 823.211 | 100 |
+| 30 | Cực Bắc Chi Địa | 1.483.142 | 789.075 | 691.534 | 2.533 | 226.800 | 1.256.342 | 0 | 18.953.802 | 100 |
+| 60 | Hải Thần Đảo | 1.635.520 | 795.750 | 837.237 | 2.533 | 226.800 | 10.000 | 34.522.613 | 65.886.118 | 47,6 |
+| 90 | Hải Thần Đảo | 1.635.520 | 795.750 | 837.237 | 2.533 | 226.800 | 10.000 | 76.774.220 | 114.951.725 | 33,2 |
+| 120 | Hải Thần Đảo | 1.635.520 | 795.750 | 837.237 | 2.533 | 226.800 | 10.000 | 119.025.828 | 164.017.333 | 27,4 |
+
+Sink một lần (túi + hồn cốt + hồn hạch + trang bị) cạn ở ngày: 35.
+
+### E3. Tồn Hồn Tệ ngày 120 (chính sách tiêu hết mọi sink) theo hồ sơ × số võ hồn có đủ hồn cốt / hồn hạch × có mua mảnh Thương hội hay không (hiện tại)
+
+| Hồ sơ | Mua mảnh, 1 võ hồn | Không mua mảnh, 1 võ hồn | Mua mảnh, 2 võ hồn | Không mua mảnh, 2 võ hồn | Mua mảnh, 4 võ hồn | Không mua mảnh, 4 võ hồn |
+|---|---|---|---|---|---|---|
+| 1 giờ tay | 0 | 0 | 0 | 0 | 0 | 0 |
+| 3 giờ tay | 0 | 18.216.450 | 0 | 17.523.450 | 0 | 16.137.450 |
+| 3 giờ tay + 12 giờ treo (lộ trình theo 3 giờ) | 121.104.828 | 147.181.228 | 120.411.828 | 146.488.228 | 119.025.828 | 145.102.228 |
+| 3 giờ tay + 12 giờ treo (lộ trình theo 15 giờ, cận trên) | 146.909.361 | 173.997.161 | 146.216.361 | 173.304.161 | 144.830.361 | 171.918.161 |
+
+Sink một lần tối đa (túi + hồn cốt + hồn hạch + trang bị; không tính thời điểm có đồ để nâng, và trang bị còn bị đá / bùa chặn): 1 võ hồn = 16.796.105; 2 võ hồn = 17.489.105; 4 võ hồn = 18.875.105; mảnh Thương hội 27.216.000 sau 120 ngày.
+
+### E4. Kịch bản chỉnh số (CHỈ ước lượng, không sửa shared/data.ts): hồ sơ "3 giờ tay + 12 giờ treo (lộ trình theo 3 giờ)", 4 võ hồn
+
+| Kịch bản | Vào/ngày ở Lạc Nhật (ngày 30) | Vào/ngày ở Hải Thần (ngày 120) | Tồn ngày 120 | Ra/Vào % ngày 120 | Lệnh 2h / thu 2h treo Hải Thần % |
+|---|---|---|---|---|---|
+| Hiện tại | 1.483.142 | 1.635.520 | 119.025.828 | 27,4 | 0,23 |
+| BEAST_COIN bậc 3–4 × 0,5 | 1.088.605 | 1.237.645 | 78.810.884 | 36,3 | 0,31 |
+| BEAST_COIN bậc 2–4 × 0,5 | 1.088.605 | 1.237.645 | 77.478.818 | 36,7 | 0,31 |
+| Giá bán đồ rơi (hồn cốt / hồn hạch / mảnh) × 0,5 | 1.137.375 | 1.216.902 | 78.875.777 | 36,3 | 0,31 |
+| BEAST_COIN làm mượt (nội suy log) | 2.363.661 | 3.958.491 | 308.251.697 | 12,8 | 0,1 |
+| BEAST_COIN làm mượt + mốc 100.000y = 2 × bậc 3 | 1.675.340 | 2.178.537 | 162.650.395 | 21,8 | 0,17 |
+| Mọi nguồn vào × 0,5 (cận dưới) | 742.838 | 819.027 | 37.423.650 | 54,4 | 0,47 |
+
+### E5. Vách đá BEAST_COIN: bản đồ có bao nhiêu con ≥ 10.000 / ≥ 100.000 năm, Hồn Tệ mỗi con, và số con cần để lên cấp
+
+Hồn Tệ trung bình mỗi bậc: 10y=2, 100y=7, 1000y=27,5, 10000y=105, 100000y=550; vách đá 9.999 → 10.000 năm ×3,8, 99.999 → 100.000 năm ×5,2.
+
+| Bản đồ | Niên hạn | % con ≥ 10.000y | % con ≥ 100.000y | % tiền từ ≥ 10.000y | HT/con (hiện tại) | HT/con (làm mượt) | Mượt/Hiện tại | KN/con (đã nhân hệ cấp) | Con để lên cấp (đầu / giữa / cuối dải) | HT mỗi cấp (đầu / giữa / cuối) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Thánh Hồn Thôn | 10–450 | 0 | 0 | 0 | 3,9 | 4,1 | 1,05 | 39 | 0,7 / 3,4 / 8,3 | 3 / 13 / 32 |
+| Tinh Đấu Ngoại vi | 300–2.000 | 0 | 0 | 0 | 14,2 | 14,9 | 1,05 | 126 | 2,4 / 9,6 / 26 | 34 / 136 / 370 |
+| Tinh Đấu Nội địa | 1.500–25.000 | 31,2 | 0 | 63,3 | 51,6 | 51,7 | 1 | 433 | 6,1 / 13,9 / 39,5 | 317 / 719 / 2.040 |
+| Lạc Nhật Sâm Lâm | 5.000–30.000 | 60,3 | 0 | 85,3 | 74,2 | 72,7 | 0,98 | 619 | 7,7 / 14,6 / 44,7 | 573 / 1.080 / 3.316 |
+| Cực Bắc Chi Địa | 20.000–80.000 | 100 | 0 | 100 | 105 | 219,8 | 2,09 | 1.362 | 7,9 / 11,7 / 21,9 | 828 / 1.225 / 2.294 |
+| Hải Thần Đảo | 50.000–100.000 | 100 | 0 | 100 | 105 | 414,6 | 3,95 | 1.976 | 9,7 / 12,3 / 15,1 | 1.018 / 1.288 / 1.589 |
+| Lõi Tinh Đấu | 100.000–100.000 | 100 | 100 | 100 | 550 | 550 | 1 | 2.500 | 9,7 / 10,8 / 12 | 5.352 / 5.962 / 6.606 |
+
+"Con để lên cấp" = xpNeed(cấp) ÷ (XP_SHARE_ACTIVE × kinh nghiệm TB một con của bản đồ): CHỈ tính kinh nghiệm võ hồn ra trận (võ hồn dự bị nhận XP_SHARE_BENCH thêm, bình cảnh chặn lên cấp không tính).
+
+### Kết quả chính (ước lượng, chưa đo)
+
+1. **Hồ sơ không treo gần cân bằng.** 3 giờ tay: ~354 nghìn/ngày ở Hải Thần (rơi tiền ~166 nghìn + bán đồ ~187 nghìn); mua mảnh tối đa (226.800) cộng sink một lần tiêu hết, tồn 0. Không mua mảnh thì tồn ~16–18 triệu sau 120 ngày (cùng cỡ ~10 triệu của E7). 1 giờ tay: ~100 nghìn/ngày ở Cực Bắc, tiêu hết.
+2. **Treo 12 giờ phá cân bằng.** 3 giờ tay + 12 giờ treo: ~1,5–1,64 triệu/ngày (gần số 1,9 triệu của #253, thấp hơn vì treo chặn theo nhịp thật). Sink một lần (túi + hồn cốt + hồn hạch + trang bị, 4 võ hồn ≈ 18,9 triệu **trần**) cạn ở **ngày ~35** (ngày 14 nếu lộ trình theo 15 giờ); sau đó mỗi ngày tồn thêm ~1,4 triệu (chỉ còn mảnh 226.800 + ngoại hình), tới **~119 triệu ngày 120, Ra/Vào 27%**. Số võ hồn trang bị gần như không đổi kết quả (mỗi võ hồn chỉ 693.000 phí hồn cốt + hồn hạch, bằng ~10 giờ treo): sink hồn cốt / hồn hạch **nhỏ**, sink lớn duy nhất là trang bị (15,9 triệu, nhưng bị đá / bùa chặn).
+3. **`BEAST_COIN` không phải nguồn vào duy nhất.** Ở bản đồ sâu bán đồ rơi bằng ~½ thu nhập (Hải Thần tay: 62 nghìn bán đồ so với 55 nghìn rơi tiền mỗi giờ): hồn cốt từ 10.000 năm (4%) và hồn hạch (40%+) chủ yếu. Chỉ đổi `BEAST_COIN` sẽ không đủ nếu muốn hạ thu nhập cấp cao; giá bán (`CORE_SELL`, `BONE_SELL`, `RING_SELL`) cũng là núm.
+4. **Ủy Thác Lệnh gần như miễn phí:** `AUTO_TOKEN_PRICE` 500 cho `AUTO_TOKEN_SECS` 2 giờ = 250/giờ, bằng 0,23% thu nhập một giờ treo ở Hải Thần (~107 nghìn/giờ), 0,6% ở Nội địa, 8,6% ở Thánh Hồn Thôn. Thêm 12 giờ treo (6 lệnh = 3.000 Hồn Tệ) đem lại ~1,3 triệu: lời hơn 400 lần. Giá không còn là quyết định; chỉ trần `AUTO_BONUS_MAX` còn giới hạn.
+5. **Vách đá `BEAST_COIN` (E5):** `rollYears` tung đều theo log nên Nội địa (1.500–25.000 năm) có 31% con ≥ 10.000 năm mà chiếm 63% Hồn Tệ rơi; Lạc Nhật 60% con, 85% Hồn Tệ; Cực Bắc trở đi **mọi con** ở bậc 3 (hằng 105 từ 10.000 tới 99.999 năm). Vách thứ hai (100.000 năm) chỉ ở Lõi Tinh Đấu. Làm mượt nội suy log với mốc ở trung điểm mỗi bậc **giữ nguyên** Nội địa / Lạc Nhật (±2%) nhưng **×2,1 Cực Bắc, ×3,95 Hải Thần** (vì bậc 3 phẳng tới 100.000 năm): làm mượt không trung tính nếu không kèm hạ mốc bậc cuối.
+6. **XP không phải nút thắt:** giữa dải cấp của bản đồ chỉ cần 3 con (Thánh Hồn Thôn) tới 15 con mỗi cấp (Nội địa / Lạc Nhật; chỉ tính 40% của võ hồn ra trận), mỗi cấp lên mang theo 13 → ~1.300 Hồn Tệ rơi (cột cuối E5).  Chưa có mục tiêu thời gian lên cấp: Chưa đánh giá.
+
+### Phương án chỉnh số (CHỈ đề xuất; chủ repo quyết ở #907 / #908 / #909)
+
+Tác động lấy từ E4 (hồ sơ 3 giờ tay + 12 giờ treo, 4 võ hồn); số "3 giờ tay" lấy từ bảng E4b của script (không chép vào đây):
+
+| Phương án | Tác động ước tính | Đánh đổi |
+|---|---|---|
+| A. `BEAST_COIN` bậc 3–4 × 0,5 | Treo ở Hải Thần 1,64 → 1,24 triệu/ngày (−24%); tồn ngày 120: 119 → 79 triệu (−34%); 3 giờ tay: 354 → 271 nghìn/ngày (−23%) | người ít giờ cũng giảm; vẫn dư vì bán đồ không đổi |
+| B. Giá bán hồn cốt / hồn hạch / mảnh × 0,5 | Treo 1,64 → 1,22 triệu/ngày; tồn 119 → 79 triệu; 3 giờ tay 354 → 261 nghìn | hồn cốt / hồn hạch dư kém giá trị; có thể kích thích dùng hết thay vì bán |
+| C. Làm mượt `BEAST_COIN` (nội suy log, mốc trung điểm bậc) | Không giảm thu nhập: Hải Thần ×3,95 (treo 1,64 → 3,96 triệu/ngày); nếu hạ mốc 100.000 năm xuống 2 × bậc 3 (210): +33% (2,18 triệu), tồn ngày 120 ~163 triệu | chỉ sửa vách đá, phải kèm A hoặc B mới hạ được dòng tiền; đụng mã tính tiền (tay và offline) |
+| D. Giá Ủy Thác Lệnh theo bậc (kiểu `shardBuyPrice`) hoặc theo bản đồ | muốn lệnh bằng ~10% thu 2 giờ treo ở Hải Thần cần ~21.000/lệnh (hiện 500, ×42); chỉ tăng `grow` kiểu mảnh sẽ không đủ vì 6 lệnh/ngày hiện chỉ 3.000 | đụng Q07 (tự săn); người mới ở Thánh Hồn Thôn (8,6%) không nên bị ép |
+| E. Nâng `SHARD_BUY.grow` (sink lặp lại có sẵn) | mua đủ 10 mảnh/ngày: 1,5 → 226.800; 1,6 → 363.200; 1,7 → 573.200; 1,8 → 890.100; 2 → 2.046.000. Với 1,8 người 3 giờ tay (354 nghìn/ngày) không mua nổi đủ nữa, người treo hút ~890 nghìn/ngày (64% phần dư) | mảnh võ hồn đắt hơn cho người ít giờ (đã chốt #282); sink lặp lại duy nhất không giới hạn theo người chơi |
+| F. Nâng `BONE_ENHANCE_FEE` / `CORE_ENHANCE_FEE` ×10 | thêm ~6,2 triệu mỗi võ hồn (cạn ngày ~35 → ~50 với 4 võ hồn: ~27 triệu tổng) | sink một lần: chỉ lùi ngày cạn, **không** giải quyết dư lâu dài (sau đó vẫn +1,4 triệu/ngày) |
+
+Gợi ý hướng (không thay chủ repo): dư Hồn Tệ lâu dài chỉ giải bằng **sink lặp lại** (D, E) hoặc **hạ nguồn vào ở bản đồ sâu** (A + B, kèm C để sửa vách đá); F chỉ dời ngày cạn. Sau khi chỉnh số: chạy lại `npm run sim:econ --prefix server` để so trước / sau và `npm run test:econ` (bất biến dữ liệu).
