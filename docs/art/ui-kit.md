@@ -185,7 +185,20 @@ Ghi chú đo: vạch 9-slice đề xuất = max(độ dày viền, tầm với h
 
 **Cắt** (`ui-sheet-cut.mjs`): tách mảnh (khoảng trống + khoá nền + gỡ viền) → hạ lưới theo vùng về **master 2×** (`div` theo loại tờ, nhân thêm tỉ lệ cỡ tờ nên 1024² và 1254² ra cùng cỡ) → khung / nút dựng **đối xứng bằng gương** từ phần tư trên-trái (model chỉ cần vẽ một góc đẹp) → lượng tử ≤ 32 màu + viền `#1a1020`, alpha nhị phân → xuất **2×** và **1×** (1× hạ theo vùng từ 2× rồi lượng tử lại, không nearest trần; khớp khuyến nghị ở mục "Kit 1× hay 2×") → vạch 9-slice đo từ ảnh, **chung trong một bộ trạng thái** (`nine.x2`, `nine.x1` = ⌈x2 / 2⌉). Manifest mỗi mảnh ghi `nine`, `set` + `state` (và `groups`: bộ → trạng thái → khoá), `grid` (master, hệ số hạ, cỡ tờ), `size`, `bytes`, `hash`. **Tất định**: cùng tờ + cùng tuỳ chọn → cùng byte; cắt lại mảnh đã cắt (bảng màu có sẵn) cũng ra đúng byte (kiểm trong `npm run test:assets`).
 
-Chưa làm ở P1: đổi nguồn `--frame-*` / cờ `ui2` (P5), trang xem trước bộ component + CI nhẹ (P2), nhập mảnh vào `shared/assets` (PR từng màn). Fixture thử: 7 mảnh C2 + khung UI-5 thật phóng lên tờ giả, khung tổng hợp có lỗi cố ý (`tools/assets/ui-sheet-fixture.mjs`).
+Chưa làm ở P1: đổi nguồn `--frame-*` / cờ `ui2` (P5), nhập mảnh vào `shared/assets` (PR từng màn). Fixture thử: 7 mảnh C2 + khung UI-5 thật phóng lên tờ giả, khung tổng hợp có lỗi cố ý (`tools/assets/ui-sheet-fixture.mjs`).
+
+## Skill, prompt, trang bộ component, CI nhẹ (P2, #880)
+
+Thao tác hằng ngày nằm ở skill `ui-kit` (`.claude/skills/ui-kit/SKILL.md`, hai phần SINH và DUYỆT / NHẬP, cùng khung `beast-anim`); mục này là đặc tả công cụ.
+
+| Lệnh | Việc |
+|---|---|
+| `npm run ui:prompt -- --kind BOARD\|F\|N\|O\|T\|I\|D [--material muc\|giay] [--family …] [--layout 6\|9] --out <thư mục>` | sinh `<loại>.md` (bảng thông tin, thứ tự ảnh tham chiếu, prompt tiếng Anh, chú thích); bố cục và tên mảnh đọc từ `ui-kit.json`, bài học đọc từ `art/src/ui-kit/lessons.md` (cú pháp ở đầu file; phạm vi theo loại tờ). Không viết / sửa prompt tay |
+| `npm run ui:preview -- --dir <thư mục ui:cut> [--dir …] --out <thư mục>` (hoặc `--fixture c2,ui5`) | trang bộ component `index.html` tự chứa: **A** bảng mảnh (cỡ, vạch, KB, ngân sách) · **B** mọi mảnh × 3 nền (sáng `#e8dcc0`, tối `#14101c`, trắng) × DPR 1 / 2 · **C** mọi mảnh co giãn ở 200×60, 360×120, 520×320 · **D** bộ trạng thái bằng `<button>` thật (hover, nhấn, focus-visible, chọn, tắt) cạnh hàng trạng thái tĩnh · **E** chuỗi tiếng Việt đủ dấu ở 10 / 12 / 24 px × 3 nền × DPR 1 / 2. Không cần Chrome / server |
+
+DPR trên trang: không ép được DPR của máy; "DPR 1" dùng ảnh 1× đúng cỡ, "DPR 2" dùng ảnh 2× hiển thị bằng một nửa cỡ (`border-image-width` = vạch / 2), nên đúng điểm khi máy là DPR 2 và là trường hợp "2× bị hạ nửa" đã đo ở mục "Kit 1× hay 2×" khi máy là DPR 1. Số DPR thật hiện ở đầu trang. Fixture `c2` / `ui5` là tờ giả lập dựng từ 7 mảnh C2 và 6 khung UI-5 có sẵn (`ui-sheet-fixture.mjs`), **không** phải ảnh model.
+
+CI nhẹ: job `ui-sheet-check` (`docs/ops/ci.md` mục "CI nhẹ cho tờ UI"). Mẫu issue một tờ: `.github/ISSUE_TEMPLATE/to-ui.md`.
 
 ## Lỗi đã sửa ở P0 (ghi để không lặp)
 

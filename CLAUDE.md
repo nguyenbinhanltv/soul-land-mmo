@@ -34,4 +34,4 @@
 | Chạy local, CI, deploy | `ops/` |
 
 ## Skill (`.claude/skills/`)
-`roadmap-step`, `server-feature`, `client-ui`, `landing-page` (trang giới thiệu `/`; kèm `frontend-design`, `webapp-testing`), `db-migration`, `balance-data`, `asset-gen`, `beast-anim` (hoạt ảnh vẽ thật hồn thú: sinh + duyệt / nhập), `balance-review`, `anti-cheat-audit`, `soak-perf`, `bot-flakiness`, `playtest-triage`. Hook PostToolUse chạy `tools/check.mjs --hook` sau mỗi Edit/Write: báo lỗi TypeScript thì sửa ngay.
+`roadmap-step`, `server-feature`, `client-ui`, `landing-page` (trang giới thiệu `/`; kèm `frontend-design`, `webapp-testing`), `db-migration`, `balance-data`, `asset-gen`, `beast-anim` (hoạt ảnh vẽ thật hồn thú: sinh + duyệt / nhập), `ui-kit` (tờ UI Kit v2: sinh + duyệt / nhập), `balance-review`, `anti-cheat-audit`, `soak-perf`, `bot-flakiness`, `playtest-triage`. Hook PostToolUse chạy `tools/check.mjs --hook` sau mỗi Edit/Write: báo lỗi TypeScript thì sửa ngay.
