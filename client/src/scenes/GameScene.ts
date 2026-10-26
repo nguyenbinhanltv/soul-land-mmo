@@ -73,7 +73,7 @@ import { showOffline, type OfflineMsg } from "../offline.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, GearMsg, EquipEnhPreview, EquipEnhDone, EquipLuckPreview, EquipLuckDone, EquipSynDone, EquipSalvDone, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, AutoStMsg, FriendsMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
 import { assetUrl } from "../assetUrl.ts";
-import { layoutNameplates, measureNameplate, nameplateAppearance, nameplatePriority, playerNameplateKind, type NameplateRect, type NameplatePlacement, type NameplateSlot } from "../nameplate.ts";
+import { easeNameplate, layoutNameplates, measureNameplate, nameplateAppearance, nameplatePriority, playerNameplateKind, type NameplateRect, type NameplatePlacement, type NameplateSlot } from "../nameplate.ts";
 import { replayBufferedMessages } from "../roomBuffer.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -394,6 +394,8 @@ export class GameScene extends Phaser.Scene {
   nameplateLayout: NameplatePlacement[] = [];
   /** Chỗ nhãn khung trước (theo độ lệch so với đầu): giữ chỗ để nhãn người đang đi không đổi chỗ mỗi khung (#828). */
   nameplateSlots = new Map<string, NameplateSlot>();
+  /** Độ lệch đang VẼ của nhãn so với chỗ gốc trên đầu (đuổi theo ô đích của bộ xếp nhãn, #1064) và mốc khung trước. */
+  nameplateShown = new Map<string, { dx: number; up: number }>(); nameplateT = 0;
 
   constructor() { super("game"); }
   init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string, roomId: string | null) => void; onArena: (roomId: string, watch?: boolean) => void; onBack: () => void; watch?: boolean }) {
@@ -573,6 +575,8 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /** Phaser còn nghe mousedown ở cấp window: bấm nút / bảng HUD đè lên vùng bấm của trận truyền tống, NPC không được tính là bấm vào chúng (#1027). */
+  onCanvas(ptr: Phaser.Input.Pointer) { return !ptr.downElement || ptr.downElement === this.game.canvas; }
   /**
    * Truyền tống trận (11.2): tên trên trận (◆, mờ khi chưa mở) và vùng bấm / chạm mở bản đồ thế giới. Vòng trận phát sáng vẽ mỗi khung ở
    * `paintWaypoints` (phong cách A: hồn lực sáng màu lam ngọc; chưa mở thì xám mờ), không dùng ảnh.
@@ -584,7 +588,7 @@ export class GameScene extends Phaser.Scene {
         fontFamily: FONT, fontSize: "6.5px", fontStyle: "700", color: "#bfefff", stroke: "#000", strokeThickness: 2, resolution: 8,
       }).setOrigin(0.5, 1).setDepth(99984);
       this.wtext(w.text, top, 0);
-      this.add.zone(c.x, c.y, 26 * SPR, 14 * SPR).setInteractive({ useHandCursor: true }).on("pointerdown", () => this.openWorld(true));
+      this.add.zone(c.x, c.y, 26 * SPR, 14 * SPR).setInteractive({ useHandCursor: true }).on("pointerdown", (ptr: Phaser.Input.Pointer) => { if (this.onCanvas(ptr)) this.openWorld(true); });
     }
     this.labelWaypoints();
   }
@@ -691,7 +695,7 @@ export class GameScene extends Phaser.Scene {
         ...style, fontSize: "6px", color: "#fff2b0", backgroundColor: "#000000aa", padding: { x: 3, y: 1 },
       }).setOrigin(0.5, 1).setDepth(99986).setVisible(false);
       // Vùng bấm phủ cả hình và tên: chuột hoặc chạm đều được.
-      this.add.zone(sx, (top + sy) / 2, 22 * SPR, sy - top + 12 * SPR).setInteractive({ useHandCursor: true }).on("pointerdown", () => this.talk(def.id));
+      this.add.zone(sx, (top + sy) / 2, 22 * SPR, sy - top + 12 * SPR).setInteractive({ useHandCursor: true }).on("pointerdown", (ptr: Phaser.Input.Pointer) => { if (this.onCanvas(ptr)) this.talk(def.id); });
     }
     // 6.2: NPC giao nhiệm vụ có dấu "!" (bài mới) / "?" (chờ trả, xám khi đang làm) phía trên nhãn "Nói chuyện".
     let qmark: Phaser.GameObjects.Text | null = null;
@@ -790,13 +794,13 @@ export class GameScene extends Phaser.Scene {
       if (e.code === "Tab" && panelOf(f) && trapTab(e)) return;
       if ((e.code === "Space" || e.key === "Enter") && panelOf(f) && (f as HTMLElement).matches(":focus-visible")) return;
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
-      if (e.code === "KeyH" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); toggleChar(); return; } // bảng nhân vật (UI-2), độc lập với Túi (NV1 #455); C là kỹ năng hồn cốt tay phải nên không dùng để mở bảng (NV5 #459)
+      if (e.code === "KeyH" && !e.repeat) { this.clearForPanel(); toggleChar(); return; } // bảng nhân vật (UI-2), độc lập với Túi (NV1 #455); C là kỹ năng hồn cốt tay phải nên không dùng để mở bảng (NV5 #459)
       if ((e.code === "BracketLeft" || e.code === "BracketRight") && cycleCharTab(e.code === "BracketRight" ? 1 : -1)) { e.preventDefault(); return; } // chuyển tab búp bê khi bảng Nhân vật đang mở (NV5 #459)
-      if (e.code === "KeyV" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); return; }
-      if (e.code === "KeyB" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); return; }
-      if (e.code === "KeyK" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
-      if (e.code === "KeyL" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleFriends(); return; } // bạn bè và chặn (#195)
-      if (e.code === "KeyM" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
+      if (e.code === "KeyV" && !e.repeat) { this.clearForPanel(); hud.toggleRoster(); return; }
+      if (e.code === "KeyB" && !e.repeat) { this.clearForPanel(); hud.toggleBag(); return; }
+      if (e.code === "KeyK" && !e.repeat) { this.clearForPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
+      if (e.code === "KeyL" && !e.repeat) { this.clearForPanel(); hud.toggleFriends(); return; } // bạn bè và chặn (#195)
+      if (e.code === "KeyM" && !e.repeat) { this.clearForPanel(); this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
       if (e.code === "KeyY" && !e.repeat) { if (getFlag()?.on) this.flagStop("Đã dừng tự đi"); else this.flagGo(); return; } // tự đi tới cờ (R4)
       if (e.code === "KeyN" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); mapview().toggle(); return; } // bản đồ khu vực (R3): lớp phủ, không dừng game
       if (e.code === "Escape" && mapview().isOpen) { mapview().close(); return; }
@@ -832,10 +836,10 @@ export class GameScene extends Phaser.Scene {
     hud.buildChatTabs(); // tab kênh chat (#188); lịch sử giữ qua đổi bản đồ trong phiên
     addEventListener("focusin", (e) => { if (field(e.target) || hud.looksOpen()) this.keys = {}; }, on); // phím đang giữ lúc vào ô nhập thì nhả
     initDualWindows();
-    document.getElementById("charBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); toggleChar(); }, on);
-    document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); }, on);
-    document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); }, on);
-    document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); }, on);
+    document.getElementById("charBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); toggleChar(); }, on);
+    document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); hud.toggleRoster(); }, on);
+    document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); hud.toggleBag(); }, on);
+    document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); hud.toggleReso(); }, on);
     mapview().beforeOpen = () => { closeAudioPanel(); closeAutoPanel(); }; // nút Vùng do mapview.ts gắn một lần (cảm ứng chạy ngay lúc chạm)
     radar().onOpen = () => mapview().open();
     mapview().onFlag = (t) => this.mapFlag(t);
@@ -847,9 +851,10 @@ export class GameScene extends Phaser.Scene {
     bindCmdChip((c) => this.stopCmd(c, null));
     bindFlagBar(() => this.flagGo(), () => this.flagStop("Đã dừng tự đi"), () => this.flagClear());
     hud.onWorldAuto((map) => this.flagToMap(map));
-    document.getElementById("worldBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); this.openWorld(); }, on);
+    document.getElementById("worldBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); this.openWorld(); }, on);
+    document.getElementById("audioBtn")!.addEventListener("click", () => mapview().close(), on); // bảng Cài đặt không được chìm sau bản đồ khu vực (#1045)
     // Nút "Tự động" mở bảng cài đặt (Auto 2); phím T vẫn bật / tắt ngay.
-    document.getElementById("autoBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); toggleAutoPanel(); }, on);
+    document.getElementById("autoBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); mapview().close(); toggleAutoPanel(); }, on);
     hud.onWorldGo((key) => this.room.send("wp", { op: "go", key }));
     hud.onResonanceTop((page, pageSize) => this.room.send("resonance", { op: "top", page, pageSize }));
     // Chọn kênh (mục 6 "Nhiều kênh"): mở danh sách thì xin server số người từng kênh; bấm một kênh thì gửi ý định đổi kênh.
@@ -864,7 +869,7 @@ export class GameScene extends Phaser.Scene {
     // đi gửi trong `input` như khi giữ phím, server vẫn tính vị trí và va chạm (10.1).
     this.input.on("pointerdown", (ptr: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) => {
       // Phaser còn nghe mousedown ở cấp window: bấm rơi vào bảng / nút HUD (không phải canvas) không được thành lệnh đi, khoá hay chọn người (U1 #754).
-      if (ptr.downElement && ptr.downElement !== this.game.canvas) return;
+      if (!this.onCanvas(ptr)) return;
       // Phaser preventDefault mousedown của canvas nên trình duyệt không tự đưa tiêu điểm khỏi ô nhập (#990): bấm xuống bản đồ thì bỏ tiêu điểm ô chat / ô nhập,
       // không thì WASD, Space, U/I/O/P bị gõ vào ô. Chữ gõ dở giữ nguyên (Enter lại thì gõ tiếp); chỉ blur, không gửi, không xoá.
       const f = document.activeElement;
@@ -914,6 +919,9 @@ export class GameScene extends Phaser.Scene {
       this.keys = {}; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = "";
     }, this.ac.signal);
   }
+
+  /** Trước khi mở một bảng bằng phím / nút: đóng Cài đặt, Tự động và bản đồ khu vực (lớp phủ z-index 5 che bảng, #1045) để bảng vừa mở luôn thấy được. */
+  clearForPanel() { closeAudioPanel(); closeAutoPanel(); mapview().close(); }
 
   /**
    * Lệnh trong ô chat (7.1, #188): `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội, `/b <tin>` bản đồ, `/d <tin>` tổ đội, `/t <tên> <tin>`
@@ -3242,12 +3250,18 @@ export class GameScene extends Phaser.Scene {
       return { id: g.id, x: g.x, y: g.y - m.full.height / 2, width: m.full.width, height: m.full.height, priority: g.priority, compactSize: m.compact };
     }), { gap: 2 * K, maxOffset: 64 * K, maxVisible: 18, viewport: view, obstacles, prev: this.nameplateSlots, now: performance.now() });
     this.nameplateSlots = new Map(this.nameplateLayout.flatMap((p) => p.visible && p.slot ? [[p.id, p.slot] as const] : []));
+    // Đổi ô (bị đè thật / về chỗ gốc) không dịch tức thời: độ lệch vẽ đuổi theo ô đích ~120 ms, vẫn bám đầu đã nội suy (#1064).
+    const now = performance.now(), dtMs = this.nameplateT ? now - this.nameplateT : 1e9, shown = new Map<string, { dx: number; up: number }>();
+    this.nameplateT = now;
     for (const placement of this.nameplateLayout) {
       if (!placement.visible) continue;
-      const m = measured.get(placement.id)!, lines = placement.compact ? m.group.compact : m.group.lines;
-      const size = placement.compact ? m.compact : m.full, bottom = placement.y + placement.height / 2;
-      lines.forEach((t, i) => t.setOrigin(0.5, 1).setScale(K).setPosition(placement.x, bottom - size.offsets[i]).setVisible(true));
+      const m = measured.get(placement.id)!, lines = placement.compact ? m.group.compact : m.group.lines, home = m.group, old = this.nameplateShown.get(placement.id);
+      const size = placement.compact ? m.compact : m.full;
+      const dx = easeNameplate(old?.dx, placement.x - home.x, dtMs), up = easeNameplate(old?.up, home.y - (placement.y + placement.height / 2), dtMs);
+      shown.set(placement.id, { dx, up });
+      lines.forEach((t, i) => t.setOrigin(0.5, 1).setScale(K).setPosition(home.x + dx, home.y - up - size.offsets[i]).setVisible(true));
     }
+    this.nameplateShown = shown;
   }
 
   /**

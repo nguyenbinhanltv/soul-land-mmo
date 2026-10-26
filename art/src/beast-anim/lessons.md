@@ -4,7 +4,7 @@
 
 ## Cú pháp
 `- [phạm vi] câu tiếng Anh cho model // ghi chú tiếng Việt (không vào prompt)`
-- Phạm vi: danh sách cách nhau dấu phẩy hoặc dấu cách, gồm tên giai đoạn (`turnaround`, `direction`, `sheet`, hoặc `all`) và/hoặc họ hoạt ảnh bắt đầu bằng `@` (`@quad`, `@bird`, `@snake`, `@insect`, `@plant`). Bỏ trống phần giai đoạn = mọi giai đoạn; bỏ trống phần họ = mọi họ.
+- Phạm vi: danh sách cách nhau dấu phẩy hoặc dấu cách, gồm tên giai đoạn (`turnaround`, `direction`, `sheet`, hoặc `all`) và/hoặc họ hoạt ảnh bắt đầu bằng `@` (`@quad`, `@bird`, `@snake`, `@insect`, `@plant`, `@float` phù du không chân, `@swim` thủy sinh không chân; thêm `!` phía trước để LOẠI một họ: `!@float`). Họ `float` / `swim` chỉ có ở công cụ (`TOOL_FAMILY` trong `beast-sheet-lib.mjs`), không có ở client. Bỏ trống phần giai đoạn = mọi giai đoạn; bỏ trống phần họ = mọi họ.
 - Câu tiếng Anh viết một dòng, ra lệnh trực tiếp, không số pixel, không số cân bằng game.
 - Nguồn bài học: báo cáo H4 (`bao-cao-h4.md` mục 3.2, 5.1), #766 và #767–#781, các PR đợt 1–5. Sửa câu thì sửa ở đây rồi sinh lại prompt.
 
@@ -15,15 +15,18 @@
 - [turnaround, direction, sheet] Every direction e, se and ne faces the RIGHT side of the picture; never mirror them to face left. // tây là lật ngang trong game
 
 ## Hurt và die
-- [turnaround, direction, sheet] HURT is a small recoil along the facing line: the creature stays upright on its feet and does not roll over, bounce into a new facing or turn its head toward the viewer. // 29/32 hurt sai: ngửa bụng, quay mặt
-- [turnaround, direction, sheet] DIE is a slow collapse along the facing line: the legs fold, the body lowers, and the final pose keeps the same body axis as the idle pose of that block. // 27/32 die xoay thân 90°
+- [turnaround, direction, sheet !@float !@swim] HURT is a small recoil along the facing line: the creature stays upright on its feet and does not roll over, bounce into a new facing or turn its head toward the viewer. // 29/32 hurt sai: ngửa bụng, quay mặt
+- [turnaround, direction, sheet !@float !@swim] DIE is a slow collapse along the facing line: the legs fold, the body lowers, and the final pose keeps the same body axis as the idle pose of that block. // 27/32 die xoay thân 90°
 - [turnaround, direction, sheet @quad] Squat or low-bodied creatures (toads, turtles, boars) also keep the belly hidden while recoiling: they hunker lower instead of rearing up. // hurt của ếch, rùa hay ngửa bụng
 - [turnaround, direction, sheet @bird] HURT of a bird jolts the wings and body backward but its feet stay on the ground; DIE ends with the wings folded along the body. // cánh dễ bung ra ngang khi ngã
 - [turnaround, direction, sheet @snake] DIE of a snake ends stretched out straight along the facing line, never coiled sideways. // thân rắn dễ cuộn ngang khi chết
+- [turnaround, direction, sheet @float] HURT of a drifting creature is a sharp contraction plus a small push backward along the facing line, the tentacles flick, and it keeps floating upright. DIE is a slow sink along the facing line with the body going slack and the tentacles trailing limp; it stays legless and rootless in every frame and never ends lying on a floor. // sứa / bạch tuộc: không chân, không ground (#1049)
+- [turnaround, direction, sheet @swim] HURT of a swimming creature is a small jolt backward along the facing line, fins flaring, staying level. DIE is a slow sink with the fins drooping, ending level with the same body axis as idle; it never shows its belly and never rotates sideways across the view. // cá, đuối, cá mập, cá voi: không chân (#1049)
+- [turnaround @float @swim] Draw all poses at the same body size and on the same baseline; one creature per cell with clear magenta space around it. // ảnh mẫu hướng, loài không chân
 
 ## Cỡ, lưới, nhất quán
 - [direction, sheet] Keep the body the same height and length in every row of the sheet, matching the reference; never let walking, attacking or hurt frames grow or shrink the creature. // cỡ thân n / ne to hơn 15–20% ở tờ B 1254²
 - [direction, sheet] Draw every frame as its own separate picture: leave clear magenta space between neighbours, never overlap or merge two creatures. // hình dính nhiều ô làm cutter hỏng
 - [direction, sheet] Idle frames must show a small visible change from frame to frame (breathing, sway), and HURT must look clearly different from IDLE. // khung chết: idle / hurt trùng nhau (khung sao chép khuôn)
 - [direction, sheet] A frame that is empty in the layout stays empty magenta: do not fill spare cells with extra poses. // ô trống có hình
-- [turnaround] Draw all poses at the same body size and on the same ground line; one creature per cell with clear magenta space around it. // ảnh mẫu hướng phải cùng cỡ
+- [turnaround !@float !@swim] Draw all poses at the same body size and on the same ground line; one creature per cell with clear magenta space around it. // ảnh mẫu hướng phải cùng cỡ
