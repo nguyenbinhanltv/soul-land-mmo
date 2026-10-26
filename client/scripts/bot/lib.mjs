@@ -171,3 +171,15 @@ export const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
  */
 export async function test(b,op,extra={}){ b.test=null; const n=b.ownedMsgs; b.room.send("test",{op,...extra}); await waitFor(()=>b.test&&b.ownedMsgs>n);
   const t=b.test; if(t) await waitFor(()=>b.patchN>b.testPatch,600); await sleep(30); return t; }
+/**
+ * Vùng của file Tiled gộp theo tên (bản đồ lớn dựng bằng tools/maps tách một vùng có tên thành nhiều mảnh chữ nhật, 11.3 / 11.5):
+ * Map tên -> { name, years, beasts (mã loài), rects }.
+ */
+export function zonesByName(objs){
+  const m=new Map(), pr=(o,n)=>(o.properties??[]).find(q=>q.name===n)?.value;
+  for(const o of objs.filter(o=>(o.type??o.class)==="zone")){
+    const z=m.get(o.name)??{name:o.name,years:pr(o,"years"),beasts:String(pr(o,"beasts")??"").split(",").map(x=>x.split(":")[0].trim()).filter(Boolean),rects:[]};
+    z.rects.push(o); m.set(o.name,z);
+  }
+  return m;
+}
