@@ -2294,6 +2294,8 @@ Thiết Giáp Cự Giải (H4 đợt 4, Part of #770/#766): `art/src/beast-anim/
 
 Thiết Giáp Tê Ngưu (H4 đợt 4, Part of #770/#766): `art/src/beast-anim/thiet_giap_te_nguu/toA.png` (1024×1536, fresh110 A1) và `toB.png` (1254×1254 thật thay1024×1024 yêu cầu, fresh112 B1), tthoadev sinh ngày2026-10-26 bằng builtin `image_gen.imagegen`; mỗi tờ1call/0retry, tổng2. Model ảnh/seed unknown. A static identity only; B ordered static+A style/body-size candidate còn FAIL. RAW nguyên byte, không hậu kỳ/cắt/resize; nộp mọiFAIL theo owner, không size/art/runtime acceptance. Exact prompts/baseposition/refroles/hash/counters/template conflicts: [NGUON.md](src/beast-anim/thiet_giap_te_nguu/NGUON.md), toA/toB.prompt.txt và toA/toB.source.json cùng thư mục. Nguồn Q44/điều khoản công cụ.
 
+Lôi Dực Ưng (H4 #772): `art/src/beast-anim/loi_duc_ung/toA.png` (948×1659, A1) và `toB.png` (1254×1254, B2); B1 giữ candidate trong `candidates/`. Sinh ngày 2026-10-26 bằng Codex `image_gen.imagegen`, tổng 3 lượt (A1+B1+B2), model/seed unknown. Static đúng loài làm ref A; B dùng static rồi A1 candidate chưa owner-approved. RAW nguyên byte, không resize/crop/hậu kỳ. Checker chặn A vì tỉ lệ; theo rule owner đây là cảnh báo kỹ thuật, không phải `LỖI`. Soát mắt: A S H4 D4 và B NE H4 D4 chết nằm ngang lệch trục. Prompt, SHA, refs, lượt và findings: [NGUON.md](src/beast-anim/loi_duc_ung/NGUON.md), `toA/toB.prompt.txt`, `toA/toB.source.json` và candidate B1; chưa artaccepted/imported.
+
 <!-- private-assets:start -->
 ## Asset kho riêng (không nằm trong repo công khai)
 
