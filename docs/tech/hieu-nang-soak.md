@@ -6,8 +6,8 @@
 - 40–60 người tự săn một kênh ×8: tick + bản vá trung bình 7–11 ms trên nhịp 50 ms; nhịp > 50 ms hiếm (≤ 1 / phút), không có nguyên nhân rõ trong code game.
 - Băng thông 5–8 KB/s mỗi client (9–12 KB/s cạnh thú vương). Phòng trống tự hủy, heap về gần mức đầu; heap tăng chỉ do túi đồ bot đầy dần (có trần), không thấy rò.
 - Redis tắt giữa chừng (hai tiến trình): bài `arena` và `friend` đạt, server sống đến cuối (phần 9 bên dưới).
-- Kịch bản 1–2 giờ chưa đo.
-- Map toàn cục (#739): `kingClaimCache` dọn theo khung thú vương hết hạn, `lastFoe` của hàng chờ đấu trường dọn khi cả hai bên rời hàng quá hạn (thời lượng trận + `ARENA.rematchSecs`, vì cặp đang đấu vẫn phải bị chặn ghép lại); `tools/ci/check-global-maps.mjs` (trong `npm run check`) chặn Map / Set cấp module mới không có đường xóa (hoặc chú thích `map-co-dinh:`); test `npm run test:mapleak --prefix server`. Soak 2 giờ có chụp heap vẫn chưa chạy.
+- Kịch bản 2 giờ đã đo (mục 10, #739): 40 người tự săn một kênh ×8 với PostgreSQL, heap phẳng ~53–54 MB từ phút 15, RSS ~310–320 MB, không thấy rò Map / Set mức tiến trình.
+- Map toàn cục (#739): `kingClaimCache` dọn theo khung thú vương hết hạn, `lastFoe` của hàng chờ đấu trường dọn khi cả hai bên rời hàng quá hạn (thời lượng trận + `ARENA.rematchSecs`, vì cặp đang đấu vẫn phải bị chặn ghép lại); `tools/ci/check-global-maps.mjs` (trong `npm run check`) chặn Map / Set cấp module mới không có đường xóa (hoặc chú thích `map-co-dinh:`); test `npm run test:mapleak --prefix server`. Soak 2 giờ có chụp heap: mục 10.
 
 Bảng dưới là số liệu từng lượt; mốc đầu đo trên code `257570e`, so với mốc 11.4 và soak 30 phút.
 
@@ -90,7 +90,7 @@ Không có hàm game nào nổi bật. `vnClock` (`Intl.DateTimeFormat`, gọi t
 | Băng thông mỗi client | **Đạt**: 5–8 KB/s (mốc 7–8), 9–12 KB/s cạnh thú vương, ~0,5 KB/s trong thành |
 | Phòng trống tự hủy, heap về gần mức đầu | **Đạt** |
 | Rò bộ nhớ | **Không thấy**: heap tăng do túi đồ đầy dần (có trần), dừng tăng khi túi đầy |
-| Kịch bản Dài 1–2 giờ | **Chưa đo**: máy dùng chung, mỗi lượt giới hạn 30 phút. Đã thay bằng 3 lượt 20–28 phút liên tiếp, không thấy xu hướng tăng ngoài túi đồ |
+| Kịch bản Dài 1–2 giờ | **Đạt** (mục 10): 120 phút, 40 bot, heap / RSS phẳng, không rò Map / Set |
 
 ## 6. Đo lại nhịp chậm
 Code `5620686` (có `PERF_LOG` ghi `[perf-slow]` theo đoạn và CPU luồng chính). macOS, 10 luồng, tải nền ~3 (có các phiên khác chạy cùng). Server `node --import tsx`, `GAME_TEST=1 PERF_LOG=1`, lưu RAM (`env -u DATABASE_URL`, log in `Chưa có DATABASE_URL`), bản đồ ×8. Bot: `N=40|60 SECS=300 node client/scripts/auto-soak.mjs`, một kênh Tinh Đấu Ngoại vi, mỗi mức một server mới. Chỉ tính cửa sổ 10 giây có đủ người.
@@ -185,8 +185,33 @@ npm run bot:local -- --only friend --procs 2 --pg --env REDIS_URL=redis://127.0.
 
 Redis được tắt / bật bởi harness ngoài bài bot đúng giữa lượt; không đưa harness hoặc log tạm vào repo.
 
+## 10. Soak 2 giờ, 40 bot, chụp heap (#739 phần c)
+**Cách đo.** Code `7abde919` (main lúc đó). Windows 11, Node 24.12, máy dùng chung (RAM trống 3,7–7,8 GB). Một server `node --import tsx --max-old-space-size=1024 --expose-gc --inspect=127.0.0.1:9251`, cổng 2651, `GAME_TEST=1 PERF_LOG=1`, **PostgreSQL riêng** (embedded-postgres cổng 55439, một database, xóa sau lượt; không `DATABASE_URL` của shell, không Redis, không Chrome). Đúng một tiến trình bot: `N=40 node client/scripts/auto-soak.mjs` (40 bot tự săn rải đều một kênh Tinh Đấu Ngoại vi ×8, 126 phút). Một máy đo ngoài repo nối inspector: mỗi 5 phút `gc()` rồi ghi RSS / `heapUsed` / `external`; chụp heap (`HeapProfiler.takeHeapSnapshot`) ở phút 0 (sau khi đủ 40 bot) / 30 / 60 / 120; số phòng và thực thể lấy từ dòng `[perf]` cuối của từng phòng. Bộ phân tích snapshot gộp theo (loại, tên) và liệt kê `Map` / `Set` kèm tên biến giữ chúng. Máy đo, log thô, snapshot để ngoài repo.
+
+| Phút | RSS (MB) | heapUsed sau gc (MB) | external (MB) | Phòng | Người | Hồn thú | tick + vá (ms) | max (ms) | Lỗi server |
+|---|---|---|---|---|---|---|---|---|---|
+| 0 | 274 | 46,4 | 12,5 | 1 | 40 | 367 | 7,9 | 92 | 0 |
+| 5 | 297 | 49,6 | 11,7 | 1 | 40 | 273 | 7,5 | 19 | 0 |
+| 15 | 317 | 53,5 | 9,2 | 1 | 40 | 282 | 7,0 | 32 | 0 |
+| 30 | 324 | 53,9 | 10,1 | 1 | 40 | 416 | 5,7 | 17 | 0 |
+| 60 | 314 | 53,3 | 9,6 | 1 | 40 | 418 | 4,7 | 8 | 0 |
+| 90 | 315 | 53,7 | 12,2 | 1 | 40 | 418 | 4,6 | 7 | 0 |
+| 120 | 318 | 53,9 | 9,7 | 1 | 40 | 418 | 4,8 | 12 | 0 |
+
+(Đủ 25 mẫu mỗi 5 phút; trên là các mốc chính. Số phòng là số phòng còn ghi `[perf]` trong 30 giây, vì endpoint liệt kê phòng không có ở server này.) Đồ thị nhỏ của heapUsed (MB) theo mẫu 5 phút: `▁▃▅▆▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇` (46 → 54, phẳng từ phút 15).
+
+**Hiệu năng.** 720 dòng `[perf]` trong 2 giờ: tick + vá p50 5,3 ms, p95 8,5 ms (khớp mục 1 / 7; thấp hơn lượt RAM vì dùng PostgreSQL, xem 7.1). `max` mỗi 10 giây: p50 11,6 ms, p95 43,8 ms, lớn nhất 239 ms; 23 trong 720 cửa sổ có nhịp > 50 ms (3 %, ~0,2 / phút), 143 dòng `[perf-slow]`. Không tăng theo thời gian: các cụm nhịp chậm lớn nhất lúc 40 bot vừa vào (phút 0, `AutoHunter` quyết định lần đầu 79 ms, như mục 7) và hai mẫu lẻ ở phút 20 / 110, còn tick + vá giảm dần từ 7,9 xuống ~4,7 ms khi bãi săn ổn định. Không có lỗi trong log server.
+
+**Rò bộ nhớ: không thấy rò Map / Set.** So heap phút 30 → 60 → 120 (phút 0 là lúc bot mới vào nên còn đang ấm lên):
+- Số `Map` / `Set` theo từng chủ giữ và dung lượng bảng **không đổi** từ phút 30 đến 120 (`bagSent` 40 Map / 288 KB, `bdata` 1, `$items` / `$indexes` 4, `st` / `buffs` 456 → 458 theo số hồn thú sinh lại, `minions` 416 → 418, `Set` của `interest` 2275 → 2275). Số object `Object` 42 782 → 42 732. Không có Map / Set mức tiến trình nào tăng theo thời gian.
+- Tăng từ phút 30 đến 120: `(concatenated string)` 14 628 → 28 956 chuỗi, +458 KB (nghi chuỗi ghép đang chờ làm phẳng, chưa truy ra chủ giữ); `code` (JIT) +224 KB; phần còn lại ≤ 10 KB mỗi nhóm. Tổng `heapUsed` chỉ +0,0–0,6 MB trong 90 phút (53,3 → 53,9 MB, ~0,4 MB / giờ) và RSS không tăng (324 → 318 MB). Không đủ để coi là rò ở quy mô vài giờ; ghi lại để lượt dài hơn (nhiều giờ) soi tiếp.
+- `external` / `arrayBuffers` (bộ đệm mã hóa) phẳng ~9–12 MB / ~4,8 MB.
+- Heap tăng 46 → 54 MB trong 15 phút đầu là ấm lên (túi đồ bot đầy tới trần, `bagSent` 9 KB → 288 KB, hồn thú sinh đầy), giống mục 3.
+
+**Kết luận.** Kịch bản Dài 2 giờ **Đạt**: nhịp giữ ổn, heap / RSS phẳng, không Map / Set nào mức tiến trình tăng (khớp việc dọn `kingClaimCache` / `lastFoe` ở #806). Không sửa code. Chưa đo trong lượt này: nhiều kênh / vào ra liên tục (mục 2 đã đo 28 phút), Redis, tải > 40 người, nhiều giờ liền.
+
 ## Trang bị hồn sư (E7)
 Chạy dài lệnh Thợ rèn / mặc đồ (40 bot × 20 phút, và PostgreSQL 20 bot × 5 phút): tick ~0,9 ms, không chậm dần, bộ nhớ không rò, vào lại đúng trạng thái. Số liệu, cách chạy (`bot:local --only equipsoak`) và kết luận cân bằng ở `docs/trang-bi-kinh-te.md` mục E7.
 
 ## Issue liên quan
-#167 (soak ×8), #220 / #222 (thú vương Tinh Đấu Nội địa), #229 (soak 30 phút), #240, #241, #250, #273 và #375 (nhịp chậm), #311 (`PERF_LOG` theo đoạn), #394 (hiệu ứng G3), #418 (E7), #496 (Redis).
+#167 (soak ×8), #220 / #222 (thú vương Tinh Đấu Nội địa), #229 (soak 30 phút), #240, #241, #250, #273 và #375 (nhịp chậm), #311 (`PERF_LOG` theo đoạn), #394 (hiệu ứng G3), #418 (E7), #496 (Redis), #739 (soak 2 giờ).
