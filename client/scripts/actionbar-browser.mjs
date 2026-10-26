@@ -271,12 +271,19 @@ try {
     await page.evaluate((bid) => { window.__c8Scene.targetBeast = bid; }, beast.bid);
     const skill = page.locator('.sk[data-i="0"]');
     if (touch) await skill.tap(); else await skill.click();
-    await page.waitForFunction(() => Number(document.querySelector('.sk[data-i="0"]')?.dataset.p) > 0);
-    await screenshot(page, "hoi-chieu", size);
+    // Đo cùng một khung hình đang hồi chiêu; chụp ảnh có thể xong sau khi hồi chiêu đã hết.
+    const cooldown = await (await page.waitForFunction(() => {
+      const e = document.querySelector('.sk[data-i="0"]');
+      const p = Number(e?.dataset.p);
+      return p > 0 ? { p, seconds: e.querySelector(".cdn").textContent,
+        gradient: getComputedStyle(e.querySelector(".ui-cd")).backgroundImage } : false;
+    })).jsonValue();
     if (!before) {
-      assert.ok(await page.locator('.sk[data-i="0"] .cdn').innerText());
-      assert.match(await page.locator('.sk[data-i="0"] .ui-cd').evaluate((e) => getComputedStyle(e).backgroundImage), /conic-gradient/);
+      assert.ok(Number(cooldown.seconds.replace(",", ".")) > 0, "Hồi chiêu phải hiện số giây dương khi p>0");
+      assert.match(cooldown.gradient, /conic-gradient/);
+      samples.at(-1).cooldown = cooldown;
     }
+    await screenshot(page, "hoi-chieu", size);
     if (!before) {
       const active = await page.evaluate(() => window.__c8Scene.owned.active);
       await hook(page, "set", { rowId: active, level: 80, rings: [100, 1000, 10000, 50000, 50000, 50000, 50000, 50000] });
