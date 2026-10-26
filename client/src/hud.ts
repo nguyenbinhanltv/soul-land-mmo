@@ -16,6 +16,7 @@ import { TIERS, VOHON, HE, type He, ringLimit, tierOfYears, vohonIndex, TEAM_SIZ
 
   ringSkill, skillChoices, loadoutOf, LOADOUT_SIZE, HIGH_RINGS, CHAN_THAN_RING, chanThanOf, chanThanStats, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_CD, FUSION, FUSIONS, fusionsOf, type SkillDef, type ChanThanDef, type ChanThanStat, ARENA, type ArenaRecord } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
+import { initUiIcons } from "./uiIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { vohonCard } from "./cards.ts";
 import { artImg, artUrl, chanThanImg, fusionImg, skillImg, tintedUrl } from "./uiArt.ts";
@@ -151,6 +152,7 @@ export function chatClose() { if (!chatPinned) return false; chatPinned = false;
 
 /** Dựng thanh tab của ô chat (một lần; chuột hoặc chạm, `pointerdown` không lấy mất tiêu điểm của ô gõ). */
 export function buildChatTabs() {
+  initUiIcons();
   const bar = $("#chattabs"); if (!bar) return;
   if (!bar.childElementCount) for (const t of CHAT_TABS) {
     const b = document.createElement("button");

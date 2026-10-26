@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { ContextCursor, pickupHintAllowed, resolveCursor } from "../contextCursor.ts";
 import type { Room } from "colyseus.js";
 import { MINI_BASE, TIERS, BEASTS, VOHON, RADAR, SYNC_VIEW, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
   ringSkill, loadoutOf, DEFAULT_LOADOUT, chanThanOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
@@ -381,6 +382,7 @@ export class GameScene extends Phaser.Scene {
   lvVh = -1; lvSeen = 0;            // võ hồn ra trận và cấp ở khung trước: cấp tăng (cùng võ hồn) thì phát khúc ngắn lên cấp
   selectedPlayer = "";
   targetBeast = "";
+  contextCursor: ContextCursor | null = null;
   /** Hồn thú đang khoá (M3 #750): server giữ và báo lại bằng tin `lock`; "" = không khoá. `lockPlanT`: lúc tính đường tới nó gần nhất. */
   lockId = ""; lockPlanT = 0;
   guideOn = false; // đã gắn hướng dẫn lần đầu (guide.ts) cho hồn sư này
@@ -395,6 +397,7 @@ export class GameScene extends Phaser.Scene {
     hud.resetChannels(); // danh sách kênh của phòng trước không còn đúng
     // Scene tắt (đổi bản đồ, vào / ra sân đấu): bỏ các hộp gắn với bản đồ cũ (cổng, gợi ý / hộp thoại NPC, trường đấu).
     const off = () => {
+      this.contextCursor?.destroy(); this.contextCursor = null;
       this.slowmo = 1; this.hitstopEnd = 0; this.anims.globalTimeScale = 1; this.tweens.timeScale = 1; this.ac.abort(); this.cine.destroy(); this.ptCut.destroy(); this.pt.clear(); this.lpc?.destroy(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.closeLooks(); hud.showPlayerMenu(null);
       hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} });
       this.show?.destroy(); this.show = undefined;
@@ -747,6 +750,7 @@ export class GameScene extends Phaser.Scene {
 
   // ---------- Điều khiển ----------
   setupInput() {
+    this.contextCursor = new ContextCursor(this.game.canvas);
     const chat = document.getElementById("chat") as HTMLInputElement;
     const typing = () => document.activeElement === chat;
     // Ô nhập khác trên HUD (niên hạn, sao hồn hạch ở bảng Tự động, ô mời tổ đội): phím thuộc về ô, không phải phím tắt game.
@@ -2773,7 +2777,7 @@ export class GameScene extends Phaser.Scene {
 
   // ---------- Đồng bộ trạng thái mỗi khung hình ----------
   update(time: number, delta: number) {
-    const dt = delta / 1000, st = this.room.state; if (!st?.players) return;
+    const dt = delta / 1000, st = this.room.state; if (!st?.players) { this.contextCursor?.clear(); return; }
     fxGov.feed(delta, fxPrefs.level);
     this.endHitstop(performance.now()); this.fxp.update(this.hitstopEnd ? dt * 0.06 : dt); this.svis.sheets.update(this.hitstopEnd ? delta * 0.06 : delta);
     this.sendInput();
@@ -3121,6 +3125,35 @@ export class GameScene extends Phaser.Scene {
       if (this.hudT <= 0) { this.hudT = 0.08; this.updateHud(me); this.updateNpcs(me); }
     }
     this.layoutOverheadLabels();
+    this.updateContextCursor();
+  }
+
+  updateContextCursor() {
+    const cursor = this.contextCursor; if (!cursor?.active) { cursor?.clear(); return; }
+    const st = this.room.state, me = st.players.get(this.me);
+    if (!me || me.dead || this.watching) { cursor.show("default"); return; }
+    const pointer = this.input.activePointer, at = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+    const npc = this.npcs.some((n) => {
+      if (!n.def) return false;
+      const p = W2S(n.x, n.y);
+      return Math.abs(at.x - p.x) <= 11 * SPR && at.y >= n.top - 6 * SPR && at.y <= p.y + 6 * SPR;
+    });
+    let player = false;
+    this.players.forEach((v, id) => {
+      if (id !== this.me && Math.hypot(at.x - v.root.x, (at.y - (v.root.y - 12 * SPR)) * 0.7) < 14 * SPR) player = true;
+    });
+    const native = player || (!npc && this.input.hitTestPointer(pointer).length > 0);
+    const bid = this.beastAt(at.x, at.y), beast = !!bid && st.beasts.get(bid)?.hp > 0 && !!this.beasts.get(bid)?.visible;
+    let loot = false, drop = false;
+    this.drops.forEach((view, id) => {
+      if (!view.img.visible || !view.img.getBounds().contains(at.x, at.y)) return;
+      drop = true;
+      const state = st.drops.get(id);
+      if (state && me.absorb <= 0 && Math.hypot(state.x - me.x, state.y - me.y) < PICKUP_RANGE && pickupHintAllowed(state, this.me, this.party?.id ?? 0)) loot = true;
+    });
+    const world = screenToWorld(at.x, at.y);
+    cursor.show(resolveCursor({ enabled: true, npc, native, beast, drop, loot,
+      blocked: !!this.grid && isSolidTile(this.grid, Math.floor(world.x / TILE), Math.floor(world.y / TILE)) }));
   }
 
   /** Đo chữ Phaser sau cập nhật nội dung; cùng một khung dùng để né và đặt từng dòng. */
