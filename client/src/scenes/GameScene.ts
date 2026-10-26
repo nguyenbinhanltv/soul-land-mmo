@@ -10,7 +10,7 @@ import { MINI_BASE, TIERS, BEASTS, VOHON, RADAR, SYNC_VIEW, MAPS, TILE, titleOf,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
   type QuestProgress, type QuestStatus, formatHonTe, type SkillDef, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS, LPC_VIEW, decodeLpc, encodeLpc, presetToLpc, lpcGearLooks, type Looks } from "../../../shared/data.ts";
 import { makeTextures, vohonTextures, BEAST_ORIGIN } from "../textures.ts";
-import { wantVohon, wantPhapTuong, vohonIdAt, vohonKeys } from "../vohonLazy.ts";
+import { wantVohon, wantPhapTuong, wantBeast, vohonIdAt, vohonKeys } from "../vohonLazy.ts";
 import { buildRings, animateRings, type HaloState } from "../soulRings.ts";
 import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, animBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim, animLayoutOf } from "../sprites.ts";
@@ -414,11 +414,15 @@ export class GameScene extends Phaser.Scene {
     this.load.image("tiles", "tiles.png");
     preloadIso(this, this.mapId);
     // sheet NPC LPC: chỉ của NPC và dân thường bản đồ này (crowd.ts); phụ thể võ hồn: chỉ của người đang trong phòng, người tới sau tải lười (vohonLazy.ts)
-    preloadSprites(this, lpcPreloader(this, this.mapId), () => this.room.state.players?.forEach((p: any, sid: string) => {
-      if (p.vh < 0) return;
-      wantVohon(this, vohonIdAt(p.vh), false);
-      if (p.ava > 0 || sid === this.me) wantPhapTuong(this, vohonIdAt(p.vh), false); // pháp tướng tải lười (#716): người đang Chân Thân, và của mình (cut-in)
-    }));
+    preloadSprites(this, lpcPreloader(this, this.mapId), () => {
+      this.room.state.players?.forEach((p: any, sid: string) => {
+        if (p.vh < 0) return;
+        wantVohon(this, vohonIdAt(p.vh), false);
+        if (p.ava > 0 || sid === this.me) wantPhapTuong(this, vohonIdAt(p.vh), false); // pháp tướng tải lười (#716): người đang Chân Thân, và của mình (cut-in)
+      });
+      // hồn thú tải lười (#716): chỉ loài đang có trong state lúc vào (tầm nhìn); loài tới sau xin lúc xuất hiện (vòng vẽ hồn thú)
+      this.room.state.beasts?.forEach((b: any) => { const sp = beastSheetSpecies(b.rank, beastBase(b.rank, b.species)?.id); if (sp && b.egg <= 0) wantBeast(this, sp, false); });
+    });
   }
 
   create() {
@@ -2903,7 +2907,10 @@ export class GameScene extends Phaser.Scene {
       // Tinh anh (BĐ4): sprite của loài gốc (BOSSES.species) phóng ELITE.scale. Mọi sprite cũ phóng thêm SPR (10.1); sheet isometric
       // (mục 5.11) đã ở cỡ màn hình nội bộ nên không phóng SPR. Hình tạm LPC không dùng cho thú vương / boss (beastSheetSpecies).
       // Bọc trứng (#162): kén vẽ bằng code, phập phồng nhanh dần khi sắp nở (đồng hồ nở vẽ ở lớp phủ bên dưới).
-      const egg = b.egg > 0, spr = egg ? null : syncBeastSprite(s, beastSheetSpecies(b.rank, beastBase(b.rank, b.species)?.id), b.moving, b.aggro, b.cast, face, (BEAST_ART.now = time, BEAST_ART.hp = b.hp, BEAST_ART.walkScale = b.aggro ? BEAST_ANIM_SCALE.chase : BEAST_ANIM_SCALE.wander, BEAST_ART)), k = spr ? spriteRankScale(s, b.rank) : rankScale(b.rank);
+      // Sheet loài chưa tải xong (wantBeast, #716): ẩn sprite (và tên) tới khi có ảnh thật, không vẽ bản tạm bằng code để khỏi nháy.
+      const egg = b.egg > 0, bsp = beastSheetSpecies(b.rank, beastBase(b.rank, b.species)?.id), waitArt = !egg && !!bsp && wantBeast(this, bsp) === "wait";
+      s.setVisible(!waitArt);
+      const spr = egg ? null : syncBeastSprite(s, waitArt ? undefined : bsp, b.moving, b.aggro, b.cast, face, (BEAST_ART.now = time, BEAST_ART.hp = b.hp, BEAST_ART.walkScale = b.aggro ? BEAST_ANIM_SCALE.chase : BEAST_ANIM_SCALE.wander, BEAST_ART)), k = spr ? spriteRankScale(s, b.rank) : rankScale(b.rank);
       if (egg) {
         if (s.texture.key !== "spider_egg") s.setTexture("spider_egg");
         s.setScale(SPR * (1 + (b.egg < EGG_SOON ? 0.08 * Math.sin(time / 45) : 0.03 * Math.sin(time / 160))));
@@ -3036,6 +3043,7 @@ export class GameScene extends Phaser.Scene {
     const g = this.ov; g.clear();
     st.beasts.forEach((b: any, id: string) => {
       const s = this.beasts.get(id)!, t = TIERS[b.tier];
+      if (!s.visible) return; // sheet loài đang tải lười (wantBeast): chưa vẽ gì quanh hồn thú
       if (b.egg) {
         // Đồng hồ nở (#162): cung trên mặt đất quanh bọc, ngắn dần theo thời gian còn lại; dưới 3 giây thì đỏ.
         const f = Math.min(1, b.egg / 10 / (EGG_SECS.get(BEASTS[b.species]?.id ?? "") ?? b.egg / 10)), n = Math.max(2, Math.ceil(f * 32)), pts: Pt[] = [];
@@ -3069,7 +3077,7 @@ export class GameScene extends Phaser.Scene {
     this.paintWaypoints(this.teleG, time); // truyền tống trận (11.2): trên mặt đất, dưới hồn sư
     this.paintWpCasts(g, time);
     // Bóng đổ elip dưới chân hồn thú (hồn sư có sẵn bóng trong container), nằm trên mặt đất cùng lớp vùng cảnh báo.
-    for (const [id, s] of this.beasts) if (st.beasts.get(id) && !st.beasts.get(id).dive) {
+    for (const [id, s] of this.beasts) if (s.visible && st.beasts.get(id) && !st.beasts.get(id).dive) {
       const w = Math.max(12 * SPR, beastBody(s).w * 0.6);
       this.teleG.fillStyle(0x1a1020, 0.35).fillEllipse(s.x, s.y, w, w / 2);
     }
@@ -3191,7 +3199,7 @@ export class GameScene extends Phaser.Scene {
     this.eliteLabels.forEach((t, id) => {
       const b = st.beasts.get(id), s = this.beasts.get(id);
       t.setVisible(false);
-      if (!b || !s || b.dive || b.hp <= 0) return;
+      if (!b || !s || !s.visible || b.dive || b.hp <= 0) return;
       const an = beastLabelAnchor(s, b.tier), top = an.top;
       body(`beast:${id}`, an.x, an.y, Math.min(s.displayWidth, 64), an.y - top);
       add({ id: `beast:${id}`, x: an.x, y: top - 6 * K, priority: nameplatePriority(id === this.targetBeast, false, false, b.rank), lines: [t], compact: [t] });

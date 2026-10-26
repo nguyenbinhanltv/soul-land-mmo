@@ -5,6 +5,9 @@
 // như khi manifest không có ảnh (vohonTextures).
 // Pháp tướng `pt_<mã>` (+ `_glow`, 2560×800, 35 ảnh; bước 2 của #716) cùng cơ chế: chỉ xin khi có người trong phòng đang Chân Thân (và sheet của
 // chính mình, để cut-in có ảnh), không có normal map; chưa tải xong thì phapTuong.ts chưa dựng hình (không vẽ bản tạm để khỏi nháy).
+// Hồn thú `beast_<loài>` (+ `_anim` nếu có; bước 3 của #716) cùng cơ chế: chỉ xin loài đang có hồn thú trong tầm (lúc vào: hồn thú đã trong state;
+// sau đó: lúc hồn thú xuất hiện), nên chỉ tải loài của bản đồ đang vào + boss / thú vương / thú gọi ra; chưa tải xong thì ẩn sprite (không vẽ bản
+// tạm bằng code để khỏi nháy).
 import Phaser from "phaser";
 import { PHAP_TUONG, VOHON } from "../../shared/data.ts";
 import { attachNormal, lightingOn } from "./lighting.ts";
@@ -21,12 +24,19 @@ export const registerVohonSheet = (key: string, url: string, frame: readonly [nu
 
 export const vohonKeys = (id: string): [string, string] => [`vh_${id}_b`, `vh_${id}_f`];
 
+/** Việc làm thêm khi một sheet hồn thú vừa tới (sprites.ts đăng ký: dựng animation, đo thân; vohonLazy không import ngược sprites.ts). */
+let onBeastSheet: ((scene: Phaser.Scene, key: string) => void) | undefined;
+export const setBeastSheetHook = (f: (scene: Phaser.Scene, key: string) => void) => { onBeastSheet = f; };
+
 /** Xử lý khi loader xong một đợt: sheet đã tới thì gắn normal map, sheet không tới thì đánh dấu lỗi để dùng bản vẽ bằng code. */
 function settle(scene: Phaser.Scene) {
   const set = pending.get(scene);
   if (!set) return;
   for (const key of [...set]) {
-    if (scene.textures.exists(key)) { if (key.startsWith("vh_")) attachNormal(scene, key); }
+    if (scene.textures.exists(key)) {
+      if (key.startsWith("vh_") || key.startsWith("beast_")) attachNormal(scene, key);
+      if (key.startsWith("beast_")) onBeastSheet?.(scene, key);
+    }
     else failed.add(key);
     set.delete(key);
   }
@@ -70,6 +80,18 @@ export function wantPhapTuong(scene: Phaser.Scene, id: string, start = true): "r
   const keys = [body, ...(specs.has(glow) && !failed.has(glow) ? [glow] : [])];
   if (keys.every((k) => scene.textures.exists(k))) return "ready";
   queue(scene, keys, false, start);
+  return "wait";
+}
+
+/**
+ * Xin sheet hồn thú loài `species` (mã BEASTS): `"ready"` (đã có ảnh, bản tĩnh / hoạt ảnh đều tới), `"wait"` (đang tải: nơi gọi ẩn sprite), `"code"`
+ * (manifest không có ảnh thật của loài hoặc tải lỗi: vẽ bằng code theo bậc như trước).
+ */
+export function wantBeast(scene: Phaser.Scene, species: string, start = true): "ready" | "wait" | "code" {
+  const keys = [`beast_${species}`, `beast_${species}_anim`].filter((k) => specs.has(k) && !failed.has(k));
+  if (!keys.length) return "code";
+  if (keys.every((k) => scene.textures.exists(k))) return "ready";
+  queue(scene, keys, lightingOn(scene.game), start);
   return "wait";
 }
 
