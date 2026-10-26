@@ -19,12 +19,14 @@ import { Img, readPng, encodePng, readGpl, hex, OUTLINE } from "./lib.mjs";
 import { medianCut, nearest } from "./beast-sheet-cut.mjs";
 import { median } from "./beast-sheet-stats.mjs";
 import {
-  DIRS, CLIPS, SHEET_ID, CELL, SEXES, HALVES, GAME_ROWS, framesOf, gameAnims, gameCols, gameRow, gameKey, frameOrigin, checkFrame, phutheInfo, ANIM_ROOT, bodyStepOf,
+  DIRS, CLIPS, SHEET_ID, CELL, SEXES, HALVES, GAME_ROWS, framesOf, gameAnims, gameCols, gameRow, gameKey, frameOrigin, checkFrame, phutheInfo, ANIM_ROOT,
 } from "./phuthe-sheet-lib.mjs";
 import { prepareSheet, cellSpirit, dropSpecks, parseLop, layerFn, defaultLayers, levelOfCode, summarize, DUMMY_TOL, BG_TOL, dist2 } from "./phuthe-sheet-cut-lib.mjs";
 import { bodyAnchors } from "./phuthe-sheet-dummy.mjs";
 
 const K_OUT = hex(OUTLINE);
+/** Khung có diện tích phụ thể quá hệ số này (hoặc nhỏ hơn 1/hệ số) so với trung vị cùng clip là khung lệch (như hồn thú: 1,7). */
+export const LECH = 1.7;
 
 function forEdge(im, fn) {
   for (let y = 0; y < im.h; y++) for (let x = 0; x < im.w; x++) {
@@ -81,6 +83,14 @@ export function cutPhuThe(o) {
     }
   }
   if (![...frames.values()].some((f) => f.px.length)) throw new Error("không cắt được khung nào");
+
+  // Khung lệch: diện tích phụ thể so với trung vị cùng clip và cùng hướng (khung mất một phần do trùng màu khóa nộm, hoặc phình bất thường)
+  for (const dir of DIRS) for (const anim of CLIPS) {
+    const fs_ = [...Array(fr[anim]).keys()].map((f) => [f, frames.get(`${dir}/${anim}/${f}`)?.area]).filter(([, a]) => a);
+    if (fs_.length < 3) continue;
+    const ma = median(fs_.map(([, a]) => a));
+    for (const [f, a] of fs_) if (a > ma * LECH || a < ma / LECH) warn("khung-lech", `khung ${dir}/${anim}/${f} lệch: diện tích phụ thể ${Math.round((a / ma) * 100)}% trung vị cùng clip (kiểm tra: phụ thể trùng màu khóa nộm? hình sao chép?)`);
+  }
 
   // Cỡ phụ thể so với khung `s` cùng clip (đặc tả: lệch quá ±25% là cảnh báo, theo quyết định chủ repo 2026-10-26 mục 4 không chặn)
   for (const anim of CLIPS) {

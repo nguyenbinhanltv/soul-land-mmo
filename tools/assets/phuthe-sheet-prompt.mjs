@@ -11,8 +11,8 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  DIRS, DIR_VI, CLIPS, CLIP_VI, COLS, BAND_ROWS, BANDS, TURNAROUND, GROUP_VI, CELL, SHEET_W, SHEET_H, BG_KEY,
-  framesOf, sheetPlan, sheetCells, checkFrame, phutheInfo, allPhutheIds, styleBlock, frameOrigin, SHEET_ID,
+  DIRS, DIR_VI, CLIPS, CLIP_VI, COLS, BANDS, TURNAROUND, GROUP_VI,
+  framesOf, sheetPlan, sheetCells, checkFrame, phutheInfo, allPhutheIds, styleBlock, frameOrigin,
 } from "./phuthe-sheet-lib.mjs";
 import { lessonsFor, STAGES } from "./phuthe-sheet-lessons.mjs";
 import { writeDummies } from "./phuthe-sheet-dummy.mjs";
@@ -53,7 +53,7 @@ const spiritBlock = (info) => {
   const c = info.colors, L = info.brief.lines.map((l) => `- ${({ "Bá đạo ở đâu": "Overbearing presence", "Hình mẫu": "Form", "Màu": "Palette", "Motif": "Motifs (use only these)", "Vật đi kèm": "Companion objects" })[l.label] ?? l.label}: ${l.text}`);
   return `SPIRIT: ${info.name} (${info.id}); body type "${info.group}" = ${GROUP_VI[info.group]}. The design brief below comes from the canonical design table and is written in Vietnamese: follow it exactly, keep every hex code as written, and use only the motifs it lists.
 ${L.join("\n")}${c ? `\n- Base colors in the game data: body (robe) ${c.robe}, accent (col) ${c.col}.` : ""}
-Attachment and layering notes (Vietnamese; `sau` = drawn behind the hero's body, `truoc` = drawn in front of it): ${info.attach}
+Attachment and layering notes (Vietnamese; "sau" = drawn behind the hero's body, "truoc" = drawn in front of it): ${info.attach}
 Motion notes (Vietnamese): ${info.motion}`;
 };
 

@@ -9,7 +9,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Img, readPng, encodePng, hex, paletteGroup, frameAnchors, ROOT } from "./lib.mjs";
 import {
-  LPC_SHEET, DIRS, CLIPS, BG_KEY, CELL, SHEET_W, SHEET_H, COLS, BAND_ROWS, TURNAROUND, TURNAROUND_STEP, SEXES,
+  LPC_SHEET, DIRS, BG_KEY, CELL, SHEET_W, SHEET_H, TURNAROUND, TURNAROUND_STEP,
   framesOf, sheetCells, bodyStepOf, bodyRowKey, bodyColOf, bodyOffset, frameOrigin, checkFrame, phutheInfo, dummyKeyOf, SHEET_ID,
 } from "./phuthe-sheet-lib.mjs";
 

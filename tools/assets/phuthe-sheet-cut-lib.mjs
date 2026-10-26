@@ -208,7 +208,7 @@ export const LEVELS = ["info", "warn", "block"];
 /** Phân mức theo mã (mỗi cảnh báo của cutter có mã ngắn). block = phải sửa trước khi nhập; warn = nên xem; info = chỉ đếm. */
 export const CODE_LEVEL = {
   "thieu-to": "block", "khung-rong": "block", "con-nom": "block", "nom-mat": "warn", "nom-lech": "warn", "vuot-khung": "warn", "cham-mep": "warn",
-  "co-phu-the": "warn", "manh-vun": "info", "luoi": "info", "ghi-chu": "info", "hurt-rong": "warn", "ben-nua": "info", "cat-mep-khung": "warn",
+  "co-phu-the": "warn", "khung-lech": "warn", "manh-vun": "info", "luoi": "info", "ghi-chu": "info", "hurt-rong": "warn", "ben-nua": "info", "cat-mep-khung": "warn",
 };
 export const levelOfCode = (code) => CODE_LEVEL[code] ?? "warn";
 export function summarize(items) {
