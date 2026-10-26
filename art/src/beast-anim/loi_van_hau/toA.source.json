@@ -39,7 +39,6 @@
   "prompt_file": "toA.prompt.txt",
   "prompt_sha256": "d3b3cc5a120437cbeb001843a50f10d0660922c61c03be38d2a0798394214db8",
   "script_prompt_file": "loi_van_hau-toA.md",
-  "script_sha256": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba",
   "references": [
     {
       "path": "shared/assets/sprites/beast/loi_van_hau.png",
@@ -67,5 +66,8 @@
     "Visual magenta background; exact flat #FF00FF and palette compliance not certified.",
     "Style and proportions simplified relative to original static; animation loops unverified."
   ],
-  "qa_status": "RAW technical provenance only; owner art/animation/runtime acceptance pending."
+  "qa_status": "RAW technical provenance only; owner art/animation/runtime acceptance pending.",
+  "script_prompt_sha256": "86fd72c131294817a12d082e595e699f084be5af9c7c7950c06aa0bb3c365d06",
+  "generator_script_file": "tools/assets/beast-sheet-prompt.mjs",
+  "generator_script_sha256": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba"
 }
