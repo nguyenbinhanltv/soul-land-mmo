@@ -11,7 +11,7 @@ import { ArenaRoom } from "./rooms/ArenaRoom.ts";
 import { store } from "./db.ts";
 import { loginBegin, loginEnd, signupBegin, signupEnd, ssoCheck, apiCheck, loginRate, PASSWORD_MAX_LEN } from "./ratelimit.ts";
 import { GOOGLE, googleClientId, googleEnabled, verifyGoogle, makeTicket, readTicket } from "./google.ts";
-import { cleanName } from "./names.ts";
+import { cleanName, isReservedName } from "./names.ts";
 import { cacheControlFor } from "./staticCache.ts";
 import { loadMap } from "./map.ts";
 import { startSchedule } from "./schedule.ts";
@@ -59,7 +59,7 @@ function apiGate(req: express.Request, res: express.Response) {
   return false;
 }
 
-const NAME_RE = /^[\p{L}\p{N}_ ]{3,20}$/u, NAME_ERR = "Tên 3–20 ký tự, chỉ gồm chữ, số, dấu cách hoặc _.";
+const NAME_RE = /^[\p{L}\p{N}_ ]{3,20}$/u, NAME_ERR = "Tên 3–20 ký tự, chỉ gồm chữ, số, dấu cách hoặc _.", RESERVED_ERR = "Tên này dành riêng cho hệ thống, hãy chọn tên khác.";
 
 // Cấu hình công khai cho client: googleClientId null = ẩn nút Google (GOOGLE_CLIENT_ID không phải bí mật).
 app.get("/api/config", (_q, r) => { r.json({ googleClientId: googleEnabled() ? googleClientId() ?? "" : null }); });
@@ -69,6 +69,8 @@ app.post("/api/login", route(async (req, res) => {
   // Tên hiển thị sau NFKC (names.ts); store và rate limit tự so sánh theo nameKey(name).
   const name = cleanName(String(req.body?.name ?? "")), password = String(req.body?.password ?? "");
   if (!NAME_RE.test(name)) { res.status(400).json({ error: NAME_ERR }); return; }
+  // Tên cấm (#818) chỉ chặn TẠO MỚI: tài khoản đã có từ trước vẫn đăng nhập được.
+  if (isReservedName(name) && !(await store.lookupAccount(name))) { res.status(400).json({ error: RESERVED_ERR }); return; }
   if (password.length < 4) { res.status(400).json({ error: "Mật khẩu tối thiểu 4 ký tự." }); return; }
   if (password.length > PASSWORD_MAX_LEN) { res.status(400).json({ error: `Mật khẩu tối đa ${PASSWORD_MAX_LEN} ký tự.` }); return; }
   // Giới hạn số lần sai theo tên và theo IP (server/src/ratelimit.ts).
@@ -132,6 +134,7 @@ app.post("/api/login/google/create", route(async (req, res) => {
   if (!sub) { res.status(401).json({ error: "Phiên đăng nhập Google hết hạn, hãy bấm đăng nhập Google lại." }); return; }
   const name = cleanName(String(req.body?.name ?? ""));
   if (!NAME_RE.test(name)) { res.status(400).json({ error: NAME_ERR }); return; }
+  if (isReservedName(name)) { res.status(400).json({ error: RESERVED_ERR }); return; }
   const noSignup = signupBegin(ip);
   if (noSignup) { res.setHeader("Retry-After", String(noSignup.retryAfter)); res.status(429).json({ error: noSignup.error }); return; }
   let r: Awaited<ReturnType<typeof store.createIdentityAccount>>;

@@ -643,6 +643,8 @@ if(process.env.BOT_ONLY==="cold"){ await coldTest(); console.log(fails?`✗ ${fa
 if(process.env.BOT_ONLY==="ground"){ await groundTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="auto"){ await autoTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="tong"){ await tongTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="buybackproc"){ await buybackProcTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
+if(process.env.BOT_ONLY==="socialaudit"){ await socialAuditTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="savefail"){ await saveFailTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="luckrace"){ await luckRaceTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
 if(process.env.BOT_ONLY==="luck"){ await gearLuckTest(); console.log(fails?`✗ ${fails} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(fails?1:0); }
@@ -7630,6 +7632,122 @@ async function gearLuckTest(){
   r=await luck(T); ok(r?.ok&&luckOf(T)===2,"sau khi xong, lệnh kế tiếp được nhận lại bình thường");
   await test(S,"enhroll",{r:-1}); await test(S,"gear",{clear:true});
   }finally{ await S.room.leave().catch(()=>{}); }
+}
+/**
+ * Chống gian lận mua lại nhiều tiến trình / kênh (#742, BOT_ONLY=buybackproc; tài khoản riêng "Mua lai", mỗi vòng một hồn hoàn): bán, đổi kênh NGAY (kênh mới có thể ở
+ * tiến trình khác; danh sách mua lại đúng ở presence), rồi mua lại ba lần từ phiên mới, hai lần từ phiên cũ đang đi cổng và một lần từ phiên thứ hai của cùng tài khoản.
+ * Bất biến: số hồn hoàn không vượt lúc đầu, Hồn Tệ không vượt lúc đầu (mua lại đúng giá đã bán), id không trùng; món có thể "mất cơ hội mua lại"
+ * (danh sách chưa kịp sang) nhưng không nhân đồ / tiền. Cần CHANNEL_MAX=3 (--env CHANNEL_MAX=4; khác 2 để không chạy channelTest), tốt nhất `--procs 2 --pg`.
+ * Báo cáo: docs/tech/soat-gian-lan-mua-lai-ban-be-chat.md.
+ */
+async function buybackProcTest(){
+  console.log("[#742] Mua lại nhiều tiến trình / kênh: không nhân đồ, không nhân tiền");
+  const tn=npcSpot("nac_dinh_thanh","thuong_nhan");
+  const T=async(b,op,extra={})=>{ b.test=null; b.room.send("test",{op,...extra}); await waitFor(()=>b.test,2000); await sleep(80); return b.test; };
+  const F=[]; for(let i=1;i<=4;i++) F.push(await bot(`Mua lai F${i}`,"u_minh_linh_mieu",{sex:0,hair:1,hairCol:1,outfitCol:1}));
+  const M=await bot("Mua lai M","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
+  const all=[...F,M], bye=b=>b.room.connection?.isOpen?b.room.leave().catch(()=>{}):null;
+  if(!(await T(M,"ping"))?.enabled){ console.log("  ⚠ bỏ qua buybackproc (cần hook warp, goto, coin, give, chan): bật server bằng GAME_TEST=1"); for(const b of all) await bye(b); return; }
+  const meOf=b=>b.room.state.players?.get(b.room.sessionId), rings=b=>looseOf(b).filter(i=>i.code===RING_ITEM);
+  const warp=async b=>{ b.travel=null; await T(b,"warp",{mapId:"nac_dinh_thanh",x:0,y:0}); await waitFor(()=>b.travel,4000); const t=b.travel; await b.room.leave(); await sleep(250); b.mapId=t.mapId; await enter(b,t.roomId??undefined); await waitFor(()=>meOf(b)&&b.bag,3000); };
+  const follow=async b=>{ const t=b.travel; if(b.room.connection?.isOpen) await b.room.leave(); await sleep(150); b.mapId=t.mapId; await enter(b,t.roomId??undefined); await waitFor(()=>meOf(b)&&b.bag,3000); };
+  try{
+  // Bốn người lấp kênh 1 (CHANNEL_MAX=4), F4 vào sau ở kênh 2: M đổi sang kênh 2 (còn chỗ cho cả phiên thứ hai) và quay về được.
+  for(const b of [F[0],F[1],F[2],M,F[3]]) await warp(b);
+  ok(M.room.state.mapId==="nac_dinh_thanh"&&F[3].room.roomId!==M.room.roomId&&F[0].room.roomId===M.room.roomId,`M cùng kênh ${M.room.state.channel} với F1..F3; F4 ở kênh ${F[3].room.state.channel} (phòng khác)`);
+  await T(M,"coin",{n:1e6}); await T(M,"goto",{x:tn.x,y:tn.y+16}); await T(M,"rest",{s:TEAM_COMBAT_SECS+1});
+  let dupes=0, lost=0, done=0;
+  for(const [k,delay] of [[0,0],[1,40],[2,150]]){
+    await T(M,"give",{code:RING_ITEM,qty:1,years:10}); await waitFor(()=>rings(M).length>=1,2000);
+    const it=rings(M)[0]; if(!it){ ok(false,`vòng ${k}: không cấp được hồn hoàn thử (${M.logs.at(-1)})`); continue; }
+    const r0=rings(M).length, c0=M.bag.honTe, price=sellPrice(it);
+    M.room.send("sell",{id:it.id}); await sleep(delay);
+    // Khóa kênh đích sau lần đi cổng / đổi kênh chỉ nằm trong RAM của tiến trình gốc (không ở presence): chờ hết CHANNEL_CD để khóa cũ không chặn nhầm lần vào kế tiếp (xem báo cáo, mục 1c).
+    await sleep((CHANNEL_CD+1)*1000); await T(M,"chan",{reset:1}); await T(M,"rest",{s:TEAM_COMBAT_SECS+1});
+    M.travel=null; const old=M.room; M.room.send("channel",{ch:2});
+    if(!(await waitFor(()=>M.travel,3000))){ console.log(`    vòng ${k}: chưa đổi được kênh (${M.logs.at(-1)})`); continue; }
+    console.log(`    vòng ${k}: travel ${JSON.stringify(M.travel)} phòng cũ ${old.roomId}, M kênh ${M.room.state.channel}, F4 ${F[3].room.roomId}, log "${M.logs.at(-1)}"`);
+    const key=()=>M.bag?.buyback?.[0]?.key, stale=key();
+    // Phiên cũ còn mở trong lúc đang đi cổng: mua lại bị chặn (d.travelling).
+    if(stale){ old.send("buyback",{key:stale}); old.send("buyback",{key:stale}); }
+    await follow(M); await sleep(200);
+    // Phiên thứ hai của CÙNG tài khoản vào đúng phòng mới ngay sau khi phiên này gửi mua lại (đá phiên cũ khi lệnh còn đang chờ presence / DB).
+    const k1=key(), room2=M.room.roomId;
+    if(k1){ for(let n=0;n<3;n++) M.room.send("buyback",{key:k1}); await sleep(delay); } else lost++;
+    try{ M.bag=null; await enter(M,room2); await waitFor(()=>meOf(M)&&M.bag,4000); }catch(e){ console.log(`    vòng ${k}: phiên thứ hai không vào được (${String(e?.message??e).slice(0,70)})`); }
+    await sleep(600);
+    if(!M.bag){ ok(false,`vòng ${k}: phiên thứ hai không nhận được túi: dừng bài`); break; }
+    const r1=rings(M).length, c1=M.bag.honTe, ids=new Set(rings(M).map(i=>i.id));
+    const dup=r1>r0||c1>c0+(r0-r1)*price||ids.size!==r1; // vượt giá trị đã bán = nhân đồ / tiền
+    if(dup) dupes++; done++;
+    ok(!dup&&((r1===r0&&c1===c0)||(r1===r0-1&&c1===c0+price)),`vòng ${k} (trễ ${delay} ms): hồn hoàn ${r0} → ${r1}, Hồn Tệ ${c0} → ${c1}, giá ${price}, khóa mua lại ${k1?"sang kịp":"chưa sang kịp"}`);
+    // Quay về kênh 1 (không tấn công) cho vòng sau.
+    await sleep((CHANNEL_CD+1)*1000); await T(M,"chan",{reset:1}); await T(M,"rest",{s:TEAM_COMBAT_SECS+1}); M.travel=null; M.room.send("channel",{ch:1});
+    if(await waitFor(()=>M.travel,3000)) await follow(M); else console.log(`    vòng ${k}: chưa quay về được kênh 1 (${M.logs.at(-1)})`);
+    await T(M,"goto",{x:tn.x,y:tn.y+16});
+  }
+  // Rời game rồi vào lại: bản lưu DB khớp bản trong RAM; danh sách mua lại bị xóa khi rời game.
+  const r2=rings(M).length, c2=M.bag?.honTe;
+  await M.room.leave(); await sleep(500); M.bag=null; { const pick=await post("/api/channel",{token:M.token}); M.mapId=pick.mapId; await enter(M,pick.roomId??undefined); } await waitFor(()=>meOf(M)&&M.bag,3000);
+  ok(rings(M).length===r2&&M.bag.honTe===c2&&!(M.bag.buyback?.length),`vào lại: hồn hoàn ${rings(M).length}, Hồn Tệ ${M.bag.honTe} khớp lúc rời; danh sách mua lại rỗng (${M.bag.buyback?.length??0})`);
+  ok(done>0&&dupes===0,`${done} vòng: không vòng nào nhân đồ / tiền (${lost} vòng danh sách mua lại chưa kịp sang phòng mới)`);
+  }finally{ for(const b of all) await bye(b); }
+}
+/**
+ * Chống gian lận bạn bè / chat (#742, BOT_ONLY=socialaudit; tài khoản riêng "Soat ..."): (1) friends.add dồn tên lạ chỉ tra DB tối đa FRIEND_BURST lần (phần còn lại bị
+ * friendCheck chặn trước khi tra); (2) phản hồi dò tên (có / không có hồn sư; tin riêng không phân biệt ngoại tuyến với không tồn tại); (3) tin chat có ký tự điều
+ * khiển / định hướng / độ rộng bằng 0; (4) tài khoản đặt tên "Hệ thống" giả tin hệ thống; (5) chat tông khi chưa có tông.
+ * Báo cáo: docs/tech/soat-gian-lan-mua-lai-ban-be-chat.md.
+ */
+async function socialAuditTest(){
+  console.log("[#742] Bạn bè / chat: tra DB dồn, dò tên, ký tự lạ, giả hệ thống");
+  const T=async(b,op,extra={})=>{ b.test=null; b.room.send("test",{op,...extra}); await waitFor(()=>b.test,2000); await sleep(80); return b.test; };
+  const A=await bot("Soat A","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2}), O=await bot("Soat O","bich_lan_xa_hoang",{sex:0,hair:1,hairCol:1,outfitCol:1});
+  const off=await bot("Soat Off","u_minh_linh_mieu",{sex:1,hair:1,hairCol:0,outfitCol:3});
+  if(!(await T(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua socialaudit (cần hook chat / friend rlreset): bật server bằng GAME_TEST=1"); for(const b of [A,O,off]) await b.room.leave().catch(()=>{}); return; }
+  await off.room.leave(); await sleep(400); // đã thức tỉnh, nay ngoại tuyến
+  try{
+  const said=async(b,type,msg,w=700)=>{ const l=b.logs.length; b.room.send(type,msg); await sleep(w); return b.logs.slice(l).join(" | "); };
+  // ---- (1) friends.add dồn: tối đa FRIEND_BURST lần tra DB, phần còn lại bị chặn trước khi tra ----
+  await T(A,"friend",{fop:"rlreset"});
+  const l0=A.logs.length; for(let i=0;i<40;i++) A.room.send("friend",{op:"add",name:`Khong Co ${RUN} ${i}`}); await sleep(2500);
+  const lg=A.logs.slice(l0), notFound=lg.filter(x=>/Không có hồn sư nào tên/.test(x)).length, fast=lg.filter(x=>/quá nhanh/.test(x)).length;
+  ok(notFound>=10&&notFound<=11&&fast>=29,`40 tên lạ dồn: ${notFound} lần tra DB trả "không có hồn sư" (burst 10 + hồi 1/giây), ${fast} lần bị chặn "quá nhanh" trước khi tra`);
+  // ---- (2) dò tên: tên có thật / không có phân biệt được (đã biết, giới hạn bởi friendCheck); tin riêng không lộ tài khoản ngoại tuyến ----
+  await T(A,"friend",{fop:"rlreset"});
+  const exists=await said(A,"friend",{op:"add",name:off.name.toUpperCase()}), none=await said(A,"friend",{op:"add",name:`Khong Co ${RUN} z`});
+  ok(!/Không có hồn sư/.test(exists)&&/Không có hồn sư/.test(none),`dò tên: tên có thật (ngoại tuyến) "${exists||"thêm im lặng"}" khác tên không có "${none}"`);
+  const w1=await said(A,"chat",{text:"alo",ch:"whisper",to:off.name}), w2=await said(A,"chat",{text:"alo",ch:"whisper",to:`Khong Co ${RUN} y`});
+  ok(/không trong game/.test(w1)&&w1.replace(off.name,"X")===w2.replace(`Khong Co ${RUN} y`,"X"),`tin riêng: tài khoản ngoại tuyến và tên không tồn tại cùng một câu trả lời (${w1})`);
+  // ---- (3) ký tự lạ trong chat: server chỉ gộp khoảng trắng; ghi lại cái gì tới người nhận ----
+  await T(A,"chat",{cop:"rlreset"});
+  const BAD_CTRL=/[\u0000-\u0008\u000b-\u001f\u007f]/, BAD_BIDI=/[\u202a-\u202e\u2066-\u2069]/;
+  const probes=[["nul",`a\u0000b ${RUN}`],["rlo",`\u202eevil ${RUN}`],["zw",`\u200b\u200b\u200b`],["bel",`b\u0007\u001b[31m ${RUN}`],["nl",`d1\n\n\td2 ${RUN}`],["emoji","😀".repeat(60)]];
+  const got={}; for(const [n,txt] of probes){ O.chats.length=0; A.room.send("chat",{text:txt}); await sleep(450); got[n]=O.chats.find(m=>m.name===A.name)?.text; await sleep(250); }
+  console.log(`    nhận được: ${Object.entries(got).map(([k,v])=>`${k}=${v===undefined?"(bị bỏ)":JSON.stringify(v).slice(0,24)}`).join(" ")}`);
+  ok(got.nl===`d1 d2 ${RUN}`,"xuống dòng / tab gộp thành một dấu cách");
+  ok(got.emoji!==undefined,"tin 60 emoji (120 đơn vị) tới nơi, không bị cắt giữa cặp thay thế");
+  ok(got.zw===undefined,"tin toàn ký tự độ rộng 0 bị bỏ như tin rỗng, không thành dòng chat trống (#817)");
+  ok([got.nul,got.bel].every(t=>t!==undefined&&!BAD_CTRL.test(t))&&got.rlo!==undefined&&!BAD_BIDI.test(got.rlo),"ký tự điều khiển / đổi chiều văn bản bị bỏ trước khi tới người khác, phần chữ còn lại vẫn tới (#817)");
+  // ---- (5) chat tông khi chưa có tông ----
+  await T(A,"tong",{set:null}); O.chats.length=0;
+  ok(/chưa thuộc tông/.test(await said(A,"chat",{text:`tong ${RUN}`,ch:"tong"}))&&!O.chats.some(m=>m.text===`tong ${RUN}`),"chat tông khi chưa có tông: báo riêng, không phát cho ai");
+  }finally{ for(const b of [A,O]) await b.room.leave().catch(()=>{}); }
+  // ---- (4) tên "Hệ thống": tài khoản đặt tên trùng tên tin hệ thống ----
+  const name="Hệ thống", l=await post("/api/login",{name,password:PASS});
+  // Chỉ coi là đạt khi server từ chối TÊN (400). 401 (tài khoản từ lượt chạy trước, mật khẩu ngẫu nhiên khác) / 429 / lỗi khác: bỏ qua, không kết luận.
+  if(l.status===400){ ok(true,`server từ chối tên "${name}" (${l.error}): không giả được tin hệ thống`); return; }
+  if(!l.token){ console.log(`  ⚠ bỏ qua kiểm tên "${name}" (đăng nhập ${l.status}: tài khoản đã có từ lượt trước hoặc hết lượt tạo theo IP); chạy lại trên DB sạch (bot:local) để kiểm #818`); return; }
+  if(!l.looks?.chosen) await post("/api/looks",{token:l.token,sex:0,hair:1,hairCol:1,outfitCol:1});
+  if(!l.character) await post("/api/awaken",{token:l.token,vohon:"u_minh_linh_mieu"});
+  const me=await post("/api/me",{token:l.token}), SP={name,token:l.token,logs:[],owned:null,ownedMsgs:0,looks:me.looks,mapId:me.mapId};
+  await enter(SP);
+  const V=await bot("Soat V","u_minh_linh_mieu",{sex:0,hair:0,hairCol:2,outfitCol:2});
+  try{
+    await sleep(300); V.chats.length=0; SP.room.send("chat",{text:`Bảo trì, hãy nhập lại mật khẩu ${RUN}`}); await sleep(700);
+    const seen=V.chats.find(m=>m.text.includes(RUN));
+    console.log(!seen||seen.name!=="Hệ thống"?"  ✓":"  ⚠ biết lỗi #827:","tài khoản cũ tên \"Hệ thống\" (tạo trước khi có tên cấm) không giả được tin hệ thống trong chat bản đồ");
+  }finally{ await SP.room.leave().catch(()=>{}); await V.room.leave().catch(()=>{}); }
 }
 /**
  * Chống gian lận khắc may mắn (#740, BOT_ONLY=luckrace; tài khoản riêng, túi riêng, không dùng chung trạng thái với bài khác): trong lúc `equipluck` đang chờ
