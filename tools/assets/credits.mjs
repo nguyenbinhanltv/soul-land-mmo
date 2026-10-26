@@ -189,9 +189,11 @@ export function buildCredits({ md = readFileSync(CREDITS_MD, "utf8"), packs, ani
     for (const { r, head } of rows) {
       const where = `Hồn thú hoạt ảnh ${id}`, id0 = clean(r[0] ?? "");
       if (!id0) { problems.push(`${where}: dòng ghi công trống cột File.`); continue; }
-      const rid = take(`${where}: ${id0}`), tool = clean(r[col(head, /Công cụ/)] ?? ""), desc = clean(r[col(head, /Mô tả/)] ?? "");
-      if (col(head, /Công cụ/) < 0 || col(head, /Mô tả/) < 0) { problems.push(`${where}: bảng "## Ghi công" thiếu cột Công cụ / Mô tả.`); break; }
-      if (!tool || !desc) { problems.push(`${rid}: thiếu công cụ hoặc mô tả.`); continue; }
+      const it = col(head, /Công cụ/), im = col(head, /Mô tả/);
+      if (it < 0 || im < 0) { problems.push(`${where}: bảng "## Ghi công" thiếu cột Công cụ / Mô tả.`); break; }
+      const tool = clean(r[it] ?? ""), desc = clean(r[im] ?? "");
+      if (!tool || !desc) { problems.push(`${where}: ${id0}: thiếu công cụ hoặc mô tả.`); continue; }
+      const rid = take(`${where}: ${id0}`);
       bags.nhom.add(/ChatGPT|Codex|imagegen/i.test(tool) ? "ChatGPT / Codex imagegen" : tool, { license: "Theo điều khoản của công cụ", count: 0, ids: [rid] });
     }
   }

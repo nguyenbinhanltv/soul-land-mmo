@@ -2,7 +2,7 @@
 // hai nhánh cùng thêm một loài mới (NGUON.md riêng) merge không xung đột.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { readFileSync, mkdtempSync, writeFileSync, rmSync, mkdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
@@ -47,7 +47,7 @@ test("hai nhánh cùng thêm một loài mới (NGUON.md riêng) rồi merge: kh
     git("add", "."); git("commit", "-q", "-m", "gốc");
     for (const [br, id] of [["a", "loai_a"], ["b", "loai_b"]]) {
       git("checkout", "-q", "-b", br, "main");
-      const d = path.join(dir, "art/src/beast-anim", id); spawnSync("mkdir", ["-p", d]);
+      const d = path.join(dir, "art/src/beast-anim", id); mkdirSync(d, { recursive: true });
       writeFileSync(path.join(d, "NGUON.md"), nguon(table(`loài ${id}`)));
       git("add", "."); git("commit", "-q", "-m", id);
     }

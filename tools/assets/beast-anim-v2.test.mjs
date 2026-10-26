@@ -144,6 +144,25 @@ test("NGUON: turnaround.png được ghi (hash, cỡ, prompt, --eye), loài ch�
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
+test("NGUON: sinh lại (--write --force) giữ nguyên mục ## Ghi công đã có (#973); loài chưa có thì sinh dòng mặc định", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "beast-nguon-gc-")), run = (...args) => spawnSync(process.execPath, [path.join(ROOT, "tools", "assets", "beast-nguon.mjs"), "--species", "quy_ho", "--dir", dir, ...args], { encoding: "utf8" });
+  try {
+    writeFileSync(path.join(dir, "turnaround.png"), encodePng(new Img(8, 6)));
+    assert.equal(run("--write").status, 0);
+    const first = readFileSync(path.join(dir, "NGUON.md"), "utf8");
+    assert.match(first, /^## Ghi công$/m);
+    assert.match(first, /RAW hoạt ảnh Quỷ Hổ: turnaround 8×6/);
+    const mine = "## Ghi công\n\n| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |\n|---|---|---|---|---|---|\n| `art/src/beast-anim/quy_ho/` | - | ChatGPT | Chi tiết người nộp, session 103 | - | - |\n";
+    writeFileSync(path.join(dir, "NGUON.md"), first.slice(0, first.indexOf("## Ghi công")) + mine + "\n## Mục khác\n\nkhông giữ\n");
+    assert.equal(run("--write", "--force").status, 0);
+    const again = readFileSync(path.join(dir, "NGUON.md"), "utf8");
+    assert.ok(again.includes(mine.trimEnd()), "bảng ghi công cũ phải còn nguyên");
+    assert.doesNotMatch(again, /RAW hoạt ảnh Quỷ Hổ: turnaround/);
+    assert.doesNotMatch(again, /Mục khác/);
+    assert.equal((again.match(/^## Ghi công$/gm) ?? []).length, 1);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
 test("cutter: loài khung nhỏ cắt được 5 tờ 3:2 theo hướng (tự nhận bố cục), đủ 5 hướng × 22 khung", () => {
   // Tờ thật 3:2 của Thái Thản dùng làm ảnh thử hình học; phong_lang khung 96 theo bố cục v1 sẽ cần A / B, ở đây phải nhận ra bố cục theo hướng.
   const sheets = Object.fromEntries("ABCDE".split("").map((l) => [l, readPng(path.join(ROOT, "art", "src", "beast-anim", "thai_than_cu_vien", `to${l}.png`))]));

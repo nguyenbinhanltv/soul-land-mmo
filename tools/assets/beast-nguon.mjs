@@ -66,6 +66,9 @@ export function buildNguon(id, r, o = {}) {
   if (errors.length) L.push("```text", ...errors, "```"); else L.push("Không có dòng `LỖI:`.");
   L.push("");
   // Bảng ghi công của loài (#973): `tools/assets/credits.mjs` gom vào màn Ghi công; thay cho việc nối dòng vào art/CREDITS.md (PR song song xung đột)
+  // Sinh lại (--write --force) giữ nguyên mục `## Ghi công` đã có (người nộp / công cụ chuyển từ CREDITS.md): chỉ loài chưa có mới sinh dòng mặc định
+  const old = existsSync(path.join(dir, "NGUON.md")) ? /^## Ghi công\n[\s\S]*?(?=^## |(?![\s\S]))/m.exec(readFileSync(path.join(dir, "NGUON.md"), "utf8"))?.[0] : null;
+  if (old) { L.push(old.trimEnd(), ""); return L.join("\n"); }
   const srcTool = (items.map((s) => readSourceJson(path.join(path.dirname(s.file), `${s.name}.source.json`))?.tool).find(Boolean)) ?? UNKNOWN;
   L.push("## Ghi công", "", "Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); không nối dòng vào `art/CREDITS.md`.", "",
     "| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |", "|---|---|---|---|---|---|",
