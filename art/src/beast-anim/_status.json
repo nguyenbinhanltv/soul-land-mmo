@@ -1,12 +1,12 @@
 {
   "schema": 1,
   "generatedBy": "tools/assets/beast-status.mjs",
-  "species": 30,
+  "species": 31,
   "imported": 6,
   "tally": {
     "san-sang-nhap": 22,
     "chua-co-to": 1,
-    "chan": 7
+    "chan": 8
   },
   "items": [
     {
@@ -228,6 +228,58 @@
       "missing": [],
       "errorLines": [
         "LỖI: toA — hình ở ô trống / cỡ thân lệch — H8 (se) C5, H8 (se) C6, H1–4 (s) — ô trống có hình (2.99% diện tích ô): hình tràn từ ô bên; ô trống có hình (1.56% diện tích ô): hình tràn từ ô bên; cỡ thân idle 89% so với ảnh tĩnh (lệch 11%)."
+      ]
+    },
+    {
+      "id": "doc_cuc_dang",
+      "name": "Độc Cức Đằng",
+      "family": "plant",
+      "frame": 96,
+      "imported": false,
+      "turnaround": false,
+      "layout": "sheet",
+      "state": "chan",
+      "sheets": [
+        {
+          "sheet": "toA",
+          "file": "art/src/beast-anim/doc_cuc_dang/toA.png",
+          "size": [
+            948,
+            1659
+          ],
+          "bytes": 2087887,
+          "sha256": "4d48509ddea00698808b0f9ffa93ef4fc5f69e5e538d4fb95deb2a91acea2a06",
+          "level": "chặn",
+          "block": 1,
+          "light": 0,
+          "note": 0
+        },
+        {
+          "sheet": "toB",
+          "file": "art/src/beast-anim/doc_cuc_dang/toB.png",
+          "size": [
+            1254,
+            1254
+          ],
+          "bytes": 2113569,
+          "sha256": "796cc824e9d20f475c9ceea02a6bea57e9311c6bec7cd21bcd7bff8e7e3dc3ee",
+          "level": "chặn",
+          "block": 1,
+          "light": 0,
+          "note": 2
+        }
+      ],
+      "blocks": {
+        "s": "thiếu",
+        "se": "thiếu",
+        "e": "thiếu",
+        "ne": "chặn",
+        "n": "pass"
+      },
+      "missing": [],
+      "errorLines": [
+        "LỖI: toA — sai kích thước — toàn tờ — 948×1659 không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2).",
+        "LỖI: toB — hình dính — H3 (ne) — dải có 4 hình, cần 6: hình dính nhau."
       ]
     },
     {
