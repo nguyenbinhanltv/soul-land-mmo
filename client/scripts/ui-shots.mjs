@@ -57,6 +57,7 @@ async function runSize(W, H) {
     const name = "Đường Tam " + Math.random().toString(36).slice(2, 6), password = "ui-shots-pass";
     await step("dang-nhap", async () => { await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" }); await sleep(2500); await shot("01-dang-nhap"); });
     const l = await post("/api/login", { name, password });
+    if (!want("dang-nhap")) { await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" }); await sleep(1500); } // localStorage cần trang cùng nguồn, không phải about:blank
     await ev(`localStorage.setItem("shh-token", ${JSON.stringify(l.token)}), localStorage.setItem("shh-audio", JSON.stringify({muted:true})), true`);
     await step("tao-nhan-vat", async () => { await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" }); await sleep(2500); await shot("02-tao-nhan-vat"); });
     await post("/api/looks", { token: l.token, sex: 0, hair: 1, hairCol: 1, outfitCol: 2 });

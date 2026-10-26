@@ -78,7 +78,7 @@ Phông Galmuri, chỉ ba cỡ (bội của lưới font): **10 / 12 / 24** (`--f
 
 - Đơn vị cơ sở 4 px (`--sp-1…6`), viền `--bd` 2 px / `--bd-fine` 1 px, ô vật phẩm / kỹ năng `--cell` 44 px.
 - Vùng bấm: **44 px cho nút hành động chính** (Vào game, Bật tự động, Tiếp, Mua…); **32 px** cho phần tử dày đặc (chip lọc, tab, nút nhỏ trong bảng); ô túi 44 px giữ.
-- Giao diện phóng bằng `--u` (zoom CSS, `uiArt.ts`); bậc theo màn là việc riêng (#887).
+- Giao diện phóng bằng `--u` (zoom CSS, `uiArt.ts`). Tự động theo bậc (#887): 1366 → 1×; 1600–1919 → 1,25×; 1920–2559 → 1,5×; 2560+ → 2× (`AUTO_TIERS`, theo min(rộng / 1280, cao / 600)); Cài đặt cho chọn tay 75–200%.
 
 ## Trạng thái bắt buộc cho mọi điều khiển
 
@@ -105,7 +105,7 @@ Thử bằng `tools/ui-border-image-probe.mjs` (mảnh C2 `ui_nv6_nen_bup_be`, 2
 
 Kết luận đo được:
 - **`image-rendering: pixelated` có tác dụng với `border-image`** ở Chrome / Edge (kiểm Firefox ở P1 trước khi coi là luật cuối). `crisp-edges` kém hơn (có ô 94% khớp, 7 màu lạ): **không dùng**. Không dùng `auto` cho ảnh khung.
-- Kit 2× chỉ **đúng điểm** khi `--u` × DPR = 2 (màn DPR 2 ở zoom 1, hoặc `--u` = 2 ở DPR 1). Ở màn DPR 1 với `--u` 1 (1366×768, 1280×720, 1920×1080 theo bậc tự động hiện tại là 1×) ảnh 2× bị hạ nửa bằng nearest: chi tiết 1 px của kit rơi một nửa.
+- Kit 2× chỉ **đúng điểm** khi `--u` × DPR = 2 (màn DPR 2 ở zoom 1, hoặc `--u` = 2 ở DPR 1). Ở màn DPR 1 với `--u` 1 (1366×768, 1280×720) ảnh 2× bị hạ nửa bằng nearest: chi tiết 1 px của kit rơi một nửa.
 - Zoom CSS nguyên (`--u` 1, 2) giữ bảng màu và lưới; bậc 1,5 chấp nhận được với pixelated nhưng lệch 1 điểm.
 
 **Khuyến nghị cỡ kit** (đề xuất cho chủ repo chốt ở cổng 2; quyết định "kit 2×" của #877 giữ, thêm điều kiện):
