@@ -186,6 +186,8 @@ export interface Store {
   hasIdentity(accountId: number, provider: string): Promise<boolean>;
   /** Tài khoản của phiên `token`; `token` sai định dạng (không phải chuỗi newToken) thì null, không hỏi DB. */
   accountFromToken(token: unknown): Promise<{ accountId: number; name: string } | null>;
+  /** Đăng xuất (#999): xóa đúng phiên `token` (phiên khác của cùng tài khoản giữ nguyên). true = có phiên bị xóa; token sai dạng thì false, không hỏi DB. */
+  endSession(token: unknown): Promise<boolean>;
   /** Võ hồn đang ra trận (chưa chọn thì là võ hồn sở hữu sớm nhất). null = chưa thức tỉnh. */
   getCharacter(accountId: number): Promise<Character | null>;
   /** Mọi võ hồn tài khoản sở hữu, theo thứ tự nhận được. */
@@ -490,6 +492,7 @@ export class MemoryStore implements Store {
     own.forEach(([t, s], i) => { if (now - s.at > SESSION_DAYS * 864e5 || i >= SESSION_KEEP - 1) this.sessions.delete(t); });
     const token = newToken(); this.sessions.set(token, { accountId, at: now }); return token;
   }
+  async endSession(token: unknown) { return tokenOk(token) && this.sessions.delete(token); }
   async pruneSessions() {
     const cut = Date.now() - SESSION_DAYS * 864e5; let n = 0;
     for (const [t, s] of this.sessions) if (s.at < cut && n < SESSION_SWEEP_LIMIT) { this.sessions.delete(t); n++; }
@@ -971,6 +974,9 @@ export class PgStore implements Store {
     await this.pool.query(
       `DELETE FROM sessions WHERE account_id=$1 AND (created_at < now() - make_interval(days => $2) OR token NOT IN
          (SELECT token FROM sessions WHERE account_id=$1 ORDER BY created_at DESC, token LIMIT $3))`, [accountId, SESSION_DAYS, SESSION_KEEP]);
+  }
+  async endSession(token: unknown) {
+    return tokenOk(token) && !!(await this.pool.query("DELETE FROM sessions WHERE token=$1", [token])).rowCount;
   }
   async pruneSessions() {
     const r = await this.pool.query(
