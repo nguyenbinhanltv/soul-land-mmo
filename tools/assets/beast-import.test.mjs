@@ -1,11 +1,12 @@
 // Thử beast-import (H4): sửa manifest theo văn bản, nhận khối chặn, chạy thật trong thư mục tạm (không đụng shared/).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, copyFileSync, readFileSync, existsSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
-import { ROOT } from "./lib.mjs";
+import { ROOT, encodePng } from "./lib.mjs";
+import { fakeSheets } from "./beast-sheet-fake.mjs";
 import { blockDirs, upsertEntry } from "./beast-import.mjs";
 
 const SCRIPT = path.join(ROOT, "tools", "assets", "beast-import.mjs");
@@ -46,21 +47,33 @@ test("blockDirs: nhận hướng của dòng chặn, dòng không rõ hướng l
   assert.deepEqual(blockDirs([I("warn", "x")]), []);
 });
 
-test("CLI: nhập một loài chưa nhập vào thư mục tạm, chạy lại không đổi, --dry-run không ghi", () => {
-  const manifest = path.join(ROOT, "shared", "assets", "sprites", "manifest.json");
-  const hasSrc = existsSync(path.join(ROOT, "art", "src", "beast-anim", "quy_anh_bao", "toA.png"));
-  if (!hasSrc || !/"key": "beast_quy_anh_bao",/.test(readFileSync(manifest, "utf8")) || /"key": "beast_quy_anh_bao_anim"/.test(readFileSync(manifest, "utf8"))) return; // loài thử đã nhập vào main: bỏ qua
-  const tmp = mkdtempSync(path.join(os.tmpdir(), "beast-import-"));
+test("CLI: nhập loài chưa có anim (tờ giả, thư mục tạm), chạy lại không đổi, không ghi đè bản khác nếu thiếu --force", () => {
+  const tmp = mkdtempSync(path.join(os.tmpdir(), "beast-import-")), src = path.join(tmp, "src"), sp = path.join(tmp, "sprites");
   try {
-    copyFileSync(manifest, path.join(tmp, "manifest.json"));
-    const go = (...a) => spawnSync(process.execPath, [SCRIPT, "--species", "quy_anh_bao", "--sprites", tmp, ...a], { encoding: "utf8" });
+    mkdirSync(path.join(src, "phong_lang"), { recursive: true }); mkdirSync(sp);
+    for (const [id, im] of Object.entries(fakeSheets("phong_lang"))) writeFileSync(path.join(src, "phong_lang", `to${id}.png`), encodePng(im));
+    writeFileSync(path.join(sp, "manifest.json"), `{\n  "sprites": [\n${stat("beast_phong_lang", "tinh_dau_ngoai_vi")}\n  ]\n}\n`);
+    const go = (...a) => spawnSync(process.execPath, [SCRIPT, "--species", "phong_lang", "--sprites", sp, "--src", src, ...a], { encoding: "utf8" });
+    const png = path.join(sp, "beast", "phong_lang_anim.png"), nPng = path.join(sp, "beast", "phong_lang_anim_n.png"), mf = path.join(sp, "manifest.json");
     const dry = go("--dry-run"); assert.equal(dry.status, 0, dry.stderr); assert.match(dry.stdout, /sẽ nhập mới/);
-    assert.ok(!existsSync(path.join(tmp, "beast")), "dry-run không ghi");
+    assert.ok(!existsSync(path.join(sp, "beast")), "dry-run không ghi");
     const a = go(); assert.equal(a.status, 0, a.stderr); assert.match(a.stdout, /đã nhập mới/);
-    assert.ok(existsSync(path.join(tmp, "beast", "quy_anh_bao_anim.png")) && existsSync(path.join(tmp, "beast", "quy_anh_bao_anim_n.png")));
-    const m1 = readFileSync(path.join(tmp, "manifest.json"), "utf8");
-    const b = go(); assert.match(b.stdout, /không đổi/);
-    assert.equal(readFileSync(path.join(tmp, "manifest.json"), "utf8"), m1);
+    assert.ok(existsSync(png) && existsSync(nPng));
+    assert.deepEqual(JSON.parse(readFileSync(mf, "utf8")).sprites.map((e) => e.key), ["beast_phong_lang", "beast_phong_lang_anim"]);
+    const m1 = readFileSync(mf, "utf8"), p1 = readFileSync(png);
+    assert.match(go().stdout, /không đổi/); assert.equal(readFileSync(mf, "utf8"), m1);
     assert.match(go("--dry-run").stdout, /giống bản đã nhập/);
+    rmSync(nPng); assert.match(go().stdout, /đã cập nhật/); assert.ok(existsSync(nPng), "thiếu _n thì sinh lại");
+    // bản đã nhập khác kết quả cắt lại: không ghi đè khi thiếu --force
+    writeFileSync(png, Buffer.concat([p1, Buffer.from("x")]));
+    const noForce = go(); assert.match(noForce.stdout, /cần --force/); assert.notEqual(Buffer.compare(readFileSync(png), p1), 0, "không ghi đè");
+    assert.match(go("--force").stdout, /đã cập nhật/); assert.equal(Buffer.compare(readFileSync(png), p1), 0);
   } finally { rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test("CLI: tùy chọn sai báo lỗi", () => {
+  const bad = (...a) => spawnSync(process.execPath, [SCRIPT, "--species", "x", ...a], { encoding: "utf8" });
+  assert.equal(bad("--scale", "x=abc").status, 2);
+  assert.equal(bad("--patch", "x").status, 2);
+  assert.equal(bad("--lạ").status, 2);
 });
