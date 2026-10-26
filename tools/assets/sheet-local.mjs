@@ -28,7 +28,7 @@ export function localChangedFiles({ staged = false, paths = [] } = {}) {
 
 /** Gợi ý sửa in sau các dòng lỗi (tiếng Việt, đủ để tự sửa không cần đọc CI). */
 export const SIZE_HINT = [
-  "Cách sửa lỗi kích thước: tờ A phải tỉ lệ 2:3 (đúng cỡ 1024×1536), tờ B 1:1, tờ một hướng 3:2 (1536×1024).",
-  "Model trả sai tỉ lệ (ví dụ 948×1659) thì SINH LẠI tờ đó (tối đa 3 lượt mỗi khối); KHÔNG resize / cắt ảnh RAW cho khớp.",
+  "Cách sửa lỗi kích thước: tờ A hồn thú tỉ lệ 2:3 (1024×1536) hoặc rộng/cao 0,55–0,70 như Codex xuất 948×1659 / 941×1672 (hợp lệ nếu lưới đúng, quyết định chủ repo 2026-10-26 mục 2); tờ B 1:1, tờ một hướng 3:2 (1536×1024); UI Kit theo tỉ lệ của nó.",
+  "Chỉ SINH LẠI tờ (tối đa 3 lượt mỗi khối) khi tỉ lệ ngoài khoảng trên hoặc lưới sai (thiếu / thừa hình, sai số hàng); KHÔNG resize / cắt ảnh RAW cho khớp. Lỗi nền / lưới / hình dính thì đọc dòng LỖI ở trên, không phải lỗi cỡ.",
   "Kiểm lại: npm run beast:check -- <loài>  (hoặc npm run ui:check cho UI Kit). Chi tiết: skill beast-anim / ui-kit.",
 ].join("\n");
