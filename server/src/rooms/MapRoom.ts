@@ -73,6 +73,7 @@ import { targetMsg, tickLock, setLock, manualAttack } from "./lock.ts";
 import * as equip from "./equip.ts";
 import * as bones from "./bones.ts";
 import * as absorb from "./absorb.ts";
+import * as skill from "./skill.ts";
 import * as boss from "./boss.ts";
 import * as social from "./social.ts";
 import * as shop from "./shop.ts";
@@ -226,7 +227,7 @@ export interface PData {
   tong: string | null; tongAt: number | null; // #196: tông môn (mã trong TONG_MON) và lúc gia nhập gần nhất (ms; giữ khi rời); bảng accounts
 }
 /** Một đòn đánh thường / một lần tung hồn kỹ: năng lượng tiên cơ chỉ tính một lần dù trúng nhiều hồn thú hay nhiều mũi đạn. */
-interface Hit { kind: "attack" | "skill"; done: boolean; onHit?: () => void; } // onHit: gọi một lần khi trúng lần đầu (5.2, bộ Lam Ngân)
+export interface Hit { kind: "attack" | "skill"; done: boolean; onHit?: () => void; } // onHit: gọi một lần khi trúng lần đầu (5.2, bộ Lam Ngân)
 export interface AuthData { accountId: number; ch: Character; owned: Character[]; team: number[]; looks: AccountLooks; loc: Location; bag: Bag; starter: boolean;
   claims: { day: string; n: number }; wclaims: { day: string; n: number }; shardBuy: { day: string; n: number }; wps: string[]; auto: AutoRow; tong: TongRow; social: SocialRow; }
 /**
@@ -307,7 +308,7 @@ interface Proj { x: number; y: number; vx: number; vy: number; life: number; own
  *  `pair` (#192): đòn của Võ Hồn Dung Hợp Kỹ, phiên đồng đội dung hợp: không nhận ràng buộc, đóng góp tinh anh / thú vương / boss chia đôi. */
 interface DmgOpt { crit?: number; lifesteal?: number; direct?: boolean; chain?: boolean; pair?: string; }
 /** Một đòn của Võ Hồn Dung Hợp Kỹ (#192): đồng đội dung hợp và công trung bình của hai người (không ràng buộc). */
-interface FusHit { pair: string; atk: number; }
+export interface FusHit { pair: string; atk: number; }
 
 let nextId = 1;
 export const uid = (p: string) => p + (nextId++).toString(36);
@@ -2541,149 +2542,7 @@ export class MapRoom extends Room<MapState> {
     return owner;
   }
 
-  /**
-   * Bộ máy hồn kỹ theo dữ liệu (SkillDef trong shared/data.ts) cho hồn kỹ chung, hồn kỹ riêng và chiêu tiên cơ riêng.
-   * `power`: sức mạnh (skillPower theo số năm hồn hoàn của vòng, hoặc tienCoDmgMult cho tiên cơ); `bpow`: hệ số hiệu ứng lên
-   * bản thân (buffPower). `hit`: đòn tạo năng lượng tiên cơ (bỏ trống với tiên cơ). Vùng "target" không có mục tiêu thì
-   * lướt theo hướng nhìn nếu có `dash` (người gọi đã kiểm tra trước với hồn kỹ thường). `share` (9.1): mã võ hồn gốc khi hiệu ứng lên
-   * bản thân lan cho tổ đội (shareOf), bỏ trống thì không lan. `fus` (#192, Võ Hồn Dung Hợp Kỹ): vùng "around" đặt cố định ở `at`;
-   * `atk` là công dùng thay công của `id` (cả sát thương theo thời gian); `pair` là đồng đội dung hợp: không nhận ràng buộc, đóng góp tinh
-   * anh / thú vương / boss chia đôi.
-   */
-  runSkill(id: string, sk: SkillDef, power: number, bpow: number, col: string, hit?: Hit, share?: string, fus?: FusHit & { at: { x: number; y: number } }) {
-    const p = this.state.players.get(id)!, d = this.pdata.get(id)!, atk = (fus ? fus.atk : this.atkOf(d)) * power, pair = fus?.pair;
-    /** Một nhát trúng hồn thú `bid`: sát thương (kèm % sinh lực, theo tầng trạng thái) rồi gây trạng thái. */
-    const strike = (bid: string, last: boolean) => {
-      const b = this.state.beasts.get(bid), bd = this.bdata.get(bid); if (!b || !bd || b.hp <= 0) return;
-      let dmg = atk * sk.dmg;
-      if (sk.pctHp) dmg += Math.min(b.maxHp * sk.pctHp, atk * PCT_HP_CAP);
-      if (sk.perStack) dmg += atk * sk.perStack.dmg * (bd.st.get(sk.perStack.s)?.n ?? 0);
-      if (sk.lowHp) dmg *= 1 + sk.lowHp * (1 - b.hp / Math.max(1, b.maxHp)); // hạ mục tiêu yếu máu (Nguyệt Nhận)
-      if (sk.vsSt && sk.vsSt.s.some((s) => bd.st.has(s))) dmg *= 1 + sk.vsSt.v; // mục tiêu đang có trạng thái (Băng Hỏa Lưỡng Nghi, #192)
-      if (dmg > 0) this.damageBeast(bid, dmg, id, col, hit, { crit: sk.crit, lifesteal: sk.lifesteal, pair });
-      if (!this.state.beasts.has(bid)) return;
-      if (sk.dispel) this.dispelBeast(bid, id); // xóa buff địch (Thiên Càn Trấn Áp, BĐ4)
-      if (sk.push) this.pushBeast(bid, p, sk.push);
-      // Viêm bạo (Hỏa Long): kích nổ mọi tầng Thiêu đốt rồi đặt lại `keep` tầng. Từ 8.1b `boom.last`: chỉ nhát cuối kích nổ, `mult` nổ mạnh thêm.
-      if (sk.boom && (!sk.boom.last || last)) {
-        this.detonateBurn(bid, id, sk.boom.mult);
-        if (sk.boom.keep > 0) this.applyStatus(bid, { s: "burn", n: sk.boom.keep }, id, power, fus);
-      }
-      for (const a of [...(sk.status ?? []), ...(last ? sk.finisher ?? [] : [])]) this.applyStatus(bid, a, id, power, fus);
-    };
-    /**
-     * Một nhát trúng đối thủ `fid` (Đại Đấu Hồn Trường, 7.2): cùng công thức sát thương như lên hồn thú (damageFoe nhân ARENA.dmgMult),
-     * trạng thái lên hồn sư qua applyPStatus (chỉ trạng thái có trong PLAYER_STATUS). Đẩy lùi, kéo, xóa buff, kích nổ chỉ áp lên hồn thú.
-     */
-    const strikeFoe = (fid: string, last: boolean) => {
-      const f = this.state.players.get(fid), fd = this.pdata.get(fid); if (!f || !fd || f.dead) return;
-      let dmg = atk * sk.dmg;
-      if (sk.pctHp) dmg += Math.min(f.maxHp * sk.pctHp, atk * PCT_HP_CAP);
-      if (sk.perStack) dmg += atk * sk.perStack.dmg * (fd.st.get(sk.perStack.s)?.n ?? 0);
-      if (sk.lowHp) dmg *= 1 + sk.lowHp * (1 - f.hp / Math.max(1, f.maxHp));
-      if (sk.vsSt && sk.vsSt.s.some((s) => fd.st.has(s))) dmg *= 1 + sk.vsSt.v;
-      const landed = dmg > 0 ? this.damageFoe(fid, dmg, id, col, hit, { crit: sk.crit, lifesteal: sk.lifesteal }) : !this.buffV(fd, "inv");
-      if (!landed) return;
-      // Mê hoặc / Đóng băng trên hồn sư chỉ do hồn thú gây (PLAYER_STATUS_PVE, #116).
-      for (const a of [...(sk.status ?? []), ...(last ? sk.finisher ?? [] : [])]) if (!PLAYER_STATUS_PVE.includes(a.s)) this.applyPStatus(fid, a, atk * ARENA.dmgMult, id);
-    };
-    const near = (r: number, x = p.x, y = p.y) => this.beastsNear(x, y, r).filter(([, b]) => Math.hypot(b.x - x, b.y - y) < r).map(([bid]) => bid);
-    if (sk.fly) this.broadcast("fx", { k: "fly", id, t: sk.fly, col });
-    if (sk.area === "around") {
-      // `n` > 1: nhiều nhát quanh vị trí hiện tại của hồn sư cách nhau `every` giây (cánh hoa xoay); nhát cuối mới gây `finisher`.
-      // Từ 2.5c: `at` đặt vùng cố định tại hồn thú gần nhất (bay tới nếu có `dash`), `fixed` cố định ở chỗ hồn sư đứng lúc tung.
-      const n = sk.n ?? 1;
-      let at: { x: number; y: number } | null = fus ? fus.at : sk.fixed ? { x: p.x, y: p.y } : null;
-      if (sk.at && !fus) {
-        // Không có hồn thú trong tầm thì đặt vào đối thủ gần nhất (7.2).
-        const bid = this.nearestBeast(p, sk.at), b = bid ? this.state.beasts.get(bid) : undefined;
-        const fid = b ? undefined : this.nearestFoe(id, sk.at), t = b ?? (fid ? this.state.players.get(fid) : undefined);
-        const size = b ? TIERS[b.tier].size : ARENA.body * 2;
-        if (t && sk.dash) { const x0 = p.x, y0 = p.y; if (this.dashTo(p, d, t, sk.dash, size) > 0) this.broadcast("fx", { k: "trail", x0, y0, x1: p.x, y1: p.y, col }); }
-        at = t ? { x: t.x, y: t.y } : { x: p.x, y: p.y };
-      }
-      if (at && n > 1) this.broadcast("fx", { k: "zone", x: at.x, y: at.y - 4, r: sk.r, t: n * (sk.every ?? 0.15), col });
-      for (let k = 0; k < n; k++) {
-        const go = () => {
-          const me = this.state.players.get(id); if (me !== p || me.dead) return;
-          const cx = at?.x ?? p.x, cy = at?.y ?? p.y;
-          this.broadcast("fx", { k: "wave", id, x: cx, y: cy - 6, r: sk.r, col, ...(sk.shake && k === 0 ? { shake: 0.5 } : {}) });
-          const ids = near(sk.r, cx, cy), fids = this.foesNear(id, sk.r, cx, cy);
-          // Từ 8.1c `shockR`: sét tìm mục tiêu Cảm điện ở xa hơn `r` (cả đối thủ đang Cảm điện); tia sét từ tâm vùng tới từng mục tiêu (fx zap).
-          if (sk.shockR) {
-            const far = near(sk.shockR, cx, cy).filter((bid) => !ids.includes(bid) && this.bdata.get(bid)?.st.has("shock"));
-            const ffar = this.foesNear(id, sk.shockR, cx, cy).filter((fid) => !fids.includes(fid) && this.pdata.get(fid)?.st.has("shock"));
-            const to = [...far.map((bid) => this.state.beasts.get(bid)!), ...ffar.map((fid) => this.state.players.get(fid)!)].map((t) => ({ x: Math.round(t.x), y: Math.round(t.y) }));
-            if (to.length) this.broadcast("fx", { k: "zap", x: cx, y: cy - 6, to, col });
-            ids.push(...far); fids.push(...ffar);
-          }
-          if (sk.pull) { this.broadcast("fx", { k: "pull", x: p.x, y: p.y - 4, r: sk.r, col }); for (const bid of ids) this.pullBeast(bid, p); }
-          for (const bid of ids) strike(bid, k === n - 1);
-          for (const fid of fids) strikeFoe(fid, k === n - 1);
-        };
-        if (k === 0) go(); else this.later(k * (sk.every ?? 0.15), go);
-      }
-    } else if (sk.area === "front") {
-      this.broadcast("fx", { k: "arc", id, x: p.x, y: p.y - 6, dx: d.dir.x, dy: d.dir.y, r: sk.r, col });
-      for (const [bid, b] of this.beastsNear(p.x, p.y, sk.r)) {
-        const dx = b.x - p.x, dy = b.y - p.y, dd = Math.hypot(dx, dy) || 1;
-        if (dd < sk.r + TIERS[b.tier].size / 2 && (dx * d.dir.x + dy * d.dir.y) / dd > 0.2) strike(bid, true);
-      }
-      for (const fid of this.foesOf(id)) {
-        const f = this.state.players.get(fid); if (!f) continue;
-        const dx = f.x - p.x, dy = f.y - p.y, dd = Math.hypot(dx, dy) || 1;
-        if (dd < sk.r + ARENA.body && (dx * d.dir.x + dy * d.dir.y) / dd > 0.2) strikeFoe(fid, true);
-      }
-    } else if (sk.area === "dash") {
-      const sx = p.x, sy = p.y, dist = this.dashStep(p, d, sk.r);
-      this.broadcast("fx", { k: "trail", x0: sx, y0: sy, x1: p.x, y1: p.y, col });
-      const L = Math.max(1, dist), ux = (p.x - sx) / L, uy = (p.y - sy) / L;
-      for (const [bid, b] of this.beastsNear((sx + p.x) / 2, (sy + p.y) / 2, L / 2 + 14)) {
-        const bx = b.x - sx, by = b.y - sy, pr = Math.max(0, Math.min(L, bx * ux + by * uy));
-        if (Math.hypot(bx - ux * pr, by - uy * pr) < 14 + TIERS[b.tier].size / 2) strike(bid, true);
-      }
-      for (const fid of this.foesOf(id)) {
-        const f = this.state.players.get(fid); if (!f) continue;
-        const bx = f.x - sx, by = f.y - sy, pr = Math.max(0, Math.min(L, bx * ux + by * uy));
-        if (Math.hypot(bx - ux * pr, by - uy * pr) < 14 + ARENA.body) strikeFoe(fid, true);
-      }
-    } else if (sk.area === "proj") {
-      const n = sk.n ?? 1, spread = (sk.spread ?? 0) * Math.PI / 180, ring = spread >= Math.PI * 2 - 1e-6, a0 = Math.atan2(d.dir.y, d.dir.x);
-      for (let k = 0; k < n; k++) {
-        const a = ring ? (k / n) * Math.PI * 2 : a0 + (n > 1 ? (k / (n - 1) - 0.5) * spread : 0);
-        this.projs.push({ x: p.x, y: p.y - 8, vx: Math.cos(a) * PROJ_SPEED, vy: Math.sin(a) * PROJ_SPEED, life: sk.r / PROJ_SPEED, owner: id,
-          fire: (bid) => strike(bid, true), foe: (fid) => strikeFoe(fid, true) });
-      }
-      this.broadcast("fx", ring ? { k: "burst", id, x: p.x, y: p.y - 8, col } : { k: "burst", id, x: p.x, y: p.y - 8, col, n, a0, spread, r: sk.r });
-    } else if (sk.area === "target") {
-      const bid = sk.pick === "low" ? this.weakestBeast(p, sk.r) : this.nearestBeast(p, sk.r), b = bid ? this.state.beasts.get(bid) : undefined;
-      // Không có hồn thú trong tầm thì nhắm đối thủ gần nhất (Đại Đấu Hồn Trường, 7.2).
-      const fid = b ? undefined : this.nearestFoe(id, sk.r), f = fid ? this.state.players.get(fid) : undefined;
-      if (!b && !f) {
-        if (sk.dash) { const x0 = p.x, y0 = p.y; this.dashStep(p, d, sk.dash); this.broadcast("fx", { k: "trail", x0, y0, x1: p.x, y1: p.y, col }); }
-      } else {
-        if (sk.dash) { const x0 = p.x, y0 = p.y; if (this.dashTo(p, d, (b ?? f)!, sk.dash, b ? TIERS[b.tier].size : ARENA.body * 2) > 0) this.broadcast("fx", { k: "trail", x0, y0, x1: p.x, y1: p.y, col }); }
-        const n = sk.n ?? 1;
-        for (let k = 0; k < n; k++) {
-          const go = () => {
-            const me = this.state.players.get(id); if (!me || me.dead) return;
-            if (bid) {
-              const t = this.state.beasts.get(bid); if (!t) return;
-              this.broadcast("fx", { k: "claw", x: t.x, y: t.y - TIERS[t.tier].size / 2, col, i: k });
-              strike(bid, k === n - 1);
-            } else if (fid) {
-              const t = this.state.players.get(fid); if (!t || t.dead) return;
-              this.broadcast("fx", { k: "claw", x: t.x, y: t.y - ARENA.body, col, i: k });
-              strikeFoe(fid, k === n - 1);
-            }
-          };
-          if (k === 0) go(); else this.later(k * (sk.every ?? 0.15), go);
-        }
-      }
-    }
-    if (sk.self) this.selfEffect(id, sk.self, bpow, col, share);
-    if (sk.inv) d.inv = Math.max(d.inv, sk.inv);
-  }
+  runSkill(id: string, sk: SkillDef, power: number, bpow: number, col: string, hit?: Hit, share?: string, fus?: FusHit & { at: { x: number; y: number } }) { return skill.runSkill(this, id, sk, power, bpow, col, hit, share, fus); }
 
   // ---------- Trạng thái dùng chung trên hồn thú (mục 5.1) ----------
   /**
@@ -2986,251 +2845,14 @@ export class MapRoom extends Room<MapState> {
     if (dot > 0) this.hurtPlayer(id, dot, { dot: true });
   }
 
-  /**
-   * Hồn kỹ ở ô `i` (U/I/O/P). Từ 8.1a mỗi ô mang hồn kỹ của một vòng do người chơi chọn (loadoutOf; mặc định vòng 1–4): vòng 1–4
-   * là hồn kỹ riêng của võ hồn ra trận nếu có (VOHON_SKILLS), không thì 4 hồn kỹ dùng chung; vòng 5, 6, 8, 9, 10 từ VOHON_SKILLS_HIGH.
-   * Hồn kỹ vòng r mở khi có hồn hoàn thứ r, mạnh theo số năm của hồn hoàn đó (skillPower, mục 5.2). Hồi chiêu theo ô (`p.cds[i]`).
-   * Hồn kỹ đánh một mục tiêu mà không có hồn thú trong tầm thì không tung (không tốn hồn lực, không hồi chiêu).
-   * Từ 9.6: đang Võ Hồn Chân Thân thì ô P (CHAN_THAN_SKILL_SLOT) tung hồn kỹ Chân Thân (ChanThanDef.skill) thay hồn kỹ đang mang ở ô
-   * đó (kể cả ô trống), mạnh theo hồn hoàn vòng 7, hồi chiêu riêng `p.ctCd` (không đụng `p.cds` / skCd của hồn kỹ ô P cũ).
-   */
-  skill(c: Client, i: number) {
-    const id = c.sessionId, p = this.state.players.get(id), d = this.pdata.get(id);
-    if (!p || !d || p.dead || d.absorbing || d.travelling || !(Number.isInteger(i) && i >= 0 && i < LOADOUT_SIZE)) return;
-    if (this.map.inSafe(p.x, p.y)) return this.log(id, "Vùng an toàn: không thể giao chiến.", "#ffb35c");
-    const ct = i === CHAN_THAN_SKILL_SLOT && d.ava ? chanThanOf(d.ch.vohon)?.skill ?? null : null; // hồn kỹ Chân Thân (9.6)
-    const r = ct ? CHAN_THAN_RING - 1 : loadoutOf(d.ch.vohon, d.ch.skills)[i];
-    if (r < 0) return this.log(id, `Ô ${i + 1} chưa mang hồn kỹ: chọn ở bảng đội hình (V).`);
-    if (r >= p.rings.length) return this.log(id, `Hồn kỹ vòng ${r + 1} cần hồn hoàn thứ ${r + 1}.`);
-    if (ct ? p.ctCd > 0 : p.cds[i] > 0) return;
-    if (this.pctl(d).noSkill) return this.log(id, `Đang bị ${this.ccName(d)}: không dùng được hồn kỹ.`, "#ffb35c");
-    const set = skillsOf(VOHON[p.vh].id), sk = ct ?? ringSkill(d.ch.vohon, r)!, cost = sk.cost * (1 - Math.min(0.9, this.buffV(d, "mp")));
-    // Phục Chế (Xúc Xích, 2.5c; 9.3): tung lại hồn kỹ gần nhất của võ hồn khác trong đội hoặc đồng đội tổ đội đứng gần; chưa có thì không tung.
-    const src = sk.copy ? this.copySource(id) : null;
-    if (sk.copy && !src) return this.log(id, `${sk.name}: chưa có hồn kỹ của võ hồn khác trong đội (chưa gục) hay đồng đội tổ đội đứng gần tung trong ${COPY_WINDOW} giây để sao chép.`);
-    const run = src?.sk ?? sk;
-    if (d.mpF < cost) return this.log(id, "Không đủ hồn lực.");
-    const reach = run.area === "target" ? run.r : run.at;
-    if (reach && !this.nearestBeast(p, reach) && !this.nearestFoe(id, reach)) return this.log(id, `${run.name}: không có ${this.foesOf(id).length ? "đối thủ" : "hồn thú"} trong tầm.`);
-    // Sao võ hồn (9.5, mục 5.1): hồn kỹ vòng 1–4 mạnh hơn theo sao (starSkillMult), từ 4★ hồi chiêu ngắn hơn (starCdMult).
-    const star = starRing(r) ? d.ch.stars : 1, cd = sk.cd * starCdMult(star);
-    d.mpF -= cost;
-    if (ct) p.ctCd = cd; else { p.cds[i] = cd; d.skCd.set(`${d.ch.rowId}:${r}`, cd); }
-    this.unhide(p, d);
-    const tier = p.rings[r], years = d.ringYears[r] ?? TIERS[tier].years;
-    // i: vòng hồn hoàn của hồn kỹ, client làm sáng vòng đó và hiện tên hồn kỹ; `ct`: hồn kỹ Chân Thân (9.6, vòng 7)
-    this.broadcast("fx", { k: "soulring", id, tier, i: r, vh: p.vh, ...(ct ? { ct: 1 } : {}) });
-    if (sk.ult) this.broadcast("fx", { k: "ult", id, name: sk.name, col: TIERS[tier].glow }); // tuyệt kỹ vòng 10 (8.1a): ai cũng thấy
-    if (src) this.log(id, `${sk.name}: sao chép ${run.name}${src.by ? ` của ${src.by}` : ""}.`, VOHON[p.vh].col);
-    // Phục Chế nhân `copy` cả sát thương lẫn hiệu ứng lên bản thân (hồi máu, khiên, hồn lực, hiệu ứng có lợi; inv/hide giữ nguyên);
-    // hệ số sao (9.5) cũng nhân cả hai, theo sao của võ hồn tung và vòng của ô (không theo hồn kỹ được sao chép).
-    // Ràng buộc Song Sinh Võ Hồn (9.4): sức mạnh hồn kỹ ô U / I / O / P (mọi vòng) × (1 + bondV skill), như hệ số sao.
-    const mult = (sk.copy ?? 1) * starSkillMult(star) * (1 + this.bondV(d, "skill")), hit: Hit = { kind: "skill", done: false };
-    // Bộ hồn hạch Lam Ngân 4 món (5.2): hồn kỹ có gây khống chế, trúng ít nhất một hồn thú thì hồi hồn lực (một lần mỗi lần tung).
-    const ccMp = d.coreFx.ccMp ?? 0;
-    if (ccMp && [...(run.status ?? []), ...(run.finisher ?? [])].some((a) => isCcStatus(a.s))) hit.onHit = () => {
-      const q = this.state.players.get(id); if (q !== p || p.dead) return;
-      d.mpF = Math.min(p.maxMp, d.mpF + p.maxMp * ccMp); p.mp = Math.floor(d.mpF);
-    };
-    // 9.1: võ hồn Phụ trợ ra trận thì hiệu ứng lên bản thân lan cho tổ đội; Phục Chế lấy võ hồn gốc của hồn kỹ đã chép.
-    const share = this.shareOf(p, src ? src.vh : d.ch.vohon);
-    this.runSkill(id, run, skillPower(years) * mult, buffPower(years) * mult, run.glow ? TIERS[tier].glow : VOHON[p.vh].col, hit, share);
-    // Tuyệt kỹ vòng 10 (8.1a) không ghi vào hồn kỹ gần nhất: Phục Chế (hồi 14 giây) không được sao chép tuyệt kỹ (hồi 45–50 giây).
-    // Hồn kỹ Chân Thân (9.6) cũng không: là một phần của Chân Thân.
-    if (!set.some((x) => x.copy) && !sk.ult && !ct) d.lastSkill = { sk, row: d.ch.rowId, vh: d.ch.vohon, t: Date.now() };
-  }
+  skill(c: Client, i: number) { return skill.skill(this, c, i); }
 
-  /**
-   * Hồn kỹ Phục Chế của `id` chép (2.5c, 9.3): hồn kỹ gần nhất về thời gian, tung trong COPY_WINDOW giây, của võ hồn khác còn trong
-   * đội của mình (chưa gục) hoặc của đồng đội tổ đội cùng phòng (chưa gục cả đội, không đi cổng, không phải đối thủ, võ hồn đã tung
-   * còn trong đội và chưa gục) đứng cách dưới COPY_R pixel. `by`: tên đồng đội khi chép của tổ đội. Không có thì null.
-   */
-  copySource(id: string) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return null;
-    const now = Date.now(), pid = party.partyIdOf(d.accountId), foes = this.foesOf(id);
-    let best: { sk: SkillDef; vh: string; t: number; by?: string } | null = null;
-    const pick = (o: PData, by?: string) => {
-      const l = o.lastSkill;
-      if (!l || now - l.t > COPY_WINDOW * 1000 || !o.team.includes(l.row) || o.down.has(l.row) || (!by && l.row === d.ch.rowId)) return;
-      if (!best || l.t > best.t) best = { sk: l.sk, vh: l.vh, t: l.t, by };
-    };
-    pick(d);
-    if (pid) for (const [qid, o] of this.pdata) {
-      const q = this.state.players.get(qid);
-      if (qid === id || !q || q.dead || o.travelling || o.travelCast || foes.includes(qid) || party.partyIdOf(o.accountId) !== pid) continue;
-      if (Math.hypot(q.x - p.x, q.y - p.y) < COPY_R) pick(o, q.name);
-    }
-    return best as { sk: SkillDef; vh: string; t: number; by?: string } | null;
-  }
+  copySource(id: string) { return skill.copySource(this, id); }
 
-  /**
-   * Xếp 4 ô hồn kỹ mang theo của võ hồn `rowId` (8.1a, mục 5.2): mỗi ô là chỉ số vòng có hồn kỹ đã mở (ringSkill, vòng < số hồn hoàn)
-   * hoặc -1 (trống), không trùng. Cùng luật với gắn hồn cốt (boneLock): ngoài giao chiến, không gục, không hấp thụ. Võ hồn đang ra
-   * trận: hồi chiêu đi theo hồn kỹ, không theo ô: mỗi ô mới lấy hồi chiêu của chính hồn kỹ đó (ô cũ của nó trong `prev`, và PData.skCd),
-   * không giữ hồi chiêu của hồn kỹ vừa rời ô; ô trống về 0. Nên đổi chỗ, bỏ ra rồi xếp lại không làm mới hồi chiêu, và hồn kỹ đang sẵn
-   * sàng không bị khóa vì hồn kỹ khác. Sửa ô của võ hồn đang nghỉ: lúc võ hồn đó vào trận, carrySkillCds áp skCd. Lưu ngay qua chuỗi lưu.
-   */
-  setLoadout(c: Client, rowId: number, raw: unknown) {
-    const id = c.sessionId, p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
-    const deny = (text: string) => { this.log(id, text, "#ffb35c"); this.sendVohons(c); };
-    const v = d.owned.find((x) => x.rowId === rowId);
-    if (!v) return deny("Bạn không sở hữu võ hồn này.");
-    const next = parseLoadout(raw);
-    if (!next) return deny("Ô hồn kỹ không hợp lệ.");
-    const vi = Math.max(0, vohonIndex(v.vohon)), name = VOHON[vi].name;
-    for (const r of next) {
-      if (r < 0) continue;
-      if (!ringSkill(v.vohon, r)) return deny(r + 1 === CHAN_THAN_RING ? "Võ Hồn Chân Thân dùng phím riêng (R), không xếp vào ô hồn kỹ." : `${name} chưa có hồn kỹ vòng ${r + 1}.`);
-      if (r >= v.rings.length) return deny(`${name} chưa có hồn hoàn thứ ${r + 1}.`);
-    }
-    const prev = loadoutOf(v.vohon, v.skills);
-    if (next.every((r, i) => r === prev[i])) return this.sendVohons(c);
-    const lock = this.boneLock(p, d, "hồn kỹ"); if (lock) return deny(lock.replace("gắn / tháo", "xếp ô"));
-    v.skills = next;
-    if (v === d.ch) {
-      const old = [...p.cds];
-      next.forEach((r, i) => { const from = prev.indexOf(r);
-        p.cds[i] = r < 0 ? 0 : Math.max(from >= 0 ? old[from] : 0, d.skCd.get(`${v.rowId}:${r}`) ?? 0); });
-    }
-    this.chainLatest(d, `skills:${v.rowId}`, () => store.saveSkills(d.accountId, v.rowId, [...next])); // gửi dồn: ghi một lần, bản mới nhất
-    const keys = ["U", "I", "O", "P"];
-    this.log(id, `${name} mang theo: ${next.map((r, i) => `${keys[i]} ${r < 0 ? "trống" : ringSkill(v.vohon, r)!.name}`).join(", ")}.`, VOHON[vi].col);
-    this.sendVohons(c);
-  }
+  setLoadout(c: Client, rowId: number, raw: unknown) { return skill.setLoadout(this, c, rowId, raw); }
 
-  // ---------- Võ Hồn Dung Hợp Kỹ (#192, mục 5.9; FUSION, FUSIONS) ----------
-  /** Message `fusion {op}`: "start" (A mời đồng đội gần nhất hợp lệ), "join" (B hưởng ứng lời mời đang chờ). */
-  fusionAction(id: string, op: string) {
-    if (op === "start") this.fusionStart(id);
-    else if (op === "join") this.fusionJoin(id);
-  }
-
-  /**
-   * Lý do hồn sư `id` không tham gia dung hợp kỹ được lúc này ("" = được): bị chặn như hồn kỹ (gục, hấp thụ, đi cổng / truyền tống,
-   * vùng an toàn, Choáng / Câm lặng…), còn hồi chiêu dung hợp, võ hồn ra trận thiếu hồn hoàn (FUSION.minRings), thiếu hồn lực.
-   * Câu trả về ghép sau tên người ("bạn …" / "<tên> …").
-   */
-  fusionBlock(id: string) {
-    const p = this.state.players.get(id), d = this.pdata.get(id);
-    if (!p || !d || d.travelling) return "không còn ở bản đồ này";
-    if (p.dead) return "đã gục";
-    if (d.absorbing) return "đang hấp thụ hồn hoàn";
-    if (d.travelCast) return "đang đi cổng / truyền tống";
-    if (this.map.inSafe(p.x, p.y)) return "đang ở vùng an toàn";
-    if (this.pctl(d).noSkill) return `đang bị ${this.ccName(d)}`;
-    const cd = fusionCdLeft(d.accountId); if (cd > 0) return `còn hồi chiêu dung hợp ${Math.ceil(cd)} giây`;
-    if (p.rings.length < FUSION.minRings) return `chỉ có ${p.rings.length} hồn hoàn trên ${VOHON[p.vh].name} (cần ${FUSION.minRings})`;
-    if (d.mpF < FUSION.cost) return `không đủ hồn lực (cần ${FUSION.cost})`;
-    return "";
-  }
-
-  /**
-   * Lý do cặp A (`a`) – B (`b`) không dung hợp được ("" = được): võ hồn ra trận không ghép thành cặp `fi` của FUSIONS (fi < 0: cặp bất
-   * kỳ), cách nhau từ FUSION.r trở lên, một trong hai bị chặn (fusionBlock). Câu trả về là cả câu, không có dấu chấm cuối.
-   */
-  fusionCheck(a: string, b: string, fi = -1) {
-    const pa = this.state.players.get(a), da = this.pdata.get(a), pb = this.state.players.get(b), db = this.pdata.get(b);
-    if (!pa || !da || !pb || !db) return "đồng đội đã rời bản đồ";
-    const pid = party.partyIdOf(da.accountId);
-    if (!pid || party.partyIdOf(db.accountId) !== pid) return `${pb.name} không còn cùng tổ đội`;
-    const k = fusionIndex(da.ch.vohon, db.ch.vohon);
-    if (k < 0 || (fi >= 0 && k !== fi)) return `${VOHON[pa.vh].name} và ${VOHON[pb.vh].name} của ${pb.name} không ghép thành cặp dung hợp`;
-    const wa = this.fusionBlock(a); if (wa) return `${pa.name} ${wa}`;
-    const wb = this.fusionBlock(b); if (wb) return `${pb.name} ${wb}`;
-    const dist = Math.hypot(pa.x - pb.x, pa.y - pb.y);
-    if (dist >= FUSION.r) return `${pb.name} đứng xa (${Math.round(dist)} pixel, cần dưới ${FUSION.r})`;
-    return "";
-  }
-
-  /**
-   * A gửi `fusion {op: "start"}` (#192): server tìm đồng đội tổ đội cùng phòng gần nhất hợp lệ (fusionCheck, không đang có lời mời khác),
-   * gửi B tin riêng `fusion {k: "ask"}` nhắc hưởng ứng trong FUSION.window giây, A nhận `fusion {k: "wait"}`. Không có ai thì báo lý do
-   * của đồng đội gần nhất cầm võ hồn ghép cặp (không có thì báo cặp cần có). Cấm trong sân đấu (ArenaRoom BLOCKED; có đối thủ thì cũng từ chối).
-   */
-  fusionStart(id: string) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
-    const say = (t: string) => this.log(id, `Dung hợp kỹ: ${t}.`, "#ffb35c");
-    if (this.map.kind === "arena" || this.foesOf(id).length) return say("không dùng được ở Đại Đấu Hồn Trường");
-    if (d.fus) return say(d.fus.init ? `đang chờ ${this.state.players.get(d.fus.with)?.name ?? "đồng đội"} hưởng ứng`
-      : `${this.state.players.get(d.fus.with)?.name ?? "đồng đội"} đang mời bạn, hãy hưởng ứng`);
-    const pairs = fusionsOf(d.ch.vohon);
-    if (!pairs.length) return say(`${VOHON[p.vh].name} không có dung hợp kỹ`);
-    const why = this.fusionBlock(id); if (why) return say(`bạn ${why}`);
-    const pid = party.partyIdOf(d.accountId);
-    if (!pid) return say("cần ở trong tổ đội với đồng đội cầm võ hồn ghép cặp");
-    const mates = [...this.pdata].filter(([q, o]) => q !== id && party.partyIdOf(o.accountId) === pid && this.state.players.has(q)).map(([q]) => q);
-    if (!mates.length) return say("không có đồng đội tổ đội nào cùng bản đồ, cùng kênh");
-    const dist = (q: string) => { const t = this.state.players.get(q)!; return Math.hypot(t.x - p.x, t.y - p.y); };
-    mates.sort((x, y) => dist(x) - dist(y));
-    let first = "";
-    for (const q of mates) {
-      const o = this.pdata.get(q)!, fi = fusionIndex(d.ch.vohon, o.ch.vohon); if (fi < 0) continue;
-      const w = o.fus ? `${this.state.players.get(q)!.name} đang chờ một dung hợp khác` : this.fusionCheck(id, q, fi);
-      if (w) { first ||= w; continue; }
-      const def = FUSIONS[fi], qn = this.state.players.get(q)!.name;
-      d.fus = { with: q, t: FUSION.window, init: true, fi }; o.fus = { with: id, t: FUSION.window, init: false, fi };
-      this.clients.getById(q)?.send("fusion", { k: "ask", by: p.name, i: fi, t: FUSION.window });
-      this.clients.getById(id)?.send("fusion", { k: "wait", to: qn, i: fi, t: FUSION.window });
-      this.log(q, `${p.name} mời Võ Hồn Dung Hợp Kỹ ${def.name} [G]: hưởng ứng trong ${FUSION.window} giây.`, VOHON[p.vh].col);
-      this.log(id, `Dung hợp kỹ ${def.name}: chờ ${qn} hưởng ứng trong ${FUSION.window} giây.`, VOHON[p.vh].col);
-      return;
-    }
-    say(first || `không đồng đội nào ra trận ${pairs.map((f) => VOHON[Math.max(0, vohonIndex(f.pair[0] === d.ch.vohon ? f.pair[1] : f.pair[0]))].name).join(" / ")} để ghép cặp với ${VOHON[p.vh].name}`);
-  }
-
-  /** B gửi `fusion {op: "join"}` (#192): kiểm lại cả hai (fusionCheck với đúng cặp đã mời); hợp lệ thì tung, không thì hủy không tốn gì. */
-  fusionJoin(id: string) {
-    const d = this.pdata.get(id), f = d?.fus; if (!d) return;
-    if (!f || f.init) return this.log(id, "Dung hợp kỹ: chưa có lời mời dung hợp nào.", "#ffb35c");
-    const why = this.fusionCheck(f.with, id, f.fi);
-    if (why) return this.fusionCancel(id, `Dung hợp kỹ đã hủy: ${why} (không tốn gì).`);
-    this.fusionFire(f.with, id, f.fi);
-  }
-
-  /** Hủy lời mời đang chờ của `id` và của đồng đội trong lời mời đó, báo cả hai `why`; không tốn gì. */
-  fusionCancel(id: string, why: string) {
-    const d = this.pdata.get(id), f = d?.fus; if (!d || !f) return;
-    d.fus = null;
-    const o = this.pdata.get(f.with); if (o?.fus?.with === id) o.fus = null;
-    for (const q of [id, f.with]) { this.clients.getById(q)?.send("fusion", { k: "cancel" }); this.log(q, why, "#ffb35c"); }
-  }
-
-  /**
-   * Tung dung hợp kỹ `fi` của A (`a`, người mời, là người gây đòn) và B (`b`): mỗi người tốn FUSION.cost hồn lực, vào hồi chiêu FUSION.cd
-   * của hồn sư. Sức mạnh: công = trung bình công võ hồn ra trận hai người (kể cả tăng công, không ràng buộc) × skillPower theo hồn hoàn
-   * năm cao nhất thấp hơn giữa hai võ hồn; không sao, không Phục Chế, không năng lượng tiên cơ (runSkill không có `hit`). Các phần nổ ở
-   * điểm giữa hai người (phần có `side` dời về phía người cầm võ hồn đó); đóng góp chia đôi (DmgOpt.pair). `fx fusion` công khai.
-   */
-  fusionFire(a: string, b: string, fi: number) {
-    const pa = this.state.players.get(a)!, da = this.pdata.get(a)!, pb = this.state.players.get(b)!, db = this.pdata.get(b)!, def = FUSIONS[fi];
-    da.fus = null; db.fus = null;
-    const now = Date.now(); for (const [k, t] of fusionReady) if (t <= now) fusionReady.delete(k); // dọn hồi chiêu đã hết của mọi tài khoản
-    for (const [q, p, d] of [[a, pa, da], [b, pb, db]] as const) {
-      d.mpF -= FUSION.cost; p.mp = Math.floor(d.mpF); fusionReady.set(d.accountId, Date.now() + FUSION.cd * 1000); this.unhide(p, d);
-      void presenceBackend.putJson(fusionKey(d.accountId), fusionReady.get(d.accountId), FUSION.cd * 1000).catch((e) => console.error("Không lưu được hồi chiêu dung hợp trong presence", e));
-      this.clients.getById(q)?.send("fusion", { k: "done", i: fi, cd: FUSION.cd });
-    }
-    const top = (d: PData) => Math.max(TIERS[0].years, ...d.ringYears), years = Math.min(top(da), top(db));
-    const atk = (this.atkOf(da, false, "none") + this.atkOf(db, false, "none")) / 2, power = skillPower(years); // công trung bình, không ràng buộc
-    const mid = { x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2 }, col = TIERS[tierOfYears(years)].glow;
-    // `va` / `vb`: võ hồn ra trận của A / B (màu luồng sáng, tiếng theo hệ ở client #193; người xem có thể không có A / B trong state, 11.4).
-    this.broadcast("fx", { k: "fusion", id: a, to: b, x: Math.round(mid.x), y: Math.round(mid.y), i: fi, col, va: pa.vh, vb: pb.vh });
-    for (const part of def.parts) {
-      const h = part.side === undefined ? null : da.ch.vohon === def.pair[part.side] ? pa : pb;
-      const at = h ? { x: (mid.x + h.x) / 2, y: (mid.y + h.y) / 2 } : mid;
-      this.runSkill(a, part, power, 1, col, undefined, undefined, { at, pair: b, atk });
-    }
-    this.log(a, `Võ Hồn Dung Hợp Kỹ ${def.name} cùng ${pb.name}!`, col);
-    this.log(b, `Võ Hồn Dung Hợp Kỹ ${def.name} cùng ${pa.name}!`, col);
-    for (const q of [a, b]) this.questEvent(q, { k: "fusion" }); // #286: tính cho cả người mời lẫn người hưởng ứng
-  }
-
-  /** Trôi `dt` giây cho lời mời đang chờ (tick, hook `rest`): người mời hết giờ hoặc đồng đội đã rời thì hủy. */
-  tickFusion(id: string, dt: number) {
-    const d = this.pdata.get(id), f = d?.fus; if (!d || !f) return;
-    if (!this.pdata.has(f.with)) return this.fusionCancel(id, "Dung hợp kỹ đã hủy: đồng đội đã rời bản đồ (không tốn gì).");
-    if ((f.t -= dt) <= 0 && f.init) this.fusionCancel(id, `Dung hợp kỹ đã hủy: hết ${FUSION.window} giây chờ hưởng ứng (không tốn gì).`);
-  }
+  fusionAction(id: string, op: string) { return skill.fusionAction(this, id, op); }
+  tickFusion(id: string, dt: number) { return skill.tickFusion(this, id, dt); }
 
   /**
    * Võ Hồn Chân Thân (vòng 7, 8.1a, mục 5.2): võ hồn ra trận có hồn hoàn thứ CHAN_THAN_RING và dữ liệu CHAN_THAN thì biến hình `secs`
@@ -3287,36 +2909,7 @@ export class MapRoom extends Room<MapState> {
     }
   }
 
-  /**
-   * Kỹ năng chủ động của hồn cốt (mục 5.5, bước 4.3) ở nút `i` (BONE_ACTIVE_SLOTS: đầu, tay trái, tay phải) của võ hồn ĐANG RA TRẬN.
-   * Kỹ năng theo loài hồn thú gốc (BONE_SKILLS), mạnh theo số năm hồn cốt (skillPower / buffPower như hồn kỹ), chạy bằng runSkill.
-   * Mỗi nút một hồi chiêu riêng (`PlayerState.bcds`, thuộc hồn sư: đổi võ hồn không làm mới), tốn hồn lực. Cùng luật chặn với hồn kỹ:
-   * gục, hấp thụ, đang chuyển bản đồ, vùng an toàn, Choáng / Câm lặng; kỹ năng đánh một mục tiêu mà không có hồn thú trong tầm thì
-   * không tung (không tốn hồn lực, không hồi chiêu). Đang niệm đi cổng / truyền tống vẫn dùng được, không hủy niệm (mục 5.3, #270).
-   */
-  boneSkill(c: Client, i: number) {
-    const id = c.sessionId, p = this.state.players.get(id), d = this.pdata.get(id);
-    if (!p || !d || p.dead || d.absorbing || d.travelling || !(Number.isInteger(i) && i >= 0 && i < BONE_ACTIVE_SLOTS.length)) return;
-    const slot = BONE_SLOTS[boneSlotIndex(BONE_ACTIVE_SLOTS[i])];
-    const bone = this.bonesOn(d, d.ch.rowId).find((b) => b.slot === slot.id);
-    const k = bone ? boneSkillOf(bone.beast, bone.slot) : null;
-    if (!bone || !k?.active) return this.log(id, `Ô ${slot.name} của ${VOHON[p.vh].name} chưa gắn hồn cốt có kỹ năng chủ động.`, "#ffb35c");
-    if (this.map.inSafe(p.x, p.y)) return this.log(id, "Vùng an toàn: không thể giao chiến.", "#ffb35c");
-    if (p.bcds[i] > 0) return;
-    if (this.pctl(d).noSkill) return this.log(id, `Đang bị ${this.ccName(d)}: không dùng được kỹ năng hồn cốt.`, "#ffb35c");
-    const sk = k.sk, cost = sk.cost * (1 - Math.min(0.9, this.buffV(d, "mp")));
-    if (d.mpF < cost) return this.log(id, "Không đủ hồn lực.");
-    const reach = sk.area === "target" ? sk.r : sk.at;
-    if (reach && !this.nearestBeast(p, reach) && !this.nearestFoe(id, reach)) return this.log(id, `${sk.name}: không có ${this.foesOf(id).length ? "đối thủ" : "hồn thú"} trong tầm.`);
-    d.mpF -= cost; p.mp = Math.floor(d.mpF); p.bcds[i] = sk.cd;
-    this.unhide(p, d);
-    const tier = tierOfYears(bone.years), col = TIERS[tier].glow;
-    // Client tra tên kỹ năng theo loài (chỉ số BEASTS) và vị trí; `i` là nút, hào quang theo niên hạn hồn cốt.
-    this.broadcast("fx", { k: "bone", id, i, sp: beastIndex(bone.beast), tier });
-    // Mốc cường hóa +5 / +10 / +15 / +20 nâng kỹ năng (4.4): sức mạnh và hiệu ứng lên bản thân nhân boneSkillMult.
-    const em = boneSkillMult(bone.enhance);
-    this.runSkill(id, sk, skillPower(bone.years) * em, buffPower(bone.years) * em, col, { kind: "skill", done: false }, sk.self ? d.ch.vohon : undefined);
-  }
+  boneSkill(c: Client, i: number) { return skill.boneSkill(this, c, i); }
 
   /**
    * `hit`: đòn đánh thường / hồn kỹ tạo năng lượng tiên cơ cho đội; bỏ trống (chiêu tiên cơ, sát thương theo thời gian, lan
