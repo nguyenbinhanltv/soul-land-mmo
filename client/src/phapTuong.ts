@@ -26,8 +26,9 @@ const tempKeys = new Set<string>();
 export function ensurePtSheet(scene: Phaser.Scene, id: string): boolean {
   const def = PHAP_TUONG[id], vh = VOHON.find((v) => v.id === id);
   if (!def || !vh) return false;
+  // Hỏi tải lười trước: thân tới trước lớp sáng `_glow` thì cũng chờ (khỏi dựng slot với lớp sáng sai); ảnh thật đang tải thì chưa vẽ bản tạm (vohonLazy.ts)
+  if (wantPhapTuong(scene, id) === "wait") return false;
   if (scene.textures.exists(def.sheet)) return true;
-  if (wantPhapTuong(scene, id) === "wait") return false; // ảnh thật đang tải lười (vohonLazy.ts): chưa vẽ bản tạm
   const S = 40, K = PT_FRAME / S, W = PT_COLS * PT_FRAME, H = PT_DIRS.length * PT_FRAME;
   const tex = scene.textures.createCanvas(def.sheet, W, H); if (!tex) return false;
   const ctx = tex.getContext(), small = document.createElement("canvas"); small.width = small.height = S;
@@ -160,11 +161,12 @@ export class PhapTuongSystem {
   }
   private release(r: Rig) { for (const s of r.slots) { s.body.setBlendMode(0); this.give(s.body); this.give(s.glow); } r.slots = []; }
   private setSlots(r: Rig, ids: string[]) {
-    // Sheet còn tải lười thì makeSlot trả null: slots ngắn hơn ids nên khung sau hỏi lại (rẻ: chỉ một lần tra texture mỗi khung).
-    const have = r.slots.map((s) => s.id).join("|");
-    if (have === ids.join("|")) return;
-    for (const s of r.slots) { this.give(s.body); this.give(s.glow); }
-    r.slots = ids.map((i) => this.makeSlot(i)).filter((s): s is Slot => !!s);
+    // Sheet còn tải lười thì makeSlot trả null: slots ngắn hơn ids nên khung sau hỏi lại; slot đã dựng được giữ, chỉ dựng phần thiếu.
+    if (r.slots.map((s) => s.id).join("|") === ids.join("|")) return;
+    const old = new Map(r.slots.map((s) => [s.id, s]));
+    const next = ids.map((i) => old.get(i) ?? this.makeSlot(i)).filter((s): s is Slot => !!s);
+    for (const s of r.slots) if (!next.includes(s)) { this.give(s.body); this.give(s.glow); }
+    r.slots = next;
   }
 
   /** Bắt đầu chuỗi biến hình (tin `avatar` bật); `full` false: vào thẳng giai đoạn cuối (người mới vào thấy đang Chân Thân). */
