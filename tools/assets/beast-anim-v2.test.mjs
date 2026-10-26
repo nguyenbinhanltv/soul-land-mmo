@@ -59,8 +59,8 @@ test("direction: mỗi hướng một tờ 1536×1024 6×4, kể cả loài khun
       assert.match(p, /never copy its poses/);
     }
   }
-  assert.equal(stageDocs(speciesInfo("phong_lang"), "direction", "x").length, 5);
-  assert.equal(stageDocs(speciesInfo("phong_lang"), "direction", "x", ["ne"]).length, 1);
+  assert.equal(stageDocs(speciesInfo("phong_lang"), "direction", "x", undefined, { hasTurnaround: true }).length, 5);
+  assert.equal(stageDocs(speciesInfo("phong_lang"), "direction", "x", ["ne"], { hasTurnaround: true }).length, 1);
 });
 
 test("sheet (v1 / dự phòng) giữ bố cục A / B; tờ B đính tờ A đã duyệt làm tham chiếu thứ hai; có bài học", () => {
@@ -74,7 +74,7 @@ test("sheet (v1 / dự phòng) giữ bố cục A / B; tờ B đính tờ A đã
 
 test("tài liệu theo giai đoạn nêu beast-nguon, giới hạn 3 lượt và cấm dùng tờ lỗi làm tham chiếu", () => {
   const info = speciesInfo("kim_linh_ung");
-  for (const st of ["turnaround", "direction", "sheet"]) for (const [, md] of stageDocs(info, st, info.desc)) {
+  for (const st of ["turnaround", "direction", "sheet"]) for (const [, md] of stageDocs(info, st, info.desc, undefined, { hasTurnaround: true })) {
     assert.match(md, /tối đa 3 lượt/);
     assert.match(md, /beast-nguon/);
     assert.match(md, /dùng ảnh hỏng|dùng tờ hỏng|dùng tờ lỗi|\*\*Không\*\* dùng/);
