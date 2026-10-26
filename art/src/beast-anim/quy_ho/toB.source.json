@@ -1,0 +1,83 @@
+{
+  "species": "quy_ho",
+  "sheet": "B",
+  "worker": "soul-land-mmo-105",
+  "owner": "soul-land-mmo-93",
+  "tool": "builtin image_gen.imagegen / image_gen__imagegen (worker HANDOFF declaration)",
+  "image_model": null,
+  "seed": null,
+  "provenance_origin": "Owner93 compiled from HANDOFF105; independently verified original/artifact bytes/hash/IHDR/exact/base/orderedrefs. No upstream JSON supplied.",
+  "upstream_handoff": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-105/HANDOFF.md",
+  "upstream_handoff_sha256": "29daf7bd6f78b33829f1b52c8a074ab0cf75ed76988a1a4eff900fe7a159d2b1",
+  "reported_call_started_utc": "2026-10-26T01:23:26.003Z",
+  "reported_call_returned_utc": "2026-10-26T01:24:04.398Z",
+  "counters_reported_in_handoff": {
+    "session_builtin_calls": 1,
+    "retries": 0,
+    "B2": 0,
+    "prior_A103": 1,
+    "species_calls_after_B1": 2
+  },
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a175cc-fcac-7602-bfaa-e2d91c24dd2c/exec-3dd4fe61-7d6f-40fe-abad-7fc3da52982a.png",
+  "artifact_raw_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-105/quy_ho-toB1.RAW.png",
+  "raw_sha256": "d259e5ed69aa9902be91d2e2c3317b150230c0117e601e268f15f4c6aef71821",
+  "bytes": 2017355,
+  "actual_dimensions": [
+    1254,
+    1254
+  ],
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "size_requirement_met": false,
+  "requested_grid": [
+    6,
+    8
+  ],
+  "expected_occupied_cells": 44,
+  "expected_blank_cells": [
+    "H4 C5–6",
+    "H8 C5–6"
+  ],
+  "semantic_frame_count_verified": false,
+  "exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-105/quy_ho-toB1.exact-prompt.txt",
+  "prompt_sha256": "0495967dccca0b3b58ccc5e3e31191c6f2d6c341a192befe33ae728f7b40364f",
+  "base_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-93/prompts/quy_ho-toB.prompt.txt",
+  "base_sha256": "2ee384a03943bac9cb1a16b2c2e4e02ac123e5d08c38c2f681b18aa5b5e9c796",
+  "base_prefix_byte_identical": true,
+  "ordered_references": [
+    {
+      "order": 1,
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-103/quy_ho-static.png",
+      "sha256": "c925748560ea0d1bd1e797bd9003b1f5c8f653f92101b21873de1f4318394f28",
+      "role": "original static identity",
+      "viewed_before_call_reported_by_worker": true
+    },
+    {
+      "order": 2,
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-103/quy_ho-toA1.RAW.png",
+      "sha256": "24139325686d96136af0a51951257a7d6208275755f6f954cd936027f75a980b",
+      "role": "A103 style/body size only, known FAIL; incorrect pose/heading/background excluded",
+      "viewed_before_call_reported_by_worker": true
+    }
+  ],
+  "original_equals_artifact": true,
+  "transparent_background": false,
+  "postprocessing": "None; byte copy only. No crop/resize/patch/cutter/layout/runtime.",
+  "worker_visual_findings": [
+    "NE H4 C3–4 death turns sideways and exposes face.",
+    "N H8 C3–4 death turns sideways and exposes face/eyes.",
+    "Background varies from FF00FF; reported corners (238,12,238),(244,16,240),(235,34,234),(240,29,238)."
+  ],
+  "measurement_limits": "HANDOFF observations/pixel counts do not certify semantic valid frames, margin/body size or art/runtime.",
+  "status": "RAW FAIL/provenance verified only; not Git submitted, not art/runtime accepted.",
+  "integration": {
+    "repository_raw_file": "toB.png",
+    "repository_prompt_file": "toB.prompt.txt",
+    "script_prompt_file": "quy_ho-toB.md",
+    "script_prompt_sha256": "7924de2a648f6e6f7dd9803febb96f7dc627b1654741b9c2e48ccef2a63666b4",
+    "raw_original_artifact_repo_byte_identical": true,
+    "postprocessing": "None; byte copy only. No crop/resize/patch/cutter/layout/runtime."
+  }
+}

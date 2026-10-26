@@ -1,0 +1,1403 @@
+{
+  "species": "quy_ho",
+  "sheet": "A",
+  "worker": "soul-land-mmo-103",
+  "owner": "soul-land-mmo-93",
+  "upstream_tool_provenance": {
+    "originalToolPath": "/Users/thanhhoa/.codex/generated_images/01a175ca-0a5e-7881-92e9-2edb0ad31dae/exec-8114642e-83e6-40d0-82c7-8e75f9c4beb8.png",
+    "output_hint": "Generated images are saved to /Users/thanhhoa/.codex/generated_images/01a175ca-0a5e-7881-92e9-2edb0ad31dae as /Users/thanhhoa/.codex/generated_images/01a175ca-0a5e-7881-92e9-2edb0ad31dae/exec-8114642e-83e6-40d0-82c7-8e75f9c4beb8.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link.",
+    "started": {
+      "current_time": "2026-10-26 01:19:59 UTC"
+    },
+    "returned": {
+      "current_time": "2026-10-26 01:20:30 UTC"
+    },
+    "tool": "image_gen.imagegen",
+    "imageModel": "unknown; tool does not expose",
+    "seed": "unknown; tool does not expose",
+    "agent": "gpt6.1-sol medium (user-declared; not image model)",
+    "builtinCalls": 1,
+    "retries": 0,
+    "A2": 0,
+    "B": 0,
+    "referenceRole": "identity only",
+    "transparent_background": false
+  },
+  "upstream_evidence": {
+    "raw": {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-103/quy_ho-toA1.RAW.png",
+      "bytes": 2084776,
+      "sha256": "24139325686d96136af0a51951257a7d6208275755f6f954cd936027f75a980b"
+    },
+    "original": {
+      "path": "/Users/thanhhoa/.codex/generated_images/01a175ca-0a5e-7881-92e9-2edb0ad31dae/exec-8114642e-83e6-40d0-82c7-8e75f9c4beb8.png",
+      "bytes": 2084776,
+      "sha256": "24139325686d96136af0a51951257a7d6208275755f6f954cd936027f75a980b"
+    },
+    "rawByteIdentical": true,
+    "static": {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-103/quy_ho-static.png",
+      "bytes": 4691,
+      "sha256": "c925748560ea0d1bd1e797bd9003b1f5c8f653f92101b21873de1f4318394f28"
+    },
+    "base": {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-103/quy_ho-toA.base.prompt.txt",
+      "bytes": 4049,
+      "sha256": "2585195be33600b53190e2cd56c5dde58528468ffb0188717a18779f01c17ca9"
+    },
+    "exactPrompt": {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-103/quy_ho-toA1.exact.prompt.txt",
+      "bytes": 4732,
+      "sha256": "e5484f2dfd72e660c46e9ded3200308e7a2c096f9488873fdbaaa057ddb37626"
+    },
+    "prefixByteIdentical": true,
+    "IHDR": {
+      "width": 1024,
+      "height": 1536,
+      "bitDepth": 8,
+      "colorType": 2,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0
+    },
+    "exactFF00FFPixels": 7,
+    "topColors": [
+      {
+        "rgb": [
+          251,
+          3,
+          249
+        ],
+        "pixels": 204789
+      },
+      {
+        "rgb": [
+          250,
+          3,
+          249
+        ],
+        "pixels": 96100
+      },
+      {
+        "rgb": [
+          251,
+          3,
+          250
+        ],
+        "pixels": 73645
+      },
+      {
+        "rgb": [
+          251,
+          2,
+          249
+        ],
+        "pixels": 60153
+      },
+      {
+        "rgb": [
+          250,
+          3,
+          248
+        ],
+        "pixels": 55788
+      },
+      {
+        "rgb": [
+          250,
+          2,
+          249
+        ],
+        "pixels": 53305
+      },
+      {
+        "rgb": [
+          250,
+          2,
+          248
+        ],
+        "pixels": 51220
+      },
+      {
+        "rgb": [
+          251,
+          4,
+          249
+        ],
+        "pixels": 35154
+      }
+    ],
+    "occupiedCells": 66,
+    "emptyCells": [
+      [
+        4,
+        5
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        8,
+        5
+      ],
+      [
+        8,
+        6
+      ],
+      [
+        12,
+        5
+      ],
+      [
+        12,
+        6
+      ]
+    ],
+    "occupancyRule": "read-only RGB classification: background if R>200 and G<55 and B>200; not semantic figure validation",
+    "cells": [
+      {
+        "row": 1,
+        "column": 1,
+        "nonNearMagentaPixels": 4224,
+        "bboxInclusive": [
+          57,
+          29,
+          119,
+          117
+        ],
+        "cellBounds": [
+          0,
+          0,
+          170,
+          128
+        ]
+      },
+      {
+        "row": 1,
+        "column": 2,
+        "nonNearMagentaPixels": 4377,
+        "bboxInclusive": [
+          225,
+          29,
+          294,
+          117
+        ],
+        "cellBounds": [
+          170,
+          0,
+          341,
+          128
+        ]
+      },
+      {
+        "row": 1,
+        "column": 3,
+        "nonNearMagentaPixels": 4253,
+        "bboxInclusive": [
+          398,
+          29,
+          460,
+          117
+        ],
+        "cellBounds": [
+          341,
+          0,
+          512,
+          128
+        ]
+      },
+      {
+        "row": 1,
+        "column": 4,
+        "nonNearMagentaPixels": 4279,
+        "bboxInclusive": [
+          566,
+          29,
+          625,
+          117
+        ],
+        "cellBounds": [
+          512,
+          0,
+          682,
+          128
+        ]
+      },
+      {
+        "row": 1,
+        "column": 5,
+        "nonNearMagentaPixels": 5202,
+        "bboxInclusive": [
+          716,
+          33,
+          815,
+          117
+        ],
+        "cellBounds": [
+          682,
+          0,
+          853,
+          128
+        ]
+      },
+      {
+        "row": 1,
+        "column": 6,
+        "nonNearMagentaPixels": 4925,
+        "bboxInclusive": [
+          885,
+          40,
+          989,
+          116
+        ],
+        "cellBounds": [
+          853,
+          0,
+          1024,
+          128
+        ]
+      },
+      {
+        "row": 2,
+        "column": 1,
+        "nonNearMagentaPixels": 4258,
+        "bboxInclusive": [
+          50,
+          149,
+          114,
+          242
+        ],
+        "cellBounds": [
+          0,
+          128,
+          170,
+          256
+        ]
+      },
+      {
+        "row": 2,
+        "column": 2,
+        "nonNearMagentaPixels": 4150,
+        "bboxInclusive": [
+          228,
+          149,
+          290,
+          242
+        ],
+        "cellBounds": [
+          170,
+          128,
+          341,
+          256
+        ]
+      },
+      {
+        "row": 2,
+        "column": 3,
+        "nonNearMagentaPixels": 4260,
+        "bboxInclusive": [
+          398,
+          149,
+          460,
+          242
+        ],
+        "cellBounds": [
+          341,
+          128,
+          512,
+          256
+        ]
+      },
+      {
+        "row": 2,
+        "column": 4,
+        "nonNearMagentaPixels": 4280,
+        "bboxInclusive": [
+          566,
+          149,
+          625,
+          242
+        ],
+        "cellBounds": [
+          512,
+          128,
+          682,
+          256
+        ]
+      },
+      {
+        "row": 2,
+        "column": 5,
+        "nonNearMagentaPixels": 4216,
+        "bboxInclusive": [
+          730,
+          149,
+          795,
+          242
+        ],
+        "cellBounds": [
+          682,
+          128,
+          853,
+          256
+        ]
+      },
+      {
+        "row": 2,
+        "column": 6,
+        "nonNearMagentaPixels": 4285,
+        "bboxInclusive": [
+          902,
+          149,
+          966,
+          241
+        ],
+        "cellBounds": [
+          853,
+          128,
+          1024,
+          256
+        ]
+      },
+      {
+        "row": 3,
+        "column": 1,
+        "nonNearMagentaPixels": 3915,
+        "bboxInclusive": [
+          39,
+          284,
+          116,
+          357
+        ],
+        "cellBounds": [
+          0,
+          256,
+          170,
+          384
+        ]
+      },
+      {
+        "row": 3,
+        "column": 2,
+        "nonNearMagentaPixels": 4738,
+        "bboxInclusive": [
+          205,
+          285,
+          309,
+          360
+        ],
+        "cellBounds": [
+          170,
+          256,
+          341,
+          384
+        ]
+      },
+      {
+        "row": 3,
+        "column": 3,
+        "nonNearMagentaPixels": 5295,
+        "bboxInclusive": [
+          371,
+          271,
+          473,
+          355
+        ],
+        "cellBounds": [
+          341,
+          256,
+          512,
+          384
+        ]
+      },
+      {
+        "row": 3,
+        "column": 4,
+        "nonNearMagentaPixels": 5949,
+        "bboxInclusive": [
+          531,
+          272,
+          643,
+          360
+        ],
+        "cellBounds": [
+          512,
+          256,
+          682,
+          384
+        ]
+      },
+      {
+        "row": 3,
+        "column": 5,
+        "nonNearMagentaPixels": 4284,
+        "bboxInclusive": [
+          716,
+          284,
+          799,
+          359
+        ],
+        "cellBounds": [
+          682,
+          256,
+          853,
+          384
+        ]
+      },
+      {
+        "row": 3,
+        "column": 6,
+        "nonNearMagentaPixels": 3995,
+        "bboxInclusive": [
+          898,
+          284,
+          967,
+          359
+        ],
+        "cellBounds": [
+          853,
+          256,
+          1024,
+          384
+        ]
+      },
+      {
+        "row": 4,
+        "column": 1,
+        "nonNearMagentaPixels": 5504,
+        "bboxInclusive": [
+          30,
+          402,
+          131,
+          485
+        ],
+        "cellBounds": [
+          0,
+          384,
+          170,
+          512
+        ]
+      },
+      {
+        "row": 4,
+        "column": 2,
+        "nonNearMagentaPixels": 5313,
+        "bboxInclusive": [
+          196,
+          403,
+          304,
+          485
+        ],
+        "cellBounds": [
+          170,
+          384,
+          341,
+          512
+        ]
+      },
+      {
+        "row": 4,
+        "column": 3,
+        "nonNearMagentaPixels": 5801,
+        "bboxInclusive": [
+          344,
+          426,
+          493,
+          483
+        ],
+        "cellBounds": [
+          341,
+          384,
+          512,
+          512
+        ]
+      },
+      {
+        "row": 4,
+        "column": 4,
+        "nonNearMagentaPixels": 4526,
+        "bboxInclusive": [
+          517,
+          442,
+          670,
+          483
+        ],
+        "cellBounds": [
+          512,
+          384,
+          682,
+          512
+        ]
+      },
+      {
+        "row": 4,
+        "column": 5,
+        "nonNearMagentaPixels": 0,
+        "bboxInclusive": null,
+        "cellBounds": [
+          682,
+          384,
+          853,
+          512
+        ]
+      },
+      {
+        "row": 4,
+        "column": 6,
+        "nonNearMagentaPixels": 0,
+        "bboxInclusive": null,
+        "cellBounds": [
+          853,
+          384,
+          1024,
+          512
+        ]
+      },
+      {
+        "row": 5,
+        "column": 1,
+        "nonNearMagentaPixels": 5592,
+        "bboxInclusive": [
+          30,
+          540,
+          133,
+          629
+        ],
+        "cellBounds": [
+          0,
+          512,
+          170,
+          640
+        ]
+      },
+      {
+        "row": 5,
+        "column": 2,
+        "nonNearMagentaPixels": 5340,
+        "bboxInclusive": [
+          204,
+          540,
+          300,
+          629
+        ],
+        "cellBounds": [
+          170,
+          512,
+          341,
+          640
+        ]
+      },
+      {
+        "row": 5,
+        "column": 3,
+        "nonNearMagentaPixels": 5384,
+        "bboxInclusive": [
+          378,
+          540,
+          478,
+          629
+        ],
+        "cellBounds": [
+          341,
+          512,
+          512,
+          640
+        ]
+      },
+      {
+        "row": 5,
+        "column": 4,
+        "nonNearMagentaPixels": 5016,
+        "bboxInclusive": [
+          547,
+          540,
+          638,
+          629
+        ],
+        "cellBounds": [
+          512,
+          512,
+          682,
+          640
+        ]
+      },
+      {
+        "row": 5,
+        "column": 5,
+        "nonNearMagentaPixels": 5597,
+        "bboxInclusive": [
+          718,
+          543,
+          825,
+          627
+        ],
+        "cellBounds": [
+          682,
+          512,
+          853,
+          640
+        ]
+      },
+      {
+        "row": 5,
+        "column": 6,
+        "nonNearMagentaPixels": 5543,
+        "bboxInclusive": [
+          885,
+          542,
+          993,
+          627
+        ],
+        "cellBounds": [
+          853,
+          512,
+          1024,
+          640
+        ]
+      },
+      {
+        "row": 6,
+        "column": 1,
+        "nonNearMagentaPixels": 5397,
+        "bboxInclusive": [
+          32,
+          671,
+          149,
+          756
+        ],
+        "cellBounds": [
+          0,
+          640,
+          170,
+          768
+        ]
+      },
+      {
+        "row": 6,
+        "column": 2,
+        "nonNearMagentaPixels": 5550,
+        "bboxInclusive": [
+          206,
+          665,
+          314,
+          756
+        ],
+        "cellBounds": [
+          170,
+          640,
+          341,
+          768
+        ]
+      },
+      {
+        "row": 6,
+        "column": 3,
+        "nonNearMagentaPixels": 5199,
+        "bboxInclusive": [
+          379,
+          665,
+          485,
+          760
+        ],
+        "cellBounds": [
+          341,
+          640,
+          512,
+          768
+        ]
+      },
+      {
+        "row": 6,
+        "column": 4,
+        "nonNearMagentaPixels": 5035,
+        "bboxInclusive": [
+          548,
+          665,
+          652,
+          756
+        ],
+        "cellBounds": [
+          512,
+          640,
+          682,
+          768
+        ]
+      },
+      {
+        "row": 6,
+        "column": 5,
+        "nonNearMagentaPixels": 5226,
+        "bboxInclusive": [
+          718,
+          665,
+          825,
+          752
+        ],
+        "cellBounds": [
+          682,
+          640,
+          853,
+          768
+        ]
+      },
+      {
+        "row": 6,
+        "column": 6,
+        "nonNearMagentaPixels": 5105,
+        "bboxInclusive": [
+          891,
+          667,
+          992,
+          758
+        ],
+        "cellBounds": [
+          853,
+          640,
+          1024,
+          768
+        ]
+      },
+      {
+        "row": 7,
+        "column": 1,
+        "nonNearMagentaPixels": 5714,
+        "bboxInclusive": [
+          21,
+          804,
+          148,
+          877
+        ],
+        "cellBounds": [
+          0,
+          768,
+          170,
+          896
+        ]
+      },
+      {
+        "row": 7,
+        "column": 2,
+        "nonNearMagentaPixels": 6033,
+        "bboxInclusive": [
+          197,
+          798,
+          338,
+          877
+        ],
+        "cellBounds": [
+          170,
+          768,
+          341,
+          896
+        ]
+      },
+      {
+        "row": 7,
+        "column": 3,
+        "nonNearMagentaPixels": 5600,
+        "bboxInclusive": [
+          369,
+          790,
+          499,
+          861
+        ],
+        "cellBounds": [
+          341,
+          768,
+          512,
+          896
+        ]
+      },
+      {
+        "row": 7,
+        "column": 4,
+        "nonNearMagentaPixels": 6234,
+        "bboxInclusive": [
+          537,
+          780,
+          670,
+          873
+        ],
+        "cellBounds": [
+          512,
+          768,
+          682,
+          896
+        ]
+      },
+      {
+        "row": 7,
+        "column": 5,
+        "nonNearMagentaPixels": 6015,
+        "bboxInclusive": [
+          704,
+          796,
+          825,
+          877
+        ],
+        "cellBounds": [
+          682,
+          768,
+          853,
+          896
+        ]
+      },
+      {
+        "row": 7,
+        "column": 6,
+        "nonNearMagentaPixels": 5594,
+        "bboxInclusive": [
+          885,
+          796,
+          994,
+          880
+        ],
+        "cellBounds": [
+          853,
+          768,
+          1024,
+          896
+        ]
+      },
+      {
+        "row": 8,
+        "column": 1,
+        "nonNearMagentaPixels": 6186,
+        "bboxInclusive": [
+          21,
+          918,
+          140,
+          1009
+        ],
+        "cellBounds": [
+          0,
+          896,
+          170,
+          1024
+        ]
+      },
+      {
+        "row": 8,
+        "column": 2,
+        "nonNearMagentaPixels": 5599,
+        "bboxInclusive": [
+          185,
+          930,
+          316,
+          1001
+        ],
+        "cellBounds": [
+          170,
+          896,
+          341,
+          1024
+        ]
+      },
+      {
+        "row": 8,
+        "column": 3,
+        "nonNearMagentaPixels": 5645,
+        "bboxInclusive": [
+          346,
+          943,
+          494,
+          999
+        ],
+        "cellBounds": [
+          341,
+          896,
+          512,
+          1024
+        ]
+      },
+      {
+        "row": 8,
+        "column": 4,
+        "nonNearMagentaPixels": 4614,
+        "bboxInclusive": [
+          517,
+          957,
+          670,
+          1001
+        ],
+        "cellBounds": [
+          512,
+          896,
+          682,
+          1024
+        ]
+      },
+      {
+        "row": 8,
+        "column": 5,
+        "nonNearMagentaPixels": 0,
+        "bboxInclusive": null,
+        "cellBounds": [
+          682,
+          896,
+          853,
+          1024
+        ]
+      },
+      {
+        "row": 8,
+        "column": 6,
+        "nonNearMagentaPixels": 0,
+        "bboxInclusive": null,
+        "cellBounds": [
+          853,
+          896,
+          1024,
+          1024
+        ]
+      },
+      {
+        "row": 9,
+        "column": 1,
+        "nonNearMagentaPixels": 5949,
+        "bboxInclusive": [
+          21,
+          1056,
+          149,
+          1137
+        ],
+        "cellBounds": [
+          0,
+          1024,
+          170,
+          1152
+        ]
+      },
+      {
+        "row": 9,
+        "column": 2,
+        "nonNearMagentaPixels": 5957,
+        "bboxInclusive": [
+          192,
+          1056,
+          320,
+          1137
+        ],
+        "cellBounds": [
+          170,
+          1024,
+          341,
+          1152
+        ]
+      },
+      {
+        "row": 9,
+        "column": 3,
+        "nonNearMagentaPixels": 6043,
+        "bboxInclusive": [
+          365,
+          1056,
+          495,
+          1137
+        ],
+        "cellBounds": [
+          341,
+          1024,
+          512,
+          1152
+        ]
+      },
+      {
+        "row": 9,
+        "column": 4,
+        "nonNearMagentaPixels": 5924,
+        "bboxInclusive": [
+          538,
+          1056,
+          663,
+          1137
+        ],
+        "cellBounds": [
+          512,
+          1024,
+          682,
+          1152
+        ]
+      },
+      {
+        "row": 9,
+        "column": 5,
+        "nonNearMagentaPixels": 5696,
+        "bboxInclusive": [
+          706,
+          1057,
+          831,
+          1137
+        ],
+        "cellBounds": [
+          682,
+          1024,
+          853,
+          1152
+        ]
+      },
+      {
+        "row": 9,
+        "column": 6,
+        "nonNearMagentaPixels": 5453,
+        "bboxInclusive": [
+          877,
+          1057,
+          997,
+          1138
+        ],
+        "cellBounds": [
+          853,
+          1024,
+          1024,
+          1152
+        ]
+      },
+      {
+        "row": 10,
+        "column": 1,
+        "nonNearMagentaPixels": 6231,
+        "bboxInclusive": [
+          15,
+          1181,
+          152,
+          1262
+        ],
+        "cellBounds": [
+          0,
+          1152,
+          170,
+          1280
+        ]
+      },
+      {
+        "row": 10,
+        "column": 2,
+        "nonNearMagentaPixels": 6037,
+        "bboxInclusive": [
+          185,
+          1180,
+          318,
+          1262
+        ],
+        "cellBounds": [
+          170,
+          1152,
+          341,
+          1280
+        ]
+      },
+      {
+        "row": 10,
+        "column": 3,
+        "nonNearMagentaPixels": 6023,
+        "bboxInclusive": [
+          355,
+          1183,
+          493,
+          1262
+        ],
+        "cellBounds": [
+          341,
+          1152,
+          512,
+          1280
+        ]
+      },
+      {
+        "row": 10,
+        "column": 4,
+        "nonNearMagentaPixels": 6441,
+        "bboxInclusive": [
+          526,
+          1181,
+          669,
+          1263
+        ],
+        "cellBounds": [
+          512,
+          1152,
+          682,
+          1280
+        ]
+      },
+      {
+        "row": 10,
+        "column": 5,
+        "nonNearMagentaPixels": 6422,
+        "bboxInclusive": [
+          702,
+          1178,
+          846,
+          1264
+        ],
+        "cellBounds": [
+          682,
+          1152,
+          853,
+          1280
+        ]
+      },
+      {
+        "row": 10,
+        "column": 6,
+        "nonNearMagentaPixels": 6148,
+        "bboxInclusive": [
+          872,
+          1180,
+          1010,
+          1263
+        ],
+        "cellBounds": [
+          853,
+          1152,
+          1024,
+          1280
+        ]
+      },
+      {
+        "row": 11,
+        "column": 1,
+        "nonNearMagentaPixels": 5840,
+        "bboxInclusive": [
+          15,
+          1324,
+          158,
+          1387
+        ],
+        "cellBounds": [
+          0,
+          1280,
+          170,
+          1408
+        ]
+      },
+      {
+        "row": 11,
+        "column": 2,
+        "nonNearMagentaPixels": 6409,
+        "bboxInclusive": [
+          184,
+          1310,
+          340,
+          1385
+        ],
+        "cellBounds": [
+          170,
+          1280,
+          341,
+          1408
+        ]
+      },
+      {
+        "row": 11,
+        "column": 3,
+        "nonNearMagentaPixels": 5824,
+        "bboxInclusive": [
+          362,
+          1293,
+          504,
+          1380
+        ],
+        "cellBounds": [
+          341,
+          1280,
+          512,
+          1408
+        ]
+      },
+      {
+        "row": 11,
+        "column": 4,
+        "nonNearMagentaPixels": 6134,
+        "bboxInclusive": [
+          532,
+          1290,
+          670,
+          1388
+        ],
+        "cellBounds": [
+          512,
+          1280,
+          682,
+          1408
+        ]
+      },
+      {
+        "row": 11,
+        "column": 5,
+        "nonNearMagentaPixels": 6037,
+        "bboxInclusive": [
+          707,
+          1311,
+          835,
+          1388
+        ],
+        "cellBounds": [
+          682,
+          1280,
+          853,
+          1408
+        ]
+      },
+      {
+        "row": 11,
+        "column": 6,
+        "nonNearMagentaPixels": 5933,
+        "bboxInclusive": [
+          872,
+          1312,
+          1000,
+          1388
+        ],
+        "cellBounds": [
+          853,
+          1280,
+          1024,
+          1408
+        ]
+      },
+      {
+        "row": 12,
+        "column": 1,
+        "nonNearMagentaPixels": 6018,
+        "bboxInclusive": [
+          20,
+          1422,
+          146,
+          1509
+        ],
+        "cellBounds": [
+          0,
+          1408,
+          170,
+          1536
+        ]
+      },
+      {
+        "row": 12,
+        "column": 2,
+        "nonNearMagentaPixels": 5541,
+        "bboxInclusive": [
+          184,
+          1444,
+          321,
+          1503
+        ],
+        "cellBounds": [
+          170,
+          1408,
+          341,
+          1536
+        ]
+      },
+      {
+        "row": 12,
+        "column": 3,
+        "nonNearMagentaPixels": 5475,
+        "bboxInclusive": [
+          346,
+          1448,
+          492,
+          1502
+        ],
+        "cellBounds": [
+          341,
+          1408,
+          512,
+          1536
+        ]
+      },
+      {
+        "row": 12,
+        "column": 4,
+        "nonNearMagentaPixels": 4622,
+        "bboxInclusive": [
+          516,
+          1460,
+          670,
+          1503
+        ],
+        "cellBounds": [
+          512,
+          1408,
+          682,
+          1536
+        ]
+      },
+      {
+        "row": 12,
+        "column": 5,
+        "nonNearMagentaPixels": 0,
+        "bboxInclusive": null,
+        "cellBounds": [
+          682,
+          1408,
+          853,
+          1536
+        ]
+      },
+      {
+        "row": 12,
+        "column": 6,
+        "nonNearMagentaPixels": 0,
+        "bboxInclusive": null,
+        "cellBounds": [
+          853,
+          1408,
+          1024,
+          1536
+        ]
+      }
+    ]
+  },
+  "upstream_sources": [
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-103/tool-provenance.json",
+      "sha256": "bc748535a6f4c5f73fed8ce35ab46dbd07728bb849728058ae349ec0f489ff58"
+    },
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-103/evidence.json",
+      "sha256": "1fc04ad3c0b69efe1337d7a508f5060ea029d2457d6b7c8392ec079b763e23fd"
+    },
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-103/HANDOFF.md",
+      "sha256": "dbdeedcab41907bc896233a8171f1c090546bc58cf9e2138cbd0ce7e81421a2f"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a175ca-0a5e-7881-92e9-2edb0ad31dae/exec-8114642e-83e6-40d0-82c7-8e75f9c4beb8.png",
+  "actual_dimensions": [
+    1024,
+    1536
+  ],
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "size_requirement_met": true,
+  "raw_sha256": "24139325686d96136af0a51951257a7d6208275755f6f954cd936027f75a980b",
+  "bytes": 2084776,
+  "exact_prompt_sha256": "e5484f2dfd72e660c46e9ded3200308e7a2c096f9488873fdbaaa057ddb37626",
+  "base_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-103/quy_ho-toA.base.prompt.txt",
+  "base_sha256": "2585195be33600b53190e2cd56c5dde58528468ffb0188717a18779f01c17ca9",
+  "ordered_references": [
+    {
+      "order": 1,
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-103/quy_ho-static.png",
+      "sha256": "c925748560ea0d1bd1e797bd9003b1f5c8f653f92101b21873de1f4318394f28",
+      "role": "only original species static identity"
+    }
+  ],
+  "semantic_frame_count_verified": false,
+  "measurement_limits": "Upstream occupancy/bbox/pixel counts are diagnostic; no semantic valid-frame or art/runtime certification.",
+  "status": "RAW FAIL/provenance only; not art/runtime accepted.",
+  "integration": {
+    "repository_raw_file": "toA.png",
+    "repository_prompt_file": "toA.prompt.txt",
+    "script_prompt_file": "quy_ho-toA.md",
+    "script_prompt_sha256": "6742366b3829b5c25a14027a6d0967887ab9200b2450314fde20d2572a0126ee",
+    "raw_original_artifact_repo_byte_identical": true,
+    "postprocessing": "None; byte copy only. No crop/resize/patch/cutter/layout/runtime."
+  }
+}
