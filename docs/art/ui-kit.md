@@ -205,6 +205,20 @@ CI nhẹ: job `ui-sheet-check` (`docs/ops/ci.md` mục "CI nhẹ cho tờ UI"). 
 - Nút `Đăng nhập bằng Google` / `Đổi tài khoản` bung thành hai dải nâu: vạch cắt `ui_nut_*` sai 1 điểm (xem "Quy tắc 9-slice").
 - Cửa sổ 960×540 (vùng hiển thị 944×445): cột phải (bản đồ nhỏ cao ~305 px) đẩy hộp nhiệm vụ xuống dải đội hình / hồn kỹ, chữ nhiệm vụ lọt qua ô trong suốt. Vùng cao ≤ 460 không còn chỗ nên hộp nhiệm vụ ẩn (xem ở hộp thoại NPC); điện thoại có chỗ riêng. Nếu muốn hiện lại ở cỡ này cần đổi bố cục cột phải (không thuộc P0).
 
-## Việc kế tiếp (theo #877)
+## Trạng thái các bước (theo #877)
 
-P1 `ui-sheet-check` / `ui-sheet-cut` + manifest (#879) → P2 skill `ui-kit`, trang xem trước bộ component (#880) → P3 BOARD (#881, dùng prompt trên) → P4 kit mẫu (#882, cổng 2) → P5 token + cờ `ui2` (#883) → P6 icon (#884) → P7 từng màn (#885) → P8 dọn (#886). Việc kiểm Firefox và chốt cỡ kit nằm ở P1 / cổng 2.
+| Bước | Việc | Issue | Trạng thái |
+|---|---|---|---|
+| P0 | style guide, kiểm kê token, sửa 9-slice, lớp 960×540, thử kit 1× / 2× | #878 | đã đóng |
+| P1 | `ui-sheet-check` / `ui-sheet-cut` + manifest | #879 | đã đóng |
+| P2 | skill `ui-kit`, prompt mẫu, trang xem trước bộ component, CI nhẹ | #880 | đã đóng |
+| P3 | style board BOARD hướng B (cổng 1) | #881 | mở |
+| P4 | kit mẫu khung / nút / ô / thanh, Mực rồi Giấy (cổng 2); chốt cỡ kit và kiểm Firefox | #882 | mở |
+| P5 | lớp token + cờ `ui2` + helper khung theo vai trò | #883 | mở |
+| P6 | icon pilot 16 menu (AI) so với game-icons | #884 | mở |
+| P7 | chuyển từng màn sang kit v2 (8 màn) | #885 | mở |
+| P8 | dọn khung cũ, `ui2` mặc định, token thành luật chặn | #886 | mở |
+| — | cỡ giao diện tự động theo bậc màn (≥ 1600 / ≥ 1920) | #887 | đã đóng |
+| — | lấp checkbox / slider / scrollbar từ gói CC0 (tuỳ chọn) | #888 | mở |
+
+Trạng thái thật ở các issue; bảng này cập nhật khi đóng một bước.

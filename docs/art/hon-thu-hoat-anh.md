@@ -117,14 +117,12 @@ Tùy chọn thêm: `[--grid auto|uniform] [--patch A:c,r=c,r | A:c,r=- ]... [--n
 ## Thử không cần ảnh thật
 `node tools/assets/beast-sheet-fake.mjs --species <loài> --out <thư mục> [--seed N] [--bad]` dựng tờ giả từ ảnh tĩnh: phóng, nhún / xoay / lao / ngã theo hoạt ảnh, lệch ngẫu nhiên trong ô, nhiễu màu, viền ngả màu nền, đốm vụn; `--bad` thêm khung biến mất, khung phóng gấp 2,6, hình tràn ô, hình ở ô trống. `node --test tools/assets/beast-sheet.test.mjs` (nằm trong `npm run test:assets`) chứng minh: đủ 110 khung, chân đúng neo, bỏ vụn, viền, ≤ 25 màu, đồng cỡ trong một hoạt ảnh, cảnh báo đúng với tờ lỗi, nhận nền trong suốt, GIF hợp lệ, prompt đủ ý. Tờ giả **không** thay được thử thật: ảnh model còn lỗi mà tờ giả không dựng (tay chân đổi, chữ lạ, ô vẽ lệch hàng); sau tờ thật đầu tiên chỉnh `--tol` và ngưỡng cảnh báo cho khớp.
 
-## Ba loài thử
-| Loài | Mã | Họ (`beastFamily`) | Bậc | Khung | Tờ | Vì sao |
-|---|---|---|---|---|---|---|
-| Phong Lang | `phong_lang` | bốn chân | Tím / Đen | 96 | 2 | loài phổ biến của Ngoại vi, dáng chuẩn thú bốn chân (chu kỳ đi, vồ) |
-| Kim Linh Ưng | `kim_linh_ung` | chim | Tím / Đen | 96 | 2 | họ chim: nhảy cò, cánh, bổ nhào; ca khó (cánh khi đánh và ngã) |
-| Thái Thản Cự Viên | `thai_than_cu_vien` | bốn chân | boss thế giới | 192 | 5 | cỡ lớn nhất, ô 256, thử đường một hướng mỗi tờ và độ nét ở khung 192 |
+## Đợt thử (đã xong)
+| Đợt | Loài | Khung | Trạng thái |
+|---|---|---|---|
+| H2 (#691) | Phong Lang (`phong_lang`), Kim Linh Ưng (`kim_linh_ung`), Thái Thản Cự Viên (`thai_than_cu_vien`, boss, khung 192, 5 tờ một hướng) | 96 / 96 / 192 | đã nhập vào game |
 
-Tổng 9 tờ (2 + 2 + 5). Làm theo thứ tự Phong Lang, Kim Linh Ưng, Thái Thản Cự Viên; mỗi loài xong thì cắt và xem trang trước rồi mới vẽ loài kế để rút kinh nghiệm cho prompt. Chưa có thú vương (khung 160) trong 3 loài vì boss đã thử đường một hướng mỗi tờ.
+Mỗi loài thử xong thì cắt, xem trang trước rồi mới vẽ loài kế để rút kinh nghiệm cho prompt.
 
 ## Client phát hoạt ảnh (H3, đã làm)
 Code ở `client/src/beastAnim.ts` (chọn khung, không phụ thuộc Phaser, có bài kiểm `npm run test:beastanim --prefix client`) và `sprites.ts` (`syncBeastSprite`, `animBeastPose`).
@@ -135,4 +133,12 @@ Code ở `client/src/beastAnim.ts` (chọn khung, không phụ thuộc Phaser, c
 - **Thử bằng sheet giả:** `beast-sheet-fake.mjs` + `beast-sheet-cut.mjs` rồi cài tạm vào `shared/assets` (không commit); xem ảnh chụp và số FPS ở mô tả PR.
 
 ## Việc tiếp
-H2 (đã làm cho Phong Lang, #691): sheet `beast_phong_lang_anim` đã nhập vào `shared/assets` (cắt `--scale 0.55`); Kim Linh Ưng cũng đã nhập (`beast_kim_linh_ung_anim`); Thái Thản Cự Viên cũng đã nhập (`beast_thai_than_cu_vien_anim`), cả 3 loài thử xong. H4 (#766): đợt 1 #767 nhập Ám Kim Khủng Trảo Hùng (`beast_am_kim_khung_trao_hung_anim`, cắt `--scale 0.55` tự hạ về 0,440); đợt 2 #768 nhập Hắc Bối Dã Trư (`beast_hac_boi_da_tru_anim`, khung 64, cắt `--scale 0.38` tự hạ về 0,306); Huyền Băng Thiềm (`beast_huyen_bang_thiem_anim`, khung 96, hệ số tự động 0,467); cả ba cắt lại bằng chuẩn hóa kích thước (Ám Kim `--scale 0.55` tự hạ 0,539; Hắc Bối `--scale 0.38` tự hạ 0,361).
+Trạng thái từng loài (tờ, mức theo khối hướng, đã nhập game hay chưa) nằm ở sổ tự sinh `art/src/beast-anim/_status.md` (`npm run beast:status`); **không chép bảng loài vào đây**.
+
+| Việc | Issue | Trạng thái |
+|---|---|---|
+| H4: vẽ thật 64 loài còn lại (đợt #767–#781) | #766 | mở, theo `_status.md` |
+| Hồn thú v2 P0–P3: đặc tả, `beast:check`, cutter v2, skill `beast-anim`, xoay vòng hướng + CI nhẹ | #862–#866 | đã đóng |
+| Hồn thú v2 P4: thử turnaround + mỗi hướng một tờ trên 3 loài | #867 | mở |
+| Hồn thú v2 P5: phân loại tờ H4 đã nộp, vẽ lại chọn lọc theo khối hướng | #868 | mở |
+| Hồn thú v2 P6: dự phòng theo hướng `anim.dirsOk` (ưu tiên thấp) | #869 | mở |

@@ -11,6 +11,12 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] Giao diện và cảm giác dùng họ asset C1–C16 do Codex (tthoadev) làm, còn mở: C8 thanh kỹ năng + ô đội hình (#594), C9 nhãn trên đầu + dấu nhiệm vụ (#593), C10 hộp thoại NPC + cửa hàng lưới (#596), C11 nhiệm vụ (#597), C12 bộ biểu tượng + con trỏ (#598), C13 phản hồi giao diện (#599), C14 khả năng tiếp cận (#600), C15 màn chết / bảng kết quả / Bạn bè (#601).
 - [ ] Asset ngoài: kho riêng tư, nhập gói itch, MCP `asset-scout`, biểu tượng game-icons (#622, theo dõi).
 - [ ] Tối ưu tài liệu (#619, theo dõi D0–D8).
+- [ ] Tách `MapRoom.ts` theo miền, từng PR nhỏ, hàm thuần trước (#702, theo dõi; đã xong nhiều bước, xem issue).
+- [ ] Tách `bot-test.mjs` thành module theo nhóm (#703, theo dõi; đã tách `bot/lib.mjs`, `bot/google.mjs`).
+- [ ] UI Kit v2 hướng B, P0–P8 (#877, theo dõi; P0–P2 xong, còn P3 #881 … P8 #886; bảng ở `docs/art/ui-kit.md`).
+- [ ] Hoạt ảnh hồn thú v2 (#861, theo dõi) và H4 vẽ thật 64 loài (#766); sổ tự sinh `art/src/beast-anim/_status.md`.
+- [ ] Nghiên cứu UI/UX giao diện thích ứng (#732, U0–U5; U6 điện thoại không làm, giữ Q40).
+- [ ] Cân bằng chờ chủ repo (mức C): #907, #908, #909 (xem `docs/quyet-dinh.md`, "Việc đang chờ").
 
 Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện) đã xong: lớp trang phục phương Đông C3 (#554, PR #576); lịch sử ở `docs/lich-su.md`.
 
