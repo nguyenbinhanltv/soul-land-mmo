@@ -1,5 +1,5 @@
 // Nhóm bot "tong" (#703 bước 3, tách nguyên văn từ bot-test.mjs).
-import { post, sleep, waitFor, ok, bot, enter, npcSpot, talk, test } from "./lib.mjs";
+import { post, sleep, waitFor, ok, bot, enter, npcSpot, talk, test, needHookSkip } from "./lib.mjs";
 import { npcDef, BAG_MAX_SLOTS, QUEST_STARTER, questChain, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, tongDef, tongWeek, isDaily, TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, TONG_POOL, TONG_BOARD_CD, tongTaskIds, tongTaskPicks, isTongTask, tongWeekDay, tongTop } from "../../../shared/data.ts";
 
 /**
@@ -15,7 +15,7 @@ export async function tongTest(){
   ok(tongWeek(noon)===mon&&tongWeek(Date.UTC(2026,9,18,18,0))===mon&&tongWeek(Date.UTC(2026,9,18,16,0))===mon-7,
     `tongWeek: thứ Hai giờ Việt Nam (${tongWeek(noon)})`);
   const S=await bot("Tông môn","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2}), O=await bot("Tông quan sát","u_minh_linh_mieu",{sex:0,hair:1,hairCol:2,outfitCol:1});
-  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua tông môn (cần hook test): bật server bằng GAME_TEST=1"); await S.room.leave(); await O.room.leave(); return; }
+  if(!(await test(S,"ping"))?.enabled){ needHookSkip("bỏ qua tông môn (cần hook test): bật server bằng GAME_TEST=1"); await S.room.leave(); await O.room.leave(); return; }
   try{
   const MAP="thien_dau_thanh", spot=id=>npcSpot(MAP,id), nsteps=questChain(QUEST_STARTER).steps.length;
   const me=b=>b.room.state.players?.get(b.room.sessionId), seen=()=>O.room.state.players?.get(S.room.sessionId);
@@ -95,7 +95,7 @@ async function tongWeekTest(){
     "tongTop: tông có điểm trung bình cao nhất (bằng nhau cùng hạng nhất), không tính tông không ai hoạt động");
   const A=await bot("Tông vụ A","u_minh_linh_mieu",{sex:1,hair:1,hairCol:3,outfitCol:0}), B=await bot("Tông vụ B","u_minh_linh_mieu",{sex:0,hair:2,hairCol:0,outfitCol:3});
   const C=await bot("Tông vụ C","u_minh_linh_mieu",{sex:1,hair:2,hairCol:2,outfitCol:1});
-  if(!(await test(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua tông vụ (cần hook test): bật server bằng GAME_TEST=1"); for(const b of [A,B,C]) await b.room.leave(); return; }
+  if(!(await test(A,"ping"))?.enabled){ needHookSkip("bỏ qua tông vụ (cần hook test): bật server bằng GAME_TEST=1"); for(const b of [A,B,C]) await b.room.leave(); return; }
   const MAP="thien_dau_thanh", spot=id=>npcSpot(MAP,id), nsteps=questChain(QUEST_STARTER).steps.length, me=b=>b.room.state.players?.get(b.room.sessionId);
   const H=TONG_MON[0], T=TONG_MON[1];
   async function rejoin(b){ await b.room.leave(); await sleep(400); b.mapId=(await post("/api/me",{token:b.token})).mapId; await enter(b); await waitFor(()=>me(b)&&b.bag,3000); }

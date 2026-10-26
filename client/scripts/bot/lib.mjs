@@ -23,6 +23,12 @@ let fails = 0;
 export const ok = (cond, msg) => { console.log(cond ? "  ✓" : "  ✗", msg); if (!cond) fails++; };
 /** Số kiểm tra thất bại tới lúc này (đọc mã thoát / dòng tổng kết). */
 export const failCount = () => fails;
+/**
+ * Bỏ qua bài VÌ THIẾU HOOK TEST (server không bật GAME_TEST=1, hook hỏng, mất biến môi trường). Chạy local: chỉ in ⚠.
+ * CI đặt BOT_STRICT_HOOK=1 (tools/ci/bot-run.sh, bot-image.sh): ghi ✗ để bot thoát 1, không để cả nhóm bài im lặng không chạy.
+ * Bỏ qua vì dữ liệu / hình học (không tìm được chỗ đứng…) vẫn dùng console.log("  ⚠ …") thường.
+ */
+export const needHookSkip = msg => { if (process.env.BOT_STRICT_HOOK === "1") ok(false, "bài bị bỏ qua vì thiếu hook: " + msg); else console.log("  ⚠ " + msg); };
 
 // ---- Bot dùng chung: đăng nhập / vào phòng / hook test / NPC / giao dịch (chuyển nguyên văn từ bot-test.mjs, bước 2 của #703) ----
 // Mật khẩu bot sinh ngẫu nhiên mỗi lần chạy (không ghi cứng trong mã); tên bot kèm hậu tố lần chạy nên luôn là tài khoản mới.
