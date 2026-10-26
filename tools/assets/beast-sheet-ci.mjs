@@ -1,5 +1,6 @@
 // CI nhẹ cho tờ hoạt ảnh hồn thú (#866, theo dõi #861; docs/ops/ci.md mục "CI nhẹ cho tờ hồn thú"): không cần Chrome / server / bot.
 //   node tools/assets/beast-sheet-ci.mjs --files <danh-sách-file-đổi.txt> --out <thư mục> [--summary <file.md>]
+//   node tools/assets/beast-sheet-ci.mjs --local [--staged]   (ở máy, #971: tự lấy file đổi từ git; --staged chỉ file đã add; không ghi artifact)
 //   node tools/assets/beast-sheet-ci.mjs --species phong_lang,hac_boi_da_tru --out <thư mục>
 // Loài cần kiểm = loài có tờ toA..toE.png đổi (art/src/beast-anim/<loài>/to?.png; đổi NGUON.md / prompt không kích hoạt). Chỉ đổi công cụ
 // (tools/assets/beast-sheet-*) thì kiểm mọi loài chỉ để báo cáo, KHÔNG chặn (dữ liệu cũ còn loài chưa đạt).
@@ -10,6 +11,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ROOT } from "./lib.mjs";
 import { checkSpecies, draftErrorLine, writeReport } from "./beast-sheet-check.mjs";
+import { localChangedFiles, SIZE_HINT } from "./sheet-local.mjs";
 
 const ANIM_DIR = "art/src/beast-anim/";
 const TOOL_RE = /^tools\/assets\/beast-sheet-[^/]+$/;
@@ -67,7 +69,9 @@ function parseArgs(argv) {
   const o = {};
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
-    if (a === "--files") o.files = argv[++i];
+    if (a === "--local") o.local = true;
+    else if (a === "--staged") o.staged = true;
+    else if (a === "--files") o.files = argv[++i];
     else if (a === "--species") o.species = argv[++i].split(",").filter(Boolean);
     else if (a === "--out") o.out = argv[++i];
     else if (a === "--summary") o.summary = argv[++i];
@@ -76,9 +80,25 @@ function parseArgs(argv) {
   return o;
 }
 
+/** Chế độ ở máy (#971): cùng changedFromFiles / evaluate / isCiBlocker với CI; in `LỖI:` + cách sửa, thoát 1 nếu có lỗi chặn. */
+export function runLocal({ staged = false } = {}) {
+  const ch = changedFromFiles(localChangedFiles({ staged, paths: [ANIM_DIR] }));
+  const bad = [];
+  for (const id of ch.species) {
+    if (!existsSync(path.join(ROOT, ANIM_DIR, id))) continue;
+    let x;
+    try { x = evaluate(id); } catch (e) { if (/không có tờ/.test(e.message)) continue; throw e; }
+    for (const i of x.blockers) bad.push(`LỖI: ${id}/${i.sheet} — ${i.where} — ${i.msg}`);
+  }
+  if (!bad.length) { console.log(`[beast-sheet] ${ch.species.length} loài có tờ đổi: không có lỗi chặn CI.`); return 0; }
+  console.error(`[beast-sheet] tờ hồn thú sẽ làm job CI beast-sheet-check đỏ:\n${bad.join("\n")}\n${SIZE_HINT}`);
+  return 1;
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const o = parseArgs(process.argv.slice(2));
+    if (o.local) process.exit(runLocal(o));
     if (!o.out || (!o.files && !o.species)) { console.error("Dùng: node tools/assets/beast-sheet-ci.mjs (--files <file> | --species a,b) --out <thư mục> [--summary <file.md>]"); process.exit(2); }
     let species = o.species, toolsOnly = false;
     if (!species) {
