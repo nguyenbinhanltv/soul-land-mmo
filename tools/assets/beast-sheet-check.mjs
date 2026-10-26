@@ -10,7 +10,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readPng, encodePng, ROOT, SPRITES } from "./lib.mjs";
-import { DIRS, ANIMS, COLS, BAND_ROWS, sheetCells } from "./beast-sheet-lib.mjs";
+import { DIRS, ANIMS, COLS, BAND_ROWS, TURNAROUND, sheetCells } from "./beast-sheet-lib.mjs";
 import { detectGrid } from "./beast-sheet-grid.mjs";
 import { median } from "./beast-sheet-stats.mjs";
 import { contactSheet } from "./beast-sheet-contact.mjs";
@@ -98,13 +98,18 @@ function finish(res) {
   return res;
 }
 
-/** Phân tích một tờ; cỡ thân so với ảnh tĩnh làm ở checkSpecies (cần hệ số chung cả loài). */
+/** Tên file ảnh turnaround (1 ảnh 3:2, 5 hướng × 3 tư thế; hằng TURNAROUND ở beast-sheet-lib.mjs). */
+export const TURNAROUND_SHEET = "turnaround";
+
+/** Phân tích một tờ (toA–toE hoặc turnaround.png); cỡ thân so với ảnh tĩnh làm ở checkSpecies (cần hệ số chung cả loài). */
 export function analyzeSheet(file) {
   const img = readPng(file), name = path.basename(file, ".png"), letter = name.replace(/^to/, "");
   const issues = [], res = { sheet: name, file, size: [img.w, img.h], issues, blocks: [], cells: [], bands: [], dead: [], img };
-  const cls = classifyShape(img.w, img.h);
+  const isTa = name === TURNAROUND_SHEET;
+  const taShape = { ratio: TURNAROUND.w / TURNAROUND.h, sizes: [[TURNAROUND.w, TURNAROUND.h]], canon: TURNAROUND.w, dirs: DIRS };
+  const cls = isTa ? (Math.abs(img.w / img.h - taShape.ratio) <= RATIO_TOL * taShape.ratio ? { kind: "turnaround", shape: taShape } : null) : classifyShape(img.w, img.h);
   if (!cls) {
-    issue(issues, "block", "kich-thuoc", "toàn tờ", `${img.w}×${img.h} không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2).`);
+    issue(issues, "block", "kich-thuoc", "toàn tờ", isTa ? `${img.w}×${img.h} không đúng tỉ lệ 3:2 của turnaround (${TURNAROUND.w}×${TURNAROUND.h}).` : `${img.w}×${img.h} không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2).`);
     return finish(res);
   }
   const { kind, shape } = cls;
@@ -113,7 +118,7 @@ export function analyzeSheet(file) {
   if (!exact) issue(issues, "light", "kich-thuoc", "toàn tờ", `cỡ ${img.w}×${img.h} đúng tỉ lệ nhưng ngoài danh sách (${shape.sizes.map((s) => s.join("×")).join(", ")}); cutter chuẩn hoá được.`);
   else if (img.w !== shape.canon) issue(issues, "note", "kich-thuoc", "toàn tờ", `${img.w}×${img.h} hợp lệ (quyết định #861); hệ số chuẩn hoá ${round(shape.canon / img.w, 4)}.`);
   const dirs = shape.dirs ?? [DIRS["ABCDE".indexOf(letter)] ?? DIRS[0]];
-  const plan = { dirs, cols: COLS, rows: dirs.length * BAND_ROWS };
+  const plan = isTa ? { dirs, cols: TURNAROUND.cols, rows: TURNAROUND.rows } : { dirs, cols: COLS, rows: dirs.length * BAND_ROWS };
   res.dirs = dirs; res.plan = plan; res.canonFactor = shape.canon / img.w;
 
   const grid = detectGrid(img);
@@ -129,6 +134,17 @@ export function analyzeSheet(file) {
   if (grid.bands.length !== plan.rows) {
     issue(issues, "block", "luoi", "toàn tờ", `dò được ${grid.bands.length} dải hàng, cần ${plan.rows}: không dò được lưới (hàng dính nhau hoặc vỡ).`);
     res.bands = grid.bands.map((b) => ({ ...b, state: "bad", figures: b.figures.map((f) => ({ ...f, state: "bad" })) }));
+    return finish(res);
+  }
+  if (isTa) { // mỗi hàng tư thế (idle / hurt / die) phải đủ 5 hình, một hình mỗi hướng
+    grid.bands.forEach((b, row) => {
+      const tag = `H${row + 1} (${TURNAROUND.poses[row]})`, rb = { ...b, row, state: "ok", figures: b.figures.map((f) => ({ ...f })) };
+      res.bands.push(rb);
+      if (b.figures.length === TURNAROUND.cols) return;
+      const stuck = b.figures.some((f) => f.w > 1.5 * grid.medianFigW), fewer = b.figures.length < TURNAROUND.cols;
+      issue(issues, "block", stuck && fewer ? "hinh-dinh" : "so-hinh", tag, `hàng có ${b.figures.length} hình, cần ${TURNAROUND.cols}: ${fewer ? (stuck ? "hình dính nhau" : "thiếu khung") : "thừa hình / mảnh rời"}.`);
+      rb.state = "bad"; rb.figures.forEach((f) => { f.state = "bad"; });
+    });
     return finish(res);
   }
   const cellsByRow = new Map();
@@ -212,10 +228,15 @@ function analyzeMotion(res, grid) {
 export function sheetFiles(dir) {
   return "ABCDE".split("").map((l) => path.join(dir, `to${l}.png`)).filter(existsSync);
 }
+/** Đường dẫn turnaround.png của loài nếu có (kiểm cỡ / nền / lưới như tờ khác, #972). */
+export function turnaroundFile(dir) {
+  const f = path.join(dir, `${TURNAROUND_SHEET}.png`);
+  return existsSync(f) ? f : null;
+}
 
 /** Kiểm mọi tờ của một loài, thêm kiểm cỡ thân (hệ số chung cả loài, neo theo ảnh tĩnh). */
 export function checkSpecies(id, { dir = path.join(ROOT, "art", "src", "beast-anim", id) } = {}) {
-  const files = sheetFiles(dir);
+  const ta = turnaroundFile(dir), files = [...sheetFiles(dir), ...(ta ? [ta] : [])];
   if (!files.length) throw new Error(`không có tờ toA.png… trong ${dir}`);
   const sheets = files.map((f) => analyzeSheet(f));
   const st = staticHeights(id), blocks = sheets.flatMap((s) => s.blocks.map((b) => ({ ...b, sheet: s, h: b.idleH * s.canonFactor })));
@@ -288,7 +309,8 @@ export function writeReport(r, out, { images = true } = {}) {
   put(`${r.id}-check.md`, toMarkdown(r));
   if (images) for (const s of r.sheets) {
     const plan = s.plan ?? { dirs: [], rows: Math.max(1, s.bands.length) };
-    const rowLabels = Array.from({ length: plan.rows }, (_, i) => `${(plan.dirs[(i / BAND_ROWS) | 0] ?? "?").toUpperCase()} ${["IDLE+HURT", "WALK", "ATTACK", "DIE"][i % BAND_ROWS]}`);
+    const rowLabels = s.sheet === TURNAROUND_SHEET ? TURNAROUND.poses.map((p) => p.toUpperCase())
+      : Array.from({ length: plan.rows }, (_, i) => `${(plan.dirs[(i / BAND_ROWS) | 0] ?? "?").toUpperCase()} ${["IDLE+HURT", "WALK", "ATTACK", "DIE"][i % BAND_ROWS]}`);
     put(`${r.id}-${s.sheet}-lien-he.png`, encodePng(contactSheet(s.img, { title: `${r.id} ${s.sheet} ${s.size.join("X")} ${LEVEL_ASCII[s.level]}`, plan, bands: s.bands, rowLabels })));
   }
   return files;
@@ -321,7 +343,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const base = o.out ?? path.join(os.tmpdir(), "beast-check");
     let blocked = 0;
     for (const id of o.species) {
-      const r = checkSpecies(id, o.dir ? { dir: o.dir } : {});
+      let r;
+      try { r = checkSpecies(id, o.dir ? { dir: o.dir } : {}); }
+      catch (e) { if (o.all && /không có tờ/.test(e.message)) { console.log(`bỏ qua ${id} (chưa có tờ)`); continue; } throw e; }
       console.log(summary(r));
       if (r.level === "chặn") blocked++;
       if (!o.all) {

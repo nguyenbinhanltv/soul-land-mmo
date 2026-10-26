@@ -2,7 +2,7 @@
 //   node tools/assets/beast-sheet-ci.mjs --files <danh-sách-file-đổi.txt> --out <thư mục> [--summary <file.md>]
 //   node tools/assets/beast-sheet-ci.mjs --local [--staged]   (ở máy, #971: tự lấy file đổi từ git; --staged chỉ file đã add; không ghi artifact)
 //   node tools/assets/beast-sheet-ci.mjs --species phong_lang,hac_boi_da_tru --out <thư mục>
-// Loài cần kiểm = loài có tờ toA..toE.png đổi (art/src/beast-anim/<loài>/to?.png; đổi NGUON.md / prompt không kích hoạt). Chỉ đổi công cụ
+// Loài cần kiểm = loài có tờ toA..toE.png hoặc turnaround.png đổi (art/src/beast-anim/<loài>/to?.png; candidates/*.png không kiểm; đổi NGUON.md / prompt không kích hoạt). Chỉ đổi công cụ
 // (tools/assets/beast-sheet-*) thì kiểm mọi loài chỉ để báo cáo, KHÔNG chặn (dữ liệu cũ còn loài chưa đạt).
 // Chạy checkSpecies (beast-sheet-check.mjs) rồi gom tóm tắt cho job summary; ghi <out>/<loài>-check.json|md + tờ liên hệ làm artifact.
 // CHẶN (thoát mã 1) chỉ khi: cỡ ngoài tập, nền ngoài dung sai, thiếu khung / hình dính, không dò được lưới. Còn lại chỉ cảnh báo trong bảng.
@@ -31,7 +31,7 @@ export function changedFromFiles(files) {
   let toolsChanged = false;
   for (const raw of files) {
     const f = raw.trim().replace(/\\/g, "/");
-    if (f.startsWith(ANIM_DIR)) { const m = /^([^/]+)\/to[A-E]\.png$/.exec(f.slice(ANIM_DIR.length)); if (m) species.add(m[1]); }
+    if (f.startsWith(ANIM_DIR)) { const m = /^([^/]+)\/(?:to[A-E]|turnaround)\.png$/.exec(f.slice(ANIM_DIR.length)); if (m) species.add(m[1]); }
     else if (TOOL_RE.test(f)) toolsChanged = true;
   }
   return { species: [...species].sort(), toolsChanged };

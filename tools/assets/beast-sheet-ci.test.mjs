@@ -50,3 +50,8 @@ test("runLocal (#971): tờ toA 948×1659 (file tạm, xoá sau khi thử) → t
     assert.match(r.stderr, /1024×1536/);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
+
+test("changedFromFiles (#972): turnaround.png kích hoạt loài; candidates/*.png thì không", () => {
+  const r = changedFromFiles(["art/src/beast-anim/bang_vu_ung/turnaround.png", "art/src/beast-anim/liet_hoa_tich_dich/candidates/A82A2.png"]);
+  assert.deepEqual(r.species, ["bang_vu_ung"]);
+});
