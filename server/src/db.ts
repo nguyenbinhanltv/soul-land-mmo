@@ -4,7 +4,7 @@ import pg from "pg";
 import { readFileSync, readdirSync } from "node:fs";
 import { randomBytes, randomUUID, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
-import { nameKey } from "./names.ts";
+import { nameKey, isReservedName } from "./names.ts";
 import { mapFile } from "./map.ts";
 import { DEFAULT_LOOKS, parseLooks, encodeLpc, decodeLpc, presetToLpc, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, isTongTask, type TongRank, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
   BONE_ITEM, CORE_ITEM, EQUIP_ITEM, EQUIP_SLOTS, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
@@ -898,6 +898,7 @@ export class PgStore implements Store {
       throw e;
     }
     console.log("✓ Đã kết nối PostgreSQL và cập nhật bảng.");
+    await this.warnReservedNames().catch((e) => console.warn("⚠  Không soát được tên cấm:", (e as Error).message)); // chỉ cảnh báo: lỗi ở đây không được chặn khởi động
   }
   /** Chờ các truy vấn đang chạy xong rồi đóng mọi kết nối của pool. */
   async close() { await this.pool.end(); }
@@ -920,6 +921,13 @@ export class PgStore implements Store {
       console.warn(`⚠  Tài khoản #${a.id} "${a.name}" trùng tên với tài khoản cũ hơn #${owner.rows[0]?.id} "${owner.rows[0]?.name}" `
         + `sau khi chuẩn hóa. Giữ nguyên dữ liệu; chủ #${a.id} vẫn vào được bằng mật khẩu riêng. Nên đổi tên #${a.id}.`);
     }
+  }
+  /** Cảnh báo (không đổi dữ liệu) tài khoản đã tồn tại trùng tên cấm (RESERVED_NAMES, #818). Tin hệ thống mang cờ `sys` nên không còn giả được
+   *  (#827), nhưng tên vẫn gây nhầm khi nhìn: đổi tay bằng UPDATE accounts SET name='…', name_key=NULL WHERE id=… (khởi động sau tự điền name_key). */
+  async warnReservedNames() {
+    const r = await this.pool.query("SELECT id, name FROM accounts ORDER BY id");
+    for (const a of r.rows) if (isReservedName(a.name))
+      console.warn(`⚠  Tài khoản #${a.id} "${a.name}" trùng tên cấm (tạo trước khi có danh sách tên cấm). Giữ nguyên dữ liệu; nên đổi tên bằng UPDATE accounts SET name='…', name_key=NULL WHERE id=${a.id}.`);
   }
   async login(name: string, password: string, create = true) {
     const key = nameKey(name);
@@ -1186,7 +1194,7 @@ export class PgStore implements Store {
     if (!items.length) return;
     const rows = JSON.stringify(items.map((i) => ({ id: i.id, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars,
       enhance: i.enhance, stats: i.stats ?? null, vohon_id: i.vohonId, created: new Date(i.created).toISOString(), locked: !!i.locked, equip_slot: i.equipSlot ?? null })));
-    const r = await db.query(
+    await db.query(
       `INSERT INTO items(id, account_id, kind, code, qty, years, stars, enhance, stats, vohon_id, created_at, locked, equip_slot)
        SELECT x.id, $1, x.kind, x.code, x.qty, x.years, x.stars, x.enhance, x.stats, x.vohon_id, x.created, x.locked, x.equip_slot
        FROM jsonb_to_recordset($2::jsonb) AS x(id uuid, kind text, code text, qty int, years int, stars smallint, enhance smallint,

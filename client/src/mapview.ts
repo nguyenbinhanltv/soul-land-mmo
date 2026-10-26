@@ -9,7 +9,7 @@
 // - R8 (#435) sương mù (đã làm): fog.ts vẽ ngay trên nền, dưới chấm; nhãn vùng ở chỗ chưa khám phá bị ẩn (cổng, NPC, truyền tống trận vẫn hiện).
 import { RADAR, MAPVIEW, AUTOWALK, TILE as _TILE } from "../../shared/data.ts";
 import {
-  mapviewToScreen, mapviewToTile, mapviewZoomAt, mapviewPan, mapviewClampCenter, mapviewClampZoom, mapviewFit, mapviewLayer, radarRotate, radarNorthAngle,
+  mapviewToScreen, mapviewToTile, mapviewZoomAt, mapviewPan, mapviewClampCenter, mapviewFit, mapviewLayer, radarRotate, radarNorthAngle,
   radarPick, type MapView,
 } from "../../shared/radar.ts";
 import { drawRadarIcon, strokeRoute, radar, ls, DARK, type DotSink } from "./radar.ts";

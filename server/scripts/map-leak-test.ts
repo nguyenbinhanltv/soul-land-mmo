@@ -1,8 +1,8 @@
 // #739: Map toàn cục không được chỉ tăng theo uptime. Khung thú vương hết hạn thì bỏ khỏi kingClaimCache; mục lastFoe của đấu trường bị dọn
 // khi cả hai bên rời hàng quá hạn (trận + ARENA.rematchSecs).
 import assert from "node:assert/strict";
-import { ARENA } from "../../shared/data.ts";
-import { kingClaimTest } from "../src/rooms/MapRoom.ts";
+import { ARENA, CHANNEL_CD } from "../../shared/data.ts";
+import { channelSwitchAt, kingClaimTest, leftRoom, sweepChannelMaps } from "../src/rooms/MapRoom.ts";
 import { LAST_FOE_TTL_MS, arenaLastFoeTest, sweepLastFoe } from "../src/rooms/arenaQueue.ts";
 
 const now = Date.now(), seat = { id: "s", owner: null, state: "alive" as const, leaveAt: 0 };
@@ -34,4 +34,15 @@ assert.equal(arenaLastFoeTest.size(), 2);
 assert.equal(sweepLastFoe(none, t0 + ttl), 2, "cả hai rời hàng quá hạn thì xóa");
 assert.equal(arenaLastFoeTest.size(), 0);
 console.log("✓ lastFoe: giữ suốt trận + rematchSecs, dọn khi cả hai bên rời hàng quá hạn");
+
+// #957: channelSwitchAt / leftRoom: dòng hết hạn bị dọn, dòng còn hạn giữ nguyên.
+const cs = CHANNEL_CD * 1000, tc = 5_000_000, lock = (until: number) => ({ mapId: "m", roomId: "r", ch: 1, until });
+channelSwitchAt.set(1, tc - cs); channelSwitchAt.set(2, tc - cs + 1);
+leftRoom.set(1, lock(tc)); leftRoom.set(2, lock(tc + 1));
+assert.equal(sweepChannelMaps(tc), 2, "một dòng mỗi Map hết hạn");
+assert.deepEqual([...channelSwitchAt.keys()], [2], "channelSwitchAt còn hạn giữ nguyên");
+assert.deepEqual([...leftRoom.keys()], [2], "leftRoom còn hạn giữ nguyên");
+assert.equal(sweepChannelMaps(tc + cs), 2);
+assert.equal(channelSwitchAt.size + leftRoom.size, 0);
+console.log("✓ channelSwitchAt / leftRoom: dọn dòng hết hạn, giữ dòng còn hạn");
 process.exit(0);

@@ -40,7 +40,7 @@ export class LpcPreview {
   private ctx: CanvasRenderingContext2D;
 
   /** `cv`: canvas hiển thị (đặt width / height = 64; CSS phóng to, pixelated). */
-  constructor(private cv: HTMLCanvasElement) {
+  constructor(cv: HTMLCanvasElement) {
     this.tmp.width = this.tmp.height = F;
     this.tctx = this.tmp.getContext("2d", { willReadFrequently: true })!;
     this.ctx = cv.getContext("2d")!;

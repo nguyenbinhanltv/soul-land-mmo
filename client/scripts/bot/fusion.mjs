@@ -1,6 +1,6 @@
 // Nhóm bot "fusion" (#703 bước 3, tách nguyên văn từ bot-test.mjs).
 import { readFileSync } from "node:fs";
-import { sleep, waitFor, ok, mapUrl, bot, enter, sendTeam, test } from "./lib.mjs";
+import { sleep, waitFor, ok, mapUrl, bot, enter, sendTeam, test, needHookSkip } from "./lib.mjs";
 import { vohonIndex, TEAM_COMBAT_SECS, PARTY_BUFF_R, FUSION, FUSIONS, fusionIndex } from "../../../shared/data.ts";
 
 /**
@@ -23,7 +23,7 @@ export async function fusionTest(){
   const O=await bot("Dung Hợp O","nguyet_nhan",{sex:0,hair:3,hairCol:2,outfitCol:1});
   const U=await bot("Dung Hợp U","u_minh_linh_mieu",{sex:1,hair:1,hairCol:5,outfitCol:3}); // #194: cặp U Minh Bạch Hổ với O cầm Bạch Hổ
   try{
-  if(!(await test(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua dung hợp kỹ (cần hook set, goto, party): bật server bằng GAME_TEST=1"); return; }
+  if(!(await test(A,"ping"))?.enabled){ needHookSkip("bỏ qua dung hợp kỹ (cần hook set, goto, party): bật server bằng GAME_TEST=1"); return; }
   const meP=b=>b.room.state.players.get(b.room.sessionId), rowOf=(b,v)=>b.owned.list.find(x=>x.vohon===v)?.rowId;
   await waitFor(()=>[A,B,O].every(b=>b.owned&&meP(b)),3000);
   const Y=[423,764,1760,5000,12000,30000].slice(0,FUSION.minRings);

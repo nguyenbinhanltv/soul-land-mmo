@@ -6,6 +6,7 @@
 //                      lúc lỗi, tức server đã lưu người chơi đang online trước khi thoát.
 // bot-local tự kiểm phần còn lại: mã thoát ≠ 0, log server có lỗi kèm stack và dòng đã lưu.
 import { Client } from "colyseus.js";
+import { bindVit } from "./bot/vit.mjs";
 import { readFileSync, writeFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 
@@ -22,11 +23,13 @@ async function join(token) {
   const me = await post("/api/me", { token });
   const room = await new Client(WS).joinOrCreate("map", { token, mapId: me.mapId });
   const replies = [];
+  const installVit = bindVit(room); // #949: xp không còn trong state công khai, tin riêng "vit"
   room.onMessage("test", (m) => replies.push(m));
   room.onMessage("*", () => {}); // tin khác (log, fx, bag…) không cần đọc
   const p = () => room.state.players?.get(room.sessionId);
   if (!await waitFor(() => p(), 5000)) throw new Error("không thấy nhân vật của mình trong state");
   const test = async (op, args = {}) => { const n = replies.length; room.send("test", { op, ...args }); await waitFor(() => replies.length > n, 2000); return replies[n]; };
+  await installVit();
   return { room, p, test };
 }
 

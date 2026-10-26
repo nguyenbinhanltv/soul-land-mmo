@@ -27,7 +27,7 @@
     "B": 2,
     "species_total": 3
   },
-  "prompt_file": "toB.prompt.txt",
+  "prompt_file": "toB-attempt2.prompt.txt",
   "prompt_sha256": "ecdffedcae24589fb0bc88d408a88b24cbd05e10fdc528acf04e1df3acc11e33",
   "references": [
     {

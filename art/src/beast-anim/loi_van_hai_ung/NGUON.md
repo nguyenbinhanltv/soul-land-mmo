@@ -7,7 +7,7 @@ Loài `loi_van_hai_ung` (Lôi Vân Hải Ưng), họ `bird`, khung game 96×96. 
 ## toA
 
 - File: `toA.png`, **948×1659**, 2046855 byte, SHA256 `48d07b5b0ddf0cd02ad5785dbdf5510513a901158b1636a906edc5f8f53364bf`.
-- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul-land-mmo-135.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toA.prompt.txt` (SHA256 `d7d166ce7d217b9c1b63e2fc29d15263c5a123ca076ce233c4025838e4e140e0`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **chặn** (khối hướng: ?).
@@ -16,7 +16,7 @@ Loài `loi_van_hai_ung` (Lôi Vân Hải Ưng), họ `bird`, khung game 96×96. 
 ## toB
 
 - File: `toB.png`, **1254×1254**, 2088866 byte, SHA256 `d9cc4dc032028ca3800405d6a73baef2c00489fd593c997daaa2a205b3aedb7e`.
-- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul-land-mmo-135.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2.
 - Prompt: `toB.prompt.txt` (SHA256 `ecdffedcae24589fb0bc88d408a88b24cbd05e10fdc528acf04e1df3acc11e33`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: ne pass, n pass).
@@ -31,3 +31,11 @@ LỖI: toB — hướng — NE H1–H4 — lộ mắt/mỏ, không phải góc l
 LỖI: toB — hướng — N H5–H8 — lộ mặt trước, không phải góc lưng (mắt)
 LỖI: toB — pose — N H8 D3 — DIE nằm ngang, lệch trục hướng bắc (mắt)
 ```
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); không nối dòng vào `art/CREDITS.md`.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/loi_van_hai_ung/` | - | builtin image_gen.imagegen | RAW hoạt ảnh Lôi Vân Hải Ưng: toA 948×1659, toB 1254×1254; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |

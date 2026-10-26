@@ -103,7 +103,6 @@ export class LpcRig {
   private seq = 0;
   private loadQ: Raw[] = [];
   private inflight = 0;
-  private retryAt = 0;
   private gcAt = 0;
   private tmp = document.createElement("canvas");
   private tctx: CanvasRenderingContext2D;

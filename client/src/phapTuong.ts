@@ -234,7 +234,7 @@ export class PhapTuongSystem {
       const duo = r.slots.length > 1, side = duo ? (i === 0 ? -1 : 1) : 0;
       const alpha = PT_GHOST * stA * k * (back ? 1 : PT_FRONT_ALPHA) * vis * v.alpha * (duo ? (i === 0 ? 1 : r.extra!.alpha) : 1);
       const phase = (tt / m.bobSec) % 1;
-      let frame: number, f = 0;
+      let frame: number;
       const anim = animated(this.scene, s.def.sheet);
       if (anim) {
         if (sf >= 0) frame = row * PT_COLS + PT_IDLE_N + Math.min(PT_ATTACK_N - 1, Math.floor(sf));
