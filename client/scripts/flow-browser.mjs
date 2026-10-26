@@ -183,6 +183,9 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
   await sleep(200);
   assert.ok(await page.locator("#world").isHidden(), "bấm nút HUD đè lên vùng trận truyền tống làm mở bảng Bản đồ thế giới");
   assert.ok(await page.locator("#npc").isHidden(), "bấm nút HUD đè lên vùng NPC làm mở hộp thoại NPC");
+  // Trả camera về theo nhân vật (như GameScene khi dựng người chơi) để bước 5c bấm thật không rơi trúng vùng bấm do ta đặt camera.
+  await page.evaluate(() => { const s = window.__scene, v = s.players.get(s.me); if (v) s.cameras.main.startFollow(v.root, true, 0.2, 0.2); });
+  await page.waitForFunction(() => { const s = window.__scene, v = s.players.get(s.me), c = s.cameras.main; return !v || (Math.abs(c.midPoint.x - v.root.x) < 3 && Math.abs(c.midPoint.y - v.root.y) < 3); });
   step("bấm nút HUD đè lên vùng trận / NPC không mở bảng");
 
   // 5c. #990: gõ dở trong ô chat rồi bấm xuống bản đồ: ô chat mất tiêu điểm (chữ dở còn), W đi được và không rơi vào ô chat; Esc vẫn thoát ô.
