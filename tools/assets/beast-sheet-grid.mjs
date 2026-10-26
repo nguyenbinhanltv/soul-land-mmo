@@ -6,6 +6,8 @@ import { median } from "./beast-sheet-stats.mjs";
 export const GRID_TOL = 70;
 /** Dải hàng ngắn hơn số này (px) là nhiễu; hình hẹp hơn số này là nhiễu. */
 export const MIN_BAND_H = 12, MIN_FIG_W = 10;
+/** Ngưỡng cổ hẹp khi tách hình dính: điểm vật tại cột cắt so với trung vị điểm vật mỗi cột của hình (đo 5 dải đã biết: 0 – 0,48). */
+export const NECK_FRAC = 0.5;
 
 /** Màu nền: màu nhiều phiếu nhất ở 4 góc (lượng tử 8 mức mỗi kênh để chịu vignette), trả về trung bình màu thật của các phiếu đó. */
 export function sheetKey(img) {
@@ -61,7 +63,7 @@ export function detectGrid(img, { key = sheetKey(img), tol = GRID_TOL, mask = fo
 
 /**
  * Tách hình dính (tay / đuôi vươn chồng sang khung bên làm hai khung thành một khối trên trục x): dải nào có ÍT hình hơn số khung dự kiến thì
- * chia hình rộng nhất tại cột có ít điểm vật nhất ở 40% giữa (thung lũng chiếu cột), lặp tới khi đủ số hình hoặc hết hình đủ rộng
+ * chia hình rộng nhất tại cột có ít điểm vật nhất ở 40% giữa (thung lũng chiếu cột) NẾU đó là cổ hẹp thật (xem NECK_FRAC; không thì dừng, dải vẫn thiếu hình và bị chặn), lặp tới khi đủ số hình hoặc hết hình đủ rộng
  * (≥ 1,4 lần bề rộng trung vị của dải). Dải đủ hình hoặc thừa hình giữ nguyên. Sửa tại chỗ, trả về danh sách dải đã tách [{ band, from, to }].
  * @param {number[]} expected số khung dự kiến theo chỉ số dải hàng
  */
@@ -80,6 +82,10 @@ export function splitStuckFigures(grid, expected) {
         let n = 0; for (let y = b.y0; y <= b.y1; y++) n += mask[y * w + x];
         if (n < bestN || (n === bestN && Math.abs(x - (f.x0 + f.x1) / 2) < Math.abs(best - (f.x0 + f.x1) / 2))) { best = x; bestN = n; }
       }
+      // cổ hẹp thật: điểm vật tại cột cắt ≤ NECK_FRAC × trung vị điểm vật mỗi cột của hình, và thấp hơn hẳn (≤ 1/2) đỉnh hai bên; hình đặc (die nằm dài, đuôi dài) không có cổ thì không cắt
+      const cols = []; for (let x = f.x0; x <= f.x1; x++) { let n = 0; for (let y = b.y0; y <= b.y1; y++) n += mask[y * w + x]; cols.push(n); }
+      const left = Math.max(...cols.slice(0, best - f.x0 + 1)), right = Math.max(...cols.slice(best - f.x0));
+      if (bestN > NECK_FRAC * median(cols) || bestN * 2 > Math.min(left, right)) break;
       const part = (x0, x1) => {
         let y0 = b.y1, y1 = b.y0, area = 0;
         for (let y = b.y0; y <= b.y1; y++) for (let x = x0; x <= x1; x++) if (mask[y * w + x]) { area++; if (y < y0) y0 = y; if (y > y1) y1 = y; }

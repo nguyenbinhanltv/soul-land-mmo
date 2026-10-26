@@ -115,10 +115,25 @@ test("tách hình dính (tay vươn chồng sang khung bên): dải 5 hình → 
   assert.equal(r.blockLevel.s, "pass");
 });
 
-test("tách hình dính: dải thiếu khung thật (không có hình rộng bất thường) không bị 'bịa' hình, vẫn chặn", () => {
-  const g = { bands: [{ y0: 0, y1: 9, figures: [0, 20, 40, 60, 80].map((x) => ({ x0: x, x1: x + 9, y0: 0, y1: 9, w: 10, h: 10, area: 100 })) }], w: 100, mask: new Uint8Array(1000).fill(1) };
-  assert.deepEqual(splitStuckFigures(g, [6]), []);
-  assert.equal(g.bands[0].figures.length, 5);
+test("tách hình dính: dải thiếu khung thật không bị 'bịa' hình; hình nằm ngang đặc (die nằm dài, đuôi dài) không có cổ hẹp thì không cắt đôi, vẫn chặn", () => {
+  const W = 200, H = 10, mk = (shape) => { // shape(x, y) → 1 nếu có vật; dải cao H, các hình đặt theo cột x
+    const mask = new Uint8Array(W * H); for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) mask[y * W + x] = shape(x, y) ? 1 : 0;
+    return mask;
+  };
+  const fig = (x0, x1) => ({ x0, x1, y0: 0, y1: H - 1, w: x1 - x0 + 1, h: H, area: (x1 - x0 + 1) * H });
+  const grid = (mask, figs) => ({ w: W, mask, bands: [{ y0: 0, y1: H - 1, figures: figs }] });
+  // thiếu khung thật, không có hình rộng bất thường
+  const g0 = grid(mk(() => 1), [0, 20, 40, 60, 80].map((x) => fig(x, x + 9)));
+  assert.deepEqual(splitStuckFigures(g0, [6]), []);
+  // dải die 4 khung chỉ còn 3 hình, một hình nằm ngang đặc rộng 1,6 lần trung vị: không cổ hẹp → không cắt
+  const solid = mk((x) => (x < 20 || (x >= 40 && x < 60) || (x >= 80 && x < 112)));
+  const g1 = grid(solid, [fig(0, 19), fig(40, 59), fig(80, 111)]);
+  assert.deepEqual(splitStuckFigures(g1, [4]), []);
+  assert.equal(g1.bands[0].figures.length, 3);
+  // cùng hình rộng nhưng là hai khung dính nhau qua cổ hẹp (1 điểm / cột, trung vị 10) → cắt
+  const neck = mk((x, y) => (x < 20 || (x >= 40 && x < 60)) || (x >= 80 && x < 112 && (x < 94 || x > 97 || y === 4)));
+  const g2 = grid(neck, [fig(0, 19), fig(40, 59), fig(80, 111)]);
+  assert.deepEqual(splitStuckFigures(g2, [4]).map((d) => [d.from, d.to]), [[3, 4]]);
 });
 
 test("tờ tổng hợp: tỉ lệ sai, nền lệch màu khoá, không dò được lưới → chặn; cỡ lạ đúng tỉ lệ → nhẹ", () => {
