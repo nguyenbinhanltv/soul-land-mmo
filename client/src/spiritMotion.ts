@@ -80,6 +80,14 @@ export const SPIRIT_LEVEL_K = { low: 0.5, mid: 1, high: 1.25 } as const;
 /** Người khác thấy nhẹ hơn chính mình (đỡ rối mắt khi đông người). */
 export const SPIRIT_OTHER_K = 0.6;
 
+/**
+ * Khi phụ thể đã có clip vẽ thật (`vhanim_{id}`, docs/art/phu-the-hoat-anh.md "spiritMotion mức lắc nhẹ") clip đã chứa thở / vỗ cánh / vẫy đuôi, nên dao động
+ * liên tục (đứng, đi) chỉ còn lắc nhẹ: nhân hệ số này. Cú đánh / thi triển và bị đánh giữ nguyên. Vật cứng (weapon, float) ít pose nên giữ mức cao hơn.
+ */
+export const SPIRIT_CLIP_OSC_K = { soft: 0.33, hard: 0.6 } as const;
+/** Hệ số dao động liên tục của họ `fam` khi có clip vẽ thật (1 = không clip, nhánh cũ). */
+export const clipOscK = (fam: SpiritFamily): number => (fam === "weapon" || fam === "float" ? SPIRIT_CLIP_OSC_K.hard : SPIRIT_CLIP_OSC_K.soft);
+
 export interface SpiritPose { rot: number; sx: number; sy: number; dx: number; dy: number; pivot: number; active: boolean }
 export const newSpiritPose = (): SpiritPose => ({ rot: 0, sx: 1, sy: 1, dx: 0, dy: 0, pivot: 0, active: false });
 
@@ -108,9 +116,9 @@ export function kickEnvelope(k: number): number {
 /**
  * Tính tư thế (ghi vào `out`, không tạo object): `t` giờ trò chơi (ms), `state` đứng / đi / đánh / thi triển, `age` ms từ lúc hoạt ảnh một lần bắt
  * đầu và `dur` thời lượng của nó (chỉ dùng cho attack / cast), `side` +1 / -1 theo hướng nhìn (lật ngang), `hurtAge` ms từ lúc bị đánh,
- * `k` mức chuyển động (spiritScale), `phase` lệch pha (spiritPhase). `k` ≤ 0: tắt, `out.active` = false (giữ nguyên ảnh gốc).
+ * `k` mức chuyển động (spiritScale), `phase` lệch pha (spiritPhase), `oscK` hệ số riêng cho dao động liên tục (clip vẽ thật: clipOscK; nhánh cũ 1). `k` ≤ 0: tắt, `out.active` = false (giữ nguyên ảnh gốc).
  */
-export function spiritPose(out: SpiritPose, fam: SpiritFamily, state: SpiritState, t: number, age: number, dur: number, side: number, hurtAge: number, k: number, phase: number): SpiritPose {
+export function spiritPose(out: SpiritPose, fam: SpiritFamily, state: SpiritState, t: number, age: number, dur: number, side: number, hurtAge: number, k: number, phase: number, oscK = 1): SpiritPose {
   out.rot = 0; out.sx = 1; out.sy = 1; out.dx = 0; out.dy = 0; out.pivot = SPIRIT_PIVOT[fam]; out.active = false;
   if (!(k > 0)) return out;
   out.active = true;
@@ -119,8 +127,8 @@ export function spiritPose(out: SpiritPose, fam: SpiritFamily, state: SpiritStat
     const K: Kick = M[state][fam], e = kickEnvelope(dur > 0 ? age / dur : 1) * k;
     out.rot = K.rot * e * side; out.sx = 1 + K.sx * e; out.sy = 1 + K.sy * e; out.dx = K.dx * e * side; out.dy = K.dy * e;
   } else {
-    const O: Osc = M[state][fam], s = Math.sin(sec * 2 * Math.PI / O.period) * k;
-    out.rot = O.rot * s * side; out.sx = 1 + O.sx * s; out.sy = 1 + O.sy * Math.cos(sec * 2 * Math.PI / O.period) * k; out.dx = O.dx * s * side;
+    const O: Osc = M[state][fam], ko = k * oscK, s = Math.sin(sec * 2 * Math.PI / O.period) * ko;
+    out.rot = O.rot * s * side; out.sx = 1 + O.sx * s; out.sy = 1 + O.sy * Math.cos(sec * 2 * Math.PI / O.period) * ko; out.dx = O.dx * s * side;
     out.dy = -Math.abs(O.dy * s);
   }
   if (hurtAge >= 0 && hurtAge < M.hurt.ms) {

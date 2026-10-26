@@ -62,6 +62,17 @@ export function phuDirRow(face: Dir8): number {
 /** Hướng tây (sw, w, nw) lật ngang hướng đông tương ứng. */
 export const phuFlip = (face: Dir8): boolean => face === "sw" || face === "w" || face === "nw";
 
+/**
+ * Hướng 8 dùng chọn hàng phụ thể: thân LPC chỉ hiện 4 hướng (`shown`, có trễ giữ hướng) còn phụ thể có 5 hướng vẽ, nên khi thân đang hiện hướng
+ * ngang (e / w) thì lấy hướng thật `face` nếu cùng bên (se / ne chọn hàng riêng); khác bên (đang chờ đổi hướng) thì theo thân để hai lớp không lệch nhau.
+ */
+export function phuFaceOf(shown: Dir8 | null, face: Dir8): Dir8 {
+  if (shown === null) return face;
+  if (shown === "e") return face === "se" || face === "ne" ? face : shown;
+  if (shown === "w") return face === "sw" || face === "nw" ? face : shown;
+  return shown;
+}
+
 /** Hoạt ảnh thân (HsAnim) → clip phụ thể; die: null (phụ thể ẩn), absorb: idle (mờ 60% do nơi gọi). */
 export function phuClipOf(anim: string): PhuClip | null {
   switch (anim) {

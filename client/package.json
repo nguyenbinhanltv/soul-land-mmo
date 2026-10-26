@@ -19,6 +19,7 @@
     "test:phaptuong": "node scripts/phaptuong-test.mjs",
     "test:beastanim": "node --experimental-strip-types scripts/beastanim-test.mjs",
     "test:spiritmotion": "node scripts/spiritmotion-test.mjs",
+    "test:phutheanim": "node --experimental-strip-types scripts/phutheanim-test.mjs",
     "test:combatfeel": "node scripts/combatfeel-test.mjs",
     "test:skillvisual": "node scripts/skillvisual-test.mjs",
     "test:fontglyph": "node scripts/font-glyph-test.mjs",
