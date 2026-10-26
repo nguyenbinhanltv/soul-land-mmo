@@ -790,13 +790,13 @@ export class GameScene extends Phaser.Scene {
       if (e.code === "Tab" && panelOf(f) && trapTab(e)) return;
       if ((e.code === "Space" || e.key === "Enter") && panelOf(f) && (f as HTMLElement).matches(":focus-visible")) return;
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
-      if (e.code === "KeyH" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); toggleChar(); return; } // bảng nhân vật (UI-2), độc lập với Túi (NV1 #455); C là kỹ năng hồn cốt tay phải nên không dùng để mở bảng (NV5 #459)
+      if (e.code === "KeyH" && !e.repeat) { this.clearForPanel(); toggleChar(); return; } // bảng nhân vật (UI-2), độc lập với Túi (NV1 #455); C là kỹ năng hồn cốt tay phải nên không dùng để mở bảng (NV5 #459)
       if ((e.code === "BracketLeft" || e.code === "BracketRight") && cycleCharTab(e.code === "BracketRight" ? 1 : -1)) { e.preventDefault(); return; } // chuyển tab búp bê khi bảng Nhân vật đang mở (NV5 #459)
-      if (e.code === "KeyV" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); return; }
-      if (e.code === "KeyB" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); return; }
-      if (e.code === "KeyK" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
-      if (e.code === "KeyL" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); hud.toggleFriends(); return; } // bạn bè và chặn (#195)
-      if (e.code === "KeyM" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
+      if (e.code === "KeyV" && !e.repeat) { this.clearForPanel(); hud.toggleRoster(); return; }
+      if (e.code === "KeyB" && !e.repeat) { this.clearForPanel(); hud.toggleBag(); return; }
+      if (e.code === "KeyK" && !e.repeat) { this.clearForPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
+      if (e.code === "KeyL" && !e.repeat) { this.clearForPanel(); hud.toggleFriends(); return; } // bạn bè và chặn (#195)
+      if (e.code === "KeyM" && !e.repeat) { this.clearForPanel(); this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
       if (e.code === "KeyY" && !e.repeat) { if (getFlag()?.on) this.flagStop("Đã dừng tự đi"); else this.flagGo(); return; } // tự đi tới cờ (R4)
       if (e.code === "KeyN" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); mapview().toggle(); return; } // bản đồ khu vực (R3): lớp phủ, không dừng game
       if (e.code === "Escape" && mapview().isOpen) { mapview().close(); return; }
@@ -832,10 +832,10 @@ export class GameScene extends Phaser.Scene {
     hud.buildChatTabs(); // tab kênh chat (#188); lịch sử giữ qua đổi bản đồ trong phiên
     addEventListener("focusin", (e) => { if (field(e.target) || hud.looksOpen()) this.keys = {}; }, on); // phím đang giữ lúc vào ô nhập thì nhả
     initDualWindows();
-    document.getElementById("charBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); toggleChar(); }, on);
-    document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleRoster(); }, on);
-    document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleBag(); }, on);
-    document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); hud.toggleReso(); }, on);
+    document.getElementById("charBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); toggleChar(); }, on);
+    document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); hud.toggleRoster(); }, on);
+    document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); hud.toggleBag(); }, on);
+    document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); hud.toggleReso(); }, on);
     mapview().beforeOpen = () => { closeAudioPanel(); closeAutoPanel(); }; // nút Vùng do mapview.ts gắn một lần (cảm ứng chạy ngay lúc chạm)
     radar().onOpen = () => mapview().open();
     mapview().onFlag = (t) => this.mapFlag(t);
@@ -847,9 +847,10 @@ export class GameScene extends Phaser.Scene {
     bindCmdChip((c) => this.stopCmd(c, null));
     bindFlagBar(() => this.flagGo(), () => this.flagStop("Đã dừng tự đi"), () => this.flagClear());
     hud.onWorldAuto((map) => this.flagToMap(map));
-    document.getElementById("worldBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); closeAutoPanel(); this.openWorld(); }, on);
+    document.getElementById("worldBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); this.openWorld(); }, on);
+    document.getElementById("audioBtn")!.addEventListener("click", () => mapview().close(), on); // bảng Cài đặt không được chìm sau bản đồ khu vực (#1045)
     // Nút "Tự động" mở bảng cài đặt (Auto 2); phím T vẫn bật / tắt ngay.
-    document.getElementById("autoBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); toggleAutoPanel(); }, on);
+    document.getElementById("autoBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); mapview().close(); toggleAutoPanel(); }, on);
     hud.onWorldGo((key) => this.room.send("wp", { op: "go", key }));
     hud.onResonanceTop((page, pageSize) => this.room.send("resonance", { op: "top", page, pageSize }));
     // Chọn kênh (mục 6 "Nhiều kênh"): mở danh sách thì xin server số người từng kênh; bấm một kênh thì gửi ý định đổi kênh.
@@ -914,6 +915,9 @@ export class GameScene extends Phaser.Scene {
       this.keys = {}; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = "";
     }, this.ac.signal);
   }
+
+  /** Trước khi mở một bảng bằng phím / nút: đóng Cài đặt, Tự động và bản đồ khu vực (lớp phủ z-index 5 che bảng, #1045) để bảng vừa mở luôn thấy được. */
+  clearForPanel() { closeAudioPanel(); closeAutoPanel(); mapview().close(); }
 
   /**
    * Lệnh trong ô chat (7.1, #188): `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội, `/b <tin>` bản đồ, `/d <tin>` tổ đội, `/t <tên> <tin>`
