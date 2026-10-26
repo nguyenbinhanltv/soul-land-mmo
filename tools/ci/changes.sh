@@ -4,6 +4,7 @@
 #   stdin: mỗi dòng một đường dẫn file đổi; LABELS: nhãn của PR, ngăn bằng dấu phẩy; FORCE_FULL=1 luôn ra full.
 #   PUSH=1 (push vào main): quy tắc chặt hơn, chỉ art/** / docs/** / *.md / .claude/** mới skip; ảnh / âm thanh / manifest ở shared/assets/**
 #   vào image nên vẫn full. Nhãn không áp dụng. Không đọc được danh sách file (push đầu tiên, force push) thì full.
+#   Mốc so sánh của push do check.yml chọn: commit của lượt CI main thành công gần nhất (lượt bị hủy không làm lượt sau ra skip, #1079), không phải commit ngay trước.
 # In ra dòng `level=skip|smoke|full` và `reason=...` (ghi vào $GITHUB_OUTPUT nếu có), kèm bảng tóm tắt ở $GITHUB_STEP_SUMMARY.
 # Quy tắc theo từng file, mức cao nhất thắng; file không khớp quy tắc nào thì coi là full (không chắc thì full):
 #   skip : ảnh / âm thanh / manifest dữ liệu sprite (shared/assets/** trừ file bản đồ), *.md, docs/**, art/**, .claude/**
