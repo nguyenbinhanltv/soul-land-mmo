@@ -35,6 +35,7 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/nhan-vat-hon-thu.md](docs/art/nhan-vat-hon-thu.md) | 5 | Hồn sư và phụ thể; Vòng hồn hoàn; Hồn thú; Vùng chiêu trên mặt đất; NPC phụ và dân thường; Bản đồ isometric; Điều khiển; Chân dung và thẻ võ hồn; Tên file, key và thư mục |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/hon-su-lpc.md](docs/art/hon-su-lpc.md) | 5 | Hồn sư = LPC; Hồn sư chế độ Tự tạo; Ngoại hình hai chế độ; Vẽ hồn sư LPC; Màn tạo nhân vật và đổi ngoại hình |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/nguon-giay-phep.md](docs/art/nguon-giay-phep.md) | 5 | Nguồn và giấy phép |
+| 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/ui-kit.md](docs/art/ui-kit.md) | 5 | Hai chất liệu; Bảng vai trò → chất liệu; Token màu theo vai trò; Thang chữ theo vai trò; Quy tắc 9-slice; Kit 1× hay 2×; Luật vẽ AI |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/hon-thu-hoat-anh.md](docs/art/hon-thu-hoat-anh.md) | 5 | Hoạt ảnh vẽ thật của hồn thú (H1) |
 | 5.12 | Cảm giác đánh, hiệu ứng chiêu (phần hiển thị) và âm thanh | [docs/art/am-thanh.md](docs/art/am-thanh.md) | 5 | Âm thanh; Âm thanh chiến đấu và hồn thú có tầm; Nhạc nền |
 | 5.12 | Cảm giác đánh, hiệu ứng chiêu (phần hiển thị) và âm thanh | [docs/design/ky-nang-combat-phap-tuong.md](docs/design/ky-nang-combat-phap-tuong.md) | 5 |  |
