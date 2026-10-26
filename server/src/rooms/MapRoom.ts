@@ -5,72 +5,63 @@ import { Room, Client, ServerError, matchMaker, OnMessageException, type RoomExc
 import { randomUUID } from "node:crypto";
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TIERS, VOHON, xpNeed, xpBlocked, calcStats, TICK_RATE, tierOfYears, vohonIndex,
-  AWAKEN_GIFT, AWAKEN_CHOICES, AWAKEN_LEVEL, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, REVIVE_SECS, RESPAWN_SECS, XP_SHARE_ACTIVE, XP_SHARE_BENCH,
-  beastLevel, xpLevelScale, parseTeam, BEASTS, beastIndex, MAPS, MAP_MOVED, DEFAULT_MAP, parseNewLooks, encodeLpc, dir4, type Looks,
-  TRAVEL_CAST, BOAT_CAST, WAYPOINT_CAST, waypointFee, RED_BEAST_CHANCE, kingYears, TRAVEL_LEAVE_SECS, CHANNEL_MAX, CHANNEL_CD,
-  TIEN_CO, TIEN_CO_MAX, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY, energyGain, tienCoDmgMult, TILE, RALLY,
-  itemDef, BAG_EXPAND, BAG_MAX_SLOTS, bagSlotsOf, BUYBACK_MAX, bagExpandCost, DAN_CD, STARTER_ITEMS, BEAST_COIN, formatHonTe, type ItemDef,
-  MAX_YEARS, tierBand, rollYears, beastStats, formatYears, RING_ITEM, DROP_OWNER_SECS, DROP_TTL_SECS, PICKUP_RANGE,
-  SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode, starSkillMult, starCdMult, starTienCoMult, starRing,
-  BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus, boneSlotIndex,
-  CORE_ITEM, CORE_SETS, coreChance, rollCore, rollCoreStats, parseCore, coreName, coreSetIndex, coreSetName, coreResetFee, MAX_CORE_STARS, type CoreData,
-  CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ROLL, parseEquip, equipStats, equipDefTotal, equipWeaponRoll, equipTemplate, equipSlotIndex, equipName, equipSlotDef, rollEquip, rollEquipDrop, rollEquipCharm, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_TEMPLATES, EQUIP_TIERS, EQUIP_ESSENCE, EQUIP_SOUL, equipLuckStep, EQUIP_SALVAGE_MAX, equipSynthStep, equipSynthOutcome, equipSalvage, equipAutoSalvageable, type EquipData, type EquipDrop,
-  CORE_SLOTS, CORE_SET_2, CORE_SET_4, CORE_FX_RULE, coreSlotOf, coreBonus, coreFx, coreSetCounts, isCcStatus, ATTACK_CD, ATTACK_REACH, atkRoll, type CoreFx,
-  BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, type BonePassive, type PassiveBuff,
-  BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, boneSkillMult, boneEnhanceNeed, parseBoneSubs, boneAddSubs, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee, SHARD_BUY, shardBuyCost, ARENA_SHARDS,
-  CORE_MAX_ENHANCE, CORE_FEED_MAX, coreXp, coreEnhanceNeed, coreEnhancePreview, coreUpgradeSubs, coreStatText,
-  STATUS, STATUS_IDS, STATUS_TICK, CC_TIER_MULT, BEAST_REGEN, BEAST_AGGRO_R, BEAST_WANDER, BEAST_GAIT, BEAST_LEASH, RUN_MULT, statusBit, BUFF_IDS, buffBit, skillPower, buffPower, PCT_HP_CAP,
-  PROJ_SPEED, SLOW_CAP, PHONG_LOI, skillsOf, TIEN_CO_RIENG, bondSum, BOND_KEYS, FUSION, FUSIONS, fusionIndex, fusionsOf,
-  ringSkill, loadoutOf, parseLoadout, LOADOUT_SIZE, CHAN_THAN_RING, chanThanOf, chanThanStats, phoenixFieldR, CHAN_THAN_SKILL_SLOT, type ChanThanStat, type BondKey, type SkillDef, type StatusId, type StatusApply, type BuffId,
-  beastSkillOf, teleHits, teleSafe, TELE_FIRST, PLAYER_STATUS, type BeastSkillDef, type Tele,
-  teleZones, BOSSES, bossIndex, ELITE, ELITE_RAGE, bossHpMult, beastName, beastBuffBit, BEAST_BUFFS, type BeastBuffId,
-  KING, KING_CHEST, BOSS_CLAIM_KING, kingActive, kingNext, kingShardPool, vnDay, chestCode, type BossDef, type FormDef,
-  WORLD, WORLD_SLAM, WORLD_RING, WORLD_CHEST, BOSS_CLAIM_WORLD, worldActive, worldNext, worldBossOn, HE_IDS, type He,
-  npcDef, NPC_RANGE, looksChangeCost, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, tongDef, tongWeek, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, type NpcRole,
-  QUEST_STARTER, QUESTS, QUEST_AFTER, questChain, questStart, parseQuest, questStatus, questGoalHit, questRewardText, type QuestReward, type QuestProgress, type QuestEvent, type QuestGoal,
-  DAILY, dailyIds, isDaily, fitBeast, TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, TONG_WEEK_KIND, TONG_TOP_N, TONG_BOARD_CD,
-  tongTaskIds, tongWeekDay, tongTop,
-  PARTY_XP_RANGE, partyXpShare, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, COPY_R, COPY_WINDOW, BUFFS,
-  RESONANCE, RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CD, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText, type ResEffect,
-  HERB_MAX, HERB_PCT, herbDef, herbChance, herbBonus, herbText, HERBS,
-  ARENA, ARENA_HE_DMG, arenaTeamElo, SYNC_VIEW, RADAR, AUTO_DAILY_SECS, AUTO_STUCK, AUTO_MAX_PER_CELL, AUTO_MSG_RATE, AUTO_BONUS_MAX, parseAuto, autoLeft, autoHint, type AutoHint, autoTimeText, type AutoSettings, type AutoSummary,
-  BEAST_ATK_CD, OFFLINE, offlineFight, offlineSplit, type OfflinePower,
-  BEAST_DEF, defMult, beastMelee, PLAYER_STATUS_PVE, RESIST_AS, PLAYER_CHARM,
-  AUTO_SELL_FREE, AUTO_SELL_BUYBACK, parseSell, autoSellable, type SellSettings } from "../../../shared/data.ts";
+  AWAKEN_GIFT, AWAKEN_CHOICES, AWAKEN_LEVEL, TEAM_COMBAT_SECS, XP_SHARE_ACTIVE, XP_SHARE_BENCH,
+  beastLevel, xpLevelScale, BEASTS, MAPS, DEFAULT_MAP, parseNewLooks, encodeLpc, dir4,
+  BOAT_CAST, CHANNEL_MAX, CHANNEL_CD,
+  TILE,
+  itemDef, BEAST_COIN, formatHonTe, type ItemDef,
+  MAX_YEARS, tierBand, rollYears, beastStats, formatYears, RING_ITEM, DROP_OWNER_SECS,
+  SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode,
+  BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus,
+  CORE_ITEM, CORE_SETS, coreChance, rollCore, parseCore, coreName, coreSetIndex, type CoreData,
+  CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, parseEquip, equipDefTotal, equipWeaponRoll, equipName, rollEquipDrop, rollEquipCharm, EQUIP_CHARM, type EquipData, type EquipDrop,
+  CORE_SET_2, CORE_SET_4, coreSlotOf, coreBonus, coreFx, coreSetCounts, type CoreFx,
+  bonePassive, type BonePassive, type PassiveBuff,
+  parseBoneSubs, boneAddSubs,
+  STATUS, CC_TIER_MULT, BEAST_REGEN, buffBit,
+  bondSum,
+  loadoutOf, phoenixFieldR, type ChanThanStat, type BondKey, type SkillDef, type StatusId, type StatusApply, type BuffId,
+  type BeastSkillDef, type Tele,
+  BOSSES, bossIndex, ELITE, ELITE_RAGE, beastName, beastBuffBit, BEAST_BUFFS, type BeastBuffId,
+  KING, kingActive, kingNext, vnDay, type BossDef, type FormDef,
+  WORLD, worldActive, worldNext, worldBossOn, type He,
+  npcDef, NPC_RANGE, looksChangeCost, TONG_SWITCH_DAYS, tongDef, sellPrice, type NpcRole,
+  QUEST_STARTER, QUEST_AFTER, questChain, questStart, questStatus, questGoalHit, questRewardText, type QuestReward, type QuestProgress, type QuestEvent, type QuestGoal,
+  DAILY, dailyIds,
+  tongTaskIds,
+  PARTY_XP_RANGE, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, BUFFS,
+  type ResEffect,
+  herbChance, herbBonus, HERBS,
+  RADAR, AUTO_DAILY_SECS, AUTO_MAX_PER_CELL, AUTO_MSG_RATE, AUTO_BONUS_MAX, parseAuto, autoLeft, autoHint, type AutoHint, autoTimeText, type AutoSettings, type AutoSummary,
+  OFFLINE, offlineFight, offlineSplit, type OfflinePower,
+  type SellSettings } from "../../../shared/data.ts";
 import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
-import { FOG, moveNudge } from "../../../shared/data.ts"; // sương mù khám phá (R8)
+import { FOG } from "../../../shared/data.ts"; // sương mù khám phá (R8)
 import type { Vitals } from "../../../shared/vitals.ts";
-import { fogDims, fogEmpty, fogFill, fogReveal, fogValid, fogOn as fogMapOn } from "../../../shared/fog.ts";
+import { fogDims, fogEmpty, fogReveal, fogValid, fogOn as fogMapOn } from "../../../shared/fog.ts";
 import { ASK_CD, MSG_GROUP, MSG_HARD, MSG_FLOOD_CODE, type MsgGroup } from "../../../shared/data.ts"; // nhịp tin client xin lại dữ liệu riêng (#165)
-import { clampDir, MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
-import { loadMap, mapFile, mapRoute, mapHops, mapLinks, allWaypoints, nearestTown, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
-import { BOSS_TOPIC, ANNOUNCE_TOPIC, publishBoss, bossOffset, bossNow, bossClockMode, type BossEvent } from "../schedule.ts";
-import { store, saveFailTest, Character, type AccountLooks, type Location, type Item, type Bag, type AutoRow, type SoldRow, type TongRow, type SocialRow } from "../db.ts";
-import { chatReset, worldMark, inviteReset, rallyCheck, rallyReset, friendReset, takeToken, type TokenBucket, type ChatChannel } from "../ratelimit.ts";
-import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
+import { clampDir, MOVE_DEAD } from "../../../shared/move.ts";
+import { loadMap, mapFile, mapRoute, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
+import { BOSS_TOPIC, ANNOUNCE_TOPIC, bossOffset, bossNow, type BossEvent } from "../schedule.ts";
+import { store, Character, type AccountLooks, type Location, type Item, type Bag, type AutoRow, type SoldRow, type TongRow, type SocialRow } from "../db.ts";
+import { takeToken, type TokenBucket, type ChatChannel } from "../ratelimit.ts";
 import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
 import * as join from "./join.ts";
-import { rallyPoint, type RallyMsg } from "../../../shared/rally.ts";
 import { friends, FRIEND_TOPIC, type FriendNote } from "../friends.ts";
-import { watchGc, gcIn, cpuMs, clock } from "../perf.ts";
-import { arenaLiveOpenList, arenaLiveHold, arenaLiveRelease, arenaWatchMax, setTestWatchMax } from "./arenaQueue.ts";
-import { arenaEnqueue, arenaDequeue, arenaQueued, arenaQueueSlots, arenaReadElo, arenaReadCancel, arenaReadCancelled, arenaTestSlow, type ArenaTeamEntry } from "./arenaQueue.ts";
-import { floorSafeZones, surfaceSpot, BOSS_BOX } from "./worldBoss.ts";
+import { watchGc, cpuMs } from "../perf.ts";
+import { arenaDequeue, arenaQueued, arenaReadCancel } from "./arenaQueue.ts";
 import { Interest } from "./interest.ts";
 import { AutoHunter } from "./autoHunt.ts";
-import { bagDiff, type BagSent } from "../../../shared/bagSync.ts";
+import { type BagSent } from "../../../shared/bagSync.ts";
 import { Grounds } from "./ground.ts";
-import { itemLockKey } from "../itemLock.ts";
-import { PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS, presenceBackend, accountLeaseKey, bg } from "../presence.ts";
+import { presenceBackend, bg } from "../presence.ts";
 import { ColdStacks } from "./cold.ts";
-import { gmAllow, gmEnabled, isAdmin, parseGm, _gmSetAdmin, type GmCmd } from "../gm.ts"; // lệnh GM của admin (#518)
-import { buildPreset } from "../testPreset.ts";
-import { ringLimit, coreSubRolls, ARENA_MAP } from "../../../shared/data.ts";
+import { _gmSetAdmin, type GmCmd } from "../gm.ts"; // lệnh GM của admin (#518)
 import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
-import { newItem, itemStacks, gearStats, gearLook, bagUsed, bumpItemClock, KIND_ORDER, ITEM_ORDER, type GearStats } from "./items.ts";
-import { targetMsg, tickLock, setLock, manualAttack } from "./lock.ts";
+import { newItem, itemStacks, bagUsed, type GearStats } from "./items.ts";
+import { targetMsg, manualAttack } from "./lock.ts";
 import * as equip from "./equip.ts";
 import * as bones from "./bones.ts";
 import * as absorb from "./absorb.ts";

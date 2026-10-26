@@ -36,3 +36,11 @@ Provenance gốc worker68 có trường dimensions gán nhầm cho prompt text. 
 - H3C3-C4 và H7C3-C4: động tác attack và margin cần owner kiểm tra khi tích hợp.
 
 Chưa owner duyệt B. Giữ Draft/Đang làm 2/10; worker63 chỉ tích hợp raw, không sinh thêm ảnh. AO review kỹ thuật do orchestrator44 trigger sau khi nhận head A+B ổn định; không tự trigger hoặc ghi Review: đạt trước review.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/am_kim_khung_trao_hung/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Ám Kim Khủng Trảo Hùng (H4 #767): raw `art/src/beast-anim/am_kim_khung_trao_hung/toA.png` (1024×1536, chọn lượt 2/2, fresh worker63) và `toB.png` (1254×1254 thực tế, sai yêu cầu 1024×1024, chọn lượt 2/2, fresh worker68). tthoadev sinh ngày 2026-10-26 bằng `image_gen.imagegen` tích hợp Codex. A reference static đúng loài; B reference static (identity) + A2 (style-only candidate). Tool không trả model ID/seed, không có size/model selector. Giữ nguyên byte, không hậu kỳ/resize. Prompt thực, nguồn và hash: [NGUON.md](src/beast-anim/am_kim_khung_trao_hung/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json`. Candidate chờ owner cắt/preview; chưa xác nhận mỹ thuật/runtime, anatomy/family hoặc acceptance H4. Tiến độ batch 2/10 raw. | - | Chuyển một lần từ art/CREDITS.md (#973) |

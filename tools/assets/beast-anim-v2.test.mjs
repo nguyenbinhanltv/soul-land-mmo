@@ -131,7 +131,8 @@ test("NGUON: turnaround.png được ghi (hash, cỡ, prompt, --eye), loài ch�
     writeFileSync(path.join(dir, "turnaround.prompt.txt"), "prompt thử");
     const ok = run("--eye", "turnaround=hướng — ne — vẽ ngang", "--model", "m-thử");
     assert.equal(ok.status, 0, ok.stderr);
-    assert.match(ok.stdout, /## turnaround/);
+    assert.equal(ok.stdout.split("\n").filter((l) => l === "## turnaround").length, 1, "mỗi turnaround đúng một mục");
+    assert.match(ok.stdout, /Mức kiểm: \*\*chặn\*\*/); // 8×6 sai tỉ lệ: kiểm thật, không còn "không kiểm tự động"
     assert.ok(ok.stdout.includes("**8×6**"));
     assert.ok(ok.stdout.includes("turnaround.prompt.txt"));
     assert.match(ok.stdout, /model: m-thử/);
@@ -141,6 +142,25 @@ test("NGUON: turnaround.png được ghi (hash, cỡ, prompt, --eye), loài ch�
     const again = run("--write");
     assert.equal(again.status, 1);
     assert.match(again.stderr, /đã có/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("NGUON: sinh lại (--write --force) giữ nguyên mục ## Ghi công đã có (#973); loài chưa có thì sinh dòng mặc định", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "beast-nguon-gc-")), run = (...args) => spawnSync(process.execPath, [path.join(ROOT, "tools", "assets", "beast-nguon.mjs"), "--species", "quy_ho", "--dir", dir, ...args], { encoding: "utf8" });
+  try {
+    writeFileSync(path.join(dir, "turnaround.png"), encodePng(new Img(8, 6)));
+    assert.equal(run("--write").status, 0);
+    const first = readFileSync(path.join(dir, "NGUON.md"), "utf8");
+    assert.match(first, /^## Ghi công$/m);
+    assert.match(first, /RAW hoạt ảnh Quỷ Hổ: turnaround 8×6/);
+    const mine = "## Ghi công\n\n| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |\n|---|---|---|---|---|---|\n| `art/src/beast-anim/quy_ho/` | - | ChatGPT | Chi tiết người nộp, session 103 | - | - |\n";
+    writeFileSync(path.join(dir, "NGUON.md"), first.slice(0, first.indexOf("## Ghi công")) + mine + "\n## Mục khác\n\nkhông giữ\n");
+    assert.equal(run("--write", "--force").status, 0);
+    const again = readFileSync(path.join(dir, "NGUON.md"), "utf8");
+    assert.ok(again.includes(mine.trimEnd()), "bảng ghi công cũ phải còn nguyên");
+    assert.doesNotMatch(again, /RAW hoạt ảnh Quỷ Hổ: turnaround/);
+    assert.doesNotMatch(again, /Mục khác/);
+    assert.equal((again.match(/^## Ghi công$/gm) ?? []).length, 1);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 

@@ -19,3 +19,11 @@ B1 yêu cầu 1024×1024, IHDR thực tế **1254×1254**, 1.991.633 byte, SHA-2
 LỖI: toB — sai kích thước, nền không phẳng FF00FF, hướng/pose và tràn ô trống — H1–4 NE; H5/H7/H8 N; H8 C5 — RAW 1254×1254; NE nhiều khung nghiêng ngang E/lộ mặt, N hurt H5 C5 ngửa mặt, attack H7 C1–2 lệch NE, die H8 C2–4 quay ngang/lộ mặt; H8 C5 có 139 pixel thân theo ngưỡng chẩn đoán.
 
 Bố cục nhìn khoảng 6×8; 44 occupied/4 blank là yêu cầu, không phải số frame hợp lệ đã chứng nhận. Số ô theo pixel trong provenance95 chỉ là chẩn đoán, không được diễn giải thành số sinh vật/frame. 139 pixel tại H8 C5 là theo ngưỡng R<160 hoặc B<140 hoặc G>90 của session95; không phải phép phân đoạn ngữ nghĩa. Bốn góc nền trong nguồn có RGB khác FF00FF. Quan sát thấy NE lộ mặt/gần ngang E, N hurt ngửa mặt, attack/death lệch hướng; hurt NE chưa giật lùi rõ. Cỡ thân so với A và loop chưa được chứng nhận. Static/template vẫn có mâu thuẫn quad/vượn như đã ghi; không suy rằng owner chốt anatomy. Chỉ nhận RAW/provenance kỹ thuật; chủ repo quyết định mỹ thuật/nhập game sau.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/loi_van_hau/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Lôi Văn Hầu (H4 #769): RAW `art/src/beast-anim/loi_van_hau/toA.png` (1024×1536 IHDR, A1/1, session93) và `toB.png` (1254×1254 IHDR, sai yêu cầu 1024×1024, B1/1, session95), tthoadev sinh ngày 2026-10-26 bằng builtin `image_gen.imagegen`. A chỉ reference static gốc đúng loài; B đính static identity trước, A1 style/cỡ thân sau, không dùng pose sai làm mẫu. Model ảnh/seed unknown; size chỉ yêu cầu trong prompt. Nguyên byte, không hậu kỳ/cắt/resize. [Nguồn và lỗi](src/beast-anim/loi_van_hau/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json`. Q44/điều khoản công cụ, không tự gán CC0. Cặp RAW còn lỗi hướng/pose/hurt/style/nền/cỡ và tràn ô; chưa owner duyệt mỹ thuật/runtime. Submitted 2/10, không đồng nghĩa accepted/merged/imported; Part of #769 và #766. | - | Chuyển một lần từ art/CREDITS.md (#973) |

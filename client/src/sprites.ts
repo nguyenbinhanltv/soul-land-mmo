@@ -13,7 +13,7 @@ import Phaser from "phaser";
 import { TELE_WARN, PT_FRAME } from "../../shared/data.ts";
 import { SPR, type Dir8 } from "./iso.ts";
 import { lightingOn } from "./lighting.ts";
-import { registerVohonSheet, setBeastSheetHook, isLazySkillFx } from "./vohonLazy.ts";
+import { registerVohonSheet, registerBlankSheet, setBeastSheetHook, isLazySkillFx } from "./vohonLazy.ts";
 import { readFxPrefs } from "./fxSettings.ts";
 import { DEFAULT_LAYOUT, lungeKeep, newBeastAnimState, parseLayout, stepBeastAnim, type AnimLayout, type BeastAnimState } from "./beastAnim.ts";
 
@@ -425,7 +425,7 @@ export function syncBeastSprite(s: Phaser.GameObjects.Sprite, species: string | 
 export const GRAY_RAMP = ["#3a3a3a", "#6a6a6a", "#9a9a9a", "#cacaca"] as const;
 
 interface SheetSpec { url: string; frame?: readonly [number, number] }
-type ManifestEntry = string | { key: string; frame?: [number, number]; iso?: boolean; lpc?: boolean; static?: boolean; anim?: unknown };
+type ManifestEntry = string | { key: string; frame?: [number, number]; iso?: boolean; lpc?: boolean; static?: boolean; anim?: unknown; blank?: boolean };
 
 /** Đường dẫn ảnh và kích thước khung suy ra từ key (bảng thư mục ở mục 5.11). */
 function sheetSpec(key: string, frame?: readonly [number, number], iso = false): SheetSpec | null {
@@ -473,6 +473,8 @@ export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) =
       if (iso && !/^(vh|beast|fx|pt)_/.test(key)) continue;
       if (typeof e !== "string" && e.anim && /^beast_[a-z_]+_anim$/.test(key)) ANIM_LAYOUTS.set(key, parseLayout(e.anim));
       if (typeof e !== "string" && e.lpc && key.startsWith("beast_")) LPC_BEASTS.add(key);
+      // Nửa phụ thể trống hoàn toàn (#974): không có file, không tải (cả normal map); lớp đó ẩn (vohonBlank).
+      if (typeof e !== "string" && e.blank && key.startsWith("vh_")) { registerBlankSheet(key); continue; }
       const spec = sheetSpec(key, typeof e === "string" ? undefined : e.frame, iso);
       if (!spec) { console.warn(`[sprites] key không hợp lệ trong manifest: ${key}`); continue; }
       // Phụ thể isometric (2304×1152 × 2 lớp × 25 võ hồn) tải theo nhu cầu (vohonLazy.ts), không tải hết mỗi lần vào bản đồ.
