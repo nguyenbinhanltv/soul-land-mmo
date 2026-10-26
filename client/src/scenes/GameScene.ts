@@ -109,7 +109,7 @@ const WALK_ANIM_SPEED = PLAYER_SPEED, WALK_ANIM_SCALE: [number, number] = [0.5, 
 /** Hồn thú có sheet theo loài: nhịp animation đi khi lang thang / khi đuổi (đuổi nhanh gấp BEAST_GAIT.chase / wander lần). */
 const BEAST_ANIM_SCALE = { wander: 0.7, chase: 1.4 };
 /** Tham số tái dùng mỗi khung hình cho hoạt ảnh vẽ thật của hồn thú (tránh cấp phát object mỗi con mỗi khung). */
-const BEAST_ART = { now: 0, hp: 0, walkScale: 1 };
+const BEAST_ART = { now: 0, hp: 0, walkScale: 1, atk: 0 };
 /** Không độ dời clip (phụ thể nhánh cũ). */
 const NO_OFF: readonly [number, number] = [0, 0];
 /** Tin `dmg` kết liễu chỉ có giá trị tới chừng này mili giây trước khi hồn thú bị xoá khỏi state (bản vá luôn tới trong vài khung). */
@@ -2956,7 +2956,7 @@ export class GameScene extends Phaser.Scene {
       // Sheet loài chưa tải xong (wantBeast, #716): ẩn sprite (và tên) tới khi có ảnh thật, không vẽ bản tạm bằng code để khỏi nháy.
       const egg = b.egg > 0, bsp = beastSheetSpecies(b.rank, beastBase(b.rank, b.species)?.id), waitArt = !egg && !!bsp && wantBeast(this, bsp) === "wait";
       s.setVisible(!waitArt);
-      const spr = egg ? null : syncBeastSprite(s, waitArt ? undefined : bsp, b.moving, b.aggro, b.cast, face, (BEAST_ART.now = time, BEAST_ART.hp = b.hp, BEAST_ART.walkScale = b.aggro ? BEAST_ANIM_SCALE.chase : BEAST_ANIM_SCALE.wander, BEAST_ART)), k = spr ? spriteRankScale(s, b.rank) : rankScale(b.rank);
+      const spr = egg ? null : syncBeastSprite(s, waitArt ? undefined : bsp, b.moving, b.aggro, b.cast, face, (BEAST_ART.now = time, BEAST_ART.hp = b.hp, BEAST_ART.atk = b.atk, BEAST_ART.walkScale = b.aggro ? BEAST_ANIM_SCALE.chase : BEAST_ANIM_SCALE.wander, BEAST_ART)), k = spr ? spriteRankScale(s, b.rank) : rankScale(b.rank);
       if (egg) {
         if (s.texture.key !== "spider_egg") s.setTexture("spider_egg");
         s.setScale(SPR * (1 + (b.egg < EGG_SOON ? 0.08 * Math.sin(time / 45) : 0.03 * Math.sin(time / 160))));

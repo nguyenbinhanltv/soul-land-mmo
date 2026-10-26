@@ -275,7 +275,7 @@ export function tick(room: MapRoom, dt: number) {
       }
       if (bd.rooted) { if (Math.abs(dx) > 1) b.face = dx > 0 ? 1 : -1; } // đứng yên: chỉ quay mặt về mục tiêu (#116)
       if (dd > beastMelee(b.tier, bd.rooted)) { if (!noMove && !bd.rooted) { mx = dx / dd; my = dy / dd; } }
-      else if (bd.cd <= 0 && !noAtk) { bd.cd = BEAST_ATK_CD; room.hurtPlayer(bd.target!, room.beastDmg(bd) * atkRoll(Math.random())); }
+      else if (bd.cd <= 0 && !noAtk) { bd.cd = BEAST_ATK_CD; b.atk = (b.atk + 1) & 255; room.hurtPlayer(bd.target!, room.beastDmg(bd) * atkRoll(Math.random())); }
     } else {
       bd.wt -= dt;
       // Mê hoặc: đổi hướng liên tục quanh chỗ đang đứng, đi nhanh hơn lúc lang thang thường.
