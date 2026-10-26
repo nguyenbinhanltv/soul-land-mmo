@@ -1,0 +1,32 @@
+Create ONE image, exactly 1024x1024 pixels: an animation sprite sheet of a single fantasy creature for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
+
+CREATURE: Quỷ Hổ - ghost tiger, ash-grey fur with dark charcoal stripes, muscular big cat, standing on all four legs. Body type: thú bốn chân. Size class: Tím / Đen. The attached reference image shows this exact creature in three static views (front, side, back): keep the SAME design, proportions, colors, markings and overall size in every frame of the sheet. Do not redesign it.
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
+
+GRID: 6 columns x 8 rows of equal invisible cells (171x128 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with its feet (or lowest body point) standing on the same invisible ground line about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.
+
+LAYOUT (top to bottom):
+Block 1 (rows 1-4): direction "ne" = facing the upper right of the picture (three-quarter back view, head away from the viewer toward the right).
+  row 1: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 2: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 3: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 4: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+Block 2 (rows 5-8): direction "n" = facing away from the viewer (back view from above).
+  row 5: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 6: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 7: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 8: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+
+CONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, standing, walking and hurt frames keep the body at the same scale and the same ground line. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).
+
+STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.
+
+DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions.
+Match the creature design, colors, size and line weight of the second attached sheet exactly. same body size as sheet A.
+
+The attached images are ORDERED: image 1 is the static identity reference (ash-grey tiger with charcoal-black stripes); image 2 is sheet A for style, body size and line weight ONLY. Do not inherit its incorrect hurt turns, attack yaw, death yaw, shallow E heading, or background color. Do not redesign the creature or change its body template.
+
+This is a fresh sheet B1 only. Output exactly 1024x1024 pixels, 6 columns by 8 rows, exactly 44 complete creature figures and exactly four blank cells: R4C5, R4C6, R8C5, R8C6. Equal invisible cells fill the square canvas. All figures remain inside their cells with clear magenta gaps.
+
+For EVERY frame of rows 1-4, NE means a rear three-quarter view heading toward the UPPER RIGHT, visibly distinct from an east-facing side view. The rump is nearer the viewer, the head is farther away toward upper right. For EVERY frame of rows 5-8, N means a true rear view heading straight toward the TOP: rump and tail nearest the viewer, head farthest away, no visible face or eyes, no looking back. Hurt recoils backward along the existing heading without turning. Attacks lunge along the existing heading without yaw. Death may collapse sideways but must retain the same longitudinal heading and rear-view identity. Keep N death entirely within R8C1-C4; do not bleed into any blank cell. Background must be flat exact #FF00FF throughout, including all four blank cells; no text, grid, labels, effects, shadows, gradient or texture.
