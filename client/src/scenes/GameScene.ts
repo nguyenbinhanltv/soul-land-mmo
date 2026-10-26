@@ -73,7 +73,7 @@ import { showOffline, type OfflineMsg } from "../offline.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, GearMsg, EquipEnhPreview, EquipEnhDone, EquipLuckPreview, EquipLuckDone, EquipSynDone, EquipSalvDone, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, AutoStMsg, FriendsMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
 import { assetUrl } from "../assetUrl.ts";
-import { layoutNameplates, measureNameplate, nameplateAppearance, nameplatePriority, playerNameplateKind, type NameplateRect, type NameplatePlacement, type NameplateSlot } from "../nameplate.ts";
+import { easeNameplate, layoutNameplates, measureNameplate, nameplateAppearance, nameplatePriority, playerNameplateKind, type NameplateRect, type NameplatePlacement, type NameplateSlot } from "../nameplate.ts";
 import { replayBufferedMessages } from "../roomBuffer.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -394,6 +394,8 @@ export class GameScene extends Phaser.Scene {
   nameplateLayout: NameplatePlacement[] = [];
   /** Chỗ nhãn khung trước (theo độ lệch so với đầu): giữ chỗ để nhãn người đang đi không đổi chỗ mỗi khung (#828). */
   nameplateSlots = new Map<string, NameplateSlot>();
+  /** Độ lệch đang VẼ của nhãn so với chỗ gốc trên đầu (đuổi theo ô đích của bộ xếp nhãn, #1064) và mốc khung trước. */
+  nameplateShown = new Map<string, { dx: number; up: number }>(); nameplateT = 0;
 
   constructor() { super("game"); }
   init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string, roomId: string | null) => void; onArena: (roomId: string, watch?: boolean) => void; onBack: () => void; watch?: boolean }) {
@@ -3242,12 +3244,18 @@ export class GameScene extends Phaser.Scene {
       return { id: g.id, x: g.x, y: g.y - m.full.height / 2, width: m.full.width, height: m.full.height, priority: g.priority, compactSize: m.compact };
     }), { gap: 2 * K, maxOffset: 64 * K, maxVisible: 18, viewport: view, obstacles, prev: this.nameplateSlots, now: performance.now() });
     this.nameplateSlots = new Map(this.nameplateLayout.flatMap((p) => p.visible && p.slot ? [[p.id, p.slot] as const] : []));
+    // Đổi ô (bị đè thật / về chỗ gốc) không dịch tức thời: độ lệch vẽ đuổi theo ô đích ~120 ms, vẫn bám đầu đã nội suy (#1064).
+    const now = performance.now(), dtMs = this.nameplateT ? now - this.nameplateT : 1e9, shown = new Map<string, { dx: number; up: number }>();
+    this.nameplateT = now;
     for (const placement of this.nameplateLayout) {
       if (!placement.visible) continue;
-      const m = measured.get(placement.id)!, lines = placement.compact ? m.group.compact : m.group.lines;
-      const size = placement.compact ? m.compact : m.full, bottom = placement.y + placement.height / 2;
-      lines.forEach((t, i) => t.setOrigin(0.5, 1).setScale(K).setPosition(placement.x, bottom - size.offsets[i]).setVisible(true));
+      const m = measured.get(placement.id)!, lines = placement.compact ? m.group.compact : m.group.lines, home = m.group, old = this.nameplateShown.get(placement.id);
+      const size = placement.compact ? m.compact : m.full;
+      const dx = easeNameplate(old?.dx, placement.x - home.x, dtMs), up = easeNameplate(old?.up, home.y - (placement.y + placement.height / 2), dtMs);
+      shown.set(placement.id, { dx, up });
+      lines.forEach((t, i) => t.setOrigin(0.5, 1).setScale(K).setPosition(home.x + dx, home.y - up - size.offsets[i]).setVisible(true));
     }
+    this.nameplateShown = shown;
   }
 
   /**
