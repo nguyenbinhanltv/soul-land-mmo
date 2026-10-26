@@ -2275,6 +2275,8 @@ Liệt Trảo Hùng (H4 #768): raw `art/src/beast-anim/liet_trao_hung/toA.png` (
 
 Thanh Lân Ngạc (H4 đợt 4, Part of #770 và #766): `art/src/beast-anim/thanh_lan_ngac/toA.png` (1024×1536, fresh101 A1) và `toB.png` (1254×1254 thật, yêu cầu1024×1024, fresh104 B1), mỗi tờ đúng một call, không retry, tthoadev sinh ngày 2026-10-26 bằng builtin `image_gen.imagegen`; model ảnh/seed unknown, không size selector. A chỉ static gốc đúng loài qua backup nguyên byte đã VIEW; B ordered static + A101A1 style/body-size candidate còn FAIL. RAW giữ nguyên byte, không hậu kỳ/cắt/resize; FAIL hướng/hurt/nền/lấn ô trống được nộp theo chỉ đạo owner, chưa art accepted hoặc nhập runtime. Exact prompt/base/prefix/hash/refroles/counters và lỗi: [NGUON.md](src/beast-anim/thanh_lan_ngac/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json`, doc generator cùng thư mục. Tổng2calls; B sai size/N/death/hurt; không waiver. Nguồn Q44/điều khoản công cụ.
 
+Thiết Giáp Cự Giải (H4 đợt 4, Part of #770/#766): `art/src/beast-anim/thiet_giap_cu_giai/toA.png` (1024×1536, fresh107 A1) và `toB.png` (1254×1254 thật thay1024×1024 yêu cầu, fresh109 B1), tthoadev sinh ngày2026-10-26 bằng builtin `image_gen.imagegen`; mỗi tờ1call/0retry, tổng2. Model ảnh/seed unknown. A static identity only; B ordered static+A style/body-size candidate còn FAIL. RAW nguyên byte, không hậu kỳ/cắt/resize; nộp mọiFAIL theo owner, không size/art/runtime acceptance. Exact prompts/baseposition/refroles/hash/counters/template conflicts: [NGUON.md](src/beast-anim/thiet_giap_cu_giai/NGUON.md), toA/toB.prompt.txt và toA/toB.source.json cùng thư mục. Nguồn Q44/điều khoản công cụ.
+
 <!-- private-assets:start -->
 ## Asset kho riêng (không nằm trong repo công khai)
 
