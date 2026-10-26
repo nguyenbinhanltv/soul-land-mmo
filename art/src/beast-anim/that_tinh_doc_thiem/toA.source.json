@@ -1,0 +1,78 @@
+{
+  "species": "that_tinh_doc_thiem",
+  "sheet": "A",
+  "attempt": "A1",
+  "session": "soul-land-mmo-106",
+  "integration_session": "soul-land-mmo-101",
+  "issue": 770,
+  "umbrella": 766,
+  "tool": "builtin image_gen.imagegen",
+  "image_model_id": "unknown",
+  "seed": "unknown",
+  "size_selector": false,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "actual_dimensions": [
+    1024,
+    1536
+  ],
+  "bytes": 2139308,
+  "sha256": "d0a90637427df051b648a7996e9aad71149947151b3fb63abc7c1a61b745e5e3",
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a175ce-b668-79a3-b2ef-ef48d2aca5fb/exec-95805f57-61da-4a1a-9558-58de90cc0c27.png",
+  "artifact_raw": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-106/that_tinh_doc_thiem-toA1-RAW.png",
+  "raw_copy_byte_identical": true,
+  "postprocessing": "NONE",
+  "artifact_exact_prompt": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-106/prompts/that_tinh_doc_thiem-toA.actual.txt",
+  "exact_prompt_sha256": "bbbc1031cf939b02f66684822d133e7bea0acd1eb142127034806f85f1e0db1f",
+  "base_prompt_sha256": "93a4d19696deadfb592d1b15b74e2d72dedd4be7246af1f935f356b794f6d3f6",
+  "prepared_prompt_sha256": "bbbc1031cf939b02f66684822d133e7bea0acd1eb142127034806f85f1e0db1f",
+  "prompt_structure": {
+    "prefix_bytes": 591,
+    "base_start_byte_zero_based": 591,
+    "base_end_byte_exclusive": 4688,
+    "base_occurrences": 1,
+    "base_is_final_suffix": true,
+    "prefix": "Input image 1 is the original static character reference for this exact species. Preserve its design, proportions, colors and body size. Request exactly 1024x1536 pixels: 6 columns by 12 rows, S then SE then E, 66 figures and 6 blank cells. All N-direction rows must show the rear with NO visible eyes or face, including hurt and death poses. NE is a rear three-quarter view facing upper-right, clearly showing the back. SE faces lower-right, visibly distinct from E side profile. HURT must visibly recoil backward. Use only flat solid #FF00FF background; no letters, labels or drawn grid.\n\n",
+    "suffix": ""
+  },
+  "ordered_refs": [
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-106/refs/that_tinh_doc_thiem.png",
+      "sha256": "11bfa23cc427bbd7d901781f738a6422c3c27c43b5d99a20b09dae95a3915990",
+      "role": "original static character identity reference"
+    }
+  ],
+  "transparent_background": false,
+  "counters": {
+    "worker_calls": 1,
+    "retry": 0,
+    "A": 1,
+    "B_after_this_sheet": 0,
+    "species_calls_after_this_sheet": 1,
+    "owner101_image_gen_calls": 1
+  },
+  "outcome": "FAIL; RAW submitted, no size waiver/art acceptance/runtime import",
+  "error_line": "LỖI: toA — pose/hướng — R1/R5/R9 C5–6; R7/R11 C4–6; R9–12 E — hurt ngửa bụng và xoay mặt thay vì giật lùi giữ hướng; attack có khung quay gần chính diện; E còn gần góc chéo, death chưa giữ profile; giữ nguyên RAW, không redraw/retry.",
+  "source_handoff": {
+    "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-106/HANDOFF.md",
+    "sha256": "05fa17562d67b4d0d5b77104d70f1772868494c725e09b3e0241fe22a9a3e7a5"
+  },
+  "qa_read_only": {
+    "exact_FF00FF_pixels": 9,
+    "total_pixels": 1572864,
+    "semantic_figure_count_accepted": false,
+    "motion_loop_verified": false,
+    "pair_body_scale_accepted": false
+  },
+  "template_conflicts": [
+    "quad tail sway despite tailless toad",
+    "rounded cell width171 x6=1026 while canvas1024",
+    "hurt eyes-shut and die collapse-sideways may conflict with rear heading"
+  ],
+  "observed_utc": {
+    "before_call": "2026-10-26T01:24:44.433881+00:00",
+    "tool_return": "2026-10-26T01:25:17.926Z"
+  }
+}
