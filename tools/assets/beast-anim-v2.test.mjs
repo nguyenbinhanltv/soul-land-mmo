@@ -131,7 +131,8 @@ test("NGUON: turnaround.png được ghi (hash, cỡ, prompt, --eye), loài ch�
     writeFileSync(path.join(dir, "turnaround.prompt.txt"), "prompt thử");
     const ok = run("--eye", "turnaround=hướng — ne — vẽ ngang", "--model", "m-thử");
     assert.equal(ok.status, 0, ok.stderr);
-    assert.match(ok.stdout, /## turnaround/);
+    assert.equal(ok.stdout.split("\n").filter((l) => l === "## turnaround").length, 1, "mỗi turnaround đúng một mục");
+    assert.match(ok.stdout, /Mức kiểm: \*\*chặn\*\*/); // 8×6 sai tỉ lệ: kiểm thật, không còn "không kiểm tự động"
     assert.ok(ok.stdout.includes("**8×6**"));
     assert.ok(ok.stdout.includes("turnaround.prompt.txt"));
     assert.match(ok.stdout, /model: m-thử/);

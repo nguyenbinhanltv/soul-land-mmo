@@ -8,12 +8,12 @@
 // hoặc `--eye-ok` (đã xem, không lỗi); tờ chưa khai thì NGUON ghi rõ "chưa duyệt bằng mắt". Mặc định in ra màn hình; `--write` ghi
 // art/src/beast-anim/<loài>/NGUON.md và từ chối ghi đè file có sẵn (trừ `--force`); `--out <file>` ghi đúng file chỉ định (ghi đè, dùng để sinh bản thử).
 // `turnaround.png` (nếu có) cũng được ghi (cỡ, byte, SHA256, `turnaround.prompt.txt` / `turnaround.source.json`, `--eye turnaround=…`), kể cả khi loài
-// chưa có tờ toA..toE; ảnh mẫu không có kiểm tự động. Chỉ đọc RAW, không sửa ảnh.
+// chưa có tờ toA..toE; mức kiểm cỡ / nền / lưới lấy từ checkSpecies (r.turnaround). Chỉ đọc RAW, không sửa ảnh.
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ROOT, readPng } from "./lib.mjs";
+import { ROOT } from "./lib.mjs";
 import { speciesInfo } from "./beast-sheet-lib.mjs";
 import { checkSpecies, draftErrorLine } from "./beast-sheet-check.mjs";
 
@@ -43,10 +43,8 @@ export function buildNguon(id, r, o = {}) {
     `File này **tự sinh** bằng \`node tools/assets/beast-nguon.mjs --species ${id}\`; không sửa tay (sửa khai báo rồi sinh lại). Dòng \`LỖI:\` đến từ \`beast-sheet-check.mjs\` (cỡ, nền, lưới, số hình, chân, cỡ thân, khung chết) và từ khai báo \`--eye\` (mắt người); không có nguồn nào khác. Nộp ảnh không phải đã duyệt hay đã nhập game.`, "",
     `Loài \`${id}\` (${info.name}), họ \`${info.family}\`, khung game ${info.frame}×${info.frame}. Mức kiểm chung: **${r.level}**.`, ""];
   const errors = [];
-  // turnaround.png (ảnh mẫu hướng, không cắt): chỉ ghi cỡ, hash, nguồn, prompt; không kiểm tự động, chỉ mục xem bằng mắt (--eye turnaround=…)
-  const items = r.sheets.map((s) => ({ name: s.sheet, file: s.file, size: s.size, level: `**${s.level}** (khối hướng: ${(s.dirs ?? []).map((d) => `${d} ${r.blockLevel[d] ?? "?"}`).join(", ") || "?"})`, auto: draftErrorLine(s) }));
-  const tFile = path.join(dir, "turnaround.png");
-  if (existsSync(tFile)) { const im = readPng(tFile); items.unshift({ name: "turnaround", file: tFile, size: [im.w, im.h], level: "không kiểm tự động (ảnh mẫu 5 hướng, chỉ xem bằng mắt)", auto: null }); }
+  // turnaround.png (ảnh mẫu hướng, không cắt) nằm ở r.turnaround (#972): kiểm cỡ / nền / lưới như tờ khác, không có khối hướng; mục xem bằng mắt qua --eye turnaround=…
+  const items = [...(r.turnaround ? [r.turnaround] : []), ...r.sheets].map((s) => ({ name: s.sheet, file: s.file, size: s.size, level: s.sheet === "turnaround" ? `**${s.level}** (ảnh mẫu 5 hướng, không có khối hướng)` : `**${s.level}** (khối hướng: ${(s.dirs ?? []).map((d) => `${d} ${r.blockLevel[d] ?? "?"}`).join(", ") || "?"})`, auto: draftErrorLine(s) }));
   for (const s of items) {
     const buf = readFileSync(s.file), src = readSourceJson(path.join(path.dirname(s.file), `${s.name}.source.json`)) ?? {};
     const promptFile = path.join(path.dirname(s.file), `${s.name}.prompt.txt`), prompt = existsSync(promptFile) ? `\`${s.name}.prompt.txt\` (SHA256 \`${sha(readFileSync(promptFile))}\`)` : "không có file prompt (không biết prompt thật đã gửi)";
@@ -103,9 +101,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const o = parseArgs(process.argv.slice(2));
     if (!o.species) { console.error("Dùng: node tools/assets/beast-nguon.mjs --species <loài> [--dir <thư mục>] [--out <file> | --write [--force]] [--tool T] [--model M] [--seed S] [--attempts toA=2] [--agent X] [--eye 'toB=loại — vị trí — ghi chú'] [--eye-ok toA,toB] [--issue N]"); process.exit(2); }
     const dir = o.dir ?? path.join(ROOT, "art", "src", "beast-anim", o.species);
-    const hasSheets = "ABCDE".split("").some((l) => existsSync(path.join(dir, `to${l}.png`)));
-    if (!hasSheets && !existsSync(path.join(dir, "turnaround.png"))) throw new Error(`không có tờ toA.png… hay turnaround.png trong ${dir}`);
-    const r = hasSheets ? checkSpecies(o.species, { dir }) : { level: "chưa có tờ", sheets: [], blockLevel: {} };
+    const r = checkSpecies(o.species, { dir }); // ném "không có tờ" khi chưa có cả tờ lẫn turnaround
     const md = buildNguon(o.species, r, { ...o, dir });
     const target = o.out ?? (o.write ? path.join(dir, "NGUON.md") : null);
     if (!target) console.log(md);
