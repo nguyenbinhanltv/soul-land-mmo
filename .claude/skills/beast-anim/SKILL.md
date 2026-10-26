@@ -35,6 +35,7 @@ Mọi lệnh chỉ đọc RAW; không resize / sửa ảnh gốc, không ghi key
 ### A2. Hai giai đoạn (khuyên dùng, W4 + W2)
 1. **Turnaround** (`--stage turnaround`): **một** ảnh 3:2, 5 cột hướng × 3 hàng (idle, hurt, die) = 15 hình. Duyệt bằng mắt; đây là ảnh mẫu hướng. Rẻ để thử lại.
 2. **Từng hướng** (`--stage direction`): mỗi hướng một tờ 1536×1024, lưới 6×4, 22 khung, mã `A..E` = `s, se, e, ne, n`. Tham chiếu theo **thứ tự cố định**: (1) ảnh tĩnh loài, (2) turnaround đã duyệt, (3, tùy chọn) một tờ hướng của chính loài đã qua `beast:check` **không có khối chặn** (chỉ để khớp nét / bảng màu).
+2b. **Chưa có `art/src/beast-anim/<loài>/turnaround.png` thì `--stage direction` ghi hướng dẫn turnaround** (làm trước; **2 lượt riêng**, không tính vào lượt của 5 tờ hướng), có ảnh rồi chạy lại để lấy 5 tờ (#1049). Loài không chân (sứa, bạch tuộc, cá…) thuộc họ công cụ `float` / `swim` (`TOOL_FAMILY`): prompt không có feet / legs / ground; câu đánh theo loài ở `MOVE_OVERRIDE` (`beast-sheet-motion.mjs`). Thấy prompt mâu thuẫn với ảnh tĩnh thì sửa các bảng đó, không sửa prompt tay.
 3. `--stage sheet` (v1: tờ A gộp `s/se/e`, tờ B gộp `ne/n`; loài lớn một hướng một tờ) là **đường dự phòng** cho loài đơn giản; tờ B đính thêm tờ A **đã duyệt**.
 
 Prompt và hướng dẫn tiếng Việt do công cụ sinh (`<loài>-turnaround.md`, `<loài>-to<X>.md`): **không viết / sửa tay**; thấy thiếu ý thì sửa mẫu `beast-sheet-prompt.mjs` hoặc thêm bài học vào `lessons.md` (cú pháp ở đầu file) rồi sinh lại.
