@@ -150,7 +150,7 @@ export interface PData {
   bossAskAt: number;    // lần trả tin boss lúc vào phòng gần nhất (ms, #118): tin "boss" tối đa 1 lần / giây
   chListQueued: boolean; // đã hẹn gửi lại danh sách kênh khi hết 1 giây (client xin dồn)
   msgLimit: boolean; msgTok: Record<MsgGroup | "hard", TokenBucket>; msgOver: number; msgOverAt: number; msgGone: boolean; // giới hạn tin theo nhóm + trần tuyệt đối (#677, #734)
-  vit: Vitals | null; vitT: number; // tin riêng "vit" (#949, rooms/vitals.ts): bản đã gửi gần nhất (null = chưa gửi) và số giây từ lúc đó
+  vit: Vitals | null; vitAt: number; // tin riêng "vit" (#949, rooms/vitals.ts): bản đã gửi gần nhất (null = chưa gửi) và giờ gửi (ms, giờ thật)
   statsRow: unknown; askAt: Map<string, number>; askQueued: Set<string>; // tin client xin lại dữ liệu riêng (bag, vohons, quest): lần gửi gần nhất (ms), đã hẹn gửi (#165, ask)
   energy: Map<number, number>;  // năng lượng tiên cơ từng võ hồn trong đội (rowId -> 0..TIEN_CO_MAX; không có = 0). Không lưu DB
   shield: number; shieldT: number; // khiên của hồn sư (tiên cơ phụ trợ) và số giây còn lại

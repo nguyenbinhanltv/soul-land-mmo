@@ -7,17 +7,17 @@ import type { PlayerState } from "./schema.ts";
 
 const snap = (p: PlayerState): Vitals => ({ xp: p.xp, xpNeed: p.xpNeed, mp: p.mp, maxMp: p.maxMp, cds: [...p.cds], bcds: [...p.bcds], swCd: p.swCd, avaCd: p.avaCd, ctCd: p.ctCd });
 
-/** Mỗi nhịp: gửi `vit` cho từng hồn sư có số cần cập nhật (người đang chuyển bản đồ không gửi). */
-export function sendVitals(room: MapRoom, dt: number) {
+/** Mỗi nhịp: gửi `vit` cho từng hồn sư có số cần cập nhật (người đang chuyển bản đồ không gửi). Client đếm lùi theo giờ thật nên so theo giờ thật. */
+export function sendVitals(room: MapRoom) {
+  const now = Date.now();
   room.pdata.forEach((d: PData, id: string) => {
-    d.vitT += dt;
     const p = room.state.players.get(id);
     if (!p || d.travelling) return;
     const cur = snap(p);
-    if (!vitalsDue(d.vit, cur, d.vitT)) return;
+    if (!vitalsDue(d.vit, cur, (now - d.vitAt) / 1000)) return;
     const c = room.clients.getById(id);
     if (!c) return;
     const m = vitalsPack(cur);
-    c.send("vit", m); d.vit = m; d.vitT = 0;
+    c.send("vit", m); d.vit = cur; d.vitAt = now;
   });
 }

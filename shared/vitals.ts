@@ -45,14 +45,15 @@ export function vitalsParse(m: unknown): Vitals | null {
 /**
  * Server: có phải gửi `cur` không, biết bản `sent` đã gửi cách đây `dt` giây (null = chưa gửi lần nào)?
  * - Gửi ngay khi kinh nghiệm / hồn lực tối đa đổi, hồn lực giảm (tốn khi tung chiêu), hoặc một hồi chiêu lệch số client đang tự đếm lùi
- *   quá `SYNC_VIEW.vitCd` giây (vừa tung chiêu, bị làm mới, hoặc trôi giờ).
+ *   (vừa tung chiêu, bị làm mới, hoặc trôi giờ vì nhịp chậm): client đếm nhanh hơn server quá `SYNC_VIEW.vitEarly` giây (sẽ báo sẵn sàng
+ *   khi server còn từ chối) hoặc chậm hơn quá `SYNC_VIEW.vitCd` giây.
  * - Hồn lực chỉ tăng (hồi dần) thì gửi tối đa mỗi `SYNC_VIEW.vitGap` giây.
  */
 export function vitalsDue(sent: Vitals | null, cur: Vitals, dt: number): boolean {
   if (!sent) return true;
   if (cur.xp !== sent.xp || cur.xpNeed !== sent.xpNeed || cur.maxMp !== sent.maxMp || cur.mp < sent.mp) return true;
-  const exp = vitalsAfter(sent, dt), tol = SYNC_VIEW.vitCd;
-  const off = (a: number, b: number) => Math.abs(a - b) > tol;
+  const exp = vitalsAfter(sent, dt), late = SYNC_VIEW.vitCd, early = SYNC_VIEW.vitEarly;
+  const off = (c: number, e: number) => e - c > late || c - e > early; // c: số thật, e: số client đang đếm
   if (off(cur.swCd, exp.swCd) || off(cur.avaCd, exp.avaCd) || off(cur.ctCd, exp.ctCd)) return true;
   if (cur.cds.some((c, i) => off(c, exp.cds[i])) || cur.bcds.some((c, i) => off(c, exp.bcds[i]))) return true;
   return cur.mp > sent.mp && dt >= SYNC_VIEW.vitGap;

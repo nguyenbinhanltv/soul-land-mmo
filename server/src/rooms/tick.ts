@@ -341,7 +341,7 @@ export function tick(room: MapRoom, dt: number) {
   }
 
   // tin riêng "vit" (#949): kinh nghiệm, hồn lực, hồi chiêu chỉ gửi cho chính chủ, sau khi mọi thay đổi của nhịp đã xong
-  sendVitals(room, dt);
+  sendVitals(room);
 
   // lưu định kỳ (bỏ qua người đang chuyển bản đồ: transaction đi cổng là lần ghi cuối của phòng này cho người đó)
   room.saveT += dt;
