@@ -10230,8 +10230,8 @@ async function arenaTest(){
   ok(L.length<=ARENA.topN&&L.every((r,i)=>!i||L[i-1].elo>r.elo||(L[i-1].elo===r.elo&&L[i-1].wins>=r.wins)),`top ${L.length}: Elo giảm dần, bằng Elo thì nhiều trận thắng trước`);
   ok(E.top.me?.elo===eloE4&&E.top.me.wins===3&&E.top.me.losses===0&&L.find(r=>r.me)?.name===E.name&&E.top.left===ARENA.dailyWins-3,
     `E: hạng ${E.top.me?.rank}, Elo ${E.top.me?.elo}, 3 thắng 0 thua, còn ${E.top.left} lượt thưởng hôm nay`);
-  ok(L.find(r=>r.name===F.name)?.elo===eloF4&&L.find(r=>r.name===G.name)?.elo===eloG4&&idx(E.name)<idx(F.name)&&idx(F.name)<idx(G.name),
-    `Elo đã lưu: E ${eloE4}, F ${eloF4}, G ${eloG4} (thứ tự E, F, G)`);
+  ok(L.find(r=>r.name===F.name)?.elo===eloF4&&L.find(r=>r.name===G.name)?.elo===eloG4&&idx(E.name)<idx(F.name)&&idx(E.name)<idx(G.name)&&(eloG4>eloF4)===(idx(G.name)<idx(F.name)),
+    `Elo đã lưu: E ${eloE4}, F ${eloF4}, G ${eloG4} (E đầu; F không được cộng Elo vì G bỏ cuộc, #790)`);
   await test(G,"aelo",{elo:eloF4,wins:9}); await top(E); L=E.top.list;
   ok(idx(G.name)>=0&&idx(G.name)<idx(F.name),`G bằng Elo F (${eloF4}) nhưng nhiều trận thắng hơn: xếp trên F`);
   for(const b of [E,F,G]) await b.room.leave();
