@@ -13,7 +13,7 @@ import Phaser from "phaser";
 import { TELE_WARN, PT_FRAME } from "../../shared/data.ts";
 import { SPR, type Dir8 } from "./iso.ts";
 import { lightingOn } from "./lighting.ts";
-import { registerVohonSheet, setBeastSheetHook } from "./vohonLazy.ts";
+import { registerVohonSheet, setBeastSheetHook, isLazySkillFx } from "./vohonLazy.ts";
 import { readFxPrefs } from "./fxSettings.ts";
 import { DEFAULT_LAYOUT, lungeKeep, newBeastAnimState, parseLayout, stepBeastAnim, type AnimLayout, type BeastAnimState } from "./beastAnim.ts";
 
@@ -477,7 +477,8 @@ export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) =
       // Phụ thể isometric (2304×1152 × 2 lớp × 25 võ hồn) tải theo nhu cầu (vohonLazy.ts), không tải hết mỗi lần vào bản đồ.
       // Pháp tướng (2560×800 × 35) cũng tải theo nhu cầu (wantPhapTuong).
       // Hồn thú (134 file) cũng tải theo loài đang có trong tầm (wantBeast).
-      if (iso && spec.frame && /^(vh|pt|beast)_/.test(key)) { registerVohonSheet(key, BASE + spec.url, spec.frame); continue; }
+      // Hiệu ứng chiêu `fx_sk_*` theo võ hồn (wantSkillFx, bước 4).
+      if (iso && spec.frame && (/^(vh|pt|beast)_/.test(key) || isLazySkillFx(key))) { registerVohonSheet(key, BASE + spec.url, spec.frame); continue; }
       if (spec.frame) scene.load.spritesheet(key, BASE + spec.url, { frameWidth: spec.frame[0], frameHeight: spec.frame[1] });
       else scene.load.image(key, BASE + spec.url);
       // Normal map của bộ hồn sư / phụ thể isometric (`<ảnh>_n.png`, 10.7): tải riêng, GameScene gắn vào texture (attachNormal).
