@@ -1,6 +1,6 @@
 // Nhóm bot "looks2" (#703 bước 2, tách nguyên văn từ bot-test.mjs).
 import { LPC_PARTS, LPC_RAMPS, parseLooks, encodeLpc, decodeLpc, parseLpc, LPC_PRESETS, presetToLpc } from "../../../shared/data.ts";
-import { enter, ok, post, sleep, PASS, RUN } from "./lib.mjs";
+import { enter, ok, post, sleep, PASS, RUN, needHookSkip } from "./lib.mjs";
 
 /**
  * Looks v2 (#509, BOT_ONLY=looks2): ngoại hình chế độ Tự tạo (LPC) song song với Mẫu dựng sẵn. Hàm thuần parseLooks / parseLpc / encodeLpc;
@@ -83,7 +83,7 @@ export async function looks2Test(){
   // HL2 #571: /api/looks không còn tạo preset, đổi sang LPC gần nhất; tài khoản kiểu cũ (hook test) tự chuyển lúc nạp, không tăng looks_changes.
   const PB={sex:1,hair:2,hairCol:3,outfitCol:4,skin:1}, PC={sex:0,hair:3,hairCol:5,outfitCol:1,skin:0};
   const rb=await post("/api/test/legacy-looks",{token:B.token,...PB});
-  if(rb.status!==200){ console.log("  ⚠ bỏ qua chuyển tài khoản preset cũ (cần GAME_TEST=1)"); }
+  if(rb.status!==200){ needHookSkip("bỏ qua chuyển tài khoản preset cũ (cần GAME_TEST=1)"); }
   else{
     ok(rb.ok===true,"tạo tài khoản kiểu cũ (preset đã chọn) bằng hook test");
     const lb=await post("/api/login",{name:`L2 preset ${RUN}`,password:PASS}), mb=await post("/api/me",{token:B.token});

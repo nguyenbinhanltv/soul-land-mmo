@@ -1,6 +1,6 @@
 // Nhóm bot "autoBoss" (#703 bước 6, tách nguyên văn từ bot-test.mjs): Tự săn đánh tinh anh, thú vương, boss thế giới.
 import { readFileSync } from "node:fs";
-import { sleep, waitFor, ok, mapUrl, bot, enter, sendTeam, same, test } from "./lib.mjs";
+import { sleep, waitFor, ok, mapUrl, bot, enter, sendTeam, same, test, needHookSkip } from "./lib.mjs";
 import { BEASTS, VOHON, vohonIndex, STATUS, statusBit, TEAM_COMBAT_SECS, MAPS, beastSkillOf, TELE_PAD, BOSSES, bossIndex, beastIndex, ELITE, beastName, KING, WORLD_SLAM, teleSafe, SWITCH_CD, CHAN_THAN_RING, ringSkill, AWAKEN_CHOICES, TICK_RATE, SYNC_VIEW, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, parseAuto, AUTO_BOSS } from "../../../shared/data.ts";
 
 /**
@@ -16,7 +16,7 @@ export async function autoBossTest(){
     &&!parseAuto({elite:false}).elite&&parseAuto({elite:false}).king&&parseAuto({king:0}).king===true&&!parseAuto({world:false}).world,
     "3 công tắc tinh anh / thú vương / boss thế giới mặc định bật, bản lưu cũ / sai kiểu thì bật");
   const A=await bot("Săn Boss","cuu_tinh_that_sat_kiem",{sex:0,hair:1,hairCol:3,outfitCol:2});
-  if(!(await test(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua tự săn đánh boss (cần hook warp, goto, spawn, tele, elite, king, wmech, auto): bật server bằng GAME_TEST=1"); await A.room.leave(); return; }
+  if(!(await test(A,"ping"))?.enabled){ needHookSkip("bỏ qua tự săn đánh boss (cần hook warp, goto, spawn, tele, elite, king, wmech, auto): bật server bằng GAME_TEST=1"); await A.room.leave(); return; }
   const NV="tinh_dau_ngoai_vi", LT="loi_tinh_dau", VIEN="thai_than_cu_vien";
   let sid=A.room.sessionId; // đổi mỗi lần vào phòng mới (warp)
   const me=()=>A.room.state.players?.get(A.room.sessionId), objsOf=m=>JSON.parse(readFileSync(mapUrl(m),"utf8")).layers.flatMap(l=>l.objects??[]);
@@ -258,7 +258,7 @@ export async function autoBossPerf(){
   const B=[]; for(let i=0;i<N;i++) B.push(await bot(`Đánh Boss ${i}`,AWAKEN_CHOICES[i%AWAKEN_CHOICES.length].id,{sex:i%2,hair:i%4,hairCol:i%5,outfitCol:i%6}));
   const mo=b=>b.room.state.players?.get(b.room.sessionId), H=B[0];
   try{
-    if(!(await test(H,"ping"))?.enabled){ console.log("  ⚠ bỏ qua: bật server bằng GAME_TEST=1"); return; }
+    if(!(await test(H,"ping"))?.enabled){ needHookSkip("bỏ qua: bật server bằng GAME_TEST=1"); return; }
     const arLT=JSON.parse(readFileSync(mapUrl(LT),"utf8")).layers.flatMap(l=>l.objects??[]).find(o=>o.type==="arrive"&&o.name==="tu_tinh_dau_noi_dia");
     const R9=[400,700,1700,5000,12000,20000,50000,100000,100000];
     for(const b of B){

@@ -82,7 +82,7 @@
 // Nhiều kênh (mục 6): server bật CHANNEL_MAX=2 GAME_TEST=1 thì bot chỉ chạy phần kênh (channelTest) rồi thoát: bot thứ 3 vào kênh 2,
 // danh sách và đổi kênh giữ tiến độ, đồng đội tổ đội được xếp chung kênh khi vào game / đi cổng, thú vương mỗi kênh một con, thưởng tinh
 // anh khóa theo tài khoản ở mọi kênh và đổi kênh rồi quay về vẫn giữ đóng góp (#119).
-import { API, failCount } from "./bot/lib.mjs"; // tiện ích chung (#703)
+import { API, failCount, needHookSkip } from "./bot/lib.mjs"; // tiện ích chung (#703)
 import { abFlow } from "./bot/ab.mjs"; // phần chung + luồng A / B (#703 bước 7)
 import { googleTest } from "./bot/google.mjs"; // #612
 import { botCFlow } from "./bot/botC.mjs"; // khối botC của INLINE
@@ -204,7 +204,7 @@ async function timed(k,fn){ const t=Date.now(); await fn(); timing.push(`${k} ${
 async function runStandalone(hook){
   for(const [k,n,fn,needHook] of STANDALONE){
     if(PART==="smoke"?!SMOKE.has(k):PART&&PART!==String(n)) continue;
-    if(needHook&&!hook){ console.log(`  ⚠ bỏ qua ${k} (cần hook test): bật server bằng GAME_TEST=1`); continue; }
+    if(needHook&&!hook){ needHookSkip(`bỏ qua ${k} (cần hook test): bật server bằng GAME_TEST=1`); continue; }
     await timed(k,fn);
   }
 }

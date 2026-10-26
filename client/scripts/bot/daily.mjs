@@ -1,6 +1,6 @@
 // Nhóm bot "daily" (#703 bước 3, tách nguyên văn từ bot-test.mjs).
 import { readFileSync } from "node:fs";
-import { post, sleep, waitFor, ok, mapUrl, bot, enter, qtyOf, bagKey, npcSpot, looseOf, same, test } from "./lib.mjs";
+import { post, sleep, waitFor, ok, mapUrl, bot, enter, qtyOf, bagKey, npcSpot, looseOf, same, test, needHookSkip } from "./lib.mjs";
 import { TIERS, BAG_SLOTS, itemDef, MAPS, RING_ITEM, vnDay, CORE_ITEM, npcDef, NPC_RANGE, QUEST_STARTER, questChain, parseQuest, questStatus, questRewardText, DAILY, DAILY_POOL, dailyIds, dailyKey, dailyPicks, isDaily, fitBeast, fitMaps, ARENA_SHARDS } from "../../../shared/data.ts";
 
 /**
@@ -43,7 +43,7 @@ export async function dailyTest(){
   /** Gửi `quest {op, chain}` cho bài `i` (hoặc mã `chain`); server luôn trả tin "daily". Trả dòng log cuối của lần này. */
   async function dop(op,i,chain){ const n=D.dailyMsgs, l=D.logs.length; D.room.send("quest",{op,chain:chain??cur(i).chain}); await waitFor(()=>D.dailyMsgs>n,1500); await sleep(60); return D.logs.slice(l).at(-1)??""; }
   let t=await dop("accept",0); ok(/không ở đây/.test(t)&&cur(0).status==="offer",`ở Thánh Hồn Thôn: không nhận được khảo hạch (${t})`);
-  if(!(await test(D,"ping"))?.enabled){ console.log("  ⚠ bỏ qua phần khảo hạch (cần hook warp, daily, beast, give, afast…): bật server bằng GAME_TEST=1"); await D.room.leave(); return; }
+  if(!(await test(D,"ping"))?.enabled){ needHookSkip("bỏ qua phần khảo hạch (cần hook warp, daily, beast, give, afast…): bật server bằng GAME_TEST=1"); await D.room.leave(); return; }
   const gs=npcSpot(DAILY.map,DAILY.giver), ns=npcSpot(DAILY.map,"dau_hon_truong");
   async function back(b){ b.mapId=(await post("/api/me",{token:b.token})).mapId; await enter(b); await waitFor(()=>b.room.state.players?.get(b.room.sessionId)&&b.owned&&b.bag&&b.daily,3000); }
   async function warp(b,mapId,x,y){

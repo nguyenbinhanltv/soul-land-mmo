@@ -1,6 +1,6 @@
 // Nhóm bot cheat, cheat2 (#703 bước 4): chống gian lận 1 (#164) và 2 (#165). Tách nguyên văn từ bot-test.mjs.
 import { Client } from "colyseus.js";
-import { API, WS, post, sleep, waitFor, ok, bot, enter, npcSpot, trade, looseOf, same, test } from "./lib.mjs";
+import { API, WS, post, sleep, waitFor, ok, bot, enter, npcSpot, trade, looseOf, same, test, needHookSkip } from "./lib.mjs";
 import { MAPS, RING_ITEM, vnDay, questChain, DAILY, dailyKey, dailyPicks, ARENA_MAP, BAG_MSG_BURST, BAG_MSG_RATE, MSG_GROUP, MSG_HARD, MSG_FLOOD_CODE, ASK_CD, ATTACK_CD } from "../../../shared/data.ts";
 
 /**
@@ -62,7 +62,7 @@ export async function cheatTest(){
   ok(!mk.sessionId&&!mk.room&&/invalid method/.test(mk.error??""),`matchmake create (không token): bị từ chối, không mở phòng, không giữ chỗ (${mk.status} ${mk.error??""})`);
   const X=await bot("Gian lận","bich_lan_xa_hoang",{sex:0,hair:0,hairCol:0,outfitCol:0});
   try{
-  if(!(await test(X,"ping"))?.enabled){ console.log("  ⚠ bỏ qua chống gian lận 1 (cần hook rest, set): bật server bằng GAME_TEST=1"); return; }
+  if(!(await test(X,"ping"))?.enabled){ needHookSkip("bỏ qua chống gian lận 1 (cần hook rest, set): bật server bằng GAME_TEST=1"); return; }
   // Sang thành (không hồn thú kéo / đẩy làm lệch vị trí khi so trước / sau), vào đúng kênh server chọn như client.
   X.travel=null; X.room.send("test",{op:"warp",mapId:"nac_dinh_thanh",x:0,y:0}); await waitFor(()=>X.travel,4000);
   if(X.travel){ const t=X.travel; await X.room.leave(); await sleep(300); X.mapId=t.mapId; await enter(X,t.roomId??undefined); }
@@ -194,7 +194,7 @@ export async function cheatTest(){
 export async function cheatBagTest(){
   console.log("[Chống gian lận 2] Túi đồ, mua bán, phần thưởng (#165)");
   const G=await bot("Gian lận","bich_lan_xa_hoang",{sex:1,hair:1,hairCol:2,outfitCol:3});
-  if(!(await test(G,"ping"))?.enabled){ console.log("  ⚠ bỏ qua phần chống gian lận 2 (cần hook give, daily, warp, claimhold…): bật server bằng GAME_TEST=1"); await G.room.leave(); return; }
+  if(!(await test(G,"ping"))?.enabled){ needHookSkip("bỏ qua phần chống gian lận 2 (cần hook give, daily, warp, claimhold…): bật server bằng GAME_TEST=1"); await G.room.leave(); return; }
   // Nhịp tin xin lại dữ liệu riêng: gửi dồn 20 lần trong một nhịp thì nhận 1 tin ngay (hoặc khi hết nhịp của lần xin trước) và tối đa 1
   // tin hẹn khi hết nhịp; chờ tối đa 3 nhịp để bắt tin thừa nếu server không gộp. Túi đếm tin "bag" (cả túi, chỉ gửi khi xin), không đếm "bagd".
   for(const [type,msg,cnt] of [["bag",undefined,()=>G.bagStat.bag.n],["vohons",undefined,()=>G.ownedMsgs],["quest",{op:"get"},()=>G.questMsgs]]){

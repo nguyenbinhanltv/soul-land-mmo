@@ -2,7 +2,7 @@
 import { solidGrid, hits, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { clearLine } from "../../../shared/path.ts";
 import { readFileSync } from "node:fs";
-import { sleep, waitFor, ok, mapUrl, bot, enter, test } from "./lib.mjs";
+import { sleep, waitFor, ok, mapUrl, bot, enter, test, needHookSkip } from "./lib.mjs";
 import { STATUS, statusBit, MAPS, BOSSES, bossIndex, KING, RUN_MULT, PLAYER_STATUS, GROUND_KINDS, SLOW_CAP } from "../../../shared/data.ts";
 
 /**
@@ -21,7 +21,7 @@ export async function tideTest(){
     `${KD?.name} – ${KD?.phase2?.name}: mỗi ${TD?.every} giây ${TD?.flood.n} vùng ngập bán kính ${TD?.flood.r} (${FL?.name} ${FL?.slow*100}%, Làm chậm tối đa ${SLOW_CAP*100}%), ${TD?.whirl.n} xoáy bán kính ${TD?.whirl.r} kéo ${wg?.pull} pixel/giây, báo trước ${TD?.warn} giây`);
   if(!TD) return;
   const F=await bot("Thủy Triều F","xuc_xich",{sex:0,hair:2,hairCol:1,outfitCol:3});
-  if(!(await test(F,"ping"))?.enabled){ console.log("  ⚠ bỏ qua Thủy Triều Dâng (cần hook warp, king, tide): bật server bằng GAME_TEST=1"); await F.room.leave(); return; }
+  if(!(await test(F,"ping"))?.enabled){ needHookSkip("bỏ qua Thủy Triều Dâng (cần hook warp, king, tide): bật server bằng GAME_TEST=1"); await F.room.leave(); return; }
   const mo=()=>F.room.state.players?.get(F.room.sessionId), kingB=()=>[...F.room.state.beasts.values()].find(b=>b.rank===2);
   const has=s=>((mo()?.st??0)&statusBit(s))!==0, d2=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y), kindOf=q=>GROUND_KINDS[q.kind]?.id;
   await waitFor(()=>F.owned&&mo(),3000);

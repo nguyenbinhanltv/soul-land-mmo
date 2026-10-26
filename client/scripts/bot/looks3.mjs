@@ -1,6 +1,6 @@
 // Nhóm bot "looks3" (#703 bước 2, tách nguyên văn từ bot-test.mjs).
 import { npcDef, LOOKS_CHANGE, looksChangeCost, LPC_RAMPS, parseLpc, encodeLpc, presetToLpc } from "../../../shared/data.ts";
-import { bot, test, npcSpot, enter, talk, ok, post, sleep, waitFor } from "./lib.mjs";
+import { bot, test, npcSpot, enter, talk, ok, post, sleep, waitFor, needHookSkip } from "./lib.mjs";
 
 /**
  * Đổi ngoại hình ở thợ may (L4 #511, BOT_ONLY=looks3): tạo nhân vật lần đầu miễn phí cả hai chế độ (đã kiểm ở looks2 / bot()); sau đó chỉ đổi
@@ -13,7 +13,7 @@ export async function looks3Test(){
   ok(npc?.role==="looks"&&npc2?.role==="looks"&&LOOKS_CHANGE.free===1&&LOOKS_CHANGE.cost>0&&looksChangeCost(0)===0&&looksChangeCost(LOOKS_CHANGE.free)===LOOKS_CHANGE.cost,
     `dữ liệu: thợ may role looks, ${LOOKS_CHANGE.free} lần đầu miễn phí, sau đó ${LOOKS_CHANGE.cost} đồng`);
   const S=await bot("Thợ may","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2}), O=await bot("Thợ may xem","u_minh_linh_mieu",{sex:0,hair:1,hairCol:2,outfitCol:1});
-  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua đổi ngoại hình (cần hook test): bật server bằng GAME_TEST=1"); await S.room.leave(); await O.room.leave(); return; }
+  if(!(await test(S,"ping"))?.enabled){ needHookSkip("bỏ qua đổi ngoại hình (cần hook test): bật server bằng GAME_TEST=1"); await S.room.leave(); await O.room.leave(); return; }
   try{
   const MAP="nac_dinh_thanh", sp=npcSpot(MAP,"tho_may"), me=b=>b.room.state.players?.get(b.room.sessionId), seen=()=>O.room.state.players?.get(S.room.sessionId);
   async function rejoin(b){ await b.room.leave(); await sleep(400); b.mapId=(await post("/api/me",{token:b.token})).mapId; await enter(b); await waitFor(()=>me(b)&&b.bag,3000); }

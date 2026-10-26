@@ -1,7 +1,7 @@
 // Nhóm bot arena (#703 bước 4): Đại Đấu Hồn Trường 7.2, 9.7 và soát chống gian lận đấu trường #741. Tách nguyên văn từ bot-test.mjs.
 import { Client } from "colyseus.js";
 import { arenaAuditTest } from "../arena-audit-test.mjs";
-import { WS, post, sleep, waitFor, ok, bot, enter, qtyOf, bagKey, AT, objOf, npcSpot, sendTeam, same, test } from "./lib.mjs";
+import { WS, post, sleep, waitFor, ok, bot, enter, qtyOf, bagKey, AT, objOf, npcSpot, sendTeam, same, test, needHookSkip } from "./lib.mjs";
 import { TEAM_SIZE, VOHON, HE, vohonIndex, calcStats, tierOfYears, itemDef, formatHonTe, skillsOf, buffPower, STATUS, statusBit, buffBit, TEAM_COMBAT_SECS, MAPS, MAX_RINGS, shardCode, HE_IDS, CORE_SET_FX, npcDef, CHAN_THAN_RING, ringSkill, chanThanOf, PARTY_BUFF_R, PARTY_BUFF_MULT, RES_VOHON_LEVEL, ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaTeamElo, arenaCrossPairs, arenaWindow, arenaPairs, arenaRanked, ARENA_HE_DMG, CORE_FX_RULE } from "../../../shared/data.ts";
 
 /** #741 soát chống gian lận đấu trường: bài ở module tách, nhận các hàm dùng chung. */
@@ -47,7 +47,7 @@ export async function arenaTest(){
   const E=await bot("Đấu sĩ","bich_lan_xa_hoang",{sex:1,hair:1,hairCol:2,outfitCol:0});
   const F=await bot("Võ sĩ","u_minh_linh_mieu",{sex:0,hair:2,hairCol:4,outfitCol:5});
   const G=await bot("Kiếm khách","hoa_anh",{sex:0,hair:0,hairCol:1,outfitCol:2});
-  if(!(await test(E,"ping"))?.enabled){ console.log("  ⚠ bỏ qua trận đấu (cần hook warp, aelo, down, afast): bật server bằng GAME_TEST=1"); for(const b of [E,F,G]) await b.room.leave(); return; }
+  if(!(await test(E,"ping"))?.enabled){ needHookSkip("bỏ qua trận đấu (cần hook warp, aelo, down, afast): bật server bằng GAME_TEST=1"); for(const b of [E,F,G]) await b.room.leave(); return; }
   const ns=npcSpot(AT,"dau_hon_truong"), meOf=b=>b.room.state.players?.get(b.room.sessionId);
   const at=(b,dx=0)=>test(b,"goto",{x:ns.x+dx,y:ns.y+16});
   /** Hook warp sang Thiên Đấu Thành cạnh NPC (transaction đi cổng), rồi vào phòng mới như đi cổng thật. */

@@ -1,7 +1,7 @@
 // Nhóm bot bag (#703 bước 4): túi đồ, cửa hàng, trang bị hồn sư (E1–E4, #215). Tách nguyên văn từ bot-test.mjs.
 import { bagDiff, applyBagDelta } from "../../../shared/bagSync.ts";
 import { readFileSync } from "node:fs";
-import { post, sleep, waitFor, ok, mapUrl, bot, enter, qtyOf, bagKey, sj, useItem, AT, objOf, npcSpot, trade, looseOf, sendTeam, same, test } from "./lib.mjs";
+import { post, sleep, waitFor, ok, mapUrl, bot, enter, qtyOf, bagKey, sj, useItem, AT, objOf, npcSpot, trade, looseOf, sendTeam, same, test, needHookSkip } from "./lib.mjs";
 import * as SD from "../../../shared/data.ts";
 import { BAG_SLOTS, BAG_PAGE, DAN_CD, itemDef, formatHonTe, TEAM_COMBAT_SECS, MAPS, RING_ITEM, shardCode, BONE_ITEM, BONE_PASSIVE_CAP, CORE_ITEM, ITEMS, ITEM_KINDS, SHOP, sellPrice, ringSellPrice, SHARD_SELL, BAG_EXPAND, BAG_MAX_SLOTS, BAG_EXPAND_COST, bagExpandCost, bagSlotsOf, BUYBACK_MAX, parseSell, EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_ROLL, EQUIP_ILVL_K, parseEquip, equipStats, equipDefTotal, equipTemplate, equipSlotIndex, EQUIP_ENHANCE, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, equipEnhanceResult, EQUIP_SYNTH, EQUIP_SYNTH_KEEP, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SOUL, equipSynthStep, equipSynthOutcome, equipSalvage, equipAutoSalvageable } from "../../../shared/data.ts";
 
@@ -59,7 +59,7 @@ export async function shopBuybackTest(){
   ok(bagSlotsOf(null)===BAG_SLOTS&&bagSlotsOf(undefined)===BAG_SLOTS&&bagSlotsOf("x")===BAG_SLOTS&&bagSlotsOf(300)===300&&bagSlotsOf(999)===BAG_MAX_SLOTS&&bagSlotsOf(55)===BAG_SLOTS,
     "bagSlotsOf: dữ liệu trống / hỏng là mức khởi đầu, kẹp trong khoảng");
   const E=await bot("Lái buôn","u_minh_linh_mieu",{sex:0,hair:2,hairCol:0,outfitCol:1});
-  if(!(await test(E,"ping"))?.enabled){ console.log("  ⚠ bỏ qua mua / bán / mở rộng (cần hook warp, goto, coin, give…): bật server bằng GAME_TEST=1"); await E.room.leave(); return; }
+  if(!(await test(E,"ping"))?.enabled){ needHookSkip("bỏ qua mua / bán / mở rộng (cần hook warp, goto, coin, give…): bật server bằng GAME_TEST=1"); await E.room.leave(); return; }
   const eme=()=>E.room.state.players?.get(E.room.sessionId), loose=()=>looseOf(E);
   /** Hook warp: sang `mapId` tại (x, y) qua transaction đi cổng rồi vào phòng mới như đi cổng thật. */
   async function warp(mapId,x,y){
@@ -179,7 +179,7 @@ export async function charBagCmdTest(){
   console.log("[NV5] Lệnh gắn / tháo từ giao diện Nhân vật + Túi (hợp đồng client) được server nhận");
   const C=await import("../../src/charBagContract.ts");
   const S=await bot("Nhân vật Túi","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
-  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua nhân vật + túi (cần hook gear, give, rest): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  if(!(await test(S,"ping"))?.enabled){ needHookSkip("bỏ qua nhân vật + túi (cần hook gear, give, rest): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
   try{
   await waitFor(()=>S.bag&&S.owned,3000);
   await test(S,"clear"); await test(S,"rest",{s:TEAM_COMBAT_SECS+1}); await test(S,"gear",{clear:true});
@@ -258,7 +258,7 @@ export async function gearTest(){
     }
     ok(bad===0&&SD.lpcGearCode(0)===1&&SD.lpcGearCode(n)===0&&SD.lpcGearCode(null)===0&&SD.LPC_GEAR.ao.length===n&&SD.LPC_GEAR.mu.length===n,"lpcGearLooks: mọi bộ dựng sẵn x mọi bậc đè đúng áo / mũ và vẫn hợp lệ; không mặc / mã lạ giữ nguyên; Ẩn mũ bỏ mũ trang bị"); }
   const S=await bot("Trang bị","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
-  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua trang bị (cần hook gear, hurt, rest): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  if(!(await test(S,"ping"))?.enabled){ needHookSkip("bỏ qua trang bị (cần hook gear, hurt, rest): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
   try{
   const me=()=>S.room.state.players?.get(S.room.sessionId), loose=()=>looseOf(S), free=()=>S.bag.slots-loose().length;
   await waitFor(()=>me()&&S.bag,3000);
@@ -361,7 +361,7 @@ export async function gearEnhanceTest(){
     &&same(equipEnhanceResult(10,false,true),{enhance:9,destroyed:false,charmUsed:false})&&equipEnhanceResult(15,true,false)===null,
     "equipEnhanceResult: phá hủy / bùa giữ cấp / bùa không có tác dụng ở nấc tụt cấp / +15 không cường hóa nữa");
   const S=await bot("Cuong hoa","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
-  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua cường hóa trang bị (cần hook gear, give, coin, enhroll, enhslow): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  if(!(await test(S,"ping"))?.enabled){ needHookSkip("bỏ qua cường hóa trang bị (cần hook gear, give, coin, enhroll, enhslow): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
   try{
   const me=()=>S.room.state.players?.get(S.room.sessionId), loose=()=>looseOf(S), find=id=>loose().find(i=>i.id===id)??S.gear?.items.find(g=>g.id===id);
   const watch=()=>{ S.enhN=0; S.enhLast=null; S.room.onMessage("equipenhd",m=>{ S.enhLast=m; S.enhN++; }); S.room.onMessage("equipenhp",()=>{}); };
@@ -486,7 +486,7 @@ export async function gearSynthTest(){
     &&!equipAutoSalvageable(mkp(0,0,{equipSlot:0}),cfg)&&!equipAutoSalvageable(mkp(0,0),parseSell({}))&&parseSell({salv:99}).salv===5&&parseSell({}).salv===0,
     "equipAutoSalvageable: dưới bậc / cấp đặt, bỏ qua món khoá / đang mặc; mặc định tắt; kẹp tối đa T4");
   const S=await bot("Hop thanh","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
-  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua hợp thành / phân giải (cần hook gear, give, coin, synroll, enhslow): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  if(!(await test(S,"ping"))?.enabled){ needHookSkip("bỏ qua hợp thành / phân giải (cần hook gear, give, coin, synroll, enhslow): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
   try{
   const me=()=>S.room.state.players?.get(S.room.sessionId), loose=()=>looseOf(S), find=id=>loose().find(i=>i.id===id)??S.gear?.items.find(g=>g.id===id);
   const watch=()=>{ S.synN=0; S.synLast=null; S.salvN=0; S.salvLast=null; S.room.onMessage("equipsynd",m=>{ S.synLast=m; S.synN++; }); S.room.onMessage("equipsalvd",m=>{ S.salvLast=m; S.salvN++; }); };
@@ -643,7 +643,7 @@ export async function equipDropTest(){
   console.log("[E2] Rơi trang bị: hồn thú thường rơi đất, đá vào túi, rương thú vương / boss thế giới");
   const mulberry=seed=>{ let a=seed>>>0; return ()=>{ a=(a+0x6d2b79f5)>>>0; let t=a; t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61); return ((t^(t>>>14))>>>0)/4294967296; }; };
   const S=await bot("Rơi trang bị","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
-  if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua rơi trang bị (cần hook edrop, beast, give): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
+  if(!(await test(S,"ping"))?.enabled){ needHookSkip("bỏ qua rơi trang bị (cần hook edrop, beast, give): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
   try{
   const me=()=>S.room.state.players?.get(S.room.sessionId), loose=()=>looseOf(S), eqs=()=>loose().filter(i=>i.code===SD.EQUIP_ITEM), st=S.room.state, mapId=st.mapId;
   await waitFor(()=>me()&&S.bag,3000);
