@@ -21,7 +21,7 @@
 | Võ hồn, đội hình, buff | `design/vo-hon-doi-hinh`, `trang-thai-buff` |
 | Hồn hoàn / cốt / hạch, trang bị | `design/hon-hoan`, `hon-cot`, `hon-hach`, `trang-bi`, `tech/trang-bi-cai-dat` |
 | Bản đồ, hồn thú, boss | `design/the-gioi-ban-do`, `hon-thu-boss`, `tech/phong-ban-do` |
-| Túi, tiền, giao diện, radar | `design/kinh-te-tui-do`, `giao-dien`, `ban-do-khu-vuc` |
+| Túi, tiền, giao diện, radar | `design/kinh-te-tui-do`, `giao-dien`, `ban-do-khu-vuc`, `art/ui-kit` |
 | NPC, nhiệm vụ | `design/npc-dia-diem`, `nhiem-vu` |
 | Tổ đội, PvP, đấu trường | `design/to-doi-pvp-dau-truong`, `tech/kenh-arena` |
 | Cộng minh, tông môn, tự săn | `design/cong-minh`, `tong-mon`, `tu-san-uy-thac` |
