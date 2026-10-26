@@ -19,20 +19,60 @@ on:
 permissions:
   contents: read
 
-# Mỗi lượt xếp hàng, không hủy lượt đang đẩy dở; lượt chờ cũ hơn bị thay bằng lượt mới nhất (bản main mới nhất luôn được dựng).
-concurrency:
-  group: release
-  cancel-in-progress: false
-
 env:
   IMAGE: asia-southeast1-docker.pkg.dev/landing-page-455614/soul-land/game
   REGISTRY: asia-southeast1-docker.pkg.dev
 
 jobs:
+  # Cổng: commit chỉ đổi thứ không vào image (art/**, docs/**, *.md, tools/, .github/...) thì không dựng lại (CI đã bỏ bot cho các commit art / docs).
+  # Image chỉ gồm server/**, client/**, shared/**, Dockerfile, package*.json (xem Dockerfile + .dockerignore). Không so được thì dựng (không chắc thì dựng).
+  # Chạy tay luôn dựng. Concurrency nằm ở job `release` (không phải cả workflow) để lượt bị bỏ qua không thay thế lượt dựng đang chờ.
+  gate:
+    name: cần dựng image?
+    if: ${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      statuses: write
+    outputs:
+      build: ${{ steps.need.outputs.build }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - id: need
+        env:
+          EVENT: ${{ github.event_name }}
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          build=true
+          if [ "$EVENT" = workflow_run ]; then
+            if files=$(git diff --name-only HEAD^ HEAD 2>/dev/null) && [ -n "$files" ]; then
+              echo "$files"
+              if ! echo "$files" | grep -Eq '^(server|client|shared)/|^Dockerfile$|^\.dockerignore$|^package(-lock)?\.json$'; then build=false; fi
+            else
+              echo "không so được với commit cha: dựng"
+            fi
+          fi
+          echo "build=$build" >>"$GITHUB_OUTPUT"
+          if [ "$build" = false ]; then
+            echo "Commit không đổi thứ nào vào image: bỏ qua dựng." | tee -a "$GITHUB_STEP_SUMMARY"
+            gh api "repos/$GITHUB_REPOSITORY/statuses/$SHA" -f state=success -f context=release/image -f description="bỏ qua: commit không đổi image" -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >/dev/null
+          fi
+
   release:
     name: build, thử, quét, đẩy image
+    needs: gate
+    # Mỗi lượt xếp hàng, không hủy lượt đang đẩy dở; lượt chờ cũ hơn bị thay bằng lượt mới nhất (bản main mới nhất luôn được dựng).
+    concurrency:
+      group: release
+      cancel-in-progress: false
     # Chỉ khi CI trên push vào main xanh (không chạy cho PR, không chạy khi CI đỏ). Chạy tay thì chỉ được chạy trên main.
-    if: ${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main') }}
+    if: ${{ needs.gate.outputs.build == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     permissions:
