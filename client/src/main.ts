@@ -27,6 +27,7 @@ import { sharedAudioContext, stopMusic } from "./audio/music.ts";
 import { stopAmbientBed } from "./audio/ambientBed.ts";
 import { mountGoogleButton } from "./google.ts";
 import { openCredits } from "./credits.ts";
+import { viLoi } from "./viLoi.ts";
 import { isIsoSlice } from "./isoMap.ts";
 import { evictStaleTextures } from "./textureLru.ts";
 
@@ -304,7 +305,7 @@ async function join(retry = true, roomId?: string | null) {
     if (retry && /Hãy vào kênh|Vừa rời kênh/.test(m)) return join(false);
     // Chưa tạo nhân vật hoặc chưa thức tỉnh (ví dụ tab khác vừa đổi): hỏi lại server để mở đúng màn.
     if (/Chưa tạo nhân vật|Chưa thức tỉnh/.test(m)) resume(m);
-    else if (/401|403|không hợp lệ/.test(m)) loginScreen(m); else loginScreen(`Không vào được phòng: ${m}`);
+    else if (/401|403|không hợp lệ/.test(m)) loginScreen(m); else { console.warn("[join]", e); loginScreen(viLoi(e)); }
   }
 }
 
@@ -321,7 +322,8 @@ async function joinArena(roomId: string, watch = false) {
     const roomMap = await waitMapId(room).catch((e) => { room.leave().catch(() => {}); throw e; });
     play(room, roomMap, watch);
   } catch (e) {
-    card.innerHTML = `<h1>Không vào được trận đấu</h1><p>${esc((e as Error).message ?? "")}</p>`;
+    console.warn("[joinArena]", e);
+    card.innerHTML = `<h1>Không vào được trận đấu</h1><p>${esc(viLoi(e, "Trận đã kết thúc hoặc không còn chỗ."))}</p>`;
     setTimeout(() => join(), 1500);
   }
 }

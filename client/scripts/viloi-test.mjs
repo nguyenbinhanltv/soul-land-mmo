@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+const { viLoi } = await import("../src/viLoi.ts");
+assert.equal(viLoi(new TypeError("Failed to fetch")), "Không kết nối được server.");
+assert.equal(viLoi(new Error("Load failed")), "Không kết nối được server.");
+assert.equal(viLoi(new Error("seat reservation expired")), "Không vào được phòng, thử lại sau.");
+assert.equal(viLoi(new Error('room "abc" not found')), "Không vào được phòng, thử lại sau.");
+assert.equal(viLoi(new Error("Chưa tạo nhân vật")), "Chưa tạo nhân vật");
+assert.equal(viLoi(undefined), "Không vào được phòng, thử lại sau.");
+assert.equal(viLoi(new Error("x"), "Không tải được."), "Không tải được.");
+console.log("viloi-test: ok");

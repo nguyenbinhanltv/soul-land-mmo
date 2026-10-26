@@ -1,6 +1,7 @@
 // Màn "Ghi công" (#629): đọc credits.json (tools/assets/credits.mjs sinh từ art/CREDITS.md) rồi liệt kê tác giả, giấy phép, nguồn theo nhóm.
 // Mở từ màn đăng nhập (main.ts) và Cài đặt (audio/settingsPanel.ts). Chỉ hiển thị; chữ lấy từ file qua textContent.
 import { fetchAsset } from "./assetUrl.ts";
+import { viLoi } from "./viLoi.ts";
 
 interface Entry { name: string; author?: string; license?: string; credit?: string; urls?: string[]; count?: number }
 interface Group { id: string; title: string; note?: string; entries: Entry[]; links?: { name: string; url: string }[] }
@@ -90,8 +91,9 @@ export function openCredits(): void {
     body.replaceChildren(...data.groups.map(groupBlock));
   }, (e) => {
     if (current !== root) return;
+    console.warn("[ghi công]", e);
     const retry = el("button", "btn", "Thử lại"); retry.type = "button";
     retry.addEventListener("click", () => { close(); openCredits(); });
-    body.replaceChildren(el("p", "cr-note", `Không tải được danh sách ghi công (${(e as Error).message}).`), retry);
+    body.replaceChildren(el("p", "cr-note", viLoi(e, "Không tải được danh sách ghi công.")), retry);
   });
 }
