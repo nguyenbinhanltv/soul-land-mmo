@@ -1,0 +1,74 @@
+{
+  "species": "cuc_yeu_hoa_linh",
+  "sheet": "A",
+  "worker": "soul-land-mmo-135",
+  "issue": 776,
+  "raw_file": "toA.png",
+  "sha256": "c9b68033e6994c1aa7abaaeeb09a1454b086d612da5ac04b255b8ea0e453771c",
+  "bytes": 2036897,
+  "width": 1024,
+  "height": 1536,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "size_requirement_met": true,
+  "grid": [
+    6,
+    12
+  ],
+  "expected_visible_cells": 66,
+  "tool": "builtin Codex image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Tool call exposes no model ID or seed; requested 2:3 aspect ratio in prompt, exact pixel size unspecified.",
+  "transparent_background": false,
+  "selected_attempt": 1,
+  "attempts": 1,
+  "counters": {
+    "A": 1,
+    "B": 1,
+    "species_total": 2
+  },
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "3f7d34c2707a4ac9a926a33f3deeaf95256990cce26b6fa2e1fdfcf12f0198c4",
+  "references": [
+    {
+      "path": "/private/tmp/soul-land-mmo-776-cuc-yeu-hoa-linh/shared/assets/sprites/beast/cuc_yeu_hoa_linh.png",
+      "role": "static identity, design and direction reference; image 1",
+      "sha256": "3088ad89aa75a55ea888a60c8968ceca9d54fc141c2c1d4624c5724dbb1f5491",
+      "original_input_path": "/private/tmp/soul-land-mmo-776-cuc-yeu-hoa-linh/shared/assets/sprites/beast/cuc_yeu_hoa_linh.png"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-e574fcb0-5e19-40ba-8b24-a750bc34a0ca.png",
+  "generation_duration_seconds": 32.3,
+  "history": [
+    {
+      "attempt": 1,
+      "raw_artifact": "/private/tmp/soul-land-mmo-776-cuc-yeu-hoa-linh/art/src/beast-anim/cuc_yeu_hoa_linh/toA.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-e574fcb0-5e19-40ba-8b24-a750bc34a0ca.png",
+      "sha256": "c9b68033e6994c1aa7abaaeeb09a1454b086d612da5ac04b255b8ea0e453771c",
+      "bytes": 2036897,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "prompt_artifact": "/private/tmp/soul-land-mmo-776-cuc-yeu-hoa-linh/art/src/beast-anim/cuc_yeu_hoa_linh/toA.prompt.txt",
+      "prompt_sha256": "3f7d34c2707a4ac9a926a33f3deeaf95256990cce26b6fa2e1fdfcf12f0198c4"
+    }
+  ],
+  "selection_reason": "A1 là candidate duy nhất hiện tại; chưa so sánh lượt khác.",
+  "known_issues": [
+    "Quan sát bằng mắt: các hàng idle/hurt, walk và attack có vẻ hiện 7 hình thay vì 6 cột; xác nhận bằng beast:check/contact sheet.",
+    "S DIE cuối ở A có vẻ nằm ngang; cần xác minh quy tắc die giữ trục bằng xem contact sheet."
+  ],
+  "qa_status": "first-pass candidate; beast:check pending; not art-approved or imported",
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "tool_arguments": {
+    "prompt_file": "toA.prompt.txt",
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-776-cuc-yeu-hoa-linh/shared/assets/sprites/beast/cuc_yeu_hoa_linh.png"
+    ],
+    "transparent_background": false
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "species": "cuc_yeu_hoa_linh",
+  "sheet": "B",
+  "worker": "soul-land-mmo-135",
+  "issue": 776,
+  "raw_file": "toB.png",
+  "sha256": "0d2a9f123de901bf7b0e1356b399aeed9c31f5c694055b5346258d0e34902f92",
+  "bytes": 1975951,
+  "width": 1254,
+  "height": 1254,
+  "requested_dimensions": null,
+  "requested_aspect_ratio": "1:1",
+  "size_requirement_met": true,
+  "grid": [
+    6,
+    8
+  ],
+  "expected_visible_cells": 44,
+  "tool": "builtin Codex image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Tool call exposes no model ID or seed; requested square 1:1 aspect ratio in prompt, exact pixel size unspecified.",
+  "transparent_background": false,
+  "selected_attempt": 1,
+  "attempts": 1,
+  "counters": {
+    "A": 1,
+    "B": 1,
+    "species_total": 2
+  },
+  "prompt_file": "toB.prompt.txt",
+  "prompt_sha256": "92d0442662bba0287d0e3f3061c53d2d07262591d3a4eb57ad4919edd3dd9a7c",
+  "references": [
+    {
+      "path": "/private/tmp/soul-land-mmo-776-cuc-yeu-hoa-linh/shared/assets/sprites/beast/cuc_yeu_hoa_linh.png",
+      "role": "static identity, design and direction reference; image 1",
+      "sha256": "3088ad89aa75a55ea888a60c8968ceca9d54fc141c2c1d4624c5724dbb1f5491",
+      "original_input_path": "/private/tmp/soul-land-mmo-776-cuc-yeu-hoa-linh/shared/assets/sprites/beast/cuc_yeu_hoa_linh.png"
+    },
+    {
+      "path": "/private/tmp/soul-land-mmo-776-cuc-yeu-hoa-linh/art/src/beast-anim/cuc_yeu_hoa_linh/toA.png",
+      "role": "A1 candidate design/style identity reference only; not owner art-approved; poses not to be copied; image 2",
+      "sha256": "c9b68033e6994c1aa7abaaeeb09a1454b086d612da5ac04b255b8ea0e453771c",
+      "original_input_path": "/private/tmp/soul-land-mmo-776-cuc-yeu-hoa-linh/art/src/beast-anim/cuc_yeu_hoa_linh/toA.png",
+      "owner_art_approved": false
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-e6494ae3-5531-4029-ae30-0d6b05e7154f.png",
+  "generation_duration_seconds": 39.0,
+  "history": [
+    {
+      "attempt": 1,
+      "raw_artifact": "/private/tmp/soul-land-mmo-776-cuc-yeu-hoa-linh/art/src/beast-anim/cuc_yeu_hoa_linh/toB.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-e6494ae3-5531-4029-ae30-0d6b05e7154f.png",
+      "sha256": "0d2a9f123de901bf7b0e1356b399aeed9c31f5c694055b5346258d0e34902f92",
+      "bytes": 1975951,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_artifact": "/private/tmp/soul-land-mmo-776-cuc-yeu-hoa-linh/art/src/beast-anim/cuc_yeu_hoa_linh/toB.prompt.txt",
+      "prompt_sha256": "92d0442662bba0287d0e3f3061c53d2d07262591d3a4eb57ad4919edd3dd9a7c"
+    }
+  ],
+  "selection_reason": "B1 là candidate đầu tiên; chưa so sánh lượt khác.",
+  "known_issues": [
+    "N DIE cuối ở hàng 8 cột 4 có vẻ nằm ngang; cần xác minh bằng contact sheet."
+  ],
+  "qa_status": "first-pass candidate; beast:check pending; not art-approved or imported",
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "tool_arguments": {
+    "prompt_file": "toB.prompt.txt",
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-776-cuc-yeu-hoa-linh/shared/assets/sprites/beast/cuc_yeu_hoa_linh.png",
+      "/private/tmp/soul-land-mmo-776-cuc-yeu-hoa-linh/art/src/beast-anim/cuc_yeu_hoa_linh/toA.png"
+    ],
+    "transparent_background": false
+  },
+  "reference_status_addendum": "The A candidate is not owner art-approved; the word approved in the source prompt is superseded by the saved execution addendum."
+}
