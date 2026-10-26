@@ -38,3 +38,11 @@ Worker64 đã xem B2 và đối chiếu hash/raw gốc trước tích hợp. T�
 - B1 còn hurt N lộ mặt và attack/die N xoay phải; B2 giữ N hurt/attack tốt hơn nên được chọn làm candidate. Dừng đúng 2 lượt, worker67 đã trả slot, không sinh thêm.
 
 A/B tổng 110 vị trí nhìn thấy. Chưa xác nhận margin, độ mượt, cỡ/màu giữa hai tờ sau cắt. Raw B khác kích thước yêu cầu đã được báo rõ; chỉ owner repo quyết định cắt/preview và nghiệm thu H4.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/hac_boi_da_tru/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Hắc Bối Dã Trư (H4 đợt 2, Part of #768 và #766): `art/src/beast-anim/hac_boi_da_tru/toA.png` (1024×1536) và `toB.png` (1254×1254 thực tế, yêu cầu 1024×1024), mỗi tờ chọn lượt 2/2; tthoadev sinh bằng `image_gen.imagegen` tích hợp Codex. Tờ A do fresh phiên `soul-land-mmo-64` sinh ngày 2026-10-26 theo giờ địa phương; B do fresh phiên `soul-land-mmo-67` sinh ngày 2026-10-25 UTC (2026-10-26 giờ Việt Nam). A chỉ reference ảnh tĩnh gốc `shared/assets/sprites/beast/hac_boi_da_tru.png`; B thêm A2 làm STYLE-reference candidate đã được owner cho phép, chưa duyệt mỹ thuật/runtime. Tool không có bộ chọn model/kích thước, không công bố model ID hoặc seed. Giữ nguyên byte, không hậu kỳ/cắt/resize/sửa metadata. Prompt thực, nguồn, SHA-256 và ô nghi lỗi: [NGUON.md](src/beast-anim/hac_boi_da_tru/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json` cùng thư mục. Raw candidate 2/10 của batch, chưa owner duyệt mỹ thuật hoặc nhập game; nguồn theo Q44 và điều khoản công cụ. | - | Chuyển một lần từ art/CREDITS.md (#973) |

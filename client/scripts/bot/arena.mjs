@@ -188,6 +188,10 @@ export async function arenaTest(){
   let l=E.logs.length; E.room.send("team",{slots:[0,0,0,0]}); ok(await waitFor(()=>E.logs.length>l)&&/không làm được/.test(E.logs.at(-1)),`trong sân: xếp đội bị chặn (${E.logs.at(-1)})`);
   l=E.logs.length; E.room.send("use",{id:E.bag.items[0]?.id}); ok(await waitFor(()=>E.logs.length>l)&&/không làm được/.test(E.logs.at(-1)),"trong sân: dùng đan bị chặn");
   l=E.logs.length; E.room.send("skill",{i:0}); ok(await waitFor(()=>E.logs.length>l)&&/đếm ngược/.test(E.logs.at(-1)),"đang đếm ngược: chưa dùng hồn kỹ");
+  // #993: đánh thường lúc đếm ngược có báo lý do; giữ phím / bấm dồn thì chỉ báo 1 lần mỗi giây.
+  l=E.logs.length; E.room.send("attack"); E.room.send("attack"); E.room.send("attack"); await sleep(400);
+  ok(E.logs.slice(l).filter(x=>/đếm ngược/.test(x)).length===1,`đang đếm ngược: đánh thường bị báo lý do, bấm dồn chỉ 1 dòng (${JSON.stringify(E.logs.slice(l))})`);
+  l=E.logs.length; E.room.send("fusion",{op:"start"}); ok(await waitFor(()=>E.logs.length>l)&&/không làm được/.test(E.logs.at(-1)),"trong sân: G (fusion) nhận câu từ chối của server");
   // Chân Thân lưu phái Thiêu đốt (8.1b) khi giao đấu: Hỏa Ảnh Chân Thân nổ quanh thân trúng E (Thiêu đốt, Choáng, Dễ thương).
   await test(E,"afast",{s:0}); await waitFor(()=>E.room.state.phase==="fight",2000);
   const eP=()=>G.room.state.players.get(E.room.sessionId); await test(G,"goto",{x:eP().x+30,y:eP().y}); const hpE=eP().hp;

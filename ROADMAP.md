@@ -13,7 +13,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] Tách `MapRoom.ts` theo miền, từng PR nhỏ, hàm thuần trước (#702, theo dõi; đã xong nhiều bước, xem issue).
 - [ ] Tách `bot-test.mjs` thành module theo nhóm (#703, theo dõi; đã tách `bot/lib.mjs`, `bot/google.mjs`).
 - [ ] UI Kit v2 hướng B, P0–P8 (#877, theo dõi; P0–P2 xong, còn P3 #881 … P8 #886; bảng ở `docs/art/ui-kit.md`).
-- [ ] Hoạt ảnh hồn thú v2 (#861, theo dõi) và H4 vẽ thật 64 loài (#766); sổ tự sinh `art/src/beast-anim/_status.md`.
+- [ ] Hoạt ảnh hồn thú v2 (#861, theo dõi) và H4 vẽ thật 64 loài (#766); sổ tự sinh ở comment ghim #766 (`npm run beast:status`, không commit).
 - [ ] Nghiên cứu UI/UX giao diện thích ứng (#732, U0–U5; còn U2 #755 tách chat khỏi log loot / XP, gộp toast; U6 điện thoại không làm, giữ Q40).
 - [ ] Cân bằng chờ chủ repo (mức C): #907, #908, #909 (xem `docs/quyet-dinh.md`, "Việc đang chờ").
 

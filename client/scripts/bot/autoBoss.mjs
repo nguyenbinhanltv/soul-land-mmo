@@ -107,8 +107,12 @@ export async function autoBossTest(){
       `thành người tham gia, đóng góp ${one?.dmgBy?.[sid]} sát thương`);
     await cfg({years:[0,0],elite:false,king:false,world:false});
     ok(await until(async()=>(await info()).target!==E1.bid,2000)&&me().auto,"tắt công tắc Tinh anh: thôi nhắm tinh anh, vẫn tự săn");
+    // Chế độ "near" (mặc định): tự săn chỉ xét lại tinh anh khi chưa trúng / không bị hồn thú đánh (autoHunt.decide). Công tắc vừa tắt nên
+    // tự săn đã nhắm hồn thú thường quanh Đồi Phong Lang; con đó đánh tới bot (runner CI chậm hơn máy ở) thì được giữ tới khi hạ, 4 giây
+    // không đủ (#984). Dọn hồn thú thường (giữ tinh anh) trước khi bật lại để chỉ còn tinh anh là mục tiêu; điều kiện kiểm vẫn như cũ.
+    await test(A,"clear",{keep:true});
     await cfg({years:[0,0],king:false,world:false});
-    ok(await until(async()=>(await info()).target===E1.bid,4000),"bật lại: nhắm lại tinh anh");
+    ok(await until(async()=>(await info()).target===E1.bid,6000),"bật lại: nhắm lại tinh anh");
     const k0=me().kills, lowHp=async bid=>{ const b=A.room.state.beasts.get(bid); if(b) await test(A,"kdmg",{bid,v:Math.max(1,b.hp-200)}); };
     await lowHp(E1.bid);
     ok(await waitFor(()=>!A.room.state.beasts.has(E1.bid)&&me().kills>k0,30000),

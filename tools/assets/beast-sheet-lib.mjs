@@ -29,6 +29,19 @@ export const FRAME_TIER = ["Trắng / Vàng", "Tím / Đen", "Đỏ", "thú vư�
 export const tierNameOfFrame = (f) => FRAME_TIER[ISO_BEAST_SIZES.indexOf(f)] ?? `khung ${f}`;
 /** Cỡ ảnh RAW hợp lệ theo TỈ LỆ (v2, #862): 1:1 ra 1254×1254 hoặc 1024×1024, 2:3 ra 1024×1536, 3:2 ra 1536×1024; cutter chuẩn hóa về `sheetPlan`. */
 export const SHEET_SIZES = [[1024, 1024], [1254, 1254], [1536, 1024], [1024, 1536]];
+/**
+ * Tờ A (2:3) Codex thật hay xuất 948×1659 / 941×1672 (≈ 4:7, cùng ~1,57 triệu điểm ảnh với 1024×1536). Theo quyết định chủ repo 2026-10-26 mục 2 (#766):
+ * tỉ lệ A hợp lệ trong [A_RATIO_MIN, A_RATIO_MAX] (cạnh ngắn ≥ A_MIN_SIDE); cổng chặn thật là lưới (12 dải × 6 / 6 / 6 / 4 hình), không phải cỡ.
+ */
+export const A_RATIO_MIN = 0.55, A_RATIO_MAX = 0.7, A_MIN_SIDE = 800;
+export const ratioNear = (w, h, sw, sh, tol = 0.01) => Math.abs(w * sh - h * sw) <= tol * h * sw;
+/** Ảnh cỡ w×h có hợp tờ `sh` của sheetPlan không: tờ A (2:3) theo khoảng tỉ lệ, các tờ khác theo tỉ lệ ±1%. */
+export function sheetFits(w, h, sh) {
+  if (sh.w * 3 === sh.h * 2) return Math.min(w, h) >= A_MIN_SIDE && w / h >= A_RATIO_MIN && w / h <= A_RATIO_MAX;
+  return ratioNear(w, h, sh.w, sh.h);
+}
+/** Hệ số chuẩn hoá về cỡ canonical cw×ch theo diện tích (căn bậc hai): tờ lệch tỉ lệ nhẹ không bị kéo méo; bằng cw / w khi đúng tỉ lệ. */
+export const canonFactor = (w, h, cw, ch) => Math.sqrt((cw * ch) / (w * h));
 
 /**
  * Chia các hướng ra các tờ. `layout`: "auto" = theo cỡ khung (khung ≤ 96 gộp 3 + 2 hướng, ô ≈ 170×128; khung lớn mỗi hướng một tờ, ô 256×256);

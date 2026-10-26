@@ -188,6 +188,9 @@ export async function autoTest(){
     for(let k=0;k<6&&X&&xb()&&xb().hp>=xb().maxHp;k++){ await step(B,1,0); B.room.send("attack"); await sleep(250); }
     const hx=xb()?.hp;
     ok(X&&hx<xb()?.maxHp,`B đánh hồn thú X (${hx}/${xb()?.maxHp})`);
+    // Bài thử đòn thường / hồn kỹ không cướp quái, không phải tiên cơ: tiên cơ riêng lướt tới hồn thú gần nhất (X cách 13 pixel) và cào thẳng X nếu
+    // A còn năng lượng từ các bài trước (#979: CI nhóm 4 trượt lặp, log "lướt tới hồn thú gần nhất"). Tắt đổi tay tiên cơ và xả năng lượng cả đội.
+    await autoOp(A,"set",{cfg:{...NEAR,tienCo:false}}); await test(A,"energy",{v:0});
     m=await autoOp(A,"on");
     const took=await waitFor(()=>!xb()||xb().hp<hx,3500);
     const info=await test(A,"auto",{bid:X});
@@ -219,7 +222,7 @@ export async function autoTest(){
     const whyY=downY&&xb()?.hp>=hx?"":await (async()=>{ const st=await test(A,"auto",{bid:Y}), yb=A.room.state.beasts.get(Y), at=o=>o?`${o.x.toFixed(0)},${o.y.toFixed(0)}`:"-";
       return ` [${ySite}; A(${A.room.sessionId}) ${at(me(A))}, B(${B.room.sessionId}) ${at(me(B))}, X ${at(xb())}, Y ${yb?`${at(yb)} ${yb.hp}/${yb.maxHp}`:"đã mất"}; tự săn ${st?.on?"bật":"TẮT"} (${A.autoMsg?.why??"-"}), mục tiêu ${st?.target}, nợ nhịp ${st?.pace?.toFixed?.(1)} (ước lượng ${st?.est?.toFixed?.(1)}), đích ${JSON.stringify(st?.goal)}, đường ${st?.path}, Y ${JSON.stringify(st?.beast)}; vết Y ${yTrack.join(" | ")}; log ${A.logs.slice(-3).join(" | ")}]`; })();
     ok(Y&&downY&&xb()?.hp>=hx,`A hạ hồn thú Y không ai giành, X không mất sinh lực (${hx} → ${xb()?.hp})${whyY}`);
-    await autoOp(A,"off"); await test(B,"slay",{bid:X});
+    await autoOp(A,"off"); await autoOp(A,"set",{cfg:NEAR}); await test(B,"slay",{bid:X});
     // Các bài sau không dùng B tới bài nợ nhịp: về điểm vào trại cổng (hồn thú hoang không lang thang tới), không kéo hồn thú hoang tới A.
     await test(B,"goto",ar);
   }
@@ -752,11 +755,13 @@ export async function autoTest(){
         ok(c1>=1&&hurt>=2,`AH3 B1b: ${crowd.length} con quanh thân → hồn kỹ diện rộng tung ${c1} lần, ${hurt} con mất máu ngay lượt đầu`);
         await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true});
         // Bonus cụm (AUTO_CLUSTER.bonus) chỉ đổi thứ tự chọn: hạ một cụm không được lâu hơn hạ cùng số con rải xa (>AUTO_CLUSTER.r).
+        // Hạ 5 con mất ~15–18 giây ngay ở máy dev (3 giây / con, #1000): trần 30 giây cũ chỉ dư ~1,6 lần nên runner CI chậm thì ✗ lặng. Trần chỉ chặn treo; so sánh cụm / rải dùng ms đo được.
+        const CLEAR_CAP=90000;
         const clearTime=async layout=>{
           await test(A,"ready"); await test(A,"goto",home); await test(A,"clear",{all:true,keep:true});
           const ids=[]; for(const [dx,dy] of layout) ids.push((await test(A,"spawn",{tier:0,dx,dy,years:10}))?.bid);
           await test(A,"auto",{pace:0}); await autoOp(A,"on"); const t0=Date.now();
-          while(Date.now()-t0<30000&&ids.some(b=>A.room.state.beasts.has(b))){ await test(A,"clear",{all:true,keep:true,but:ids}); await sleep(150); } // chỉ đo 5 con của bài
+          while(Date.now()-t0<CLEAR_CAP&&ids.some(b=>A.room.state.beasts.has(b))){ await test(A,"clear",{all:true,keep:true,but:ids}); await sleep(150); } // chỉ đo 5 con của bài
           const left=ids.filter(b=>A.room.state.beasts.has(b)).length; await autoOp(A,"off"); return {ms:Date.now()-t0,left};
         };
         const packL=[[120,0],[140,16],[140,-16],[160,0],[120,24]], spreadL=[[120,0],[-120,0],[0,120],[0,-120],[110,110]];

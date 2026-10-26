@@ -43,6 +43,13 @@ const overlayScreen = (screen: "login" | "loading" | "welcome") => {
   overlay.hidden = false;
 };
 
+/** Đăng xuất: thu hồi phiên ở server (#999) rồi xóa token cục bộ; lỗi mạng cũng không cản việc xóa cục bộ. */
+function logout() {
+  const t = token; token = ""; storage.del("shh-token");
+  if (t) void post("/api/logout", { token: t }).catch(() => {});
+  loginScreen();
+}
+
 function loginScreen(err = "") {
   overlayScreen("login"); card.classList.remove("wide");
   card.innerHTML = `<img class="c6-logo" src="/ui/c6/logo.png" alt="Rừng Săn Hồn">
@@ -58,9 +65,9 @@ function loginScreen(err = "") {
     <div class="gsep" id="gsep" hidden><span>hoặc</span></div>
     <div class="gbtn" id="gbtn" hidden></div>
     <button class="c6-credits" id="credits-open" type="button">Ghi công</button>
-    <aside class="c6-event" aria-label="Sự kiện đang diễn ra">
+    <aside class="c6-event" aria-label="Mẹo chơi">
       <img src="/ui/c6/event-banner.png" alt="">
-      <div class="c6-event-copy"><small>SỰ KIỆN MÙA SĂN</small><strong>Vòng Hồn Nguyệt Ảnh</strong><span>Thu thập ánh trăng trong Rừng Săn Hồn</span></div>
+      <div class="c6-event-copy"><small>MẸO SĂN HỒN</small><strong>Né vùng đỏ</strong><span>Chạy ra khỏi vùng đỏ trước khi nó đầy</span></div>
     </aside>`;
   document.getElementById("credits-open")!.addEventListener("click", openCredits);
   const name = document.getElementById("name") as HTMLInputElement, pass = document.getElementById("pass") as HTMLInputElement;
@@ -174,7 +181,7 @@ function createScreen(me: Me) {
         throw e;
       }
     },
-    cancel: { label: "Đổi tài khoản", fn: () => { stop(); card.classList.remove("mk"); storage.del("shh-token"); loginScreen(); } },
+    cancel: { label: "Đổi tài khoản", fn: () => { stop(); card.classList.remove("mk"); logout(); } },
   });
 }
 
@@ -205,7 +212,7 @@ function awakenIntro() {
     aw.disabled = false; aw.textContent = `Thức tỉnh ${v.name}`;
   }));
   aw.onclick = () => { if (chosen) awaken(chosen); };
-  document.getElementById("out")!.onclick = () => { storage.del("shh-token"); loginScreen(); };
+  document.getElementById("out")!.onclick = () => { logout(); };
 }
 
 async function awaken(vohon: string) {
@@ -239,7 +246,7 @@ function welcomeScreen(c: Character) {
     <div class="btns"><button class="btn primary" id="go">Vào ${esc(MAPS[mapId]?.name ?? "game")}</button><button class="btn" id="out">Đổi tài khoản</button></div>`;
   card.querySelector(".bigcard")!.appendChild(vohonCard(v, { level: c.level, stars: c.stars, rings: c.rings }));
   document.getElementById("go")!.onclick = () => join();
-  document.getElementById("out")!.onclick = () => { storage.del("shh-token"); loginScreen(); };
+  document.getElementById("out")!.onclick = () => { logout(); };
   document.getElementById("go")!.focus();
 }
 

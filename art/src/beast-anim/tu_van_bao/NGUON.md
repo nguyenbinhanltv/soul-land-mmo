@@ -19,3 +19,11 @@ RAW `toB.png`: 1254×1254, yêu cầu 1024×1024; SHA256 `ad361f1c06ce5442c24009
 LỖI: toB — size/background/heading/hurt — toàn tờ, R1–4/NE, R1/R5C5–6, R7–8/N — RAW 1254×1254 khác yêu cầu 1024×1024; nền chưa phẳng #FF00FF; NE gần E, hurt chưa giật lùi rõ; N attack/death có khung lộ mặt.
 
 Chưa chứng nhận đồng cỡ A/B, đủ khung ngữ nghĩa, hướng hoặc phong cách. Không retry, resize, crop, patch hoặc import.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/tu_van_bao/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Tử Văn Báo (H4 đợt 5, Part of #771 và #766): `art/src/beast-anim/tu_van_bao/toA.png` (A1, 1024×1536) và `toB.png` (B1, 1254×1254 thực tế, yêu cầu 1024×1024; FAIL). tthoadev / fresh phiên `soul-land-mmo-113` dùng builtin `image_gen.imagegen`, A113 và fresh B116 mỗi phiên 1 call/0 retry (tổng loài 2), đã STOPGEN; A chỉ tham chiếu ảnh tĩnh gốc cùng loài, B static backup + original tool output A1 theo đúng thứ tự. Image model/seed/thời điểm sinh chính xác unknown. RAW giữ nguyên byte, không hậu kỳ. Nộp cả FAIL theo chỉ đạo chủ repo; A1 chỉ chọn làm STYLE candidate cho fresh B, chưa duyệt mỹ thuật/runtime hay nhập game. Exact prompt, SHA256, IHDR, nguồn và lỗi: [NGUON.md](src/beast-anim/tu_van_bao/NGUON.md), `toA.prompt.txt`, `toA.source.json`. Nguồn Q44/điều khoản công cụ. | - | Chuyển một lần từ art/CREDITS.md (#973) |
