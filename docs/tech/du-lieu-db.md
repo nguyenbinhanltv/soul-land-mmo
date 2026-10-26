@@ -7,7 +7,7 @@
 - Cấp tương đương tính bằng hàm từ `RING_LIMIT`, không lưu bảng riêng.
 
 ## Dữ liệu lâu dài trong PostgreSQL
-- File `server/sql/00N_….sql`, mỗi file `CREATE TABLE IF NOT EXISTS` / `ADD COLUMN IF NOT EXISTS` và bật RLS (không tạo policy). `PgStore.init()` (`server/src/db.ts`) chạy mọi file theo tên mỗi lần khởi động, nên câu lệnh phải chạy lại an toàn. Không sửa file đã chạy.
+- File `server/sql/00N_….sql`, mỗi file `CREATE TABLE IF NOT EXISTS` / `ADD COLUMN IF NOT EXISTS` và bật RLS (không tạo policy). `PgStore.init()` (`server/src/db.ts`) chạy mọi file theo tên mỗi lần khởi động, nên câu lệnh phải chạy lại an toàn. Cả vòng được bọc bằng khoá tư vấn cấp phiên (`MIGRATION_LOCK_KEY`, kết nối riêng) lấy bằng `pg_try_advisory_lock` thăm dò mỗi 250 ms (không dùng `pg_advisory_lock` chặn, vì nó dính `statement_timeout` / `query_timeout` của pool): nhiều tiến trình khởi động cùng lúc thì chạy lần lượt, không chồng; chờ quá `MIGRATION_LOCK_WAIT_MS` thì lỗi mã `55P03`, kết nối chết thì Postgres tự nhả khoá. Không sửa file đã chạy.
 - Không có `DATABASE_URL` thì dùng `MemoryStore` (RAM). Mọi thay đổi lưu trữ cập nhật cả `PgStore` lẫn `MemoryStore`.
 - Môi trường: dev dùng PostgreSQL ở máy (Docker) hoặc `MemoryStore`; Supabase là **DB thử** (quay ảnh, đo FPS), không phải prod; prod là PostgreSQL trong cụm (`docs/ops/db-redis-sao-luu.md`). Bot chạy bằng `npm run bot:local -- --pg` trên PostgreSQL riêng của lượt chạy, không trỏ vào DB prod.
 - Ghi dữ liệu của một người chơi luôn qua chuỗi lưu `this.chain(d, fn)`.

@@ -55,6 +55,10 @@ export class Grid {
     this.cellsAround(x, y, r + Grid.SLACK, (c) => { for (const id of this.cells[c]) out.push(id); });
     return out;
   }
+  /** Như `near` nhưng gọi `fn(id)` ngay, không cấp phát mảng (cùng thứ tự duyệt). */
+  nearEach(x: number, y: number, r: number, fn: (id: string) => void) {
+    this.cellsAround(x, y, r + Grid.SLACK, (c) => { for (const id of this.cells[c]) fn(id); });
+  }
   get cellCount() { return this.cells.length; }
 }
 

@@ -1,0 +1,87 @@
+{
+  "species": "hoi_vu_tuoc",
+  "worker": "soul-land-mmo-136",
+  "issue": 772,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Codex image_gen không công bố model/seed; không có selector kích thước.",
+  "transparent_background": false,
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "sheet": "A",
+  "attempt": 1,
+  "raw_file": "toA.png",
+  "selected": true,
+  "selected_attempt": 1,
+  "attempts": 1,
+  "counters": {
+    "A": 1,
+    "B": 2,
+    "species_total": 3
+  },
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "2ad3ce5d8a38da91395e8bafeacee85c7f393a0e8fd941dfb7fc6670f3d1d7ff",
+  "sha256": "e265549dd7374c2b1d61ca0d3ba01f76a0253223fc70d41a0c9e96f016869465",
+  "bytes": 1779427,
+  "width": 948,
+  "height": 1660,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "size_requirement_met": false,
+  "actual_aspect_ratio": "948:1660",
+  "grid": [
+    6,
+    12
+  ],
+  "expected_visible_cells": 66,
+  "references": [
+    {
+      "path": "/private/tmp/soul-land-mmo-772-hoi-vu-tuoc/shared/assets/sprites/beast/hoi_vu_tuoc.png",
+      "role": "static identity reference, three views",
+      "sha256": "ace925629cffe45d838f0f2dd6b7b81d3ed5c38ec0d2978cd121d84231d0cf87",
+      "original_input_path": "/private/tmp/soul-land-mmo-772-hoi-vu-tuoc/shared/assets/sprites/beast/hoi_vu_tuoc.png"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-a4632a24-5a4f-4540-95e9-ba5b935f12e0.png",
+  "generated_at": "2026-10-26T12:55:10.718Z",
+  "known_issues": [
+    "RAW 948x1660 sai tỉ lệ A 2:3; checker chặn, owner phân loại cỡ/tỉ lệ là cảnh báo kỹ thuật.",
+    "Soát mắt: H4 D4 (s) die nằm ngang lệch trục."
+  ],
+  "qa_status": "Checker blocked only on aspect-ratio finding; manual review found a die-axis issue; owner approval pending.",
+  "selection_reason": "A1 là lượt duy nhất; giữ nguyên để nộp theo directive, không redraw để sửa cỡ.",
+  "publication_policy": "Submitting raw candidates does not mean art accepted or imported.",
+  "tool_arguments": {
+    "prompt_file": "toA.prompt.txt",
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-772-hoi-vu-tuoc/shared/assets/sprites/beast/hoi_vu_tuoc.png"
+    ],
+    "transparent_background": false
+  },
+  "history": [
+    {
+      "attempt": 1,
+      "raw_artifact": "/private/tmp/soul-land-mmo-772-hoi-vu-tuoc/art/src/beast-anim/hoi_vu_tuoc/toA.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-a4632a24-5a4f-4540-95e9-ba5b935f12e0.png",
+      "sha256": "e265549dd7374c2b1d61ca0d3ba01f76a0253223fc70d41a0c9e96f016869465",
+      "bytes": 1779427,
+      "dimensions": [
+        948,
+        1660
+      ],
+      "generated_at": "2026-10-26T12:55:10.718Z",
+      "prompt_artifact": "/private/tmp/soul-land-mmo-772-hoi-vu-tuoc/art/src/beast-anim/hoi_vu_tuoc/toA.prompt.txt",
+      "prompt_sha256": "2ad3ce5d8a38da91395e8bafeacee85c7f393a0e8fd941dfb7fc6670f3d1d7ff",
+      "references": [
+        {
+          "path": "/private/tmp/soul-land-mmo-772-hoi-vu-tuoc/shared/assets/sprites/beast/hoi_vu_tuoc.png",
+          "sha256": "ace925629cffe45d838f0f2dd6b7b81d3ed5c38ec0d2978cd121d84231d0cf87",
+          "role": "static identity reference, three views"
+        }
+      ],
+      "copied_at": "2026-10-26T13:05:32.077Z"
+    }
+  ]
+}
