@@ -177,7 +177,7 @@ export async function shopBuybackTest(){
  */
 export async function charBagCmdTest(){
   console.log("[NV5] Lệnh gắn / tháo từ giao diện Nhân vật + Túi (hợp đồng client) được server nhận");
-  const C=await import("../src/charBagContract.ts");
+  const C=await import("../../src/charBagContract.ts");
   const S=await bot("Nhân vật Túi","u_minh_linh_mieu",{sex:1,hair:0,hairCol:1,outfitCol:2});
   if(!(await test(S,"ping"))?.enabled){ console.log("  ⚠ bỏ qua nhân vật + túi (cần hook gear, give, rest): bật server bằng GAME_TEST=1"); await S.room.leave(); return; }
   try{
