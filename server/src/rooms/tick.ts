@@ -3,7 +3,7 @@
 // `moveBeast` và `perfLog` (PERF_LOG=1). Hàm nhận phòng (`room: MapRoom`) như combat.ts; nguyên văn từ MapRoom, không đổi số / thứ tự RNG / thứ tự xử lý trong tick.
 // MapRoom chỉ chuyển tiếp 3 hàm (`setSimulationInterval` trong `setup` gọi `tick` / `perfLog`; `ArenaRoom.tick` vẫn gọi `super.tick`).
 import { TIERS, STATUS, ARENA, BEAST_REGEN, BEAST_LEASH, BEAST_GAIT, BEAST_AGGRO_R, BEAST_ATK_CD, BEAST_WANDER, ELITE, ELITE_RAGE, TELE_FIRST, SLOW_CAP,
-  RUN_MULT, dir4, TEAM_COMBAT_SECS, PLAYER_CHARM, SYNC_VIEW, FOG, moveNudge, atkRoll, beastMelee } from "../../../shared/data.ts";
+  RUN_MULT, dir4, TEAM_COMBAT_SECS, PLAYER_CHARM, SYNC_VIEW, FOG, moveNudge, atkRoll, beastMelee, RESPAWN_INVULN_SECS } from "../../../shared/data.ts";
 import { MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS, presenceBackend, accountLeaseKey } from "../presence.ts";
 import { touchChannel, type MapRoom } from "./MapRoom.ts";
@@ -124,7 +124,7 @@ export function tick(room: MapRoom, dt: number) {
       d.deadT -= dt;
       if (d.deadT <= 0) {
         // Cả đội gục: về doanh trại, cả đội hồi đầy.
-        const s = room.spawnPoint(); p.x = s.x; p.y = s.y; p.dead = false; d.inv = 1.5;
+        const s = room.spawnPoint(); p.x = s.x; p.y = s.y; p.dead = false; d.inv = RESPAWN_INVULN_SECS;
         d.down.clear(); d.benchHp.clear(); room.recalc(id, true);
         room.log(id, "Đã về doanh trại, cả đội hồi phục.", "#86e0b0");
         room.sendSquad(id, true);

@@ -9,7 +9,7 @@ import { Client, type Room } from "colyseus.js";
 import { GameScene } from "./scenes/GameScene.ts";
 import { bufferRoomMessages } from "./roomBuffer.ts";
 import { addLag } from "./predict.ts";
-import { TIERS, VOHON, HE, MAPS, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES,
+import { TIERS, VOHON, HE, MAPS, vohonIndex, AWAKEN_GIFT, AWAKEN_CHOICES, AWAKEN_LEVEL,
   type He } from "../../shared/data.ts";
 import { API, WS, post, storage, type Character, type Me } from "./net.ts";
 import { ringColor, closeLooks } from "./hud.ts";
@@ -217,7 +217,7 @@ async function awaken(vohon: string) {
     card.innerHTML = `<div class="vh bigcard"></div>
       <div class="vh"><h2>${v.name}</h2><div class="k">${v.rarity} · ${HE[v.he].name}${v.owner ? ` · ${v.owner}` : ""}</div>
       <div class="t">${v.trait}<br>Kèm theo võ hồn <b style="color:${gift.col}">${gift.name}</b>.
-      <br>Hồn lực bẩm sinh: <b>cấp ${c.level}</b>${c.level === 10 ? " – tiên thiên mãn hồn lực!" : ""}</div></div>
+      <br>Hồn lực bẩm sinh: <b>cấp ${c.level}</b>${c.level === AWAKEN_LEVEL.max ? " – tiên thiên mãn hồn lực!" : ""}</div></div>
       <div class="btns"><button class="btn primary" id="go">Tới ${esc(MAPS[mapId]?.name ?? "bản đồ")}</button></div>`;
     card.querySelector(".bigcard")!.appendChild(vohonCard(v, { level: c.level, stars: c.stars, rings: c.rings }));
     document.getElementById("go")!.onclick = () => join();

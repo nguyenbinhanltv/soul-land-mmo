@@ -4,7 +4,7 @@
 // (`onMessage`, `tick`, `skill.ts`, `boss.ts`, `autoHunt.ts`, `gm.ts`, `ArenaRoom` gọi như cũ).
 // Còn ở MapRoom: `killBeast`, `applyStatus` / `applyPStatus`, `chanThan` / `endAva` / `tickAva`, `selfEffect` / `partyShare`, tiên cơ (`tienCo`, `gainEnergy`), `buffV` / `atkOf`.
 import { TIERS, VOHON, vohonIndex, TEAM_SIZE, REVIVE_SECS, RESPAWN_SECS, PHONG_LOI, ATTACK_CD, ATTACK_REACH, atkRoll, CORE_FX_RULE, CORE_SETS, coreSetIndex,
-  STATUS, ARENA, ARENA_HE_DMG, WORLD, defMult } from "../../../shared/data.ts";
+  STATUS, ARENA, ARENA_HE_DMG, WORLD, defMult, HIT_INVULN_SECS } from "../../../shared/data.ts";
 import type { Character } from "../db.ts";
 import { BEAST_HALF, type MapRoom, type Hit, type DmgOpt } from "./MapRoom.ts";
 
@@ -22,7 +22,7 @@ export function hurtPlayer(room: MapRoom, id: string, dmg: number, o: { dot?: bo
   // Miễn sát thương (Vô Địch Thần Quang): không mất gì nhưng vẫn tính là bị đánh (giao chiến), hiện chữ "Miễn".
   // Đòn của đối thủ (Đại Đấu Hồn Trường, `pvp`, 7.2) không đặt khung bất tử 0,45 giây (hồn kỹ nhiều nhát vẫn trúng đủ) và không lan Cảm điện;
   // bất tử do hồn kỹ / lúc vào sân vẫn chặn.
-  if (room.buffV(d, "inv")) { d.fight = 0; if (direct && !o.pvp) d.inv = 0.45; room.broadcast("dmg", { x: p.x, y: p.y - 18, v: 0, c: "#fff2b0", id, immune: true }); return false; }
+  if (room.buffV(d, "inv")) { d.fight = 0; if (direct && !o.pvp) d.inv = HIT_INVULN_SECS; room.broadcast("dmg", { x: p.x, y: p.y - 18, v: 0, c: "#fff2b0", id, immune: true }); return false; }
   // Tàng hình (đã chốt 2026-10-20): bị đòn trực tiếp đánh trúng thì hiện hình, kể cả khi khiên đỡ hết; đòn bị miễn ở trên thì không.
   if (direct) room.unhide(p, d);
   const raw = dmg, armor = d.st.get("armor"), poison = d.st.get("poison");
@@ -33,7 +33,7 @@ export function hurtPlayer(room: MapRoom, id: string, dmg: number, o: { dot?: bo
   dmg = Math.round(dmg * VOHON[p.vh].def * (1 - Math.min(0.9, room.buffV(d, "def"))));
   // Khiên (tiên cơ phụ trợ) đỡ trước; vẫn tính là bị đánh (giao chiến, gián đoạn hấp thụ).
   const blocked = Math.min(d.shield, dmg); d.shield -= blocked; dmg -= blocked; p.shield = Math.ceil(d.shield);
-  d.hpF -= dmg; if (direct && !o.pvp) d.inv = 0.45; d.lastHit = 0; d.fight = 0;
+  d.hpF -= dmg; if (direct && !o.pvp) d.inv = HIT_INVULN_SECS; d.lastHit = 0; d.fight = 0;
   if (o.pvp) o.pvp.dealt = dmg;
   // Khiên đỡ hết thì hiện số bị đỡ (màu lam) thay cho số 0.
   room.broadcast("dmg", { x: p.x, y: p.y - 18, v: -(dmg || blocked), crit: o.crit, c: blocked ? "#9ad8ff" : o.crit ? "#ffe14d" : o.dot ? "#8ef08a" : "#ff6b6b", id }); // id: client chạy animation hurt cho hồn sư này
@@ -100,7 +100,7 @@ export function attack(room: MapRoom, id: string) {
   const hit: Hit = { kind: "attack", done: false };
   const near = room.beastsNear(ax, ay, ATTACK_REACH.r + BEAST_HALF).filter(([, b]) => Math.hypot(b.x - ax, b.y - TIERS[b.tier].size / 2 - ay) < ATTACK_REACH.r + TIERS[b.tier].size / 2);
   // Đối thủ trong Đại Đấu Hồn Trường (7.2): tâm thân hồn sư cao hơn chân ARENA.body pixel.
-  const foes = room.foesOf(id).filter((f) => { const q = room.state.players.get(f); return q && !q.dead && Math.hypot(q.x - ax, q.y - ARENA.body - ay) < 18 + ARENA.body; });
+  const foes = room.foesOf(id).filter((f) => { const q = room.state.players.get(f); return q && !q.dead && Math.hypot(q.x - ax, q.y - ARENA.body - ay) < ATTACK_REACH.r + ARENA.body; });
   // Bộ Hạo Thiên 4 món (5.2): đòn thường trúng thứ comboN liên tiếp (cách nhau không quá comboGap giây) thêm sát thương; trượt thì đếm lại.
   let mult = 1;
   if (d.coreFx.combo) {
