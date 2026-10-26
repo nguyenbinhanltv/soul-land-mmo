@@ -74,6 +74,19 @@
 - [x] L0 Mẫu thử, bộ 115 món LPC, chủ repo duyệt 4 hướng; L1 danh mục `LPC_PARTS` + công cụ đóng gói; L2 server `Looks.mode`; L3 client ghép lớp lúc chạy; L4 màn tạo nhân vật hai chế độ, đổi ngoại hình qua thợ may.
 - [x] HL1 Mẫu dựng sẵn bằng LPC; HL2 chuyển tài khoản preset cũ lúc nạp; HL3 hồn sư chỉ còn LPC, gỡ sprite preset (client nhẹ 720 KB); HL4 áo / mũ trang bị hiện lên lớp LPC; C3 lớp trang phục phương Đông cho Tự tạo (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện); L5 thay bằng HL4; L6 đo FPS 41 người trên Chrome GPU.
 
+**Nhóm Hồn thú v2** (công cụ + quy trình hoạt ảnh vẽ thật; `docs/art/hon-thu-hoat-anh.md`).
+- [x] H2 ba loài thử (Phong Lang, Kim Linh Ưng, Thái Thản Cự Viên) đã nhập; H4 đã nhập thêm Ám Kim Khủng Trảo Hùng, Hắc Bối Dã Trư, Huyền Băng Thiềm.
+- [x] P0 đặc tả cỡ theo tỉ lệ + cutter chuẩn hóa mặc định; P1 `beast:check` và cutter v2; P2 skill `beast-anim` + sổ trạng thái tự sinh; P3 trang xoay vòng hướng + CI nhẹ.
+
+**Nhóm UI Kit v2** (hướng B; `docs/art/ui-kit.md`).
+- [x] P0 style guide, kiểm kê token, sửa 9-slice, lớp 960×540; P1 công cụ `ui-sheet-check` / `ui-sheet-cut` + manifest; P2 skill `ui-kit`, prompt mẫu, trang xem trước, CI nhẹ; cỡ giao diện tự động theo bậc màn (≥ 1600 / ≥ 1920).
+
+**Nhóm Di chuyển & giao chiến** (phản hồi chơi thử 2026-10-26).
+- [x] M1 quét xuyên rào, M2 lách góc, M4 bấm-để-đi không bỏ dở, M3 khoá mục tiêu, M5 thứ tự ưu tiên lệnh + chip trạng thái, M6 hướng dẫn điều khiển lần đầu.
+
+**Nhóm Chống gian lận và hiệu năng** (vòng bảo mật / tải).
+- [x] Giới hạn tần suất mọi tin `onMessage` và REST có token; dọn bảng `sessions`; ghi túi chỉ dòng đổi; cache bảng xếp hạng; dọn Map toàn cục + soak 2 giờ; giảm request lúc vào bản đồ (#716). Soát gian lận: `docs/tech/*gian-lan*`.
+
 ## Số issue / PR
 
 - Giai đoạn 10: #96, #100–#103, #105, #331, #333, #335, #336–#342, #383, #385–#387, #395, #436, #444, #447, #451, #463, #466, #476, #480–#484, #564.
@@ -87,3 +100,4 @@
 - Pháp tướng: #482–#487, #490, #491, #492, #499, #505, #513, #528, #531.
 - Hình ảnh kỹ năng: #541, #542, #546, #548, #566–#569, #583, #590.
 - Hồn sư LPC: #507–#511, #564, #565, #570–#574, #578, #588; họ asset Codex C1–C16: #541, #553, #554, #576, #577.
+- Hồn thú v2: #862–#866, #870, #766–#768. UI Kit v2: #878–#880, #887. Di chuyển & giao chiến: #746–#752. Chống gian lận và hiệu năng: #716, #734–#739.
