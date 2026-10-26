@@ -60,10 +60,12 @@ export function layoutNameplates(items: readonly NameplateItem[], options: Namep
     const compact = item.compactSize ? { ...item, ...item.compactSize } : item;
     const sizes = items.length > maxVisible ? [[compact, true]] as const : [[item, false], [compact, true]] as const;
     const bottom = item.y + item.height / 2;
-    const free = (c: NameplateRect) =>
+    // Hai loại cản: nhãn đã nhận / mép màn hình (không bao giờ vẽ chồng) và vật cản (thân, biển: đè thoáng qua thì chờ `settle`).
+    const clearOfPlates = (c: NameplateRect) =>
       !(v && (c.x - c.width / 2 < v.x || c.x + c.width / 2 > v.x + v.width || c.y - c.height / 2 < v.y || c.y + c.height / 2 > v.y + v.height))
-      && !placed.some((other) => other.visible && nameplatesOverlap(c, other, gap))
-      && !options.obstacles?.some((other) => nameplatesOverlap(c, other, gap));
+      && !placed.some((other) => other.visible && nameplatesOverlap(c, other, gap));
+    const clearOfBodies = (c: NameplateRect) => !options.obstacles?.some((other) => nameplatesOverlap(c, other, gap));
+    const free = (c: NameplateRect) => clearOfPlates(c) && clearOfBodies(c);
     const at = (size: NameplateRect, dx: number, up: number): NameplateRect => ({ ...size, x: item.x + dx, y: bottom - size.height / 2 - up });
     type Cand = { rect: NameplateRect; slot: NameplateSlot };
     const cands: Cand[] = [];
@@ -83,8 +85,9 @@ export function layoutNameplates(items: readonly NameplateItem[], options: Namep
     if (best && prev && prevSize && slotKey(prev.dx, prev.up, prev.compact) !== slotKey(best.slot.dx, best.slot.up, best.slot.compact)) {
       // Chỗ cũ còn hợp lệ thì giữ; bị đè thì đổi sang chỗ hợp lệ GẦN chỗ cũ nhất (nhảy ngắn), chưa phải chỗ gốc.
       const rect = at(prevSize, prev.dx, prev.up), blocked = !free(rect), bad = blocked ? prev.bad ?? now : undefined;
-      // Bị đè chưa đủ `settle` thì chờ ở chỗ cũ (đè chồng thoáng qua), đủ rồi mới đổi.
-      const keep: Cand | undefined = blocked && now - bad! < settle ? { rect, slot: { dx: prev.dx, up: prev.up, compact: prev.compact, bad } }
+      // Chỉ vật cản đè (còn sạch nhãn khác và trong màn hình) chưa đủ `settle` thì chờ ở chỗ cũ; đè nhãn / ra mép thì đổi ngay. Giữ nguyên bộ đếm `hold`.
+      const keep: Cand | undefined = blocked && clearOfPlates(rect) && now - bad! < settle
+        ? { rect, slot: { dx: prev.dx, up: prev.up, compact: prev.compact, bad, want: prev.want, wantSince: prev.wantSince } }
         : !blocked ? { rect, slot: { dx: prev.dx, up: prev.up, compact: prev.compact } }
         : cands.filter((c) => c.slot.compact === prev.compact)
           .sort((a, b) => Math.abs(a.slot.dx - prev.dx) + Math.abs(a.slot.up - prev.up) - Math.abs(b.slot.dx - prev.dx) - Math.abs(b.slot.up - prev.up))[0];

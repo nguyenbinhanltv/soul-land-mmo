@@ -39,7 +39,7 @@ assert.deepEqual(layoutNameplates(crowd, { viewport, obstacles: [body], maxOffse
 // #828: nhãn người đang đi không đổi chỗ qua lại khi bị đè chớp nhoáng; đổi chỗ chỉ khi bị đè thật, quay về sau khi chỗ gốc trống đủ `hold`.
 {
   const me = (x, now, prev, others = []) => layoutNameplates([{ id: "me", x, y: 100, width: 60, height: 16, priority: 20 }, ...others],
-    { gap: 3, now, prev, hold: 450, settle: 0 }).find((p) => p.id === "me");
+    { gap: 3, now, prev, hold: 450 }).find((p) => p.id === "me");
   const other = (x) => ({ id: "a", x, y: 100, width: 60, height: 16, priority: 100 });
   let t = 0, prev = new Map(), shifted = 0, last = null;
   const step = (x, others) => {
@@ -58,7 +58,7 @@ assert.deepEqual(layoutNameplates(crowd, { viewport, obstacles: [body], maxOffse
   for (let i = 0; i < 40; i++) step(30, []); // trống liên tục hơn 450 ms
   assert.equal(last, "0,0", "chỗ gốc trống đủ lâu thì quay về");
   assert.equal(shifted, moved + 1, "chỉ đổi một lần khi quay về");
-  const one = (now, prevSlot) => layoutNameplates([{ id: "me", x: 5, y: 100, width: 60, height: 16, priority: 20 }], { prev: new Map([["me", prevSlot]]), now, settle: 0 })[0].slot;
+  const one = (now, prevSlot) => layoutNameplates([{ id: "me", x: 5, y: 100, width: 60, height: 16, priority: 20 }], { prev: new Map([["me", prevSlot]]), now })[0].slot;
   const waiting = one(1000, { dx: 0, up: 28, compact: false });
   assert.equal(waiting.up, 28, "chỗ cũ còn hợp lệ: giữ trong lúc chờ");
   assert.equal(one(1200, waiting).up, 28, "chưa đủ hold thì vẫn giữ");
@@ -75,7 +75,7 @@ assert.deepEqual(layoutNameplates(crowd, { viewport, obstacles: [body], maxOffse
         obstacles.push({ id: "b" + id, x, y: y - 20, width: i < 3 ? 40 : 28, height: 40, priority: 0 });
         items.push({ id, x, y: y - 48 - 7, width: i < 3 ? 70 : 60, height: i < 3 ? 14 : 26, priority: i < 3 ? 20 : i === 3 ? 100 : 20 });
       }
-      const out = layoutNameplates(items, { gap: 4, maxOffset: 96, obstacles, prev: useMemory ? prev : undefined, now, settle: 0 });
+      const out = layoutNameplates(items, { gap: 4, maxOffset: 96, obstacles, prev: useMemory ? prev : undefined, now });
       prev = new Map(out.filter((p) => p.visible && p.slot).map((p) => [p.id, p.slot]));
       const vis = out.filter((p) => p.visible);
       for (let a = 0; a < vis.length; a++) for (let b = a + 1; b < vis.length; b++) assert.ok(!nameplatesOverlap(vis[a], vis[b], 4), "không chồng nhãn");
@@ -129,6 +129,15 @@ assert.deepEqual(layoutNameplates(crowd, { viewport, obstacles: [body], maxOffse
   assert.equal(wait.dx + wait.up, 0, "bị đè chưa đủ settle: giữ ô cũ");
   assert.equal(at(1150, wait).dx + at(1150, wait).up, 0, "150 ms vẫn giữ");
   assert.notEqual(at(1250, wait).dx + at(1250, wait).up, 0, "quá 200 ms thì đổi");
+  {
+    const low = { id: "low", x: 100, y: 100, width: 60, height: 16, priority: 20 }, high = { id: "high", x: 100, y: 100, width: 60, height: 16, priority: 100 };
+    const first = layoutNameplates([low], { gap: 3, now: 0 }).find((p) => p.id === "low");
+    const next = layoutNameplates([low, high], { gap: 3, now: 16, prev: new Map([["low", first.slot]]) });
+    const [a, b] = [next.find((p) => p.id === "low"), next.find((p) => p.id === "high")];
+    assert.ok(!a.visible || !nameplatesOverlap(a, b, 3), "nhãn ưu tiên cao chiếm ô cũ: nhãn thấp đổi ngay, không chồng dù trong settle");
+    const edge = layoutNameplates([{ ...low, x: 20 }], { gap: 3, now: 16, viewport: { x: 0, y: 0, width: 400, height: 300 }, prev: new Map([["low", { dx: -40, up: 0, compact: false, bad: 0 }]]) })[0];
+    assert.ok(edge.x - edge.width / 2 >= 0, "ô cũ ra mép màn hình thì đổi ngay, không chờ settle");
+  }
   // ease: đuổi mượt, không vượt đích, hiện ngay khi chưa có chỗ cũ / bị bỏ khung lâu
   assert.equal(easeNameplate(undefined, 50, 16), 50);
   assert.equal(easeNameplate(0, 112, 1e9), 112, "bỏ khung lâu (tab ẩn) thì về đích ngay");
