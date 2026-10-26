@@ -1,0 +1,190 @@
+{
+  "species": "loi_van_hau",
+  "sheet": "B",
+  "attempt": "B1",
+  "issue": "#769",
+  "worker": "soul-land-mmo-95",
+  "owner": "soul-land-mmo-93",
+  "orchestrator": "soul-land-mmo-44",
+  "tool": "builtin image_gen__imagegen",
+  "call_started_utc": "2026-10-26T00:50:53.187Z",
+  "call_finished_utc": "2026-10-26T00:51:30.941Z",
+  "image_model": "unknown — tool did not disclose",
+  "seed": "unknown — tool did not disclose",
+  "agent_requested": "GPT-6.1-Sol medium (user request); runtime model not independently disclosed",
+  "counters": {
+    "worker_builtin_imagegen_calls": 1,
+    "B2": 0,
+    "retries": 0,
+    "A93_calls_from_user_brief": 1,
+    "species_total_from_user_brief": 2,
+    "concurrent_cap_from_user_brief": 2
+  },
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a175af-89b6-75c2-9264-b65538b0401f/exec-47768a85-70fa-4dff-8dd0-d8397ca31206.png",
+  "raw_file": "loi_van_hau-B1.png",
+  "output_IHDR_dimensions": [
+    1254,
+    1254
+  ],
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "output_bytes": 1991633,
+  "output_sha256": "d5dc0a2796b9853423107b905ce9c69bad626d5dbbdb8f6083f3abe3711774ad",
+  "raw_byte_identical_verified": true,
+  "postprocessing": "none",
+  "base_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-93/prompts/loi_van_hau-toB.prompt.txt",
+  "base_sha256": "0c54a02de4ac5b6d3b881a316c33ded1d360162ae7700b38e9cf5b10d0ebdd06",
+  "exactprompt_file": "loi_van_hau-B1.exactprompt.txt",
+  "exactprompt_sha256": "d5742ba06b879fa9c012b899aa83575cbc9c9020fe016b2231fdae6d39cb0a7d",
+  "base_preserved_as_prefix": true,
+  "references_in_attachment_order": [
+    {
+      "order": 1,
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-93/loi_van_hau-static.png",
+      "role": "static identity",
+      "sha256": "9e58c9897d7fd17c63e64be774bcaa41869aeb051baf0b07121d944e1e3ad437",
+      "viewed_before_call": true,
+      "hash_verified_before_call": true
+    },
+    {
+      "order": 2,
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-93/loi_van_hau-A1.png",
+      "role": "style/body size only; erroneous hurt/death poses excluded",
+      "sha256": "c4501b0bbfed0c05c27217b307ed6e6534a7d302482754c95a4951850ac53260",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2179981,
+      "viewed_before_call": true,
+      "hash_verified_before_call": true
+    }
+  ],
+  "pixel_checks": {
+    "grid": "6x8 equal cells, boundaries floor(index*dimension/count)",
+    "strict_non_FF00FF_occupied_cells": 48,
+    "body_threshold": "R<160 OR B<140 OR G>90; diagnostic only, not creature segmentation",
+    "body_pixel_counts": [
+      [
+        10229,
+        10244,
+        10123,
+        10274,
+        10060,
+        9780
+      ],
+      [
+        9826,
+        9180,
+        9315,
+        9346,
+        9427,
+        9169
+      ],
+      [
+        10119,
+        12245,
+        10699,
+        10663,
+        10222,
+        9989
+      ],
+      [
+        9539,
+        10346,
+        9831,
+        8982,
+        0,
+        0
+      ],
+      [
+        10882,
+        10978,
+        10909,
+        10965,
+        11162,
+        11064
+      ],
+      [
+        9665,
+        10063,
+        9316,
+        9816,
+        9849,
+        9516
+      ],
+      [
+        9834,
+        11524,
+        11012,
+        11035,
+        10880,
+        10495
+      ],
+      [
+        10859,
+        11023,
+        9924,
+        9963,
+        139,
+        0
+      ]
+    ],
+    "body_occupied_cells": 45,
+    "visual_creature_estimate": 44,
+    "empty_cell_spill": "R8C5:139 body-threshold pixels",
+    "corner_RGB": [
+      [
+        243,
+        12,
+        242
+      ],
+      [
+        246,
+        16,
+        241
+      ],
+      [
+        235,
+        36,
+        235
+      ],
+      [
+        241,
+        28,
+        237
+      ]
+    ]
+  },
+  "status": "FAIL — RAW delivered; no art/runtime certification",
+  "conflict": "Original prompt says quadruped; static identity is ape. Original input preserved; no claim owner approved anatomy.",
+  "slot_release": "Sent explicitly to session93 and44 and checkpoint report immediately after call; first sandbox attempts failed, escalated sends succeeded before metadata completion.",
+  "preview": "AO preview refused outside-workspace artifact path; tool result already shown inline. No workspace copy made.",
+  "integration": {
+    "repository_raw_file": "toB.png",
+    "repository_prompt_file": "toB.prompt.txt",
+    "upstream_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-95/provenance.json",
+    "upstream_provenance_sha256": "a8dc9a5190c25147463efac915c51ab5c4c567da5c777986ff2ba41d49569e94",
+    "artifact_raw_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-95/loi_van_hau-B1.png",
+    "raw_matches_artifact_and_original": true,
+    "reference_count": 2,
+    "size_requirement_met": false,
+    "requested_grid": [
+      6,
+      8
+    ],
+    "requested_directions": [
+      "ne",
+      "n"
+    ],
+    "expected_occupied_cells": 44,
+    "expected_blank_cells": [
+      "H4 C5–6",
+      "H8 C5–6"
+    ],
+    "semantic_frame_count_verified": false,
+    "review": "Technical provenance only; no art/runtime acceptance."
+  }
+}
