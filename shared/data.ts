@@ -3795,7 +3795,7 @@ export const EQUIP_ENHANCE_STAT = 0.016;
 export const equipEnhanceClamp = (e: unknown) => Math.max(0, Math.min(EQUIP_MAX_ENHANCE, Math.floor(Number(e)) || 0));
 export const equipEnhanceMult = (enhance: number) => 1 + EQUIP_ENHANCE_STAT * Math.pow(equipEnhanceClamp(enhance), 1.5);
 
-/** Đá Cường Hóa I–V (`items.code`, gộp tối đa `stack`): `drop` = số đá mỗi lần rơi ở nhóm "đồ tạp" (EQUIP_DROP.ranks), `buy` = giá thương nhân (0 = không bán). */
+/** Đá Cường Hóa I–V (`items.code`, gộp tối đa `stack`): `drop` = số đá mỗi lần rơi ở nhóm "đồ tạp" (EQUIP_DROP.ranks), `buy` = giá thương nhân dự kiến, CHƯA DÙNG (không đâu đọc; đá chưa bán được, chờ chủ repo quyết). */
 export const EQUIP_STONES: { id: string; name: string; col: string; stack: number; drop: [number, number]; buy: number }[] = [
   { id: "da_cuong_hoa_1", name: "Đá Cường Hóa I",   col: "#b8c0c8", stack: 999, drop: [1, 3], buy: 40 },
   { id: "da_cuong_hoa_2", name: "Đá Cường Hóa II",  col: "#7fd0a0", stack: 999, drop: [1, 2], buy: 150 },
@@ -3818,7 +3818,7 @@ export const EQUIP_MATERIALS: { id: string; name: string; col: string; stack: nu
 /** Một nấc cường hóa. `to`: khoảng cấp ĐÍCH (+a … +b) dùng chung điều kiện; `fail`: keep giữ cấp, down tụt `n` cấp, reset về cấp `to` (nếu đang cao hơn), destroy phá hủy món (có Bùa Hộ Mệnh thì giữ cấp). */
 export interface EquipEnhanceStep { to: [number, number]; p: number; stone: number; qty: number; fee: number; fail: { kind: "keep" } | { kind: "down"; n: number } | { kind: "reset"; to: number } | { kind: "destroy" } }
 /**
- * **(chờ duyệt)** Bảng cường hóa theo cấp đích (stone = chỉ số trong EQUIP_STONES). Mỗi lần cố đều trừ đá và `fee` đồng Hồn Tệ, kể cả khi
+ * **(đã chốt, Q42)** Bảng cường hóa theo cấp đích (stone = chỉ số trong EQUIP_STONES). Mỗi lần cố đều trừ đá và `fee` đồng Hồn Tệ, kể cả khi
  * thất bại. +13–15 thất bại không có bùa PHÁ HỦY món: ngoại lệ có chủ đích với nguyên tắc "cường hóa hồn cốt / hồn hạch không thất bại" (mục 5.15).
  */
 export const EQUIP_ENHANCE: EquipEnhanceStep[] = [
@@ -3846,7 +3846,7 @@ export function equipEnhanceResult(enhance: number, ok: boolean, charm: boolean)
 }
 
 /**
- * **(chờ duyệt)** Hợp thành 3 → 1 ở Thợ rèn (1 món chính + 2 món hiến tế cùng bậc, cùng ô, không khoá, không đang mặc) ra 1 món bậc kế,
+ * **(đã chốt, Q42)** Hợp thành 3 → 1 ở Thợ rèn (1 món chính + 2 món hiến tế cùng bậc, cùng ô, không khoá, không đang mặc) ra 1 món bậc kế,
  * mẫu ngẫu nhiên cùng ô. `from`: bậc đầu vào; `p`: tỉ lệ; `fee`: Hồn Tệ (trừ cả khi thất bại); `essence`: Tinh Hoa Đường Môn tiêu hao;
  * thất bại: luôn mất 2 hiến tế; `mainLoss`: món chính mất ngần này cấp cường hóa (T3→T4); `all`: mất cả món chính (T4→T5) và hoàn `refund`
  * phần Tinh Hoa (làm tròn xuống). Thành công: món mới giữ EQUIP_SYNTH_KEEP phần cấp cường hóa của món chính (làm tròn xuống). Không có độ bền.
@@ -3874,7 +3874,7 @@ export function equipSynthOutcome(from: number, mainEnhance: number, ok: boolean
 export const EQUIP_SALVAGE_MAX = 50;
 
 /**
- * **(chờ duyệt)** Phân giải (không cho kinh nghiệm): Hồn Tệ = coin[bậc] × (1 + cấp cường hóa / 5), cộng nguyên liệu `mats` theo bậc
+ * **(đã chốt, Q42)** Phân giải (không cho kinh nghiệm): Hồn Tệ = coin[bậc] × (1 + cấp cường hóa / 5), cộng nguyên liệu `mats` theo bậc
  * (mỗi dòng: xác suất `p`, số lượng [lo, hi]; mã trong EQUIP_MATERIALS). Cấp cường hóa chỉ tăng phần Hồn Tệ.
  */
 export const EQUIP_SALVAGE: { coin: number; mats: { code: string; p: number; qty: [number, number] }[] }[] = [

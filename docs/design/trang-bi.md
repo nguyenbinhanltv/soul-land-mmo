@@ -44,7 +44,7 @@ Hệ trang bị phỏng theo Mir2 / Sabuk (10 ô, 6 bậc, cường hóa +15 có
 
 ### Nguyên liệu
 `ITEMS`, kind `nguyen_lieu`:
-- **Đá Cường Hóa I–V** (`EQUIP_STONES`): hồn thú rơi, phân giải ra; I–II có thể bán ở thương nhân.
+- **Đá Cường Hóa I–V** (`EQUIP_STONES`): hồn thú rơi, phân giải ra; chưa bán được ở thương nhân (chờ chủ repo quyết; `buy` trong `EQUIP_STONES` chưa dùng).
 - **Bùa Hộ Mệnh** (`EQUIP_CHARM`): chỉ từ rương thú vương / boss thế giới, không bán.
 - **Tinh Hoa Đường Môn** (`EQUIP_ESSENCE`): từ phân giải Thần Khí / Chí Bảo; chi phí hợp thành T4 → T5.
 - **Thần Hồn** (`EQUIP_SOUL`): từ phân giải Chí Bảo; dành cho khắc may mắn.
