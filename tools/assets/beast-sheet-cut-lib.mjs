@@ -123,6 +123,21 @@ export function blockFactors(idleHeightsByDir, anchors, scale, tol = 0.12, tolIn
   return out;
 }
 
+/**
+ * Chuẩn hóa cỡ GIỮA các khối hướng (#1085): cao thân idle sau khi thu của 5 hướng; nếu max/min vượt `spread` thì kéo khối lệch hơn `tol`
+ * so với TRUNG VỊ của 5 hướng về trung vị đó (kẹp 0,6–1,6). Neo chân không đổi (cutter đặt chân theo ISO_BEAST_FOOT, chỉ đổi hệ số thu).
+ * @param {Record<string, number>} heights cao idle sau thu theo hướng (0 / thiếu = bỏ qua)
+ * @returns {{ spread: number|null, target: number, active: boolean, factors: Record<string, number> }}
+ */
+export function equalizeBlocks(heights, spread = 1.3, tol = 0.15) {
+  const ds = Object.keys(heights).filter((d) => heights[d] > 0), v = ds.map((d) => heights[d]);
+  if (ds.length < 3) return { spread: null, target: 0, active: false, factors: {} };
+  const ratio = Math.max(...v) / Math.min(...v), target = median(v), factors = {};
+  const active = ratio > spread;
+  for (const d of ds) factors[d] = active && Math.abs(heights[d] / target - 1) > tol ? Math.min(1.6, Math.max(0.6, target / heights[d])) : 1;
+  return { spread: ratio, target, active, factors };
+}
+
 // ---------- Phân mức cảnh báo ----------
 export const LEVELS = ["info", "warn", "block"];
 /** Phân mức một dòng cảnh báo của cutter theo nội dung. block = phải sửa trước khi nhập; warn = nên xem; info = ồn / dự phòng, chỉ đếm. */
@@ -132,7 +147,7 @@ export function levelOf(msg, { gapGrid = true } = {}) {
   if (/hình vượt ô/.test(msg)) return gapGrid && !/dải dự phòng/.test(msg) ? "warn" : "info";
   if (/bị thay|ngoài kế hoạch|không có hình, bỏ qua/.test(msg)) return "warn";
   if (/chân lệch (\d+)%/.test(msg)) return +/chân lệch (\d+)%/.exec(msg)[1] >= 30 ? "warn" : "info";
-  if (/dời ngang|hệ số|--patch|lưới đều|dải hàng/.test(msg)) return "info";
+  if (/dời ngang|chuẩn hóa ×|hệ số|--patch|lưới đều|dải hàng/.test(msg)) return "info";
   return "warn"; // hình dính, mảnh rời lớn, ô trống, khung lệch, chạm mép ảnh nguồn / khung
 }
 export function summarize(items) {
