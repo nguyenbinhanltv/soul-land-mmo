@@ -1,0 +1,167 @@
+{
+  "workerProvenance": {
+    "task": "H4 #771 Tuyết Ma Viên tuyet_ma_vien B1",
+    "worker": "soul-land-mmo-120",
+    "owner": "soul-land-mmo-113",
+    "coordinator": "soul-land-mmo-44",
+    "status": "RAWFAIL",
+    "tool": "builtin image_gen.imagegen",
+    "tool_source_path": "/Users/thanhhoa/.codex/generated_images/01a175ec-3623-72b2-bd9f-0cf1a050dd47/exec-190bb6c3-f529-490d-9c20-038bf8d5ca73.png",
+    "raw": {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-120/tuyet_ma_vien-B1/tuyet_ma_vien-toB-B1-RAW.png",
+      "bytes": 2281629,
+      "sha256": "4389ecefb5c6517efd9c442bdacf1c0ab4a05943d9ea47a697a4ef8507d66d98"
+    },
+    "source_bytes_equal_copy": true,
+    "png": {
+      "signature_hex": "89504e470d0a1a0a",
+      "ihdr_length": 13,
+      "ihdr_hex": "000004e6000004e60802000000",
+      "width": 1254,
+      "height": 1254,
+      "bit_depth": 8,
+      "color_type": 2,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0
+    },
+    "requested_dimensions": [
+      1024,
+      1024
+    ],
+    "started_utc": "2026-10-26T01:57:14.189Z",
+    "returned_utc": "2026-10-26T01:57:55.922Z",
+    "image_model": "unknown; tool did not expose",
+    "seed": "unknown; tool did not expose",
+    "agent_label_user_supplied": "gpt6.1-sol medium; not evidence of image model",
+    "actual": {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-120/tuyet_ma_vien-B1/tuyet_ma_vien-toB.actual.txt",
+      "bytes": 4202,
+      "sha256": "84eaaa880edfd248046ea53c1313ebe9f33135a8e8848fc6f61a19928bb83e75"
+    },
+    "exact_sent": {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-120/tuyet_ma_vien-B1/tuyet_ma_vien-toB.exact-sent.txt",
+      "bytes": 4202,
+      "sha256": "84eaaa880edfd248046ea53c1313ebe9f33135a8e8848fc6f61a19928bb83e75"
+    },
+    "base": {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-120/tuyet_ma_vien-B1/tuyet_ma_vien-toB.base.txt",
+      "bytes": 3513,
+      "sha256": "e51f686affbe4911065581096bacfca0b6bff13b9a449c4519a87799531fa4e7"
+    },
+    "base_position_zero_based": 0,
+    "base_is_full_prefix": true,
+    "suffix_start_byte_zero_based": 3513,
+    "suffix_bytes": 689,
+    "generator_hash": "unknown; not executed, changed or hashed; hashes refer to prompt text files, not script or Markdown wrapper",
+    "reference_order": [
+      {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-120/tuyet_ma_vien-B1/tuyet_ma_vien-static.png",
+        "bytes": 5338,
+        "sha256": "67c9f665a06aa0601cc20691ef3135aa18405044f6b150842f7a84969db7fc92"
+      },
+      {
+        "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-120/tuyet_ma_vien-B1/tuyet_ma_vien-toA-A1-RAW.png",
+        "bytes": 2389382,
+        "sha256": "ed127a739e06fe5826343960244fb32eb38eae931c4e80b7c0523935c46bde82"
+      }
+    ],
+    "reference_original_paths": [
+      "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-118/tuyet_ma_vien-A1/tuyet_ma_vien-static.png",
+      "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-118/tuyet_ma_vien-A1/tuyet_ma_vien-toA-A1-RAW.png"
+    ],
+    "tool_arguments": {
+      "prompt_exact_file": "tuyet_ma_vien-toB.exact-sent.txt",
+      "referenced_image_paths": [
+        "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-118/tuyet_ma_vien-A1/tuyet_ma_vien-static.png",
+        "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-118/tuyet_ma_vien-A1/tuyet_ma_vien-toA-A1-RAW.png"
+      ],
+      "transparent_background": false
+    },
+    "counters": {
+      "builtin_calls_this_worker": 1,
+      "retry": 0,
+      "species_prior_A1": 1,
+      "species_total_after_B1": 2,
+      "B2": 0,
+      "other_species_calls": 0,
+      "spawn": 0
+    },
+    "anatomy_conflict": "ACTUAL retains standing on two legs vs thú bốn chân/four-legged trot. Best faith static anatomy per suffix; no redesign or generator edit.",
+    "slot_release": "Sent successfully to 113 and 44 immediately after tool return, then checkpoint before metadata/art assessment; report retried only to supply missing AO_SESSION_ID, not an image retry.",
+    "single_error": "toB — heading — N R7C2–C4 và R8C3–C4 quay lộ mặt/mắt thay vì giữ đầu hướng xa, lưng gần người xem.",
+    "acceptance": "No art/runtime acceptance. Pixel occupancy is not semantic figure count; exact 44 semantic figures and margins/feetline/background purity not certified.",
+    "postprocess": "none; byte copy only; no resize/crop/patch/cutter/layout/assembly/runtime",
+    "publishing": "owner113 handles publishing including FAIL; worker120 does not publish or change repository"
+  },
+  "integration": {
+    "workerId": "120",
+    "originalWorkerProvenancePath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-120/tuyet_ma_vien-B1/provenance.json",
+    "rawOriginalToolPath": "/Users/thanhhoa/.codex/generated_images/01a175ec-3623-72b2-bd9f-0cf1a050dd47/exec-190bb6c3-f529-490d-9c20-038bf8d5ca73.png",
+    "rawShippingPath": "art/src/beast-anim/tuyet_ma_vien/toB.png",
+    "rawSha256": "4389ecefb5c6517efd9c442bdacf1c0ab4a05943d9ea47a697a4ef8507d66d98",
+    "rawBytes": 2281629,
+    "IHDR": {
+      "width": 1254,
+      "height": 1254,
+      "payloadHex": "000004e6000004e60802000000"
+    },
+    "requestedSize": [
+      1024,
+      1024
+    ],
+    "exactActualPromptPath": "art/src/beast-anim/tuyet_ma_vien/toB.prompt.txt",
+    "exactActualPromptSha256": "84eaaa880edfd248046ea53c1313ebe9f33135a8e8848fc6f61a19928bb83e75",
+    "basePromptPath": "art/src/beast-anim/tuyet_ma_vien/toB.base.txt",
+    "basePromptSha256": "e51f686affbe4911065581096bacfca0b6bff13b9a449c4519a87799531fa4e7",
+    "generatorPath": "tools/assets/beast-sheet-prompt.mjs",
+    "generatorSha256": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba",
+    "generatorMarkdownPath": "art/src/beast-anim/tuyet_ma_vien/tuyet_ma_vien-toB.md",
+    "generatorMarkdownSha256": "584e3417b4036f874bd8eda64704cd595bc64475d8c8e0343ebe679f29c054f4",
+    "baseExtraction": {
+      "startByteZeroBased": 2128,
+      "endByteExclusive": 5641,
+      "trimmed": false
+    },
+    "clarifier": {
+      "position": "suffix",
+      "prefix": "",
+      "suffix": "\n\nDIRECTION AND POSE CLARIFICATION: Keep the exact creature anatomy of reference image 1; do not redesign it to match generic family wording. In every animation row, keep the specified direction. SE faces lower-right, clearly distinct from E side profile; NE faces upper-right with the back visible; N shows the rear in all four rows, including attack, hurt and death. HURT frames must visibly recoil backward. Keep a flat #FF00FF background, no letters, labels or grid lines. Request exactly 1024x1024 pixels. Match the creature design, colors, body size and line weight of reference image 2 (sheet A) exactly; preserve the same body size as A, not a larger body because B has fewer rows.",
+      "baseStartByteZeroBased": 0,
+      "suffixStartByteZeroBased": 3513
+    },
+    "generatorInputHashes": {
+      "tools/assets/beast-sheet-prompt.mjs": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba",
+      "tools/assets/beast-sheet-lib.mjs": "16f13e9bbabaedb495671d5cbfcab4cc0f30b8e9529cefe5e9c5ead919e914a7",
+      "tools/assets/lib.mjs": "9f478b04b1ccfd9ce5cf447be5038b668886b38035b8e9fcf0d603acbbd2dd7c",
+      "docs/art/hon-thu-hoat-anh.md": "be83e519cb7db7126b42781dc02b13b1d306bc286e1c3fca8e9cc65b2b8d83d1",
+      "art/CREDITS.md": "6be9a475ee6e46997a375e58ad4a6924878f9e9dfa30eb94d4933c393273fa61",
+      "shared/data.ts": "a79619376f595c4a9ef24ed280f919b63f2e05b7e6ec0c867992cb297fc1160a",
+      "client/src/sprites.ts": "d84f83626bad0309e2eecd665f4d82a997333d97f890f3588eb616643c3f1e66",
+      "shared/assets/sprites/manifest.json": "5c979fd4042514250cdc2e48e99d683ce8dc39331147bf4e8e183c3ab563775a"
+    },
+    "actualReferencesInToolOrder": [
+      {
+        "order": 1,
+        "role": "static identity",
+        "actualToolAttachedPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-118/tuyet_ma_vien-A1/tuyet_ma_vien-static.png",
+        "sha256": "67c9f665a06aa0601cc20691ef3135aa18405044f6b150842f7a84969db7fc92"
+      },
+      {
+        "order": 2,
+        "role": "same-species A1 STYLE/body size only; RAWFAIL",
+        "actualToolAttachedPath": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-118/tuyet_ma_vien-A1/tuyet_ma_vien-toA-A1-RAW.png",
+        "sha256": "ed127a739e06fe5826343960244fb32eb38eae931c4e80b7c0523935c46bde82"
+      }
+    ],
+    "anatomyConflictAssessment": "Xung đột hình thể: ảnh tĩnh là vượn trắng hai tay/hai chân, nhưng generator họ quad yêu cầu four-legged trot và bite. Giữ nguyên base; clarifier ưu tiên hình thể tham chiếu, không đổi thành sói hoặc thú bốn chân mới.",
+    "callsThisFreshWorker": 1,
+    "retry": 0,
+    "speciesTotalAfterPair": 2,
+    "postprocessing": false,
+    "knownFailureLine": "LỖI: toB — size/heading — toàn tờ, R7C2–4 và R8C3–4/N — RAW 1254×1254 khác yêu cầu 1024×1024; attack/death lộ mặt/mắt thay vì giữ đầu quay xa, giữ RAW không retry.",
+    "artAccepted": false,
+    "runtimeAccepted": false,
+    "imported": false
+  }
+}
