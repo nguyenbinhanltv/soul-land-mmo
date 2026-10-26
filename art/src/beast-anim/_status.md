@@ -2,7 +2,7 @@
 
 File này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-status.mjs`); **không sửa tay**, không dán bảng tay vào issue. Mức theo khối hướng là kết quả `beast:check` (cỡ, nền, lưới, số hình, chân, cỡ thân, khung chết); `n` / `ne` lộ mặt, hurt ngửa bụng, die xoay chỉ xem bằng mắt (tờ liên hệ).
 
-29 loài có thư mục · 6 đã nhập vào game · 21 sẵn sàng nhập · 1 chưa có tờ · 7 có khối chặn
+30 loài có thư mục · 6 đã nhập vào game · 22 sẵn sàng nhập · 1 chưa có tờ · 7 có khối chặn
 
 | Loài | Mã | Bố cục | Tờ (cỡ, mức) | s | se | e | ne | n | Thiếu | Nhập game | Trạng thái |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -23,6 +23,7 @@ File này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-statu
 | Phong Lang | `phong_lang` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | nhẹ | nhẹ | nhẹ | nhẹ | nhẹ | - | đã nhập | sẵn sàng nhập |
 | Phong Lang con | `phong_lang_con` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | nhẹ | đạt | đạt | đạt | nhẹ | - | chưa | sẵn sàng nhập |
 | Quỷ Ảnh Báo | `quy_anh_bao` | sheet | A 1024×1536 **chặn**<br>B 1254×1254 nhẹ | nhẹ | đạt | **chặn** | đạt | nhẹ | - | chưa | có khối chặn |
+| Quỷ Diện Hải Yêu | `quy_dien_hai_yeu` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 đạt | nhẹ | nhẹ | đạt | đạt | đạt | - | chưa | sẵn sàng nhập |
 | Quỷ Hổ | `quy_ho` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | đạt | nhẹ | đạt | đạt | nhẹ | - | chưa | sẵn sàng nhập |
 | Thái Thản Cự Viên | `thai_than_cu_vien` | sheet | A 1536×1024 đạt<br>B 1536×1024 nhẹ<br>C 1536×1024 **chặn**<br>D 1536×1024 **chặn**<br>E 1536×1024 đạt | đạt | nhẹ | **chặn** | **chặn** | đạt | - | đã nhập | có khối chặn |
 | Thanh Lân Ngạc | `thanh_lan_ngac` | sheet | A 1024×1536 **chặn**<br>B 1254×1254 nhẹ | **chặn** | nhẹ | đạt | nhẹ | nhẹ | - | chưa | có khối chặn |
@@ -133,6 +134,12 @@ LỖI: toB — chân lệch / cỡ thân lệch — H8 (n) C4, H5–8 (n) — ch
 ```
 LỖI: toA — hình dính / cỡ thân lệch — H11 (e), H1–4 (s), H9–12 (e) — dải có 5 hình, cần 6: hình dính nhau; cỡ thân idle 85% so với ảnh tĩnh (lệch 15%); cỡ thân idle 132% so với ảnh tĩnh (lệch > 25%).
 LỖI: toB — cỡ thân lệch — H5–8 (n) — cỡ thân idle 81% so với ảnh tĩnh (lệch 19%).
+```
+
+### Quỷ Diện Hải Yêu (`quy_dien_hai_yeu`)
+
+```
+LỖI: toA — cỡ thân lệch — H1–4 (s), H5–8 (se) — cỡ thân idle 120% so với ảnh tĩnh (lệch 20%); cỡ thân idle 110% so với ảnh tĩnh (lệch 10%).
 ```
 
 ### Quỷ Hổ (`quy_ho`)
