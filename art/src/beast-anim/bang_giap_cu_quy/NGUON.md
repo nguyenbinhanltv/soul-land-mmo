@@ -30,3 +30,11 @@ A reference duy nhất static đúng loài (identity). B xem/đính đúng stati
 - other: No visible labels/grid/text/aura/weapons/other species. B2 r4c4 anatomy suspect.
 
 Owner repo cắt/preview/duyệt/nhập game. Worker chỉ bàn giao raw, chưa khẳng định hướng/anatomy/loop/runtime hoặc kích thước B đạt. Không sửa loài khác, runtime, client, manifest, server/shared/DB/balance.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/bang_giap_cu_quy/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Băng Giáp Cự Quy (H4 #767): raw `art/src/beast-anim/bang_giap_cu_quy/toA.png` (1024×1536, fresh worker69, A2/2) và `toB.png` (1254×1254 thực tế, sai yêu cầu1024×1024, fresh worker71, B2/2), tthoadev sinh ngày2026-10-26 bằng builtin `image_gen.imagegen`. A reference static identity; B reference static identity + A2 style-only candidate. Model/seed unknown, không có size selector. Giữ nguyên byte, không hậu kỳ. [Nguồn/knownissues](src/beast-anim/bang_giap_cu_quy/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json` cùng thư mục. Chưa owner duyệt mỹ thuật/runtime hoặc BsizeH4; tổng batch4/10 raw khi nộp cặp này. | - | Chuyển một lần từ art/CREDITS.md (#973) |

@@ -32,6 +32,8 @@ interface Reward { items: Item[]; honTeAfter: number; bag: Bag; honTe: number; c
 const BLOCKED = ["auto", "absorb", "pickup", "discard", "team", "travel", "wp", "use", "open", "unlock", "starup", "equip", "unequip", "equipcore",
   "unequipcore", "equipgear", "unequipgear", "equipenh", "equipenhpreview", "equipluck", "equipluckpreview","equipsynth", "equipsalvage", "enhance", "enhancecore", "talk", "buy", "sell", "buyback", "expand", "shardbuy", "loadout",
   "fusion"]; // Võ Hồn Dung Hợp Kỹ cấm trong sân, kể cả 2v2 (#192, #178)
+/** Cùng một câu báo từ chối chỉ gửi lại cho một người sau chừng này mili giây (J / Space giữ phím, bấm dồn không tràn log). */
+const DENY_GAP_MS = 1000;
 const REASON_TEXT: Record<Reason, string> = { ko: "hạ hết đội võ hồn", time: "hết giờ, so sinh lực cả đội", leave: "đối thủ rời sân", noshow: "đối thủ không vào sân" };
 /** Mã đóng kết nối khi trận đã xong và hết ARENA.endSecs: client tự quay về bản đồ cũ. */
 export const ARENA_END_CODE = 4005;
@@ -49,6 +51,8 @@ export class ArenaRoom extends MapRoom {
   sides: Side[] = [];
   /** Trận đã có kết quả (finish chỉ chạy một lần); `kicked`: đã đưa mọi người ra khỏi sân. */
   done = false; kicked = false;
+  /** Lần gần nhất báo từ chối theo `người:loại` (deny). */
+  private denyAt = new Map<string, number>();
   syncT = 0;
   /** Người xem trực tiếp (#278): phiên -> tài khoản. Không có PlayerState / PData, mọi message bị bỏ qua trừ `arena {op: "unwatch"}`. */
   watchers = new Map<string, number>();
@@ -85,7 +89,7 @@ export class ArenaRoom extends MapRoom {
         sides: this.sides.map((x) => ({ name: x.members.map((member) => member.name).join(" / "), elo: x.elo })), phase: this.phase, secs: this.state.time });
       this.liveOpen = true;
     } catch (e) { console.error("Không ghi được trận vào sổ xem trận", e); }
-    for (const t of BLOCKED) this.onMessage(t, (c) => this.log(c.sessionId, "Đang ở Đại Đấu Hồn Trường: không làm được việc này trong trận.", "#ffb35c"));
+    for (const t of BLOCKED) this.onMessage(t, (c) => this.deny(c.sessionId, t, "Đang ở Đại Đấu Hồn Trường: không làm được việc này trong trận."));
     this.onMessage("quest", (c, msg: { op: unknown }) => {
       if (msg?.op === "get") this.askQuest(c.sessionId); else this.log(c.sessionId, "Đang ở Đại Đấu Hồn Trường: nhiệm vụ để sau trận.", "#ffb35c");
     });
@@ -213,13 +217,21 @@ export class ArenaRoom extends MapRoom {
     const i = this.sides.findIndex((x) => x.members.some((member) => member.sid === id)), o = i >= 0 ? this.sides[1 - i] : undefined;
     return o?.members.map((member) => member.sid).filter((sid) => !!sid && this.state.players.has(sid)) ?? [];
   }
-  attack(id: string) { if (this.phase === "fight") super.attack(id); }
+  /** Báo lý do từ chối một thao tác ngoài pha giao đấu, giới hạn DENY_GAP_MS mỗi người mỗi loại (`key`). */
+  private deny(id: string, key: string, text: string) {
+    const k = `${id}:${key}`, now = Date.now();
+    if (now - (this.denyAt.get(k) ?? 0) < DENY_GAP_MS) return;
+    this.denyAt.set(k, now); this.log(id, text, "#ffb35c");
+  }
+  /** Câu báo khi chưa phải pha giao đấu: đã kết thúc hay còn chờ / đếm ngược. */
+  private notFight() { return this.phase === "end" ? "Trận đấu đã kết thúc." : "Chưa vào trận: đợi đếm ngược xong."; }
+  attack(id: string) { if (this.phase === "fight") super.attack(id); else this.deny(id, "attack", this.notFight()); }
   skill(c: Client, i: number) {
-    if (this.phase !== "fight") return this.log(c.sessionId, this.phase === "end" ? "Trận đấu đã kết thúc." : "Chưa vào trận: đợi đếm ngược xong.", "#ffb35c");
+    if (this.phase !== "fight") return this.log(c.sessionId, this.notFight(), "#ffb35c");
     super.skill(c, i);
   }
   boneSkill(c: Client, i: number) {
-    if (this.phase !== "fight") return this.log(c.sessionId, this.phase === "end" ? "Trận đấu đã kết thúc." : "Chưa vào trận: đợi đếm ngược xong.", "#ffb35c");
+    if (this.phase !== "fight") return this.log(c.sessionId, this.notFight(), "#ffb35c");
     super.boneSkill(c, i);
   }
   /**
@@ -227,7 +239,7 @@ export class ArenaRoom extends MapRoom {
    * nằm trong dữ liệu riêng của phòng, không lưu DB: vào sân thì như mới, rời sân về bản đồ cũng không mang theo.
    */
   chanThan(c: Client) {
-    if (this.phase !== "fight") return this.log(c.sessionId, this.phase === "end" ? "Trận đấu đã kết thúc." : "Chưa vào trận: đợi đếm ngược xong.", "#ffb35c");
+    if (this.phase !== "fight") return this.log(c.sessionId, this.notFight(), "#ffb35c");
     super.chanThan(c);
   }
   switchSlot(c: Client, slot: number) { if (this.phase !== "end") super.switchSlot(c, slot); }

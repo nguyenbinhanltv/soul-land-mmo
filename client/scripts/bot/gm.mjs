@@ -1,6 +1,6 @@
 // Nhóm bot "gm" (#703 bước 2, tách nguyên văn từ bot-test.mjs).
 import { RING_ITEM, BEASTS, BONE_ITEM, CORE_ITEM, EQUIP_ITEM, formatHonTe, AUTO_TOKEN } from "../../../shared/data.ts";
-import { bot, test, enter, ok, post, sleep, waitFor } from "./lib.mjs";
+import { bot, test, enter, ok, post, sleep, waitFor, needHookSkip } from "./lib.mjs";
 
 /**
  * Lệnh GM (#518, BOT_ONLY=gm): tài khoản thường gửi lệnh bị từ chối và không đổi gì; admin (hook `gmadmin`, vì bot không biết trước mã tài khoản) dùng được
@@ -11,7 +11,7 @@ export async function gmTest(){
   console.log("[#518] Lệnh GM của tài khoản admin");
   const N=await bot("GM thường","kim_vu_mieu_ung",{sex:1,hair:0,hairCol:1,outfitCol:1});
   const G=await bot("GM admin","yeu_ho",{sex:0,hair:1,hairCol:2,outfitCol:3});
-  if(!(await test(G,"ping"))?.enabled){ console.log("  ⚠ bỏ qua lệnh GM (cần hook gmadmin): bật server bằng GAME_TEST=1"); await N.room.leave(); await G.room.leave(); return; }
+  if(!(await test(G,"ping"))?.enabled){ needHookSkip("bỏ qua lệnh GM (cần hook gmadmin): bật server bằng GAME_TEST=1"); await N.room.leave(); await G.room.leave(); return; }
   const me=b=>b.room.state.players?.get(b.room.sessionId);
   const gm=async(b,cmd)=>{ const l=b.logs.length; b.room.send("gm",{cmd}); await waitFor(()=>b.logs.length>l,2000); await sleep(150); return b.logs.slice(l).join(" | "); };
   await waitFor(()=>me(N)&&N.bag&&me(G)&&G.bag,4000);

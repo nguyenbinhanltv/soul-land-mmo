@@ -25,3 +25,11 @@ Quan sát toàn ảnh cho thấy lưới A khoảng6×12 và B khoảng6×8. S�
 Mâu thuẫn giữ nguyên: ô171×6=1026 khác canvas1024, phần nối yêu cầu chia đều canvas; static pixel nét nhỏ khác base hand-painted/viền dày; hurt eyes-shut trong khi N không được lộ mặt/mắt; collapse sideways có thể đổi yaw. Giữ cả input gốc và clarification, ghi sai khác thật, không thiết kế lại hoặc suy owner đã chốt anatomy/pose.
 
 Nguồn/giấy phép theo Q44 và `docs/art/nguon-giay-phep.md`. Output ChatGPT/Codex không tự gán CC0/CC. Static là ảnh dự án có nguồn trong CREDITS. RAW FAIL nộp để owner xem sau; không sửa static/shared/manifest/client/server/cân bằng, không tự merge/import hoặc đóng #769/#766.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/quy_ho/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Quỷ Hổ (H4 #769): RAW `art/src/beast-anim/quy_ho/toA.png` (1024×1536 IHDR, A1/1, session103) và `toB.png` (1254×1254 IHDR, sai yêu cầu 1024×1024, B1/1, session105), tthoadev sinh ngày 2026-10-26 bằng builtin imagegen. A static identity; B ordered static103 rồi A103 style/body known FAIL. Model ảnh/seed unknown, cỡ chỉ yêu cầu qua prompt. Nguyên byte, không hậu kỳ/cắt/resize. [Nguồn/lỗi](src/beast-anim/quy_ho/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json`; A giữ tool-provenance/evidence103, B source do owner93 biên soạn minh bạch từ HANDOFF105 và kiểm chứng byte/hash. Q44/điều khoản công cụ, không tự gán CC0. Còn lỗi cỡ B/nền/heading/hurt/style; chưa art/runtime acceptance. Phần cuối 2 tờ, Part of #769 và #766. | - | Chuyển một lần từ art/CREDITS.md (#973) |

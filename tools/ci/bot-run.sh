@@ -2,7 +2,7 @@
 # Một lượt bot trên server mới bật (chế độ RAM, không DATABASE_URL), dùng cho job bot-ram của CI (.github/workflows/check.yml).
 # Cách gọi: tools/ci/bot-run.sh <tên lượt> [BIẾN=giá trị ...]   (biến môi trường thêm cho server, ví dụ CHANNEL_MAX=2)
 # Server: GAME_TEST=1, cổng BOT_PORT (mặc định 3141); BOT_PART (nếu đặt) tới bot để chạy một nhóm; log ở ci-logs/<tên lượt>-server.log và ci-logs/<tên lượt>-bot.log.
-# Mã thoát: của bot (khác 0 khi có dòng ✗), hoặc 1 nếu server không sẵn sàng / chết giữa chừng.
+# Bot chạy với BOT_STRICT_HOOK=1: bài bị bỏ qua vì thiếu hook test ghi ✗ (không chỉ ⚠). Mã thoát: của bot (khác 0 khi có dòng ✗), hoặc 1 nếu server không sẵn sàng / chết giữa chừng.
 set -uo pipefail
 name=$1; shift
 port=${BOT_PORT:-3141}
@@ -26,7 +26,7 @@ if ! curl -sf "http://localhost:$port/health" >/dev/null; then echo "✗ [$name]
 echo "[$name] server sẵn sàng sau ~$((i / 2)) giây: $(curl -s "http://localhost:$port/health")"
 
 start=$SECONDS
-(cd "$root/client" && SERVER_URL="http://localhost:$port" npm run bot) 2>&1 | tee "$blog"
+(cd "$root/client" && BOT_STRICT_HOOK=1 SERVER_URL="http://localhost:$port" npm run bot) 2>&1 | tee "$blog"
 code=${PIPESTATUS[0]}
 echo "[$name] bot xong sau $((SECONDS - start)) giây, mã thoát $code"
 if ! kill -0 "$pid" 2>/dev/null; then echo "✗ [$name] server đã chết trong lúc chạy bot"; code=1; fi

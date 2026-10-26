@@ -20,3 +20,11 @@ Owner cho phép nộp raw còn lỗi tại [comment PR #709](https://github.com/
 - B lượt 2: đông-bắc vẫn quá gần ngang, chưa thể hiện rõ lưng nghiêng 45°. Cỡ raw khác prompt đã được owner cho phép nộp để cắt thử, không đồng nghĩa đạt mỹ thuật.
 - `assignToCells` (`tools/assets/beast-sheet-cut.mjs`) và `cellRect` (`beast-sheet-lib.mjs`) đều chia ô theo `w/cols`, `h/rows` của ảnh thực. Với B, ô thực là 209×156,75 px. Không sửa tool để tiếp nhận ảnh.
 - H3/cắt/GIF preview, ghi ô sai và quyết định duyệt thuộc orchestrator chủ repo. Chưa làm Kim Linh Ưng hay Thái Thản Cự Viên, không đóng #691.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/phong_lang/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Phong Lang: `art/src/beast-anim/phong_lang/toA.png` (1024×1536, lượt 3), `toB.png` (1254×1254, lượt 2); tthoadev sinh ngày 2026-10-25 bằng `image_gen.imagegen` tích hợp Codex, chỉ tham chiếu ảnh tĩnh gốc `shared/assets/sprites/beast/phong_lang.png`. Công cụ không cung cấp model ID hoặc seed. Ảnh nguyên byte, chưa cắt/hậu kỳ, chưa duyệt mỹ thuật. Prompt đầy đủ và provenance tại [NGUON.md](src/beast-anim/phong_lang/NGUON.md), `toA-prompt.txt`, `toB-prompt.txt` cùng thư mục. Owner cho phép nộp raw còn lỗi để cắt thử tại PR #709; đã cắt và nhập vào game ở `beast_phong_lang_anim` (Part of #688, #691). | - | Chuyển một lần từ art/CREDITS.md (#973) |

@@ -1,6 +1,6 @@
 // Nhóm bot "shardBuy" (#703 bước 2, tách nguyên văn từ bot-test.mjs).
 import { SHARD_BUY, shardBuyPrice, shardBuyCost, formatHonTe, ARENA_SHARDS, VOHON, vohonIndex, npcDef, SHARD_SELL, MAPS, shardCode, RING_ITEM, starCost, SHARD_UNLOCK } from "../../../shared/data.ts";
-import { same, bot, test, looseOf, enter, trade, qtyOf, npcSpot, talk, bagKey, ok, post, sleep, waitFor } from "./lib.mjs";
+import { same, bot, test, looseOf, enter, trade, qtyOf, npcSpot, talk, bagKey, ok, post, sleep, waitFor, needHookSkip } from "./lib.mjs";
 
 /**
  * #282 Thương hội Thiên Đấu đổi mảnh võ hồn (bot riêng M; BOT_ONLY=shardbuy, nhóm 5): giá tăng dần, chỉ mảnh SR / SSR (không UR, không Lam
@@ -16,7 +16,7 @@ export async function shardBuyTest(){
     `chỉ ${ARENA_SHARDS.length} võ hồn SR / SSR (không UR, không Lam Ngân Thảo), ở ${npcDef(K.npc)?.name} · ${npcDef(K.npc)?.title}`);
   ok(Math.max(...Object.values(SHARD_SELL))*K.daily<P[0],`không vòng in tiền: thương nhân mua lại mảnh tối đa ${formatHonTe(Math.max(...Object.values(SHARD_SELL)))}`);
   const M=await bot("Mua mảnh","u_minh_linh_mieu",{sex:1,hair:1,hairCol:3,outfitCol:0});
-  if(!(await test(M,"ping"))?.enabled){ console.log("  ⚠ bỏ qua Thương hội đổi mảnh (cần hook warp, coin, give, day, claims): bật server bằng GAME_TEST=1"); await M.room.leave(); return; }
+  if(!(await test(M,"ping"))?.enabled){ needHookSkip("bỏ qua Thương hội đổi mảnh (cần hook warp, coin, give, day, claims): bật server bằng GAME_TEST=1"); await M.room.leave(); return; }
   const TD="thien_dau_thanh", me=()=>M.room.state.players?.get(M.room.sessionId), loose=()=>looseOf(M);
   try{
   await waitFor(()=>me()&&M.bag,3000);
