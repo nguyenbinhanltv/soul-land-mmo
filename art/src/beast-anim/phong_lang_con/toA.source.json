@@ -1,0 +1,1886 @@
+{
+  "task": "ARTIFACT-ONLY H4#769",
+  "session": "soul-land-mmo-98",
+  "owner": "soul-land-mmo-93",
+  "orchestrator": "soul-land-mmo-44",
+  "species": "phong_lang_con",
+  "sheet": "A1",
+  "status": "FAIL",
+  "base_source": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-93/prompts/phong_lang_con-toA.prompt.txt",
+  "base_sha256": "bfcc3606177822c20dca5e7a3f8753513821bcc970f69c44f1dd3b47b9d2cd1c",
+  "exact_prompt_file": "exact-prompt.txt",
+  "exact_prompt_sha256": "bfcc3606177822c20dca5e7a3f8753513821bcc970f69c44f1dd3b47b9d2cd1c",
+  "base_prefix_preserved": true,
+  "base_full_block_unchanged": true,
+  "prompt_appendix": null,
+  "references_ordered": [
+    {
+      "order": 1,
+      "role": "static identity reference only",
+      "source": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-93/shared/assets/sprites/beast/phong_lang_con.png",
+      "durable_copy": "refs/phong_lang_con-static.png",
+      "sha256": "880962e646524962dad5bc05312f49c7593e6bf44a9901fb5b577a117097a2a9",
+      "bytes": 1534,
+      "viewed_before_call": true
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a175b9-182c-72c2-834a-0740109739bb/exec-b22c79ce-8c0e-4a86-a4cd-f6c997ee807c.png",
+  "raw_file": "phong_lang_con-A1-RAW.png",
+  "measurement": {
+    "actual_size": [
+      1024,
+      1536
+    ],
+    "IHDR": {
+      "width": 1024,
+      "height": 1536,
+      "bit_depth": 8,
+      "color_type": 2,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0
+    },
+    "raw_bytes": 1774526,
+    "raw_sha256": "bd641523725ab8b021d004da78f03959e3020e28ef81f1d97745e93d655e2faa",
+    "original_byte_identical": true,
+    "requested_grid": [
+      6,
+      12
+    ],
+    "measurement_grid_note": "Biên ô tính floor(c*1024/6), floor(r*1536/12); không tạo ảnh cắt hay đổi RAW. Ô rộng 170/171 px, cao 128 px.",
+    "exact_nonmagenta_occupied_cells": 72,
+    "foreground_candidate_rule": "RGB.G > 60 OR RGB.R < 170 OR RGB.B < 170; chỉ đo đọc, không biến đổi ảnh; không phải bộ nhận dạng hình.",
+    "candidate_occupied_cells": 66,
+    "semantic_figures_visual_count": 66,
+    "semantic_count_method": "Đếm bằng mắt trên ảnh toàn tờ, tách khỏi đếm pixel.",
+    "candidate_empty_cells": [
+      "R4C5",
+      "R4C6",
+      "R8C5",
+      "R8C6",
+      "R12C5",
+      "R12C6"
+    ],
+    "dominant_colors": [
+      {
+        "rgb": [
+          251,
+          3,
+          249
+        ],
+        "count": 195768
+      },
+      {
+        "rgb": [
+          251,
+          3,
+          250
+        ],
+        "count": 117872
+      },
+      {
+        "rgb": [
+          252,
+          4,
+          250
+        ],
+        "count": 116966
+      },
+      {
+        "rgb": [
+          252,
+          3,
+          250
+        ],
+        "count": 112924
+      },
+      {
+        "rgb": [
+          251,
+          4,
+          250
+        ],
+        "count": 80103
+      },
+      {
+        "rgb": [
+          252,
+          3,
+          249
+        ],
+        "count": 75633
+      },
+      {
+        "rgb": [
+          251,
+          4,
+          249
+        ],
+        "count": 69796
+      },
+      {
+        "rgb": [
+          252,
+          4,
+          249
+        ],
+        "count": 51044
+      }
+    ],
+    "cell_measurements": [
+      [
+        {
+          "cell": "R1C1",
+          "bounds_xyxy_exclusive": [
+            0,
+            0,
+            170,
+            128
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 2450,
+          "candidate_bbox_xyxy_inclusive": [
+            58,
+            41,
+            102,
+            120
+          ],
+          "margin_fraction_ltrb": [
+            0.3411764705882353,
+            0.3203125,
+            0.3941176470588235,
+            0.0546875
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0546875
+        },
+        {
+          "cell": "R1C2",
+          "bounds_xyxy_exclusive": [
+            170,
+            0,
+            341,
+            128
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 2599,
+          "candidate_bbox_xyxy_inclusive": [
+            231,
+            39,
+            272,
+            120
+          ],
+          "margin_fraction_ltrb": [
+            0.3567251461988304,
+            0.3046875,
+            0.39766081871345027,
+            0.0546875
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0546875
+        },
+        {
+          "cell": "R1C3",
+          "bounds_xyxy_exclusive": [
+            341,
+            0,
+            512,
+            128
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 2622,
+          "candidate_bbox_xyxy_inclusive": [
+            403,
+            39,
+            444,
+            121
+          ],
+          "margin_fraction_ltrb": [
+            0.36257309941520466,
+            0.3046875,
+            0.391812865497076,
+            0.046875
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.046875
+        },
+        {
+          "cell": "R1C4",
+          "bounds_xyxy_exclusive": [
+            512,
+            0,
+            682,
+            128
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 2626,
+          "candidate_bbox_xyxy_inclusive": [
+            574,
+            39,
+            616,
+            121
+          ],
+          "margin_fraction_ltrb": [
+            0.36470588235294116,
+            0.3046875,
+            0.38235294117647056,
+            0.046875
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.046875
+        },
+        {
+          "cell": "R1C5",
+          "bounds_xyxy_exclusive": [
+            682,
+            0,
+            853,
+            128
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 3446,
+          "candidate_bbox_xyxy_inclusive": [
+            732,
+            37,
+            806,
+            121
+          ],
+          "margin_fraction_ltrb": [
+            0.29239766081871343,
+            0.2890625,
+            0.26900584795321636,
+            0.046875
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.046875
+        },
+        {
+          "cell": "R1C6",
+          "bounds_xyxy_exclusive": [
+            853,
+            0,
+            1024,
+            128
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 3343,
+          "candidate_bbox_xyxy_inclusive": [
+            900,
+            50,
+            976,
+            121
+          ],
+          "margin_fraction_ltrb": [
+            0.27485380116959063,
+            0.390625,
+            0.27485380116959063,
+            0.046875
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.046875
+        }
+      ],
+      [
+        {
+          "cell": "R2C1",
+          "bounds_xyxy_exclusive": [
+            0,
+            128,
+            170,
+            256
+          ],
+          "pixels_not_exact_FF00FF": 21759,
+          "foreground_candidate_pixels": 2568,
+          "candidate_bbox_xyxy_inclusive": [
+            62,
+            157,
+            101,
+            246
+          ],
+          "margin_fraction_ltrb": [
+            0.36470588235294116,
+            0.2265625,
+            0.4,
+            0.0703125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0703125
+        },
+        {
+          "cell": "R2C2",
+          "bounds_xyxy_exclusive": [
+            170,
+            128,
+            341,
+            256
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 2571,
+          "candidate_bbox_xyxy_inclusive": [
+            233,
+            157,
+            272,
+            246
+          ],
+          "margin_fraction_ltrb": [
+            0.3684210526315789,
+            0.2265625,
+            0.39766081871345027,
+            0.0703125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0703125
+        },
+        {
+          "cell": "R2C3",
+          "bounds_xyxy_exclusive": [
+            341,
+            128,
+            512,
+            256
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 2651,
+          "candidate_bbox_xyxy_inclusive": [
+            405,
+            157,
+            445,
+            246
+          ],
+          "margin_fraction_ltrb": [
+            0.3742690058479532,
+            0.2265625,
+            0.38596491228070173,
+            0.0703125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0703125
+        },
+        {
+          "cell": "R2C4",
+          "bounds_xyxy_exclusive": [
+            512,
+            128,
+            682,
+            256
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 2575,
+          "candidate_bbox_xyxy_inclusive": [
+            577,
+            157,
+            616,
+            246
+          ],
+          "margin_fraction_ltrb": [
+            0.38235294117647056,
+            0.2265625,
+            0.38235294117647056,
+            0.0703125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0703125
+        },
+        {
+          "cell": "R2C5",
+          "bounds_xyxy_exclusive": [
+            682,
+            128,
+            853,
+            256
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 2569,
+          "candidate_bbox_xyxy_inclusive": [
+            748,
+            157,
+            787,
+            245
+          ],
+          "margin_fraction_ltrb": [
+            0.38596491228070173,
+            0.2265625,
+            0.38011695906432746,
+            0.078125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.078125
+        },
+        {
+          "cell": "R2C6",
+          "bounds_xyxy_exclusive": [
+            853,
+            128,
+            1024,
+            256
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 2614,
+          "candidate_bbox_xyxy_inclusive": [
+            920,
+            157,
+            959,
+            245
+          ],
+          "margin_fraction_ltrb": [
+            0.391812865497076,
+            0.2265625,
+            0.3742690058479532,
+            0.078125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.078125
+        }
+      ],
+      [
+        {
+          "cell": "R3C1",
+          "bounds_xyxy_exclusive": [
+            0,
+            256,
+            170,
+            384
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 2779,
+          "candidate_bbox_xyxy_inclusive": [
+            51,
+            289,
+            105,
+            365
+          ],
+          "margin_fraction_ltrb": [
+            0.3,
+            0.2578125,
+            0.3764705882352941,
+            0.140625
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.140625
+        },
+        {
+          "cell": "R3C2",
+          "bounds_xyxy_exclusive": [
+            170,
+            256,
+            341,
+            384
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 2633,
+          "candidate_bbox_xyxy_inclusive": [
+            226,
+            281,
+            276,
+            369
+          ],
+          "margin_fraction_ltrb": [
+            0.32748538011695905,
+            0.1953125,
+            0.3742690058479532,
+            0.109375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.109375
+        },
+        {
+          "cell": "R3C3",
+          "bounds_xyxy_exclusive": [
+            341,
+            256,
+            512,
+            384
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 2822,
+          "candidate_bbox_xyxy_inclusive": [
+            396,
+            282,
+            454,
+            370
+          ],
+          "margin_fraction_ltrb": [
+            0.3216374269005848,
+            0.203125,
+            0.3333333333333333,
+            0.1015625
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1015625
+        },
+        {
+          "cell": "R3C4",
+          "bounds_xyxy_exclusive": [
+            512,
+            256,
+            682,
+            384
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 2928,
+          "candidate_bbox_xyxy_inclusive": [
+            570,
+            282,
+            622,
+            370
+          ],
+          "margin_fraction_ltrb": [
+            0.3411764705882353,
+            0.203125,
+            0.34705882352941175,
+            0.1015625
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1015625
+        },
+        {
+          "cell": "R3C5",
+          "bounds_xyxy_exclusive": [
+            682,
+            256,
+            853,
+            384
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 2674,
+          "candidate_bbox_xyxy_inclusive": [
+            746,
+            282,
+            789,
+            366
+          ],
+          "margin_fraction_ltrb": [
+            0.3742690058479532,
+            0.203125,
+            0.3684210526315789,
+            0.1328125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1328125
+        },
+        {
+          "cell": "R3C6",
+          "bounds_xyxy_exclusive": [
+            853,
+            256,
+            1024,
+            384
+          ],
+          "pixels_not_exact_FF00FF": 21887,
+          "foreground_candidate_pixels": 2726,
+          "candidate_bbox_xyxy_inclusive": [
+            918,
+            282,
+            960,
+            368
+          ],
+          "margin_fraction_ltrb": [
+            0.38011695906432746,
+            0.203125,
+            0.3684210526315789,
+            0.1171875
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1171875
+        }
+      ],
+      [
+        {
+          "cell": "R4C1",
+          "bounds_xyxy_exclusive": [
+            0,
+            384,
+            170,
+            512
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 2865,
+          "candidate_bbox_xyxy_inclusive": [
+            52,
+            407,
+            105,
+            486
+          ],
+          "margin_fraction_ltrb": [
+            0.3058823529411765,
+            0.1796875,
+            0.3764705882352941,
+            0.1953125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1953125
+        },
+        {
+          "cell": "R4C2",
+          "bounds_xyxy_exclusive": [
+            170,
+            384,
+            341,
+            512
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 2749,
+          "candidate_bbox_xyxy_inclusive": [
+            215,
+            427,
+            295,
+            487
+          ],
+          "margin_fraction_ltrb": [
+            0.2631578947368421,
+            0.3359375,
+            0.2631578947368421,
+            0.1875
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1875
+        },
+        {
+          "cell": "R4C3",
+          "bounds_xyxy_exclusive": [
+            341,
+            384,
+            512,
+            512
+          ],
+          "pixels_not_exact_FF00FF": 21887,
+          "foreground_candidate_pixels": 3239,
+          "candidate_bbox_xyxy_inclusive": [
+            365,
+            436,
+            467,
+            486
+          ],
+          "margin_fraction_ltrb": [
+            0.14035087719298245,
+            0.40625,
+            0.2573099415204678,
+            0.1953125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1953125
+        },
+        {
+          "cell": "R4C4",
+          "bounds_xyxy_exclusive": [
+            512,
+            384,
+            682,
+            512
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 2975,
+          "candidate_bbox_xyxy_inclusive": [
+            534,
+            456,
+            659,
+            487
+          ],
+          "margin_fraction_ltrb": [
+            0.12941176470588237,
+            0.5625,
+            0.12941176470588237,
+            0.1875
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1875
+        },
+        {
+          "cell": "R4C5",
+          "bounds_xyxy_exclusive": [
+            682,
+            384,
+            853,
+            512
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 0
+        },
+        {
+          "cell": "R4C6",
+          "bounds_xyxy_exclusive": [
+            853,
+            384,
+            1024,
+            512
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 0
+        }
+      ],
+      [
+        {
+          "cell": "R5C1",
+          "bounds_xyxy_exclusive": [
+            0,
+            512,
+            170,
+            640
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 3841,
+          "candidate_bbox_xyxy_inclusive": [
+            40,
+            542,
+            121,
+            629
+          ],
+          "margin_fraction_ltrb": [
+            0.23529411764705882,
+            0.234375,
+            0.2823529411764706,
+            0.078125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.078125
+        },
+        {
+          "cell": "R5C2",
+          "bounds_xyxy_exclusive": [
+            170,
+            512,
+            341,
+            640
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 3967,
+          "candidate_bbox_xyxy_inclusive": [
+            207,
+            542,
+            291,
+            630
+          ],
+          "margin_fraction_ltrb": [
+            0.21637426900584794,
+            0.234375,
+            0.28654970760233917,
+            0.0703125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0703125
+        },
+        {
+          "cell": "R5C3",
+          "bounds_xyxy_exclusive": [
+            341,
+            512,
+            512,
+            640
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 3994,
+          "candidate_bbox_xyxy_inclusive": [
+            378,
+            542,
+            464,
+            630
+          ],
+          "margin_fraction_ltrb": [
+            0.21637426900584794,
+            0.234375,
+            0.27485380116959063,
+            0.0703125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0703125
+        },
+        {
+          "cell": "R5C4",
+          "bounds_xyxy_exclusive": [
+            512,
+            512,
+            682,
+            640
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 3957,
+          "candidate_bbox_xyxy_inclusive": [
+            552,
+            542,
+            634,
+            630
+          ],
+          "margin_fraction_ltrb": [
+            0.23529411764705882,
+            0.234375,
+            0.27647058823529413,
+            0.0703125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0703125
+        },
+        {
+          "cell": "R5C5",
+          "bounds_xyxy_exclusive": [
+            682,
+            512,
+            853,
+            640
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 3941,
+          "candidate_bbox_xyxy_inclusive": [
+            726,
+            545,
+            811,
+            630
+          ],
+          "margin_fraction_ltrb": [
+            0.2573099415204678,
+            0.2578125,
+            0.23976608187134502,
+            0.0703125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0703125
+        },
+        {
+          "cell": "R5C6",
+          "bounds_xyxy_exclusive": [
+            853,
+            512,
+            1024,
+            640
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 3734,
+          "candidate_bbox_xyxy_inclusive": [
+            893,
+            555,
+            979,
+            630
+          ],
+          "margin_fraction_ltrb": [
+            0.23391812865497075,
+            0.3359375,
+            0.2573099415204678,
+            0.0703125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0703125
+        }
+      ],
+      [
+        {
+          "cell": "R6C1",
+          "bounds_xyxy_exclusive": [
+            0,
+            640,
+            170,
+            768
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 4094,
+          "candidate_bbox_xyxy_inclusive": [
+            35,
+            670,
+            129,
+            754
+          ],
+          "margin_fraction_ltrb": [
+            0.20588235294117646,
+            0.234375,
+            0.23529411764705882,
+            0.1015625
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1015625
+        },
+        {
+          "cell": "R6C2",
+          "bounds_xyxy_exclusive": [
+            170,
+            640,
+            341,
+            768
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 4111,
+          "candidate_bbox_xyxy_inclusive": [
+            204,
+            671,
+            300,
+            755
+          ],
+          "margin_fraction_ltrb": [
+            0.19883040935672514,
+            0.2421875,
+            0.23391812865497075,
+            0.09375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.09375
+        },
+        {
+          "cell": "R6C3",
+          "bounds_xyxy_exclusive": [
+            341,
+            640,
+            512,
+            768
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 3926,
+          "candidate_bbox_xyxy_inclusive": [
+            374,
+            671,
+            468,
+            753
+          ],
+          "margin_fraction_ltrb": [
+            0.19298245614035087,
+            0.2421875,
+            0.25146198830409355,
+            0.109375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.109375
+        },
+        {
+          "cell": "R6C4",
+          "bounds_xyxy_exclusive": [
+            512,
+            640,
+            682,
+            768
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 4107,
+          "candidate_bbox_xyxy_inclusive": [
+            546,
+            671,
+            640,
+            756
+          ],
+          "margin_fraction_ltrb": [
+            0.2,
+            0.2421875,
+            0.2411764705882353,
+            0.0859375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0859375
+        },
+        {
+          "cell": "R6C5",
+          "bounds_xyxy_exclusive": [
+            682,
+            640,
+            853,
+            768
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 4113,
+          "candidate_bbox_xyxy_inclusive": [
+            717,
+            671,
+            811,
+            756
+          ],
+          "margin_fraction_ltrb": [
+            0.2046783625730994,
+            0.2421875,
+            0.23976608187134502,
+            0.0859375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0859375
+        },
+        {
+          "cell": "R6C6",
+          "bounds_xyxy_exclusive": [
+            853,
+            640,
+            1024,
+            768
+          ],
+          "pixels_not_exact_FF00FF": 21886,
+          "foreground_candidate_pixels": 4111,
+          "candidate_bbox_xyxy_inclusive": [
+            888,
+            671,
+            983,
+            756
+          ],
+          "margin_fraction_ltrb": [
+            0.2046783625730994,
+            0.2421875,
+            0.23391812865497075,
+            0.0859375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0859375
+        }
+      ],
+      [
+        {
+          "cell": "R7C1",
+          "bounds_xyxy_exclusive": [
+            0,
+            768,
+            170,
+            896
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 3969,
+          "candidate_bbox_xyxy_inclusive": [
+            34,
+            808,
+            132,
+            879
+          ],
+          "margin_fraction_ltrb": [
+            0.2,
+            0.3125,
+            0.21764705882352942,
+            0.125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.125
+        },
+        {
+          "cell": "R7C2",
+          "bounds_xyxy_exclusive": [
+            170,
+            768,
+            341,
+            896
+          ],
+          "pixels_not_exact_FF00FF": 21886,
+          "foreground_candidate_pixels": 3929,
+          "candidate_bbox_xyxy_inclusive": [
+            211,
+            797,
+            301,
+            881
+          ],
+          "margin_fraction_ltrb": [
+            0.23976608187134502,
+            0.2265625,
+            0.22807017543859648,
+            0.109375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.109375
+        },
+        {
+          "cell": "R7C3",
+          "bounds_xyxy_exclusive": [
+            341,
+            768,
+            512,
+            896
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 4442,
+          "candidate_bbox_xyxy_inclusive": [
+            368,
+            795,
+            482,
+            880
+          ],
+          "margin_fraction_ltrb": [
+            0.15789473684210525,
+            0.2109375,
+            0.1695906432748538,
+            0.1171875
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1171875
+        },
+        {
+          "cell": "R7C4",
+          "bounds_xyxy_exclusive": [
+            512,
+            768,
+            682,
+            896
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 4206,
+          "candidate_bbox_xyxy_inclusive": [
+            543,
+            796,
+            645,
+            881
+          ],
+          "margin_fraction_ltrb": [
+            0.18235294117647058,
+            0.21875,
+            0.21176470588235294,
+            0.109375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.109375
+        },
+        {
+          "cell": "R7C5",
+          "bounds_xyxy_exclusive": [
+            682,
+            768,
+            853,
+            896
+          ],
+          "pixels_not_exact_FF00FF": 21887,
+          "foreground_candidate_pixels": 3978,
+          "candidate_bbox_xyxy_inclusive": [
+            718,
+            795,
+            805,
+            883
+          ],
+          "margin_fraction_ltrb": [
+            0.21052631578947367,
+            0.2109375,
+            0.27485380116959063,
+            0.09375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.09375
+        },
+        {
+          "cell": "R7C6",
+          "bounds_xyxy_exclusive": [
+            853,
+            768,
+            1024,
+            896
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 3901,
+          "candidate_bbox_xyxy_inclusive": [
+            889,
+            795,
+            976,
+            883
+          ],
+          "margin_fraction_ltrb": [
+            0.21052631578947367,
+            0.2109375,
+            0.27485380116959063,
+            0.09375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.09375
+        }
+      ],
+      [
+        {
+          "cell": "R8C1",
+          "bounds_xyxy_exclusive": [
+            0,
+            896,
+            170,
+            1024
+          ],
+          "pixels_not_exact_FF00FF": 21757,
+          "foreground_candidate_pixels": 3833,
+          "candidate_bbox_xyxy_inclusive": [
+            37,
+            919,
+            124,
+            1004
+          ],
+          "margin_fraction_ltrb": [
+            0.21764705882352942,
+            0.1796875,
+            0.2647058823529412,
+            0.1484375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1484375
+        },
+        {
+          "cell": "R8C2",
+          "bounds_xyxy_exclusive": [
+            170,
+            896,
+            341,
+            1024
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 3929,
+          "candidate_bbox_xyxy_inclusive": [
+            202,
+            943,
+            309,
+            1003
+          ],
+          "margin_fraction_ltrb": [
+            0.1871345029239766,
+            0.3671875,
+            0.18128654970760233,
+            0.15625
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.15625
+        },
+        {
+          "cell": "R8C3",
+          "bounds_xyxy_exclusive": [
+            341,
+            896,
+            512,
+            1024
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 3669,
+          "candidate_bbox_xyxy_inclusive": [
+            358,
+            954,
+            476,
+            1003
+          ],
+          "margin_fraction_ltrb": [
+            0.09941520467836257,
+            0.453125,
+            0.2046783625730994,
+            0.15625
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.15625
+        },
+        {
+          "cell": "R8C4",
+          "bounds_xyxy_exclusive": [
+            512,
+            896,
+            682,
+            1024
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 3333,
+          "candidate_bbox_xyxy_inclusive": [
+            529,
+            971,
+            663,
+            1003
+          ],
+          "margin_fraction_ltrb": [
+            0.1,
+            0.5859375,
+            0.10588235294117647,
+            0.15625
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.15625
+        },
+        {
+          "cell": "R8C5",
+          "bounds_xyxy_exclusive": [
+            682,
+            896,
+            853,
+            1024
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 0
+        },
+        {
+          "cell": "R8C6",
+          "bounds_xyxy_exclusive": [
+            853,
+            896,
+            1024,
+            1024
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 0
+        }
+      ],
+      [
+        {
+          "cell": "R9C1",
+          "bounds_xyxy_exclusive": [
+            0,
+            1024,
+            170,
+            1152
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 4441,
+          "candidate_bbox_xyxy_inclusive": [
+            28,
+            1055,
+            146,
+            1140
+          ],
+          "margin_fraction_ltrb": [
+            0.16470588235294117,
+            0.2421875,
+            0.13529411764705881,
+            0.0859375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0859375
+        },
+        {
+          "cell": "R9C2",
+          "bounds_xyxy_exclusive": [
+            170,
+            1024,
+            341,
+            1152
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 4520,
+          "candidate_bbox_xyxy_inclusive": [
+            198,
+            1055,
+            317,
+            1141
+          ],
+          "margin_fraction_ltrb": [
+            0.16374269005847952,
+            0.2421875,
+            0.13450292397660818,
+            0.078125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.078125
+        },
+        {
+          "cell": "R9C3",
+          "bounds_xyxy_exclusive": [
+            341,
+            1024,
+            512,
+            1152
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 4539,
+          "candidate_bbox_xyxy_inclusive": [
+            368,
+            1055,
+            488,
+            1141
+          ],
+          "margin_fraction_ltrb": [
+            0.15789473684210525,
+            0.2421875,
+            0.13450292397660818,
+            0.078125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.078125
+        },
+        {
+          "cell": "R9C4",
+          "bounds_xyxy_exclusive": [
+            512,
+            1024,
+            682,
+            1152
+          ],
+          "pixels_not_exact_FF00FF": 21759,
+          "foreground_candidate_pixels": 4486,
+          "candidate_bbox_xyxy_inclusive": [
+            539,
+            1055,
+            659,
+            1140
+          ],
+          "margin_fraction_ltrb": [
+            0.1588235294117647,
+            0.2421875,
+            0.12941176470588237,
+            0.0859375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0859375
+        },
+        {
+          "cell": "R9C5",
+          "bounds_xyxy_exclusive": [
+            682,
+            1024,
+            853,
+            1152
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 4397,
+          "candidate_bbox_xyxy_inclusive": [
+            712,
+            1053,
+            829,
+            1140
+          ],
+          "margin_fraction_ltrb": [
+            0.17543859649122806,
+            0.2265625,
+            0.13450292397660818,
+            0.0859375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0859375
+        },
+        {
+          "cell": "R9C6",
+          "bounds_xyxy_exclusive": [
+            853,
+            1024,
+            1024,
+            1152
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 4150,
+          "candidate_bbox_xyxy_inclusive": [
+            881,
+            1057,
+            993,
+            1140
+          ],
+          "margin_fraction_ltrb": [
+            0.16374269005847952,
+            0.2578125,
+            0.17543859649122806,
+            0.0859375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.0859375
+        }
+      ],
+      [
+        {
+          "cell": "R10C1",
+          "bounds_xyxy_exclusive": [
+            0,
+            1152,
+            170,
+            1280
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 4587,
+          "candidate_bbox_xyxy_inclusive": [
+            28,
+            1183,
+            152,
+            1263
+          ],
+          "margin_fraction_ltrb": [
+            0.16470588235294117,
+            0.2421875,
+            0.1,
+            0.125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.125
+        },
+        {
+          "cell": "R10C2",
+          "bounds_xyxy_exclusive": [
+            170,
+            1152,
+            341,
+            1280
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 4640,
+          "candidate_bbox_xyxy_inclusive": [
+            198,
+            1183,
+            322,
+            1264
+          ],
+          "margin_fraction_ltrb": [
+            0.16374269005847952,
+            0.2421875,
+            0.10526315789473684,
+            0.1171875
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1171875
+        },
+        {
+          "cell": "R10C3",
+          "bounds_xyxy_exclusive": [
+            341,
+            1152,
+            512,
+            1280
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 4752,
+          "candidate_bbox_xyxy_inclusive": [
+            367,
+            1182,
+            492,
+            1264
+          ],
+          "margin_fraction_ltrb": [
+            0.15204678362573099,
+            0.234375,
+            0.1111111111111111,
+            0.1171875
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1171875
+        },
+        {
+          "cell": "R10C4",
+          "bounds_xyxy_exclusive": [
+            512,
+            1152,
+            682,
+            1280
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 4521,
+          "candidate_bbox_xyxy_inclusive": [
+            538,
+            1183,
+            663,
+            1264
+          ],
+          "margin_fraction_ltrb": [
+            0.15294117647058825,
+            0.2421875,
+            0.10588235294117647,
+            0.1171875
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1171875
+        },
+        {
+          "cell": "R10C5",
+          "bounds_xyxy_exclusive": [
+            682,
+            1152,
+            853,
+            1280
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 4623,
+          "candidate_bbox_xyxy_inclusive": [
+            711,
+            1181,
+            831,
+            1265
+          ],
+          "margin_fraction_ltrb": [
+            0.1695906432748538,
+            0.2265625,
+            0.12280701754385964,
+            0.109375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.109375
+        },
+        {
+          "cell": "R10C6",
+          "bounds_xyxy_exclusive": [
+            853,
+            1152,
+            1024,
+            1280
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 4375,
+          "candidate_bbox_xyxy_inclusive": [
+            878,
+            1181,
+            997,
+            1264
+          ],
+          "margin_fraction_ltrb": [
+            0.14619883040935672,
+            0.2265625,
+            0.15204678362573099,
+            0.1171875
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1171875
+        }
+      ],
+      [
+        {
+          "cell": "R11C1",
+          "bounds_xyxy_exclusive": [
+            0,
+            1280,
+            170,
+            1408
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 4184,
+          "candidate_bbox_xyxy_inclusive": [
+            28,
+            1322,
+            150,
+            1388
+          ],
+          "margin_fraction_ltrb": [
+            0.16470588235294117,
+            0.328125,
+            0.11176470588235295,
+            0.1484375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1484375
+        },
+        {
+          "cell": "R11C2",
+          "bounds_xyxy_exclusive": [
+            170,
+            1280,
+            341,
+            1408
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 4444,
+          "candidate_bbox_xyxy_inclusive": [
+            207,
+            1309,
+            324,
+            1387
+          ],
+          "margin_fraction_ltrb": [
+            0.21637426900584794,
+            0.2265625,
+            0.0935672514619883,
+            0.15625
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.15625
+        },
+        {
+          "cell": "R11C3",
+          "bounds_xyxy_exclusive": [
+            341,
+            1280,
+            512,
+            1408
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 4910,
+          "candidate_bbox_xyxy_inclusive": [
+            366,
+            1309,
+            500,
+            1390
+          ],
+          "margin_fraction_ltrb": [
+            0.14619883040935672,
+            0.2265625,
+            0.06432748538011696,
+            0.1328125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1328125
+        },
+        {
+          "cell": "R11C4",
+          "bounds_xyxy_exclusive": [
+            512,
+            1280,
+            682,
+            1408
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 4510,
+          "candidate_bbox_xyxy_inclusive": [
+            538,
+            1308,
+            667,
+            1392
+          ],
+          "margin_fraction_ltrb": [
+            0.15294117647058825,
+            0.21875,
+            0.08235294117647059,
+            0.1171875
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1171875
+        },
+        {
+          "cell": "R11C5",
+          "bounds_xyxy_exclusive": [
+            682,
+            1280,
+            853,
+            1408
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 4379,
+          "candidate_bbox_xyxy_inclusive": [
+            712,
+            1307,
+            828,
+            1393
+          ],
+          "margin_fraction_ltrb": [
+            0.17543859649122806,
+            0.2109375,
+            0.14035087719298245,
+            0.109375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.109375
+        },
+        {
+          "cell": "R11C6",
+          "bounds_xyxy_exclusive": [
+            853,
+            1280,
+            1024,
+            1408
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 4191,
+          "candidate_bbox_xyxy_inclusive": [
+            880,
+            1307,
+            993,
+            1393
+          ],
+          "margin_fraction_ltrb": [
+            0.15789473684210525,
+            0.2109375,
+            0.17543859649122806,
+            0.109375
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.109375
+        }
+      ],
+      [
+        {
+          "cell": "R12C1",
+          "bounds_xyxy_exclusive": [
+            0,
+            1408,
+            170,
+            1536
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 3953,
+          "candidate_bbox_xyxy_inclusive": [
+            30,
+            1428,
+            135,
+            1512
+          ],
+          "margin_fraction_ltrb": [
+            0.17647058823529413,
+            0.15625,
+            0.2,
+            0.1796875
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1796875
+        },
+        {
+          "cell": "R12C2",
+          "bounds_xyxy_exclusive": [
+            170,
+            1408,
+            341,
+            1536
+          ],
+          "pixels_not_exact_FF00FF": 21887,
+          "foreground_candidate_pixels": 4073,
+          "candidate_bbox_xyxy_inclusive": [
+            196,
+            1451,
+            306,
+            1509
+          ],
+          "margin_fraction_ltrb": [
+            0.15204678362573099,
+            0.3359375,
+            0.19883040935672514,
+            0.203125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.203125
+        },
+        {
+          "cell": "R12C3",
+          "bounds_xyxy_exclusive": [
+            341,
+            1408,
+            512,
+            1536
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 3871,
+          "candidate_bbox_xyxy_inclusive": [
+            356,
+            1460,
+            479,
+            1509
+          ],
+          "margin_fraction_ltrb": [
+            0.08771929824561403,
+            0.40625,
+            0.1871345029239766,
+            0.203125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.203125
+        },
+        {
+          "cell": "R12C4",
+          "bounds_xyxy_exclusive": [
+            512,
+            1408,
+            682,
+            1536
+          ],
+          "pixels_not_exact_FF00FF": 21760,
+          "foreground_candidate_pixels": 3499,
+          "candidate_bbox_xyxy_inclusive": [
+            527,
+            1478,
+            667,
+            1510
+          ],
+          "margin_fraction_ltrb": [
+            0.08823529411764706,
+            0.546875,
+            0.08235294117647059,
+            0.1953125
+          ],
+          "lowest_candidate_above_cell_bottom_fraction": 0.1953125
+        },
+        {
+          "cell": "R12C5",
+          "bounds_xyxy_exclusive": [
+            682,
+            1408,
+            853,
+            1536
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 0
+        },
+        {
+          "cell": "R12C6",
+          "bounds_xyxy_exclusive": [
+            853,
+            1408,
+            1024,
+            1536
+          ],
+          "pixels_not_exact_FF00FF": 21888,
+          "foreground_candidate_pixels": 0
+        }
+      ]
+    ]
+  },
+  "time": {
+    "before_call_utc": "2026-10-26 01:01:12 UTC",
+    "after_call_utc": "2026-10-26 01:01:41 UTC",
+    "handoff_written_utc": "2026-10-26T01:03:51.204540+00:00"
+  },
+  "model_truth": {
+    "agent_requested_by_user": "GPT-6.1-Sol medium",
+    "agent_runtime_verified": false,
+    "image_model": "unknown",
+    "image_seed": "unknown",
+    "tool_exposes_model_or_seed": false
+  },
+  "counters": {
+    "builtin_image_gen_calls_this_session": 1,
+    "retries": 0,
+    "species_calls_before_A1": 0,
+    "species_calls_after_A1": 1,
+    "species_generated_this_session": 1,
+    "A1": 1,
+    "A2": 0,
+    "B": 0,
+    "fallback_calls": 0,
+    "global_cap_user_stated": 2,
+    "global_live_count_independently_verified": false
+  },
+  "static_template_conflicts": [
+    "Template says 171x128 equal cells; 6*171=1026 while requested width=1024. Preserved verbatim.",
+    "Template calls the static views front/side/back; observed second and third static views appear same right-facing side, not a verified rear view. Static unchanged.",
+    "Template says ne faces RIGHT though sheet A has only s,se,e; preserved verbatim.",
+    "Template cub/long-muzzle/lean descriptor retained; static is sole identity authority."
+  ],
+  "visual_findings": [
+    "R1C5-6 hurt turn right instead of retaining front heading; backward recoil not clearly established.",
+    "R5-8 SE largely reads near side/right view; lower-right diagonal insufficiently clear.",
+    "S attack/death turn toward right; death poses in blocks converge toward side profile.",
+    "Requested flat exact FF00FF background is not achieved; dominant RGB 251,3,249 with near-magenta variation.",
+    "Standing figures often extend below requested 12% baseline; measured margin/lowest-point values recorded per cell."
+  ],
+  "claims": {
+    "art_pass": false,
+    "runtime_pass": false,
+    "cutter_run": false,
+    "layout_or_assembly_run": false,
+    "postprocess": false,
+    "resize_crop_patch": false,
+    "repo_modified": false,
+    "tests_build_bot_run": false,
+    "commit_push_pr_merge": false
+  },
+  "coordination": {
+    "slotreleased_send_93": "success exit 0 after sandbox escalation",
+    "slotreleased_send_44": "success exit 0 after sandbox escalation",
+    "checkpoint_report": "success exit 0 using AO_SESSION_ID=soul-land-mmo-98",
+    "initial_attempts": "Loopback blocked in sandbox; report lacked inherited AO_SESSION_ID. Explicit session and escalated local AO calls succeeded. No image retry.",
+    "preview": "AO preview attempted original artifact path, rejected PREVIEW_FILE_OUTSIDE_WORKSPACE; artifact not copied into repo."
+  },
+  "owner_policy": "Owner93 nhận cả FAIL để commit/push theo OWNER LATEST; worker không publish và không redraw.",
+  "integration": {
+    "repository_raw_file": "toA.png",
+    "repository_prompt_file": "toA.prompt.txt",
+    "script_prompt_file": "phong_lang_con-toA.md",
+    "script_prompt_sha256": "b5821d4a515cf976a4b8425558db8cb551e32d4dc4fcd45888bb113ff306d566",
+    "upstream_source": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-98/provenance.json",
+    "upstream_source_sha256": "c84fdcf2d9f993fb7e44f0b05647ef0ba00c9abf3708df782a4477d92f30b3d1",
+    "raw_sha256": "bd641523725ab8b021d004da78f03959e3020e28ef81f1d97745e93d655e2faa",
+    "raw_bytes": 1774526,
+    "actual_dimensions": [
+      1024,
+      1536
+    ],
+    "requested_dimensions": [
+      1024,
+      1536
+    ],
+    "size_requirement_met": true,
+    "original_artifact_repo_byte_identical": true,
+    "semantic_frame_count_verified": false,
+    "status": "RAW/provenance only; art/runtime not accepted."
+  }
+}
