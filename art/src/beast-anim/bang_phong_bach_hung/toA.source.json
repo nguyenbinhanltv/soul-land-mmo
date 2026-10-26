@@ -1,0 +1,91 @@
+{
+  "species": "bang_phong_bach_hung",
+  "sheet": "A",
+  "worker": "soul-land-mmo-73",
+  "issue": 767,
+  "raw_file": "toA.png",
+  "sha256": "977ecf4fcda7f1f9c8ed5c602932d1afd1cd3076563e937fc7240c616e9f7d17",
+  "bytes": 2046356,
+  "width": 1024,
+  "height": 1536,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "size_requirement_met": true,
+  "grid": [
+    6,
+    12
+  ],
+  "expected_visible_cells": 66,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "No size/model/seed selector exposed; dimensions requested in prompt only.",
+  "transparent_background": false,
+  "selected_attempt": 2,
+  "attempts": 2,
+  "counters": {
+    "A": 2,
+    "B": 4,
+    "species_total": 6
+  },
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "141d9cb17806990faac3d32aee750fb034087ee6192ff8394cf037f983bc875a",
+  "references": [
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-63/references/bang_phong_bach_hung.png",
+      "role": "static identity, actual image bytes verified",
+      "sha256": "d45e9b847c047f61904d64aa18062bea01e10dc217d69484488762a1853561b5",
+      "original_input_path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-63/shared/assets/sprites/beast/bang_phong_bach_hung.png"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a174cb-83ca-7a21-bdf6-11c5c4a2216e/exec-def3fbc9-0203-4e3a-8067-5003a92c5c81.png",
+  "upstream_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-73/provenance.md",
+  "history": [
+    {
+      "attempt": 1,
+      "raw_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-73/A1.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a174cb-83ca-7a21-bdf6-11c5c4a2216e/exec-9c01025f-e780-4381-8ac3-d3710ca597f8.png",
+      "sha256": "f968b0f623d1370e82d24a2f0ddce6ec9e9edb4a2d3557a7761a2db8e7a736b8",
+      "bytes": 2100865,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "prompt_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-73/A1-prompt.txt",
+      "prompt_sha256": "485173dc71dbb7d9a81022ab36597f7d102d75bbe9e05ae15cd3dbd4a6242ab7"
+    },
+    {
+      "attempt": 2,
+      "raw_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-73/A2.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a174cb-83ca-7a21-bdf6-11c5c4a2216e/exec-def3fbc9-0203-4e3a-8067-5003a92c5c81.png",
+      "sha256": "977ecf4fcda7f1f9c8ed5c602932d1afd1cd3076563e937fc7240c616e9f7d17",
+      "bytes": 2046356,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "prompt_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-73/A2-prompt.txt",
+      "prompt_sha256": "141d9cb17806990faac3d32aee750fb034087ee6192ff8394cf037f983bc875a"
+    }
+  ],
+  "selection_reason": "Chọn A2 vì south attack/hurt và khung die cuối giữ front hơn A1. Đổi lại south walk row2 nghiêng SE; giữ lỗi, không gọi đạt.",
+  "known_issues": [
+    "FAIL H2C1–6 south walk nghiêng SE.",
+    "H1/H5/H9C5–6 hurt/recoil yếu; H4/H8C3–4 nằm sấp, chưa ngã nghiêng.",
+    "H11C2–4 E attack xoay SE; identity chi tiết/loop/scale chưa duyệt."
+  ],
+  "qa_status": "FAIL / candidate for owner review; not art/runtime/size accepted",
+  "publication_policy": "User explicitly requested committing failed raw candidates for owner review; submission is not acceptance or import.",
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "error_line": "LỖI: toA — hướng/pose — S H2C1–6, E H11C2–4, hurt/death — walk S nghiêng SE; hurt yếu; die nằm sấp/đổi trục.",
+  "tool_arguments": {
+    "prompt_file": "toA.prompt.txt",
+    "referenced_image_paths": [
+      "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-63/shared/assets/sprites/beast/bang_phong_bach_hung.png"
+    ],
+    "transparent_background": false
+  },
+  "reference_path_note": "references.path may be byte-identical stable audit copy; tool_arguments lists actual input paths from upstream provenance."
+}

@@ -1,0 +1,99 @@
+{
+  "species": "dien_thu",
+  "sheet": "B",
+  "worker": "soul-land-mmo-89",
+  "issue": 767,
+  "raw_file": "toB.png",
+  "sha256": "1d92729aa96b364045eadc381a91f3d95ace803df58b575d17ea00551621823f",
+  "bytes": 1826210,
+  "width": 1254,
+  "height": 1254,
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "size_requirement_met": false,
+  "grid": [
+    6,
+    8
+  ],
+  "expected_visible_cells": 44,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "No size/model/seed selector exposed; dimensions requested in prompt only.",
+  "transparent_background": false,
+  "selected_attempt": 1,
+  "attempts": 2,
+  "counters": {
+    "A": 2,
+    "B": 2,
+    "species_total": 4
+  },
+  "prompt_file": "toB.prompt.txt",
+  "prompt_sha256": "ca7d6ad5ee41dee8e6e4968d4cfd602ec759ed696d2b7d5de84af84b37460bec",
+  "references": [
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-63/references/dien_thu.png",
+      "role": "static identity",
+      "sha256": "cd84ee63b9844fb2df3d1ad98f71648890f1b9c72df725e161a73b5e33d8d050"
+    },
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-83/dien_thu-toA-A2.raw.png",
+      "role": "A2 style/body only; no pose/art acceptance",
+      "sha256": "b1e07016cca64b74a4459227ca1fbde9274c8c853cf2015ced03c2c50ddad2ed"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a1758d-7e1d-7ff0-9d66-2d0881653fbc/exec-dccdb81d-64e2-4f55-9be5-cf864b045b7c.png",
+  "upstream_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-89/provenance.json",
+  "history": [
+    {
+      "attempt": 1,
+      "raw_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-89/dien_thu-toB-B1.raw.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a1758d-7e1d-7ff0-9d66-2d0881653fbc/exec-dccdb81d-64e2-4f55-9be5-cf864b045b7c.png",
+      "sha256": "1d92729aa96b364045eadc381a91f3d95ace803df58b575d17ea00551621823f",
+      "bytes": 1826210,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-89/dien_thu-toB-B1.actual.txt",
+      "prompt_sha256": "ca7d6ad5ee41dee8e6e4968d4cfd602ec759ed696d2b7d5de84af84b37460bec"
+    },
+    {
+      "attempt": 2,
+      "raw_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-89/dien_thu-toB-B2.raw.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a1758d-7e1d-7ff0-9d66-2d0881653fbc/exec-1f3a01bb-df2e-4b3c-bee8-404c0cb9268b.png",
+      "sha256": "9cc6b2e053f5c158664a68bb8fbd33350a09f1ce8fd9f65a940f3badd79db546",
+      "bytes": 1744169,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-89/dien_thu-toB-B2.actual.txt",
+      "prompt_sha256": "90a3c557984a8590fcb94cf0b8d50f82b5208641102a8cf800a08917e9c1de35"
+    }
+  ],
+  "selection_reason": "Chọn B1 thay latest B2: N attack giữ gần N hơn B2 (B2 cả hàng yawNE), bleed H4C5 thấp hơn3vs55px. B2 hurt ít yaw hơn nhưng mất cả dải N attack; giữ B2 ở artifact để owner có thể yêu cầu so.",
+  "known_issues": [
+    "FAIL actual1254×1254 thay1024×1024.",
+    "B1 H1C5hurt yawE/H3C5driftE; H4C4/H8C4death yawE.",
+    "N attack H7 gần N hơn B2 (B2 cảH7yawNE), nhưng C3/C5paw raised/pose chưa đạt.",
+    "B1 H4C5 có3px bleed tol60, B2 có55px; visual44 không chứng minh4blanks sạch.",
+    "Nền phổ biến RGB250,3,249, khôngflatFF; 48exactoccupied/45tol60occupied là pixel occupancy, không45animals.",
+    "B1 có vẻ lớn hơn A; scale/loop/quad-vs-static seated chưa nghiệm thu."
+  ],
+  "qa_status": "FAIL / candidate for owner review; not art/runtime/size accepted",
+  "publication_policy": "User explicitly requested committing failed raw candidates for owner review; submission is not acceptance or import.",
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "error_line": "LỖI: toB — size/hướng/pose/grid/nền — NE H1C5/H3C5/H4C4, N H8C4, blank H4C5 — actual1254×1254, death yawE, hurt yếu, bleed3px tol60, nền RGB250,3,249 khôngflat.",
+  "tool_arguments": {
+    "prompt_file": "toB.prompt.txt",
+    "referenced_image_paths": [
+      "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-63/references/dien_thu.png",
+      "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-83/dien_thu-toA-A2.raw.png"
+    ],
+    "transparent_background": false
+  },
+  "reference_path_note": "references.path may be byte-identical stable audit copy; tool_arguments lists actual input paths from upstream provenance."
+}

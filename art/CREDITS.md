@@ -2257,6 +2257,10 @@ Thái Thản Cự Viên: `art/src/beast-anim/thai_than_cu_vien/toA.png` đến `
 
 Băng Giáp Cự Quy (H4 #767): raw `art/src/beast-anim/bang_giap_cu_quy/toA.png` (1024×1536, fresh worker69, A2/2) và `toB.png` (1254×1254 thực tế, sai yêu cầu1024×1024, fresh worker71, B2/2), tthoadev sinh ngày2026-10-26 bằng builtin `image_gen.imagegen`. A reference static identity; B reference static identity + A2 style-only candidate. Model/seed unknown, không có size selector. Giữ nguyên byte, không hậu kỳ. [Nguồn/knownissues](src/beast-anim/bang_giap_cu_quy/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json` cùng thư mục. Chưa owner duyệt mỹ thuật/runtime hoặc BsizeH4; tổng batch4/10 raw khi nộp cặp này.
 
+Băng Phong Bạch Hùng (H4 #767): RAW FAIL candidate để owner duyệt theo chỉ dẫn user, tại `art/src/beast-anim/bang_phong_bach_hung/`. A: 1024×1536 thực tế, chọn 2/2, soul-land-mmo-73; B: 1254×1254 thực tế, chọn 4/4, soul-land-mmo-88. Builtin `image_gen.imagegen`, model/seed unknown, không size selector; nguyên byte, không hậu kỳ. Prompt thực/hash/refroles/counters/knownissues tại [NGUON.md](src/beast-anim/bang_phong_bach_hung/NGUON.md), `toX.prompt.txt`, `toX.source.json`. Nộp không phải nghiệm thu mỹ thuật/runtime hoặc tự nhập game.
+
+Điền Thử (H4 #767): RAW FAIL candidate để owner duyệt theo chỉ dẫn user, tại `art/src/beast-anim/dien_thu/`. A: 1024×1536 thực tế, chọn 2/2, soul-land-mmo-83; B: 1254×1254 thực tế, chọn 1/2, soul-land-mmo-89. Builtin `image_gen.imagegen`, model/seed unknown, không size selector; nguyên byte, không hậu kỳ. Prompt thực/hash/refroles/counters/knownissues tại [NGUON.md](src/beast-anim/dien_thu/NGUON.md), `toX.prompt.txt`, `toX.source.json`. Nộp không phải nghiệm thu mỹ thuật/runtime hoặc tự nhập game.
+
 <!-- private-assets:start -->
 ## Asset kho riêng (không nằm trong repo công khai)
 
