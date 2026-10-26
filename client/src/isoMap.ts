@@ -109,22 +109,35 @@ export function preloadIso(scene: Phaser.Scene, mapId: string) {
     // Atlas (#716 bước 6, tools/assets/iso-atlas.mjs): ảnh có trong atlas của bản đồ tải theo trang rồi cắt lại đúng hình chữ nhật (một file
     // thay vì mỗi ảnh một file); ảnh ngoài atlas, hay bản đồ không có atlas, tải từng file như trước.
     if (list.length) {
+      /** Tải riêng từng file (không atlas): `only` = chỉ màu hoặc chỉ normal map. */
+      const solo = (key: string, url: string, only?: "color" | "normal") => {
+        if (only !== "normal") scene.load.image(key, url);
+        if (normals && only !== "color") scene.load.image(`${key}_n`, url.replace(/\.png$/, "_n.png"));
+      };
+      // Atlas / trang atlas tải lỗi (mạng, 404, JSON hỏng) thì các ảnh phụ thuộc quay về tải từng file như trước.
+      const onFail = new Map<string, () => void>();
+      const failed = (file: Phaser.Loader.File) => { const f = onFail.get(file.key); if (f) { onFail.delete(file.key); f(); } };
+      scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, failed);
+      scene.load.once(Phaser.Loader.Events.COMPLETE, () => scene.load.off(Phaser.Loader.Events.FILE_LOAD_ERROR, failed));
+      onFail.set(ATLAS_KEY, () => { for (const [key, url] of list) solo(key, url); });
       scene.cache.json.remove(ATLAS_KEY);
       scene.load.json(ATLAS_KEY, BASE + "atlas/index.json");
       scene.load.once(`filecomplete-json-${ATLAS_KEY}`, (_k: string, _t: string, idx: Record<string, IsoAtlasEntry>) => {
-        const e = NO_ATLAS ? undefined : idx?.[mapId], pageKeys = new Map<number, string[]>();
+        onFail.delete(ATLAS_KEY);
+        const e = NO_ATLAS ? undefined : idx?.[mapId], pageKeys = new Map<number, [string, string][]>();
         for (const [key, url] of list) {
           const fr = e?.frames[key];
-          if (!fr) { scene.load.image(key, url); if (normals) scene.load.image(`${key}_n`, url.replace(/\.png$/, "_n.png")); continue; }
-          pageKeys.set(fr[0], [...(pageKeys.get(fr[0]) ?? []), key]);
+          if (!fr) solo(key, url); else pageKeys.set(fr[0], [...(pageKeys.get(fr[0]) ?? []), [key, url]]);
         }
-        for (const [page, keys] of pageKeys) for (const n of normals ? [false, true] : [false]) {
+        for (const [page, items] of pageKeys) for (const n of normals ? [false, true] : [false]) {
           const pk = `isoPg|${mapId}|${page}${n ? "_n" : ""}`, url = `${BASE}atlas/${mapId}-${page}${n ? "_n" : ""}.png`;
           scene.textures.exists(pk) && scene.textures.remove(pk);
           scene.load.image(pk, url);
+          onFail.set(pk, () => { for (const [key, u] of items) solo(key, u, n ? "normal" : "color"); });
           scene.load.once(`filecomplete-image-${pk}`, () => {
+            onFail.delete(pk);
             const src = scene.textures.get(pk).getSourceImage() as HTMLImageElement;
-            for (const key of keys) {
+            for (const [key] of items) {
               const [, x, y, w, h] = e!.frames[key], cv = document.createElement("canvas"); cv.width = w; cv.height = h;
               cv.getContext("2d")!.drawImage(src, x, y, w, h, 0, 0, w, h);
               scene.textures.addCanvas(n ? `${key}_n` : key, cv);

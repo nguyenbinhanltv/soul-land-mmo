@@ -86,6 +86,7 @@ const json = JSON.stringify(index) + "\n";
 if (process.argv.includes("--check")) {
   const cur = existsSync(path.join(OUT, "index.json")) ? JSON.parse(readFileSync(path.join(OUT, "index.json"), "utf8")) : {};
   const bad = Object.keys(index).filter((id) => cur[id]?.hash !== index[id].hash || JSON.stringify(cur[id]?.frames) !== JSON.stringify(index[id].frames));
+  for (const id of Object.keys(index)) index[id].pages.forEach((_, i) => { for (const f of [`${id}-${i}.png`, `${id}-${i}_n.png`]) if (!existsSync(path.join(OUT, f)) && !bad.includes(id)) bad.push(id); });
   const extra = Object.keys(cur).filter((id) => !index[id]);
   if (bad.length || extra.length) { console.error(`✗ atlas ô / vật cũ (${[...bad, ...extra].join(", ")}): chạy node tools/assets/iso-atlas.mjs rồi commit shared/assets/iso/atlas/`); process.exit(1); }
   console.log(`✓ atlas ô / vật khớp ảnh nguồn: ${Object.keys(index).length} bản đồ`);

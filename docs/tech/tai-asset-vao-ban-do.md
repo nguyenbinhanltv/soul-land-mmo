@@ -190,6 +190,7 @@ B = `?noatlas` (như main), C = có atlas. Mỗi ô: B → C (ms; request).
 ### Kiểm
 
 - `--verify-atlas` (so từng điểm ảnh, ngưỡng ±1 mỗi kênh): 3.192 lượt so texture `iso:*` / `prop_*` (cả `_n`) qua 9 bản đồ sau các lần warp: **lệch 0**.
+- Đường lùi: gỡ `atlas/index.json` khỏi bản dựng, rồi gỡ một trang `_n`: `--verify-atlas` vẫn so 662 texture, lệch 0 (ảnh tải từng file như cũ; `loader` bắt `FILE_LOAD_ERROR` của index / trang).
 - Bot `waypoint` 76 / 76, `bigmap` 176 / 176 (không có nhóm tên `travel`). `npm run check` xanh.
 - Kiểm tay (Chrome thật `--mute-audio`, `__scene`): vào Thánh Hồn Thôn, warp qua 9 bản đồ nhiều vòng (20 lần warp trong lượt `--ram`, 9 lần trong `--verify-atlas`), ảnh chụp Lõi Tinh Đấu bình thường, **0 lỗi console**.
 - Cách chạy: `node client/scripts/load-measure.mjs --ram 20 --maps a,b,c` (RAM), `--latency 60` (độ trễ), `--verify-atlas` (so điểm ảnh), `QS="&noatlas"` (bỏ atlas).
