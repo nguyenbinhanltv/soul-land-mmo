@@ -77,6 +77,7 @@ import * as gm from "./gm.ts";
 import * as tong from "./tong.ts";
 import * as quest from "./quest.ts";
 import * as arena from "./arena.ts";
+import * as travel from "./travel.ts";
 
 export interface PData {
   /** Hồn thú đang khoá (M3 #750, rooms/lock.ts); "" = không khoá. */
@@ -226,7 +227,7 @@ export interface AuthData { accountId: number; ch: Character; owned: Character[]
  * Niệm truyền tống (11.2): tên nơi đến, phí (đồng, trừ lúc dịch chuyển), ô Hồi Thành Phù sẽ dùng (không có = truyền tống trận), chỗ
  * đứng lúc bắt đầu (lệch quá 2 pixel thì hủy: di chuyển, bị đẩy / kéo), tổng số giây (thanh niệm của client).
  */
-interface RecallCast { label: string; fee: number; itemId?: string; x0: number; y0: number; dur: number; }
+export interface RecallCast { label: string; fee: number; itemId?: string; x0: number; y0: number; dur: number; }
 /** Một trạng thái trên hồn thú: giây còn lại, số tầng, độ lớn mỗi tầng (sát thương mỗi giây hoặc tỉ lệ), người gây. */
 interface SInst { t: number; n: number; v: number; src: string; pair?: string; } // pair (#192): đồng đội dung hợp chia đôi đóng góp
 export interface BData {
@@ -1902,29 +1903,10 @@ export class MapRoom extends Room<MapState> {
       : { name: "" });
   }
 
-  /** Lý do không được đi cổng `name` lúc này (null = được, "" = bỏ qua im lặng). Server tự kiểm tra, client chỉ gửi tên cổng. */
-  travelDeny(id: string, name: string): string | null {
-    const p = this.state.players.get(id), d = this.pdata.get(id);
-    if (!p || !d) return "";
-    const portal = this.map.portals.find((q) => q.name === name);
-    if (!portal) return "Cổng không tồn tại.";
-    if (this.map.portalAt(p.x, p.y) !== portal) return "Hãy đứng trong cổng rồi mới đi qua được.";
-    if (p.dead) return "Đã gục ngã, không thể đi qua cổng.";
-    if (d.absorbing) return "Đang hấp thụ hồn hoàn, không thể đi qua cổng.";
-    const ctl = this.pctl(d); if (ctl.noMove || ctl.wander) return `Đang bị ${this.ccName(d, true)}: không thể đi qua cổng.`; // #116
-    return null;
-  }
+  /** Đi cổng / truyền tống / Hồi Thành Phù (xem rooms/travel.ts, #702): các hàm dưới chỉ chuyển tiếp để `onMessage`, `tick`, `useItem`, gm.ts gọi như cũ. */
+  travelDeny(id: string, name: string): string | null { return travel.travelDeny(this, id, name); }
 
-  /** Xin đi qua cổng: kiểm tra rồi niệm TRAVEL_CAST giây (bến thuyền BĐ6d: BOAT_CAST; bị đánh hoặc rời cổng thì hủy), xong thì beginTravel. */
-  travel(c: Client, name: string) {
-    const id = c.sessionId, d = this.pdata.get(id);
-    if (!d || d.travelling || d.travelCast) return;
-    const why = this.travelDeny(id, name);
-    if (why !== null) { if (why) this.log(id, why, "#ffb35c"); return; }
-    const portal = this.map.portals.find((q) => q.name === name)!;
-    d.travelCast = { portal, t: portal.boat ? BOAT_CAST : TRAVEL_CAST };
-    this.log(id, portal.boat ? `Lên thuyền đi ${MAPS[portal.to].name} (${BOAT_CAST} giây)…` : `Đang đi tới ${MAPS[portal.to].name}…`);
-  }
+  travel(c: Client, name: string) { travel.travel(this, c, name); }
 
   /**
    * Bật cờ `travelling` (đi cổng bước 2, hoặc client vừa rời phòng): từ đây người chơi không còn tiến độ mới nào trước lần ghi
@@ -1952,64 +1934,7 @@ export class MapRoom extends Room<MapState> {
     this.projs = this.projs.filter((pr) => pr.owner !== id);
   }
 
-  /**
-   * Bước 2–4 của mục 6: đánh dấu đang chuyển bản đồ, nối transaction đi cổng vào chuỗi lưu (chờ mọi lần ghi trước xong rồi
-   * mới chụp dữ liệu), commit xong mới gửi riêng `travel {mapId, roomId}`. Lỗi thì bỏ cờ, người chơi ở lại.
-   * `to`: phòng (kênh) đích khi đổi kênh; đi cổng thì chọn lúc commit (pickChannel: kênh có đồng đội, không thì ít người nhất
-   * còn chỗ; null = mọi kênh đầy, client joinOrCreate để mở kênh mới). `undo`: hoàn tác phần đã trừ trước khi đi (phí truyền tống,
-   * Hồi Thành Phù) khi transaction lỗi.
-   */
-  beginTravel(id: string, portal: Portal, to?: { roomId: string; ch: number }, undo?: () => void) {
-    const p = this.state.players.get(id)!, d = this.pdata.get(id)!, from = this.state.mapId;
-    this.endAva(id, "");
-    this.freeze(id);
-    this.portalHint(id, p, d);
-    let dest: { roomId: string; ch: number } | null = null;
-    this.chain(d, async () => {
-      // Từ bước 3.1 transaction đi cổng ghi luôn túi đồ và Hồn Tệ chưa lưu (mục 6, bước 3).
-      await this.flushAuto(d); // giờ treo tự săn (Auto 1): ghi trước, transaction đi cổng là lần ghi cuối của phòng này
-      await this.fogFlush(d); // sương mù khám phá (R8): ghi bitset bản đồ này trước khi rời
-      const list = this.unsaved(id), bag = this.unsavedBag(d);
-      try {
-        await store.saveTravel(d.accountId, list, from, portal.to, portal.ax, portal.ay, bag);
-        if (d.testTravelLost) { d.testTravelLost = false; throw new Error("hook travellost: giả lập mất phản hồi sau COMMIT"); }
-      } catch (e) {
-        // #165: lỗi có thể tới sau khi COMMIT đã xong (mất phản hồi). DB đã ở bản đồ đích thì coi như đã đi (không hoàn phí / phù): ở lại
-        // thì mọi lần lưu sau của phòng này bị lớp chặn WHERE map_id bỏ. Đổi kênh (cùng bản đồ) không đổi map_id nên xử như lỗi thường.
-        if (portal.to !== from && (await store.getLocation(d.accountId).catch(() => null))?.mapId === portal.to) {
-          console.error(`Đi cổng của tài khoản #${d.accountId} báo lỗi nhưng DB đã ở ${portal.to}: coi như đã đi.`, e);
-          d.travelled = true;
-          return;
-        }
-        // `undo` (11.2): trả lại phí / Hồi Thành Phù ngay trong chuỗi, trước lần ghi kế tiếp (kể cả lần ghi cuối của onLeave).
-        for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId);
-        if (bag) d.bagDirty = true;
-        undo?.(); throw e;
-      }
-      d.travelled = true;
-      // Kênh đích chọn ngay trong chuỗi, trước khi phiên này nhả tài khoản (onLeave nối sau): client, kể cả vừa mất kết nối rồi vào
-      // lại, chỉ vào được kênh này CHANNEL_CD giây khi nó còn mở, còn chỗ (leftRoom cờ `travel`; mục 6: client không chọn kênh đích, #164).
-      dest = to ?? (await pickChannel(d.accountId, portal.to).catch(() => null));
-      // Ghi cả vào presence (có TTL, chờ xong trước khi client nhận `travel`): phòng ở tiến trình khác cũng thấy khóa (#819).
-      if (dest) {
-        const lock = { mapId: portal.to, roomId: dest.roomId, ch: dest.ch, until: Date.now() + CHANNEL_CD * 1000, travel: true };
-        leftRoom.set(d.accountId, lock);
-        await presenceBackend.putJson(channelLeftKey(d.accountId), lock, CHANNEL_CD * 1000).catch((e) => console.error("presence travel lock", e));
-      } else {
-        leftRoom.delete(d.accountId);
-        await presenceBackend.delete(channelLeftKey(d.accountId)).catch((e) => console.error("presence travel lock", e));
-      }
-    }).then(() => {
-      const c = this.clients.getById(id); if (!c) return; // client đã rời: onLeave (đang chờ trong chuỗi) xét d.travelled
-      if (!d.travelled) {
-        d.travelling = false;
-        return this.log(id, "Không chuyển được bản đồ, thử lại.", "#ff8a8a");
-      }
-      c.send("travel", { mapId: portal.to, roomId: dest?.roomId ?? null });
-      // Client phải tự rời phòng cũ và vào phòng mới; quá TRAVEL_LEAVE_SECS giây thì server ngắt kết nối.
-      this.clock.setTimeout(() => { if (this.clients.getById(id)) c.leave(4003); }, TRAVEL_LEAVE_SECS * 1000);
-    });
-  }
+  beginTravel(id: string, portal: Portal, to?: { roomId: string; ch: number }, undo?: () => void) { travel.beginTravel(this, id, portal, to, undo); }
 
   // ---------- Kênh (mục 6 "Nhiều kênh") ----------
   /**
@@ -2072,137 +1997,20 @@ export class MapRoom extends Room<MapState> {
     this.beginTravel(id, { name: "", to: this.state.mapId, arrive: "", ax: p.x, ay: p.y, level: null, boat: false, x: 0, y: 0, w: 0, h: 0 }, to);
   }
 
-  // ---------- Truyền tống trận, bản đồ thế giới, Hồi Thành Phù (mục 5.3 "Truyền tống trận", bước 11.2) ----------
-  /**
-   * Mỗi tick: báo client khi bước lên / rời một truyền tống trận (tin riêng `wp {k: "here"}`: hộp "Bản đồ thế giới [F]"); bước lên trận
-   * chưa mở thì mở khóa ngay (RAM), ghi bảng `waypoints` qua chuỗi lưu và báo `wp {k: "unlock"}` (client hiện thông báo).
-   */
-  waypointTick(id: string, p: PlayerState, d: PData) {
-    const w = this.map.waypointAt(p.x, p.y), key = w?.key ?? "", c = this.clients.getById(id);
-    if (key !== d.wpKey) { d.wpKey = key; c?.send("wp", { k: "here", key, label: w?.label ?? "" }); }
-    if (!w || d.wps.has(w.key)) return;
-    d.wps.add(w.key);
-    this.chain(d, () => store.unlockWaypoint(d.accountId, w.key));
-    // Không gửi `log` (dòng chữ do client tự thêm khi nhận tin này): bước lên trận xảy ra bất kỳ lúc nào, kể cả lúc hồi sinh ở trại.
-    c?.send("wp", { k: "unlock", key: w.key, label: w.label, map: MAPS[w.map].name });
-    this.broadcast("fx", { k: "wpopen", x: w.cx, y: w.cy });
-  }
+  waypointTick(id: string, p: PlayerState, d: PData) { travel.waypointTick(this, id, p, d); }
 
-  /** `wp {op}`: `list` gửi bản đồ thế giới, `go {key}` niệm truyền tống tới trận `key`, `cancel` thôi niệm. */
-  waypointAction(id: string, op: unknown, key: unknown) {
-    if (op === "list") return this.sendWorld(id);
-    if (op === "go") return this.startWaypoint(id, strIn(key));
-    if (op === "cancel" && this.pdata.get(id)?.travelCast?.wp) return this.stopCast(id, "Đã thôi truyền tống.");
-  }
+  waypointAction(id: string, op: unknown, key: unknown) { travel.waypointAction(this, id, op, key); }
 
-  /**
-   * Tin riêng `world` (bảng bản đồ thế giới): bản đồ đang ở, trận đang đứng (`cur`, "" = không đứng trên trận nào: chỉ xem), Hồn Tệ,
-   * các cặp bản đồ nối bằng cổng (`links`), mọi truyền tống trận theo thứ tự MAPS với tên, đã mở chưa, phí từ bản đồ này (null = không tới được bằng cổng).
-   */
-  sendWorld(id: string) {
-    const p = this.state.players.get(id), d = this.pdata.get(id), c = this.clients.getById(id); if (!p || !d || !c) return;
-    const hops = mapHops(this.state.mapId), here = this.map.waypointAt(p.x, p.y);
-    c.send("world", { map: this.state.mapId, cur: here?.key ?? "", honTe: d.honTe, links: mapLinks(),
-      list: allWaypoints().map((w) => ({ key: w.key, map: w.map, label: w.label, open: d.wps.has(w.key), fee: hops[w.map] === undefined ? null : waypointFee(hops[w.map]) })) });
-  }
 
-  /** Lý do không niệm truyền tống / Hồi Thành Phù được lúc này (null = được, "" = bỏ qua im lặng). Kiểm lại lúc niệm xong. */
-  recallDeny(id: string): string | null {
-    const p = this.state.players.get(id), d = this.pdata.get(id);
-    if (!p || !d || d.travelling) return "";
-    if (d.travelCast) return d.travelCast.wp ? "Đang niệm truyền tống." : "Đang đi qua cổng.";
-    if (p.dead) return "Đã gục ngã, không truyền tống được.";
-    if (d.absorbing) return "Đang hấp thụ hồn hoàn, không truyền tống được.";
-    const ctl = this.pctl(d); if (ctl.noMove || ctl.wander) return `Đang bị ${this.ccName(d, true)}: không truyền tống được.`; // #116
-    if (d.fight < TEAM_COMBAT_SECS) return `Đang giao chiến: rời xa hồn thú ${TEAM_COMBAT_SECS} giây rồi mới truyền tống được.`;
-    return null;
-  }
 
-  /** Bắt đầu niệm WAYPOINT_CAST giây tới `dest` (cổng ẩn: bản đồ đích và tọa độ); client nhận `recall {on, label, secs}` để vẽ thanh niệm. */
-  beginRecall(id: string, dest: Portal, wp: Omit<RecallCast, "x0" | "y0" | "dur">) {
-    const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
-    d.travelCast = { portal: dest, t: WAYPOINT_CAST, wp: { ...wp, x0: p.x, y0: p.y, dur: WAYPOINT_CAST } };
-    this.clients.getById(id)?.send("recall", { on: true, label: wp.label, secs: WAYPOINT_CAST, item: !!wp.itemId });
-    this.broadcast("fx", { k: "wpcast", id, x: p.x, y: p.y, t: WAYPOINT_CAST });
-  }
 
-  /** Thôi niệm (đi cổng hoặc truyền tống) và báo lý do. */
-  stopCast(id: string, why: string) {
-    const d = this.pdata.get(id); if (!d?.travelCast) return;
-    const wp = !!d.travelCast.wp;
-    d.travelCast = null;
-    this.log(id, why, "#ffb35c");
-    if (wp) { this.clients.getById(id)?.send("recall", { on: false }); this.broadcast("fx", { k: "wpcast", id, t: 0 }); }
-  }
+  stopCast(id: string, why: string) { travel.stopCast(this, id, why); }
 
-  /** Xin truyền tống tới trận `key`: đứng trên một truyền tống trận, trận đích đã mở khóa, khác trận đang đứng, đủ Hồn Tệ, ngoài giao chiến. */
-  startWaypoint(id: string, key: string) {
-    const why = this.recallDeny(id);
-    if (why !== null) { if (why) this.log(id, why, "#ffb35c"); return; }
-    const p = this.state.players.get(id)!, d = this.pdata.get(id)!, warn = (t: string) => this.log(id, t, "#ffb35c");
-    const here = this.map.waypointAt(p.x, p.y);
-    if (!here) return warn("Hãy đứng trên một truyền tống trận rồi mới dịch chuyển được (phím M chỉ để xem bản đồ).");
-    const to = allWaypoints().find((w) => w.key === key);
-    if (!to) return warn("Truyền tống trận không tồn tại.");
-    if (!d.wps.has(to.key)) return warn(`Chưa mở khóa truyền tống trận ${to.label}: hãy tới đó bước lên trận một lần.`);
-    if (to.key === here.key) return warn("Đang đứng ở chính trận này.");
-    const hops = mapHops(this.state.mapId)[to.map];
-    if (hops === undefined) return warn(`Không tới được ${MAPS[to.map].name} từ đây.`);
-    const fee = waypointFee(hops);
-    if (d.honTe < fee) return warn(`Không đủ Hồn Tệ: truyền tống tới ${to.label} cần ${formatHonTe(fee)}.`);
-    this.beginRecall(id, this.recallDest(to.map, to.cx, to.cy), { label: `${to.label} (${MAPS[to.map].name})`, fee });
-    this.log(id, `Đang niệm truyền tống tới ${to.label} (${WAYPOINT_CAST} giây, ${formatHonTe(fee)})…`, "#8fe0ff");
-  }
 
-  /** Dùng Hồi Thành Phù `it`: niệm WAYPOINT_CAST giây về thành gần nhất (nearestTown), cùng luật cấm / hủy như truyền tống trận. */
-  useRecall(id: string, it: Item) {
-    const why = this.recallDeny(id);
-    if (why !== null) { if (why) this.log(id, why, "#ffb35c"); return; }
-    const town = nearestTown(this.state.mapId);
-    if (!town) return this.log(id, "Không có thành nào để về.", "#ffb35c");
-    this.beginRecall(id, this.recallDest(town.mapId, town.x, town.y), { label: MAPS[town.mapId].name, fee: 0, itemId: it.id });
-    this.log(id, `Đang niệm Hồi Thành Phù về ${MAPS[town.mapId].name} (${WAYPOINT_CAST} giây)…`, itemDef(it.code)?.col);
-  }
+  useRecall(id: string, it: Item) { travel.useRecall(this, id, it); }
 
-  /** Cổng ẩn tới (x, y) ở bản đồ `to` (đi bằng beginTravel như hook `warp`). */
-  recallDest(to: string, x: number, y: number): Portal {
-    return { name: "", to, arrive: "", ax: x, ay: y, level: null, boat: false, x: 0, y: 0, w: 0, h: 0 };
-  }
 
-  /**
-   * Niệm xong: kiểm lại (gục, hấp thụ, giao chiến, còn đủ Hồn Tệ / còn phù) rồi trừ phí hoặc một Hồi Thành Phù và dịch chuyển. Cùng
-   * bản đồ thì đặt thẳng vị trí (không đổi phòng) và lưu túi qua chuỗi lưu; bản đồ khác thì đi đúng transaction đi cổng (beginTravel,
-   * an toàn với tổ đội và lần ghi cuối), lỗi thì trả lại phí / phù.
-   */
-  finishRecall(id: string, dest: Portal, wp: RecallCast) {
-    const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
-    this.clients.getById(id)?.send("recall", { on: false });
-    const why = this.recallDeny(id);
-    if (why !== null) { if (why) this.log(id, why, "#ffb35c"); return; }
-    const it = wp.itemId ? d.bag.find((i) => i.id === wp.itemId && i.vohonId === null) : undefined;
-    if (wp.itemId && !it) return this.log(id, "Hồi Thành Phù không còn trong túi đồ.", "#ffb35c");
-    if (d.honTe < wp.fee) return this.log(id, `Không đủ Hồn Tệ: cần ${formatHonTe(wp.fee)}.`, "#ffb35c");
-    d.honTe -= wp.fee; d.bagDirty = true;
-    const code = it?.code;
-    if (it) this.takeItem(d, it, 1);
-    this.sendBag(id);
-    this.broadcast("fx", { k: "wpgo", x: p.x, y: p.y });
-    const done = `Truyền tống tới ${wp.label}${wp.fee ? ` (−${formatHonTe(wp.fee)})` : ""}.`;
-    this.log(id, done, "#8fe0ff");
-    if (dest.to === this.state.mapId) {
-      // Cùng bản đồ: như hook `goto`, tăng `seq` để client đang dự đoán chuyển động đặt thẳng vị trí mới (mục 6).
-      p.x = dest.ax; p.y = dest.ay; d.input = { x: 0, y: 0 }; p.moving = false; p.seq = (p.seq + 1) >>> 0; p.seqT = 0;
-      this.bdata.forEach((bd) => { if (bd.target === id) bd.target = null; });
-      this.broadcast("fx", { k: "wpgo", x: p.x, y: p.y });
-      this.saveTrade(id, d);
-      return;
-    }
-    this.beginTravel(id, dest, undefined, () => {
-      this.addCoin(d, wp.fee);
-      if (code) this.addItem(d, code, 1);
-      this.sendBag(id);
-    });
-  }
+  finishRecall(id: string, dest: Portal, wp: RecallCast) { travel.finishRecall(this, id, dest, wp); }
 
   // ---------- Giới hạn tin theo kết nối (#677, #734) ----------
   /**
