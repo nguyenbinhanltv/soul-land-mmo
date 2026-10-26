@@ -7,7 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { Img, readPng, encodePng, ROOT } from "./lib.mjs";
 import { detectGrid, splitStuckFigures } from "./beast-sheet-grid.mjs";
-import { analyzeSheet, checkSpecies, classifyShape, draftErrorLine, bodyNotes, writeReport, toJson } from "./beast-sheet-check.mjs";
+import { analyzeSheet, checkSpecies, classifyShape, draftErrorLine, bodyNotes, poseHints, writeReport, toJson, DIE_FLAT_H, HURT_TALL_H } from "./beast-sheet-check.mjs";
 
 const RAW = path.join(ROOT, "art", "src", "beast-anim");
 const sheet = (id, l) => path.join(RAW, id, `to${l}.png`);
@@ -226,3 +226,27 @@ test("turnaround không làm hỏng blockLevel / layout của beast-status (#972
     assert.deepEqual(after.missing, before.missing);
   } finally { rmSync(ta, { force: true }); }
 });
+
+test("tư thế die / hurt (#1080): nghi nằm ngang / ngửa bụng ở mức nhẹ, ô vàng, gợi ý --eye, không thành dòng LỖI:, không chặn", () => {
+  const r = checkSpecies("loi_van_hau"), toB = r.sheets.find((x) => x.sheet === "toB");
+  const die = toB.issues.find((i) => i.code === "die-ngang");
+  assert.ok(die && die.sev === "light" && die.dir === "n", JSON.stringify(toB.issues));
+  assert.ok(toB.bands[7].figures[3].state === "warn", "khung die cuối của n phải vàng trên tờ liên hệ");
+  assert.equal(poseHints(toB).length, 1);
+  assert.match(poseHints(toB)[0], /^--eye "toB=pose — H8 \(n\) C4 — die nằm ngang/);
+  assert.ok(!/die-ngang|nằm ngang/.test(draftErrorLine(toB) ?? ""), "không tự ghi LỖI: từ nghi ngờ tư thế");
+  assert.ok(!allBlock(r), "không bao giờ chặn");
+  const ts = checkSpecies("that_tinh_doc_thiem").sheets.find((x) => x.sheet === "toA");
+  assert.ok(ts.issues.some((i) => i.code === "hurt-lat" && i.dir === "s" && i.sev === "light"), JSON.stringify(ts.issues));
+  assert.ok(!ts.issues.some((i) => i.code === "hurt-lat" && i.dir === "e"), "hướng e bị loại (cánh giương cũng cao lên)");
+  assert.ok(DIE_FLAT_H < 1 && HURT_TALL_H > 1);
+});
+
+test("tư thế die / hurt (#1080): loài đạt (Hắc Bối Dã Trư, Huyền Băng Thiềm, Hàn Nguyệt Ưng) không bị đoán nhầm", () => {
+  for (const id of ["hac_boi_da_tru", "huyen_bang_thiem", "han_nguyet_ung"]) {
+    const r = checkSpecies(id);
+    for (const s of r.sheets) assert.deepEqual(s.issues.filter((i) => i.code === "die-ngang" || i.code === "hurt-lat"), [], `${id} ${s.sheet}`);
+  }
+});
+
+const allBlock = (r) => r.sheets.some((s) => s.issues.some((i) => (i.code === "die-ngang" || i.code === "hurt-lat") && i.sev === "block"));

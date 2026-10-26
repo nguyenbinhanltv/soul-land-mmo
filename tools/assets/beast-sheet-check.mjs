@@ -3,8 +3,8 @@
 //   npm run beast:check -- --all            (mọi loài trong art/src/beast-anim, chỉ in bảng tóm tắt)
 // Chỉ đọc tờ RAW: cỡ / tỉ lệ ∈ tập cho phép, khóa nền (dung sai), dò lưới theo khoảng trống, số hình mỗi dải, ô trống có hình, hình dính,
 // chân lệch, cỡ thân từng khối so với ảnh tĩnh, khung chết, hurt = idle, se ≈ e. Ghi <out>/<loài>-check.json + .md + tờ liên hệ có nhãn
-// (<loài>-to<X>-lien-he.png) + dòng `LỖI:` nháp. Mức: pass / nhẹ / chặn (thoát mã 1 khi có chặn; cỡ thân lệch chỉ là nhẹ, không bao giờ chặn: quyết định chủ repo 2026-10-26 mục 4). Hướng mặt (`n` / `ne` lộ mặt), hurt ngửa
-// bụng, die xoay: KHÔNG kiểm bằng code; xem tờ liên hệ bằng mắt. Không sửa tờ, không ghi vào repo (mặc định ghi ở thư mục tạm).
+// (<loài>-to<X>-lien-he.png) + dòng `LỖI:` nháp. Mức: pass / nhẹ / chặn (thoát mã 1 khi có chặn; cỡ thân lệch chỉ là nhẹ, không bao giờ chặn: quyết định chủ repo 2026-10-26 mục 4). Hướng mặt (`n` / `ne` lộ mặt) KHÔNG kiểm bằng code; hurt ngửa
+// bụng, die nằm ngang chỉ có CẢNH BÁO NHẸ đoán theo hình bóng (`hurt-lat`, `die-ngang`, #1080: ô vàng + gợi ý `--eye`, không ghi `LỖI:`); xem tờ liên hệ bằng mắt. Không sửa tờ, không ghi vào repo (mặc định ghi ở thư mục tạm).
 import { mkdirSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -31,6 +31,15 @@ export const EMPTY_CELL_FRAC = 0.003;
 export const BASELINE_FRAC = 0.12;
 export const BODY_BLOCK = 0.25, BODY_LIGHT = 0.1; // BODY_BLOCK chỉ còn để ghi chú "quá 25%": cỡ thân không bao giờ chặn (quyết định chủ repo 2026-10-26 mục 4)
 export const DEAD_DIFF = 0.03, HURT_IDLE_DIFF = 0.08, SE_E_IOU = 0.8;
+/**
+ * Tư thế die / hurt (#1080, mức NHẸ, không chặn, không tự ghi `LỖI:`): hiệu chỉnh trên 36 loài thật (tờ A / B trong art/src/beast-anim, nhãn dương tính lấy từ
+ * phiếu P5 #766 + dòng `LỖI:` ở NGUON), số đo ở PR #1080. `die-ngang`: khối s / n, khung die cuối đổ phẳng (cao ≤ DIE_FLAT_H × cao idle) mà rộng ≥ DIE_LEN_MIN × thân
+ * dài (rộng idle hướng e, cùng hệ số chuẩn hoá): nằm ngang cả thân thay vì đổ dọc trục nhìn. `hurt-lat`: khối khác e, khung hurt cao ≥ HURT_TALL_H × idle mà rộng
+ * ≤ HURT_NARROW_W × idle: dựng đứng / ngửa bụng (hướng e bị loại: cánh giương cũng cao lên mà không rộng thêm khi nhìn ngang). n / ne quay mặt: KHÔNG làm (đối xứng
+ * trái-phải của idle n giữa khối lộ mặt 0,93–0,98 và khối đạt 0,94–0,98: không tách được).
+ */
+export const DIE_FLAT_H = 0.55, DIE_LEN_MIN = 1.2, HURT_TALL_H = 1.25, HURT_NARROW_W = 1.1;
+export const POSE_CODES = ["die-ngang", "hurt-lat"];
 const LEVEL_RANK = { pass: 0, "nhẹ": 1, "chặn": 2 };
 const SEV_LEVEL = { block: "chặn", light: "nhẹ", note: "pass" };
 const LEVEL_ASCII = { pass: "PASS", "nhẹ": "NHE", "chặn": "CHAN" }; // phông ảnh liên hệ không có dấu
@@ -210,7 +219,7 @@ function analyzeMotion(res, grid) {
   const cropOf = (c) => { const k = `${c.dir}/${c.anim}/${c.frame}`; if (!crops.has(k)) crops.set(k, crop(grid, c.fig)); return crops.get(k); };
   for (const dir of res.dirs) {
     const idle = [0, 1, 2, 3].map((f) => bySlot.get(`${dir}/idle/${f}`)).filter(Boolean);
-    if (idle.length === 4) res.blocks.push({ dir, idleH: median(idle.map((c) => c.fig.h)), row: idle[0].bandRow });
+    if (idle.length === 4) res.blocks.push({ dir, idleH: median(idle.map((c) => c.fig.h)), idleW: median(idle.map((c) => c.fig.w)), row: idle[0].bandRow });
     for (const anim of ["idle", "walk"]) {
       const n = ANIMS.find(([a]) => a === anim)[1], fr = Array.from({ length: n }, (_, f) => bySlot.get(`${dir}/${anim}/${f}`));
       if (fr.some((c) => !c)) continue;
@@ -226,11 +235,48 @@ function analyzeMotion(res, grid) {
       if (Math.max(...ds) < HURT_IDLE_DIFF) issue(issues, "light", "hurt-idle", `H${hurt[0].bandRow + 1} (${dir}) ${colsText(hurt.map((c) => c.col))}`, `hurt trùng idle (xor/hợp ${ds.map((d) => round(d)).join(" / ")}): không thấy phản ứng trúng đòn.`, { dir });
     }
   }
+  analyzePose(res, bySlot);
   const se = bySlot.get("se/idle/0"), e = bySlot.get("e/idle/0");
   if (se && e) {
     const iou = silhouetteIou(cropOf(se), cropOf(e));
     res.seVsE = round(iou);
     if (iou > SE_E_IOU) issue(issues, "note", "se-giong-e", `H${se.bandRow + 1} (se) vs H${e.bandRow + 1} (e)`, `hình bóng idle se ≈ e (IoU ${round(iou)} > ${SE_E_IOU}): cảnh báo gần đúng, xem bằng mắt (thú ngồi xổm có thể giống thật).`, { dir: "se" });
+  }
+}
+
+/** Đánh dấu khung trên tờ liên hệ (vàng) cho các ô `cells` của một dải. */
+function warnCells(res, cells) {
+  for (const c of cells) { const f = res.bands[c.bandRow]?.figures[c.col]; if (f && f.state !== "bad") f.state = "warn"; }
+}
+
+/** hurt-lat (cần mỗi khối riêng); die-ngang chỉ ghi số đo ở `res.pose` (cần thân dài của cả loài, xét ở checkSpecies). */
+function analyzePose(res, bySlot) {
+  res.pose = [];
+  for (const dir of res.dirs) {
+    const idle = [0, 1, 2, 3].map((f) => bySlot.get(`${dir}/idle/${f}`)).filter(Boolean);
+    if (idle.length !== 4) continue;
+    const iw = median(idle.map((c) => c.fig.w)), ih = median(idle.map((c) => c.fig.h));
+    const hurt = [0, 1].map((f) => bySlot.get(`${dir}/hurt/${f}`)).filter(Boolean), die = bySlot.get(`${dir}/die/3`);
+    res.pose.push({ dir, idleW: iw, idleH: ih, die: die ?? null });
+    const tall = dir === "e" ? [] : hurt.filter((c) => c.fig.h / ih >= HURT_TALL_H && c.fig.w / iw <= HURT_NARROW_W);
+    if (tall.length) {
+      issue(res.issues, "light", "hurt-lat", `H${tall[0].bandRow + 1} (${dir}) ${colsText(tall.map((c) => c.col))}`,
+        `hurt cao ${round(Math.max(...tall.map((c) => c.fig.h / ih)) * 100, 0)}% idle mà không rộng thêm (≤ ${round(HURT_NARROW_W * 100, 0)}%): nghi dựng đứng / ngửa bụng thay vì lùi ngắn; công cụ chỉ đoán, xem bằng mắt.`, { dir });
+      warnCells(res, tall);
+    }
+  }
+}
+
+/** die-ngang: khung die cuối đổ phẳng và dài cả thân ở khối s / n. `bodyLen` = rộng idle hướng e (px ảnh gốc × hệ số chuẩn hoá), null nếu loài chưa có khối e. */
+function checkDieFlat(sheet, bodyLen) {
+  if (!bodyLen) return;
+  for (const p of sheet.pose ?? []) {
+    if ((p.dir !== "s" && p.dir !== "n") || !p.die) continue;
+    const len = (p.die.fig.w * sheet.canonFactor) / bodyLen, flat = p.die.fig.h / p.idleH;
+    if (flat > DIE_FLAT_H || len < DIE_LEN_MIN) continue;
+    issue(sheet.issues, "light", "die-ngang", `H${p.die.bandRow + 1} (${p.dir}) ${colsText([p.die.col])}`,
+      `die cuối đổ phẳng (cao ${round(flat * 100, 0)}% idle) và rộng ${round(len * 100, 0)}% thân dài: nghi nằm ngang / xoay 90° thay vì đổ dọc trục ${p.dir}; công cụ chỉ đoán, xem bằng mắt.`, { dir: p.dir });
+    warnCells(sheet, [p.die]);
   }
 }
 
@@ -261,6 +307,9 @@ export function checkSpecies(id, { dir = path.join(ROOT, "art", "src", "beast-an
     if (dev > BODY_LIGHT) issue(b.sheet.issues, "light", "co-than", where, `cỡ thân idle ${round(b.rel * 100, 0)}% so với ${ref} (lệch ${round(dev * 100, 0)}%${dev > BODY_BLOCK ? `, quá ${BODY_BLOCK * 100}%` : ""}); cutter neo lại, không chặn.`, { dir: b.dir });
     b.sheet.bodyRel = { ...(b.sheet.bodyRel ?? {}), [b.dir]: round(b.rel) };
   }
+  const eBlocks = sheets.flatMap((s) => s.blocks.filter((b) => b.dir === "e").map((b) => b.idleW * s.canonFactor));
+  const bodyLen = eBlocks.length ? median(eBlocks) : null;
+  for (const s of sheets) checkDieFlat(s, bodyLen);
   let level = turnaround ? turnaround.level : "pass";
   const blockLevel = {};
   for (const s of sheets) {
@@ -282,9 +331,13 @@ const CODE_VI = { "kich-thuoc": "sai kích thước", nen: "nền ngoài dung sa
 export function bodyNotes(sheet) {
   return sheet.issues.filter((i) => i.code === "co-than").map((i) => `${i.where}: ${i.msg}`);
 }
+/** Gợi ý `--eye` cho beast-nguon từ các nghi ngờ tư thế (die-ngang / hurt-lat): mảng chuỗi `toB=pose — <vị trí> — <ghi chú> (nghi, công cụ)`; KHÔNG phải `LỖI:`, người xem ảnh quyết. */
+export function poseHints(sheet) {
+  return sheet.issues.filter((i) => POSE_CODES.includes(i.code)).map((i) => `--eye "${sheet.sheet}=pose — ${i.where} — ${i.code === "die-ngang" ? "die nằm ngang, lệch trục hướng" : "hurt ngửa bụng / dựng đứng"} (nghi, đã xem ảnh thì giữ / bỏ)"`);
+}
 /** Dòng `LỖI:` nháp theo mẫu NGUON.md: tờ — loại / loại — vị trí — mô tả. Chỉ gồm mục nhẹ và chặn, trừ cỡ thân (ghi chú kỹ thuật, `bodyNotes`); null nếu không có. */
 export function draftErrorLine(sheet) {
-  const list = sheet.issues.filter((i) => i.sev !== "note" && i.code !== "co-than");
+  const list = sheet.issues.filter((i) => i.sev !== "note" && i.code !== "co-than" && !POSE_CODES.includes(i.code));
   if (!list.length) return null;
   const codes = [...new Set(list.map((i) => CODE_VI[i.code] ?? i.code))];
   return `LỖI: ${sheet.sheet} — ${codes.join(" / ")} — ${list.map((i) => i.where).join(", ")} — ${list.map((i) => i.msg.replace(/\.$/, "")).join("; ")}.`;
@@ -314,6 +367,8 @@ export function toMarkdown(r) {
     const d = draftErrorLine(s);
     const bn = bodyNotes(s);
     if (bn.length) L.push("", "Ghi chú kỹ thuật (cỡ thân, không phải lỗi; theo quyết định chủ repo 2026-10-26 mục 4):", ...bn.map((x) => `- ${x}`));
+    const ph = poseHints(s);
+    if (ph.length) L.push("", "Nghi tư thế (mức nhẹ, KHÔNG phải lỗi; ô vàng trên ảnh liên hệ; xem bằng mắt rồi mới khai cho `beast-nguon`):", ...ph.map((x) => `- \`${x}\``));
     L.push("", d ? ["Dòng nháp cho NGUON.md (soát lại bằng mắt trước khi dán):", "", "```", d, "```"].join("\n") : "Không có dòng `LỖI:` tự sinh.", "");
   }
   L.push("## Việc còn lại cho mắt người", "", "Công cụ không kiểm: `n` / `ne` lộ mặt (kể cả hurt), `se` khác `e` thật sự, hurt lùi đúng hướng (không ngửa bụng / quay mặt), die giữ hướng, nhận diện đúng loài.",
@@ -371,7 +426,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       if (r.level === "chặn") blocked++;
       if (!o.all) {
         const files = writeReport(r, o.species.length > 1 ? path.join(base, id) : base, { images: o.images });
-        for (const s of allSheets(r)) { const d = draftErrorLine(s); if (d) console.log(d); }
+        for (const s of allSheets(r)) { const d = draftErrorLine(s); if (d) console.log(d); for (const h of poseHints(s)) console.log(`Nghi tư thế (nhẹ, chưa phải lỗi; xem ảnh liên hệ rồi mới dùng): ${h}`); }
         console.log(`Đã ghi ${files.length} file vào ${path.dirname(files[0])}`);
       }
     }
