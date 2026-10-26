@@ -36,6 +36,34 @@ for (let i = 0; i < visible.length; i++) {
   for (const b of visible.slice(i + 1)) assert.ok(!nameplatesOverlap(a, b, 3), `${a.id} không chồng ${b.id}`);
 }
 assert.deepEqual(layoutNameplates(crowd, { viewport, obstacles: [body], maxOffset: 128 }), placed, "layout ổn định giữa hai khung đứng yên");
+// #828: nhãn người đang đi không đổi chỗ qua lại khi bị đè chớp nhoáng; đổi chỗ chỉ khi bị đè thật, quay về sau khi chỗ gốc trống đủ `hold`.
+{
+  const me = (x, now, prev, others = []) => layoutNameplates([{ id: "me", x, y: 100, width: 60, height: 16, priority: 20 }, ...others],
+    { gap: 3, now, prev, hold: 450 }).find((p) => p.id === "me");
+  const other = (x) => ({ id: "a", x, y: 100, width: 60, height: 16, priority: 100 });
+  let t = 0, prev = new Map(), shifted = 0, last = null;
+  const step = (x, others) => {
+    const p = me(x, t, prev, others); t += 16;
+    prev = new Map([[p.id, p.slot]]);
+    const off = [Math.round(p.x - x), Math.round(p.y - 100)].join();
+    if (last !== null && off !== last) shifted++;
+    last = off; return p;
+  };
+  step(0); assert.equal(last, "0,0", "chỗ gốc khi không bị đè");
+  const first = step(10, [other(20)]);
+  assert.notEqual(first.slot.dx + first.slot.up, 0, "bị đè thật thì đổi chỗ ngay");
+  const moved = shifted;
+  for (let i = 0; i < 20; i++) step(10 + i, i % 2 ? [] : [other(20 + i)]); // lúc đè lúc không, mỗi khung
+  assert.equal(shifted, moved, "đè chớp nhoáng từng khung không làm nhãn quay đi quay lại");
+  for (let i = 0; i < 40; i++) step(30, []); // trống liên tục hơn 450 ms
+  assert.equal(last, "0,0", "chỗ gốc trống đủ lâu thì quay về");
+  assert.equal(shifted, moved + 1, "chỉ đổi một lần khi quay về");
+  const one = (now, prevSlot) => layoutNameplates([{ id: "me", x: 5, y: 100, width: 60, height: 16, priority: 20 }], { prev: new Map([["me", prevSlot]]), now })[0].slot;
+  const waiting = one(1000, { dx: 0, up: 28, compact: false });
+  assert.equal(waiting.up, 28, "chỗ cũ còn hợp lệ: giữ trong lúc chờ");
+  assert.equal(one(1200, waiting).up, 28, "chưa đủ hold thì vẫn giữ");
+  assert.equal(one(1500, waiting).up, 0, "đủ hold thì về chỗ gốc");
+}
 const impossible = layoutNameplates([{ ...crowd[0], width: 900, compactSize: undefined, priority: 120 }], { viewport });
 assert.equal(impossible[0].visible, false, "hết chỗ thì ẩn, kể cả ưu tiên cao cũng không vẽ chồng");
 assert.equal(nameplatePriority(true, false, false) > nameplatePriority(false, true, false), true);
