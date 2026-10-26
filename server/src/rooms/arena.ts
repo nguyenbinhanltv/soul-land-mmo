@@ -114,7 +114,8 @@ export function arenaAction(room: MapRoom, id: string, raw: unknown, roomId?: un
   Promise.all([Promise.all(rows.map(([, x]) => arenaReadElo(x.accountId, () => store.getArena(x.accountId, ARENA.startElo)))),
     Promise.all(rows.map(([, x]) => store.isTestAccount(x.accountId)))]).then(([recs, tests]) => {
     rows.forEach(([, x]) => { x.arenaBusy = false; });
-    if (rows.some(([sid, x]) => room.pdata.get(sid) !== x) || recs.some((rec) => !rec)) return warn("Không xếp hàng được, thử lại.");
+    if (recs.some((rec) => !rec)) return; // đã hủy lúc đọc Elo (#225): người chơi đã nhận câu "Đã hủy xếp hàng", không báo lỗi thêm
+    if (rows.some(([sid, x]) => room.pdata.get(sid) !== x)) return warn("Không xếp hàng được, thử lại.");
     // Tổ đội lẫn tài khoản test và người thật không xếp hàng được (#518): đội test chỉ gặp đội test, nên người thật trong đó sẽ bị đổi Elo bởi trận với tài khoản test.
     if (tests.some(Boolean) && !tests.every(Boolean)) return warn("Tổ đội có cả tài khoản test và người thật: không xếp hàng xếp hạng được.");
     const current = arenaAccounts(room, d.accountId);
