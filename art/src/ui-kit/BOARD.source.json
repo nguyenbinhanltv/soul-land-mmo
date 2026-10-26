@@ -1,0 +1,77 @@
+{
+  "issue": 881,
+  "session": "soul-land-mmo-134",
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "requested_aspect_ratio": "3:2",
+  "actual_dimensions": [
+    1536,
+    1024
+  ],
+  "raw_file": "BOARD.png",
+  "bytes": 1969362,
+  "sha256": "9cae6f45aa21d2b7d5e2975928c0dfc996af0b4566cb7de2b6d676bc36f393bb",
+  "raw_copy_byte_identical": true,
+  "postprocessing": "NONE; byte-identical copy of original tool output",
+  "prompt_file": "BOARD.prompt.txt",
+  "prompt_sha256": "4b1053274b049c540ff8714f460d404d6567b6ca82d85ebbfe9374adc0dac839",
+  "tool_arguments": {
+    "num_last_images_to_include": 4,
+    "transparent_background": false
+  },
+  "references": [
+    {
+      "path": "art/palettes/_thuy_mac.gpl",
+      "role": "UI palette source for temporary swatch"
+    },
+    {
+      "path": "art/palette.gpl",
+      "role": "outline and bronze accent palette source for temporary swatch"
+    },
+    {
+      "path": "shared/assets/sprites/iso/ui/nv6_nen_bup_be.png",
+      "role": "approved C2 ink reference"
+    },
+    {
+      "path": "shared/assets/sprites/iso/ui/thong_bao_len_cap.png",
+      "role": "approved C2 ink reference"
+    },
+    {
+      "path": "shared/assets/sprites/iso/ui/khung_tab_nhan_vat.png",
+      "role": "approved C2 ink reference"
+    }
+  ],
+  "selected_attempt": 2,
+  "attempts": [
+    {
+      "attempt": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "fd860d1317803e1f74042474c108a2c74bb359b9aaa2adbd088c1a7829ee5538",
+      "selected": false,
+      "reason": "Village scenery crossed into the magenta outer area."
+    },
+    {
+      "attempt": 2,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "9cae6f45aa21d2b7d5e2975928c0dfc996af0b4566cb7de2b6d676bc36f393bb",
+      "selected": true,
+      "reason": "Keeps the village inside a bounded game view and retains all requested UI groups."
+    }
+  ],
+  "qa": {
+    "command": "npm run ui:check -- art/src/ui-kit/BOARD.png --kind BOARD",
+    "result": "pass; 1536x1024; 0 blocking, 0 minor, 0 warnings",
+    "limitation": "BOARD check validates dimensions/aspect only; no claim of art approval."
+  },
+  "qa_status": "Submitted for owner review; not art-accepted or imported.",
+  "size_selector_available": false,
+  "transparent_background": false,
+  "temporary_palette_swatch": "Derived from the listed palette files; not included in the PR."
+}
