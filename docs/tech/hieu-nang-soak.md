@@ -6,8 +6,8 @@
 - 40–60 người tự săn một kênh ×8: tick + bản vá trung bình 7–11 ms trên nhịp 50 ms; nhịp > 50 ms hiếm (≤ 1 / phút), không có nguyên nhân rõ trong code game.
 - Băng thông 5–8 KB/s mỗi client (9–12 KB/s cạnh thú vương). Phòng trống tự hủy, heap về gần mức đầu; heap tăng chỉ do túi đồ bot đầy dần (có trần), không thấy rò.
 - Redis tắt giữa chừng (hai tiến trình): bài `arena` và `friend` đạt, server sống đến cuối (phần 9 bên dưới).
-- Kịch bản 2 giờ đã đo (mục 10, #739): 40 người tự săn một kênh ×8 với PostgreSQL, heap phẳng ~53–54 MB từ phút 15, RSS ~310–320 MB, không thấy rò Map / Set mức tiến trình.
-- Map toàn cục (#739): `kingClaimCache` dọn theo khung thú vương hết hạn, `lastFoe` của hàng chờ đấu trường dọn khi cả hai bên rời hàng quá hạn (thời lượng trận + `ARENA.rematchSecs`, vì cặp đang đấu vẫn phải bị chặn ghép lại); `tools/ci/check-global-maps.mjs` (trong `npm run check`) chặn Map / Set cấp module mới không có đường xóa (hoặc chú thích `map-co-dinh:`); test `npm run test:mapleak --prefix server`. Soak 2 giờ có chụp heap: mục 10.
+- Kịch bản 2 giờ đã đo (phần 10, #739): 40 người tự săn một kênh ×8 với PostgreSQL, heap phẳng ~53–54 MB từ phút 15, RSS ~310–320 MB, không thấy rò Map / Set mức tiến trình.
+- Map toàn cục (#739): `kingClaimCache` dọn theo khung thú vương hết hạn, `lastFoe` của hàng chờ đấu trường dọn khi cả hai bên rời hàng quá hạn (thời lượng trận + `ARENA.rematchSecs`, vì cặp đang đấu vẫn phải bị chặn ghép lại); `tools/ci/check-global-maps.mjs` (trong `npm run check`) chặn Map / Set cấp module mới không có đường xóa (hoặc chú thích `map-co-dinh:`); test `npm run test:mapleak --prefix server`. Soak 2 giờ có chụp heap: phần 10.
 
 Bảng dưới là số liệu từng lượt; mốc đầu đo trên code `257570e`, so với mốc 11.4 và soak 30 phút.
 
@@ -90,7 +90,7 @@ Không có hàm game nào nổi bật. `vnClock` (`Intl.DateTimeFormat`, gọi t
 | Băng thông mỗi client | **Đạt**: 5–8 KB/s (mốc 7–8), 9–12 KB/s cạnh thú vương, ~0,5 KB/s trong thành |
 | Phòng trống tự hủy, heap về gần mức đầu | **Đạt** |
 | Rò bộ nhớ | **Không thấy**: heap tăng do túi đồ đầy dần (có trần), dừng tăng khi túi đầy |
-| Kịch bản Dài 1–2 giờ | **Đạt** (mục 10): 120 phút, 40 bot, heap / RSS phẳng, không rò Map / Set |
+| Kịch bản Dài 1–2 giờ | **Đạt** (phần 10): 120 phút, 40 bot, heap / RSS phẳng, không rò Map / Set |
 
 ## 6. Đo lại nhịp chậm
 Code `5620686` (có `PERF_LOG` ghi `[perf-slow]` theo đoạn và CPU luồng chính). macOS, 10 luồng, tải nền ~3 (có các phiên khác chạy cùng). Server `node --import tsx`, `GAME_TEST=1 PERF_LOG=1`, lưu RAM (`env -u DATABASE_URL`, log in `Chưa có DATABASE_URL`), bản đồ ×8. Bot: `N=40|60 SECS=300 node client/scripts/auto-soak.mjs`, một kênh Tinh Đấu Ngoại vi, mỗi mức một server mới. Chỉ tính cửa sổ 10 giây có đủ người.
