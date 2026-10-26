@@ -2,7 +2,7 @@
 
 File này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-status.mjs`); **không sửa tay**, không dán bảng tay vào issue. Mức theo khối hướng là kết quả `beast:check` (cỡ, nền, lưới, số hình, chân, cỡ thân, khung chết); `n` / `ne` lộ mặt, hurt ngửa bụng, die xoay chỉ xem bằng mắt (tờ liên hệ).
 
-28 loài có thư mục · 6 đã nhập vào game · 21 sẵn sàng nhập · 7 có khối chặn
+29 loài có thư mục · 6 đã nhập vào game · 21 sẵn sàng nhập · 1 thiếu tờ · 7 có khối chặn
 
 | Loài | Mã | Bố cục | Tờ (cỡ, mức) | s | se | e | ne | n | Thiếu | Nhập game | Trạng thái |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -12,6 +12,7 @@ File này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-statu
 | Điền Thử | `dien_thu` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 đạt | nhẹ | nhẹ | đạt | đạt | đạt | - | chưa | sẵn sàng nhập |
 | Độc Vụ Thiềm | `doc_vu_thiem` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | nhẹ | đạt | đạt | đạt | nhẹ | - | chưa | sẵn sàng nhập |
 | Hắc Bối Dã Trư | `hac_boi_da_tru` | sheet | A 1024×1536 đạt<br>B 1254×1254 đạt | đạt | đạt | đạt | đạt | đạt | - | đã nhập | sẵn sàng nhập |
+| Hắc Vụ Biên Bức | `hac_vu_bien_buc` | sheet | A 948×1659 **chặn**<br>B 1254×1254 đạt | thiếu | thiếu | thiếu | đạt | đạt | - | chưa | thiếu tờ |
 | Huyền Băng Thiềm | `huyen_bang_thiem` | sheet | A 1024×1536 đạt<br>B 1254×1254 nhẹ | đạt | đạt | đạt | nhẹ | đạt | - | đã nhập | sẵn sàng nhập |
 | Kim Linh Ưng | `kim_linh_ung` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | nhẹ | nhẹ | đạt | đạt | nhẹ | - | đã nhập | sẵn sàng nhập |
 | Lam Lôi Tê Ngưu | `lam_loi_te_nguu` | sheet | A 1024×1536 đạt<br>B 1254×1254 đạt | đạt | đạt | đạt | đạt | đạt | - | chưa | sẵn sàng nhập |
@@ -71,6 +72,12 @@ LỖI: toA — hình ở ô trống / cỡ thân lệch — H8 (se) C5, H8 (se) 
 ```
 LỖI: toA — khung chết / hurt trùng idle / cỡ thân lệch — H1 (s) C1–4, H1 (s) C5–6, H1–4 (s) — idle: mọi khung gần như trùng (xor/hợp tối đa 0.028 < 0.03); hoạt ảnh không chuyển động; hurt trùng idle (xor/hợp 0.076 / 0.076): không thấy phản ứng trúng đòn; cỡ thân idle 90% so với ảnh tĩnh (lệch 10%).
 LỖI: toB — cỡ thân lệch — H5–8 (n) — cỡ thân idle 88% so với ảnh tĩnh (lệch 12%).
+```
+
+### Hắc Vụ Biên Bức (`hac_vu_bien_buc`)
+
+```
+LỖI: toA — sai kích thước — toàn tờ — 948×1659 không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2).
 ```
 
 ### Huyền Băng Thiềm (`huyen_bang_thiem`)

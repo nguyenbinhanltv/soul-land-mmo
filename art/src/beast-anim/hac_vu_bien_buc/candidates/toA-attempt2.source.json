@@ -1,0 +1,27 @@
+{
+  "species": "hac_vu_bien_buc",
+  "sheet": "A",
+  "attempt": 2,
+  "worker": "soul-land-mmo-136",
+  "issue": 772,
+  "raw_file": "toA-attempt2.png",
+  "sha256": "c38897ba0da113383e9a92d59ec8663dd9fecd28d760a25e4fd04342e7d45577",
+  "bytes": 1792695,
+  "width": 948,
+  "height": 1660,
+  "requested_aspect_ratio": "2:3",
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "attempts": 2,
+  "prompt_file": "toA-attempt2.prompt.txt",
+  "prompt_sha256": "4a9b461e1a73ba839fb5acc43d19fc39111cc13b884ad16e8618ba876b6d118c",
+  "transparent_background": false,
+  "reference": {
+    "path": "shared/assets/sprites/beast/hac_vu_bien_buc.png",
+    "sha256": "da0913bbb81326284b25ee25276a923050ae8c2be484b85243f41b8892f34547"
+  },
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-012e725b-4441-4cba-a510-b59dc1f71170.png",
+  "postprocessing": "Không; sao chép nguyên byte PNG.",
+  "error": "948x1660, tỉ lệ 0.571; ngoài 2:3 ±1%."
+}

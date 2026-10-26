@@ -1,10 +1,11 @@
 {
   "schema": 1,
   "generatedBy": "tools/assets/beast-status.mjs",
-  "species": 28,
+  "species": 29,
   "imported": 6,
   "tally": {
     "san-sang-nhap": 21,
+    "thieu-to": 1,
     "chan": 7
   },
   "items": [
@@ -315,6 +316,57 @@
       },
       "missing": [],
       "errorLines": []
+    },
+    {
+      "id": "hac_vu_bien_buc",
+      "name": "Hắc Vụ Biên Bức",
+      "family": "bird",
+      "frame": 96,
+      "imported": false,
+      "turnaround": false,
+      "layout": "sheet",
+      "state": "thieu-to",
+      "sheets": [
+        {
+          "sheet": "toA",
+          "file": "art/src/beast-anim/hac_vu_bien_buc/toA.png",
+          "size": [
+            948,
+            1659
+          ],
+          "bytes": 1709325,
+          "sha256": "a1a2cf57d2b0c11bc9f5d94880b29a48b81060ece3dbe54427459aba4279d858",
+          "level": "chặn",
+          "block": 1,
+          "light": 0,
+          "note": 0
+        },
+        {
+          "sheet": "toB",
+          "file": "art/src/beast-anim/hac_vu_bien_buc/toB.png",
+          "size": [
+            1254,
+            1254
+          ],
+          "bytes": 1731511,
+          "sha256": "5fce4c2c768a96fe764ad3f65c3ac2dfac81a261a2dc4211a14929dfc63a12e3",
+          "level": "pass",
+          "block": 0,
+          "light": 0,
+          "note": 2
+        }
+      ],
+      "blocks": {
+        "s": "thiếu",
+        "se": "thiếu",
+        "e": "thiếu",
+        "ne": "pass",
+        "n": "pass"
+      },
+      "missing": [],
+      "errorLines": [
+        "LỖI: toA — sai kích thước — toàn tờ — 948×1659 không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2)."
+      ]
     },
     {
       "id": "huyen_bang_thiem",

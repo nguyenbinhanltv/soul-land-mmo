@@ -2294,6 +2294,8 @@ Thiết Giáp Cự Giải (H4 đợt 4, Part of #770/#766): `art/src/beast-anim/
 
 Thiết Giáp Tê Ngưu (H4 đợt 4, Part of #770/#766): `art/src/beast-anim/thiet_giap_te_nguu/toA.png` (1024×1536, fresh110 A1) và `toB.png` (1254×1254 thật thay1024×1024 yêu cầu, fresh112 B1), tthoadev sinh ngày2026-10-26 bằng builtin `image_gen.imagegen`; mỗi tờ1call/0retry, tổng2. Model ảnh/seed unknown. A static identity only; B ordered static+A style/body-size candidate còn FAIL. RAW nguyên byte, không hậu kỳ/cắt/resize; nộp mọiFAIL theo owner, không size/art/runtime acceptance. Exact prompts/baseposition/refroles/hash/counters/template conflicts: [NGUON.md](src/beast-anim/thiet_giap_te_nguu/NGUON.md), toA/toB.prompt.txt và toA/toB.source.json cùng thư mục. Nguồn Q44/điều khoản công cụ.
 
+Hắc Vụ Biên Bức (H4 đợt 6, Part of #772/#766): RAW `art/src/beast-anim/hac_vu_bien_buc/toA.png` (A3/3, 948×1659, sai tỉ lệ 2:3; cả ba lượt đều sai tỉ lệ) và `toB.png` (B1/1, 1254×1254 hợp lệ). tthoadev sinh ngày 2026-10-26 bằng builtin `image_gen.imagegen`; A chỉ tham chiếu ảnh tĩnh loài, B tham chiếu ảnh tĩnh rồi A3. Model ảnh/seed unknown; ảnh nguyên byte, không resize/cắt/hậu kỳ. A lỗi kích thước; B lỗi NE gần nhìn ngang và NE/N lộ mặt. Prompt, source, NGUON và lịch sử lượt trong `art/src/beast-anim/hac_vu_bien_buc/`; chưa art accepted hoặc nhập game.
+
 <!-- private-assets:start -->
 ## Asset kho riêng (không nằm trong repo công khai)
 

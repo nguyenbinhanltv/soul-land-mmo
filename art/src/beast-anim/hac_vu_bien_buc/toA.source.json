@@ -1,0 +1,79 @@
+{
+  "species": "hac_vu_bien_buc",
+  "sheet": "A",
+  "attempt": 3,
+  "worker": "soul-land-mmo-136",
+  "issue": 772,
+  "raw_file": "toA.png",
+  "sha256": "a1a2cf57d2b0c11bc9f5d94880b29a48b81060ece3dbe54427459aba4279d858",
+  "bytes": 1709325,
+  "width": 948,
+  "height": 1659,
+  "requested_aspect_ratio": "2:3",
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "attempts": 3,
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "4a9b461e1a73ba839fb5acc43d19fc39111cc13b884ad16e8618ba876b6d118c",
+  "transparent_background": false,
+  "reference": {
+    "path": "shared/assets/sprites/beast/hac_vu_bien_buc.png",
+    "sha256": "da0913bbb81326284b25ee25276a923050ae8c2be484b85243f41b8892f34547"
+  },
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-7059b05c-1dfb-41ee-88e4-9b43a083857e.png",
+  "postprocessing": "Không; sao chép nguyên byte PNG.",
+  "check": "chặn — sai kích thước (948×1659, ngoài 2:3 ±1%).",
+  "selected_attempt": 3,
+  "counters": {
+    "A": 3,
+    "B": 0,
+    "species_total": 3
+  },
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/hac_vu_bien_buc.png",
+      "role": "static identity",
+      "sha256": "da0913bbb81326284b25ee25276a923050ae8c2be484b85243f41b8892f34547"
+    }
+  ],
+  "history": [
+    {
+      "attempt": 1,
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-713341d0-dc59-416a-9056-ca8a9c5657db.png",
+      "raw_file": "candidates/toA-attempt1.png",
+      "prompt_file": "candidates/toA-attempt1.prompt.txt",
+      "sha256": "e7672a3a06cf746326a838920a5a3001abd971f056cb2ce792a441cc8bd55b49",
+      "prompt_sha256": "4a9b461e1a73ba839fb5acc43d19fc39111cc13b884ad16e8618ba876b6d118c",
+      "bytes": 1735552,
+      "width": 948,
+      "height": 1660,
+      "ratio": 0.571084
+    },
+    {
+      "attempt": 2,
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-012e725b-4441-4cba-a510-b59dc1f71170.png",
+      "raw_file": "candidates/toA-attempt2.png",
+      "prompt_file": "candidates/toA-attempt2.prompt.txt",
+      "sha256": "c38897ba0da113383e9a92d59ec8663dd9fecd28d760a25e4fd04342e7d45577",
+      "prompt_sha256": "4a9b461e1a73ba839fb5acc43d19fc39111cc13b884ad16e8618ba876b6d118c",
+      "bytes": 1792695,
+      "width": 948,
+      "height": 1660,
+      "ratio": 0.571084
+    },
+    {
+      "attempt": 3,
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-7059b05c-1dfb-41ee-88e4-9b43a083857e.png",
+      "raw_file": "candidates/toA-attempt3.png",
+      "prompt_file": "candidates/toA-attempt3.prompt.txt",
+      "sha256": "a1a2cf57d2b0c11bc9f5d94880b29a48b81060ece3dbe54427459aba4279d858",
+      "prompt_sha256": "4a9b461e1a73ba839fb5acc43d19fc39111cc13b884ad16e8618ba876b6d118c",
+      "bytes": 1709325,
+      "width": 948,
+      "height": 1659,
+      "ratio": 0.571429
+    }
+  ],
+  "selection_reason": "Ba lượt đều chỉ bị chặn do sai tỉ lệ; chọn lượt 3 vì 948×1659 gần 2:3 nhất trong ba kết quả. Giữ ảnh lỗi để nộp theo yêu cầu; không resize."
+}
