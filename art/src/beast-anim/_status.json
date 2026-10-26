@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "generatedBy": "tools/assets/beast-status.mjs",
-  "species": 30,
+  "species": 31,
   "imported": 6,
   "tally": {
-    "san-sang-nhap": 21,
+    "san-sang-nhap": 22,
     "chua-co-to": 1,
     "chan": 7,
     "thieu-to": 1
@@ -845,6 +845,57 @@
       "errorLines": [
         "LỖI: toA — hình dính / cỡ thân lệch — H11 (e), H1–4 (s), H9–12 (e) — dải có 5 hình, cần 6: hình dính nhau; cỡ thân idle 85% so với ảnh tĩnh (lệch 15%); cỡ thân idle 132% so với ảnh tĩnh (lệch > 25%).",
         "LỖI: toB — cỡ thân lệch — H5–8 (n) — cỡ thân idle 81% so với ảnh tĩnh (lệch 19%)."
+      ]
+    },
+    {
+      "id": "quy_dien_hai_yeu",
+      "name": "Quỷ Diện Hải Yêu",
+      "family": "snake",
+      "frame": 96,
+      "imported": false,
+      "turnaround": false,
+      "layout": "sheet",
+      "state": "san-sang-nhap",
+      "sheets": [
+        {
+          "sheet": "toA",
+          "file": "art/src/beast-anim/quy_dien_hai_yeu/toA.png",
+          "size": [
+            1024,
+            1536
+          ],
+          "bytes": 2072033,
+          "sha256": "3b8b1ef72228b4c2e1360db3004a23abef35f1382d7e6be6fec59c4b018b440f",
+          "level": "nhẹ",
+          "block": 0,
+          "light": 2,
+          "note": 1
+        },
+        {
+          "sheet": "toB",
+          "file": "art/src/beast-anim/quy_dien_hai_yeu/toB.png",
+          "size": [
+            1254,
+            1254
+          ],
+          "bytes": 1996837,
+          "sha256": "0050e1125d35c608334b2c488acc1311536bbb90bb0597b951dae7f8b822718d",
+          "level": "pass",
+          "block": 0,
+          "light": 0,
+          "note": 2
+        }
+      ],
+      "blocks": {
+        "s": "nhẹ",
+        "se": "nhẹ",
+        "e": "pass",
+        "ne": "pass",
+        "n": "pass"
+      },
+      "missing": [],
+      "errorLines": [
+        "LỖI: toA — cỡ thân lệch — H1–4 (s), H5–8 (se) — cỡ thân idle 120% so với ảnh tĩnh (lệch 20%); cỡ thân idle 110% so với ảnh tĩnh (lệch 10%)."
       ]
     },
     {
