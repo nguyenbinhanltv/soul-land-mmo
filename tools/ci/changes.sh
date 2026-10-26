@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Chọn mức bot của CI theo file PR thay đổi (job `changes` trong .github/workflows/check.yml).
 # Cách gọi: git diff --name-only <base>...<head> | LABELS="ci:full,agent:x" tools/ci/changes.sh
-#   stdin: mỗi dòng một đường dẫn file đổi; LABELS: nhãn của PR, ngăn bằng dấu phẩy; FORCE_FULL=1 (push vào main) luôn ra full.
+#   stdin: mỗi dòng một đường dẫn file đổi; LABELS: nhãn của PR, ngăn bằng dấu phẩy; FORCE_FULL=1 luôn ra full.
+#   PUSH=1 (push vào main): quy tắc chặt hơn, chỉ art/** / docs/** / *.md / .claude/** mới skip; ảnh / âm thanh / manifest ở shared/assets/**
+#   vào image nên vẫn full. Nhãn không áp dụng. Không đọc được danh sách file (push đầu tiên, force push) thì full.
 # In ra dòng `level=skip|smoke|full` và `reason=...` (ghi vào $GITHUB_OUTPUT nếu có), kèm bảng tóm tắt ở $GITHUB_STEP_SUMMARY.
 # Quy tắc theo từng file, mức cao nhất thắng; file không khớp quy tắc nào thì coi là full (không chắc thì full):
 #   skip : ảnh / âm thanh / manifest dữ liệu sprite (shared/assets/** trừ file bản đồ), *.md, docs/**, art/**, .claude/**
@@ -11,6 +13,13 @@
 set -uo pipefail
 rank() { case "$1" in skip) echo 0 ;; smoke) echo 1 ;; *) echo 2 ;; esac; }
 classify() {
+  if [ -n "${PUSH:-}" ]; then
+    case "$1" in
+      *.md|docs/*|art/*|.claude/*) echo skip ;;
+      *) echo full ;;
+    esac
+    return
+  fi
   case "$1" in
     # Mã gửi / nhận tin server (client/src có room.send / onMessage) và mọi thứ chạm luật chơi: full.
     server/*|shared/*.ts|shared/data/*|client/src/net.ts|client/src/predict.ts|client/src/hud.ts|client/src/autoPanel.ts|client/src/main.ts|client/src/scenes/GameScene.ts) echo full ;;
@@ -36,12 +45,12 @@ done
 case "$level" in
   full) reason="file kích full:${why_full}" ;;
   smoke) reason="chỉ đổi mã giao diện client:${why_smoke}" ;;
-  *) reason="chỉ đổi ảnh / âm thanh / dữ liệu sprite / tài liệu ($n file)" ;;
+  *) reason="chỉ đổi ảnh / âm thanh / dữ liệu sprite / tài liệu ($n file)"; [ -n "${PUSH:-}" ] && reason="push chỉ đổi art / docs / .md ($n file)" ;;
 esac
 [ "$n" -eq 0 ] && { level=full; reason="không đọc được danh sách file đổi (không chắc thì full)"; }
 case ",${LABELS:-}," in *,ci:full,*) level=full; reason="nhãn ci:full" ;; esac
 case ",${LABELS:-}," in *,ci:bot-khoi,*) [ "$level" = skip ] && { level=smoke; reason="nhãn ci:bot-khoi"; } ;; esac
-[ -n "${FORCE_FULL:-}" ] && { level=full; reason="push vào main luôn chạy full"; }
+[ -n "${FORCE_FULL:-}" ] && { level=full; reason="FORCE_FULL"; }
 echo "level=$level"; echo "reason=$reason"
 [ -n "${GITHUB_OUTPUT:-}" ] && { echo "level=$level"; echo "reason=$reason"; } >>"$GITHUB_OUTPUT"
 [ -n "${GITHUB_STEP_SUMMARY:-}" ] && echo "### Mức bot CI: \`$level\` — $reason" >>"$GITHUB_STEP_SUMMARY"
