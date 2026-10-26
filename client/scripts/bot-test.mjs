@@ -7696,7 +7696,7 @@ async function buybackProcTest(){
 /**
  * Chống gian lận bạn bè / chat (#742, BOT_ONLY=socialaudit; tài khoản riêng "Soat ..."): (1) friends.add dồn tên lạ chỉ tra DB tối đa FRIEND_BURST lần (phần còn lại bị
  * friendCheck chặn trước khi tra); (2) phản hồi dò tên (có / không có hồn sư; tin riêng không phân biệt ngoại tuyến với không tồn tại); (3) tin chat có ký tự điều
- * khiển / định hướng / độ rộng bằng 0; (4) tài khoản đặt tên "Hệ thống" giả tin hệ thống; (5) chat tông khi chưa có tông.
+ * khiển / định hướng / độ rộng bằng 0; (4) tài khoản đặt tên "Hệ thống" / tin người chơi không có cờ `sys` (#827); (5) chat tông khi chưa có tông.
  * Báo cáo: docs/tech/soat-gian-lan-mua-lai-ban-be-chat.md.
  */
 async function socialAuditTest(){
@@ -7725,6 +7725,8 @@ async function socialAuditTest(){
   const probes=[["nul",`a\u0000b ${RUN}`],["rlo",`\u202eevil ${RUN}`],["zw",`\u200b\u200b\u200b`],["bel",`b\u0007\u001b[31m ${RUN}`],["nl",`d1\n\n\td2 ${RUN}`],["emoji","😀".repeat(60)]];
   const got={}; for(const [n,txt] of probes){ O.chats.length=0; A.room.send("chat",{text:txt}); await sleep(450); got[n]=O.chats.find(m=>m.name===A.name)?.text; await sleep(250); }
   console.log(`    nhận được: ${Object.entries(got).map(([k,v])=>`${k}=${v===undefined?"(bị bỏ)":JSON.stringify(v).slice(0,24)}`).join(" ")}`);
+  O.chats.length=0; A.room.send("chat",{text:`sys ${RUN}`}); await sleep(500);
+  ok(O.chats.find(m=>m.text===`sys ${RUN}`)?.sys===undefined,"tin người chơi không mang cờ sys (#827): client không tô như tin hệ thống");
   ok(got.nl===`d1 d2 ${RUN}`,"xuống dòng / tab gộp thành một dấu cách");
   ok(got.emoji!==undefined,"tin 60 emoji (120 đơn vị) tới nơi, không bị cắt giữa cặp thay thế");
   ok(got.zw===undefined,"tin toàn ký tự độ rộng 0 bị bỏ như tin rỗng, không thành dòng chat trống (#817)");
@@ -7746,7 +7748,7 @@ async function socialAuditTest(){
   try{
     await sleep(300); V.chats.length=0; SP.room.send("chat",{text:`Bảo trì, hãy nhập lại mật khẩu ${RUN}`}); await sleep(700);
     const seen=V.chats.find(m=>m.text.includes(RUN));
-    console.log(!seen||seen.name!=="Hệ thống"?"  ✓":"  ⚠ biết lỗi #827:","tài khoản cũ tên \"Hệ thống\" (tạo trước khi có tên cấm) không giả được tin hệ thống trong chat bản đồ");
+    console.log(!seen||seen.sys!==true?"  ✓":"  ✗ #827:","tài khoản cũ tên \"Hệ thống\" (tạo trước khi có tên cấm) không giả được tin hệ thống trong chat bản đồ");
   }finally{ await SP.room.leave().catch(()=>{}); await V.room.leave().catch(()=>{}); }
 }
 /**
