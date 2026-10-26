@@ -1,0 +1,125 @@
+{
+  "task": "H4#771",
+  "species": "tuyet_lang",
+  "sheet": "toB",
+  "attempt": "B1",
+  "status": "RAW_FAIL",
+  "acceptance": "No art/runtime acceptance",
+  "tool": "builtin image_gen.imagegen",
+  "tool_original_path": "/Users/thanhhoa/.codex/generated_images/01a175e4-cbae-7550-bed9-48eee5b84b0e/exec-4ef317e0-56ec-4aea-94d1-591bd30246e9.png",
+  "durable_raw_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-117/tuyet_lang-B1/tuyet_lang-toB-B1.RAW.png",
+  "raw_sha256": "e767c40df65ef55b26db6a3e589ff0a301a1f6088618c816e57b1d4d2c48af95",
+  "raw_bytes": 1927963,
+  "png_signature_hex": "89504e470d0a1a0a",
+  "IHDR_hex": "000004e6000004e60802000000",
+  "IHDR": {
+    "width": 1254,
+    "height": 1254,
+    "bit_depth": 8,
+    "color_type": 2,
+    "compression": 0,
+    "filter": 0,
+    "interlace": 0
+  },
+  "requested_size": [
+    1024,
+    1024
+  ],
+  "actual_prompt_sha256": "6e141cc4505e18ac47194ef1652836b4ffe62573fc049a371b80acee625f0b91",
+  "actual_prompt_bytes": 4221,
+  "base_sha256": "a1ecb3eb033812b543dbcd923d2a74525679edf4b7e325ae57557a9c839fd78b",
+  "base_bytes": 3532,
+  "base_position_zero_based_bytes": 0,
+  "actual_equals_base_plus_suffix": true,
+  "suffix_offset_zero_based_bytes": 3532,
+  "suffix_start_one_based_bytes": 3533,
+  "suffix_bytes": 689,
+  "suffix_first_content_line_one_based": 27,
+  "hash_scope": "Exact actual/base file bytes; not Markdown wrapper or generator/script hash; no prefix",
+  "references_ordered": [
+    {
+      "order": 1,
+      "role": "static identity",
+      "tool_attached_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-115/tuyet_lang-A1/tuyet_lang-static.png",
+      "durable_copy": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-117/tuyet_lang-B1/tuyet_lang-static.png",
+      "sha256": "1b460a6bc834f7832caf84030c26188c23f974f7acb23d95a832186a327b37b0",
+      "bytes": 5013,
+      "dimensions": [
+        288,
+        96
+      ],
+      "viewed": true
+    },
+    {
+      "order": 2,
+      "role": "A1 style/body size only; RAW_FAIL, do not inherit poses",
+      "tool_attached_path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-115/tuyet_lang-A1/tuyet_lang-toA-A1.RAW.png",
+      "durable_copy": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-117/tuyet_lang-B1/tuyet_lang-toA-A1.RAW.png",
+      "sha256": "4c348e9d8011f9af0bfaefb664c0d93f7143f5eee290316d338f01b029d4bc09",
+      "bytes": 1985481,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "viewed": true
+    }
+  ],
+  "call_started_utc": "2026-10-26T01:48:58.747Z",
+  "call_returned_utc": "2026-10-26T01:51:45.489Z",
+  "image_model": "unknown; tool did not expose exact model",
+  "seed": "unknown; tool did not expose",
+  "agent_label_user_supplied": "gpt6.1-sol medium; not evidence of image model",
+  "species_prior_calls": 1,
+  "builtin_calls_this_worker": 1,
+  "species_total_after_B1": 2,
+  "retries": 0,
+  "B2": 0,
+  "other_species": 0,
+  "subagents": 0,
+  "parallel_image_calls": 0,
+  "postprocessing": "none; byte-identical copy only",
+  "slotreleased": "Explicit sends to soul-land-mmo-113 and soul-land-mmo-44 + AO checkpoint succeeded before file metadata/art checks. First commands failed because AO_SESSION_ID absent; repeated with explicit session117 succeeded.",
+  "reference_provenance_source": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-115/tuyet_lang-A1/provenance.json",
+  "template_conflicts_preserved": [
+    "171x128 cells with 6 columns imply 1026 width while request is 1024",
+    "suffix mentions SE outside B scope; kept verbatim"
+  ],
+  "pixel_occupied_is_not_semantic_figures": true,
+  "integration": {
+    "workerProvenancePreserved": true,
+    "shippingRawPath": "art/src/beast-anim/tuyet_lang/toB.png",
+    "shippingActualPromptPath": "art/src/beast-anim/tuyet_lang/toB.prompt.txt",
+    "shippingBasePath": "art/src/beast-anim/tuyet_lang/toB.base.txt",
+    "shippingGeneratorMarkdownPath": "art/src/beast-anim/tuyet_lang/tuyet_lang-toB.md",
+    "generatorPath": "tools/assets/beast-sheet-prompt.mjs",
+    "generatorSha256": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba",
+    "generatorMarkdownSha256": "773c62d53847a1e463e9d86edeeefe3f0b9db5c8a9ca4eb401c088f8905366ca",
+    "baseExtraction": {
+      "startByteZeroBased": 2105,
+      "endByteExclusive": 5637,
+      "trimmed": false
+    },
+    "clarifier": {
+      "position": "suffix",
+      "prefix": "",
+      "suffix": "\n\nDIRECTION AND POSE CLARIFICATION: Keep the exact creature anatomy of reference image 1; do not redesign it to match generic family wording. In every animation row, keep the specified direction. SE faces lower-right, clearly distinct from E side profile; NE faces upper-right with the back visible; N shows the rear in all four rows, including attack, hurt and death. HURT frames must visibly recoil backward. Keep a flat #FF00FF background, no letters, labels or grid lines. Request exactly 1024x1024 pixels. Match the creature design, colors, body size and line weight of reference image 2 (sheet A) exactly; preserve the same body size as A, not a larger body because B has fewer rows.",
+      "baseStartByteZeroBased": 0,
+      "suffixStartByteZeroBased": 3532
+    },
+    "anatomyConflictAssessment": "Ảnh tĩnh gồm các góc nghiêng trước và hình trước; không có góc lưng rõ. Giữ hình thể sói trắng xanh, tai nhọn và đuôi theo ảnh; không tự thiết kế lại.",
+    "generatorInputHashes": {
+      "tools/assets/beast-sheet-prompt.mjs": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba",
+      "tools/assets/beast-sheet-lib.mjs": "16f13e9bbabaedb495671d5cbfcab4cc0f30b8e9529cefe5e9c5ead919e914a7",
+      "tools/assets/lib.mjs": "9f478b04b1ccfd9ce5cf447be5038b668886b38035b8e9fcf0d603acbbd2dd7c",
+      "docs/art/hon-thu-hoat-anh.md": "be83e519cb7db7126b42781dc02b13b1d306bc286e1c3fca8e9cc65b2b8d83d1",
+      "art/CREDITS.md": "6be9a475ee6e46997a375e58ad4a6924878f9e9dfa30eb94d4933c393273fa61",
+      "shared/data.ts": "a79619376f595c4a9ef24ed280f919b63f2e05b7e6ec0c867992cb297fc1160a",
+      "client/src/sprites.ts": "d84f83626bad0309e2eecd665f4d82a997333d97f890f3588eb616643c3f1e66",
+      "shared/assets/sprites/manifest.json": "5c979fd4042514250cdc2e48e99d683ce8dc39331147bf4e8e183c3ab563775a"
+    },
+    "knownFailureLine": "LỖI: toB — size/heading/hurt/background — toàn tờ, R1–4/NE, R5–8/N — RAW 1254×1254 khác yêu cầu 1024×1024; NE gần E, N lộ mặt và death quay phải; hurt chưa giật lùi rõ, nền chưa chứng nhận phẳng #FF00FF.",
+    "artAccepted": false,
+    "runtimeAccepted": false,
+    "imported": false
+  }
+}
