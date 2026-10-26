@@ -41,7 +41,7 @@ Phụ thể là thủ phạm chính: 100 ảnh × 2304×1152 × 4 byte ≈ **1 G
 1. **Phụ thể võ hồn tải theo nhu cầu** (`client/src/vohonLazy.ts`) — **đã làm ở PR đầu**. `preloadSprites` chỉ ghi spec; preload xin sheet của người đang trong phòng lúc vào; người tới sau / đổi võ hồn thì tải lười, lớp phụ thể ẩn tới khi tải xong; ảnh võ hồn trong bảng Đội hình / Nhân vật dựng lại khi sheet tới; tải lỗi hẳn thì dùng phụ thể vẽ bằng code như khi manifest thiếu ảnh. Ảnh hiển thị cuối cùng không đổi.
 2. **Pháp tướng `pt_*` theo nhu cầu** — **đã làm ở PR thứ hai**. Cùng cơ chế với bước 1 (`wantPhapTuong` trong `vohonLazy.ts`): `preloadSprites` chỉ ghi spec; sheet thân + lớp sáng `_glow` được xin khi có người trong phòng đang Chân Thân (`ava > 0`, lúc vào hoặc lúc `PhapTuongSystem.sync` thấy) và của chính mình (lúc vào / đổi võ hồn, để cut-in có ảnh). Chưa tải xong thì chưa dựng hình pháp tướng và không vẽ bản tạm (khỏi nháy); `setSlots` hỏi lại mỗi khung. Manifest không có ảnh / tải lỗi thì vẫn dùng sheet tạm bằng code. Ảnh hiển thị cuối cùng không đổi.
 3. **Hồn thú theo loài trong tầm** — **đã làm ở PR thứ ba**. Cùng cơ chế với bước 1 / 2 (`wantBeast` trong `vohonLazy.ts`): `preloadSprites` chỉ ghi spec `beast_*` (cả `_anim` và normal map); preload xin loài của hồn thú đã có trong state lúc vào, hồn thú tới sau (đi vào tầm, boss / thú vương / thú gọi ra) xin lúc xuất hiện (vòng vẽ hồn thú ở `GameScene`). Chọn theo loài thật đang có trong tầm chứ không theo trường `map` của manifest, nên không bao giờ tải thiếu (loài ngoài bản đồ nhà vẫn có ảnh). Chưa tải xong thì ẩn sprite, tên, thanh máu, bóng (không vẽ bản tạm bằng code để khỏi nháy); sheet tới thì dựng animation / đo thân (`setBeastSheetHook` trong `sprites.ts`). Manifest không có ảnh / tải lỗi thì vẽ bằng code theo bậc như trước. Ảnh hiển thị cuối cùng không đổi.
-4. **Hiệu ứng `fx_*` theo nhu cầu**: 601 dải 1 hàng; tải khi hồn kỹ / hiệu ứng cần lần đầu, hoặc theo võ hồn trong đội (cả của người khác trong tầm). `playFx` đã trả `null` khi chưa có texture (nơi gọi giữ hiệu ứng vẽ code), nhưng lần dùng đầu sẽ không có ảnh nên cần xin trước (khi nhận đội hình / khi thấy người dùng võ hồn). Rủi ro cao hơn các bước trên vì đụng thị giác chiến đấu.
+4. **Hiệu ứng chiêu `fx_sk_*` theo võ hồn** — **đã làm ở PR thứ tư**. Cùng cơ chế với bước 1–3 (`wantSkillFx` trong `vohonLazy.ts`): 560 dải `fx_sk_<tên>` (+ lớp sáng `_g`, 3,3 MB; chiếm ~93% trong 601 dải `fx_*`) chỉ ghi spec; sheet của võ hồn nào được xin khi có người dùng võ hồn đó trong phòng (lúc vào, lúc người mới tới / đổi võ hồn), lớp sáng `_g` chỉ cho chính mình (chiêu người khác không vẽ lớp sáng). Danh sách key suy từ `SKILL_VISUAL` (chỉ chiêu khai ở đó); hiệu ứng hệ `fx_<hệ>_*`, hợp thể (`FUSION_VISUAL`), va chạm... vẫn tải ngay. Chưa tải xong thì `SheetFx.play` trả false và chiêu dùng hiệu ứng vẽ bằng code như khi manifest thiếu ảnh, nên chỉ có thể lệch ở chiêu đầu tiên của người vừa vào tầm trong vài chục ms đầu; ảnh hiển thị lúc ổn định không đổi. Phần còn lại của `fx_*` (~40 dải theo hệ) để dành nếu đo cho thấy còn đáng.
 5. **Không huỷ texture dùng chung khi đổi bản đồ** (giữ `Phaser.Game`, đổi scene; hoặc tạm giữ bộ nhớ đệm texture dùng chung): hồn sư, pháp tướng, fx, UI không giải mã lại. Lợi lớn nhất cho đổi bản đồ nhưng đụng `main.ts` / vòng đời scene (sự kiện `filecomplete-json-*` của manifest không bắn khi key đã có trong cache, cần xử lý), phải chạy bot `travel` + soak.
 6. **Gom atlas** (ảnh nhỏ, `tools/assets`): giảm số request / số texture cho vật đứng, ô nền; đã có `isoAtlas.ts` cho Light2D (nhiều trang từ #718).
 7. **Cache HTTP, preload theo bản đồ, âm thanh**: HTTP cache đã đúng (#580: `?v=` + immutable). Chưa thấy âm thanh chặn hiển thị (nhạc nền 3 request, ~1,6 MB lần đầu). Xem lại sau khi 1–5 xong.
@@ -105,3 +105,24 @@ Lượt đo này máy nhẹ (CPU ~15%): ba bản dựng chạy xen kẽ A, B, C,
 - Số ba lượt lẻ lẻ dao động ±30% (có lượt vọt gấp đôi ở cả hai bên), nên so trung vị và chiều chung, không so từng ô.
 
 Kiểm tay (Chrome thật, `__scene`, bản dựng bước 3): ở Thánh Hồn Thôn sinh thêm hồn thú loài có sheet hoạt ảnh vẽ thật (Kim Linh Ưng, Phong Lang, Thái Thản Cự Viên, Huyền Băng Thiềm) và tinh anh Huyết Nhãn Phong Lang sau lúc vào (đường tải lười): cả 35 hồn thú đều dùng đúng sheet `beast_<loài>` hoặc `beast_<loài>_anim`, không con nào ẩn / rơi về hình vẽ code; warp sang Tinh Đấu Ngoại vi và Lạc Nhật Sâm Lâm (đường preload): 37 / 37 con dùng sheet thật; 0 lỗi console; nhãn tên (hotfix #829) hiện bình thường. Bot `waypoint` đạt 76 / 76.
+
+## Bước 4: số trước / sau (trung vị 3 lượt xen kẽ B, C, B, C, B, C trên cùng server, tuần tự 1 Chrome)
+
+B = main lúc đó (`132e97ff`, sau bước 3), C = sau bước 4. Mỗi ô: B → C.
+
+| Ca | Bản đồ | Thời gian (ms) | Request |
+|---|---|---|---|
+| vào game, hồ sơ trống (lạnh) | Thánh Hồn Thôn | 12.684 → 5.853 | 894 → 364 |
+| vào game, tải lại trang (nóng) | Thánh Hồn Thôn | 2.467 → 1.447 | 888 → 360 |
+| warp lần đầu | Nặc Đinh Thành | 3.150 → 2.509 | 793 → 265 |
+| warp lần đầu | Tinh Đấu Ngoại vi | 2.769 → 1.423 | 789 → 261 |
+| warp lần đầu | Thiên Đấu Thành | 4.492 → 3.307 | 803 → 275 |
+| warp lần đầu | Lõi Tinh Đấu | 2.191 → 2.370 | 748 → 220 |
+| warp lần sau (nóng) | Nặc Đinh Thành | 2.983 → 2.164 | 792 → 264 |
+| warp lần sau (nóng) | Tinh Đấu Ngoại vi | 1.839 → 1.280 | 788 → 262 |
+| warp lần sau (nóng) | Thiên Đấu Thành | 3.029 → 2.537 | 803 → 275 |
+| warp lần sau (nóng) | Lõi Tinh Đấu | 1.486 → 827 | 746 → 218 |
+
+- Request mỗi lần vào bản đồ giảm **~530** (−65…−70%); KB mạng lượt lạnh vào game 6.129 → 3.377 (−2,7 MB). Thời gian giảm ở 9 / 10 ca (−0,5…−1,2 s ở warp, lượt lạnh −6,8 s); ca Lõi Tinh Đấu lần đầu +0,18 s nằm trong nhiễu (lượt riêng 1.321 / 2.370 / 4.249 ms).
+- Ba lượt lẻ dao động ±40% (máy dùng chung), nên so trung vị và chiều chung. Lượt đo đầu của đợt này bị hỏng vì hai vòng đo chạy song song, đã bỏ và đo lại tuần tự.
+- Kiểm: `skillvisual-test` đạt; `npm run check` xanh.
