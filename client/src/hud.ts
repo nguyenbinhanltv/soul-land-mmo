@@ -2785,7 +2785,7 @@ function renderForge(bag: BagMsg, act: NpcActions): HTMLElement {
   bones.sort((a, b) => Number(b.vohon !== null) - Number(a.vohon !== null) || b.enhance - a.enhance || b.years - a.years);
   if (!bones.length) { const p = document.createElement("small"); p.textContent = "Chưa có hồn cốt nào. Hồn cốt rơi khi hạ hồn thú; hồn cốt dư dùng làm nguyên liệu."; box.appendChild(p); }
   for (const it of bones) {
-    const b = document.createElement("button"); b.type = "button"; b.className = "aopt eopt"; b.style.setProperty("--c", itemColor(it));
+    const b = document.createElement("button"); b.type = "button"; b.className = "aopt eopt noico"; b.style.setProperty("--c", itemColor(it));
     b.disabled = it.enhance >= BONE_MAX_ENHANCE;
     b.innerHTML = `<b></b><i></i><span></span>`;
     b.querySelector("b")!.textContent = itemName(it);
@@ -2812,7 +2812,7 @@ function renderForgeCores(bag: BagMsg, act: NpcActions): HTMLElement {
   cores.sort((a, b) => Number(b.vohon !== null) - Number(a.vohon !== null) || b.enhance - a.enhance || (b.stars ?? 1) - (a.stars ?? 1));
   if (!cores.length) { const p = document.createElement("small"); p.textContent = "Chưa có hồn hạch nào. Hồn hạch rơi khi hạ hồn thú; hồn hạch dư dùng làm nguyên liệu."; box.appendChild(p); }
   for (const it of cores) {
-    const b = document.createElement("button"); b.type = "button"; b.className = "aopt eopt"; b.style.setProperty("--c", itemColor(it));
+    const b = document.createElement("button"); b.type = "button"; b.className = "aopt eopt noico"; b.style.setProperty("--c", itemColor(it));
     b.disabled = it.enhance >= CORE_MAX_ENHANCE;
     b.innerHTML = `<b></b><i></i><span></span>`;
     b.querySelector("b")!.textContent = itemName(it);

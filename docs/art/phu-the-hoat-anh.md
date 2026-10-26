@@ -104,6 +104,14 @@ Thân chỉ vẽ `hurt` (và `die`, `absorb`) ở hướng xuống (`LPC_SHEET.a
 - **Điểm neo** lấy từ khung thân bằng `frameAnchors` (tay cầm, giữa lưng, đỉnh đầu, chân) như phụ thể tĩnh hiện tại; hình nộm được dựng từ **đúng khung thân đó** nên điểm neo trên nộm = điểm neo cutter đo. Phụ thể dưới chân đứng yên theo gốc. Chi tiết dời neo và test (nhịp, lật) là việc P1 / P2.
 - Hướng hiện của hồn sư LPC vẫn qua `GameScene.lpcFace` (8 → 4); phụ thể đọc hướng hiện đó (hướng `se`, `ne` do hướng thật `v.face`: `se` / `ne` chọn hàng phụ thể 5 hướng, hàng thân vẫn `e`). Việc chọn hàng 5 hướng ở client là P2.
 
+## Client phát clip (P2, #1023)
+- **Key và manifest:** hai nửa là `vhanim_{id}_b` / `vhanim_{id}_f` (file `shared/assets/sprites/vohonanim/{id}_{b|f}.png`), mục manifest `{ "key", "iso": true, "frame": [96, 96] | [128, 128], "anim": { "clips": { "idle": { "col", "n" }, ... }, "offset": { "<clip>": [dx, dy] } }, "blank": true? }`. Thiếu `clips` thì dùng bố cục mặc định 22 cột (`PHU_DEFAULT_CLIPS`); `offset` là độ dời cố định của clip (pixel khung, +x theo hướng nhìn, tây lật dấu), mặc định 0. `anim` / `frame` hỏng thì võ hồn chạy nhánh cũ. Tải lười cùng `vh_*` (`vohonLazy.wantVohon`), không có normal map; tải lỗi thì nhánh cũ.
+- **Chọn khung (`client/src/phutheAnim.ts`, thuần, kiểm bằng `npm run test:phutheanim --prefix client`):** hàng = hướng (`phuDirRow`: s, se, e, ne, n; tây lật, `phuFaceOf` cho se / ne theo hướng thật khi thân đang hiện hàng `e`), cột = clip. Vòng lặp (`idle`, `walk`) theo **bước thân đang hiển thị**; một lần (`attack`, `cast`, `hurt`) theo **tuổi hoạt ảnh thân** chia đều thời lượng (đúng bảng "Ánh xạ clip phụ thể sang khung thân", test đối chiếu với `LPC_SHEET.anims`). `die` ẩn, `absorb` = `idle` mờ 60%. Không dùng animation của Phaser, không đồng hồ riêng, không tạo object mỗi khung; vẫn hai sprite phụ thể mỗi hồn sư.
+- **Khung 96 / 128:** `fitPhuLayer` đặt gốc `(48, 74)` / `(64, 90)`; nửa giới theo `phuHalf` (thân nữ + sheet đủ hai nửa).
+- **Neo:** ảnh trong sheet đã mang neo của bước thân chọn lúc cắt (P1); client đặt lớp tại gốc thân (`LPC_VIEW.vohon`) + độ dời clip. Chưa có dữ liệu bù chênh neo giữa bước thân thật đang hiển thị và bước thân dựng khung (chờ P1 / P3 đo; nếu cần thì thêm vào `anim.offset`).
+- **`spiritMotion`:** khi có clip, dao động liên tục nhân `SPIRIT_CLIP_OSC_K` (`clipOscK`: vật cứng `weapon` / `float` giữ cao hơn); cú đánh / thi triển / hurt giữ nguyên; Giảm chuyển động vẫn phát clip.
+- **Trang thử `?thu=phuthe`:** chọn hướng 8 phía, trạng thái gồm `hurt`, ô "Phụ thể" (`anim=` `auto` / `fake` / `0`): `fake` dựng sheet **giả** lúc chạy từ ảnh tĩnh (`phutheFake.ts`, không phải ảnh model, không vào game), `khung=128` thử khung 128.
+
 ## Tiêu chí duyệt: chặn / nhẹ / đẹp (theo khối hướng)
 Duyệt theo **khối hướng** (`s`, `se`, `e`, `ne`, `n`), như hồn thú. Khác hồn thú: thân hồn sư luôn có đủ hướng nên **một võ hồn có khối chặn thì không nhập cả võ hồn** (vẽ lại **chỉ khối chặn**, tối đa 3 lượt); quá lượt thì võ hồn giữ nhánh cũ (xem "Fallback").
 
@@ -221,7 +229,7 @@ Fork của `beast-sheet-*` (cùng luật: RAW nguyên byte, prompt tự sinh, t�
 |---|---|---|
 | Đặc tả + audit + bảng mô tả (file này) | P0 #1021 | xong |
 | Công cụ `phuthe-sheet-*` (nộm, prompt, check, cut, preview, status) | P1 #1022 | PR này |
-| Client phát clip + neo theo khung thân, fallback, `spiritMotion` hệ số giảm | P2 | mở |
+| Client phát clip + neo theo khung thân, fallback, `spiritMotion` hệ số giảm | P2 #1023 | xong (mục "Client phát clip (P2)") |
 | Thử 3 võ hồn (Tà Hỏa Phượng Hoàng, Hạo Thiên Chùy, Lam Ngân Thảo) | P3 | mở |
 | Rollout 22 võ hồn còn lại theo đợt | P4 | mở |
 | Dọn `spiritMotion`, gỡ nhánh cũ khi 25 / 25 | P5 | mở |
