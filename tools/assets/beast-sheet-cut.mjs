@@ -256,8 +256,8 @@ export function cutSpecies(o) {
     }
   }
 
-  // 3b. Chuẩn hóa cỡ giữa 5 khối hướng theo trung vị cao idle (#1085); đặt tay --scale thì không đụng (giữ byte #870)
-  if (!o.scale && o.equalizeBlocks !== false) {
+  // 3b. Chuẩn hóa cỡ giữa 5 khối hướng theo trung vị cao idle (#1085); đặt tay --scale / --fill thì không đụng (giữ byte #870)
+  if (!o.scale && !o.fill && o.equalizeBlocks !== false) {
     const bodyH = (d) => median(idle.filter(([, r]) => r.dir === d).map(([, r]) => r.h));
     const heights = Object.fromEntries(DIRS.map((d) => [d, dirScale[d] * (bodyH(d) || 0)]));
     const eq = equalizeBlocks(heights, o.blockSpread);

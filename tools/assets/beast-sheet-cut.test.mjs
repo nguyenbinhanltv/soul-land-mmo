@@ -119,4 +119,6 @@ test("Quỷ Ảnh Báo: cutter v2 kéo max/min cao idle từ 1,74 về ≤1,15, 
   assert.equal(off.report.equalize, undefined);
   const hand = cutSpecies({ species: "quy_anh_bao", sheets, scale: 0.39 });
   assert.equal(hand.report.equalize, undefined);
+  const fill = cutSpecies({ species: "quy_anh_bao", sheets, fill: 0.8 });
+  assert.equal(fill.report.equalize, undefined, "--fill cũng không chuẩn hóa (như bước neo)");
 });
