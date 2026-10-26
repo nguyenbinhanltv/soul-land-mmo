@@ -15,7 +15,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ROOT } from "./lib.mjs";
 import { speciesInfo } from "./beast-sheet-lib.mjs";
-import { checkSpecies, draftErrorLine, bodyNotes } from "./beast-sheet-check.mjs";
+import { checkSpecies, draftErrorLine, bodyNotes, poseHints } from "./beast-sheet-check.mjs";
 
 const sha = (buf) => createHash("sha256").update(buf).digest("hex");
 const UNKNOWN = "unknown (công cụ sinh ảnh không công bố)";
@@ -44,7 +44,7 @@ export function buildNguon(id, r, o = {}) {
     `Loài \`${id}\` (${info.name}), họ \`${info.family}\`, khung game ${info.frame}×${info.frame}. Mức kiểm chung: **${r.level}**.`, ""];
   const errors = [];
   // turnaround.png (ảnh mẫu hướng, không cắt) nằm ở r.turnaround (#972): kiểm cỡ / nền / lưới như tờ khác, không có khối hướng; mục xem bằng mắt qua --eye turnaround=…
-  const items = [...(r.turnaround ? [r.turnaround] : []), ...r.sheets].map((s) => ({ name: s.sheet, file: s.file, size: s.size, level: s.sheet === "turnaround" ? `**${s.level}** (ảnh mẫu 5 hướng, không có khối hướng)` : `**${s.level}** (khối hướng: ${(s.dirs ?? []).map((d) => `${d} ${r.blockLevel[d] ?? "?"}`).join(", ") || "?"})`, auto: draftErrorLine(s), body: bodyNotes(s) }));
+  const items = [...(r.turnaround ? [r.turnaround] : []), ...r.sheets].map((s) => ({ name: s.sheet, file: s.file, size: s.size, level: s.sheet === "turnaround" ? `**${s.level}** (ảnh mẫu 5 hướng, không có khối hướng)` : `**${s.level}** (khối hướng: ${(s.dirs ?? []).map((d) => `${d} ${r.blockLevel[d] ?? "?"}`).join(", ") || "?"})`, auto: draftErrorLine(s), body: bodyNotes(s), pose: poseHints(s) }));
   for (const s of items) {
     const buf = readFileSync(s.file), src = readSourceJson(path.join(path.dirname(s.file), `${s.name}.source.json`)) ?? {};
     const promptFile = path.join(path.dirname(s.file), `${s.name}.prompt.txt`), prompt = existsSync(promptFile) ? `\`${s.name}.prompt.txt\` (SHA256 \`${sha(readFileSync(promptFile))}\`)` : "không có file prompt (không biết prompt thật đã gửi)";
@@ -58,6 +58,8 @@ export function buildNguon(id, r, o = {}) {
       ...s.body.map((b) => `- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): ${b}`));
     const mine = eye.filter((e) => e.sheet === s.name);
     if (s.auto) errors.push(s.auto);
+    // nghi tư thế (#1080: die nằm ngang / hurt ngửa bụng, mức nhẹ): chỉ gợi ý ra stderr, KHÔNG ghi `LỖI:`; người xem ảnh liên hệ rồi tự khai --eye / --eye-ok
+    if (s.pose.length && !mine.length && !eyeOk.has(s.name)) console.error(`Gợi ý (${s.name}, chưa phải lỗi; xem tờ liên hệ rồi mới khai): ${s.pose.join(" ")}`);
     for (const e of mine) errors.push(`LỖI: ${s.name} — ${e.text} (mắt)`);
     L.push(mine.length || eyeOk.has(s.name) ? `- Duyệt bằng mắt: ${mine.length ? `${mine.length} mục lỗi (dòng \`LỖI:\` bên dưới)` : "đã xem, không thấy lỗi"}.` : "- Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).", "");
   }

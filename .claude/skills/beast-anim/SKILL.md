@@ -43,7 +43,8 @@ Prompt và hướng dẫn tiếng Việt do công cụ sinh (`<loài>-turnaround
 ### A3. Checklist trước khi nộp
 1. Đặt RAW **nguyên byte** vào `art/src/beast-anim/<loài>/to<X>.png` (turnaround: `turnaround.png`), kèm `to<X>.prompt.txt` (prompt thật đã gửi).
 2. `npm run beast:check -- <loài>`; mở các `*-lien-he.png` (xanh đạt, vàng nhẹ, đỏ chặn; nhãn `I/W/A/H/D` + số khung). Phải sạch mục **chặn**: cỡ ngoài tập, nền, thiếu khung / hình dính / không dò được lưới. Cỡ thân lệch chỉ là cảnh báo kỹ thuật (nhẹ, in số %; theo quyết định chủ repo 2026-10-26 mục 4), `beast:check` không thoát 1 vì nó, NGUON ghi "Ghi chú kỹ thuật" không phải `LỖI:`.
-3. **Bằng mắt** (công cụ không kiểm): `n` / `ne` không thấy mặt (kể cả hurt, die); `se` khác `e` (thấy mặt chếch xuống); hurt lùi đúng hướng; die giữ hướng; đúng loài; cùng cỡ với tờ chuẩn.
+2b. **Ô vàng + dòng `Nghi tư thế … --eye "…"`** (#1080: `die-ngang` ở `s` / `n`, `hurt-lat` ở khối khác `e`) là **đoán nhẹ**, không chặn, không phải `LỖI:` (≈ 60% đúng): mở đúng khung được tô; đúng thì vẽ lại khối đó (bảng A4) và khai `--eye`, sai thì bỏ qua.
+3. **Bằng mắt** (công cụ không kiểm hết, kể cả khi không có ô vàng): `n` / `ne` không thấy mặt (kể cả hurt, die); `se` khác `e` (thấy mặt chếch xuống); hurt lùi đúng hướng; die giữ hướng; đúng loài; cùng cỡ với tờ chuẩn.
 4. Sinh NGUON: `node tools/assets/beast-nguon.mjs --species <loài> --write [--model … --seed … --attempts toA=2] [--eye "toB=hướng — N H8 C3–4 — die lộ mặt"] [--eye-ok toA]`. Công cụ ghi cỡ thật, byte, SHA256, prompt (`to<X>.prompt.txt`, `turnaround.prompt.txt`) và dòng `LỖI:` từ kiểm tự động; `turnaround.png` có mục riêng (không kiểm tự động, chỉ `--eye turnaround=…`), loài mới chỉ có turnaround cũng sinh được; mục xem bằng mắt khai bằng `--eye` / `--eye-ok`. **Không viết NGUON hay dòng `LỖI:` bằng tay**; model / seed công cụ không công bố thì để `unknown`, không đoán.
 5. PR: ghi `Part of #<đợt>`; ảnh gốc đi kèm NGUON tự sinh. Không cắt, không sửa client.
 
@@ -53,8 +54,8 @@ Prompt và hướng dẫn tiếng Việt do công cụ sinh (`<loài>-turnaround
 | `n` lộ mặt | Đính turnaround có cột `n` đúng; prompt đã có câu cấm (bài học "n"): nhắc lại "no face visible in any frame, hurt and die included" cho **khối đó**. |
 | `se` ≈ `e` | Đính turnaround có cột `se`; nêu "thấy mặt chếch xuống, thân chéo 45°". Thú ngồi xổm giống thật thì xem bằng mắt, không tự kết lỗi. |
 | `ne` ≈ `e` (nhìn ngang) | Nêu "lưng và mông gần người xem nhất, thân quay chéo 45° ra xa". |
-| hurt ngửa bụng / quay mặt | Dùng câu hurt của họ (lùi ngắn dọc hướng, chân giữ đất); thú thấp (ếch, rùa, heo) thêm "hunker lower". |
-| die xoay 90° / nằm ngang | Dùng câu die ("đổ dọc hướng, giữ trục xương sống"). |
+| hurt ngửa bụng / quay mặt (`hurt-lat` vàng) | Dùng câu hurt của họ (lùi ngắn dọc hướng, chân giữ đất); thú thấp (ếch, rùa, heo) thêm "hunker lower". |
+| die xoay 90° / nằm ngang (`die-ngang` vàng) | Dùng câu die ("đổ dọc hướng, giữ trục xương sống"). |
 | Khung sao chép khuôn (idle trùng nhau, hurt = idle) | Thêm bài học "mỗi khung đổi nhẹ"; vẽ lại cả tờ hướng. |
 | Cỡ thân `n` / `ne` to hơn | Cỡ khác prompt: **bỏ qua** (cutter neo cỡ theo ảnh tĩnh); lệch cỡ thân không phải lỗi, không vẽ lại vì cỡ (2026-10-26 mục 4); chỉ vẽ lại nếu sai hướng / tư thế / loài / thiếu-dính khung. |
 | Nền gradient / cỡ 1254² | Bỏ qua (công cụ xử lý). |
