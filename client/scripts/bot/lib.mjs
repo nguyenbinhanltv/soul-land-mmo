@@ -9,6 +9,7 @@ import { MAPS } from "../../../shared/data.ts";
 import { fogBytes } from "../../../shared/fog.ts";
 import { pack } from "@colyseus/msgpackr";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
+import { bindVit } from "./vit.mjs";
 
 export const API = process.env.SERVER_URL ?? "http://localhost:2567", WS = API.replace(/^http/, "ws");
 export const post = async (p, b) => { const r = await fetch(API + p, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) }); return { status: r.status, ...await r.json() }; };
@@ -22,6 +23,12 @@ let fails = 0;
 export const ok = (cond, msg) => { console.log(cond ? "  ✓" : "  ✗", msg); if (!cond) fails++; };
 /** Số kiểm tra thất bại tới lúc này (đọc mã thoát / dòng tổng kết). */
 export const failCount = () => fails;
+/**
+ * Bỏ qua bài VÌ THIẾU HOOK TEST (server không bật GAME_TEST=1, hook hỏng, mất biến môi trường). Chạy local: chỉ in ⚠.
+ * CI đặt BOT_STRICT_HOOK=1 (tools/ci/bot-run.sh, bot-image.sh): ghi ✗ để bot thoát 1, không để cả nhóm bài im lặng không chạy.
+ * Bỏ qua vì dữ liệu / hình học (không tìm được chỗ đứng…) vẫn dùng console.log("  ⚠ …") thường.
+ */
+export const needHookSkip = msg => { if (process.env.BOT_STRICT_HOOK === "1") ok(false, "bài bị bỏ qua vì thiếu hook: " + msg); else console.log("  ⚠ " + msg); };
 
 // ---- Bot dùng chung: đăng nhập / vào phòng / hook test / NPC / giao dịch (chuyển nguyên văn từ bot-test.mjs, bước 2 của #703) ----
 // Mật khẩu bot sinh ngẫu nhiên mỗi lần chạy (không ghi cứng trong mã); tên bot kèm hậu tố lần chạy nên luôn là tài khoản mới.
@@ -32,6 +39,7 @@ export const mapFileOf=m=>!(MAP_V1.has(m)||MAP_V1.has("all"))&&existsSync(new UR
 export const mapUrl=m=>new URL(`../../../shared/assets/${mapFileOf(m)}.json`,import.meta.url);
 // Tạo nhân vật (một lần, trước lễ thức tỉnh; tài khoản cũ chọn lại một lần), rồi lễ thức tỉnh:
 // tài khoản mới tự chọn 1 SSR (kèm Lam Ngân Thảo); tài khoản cũ không thức tỉnh lại được.
+let loggedOutOnce=false;
 export async function bot(name,choice,looks,near=false){
   name+=" "+RUN; const l=await post("/api/login",{name,password:PASS});
   console.log(`[${name}] ${l.character?"đã thức tỉnh từ trước":"tài khoản mới"}, ${l.looks?.chosen?"đã tạo nhân vật":"chưa tạo nhân vật"}`);
@@ -53,6 +61,13 @@ export async function bot(name,choice,looks,near=false){
   ok(me.looks?.chosen&&me.looks.mode==="lpc"&&JSON.stringify(me.looks.lpc)===JSON.stringify(l.looks?.chosen?l.looks.lpc:presetToLpc({skin:0,...looks})),`/api/me: đã tạo nhân vật, ngoại hình LPC`);
   ok(typeof me.mapId==="string"&&me.mapId===l.mapId,`/api/login và /api/me trả bản đồ đang đứng: ${me.mapId}`);
   if(!l.character) ok(me.mapId==="thanh_hon_thon","tài khoản mới bắt đầu ở Thánh Hồn Thôn");
+  if(!loggedOutOnce){ // #999: đăng xuất thu hồi đúng phiên đó; phiên khác của cùng tài khoản vẫn dùng được (chỉ thử một lần mỗi lượt bot)
+    loggedOutOnce=true; const l2=await post("/api/login",{name,password:PASS});
+    ok((await post("/api/logout",{token:l2.token})).status===200,"/api/logout -> 200");
+    ok((await post("/api/me",{token:l2.token})).status===401,"đăng xuất xong: token cũ /api/me -> 401");
+    ok((await post("/api/me",{token:l.token})).status===200,"phiên khác của cùng tài khoản vẫn dùng được");
+    ok((await post("/api/logout",{token:l2.token})).status===200,"đăng xuất lại / token đã thu hồi -> vẫn 200");
+  }
   if(!l.character){
     ok((await post("/api/awaken",{token:l.token})).status===400,"thiếu lựa chọn -> 400");
     ok((await post("/api/awaken",{token:l.token,vohon:"hao_thien_chuy"})).status===400,"chọn UR -> 400");
@@ -76,6 +91,7 @@ export async function enter(b,roomId){
   const opts={token:b.token,mapId:b.mapId};
   b.room=roomId?await new Client(WS).joinById(roomId,opts):await new Client(WS).joinOrCreate("map",opts);
   b.owned=null; b.ownedMsgs=0; b.portal=null; b.travel=null; b.squad=null;
+  const installVit=bindVit(b.room); // #949: xp, mp, cds… không còn trong state công khai, tin riêng "vit" (gắn lên hồn sư của mình ở cuối enter)
   b.chans=null; b.room.onMessage("channels",m=>{b.chans=m;}); // danh sách kênh (mục 6 "Nhiều kênh")
   b.mini=null; b.room.onMessage("mini",m=>{b.mini=m;}); // bản đồ nhỏ: vị trí cả bản đồ (11.4)
   b.fogBits=null; b.fogMsgs=0; b.fogd=[]; b.room.onMessage("fog",m=>{ b.fogBits=fogBytes(m?.bits); b.fogMsgs++; }); b.room.onMessage("fogd",m=>{ b.fogd.push(m); }); // sương mù khám phá (R8)
@@ -138,6 +154,7 @@ export async function enter(b,roomId){
   // 11.4: state chỉ có thực thể ở gần (lọc đồng bộ theo vùng); bot đọc hồn thú / hồn sư ở xa nên tắt lọc, trừ bot thử lọc (`b.near`).
   if(!b.near){ b.room.send("test",{op:"view",all:true}); await waitFor(()=>b.test,1500); b.test=null; b.owned=null; b.ownedMsgs=0; }
   b.bag=null; b.room.send("vohons"); b.room.send("boss"); b.room.send("bag"); b.room.send("quest",{op:"get"}); b.room.send("resonance");
+  await installVit();
 }
 /**
  * Túi đồ (3.1): tổng số món theo mã, và dấu vân tay cả túi (id, mã, số lượng, số năm từng ô + Hồn Tệ; từ 4.1 loài / vị trí /

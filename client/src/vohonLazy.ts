@@ -48,7 +48,21 @@ function skillFxTable() {
 /** preloadSprites hỏi: key `fx_sk_*` này do vohonLazy tải theo võ hồn (true) hay vẫn tải ngay như các hiệu ứng khác. */
 export const isLazySkillFx = (key: string) => (skillFxTable(), skillFxAll!.has(key));
 
-export const vohonKeys = (id: string): [string, string] => [`vh_${id}_b`, `vh_${id}_f`];
+/** Nửa phụ thể trống hoàn toàn (manifest `"blank": true`, #974): không có file, không tải; nơi vẽ ẩn lớp đó. */
+const blanks = new Set<string>();
+/** preloadSprites gọi cho mỗi `vh_*` có `"blank": true` trong manifest. */
+export const registerBlankSheet = (key: string) => { blanks.add(key); };
+const vohonPair = (id: string): [string, string] => [`vh_${id}_b`, `vh_${id}_f`];
+/** Nửa [sau, trước] của phụ thể võ hồn `id` là nửa trống (không có ảnh): nơi vẽ ẩn lớp đó. Cả hai trống thì không coi là trống (dùng bản vẽ code). */
+export const vohonBlank = (id: string): [boolean, boolean] => {
+  const [b, f] = vohonPair(id).map((k) => blanks.has(k));
+  return b && f ? [false, false] : [b, f];
+};
+/** Texture hai lớp phụ thể; nửa trống mượn texture của nửa kia (cùng kích thước / bố cục khung nên mọi phép tính khung giữ nguyên), vohonBlank báo ẩn. */
+export const vohonKeys = (id: string): [string, string] => {
+  const [kb, kf] = vohonPair(id), [bb, fb] = vohonBlank(id);
+  return [bb ? kf : kb, fb ? kb : kf];
+};
 
 /** Việc làm thêm khi một sheet hồn thú vừa tới (sprites.ts đăng ký: dựng animation, đo thân; vohonLazy không import ngược sprites.ts). */
 let onBeastSheet: ((scene: Phaser.Scene, key: string) => void) | undefined;
@@ -73,7 +87,7 @@ function settle(scene: Phaser.Scene) {
  * hoặc `"code"` (không có ảnh thật: nơi gọi dùng vohonTextures). `start`: gọi sau preload thì phải khởi động loader.
  */
 export function wantVohon(scene: Phaser.Scene, id: string, start = true): "ready" | "wait" | "code" {
-  const keys = vohonKeys(id);
+  const [bb, fb] = vohonBlank(id), pair = vohonPair(id), keys = pair.filter((_, i) => !(i ? fb : bb));
   keys.forEach(touchTexture);
   if (keys.every((k) => scene.textures.exists(k))) return "ready";
   if (keys.some((k) => !specs.has(k) || failed.has(k))) return "code";

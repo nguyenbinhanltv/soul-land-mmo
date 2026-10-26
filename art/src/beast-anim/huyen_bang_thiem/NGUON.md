@@ -32,3 +32,11 @@ A2 không chọn: H2–4/H7–8/H10–12 lệch hàng; H5/H9 C5–6 hurt còn qu
 - Nhìn thấy 44 hình, 6×8; H4/H8 C5–6 trống. NE H1–4 vẫn gần E, chưa rõ lưng chéo đi xa; H8 C3 cần kiểm, H8 C4 die N quay mặt trước. Hurt nhẹ, idle/walk ít biến đổi, attack N khiêm tốn; chưa kiểm loop/runtime, chưa đo margin/scale/exact nền/viền.
 
 Không hậu kỳ/cắt/resize/quantize/ghép/copy frame/nắn pixel/sửa metadata. Hai tờ tổng 110 vị trí nhìn thấy; giữ nghi lỗi A phía trên. Owner repo cắt/preview/nhập game và quyết định chất lượng.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/huyen_bang_thiem/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Huyền Băng Thiềm (H4 đợt 2, Part of #768 và #766): `art/src/beast-anim/huyen_bang_thiem/toA.png` (1024×1536, chọn lượt 1 sau 2/2 lượt) và `toB.png` (1254×1254 thực tế, yêu cầu 1024×1024, chọn lượt 2/2); tthoadev / fresh workers `soul-land-mmo-70` (A) và `soul-land-mmo-72` (B) sinh ngày 2026-10-25 UTC (2026-10-26 giờ Việt Nam) bằng builtin `image_gen.imagegen`. A chỉ reference ảnh tĩnh gốc `shared/assets/sprites/beast/huyen_bang_thiem.png`; B thêm A1 STYLE candidate cùng loài, chưa owner duyệt mỹ thuật/runtime. Tool không expose image model/seed/size selector; raw giữ nguyên byte, không hậu kỳ/cắt/resize/sửa metadata. Prompt thật, nguồn/hash/lịch sử từng tờ/ô nghi lỗi: [NGUON.md](src/beast-anim/huyen_bang_thiem/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json` cùng thư mục; raw không chọn giữ artifact70/72. Prepared prompt bổ sung đến sau hai lượt B, provenance giữ exact prompt thực. Nguồn theo Q44 và điều khoản công cụ. | - | Chuyển một lần từ art/CREDITS.md (#973) |

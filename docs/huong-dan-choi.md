@@ -61,7 +61,7 @@ Chơi được bằng chuột / bàn phím hoặc chạm trên điện thoại.
 | Enter / Esc | Mở chat / đóng bảng, hộp thoại (xem "Esc" dưới đây) |
 
 **Khoá mục tiêu và bấm-để-đi**
-- **Bấm vào hồn thú** (hoặc Tab) là **khoá mục tiêu**: nhân vật tự đi tới con đó rồi tự đánh thường khi đã trong tầm. Dưới chân con bị khoá có vòng đỏ cam nhấp nháy; hồn thú chết, chạy quá xa, bạn vào vùng an toàn hoặc gục thì khoá tự huỷ và có báo lý do.
+- **Bấm vào hồn thú** (hoặc Tab) là **khoá mục tiêu**: nhân vật tự đi tới con đó rồi tự đánh thường khi đã trong tầm. Dưới chân con bị khoá có vòng đỏ cam nhấp nháy; hồn thú chết, chạy quá xa, bạn vào vùng an toàn hoặc gục thì khoá tự huỷ và có báo lý do; bấm khi đang ở vùng an toàn, đã gục, hồn thú quá xa / đã mất / còn là trứng thì không khoá được và cũng có báo lý do.
 - **Bấm xuống đất** là bấm-để-đi: nhân vật tự tìm đường tới điểm đó. Bấm hồn thú rồi bấm đất (hoặc ngược lại) thì lệnh sau thay lệnh trước.
 - **Chip trạng thái** (giữa dưới màn hình) cho biết nhân vật đang nghe lệnh nào: "Đang đánh: …", "Đang đi tới…", "Tự đi cờ", "Tự săn". Bấm **×** trên chip để huỷ đúng lệnh đó. Lệnh bị huỷ hay không bật được thì chip báo lý do vài giây.
 - **Ai thắng ai:** tay bạn luôn thắng. Giữ phím di chuyển / cần điều khiển thì huỷ mọi lệnh tự chạy; bấm nền hoặc khoá hồn thú thì huỷ cờ tự đi và tự săn; cờ tự đi và tự săn **không bật được** khi bạn đang bấm đi hoặc đang khoá (chip báo, huỷ lệnh kia rồi bật lại).
@@ -224,17 +224,21 @@ Máu của tinh anh, thú vương và boss thế giới **tăng theo số ngư�
 Đấu **đội võ hồn 1 đấu 1 hoặc 2 đấu 2**, xếp hạng theo Elo từng tài khoản.
 - **Xếp hàng:** người chơi đơn tự xếp. Tổ đội **đúng 2 người** do trưởng nhóm xếp cho cả đội; hai người phải cùng kênh và cùng đứng gần biển **Đại Đấu Hồn Trường** trước cửa đấu trường (góc đông nam Thiên Đấu Thành). Khi chờ ghép, thành phần tổ đội bị khóa; cả hai có thể hủy. Ngoài giao chiến. Đi bản đồ khác hoặc thoát game thì cả bên ra khỏi hàng.
 - Ghép xong hai bên vào sân riêng (2v2 tối đa 4 người), **cả đội hồi đầy**, đếm ngược rồi giao đấu có giới hạn thời gian. Dùng mọi thứ như ngoài rừng: hồn kỹ, Chân Thân, hồn cốt, tiên cơ, đổi tay. Không xếp đội, không dùng vật phẩm trong sân.
+- **Trong sân:** chỉ đánh được khi đã giao đấu (đang chờ / đếm ngược / đã xong thì bấm đánh có báo lý do). **Không khoá mục tiêu** (Tab, bấm hồn thú): đánh bằng Space / J. Dung hợp kỹ (G) và việc dùng đồ, đổi đội hình đều bị cấm, có báo.
 - **Thắng:** hạ hết đội đối thủ, hoặc hết giờ mà còn nhiều % sinh lực cả đội hơn (chênh ít thì hòa). Rời sân hoặc không vào sân kịp là thua.
 - **Thưởng thắng:** Hồn Tệ và mảnh võ hồn, có giới hạn số trận thắng có thưởng mỗi ngày. **Thua / hòa không mất gì.**
 - Cùng một đối thủ chỉ tính Elo và thưởng vài trận mỗi ngày; sau đó là **giao hữu** (vẫn đấu, không đổi Elo).
 - Bảng xếp hạng mở từ hộp thoại biển đấu trường. Xong trận thì về đúng chỗ cũ.
 
 ## 16. Cộng minh
-Giai đoạn cuối: nuôi **đều nhiều võ hồn** thì **mọi** võ hồn của tài khoản (kể cả mở sau) được cộng % sinh lực / hồn lực / công. Bảng Cộng minh (phím K hoặc nút "Cộng minh") có 4 trụ cột, mỗi trụ cột vài mốc:
+Giai đoạn cuối: nuôi **đều nhiều võ hồn** thì **mọi** võ hồn của tài khoản (kể cả mở sau) được cộng thêm chỉ số: % sinh lực / hồn lực / công, và (trụ Sao) chí mạng, giảm sát thương nhận, tốc chạy. Bảng Cộng minh (phím K hoặc nút "Cộng minh") có 5 trụ cột, mỗi trụ cột vài mốc (số mốc và mức cộng xem `RESONANCE` trong `shared/data.ts`):
 - **Võ hồn:** số võ hồn đạt đủ cấp.
 - **Hồn hoàn:** tổng số hồn hoàn đã hấp thụ trên mọi võ hồn.
 - **Hồn cốt:** số hồn cốt **đang gắn** đã cường hóa đủ cấp.
 - **Hồn hạch:** số hồn hạch **đang gắn** đủ sao.
+- **Sao võ hồn:** tổng sao cộng thêm trên mọi võ hồn (lên sao cũng cập nhật mốc ngay).
+
+Chi tiết luật: [`design/cong-minh.md`](design/cong-minh.md).
 
 Chỉ đồ đang gắn mới tính (đồ trong túi không tính); tháo đồ làm tụt mốc thì mất phần cộng, có báo.
 

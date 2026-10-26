@@ -4,13 +4,14 @@
 
 ## 4. Luật chung
 ### Điều khiển
-Chuột / phím là chính; điện thoại có joystick ảo và nút chạm cho mọi thao tác.
+Chuột / phím là chính; chỉ chơi trên máy tính. Giao diện điện thoại (joystick ảo, nút chạm cho mọi thao tác) hoãn, chưa hỗ trợ đầy đủ (Q40). Bấm chuột: bấm hồn thú để khoá mục tiêu, bấm xuống đất để đi tới điểm đó; ai thắng ai khi nhiều lệnh cùng lúc xem `giao-dien.md` "Điều khiển: thứ tự ưu tiên lệnh và chip trạng thái".
 
 | Phím | Việc |
 |---|---|
-| WASD / mũi tên | Đi (ngoài giao chiến tự chạy) |
+| WASD / mũi tên, hoặc bấm chuột xuống đất | Đi (ngoài giao chiến tự chạy); bấm chuột thì tự tìm đường tới điểm bấm |
 | Shift (giữ) | Đi bộ thay vì chạy |
 | J / Space | Đánh thường |
+| Tab, hoặc bấm vào hồn thú | Khoá mục tiêu: Tab khoá hồn thú kế tiếp ở gần (từ gần ra xa, hết vòng quay lại con gần nhất); bấm vào hồn thú khoá con đó. Nhân vật tự đi tới và đánh khi trong tầm |
 | U / I / O / P | 4 ô hồn kỹ mang theo (mục 5.2) |
 | R | Võ Hồn Chân Thân (vòng 7) |
 | Z / X / C | Kỹ năng hồn cốt chủ động: đầu, tay trái, tay phải (mục 5.5) |
@@ -25,7 +26,8 @@ Chuột / phím là chính; điện thoại có joystick ảo và nút chạm ch
 | N | Bản đồ khu vực của bản đồ đang đứng (nút "Vùng" dưới radar hoặc bấm radar; mục 5.17) |
 | Y | Đi / dừng tự đi tới cờ đã đặt (mục 5.17) |
 | T | Bật / tắt tự săn ngay (nút "Tự động" ở khung chỉ số mở bảng Tự động, mục 5.13) |
-| Enter / Esc | Chat / đóng bảng, hộp thoại (Esc huỷ lần kéo thả hoặc thẻ thao tác trước, rồi mới đóng bảng) |
+| Enter | Mở chat |
+| Esc | Đóng từng lớp, mỗi lần nhấn một lớp: huỷ kéo thả / thẻ thao tác, bản đồ khu vực, khung chat đang mở, bảng trên cùng; hết bảng thì bỏ khoá mục tiêu (xem `giao-dien.md` "Quản lý bảng và Esc") |
 
 ### Lệnh chat
 `/b <tin>` bản đồ, `/d <tin>` tổ đội, `/t <tên> <tin>` tin riêng (tên có dấu cách thì để trong ngoặc kép, hoặc client khớp tên đang thấy / đồng đội), `/r <tin>` trả lời người vừa nhắn riêng, `/tm <tin>` tông môn, `/tg <tin>` kênh thế giới, `/moi <tên>` mời vào tổ đội, `/roi` rời tổ đội, `/hat` bật / tắt hạt bay. Bấm / chạm vào hồn sư khác mở menu người chơi (mời tổ đội, nhắn riêng, kết bạn, chặn / bỏ chặn).
@@ -54,7 +56,7 @@ Số ở `shared/data.ts`, mục "Di chuyển".
 - Hồn thú lang thang chậm và đuổi nhanh (mục 5.3 "Luật chung của hồn thú").
 
 ### Giao chiến
-Hồn sư "đang giao chiến" khi đánh trúng hoặc bị đánh trong `TEAM_COMBAT_SECS` giây gần nhất. Các việc sắp xếp (xếp đội, chọn hồn kỹ mang theo, gắn / tháo / cường hóa / nâng cấp đồ, hấp thụ, đổi kênh, xếp hàng đấu trường) chỉ làm được khi **không giao chiến, không gục, không đang hấp thụ, không đang đi cổng**. Dùng đan, tiên thảo, mở võ hồn, lên sao thì làm được cả khi giao chiến.
+Hồn sư "đang giao chiến" khi đánh trúng hoặc bị đánh trong `TEAM_COMBAT_SECS` giây gần nhất. Các việc sắp xếp (xếp đội, chọn hồn kỹ mang theo, gắn / tháo / cường hóa / nâng cấp đồ, hấp thụ, đổi kênh, xếp hàng đấu trường) chỉ làm được khi **không giao chiến, không gục, không đang hấp thụ, không đang đi cổng**. Dùng đan, tiên thảo, mở võ hồn, lên sao thì làm được cả khi giao chiến. Hồn sư trúng đòn trực tiếp của hồn thú (không tính PvP) được bất tử `HIT_INVULN_SECS` giây, các đòn trong khung đó bị bỏ qua.
 
 ### Vùng an toàn
 Cả bản đồ thành (`town`) và vùng `safe` trong bản đồ săn (làng Thánh Hồn Thôn). Ở đó không sinh hồn thú, hồn thú bỏ mục tiêu và không vào, không ai gây sát thương hay trạng thái, không tung hồn kỹ / tiên cơ / Chân Thân / kỹ năng hồn cốt. Người đang đi cổng cũng không gây gì (kể cả đạn đang bay, nhát hẹn giờ, độc và lửa đang cháy).
@@ -63,7 +65,7 @@ Cả bản đồ thành (`town`) và vùng `safe` trong bản đồ săn (làng 
 `PLAYER_REGEN`, `SAFE_REGEN_MULT`, `hpRegen`, `mpRegen`: hồi liên tục. Hồn lực hồi theo cấp, võ hồn nhiều hồn lực hồi nhanh hơn. Sinh lực hồi theo phần trăm sinh lực tối đa khi không bị đánh quá `PLAYER_REGEN.calmSecs` giây, không thì chỉ hồi chậm một số điểm cố định; võ hồn không ra trận trong đội (chưa gục) hồi cùng nhịp. Trong vùng an toàn (thành, vùng `safe`) cả sinh lực lẫn hồn lực hồi nhanh gấp `SAFE_REGEN_MULT` lần ngoài rừng.
 
 ### Gục
-Võ hồn ra trận gục thì tự đổi sang võ hồn chưa gục kế tiếp trong đội (không tính hồi chiêu đổi, không tung tiên cơ). Võ hồn đã gục không đổi vào được; hồi đầy khi về trại hoặc sau `REVIVE_SECS` giây ngoài giao chiến (đồng hồ dừng khi giao chiến). Cả đội gục thì sau `RESPAWN_SECS` giây về điểm hồi sinh (`spawn`) của bản đồ, cả đội hồi đầy, **không mất kinh nghiệm hay đồ**. Sinh lực từng võ hồn không lưu DB: vào lại game thì cả đội đầy.
+Võ hồn ra trận gục thì tự đổi sang võ hồn chưa gục kế tiếp trong đội (không tính hồi chiêu đổi, không tung tiên cơ). Võ hồn đã gục không đổi vào được; hồi đầy khi về trại hoặc sau `REVIVE_SECS` giây ngoài giao chiến (đồng hồ dừng khi giao chiến). Cả đội gục thì sau `RESPAWN_SECS` giây về điểm hồi sinh (`spawn`) của bản đồ (bất tử thêm `RESPAWN_INVULN_SECS` giây), cả đội hồi đầy, **không mất kinh nghiệm hay đồ**. Sinh lực từng võ hồn không lưu DB: vào lại game thì cả đội đầy.
 
 ### Đồ rơi và quyền nhặt
 Hồn hoàn, hồn cốt, hồn hạch và đồ rơi đất khác nằm `DROP_TTL_SECS` giây; `DROP_OWNER_SECS` giây đầu chỉ người được ưu tiên (người hạ, hoặc người đóng góp nhiều nhất với tinh anh / thú vương) và **cả tổ đội của người đó lúc rơi** nhặt được. Nhấn E (nút "Nhặt") trong `PICKUP_RANGE` để nhặt món gần nhất mà mình được nhặt; túi đầy thì báo và món đó ở lại. Hồn Tệ, mảnh võ hồn và tiên thảo vào thẳng túi người hạ (túi đầy thì mảnh / tiên thảo rơi xuống đất với cùng luật ưu tiên).

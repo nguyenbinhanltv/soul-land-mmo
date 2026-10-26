@@ -224,8 +224,12 @@ export const MSG_MAX_PAYLOAD = 4096;
  * tìm mục tiêu; vẫn hồi máu, trạng thái vẫn chạy); `wake` ≥ `out` nên hồn thú client đang thấy luôn thức. Lưới không gian ô `cell`
  * pixel. Bản đồ nhỏ nhận vị trí hồn sư, hồn thú từ nghìn năm, đồ rơi cả bản đồ mỗi `mini` giây
  * (tin `mini`). Khung camera VIEW_W × VIEW_H chiếu isometric phủ khoảng 340 pixel thế giới quanh mình.
+ * Tin riêng `vit` (#949: kinh nghiệm, hồn lực, hồi chiêu của chính chủ, shared/vitals.ts): hồn lực chỉ hồi dần thì gửi tối đa mỗi `vitGap`
+ * giây; hồi chiêu client tự đếm lùi giữa hai tin, server gửi lại khi số thật lệch số client đang đếm: client đếm quá nhanh (sẽ báo
+ * "sẵn sàng" khi server còn hồi chiêu) quá `vitEarly` giây, hoặc quá chậm quá `vitCd` giây. Hồi chiêu đang đếm không tự về 0 ở client mà dừng ở
+ * `vitHold` giây tới khi server báo đã hết (tin `vit` xác nhận), để không bao giờ thấy "sẵn sàng" trước server (server từ chối nếu còn hồi chiêu).
  */
-export const SYNC_VIEW = { r: 560, out: 660, fx: 760, wake: 660, cell: 128, mini: 1 };
+export const SYNC_VIEW = { r: 560, out: 660, fx: 760, wake: 660, cell: 128, mini: 1, vitGap: 0.2, vitCd: 0.3, vitEarly: 0.05, vitHold: 0.01 };
 
 export interface BeastDef {
   /** Mã cố định (sprite `beast_{id}`, thuộc tính `beasts` của vùng trong Tiled). Không đổi mã đã dùng. */
@@ -439,6 +443,10 @@ export const TEAM_COMBAT_SECS = 5;
 export const REVIVE_SECS = 60;
 /** Cả đội gục: sau ngần này giây hồn sư về doanh trại, cả đội hồi đầy (không mất kinh nghiệm hay đồ, mục 2). */
 export const RESPAWN_SECS = 2.5;
+/** Khung bất tử (giây) sau khi trúng đòn trực tiếp của hồn thú (không tính PvP): chặn nhiều đòn chồng trong một nhịp. */
+export const HIT_INVULN_SECS = 0.45;
+/** Bất tử (giây) ngay sau khi hồi sinh về điểm `spawn`, để không bị hồn thú đứng gần đánh ngay lúc vừa đứng dậy. */
+export const RESPAWN_INVULN_SECS = 1.5;
 /**
  * Hồi sinh lực / hồn lực của hồn sư mỗi giây (mục 4 "Hồi sinh lực và hồn lực"), server tính trong `MapRoom.regenPlayer`:
  * - hồn lực: `mp` + `mpLevel` × cấp; võ hồn nhiều hồn lực (`VOHON[].mp` > 1) nhân `mpRich`;
@@ -852,6 +860,8 @@ export const BEAST_AGGRO_R = 70, BEAST_WANDER = 60;
  *  5.8), để vừa tới nơi, vừa hồi sinh hay đang niệm cổng không bị vây. Phải ≥ BEAST_WANDER + BEAST_AGGRO_R (130) thì hồn thú tự lang thang
  *  mới không tới tầm phát hiện người đứng ở đó; 160 như GATE_CLEAR của BĐ3 (đã gộp vào đây). Người chơi kéo hồn thú về thì vẫn bị đuổi. */
 export const SPAWN_CLEAR = 160;
+/** Không sinh hồn thú cách người chơi dưới khoảng này (pixel): tránh hồn thú hiện ra sát mặt. */
+export const SPAWN_PLAYER_GAP = 140;
 
 // ---------- Di chuyển (mục 4 "Di chuyển", bước 11.1) ----------
 /** Tốc độ đi bộ gốc của hồn sư (pixel thế giới mỗi giây; ô TILE 16 pixel nên khoảng 6 ô/giây), nhân hệ số `spd` theo hệ (HE). */
@@ -4791,6 +4801,19 @@ export const questRewardText = (r: QuestReward) =>
 // ---------- Đại Đấu Hồn Trường (mục 5.9, bước 7.2; mọi số đã chốt) ----------
 /** Mã bản đồ sân đấu (MAPS, kind `arena`): shared/assets/dai_dau_hon_truong.json, chỉ phòng ArenaRoom dùng. */
 export const ARENA_MAP = "dai_dau_hon_truong";
+/** Chiêu tiên cơ Mẫn công lướt tới: bất tử (giây) trong lúc lướt. */
+export const TIEN_CO_DASH_INV = 0.35;
+/** Nón trúng của hồn kỹ có hướng: cos góc giữa hướng nhìn và hướng tới mục tiêu phải lớn hơn mức này (0,2 ≈ nón 78° mỗi bên). */
+export const SKILL_CONE_COS = 0.2;
+/** Vòng hồn thú gọi bầy (`summon`) xuất hiện quanh kẻ gọi: bán kính ngang × dọc (pixel, vòng elip theo hình thoi isometric). */
+export const SUMMON_RING = { rx: 28, ry: 20 } as const;
+/** Tự phân giải trang bị: thử lại không quá 1 lần mỗi khoảng này (mili giây). */
+export const AUTO_SALVAGE_RETRY_MS = 5000;
+/** Lễ thức tỉnh: hồn lực bẩm sinh (cấp khởi đầu của cả hai võ hồn). `maxChance` xác suất ra thẳng cấp `max`, còn lại
+ *  `1 + floor(u^curve × (max − 1))` với u đều trong [0, 1) (curve > 1 thì lệch về cấp thấp). */
+export const AWAKEN_LEVEL = { max: 10, maxChance: 0.04, curve: 1.6 } as const;
+
+
 /**
  * **(đã chốt)** Số liệu Đại Đấu Hồn Trường (mục 5.9, bước 7.2).
  * - `startElo`: Elo khởi đầu (chưa đấu trận nào); `k`: hệ số K của Elo (mọi trận như nhau); Elo không xuống dưới 0.

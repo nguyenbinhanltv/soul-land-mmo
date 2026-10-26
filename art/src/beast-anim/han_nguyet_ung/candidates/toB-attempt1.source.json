@@ -1,0 +1,48 @@
+{
+  "species": "han_nguyet_ung",
+  "worker": "soul-land-mmo-136",
+  "issue": 772,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Codex image_gen không công bố model/seed; không có selector kích thước.",
+  "transparent_background": false,
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "sheet": "B",
+  "attempt": 1,
+  "raw_file": "toB-attempt1.png",
+  "selected": false,
+  "selected_attempt": 2,
+  "attempts": 2,
+  "counters": {
+    "A": 1,
+    "B": 2,
+    "species_total": 3
+  },
+  "prompt_file": "candidates/toB-attempt1.prompt.txt",
+  "prompt_sha256": "9f6433d79bc405323fe53f4ad2eeea0320b1c0cf8a8d4af7d2fdfb011dd8b5bd",
+  "sha256": "c9be052681189fb8c410bd8c23780c74602dcbd3aaa6eb71e544761f94177cb9",
+  "bytes": 1899250,
+  "width": 1254,
+  "height": 1254,
+  "references": [
+    {
+      "path": "/private/tmp/soul-land-mmo-772-han-nguyet-ung/shared/assets/sprites/beast/han_nguyet_ung.png",
+      "role": "static identity reference, three views",
+      "sha256": "f7de63bc996157ebaf1bccbe1d45f0d655a9ef2495deff90d01fc87688e44e73",
+      "original_input_path": "/private/tmp/soul-land-mmo-772-han-nguyet-ung/shared/assets/sprites/beast/han_nguyet_ung.png"
+    },
+    {
+      "path": "/private/tmp/soul-land-mmo-772-han-nguyet-ung/art/src/beast-anim/han_nguyet_ung/toA.png",
+      "role": "technical style/design reference only; A1 automated pass, not owner-approved",
+      "sha256": "2f320899f8fe85888442f4963f363dcd848e305923eab41ba850b8d9dae6f733",
+      "original_input_path": "/private/tmp/soul-land-mmo-772-han-nguyet-ung/art/src/beast-anim/han_nguyet_ung/toA.png"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-f69fcdfa-9fa0-4a91-b826-cf0a4d9d9c2e.png",
+  "generated_at": "2026-10-26T12:29:59.197Z",
+  "known_issues": [
+    "B1: NE gần nhìn ngang, lộ mặt/mỏ; N có khung lộ mặt/ngực. Không chọn làm B chính."
+  ],
+  "qa_status": "Automated checker was not run on B1; visual review found directional errors."
+}

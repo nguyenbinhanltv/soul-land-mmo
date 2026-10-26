@@ -1,7 +1,7 @@
 // G1 (#392): cảm giác đánh. Chỉ hiển thị cục bộ ở client (không đổi state, nhịp mạng, dự đoán hay luật chơi); hằng số ở đây là
 // độ dài / độ mạnh của hiệu ứng, KHÔNG phải số cân bằng (số cân bằng ở shared/data.ts).
 import Phaser from "phaser";
-import type { He, HaoQuangMode } from "../../shared/data.ts";
+import type { He } from "../../shared/data.ts";
 import { FxGovernor, GOV } from "./combatFeelRules.ts";
 import { readFxPrefs, writeFxPrefs, type FxLevel, type ShakeMode, type FxPrefs } from "./fxSettings.ts";
 

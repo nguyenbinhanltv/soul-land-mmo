@@ -10,17 +10,20 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readPng, encodePng, ROOT, SPRITES } from "./lib.mjs";
-import { DIRS, ANIMS, COLS, BAND_ROWS, sheetCells } from "./beast-sheet-lib.mjs";
+import { DIRS, ANIMS, COLS, BAND_ROWS, TURNAROUND, sheetCells, A_RATIO_MIN, A_RATIO_MAX, A_MIN_SIDE, canonFactor } from "./beast-sheet-lib.mjs";
 import { detectGrid } from "./beast-sheet-grid.mjs";
 import { median } from "./beast-sheet-stats.mjs";
 import { contactSheet } from "./beast-sheet-contact.mjs";
 
 // ---------- Ngưỡng (đo trên tờ thật, bao-cao-h4.md Phụ lục A) ----------
-/** Cỡ hợp lệ theo tỉ lệ (quyết định chủ repo #861): A 2:3, B 1:1 (1254² hoặc 1024²), một hướng mỗi tờ 3:2. Tỉ lệ ±1%. */
+/**
+ * Cỡ hợp lệ theo tỉ lệ (quyết định chủ repo #861, 2026-10-26 mục 2): A 2:3 (1024×1536; Codex thật còn xuất 948×1659 / 941×1672 ≈ 4:7, nhận mọi tỉ lệ
+ * trong [A_RATIO_MIN, A_RATIO_MAX] nếu lưới đúng), B 1:1 (1254² hoặc 1024²), một hướng mỗi tờ 3:2. Tỉ lệ B / boss ±1%. `canonSize` = cỡ chuẩn hoá (theo diện tích).
+ */
 export const SHAPES = {
-  A: { ratio: 2 / 3, sizes: [[1024, 1536]], canon: 1024, dirs: ["s", "se", "e"] },
-  B: { ratio: 1, sizes: [[1254, 1254], [1024, 1024]], canon: 1024, dirs: ["ne", "n"] },
-  boss: { ratio: 3 / 2, sizes: [[1536, 1024]], canon: 1536, dirs: null },
+  A: { ratio: 2 / 3, ratioMin: A_RATIO_MIN, ratioMax: A_RATIO_MAX, minSide: A_MIN_SIDE, sizes: [[1024, 1536], [948, 1659], [941, 1672]], canon: 1024, canonSize: [1024, 1536], dirs: ["s", "se", "e"] },
+  B: { ratio: 1, sizes: [[1254, 1254], [1024, 1024]], canon: 1024, canonSize: [1024, 1024], dirs: ["ne", "n"] },
+  boss: { ratio: 3 / 2, sizes: [[1536, 1024]], canon: 1536, canonSize: [1536, 1024], dirs: null },
 };
 export const RATIO_TOL = 0.01;
 export const BG_LOCK = [255, 0, 255], BG_TOL = 60;
@@ -39,7 +42,9 @@ const colsText = (cols) => { const a = Math.min(...cols) + 1, b = Math.max(...co
 
 /** Phân loại tờ theo tỉ lệ → { kind, shape } hoặc null. */
 export function classifyShape(w, h) {
-  for (const [kind, shape] of Object.entries(SHAPES)) if (Math.abs(w / h - shape.ratio) <= RATIO_TOL * shape.ratio) return { kind, shape };
+  for (const [kind, shape] of Object.entries(SHAPES)) {
+    if (shape.ratioMin ? Math.min(w, h) >= shape.minSide && w / h >= shape.ratioMin && w / h <= shape.ratioMax : Math.abs(w / h - shape.ratio) <= RATIO_TOL * shape.ratio) return { kind, shape };
+  }
   return null;
 }
 
@@ -98,23 +103,29 @@ function finish(res) {
   return res;
 }
 
-/** Phân tích một tờ; cỡ thân so với ảnh tĩnh làm ở checkSpecies (cần hệ số chung cả loài). */
+/** Tên file ảnh turnaround (1 ảnh 3:2, 5 hướng × 3 tư thế; hằng TURNAROUND ở beast-sheet-lib.mjs). */
+export const TURNAROUND_SHEET = "turnaround";
+
+/** Phân tích một tờ (toA–toE hoặc turnaround.png); cỡ thân so với ảnh tĩnh làm ở checkSpecies (cần hệ số chung cả loài). */
 export function analyzeSheet(file) {
   const img = readPng(file), name = path.basename(file, ".png"), letter = name.replace(/^to/, "");
   const issues = [], res = { sheet: name, file, size: [img.w, img.h], issues, blocks: [], cells: [], bands: [], dead: [], img };
-  const cls = classifyShape(img.w, img.h);
+  const isTa = name === TURNAROUND_SHEET;
+  const taShape = { ratio: TURNAROUND.w / TURNAROUND.h, sizes: [[TURNAROUND.w, TURNAROUND.h]], canon: TURNAROUND.w, canonSize: [TURNAROUND.w, TURNAROUND.h], dirs: DIRS };
+  const cls = isTa ? (Math.abs(img.w / img.h - taShape.ratio) <= RATIO_TOL * taShape.ratio ? { kind: "turnaround", shape: taShape } : null) : classifyShape(img.w, img.h);
   if (!cls) {
-    issue(issues, "block", "kich-thuoc", "toàn tờ", `${img.w}×${img.h} không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2).`);
+    issue(issues, "block", "kich-thuoc", "toàn tờ", isTa ? `${img.w}×${img.h} không đúng tỉ lệ 3:2 của turnaround (${TURNAROUND.w}×${TURNAROUND.h}).` : `${img.w}×${img.h} không đúng tỉ lệ nào trong tập cho phép (A 2:3 hoặc ≈ 4:7 như Codex 948×1659, tức rộng/cao ${A_RATIO_MIN}–${A_RATIO_MAX}; B 1:1; một hướng 3:2).`);
     return finish(res);
   }
   const { kind, shape } = cls;
   res.kind = kind;
-  const exact = shape.sizes.some(([w, h]) => w === img.w && h === img.h);
-  if (!exact) issue(issues, "light", "kich-thuoc", "toàn tờ", `cỡ ${img.w}×${img.h} đúng tỉ lệ nhưng ngoài danh sách (${shape.sizes.map((s) => s.join("×")).join(", ")}); cutter chuẩn hoá được.`);
-  else if (img.w !== shape.canon) issue(issues, "note", "kich-thuoc", "toàn tờ", `${img.w}×${img.h} hợp lệ (quyết định #861); hệ số chuẩn hoá ${round(shape.canon / img.w, 4)}.`);
+  const factor = canonFactor(img.w, img.h, ...shape.canonSize), canonical = img.w === shape.canonSize[0] && img.h === shape.canonSize[1];
+  const known = shape.sizes.some(([w, h]) => w === img.w && h === img.h), closeArea = Math.abs(factor - 1) <= 0.15;
+  if (!canonical && (known || closeArea)) issue(issues, "note", "kich-thuoc", "toàn tờ", `${img.w}×${img.h} hợp lệ (quyết định chủ repo 2026-10-26 mục 2: cỡ theo tỉ lệ); hệ số chuẩn hoá ${round(factor, 4)}.`);
+  else if (!canonical) issue(issues, "light", "kich-thuoc", "toàn tờ", `cỡ ${img.w}×${img.h} đúng tỉ lệ nhưng khác xa danh sách (${shape.sizes.map((s) => s.join("×")).join(", ")}); cutter chuẩn hoá được (hệ số ${round(factor, 4)}), nhưng nên kiểm lưới.`);
   const dirs = shape.dirs ?? [DIRS["ABCDE".indexOf(letter)] ?? DIRS[0]];
-  const plan = { dirs, cols: COLS, rows: dirs.length * BAND_ROWS };
-  res.dirs = dirs; res.plan = plan; res.canonFactor = shape.canon / img.w;
+  const plan = isTa ? { dirs, cols: TURNAROUND.cols, rows: TURNAROUND.rows } : { dirs, cols: COLS, rows: dirs.length * BAND_ROWS };
+  res.dirs = dirs; res.plan = plan; res.canonFactor = factor;
 
   const grid = detectGrid(img);
   res.grid = grid;
@@ -129,6 +140,17 @@ export function analyzeSheet(file) {
   if (grid.bands.length !== plan.rows) {
     issue(issues, "block", "luoi", "toàn tờ", `dò được ${grid.bands.length} dải hàng, cần ${plan.rows}: không dò được lưới (hàng dính nhau hoặc vỡ).`);
     res.bands = grid.bands.map((b) => ({ ...b, state: "bad", figures: b.figures.map((f) => ({ ...f, state: "bad" })) }));
+    return finish(res);
+  }
+  if (isTa) { // mỗi hàng tư thế (idle / hurt / die) phải đủ 5 hình, một hình mỗi hướng
+    grid.bands.forEach((b, row) => {
+      const tag = `H${row + 1} (${TURNAROUND.poses[row]})`, rb = { ...b, row, state: "ok", figures: b.figures.map((f) => ({ ...f })) };
+      res.bands.push(rb);
+      if (b.figures.length === TURNAROUND.cols) return;
+      const stuck = b.figures.some((f) => f.w > 1.5 * grid.medianFigW), fewer = b.figures.length < TURNAROUND.cols;
+      issue(issues, "block", stuck && fewer ? "hinh-dinh" : "so-hinh", tag, `hàng có ${b.figures.length} hình, cần ${TURNAROUND.cols}: ${fewer ? (stuck ? "hình dính nhau" : "thiếu khung") : "thừa hình / mảnh rời"}.`);
+      rb.state = "bad"; rb.figures.forEach((f) => { f.state = "bad"; });
+    });
     return finish(res);
   }
   const cellsByRow = new Map();
@@ -212,12 +234,19 @@ function analyzeMotion(res, grid) {
 export function sheetFiles(dir) {
   return "ABCDE".split("").map((l) => path.join(dir, `to${l}.png`)).filter(existsSync);
 }
+/** Đường dẫn turnaround.png của loài nếu có (kiểm cỡ / nền / lưới như tờ khác, #972). */
+export function turnaroundFile(dir) {
+  const f = path.join(dir, `${TURNAROUND_SHEET}.png`);
+  return existsSync(f) ? f : null;
+}
 
 /** Kiểm mọi tờ của một loài, thêm kiểm cỡ thân (hệ số chung cả loài, neo theo ảnh tĩnh). */
 export function checkSpecies(id, { dir = path.join(ROOT, "art", "src", "beast-anim", id) } = {}) {
-  const files = sheetFiles(dir);
-  if (!files.length) throw new Error(`không có tờ toA.png… trong ${dir}`);
+  const ta = turnaroundFile(dir), files = sheetFiles(dir);
+  if (!files.length && !ta) throw new Error(`không có tờ toA.png… trong ${dir}`);
   const sheets = files.map((f) => analyzeSheet(f));
+  // turnaround tách riêng khỏi `sheets` (không thuộc khối hướng nào): không góp blockLevel / layout; `allSheets(r)` gộp khi cần báo cáo
+  const turnaround = ta ? finish(analyzeSheet(ta)) : null;
   const st = staticHeights(id), blocks = sheets.flatMap((s) => s.blocks.map((b) => ({ ...b, sheet: s, h: b.idleH * s.canonFactor })));
   const anchored = Boolean(blocks.length && st);
   const k = !blocks.length ? 1 : anchored ? median(blocks.map((b) => b.h / anchorOf(st, b.dir))) : median(blocks.map((b) => b.h));
@@ -228,7 +257,7 @@ export function checkSpecies(id, { dir = path.join(ROOT, "art", "src", "beast-an
     else if (dev > BODY_LIGHT) issue(b.sheet.issues, "light", "co-than", where, `cỡ thân idle ${round(b.rel * 100, 0)}% so với ${ref} (lệch ${round(dev * 100, 0)}%).`, { dir: b.dir });
     b.sheet.bodyRel = { ...(b.sheet.bodyRel ?? {}), [b.dir]: round(b.rel) };
   }
-  let level = "pass";
+  let level = turnaround ? turnaround.level : "pass";
   const blockLevel = {};
   for (const s of sheets) {
     finish(s); level = maxLevel(level, s.level);
@@ -237,8 +266,11 @@ export function checkSpecies(id, { dir = path.join(ROOT, "art", "src", "beast-an
       blockLevel[d] = maxLevel(blockLevel[d] ?? "pass", l);
     }
   }
-  return { id, dir, level, anchored, staticHeights: st, bodyScale: round(k, 4), sheets, blockLevel };
+  return { id, dir, level, anchored, staticHeights: st, bodyScale: round(k, 4), sheets, turnaround, blockLevel };
 }
+
+/** Mọi tờ đã kiểm của loài: toA–toE rồi turnaround (nếu có). */
+export const allSheets = (r) => [...r.sheets, ...(r.turnaround ? [r.turnaround] : [])];
 
 // ---------- Dòng LỖI nháp ----------
 const CODE_VI = { "kich-thuoc": "sai kích thước", nen: "nền ngoài dung sai", luoi: "không dò được lưới", "so-hinh": "sai số hình", "hinh-dinh": "hình dính", "o-trong": "hình ở ô trống", "cham-mep": "chạm mép tờ", "chan-lech": "chân lệch", "co-than": "cỡ thân lệch", "khung-chet": "khung chết", "hurt-idle": "hurt trùng idle" };
@@ -254,7 +286,7 @@ export function draftErrorLine(sheet) {
 export function toJson(r) {
   return {
     species: r.id, level: r.level, bodyScale: r.bodyScale, anchoredToStatic: r.anchored, staticHeights: r.staticHeights, blockLevel: r.blockLevel,
-    sheets: r.sheets.map((s) => ({
+    sheets: allSheets(r).map((s) => ({
       sheet: s.sheet, size: s.size, kind: s.kind ?? null, level: s.level, dirs: s.dirs ?? null, background: s.background ?? null, bodyRel: s.bodyRel ?? {}, seVsE: s.seVsE ?? null,
       bands: s.bands.map((b) => ({ row: (b.row ?? 0) + 1, dir: b.dir ?? null, y: [b.y0, b.y1], figures: b.figures.length, state: b.state })),
       motion: s.dead, issues: s.issues.map(({ sev, code, where, msg }) => ({ sev, code, where, msg })), draft: draftErrorLine(s),
@@ -265,9 +297,9 @@ export function toMarkdown(r) {
   const n = (s, sev) => s.issues.filter((i) => i.sev === sev).length;
   const L = [`# Kiểm tờ hoạt ảnh: ${r.id}`, "", `**Mức chung: ${r.level.toUpperCase()}** · hệ số cỡ thân ${r.bodyScale} (${r.anchored ? "neo ảnh tĩnh" : "không có ảnh tĩnh, neo trung vị"}).`, "",
     "| Tờ | Cỡ | Loại | Mức | Chặn | Nhẹ | Lưu ý |", "|---|---|---|---|---|---|---|"];
-  for (const s of r.sheets) L.push(`| ${s.sheet} | ${s.size.join("×")} | ${s.kind ?? "?"} | ${s.level} | ${n(s, "block")} | ${n(s, "light")} | ${n(s, "note")} |`);
+  for (const s of allSheets(r)) L.push(`| ${s.sheet} | ${s.size.join("×")} | ${s.kind ?? "?"} | ${s.level} | ${n(s, "block")} | ${n(s, "light")} | ${n(s, "note")} |`);
   L.push("", "Mức theo khối hướng: " + DIRS.filter((d) => r.blockLevel[d]).map((d) => `${d} ${r.blockLevel[d]}`).join(" · "), "");
-  for (const s of r.sheets) {
+  for (const s of allSheets(r)) {
     L.push(`## ${s.sheet} — ${s.level}`, "", `Ảnh liên hệ: \`${r.id}-${s.sheet}-lien-he.png\` (xanh = đạt, vàng = nhẹ, đỏ = chặn; nhãn I/W/A/H/D + số khung).`, "");
     if (!s.issues.length) L.push("Không có phát hiện.");
     for (const i of s.issues) L.push(`- **${{ block: "CHẶN", light: "nhẹ", note: "lưu ý" }[i.sev]}** \`${i.code}\` ${i.where}: ${i.msg}`);
@@ -286,9 +318,10 @@ export function writeReport(r, out, { images = true } = {}) {
   const put = (name, data) => { const f = path.join(out, name); writeFileSync(f, data); files.push(f); };
   put(`${r.id}-check.json`, JSON.stringify(toJson(r), null, 2) + "\n");
   put(`${r.id}-check.md`, toMarkdown(r));
-  if (images) for (const s of r.sheets) {
+  if (images) for (const s of allSheets(r)) {
     const plan = s.plan ?? { dirs: [], rows: Math.max(1, s.bands.length) };
-    const rowLabels = Array.from({ length: plan.rows }, (_, i) => `${(plan.dirs[(i / BAND_ROWS) | 0] ?? "?").toUpperCase()} ${["IDLE+HURT", "WALK", "ATTACK", "DIE"][i % BAND_ROWS]}`);
+    const rowLabels = s.sheet === TURNAROUND_SHEET ? TURNAROUND.poses.map((p) => p.toUpperCase())
+      : Array.from({ length: plan.rows }, (_, i) => `${(plan.dirs[(i / BAND_ROWS) | 0] ?? "?").toUpperCase()} ${["IDLE+HURT", "WALK", "ATTACK", "DIE"][i % BAND_ROWS]}`);
     put(`${r.id}-${s.sheet}-lien-he.png`, encodePng(contactSheet(s.img, { title: `${r.id} ${s.sheet} ${s.size.join("X")} ${LEVEL_ASCII[s.level]}`, plan, bands: s.bands, rowLabels })));
   }
   return files;
@@ -308,7 +341,7 @@ function parseArgs(argv) {
   }
   return o;
 }
-const summary = (r) => `${r.level.padEnd(5)} ${r.id}: ${r.sheets.map((s) => `${s.sheet}=${s.level}(${s.issues.filter((i) => i.sev === "block").length}/${s.issues.filter((i) => i.sev === "light").length})`).join(" ")}`;
+const summary = (r) => `${r.level.padEnd(5)} ${r.id}: ${allSheets(r).map((s) => `${s.sheet}=${s.level}(${s.issues.filter((i) => i.sev === "block").length}/${s.issues.filter((i) => i.sev === "light").length})`).join(" ")}`;
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
@@ -321,12 +354,14 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const base = o.out ?? path.join(os.tmpdir(), "beast-check");
     let blocked = 0;
     for (const id of o.species) {
-      const r = checkSpecies(id, o.dir ? { dir: o.dir } : {});
+      let r;
+      try { r = checkSpecies(id, o.dir ? { dir: o.dir } : {}); }
+      catch (e) { if (o.all && /không có tờ/.test(e.message)) { console.log(`bỏ qua ${id} (chưa có tờ)`); continue; } throw e; }
       console.log(summary(r));
       if (r.level === "chặn") blocked++;
       if (!o.all) {
         const files = writeReport(r, o.species.length > 1 ? path.join(base, id) : base, { images: o.images });
-        for (const s of r.sheets) { const d = draftErrorLine(s); if (d) console.log(d); }
+        for (const s of allSheets(r)) { const d = draftErrorLine(s); if (d) console.log(d); }
         console.log(`Đã ghi ${files.length} file vào ${path.dirname(files[0])}`);
       }
     }

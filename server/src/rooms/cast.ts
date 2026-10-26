@@ -3,7 +3,7 @@
 // Hàm nhận phòng (`room: MapRoom`) như combat.ts; nguyên văn từ MapRoom, không đổi số / thứ tự RNG / thứ tự xử lý trong tick. MapRoom chỉ chuyển tiếp 8 hàm
 // (`tick.ts`, `spawn.ts`, `boss.ts`, `ground.ts` gọi `room.beginCast` / `room.tickCast` ... như cũ). `*activeCasts` (tự săn đọc để né) ở lại MapRoom.
 import { BeastState } from "./schema.ts";
-import { TIERS, beastIndex, MAX_YEARS, rollYears, teleHits, teleSafe, TELE_FIRST, type BeastSkillDef, type Tele, teleZones, BOSSES, WORLD } from "../../../shared/data.ts";
+import { TIERS, beastIndex, MAX_YEARS, rollYears, teleHits, teleSafe, TELE_FIRST, type BeastSkillDef, type Tele, teleZones, BOSSES, WORLD, SUMMON_RING } from "../../../shared/data.ts";
 import { PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { floorSafeZones } from "./worldBoss.ts";
 import type { MapRoom, BData } from "./MapRoom.ts";
@@ -114,7 +114,7 @@ export function summonPack(room: MapRoom, b: BeastState, bd: BData, s: NonNullab
   const sp = beastIndex(s.species), z = room.map.zones[bd.zone]; if (sp < 0 || !z) return;
   for (const m of bd.minions) if (!room.state.beasts.has(m)) bd.minions.delete(m);
   for (let tries = 0; bd.minions.size < s.n && tries < 20; tries++) {
-    const a = Math.random() * Math.PI * 2, x = b.x + Math.cos(a) * 28, y = b.y + Math.sin(a) * 20;
+    const a = Math.random() * Math.PI * 2, x = b.x + Math.cos(a) * SUMMON_RING.rx, y = b.y + Math.sin(a) * SUMMON_RING.ry;
     if (room.map.hits(x, y, 6, 4) || room.map.inSafe(x, y)) continue;
     // Thú vương gọi nhện con trẻ hơn (summon.years); hồn thú gọi ra là hồn thú thường nên không bao giờ đúng MAX_YEARS (mục 5.3).
     const yr = s.years ?? z.years, years = Math.min(MAX_YEARS - 1, yr ? rollYears(yr[0], yr[1], Math.random()) : b.years);

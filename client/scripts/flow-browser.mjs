@@ -156,6 +156,23 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
   await guide.waitFor({ state: "hidden" });
   step("hướng dẫn lần đầu: bước theo phím, Bỏ qua, nút ? xem lại");
 
+  // 5c. #990: gõ dở trong ô chat rồi bấm xuống bản đồ: ô chat mất tiêu điểm (chữ dở còn), W đi được và không rơi vào ô chat; Esc vẫn thoát ô.
+  const chatState = () => page.evaluate(() => ({ focus: document.activeElement?.id ?? "", value: document.getElementById("chat").value, keyW: !!window.__scene.keys.KeyW }));
+  await page.keyboard.press("Enter"); await page.keyboard.type("ab");
+  const typed = await chatState();
+  assert.ok(typed.focus === "chat" && typed.value === "ab", `Enter không mở ô chat nhận chữ: ${JSON.stringify(typed)}`);
+  const vp = page.viewportSize(), ground = await page.evaluate(([w, h]) => { for (const [x, y] of [[w / 2, h * 0.35], [w / 2, h * 0.15], [w * 0.08, h / 2], [w * 0.92, h / 2]]) { if (document.elementFromPoint(x, y) === window.__scene.game.canvas) return [x, y]; } return null; }, [vp.width, vp.height]);
+  assert.ok(ground, "không tìm được điểm nền trống để bấm");
+  await page.mouse.click(ground[0], ground[1]);
+  await page.keyboard.down("KeyW"); await sleep(80);
+  const clicked = await chatState();
+  await page.keyboard.up("KeyW");
+  assert.ok(clicked.focus !== "chat" && clicked.value === "ab" && clicked.keyW, `bấm nền: ô chat phải mất tiêu điểm, W đi, chữ dở còn: ${JSON.stringify(clicked)}`);
+  await page.evaluate(() => { document.getElementById("chat").value = ""; });
+  await page.keyboard.press("Enter"); await page.keyboard.press("Escape");
+  assert.notEqual((await chatState()).focus, "chat", "Esc không thoát ô chat");
+  step("ô chat: bấm bản đồ bỏ tiêu điểm, W không gõ vào ô, Esc vẫn thoát");
+
   assert.deepEqual(problems, [], `Có lỗi trình duyệt:\n${problems.join("\n")}`);
   step("không có pageerror / console.error ngoài danh sách cho phép");
   console.log(`Ảnh: ${out}`);

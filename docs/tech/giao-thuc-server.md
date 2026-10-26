@@ -2,7 +2,7 @@
 
 ## HTTP (`server/src/index.ts`)
 - `GET /health` (readiness), `GET /live` (liveness, luôn 200 khi tiến trình còn chạy).
-- `/api/config`, `/api/login` (tên + mật khẩu; tự tạo tài khoản khi tên chưa có), `/api/login/google`, `/api/login/google/create`, `/api/link/google`, `/api/me`, `/api/channel` (chọn kênh khi vào game), `/api/looks`, `/api/awaken`.
+- `/api/config`, `/api/login` (tên + mật khẩu; tự tạo tài khoản khi tên chưa có), `/api/login/google`, `/api/login/google/create`, `/api/link/google`, `/api/me`, `/api/channel` (chọn kênh khi vào game), `/api/looks`, `/api/awaken`, `/api/logout` (đăng xuất: xóa đúng phiên của token đó ở server, luôn 200; #999).
 - Client không gọi được `create` của matchmaker: phòng bản đồ mới chỉ mở qua `joinOrCreate` khi mọi kênh đầy, sân đấu chỉ do server mở.
 
 ## Message từ client
@@ -69,6 +69,7 @@ Client nghe ở `GameScene.ts` (`room.onMessage`, buffer lúc vào ở `roomBuff
 | `party`, `friends`, `rally` | riêng | tổ đội, bạn bè / chặn, dấu Tập trung | `MapRoom.ts` |
 | `arena`, `arenaTop` | phòng / riêng | trận (`k`: `ready`, `fight`, kết quả, hàng chờ); bảng xếp hạng | `arena.ts`, `ArenaRoom.ts` |
 | `channels`, `travel`, `portal`, `wp`, `world`, `recall` | riêng | danh sách kênh; lệnh đổi phòng; cổng đang đứng gần; điểm dịch chuyển; bản đồ thế giới; đếm ngược Hồi thành | `join.ts`, `travel.ts`, `MapRoom.ts` |
+| `vit` | riêng | kinh nghiệm, hồn lực, hồi chiêu của chính chủ (#949): gửi khi đổi, hồn lực hồi dần gộp theo `SYNC_VIEW.vitGap` giây, hồi chiêu client tự đếm lùi (xem `dong-bo-state.md`) | `vitals.ts` |
 | `mini`, `fog`, `fogd` | riêng | radar mỗi `SYNC_VIEW.mini` giây; bitset sương mù; ô mới khám phá | `MapRoom.ts` |
 | `test` | riêng | trả lời hook kiểm thử (chỉ khi `GAME_TEST=1`) | `gm.ts`, `ArenaRoom.ts` |
 
@@ -97,7 +98,7 @@ Matchmake (`joinOrCreate`, `joinById`) giữ chỗ và mở kênh ở bước HT
 ## Bảo mật
 - Giới hạn đăng nhập sai, số tài khoản mới mỗi IP, chat (riêng từng kênh) và lời mời tổ đội ở `server/src/ratelimit.ts` (RAM). `/api/login` tự tạo tài khoản nhưng chỉ đếm lần thật sự tạo; hết lượt thì 429, tài khoản cũ vẫn vào được. Ngưỡng là hằng `SIGNUP_IP_*`, nới khi `GAME_TEST=1`.
 - Khoá IP chuẩn hoá bằng `ipKey` (IPv6 gom theo /64, `::ffff:a.b.c.d` về IPv4), dùng chung cho đăng nhập sai và tạo tài khoản.
-- REST có token (`/api/me`, `/api/channel`, `/api/looks`, `/api/awaken`) có token bucket theo IP `apiCheck` (hằng `API_BURST`, `API_REFILL_MS`); mọi lần `/api/login` qua `loginBegin` (kể cả đúng, vì chạy scrypt) tốn một lượt của bucket (tên, IP) `loginRate` (`LOGIN_OK_*`); mật khẩu tối đa `PASSWORD_MAX_LEN`. Hết lượt thì 429 + `Retry-After`; `GAME_TEST=1` nhân ngưỡng như tạo tài khoản.
+- REST có token (`/api/me`, `/api/channel`, `/api/looks`, `/api/awaken`, `/api/logout`) có token bucket theo IP `apiCheck` (hằng `API_BURST`, `API_REFILL_MS`); mọi lần `/api/login` qua `loginBegin` (kể cả đúng, vì chạy scrypt) tốn một lượt của bucket (tên, IP) `loginRate` (`LOGIN_OK_*`); mật khẩu tối đa `PASSWORD_MAX_LEN`. Hết lượt thì 429 + `Retry-After`; `GAME_TEST=1` nhân ngưỡng như tạo tài khoản.
 - Deploy sau proxy thì đặt `TRUST_PROXY=1` (thiếu thì mọi người chung IP của proxy, chạm giới hạn tạo tài khoản rất nhanh).
 - Kiểm thử: `npm run test:ratelimit --prefix server`.
 
