@@ -133,22 +133,7 @@ jobs:
           node-version: 22
       - run: npm ci --no-audit --no-fund --prefix server && npm ci --no-audit --no-fund --prefix client
       - run: npx --prefix client playwright install --with-deps chrome
-      - name: Chụp game thật trước thay đổi
-        # Baseline chỉ phục vụ review C8; các PR sau squash chỉ chạy regression AFTER.
-        if: ${{ github.event.number == 692 }}
-        env:
-          # C8 sau merge main, trước sửa tên hồn kỹ: baseline còn clamp để đối chiếu cùng fixture.
-          BASE: 4ea31e267cd2305cf7dfe1d38c92537d831b9e1b
-          C8_OUTPUT: ${{ runner.temp }}/c8-preview
-          C8_SOURCE_ROOT: ${{ runner.temp }}/c8-before
-          C8_PHASE: before
-        run: |
-          mkdir -p "$C8_SOURCE_ROOT"
-          git archive "$BASE" | tar -x -C "$C8_SOURCE_ROOT"
-          ln -s "$GITHUB_WORKSPACE/server/node_modules" "$C8_SOURCE_ROOT/server/node_modules"
-          ln -s "$GITHUB_WORKSPACE/client/node_modules" "$C8_SOURCE_ROOT/client/node_modules"
-          npm run test:actionbar-browser --prefix client
-      - name: Kiểm tra C8 và chụp game thật sau thay đổi
+      - name: Hồi quy thanh kỹ năng, đội hình và chat trong game thật
         if: ${{ !cancelled() }}
         run: npm run test:actionbar-browser --prefix client
         env:

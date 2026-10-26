@@ -1706,6 +1706,13 @@ body.ui-w640 #actbar .tm.ui-cell>span{font-size:10px;line-height:11px}
 body.ui-w640.ui-portrait #actrow{flex-wrap:wrap;flex-direction:row;justify-content:flex-end;max-width:100%}
 
 body:not(.touch) #bottombar #chatbox{flex:1;min-width:0;width:auto;max-width:380px}
+/* C8 ở 960px: giữ đủ sáu tab chat, thu nhóm phụ thay vì cắt tên hồn kỹ. */
+body.ui-w1000:not(.touch) #bottombar #chatbox{flex:0 0 270px;min-width:270px}
+body.ui-w1000:not(.touch) #actrow{gap:6px}
+body.ui-w1000:not(.touch) #actbar :is(#bskills,#itemActions) .sk.ui-cell{width:44px}
+/* Guide tránh đội hình cao hơn và chừa vùng báo trước quanh nhân vật giữa màn hình. */
+body:not(.touch) #hud>.guide{bottom:max(206px,calc(50% + 44px))}
+
 body.touch.ui-h460:not(.ui-portrait) #actbar{flex-direction:row;align-items:flex-end;gap:8px}
 body.touch.ui-h460:not(.ui-portrait) #actbar .tm.ui-cell{width:78px}
 #actbar .tm.ui-cell.down>span{opacity:1;color:#d8cdbb}

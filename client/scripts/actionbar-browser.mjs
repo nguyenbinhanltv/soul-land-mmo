@@ -71,6 +71,19 @@ async function skillNameBounds(page) {
   }));
 }
 
+async function layoutBounds(page) {
+  return page.evaluate(() => {
+    const guide = document.querySelector("#guide"), g = guide.getBoundingClientRect();
+    const guideVisible = !guide.hidden && getComputedStyle(guide).display !== "none";
+    const team = [...document.querySelectorAll("#team button")].map((e) => {
+      const r = e.getBoundingClientRect(), hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+      return { slot: e.dataset.slot, reachable: e.contains(hit), overlappingGuide: guideVisible && r.left < g.right && r.right > g.left && r.top < g.bottom && r.bottom > g.top };
+    });
+    const tabs = [...document.querySelectorAll("#chattabs button")].map((e) => ({ text: e.textContent, scroll: e.scrollWidth, width: e.clientWidth }));
+    return { guideVisible, team, tabs };
+  });
+}
+
 try {
   await mkdir(out, { recursive: true });
   const apiPort = await port(), webPort = await port(), api = `http://127.0.0.1:${apiPort}`, web = `http://127.0.0.1:${webPort}`;
@@ -109,6 +122,12 @@ try {
     await page.waitForFunction(() => window.__c8Scene.owned.team.every((r) => r > 0) && window.__c8Scene.owned.list.every((v) => v.level === 40 && v.rings.length === 4));
     await page.waitForFunction(() => document.querySelector('.sk[data-i="0"]:not(.locked)'));
     await page.waitForTimeout(9500);
+    const initialLayout = await layoutBounds(page);
+    if (!touch && !before) {
+      assert.ok(initialLayout.guideVisible, `Phải kiểm guide đang mở: ${size}`);
+      assert.equal(initialLayout.tabs.length, 6);
+      if (initialLayout.team.some((e) => e.overlappingGuide || !e.reachable) || initialLayout.tabs.some((e) => e.scroll > e.width)) nameFailures.push({ size, initialLayout });
+    }
     await screenshot(page, "san-sang", size);
     if (!touch) {
       const second = page.locator('#team button[data-slot="1"]');
@@ -123,7 +142,9 @@ try {
           return { id: e.id, overlapping: a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top };
         });
       });
-      nameSamples.push({ size, labels, clearance });
+      const layout = await layoutBounds(page);
+      nameSamples.push({ size, labels, clearance, initialLayout, layout });
+      if (!before && (layout.team.some((e) => e.overlappingGuide || !e.reachable) || layout.tabs.some((e) => e.scroll > e.width))) nameFailures.push({ size, layout });
       await screenshot(page, "ten-day-du", size);
       if (!before && clearance.some((e) => e.overlapping)) nameFailures.push({ size, clearance });
       for (const name of ["Lam Ngân Tù Lung", "Chu Võng Thúc Phược"]) {
@@ -281,9 +302,9 @@ try {
       const size = `${w}x${h}`, state = touch ? "san-sang" : "ten-day-du";
       const beforeImage = `before-${size}-${state}.png`;
       const beforeFigure = images.has(beforeImage) ? `<figure><figcaption>Trước sửa tên</figcaption><a href="${beforeImage}"><img src="${beforeImage}" alt="Game trước sửa tên ở ${size}"></a></figure>` : "";
-      return `<section><h2>${size}</h2><div${beforeFigure ? ' class="pair"' : ""}>${beforeFigure}<figure><figcaption>Sau sửa tên</figcaption><a href="after-${size}-${state}.png"><img src="after-${size}-${state}.png" alt="Game sau sửa tên ở ${size}"></a></figure></div><p>${["tooltip", "doi-vo-hon", "thieu-hon-luc", "hoi-chieu"].map((s) => `<a href="after-${size}-${s}.png">${({ tooltip: "Chú thích", "doi-vo-hon": "Đổi võ hồn", "thieu-hon-luc": "Thiếu hồn lực", "hoi-chieu": "Hồi chiêu" })[s]}</a>`).join(" · ")}</p></section>`;
+      return `<section><h2>${size}</h2><div${beforeFigure ? ' class="pair"' : ""}>${beforeFigure}<figure><figcaption>Sau sửa tên</figcaption><a href="after-${size}-${state}.png"><img src="after-${size}-${state}.png" alt="Game sau sửa tên ở ${size}"></a></figure></div><p>${["san-sang", "tooltip", "doi-vo-hon", "thieu-hon-luc", "hoi-chieu"].map((s) => `<a href="after-${size}-${s}.png">${({ "san-sang": "Ban đầu, guide đang mở", tooltip: "Chú thích", "doi-vo-hon": "Đổi võ hồn", "thieu-hon-luc": "Thiếu hồn lực", "hoi-chieu": "Hồi chiêu" })[s]}</a>`).join(" · ")}</p></section>`;
     }).join("");
-    await writeFile(resolve(out, "index.html"), `<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>C8 — Thanh kỹ năng và đội hình</title><style>body{margin:24px;background:#211b29;color:#f4ead5;font:16px/1.5 system-ui}h1{font-size:26px}h2{font-size:20px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}figure{margin:0}img{display:block;width:100%;height:auto;image-rendering:pixelated}a{color:#b9dfff}section{margin:32px 0}@media(max-width:800px){.pair{grid-template-columns:1fr}}</style><h1>C8 — Thanh kỹ năng và ô đội hình</h1><p>Ảnh game thật bằng Chrome headless, tắt âm thanh. Server RAM local riêng; không nối DB prod. Bản trước và sau dùng cùng fixture. Tải toàn bộ artifact, giải nén rồi mở index.html. Bấm ảnh để xem PNG gốc ở độ phân giải thực.</p>${sections}</html>`);
+    await writeFile(resolve(out, "index.html"), `<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>C8 — Thanh kỹ năng và đội hình</title><style>body{margin:24px;background:#211b29;color:#f4ead5;font:16px/1.5 system-ui}h1{font-size:26px}h2{font-size:20px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}figure{margin:0}img{display:block;width:100%;height:auto;image-rendering:pixelated}a{color:#b9dfff}section{margin:32px 0}@media(max-width:800px){.pair{grid-template-columns:1fr}}</style><h1>C8 — Thanh kỹ năng và ô đội hình</h1><p>Ảnh game thật bằng Chrome headless, tắt âm thanh. Server RAM local riêng; không nối DB prod. Hồi quy AFTER không cần baseline của nhánh PR. Nếu có ảnh trước thì dùng cùng fixture để đối chiếu. Tải toàn bộ artifact, giải nén rồi mở index.html. Bấm ảnh để xem PNG gốc ở độ phân giải thực.</p>${sections}</html>`);
   }
   console.log(`Ảnh C8: ${out}`);
 } finally {
