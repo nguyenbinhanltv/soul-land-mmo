@@ -117,9 +117,9 @@ export interface PartyMember { name: string; leader: boolean; me: boolean; sid: 
 export interface ChannelsMsg { cur: number; list: { ch: number; n: number; max: number; full: boolean }[]; }
 /**
  * Tin "chat" (#188): `ch` thiếu = chat bản đồ (cả thông báo "Hệ thống"); "party" / "world" / "tong" (#198): `name` là người gửi; "whisper": `name`
- * là người gửi, `to` là người nhận (người gửi cũng nhận một bản).
+ * là người gửi, `to` là người nhận (người gửi cũng nhận một bản). `sys: true` = tin hệ thống thật do server phát (#827); client chỉ tô / định dạng tin hệ thống theo cờ này, KHÔNG theo tên.
  */
-export interface ChatMsg { name: string; text: string; ch?: "party" | "whisper" | "world" | "tong"; to?: string; }
+export interface ChatMsg { name: string; text: string; ch?: "party" | "whisper" | "world" | "tong"; to?: string; sys?: true; }
 export interface PartyView { id: number; max: number; members: PartyMember[]; invites: { name: string; secs: number }[]; }
 /**
  * Tin riêng "friends" (#195): bạn bè theo thứ tự thêm (`mutual`: hai bên đã thêm nhau; `map` / `ch` chỉ có khi đã thêm nhau và người đó

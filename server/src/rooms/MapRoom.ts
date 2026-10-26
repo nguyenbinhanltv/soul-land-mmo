@@ -780,7 +780,7 @@ export class MapRoom extends Room<MapState> {
   /** Lịch boss trên presence (schedule.ts, mục 6): mọi phòng báo cho người chơi của mình; phòng của đúng bản đồ sinh thú vương. */
   bossSub = (ev: BossEvent) => this.onBossEvent(ev);
   /** Thông báo toàn server (presence "announce", mục 6): hiện như tin hệ thống trong chat. */
-  announceSub = (m: { text: string }) => this.broadcast("chat", { name: "Hệ thống", text: String(m?.text ?? "") });
+  announceSub = (m: { text: string }) => this.broadcast("chat", { sys: true, name: "Hệ thống", text: String(m?.text ?? "") });
   eliteLockSub = (m: { key: string; values: Record<string, number> }) => { if (m?.key && m.values) applyEliteLock(m.key, m.values); };
   /** Đá phiên trùng tài khoản ở mọi phòng (presence, mục 6). */
   /** Tổ đội người chơi (presence PARTY_TOPIC, 7.1): gửi lại khung tổ đội và thông báo cho người của phòng này có trong `to`. */
@@ -1167,7 +1167,7 @@ export class MapRoom extends Room<MapState> {
     this.fogLoad(client.sessionId); // sương mù khám phá (R8): nạp bitset của bản đồ này rồi mở quanh chỗ đứng
     this.chain(d, () => this.claimOffline(client.sessionId)); // ủy thác offline (Auto 3): nhận thưởng thời gian vắng mặt
     this.questEvent(client.sessionId, { k: "map", map: this.state.mapId }); // 6.2: mục tiêu "đặt chân tới bản đồ"
-    this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã tới ${MAPS[this.state.mapId].name}.` }, { except: client });
+    this.broadcast("chat", { sys: true, name: "Hệ thống", text: `${p.name} đã tới ${MAPS[this.state.mapId].name}.` }, { except: client });
     // Tổ đội (7.1): có mặt trong game (tổ đội giữ nguyên khi đi cổng); đồng đội ở mọi bản đồ thấy đổi bản đồ / vào lại.
     const online = party.goOnline({ acc: auth.accountId, name: p.name, sid: client.sessionId, mapId: this.state.mapId, roomId: this.roomId,
       ch: this.state.channel, level: p.level, vh: p.vh, hp: p.hp, maxHp: p.maxHp, dead: p.dead });
@@ -1223,7 +1223,7 @@ export class MapRoom extends Room<MapState> {
         const ago = testOfflineAgo.get(d.accountId) ?? 0; testOfflineAgo.delete(d.accountId);
         await store.startOffline(d.accountId, { mapId: this.state.mapId, zone: zone.name, at: Date.now() - ago * 1000, day: d.autoDay, used: d.autoUsed });
       });
-      if (!d.travelled) this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã rời ${MAPS[this.state.mapId].name}.` });
+      if (!d.travelled) this.broadcast("chat", { sys: true, name: "Hệ thống", text: `${p.name} đã rời ${MAPS[this.state.mapId].name}.` });
       if (!d.travelled && !d.arenaGone) this.forgetBuyback(d.accountId); else buybacks.delete(d.accountId); // rời game: thương nhân quên đồ vừa bán (9.8); sang phòng khác (có thể tiến trình khác): bản ở presence là bản đúng, nạp lại lúc vào
       // Rời không qua đi cổng / đổi kênh: khóa vào lại đúng kênh này CHANNEL_CD giây (trước khi nhả tài khoản cho phiên mới).
       if (this.state.channel && !d.travelled && !testNoLeaveLock.delete(d.accountId)) {
@@ -6074,7 +6074,7 @@ export class MapRoom extends Room<MapState> {
       if (!v) { refund(); return; }
       d.owned.push(v);
       this.log(id, `Mở võ hồn ${name}! Đã vào bộ sưu tập (cấp 1, 1★): xếp vào đội ở bảng đội hình (phím V).`, VOHON[vi].col);
-      this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã mở võ hồn ${name} bằng ${SHARD_UNLOCK} mảnh.` });
+      this.broadcast("chat", { sys: true, name: "Hệ thống", text: `${p.name} đã mở võ hồn ${name} bằng ${SHARD_UNLOCK} mảnh.` });
     }).then(() => {
       d.shardBusy = false;
       if (this.pdata.get(id) !== d) return;
@@ -6519,7 +6519,7 @@ export class MapRoom extends Room<MapState> {
       : ct ? ` Mở Võ Hồn Chân Thân: ${ct.name} (phím R).` : " Võ hồn này chưa có hồn kỹ vòng này (bản sau); vòng này tăng chỉ số.";
     const lv = n >= MAX_RINGS ? ` Đủ ${MAX_RINGS} hồn hoàn, cấp tối đa ${v.level}.` : ` Lên cấp ${v.level}.`;
     this.log(id, `Hấp thụ thành công hồn hoàn ${age} vào ${name} (vòng ${n})!${lv}${sk}`, TIERS[tier].glow);
-    this.broadcast("chat", { name: "Hệ thống", text: `${p.name} đã hấp thụ hồn hoàn thứ ${n} (${age}) cho ${name}.` });
+    this.broadcast("chat", { sys: true, name: "Hệ thống", text: `${p.name} đã hấp thụ hồn hoàn thứ ${n} (${age}) cho ${name}.` });
     if (c) this.sendVohons(c);
     this.resCheck(id); // cộng minh (8.2): tổng hồn hoàn, võ hồn cấp 30+
     this.save(id);
@@ -7128,7 +7128,7 @@ export class MapRoom extends Room<MapState> {
     this.chestEquip(d, 2, mapId, got);
     this.sendBag(id);
     this.log(id, `Mở ${def.name}: ${got.join(", ")}.`, def.col);
-    if (ur) this.broadcast("chat", { name: "Hệ thống", text: `${p.name} mở ${def.name} nhận được ${ur}!` });
+    if (ur) this.broadcast("chat", { sys: true, name: "Hệ thống", text: `${p.name} mở ${def.name} nhận được ${ur}!` });
     this.save(id);
   }
 
@@ -7157,7 +7157,7 @@ export class MapRoom extends Room<MapState> {
     this.chestEquip(d, 3, Object.values(MAPS).find((m) => m.world?.includes(boss.id))?.id ?? "", got);
     this.sendBag(id);
     this.log(id, `Mở ${def.name}: ${got.join(", ")}.`, def.col);
-    if (nu) this.broadcast("chat", { name: "Hệ thống", text: `${p.name} mở ${def.name} nhận được ${nu} ${ud!.name}!` });
+    if (nu) this.broadcast("chat", { sys: true, name: "Hệ thống", text: `${p.name} mở ${def.name} nhận được ${nu} ${ud!.name}!` });
     this.save(id);
   }
 
@@ -7424,7 +7424,7 @@ export class MapRoom extends Room<MapState> {
       const c = this.clients.getById(id); if (!c) continue;
       c.send("rally", r.msg);
       const at = here ? "" : ` (${r.map}${r.msg.ch ? ` · Kênh ${r.msg.ch}` : ""})`;
-      c.send("chat", { ch: "party", name: "Hệ thống", text: `${r.msg.from} đánh dấu Tập trung ở đây${at}.` });
+      c.send("chat", { ch: "party", sys: true, name: "Hệ thống", text: `${r.msg.from} đánh dấu Tập trung ở đây${at}.` });
     }
   }
 

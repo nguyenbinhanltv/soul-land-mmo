@@ -1,0 +1,73 @@
+{
+  "species": "loi_van_hau",
+  "sheet": "A",
+  "issue": 769,
+  "parent_issue": 766,
+  "worker": "soul-land-mmo-93",
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Tool exposes no model, seed or size selector. Dimensions requested in exact prompt; IHDR is actual truth.",
+  "attempts": 1,
+  "selected_attempt": 1,
+  "raw_file": "toA.png",
+  "sha256": "c4501b0bbfed0c05c27217b307ed6e6534a7d302482754c95a4951850ac53260",
+  "bytes": 2179981,
+  "width": 1024,
+  "height": 1536,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "size_requirement_met": true,
+  "requested_grid": [
+    6,
+    12
+  ],
+  "requested_directions": [
+    "s",
+    "se",
+    "e"
+  ],
+  "expected_occupied_cells": 66,
+  "expected_blank_cells": [
+    "H4 C5–6",
+    "H8 C5–6",
+    "H12 C5–6"
+  ],
+  "observed_grid": "Whole-sheet visual inspection suggests 6 columns x 12 rows; no cutter or semantic frame counting performed.",
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "d3b3cc5a120437cbeb001843a50f10d0660922c61c03be38d2a0798394214db8",
+  "script_prompt_file": "loi_van_hau-toA.md",
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/loi_van_hau.png",
+      "sha256": "9e58c9897d7fd17c63e64be774bcaa41869aeb051baf0b07121d944e1e3ad437",
+      "role": "only reference; original static identity/design",
+      "artifact_backup": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-93/loi_van_hau-static.png"
+    }
+  ],
+  "reference_count": 1,
+  "transparent_background": false,
+  "output_path_returned_by_tool": "/Users/thanhhoa/.codex/generated_images/01a175a7-5e77-7bb1-8f15-392edd0ea9a3/exec-3bf7a739-faa4-404d-a55a-a7a878dd8ebd.png",
+  "artifact_copy": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-93/loi_van_hau-A1.png",
+  "copy_matches_original": true,
+  "time_window_utc": {
+    "before_call": "2026-10-26 00:42:34 UTC",
+    "after_call": "2026-10-26 00:43:28 UTC",
+    "meaning": "Clock observations enclosing call; not exact provider generation timestamps."
+  },
+  "postprocessing": "None; byte-identical copies. No crop, resize, patch, pixel edits, cutter or derived layout.",
+  "template_conflict": "Script family quad/four-legged trot conflicts with original long-armed ape posture. Original script and original species static retained; no owner anatomy ruling inferred.",
+  "suspected_issues": [
+    "H4/H8/H12 C3–4: death poses rotate heading sideways, away from block heading.",
+    "H1/H5/H9 C5–6: hurt throws head up/tilts sideways; backward recoil/recovery is not consistently clear.",
+    "H5–H8: SE front three-quarter exists but heading changes during hurt/death; owner direction review required.",
+    "Visual magenta background; exact flat #FF00FF and palette compliance not certified.",
+    "Style and proportions simplified relative to original static; animation loops unverified."
+  ],
+  "qa_status": "RAW technical provenance only; owner art/animation/runtime acceptance pending.",
+  "script_prompt_sha256": "86fd72c131294817a12d082e595e699f084be5af9c7c7950c06aa0bb3c365d06",
+  "generator_script_file": "tools/assets/beast-sheet-prompt.mjs",
+  "generator_script_sha256": "5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba"
+}
