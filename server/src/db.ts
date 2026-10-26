@@ -910,22 +910,22 @@ export class PgStore implements Store {
   /**
    * Chạy `fn` khi giữ khoá tư vấn cấp phiên MIGRATION_LOCK_KEY trên một kết nối riêng: nhiều tiến trình (pod, kênh,
    * rolling deploy) khởi động cùng lúc thì tiến trình sau chờ tiến trình trước chạy xong migration rồi mới chạy
-   * (file SQL vốn chạy lại an toàn). Luôn nhả khoá; kết nối chết thì Postgres tự nhả. Quá MIGRATION_LOCK_WAIT_MS thì lỗi.
+   * (file SQL vốn chạy lại an toàn). Luôn nhả khoá; kết nối chết thì Postgres tự nhả. Quá MIGRATION_LOCK_WAIT_MS thì lỗi (mã 55P03).
    */
   private async withMigrationLock<T>(fn: (c: pg.PoolClient) => Promise<T>): Promise<T> {
     const waitMs = Math.max(1000, envInt("MIGRATION_LOCK_WAIT_MS", 120_000));
     const c = await this.pool.connect();
     let broken = false;
     try {
-      const got = (await c.query("SELECT pg_try_advisory_lock($1) AS ok", [MIGRATION_LOCK_KEY])).rows[0].ok as boolean;
-      if (!got) {
+      const tryLock = async () => (await c.query("SELECT pg_try_advisory_lock($1) AS ok", [MIGRATION_LOCK_KEY])).rows[0].ok as boolean;
+      if (!(await tryLock())) {
+        // Thăm dò bằng truy vấn ngắn thay vì pg_advisory_lock chặn: không dính statement_timeout / query_timeout của pool.
         console.log(`… Tiến trình khác đang chạy migration PostgreSQL, chờ khoá (tối đa ${Math.round(waitMs / 1000)} giây)`);
         const t0 = Date.now();
-        await c.query(`SET lock_timeout = ${Math.floor(waitMs)}`);
-        await c.query("SET statement_timeout = 0"); // PG_STATEMENT_TIMEOUT_MS không được cắt việc chờ khoá sớm hơn MIGRATION_LOCK_WAIT_MS
-        await c.query("SELECT pg_advisory_lock($1)", [MIGRATION_LOCK_KEY]);
-        await c.query("RESET lock_timeout");
-        await c.query("RESET statement_timeout");
+        while (!(await tryLock())) {
+          if (Date.now() - t0 > waitMs) throw Object.assign(new Error(`chờ khoá migration quá ${waitMs} ms`), { code: "55P03" });
+          await new Promise((r) => setTimeout(r, 250));
+        }
         console.log(`… Đã có khoá migration sau ${Date.now() - t0} ms`);
       }
       try { return await fn(c); }
