@@ -53,6 +53,9 @@ export function perfLog(room: MapRoom, t0: number, t1: number, t2: number, c0: n
   Object.assign(f, { n: 0, tick: 0, patch: 0, max: 0, at: Date.now() }); room.perfSlowN = 0;
 }
 
+/** Bộ đệm khóa hồn thú dùng chung (tick chạy đồng bộ, không lồng nhau). */
+const BEAST_IDS: string[] = [];
+
 export function tick(room: MapRoom, dt: number) {
   if (room.state.channel && (room.channelT -= dt * 1000) <= 0) {
     room.channelT = PRESENCE_HEARTBEAT_MS;
@@ -178,7 +181,11 @@ export function tick(room: MapRoom, dt: number) {
   // 11.4: lưới hồn sư theo vị trí mới, đánh dấu vùng hồn thú còn thức quanh mọi hồn sư.
   room.interest.beginTick();
   // hồn thú: trạng thái trước (sát thương theo thời gian có thể hạ hồn thú), rồi di chuyển và đánh
-  for (const bid of [...room.state.beasts.keys()]) room.tickStatus(bid, dt);
+  // Bản chụp khóa (tickStatus có thể xóa hồn thú khi sát thương theo thời gian hạ nó): dùng lại một bộ đệm, không cấp phát mỗi nhịp.
+  const bids = BEAST_IDS; bids.length = 0;
+  for (const bid of room.state.beasts.keys()) bids.push(bid);
+  for (let i = 0; i < bids.length; i++) room.tickStatus(bids[i], dt);
+  bids.length = 0;
   room.state.beasts.forEach((b, id) => {
     const bd = room.bdata.get(id)!, td = TIERS[b.tier];
     // Bọc trứng (#162): không đi, không đánh, không hồi máu; đếm giờ nở ở eggs.tick. Không giữ mục tiêu / hung hăng sau khi bị đánh
@@ -200,7 +207,8 @@ export function tick(room: MapRoom, dt: number) {
     // Thú vương đang gầm chuyển giai đoạn (BĐ5): đứng yên, không đánh, không tung chiêu. Boss thế giới đang lặn (BĐ6e) cũng vậy.
     if (king?.roar || king?.world?.dive) { b.moving = false; bd.kx = 0; bd.ky = 0; return; }
     // Từ 2.5c: hồn thú đang chịu trạng thái `wander` (Mê hoặc) bỏ mục tiêu, đi lung tung.
-    const charm = [...bd.st.keys()].some((s) => STATUS[s].wander);
+    let charm = false;
+    if (bd.st.size) for (const s of bd.st.keys()) if (STATUS[s].wander) { charm = true; break; }
     if (charm) bd.target = null;
     let tgt = bd.target ? room.state.players.get(bd.target) : undefined;
     // Không đuổi theo người đã vào vùng an toàn, đang chuyển bản đồ (mục 5.3, 6) hoặc đang tàng hình (Yêu Hồ, 2.5c).
@@ -224,7 +232,7 @@ export function tick(room: MapRoom, dt: number) {
       };
       // Thú vương xét mọi người trong hang; hồn thú khác chỉ xét hồn sư gần theo lưới không gian (11.4).
       if (king) room.state.players.forEach(look);
-      else for (const pid of room.interest.players.near(b.x, b.y, BEAST_AGGRO_R)) look(room.state.players.get(pid), pid);
+      else room.interest.players.nearEach(b.x, b.y, BEAST_AGGRO_R, (pid) => look(room.state.players.get(pid), pid));
     }
     // Vừa có mục tiêu: chờ TELE_FIRST giây mới tung chiêu báo trước đầu tiên (3.5).
     if (tgt && !b.aggro) bd.skT = Math.max(bd.skT, TELE_FIRST[0] + Math.random() * (TELE_FIRST[1] - TELE_FIRST[0]));
@@ -293,7 +301,7 @@ export function tick(room: MapRoom, dt: number) {
   // 11.4: lưới hồn thú / đồ rơi theo vị trí sau khi di chuyển (đạn, hồn kỹ, lọc đồng bộ dùng tới nhịp sau).
   room.interest.syncEntities();
   // đạn hồn kỹ
-  room.projs = room.projs.filter((pr) => {
+  if (room.projs.length) room.projs = room.projs.filter((pr) => {
     pr.x += pr.vx * dt; pr.y += pr.vy * dt; pr.life -= dt;
     if (pr.life <= 0 || room.map.hits(pr.x, pr.y + 6, 1, 1)) return false;
     for (const [bid, b] of room.beastsNear(pr.x, pr.y, 5))
