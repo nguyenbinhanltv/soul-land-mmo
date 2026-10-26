@@ -21,6 +21,47 @@ test("cỡ hợp lệ theo tỉ lệ: A 1024×1536, B 1254² / 1024², một hư
   assert.equal(classifyShape(1200, 1000), null);
 });
 
+test("toA cỡ Codex thật (quyết định chủ repo 2026-10-26 mục 2): 948×1659, 948×1660, 941×1672 là tờ A; tỉ lệ lạ, tờ nhỏ thì loại", () => {
+  for (const [w, h] of [[948, 1659], [948, 1660], [941, 1672]]) assert.equal(classifyShape(w, h).kind, "A", `${w}×${h}`);
+  assert.equal(classifyShape(1024, 1024).kind, "B", "1:1 vẫn là B");
+  assert.equal(classifyShape(1000, 2000), null, "1:2 không phải A");
+  assert.equal(classifyShape(600, 1050), null, "tờ A quá nhỏ (cạnh ngắn < 800)");
+});
+
+/** Tờ tổng hợp w×h, lưới chuẩn của toA (12 dải × 6 cột; dải thứ 4 của mỗi hướng chỉ 4 hình); figs[dải] = số hình vẽ. */
+function gridSheet(w, h, figs, cols = 6) {
+  const im = new Img(w, h), MG = [255, 0, 255, 255], FG = [40, 40, 40, 255];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) im.set(x, y, MG);
+  figs.forEach((n, r) => {
+    for (let c = 0; c < n; c++) {
+      const x0 = Math.round((c + 0.25) * w / cols), y0 = Math.round((r + 0.15) * h / 12);
+      for (let y = y0; y < y0 + Math.round(h / 12 * 0.7); y++) for (let x = x0; x < x0 + Math.round(w / cols * 0.5); x++) im.set(x, y, FG);
+    }
+  });
+  return im;
+}
+
+test("toA 948×1659 / 941×1672 đúng lưới → không chặn kích thước (chỉ ghi chú hệ số); lưới sai (thiếu / thừa hình, 9 hàng) vẫn chặn", () => {
+  const tmp = mkdtempSync(path.join(os.tmpdir(), "beast-check-toa-"));
+  try {
+    const put = (im) => { writeFileSync(path.join(tmp, "toA.png"), encodePng(im)); return path.join(tmp, "toA.png"); };
+    const good = [6, 6, 6, 4, 6, 6, 6, 4, 6, 6, 6, 4];
+    for (const [w, h] of [[948, 1659], [941, 1672]]) {
+      const r = analyzeSheet(put(gridSheet(w, h, good)));
+      assert.equal(r.kind, "A");
+      assert.deepEqual(codes(r, "block"), [], `${w}×${h}: ${JSON.stringify(r.issues)}`);
+      assert.ok(r.issues.some((i) => i.sev === "note" && i.code === "kich-thuoc" && /2026-10-26/.test(i.msg)));
+      assert.ok(Math.abs(r.canonFactor - 1) < 0.01, `hệ số theo diện tích ≈ 1, được ${r.canonFactor}`);
+    }
+    const missing = analyzeSheet(put(gridSheet(948, 1659, [6, 6, 5, 4, 6, 6, 5, 4, 6, 6, 5, 4]))); // kiểu #981: dải đánh thiếu hình
+    assert.ok(codes(missing, "block").some((c) => c === "so-hinh" || c === "hinh-dinh"), JSON.stringify(missing.issues));
+    const extra = analyzeSheet(put(gridSheet(948, 1659, [7, 7, 7, 4, 7, 7, 7, 4, 7, 7, 7, 4], 7))); // kiểu #980: thừa hình (7 cột)
+    assert.ok(codes(extra, "block").length > 0);
+    const nine = analyzeSheet(put(gridSheet(948, 1659, [6, 6, 6, 4, 6, 6, 6, 4, 6]))); // 9 hàng, cần 12
+    assert.ok(codes(nine, "block").includes("luoi"));
+  } finally { rmSync(tmp, { recursive: true, force: true }); }
+});
+
 test("dò lưới theo khoảng trống: đúng số dải hàng và số hình mỗi dải trên tờ thật (Quỷ Hổ A, B)", () => {
   for (const [l, rows] of [["A", 12], ["B", 8]]) {
     const g = detectGrid(readPng(sheet("quy_ho", l)));
@@ -68,7 +109,7 @@ test("tờ tổng hợp: tỉ lệ sai, nền lệch màu khoá, không dò đư
     assert.deepEqual(codes(odd, "block"), ["kich-thuoc"]);
     const green = analyzeSheet(put("toB.png", solid(1024, 1024, [0, 200, 0, 255])));
     assert.ok(codes(green, "block").includes("nen") && codes(green, "block").includes("luoi"));
-    const small = analyzeSheet(put("toC.png", solid(1000, 1500, [255, 0, 255, 255])));
+    const small = analyzeSheet(put("toC.png", solid(800, 1200, [255, 0, 255, 255]))); // A đúng 2:3 nhưng diện tích lệch xa cỡ chuẩn
     assert.ok(codes(small, "light").includes("kich-thuoc"));
     assert.equal(small.level, "chặn"); // nền trống: không dò được lưới
     assert.equal(draftErrorLine({ sheet: "toX", issues: [{ sev: "note", code: "nen", where: "", msg: "" }] }), null, "mục lưu ý không sinh dòng LỖI");

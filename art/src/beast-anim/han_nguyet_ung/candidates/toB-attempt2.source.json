@@ -1,0 +1,50 @@
+{
+  "species": "han_nguyet_ung",
+  "worker": "soul-land-mmo-136",
+  "issue": 772,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Codex image_gen không công bố model/seed; không có selector kích thước.",
+  "transparent_background": false,
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "sheet": "B",
+  "attempt": 2,
+  "raw_file": "toB-attempt2.png",
+  "selected": true,
+  "selected_attempt": 2,
+  "attempts": 2,
+  "counters": {
+    "A": 1,
+    "B": 2,
+    "species_total": 3
+  },
+  "prompt_file": "candidates/toB-attempt2.prompt.txt",
+  "prompt_sha256": "a2ef380dbb985aad9f0dac5171dbe7fd395720e572f7e47d7d71e27309bd977a",
+  "sha256": "3ac35204366ceba8089440c8f96b59ab65981c446db8c4288d7a0e416d976ac0",
+  "bytes": 1915826,
+  "width": 1254,
+  "height": 1254,
+  "references": [
+    {
+      "path": "/private/tmp/soul-land-mmo-772-han-nguyet-ung/shared/assets/sprites/beast/han_nguyet_ung.png",
+      "role": "static identity reference, three views",
+      "sha256": "f7de63bc996157ebaf1bccbe1d45f0d655a9ef2495deff90d01fc87688e44e73",
+      "original_input_path": "/private/tmp/soul-land-mmo-772-han-nguyet-ung/shared/assets/sprites/beast/han_nguyet_ung.png"
+    },
+    {
+      "path": "/private/tmp/soul-land-mmo-772-han-nguyet-ung/art/src/beast-anim/han_nguyet_ung/toA.png",
+      "role": "technical style/design reference only; A1 automated pass, not owner-approved",
+      "sha256": "2f320899f8fe85888442f4963f363dcd848e305923eab41ba850b8d9dae6f733",
+      "original_input_path": "/private/tmp/soul-land-mmo-772-han-nguyet-ung/art/src/beast-anim/han_nguyet_ung/toA.png"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-84f8ed09-8cf2-4c2d-a518-e6244a51bef2.png",
+  "generated_at": "2026-10-26T12:35:40.143Z",
+  "known_issues": [
+    "B2: cỡ thân N lệch 11% (mục nhẹ do checker).",
+    "NE: mặt/mỏ lộ tại NE H1–H2, H3 A2–A3, H4 D0–D3.",
+    "N: mặt/mỏ lộ tại N H6 W2–W3, H7 A2–A3, H8 D3."
+  ],
+  "qa_status": "Automated light finding and manual directional errors recorded; not owner-approved or imported."
+}
