@@ -4,7 +4,7 @@ import type Phaser from "phaser";
 import type { He } from "../../shared/data.ts";
 import { COMBAT_MATERIALS, type Element, type Material } from "./audio/soundMap.ts";
 import { ELEMENT_COL } from "./skillFx.ts";
-import { fxPrefs, HIT_SPARK, type ParticleLayer, fxLevel } from "./combatFx.ts";
+import { HIT_SPARK, type ParticleLayer, fxLevel } from "./combatFx.ts";
 import { makeCodeSheet, SheetFx } from "./fxSheet.ts";
 import { playPriv } from "./privateAssets.ts";
 import { SPR } from "./iso.ts";

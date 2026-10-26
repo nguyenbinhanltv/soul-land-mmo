@@ -18,3 +18,11 @@ QA64 chỉ đọc trên lưới6×8/1254:44 hình semantic bằng mắt,46ô có
 User chỉ thị forward-only: ảnh FAIL vẫn nộp cho owner kiểm sau15đợt. Không retry FAIL, không tựwaive1024/heading/grid, không autoimport/gameplay/static/cutter. Đủ raw không có nghĩa artaccepted; whole768 chờ owner.
 
 Metadata cuối94 đã đối chiếu refs/hash/header/bytes/UTC; QA94 ghi B NE idle cao124px so A SE104–105px, B N khoảng130px so A S108px (khác hướng nên so gần đúng, không acceptance). Cùng hồ sơ lưu hai cách đo occupancy riêng, không trộn ngưỡng.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/liet_trao_hung/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Liệt Trảo Hùng (H4 #768): raw `art/src/beast-anim/liet_trao_hung/toA.png` (1024×1536, fresh92 A1 một call) và `toB.png` (1254×1254 thật, FAIL yêu cầu1024×1024, fresh94 B1 một call), tthoadev sinh ngày2026-10-26 bằng builtin `image_gen.imagegen`. A chỉ static identity; B ordered static identity + A92A1 style/body-size candidate còn FAIL. Model/seed unknown, không size selector. Giữ nguyên byte, không hậu kỳ/cắt/resize. Exact prompt, SHA/header/bytes/refs/counters/knownerrors: [NGUON.md](src/beast-anim/liet_trao_hung/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json`. Tổng A1+B1=2calls, không retry; source static upright/side crouched mâu thuẫn basequad được ghi rõ, không tự chốt anatomy. User cho phép publish FAIL để owner kiểm; chưa size/art/runtime acceptance, không autoimport. Part of #768/#766. | - | Chuyển một lần từ art/CREDITS.md (#973) |

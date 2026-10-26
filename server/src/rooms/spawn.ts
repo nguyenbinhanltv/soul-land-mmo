@@ -3,7 +3,7 @@
 // Hàm nhận phòng (`room: MapRoom`) như loot.ts / tick.ts; nguyên văn từ MapRoom, không đổi số / thứ tự RNG / thứ tự xử lý. MapRoom chỉ chuyển tiếp 13 hàm
 // (`setup`, `tick`, `boss.ts`, `gm.ts`, `combat.ts` gọi `room.spawnX` / `room.addBeast` / `room.eliteX` như cũ).
 // Còn ở MapRoom: `killBeast`, `dispelBeast`, `beastDmg` / `syncBeastBuff`, `applyStatus` / `applyPStatus`, `beginCast` / `tickCast`, Chân Thân, tiên cơ.
-import { tierOfYears, BEASTS, MAPS, RED_BEAST_CHANCE, kingYears, MAX_YEARS, tierBand, rollYears, beastStats, beastSkillOf, BOSSES, bossIndex, ELITE, ELITE_RAGE, bossHpMult, beastName, BEAST_BUFFS, KING, WORLD, worldBossOn, TIERS, type FormDef } from "../../../shared/data.ts";
+import { tierOfYears, BEASTS, MAPS, RED_BEAST_CHANCE, kingYears, MAX_YEARS, tierBand, rollYears, beastStats, beastSkillOf, BOSSES, bossIndex, ELITE, ELITE_RAGE, bossHpMult, beastName, BEAST_BUFFS, KING, WORLD, worldBossOn, TIERS, SPAWN_PLAYER_GAP, type FormDef } from "../../../shared/data.ts";
 import { bossOffset } from "../schedule.ts";
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { BOSS_BOX } from "./worldBoss.ts";
@@ -14,7 +14,7 @@ import { uid, bossK, newWorld, takeKingSeat, type MapRoom, type BData, type Elit
  * theo `weights` rồi tung tuổi trong bậc), loài theo trọng số `beasts` của vùng. Mỗi phòng tối đa 1 hồn thú thường
  * MAX_YEARS năm cùng lúc (mục 5.3, `redFree`): đã có thì tung dưới mức đó. Từ BĐ6d vùng có mức trên MAX_YEARS (Hải Thần Uyên) ra
  * đúng MAX_YEARS với tỉ lệ RED_BEAST_CHANCE (hook test `red` cố định được), còn lại dưới MAX_YEARS. Không sinh trong vùng an toàn,
- * cách người chơi dưới 140 pixel, hay trong SPAWN_CLEAR quanh trại cổng, cổng và điểm xuất hiện (map.nearGate: hồn thú lang thang
+ * cách người chơi dưới SPAWN_PLAYER_GAP pixel, hay trong SPAWN_CLEAR quanh trại cổng, cổng và điểm xuất hiện (map.nearGate: hồn thú lang thang
  * không tới đánh người vừa tới nơi, vừa hồi sinh, đang niệm cổng).
  */
 export function spawnBeast(room: MapRoom, zi: number) {
@@ -36,7 +36,7 @@ export function spawnBeast(room: MapRoom, zi: number) {
   for (let k = 0; k < 40; k++) {
     const x = z.x0 + 8 + Math.random() * (z.x1 - z.x0 - 16), y = z.y0 + 24 + Math.random() * (z.y1 - z.y0 - 48);
     if (room.map.hits(x, y, 6, 4) || room.map.inSafe(x, y) || room.map.nearGate(x, y)) continue;
-    if ([...room.state.players.values()].some((p) => Math.hypot(p.x - x, p.y - y) < 140)) continue;
+    if ([...room.state.players.values()].some((p) => Math.hypot(p.x - x, p.y - y) < SPAWN_PLAYER_GAP)) continue;
     room.addBeast(zi, years, species, x, y);
     return;
   }
@@ -83,7 +83,7 @@ export function spawnElite(room: MapRoom, i: number, announce: boolean) {
   for (let k = 0; k < 40; k++) {
     const x = spot.x + 6 + Math.random() * Math.max(0, spot.w - 12), y = spot.y + 6 + Math.random() * Math.max(0, spot.h - 12);
     if (room.map.hits(x, y, 6, 4) || room.map.inSafe(x, y) || room.map.nearGate(x, y)) continue;
-    if ([...room.state.players.values()].some((p) => Math.hypot(p.x - x, p.y - y) < 140)) continue;
+    if ([...room.state.players.values()].some((p) => Math.hypot(p.x - x, p.y - y) < SPAWN_PLAYER_GAP)) continue;
     slot.bid = room.addBeast(spot.zone, years, spot.boss, x, y, 1);
     if (announce) room.broadcast("elite", { k: "spawn", name: beastName(1, spot.boss), zone: z.name, x, y, col: def.aura });
     return;

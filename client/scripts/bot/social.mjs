@@ -1,5 +1,5 @@
 // Nhóm bot "social" (#703 bước 6, tách nguyên văn từ bot-test.mjs): Chat, bạn bè và chặn.
-import { post, sleep, waitFor, PASS, RUN, ok, bot, enter, test } from "./lib.mjs";
+import { post, sleep, waitFor, PASS, RUN, ok, bot, enter, test, needHookSkip } from "./lib.mjs";
 import { TONG_MON, AWAKEN_CHOICES, WORLD_CHAT, FRIEND_MAX, BLOCK_MAX } from "../../../shared/data.ts";
 
 /**
@@ -121,7 +121,7 @@ export async function friendTest(){
   const D=await bot("Hữu D","u_minh_linh_mieu",{sex:0,hair:0,hairCol:3,outfitCol:4}), C=await bot("Hữu C","nhu_cot_tho",{sex:1,hair:1,hairCol:2,outfitCol:3});
   const all=[A,B,C,D];
   try {
-    if(!(await T(A,"ping"))?.enabled){ console.log("  ⚠ bỏ qua bạn bè (cần hook test): bật server bằng GAME_TEST=1"); return; }
+    if(!(await T(A,"ping"))?.enabled){ needHookSkip("bỏ qua bạn bè (cần hook test): bật server bằng GAME_TEST=1"); return; }
     // C sang Nặc Đinh Thành (hook warp, như đi cổng): khác bản đồ với A, B, D.
     C.travel=null; await T(C,"warp",{mapId:"nac_dinh_thanh",x:0,y:0}); await waitFor(()=>C.travel,3000);
     if(C.travel){ const t=C.travel; await C.room.leave(); await sleep(200); C.mapId=t.mapId; await enter(C,t.roomId??undefined); }

@@ -1,6 +1,6 @@
 // Khối botC của INLINE: bot C đi cổng BĐ2, NPC 6.1, BĐ6a–BĐ6e, BĐ3, tổ đội 7.1 (nhóm 3) (#703 bước 5, tách nguyên văn từ bot-test.mjs).
 // `C` là bot của luồng này: botCFlow gán, các hàm bên dưới (npcTown, thienDauTest, …) dùng chung.
-import { inZone, test } from "./lib.mjs";
+import { inZone, test, needHookSkip } from "./lib.mjs";
 import { bossClock } from "./lib.mjs";
 import { waitFor, sleep, goTo, ok, bagKey, post, enter, bot, WS, failCount, lastLog, npcSpot, talk, trade, objOf, qtyOf, bonesOf, sj, useItem, checkGateClear, checkBeastYears, mapUrl, PASS, same, AT, looseOf, zonesByName, RUN } from "./lib.mjs";
 import * as SD from "../../../shared/data.ts";
@@ -69,7 +69,7 @@ C.room.send("travel",{portal:"Đi Nặc Đinh Thành"}); ok(await lastLog(C,/đ�
       ok(await talk(C,id)===id,`nói chuyện với ${npcDef(id).name}, ${npcDef(id).title}: server cho mở hộp thoại (${npcDef(id).lines.length} câu)`);
     }
     await test(C,"goto",{x:home[0],y:home[1]});
-  } else console.log("  ⚠ bỏ qua nói chuyện với NPC trong làng (cần hook goto): bật server bằng GAME_TEST=1");
+  } else needHookSkip("bỏ qua nói chuyện với NPC trong làng (cần hook goto): bật server bằng GAME_TEST=1");
 }
 { const g=objOf("thanh_hon_thon","portal","Đi Nặc Đinh Thành"); await walkToX(g.x+g.width/2); }
 ok(await walk(0,1,()=>C.portal?.name),`tới cổng: ${JSON.stringify(C.portal)}`);
@@ -175,7 +175,7 @@ if((await test(C,"ping"))?.enabled){
   await travelBy("Về Tinh Đấu Ngoại vi","tinh_dau_ngoai_vi");
   ok(Math.hypot(me().x-nvE.x,me().y-nvE.y)<1&&!C.portal?.name,`về Ngoại vi: xuất hiện ở trạm gác phía đông ${me().x},${me().y}, ngoài cổng`);
   await test(C,"goto",{x:nvW.x,y:nvW.y});
-} else console.log("  ⚠ bỏ qua Ngoại vi -> Nội địa (cần hook goto): bật server bằng GAME_TEST=1");
+} else needHookSkip("bỏ qua Ngoại vi -> Nội địa (cần hook goto): bật server bằng GAME_TEST=1");
 // Thoát và vào lại: đúng bản đồ, đúng vị trí đã lưu khi rời phòng.
 await walk(1,0,()=>me().x>nvW.x+40,3000); const pos=[me().x,me().y];
 await C.room.leave(); await sleep(400);
@@ -295,7 +295,7 @@ async function npcTown(){
   ok(/đứng cạnh thương nhân/.test(await trade(C,"buy",{code:"hoi_huyet_dan",qty:1}))&&bagKey(C)===bk0,"đứng xa thương nhân: mua bị từ chối, túi và Hồn Tệ không đổi");
   ok(/đứng cạnh thương nhân/.test(await trade(C,"sell",{id:looseOf(C)[0]?.id}))&&bagKey(C)===bk0,"đứng xa thương nhân: bán bị từ chối");
   ok(await talk(C,"to_van_dao")===null&&/Không có NPC này/.test(C.logs.at(-1)),"Tố Vân Đào không ở Nặc Đinh Thành: bị từ chối");
-  if(!(await test(C,"ping"))?.enabled){ console.log("  ⚠ bỏ qua mua / bán / lò rèn (cần hook goto, give, coin): bật server bằng GAME_TEST=1"); return; }
+  if(!(await test(C,"ping"))?.enabled){ needHookSkip("bỏ qua mua / bán / lò rèn (cần hook goto, give, coin): bật server bằng GAME_TEST=1"); return; }
   await test(C,"goto",{x:tn.x,y:tn.y+16});
   ok(await talk(C,"thuong_nhan")==="thuong_nhan","đứng cạnh thương nhân: mở hộp thoại cửa hàng");
   // Dọn túi về trạng thái biết trước (hồn cốt đang gắn không nằm trong ô túi nên vẫn giữ).
@@ -423,7 +423,7 @@ async function thienDauTest(){
   ok(same([...portals].sort(),["Về Nặc Đinh Thành","Đi Lạc Nhật Sâm Lâm","Đi Cực Bắc Chi Địa","Thuyền đi Hải Thần Đảo"].sort()),`Thiên Đấu Thành có cổng về Nặc Đinh Thành, cổng tây đi Lạc Nhật, cổng bắc đi Cực Bắc và bến thuyền đi Hải Thần Đảo: ${portals.join(", ")}`);
   ok(["cong_lac_nhat","cong_cuc_bac","ben_thuyen_hai_than"].every(id=>!npcDef(id)&&!npcSpot(AT,id)),"không còn biển \"sắp mở\" nào (BĐ6b–d)");
   const signs=[];
-  if(!(await test(C,"ping"))?.enabled){ console.log("  ⚠ bỏ qua đi Thiên Đấu Thành (cần hook goto, coin): bật server bằng GAME_TEST=1"); return; }
+  if(!(await test(C,"ping"))?.enabled){ needHookSkip("bỏ qua đi Thiên Đấu Thành (cần hook goto, coin): bật server bằng GAME_TEST=1"); return; }
   C.room.send("travel",{portal:"Đi Thiên Đấu Thành"}); ok(await lastLog(C,/đứng trong cổng/),"Nặc Đinh Thành: chưa đứng trong cổng bắc thì không đi được");
   // Đi bộ thật từ điểm xuất hiện của cổng bắc lên cổng.
   const back=raw("nac_dinh_thanh").find(o=>o.type==="arrive"&&o.name==="tu_thien_dau_thanh");
@@ -519,7 +519,7 @@ async function lacNhatTest(){
   const pool=kingShardPool(LN), rc=rollCore(20000,M.cores,()=>0);
   ok(M.shards.every(v=>pool.some(x=>x.vohon===v&&x.w===3))&&!pool.some(x=>x.w===1&&M.shards.includes(x.vohon))&&M.cores.includes(rc.data.set),
     `rương thú vương Lạc Nhật: mảnh của bản đồ trọng số 3; hồn hạch bộ đặc trưng (${rc.data.set})`);
-  if(!(await test(C,"ping"))?.enabled){ console.log("  ⚠ bỏ qua đi Lạc Nhật (cần hook warp, herb, king): bật server bằng GAME_TEST=1"); return; }
+  if(!(await test(C,"ping"))?.enabled){ needHookSkip("bỏ qua đi Lạc Nhật (cần hook warp, herb, king): bật server bằng GAME_TEST=1"); return; }
 
   const L=await bot("Lạc Nhật","bich_lan_xa_hoang",{sex:1,hair:2,hairCol:3,outfitCol:4}), C0=C;
   C=L; // dùng chung các hàm đi bộ / đi cổng của bot C (me, walk, travelBy)
@@ -697,7 +697,7 @@ async function haiThanTest(){
   const pool=kingShardPool(HT), rc=rollCore(90000,M.cores,()=>0);
   ok(M.shards.every(v=>pool.some(x=>x.vohon===v&&x.w===3))&&!kingShardPool("tinh_dau_ngoai_vi").some(x=>M.shards.includes(x.vohon))&&M.cores.includes(rc.data.set),
     `rương thú vương Hải Thần Đảo: mảnh của bản đồ trọng số 3 (${M.shards.length} võ hồn, có Phá Hồn Thương), các võ hồn này thôi nằm trong nhóm "bản đồ chưa mở"; hồn hạch bộ đặc trưng (${rc.data.set})`);
-  if(!(await test(C,"ping"))?.enabled){ console.log("  ⚠ bỏ qua đi Hải Thần Đảo (cần hook warp, red, king): bật server bằng GAME_TEST=1"); return; }
+  if(!(await test(C,"ping"))?.enabled){ needHookSkip("bỏ qua đi Hải Thần Đảo (cần hook warp, red, king): bật server bằng GAME_TEST=1"); return; }
 
   const H=await bot("Hải Thần","quy_mi",{sex:0,hair:1,hairCol:2,outfitCol:3}), C0=C;
   C=H; // dùng chung các hàm đi bộ / đi cổng của bot C (me, walk, travelBy)
@@ -816,7 +816,7 @@ async function cucBacTest(){
   const pool=kingShardPool(CBM), poolNV=kingShardPool("tinh_dau_ngoai_vi").map(x=>x.vohon);
   ok(M.shards.every(v=>pool.find(x=>x.vohon===v)?.w===3&&!poolNV.includes(v)),`rương thú vương: mảnh Cực Bắc trọng số 3 ở Cực Bắc, không còn trong nhóm "bản đồ chưa mở" (${poolNV.join(", ")})`);
   ok(rollCoreStats(5,M.cores,()=>0).set==="lam_ngan"&&rollCoreStats(5,M.cores,()=>0.5).set==="that_sat"&&CORE_MAP_SET>=0.5,`hồn hạch rơi ở Cực Bắc: ${CORE_MAP_SET*100}% thuộc bộ ${M.cores.map(s=>CORE_SETS[coreSetIndex(s)].name).join(" / ")}`);
-  if(!(await test(C,"ping"))?.enabled){ console.log("  ⚠ bỏ qua đi Cực Bắc (cần hook goto, warp, spawn, tele, elite, king): bật server bằng GAME_TEST=1"); return; }
+  if(!(await test(C,"ping"))?.enabled){ needHookSkip("bỏ qua đi Cực Bắc (cần hook goto, warp, spawn, tele, elite, king): bật server bằng GAME_TEST=1"); return; }
 
   // Đi bộ lên cổng bắc Thiên Đấu Thành.
   const tdObjs=JSON.parse(readFileSync(mapUrl(AT),"utf8")).layers.flatMap(l=>l.objects??[]);
@@ -959,7 +959,7 @@ async function loiTinhDauTest(){
   ok(lr.length===1&&M.world.includes(prop(lr[0],"boss"))&&zs.length===1&&prop(zs[0],"count")===0&&back.length===1&&prop(back[0],"to")===ND&&prop(back[0],"arrive")==="tu_loi_tinh_dau"
     &&gate&&!prop(gate,"level")&&prop(gate,"arrive")==="tu_tinh_dau_noi_dia"&&arrND&&arrLT&&inZone(hac,gate.x+gate.width/2,gate.y+gate.height/2),
     `Tiled: sàn đấu "${lr[0]?.name}" ${lr[0]?.width/16}×${lr[0]?.height/16} ô, không hồn thú thường, cổng về Nội địa; Nội địa có cổng "${gate?.name}" ở ${hac.name} (cấp đề xuất lấy MAPS: 90–100)`);
-  if(!(await test(C,"ping"))?.enabled){ console.log("  ⚠ bỏ qua boss thế giới (cần hook warp, king, wmech, kdmg): bật server bằng GAME_TEST=1"); return; }
+  if(!(await test(C,"ping"))?.enabled){ needHookSkip("bỏ qua boss thế giới (cần hook warp, king, wmech, kdmg): bật server bằng GAME_TEST=1"); return; }
   { const {now,mode}=await bossClock(C), nx=worldNext(now); if(worldActive(now)!==null||nx-now<(WORLD.warnSecs+300)*1000)
     console.log(`  ⚠ Đồng hồ lịch boss (${mode}) gần / trong khung boss thế giới (${WORLD_TIME} giờ Việt Nam): kiểm tra BĐ6e có thể trượt vì lịch, chạy lại sau ${WORLD.lifeSecs/60} phút.`); }
 

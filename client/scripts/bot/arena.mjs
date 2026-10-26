@@ -1,7 +1,7 @@
 // Nhóm bot arena (#703 bước 4): Đại Đấu Hồn Trường 7.2, 9.7 và soát chống gian lận đấu trường #741. Tách nguyên văn từ bot-test.mjs.
 import { Client } from "colyseus.js";
 import { arenaAuditTest } from "../arena-audit-test.mjs";
-import { WS, post, sleep, waitFor, ok, bot, enter, qtyOf, bagKey, AT, objOf, npcSpot, sendTeam, same, test } from "./lib.mjs";
+import { WS, post, sleep, waitFor, ok, bot, enter, qtyOf, bagKey, AT, objOf, npcSpot, sendTeam, same, test, needHookSkip } from "./lib.mjs";
 import { TEAM_SIZE, VOHON, HE, vohonIndex, calcStats, tierOfYears, itemDef, formatHonTe, skillsOf, buffPower, STATUS, statusBit, buffBit, TEAM_COMBAT_SECS, MAPS, MAX_RINGS, shardCode, HE_IDS, CORE_SET_FX, npcDef, CHAN_THAN_RING, ringSkill, chanThanOf, PARTY_BUFF_R, PARTY_BUFF_MULT, RES_VOHON_LEVEL, ARENA, ARENA_MAP, ARENA_SHARDS, eloAfter, arenaTeamElo, arenaCrossPairs, arenaWindow, arenaPairs, arenaRanked, ARENA_HE_DMG, CORE_FX_RULE } from "../../../shared/data.ts";
 
 /** #741 soát chống gian lận đấu trường: bài ở module tách, nhận các hàm dùng chung. */
@@ -47,7 +47,7 @@ export async function arenaTest(){
   const E=await bot("Đấu sĩ","bich_lan_xa_hoang",{sex:1,hair:1,hairCol:2,outfitCol:0});
   const F=await bot("Võ sĩ","u_minh_linh_mieu",{sex:0,hair:2,hairCol:4,outfitCol:5});
   const G=await bot("Kiếm khách","hoa_anh",{sex:0,hair:0,hairCol:1,outfitCol:2});
-  if(!(await test(E,"ping"))?.enabled){ console.log("  ⚠ bỏ qua trận đấu (cần hook warp, aelo, down, afast): bật server bằng GAME_TEST=1"); for(const b of [E,F,G]) await b.room.leave(); return; }
+  if(!(await test(E,"ping"))?.enabled){ needHookSkip("bỏ qua trận đấu (cần hook warp, aelo, down, afast): bật server bằng GAME_TEST=1"); for(const b of [E,F,G]) await b.room.leave(); return; }
   const ns=npcSpot(AT,"dau_hon_truong"), meOf=b=>b.room.state.players?.get(b.room.sessionId);
   const at=(b,dx=0)=>test(b,"goto",{x:ns.x+dx,y:ns.y+16});
   /** Hook warp sang Thiên Đấu Thành cạnh NPC (transaction đi cổng), rồi vào phòng mới như đi cổng thật. */
@@ -188,6 +188,10 @@ export async function arenaTest(){
   let l=E.logs.length; E.room.send("team",{slots:[0,0,0,0]}); ok(await waitFor(()=>E.logs.length>l)&&/không làm được/.test(E.logs.at(-1)),`trong sân: xếp đội bị chặn (${E.logs.at(-1)})`);
   l=E.logs.length; E.room.send("use",{id:E.bag.items[0]?.id}); ok(await waitFor(()=>E.logs.length>l)&&/không làm được/.test(E.logs.at(-1)),"trong sân: dùng đan bị chặn");
   l=E.logs.length; E.room.send("skill",{i:0}); ok(await waitFor(()=>E.logs.length>l)&&/đếm ngược/.test(E.logs.at(-1)),"đang đếm ngược: chưa dùng hồn kỹ");
+  // #993: đánh thường lúc đếm ngược có báo lý do; giữ phím / bấm dồn thì chỉ báo 1 lần mỗi giây.
+  l=E.logs.length; E.room.send("attack"); E.room.send("attack"); E.room.send("attack"); await sleep(400);
+  ok(E.logs.slice(l).filter(x=>/đếm ngược/.test(x)).length===1,`đang đếm ngược: đánh thường bị báo lý do, bấm dồn chỉ 1 dòng (${JSON.stringify(E.logs.slice(l))})`);
+  l=E.logs.length; E.room.send("fusion",{op:"start"}); ok(await waitFor(()=>E.logs.length>l)&&/không làm được/.test(E.logs.at(-1)),"trong sân: G (fusion) nhận câu từ chối của server");
   // Chân Thân lưu phái Thiêu đốt (8.1b) khi giao đấu: Hỏa Ảnh Chân Thân nổ quanh thân trúng E (Thiêu đốt, Choáng, Dễ thương).
   await test(E,"afast",{s:0}); await waitFor(()=>E.room.state.phase==="fight",2000);
   const eP=()=>G.room.state.players.get(E.room.sessionId); await test(G,"goto",{x:eP().x+30,y:eP().y}); const hpE=eP().hp;

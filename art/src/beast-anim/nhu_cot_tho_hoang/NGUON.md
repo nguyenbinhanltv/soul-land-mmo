@@ -23,3 +23,11 @@ Quan sát toàn tờ cho thấy lưới A khoảng6×12, B khoảng6×8; không 
 Base ghi ô rộng171 trong canvas1024 (6×171=1026); giữ base nguyên byte và chỉ clarification chia đều toàn ảnh. Static chỉ front/side/back, chưa có SE; template thân thấp/bốn chân khác một số dáng thỏ ngồi cao trong A. Prompt N hurt nhắm mắt bị ràng buộc bởi yêu cầu không lộ mặt/mắt ở phần nối. Ghi mâu thuẫn thực tế, không thiết kế lại hoặc suy owner đã chốt anatomy/pose.
 
 Nguồn/giấy phép theo Q44 và `docs/art/nguon-giay-phep.md`: ảnh sinh bằng công cụ ChatGPT/Codex, không tự gán CC0 hoặc giấy phép CC cho output AI. Reference là ảnh dự án hiện có, giữ nguồn gốc tại CREDITS. RAW technical submission kể cả FAIL, không phải art/runtime acceptance; không sửa static/shared/manifest/client/server/cân bằng hoặc tự nhập game.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/nhu_cot_tho_hoang/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Nhu Cốt Thỏ hoang (H4 #769): RAW `art/src/beast-anim/nhu_cot_tho_hoang/toA.png` (1024×1536 IHDR, A1/1, session96) và `toB.png` (1254×1254 IHDR, sai yêu cầu1024×1024, B1/1, session97), tthoadev sinh ngày2026-10-26 bằng builtin `image_gen__imagegen`. A chỉ ref static đúng loài; B ordered static identity/back geometry rồi A96 style/cỡ thân known FAIL. Model ảnh/seed unknown; cỡ chỉ yêu cầu qua prompt. Nguyên byte, không hậu kỳ/cắt/resize. [Nguồn/lỗi](src/beast-anim/nhu_cot_tho_hoang/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json`. Q44/điều khoản công cụ, không tự gán CC0. Cặp RAW còn lỗi nền/hướng/pose/hurt và B sai cỡ; chưa art/runtime acceptance. Phần này 2 tờ, Part of #769 và #766. | - | Chuyển một lần từ art/CREDITS.md (#973) |

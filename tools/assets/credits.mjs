@@ -1,15 +1,19 @@
 // Sinh dữ liệu màn "Ghi công" (#629) từ art/CREDITS.md (+ tools/assets/private-packs.json nếu có) ra shared/assets/credits/credits.json.
 //   node tools/assets/credits.mjs           -> ghi shared/assets/credits/credits.json (commit kèm file; npm run check chạy --check nên CREDITS.md đổi mà quên sinh lại thì lỗi)
 //   node tools/assets/credits.mjs --check   -> không ghi; lỗi nếu CREDITS.md có mục lạ / dòng thiếu tác giả hoặc giấy phép / file credits.json cũ
+// Ghi công hồn thú hoạt ảnh (H2 / H4) KHÔNG nối vào CREDITS.md (PR song song xung đột, #973): mỗi loài một bảng `## Ghi công` trong
+// art/src/beast-anim/<loài>/NGUON.md (cột như mục AI: File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú), được gom vào nhóm "Hình do nhóm làm"
+// (công cụ ChatGPT / Codex); loài có tờ (toA..toE / turnaround .png) mà NGUON.md thiếu bảng thì --check lỗi.
 // Không sửa tay credits.json. Mỗi dòng bảng trong CREDITS.md phải rơi vào đúng một nhóm; mục mới (## …) chưa được khai ở SECTIONS thì check lỗi,
 // để asset mới không lọt khỏi màn Ghi công. Tên gốc trong gói kho riêng (private-rename.json) KHÔNG vào đây.
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 const root = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const CREDITS_MD = path.join(root, "art/CREDITS.md");
 const PACKS_JSON = path.join(root, "tools/assets/private-packs.json");
+const ANIM_DIR = path.join(root, "art/src/beast-anim");
 export const OUT = path.join(root, "shared/assets/credits/credits.json");
 
 /** Nhóm hiển thị, theo thứ tự trên màn hình. */
@@ -40,6 +44,7 @@ const SECTIONS = [
   [/^Nền môi trường vòng lặp/, "audio"],
   [/^Lịch sử/, "skip"],
   [/^Asset kho riêng/, "doc"],
+  [/^Hồn thú hoạt ảnh/, "doc"], // chỉ còn câu trỏ tới art/src/beast-anim/<loài>/NGUON.md
 ];
 
 /** Tách một dòng bảng Markdown thành ô; `|` trong cặp dấu huyền hoặc `\|` không tính. */
@@ -101,7 +106,18 @@ const finish = (bag, extra = {}) => [...bag.m.values()].sort((a, b) => (a.name <
 /** Giấy phép game dùng: ưu tiên phần in đậm (cột "Giấy phép của gói"), bỏ chú thích cờ. */
 const usedLicense = (s) => { const b = /\*\*([^*]+)\*\*/.exec(s); return clean(b ? b[1] : s).replace(/\s*\(cờ [^)]*\)/g, ""); };
 
-export function buildCredits({ md = readFileSync(CREDITS_MD, "utf8"), packs } = {}) {
+/** Đọc mọi art/src/beast-anim/<loài>/NGUON.md: { id: { md, hasSheets } } (loài chưa có NGUON.md thì md = null). */
+export function readAnimSources(dir = ANIM_DIR) {
+  if (!existsSync(dir)) return {};
+  const out = {};
+  for (const d of readdirSync(dir, { withFileTypes: true }).filter((x) => x.isDirectory()).sort((a, b) => (a.name < b.name ? -1 : 1))) {
+    const sub = path.join(dir, d.name), nguon = path.join(sub, "NGUON.md");
+    out[d.name] = { md: existsSync(nguon) ? readFileSync(nguon, "utf8") : null, hasSheets: ["A", "B", "C", "D", "E"].some((l) => existsSync(path.join(sub, `to${l}.png`))) || existsSync(path.join(sub, "turnaround.png")) };
+  }
+  return out;
+}
+
+export function buildCredits({ md = readFileSync(CREDITS_MD, "utf8"), packs, anim = readAnimSources() } = {}) {
   if (packs === undefined) packs = existsSync(PACKS_JSON) ? JSON.parse(readFileSync(PACKS_JSON, "utf8")) : null;
   const covered = new Set();
   const bags = Object.fromEntries(Object.keys(GROUPS).map((k) => [k, new Bag((i) => covered.add(i))]));
@@ -161,6 +177,24 @@ export function buildCredits({ md = readFileSync(CREDITS_MD, "utf8"), packs } = 
         authors.forEach((a, i) => { bags.am.add(a, { license, url: pair[i][0]?.[0] ?? "", ids: [id] }); seenAuthors.add(a); });
         for (const [u, title] of srcs) links.am.set(u, title);
       } else problems.push(`${where}: kiểu mục "${kind}" chưa hỗ trợ.`);
+    }
+  }
+
+  // Ghi công hồn thú hoạt ảnh theo loài (NGUON.md, mục `## Ghi công`). count = 0: ảnh raw chờ preview chưa vào game, nên không đổi số đếm của màn Ghi công
+  // (dòng nhập game `beast_<loài>_anim` vẫn ở mục AI của CREDITS.md và đã được đếm ở đó).
+  for (const [id, a] of Object.entries(anim)) {
+    const tables = a.md ? parseTables(a.md).filter((t) => t.section === "Ghi công") : [];
+    const rows = tables.flatMap((t) => t.rows.map((r) => ({ r, head: t.head })));
+    if (!rows.length) { if (a.hasSheets) problems.push(`art/src/beast-anim/${id}/NGUON.md: loài có tờ nhưng thiếu bảng "## Ghi công" (File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú), nên chưa được ghi công ở màn Ghi công.`); continue; }
+    for (const { r, head } of rows) {
+      const where = `Hồn thú hoạt ảnh ${id}`, id0 = clean(r[0] ?? "");
+      if (!id0) { problems.push(`${where}: dòng ghi công trống cột File.`); continue; }
+      const it = col(head, /Công cụ/), im = col(head, /Mô tả/);
+      if (it < 0 || im < 0) { problems.push(`${where}: bảng "## Ghi công" thiếu cột Công cụ / Mô tả.`); break; }
+      const tool = clean(r[it] ?? ""), desc = clean(r[im] ?? "");
+      if (!tool || !desc) { problems.push(`${where}: ${id0}: thiếu công cụ hoặc mô tả.`); continue; }
+      const rid = take(`${where}: ${id0}`);
+      bags.nhom.add(/ChatGPT|Codex|imagegen/i.test(tool) ? "ChatGPT / Codex imagegen" : tool, { license: "Theo điều khoản của công cụ", count: 0, ids: [rid] });
     }
   }
 

@@ -18,7 +18,7 @@ curl -sf "$url/health" >/dev/null || { echo "✗ server không sẵn sàng sau 6
 echo "server sẵn sàng sau ~$((i / 2)) giây: $(curl -s "$url/health")"
 
 start=$SECONDS
-(cd "$root/client" && BOT_PART=smoke SERVER_URL="$url" npm run bot) 2>&1 | tee "$blog"
+(cd "$root/client" && BOT_STRICT_HOOK=1 BOT_PART=smoke SERVER_URL="$url" npm run bot) 2>&1 | tee "$blog"
 code=${PIPESTATUS[0]}
 n() { grep -c "$1" "$blog"; }
 echo "bot khói xong sau $((SECONDS - start)) giây, mã thoát $code: ✓ $(n '^  ✓'), ✗ $(n '^  ✗'), ⚠ $(n '⚠')"

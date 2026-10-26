@@ -15,3 +15,11 @@ Giữ nguyên `workerProvenance`; phần `integration` đối chiếu generator/
 Xung đột anatomy đã giữ: vượn hai tay/hai chân trong static và mô tả standing on two legs khác family quad/four-legged trot. Giữ nguyên input+suffix, best faith static anatomy; không redesign.
 
 Image model/seed unknown khi tool không expose; không suy từ model agent. Timestamp theo worker source, không tự suy thời gian nội bộ provider. Pixel occupied không chứng minh semantic figures; chưa chứng nhận đủ khung/margin/feetline/nền/heading/style. Nguyên byte với tool original, không resize/crop/patch/cắt/ghép/sửa metadata; không runtime/manifest/DB/localbot. Submitted ≠ merged ≠ art accepted ≠ imported.
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/tuyet_ma_vien/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Tuyết Ma Viên (H4 đợt 5, Part of #771 và #766): `art/src/beast-anim/tuyet_ma_vien/toA.png` (A1, 1024×1536) và `toB.png` (B1, 1254×1254 thực tế; yêu cầu1024×1024). Fresh workers118,120 dùng builtin `image_gen.imagegen`, mỗi phiên1call/0retry, tổng loài2call. A chỉ static; B static+A STYLE/body only theo actual paths trong nguồn. Model ảnh/seed unknown. Nộp RAW FAIL nguyên byte, không hậu kỳ/cắt/import; chưa duyệt art/runtime. Exact prompt, hash/IHDR/ref/counter/nguồn/lỗi: [NGUON.md](src/beast-anim/tuyet_ma_vien/NGUON.md), `toA.source.json`, `toB.source.json`. Nguồn Q44/điều khoản công cụ. | - | Chuyển một lần từ art/CREDITS.md (#973) |
