@@ -571,7 +571,7 @@ async function releaseChannel(mapId: string, roomId: string, ch: number) {
   }, CHANNEL_TTL_MS);
 }
 /** Lần đổi kênh gần nhất của mỗi tài khoản (ms): đổi kênh là đổi phòng (đổi sessionId) nên khóa theo tài khoản (CHANNEL_CD). */
-export const channelSwitchAt = new Map<number, number>(); // map-co-dinh: một dòng mỗi tài khoản từng đổi kênh; đường xóa duy nhất là hook test `chan {reset}` ở gm.ts (như trước khi tách)
+export const channelSwitchAt = new Map<number, number>(); // dòng hết CHANNEL_CD giây bị sweepChannelMaps dọn (#957); hook test `chan {reset}` ở gm.ts xóa tay
 export const channelSwitchKey = (accountId: number) => `channel-switch:${accountId}`;
 /**
  * Kênh vừa rời không qua đường server duyệt (đóng tab, mất mạng, client tự rời; onLeave không ghi khi đi cổng / đổi kênh đã commit): trong
@@ -582,6 +582,17 @@ export const channelSwitchKey = (accountId: number) => `channel-switch:${account
  */
 export const leftRoom = new Map<number, { mapId: string; roomId: string; ch: number; until: number; travel?: boolean }>();
 export const channelLeftKey = (accountId: number) => `channel-left:${accountId}`;
+/**
+ * #957: dọn dòng hết hạn của channelSwitchAt (đã qua CHANNEL_CD giây) và leftRoom (until đã qua): hai Map này khóa theo tài khoản nên
+ * không dọn thì phình theo số tài khoản từng chơi. Chỉ xóa dòng mà luật đổi kênh đã coi như không có (không đổi luật); trả số dòng đã xóa.
+ */
+export function sweepChannelMaps(now: number) {
+  let n = 0;
+  for (const [k, at] of channelSwitchAt) if (now - at >= CHANNEL_CD * 1000) { channelSwitchAt.delete(k); n++; }
+  for (const [k, l] of leftRoom) if (l.until <= now) { leftRoom.delete(k); n++; }
+  return n;
+}
+setInterval(() => sweepChannelMaps(Date.now()), 5 * 60_000).unref();
 /** Hook test `chan {nolock}`: lần rời phòng kế tiếp của tài khoản không ghi leftRoom (bot thử chọn kênh khi vào game). */
 export const testNoLeaveLock = new Set<number>(); // map-co-dinh: đường xóa duy nhất là `testNoLeaveLock.delete` ở onLeave (join.ts), như trước khi tách
 /**
