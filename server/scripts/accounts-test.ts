@@ -45,6 +45,20 @@ async function sessionsTest(label: string, s: Store, u: string, age: (token: str
   });
 }
 
+async function logoutTest(label: string, s: Store, u: string) {
+  await test(`${label}: đăng xuất thu hồi đúng phiên đó, phiên khác của tài khoản giữ nguyên, gọi lại / token sai không lỗi (#999)`, async () => {
+    const id = ok(await s.login(cleanName(`Thoát${u}`), PW[4]));
+    const a = await s.startSession(id), b = await s.startSession(id);
+    assert.ok(await s.accountFromToken(a));
+    assert.equal(await s.endSession(a), true);
+    assert.equal(await s.accountFromToken(a), null);                  // token cũ không vào được
+    assert.ok(await s.accountFromToken(b));                           // thiết bị khác vẫn dùng được
+    assert.equal(await s.endSession(a), false);                       // gọi lại: không lỗi
+    for (const t of [undefined, null, 5, "", "x'; DROP TABLE sessions;--", "\0".repeat(32)]) assert.equal(await s.endSession(t), false);
+    assert.ok(await s.accountFromToken(b));
+  });
+}
+
 async function common(label: string, s: Store, u = "") {
   await test(`${label}: "ＴＡＭ${u}" và "Tam${u}" là cùng một tài khoản, tên hiển thị giữ như lần tạo`, async () => {
     const id = ok(await s.login(cleanName(`Tam${u}`), PW[1]));
@@ -239,6 +253,7 @@ async function common(label: string, s: Store, u = "") {
 {
   const m = new MemoryStore();
   await common("MemoryStore", m);
+  await logoutTest("MemoryStore", m, "");
   await sessionsTest("MemoryStore", m, "", async (t, d) => { m.sessions.get(t)!.at -= d * 864e5; });
 }
 
@@ -249,6 +264,7 @@ else {
   await s.init();
   const u = " " + randomBytes(3).toString("hex");
   await common("PgStore", s, u);
+  await logoutTest("PgStore", s, u);
   await sessionsTest("PgStore", s, u, async (t, d) => { await s.pool.query("UPDATE sessions SET created_at = created_at - make_interval(days => $2) WHERE token=$1", [t, d]); });
 
   await test("PgStore: DB cũ có hai tài khoản trùng tên sau chuẩn hóa -> giữ tài khoản cũ nhất, không xóa tài khoản nào", async () => {

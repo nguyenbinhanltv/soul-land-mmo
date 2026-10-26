@@ -173,6 +173,14 @@ app.post("/api/me", route(async (req, res) => {
   res.json({ character, looks, mapId: loc.mapId, googleLinked: await store.hasIdentity(acc.accountId, GOOGLE) });
 }));
 
+// Đăng xuất (#999): thu hồi đúng phiên này ở server (phiên thiết bị khác giữ nguyên). Luôn 200 {ok:true} dù token sai/đã hết hạn
+// để client xóa token cục bộ không vướng lỗi; không ghi token vào log.
+app.post("/api/logout", route(async (req, res) => {
+  if (!apiGate(req, res)) return;
+  await store.endSession(req.body?.token);
+  res.json({ ok: true });
+}));
+
 // Kênh để vào game (mục 6 "Nhiều kênh"): bản đồ đang lưu và phòng (kênh) nên vào: kênh còn chỗ có đồng đội tổ đội, không thì kênh
 // ít người nhất còn chỗ. roomId null = mọi kênh đầy hoặc chưa có kênh: client joinOrCreate (Colyseus mở kênh mới).
 app.post("/api/channel", route(async (req, res) => {
