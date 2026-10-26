@@ -8127,7 +8127,8 @@
     },
     {
       "key": "vh_bach_ho_b",
-      "iso": true
+      "iso": true,
+      "blank": true
     },
     {
       "key": "vh_bach_ho_f",
@@ -8143,7 +8144,8 @@
     },
     {
       "key": "vh_bich_lan_xa_hoang_b",
-      "iso": true
+      "iso": true,
+      "blank": true
     },
     {
       "key": "vh_bich_lan_xa_hoang_f",
@@ -8191,7 +8193,8 @@
     },
     {
       "key": "vh_hoa_long_b",
-      "iso": true
+      "iso": true,
+      "blank": true
     },
     {
       "key": "vh_hoa_long_f",
@@ -8247,7 +8250,8 @@
     },
     {
       "key": "vh_nhu_cot_tho_b",
-      "iso": true
+      "iso": true,
+      "blank": true
     },
     {
       "key": "vh_nhu_cot_tho_f",
@@ -8299,7 +8303,8 @@
     },
     {
       "key": "vh_u_minh_linh_mieu_f",
-      "iso": true
+      "iso": true,
+      "blank": true
     },
     {
       "key": "vh_xuc_xich_b",
