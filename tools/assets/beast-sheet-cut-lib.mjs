@@ -23,8 +23,8 @@ export function uniformLayout(sheet, w, h) {
  * Dải nào có số hình khác số khung thì cột của dải đó chia đều (ghi vào notes); sai số dải hàng thì trả null (dùng lưới đều).
  * @returns {object | null} cùng giao diện uniformLayout, thêm `fallbackRows`
  */
-export function gapLayout(img, sheet) {
-  const { w, h } = img, grid = detectGrid(img);
+export function gapLayout(img, sheet, detect = {}) {
+  const { w, h } = img, grid = detectGrid(img, detect);
   if (grid.bands.length !== sheet.rows) return null;
   const nominalCw = w / sheet.cols, bands = grid.bands, per = Array.from({ length: sheet.rows }, () => 0);
   for (const c of sheetCells(sheet)) per[c.row]++;
@@ -56,10 +56,11 @@ export function gapLayout(img, sheet) {
 }
 
 /** mode: "auto" (gap nếu dò được, không thì đều) | "uniform" | "gap" (như auto). */
-export function layoutFor(img, sheet, mode = "auto") {
+export function layoutFor(img, sheet, mode = "auto", detect = {}) {
+  if (mode !== "auto" && mode !== "uniform" && mode !== "gap") throw new Error(`--grid chỉ nhận auto | uniform, không phải: ${mode}`);
   const u = uniformLayout(sheet, img.w, img.h);
   if (mode === "uniform") return u;
-  const g = gapLayout(img, sheet);
+  const g = gapLayout(img, sheet, detect);
   if (g) return g;
   u.mode = "uniform (dự phòng: không dò được số dải hàng)";
   u.notes.push("không dò được đúng số dải hàng theo khoảng trống, dùng lưới đều");
@@ -74,15 +75,19 @@ export function parsePatch(spec) {
   return { sheet: m[1], from: `${m[2]},${m[3]}`, to: m[4] === undefined ? null : `${m[4]},${m[5]}` };
 }
 /** Áp các patch của một tờ lên map ô → hình (đồng thời, theo bản gốc). Trả về danh sách mô tả đã áp. */
-export function applyPatches(pieces, patches, sheetId) {
-  const mine = patches.filter((p) => p.sheet === sheetId), src = new Map(pieces), done = [];
+export function applyPatches(pieces, patches, sheetId, validKeys = null) {
+  const mine = patches.filter((p) => p.sheet === sheetId), src = new Map(pieces), done = [], placed = new Set();
   for (const p of mine) {
     if (!src.has(p.from)) { done.push(`ô ${p.from} không có hình, bỏ qua`); continue; }
     pieces.delete(p.from);
   }
   for (const p of mine) {
     if (!src.has(p.from)) continue;
-    if (p.to) pieces.set(p.to, src.get(p.from));
+    if (p.to) {
+      if (validKeys && !validKeys.has(p.to)) done.push(`ô đích ${p.to} ngoài kế hoạch tờ ${sheetId}, hình sẽ bị bỏ`);
+      if (pieces.has(p.to) || placed.has(p.to)) done.push(`ô ${p.to} đã có hình, hình cũ bị thay`);
+      pieces.set(p.to, src.get(p.from)); placed.add(p.to);
+    }
     done.push(p.to ? `dời hình ô ${p.from} → ${p.to}` : `bỏ hình ô ${p.from}`);
   }
   return done;
@@ -123,7 +128,8 @@ export const LEVELS = ["info", "warn", "block"];
 export function levelOf(msg, { gapGrid = true } = {}) {
   if (/^THIẾU khung|^thiếu tờ|bị cắt mép$/.test(msg)) return "block";
   if (/vượt khung \d+×\d+/.test(msg)) return "block";
-  if (/hình vượt ô/.test(msg)) return gapGrid ? "warn" : "info";
+  if (/hình vượt ô/.test(msg)) return gapGrid && !/dải dự phòng/.test(msg) ? "warn" : "info";
+  if (/bị thay|ngoài kế hoạch|không có hình, bỏ qua/.test(msg)) return "warn";
   if (/chân lệch (\d+)%/.test(msg)) return +/chân lệch (\d+)%/.exec(msg)[1] >= 30 ? "warn" : "info";
   if (/dời ngang|hệ số|--patch|lưới đều|dải hàng/.test(msg)) return "info";
   return "warn"; // hình dính, mảnh rời lớn, ô trống, khung lệch, chạm mép ảnh nguồn / khung

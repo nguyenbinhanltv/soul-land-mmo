@@ -164,11 +164,11 @@ export function cutSpecies(o) {
     if (normalize && Math.abs(img.w * sh.h - img.h * sh.w) > 0.01 * img.h * sh.w) throw new Error(`tờ ${sh.id}: sai tỉ lệ ${img.w}×${img.h}, cần ${sh.w}×${sh.h}; không thể chuẩn hóa đồng đều`);
     const factor = normalize ? sh.w / img.w : 1;
     const key = o.key ?? keyOf(img), mask = foregroundMask(img, key, tol);
-    const layout = layoutFor(img, sh, o.grid ?? "auto");
+    const layout = layoutFor(img, sh, o.grid ?? "auto", { ...(o.key ? { key: o.key.slice(0, 3) } : {}), ...(o.tol ? { tol: o.tol } : {}) });
     const { pieces, dropped, droppedBig, stuck } = assignToCells(img, sh, mask, { minArea: o.minArea, unit: factor, layout });
-    const patched = applyPatches(pieces, o.patches ?? [], sh.id);
+    const patched = applyPatches(pieces, o.patches ?? [], sh.id, new Set(sheetCells(sh).map((c) => `${c.col},${c.row}`)));
     rep.dropped += dropped;
-    gapGrid[sh.id] = layout.mode === "gap";
+    gapGrid[sh.id] = layout.mode.startsWith("gap");
     for (const n of [...layout.notes.map((x) => `tờ ${sh.id}: ${x}`), ...patched.map((x) => `tờ ${sh.id} --patch: ${x}`)]) warns.push(n);
     for (const b of droppedBig) warns.push(`tờ ${sh.id} ô ${b.cell}: bỏ mảnh rời lớn ${Math.round(b.area * factor * factor)} điểm (thân ${Math.round(b.of * factor * factor)}), kiểm tra ảnh`);
     if (stuck) warns.push(`tờ ${sh.id}: ${stuck} hình dính nhiều ô, đã chia theo ô; nên vẽ lại cho các hình cách xa nhau`);
@@ -186,7 +186,7 @@ export function cutSpecies(o) {
       for (let y = fh - lowRows; y < fh; y++) for (let x = 0; x < fw; x++) if (im.alpha(x, y)) { sx += x; n++; }
       const r = layout.rect(c.col, c.row);
       if (normalize) {
-        if (x0 < Math.floor(r.x0) || y0 < Math.floor(r.y0) || x1 >= Math.ceil(r.x1) || y1 >= Math.ceil(r.y1)) warns.push(`khung ${name}: hình vượt ô tờ ${sh.id}, kiểm tra lưới; chuẩn hóa không sửa bố cục`);
+        if (x0 < Math.floor(r.x0) || y0 < Math.floor(r.y0) || x1 >= Math.ceil(r.x1) || y1 >= Math.ceil(r.y1)) warns.push(`khung ${name}: hình vượt ô tờ ${sh.id}, kiểm tra lưới; chuẩn hóa không sửa bố cục${layout.fallbackRows?.includes(c.row) ? " (dải dự phòng lưới đều)" : ""}`);
         if (x0 === 0 || y0 === 0 || x1 === img.w - 1 || y1 === img.h - 1) warns.push(`khung ${name}: chạm mép ảnh nguồn tờ ${sh.id} (có thể đã bị cắt)`);
       }
       // Hình nguồn giữ pixel RAW; mọi phép đo trước common scale dùng đơn vị canonical của tờ.

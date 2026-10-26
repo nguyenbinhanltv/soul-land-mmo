@@ -71,7 +71,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     const o = parseArgs(process.argv.slice(2));
     if (!o.out) { console.error("Dùng: node tools/assets/beast-recut-all.mjs --out <thư mục ngoài repo> [--only a,b] [--scale loài=S]... [--compare] [--no-write]"); process.exit(2); }
-    if (path.resolve(o.out).startsWith(ROOT + path.sep) && /shared|art[\\/]src/.test(path.relative(ROOT, path.resolve(o.out)))) throw new Error("--out không được nằm trong shared/ hoặc art/src/ (công cụ chỉ chạy thử)");
+    const rel = path.relative(path.resolve(ROOT).toLowerCase(), path.resolve(o.out).toLowerCase());
+    if (!rel.startsWith("..") && !path.isAbsolute(rel)) throw new Error("--out không được nằm trong thư mục repo (công cụ chỉ chạy thử, ghi ra ngoài repo)");
     const ids = o.only ?? readdirSync(SRC, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort(), rows = [];
     for (const id of ids) {
       const opt = o.scales[id] ? { scale: o.scales[id] } : {}, r = recutOne(id, opt);

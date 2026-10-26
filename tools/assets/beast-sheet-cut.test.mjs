@@ -1,7 +1,7 @@
 // Thử cutter v2 (#864) trên TỜ THẬT trong art/src/beast-anim: lưới theo khoảng trống, neo cỡ khối hướng, phân mức, --patch, giữ byte #870.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { readPng, ROOT } from "./lib.mjs";
 import { cutSpecies } from "./beast-sheet-cut.mjs";
@@ -69,8 +69,11 @@ test("--patch: cú pháp, dời / bỏ hình theo ô, báo trong report", () => 
   assert.deepEqual(parsePatch("B:0,1=-"), { sheet: "B", from: "0,1", to: null });
   assert.throws(() => parsePatch("A:5=4"));
   const pieces = new Map([["5,3", "x"], ["4,3", "y"], ["0,0", "z"]]);
-  applyPatches(pieces, [parsePatch("A:5,3=4,3"), parsePatch("A:0,0=-"), parsePatch("B:5,3=0,0")], "A");
+  const done = applyPatches(pieces, [parsePatch("A:5,3=4,3"), parsePatch("A:0,0=-"), parsePatch("B:5,3=0,0")], "A");
   assert.deepEqual([...pieces], [["4,3", "x"]]);
+  assert.ok(done.some((d) => /ô 4,3 đã có hình, hình cũ bị thay/.test(d)), "ghi đè ô đích phải có cảnh báo");
+  assert.equal(levelOf("tờ A --patch: ô 4,3 đã có hình, hình cũ bị thay"), "warn");
+  assert.ok(applyPatches(new Map([["0,0", 1]]), [parsePatch("A:0,0=9,9")], "A", new Set(["0,0"])).some((d) => /ngoài kế hoạch/.test(d)));
   const sheets = fakeSheets("phong_lang", { seed: 3 });
   const res = cutSpecies({ species: "phong_lang", sheets, patches: [parsePatch("A:0,0=-")] });
   assert.equal(res.report.missing, 1);
@@ -84,4 +87,12 @@ test("không dò được lưới theo khoảng trống thì dùng lưới đề
   assert.match(l.mode, /^uniform/);
   assert.equal(l.cellOf(sh.w - 1, sh.h - 1).row, sh.rows - 1);
   assert.equal(layoutFor(blank, sh, "uniform").mode, "uniform");
+});
+
+test("--grid lạ bị từ chối; beast-recut-all từ chối --out trong repo", () => {
+  const sh = sheetPlan(96)[0];
+  assert.throws(() => layoutFor(new Img(sh.w, sh.h), sh, "foo"), /--grid chỉ nhận/);
+  const run = spawnSync(process.execPath, ["tools/assets/beast-recut-all.mjs", "--out", path.join(ROOT, "shared", "x")], { encoding: "utf8", cwd: ROOT });
+  assert.equal(run.status, 2);
+  assert.match(run.stderr, /thư mục repo/);
 });
