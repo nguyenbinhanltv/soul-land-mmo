@@ -5,7 +5,7 @@ description: Hướng dẫn thao tác làm ảnh và đưa vào game theo quy c�
 
 # Làm ảnh và đưa vào game
 
-Quy tắc (phép chiếu, cỡ khung, phong cách, bảng màu) là `docs/art/quy-cach-isometric.md`; hồn sư, phụ thể, hồn thú, tên file / key: `docs/art/nhan-vat-hon-thu.md`, `docs/art/hon-su-lpc.md`; **nguồn ảnh và giấy phép theo họ asset: `docs/art/nguon-giay-phep.md`** (luật gốc; bảng phần 2 dưới đây chỉ tóm tắt thao tác); quy cách chi tiết (bố cục sheet, bảng animation, điểm neo, dạng phụ thể từng võ hồn, key và thư mục) là `tools/assets/README.md`; skill này hướng dẫn thao tác. Không sửa luật chơi khi thêm asset; màu tóc / áo / da chỉ nằm ở `shared/data.ts`.
+Quy tắc (phép chiếu, cỡ khung, phong cách, bảng màu) là `docs/art/quy-cach-isometric.md`; hồn sư, phụ thể, hồn thú, tên file / key: `docs/art/nhan-vat-hon-thu.md`, `docs/art/hon-su-lpc.md`; **nguồn ảnh và giấy phép theo họ asset: `docs/art/nguon-giay-phep.md`** (luật gốc; bảng phần 2 dưới đây chỉ tóm tắt thao tác); quy cách chi tiết (bố cục sheet, bảng animation, điểm neo, dạng phụ thể từng võ hồn, key và thư mục) là `tools/assets/README.md`; skill này hướng dẫn thao tác. **Hoạt ảnh vẽ thật của hồn thú (tờ turnaround / hướng, duyệt, nhập) có skill riêng: `beast-anim`.** Không sửa luật chơi khi thêm asset; màu tóc / áo / da chỉ nằm ở `shared/data.ts`.
 
 ## 1. Quy cách tóm tắt (quy tắc: `docs/art/quy-cach-isometric.md`; chi tiết: `tools/assets/README.md`)
 | Asset | Khung, sheet | Gốc | Key |

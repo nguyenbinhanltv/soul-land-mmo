@@ -153,7 +153,8 @@ const nearest = (p, pal) => { let bi = 0, bd = Infinity; for (let i = 0; i < pal
 export function cutSpecies(o) {
   const info = speciesInfo(o.species), F = o.frame ?? info.frame;
   if (!F) throw new Error(`loài ${o.species} chưa có khung trong manifest: đặt --frame`);
-  const plan = sheetPlan(F), warns = [], gapGrid = {}, rep = { species: o.species, frame: F, sheets: {}, scale: 0, dropped: 0 };
+  const wide = Object.values(o.sheets).length > 0 && Object.values(o.sheets).every((im) => Math.abs(im.w * 2 - im.h * 3) <= 0.01 * im.h * 3);
+  const plan = sheetPlan(F, o.layout ?? (wide ? "direction" : "auto")), warns = [], gapGrid = {}, rep = { species: o.species, frame: F, sheets: {}, scale: 0, dropped: 0 };
   const foot = F - ISO_BEAST_FOOT, tol = o.tol ?? 60, normalize = o.normalizeSize !== false; // mặc định bật (#862)
 
   // 1–2. Tách hình, gán ô
@@ -370,6 +371,7 @@ function parseArgs(argv) {
     else if (a === "--normalize-size") o.normalizeSize = true;
     else if (a === "--no-normalize-size") o.normalizeSize = false;
     else if (a === "--grid") o.grid = next();
+    else if (a === "--layout") o.layout = next();
     else if (a === "--patch") (o.patches ??= []).push(parsePatch(next()));
     else if (a === "--no-anchor-blocks") o.anchorBlocks = false;
     else if (a === "--block-tol") o.blockTol = +next();
@@ -384,7 +386,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     const o = parseArgs(process.argv.slice(2));
     if (!o.species || !o.out || !Object.keys(o.sheets).length) {
-      console.error("Dùng: node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=<ảnh> [--sheet B=<ảnh>] --out <thư mục> [--no-normalize-size] [--frame N] [--colors 24] [--palette auto|gpl|<gpl>] [--fill 0.8 | --scale S] [--key #ff00ff] [--tol 60] [--grid auto|uniform] [--patch A:c,r=c,r|A:c,r=-]... [--no-anchor-blocks] [--block-tol 0.12] [--strict] [--verbose]");
+      console.error("Dùng: node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=<ảnh> [--sheet B=<ảnh>] --out <thư mục> [--no-normalize-size] [--frame N] [--colors 24] [--palette auto|gpl|<gpl>] [--fill 0.8 | --scale S] [--key #ff00ff] [--tol 60] [--grid auto|uniform] [--layout auto|direction] [--patch A:c,r=c,r|A:c,r=-]... [--no-anchor-blocks] [--block-tol 0.12] [--strict] [--verbose]");
       process.exit(2);
     }
     const hashes = {};

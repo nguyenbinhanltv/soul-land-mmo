@@ -30,12 +30,18 @@ export const tierNameOfFrame = (f) => FRAME_TIER[ISO_BEAST_SIZES.indexOf(f)] ?? 
 /** Cỡ ảnh RAW hợp lệ theo TỈ LỆ (v2, #862): 1:1 ra 1254×1254 hoặc 1024×1024, 2:3 ra 1024×1536, 3:2 ra 1536×1024; cutter chuẩn hóa về `sheetPlan`. */
 export const SHEET_SIZES = [[1024, 1024], [1254, 1254], [1536, 1024], [1024, 1536]];
 
-/** Chia các hướng ra các tờ theo cỡ khung: khung ≤ 96 gộp 3 + 2 hướng (ô ≈ 170×128), khung lớn mỗi hướng một tờ (ô 256×256). */
-export function sheetPlan(frame) {
+/**
+ * Chia các hướng ra các tờ. `layout`: "auto" = theo cỡ khung (khung ≤ 96 gộp 3 + 2 hướng, ô ≈ 170×128; khung lớn mỗi hướng một tờ, ô 256×256);
+ * "direction" = luôn mỗi hướng một tờ 1536×1024 (6×4, 22 khung), mã A–E theo thứ tự s, se, e, ne, n (đường v2 của skill beast-anim).
+ */
+export function sheetPlan(frame, layout = "auto") {
   const mk = (id, dirs, w, h) => ({ id, dirs, w, h, cols: COLS, rows: dirs.length * BAND_ROWS });
-  if (frame <= 96) return [mk("A", ["s", "se", "e"], 1024, 1536), mk("B", ["ne", "n"], 1024, 1024)];
+  if (layout === "auto" && frame <= 96) return [mk("A", ["s", "se", "e"], 1024, 1536), mk("B", ["ne", "n"], 1024, 1024)];
   return DIRS.map((d, i) => mk("ABCDE"[i], [d], 1536, 1024));
 }
+
+/** Ảnh turnaround (v2): 1 ảnh 3:2, 5 cột (hướng s, se, e, ne, n) × 3 hàng (idle, hurt, die), mỗi ô một tư thế. */
+export const TURNAROUND = { w: 1536, h: 1024, cols: DIRS.length, rows: 3, poses: ["idle", "hurt", "die"] };
 
 /** Các ô của một tờ: { dir, anim, frame, col, row }; ô nào không thuộc hoạt ảnh nào là ô trống (cột thừa). */
 export function sheetCells(sheet) {
