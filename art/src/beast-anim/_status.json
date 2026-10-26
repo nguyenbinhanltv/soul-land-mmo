@@ -1,12 +1,12 @@
 {
   "schema": 1,
   "generatedBy": "tools/assets/beast-status.mjs",
-  "species": 30,
+  "species": 31,
   "imported": 6,
   "tally": {
     "san-sang-nhap": 22,
     "chua-co-to": 1,
-    "chan": 7
+    "chan": 8
   },
   "items": [
     {
@@ -178,6 +178,57 @@
       "blocks": {},
       "missing": [],
       "errorLines": []
+    },
+    {
+      "id": "cuc_yeu_hoa_linh",
+      "name": "Cúc Yêu Hoa Linh",
+      "family": "plant",
+      "frame": 96,
+      "imported": false,
+      "turnaround": false,
+      "layout": "sheet",
+      "state": "chan",
+      "sheets": [
+        {
+          "sheet": "toA",
+          "file": "art/src/beast-anim/cuc_yeu_hoa_linh/toA.png",
+          "size": [
+            1024,
+            1536
+          ],
+          "bytes": 2036897,
+          "sha256": "c9b68033e6994c1aa7abaaeeb09a1454b086d612da5ac04b255b8ea0e453771c",
+          "level": "chặn",
+          "block": 9,
+          "light": 0,
+          "note": 1
+        },
+        {
+          "sheet": "toB",
+          "file": "art/src/beast-anim/cuc_yeu_hoa_linh/toB.png",
+          "size": [
+            1254,
+            1254
+          ],
+          "bytes": 1975951,
+          "sha256": "0d2a9f123de901bf7b0e1356b399aeed9c31f5c694055b5346258d0e34902f92",
+          "level": "pass",
+          "block": 0,
+          "light": 0,
+          "note": 2
+        }
+      ],
+      "blocks": {
+        "s": "chặn",
+        "se": "chặn",
+        "e": "chặn",
+        "ne": "pass",
+        "n": "pass"
+      },
+      "missing": [],
+      "errorLines": [
+        "LỖI: toA — sai số hình — H1 (s), H2 (s), H3 (s), H5 (se), H6 (se), H7 (se), H9 (e), H10 (e), H11 (e) — dải có 7 hình, cần 6: thừa hình / mảnh rời; dải có 7 hình, cần 6: thừa hình / mảnh rời; dải có 7 hình, cần 6: thừa hình / mảnh rời; dải có 7 hình, cần 6: thừa hình / mảnh rời; dải có 7 hình, cần 6: thừa hình / mảnh rời; dải có 7 hình, cần 6: thừa hình / mảnh rời; dải có 7 hình, cần 6: thừa hình / mảnh rời; dải có 7 hình, cần 6: thừa hình / mảnh rời; dải có 7 hình, cần 6: thừa hình / mảnh rời."
+      ]
     },
     {
       "id": "dien_thu",

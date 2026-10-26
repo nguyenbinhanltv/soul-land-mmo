@@ -64,9 +64,11 @@
   ],
   "selection_reason": "B1 là candidate đầu tiên; chưa so sánh lượt khác.",
   "known_issues": [
-    "N DIE cuối ở hàng 8 cột 4 có vẻ nằm ngang; cần xác minh bằng contact sheet."
+    "beast:check tự động pass 0 lỗi/0 nhẹ.",
+    "Soát contact sheet: NE H4 D3 và N H8 D3 đổ nằm ngang, trục thân không giữ hướng block.",
+    "Soát contact sheet: các block ne/n không lộ mắt hoặc mặt."
   ],
-  "qa_status": "first-pass candidate; beast:check pending; not art-approved or imported",
+  "qa_status": "technical gate failed for A; B passes automatic check; manual die-axis findings recorded; not art-approved or imported",
   "postprocessing": "None; byte-identical copy of original tool output.",
   "tool_arguments": {
     "prompt_file": "toB.prompt.txt",

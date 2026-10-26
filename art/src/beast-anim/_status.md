@@ -2,7 +2,7 @@
 
 File này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-status.mjs`); **không sửa tay**, không dán bảng tay vào issue. Mức theo khối hướng là kết quả `beast:check` (cỡ, nền, lưới, số hình, chân, cỡ thân, khung chết); `n` / `ne` lộ mặt, hurt ngửa bụng, die xoay chỉ xem bằng mắt (tờ liên hệ).
 
-30 loài có thư mục · 6 đã nhập vào game · 22 sẵn sàng nhập · 1 chưa có tờ · 7 có khối chặn
+31 loài có thư mục · 6 đã nhập vào game · 22 sẵn sàng nhập · 1 chưa có tờ · 8 có khối chặn
 
 | Loài | Mã | Bố cục | Tờ (cỡ, mức) | s | se | e | ne | n | Thiếu | Nhập game | Trạng thái |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -10,6 +10,7 @@ File này **tự sinh** bằng `npm run beast:status` (`tools/assets/beast-statu
 | Băng Giáp Cự Quy | `bang_giap_cu_quy` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | nhẹ | đạt | nhẹ | đạt | nhẹ | - | chưa | sẵn sàng nhập |
 | Băng Phong Bạch Hùng | `bang_phong_bach_hung` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | đạt | nhẹ | đạt | nhẹ | nhẹ | - | chưa | sẵn sàng nhập |
 | Băng Vũ Ưng | `bang_vu_ung` | - | - | - | - | - | - | - | - | chưa | chưa có tờ |
+| Cúc Yêu Hoa Linh | `cuc_yeu_hoa_linh` | sheet | A 1024×1536 **chặn**<br>B 1254×1254 đạt | **chặn** | **chặn** | **chặn** | đạt | đạt | - | chưa | có khối chặn |
 | Điền Thử | `dien_thu` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 đạt | nhẹ | nhẹ | đạt | đạt | đạt | - | chưa | sẵn sàng nhập |
 | Độc Vụ Thiềm | `doc_vu_thiem` | sheet | A 1024×1536 nhẹ<br>B 1254×1254 nhẹ | nhẹ | đạt | đạt | đạt | nhẹ | - | chưa | sẵn sàng nhập |
 | Hắc Bối Dã Trư | `hac_boi_da_tru` | sheet | A 1024×1536 đạt<br>B 1254×1254 đạt | đạt | đạt | đạt | đạt | đạt | - | đã nhập | sẵn sàng nhập |
@@ -60,6 +61,12 @@ LỖI: toB — cỡ thân lệch — H5–8 (n) — cỡ thân idle 120% so vớ
 ```
 LỖI: toA — hình ở ô trống — H8 (se) C5, H8 (se) C6 — ô trống có hình (6.11% diện tích ô): hình tràn từ ô bên; ô trống có hình (5.01% diện tích ô): hình tràn từ ô bên.
 LỖI: toB — hình ở ô trống / khung chết / cỡ thân lệch — H4 (ne) C6, H1 (ne) C1–4, H5 (n) C1–4, H5–8 (n) — ô trống có hình (0.36% diện tích ô): hình tràn từ ô bên; idle: mọi khung gần như trùng (xor/hợp tối đa 0.019 < 0.03); hoạt ảnh không chuyển động; idle: mọi khung gần như trùng (xor/hợp tối đa 0.019 < 0.03); hoạt ảnh không chuyển động; cỡ thân idle 124% so với ảnh tĩnh (lệch 24%).
+```
+
+### Cúc Yêu Hoa Linh (`cuc_yeu_hoa_linh`)
+
+```
+LỖI: toA — sai số hình — H1 (s), H2 (s), H3 (s), H5 (se), H6 (se), H7 (se), H9 (e), H10 (e), H11 (e) — dải có 7 hình, cần 6: thừa hình / mảnh rời; dải có 7 hình, cần 6: thừa hình / mảnh rời; dải có 7 hình, cần 6: thừa hình / mảnh rời; dải có 7 hình, cần 6: thừa hình / mảnh rời; dải có 7 hình, cần 6: thừa hình / mảnh rời; dải có 7 hình, cần 6: thừa hình / mảnh rời; dải có 7 hình, cần 6: thừa hình / mảnh rời; dải có 7 hình, cần 6: thừa hình / mảnh rời; dải có 7 hình, cần 6: thừa hình / mảnh rời.
 ```
 
 ### Điền Thử (`dien_thu`)

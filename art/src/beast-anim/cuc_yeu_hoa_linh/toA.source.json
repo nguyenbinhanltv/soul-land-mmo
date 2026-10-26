@@ -59,10 +59,10 @@
   ],
   "selection_reason": "A1 là candidate duy nhất hiện tại; chưa so sánh lượt khác.",
   "known_issues": [
-    "Quan sát bằng mắt: các hàng idle/hurt, walk và attack có vẻ hiện 7 hình thay vì 6 cột; xác nhận bằng beast:check/contact sheet.",
-    "S DIE cuối ở A có vẻ nằm ngang; cần xác minh quy tắc die giữ trục bằng xem contact sheet."
+    "beast:check xác nhận dải có 7 hình thay vì 6 ở H1 (s), H2 (s), H3 (s), H5 (se), H6 (se), H7 (se), H9 (e), H10 (e), H11 (e).",
+    "Soát contact sheet: S H4 D3 và SE H8 D3 đổ nằm ngang, trục thân không giữ hướng block."
   ],
-  "qa_status": "first-pass candidate; beast:check pending; not art-approved or imported",
+  "qa_status": "technical gate failed for A; B passes automatic check; manual die-axis findings recorded; not art-approved or imported",
   "postprocessing": "None; byte-identical copy of original tool output.",
   "tool_arguments": {
     "prompt_file": "toA.prompt.txt",
