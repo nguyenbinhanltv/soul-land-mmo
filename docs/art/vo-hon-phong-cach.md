@@ -332,7 +332,62 @@ Cách dùng:
 - **Menu motif** (tiếng Việt, để chọn cho phần SPIRIT; **không** nằm trong khối gửi đi): linh khí cuộn, đạo văn / phù triện, ấn triện, pháp trận nét mảnh, mây sấm + sét, kim quang / vầng đạo, đất nứt. Mỗi võ hồn chỉ lấy 2–3 thứ theo dòng "motif" ở mục 4 (mục 2: không nhồi cả bộ), dịch sang tiếng Anh vào phần SPIRIT.
 - Mỗi lần gửi: **STYLE + NEGATIVE** (nguyên văn) + **mô tả riêng** (dịch một câu "bá đạo ở đâu" và "hình mẫu", "màu", "motif", "vật đi kèm" của võ hồn ở mục 4 sang tiếng Anh, giữ mã màu) + phần kỹ thuật theo loại hình (lưới sheet, hướng, số khung: `phu-the-hoat-anh.md`, `phap-tuong-cong-thuc.md`, skill `asset-gen`).
 - **Từ cấm** bổ sung theo loại hình: chân dung / thẻ thêm `border, frame, card, text`; icon thêm `tiny whole animal, full body`; pháp tướng thêm `solid opaque body` (pháp tướng nửa trong suốt, mục 3 `phap-tuong.md`).
-- Sau khi sinh: **rà điều cấm** (mục 2) trước khi nhập; vi phạm thì loại, không sửa tay bằng ảnh cũ. Số màu, khung, bảng màu do bước hậu kỳ (`tools/assets`) kiểm.
+- Sau khi sinh: **rà điều cấm** (mục 2) trước khi nhập; vi phạm thì loại, không sửa tay bằng ảnh cũ. Số màu, khung, bảng màu do bước hậu kỳ (`tools/assets`) kiểm. Chân dung, icon, pháp tướng: lưới, bảng màu, viền, kiểm RAW / pixel và luật 3 lượt ở mục 6.1 (`vohon-prompt.mjs` sinh prompt theo loại).
+
+### 6.1 Chân dung, icon, pháp tướng: prompt, chuyển pixel, kiểm (#1087)
+
+**Bài học #1083 (demo #1024):** model (ChatGPT / Codex) **không làm được lưới pixel** dù prompt đòi "lưới 64×64, tối đa 20 màu": cả hai RAW chân dung Tà Hỏa và concept Hạo Thiên đều ra texture mềm, chi tiết li ti, "nhìn không pixel". Chấm RAW theo tiêu chí ảnh thành phẩm là sai chỗ. Nên chia việc: **model lo hình, bố cục, màu, silhouette; công cụ lo lưới, bảng màu, viền, khử mềm.** RAW được chấm theo bảng "RAW" dưới đây; ảnh pixel sau chuyển đổi mới chấm theo tiêu chuẩn thành phẩm.
+
+**Luồng (chân dung / icon / pháp tướng; phụ thể giữ đường `phuthe-sheet-*`):**
+
+| Bước | Lệnh | Ra |
+|---|---|---|
+| 1. Prompt | `node tools/assets/vohon-prompt.mjs --type portrait\|icon\|phaptuong --id <võ hồn> [--style-ref <ảnh mới đã duyệt>] [--out <thư mục>]` | prompt tiếng Anh + hướng dẫn (`--out` ghi `<id>-<loại>.md`) |
+| 2. Vẽ RAW | tthoadev (ChatGPT / Codex), lưu nguyên byte ở `art/src/vohon-v2/<id>/` (pháp tướng: `art/src/phap-tuong/<id>/`) kèm `*.prompt.txt`, `NGUON.md` | RAW |
+| 3. Kiểm RAW | `npm run vohon:check -- raw <ảnh> --type … --id …` | mức CHẶN / NHẸ / ĐẸP |
+| 4. Chuyển pixel | `node tools/assets/vohon-pixelize.mjs --type … --id … --in <RAW> --out <thư mục> [--crop x,y,w,h \| --focus fx,fy --zoom Z]` | ảnh pixel + `.report.json`, tự chạy kiểm pixel |
+| 5. Xem trước | `node tools/assets/vohon-preview.mjs --type … --id … --raw <RAW> --pixel <ảnh[,ảnh]> --out <thư mục>` | `index.html` + `so-sanh.png` để duyệt bằng mắt |
+| 6. Nhập game | theo skill `asset-gen` (`validate --register`), chỉ khi chủ repo duyệt | |
+
+Bước 4 không tự nhập game: ảnh ra chỉ là bản thử để duyệt. Chân dung chỉ cho phép **thử** pixel hóa; chuyển giao thành phẩm vào `shared/assets` vẫn qua PR riêng (#1025).
+
+**Mẫu prompt mới** (do `vohon-prompt.mjs` sinh, không viết tay): khối STYLE + NEGATIVE mục 6 nguyên văn, rồi `ADDITIONAL FORBIDDEN` theo loại (chân dung: `border, frame, card, text, full body, extra scenery`; icon: `tiny whole animal, full body, frame, card, text, background scenery`; pháp tướng: thân đặc, không trong suốt, không người, không nền đất), `SPIRIT` (mô tả mục 4 giữ tiếng Việt, nhãn tiếng Anh, giữ mã màu), `ASSET TYPE`, `BACKGROUND`, rồi khối `LOOK`: **bỏ** "lưới 64×64 / tối đa 20 màu", thay bằng *chunky low-resolution pixel look, flat color clusters, simple shapes readable when shrunk* + "không đếm điểm / màu, công cụ sẽ chuyển". Ảnh dẫn `--style-ref` chỉ nhận **ảnh mới đã duyệt**; ảnh cũ (PixelLab, Gemini, phụ thể / chân dung / icon / pháp tướng đang chạy) bị công cụ từ chối. Riêng từng loại:
+- **Chân dung:** vuông 1:1, **cận mặt** (mắt + mỏ / đầu, hoặc đặc điểm nhận diện nhất) chiếm ~70% khung, điểm sáng (mắt, mỏ, lõi) to và tách rõ, nền tối + một quầng cứng màu nhấn, không khung. Bài học: ở 64×64 cả khung phượng hoàng (cánh, đuôi, lông) nát thành mảng; cần cận mặt ngay từ lúc vẽ.
+- **Icon:** vuông 1:1, **một hình** nhận diện nhất (đầu, mũi kiếm, đầu búa, đóa hoa...) chiếm ~80%, 2–3 tông phẳng + một điểm sáng, nền trong suốt (hoặc `#FF00FF` phẳng).
+- **Pháp tướng:** một ảnh ngang (~5:2), **5 hình cùng một hàng** s, se, e, ne, n, cùng cỡ, cùng đường chân, giữa các hình có khoảng trống (công cụ tách theo thành phần liền), nền trong suốt, thân đặc.
+
+**Mức kiểm RAW (`vohon:check raw`)**
+
+| Mức | Chân dung / thẻ | Icon | Pháp tướng |
+|---|---|---|---|
+| **CHẶN** (vẽ lại) | không vuông (> 8% lệch); có khung / viền chạy quanh ảnh; màu lạc họ `robe` / `col` của võ hồn (< 20% điểm sáng cùng họ: nhiều khả năng sai võ hồn) | như chân dung; nền không tách (viền không trong suốt và không một màu phẳng); hình < 12% khung | tỉ lệ ngoài 1,6–3,6:1; không tách đúng 5 hướng; 5 hướng lệch cỡ (cao > 1,45×); nền không tách; khung; sai màu |
+| **NHẸ** (vẫn chuyển được) | texture mềm (> 35% cặp điểm kề chỉ chênh nhẹ); > 160 màu đáng kể; chưa đúng lưới khối (tỉ số biên < 3); màu lệch (< 50% cùng họ); nền sáng; thu về 32×32 mất > 50% điểm sáng | như chân dung | như chân dung (trừ thu nhỏ) |
+| **ĐẸP** | không CHẶN / NHẸ, ≥ 60% điểm sáng cùng họ màu mục 4, thu nhỏ còn giữ điểm sáng | như chân dung | như chân dung |
+
+Máy **không** đo được và vẫn phải duyệt bằng mắt (danh sách "cần mắt" in cuối báo cáo): đúng võ hồn (hình mẫu, vật đi kèm; không cute / chibi), **không có chữ**, ký hiệu đọc được, logo; 5 hướng pháp tướng cùng một hình, thân đặc. **Texture mềm và chưa đúng lưới là NHẸ chứ không CHẶN** vì model không làm được hai thứ này; công cụ chuyển pixel xử lý, đừng vẽ lại chỉ vì chúng. Cả hai RAW của #1083 (kể cả chân dung lượt 1 và 2) đều NHẸ, không CHẶN.
+
+**Kiểm sau chuyển đổi (`vohon:check pixel`, tự chạy ở bước 4)**
+
+| Mức | Điều kiện |
+|---|---|
+| **CHẶN** | sai cỡ (chân dung 64, icon 32 / 24, pháp tướng dải 5 khung 160 hoặc 128); quá màu (`PORTRAIT_MAX_COLORS` cho chân dung / icon, `PT_MAX_COLORS` cho pháp tướng; viền tính vào); alpha khác 0 / 255; icon / pháp tướng không có điểm trong suốt (nền chưa tách) |
+| **NHẸ** | < 90% điểm rìa là viền `#1a1020`; hình chạm mép; vùng sáng < 0,5% hoặc > 30%; tương phản thấp; **mất điểm sáng của nguồn** (mắt, mỏ, lõi: còn < 50% đốm sáng lớn nhất của ảnh nguồn); mật độ biên > 0,3 (hình nát thành mảng nhỏ, khó đọc khi nhìn lướt) |
+| **ĐẸP** | không có mục CHẶN / NHẸ |
+
+**Cách chuyển pixel (`vohon-pixelize.mjs`):** cắt vùng quan trọng (chân dung: `--crop x,y,w,h` hoặc `--focus fx,fy --zoom Z` quanh mắt + mỏ; icon: hộp bao của hình sau khi bỏ nền; pháp tướng: từng hướng) → **bỏ phiếu màu theo khối, hai chặng 4×4, không nội suy** (mỗi ô đích lấy màu nhiều phiếu nhất; điểm phát sáng được nhân phiếu `--accent` để mắt, lõi, đạo văn không bị nền tối nuốt) → ép bảng ≤ N màu (`--palette auto` cắt trung vị, ưu tiên màu hiếm mà sáng; `--palette gpl` chỉ chọn trong `art/palette.gpl` + màu võ hồn) → **khử "độ mềm"**: gộp sắc độ (`--merge`), bỏ cụm điểm lẻ (`--min-cluster`, giữ điểm sáng), lọc đa số 3×3 làm cứng cạnh (`--passes`) → viền ngoài `#1a1020` (chỉ khi ảnh có vùng trong suốt; chân dung nền tối đặc không viền) → icon thêm bước nâng sáng nếu ảnh tối (`--lift`). Tham số mặc định theo loại ở `DEFAULTS_BY_TYPE` (`vohon-pixelize-lib.mjs`); pháp tướng giữ chi tiết hơn (vật cứng cần đạo văn, vết nứt). Pháp tướng: một tỉ lệ thu chung cho cả 5 hướng, bảng màu chung ≤ `PT_MAX_COLORS`, đặt giữa-đáy hộp bao tại gốc khung (160: (80, 124); hộp hình ≤ 144×112 chừa chỗ nhấc / nện và viền sáng của `phaptuong.mjs`; khung 128 = khung concept, hộp 96×96).
+
+**Luật 3 lượt (RAW):** mỗi ảnh (một chân dung, một icon, một tờ 5 hướng) **tối đa 3 lượt** vẽ. Chỉ **CHẶN** buộc vẽ lại; NHẸ thì chuyển pixel trước rồi mới quyết có cần lượt mới hay không (đa số NHẸ do chuyển đổi xử lý được, thử cắt sát hơn trước khi xin lượt 2). Mỗi lượt mới chỉ đổi **một** thứ (vật chính, góc nhìn, hoặc độ đơn giản), không dùng ảnh hỏng làm ảnh dẫn. Quá 3 lượt thì dừng, ghi lý do vào `NGUON.md`, báo orchestrator.
+
+**Thử trên RAW của #1083** (ảnh kết quả ở thư mục artifact của phiên làm #1087, không vào repo):
+
+| RAW | Cách chuyển | Kết quả |
+|---|---|---|
+| Chân dung Tà Hỏa lượt 2 (1254²) | cả khung → 64×64 | 12 màu; **mất mắt, mỏ** (cả hai nát thành mảng cam); kiểm pixel chỉ báo NHẸ vì mật độ biên 0,362, không nói được "mất mắt / mỏ" (đốm sáng đếm được phần lớn là đạo văn): kiểm tự động chưa bắt được lỗi này, cần mắt duyệt |
+| Chân dung Tà Hỏa lượt 2 | cắt sát mặt `--focus 0.69,0.55 --zoom 2.2` → 64×64 | 13 màu; **mỏ móc rõ, mắt còn 3–4 điểm vàng nhạt** lẫn nét đạo văn; mật độ biên 0,335 nên báo NHẸ (nhiều mảng nhỏ ở cỡ 64). Đọc ra "chim dữ mỏ quắm" nhưng chưa "bá đạo": **cần bản đơn giản hơn** (mắt to hơn, ít đạo văn, lông thành ít mảng lớn) cho lượt 3 |
+| Concept Hạo Thiên (1983×793, 5 hướng) | `--type phaptuong` → 5 khung 160×160 | tách đủ 5 hướng (cả hai cặp chéo chồng khoảng ngang); 32 / 48 màu; thấy đầu búa vuông, mẻ, đai đồng, cán bện, mũi nhọn, vết nứt cam; hộp ≤ 144×112 trong khung. So với RAW: mất họa tiết đạo văn mảnh trên mặt búa, giữ được silhouette và bố cục; **dùng được làm nguồn xoay 5 hướng**, bỏ qua bước PixelLab |
+| Hạo Thiên (một hướng) → icon | `--crop` hướng giữa → 32×32 / 24×24 | 32×32 đọc ra búa (khối đầu + cán); 24×24 mất đốm sáng (NHẸ); RAW tối nên cần `--lift` (mặc định 0,8) |
+
+Quy tắc tóm gọn cho người vẽ: **đòi hình đơn giản, lớn, điểm sáng to; đừng đòi pixel.**
 
 ## 7. Mốc duyệt
 
@@ -341,4 +396,4 @@ Cách dùng:
 3. Sau khi duyệt: tthoadev vẽ demo (#1024) gồm **Tà Hỏa Phượng Hoàng** (phụ thể + chân dung + icon) và **Hạo Thiên Chùy** (pháp tướng mới, một trong 11); đạt thì gộp (#1025): phụ thể + chân dung / thẻ + icon cho các võ hồn còn lại, còn pháp tướng chỉ cho 10 võ hồn còn lại trong nhóm 11 (trừ Hạo Thiên Chùy đã làm ở demo). 14 pháp tướng PixelLab giữ nguyên.
 
 ## Issue liên quan
-#1020 (epic phụ thể v2), #1032 (tài liệu này), #1022 (công cụ prompt `phuthe-sheet-prompt`), #1024 (demo Tà Hỏa Phượng Hoàng), #1025 (gộp), #1028 (đặc tả phụ thể P0).
+#1087 (công cụ chuyển pixel / prompt / kiểm cho chân dung, icon, pháp tướng), #1083 (demo #1024, bài học), #1020 (epic phụ thể v2), #1032 (tài liệu này), #1022 (công cụ prompt `phuthe-sheet-prompt`), #1024 (demo Tà Hỏa Phượng Hoàng), #1025 (gộp), #1028 (đặc tả phụ thể P0).
