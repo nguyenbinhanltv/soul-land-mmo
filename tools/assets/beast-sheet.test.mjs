@@ -105,6 +105,10 @@ test("ảnh nền trong suốt thật cũng cắt được, GIF xem trước ghi
     assert.ok(existsSync(html));
     for (const [anim] of ANIMS) for (const d of DIRS) assert.ok(existsSync(path.join(dir, "preview", "gif", `${anim}_${d}.gif`)));
     assert.ok(existsSync(path.join(dir, "preview", "tinh", "e.png")));
+    for (const [anim] of ANIMS) assert.ok(existsSync(path.join(dir, "preview", "gif", `xoay_${anim}.gif`)));
+    const turn = readFileSync(path.join(dir, "preview", "xoay-vong.html"), "utf8");
+    assert.ok(turn.includes("gif/xoay_idle.gif") && turn.includes("tinh/n.png") && turn.includes("gif/hurt_ne.gif"));
+    assert.ok(readFileSync(html, "utf8").includes("xoay-vong.html"));
     const gif = readFileSync(path.join(dir, "preview", "gif", "walk_e.gif"));
     assert.equal(gif.subarray(0, 6).toString(), "GIF89a");
     assert.equal(gif[gif.length - 1], 0x3b);
