@@ -6,7 +6,7 @@
 import type { Client } from "colyseus";
 import { TIERS, VOHON, tierOfYears, vohonIndex, beastIndex, starSkillMult, starCdMult, starRing, BONE_SLOTS, boneSlotIndex, isCcStatus, BONE_ACTIVE_SLOTS,
   boneSkillOf, boneSkillMult, skillPower, buffPower, PCT_HP_CAP, PROJ_SPEED, skillsOf, FUSION, FUSIONS, fusionIndex, fusionsOf, ringSkill, loadoutOf,
-  parseLoadout, LOADOUT_SIZE, CHAN_THAN_RING, chanThanOf, CHAN_THAN_SKILL_SLOT, COPY_R, COPY_WINDOW, ARENA, PLAYER_STATUS_PVE, type SkillDef } from "../../../shared/data.ts";
+  parseLoadout, LOADOUT_SIZE, CHAN_THAN_RING, chanThanOf, CHAN_THAN_SKILL_SLOT, COPY_R, COPY_WINDOW, ARENA, PLAYER_STATUS_PVE, SKILL_CONE_COS, type SkillDef } from "../../../shared/data.ts";
 import { store } from "../db.ts";
 import * as party from "../party.ts";
 import { presenceBackend } from "../presence.ts";
@@ -98,12 +98,12 @@ export function runSkill(room: MapRoom, id: string, sk: SkillDef, power: number,
     room.broadcast("fx", { k: "arc", id, x: p.x, y: p.y - 6, dx: d.dir.x, dy: d.dir.y, r: sk.r, col });
     for (const [bid, b] of room.beastsNear(p.x, p.y, sk.r)) {
       const dx = b.x - p.x, dy = b.y - p.y, dd = Math.hypot(dx, dy) || 1;
-      if (dd < sk.r + TIERS[b.tier].size / 2 && (dx * d.dir.x + dy * d.dir.y) / dd > 0.2) strike(bid, true);
+      if (dd < sk.r + TIERS[b.tier].size / 2 && (dx * d.dir.x + dy * d.dir.y) / dd > SKILL_CONE_COS) strike(bid, true);
     }
     for (const fid of room.foesOf(id)) {
       const f = room.state.players.get(fid); if (!f) continue;
       const dx = f.x - p.x, dy = f.y - p.y, dd = Math.hypot(dx, dy) || 1;
-      if (dd < sk.r + ARENA.body && (dx * d.dir.x + dy * d.dir.y) / dd > 0.2) strikeFoe(fid, true);
+      if (dd < sk.r + ARENA.body && (dx * d.dir.x + dy * d.dir.y) / dd > SKILL_CONE_COS) strikeFoe(fid, true);
     }
   } else if (sk.area === "dash") {
     const sx = p.x, sy = p.y, dist = room.dashStep(p, d, sk.r);

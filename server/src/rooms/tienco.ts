@@ -1,7 +1,7 @@
 // Tiên cơ, năng lượng đồng đội, Phong Lôi Chi Lực (GAME_DESIGN.md mục 5.1, 5.6, 2.5), tách khỏi MapRoom.ts (#702, bước 24): `tienCoSet`, `gainEnergy`, `gainLei`, `leiDong`, `tickEnergy`, `tienCo`.
 // Hàm nhận phòng (`room: MapRoom`) như skill.ts; nguyên văn từ MapRoom, không đổi hành vi. MapRoom chỉ chuyển tiếp 6 hàm.
 import { BeastState } from "./schema.ts";
-import { TIERS, VOHON, TIEN_CO, TIEN_CO_MAX, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY, energyGain, tienCoDmgMult, starTienCoMult, CORE_SET_2, CORE_SET_4, coreSetCounts, skillPower, PHONG_LOI, TIEN_CO_RIENG, chanThanOf, ARENA } from "../../../shared/data.ts";
+import { TIERS, VOHON, TIEN_CO, TIEN_CO_MAX, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY, energyGain, tienCoDmgMult, starTienCoMult, CORE_SET_2, CORE_SET_4, coreSetCounts, skillPower, PHONG_LOI, TIEN_CO_RIENG, chanThanOf, ARENA, MELEE_REACH, TIEN_CO_DASH_INV } from "../../../shared/data.ts";
 import { Character } from "../db.ts";
 import { type MapRoom, type PData, type Hit } from "./MapRoom.ts";
 
@@ -82,11 +82,11 @@ export function tienCo(room: MapRoom, id: string) {
     // Không có hồn thú trong tầm thì lướt tới đối thủ gần nhất (Đại Đấu Hồn Trường, 7.2).
     const fid = b ? undefined : room.nearestFoe(id, tc.range), f = fid ? room.state.players.get(fid) : undefined;
     if (b) room.dashTo(p, d, b, tc.dash, TIERS[b.tier].size); else if (f) room.dashTo(p, d, f, tc.dash, ARENA.body * 2); else room.dashStep(p, d, tc.dash);
-    d.inv = Math.max(d.inv, 0.35);
+    d.inv = Math.max(d.inv, TIEN_CO_DASH_INV);
     room.broadcast("fx", { k: "tienco", id, he, col, x: p.x, y: p.y, x0, y0 });
     // Lướt vào vùng an toàn thì không chém (không giao chiến trong vùng an toàn).
-    if (tgt && b && !room.map.inSafe(p.x, p.y) && Math.hypot(b.x - p.x, b.y - p.y) < 18 + TIERS[b.tier].size) room.damageBeast(tgt, dmg, id, col);
-    if (fid && f && Math.hypot(f.x - p.x, f.y - p.y) < 18 + ARENA.body * 2) room.damageFoe(fid, dmg, id, col);
+    if (tgt && b && !room.map.inSafe(p.x, p.y) && Math.hypot(b.x - p.x, b.y - p.y) < MELEE_REACH + TIERS[b.tier].size) room.damageBeast(tgt, dmg, id, col);
+    if (fid && f && Math.hypot(f.x - p.x, f.y - p.y) < MELEE_REACH + ARENA.body * 2) room.damageFoe(fid, dmg, id, col);
   } else if (he === "phu_tro") {
     const hm = room.healMult(d); // bộ hồn hạch Lưu Ly 2 món (5.2), ràng buộc Lam Ngân Hoàng (9.4)
     room.healTeam(id, tc.heal * hm);

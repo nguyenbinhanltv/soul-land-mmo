@@ -8,7 +8,7 @@ import { TIERS, TILE, ITEMS, BONE_ITEM, CORE_ITEM, RING_ITEM, PICKUP_RANGE, BEAS
   AUTO_HZ, AUTO_DAILY_SECS, AUTO_CLAIM_SECS, AUTO_MOVE, AUTO_SUM_LOOT, AUTO_RADIUS, AUTO_PACE, AUTO_STATUS, AUTO_BOSS, AUTO_LOOT_RADIUS, AUTO_LOOT_WAIT,
   AUTO_BOSS_DETOUR, AUTO_TARGET, AUTO_PARTY, AUTO_STUCK, AUTO_CLUSTER, AUTO_AOE_MIN, AUTO_SPAWN, AUTO_REST, BEASTS, STATUS, VOHON, offlineFight, loadoutOf, ringSkill,
   chanThanOf, autoTimeText, itemDef, xpNeed, formatYears, vohonIndex, isCcStatus, teleHits, teleSafe,
-  type AutoSettings, type AutoSummary, type AutoWhy, type AutoRate, type OfflinePower, type SkillDef, type ItemDef, type He } from "../../../shared/data.ts";
+  type AutoSettings, type AutoSummary, type AutoWhy, type AutoRate, type OfflinePower, type SkillDef, MELEE_REACH, type ItemDef, type He } from "../../../shared/data.ts";
 import { MOVE_DEAD, type SolidGrid } from "../../../shared/move.ts";
 import { findPath, findLongPath, clearLine, buildNav, navNode, type Pt, type Nav } from "../../../shared/path.ts";
 import type { GameMap } from "../map.ts";
@@ -726,10 +726,10 @@ export class AutoHunter {
   }
 
   // ---------- Di chuyển ----------
-  /** Đòn đánh thường trúng `b` nếu đánh ngay (đúng hình đòn trong attack(): điểm trước mặt 10 pixel, bán kính 18 + nửa cỡ hồn thú). */
+  /** Đòn đánh thường trúng `b` nếu đánh ngay (đúng hình đòn trong attack(): điểm trước mặt 10 pixel, bán kính MELEE_REACH + nửa cỡ hồn thú). */
   inReach(p: PlayerState, d: PData, b: BeastState) {
     const ax = p.x + d.dir.x * 10, ay = p.y - 6 + d.dir.y * 10, s = TIERS[b.tier].size;
-    return Math.hypot(b.x - ax, b.y - s / 2 - ay) < 18 + s / 2 - 2;
+    return Math.hypot(b.x - ax, b.y - s / 2 - ay) < MELEE_REACH + s / 2 - 2;
   }
 
   /**

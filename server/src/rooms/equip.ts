@@ -4,7 +4,7 @@
 import { itemDef, formatHonTe, AUTO_SELL_FREE,
   EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, parseEquip, equipTemplate, equipSlotIndex, equipName, equipSlotDef, rollEquip, EQUIP_STONES, EQUIP_CHARM,
   equipEnhanceStep, equipEnhanceResult, EQUIP_TEMPLATES, EQUIP_TIERS, EQUIP_ESSENCE, EQUIP_SOUL, equipLuckStep, EQUIP_SALVAGE_MAX, equipSynthStep, equipSynthOutcome,
-  equipSalvage, equipAutoSalvageable, type EquipData } from "../../../shared/data.ts";
+  equipSalvage, equipAutoSalvageable, AUTO_SALVAGE_RETRY_MS, type EquipData } from "../../../shared/data.ts";
 import { store, type Item } from "../db.ts";
 import { ItemLockBusy, withItemLocks } from "../itemLock.ts";
 import { presenceBackend } from "../presence.ts";
@@ -352,12 +352,12 @@ export function salvageEquip(room: MapRoom, id: string, rawIds: unknown, auto = 
   }, auto, rawIds);
 }
 
-/** Tự phân giải trang bị (E4, tùy chọn, mặc định tắt): túi còn dưới AUTO_SELL_FREE ô trống thì phân giải các món hợp bộ lọc (equipAutoSalvageable). Thử lại không quá 1 lần / 5 giây. */
+/** Tự phân giải trang bị (E4, tùy chọn, mặc định tắt): túi còn dưới AUTO_SELL_FREE ô trống thì phân giải các món hợp bộ lọc (equipAutoSalvageable). Thử lại không quá 1 lần / AUTO_SALVAGE_RETRY_MS. */
 export function autoSalvage(room: MapRoom, id: string) {
   const d = room.pdata.get(id); if (!d || d.sellCfg.salv <= 0 || d.enhBusy || d.travelling || d.travelCast || d.absorbing || claimHeld(d) || d.shardBusy) return;
   if (room.map.kind === "arena" || d.bagSlots - bagUsed(d.bag) >= AUTO_SELL_FREE || Date.now() < d.salvAt) return;
   const ids = d.bag.filter((i) => equipAutoSalvageable({ ...i, vohon: i.vohonId }, d.sellCfg)).slice(0, EQUIP_SALVAGE_MAX).map((i) => i.id);
   if (!ids.length) return;
-  d.salvAt = Date.now() + 5000;
+  d.salvAt = Date.now() + AUTO_SALVAGE_RETRY_MS;
   salvageEquip(room, id, ids, true);
 }
