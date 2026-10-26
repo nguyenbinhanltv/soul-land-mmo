@@ -58,3 +58,38 @@ export function detectGrid(img, { key = sheetKey(img), tol = GRID_TOL, mask = fo
   });
   return { key, mask, w, h, bands, medianFigW: median(bands.flatMap((b) => b.figures.map((f) => f.w))) };
 }
+
+/**
+ * Tách hình dính (tay / đuôi vươn chồng sang khung bên làm hai khung thành một khối trên trục x): dải nào có ÍT hình hơn số khung dự kiến thì
+ * chia hình rộng nhất tại cột có ít điểm vật nhất ở 40% giữa (thung lũng chiếu cột), lặp tới khi đủ số hình hoặc hết hình đủ rộng
+ * (≥ 1,4 lần bề rộng trung vị của dải). Dải đủ hình hoặc thừa hình giữ nguyên. Sửa tại chỗ, trả về danh sách dải đã tách [{ band, from, to }].
+ * @param {number[]} expected số khung dự kiến theo chỉ số dải hàng
+ */
+export function splitStuckFigures(grid, expected) {
+  const { w, mask } = grid, done = [];
+  grid.bands.forEach((b, row) => {
+    const want = expected[row];
+    if (want === undefined || b.figures.length >= want || !b.figures.length) return;
+    const from = b.figures.length, medW = median(b.figures.map((f) => f.w));
+    while (b.figures.length < want) {
+      const f = b.figures.reduce((m, g) => (g.w > m.w ? g : m));
+      if (f.w < 1.4 * medW) break;
+      const a = f.x0 + Math.floor(f.w * 0.3), z = f.x1 - Math.floor(f.w * 0.3);
+      let best = a, bestN = Infinity;
+      for (let x = a; x <= z; x++) {
+        let n = 0; for (let y = b.y0; y <= b.y1; y++) n += mask[y * w + x];
+        if (n < bestN || (n === bestN && Math.abs(x - (f.x0 + f.x1) / 2) < Math.abs(best - (f.x0 + f.x1) / 2))) { best = x; bestN = n; }
+      }
+      const part = (x0, x1) => {
+        let y0 = b.y1, y1 = b.y0, area = 0;
+        for (let y = b.y0; y <= b.y1; y++) for (let x = x0; x <= x1; x++) if (mask[y * w + x]) { area++; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+        return area ? { x0, x1, y0, y1, w: x1 - x0 + 1, h: y1 - y0 + 1, area } : null;
+      };
+      const l = part(f.x0, best - 1), r = part(best, f.x1);
+      if (!l || !r) break;
+      b.figures.splice(b.figures.indexOf(f), 1, l, r);
+    }
+    if (b.figures.length !== from) done.push({ band: row, from, to: b.figures.length });
+  });
+  return done;
+}

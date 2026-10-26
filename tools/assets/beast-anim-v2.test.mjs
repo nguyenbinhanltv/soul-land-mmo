@@ -97,8 +97,8 @@ test("sổ trạng thái: đủ trường, ổn định giữa hai lần chạy,
   assert.deepEqual(q.missing, []);
   assert.match(q.sheets[0].sha256, /^[0-9a-f]{64}$/);
   const t = st.items.find((x) => x.id === "thai_than_cu_vien");
-  assert.equal(t.state, "chan");
-  assert.equal(t.blocks.e, "chặn");
+  assert.notEqual(t.state, "chan", "hình dính ở e / ne đã được cutter / beast:check tách (#868)");
+  assert.notEqual(t.blocks.e, "chặn");
   assert.equal(t.imported, true);
   assert.deepEqual(buildStatus({ only }), st);
   const md = statusMarkdown(st);
