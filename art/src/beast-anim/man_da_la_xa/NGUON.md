@@ -10,8 +10,8 @@ Loài `man_da_la_xa` (Mạn Đà La Xà), họ `snake`, khung game 96×96. Mức
 - Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toA.prompt.txt` (SHA256 `bc408d937c904e56be51b7f142fa8bf8a49441c4a6a14613226b4f547b1c8f74`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
-- Mức kiểm: **chặn** (khối hướng: ?).
-- Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
+- Mức kiểm: **chặn** (khối hướng: s nhẹ, se pass, e chặn).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## toB
 
@@ -20,12 +20,15 @@ Loài `man_da_la_xa` (Mạn Đà La Xà), họ `snake`, khung game 96×96. Mức
 - Prompt: `toB.prompt.txt` (SHA256 `557fe41cc9ddc26e496ba17e7c19dbfb0484e5a979c1c1ad4df8944776e346e5`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: ne pass, n pass).
-- Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
+- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## Lỗi
 
 ```text
-LỖI: toA — sai kích thước — toàn tờ — 948×1659 không đúng tỉ lệ nào trong tập cho phép (A 2:3, B 1:1, một hướng 3:2).
+LỖI: toA — cỡ thân lệch — H1–4 (s), H9–12 (e) — cỡ thân idle 88% so với ảnh tĩnh (lệch 12%); cỡ thân idle 134% so với ảnh tĩnh (lệch > 25%).
+LỖI: toA — die nằm ngang — S H4 D3–D4 và SE H8 D3–D4 — lệch trục hướng (mắt)
+LỖI: toB — lộ mặt — NE H1 idle/hurt, H2 walk, H3 attack; N H7 attack — vi phạm quy tắc n/ne không thấy mặt (mắt)
+LỖI: toB — die nằm ngang — NE H4 D0–D3 và N H8 D2–D3 — lệch trục hướng (mắt)
 ```
 
 ## Ghi công
