@@ -87,7 +87,7 @@ export function tintedUrl(key: string, col: string) {
 
 /** Lựa chọn cỡ giao diện ở bảng Cài đặt: "auto" hoặc một hệ số cố định; lưu localStorage để lần sau giữ nguyên. */
 export const UI_SCALE_CHOICES = [
-  { v: "auto", label: "Tự động" }, { v: "0.75", label: "75%" }, { v: "1", label: "100%" }, { v: "1.25", label: "125%" }, { v: "1.5", label: "150%" },
+  { v: "auto", label: "Tự động" }, { v: "0.75", label: "75%" }, { v: "1", label: "100%" }, { v: "1.25", label: "125%" }, { v: "1.5", label: "150%" }, { v: "2", label: "200%" },
 ] as const;
 export type UiScalePref = (typeof UI_SCALE_CHOICES)[number]["v"];
 const SCALE_KEY = "shh-ui-scale";
@@ -100,16 +100,20 @@ export function setUiScalePref(v: UiScalePref) {
   applyScale();
 }
 
+/** Bậc cỡ giao diện tự động (người chơi PC): 1366 → 1×; 1600–1919 → 1,25×; 1920–2559 → 1,5×; 2560+ → 2×. */
+const AUTO_TIERS = [1, 1.25, 1.5, 2];
 /**
- * Tỉ lệ giao diện. Hệ số cố định thì dùng đúng hệ số. Tự động: bằng (cỡ cửa sổ / 1280×720) chia 1,5, làm tròn tới 0,5, tối thiểu 1
- * (1080p → 1×, 1440p → 1,5×, 4K → 2×), không nhảy thẳng 1× → 2× như trước; bậc nửa vẫn rơi đúng điểm ảnh thiết bị trên màn 2× dpi,
- * trên màn thường ảnh giấy / font Galmuri lệch lưới nhẹ ở bậc 1,5 (muốn sắc nét tuyệt đối thì chọn 100% / 150% hoặc 200% trên màn lớn).
+ * Tỉ lệ giao diện. Hệ số cố định thì dùng đúng hệ số. Tự động: lấy bậc lớn nhất trong `AUTO_TIERS` không vượt quá
+ * min(rộng / 1280, cao / 600) của vùng hiển thị (1366×768 → 1×, 1600×900 → 1,25×, 1920×1080 → 1,5×, 2560×1440 → 2×). Chiều cao chia 600 chứ
+ * không phải 720 để cửa sổ có khung trình duyệt (1920×~950) vẫn lên 1,5×; chiều rộng quyết định bậc vì HUD co theo chiều ngang.
+ * Bậc 1,25 / 1,5 phóng bằng CSS `zoom`: chữ Galmuri và ảnh giấy lệch lưới nhẹ ở màn DPR 1 (ảnh khung `image-rendering: pixelated`
+ * giữ bảng màu); muốn sắc tuyệt đối thì chọn 100% / 200% ở Cài đặt.
  */
 export function uiScale() {
   const pref = getUiScalePref();
   if (pref !== "auto") return Number(pref);
-  const fit = Math.min(innerWidth / 1280, innerHeight / 720);
-  return Math.max(1, Math.round((fit / 1.5) * 2) / 2);
+  const fit = Math.min(innerWidth / 1280, innerHeight / 600);
+  return AUTO_TIERS.filter((t) => t <= fit + 1e-6).pop() ?? 1;
 }
 /**
  * Đặt `--u` và các lớp theo kích thước LOGIC (cỡ cửa sổ chia `--u`, vì HUD phóng bằng `zoom`): `ui-w1000` / `ui-w640` / `ui-w560` / `ui-w520` / `ui-w420`
