@@ -85,7 +85,7 @@ export function tintedUrl(key: string, col: string) {
   } catch { return u; }
 }
 
-/** Lựa chọn cỡ giao diện ở bảng Cài đặt: "auto" hoặc một hệ số cố định; lưu localStorage để lần sau giữ nguyên. */
+/** Lựa chọn cỡ giao diện ở bảng Cài đặt: mặc định "1" (100%) khi chưa lưu; "auto" (Tự động theo màn) hoặc hệ số cố định do người chơi chọn; lưu localStorage để lần sau giữ nguyên. */
 export const UI_SCALE_CHOICES = [
   { v: "auto", label: "Tự động" }, { v: "0.75", label: "75%" }, { v: "1", label: "100%" }, { v: "1.25", label: "125%" }, { v: "1.5", label: "150%" }, { v: "2", label: "200%" },
 ] as const;
@@ -93,7 +93,7 @@ export type UiScalePref = (typeof UI_SCALE_CHOICES)[number]["v"];
 const SCALE_KEY = "shh-ui-scale";
 export function getUiScalePref(): UiScalePref {
   try { const v = localStorage.getItem(SCALE_KEY); if (UI_SCALE_CHOICES.some((c) => c.v === v)) return v as UiScalePref; } catch { /* trình duyệt chặn lưu trữ */ }
-  return "auto";
+  return "1";
 }
 export function setUiScalePref(v: UiScalePref) {
   try { localStorage.setItem(SCALE_KEY, v); } catch { /* không lưu được thì chỉ áp dụng lượt này */ }
