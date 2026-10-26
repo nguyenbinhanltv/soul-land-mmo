@@ -1,0 +1,35 @@
+Create ONE image, exactly 1024x1024 pixels: an animation sprite sheet of a single fantasy creature for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
+
+CREATURE: Băng Giáp Cự Quy - ice-armored giant tortoise, thick grey-blue shell covered with ice crystals and frost, short thick legs, small head. Body type: thú bốn chân. Size class: Tím / Đen. The attached reference image shows this exact creature in three static views (front, side, back): keep the SAME design, proportions, colors, markings and overall size in every frame of the sheet. Do not redesign it.
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
+
+GRID: 6 columns x 8 rows of equal invisible cells (171x128 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with its feet (or lowest body point) standing on the same invisible ground line about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.
+
+LAYOUT (top to bottom):
+Block 1 (rows 1-4): direction "ne" = facing the upper right of the picture (three-quarter back view, head away from the viewer toward the right).
+  row 1: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 2: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 3: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 4: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+Block 2 (rows 5-8): direction "n" = facing away from the viewer (back view from above).
+  row 5: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (flinch backward, head jerks, eyes shut tight).
+  row 6: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 7: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 8: frames 1-4 = DIE (stagger, collapse sideways, finally lying flat on the ground); the last 2 cells of this row stay empty magenta.
+
+CONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, standing, walking and hurt frames keep the body at the same scale and the same ground line. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).
+
+STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.
+
+DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions.
+
+Match the creature design, colors, size and line weight of the second attached sheet exactly.
+
+OWNER REVIEW CORRECTION — REGENERATE THE ENTIRE B SHEET, NOT A PATCH: Image 1 is the static identity reference. Image 2 is the A sheet approved by the owner for raw direction/style only; it is not a north-pose template or runtime acceptance. Preserve the reference creature proportions, palette and line weight. Keep the NE block in rows 1-4 as a clear rear three-quarter view toward the upper right. Critical: NORTH = SEEN FROM BEHIND, HEAD HIDDEN, TAIL TOWARD VIEWER IN ALL ROWS. In every single cell of rows 5, 6, 7 and 8, the viewer sees the REAR shell and the tail at the lower near edge. The turtle head is at the upper far edge and hidden behind the shell. Never draw a face, eyes, snout, mouth or front-facing chin at the lower edge. This rear-only north rule applies equally to IDLE, HURT, WALK, ATTACK and DIE; do not switch heading between rows. All north movement and recoil must keep the tail toward the viewer and head away/hidden. The turtle has one head only; never add a second head to a collapsed frame. Regenerate all 44 frames in the fixed 6-column x 8-row layout, leaving row4/row8 columns5-6 empty. Return exactly 1024x1024 pixels, as requested by issue767. Keep creature pixel scale corresponding to the A sheet, not enlarged to fill a larger canvas. No labels, text, visible grid, shadows, effects, extra creatures or postprocessing.
+
+same body size as sheet A
+
+OWNER CLARIFICATION: This is a fresh entire B sheet on an exactly square 1024x1024 canvas, not a north-only pilot, patch or composite. Use the second attachment only for creature design, palette, line weight and absolute pixel body scale, not its 12-row canvas layout or its poses. Draw exactly 8 evenly spaced rows and 6 columns, with 44 figures and only 4 blank cells. NE is clearly upper-right REAR three-quarter, not an east side view. NORTH in EVERY frame of rows 5-8 is strictly rear: head completely hidden at the upper far edge, pointed tail at the lower near edge. Hurt must show visible backward recoil while preserving heading. Attack must show a distinct crouch, away-facing lunge and recovery, not unchanged walk poses. Die must visibly collapse without turning around or adding a head. Maintain 12% foot clearance and 8% margins.
+
+FINAL OWNER CLARIFICATION FOR THIS FRESH WHOLE SHEET: The previous attempt failed by depicting FRONT-facing turtles in every NORTH row, with a round blue head at the lower edge. Correct this completely. In rows 5-8 the ONLY central appendage at the lower edge is a SMALL POINTED BROWN TAIL, never a rounded blue head. The blue head is entirely invisible, behind the upper far shell. Use the BACK view (rightmost creature) of attachment 1 to determine NORTH anatomy. Do not use attachment 2 front-facing poses for NORTH. All 22 NORTH figures including hurt and collapsed death are seen from behind with no eyes or facial features anywhere on the near edge. In row 8 keep the head hidden and rear tail visible even while flattening and collapsing; do not turn sideways. In rows 1-4 show more of the REAR shell and upper-right away-facing orientation, not a pure side profile. Make hurt a clear recoiling pose, attack clearly distinct from walk. Exact square output 1024 by 1024 pixels; the 1024 by 1536 attachment 2 is only style and body-scale reference and must NOT dictate output dimensions. Do not enlarge the bodies; same body size as sheet A.

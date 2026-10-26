@@ -1,0 +1,151 @@
+{
+  "species": "bang_giap_cu_quy",
+  "sheet": "B",
+  "worker": "soul-land-mmo-79",
+  "issue": 767,
+  "raw_file": "B5.png",
+  "sha256": "05dc115d861d5e96c73492f76403d13da932c5be28c5e8c8d2f387a6ca968576",
+  "bytes": 2004599,
+  "width": 1254,
+  "height": 1254,
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "size_requirement_met": false,
+  "grid": [
+    6,
+    8
+  ],
+  "expected_visible_cells": 44,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "No size/model/seed selector exposed; dimensions requested in prompt only.",
+  "transparent_background": false,
+  "selected_attempt": 5,
+  "attempts": 7,
+  "counters": {
+    "A": 2,
+    "whole_B": 7,
+    "failed_N_pilot": 1,
+    "species_including_pilot": 10
+  },
+  "prompt_file": "B5.prompt.txt",
+  "prompt_sha256": "4d4959b30196825c71bcc748fd879002b23866f0ac6857665175f145e29348f6",
+  "references": [
+    {
+      "path": "/Users/thanhhoa/.ao/data/worktrees/soul-land-mmo/soul-land-mmo-63/shared/assets/sprites/beast/bang_giap_cu_quy.png",
+      "role": "static identity / rear geometry",
+      "sha256": "43cb6801eaa86ea44a31c8d90533b43bd1f04d778c8ee5c275c0378fb1c4feb2"
+    },
+    {
+      "path": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-69/A2.png",
+      "role": "A69 raw owner accepted; style/body only for B, not B pose acceptance",
+      "sha256": "7816619a51c15e87d562e6db3d6224d7152e6493af26c0215371b9f2f7c649f0"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17541-6dfc-7d41-8f0a-f911d6d92c20/exec-3df9dba1-73d8-4ae9-9e2e-29557c8a76d3.png",
+  "upstream_provenance": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-79/provenance-handoff.json",
+  "history": [
+    {
+      "attempt": 1,
+      "raw_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-71/B1.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a174c6-daa5-7c70-85bc-c022c7a164b6/exec-44e08f66-58c6-4127-b749-85e04d573c7c.png",
+      "sha256": "7d9b5d8ee82dc1a6455c281da6309d514f7e077deefb2106ef29e3cecc7052ea",
+      "bytes": 2027502,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-71/B1.prompt.txt",
+      "prompt_sha256": "90bbe6b447a5dc1a8c2c05dddf34dfbee2bb046ad2cfcbaa3de9f3ad7cfd0614"
+    },
+    {
+      "attempt": 2,
+      "raw_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-71/B2.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a174c6-daa5-7c70-85bc-c022c7a164b6/exec-89cb83b9-4478-4ed8-b97f-f3454e1087c8.png",
+      "sha256": "386b0a90b00f1146a9e4416604acd8fc751b1c5eaa1630e26c7b255b447da25a",
+      "bytes": 2048867,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-71/B2.prompt.txt",
+      "prompt_sha256": "c8b5c3a02f734cdf5cefd2e54600ff380c92982e05bbd68c4123af291c3ee191"
+    },
+    {
+      "attempt": 3,
+      "raw_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-75/B3.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a174d4-2284-7a10-a456-cbc92cdad5a1/exec-ddcb4e84-96e2-4088-825c-e2108854f851.png",
+      "sha256": "ff9964fb02b1ca83c2bc4eccd03d05435345b0554bab694722c6101798c4be72",
+      "bytes": 2012350,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-75/exactB3.prompt.txt",
+      "prompt_sha256": "93d337a83e5363166d1dfd42f8982e6e44c78c75a4ea35e17365a812ed519c97"
+    },
+    {
+      "attempt": 4,
+      "raw_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-79/B4.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17541-6dfc-7d41-8f0a-f911d6d92c20/exec-e7254abd-4c73-42fa-af32-826bc920e8ee.png",
+      "sha256": "37cd82ab0fa93d79d6ca1e451030b9ce78da675c545eedfd70d61d9b8a32328b",
+      "bytes": 2011321,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-79/B4.prompt.txt",
+      "prompt_sha256": "a07a3471a416037abbdb17decb16a2e605ed869cc1847721b958cad7e4939d96"
+    },
+    {
+      "attempt": 5,
+      "raw_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-79/B5.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17541-6dfc-7d41-8f0a-f911d6d92c20/exec-3df9dba1-73d8-4ae9-9e2e-29557c8a76d3.png",
+      "sha256": "05dc115d861d5e96c73492f76403d13da932c5be28c5e8c8d2f387a6ca968576",
+      "bytes": 2004599,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-79/B5.prompt.txt",
+      "prompt_sha256": "4d4959b30196825c71bcc748fd879002b23866f0ac6857665175f145e29348f6"
+    },
+    {
+      "attempt": 6,
+      "raw_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-86/raw/B6.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17586-ad03-7ca0-914c-82a03ad66cfd/exec-9f6a1e0e-5212-496d-9f5c-cdd6f83aed23.png",
+      "sha256": "eccc988fb0870f5c59ad211e7b395d76f632258bf973fb67fd22500f75df7f0e",
+      "bytes": 1988186,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-86/prompts/B6.txt",
+      "prompt_sha256": "b9bef7c3389365c90a7316a0311f96abb7903c5eaec0caf5e935b2199530f8cf"
+    },
+    {
+      "attempt": 7,
+      "raw_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-86/raw/B7.png",
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17586-ad03-7ca0-914c-82a03ad66cfd/exec-147e0b2b-0773-4b31-b1a2-13e2c411a2d4.png",
+      "sha256": "b254a3dd73e490cff746a082887ae27e67d097890027ba2566226939b93209bb",
+      "bytes": 2063132,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_artifact": "/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-86/prompts/B7.txt",
+      "prompt_sha256": "fde5bc31e58fdb3df1bcf853e99c9b9eec7060e6266ef4204ead24c705a86ed1"
+    }
+  ],
+  "selection_reason": "Comparison B5 vs primary B7: khác vị trí lỗi anatomy và hướng; không thêm lượt generation.",
+  "known_issues": [
+    "FAIL B5 H2C3 extrahead, H8C3–4headright; N H5–7 rear cải thiện.",
+    "1254×1254, không accepted; chỉ comparison."
+  ],
+  "qa_status": "FAIL / candidate for owner review; not art/runtime/size accepted",
+  "publication_policy": "User explicitly requested committing failed raw candidates for owner review; submission is not acceptance or import.",
+  "postprocessing": "None; byte-identical copy of original tool output."
+}

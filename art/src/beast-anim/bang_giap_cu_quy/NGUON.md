@@ -1,32 +1,29 @@
-# Băng Giáp Cự Quy — H4 #767
+# Băng Giáp Cự Quy — RAW FAIL để owner duyệt (#767)
 
-Part of #767, thuộc #766. Cặp raw candidate tiếp sau PR784 (Ám Kim Khủng Trảo Hùng 2/10 đã merge); tổng sau nộp cặp này là 4/10 raw, chưa hoàn thành whole issue.
+Part of #767 và #766. User đã yêu cầu nộp cả candidate FAIL để xem remote; nộp không đồng nghĩa owner duyệt hoặc nhập game. Không cắt/resize/crop/quantize/hậu kỳ. Các lượt không chọn giữ ở artifact, không nộp dư thừa.
 
-A2 sinh trong fresh worker69, B2 trong fresh worker71, mỗi tờ 2/2 lượt rồi dừng. Builtin imagegen không trả model/seed, không có selector kích thước; không suy model từ harness. Raw giữ nguyên byte output, không cắt/resize/hậu kỳ/quantize/đổi metadata.
+## Tờ A: chọn lượt 2/2 — FAIL / chưa nghiệm thu
 
-A thực tế1024×1536 đúng yêu cầu, 6×12 s/se/e. B thực tế1254×1254 **sai yêu cầu1024×1024**, 6×8 ne/n. Không lấy ngoại lệ hoặc duyệt H2/loài khác làm acceptance H4. 66/44 hình và 6/4 ô trống là quan sát raw; chưa cutter/preview/loop.
+Lý do: Giữ nguyên A69/A2 owner đã xem duyệt raw.
 
-A reference duy nhất static đúng loài (identity). B xem/đính đúng static identity + A2 STYLE candidate, không phải A đã duyệt mỹ thuật/runtime hay pose template. Prompt script giữ nguyên trong `bang_giap_cu_quy-toA.md`/`-toB.md`; prompt thực `toA.prompt.txt`/`toB.prompt.txt` giữ nguyên khối gốc rồi thêm clarification. Nguồn/hash/header/inputroles/lịch sử/outputpath tại `toA.source.json`/`toB.source.json`; cả hai lượt và raw gốc giữ ở artifact workers69/71, không sửa.
+Kích thước thật 1024×1536, yêu cầu [1024, 1536]; SHA-256 `7816619a51c15e87d562e6db3d6224d7152e6493af26c0215371b9f2f7c649f0`.
 
-## Tờ A — ô nghi lỗi (H/R và C tính từ1)
+- Owner đã duyệt raw A s/se/e tại review5645187758; không phải B/runtime accepted.
 
-- r5-r8: SE is shallow three-quarter and head remains rather horizontal; owner must judge distinctness from E
-- r5c5-c6 and r9c5-c6: hurt recoil / shut eyes not strongly readable
-- r7c1-c6 and r11c1-c6: attack extension subtle; no obvious strong bite at all frames
-- r4c3-c4: front-facing lowered/splayed death instead of pronounced sideways roll
-- r8c3-c4 and r12c3-c4: body lowers but final lying silhouette may be insufficient
-- reference palette/markings broadly followed but frost/shell detail simplified; no approval implied
+## Tờ B: chọn lượt 7/7 — FAIL / chưa nghiệm thu
 
-## Tờ B — ô nghi lỗi (H/R và C tính từ1)
+Lý do: B7 được chọn vì N idle/walk/attack giữ rear tốt hơn B2 đang nộp (N idle/walk lộ mặt) và cải thiện N walk so B6. Đổi lại NE die H4C3–4 sai/extrahead rõ; không coi đã fix. B5 comparison có N rear H5–7 nhưng H2C3extrahead và H8C3–4headright. Không lấy latest máy móc: giữ hai trade-off để owner chọn.
 
-- grid: Both visually 6 columns x 8 rows, 44 figures, empty r4c5/r4c6/r8c5/r8c6.
-- heading: B2 NE better, still fairly side-biased; N top protrusion suggests head away but lower protrusions remain face-like.
-- hurt: Small head/neck change; recoil weak or ambiguous in r1c5-c6 and r5c5-c6.
-- die: B1 r4c4 rotates sideways; B2 r4c4 possible duplicated head at right, direction/anatomy suspect. B2 N collapse lowers shell but lower face-like protrusion remains.
-- loops: Idle/walk pose changes subtle, some near duplicates; smooth loops unproven without animation.
-- margins_scale: No obvious touching/crossing at whole-sheet inspection; some scale/groundline variation, especially attack/death. Precise per-cell checks not run.
-- background: Visually flat magenta; exact all-pixel FF00FF and outline hex not certified.
-- style: Blue ice shell/brown thick limbs generally match A2. Static identity details not fully reproduced; candidate only.
-- other: No visible labels/grid/text/aura/weapons/other species. B2 r4c4 anatomy suspect.
+Kích thước thật 1254×1254, yêu cầu [1024, 1024]; SHA-256 `b254a3dd73e490cff746a082887ae27e67d097890027ba2566226939b93209bb`.
 
-Owner repo cắt/preview/duyệt/nhập game. Worker chỉ bàn giao raw, chưa khẳng định hướng/anatomy/loop/runtime hoặc kích thước B đạt. Không sửa loài khác, runtime, client, manifest, server/shared/DB/balance.
+- FAIL N/NE orientation/anatomy: B7 H4C3 có hai phần giống đầu trái+phải; H4C4 lộ mặt trái, không giữ NE.
+- H8C3–4 appendage xanh phải còn mơ hồ, chưa chứng minh head-hidden N.
+- H5–H7 rear/đuôi rõ hơn B2 và B5; hurt vẫn nhẹ, loop/scale chưa nghiệm thu.
+- Actual1254×1254 khác yêu cầu1024×1024; giữ nguyên raw, không fake1024.
+- User cho nộp FAIL không phải miễn spec; #810 owner normalize derived import, không sửa pose.
+
+## Nguồn và giới hạn
+
+Mỗi tờ sinh trong fresh session, retry trong cùng tờ; builtin không trả model/seed hay size selector. `toX.prompt.txt` là prompt thực nguyên văn, `toX.source.json` chứa hash/byte/header/ref roles/original path/counters/lịch sử. Mẫu script giữ nguyên trong `<loài>-toX.md`. Raw trong PR đã đối chiếu nguyên byte output. Không khẳng định mỹ thuật, hướng, anatomy, grid/nền, loop, cùng cỡ thân hoặc runtime đạt. Các lỗi do ảnh được giữ để owner quyết định. Không sửa client/runtime/manifest/cutter/server/shared/DB/balance.
+
+B2 cũ ở PR798 head65ac0732c4e59e9babd0553097de7367d0d56425; comparison B5 tại `candidates/B5.png` + prompt/source, primary B7 tại `toB.png`. Thread orientation PR798 giữ OPEN/unfixed; đổi candidate để owner xem không tự resolve. Tổng A2+B7+N1=10, không reset. N pilot failed ngoàiGit, không mapping riêng.
