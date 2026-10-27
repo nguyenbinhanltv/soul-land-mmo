@@ -17,6 +17,8 @@ Prompt tự sinh bằng `node tools/assets/vohon-prompt.mjs --type phaptuong --i
 - Lượt 3 có 5 tư thế khác nhau nhưng chỉ 4 góc đáp ứng s, se, e, n; ne lộ mắt. Các lượt 1 và 2 còn sai phía hướng chéo.
 - Không người, chữ, khung; nền alpha. Không sửa RAW để che lỗi. Chỉ concept, chưa duyệt làm nguồn cho các loại hình khác.
 
+- Kiểm RAW tự động: cả ba lượt NHẸ, tách được 5 cụm; lượt 2 có tỉ lệ 3:1, các lượt còn lại khoảng 5:2. Kết luận duyệt mắt vẫn CHẶN vì hướng chéo không đạt.
+
 ## Ghi công
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |

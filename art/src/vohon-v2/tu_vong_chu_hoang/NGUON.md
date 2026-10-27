@@ -15,6 +15,8 @@ Prompt tự sinh bằng `node tools/assets/vohon-prompt.mjs --type phaptuong --i
 - Có 5 góc nhìn thật s, se, e, ne, n; ne và n nhìn lưng không lộ mặt. Góc e còn hơi chếch trước.
 - Không người, chữ, khung; nền alpha. Không sửa RAW để che lỗi. Chỉ concept, chưa duyệt làm nguồn cho các loại hình khác.
 
+- Kiểm RAW tự động: NHẸ, 5 cụm; texture mềm (73%), 203 màu đáng kể, lưới chưa cứng, 43% điểm sáng gần bảng màu game. Các cảnh báo này không thay thế duyệt hướng bằng mắt.
+
 ## Ghi công
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |

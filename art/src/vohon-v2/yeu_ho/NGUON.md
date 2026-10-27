@@ -12,10 +12,12 @@ Prompt tự sinh bằng `node tools/assets/vohon-prompt.mjs --type phaptuong --i
 
 ## Tự soát RAW
 
-- Số lượt: 3/3; lượt tốt nhất: 2.
+- Số lượt: 3/3; lượt tốt nhất: 1.
 - Mức: **chặn**. Lượt 1: góc ne và n không lộ mặt, nhưng thừa trang sức vàng / tua đỏ ngoài brief và các khối đuôi không nhất quán ba đuôi. Lượt 2: bỏ trang sức nhưng hình s có ít nhất bốn khối đuôi, ne lộ mặt; chọn tốt nhất vì sát brief hơn. Lượt 3: thừa trang sức, nhiều hơn ba đuôi và ne quay sai / lộ mặt. Cả ba bị chặn nhận diện.
 - Lượt 1 có 5 góc thật; lượt 2 chỉ 4 góc đáp ứng (ne lộ mặt); lượt 3 không đạt ne. Không ảnh nào đạt đồng thời hướng và đúng ba đuôi.
 - Không người, chữ, khung; nền alpha. Không sửa RAW để che lỗi. Chỉ concept, chưa duyệt làm nguồn cho các loại hình khác.
+
+- Kiểm RAW tự động: lượt 1 NHẸ (5 cụm), lượt 2 CHẶN (3 cụm), lượt 3 NHẸ (5 cụm). Chọn lại lượt 1 vì có 5 góc đúng và không lộ mặt ở ne/n; vẫn CHẶN số đuôi / trang sức ngoài brief.
 
 ## Ghi công
 

@@ -12,10 +12,12 @@ Prompt tự sinh bằng `node tools/assets/vohon-prompt.mjs --type phaptuong --i
 
 ## Tự soát RAW
 
-- Số lượt: 3/3; lượt tốt nhất: 1.
+- Số lượt: 3/3; lượt tốt nhất: 3.
 - Mức: **chặn**. Cả ba lượt còn mắt / mõm ở góc ne. Thân xám nâu than và lửa cam đọc rõ; tạo hình hung, nhưng lửa và vân còn dày, vài hình sát nhau. Lượt 1 có khoảng tách hình rõ hơn. Không có lượt đạt đủ yêu cầu hướng lưng.
 - Có 5 tư thế khác nhau nhưng chỉ 4 góc đáp ứng: s, se, e, n; ne nhìn thân sau nhưng ngoảnh đầu lộ mặt, bị chặn.
 - Không người, chữ, khung; nền alpha. Không sửa RAW để che lỗi. Chỉ concept, chưa duyệt làm nguồn cho các loại hình khác.
+
+- Kiểm RAW tự động: lượt 1 CHẶN (chỉ tách 3 cụm), lượt 2 CHẶN (4 cụm), lượt 3 NHẸ (5 cụm). Chọn lại lượt 3 vì tách đủ 5 hình; cả ba vẫn CHẶN khi duyệt mắt do ne lộ mặt.
 
 ## Ghi công
 
