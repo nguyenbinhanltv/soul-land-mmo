@@ -1,0 +1,11 @@
+{
+    "seed":  "unknown",
+    "timestamp":  "2026-10-27T05:56:16.4773530Z",
+    "sha256":  "cb6a27797937190f02c5f3b8d007eb70b5ce391c6929d493b4eb1b531412cee8",
+    "model":  "unknown",
+    "references":  [
+                       "shared/assets/sprites/beast/thuc_nhan_hoa.png"
+                   ],
+    "tool":  "Codex image_gen.imagegen",
+    "attempts":  1
+}
