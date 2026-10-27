@@ -1,0 +1,133 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-28",
+  "attempt": 1,
+  "attempt_limit": 3,
+  "raw": "art/src/vohon-v2/hao_thien_chuy/icon-attempt1.png",
+  "raw_sha256": "e8e5a8d2ef5c5ed29fec8fc090ca92a0124ad2668cfb0b55ac6d071ac532e9ae",
+  "prompt": "art/src/vohon-v2/hao_thien_chuy/icon-attempt1.prompt.txt",
+  "prompt_sha256": "428bf76e63153f501a34d72516d46a291ec7950e1de9696a31fc82e5ad433975",
+  "sent_prompt": "STYLE (apply to every image):\nDark-xianxia pixel art, isometric RPG, overbearing and dominant \"heaven-defying\" presence.\nThe spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.\nAngular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.\nMuted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small\nhigh-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region\n(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,\nno anti-aliasing, hard pixel edges. Light comes from the upper left.\nCultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);\ndo not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).\nMaterials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.\nCalm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.\nTransparent background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels\n(glow, particles and motion are added in code).\n\nNEGATIVE (forbidden):\ncute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,\nSaturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,\npastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,\nflat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,\nreadable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,\n3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,\nanti-aliasing, painterly brush texture, drawing a copy of existing sprite.\n\nADDITIONAL FORBIDDEN (this asset type): tiny whole animal, full body, frame, card, text, background scenery.\n\nSPIRIT: Hạo Thiên Chùy (hao_thien_chuy). The design brief below comes from the canonical design table and is written in Vietnamese: follow it exactly, keep every hex code as written, and use only the motifs listed in it (do not add any other motif).\n- Overbearing presence: búa **trấn thiên hạ**: đầu búa to bằng cả thân người, nặng đến mức đất dưới nó nứt; không cần ra đòn, chỉ vác lên vai đã đủ áp.\n- Form: đầu búa vuông khối, mặt búa có mẻ, cán dài, kết cấu thô chắc; đầu búa chếch cao hơn đầu hồn sư.\n- Palette: đen sắt theo `robe`, ánh thép xám lạnh theo `col`; nhấn một vệt vàng cũ ở đai cán + nứt sáng cam đỏ rất ít (bắt buộc viền sáng, phần 3.2).\n- Motifs (use only these): vân đạo văn chìm khắc quanh đầu búa, đất nứt hình tia dưới chân (lớp nền, code thêm bụi).\n- Companion objects: mảnh đá vỡ bay lên; dây đai / xích quấn cán.\n- Base colors in the game data: accent (col) #9aa0b4, body (robe) #22222c.\n\nASSET TYPE: spirit icon source for a menu icon (final art 32x32 and 24x24). Square 1:1 image. ONE emblem: the single most identifying shape of the spirit (head, blade, hammer head, flower, flame core...), centered, filling about 80% of the frame, strong silhouette, 2 or 3 flat tones plus one bright accent. No scenery, no full-body animal, no motif other than the one that defines the silhouette.\n\nBACKGROUND: transparent (real alpha). If your tool cannot output alpha, use one flat solid #FF00FF magenta, with no gradient, no texture, no shadow.\n\nLOOK (this replaces any request for a pixel grid, pixel count or color limit): chunky low-resolution pixel look, flat color clusters, simple shapes readable when shrunk. Large deliberate clusters of flat color with hard square edges; few broad color regions; no microtexture, no fine hatching, no tiny decorative marks, no fur or feather strands, no noise. Do not try to count pixels or colors: a post-processing tool converts your image to the final pixel grid and palette, so give it bold, simple shapes.\n\nSTYLE REFERENCE: image 1 (attached) is an APPROVED image of this project's new art direction. Match only its line weight, how few and how large its color clusters are, and its overall mood. Do not copy its subject, pose, composition or any detail of it.",
+  "sent_prompt_sha256": "76fc5799eda1f0f509e2c3308b452629fbce4c9ba0aee171d2e2890b99208440",
+  "prompt_command": "node tools/assets/vohon-prompt.mjs --type icon --id hao_thien_chuy --style-ref art/src/vohon-v2/hao_thien_chuy/concept-attempt2.png",
+  "reference": "art/src/vohon-v2/hao_thien_chuy/concept-attempt2.png",
+  "reference_sha256": "631ac2ef55e230875ee2452b5dac9c634829ed09642d9666824e2a20f0e664af",
+  "conversion_command": "node tools/assets/vohon-pixelize.mjs --type icon --id hao_thien_chuy --in art/src/vohon-v2/hao_thien_chuy/icon-attempt1.png --out art/src/vohon-v2/hao_thien_chuy/icon-attempt1-nearest --preset icon-nearest",
+  "checks": {
+    "24": {
+      "type": "icon",
+      "id": "hao_thien_chuy",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (3 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.91 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 187,
+        "outline": 1,
+        "hot": 0.046,
+        "contrast": 0.159,
+        "edge": 0.91,
+        "sep": null,
+        "bgRatio": 1.05
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    },
+    "32": {
+      "type": "icon",
+      "id": "hao_thien_chuy",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (4 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.938 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 342,
+        "outline": 1,
+        "hot": 0.057,
+        "contrast": 0.174,
+        "edge": 0.938,
+        "sep": null,
+        "bgRatio": 1.06
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    },
+    "raw": {
+      "type": "icon",
+      "id": "hao_thien_chuy",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "mem",
+          "text": "texture mềm: 88% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-mau",
+          "text": "178 màu đáng kể (nên ≤ 160 để ép về ≤ 32 mà không bệt)"
+        },
+        {
+          "sev": "soft",
+          "code": "luoi",
+          "text": "chưa đúng lưới khối: tỉ số biên 1.3 ở chu kỳ 38 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+        },
+        {
+          "sev": "soft",
+          "code": "lech-mau",
+          "text": "26% điểm sáng cùng họ màu robe / col của hao_thien_chuy (mục 4 cần ≥ 50%)"
+        }
+      ],
+      "metrics": {
+        "w": 1254,
+        "h": 1254,
+        "ratio": 1,
+        "border": {
+          "clear": 1,
+          "flat70": 0
+        },
+        "fill": 0.74,
+        "softness": 0.888,
+        "bigColors": 178,
+        "grid": {
+          "period": 38,
+          "ratio": 1.3
+        },
+        "paletteMatch": 0.26,
+        "smallAccent": "8/8"
+      },
+      "manual": [
+        "đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi)",
+        "không có chữ, ký hiệu đọc được, logo, chữ ký",
+        "đọc được cả ở cỡ thật 1× (nhìn lướt)"
+      ]
+    }
+  },
+  "eye": "Một búa thép tím đen, đầu búa lớn với vết nứt cam và cạnh bạc; cán còn dài, một số vết nứt nhỏ đứt ở 24 px; silhouette búa vẫn đọc rõ, cần duyệt mức sáng và biểu tượng trên đai.",
+  "imported": false
+}
