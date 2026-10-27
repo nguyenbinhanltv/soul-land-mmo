@@ -2,7 +2,7 @@
 
 File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species doc_cuc_dang`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
 
-Loài `doc_cuc_dang` (Độc Cức Đằng), họ `plant`, khung game 96×96. Mức kiểm chung: **nhẹ**.
+Loài `doc_cuc_dang` (Độc Cức Đằng), họ `vine`, khung game 96×96. Mức kiểm chung: **nhẹ**.
 
 ## toA
 
@@ -12,14 +12,13 @@ Loài `doc_cuc_dang` (Độc Cức Đằng), họ `plant`, khung game 96×96. M�
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se nhẹ, e pass).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 83% so với ảnh tĩnh (lệch 17%); cutter neo lại, không chặn.
-- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## Lỗi
 
 ```text
 LỖI: toA — hình ở ô trống — H4 (s) C5, H4 (s) C6, H8 (se) C5, H8 (se) C6 — ô trống có hình (4.06% diện tích ô): hình tràn từ ô bên; ô trống có hình (2.02% diện tích ô): hình tràn từ ô bên; ô trống có hình (18.92% diện tích ô): hình tràn từ ô bên; ô trống có hình (17.92% diện tích ô): hình tràn từ ô bên.
 LỖI: toA — s se e — die khung cuối co thành đám dây gần giống nhau, hướng đổ chưa rõ; se và e phân biệt ở idle/walk/attack (mắt)
-LỖI: toA — Hồ sơ tờ B — CHẶN mắt sau 3 lượt: candidates/toB-attempt1.png, toB-attempt2.png (lượt tốt nhất), toB-attempt3.png; ne giống e, n giống s, không đọc được góc lưng ở mọi hoạt ảnh. Không có toB.png chính. Mỗi source.json chứa prompt nguyên văn và SHA256, tham chiếu ảnh tĩnh + A1; không dùng B lỗi làm tham chiếu (mắt)
 ```
 
 ## Ghi công
