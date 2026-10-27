@@ -153,3 +153,11 @@ Lớp mỏng `client/src/panelStack.ts` (không khung mới, không đọc state
 - Hướng dẫn lần đầu M6 #752 (việc con của #746).
 - Tích hợp khung C2 C16 #595; mapping được chủ repo chốt trong issue.
 - Nhật ký từng bước: `docs/lich-su.md`.
+
+## Thanh kỹ năng và đội hình trong trận (C8)
+- Ba nhóm riêng: Hồn cốt (Z / X / C), Hồn kỹ (J, U / I / O / P, R, G nếu có), Vật phẩm (E nhặt; B mở túi, nút Tiêu hao mở nhóm tiêu hao).
+- Phím nằm trong góc ô, tên dưới biểu tượng; hồi chiêu quét dạng quạt và số giây chỉ phủ vùng biểu tượng. Ô khóa ghi “Khóa”, thiếu hồn lực ghi “Thiếu lực”; tooltip giải thích điều kiện, tên đầy đủ và tiêu hao. Server vẫn quyết định khả năng dùng và hồi chiêu.
+- Trên desktop, tên hồn kỹ xuống dòng đầy đủ; ô tự tăng chiều cao, không cắt bằng dấu ba chấm và không giảm cỡ chữ để ép vừa ô. Bố cục điện thoại giữ theo Q40. Ở desktop hẹp, giữ chiều rộng chat và thu riêng nhóm hồn cốt/vật phẩm; guide nằm phía trên vùng nhân vật để nhường đội hình và vòng báo trước.
+- Thẻ đội hình có tên hai dòng; tên dài rút gọn theo từ ở giữa, giữ đầu và cuối để phân biệt. Tooltip luôn có tên đầy đủ, cấp, trạng thái ra trận / gục / tiên cơ và phím đổi. Thanh sinh lực, năng lượng tiên cơ và hồi chiêu đổi lấy từ dữ liệu server.
+- Điện thoại ngang thấp: đội hình nằm bên trái nhóm kỹ năng sát mép dưới; ô chạm tối thiểu 44 px, tâm màn hình để trống cho cảnh báo chiêu. Thông báo nổi nằm phía trên thanh hành động.
+- Kiểm tra game thật: `npm run test:actionbar-browser --prefix client`; ảnh ghi ngoài repo qua `C8_OUTPUT`. CI `actionbar-preview` chạy hồi quy AFTER và đính kèm ảnh ở 960×540, 1280×720, 1920×1080, không phụ thuộc baseline của nhánh PR. Ở desktop hẹp, chat giữ đủ sáu tab; kiểm đội hình không bị guide che ngay khi guide còn mở và trước khi đổi võ hồn. Giữ lượt cảm ứng 844×390 tùy chọn bằng `C8_TOUCH=1` theo Q40. Tên dài được đo từng ký tự bằng vùng render, overflow và clamp, không chỉ kiểm tra textContent. Dùng lại ảnh có trong manifest; không đổi key, frame, origin.
