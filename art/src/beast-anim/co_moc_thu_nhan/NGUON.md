@@ -13,10 +13,30 @@ Loài `co_moc_thu_nhan` (Cổ Mộc Thụ Nhân), họ `plant`, khung game 128×
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
+## toA
+
+- File: `toA.png`, **1536×1024**, 2539980 byte, SHA256 `fa6f6a8f0fa9ed67a51e4e038241792cf0546e061331c46df7f305951e6c8985`.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: ao-desktop.
+- Prompt: `toA.prompt.txt` (SHA256 `2c99d3874cc2bb19521cf95897b80c48ca51e78b4b0c343da61f69ed1e3c4721`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: s pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+## toB
+
+- File: `toB.png`, **1536×1024**, 2536002 byte, SHA256 `b988e28114df3bd3563fe293dca99b0ecdc8debebbba4f6d2f00619eccf99073`.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: ao-desktop.
+- Prompt: `toB.prompt.txt` (SHA256 `dfd5b8fa8234ea03800ca9299e9db53d7db5dfa93f113b65a3cfd66b456578aa`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: se pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
 ## Lỗi
 
 ```text
-LỖI: turnaround — die héo rũ nhưng thân chưa đổ thấp hoàn toàn; chọn lượt 3 tốt nhất làm tham chiếu kỹ thuật (mắt)
+LỖI: turnaround — die chưa đổ thấp hoàn toàn; lượt 3 tốt nhất làm ref kỹ thuật (mắt)
+LỖI: toA — s — hurt hơi xoay thân sang phải (mắt)
+LỖI: toB — se — attack C6 gần chính diện; hurt ngả mạnh (mắt)
 ```
 
 ## Ghi công
