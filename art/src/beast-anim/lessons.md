@@ -15,6 +15,7 @@
 - [turnaround, direction, sheet] Every direction e, se and ne faces the RIGHT side of the picture; never mirror them to face left. // tây là lật ngang trong game
 
 ## Hurt và die
+- [direction, sheet @snake] In the south-facing block, keep the head aimed straight toward the viewer throughout WALK and ATTACK; do not turn right. In DIE, keep the spine aligned from the top to the bottom of the cell, never stretched sideways from left to right. // s đi / đánh hay nghiêng phải, die hay nằm ngang; tái hiện: node tools/assets/beast-sheet-prompt.mjs --species bich_lan_xa --stage sheet --out <thư mục ngoài repo>
 - [turnaround, direction, sheet @quad @bird @insect] HURT is a small recoil along the facing line: the creature stays upright on its feet and does not roll over, bounce into a new facing or turn its head toward the viewer. // 29/32 hurt sai: ngửa bụng, quay mặt
 - [turnaround, direction, sheet @quad @bird @insect] DIE is a slow collapse along the facing line: the legs fold, the body lowers, and the final pose keeps the same body axis as the idle pose of that block. // 27/32 die xoay thân 90°
 - [turnaround, direction, sheet @quad] Squat or low-bodied creatures (toads, turtles, boars) also keep the belly hidden while recoiling: they hunker lower instead of rearing up. // hurt của ếch, rùa hay ngửa bụng
