@@ -34,14 +34,14 @@ raw concept-attempt1.png pháp tướng (quy_mi): NHẸ
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/vohon-v2/quy_mi/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. | 2026-10-27 | Chưa duyệt, không nhập game. |
+| `art/src/vohon-v2/quy_mi/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. |2026-10-27; chân dung lô 2 RAW/P1c2 #1158, 1/3 lượt. | Chưa duyệt, không nhập game. |
 
 Prompt trong repo chuẩn hóa xuống dòng LF đúng byte Git; SHA trước chuẩn hóa CRLF giữ trong source JSON. Nội dung prompt tự sinh không sửa.
 
 
 ## Chân dung lô 2 — #1158, P1c2
 
-Ngày 2026-10-27; 1/3 lượt chân dung. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte: `candidates/portrait-attempt1.png`; SHA256 `5ceaeb0dd7d1fcc35b470234bc4555e8e945688c61629493e5e28bb67eda0d09`. Prompt CLI nguyên văn, không viết tay / addendum: `candidates/portrait-attempt1.prompt.txt`; SHA256 `5d5f3e385bf0123f4fe21a9600d1ebe222d6d4d544023260eab2b339d493d886`. Neo ngoại hình `concept-attempt1.png`, SHA256 `fee15ae75afe1304660c480d2ffad5053d47b42da89338c4c32111119c11b7dc`. Lệnh và kết quả máy ở `candidates/portrait-attempt1.source.json`.
+Ngày 2026-10-27; 1/3 lượt chân dung. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte: `candidates/portrait-attempt1.png`; SHA256 `5ceaeb0dd7d1fcc35b470234bc4555e8e945688c61629493e5e28bb67eda0d09`. Prompt CLI nguyên văn, không viết tay / addendum: `candidates/portrait-attempt1.prompt.txt`; SHA256 `79cbfb81137a1e8b05579d9ba5d58fabf3584cd01c8e76031548cf581a362ed0`. Neo ngoại hình `concept-attempt1.png`, SHA256 `fee15ae75afe1304660c480d2ffad5053d47b42da89338c4c32111119c11b7dc`. Lệnh và kết quả máy ở `candidates/portrait-attempt1.source.json`.
 
 Pixel hoá bằng `--preset portrait2` (P1c2 đã duyệt 27/10), giữ mặc định 16 màu của preset; brief RAW 6–8 mảng màu không phải giới hạn bảng màu P1c2. Bản 64×64: `candidates/portrait-attempt1-P1c2/quy_mi-portrait.png`; xem `candidates/portrait-attempt1-P1c2/preview/index.html` và `so-sanh.png`. Chỉ ứng viên trình duyệt, chưa nhập game; không chọn thay concept. Không dùng lại ảnh lỗi làm neo.
 
@@ -52,3 +52,9 @@ CLI võ hồn chưa nhận cờ này; lưu khai báo tường minh, không sửa
 ```text
 --eye "portrait-attempt1=góc chính diện thay vì 3/4; sừng sát mép trên, khói và ấn trán sáng tranh khe mắt; nền/thân cùng gam lạnh; cần duyệt ở 64×64"
 ```
+
+```text
+--eye "portrait-attempt1=P1c2 — hai khe mắt giảm sáng rõ so với RAW, gần lẫn vào mặt nạ ở 64×64."
+```
+
+Prompt lưu UTF-8 LF theo Git; SHA256 chuỗi gửi nguyên bản `5d5f3e385bf0123f4fe21a9600d1ebe222d6d4d544023260eab2b339d493d886` và `sent_prompt` ở source JSON. Chỉ chuẩn hóa xuống dòng, nội dung trùng CLI.

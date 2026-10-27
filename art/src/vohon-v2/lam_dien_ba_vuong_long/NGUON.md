@@ -13,7 +13,7 @@ RAW nguyên byte từ builtin image_gen.imagegen, chưa crop, resize, hậu kỳ
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| art/src/vohon-v2/lam_dien_ba_vuong_long/ | - | builtin image_gen.imagegen (ChatGPT / Codex) | Concept năm hướng Lam Điện Bá Vương Long; model/seed unknown; SHA256 và prompt ghi ở trên, từng lượt có source.json. | 2026-10-27 | Chỉ concept, chưa nhập game. |
+| art/src/vohon-v2/lam_dien_ba_vuong_long/ | - | builtin image_gen.imagegen (ChatGPT / Codex) | Concept năm hướng Lam Điện Bá Vương Long; model/seed unknown; SHA256 và prompt ghi ở trên, từng lượt có source.json. |2026-10-27; chân dung lô 2 RAW/P1c2 #1158, 1/3 lượt. | Concept và chân dung lô 2 RAW/P1c2; chưa nhập game. |
 
 ## Kết quả kiểm RAW tại repo
 
@@ -36,7 +36,7 @@ Không sinh thêm; giữ bản chọn nêu trên. Concept chỉ tham chiếu ngo
 
 ## Chân dung lô 2 — #1158, P1c2
 
-Ngày 2026-10-27; 1/3 lượt chân dung. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte: `candidates/portrait-attempt1.png`; SHA256 `5397e7b6c1f98f07d977bc5e44a30ae47a0e42c8a92fe8bf383b7ed48348d380`. Prompt CLI nguyên văn, không viết tay / addendum: `candidates/portrait-attempt1.prompt.txt`; SHA256 `28dd56828f325358aed2825f28ea6a95650f3c318214cf6019aa8f4e53983499`. Neo ngoại hình `concept-attempt2.png`, SHA256 `d3c3d2b2d04b0eb9b0d6725092d31a5516a08c73beae294e2c6404df26babb95`. Lệnh và kết quả máy ở `candidates/portrait-attempt1.source.json`.
+Ngày 2026-10-27; 1/3 lượt chân dung. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte: `candidates/portrait-attempt1.png`; SHA256 `5397e7b6c1f98f07d977bc5e44a30ae47a0e42c8a92fe8bf383b7ed48348d380`. Prompt CLI nguyên văn, không viết tay / addendum: `candidates/portrait-attempt1.prompt.txt`; SHA256 `d3d7cd5217b00df751f3adf1c713973104695ec520c7f9656c1a962e5b0909e9`. Neo ngoại hình `concept-attempt2.png`, SHA256 `d3c3d2b2d04b0eb9b0d6725092d31a5516a08c73beae294e2c6404df26babb95`. Lệnh và kết quả máy ở `candidates/portrait-attempt1.source.json`.
 
 Pixel hoá bằng `--preset portrait2` (P1c2 đã duyệt 27/10), giữ mặc định 16 màu của preset; brief RAW 6–8 mảng màu không phải giới hạn bảng màu P1c2. Bản 64×64: `candidates/portrait-attempt1-P1c2/lam_dien_ba_vuong_long-portrait.png`; xem `candidates/portrait-attempt1-P1c2/preview/index.html` và `so-sanh.png`. Chỉ ứng viên trình duyệt, chưa nhập game; không chọn thay concept. Không dùng lại ảnh lỗi làm neo.
 
@@ -47,3 +47,9 @@ CLI võ hồn chưa nhận cờ này; lưu khai báo tường minh, không sửa
 ```text
 --eye "portrait-attempt1=góc nhìn chính diện thay vì 3/4; sừng chạm mép trên; sét và lôi châu sáng rộng tranh mắt; cần duyệt độ tách nền ở 64×64"
 ```
+
+```text
+--eye "portrait-attempt1=P1c2 — mắt nhỏ lẫn vào vảy/sét sáng; lôi châu nổi hơn mắt."
+```
+
+Prompt lưu UTF-8 LF theo Git; SHA256 chuỗi gửi nguyên bản `28dd56828f325358aed2825f28ea6a95650f3c318214cf6019aa8f4e53983499` và `sent_prompt` ở source JSON. Chỉ chuẩn hóa xuống dòng, nội dung trùng CLI.

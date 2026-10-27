@@ -34,14 +34,14 @@ raw concept-attempt1.png pháp tướng (lam_ngan_thao): NHẸ
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/vohon-v2/lam_ngan_thao/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. | 2026-10-27 | Chưa duyệt, không nhập game. |
+| `art/src/vohon-v2/lam_ngan_thao/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. |2026-10-27; chân dung lô 2 RAW/P1c2 #1158, 1/3 lượt. | Chưa duyệt, không nhập game. |
 
 Prompt trong repo chuẩn hóa xuống dòng LF đúng byte Git; SHA trước chuẩn hóa CRLF giữ trong source JSON. Nội dung prompt tự sinh không sửa.
 
 
 ## Chân dung lô 2 — #1158, P1c2
 
-Ngày 2026-10-27; 1/3 lượt chân dung. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte: `candidates/portrait-attempt1.png`; SHA256 `2a21f12aeac0615c2ae8610eef118bcd330641471e2398547d8dfcf21e793c25`. Prompt CLI nguyên văn, không viết tay / addendum: `candidates/portrait-attempt1.prompt.txt`; SHA256 `c7486dc7f86bb15cf6c64d9851f208ba50e4cd3382d902be882e8f814a09de14`. Neo ngoại hình `concept-attempt1.png`, SHA256 `831f842c891248dc79d9e23d973969eb8b5608f0efe1e705e56b574526c74c35`. Lệnh và kết quả máy ở `candidates/portrait-attempt1.source.json`.
+Ngày 2026-10-27; 1/3 lượt chân dung. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte: `candidates/portrait-attempt1.png`; SHA256 `2a21f12aeac0615c2ae8610eef118bcd330641471e2398547d8dfcf21e793c25`. Prompt CLI nguyên văn, không viết tay / addendum: `candidates/portrait-attempt1.prompt.txt`; SHA256 `64ddd0aa5276f5e046dd937c97e1d8ed4dbcf65d92b2b62f1322ef932c3e064e`. Neo ngoại hình `concept-attempt1.png`, SHA256 `831f842c891248dc79d9e23d973969eb8b5608f0efe1e705e56b574526c74c35`. Lệnh và kết quả máy ở `candidates/portrait-attempt1.source.json`.
 
 Pixel hoá bằng `--preset portrait2` (P1c2 đã duyệt 27/10), giữ mặc định 16 màu của preset; brief RAW 6–8 mảng màu không phải giới hạn bảng màu P1c2. Bản 64×64: `candidates/portrait-attempt1-P1c2/lam_ngan_thao-portrait.png`; xem `candidates/portrait-attempt1-P1c2/preview/index.html` và `so-sanh.png`. Chỉ ứng viên trình duyệt, chưa nhập game; không chọn thay concept. Không dùng lại ảnh lỗi làm neo.
 
@@ -52,3 +52,9 @@ CLI võ hồn chưa nhận cờ này; lưu khai báo tường minh, không sửa
 ```text
 --eye "portrait-attempt1=nhận diện — dây leo bị nhân hoá thành mặt có hai mắt, ngoài concept thực vật; bố cục chính diện, đầu ngọn bị cắt mép trên; dây mảnh và màu lạnh dính nền; candidate chưa đạt"
 ```
+
+```text
+--eye "portrait-attempt1=P1c2 — mảng dây leo tối giảm rõ và còn hình giống mặt; chưa đạt nhận diện thực vật."
+```
+
+Prompt lưu UTF-8 LF theo Git; SHA256 chuỗi gửi nguyên bản `c7486dc7f86bb15cf6c64d9851f208ba50e4cd3382d902be882e8f814a09de14` và `sent_prompt` ở source JSON. Chỉ chuẩn hóa xuống dòng, nội dung trùng CLI.

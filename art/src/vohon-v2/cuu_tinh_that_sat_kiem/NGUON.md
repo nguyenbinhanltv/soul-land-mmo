@@ -37,12 +37,12 @@ raw concept-attempt1.png pháp tướng (cuu_tinh_that_sat_kiem): CHẶN
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/vohon-v2/cuu_tinh_that_sat_kiem/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. | 2026-10-27 | Chưa duyệt, không nhập game. |
+| `art/src/vohon-v2/cuu_tinh_that_sat_kiem/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. |2026-10-27; chân dung lô 2 RAW/P1c2 #1158, 1/3 lượt. | Chưa duyệt, không nhập game. |
 
 
 ## Chân dung lô 2 — #1158, P1c2
 
-Ngày 2026-10-27; 1/3 lượt chân dung. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte: `candidates/portrait-attempt1.png`; SHA256 `07efb5f3936ea488f8b1b267e4fd03277ac63030bd6487c20c3f7e821cd79840`. Prompt CLI nguyên văn, không viết tay / addendum: `candidates/portrait-attempt1.prompt.txt`; SHA256 `8c1bbb09dda896ca7e048bd97b05ed32e685d9c36dac8d4d75eb11f4aca28425`. Neo ngoại hình `concept-attempt1.png`, SHA256 `fd3d5096e24b97581923de32e9643a85119d23c220c1a9a8bb46431a840c51fb`. Lệnh và kết quả máy ở `candidates/portrait-attempt1.source.json`.
+Ngày 2026-10-27; 1/3 lượt chân dung. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte: `candidates/portrait-attempt1.png`; SHA256 `07efb5f3936ea488f8b1b267e4fd03277ac63030bd6487c20c3f7e821cd79840`. Prompt CLI nguyên văn, không viết tay / addendum: `candidates/portrait-attempt1.prompt.txt`; SHA256 `898af984f078c15fe7edbe46ec0b1d69f053fd7b09be68e43b09e7858da3afea`. Neo ngoại hình `concept-attempt1.png`, SHA256 `fd3d5096e24b97581923de32e9643a85119d23c220c1a9a8bb46431a840c51fb`. Lệnh và kết quả máy ở `candidates/portrait-attempt1.source.json`.
 
 Pixel hoá bằng `--preset portrait2` (P1c2 đã duyệt 27/10), giữ mặc định 16 màu của preset; brief RAW 6–8 mảng màu không phải giới hạn bảng màu P1c2. Bản 64×64: `candidates/portrait-attempt1-P1c2/cuu_tinh_that_sat_kiem-portrait.png`; xem `candidates/portrait-attempt1-P1c2/preview/index.html` và `so-sanh.png`. Chỉ ứng viên trình duyệt, chưa nhập game; không chọn thay concept. Không dùng lại ảnh lỗi làm neo.
 
@@ -53,3 +53,9 @@ CLI võ hồn chưa nhận cờ này; lưu khai báo tường minh, không sửa
 ```text
 --eye "portrait-attempt1=nhận diện — có tám điểm sao thay vì bảy; góc chính diện thay vì 3/4; cận chuôi/sống kiếm cắt mất mũi, mép thép sáng rộng và quầng lam tranh sao; candidate chưa đạt"
 ```
+
+```text
+--eye "portrait-attempt1=P1c2 — sao dọc sống kiếm dính vào mép thép trắng, ngọc đỏ nhỏ khó đọc."
+```
+
+Prompt lưu UTF-8 LF theo Git; SHA256 chuỗi gửi nguyên bản `8c1bbb09dda896ca7e048bd97b05ed32e685d9c36dac8d4d75eb11f4aca28425` và `sent_prompt` ở source JSON. Chỉ chuẩn hóa xuống dòng, nội dung trùng CLI.
