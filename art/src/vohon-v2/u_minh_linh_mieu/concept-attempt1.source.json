@@ -17,5 +17,12 @@
     "pose_spread": 1.12,
     "palette_match_percent": 98,
     "warnings": "texture mềm, chưa đúng lưới khối"
-  }
+  },
+  "eye": [
+    {
+      "sheet": "concept-attempt1",
+      "text": "hướng — e — còn hơi chếch, hình ngang rộng hơn các góc khác; ne/n không lộ mặt"
+    }
+  ],
+  "concept_only": true
 }

@@ -17,5 +17,16 @@
     "pose_spread": 1.01,
     "palette_match_percent": 97,
     "warnings": "texture mềm, chưa đúng lưới khối"
-  }
+  },
+  "eye": [
+    {
+      "sheet": "concept-attempt3",
+      "text": "hướng — se/e — hai góc gần giống nhau, e còn chếch trước"
+    },
+    {
+      "sheet": "concept-attempt3",
+      "text": "hướng — ne — còn mép miệng sáng, chưa che toàn bộ mặt; n nhìn lưng"
+    }
+  ],
+  "concept_only": true
 }

@@ -23,3 +23,12 @@ RAW nguyên byte từ builtin image_gen.imagegen, chưa crop, resize, hậu kỳ
 - Ảnh neo nằm ở **nhánh PR #1083**, đường dẫn art/src/phap-tuong/hao_thien_chuy/concept-turnaround-attempt2.png, chưa phải ảnh sẵn có trên main.
 - Dùng --type phaptuong theo khuôn concept #1096 để sinh bố cục năm hướng; không tạo pháp tướng thay thế hoặc nhập game.
 - Candidates: mỗi lượt có 5 hình nhưng góc ne sai, chỉ 4 hướng đáp ứng; không dùng làm ảnh neo.
+
+## Khai báo --eye theo quyết định ở PR #1147
+
+Không sinh thêm; giữ bản chọn nêu trên. Concept chỉ tham chiếu ngoại hình; hướng ne/n xử lý khi làm phụ thể với hình nộm. Công cụ võ hồn chưa nhận cờ --eye; các khai báo dưới đây được lưu tường minh và đồng bộ trong trường eye của source.json, không phải lệnh đã chạy.
+
+- `--eye "concept-attempt2=hướng — se/e — hai góc gần giống nhau, e chưa ngang hẳn"`
+  LỖI: hướng — se/e — hai góc gần giống nhau, e chưa ngang hẳn (mắt).
+- `--eye "concept-attempt2=hướng — ne — còn lộ cạnh hàm; n nhìn lưng"`
+  LỖI: hướng — ne — còn lộ cạnh hàm; n nhìn lưng (mắt).

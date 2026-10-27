@@ -17,5 +17,16 @@
     "pose_spread": 1.02,
     "palette_match_percent": 72,
     "warnings": "texture mềm, 185 màu đáng kể, chưa đúng lưới khối"
-  }
+  },
+  "eye": [
+    {
+      "sheet": "concept-attempt2",
+      "text": "hướng — se/e — hai góc gần giống nhau, e chưa ngang hẳn"
+    },
+    {
+      "sheet": "concept-attempt2",
+      "text": "hướng — ne — còn lộ cạnh hàm; n nhìn lưng"
+    }
+  ],
+  "concept_only": true
 }

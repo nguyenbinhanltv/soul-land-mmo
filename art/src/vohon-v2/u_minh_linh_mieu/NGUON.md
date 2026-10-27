@@ -22,3 +22,10 @@ RAW nguyên byte từ builtin image_gen.imagegen, chưa crop, resize, hậu kỳ
 - Cảnh báo máy: texture mềm, chưa đúng lưới khối.
 - Ảnh neo nằm ở **nhánh PR #1083**, đường dẫn art/src/phap-tuong/hao_thien_chuy/concept-turnaround-attempt2.png, chưa phải ảnh sẵn có trên main.
 - Dùng --type phaptuong theo khuôn concept #1096 để sinh bố cục năm hướng; không tạo pháp tướng thay thế hoặc nhập game.
+
+## Khai báo --eye theo quyết định ở PR #1147
+
+Không sinh thêm; giữ bản chọn nêu trên. Concept chỉ tham chiếu ngoại hình; hướng ne/n xử lý khi làm phụ thể với hình nộm. Công cụ võ hồn chưa nhận cờ --eye; các khai báo dưới đây được lưu tường minh và đồng bộ trong trường eye của source.json, không phải lệnh đã chạy.
+
+- `--eye "concept-attempt1=hướng — e — còn hơi chếch, hình ngang rộng hơn các góc khác; ne/n không lộ mặt"`
+  LỖI: hướng — e — còn hơi chếch, hình ngang rộng hơn các góc khác; ne/n không lộ mặt (mắt).
