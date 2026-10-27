@@ -1,0 +1,12 @@
+{
+  "tool": "Codex image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "timestamp": "2026-10-27T04:28:19.547Z",
+  "sha256": "41b7351b8f514a09d39496c208c11ec4787637d3e1db75f3d39f6492debb1044",
+  "attempts": 1,
+  "references": [
+    "shared/assets/sprites/beast/quy_dang.png",
+    "art/src/beast-anim/quy_dang/turnaround.png"
+  ]
+}
