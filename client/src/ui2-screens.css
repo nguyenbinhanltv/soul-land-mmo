@@ -1,0 +1,29 @@
+/* UI v2: menu hub ngăn kéo + màn hệ thống mới (Xếp Hạng, Lịch Hoạt Động, Phúc Lợi), Part of #877.
+   Mọi luật dưới `body.ui2` (cờ tắt mặc định: không có lớp này thì giao diện hiện tại không đổi). Màu chỉ qua token, chữ 10 / 12 / 24,
+   vùng bấm 32 px (ô, tab) và 44 px (nút chính). Khung viền do lớp `f2-*` của ui2.css lo; ở đây chỉ bố cục và trạng thái. */
+
+/* ---- huy hiệu + ngăn kéo ---- */
+body.ui2 .hub-badge{position:fixed;right:var(--sp-5);top:var(--sp-5);z-index:6;width:44px;height:44px;box-sizing:border-box;cursor:pointer;
+  font:var(--fs-l)/1 var(--f12);color:var(--plate-text);background:var(--son-d);border:var(--bd) solid var(--plate);text-shadow:var(--stroke)}
+body.ui2 .hub-badge:hover{background:var(--son)}
+body.ui2 .hub-badge:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+body.ui2 .hub-badge.has-dot::after{content:"";position:absolute;right:calc(var(--sp-2) * -1);top:calc(var(--sp-2) * -1);width:14px;height:14px;box-sizing:border-box;border-radius:50%;background:var(--son-l);border:var(--bd) solid var(--plate)}
+body:not(.ui2) #hub,body:not(.ui2) .ui2-screen{display:none}
+body.ui2 #hub{position:fixed;right:0;top:0;bottom:0;z-index:7;width:360px;max-width:100vw;box-sizing:border-box;display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr;
+  grid-template-areas:"hd hd" "main rail";gap:var(--sp-4);padding:var(--sp-5);color:var(--ink-text);font:var(--fs-m)/1.3 var(--f12);background:var(--plate);border:var(--bd) solid var(--ink2);overflow:auto}
+body.ui2 #hub[hidden]{display:none}
+body.ui2 .hub-hd{grid-area:hd;display:flex;align-items:center;justify-content:space-between}
+body.ui2 .hub-title{margin:0;font:var(--fs-l)/1.2 var(--f12);color:var(--ink-text)}
+body.ui2 .hub-x{width:32px;height:32px;box-sizing:border-box;cursor:pointer;font:var(--fs-l)/1 var(--f12);color:var(--ink-text);background:var(--track);border:var(--bd) solid var(--ink2)}
+body.ui2 .hub-main{grid-area:main;display:flex;flex-direction:column;gap:var(--sp-4);min-width:0}
+body.ui2 .hub-big,body.ui2 .hub-mid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)}
+body.ui2 .hub-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-3)}
+body.ui2 .hub-c-big{min-height:88px}
+body.ui2 .hub-c-mid{min-height:56px}
+body.ui2 .hub-c-grid{min-width:0;min-height:56px;padding-left:var(--sp-3);padding-right:var(--sp-3)}
+body.ui2 .hub-c-grid .p2-card-s{display:none}
+body.ui2 .hub-c-grid .p2-card-t{font:var(--fs-m)/1.2 var(--f12)}
+body.ui2 .hub-rail{grid-area:rail;display:flex;flex-direction:column;gap:var(--sp-3);padding-left:var(--sp-4);border-left:var(--bd-fine) solid var(--ink2)}
+body.ui2 .hub-r{min-height:32px;min-width:64px;box-sizing:border-box;padding:0 var(--sp-3);cursor:pointer;font:var(--fs-s)/1.2 var(--f10);color:var(--ink-text);background:var(--track);border:var(--bd-fine) solid var(--ink2)}
+body.ui2 .hub-r:hover{border-color:var(--plate-text)}
+body.ui2 #hub :is(button):focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}

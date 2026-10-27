@@ -22,9 +22,11 @@ import { radar, type DotSink } from "../radar.ts";
 import { mapview, type MapLabel } from "../mapview.ts";
 import { fog } from "../fog.ts";
 import { toast, lootToasts } from "../feedback.ts";
-import { guideStart, guideEvent, guideHint } from "../guide.ts";
+import { guideStart, guideEvent, guideHint, guideReview } from "../guide.ts";
 import { initDualWindows } from "../dualWindow.ts";
 import { initPanelStack, closeTopPanel, panelOf, trapTab } from "../panelStack.ts";
+import { initHub, toggleHub, setHubOpen } from "../hubMenu.ts";
+import { isUi2 } from "../uiKit.ts";
 import type { ServerCommand } from "../charBagContract.ts";
 import { toggleChar, cycleCharTab, isCharOpen, onCharOpen, renderChar, charViewRow, charLog, type StatsMsg } from "../charPanel.ts";
 import { Predictor, PREDICT, LAG_MS, DEBUG_TAG, stepSpeed } from "../predict.ts";
@@ -813,7 +815,7 @@ export class GameScene extends Phaser.Scene {
       // Esc (U1 #754): đóng đúng MỘT bảng trên cùng (lần nhấn kế đóng bảng kế); hết bảng mới bỏ khoá mục tiêu (M3). Thứ tự: bản đồ vùng → chat → bảng → khoá.
       if (e.code === "Escape" && closeTopPanel()) return;
       if (e.code === "Escape" && this.lockId) { this.lockTo(""); return; }
-      if (e.code === "Escape") return; // không bảng, không khoá: không làm gì (không ghi Escape vào `keys`)
+      if (e.code === "Escape") { if (isUi2()) toggleHub(); return; } // không bảng, không khoá: mở menu hub khi bật ui2, còn lại không làm gì (không ghi Escape vào `keys`)
       if (e.code === "Tab") { e.preventDefault(); if (!e.repeat) this.cycleTarget(); return; }
       if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }
@@ -918,10 +920,22 @@ export class GameScene extends Phaser.Scene {
       { id: "reso", close: () => hud.toggleReso(false) }, { id: "friends", close: () => hud.toggleFriends(false) }, { id: "world", close: () => hud.toggleWorld(false) },
       { id: "npc", close: () => hud.closeNpc() }, { id: "autoPanel", close: closeAutoPanel }, { id: "audio", close: closeAudioPanel },
       { id: "pmenu", close: () => hud.showPlayerMenu(null), popup: true }, { id: "chans", close: () => hud.toggleChannels(false), popup: true },
-      { id: "autoSum", close: closeAutoSum, popup: true },
+      { id: "autoSum", close: closeAutoSum, popup: true }, { id: "hub", close: () => setHubOpen(false), popup: true },
     ], () => {
       for (const k of Object.keys(this.keys)) if (this.keys[k]) muted.add(k);
       this.keys = {}; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = "";
+    }, this.ac.signal);
+    this.setupHub();
+  }
+
+  /** Menu hub ngăn kéo (UI v2, cờ `ui2`; tắt thì không dựng gì): mỗi mục gọi đúng hàm mở của bảng đã có, mục chưa có chức năng hiện mờ. */
+  setupHub() {
+    const clickBtn = (id: string) => () => { this.clearForPanel(); document.getElementById(id)?.click(); };
+    initHub({
+      vohon: () => { this.clearForPanel(); hud.toggleRoster(true); }, char: () => { this.clearForPanel(); toggleChar(true); },
+      reso: () => { this.clearForPanel(); hud.toggleReso(true); }, bag: () => { this.clearForPanel(); hud.toggleBag(true); },
+      friends: () => { this.clearForPanel(); hud.toggleFriends(true); }, world: () => { this.clearForPanel(); this.openWorld(true); },
+      auto: () => { closeAudioPanel(); mapview().close(); toggleAutoPanel(true); }, settings: clickBtn("audioBtn"), guide: () => guideReview(),
     }, this.ac.signal);
   }
 
