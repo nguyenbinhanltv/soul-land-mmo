@@ -74,12 +74,12 @@ function sizeCheck(res, img) {
   return true;
 }
 
-/** Phân tích ảnh turnaround: tỉ lệ 3:2, nền, lưới 3 hàng × 5 hình (không có kiểm nộm / chuyển động, chỉ duyệt bằng mắt). */
-export function analyzeTurnaround(file) {
+/** Phân tích ảnh turnaround (`o.guideKey`: màu vạch tham chiếu, xóa trước khi dò lưới): tỉ lệ 3:2, nền, lưới 3 hàng × 5 hình (không có kiểm nộm / chuyển động, chỉ duyệt bằng mắt). */
+export function analyzeTurnaround(file, o = {}) {
   const img = readPng(file), res = { sheet: TURNAROUND_SHEET, file, size: [img.w, img.h], issues: [], blocks: [], cells: [], bands: [], dead: [], img, kind: "turnaround", dirs: DIRS, plan: { dirs: DIRS, cols: TURNAROUND.cols, rows: TURNAROUND.rows } };
   if (!sizeCheck(res, img)) return finish(res);
-  const grid = detectGrid(img);
-  bgCheck(res, grid, img);
+  const clean = eraseGuides(img, o.guideKey), grid = detectGrid(clean); // vạch tham chiếu (góc khung, chân, thước) không phải hình
+  bgCheck(res, grid, clean);
   if (grid.bands.length !== TURNAROUND.rows) { issue(res.issues, "block", "luoi", "toàn tờ", `dò được ${grid.bands.length} dải hàng, cần ${TURNAROUND.rows}: không dò được lưới.`); return finish(res); }
   grid.bands.forEach((b, row) => {
     const rb = { ...b, row, state: "ok", figures: b.figures.map((f) => ({ ...f })) };
@@ -212,7 +212,7 @@ export function checkPhuThe(id, opt = {}) {
   const ta = turnaroundFile(dir), files = sheetFiles(dir);
   if (!files.length && !ta) throw new Error(`không có tờ toA.png… trong ${dir}`);
   const o = { group, frame, dummyKey, guideKey: opt.guideKey ?? info.guideKey, sex: opt.sex ?? "m" };
-  const sheets = files.map((f) => analyzeSheet(f, o)), turnaround = ta ? analyzeTurnaround(ta) : null;
+  const sheets = files.map((f) => analyzeSheet(f, o)), turnaround = ta ? analyzeTurnaround(ta, o) : null;
   const sRef = sheets.find((s) => s.dirs[0] === "s");
   if (sRef) for (const s of sheets) {
     if (s === sRef) continue;

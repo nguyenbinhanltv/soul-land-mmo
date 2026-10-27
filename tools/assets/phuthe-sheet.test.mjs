@@ -14,7 +14,7 @@ import { parseLessons, lessonsFor } from "./phuthe-sheet-lessons.mjs";
 import { fakeSheet } from "./phuthe-sheet-fake.mjs";
 import { cutPhuThe } from "./phuthe-sheet-cut.mjs";
 import { parseLop, layerFn, defaultLayers, nominalOf, registerDummy, normalizeSheet, prepareSheet } from "./phuthe-sheet-cut-lib.mjs";
-import { checkPhuThe, analyzeSheet, draftErrorLine, writeReport, toJson, minDistToDummy, attachSeverity, ATTACH_FRAC } from "./phuthe-sheet-check.mjs";
+import { checkPhuThe, analyzeSheet, analyzeTurnaround, draftErrorLine, writeReport, toJson, minDistToDummy, attachSeverity, ATTACH_FRAC } from "./phuthe-sheet-check.mjs";
 import { buildStatus, statusMarkdown, phutheStatus } from "./phuthe-sheet-status.mjs";
 import { buildPreview, composeFrame } from "./phuthe-sheet-preview.mjs";
 
@@ -151,6 +151,20 @@ test("vạch tham chiếu (#1171): màu khóa riêng khác nền / nộm / võ h
   const turn = dummyTurnaround({ frame: 96, key: "#00D0D0", guideKey: gk }); let tg = 0;
   for (let y = 0; y < turn.h; y++) for (let x = 0; x < turn.w; x++) { const p = turn.get(x, y); if (p[0] === g[0] && p[1] === g[1] && p[2] === g[2]) tg++; }
   assert.ok(tg > 3000, "turnaround có vạch");
+});
+
+test("kiểm turnaround: vạch tham chiếu bị xóa trước khi dò lưới (không chặn luoi); không truyền guideKey thì vạch làm vỡ lưới", () => {
+  const dir = tmp("ta-guide");
+  try {
+    const info = L.phutheInfo("ta_hoa_phuong_hoang"), img = dummyTurnaround({ frame: info.frame, key: info.dummyKey, guideKey: info.guideKey });
+    const cw = Math.round(img.w / 5), ch = Math.round(img.h / 3), wing = [200, 60, 40, 255]; // thêm hình phụ thể cạnh nộm như tờ model
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 5; c++) for (let y = 0; y < 40; y++) for (let x = 0; x < 20; x++) img.set(c * cw + cw / 2 + 30 + x, r * ch + ch / 2 - 20 + y, wing);
+    const f = path.join(dir, "turnaround.png"); writeFileSync(f, encodePng(img));
+    const ok = analyzeTurnaround(f, { guideKey: info.guideKey });
+    assert.ok(!codes(ok, "block").includes("luoi"), JSON.stringify(ok.issues.map((i) => [i.sev, i.code])));
+    assert.equal(ok.bands.length, 3);
+    assert.ok(codes(analyzeTurnaround(f), "block").includes("luoi"), "không xóa vạch thì lưới vỡ");
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
 // ---------- prompt ----------
