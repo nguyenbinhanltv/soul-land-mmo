@@ -10,7 +10,8 @@
 // `turnaround.png` (nếu có) cũng được ghi (cỡ, byte, SHA256, `turnaround.prompt.txt` / `turnaround.source.json`, `--eye turnaround=…`), kể cả khi loài
 // chưa có tờ toA..toE; mức kiểm cỡ / nền / lưới lấy từ checkSpecies (r.turnaround). Chỉ đọc RAW, không sửa ảnh.
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ROOT } from "./lib.mjs";
@@ -33,6 +34,34 @@ export function readSourceJson(file) {
 
 /** Chuỗi `--attempts toA=2,toB=1` → { toA: "2", … }. */
 const parseKv = (s) => Object.fromEntries((s ?? "").split(",").filter(Boolean).map((p) => p.split("=")));
+
+
+/** Tờ toA..toE chỉ có ở `candidates/` (không có `toX.png` ở thư mục chính, vì hook beast-sheet-ci chặn; #1141): { name, attemptsFound: [N…], used, chosen: N, file }. `--attempts toX=N` đặt lượt đã dùng / lượt chọn; không khai thì lấy lượt cao nhất tìm thấy. */
+export function candidateOnlySheets(dir, attemptsKv = {}) {
+  const cd = path.join(dir, "candidates");
+  if (!existsSync(cd)) return [];
+  const found = {};
+  for (const f of readdirSync(cd)) {
+    const m = /^(to[A-E])-attempt(\d+)\.png$/.exec(f);
+    if (m && !existsSync(path.join(dir, `${m[1]}.png`))) (found[m[1]] ??= []).push(Number(m[2]));
+  }
+  const names = [...new Set([...Object.keys(found), ...Object.keys(attemptsKv).filter((k) => /^to[A-E]$/.test(k) && !existsSync(path.join(dir, `${k}.png`)) && found[k])])].sort();
+  return names.map((name) => {
+    const list = found[name].sort((a, b) => a - b), declared = Number(attemptsKv[name]);
+    const chosen = list.includes(declared) ? declared : list[list.length - 1];
+    return { name, attemptsFound: list, used: attemptsKv[name] ?? String(list.length), chosen, file: path.join(cd, `${name}-attempt${chosen}.png`) };
+  });
+}
+
+/** Kiểm một tờ candidates như tờ chính: chép ra thư mục tạm với tên `toX.png` (analyzeSheet suy hướng từ tên), chỉ đọc, không ghi vào repo. */
+function checkCandidate(id, c) {
+  const tmp = mkdtempSync(path.join(os.tmpdir(), "beast-nguon-cand-"));
+  try {
+    copyFileSync(c.file, path.join(tmp, `${c.name}.png`));
+    const s = checkSpecies(id, { dir: tmp }).sheets[0];
+    return { ...c, size: s.size, level: s.level, auto: draftErrorLine(s) };
+  } finally { rmSync(tmp, { recursive: true, force: true }); }
+}
 
 /** Dựng NGUON.md (chuỗi) từ kết quả kiểm + khai báo. `o`: { tool, model, seed, attempts, agent, eye: [{sheet, text}], eyeOk: Set, issue }. */
 export function buildNguon(id, r, o = {}) {
@@ -62,6 +91,21 @@ export function buildNguon(id, r, o = {}) {
     if (s.pose.length && !mine.length && !eyeOk.has(s.name)) console.error(`Gợi ý (${s.name}, chưa phải lỗi; xem tờ liên hệ rồi mới khai): ${s.pose.join(" ")}`);
     for (const e of mine) errors.push(`LỖI: ${s.name} — ${e.text} (mắt)`);
     L.push(mine.length || eyeOk.has(s.name) ? `- Duyệt bằng mắt: ${mine.length ? `${mine.length} mục lỗi (dòng \`LỖI:\` bên dưới)` : "đã xem, không thấy lỗi"}.` : "- Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).", "");
+  }
+  // Tờ chỉ có ở candidates (#1141): mục riêng, nhãn đúng toX, mức kiểm thật, `--eye toX=…` / `--attempts toX=N` hoạt động; không đụng xử lý tờ chính ở trên
+  const cands = candidateOnlySheets(dir, attempts).map((c) => checkCandidate(id, c));
+  if (cands.length) {
+    L.push("## Tờ chưa vào thư mục chính (candidates)", "", "Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.", "");
+    for (const c of cands) {
+      const mine = eye.filter((e) => e.sheet === c.name), rel = `candidates/${c.name}-attempt${c.chosen}.png`;
+      if (c.auto) errors.push(c.auto);
+      for (const e of mine) errors.push(`LỖI: ${c.name} — ${e.text} (mắt)`);
+      L.push(`### ${c.name} (candidates)`, "",
+        `- File chọn: \`${rel}\`, **${c.size.join("×")}**, SHA256 \`${sha(readFileSync(c.file))}\`; lượt tìm thấy: ${c.attemptsFound.join(", ")}.`,
+        `- Số lượt đã dùng: ${c.used}; lượt được chọn: ${c.chosen}.`,
+        `- Mức kiểm: **${c.level}**${c.level === "chặn" ? " (CHẶN: không vào thư mục chính)" : ""}.`,
+        mine.length || eyeOk.has(c.name) ? `- Duyệt bằng mắt: ${mine.length ? `${mine.length} mục lỗi (dòng \`LỖI:\` bên dưới)` : "đã xem, không thấy lỗi"}.` : "- Duyệt bằng mắt: **chưa duyệt bằng mắt**.", "");
+    }
   }
   L.push("## Lỗi", "");
   if (errors.length) L.push("```text", ...errors, "```"); else L.push("Không có dòng `LỖI:`.");

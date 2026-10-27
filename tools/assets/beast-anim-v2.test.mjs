@@ -1,7 +1,7 @@
 // Thử công cụ hoạt ảnh hồn thú v2 (#865): bài học, prompt theo giai đoạn, sổ trạng thái, NGUON tự sinh, bố cục theo hướng.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, mkdtempSync, writeFileSync, existsSync, rmSync } from "node:fs";
+import { readFileSync, mkdtempSync, writeFileSync, existsSync, rmSync, copyFileSync, mkdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
@@ -11,7 +11,7 @@ import { sheetPlan, speciesInfo, TURNAROUND, DIRS } from "./beast-sheet-lib.mjs"
 import { parseLessons, lessonsFor, LESSONS_FILE } from "./beast-sheet-lessons.mjs";
 import { buildPrompt, buildDirectionPrompt, buildTurnaroundPrompt, stageDocs, referencesFor } from "./beast-sheet-prompt.mjs";
 import { buildStatus, statusMarkdown } from "./beast-status.mjs";
-import { buildNguon, readSourceJson } from "./beast-nguon.mjs";
+import { buildNguon, readSourceJson, candidateOnlySheets } from "./beast-nguon.mjs";
 import { checkSpecies } from "./beast-sheet-check.mjs";
 
 test("bài học: file thật phân tích được; mỗi giai đoạn có bài; lọc theo họ; cú pháp sai thì báo", () => {
@@ -142,6 +142,29 @@ test("NGUON: turnaround.png được ghi (hash, cỡ, prompt, --eye), loài ch�
     const again = run("--write");
     assert.equal(again.status, 1);
     assert.match(again.stderr, /đã có/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("NGUON: tờ chỉ có ở candidates nhận --eye / --attempts đúng nhãn toX, mục riêng, mức chặn; tờ chính không đổi (#1141)", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "beast-nguon-cand-")), run = (...args) => spawnSync(process.execPath, [path.join(ROOT, "tools", "assets", "beast-nguon.mjs"), "--species", "quy_ho", "--dir", dir, ...args], { encoding: "utf8" });
+  try {
+    const src = path.join(ROOT, "art", "src", "beast-anim", "quy_ho");
+    copyFileSync(path.join(src, "toA.png"), path.join(dir, "toA.png"));
+    mkdirSync(path.join(dir, "candidates"));
+    const bad = encodePng(new Img(8, 6));
+    for (const n of [1, 2, 3]) writeFileSync(path.join(dir, "candidates", `toB-attempt${n}.png`), bad);
+    writeFileSync(path.join(dir, "candidates", "toA-attempt1.png"), bad); // toA đã có ở thư mục chính: bỏ qua
+    const out = run("--eye", "toB=hướng — N H7 C2–4 — lộ mặt", "--attempts", "toB=3");
+    assert.equal(out.status, 0, out.stderr);
+    assert.match(out.stdout, /^## Tờ chưa vào thư mục chính \(candidates\)$/m);
+    assert.match(out.stdout, /^### toB \(candidates\)$/m);
+    assert.doesNotMatch(out.stdout, /### toA \(candidates\)/);
+    assert.match(out.stdout, /Số lượt đã dùng: 3; lượt được chọn: 3/);
+    assert.match(out.stdout, /Mức kiểm: \*\*chặn\*\* \(CHẶN/);
+    assert.ok(out.stdout.split("\n").includes("LỖI: toB — hướng — N H7 C2–4 — lộ mặt (mắt)"));
+    assert.equal((out.stdout.match(/^## toA$/gm) ?? []).length, 1, "tờ chính toA không đổi");
+    assert.equal(candidateOnlySheets(dir, {}).map((c) => `${c.name}:${c.chosen}`).join(), "toB:3");
+    assert.deepEqual(candidateOnlySheets(path.join(dir, "khong-co")), []);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
