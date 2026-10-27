@@ -27,7 +27,7 @@ EVENT_DEFS *(đề xuất, mảng cố định, thêm cuối)* khai: mã, tên, 
 
 ### Dữ liệu và nơi tính
 - Hàm thuần trong `shared/data.ts` *(đề xuất)*: `weekdayVn(ms)` (0 = thứ Hai, `(vnDayNum + 3) % 7`), `eventSlots(def, weekStartMs)` → danh sách `{s, e}` (ms UTC) của tuần chứa `weekStartMs`. Cả server và client import; test thuần kiểm: với `KING_TIMES` / `WORLD_TIME` hiện hành, **mọi khung của `kingSlots` / `worldSlots` trong tuần đều có mặt trong `eventSlots` và ngược lại** (chống lệch nguồn).
-- Server là chỗ **chốt dữ liệu gửi đi** (kể cả tên boss theo ngày, dùng `bossNow`, nên bot đẩy được đồng hồ bằng `bossOffset` / `BOSS_CLOCK`); client không tự tính ngày từ giờ máy.
+- Server là chỗ **chốt dữ liệu gửi đi** (kể cả tên boss theo ngày, dùng `bossNow`, nên bot đẩy được đồng hồ bằng `BOSS_CLOCK` và hook `day` (`dayShift`, cộng vào lịch như `today()`)); client không tự tính ngày từ giờ máy.
 - **Trạng thái "đã xong hôm nay"** (v2, tùy chọn): chỉ **đọc** lượt đã có trong `boss_claims` của hôm nay (thú vương, boss thế giới, thắng đấu trường, mảnh đổi) để vẽ dấu tick; không có bảng hay cột mới. Chỉ gửi cho chính chủ.
 - Không có sự kiện nào kích hoạt từ lịch: `startSchedule` vẫn là nơi duy nhất sinh boss. Lịch không đổi hành vi server; nó chỉ liệt kê.
 
@@ -84,7 +84,7 @@ Chất liệu **Giấy** (hộp thoại giữa màn, nội dung đọc; `docs/ar
 |---|---|---|
 | L0 | Tài liệu này (+ dòng mục lục `GAME_DESIGN.md`) | `npm run check`, `tools/docs-check.mjs` |
 | L1 | `shared/data.ts`: EVENT_DEFS, `weekdayVn`, `eventSlots`; test thuần đối chiếu `kingSlots` / `worldSlots` / `worldBossOn` | `npm run check`; test mới trong `shared` |
-| L2 | Server: tin `calendar {op:"get"}` + `calendar` (cache theo tuần, `ArenaRoom` chặn) | bot nhóm mới `calendar`: tuần trước / này / sau, `week` lạ bị kẹp, đẩy `bossOffset` sang ngày khác thì tên boss đổi đúng, xin dồn bị gộp |
+| L2 | Server: tin `calendar {op:"get"}` + `calendar` (cache theo tuần, `ArenaRoom` chặn) | bot nhóm mới `calendar`: tuần trước / này / sau, `week` lạ bị kẹp, đẩy ngày bằng hook `day` (+7 ngày) thì tên boss đổi đúng, xin dồn bị gộp |
 | L3 | Client: hộp thoại Giấy, đếm lùi bù `skew`, trạng thái thẻ | `client-ui` + ảnh chụp Chrome headless (`--mute-audio`) đủ trạng thái; `ui:inventory` không tăng màu lẻ |
 | L4 (tùy chọn) | "Xong hôm nay" đọc `boss_claims`; icon + chấm đỏ | bot: thắng một trận / hạ thú vương rồi kiểm tick |
 | L5 (chờ quyết định) | Bảng `events` + lệnh GM đặt sự kiện tạm | bot `--pg`, migration chạy lại hai lần |

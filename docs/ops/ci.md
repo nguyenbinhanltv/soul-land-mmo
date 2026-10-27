@@ -19,7 +19,7 @@ Các job chính (`changes`, `check-build`, `assets-check`, `bot-ram`):
 | Nhóm | Phần | ~giây |
 |---|---|---|
 | 1 | `ab1` (2.5a–d, BĐ5, 3.2), cold, ink, boneSub (+ lượt nhiều kênh, test nhanh) | 350 |
-| 2 | `ab2` (8.x, 9.5, 9.6, 3.5, BĐ4), flag, fog, rally | 350 |
+| 2 | `ab2` (8.x, 9.5, 9.6, 3.5, BĐ4), flag, fog, calendar (~8), rally | 358 |
 | 3 | `botC`, arena, camp | 345 |
 | 4 | auto, bag | 355 |
 | 5 | waypoint, split, bigmap, autoBoss, friend, chuong3, forgePreview (#699, ước ~25 giây), shardBuy, gm, looks3, view, chat, sell, google, looks2 | 335 |

@@ -45,5 +45,5 @@ export const calendarOf = (ms: number, week: unknown): CalendarMsg => ({ now: ms
 export function calendarAction(room: MapRoom, id: string, m: { op?: unknown; week?: unknown } | null | undefined) {
   if (m?.op !== "get") return;
   const w = calWeek(m.week);
-  room.ask(id, `calendar:${w}`, () => room.clients.getById(id)?.send("calendar", calendarOf(bossNow(), w)));
+  room.ask(id, `calendar:${w}`, () => room.clients.getById(id)?.send("calendar", calendarOf(bossNow() + room.dayShift * 86400000, w)));
 }
