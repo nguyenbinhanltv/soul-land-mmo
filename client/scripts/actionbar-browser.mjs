@@ -157,10 +157,10 @@ try {
       }
       if (namesOnly) { await context.close(); console.log(`Tên hồn kỹ ${phase} ${size}: ${JSON.stringify(labels)}`); continue; }
       if (await page.locator("#guide").isVisible()) await page.getByRole("button", { name: "Bỏ qua", exact: true }).click();
-      await page.waitForFunction(() => window.__c8Scene.room.state.players.get(window.__c8Scene.me).swCd <= 0);
+      await page.waitForFunction(() => window.__c8Scene.vit.swCd - (performance.now() - window.__c8Scene.vitAt) / 1000 <= 0);
       await page.locator('#team button[data-slot="0"]').click();
       await page.waitForFunction((id) => window.__c8Scene.owned.active === id, team[0]);
-      await page.waitForFunction(() => window.__c8Scene.room.state.players.get(window.__c8Scene.me).swCd <= 0);
+      await page.waitForFunction(() => window.__c8Scene.vit.swCd - (performance.now() - window.__c8Scene.vitAt) / 1000 <= 0);
     } else if (namesOnly) { await context.close(); continue; }
     if (!before) {
       assert.equal(await page.locator("#actrow .action-group").count(), 3);
@@ -242,16 +242,20 @@ try {
       }
       // Server bỏ qua lệnh đổi khi còn hồi chiêu: đợi sẵn sàng trước thao tác thật.
       await page.waitForFunction(() => document.querySelector("#bag").hidden);
-      await page.waitForFunction(() => window.__c8Scene.room.state.players.get(window.__c8Scene.me).swCd <= 0);
+      await page.waitForFunction(() => window.__c8Scene.vit.swCd - (performance.now() - window.__c8Scene.vitAt) / 1000 <= 0);
       const second = page.locator('#team button[data-slot="1"]');
       if (touch) await second.tap(); else await second.click();
       await page.waitForFunction((rowId) => window.__c8Scene.owned.active === rowId, team[1]);
 
       await page.waitForFunction(() => [...document.querySelectorAll("#team .cdn")].some((e) => e.textContent));
       await screenshot(page, "doi-vo-hon", size);
-      await page.waitForFunction(() => window.__c8Scene.room.state.players.get(window.__c8Scene.me).swCd <= 0);
-      await page.keyboard.press("1");
-      await page.waitForFunction((rowId) => window.__c8Scene.owned.active === rowId, team[0]);
+      await page.waitForFunction(() => window.__c8Scene.vit.swCd - (performance.now() - window.__c8Scene.vitAt) / 1000 <= 0);
+      // Server tính hồi chiêu theo tick của nó: máy chậm có thể còn hồi chiêu khi client đã tính hết, nên bấm lại tới khi đổi được.
+      for (let tries = 0; tries < 6; tries++) {
+        await page.keyboard.press("1");
+        if (await page.waitForFunction((rowId) => window.__c8Scene.owned.active === rowId, team[0], { timeout: 2500 }).then(() => true, () => false)) break;
+      }
+      await page.waitForFunction((rowId) => window.__c8Scene.owned.active === rowId, team[0], { timeout: 1000 });
       samples.push({ size, touch, geometry, names, contrast, errors });
     }
     await hook(page, "ready", { mp: 0 });
