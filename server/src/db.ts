@@ -440,16 +440,17 @@ function resonanceEntry(accountId: number, name: string, vohons: { level: number
 // Bảng xếp hạng đấu trường / tông môn (#738): kết quả dùng chung trong tiến trình, hết hạn sau RANK_BOARD_CACHE giây; yêu cầu đến lúc đang
 // tính dùng chung một Promise. Mọi lần ghi điểm / Elo trong tiến trình gọi rankBoardClear() nên chỉ bảng do tiến trình khác ghi mới trễ.
 const rankBoards = new Map<string, { at: number; v: unknown }>(), rankBusy = new Map<string, Promise<unknown>>();
-let rankGen = 0;
-export const rankBoardClear = () => { rankGen++; rankBoards.clear(); rankBusy.clear(); };
+let rankGen = 0, rankScoresGen = 0; // bộ đếm riêng cho khoá "rank|" (rank_scores): ghi điểm không làm huỷ kết quả đang tính của bảng đấu trường / tông, và ngược lại
+const rankGenOf = (key: string) => (key.startsWith("rank|") ? rankScoresGen : rankGen);
+export const rankBoardClear = () => { rankGen++; rankScoresGen++; rankBoards.clear(); rankBusy.clear(); };
 /** Xoá riêng cache các trang `rank_scores` (khoá bắt đầu bằng "rank|"): điểm đổi thì bảng đọc được ngay, bảng đấu trường / tông không bị xoá oan. */
-const rankScoresClear = () => { rankGen++; for (const k of [...rankBoards.keys()]) if (k.startsWith("rank|")) rankBoards.delete(k); for (const k of [...rankBusy.keys()]) if (k.startsWith("rank|")) rankBusy.delete(k); };
+const rankScoresClear = () => { rankScoresGen++; for (const k of [...rankBoards.keys()]) if (k.startsWith("rank|")) rankBoards.delete(k); for (const k of [...rankBusy.keys()]) if (k.startsWith("rank|")) rankBusy.delete(k); };
 function rankBoard<T>(key: string, compute: () => Promise<T>): Promise<T> {
   const hit = rankBoards.get(key);
   if (hit && Date.now() - hit.at < RANK_BOARD_CACHE * 1000) return Promise.resolve(hit.v as T);
   const busy = rankBusy.get(key); if (busy) return busy as Promise<T>;
-  const gen = rankGen;
-  const p = compute().then((v) => { if (gen === rankGen) rankBoards.set(key, { at: Date.now(), v }); return v; }).finally(() => { if (rankBusy.get(key) === p) rankBusy.delete(key); });
+  const gen = rankGenOf(key);
+  const p = compute().then((v) => { if (gen === rankGenOf(key)) rankBoards.set(key, { at: Date.now(), v }); return v; }).finally(() => { if (rankBusy.get(key) === p) rankBusy.delete(key); });
   rankBusy.set(key, p);
   return p;
 }

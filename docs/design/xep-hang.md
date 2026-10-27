@@ -138,10 +138,8 @@ Chất liệu: màn đầy khung nên **Mực** có tấm Giấy cho bảng đi�
 
 Mỗi bước server sửa **cả** `PgStore` và `MemoryStore`, thêm hàng vào bảng tin ở `giao-thuc-server.md`, và (khi sửa MapRoom) tránh phình file: đặt logic ở `server/src/rooms/rank.ts` *(đề xuất)* như `tong.ts` / `team.ts` (#702).
 
-### Quyết định của chủ repo (28/10, "tất cả theo đề xuất", câu hỏi #1191)
-1. **Thưởng hạng:** v1 chỉ danh hiệu hiển thị theo tuần, không thưởng vật phẩm / Hồn Tệ.
-2. **Đội hình công khai:** 4 ô, mỗi ô chỉ mã võ hồn, cấp, sao; không lộ gì khác (đã làm ở X2: `rank_scores.extra`, `RankLineupSlot`).
-3. **Điểm danh / Lịch / Phúc Lợi** (xem `docs/design/phuc-loi.md` nếu có): chu kỳ riêng mỗi tài khoản từ lần ký đầu, mốc 7 / 14 / 21 theo số thứ tự ô (ký bù ô 7 vẫn có mốc); ký bù = lượt miễn phí mỗi chu kỳ + lượt trả Hồn Tệ lũy tiến, trần số ô ký bù do skill `balance-review` đề xuất, hằng ở `shared/data.ts`; v1 Lịch chỉ liệt kê sự kiện đã có, GM đặt sự kiện tạm / nhân thưởng làm sau.
+### Quyết định của chủ repo
+Đã ghi ở `docs/quyet-dinh.md` (**Q52**, 28/10, câu hỏi #1191): thưởng hạng chỉ danh hiệu theo tuần; đội hình công khai 4 ô (đã làm ở X2: `rank_scores.extra`, `RankLineupSlot`); điểm danh / Phúc Lợi / Lịch theo `docs/design/phuc-loi.md`, `lich-hoat-dong.md`.
 
 ### Đã làm (X2, phần server)
 - `rank_scores` (`037_xep_hang.sql`), `Store.rankPut / rankTop / rankMe` ở `PgStore` và `MemoryStore`; hằng và hàm thuần `RANK_BOARDS` (Cấp, Sưu tầm), `rankScores`, `rankCompare`, `RANK_PAGE_SIZE / _MAX`, `RANK_CD`, `RANK_SYNC_CD` ở `shared/data.ts`.
