@@ -1,0 +1,96 @@
+{
+  "species": "doc_cham_phong",
+  "worker": "tthoadev",
+  "issue": 775,
+  "tool": "built-in image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Công cụ không công bố model, seed hoặc thời điểm gọi; không có selector kích thước.",
+  "transparent_background": false,
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "sheet": "B",
+  "raw_file": "toB.png",
+  "sha256": "2041ef92afcd021026909d2e0f37705322407ec90df0f822fa1f9cfa42bb2607",
+  "bytes": 1955118,
+  "width": 1254,
+  "height": 1254,
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "size_requirement_met": true,
+  "grid": [
+    6,
+    8
+  ],
+  "expected_visible_cells": 44,
+  "selected_attempt": 2,
+  "attempts": 2,
+  "counters": {
+    "A": 1,
+    "B": 2,
+    "species_total": 3
+  },
+  "prompt_file": "toB.prompt.txt",
+  "prompt_sha256": "90288eb6c8af28f499db485e7e2863eae2304f7cb859fedb961fd8f332672d92",
+  "references": [
+    {
+      "path": "/private/tmp/soul-land-mmo-775-doc-cham-phong/shared/assets/sprites/beast/doc_cham_phong.png",
+      "role": "static identity reference, three views of Độc Châm Phong",
+      "sha256": "7e5ab74f8c0214076abe9e821aa68a0cf693ef79fdba766bf0747d6bf775138c",
+      "original_input_path": "/private/tmp/soul-land-mmo-775-doc-cham-phong/shared/assets/sprites/beast/doc_cham_phong.png"
+    },
+    {
+      "path": "/private/tmp/soul-land-mmo-775-doc-cham-phong/art/src/beast-anim/doc_cham_phong/toA.png",
+      "role": "candidate A1 technical continuity only; not owner-approved; do not copy poses",
+      "sha256": "e51c299e40803ae3e3ddfe71f9fcca2a6bd437e0b2d1c807ed36e93728f57ebf",
+      "original_input_path": "/private/tmp/soul-land-mmo-775-doc-cham-phong/art/src/beast-anim/doc_cham_phong/toA.png"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a1797e-bc83-7452-85a2-c7f698b11d00/exec-5fb17ece-dd80-4131-ab96-cc0bae2bd265.png",
+  "history": [
+    {
+      "attempt": 1,
+      "raw_artifact": "/private/tmp/soul-land-mmo-775-doc-cham-phong/art/src/beast-anim/doc_cham_phong/candidates/toB-attempt1.png",
+      "sha256": "c15ddce0dd95e64fc6d11674eae1810497a6604b8aef016760f8b6602bb5b675",
+      "bytes": 1879248,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_artifact": "/private/tmp/soul-land-mmo-775-doc-cham-phong/art/src/beast-anim/doc_cham_phong/candidates/toB-attempt1.prompt.txt",
+      "prompt_sha256": "763d4e3860061e877c3af935a0fb7167ca48ecb230ec63605da025f223e4377d",
+      "references": [
+        {
+          "path": "shared/assets/sprites/beast/doc_cham_phong.png",
+          "sha256": "7e5ab74f8c0214076abe9e821aa68a0cf693ef79fdba766bf0747d6bf775138c",
+          "role": "static identity reference for Doc Cham Phong"
+        },
+        {
+          "path": "art/src/beast-anim/doc_cham_phong/toA.png",
+          "sha256": "e51c299e40803ae3e3ddfe71f9fcca2a6bd437e0b2d1c807ed36e93728f57ebf",
+          "role": "A1 candidate technical reference only; not owner-approved"
+        }
+      ],
+      "finding": "B1 là bản sao byte của toB #969 (Xích Lân Mãng), không phải Độc Châm Phong; giữ nguyên làm chứng cứ, không chọn làm primary."
+    }
+  ],
+  "selection_reason": "B2 đúng loài nên thay B1 làm primary. B1 được giữ nguyên trong candidates/ cùng prompt và provenance gốc; B2 vẫn có lỗi hướng ne lộ mặt, chưa được duyệt.",
+  "known_issues": [
+    "B2: khối ne lộ mặt/mắt trong nhiều frame; sai hướng 3/4 sau."
+  ],
+  "qa_status": "RAW B2 candidate; visual finding recorded; not owner-approved, not imported.",
+  "publication_policy": "Submitting raw candidates does not mean art accepted or imported.",
+  "tool_arguments": {
+    "prompt_file": "toB.prompt.txt",
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-775-doc-cham-phong/shared/assets/sprites/beast/doc_cham_phong.png",
+      "/private/tmp/soul-land-mmo-775-doc-cham-phong/art/src/beast-anim/doc_cham_phong/toA.png"
+    ],
+    "transparent_background": false
+  },
+  "generated_at": null,
+  "call_timestamp_exposed": false,
+  "copied_byte_identical_from_tool_output": true,
+  "owner_art_approval": false
+}
