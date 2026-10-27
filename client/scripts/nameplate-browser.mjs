@@ -122,6 +122,7 @@ try {
     }, { width, height });
     // #1092: đổi cỡ màn hình làm nhãn đổi ô (trễ settle 200 ms) rồi trượt ~120 ms; hai nhãn đổi cùng lúc có thể chồng thoáng qua. Chờ vị trí vẽ
     // ngừng đổi đủ lâu (> hold 450 ms của bộ xếp, để ô "về chỗ gốc" cũng đã xong) rồi mới đo, không nới ngưỡng chồng.
+    await page.evaluate(() => { window.__c9PlateSample = null; }); // mẫu của cỡ trước không được tính cho cỡ này
     await page.waitForFunction(() => {
       const s = window.__c9Scene, now = performance.now();
       window.__c9After.call(s);
