@@ -1,0 +1,24 @@
+{
+    "species":  "hoa_linh_diep",
+    "sheet":  "B",
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "attempts":  1,
+    "generated_at":  "2026-10-27T03:47:26.3597345Z",
+    "sha256":  "bdc53cf7d257d771e3a9045dd506c711165b9f949ef8357e7e5045d5e42a4dab",
+    "prompt_sha256":  "4ea40f06dea0e9d5c26bbcfbc62ed4fab0b88651d52e14a16f9a11223b383d34",
+    "references":  [
+                       {
+                           "path":  "shared/assets/sprites/beast/hoa_linh_diep.png",
+                           "sha256":  "7c7a4f1ed88f90860bb938560241fc78204b164bc28a8f9a6b9a678c162a5482"
+                       },
+                       {
+                           "path":  "art/src/beast-anim/hoa_linh_diep/toA.png",
+                           "sha256":  "3b60db782152ddf21b8cf5ddc6118036076d3621d717815cbcb7a4bc4766b7b3"
+                       }
+                   ],
+    "original_tool_path":  "C:/Users/PC/.codex/generated_images/01a17b73-f195-7882-b6e0-50abfdc5f381/exec-0321dde2-b267-40fc-9367-cbf39d022194.png",
+    "postprocessing":  "Không; chép nguyên byte RAW",
+    "agent":  "soul_land_game-620"
+}
