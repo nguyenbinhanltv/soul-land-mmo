@@ -7,5 +7,7 @@
                        "shared/assets/sprites/beast/thuc_nhan_hoa.png"
                    ],
     "tool":  "Codex image_gen.imagegen",
-    "attempts":  1
+    "attempts":  1,
+    "prompt_file":  "toA-attempt1.prompt.txt.gz",
+    "prompt_encoding":  "gzip of original UTF-8 prompt bytes; lossless"
 }
