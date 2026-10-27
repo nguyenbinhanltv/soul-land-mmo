@@ -1,5 +1,5 @@
 // Kiểm ảnh võ hồn v2 (#1087, epic #1020): `npm run vohon:check -- raw|pixel <ảnh.png> --type portrait|icon|phaptuong [--id <võ hồn>]`.
-//   raw   : ảnh RAW model trả về (trước chuyển pixel) → mức CHẶN / NHẸ / ĐẸP theo docs/art/vo-hon-phong-cach.md mục 6.1.
+//   raw   : ảnh RAW model trả về (trước chuyển pixel) → mức CHẶN / NHẸ / ĐẸP theo docs/art/vo-hon-phong-cach.md phần 6.1.
 //   pixel : ảnh sau vohon-pixelize.mjs → số màu, alpha, viền, điểm sáng (mắt / mỏ / lõi), vùng sáng, độ tương phản.
 // Thoát mã 1 nếu có mục CHẶN. Không đoán những gì máy không đo được: sai nhận diện võ hồn, chữ lạ trong ảnh và cảm giác "bá đạo" vẫn do mắt duyệt
 // (danh sách "cần mắt" in cuối mỗi báo cáo). Các số đo là hằng công cụ, KHÔNG phải số cân bằng (shared/data.ts).
@@ -81,7 +81,7 @@ export function hasFrame(img) {
 
 // ---------- RAW ----------
 /**
- * Mức theo `docs/art/vo-hon-phong-cach.md` mục 6.1. CHẶN: sai tỉ lệ / số hướng, có khung, nền không tách (icon, pháp tướng), màu lạc hẳn võ hồn
+ * Mức theo `docs/art/vo-hon-phong-cach.md` phần 6.1. CHẶN: sai tỉ lệ / số hướng, có khung, nền không tách (icon, pháp tướng), màu lạc hẳn võ hồn
  * (dấu hiệu sai nhận diện). NHẸ: texture mềm, nhiều màu, chưa đúng lưới. ĐẸP: đọc được khi thu nhỏ (32 / 64) và đúng bảng màu mục 4.
  * @returns {{ type, id, issues: {sev, code, text}[], metrics: object, manual: string[] }}
  */

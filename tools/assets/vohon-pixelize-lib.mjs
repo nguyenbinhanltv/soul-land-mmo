@@ -1,4 +1,4 @@
-// Thuật toán chuyển ảnh RAW (ChatGPT / Codex) của võ hồn v2 thành pixel thật (#1087, epic #1020; docs/art/vo-hon-phong-cach.md mục 6.1).
+// Thuật toán chuyển ảnh RAW (ChatGPT / Codex) của võ hồn v2 thành pixel thật (#1087, epic #1020; docs/art/vo-hon-phong-cach.md phần 6.1).
 // Model không làm được lưới pixel, nên bước này việc của công cụ: cắt vùng quan trọng → bỏ phiếu màu theo khối (không nội suy) → ép bảng màu →
 // khử "độ mềm" (gộp sắc độ, bỏ cụm điểm lẻ, làm cứng cạnh) → viền ngoài #1a1020. Dùng cho vohon-pixelize / vohon-check / vohon-preview.
 // Hằng ở đây là hằng công cụ, KHÔNG phải số cân bằng (shared/data.ts). Giới hạn màu lấy từ lib.mjs (PORTRAIT_MAX_COLORS, PT_MAX_COLORS).

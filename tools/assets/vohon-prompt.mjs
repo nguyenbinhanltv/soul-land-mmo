@@ -1,4 +1,4 @@
-// Sinh prompt cho tthoadev (ChatGPT / Codex) vẽ chân dung / icon / pháp tướng của võ hồn v2 (#1087, epic #1020; docs/art/vo-hon-phong-cach.md mục 6.1).
+// Sinh prompt cho tthoadev (ChatGPT / Codex) vẽ chân dung / icon / pháp tướng của võ hồn v2 (#1087, epic #1020; docs/art/vo-hon-phong-cach.md phần 6.1).
 //   node tools/assets/vohon-prompt.mjs --type portrait|icon|phaptuong --id <võ hồn> [--style-ref <ảnh đã duyệt>] [--out <thư mục>]
 //   node tools/assets/vohon-prompt.mjs --all          (25 võ hồn: mã, tên, có vẽ pháp tướng mới không)
 // Prompt TỰ SINH, không viết tay: khối STYLE + NEGATIVE chèn NGUYÊN VĂN từ mục 6; mô tả riêng lấy từ mục 4 (nguồn DUY NHẤT; giữ tiếng Việt, nhãn đổi sang
@@ -71,7 +71,7 @@ File sinh tự động bằng \`node tools/assets/vohon-prompt.mjs --type ${type
 1. Mở cuộc trò chuyện **mới**. ${opt.styleRef ? "Đính ảnh dẫn đã duyệt (ảnh 1)." : "Không đính ảnh nào (không dùng ảnh cũ làm ảnh dẫn)."} Dán khối prompt dưới đây.
 2. **Không** đòi model vẽ lưới pixel hay đếm màu: lưới, bảng màu và viền do công cụ làm.
 3. Lưu RAW **nguyên byte** vào \`${dir}/${stem}-attemptN.png\` kèm \`${stem}-attemptN.prompt.txt\` (prompt thật đã gửi) và ghi \`NGUON.md\`.
-4. Chạy \`npm run vohon:check -- raw <ảnh> --type ${type} --id ${id}\`. Có mục **CHẶN** thì vẽ lại; **NHẸ** vẫn chuyển được (xem \`docs/art/vo-hon-phong-cach.md\` mục 6.1).
+4. Chạy \`npm run vohon:check -- raw <ảnh> --type ${type} --id ${id}\`. Có mục **CHẶN** thì vẽ lại; **NHẸ** vẫn chuyển được (xem \`docs/art/vo-hon-phong-cach.md\` phần 6.1).
 5. Chuyển pixel: \`node tools/assets/vohon-pixelize.mjs --type ${type} --id ${id} --in <ảnh> --out <thư mục>\`; xem trước: \`node tools/assets/vohon-preview.mjs …\`.
 6. **Tối đa 3 lượt** cho mỗi ảnh; mỗi lượt chỉ đổi MỘT thứ (vật chính, góc nhìn hoặc độ đơn giản), không dùng ảnh hỏng làm ảnh dẫn cho lượt sau. Quá 3 lượt thì dừng và báo orchestrator.
 

@@ -259,7 +259,7 @@ test("vohon-pixelize CLI + vohon-preview: ghi ảnh, báo cáo, trang xem trư�
   const h3 = pv("phaptuong", [path.join(d, "c", "hao_thien_chuy-phaptuong.png")], "pc"); assert.match(readFileSync(h3, "utf8"), /5 hướng vẽ thật \+ 3 hướng tây/);
   rmSync(d, { recursive: true, force: true });
 });
-test("tài liệu và lệnh: docs/art/vo-hon-phong-cach.md mục 6.1 + package.json (vohon:check, test:assets) khớp công cụ", () => {
+test("tài liệu và lệnh: docs/art/vo-hon-phong-cach.md phần 6.1 + package.json (vohon:check, test:assets) khớp công cụ", () => {
   const doc = readFileSync(path.join(ROOT, "docs", "art", "vo-hon-phong-cach.md"), "utf8"), pkg = JSON.parse(readFileSync(path.join(ROOT, "package.json"), "utf8"));
   assert.match(doc, /^### 6\.1 /m); for (const w of ["vohon-pixelize", "vohon:check", "vohon-prompt", "vohon-preview", "chặn", "nhẹ", "đẹp", "3 lượt"]) assert.ok(doc.includes(w), w);
   assert.equal(pkg.scripts["vohon:check"], "node tools/assets/vohon-check.mjs"); assert.match(pkg.scripts["test:assets"], /vohon-pixelize\.test\.mjs/);
