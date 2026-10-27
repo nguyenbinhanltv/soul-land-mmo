@@ -7,5 +7,6 @@
     "references":  [
                        "shared/assets/sprites/beast/co_moc_thu_nhan.png"
                    ],
-    "tool":  "image_gen"
+    "tool":  "image_gen",
+    "attempts":  1
 }

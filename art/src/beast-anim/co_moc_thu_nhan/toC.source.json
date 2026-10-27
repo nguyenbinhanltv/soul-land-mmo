@@ -8,5 +8,6 @@
                        "shared/assets/sprites/beast/co_moc_thu_nhan.png",
                        "art/src/beast-anim/co_moc_thu_nhan/turnaround.png"
                    ],
-    "tool":  "image_gen"
+    "tool":  "image_gen",
+    "attempts":  3
 }
