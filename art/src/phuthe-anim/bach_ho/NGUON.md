@@ -75,3 +75,7 @@ Các lỗi góc ne/n chỉ khai --eye ở trên; không sinh riêng để sửa 
 | candidates/toB-attempt3.png | art/src/phuthe-anim/bach_ho/references/bach_ho-nom-toB.png → art/src/vohon-v2/bach_ho/concept-attempt1.png → art/src/phuthe-anim/bach_ho/toA.png |
 
 Bài học đã được diễn đạt lại sau kiểm thử để không lọt từ khóa nộm vào chế độ --no-dummy và không ghi số pixel cố định; các prompt lưu trữ vẫn giữ đúng bản thực gửi.
+
+### Bài học riêng loài (chỉ hồ sơ)
+
+Bạch Hổ: tai, vuốt theo tay và một đuôi vằn; không vẽ nguyên đầu/thân/chân hổ sau nộm. Chi tiết này chỉ lưu tại hồ sơ và prompt lịch sử, không chèn vào bài học chung nhóm B. Theo AO review #1199, các bài học lô 2 trong lessons.md đã gộp thành ba câu chung để không ép số chi thể của loài này lên loài khác; không sửa RAW/prompt/source cũ và không sinh thêm lượt.

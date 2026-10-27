@@ -78,3 +78,7 @@ Các lỗi góc ne/n chỉ khai --eye ở trên; không sinh riêng để sửa 
 | candidates/toD-attempt1.png | art/src/phuthe-anim/yeu_ho/references/yeu_ho-nom-toD.png → art/src/vohon-v2/yeu_ho/concept-attempt1.png → art/src/phuthe-anim/yeu_ho/toC.png |
 
 Bài học đã được diễn đạt lại sau kiểm thử để không lọt từ khóa nộm vào chế độ --no-dummy và không ghi số pixel cố định; các prompt lưu trữ vẫn giữ đúng bản thực gửi.
+
+### Bài học riêng loài (chỉ hồ sơ)
+
+Yêu Hồ: tai và ba đuôi; không vẽ nguyên đầu/thân hồ ly sau nộm. Chi tiết này chỉ lưu tại hồ sơ và prompt lịch sử, không chèn vào bài học chung nhóm B. Theo AO review #1199, các bài học lô 2 trong lessons.md đã gộp thành ba câu chung để không ép số chi thể của loài này lên loài khác; không sửa RAW/prompt/source cũ và không sinh thêm lượt.

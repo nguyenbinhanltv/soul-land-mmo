@@ -87,3 +87,7 @@ Các lỗi góc ne/n chỉ khai --eye ở trên; không sinh riêng để sửa 
 | candidates/toE-attempt2.png | art/src/phuthe-anim/liet_hoa_thuong_lang/references/liet_hoa_thuong_lang-nom-toE.png → art/src/vohon-v2/liet_hoa_thuong_lang/concept-attempt3.png |
 
 Bài học đã được diễn đạt lại sau kiểm thử để không lọt từ khóa nộm vào chế độ --no-dummy và không ghi số pixel cố định; các prompt lưu trữ vẫn giữ đúng bản thực gửi.
+
+### Bài học riêng loài (chỉ hồ sơ)
+
+Liệt Hỏa Thương Lang: tai, vuốt theo tay và một đuôi chóp lửa; không vẽ nguyên đầu/thân/chân sói sau nộm. Chi tiết này chỉ lưu tại hồ sơ và prompt lịch sử, không chèn vào bài học chung nhóm B. Theo AO review #1199, các bài học lô 2 trong lessons.md đã gộp thành ba câu chung để không ép số chi thể của loài này lên loài khác; không sửa RAW/prompt/source cũ và không sinh thêm lượt.
