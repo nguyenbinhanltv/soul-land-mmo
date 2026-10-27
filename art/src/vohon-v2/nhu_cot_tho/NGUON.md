@@ -8,18 +8,29 @@ Prompt tự sinh bằng `node tools/assets/vohon-prompt.mjs --type phaptuong --i
 
 - `candidates/concept-attempt1.png`: 2115857 byte; SHA256 `4b3c59a2f815c8638406e72bbdc7da2845dfd725217bf31ec2a0ce74fbf17db9`; prompt SHA256 `298658c86df26ae5e89544b6360c99ae3d1528e9f89fe2f0a9862fbbbc531c68`.
 - `candidates/concept-attempt2.png`: 2078875 byte; SHA256 `7f2be5e3022117fb3e59ab29ff7f037e55a0c80f8e194780dbc03ba472ee3893`; prompt SHA256 `298658c86df26ae5e89544b6360c99ae3d1528e9f89fe2f0a9862fbbbc531c68`.
-- `candidates/concept-attempt3.png`: 1824410 byte; SHA256 `e4d6cfb04c501f29f0bbbe1c24f04040b1c1167ab5ce2739f9e5660d12f90aa3`; prompt SHA256 `298658c86df26ae5e89544b6360c99ae3d1528e9f89fe2f0a9862fbbbc531c68`.
+- `concept-attempt3.png`: 1824410 byte; SHA256 `e4d6cfb04c501f29f0bbbe1c24f04040b1c1167ab5ce2739f9e5660d12f90aa3`; prompt SHA256 `298658c86df26ae5e89544b6360c99ae3d1528e9f89fe2f0a9862fbbbc531c68`.
 
-Công cụ dùng tạm `--type phaptuong` để sinh prompt năm hướng theo chỉ định chủ repo ở comment #6436237808 của issue #1096; đây chỉ là concept, không thay pháp tướng hiện có. Theo khuôn lô worker, mọi lượt bị chặn nằm trong `candidates/`, kể cả mẫu tốt nhất của võ hồn khi chưa có lượt đạt; đường dẫn ảnh chính chỉ dùng cho mẫu đề xuất không bị chặn.
+Công cụ dùng tạm `--type phaptuong` để sinh prompt năm hướng theo chỉ định chủ repo ở comment #6436237808 của issue #1096; đây chỉ là concept, không thay pháp tướng hiện có. Theo quyết định comment #6436570268, mẫu tốt nhất đã được chọn làm concept tham chiếu ngoại hình ở thư mục chính; các lượt còn lại giữ trong `candidates/`. Lỗi hướng không loại mẫu ngoại hình, sẽ xử lý ở khâu phụ thể có hình nộm.
 
 ## Tự soát RAW
 
 - Số lượt: 3/3; lượt tốt nhất: 3.
 - Mức: **chặn**. Tạo hình thỏ hung: tai dài nhọn, chân sau lớn, mắt đỏ hẹp; thân tím hồng sẫm, không dễ thương. Lượt 1: ne quay trái còn lộ mõm, tai / khí sát hoặc cắt mép. Lượt 2: se quay trái, ne còn mắt. Lượt 3 tốt nhất về bố cục, se đúng phải và không cắt tai, nhưng ne vẫn lộ mắt / răng. Không lượt nào đạt đủ góc lưng.
 - Lượt 3 có 5 tư thế khác nhau nhưng chỉ 4 góc đáp ứng s, se, e, n; ne lộ mắt. Các lượt 1 và 2 còn sai phía hướng chéo.
-- Không người, chữ, khung; nền alpha. Không sửa RAW để che lỗi. Chỉ concept, chưa duyệt làm nguồn cho các loại hình khác.
+- Không người, chữ, khung; nền alpha. Không sửa RAW để che lỗi. Chỉ concept; mẫu đã chọn chờ orchestrator duyệt ngoại hình, chưa nhập game.
 
 - Kiểm RAW tự động: cả ba lượt NHẸ, tách được 5 cụm; lượt 2 có tỉ lệ 3:1, các lượt còn lại khoảng 5:2. Kết luận duyệt mắt vẫn CHẶN vì hướng chéo không đạt.
+
+## Mẫu chọn và khai báo mắt (`--eye`)
+
+Theo [quyết định orchestrator](https://github.com/nguyenbinhanltv/soul-land-mmo/pull/1146#issuecomment-6436570268): chọn `concept-attempt3.png` để tham chiếu ngoại hình, không sinh thêm. Mức chặn RAW phía trên vẫn lưu lịch sử lỗi; không coi lỗi hướng là điều kiện loại concept ngoại hình. Góc ne/n sửa ở khâu phụ thể có hình nộm.
+
+Các khai báo dưới đây cũng lưu trong trường `eye` của source JSON. Công cụ võ hồn hiện chưa hỗ trợ tham số `--eye`; đây là khai báo hồ sơ, không phải lệnh đã thực thi bằng công cụ hồn thú.
+
+```text
+--eye "concept-attempt3=hướng — ne — còn lộ mắt / răng"
+--eye "concept-attempt3=hướng — se/e — góc chéo và ngang còn gần nhau"
+```
 
 ## Ghi công
 

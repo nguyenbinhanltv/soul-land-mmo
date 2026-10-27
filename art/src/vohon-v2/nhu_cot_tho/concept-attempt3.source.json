@@ -1,0 +1,24 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "attempt": 3,
+  "raw": true,
+  "output_path": "C:/Users/PC/.codex/generated_images/01a17c44-24ab-7e33-b35f-45c0181ebded/exec-e5faa441-d60b-4c69-9bc9-34078f294469.png",
+  "image_sha256": "e4d6cfb04c501f29f0bbbe1c24f04040b1c1167ab5ce2739f9e5660d12f90aa3",
+  "prompt_sha256": "298658c86df26ae5e89544b6360c99ae3d1528e9f89fe2f0a9862fbbbc531c68",
+  "style_reference": {
+    "path": "art/src/phap-tuong/hao_thien_chuy/concept-turnaround-attempt2.png",
+    "pr": 1083,
+    "sha256": "631ac2ef55e230875ee2452b5dac9c634829ed09642d9666824e2a20f0e664af"
+  },
+  "assessment": "chặn",
+  "notes": "Tạo hình thỏ hung: tai dài nhọn, chân sau lớn, mắt đỏ hẹp; thân tím hồng sẫm, không dễ thương. Lượt 1: ne quay trái còn lộ mõm, tai / khí sát hoặc cắt mép. Lượt 2: se quay trái, ne còn mắt. Lượt 3 tốt nhất về bố cục, se đúng phải và không cắt tai, nhưng ne vẫn lộ mắt / răng. Không lượt nào đạt đủ góc lưng.",
+  "selected_for": "concept ngoại hình; chờ orchestrator duyệt",
+  "eye": [
+    "concept-attempt3=hướng — ne — còn lộ mắt / răng",
+    "concept-attempt3=hướng — se/e — góc chéo và ngang còn gần nhau"
+  ],
+  "selection_decision": "https://github.com/nguyenbinhanltv/soul-land-mmo/pull/1146#issuecomment-6436570268"
+}
