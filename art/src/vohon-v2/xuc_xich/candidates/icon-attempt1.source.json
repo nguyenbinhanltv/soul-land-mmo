@@ -125,8 +125,7 @@
   },
   "eye": "Một Xúc Xích chính màu đỏ đất, vết nứt vàng; còn bốn chiếc nhỏ và nhiều khí xoắn, không đạt biểu tượng đơn; ở 24 px khí sáng lẫn thân đỏ, ưu tiên khối chính yếu, giữ làm candidate chưa chọn.",
   "imported": false,
-  "prompt_hash_format": "file: UTF-8 LF with terminal newline; sent_prompt: exact CLI stdout with terminal newlines removed",
-  "generated_output": "C:/Users/PC/.codex/generated_images/01a17e99-5d72-7e62-8f91-6f335946f354",
+  "prompt_hash_format": "prompt file: UTF-8, normalized LF, with terminal newline; sent_prompt: exact CLI stdout with terminal newlines removed, containing 22 CRLF in STYLE and LF elsewhere; sent_prompt_sha256 hashes this original mixed-newline string, not the normalized prompt file",
   "status": "candidate-rejected",
   "attempts_total": 3
 }

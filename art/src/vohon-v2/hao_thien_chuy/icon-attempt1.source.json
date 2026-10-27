@@ -130,8 +130,7 @@
   },
   "eye": "Một búa thép tím đen, đầu búa lớn với vết nứt cam và cạnh bạc; cán còn dài, một số vết nứt nhỏ đứt ở 24 px; silhouette búa vẫn đọc rõ, cần duyệt mức sáng và biểu tượng trên đai.",
   "imported": false,
-  "prompt_hash_format": "file: UTF-8 LF with terminal newline; sent_prompt: exact CLI stdout with terminal newlines removed",
-  "generated_output": "C:/Users/PC/.codex/generated_images/01a17e99-5d72-7e62-8f91-6f335946f354",
+  "prompt_hash_format": "prompt file: UTF-8, normalized LF, with terminal newline; sent_prompt: exact CLI stdout with terminal newlines removed, containing 22 CRLF in STYLE and LF elsewhere; sent_prompt_sha256 hashes this original mixed-newline string, not the normalized prompt file",
   "status": "candidate-for-review",
   "attempts_total": 1
 }

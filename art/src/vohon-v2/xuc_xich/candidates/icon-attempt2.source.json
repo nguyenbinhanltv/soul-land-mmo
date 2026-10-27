@@ -125,8 +125,7 @@
   },
   "eye": "Lượt 2 vẫn có bốn Xúc Xích phụ và khí sáng dày, không đạt biểu tượng đơn; thân chính to nhưng vòng khí nhập thân khi thu nhỏ, loại vào candidates.",
   "imported": false,
-  "prompt_hash_format": "file: UTF-8 LF with terminal newline; sent_prompt: exact CLI stdout with terminal newlines removed",
-  "generated_output": "C:/Users/PC/.codex/generated_images/01a17e99-5d72-7e62-8f91-6f335946f354",
+  "prompt_hash_format": "prompt file: UTF-8, normalized LF, with terminal newline; sent_prompt: exact CLI stdout with terminal newlines removed, containing 22 CRLF in STYLE and LF elsewhere; sent_prompt_sha256 hashes this original mixed-newline string, not the normalized prompt file",
   "status": "candidate-rejected",
   "attempts_total": 3
 }

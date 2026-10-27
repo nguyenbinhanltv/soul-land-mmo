@@ -120,8 +120,7 @@
   },
   "eye": "Đóa hoa cánh dao cam đất, nhụy vàng trên khe đỏ tối; còn rễ và cánh rời, vòng sáng nhiều dấu nhọn làm rối bố cục; nhụy sáng còn thấy, cánh nhỏ và rễ dễ nhập nhau ở 24 px; chưa đạt dấu hiệu đơn gọn hoàn toàn.",
   "imported": false,
-  "prompt_hash_format": "file: UTF-8 LF with terminal newline; sent_prompt: exact CLI stdout with terminal newlines removed",
-  "generated_output": "C:/Users/PC/.codex/generated_images/01a17e99-5d72-7e62-8f91-6f335946f354",
+  "prompt_hash_format": "prompt file: UTF-8, normalized LF, with terminal newline; sent_prompt: exact CLI stdout with terminal newlines removed, containing 22 CRLF in STYLE and LF elsewhere; sent_prompt_sha256 hashes this original mixed-newline string, not the normalized prompt file",
   "status": "candidate-for-review",
   "attempts_total": 1
 }

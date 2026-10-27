@@ -125,8 +125,7 @@
   },
   "eye": "Lượt 3 vẫn có bốn Xúc Xích phụ và khí sáng dày; nhiều chủ thể, không đạt biểu tượng đơn. Hết 3/3 lượt, dừng; chưa có bản chọn, lỗi còn lại chỉ khai --eye.",
   "imported": false,
-  "prompt_hash_format": "file: UTF-8 LF with terminal newline; sent_prompt: exact CLI stdout with terminal newlines removed",
-  "generated_output": "C:/Users/PC/.codex/generated_images/01a17e99-5d72-7e62-8f91-6f335946f354",
+  "prompt_hash_format": "prompt file: UTF-8, normalized LF, with terminal newline; sent_prompt: exact CLI stdout with terminal newlines removed, containing 22 CRLF in STYLE and LF elsewhere; sent_prompt_sha256 hashes this original mixed-newline string, not the normalized prompt file",
   "status": "candidate-rejected",
   "attempts_total": 3
 }
