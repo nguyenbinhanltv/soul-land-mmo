@@ -1,0 +1,12 @@
+{
+  "tool": "image_gen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 1,
+  "generatedAt": "2026-10-27T04:01:05.431Z",
+  "sha256": "51d9e1d695e8fe673611d0e49a5d22208352306eeade6052269bb2fc313c25b6",
+  "references": [
+    "shared/assets/sprites/beast/nhan_dien_ma_chu.png"
+  ],
+  "eye": "Chính diện chỉ đọc rõ ba cặp chân; không dùng làm tham chiếu."
+}
