@@ -56,3 +56,33 @@ CLI chưa nhận cờ `--eye`; lưu khai báo tường minh, giữ nguyên kết
 ```text
 --eye "portrait-attempt1=RAW/P1c2 — Trụ hương tràng nứt vỏ, đai đỏ và hương tràng nhỏ nhận ra, không nhân hoá. Hơi nóng vàng sáng lớn cùng gam thân cam, nhiều vật phụ, trụ cắt mép trên/dưới. P1c2 giữ vết nứt nhưng hơi nóng cạnh tranh chủ thể, đai đỏ gần thân; cần chủ repo duyệt riêng theo mục 4."
 ```
+
+
+## Icon lô 3 — #1159, RAW nearest 24/32 px
+
+Ngày 2026-10-28; **1/3 lượt**. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `icon-attempt1.png`, SHA256 `731755297a9c585d67211f4e5f2046d8a16539bc784be0e526cf713f16d28778`. Prompt CLI nguyên nội dung, không viết tay / addendum: `icon-attempt1.prompt.txt`, SHA256 `fa0f799e6f332cace9a4f945a6687ee496770b9c688772ab26495773749b64ab` (UTF-8 LF, file có xuống dòng cuối; chuỗi gửi bỏ xuống dòng cuối lưu trong source JSON).
+
+Ảnh neo theo chỉ định lô 3: `art/src/vohon-v2/xuc_xich/concept-attempt1.png`, SHA256 `0310c598ef01a1970f7c85cd401ba65e0aade78a8974291ecb15a9cdb4a369d3`; chỉ tham chiếu ngoại hình, không xác nhận concept đã đạt năm hướng. Hồ sơ đầy đủ và kết quả máy: `icon-attempt1.source.json`. Chuyển bằng preset `icon-nearest`: bỏ nền, cắt hộp bao, nearest-neighbor, viền mặc định; giữ màu RAW, không ép 8 màu. Bản 24/32 và báo cáo tại `icon-attempt1-nearest/`; xem [trang so sánh](icon-attempt1-nearest/preview/index.html).
+
+Ứng viên trình duyệt, chưa duyệt nhập game. Lỗi còn lại chỉ khai dưới đây, không sửa RAW.
+
+### Khai báo duyệt mắt icon (`--eye`)
+
+CLI chưa nhận cờ `--eye`; giữ nguyên kết quả máy và lưu khai báo tường minh:
+
+```text
+--eye "icon-attempt1=24 — cham-mep — hình chạm mép ảnh (2 điểm): viền ngoài bị cắt"
+--eye "icon-attempt1=24 — nhieu-chi-tiet — mật độ biên 0.923 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+--eye "icon-attempt1=32 — cham-mep — hình chạm mép ảnh (4 điểm): viền ngoài bị cắt"
+--eye "icon-attempt1=32 — nhieu-chi-tiet — mật độ biên 0.935 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+--eye "icon-attempt1=raw — mem — texture mềm: 88% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+--eye "icon-attempt1=raw — nhieu-mau — 182 màu đáng kể (nên ≤ 160 để ép về ≤ 32 mà không bệt)"
+--eye "icon-attempt1=raw — luoi — chưa đúng lưới khối: tỉ số biên 1.23 ở chu kỳ 34 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+--eye "icon-attempt1=duyệt mắt — Một Xúc Xích chính màu đỏ đất, vết nứt vàng; còn bốn chiếc nhỏ và nhiều khí xoắn, không đạt biểu tượng đơn; ở 24 px khí sáng lẫn thân đỏ, ưu tiên khối chính yếu, giữ làm candidate chưa chọn."
+```
+
+### Ghi công icon
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/vohon-v2/xuc_xich/icon-attempt1.*` và `icon-attempt1-nearest/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) + vohon-pixelize icon-nearest | Icon lô 3 #1159; prompt CLI nguyên văn, concept riêng làm neo; model/seed unknown. | 2026-10-28 | 1/3 lượt; ứng viên chưa duyệt, không nhập game; SHA256 ở trên. |
