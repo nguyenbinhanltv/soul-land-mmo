@@ -47,7 +47,17 @@ Loài `quy_dang` (Quỷ Đằng), họ `vine`, khung game 128×128. Mức kiểm
 - Prompt: `toD.prompt.txt` (SHA256 `fceb82b7ad944bc852c30175ac32a38801c5ce4eaa6d7ff894db0b69fce9d092`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne nhẹ).
-- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (ne): cỡ thân idle 116% so với ảnh tĩnh (lệch 16%); cutter neo lại, không chặn.
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (ne): cỡ thân idle 113% so với ảnh tĩnh (lệch 13%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+## toE
+
+- File: `toE.png`, **1536×1024**, 2099714 byte, SHA256 `e4d45c6a320beb9bba5ffe7865383fe488e5e5867460db297bbe8eab9f8339e9`.
+- Công cụ: Codex image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-625.
+- Prompt: `toE.prompt.txt` (SHA256 `7a2287520a2bd3877bdbac69d77044ca594036c5464e9408e49a100988d3bdd1`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 120% so với ảnh tĩnh (lệch 20%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## Lỗi
