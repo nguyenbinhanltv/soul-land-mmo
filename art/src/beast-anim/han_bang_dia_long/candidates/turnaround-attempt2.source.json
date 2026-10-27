@@ -1,0 +1,11 @@
+﻿{
+    "seed":  "unknown",
+    "attempt":  2,
+    "createdAt":  "2026-10-27T05:27:59.7230631Z",
+    "sha256":  "70841d7a786e71450eab20d165fa0077a560b9c84c3661d0cd1bc63d09b331b4",
+    "model":  "unknown",
+    "references":  [
+                       "shared/assets/sprites/beast/han_bang_dia_long.png"
+                   ],
+    "tool":  "image_gen"
+}
