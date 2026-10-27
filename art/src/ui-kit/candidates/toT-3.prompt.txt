@@ -1,0 +1,28 @@
+A sheet of 9 separate bar and input widget pieces for a pixel-art game user interface, landscape 3:2 aspect ratio. Each piece is its own separate object on the sheet.
+LAYOUT: 3 rows, row 1: 3 pieces; row 2: 3 pieces; row 3: 3 pieces; read left to right, top to bottom, in exactly this order:
+  1.1  horizontal bar frame for the health bar
+  1.2  horizontal bar frame for the spirit-power bar
+  1.3  horizontal bar frame for the experience bar
+  2.1  health bar fill (red, flat)
+  2.2  spirit-power bar fill (blue, flat)
+  2.3  experience bar fill (gold, flat)
+  3.1  thin bar divider tick
+  3.2  scrollbar track with a thumb
+  3.3  empty text input box
+Each frame-like piece must stretch cleanly: ornament only at the four corners and the middle of each side, the straight sides are a flat one or two colour band, the inside is a flat uniform fill.
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no glow, no vignette, no frame or border around the image.
+STYLE: pixel-art game interface in an isometric Ultima Online mood mixed with Chinese ink-wash xianxia (Douluo Dalu setting); sharp pixel edges, palette of at most 32 colours, one thick consistent dark outline (#1a1020), pale bronze rim, no blur, no large gradients.
+MATERIAL: INK material: near-black wood with faint ink-wash grain, pale bronze rim.
+DO NOT DRAW: text, numbers, letters, logos, labels, glow, drop shadow, particles, characters, hands, extra pieces, a border around the sheet.
+
+LESSONS (learned from earlier sheets, follow every line):
+- Draw no text, numbers, letters, glyphs, runes, logos or symbols that could be read as characters anywhere in the image; where a label would go, draw an empty bar or a flat block of colour.
+- Do not draw fake labels, button captions or placeholder squiggles inside the frames: the inside stays an empty flat fill.
+- Keep at least five percent of the image width of empty magenta between neighbouring pieces and between any piece and the image edge; never let two pieces touch.
+- Arrange the pieces on an even grid, left to right, top to bottom, exactly in the order and row counts given; draw each piece once, never repeat, mirror or crop a piece.
+- Cast no shadow and no glow onto the magenta background; a soft shadow or halo turns into a pink fringe after the background is keyed out.
+- Limit the whole image to a small palette of at most 32 colours with one consistent dark outline (#1a1020); sharp pixel edges, no anti-aliased blur, no large gradients, no noise texture.
+- Two materials share the same corner set, outline weight and bronze rim: INK (near-black wood with ink-wash grain, pale bronze rim) and PAPER (ivory rice paper, thin vermilion rim, wooden roller); only the fill and the text colour differ.
+- Match the style, materials and palette of the attached approved reference exactly; never copy its layout.
+- The empty text input box uses a dark ink interior matching the three empty bar frames, never an ivory paper fill; the scrollbar thumb is pale bronze.
+- The three second-row bar fills are bare flat solid red, blue and gold strips without bronze frames, corners, medallions or end caps; only the three first-row empty frames carry ornaments.

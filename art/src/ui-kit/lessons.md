@@ -34,3 +34,9 @@
 - [I] Icons stay legible when reduced to a quarter of their size: no hairlines, no more than three tones per icon plus the outline. // hạ 32 / 24
 - [D] Decorations are loose standalone ornaments (title rule, corner flourish, seal, ribbon); each is a single separated piece that does not need a frame around it. // trang trí rời
 - [BOARD] The sample screen is for approval and as a style reference only: it shows the HUD, two panels, one dialog and the action row, with all labels drawn as empty bars. // không cắt
+- [N] Render every rim as hard opaque stepped pixel blocks with no blended magenta pixels; keep every straight rim segment perfectly constant in colour and thickness, with tiny corner ornaments confined to the corners. // N lượt 1: viền hồng và thân cạnh không phẳng
+- [N] Both tabs use the same dark ink fill as secondary buttons; selection changes only the jade rim and brightness, never turns a tab into ivory paper. // N lượt 1 và 2: tab chọn sai chất liệu Mực
+- [O] Make the outer outline a fully opaque hard-edged dark pixel staircase directly against pure magenta, with no antialiasing, blended pink pixels or translucent fringe. // O lượt 1: viền hồng 48,6 phần trăm
+- [O] Shrink every slot to at most seventy percent of its grid cell, leaving broad uninterrupted magenta gutters even across the five-slot rarity row. // O lượt 1 và 2: hàng độ hiếm quá sát nhau
+- [T] The empty text input box uses a dark ink interior matching the three empty bar frames, never an ivory paper fill; the scrollbar thumb is pale bronze. // T lượt 1: ô nhập sai chất liệu Mực
+- [T] The three second-row bar fills are bare flat solid red, blue and gold strips without bronze frames, corners, medallions or end caps; only the three first-row empty frames carry ornaments. // T lượt 1 và 2: ruột thanh bị vẽ thêm khung
