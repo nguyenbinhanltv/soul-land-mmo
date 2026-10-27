@@ -1,0 +1,50 @@
+﻿{
+    "issue":  877,
+    "session":  "soul_land_game-698",
+    "style":  "ngoc-kim",
+    "status":  "Nháp chờ chủ repo duyệt; không cắt hoặc nhập game",
+    "tool":  "Codex builtin image_gen.imagegen",
+    "model_id":  null,
+    "seed":  null,
+    "raw_original":  "C:/Users/PC/.codex/generated_images/01a17f05-8bf4-7431-b592-f3ad64264b39/exec-1f9e7803-88fd-40a2-8b80-4ab6d69ad061.png",
+    "raw_file":  "BOARD.png",
+    "sha256":  "f4472b5da3220c8aff8a21cbc8b197b9b5324205e58ddb2cfaf5fbe433241a37",
+    "raw_copy_byte_identical":  true,
+    "postprocessing":  "NONE",
+    "dimensions":  [
+                       1536,
+                       1024
+                   ],
+    "prompt_file":  "BOARD.prompt.txt",
+    "prompt_sha256":  "5ebddd9c08ad7fad127b7f8ff4168f2a4123ee8f34f997feefae5f85a3e6d334",
+    "prompt_generator":  "npm run ui:prompt -- --kind BOARD --style ngoc-kim",
+    "prompt_hand_edited":  false,
+    "references":  [
+
+                   ],
+    "selected_attempt":  1,
+    "attempts":  [
+                     {
+                         "selected":  true,
+                         "attempt":  1,
+                         "reason":  "Đủ các khu vực; đúng tỉ lệ; giữ nháp để chủ repo duyệt hướng",
+                         "minor":  0,
+                         "warnings":  0,
+                         "blocking":  0
+                     }
+                 ],
+    "qa_limitation":  "ui:check BOARD chỉ kiểm cỡ/tỉ lệ, không chứng nhận chất lượng mỹ thuật",
+    "visual_errors":  [
+                          "Vàng hơi sáng; nhiều điểm ngọc cùng hút mắt, chưa đạt một điểm sáng toàn màn",
+                          "Vân cảnh trong bảng Nhân vật và Xếp Hạng khá rõ, giảm lưu bạch",
+                          "Một số khung có viền kép; chưa chứng minh 9-slice",
+                          "Khoảng cách và mép ngoài hẹp hơn yêu cầu 5%; BOARD không dùng để cắt"
+                      ],
+    "visual_pass":  [
+                        "Đủ HUD sáu nút, bảng Nhân vật/Túi Mực, hộp Giấy, hotbar, bảng Xếp Hạng với bục và hàng trống",
+                        "Không thấy chữ hoặc số đọc được"
+                    ],
+    "tool_arguments":  {
+                           "transparent_background":  false
+                       }
+}
