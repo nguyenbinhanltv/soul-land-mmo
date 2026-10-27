@@ -39,3 +39,19 @@ Theo quyết định ở PR #1145: concept chỉ tham chiếu ngoại hình; hư
 `portrait-attempt2.png`: 1254×1254, 2,358,606 byte, SHA256 `dd0fdb1cfeb6042cc1a2ed6f0a6c7a254005120e1eaab3fb575ca917ec7ad85f`; prompt `portrait-attempt2.prompt.txt`, SHA256 `388098da53684f73bc5ec42c768dfdc97e192234e82c4ba3179fb5a30076d89d`; nguồn `portrait-attempt2.source.json`. RAW, builtin `image_gen.imagegen`, model/seed unknown, ngày 2026-10-27.
 
 **Chưa đạt làm chân dung cuối: thiếu tương phản** khi thu về 64×64 (lông / quầng sáng / nền đỏ cam hòa vào nhau, mắt lẫn đạo văn; texture mềm). Chỉ giữ làm ảnh neo phong cách (đã dùng làm style ref cho concept Hạo Thiên Chùy); không nhập game, không tạo icon / thẻ từ ảnh này. Lượt 1 (FAIL) không đưa vào. Muốn vẽ lại thì làm lượt 3/3 sau lô H4 đầu tiên.
+
+## Chân dung lượt 3/3 — chưa đạt bản cuối, dừng sinh
+
+Ngày 2026-10-27: đúng một lần gọi builtin image_gen.imagegen, model/seed unknown. RAW `portrait-attempt3.png` giữ nguyên byte, SHA256 đối chiếu bản gốc `48819bdc5430b610f3bdcd42dc326e2230583e696d03af477fbf811e97115af3`. Prompt `portrait-attempt3.prompt.txt` sinh nguyên văn bằng `node tools/assets/vohon-prompt.mjs --type portrait --id ta_hoa_phuong_hoang --style-ref art/src/vohon-v2/ta_hoa_phuong_hoang/portrait-attempt2.png`, SHA256 `8e02eb71065d5ab41f41a189d1b6ca8e9d8e73ba6c6e19fa9507db8f4d33c77b`. Không sửa tay, không addendum; ảnh neo lượt 2 theo yêu cầu. Hồ sơ: `portrait-attempt3.source.json`.
+
+RAW NHẸ: texture mềm, chưa đúng lưới; màu đúng họ, giữ 8/8 điểm sáng. P1c dùng tên CLI `--preset portrait` (không có preset tên P1c), lưu ở `candidates/portrait-attempt3-P1c/`: 64×64, 6 màu, tương phản 0.196, mật độ biên 0.296, sep 50.1, giữ 7/8 điểm sáng; NHẸ `nen-chu-the`, bgRatio 1.17 < 1.4. Xem `candidates/portrait-attempt3-P1c/preview/index.html` và `so-sanh.png`.
+
+Duyệt mắt: đúng hung điểu, mắt/mỏ còn đọc được nhưng lông và đạo văn rối ở 64×64. Nền tím lạnh, chủ thể đỏ/cam; vùng sáng ngoài mặt còn nhiều. Chưa đạt góc nghiêng và 3–5 lưỡi lông lớn. Prompt CLI yêu cầu facing the viewer; giữ nguyên theo luật không viết tay, khai rõ sai lệch. Chưa đạt bản cuối, không nhập game. Đã hết 3/3 lượt chân dung, không sinh tiếp.
+
+Công cụ vohon:check không hỗ trợ --eye; khai cùng khuôn tại đây:
+
+```text
+--eye "portrait-attempt3=góc nhìn — đầu — gần chính diện, chưa đạt góc nghiêng"
+--eye "portrait-attempt3=chi tiết — lông/đạo văn — nhiều nhánh nhỏ, chưa đạt 3–5 lưỡi lớn; rối ở 64×64"
+--eye "portrait-attempt3=tương phản — nền/chủ thể — bgRatio 1.17; chưa đạt bản cuối"
+```
