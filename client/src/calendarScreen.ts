@@ -67,10 +67,14 @@ const slotKey = (it: CalItem) => `${it.id}@${it.s}`;
 
 function slotNode(it: CalItem, st: SlotState): PNode {
   const mark = st === "live" ? "▶ " : st === "soon" ? "◔ " : st === "past" ? "✓ " : ""; // dấu hình + chữ: không chỉ màu
-  return h("button", `cal-slot cal-${st}${sel === slotKey(it) ? " sel" : ""}`, { attrs: { type: "button", "data-k": slotKey(it), "aria-label": `${it.name}, ${slotRange(it)}${STATE_LABEL[st] ? `, ${STATE_LABEL[st]}` : ""}` }, kids: [
+  const label = `${it.name}, ${slotRange(it)}${STATE_LABEL[st] ? `, ${STATE_LABEL[st]}` : ""}`;
+  // đã qua: thu gọn một dòng (giờ + dấu tick) để bảng ngày không dài vô tận; còn lại đủ tên + boss
+  return h("button", `cal-slot cal-${st}${sel === slotKey(it) ? " sel" : ""}`, { attrs: { type: "button", "data-k": slotKey(it), "aria-label": label, title: label }, kids: st === "past" ? [
+    h("span", "cal-time", { text: `✓ ${hhmmVn(it.s)}` }), h("span", "cal-name cal-short", { text: it.name }),
+  ] : [
+    h("span", "cal-time", { text: slotRange(it) }),
     st !== "later" ? h("span", "cal-tag", { text: mark + STATE_LABEL[st] }) : null,
     h("span", "cal-name", { text: it.name }),
-    h("span", "cal-time", { text: slotRange(it) }),
     it.boss ? h("span", "cal-boss", { text: `Boss: ${it.boss}` }) : null,
   ] });
 }
