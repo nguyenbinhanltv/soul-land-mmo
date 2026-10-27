@@ -1,6 +1,6 @@
 # cuu_bao_luu_ly_thap — concept năm hướng RAW
 
-Công cụ: builtin `image_gen.imagegen`; model/seed: `unknown`. Ngày 2026-10-27. **3/3 lượt**, chọn lượt 3 tốt nhất trong candidates để đối chiếu ngoại hình; còn lỗi chặn, chưa duyệt. RAW nguyên byte, không hậu kỳ, chưa duyệt, không nhập game.
+Công cụ: builtin `image_gen.imagegen`; model/seed: `unknown`. Ngày 2026-10-27. **3/3 lượt**, chưa chọn lượt nào vì CHẶN mắt; lượt 3 tốt nhất trong candidates để đối chiếu, chưa duyệt. RAW nguyên byte, không hậu kỳ, chưa duyệt, không nhập game.
 
 Prompt nguyên bản do `vohon-prompt.mjs --type phaptuong --id cuu_bao_luu_ly_thap --style-ref <ảnh neo>` sinh; ảnh dẫn duy nhất: Hạo Thiên Chùy lượt 2 đã duyệt từ PR #1083 (`art/src/phap-tuong/hao_thien_chuy/concept-turnaround-attempt2.png`). Không dùng ảnh cũ hay lượt hỏng.
 
@@ -8,7 +8,7 @@ Prompt nguyên bản do `vohon-prompt.mjs --type phaptuong --id cuu_bao_luu_ly_t
 
 Số góc thật: khoảng 3; tháp gần đối xứng. Chọn tốt nhất trong 3 lượt về màu bảy sắc, chuông và silhouette. CHẶN mắt về nhận diện: chỉ đọc chắc khoảng 8 tầng mái, chưa đủ chín tầng; hết 3 lượt nên dừng. Vòng pháp luân còn dày, bệ đá thêm ngoài hình mẫu, chi tiết nhiều. Chưa duyệt hình mẫu chín tầng; chỉ tham chiếu ngoại hình.
 
-Chọn `concept-attempt3.png`; hồ sơ prompt và source JSON kèm cùng tên. Không phải sheet hoạt ảnh dùng trực tiếp. Các hướng cần sửa được xử lý ở khâu phụ thể bằng hình nộm.
+Chưa chọn lượt nào vì CHẶN mắt và hết 3 lượt. Lượt tốt nhất để đối chiếu: `candidates/concept-attempt3.png`, kèm prompt và source JSON cùng tên. Tháp còn treo; cần quyết định hoặc đợt sinh mới được giao riêng để đạt nhận diện chín tầng, không chuyển lỗi thiếu tầng sang bước phụ thể.
 
 SHA256 ảnh: `067900bfcfa13d852e79c0d692c19c339406670fc037c13eb96cc37921fd88f4`. SHA256 prompt: `1dba2a719e3481ad814b75177ef2acf8ed5d5213c452cad9aa0651b2bc009984`.
 

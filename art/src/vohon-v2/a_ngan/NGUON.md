@@ -40,6 +40,6 @@ raw concept-attempt2.png pháp tướng (a_ngan): NHẸ
 
 ## Lượt không chọn
 
-- Lượt 1: candidates/concept-attempt1.png; SHA256 ảnh e7850d3aa55dc567afa2d8a2a928fc8f7223f0d3b9f08ef64d071f84cf70f86f; SHA256 prompt ce89d72abd8d5205b74b310105c3eebdd8f263f3f3e4e37dd48be68411920f41. CHẶN máy: chỉ tách 3 khối. Thân cổ thụ lam xanh xoắn, hoa vàng trắng và dây vàng rủ đúng hình mẫu; ne còn thấy nhụy phía trước, n nhìn lưng đúng. Không có mặt sinh vật, không sinh thêm để sửa ne/n. s/se/e còn gần nhau; dây rủ có chi tiết nhỏ, hình ngoài sát mép. Chọn tham chiếu ngoại hình, chưa coi là sheet năm hướng dùng trực tiếp.
+- Lượt 1: candidates/concept-attempt1.png; SHA256 ảnh e7850d3aa55dc567afa2d8a2a928fc8f7223f0d3b9f08ef64d071f84cf70f86f; SHA256 prompt ce89d72abd8d5205b74b310105c3eebdd8f263f3f3e4e37dd48be68411920f41. CHẶN máy: chỉ tách 3 khối. Thân cổ thụ lam xanh xoắn, hoa vàng trắng và dây vàng rủ đúng hình mẫu; ne còn thấy nhụy phía trước, n nhìn lưng đúng. Không có mặt sinh vật; lượt 2 sinh vì lỗi khoảng cách, không nhằm sửa ne/n. s/se/e còn gần nhau; dây rủ có chi tiết nhỏ, hình ngoài sát mép. Giữ làm ứng viên, không chọn.
 
 Prompt trong repo chuẩn hóa xuống dòng LF đúng byte Git; SHA trước chuẩn hóa CRLF giữ trong source JSON. Nội dung prompt tự sinh không sửa.
