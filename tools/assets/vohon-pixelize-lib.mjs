@@ -370,6 +370,49 @@ export function protectAccent(small, pal, max = pal.length) {
   for (let i = 0; i < small.data.length; i += 4) if (small.data[i + 3] >= 128) use[nearest([small.data[i], small.data[i + 1], small.data[i + 2]], pal)]++;
   pal[use.indexOf(Math.min(...use))] = top; return true;
 }
+/**
+ * Nền theo màu viền (P1c2): điểm nối với mép ảnh, gần màu viền trung vị (RGB ≤ `tol`) và không sáng hơn viền quá 0,1 luma. Phủ > `maxShare` ảnh (thân tối cùng gam nền)
+ * thì thử lại với `tol` một nửa. Trả { bg: Uint8Array (1 = nền), key, share }.
+ */
+export function edgeBackground(img, { tol = 34, maxShare = 0.5 } = {}) {
+  const { w, h } = img, n = w * h, px = [];
+  for (let x = 0; x < w; x++) px.push(img.get(x, 0), img.get(x, h - 1));
+  for (let y = 1; y < h - 1; y++) px.push(img.get(0, y), img.get(w - 1, y));
+  const med = (c) => px.map((p) => p[c]).sort((a, b) => a - b)[px.length >> 1], key = [med(0), med(1), med(2)], kl = luma(...key);
+  for (let t = tol; ; t = Math.floor(t / 2)) {
+    const bg = new Uint8Array(n), st = [];
+    const push = (x, y) => { const p = y * w + x, i = p * 4, d = img.data; if (!bg[p] && d[i + 3] >= 128 && dist([d[i], d[i + 1], d[i + 2]], key) <= t && luma(d[i], d[i + 1], d[i + 2]) <= kl + 0.1) { bg[p] = 1; st.push(p); } };
+    for (let x = 0; x < w; x++) { push(x, 0); push(x, h - 1); }
+    for (let y = 0; y < h; y++) { push(0, y); push(w - 1, y); }
+    while (st.length) { const p = st.pop(), x = p % w, y = (p / w) | 0; if (x > 0) push(x - 1, y); if (x < w - 1) push(x + 1, y); if (y > 0) push(x, y - 1); if (y < h - 1) push(x, y + 1); }
+    const share = bg.reduce((a, v) => a + v, 0) / n; if (share <= maxShare || t < 16) return { bg, key, share };
+  }
+}
+/**
+ * Bảo vệ MỌI đốm sáng nguồn (mắt, mỏ, lõi): màu rực nhất quanh tâm đốm (ô nhỏ) mà bảng chưa có màu gần (≥ 28) thì thêm khi còn chỗ (< `max`); đầy thì thôi (không thay màu thân).
+ * Sửa `pal` tại chỗ; trả số màu đã thêm.
+ */
+export function protectBlobs(small, blobs, pal, max) {
+  let added = 0;
+  for (const b of blobs) {
+    if (pal.length >= max) break;
+    const x = Math.min(small.w - 1, Math.floor(b.cx * small.w)), y = Math.min(small.h - 1, Math.floor(b.cy * small.h)); let top = null, tg = -1;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= small.w || Y >= small.h || small.alpha(X, Y) < 128) continue; const c = small.get(X, Y), g = glow(c[0], c[1], c[2]); if (g > tg) { tg = g; top = c.slice(0, 3); } }
+    if (top && dist(top, pal[nearest(top, pal)]) >= 28) { pal.push(top); added++; }
+  }
+  return added;
+}
+/** Độ lệch màu so với RAW (0..1): khoảng cách RGB trung bình (chia √3·255) giữa ảnh pixel và bản thu hộp-trung-bình của `region`, bỏ điểm `skip` (nền) và điểm trong suốt. */
+export function colorDrift(pix, region, skip = null) {
+  let sum = 0, n = 0;
+  for (let y = 0; y < pix.h; y++) for (let x = 0; x < pix.w; x++) {
+    if (pix.alpha(x, y) < 128 || skip?.[y * pix.w + x]) continue;
+    const x0 = Math.floor((x * region.w) / pix.w), x1 = Math.max(x0 + 1, Math.floor(((x + 1) * region.w) / pix.w)), y0 = Math.floor((y * region.h) / pix.h), y1 = Math.max(y0 + 1, Math.floor(((y + 1) * region.h) / pix.h));
+    let r = 0, g = 0, b = 0, m = 0; for (let j = y0; j < y1; j++) for (let i = x0; i < x1; i++) { const q = region.get(i, j); if (q[3] >= 128) { r += q[0]; g += q[1]; b += q[2]; m++; } }
+    if (!m) continue; const p = pix.get(x, y); sum += dist([p[0], p[1], p[2]], [r / m, g / m, b / m]); n++;
+  }
+  return n ? +(sum / n / (Math.sqrt(3) * 255)).toFixed(3) : null;
+}
 /** Viền sáng 1 điểm phía nguồn sáng (trên trái): điểm chủ thể có láng giềng trên / trái là nền → màu nhấn `accent`. Sửa `img` tại chỗ; trả số điểm. */
 export function rimLight(img, mask, accent) {
   const { w, h } = img, at = (x, y) => (x < 0 || y < 0 || x >= w || y >= h ? 0 : mask[y * w + x]); let n = 0;
@@ -399,6 +442,12 @@ export const DEFAULTS_BY_TYPE = {
 };
 /** `--preset portrait` (#1095): nền lạnh tối, hue-shift, gộp tông giống (merge cao), ≤ `maxColors` màu khác hẳn, bảo vệ điểm nhấn, viền sáng 1 điểm. */
 export const PRESET_PORTRAIT = { hueShift: 0.5, merge: 34, maxColors: 8, rim: true, cool: true, protect: true };
+/**
+ * `--preset portrait2` (P1c2, #1158): sát RAW. P1c cho Otsu theo độ sáng làm "chủ thể" nên chỉ nét phát sáng được giữ, thân tối bị coi là nền (hạ ×0,55, hue-shift, ép 8 màu) → khối tối mất / dính.
+ * Ở đây: nền = vùng nối mép ảnh VÀ gần màu viền (không theo độ sáng) → phẳng một tông tối cùng gam; thân KHÔNG đổi màu; bỏ phiếu ít thiên về điểm sáng (`accent` thấp);
+ * 16 màu, gộp nhẹ; mỗi đốm sáng nguồn (mắt, mỏ, lõi) giữ một màu riêng; viền sáng 1 điểm theo tông thân.
+ */
+export const PRESET_PORTRAIT2 = { faithful: true, merge: 12, maxColors: 16, rim: true, protect: true, accent: 0.6 };
 export const DEFAULTS = { ...DEFAULTS_BY_TYPE.portrait, bgTol: 48 };
 const dflt = (type, o, k) => o[k] ?? DEFAULTS_BY_TYPE[type][k];
 
@@ -421,13 +470,36 @@ export function pixelizePortrait(src, o = {}) {
   const size = o.size ?? PORTRAIT_SIZE, colors = o.colors ?? MAX_COLORS.portrait, cr = parseCrop(o.crop) ?? squareCrop(src, { focus: o.focus, zoom: o.zoom });
   const prep = prepareSource(src, { bg: o.bg ?? "none", bgTol: o.bgTol }), region = crop(prep.img, cr), blobs = accentBlobs(region);
   const transparent = hasAlpha(region), outline = o.outline === "on" || (o.outline !== "off" && transparent);
-  const small = pixelizeDown(region, size, size, { accent: dflt("portrait", o, "accent") }), op = o.preset === "portrait" ? { ...PRESET_PORTRAIT, ...o } : o;
+  const small = pixelizeDown(region, size, size, { accent: o.accent ?? (o.preset === "portrait2" ? PRESET_PORTRAIT2.accent : dflt("portrait", o, "accent")) }), op = o.preset === "portrait" ? { ...PRESET_PORTRAIT, ...o } : o.preset === "portrait2" ? { ...PRESET_PORTRAIT2, ...o } : o;
+  if (op.preset === "portrait2") return portraitFaithful(small, region, blobs, { ...op, colors, outline, crop: cr, size });
   const mask = op.cool || op.rim ? subjectMask(small) : null, extra = {};
   const subj = mask ? subjectHue(small, mask.mask) : null, cold = backgroundHue(subj) !== SHADOW_HUE; // chủ thể gam lam / tím: nền về nâu ấm, bóng không đẩy về tím
   if (mask) extra.subjectHue = subj == null ? null : Math.round(subj);
   if (op.cool) { extra.bgHue = backgroundHue(subj); extra.coolPixels = coolBackground(small, mask.mask, { hue: extra.bgHue }); }
   if (op.hueShift) extra.hueShifted = hueShift(small, op.hueShift, { shadowHue: cold ? null : SHADOW_HUE });
   return finish(small, { ...op, colors: Math.min(colors, op.maxColors ?? colors) - (outline ? 1 : 0), outline, blobs, crop: cr, size, type: "portrait", mask: op.rim ? mask.mask : null, extra, subjectShare: mask && +mask.share.toFixed(2) });
+}
+/**
+ * Chân dung sát RAW (preset portrait2): nền theo màu viền → phẳng một tông tối (0,7 × màu viền); bảng tính trên thân (không có nền) cộng đốm sáng riêng; thân giữ màu RAW;
+ * làm cứng không đụng nền; viền sáng = tông sáng nhất của thân không quá chói (luma ≤ 0,8) hoặc màu sáng nhất. Report có `colorDrift` (độ lệch so với RAW).
+ */
+function portraitFaithful(small, region, blobs, o) {
+  const eb = edgeBackground(small), bgc = eb.key.map((v) => Math.round(v * 0.7)), body = new Img(small.w, small.h, Uint8Array.from(small.data));
+  for (let p = 0; p < eb.bg.length; p++) if (eb.bg[p]) body.data[p * 4 + 3] = 0;
+  const colors = Math.min(o.colors, o.maxColors ?? o.colors) - (o.outline ? 1 : 0), pal = buildPalette(body, colors - 1, { mode: o.palette ?? "auto", pool: o.pool ?? [], merge: dflt("portrait", o, "merge") });
+  const added = o.protect ? protectBlobs(body, blobs, pal, colors - 1) : 0, bgIdx = pal.push(bgc) - 1, bodyPal = pal.slice(0, bgIdx);
+  const idx = toIndexed(body, bodyPal); for (let p = 0; p < idx.length; p++) if (eb.bg[p]) idx[p] = bgIdx;
+  const changed = harden(idx, small.w, small.h, pal, { minCluster: dflt("portrait", o, "minCluster"), passes: dflt("portrait", o, "passes") });
+  for (let p = 0; p < idx.length; p++) if (eb.bg[p]) idx[p] = bgIdx; else if (idx[p] === bgIdx) idx[p] = nearest([body.data[p * 4], body.data[p * 4 + 1], body.data[p * 4 + 2]], bodyPal);
+  for (const b of blobs) { // ghim lại điểm rực nhất tâm mỗi đốm sáng (mắt tím luma thấp không thuộc "màu phát sáng" nên harden có thể xóa)
+    const cx = Math.min(small.w - 1, Math.floor(b.cx * small.w)), cy = Math.min(small.h - 1, Math.floor(b.cy * small.h)); let best = -1, bg = -1;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = cx + dx, Y = cy + dy; if (X < 0 || Y < 0 || X >= small.w || Y >= small.h || eb.bg[Y * small.w + X]) continue; const c = small.get(X, Y), g = glow(c[0], c[1], c[2]); if (g > bg) { bg = g; best = Y * small.w + X; } }
+    if (best >= 0) idx[best] = nearest([small.data[best * 4], small.data[best * 4 + 1], small.data[best * 4 + 2]], bodyPal);
+  }
+  const img = fromIndexed(idx, small.w, small.h, pal), calm = bodyPal.filter((c) => luma(...c) <= 0.8);
+  const rim = o.rim ? rimLight(img, eb.bg.map((v) => 1 - v), (calm.length ? calm : bodyPal).reduce((a, c) => (luma(...c) > luma(...a) ? c : a))) : 0;
+  if (o.outline) outlineOutside(img);
+  return { img, palette: pal, report: { type: "portrait", size: o.size, crop: o.crop, preset: "portrait2", bgShare: +eb.share.toFixed(2), bgColor: bgc, accentAdded: added, ...(rim && { rimPixels: rim }), contrast: contrastMetrics(img), hardenedPixels: changed, accent: accentSurvival(blobs, img), colorDrift: colorDrift(img, region, eb.bg), colors: pal.length + (o.outline ? 1 : 0) } };
 }
 /** Icon `size`×`size`: bỏ nền, cắt theo hộp bao (hoặc `crop`), vừa (size − 2) có viền ngoài, căn giữa. */
 export function pixelizeIcon(src, o = {}) {
