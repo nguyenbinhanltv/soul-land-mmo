@@ -1,0 +1,12 @@
+{
+  "tool": "image_gen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 2,
+  "generatedAt": "2026-10-27T04:16:40.291Z",
+  "sha256": "b753f949e4646468000ae4d665f0a7ab3e87fa2366650fa6758b3b75af47a961",
+  "references": [
+    "shared/assets/sprites/beast/nhan_dien_ma_chu.png",
+    "art/src/beast-anim/nhan_dien_ma_chu/turnaround.png"
+  ]
+}

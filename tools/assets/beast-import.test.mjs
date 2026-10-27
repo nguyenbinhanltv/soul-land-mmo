@@ -44,6 +44,7 @@ test("blockDirs: nhận hướng của dòng chặn, dòng không rõ hướng l
   assert.deepEqual(blockDirs([I("block", "THIẾU khung ne/idle/2 (tờ A cột 2 hàng 4)"), I("block", "khung se/walk/1 chạm mép khung"), I("warn", "khung n/die/0 lệch")]).sort(), ["ne", "se"]);
   assert.deepEqual(blockDirs([I("block", "khối e: hệ số 0.7 làm khung vượt khung 96×96")]), ["e"]);
   assert.deepEqual(blockDirs([I("block", "một số khung vượt khung 96×96 ở hệ số 0.716")]), ["cả loài"]);
+  assert.deepEqual(blockDirs([I("block", "thiếu tờ C (e)"), I("block", "thiếu tờ D (ne, n)")]).sort(), ["e", "n", "ne"]);
   assert.deepEqual(blockDirs([I("warn", "x")]), []);
 });
 
