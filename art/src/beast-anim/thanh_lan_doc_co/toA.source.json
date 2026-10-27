@@ -1,0 +1,59 @@
+{
+  "species": "thanh_lan_doc_co",
+  "sheet": "A",
+  "worker": "soul-land-mmo-136",
+  "issue": 774,
+  "raw_file": "toA.png",
+  "sha256": "4dc379a50cf25dca270120142da264e9250b5f695b9454bf421f18b682a48658",
+  "bytes": 1852705,
+  "width": 941,
+  "height": 1672,
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "size_requirement_met": true,
+  "grid": [
+    6,
+    12
+  ],
+  "expected_visible_cells": 66,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Prompt requested portrait 2:3 aspect ratio only; no size, model or seed selector was exposed.",
+  "transparent_background": false,
+  "selected_attempt": 1,
+  "attempts": 1,
+  "counters": {
+    "A": 1,
+    "B": 1,
+    "species_total": 2
+  },
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "4a58cb9b873c896ebe14816aa5ccedd731f477e790c1fc3e0feaa6de2b62df75",
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/thanh_lan_doc_co.png",
+      "role": "static identity, actual image bytes verified",
+      "sha256": "6de0d97071f3730525a80276d0c1a5bacfec5e74187b9e8096f20b0b6e8664e3"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-72641356-2f73-4d40-9ebc-73c759433e30.png",
+  "selection_reason": "A1 là lượt đầu và candidate duy nhất hiện có; giữ RAW, không redraw chỉ vì cỡ đã được #1007 chấp nhận.",
+  "known_issues": [
+    "LỖI: toA — sai hướng — s — ATTACK H3 C3–4 quay sang phải thay vì giữ hướng s.",
+    "LỖI: toA — sai pose — s — DIE H4 C1–4 nằm ngang ảnh, không giữ trục hướng s."
+  ],
+  "qa_status": "Candidate; observed checker and art findings; not owner-approved.",
+  "publication_policy": "Submit original RAW and findings per owner directive; submission is not art acceptance or import.",
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "error_line": "LỖI: toA — sai hướng — s — ATTACK H3 C3–4 quay sang phải thay vì giữ hướng s. LỖI: toA — sai pose — s — DIE H4 C1–4 nằm ngang ảnh, không giữ trục hướng s.",
+  "tool_arguments": {
+    "prompt_file": "toA.prompt.txt",
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-774-thanh-lan-doc-co/shared/assets/sprites/beast/thanh_lan_doc_co.png"
+    ],
+    "transparent_background": false
+  }
+}
