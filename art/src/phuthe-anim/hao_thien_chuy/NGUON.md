@@ -16,9 +16,9 @@ Khung dự kiến 128, gốc chân (64, 90), không nộm. Turnaround có 5 cộ
 
 | Lượt | File | SHA256 ảnh | SHA256 prompt |
 |---|---|---|---|
-| 1 | `candidates/turnaround-attempt1.png` | `aeb83c54b56554bb7d5247b053d2274984b50b1193a4a463dfd50e171bcd9958` | `f96f5361bd77f7046a057f97b49d5848b88cd9684b65d3330966cd1bfa51b8b2` |
-| 2 | `candidates/turnaround-attempt2.png` | `3e0b7f76326be332d9464218e4d4ee1d0a6eff63ca6ab4c1e44461b1f7d933f7` | `f96f5361bd77f7046a057f97b49d5848b88cd9684b65d3330966cd1bfa51b8b2` |
-| 3 | `candidates/turnaround-attempt3.png` | `2df084f4d3dbd71e3f139d9bff04674e08f366dcdc43a4e177f9a5f8e676e2fd` | `f96f5361bd77f7046a057f97b49d5848b88cd9684b65d3330966cd1bfa51b8b2` |
+| 1 | `candidates/turnaround-attempt1.png` | `aeb83c54b56554bb7d5247b053d2274984b50b1193a4a463dfd50e171bcd9958` | `9271da0ff01860f8a11c2e307c0cd17be3b09a1ee8d18ec1d3fd5c50479beb6b` |
+| 2 | `candidates/turnaround-attempt2.png` | `3e0b7f76326be332d9464218e4d4ee1d0a6eff63ca6ab4c1e44461b1f7d933f7` | `9271da0ff01860f8a11c2e307c0cd17be3b09a1ee8d18ec1d3fd5c50479beb6b` |
+| 3 | `candidates/turnaround-attempt3.png` | `2df084f4d3dbd71e3f139d9bff04674e08f366dcdc43a4e177f9a5f8e676e2fd` | `9271da0ff01860f8a11c2e307c0cd17be3b09a1ee8d18ec1d3fd5c50479beb6b` |
 
 Prompt thực gửi và source JSON nằm cạnh mỗi RAW. Không có file ảnh trùng byte.
 
