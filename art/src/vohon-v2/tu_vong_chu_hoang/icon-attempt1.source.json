@@ -1,0 +1,24 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "type": "icon",
+  "attempt": 1,
+  "raw": "icon-attempt1.png",
+  "raw_sha256": "fbeaaeef943c4c7826617d0e839448dc6423eeb9437179d6224312c2e6dde175",
+  "prompt": "icon-attempt1.prompt.txt",
+  "prompt_sha256": "512d2a30ce5d968df34f602fe84cd85b4dbacc51d50f91a39ca0ddf6819fb039",
+  "reference": "concept-attempt1.png",
+  "reference_sha256": "b9cdc21f23c580792231cf131a6b4a91ac0676d2e080f7f5a9e21e6786fab656",
+  "original": "C:/Users/PC/.codex/generated_images/01a17dd5-789d-7bd1-9290-26a7285f2682/exec-e5263aa9-5385-47d0-ba86-f96fbbea5aa0.png",
+  "pixelize": {
+    "preset": "icon",
+    "colors": 8,
+    "merge": 24,
+    "passes": 2,
+    "protect": true
+  },
+  "status": "needs_visual_review",
+  "eye": "Biểu tượng nhện tím đen, mắt tím và đồ án tử vong; kiểm các chân không dính nhau và điểm mắt ở 24 px."
+}
