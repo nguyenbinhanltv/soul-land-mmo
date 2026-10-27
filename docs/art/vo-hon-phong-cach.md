@@ -380,6 +380,8 @@ Máy **không** đo được và vẫn phải duyệt bằng mắt (danh sách "
 
 **Tạo tương phản (#1095):** chân dung 64×64 hay tan gam (mắt lẫn chi tiết). `--preset portrait` của `vohon-pixelize` làm: tách chủ thể khỏi nền (Otsu trên luma), nền tối đối gam chủ thể (tím; chủ thể lam / tím thì nâu ấm, bóng không về tím), hue-shift theo sắc độ (`--hue-shift`: bóng → tím, sáng → vàng ấm), gộp tông giống (`merge` cao) còn ≤ `maxColors` (`--max-colors`, mặc định preset 8), giữ màu sáng nhất (mắt, mỏ, lõi) trong bảng, viền sáng 1 điểm màu nhấn ở rìa trên / trái chủ thể. Chỉnh từng mục: `--cool`, `--rim`, `--protect`, `--hue-shift`. `vohon:check pixel` thêm `sep` (khoảng cách RGB nhỏ nhất giữa hai màu chiếm ≥ 2% ảnh; NHẸ `gan-mau` khi < `SEP_MIN`) và `bgRatio` (luma vùng giữa / vòng ngoài, NHẸ `nen-chu-the` khi < `BG_RATIO_MIN`).
 
+**Preset `portrait2` (P1c2, #1158):** xem [vo-hon-portrait2.md](vo-hon-portrait2.md).
+
 **Thử trên RAW của #1083**: chân dung Tà Hỏa lượt 2 cắt sát mặt `--focus 0.69,0.55 --zoom 2.2`: trước 13 màu, mật độ biên 0,335 (NHẸ), cam dính nhau; sau `--preset portrait` 6 màu, mật độ biên 0,268 (ĐẸP), nền tím tối, mỏ + mắt sáng tách rõ. Concept Hạo Thiên tách đủ 5 khung 160×160; icon 24×24 mất đốm sáng (NHẸ).
 
 ## 7. Mốc duyệt
