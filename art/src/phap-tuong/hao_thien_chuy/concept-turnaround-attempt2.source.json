@@ -1,0 +1,67 @@
+{
+  "asset": "phap_tuong_hao_thien_chuy_concept_turnaround_attempt2",
+  "worker": "soul-land-mmo-140",
+  "issue": 1024,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": "unknown",
+  "seed": "unknown",
+  "tool_limitations": "Tool response exposes only image_url and output_hint; model and seed are not exposed and no image-size selector is available.",
+  "transparent_background": true,
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "attempt": 2,
+  "attempts_in_block": 2,
+  "block_limit": 3,
+  "raw_file": "concept-turnaround-attempt2.png",
+  "selected": false,
+  "prompt_file": "concept-turnaround-attempt2.prompt.txt",
+  "prompt_sha256": "cd8c9097ec72444e8adf3b97fcb4eba549e445d6da3c9c913b19bf71f4b34348",
+  "sha256": "631ac2ef55e230875ee2452b5dac9c634829ed09642d9666824e2a20f0e664af",
+  "bytes": 1147628,
+  "width": 2172,
+  "height": 724,
+  "format": "PNG",
+  "has_alpha": true,
+  "prompt_target": "Five actual views s, se, e, ne, n in five columns; chunky pixel concept about 96x96 enlarged.",
+  "references": [
+    {
+      "order": 1,
+      "path": "art/src/vohon-v2/ta_hoa_phuong_hoang/portrait-attempt2.png",
+      "sha256": "dd0fdb1cfeb6042cc1a2ed6f0a6c7a254005120e1eaab3fb575ca917ec7ad85f",
+      "role": "Owner-authorized new-art style reference only; not a design/content reference. No PixelLab or Gemini images used."
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17a55-6881-7de2-9edb-2af84255fbee/exec-eb608052-e8f4-43e9-b9ce-a9a65e4d5486.png",
+  "tool_output_hint": "Generated images are saved to /Users/thanhhoa/.codex/generated_images/01a17a55-6881-7de2-9edb-2af84255fbee as /Users/thanhhoa/.codex/generated_images/01a17a55-6881-7de2-9edb-2af84255fbee/exec-eb608052-e8f4-43e9-b9ce-a9a65e4d5486.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link.",
+  "tool_response_keys": [
+    "image_url",
+    "output_hint"
+  ],
+  "full_tool_response_store_key": "soul-land-1024-hao-thien-concept-attempt2-full-response",
+  "generated_at": "unknown; tool did not expose timestamp",
+  "raw_copy_verified": true,
+  "visual_qa": {
+    "status": "owner-approved concept only; not a final game asset",
+    "observations": [
+      "Owner confirms five drawings are three distinct views: two mirrored pairs plus front.",
+      "Owner directs n/ne to reuse the front view because the hammer is symmetrical.",
+      "RAW has soft shading and some fine texture; concept acceptance does not make it import-ready."
+    ]
+  },
+  "qa_status": "Owner approved concept in comment #6430325821; no attempt 3; no formal GitHub PR review or game-asset approval.",
+  "tool_arguments": {
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-1024-fresh/art/src/vohon-v2/ta_hoa_phuong_hoang/portrait-attempt2.png"
+    ],
+    "transparent_background": true
+  },
+  "approval_scope": "Concept shape approval only for Hạo Thiên Chùy attempt 2/3; direction policy n/ne reuses front per owner. No animation/import approval.",
+  "selected_for_concept": true,
+  "owner_decision": {
+    "status": "concept approved by repository owner",
+    "comment_url": "https://github.com/nguyenbinhanltv/soul-land-mmo/pull/1083#issuecomment-6430325821",
+    "distinct_views_in_output": 3,
+    "directions_ne_n_reuse_front_view": true,
+    "attempt3_needed": false,
+    "scope": "concept only; no final sprite, import, or animation approval"
+  }
+}

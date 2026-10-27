@@ -33,3 +33,9 @@ LỖI: concept-attempt3 — chi tiết — cánh — lông còn dày, thiếu v�
 ```
 
 Theo quyết định ở PR #1145: concept chỉ tham chiếu ngoại hình; hướng ne/n xử lý ở khâu phụ thể bằng hình nộm. Giữ nguyên kết quả kiểm RAW và mọi lỗi đã quan sát, không coi ảnh này là sheet năm hướng dùng trực tiếp. SHA256 ảnh và prompt không đổi khi chuyển vị trí.
+
+## Chân dung `portrait-attempt2.png` — chỉ làm ảnh neo phong cách (từ PR #1083, #1024)
+
+`portrait-attempt2.png`: 1254×1254, 2,358,606 byte, SHA256 `dd0fdb1cfeb6042cc1a2ed6f0a6c7a254005120e1eaab3fb575ca917ec7ad85f`; prompt `portrait-attempt2.prompt.txt`, SHA256 `388098da53684f73bc5ec42c768dfdc97e192234e82c4ba3179fb5a30076d89d`; nguồn `portrait-attempt2.source.json`. RAW, builtin `image_gen.imagegen`, model/seed unknown, ngày 2026-10-27.
+
+**Chưa đạt làm chân dung cuối: thiếu tương phản** khi thu về 64×64 (lông / quầng sáng / nền đỏ cam hòa vào nhau, mắt lẫn đạo văn; texture mềm). Chỉ giữ làm ảnh neo phong cách (đã dùng làm style ref cho concept Hạo Thiên Chùy); không nhập game, không tạo icon / thẻ từ ảnh này. Lượt 1 (FAIL) không đưa vào. Muốn vẽ lại thì làm lượt 3/3 sau lô H4 đầu tiên.
