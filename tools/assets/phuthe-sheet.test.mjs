@@ -449,8 +449,13 @@ test("--no-dummy (#1024): không bảng nộm, ảnh 1 = concept đã chốt, pr
   assert.deepEqual(referencesFor("turnaround", info, { id: "T" }).map((r) => r.n), [1]);
   for (const p of [buildDirectionPrompt(info, sh), buildTurnaroundPrompt(info)]) {
     assert.doesNotMatch(p.replace("NO MANNEQUIN", ""), /mannequin|#00D0D0/i);
-    assert.match(p, /NO MANNEQUIN/); assert.match(p, /keep EXACTLY the appearance of the concept/); assert.match(p, /foot origin/);
+    assert.match(p, /NO MANNEQUIN/); assert.match(p, /draw only the attachments named in the brief and never a whole creature/); assert.match(p, /foot origin/);
+    assert.match(p, /Direction "se" is a three-quarter view/);
+    assert.doesNotMatch(p, /flat single-colored|Where the spirit passes in front/);
   }
+  assert.match(buildTurnaroundPrompt(info), /A possession is NOT a complete animal companion/);
+  assert.match(buildDirectionPrompt(info, sh), /Draw every frame as its own separate picture/);
+  for (const [, md] of [...stageDocs(info, "turnaround"), ...stageDocs(info, "direction")]) assert.doesNotMatch(md.replace(/NO MANNEQUIN/g, ""), /nộm còn nguyên|(?<!không có )bảng nộm|trùng nộm|dính vào nộm|một nộm/);
   const def = buildDirectionPrompt(infoWith("ta_hoa_phuong_hoang"), sh);
   assert.match(def, /MANNEQUIN: the first attached image/); assert.doesNotMatch(def, /NO MANNEQUIN/);
   assert.equal(infoWith("bach_ho").noDummy, false);

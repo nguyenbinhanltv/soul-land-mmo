@@ -50,8 +50,25 @@ const moveOf = (group, noDummy) => {
   const m = group === "A" ? MOVE.rigid : MOVE.soft;
   return noDummy ? Object.fromEntries(Object.entries(m).map(([k, v]) => [k, v.replace(/the mannequin/g, "the hero")])) : m;
 };
-/** Bài học nhắc đến nộm không hợp khi --no-dummy: bỏ. */
-const lessonsOf = (stage, group, info, lessons) => (lessons ?? lessonsFor(stage, group)).filter((l) => !info.noDummy || !/mannequin/i.test(l.text));
+/** Bài học thuần về giữ nguyên nộm: vô nghĩa khi --no-dummy (các bài còn lại được viết lại bằng `noDummyText`). */
+const DUMMY_ONLY = /^Draw ONLY the spirit\. The flat single-colored mannequin|^Where the spirit passes in front of the mannequin|^Preserve the first reference board's mannequin/;
+const NO_DUMMY_SUBS = [
+  [/glued to the same place of the mannequin/g, "fixed at the same place relative to the cell's foot origin"],
+  [/, even though the mannequin itself is drawn side-on/g, ""],
+  [/the hero is seen from behind: show no face on the mannequin and no face-like marks anywhere/g, "the spirit is seen from behind: show no face-like marks anywhere"],
+  [/, without a mannequin:/g, ":"],
+  [/; the mannequin stays in the pose shown/g, ""],
+  [/keep their root fixed on the mannequin/g, "keep their root fixed at the attachment point of the unseen hero's body"],
+  [/from the magenta and from the mannequin color/g, "from the magenta background"],
+  [/rooted directly at the mannequin's upper back/g, "rooted directly at the unseen hero's upper back"],
+  [/rooted on the mannequin/g, "rooted on the unseen hero's body"],
+  [/the mannequin's/g, "the unseen hero's"], [/the mannequin/g, "the unseen hero"],
+];
+const noDummyText = (t) => NO_DUMMY_SUBS.reduce((x, [re, to]) => x.replace(re, to), t);
+const lessonsOf = (stage, group, info, lessons) => {
+  const all = lessons ?? lessonsFor(stage, group);
+  return info.noDummy ? all.filter((l) => !DUMMY_ONLY.test(l.text)).map((l) => ({ ...l, text: noDummyText(l.text) })) : all;
+};
 
 const BACKGROUND = `BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border. This overrides the line "Transparent background" of the STYLE block: the sheet background is solid magenta, never transparent.`;
 /** Ảnh concept võ hồn đã chốt (lượt có số lớn nhất trong art/src/vohon-v2/<id>/), dùng khi --no-dummy; không có thì chỉ ghi thư mục. */
@@ -61,7 +78,7 @@ export function conceptRef(id, root = path.resolve(path.dirname(fileURLToPath(im
   const n = (x) => +(/^concept-attempt(\d+)\.png$/.exec(x)?.[1] ?? -1), list = readdirSync(abs).filter((x) => n(x) >= 0).sort((a, b) => n(b) - n(a));
   return list.length ? `${dir}/${list[0]}` : existsSync(path.join(abs, "concept.png")) ? `${dir}/concept.png` : `${dir}/`;
 }
-const FIDELITY = "the spirit must keep EXACTLY the appearance of the concept in the first reference image (form, proportions, colors, motifs, line weight); only the direction and the pose change";
+const FIDELITY = "keep the colors, motifs, line weight and the shape of the attachments named in the brief exactly as in the concept of the first reference image; the concept shows the whole martial soul, so copy neither its full-body composition nor its anatomy: draw only the attachments named in the brief and never a whole creature";
 const noDummyLine = (dir) => `NO MANNEQUIN: this sheet has no hero body and no body guide. Draw ONLY the spirit; ${FIDELITY}. Keep the spirit's position and attachment anchor as the cell grid implies: an unseen hero body stands on the same foot origin of every cell${dir ? ` (it faces ${DUMMY_DIR_EN[dir] ?? "side"} on)` : ""}, and the spirit stays attached to it at the same anchor in every frame, so the frames can be laid over the hero in the game. Never draw a human, a body, a face, hands or clothes.`;
 const mannequinLine = (info, dir) => info.noDummy ? noDummyLine(dir) : `MANNEQUIN: the first attached image already contains the hero's body as a FLAT, single-colored mannequin silhouette (solid ${info.dummyKey}, no shading, no outline) placed in every occupied cell, drawn ${DUMMY_DIR_EN[dir] ?? "side"} on. It is the ONLY human shape allowed in the picture (it overrides "human character" in NEGATIVE) and it is a fixed reference, not something to draw. Keep every mannequin exactly where it is, at the same size and in the same flat color; do not repaint, shade, outline, move, resize or add a face, eyes, hands or clothes to it. Never use ${info.dummyKey} or magenta #FF00FF anywhere in the spirit itself; if the spirit has a similar hue, keep it clearly darker, lighter or less saturated.`;
 const spiritBlock = (info) => {
@@ -76,7 +93,7 @@ Motion notes (Vietnamese): ${info.motion}`;
 export function referencesFor(stage, info, sheet) {
   const nom = stage === "turnaround" ? `${info.id}-nom-turnaround.png` : `${info.id}-nom-to${sheet.id}.png`;
   const concept = conceptRef(info.id);
-  const refs = info.noDummy ? [{ required: true, en: "the approved CONCEPT of this spirit (its final martial-soul design): copy its form, proportions, colors and motifs exactly; the grid layout is described in the text below", vi: `**concept võ hồn đã chốt** (\`${concept}\`); không có bảng nộm (\`--no-dummy\`)` }] : [{ required: true, en: `the MANNEQUIN BOARD of this ${stage === "turnaround" ? "turnaround" : "sheet"}: magenta background with the flat ${info.dummyKey} mannequin already placed in every occupied cell; copy this layout exactly and draw the spirit on top of / around it`, vi: `**bảng nộm** của ${stage === "turnaround" ? "ảnh turnaround" : "tờ này"} (\`${nom}\`, do \`phuthe-sheet-dummy.mjs\` dựng; nộm đã đặt đúng chỗ, đừng bảo model tự vẽ thân)` }];
+  const refs = info.noDummy ? [{ required: true, en: "the approved CONCEPT of this spirit (its final martial-soul design): copy its colors, motifs and line weight, and the shape of the attachments named in the brief (not its whole-body composition); the grid layout is described in the text below", vi: `**concept võ hồn đã chốt** (\`${concept}\`); không có bảng nộm (\`--no-dummy\`)` }] : [{ required: true, en: `the MANNEQUIN BOARD of this ${stage === "turnaround" ? "turnaround" : "sheet"}: magenta background with the flat ${info.dummyKey} mannequin already placed in every occupied cell; copy this layout exactly and draw the spirit on top of / around it`, vi: `**bảng nộm** của ${stage === "turnaround" ? "ảnh turnaround" : "tờ này"} (\`${nom}\`, do \`phuthe-sheet-dummy.mjs\` dựng; nộm đã đặt đúng chỗ, đừng bảo model tự vẽ thân)` }];
   if (stage === "direction") {
     refs.push({ required: true, en: `the approved TURNAROUND image of this spirit: five columns of directions (s, se, e, ne, n) by three rows (idle, attack peak, hurt). Copy the form, facing angle, size and colors of the column "${sheet.dirs[0]}"`, vi: "ảnh **turnaround đã duyệt** của võ hồn (5 hướng × idle / attack đỉnh / hurt)" });
     refs.push({ required: false, en: "an approved direction sheet of this spirit (only for matching line weight and palette; never copy its poses)", vi: "(tùy chọn) **một tờ hướng đã qua `npm run phuthe:check` không có khối chặn** của chính võ hồn này, chỉ để khớp nét / bảng màu. **Không** dùng tờ lỗi làm tham chiếu" });
@@ -172,10 +189,10 @@ CONSISTENCY: the same size, proportions, palette and line weight in all ${T.cols
 ${nd ? RULES_NO_DUMMY : RULES}${lessonsBlock("turnaround", info.group, lessonsOf("turnaround", info.group, info, lessons))}`;
 }
 
-const COMMON_TAIL = (stage) => `
+const COMMON_TAIL = (stage, nd) => `
 - **Không vẽ** hào quang, hạt, bóng, pháp trận, thân / mặt / tay chân người: client và code tự thêm (\`docs/art/vo-hon-phong-cach.md\` phần 3.4).
 - **Bài học** chèn trong prompt lấy từ \`art/src/phuthe-anim/lessons.md\` (một nguồn duy nhất); lượt vẽ hỏng cho bài học mới thì thêm vào file đó, không viết tay vào prompt.
-- **Không** dùng ảnh phụ thể cũ (\`art/src/gemini/phuthe_5huong/…\`, \`vh_{id}_b/_f\`) và **không** dùng tờ / ảnh bị lỗi làm tham chiếu: tham chiếu chỉ là bảng nộm, turnaround đã duyệt và tờ đã qua \`phuthe:check\` không có khối chặn.
+- **Không** dùng ảnh phụ thể cũ (\`art/src/gemini/phuthe_5huong/…\`, \`vh_{id}_b/_f\`) và **không** dùng tờ / ảnh bị lỗi làm tham chiếu: tham chiếu chỉ là ${nd ? "concept đã chốt" : "bảng nộm"}, turnaround đã duyệt và tờ đã qua \`phuthe:check\` không có khối chặn.
 - Giới hạn: **tối đa 3 lượt** cho mỗi ${stage === "turnaround" ? "ảnh turnaround" : "tờ"}; quá 3 lượt thì dừng và báo orchestrator (skill \`beast-anim\`, mục "Quá 3 lượt"; võ hồn giữ nhánh cũ nếu còn khối chặn).`;
 
 const infoRows = (info, F) => `| Võ hồn | ${info.name} (\`${info.id}\`), nhóm **${info.group}** (${info.groupVi}), khung phụ thể **${F}×${F}** (gốc chân (${frameOrigin(F).join(", ")})) |
@@ -194,13 +211,13 @@ ${HEAD(info.id, "turnaround")}
 | Mục | Giá trị |
 |---|---|
 ${infoRows(info, F)}
-| Ảnh này | 1 ảnh tỉ lệ **3:2, ra 1536×1024**; lưới ${T.cols} cột (hướng ${DIRS.join(", ")}) × ${T.rows} hàng (idle, attack đỉnh, hurt) = ${T.cols * T.rows} hình, mỗi ô một nộm + phụ thể |
+| Ảnh này | 1 ảnh tỉ lệ **3:2, ra 1536×1024**; lưới ${T.cols} cột (hướng ${DIRS.join(", ")}) × ${T.rows} hàng (idle, attack đỉnh, hurt) = ${T.cols * T.rows} hình, ${info.noDummy ? "mỗi ô một phụ thể" : "mỗi ô một nộm + phụ thể"} |
 
 ## Cách làm
 1. Mở cuộc trò chuyện **mới**; đính ảnh tham chiếu **theo đúng thứ tự**:
    ${refsVi(refs)}
 2. Dán khối prompt dưới đây. Không chọn cỡ ảnh (công cụ chỉ nhận tỉ lệ).
-3. Soát bằng mắt: nộm còn nguyên (cùng màu, cùng chỗ, không thêm mặt / tay); mỗi ô một phụ thể; cột \`se\` chếch xuống, cột \`ne\` chếch lên (khác \`e\`); cột \`n\` không có mặt; điểm gắn (cánh, tay cầm, đầu) dính vào nộm; cùng cỡ ở mọi ô; **không có thân người / mặt do model vẽ**.
+3. Soát bằng mắt: ${info.noDummy ? "không có thân người nào trong ảnh; màu / motif khớp concept" : "nộm còn nguyên (cùng màu, cùng chỗ, không thêm mặt / tay)"}; mỗi ô một phụ thể; cột \`se\` chếch xuống, cột \`ne\` chếch lên (khác \`e\`); cột \`n\` không có mặt; điểm gắn (cánh, tay cầm, đầu) ${info.noDummy ? "cố định so với gốc chân ô" : "dính vào nộm"}; cùng cỡ ở mọi ô; **không có thân người / mặt do model vẽ**.
 4. Hỏng thì vẽ lại **cả ảnh** (chỉ ${T.cols * T.rows} hình, rẻ). Tối đa 3 lượt; **không** dùng ảnh hỏng làm tham chiếu cho lượt sau.
 5. Ảnh turnaround đã duyệt là tham chiếu hướng cho 5 tờ \`--stage direction\`. Lưu ảnh gốc nguyên byte (không resize) vào \`art/src/phuthe-anim/${info.id}/turnaround.png\` kèm \`turnaround.prompt.txt\` (prompt thật đã gửi).
 
@@ -210,7 +227,7 @@ ${buildTurnaroundPrompt(info)}
 \`\`\`
 
 ## Chú thích (tiếng Việt)
-- **Bố cục:** cột = hướng nhìn của phụ thể (s, se, e, ne, n), hàng = tư thế (đứng, đỉnh cú đánh, trúng đòn). Nộm dựng từ thân LPC theo hàng \`s\` / \`e\` / \`n\` (\`se\`, \`ne\` dùng hàng \`e\`). Đây là ảnh mẫu, không cắt vào game.${COMMON_TAIL("turnaround")}
+- **Bố cục:** cột = hướng nhìn của phụ thể (s, se, e, ne, n), hàng = tư thế (đứng, đỉnh cú đánh, trúng đòn). ${info.noDummy ? "Không có nộm (`--no-dummy`)." : "Nộm dựng từ thân LPC theo hàng \`s\` / \`e\` / \`n\` (\`se\`, \`ne\` dùng hàng \`e\`)."} Đây là ảnh mẫu, không cắt vào game.${COMMON_TAIL("turnaround", info.noDummy)}
 `;
 }
 
@@ -230,7 +247,7 @@ ${infoRows(info, F)}
 1. Mở cuộc trò chuyện **mới** cho mỗi tờ; đính ảnh tham chiếu **theo đúng thứ tự**:
    ${refsVi(refs)}
 2. Dán khối prompt dưới đây. Không chọn cỡ ảnh (công cụ chỉ nhận tỉ lệ 3:2; cỡ khác 1536×1024 vẫn hợp lệ nếu lưới đúng, cutter chuẩn hóa).
-3. Lưu ảnh gốc **nguyên byte** (không resize) vào \`art/src/phuthe-anim/${info.id}/to${sheet.id}.png\` (kèm \`to${sheet.id}.prompt.txt\`) rồi chạy \`npm run phuthe:check -- ${info.id}\`. Đối chiếu **tờ liên hệ có nhãn**: nộm còn nguyên, điểm gắn không trôi, \`se\` / \`ne\` khác \`e\`, hurt lùi đúng hướng, không vẽ lại thân / mặt người.
+3. Lưu ảnh gốc **nguyên byte** (không resize) vào \`art/src/phuthe-anim/${info.id}/to${sheet.id}.png\` (kèm \`to${sheet.id}.prompt.txt\`) rồi chạy \`npm run phuthe:check -- ${info.id}\`. Đối chiếu **tờ liên hệ có nhãn**: ${info.noDummy ? "không có thân người, màu / motif khớp concept" : "nộm còn nguyên"}, điểm gắn không trôi, \`se\` / \`ne\` khác \`e\`, hurt lùi đúng hướng, không vẽ lại thân / mặt người.
 4. Chỉ tờ này hỏng thì vẽ lại **chỉ tờ này**, tối đa 3 lượt; chọn lượt có điểm kiểm thấp nhất + mắt. **Không** dùng tờ hỏng làm tham chiếu.
 5. Cắt: \`node tools/assets/phuthe-sheet-cut.mjs --id ${info.id} ${plan.map((s) => `--sheet ${s.id}=<ảnh-tờ-${s.id}.png>`).join(" ")} --out <thư mục>\`.
 
@@ -240,8 +257,8 @@ ${buildDirectionPrompt(info, sheet)}
 \`\`\`
 
 ## Chú thích (tiếng Việt)
-- **Bố cục:** ${BANDS.map((b, r) => `hàng ${r + 1} = ${b.map((a) => `${CLIP_VI[a]} (${fr[a]})`).join(" + ")}`).join(", ")}; ô thừa để trống, **không có nộm**.
-- **Hướng:** chỉ vẽ nam, đông-nam, đông, đông-bắc, bắc; tây là lật ngang nên mọi hướng nghiêng nhìn sang phải. Nộm chỉ có 3 dáng (\`s\`, \`e\`, \`n\`): \`se\` / \`ne\` dùng dáng \`e\`, phụ thể vẽ chếch 3/4 nhưng điểm gắn vẫn trùng nộm.${COMMON_TAIL("direction")}
+- **Bố cục:** ${BANDS.map((b, r) => `hàng ${r + 1} = ${b.map((a) => `${CLIP_VI[a]} (${fr[a]})`).join(" + ")}`).join(", ")}; ô thừa để trống${info.noDummy ? "" : ", **không có nộm**"}.
+- **Hướng:** chỉ vẽ nam, đông-nam, đông, đông-bắc, bắc; tây là lật ngang nên mọi hướng nghiêng nhìn sang phải. ${info.noDummy ? "Không có nộm: phụ thể vẽ chếch 3/4 nhưng điểm gắn vẫn cố định so với gốc chân ô." : "Nộm chỉ có 3 dáng (\`s\`, \`e\`, \`n\`): \`se\` / \`ne\` dùng dáng \`e\`, phụ thể vẽ chếch 3/4 nhưng điểm gắn vẫn trùng nộm."}${COMMON_TAIL("direction", info.noDummy)}
 `;
 }
 

@@ -228,7 +228,8 @@ Fork của `beast-sheet-*` (cùng luật: RAW nguyên byte, prompt tự sinh, t�
 ### Thử vẽ trực tiếp từ concept: `--no-dummy` (#1024)
 Thử nghiệm của chủ repo: bỏ hình nộm, vẽ phụ thể thẳng từ concept võ hồn. `node tools/assets/phuthe-sheet-prompt.mjs --id <võ hồn> --stage turnaround|direction --no-dummy` (mặc định **không** có cờ này, hành vi cũ giữ nguyên):
 - Ảnh tham chiếu số 1 là **concept võ hồn đã chốt** (lượt `concept-attemptN.png` lớn nhất trong `art/src/vohon-v2/<id>/`), không còn bảng nộm; các ảnh sau (turnaround, tờ đã qua kiểm) giữ nguyên thứ tự.
-- Prompt bỏ đoạn MANNEQUIN, thay bằng yêu cầu giữ **đúng ngoại hình concept** (dáng, tỉ lệ, màu, motif) và vị trí / điểm gắn theo **khuôn lưới ô** như cũ (gốc chân giống nhau ở mọi ô); bài học nhắc đến nộm không chèn.
+- Prompt bỏ đoạn MANNEQUIN, thay bằng yêu cầu giữ **màu, motif, nét và hình dạng của các phần gắn nêu trong brief** (không chép bố cục / giải phẫu toàn thân của concept, không vẽ cả con thú) và vị trí / điểm gắn theo **khuôn lưới ô** như cũ (gốc chân giống nhau ở mọi ô). Bài học: chỉ bỏ các bài thuần về giữ nguyên nộm; bài còn lại (se / ne, "NOT a complete animal companion"…) vẫn chèn, chữ "mannequin" viết lại thành "unseen hero" / gốc chân ô.
+- Tài liệu `.md` sinh ra cũng rẽ nhánh: không còn "nộm còn nguyên / bảng nộm", soát bằng "không có thân người, điểm gắn cố định so với gốc chân ô, màu / motif khớp concept".
 - Không ghi bảng nộm ra `--out`. Tờ vẫn qua `phuthe:check` / cutter như thường, nhưng các mã dựa vào nộm (`nom-mat`, `nom-lech`, đăng ký nộm của cutter) không có chỗ bám: dùng thử cẩn thận, ghi kết quả vào #1024.
 
 ## Việc tiếp
