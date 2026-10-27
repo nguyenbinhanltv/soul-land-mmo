@@ -28,6 +28,8 @@ export function blockDirs(issues) {
   const dirs = new Set();
   for (const i of issues) {
     if (i.level !== "block") continue;
+    const miss = /^thiếu tờ \w+ \(([^)]+)\)/.exec(i.msg); // tờ thiếu chỉ chặn các hướng của tờ đó
+    if (miss) { for (const d of miss[1].split(",")) dirs.add(d.trim()); continue; }
     const m = DIR_RE.exec(i.msg);
     dirs.add(m ? m[1] : "cả loài");
   }
