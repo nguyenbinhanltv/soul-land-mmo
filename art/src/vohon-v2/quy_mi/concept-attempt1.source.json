@@ -1,0 +1,23 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "attempt": 1,
+  "image_sha256": "fee15ae75afe1304660c480d2ffad5053d47b42da89338c4c32111119c11b7dc",
+  "prompt_sha256": "d9bbebddebb28f0339cccb83b614b09069b93ca9a443af87bbb7b95556933937",
+  "original_output": "C:/Users/PC/.codex/generated_images/01a17ccd-ae00-7852-93a0-95777686b0c0/exec-fd2e811d-6471-4099-ba96-0525aff3cc34.png",
+  "reference": "PR #1083: art/src/phap-tuong/hao_thien_chuy/concept-turnaround-attempt2.png",
+  "status": "selected_appearance_reference",
+  "real_angles": "4 đúng yêu cầu; ne còn lộ mắt",
+  "assessment": "ne nhìn lưng nhưng vẫn lộ một khe mắt; n đúng nhìn lưng. Không sinh thêm chỉ để sửa ne/n. Thân tím lam tối, viền khí sáng, sừng và vuốt dài, ấn ngực và bóng quỷ đúng hình mẫu; khói ngoài chạm mép trái/phải, s/e hơi nghiêng. Chọn tham chiếu ngoại hình, chưa đạt trọn năm góc.",
+  "eye": [
+    "concept-attempt1=huong — ne nhìn lưng nhưng vẫn lộ một khe mắt; n đúng nhìn lưng. Không sinh thêm chỉ để sửa ne/n. Thân tím lam tối, viền khí sáng, sừng và vuốt dài, ấn ngực và bóng quỷ đúng hình mẫu; khói ngoài chạm mép trái/phải, s/e hơi nghiêng. Chọn tham chiếu ngoại hình, chưa đạt trọn năm góc."
+  ],
+  "raw_check": {
+    "exit_code": 0,
+    "output": "raw concept-attempt1.png pháp tướng (quy_mi): NHẸ\n  [NHẸ] mem: texture mềm: 92% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất\n  [NHẸ] luoi: chưa đúng lưới khối: tỉ số biên 1.13 ở chu kỳ 34 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)\n  số đo: {\"w\":1983,\"h\":793,\"ratio\":2.501,\"border\":{\"clear\":1,\"flat70\":0},\"poses\":5,\"poseSpread\":1.02,\"softness\":0.922,\"bigColors\":88,\"grid\":{\"period\":34,\"ratio\":1.13},\"paletteMatch\":0.97}\n  cần mắt duyệt: đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi); không có chữ, ký hiệu đọc được, logo, chữ ký; 5 hướng cùng một hình (cùng cỡ, màu, chi tiết), se / ne chếch đúng hướng; thân đặc, không trong suốt\n"
+  },
+  "prompt_before_lf_normalization_sha256": "8e581b1094f0ec8f1fa96e43113f800dd370992ce9ec5c10fec44692ea4d86a6",
+  "prompt_line_endings": "LF canonical Git; only line endings normalized, generated prompt content unchanged"
+}

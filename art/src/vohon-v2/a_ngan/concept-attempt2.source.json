@@ -1,0 +1,23 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "attempt": 2,
+  "image_sha256": "d510d4409629e9a0e18d02e1872cb9bc5b0b1c5e9ccceacba9e7c8c0984fd8db",
+  "prompt_sha256": "ce89d72abd8d5205b74b310105c3eebdd8f263f3f3e4e37dd48be68411920f41",
+  "original_output": "C:/Users/PC/.codex/generated_images/01a17ccd-ae00-7852-93a0-95777686b0c0/exec-4a350360-e666-44a3-92b1-8042c73e9e84.png",
+  "reference": "PR #1083: art/src/phap-tuong/hao_thien_chuy/concept-turnaround-attempt2.png",
+  "status": "selected_appearance_reference",
+  "real_angles": "5 hình, khoảng 4 góc rõ; s/se còn gần nhau",
+  "assessment": "Chọn lượt 2 tốt hơn về khoảng cách và khối hoa/cổ thụ. ne/n nhìn phía sau không lộ nhụy chính; e vẫn hơi ba phần tư trước, s/se gần nhau. Dây vàng và hoa lam nhụy vàng trắng nhận ra; chi tiết vỏ cây còn dày, vài hạt sáng bị vẽ sẵn thay vì để code (nhẹ). Lượt 1 bị CHẶN máy do chỉ tách được 3 khối rễ, lưu ở candidates; không dùng ảnh hỏng làm ảnh dẫn.",
+  "eye": [
+    "concept-attempt2=huong — Chọn lượt 2 tốt hơn về khoảng cách và khối hoa/cổ thụ. ne/n nhìn phía sau không lộ nhụy chính; e vẫn hơi ba phần tư trước, s/se gần nhau. Dây vàng và hoa lam nhụy vàng trắng nhận ra; chi tiết vỏ cây còn dày, vài hạt sáng bị vẽ sẵn thay vì để code (nhẹ). Lượt 1 bị CHẶN máy do chỉ tách được 3 khối rễ, lưu ở candidates; không dùng ảnh hỏng làm ảnh dẫn."
+  ],
+  "raw_check": {
+    "exit_code": 0,
+    "output": "raw concept-attempt2.png pháp tướng (a_ngan): NHẸ\n  [NHẸ] mem: texture mềm: 81% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất\n  [NHẸ] nhieu-mau: 166 màu đáng kể (nên ≤ 160 để ép về ≤ 48 mà không bệt)\n  [NHẸ] luoi: chưa đúng lưới khối: tỉ số biên 1.09 ở chu kỳ 23 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)\n  [NHẸ] lech-mau: 44% điểm sáng cùng họ màu robe / col của a_ngan (mục 4 cần ≥ 50%)\n  số đo: {\"w\":1983,\"h\":793,\"ratio\":2.501,\"border\":{\"clear\":1,\"flat70\":0},\"poses\":5,\"poseSpread\":1.01,\"softness\":0.814,\"bigColors\":166,\"grid\":{\"period\":23,\"ratio\":1.09},\"paletteMatch\":0.44}\n  cần mắt duyệt: đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi); không có chữ, ký hiệu đọc được, logo, chữ ký; 5 hướng cùng một hình (cùng cỡ, màu, chi tiết), se / ne chếch đúng hướng; thân đặc, không trong suốt\n"
+  },
+  "prompt_before_lf_normalization_sha256": "f4d8835a2e60ed7d3551fdf930610f362c48f05a3666195b1d643f788e214179",
+  "prompt_line_endings": "LF canonical Git; only line endings normalized, generated prompt content unchanged"
+}

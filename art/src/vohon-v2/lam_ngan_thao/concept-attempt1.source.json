@@ -1,0 +1,23 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "attempt": 1,
+  "image_sha256": "831f842c891248dc79d9e23d973969eb8b5608f0efe1e705e56b574526c74c35",
+  "prompt_sha256": "c41f548c87c78dcf51de46d80bd452df5db21d0b3d73e3a36008b7f94ceef34d",
+  "original_output": "C:/Users/PC/.codex/generated_images/01a17ccd-ae00-7852-93a0-95777686b0c0/exec-88c5a996-95c4-4fa0-9676-b39b1bedf4c1.png",
+  "reference": "PR #1083: art/src/phap-tuong/hao_thien_chuy/concept-turnaround-attempt2.png",
+  "status": "selected_appearance_reference",
+  "real_angles": "khoảng 3; thân gần đối xứng, s/n gần nhau",
+  "assessment": "Năm hình tách được; se/e/ne đổi góc nhưng chưa rõ, s/n gần nhau; dây ngoài chạm và bị cắt ở mép trái/phải. Khối dây lam đậm, ngọn trắng và đạo văn nhận ra; còn nhiều chi tiết nhỏ (nhẹ). Không có mặt để đánh giá lộ mắt.",
+  "eye": [
+    "concept-attempt1=huong — Năm hình tách được; se/e/ne đổi góc nhưng chưa rõ, s/n gần nhau; dây ngoài chạm và bị cắt ở mép trái/phải. Khối dây lam đậm, ngọn trắng và đạo văn nhận ra; còn nhiều chi tiết nhỏ (nhẹ). Không có mặt để đánh giá lộ mắt."
+  ],
+  "raw_check": {
+    "exit_code": 0,
+    "output": "raw concept-attempt1.png pháp tướng (lam_ngan_thao): NHẸ\n  [NHẸ] mem: texture mềm: 85% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất\n  [NHẸ] luoi: chưa đúng lưới khối: tỉ số biên 1.09 ở chu kỳ 27 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)\n  số đo: {\"w\":1983,\"h\":793,\"ratio\":2.501,\"border\":{\"clear\":1,\"flat70\":0},\"poses\":5,\"poseSpread\":1.01,\"softness\":0.856,\"bigColors\":130,\"grid\":{\"period\":27,\"ratio\":1.09},\"paletteMatch\":0.89}\n  cần mắt duyệt: đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi); không có chữ, ký hiệu đọc được, logo, chữ ký; 5 hướng cùng một hình (cùng cỡ, màu, chi tiết), se / ne chếch đúng hướng; thân đặc, không trong suốt\n"
+  },
+  "prompt_before_lf_normalization_sha256": "63b388ee2434a47388381fe4f5d12273ce7b623d091b9a6fe7f8e21805b27471",
+  "prompt_line_endings": "LF canonical Git; only line endings normalized, generated prompt content unchanged"
+}
