@@ -20,7 +20,7 @@ Loài `huyet_nha_cu_sa` (Huyết Nha Cự Sa), họ `swim`, khung game 128×128.
 - Prompt: `toA.prompt.txt` (SHA256 `821aa82c4b0bac1801a7cb74ba361a5b92d896137c9ed0011e24a75c1da922a7`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ).
-- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 120% so với ảnh tĩnh (lệch 20%); cutter neo lại, không chặn.
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 119% so với ảnh tĩnh (lệch 19%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## toB
@@ -44,10 +44,20 @@ Loài `huyet_nha_cu_sa` (Huyết Nha Cự Sa), họ `swim`, khung game 128×128.
 ## toD
 
 - File: `toD.png`, **1536×1024**, 1696869 byte, SHA256 `8d3e51b8bb305d57959a1bf1d94ae24a2ca512513c5fac06a9466a041978a349`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: ao-desktop.
 - Prompt: `toD.prompt.txt` (SHA256 `f7ba0e60c0f09b62f07224538b70c4d31f67e53817905e96bfa7e3dc7b541d3f`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+## toE
+
+- File: `toE.png`, **1536×1024**, 1663263 byte, SHA256 `0aae489ae0829511dd88a7b56b70b777e81ac0a2817b271e58d1719e6b5a3d0a`.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop.
+- Prompt: `toE.prompt.txt` (SHA256 `73505700d75eee0d2b3e75cb4c30a5ae75de36c78aea891de7d45b781ee07a83`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 148% so với ảnh tĩnh (lệch 48%, quá 25%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## Lỗi
@@ -59,6 +69,7 @@ LỖI: toB — se — góc chéo nông, attack C2–3 gần nhìn ngang; die bi�
 LỖI: toC — chân lệch — H4 (e) C1 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 13%).
 LỖI: toC — e — hurt và attack đỉnh chếch lên; die gần idle (mắt)
 LỖI: toD — ne — nghi chấm mắt sát mép đầu ở vài khung; hurt/die nhỏ, die cuối hơi ngang (mắt)
+LỖI: toE — n — die rũ vây biên độ nhỏ, gần idle (mắt)
 ```
 
 ## Ghi công
