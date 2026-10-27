@@ -420,6 +420,8 @@ export interface RankTopResult { page: number; pageSize: number; total: number; 
 export interface RankMe { rank: number; score: number; tie: number; at: number }
 const rankLineup = (x: unknown): RankLineupSlot[] => (Array.isArray(x) ? x : []).filter((s): s is RankLineupSlot => !!s && typeof s.vohon === "string" && Number.isFinite(s.level) && Number.isFinite(s.stars))
   .map((s) => ({ vohon: s.vohon, level: s.level, stars: s.stars }));
+/** Số trang đầu của mỗi bảng được giữ trong cache `rank|…` (giới hạn số khoá cache). */
+const RANK_CACHE_PAGES = 50;
 const rankPageOf = (page: number, pageSize: number) => {
   const size = Math.max(1, Math.min(RANK_PAGE_MAX, Math.floor(pageSize) || 1)), p = Math.max(1, Math.floor(page) || 1);
   return { p, size, off: (p - 1) * size };
@@ -1688,7 +1690,8 @@ export class PgStore implements Store {
   }
   async rankTop(board: string, period: number, page: number, pageSize: number) {
     const { p, size, off } = rankPageOf(page, pageSize);
-    return rankBoard(`rank|${board}|${period}|${size}|${p}`, async () => {
+    // Chỉ cache RANK_CACHE_PAGES trang đầu: khoá cache không phình theo số trang client xin (trang sâu đọc thẳng DB, đã có nhịp RANK_CD).
+    const load = async () => {
       const [list, count] = await Promise.all([
         this.pool.query(
           `SELECT r.account_id, a.name, a.tong, r.score, r.tie, r.extra FROM rank_scores r JOIN accounts a ON a.id=r.account_id
@@ -1699,7 +1702,8 @@ export class PgStore implements Store {
       const rows = list.rows.map((x: any, i: number): RankTopRow => ({ rank: off + i + 1, accountId: Number(x.account_id), name: x.name as string, score: Number(x.score), tie: Number(x.tie),
         tong: tongDef(x.tong)?.id ?? null, lineup: rankLineup(x.extra) }));
       return { page: p, pageSize: size, total, hasNext: off + size < total, rows, asOf: Date.now() };
-    });
+    };
+    return p <= RANK_CACHE_PAGES ? rankBoard(`rank|${board}|${period}|${size}|${p}`, load) : load();
   }
   async rankMe(board: string, period: number, accountId: number) {
     // Một câu: dòng của mình rồi đếm số người đứng trước (khoá chỉ mục rank_scores_order), cùng thứ tự với rankTop.
