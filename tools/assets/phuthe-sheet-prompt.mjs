@@ -1,9 +1,10 @@
 // Sinh prompt cho tthoadev (ChatGPT / Codex) vẽ tờ hoạt ảnh phụ thể võ hồn v2 (#1022; docs/art/phu-the-hoat-anh.md, skill beast-anim).
-//   node tools/assets/phuthe-sheet-prompt.mjs --id ta_hoa_phuong_hoang --stage turnaround|direction [--dir s,se,…] [--out <thư mục>] [--frame 96|128] [--dummy-key #00D0D0] [--guide-key #7A5CFF] [--no-dummy]
+//   node tools/assets/phuthe-sheet-prompt.mjs --id ta_hoa_phuong_hoang --stage turnaround|direction [--dir s,se,…] [--out <thư mục>] [--frame 96|128] [--dummy-key #00D0D0] [--guide-key #7A5CFF] [--no-dummy] [--concept-ref]
 //   node tools/assets/phuthe-sheet-prompt.mjs --all            (25 võ hồn: mã, nhóm, khung, màu nộm)
 // --stage turnaround: 1 ảnh 3:2, 5 cột hướng × 3 hàng (idle, attack đỉnh, hurt) = 15 hình, kèm bảng nộm; ghi `<id>-turnaround.md`.
 // --stage direction: mỗi hướng một tờ 1536×1024, 6×4 ô; ghi `<id>-to<A..E>.md` (A–E = s, se, e, ne, n).
 // Với --out còn ghi bảng nộm `<id>-nom-turnaround.png`, `<id>-nom-to<A..E>.png` (ảnh tham chiếu số 1 đính kèm khi sinh ảnh).
+// --concept-ref (chỉ --stage direction, vẫn có nộm): ảnh số 2 = concept 5 hướng đã duyệt của võ hồn (art/src/vohon-v2/<id>/concept-attemptN.png) thay turnaround, cho võ hồn không có turnaround được duyệt; mặc định tắt.
 // --no-dummy (thử nghiệm #1024): bỏ bảng nộm; ảnh tham chiếu số 1 = concept võ hồn đã chốt (art/src/vohon-v2/<id>/); prompt không có MANNEQUIN, yêu cầu giữ đúng ngoại hình concept + neo theo lưới ô.
 // Prompt TỰ SINH, không viết tay: khối STYLE + NEGATIVE chèn NGUYÊN VĂN từ docs/art/vo-hon-phong-cach.md mục 6; mô tả riêng lấy từ mục 4 của
 // chính file đó (nguồn DUY NHẤT về ngoại hình / màu / motif; giữ tiếng Việt, nhãn đổi sang tiếng Anh); phần kỹ thuật (nộm, lưới, nhóm, khung, số clip)
@@ -52,7 +53,7 @@ const moveOf = (group, noDummy) => {
   return noDummy ? Object.fromEntries(Object.entries(m).map(([k, v]) => [k, v.replace(/the mannequin/g, "the hero")])) : m;
 };
 /** Bài học thuần về giữ nguyên nộm: vô nghĩa khi --no-dummy (các bài còn lại được viết lại bằng `noDummyText`). */
-const DUMMY_ONLY = /^Draw ONLY the spirit\. The flat single-colored mannequin|^Where the spirit passes in front of the mannequin|^Preserve the first reference board's mannequin/;
+const DUMMY_ONLY = /^Draw ONLY the spirit\. The flat single-colored mannequin|^Where the spirit passes in front of the mannequin|^Preserve the first reference board's mannequin|^Keep every mannequin at the exact size/;
 const NO_DUMMY_SUBS = [
   [/glued to the same place of the mannequin/g, "fixed at the same place relative to the cell's foot origin"],
   [/, even though the mannequin itself is drawn side-on/g, ""],
@@ -105,7 +106,8 @@ export function referencesFor(stage, info, sheet) {
   const concept = conceptRef(info.id);
   const refs = info.noDummy ? [{ required: true, en: "the approved CONCEPT of this spirit (its final martial-soul design): copy its colors, motifs and line weight, and the shape of the attachments named in the brief (not its whole-body composition); the grid layout is described in the text below", vi: `**concept võ hồn đã chốt** (\`${concept}\`); không có bảng nộm (\`--no-dummy\`)` }] : [{ required: true, en: `the MANNEQUIN BOARD of this ${stage === "turnaround" ? "turnaround" : "sheet"}: magenta background with the flat ${info.dummyKey} mannequin already placed in every occupied cell; copy this layout exactly and draw the spirit on top of / around it`, vi: `**bảng nộm** của ${stage === "turnaround" ? "ảnh turnaround" : "tờ này"} (\`${nom}\`, do \`phuthe-sheet-dummy.mjs\` dựng; nộm đã đặt đúng chỗ, đừng bảo model tự vẽ thân; kèm vạch tham chiếu màu \`${info.guideKey}\`: đường chân, trục, tâm ngực, thước chiều cao thân, góc khung)` }];
   if (stage === "direction") {
-    refs.push({ required: true, en: `the approved TURNAROUND image of this spirit: five columns of directions (s, se, e, ne, n) by three rows (idle, attack peak, hurt). Copy the form, facing angle, size and colors of the column "${sheet.dirs[0]}"`, vi: "ảnh **turnaround đã duyệt** của võ hồn (5 hướng × idle / attack đỉnh / hurt)" });
+    if (info.conceptRef && !info.noDummy) refs.push({ required: true, en: `the approved CONCEPT image of this spirit (its final martial-soul design, drawn in several facing directions; there is no approved turnaround). Copy only the form, colors, motifs, line weight and size of the attachments named in the brief, as seen in the view closest to the direction "${sheet.dirs[0]}"; never copy its whole-body composition and never draw a whole creature`, vi: `**concept võ hồn đã chốt** (\`${conceptRef(info.id)}\`, \`--concept-ref\`: không có turnaround được duyệt nên concept 5 hướng thay làm ảnh phong cách / ngoại hình)` });
+    else refs.push({ required: true, en: `the approved TURNAROUND image of this spirit: five columns of directions (s, se, e, ne, n) by three rows (idle, attack peak, hurt). Copy the form, facing angle, size and colors of the column "${sheet.dirs[0]}"`, vi: "ảnh **turnaround đã duyệt** của võ hồn (5 hướng × idle / attack đỉnh / hurt)" });
     refs.push({ required: false, en: "an approved direction sheet of this spirit (only for matching line weight and palette; never copy its poses)", vi: "(tùy chọn) **một tờ hướng đã qua `npm run phuthe:check` không có khối chặn** của chính võ hồn này, chỉ để khớp nét / bảng màu. **Không** dùng tờ lỗi làm tham chiếu" });
   }
   return refs.map((r, i) => ({ ...r, n: i + 1 }));
@@ -199,10 +201,10 @@ CONSISTENCY: the same size, proportions, palette and line weight in all ${T.cols
 ${nd ? RULES_NO_DUMMY : RULES}${lessonsBlock("turnaround", info.group, lessonsOf("turnaround", info.group, info, lessons))}`;
 }
 
-const COMMON_TAIL = (stage, nd) => `
+const COMMON_TAIL = (stage, nd, cr) => `
 - **Không vẽ** hào quang, hạt, bóng, pháp trận, thân / mặt / tay chân người: client và code tự thêm (\`docs/art/vo-hon-phong-cach.md\` phần 3.4).
 - **Bài học** chèn trong prompt lấy từ \`art/src/phuthe-anim/lessons.md\` (một nguồn duy nhất); lượt vẽ hỏng cho bài học mới thì thêm vào file đó, không viết tay vào prompt.
-- **Không** dùng ảnh phụ thể cũ (\`art/src/gemini/phuthe_5huong/…\`, \`vh_{id}_b/_f\`) và **không** dùng tờ / ảnh bị lỗi làm tham chiếu: tham chiếu chỉ là ${nd ? "concept đã chốt" : "bảng nộm"}, turnaround đã duyệt và tờ đã qua \`phuthe:check\` không có khối chặn.
+- **Không** dùng ảnh phụ thể cũ (\`art/src/gemini/phuthe_5huong/…\`, \`vh_{id}_b/_f\`) và **không** dùng tờ / ảnh bị lỗi làm tham chiếu: tham chiếu chỉ là ${nd ? "concept đã chốt" : "bảng nộm"}, ${cr ? "concept 5 hướng đã chốt (`--concept-ref`, thay turnaround)" : "turnaround đã duyệt"} và tờ đã qua \`phuthe:check\` không có khối chặn.
 - Giới hạn: **tối đa 3 lượt** cho mỗi ${stage === "turnaround" ? "ảnh turnaround" : "tờ"}; quá 3 lượt thì dừng và báo orchestrator (skill \`beast-anim\`, mục "Quá 3 lượt"; võ hồn giữ nhánh cũ nếu còn khối chặn).`;
 
 const infoRows = (info, F) => `| Võ hồn | ${info.name} (\`${info.id}\`), nhóm **${info.group}** (${info.groupVi}), khung phụ thể **${F}×${F}** (gốc chân (${frameOrigin(F).join(", ")})) |
@@ -237,7 +239,7 @@ ${buildTurnaroundPrompt(info)}
 \`\`\`
 
 ## Chú thích (tiếng Việt)
-- **Bố cục:** cột = hướng nhìn của phụ thể (s, se, e, ne, n), hàng = tư thế (đứng, đỉnh cú đánh, trúng đòn). ${info.noDummy ? "Không có nộm (`--no-dummy`)." : "Nộm dựng từ thân LPC theo hàng \`s\` / \`e\` / \`n\` (\`se\`, \`ne\` dùng hàng \`e\`)."} Đây là ảnh mẫu, không cắt vào game.${COMMON_TAIL("turnaround", info.noDummy)}
+- **Bố cục:** cột = hướng nhìn của phụ thể (s, se, e, ne, n), hàng = tư thế (đứng, đỉnh cú đánh, trúng đòn). ${info.noDummy ? "Không có nộm (`--no-dummy`)." : "Nộm dựng từ thân LPC theo hàng \`s\` / \`e\` / \`n\` (\`se\`, \`ne\` dùng hàng \`e\`)."} Đây là ảnh mẫu, không cắt vào game.${COMMON_TAIL("turnaround", info.noDummy, info.conceptRef)}
 `;
 }
 
@@ -268,7 +270,7 @@ ${buildDirectionPrompt(info, sheet)}
 
 ## Chú thích (tiếng Việt)
 - **Bố cục:** ${BANDS.map((b, r) => `hàng ${r + 1} = ${b.map((a) => `${CLIP_VI[a]} (${fr[a]})`).join(" + ")}`).join(", ")}; ô thừa để trống${info.noDummy ? "" : ", **không có nộm**"}.
-- **Hướng:** chỉ vẽ nam, đông-nam, đông, đông-bắc, bắc; tây là lật ngang nên mọi hướng nghiêng nhìn sang phải. ${info.noDummy ? "Không có nộm: phụ thể vẽ chếch 3/4 nhưng điểm gắn vẫn cố định so với gốc chân ô." : "Nộm chỉ có 3 dáng (\`s\`, \`e\`, \`n\`): \`se\` / \`ne\` dùng dáng \`e\`, phụ thể vẽ chếch 3/4 nhưng điểm gắn vẫn trùng nộm."}${COMMON_TAIL("direction", info.noDummy)}
+- **Hướng:** chỉ vẽ nam, đông-nam, đông, đông-bắc, bắc; tây là lật ngang nên mọi hướng nghiêng nhìn sang phải. ${info.noDummy ? "Không có nộm: phụ thể vẽ chếch 3/4 nhưng điểm gắn vẫn cố định so với gốc chân ô." : "Nộm chỉ có 3 dáng (\`s\`, \`e\`, \`n\`): \`se\` / \`ne\` dùng dáng \`e\`, phụ thể vẽ chếch 3/4 nhưng điểm gắn vẫn trùng nộm."}${COMMON_TAIL("direction", info.noDummy, info.conceptRef)}
 `;
 }
 
@@ -281,9 +283,10 @@ export function stageDocs(info, stage, { dirs = DIRS, frame } = {}) {
 }
 
 /** Thông tin cho prompt, cho phép ghi đè khung / màu nộm bằng tùy chọn. */
-export function infoWith(id, { frame, dummyKey, guideKey, noDummy } = {}) {
+export function infoWith(id, { frame, dummyKey, guideKey, noDummy, conceptRef: useConcept } = {}) {
   const info = phutheInfo(id);
-  return { ...info, frame: checkFrame(frame ?? info.frame), dummyKey: dummyKey ?? info.dummyKey, guideKey: guideKey ?? guideKeyOf(id, dummyKey ?? info.dummyKey), noDummy: !!noDummy };
+  if (useConcept && !noDummy && !conceptRef(id).endsWith(".png")) throw new Error(`${id} chưa có concept đã duyệt (art/src/vohon-v2/${id}/ không có concept-attemptN.png hay concept.png), không dùng được --concept-ref`);
+  return { ...info, frame: checkFrame(frame ?? info.frame), dummyKey: dummyKey ?? info.dummyKey, guideKey: guideKey ?? guideKeyOf(id, dummyKey ?? info.dummyKey), noDummy: !!noDummy, conceptRef: !!useConcept };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -293,8 +296,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       for (const id of allPhutheIds()) { const i = phutheInfo(id); console.log(`${id}\t${i.group}\t${i.frame}\t${i.dummyKey}`); }
     } else {
       const id = val("--id"), stage = val("--stage") ?? "direction", dirs = val("--dir")?.split(",") ?? DIRS;
-      if (!id || !STAGES.includes(stage) || dirs.some((d) => !DIRS.includes(d))) { console.error("Dùng: node tools/assets/phuthe-sheet-prompt.mjs --id <võ hồn> [--stage turnaround|direction] [--dir s,se,e,ne,n] [--out <thư mục>] [--frame 96|128] [--dummy-key #00D0D0] [--guide-key #7A5CFF] [--no-dummy] | --all"); process.exit(2); }
-      const frame = val("--frame") && +val("--frame"), dummyKey = val("--dummy-key"), info = infoWith(id, { frame, dummyKey, guideKey: val("--guide-key"), noDummy: a.includes("--no-dummy") }), out = val("--out");
+      if (!id || !STAGES.includes(stage) || dirs.some((d) => !DIRS.includes(d))) { console.error("Dùng: node tools/assets/phuthe-sheet-prompt.mjs --id <võ hồn> [--stage turnaround|direction] [--dir s,se,e,ne,n] [--out <thư mục>] [--frame 96|128] [--dummy-key #00D0D0] [--guide-key #7A5CFF] [--no-dummy] [--concept-ref] | --all"); process.exit(2); }
+      const frame = val("--frame") && +val("--frame"), dummyKey = val("--dummy-key"), info = infoWith(id, { frame, dummyKey, guideKey: val("--guide-key"), noDummy: a.includes("--no-dummy"), conceptRef: a.includes("--concept-ref") }), out = val("--out");
       if (out) mkdirSync(out, { recursive: true });
       for (const [name, md] of stageDocs(info, stage, { dirs, frame: info.frame })) {
         if (out) { writeFileSync(path.join(out, name), md); console.log(`ghi ${path.join(out, name)}`); } else console.log(md);

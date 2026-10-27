@@ -1,0 +1,92 @@
+{
+  "epic": 877,
+  "pr": 1195,
+  "session": "soul_land_game-697",
+  "style": "thuy-mac",
+  "status": "Nháp chờ duyệt, bản tốt nhất sau đủ ba lượt; còn lỗi mắt trong NGUON.md",
+  "tool": "Codex builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "transparent_background": false,
+  "references": [],
+  "prompt_origin": "ui:prompt BOARD --style thuy-mac; nguyên khối code fence, không addendum",
+  "postprocessing": "Không; sao chép nguyên byte",
+  "selected_attempt": 3,
+  "attempts": [
+    {
+      "attempt": 1,
+      "selected": false,
+      "raw_file": "candidates/BOARD-attempt1.png",
+      "original_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17f03-9d26-78b0-8e49-33b22e873fba\\exec-7f5e253b-996a-4d8e-bbab-392795ba544d.png",
+      "sha256": "5bb9938c3e9a6cd4b3dfd1eec2f218596ab1a500d6b9a8bcfef08827d9002fb4",
+      "bytes": 2204787,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "raw_copy_byte_identical": true,
+      "prompt_file": "candidates/BOARD-attempt1.prompt.txt",
+      "prompt_sha256": "2fb4299c2f445193bc9110352a4bdd27bbf6b45b3e54a25c0fe5286c19d9afdf",
+      "generated_instructions": "candidates/BOARD-attempt1.md",
+      "qa": {
+        "command": "npm run ui:check -- art/src/ui-kit/board-v2/thuy-mac/candidates/BOARD-attempt1.png --kind BOARD",
+        "blocking": 0,
+        "minor": 0,
+        "warnings": 0,
+        "limitation": "BOARD: chỉ kiểm cỡ/tỉ lệ; không duyệt mỹ thuật"
+      }
+    },
+    {
+      "attempt": 2,
+      "selected": false,
+      "raw_file": "candidates/BOARD-attempt2.png",
+      "original_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17f03-9d26-78b0-8e49-33b22e873fba\\exec-1793d964-fd9d-4316-a826-3d1821c864be.png",
+      "sha256": "19bc819d10a3af97986fa8330d505281594cbfc086a567f4ed022d08dc80b593",
+      "bytes": 2176084,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "raw_copy_byte_identical": true,
+      "prompt_file": "candidates/BOARD-attempt2.prompt.txt",
+      "prompt_sha256": "cb76fd8747d226d338c82e5425975da6a6badcc4a81757d260b54152b627bfb8",
+      "generated_instructions": "candidates/BOARD-attempt2.md",
+      "qa": {
+        "command": "npm run ui:check -- art/src/ui-kit/board-v2/thuy-mac/candidates/BOARD-attempt2.png --kind BOARD",
+        "blocking": 0,
+        "minor": 0,
+        "warnings": 0,
+        "limitation": "BOARD: chỉ kiểm cỡ/tỉ lệ; không duyệt mỹ thuật"
+      }
+    },
+    {
+      "attempt": 3,
+      "selected": true,
+      "raw_file": "BOARD.png",
+      "original_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17f03-9d26-78b0-8e49-33b22e873fba\\exec-bf9e30a1-3278-4d33-9eb6-1e284faeeb05.png",
+      "sha256": "4d185e80ed164375ee683ef1ade575e8c19baa9b5897590fc88df4b7d368ad20",
+      "bytes": 2085476,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "raw_copy_byte_identical": true,
+      "prompt_file": "BOARD.prompt.txt",
+      "prompt_sha256": "9d928b440368d270c02ada1a5e52d91162db74f7df6ec3d7bf46d59c7d033c83",
+      "generated_instructions": "BOARD.md",
+      "qa": {
+        "command": "npm run ui:check -- art/src/ui-kit/board-v2/thuy-mac/BOARD.png --kind BOARD",
+        "blocking": 0,
+        "minor": 0,
+        "warnings": 0,
+        "limitation": "BOARD: chỉ kiểm cỡ/tỉ lệ; không duyệt mỹ thuật"
+      }
+    }
+  ],
+  "old_board": {
+    "path": "art/src/ui-kit/BOARD.png",
+    "pr": 940,
+    "sha256": "9cae6f45aa21d2b7d5e2975928c0dfc996af0b4566cb7de2b6d676bc36f393bb",
+    "unchanged": true
+  }
+}
