@@ -1,0 +1,65 @@
+STYLE (apply to every image):
+Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
+The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
+Angular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.
+Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small
+high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
+(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
+no anti-aliasing, hard pixel edges. Light comes from the upper left.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
+Transparent background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
+(glow, particles and motion are added in code).
+
+NEGATIVE (forbidden):
+cute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,
+Saturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,
+pastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,
+flat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,
+readable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,
+3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,
+anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
+
+TASK: Create ONE image (landscape 3:2 aspect ratio; the exact pixel size does not matter): a turnaround reference sheet of a martial-soul spirit attached to a hero, for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game. It is a model sheet: it fixes how the spirit looks from each of five directions, at the peak of an attack and when hit. Draw only the spirit; no hero is drawn.
+
+SPIRIT: Hạo Thiên Chùy (hao_thien_chuy); body type "A" = vật cứng. The design brief below comes from the canonical design table and is written in Vietnamese: follow it exactly, keep every hex code as written, and use only the motifs it lists.
+- Overbearing presence: búa **trấn thiên hạ**: đầu búa to bằng cả thân người, nặng đến mức đất dưới nó nứt; không cần ra đòn, chỉ vác lên vai đã đủ áp.
+- Form: đầu búa vuông khối, mặt búa có mẻ, cán dài, kết cấu thô chắc; đầu búa chếch cao hơn đầu hồn sư.
+- Palette: đen sắt theo `robe`, ánh thép xám lạnh theo `col`; nhấn một vệt vàng cũ ở đai cán + nứt sáng cam đỏ rất ít (bắt buộc viền sáng, phần 3.2).
+- Motifs (use only these): vân đạo văn chìm khắc quanh đầu búa, đất nứt hình tia dưới chân (lớp nền, code thêm bụi).
+- Companion objects: mảnh đá vỡ bay lên; dây đai / xích quấn cán.
+- Base colors in the game data: body (robe) #22222c, accent (col) #9aa0b4.
+Attachment and layering notes (Vietnamese; "sau" = drawn behind the hero's body, "truoc" = drawn in front of it): cầm tay phải; búa vác vai = `sau`, vung xuống = `truoc`
+Motion notes (Vietnamese): `attack` nâng lên nện xuống (pose đổi rõ, ít khung); `walk` búa nảy trên vai
+REFERENCES (attached images, in this fixed order): image 1 = the approved CONCEPT of this spirit (its final martial-soul design): copy its colors, motifs and line weight, and the shape of the attachments named in the brief (not its whole-body composition); the grid layout is described in the text below. No other reference is allowed: do not copy any older drawing of this spirit.
+
+NO MANNEQUIN: this sheet has no hero body and no body guide. Draw ONLY the spirit; keep the colors, motifs, line weight and the shape of the attachments named in the brief exactly as in the concept of the first reference image; the concept shows the whole martial soul, so copy neither its full-body composition nor its anatomy: draw only the attachments named in the brief and never a whole creature. Keep the spirit's position and attachment anchor as the cell grid implies: an unseen hero body stands on the same foot origin of every cell (it faces side on), and the spirit stays attached to it at the same anchor in every frame, so the frames can be laid over the hero in the game. Never draw a human, a body, a face, hands or clothes.
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border. This overrides the line "Transparent background" of the STYLE block: the sheet background is solid magenta, never transparent.
+
+GRID: 5 columns x 3 rows of equal invisible cells (307x341 px each). Exactly one spirit figure per cell, at the same size and foot origin in every cell. No part of any figure may cross a cell edge or touch another cell.
+
+COLUMNS (left to right, one direction per column):
+  column 1: spirit direction "s" = facing the viewer (front view, three-quarter from above).
+  column 2: spirit direction "se" = facing the lower right of the picture (three-quarter front view).
+  column 3: spirit direction "e" = facing right (side profile, seen from slightly above).
+  column 4: spirit direction "ne" = facing the upper right of the picture (three-quarter back view).
+  column 5: spirit direction "n" = facing away from the viewer (back view from above).
+
+ROWS (top to bottom, the same pose type in every column):
+  row 1 = IDLE: the neutral base pose (very small hover or tilt; the two frames differ clearly but gently).
+  row 2 = ATTACK: the peak of the attack, the moment of the strongest strike (a rigid object swinging or thrusting through four clearly different poses (raise, strike, hit, return)).
+  row 3 = HURT: the moment of the strongest reaction to a hit (one frame: knocked back a short step along the facing line).
+Directions e, se and ne face the RIGHT side of the picture.
+
+CONSISTENCY: the same size, proportions, palette and line weight in all 15 cells; only the direction and the pose change. Every attachment point stays at the same place relative to the cell's foot origin.
+
+DRAWING RULES: draw ONLY the spirit, never a hero body, face, hands or feet. In the "ne" and "n" blocks show no face anywhere. Paint the spirit with hard-edged pixels and the dark outline of the STYLE block; no glow, halo, particles, soft shadow, ground or magic circle in the picture (the game adds them).
+
+LESSONS (learned from earlier sheets, follow every line):
+- Direction "se" is a three-quarter view tilted toward the lower right and direction "ne" is a three-quarter back view tilted toward the upper right; both must look clearly different from the pure side view "e".
+- Directions e, se and ne face the RIGHT side of the picture; never mirror them to face left.
+- In directions "ne" and "n" the spirit is seen from behind: show no face-like marks anywhere.
+- Draw all poses at the same spirit size on the same ground line; one figure per cell with clear magenta space around it.

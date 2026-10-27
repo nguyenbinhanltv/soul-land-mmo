@@ -1,0 +1,29 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "attempt": 2,
+  "stage": "turnaround",
+  "noDummy": true,
+  "frame": 128,
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "3e0b7f76326be332d9464218e4d4ee1d0a6eff63ca6ab4c1e44461b1f7d933f7",
+  "promptSha256": "f96f5361bd77f7046a057f97b49d5848b88cd9684b65d3330966cd1bfa51b8b2",
+  "promptCommand": "node tools/assets/phuthe-sheet-prompt.mjs --id hao_thien_chuy --stage turnaround --frame 128 --no-dummy --out <temp>",
+  "references": [
+    {
+      "path": "art/src/vohon-v2/hao_thien_chuy/concept-attempt2.png",
+      "sha256": "631ac2ef55e230875ee2452b5dac9c634829ed09642d9666824e2a20f0e664af",
+      "author": "tthoadev",
+      "origin": "art/src/phap-tuong/hao_thien_chuy/concept-turnaround-attempt2.png; #1083/#1154; issue #1024 comment 6444222944"
+    }
+  ],
+  "outputPath": "C:/Users/PC/.codex/generated_images/01a17d6f-665c-77c2-aa72-f6c2e0a97b7e/exec-ced186eb-46c4-4c3c-b9ae-d06133f2d50b.png",
+  "automatic": "pass",
+  "eye": "ch?n: se/e g?n tr?ng g?c; hurt ??i h??ng/xoay m?nh",
+  "selected": false
+}
