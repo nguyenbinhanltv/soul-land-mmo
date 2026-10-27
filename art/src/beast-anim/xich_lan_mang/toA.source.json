@@ -1,0 +1,65 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "imageModel": "unknown (tool did not expose)",
+  "seed": "unknown (tool did not expose)",
+  "attempts": 1,
+  "workerProvenance": {
+    "task": "#774",
+    "species": "xich_lan_mang",
+    "sheet": "toA",
+    "attempt": "A1",
+    "status": "RAW submitted candidate; art not owner-approved",
+    "tool": "built-in image_gen.imagegen",
+    "model": "unknown (tool did not expose)",
+    "seed": "unknown (tool did not expose)",
+    "attemptCount": 1,
+    "totalSpeciesImagegenCalls": 2,
+    "durationSeconds": 31.1,
+    "callTimestampExposed": false,
+    "callTimestampNote": "The image_gen tool response did not provide a call timestamp.",
+    "provenanceRecordedAtUtc": "2026-10-26T14:54:00Z",
+    "exactPrompt": {
+      "path": "toA.prompt.txt",
+      "sha256": "9dc205c6ed2f26ff3dd7b8f7923b16d75ce2250543bcc5b767c95c49f4f79310",
+      "bytes": 6521,
+      "basePromptSha256": "9dc205c6ed2f26ff3dd7b8f7923b16d75ce2250543bcc5b767c95c49f4f79310",
+      "basePromptTemplateMarkdown": "xich_lan_mang-toA.md",
+      "basePromptTemplateMarkdownSha256": "31778ec906056468aeab950b049b533e010ae838b93d67195b98ed3693473538"
+    },
+    "generator": {
+      "command": "node tools/assets/beast-sheet-prompt.mjs --species xich_lan_mang --stage sheet --out art/src/beast-anim/xich_lan_mang",
+      "script": "tools/assets/beast-sheet-prompt.mjs",
+      "scriptSha256": "ce67ade6abd84aaacbb2336b8a942fd298330fbf698eabb56d8b31092d4ba625"
+    },
+    "orderedReferences": [
+      {
+        "order": 1,
+        "role": "static identity reference for Xích Lân Mãng",
+        "path": "shared/assets/sprites/beast/xich_lan_mang.png",
+        "sha256": "3567bfd5342f25ff1f3e86fd9edea1fd2c42ae9190c640bda26d398906059c57",
+        "bytes": 3324
+      }
+    ],
+    "toolArguments": {
+      "referenced_image_paths": [
+        "/private/tmp/soul-land-mmo-774-xich-lan-mang/shared/assets/sprites/beast/xich_lan_mang.png"
+      ],
+      "transparent_background": false
+    },
+    "originalToolOutputPath": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-5ffe148e-74a4-4bee-9dbd-46cd2808acb1.png",
+    "raw": {
+      "path": "toA.png",
+      "sha256": "d1e8c8455f6b2bbdf960ac56a2b42917436639bcadfa0bee4c0d218aad02aaa1",
+      "bytes": 1841914,
+      "width": 948,
+      "height": 1659,
+      "copiedByteIdenticalFromToolOutput": true
+    },
+    "postprocessing": false,
+    "manualFindings": [
+      "S H2 W0–W5 và SE H6 W0–W5 walk quay ngang sang phải, lệch hướng khối.",
+      "S H4 D2–D3 và SE H8 D2–D3 die nằm ngang, lệch trục hướng."
+    ],
+    "ownerArtApproval": false
+  }
+}
