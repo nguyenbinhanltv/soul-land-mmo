@@ -44,7 +44,9 @@ export function cutUiSheet(o) {
   const check = analyzeUiSheet(o.img, { kit, kindId, name, div: o.div, names: o.names, soft: o.soft });
   // --skip: bỏ hẳn mảnh còn CHẶN riêng của nó (vá ô: cắt phần đạt, ô hỏng vẽ lại ở lượt sau); chặn chung của tờ vẫn chặn
   const skip = new Set(o.skip ?? []);
-  for (const n of skip) if (!kind.pieces.some((p) => p.name === n)) throw new Error(`--skip: tờ ${kind.id} không có mảnh ${n}`);
+  // tên thật của mảnh (đã qua --names / tên tự đặt), gồm cả mảnh lỗi không có điểm vật (so-hinh) chỉ còn trong issue.piece
+  const known = new Set([...check.pieces.map((p) => p.name), ...check.issues.filter((i) => i.piece).map((i) => i.piece)]);
+  for (const n of skip) if (!known.has(n)) throw new Error(`--skip: tờ ${kind.id} không có mảnh ${n} (có: ${[...known].join(", ")})`);
   const blocking = check.issues.filter((i) => i.sev === "block" && !(i.piece && skip.has(i.piece)));
   if (blocking.length && !o.force) {
     const e = new Error(`tờ ${name} có mục CHẶN, không cắt (sửa tờ, --soft, --skip <mảnh> hoặc --force):\n` + blocking.map((i) => `  ${i.code} ${i.where}: ${i.msg}`).join("\n"));

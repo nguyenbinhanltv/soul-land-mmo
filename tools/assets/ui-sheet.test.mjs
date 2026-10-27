@@ -265,6 +265,14 @@ test("--skip: bỏ mảnh còn chặn riêng để cắt phần đạt; chặn c
   assert.equal(check(dirty).issues.some((i) => i.sev === "block" && !i.piece), false);
 });
 
+test("--skip theo tên thật của mảnh: tên ghi đè bằng --names dùng được, tên spec cũ bị từ chối", () => {
+  const bad = fakeFrame(60, 44, { stripes: true }), ok = fakeFrame(60, 44);
+  const sheet = buildSheet([[bad, ok, ok], [ok, ok, ok]], { k: 4 }), names = ["a1", "a2", "a3", "a4", "a5", "a6"];
+  const cut = cutUiSheet({ img: sheet, name: "toF", kit, names, skip: ["a1"] });
+  assert.deepEqual(cut.pieces.map((p) => p.name), ["a2", "a3", "a4", "a5", "a6"]);
+  assert.throws(() => cutUiSheet({ img: sheet, name: "toF", kit, names, skip: ["khung_muc_lon"] }), /không có mảnh khung_muc_lon/);
+});
+
 test("mirror theo mảnh: spec `mirror: false` giữ nguyên hình (tab hở đáy), mảnh khác vẫn dựng gương", () => {
   const k2 = JSON.parse(JSON.stringify(kit));
   k2.kinds.F.pieces[0].mirror = false;
