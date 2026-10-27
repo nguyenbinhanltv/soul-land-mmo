@@ -55,3 +55,5 @@ Lỗi ne/n chỉ khai, không vẽ đè hoặc sinh thêm riêng để sửa m�
 |---|---|---|---|---|---|
 | `art/src/phuthe-anim/ta_hoa_phuong_hoang/candidates/turnaround-attempt{1,2,3}.png` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Thử turnaround phụ thể có nộm; prompt tự sinh, SHA256 và source JSON kèm từng lượt. | 2026-10-27 | Chặn, không nhập game; model/seed unknown. |
 | `references/ta_hoa_phuong_hoang-nom-turnaround.png` | - | `phuthe-sheet-dummy.mjs`, thân LPC hiện có | Bảng nộm cyan, dựng tự động; nguồn/giấy phép lớp thân theo hồ sơ LPC hiện có của repo. | 2026-10-27 | Chỉ tham chiếu vị trí, không asset game mới. |
+
+Sau AO review: bài học thứ ba đã khái quát để không ép cánh lông lửa lên mọi võ hồn nhóm B. Prompt lượt 3 giữ nguyên bản thực gửi (bản bài học trước sửa nằm ở commit 8d34f105), không sinh thêm ảnh.
