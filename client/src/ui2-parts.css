@@ -1,0 +1,80 @@
+/* UI Kit v2: khung màn chuẩn + thành phần nhỏ (uiParts.ts, Part of #885; docs/art/ui-kit.md "Khung màn chuẩn và thành phần nhỏ").
+   Chỉ có hiệu lực dưới `body.ui2` (?ui=2, tắt mặc định): không có lớp này thì mọi luật ở đây không khớp, giao diện hiện tại không đổi.
+   Màu chỉ đi qua token (style.css :root); khung viền của màn đi qua lớp `f2-muc-lon` / `f2-giay-lon` / `f2-nut-chinh` của ui2.css, nên chỗ này
+   không đặt border-image. Cỡ chữ chỉ 10 / 12 / 24 (--fs-*). Trạng thái không chỉ bằng màu: mỗi nhãn có hình riêng, khoá có chữ lý do. */
+
+/* ---- khung màn chuẩn ---- */
+body.ui2 .p2-man{--p2-fg:var(--ink-text);--p2-fg2:var(--plate-text);box-sizing:border-box;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto 1fr auto;
+  grid-template-areas:"hd hd" "nav body" "nav ft";min-width:0;min-height:0;color:var(--p2-fg);font:var(--fs-m)/1.4 var(--f12);
+  background:var(--plate);border:var(--bd) solid var(--ink2);padding:var(--sp-5)}
+body.ui2 .p2-man-giay{--p2-fg:var(--text);--p2-fg2:var(--muted);background:var(--paper);border-color:var(--line)}
+body.ui2 .p2-hd{grid-area:hd;display:flex;align-items:center;justify-content:space-between;gap:var(--sp-5);padding-bottom:var(--sp-4)}
+body.ui2 .p2-id{display:flex;align-items:center;gap:var(--sp-4);min-width:0}
+body.ui2 .p2-badge{flex:none;min-width:32px;height:32px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;padding:0 var(--sp-3);
+  font:var(--fs-m)/1 var(--f12);color:var(--plate-text);background:var(--son-d);border:var(--bd) solid var(--plate);text-shadow:var(--stroke)}
+body.ui2 .p2-title{margin:0;font:var(--fs-l)/1.2 var(--f12);color:var(--p2-fg);overflow-wrap:anywhere}   /* tên dài xuống dòng, không cắt im lặng */
+body.ui2 .p2-info{flex:none;width:32px;height:32px;box-sizing:border-box;font:var(--fs-m)/1 var(--f12);cursor:help;color:var(--p2-fg);background:var(--track);border:var(--bd) solid var(--p2-fg2)}
+body.ui2 .p2-man-giay .p2-info{color:var(--text);background:var(--paper2);border-color:var(--line)}
+body.ui2 .p2-cur{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--sp-3)}
+body.ui2 .p2-cur-i{display:inline-flex;align-items:center;gap:var(--sp-3);min-height:32px;box-sizing:border-box;padding:0 var(--sp-4);background:var(--track);color:var(--plate-text);border:var(--bd-fine) solid var(--ink2)}
+body.ui2 .p2-cur-l{font:var(--fs-s)/1 var(--f10);opacity:.85}
+body.ui2 .p2-cur-v{font:var(--fs-m)/1 var(--f12);color:var(--xp);font-variant-numeric:tabular-nums}
+body.ui2 .p2-man-giay .p2-cur-i{background:var(--paper2);color:var(--text);border-color:var(--line)}
+body.ui2 .p2-man-giay .p2-cur-v{color:var(--xp-t)}
+body.ui2 .p2-nav{grid-area:nav;display:flex;flex-direction:column;gap:var(--sp-3);padding-right:var(--sp-5);min-width:96px}
+body.ui2 .p2-nav-i{position:relative;display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);min-height:32px;box-sizing:border-box;padding:0 var(--sp-4);text-align:left;
+  font:var(--fs-m)/1.2 var(--f12);color:var(--p2-fg);background:var(--track);border:var(--bd-fine) solid var(--ink2);cursor:pointer}
+body.ui2 .p2-nav-i:hover{border-color:var(--p2-fg2)}
+body.ui2 .p2-nav-i.sel{border-color:var(--accent);border-left-width:4px;color:var(--plate-text);background:var(--plate)}   /* mục đang chọn: vạch dày bên trái (hình), không chỉ màu */
+body.ui2 .p2-man-giay .p2-nav-i{background:var(--paper2);color:var(--text);border-color:var(--line)}
+body.ui2 .p2-man-giay .p2-nav-i.sel{background:var(--paper);border-color:var(--son)}
+body.ui2 .p2-body{grid-area:body;min-width:0;min-height:0;overflow:auto}
+body.ui2 .p2-ft{grid-area:ft;display:flex;align-items:center;justify-content:flex-end;gap:var(--sp-5);padding-top:var(--sp-4)}
+body.ui2 .p2-primary{min-width:120px;min-height:44px;box-sizing:border-box;padding:0 var(--sp-6);font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text);text-shadow:var(--stroke);cursor:pointer;
+  background:var(--son);border:var(--bd) solid var(--plate)}   /* nút chính 44 px (luật vùng bấm); có kit thì f2-nut-chinh thay khung */
+body.ui2 .p2-primary:disabled{cursor:not-allowed;background:var(--track);color:var(--plate-text)}
+body.ui2 .p2-man :is(button,.p2-card):focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+
+/* ---- thẻ có nhãn trạng thái ---- */
+body.ui2 .p2-card{--p2-rc:var(--rare-0,var(--line));position:relative;display:flex;flex-direction:column;gap:var(--sp-2);min-width:96px;box-sizing:border-box;padding:var(--sp-5) var(--sp-4) var(--sp-4);
+  text-align:left;font:var(--fs-m)/1.3 var(--f12);color:var(--ink-text);background:var(--plate);border:var(--bd) solid var(--p2-rc)}
+body.ui2 button.p2-card{cursor:pointer}
+body.ui2 .p2-man-giay .p2-card{color:var(--text);background:var(--paper2)}
+body.ui2 .p2-card-t{overflow-wrap:anywhere}
+body.ui2 .p2-card-s{font:var(--fs-s)/1.3 var(--f10);opacity:.9;overflow-wrap:anywhere}
+/* hạng: màu nền = màu hạng; góc cắt tăng theo hạng (không chỉ màu): hạng càng cao càng nhiều góc cắt */
+body.ui2 .p2-r0{--p2-rc:var(--rare-0)} body.ui2 .p2-r1{--p2-rc:var(--rare-1)} body.ui2 .p2-r2{--p2-rc:var(--rare-2)} body.ui2 .p2-r3{--p2-rc:var(--rare-3)} body.ui2 .p2-r4{--p2-rc:var(--rare-4)}
+body.ui2 .p2-card[data-rank]::before{content:"";position:absolute;left:0;top:0;width:calc(var(--sp-3) * (1 + var(--p2-n,0)));height:var(--sp-3);background:var(--p2-rc)}
+body.ui2 .p2-r1{--p2-n:1} body.ui2 .p2-r2{--p2-n:2} body.ui2 .p2-r3{--p2-n:3} body.ui2 .p2-r4{--p2-n:4}
+/* nhãn giới hạn: dải ở đầu thẻ */
+body.ui2 .p2-limit{align-self:flex-start;margin:calc(var(--sp-5) * -1) calc(var(--sp-4) * -1) var(--sp-2);padding:var(--sp-1) var(--sp-4);font:var(--fs-s)/1.3 var(--f10);color:var(--plate-text);background:var(--son-d)}
+/* dấu trạng thái: hình riêng cho từng loại */
+body.ui2 .p2-mark{position:absolute;right:calc(var(--sp-3) * -1);top:calc(var(--sp-3) * -1);width:16px;height:16px;box-sizing:border-box;border:var(--bd) solid var(--plate);display:inline-block}
+body.ui2 .p2-nav-i .p2-mark{position:static;flex:none}
+body.ui2 .p2-m-new{border-radius:50%;background:var(--son-l)}                                    /* chấm đỏ */
+body.ui2 .p2-m-up{background:var(--accent);clip-path:polygon(50% 0,100% 100%,0 100%);border:0}  /* mũi tên lên (xanh ngọc) */
+body.ui2 .p2-m-done{border-radius:50%;background:var(--good)}                                    /* tick */
+body.ui2 .p2-m-done::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid var(--plate-text);border-width:0 2px 2px 0;transform:rotate(45deg)}
+body.ui2 .p2-m-lock{background:var(--inkl)}                                                      /* ổ khoá: thân + quai */
+body.ui2 .p2-m-lock::before{content:"";position:absolute;left:3px;top:-5px;width:6px;height:6px;border:2px solid var(--inkl);border-bottom:0}
+body.ui2 .p2-s-lock{filter:grayscale(1);color:var(--plate-text)}                                 /* khoá: xám + lý do */
+body.ui2 .p2-s-lock .p2-card-t{opacity:.7}
+body.ui2 .p2-why{font:var(--fs-s)/1.3 var(--f10);color:var(--plate-text);overflow-wrap:anywhere}
+body.ui2 .p2-man-giay .p2-why,body.ui2 .p2-man-giay .p2-s-lock{color:var(--muted)}
+body.ui2 .p2-s-done .p2-card-t{text-decoration:line-through}                                      /* xong: gạch + tick, không chỉ màu */
+
+/* ---- công tắc ---- */
+body.ui2 .p2-sw-row{display:inline-flex;align-items:center;justify-content:space-between;gap:var(--sp-5);min-height:32px;cursor:pointer;font:var(--fs-m)/1.3 var(--f12)}
+body.ui2 .p2-sw{position:relative;flex:none;width:44px;height:24px;box-sizing:border-box;padding:0;cursor:pointer;background:var(--track);border:var(--bd) solid var(--plate)}
+body.ui2 .p2-sw-k{position:absolute;left:var(--sp-1);top:var(--sp-1);width:16px;height:16px;background:var(--paper3);border:var(--bd-fine) solid var(--plate)}
+body.ui2 .p2-sw[aria-checked="true"]{background:var(--good)}
+body.ui2 .p2-sw[aria-checked="true"] .p2-sw-k{left:auto;right:var(--sp-1);background:var(--plate-text)}
+body.ui2 .p2-sw[aria-checked="true"]::before{content:"";position:absolute;left:var(--sp-3);top:var(--sp-2);width:4px;height:8px;border:solid var(--plate-text);border-width:0 2px 2px 0;transform:rotate(45deg)}  /* bật: dấu tick; tắt: không dấu */
+body.ui2 .p2-sw:disabled,body.ui2 .p2-off{cursor:not-allowed;opacity:.55}
+body.ui2 .p2-sw:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+
+/* ---- đồng hồ đếm ngược ---- */
+body.ui2 .p2-cd{display:inline-flex;align-items:baseline;gap:var(--sp-3);padding:var(--sp-1) var(--sp-4);font:var(--fs-m)/1.3 var(--f12);font-variant-numeric:tabular-nums;color:var(--plate-text);background:var(--plate);border:var(--bd-fine) solid var(--ink2)}
+body.ui2 .p2-cd-l{font:var(--fs-s)/1 var(--f10);opacity:.85}
+body.ui2 .p2-cd.p2-soon{border-color:var(--warn);border-style:dashed;color:var(--son-l)}           /* sắp hết: viền đứt nét */
+body.ui2 .p2-cd.p2-end{opacity:.7;border-style:dotted}                                            /* đã hết: viền chấm */
