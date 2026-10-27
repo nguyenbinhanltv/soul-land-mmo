@@ -19,3 +19,10 @@ test("upsert: thêm sau mục chỉ định, chạy lại giữ nguyên, đổi 
   assert.equal(upsert(a.text, e, "vh_x_f").action, "giữ");
   assert.equal(upsert(a.text, { ...e, blank: true }, "vh_x_f").action, "cập nhật");
 });
+
+test("vhanimSize: rộng = cols × khung, cao = 10 × khung; cols hỏng thì [0, 0]", async () => {
+  const { vhanimSize } = await import("./lib.mjs");
+  assert.deepEqual(vhanimSize(96, 22), [2112, 960]);
+  assert.deepEqual(vhanimSize(128, 13), [1664, 1280]);
+  for (const bad of [0, -1, 2.5, undefined]) assert.deepEqual(vhanimSize(96, bad), [0, 0]);
+});

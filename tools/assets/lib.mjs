@@ -406,6 +406,9 @@ export const HS_LAYERS = ["body", "outfit", "hair"];
  * `ui_the_*` để dành cho `card_*` (cùng thư mục iso/ui).
  * `stat` (manifest ghi `"static": true`, chỉ với `beast_*` isometric): sheet tĩnh 3 khung (nam, đông, bắc) của hồn thú lai.
  */
+/** Cỡ sheet phụ thể hoạt ảnh `vhanim_*`: rộng `anim.cols` khung, cao 10 khung (2 giới × 5 hướng); `[0, 0]` khi cols không hợp lệ. */
+export const vhanimSize = (frame, cols) => (Number.isInteger(cols) && cols > 0 ? [cols * frame, 10 * frame] : [0, 0]);
+
 export function sheetSpec(key, frame, iso = false, stat = false) {
   let m;
   if (iso) {

@@ -18,7 +18,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { checkIsoTiles } from "./iso-build.mjs";
 import path from "node:path";
-import { ROOT, SPRITES, MANIFEST, PT_MAX_COLORS, readPng, toHex, allowedColors, accentColors, readGpl, npcIds, itemIconIds, skillIconIds, statusIds, heIds, beastIds, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS } from "./lib.mjs";
+import { ROOT, SPRITES, MANIFEST, PT_MAX_COLORS, readPng, toHex, allowedColors, accentColors, readGpl, npcIds, itemIconIds, skillIconIds, statusIds, heIds, beastIds, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS, vhanimSize } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -57,7 +57,8 @@ function mapColors(key, map) {
   return readGpl(f);
 }
 
-function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank = false) {
+
+function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank = false, cols = 0) {
   const spec = sheetSpec(key, frame, iso, stat);
   if (!spec) return err(key, iso ? "key / khung sai quy ước isometric (isoLayout, sheetSpec trong tools/assets/lib.mjs)" : "key sai quy ước (xem sheetSpec trong client/src/sprites.ts)");
   const file = path.join(SPRITES, spec.file);
@@ -128,6 +129,11 @@ function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank 
       const [x0, y0] = at(r, 0), k = `${spec.set}:${r}`;
       for (let y = 0; y < fh; y++) if (!cellEmpty(img, x0, y0 + y, fw, 1)) feet.set(k, { low: Math.max(feet.get(k)?.low ?? -1, y), want: HS_ORIGIN[1] });
     }
+  } else if (spec.kind === "vhanim") {
+    const [ew, eh] = vhanimSize(fw, cols);
+    if (!ew) err(key, `manifest thiếu "anim.cols" nguyên dương`);
+    else if (img.w !== ew || img.h !== eh) err(key, `kích thước ${img.w}×${img.h}, cần ${ew}×${eh} (anim.cols ${cols} × khung ${fw}, 10 hàng = giới × 5 hướng)`);
+    if (cellEmpty(img, 0, 0, img.w, img.h)) err(key, `sheet trống hoàn toàn: ghi "blank": true vào manifest và xóa file ảnh`);
   } else if (spec.kind === "vohon") {
     const stray = [];
     for (let r = 0; r < 4; r++) for (let c = 0; c < SHEET_COLS; c++) if ((r === 3 || c >= 12) && !cellEmpty(img, ...at(r, c), fw, fh)) stray.push([r, c]);
@@ -270,7 +276,7 @@ for (const e of manifest.sprites) {
   const key = entryKey(e);
   if (seen.has(key)) err(key, "trùng key trong manifest");
   seen.add(key);
-  const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "", e.nine ?? 0, !!e.static, !!e.blank);
+  const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "", e.nine ?? 0, !!e.static, !!e.blank, e.anim?.cols ?? 0);
   if (spec) { seen.add(spec.file); seen.add(spec.file.replace(/\.png$/, "_n.png")); }
   if (spec && typeof e !== "string" && e.anim?.dirsOk !== undefined) checkDirsOk(key, e, spec);
 }
