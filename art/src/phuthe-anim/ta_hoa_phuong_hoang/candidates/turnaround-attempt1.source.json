@@ -1,0 +1,38 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "stage": "turnaround",
+  "attempt": 1,
+  "status": "rejected",
+  "raw": {
+    "file": "turnaround-attempt1.png",
+    "sha256": "768dbefeec56d9ba3920d2b29187350d08ffdccac8afe2381e69e6c69327c212"
+  },
+  "prompt": {
+    "file": "turnaround-attempt1.prompt.txt",
+    "sha256": "5f17756af8d72bd4784c92b2cc11ad3ff275932685d731968170420298aac0c9",
+    "generator": "node tools/assets/phuthe-sheet-prompt.mjs --id ta_hoa_phuong_hoang --stage turnaround --out <temp>",
+    "handwritten": false,
+    "addendum": false
+  },
+  "references": [
+    {
+      "role": "mannequin_board",
+      "file": "../references/ta_hoa_phuong_hoang-nom-turnaround.png",
+      "sha256": "0d2d6f89cb2bd86d886b08460334f589fb4e332971d0ab9eb6b2dd9aaeb81456"
+    },
+    {
+      "role": "approved_appearance_reference_only",
+      "file": "art/src/vohon-v2/ta_hoa_phuong_hoang/concept-attempt3.png",
+      "sha256": "afbfb627a42f3f956e6749b8a92809610a700592fda556459c294f30c76d1373"
+    }
+  ],
+  "findings": [
+    "Kiểm chặn: chỉ dò 2/3 dải hàng.",
+    "ne quay trái và lộ mặt.",
+    "Nộm dời xuống; nguyên chim đứng sau người."
+  ],
+  "postprocessing": "none; RAW copied byte-for-byte"
+}
