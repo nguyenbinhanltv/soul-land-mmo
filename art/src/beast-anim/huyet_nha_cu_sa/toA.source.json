@@ -1,0 +1,12 @@
+{
+    "seed":  "unknown",
+    "timestamp":  "2026-10-27T04:45:46.1618437Z",
+    "sha256":  "0fbadbe812713a85d5863edec0df5ed45d9e0d5b87381e036e0cfd68dc6ea963",
+    "model":  "unknown",
+    "references":  [
+                       "shared/assets/sprites/beast/huyet_nha_cu_sa.png",
+                       "art/src/beast-anim/huyet_nha_cu_sa/turnaround.png"
+                   ],
+    "tool":  "image_gen",
+    "attempts":  1
+}
