@@ -1,0 +1,9 @@
+{
+  "huong": {
+    "s": {"mac_dinh":"sau","vung":[{"nhan":"truoc","hop":[-20,-74,20,-40]}]},
+    "se": {"mac_dinh":"sau","vung":[{"nhan":"truoc","hop":[-20,-74,20,-40]}]},
+    "e": {"mac_dinh":"sau","vung":[{"nhan":"truoc","hop":[-20,-74,20,-40]}]},
+    "ne": {"mac_dinh":"truoc"},
+    "n": {"mac_dinh":"truoc"}
+  }
+}
