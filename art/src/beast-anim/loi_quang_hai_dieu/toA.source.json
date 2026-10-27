@@ -1,0 +1,18 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "issue":  1030,
+    "species":  "loi_quang_hai_dieu",
+    "sheet":  "toA",
+    "attempts":  1,
+    "recorded_at_utc":  "2026-10-27T03:32:29.1068831Z",
+    "sha256":  "8a9d91f96fd89adbb31e3d7c45391c5a2302ed2e381558f68264e62058be7e04",
+    "references":  [
+                       "shared/assets/sprites/beast/loi_quang_hai_dieu.png"
+                   ],
+    "original_tool_path":  "C:/Users/PC/.codex/generated_images/01a17b67-f992-7893-a381-979cb0744f6b/exec-9e9ef7c5-090b-4c5f-9b5d-adc987cb1b68.png",
+    "postprocessing":  "Không; sao chép RAW nguyên byte.",
+    "generated_at_utc":  "2026-10-27T03:31:20.0544160Z",
+    "prompt_sha256":  "31f7e8b26215685815c65d9df06a0796bb4e062b0ab836b086c50eb91836bdaa"
+}
