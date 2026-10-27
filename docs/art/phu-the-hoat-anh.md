@@ -60,6 +60,7 @@ Dùng lại bố cục **mỗi hướng một tờ** của hồn thú (`sheetPla
 | E | `n` | như trên | như trên | như trên |
 
 - **Ô vẽ ≈ 256 × 256** (1536 / 6, 1024 / 4) lớn hơn khung 96 / 128 nên thu về lưới pixel không phóng to. Mỗi ô: nộm đúng chỗ + phụ thể; **nộm đứng yên ở ô đã đặt sẵn trong ảnh tham chiếu** (người sinh ảnh được đính nộm đã dựng, không tự vẽ thân).
+- **Bài học #1083:** model không làm được lưới pixel (RAW luôn mềm, nhiều chi tiết li ti), nên prompt phụ thể cũng **không** đòi "lưới pixel / số màu"; hãy đòi hình lớn, đơn giản, điểm sáng to, và để cutter lập lưới. Tờ RAW chấm theo mức chặn / nhẹ như `phuthe:check`, đừng chặn vì "không pixel cứng". Chân dung, icon, pháp tướng của võ hồn dùng đường riêng: `docs/art/vo-hon-phong-cach.md` phần 6.1 (`vohon-prompt` / `vohon-pixelize` / `vohon:check`).
 - **Turnaround trước** (như hồn thú): một ảnh 3:2, 5 cột hướng × 3 hàng (`idle`, `attack` đỉnh, `hurt`) = 15 hình, kèm nộm, để duyệt thiết kế và nét. Chỉ duyệt bằng mắt; làm ảnh mẫu cho 5 tờ.
 - **Thứ tự ảnh tham chiếu cố định:** (1) bảng nộm của tờ đó (do P1 dựng); (2) turnaround đã duyệt; (3, tùy chọn) một tờ hướng của chính võ hồn đã qua kiểm không chặn. **Không đính ảnh phụ thể cũ.**
 - **Dung sai lưới, nền, cỡ ảnh theo tỉ lệ** (tờ 3:2 một hướng): như `hon-thu-hoat-anh.md` mục "Bố cục tờ ảnh"; đếm hàng và số hình mỗi hàng, không đòi ô đều.
