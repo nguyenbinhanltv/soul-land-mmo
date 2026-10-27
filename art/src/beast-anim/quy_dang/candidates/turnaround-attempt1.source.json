@@ -1,0 +1,11 @@
+{
+  "tool": "Codex image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "timestamp": "2026-10-27T04:21:33.057Z",
+  "sha256": "e34fbbca28e294b2b1a4dc88a62fa8a6429c72761a6349d1cc2a8041e4877437",
+  "attempts": 1,
+  "references": [
+    "shared/assets/sprites/beast/quy_dang.png"
+  ]
+}
