@@ -10,7 +10,7 @@ Số góc thật: khoảng 3; vật cứng gần đối xứng. Đỉnh ba chân
 
 Chọn `concept-attempt1.png`; hồ sơ prompt và source JSON kèm cùng tên. Không phải sheet hoạt ảnh dùng trực tiếp. Các hướng cần sửa được xử lý ở khâu phụ thể bằng hình nộm.
 
-SHA256 ảnh: `ee78be8f3d9a0f7d1124704380adf4755f44d146aec0bb50998ff2e5812b011d`. SHA256 prompt: `490fd731b4d1bd4771dae58873f1c9bdc1d3e1ec2d45eb53c96cd858175d22c5`.
+SHA256 ảnh: `ee78be8f3d9a0f7d1124704380adf4755f44d146aec0bb50998ff2e5812b011d`. SHA256 prompt: `a4f940791b8d8fce5d1851cce13b1cd1a6e3925f8258cf879ba8d44e92bcb263`.
 
 ## Kiểm RAW
 
@@ -36,3 +36,5 @@ raw concept-attempt1.png pháp tướng (thien_can_bach_ngoc_dinh): NHẸ
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/vohon-v2/thien_can_bach_ngoc_dinh/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. | 2026-10-27 | Chưa duyệt, không nhập game. |
+
+Prompt trong repo chuẩn hóa xuống dòng LF đúng byte Git; SHA trước chuẩn hóa CRLF giữ trong source JSON. Nội dung prompt tự sinh không sửa.

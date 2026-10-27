@@ -10,7 +10,7 @@ Số góc thật: 4 đúng yêu cầu; ne còn lộ mắt. ne nhìn lưng nhưng
 
 Chọn `concept-attempt1.png`; hồ sơ prompt và source JSON kèm cùng tên. Không phải sheet hoạt ảnh dùng trực tiếp. Các hướng cần sửa được xử lý ở khâu phụ thể bằng hình nộm.
 
-SHA256 ảnh: `fee15ae75afe1304660c480d2ffad5053d47b42da89338c4c32111119c11b7dc`. SHA256 prompt: `8e581b1094f0ec8f1fa96e43113f800dd370992ce9ec5c10fec44692ea4d86a6`.
+SHA256 ảnh: `fee15ae75afe1304660c480d2ffad5053d47b42da89338c4c32111119c11b7dc`. SHA256 prompt: `d9bbebddebb28f0339cccb83b614b09069b93ca9a443af87bbb7b95556933937`.
 
 ## Kiểm RAW
 
@@ -35,3 +35,5 @@ raw concept-attempt1.png pháp tướng (quy_mi): NHẸ
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/vohon-v2/quy_mi/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. | 2026-10-27 | Chưa duyệt, không nhập game. |
+
+Prompt trong repo chuẩn hóa xuống dòng LF đúng byte Git; SHA trước chuẩn hóa CRLF giữ trong source JSON. Nội dung prompt tự sinh không sửa.

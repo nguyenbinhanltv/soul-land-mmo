@@ -10,7 +10,7 @@ Số góc thật: khoảng 3; tháp gần đối xứng. Chọn tốt nhất tro
 
 Chọn `concept-attempt3.png`; hồ sơ prompt và source JSON kèm cùng tên. Không phải sheet hoạt ảnh dùng trực tiếp. Các hướng cần sửa được xử lý ở khâu phụ thể bằng hình nộm.
 
-SHA256 ảnh: `067900bfcfa13d852e79c0d692c19c339406670fc037c13eb96cc37921fd88f4`. SHA256 prompt: `c7968adf653e7250e306da4d73a78b3d375f2748eff2386eed6897c040a42b59`.
+SHA256 ảnh: `067900bfcfa13d852e79c0d692c19c339406670fc037c13eb96cc37921fd88f4`. SHA256 prompt: `1dba2a719e3481ad814b75177ef2acf8ed5d5213c452cad9aa0651b2bc009984`.
 
 ## Kiểm RAW
 
@@ -40,5 +40,7 @@ raw concept-attempt3.png pháp tướng (cuu_bao_luu_ly_thap): NHẸ
 
 ## Các lượt không chọn
 
-- Lượt 1: candidates/concept-attempt1.png; SHA256 ảnh 94fa37bde2192b49725411937db11293b3a2648a8334c640d280cb44dd969f9c; prompt c7968adf653e7250e306da4d73a78b3d375f2748eff2386eed6897c040a42b59. Khoảng 7 tầng mái rõ, chưa đủ chín tầng; nét khắc dày, bệ đá thêm ngoài hình mẫu. Giữ làm ứng viên, không chọn.
-- Lượt 2: candidates/concept-attempt2.png; SHA256 ảnh 1f50910119a0ea9acdcee04b29cc743a0ceb3bc19d47e76ebe756565bc0266e9; prompt c7968adf653e7250e306da4d73a78b3d375f2748eff2386eed6897c040a42b59. Tầng mái rõ hơn lượt 1 nhưng tầng đáy chưa đọc chắc là chín tầng; vòng pháp luân dày, ne còn gần e. Giữ làm ứng viên.
+- Lượt 1: candidates/concept-attempt1.png; SHA256 ảnh 94fa37bde2192b49725411937db11293b3a2648a8334c640d280cb44dd969f9c; prompt 1dba2a719e3481ad814b75177ef2acf8ed5d5213c452cad9aa0651b2bc009984. Khoảng 7 tầng mái rõ, chưa đủ chín tầng; nét khắc dày, bệ đá thêm ngoài hình mẫu. Giữ làm ứng viên, không chọn.
+- Lượt 2: candidates/concept-attempt2.png; SHA256 ảnh 1f50910119a0ea9acdcee04b29cc743a0ceb3bc19d47e76ebe756565bc0266e9; prompt 1dba2a719e3481ad814b75177ef2acf8ed5d5213c452cad9aa0651b2bc009984. Tầng mái rõ hơn lượt 1 nhưng tầng đáy chưa đọc chắc là chín tầng; vòng pháp luân dày, ne còn gần e. Giữ làm ứng viên.
+
+Prompt trong repo chuẩn hóa xuống dòng LF đúng byte Git; SHA trước chuẩn hóa CRLF giữ trong source JSON. Nội dung prompt tự sinh không sửa.

@@ -10,7 +10,7 @@ Số góc thật: 5 hình, khoảng 4 góc rõ; s/se còn gần nhau. Chọn lư
 
 Chọn `concept-attempt2.png`; hồ sơ prompt và source JSON kèm cùng tên. Không phải sheet hoạt ảnh dùng trực tiếp. Các hướng cần sửa được xử lý ở khâu phụ thể bằng hình nộm.
 
-SHA256 ảnh: `d510d4409629e9a0e18d02e1872cb9bc5b0b1c5e9ccceacba9e7c8c0984fd8db`. SHA256 prompt: `f4d8835a2e60ed7d3551fdf930610f362c48f05a3666195b1d643f788e214179`.
+SHA256 ảnh: `d510d4409629e9a0e18d02e1872cb9bc5b0b1c5e9ccceacba9e7c8c0984fd8db`. SHA256 prompt: `ce89d72abd8d5205b74b310105c3eebdd8f263f3f3e4e37dd48be68411920f41`.
 
 ## Kiểm RAW
 
@@ -40,4 +40,6 @@ raw concept-attempt2.png pháp tướng (a_ngan): NHẸ
 
 ## Lượt không chọn
 
-- Lượt 1: candidates/concept-attempt1.png; SHA256 ảnh e7850d3aa55dc567afa2d8a2a928fc8f7223f0d3b9f08ef64d071f84cf70f86f; SHA256 prompt f4d8835a2e60ed7d3551fdf930610f362c48f05a3666195b1d643f788e214179. CHẶN máy: chỉ tách 3 khối. Thân cổ thụ lam xanh xoắn, hoa vàng trắng và dây vàng rủ đúng hình mẫu; ne còn thấy nhụy phía trước, n nhìn lưng đúng. Không có mặt sinh vật, không sinh thêm để sửa ne/n. s/se/e còn gần nhau; dây rủ có chi tiết nhỏ, hình ngoài sát mép. Chọn tham chiếu ngoại hình, chưa coi là sheet năm hướng dùng trực tiếp.
+- Lượt 1: candidates/concept-attempt1.png; SHA256 ảnh e7850d3aa55dc567afa2d8a2a928fc8f7223f0d3b9f08ef64d071f84cf70f86f; SHA256 prompt ce89d72abd8d5205b74b310105c3eebdd8f263f3f3e4e37dd48be68411920f41. CHẶN máy: chỉ tách 3 khối. Thân cổ thụ lam xanh xoắn, hoa vàng trắng và dây vàng rủ đúng hình mẫu; ne còn thấy nhụy phía trước, n nhìn lưng đúng. Không có mặt sinh vật, không sinh thêm để sửa ne/n. s/se/e còn gần nhau; dây rủ có chi tiết nhỏ, hình ngoài sát mép. Chọn tham chiếu ngoại hình, chưa coi là sheet năm hướng dùng trực tiếp.
+
+Prompt trong repo chuẩn hóa xuống dòng LF đúng byte Git; SHA trước chuẩn hóa CRLF giữ trong source JSON. Nội dung prompt tự sinh không sửa.
