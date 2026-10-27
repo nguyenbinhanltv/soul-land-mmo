@@ -1,0 +1,25 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "attempt": 1,
+  "image_sha256": "79791c7536060325dac603853a7beff3ccc1dd0c3811abcbe58f0a62627286af",
+  "prompt_sha256": "f9d048df6a979b1d81c886a7c70029e2ea1e67947ba45881156fbdf394ac6ee1",
+  "submitted_prompt_sha256": "85a3b18ab92493e83d051bf7e134a8985dc109a553c43cdea3cea8a521a52839",
+  "prompt_line_endings": "B?n l?u LF theo Git; n?i dung nguy?n b?n, hash th?c g?i l?u ri?ng n?u CRLF.",
+  "original_output": "C:/Users/PC/.codex/generated_images/01a17cc5-63b8-7180-bc0d-e3cc732ef99e/exec-26e19f68-dc30-468b-b458-56664376ae78.png",
+  "reference": "PR #1083: concept-turnaround-attempt2.png (Hạo Thiên Chùy)",
+  "status": "rejected_candidate",
+  "assessment": "Loại lượt 1: hai hình ne/n chạm nhau làm bộ kiểm chỉ tách bốn khối. Vòng pháp khí, khóa đỏ, xích đen vàng nhận diện đúng; các móc thêm vết nứt cam không có trong brief. Hình mặt sau rõ.",
+  "true_angles": "khoảng 3 (vật cứng đối xứng)",
+  "raw_check": {
+    "command": "node tools/assets/vohon-check.mjs raw art/src/vohon-v2/can_khon_hon_nguyen_toa/concept-attempt1.png --type phaptuong --id can_khon_hon_nguyen_toa",
+    "exit_code": 1,
+    "output": "raw concept-attempt1.png pháp tướng (can_khon_hon_nguyen_toa): CHẶN\n  [CHẶN] huong: tách được 4 hướng, cần 5 (s, se, e, ne, n) cách nhau bằng khoảng trống\n  [NHẸ] mem: texture mềm: 74% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất\n  [NHẸ] nhieu-mau: 164 màu đáng kể (nên ≤ 160 để ép về ≤ 48 mà không bệt)\n  [NHẸ] luoi: chưa đúng lưới khối: tỉ số biên 1.09 ở chu kỳ 36 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)\n  số đo: {\"w\":1983,\"h\":793,\"ratio\":2.501,\"border\":{\"clear\":1,\"flat70\":0},\"poses\":4,\"softness\":0.746,\"bigColors\":164,\"grid\":{\"period\":36,\"ratio\":1.09},\"paletteMatch\":0.95}\n  cần mắt duyệt: đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi); không có chữ, ký hiệu đọc được, logo, chữ ký; 5 hướng cùng một hình (cùng cỡ, màu, chi tiết), se / ne chếch đúng hướng; thân đặc, không trong suốt\n"
+  },
+  "eye": [
+    "bố cục — ne/n — hai hình chạm nhau",
+    "chi tiết — móc — thêm vết nứt cam ngoài brief"
+  ]
+}
