@@ -26,14 +26,32 @@ const DIR_EN = {
 const BACKGROUND = "BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.";
 const STYLE = "STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.";
 const DONT_BASE = "DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions.";
-const dont = (info) => legless(info) ? `${DONT_BASE} ${LEGLESS_NOTE}` : DONT_BASE;
+const dont = (info) => [DONT_BASE, legless(info) ? LEGLESS_NOTE : NOTE[info.family]].filter(Boolean).join(" ");
 /** Họ không chân (sứa, cá…): câu cấm vẽ chân / rễ / mặt đất, thay cho "feet" ở lưới và luật hướng (#1049). */
 export const LEGLESS_NOTE = "This creature has NO legs, feet, paws, roots or ground contact: never draw any, and never draw water, waves or bubbles either.";
 const legless = (info) => LEGLESS.has(info.family);
+/** Câu cấm giải phẫu riêng của họ có chân bị thay bằng thân khác (#1097): rắn trườn, cây / dây leo cắm rễ, côn trùng bay. */
+export const NOTE = {
+  snake: "This creature is a snake: it has NO legs, feet, paws, claws or limbs of any kind; never draw any, and never draw it standing or stomping. Its long body rests and slithers directly on the ground along its belly.",
+  vine: "This creature is a vine plant rooted in the ground: it has NO human or animal legs, feet, paws, hands or walking limbs; never draw any. Its base is a mass of roots and tendrils planted in the soil, and it moves by creeping them along the ground.",
+  plant: "This creature is a plant: it has no animal feet, paws or shoes; its base is made of roots planted in the ground.",
+  worm: "This creature is a caterpillar-like worm: a row of soft segments crawling along the ground, its many tiny legs hidden under the body; never draw it standing upright on a few big feet.",
+  fly: "This creature flies: never draw it standing on its feet; in idle, moving and hurt frames it hovers in the air with its wings, and it only rests on the ground after dying.",
+};
+/** Tư thế theo họ cho luật hướng / lưới / nhất quán: nền (điểm thấp nhất), từ chỉ đứng yên, hurt, die. Họ không có ở đây là có chân đứng trên đất. */
+const POSE = {
+  snake: { base: "the lowest point of its body (the belly lying on the ground) on the same invisible ground line", rest: "resting", still: "resting, slithering and hurt", hurt: "the creature keeps its normal posture (body low on the ground, head raised), never flips onto its back, never shows its pale belly, never turns its head toward the viewer", die: "DIE goes slack and slides down onto the ground along the facing line, ending stretched out limp with the head in the same direction as idle" },
+  vine: { base: "the root base on the same invisible ground line", rest: "rooted", still: "rooted, creeping and hurt", hurt: "the creature stays rooted: the root base never moves, it only whips and leans back, never flips over, never turns toward the viewer", die: "DIE wilts and slumps along the facing line with the root base staying where it is, ending limp with the same body axis as idle" },
+  plant: { base: "its root base on the same invisible ground line", rest: "rooted", still: "rooted, creeping and hurt", hurt: "the creature stays rooted and only shakes and leans back, never flips over, never turns toward the viewer", die: "DIE wilts and sinks limp along the facing line, ending with the same body axis as idle" },
+  worm: { base: "the underside of its body lying on the same invisible ground line", rest: "resting", still: "resting, crawling and hurt", hurt: "the creature stays low on the ground: the segments scrunch up and it is pushed back a little, never rears up on legs, never flips onto its back, never shows its underside", die: "DIE goes limp and flattens onto the ground along the facing line, ending with the same body axis as idle" },
+  fly: { base: "the lowest point of its body on the same invisible baseline (nothing is drawn there)", rest: "hovering", still: "hovering, moving and hurt", hurt: "the creature keeps hovering in the same upright posture, never flips over, never shows its underside, never turns toward the viewer", die: "DIE sinks along the facing line and ends resting on the ground with the wings folded and the same body axis as idle" },
+};
+const pose = (info) => POSE[info.family];
 
 function directionRules(info) {
   const tail = `In the "ne" and "n" blocks the creature is seen from behind: no eyes, nose, mouth or face is visible in any frame of those blocks, hurt and die included.`;
   if (legless(info)) return `DIRECTION RULES (every frame of a block, including HURT and DIE, keeps the block's direction): the body axis never rotates and the creature never turns to face the viewer. HURT keeps its own 2 animated frames but is only a short recoil backward along the facing line: the creature keeps its normal posture (${info.family === "swim" ? "level, as when swimming" : "floating upright, the body on top and the tentacles hanging below"}), never flips over, never shows its underside, never turns toward the viewer. DIE sinks slowly along the facing line and ends limp with the same body axis as idle; it never rotates the body 90 degrees to lie sideways across the view. ${tail}`;
+  if (pose(info)) return `DIRECTION RULES (every frame of a block, including HURT and DIE, keeps the block's direction): the body axis never rotates and the creature never turns to face the viewer. HURT keeps its own 2 animated frames but is only a short recoil backward along the facing line: ${pose(info).hurt}. ${pose(info).die}; it never rotates the body 90 degrees to lie sideways across the view. ${tail}`;
   return `DIRECTION RULES (every frame of a block, including HURT and DIE, keeps the block's direction): the body axis never rotates and the creature never turns to face the viewer. HURT keeps its own 2 animated frames but is only a short recoil backward along the facing line: the creature stays upright on its feet, never flips onto its back or belly, never shows its belly, never turns its head toward the viewer. DIE sinks or topples along the facing line and ends lying with the spine parallel to that line; it never rotates the body 90 degrees to lie sideways across the view. ${tail}`;
 }
 
@@ -74,10 +92,10 @@ function blockText(d, i, mv, label = `Block ${i + 1}`) {
 
 function gridText(sheet, info) {
   const [cw, ch] = cellPx(sheet);
-  return `GRID: ${sheet.cols} columns x ${sheet.rows} rows of equal invisible cells (${cw}x${ch} px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with ${legless(info) ? "the lowest point of its body (tentacle tips, belly or fins) on the same invisible baseline (nothing is drawn there)" : "its feet (or lowest body point) standing on the same invisible ground line"} about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.`;
+  return `GRID: ${sheet.cols} columns x ${sheet.rows} rows of equal invisible cells (${cw}x${ch} px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with ${legless(info) ? "the lowest point of its body (tentacle tips, belly or fins) on the same invisible baseline (nothing is drawn there)" : pose(info) ? pose(info).base : "its feet (or lowest body point) standing on the same invisible ground line"} about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.`;
 }
 
-const consistency = (info) => `CONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, ${legless(info) ? "idle, moving and hurt frames keep the body at the same scale and the same baseline" : "standing, walking and hurt frames keep the body at the same scale and the same ground line"}. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).`;
+const consistency = (info) => `CONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, ${legless(info) ? "idle, moving and hurt frames keep the body at the same scale and the same baseline" : `${pose(info)?.still ?? "standing, walking and hurt"} frames keep the body at the same scale and the same ${info.family === "fly" ? "baseline" : "ground line"}`}. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).`;
 
 const creatureLine = (info, desc) => `CREATURE: ${info.name} - ${desc}. Body type: ${FAMILY_VI[info.family]}. Size class: ${tierNameOfFrame(info.frame)}. Keep the SAME design, proportions, colors, markings and overall size as the references in every frame. Do not redesign it.`;
 
@@ -142,13 +160,13 @@ ${refsEn(refs)}
 
 ${BACKGROUND}
 
-GRID: ${T.cols} columns x ${T.rows} rows of equal invisible cells (${cw}x${ch} px each). Exactly one creature per cell, centered horizontally, ${legless(info) ? "with the lowest point of its body on the same invisible baseline (nothing is drawn there)" : "standing on the same invisible ground line"} about 12% above the cell bottom${legless(info) ? "" : " (lying creatures rest on it)"}, with at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature.
+GRID: ${T.cols} columns x ${T.rows} rows of equal invisible cells (${cw}x${ch} px each). Exactly one creature per cell, centered horizontally, ${legless(info) ? "with the lowest point of its body on the same invisible baseline (nothing is drawn there)" : pose(info) ? `with ${pose(info).base}` : "standing on the same invisible ground line"} about 12% above the cell bottom${legless(info) ? "" : " (lying creatures rest on it)"}, with at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature.
 
 COLUMNS (left to right, one direction per column):
 ${cols}
 
 ROWS (top to bottom, the same pose type in every column):
-  row 1 = IDLE: neutral ${legless(info) ? "resting" : "standing"} pose (${mv.idle}), one calm frame.
+  row 1 = IDLE: neutral ${legless(info) ? "resting" : pose(info)?.rest ?? "standing"} pose (${mv.idle}), one calm frame.
   row 2 = HURT: the moment of the strongest reaction to a hit (${mv.hurt}).
   row 3 = DIE: the FINAL resting pose after dying (${mv.die}).
 In every cell the body keeps the direction of its column: the axis never rotates and the creature never turns to face the viewer. In columns "ne" and "n" no eyes, nose, mouth or face are visible in any row, hurt and die included. Directions e, se and ne face the RIGHT side of the picture.
