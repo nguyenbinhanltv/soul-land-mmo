@@ -42,3 +42,14 @@ test("quantFile ghi đè file _n nhỏ hơn, lần hai không đổi", () => {
   const r2 = quantFile(f);
   assert.ok(r2.quantized && r2.bytesAfter === r2.bytesBefore);
 });
+
+test("quantFile vẫn ghi khi PNG sau lượng tử không nhỏ hơn, để --check qua được", () => {
+  const img = new Img(2, 2);
+  img.set(0, 0, [130, 128, 255, 255]); img.set(1, 0, [128, 128, 255, 255]); img.set(0, 1, [128, 128, 255, 255]); img.set(1, 1, [128, 128, 255, 255]);
+  const f = path.join(mkdtempSync(path.join(os.tmpdir(), "nq-")), "b_n.png");
+  writeFileSync(f, encodePng(img));
+  const r = quantFile(f);
+  assert.equal(r.quantized, false);
+  assert.deepEqual([...decodePng(readFileSync(f)).data.slice(0, 3)], [128, 128, 255]);
+  assert.equal(quantFile(f, 5, false).quantized, true);
+});

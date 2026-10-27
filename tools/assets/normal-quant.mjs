@@ -13,7 +13,7 @@ export function quantFile(file, bits = NORMAL_BITS, write = true) {
   const raw = readFileSync(file), before = decodePng(raw), after = quantizeNormal(decodePng(raw), bits);
   const same = before.data.every((v, i) => !before.data[i | 3] || v === after.data[i]); // điểm trong suốt không tính
   const png = encodePng(after), err = normalAngleError(before, after);
-  const done = !same && png.length < raw.length;
+  const done = !same; // luôn ghi khi lệch lưới (đích là đúng 5 bit, dung lượng chỉ để báo cáo); --check không bao giờ kẹt
   if (done && write) writeFileSync(file, png);
   return { file, bytesBefore: raw.length, bytesAfter: done ? png.length : raw.length, quantized: same, ...err };
 }
