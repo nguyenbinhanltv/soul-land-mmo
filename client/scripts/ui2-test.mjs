@@ -2,7 +2,7 @@
 // ui2.css chỉ đi qua token (không số slice / border-width rải rác) và mọi mảnh helper dùng đều có trong spec kit (ui-kit.json).
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { kitClasses, kitName, kitNine, kitScale, kitTokens, ui2FromSearch } from "../src/uiKit.ts";
+import { kitClasses, kitName, kitNine, kitPath, kitScale, kitTokens, ui2FromSearch } from "../src/uiKit.ts";
 
 // cờ
 assert.equal(ui2FromSearch("?ui=2"), true);
@@ -19,8 +19,11 @@ assert.equal(kitScale(1.5, 1), 1); assert.equal(kitScale(1.25, 1), 1); assert.eq
 assert.equal(kitName("ui2_khung_muc_lon"), "khung-muc-lon");
 assert.equal(kitName("ui_nut_thuong"), null, "mảnh giao diện cũ không thuộc kit");
 
+assert.ok(kitPath("ui2_khung_muc_lon", 2).endsWith("/2x/ui2_khung_muc_lon.png"), "khớp đầu ra ui:cut");
+assert.ok(kitPath("ui2_khung_muc_lon", 1).endsWith("/1x/ui2_khung_muc_lon.png"));
+
 // token từ manifest giả
-const toUrl = (k, s) => `/k/${s}x/${k.slice(4)}.png`;
+const toUrl = (k, s) => `/k/${s}x/${k}.png`;
 const entries = [
   { key: "ui2_khung_muc_lon", iso: true, nine: { x2: 14, x1: 7 } },
   { key: "ui2_icon_01", iso: true, nine: null },
@@ -29,7 +32,7 @@ const entries = [
 ];
 const t2 = kitTokens(entries, 2, toUrl), t1 = kitTokens(entries, 1, toUrl);
 assert.deepEqual(Object.keys(t2).sort(), ["--ui2-icon-01", "--ui2-khung-muc-lon", "--ui2-khung-muc-lon-bw", "--ui2-khung-muc-lon-nine"]);
-assert.equal(t2["--ui2-khung-muc-lon"], 'url("/k/2x/khung_muc_lon.png")');
+assert.equal(t2["--ui2-khung-muc-lon"], 'url("/k/2x/ui2_khung_muc_lon.png")');
 assert.equal(t2["--ui2-khung-muc-lon-nine"], "14"); assert.equal(t2["--ui2-khung-muc-lon-bw"], "7px");
 assert.equal(t1["--ui2-khung-muc-lon-nine"], "7"); assert.equal(t1["--ui2-khung-muc-lon-bw"], "7px");
 assert.ok(!("--ui2-icon-01-nine" in t2), "mảnh không kéo giãn không có vạch");

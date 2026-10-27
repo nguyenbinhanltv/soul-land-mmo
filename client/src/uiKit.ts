@@ -26,9 +26,9 @@ export function kitName(key: string): string | null {
   const m = key.match(/^ui2_([a-z0-9_]+)$/); return m ? m[1].replace(/_/g, "-") : null;
 }
 
-/** Đường dẫn ảnh mảnh kit theo bản (cùng quy ước thư mục với `ui:cut`: 2x/ và 1x/). */
+/** Đường dẫn ảnh mảnh kit theo bản (đúng đầu ra `ui:cut`: `2x/ui2_<tên>.png`, `1x/ui2_<tên>.png`). */
 export function kitPath(key: string, scale: 1 | 2): string {
-  return assetUrl(`sprites/iso/ui2/${scale}x/${key.slice(4)}.png`);
+  return assetUrl(`sprites/iso/ui2/${scale}x/${key}.png`);
 }
 
 /** Vạch cắt của mảnh ở bản `scale`; thiếu thì null (mảnh không kéo giãn 9 lát). */
@@ -62,7 +62,12 @@ export function kitClasses(entries: KitEntry[]): string[] {
 let kit: KitEntry[] = [];
 let applied: string[] = [];
 
+let flagCache: boolean | null = null;
 export function isUi2(): boolean {
+  if (flagCache !== null) return flagCache;
+  return flagCache = readFlag();
+}
+function readFlag(): boolean {
   try {
     const q = ui2FromSearch(location.search);
     if (q !== null) { if (q) localStorage.setItem(FLAG_KEY, "1"); else localStorage.removeItem(FLAG_KEY); }

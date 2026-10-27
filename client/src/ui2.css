@@ -12,8 +12,8 @@ body.ui2 .f2-giay-nho{--frame-img:var(--ui2-khung-giay-nho);--frame-nine:var(--u
 body.ui2 .f2-tooltip{--frame-img:var(--ui2-khung-tooltip);--frame-nine:var(--ui2-khung-tooltip-nine);--frame-bw:var(--ui2-khung-tooltip-bw)}
 body.ui2 .f2-toast{--frame-img:var(--ui2-khung-toast);--frame-nine:var(--ui2-khung-toast-nine);--frame-bw:var(--ui2-khung-toast-bw)}
 body.ui2 .f2-o{--frame-img:var(--ui2-o-trong);--frame-nine:var(--ui2-o-trong-nine);--frame-bw:var(--ui2-o-trong-bw)}
-body.ui2 .f2-o:is(.has,.co){--frame-img:var(--ui2-o-co);--frame-nine:var(--ui2-o-co-nine);--frame-bw:var(--ui2-o-co-bw)}
-body.ui2 .f2-o:is(.sel,:hover:not(:disabled)){--frame-img:var(--ui2-o-chon);--frame-nine:var(--ui2-o-chon-nine);--frame-bw:var(--ui2-o-chon-bw)}
+body.ui2 .f2-o:is(.has,.co){--frame-img:var(--ui2-o-co,var(--ui2-o-trong));--frame-nine:var(--ui2-o-co-nine,var(--ui2-o-trong-nine));--frame-bw:var(--ui2-o-co-bw,var(--ui2-o-trong-bw))}
+body.ui2 .f2-o:is(.sel,:hover:not(:disabled)){--frame-img:var(--ui2-o-chon,var(--ui2-o-co,var(--ui2-o-trong)));--frame-nine:var(--ui2-o-chon-nine,var(--ui2-o-co-nine,var(--ui2-o-trong-nine)));--frame-bw:var(--ui2-o-chon-bw,var(--ui2-o-co-bw,var(--ui2-o-trong-bw)))}
 body.ui2 .f2-tab{--frame-img:var(--ui2-tab-thuong);--frame-nine:var(--ui2-tab-thuong-nine);--frame-bw:var(--ui2-tab-thuong-bw)}
 body.ui2 .f2-tab[aria-selected="true"]{--frame-img:var(--ui2-tab-chon);--frame-nine:var(--ui2-tab-chon-nine);--frame-bw:var(--ui2-tab-chon-bw)}
 
