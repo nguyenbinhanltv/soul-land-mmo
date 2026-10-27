@@ -1,0 +1,42 @@
+{
+  "type": "icon",
+  "id": "yeu_ho",
+  "issues": [
+    {
+      "sev": "soft",
+      "code": "cham-mep",
+      "text": "hình chạm mép ảnh (11 điểm): viền ngoài bị cắt"
+    },
+    {
+      "sev": "soft",
+      "code": "sang-tran",
+      "text": "vùng sáng 30%: sáng tràn, mất đối lập tối / sáng của phong cách mực tối"
+    },
+    {
+      "sev": "soft",
+      "code": "nhieu-chi-tiet",
+      "text": "mật độ biên 0.41 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+    },
+    {
+      "sev": "soft",
+      "code": "gan-mau",
+      "text": "hai màu lớn chỉ cách nhau 8.6 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+    }
+  ],
+  "metrics": {
+    "w": 32,
+    "h": 32,
+    "colors": 8,
+    "outline": 1,
+    "hot": 0.306,
+    "contrast": 0.24,
+    "edge": 0.41,
+    "sep": 8.6,
+    "bgRatio": 1.04,
+    "accent": "8/8"
+  },
+  "manual": [
+    "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+    "so với RAW: vẫn là cùng một võ hồn"
+  ]
+}

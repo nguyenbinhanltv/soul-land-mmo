@@ -1,0 +1,42 @@
+{
+  "type": "icon",
+  "size": 24,
+  "crop": {
+    "x": 10,
+    "y": 20,
+    "w": 1242,
+    "h": 1225
+  },
+  "preset": "icon",
+  "contrast": {
+    "sep": 8.6,
+    "bigColors": 7,
+    "bgRatio": 1.03
+  },
+  "lift": 1,
+  "hardenedPixels": 56,
+  "accent": {
+    "kept": 8,
+    "total": 8
+  },
+  "colors": 8,
+  "palette": [
+    "#1a091b",
+    "#41132e",
+    "#6a183c",
+    "#fd4444",
+    "#f6578b",
+    "#fb79b4",
+    "#f89bbc"
+  ],
+  "source": "icon-attempt1.png",
+  "options": {
+    "colors": 8,
+    "pool": [],
+    "merge": 24,
+    "preset": "icon",
+    "protect": true,
+    "passes": 2,
+    "zoom": 1
+  }
+}

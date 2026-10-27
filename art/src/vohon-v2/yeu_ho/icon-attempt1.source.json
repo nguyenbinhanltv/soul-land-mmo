@@ -1,0 +1,24 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "type": "icon",
+  "attempt": 1,
+  "raw": "icon-attempt1.png",
+  "raw_sha256": "d8244c0f5cc99bedda4e3def9ab1b00c665ca43874ed0bb0bd020f6b428daeaa",
+  "prompt": "icon-attempt1.prompt.txt",
+  "prompt_sha256": "2fb74aa2b2989f9cf336193f2fe3257d5adcaae1c8fc2434ac00e0798e65fdac",
+  "reference": "concept-attempt1.png",
+  "reference_sha256": "de239894a83bfeeb5b0d099fd2869980fb2c6a6d31ea58bc18cdfe2be15624a8",
+  "original": "C:/Users/PC/.codex/generated_images/01a17dd5-789d-7bd1-9290-26a7285f2682/exec-6d2a57ed-0d9a-4b90-91e8-f923d26ff709.png",
+  "pixelize": {
+    "preset": "icon",
+    "colors": 8,
+    "merge": 24,
+    "passes": 2,
+    "protect": true
+  },
+  "status": "needs_visual_review",
+  "eye": "Đầu hồ ly tím hồng sẫm, tai nhọn, mắt xếch; giữ biểu cảm lạnh, kiểm ấn trán và mắt ở cỡ thật."
+}
