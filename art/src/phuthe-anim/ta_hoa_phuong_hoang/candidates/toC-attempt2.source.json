@@ -1,0 +1,31 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempt": 2,
+  "date": "2026-10-27",
+  "direction": "e",
+  "raw": "toC-attempt2.png",
+  "sha256": "49c3f92910163423d633f7465db500012ecdf04c229072c7c7618ca8eeb1e41d",
+  "prompt": "toC-attempt2.prompt.txt",
+  "promptSha256": "98faa51b08ba796afdd58096845a8bf3830059485b4754c6697d0f76506dab28",
+  "promptCommand": "node tools/assets/phuthe-sheet-prompt.mjs --id ta_hoa_phuong_hoang --stage direction --dir e",
+  "references": [
+    {
+      "file": "../references/ta_hoa_phuong_hoang-nom-toC.png",
+      "sha256": "dbd7e4230f8db5df51aa986b277c05bbb9d8b2a128d5b19cc01e3d6a3ae1d165"
+    },
+    {
+      "file": "../turnaround.png",
+      "sha256": "fa7f51cf58c33792a8c395537909b5d3cc39bdf9301f010d1cb9667d48c8046a"
+    },
+    {
+      "file": "../toB.png",
+      "sha256": "aba7ccbd5b489217dc5b1410683f8389db3c56fa714507adae5517a5e73d874a"
+    }
+  ],
+  "status": "rejected",
+  "findings": [
+    "CHẶN luoi: dò được 3 dải hàng, cần 4"
+  ]
+}

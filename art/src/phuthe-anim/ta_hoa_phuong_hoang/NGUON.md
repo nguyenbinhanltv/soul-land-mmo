@@ -1,6 +1,8 @@
-# Tà Hỏa Phượng Hoàng — thử phụ thể có nộm, chưa đạt
+# Tà Hỏa Phượng Hoàng — phụ thể hoạt ảnh A–E
 
-Part of #1024. Ngày 2026-10-27. **3/3 lượt tổng, đã dừng sinh. Tất cả là candidates, chưa chọn ảnh đạt. Không nhập game.**
+Part of #1024. Ngày 2026-10-27. **Hiện hành:** chủ repo duyệt turnaround lượt 2 tại comment [6443812560](https://github.com/nguyenbinhanltv/soul-land-mmo/issues/1024#issuecomment-6443812560); tiếp tục A–E theo phần cuối hồ sơ. Không nhập game.
+
+**Lịch sử turnaround:** các phần từ “Quy trình và nguồn” đến “Ghi công” bên dưới mô tả ba lượt turnaround trước khi chủ repo chấp nhận lượt 2. “3/3” ở giai đoạn đó chỉ tính turnaround, không tính các tờ hướng. Các kết luận chặn mắt cũ được giữ để truy vết, quyết định mới ở phần “Tiếp tục A–E” có hiệu lực.
 
 ## Quy trình và nguồn
 
@@ -83,3 +85,56 @@ Chủ repo duyệt turnaround lượt 2: https://github.com/nguyenbinhanltv/soul
 --eye "toD=hướng — toàn tờ ne — lộ mặt, góc gần e; H4 C4 gần chính diện; chỉ khai, không vẽ sửa"
 --eye "toD=phụ thể/nộm — toàn tờ — nộm thu nhỏ/dời xuống, cánh sát mép"
 ```
+### Tờ E
+
+- E (`n`), 2 lượt, chọn lượt 2: kỹ thuật 0 chặn / 54 nhẹ. Lượt 1 chặn lưới (3 dải thay vì 4), lưu `candidates/toE-attempt1.*`; lượt 2 sinh lại vì lưới, không nhằm sửa lỗi mặt.
+- Tham chiếu cả hai lượt: bảng nộm E → turnaround lượt 2 → D (D không có khối chặn kỹ thuật). Lượt chọn vẫn lộ mặt; nhiều ô attack quay ngang phải. Không vẽ thêm mặt sau, không sửa RAW.
+
+```text
+--eye "toE=hướng — toàn tờ n — lộ mặt; H3 nhiều ô nhìn ngang phải, không có góc sau thật; chỉ khai, không vẽ sửa"
+--eye "toE=phụ thể/nộm — toàn tờ — nộm thu nhỏ/dời xuống, cánh sát mép"
+```
+
+## Kết quả cuối A–E (27/10/2026)
+
+Cả năm tờ có 22 hình ý định, 1536×1024, RAW nguyên byte. Tối đa 3 lượt mỗi tờ được giữ đúng: A=1, B=1, C=3, D=1, E=2. Chọn A1/B1/C3/D1/E2. Các lượt C1/C2/E1 bị loại nằm ở candidates, không làm tham chiếu. Không có ảnh từ công cụ khác image_gen của Codex.
+
+| Tờ | Hướng | Lượt chọn/tổng | Chặn / nhẹ tự động | SHA256 ảnh | SHA256 prompt |
+|---|---|---|---|---|---|
+| A | s | 1/1 | 0 / 58 | `e1df266239a6669c2d35bc8488f853733b46d53236c6d701f440ee0401e7a27d` | `358a7a6de01d031d892cf8d489ddb1424664e7733ed4f0892df1a1c6815e77ff` |
+| B | se | 1/1 | 0 / 62 | `aba7ccbd5b489217dc5b1410683f8389db3c56fa714507adae5517a5e73d874a` | `1039eb683ff236f2c0aed59b120a9dff2b9b50ea525503329fd63df22bc08d03` |
+| C | e | 3/3 | 0 / 51 | `0cf8b3c44696be854b9eda2157f09e2b763fcabca6657130e7ca118a46fa1c8e` | `98faa51b08ba796afdd58096845a8bf3830059485b4754c6697d0f76506dab28` |
+| D | ne | 1/1 | 0 / 61 | `e1b87fab6a8ff2854368243cdcbb3993aca02c3fb9dbeefb3dcae5b45e2f43b0` | `74d5e2c16a54cb535aed29d44d0474067708b744eec679db42779e9c3617d010` |
+| E | n | 2/2 | 0 / 54 | `de8884275bb5de1fd8f37fdea8bd894fbaf37514b32f24131aa9e2717a5df53f` | `e752593d30a7b187066fbe62f41e941f2e644a00793126b51ed16d76fa62e784` |
+
+C3: hướng e nhìn phải ở phần lớn khung, cast cuối gần chính diện; nộm thu nhỏ/dời xuống và cánh sát mép.
+
+```text
+--eye "toC=hướng — H4 C4 — cast cuối gần chính diện thay vì e"
+--eye "toC=phụ thể/nộm — toàn tờ — nộm thu nhỏ/dời xuống, cánh sát mép"
+```
+
+### Kiểm, cắt và xem trước cuối
+
+Lệnh kiểm: `node tools/assets/phuthe-sheet-check.mjs ta_hoa_phuong_hoang --out <temp>/phuthe-666-final-check` (exit 0). Mức chung nhẹ; đây chỉ là kỹ thuật, không chứng nhận mọi hướng đạt bằng mắt. `--eye` không có trong CLI, nên chỉ lưu các khai báo ở hồ sơ này, không sửa công cụ.
+
+Lệnh cắt: `node tools/assets/phuthe-sheet-cut.mjs --id ta_hoa_phuong_hoang --sheet A=art/src/phuthe-anim/ta_hoa_phuong_hoang/toA.png --sheet B=art/src/phuthe-anim/ta_hoa_phuong_hoang/toB.png --sheet C=art/src/phuthe-anim/ta_hoa_phuong_hoang/toC.png --sheet D=art/src/phuthe-anim/ta_hoa_phuong_hoang/toD.png --sheet E=art/src/phuthe-anim/ta_hoa_phuong_hoang/toE.png --out <artifact>/phuthe-ta-hoa`. Dùng `lop.json`: s/se/e toàn bộ sau thân; ne/n toàn bộ trước thân theo bảng cánh + đuôi. Không sửa RAW.
+
+Preview: `node tools/assets/phuthe-sheet-preview.mjs --id ta_hoa_phuong_hoang --dir <artifact>/phuthe-ta-hoa`. Artifact phiên: `C:/Users/PC/.ao/data/artifacts/soul_land_game-666/phuthe-ta-hoa/preview/index.html`, trang xoay `xoay-vong.html`. Có nam/nữ, 5 clip, 5 hướng gốc + 3 hướng tây lật; không tạo RAW tây riêng. Không chép sheet vào shared/assets, không đăng ký manifest game.
+
+### Ghi công A–E
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `to{A..E}.png`, `candidates/toC-attempt{1,2}.png`, `candidates/toE-attempt1.png` | - | builtin `image_gen.imagegen` (Codex, Q44) | Prompt tự sinh từ phuthe-sheet-prompt; prompt/source JSON đi kèm; SHA256 như bảng và source | 2026-10-27 | Model/seed unknown, RAW nguyên byte, không nhập game |
+| `references/ta_hoa_phuong_hoang-nom-to{A..E}.png` | - | `phuthe-sheet-dummy.mjs`, LPC hiện có | Bảng nộm tham chiếu từng tờ | 2026-10-27 | Nộm cyan #00D0D0; chỉ tham chiếu |
+
+### Soát ảnh ghép LPC cuối
+
+Cutter cuối: 110 khung, 96×96, 32 màu, 0 block / 186 warn / 0 info; cả A–E dùng lưới gap. Bỏ 671 mảnh vụn; lớp sau 471883 điểm, lớp trước 317574 điểm. Preview tạo đủ 50 GIF clip (nam/nữ × 5 hướng × 5 clip), 10 GIF xoay và hai trang HTML. Lần cắt cuối thay bản chẩn đoán C2/lớp mặc định trước đó.
+
+Soát ảnh ghép từ chính composeFrame của preview ở 96×96: nộm RAW nhỏ/dời xuống nên thân LPC thật che nhiều phần chim, một số cánh/đuôi chạm và bị cắt ở mép; hướng s còn nghiêng phải, cast cuối B/C/D gần chính diện; ne/n lộ mặt như khai. Chưa chứng nhận neo/ghép đạt đẹp, không nhập game. Không sinh thêm để sửa mặt ne/n. Bộ này là hồ sơ sinh tờ + cắt thử để review, không thay quyết định chủ repo đã duyệt turnaround.
+
+Bài học rút ra: kiểm lưới tự động không bảo đảm model giữ nộm đúng cỡ/điểm gắn; cần xem ghép LPC thật trước khi nhập. Prompt lần này giữ nguyên công cụ, không thêm câu viết tay. Không sửa lessons chung ngoài phạm vi.
+
+`npm run check` và `npm run build` đã đạt sau khi cài thư viện thực trong worktree (không junction); bot CI thuộc diện skip vì chỉ ảnh/hồ sơ, không server/SQL. Không đổi client/server, manifest game, workflow hay công cụ.
