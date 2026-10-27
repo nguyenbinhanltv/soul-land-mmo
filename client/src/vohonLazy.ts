@@ -24,6 +24,9 @@ const specs = new Map<string, Spec>();
 const failed = new Set<string>();
 /** Sheet hoạt ảnh `beast_<loài>_anim` đã lỗi lần đầu (đang thử lại nền): trong lúc chờ, wantBeast dùng sheet tĩnh cùng loài làm dự phòng (#1084). */
 const slow = new Set<string>();
+/** Sheet hoạt ảnh chỉ đạt một số hướng (manifest `anim.dirsOk`, #869): wantBeast tải kèm sheet tĩnh cùng loài cho các hướng còn lại. */
+const partial = new Set<string>();
+export const markPartialAnim = (animKey: string, on: boolean) => { if (on) partial.add(animKey); else partial.delete(animKey); };
 /**
  * Theo từng scene: `_anim` đã lỗi lần đầu và được loader bỏ để không giữ đợt tải (deferRetry; `first`), và những key đó chờ đợt tải xong
  * (`requeue`): chưa phải lỗi hẳn, wantBeast xin lại nền một lần nữa (lần đó thử lại đủ backoff rồi mới tính lỗi hẳn). Theo scene (không theo module)
@@ -183,6 +186,8 @@ export function wantBeast(scene: Phaser.Scene, species: string, start = true): "
   // Có hoạt ảnh vẽ thật thì không tải sheet tĩnh cùng loài (syncBeastSprite ưu tiên anim; #1062); anim không có / tải lỗi hẳn thì rơi về sheet tĩnh.
   // Anim lỗi lần đầu (slow, #1084): sheet tĩnh hiện tạm ngay, anim vẫn thử lại nền và thay khi tới.
   const anim = `beast_${species}_anim`, stat = `beast_${species}`, animOk = specs.has(anim) && !failed.has(anim), statOk = specs.has(stat) && !failed.has(stat);
+  // Hoạt ảnh chỉ đạt một số hướng (#869): sheet tĩnh cùng loài cần cho hướng còn lại; xin nền (anim vẫn quyết định "ready"), giữ khỏi bị LRU gỡ.
+  if (animOk && statOk && partial.has(anim)) { touchTexture(stat); if (!scene.textures.exists(stat)) queue(scene, [stat], lightingOn(scene.game), start); }
   if (animOk && scene.textures.exists(anim)) { touchTexture(anim); return "ready"; }
   const key = statOk && (!animOk || slow.has(anim)) ? stat : animOk ? anim : "";
   if (!key) return "code";

@@ -248,6 +248,22 @@ if (register) {
   process.exit(0);
 }
 
+/** `anim.dirsOk` (#869): hướng vẽ thật đạt duyệt của hoạt ảnh hồn thú; hướng ngoài danh sách client dùng ảnh tĩnh. Phải là tập con thật sự, không trùng, và các hướng đó đủ khung. */
+function checkDirsOk(key, e, spec) {
+  const a = e.anim, ok = a.dirsOk;
+  if (spec.kind !== "beast" || !/^beast_[a-z_]+_anim$/.test(key)) return err(key, `"anim.dirsOk" chỉ cho hoạt ảnh hồn thú beast_*_anim`);
+  if (!Array.isArray(a.dirs)) return err(key, `"anim.dirsOk" cần "anim.dirs"`);
+  if (!Array.isArray(ok) || !ok.length) return err(key, `"anim.dirsOk" phải là danh sách hướng đạt không rỗng (không có hướng đạt thì đừng nhập hoạt ảnh)`);
+  if (ok.some((d) => !a.dirs.includes(d)) || new Set(ok).size !== ok.length) return err(key, `"anim.dirsOk" ${JSON.stringify(ok)} có hướng ngoài "anim.dirs" hoặc trùng`);
+  if (ok.length >= a.dirs.length) return err(key, `"anim.dirsOk" liệt kê đủ mọi hướng: bỏ trường này`);
+  if (ok.some((d, i) => i && a.dirs.indexOf(d) < a.dirs.indexOf(ok[i - 1]))) return err(key, `"anim.dirsOk" ${JSON.stringify(ok)} không theo thứ tự "anim.dirs"`);
+  const img = readPng(path.join(SPRITES, spec.file)), [fw, fh] = e.frame, rows = a.rowsPerDir ?? 4;
+  const lost = [];
+  for (const d of ok) for (const [name, s] of Object.entries(a.anims ?? {})) for (let i = 0; i < s.n; i++)
+    if (cellEmpty(img, (s.col + i) * fw, ((a.dirs.indexOf(d) * rows) + s.band) * fh, fw, fh)) lost.push(`${d}/${name}/${i}`);
+  if (lost.length) err(key, `hướng đạt (dirsOk) mà thiếu ${lost.length} khung: ${lost.slice(0, 8).join(" ")}`);
+}
+
 // ---------- Kiểm toàn bộ manifest ----------
 const seen = new Set();
 for (const e of manifest.sprites) {
@@ -256,6 +272,7 @@ for (const e of manifest.sprites) {
   seen.add(key);
   const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "", e.nine ?? 0, !!e.static, !!e.blank);
   if (spec) { seen.add(spec.file); seen.add(spec.file.replace(/\.png$/, "_n.png")); }
+  if (spec && typeof e !== "string" && e.anim?.dirsOk !== undefined) checkDirsOk(key, e, spec);
 }
 // Bộ hồn sư giới × kiểu tóc phải đủ 3 lớp tách từ cùng một hình: thiếu lớp nào thì client vẽ lớp đó bằng code, lệch nét.
 const sets = new Map();
