@@ -138,3 +138,5 @@ Soát ảnh ghép từ chính composeFrame của preview ở 96×96: nộm RAW n
 Bài học rút ra: kiểm lưới tự động không bảo đảm model giữ nộm đúng cỡ/điểm gắn; cần xem ghép LPC thật trước khi nhập. Prompt lần này giữ nguyên công cụ, không thêm câu viết tay. Không sửa lessons chung ngoài phạm vi.
 
 `npm run check` và `npm run build` đã đạt sau khi cài thư viện thực trong worktree (không junction); bot CI thuộc diện skip vì chỉ ảnh/hồ sơ, không server/SQL. Không đổi client/server, manifest game, workflow hay công cụ.
+
+Prompt của A–E và candidates được sinh trước khi merge main mới: revision `fe159a9a8a50c12f11c0d1b66957f5ac44084c96`, blob `tools/assets/phuthe-sheet-prompt.mjs` = `4ceca8a3bae43234b7fa0a596332ba5ca3d6cb3c`. Các file references/to*.md và to*.prompt.txt giữ đúng bản đã gửi, không tái sinh theo công cụ mới sau merge.

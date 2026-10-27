@@ -385,5 +385,7 @@
         "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
       }
     ]
-  }
+  },
+  "generatorRevision": "fe159a9a8a50c12f11c0d1b66957f5ac44084c96",
+  "generatorBlob": "4ceca8a3bae43234b7fa0a596332ba5ca3d6cb3c"
 }

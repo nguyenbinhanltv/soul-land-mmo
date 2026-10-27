@@ -28,5 +28,7 @@
   "findings": [
     "CHẶN hinh-dinh H3: 4 hình, cần 6",
     "nhẹ o-trong H4 C5"
-  ]
+  ],
+  "generatorRevision": "fe159a9a8a50c12f11c0d1b66957f5ac44084c96",
+  "generatorBlob": "4ceca8a3bae43234b7fa0a596332ba5ca3d6cb3c"
 }

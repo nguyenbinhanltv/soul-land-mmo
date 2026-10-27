@@ -419,5 +419,7 @@
         "msg": "cỡ phụ thể so với khối s: hurt 118% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
       }
     ]
-  }
+  },
+  "generatorRevision": "fe159a9a8a50c12f11c0d1b66957f5ac44084c96",
+  "generatorBlob": "4ceca8a3bae43234b7fa0a596332ba5ca3d6cb3c"
 }
