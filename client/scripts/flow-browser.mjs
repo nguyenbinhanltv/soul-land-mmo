@@ -196,6 +196,9 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
   const vp = page.viewportSize(), ground = await page.evaluate(([w, h]) => { for (const [x, y] of [[w / 2, h * 0.35], [w / 2, h * 0.15], [w * 0.08, h / 2], [w * 0.92, h / 2]]) { if (document.elementFromPoint(x, y) === window.__scene.game.canvas) return [x, y]; } return null; }, [vp.width, vp.height]);
   assert.ok(ground, "không tìm được điểm nền trống để bấm");
   await page.mouse.click(ground[0], ground[1]);
+  // #1089: Phaser xếp mousedown vào hàng đợi và chỉ xử lý (bỏ tiêu điểm ô chat) ở khung hình kế; bấm W ngay thì máy chậm sẽ gửi W lúc ô chat còn tiêu điểm
+  // (client đúng khi bỏ phím đó). Người chơi thật không bấm nền và W trong cùng một khung: chờ ô chat mất tiêu điểm rồi mới bấm W.
+  await page.waitForFunction(() => document.activeElement?.id !== "chat");
   await page.keyboard.down("KeyW"); await sleep(80);
   const clicked = await chatState();
   await page.keyboard.up("KeyW");
