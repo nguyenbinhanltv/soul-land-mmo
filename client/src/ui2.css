@@ -15,19 +15,19 @@ body.ui2 .f2-o{--frame-img:var(--ui2-o-trong);--frame-nine:var(--ui2-o-trong-nin
 body.ui2 .f2-o:is(.has,.co){--frame-img:var(--ui2-o-co,var(--ui2-o-trong));--frame-nine:var(--ui2-o-co-nine,var(--ui2-o-trong-nine));--frame-bw:var(--ui2-o-co-bw,var(--ui2-o-trong-bw))}
 body.ui2 .f2-o:is(.sel,:hover:not(:disabled)){--frame-img:var(--ui2-o-chon,var(--ui2-o-co,var(--ui2-o-trong)));--frame-nine:var(--ui2-o-chon-nine,var(--ui2-o-co-nine,var(--ui2-o-trong-nine)));--frame-bw:var(--ui2-o-chon-bw,var(--ui2-o-co-bw,var(--ui2-o-trong-bw)))}
 body.ui2 .f2-tab{--frame-img:var(--ui2-tab-thuong);--frame-nine:var(--ui2-tab-thuong-nine);--frame-bw:var(--ui2-tab-thuong-bw)}
-body.ui2 .f2-tab[aria-selected="true"]{--frame-img:var(--ui2-tab-chon);--frame-nine:var(--ui2-tab-chon-nine);--frame-bw:var(--ui2-tab-chon-bw)}
+body.ui2 .f2-tab[aria-selected="true"]{--frame-img:var(--ui2-tab-chon,var(--ui2-tab-thuong));--frame-nine:var(--ui2-tab-chon-nine,var(--ui2-tab-thuong-nine));--frame-bw:var(--ui2-tab-chon-bw,var(--ui2-tab-thuong-bw))}
 
 /* Nút: nut_chinh (son, hành động chính) và nut_phu; trạng thái thường / hover / nhấn / chọn / tắt dùng chung một vạch cắt. */
 body.ui2 .f2-nut-chinh{--frame-img:var(--ui2-nut-chinh-thuong);--frame-nine:var(--ui2-nut-chinh-thuong-nine);--frame-bw:var(--ui2-nut-chinh-thuong-bw)}
-body.ui2 .f2-nut-chinh:hover:not(:disabled){--frame-img:var(--ui2-nut-chinh-ro)}
-body.ui2 .f2-nut-chinh:active:not(:disabled){--frame-img:var(--ui2-nut-chinh-nhan)}
-body.ui2 .f2-nut-chinh:is(.sel,[aria-pressed="true"]){--frame-img:var(--ui2-nut-chinh-chon)}
-body.ui2 .f2-nut-chinh:disabled{--frame-img:var(--ui2-nut-chinh-tat)}
+body.ui2 .f2-nut-chinh:hover:not(:disabled){--frame-img:var(--ui2-nut-chinh-ro,var(--ui2-nut-chinh-thuong))}
+body.ui2 .f2-nut-chinh:active:not(:disabled){--frame-img:var(--ui2-nut-chinh-nhan,var(--ui2-nut-chinh-thuong))}
+body.ui2 .f2-nut-chinh:is(.sel,[aria-pressed="true"]){--frame-img:var(--ui2-nut-chinh-chon,var(--ui2-nut-chinh-thuong))}
+body.ui2 .f2-nut-chinh:disabled{--frame-img:var(--ui2-nut-chinh-tat,var(--ui2-nut-chinh-thuong))}
 body.ui2 .f2-nut-phu{--frame-img:var(--ui2-nut-phu-thuong);--frame-nine:var(--ui2-nut-phu-thuong-nine);--frame-bw:var(--ui2-nut-phu-thuong-bw)}
-body.ui2 .f2-nut-phu:hover:not(:disabled){--frame-img:var(--ui2-nut-phu-ro)}
-body.ui2 .f2-nut-phu:active:not(:disabled){--frame-img:var(--ui2-nut-phu-nhan)}
-body.ui2 .f2-nut-phu:is(.sel,[aria-pressed="true"]){--frame-img:var(--ui2-nut-phu-chon)}
-body.ui2 .f2-nut-phu:disabled{--frame-img:var(--ui2-nut-phu-tat)}
+body.ui2 .f2-nut-phu:hover:not(:disabled){--frame-img:var(--ui2-nut-phu-ro,var(--ui2-nut-phu-thuong))}
+body.ui2 .f2-nut-phu:active:not(:disabled){--frame-img:var(--ui2-nut-phu-nhan,var(--ui2-nut-phu-thuong))}
+body.ui2 .f2-nut-phu:is(.sel,[aria-pressed="true"]){--frame-img:var(--ui2-nut-phu-chon,var(--ui2-nut-phu-thuong))}
+body.ui2 .f2-nut-phu:disabled{--frame-img:var(--ui2-nut-phu-tat,var(--ui2-nut-phu-thuong))}
 
 /* Luật vẽ chung: chỉ áp khi mảnh gốc của vai trò có thật (lớp ui2-k-*). */
 body.ui2.ui2-k-khung-muc-lon .f2-muc-lon,body.ui2.ui2-k-khung-muc-nho .f2-muc-nho,

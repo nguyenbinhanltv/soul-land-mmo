@@ -57,13 +57,17 @@ assert.ok(!/border-image(-slice|-width)?\s*:[^;}]*\b\d/.test(css.replace(/var\([
 assert.ok(!/border-width\s*:\s*\d/.test(css), "border-width trong ui2.css chỉ đi qua --frame-bw");
 assert.ok(!/(^|[^-\w])\.(?!f2-)[a-z]/.test(css.replace(/body\.ui2(\.ui2-k-[a-z0-9-]+)*/g, "").replace(/:[a-z-]+(\([^)]*\))?/g, "").replace(/\[[^\]]*\]/g, "").replace(/\.f2-[a-z-]+/g, "").replace(/\{[^}]*\}/g, "")), "helper chỉ chọn lớp f2-*");
 const spec = new Set(Object.values(kit.kinds).flatMap((k) => (k.pieces ?? []).map((p) => p.name.replace(/_/g, "-"))));
-const used = new Set([...css.matchAll(/--ui2-([a-z0-9-]+?)(?:-nine|-bw)?\)/g)].map((m) => m[1]));
+const used = new Set([...css.matchAll(/--ui2-([a-z0-9-]+?)(?:-nine|-bw)?[,)]/g)].map((m) => m[1]));
 assert.ok(used.size > 10);
 for (const n of used) assert.ok(spec.has(n), `ui2.css dùng mảnh "${n}" không có trong art/src/ui-kit/ui-kit.json`);
 for (const m of css.matchAll(/ui2-k-([a-z0-9-]+)/g)) assert.ok(spec.has(m[1]), `lớp ui2-k-${m[1]} không ứng với mảnh trong spec`);
 // khung nào cũng có đủ ba biến (ảnh, vạch, độ dày)
-for (const m of css.matchAll(/\{([^}]*--frame-img:var\(--ui2-([a-z0-9-]+)\)[^}]*)\}/g)) {
+for (const m of css.matchAll(/\{([^}]*--frame-img:var\(--ui2-([a-z0-9-]+)[,)][^}]*)\}/g)) {
   if (!m[1].includes("--frame-nine")) continue; // luật trạng thái chỉ đổi ảnh, dùng chung vạch của trạng thái thường
   assert.ok(m[1].includes(`--ui2-${m[2]}-nine`) && m[1].includes(`--ui2-${m[2]}-bw`), `${m[2]}: thiếu vạch / độ dày`);
+}
+// luật trạng thái (nút, tab chọn, ô): mọi var(--ui2-…) phải có fallback về trạng thái thường, thiếu mảnh không làm mất khung
+for (const m of css.matchAll(/^(body\.ui2 \.f2-(?:nut-chinh|nut-phu|tab|o)[^{]*(?::hover|:active|:disabled|\.sel|\.has|aria-selected|aria-pressed)[^{]*)\{([^}]*)\}/gm)) {
+  for (const v of m[2].matchAll(/:var\(--ui2-[a-z0-9-]+(,|\))/g)) assert.equal(v[1], ",", `thiếu fallback ở luật trạng thái: ${m[1]}`);
 }
 console.log("ui2: ok");
