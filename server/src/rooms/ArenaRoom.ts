@@ -31,7 +31,7 @@ interface Reward { items: Item[]; honTeAfter: number; bag: Bag; honTe: number; c
  */
 const BLOCKED = ["auto", "absorb", "pickup", "discard", "team", "travel", "wp", "use", "open", "unlock", "starup", "equip", "unequip", "equipcore",
   "unequipcore", "equipgear", "unequipgear", "equipenh", "equipenhpreview", "equipluck", "equipluckpreview","equipsynth", "equipsalvage", "enhance", "enhancecore", "talk", "buy", "sell", "buyback", "expand", "shardbuy", "loadout",
-  "fusion", "calendar", "rank"]; // Võ Hồn Dung Hợp Kỹ cấm trong sân, kể cả 2v2 (#192, #178)
+  "fusion", "calendar", "rank", "welfare"]; // Võ Hồn Dung Hợp Kỹ cấm trong sân, kể cả 2v2 (#192, #178)
 /** Cùng một câu báo từ chối chỉ gửi lại cho một người sau chừng này mili giây (J / Space giữ phím, bấm dồn không tràn log). */
 const DENY_GAP_MS = 1000;
 const REASON_TEXT: Record<Reason, string> = { ko: "hạ hết đội võ hồn", time: "hết giờ, so sinh lực cả đội", leave: "đối thủ rời sân", noshow: "đối thủ không vào sân" };

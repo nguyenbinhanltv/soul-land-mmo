@@ -128,7 +128,7 @@ const seedItems = (items: SeedItem[], rowOf: (code: string) => number): Item[] =
   return items.map(({ vohon, ...i }, k): Item => ({ ...copyItem({ ...i, id: "", created: 0, vohonId: null }), id: randomUUID(), created: t0 + k, vohonId: vohon === undefined ? null : rowOf(vohon) }));
 };
 /** Các bảng xoá khi `removeTestAccount` (theo thứ tự xoá; kết quả trả số dòng mỗi bảng). */
-const REMOVE_TABLES = ["items", "teams", "vohons", "quests", "waypoints", "boss_claims", "auto_hunt", "auto_offline", "tong_points", "arena_ratings", "arena_pairs", "arena_elo_day", "rank_scores",
+const REMOVE_TABLES = ["items", "teams", "vohons", "quests", "waypoints", "boss_claims", "auto_hunt", "auto_offline", "tong_points", "arena_ratings", "arena_pairs", "arena_elo_day", "rank_scores", "checkin_state",
   "friends", "blocks", "map_fog", "sessions", "characters", "inventory", "accounts"] as const;
 const copyItem = (i: Item): Item => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) });
 const copyQuest = (q: QuestProgress): QuestProgress => ({ ...q, prog: [...q.prog] });
@@ -342,6 +342,13 @@ export interface Store {
   rankTop(board: string, period: number, page: number, pageSize: number): Promise<RankTopResult>;
   /** Hạng và điểm của `accountId` ở bảng `board` / `period`, tính riêng (không qua cache); null = chưa có điểm hoặc bị ẩn (`is_test`). */
   rankMe(board: string, period: number, accountId: number): Promise<RankMe | null>;
+  /** Sổ Điểm Danh của `accountId` (bảng `checkin_state`, mục 5.21); null = chưa từng điểm danh. Đọc mới mỗi lần (không cache). */
+  checkinGet(accountId: number): Promise<CheckinRow | null>;
+  /**
+   * Ghi một ô điểm danh / ký bù và túi (quà, phí Hồn Tệ) trong MỘT transaction, có điều kiện (`CheckinPatch`: đúng `ver`, ô chưa ký, không vượt `makeupMax`, đồng hồ không lùi).
+   * Trả `ver` mới; null = điều kiện không khớp (đã ký ở tab / tiến trình khác, đồng hồ lùi): không ghi gì, kể cả túi. Lỗi DB thì ném, không ghi gì.
+   */
+  checkinClaim(accountId: number, patch: CheckinPatch, bag: Bag): Promise<number | null>;
   /** Số trận có kết quả giữa hai tài khoản `a`, `b` (thứ tự bất kỳ) trong ngày `day` (giờ Việt Nam; bảng `arena_pairs`, 9.7). */
   arenaPairCount(day: string, a: number, b: number): Promise<number>;
   /**
@@ -411,6 +418,21 @@ function arenaOk(r: ArenaRecord) {
 const pairKey = (day: string, a: number, b: number) => `${day}|${Math.min(a, b)}|${Math.max(a, b)}`;
 const arenaRow = (x: any): ArenaRecord => ({ elo: Number(x.elo), wins: Number(x.wins), losses: Number(x.losses), draws: Number(x.draws) });
 
+/** Một dòng `checkin_state` (Sổ Điểm Danh, mục 5.21): `lastAt` ms (đồng hồ server) lần ký gần nhất, `ver` tăng mỗi lần ghi. */
+export interface CheckinRow { cycle: number; startDay: number; mask: number; makeupUsed: number; lastAt: number | null; ver: number }
+/**
+ * Một lần ghi Sổ Điểm Danh: trạng thái MỚI của ô vừa ký (`bit` = đúng một bit) cùng điều kiện ghi. `expect` = `ver` đã đọc (null = chưa có dòng).
+ * Hợp lệ khi: cùng chu kỳ thì `mask` mới = mask cũ | bit (bit chưa có), `makeupUsed` mới bằng cũ hoặc cũ + 1; sang chu kỳ mới (`cycle` + 1) thì `mask` = bit,
+ * `makeupUsed` = 0. Luôn: `makeupUsed` <= `makeupMax`, `lastAt` không lùi so với lần trước.
+ */
+export interface CheckinPatch { expect: number | null; cycle: number; startDay: number; mask: number; makeupUsed: number; lastAt: number; bit: number; makeupMax: number }
+/** Kiểm đầu vào chung của `checkinClaim` ở cả hai store (lỗi lập trình, không phải tranh chấp). */
+function checkinPatchOk(p: CheckinPatch) {
+  const ints = [p.cycle, p.startDay, p.mask, p.makeupUsed, p.bit, p.makeupMax];
+  if (!ints.every(Number.isSafeInteger) || !Number.isFinite(p.lastAt) || p.cycle < 1 || p.makeupUsed < 0 || p.makeupUsed > p.makeupMax) throw new Error("Sổ điểm danh: giá trị không hợp lệ.");
+  if (p.bit < 1 || p.bit >= 1 << 30 || (p.bit & (p.bit - 1)) !== 0 || (p.mask & p.bit) === 0 || p.mask < 0 || p.mask >= 1 << 30) throw new Error("Sổ điểm danh: ô ký không hợp lệ.");
+  if (p.expect === null && (p.cycle !== 1 || p.mask !== p.bit || p.makeupUsed > 1)) throw new Error("Sổ điểm danh: dòng đầu tiên phải là ô đầu của chu kỳ 1.");
+}
 /** Một dòng điểm ghi vào `rank_scores` (`extra`: đội hình hiển thị, chỉ Cấp / Sưu tầm). */
 export interface RankPutRow { board: string; period: number; score: number; tie: number; extra: RankLineupSlot[] | null }
 /** Dòng công khai của bảng: không có Hồn Tệ, túi, bản đồ, kênh, vị trí. `tong`: mã tông môn (null = không). */
@@ -497,6 +519,7 @@ export class MemoryStore implements Store {
   arenaT = 0;
   rankRows = new Map<string, { score: number; tie: number; extra: RankLineupSlot[] | null; t: number }>(); // "board|period|accountId" -> điểm (bảng rank_scores); t = thứ tự đạt mốc
   rankT = 0;
+  checkin = new Map<number, CheckinRow>(); // accountId -> Sổ Điểm Danh (bảng checkin_state, mục 5.21)
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
   async close() {}
@@ -824,6 +847,22 @@ export class MemoryStore implements Store {
     }).filter((x): x is ResonanceTopEntry => !!x));
     return resonancePage(all, page, pageSize, accountId);
   }
+  async checkinGet(accountId: number) { const r = this.checkin.get(accountId); return r ? { ...r } : null; }
+  async checkinClaim(accountId: number, p: CheckinPatch, bag: Bag) {
+    checkinPatchOk(p);
+    const cur = this.checkin.get(accountId) ?? null;
+    if ((cur?.ver ?? null) !== p.expect) return null;
+    if (cur) {
+      if (cur.lastAt !== null && p.lastAt < cur.lastAt) return null;
+      const same = p.cycle === cur.cycle && (cur.mask & p.bit) === 0 && p.mask === (cur.mask | p.bit) && p.makeupUsed >= cur.makeupUsed && p.makeupUsed <= cur.makeupUsed + 1;
+      if (!same && !(p.cycle === cur.cycle + 1 && p.mask === p.bit && p.makeupUsed === 0)) return null;
+    }
+    this.checkBag(accountId, bag);
+    const ver = (cur?.ver ?? 0) + 1;
+    this.checkin.set(accountId, { cycle: p.cycle, startDay: p.startDay, mask: p.mask, makeupUsed: p.makeupUsed, lastAt: p.lastAt, ver });
+    this.putBag(accountId, bag);
+    return ver;
+  }
   async rankPut(accountId: number, rows: RankPutRow[]) {
     let changed = false;
     for (const r of rows) {
@@ -910,7 +949,7 @@ export class MemoryStore implements Store {
     const rel = (m: Map<number, Set<number>>) => (m.get(id)?.size ?? 0) + [...m].filter(([a, set]) => a !== id && set.has(id)).length;
     Object.assign(n, { items: this.bags.get(id)?.items.length ?? 0, teams: this.teams.get(id)?.filter(Boolean).length ?? 0, vohons: owned.length,
       quests: this.quests.get(id)?.length ?? 0, waypoints: this.wps.get(id)?.size ?? 0, map_fog: this.fogs.get(id)?.size ?? 0, boss_claims: cl.length, auto_hunt: this.autos.has(id) ? 1 : 0,
-      auto_offline: this.offline.has(id) ? 1 : 0, tong_points: tp.length, arena_ratings: this.arena.has(id) ? 1 : 0, arena_pairs: pairs.length, arena_elo_day: eloDays.length, rank_scores: rankKeys.length,
+      auto_offline: this.offline.has(id) ? 1 : 0, tong_points: tp.length, arena_ratings: this.arena.has(id) ? 1 : 0, arena_pairs: pairs.length, arena_elo_day: eloDays.length, rank_scores: rankKeys.length, checkin_state: this.checkin.has(id) ? 1 : 0,
       friends: rel(this.friends), blocks: rel(this.blocks), sessions: tokens.length, accounts: 1 });
     for (const c of owned) this.rows.delete(c.rowId);
     for (const k of tp) this.tongPts.delete(k);
@@ -918,6 +957,7 @@ export class MemoryStore implements Store {
     for (const k of pairs) this.pairs.delete(k);
     for (const k of eloDays) this.eloDay.delete(k);
     for (const k of rankKeys) this.rankRows.delete(k);
+    this.checkin.delete(id);
     for (const t of tokens) this.sessions.delete(t);
     for (const [k, a] of this.identities) if (a === id) this.identities.delete(k);
     for (const m of [this.active, this.teams, this.bags, this.quests, this.wps, this.autos, this.offline, this.tongs, this.arena, this.locs, this.looks, this.looksChanges, this.friends, this.blocks, this.names, this.fogs])
@@ -1708,6 +1748,36 @@ export class PgStore implements Store {
     };
     return p <= RANK_CACHE_PAGES ? rankBoard(`rank|${board}|${period}|${size}|${p}`, load) : load();
   }
+  async checkinGet(accountId: number) {
+    const r = await this.pool.query("SELECT cycle, start_day, mask, makeup_used, (extract(epoch FROM last_at) * 1000)::bigint AS at, ver FROM checkin_state WHERE account_id=$1", [accountId]);
+    if (!r.rowCount) return null;
+    const x = r.rows[0];
+    return { cycle: Number(x.cycle), startDay: Number(x.start_day), mask: Number(x.mask), makeupUsed: Number(x.makeup_used), lastAt: x.at === null ? null : Number(x.at), ver: Number(x.ver) };
+  }
+  async checkinClaim(accountId: number, p: CheckinPatch, bag: Bag) {
+    checkinPatchOk(p);
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      // Điều kiện nằm trong câu ghi (không chỉ ở RAM): đúng ver, ô chưa ký (hoặc sang chu kỳ mới), không vượt makeupMax, đồng hồ không lùi; hai nơi cùng ký chỉ một nơi khớp.
+      const r = p.expect === null
+        ? await db.query(
+          `INSERT INTO checkin_state(account_id, cycle, start_day, mask, makeup_used, last_at, ver) VALUES ($1, $2, $3, $4, $5, to_timestamp($6::double precision / 1000), 1)
+           ON CONFLICT (account_id) DO NOTHING RETURNING ver`, [accountId, p.cycle, p.startDay, p.mask, p.makeupUsed, p.lastAt])
+        : await db.query(
+          `UPDATE checkin_state SET cycle=$3, start_day=$4, mask=$5, makeup_used=$6, last_at=to_timestamp($7::double precision / 1000), ver=ver+1
+           WHERE account_id=$1 AND ver=$2 AND $6::int <= $9::int AND (last_at IS NULL OR last_at <= to_timestamp($7::double precision / 1000))
+             AND ((cycle=$3 AND (mask & $8) = 0 AND (mask | $8) = $5 AND makeup_used <= $6 AND $6 <= makeup_used + 1) OR (cycle + 1 = $3 AND $5 = $8 AND $6 = 0))
+           RETURNING ver`, [accountId, p.expect, p.cycle, p.startDay, p.mask, p.makeupUsed, p.lastAt, p.bit, p.makeupMax]);
+      if (!r.rowCount) { await db.query("ROLLBACK"); return null; }
+      await this.writeBag(db, accountId, bag);
+      await db.query("COMMIT");
+      return Number(r.rows[0].ver);
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
+  }
   async rankMe(board: string, period: number, accountId: number) {
     // Một câu: dòng của mình rồi đếm số người đứng trước (khoá chỉ mục rank_scores_order), cùng thứ tự với rankTop.
     const r = await this.pool.query(
@@ -1841,6 +1911,7 @@ const withSaveFail = (s: Store): Store => new Proxy(s, {
     const f = Reflect.get(t, k, t);
     if (typeof f !== "function") return f;
     if (k === "saveBag") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
+    if (k === "checkinClaim") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
     if (k === "setTong") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "tong"); return f.call(t, accountId, ...a); };
     if (k === "saveProgress") return async (accountId: number, ...a: unknown[]) => { if (a[5] !== undefined) failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
     return f.bind(t);
