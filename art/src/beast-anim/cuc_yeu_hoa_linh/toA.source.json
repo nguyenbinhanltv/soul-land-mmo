@@ -1,0 +1,10 @@
+{
+    "seed":  "unknown",
+    "timestamp":  "2026-10-27T04:02:12.4133639Z",
+    "sha256":  "239382e5b3f8a6c34459a8d326dc974e14df44e07923548b53f0360b188c851a",
+    "model":  "unknown",
+    "references":  [
+                       "shared/assets/sprites/beast/cuc_yeu_hoa_linh.png"
+                   ],
+    "tool":  "image_gen"
+}
