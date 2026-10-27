@@ -1,0 +1,10 @@
+{
+    "seed":  "unknown",
+    "timestamp":  "2026-10-27T03:54:39.4838819Z",
+    "sha256":  "8f598d5be90f11116483f7c418067af39620c86b720b7a47bc15e3cbcba43f76",
+    "model":  "unknown",
+    "references":  [
+                       "shared/assets/sprites/beast/nhan_dien_ma_chu_non.png"
+                   ],
+    "tool":  "Codex image_gen.imagegen"
+}
