@@ -7,18 +7,18 @@ Loài `bich_lan_xa` (Bích Lân Xà), họ `snake`, khung game 96×96. Mức ki�
 ## toA
 
 - File: `toA.png`, **944×1667**, 1820498 byte, SHA256 `0d42a628ac4ad315b41e4734c56eab587b80571301a4bfc650ecfed7f60b446d`.
-- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-616; hồ sơ dọn bởi 630; chọn A2/3; bỏ candidate A2 trùng byte, A1/A3 không còn prompt thật.
+- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3.
 - Prompt: `toA.prompt.txt` (SHA256 `e08a382632c6da07592e8db336a45230a5b646a8950f1c923ca59d534ff84e58`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se pass, e nhẹ).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 81% so với ảnh tĩnh (lệch 19%); cutter neo lại, không chặn.
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H9–12 (e): cỡ thân idle 124% so với ảnh tĩnh (lệch 24%); cutter neo lại, không chặn.
-- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: 3 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## toB
 
 - File: `toB.png`, **1254×1254**, 1940124 byte, SHA256 `5c7f121364422441ea81b8260a8d14d227edf03faa22d2164e8d6f38f4db2c65`.
-- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-616; hồ sơ dọn bởi 630; chọn A2/3; bỏ candidate A2 trùng byte, A1/A3 không còn prompt thật.
+- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toB.prompt.txt` (SHA256 `54f26aea2e618a4cb87b2d145f2cc72aed19c59fbafb004e4e0e48daf9683fb4`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne pass, n nhẹ).
@@ -29,6 +29,7 @@ Loài `bich_lan_xa` (Bích Lân Xà), họ `snake`, khung game 96×96. Mức ki�
 ```text
 LỖI: toA — hướng — s H2–H4 — walk và attack đổi hướng, die nằm ngang; se gần e (mắt)
 LỖI: toA — pose — H1 H5 H9 C5–6 — hurt quay đầu và lộ bụng (mắt)
+LỖI: toA — Vẽ lại soul_land_game-651: đủ 3 lượt ở candidates/toA-redraw651-attempt1–3.*; lượt 1 không chặn kỹ thuật nhưng s attack quay phải, die nằm ngang; lượt 2 thiếu khung attack cả ba hướng; lượt 3 s attack còn đổi hướng, die nằm ngang. Giữ toA cũ cho se/e, không có s mới đạt; bản trước vẽ lại ở candidates/toA-before-redraw651.*. Model/seed unknown; sinh bằng Codex built-in image_gen.imagegen, prompt công cụ nguyên văn. (mắt)
 LỖI: toB — hướng — ne H1–H4, n H7–H8 — lộ mặt; die nằm ngang, hurt xoay đầu (mắt)
 ```
 

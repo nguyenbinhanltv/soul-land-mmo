@@ -1,0 +1,27 @@
+﻿{
+    "species":  "bich_lan_xa",
+    "stage":  "sheet",
+    "direction":  "s,se,e",
+    "attempt":  1,
+    "attempts":  1,
+    "attemptLimit":  3,
+    "batch":  "soul_land_game-651-redraw",
+    "tool":  "Codex built-in image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "timestamp":  "2026-10-27T08:58:27.7675753Z",
+    "outputPath":  "C:/Users/PC/.codex/generated_images/01a17c8e-40b9-7093-b82b-1fc9d42e172f/exec-4b1f15d7-e867-4788-880d-373e13e76ed7.png",
+    "rawPath":  "art/src/beast-anim/bich_lan_xa/toA.png",
+    "rawSha256":  "884abb1ffc27134475eb46831af6fb9c68c80eda3a41892f3c83a085014276e5",
+    "rawBytes":  1793826,
+    "copiedByteIdenticalFromToolOutput":  true,
+    "references":  [
+                       {
+                           "sha256":  "d9c693054e0ff49f42babbe7328b77f95145e16701ef4e5d67093ce3d6a89c20",
+                           "path":  "shared/assets/sprites/beast/bich_lan_xa.png"
+                       }
+                   ],
+    "executionPromptPath":  "art/src/beast-anim/bich_lan_xa/toA.prompt.txt",
+    "executionPromptSha256":  "95dac93ed1ed24e86fadb543dfad3f21a549ec8f3f167cfad74204a09fba274d",
+    "manualPromptAddendum":  false
+}
