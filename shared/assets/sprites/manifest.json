@@ -11581,6 +11581,72 @@
       "iso": true
     },
     {
+      "key": "vhanim_kim_vu_mieu_ung_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_kim_vu_mieu_ung_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
       "key": "vh_ky_nhung_thong_thien_cuc_b",
       "iso": true
     },
