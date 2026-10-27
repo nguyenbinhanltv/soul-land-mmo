@@ -440,3 +440,19 @@ test("fork không phá công cụ hồn thú: gapLayout nhận danh sách ô ri�
   assert.equal(gapLayout(im, bPlan(96, "direction")[0]), null, "tờ trống: không dò được dải hàng");
   assert.equal(gapLayout(im, L.sheetPlan("B")[0]), null);
 });
+
+test("--no-dummy (#1024): không bảng nộm, ảnh 1 = concept đã chốt, prompt không MANNEQUIN; mặc định giữ nguyên", () => {
+  const info = infoWith("ta_hoa_phuong_hoang", { noDummy: true }), sh = L.sheetPlan(info.group)[2];
+  const refs = referencesFor("direction", info, sh);
+  assert.deepEqual(refs.map((r) => r.required), [true, true, false]);
+  assert.match(refs[0].en, /approved CONCEPT/); assert.doesNotMatch(refs[0].en, /MANNEQUIN/); assert.match(refs[0].vi, /art\/src\/vohon-v2\/ta_hoa_phuong_hoang\//);
+  assert.deepEqual(referencesFor("turnaround", info, { id: "T" }).map((r) => r.n), [1]);
+  for (const p of [buildDirectionPrompt(info, sh), buildTurnaroundPrompt(info)]) {
+    assert.doesNotMatch(p.replace("NO MANNEQUIN", ""), /mannequin|#00D0D0/i);
+    assert.match(p, /NO MANNEQUIN/); assert.match(p, /keep EXACTLY the appearance of the concept/); assert.match(p, /foot origin/);
+  }
+  const def = buildDirectionPrompt(infoWith("ta_hoa_phuong_hoang"), sh);
+  assert.match(def, /MANNEQUIN: the first attached image/); assert.doesNotMatch(def, /NO MANNEQUIN/);
+  assert.equal(infoWith("bach_ho").noDummy, false);
+  assert.match(stageDocs(info, "turnaround")[0][1], /không dùng/);
+});
