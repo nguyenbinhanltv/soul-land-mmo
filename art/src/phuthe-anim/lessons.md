@@ -36,10 +36,10 @@
 - [direction @B] Keep all four horizontal bands separated by uninterrupted magenta gutters, and keep each of the six attack silhouettes isolated from its neighbours. // Tà Hỏa B/C bổ sung phiên 693: lượt cũ dính H1/H2, attack dính và không dò đủ hàng
 - [direction @B] Preserve six separate figures in each of the first three rows and exactly four in the last row; keep the cast wing tips away from both spare cells. // Tà Hỏa C bổ sung phiên 693: C cũ không dò đủ hàng; B4 qua kiểm nhưng cast tràn ô
 - [direction @B] In the attack strike frame, fold the tail inside its own cell instead of stretching it toward the previous figure; retain the mannequin beneath every attack pose. // Tà Hỏa C4: đuôi attack nối hai hình, H3 chỉ tách 5/6 và mất nộm pha lao
-- [direction @B] Keep the ear roots, limb roots and tail root on the original mannequin while leaving an unbroken magenta gap around each attack pose. // Lô 3 trước A1: rút lỗi nộm trôi và attack dính từ Tà Hỏa.
+- [direction @B] Keep the ear roots, limb roots and tail root on the mannequin while leaving an unbroken magenta gap around each attack pose. // Lô 3 trước A1: rút lỗi nộm trôi và attack dính từ Tà Hỏa.
 - [direction @B] Draw only the attachments named in the attachment notes on the hero; do not add an animal torso or separate head unless those notes explicitly request it; keep the mannequin full height. // Nhu Cốt Thố A1: nguyên con thỏ sau nộm và nộm thu nhỏ.
 - [direction @B] For rabbit possession leave the cyan head and torso fully visible, with ears rooted on that head and hind-leg attachments on its feet; omit rabbit face and chest. // Nhu Cốt Thố A2: vẫn có mặt/ngực thỏ sau nộm.
-- [direction @B] The mannequin must retain its original long body silhouette, not become a short rounded icon in front of the spirit. // Nhu Cốt Thố A3: nộm vẫn thu nhỏ thành hình tròn ngắn.
+- [direction @B] Keep the mannequin at its original body proportions instead of turning it into a short rounded icon in front of the spirit. // Nhu Cốt Thố A3: nộm vẫn thu nhỏ thành hình tròn ngắn.
 - [direction @B] If the notes request ears and feet only, leave the space between those attachments empty instead of connecting them into a second animal body. // Nhu Cốt Thố B1: tai/chân lại nối thành thân thú riêng.
 - [direction @B] Keep wide attack trails short and attached; do not let a trail bridge the magenta gutter to the next frame. // Nhu Cốt Thố C1: dải attack dài sát ô bên.
 - [direction @B] Keep the six attack poses as six compact islands, with a full-width empty magenta band above and below the row. // Nhu Cốt Thố C1: kiểm chặn không dò đủ bốn hàng.
@@ -50,12 +50,12 @@
 - [direction @B] Copy the mannequin silhouette and its exact key color from image one without rounding, shortening, recoloring or replacing any visible part. // Xà Hoàng A2: nom-mat chặn toàn bộ 22 ô.
 - [direction @B] Keep the attachment centered on the shoulder and arm axis rather than a large coiled pedestal behind the hero. // Xà Hoàng A3: vòng rắn sau thân, nộm thu nhỏ.
 - [direction @B] A coil that crosses the arm must stay in contact with that arm in every pose, without a detached loop or floating head. // Xà Hoàng B1: cần kiểm vòng quấn tay khi ráp LPC.
-- [direction @B] The four cast mannequins must remain the same body scale as idle, even when the neck or attachment rises higher. // Xà Hoàng C1: nộm cast nhỏ hơn idle.
+- [direction @B] Across all four cast frames keep the mannequin at the same body scale as idle, even when the neck or attachment rises higher. // Xà Hoàng C1: nộm cast nhỏ hơn idle.
 - [direction @B] Keep the neck bend within its cell during the strike; leave the neighbouring figure completely separate. // Xà Hoàng D1: đầu mổ ở attack sát hình kế.
 - [direction @B] Shorten the striking neck and attached trail enough to keep all six attack figures disconnected from each other. // Xà Hoàng E1: attack dính, chỉ tách 3/6 hình.
 - [direction @B] For a raised neck attachment, keep its root on the shoulder and its head inside the top frame brackets instead of towering beyond the cell. // Bá Vương Long A1: rút lỗi cổ Xà Hoàng cao và xén khi ráp.
 - [direction @B] When forearms are named attachments, draw them on the mannequin arms, not as a second pair of arms floating behind its head. // Bá Vương Long A1: tay rồng nổi sau nộm.
-- [direction @B] Fit the raised claw and neck together inside the frame, leaving the original mannequin head and arm positions unchanged. // Bá Vương Long B1: đầu/tay rồng lớn phía sau nộm.
+- [direction @B] Fit the raised claw and neck together inside the frame, leaving the mannequin head and arm positions unchanged. // Bá Vương Long B1: đầu/tay rồng lớn phía sau nộm.
 - [direction @B] Keep cloud masses and raised claws inside each cast cell; never connect the four cast figures with clouds, lightning or limb tips. // Bá Vương Long B1: cast dính thành 1/4 hình.
 - [direction @B] Leave a continuous magenta margin around the cast neck and claw silhouettes, including the bottom corners of each frame. // Bá Vương Long B2: khối cast còn lớn, tránh xén góc.
 - [direction @B] Fold the striking forearm back inside the cell before it reaches the next figure; keep six separate attack islands. // Bá Vương Long B2: attack chỉ tách 5/6 hình.
