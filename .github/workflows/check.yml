@@ -1,9 +1,10 @@
 # CI: typecheck server + client, validate sprite / tiles.json, build client (check-build); bot RAM và bài thử nhanh (bot-ram, #171)
 # cho mọi PR vào main và mỗi push vào main. Status check check-build, bot-ram: chỉ để tham khảo, không bắt buộc (xem CONTRIBUTING.md).
-# Push vào main cũng chọn mức (so với commit trước, quy tắc chặt hơn PR): chỉ đổi art/** / docs/** / *.md thì skip (bỏ bot, trình duyệt, Windows, build, docker); đổi gì khác (kể cả ảnh ở shared/assets) vẫn full.
-# Mức bot chọn theo file PR đổi (job `changes`, tools/ci/changes.sh): skip (chỉ ảnh / âm thanh / tài liệu: không chạy bot),
-# smoke (chỉ mã giao diện client: test client + một lượt bot khói ~2 phút), full (còn lại: 6 nhóm).
-# Nhãn PR ép mức (đọc lúc chạy, gắn nhãn rồi Re-run hoặc push): ci:full -> full; ci:bot-khoi -> ít nhất smoke. check-build luôn chạy đủ ở mọi mức.
+# Push vào main cũng chọn mức (so với lượt CI main thành công gần nhất, quy tắc chặt hơn PR): chỉ đổi thuần ảnh / sprite / ghi công / tài liệu thì assets; đổi gì khác (kể cả âm thanh) là full.
+# Mức chọn theo file PR đổi (job `changes`, tools/ci/changes.sh): assets (chỉ ảnh / sprite / manifest sprite / credits.json / tài liệu: chỉ chạy job nhẹ `assets-check`, bỏ check-build, bot, trình duyệt, docker),
+# skip (PR chỉ đổi âm thanh / dữ liệu tĩnh: không chạy bot), smoke (chỉ mã giao diện client: test client + một lượt bot khói ~2 phút), full (còn lại: 6 nhóm).
+# Nhãn PR ép mức (đọc lúc chạy, gắn nhãn rồi Re-run hoặc push): ci:full -> full; ci:bot-khoi -> ít nhất smoke. check-build luôn chạy đủ ở mọi mức trừ assets.
+# Lượt hằng ngày (schedule / chạy tay trên main, #1118): luôn full, bắt lỗi tích hợp mà merge PR ảnh không phải trả giá. Không kích Release (release.yml chỉ nhận event push).
 name: CI
 
 on:
@@ -11,6 +12,9 @@ on:
     branches: [main]
   push:
     branches: [main]
+  schedule:
+    - cron: "0 20 * * *" # 20:00 UTC = 03:00 sáng giờ Việt Nam (thấp điểm); chỉ chạy ở nhánh mặc định
+  workflow_dispatch: # chạy tay: luôn full
 
 permissions:
   contents: read
@@ -18,11 +22,12 @@ permissions:
 # Push mới lên cùng PR thì hủy lượt cũ của PR đó; push mới lên main hủy lượt CI cũ của main (#1079). Nhóm theo số PR (PR khác nhau không hủy nhau) hoặc theo ref (main).
 # Lượt bị hủy có conclusion cancelled nên release.yml (gate chỉ nhận success) không chạy Release cho nó; push main chọn mức so với commit của lượt CI main thành công gần nhất (job `changes`), nên lượt bị hủy không làm lượt sau ra `skip`.
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  # Lượt hằng ngày / chạy tay có nhóm riêng (#1118): không hủy, cũng không bị hủy bởi push vào main.
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'hang-ngay' || github.ref) }}
   cancel-in-progress: true
 
 jobs:
-  # Chọn mức bot (skip | smoke | full) theo file đổi so với base của PR; push vào main luôn full. Quy tắc ở tools/ci/changes.sh.
+  # Chọn mức (assets | skip | smoke | full) theo file đổi so với base của PR hoặc mốc push main; schedule / chạy tay luôn full. Quy tắc ở tools/ci/changes.sh.
   changes:
     name: changes
     runs-on: ubuntu-latest
@@ -56,6 +61,9 @@ jobs:
             LABELS=$(gh api "repos/$REPO/issues/$PR/labels" --jq '[.[].name] | join(",")') || LABELS=ci:full
             export LABELS
             git diff --name-only "$BASE...$HEAD" | bash tools/ci/changes.sh
+          elif [ "$EVENT" != push ]; then
+            # Lượt hằng ngày (schedule) / chạy tay: luôn full (#1118), không đọc danh sách file.
+            FORCE_FULL=1 bash tools/ci/changes.sh </dev/null
           else
             # Push vào main: mốc so sánh = commit của lượt CI main gần nhất có conclusion success (không phải commit ngay trước), vì lượt bị hủy (#1079)
             # chưa quét mã của nó: merge A (server, full) rồi B (docs) mà lượt A bị hủy thì B so với mốc thành công trước A, nên vẫn thấy server/** -> full.
@@ -65,14 +73,15 @@ jobs:
             { git diff --name-only "$prev" "$SHA" 2>/dev/null || true; } | PUSH=1 bash tools/ci/changes.sh
           fi
 
+  # Mức assets (PR / push chỉ ảnh, sprite, ghi công, tài liệu): bỏ cả job (skipped = xanh); `assets-check` thay thế (#1118). Mọi mức khác chạy đủ hai hệ điều hành.
   check-build:
     name: check-build
     needs: changes
+    if: ${{ needs.changes.outputs.level != 'assets' }}
     strategy:
       fail-fast: false
       matrix:
-        # Push vào main chỉ đổi art / docs (mức skip): bỏ Windows (đã kiểm ở PR). Còn lại cả hai hệ điều hành.
-        os: ${{ fromJSON(github.event_name == 'push' && needs.changes.outputs.level == 'skip' && '["ubuntu-latest"]' || '["ubuntu-latest","windows-latest"]') }}
+        os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
@@ -95,11 +104,8 @@ jobs:
       - run: npm run test:nameplate --prefix client
       - run: npm run audio:validate
       - run: npm run check
-      # Push chỉ đổi art / docs không đổi bản build: bỏ build + ngân sách (PR đã chạy).
-      - if: ${{ !(github.event_name == 'push' && needs.changes.outputs.level == 'skip') }}
-        run: npm run build
-      - if: ${{ !(github.event_name == 'push' && needs.changes.outputs.level == 'skip') }}
-        run: npm run budget # ngân sách dung lượng bản build (#743): vượt mốc × 1,1 thì đỏ
+      - run: npm run build
+      - run: npm run budget # ngân sách dung lượng bản build (#743): vượt mốc × 1,1 thì đỏ
       - name: Kiểm diff cần preview cutter
         id: normalization-changes
         if: ${{ matrix.os == 'ubuntu-latest' && github.event_name == 'pull_request' }}
@@ -134,7 +140,7 @@ jobs:
   nameplate-preview:
     name: nameplate-preview
     needs: changes
-    if: ${{ needs.changes.outputs.level != 'skip' }}
+    if: ${{ needs.changes.outputs.level == 'smoke' || needs.changes.outputs.level == 'full' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -186,7 +192,7 @@ jobs:
   flow-browser:
     name: flow-browser
     needs: changes
-    if: ${{ needs.changes.outputs.level != 'skip' }}
+    if: ${{ needs.changes.outputs.level == 'smoke' || needs.changes.outputs.level == 'full' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -310,6 +316,31 @@ jobs:
           retention-days: 30
           if-no-files-found: ignore
 
+  # Mức assets (#1118): thay check-build cho PR / push chỉ đổi ảnh, sprite, ghi công, tài liệu. Ubuntu, không npm ci / build / Chrome / server / bot
+  # (các công cụ dưới chỉ dùng node:*), mục tiêu ≤ 3 phút.
+  # Chỉ chạy ở mức assets (mức khác đã có `npm run check` trong check-build). Thêm bài nhẹ thì thêm vào đây, đừng kéo build / bot vào.
+  assets-check:
+    name: assets-check
+    needs: changes
+    if: ${{ needs.changes.outputs.level == 'assets' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22 # khớp Dockerfile (node:22-slim)
+      - run: node tools/assets/validate.mjs
+      - run: node tools/assets/quality.mjs --check
+      - run: node tools/assets/credits.mjs --check
+      - run: node tools/docs-check.mjs # PR chỉ đổi tài liệu cũng được kiểm (trước đây nhờ `npm run check` trong check-build)
+      - name: manifest.json / credits.json đọc được
+        run: |
+          node -e 'for (const f of ["shared/assets/sprites/manifest.json","shared/assets/credits/credits.json"]) { JSON.parse(require("fs").readFileSync(f, "utf8")); console.log("✓", f); }'
+      - run: node --experimental-strip-types client/scripts/beastanim-test.mjs # chọn khung hoạt ảnh (client/src/beastAnim.ts), không cần client/node_modules
+
   # Bài test đơn vị chạy nhanh (không server, không DB): trang bị, đăng nhập Google, khóa món, GM, cache tĩnh, hiệu ứng client, công cụ ảnh / tài liệu (#660).
   # Gộp ở `npm run test:unit` (gốc package.json); thêm bài mới thì thêm vào đó. Chỉ ubuntu, song song với check-build nên không làm CI chậm thêm.
   test-unit:
@@ -337,6 +368,7 @@ jobs:
   docker-build:
     name: docker-build
     needs: changes
+    if: ${{ needs.changes.outputs.level != 'assets' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -352,7 +384,7 @@ jobs:
           LEVEL: ${{ needs.changes.outputs.level }}
         run: |
           if [ "$EVENT" != pull_request ]; then
-            if [ "$LEVEL" = skip ]; then echo "run=false" >>"$GITHUB_OUTPUT"; echo "push chỉ đổi art / docs: bỏ qua build thử"; else echo "run=true" >>"$GITHUB_OUTPUT"; echo "push vào main: build thử"; fi
+            if [ "$LEVEL" = skip ]; then echo "run=false" >>"$GITHUB_OUTPUT"; echo "push mức skip: bỏ qua build thử"; else echo "run=true" >>"$GITHUB_OUTPUT"; echo "push vào main: build thử"; fi
             exit 0
           fi
           if git diff --name-only "$BASE...$HEAD" | grep -Eq '^(Dockerfile|\.dockerignore|package(-lock)?\.json|(server|client)/package(-lock)?\.json)$'; then
