@@ -9,6 +9,7 @@
 - Nguồn bài học: báo cáo H4 (`bao-cao-h4.md` mục 3.2, 5.1), #766 và #767–#781, các PR đợt 1–5. Sửa câu thì sửa ở đây rồi sinh lại prompt.
 
 ## Hướng nhìn
+- [direction, sheet @swim] In the south-facing block, keep the head aimed straight toward the viewer throughout IDLE, WALK and ATTACK; do not turn right. In DIE, keep the spine aligned from the top to the bottom of the cell along the south-facing line, never stretched sideways from left to right. // khối s của sinh vật bơi hay nghiêng phải và die nằm ngang; chốt orchestrator PR #1107
 - [turnaround, direction, sheet] Direction "se" is a three-quarter view: the body axis is turned about 45 degrees toward the lower right, the face is visible and looks diagonally down toward the viewer, so it clearly differs from "e" (pure side profile). // se hay lẫn với e (Huyền Băng, Hắc Bối, Quỷ Hổ)
 - [turnaround, direction, sheet] Direction "ne" is a three-quarter BACK view: the body axis is turned about 45 degrees away toward the upper right, the rump and back are nearest to the viewer, and it must not be drawn as a plain side profile. // ne hay vẽ gần như ngang (Phong Lang B, Bạch Hùng)
 - [turnaround, direction, sheet] Direction "n" is a pure back view: only the back of the head, back, rump and tail are visible. // khối n lộ mặt ở 15/16 tờ B
