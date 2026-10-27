@@ -138,8 +138,9 @@ Chất liệu: màn đầy khung nên **Mực** có tấm Giấy cho bảng đi�
 
 Mỗi bước server sửa **cả** `PgStore` và `MemoryStore`, thêm hàng vào bảng tin ở `giao-thuc-server.md`, và (khi sửa MapRoom) tránh phình file: đặt logic ở `server/src/rooms/rank.ts` *(đề xuất)* như `tong.ts` / `team.ts` (#702).
 
-### Quyết định của chủ repo
-Đã ghi ở `docs/quyet-dinh.md` (**Q52**, 28/10, câu hỏi #1191): thưởng hạng chỉ danh hiệu theo tuần; đội hình công khai 4 ô (đã làm ở X2: `rank_scores.extra`, `RankLineupSlot`); điểm danh / Phúc Lợi / Lịch theo `docs/design/phuc-loi.md`, `lich-hoat-dong.md`.
+### Luật hiện hành (chủ repo quyết 28/10, mã **Q52** ở `docs/quyet-dinh.md`)
+- **Thưởng hạng:** v1 chỉ danh hiệu hiển thị theo tuần, không thưởng vật phẩm / Hồn Tệ.
+- **Đội hình công khai:** 4 ô, mỗi ô chỉ mã võ hồn, cấp, sao; không lộ gì khác (đã làm ở X2: `rank_scores.extra`, `RankLineupSlot`).
 
 ### Đã làm (X2, phần server)
 - `rank_scores` (`037_xep_hang.sql`), `Store.rankPut / rankTop / rankMe` ở `PgStore` và `MemoryStore`; hằng và hàm thuần `RANK_BOARDS` (Cấp, Sưu tầm), `rankScores`, `rankCompare`, `RANK_PAGE_SIZE / _MAX`, `RANK_CD`, `RANK_SYNC_CD` ở `shared/data.ts`.
