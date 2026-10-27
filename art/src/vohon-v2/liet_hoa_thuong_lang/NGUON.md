@@ -37,3 +37,17 @@ Các khai báo dưới đây cũng lưu trong trường `eye` của source JSON.
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/vohon-v2/liet_hoa_thuong_lang/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | 3 RAW concept Liệt Hỏa Thương Lang; model/seed unknown; prompt, SHA256 và nguồn trong các tệp đi kèm. | 2026-10-27 | Chưa nhập game; chặn. |
+
+## Chân dung lượt 1 — #1158
+
+Ngày 2026-10-27; 1/3 lượt. builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `portrait-attempt1.png`, SHA256 `2b65f6a345fc3cb50b0c44f49af16f148010d4fc1f8d8c5105a72b136ae06a06`. Prompt CLI nguyên văn `portrait-attempt1.prompt.txt`, SHA256 `a293350ef29556077f876e87bb4bcc561fad21d613a9faf757da3754d6eacf66`; không viết tay, không addendum. Ảnh neo ngoại hình: `concept-attempt3.png`, SHA256 `3ee22a885eed62d121cde6f32c7e4261d9087b686c6e20c33e0c1f40bfdf3269`. Hồ sơ lệnh và kết quả kiểm: `portrait-attempt1.source.json`.
+
+P1c: `--preset portrait`; bản thử `portrait-attempt1-P1c/liet_hoa_thuong_lang-portrait.png`, 64×64, 6 màu, giữ 7/8 điểm sáng. Xem `portrait-attempt1-P1c/preview/index.html` và `so-sanh.png`. Chưa được chủ repo duyệt mỹ thuật, chưa nhập game. Không sửa RAW.
+
+### Khai báo duyệt mắt chân dung (`--eye`)
+
+Công cụ vohon:check chưa có cờ --eye; chỉ khai tại đây, không đổi bộ kiểm.
+
+```text
+--eye "portrait-attempt1=góc nhìn — chính diện; quầng lửa rộng, vết nứt sáng tranh điểm nhấn với mắt, bờm còn nhiều nhánh"
+```
