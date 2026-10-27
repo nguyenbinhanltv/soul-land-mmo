@@ -1,0 +1,134 @@
+{
+    "tool":  "builtin image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "attempt":  2,
+    "date":  "2026-10-27",
+    "raw":  "turnaround-lpc-attempt2.png",
+    "sha256":  "9a58490369d33673b53613ace3c74f2630a8ff5b3f0931780735da40ec0287df",
+    "prompt":  "turnaround-lpc-attempt2.prompt.txt",
+    "promptSha256":  "d13c227bccfb2fdd6b17bc92056250865d7bdfae5e0d9593d6ac954470bae0a1",
+    "promptCommand":  "node tools/assets/phuthe-sheet-prompt.mjs --id ta_hoa_phuong_hoang --stage turnaround --out art/src/phuthe-anim/ta_hoa_phuong_hoang/lpc-moi",
+    "references":  [
+                       {
+                           "sha256":  "3d218426bc61b52cd457505e184fb210dec14b3d97bab95d0206e21a8672788f",
+                           "file":  "../ta_hoa_phuong_hoang-nom-turnaround.png"
+                       }
+                   ],
+    "status":  "rejected_alignment_scale",
+    "postprocessing":  "none; RAW byte-for-byte",
+    "promptHandwritten":  false,
+    "promptAddendum":  false,
+    "technicalCheck":  {
+                           "id":  "ta_hoa_phuong_hoang",
+                           "level":  "chặn",
+                           "group":  "B",
+                           "frame":  96,
+                           "dummyKey":  "#00D0D0",
+                           "blockLevel":  {
+
+                                          },
+                           "sheets":  [
+                                          {
+                                              "sheet":  "turnaround",
+                                              "size":  [
+                                                           1536,
+                                                           1024
+                                                       ],
+                                              "kind":  "turnaround",
+                                              "level":  "chặn",
+                                              "dirs":  [
+                                                           "s",
+                                                           "se",
+                                                           "e",
+                                                           "ne",
+                                                           "n"
+                                                       ],
+                                              "background":  {
+                                                                 "key":  [
+                                                                             250,
+                                                                             3,
+                                                                             251
+                                                                         ],
+                                                                 "corners":  [
+                                                                                 [
+                                                                                     235,
+                                                                                     10,
+                                                                                     238
+                                                                                 ],
+                                                                                 [
+                                                                                     239,
+                                                                                     17,
+                                                                                     240
+                                                                                 ],
+                                                                                 [
+                                                                                     233,
+                                                                                     37,
+                                                                                     237
+                                                                                 ],
+                                                                                 [
+                                                                                     238,
+                                                                                     34,
+                                                                                     239
+                                                                                 ]
+                                                                             ],
+                                                                 "keyDistFromLock":  5,
+                                                                 "cornerSpread":  34
+                                                             },
+                                              "seVsE":  null,
+                                              "prep":  null,
+                                              "bands":  [
+                                                            {
+                                                                "row":  1,
+                                                                "dir":  null,
+                                                                "y":  [
+                                                                          30,
+                                                                          279
+                                                                      ],
+                                                                "figures":  5,
+                                                                "state":  "ok"
+                                                            },
+                                                            {
+                                                                "row":  2,
+                                                                "dir":  null,
+                                                                "y":  [
+                                                                          342,
+                                                                          651
+                                                                      ],
+                                                                "figures":  2,
+                                                                "state":  "bad"
+                                                            },
+                                                            {
+                                                                "row":  3,
+                                                                "dir":  null,
+                                                                "y":  [
+                                                                          734,
+                                                                          944
+                                                                      ],
+                                                                "figures":  5,
+                                                                "state":  "ok"
+                                                            }
+                                                        ],
+                                              "motion":  [
+
+                                                         ],
+                                              "issues":  [
+                                                             {
+                                                                 "sev":  "note",
+                                                                 "code":  "nen",
+                                                                 "where":  "toàn tờ",
+                                                                 "msg":  "nền dốc nhẹ (bốn góc lệch 34), trong dung sai 60; không phải lỗi."
+                                                             },
+                                                             {
+                                                                 "sev":  "block",
+                                                                 "code":  "hinh-dinh",
+                                                                 "where":  "H2 (attack)",
+                                                                 "msg":  "hàng có 2 hình, cần 5: hình dính nhau."
+                                                             }
+                                                         ],
+                                              "draft":  "LỖI: turnaround — hình dính — H2 (attack) — hàng có 2 hình, cần 5: hình dính nhau."
+                                          }
+                                      ]
+                       },
+    "eye":  "Khối thân/gốc cánh nằm trên đầu thay vì tâm ngực; nộm bị thu nhỏ/dời xuống. Không dùng tham chiếu."
+}

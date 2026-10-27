@@ -1,0 +1,159 @@
+{
+    "tool":  "builtin image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "date":  "2026-10-27",
+    "attempt":  3,
+    "raw":  "candidates/toC-lpc-attempt3.png",
+    "sha256":  "6f7a431c1b7f74cdd25fd1dcfb433853ba1fd2a899dde5cc180bac9f33e7d17e",
+    "prompt":  "candidates/toC-lpc-attempt3.prompt.txt",
+    "promptSha256":  "2034dd454416315249f47563db74423d852add9a477d215ded711593c99ec84e",
+    "referencePathBase":  "repository root",
+    "references":  [
+                       {
+                           "sha256":  "beaed26756433db93b246eed3466f907d9a923930f5299e81fca2a6d84e26bbd",
+                           "file":  "art/src/phuthe-anim/ta_hoa_phuong_hoang/lpc-moi/ta_hoa_phuong_hoang-nom-toC.png"
+                       },
+                       {
+                           "sha256":  "fa7f51cf58c33792a8c395537909b5d3cc39bdf9301f010d1cb9667d48c8046a",
+                           "file":  "art/src/phuthe-anim/ta_hoa_phuong_hoang/candidates/turnaround-attempt2.png"
+                       },
+                       {
+                           "sha256":  "4aee982d578adfc4ea5e9ea811a33afb5bc409cf757f6b61ed35813ecd49b66d",
+                           "file":  "art/src/phuthe-anim/ta_hoa_phuong_hoang/lpc-moi/toA.png"
+                       }
+                   ],
+    "turnaround":  "Bản cũ lượt 2 đã duyệt #1157, quyết định PR #1176; không phải turnaround nộm mới",
+    "promptHandwritten":  false,
+    "promptAddendum":  false,
+    "postprocessing":  "none; RAW copied byte-for-byte",
+    "technicalCheck":  {
+                           "sheet":  "toC",
+                           "size":  [
+                                        1536,
+                                        1024
+                                    ],
+                           "kind":  "huong",
+                           "level":  "chặn",
+                           "dirs":  [
+                                        "e"
+                                    ],
+                           "background":  {
+                                              "key":  [
+                                                          245,
+                                                          5,
+                                                          251
+                                                      ],
+                                              "corners":  [
+                                                              [
+                                                                  228,
+                                                                  15,
+                                                                  239
+                                                              ],
+                                                              [
+                                                                  236,
+                                                                  27,
+                                                                  240
+                                                              ],
+                                                              [
+                                                                  230,
+                                                                  46,
+                                                                  235
+                                                              ],
+                                                              [
+                                                                  232,
+                                                                  38,
+                                                                  236
+                                                              ]
+                                                          ],
+                                              "keyDistFromLock":  10,
+                                              "cornerSpread":  41
+                                          },
+                           "seVsE":  null,
+                           "prep":  null,
+                           "bands":  [
+                                         {
+                                             "row":  1,
+                                             "dir":  "e",
+                                             "y":  [
+                                                       17,
+                                                       229
+                                                   ],
+                                             "figures":  6,
+                                             "state":  "ok"
+                                         },
+                                         {
+                                             "row":  2,
+                                             "dir":  "e",
+                                             "y":  [
+                                                       260,
+                                                       458
+                                                   ],
+                                             "figures":  6,
+                                             "state":  "ok"
+                                         },
+                                         {
+                                             "row":  3,
+                                             "dir":  "e",
+                                             "y":  [
+                                                       472,
+                                                       695
+                                                   ],
+                                             "figures":  4,
+                                             "state":  "bad"
+                                         },
+                                         {
+                                             "row":  4,
+                                             "dir":  "e",
+                                             "y":  [
+                                                       700,
+                                                       972
+                                                   ],
+                                             "figures":  3,
+                                             "state":  "bad"
+                                         }
+                                     ],
+                           "motion":  [
+
+                                      ],
+                           "issues":  [
+                                          {
+                                              "sev":  "note",
+                                              "code":  "nen",
+                                              "where":  "toàn tờ",
+                                              "msg":  "nền dốc nhẹ (bốn góc lệch 41), trong dung sai 60; không phải lỗi."
+                                          },
+                                          {
+                                              "sev":  "note",
+                                              "code":  "tach-hinh",
+                                              "where":  "H2 (e)",
+                                              "msg":  "dải dò được 3 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 6."
+                                          },
+                                          {
+                                              "sev":  "note",
+                                              "code":  "tach-hinh",
+                                              "where":  "H4 (e)",
+                                              "msg":  "dải dò được 2 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 3."
+                                          },
+                                          {
+                                              "sev":  "block",
+                                              "code":  "hinh-dinh",
+                                              "where":  "H3 (e)",
+                                              "msg":  "dải có 4 hình, cần 6: hình dính nhau."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "o-trong",
+                                              "where":  "H4 (e) C5",
+                                              "msg":  "ô trống có hình (14.06% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng."
+                                          },
+                                          {
+                                              "sev":  "block",
+                                              "code":  "hinh-dinh",
+                                              "where":  "H4 (e)",
+                                              "msg":  "dải có 3 hình, cần 4: hình dính nhau."
+                                          }
+                                      ],
+                           "draft":  "LỖI: toC — hình dính / hình ở ô trống — H3 (e), H4 (e) C5, H4 (e) — dải có 4 hình, cần 6: hình dính nhau; ô trống có hình (14.06% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng; dải có 3 hình, cần 4: hình dính nhau."
+                       }
+}

@@ -1,0 +1,125 @@
+{
+    "tool":  "builtin image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "date":  "2026-10-27",
+    "attempt":  2,
+    "raw":  "candidates/toC-lpc-attempt2.png",
+    "sha256":  "2ca7eba3b588e00addb2f320a5c35509b920223126ecc7d45fef850aef149d83",
+    "prompt":  "candidates/toC-lpc-attempt2.prompt.txt",
+    "promptSha256":  "2034dd454416315249f47563db74423d852add9a477d215ded711593c99ec84e",
+    "referencePathBase":  "repository root",
+    "references":  [
+                       {
+                           "sha256":  "beaed26756433db93b246eed3466f907d9a923930f5299e81fca2a6d84e26bbd",
+                           "file":  "art/src/phuthe-anim/ta_hoa_phuong_hoang/lpc-moi/ta_hoa_phuong_hoang-nom-toC.png"
+                       },
+                       {
+                           "sha256":  "fa7f51cf58c33792a8c395537909b5d3cc39bdf9301f010d1cb9667d48c8046a",
+                           "file":  "art/src/phuthe-anim/ta_hoa_phuong_hoang/candidates/turnaround-attempt2.png"
+                       },
+                       {
+                           "sha256":  "4aee982d578adfc4ea5e9ea811a33afb5bc409cf757f6b61ed35813ecd49b66d",
+                           "file":  "art/src/phuthe-anim/ta_hoa_phuong_hoang/lpc-moi/toA.png"
+                       }
+                   ],
+    "turnaround":  "Bản cũ lượt 2 đã duyệt #1157, quyết định PR #1176; không phải turnaround nộm mới",
+    "promptHandwritten":  false,
+    "promptAddendum":  false,
+    "postprocessing":  "none; RAW copied byte-for-byte",
+    "technicalCheck":  {
+                           "sheet":  "toC",
+                           "size":  [
+                                        1536,
+                                        1024
+                                    ],
+                           "kind":  "huong",
+                           "level":  "chặn",
+                           "dirs":  [
+                                        "e"
+                                    ],
+                           "background":  {
+                                              "key":  [
+                                                          250,
+                                                          4,
+                                                          252
+                                                      ],
+                                              "corners":  [
+                                                              [
+                                                                  232,
+                                                                  14,
+                                                                  242
+                                                              ],
+                                                              [
+                                                                  240,
+                                                                  24,
+                                                                  241
+                                                              ],
+                                                              [
+                                                                  229,
+                                                                  42,
+                                                                  234
+                                                              ],
+                                                              [
+                                                                  235,
+                                                                  35,
+                                                                  237
+                                                              ]
+                                                          ],
+                                              "keyDistFromLock":  5,
+                                              "cornerSpread":  38
+                                          },
+                           "seVsE":  null,
+                           "prep":  null,
+                           "bands":  [
+                                         {
+                                             "row":  1,
+                                             "dir":  null,
+                                             "y":  [
+                                                       15,
+                                                       242
+                                                   ],
+                                             "figures":  6,
+                                             "state":  "bad"
+                                         },
+                                         {
+                                             "row":  1,
+                                             "dir":  null,
+                                             "y":  [
+                                                       258,
+                                                       489
+                                                   ],
+                                             "figures":  6,
+                                             "state":  "bad"
+                                         },
+                                         {
+                                             "row":  1,
+                                             "dir":  null,
+                                             "y":  [
+                                                       498,
+                                                       977
+                                                   ],
+                                             "figures":  3,
+                                             "state":  "bad"
+                                         }
+                                     ],
+                           "motion":  [
+
+                                      ],
+                           "issues":  [
+                                          {
+                                              "sev":  "note",
+                                              "code":  "nen",
+                                              "where":  "toàn tờ",
+                                              "msg":  "nền dốc nhẹ (bốn góc lệch 38), trong dung sai 60; không phải lỗi."
+                                          },
+                                          {
+                                              "sev":  "block",
+                                              "code":  "luoi",
+                                              "where":  "toàn tờ",
+                                              "msg":  "dò được 3 dải hàng, cần 4: không dò được lưới (hàng dính nhau hoặc vỡ)."
+                                          }
+                                      ],
+                           "draft":  "LỖI: toC — không dò được lưới — toàn tờ — dò được 3 dải hàng, cần 4: không dò được lưới (hàng dính nhau hoặc vỡ)."
+                       }
+}
