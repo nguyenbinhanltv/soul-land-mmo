@@ -1,0 +1,24 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "type": "icon",
+  "attempt": 1,
+  "raw": "icon-attempt1.png",
+  "raw_sha256": "0a1850de31a8b332d8bd28f74b4c5cef648946b2bcd5d5c1fe7652a5a956feb5",
+  "prompt": "icon-attempt1.prompt.txt",
+  "prompt_sha256": "e5d25d7e56436705578f3ad8f0da1e8f69e6b84cc0426521f140eaa1db4f1e17",
+  "reference": "concept-attempt3.png",
+  "reference_sha256": "3ee22a885eed62d121cde6f32c7e4261d9087b686c6e20c33e0c1f40bfdf3269",
+  "original": "C:/Users/PC/.codex/generated_images/01a17dd5-789d-7bd1-9290-26a7285f2682/exec-4289d756-e139-4987-9619-bbe1f408911c.png",
+  "pixelize": {
+    "preset": "icon",
+    "colors": 8,
+    "merge": 24,
+    "passes": 2,
+    "protect": true
+  },
+  "status": "needs_visual_review",
+  "eye": "Đầu sói than với bờm lửa, mõm dài và nanh; chi tiết bờm có thể cạnh tranh với mắt ở 24 px."
+}

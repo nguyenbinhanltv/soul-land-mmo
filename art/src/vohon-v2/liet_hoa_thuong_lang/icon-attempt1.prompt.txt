@@ -1,0 +1,41 @@
+STYLE (apply to every image):
+Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
+The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
+Angular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.
+Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small
+high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
+(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
+no anti-aliasing, hard pixel edges. Light comes from the upper left.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
+Transparent background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
+(glow, particles and motion are added in code).
+
+NEGATIVE (forbidden):
+cute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,
+Saturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,
+pastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,
+flat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,
+readable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,
+3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,
+anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
+
+ADDITIONAL FORBIDDEN (this asset type): tiny whole animal, full body, frame, card, text, background scenery.
+
+SPIRIT: Liệt Hỏa Thương Lang (liet_hoa_thuong_lang). The design brief below comes from the canonical design table and is written in Vietnamese: follow it exactly, keep every hex code as written, and use only the motifs listed in it (do not add any other motif).
+- Overbearing presence: **sói đầu đàn lửa**: gầm thành tiếng tru như triệu cả bầy; thân xám, bờm và đuôi cháy như vừa từ lửa chui ra.
+- Form: sói đứng thấp, vai cao, hàm lộ nanh, bờm gai, đuôi lớn chóp lửa, vuốt lửa.
+- Palette: xám nâu than theo `robe`, lửa cam theo `col`; nhấn vàng ở mắt + đỏ sẫm ở vết rách lông.
+- Motifs (use only these): vết nứt lửa như đạo văn dọc xương sườn, tiếng tru thành vòng sóng sáng (code), vòng liệt hỏa trận.
+- Companion objects: tàn lửa theo đuôi; hai vệt vuốt lửa.
+- Base colors in the game data: accent (col) #ff7a3a, body (robe) #4a3a3a.
+
+ASSET TYPE: spirit icon source for a menu icon (final art 32x32 and 24x24). Square 1:1 image. ONE emblem: the single most identifying shape of the spirit (head, blade, hammer head, flower, flame core...), centered, filling about 80% of the frame, strong silhouette, 2 or 3 flat tones plus one bright accent. No scenery, no full-body animal, no motif other than the one that defines the silhouette.
+
+BACKGROUND: transparent (real alpha). If your tool cannot output alpha, use one flat solid #FF00FF magenta, with no gradient, no texture, no shadow.
+
+LOOK (this replaces any request for a pixel grid, pixel count or color limit): chunky low-resolution pixel look, flat color clusters, simple shapes readable when shrunk. Large deliberate clusters of flat color with hard square edges; few broad color regions; no microtexture, no fine hatching, no tiny decorative marks, no fur or feather strands, no noise. Do not try to count pixels or colors: a post-processing tool converts your image to the final pixel grid and palette, so give it bold, simple shapes.
+
+STYLE REFERENCE: image 1 (attached) is an APPROVED image of this project's new art direction. Match only its line weight, how few and how large its color clusters are, and its overall mood. Do not copy its subject, pose, composition or any detail of it.
