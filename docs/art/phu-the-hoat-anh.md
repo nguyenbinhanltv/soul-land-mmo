@@ -120,6 +120,9 @@ Thân chỉ vẽ `hurt` (và `die`, `absorb`) ở hướng xuống (`LPC_SHEET.a
 - **`spiritMotion`:** khi có clip, dao động liên tục nhân `SPIRIT_CLIP_OSC_K` (`clipOscK`: vật cứng `weapon` / `float` giữ cao hơn); cú đánh / thi triển / hurt giữ nguyên; Giảm chuyển động vẫn phát clip.
 - **Trang thử `?thu=phuthe`:** chọn hướng 8 phía, trạng thái gồm `hurt`, ô "Phụ thể" (`anim=` `auto` / `fake` / `0`): `fake` dựng sheet **giả** lúc chạy từ ảnh tĩnh (`phutheFake.ts`, không phải ảnh model, không vào game), `khung=128` thử khung 128.
 
+## Neo khối thân
+Phụ thể lệch tâm / quá lớn so với nộm được chỉnh bằng `anchor.json` (tâm khối thân, tỉ lệ, trang chỉnh tay): xem [phu-the-neo-khoi-than.md](phu-the-neo-khoi-than.md).
+
 ## Tiêu chí duyệt: chặn / nhẹ / đẹp (theo khối hướng)
 Duyệt theo **khối hướng** (`s`, `se`, `e`, `ne`, `n`), như hồn thú. Khác hồn thú: thân hồn sư luôn có đủ hướng nên **một võ hồn có khối chặn thì không nhập cả võ hồn** (vẽ lại **chỉ khối chặn**, tối đa 3 lượt); quá lượt thì võ hồn giữ nhánh cũ (xem "Fallback").
 
