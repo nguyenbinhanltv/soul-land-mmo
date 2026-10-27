@@ -53,7 +53,7 @@ Loài `bang_nguyen_cu_tuong` (Băng Nguyên Cự Tượng), họ `quad`, khung g
 
 ```text
 LỖI: turnaround — hurt — ne — chân trước hơi quỳ (nhẹ); ảnh đã duyệt ref ở #1030 issuecomment-6430769369; nguồn cũ HURT/ATTACK chỉnh tay theo quyết định orchestrator (mắt)
-LỖI: toA — s — die cuối chếch phải; attack xoay đầu; tờ C (hướng e) chưa đạt sau 3 lượt: dính hình H3, giữ candidates/toC-attempt1–3.*; ngoại lệ orchestrator 27/10: hướng e quan trọng, cấp C4 tại PR #1108 issuecomment-6433172226 (mắt)
+LỖI: toA — s — die cuối chếch phải; attack xoay đầu; tờ C (hướng e) chưa đạt sau 3 lượt: dính hình H3; ngoại lệ orchestrator 27/10: hướng e quan trọng, cấp C4 tại PR #1108 issuecomment-6433172226; C4 vẫn chặn H3 (3/6 hình) và H4 (3/4 hình), tràn ô C5 2,53%; dừng e, giữ cả 4 lượt candidates/toC-attempt1–4.*, không có toC.png để nhập (mắt)
 LỖI: toB — hình ở ô trống — H4 (se) C5 — ô trống có hình (0.7% diện tích ô): hình tràn từ ô bên.
 LỖI: toB — se — attack A3 và die cuối xoay gần e; hurt nâng đầu mạnh (mắt)
 LỖI: toD — hình ở ô trống — H4 (ne) C5 — ô trống có hình (0.43% diện tích ô): hình tràn từ ô bên.
