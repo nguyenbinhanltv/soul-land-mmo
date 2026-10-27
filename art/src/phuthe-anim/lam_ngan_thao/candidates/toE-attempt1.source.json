@@ -1,0 +1,52 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27T23:08:30.958Z",
+  "attempt": 1,
+  "direction": "n",
+  "raw": "toE-attempt1.png",
+  "sha256": "2dc6de42e0053bd88c225359de172f79d01173bbbdb0e87b95fc5e9854a3168c",
+  "prompt": "toE-attempt1.prompt.txt",
+  "promptSha256": "42adbefb3ba87839af8faead6087379af432d952b9a6e422ff265bfd870bfbb6",
+  "promptCommand": "node tools/assets/phuthe-sheet-prompt.mjs --id lam_ngan_thao --stage direction --dir n --concept-ref",
+  "references": [
+    {
+      "file": "references/lam_ngan_thao-nom-toE.png",
+      "sha256": "ea5c06149d559f9319ec8aeb4e305b9de1c0c7353c88bd6251ac7f9bd3fe22b8"
+    },
+    {
+      "file": "../../vohon-v2/lam_ngan_thao/concept-attempt1.png",
+      "sha256": "831f842c891248dc79d9e23d973969eb8b5608f0efe1e705e56b574526c74c35"
+    }
+  ],
+  "referencePathBase": "art/src/phuthe-anim/lam_ngan_thao",
+  "postprocessing": "none; RAW copied byte-for-byte",
+  "promptHandwritten": false,
+  "promptAddendum": false,
+  "technicalCheck": {
+    "level": "chặn",
+    "issues": [
+      {
+        "sev": "note",
+        "code": "nen",
+        "where": "toàn tờ",
+        "msg": "nền dốc nhẹ (bốn góc lệch 32), trong dung sai 60; không phải lỗi."
+      },
+      {
+        "sev": "note",
+        "code": "tach-hinh",
+        "where": "H4 (n)",
+        "msg": "dải dò được 3 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 4.",
+        "dir": "n"
+      },
+      {
+        "sev": "block",
+        "code": "hinh-dinh",
+        "where": "H3 (n)",
+        "msg": "dải có 1 hình, cần 6: hình dính nhau.",
+        "dir": "n"
+      }
+    ]
+  }
+}
