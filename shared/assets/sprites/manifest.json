@@ -1891,6 +1891,63 @@
       "map": "tinh_dau_noi_dia"
     },
     {
+      "key": "beast_nhan_dien_ma_chu_anim",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          64,
+          120
+        ],
+        "dirsOk": [
+          "s",
+          "se",
+          "e",
+          "n"
+        ]
+      },
+      "map": "tinh_dau_noi_dia"
+    },
+    {
       "key": "beast_nhan_dien_ma_chu_non",
       "frame": [
         96,
