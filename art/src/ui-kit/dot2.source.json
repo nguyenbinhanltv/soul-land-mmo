@@ -13,7 +13,9 @@
     },
     {
       "path": "D:\\Temp\\ui882-prompts\\palette.png",
-      "sha256": "6d1beee6e8e3ab497aaf7bf9ef857e6c4b8ccfaa03d16a76bd6667ff822d307b"
+      "sha256": "6d1beee6e8e3ab497aaf7bf9ef857e6c4b8ccfaa03d16a76bd6667ff822d307b",
+      "source": "art/palette.gpl",
+      "source_sha256": "70c1503b15754d192f2dd63fd51ffe9cc0d788c34057ebdfc56c7720cd717f41"
     }
   ],
   "sheets": {
@@ -800,7 +802,16 @@
             }
           }
         }
-      ]
+      ],
+      "main_copy": {
+        "file": "toF.png",
+        "prompt_file": "toF.prompt.txt",
+        "sha256": "eb22a4a0bd167a185f3db0dae3018d166a2868ab822be862533a9f7f86327314",
+        "prompt_sha256": "485f03f3f390e951f4511e93f418e6bf8618f6533151dfbbc2acf16e5414a786",
+        "copied_from": "candidates/toF-attempt2.png",
+        "raw_copy_byte_identical": true,
+        "status": "Chưa đạt: 7 CHẶN / 4 nhẹ; bản sao giữ tên chuẩn, không được cắt hoặc nhập."
+      }
     },
     "N": {
       "selected_attempt": 6,
