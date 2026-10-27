@@ -1,0 +1,21 @@
+{
+  "tool": "ChatGPT / Codex image_gen.imagegen (soul_land_game-619, 2026-10-27, #1030)",
+  "model": "unknown",
+  "seed": "unknown",
+  "issue": 1030,
+  "species": "bang_vu_ung",
+  "sheet": "toB",
+  "attempts": 2,
+  "selected_attempt": 2,
+  "recorded_at_utc": "2026-10-27T03:41:48.8359046Z",
+  "generated_at_utc": "2026-10-27T03:40:45.1393998Z",
+  "sha256": "28b99af58f84ab37a177e570bc875949547fe20b1846c5436187dcf033b0a730",
+  "prompt_sha256": "78006ef4bde9aff83e9f720b83696dad383adeda0490898c7224cbab957c70a5",
+  "references": [
+    "shared/assets/sprites/beast/bang_vu_ung.png",
+    "art/src/beast-anim/bang_vu_ung/toA.png"
+  ],
+  "original_tool_path": "C:/Users/PC/.codex/generated_images/01a17b67-f992-7893-a381-979cb0744f6b/exec-c6dd9d3d-8ce5-42bc-9c39-50bc44cc91fa.png",
+  "postprocessing": "Không; sao chép RAW nguyên byte.",
+  "agent": "soul_land_game-619"
+}

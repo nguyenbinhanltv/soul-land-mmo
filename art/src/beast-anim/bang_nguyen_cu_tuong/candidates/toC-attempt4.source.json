@@ -1,0 +1,44 @@
+{
+    "species":  "bang_nguyen_cu_tuong",
+    "stage":  "direction",
+    "direction":  "e",
+    "attempt":  4,
+    "attempts":  4,
+    "attemptLimit":  4,
+    "tool":  "Codex built-in image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "timestamp":  "2026-10-27T03:45:37.9364661Z",
+    "timestampSource":  "Thời điểm tạo file output của công cụ trên máy",
+    "agent":  "soul_land_game-618",
+    "outputPath":  "C:/Users/PC/.codex/generated_images/01a17b67-d2be-7163-a24e-6200a4b757ef/exec-db243a35-4f3d-4b66-82a9-5b7cb9e30aed.png",
+    "rawPath":  "art/src/beast-anim/bang_nguyen_cu_tuong/candidates/toC-attempt4.png",
+    "rawSha256":  "8c8f30927bcacf504b2a7ee522bdf546aab163df634426e766bf0dff9ee4c9aa",
+    "rawBytes":  2223417,
+    "dimensions":  [
+                       1536,
+                       1024
+                   ],
+    "copiedByteIdenticalFromToolOutput":  true,
+    "transparentBackground":  false,
+    "references":  [
+                       {
+                           "path":  "shared/assets/sprites/beast/bang_nguyen_cu_tuong.png",
+                           "sha256":  "3fd6261fe12cbcfd62573887ad38ffb06194c934f898e62bf0297580c076c7e3"
+                       },
+                       {
+                           "path":  "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround.png",
+                           "sha256":  "f858ee9efdbf978fa0290fd2f4d6caef06c896099734490fa62dc02cee5f9465"
+                       },
+                       {
+                           "path":  "art/src/beast-anim/bang_nguyen_cu_tuong/toA.png",
+                           "sha256":  "ac270cb52618880cb4440c74989684ef505546c1f0f2fabfdaa7cd8ac5faf0ec"
+                       }
+                   ],
+    "executionPromptPath":  "art/src/beast-anim/bang_nguyen_cu_tuong/candidates/toC-attempt4.prompt.txt",
+    "executionPromptSha256":  "52223d5a6f66c15a017401625053dacf6c4168305458c9ecbe54f5ab59056f7a",
+    "promptCommand":  "node tools/assets/beast-sheet-prompt.mjs --species bang_nguyen_cu_tuong --stage direction --dir e",
+    "manualPromptAddendum":  false,
+    "exceptionDecision":  "ngoại lệ orchestrator 27/10: hướng e quan trọng — https://github.com/nguyenbinhanltv/soul-land-mmo/pull/1108#issuecomment-6433172226",
+    "checker":  "C4: 2 chặn / 1 nhẹ; H3 có 3/6 hình, H4 có 3/4 hình, tràn ô H4 C5 2,53%; dừng hướng e"
+}
