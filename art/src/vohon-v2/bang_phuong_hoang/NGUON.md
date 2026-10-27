@@ -57,7 +57,7 @@ Công cụ vohon:check chưa có cờ --eye; chỉ khai tại đây, không đ�
 
 ## Icon lượt 1 — #1159, chưa nhập game
 
-Ngày 2026-10-27. Công cụ builtin `image_gen.imagegen`, model/seed `unknown`. RAW giữ nguyên byte: `icon-attempt1.png`, SHA256 `34c7d11b20389f26b6d01ef54e6c10229a367788d5d7e29e1d1be1f2bf6d2873`; prompt tự sinh nguyên văn bằng `node tools/assets/vohon-prompt.mjs --type icon --id bang_phuong_hoang --style-ref art/src/vohon-v2/bang_phuong_hoang/concept-attempt3.png`, SHA256 `49fa53b91c4b2e2dd851930a0b17fccd9ac3d0e7c3284674e164b95433b91d24`. Ảnh neo ngoại hình: `concept-attempt3.png`. Không viết tay prompt, không dùng lượt hỏng làm ảnh neo. Hồ sơ: `icon-attempt1.source.json`.
+Ngày 2026-10-27. Công cụ builtin `image_gen.imagegen`, model/seed `unknown`. RAW giữ nguyên byte: `icon-attempt1.png`, SHA256 `34c7d11b20389f26b6d01ef54e6c10229a367788d5d7e29e1d1be1f2bf6d2873`; prompt tự sinh nguyên văn bằng `node tools/assets/vohon-prompt.mjs --type icon --id bang_phuong_hoang --style-ref art/src/vohon-v2/bang_phuong_hoang/concept-attempt3.png`, SHA256 `fd80e3e386e4f6974d0fd175c7010b97e687adab69d1592011162617ff8da8f6`. Ảnh neo ngoại hình: `concept-attempt3.png`. Không viết tay prompt, không dùng lượt hỏng làm ảnh neo. Hồ sơ: `icon-attempt1.source.json`.
 
 Chuyển bằng `vohon-pixelize --type icon --preset icon --colors 8 --merge 24 --passes 2 --protect on`. Bản 24/32 px ở `icon-attempt1-pixel/`; báo cáo JSON kèm từng ảnh. Đây là ứng viên cần duyệt, không tự tuyên bố đạt đẹp.
 
@@ -83,3 +83,10 @@ CLI vohon:check chưa hỗ trợ cờ --eye; lưu khai báo tại đây, giữ n
 --eye "icon-attempt1=24px — nhieu-chi-tiet — mật độ biên 0.673 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
 --eye "icon-attempt1=duyệt mắt — Đầu phượng băng là biểu tượng đơn; cần so sánh mắt, mào và các mảng tinh thể ở 24/32 px."
 ```
+
+
+### Hồ sơ icon để review
+
+Số lượt icon: 1/3; chọn lượt 1 để trình duyệt. Không phải bản đã duyệt nhập game. Xem `icon-attempt1-pixel/preview/index.html` và `icon-attempt1-pixel/preview/so-sanh.png`.
+
+SHA256 prompt trong mục icon tính trên UTF-8, xuống dòng LF, không xuống dòng cuối file; `sent_prompt` và `sent_prompt_sha256` trong source JSON giữ đúng chuỗi đã gửi công cụ (kể cả xuống dòng gốc). So sánh với đầu ra CLI sau chuẩn hóa CRLF/LF: trùng nguyên nội dung, không addendum.

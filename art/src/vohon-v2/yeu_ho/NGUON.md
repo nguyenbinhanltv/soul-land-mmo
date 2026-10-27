@@ -61,7 +61,7 @@ Công cụ vohon:check chưa có cờ --eye; chỉ khai tại đây, không đ�
 
 ## Icon lượt 1 — #1159, chưa nhập game
 
-Ngày 2026-10-27. Công cụ builtin `image_gen.imagegen`, model/seed `unknown`. RAW giữ nguyên byte: `icon-attempt1.png`, SHA256 `d8244c0f5cc99bedda4e3def9ab1b00c665ca43874ed0bb0bd020f6b428daeaa`; prompt tự sinh nguyên văn bằng `node tools/assets/vohon-prompt.mjs --type icon --id yeu_ho --style-ref art/src/vohon-v2/yeu_ho/concept-attempt1.png`, SHA256 `2fb74aa2b2989f9cf336193f2fe3257d5adcaae1c8fc2434ac00e0798e65fdac`. Ảnh neo ngoại hình: `concept-attempt1.png`. Không viết tay prompt, không dùng lượt hỏng làm ảnh neo. Hồ sơ: `icon-attempt1.source.json`.
+Ngày 2026-10-27. Công cụ builtin `image_gen.imagegen`, model/seed `unknown`. RAW giữ nguyên byte: `icon-attempt1.png`, SHA256 `d8244c0f5cc99bedda4e3def9ab1b00c665ca43874ed0bb0bd020f6b428daeaa`; prompt tự sinh nguyên văn bằng `node tools/assets/vohon-prompt.mjs --type icon --id yeu_ho --style-ref art/src/vohon-v2/yeu_ho/concept-attempt1.png`, SHA256 `9f15f95daf231c76adc64dfa206089bde9be6cbe120a9982ac6d1de2b25ee6b9`. Ảnh neo ngoại hình: `concept-attempt1.png`. Không viết tay prompt, không dùng lượt hỏng làm ảnh neo. Hồ sơ: `icon-attempt1.source.json`.
 
 Chuyển bằng `vohon-pixelize --type icon --preset icon --colors 8 --merge 24 --passes 2 --protect on`. Bản 24/32 px ở `icon-attempt1-pixel/`; báo cáo JSON kèm từng ảnh. Đây là ứng viên cần duyệt, không tự tuyên bố đạt đẹp.
 
@@ -91,3 +91,10 @@ CLI vohon:check chưa hỗ trợ cờ --eye; lưu khai báo tại đây, giữ n
 ```text
 --eye "icon-attempt1=bố cục — đuôi/khối phụ — nhiều nhánh đuôi quanh mặt, chưa đạt biểu tượng đơn; mặt nhỏ khi thu 24 px"
 ```
+
+
+### Hồ sơ icon để review
+
+Số lượt icon: 1/3; chọn lượt 1 để trình duyệt. Không phải bản đã duyệt nhập game. Xem `icon-attempt1-pixel/preview/index.html` và `icon-attempt1-pixel/preview/so-sanh.png`.
+
+SHA256 prompt trong mục icon tính trên UTF-8, xuống dòng LF, không xuống dòng cuối file; `sent_prompt` và `sent_prompt_sha256` trong source JSON giữ đúng chuỗi đã gửi công cụ (kể cả xuống dòng gốc). So sánh với đầu ra CLI sau chuẩn hóa CRLF/LF: trùng nguyên nội dung, không addendum.

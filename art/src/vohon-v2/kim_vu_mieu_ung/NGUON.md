@@ -58,7 +58,7 @@ Công cụ vohon:check chưa có cờ --eye; chỉ khai tại đây, không đ�
 
 ## Icon lượt 1 — #1159, chưa nhập game
 
-Ngày 2026-10-27. Công cụ builtin `image_gen.imagegen`, model/seed `unknown`. RAW giữ nguyên byte: `icon-attempt1.png`, SHA256 `9618305feecfdb0127f6dcfb9455c1903f0d0d5aa023f1b31dacad24f24a5547`; prompt tự sinh nguyên văn bằng `node tools/assets/vohon-prompt.mjs --type icon --id kim_vu_mieu_ung --style-ref art/src/vohon-v2/kim_vu_mieu_ung/concept-attempt1.png`, SHA256 `bc01b49e4eee44ee42487c454ca89cc3a0dfbe0355272f0594a40a73b7e5e054`. Ảnh neo ngoại hình: `concept-attempt1.png`. Không viết tay prompt, không dùng lượt hỏng làm ảnh neo. Hồ sơ: `icon-attempt1.source.json`.
+Ngày 2026-10-27. Công cụ builtin `image_gen.imagegen`, model/seed `unknown`. RAW giữ nguyên byte: `icon-attempt1.png`, SHA256 `9618305feecfdb0127f6dcfb9455c1903f0d0d5aa023f1b31dacad24f24a5547`; prompt tự sinh nguyên văn bằng `node tools/assets/vohon-prompt.mjs --type icon --id kim_vu_mieu_ung --style-ref art/src/vohon-v2/kim_vu_mieu_ung/concept-attempt1.png`, SHA256 `327c651ee8616da12ed9a122cd48c8c61c69ab27b86d42097b2b9aed86ae350b`. Ảnh neo ngoại hình: `concept-attempt1.png`. Không viết tay prompt, không dùng lượt hỏng làm ảnh neo. Hồ sơ: `icon-attempt1.source.json`.
 
 Chuyển bằng `vohon-pixelize --type icon --preset icon --colors 8 --merge 24 --passes 2 --protect on`. Bản 24/32 px ở `icon-attempt1-pixel/`; báo cáo JSON kèm từng ảnh. Đây là ứng viên cần duyệt, không tự tuyên bố đạt đẹp.
 
@@ -89,3 +89,10 @@ CLI vohon:check chưa hỗ trợ cờ --eye; lưu khai báo tại đây, giữ n
 ```text
 --eye "icon-attempt1=đọc nhỏ — mắt/mỏ — đầu cú nhận ra qua tai nhọn, nhưng mắt/mỏ dính mảng vàng ở 24 px; chưa đạt đẹp"
 ```
+
+
+### Hồ sơ icon để review
+
+Số lượt icon: 1/3; chọn lượt 1 để trình duyệt. Không phải bản đã duyệt nhập game. Xem `icon-attempt1-pixel/preview/index.html` và `icon-attempt1-pixel/preview/so-sanh.png`.
+
+SHA256 prompt trong mục icon tính trên UTF-8, xuống dòng LF, không xuống dòng cuối file; `sent_prompt` và `sent_prompt_sha256` trong source JSON giữ đúng chuỗi đã gửi công cụ (kể cả xuống dòng gốc). So sánh với đầu ra CLI sau chuẩn hóa CRLF/LF: trùng nguyên nội dung, không addendum.
