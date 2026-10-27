@@ -7,7 +7,7 @@ Loài `co_moc_thu_nhan` (Cổ Mộc Thụ Nhân), họ `plant`, khung game 128×
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 2236389 byte, SHA256 `47c865bedcd9ff3a75dd0a9784e1882feb0facfb41f65db1e8967020c8904707`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: ao-desktop.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: ao-desktop.
 - Prompt: `turnaround.prompt.txt` (SHA256 `2d8ab733ebf758758f4cf815946eeacd0fe6946f3668a9fa3098729528094f75`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
@@ -31,12 +31,22 @@ Loài `co_moc_thu_nhan` (Cổ Mộc Thụ Nhân), họ `plant`, khung game 128×
 - Mức kiểm: **pass** (khối hướng: se pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
+## toC
+
+- File: `toC.png`, **1536×1024**, 2507058 byte, SHA256 `75e5f5f209091c376deeda5de51be0c0edd9326c25358e9ec92bf0396cbd924b`.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: ao-desktop.
+- Prompt: `toC.prompt.txt` (SHA256 `ad207ef97773a166ff78cc2c751da30ba2b607ef95d4fc8bc32d65d9e1ad93e0`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: e pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
 ## Lỗi
 
 ```text
 LỖI: turnaround — die chưa đổ thấp hoàn toàn; lượt 3 tốt nhất làm ref kỹ thuật (mắt)
 LỖI: toA — s — hurt hơi xoay thân sang phải (mắt)
 LỖI: toB — se — attack C6 gần chính diện; hurt ngả mạnh (mắt)
+LỖI: toC — e — một số khung hơi chếch trước, hurt ngả mạnh; chọn lượt 3 tốt nhất (mắt)
 ```
 
 ## Ghi công
