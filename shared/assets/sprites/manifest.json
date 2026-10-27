@@ -479,6 +479,62 @@
       "map": "lac_nhat_sam_lam"
     },
     {
+      "key": "beast_cuc_yeu_hoa_linh_anim",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          48,
+          88
+        ],
+        "dirsOk": [
+          "s",
+          "se",
+          "e"
+        ]
+      },
+      "map": "lac_nhat_sam_lam"
+    },
+    {
       "key": "beast_dien_thu",
       "frame": [
         64,
@@ -1891,6 +1947,63 @@
       "map": "tinh_dau_noi_dia"
     },
     {
+      "key": "beast_nhan_dien_ma_chu_anim",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          64,
+          120
+        ],
+        "dirsOk": [
+          "s",
+          "se",
+          "e",
+          "n"
+        ]
+      },
+      "map": "tinh_dau_noi_dia"
+    },
+    {
       "key": "beast_nhan_dien_ma_chu_non",
       "frame": [
         96,
@@ -1898,6 +2011,62 @@
       ],
       "iso": true,
       "static": true,
+      "map": "tinh_dau_ngoai_vi"
+    },
+    {
+      "key": "beast_nhan_dien_ma_chu_non_anim",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          48,
+          88
+        ],
+        "dirsOk": [
+          "s",
+          "se",
+          "e"
+        ]
+      },
       "map": "tinh_dau_ngoai_vi"
     },
     {
@@ -2162,6 +2331,62 @@
       ],
       "iso": true,
       "static": true,
+      "map": "thanh_hon_thon"
+    },
+    {
+      "key": "beast_quy_dang_non_anim",
+      "frame": [
+        64,
+        64
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          32,
+          56
+        ],
+        "dirsOk": [
+          "s",
+          "se",
+          "e"
+        ]
+      },
       "map": "thanh_hon_thon"
     },
     {
