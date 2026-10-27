@@ -1,0 +1,29 @@
+﻿{
+    "species":  "huyen_minh_bang_tam",
+    "stage":  "sheet",
+    "direction":  "s,se,e",
+    "attempt":  1,
+    "attempts":  1,
+    "attemptLimit":  3,
+    "batch":  "soul_land_game-651-redraw",
+    "tool":  "Codex built-in image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "timestamp":  "2026-10-27T09:03:39.0132390Z",
+    "outputPath":  "C:/Users/PC/.codex/generated_images/01a17c8e-40b9-7093-b82b-1fc9d42e172f/exec-f133357f-5bbe-4ca8-a53e-155bc92946d9.png",
+    "rawSha256":  "805377c2f298d25e6b5263bef1b78d3ad84c08950b46d79eafa23b7618a7880f",
+    "references":  [
+                       {
+                           "sha256":  "570f7dfe7d5a6e37c63f5f5a8c71461309d94dd44f8ab7afee4500de86504261",
+                           "path":  "shared/assets/sprites/beast/huyen_minh_bang_tam.png"
+                       }
+                   ],
+    "manualPromptAddendum":  false,
+    "rawPath":  "art/src/beast-anim/huyen_minh_bang_tam/candidates/toA-redraw651-attempt1.png",
+    "executionPromptPath":  "art/src/beast-anim/huyen_minh_bang_tam/candidates/toA-redraw651-attempt1.prompt.txt",
+    "executionPromptSha256":  "cdb794db6f6546d1d004f1fdd5955100278bc981aebe8dd3dcbab298eb322276",
+    "rawBytes":  1825936,
+    "batchAttempts":  3,
+    "selectedForInspection":  false,
+    "copiedByteIdenticalFromToolOutput":  true
+}

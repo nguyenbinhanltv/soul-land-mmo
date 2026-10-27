@@ -1,0 +1,32 @@
+﻿{
+    "species":  "bang_nguyen_cu_tuong",
+    "stage":  "direction",
+    "direction":  "e",
+    "attempt":  2,
+    "attemptLimit":  3,
+    "batch":  "soul_land_game-651-redraw",
+    "tool":  "Codex built-in image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "timestamp":  "2026-10-27T08:54:29.1577508Z",
+    "rawSha256":  "3f0c780b3a611f3d37df78ba260b13b57903275bd17d38b89a4e93de9c6d09ab",
+    "references":  [
+                       {
+                           "sha256":  "3fd6261fe12cbcfd62573887ad38ffb06194c934f898e62bf0297580c076c7e3",
+                           "path":  "shared/assets/sprites/beast/bang_nguyen_cu_tuong.png"
+                       },
+                       {
+                           "sha256":  "f858ee9efdbf978fa0290fd2f4d6caef06c896099734490fa62dc02cee5f9465",
+                           "path":  "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround.png"
+                       }
+                   ],
+    "manualPromptAddendum":  false,
+    "outputPath":  "C:/Users/PC/.codex/generated_images/01a17c8e-40b9-7093-b82b-1fc9d42e172f/exec-5d226435-cdf3-4fcc-a0e3-df5e43bc8827.png",
+    "rawPath":  "art/src/beast-anim/bang_nguyen_cu_tuong/candidates/toC-redraw651-attempt2.png",
+    "executionPromptPath":  "art/src/beast-anim/bang_nguyen_cu_tuong/candidates/toC-redraw651-attempt2.prompt.txt",
+    "executionPromptSha256":  "52223d5a6f66c15a017401625053dacf6c4168305458c9ecbe54f5ab59056f7a",
+    "rawBytes":  2215827,
+    "batchAttempts":  3,
+    "selectedForInspection":  false,
+    "copiedByteIdenticalFromToolOutput":  true
+}

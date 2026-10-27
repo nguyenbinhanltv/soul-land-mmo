@@ -13,7 +13,7 @@ Loài `huyen_minh_bang_tam` (Huyền Minh Băng Tằm), họ `worm`, khung game 
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se nhẹ, e pass).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 124% so với ảnh tĩnh (lệch 24%); cutter neo lại, không chặn.
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H5–8 (se): cỡ thân idle 116% so với ảnh tĩnh (lệch 16%); cutter neo lại, không chặn.
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## toB
 
@@ -29,6 +29,7 @@ Loài `huyen_minh_bang_tam` (Huyền Minh Băng Tằm), họ `worm`, khung game 
 
 ```text
 LỖI: toA — s H2 C2-C4 và H3 C2-C4 quay sang phải; H4 die xoay ngang; se/e attack có khung đổi hướng; hurt biên độ nhỏ (mắt)
+LỖI: toA — Vẽ lại soul_land_game-651: dùng đủ 3 lượt, RAW nguyên byte ở candidates/toA-redraw651-attempt1–3.*; cả ba s H3 attack xoay phải, H4 die xoay ngang. Chọn lượt 2 tốt nhất để đối chiếu (0 chặn/2 nhẹ); chưa có s mới đạt. Giữ tờ A cũ cho se/e; bản trước vẽ lại ở candidates/toA-before-redraw651.*. Sinh bằng Codex built-in image_gen.imagegen với prompt công cụ nguyên văn, model/seed unknown. (mắt)
 LỖI: toB — hurt trùng idle — H5 (n) C5–6 — hurt trùng idle (xor/hợp 0.058 / 0.053): không thấy phản ứng trúng đòn.
 LỖI: toB — ne H1-H3 hướng đầu/đuôi chưa rõ, H3 C3 lộ đầu; H4 die quay ngang lộ đầu; n H5-H8 gần s, đầu tối về người xem, H8 C4 die xoay ngang; hurt n gần idle (mắt)
 ```
