@@ -11,7 +11,7 @@ import { TIERS, VOHON, xpNeed, xpBlocked, calcStats, TICK_RATE, tierOfYears, voh
   TILE,
   itemDef, BEAST_COIN, formatHonTe, type ItemDef,
   MAX_YEARS, tierBand, rollYears, beastStats, formatYears, RING_ITEM, DROP_OWNER_SECS,
-  SHARD_UNLOCK, SHARD_QTY, MAX_STARS, starCost, shardChance, shardCode,
+  SHARD_UNLOCK, SHARD_QTY, starCost, shardChance, shardCode,
   BONE_ITEM, BONE_SLOTS, boneChance, boneName, parseBone, boneBonus,
   CORE_ITEM, CORE_SETS, coreChance, rollCore, parseCore, coreName, coreSetIndex, type CoreData,
   CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, parseEquip, equipDefTotal, equipWeaponRoll, equipName, rollEquipDrop, rollEquipCharm, EQUIP_CHARM, type EquipData, type EquipDrop,
@@ -60,7 +60,7 @@ import { ColdStacks } from "./cold.ts";
 import { _gmSetAdmin, type GmCmd } from "../gm.ts"; // lệnh GM của admin (#518)
 import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
-import { newItem, itemStacks, bagUsed, type GearStats } from "./items.ts";
+import { newItem, bagUsed, type GearStats } from "./items.ts";
 import { targetMsg, manualAttack } from "./lock.ts";
 import * as equip from "./equip.ts";
 import * as bones from "./bones.ts";
@@ -2444,80 +2444,9 @@ export class MapRoom extends Room<MapState> {
     return cost === null ? "" : ` (${n}/${cost} lên ${v.stars + 1}★)`;
   }
 
-  /**
-   * Mở võ hồn `raw` (mã trong VOHON) bằng SHARD_UNLOCK mảnh (mục 5.1): chỉ võ hồn chưa sở hữu. Trừ mảnh ngay (bấm hai lần không
-   * tiêu hai lần), rồi trong chuỗi lưu ghi võ hồn mới (cấp 1, 1 sao) và cả túi đồ trong một transaction (store.unlockVohon).
-   * DB lỗi hoặc tài khoản đã có võ hồn này thì trả lại mảnh.
-   */
-  unlockVohon(id: string, raw: unknown) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
-    const warn = (text: string) => this.log(id, text, "#ffb35c");
-    const vohon = typeof raw === "string" ? raw : "", vi = vohonIndex(vohon);
-    if (vi < 0) return warn("Võ hồn không tồn tại.");
-    const name = VOHON[vi].name, code = shardCode(vohon);
-    if (d.owned.some((v) => v.vohon === vohon)) return warn(`Đã sở hữu ${name}: dùng mảnh để lên sao.`);
-    if (d.shardBusy) return warn("Đang mở võ hồn, đợi một chút.");
-    if (claimHeld(d)) return warn(CLAIM_BUSY); // #282: mảnh vừa đổi ở Thương hội còn chờ DB xác nhận lượt, chưa tiêu được
-    const have = this.shardCount(d, code);
-    if (have < SHARD_UNLOCK) return warn(`Cần ${SHARD_UNLOCK} Mảnh ${name} để mở, mới có ${have}.`);
-    this.takeShards(d, code, SHARD_UNLOCK);
-    d.shardBusy = true;
-    this.sendBag(id);
-    // Không mở được thì trả mảnh, kể cả khi túi vừa đầy (không bao giờ mất đồ; ô thêm có thể tạm vượt số ô túi).
-    const refund = () => {
-      const left = SHARD_UNLOCK - this.addItem(d, code, SHARD_UNLOCK);
-      if (left > 0) d.bag.push(...itemStacks(code, left));
-      d.bagDirty = true;
-    };
-    this.chain(d, async () => {
-      let v: Character | null;
-      try { v = await store.unlockVohon(d.accountId, p.name, vohon, 1, this.bagSnapshot(d)); }
-      catch (e) { refund(); throw e; }
-      if (!v) { refund(); return; }
-      d.owned.push(v);
-      this.log(id, `Mở võ hồn ${name}! Đã vào bộ sưu tập (cấp 1, 1★): xếp vào đội ở bảng đội hình (phím V).`, VOHON[vi].col);
-      this.broadcast("chat", { sys: true, name: "Hệ thống", text: `${p.name} đã mở võ hồn ${name} bằng ${SHARD_UNLOCK} mảnh.` });
-    }).then(() => {
-      d.shardBusy = false;
-      if (this.pdata.get(id) !== d) return;
-      if (!d.owned.some((v) => v.vohon === vohon)) warn(`Chưa mở được ${name}, mảnh đã trả lại túi đồ.`);
-      else this.resCheck(id); // cộng minh (8.2): võ hồn mới cũng nhận phần cộng
-      const c = this.clients.getById(id); if (c) this.sendVohons(c);
-      this.sendBag(id);
-    });
-  }
-
-  /**
-   * Lên sao võ hồn `raw` (mã trong VOHON) đã sở hữu bằng mảnh theo STAR_COST (mục 5.1), tối đa MAX_STARS. Mỗi sao tăng chỉ số
-   * gốc (starMult trong calcStats). Đổi trong bộ nhớ ngay, rồi trong chuỗi lưu ghi võ hồn và cả túi đồ trong một transaction
-   * (store.saveVohonsBag); lỗi thì đánh dấu lại để lần lưu sau ghi tiếp. Hiệu ứng hồn kỹ theo sao để bước sau.
-   */
-  starUp(id: string, raw: unknown) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || d.travelling) return;
-    const warn = (text: string) => this.log(id, text, "#ffb35c");
-    const vohon = typeof raw === "string" ? raw : "", vi = vohonIndex(vohon), v = d.owned.find((x) => x.vohon === vohon);
-    if (vi < 0) return warn("Võ hồn không tồn tại.");
-    const name = VOHON[vi].name, code = shardCode(vohon);
-    if (!v) return warn(`Chưa sở hữu ${name}: đủ ${SHARD_UNLOCK} mảnh thì mở trước.`);
-    if (claimHeld(d)) return warn(CLAIM_BUSY); // #282: như mở võ hồn
-    const cost = starCost(v.stars);
-    if (cost === null) return warn(`${name} đã đạt ${MAX_STARS}★, không lên sao thêm được.`);
-    const have = this.shardCount(d, code);
-    if (have < cost) return warn(`Cần ${cost} Mảnh ${name} để lên ${v.stars + 1}★, mới có ${have}.`);
-    this.takeShards(d, code, cost);
-    v.stars++;
-    this.resCheck(id); // cộng minh (8.2): mốc Sao phải cập nhật ngay theo đường starup thật
-    if (v === d.ch) this.recalc(id, false); else d.dirty.add(v.rowId);
-    this.log(id, `${name} lên ${v.stars}★! Chỉ số gốc tăng.`, VOHON[vi].col);
-    const c = this.clients.getById(id); if (c) this.sendVohons(c);
-    this.sendBag(id);
-    this.chain(d, async () => {
-      const list = this.unsaved(id), bag = this.bagSnapshot(d);
-      if (!list.some((x) => x.rowId === v.rowId)) list.push({ ...v, rings: [...v.rings] });
-      try { await store.saveVohonsBag(d.accountId, list, bag); }
-      catch (e) { for (const x of list) if (x.rowId !== d.ch.rowId) d.dirty.add(x.rowId); d.bagDirty = true; throw e; }
-    });
-  }
+  /** Mở võ hồn / lên sao bằng mảnh: logic ở `team.ts` (#702), chuyển tiếp cho `onMessage`. */
+  unlockVohon(id: string, raw: unknown) { return team.unlockVohon(this, id, raw); }
+  starUp(id: string, raw: unknown) { return team.starUp(this, id, raw); }
 
   // ---------- Gắn hồn cốt (mục 5.5, bước 4.2) ----------
   /** Hồn cốt đang gắn trên võ hồn `rowId` (món của chính người chơi trong `d.bag`, `vohonId` = rowId); dữ liệu hỏng thì bỏ qua. */
