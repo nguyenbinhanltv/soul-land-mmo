@@ -11679,6 +11679,72 @@
       "blank": true
     },
     {
+      "key": "vhanim_u_minh_linh_mieu_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_u_minh_linh_mieu_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
       "key": "vh_xuc_xich_b",
       "iso": true
     },

@@ -57,3 +57,10 @@
 - [direction @B] For a rear three-quarter owl wing, keep the visible feather layers behind the original side-on mannequin and leave all row gutters clear. // Kim Vũ C1: se/e gần nhau, cast quay trước; D kiểm lưới, mặt chỉ khai eye
 - [direction @B] Keep the rear owl wing spread inside the same frame bounds as the standing pose and retain the original foot line. // Kim Vũ D1: nộm thấp và mặt chim lộ, chỉ khai eye; E giữ khung
 - [direction @B] For feline possession draw the ears at the reference head, the tail at the pelvis and claws at the hands, without adding a separate cat body. // Kim Vũ A–E thêm thân chim; U Minh A áp bài học chỉ chi thể
+- [direction @B] A feline possession has no separate animal torso, head or legs: show only ears on the hero head, tail at the pelvis and claws on the hero hands. // U Minh A1: nguyên linh miêu sau nộm, thêm vệt chém
+- [direction @B] Keep the original full-height cyan hero unobscured between the two hand claws; omit every separate feline head, ribcage and slash trail. // U Minh A2: vẫn nguyên con và vệt chém, A3 lượt cuối
+- [direction @B] The feline tail must remain rooted at the hero pelvis in every side-facing frame rather than curling from a separate animal spine. // U Minh A3: vẫn nguyên con, nộm thấp; B giữ gốc đuôi
+- [direction @B] Keep the two hand claws close to the reference hands during the east-facing strike so the front slash cannot touch the next cell. // U Minh B1: vệt vuốt rộng, nộm nhỏ; C1 giữ khoảng trống
+- [direction @B] Shorten every feline claw extension inside its own cell while preserving a broad magenta gap between all six attack poses. // U Minh C1: vuốt vươn sang ô bên, D giữ khoảng trống
+- [direction @B] Keep feline cast silhouettes compact above the fixed pelvis and leave the two spare cells completely magenta. // U Minh D1: cast dựng nguyên thân, mặt ne khai eye; E giữ khoảng trống
+- [direction @B] Keep each east-facing feline attack claw folded inside its own cell, with no slash arc extending toward a neighbour. // U Minh C1 bị chặn lưới; C2 chỉ sửa tờ e
