@@ -169,7 +169,7 @@ Mỗi lần tự săn dừng (tự tắt hay bị dừng), tin `auto` kèm `sum`
 
 ### Cài đặt (tham khảo)
 `server/src/rooms/autoHunt.ts` (`AutoHunter`): quyết định `AUTO_HZ` lần mỗi giây (đan, đánh trả, nhặt, mục tiêu, đường đi, hồn kỹ, tiên cơ); giữa hai lần chỉ lái hướng đi theo đường đã tìm và đánh thường khi trong tầm.
-- Bật / dừng / lưu ở `MapRoom` (`autoAction`, `autoStop`, `flushAuto`); boss của phòng và điều kiện nhận thưởng `autoBosses` / `autoBossOk`; chiêu đang báo trước `activeCasts`; vùng lưu lại `Grounds.hits`.
+- Bật / dừng / lưu ở `rooms/autoRun.ts` (`autoAction`, `autoStop`, `flushAuto`; `MapRoom` chỉ chuyển tiếp); boss của phòng và điều kiện nhận thưởng `autoBosses` / `autoBossOk`; chiêu đang báo trước `activeCasts`; vùng lưu lại `Grounds.hits`.
 - Đo tải: `client/scripts/auto-soak.mjs`. Nhiều người treo cùng đánh một boss thế giới: nhóm bot `autobossperf` (server `PERF_LOG=1`, hook test `perf`).
 
 ## Ủy thác offline (Auto 3)
@@ -199,7 +199,7 @@ Tin riêng `offline`, khung giấy cuộn thủy mặc, `client/src/offline.ts`:
 - nút "Nhận" đóng bảng (thưởng đã vào túi lúc vào game).
 
 ### Cài đặt (tham khảo)
-- `MapRoom.onLeave` ghi (`offlineZone`, bảng `auto_offline`); `MapRoom.claimOffline` (xếp vào chuỗi lưu khi vào phòng) tính, cộng rồi `write()`.
+- `MapRoom.onLeave` ghi (`offlineZone`, bảng `auto_offline`); `rooms/autoRun.ts` `claimOffline` (`MapRoom` chuyển tiếp; xếp vào chuỗi lưu khi vào phòng) tính, cộng rồi `write()`.
 - Hook `test {op: "offline", ago}` lùi thời điểm của lần ủy thác kế tiếp (giả lập thời gian trôi).
 
 ## Quyết định của chủ repo và issue liên quan

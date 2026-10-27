@@ -1,0 +1,170 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-28",
+  "attempt": 4,
+  "supplementalAttempt": 1,
+  "raw": "toC-lpc-attempt4.png",
+  "sha256": "b5dda2b271a79577d60c3ce60590e1571193a57fc7b11bffd328a9f550f77bce",
+  "prompt": "toC-lpc-attempt4.prompt.txt",
+  "promptSha256": "2dcaf3827c5c556b9f0e9a0bc266f7cd2e601421bba6201f2e4f3a53f8f42f07",
+  "referencePathBase": "repository root",
+  "references": [
+    {
+      "file": "art/src/phuthe-anim/ta_hoa_phuong_hoang/lpc-moi/ta_hoa_phuong_hoang-nom-toC.png",
+      "sha256": "beaed26756433db93b246eed3466f907d9a923930f5299e81fca2a6d84e26bbd"
+    },
+    {
+      "file": "art/src/phuthe-anim/ta_hoa_phuong_hoang/candidates/turnaround-attempt2.png",
+      "sha256": "fa7f51cf58c33792a8c395537909b5d3cc39bdf9301f010d1cb9667d48c8046a"
+    },
+    {
+      "file": "art/src/phuthe-anim/ta_hoa_phuong_hoang/lpc-moi/toA.png",
+      "sha256": "4aee982d578adfc4ea5e9ea811a33afb5bc409cf757f6b61ed35813ecd49b66d"
+    }
+  ],
+  "promptHandwritten": false,
+  "promptAddendum": false,
+  "postprocessing": "none; RAW copied byte-for-byte",
+  "technicalCheck": {
+    "id": "ta_hoa_phuong_hoang",
+    "level": "chặn",
+    "group": "B",
+    "frame": 96,
+    "dummyKey": "#00D0D0",
+    "blockLevel": {
+      "e": "chặn"
+    },
+    "sheets": [
+      {
+        "sheet": "toC",
+        "size": [
+          1536,
+          1024
+        ],
+        "kind": "huong",
+        "level": "chặn",
+        "dirs": [
+          "e"
+        ],
+        "background": {
+          "key": [
+            250,
+            4,
+            251
+          ],
+          "corners": [
+            [
+              234,
+              18,
+              241
+            ],
+            [
+              240,
+              24,
+              240
+            ],
+            [
+              231,
+              41,
+              236
+            ],
+            [
+              234,
+              36,
+              236
+            ]
+          ],
+          "keyDistFromLock": 5,
+          "cornerSpread": 37
+        },
+        "seVsE": null,
+        "prep": null,
+        "bands": [
+          {
+            "row": 1,
+            "dir": "e",
+            "y": [
+              12,
+              253
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 2,
+            "dir": "e",
+            "y": [
+              260,
+              498
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 3,
+            "dir": "e",
+            "y": [
+              509,
+              720
+            ],
+            "figures": 5,
+            "state": "bad"
+          },
+          {
+            "row": 4,
+            "dir": "e",
+            "y": [
+              728,
+              983
+            ],
+            "figures": 4,
+            "state": "warn"
+          }
+        ],
+        "motion": [],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 37), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "note",
+            "code": "tach-hinh",
+            "where": "H2 (e)",
+            "msg": "dải dò được 4 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 6."
+          },
+          {
+            "sev": "note",
+            "code": "tach-hinh",
+            "where": "H3 (e)",
+            "msg": "dải dò được 4 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 5."
+          },
+          {
+            "sev": "note",
+            "code": "tach-hinh",
+            "where": "H4 (e)",
+            "msg": "dải dò được 3 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 4."
+          },
+          {
+            "sev": "block",
+            "code": "hinh-dinh",
+            "where": "H3 (e)",
+            "msg": "dải có 5 hình, cần 6: hình dính nhau."
+          },
+          {
+            "sev": "light",
+            "code": "o-trong",
+            "where": "H4 (e) C5",
+            "msg": "ô trống có hình (4.9% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng."
+          }
+        ],
+        "draft": "LỖI: toC — hình dính / hình ở ô trống — H3 (e), H4 (e) C5 — dải có 5 hình, cần 6: hình dính nhau; ô trống có hình (4.9% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng."
+      }
+    ]
+  },
+  "selected": false
+}
