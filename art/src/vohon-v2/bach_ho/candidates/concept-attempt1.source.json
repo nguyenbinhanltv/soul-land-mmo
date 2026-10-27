@@ -1,0 +1,13 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "attempt": 1,
+  "image_sha256": "910d3a48b513daa6e8dd4768dbf57cf9a6d5170d78490066d0af1a51f89a0475",
+  "prompt_sha256": "3741a416ce38f7106ce2e623810664f8ad215558d07c0575984724091e7a6ea0",
+  "original_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17c43-78f6-7b71-8761-194681d08ba0\\exec-d79bb25d-17af-4ba9-8a23-6f7815598305.png",
+  "reference": "PR #1083: concept-turnaround-attempt2.png (Hạo Thiên Chùy)",
+  "status": "CHẶN",
+  "assessment": "Cả 3 lượt: ne ngoái đầu lộ mặt/mắt vàng, không đạt góc nhìn lưng. Khoảng 4 góc thật đúng, n giấu mặt đúng. Lượt 1: khí trắng nối hình se/e. Lượt 2: quá nhiều vàng, khí nối s/se. Lượt 3: khí nối s/se, vàng trên vằn không đúng bảng nhấn mắt; thiếu vòng trận sao. Thân xám lạnh, ngực sáng, vằn đen và dáng ngồi đúng; chi tiết lông nhỏ là lỗi nhẹ. Chưa đạt."
+}
