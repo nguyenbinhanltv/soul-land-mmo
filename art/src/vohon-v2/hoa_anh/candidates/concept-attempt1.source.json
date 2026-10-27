@@ -7,7 +7,7 @@
   "image_sha256": "a55bdfc5d130fa8ed8f2670c05cf1dff890aa28f41346b028ccc582e664a52c2",
   "prompt_sha256": "1378ffa29bc20ac6918fb29a1c092542f8594a999582bbec7d2506b7c69c2b7e",
   "submitted_prompt_sha256": "6a8950245c332b307da44ded138083423ff852925b2c509d89dc4b5f923362a1",
-  "prompt_line_endings": "B?n l?u LF theo Git; n?i dung nguy?n b?n, hash th?c g?i l?u ri?ng n?u CRLF.",
+  "prompt_line_endings": "Bản lưu LF theo Git; nội dung nguyên bản, hash thực gửi lưu riêng nếu CRLF.",
   "original_output": "C:/Users/PC/.codex/generated_images/01a17cc5-63b8-7180-bc0d-e3cc732ef99e/exec-325d9ab8-6d82-44a8-8e46-d817d1cca721.png",
   "reference": "PR #1083: concept-turnaround-attempt2.png (Hạo Thiên Chùy)",
   "status": "rejected_candidate",

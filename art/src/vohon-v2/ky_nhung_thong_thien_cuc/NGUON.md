@@ -1,6 +1,6 @@
 # ky_nhung_thong_thien_cuc — concept năm hướng RAW
 
-Công cụ: builtin `image_gen.imagegen`; model/seed: `unknown`. Ngày 2026-10-27. **1/3 lượt**, chọn lượt 1. RAW nguyên byte, không hậu kỳ, chưa nhập game. Prompt sinh nguyên bản bằng `vohon-prompt.mjs --type phaptuong --id ky_nhung_thong_thien_cuc --style-ref <ảnh neo>`; chỉ dùng ảnh neo Hạo Thiên Chùy lượt 2 đã duyệt từ PR #1083, không dùng ảnh cũ hay lượt hỏng.
+Công cụ: builtin `image_gen.imagegen`; model/seed: `unknown`. Ngày 2026-10-27. **3/3 lượt**, chọn lượt 2. RAW nguyên byte, không hậu kỳ, chưa nhập game. Prompt sinh nguyên bản bằng `vohon-prompt.mjs --type phaptuong --id ky_nhung_thong_thien_cuc --style-ref <ảnh neo>`; chỉ dùng ảnh neo Hạo Thiên Chùy lượt 2 đã duyệt từ PR #1083, không dùng ảnh cũ hay lượt hỏng.
 
 ## Đánh giá
 
@@ -38,6 +38,6 @@ raw concept-attempt2.png pháp tướng (ky_nhung_thong_thien_cuc): CHẶN
 |---|---|---|---|---|---|
 | `art/src/vohon-v2/ky_nhung_thong_thien_cuc/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. | 2026-10-27 | Chưa duyệt, không nhập game. |
 
-L??t lo?i 1: `candidates/concept-attempt1.png`; SHA256 ?nh `ee37d620c447950f51e08910448d127226b1a13e9bc9ec7b5fc1422b4c087d11`, prompt `71f85fa0c0d563d18ee85f797345ec261a1c8e7bb7a097e93aba165599dc68ba`. Loại lượt 1: cánh chạm nhau làm bộ kiểm tách chỉ bốn khối. Đúng cánh dao cam đất, nhụy vàng, rễ đen và góc sau; chi tiết còn dày.
+Lượt loại 1: `candidates/concept-attempt1.png`; SHA256 ảnh `ee37d620c447950f51e08910448d127226b1a13e9bc9ec7b5fc1422b4c087d11`, prompt `71f85fa0c0d563d18ee85f797345ec261a1c8e7bb7a097e93aba165599dc68ba`. Loại lượt 1: cánh chạm nhau làm bộ kiểm tách chỉ bốn khối. Đúng cánh dao cam đất, nhụy vàng, rễ đen và góc sau; chi tiết còn dày.
 
-L??t lo?i 3: `candidates/concept-attempt3.png`; SHA256 ?nh `ab6dcf01d81123b16811a8f43e1d2cd0510fec731189c7eb8c79a457824abd3e`, prompt `71f85fa0c0d563d18ee85f797345ec261a1c8e7bb7a097e93aba165599dc68ba`. Loại lượt 3: góc sau rõ, ít texture hơn nhưng cánh chạm, chỉ tách bốn khối. Giữ lượt 2 vì khoảng cách tốt hơn.
+Lượt loại 3: `candidates/concept-attempt3.png`; SHA256 ảnh `ab6dcf01d81123b16811a8f43e1d2cd0510fec731189c7eb8c79a457824abd3e`, prompt `71f85fa0c0d563d18ee85f797345ec261a1c8e7bb7a097e93aba165599dc68ba`. Loại lượt 3: góc sau rõ, ít texture hơn nhưng cánh chạm, chỉ tách bốn khối. Giữ lượt 2 vì khoảng cách tốt hơn.

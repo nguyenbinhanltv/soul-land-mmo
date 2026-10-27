@@ -21,5 +21,5 @@
     "chi tiết — sao và hoa văn — hơi dày, sao hơi nhọn"
   ],
   "submitted_prompt_sha256": "9d930ca041324a9aacc0bdb272d9cc12be2e3000ed3b5b580666a42cf6fed444",
-  "prompt_line_endings": "B?n l?u LF theo Git; n?i dung nguy?n b?n, hash th?c g?i l?u ri?ng n?u CRLF."
+  "prompt_line_endings": "Bản lưu LF theo Git; nội dung nguyên bản, hash thực gửi lưu riêng nếu CRLF."
 }

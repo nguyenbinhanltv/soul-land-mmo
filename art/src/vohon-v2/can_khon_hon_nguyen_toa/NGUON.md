@@ -1,6 +1,6 @@
 # can_khon_hon_nguyen_toa — concept năm hướng RAW
 
-Công cụ: builtin `image_gen.imagegen`; model/seed: `unknown`. Ngày 2026-10-27. **1/3 lượt**, chọn lượt 1. RAW nguyên byte, không hậu kỳ, chưa nhập game. Prompt sinh nguyên bản bằng `vohon-prompt.mjs --type phaptuong --id can_khon_hon_nguyen_toa --style-ref <ảnh neo>`; chỉ dùng ảnh neo Hạo Thiên Chùy lượt 2 đã duyệt từ PR #1083, không dùng ảnh cũ hay lượt hỏng.
+Công cụ: builtin `image_gen.imagegen`; model/seed: `unknown`. Ngày 2026-10-27. **2/3 lượt**, chọn lượt 2. RAW nguyên byte, không hậu kỳ, chưa nhập game. Prompt sinh nguyên bản bằng `vohon-prompt.mjs --type phaptuong --id can_khon_hon_nguyen_toa --style-ref <ảnh neo>`; chỉ dùng ảnh neo Hạo Thiên Chùy lượt 2 đã duyệt từ PR #1083, không dùng ảnh cũ hay lượt hỏng.
 
 ## Đánh giá
 
@@ -37,4 +37,4 @@ raw concept-attempt2.png pháp tướng (can_khon_hon_nguyen_toa): NHẸ
 |---|---|---|---|---|---|
 | `art/src/vohon-v2/can_khon_hon_nguyen_toa/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. | 2026-10-27 | Chưa duyệt, không nhập game. |
 
-L??t lo?i 1: `candidates/concept-attempt1.png`; SHA256 ?nh `79791c7536060325dac603853a7beff3ccc1dd0c3811abcbe58f0a62627286af`, prompt `f9d048df6a979b1d81c886a7c70029e2ea1e67947ba45881156fbdf394ac6ee1`. Loại lượt 1: hai hình ne/n chạm nhau làm bộ kiểm chỉ tách bốn khối. Vòng pháp khí, khóa đỏ, xích đen vàng nhận diện đúng; các móc thêm vết nứt cam không có trong brief. Hình mặt sau rõ.
+Lượt loại 1: `candidates/concept-attempt1.png`; SHA256 ảnh `79791c7536060325dac603853a7beff3ccc1dd0c3811abcbe58f0a62627286af`, prompt `f9d048df6a979b1d81c886a7c70029e2ea1e67947ba45881156fbdf394ac6ee1`. Loại lượt 1: hai hình ne/n chạm nhau làm bộ kiểm chỉ tách bốn khối. Vòng pháp khí, khóa đỏ, xích đen vàng nhận diện đúng; các móc thêm vết nứt cam không có trong brief. Hình mặt sau rõ.

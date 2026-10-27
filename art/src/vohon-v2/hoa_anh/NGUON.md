@@ -1,6 +1,6 @@
 # hoa_anh — concept năm hướng RAW
 
-Công cụ: builtin `image_gen.imagegen`; model/seed: `unknown`. Ngày 2026-10-27. **1/3 lượt**, chọn lượt 1. RAW nguyên byte, không hậu kỳ, chưa nhập game. Prompt sinh nguyên bản bằng `vohon-prompt.mjs --type phaptuong --id hoa_anh --style-ref <ảnh neo>`; chỉ dùng ảnh neo Hạo Thiên Chùy lượt 2 đã duyệt từ PR #1083, không dùng ảnh cũ hay lượt hỏng.
+Công cụ: builtin `image_gen.imagegen`; model/seed: `unknown`. Ngày 2026-10-27. **2/3 lượt**, chọn lượt 2. RAW nguyên byte, không hậu kỳ, chưa nhập game. Prompt sinh nguyên bản bằng `vohon-prompt.mjs --type phaptuong --id hoa_anh --style-ref <ảnh neo>`; chỉ dùng ảnh neo Hạo Thiên Chùy lượt 2 đã duyệt từ PR #1083, không dùng ảnh cũ hay lượt hỏng.
 
 ## Đánh giá
 
@@ -37,4 +37,4 @@ raw concept-attempt2.png pháp tướng (hoa_anh): NHẸ
 |---|---|---|---|---|---|
 | `art/src/vohon-v2/hoa_anh/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. | 2026-10-27 | Chưa duyệt, không nhập game. |
 
-L??t lo?i 1: `candidates/concept-attempt1.png`; SHA256 ?nh `a55bdfc5d130fa8ed8f2670c05cf1dff890aa28f41346b028ccc582e664a52c2`, prompt `1378ffa29bc20ac6918fb29a1c092542f8594a999582bbec7d2506b7c69c2b7e`. Loại lượt 1 do cắt sừng ở mép trên và tay ngoài mép trái/phải. RAW tự động NHẸ nhưng lỗi cắt mép chặn bằng mắt. Dáng hộ pháp vai rộng, mắt vàng, hai tay lửa và khói tím đúng; ne ngoái trái lộ mắt, chỉ khai eye. Lượt mới nhằm bố cục, không nhằm lỗi ne.
+Lượt loại 1: `candidates/concept-attempt1.png`; SHA256 ảnh `a55bdfc5d130fa8ed8f2670c05cf1dff890aa28f41346b028ccc582e664a52c2`, prompt `1378ffa29bc20ac6918fb29a1c092542f8594a999582bbec7d2506b7c69c2b7e`. Loại lượt 1 do cắt sừng ở mép trên và tay ngoài mép trái/phải. RAW tự động NHẸ nhưng lỗi cắt mép chặn bằng mắt. Dáng hộ pháp vai rộng, mắt vàng, hai tay lửa và khói tím đúng; ne ngoái trái lộ mắt, chỉ khai eye. Lượt mới nhằm bố cục, không nhằm lỗi ne.

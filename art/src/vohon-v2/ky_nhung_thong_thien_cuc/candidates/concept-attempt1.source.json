@@ -20,5 +20,5 @@
     "bố cục — khoảng trống — cánh giữa các hướng chạm nhau"
   ],
   "submitted_prompt_sha256": "ed35e6b25c444d42e777562763e9049adaedc8d22280a986c6337e64b1910ff5",
-  "prompt_line_endings": "B?n l?u LF theo Git; n?i dung nguy?n b?n, hash th?c g?i l?u ri?ng n?u CRLF."
+  "prompt_line_endings": "Bản lưu LF theo Git; nội dung nguyên bản, hash thực gửi lưu riêng nếu CRLF."
 }

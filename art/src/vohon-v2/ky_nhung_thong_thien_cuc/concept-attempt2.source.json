@@ -7,7 +7,7 @@
   "image_sha256": "dcfdd0bb52b5dcb0df1416aa2a312ae1b5cc85d76d908c52d2a5bbb4e7fde88f",
   "prompt_sha256": "71f85fa0c0d563d18ee85f797345ec261a1c8e7bb7a097e93aba165599dc68ba",
   "submitted_prompt_sha256": "ed35e6b25c444d42e777562763e9049adaedc8d22280a986c6337e64b1910ff5",
-  "prompt_line_endings": "B?n l?u LF theo Git; n?i dung nguy?n b?n, hash th?c g?i l?u ri?ng n?u CRLF.",
+  "prompt_line_endings": "Bản lưu LF theo Git; nội dung nguyên bản, hash thực gửi lưu riêng nếu CRLF.",
   "original_output": "C:/Users/PC/.codex/generated_images/01a17cc5-63b8-7180-bc0d-e3cc732ef99e/exec-872ce121-3ed5-4c88-96fb-ce7f2bd2b916.png",
   "reference": "PR #1083: concept-turnaround-attempt2.png (Hạo Thiên Chùy)",
   "status": "selected_appearance_reference",
