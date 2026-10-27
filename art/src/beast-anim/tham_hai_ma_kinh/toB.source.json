@@ -1,0 +1,12 @@
+{
+    "seed":  "unknown",
+    "timestamp":  "2026-10-27T05:31:46.4200337Z",
+    "sha256":  "d3b91943d9c876a1b2f73115a8aac7dfa1a254d2927851e12d54b65f3ae520d4",
+    "model":  "unknown",
+    "references":  [
+                       "shared/assets/sprites/beast/tham_hai_ma_kinh.png",
+                       "art/src/beast-anim/tham_hai_ma_kinh/turnaround.png"
+                   ],
+    "tool":  "image_gen",
+    "attempts":  1
+}

@@ -1,0 +1,11 @@
+{
+    "seed":  "unknown",
+    "timestamp":  "2026-10-27T05:27:46.5314452Z",
+    "sha256":  "a8e3b2c6e2ad097696b60f178fcedb1c519180d6e62e6a3169c9b25818e4375d",
+    "model":  "unknown",
+    "references":  [
+                       "shared/assets/sprites/beast/tham_hai_ma_kinh.png"
+                   ],
+    "tool":  "image_gen",
+    "attempts":  3
+}
