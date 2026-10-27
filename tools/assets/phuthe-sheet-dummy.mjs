@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import { Img, readPng, encodePng, hex, paletteGroup, frameAnchors, ROOT } from "./lib.mjs";
 import {
   LPC_SHEET, DIRS, BG_KEY, CELL, SHEET_W, SHEET_H, TURNAROUND, TURNAROUND_STEP,
-  framesOf, sheetCells, bodyStepOf, bodyRowKey, bodyColOf, bodyOffset, frameOrigin, checkFrame, phutheInfo, dummyKeyOf, guideKeyOf, SHEET_ID,
+  framesOf, sheetCells, bodyStepOf, bodyRowKey, bodyColOf, bodyOffset, frameOrigin, checkFrame, phutheInfo, dummyKeyOf, guideKeyOf, SHEET_ID, allPhutheIds,
 } from "./phuthe-sheet-lib.mjs";
 
 const PARTS = path.join(ROOT, "shared", "assets", "lpcparts");
@@ -132,20 +132,24 @@ export function dummyTurnaround({ frame, key, sex = "m", guideKey = null }) {
 }
 
 /** Ghi bảng nộm của một võ hồn vào `out`; trả danh sách file. */
-export function writeDummies(id, out, { frame, key, sex = "m", guideKey, guides = true } = {}) {
+export function writeDummies(id, out, { frame, key, sex = "m", guideKey, guides = true, turnaround = true } = {}) {
   const info = phutheInfo(id), F = frame ?? info.frame, k = key ?? info.dummyKey, g = guides ? (guideKey ?? guideKeyOf(id, k)) : null;
   mkdirSync(out, { recursive: true });
   const files = [];
   const put = (name, img) => { const f = path.join(out, name); writeFileSync(f, encodePng(img)); files.push(f); };
-  put(`${id}-nom-turnaround.png`, dummyTurnaround({ frame: F, key: k, sex, guideKey: g }));
+  if (turnaround) put(`${id}-nom-turnaround.png`, dummyTurnaround({ frame: F, key: k, sex, guideKey: g }));
   for (const dir of DIRS) put(`${id}-nom-to${SHEET_ID[dir]}.png`, dummySheet({ group: info.group, dir, frame: F, key: k, sex, guideKey: g }).img);
   return files;
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const a = process.argv.slice(2), val = (n) => { const i = a.indexOf(n); return i < 0 ? undefined : a[i + 1]; };
-  const id = val("--id"), out = val("--out");
-  if (!id || !out) { console.error("Dùng: node tools/assets/phuthe-sheet-dummy.mjs --id <võ hồn> --out <thư mục> [--frame 96|128] [--dummy-key #00D0D0] [--guide-key #7A5CFF] [--no-guides] [--sex m|f]"); process.exit(2); }
-  try { for (const f of writeDummies(id, out, { frame: val("--frame") && +val("--frame"), key: val("--dummy-key"), sex: val("--sex") ?? "m", guideKey: val("--guide-key"), guides: !a.includes("--no-guides") })) console.log(`ghi ${f}`); }
-  catch (e) { console.error(e.message); process.exit(2); }
+  const id = val("--id"), out = val("--out"), all = a.includes("--all"), turnaround = !a.includes("--no-turnaround");
+  if ((!id && !all) || !out) { console.error("Dùng: node tools/assets/phuthe-sheet-dummy.mjs --id <võ hồn> --out <thư mục> [--frame 96|128] [--dummy-key #00D0D0] [--guide-key #7A5CFF] [--no-guides] [--no-turnaround] [--sex m|f]\n  hoặc --all --out <art/src/phuthe-anim> [--skip id,id]: mọi võ hồn vào <out>/<id>/references (khung, màu nộm, màu vạch theo công cụ)"); process.exit(2); }
+  try {
+    if (all) {
+      const skip = new Set(val("--skip")?.split(",") ?? []);
+      for (const k of allPhutheIds().filter((x) => !skip.has(x))) for (const f of writeDummies(k, path.join(out, k, "references"), { sex: val("--sex") ?? "m", turnaround })) console.log(`ghi ${f}`);
+    } else for (const f of writeDummies(id, out, { frame: val("--frame") && +val("--frame"), key: val("--dummy-key"), sex: val("--sex") ?? "m", guideKey: val("--guide-key"), guides: !a.includes("--no-guides"), turnaround })) console.log(`ghi ${f}`);
+  } catch (e) { console.error(e.message); process.exit(2); }
 }
