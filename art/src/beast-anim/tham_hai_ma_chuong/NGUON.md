@@ -16,7 +16,7 @@ Loài `tham_hai_ma_chuong` (Thâm Hải Ma Chương), họ `float`, khung game 9
 ## Lỗi
 
 ```text
-LỖI: toA — e — H9-H12, rõ nhất H11 C1 — một số khung còn thiên góc ba phần tư, chưa ngang tuyệt đối; chọn A3 đạt kỹ thuật làm tham chiếu B; A1/A2 và bản cũ giữ ở candidates (mắt)
+LỖI: toA — CHẶN HƯỚNG se/e — H5-H12, rõ nhất H11 C1 — hai góc còn gần nhau, e chưa ngang; đủ 3 lượt, chọn A3, chỉ lưu candidates/toA.png cùng source/prompt, không có RAW chính; A1/A2 và bản cũ cũng ở candidates (mắt)
 ```
 
 ## Ghi công

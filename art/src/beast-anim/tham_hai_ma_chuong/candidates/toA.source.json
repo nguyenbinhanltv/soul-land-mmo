@@ -23,6 +23,6 @@
                    ],
     "postprocessing":  false,
     "technical":  "pass 0/0, 948x1659",
-    "eye":  "A3 tốt nhất; s/se/e khác rõ hơn; một số khung e còn thiên góc ba phần tư, chưa ngang tuyệt đối",
+    "eye":  "CHẶN MẮT: se/e vẫn gần nhau (IoU 0.802); e một số khung còn ba phần tư, chưa ngang. Đủ 3 lượt, chọn A3 tốt nhất và chỉ lưu candidates; được dùng làm tham chiếu B vì đạt kỹ thuật.",
     "original_tool_output_path":  "C:/Users/PC/.codex/generated_images/01a17c10-51e1-73f2-a82e-b6578a36a56e/exec-a7efcb93-c5b3-47f6-be82-87becb7c658f.png"
 }
