@@ -68,7 +68,13 @@
       "copiedByteIdenticalFromToolOutput": true
     },
     "postprocessing": false,
-    "manualFindings": [],
+    "manualFindings": [
+      "NE H1 H0–H1 hurt, H2 W0–W5 walk và H3 A0–A5 attack lộ mặt.",
+      "NE H4 D2–D3 die nằm ngang, lệch trục hướng đông-bắc.",
+      "N H6 W0–W5 walk và H7 A0–A5 attack lộ mặt.",
+      "N H8 D2–D3 die nằm ngang, lệch trục hướng bắc.",
+      "Checker: H8 (n) C4 lệch đường chân 13%."
+    ],
     "ownerArtApproval": false
   }
 }
