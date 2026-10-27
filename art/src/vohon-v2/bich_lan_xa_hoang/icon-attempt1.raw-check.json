@@ -1,0 +1,39 @@
+{
+  "type": "icon",
+  "id": "bich_lan_xa_hoang",
+  "issues": [
+    {
+      "sev": "soft",
+      "code": "mem",
+      "text": "texture mềm: 90% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+    },
+    {
+      "sev": "soft",
+      "code": "luoi",
+      "text": "chưa đúng lưới khối: tỉ số biên 1.24 ở chu kỳ 34 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+    }
+  ],
+  "metrics": {
+    "w": 1254,
+    "h": 1254,
+    "ratio": 1,
+    "border": {
+      "clear": 0.99,
+      "flat70": 0.01
+    },
+    "fill": 0.94,
+    "softness": 0.908,
+    "bigColors": 130,
+    "grid": {
+      "period": 34,
+      "ratio": 1.24
+    },
+    "paletteMatch": 0.67,
+    "smallAccent": "8/8"
+  },
+  "manual": [
+    "đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi)",
+    "không có chữ, ký hiệu đọc được, logo, chữ ký",
+    "đọc được cả ở cỡ thật 1× (nhìn lướt)"
+  ]
+}

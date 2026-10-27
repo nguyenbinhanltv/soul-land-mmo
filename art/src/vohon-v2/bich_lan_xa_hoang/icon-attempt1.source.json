@@ -1,0 +1,24 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "type": "icon",
+  "attempt": 1,
+  "raw": "icon-attempt1.png",
+  "raw_sha256": "9bb7c5b8dcb441d031526dcf48fcf23aecb16137a536bd96ee73eb2e08fe4ee6",
+  "prompt": "icon-attempt1.prompt.txt",
+  "prompt_sha256": "7f20d7f3aed08e98e38160f7b7292b012e688e96e7f5d86c1d4b26f602879c05",
+  "reference": "concept-attempt1.png",
+  "reference_sha256": "dbb1002c01e3a0e541c3b385405b4db54225735ed5e549aac983e4a1f1a94a56",
+  "original": "C:/Users/PC/.codex/generated_images/01a17dd5-789d-7bd1-9290-26a7285f2682/exec-4281f8a4-5bb8-45be-9a78-5bd785b83eb4.png",
+  "pixelize": {
+    "preset": "icon",
+    "colors": 8,
+    "merge": 24,
+    "passes": 2,
+    "protect": true
+  },
+  "status": "needs_visual_review",
+  "eye": "Đầu rắn lục thẫm, mào nhọn, nanh dài và mắt vàng chanh; kiểm khối đầu tách khỏi khí độc khi thu nhỏ."
+}
