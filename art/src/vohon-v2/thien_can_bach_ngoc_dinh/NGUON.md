@@ -38,3 +38,20 @@ raw concept-attempt1.png pháp tướng (thien_can_bach_ngoc_dinh): NHẸ
 | `art/src/vohon-v2/thien_can_bach_ngoc_dinh/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. | 2026-10-27 | Chưa duyệt, không nhập game. |
 
 Prompt trong repo chuẩn hóa xuống dòng LF đúng byte Git; SHA trước chuẩn hóa CRLF giữ trong source JSON. Nội dung prompt tự sinh không sửa.
+
+
+## Chân dung lô 3 — #1158, P1c2
+
+Ngày 2026-10-27; **1/3 lượt**. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `candidates/portrait-attempt1.png`, SHA256 `5c987b8def841fd01e9f79079396e1dc50e5171b8885b9571ef6df6cf33f7fd6`. Prompt nguyên văn từ CLI, không viết tay / addendum: `candidates/portrait-attempt1.prompt.txt`, SHA256 `95bfae034ed57773889a39a5f1e373c9e017885c60d1ea50cb6cd67561045e16`. Prompt lưu UTF-8 LF; chuỗi gửi gốc và SHA256 giữ trong `candidates/portrait-attempt1.source.json`, chỉ chuẩn hoá xuống dòng.
+
+Ảnh neo: `art/src/vohon-v2/thien_can_bach_ngoc_dinh/concept-attempt1.png`, SHA256 `ee78be8f3d9a0f7d1124704380adf4755f44d146aec0bb50998ff2e5812b011d`. 
+
+Pixel hoá `--preset portrait2` đã duyệt, giữ mặc định 16 màu (brief RAW 6–8 mảng màu); bản `candidates/portrait-attempt1-P1c2/thien_can_bach_ngoc_dinh-portrait.png`. Xem `candidates/portrait-attempt1-P1c2/preview/index.html` và `so-sanh.png`. Kết quả máy RAW/P1c2 và lệnh tái tạo trong source JSON, báo cáo pixel kèm thư mục. Chỉ ứng viên trình duyệt, **chưa duyệt, không nhập game**; không chọn thay concept.
+
+### Khai báo duyệt mắt chân dung (`--eye`)
+
+CLI chưa nhận cờ `--eye`; lưu khai báo tường minh, giữ nguyên kết quả máy và RAW.
+
+```text
+--eye "portrait-attempt1=RAW/P1c2 — Cận miệng đỉnh, hai quai và hoa văn thao thiết; khối ngọc xanh sẫm/ngà, thiên vàng đồng hơn bạch ngọc. Chân không đủ trong khung cận cảnh; khói sáng lớn và hoa văn dày. P1c2 vẫn nhận ra đỉnh nhưng khói/miệng/quai sáng tràn 37%, nét chạm khắc thành cụm nhỏ; không có chữ đọc được."
+```
