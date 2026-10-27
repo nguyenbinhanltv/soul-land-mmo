@@ -1,0 +1,12 @@
+{
+    "seed":  "unknown",
+    "attempt":  1,
+    "createdAt":  "2026-10-27T05:32:56.0350795Z",
+    "sha256":  "653f225a8100bf09f2ab3978ace7f13990612c54ac20403e61fbf15d9573a20d",
+    "model":  "unknown",
+    "references":  [
+                       "shared/assets/sprites/beast/han_bang_dia_long.png",
+                       "art/src/beast-anim/han_bang_dia_long/turnaround.png"
+                   ],
+    "tool":  "image_gen"
+}
