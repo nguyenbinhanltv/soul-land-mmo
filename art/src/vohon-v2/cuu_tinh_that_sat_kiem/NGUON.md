@@ -59,3 +59,31 @@ CLI võ hồn chưa nhận cờ này; lưu khai báo tường minh, không sửa
 ```
 
 Prompt lưu UTF-8 LF theo Git; SHA256 chuỗi gửi nguyên bản `8c1bbb09dda896ca7e048bd97b05ed32e685d9c36dac8d4d75eb11f4aca28425` và `sent_prompt` ở source JSON. Chỉ chuẩn hóa xuống dòng, nội dung trùng CLI.
+
+
+## Icon lô 2 — RAW nearest (#1159)
+
+Ngày 2026-10-28; builtin `image_gen.imagegen`, model/seed `unknown`. Số lượt icon **1/3**, chọn lượt 1 trình duyệt; chưa nhập game. RAW giữ nguyên byte từ công cụ.
+
+- RAW: `icon-attempt1.png`, SHA256 `e174b8d29bcbfaa54cc2ee642957c3286c2f5b60c0101910725fc085ebac2a93`.
+- Prompt: `icon-attempt1.prompt.txt`, SHA256 `3ac3e8d5b1e621299262509e763eb4914f2307b027f79ca6d07ee613ebb783e4`; nguyên nội dung CLI `node tools/assets/vohon-prompt.mjs --type icon --id cuu_tinh_that_sat_kiem --style-ref art/src/vohon-v2/cuu_tinh_that_sat_kiem/concept-attempt1.png` (bỏ newline cuối stdout); không viết tay, không addendum.
+- Ảnh neo: `concept-attempt1.png`, SHA256 `fd3d5096e24b97581923de32e9643a85119d23c220c1a9a8bb46431a840c51fb`; không dùng ảnh cũ hay lượt hỏng.
+- Nguồn chi tiết: `icon-attempt1.source.json`. Icon một góc, không áp dụng yêu cầu năm hướng của concept.
+- Xuất: `node tools/assets/vohon-pixelize.mjs --type icon --id cuu_tinh_that_sat_kiem --in art/src/vohon-v2/cuu_tinh_that_sat_kiem/icon-attempt1.png --out art/src/vohon-v2/cuu_tinh_that_sat_kiem/icon-attempt1-nearest --preset icon-nearest`; giữ màu RAW, không ép 8 màu.
+- Cặp 24/32 px và report/check JSON: `icon-attempt1-nearest/`; [xem trước](icon-attempt1-nearest/preview/index.html).
+
+### Khai báo lỗi còn lại (`--eye`)
+
+CLI chưa hỗ trợ cờ --eye; lưu khai báo tại đây, giữ nguyên báo cáo máy. Không tự tuyên bố đạt đẹp.
+
+```text
+--eye "icon-attempt1=RAW — mem — texture mềm: 85% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+--eye "icon-attempt1=RAW — nhieu-mau — 163 màu đáng kể (nên ≤ 160 để ép về ≤ 32 mà không bệt)"
+--eye "icon-attempt1=RAW — luoi — chưa đúng lưới khối: tỉ số biên 1.46 ở chu kỳ 28 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+--eye "icon-attempt1=32px — cham-mep — hình chạm mép ảnh (1 điểm): viền ngoài bị cắt"
+--eye "icon-attempt1=32px — nhieu-chi-tiet — mật độ biên 0.888 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+--eye "icon-attempt1=24px — cham-mep — hình chạm mép ảnh (1 điểm): viền ngoài bị cắt"
+--eye "icon-attempt1=24px — nhieu-chi-tiet — mật độ biên 0.87 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+--eye "icon-attempt1=24px — gan-mau — hai màu lớn chỉ cách nhau 35.8 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+--eye "icon-attempt1=duyệt mắt — Một thanh kiếm thép xanh, bảy sao thấy ở RAW; khi thu nhỏ các sao khó đếm riêng, cạnh kiếm nhiều khuyết nhỏ."
+```
