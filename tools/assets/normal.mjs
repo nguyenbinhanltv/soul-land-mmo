@@ -1,5 +1,5 @@
 // Tự sinh normal map cho Light2D (mục 5.11 "Ánh sáng và chiều sâu"), không tốn lượt PixelLab.
-//   node tools/assets/normal.mjs <ảnh.png …> [--frame WxH] [--edge 3] [--bump 0.6] [--strength 2] [--union] [--out <thư mục>]
+//   node tools/assets/normal.mjs <ảnh.png …> [--frame WxH] [--edge 3] [--bump 0.6] [--strength 2] [--quant 5] [--union] [--out <thư mục>]
 //
 // Ghi `<tên>_n.png` cạnh ảnh gốc (hoặc vào --out), cùng kích thước, alpha giữ như ảnh gốc. Độ cao giả mỗi điểm:
 //   mép tròn: khoảng cách tới điểm trong suốt gần nhất (tối đa --edge pixel) đi qua cung tròn, nên viền hình cong xuống
@@ -9,18 +9,20 @@
 // R = x sang phải, G = y lên trên, B = z hướng ra màn hình. Điểm phẳng là (128, 128, 255).
 // --frame WxH: tính riêng từng khung của sheet (mép khung coi như trong suốt, khung kề không ảnh hưởng nhau);
 //   mặc định tự nhận sheet isometric (hồn sư 64, phụ thể 96 hai nửa theo giới, hồn thú theo bậc), ảnh khác coi là một khung.
+// --quant N: lượng tử RGB về N bit mỗi kênh (mặc định 5, #975: _n nhỏ hơn ~55–60%, sai số góc pháp tuyến ≲ 2°); 8 = không lượng tử.
+//   Điểm phẳng (128, 128, 255) giữ nguyên. Chạy lại cho _n cũ: normal-quant.mjs.
 // --union: các ảnh là các lớp của cùng một hình (thân, áo, tóc của một bộ hồn sư, cùng cỡ): mép tròn tính theo hình gộp,
 //   nên chỗ giáp giữa hai lớp không thành nếp gấp giả; mỗi lớp vẫn ra một file _n theo độ sáng và alpha của lớp đó.
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
-import { decodePng, encodePng, Img, ISO_HS_FRAME, ISO_VH_FRAME, ISO_HS_COLS, ISO_BEAST_COLS, ISO_BEAST_ROWS, ISO_BEAST_SIZES, isoLayout } from "./lib.mjs";
+import { decodePng, encodePng, Img, ISO_HS_FRAME, ISO_VH_FRAME, ISO_HS_COLS, ISO_BEAST_COLS, ISO_BEAST_ROWS, ISO_BEAST_SIZES, isoLayout, NORMAL_BITS, quantizeNormal } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
-const frameOpt = opt("--frame", ""), edge = +opt("--edge", "3"), bump = +opt("--bump", "0.6"), strength = +opt("--strength", "2"), outDir = opt("--out", "");
+const frameOpt = opt("--frame", ""), edge = +opt("--edge", "3"), bump = +opt("--bump", "0.6"), strength = +opt("--strength", "2"), quant = +opt("--quant", String(NORMAL_BITS)), outDir = opt("--out", "");
 const unionAt = args.indexOf("--union"), union = unionAt >= 0 && !!args.splice(unionAt, 1);
 const files = [...args];
-if (!files.length) { console.error("Cách dùng: normal.mjs <ảnh.png …> [--frame WxH] [--edge 3] [--bump 0.6] [--strength 2] [--out <thư mục>]"); process.exit(1); }
+if (!files.length) { console.error("Cách dùng: normal.mjs <ảnh.png …> [--frame WxH] [--edge 3] [--bump 0.6] [--strength 2] [--quant 5] [--out <thư mục>]"); process.exit(1); }
 
 /** Khung của sheet isometric theo kích thước ảnh; ảnh khác là một khung. */
 function frameOf(img) {
@@ -78,6 +80,6 @@ for (const [n, f] of files.entries()) {
   for (let y0 = 0; y0 + fh <= img.h; y0 += fh) for (let x0 = 0; x0 + fw <= img.w; x0 += fw) frameNormal(img, dst, x0, y0, fw, fh, shape ?? img);
   const out = path.join(outDir || path.dirname(f), path.basename(f, ".png") + "_n.png");
   if (outDir) mkdirSync(outDir, { recursive: true });
-  writeFileSync(out, encodePng(dst));
-  console.log(`[normal] ${out} (${img.w}×${img.h}, khung ${fw}×${fh}${edge ? `, bo mép ${edge}` : ", không bo mép"})`);
+  writeFileSync(out, encodePng(quantizeNormal(dst, quant)));
+  console.log(`[normal] ${out} (${img.w}×${img.h}, khung ${fw}×${fh}${edge ? `, bo mép ${edge}` : ", không bo mép"}, ${quant} bit)`);
 }
