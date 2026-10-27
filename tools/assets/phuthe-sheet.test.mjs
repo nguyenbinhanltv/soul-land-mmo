@@ -541,6 +541,12 @@ test("--concept-ref: ảnh 2 = concept 5 hướng thay turnaround, vẫn có n�
   assert.equal(off.conceptRef, false);
 });
 
+test("--concept-ref: võ hồn chưa có concept đã duyệt thì báo lỗi, không rơi về thư mục", () => {
+  assert.throws(() => infoWith("cuu_bao_luu_ly_thap", { conceptRef: true }), /chưa có concept đã duyệt/);
+  assert.equal(infoWith("cuu_bao_luu_ly_thap", { conceptRef: true, noDummy: true }).conceptRef, true);
+  assert.match(buildDirectionPrompt(infoWith("bach_ho", { conceptRef: true }), L.sheetPlan("B")[2]), /--concept-ref|CONCEPT/);
+});
+
 test("dummy --all / turnaround:false: chỉ ghi năm bảng nộm A–E (#1025)", async () => {
   const { writeDummies } = await import("./phuthe-sheet-dummy.mjs");
   const { mkdtempSync, readdirSync, rmSync } = await import("node:fs");

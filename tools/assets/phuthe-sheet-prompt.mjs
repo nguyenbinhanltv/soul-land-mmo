@@ -201,10 +201,10 @@ CONSISTENCY: the same size, proportions, palette and line weight in all ${T.cols
 ${nd ? RULES_NO_DUMMY : RULES}${lessonsBlock("turnaround", info.group, lessonsOf("turnaround", info.group, info, lessons))}`;
 }
 
-const COMMON_TAIL = (stage, nd) => `
+const COMMON_TAIL = (stage, nd, cr) => `
 - **Không vẽ** hào quang, hạt, bóng, pháp trận, thân / mặt / tay chân người: client và code tự thêm (\`docs/art/vo-hon-phong-cach.md\` phần 3.4).
 - **Bài học** chèn trong prompt lấy từ \`art/src/phuthe-anim/lessons.md\` (một nguồn duy nhất); lượt vẽ hỏng cho bài học mới thì thêm vào file đó, không viết tay vào prompt.
-- **Không** dùng ảnh phụ thể cũ (\`art/src/gemini/phuthe_5huong/…\`, \`vh_{id}_b/_f\`) và **không** dùng tờ / ảnh bị lỗi làm tham chiếu: tham chiếu chỉ là ${nd ? "concept đã chốt" : "bảng nộm"}, turnaround đã duyệt và tờ đã qua \`phuthe:check\` không có khối chặn.
+- **Không** dùng ảnh phụ thể cũ (\`art/src/gemini/phuthe_5huong/…\`, \`vh_{id}_b/_f\`) và **không** dùng tờ / ảnh bị lỗi làm tham chiếu: tham chiếu chỉ là ${nd ? "concept đã chốt" : "bảng nộm"}, ${cr ? "concept 5 hướng đã chốt (`--concept-ref`, thay turnaround)" : "turnaround đã duyệt"} và tờ đã qua \`phuthe:check\` không có khối chặn.
 - Giới hạn: **tối đa 3 lượt** cho mỗi ${stage === "turnaround" ? "ảnh turnaround" : "tờ"}; quá 3 lượt thì dừng và báo orchestrator (skill \`beast-anim\`, mục "Quá 3 lượt"; võ hồn giữ nhánh cũ nếu còn khối chặn).`;
 
 const infoRows = (info, F) => `| Võ hồn | ${info.name} (\`${info.id}\`), nhóm **${info.group}** (${info.groupVi}), khung phụ thể **${F}×${F}** (gốc chân (${frameOrigin(F).join(", ")})) |
@@ -239,7 +239,7 @@ ${buildTurnaroundPrompt(info)}
 \`\`\`
 
 ## Chú thích (tiếng Việt)
-- **Bố cục:** cột = hướng nhìn của phụ thể (s, se, e, ne, n), hàng = tư thế (đứng, đỉnh cú đánh, trúng đòn). ${info.noDummy ? "Không có nộm (`--no-dummy`)." : "Nộm dựng từ thân LPC theo hàng \`s\` / \`e\` / \`n\` (\`se\`, \`ne\` dùng hàng \`e\`)."} Đây là ảnh mẫu, không cắt vào game.${COMMON_TAIL("turnaround", info.noDummy)}
+- **Bố cục:** cột = hướng nhìn của phụ thể (s, se, e, ne, n), hàng = tư thế (đứng, đỉnh cú đánh, trúng đòn). ${info.noDummy ? "Không có nộm (`--no-dummy`)." : "Nộm dựng từ thân LPC theo hàng \`s\` / \`e\` / \`n\` (\`se\`, \`ne\` dùng hàng \`e\`)."} Đây là ảnh mẫu, không cắt vào game.${COMMON_TAIL("turnaround", info.noDummy, info.conceptRef)}
 `;
 }
 
@@ -270,7 +270,7 @@ ${buildDirectionPrompt(info, sheet)}
 
 ## Chú thích (tiếng Việt)
 - **Bố cục:** ${BANDS.map((b, r) => `hàng ${r + 1} = ${b.map((a) => `${CLIP_VI[a]} (${fr[a]})`).join(" + ")}`).join(", ")}; ô thừa để trống${info.noDummy ? "" : ", **không có nộm**"}.
-- **Hướng:** chỉ vẽ nam, đông-nam, đông, đông-bắc, bắc; tây là lật ngang nên mọi hướng nghiêng nhìn sang phải. ${info.noDummy ? "Không có nộm: phụ thể vẽ chếch 3/4 nhưng điểm gắn vẫn cố định so với gốc chân ô." : "Nộm chỉ có 3 dáng (\`s\`, \`e\`, \`n\`): \`se\` / \`ne\` dùng dáng \`e\`, phụ thể vẽ chếch 3/4 nhưng điểm gắn vẫn trùng nộm."}${COMMON_TAIL("direction", info.noDummy)}
+- **Hướng:** chỉ vẽ nam, đông-nam, đông, đông-bắc, bắc; tây là lật ngang nên mọi hướng nghiêng nhìn sang phải. ${info.noDummy ? "Không có nộm: phụ thể vẽ chếch 3/4 nhưng điểm gắn vẫn cố định so với gốc chân ô." : "Nộm chỉ có 3 dáng (\`s\`, \`e\`, \`n\`): \`se\` / \`ne\` dùng dáng \`e\`, phụ thể vẽ chếch 3/4 nhưng điểm gắn vẫn trùng nộm."}${COMMON_TAIL("direction", info.noDummy, info.conceptRef)}
 `;
 }
 
@@ -285,6 +285,7 @@ export function stageDocs(info, stage, { dirs = DIRS, frame } = {}) {
 /** Thông tin cho prompt, cho phép ghi đè khung / màu nộm bằng tùy chọn. */
 export function infoWith(id, { frame, dummyKey, guideKey, noDummy, conceptRef: useConcept } = {}) {
   const info = phutheInfo(id);
+  if (useConcept && !noDummy && !conceptRef(id).endsWith(".png")) throw new Error(`${id} chưa có concept đã duyệt (art/src/vohon-v2/${id}/ không có concept-attemptN.png hay concept.png), không dùng được --concept-ref`);
   return { ...info, frame: checkFrame(frame ?? info.frame), dummyKey: dummyKey ?? info.dummyKey, guideKey: guideKey ?? guideKeyOf(id, dummyKey ?? info.dummyKey), noDummy: !!noDummy, conceptRef: !!useConcept };
 }
 

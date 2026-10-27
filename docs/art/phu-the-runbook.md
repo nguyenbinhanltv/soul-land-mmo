@@ -36,6 +36,6 @@ Mỗi **lô 3 võ hồn** = một worker Codex = một PR (`Part of #1025`): 3 �
 | 5 | `ky_nhung_thong_thien_cuc`, `hoa_long`, `hoa_anh` | C 128 / 96 | hoa khung 128; lửa, bóng |
 | 6 | `quy_mi`, `cuu_tinh_that_sat_kiem`, `nguyet_nhan` | C / A 96 | hư ảnh khó nhất; hai vũ khí cầm tay |
 | 7 | `pha_hon_thuong`, `hao_thien_chuy`, `xuc_xich` | A 128 / 96 | vật cầm, ít pose |
-| 8 | `thien_can_bach_ngoc_dinh`, `cuu_bao_luu_ly_thap`, `can_khon_hon_nguyen_toa` | A 96 / 128 | vật lơ lửng quanh người |
+| 8 | `thien_can_bach_ngoc_dinh`, `cuu_bao_luu_ly_thap`, `can_khon_hon_nguyen_toa` | A 96 / 128 | vật lơ lửng quanh người; `cuu_bao_luu_ly_thap` **chờ concept được duyệt** (hiện chỉ có `candidates/`, NGUON ghi CHẶN mắt): chưa giao, không dùng ảnh `candidates/` làm tham chiếu; `--concept-ref` báo lỗi với tháp tới khi có concept |
 
 Lô 1 là **mẫu**: chủ repo duyệt lô 1 rồi mới mở các lô sau. Quá 3 lượt ở một khối thì dừng, báo orchestrator (skill `beast-anim`, "Quá 3 lượt").
