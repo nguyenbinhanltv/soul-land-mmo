@@ -1,0 +1,602 @@
+{
+  "issue": 882,
+  "parent_issue": 877,
+  "session": "soul_land_game-663",
+  "tool": "Codex builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "license": "Ảnh tạo bằng OpenAI image_gen theo yêu cầu chủ repo; không lấy asset bên thứ ba, không suy diễn giấy phép CC0.",
+  "references": [
+    {
+      "path": "art/src/ui-kit/BOARD.png",
+      "role": "Phong cách đã duyệt 27/10/2026",
+      "sha256": "9cae6f45aa21d2b7d5e2975928c0dfc996af0b4566cb7de2b6d676bc36f393bb"
+    },
+    {
+      "path": "art/palette.gpl",
+      "role": "Nguồn swatch tạm D:/Temp/ui882-prompts/palette.png",
+      "sha256": "70c1503b15754d192f2dd63fd51ffe9cc0d788c34057ebdfc56c7720cd717f41",
+      "swatch_sha256": "6d1beee6e8e3ab497aaf7bf9ef857e6c4b8ccfaa03d16a76bd6667ff822d307b"
+    }
+  ],
+  "material": "muc",
+  "postprocessing": "NONE: RAW nguyên byte, không resize, không sửa ảnh.",
+  "sheets": {
+    "T": {
+      "selected_attempt": 3,
+      "selection_rule": "Ít mục chặn, rồi ít mục nhẹ; hòa thì xét bằng mắt và mức viền hồng.",
+      "raw_file": "toT.png",
+      "prompt_file": "toT.prompt.txt",
+      "sha256": "f10cdec81b9256e9fdf33e6a7a5523de7d67be33797b3e6a72a6602fb23c30ce",
+      "raw_matches_selected": true,
+      "visual_review": "Đủ 9 mảnh; ruột thanh đã tách rời; ô nhập Mực. Thanh cuộn nằm ngang. Không có chữ đọc được; còn viền hồng và cạnh không phẳng.",
+      "status": "CHẶN; đã hết 3 lượt; cutter từ chối, không force, chưa nhập game hoặc duyệt mỹ thuật.",
+      "attempts": [
+        {
+          "attempt": 1,
+          "file": "candidates/toT-1.png",
+          "prompt_file": "candidates/toT-1.prompt.txt",
+          "sha256": "5a5de1620fd415d97f1be4a8925ca7d7d46a55b1d60b1d9a5ac1ded1873f1ce1",
+          "prompt_sha256": "0507b70e94551bc033198e841b233d6eed34941901ac7a769f2a8ae1b52e8baf",
+          "bytes": 1484075,
+          "dimensions": [
+            1536,
+            1024
+          ],
+          "original_tool_output": "C:/Users/PC/.codex/generated_images/01a17d9b-e55d-7db0-a60a-ae611239b61b/exec-9d1eda5c-d62e-4f09-a705-bf96e2dea1e4.png",
+          "raw_copy_byte_identical": true,
+          "selected": false,
+          "qa": {
+            "command": "npm run ui:check -- art/src/ui-kit/candidates/toT-1.png --kind T",
+            "counts": {
+              "block": 8,
+              "light": 19,
+              "warn": 0
+            },
+            "issues": [
+              {
+                "sev": "note",
+                "code": "nen",
+                "where": "toàn tờ",
+                "msg": "nền dốc nhẹ (bốn góc lệch 33), trong dung sai 60; không phải lỗi."
+              },
+              {
+                "sev": "block",
+                "code": "vien-hong",
+                "where": "toàn tờ",
+                "msg": "viền ám hồng 37.2% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối)."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_sinh",
+                "msg": "thanh_khung_sinh: thân cạnh không phẳng (48% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_khung_sinh",
+                "msg": "thanh_khung_sinh: bốn góc không giống nhau (47% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_khung_sinh",
+                "msg": "thanh_khung_sinh: vạch 9-slice đề xuất 18 chạm trần (nửa mảnh) của mảnh 102×38: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_hon",
+                "msg": "thanh_khung_hon: thân cạnh không phẳng (43% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_khung_hon",
+                "msg": "thanh_khung_hon: bốn góc không giống nhau (46% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_khung_hon",
+                "msg": "thanh_khung_hon: vạch 9-slice đề xuất 18 chạm trần (nửa mảnh) của mảnh 110×38: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_kn",
+                "msg": "thanh_khung_kn: thân cạnh không phẳng (47% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_khung_kn",
+                "msg": "thanh_khung_kn: bốn góc không giống nhau (43% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_khung_kn",
+                "msg": "thanh_khung_kn: vạch 9-slice đề xuất 18 chạm trần (nửa mảnh) của mảnh 106×38: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_do_sinh",
+                "msg": "thanh_do_sinh: thân cạnh không phẳng (40% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_do_sinh",
+                "msg": "thanh_do_sinh: bốn góc không giống nhau (45% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_do_sinh",
+                "msg": "thanh_do_sinh: vạch 9-slice đề xuất 17 chạm trần (nửa mảnh) của mảnh 104×36: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_do_hon",
+                "msg": "thanh_do_hon: thân cạnh không phẳng (40% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_do_hon",
+                "msg": "thanh_do_hon: bốn góc không giống nhau (45% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_do_hon",
+                "msg": "thanh_do_hon: vạch 9-slice đề xuất 17 chạm trần (nửa mảnh) của mảnh 110×36: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_do_kn",
+                "msg": "thanh_do_kn: thân cạnh không phẳng (51% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_do_kn",
+                "msg": "thanh_do_kn: bốn góc không giống nhau (21% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_do_kn",
+                "msg": "thanh_do_kn: vạch 9-slice đề xuất 17 chạm trần (nửa mảnh) của mảnh 108×36: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "vach_chia",
+                "msg": "vach_chia: bốn góc không giống nhau (86% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "vach_chia",
+                "msg": "vach_chia: vạch 9-slice đề xuất 4 chạm trần (nửa mảnh) của mảnh 10×60: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_cuon",
+                "msg": "thanh_cuon: bốn góc không giống nhau (77% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_cuon",
+                "msg": "thanh_cuon: vạch 9-slice đề xuất 7 chạm trần (nửa mảnh) của mảnh 16×66: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "o_nhap",
+                "msg": "o_nhap: thân cạnh không phẳng (56% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "o_nhap",
+                "msg": "o_nhap: bốn góc không giống nhau (51% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "o_nhap",
+                "msg": "o_nhap: vạch 9-slice đề xuất 19 chạm trần (nửa mảnh) của mảnh 146×40: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "do-day",
+                "where": "toàn tờ",
+                "msg": "độ dày viền lệch 18 điểm master (> 2 = 1 px ở 1×) giữa thanh_khung_sinh 11, thanh_khung_hon 12, thanh_khung_kn 11, thanh_do_sinh 13, thanh_do_hon 13, thanh_do_kn 10, vach_chia 12, thanh_cuon 27, o_nhap 9."
+              }
+            ],
+            "draft": "LỖI: toT-1 — viền ám hồng / cạnh không phẳng / bốn góc khác nhau / ruột không đồng nhất / độ dày viền lệch — toàn tờ, thanh_khung_sinh, thanh_khung_sinh, thanh_khung_sinh, thanh_khung_hon, thanh_khung_hon, thanh_khung_hon, thanh_khung_kn, thanh_khung_kn, thanh_khung_kn, thanh_do_sinh, thanh_do_sinh, thanh_do_sinh, thanh_do_hon, thanh_do_hon, thanh_do_hon, thanh_do_kn, thanh_do_kn, thanh_do_kn, vach_chia, vach_chia, thanh_cuon, thanh_cuon, o_nhap, o_nhap, o_nhap, toàn tờ — viền ám hồng 37.2% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối); thanh_khung_sinh: thân cạnh không phẳng (48% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_sinh: bốn góc không giống nhau (47% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_khung_sinh: vạch 9-slice đề xuất 18 chạm trần (nửa mảnh) của mảnh 102×38: ruột không đồng nhất, khó kéo; thanh_khung_hon: thân cạnh không phẳng (43% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_hon: bốn góc không giống nhau (46% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_khung_hon: vạch 9-slice đề xuất 18 chạm trần (nửa mảnh) của mảnh 110×38: ruột không đồng nhất, khó kéo; thanh_khung_kn: thân cạnh không phẳng (47% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_kn: bốn góc không giống nhau (43% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_khung_kn: vạch 9-slice đề xuất 18 chạm trần (nửa mảnh) của mảnh 106×38: ruột không đồng nhất, khó kéo; thanh_do_sinh: thân cạnh không phẳng (40% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_do_sinh: bốn góc không giống nhau (45% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_do_sinh: vạch 9-slice đề xuất 17 chạm trần (nửa mảnh) của mảnh 104×36: ruột không đồng nhất, khó kéo; thanh_do_hon: thân cạnh không phẳng (40% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_do_hon: bốn góc không giống nhau (45% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_do_hon: vạch 9-slice đề xuất 17 chạm trần (nửa mảnh) của mảnh 110×36: ruột không đồng nhất, khó kéo; thanh_do_kn: thân cạnh không phẳng (51% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_do_kn: bốn góc không giống nhau (21% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_do_kn: vạch 9-slice đề xuất 17 chạm trần (nửa mảnh) của mảnh 108×36: ruột không đồng nhất, khó kéo; vach_chia: bốn góc không giống nhau (86% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; vach_chia: vạch 9-slice đề xuất 4 chạm trần (nửa mảnh) của mảnh 10×60: ruột không đồng nhất, khó kéo; thanh_cuon: bốn góc không giống nhau (77% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_cuon: vạch 9-slice đề xuất 7 chạm trần (nửa mảnh) của mảnh 16×66: ruột không đồng nhất, khó kéo; o_nhap: thân cạnh không phẳng (56% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; o_nhap: bốn góc không giống nhau (51% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; o_nhap: vạch 9-slice đề xuất 19 chạm trần (nửa mảnh) của mảnh 146×40: ruột không đồng nhất, khó kéo; độ dày viền lệch 18 điểm master (> 2 = 1 px ở 1×) giữa thanh_khung_sinh 11, thanh_khung_hon 12, thanh_khung_kn 11, thanh_do_sinh 13, thanh_do_hon 13, thanh_do_kn 10, vach_chia 12, thanh_cuon 27, o_nhap 9."
+          },
+          "tool_arguments": {
+            "transparent_background": false,
+            "referenced_image_paths": [
+              "C:/Users/PC/.ao/data/worktrees/soul_land_game/soul_land_game-663/art/src/ui-kit/BOARD.png",
+              "D:/Temp/ui882-prompts/palette.png"
+            ]
+          }
+        },
+        {
+          "attempt": 2,
+          "file": "candidates/toT-2.png",
+          "prompt_file": "candidates/toT-2.prompt.txt",
+          "sha256": "e62a90c57cee094bfba11ffe8043982ac00aaf3c63ab06df09e3d4f1894c5e46",
+          "prompt_sha256": "fa1c4673ee9be981292d7be03ac54fe69b65929166c4f8110beececf4c149738",
+          "bytes": 1418412,
+          "dimensions": [
+            1536,
+            1024
+          ],
+          "original_tool_output": "C:/Users/PC/.codex/generated_images/01a17d9b-e55d-7db0-a60a-ae611239b61b/exec-e6d4dcf6-a3b7-4103-bdb5-7f9aef6451ab.png",
+          "raw_copy_byte_identical": true,
+          "selected": false,
+          "qa": {
+            "command": "npm run ui:check -- art/src/ui-kit/candidates/toT-2.png --kind T",
+            "counts": {
+              "block": 6,
+              "light": 19,
+              "warn": 0
+            },
+            "issues": [
+              {
+                "sev": "note",
+                "code": "nen",
+                "where": "toàn tờ",
+                "msg": "nền dốc nhẹ (bốn góc lệch 31), trong dung sai 60; không phải lỗi."
+              },
+              {
+                "sev": "block",
+                "code": "vien-hong",
+                "where": "toàn tờ",
+                "msg": "viền ám hồng 26.3% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối)."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_sinh",
+                "msg": "thanh_khung_sinh: thân cạnh không phẳng (49% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_khung_sinh",
+                "msg": "thanh_khung_sinh: bốn góc không giống nhau (50% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_hon",
+                "msg": "thanh_khung_hon: thân cạnh không phẳng (49% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_khung_hon",
+                "msg": "thanh_khung_hon: bốn góc không giống nhau (53% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_kn",
+                "msg": "thanh_khung_kn: thân cạnh không phẳng (49% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_khung_kn",
+                "msg": "thanh_khung_kn: bốn góc không giống nhau (54% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "canh-phang",
+                "where": "thanh_do_sinh",
+                "msg": "thanh_do_sinh: thân cạnh hơi lệch (22% điểm > 15%): kiểm tờ liên hệ trước khi kéo."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_do_sinh",
+                "msg": "thanh_do_sinh: bốn góc không giống nhau (31% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_do_sinh",
+                "msg": "thanh_do_sinh: vạch 9-slice đề xuất 10 chạm trần (nửa mảnh) của mảnh 106×22: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "canh-phang",
+                "where": "thanh_do_hon",
+                "msg": "thanh_do_hon: thân cạnh hơi lệch (24% điểm > 15%): kiểm tờ liên hệ trước khi kéo."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_do_hon",
+                "msg": "thanh_do_hon: bốn góc không giống nhau (31% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_do_hon",
+                "msg": "thanh_do_hon: vạch 9-slice đề xuất 10 chạm trần (nửa mảnh) của mảnh 106×22: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "canh-phang",
+                "where": "thanh_do_kn",
+                "msg": "thanh_do_kn: thân cạnh hơi lệch (22% điểm > 15%): kiểm tờ liên hệ trước khi kéo."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_do_kn",
+                "msg": "thanh_do_kn: bốn góc không giống nhau (42% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_do_kn",
+                "msg": "thanh_do_kn: vạch 9-slice đề xuất 10 chạm trần (nửa mảnh) của mảnh 106×22: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "vach_chia",
+                "msg": "vach_chia: thân cạnh không phẳng (85% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "vach_chia",
+                "msg": "vach_chia: bốn góc không giống nhau (62% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "vach_chia",
+                "msg": "vach_chia: vạch 9-slice đề xuất 7 chạm trần (nửa mảnh) của mảnh 16×52: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_cuon",
+                "msg": "thanh_cuon: bốn góc không giống nhau (28% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_cuon",
+                "msg": "thanh_cuon: vạch 9-slice đề xuất 6 chạm trần (nửa mảnh) của mảnh 14×80: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "o_nhap",
+                "msg": "o_nhap: thân cạnh không phẳng (47% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "o_nhap",
+                "msg": "o_nhap: bốn góc không giống nhau (49% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "o_nhap",
+                "msg": "o_nhap: vạch 9-slice đề xuất 16 chạm trần (nửa mảnh) của mảnh 108×34: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "do-day",
+                "where": "toàn tờ",
+                "msg": "độ dày viền lệch 25 điểm master (> 2 = 1 px ở 1×) giữa thanh_khung_sinh 11, thanh_khung_hon 11, thanh_khung_kn 11, thanh_do_sinh 10, thanh_do_hon 9, thanh_do_kn 10, vach_chia 7, thanh_cuon 32, o_nhap 11."
+              }
+            ],
+            "draft": "LỖI: toT-2 — viền ám hồng / cạnh không phẳng / bốn góc khác nhau / ruột không đồng nhất / độ dày viền lệch — toàn tờ, thanh_khung_sinh, thanh_khung_sinh, thanh_khung_hon, thanh_khung_hon, thanh_khung_kn, thanh_khung_kn, thanh_do_sinh, thanh_do_sinh, thanh_do_sinh, thanh_do_hon, thanh_do_hon, thanh_do_hon, thanh_do_kn, thanh_do_kn, thanh_do_kn, vach_chia, vach_chia, vach_chia, thanh_cuon, thanh_cuon, o_nhap, o_nhap, o_nhap, toàn tờ — viền ám hồng 26.3% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối); thanh_khung_sinh: thân cạnh không phẳng (49% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_sinh: bốn góc không giống nhau (50% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_khung_hon: thân cạnh không phẳng (49% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_hon: bốn góc không giống nhau (53% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_khung_kn: thân cạnh không phẳng (49% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_kn: bốn góc không giống nhau (54% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_do_sinh: thân cạnh hơi lệch (22% điểm > 15%): kiểm tờ liên hệ trước khi kéo; thanh_do_sinh: bốn góc không giống nhau (31% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_do_sinh: vạch 9-slice đề xuất 10 chạm trần (nửa mảnh) của mảnh 106×22: ruột không đồng nhất, khó kéo; thanh_do_hon: thân cạnh hơi lệch (24% điểm > 15%): kiểm tờ liên hệ trước khi kéo; thanh_do_hon: bốn góc không giống nhau (31% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_do_hon: vạch 9-slice đề xuất 10 chạm trần (nửa mảnh) của mảnh 106×22: ruột không đồng nhất, khó kéo; thanh_do_kn: thân cạnh hơi lệch (22% điểm > 15%): kiểm tờ liên hệ trước khi kéo; thanh_do_kn: bốn góc không giống nhau (42% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_do_kn: vạch 9-slice đề xuất 10 chạm trần (nửa mảnh) của mảnh 106×22: ruột không đồng nhất, khó kéo; vach_chia: thân cạnh không phẳng (85% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; vach_chia: bốn góc không giống nhau (62% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; vach_chia: vạch 9-slice đề xuất 7 chạm trần (nửa mảnh) của mảnh 16×52: ruột không đồng nhất, khó kéo; thanh_cuon: bốn góc không giống nhau (28% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_cuon: vạch 9-slice đề xuất 6 chạm trần (nửa mảnh) của mảnh 14×80: ruột không đồng nhất, khó kéo; o_nhap: thân cạnh không phẳng (47% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; o_nhap: bốn góc không giống nhau (49% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; o_nhap: vạch 9-slice đề xuất 16 chạm trần (nửa mảnh) của mảnh 108×34: ruột không đồng nhất, khó kéo; độ dày viền lệch 25 điểm master (> 2 = 1 px ở 1×) giữa thanh_khung_sinh 11, thanh_khung_hon 11, thanh_khung_kn 11, thanh_do_sinh 10, thanh_do_hon 9, thanh_do_kn 10, vach_chia 7, thanh_cuon 32, o_nhap 11."
+          },
+          "tool_arguments": {
+            "transparent_background": false,
+            "referenced_image_paths": [
+              "C:/Users/PC/.ao/data/worktrees/soul_land_game/soul_land_game-663/art/src/ui-kit/BOARD.png",
+              "D:/Temp/ui882-prompts/palette.png"
+            ]
+          }
+        },
+        {
+          "attempt": 3,
+          "file": "candidates/toT-3.png",
+          "prompt_file": "candidates/toT-3.prompt.txt",
+          "sha256": "f10cdec81b9256e9fdf33e6a7a5523de7d67be33797b3e6a72a6602fb23c30ce",
+          "prompt_sha256": "a7d26c9c08dd4be216aa914db8bd9b91a0258ac6c98c473c81b11b7c012cb53c",
+          "bytes": 1380402,
+          "dimensions": [
+            1536,
+            1024
+          ],
+          "original_tool_output": "C:/Users/PC/.codex/generated_images/01a17d9b-e55d-7db0-a60a-ae611239b61b/exec-225191b2-7eea-400f-8a21-97d914c89770.png",
+          "raw_copy_byte_identical": true,
+          "selected": true,
+          "qa": {
+            "command": "npm run ui:check -- art/src/ui-kit/candidates/toT-3.png --kind T",
+            "counts": {
+              "block": 5,
+              "light": 17,
+              "warn": 0
+            },
+            "issues": [
+              {
+                "sev": "note",
+                "code": "nen",
+                "where": "toàn tờ",
+                "msg": "nền dốc nhẹ (bốn góc lệch 32), trong dung sai 60; không phải lỗi."
+              },
+              {
+                "sev": "block",
+                "code": "vien-hong",
+                "where": "toàn tờ",
+                "msg": "viền ám hồng 49.1% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối)."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_sinh",
+                "msg": "thanh_khung_sinh: thân cạnh không phẳng (57% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_khung_sinh",
+                "msg": "thanh_khung_sinh: bốn góc không giống nhau (27% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_khung_sinh",
+                "msg": "thanh_khung_sinh: vạch 9-slice đề xuất 19 chạm trần (nửa mảnh) của mảnh 108×40: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_hon",
+                "msg": "thanh_khung_hon: thân cạnh không phẳng (57% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_khung_hon",
+                "msg": "thanh_khung_hon: bốn góc không giống nhau (28% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_khung_hon",
+                "msg": "thanh_khung_hon: vạch 9-slice đề xuất 19 chạm trần (nửa mảnh) của mảnh 108×40: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_kn",
+                "msg": "thanh_khung_kn: thân cạnh không phẳng (57% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_khung_kn",
+                "msg": "thanh_khung_kn: bốn góc không giống nhau (28% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_khung_kn",
+                "msg": "thanh_khung_kn: vạch 9-slice đề xuất 19 chạm trần (nửa mảnh) của mảnh 108×40: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_do_sinh",
+                "msg": "thanh_do_sinh: bốn góc không giống nhau (54% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_do_hon",
+                "msg": "thanh_do_hon: bốn góc không giống nhau (54% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_do_kn",
+                "msg": "thanh_do_kn: bốn góc không giống nhau (60% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "vach_chia",
+                "msg": "vach_chia: bốn góc không giống nhau (68% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "vach_chia",
+                "msg": "vach_chia: vạch 9-slice đề xuất 5 chạm trần (nửa mảnh) của mảnh 12×38: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "canh-phang",
+                "where": "thanh_cuon",
+                "msg": "thanh_cuon: thân cạnh hơi lệch (18% điểm > 15%): kiểm tờ liên hệ trước khi kéo."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_cuon",
+                "msg": "thanh_cuon: bốn góc không giống nhau (53% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_cuon",
+                "msg": "thanh_cuon: vạch 9-slice đề xuất 8 chạm trần (nửa mảnh) của mảnh 132×18: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "o_nhap",
+                "msg": "o_nhap: thân cạnh không phẳng (65% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "o_nhap",
+                "msg": "o_nhap: bốn góc không giống nhau (41% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "o_nhap",
+                "msg": "o_nhap: vạch 9-slice đề xuất 17 chạm trần (nửa mảnh) của mảnh 108×36: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "do-day",
+                "where": "toàn tờ",
+                "msg": "độ dày viền lệch 17 điểm master (> 2 = 1 px ở 1×) giữa thanh_khung_sinh 9, thanh_khung_hon 9, thanh_khung_kn 9, thanh_do_sinh 2, thanh_do_hon 2, thanh_do_kn 2, vach_chia 19, thanh_cuon 8, o_nhap 8."
+              }
+            ],
+            "draft": "LỖI: toT-3 — viền ám hồng / cạnh không phẳng / bốn góc khác nhau / ruột không đồng nhất / độ dày viền lệch — toàn tờ, thanh_khung_sinh, thanh_khung_sinh, thanh_khung_sinh, thanh_khung_hon, thanh_khung_hon, thanh_khung_hon, thanh_khung_kn, thanh_khung_kn, thanh_khung_kn, thanh_do_sinh, thanh_do_hon, thanh_do_kn, vach_chia, vach_chia, thanh_cuon, thanh_cuon, thanh_cuon, o_nhap, o_nhap, o_nhap, toàn tờ — viền ám hồng 49.1% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối); thanh_khung_sinh: thân cạnh không phẳng (57% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_sinh: bốn góc không giống nhau (27% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_khung_sinh: vạch 9-slice đề xuất 19 chạm trần (nửa mảnh) của mảnh 108×40: ruột không đồng nhất, khó kéo; thanh_khung_hon: thân cạnh không phẳng (57% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_hon: bốn góc không giống nhau (28% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_khung_hon: vạch 9-slice đề xuất 19 chạm trần (nửa mảnh) của mảnh 108×40: ruột không đồng nhất, khó kéo; thanh_khung_kn: thân cạnh không phẳng (57% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_kn: bốn góc không giống nhau (28% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_khung_kn: vạch 9-slice đề xuất 19 chạm trần (nửa mảnh) của mảnh 108×40: ruột không đồng nhất, khó kéo; thanh_do_sinh: bốn góc không giống nhau (54% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_do_hon: bốn góc không giống nhau (54% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_do_kn: bốn góc không giống nhau (60% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; vach_chia: bốn góc không giống nhau (68% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; vach_chia: vạch 9-slice đề xuất 5 chạm trần (nửa mảnh) của mảnh 12×38: ruột không đồng nhất, khó kéo; thanh_cuon: thân cạnh hơi lệch (18% điểm > 15%): kiểm tờ liên hệ trước khi kéo; thanh_cuon: bốn góc không giống nhau (53% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_cuon: vạch 9-slice đề xuất 8 chạm trần (nửa mảnh) của mảnh 132×18: ruột không đồng nhất, khó kéo; o_nhap: thân cạnh không phẳng (65% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; o_nhap: bốn góc không giống nhau (41% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; o_nhap: vạch 9-slice đề xuất 17 chạm trần (nửa mảnh) của mảnh 108×36: ruột không đồng nhất, khó kéo; độ dày viền lệch 17 điểm master (> 2 = 1 px ở 1×) giữa thanh_khung_sinh 9, thanh_khung_hon 9, thanh_khung_kn 9, thanh_do_sinh 2, thanh_do_hon 2, thanh_do_kn 2, vach_chia 19, thanh_cuon 8, o_nhap 8."
+          },
+          "tool_arguments": {
+            "transparent_background": false,
+            "referenced_image_paths": [
+              "C:/Users/PC/.ao/data/worktrees/soul_land_game/soul_land_game-663/art/src/ui-kit/BOARD.png",
+              "D:/Temp/ui882-prompts/palette.png"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "pending": {
+    "F": "Tạm bỏ F theo chỉ đạo orchestrator tại PR #1165, comment 6443649101 ngày 27/10/2026: lỗi công cụ cố định 2 khung Giấy; chờ issue sửa công cụ. Không sửa prompt tay."
+  }
+}
