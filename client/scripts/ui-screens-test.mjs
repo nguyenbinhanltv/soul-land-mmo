@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { HUB_ITEMS, hubLayout } from "../src/hubMenu.ts";
 import { slotState, todayIndex, byDay, dayDate, slotRange, STATE_LABEL } from "../src/calendarScreen.ts";
 import { COUNTDOWN_SOON_MS } from "../src/uiParts.ts";
+import { cellState, signedToday, needsSign, isMilestone, rewardParts, signedLine, primaryOf, nextMidnightVn, feeText } from "../src/welfareScreen.ts";
+import { CHECKIN } from "../../shared/data.ts";
 import { rankGroups, podiumOf, lineupText, meLine, pageLabel, tongName } from "../src/rankScreen.ts";
 
 // ---- hub ----
@@ -48,5 +50,27 @@ const cols = byDay(cal);
 assert.equal(cols.length, 7); assert.deepEqual(cols[2].map((x) => x.id), ["c", "a", "b"], "xếp theo giờ bắt đầu rồi mã"); assert.equal(cols.flat().length, 3, "cột ngoài 0..6 bị bỏ");
 assert.equal(dayDate(WS, 0), "26.10"); assert.equal(dayDate(WS, 6), "01.11");
 assert.equal(slotRange(it(WS + 20 * H, WS + 20.25 * H)), "20:00 – 20:15");
+
+// ---- Phúc Lợi ----
+const W = (o) => ({ cycle: 1, day: 5, mask: 0b11011, now: 0, endsAt: 0, makeupLeft: 5, free: 2, fee: 0, ...o });
+const m = W({});
+assert.deepEqual([0, 1, 2, 3, 4, 5, 6].map((i) => cellState(i, m)), ["signed", "signed", "makeup", "signed", "signed", "today", "future"]);
+assert.equal(cellState(2, W({ makeupLeft: 0 })), "missed", "hết lượt ký bù: ô bỏ lỡ không bấm được");
+assert.equal(cellState(5, W({ mask: 0b111011 })), "signed", "hôm nay đã ký");
+const fresh = W({ day: -1, mask: 0, cycle: 0 });
+assert.deepEqual([0, 1, 20].map((i) => cellState(i, fresh)), ["today", "future", "future"], "chưa có chu kỳ: ô 1 mở chu kỳ mới");
+assert.equal(cellState(0, W({ day: -1, mask: 1, cycle: 2 })), "today", "chu kỳ cũ đã hết: mask cũ không làm ô 1 'đã ký'");
+assert.equal(signedToday(m), false); assert.equal(signedToday(W({ mask: 0b111011 })), true); assert.equal(signedToday(fresh), false);
+assert.equal(needsSign(fresh), true); assert.equal(needsSign(W({ mask: 0b111011 })), false, "đã ký hôm nay thì hết chấm đỏ");
+assert.deepEqual(CHECKIN.milestones.map(isMilestone), [true, true, true]); assert.equal(isMilestone(0), false);
+assert.equal(CHECKIN.days, 21, "lưới 7 x 3");
+for (let i = 0; i < CHECKIN.days; i++) assert.ok(rewardParts(i).length > 0, `ô ${i + 1} có quà để hiện`);
+assert.match(signedLine({ day: 6, makeup: true, fee: 12000, honTe: 60, items: [] }), /^Ký bù ô 7 \(phí .+\): nhận 60 Hồn Tệ\.$/);
+assert.equal(primaryOf(null, false).disabled, true);
+assert.deepEqual([primaryOf(m, false).disabled, primaryOf(m, true).reason, primaryOf(W({ mask: 0b111011 }), false).reason], [false, "Đang gửi…", "Hôm nay đã điểm danh, mai quay lại"]);
+assert.equal(primaryOf(fresh, false).label, "Bắt đầu chu kỳ mới");
+const t0 = Date.UTC(2026, 9, 28, 16, 59, 0); // 23:59 ngày 28 giờ Việt Nam
+assert.equal(nextMidnightVn(t0), Date.UTC(2026, 9, 28, 17, 0, 0)); assert.equal(nextMidnightVn(t0 + 60_000), Date.UTC(2026, 9, 29, 17, 0, 0), "đúng 00:00 thì sang ngày kế");
+assert.equal(feeText(null), "Hết lượt ký bù"); assert.equal(feeText(0), "Ký bù miễn phí"); assert.match(feeText(12000), /^Ký bù: /);
 
 console.log("ui-screens: ok");

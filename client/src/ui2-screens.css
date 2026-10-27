@@ -102,3 +102,28 @@ body.ui2 .cal-skel{display:grid;grid-template-columns:repeat(7,1fr);gap:var(--sp
 body.ui2 .cal-skel-c{height:160px;background:var(--paper2);opacity:.6;animation:rk-sk 1.2s ease-in-out infinite alternate}
 @media (prefers-reduced-motion:reduce){body.ui2 .cal-skel-c{animation:none}}
 body.ui2 .p2-man-giay .p2-cd{color:var(--text);background:var(--paper2);border-color:var(--line)}
+
+/* ---- Phúc Lợi / Sổ Điểm Danh (Mực + tấm Giấy cho lưới) ---- */
+body.ui2 .wf-wrap{display:flex;flex-direction:column;gap:var(--sp-4);min-height:0}
+body.ui2 .wf-head{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-4)}
+body.ui2 .wf-t{font:var(--fs-m)/1.2 var(--f12)} body.ui2 .wf-s{font:var(--fs-s)/1.2 var(--f10);color:var(--plate-text)}
+body.ui2 .wf-hint,body.ui2 .wf-msg{padding:var(--sp-5);color:var(--plate-text);border:var(--bd-fine) dashed var(--ink2)}
+body.ui2 .wf-paper{overflow:auto;min-height:0;padding:var(--sp-3);background:var(--paper);border:var(--bd) solid var(--line)}
+body.ui2 .wf-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:var(--sp-3)}
+body.ui2 .wf-cell{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-1);min-height:64px;box-sizing:border-box;padding:var(--sp-3);text-align:left;cursor:default;
+  font:var(--fs-s)/1.3 var(--f10);color:var(--text);background:var(--paper2);border:var(--bd-fine) solid var(--line)}
+body.ui2 .wf-n{font:var(--fs-m)/1 var(--f12)}
+body.ui2 .wf-r{overflow-wrap:anywhere}
+body.ui2 .wf-mk{position:absolute;right:0;top:0;padding:0 var(--sp-3);color:var(--plate-text);background:var(--son-d)}   /* mốc: nhãn chữ + dải góc, không chỉ nền vàng */
+body.ui2 .wf-ms{border-color:var(--xp);border-width:var(--bd)}
+body.ui2 .wf-signed{opacity:.65;background:var(--paper3)}                                                          /* đã ký: xám + tick chữ */
+body.ui2 .wf-today{cursor:pointer;border-color:var(--son);border-width:var(--bd);background:var(--paper)}          /* hôm nay: nổi + mũi tên */
+body.ui2 .wf-makeup{cursor:pointer;border-style:dashed;border-color:var(--son)}                                    /* ký bù: viền nét đứt */
+body.ui2 .wf-missed{opacity:.5;filter:grayscale(1)}
+body.ui2 .wf-future{background:var(--paper)}
+body.ui2 .wf-cell.sel{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+body.ui2 .wf-confirm{display:flex;align-items:center;flex-wrap:wrap;gap:var(--sp-4);padding:var(--sp-4);color:var(--plate-text);border:var(--bd) solid var(--warn)}
+body.ui2 .wf-ok,body.ui2 .wf-no{min-height:32px;padding:0 var(--sp-5);cursor:pointer;font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2)}
+body.ui2 .wf-ok{background:var(--son-d)}
+body.ui2 .wf-note{padding:var(--sp-3) var(--sp-4);color:var(--plate-text);border-left:6px solid var(--good)}
+body.ui2 .wf-note.wf-bad{border-left-color:var(--son-l)}
