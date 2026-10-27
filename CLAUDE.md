@@ -10,7 +10,7 @@
 - **SQL mới:** `server/sql/00N_<tên>.sql` (N kế tiếp trên `origin/main`), chạy lại an toàn, bật RLS; sửa cả `PgStore` lẫn `MemoryStore`; ghi DB một người chơi qua `this.chain(d, fn)`.
 - **Ảnh / âm thanh:** nguồn, giấy phép ở `docs/art/nguon-giay-phep.md`, thao tác ở skill `asset-gen`; âm thanh chỉ CC0. Không ghi key / bí mật vào repo, log, PR.
 - Luật chơi đổi thì sửa đúng file thiết kế; làm từng việc nhỏ; xong bước thì đánh dấu `ROADMAP.md`.
-- Mỗi việc một nhánh từ `origin/main`, một PR vào `main`; không commit `main`, không force push, không `--no-verify`; PR đã gửi review thì đóng băng.
+- **Hai làn** (`CONTRIBUTING.md` mục Hai làn): mỗi việc một nhánh từ `origin/main`. Làn nhanh (chỉ `art/**`, `docs/**`, `*.md` (trừ `.github/**`), `.claude/**`, `shared/assets/sprites/**` và `shared/assets/credits/credits.json` do công cụ nhập, hồ sơ NGUON / credits): kiểm nhẹ ở máy, push nhánh, báo xong, gộp vào `main` theo lô, không chờ AO review. Làn code (`client/**`, `server/**`, phần còn lại của `shared/**` kể cả bản đồ / âm thanh, `tools/**`, SQL, workflow): một PR vào `main`, không cần AO review (chỉ việc rủi ro: SQL, chống gian lận, `MapRoom` / giao thức). Cả hai: không force push `main`, không `--no-verify`.
 
 ## Lệnh
 `npm run install:all` · `npm run hooks` (một lần) · `npm run check` (**bắt buộc** sau mỗi thay đổi) · `npm run build` · `npm run dev:server` / `dev:client` · `npm run bot:local -- --only <nhóm> [--pg]` (bot ở máy: **chỉ** cách này, tối đa 2 lượt). Chi tiết, PostgreSQL, tài khoản test, lệnh GM: `docs/ops/chay-local.md`. Supabase là DB test; prod không bao giờ trỏ.
