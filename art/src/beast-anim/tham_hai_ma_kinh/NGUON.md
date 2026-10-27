@@ -2,7 +2,7 @@
 
 File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species tham_hai_ma_kinh`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
 
-Loài `tham_hai_ma_kinh` (Thâm Hải Ma Kình), họ `swim`, khung game 128×128. Mức kiểm chung: **pass**.
+Loài `tham_hai_ma_kinh` (Thâm Hải Ma Kình), họ `swim`, khung game 128×128. Mức kiểm chung: **nhẹ**.
 
 ## turnaround
 
@@ -19,7 +19,8 @@ Loài `tham_hai_ma_kinh` (Thâm Hải Ma Kình), họ `swim`, khung game 128×12
 - Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop.
 - Prompt: `toA.prompt.txt` (SHA256 `0523a424576818a274d1a1a473e8afa05f4ceadb2109b99cbebf161dfa18fb0b`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
-- Mức kiểm: **pass** (khối hướng: s pass).
+- Mức kiểm: **nhẹ** (khối hướng: s nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 118% so với ảnh tĩnh (lệch 18%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## toB
@@ -31,12 +32,22 @@ Loài `tham_hai_ma_kinh` (Thâm Hải Ma Kình), họ `swim`, khung game 128×12
 - Mức kiểm: **pass** (khối hướng: se pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
+## toC
+
+- File: `toC.png`, **1536×1024**, 1736938 byte, SHA256 `4dff2166f15c4fa3fb2c2d19aeace2eac989462c1c96a412b501dcf317163dd3`.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop.
+- Prompt: `toC.prompt.txt` (SHA256 `ddcb32b121783f4ce13b255c8c3813c08beb3381fb151d1288986bc57d765f3e`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: e pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
 ## Lỗi
 
 ```text
 LỖI: turnaround — ne còn thấy chi tiết mặt; chọn lượt 3 tốt nhất làm tham chiếu kỹ thuật sau ba lượt (mắt)
 LỖI: toA — s: die còn mở mắt, biên độ chìm nhẹ (mắt)
 LỖI: toB — se: die cuối hơi xoay gần ngang; hurt biên độ nhỏ (mắt)
+LỖI: toC — e: attack khung 1,3,4 ngẩng đầu mạnh; die còn mở mắt (mắt)
 ```
 
 ## Ghi công
