@@ -328,6 +328,10 @@ function paintCell(b: HTMLElement, left: number, full: number, mp: number, cost:
   b.dataset.cool = cooling ? "1" : "0";
   const nomp = !locked && cost > 0 && mp < cost;
   b.classList.toggle("nomp", nomp);
+  const disabled = String(locked);
+  if (b.getAttribute("aria-disabled") !== disabled) b.setAttribute("aria-disabled", disabled);
+  const state = b.querySelector(".sk-state"), stateText = locked ? "Khóa" : nomp ? "Thiếu lực" : "";
+  if (state && state.textContent !== stateText) state.textContent = stateText;
   const why = nomp ? `Thiếu hồn lực: cần ${cost}, còn ${Math.floor(mp)}` : "";
   if ((b.dataset.why ?? "") !== why) { b.dataset.why = why; const base = cellBase.get(b); if (base) setTip(b, why ? { ...base, foot: why } : base); }
 }
@@ -353,6 +357,14 @@ function setCtSlot(b: HTMLElement, on: boolean) {
   if (v.tier >= 0) b.dataset.tier = String(v.tier); else delete b.dataset.tier;
   b.setAttribute("aria-label", v.label); setCellTip(b, v.tip);
 }
+/** Nút HUD: chuột / bút chạy ngay ở pointerdown (không chờ nhả); chạm chạy ở click (cuộn / kéo không kích hoạt), bàn phím (detail 0) cũng ở click.
+ * Loại con trỏ ghi từ pointerdown vì click của Safari iOS / WebView không phải PointerEvent (pointerType undefined). */
+function bindPress(b: HTMLElement, run: () => void) {
+  let touchDown = false;
+  b.addEventListener("pointerdown", (e) => { e.preventDefault(); touchDown = e.pointerType === "touch"; if (!touchDown) run(); });
+  b.addEventListener("click", (e) => { if (e.detail === 0 || touchDown) { touchDown = false; run(); } });
+}
+
 /**
  * Thanh kỹ năng: đánh thường, 4 ô hồn kỹ mang theo của võ hồn ra trận (từ 8.1a theo `loadout`: chỉ số vòng ở từng ô U / I / O / P,
  * -1 = trống; vòng 1–4 riêng nếu có, không thì dùng chung; tên, biểu tượng, chú thích kèm sức mạnh theo số năm hồn hoàn), nút R Võ
@@ -362,21 +374,25 @@ function setCtSlot(b: HTMLElement, on: boolean) {
  */
 export function buildSkills(vh: number, rings: number[], years: number[] | null, loadout: readonly number[], act: (k: string) => void, stars = 1, fusion = true) {
   const el = $("#skills"); el.innerHTML = ""; slotCd = [];
+  $("#itemActions").replaceChildren();
   const mk = (key: string, label: string, name: string, col: string, action: string, icon = "", locked = false, i?: number, tip: TipSpec | string = "",
     tier = -1, cost = 0, cdFull = 0, art = "") => {
     const b = document.createElement("button"); b.className = "sk ui-cell" + (locked ? " locked" : "");
     if (i !== undefined) b.dataset.i = String(i);
     if (tier >= 0 && !locked) b.dataset.tier = String(tier);   // viền theo màu hồn hoàn (--tier-N)
     b.dataset.cost = String(cost); b.dataset.cdfull = String(cdFull);
-    b.innerHTML = `<b class="key">${key}</b><span class="ico" style="color:${col}"></span><span></span><div class="ui-cd"></div><em class="cdn"></em>`;
+    b.innerHTML = `<b class="key">${key}</b><span class="ico" style="color:${col}"></span><span class="sk-name"></span><div class="ui-cd" aria-hidden="true"></div><em class="cdn" aria-hidden="true"></em><em class="sk-state" aria-hidden="true"></em>`;
     const sp = b.querySelectorAll("span"); if (art) { sp[0].insertAdjacentHTML("afterbegin", art); sp[0].classList.add("skart"); } else sp[0].textContent = icon;
     sp[1].textContent = name;
     b.setAttribute("aria-label", label);
-    if (tip) setCellTip(b, tip);
-    b.addEventListener("pointerdown", (e) => { e.preventDefault(); act(action); });
+    setCellTip(b, tip || { title: label, foot: `Phím ${key}` });
+    b.setAttribute("aria-disabled", String(locked));
+    b.querySelector(".sk-state")!.textContent = locked ? "Khóa" : "";
+    const run = () => { if (!b.classList.contains("locked")) act(action); };
+    bindPress(b, run);
     el.appendChild(b);
   };
-  mk("J", "Đánh thường", "Đánh", VOHON[vh].col, "attack");
+  mk("J", "Đánh thường", "Đánh", VOHON[vh].col, "attack", "", false, undefined, "Đánh thường · phím J", -1, 0, 0, artImg("gi_menu_arena"));
   const id = VOHON[vh].id;
   loadout.forEach((r, i) => {
     const s = r >= 0 ? ringSkill(id, r) : null; slotCd[i] = s ? skillCd(s, r, stars) : 1;
@@ -416,7 +432,18 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
     fusBtn = el.lastElementChild as HTMLElement; fusBtn.classList.add("fus");
     fusLabel = fusBtn.querySelectorAll("span")[1];
   }
-  mk("E", "Nhặt hồn hoàn", "Nhặt", "#ffe08a", "pickup");
+  mk("E", "Nhặt hồn hoàn", "Nhặt", "#ffe08a", "pickup", "", false, undefined, { title: "Nhặt hồn hoàn", lines: ["Nhặt hồn hoàn ở gần nhân vật."], foot: "Phím E" }, -1, 0, 0, artImg("item_hon_hoan"));
+  $("#itemActions").appendChild(el.lastElementChild!);
+  const bag = document.createElement("button"); bag.className = "sk ui-cell";
+  bag.innerHTML = `<b class="key">B</b><span class="ico skart">${artImg("gi_menu_bag")}</span><span class="sk-name">Tiêu hao</span>`;
+  bag.setAttribute("aria-label", "Mở túi dùng vật phẩm tiêu hao (B)");
+  setTip(bag, { title: "Vật phẩm tiêu hao", lines: ["Mở túi để dùng đan, phù và vật phẩm."], foot: "Phím B · Túi đồ" });
+  bag.addEventListener("click", () => {
+    bagGroup = "tieu_hao"; bagPage = 0; bagSel = null;
+    if ($("#bag").hidden) $("#bagBtn").click();
+    bagRefresh?.();
+  });
+  $("#itemActions").appendChild(bag);
 }
 
 // ---------- Võ Hồn Dung Hợp Kỹ (#193, mục 5.9): nút G, lời nhắc có đếm ngược, ô hồi chiêu ----------
@@ -517,14 +544,17 @@ export function buildBoneSkills(worn: WornBone[], act: (k: string) => void) {
     const b = document.createElement("button"); b.className = "sk bsk ui-cell" + (sk ? "" : " locked"); b.dataset.b = String(i);
     if (w) b.dataset.tier = String(tierOfYears(w.years)); // cả hồn cốt bị động (ô mờ nhưng giữ viền màu niên hạn)
     b.dataset.cost = String(sk?.cost ?? 0);
-    b.innerHTML = `<b class="key">${BONE_SKILL_KEYS[i]}</b><i></i><span class="ico skart" style="color:${col}">${boneIcon(slot, col)}</span><span></span><div class="ui-cd"></div><em class="cdn"></em>`;
+    b.innerHTML = `<b class="key">${BONE_SKILL_KEYS[i]}</b><i></i><span class="ico skart" style="color:${col}">${boneIcon(slot, col)}</span><span class="sk-name"></span><div class="ui-cd" aria-hidden="true"></div><em class="cdn" aria-hidden="true"></em><em class="sk-state" aria-hidden="true"></em>`;
     b.querySelector("i")!.textContent = sk?.icon ?? "";
     b.querySelectorAll("span")[1].textContent = sk?.name ?? s.name;
     b.setAttribute("aria-label", sk ? `Kỹ năng hồn cốt ${s.name}: ${sk.name}` : `Kỹ năng hồn cốt ${s.name}: chưa có`);
     setCellTip(b, w && sk ? { title: boneName(w.beast, slot, w.years, w.enhance), color: TIERS[tierOfYears(w.years)].glow, sub: `Hồn cốt ${s.name} · tốn ${sk.cost} hồn lực · hồi ${cdText(sk.cd)} giây`,
         lines: [boneSkillText(w.beast, slot, w.years, w.enhance)] }
       : { title: `Ô ${s.name}: chưa gắn hồn cốt`, lines: ["Gắn hồn cốt ở bảng đội hình (V) để có kỹ năng chủ động."] });
-    b.addEventListener("pointerdown", (e) => { e.preventDefault(); act(`bone${i}`); });
+    b.querySelector(".sk-state")!.textContent = sk ? "" : "Khóa";
+    b.setAttribute("aria-disabled", String(!sk));
+    const run = () => { if (!b.classList.contains("locked")) act(`bone${i}`); };
+    bindPress(b, run);
     el.appendChild(b);
   });
   const pas = $("#bpas"); pas.innerHTML = "";
@@ -639,6 +669,17 @@ export function setAbsorbing(a: typeof absorbing) { absorbing = a; }
 const vohonDef = (id: string) => VOHON[Math.max(0, vohonIndex(id))];
 const ownedById = (data: OwnedVohons, rowId: number) => data.list.find((v) => v.rowId === rowId);
 
+/** Rút gọn theo từ, giữ đầu và cuối để phân biệt võ hồn; tooltip giữ nguyên tên đầy đủ. */
+function teamName(name: string) {
+  const words = name.split(" ");
+  return name.length > 21 && words.length > 4 ? `${words.slice(0, 2).join(" ")} … ${words.slice(-2).join(" ")}` : name;
+}
+
+function teamTip(b: HTMLElement, state = b.dataset.sub ?? "") {
+  setTip(b, { title: b.dataset.name ?? "Ô đội hình trống", sub: [b.dataset.level, state === b.dataset.level ? "" : state].filter(Boolean).join(" · "),
+    lines: [...(b.dataset.tc ? [b.dataset.tc] : ["Chọn võ hồn ở bảng Đội hình (V)."]), ...(b.classList.contains("down") ? ["Hồi lại ngoài giao chiến hoặc khi về doanh trại."] : [])], foot: `Phím ${Number(b.dataset.slot) + 1} · Đổi võ hồn` });
+}
+
 /** Thanh đội hình trong trận: mỗi ô một nút (phím 1–4 hoặc chạm) để đổi sang võ hồn đó. */
 export function buildTeam(data: OwnedVohons, sw: (slot: number) => void) {
   const el = $("#team"); el.innerHTML = "";
@@ -649,13 +690,18 @@ export function buildTeam(data: OwnedVohons, sw: (slot: number) => void) {
     if (def) b.style.setProperty("--c", def.col);
     if (v) b.dataset.row = String(rowId);
     b.innerHTML = `<b class="key">${i + 1}</b><i class="dot"></i><span></span><small></small><i class="hpb"><i></i></i><i class="enb"><i></i></i><div class="ui-cd"></div><em class="cdn"></em>`;
-    b.querySelector("span")!.textContent = def ? def.name : "Trống";
+    b.querySelector("span")!.textContent = def ? teamName(def.name) : "Trống";
+    b.dataset.name = def?.name ?? "Ô đội hình trống";
+    b.dataset.level = v ? `Cấp ${v.level}` : "";
     b.dataset.sub = v ? (on ? "Ra trận" : `Cấp ${v.level}`) : "";
     b.querySelector("small")!.textContent = b.dataset.sub;
-    b.dataset.label = def ? `Ô ${i + 1}: ${def.name}${on ? ", đang ra trận" : ""}` : `Ô ${i + 1}: trống`;
+    b.dataset.label = def ? `Ô ${i + 1}: ${def.name}, cấp ${v!.level}${on ? ", đang ra trận" : ""}` : `Ô ${i + 1}: trống`;
     if (def) b.dataset.tc = `${tienCoOf(def.id).name}: ${tienCoOf(def.id).desc}`;
     b.setAttribute("aria-label", b.dataset.label);
-    b.addEventListener("pointerdown", (e) => { e.preventDefault(); sw(i); });
+    b.setAttribute("aria-disabled", String(!v));
+    teamTip(b);
+    const run = () => { if (v) sw(i); };
+    bindPress(b, run);
     el.appendChild(b);
   });
 }
@@ -693,9 +739,8 @@ export function updateTeam(me: { hp: number; maxHp: number }, v: Vitals) {
     const small = b.querySelector("small")!;
     if (small.textContent !== sub) {
       small.textContent = sub;
-      b.title = down ? `Đã gục: hồi lại sau ${s!.down} giây ngoài trận (đang giao chiến thì đồng hồ dừng) hoặc khi về doanh trại.`
-        : b.dataset.tc ? `Thanh vàng là năng lượng tiên cơ: tích khi võ hồn ra trận đánh trúng, đầy thì đổi vào sẽ tung ${b.dataset.tc}.` : "";
-      if (b.dataset.label) b.setAttribute("aria-label", b.dataset.label + (full ? ", đủ năng lượng tiên cơ" : ""));
+      teamTip(b, down ? `${sub}${squad.combat ? " · chờ hết giao chiến" : ""}` : sub);
+      if (b.dataset.label) b.setAttribute("aria-label", b.dataset.label + (down ? `, ${sub}` : full ? ", đủ năng lượng tiên cơ" : ""));
     }
     const left = on || down || b.classList.contains("locked") ? 0 : Math.max(0, v.swCd), p = left > 0 ? Math.round(k * 100) / 100 : 0;
     if (b.dataset.p !== String(p)) { b.dataset.p = String(p); (b.querySelector(".ui-cd") as HTMLElement).style.setProperty("--p", String(p)); }
