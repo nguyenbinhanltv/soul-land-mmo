@@ -8,11 +8,16 @@
   "prompt_sha256": "7c49d626a6fdda8d005dae0e80f757645ac5fd0e3ebc4d4e2c2383ec4efcd1a3",
   "original_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17c43-78f6-7b71-8761-194681d08ba0\\exec-f5e1fa3e-4907-4898-b6a7-171e275cc13e.png",
   "reference": "PR #1083: concept-turnaround-attempt2.png (Hạo Thiên Chùy)",
-  "status": "CHẶN",
+  "status": "selected_appearance_reference",
   "assessment": "Lượt 1: ne quay trái và lộ mắt, s/n cánh rủ. Lượt 2: ne/n giấu mặt đúng, cánh s/n cắt biên, se/e quá giống. Lượt 3: ne/n không lộ mặt, đủ 5 tư thế gần đúng nhưng se/e khác ít, khoảng trống giữa cánh quá hẹp/có chỗ gần chạm; không đạt tách năm cột. Khoảng 4 góc thật phân biệt rõ. Màu nâu vàng, đen cánh, mắt dọc đúng; chi tiết lông dày (nhẹ), thiếu mây/vòng sét. Chưa đạt.",
   "raw_check": {
     "command": "node tools/assets/vohon-check.mjs raw <image> --type phaptuong --id kim_vu_mieu_ung",
     "exit_code": 0,
     "output": "raw concept-attempt1.png pháp tướng (kim_vu_mieu_ung): NHẸ\n  [NHẸ] mem: texture mềm: 81% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất\n  [NHẸ] luoi: chưa đúng lưới khối: tỉ số biên 1.17 ở chu kỳ 39 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)\n  số đo: {\"w\":1983,\"h\":793,\"ratio\":2.501,\"border\":{\"clear\":1,\"flat70\":0},\"poses\":5,\"poseSpread\":1.1,\"softness\":0.81,\"bigColors\":126,\"grid\":{\"period\":39,\"ratio\":1.17},\"paletteMatch\":0.99}\n  cần mắt duyệt: đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi); không có chữ, ký hiệu đọc được, logo, chữ ký; 5 hướng cùng một hình (cùng cỡ, màu, chi tiết), se / ne chếch đúng hướng; thân đặc, không trong suốt\n"
-  }
+  },
+  "selection_decision": "PR #1145: không sinh thêm; tham chiếu ngoại hình, hướng ne/n xử lý ở phụ thể",
+  "eye": [
+    "concept-attempt1=hướng — ne — quay trái và lộ mắt; se/e khác ít",
+    "concept-attempt1=bố cục — cánh — cánh ngoài sát biên, s/n cánh rủ, lông dày"
+  ]
 }
