@@ -36,3 +36,20 @@ raw concept-attempt1.png pháp tướng (nguyet_nhan): NHẸ
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/vohon-v2/nguyet_nhan/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. | 2026-10-27 | Chưa duyệt, không nhập game. |
+
+
+## Chân dung lô 3 — #1158, P1c2
+
+Ngày 2026-10-27; **1/3 lượt**. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `candidates/portrait-attempt1.png`, SHA256 `1592787b985c26447c8cf060c5db6518487c3dfa1e1907adea644ff4aa97cbb3`. Prompt nguyên văn từ CLI, không viết tay / addendum: `candidates/portrait-attempt1.prompt.txt`, SHA256 `d9856bee8ae2f577c07f866b4f95da582f763a419dccbc25378d313332490a32`. Prompt lưu UTF-8 LF; chuỗi gửi gốc và SHA256 giữ trong `candidates/portrait-attempt1.source.json`, chỉ chuẩn hoá xuống dòng.
+
+Ảnh neo: `art/src/vohon-v2/nguyet_nhan/concept-attempt1.png`, SHA256 `b1c8275128014d1c14f48a2f3ce6eacf92f841efe9865dc6f72b57b02a9d3785`. 
+
+Pixel hoá `--preset portrait2` đã duyệt, giữ mặc định 16 màu (brief RAW 6–8 mảng màu); bản `candidates/portrait-attempt1-P1c2/nguyet_nhan-portrait.png`. Xem `candidates/portrait-attempt1-P1c2/preview/index.html` và `so-sanh.png`. Kết quả máy RAW/P1c2 và lệnh tái tạo trong source JSON, báo cáo pixel kèm thư mục. Chỉ ứng viên trình duyệt, **chưa duyệt, không nhập game**; không chọn thay concept.
+
+### Khai báo duyệt mắt chân dung (`--eye`)
+
+CLI chưa nhận cờ `--eye`; lưu khai báo tường minh, giữ nguyên kết quả máy và RAW.
+
+```text
+--eye "portrait-attempt1=RAW/P1c2 — Hai lưỡi liềm riêng, mép bạc và răng trong đỏ đọc ra; chóp giữa lớn làm hình gần huy hiệu, mảnh phụ và đạo văn còn dày. P1c2 giữ liềm và đỏ nhưng khối tối giữa gần nền; nền vầng tím cùng họ thép tím, chưa đối gam rõ."
+```
