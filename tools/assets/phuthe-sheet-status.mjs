@@ -37,8 +37,8 @@ export function phutheStatus(id, { root = ANIM_ROOT, imported = importedSet() } 
 }
 
 /** Sổ cho 25 võ hồn (hoặc `only`). */
-export function buildStatus({ root = ANIM_ROOT, only } = {}) {
-  const imported = importedSet(), ids = only ?? allPhutheIds();
+export function buildStatus({ root = ANIM_ROOT, only, imported = importedSet() } = {}) {
+  const ids = only ?? allPhutheIds();
   const items = ids.map((id) => phutheStatus(id, { root, imported })), tally = {};
   for (const s of items) tally[s.state] = (tally[s.state] ?? 0) + 1;
   return { schema: 1, generatedBy: "tools/assets/phuthe-sheet-status.mjs", phuthe: items.length, imported: items.filter((s) => s.imported).length, tally, items };

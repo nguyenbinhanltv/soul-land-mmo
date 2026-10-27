@@ -18,7 +18,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { checkIsoTiles } from "./iso-build.mjs";
 import path from "node:path";
-import { ROOT, SPRITES, MANIFEST, PT_MAX_COLORS, readPng, toHex, allowedColors, accentColors, readGpl, npcIds, itemIconIds, skillIconIds, statusIds, heIds, beastIds, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS } from "./lib.mjs";
+import { ROOT, SPRITES, MANIFEST, PT_MAX_COLORS, readPng, toHex, allowedColors, accentColors, readGpl, npcIds, itemIconIds, skillIconIds, statusIds, heIds, beastIds, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS, vhanimSize } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -57,13 +57,14 @@ function mapColors(key, map) {
   return readGpl(f);
 }
 
-function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank = false) {
+
+function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank = false, cols = 0) {
   const spec = sheetSpec(key, frame, iso, stat);
   if (!spec) return err(key, iso ? "key / khung sai quy ước isometric (isoLayout, sheetSpec trong tools/assets/lib.mjs)" : "key sai quy ước (xem sheetSpec trong client/src/sprites.ts)");
   const file = path.join(SPRITES, spec.file);
   // "blank": nửa phụ thể (vh_*) không có hình, client không tải (#974): không được còn file ảnh / normal; ngược lại sheet không điểm ảnh phải khai blank.
   if (blank) {
-    if (spec.kind !== "vohon") return err(key, `"blank": true chỉ cho phụ thể võ hồn (vh_*)`);
+    if (spec.kind !== "vohon" && spec.kind !== "vhanim") return err(key, `"blank": true chỉ cho phụ thể võ hồn (vh_*, vhanim_*)`);
     for (const f of [file, file.replace(/\.png$/, "_n.png")]) if (existsSync(f)) err(key, `"blank": true nhưng còn file ${path.relative(ROOT, f)} (xóa file: nửa trống không đưa vào game, nguồn vẽ giữ ở art/src)`);
     return spec;
   }
@@ -79,7 +80,7 @@ function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank 
   // Màu và alpha.
   const palette = /^hs_(hair|outfit)_/.test(key) ? grayOnly : spec.kind === "prop" ? withAccents : map ? new Set([...allowed, ...mapColors(key, map)]) : allowed;
   // Chân dung / biểu tượng và hiệu ứng fx_* (màu gốc của gói LPC) không theo bảng chung, chỉ giới hạn số màu.
-  const free = spec.kind === "portrait" || spec.kind === "fx" || spec.kind === "phaptuong" || !!spec.static; // sheet tĩnh ComfyUI: bảng màu riêng từng loài, như chân dung
+  const free = spec.kind === "portrait" || spec.kind === "fx" || spec.kind === "phaptuong" || spec.kind === "vhanim" || !!spec.static; // sheet tĩnh ComfyUI: bảng màu riêng từng loài, như chân dung
   const bad = new Map(), used = new Set(); let semi = 0;
   for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) {
     const p = img.get(x, y);
@@ -90,7 +91,7 @@ function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank 
     if (!free && !palette.has(c)) bad.set(c, (bad.get(c) ?? 0) + 1);
   }
   if (semi) err(key, `${semi} điểm bán trong suốt (chỉ được alpha 0 hoặc 255)`);
-  if (free && !spec.static && used.size > (spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS)) err(key, `${used.size} màu, ${spec.kind === "fx" ? "hiệu ứng" : spec.kind === "phaptuong" ? "pháp tướng" : "chân dung"} tối đa ${spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS}`);
+  if (free && !spec.static && spec.kind !== "vhanim" && used.size > (spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS)) err(key, `${used.size} màu, ${spec.kind === "fx" ? "hiệu ứng" : spec.kind === "phaptuong" ? "pháp tướng" : "chân dung"} tối đa ${spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS}`);
   if (spec.npc && !(npcIds_ ??= npcIds()).has(spec.npc)) err(key, `không có NPC "${spec.npc}" trong NPCS (shared/data.ts)`);
   if (spec.status && !(statusIds_ ??= statusIds()).has(spec.status)) err(key, `không có trạng thái / buff "${spec.status}" trong STATUS_IDS / BUFF_IDS / BEAST_BUFF_IDS (shared/data.ts)`);
   if (spec.beast && !(beastIds_ ??= beastIds()).has(spec.beast)) err(key, `không có loài "${spec.beast}" trong BEASTS (shared/data.ts)`);
@@ -128,6 +129,11 @@ function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank 
       const [x0, y0] = at(r, 0), k = `${spec.set}:${r}`;
       for (let y = 0; y < fh; y++) if (!cellEmpty(img, x0, y0 + y, fw, 1)) feet.set(k, { low: Math.max(feet.get(k)?.low ?? -1, y), want: HS_ORIGIN[1] });
     }
+  } else if (spec.kind === "vhanim") {
+    const [ew, eh] = vhanimSize(fw, cols);
+    if (!ew) err(key, `manifest thiếu "anim.cols" nguyên dương`);
+    else if (img.w !== ew || img.h !== eh) err(key, `kích thước ${img.w}×${img.h}, cần ${ew}×${eh} (anim.cols ${cols} × khung ${fw}, 10 hàng = giới × 5 hướng)`);
+    if (cellEmpty(img, 0, 0, img.w, img.h)) err(key, `sheet trống hoàn toàn: ghi "blank": true vào manifest và xóa file ảnh`);
   } else if (spec.kind === "vohon") {
     const stray = [];
     for (let r = 0; r < 4; r++) for (let c = 0; c < SHEET_COLS; c++) if ((r === 3 || c >= 12) && !cellEmpty(img, ...at(r, c), fw, fh)) stray.push([r, c]);
@@ -270,7 +276,7 @@ for (const e of manifest.sprites) {
   const key = entryKey(e);
   if (seen.has(key)) err(key, "trùng key trong manifest");
   seen.add(key);
-  const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "", e.nine ?? 0, !!e.static, !!e.blank);
+  const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "", e.nine ?? 0, !!e.static, !!e.blank, e.anim?.cols ?? 0);
   if (spec) { seen.add(spec.file); seen.add(spec.file.replace(/\.png$/, "_n.png")); }
   if (spec && typeof e !== "string" && e.anim?.dirsOk !== undefined) checkDirsOk(key, e, spec);
 }

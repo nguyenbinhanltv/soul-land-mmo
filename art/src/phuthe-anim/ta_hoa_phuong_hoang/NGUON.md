@@ -218,3 +218,16 @@ Prompt của A–E và candidates được sinh trước khi merge main mới: r
 
 ## Cập nhật bảng nộm tham chiếu (#1171)
 Cả sáu bảng nộm trong `references/` (turnaround + toA–toE) được dựng lại bằng công cụ có **vạch tham chiếu** (đường chân, trục, tâm ngực, thước chiều cao thân, góc khung; màu khóa vạch **#7A5CFF**, nộm vẫn cyan **#00D0D0**, khung 96, neo (48, 74), vị trí nộm không đổi). `nom-turnaround.png` mới SHA256 `3d218426bc61b52cd457505e184fb210dec14b3d97bab95d0206e21a8672788f`. Mọi SHA256 / ảnh tham chiếu của bảng nộm ghi ở trên (turnaround và năm tờ A–E, candidates) là của bảng nộm CŨ không vạch; lượt sinh sau dùng bảng mới và prompt có khối `GUIDE LINES`. Cutter vẫn trừ được tờ vẽ trên bảng cũ (không có vạch thì không có gì để trừ).
+
+## Nhập game — phương án 2 (chủ repo chốt 2026-10-28, #1024)
+Nhập bằng `node tools/assets/phuthe-import.mjs --id ta_hoa_phuong_hoang --dir <thư mục cắt> --anchor <anchor.json>` (chép `vohonanim/ta_hoa_phuong_hoang_{b,f}.png`, thêm `vhanim_ta_hoa_phuong_hoang_{b,f}` vào manifest, gộp neo; chạy lại không đổi gì). Lệnh cắt và neo: `phuthe-sheet-cut.mjs` + `phuthe-anchor.mjs --source anim` như trên, `lop.json` hiện có.
+
+| Hướng | Nguồn dùng khi nhập | Ghi chú |
+|---|---|---|
+| `s` (A) | `lpc-moi/toA.png` (nộm LPC mới) | qua kiểm kỹ thuật; cutter chỉ đăng ký nộm 10 / 22 ô, phần còn lại theo độ dời trung vị |
+| `se` (B) | `toB.png` (#1168, nộm cũ) | tờ B mới bị chặn; tờ cũ cắt không block nhưng chỉ 6 / 22 ô đăng ký được nộm, dùng độ dời trung vị (22, 46): **vị trí ráp lệch hơn A / D, chủ repo chỉnh bằng thanh trượt** |
+| `e` (C) | `toC.png` (#1168, nộm cũ) | tờ C mới bị chặn; tờ cũ không đăng ký được ô nào (độ dời 0, 0), neo đo ra scale 0,94: chỉnh tay |
+| `ne` (D) | `lpc-moi/toD.png` | qua kiểm kỹ thuật; lộ mặt / gần `e` đã khai ở trên |
+| `n` (E) | `lpc-moi/toE.png` | như D |
+
+Tây (`sw`, `w`, `nw`) lật ngang `se`, `e`, `ne` ở client, không có ảnh riêng. Không hướng nào dùng phụ thể tĩnh thay thế. Chỗ chỉnh tay: trang `?thu=phuthe` (ô "Neo khối thân": dx, dy, scale cho từng giới / hướng, "Xuất anchor.json"), rồi chép mục xuất vào `shared/assets/sprites/vohonanim/anchor.json` (mục `"manual": true` không bị công cụ ghi đè). Ảnh ráp trước / sau 5 hướng nằm ở artifact phiên 686 (`shots/`).

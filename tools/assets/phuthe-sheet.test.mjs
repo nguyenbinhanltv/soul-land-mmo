@@ -471,7 +471,7 @@ test("sổ trạng thái: 25 võ hồn, chưa có tờ = chua-co-to; võ hồn c
     putSet(path.join(root, "ta_hoa_phuong_hoang"), cached("ta_hoa_phuong_hoang", () => fakeSet("ta_hoa_phuong_hoang", { drift: [6, -4] })).sheets);
     const info = L.phutheInfo("hao_thien_chuy");
     putSet(path.join(root, "hao_thien_chuy"), { C: fakeSheet({ group: info.group, dir: "e", frame: info.frame, key: info.dummyKey, bad: ["empty"] }).img });
-    const st = buildStatus({ root }), by = Object.fromEntries(st.items.map((s) => [s.id, s]));
+    const st = buildStatus({ root, imported: new Set() }), by = Object.fromEntries(st.items.map((s) => [s.id, s]));
     assert.equal(st.items.length, 25); assert.equal(st.phuthe, 25);
     assert.equal(by.bach_ho.state, "chua-co-to"); assert.equal(by.bach_ho.missing.length, 5);
     assert.equal(by.ta_hoa_phuong_hoang.state, "san-sang-nhap"); assert.equal(by.ta_hoa_phuong_hoang.sheets.length, 5); assert.match(by.ta_hoa_phuong_hoang.sheets[0].sha256, /^[0-9a-f]{64}$/);
