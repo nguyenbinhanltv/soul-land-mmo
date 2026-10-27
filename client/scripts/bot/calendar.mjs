@@ -1,5 +1,5 @@
 // Nhóm bot "calendar" (Lịch Hoạt Động, mục 5.20, L2 #877): tin `calendar {op:"get", week?}` qua server thật.
-import { sleep, waitFor, ok, bot, test, needHookSkip } from "./lib.mjs";
+import { post, sleep, waitFor, ok, bot, enter, test, npcSpot, AT, needHookSkip } from "./lib.mjs";
 import { ASK_CD, EVENT_DEFS, KING_TIMES, MAPS, BOSSES, worldBossOn, weekdayVn } from "../../../shared/data.ts";
 
 const DAY = 86400000, WEEK = 7 * DAY;
@@ -55,5 +55,22 @@ export async function calendarTest(){
   await waitFor(()=>A.cals.length>=n0+3,2000);
   ok(new Set(A.cals.slice(n0).map(c=>c.weekStart)).size===3,"ba tuần xin cùng lúc: đủ ba bản, không gộp lẫn");
   ok(A.leftCode===null,"suốt bài vẫn kết nối");
-  await A.room.leave();
+  // 5. Trong sân Đại Đấu Hồn Trường (ArenaRoom): `calendar` bị từ chối (log báo, không có tin lịch), vẫn kết nối.
+  const B=await bot("Lịch B","kim_vu_mieu_ung",{sex:1,hair:0,hairCol:1,outfitCol:1});
+  const ns=npcSpot(AT,"dau_hon_truong"), me=b=>b.room.state.players?.get(b.room.sessionId);
+  for(const [b,dx] of [[A,-12],[B,12]]){
+    b.travel=null; b.room.send("test",{op:"warp",mapId:AT,x:ns.x+dx,y:ns.y+16});
+    ok(await waitFor(()=>b.travel?.mapId===AT,4000),`${b.name}: tới sân đấu thành`);
+    await b.room.leave(); await sleep(300); b.mapId=(await post("/api/me",{token:b.token})).mapId; await enter(b); await waitFor(()=>me(b)&&b.owned&&b.bag&&b.squad,3000);
+  }
+  const fnd=b=>b.arena.filter(m=>m.k==="found").at(-1);
+  for(let t=0;t<12&&!(fnd(A)&&fnd(B));t++){ for(const b of [A,B]) if(!fnd(b)) b.room.send("arena",{op:"queue"}); await sleep(1000); }
+  ok(!!fnd(A)&&!!fnd(B)&&fnd(A).roomId===fnd(B).roomId,"hai bot ghép trận");
+  if(fnd(A)){
+    await A.room.leave(); await enter(A,fnd(A).roomId); await waitFor(()=>me(A)&&A.owned&&A.bag&&A.squad,3000);
+    const nl=A.logs.length, nc=A.cals.length; A.room.send("calendar",{op:"get"}); await waitFor(()=>A.logs.length>nl||A.cals.length>nc,2000); await sleep(500);
+    ok(A.cals.length===nc&&A.logs.slice(nl).some(x=>/Đại Đấu Hồn Trường/.test(x)),`trong sân: calendar bị từ chối (${A.logs.slice(nl).at(-1)??"không có log"})`);
+    ok(A.leftCode===null,"trong sân: từ chối xong vẫn kết nối");
+  }
+  await A.room.leave(); await B.room.leave();
 }
