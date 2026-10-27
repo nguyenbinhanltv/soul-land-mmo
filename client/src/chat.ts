@@ -1,0 +1,147 @@
+// Ô chat của HUD (tách nguyên văn từ hud.ts, Part of #885): lịch sử, tab kênh, dòng log; kèm nút menu nhanh dựng cùng buildChatTabs.
+import { WORLD_CHAT } from "../../shared/data.ts";
+import { initUiIcons } from "./uiIcons.ts";
+import { setTip } from "./tooltip.ts";
+import { pbtn } from "./domBtn.ts";
+
+const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
+
+/** Dòng thông báo riêng cho mình (lỗi, đồ rơi, tổ đội…): hiện ở mọi tab của ô chat. */
+export function log(text: string, col?: string, who?: string) { chatLine("sys", text, col, who); }
+
+// ---------- Ô chat (mục 4 "Lệnh chat", #188): tab Tất cả / Bản đồ / Tổ đội / Riêng / Tông / Thế giới, lịch sử chỉ trong phiên ----------
+/** Kênh của một dòng: `sys` = thông báo riêng cho mình (tab nào cũng hiện). */
+export type ChatCh = "sys" | "map" | "party" | "whisper" | "world" | "tong";
+export type ChatTab = "all" | "map" | "party" | "whisper" | "world" | "tong";
+/** Màu kênh (thủy mặc, #188): tổ đội xanh lá như chấm đồng đội, tin riêng tím, thế giới vàng, tông môn (#198) lam ngọc. */
+export const CHAT_COL: Record<Exclude<ChatCh, "sys">, string> = { map: "#9db3a2", party: "#7dff8a", whisper: "#c58cff", world: "#e9c45a", tong: "#6fd3e8" };
+const CHAT_TAG: Partial<Record<ChatCh, string>> = { party: "[Đội]", whisper: "[Riêng]", world: "[Thế giới]", tong: "[Tông]" };
+const CHAT_TABS: { id: ChatTab; name: string }[] = [
+  { id: "all", name: "Tất cả" }, { id: "map", name: "Bản đồ" }, { id: "party", name: "Tổ đội" }, { id: "whisper", name: "Riêng" }, { id: "tong", name: "Tông" },
+  { id: "world", name: "Thế giới" }];
+/** Số dòng hiện lúc ô chat đóng (mờ dần sau CHAT_FADE_MS như trước) và lúc mở (không mờ, cuộn được); số dòng giữ trong phiên. */
+const CHAT_SHOW = 6, CHAT_SHOW_OPEN = 40, CHAT_FADE_MS = 9000, CHAT_KEEP = 200;
+interface ChatLine { ch: ChatCh; text: string; col?: string; who?: string; at: number; act?: { label: string; fn: () => void }; }
+const chatHist: ChatLine[] = [];
+let chatTab: ChatTab = "all", chatPinned = false, chatTyping = false;
+/** Người gần nhất nhắn riêng cho mình (`/r`) và người gần nhất mình trò chuyện riêng (tin thường ở tab Riêng gửi cho người này). */
+let replyTo = "", whisperTo = "";
+
+const tabShows = (tab: ChatTab, ch: ChatCh) => tab === "all" || ch === "sys" || ch === tab;
+const chatOpen = () => chatPinned || chatTyping;
+
+function chatEl(l: ChatLine, fade: boolean) {
+  const d = document.createElement("div");
+  const tag = chatTab === "all" ? CHAT_TAG[l.ch] : undefined;
+  if (tag) { const t = document.createElement("i"); t.textContent = tag; t.style.color = l.col ?? ""; d.appendChild(t); }
+  if (l.who) { const b = document.createElement("b"); b.textContent = l.who + ":"; if (tag) b.style.color = l.col ?? ""; d.appendChild(b); }
+  d.appendChild(document.createTextNode(l.text));
+  if (l.act) { const { label, fn } = l.act; d.appendChild(pbtn(label, "ok chatact", fn, label)); } // nút trong dòng (Thêm lại, #195)
+  if (l.col) d.style.borderLeftColor = l.col;
+  if (fade) setTimeout(() => { d.style.opacity = "0"; setTimeout(() => d.remove(), 700); }, Math.max(0, CHAT_FADE_MS - (Date.now() - l.at)));
+  return d;
+}
+
+/** Vẽ lại khung log theo tab và trạng thái mở / đóng. */
+function renderChat() {
+  const el = $("#log"); if (!el) return;
+  const open = chatOpen(), now = Date.now();
+  const lines = chatHist.filter((l) => tabShows(chatTab, l.ch) && (open || now - l.at < CHAT_FADE_MS)).slice(-(open ? CHAT_SHOW_OPEN : CHAT_SHOW));
+  el.replaceChildren(...lines.map((l) => chatEl(l, !open)));
+  $("#chatbox")?.classList.toggle("open", open);
+  if (open) el.scrollTop = el.scrollHeight;
+  for (const b of document.querySelectorAll<HTMLElement>("#chattabs button")) {
+    const on = b.dataset.tab === chatTab;
+    b.classList.toggle("on", on); b.setAttribute("aria-selected", String(on));
+    if (on) b.classList.remove("new");
+  }
+  chatPlaceholder();
+}
+
+/** Thêm một dòng vào lịch sử ô chat (chỉ trong phiên, không lưu). Tab khác có tin mới thì hiện chấm. */
+export function chatLine(ch: ChatCh, text: string, col?: string, who?: string, act?: ChatLine["act"]) {
+  const l: ChatLine = { ch, text, col, who, at: Date.now(), act };
+  chatHist.push(l); if (chatHist.length > CHAT_KEEP) chatHist.shift();
+  const el = $("#log"); if (!el) return;
+  if (ch !== "sys" && ch !== chatTab) document.querySelector(`#chattabs button[data-tab="${ch}"]`)?.classList.add("new");
+  if (!tabShows(chatTab, ch)) return;
+  const open = chatOpen();
+  el.appendChild(chatEl(l, !open));
+  while (el.children.length > (open ? CHAT_SHOW_OPEN : CHAT_SHOW)) el.firstElementChild!.remove();
+  if (open) el.scrollTop = el.scrollHeight;
+}
+
+/** Tin riêng đến / đi: nhớ người để `/r` và tab Riêng gửi tiếp. `mine`: mình gửi, `other` là người nhận; không thì `other` là người gửi. */
+export function chatWhisper(other: string, mine: boolean, text: string) {
+  if (!mine) replyTo = other;
+  whisperTo = other;
+  chatLine("whisper", text, CHAT_COL.whisper, mine ? `Tới ${other}` : `Từ ${other}`);
+  chatPlaceholder();
+}
+/** Người để `/r` trả lời ("" = chưa ai nhắn riêng cho mình trong phiên). */
+export const chatReplyTo = () => replyTo;
+/** Kênh gửi của tin thường (không phải lệnh) theo tab đang chọn; tab Riêng gửi cho người trò chuyện riêng gần nhất. */
+export function chatSendCh(): { ch: "map" | "party" | "whisper" | "world" | "tong"; to?: string } {
+  if (chatTab === "party" || chatTab === "world" || chatTab === "tong") return { ch: chatTab };
+  if (chatTab === "whisper") return { ch: "whisper", to: whisperTo };
+  return { ch: "map" };
+}
+
+function chatPlaceholder() {
+  const inp = $<HTMLInputElement>("#chat"); if (!inp) return;
+  inp.placeholder = chatTab === "party" ? "Tổ đội: Enter để gửi (/d)"
+    : chatTab === "whisper" ? (whisperTo ? `Riêng tới ${whisperTo}: Enter để gửi` : "Riêng: /t <tên> <tin>")
+    : chatTab === "world" ? `Thế giới (từ cấp ${WORLD_CHAT.minLevel}, ${WORLD_CHAT.cdSecs} giây một tin): /tg`
+    : chatTab === "tong" ? "Tông môn: Enter để gửi (/tm)"
+    : "Nhấn Enter để chat (/d, /t, /r, /tm, /tg)";
+  if (chatTab === "all" || chatTab === "map") inp.style.removeProperty("--c"); else inp.style.setProperty("--c", CHAT_COL[chatTab]);
+}
+
+/** Chọn tab và mở khung log để đọc lịch sử; bấm lại tab đang mở thì đóng. */
+export function chatSetTab(tab: ChatTab, toggle = false) {
+  if (toggle && tab === chatTab && chatPinned) chatPinned = false;
+  else { chatTab = tab; chatPinned = true; }
+  renderChat();
+}
+/** Nhắn riêng `name` (nút ở menu hồn sư): sang tab Riêng, đặt người nhận, mở ô gõ. */
+export function chatWhisperTo(name: string) {
+  whisperTo = name; chatTab = "whisper"; chatPinned = true; renderChat();
+  $<HTMLInputElement>("#chat")?.focus();
+}
+/** Ô gõ được / mất tiêu điểm: khung log mở rộng khi đang gõ. */
+export function chatFocus(on: boolean) { chatTyping = on; renderChat(); }
+/** Đóng khung log mở rộng (Esc); trả true nếu vừa đóng. */
+export function chatClose() { if (!chatPinned) return false; chatPinned = false; renderChat(); return true; }
+
+/** Dựng thanh tab của ô chat (một lần; chuột hoặc chạm, `pointerdown` không lấy mất tiêu điểm của ô gõ). */
+export function buildChatTabs() {
+  initUiIcons();
+  const bar = $("#chattabs"); if (!bar) return;
+  if (!bar.childElementCount) for (const t of CHAT_TABS) {
+    const b = document.createElement("button");
+    b.type = "button"; b.dataset.tab = t.id; b.textContent = t.name; b.setAttribute("role", "tab");
+    if (t.id !== "all") b.style.setProperty("--c", CHAT_COL[t.id]);
+    b.addEventListener("pointerdown", (e) => { e.preventDefault(); chatSetTab(t.id, true); });
+    bar.appendChild(b);
+  }
+  const menu = $("#hudMenuBtn"), quick = $("#quickMenu");
+  if (menu && quick && menu.dataset.bound !== "1") {
+    menu.dataset.bound = "1";
+    if (matchMedia("(pointer: coarse)").matches) quick.hidden = true;
+    menu.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      const open = quick.hidden;
+      quick.hidden = !open;
+      menu.setAttribute("aria-expanded", String(open));
+    });
+  }
+  const menuTips: [string, string, string][] = [
+    ["charBtn", "Hồn sư", "H"], ["vhBtn", "Đội hình", "V"], ["bagBtn", "Túi đồ", "B"],
+    ["resBtn", "Cộng minh", "K"], ["audioBtn", "Cài đặt âm thanh và giao diện", "không có phím tắt"],
+  ];
+  for (const [id, title, key] of menuTips) {
+    const b = document.getElementById(id);
+    if (b) setTip(b, { title, foot: `Mở ${title.toLowerCase()} · ${key === "không có phím tắt" ? key : `phím ${key}`}` });
+  }
+  renderChat();
+}
