@@ -1,0 +1,24 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "type": "icon",
+  "attempt": 1,
+  "raw": "icon-attempt1.png",
+  "raw_sha256": "fd69806e9aaa3b27217e40e54d95d759cf14c1fa9bb2277d0b0bbe38d32262f2",
+  "prompt": "icon-attempt1.prompt.txt",
+  "prompt_sha256": "6540c91099cdff4e67c4d839027f8a30eb1dc6edc73992624b091bf42df2bf2e",
+  "reference": "concept-attempt3.png",
+  "reference_sha256": "afbfb627a42f3f956e6749b8a92809610a700592fda556459c294f30c76d1373",
+  "original": "C:/Users/PC/.codex/generated_images/01a17dd5-789d-7bd1-9290-26a7285f2682/exec-cfc66e1a-e51d-4dfc-ae23-af5024d6ee39.png",
+  "pixelize": {
+    "preset": "icon",
+    "colors": 8,
+    "merge": 24,
+    "passes": 2,
+    "protect": true
+  },
+  "status": "needs_visual_review",
+  "eye": "Đầu chim đúng họ đỏ/cam; nhiều nhánh lửa, mắt lẫn lửa ở 24 px, chưa đạt đọc nhanh."
+}

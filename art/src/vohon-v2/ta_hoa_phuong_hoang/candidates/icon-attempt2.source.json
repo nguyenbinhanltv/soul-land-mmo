@@ -1,0 +1,24 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "type": "icon",
+  "attempt": 2,
+  "raw": "icon-attempt2.png",
+  "raw_sha256": "31810e24bcde97396dfbea6180ddb36b0131e93ee17963f9345ebda29c4a8f4f",
+  "prompt": "icon-attempt2.prompt.txt",
+  "prompt_sha256": "6540c91099cdff4e67c4d839027f8a30eb1dc6edc73992624b091bf42df2bf2e",
+  "reference": "concept-attempt3.png",
+  "reference_sha256": "afbfb627a42f3f956e6749b8a92809610a700592fda556459c294f30c76d1373",
+  "original": "C:/Users/PC/.codex/generated_images/01a17dd5-789d-7bd1-9290-26a7285f2682/exec-0e3a98d5-b419-4876-9a8d-cf1c08e312cb.png",
+  "pixelize": {
+    "preset": "icon",
+    "colors": 8,
+    "merge": 24,
+    "passes": 2,
+    "protect": true
+  },
+  "status": "needs_visual_review",
+  "eye": "Đầu chim với mỏ móc và mào lửa; đối chiếu mắt ở 24 px, chưa tự duyệt đạt đẹp."
+}
