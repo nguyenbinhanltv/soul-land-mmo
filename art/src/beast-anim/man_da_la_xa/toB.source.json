@@ -1,0 +1,72 @@
+{
+  "species": "man_da_la_xa",
+  "sheet": "B",
+  "worker": "soul-land-mmo-135",
+  "issue": 773,
+  "raw_file": "toB.png",
+  "sha256": "7dbc21ef9fb44b8a8258a6ba65e257b09dfe84da9fcf86cf3e1f782c6cf50545",
+  "bytes": 1828701,
+  "width": 1254,
+  "height": 1254,
+  "requested_aspect_ratio": "1:1",
+  "allowed_dimensions": [[1254, 1254], [1024, 1024]],
+  "size_requirement_met": true,
+  "grid": [6, 8],
+  "expected_visible_cells": 44,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Built-in tool does not expose model, seed, or exact output dimensions; prompt requested aspect ratio only.",
+  "transparent_background": false,
+  "selected_attempt": 1,
+  "attempts": 1,
+  "first_pass": true,
+  "duration_seconds": 42.8,
+  "counters": { "A": 1, "B": 1, "species_total": 2 },
+  "prompt_file": "toB.prompt.txt",
+  "prompt_sha256": "557fe41cc9ddc26e496ba17e7c19dbfb0484e5a979c1c1ad4df8944776e346e5",
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/man_da_la_xa.png",
+      "role": "static identity/design reference, attached as image 1",
+      "sha256": "93a7e12692135307323a454652a82de8e4f66e7775d5f2de9126b5dc3122128a",
+      "original_input_path": "/private/tmp/soul-land-mmo-773-man-da-la-xa/shared/assets/sprites/beast/man_da_la_xa.png"
+    },
+    {
+      "path": "art/src/beast-anim/man_da_la_xa/toA.png",
+      "role": "actual A1 technical candidate, attached as image 2; not owner art-approved",
+      "sha256": "f5e1233f246cdfc7e8b52288f23fc24ecd8f29261c60745e84a354d4cc5825a3",
+      "original_input_path": "/private/tmp/soul-land-mmo-773-man-da-la-xa/art/src/beast-anim/man_da_la_xa/toA.png"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-fbc69d52-5a41-439d-8dc8-d218e089b9ef.png",
+  "history": [
+    {
+      "attempt": 1,
+      "first_pass": true,
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-fbc69d52-5a41-439d-8dc8-d218e089b9ef.png",
+      "sha256": "7dbc21ef9fb44b8a8258a6ba65e257b09dfe84da9fcf86cf3e1f782c6cf50545",
+      "bytes": 1828701,
+      "dimensions": [1254, 1254],
+      "prompt_file": "toB.prompt.txt",
+      "prompt_sha256": "557fe41cc9ddc26e496ba17e7c19dbfb0484e5a979c1c1ad4df8944776e346e5",
+      "duration_seconds": 42.8
+    }
+  ],
+  "known_issues": [
+    "Manual review: NE rows H1-H4 expose eyes/face, including hurt and die views.",
+    "Manual review: N H6 walk and H7 attack expose eyes/face.",
+    "Manual review: N H8 D3-D4 die frames lie horizontally, off the north-facing body axis."
+  ],
+  "qa_status": "First-pass candidate; B size is allowed; pending automated checker; not owner art-approved.",
+  "publication_policy": "RAW candidate is submitted unchanged for review; submission is not art acceptance or import.",
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "tool_arguments": {
+    "prompt_file": "art/src/beast-anim/man_da_la_xa/toB.prompt.txt",
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-773-man-da-la-xa/shared/assets/sprites/beast/man_da_la_xa.png",
+      "/private/tmp/soul-land-mmo-773-man-da-la-xa/art/src/beast-anim/man_da_la_xa/toA.png"
+    ],
+    "transparent_background": false
+  }
+}

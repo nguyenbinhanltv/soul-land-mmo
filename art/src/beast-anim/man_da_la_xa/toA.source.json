@@ -1,0 +1,64 @@
+{
+  "species": "man_da_la_xa",
+  "sheet": "A",
+  "worker": "soul-land-mmo-135",
+  "issue": 773,
+  "raw_file": "toA.png",
+  "sha256": "f5e1233f246cdfc7e8b52288f23fc24ecd8f29261c60745e84a354d4cc5825a3",
+  "bytes": 1849972,
+  "width": 948,
+  "height": 1659,
+  "requested_aspect_ratio": "2:3",
+  "expected_dimensions": [1024, 1536],
+  "size_requirement_met": false,
+  "grid": [6, 12],
+  "expected_visible_cells": 66,
+  "tool": "builtin image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Built-in tool does not expose model, seed, or exact output dimensions; prompt requested aspect ratio only.",
+  "transparent_background": false,
+  "selected_attempt": 1,
+  "attempts": 1,
+  "first_pass": true,
+  "duration_seconds": 38.2,
+  "counters": { "A": 1, "B": 1, "species_total": 2 },
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "bc408d937c904e56be51b7f142fa8bf8a49441c4a6a14613226b4f547b1c8f74",
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/man_da_la_xa.png",
+      "role": "static identity/design reference, attached as image 1",
+      "sha256": "93a7e12692135307323a454652a82de8e4f66e7775d5f2de9126b5dc3122128a",
+      "original_input_path": "/private/tmp/soul-land-mmo-773-man-da-la-xa/shared/assets/sprites/beast/man_da_la_xa.png"
+    }
+  ],
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-ff257ed1-c85c-4d7f-973a-aa03424da960.png",
+  "history": [
+    {
+      "attempt": 1,
+      "first_pass": true,
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-ff257ed1-c85c-4d7f-973a-aa03424da960.png",
+      "sha256": "f5e1233f246cdfc7e8b52288f23fc24ecd8f29261c60745e84a354d4cc5825a3",
+      "bytes": 1849972,
+      "dimensions": [948, 1659],
+      "prompt_file": "toA.prompt.txt",
+      "prompt_sha256": "bc408d937c904e56be51b7f142fa8bf8a49441c4a6a14613226b4f547b1c8f74",
+      "duration_seconds": 38.2
+    }
+  ],
+  "known_issues": [
+    "A1 is 948x1659, not the required A dimensions 1024x1536; RAW is unchanged.",
+    "Manual review: direction S, H4 D3-D4 die frames lie horizontally, off the south-facing body axis."
+  ],
+  "qa_status": "Candidate; technical size gate fails; not owner art-approved.",
+  "publication_policy": "RAW candidate is submitted unchanged for review; submission is not art acceptance or import.",
+  "postprocessing": "None; byte-identical copy of original tool output.",
+  "tool_arguments": {
+    "prompt_file": "art/src/beast-anim/man_da_la_xa/toA.prompt.txt",
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-773-man-da-la-xa/shared/assets/sprites/beast/man_da_la_xa.png"
+    ],
+    "transparent_background": false
+  }
+}
