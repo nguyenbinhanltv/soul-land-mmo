@@ -44,7 +44,7 @@ Loài `han_bang_dia_long` (Hàn Băng Địa Long), họ `quad`, khung game 128�
 ## Lỗi
 
 ```text
-LỖI: turnaround — chọn lượt 1; se gần e, HURT ngẩng đầu mạnh (mắt)
+LỖI: turnaround — chọn lượt 1; se gần e, HURT ngẩng đầu mạnh. D ne đã thử 3 lượt, chọn candidates/toD-attempt2.png; CHẶN MẮT: HURT C5, ATTACK C3–C4, DIE C4 lộ mắt/mõm và xoay ngang; cả 3 lượt giữ trong candidates, không có toD.png chính (mắt)
 LỖI: toA — s — chọn A2; die D2–D4 xoay chéo phải, attack C1/C5 nghiêng đầu, HURT C5 ngẩng đầu mạnh (mắt)
 LỖI: toB — se — chọn B2; góc se nông gần e, HURT ngẩng đầu, die nghiêng về góc ngang (mắt)
 LỖI: toC — e — HURT H1 C6 hơi quay đầu về người xem, biên độ idle nhỏ (mắt)
