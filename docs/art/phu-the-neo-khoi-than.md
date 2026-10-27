@@ -1,0 +1,11 @@
+# Neo phụ thể theo tâm khối thân: `anchor.json` (#1024, epic #1020)
+
+Bổ sung cho `phu-the-hoat-anh.md` (mục "Khung 96 / 128 và neo theo khung thân"); không đổi luật chơi, không đổi số cân bằng.
+
+Ảnh model hay vẽ phụ thể lớn, lệch tâm so với nộm (thân chim lệch sau-phải, đuôi đè chân), nên ngoài neo theo khung thân còn có **neo theo tâm khối thân** của chính phụ thể, ghi ở `shared/assets/sprites/vohonanim/anchor.json`: `{ "<id>": { frame, m: { s|se|e|ne|n: { dx, dy, scale, tx, ty } }, f: {…}, manual? } }`.
+- **Dựng:** phóng `scale` quanh gốc chân khung rồi dời (`dx`, `dy`) điểm ảnh khung (+x theo hướng nhìn, tây lật dấu); `(tx, ty)` là giữa lưng thân LPC tính từ gốc chân (đích, cũng là chữ thập ở trang thử).
+- **Công cụ** `node tools/assets/phuthe-anchor.mjs --id <võ hồn> --source anim --dir <thư mục phuthe-sheet-cut>` (có test `phuthe-anchor.test.mjs`): bào mòn mặt nạ alpha của khung `idle` (lông lửa, tia, đuôi mảnh rộng ≤ 2 × `ERODE` điểm biến mất), lấy trọng tâm thành phần lớn nhất làm **tâm khối thân**, trung vị qua các khung `idle` của từng (giới, hướng). `scale`: tỉ lệ (cao khối thân / cao thân LPC) ngoài dải `RATIO` (1,3–1,6) thì kéo về mép gần nhất, trong dải thì 1; **không phóng to** mặc định (ảnh đã cắt khung, phóng to chỉ xén cánh thêm), `--grow` cho phép. Mục `"manual": true` không bị ghi đè trừ `--force`.
+- **Client** (`phutheAnchor.ts`, tải một lần ở `preloadSprites`, `GameScene.animatePlayer`): chỉ cho **clip vẽ thật** (`vhanim_*`); thiếu tệp / mục / sai định dạng thì hành vi cũ (dời 0, phóng 1); phụ thể tĩnh cũ không dùng neo này.
+- **Trang chỉnh tay** `?thu=phuthe` (ô "Neo khối thân"): thanh trượt dx, dy, scale cho (giới, hướng đang chọn), chữ thập giữa lưng, bên "Trước" giữ như cũ để so, "Xuất anchor.json" tải mục đã chỉnh (`manual`) để chép vào tệp. Thân thử là nam nên giới nữ chỉ chỉnh số.
+- **Chưa làm:** chia lớp `lop.json` theo khối thân, kiểm tự động lệch tâm giữa các khung (chỉ đo khung `idle`).
+- **Lưu ý đo (Tà Hỏa, tờ #1168):** khối thân đo được đã ≈ 1,0–1,4 lần thân LPC (cánh dày dính vào khối), nên `scale` ra 1; phần "quá lớn" nằm ở sải cánh / đuôi (≈ 2,5 lần bề ngang), cần chỉnh tay hoặc vẽ lại, không phải do neo.

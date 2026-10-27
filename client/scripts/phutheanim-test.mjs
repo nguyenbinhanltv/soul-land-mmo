@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { LPC_SHEET } from "../../shared/data.ts";
 import { PHU_CLIPS, PHU_DEFAULT_CLIPS as D, PHU_FRAMES, PHU_ROWS_PER_SEX, parsePhuLayout, phuBodyStep, phuClipIndex, phuClipOf, phuDirRow, phuFaceOf, phuFlip, phuFrame, phuHalf, phuOriginY, phuSheetFits } from "../src/phutheAnim.ts";
+import { PHU_NO_ANCHOR, parsePhuAnchor, phuAnchorAt, phuAnchorJson } from "../src/phutheAnchor.ts";
 import { fakePose } from "../src/phutheFake.ts";
 import { clipOscK, newSpiritPose, spiritPose, SPIRIT_CLIP_OSC_K, SPIRIT_FAMILY } from "../src/spiritMotion.ts";
 
@@ -93,3 +94,19 @@ spiritPose(P, "wing", "idle", 0, 0, 0, 1, 50, 1, 0, 1); const h1 = P.dx;
 spiritPose(P, "wing", "idle", 0, 0, 0, 1, 50, 1, 0, 0.1); assert.equal(P.dx, h1, "hurt không bị giảm");
 
 console.log("phutheanim-test: ok");
+
+// --- neo khối thân (anchor.json): đọc đủ 2 giới × 5 hướng, hỏng → null (hành vi cũ), tra theo (giới, hàng hướng), xuất lại giữ nguyên
+const dirs = Object.fromEntries(["s", "se", "e", "ne", "n"].map((d, i) => [d, { dx: i, dy: -i, scale: 1 + i / 10, tx: 0, ty: -26 }]));
+const anchorSrc = { frame: 96, m: dirs, f: dirs };
+const T = parsePhuAnchor(anchorSrc);
+assert.equal(T.frame, 96); assert.equal(T.manual, false);
+assert.deepEqual(phuAnchorAt(T, false, phuDirRow("e")), { dx: 2, dy: -2, scale: 1.2, tx: 0, ty: -26 }, "hàng e");
+assert.equal(phuAnchorAt(T, true, phuDirRow("nw")).dx, 3, "tây dùng hàng ne; lật dấu dx do nơi gọi");
+assert.deepEqual(phuAnchorAt(undefined, false, 0), PHU_NO_ANCHOR, "thiếu bảng → không neo");
+assert.equal(parsePhuAnchor({ ...anchorSrc, frame: 64 }), null);
+assert.equal(parsePhuAnchor({ frame: 96, m: dirs }), null, "thiếu giới nữ");
+assert.equal(parsePhuAnchor({ ...anchorSrc, m: { ...dirs, s: { ...dirs.s, scale: 9 } } }), null, "scale ngoài khoảng");
+assert.equal(parsePhuAnchor({ ...anchorSrc, m: { ...dirs, s: { dx: "x", dy: 0, scale: 1 } } }), null, "dx không phải số");
+assert.equal(parsePhuAnchor({ ...anchorSrc, m: { ...dirs, s: { dx: 0, dy: 0, scale: 1 } } }).m[0].ty, PHU_NO_ANCHOR.ty, "thiếu tx / ty → mặc định");
+const back = phuAnchorJson(T); assert.equal(back.manual, true); assert.deepEqual(parsePhuAnchor(back).f, T.f, "xuất rồi đọc lại khớp");
+console.log("phutheanim-test: neo khối thân OK");
