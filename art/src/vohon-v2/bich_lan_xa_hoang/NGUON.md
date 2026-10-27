@@ -31,3 +31,23 @@ Không sinh thêm; giữ bản chọn nêu trên. Concept chỉ tham chiếu ngo
   LỖI: hướng — se/e — hai góc gần giống nhau, e còn chếch trước (mắt).
 - `--eye "concept-attempt1=hướng — ne — còn lộ cạnh mõm; n nhìn lưng"`
   LỖI: hướng — ne — còn lộ cạnh mõm; n nhìn lưng (mắt).
+
+## Chân dung lượt 1 — #1158
+
+Ngày 2026-10-27; 1/3 lượt. builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `candidates/portrait-attempt1.png`, SHA256 `b10fbcbda54c9fe2d1fff908c35ab48f9c5c8a8eaf23f976742be6fc748a5c78`. Prompt CLI nguyên văn `candidates/portrait-attempt1.prompt.txt`, SHA256 `e33ecf424b7d6b6fa1b36d372278a2516efcde6ca31247187175dfd9d38aa0fd`; không viết tay, không addendum. Ảnh neo ngoại hình: `concept-attempt1.png`, SHA256 `dbb1002c01e3a0e541c3b385405b4db54225735ed5e549aac983e4a1f1a94a56`. Hồ sơ lệnh và kết quả kiểm: `candidates/portrait-attempt1.source.json`.
+
+P1c: `--preset portrait`; bản thử `candidates/portrait-attempt1-P1c/bich_lan_xa_hoang-portrait.png`, 64×64, 7 màu, giữ 7/8 điểm sáng. Xem `candidates/portrait-attempt1-P1c/preview/index.html` và `so-sanh.png`. Chưa được chủ repo duyệt mỹ thuật, chưa nhập game. Không sửa RAW.
+
+### Khai báo duyệt mắt chân dung (`--eye`)
+
+Công cụ vohon:check chưa có cờ --eye; chỉ khai tại đây, không đổi bộ kiểm.
+
+```text
+--eye "portrait-attempt1=góc nhìn — chính diện; sừng chạm/cắt mép trên, dải khí và ngọc xanh rộng tranh điểm nhấn mắt, chi tiết vảy nhiều"
+```
+
+**Kết luận chân dung:** lượt 1 chưa đạt brief, toàn bộ ở `candidates/`; chưa có chân dung cuối được chọn. Prompt lưu UTF-8 LF theo Git, chỉ chuẩn hóa xuống dòng so với chuỗi CLI; SHA256 chuỗi gửi ban đầu `0020794298e911c1a84143d2259fe2e8a1a392b075df4158d1b0c52859ad540a`, SHA256 file prompt Git `e33ecf424b7d6b6fa1b36d372278a2516efcde6ca31247187175dfd9d38aa0fd`. Không sửa nội dung prompt.
+
+```text
+--eye "portrait-attempt1=bản P1c — 64×64 — mất nhiều khối tối; điểm mắt/đầu chưa tách rõ, chưa đạt brief; giữ làm candidate"
+```
