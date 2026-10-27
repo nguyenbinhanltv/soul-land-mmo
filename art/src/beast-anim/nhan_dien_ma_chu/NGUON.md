@@ -13,10 +13,20 @@ Loài `nhan_dien_ma_chu` (Nhân Diện Ma Chu), họ `insect`, khung game 128×1
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
+## toA
+
+- File: `toA.png`, **1536×1024**, 1869474 byte, SHA256 `b1ed2d4e8344c4f3577c3af19e76ca7e9fce72f2f68bd36e06123a8ebdb943bf`.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-623.
+- Prompt: `toA.prompt.txt` (SHA256 `316362557647fddb60b38a3230cf7c15f06f98f27a0bc0a15c80f18e83782a20`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: s pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
 ## Lỗi
 
 ```text
 LỖI: turnaround — Chưa đọc rõ tám chân; ngoại lệ orchestrator 27/10: sửa prompt bằng bài học, lượt 4 vẫn chưa đạt. Chọn lượt 1 làm ref kỹ thuật theo quyết định PR 1114; không phải ảnh nhập game. (mắt)
+LỖI: toA — s — chưa đọc rõ bốn cặp chân; hurt biên độ nhỏ, die cuối hơi lệch trục nhưng còn đọc hướng s. Chọn lượt 3 tốt nhất; các lượt 1–2 die quay ngang. (mắt)
 ```
 
 ## Ghi công
