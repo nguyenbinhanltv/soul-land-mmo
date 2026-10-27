@@ -1,0 +1,41 @@
+{
+  "type": "icon",
+  "id": "u_minh_linh_mieu",
+  "issues": [
+    {
+      "sev": "soft",
+      "code": "cham-mep",
+      "text": "hình chạm mép ảnh (7 điểm): viền ngoài bị cắt"
+    },
+    {
+      "sev": "soft",
+      "code": "mat-sang",
+      "text": "vùng sáng chỉ 0.3%: mất điểm sáng (mắt, lõi, lưỡi), hình sẽ tối đặc"
+    },
+    {
+      "sev": "soft",
+      "code": "phang",
+      "text": "tương phản thấp (độ lệch luma 0.08): hình phẳng, khó đọc khi thu nhỏ"
+    },
+    {
+      "sev": "soft",
+      "code": "nhieu-chi-tiet",
+      "text": "mật độ biên 0.916 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+    }
+  ],
+  "metrics": {
+    "w": 24,
+    "h": 24,
+    "colors": 247,
+    "outline": 1,
+    "hot": 0.003,
+    "contrast": 0.08,
+    "edge": 0.916,
+    "sep": null,
+    "bgRatio": 1.06
+  },
+  "manual": [
+    "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+    "so với RAW: vẫn là cùng một võ hồn"
+  ]
+}

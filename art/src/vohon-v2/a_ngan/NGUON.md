@@ -64,3 +64,30 @@ CLI võ hồn chưa nhận cờ này; lưu khai báo tường minh, không sửa
 ```
 
 Prompt lưu UTF-8 LF theo Git; SHA256 chuỗi gửi nguyên bản `8fb04497f9b836c429859575db63be74bbbb2e7569ef4d97474a19ea78de5f97` và `sent_prompt` ở source JSON. Chỉ chuẩn hóa xuống dòng, nội dung trùng CLI.
+
+
+## Icon lô 2 — RAW nearest (#1159)
+
+Ngày 2026-10-28; builtin `image_gen.imagegen`, model/seed `unknown`. Số lượt icon **1/3**, chọn lượt 1 trình duyệt; chưa nhập game. RAW giữ nguyên byte từ công cụ.
+
+- RAW: `icon-attempt1.png`, SHA256 `e0c47f5a50bc63cfdbaed914477c0f6eed8df1763973776b15dab748e588a1cf`.
+- Prompt: `icon-attempt1.prompt.txt`, SHA256 `4adf7289594598282973601f9ac352694c6d786426ef1e1fbcbe0004817be255`; nguyên nội dung CLI `node tools/assets/vohon-prompt.mjs --type icon --id a_ngan --style-ref art/src/vohon-v2/a_ngan/concept-attempt2.png` (bỏ newline cuối stdout); không viết tay, không addendum.
+- Ảnh neo: `concept-attempt2.png`, SHA256 `d510d4409629e9a0e18d02e1872cb9bc5b0b1c5e9ccceacba9e7c8c0984fd8db`; không dùng ảnh cũ hay lượt hỏng.
+- Nguồn chi tiết: `icon-attempt1.source.json`. Icon một góc, không áp dụng yêu cầu năm hướng của concept.
+- Xuất: `node tools/assets/vohon-pixelize.mjs --type icon --id a_ngan --in art/src/vohon-v2/a_ngan/icon-attempt1.png --out art/src/vohon-v2/a_ngan/icon-attempt1-nearest --preset icon-nearest`; giữ màu RAW, không ép 8 màu.
+- Cặp 24/32 px và report/check JSON: `icon-attempt1-nearest/`; [xem trước](icon-attempt1-nearest/preview/index.html).
+
+### Khai báo lỗi còn lại (`--eye`)
+
+CLI chưa hỗ trợ cờ --eye; lưu khai báo tại đây, giữ nguyên báo cáo máy. Không tự tuyên bố đạt đẹp.
+
+```text
+--eye "icon-attempt1=RAW — mem — texture mềm: 84% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+--eye "icon-attempt1=RAW — luoi — chưa đúng lưới khối: tỉ số biên 1.27 ở chu kỳ 34 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+--eye "icon-attempt1=RAW — lech-mau — 30% điểm sáng cùng họ màu robe / col của a_ngan (mục 4 cần ≥ 50%)"
+--eye "icon-attempt1=32px — cham-mep — hình chạm mép ảnh (6 điểm): viền ngoài bị cắt"
+--eye "icon-attempt1=32px — nhieu-chi-tiet — mật độ biên 0.926 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+--eye "icon-attempt1=24px — cham-mep — hình chạm mép ảnh (4 điểm): viền ngoài bị cắt"
+--eye "icon-attempt1=24px — nhieu-chi-tiet — mật độ biên 0.93 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+--eye "icon-attempt1=duyệt mắt — Hoa lam và nhụy vàng trắng nhận ra; dây vàng, hạt sáng vẽ sẵn làm nhiều chi tiết nhỏ ở 24 px."
+```
