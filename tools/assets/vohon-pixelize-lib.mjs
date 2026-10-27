@@ -302,14 +302,15 @@ export const SHADOW_HUE = 270, LIGHT_HUE = 50;
  * Hue-shift theo sắc độ (sửa tại chỗ): bóng (luma < 0,4) đẩy về tím / đen xanh (270°), vùng sáng (luma > 0,65) đẩy về vàng ấm (50°), giữa giữ nguyên.
  * `k` 0..1 = độ mạnh (k = 1: điểm tối nhất / sáng nhất đi tới 50% đường hue). Các tông cùng gam nhờ đó khác hue chứ không chỉ khác độ sáng. Trả số điểm đổi.
  */
-export function hueShift(img, k = 0.5) {
+export function hueShift(img, k = 0.5, { shadowHue = SHADOW_HUE } = {}) {
   if (k <= 0) return 0;
   let n = 0;
   for (let i = 0; i < img.data.length; i += 4) {
     if (img.data[i + 3] < 128) continue;
     const [h, sv, l] = toHsl(img.data[i], img.data[i + 1], img.data[i + 2]); if (sv < 0.08) continue;
     const t = l < 0.4 ? ((0.4 - l) / 0.4) * 0.5 * k : l > 0.65 ? ((l - 0.65) / 0.35) * 0.5 * k : 0; if (!t) continue;
-    const [r, g, b] = fromHsl(hueToward(h, l < 0.4 ? SHADOW_HUE : LIGHT_HUE, t), sv, l);
+    const tgt = l < 0.4 ? shadowHue : LIGHT_HUE; if (tgt == null) continue;
+    const [r, g, b] = fromHsl(hueToward(h, tgt, t), sv, l);
     img.data[i] = r; img.data[i + 1] = g; img.data[i + 2] = b; n++;
   }
   return n;
@@ -334,13 +335,21 @@ export function subjectMask(img, passes = 2) {
   }
   return { mask: m, threshold: thr, share: m.reduce((a, v) => a + v, 0) / (n || 1) };
 }
-/** Nền về gam lạnh tối (sửa tại chỗ): điểm ngoài `mask` đẩy hue về tím (270°) `mix` phần và hạ sáng còn `dim`. Chủ thể giữ gam ấm. Trả số điểm đổi. */
-export function coolBackground(img, mask, { mix = 0.7, dim = 0.55 } = {}) {
+/** Hue trung bình của chủ thể (trung bình vòng, trọng số sắc độ × luma), độ; null nếu chủ thể không có màu (xám). */
+export function subjectHue(img, mask) {
+  let x = 0, y = 0;
+  for (let p = 0; p < mask.length; p++) { if (!mask[p] || img.data[p * 4 + 3] < 128) continue; const [h, sv, l] = toHsl(img.data[p * 4], img.data[p * 4 + 1], img.data[p * 4 + 2]), wt = sv * l; x += Math.cos((h * Math.PI) / 180) * wt; y += Math.sin((h * Math.PI) / 180) * wt; }
+  return Math.hypot(x, y) < 1e-6 ? null : ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+}
+/** Hue nền đối với chủ thể: chủ thể thuộc gam tím / lam (trong ±60° của 270°) thì nền về nâu ấm (30°), còn lại về tím (270°). */
+export const backgroundHue = (subj) => (subj != null && Math.abs(((subj - SHADOW_HUE + 540) % 360) - 180) <= 60 ? 30 : SHADOW_HUE);
+/** Nền về gam tối đối với chủ thể (sửa tại chỗ): điểm ngoài `mask` đẩy hue về `hue` (mặc định tím 270°) `mix` phần và hạ sáng còn `dim`. Trả số điểm đổi. */
+export function coolBackground(img, mask, { mix = 0.7, dim = 0.55, hue = SHADOW_HUE } = {}) {
   let n = 0;
   for (let p = 0; p < mask.length; p++) {
     if (mask[p] || img.data[p * 4 + 3] < 128) continue;
     const [h, sv, l] = toHsl(img.data[p * 4], img.data[p * 4 + 1], img.data[p * 4 + 2]);
-    const [r, g, b] = fromHsl(hueToward(h, SHADOW_HUE, mix), Math.max(sv * 0.8, 0.25), l * dim);
+    const [r, g, b] = fromHsl(hueToward(h, hue, mix), Math.max(sv * 0.8, 0.25), l * dim);
     img.data[p * 4] = r; img.data[p * 4 + 1] = g; img.data[p * 4 + 2] = b; n++;
   }
   return n;
@@ -411,8 +420,10 @@ export function pixelizePortrait(src, o = {}) {
   const transparent = hasAlpha(region), outline = o.outline === "on" || (o.outline !== "off" && transparent);
   const small = pixelizeDown(region, size, size, { accent: dflt("portrait", o, "accent") }), op = o.preset === "portrait" ? { ...PRESET_PORTRAIT, ...o } : o;
   const mask = op.cool || op.rim ? subjectMask(small) : null, extra = {};
-  if (op.cool) extra.coolPixels = coolBackground(small, mask.mask);
-  if (op.hueShift) extra.hueShifted = hueShift(small, op.hueShift);
+  const subj = mask ? subjectHue(small, mask.mask) : null, cold = backgroundHue(subj) !== SHADOW_HUE; // chủ thể gam lam / tím: nền về nâu ấm, bóng không đẩy về tím
+  if (mask) extra.subjectHue = subj == null ? null : Math.round(subj);
+  if (op.cool) { extra.bgHue = backgroundHue(subj); extra.coolPixels = coolBackground(small, mask.mask, { hue: extra.bgHue }); }
+  if (op.hueShift) extra.hueShifted = hueShift(small, op.hueShift, { shadowHue: cold ? null : SHADOW_HUE });
   return finish(small, { ...op, colors: Math.min(colors, op.maxColors ?? colors) - (outline ? 1 : 0), outline, blobs, crop: cr, size, type: "portrait", mask: op.rim ? mask.mask : null, extra, subjectShare: mask && +mask.share.toFixed(2) });
 }
 /** Icon `size`×`size`: bỏ nền, cắt theo hộp bao (hoặc `crop`), vừa (size − 2) có viền ngoài, căn giữa. */

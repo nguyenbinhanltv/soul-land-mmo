@@ -315,3 +315,13 @@ test("prompt chân dung: câu tương phản viết chung, không ép gam ấm /
     assert.doesNotMatch(s, /warm colors|purple-blue|beak and|plumage/, `${id}: không ép gam ấm / tím lam`);
   }
 });
+
+test("preset portrait: chủ thể lam trên nền lam → nền về nâu ấm, bóng không về tím, hai gam tách nhau (#1095)", () => {
+  const S = 320, im = new Img(S, S); fill(im, 0, 0, S, S, [30, 50, 120]); disc(im, S / 2, S / 2, S * 0.32, [70, 120, 230]);
+  disc(im, S * 0.42, S * 0.45, S * 0.03, [230, 245, 255]); disc(im, S * 0.58, S * 0.45, S * 0.03, [230, 245, 255]);
+  const r = P.pixelizePortrait(im, { preset: "portrait" });
+  assert.ok(r.report.subjectHue >= 200 && r.report.subjectHue <= 250, `hue chủ thể ${r.report.subjectHue}`); assert.equal(r.report.bgHue, 30);
+  const [br, , bb] = r.img.get(2, 2); assert.ok(br >= bb, "nền ngả nâu ấm, không còn lam");
+  const warm = P.pixelizePortrait(softSpirit(300, 3), { preset: "portrait" }); assert.equal(warm.report.bgHue, 270, "chủ thể ấm: nền vẫn tím");
+  assert.equal(P.backgroundHue(null), 270); assert.equal(P.backgroundHue(280), 30); assert.equal(P.backgroundHue(20), 270);
+});
