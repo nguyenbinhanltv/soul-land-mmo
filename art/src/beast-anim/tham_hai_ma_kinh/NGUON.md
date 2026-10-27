@@ -13,10 +13,20 @@ Loài `tham_hai_ma_kinh` (Thâm Hải Ma Kình), họ `swim`, khung game 128×12
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
+## toA
+
+- File: `toA.png`, **1536×1024**, 1801334 byte, SHA256 `b77e3817a3a7a890e7e5c97a2df84b38e2bd6233869cbb9459eccaf15a1dde89`.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop.
+- Prompt: `toA.prompt.txt` (SHA256 `0523a424576818a274d1a1a473e8afa05f4ceadb2109b99cbebf161dfa18fb0b`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: s pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
 ## Lỗi
 
 ```text
 LỖI: turnaround — ne còn thấy chi tiết mặt; chọn lượt 3 tốt nhất làm tham chiếu kỹ thuật sau ba lượt (mắt)
+LỖI: toA — s: die còn mở mắt, biên độ chìm nhẹ (mắt)
 ```
 
 ## Ghi công
