@@ -7,8 +7,8 @@ Loài `bich_lan_xa` (Bích Lân Xà), họ `snake`, khung game 96×96. Mức ki�
 ## toA
 
 - File: `toA.png`, **944×1667**, 1820498 byte, SHA256 `0d42a628ac4ad315b41e4734c56eab587b80571301a4bfc650ecfed7f60b446d`.
-- Công cụ: image_gen.imagegen; model: unknown; seed: unknown; số lượt: 3; phiên: soul_land_game-616; chọn toA lượt 2/3, toB lượt 1/1.
-- Prompt: `toA.prompt.txt` (SHA256 `9b8b212294c04fa4eba338768f58bf91aaf157aab5ad0d3daa0a3e3e3d133df7`).
+- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-616; hồ sơ dọn bởi 630; chọn A2/3; bỏ candidate A2 trùng byte, A1/A3 không còn prompt thật.
+- Prompt: `toA.prompt.txt` (SHA256 `e08a382632c6da07592e8db336a45230a5b646a8950f1c923ca59d534ff84e58`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se pass, e nhẹ).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 81% so với ảnh tĩnh (lệch 19%); cutter neo lại, không chặn.
@@ -18,8 +18,8 @@ Loài `bich_lan_xa` (Bích Lân Xà), họ `snake`, khung game 96×96. Mức ki�
 ## toB
 
 - File: `toB.png`, **1254×1254**, 1940124 byte, SHA256 `5c7f121364422441ea81b8260a8d14d227edf03faa22d2164e8d6f38f4db2c65`.
-- Công cụ: image_gen.imagegen; model: unknown; seed: unknown; số lượt: 1; phiên: soul_land_game-616; chọn toA lượt 2/3, toB lượt 1/1.
-- Prompt: `toB.prompt.txt` (SHA256 `6b21777ee7c145e945e2853404834913f694339e7c07cbdb95f7f6e029d51730`).
+- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-616; hồ sơ dọn bởi 630; chọn A2/3; bỏ candidate A2 trùng byte, A1/A3 không còn prompt thật.
+- Prompt: `toB.prompt.txt` (SHA256 `54f26aea2e618a4cb87b2d145f2cc72aed19c59fbafb004e4e0e48daf9683fb4`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne pass, n nhẹ).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
@@ -38,4 +38,4 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/beast-anim/bich_lan_xa/` | - | image_gen.imagegen | RAW hoạt ảnh Bích Lân Xà: toA 944×1667, toB 1254×1254; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+| `art/src/beast-anim/bich_lan_xa/` | - | unknown (công cụ sinh ảnh không công bố) | RAW hoạt ảnh Bích Lân Xà: toA 944×1667, toB 1254×1254; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
