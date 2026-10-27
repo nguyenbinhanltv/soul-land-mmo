@@ -7,7 +7,7 @@ Loài `nhan_dien_ma_chu_non` (Nhân Diện Ma Chu non), họ `insect`, khung gam
 ## toA
 
 - File: `toA.png`, **941×1672**, 1824749 byte, SHA256 `8f598d5be90f11116483f7c418067af39620c86b720b7a47bc15e3cbcba43f76`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop-621.
+- Công cụ: Codex image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop-621.
 - Prompt: `toA.prompt.txt` (SHA256 `9f9745cc8383778c3319ed11279889d147d27d21c45732853f3e221b5aa0da48`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se pass, e pass).
@@ -16,7 +16,7 @@ Loài `nhan_dien_ma_chu_non` (Nhân Diện Ma Chu non), họ `insect`, khung gam
 ## toB
 
 - File: `toB.png`, **1254×1254**, 1863075 byte, SHA256 `bb2b22367dbfa158b4dd97aba5b8ea1af4c37a360caae8c017b76a388691d3a1`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop-621.
+- Công cụ: Codex image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop-621.
 - Prompt: `toB.prompt.txt` (SHA256 `56d418f5d1571de2e92308aa172781e16e7ab6062434c29f59214d9cde3103f2`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: ne pass, n pass).

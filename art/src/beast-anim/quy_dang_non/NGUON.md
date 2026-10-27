@@ -7,7 +7,7 @@ Loài `quy_dang_non` (Quỷ Đằng non), họ `vine`, khung game 64×64. Mức 
 ## toA
 
 - File: `toA.png`, **948×1659**, 1889095 byte, SHA256 `b98270cbda021e7bb81b6668eeb2d290eca195e61bdb280fe3398b3efe5c5b32`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop-621.
+- Công cụ: Codex image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop-621.
 - Prompt: `toA.prompt.txt` (SHA256 `18808885ca4f072f6c646c3ebfc889aab564858606a0791b53382a2132dbb01c`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: s pass, se pass, e pass).
@@ -16,7 +16,7 @@ Loài `quy_dang_non` (Quỷ Đằng non), họ `vine`, khung game 64×64. Mức 
 ## toB
 
 - File: `toB.png`, **1254×1254**, 1960674 byte, SHA256 `9ab4dd423f1e6549bca3dcb01cbbd9dfc4988fffbbc9423eefc80070d81810ed`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop-621.
+- Công cụ: Codex image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop-621.
 - Prompt: `toB.prompt.txt` (SHA256 `a73409416717fde103e24c0bd24242f9f54986b4921995bbcf6bd23b79917b66`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne nhẹ, n nhẹ).

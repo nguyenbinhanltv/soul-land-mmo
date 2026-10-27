@@ -7,5 +7,5 @@
                        "shared/assets/sprites/beast/quy_dang_non.png",
                        "art/src/beast-anim/quy_dang_non/toA.png"
                    ],
-    "tool":  "image_gen"
+    "tool":  "Codex image_gen.imagegen"
 }

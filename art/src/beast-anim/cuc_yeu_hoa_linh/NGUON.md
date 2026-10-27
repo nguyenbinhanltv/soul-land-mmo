@@ -7,7 +7,7 @@ Loài `cuc_yeu_hoa_linh` (Cúc Yêu Hoa Linh), họ `plant`, khung game 96×96. 
 ## toA
 
 - File: `toA.png`, **1024×1536**, 2021894 byte, SHA256 `239382e5b3f8a6c34459a8d326dc974e14df44e07923548b53f0360b188c851a`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: ao-desktop-621.
+- Công cụ: Codex image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: ao-desktop-621.
 - Prompt: `toA.prompt.txt` (SHA256 `ad5fac370e1fafefde1b63b8f0b127832fd5e210f36624ab5051337350d6ea33`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s pass, se nhẹ, e pass).
@@ -16,7 +16,7 @@ Loài `cuc_yeu_hoa_linh` (Cúc Yêu Hoa Linh), họ `plant`, khung game 96×96. 
 ## toB
 
 - File: `toB.png`, **1254×1254**, 1966640 byte, SHA256 `e44a95b74ae14287e4c4b65b16ec8f534779b84c5a488554faf0aa34dd416ac3`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop-621.
+- Công cụ: Codex image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop-621.
 - Prompt: `toB.prompt.txt` (SHA256 `0e09f60b477b5328f3677d8e105cc7d659d798bed17c01c2bd55cdbd6a7671db`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne nhẹ, n pass).

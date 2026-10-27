@@ -7,5 +7,5 @@
                        "shared/assets/sprites/beast/nhan_dien_ma_chu_non.png",
                        "art/src/beast-anim/nhan_dien_ma_chu_non/toA.png"
                    ],
-    "tool":  "image_gen"
+    "tool":  "Codex image_gen.imagegen"
 }

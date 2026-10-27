@@ -7,5 +7,5 @@
                        "shared/assets/sprites/beast/cuc_yeu_hoa_linh.png",
                        "art/src/beast-anim/cuc_yeu_hoa_linh/toA.png"
                    ],
-    "tool":  "image_gen"
+    "tool":  "Codex image_gen.imagegen"
 }

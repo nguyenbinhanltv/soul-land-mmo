@@ -6,5 +6,5 @@
     "references":  [
                        "shared/assets/sprites/beast/nhan_dien_ma_chu_non.png"
                    ],
-    "tool":  "image_gen"
+    "tool":  "Codex image_gen.imagegen"
 }
