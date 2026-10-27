@@ -1,41 +1,41 @@
 {
-    "asset":  "portrait_ta_hoa_phuong_hoang_attempt3",
-    "issue":  1024,
-    "worker":  "soul_land_game-655",
-    "tool":  "builtin image_gen.imagegen",
-    "model_id":  "unknown",
-    "seed":  "unknown",
-    "attempt":  3,
-    "block_limit":  3,
-    "generation_calls_this_task":  1,
-    "raw_file":  "portrait-attempt3.png",
-    "prompt_file":  "portrait-attempt3.prompt.txt",
-    "sha256":  "48819bdc5430b610f3bdcd42dc326e2230583e696d03af477fbf811e97115af3",
-    "prompt_sha256":  "8e02eb71065d5ab41f41a189d1b6ca8e9d8e73ba6c6e19fa9507db8f4d33c77b",
-    "bytes":  2189081,
-    "width":  1254,
-    "height":  1254,
-    "original_tool_path":  "C:/Users/PC/.codex/generated_images/01a17cd6-b167-7560-8649-cea9ca3c4119/exec-fa584947-bf45-492f-9f3d-710524166df3.png",
-    "postprocessing":  "Không hậu kỳ; sao chép RAW nguyên byte và đối chiếu SHA256 bản gốc.",
-    "transparent_background":  false,
-    "references":  [
-                       {
-                           "file":  "portrait-attempt2.png",
-                           "role":  "Ảnh neo phong cách theo yêu cầu người dùng",
-                           "sha256":  "dd0fdb1cfeb6042cc1a2ed6f0a6c7a254005120e1eaab3fb575ca917ec7ad85f"
-                       }
-                   ],
-    "prompt_command":  "node tools/assets/vohon-prompt.mjs --type portrait --id ta_hoa_phuong_hoang --style-ref art/src/vohon-v2/ta_hoa_phuong_hoang/portrait-attempt2.png",
-    "prompt_modified":  false,
-    "pixel_preset":  "P1c = --preset portrait (t?n CLI hi?n h?nh)",
-    "pixel_file":  "candidates/portrait-attempt3-P1c/ta_hoa_phuong_hoang-portrait.png",
-    "raw_verdict":  "soft",
-    "pixel_verdict":  "soft",
-    "selected":  false,
-    "qa_status":  "Chưa đạt bản cuối; đã hết 3/3 lượt, dừng sinh.",
-    "known_issues":  [
-                         "Góc gần chính diện, chưa đạt góc nghiêng.",
-                         "Nhiều nhánh lông nhỏ, chưa đạt 3–5 lưỡi lớn; đạo văn hút sáng khỏi mắt/mỏ.",
-                         "P1c: nen-chu-the, bgRatio 1.17 \u003c 1.4."
-                     ]
+  "asset": "portrait_ta_hoa_phuong_hoang_attempt3",
+  "issue": 1024,
+  "worker": "soul_land_game-655",
+  "tool": "builtin image_gen.imagegen",
+  "model_id": "unknown",
+  "seed": "unknown",
+  "attempt": 3,
+  "block_limit": 3,
+  "generation_calls_this_task": 1,
+  "raw_file": "portrait-attempt3.png",
+  "prompt_file": "portrait-attempt3.prompt.txt",
+  "sha256": "48819bdc5430b610f3bdcd42dc326e2230583e696d03af477fbf811e97115af3",
+  "prompt_sha256": "8e02eb71065d5ab41f41a189d1b6ca8e9d8e73ba6c6e19fa9507db8f4d33c77b",
+  "bytes": 2189081,
+  "width": 1254,
+  "height": 1254,
+  "original_tool_path": "C:/Users/PC/.codex/generated_images/01a17cd6-b167-7560-8649-cea9ca3c4119/exec-fa584947-bf45-492f-9f3d-710524166df3.png",
+  "postprocessing": "Không hậu kỳ; sao chép RAW nguyên byte và đối chiếu SHA256 bản gốc.",
+  "transparent_background": false,
+  "references": [
+    {
+      "file": "portrait-attempt2.png",
+      "role": "Ảnh neo phong cách theo yêu cầu người dùng",
+      "sha256": "dd0fdb1cfeb6042cc1a2ed6f0a6c7a254005120e1eaab3fb575ca917ec7ad85f"
+    }
+  ],
+  "prompt_command": "node tools/assets/vohon-prompt.mjs --type portrait --id ta_hoa_phuong_hoang --style-ref art/src/vohon-v2/ta_hoa_phuong_hoang/portrait-attempt2.png",
+  "prompt_modified": false,
+  "pixel_preset": "P1c = --preset portrait (tên CLI hiện hành)",
+  "pixel_file": "candidates/portrait-attempt3-P1c/ta_hoa_phuong_hoang-portrait.png",
+  "raw_verdict": "soft",
+  "pixel_verdict": "soft",
+  "selected": false,
+  "qa_status": "Chưa đạt bản cuối; đã hết 3/3 lượt, dừng sinh.",
+  "known_issues": [
+    "Góc gần chính diện, chưa đạt góc nghiêng.",
+    "Nhiều nhánh lông nhỏ, chưa đạt 3–5 lưỡi lớn; đạo văn hút sáng khỏi mắt/mỏ.",
+    "P1c: nen-chu-the, bgRatio 1.17 < 1.4."
+  ]
 }
