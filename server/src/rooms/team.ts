@@ -5,8 +5,10 @@
 import type { Client } from "colyseus";
 import { store, type Character } from "../db.ts";
 import { VOHON, vohonIndex, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, TIEN_CO_MAX, parseTeam, loadoutOf, BONE_ITEM, CORE_ITEM, CORE_SETS, CORE_FX_RULE, coreFx, coreSetIndex,
+  SHARD_UNLOCK, MAX_STARS, starCost, shardCode,
   RESONANCE, RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CD, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText } from "../../../shared/data.ts";
-import { intIn, fusionCdLeft, type MapRoom, type PData } from "./MapRoom.ts";
+import { itemStacks } from "./items.ts";
+import { intIn, fusionCdLeft, CLAIM_BUSY, claimHeld, type MapRoom, type PData } from "./MapRoom.ts";
 
 /**
  * Cộng minh (bước 8.2, mục 5.10): tính lại tiến độ 5 trụ cột từ dữ liệu sẵn có của tài khoản (mọi võ hồn sở hữu: cấp, số hồn
@@ -190,4 +192,79 @@ export function persistTeam(room: MapRoom, d: PData) {
     const ok = await store.saveTeam(d.accountId, [...d.team], d.ch.rowId);
     if (!ok) console.error(`Đội hình của tài khoản #${d.accountId} không hợp lệ, không lưu:`, d.team, d.ch.rowId);
   });
-}
+}
+
+/**
+ * Mở võ hồn `raw` (mã trong VOHON) bằng SHARD_UNLOCK mảnh (mục 5.1): chỉ võ hồn chưa sở hữu. Trừ mảnh ngay (bấm hai lần không
+ * tiêu hai lần), rồi trong chuỗi lưu ghi võ hồn mới (cấp 1, 1 sao) và cả túi đồ trong một transaction (store.unlockVohon).
+ * DB lỗi hoặc tài khoản đã có võ hồn này thì trả lại mảnh.
+ */
+export function unlockVohon(room: MapRoom, id: string, raw: unknown) {
+  const p = room.state.players.get(id), d = room.pdata.get(id); if (!p || !d || d.travelling) return;
+  const warn = (text: string) => room.log(id, text, "#ffb35c");
+  const vohon = typeof raw === "string" ? raw : "", vi = vohonIndex(vohon);
+  if (vi < 0) return warn("Võ hồn không tồn tại.");
+  const name = VOHON[vi].name, code = shardCode(vohon);
+  if (d.owned.some((v) => v.vohon === vohon)) return warn(`Đã sở hữu ${name}: dùng mảnh để lên sao.`);
+  if (d.shardBusy) return warn("Đang mở võ hồn, đợi một chút.");
+  if (claimHeld(d)) return warn(CLAIM_BUSY); // #282: mảnh vừa đổi ở Thương hội còn chờ DB xác nhận lượt, chưa tiêu được
+  const have = room.shardCount(d, code);
+  if (have < SHARD_UNLOCK) return warn(`Cần ${SHARD_UNLOCK} Mảnh ${name} để mở, mới có ${have}.`);
+  room.takeShards(d, code, SHARD_UNLOCK);
+  d.shardBusy = true;
+  room.sendBag(id);
+  // Không mở được thì trả mảnh, kể cả khi túi vừa đầy (không bao giờ mất đồ; ô thêm có thể tạm vượt số ô túi).
+  const refund = () => {
+    const left = SHARD_UNLOCK - room.addItem(d, code, SHARD_UNLOCK);
+    if (left > 0) d.bag.push(...itemStacks(code, left));
+    d.bagDirty = true;
+  };
+  room.chain(d, async () => {
+    let v: Character | null;
+    try { v = await store.unlockVohon(d.accountId, p.name, vohon, 1, room.bagSnapshot(d)); }
+    catch (e) { refund(); throw e; }
+    if (!v) { refund(); return; }
+    d.owned.push(v);
+    room.log(id, `Mở võ hồn ${name}! Đã vào bộ sưu tập (cấp 1, 1★): xếp vào đội ở bảng đội hình (phím V).`, VOHON[vi].col);
+    room.broadcast("chat", { sys: true, name: "Hệ thống", text: `${p.name} đã mở võ hồn ${name} bằng ${SHARD_UNLOCK} mảnh.` });
+  }).then(() => {
+    d.shardBusy = false;
+    if (room.pdata.get(id) !== d) return;
+    if (!d.owned.some((v) => v.vohon === vohon)) warn(`Chưa mở được ${name}, mảnh đã trả lại túi đồ.`);
+    else room.resCheck(id); // cộng minh (8.2): võ hồn mới cũng nhận phần cộng
+    const c = room.clients.getById(id); if (c) room.sendVohons(c);
+    room.sendBag(id);
+  });
+}
+
+/**
+ * Lên sao võ hồn `raw` (mã trong VOHON) đã sở hữu bằng mảnh theo STAR_COST (mục 5.1), tối đa MAX_STARS. Mỗi sao tăng chỉ số
+ * gốc (starMult trong calcStats). Đổi trong bộ nhớ ngay, rồi trong chuỗi lưu ghi võ hồn và cả túi đồ trong một transaction
+ * (store.saveVohonsBag); lỗi thì đánh dấu lại để lần lưu sau ghi tiếp. Hiệu ứng hồn kỹ theo sao để bước sau.
+ */
+export function starUp(room: MapRoom, id: string, raw: unknown) {
+  const p = room.state.players.get(id), d = room.pdata.get(id); if (!p || !d || d.travelling) return;
+  const warn = (text: string) => room.log(id, text, "#ffb35c");
+  const vohon = typeof raw === "string" ? raw : "", vi = vohonIndex(vohon), v = d.owned.find((x) => x.vohon === vohon);
+  if (vi < 0) return warn("Võ hồn không tồn tại.");
+  const name = VOHON[vi].name, code = shardCode(vohon);
+  if (!v) return warn(`Chưa sở hữu ${name}: đủ ${SHARD_UNLOCK} mảnh thì mở trước.`);
+  if (claimHeld(d)) return warn(CLAIM_BUSY); // #282: như mở võ hồn
+  const cost = starCost(v.stars);
+  if (cost === null) return warn(`${name} đã đạt ${MAX_STARS}★, không lên sao thêm được.`);
+  const have = room.shardCount(d, code);
+  if (have < cost) return warn(`Cần ${cost} Mảnh ${name} để lên ${v.stars + 1}★, mới có ${have}.`);
+  room.takeShards(d, code, cost);
+  v.stars++;
+  room.resCheck(id); // cộng minh (8.2): mốc Sao phải cập nhật ngay theo đường starup thật
+  if (v === d.ch) room.recalc(id, false); else d.dirty.add(v.rowId);
+  room.log(id, `${name} lên ${v.stars}★! Chỉ số gốc tăng.`, VOHON[vi].col);
+  const c = room.clients.getById(id); if (c) room.sendVohons(c);
+  room.sendBag(id);
+  room.chain(d, async () => {
+    const list = room.unsaved(id), bag = room.bagSnapshot(d);
+    if (!list.some((x) => x.rowId === v.rowId)) list.push({ ...v, rings: [...v.rings] });
+    try { await store.saveVohonsBag(d.accountId, list, bag); }
+    catch (e) { for (const x of list) if (x.rowId !== d.ch.rowId) d.dirty.add(x.rowId); d.bagDirty = true; throw e; }
+  });
+}
