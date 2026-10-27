@@ -1,5 +1,80 @@
 # Tà Hỏa Phượng Hoàng — phụ thể hoạt ảnh A–E
 
+## Sinh lại theo nộm LPC có vạch — phiên 675, PR #1176
+
+**Quyết định tiếp tục:** [comment chủ repo PR #1176](https://github.com/nguyenbinhanltv/soul-land-mmo/pull/1176#issuecomment-6446766251) cho phép dừng turnaround mới sau 3/3 lượt và chuyển thẳng A–E. Ảnh tham chiếu số 1 là bảng nộm MỚI của từng tờ; ảnh số 2 là `candidates/turnaround-attempt2.png` CŨ đã được duyệt (#1157), không phải turnaround nộm mới. Ảnh số 3 chỉ là tờ mới không chặn kỹ thuật. Các kết luận dừng dưới đây là mốc lịch sử trước quyết định này; không sinh thêm turnaround mới.
+
+Part of #1024. Bộ mới nằm riêng ở `lpc-moi/`, không thay ảnh hay hồ sơ #1168. Đã `git fetch origin` và `git merge origin/main` trước khi sinh, revision `e5c7c361` (commit mở việc, cùng cây công cụ với main tại lúc sinh).
+
+**CHẶN tại turnaround: đã dùng 3/3 lượt mới, chưa có mẫu hợp lệ để sinh A–E.** Cả ba RAW 1536×1024 nguyên byte từ builtin `image_gen.imagegen`, model/seed unknown; chỉ đính bảng nộm mới `lpc-moi/ta_hoa_phuong_hoang-nom-turnaround.png`. Không dùng ảnh #1168 hay lượt lỗi làm tham chiếu. Prompt nguyên khối `text` do `phuthe-sheet-prompt.mjs --stage turnaround` sinh, không thêm/sửa tay. Bảng nộm khung 96, cyan `#00D0D0`, vạch `#7A5CFF`, nền `#FF00FF`.
+
+| Lượt mới | RAW trong `lpc-moi/candidates/` | Kiểm tự động | Soát vị trí/tỉ lệ |
+|---|---|---|---|
+| 1 | `turnaround-lpc-attempt1.png` | 1 chặn / 0 nhẹ: H2 chỉ tách 3/5 hình | Nộm thu nhỏ/dời xuống; gốc cánh và thân chim ở trên đầu, không ở tâm ngực |
+| 2 | `turnaround-lpc-attempt2.png` | 1 chặn / 0 nhẹ: H2 chỉ tách 2/5 hình | Nộm thu nhỏ/dời xuống; thân chim vẫn trên đầu; góc lưng rõ hơn |
+| 3 | `turnaround-lpc-attempt3.png` | 1 chặn / 0 nhẹ: H2 chỉ tách 3/5 hình | Nộm thu nhỏ, thêm nét; thân chim và gốc cánh vẫn trên đầu |
+
+Mỗi RAW có `.prompt.txt` và `.source.json` cùng tên, gồm SHA256 ảnh/prompt/bảng nộm và toàn bộ kết quả kiểm. Lượt 1 có ne gần e/lộ mặt; lượt 2 có góc lưng; lượt 3 ne còn gần e/lộ mặt. Chỉ khai `--eye`, không sinh lượt riêng để sửa mặt:
+
+```text
+--eye "turnaround-lpc-attempt1=hướng — ne — gần e/lộ mặt; chỉ khai"
+--eye "turnaround-lpc-attempt2=hướng — ne/n — đã có góc lưng; chưa chứng nhận mọi ô"
+--eye "turnaround-lpc-attempt3=hướng — ne — gần e/lộ mặt; chỉ khai"
+```
+
+Đã chạy `phuthe-sheet-check.mjs ta_hoa_phuong_hoang --dir <temp/input> --out <temp/check>` riêng mỗi lượt bằng cách copy nguyên byte thành `turnaround.png` trong thư mục tạm. Không chọn lượt nào làm `turnaround.png` hiện hành. Chưa sinh A–E, chưa chạy cutter/anchor/preview mới: cutter chỉ nhận tờ hướng 6×4, không nhận turnaround 5×3; không dùng ảnh lỗi làm tờ hướng giả. **Chưa có đường dẫn trang preview ráp bộ mới.** Không nhập game, không đổi manifest hay neo dùng trong game. Dừng đúng trần 3 lượt theo yêu cầu, chờ quyết định về mẫu/prompt trước khi tiếp tục.
+
+### Ghi công bộ sinh lại
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `lpc-moi/candidates/turnaround-lpc-attempt{1,2,3}.png` | - | builtin `image_gen.imagegen` (Codex, Q44) | Prompt tự sinh phuthe-sheet-prompt; prompt/source và SHA256 đi kèm từng RAW | 2026-10-27 | Cả ba chặn, không làm tham chiếu, không nhập game |
+| `lpc-moi/ta_hoa_phuong_hoang-nom-*.png` | - | `phuthe-sheet-dummy.mjs`, LPC hiện có | Bảng nộm mới có vạch, do lệnh prompt sinh tự động | 2026-10-27 | Chỉ tham chiếu; nguồn LPC theo hồ sơ hiện có |
+
+### Kết quả A–E sinh lại theo quyết định PR #1176
+
+Đã sinh 10 RAW hướng bằng builtin `image_gen.imagegen`, chỉ prompt nguyên bản `phuthe-sheet-prompt.mjs --stage direction --dir s|se|e|ne|n --out art/src/phuthe-anim/ta_hoa_phuong_hoang/lpc-moi`. Mỗi khối không quá 3 lượt. A không dùng tờ thứ ba; B/C/D dùng A1 không chặn kỹ thuật làm ảnh thứ ba; E dùng D2 không chặn kỹ thuật. Nộm mới luôn số 1, turnaround **cũ** lượt 2 được duyệt luôn số 2. Không dùng ba turnaround mới hay tờ hướng bị chặn làm tham chiếu. Mọi RAW có prompt/source JSON cùng tên; source chứa SHA256 ảnh/prompt/từng tham chiếu và báo cáo kiểm đầy đủ. Model/seed unknown, không hậu kỳ RAW.
+
+| Khối | Các lượt: chặn / nhẹ | Lượt dùng khi cắt thử | Kết luận |
+|---|---|---|---|
+| A — s | 1: 0 / 47 | `lpc-moi/toA.png` | Qua kỹ thuật; nộm nhỏ/dời xuống, một số pose nghiêng phải; thân chim cao hơn ngực |
+| B — se | 1: 1 / 1; 2: 4 / 58; 3: 1 / 0 | `lpc-moi/candidates/toB-lpc-attempt1.png` | CHẶN sau 3/3: lượt 1 thừa hình H1, lượt 2 nộm cast trôi, lượt 3 không dò đủ hàng; chọn lượt 1 để chẩn đoán vì còn đủ bốn hàng ý định |
+| C — e | 1: 18 / 9; 2: 1 / 0; 3: 2 / 1 | `lpc-moi/candidates/toC-lpc-attempt2.png` | CHẶN sau 3/3: lượt 1 mất nộm do sai cỡ/dáng, lượt 2 lưới, lượt 3 lưới/số hình; chọn lượt 2 ít mục chặn nhất để chẩn đoán |
+| D — ne | 1: 1 / 0; 2: 0 / 52 | `lpc-moi/toD.png` | Qua kỹ thuật ở lượt 2; lỗi mặt/hướng chỉ khai; khối chim cao |
+| E — n | 1: 0 / 42 | `lpc-moi/toE.png` | Qua kỹ thuật; lỗi mặt/hướng chỉ khai; khối chim cao |
+
+```text
+--eye "toD-lpc=hướng — mọi clip ne — lộ mặt/góc gần e; cast gần chính diện; chỉ khai, không sinh riêng để sửa mặt"
+--eye "toE-lpc=hướng — mọi clip n — lộ mặt, nhiều khung walk/attack quay ngang phải; chỉ khai, không sinh riêng để sửa mặt"
+--eye "A–E-lpc=phụ thể/nộm — toàn bộ — nộm nhỏ/dời xuống, khối chim vẫn cao hơn vùng ngực; chưa đạt mục tiêu căn đẹp khi ghép LPC"
+```
+
+Kiểm từng lượt: copy nguyên byte RAW sang `<temp>/input/toX.png`, chạy `node tools/assets/phuthe-sheet-check.mjs ta_hoa_phuong_hoang --dir <temp>/input --out <temp>/report --no-image`; kết quả nhúng trong từng source JSON. Tờ bị chặn ở `candidates/`, không gán làm tờ đạt. Không sửa ngưỡng/công cụ để hợp thức hóa lỗi.
+
+### Cắt, neo tâm khối và trang ráp LPC bộ mới
+
+Artifact: `C:/Users/PC/.ao/data/artifacts/soul_land_game-675/phuthe-ta-hoa-lpc/so-sanh-lpc.html`. Trang đủ nam/nữ, 5 clip, 5 hướng gốc và ba hướng tây lật; mỗi nhóm có LPC đứng riêng, ghép trước neo, ghép sau neo. Trang chuẩn trước neo `preview/index.html`, sau neo `neo/preview/index.html`; bảng neo riêng `anchor.json`, không chép vào game.
+
+Lệnh cắt (thay `<RAW>` bằng `art/src/phuthe-anim/ta_hoa_phuong_hoang/lpc-moi`, `<OUT>` bằng thư mục artifact ở trên):
+
+```text
+node tools/assets/phuthe-sheet-cut.mjs --id ta_hoa_phuong_hoang --sheet A=<RAW>/toA.png --sheet B=<RAW>/candidates/toB-lpc-attempt1.png --sheet C=<RAW>/candidates/toC-lpc-attempt2.png --sheet D=<RAW>/toD.png --sheet E=<RAW>/toE.png --out <OUT>
+node tools/assets/phuthe-anchor.mjs --id ta_hoa_phuong_hoang --source anim --dir <OUT> --out <OUT>/anchor.json
+node tools/assets/phuthe-sheet-preview.mjs --id ta_hoa_phuong_hoang --dir <OUT>
+```
+
+Cắt chẩn đoán: 110 khung, 96×96, 32 màu; 0 block / 172 warn / 2 info; bỏ 405 mảnh vụn; sau 491753 điểm, trước 324292 điểm. A/D/E dùng gap, B gap + cột đều, C lưới đều dự phòng do không dò đủ hàng: **B/C chỉ chẩn đoán, không chứng nhận đúng pose hay đạt nhập**. Cutter dùng `lop.json` hiện có (s/se/e sau, ne/n trước). Số chặn cutter khác kiểm RAW vì có nhánh dự phòng, không thay kết luận chặn B/C.
+
+Neo #1172 tự tính, mọi hướng scale 1. Nam: s (-3.29, 9.5), se (2.2, 1.49), e (-0.16, 23.27), ne (2.06, 19.99), n (-5.09, 5.23); nữ tương ứng (-3.29, 9.12), (2.43, 1.01), (0.07, 22.8), (2.29, 19.52), (-5.12, 4.85). Trang sau neo là bản sheet thử được biến đổi nearest-neighbor quanh gốc chân (48,74), theo đúng scale rồi dx/dy; dùng lại composeFrame/buildPreview cho nhịp thân và thứ tự lớp. Script hỗ trợ chỉ ở temp, không sửa tools hay RAW. Neo đo idle, không chứng nhận điểm gắn mọi khung.
+
+Soát ảnh ráp idle nam/nữ: sau neo A/B/E gần thân hơn, C/D còn xén cánh/đuôi và che đầu/ngực LPC. **Chưa đạt mục tiêu thân phượng hoàng đúng ngực trong RAW; không chứng nhận đẹp/nhập game.** Không tạo manifest game, không thay neo game, không sửa client/server. Đã hoàn tất số lượt theo phạm vi và nộp hồ sơ để review, không sinh thêm ở khối hết lượt.
+
+`npm ci` ở root/server/client (không junction, lockfile không đổi) đã khắc phục thiếu dependencies của lượt kiểm trước. `npm run check` và `npm run build` đều exit 0; bot RAM theo CI diện ảnh/hồ sơ (skip phần chạy bot), không đổi server/SQL.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `lpc-moi/to{A,D,E}.png`, `lpc-moi/candidates/toB-lpc-attempt{1,2,3}.png`, `lpc-moi/candidates/toC-lpc-attempt{1,2,3}.png`, `lpc-moi/candidates/toD-lpc-attempt1.png` | - | builtin `image_gen.imagegen` (Codex, Q44) | Prompt direction tự sinh, hồ sơ prompt/source SHA256 kèm từng RAW | 2026-10-27 | Chỉ thử nghiệm, B/C chặn; không nhập game |
+
 Part of #1024. Ngày 2026-10-27. **Hiện hành:** chủ repo duyệt turnaround lượt 2 tại comment [6443812560](https://github.com/nguyenbinhanltv/soul-land-mmo/issues/1024#issuecomment-6443812560); tiếp tục A–E theo phần cuối hồ sơ. Không nhập game.
 
 **Lịch sử turnaround:** các phần từ “Quy trình và nguồn” đến “Ghi công” bên dưới mô tả ba lượt turnaround trước khi chủ repo chấp nhận lượt 2. “3/3” ở giai đoạn đó chỉ tính turnaround, không tính các tờ hướng. Các kết luận chặn mắt cũ được giữ để truy vết, quyết định mới ở phần “Tiếp tục A–E” có hiệu lực.
