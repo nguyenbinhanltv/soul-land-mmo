@@ -19,7 +19,7 @@
   "height": 1254,
   "tool_limitations": "ImageGen did not expose model, seed, or a size selector.",
   "prompt_file": "toB-legacy.prompt.txt",
-  "prompt_sha256": "14636ae5db8611c48b76409c2fef6a8dc878ae4e1dbab1920c71a1074e6124ff",
+  "prompt_sha256": "49b788052eb0576190353fcd19db1933263a05e1cb33ae91ce0ef993776a5788",
   "original_prompt_doc": "tham_hai_ma_chuong-toB.md",
   "original_prompt_doc_sha256": "64ea5c7128d4431d1369aedcb36f74df31d0ac559f69bf114296e0904f03089f",
   "execution_addendum_file": "toB.execution-addendum.txt",
@@ -36,7 +36,7 @@
     },
     {
       "order": 2,
-      "path": "art/src/beast-anim/tham_hai_ma_chuong/candidates/toA.png",
+      "path": "art/src/beast-anim/tham_hai_ma_chuong/candidates/toA-legacy.png",
       "absolute_path": "/private/tmp/soul-land-mmo-143-h4-1030-main-6850/art/src/beast-anim/tham_hai_ma_chuong/toA.png",
       "sha256": "30cbcb1da4f7cd9c403098cce2006e1c428539c325ab17efc50e8de18ac5d9fd",
       "role": "A1 technical identity/continuity candidate only; not owner-art-approved, not accepted, not imported; do not copy poses",
@@ -131,5 +131,7 @@
     "raw_file": "toB-legacy.png",
     "prompt_file": "toB-legacy.prompt.txt",
     "reason": "Bản cũ từ main: các hướng gần chính diện; B lộ mặt ở ne/n. Giữ nguồn lịch sử, không dùng làm tham chiếu."
-  }
+  },
+  "historical_prompt_sha256": "14636ae5db8611c48b76409c2fef6a8dc878ae4e1dbab1920c71a1074e6124ff",
+  "archive_prompt_note": "Giữ nguyên byte prompt hiện có từ main; hash lịch sử không khớp bản checkout, lưu nguyên giá trị cũ riêng và tính lại hash tệp lưu. Không khẳng định đây là nguyên byte prompt đã gửi ở lượt cũ."
 }
