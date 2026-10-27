@@ -6,6 +6,8 @@ Prompt nguyên khối do `npm run ui:prompt -- --kind BOARD --style thuy-mac --o
 
 Ảnh RAW giữ nguyên byte, không resize, lượng tử, cắt hay chỉnh sửa. Hash, đường dẫn đầu ra gốc, prompt và kết quả từng lượt ở `source.json`. `BOARD.prompt.txt` là prompt thực gửi của lượt chọn; `BOARD.md` là hướng dẫn do công cụ sinh trước lượt đó. Bài học sau lượt 3 chỉ dành cho lần sau, không có trong prompt đã gửi.
 
+Sau review #1195, bài học riêng Thủy mặc sau lượt 2 được chuyển sang phần lịch sử trích dẫn trong `lessons.md`, không còn nạp tự động vào mọi BOARD vì parser chưa lọc hướng. Hồ sơ prompt đã gửi giữ nguyên; không sinh lượt ảnh mới.
+
 | Lượt | ui:check chặn / nhẹ / cảnh báo | Kiểm mắt | Chọn |
 |---|---|---|---|
 | 1 | 0 / 0 / 0 | Đủ HUD, hai bảng Mực, Giấy, hotbar, Xếp Hạng; làng tràn nền hồng, kim loại và vân dày | Không; `candidates/` |
