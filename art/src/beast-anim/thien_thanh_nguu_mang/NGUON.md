@@ -13,10 +13,20 @@ Loài `thien_thanh_nguu_mang` (Thiên Thanh Ngưu Mãng), họ `snake`, khung ga
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
+## toA
+
+- File: `toA.png`, **1536×1024**, 2208138 byte, SHA256 `c38329307ea9d85264ef2fff02f7581e9f21c35e825f2d11b43cd7185fc83e83`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-635.
+- Prompt: `toA.prompt.txt` (SHA256 `ad2867a1e77ac54e47c939e2f8512acf285531dd46b029e28878f426b1172f26`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: s pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
 ## Lỗi
 
 ```text
-LỖI: turnaround — ne còn hơi lộ mõm; die còn đường cong S; chọn lượt 2/3 tốt nhất làm tham chiếu kỹ thuật theo yêu cầu (mắt)
+LỖI: turnaround — ne còn hơi lộ mõm; die còn đường cong S; chọn lượt 2/3 làm ref kỹ thuật (mắt)
+LỖI: toA — s — attack H3 C2,C5 quay phải; die H4 C2–4 quay chếch phải và còn cong, chưa giữ hướng s (mắt)
 ```
 
 ## Ghi công
