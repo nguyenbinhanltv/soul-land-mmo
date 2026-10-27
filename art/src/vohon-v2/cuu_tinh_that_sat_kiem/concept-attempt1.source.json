@@ -5,7 +5,7 @@
   "date": "2026-10-27",
   "attempt": 1,
   "image_sha256": "fd3d5096e24b97581923de32e9643a85119d23c220c1a9a8bb46431a840c51fb",
-  "prompt_sha256": "9d930ca041324a9aacc0bdb272d9cc12be2e3000ed3b5b580666a42cf6fed444",
+  "prompt_sha256": "f4fdbbd7080081535fbc4f6cb24385f010a2683c3cec40e82c504eaa99575aa5",
   "original_output": "C:/Users/PC/.codex/generated_images/01a17cc5-63b8-7180-bc0d-e3cc732ef99e/exec-791429b2-27df-46d7-a9bb-cab4f60db01e.png",
   "reference": "PR #1083: concept-turnaround-attempt2.png (Hạo Thiên Chùy)",
   "status": "selected_appearance_reference",
@@ -19,5 +19,7 @@
   "eye": [
     "hướng — ne — còn giống mặt trước; e nhìn cạnh rất hẹp",
     "chi tiết — sao và hoa văn — hơi dày, sao hơi nhọn"
-  ]
+  ],
+  "submitted_prompt_sha256": "9d930ca041324a9aacc0bdb272d9cc12be2e3000ed3b5b580666a42cf6fed444",
+  "prompt_line_endings": "B?n l?u LF theo Git; n?i dung nguy?n b?n, hash th?c g?i l?u ri?ng n?u CRLF."
 }

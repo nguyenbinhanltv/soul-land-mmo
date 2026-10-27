@@ -9,7 +9,7 @@ Công cụ: builtin `image_gen.imagegen`; model/seed: `unknown`. Ngày 2026-10-2
 Số góc thật: khoảng 3 (vật cứng đối xứng). Năm vị trí trình bày theo s, se, e, ne, n; không coi năm vị trí là năm góc thật khi hình đối xứng hoặc hướng sai.
 
 - Ảnh: `concept-attempt1.png`; SHA256 `fd3d5096e24b97581923de32e9643a85119d23c220c1a9a8bb46431a840c51fb`.
-- Prompt thật đã gửi: `concept-attempt1.prompt.txt`; SHA256 `9d930ca041324a9aacc0bdb272d9cc12be2e3000ed3b5b580666a42cf6fed444`.
+- Prompt thật đã gửi: `concept-attempt1.prompt.txt`; SHA256 `f4fdbbd7080081535fbc4f6cb24385f010a2683c3cec40e82c504eaa99575aa5`.
 - Hồ sơ và kết quả kiểm RAW đầy đủ: `concept-attempt1.source.json`.
 
 ## Kiểm RAW
