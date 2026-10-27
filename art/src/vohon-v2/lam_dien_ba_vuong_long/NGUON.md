@@ -1,16 +1,16 @@
-﻿# Lam Điện Bá Vương Long â€” concept nÄƒm hÆ°á»›ng (#1096)
+﻿# Lam Điện Bá Vương Long — concept năm hướng (#1096)
 
-RAW nguyÃªn byte tá»« builtin image_gen.imagegen, chÆ°a crop, resize, háº­u ká»³ hay nháº­p game. Model/seed unknown.
+RAW nguyên byte từ builtin image_gen.imagegen, chưa crop, resize, hậu kỳ hay nhập game. Model/seed unknown.
 
-- Sá»‘ lÆ°á»£t Ä‘Ã£ dÃ¹ng: 2/3. Báº£n chá»n: concept-attempt2.png.
-- SHA256 áº£nh: d3c3d2b2d04b0eb9b0d6725092d31a5516a08c73beae294e2c6404df26babb95.
-- Prompt concept-attempt2.prompt.txt; SHA256: 27079c1b3eb58600efbc2a9752bedb313aaaa65bb908e88aaf3826406069e073. Sinh nguyÃªn vÄƒn báº±ng vohon-prompt.mjs, khÃ´ng thÃªm addendum.
-- Neo phong cÃ¡ch: concept Háº¡o ThiÃªn lÆ°á»£t 2 tá»« PR #1083; khÃ´ng dÃ¹ng áº£nh cÅ© hay áº£nh lá»—i.
-- Sá»‘ gÃ³c tháº­t: 5; thá»© tá»± s/se/e/ne/n. Nháº­n xÃ©t duyá»‡t máº¯t: Lượt 1 trong candidates bị CHẶN: ne quay trái, lộ mặt. Lượt 2: năm góc thật, ne quay phải không lộ mắt nhưng còn cạnh hàm; n nhìn lưng. e hơi chếch. Mắt và lõi tách thân lam; sét sáng rộng và vảy còn nhỏ. Không người, chữ, khung.
-- Káº¿t quáº£ kiá»ƒm mÃ¡y Ä‘Æ°á»£c ghi trong mÃ´ táº£ PR. ChÆ°a pháº£i phÃª duyá»‡t chÃ­nh thá»©c; khÃ´ng táº¡o asset game tá»« concept nÃ y.
+- Số lượt đã dùng: 2/3. Bản chọn: concept-attempt2.png.
+- SHA256 ảnh: d3c3d2b2d04b0eb9b0d6725092d31a5516a08c73beae294e2c6404df26babb95.
+- Prompt concept-attempt2.prompt.txt; SHA256: 27079c1b3eb58600efbc2a9752bedb313aaaa65bb908e88aaf3826406069e073. Sinh nguyên văn bằng vohon-prompt.mjs, không thêm addendum.
+- Neo phong cách: concept Hạo Thiên lượt 2 từ PR #1083; không dùng ảnh cũ hay ảnh lỗi.
+- Số góc thật: 5; thứ tự s/se/e/ne/n. Nhận xét duyệt mắt: Lượt 1 trong candidates bị CHẶN: ne quay trái, lộ mặt. Lượt 2: ne quay phải không lộ mắt nhưng còn cạnh hàm; n nhìn lưng. e hơi chếch. Sét sáng rộng, vảy nhỏ; không người, chữ, khung.
+- Kết quả kiểm máy được ghi trong mô tả PR. Chưa phải phê duyệt chính thức; không tạo asset game từ concept này.
 
-## Ghi cÃ´ng
+## Ghi công
 
-| File | Key | CÃ´ng cá»¥ | MÃ´ táº£ / prompt | NgÃ y | Ghi chÃº |
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| art/src/vohon-v2/lam_dien_ba_vuong_long/ | - | builtin image_gen.imagegen (ChatGPT / Codex) | Concept nÄƒm hÆ°á»›ng Lam Điện Bá Vương Long; model/seed unknown; SHA256 vÃ  prompt ghi á»Ÿ trÃªn, tá»«ng lÆ°á»£t cÃ³ source.json. | 2026-10-27 | Chá»‰ concept, chÆ°a nháº­p game. |
+| art/src/vohon-v2/lam_dien_ba_vuong_long/ | - | builtin image_gen.imagegen (ChatGPT / Codex) | Concept năm hướng Lam Điện Bá Vương Long; model/seed unknown; SHA256 và prompt ghi ở trên, từng lượt có source.json. | 2026-10-27 | Chỉ concept, chưa nhập game. |

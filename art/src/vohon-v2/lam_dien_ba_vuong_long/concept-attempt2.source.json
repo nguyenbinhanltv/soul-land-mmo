@@ -4,7 +4,7 @@
     "prompt_sha256":  "27079c1b3eb58600efbc2a9752bedb313aaaa65bb908e88aaf3826406069e073",
     "true_views":  5,
     "attempt":  2,
-    "notes":  "Lượt 1 trong candidates bị CHẶN: ne quay trái, lộ mặt. Lượt 2: năm góc thật, ne quay phải không lộ mắt nhưng còn cạnh hàm; n nhìn lưng. e hơi chếch. Mắt và lõi tách thân lam; sét sáng rộng và vảy còn nhỏ. Không người, chữ, khung.",
+    "notes":  "Lượt 1 trong candidates bị CHẶN: ne quay trái, lộ mặt. Lượt 2: ne quay phải không lộ mắt nhưng còn cạnh hàm; n nhìn lưng. e hơi chếch. Sét sáng rộng, vảy nhỏ; không người, chữ, khung.",
     "image_sha256":  "d3c3d2b2d04b0eb9b0d6725092d31a5516a08c73beae294e2c6404df26babb95",
     "model":  "unknown",
     "reference":  "PR #1083: art/src/phap-tuong/hao_thien_chuy/concept-turnaround-attempt2.png"
