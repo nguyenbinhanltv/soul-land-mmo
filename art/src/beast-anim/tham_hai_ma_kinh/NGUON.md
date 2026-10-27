@@ -11,7 +11,7 @@ Loài `tham_hai_ma_kinh` (Thâm Hải Ma Kình), họ `swim`, khung game 128×12
 - Prompt: `turnaround.prompt.txt` (SHA256 `34881c53b3c659deaef5aa4bf5229499294f7b6e61008bd8678ce08059d0fd0c`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: 3 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## toA
 
@@ -44,7 +44,9 @@ Loài `tham_hai_ma_kinh` (Thâm Hải Ma Kình), họ `swim`, khung game 128×12
 ## Lỗi
 
 ```text
-LỖI: turnaround — ne còn thấy chi tiết mặt; chọn lượt 3 tốt nhất làm tham chiếu kỹ thuật sau ba lượt (mắt)
+LỖI: turnaround — ne còn thấy chi tiết mặt; n đầu dưới đuôi trên, hướng bắc chưa rõ; chọn lượt 3 tốt nhất làm tham chiếu kỹ thuật sau ba lượt (mắt)
+LỖI: turnaround — toD ne CHẶN MẮT sau 3 lượt: mắt hiện nhiều khung, attack H3 C3–4 lộ miệng/răng; chọn candidates/toD-attempt3.png tốt nhất (kỹ thuật 0/0), không đặt toD.png thư mục chính; cả ba lượt có prompt/source (mắt)
+LỖI: turnaround — toE n CHẶN MẮT sau 3 lượt: đầu dưới đuôi trên, chưa đọc được hướng bắc; chọn candidates/toE-attempt2.png tốt nhất (thân/die ổn định hơn lượt 1,3), không đặt toE.png thư mục chính; cả ba lượt có prompt/source (mắt)
 LỖI: toA — s: die còn mở mắt, biên độ chìm nhẹ (mắt)
 LỖI: toB — se: die cuối hơi xoay gần ngang; hurt biên độ nhỏ (mắt)
 LỖI: toC — e: attack khung 1,3,4 ngẩng đầu mạnh; die còn mở mắt (mắt)
