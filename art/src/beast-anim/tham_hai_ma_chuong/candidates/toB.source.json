@@ -1,0 +1,34 @@
+{
+  "species": "tham_hai_ma_chuong",
+  "sheet": "toB",
+  "worker": "soul_land_game-640",
+  "issue": 1030,
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "recorded_at": "2026-10-27T06:47:04.3647556Z",
+  "attempts": 3,
+  "selected_attempt": 3,
+  "raw_file": "toB.png",
+  "sha256": "fe16ab972d841028b23d48ecbc4919fb301a1ef281af34dd6c5e4e2568a2c63c",
+  "bytes": 2180166,
+  "prompt_file": "toB.prompt.txt",
+  "prompt_sha256": "7a3defdf01c8b80335053f555e849c17ca057db4e5cf617660d58869ce041b44",
+  "references": [
+    {
+      "order": 1,
+      "path": "shared/assets/sprites/beast/tham_hai_ma_chuong.png",
+      "sha256": "fc19f0b59589f24c4e76567de8d825ea3ac399a99cf91682b238bab97eaa87d1"
+    },
+    {
+      "order": 2,
+      "path": "art/src/beast-anim/tham_hai_ma_chuong/candidates/toA.png",
+      "original_path_at_generation": "art/src/beast-anim/tham_hai_ma_chuong/toA.png",
+      "sha256": "70e297906c0f143dda3768a163af5e0b9c0a9b34bf802e7163dfd15edd477fc0"
+    }
+  ],
+  "postprocessing": false,
+  "technical": "pass 0/0,1254x1254",
+  "eye": "CHẶN MẮT: ne/n H1-H8 vẫn lộ mắt, n còn hướng chính diện; gồm hurt/die. Đủ 3 lượt, chọn B3 tốt nhất chỉ lưu candidates, chưa nhập game.",
+  "original_tool_output_path": "C:/Users/PC/.codex/generated_images/01a17c10-51e1-73f2-a82e-b6578a36a56e/exec-9a5dddaa-b3fc-4ccd-98d0-1b8a3b2c1fd3.png"
+}

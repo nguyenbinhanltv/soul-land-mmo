@@ -6,33 +6,29 @@ Loài `tham_hai_ma_chuong` (Thâm Hải Ma Chương), họ `float`, khung game 9
 
 ## toA
 
-- File: `toA.png`, **1024×1536**, 2079382 byte, SHA256 `30cbcb1da4f7cd9c403098cce2006e1c428539c325ab17efc50e8de18ac5d9fd`.
-- Công cụ: Codex built-in image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: tthoadev.
-- Prompt: `toA.prompt.txt` (SHA256 `8b86467d1c2a147985092e84ef9fee6737d83faac3c5f6231f56e4b8bfefed6a`).
+- File: `toA.png`, **948×1659**, 2062318 byte, SHA256 `70e297906c0f143dda3768a163af5e0b9c0a9b34bf802e7163dfd15edd477fc0`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-640.
+- Prompt: `toA.prompt.txt` (SHA256 `7a88de9f547abb3f9e4505bccb545f03c5fa618b8c076521c99f2b54812b1b03`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
-- Mức kiểm: **nhẹ** (khối hướng: s pass, se nhẹ, e nhẹ).
-- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
+- Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se pass, e pass).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 90% so với ảnh tĩnh (lệch 10%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## toB
 
-- File: `toB.png`, **1254×1254**, 2126440 byte, SHA256 `26f78a7ade4f2d3b6338e3565010afa16c6855f349aec36c5542d36dede006dc`.
-- Công cụ: Codex built-in image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: tthoadev.
-- Prompt: `toB.prompt.txt` (SHA256 `14636ae5db8611c48b76409c2fef6a8dc878ae4e1dbab1920c71a1074e6124ff`).
+- File: `toB.png`, **1254×1254**, 2180166 byte, SHA256 `fe16ab972d841028b23d48ecbc4919fb301a1ef281af34dd6c5e4e2568a2c63c`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-640.
+- Prompt: `toB.prompt.txt` (SHA256 `7a3defdf01c8b80335053f555e849c17ca057db4e5cf617660d58869ce041b44`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
-- Mức kiểm: **nhẹ** (khối hướng: ne nhẹ, n nhẹ).
+- Mức kiểm: **nhẹ** (khối hướng: ne nhẹ, n pass).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (ne): cỡ thân idle 112% so với ảnh tĩnh (lệch 12%); cutter neo lại, không chặn.
-- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H5–8 (n): cỡ thân idle 112% so với ảnh tĩnh (lệch 12%); cutter neo lại, không chặn.
-- Duyệt bằng mắt: 3 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## Lỗi
 
 ```text
-LỖI: toA — chân lệch — H7 (se) C3–4, H11 (e) C4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 14%); chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 15%).
-LỖI: toA — HURT recoil yếu — H1 (s) C5-C6, H5 (se) C5-C6, H9 (e) C5-C6; phản ứng gần idle (mắt)
-LỖI: toA — SE gần E — idle H5 (se) so với H9 (e), silhouette IoU 0.824; hướng khác nhau chưa rõ (mắt)
-LỖI: toB — mặt/mắt lộ — NE H1-H4 và N H5-H8, gồm cả hurt/die; prompt yêu cầu không thấy mặt ở hai hướng sau (mắt)
-LỖI: toB — HURT recoil yếu — H1 (NE) C5-C6 và H5 (n) C5-C6; phản ứng gần idle (mắt)
-LỖI: toB — DIE D3 bị ép ngang — H4 (NE) C4 và H8 (n) C4; hướng sink theo trục nhìn chưa rõ (mắt)
+LỖI: toA — CHẶN HƯỚNG se/e — H5-H12, rõ nhất H11 C1 — se/e vẫn gần nhau (IoU 0.802), e chưa ngang; đủ 3 lượt chọn A3; mọi File/Prompt trong tài liệu này nằm dưới candidates/, không có RAW chính; A3 đạt kỹ thuật đã dùng làm tham chiếu B theo ngoại lệ #1030; A1/A2 và bộ cũ giữ kèm source/prompt (mắt)
+LỖI: toB — CHẶN MẶT ne/n — H1-H8 gồm hurt/die — vẫn lộ mắt, n còn chính diện; đủ 3 lượt chọn B3 chỉ giữ candidates/toB.png; B1/B2 và bộ cũ giữ kèm source/prompt; prompt trùng byte dùng chung theo prompt_file trong source (mắt)
 ```
 
 ## Ghi công
@@ -41,4 +37,4 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/beast-anim/tham_hai_ma_chuong/` | - | Codex built-in image_gen.imagegen | RAW hoạt ảnh Thâm Hải Ma Chương: toA 1024×1536, toB 1254×1254; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+| `art/src/beast-anim/tham_hai_ma_chuong/` | - | image_gen.imagegen | RAW hoạt ảnh Thâm Hải Ma Chương: toA 948×1659, toB 1254×1254; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |

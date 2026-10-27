@@ -13,13 +13,13 @@
     "toB": 1
   },
   "toB_status": "not generated; awaiting technical-reference gate",
-  "raw_file": "toA.png",
+  "raw_file": "toA-legacy.png",
   "sha256": "30cbcb1da4f7cd9c403098cce2006e1c428539c325ab17efc50e8de18ac5d9fd",
   "bytes": 2079382,
   "width": 1024,
   "height": 1536,
   "tool_limitations": "ImageGen did not expose model, seed, or a size selector.",
-  "prompt_file": "toA.prompt.txt",
+  "prompt_file": "toA-legacy.prompt.txt",
   "prompt_sha256": "8b86467d1c2a147985092e84ef9fee6737d83faac3c5f6231f56e4b8bfefed6a",
   "references": [
     {
@@ -97,5 +97,10 @@
         "sha256": "bf43c6e57cffde9983df36b6ab7c1e44f884e915f2dab8001980df9bbf2b0fd0"
       }
     ]
+  },
+  "archive": {
+    "raw_file": "toA-legacy.png",
+    "prompt_file": "toA-legacy.prompt.txt",
+    "reason": "Bản cũ từ main: các hướng gần chính diện; B lộ mặt ở ne/n. Giữ nguồn lịch sử, không dùng làm tham chiếu."
   }
 }

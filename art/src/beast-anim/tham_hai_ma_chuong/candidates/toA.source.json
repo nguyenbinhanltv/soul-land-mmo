@@ -1,0 +1,28 @@
+{
+  "species": "tham_hai_ma_chuong",
+  "sheet": "toA",
+  "worker": "soul_land_game-640",
+  "issue": 1030,
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "recorded_at": "2026-10-27T06:40:13.2730795Z",
+  "attempts": 3,
+  "selected_attempt": 3,
+  "raw_file": "toA.png",
+  "sha256": "70e297906c0f143dda3768a163af5e0b9c0a9b34bf802e7163dfd15edd477fc0",
+  "bytes": 2062318,
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "7a88de9f547abb3f9e4505bccb545f03c5fa618b8c076521c99f2b54812b1b03",
+  "references": [
+    {
+      "order": 1,
+      "path": "shared/assets/sprites/beast/tham_hai_ma_chuong.png",
+      "sha256": "fc19f0b59589f24c4e76567de8d825ea3ac399a99cf91682b238bab97eaa87d1"
+    }
+  ],
+  "postprocessing": false,
+  "technical": "pass 0/0, 948x1659",
+  "eye": "CHẶN MẮT: se/e vẫn gần nhau (IoU 0.802); e một số khung còn ba phần tư, chưa ngang. Đủ 3 lượt, chọn A3 tốt nhất và chỉ lưu candidates; được dùng làm tham chiếu B vì đạt kỹ thuật.",
+  "original_tool_output_path": "C:/Users/PC/.codex/generated_images/01a17c10-51e1-73f2-a82e-b6578a36a56e/exec-a7efcb93-c5b3-47f6-be82-87becb7c658f.png"
+}
