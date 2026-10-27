@@ -15,8 +15,8 @@ Loài `co_moc_thu_nhan` (Cổ Mộc Thụ Nhân), họ `plant`, khung game 128×
 
 ## toA
 
-- File: `toA.png`, **1536×1024**, 2539980 byte, SHA256 `fa6f6a8f0fa9ed67a51e4e038241792cf0546e061331c46df7f305951e6c8985`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop.
+- File: `toA.png`, **1536×1024**, 2570789 byte, SHA256 `6be543239fc97e85cdd2c2c63a7bbb36589ac76291fbb1fe422ea885aec948b1`.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: ao-desktop.
 - Prompt: `toA.prompt.txt` (SHA256 `2c99d3874cc2bb19521cf95897b80c48ca51e78b4b0c343da61f69ed1e3c4721`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: s pass).
@@ -55,7 +55,7 @@ Loài `co_moc_thu_nhan` (Cổ Mộc Thụ Nhân), họ `plant`, khung game 128×
 ```text
 LỖI: turnaround — die chưa đổ thấp hoàn toàn; lượt 3 tốt nhất làm ref kỹ thuật (mắt)
 LỖI: turnaround — toD/ne CHẶN sau 3 lượt: chọn candidates/toD-attempt3.png; H1 C6 và H3 C1,C4 lộ mặt; không đặt toD.png trong thư mục chính. Lượt 1 thiếu một khung die; lượt 2 lộ mặt nhiều hơn. (mắt)
-LỖI: toA — s — hurt hơi xoay thân sang phải (mắt)
+LỖI: toA — s — chọn lượt 3: hurt giữ mặt trước tốt hơn; die C4 hơi xoay phải nhưng vẫn rũ theo trục (mắt)
 LỖI: toB — se — attack C6 gần chính diện; hurt ngả mạnh (mắt)
 LỖI: toC — e — một số khung hơi chếch trước, hurt ngả mạnh; chọn lượt 3 tốt nhất (mắt)
 ```
