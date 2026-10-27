@@ -1,0 +1,25 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "attempt": 1,
+  "image_sha256": "ceeb9594af98b6111ffa15ad52fdd361fd5dfe37b0ce57da7508dbae45bdfa63",
+  "prompt_sha256": "242bf66cba5186b25a18ffd61cf1b1cb502a17adca956d5d2d72c05d7d6f5397",
+  "submitted_prompt_sha256": "adb291f399537c0895177e97a3516967c2b9f5ad6d550ff19fba48e7c9fa8b3d",
+  "prompt_line_endings": "Bản lưu LF theo Git; nội dung nguyên bản, hash thực gửi lưu riêng nếu CRLF.",
+  "original_output": "C:/Users/PC/.codex/generated_images/01a17cc5-63b8-7180-bc0d-e3cc732ef99e/exec-823962d0-3d55-46d5-95ac-080ca08b66b1.png",
+  "reference": "PR #1083: concept-turnaround-attempt2.png (Hạo Thiên Chùy)",
+  "status": "selected_appearance_reference",
+  "assessment": "Cán dài, mũi thoi rãnh ngọc sáng, thân ngọc tối và hai tua đỏ rõ; đủ năm khối riêng, chiều cao đều. RAW NHẸ do mềm và chưa đúng lưới, không sinh lại vì hai mục này. Khoảng ba góc phân biệt rõ vì vật đối xứng; ne nghiêng trái, n nhìn mặt sau. Cán hơi ngắn so với đầu thương, trang trí gai hơi dày; khai mắt, chưa nhập game.",
+  "true_angles": "khoảng 3 (vật cứng đối xứng)",
+  "raw_check": {
+    "command": "node tools/assets/vohon-check.mjs raw art/src/vohon-v2/pha_hon_thuong/concept-attempt1.png --type phaptuong --id pha_hon_thuong",
+    "exit_code": 0,
+    "output": "raw concept-attempt1.png pháp tướng (pha_hon_thuong): NHẸ\n  [NHẸ] mem: texture mềm: 78% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất\n  [NHẸ] luoi: chưa đúng lưới khối: tỉ số biên 1.23 ở chu kỳ 37 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)\n  số đo: {\"w\":1983,\"h\":793,\"ratio\":2.501,\"border\":{\"clear\":1,\"flat70\":0},\"poses\":5,\"poseSpread\":1.01,\"softness\":0.783,\"bigColors\":156,\"grid\":{\"period\":37,\"ratio\":1.23},\"paletteMatch\":0.69}\n  cần mắt duyệt: đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi); không có chữ, ký hiệu đọc được, logo, chữ ký; 5 hướng cùng một hình (cùng cỡ, màu, chi tiết), se / ne chếch đúng hướng; thân đặc, không trong suốt\n"
+  },
+  "eye": [
+    "hướng — ne — trục thương nghiêng trái, góc đối xứng khó phân biệt",
+    "hình mẫu — cán — hơi ngắn so với đầu thương, gai trang trí hơi dày"
+  ]
+}

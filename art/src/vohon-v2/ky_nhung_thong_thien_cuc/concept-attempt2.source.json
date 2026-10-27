@@ -1,0 +1,25 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "attempt": 2,
+  "image_sha256": "dcfdd0bb52b5dcb0df1416aa2a312ae1b5cc85d76d908c52d2a5bbb4e7fde88f",
+  "prompt_sha256": "71f85fa0c0d563d18ee85f797345ec261a1c8e7bb7a097e93aba165599dc68ba",
+  "submitted_prompt_sha256": "ed35e6b25c444d42e777562763e9049adaedc8d22280a986c6337e64b1910ff5",
+  "prompt_line_endings": "Bản lưu LF theo Git; nội dung nguyên bản, hash thực gửi lưu riêng nếu CRLF.",
+  "original_output": "C:/Users/PC/.codex/generated_images/01a17cc5-63b8-7180-bc0d-e3cc732ef99e/exec-872ce121-3ed5-4c88-96fb-ce7f2bd2b916.png",
+  "reference": "PR #1083: concept-turnaround-attempt2.png (Hạo Thiên Chùy)",
+  "status": "selected_appearance_reference",
+  "assessment": "Chọn lượt 2 trong ba lượt: khoảng cách tốt hơn lượt 1 và 3; cánh dao cam đất, rễ đen, nhụy vàng đúng. RAW vẫn CHẶN vì tách sáu thành phần do cánh rời. Chỉ tham chiếu ngoại hình, chưa phải sheet đạt; ne còn lộ nhụy, n nhìn sau đúng. Chi tiết hơi dày (nhẹ).",
+  "true_angles": "khoảng 4",
+  "raw_check": {
+    "command": "node tools/assets/vohon-check.mjs raw art/src/vohon-v2/ky_nhung_thong_thien_cuc/concept-attempt2.png --type phaptuong --id ky_nhung_thong_thien_cuc",
+    "exit_code": 1,
+    "output": "raw concept-attempt2.png pháp tướng (ky_nhung_thong_thien_cuc): CHẶN\n  [CHẶN] huong: tách được 6 hướng, cần 5 (s, se, e, ne, n) cách nhau bằng khoảng trống\n  [NHẸ] mem: texture mềm: 79% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất\n  [NHẸ] luoi: chưa đúng lưới khối: tỉ số biên 1.12 ở chu kỳ 40 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)\n  số đo: {\"w\":1983,\"h\":793,\"ratio\":2.501,\"border\":{\"clear\":1,\"flat70\":0},\"poses\":6,\"softness\":0.799,\"bigColors\":143,\"grid\":{\"period\":40,\"ratio\":1.12},\"paletteMatch\":1}\n  cần mắt duyệt: đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi); không có chữ, ký hiệu đọc được, logo, chữ ký; 5 hướng cùng một hình (cùng cỡ, màu, chi tiết), se / ne chếch đúng hướng; thân đặc, không trong suốt\n"
+  },
+  "eye": [
+    "hướng — ne — còn lộ nhụy phía trước",
+    "bố cục — cánh rời — bộ kiểm đếm sáu thành phần, chưa đạt tách tự động"
+  ]
+}
