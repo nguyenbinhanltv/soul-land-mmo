@@ -1,0 +1,13 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "attempt": 3,
+  "image_sha256": "22e0131bf8744970c6f40fd86cca9e5cbf31cd715327fa798c54a6b498570099",
+  "prompt_sha256": "7c49d626a6fdda8d005dae0e80f757645ac5fd0e3ebc4d4e2c2383ec4efcd1a3",
+  "original_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17c43-78f6-7b71-8761-194681d08ba0\\exec-985318ba-2456-45f0-b515-01958508edde.png",
+  "reference": "PR #1083: concept-turnaround-attempt2.png (Hạo Thiên Chùy)",
+  "status": "CHẶN",
+  "assessment": "Lượt 1: ne quay trái và lộ mắt, s/n cánh rủ. Lượt 2: ne/n giấu mặt đúng, cánh s/n cắt biên, se/e quá giống. Lượt 3: ne/n không lộ mặt, đủ 5 tư thế gần đúng nhưng se/e khác ít, khoảng trống giữa cánh quá hẹp/có chỗ gần chạm; không đạt tách năm cột. Khoảng 4 góc thật phân biệt rõ. Màu nâu vàng, đen cánh, mắt dọc đúng; chi tiết lông dày (nhẹ), thiếu mây/vòng sét. Chưa đạt."
+}
