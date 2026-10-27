@@ -13,18 +13,18 @@ Tham chiếu bố cục: ảnh 10 (phúc lợi) trong bộ tham chiếu UI của
 
 ### Luật điểm danh
 - **Chu kỳ** `CHECKIN.days` ngày (đề xuất 21, giữ hằng; lưới 7 × 3). Ngày tính theo **giờ Việt Nam** (`vnDay` / `vnDayNum`, `BOSS_TZ`), đổi lúc 00:00 như khảo hạch hằng ngày (mục 5.8).
-- **Chu kỳ riêng mỗi tài khoản**, **bắt đầu từ lần điểm danh đầu tiên** của chu kỳ (không phải lúc tạo tài khoản): ngày thứ i của chu kỳ là `vnDayNum(lúc bắt đầu) + i`. Chu kỳ **kết thúc** sau `CHECKIN.days` ngày theo lịch kể từ lúc bắt đầu; ngày chưa ký và không ký bù được thì mất. Lần điểm danh đầu tiên sau khi chu kỳ cũ kết thúc mở chu kỳ mới (người nghỉ lâu **không** bị trừ gì, quay lại là ô 1).
+- **Chu kỳ riêng mỗi tài khoản**, **bắt đầu từ lần điểm danh đầu tiên** của chu kỳ (không phải lúc tạo tài khoản): **quy ước chỉ số ô:** `i` chạy `0 .. CHECKIN.days − 1` ở mọi chỗ (giao thức, `mask`, hàm thuần); ô `i` ứng với ngày `vnDayNum(lúc bắt đầu) + i`; UI chỉ hiển thị `i + 1` (01..21). Chu kỳ **kết thúc** sau `CHECKIN.days` ngày theo lịch kể từ lúc bắt đầu; ngày chưa ký và không ký bù được thì mất. Lần điểm danh đầu tiên sau khi chu kỳ cũ kết thúc mở chu kỳ mới (người nghỉ lâu **không** bị trừ gì, quay lại là ô 1).
 - **Điểm danh hôm nay** (`welfare {op:"sign"}`): chỉ ô của **hôm nay** (theo giờ server); một lần mỗi ngày; nhận quà ô đó ngay.
 - **Ký bù** (`welfare {op:"makeup", day}`): chỉ cho một ô **đã qua, chưa ký, thuộc chu kỳ đang chạy**, tiêu một **lượt ký bù**. Ô tương lai không ký được. Quà ký bù **giống hệt** quà ô đó (không thiệt), nhưng:
   - Số ô ký bù tối đa mỗi chu kỳ `CHECKIN.makeupMax` (kể cả lượt miễn phí lẫn trả phí).
   - **Lượt ký bù** ghi ở trạng thái tài khoản (không phải vật phẩm trong túi, không bán / bỏ / chuyển được). Nguồn: một số lượt **miễn phí** mỗi chu kỳ `CHECKIN.makeupFree`; thêm lượt ngoài mức miễn phí tốn Hồn Tệ lũy tiến `CHECKIN.makeupFee[i]` (nguồn ra Hồn Tệ, mục 5.7). Chọn thêm nguồn nào là câu hỏi mở 4.
-  - Không ký bù **mốc đặc biệt** của ngày chưa tới; mốc đã qua ký bù được như ô khác.
-- **Mốc đặc biệt** `CHECKIN.milestones` (đề xuất ô 7, 14, 21): quà lớn hơn, vẽ nổi (nền vàng + nhãn). **Mốc theo tổng số ô đã ký** hay **theo số thứ tự ô** là câu hỏi mở 3; mặc định đề xuất: theo số thứ tự ô, để ký bù ô 7 vẫn nhận mốc 7.
+  - Mốc đặc biệt đã qua ký bù được như ô khác.
+- **Mốc đặc biệt** `CHECKIN.milestones` (đề xuất ô thứ 7, 14, 21 theo hiển thị, tức chỉ số 6, 13, 20): quà lớn hơn, vẽ nổi (nền vàng + nhãn). **Mốc theo tổng số ô đã ký** hay **theo số thứ tự ô** là câu hỏi mở 3; mặc định đề xuất: theo số thứ tự ô, để ký bù ô 7 vẫn nhận mốc 7.
 - **Hoàn tất chu kỳ:** ký đủ mọi ô → ngày kế tiếp mở chu kỳ mới. Có thể thêm quà "đủ chu kỳ" bằng chính mốc cuối (không thêm nguồn thưởng).
 
 ### Dữ liệu và nơi tính
 - `CHECKIN` *(đề xuất)* ở `shared/data.ts`: `days`, `milestones`, `rewards[]` (mỗi ô một danh sách `{code, qty}` **chỉ gồm mã có trong `ITEMS`** hoặc `honTe`, `shards`), `makeupFree`, `makeupMax`, `makeupFee[]`, trần `cycleCap` (mục "Kinh tế"). Hàm thuần `checkinDay(startDay, now)` (chỉ số ô hôm nay, hết chu kỳ chưa), `checkinOpen(mask, i)`: client dùng để hiển thị, server tính thật.
-- Server giữ **mọi** phép tính trong một file riêng (đề xuất `server/src/rooms/welfare.ts`, như `tong.ts`, #702). Client chỉ gửi `op` và `day`; `day` kẹp bằng `intIn` rồi kiểm `0 ≤ day < hôm nay`, ô chưa ký, trong chu kỳ.
+- Server giữ **mọi** phép tính trong một file riêng (đề xuất `server/src/rooms/welfare.ts`, như `tong.ts`, #702). Client chỉ gửi `op` và `day`; `day` kẹp bằng `intIn` rồi kiểm `0 ≤ day < ô hôm nay`, ô chưa ký, trong chu kỳ (`day` là chỉ số ô 0-based).
 - Đồng hồ: `bossNow()` (đồng hồ thật khi không `GAME_TEST`), nên bot đẩy ngày bằng `BOSS_CLOCK` / `bossOffset` như lịch boss. **Không bao giờ** dùng giờ client, và không dùng giờ DB cho ngày (nhiều tiến trình chung một đồng hồ hệ thống; xem "Chống gian lận" cho trường hợp lùi giờ).
 
 ### Lưu trữ
@@ -35,7 +35,7 @@ checkin_state (
   account_id    integer PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
   cycle         integer NOT NULL DEFAULT 0,   -- số thứ tự chu kỳ (đếm từ 1)
   start_day     integer NOT NULL,             -- vnDayNum ngày ô 1 của chu kỳ đang chạy
-  mask          integer NOT NULL DEFAULT 0,   -- bit i = ô i đã ký (1..CHECKIN.days <= 30)
+  mask          integer NOT NULL DEFAULT 0,   -- bit i = ô i đã ký (i = 0..CHECKIN.days−1, days <= 30)
   makeup_used   integer NOT NULL DEFAULT 0,   -- số ô ký bù đã dùng trong chu kỳ
   last_at       timestamptz,                  -- lần ký gần nhất (dùng phát hiện lùi giờ)
   ver           integer NOT NULL DEFAULT 0    -- tăng mỗi lần ghi, để ghi có điều kiện
@@ -52,8 +52,8 @@ Bổ sung vào bảng ở `docs/tech/giao-thuc-server.md` khi làm (kiểm `tool
 
 | Hướng | Tin | Nội dung | Nhóm / giới hạn |
 |---|---|---|---|
-| client → server | `welfare {op: "get" \| "sign" \| "makeup", day?}` | `get`: xin trạng thái; `sign`: điểm danh hôm nay; `makeup`: ký bù ô `day` (chỉ số 0..) | `get`: `read`; `sign` / `makeup`: `trade` (ghi DB) |
-| server → client | `welfare {cycle, day, mask, now, endsAt, makeupLeft, free, signed?, err?}` | `day`: ô hôm nay (0 nếu chưa vào chu kỳ); `mask`; `now`: giờ server (ms) để đếm lùi; `endsAt`: hết chu kỳ; `makeupLeft`: lượt còn lại; `signed`: kết quả lần vừa làm (`{day, items}`), `err`: lý do tiếng Việt | riêng |
+| client → server | `welfare {op: "get" \| "sign" \| "makeup", day?}` | `get`: xin trạng thái; `sign`: điểm danh hôm nay; `makeup`: ký bù ô `day` (chỉ số ô 0-based) | `get`: `read`; `sign` / `makeup`: `trade` (ghi DB) |
+| server → client | `welfare {cycle, day, mask, now, endsAt, makeupLeft, free, signed?, err?}` | `day`: chỉ số ô hôm nay (0-based; **−1** nếu chưa có chu kỳ đang chạy, `cycle: 0` khi chưa từng ký); `mask`; `now`: giờ server (ms) để đếm lùi; `endsAt`: hết chu kỳ; `makeupLeft`: lượt còn lại; `signed`: kết quả lần vừa làm (`{day, items}`), `err`: lý do tiếng Việt | riêng |
 
 - Server gửi `welfare` lúc vào phòng (cho chấm đỏ "chưa điểm danh") và lúc **qua 00:00** khi đang chơi (như tin `daily`), không tự nhận hộ.
 - Từ chối bằng tin `log` / `err` tiếng Việt: chưa tới ô, đã ký, hết lượt ký bù, thiếu Hồn Tệ, túi đầy, đang trong sân đấu, đang đi cổng, đang giao chiến (ngoài hiển thị, điểm danh được ở mọi trạng thái an toàn; đề xuất **không** chặn khi giao chiến nhưng chặn khi `claimBusy`).
@@ -61,7 +61,7 @@ Bổ sung vào bảng ở `docs/tech/giao-thuc-server.md` khi làm (kiểm `tool
 
 ### Chống gian lận
 Soát theo skill `anti-cheat-audit` trước khi gộp PR server (ghi thành tệp soat-gian-lan-phuc-loi trong docs/tech).
-- **Chống đổi giờ máy:** ngày do server tính từ `bossNow()`; client không gửi giờ / ngày, chỉ gửi chỉ số ô và server tự kiểm. Đồng hồ máy chủ **lùi** (sự cố, chỉnh tay): nếu `now < last_at` thì từ chối `sign` / `makeup` và ghi log `[phúc lợi]` (không cộng bất kỳ ô nào theo thời gian lùi); trạng thái `ver` + `last_at` khiến ghi chậm trễ không thể thêm ô.
+- **Chống đổi giờ máy:** ngày do server tính từ `bossNow()`; client không gửi giờ / ngày, chỉ gửi chỉ số ô và server tự kiểm. Đồng hồ máy chủ **lùi** (sự cố, chỉnh tay): nếu `now < last_at` thì từ chối `sign` / `makeup` và ghi log `[phúc lợi]` (không cộng bất kỳ ô nào theo thời gian lùi). **Bot:** đẩy ngày bằng `BOSS_CLOCK` / `bossOffset` ghi `last_at` ở tương lai; bài bot phải xóa dòng `checkin_state` của tài khoản test khi dọn (hoặc bỏ kiểm lùi giờ khi `GAME_TEST`) để lượt sau dùng đồng hồ thật không bị khóa; trạng thái `ver` + `last_at` khiến ghi chậm trễ không thể thêm ô.
 - **Không điểm danh hai lần:** điều kiện `(mask & bit) = 0` và `ver` trong câu `UPDATE` (nguyên tử), chịu được hai tab, hai tiến trình, bấm dồn, mất mạng giữa chừng; không có đường "nhận" ngoài transaction.
 - **Ký bù có giới hạn:** `makeup_used < CHECKIN.makeupMax` kiểm **trong cùng câu ghi**, không chỉ ở RAM; phí Hồn Tệ trừ cùng transaction (hoàn lại nếu lỗi). Ô phải đã qua **và** thuộc chu kỳ đang chạy: kẹp `day` (số nguyên) tránh âm / quá lớn / NaN.
 - **Chu kỳ không bị khai thác:** `start_day` chỉ ghi lúc mở chu kỳ mới và chỉ khi chu kỳ cũ đã hết (server kiểm); client không đề xuất ngày bắt đầu. Không có đường làm chu kỳ "kéo dài".
