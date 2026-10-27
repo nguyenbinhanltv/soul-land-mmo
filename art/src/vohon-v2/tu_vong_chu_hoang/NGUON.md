@@ -36,3 +36,17 @@ Các khai báo dưới đây cũng lưu trong trường `eye` của source JSON.
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/vohon-v2/tu_vong_chu_hoang/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | 1 RAW concept Tử Vong Chu Hoàng; model/seed unknown; prompt, SHA256 và nguồn trong các tệp đi kèm. | 2026-10-27 | Chưa nhập game; nhẹ. |
+
+## Chân dung lượt 1 — #1158
+
+Ngày 2026-10-27; 1/3 lượt. builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `portrait-attempt1.png`, SHA256 `b82079fac1886d49ce48f64c9b3ea608ee451457b8146be1fc4f8ac88817a1c8`. Prompt CLI nguyên văn `portrait-attempt1.prompt.txt`, SHA256 `3ecdbc00be54e6aef10f87b22d36f615b82fdea296b6022128b4ddb5e3897a16`; không viết tay, không addendum. Ảnh neo ngoại hình: `concept-attempt1.png`, SHA256 `b9cdc21f23c580792231cf131a6b4a91ac0676d2e080f7f5a9e21e6786fab656`. Hồ sơ lệnh và kết quả kiểm: `portrait-attempt1.source.json`.
+
+P1c: `--preset portrait`; bản thử `portrait-attempt1-P1c/tu_vong_chu_hoang-portrait.png`, 64×64, 7 màu, giữ 8/8 điểm sáng. Xem `portrait-attempt1-P1c/preview/index.html` và `so-sanh.png`. Chưa được chủ repo duyệt mỹ thuật, chưa nhập game. Không sửa RAW.
+
+### Khai báo duyệt mắt chân dung (`--eye`)
+
+Công cụ vohon:check chưa có cờ --eye; chỉ khai tại đây, không đổi bộ kiểm.
+
+```text
+--eye "portrait-attempt1=góc nhìn — chính diện; bụng/gai chiếm nhiều khung, mặt chưa đạt 70%; tơ và phù treo còn nhiều nét nhỏ, gai chạm mép"
+```
