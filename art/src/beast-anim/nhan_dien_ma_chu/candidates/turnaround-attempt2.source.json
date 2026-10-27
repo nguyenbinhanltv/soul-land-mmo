@@ -1,0 +1,12 @@
+{
+  "tool": "image_gen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 2,
+  "generatedAt": "2026-10-27T04:01:45.147Z",
+  "sha256": "659b27ec27507ad3d88bea3b5125f88b6417c40d796f96622e73a200d84cd9c2",
+  "references": [
+    "shared/assets/sprites/beast/nhan_dien_ma_chu.png"
+  ],
+  "eye": "Mặt người nổi thành khuôn mặt thật, chân chưa rõ đủ tám; không dùng làm tham chiếu."
+}

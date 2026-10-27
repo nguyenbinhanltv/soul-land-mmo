@@ -1,0 +1,68 @@
+# Nhân Diện Ma Chu — RAW hoạt ảnh (#1030)
+
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species nhan_dien_ma_chu`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
+
+Loài `nhan_dien_ma_chu` (Nhân Diện Ma Chu), họ `insect`, khung game 128×128. Mức kiểm chung: **pass**.
+
+## turnaround
+
+- File: `turnaround.png`, **1536×1024**, 1572387 byte, SHA256 `51d9e1d695e8fe673611d0e49a5d22208352306eeade6052269bb2fc313c25b6`.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 4; phiên: soul_land_game-623.
+- Prompt: `turnaround.prompt.txt` (SHA256 `daca5ff6fbd7523e50d40908bff71550ffb22830643b4e9230892d6832fd3e04`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+## toA
+
+- File: `toA.png`, **1536×1024**, 1869474 byte, SHA256 `b1ed2d4e8344c4f3577c3af19e76ca7e9fce72f2f68bd36e06123a8ebdb943bf`.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-623.
+- Prompt: `toA.prompt.txt` (SHA256 `316362557647fddb60b38a3230cf7c15f06f98f27a0bc0a15c80f18e83782a20`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: s pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+## toB
+
+- File: `toB.png`, **1536×1024**, 1819114 byte, SHA256 `c6766ac86327c9102c2cc98331acbe271596df5876dc6ef14667cb21e3dd38ee`.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-623.
+- Prompt: `toB.prompt.txt` (SHA256 `2f68db72de8b81fbb20c83edb5271a60b26cd73dee56352e69dfaa57bed229b6`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: se pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+## toC
+
+- File: `toC.png`, **1536×1024**, 1763712 byte, SHA256 `d31c783e7c6b12ce8ef34b8d33d172c3d6ad05746cf084c859ea51de973b7d55`.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-623.
+- Prompt: `toC.prompt.txt` (SHA256 `3137c9e80dd262aaf4cead51ca1de4866484611aafb6b20174e84fa2dae049c9`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: e pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+## toE
+
+- File: `toE.png`, **1536×1024**, 1734475 byte, SHA256 `bbc878cd8c5636155ed539debf55dfca3f6e813268f206a6487d516844da0ecc`.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-623.
+- Prompt: `toE.prompt.txt` (SHA256 `41cf54f75715520b5d7a79decdba440609e29544308e19de8a3d2523c463c1d7`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: n pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+## Lỗi
+
+```text
+LỖI: turnaround — Chưa đọc rõ tám chân; ngoại lệ orchestrator 27/10: sửa prompt bằng bài học, lượt 4 vẫn chưa đạt. Chọn lượt 1 làm ref kỹ thuật theo quyết định PR 1114; không phải ảnh nhập game. Khối chỉ lưu candidates: toD: chọn candidates/toD-attempt3.png, sau 3 lượt vẫn chặn — ne — còn lộ mảng hoa văn mặt ở phần đầu hướng xa trong idle/walk/attack/hurt/die; chưa đọc rõ bốn cặp chân. D3 tốt nhất, kỹ thuật nhẹ 0 chặn/1 cảnh báo; không đặt toD.png thư mục chính. (mắt)
+LỖI: toA — s — chưa đọc rõ bốn cặp chân; hurt biên độ nhỏ, die cuối hơi lệch trục nhưng còn đọc hướng s. Chọn lượt 3 tốt nhất; các lượt 1–2 die quay ngang. (mắt)
+LỖI: toB — se — chưa đọc rõ bốn cặp chân; hurt biên độ nhỏ, attack C4 hơi gần hướng e; die còn giữ hướng chéo. (mắt)
+LỖI: toC — e — chưa đọc rõ bốn cặp chân; idle C2–3, walk C3/C5 và attack C5 nghiêng gần se; hurt và die giữ hướng phải, không ngửa bụng. (mắt)
+LỖI: toE — n — chưa đọc rõ bốn cặp chân; hurt biên độ nhỏ, giữ hướng lưng trong mọi khung và die hạ thân không xoay ngang. (mắt)
+```
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); không nối dòng vào `art/CREDITS.md`.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/nhan_dien_ma_chu/` | - | image_gen | RAW hoạt ảnh Nhân Diện Ma Chu: turnaround 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
