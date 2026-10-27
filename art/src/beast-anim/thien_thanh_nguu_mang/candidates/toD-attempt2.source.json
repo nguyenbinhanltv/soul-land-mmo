@@ -1,0 +1,14 @@
+{
+    "references":  [
+                       "shared/assets/sprites/beast/thien_thanh_nguu_mang.png",
+                       "art/src/beast-anim/thien_thanh_nguu_mang/turnaround.png"
+                   ],
+    "timestamp":  "2026-10-27T06:12:15.4180035Z",
+    "model":  "unknown",
+    "tool":  "image_gen.imagegen",
+    "originalOutput":  "C:/Users/PC/.codex/generated_images/01a17bec-b820-7c23-b29d-b91230dff833/exec-fbc54bf9-5e12-42df-8e0d-578a887aa10a.png",
+    "seed":  "unknown",
+    "attempts":  2,
+    "sha256":  "44bcc4a0a5a6e55da4d773ba47970351c1bb6d481cc5f8a15d6b90d1e4c34033",
+    "promptFile":  "toD-attempt2.prompt.json"
+}

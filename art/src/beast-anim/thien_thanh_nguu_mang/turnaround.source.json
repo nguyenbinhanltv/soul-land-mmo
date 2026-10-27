@@ -1,0 +1,10 @@
+{
+    "seed":  "unknown",
+    "timestamp":  "2026-10-27T05:59:02.7961374Z",
+    "sha256":  "2fd5d785740cdf3ef8c8219e0c3143e6d494cf1a0f36cfd3ccd22873fe8c272b",
+    "model":  "unknown",
+    "references":  [
+                       "shared/assets/sprites/beast/thien_thanh_nguu_mang.png"
+                   ],
+    "tool":  "image_gen"
+}

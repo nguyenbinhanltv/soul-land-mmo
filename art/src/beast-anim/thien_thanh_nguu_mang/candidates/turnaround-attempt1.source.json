@@ -1,0 +1,11 @@
+{
+    "seed":  "unknown",
+    "timestamp":  "2026-10-27T05:57:02.5752378Z",
+    "sha256":  "782e4c8896f216bfe3afba1094e807a5b56faafa214eb9ebd3e5ffb72f2ec6cf",
+    "model":  "unknown",
+    "references":  [
+                       "shared/assets/sprites/beast/thien_thanh_nguu_mang.png"
+                   ],
+    "tool":  "image_gen",
+    "promptFile":  "turnaround-attempt1.prompt.json"
+}
