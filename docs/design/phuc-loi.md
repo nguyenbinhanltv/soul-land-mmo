@@ -1,6 +1,6 @@
 # Phúc Lợi: điểm danh 21 ngày
 
-Màn **Phúc Lợi** gom các quà đều đặn không cần nạp tiền. Giai đoạn đầu chỉ có một mục: **Sổ Điểm Danh** theo chu kỳ 21 ngày, có mốc đặc biệt và **lệnh ký bù** cho ngày lỡ. Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; tên *(đề xuất)* chưa tồn tại). Số issue ở cuối file. **Chỉ là thiết kế, chưa có code.**
+Màn **Phúc Lợi** gom các quà đều đặn không cần nạp tiền. Giai đoạn đầu chỉ có một mục: **Sổ Điểm Danh** theo chu kỳ 21 ngày, có mốc đặc biệt và **lệnh ký bù** cho ngày lỡ. Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; tên *(đề xuất)* chưa tồn tại). Số issue ở cuối file. **Server (P1–P3) đã có code** (#877: `CHECKIN` ở `shared/data.ts`, `038_phuc_loi.sql`, `welfare.ts`, bot nhóm `welfare`); còn P4 màn client và P5 soát chống gian lận.
 
 Tham chiếu bố cục: ảnh 10 (phúc lợi) trong bộ tham chiếu UI của #877; chỉ học bố cục (cột mục bên trái, lưới 7 × 3, mốc nổi bật, ô quá khứ xám), không chép tên / chữ / ảnh.
 
@@ -52,7 +52,7 @@ Bổ sung vào bảng ở `docs/tech/giao-thuc-server.md` khi làm (kiểm `tool
 
 | Hướng | Tin | Nội dung | Nhóm / giới hạn |
 |---|---|---|---|
-| client → server | `welfare {op: "get" \| "sign" \| "makeup", day?}` | `get`: xin trạng thái; `sign`: điểm danh hôm nay; `makeup`: ký bù ô `day` (chỉ số ô 0-based) | `get`: `read`; `sign` / `makeup`: `trade` (ghi DB) |
+| client → server | `welfare {op: "get" \| "sign" \| "makeup", day?, pay?}` | `get`: xin trạng thái; `sign`: điểm danh hôm nay; `makeup`: ký bù ô `day` (chỉ số ô 0-based), lượt trả Hồn Tệ chỉ chạy khi `pay: true` (client xác nhận 2 bước) | `get`: `read`; `sign` / `makeup`: `trade` (ghi DB) |
 | server → client | `welfare {cycle, day, mask, now, endsAt, makeupLeft, free, signed?, err?}` | `day`: chỉ số ô hôm nay (0-based; **−1** nếu chưa có chu kỳ đang chạy, `cycle: 0` khi chưa từng ký); `mask`; `now`: giờ server (ms) để đếm lùi; `endsAt`: hết chu kỳ; `makeupLeft`: lượt còn lại; `signed`: kết quả lần vừa làm (`{day, items}`), `err`: lý do tiếng Việt | riêng |
 
 - Server gửi `welfare` lúc vào phòng (cho chấm đỏ "chưa điểm danh") và lúc **qua 00:00** khi đang chơi (như tin `daily`), không tự nhận hộ.

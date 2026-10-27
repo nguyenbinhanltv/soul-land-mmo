@@ -74,6 +74,7 @@ import * as shop from "./shop.ts";
 import * as gm from "./gm.ts";
 import * as tong from "./tong.ts";
 import { calendarAction } from "./calendar.ts";
+import { welfareAction } from "./welfare.ts";
 import * as quest from "./quest.ts";
 import * as bag from "./bag.ts";
 import * as team from "./team.ts";
@@ -213,6 +214,7 @@ export interface PData {
   arenaBusy: boolean; arenaTopAt: number; arenaLiveAt: number; arenaWatchAt: number; resonanceTopAt: number;
   // Bảng Xếp Hạng (rank.ts): lúc xin bảng gần nhất (ms), dấu vết điểm đã ghi `rank_scores` và lúc ghi (ms).
   rankTopAt: number; rankSig: string; rankAt: number;
+  welfareDay: string; // Phúc Lợi (welfare.ts): ngày (room.today()) đã gửi trạng thái Sổ Điểm Danh cho người này; đổi ngày thì gửi lại
   arenaGone: boolean;   // đã được ghép trận và rời phòng sang sân đấu (7.2): rời phòng lúc đó không phải rời game (giữ danh sách mua lại, 9.8)
   // Võ Hồn Chân Thân (vòng 7, từ 8.1a): võ hồn đang biến hình (`row`), giây còn lại, chỉ số đang cộng (chanThanStats, đọc trong buffV
   // và recalc); `avaCd`: hồi chiêu Chân Thân còn lại của từng võ hồn (rowId -> giây). Không lưu DB.
@@ -1089,6 +1091,7 @@ export class MapRoom extends Room<MapState> {
       this.sendRes(c.sessionId, [], true);
     }); // cộng minh (8.2): bảng tiến độ riêng; op=top là bảng xếp hạng
     this.onLimitedMsg("read", "rank", (c, m: { op?: unknown; board?: unknown; page?: unknown; pageSize?: unknown }) => rank.rankAction(this, c.sessionId, m)); // Bảng Xếp Hạng (5.19): boards / top
+    this.onLimitedMsg("read", "welfare", (c, m: { op?: unknown; day?: unknown; pay?: unknown }) => welfareAction(this, c.sessionId, m)); // Phúc Lợi (5.21): get (read) / sign, makeup (thêm nhịp trade ở welfare.ts); giờ do server quyết
     this.onLimitedMsg("read", "calendar", (c, m: { op?: unknown; week?: unknown }) => calendarAction(this, c.sessionId, m)); // Lịch Hoạt Động (5.20): lịch tuần theo giờ server, chỉ đọc
     this.onMessage("chat", (c, m: unknown) => this.chatAction(c.sessionId, m)); // chat bản đồ / tổ đội / riêng / thế giới (#188)
     this.onMessage("friend", (c, m: unknown) => this.friendAction(c.sessionId, m)); // bạn bè và chặn (#195)

@@ -1544,7 +1544,8 @@ export const worldNext = (ms: number) => worldSlots(ms).find((s) => s > ms)!;
 /** Khung giờ boss thế giới đang diễn ra lúc `ms` (đã xuất hiện, chưa quá WORLD.lifeSecs), không có thì null. */
 export const worldActive = (ms: number) => worldSlots(ms).find((s) => s <= ms && ms < s + WORLD.lifeSecs * 1000) ?? null;
 /** Số ngày (giờ Việt Nam) kể từ 1970-01-01 của thời điểm `ms`: hai boss thế giới luân phiên theo số này. */
-const vnDayNum = (ms: number) => { const c = vnClock(ms); return Math.floor(Date.UTC(c.y, c.mo - 1, c.d) / 86400000); };
+/** Số ngày từ 1970-01-01 theo giờ Việt Nam của `ms` (đổi lúc 00:00): chỉ số ngày của lịch tuần, Phúc Lợi (`checkinDay`). */
+export const vnDayNum = (ms: number) => { const c = vnClock(ms); return Math.floor(Date.UTC(c.y, c.mo - 1, c.d) / 86400000); };
 /**
  * Boss thế giới của ngày chứa khung `ms` ở bản đồ `mapId` (MapDef.world): luân phiên theo ngày Việt Nam (quyết định BĐ6e: luân
  * phiên, không bốc ngẫu nhiên, để người chơi biết trước hôm nay đánh con nào). Bản đồ không có boss thế giới thì null.
@@ -5261,6 +5262,42 @@ export const resonanceRankCompare = (a: ResonanceRankRow, b: ResonanceRankRow) =
  * tự đánh (không giảm kinh nghiệm hay đồ rơi). Mỗi tài khoản treo tối đa AUTO_DAILY_SECS giây mỗi ngày (đặt lại 00:00 giờ Việt Nam).
  */
 export const AUTO_DAILY_SECS = 12 * 3600;
+// ---------- Phúc Lợi: Sổ Điểm Danh 21 ngày (mục 5.21, #877) ----------
+/** Quà một ô điểm danh: Hồn Tệ, mảnh võ hồn SR / SSR (loại do server chọn ngẫu nhiên trong ARENA_SHARDS như thưởng tuần tông), vật phẩm có trong ITEMS. */
+export interface CheckinReward { honTe?: number; shards?: number; items?: { code: string; qty: number }[] }
+/**
+ * Sổ Điểm Danh (docs/design/phuc-loi.md): chu kỳ riêng mỗi tài khoản, ô 1 là ngày điểm danh đầu tiên của chu kỳ (giờ Việt Nam). `rewards[i]`:
+ * quà ô i (0-based, `days` ô). `milestones`: chỉ số ô mốc (theo số thứ tự ô: ký bù ô mốc vẫn nhận quà mốc). Ký bù: tối đa `makeupMax` ô mỗi chu kỳ,
+ * `makeupFree` ô đầu miễn phí, các ô sau tốn Hồn Tệ lũy tiến `makeupFee[k]` (k = số ô ký bù đã dùng − makeupFree). `cycleCap`: trần cả chu kỳ theo
+ * các nguồn hiện hành (test cân bằng `checkinBalance`). Chỉ vật phẩm đã có; không hồn hoàn / cốt / hạch / trang bị / rương.
+ */
+export const CHECKIN = {
+  days: 21,
+  milestones: [6, 13, 20],
+  makeupFree: 2,
+  makeupMax: 5,
+  makeupFee: [12000, 18000, 27000],
+  cycleCap: { honTe: 3 * TONG_WEEK_REWARD.rest.honTe, shards: SHARD_BUY.daily, autoSecs: AUTO_DAILY_SECS, shopShare: 0.5 },
+  rewards: [
+    { honTe: 20 }, { items: [{ code: "hoi_huyet_dan", qty: 2 }] }, { honTe: 20 }, { items: [{ code: "hoi_hon_dan", qty: 2 }] }, { honTe: 30 }, { items: [{ code: "hoi_thanh_phu", qty: 1 }] },
+    { honTe: 60, shards: 2 }, // ô 7: mốc
+    { honTe: 20 }, { items: [{ code: "hoi_huyet_dan", qty: 2 }] }, { honTe: 30 }, { items: [{ code: "hoi_hon_dan", qty: 2 }] }, { honTe: 30 }, { items: [{ code: "hoi_thanh_phu", qty: 1 }] },
+    { honTe: 80, shards: 3, items: [{ code: AUTO_TOKEN, qty: 1 }] }, // ô 14: mốc
+    { honTe: 30 }, { items: [{ code: "hoi_huyet_dan", qty: 1 }] }, { honTe: 40 }, { items: [{ code: "hoi_hon_dan", qty: 1 }] }, { honTe: 40 }, { honTe: 50 },
+    { honTe: 120, shards: 5, items: [{ code: AUTO_TOKEN, qty: 2 }] }, // ô 21: mốc, quà lớn nhất chu kỳ
+  ] as CheckinReward[],
+};
+/** Chỉ số ô hôm nay của chu kỳ bắt đầu ngày `startDay` (vnDayNum), tính ở ngày `dayNum`: `i` âm = đồng hồ lùi (không hợp lệ), `over` = chu kỳ đã hết. */
+export const checkinDay = (startDay: number, dayNum: number) => { const i = dayNum - startDay; return { i, over: i < 0 || i >= CHECKIN.days }; };
+/** Ô `i` (0-based) trong phạm vi chu kỳ và chưa ký trong `mask`. */
+export const checkinOpen = (mask: number, i: number) => Number.isInteger(i) && i >= 0 && i < CHECKIN.days && (mask & (1 << i)) === 0;
+/** Số ô đã ký trong `mask`. */
+export const checkinCount = (mask: number) => { let n = 0; for (let i = 0; i < CHECKIN.days; i++) if (mask & (1 << i)) n++; return n; };
+/** Phí Hồn Tệ của lần ký bù kế tiếp khi đã dùng `used` lượt: 0 = còn lượt miễn phí, null = hết lượt (`makeupMax`). */
+export const checkinFee = (used: number) => used < CHECKIN.makeupFree ? 0 : used < CHECKIN.makeupMax ? CHECKIN.makeupFee[used - CHECKIN.makeupFree] : null;
+/** Giá trị Hồn Tệ của một phần quà (để so với phí ký bù): mảnh tính theo giá nền `SHARD_BUY.base`, vật phẩm theo SHOP (Ủy Thác Lệnh theo AUTO_TOKEN_PRICE). */
+export const checkinValue = (r: CheckinReward) => (r.honTe ?? 0) + (r.shards ?? 0) * SHARD_BUY.base
+  + (r.items ?? []).reduce((a, x) => a + x.qty * (SHOP.find((s) => s.code === x.code)?.price ?? 0), 0);
 /**
  * Phạm vi tự săn (`AutoSettings.scope`, #213): "map" (mặc định) săn khắp bản đồ đang đứng: nhắm hồn thú gần nhất hợp khoảng niên hạn
  * trong AUTO_RADIUS quanh mình, không có thì trên cả bản đồ (chỉ chỗ đi bộ tới được, không qua cổng / truyền tống, đường không đi vào vùng
