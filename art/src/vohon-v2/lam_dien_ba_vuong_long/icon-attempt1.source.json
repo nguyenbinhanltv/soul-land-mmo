@@ -14,10 +14,10 @@
   "sent_prompt_sha256": "819ba6c4288e3cb059eaa532adc3b66364980a5cebd062bb2a3e5c4932386b1e",
   "reference": "concept-attempt2.png",
   "reference_sha256": "d3c3d2b2d04b0eb9b0d6725092d31a5516a08c73beae294e2c6404df26babb95",
-  "original": "art/src/vohon-v2/lam_dien_ba_vuong_long/icon-attempt1.png",
+  "original": "C:/Users/PC/.codex/generated_images/01a17e99-fee0-7ba1-a2c6-b39d1830e6c3/exec-a780e1dc-a004-4e9a-a1f5-c0e337a4daf7.png",
   "pixelize": {
     "preset": "icon-nearest"
   },
   "status": "selected_for_review",
-  "eye": "Đầu rồng, sừng và lôi châu nhận diện được; sét và bờm nhiều nhánh, cần duyệt độ rõ ở 24 px."
+  "eye": "Đầu rồng và lôi châu nhận diện được; ở 24 px sét và bờm làm chi tiết đầu khó tách, chưa đạt đọc nhanh."
 }

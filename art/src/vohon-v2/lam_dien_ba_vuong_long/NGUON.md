@@ -78,5 +78,5 @@ CLI chưa hỗ trợ cờ --eye; lưu khai báo tại đây, giữ nguyên báo 
 --eye "icon-attempt1=32px — nhieu-chi-tiet — mật độ biên 0.939 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
 --eye "icon-attempt1=24px — cham-mep — hình chạm mép ảnh (12 điểm): viền ngoài bị cắt"
 --eye "icon-attempt1=24px — nhieu-chi-tiet — mật độ biên 0.943 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
---eye "icon-attempt1=duyệt mắt — Đầu rồng, sừng và lôi châu nhận diện được; sét và bờm nhiều nhánh, cần duyệt độ rõ ở 24 px."
+--eye "icon-attempt1=duyệt mắt — Đầu rồng và lôi châu nhận diện được; ở 24 px sét và bờm làm chi tiết đầu khó tách, chưa đạt đọc nhanh."
 ```
