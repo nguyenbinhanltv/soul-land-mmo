@@ -7,7 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { ROOT, encodePng } from "./lib.mjs";
 import { fakeSheets } from "./beast-sheet-fake.mjs";
-import { blockDirs, upsertEntry } from "./beast-import.mjs";
+import { blockDirs, parseDirsOk, pickDirsOk, upsertEntry } from "./beast-import.mjs";
 
 const SCRIPT = path.join(ROOT, "tools", "assets", "beast-import.mjs");
 const stat = (k, map) => `    {\n      "key": "${k}",\n      "frame": [\n        96,\n        96\n      ],\n      "iso": true,\n      "static": true,\n      "map": "${map}"\n    }`;
@@ -68,6 +68,34 @@ test("CLI: nhập loài chưa có anim (tờ giả, thư mục tạm), chạy l�
     writeFileSync(png, Buffer.concat([p1, Buffer.from("x")]));
     const noForce = go(); assert.match(noForce.stdout, /cần --force/); assert.notEqual(Buffer.compare(readFileSync(png), p1), 0, "không ghi đè");
     assert.match(go("--force").stdout, /đã cập nhật/); assert.equal(Buffer.compare(readFileSync(png), p1), 0);
+  } finally { rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test("parseDirsOk / pickDirsOk: theo thứ tự chuẩn, khai theo loài ưu tiên, --dirs-ok-only trừ khối chặn", () => {
+  assert.deepEqual(parseDirsOk("e, s,se"), ["s", "se", "e"]);
+  for (const bad of ["", "s,s", "s,x", "tay"]) assert.throws(() => parseDirsOk(bad), /--dirs-ok sai/, bad);
+  assert.equal(pickDirsOk("a", [], {}), undefined, "không cờ thì giữ hành vi cũ");
+  assert.deepEqual(pickDirsOk("a", ["ne"], { dirsOk: ["s", "e"], dirsOkBy: { a: ["s"] } }), { dirs: ["s"], rejected: [] });
+  assert.deepEqual(pickDirsOk("b", ["ne"], { dirsOk: ["s", "ne"] }), { dirs: ["s", "ne"], rejected: ["ne"] }, "hướng cutter chặn bị từ chối");
+  assert.deepEqual(pickDirsOk("a", ["ne", "n"], { dirsOkOnly: true }).dirs, ["s", "se", "e"]);
+});
+
+test("CLI --dirs-ok: ghi anim.dirsOk vào manifest (đúng thứ tự), đủ 5 hướng thì không ghi, khai sai thì báo lỗi", () => {
+  const tmp = mkdtempSync(path.join(os.tmpdir(), "beast-import-dirs-")), src = path.join(tmp, "src"), sp = path.join(tmp, "sprites");
+  try {
+    mkdirSync(path.join(src, "phong_lang"), { recursive: true }); mkdirSync(sp);
+    for (const [id, im] of Object.entries(fakeSheets("phong_lang"))) writeFileSync(path.join(src, "phong_lang", `to${id}.png`), encodePng(im));
+    writeFileSync(path.join(sp, "manifest.json"), `{\n  "sprites": [\n${stat("beast_phong_lang", "tinh_dau_ngoai_vi")}\n  ]\n}\n`);
+    const go = (...a) => spawnSync(process.execPath, [SCRIPT, "--species", "phong_lang", "--sprites", sp, "--src", src, ...a], { encoding: "utf8" });
+    const anim = () => JSON.parse(readFileSync(path.join(sp, "manifest.json"), "utf8")).sprites.find((e) => e.key === "beast_phong_lang_anim")?.anim;
+    assert.equal(go("--dirs-ok", "x").status, 2);
+    const a = go("--dirs-ok", "phong_lang=e,s,se"); assert.equal(a.status, 0, a.stderr); assert.match(a.stdout, /đã nhập mới/); assert.match(a.stdout, /s, se, e/);
+    assert.deepEqual(anim().dirsOk, ["s", "se", "e"]);
+    assert.match(go("--dirs-ok", "s,se,e", "--dry-run").stdout, /giống bản đã nhập/, "chạy lại cùng danh sách không đổi");
+    assert.match(go("--dirs-ok", "s,se", "--dry-run").stdout, /khác bản đã nhập/);
+    const all = go("--dirs-ok", "s,se,e,ne,n", "--force"); assert.equal(all.status, 0, all.stderr);
+    assert.equal(anim().dirsOk, undefined, "đủ 5 hướng: bỏ dirsOk");
+    assert.equal(go("--dirs-ok-only", "--dry-run").status, 0);
   } finally { rmSync(tmp, { recursive: true, force: true }); }
 });
 

@@ -1,6 +1,6 @@
 // H3 (#688): chọn khung hoạt ảnh vẽ thật của hồn thú theo hướng / trạng thái; bố cục manifest; lùi về mặc định khi thiếu.
 import assert from "node:assert/strict";
-import { ANIM_DIRS, ART_MS, DEFAULT_LAYOUT as L, animDir, animFrame, dieFrame, dieMs, lungeKeep, STRIKE_MS, newBeastAnimState, parseLayout, stepBeastAnim } from "../src/beastAnim.ts";
+import { ANIM_DIRS, ART_MS, DEFAULT_LAYOUT as L, animDir, animDirOk, animFrame, dieFrame, dieMs, lungeKeep, STRIKE_MS, newBeastAnimState, parseLayout, stepBeastAnim } from "../src/beastAnim.ts";
 
 // hướng: 5 hướng vẽ, tây lật ngang
 const flips = { s: ["s", false], se: ["se", false], e: ["e", false], ne: ["ne", false], n: ["n", false], sw: ["se", true], w: ["e", true], nw: ["ne", true] };
@@ -81,4 +81,13 @@ assert.ok(lungeKeep(STRIKE_MS / 2) < 0.5 && lungeKeep(STRIKE_MS / 2) > 0);
 // chết: giữ khung cuối
 assert.equal(dieFrame(L, 2, 0), animFrame(L, "die", 2, 0));
 assert.equal(dieFrame(L, 2, dieMs(L) + 5000), animFrame(L, "die", 2, 3));
+// anim.dirsOk (#869): hướng chưa đạt dùng ảnh tĩnh; tây tính theo hướng đông tương ứng; đủ 5 hướng thì bỏ dirsOk; giá trị lạ / trùng bị lọc
+const raw = { dirs: [...ANIM_DIRS], cols: 6, rowsPerDir: 4, anims: M.anims };
+assert.equal(parseLayout(raw).dirsOk, undefined, "không khai = đủ mọi hướng");
+assert.equal(parseLayout({ ...raw, dirsOk: [...ANIM_DIRS] }).dirsOk, undefined, "khai đủ 5 = đủ mọi hướng");
+const P = parseLayout({ ...raw, dirsOk: ["s", "se", "e", "x", "e"] });
+assert.deepEqual(P.dirsOk, ["s", "se", "e"]);
+for (const [f, ok] of Object.entries({ s: true, se: true, e: true, ne: false, n: false, sw: true, w: true, nw: false })) assert.equal(animDirOk(f, P), ok, f);
+assert.equal(animDirOk("n", L), true, "bố cục mặc định: mọi hướng đạt");
+assert.deepEqual(parseLayout({ ...raw, dirsOk: [] }).dirsOk, [], "danh sách rỗng: mọi hướng dùng ảnh tĩnh");
 console.log("beastanim-test: OK");
