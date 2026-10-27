@@ -11,11 +11,11 @@
   "image_sha256": "64cad59a74778d41b61f5bd9dd9bec41da14686c1aabb5ee9ea4aed959844bd0",
   "prompt_sha256": "c1984bbfd398d4b06d36c5a2e0c54160e52d1b9a71fc946a71b663ccfa6e5fba",
   "status": "blocked_not_approved",
-  "real_angles": "kho?ng 3; th?p g?n ??i x?ng",
-  "floor_count_eye": "s=8 r? + m?i ch?p ch?a ch?c; se=8 r? + m?i ch?p ch?a ch?c; e=8 r? + m?i ch?p ch?a ch?c; ne=8 r? + m?i ch?p ch?a ch?c; n=8 r? + m?i ch?p ch?a ch?c",
-  "assessment": "CH?N: ch?a x?c nh?n ?? ch?n t?ng ? c? n?m h??ng; kh?ng ch?n, kh?ng nh?p game.",
+  "real_angles": "khoảng 3; tháp gần đối xứng",
+  "floor_count_eye": "s=8 rõ + mái chóp chưa chắc; se=8 rõ + mái chóp chưa chắc; e=8 rõ + mái chóp chưa chắc; ne=8 rõ + mái chóp chưa chắc; n=8 rõ + mái chóp chưa chắc",
+  "assessment": "CHẶN: chưa xác nhận đủ chín tầng ở cả năm hướng; không chọn, không nhập game.",
   "eye": [
-    "concept-attempt4=h??ng / h?nh ? ne/n c?n l? b?o quang v? chi ti?t m?t t??ng t? m?t tr??c; ch? khai l?i m?t, kh?ng d?ng l?m ?i?u ki?n sinh th?m."
+    "concept-attempt4=hướng / hình — ne/n còn lộ bảo quang và chi tiết mặt tương tự mặt trước; chỉ khai lỗi mắt, không dùng làm điều kiện sinh thêm."
   ],
   "raw_check": {
     "exit_code": 0,

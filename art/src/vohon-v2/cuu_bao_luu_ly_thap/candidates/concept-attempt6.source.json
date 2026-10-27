@@ -11,11 +11,11 @@
   "image_sha256": "2171615441fa252ca837aa1babe367799e358cdfb0656158f60c187d57f881ae",
   "prompt_sha256": "c1984bbfd398d4b06d36c5a2e0c54160e52d1b9a71fc946a71b663ccfa6e5fba",
   "status": "blocked_not_approved",
-  "real_angles": "kho?ng 3; th?p g?n ??i x?ng",
-  "floor_count_eye": "s?6; se?6; e?6; ne?6; n?6 (th?n d??i d?i kh?ng chia t?ng r?)",
-  "assessment": "CH?N: ch?a x?c nh?n ?? ch?n t?ng ? c? n?m h??ng; kh?ng ch?n, kh?ng nh?p game.",
+  "real_angles": "khoảng 3; tháp gần đối xứng",
+  "floor_count_eye": "s≈6; se≈6; e≈6; ne≈6; n≈6 (thân dưới dài không chia tầng rõ)",
+  "assessment": "CHẶN: chưa xác nhận đủ chín tầng ở cả năm hướng; không chọn, không nhập game.",
   "eye": [
-    "concept-attempt6=h??ng / h?nh ? ne/n c?n l? b?o quang v? chi ti?t m?t t??ng t? m?t tr??c; ch? khai l?i m?t, kh?ng d?ng l?m ?i?u ki?n sinh th?m."
+    "concept-attempt6=hướng / hình — ne/n còn lộ bảo quang và chi tiết mặt tương tự mặt trước; chỉ khai lỗi mắt, không dùng làm điều kiện sinh thêm."
   ],
   "raw_check": {
     "exit_code": 0,

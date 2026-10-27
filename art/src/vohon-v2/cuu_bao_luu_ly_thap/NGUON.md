@@ -46,27 +46,26 @@ raw concept-attempt3.png pháp tướng (cuu_bao_luu_ly_thap): NHẸ
 Prompt trong repo chuẩn hóa xuống dòng LF đúng byte Git; SHA trước chuẩn hóa CRLF giữ trong source JSON. Nội dung prompt tự sinh không sửa.
 
 
-## ??t v? l?i #1161 ? attempt4?6
+## Đợt vẽ lại #1161 — attempt4–6
 
-?? d?ng ?? **3/3 l??t M?I**, t?ng c?ng 6 l??t l?ch s?. **Kh?ng ch?n l??t n?o: CH?N thi?u ch?n t?ng ? t?ng h??ng.** Gi? nguy?n attempt1?3. Kh?ng nh?p game. Ng?y 2026-10-27.
+Đã dùng đủ **3/3 lượt MỚI**, tổng cộng 6 lượt lịch sử. **Không chọn lượt nào: CHẶN thiếu chín tầng ở từng hướng.** Giữ nguyên attempt1–3. Không nhập game. Ngày 2026-10-27.
 
-Prompt nguy?n b?n t? `node tools/assets/vohon-prompt.mjs --type phaptuong --id cuu_bao_luu_ly_thap --out <th? m?c ngo?i repo>`; kh?ng th?m addendum, kh?ng s?a c?ng c?; kh?ng ?nh d?n, kh?ng d?ng l??t h?ng l?m tham chi?u. Generator hi?n kh?ng n?p lessons cho lo?i phaptuong, n?n kh?ng th?m d?ng lessons v? hi?u. Model/seed unknown; c?ng c? builtin `image_gen.imagegen`; RAW nguy?n byte.
+Prompt nguyên bản từ `node tools/assets/vohon-prompt.mjs --type phaptuong --id cuu_bao_luu_ly_thap --out <thư mục ngoài repo>`; không thêm addendum, không sửa công cụ; không ảnh dẫn, không dùng lượt hỏng làm tham chiếu. Generator hiện không nạp lessons cho loại phaptuong, nên không thêm dòng lessons vô hiệu. Model/seed unknown; công cụ builtin `image_gen.imagegen`; RAW nguyên byte.
 
-??m b?ng m?t c?c th?n t?ng d??i m?i, t? d??i l?n; kh?ng t?nh ch?p, b?, ph?p lu?n l? t?ng. Kho?ng 3 g?c th?t cho th?p g?n ??i x?ng.
+Đếm bằng mắt các thân tầng dưới mái, từ dưới lên; không tính chóp, bệ, pháp luân là tầng. Khoảng 3 góc thật cho tháp gần đối xứng.
 
-- L??t 4: `candidates/concept-attempt4.png`; s=8 r? + m?i ch?p ch?a ch?c; se=8 r? + m?i ch?p ch?a ch?c; e=8 r? + m?i ch?p ch?a ch?c; ne=8 r? + m?i ch?p ch?a ch?c; n=8 r? + m?i ch?p ch?a ch?c. SHA256 ?nh `64cad59a74778d41b61f5bd9dd9bec41da14686c1aabb5ee9ea4aed959844bd0`; prompt `c1984bbfd398d4b06d36c5a2e0c54160e52d1b9a71fc946a71b663ccfa6e5fba`. CH?N thi?u t?ng.
-  Khai `--eye "concept-attempt4=h??ng / h?nh ? ne/n c?n l? b?o quang v? chi ti?t m?t t??ng t? m?t tr??c; ch? khai l?i m?t, kh?ng d?ng l?m ?i?u ki?n sinh th?m."` (c?ng c? ch?a h? tr? c?; l?u khai b?o, kh?ng thay k?t qu? m?y).
+- Lượt 4: `candidates/concept-attempt4.png`; s=8 rõ + mái chóp chưa chắc; se=8 rõ + mái chóp chưa chắc; e=8 rõ + mái chóp chưa chắc; ne=8 rõ + mái chóp chưa chắc; n=8 rõ + mái chóp chưa chắc. SHA256 ảnh `64cad59a74778d41b61f5bd9dd9bec41da14686c1aabb5ee9ea4aed959844bd0`; prompt `c1984bbfd398d4b06d36c5a2e0c54160e52d1b9a71fc946a71b663ccfa6e5fba`. CHẶN thiếu tầng.
+  Khai `--eye "concept-attempt4=hướng / hình — ne/n còn lộ bảo quang và chi tiết mặt tương tự mặt trước; chỉ khai lỗi mắt, không dùng làm điều kiện sinh thêm."` (công cụ chưa hỗ trợ cờ; lưu khai báo, không thay kết quả máy).
 
-- L??t 5: `candidates/concept-attempt5.png`; s?8; se?8; e?8; ne?8; n?8 (v?ng che th?n t?ng th?p). SHA256 ?nh `c1a1e5cccd574298c09e5715a39ea3ca105dc9c2427c79f91ed1be7760fc6c04`; prompt `c1984bbfd398d4b06d36c5a2e0c54160e52d1b9a71fc946a71b663ccfa6e5fba`. CH?N thi?u t?ng.
-  Khai `--eye "concept-attempt5=h??ng / h?nh ? ne/n c?n l? b?o quang v? chi ti?t m?t t??ng t? m?t tr??c; ch? khai l?i m?t, kh?ng d?ng l?m ?i?u ki?n sinh th?m."` (c?ng c? ch?a h? tr? c?; l?u khai b?o, kh?ng thay k?t qu? m?y).
+- Lượt 5: `candidates/concept-attempt5.png`; s≈8; se≈8; e≈8; ne≈8; n≈8 (vòng che thân tầng thấp). SHA256 ảnh `c1a1e5cccd574298c09e5715a39ea3ca105dc9c2427c79f91ed1be7760fc6c04`; prompt `c1984bbfd398d4b06d36c5a2e0c54160e52d1b9a71fc946a71b663ccfa6e5fba`. CHẶN thiếu tầng.
+  Khai `--eye "concept-attempt5=hướng / hình — ne/n còn lộ bảo quang và chi tiết mặt tương tự mặt trước; chỉ khai lỗi mắt, không dùng làm điều kiện sinh thêm."` (công cụ chưa hỗ trợ cờ; lưu khai báo, không thay kết quả máy).
 
-- L??t 6: `candidates/concept-attempt6.png`; s?6; se?6; e?6; ne?6; n?6 (th?n d??i d?i kh?ng chia t?ng r?). SHA256 ?nh `2171615441fa252ca837aa1babe367799e358cdfb0656158f60c187d57f881ae`; prompt `c1984bbfd398d4b06d36c5a2e0c54160e52d1b9a71fc946a71b663ccfa6e5fba`. CH?N thi?u t?ng.
-  Khai `--eye "concept-attempt6=h??ng / h?nh ? ne/n c?n l? b?o quang v? chi ti?t m?t t??ng t? m?t tr??c; ch? khai l?i m?t, kh?ng d?ng l?m ?i?u ki?n sinh th?m."` (c?ng c? ch?a h? tr? c?; l?u khai b?o, kh?ng thay k?t qu? m?y).
+- Lượt 6: `candidates/concept-attempt6.png`; s≈6; se≈6; e≈6; ne≈6; n≈6 (thân dưới dài không chia tầng rõ). SHA256 ảnh `2171615441fa252ca837aa1babe367799e358cdfb0656158f60c187d57f881ae`; prompt `c1984bbfd398d4b06d36c5a2e0c54160e52d1b9a71fc946a71b663ccfa6e5fba`. CHẶN thiếu tầng.
+  Khai `--eye "concept-attempt6=hướng / hình — ne/n còn lộ bảo quang và chi tiết mặt tương tự mặt trước; chỉ khai lỗi mắt, không dùng làm điều kiện sinh thêm."` (công cụ chưa hỗ trợ cờ; lưu khai báo, không thay kết quả máy).
 
-L??t 4 g?n y?u c?u nh?t nh?ng m?i s?t ch?p kh?ng c? th?n t?ng ??c ch?c, kh?ng c?ng nh?n ch?n t?ng. L??t 5 v?ng d?y che t?ng; l??t 6 b? ?? qu? l?n v? s? t?ng gi?m. D?ng sau ba l??t theo giao vi?c; c?n ??t m?i ???c giao ri?ng n?u ti?p t?c.
+Lượt 4 gần yêu cầu nhất nhưng mái sát chóp không có thân tầng đọc chắc, không công nhận chín tầng. Lượt 5 vòng dày che tầng; lượt 6 bệ đá quá lớn và số tầng giảm. Dừng sau ba lượt theo giao việc; cần đợt mới được giao riêng nếu tiếp tục.
 
-
-### Ki?m RAW ??t #1161
+### Kiểm RAW đợt #1161
 
 ```text
 raw concept-attempt4.png pháp tướng (cuu_bao_luu_ly_thap): NHẸ
