@@ -21,6 +21,7 @@
     "test:clickgoal": "tsx scripts/clickgoal-test.ts",
     "test:looks-migrate": "tsx scripts/looks-migrate-test.ts",
     "test:gm": "tsx scripts/gm-test.ts",
+    "test:rank": "tsx scripts/rank-test.ts",
     "test:seed": "tsx scripts/seed-test.ts",
     "seed:test": "tsx scripts/seed-test-account.ts",
     "econ:equip": "tsx scripts/equip-econ.ts",

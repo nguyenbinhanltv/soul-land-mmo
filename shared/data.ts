@@ -5149,6 +5149,42 @@ export const RESONANCE_RANK_CD = 2;
 export const RESONANCE_RANK_CACHE = 30;
 /** Giây giữ bảng xếp hạng đấu trường / tông môn đã tính (dùng chung trong tiến trình, #738); ghi Elo / điểm tông trong tiến trình thì xoá ngay, nên chỉ ghi từ tiến trình khác mới trễ tới ngần này. */
 export const RANK_BOARD_CACHE = 8;
+
+// ---------- Bảng Xếp Hạng nhiều hạng mục (docs/design/xep-hang.md, mục 5.19) ----------
+/** Hạng mục có điểm lưu ở bảng `rank_scores` (server ghi ở mốc ổn định). Mã cố định; thêm ở cuối. `period` 0 = mọi thời. */
+export const RANK_BOARDS = [
+  { code: "cap", group: "Người chơi", name: "Cấp", period: 0 },
+  { code: "suu_tam", group: "Người chơi", name: "Sưu tầm", period: 0 },
+] as const;
+export type RankBoardCode = (typeof RANK_BOARDS)[number]["code"];
+export const rankBoardOf = (code: unknown) => RANK_BOARDS.find((b) => b.code === code);
+/** Trang bảng xếp hạng (tin `rank {op:"top"}`): cùng cỡ và nhịp với bảng cộng minh. */
+export const RANK_PAGE_SIZE = RESONANCE_RANK_PAGE_SIZE;
+export const RANK_PAGE_MAX = RESONANCE_RANK_PAGE_MAX;
+export const RANK_CD = RESONANCE_RANK_CD;
+/** Giây tối thiểu giữa hai lần server ghi điểm `rank_scores` của một người (lần ghi cuối khi rời phòng không chờ nhịp này). */
+export const RANK_SYNC_CD = 20;
+/** Một ô đội hình công khai ở bảng xếp hạng (mục "Luật chung": chỉ mã võ hồn, cấp, sao). */
+export interface RankLineupSlot { vohon: string; level: number; stars: number }
+/** Một dòng `rank_scores` do server suy ra từ võ hồn đã lưu: điểm chính, chỉ tiêu phụ, đội hình hiển thị (chỉ Cấp / Sưu tầm). */
+export interface RankScoreRow { board: RankBoardCode; score: number; tie: number; lineup: RankLineupSlot[] }
+/**
+ * Điểm các hạng mục Cấp / Sưu tầm của một tài khoản (hàm thuần, server tính; không nhận gì từ client).
+ * Cấp: cấp võ hồn cao nhất, phụ = kinh nghiệm của võ hồn đó (cấp bằng nhau thì lấy kinh nghiệm cao nhất). Sưu tầm: số võ hồn sở hữu, phụ = tổng sao.
+ * Chưa có võ hồn nào thì không có dòng (chưa có điểm thì không xếp). `team`: mã hàng võ hồn theo ô đội hình (0 = trống / mã lạ bị bỏ).
+ */
+export function rankScores(owned: readonly { rowId: number; vohon: string; level: number; xp: number; stars: number }[], team: readonly number[]): RankScoreRow[] {
+  if (!owned.length) return [];
+  const lineup = team.flatMap((r) => { const v = owned.find((o) => o.rowId === r); return v ? [{ vohon: v.vohon, level: v.level, stars: v.stars }] : []; }).slice(0, TEAM_SIZE);
+  const top = owned.reduce((a, v) => (v.level > a.level || (v.level === a.level && v.xp > a.xp) ? v : a));
+  return [
+    { board: "cap", score: top.level, tie: Math.max(0, Math.floor(top.xp)), lineup },
+    { board: "suu_tam", score: owned.length, tie: owned.reduce((s, v) => s + Math.max(0, Math.floor(v.stars)), 0), lineup },
+  ];
+}
+/** Thứ tự xếp: điểm giảm dần, chỉ tiêu phụ giảm dần, ai đạt mốc điểm trước (`at` nhỏ hơn), rồi mã tài khoản. Cùng thứ tự chỉ mục `rank_scores_order`. */
+export const rankCompare = (a: { score: number; tie: number; at: number; accountId: number }, b: { score: number; tie: number; at: number; accountId: number }) =>
+  b.score - a.score || b.tie - a.tie || a.at - b.at || a.accountId - b.accountId;
 /**
  * 5 trụ cột cộng minh (mục 5.10). Thứ tự là thứ tự mảng tiến độ / mốc (`resonanceProgress`, `resonanceLevels`, tin "resonance");
  * mã `id` cố định. Mốc lấy đúng bảng ví dụ 5.10; **giá trị cộng đã chốt**:

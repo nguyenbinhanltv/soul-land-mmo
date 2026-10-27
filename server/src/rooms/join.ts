@@ -10,6 +10,7 @@ import { PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS, presenceBackend, accountLeaseKe
 import { worldMark } from "../ratelimit.ts";
 import { friends } from "../friends.ts";
 import * as party from "../party.ts";
+import { rankSync } from "./rank.ts";
 import { gearLook, gearStats, itemStacks } from "./items.ts";
 import { MAPS, CHANNEL_CD, TEAM_COMBAT_SECS, encodeLpc, bagSlotsOf, STARTER_ITEMS, SHARD_BUY, BOSS_CLAIM_KING, BOSS_CLAIM_WORLD, AUTO_MSG_RATE, parseAuto, parseSell,
   QUESTS, QUEST_STARTER, questStart, TONG_MON, tongDef, resonanceBonus } from "../../../shared/data.ts";
@@ -121,7 +122,7 @@ export function onJoin(room: MapRoom, client: Client, _o: unknown, auth: AuthDat
     vit: null, vitAt: 0, coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
     quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
     chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...room.dailyOf(bag.quests), ...room.tongTasksOf(bag.quests), tongBoardAt: 0, tongPend: [],
-    res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, arenaWatchAt: 0, resonanceTopAt: 0, arenaGone: false,
+    res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, arenaWatchAt: 0, resonanceTopAt: 0, rankTopAt: 0, rankSig: "", rankAt: 0, arenaGone: false,
     auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: room.today(), autoUsed: auth.auto.day === room.today() ? auth.auto.used : 0,
     autoBonus: auth.auto.bonus, autoDirty: false, autoTok: AUTO_MSG_RATE.burst, autoTokAt: Date.now(), autoSetPend: null, autoRealRate: false, autoPace: [0, 0], autoHintC: null, offMsg: null, offAsk: false,
     tong: tongDef(auth.tong.tong)?.id ?? null, tongAt: auth.tong.at };
@@ -148,6 +149,7 @@ export function onJoin(room: MapRoom, client: Client, _o: unknown, auth: AuthDat
   // `Live` của tổ đội đã ghi chỗ mới, vì bảng bạn bè đọc vị trí ở đó).
   friends.enter(auth.accountId, client.sessionId, p.name, auth.social);
   room.friendAfter(online, auth.accountId);
+  void room.chain(d, () => rankSync(room, client.sessionId, d, true)); // Bảng Xếp Hạng: người mới / chưa có điểm lên bảng ngay, không chờ lần lưu đầu
 }
 
 export async function onLeave(room: MapRoom, client: Client) {

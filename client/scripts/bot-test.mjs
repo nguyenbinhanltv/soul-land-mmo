@@ -103,6 +103,7 @@ import { tongTest } from "./bot/tong.mjs";
 import { questTest } from "./bot/quest.mjs";
 import { dailyTest } from "./bot/daily.mjs";
 import { resonanceTest } from "./bot/resonance.mjs";
+import { rankTest } from "./bot/rank.mjs";
 import { calendarTest } from "./bot/calendar.mjs";
 import { eggTest } from "./bot/egg.mjs";
 import { fusionTest } from "./bot/fusion.mjs";
@@ -171,6 +172,7 @@ const STANDALONE=[
   ["chuong2",6,chapter2Test],                // 106 #189, #256 chương 2 Sử Lai Khắc Thất Quái
   ["daily",6,dailyTest],                      //  18 khảo hạch hằng ngày
   ["resonance",6,resonanceTest],              //  20 8.2
+  ["rank",6,rankTest],                        //  ~25 X2 Bảng Xếp Hạng: Cấp / Sưu tầm (hạng, mốc ghi, đội hình công khai; chưa đo)
   ["issue121",6,issue121Test],                //  55 #121 hồn hoàn đang hấp thụ, hòa / hết lượt thưởng, ngắt kết nối sau ghép
   ["chat",5,chatTest,true],                   //  ~8 #188 chat tổ đội / riêng / thế giới (đo ở máy)
   ["auto",4,autoTest],                        // 145–190 Auto 1
@@ -232,6 +234,7 @@ function finish(){
 // BOT_ONLY=daily: chỉ chạy phần khảo hạch hằng ngày (thử nhanh khi sửa phần đó; lần chạy đầy đủ vẫn gồm phần này).
 // Liên kích Hạo Thiên 4 món (#249, comboTest; BOT_ONLY=combo, không chạy trong bot đầy đủ): lặp bài "liên kích ở đòn thứ 3" của
 // nhóm 1 nhiều lượt trên một bot riêng để thử chập chờn.
+if(process.env.BOT_ONLY==="rank"){ await rankTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="google"){ await googleTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="looks3"){ await looks3Test(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="looks2"){ await looks2Test(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }

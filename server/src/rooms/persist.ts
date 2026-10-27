@@ -7,6 +7,7 @@ import { MAPS } from "../../../shared/data.ts";
 import { ItemLockBusy, withItemLocks } from "../itemLock.ts";
 import { presenceBackend } from "../presence.ts";
 import { saveStats, type MapRoom, type PData } from "./MapRoom.ts";
+import { rankSync } from "./rank.ts";
 
 /** Lần ghi cuối chờ khóa món tối đa FINAL_LOCK_TRIES × FINAL_LOCK_WAIT_MS (#559). */
 const FINAL_LOCK_TRIES = 10, FINAL_LOCK_WAIT_MS = 300;
@@ -52,11 +53,11 @@ function progressSig(room: MapRoom, id: string, d: PData) {
  */
 export function savePeriodic(room: MapRoom, id: string) {
   const d = room.pdata.get(id); if (!d) return Promise.resolve();
-  return room.chain(d, () => {
+  return room.chain(d, async () => {
     if (!room.state.players.get(id)) return;
     const clean = !d.bagDirty && !d.dirty.size && !d.tongPend.length && !d.autoDirty && !d.fogDirty && !d.lockIds.size;
-    if (clean && d.saveSig === progressSig(room, id, d)) return;
-    return room.write(id);
+    if (clean && d.saveSig === progressSig(room, id, d)) return rankSync(room, id, d); // không ghi gì: vẫn xét điểm xếp hạng (đội hình đổi, nhịp RANK_SYNC_CD)
+    await room.write(id);
   });
 }
 
@@ -109,6 +110,7 @@ export async function writeNow(room: MapRoom, id: string, final = false): Promis
     try { await store.saveTravel(d.accountId, list, room.state.mapId, out.to, out.ax, out.ay, bag); }
     catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; throw e; }
     d.tongPend.splice(0, bag?.tongPts?.length ?? 0);
+    await rankSync(room, id, d, true);
     return true;
   }
   // Vị trí, võ hồn và túi trong một transaction có lớp chặn WHERE map_id (#165): DB đã ở bản đồ khác thì không ghi gì, kể cả túi.
@@ -123,7 +125,7 @@ export async function writeNow(room: MapRoom, id: string, final = false): Promis
     saved = await pr;
   }
   catch (e) { for (const v of list) if (v.rowId !== d.ch.rowId) d.dirty.add(v.rowId); if (bag) d.bagDirty = true; throw e; }
-  if (saved) { d.saveSig = sig; d.tongPend.splice(0, bag?.tongPts?.length ?? 0); return true; }
+  if (saved) { d.saveSig = sig; d.tongPend.splice(0, bag?.tongPts?.length ?? 0); await rankSync(room, id, d, final); return true; } // điểm xếp hạng chụp sau lần ghi thành công (rank.ts)
   // Lưới an toàn: beginTravel đã đọc lại DB khi đi cổng báo lỗi nên đường thường không tới đây. Nếu tới thì ngắt client để vào lại đúng
   // bản đồ trong DB (/api/me), thay vì ở lại phòng mà mọi lần lưu sau đều bị bỏ.
   console.error(`Bỏ lần lưu tài khoản #${d.accountId}: DB không còn ở bản đồ ${room.state.mapId}; ngắt kết nối để vào lại.`);

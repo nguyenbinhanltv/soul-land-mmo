@@ -8,8 +8,8 @@ import { nameKey, isReservedName } from "./names.ts";
 import { mapFile } from "./map.ts";
 import { DEFAULT_LOOKS, parseLooks, encodeLpc, decodeLpc, presetToLpc, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, isTongTask, type TongRank, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
   BONE_ITEM, CORE_ITEM, EQUIP_ITEM, EQUIP_SLOTS, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
-  RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE, RANK_BOARD_CACHE,
-  type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
+  RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE, RANK_BOARD_CACHE, RANK_PAGE_MAX, rankCompare, tongDef,
+  type RankLineupSlot, type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
@@ -128,7 +128,7 @@ const seedItems = (items: SeedItem[], rowOf: (code: string) => number): Item[] =
   return items.map(({ vohon, ...i }, k): Item => ({ ...copyItem({ ...i, id: "", created: 0, vohonId: null }), id: randomUUID(), created: t0 + k, vohonId: vohon === undefined ? null : rowOf(vohon) }));
 };
 /** Các bảng xoá khi `removeTestAccount` (theo thứ tự xoá; kết quả trả số dòng mỗi bảng). */
-const REMOVE_TABLES = ["items", "teams", "vohons", "quests", "waypoints", "boss_claims", "auto_hunt", "auto_offline", "tong_points", "arena_ratings", "arena_pairs", "arena_elo_day",
+const REMOVE_TABLES = ["items", "teams", "vohons", "quests", "waypoints", "boss_claims", "auto_hunt", "auto_offline", "tong_points", "arena_ratings", "arena_pairs", "arena_elo_day", "rank_scores",
   "friends", "blocks", "map_fog", "sessions", "characters", "inventory", "accounts"] as const;
 const copyItem = (i: Item): Item => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) });
 const copyQuest = (q: QuestProgress): QuestProgress => ({ ...q, prog: [...q.prog] });
@@ -333,6 +333,15 @@ export interface Store {
   arenaTop(n: number, accountId: number): Promise<{ list: (ArenaRecord & { accountId: number; name: string })[]; me: (ArenaRecord & { rank: number }) | null }>;
   /** Bảng xếp hạng cộng minh, tính lại từ võ hồn và đồ đang gắn; không có bảng tóm tắt riêng. */
   resonanceTop(page: number, pageSize: number, accountId: number): Promise<ResonanceTopResult>;
+  /**
+   * Bảng Xếp Hạng (docs/design/xep-hang.md, bảng `rank_scores`): ghi điểm các hạng mục `rows` của `accountId` (chỉ gọi trong chuỗi lưu của người chơi;
+   * điểm do server suy ra). Dòng chưa có thì thêm; có rồi thì chỉ ghi khi `score` / `tie` / `extra` đổi, và `updated_at` ("đạt mốc trước") chỉ đổi khi `score` đổi.
+   */
+  rankPut(accountId: number, rows: RankPutRow[]): Promise<void>;
+  /** Một trang bảng xếp hạng `board` / `period` (điểm giảm dần, phụ, đạt trước, mã; ẩn tài khoản `is_test`); `page` 1-based, `pageSize` kẹp ở RANK_PAGE_MAX. Dùng chung cache `RANK_BOARD_CACHE` giây. */
+  rankTop(board: string, period: number, page: number, pageSize: number): Promise<RankTopResult>;
+  /** Hạng và điểm của `accountId` ở bảng `board` / `period`, tính riêng (không qua cache); null = chưa có điểm hoặc bị ẩn (`is_test`). */
+  rankMe(board: string, period: number, accountId: number): Promise<RankMe | null>;
   /** Số trận có kết quả giữa hai tài khoản `a`, `b` (thứ tự bất kỳ) trong ngày `day` (giờ Việt Nam; bảng `arena_pairs`, 9.7). */
   arenaPairCount(day: string, a: number, b: number): Promise<number>;
   /**
@@ -402,6 +411,21 @@ function arenaOk(r: ArenaRecord) {
 const pairKey = (day: string, a: number, b: number) => `${day}|${Math.min(a, b)}|${Math.max(a, b)}`;
 const arenaRow = (x: any): ArenaRecord => ({ elo: Number(x.elo), wins: Number(x.wins), losses: Number(x.losses), draws: Number(x.draws) });
 
+/** Một dòng điểm ghi vào `rank_scores` (`extra`: đội hình hiển thị, chỉ Cấp / Sưu tầm). */
+export interface RankPutRow { board: string; period: number; score: number; tie: number; extra: RankLineupSlot[] | null }
+/** Dòng công khai của bảng: không có Hồn Tệ, túi, bản đồ, kênh, vị trí. `tong`: mã tông môn (null = không). */
+export interface RankTopRow { rank: number; accountId: number; name: string; score: number; tie: number; tong: string | null; lineup: RankLineupSlot[] }
+export interface RankTopResult { page: number; pageSize: number; total: number; hasNext: boolean; rows: RankTopRow[]; asOf: number }
+/** Hạng của mình; `at`: ms lúc điểm đạt mức hiện tại (`rank_scores.updated_at`). */
+export interface RankMe { rank: number; score: number; tie: number; at: number }
+const rankLineup = (x: unknown): RankLineupSlot[] => (Array.isArray(x) ? x : []).filter((s): s is RankLineupSlot => !!s && typeof s.vohon === "string" && Number.isFinite(s.level) && Number.isFinite(s.stars))
+  .map((s) => ({ vohon: s.vohon, level: s.level, stars: s.stars }));
+/** Số trang đầu của mỗi bảng được giữ trong cache `rank|…` (giới hạn số khoá cache). */
+const RANK_CACHE_PAGES = 50;
+const rankPageOf = (page: number, pageSize: number) => {
+  const size = Math.max(1, Math.min(RANK_PAGE_MAX, Math.floor(pageSize) || 1)), p = Math.max(1, Math.floor(page) || 1);
+  return { p, size, off: (p - 1) * size };
+};
 export interface ResonanceTopEntry extends ResonanceRankRow { name: string; }
 export interface ResonanceTopResult {
   page: number; pageSize: number; total: number; hasNext: boolean;
@@ -416,14 +440,17 @@ function resonanceEntry(accountId: number, name: string, vohons: { level: number
 // Bảng xếp hạng đấu trường / tông môn (#738): kết quả dùng chung trong tiến trình, hết hạn sau RANK_BOARD_CACHE giây; yêu cầu đến lúc đang
 // tính dùng chung một Promise. Mọi lần ghi điểm / Elo trong tiến trình gọi rankBoardClear() nên chỉ bảng do tiến trình khác ghi mới trễ.
 const rankBoards = new Map<string, { at: number; v: unknown }>(), rankBusy = new Map<string, Promise<unknown>>();
-let rankGen = 0;
-export const rankBoardClear = () => { rankGen++; rankBoards.clear(); rankBusy.clear(); };
+let rankGen = 0, rankScoresGen = 0; // bộ đếm riêng cho khoá "rank|" (rank_scores): ghi điểm không làm huỷ kết quả đang tính của bảng đấu trường / tông, và ngược lại
+const rankGenOf = (key: string) => (key.startsWith("rank|") ? rankScoresGen : rankGen);
+export const rankBoardClear = () => { rankGen++; rankScoresGen++; rankBoards.clear(); rankBusy.clear(); };
+/** Xoá riêng cache các trang `rank_scores` (khoá bắt đầu bằng "rank|"): điểm đổi thì bảng đọc được ngay, bảng đấu trường / tông không bị xoá oan. */
+const rankScoresClear = () => { rankScoresGen++; for (const k of [...rankBoards.keys()]) if (k.startsWith("rank|")) rankBoards.delete(k); for (const k of [...rankBusy.keys()]) if (k.startsWith("rank|")) rankBusy.delete(k); };
 function rankBoard<T>(key: string, compute: () => Promise<T>): Promise<T> {
   const hit = rankBoards.get(key);
   if (hit && Date.now() - hit.at < RANK_BOARD_CACHE * 1000) return Promise.resolve(hit.v as T);
   const busy = rankBusy.get(key); if (busy) return busy as Promise<T>;
-  const gen = rankGen;
-  const p = compute().then((v) => { if (gen === rankGen) rankBoards.set(key, { at: Date.now(), v }); return v; }).finally(() => { if (rankBusy.get(key) === p) rankBusy.delete(key); });
+  const gen = rankGenOf(key);
+  const p = compute().then((v) => { if (gen === rankGenOf(key)) rankBoards.set(key, { at: Date.now(), v }); return v; }).finally(() => { if (rankBusy.get(key) === p) rankBusy.delete(key); });
   rankBusy.set(key, p);
   return p;
 }
@@ -468,6 +495,8 @@ export class MemoryStore implements Store {
   blocks = new Map<number, Set<number>>(); // accountId -> tài khoản đã chặn, theo thứ tự chặn (bảng blocks, #195)
   tests = new Set<number>(); // accountId có cờ is_test (028_is_test.sql, #517)
   arenaT = 0;
+  rankRows = new Map<string, { score: number; tie: number; extra: RankLineupSlot[] | null; t: number }>(); // "board|period|accountId" -> điểm (bảng rank_scores); t = thứ tự đạt mốc
+  rankT = 0;
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
   async close() {}
@@ -795,6 +824,32 @@ export class MemoryStore implements Store {
     }).filter((x): x is ResonanceTopEntry => !!x));
     return resonancePage(all, page, pageSize, accountId);
   }
+  async rankPut(accountId: number, rows: RankPutRow[]) {
+    let changed = false;
+    for (const r of rows) {
+      const k = `${r.board}|${r.period}|${accountId}`, cur = this.rankRows.get(k), extra = r.extra ? rankLineup(r.extra) : null;
+      if (cur && cur.score === r.score && cur.tie === r.tie && JSON.stringify(cur.extra) === JSON.stringify(extra)) continue;
+      this.rankRows.set(k, { score: r.score, tie: r.tie, extra, t: cur && cur.score === r.score ? cur.t : ++this.rankT });
+      if (!cur || cur.score !== r.score) changed = true; // đổi tie / extra: chấp nhận trễ tối đa RANK_BOARD_CACHE giây
+    }
+    if (changed) rankScoresClear();
+  }
+  /** Bảng đã sắp (cùng thứ tự chỉ mục rank_scores_order), bỏ tài khoản is_test. */
+  private rankSorted(board: string, period: number) {
+    return [...this.rankRows].flatMap(([k, r]) => {
+      const [b, p, id] = k.split("|"); return b === board && Number(p) === period && !this.tests.has(Number(id)) ? [{ accountId: Number(id), score: r.score, tie: r.tie, at: r.t, extra: r.extra }] : [];
+    }).sort(rankCompare);
+  }
+  async rankTop(board: string, period: number, page: number, pageSize: number) {
+    const { p, size, off } = rankPageOf(page, pageSize), all = this.rankSorted(board, period);
+    const rows = all.slice(off, off + size).map((x, i): RankTopRow => ({ rank: off + i + 1, accountId: x.accountId, name: this.names.get(x.accountId) ?? "?", score: x.score, tie: x.tie,
+      tong: tongDef(this.tongs.get(x.accountId)?.tong)?.id ?? null, lineup: x.extra ?? [] }));
+    return { page: p, pageSize: size, total: all.length, hasNext: off + size < all.length, rows, asOf: Date.now() };
+  }
+  async rankMe(board: string, period: number, accountId: number) {
+    const all = this.rankSorted(board, period), at = all.findIndex((x) => x.accountId === accountId);
+    return at < 0 ? null : { rank: at + 1, score: all[at].score, tie: all[at].tie, at: all[at].at };
+  }
   async arenaPairCount(day: string, a: number, b: number) { return this.pairs.get(pairKey(day, a, b)) ?? 0; }
   async arenaPairAdd(day: string, a: number, b: number) {
     if (a === b || !this.names.has(a) || !this.names.has(b)) throw new Error(`Cặp tài khoản #${a}, #${b} không hợp lệ.`);
@@ -850,18 +905,19 @@ export class MemoryStore implements Store {
     const id = acc.id, n = Object.fromEntries(REMOVE_TABLES.map((t) => [t, 0])) as Record<string, number>;
     const owned = this.owned(id), tokens = [...this.sessions].filter(([, s]) => s.accountId === id).map(([t]) => t);
     const pairs = [...this.pairs.keys()].filter((k) => { const [, a, b] = k.split("|"); return Number(a) === id || Number(b) === id; });
-    const eloDays = [...this.eloDay.keys()].filter((k) => k.startsWith(`${id}|`));
+    const eloDays = [...this.eloDay.keys()].filter((k) => k.startsWith(`${id}|`)), rankKeys = [...this.rankRows.keys()].filter((k) => k.endsWith(`|${id}`));
     const tp = [...this.tongPts].filter(([, x]) => x.accountId === id).map(([k]) => k), cl = [...this.claims.keys()].filter((k) => k.startsWith(`${id}|`));
     const rel = (m: Map<number, Set<number>>) => (m.get(id)?.size ?? 0) + [...m].filter(([a, set]) => a !== id && set.has(id)).length;
     Object.assign(n, { items: this.bags.get(id)?.items.length ?? 0, teams: this.teams.get(id)?.filter(Boolean).length ?? 0, vohons: owned.length,
       quests: this.quests.get(id)?.length ?? 0, waypoints: this.wps.get(id)?.size ?? 0, map_fog: this.fogs.get(id)?.size ?? 0, boss_claims: cl.length, auto_hunt: this.autos.has(id) ? 1 : 0,
-      auto_offline: this.offline.has(id) ? 1 : 0, tong_points: tp.length, arena_ratings: this.arena.has(id) ? 1 : 0, arena_pairs: pairs.length, arena_elo_day: eloDays.length,
+      auto_offline: this.offline.has(id) ? 1 : 0, tong_points: tp.length, arena_ratings: this.arena.has(id) ? 1 : 0, arena_pairs: pairs.length, arena_elo_day: eloDays.length, rank_scores: rankKeys.length,
       friends: rel(this.friends), blocks: rel(this.blocks), sessions: tokens.length, accounts: 1 });
     for (const c of owned) this.rows.delete(c.rowId);
     for (const k of tp) this.tongPts.delete(k);
     for (const k of cl) this.claims.delete(k);
     for (const k of pairs) this.pairs.delete(k);
     for (const k of eloDays) this.eloDay.delete(k);
+    for (const k of rankKeys) this.rankRows.delete(k);
     for (const t of tokens) this.sessions.delete(t);
     for (const [k, a] of this.identities) if (a === id) this.identities.delete(k);
     for (const m of [this.active, this.teams, this.bags, this.quests, this.wps, this.autos, this.offline, this.tongs, this.arena, this.locs, this.looks, this.looksChanges, this.friends, this.blocks, this.names, this.fogs])
@@ -1610,6 +1666,56 @@ export class PgStore implements Store {
         worn.filter((i) => i.code === BONE_ITEM).map((i) => ({ enhance: i.enhance })),
         worn.filter((i) => i.code === CORE_ITEM).map((i) => ({ stars: i.stars ?? 1 })));
     }).filter((x): x is ResonanceTopEntry => !!x);
+  }
+  async rankPut(accountId: number, rows: RankPutRow[]) {
+    if (!rows.length) return;
+    const db = await this.pool.connect();
+    let changed = false;
+    try {
+      await db.query("BEGIN");
+      for (const r of rows) {
+        // Không tạo phiên bản dòng vô ích; `updated_at` chỉ đổi khi `score` đổi (giữ nghĩa "đạt mốc trước"), đổi `tie` / `extra` vẫn được ghi.
+        const w = await db.query(
+          `INSERT INTO rank_scores(board, period, account_id, score, tie, extra) VALUES ($1,$2,$3,$4,$5,$6::jsonb)
+           ON CONFLICT (board, period, account_id) DO UPDATE SET score=EXCLUDED.score, tie=EXCLUDED.tie, extra=EXCLUDED.extra,
+             updated_at = CASE WHEN rank_scores.score IS DISTINCT FROM EXCLUDED.score THEN now() ELSE rank_scores.updated_at END
+           WHERE (rank_scores.score, rank_scores.tie, rank_scores.extra) IS DISTINCT FROM (EXCLUDED.score, EXCLUDED.tie, EXCLUDED.extra)
+           RETURNING (updated_at = now()) AS score_changed`,
+          [r.board, r.period, accountId, r.score, r.tie, r.extra ? JSON.stringify(r.extra) : null]);
+        if (w.rows[0]?.score_changed) changed = true; // chỉ xoá cache khi score đổi; đổi tie / extra trễ tối đa RANK_BOARD_CACHE giây
+      }
+      await db.query("COMMIT");
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
+    if (changed) rankScoresClear(); // sau COMMIT: bảng đọc được điểm mới
+  }
+  async rankTop(board: string, period: number, page: number, pageSize: number) {
+    const { p, size, off } = rankPageOf(page, pageSize);
+    // Chỉ cache RANK_CACHE_PAGES trang đầu: khoá cache không phình theo số trang client xin (trang sâu đọc thẳng DB, đã có nhịp RANK_CD).
+    const load = async () => {
+      const [list, count] = await Promise.all([
+        this.pool.query(
+          `SELECT r.account_id, a.name, a.tong, r.score, r.tie, r.extra FROM rank_scores r JOIN accounts a ON a.id=r.account_id
+           WHERE r.board=$1 AND r.period=$2 AND NOT a.is_test ORDER BY r.score DESC, r.tie DESC, r.updated_at, r.account_id LIMIT $3 OFFSET $4`, [board, period, size, off]),
+        this.pool.query("SELECT COUNT(*) AS n FROM rank_scores r JOIN accounts a ON a.id=r.account_id WHERE r.board=$1 AND r.period=$2 AND NOT a.is_test", [board, period]),
+      ]);
+      const total = Number(count.rows[0].n);
+      const rows = list.rows.map((x: any, i: number): RankTopRow => ({ rank: off + i + 1, accountId: Number(x.account_id), name: x.name as string, score: Number(x.score), tie: Number(x.tie),
+        tong: tongDef(x.tong)?.id ?? null, lineup: rankLineup(x.extra) }));
+      return { page: p, pageSize: size, total, hasNext: off + size < total, rows, asOf: Date.now() };
+    };
+    return p <= RANK_CACHE_PAGES ? rankBoard(`rank|${board}|${period}|${size}|${p}`, load) : load();
+  }
+  async rankMe(board: string, period: number, accountId: number) {
+    // Một câu: dòng của mình rồi đếm số người đứng trước (khoá chỉ mục rank_scores_order), cùng thứ tự với rankTop.
+    const r = await this.pool.query(
+      `SELECT m.score, m.tie, (extract(epoch FROM m.updated_at) * 1000)::bigint AS at, 1 + (SELECT COUNT(*) FROM rank_scores x JOIN accounts a ON a.id=x.account_id
+         WHERE x.board=m.board AND x.period=m.period AND NOT a.is_test AND (x.score > m.score OR (x.score = m.score AND (x.tie > m.tie OR (x.tie = m.tie AND
+           (x.updated_at < m.updated_at OR (x.updated_at = m.updated_at AND x.account_id < m.account_id))))))) AS rank
+       FROM rank_scores m JOIN accounts t ON t.id=m.account_id WHERE m.board=$1 AND m.period=$2 AND m.account_id=$3 AND NOT t.is_test`, [board, period, accountId]);
+    return r.rowCount ? { rank: Number(r.rows[0].rank), score: Number(r.rows[0].score), tie: Number(r.rows[0].tie), at: Number(r.rows[0].at) } : null;
   }
   async arenaPairCount(day: string, a: number, b: number) {
     const r = await this.pool.query("SELECT n FROM arena_pairs WHERE day=$1::date AND a=$2 AND b=$3", [day, Math.min(a, b), Math.max(a, b)]);
