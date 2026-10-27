@@ -225,9 +225,45 @@ Nhập bằng `node tools/assets/phuthe-import.mjs --id ta_hoa_phuong_hoang --di
 | Hướng | Nguồn dùng khi nhập | Ghi chú |
 |---|---|---|
 | `s` (A) | `lpc-moi/toA.png` (nộm LPC mới) | qua kiểm kỹ thuật; cutter chỉ đăng ký nộm 10 / 22 ô, phần còn lại theo độ dời trung vị |
-| `se` (B) | `toB.png` (#1168, nộm cũ) | tờ B mới bị chặn; tờ cũ cắt không block nhưng chỉ 6 / 22 ô đăng ký được nộm, dùng độ dời trung vị (22, 46): **vị trí ráp lệch hơn A / D, chủ repo chỉnh bằng thanh trượt** |
-| `e` (C) | `toC.png` (#1168, nộm cũ) | tờ C mới bị chặn; tờ cũ không đăng ký được ô nào (độ dời 0, 0), neo đo ra scale 0,94: chỉnh tay |
+| `se` (B) | `lpc-moi/toB-lpc-attempt4.png` (nộm LPC mới, phiên 693) | 0 chặn / 58 nhẹ; thay B cũ #1168, xem hồ sơ bổ sung bên dưới |
+| `e` (C) | `lpc-moi/toC-lpc-attempt5.png` (nộm LPC mới, phiên 693) | 0 chặn / 54 nhẹ; thay C cũ #1168, xem hồ sơ bổ sung bên dưới |
 | `ne` (D) | `lpc-moi/toD.png` | qua kiểm kỹ thuật; lộ mặt / gần `e` đã khai ở trên |
 | `n` (E) | `lpc-moi/toE.png` | như D |
 
 Tây (`sw`, `w`, `nw`) lật ngang `se`, `e`, `ne` ở client, không có ảnh riêng. Không hướng nào dùng phụ thể tĩnh thay thế. Chỗ chỉnh tay: trang `?thu=phuthe` (ô "Neo khối thân": dx, dy, scale cho từng giới / hướng, "Xuất anchor.json"), rồi chép mục xuất vào `shared/assets/sprites/vohonanim/anchor.json` (mục `"manual": true` không bị công cụ ghi đè). Ảnh ráp trước / sau 5 hướng nằm ở artifact phiên 686 (`shots/`).
+
+## B/C bổ sung theo nộm LPC mới — phiên 693, PR #1190
+
+Part of #1024. Chủ repo cho thêm tối đa **3 lượt mỗi tờ B/C** sau khi các lượt 1–3 cũ đều chặn. Đã fetch và merge origin/main trước khi sinh. Dùng **1/3 lượt B** (attempt4), **2/3 lượt C** (attempt4–5); dừng khi mỗi tờ đạt 0 chặn, không dùng hết ngân sách. Không đè RAW/hồ sơ cũ.
+
+Mỗi lượt thêm một bài học ngắn vào `art/src/phuthe-anim/lessons.md` trước khi chạy `node tools/assets/phuthe-sheet-prompt.mjs --id ta_hoa_phuong_hoang --stage direction --dir se|e --out <temp>`. Gửi nguyên khối text tự sinh, không viết tay/addendum. RAW nguyên byte từ builtin `image_gen.imagegen` của Codex, model/seed unknown. SHA256 RAW, prompt và từng tham chiếu cùng kết quả kiểm đầy đủ ở `.source.json` cạnh mỗi ảnh.
+
+Tham chiếu đúng thứ tự: **nộm mới của chính tờ B/C** (`lpc-moi/ta_hoa_phuong_hoang-nom-toB.png` hoặc `-toC.png`, cyan #00D0D0, vạch #7A5CFF, nền #FF00FF, khung 96); **turnaround lượt 2 đã được chủ repo duyệt** (`candidates/turnaround-attempt2.png`, quyết định #1157/#1176); **A mới đạt kỹ thuật** (`lpc-moi/toA.png`) chỉ khớp phong cách/vị trí, không sao chép pose. Không dùng B/C cũ #1168 hay C4 lỗi làm tham chiếu.
+
+| Tờ/lượt | RAW | Chặn / nhẹ | Quyết định |
+|---|---|---|---|
+| B4 — se | `lpc-moi/toB-lpc-attempt4.png` | 0 / 58 | nhập game |
+| C4 — e | `lpc-moi/candidates/toC-lpc-attempt4.png` | 1 / 1 | giữ candidates, H3 chỉ tách 5/6 hình do attack dính |
+| C5 — e | `lpc-moi/toC-lpc-attempt5.png` | 0 / 54 | nhập game |
+
+Kiểm RAW riêng mỗi lượt: copy nguyên byte sang `<temp>/input/toB.png` hoặc `toC.png`, chạy `node tools/assets/phuthe-sheet-check.mjs ta_hoa_phuong_hoang --dir <temp>/input --out <temp>/check`. Cả B4/C5 còn nộm thu nhỏ/dời xuống, nhiều ô cutter dùng độ dời trung vị; cánh/đuôi chạm hoặc vượt cửa sổ. Cast cuối gần chính diện; se/e còn gần nhau. Chỉ khai lỗi mắt, không chứng nhận mọi pose đạt đẹp.
+
+```text
+--eye "toB-lpc-attempt4=phụ thể/nộm — toàn tờ — nộm nhỏ/dời xuống, thân chim cao, cánh/đuôi xén; cast cuối gần chính diện"
+--eye "toC-lpc-attempt5=phụ thể/nộm — toàn tờ — nộm nhỏ/dời xuống, thân chim cao, cánh/đuôi xén; cast cuối gần chính diện; se/e gần nhau"
+```
+
+Cắt bằng `phuthe-sheet-cut.mjs` với A=`lpc-moi/toA.png`, B=`lpc-moi/toB-lpc-attempt4.png`, C=`lpc-moi/toC-lpc-attempt5.png`, D=`lpc-moi/toD.png`, E=`lpc-moi/toE.png`; `lop.json` hiện có, mặc định khung 96/32 màu: **0 block / 167 warn / 0 info**, cả năm tờ dò gap, không dùng lưới đều dự phòng. Bảng màu tính lại có thể đổi các hướng khác, nên giữ nguyên byte RGBA từng hàng A/D/E từ sheet game trước khi nhập. Nửa trước giữ nguyên toàn ảnh, vì B/C đều nằm nửa sau.
+
+Neo mới tính bằng `phuthe-anchor.mjs --source anim --dir <cut> --out <cut>/anchor.json`; chỉ lấy se/e, giữ nguyên s/ne/n của cả hai giới từ bảng game trước. Nam se (-4.2,14.61), e (-6.48,1.65); nữ se (-3.97,14.14), e (-6.25,1.18); scale đều 1. Nhập bằng `phuthe-import.mjs --id ta_hoa_phuong_hoang --dir <cut> --anchor <cut>/anchor.json`. Manifest được công cụ xác nhận giữ nguyên (khung/clip không đổi); nửa trước cùng byte, chỉ nửa sau và neo se/e thay.
+
+Ảnh ráp năm hướng **trước/sau thay B/C**, đủ nam/nữ × năm clip, đã áp bảng neo tương ứng: `C:/Users/PC/.ao/data/artifacts/soul_land_game-693/phuthe-bc/so-sanh.html`; hai PNG `before/rap-5-huong.png`, `after/rap-5-huong.png`; preview GIF mọi clip ở `before/anchored/preview/index.html`, `after/anchored/preview/index.html`. Script ráp chỉ ở temp, không sửa tools hoặc RAW.
+
+### Ghi công B/C bổ sung
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `lpc-moi/toB-lpc-attempt4.png`, `lpc-moi/toC-lpc-attempt5.png` | `vhanim_ta_hoa_phuong_hoang_b` | builtin `image_gen.imagegen` (Codex, Q44) | Prompt direction tự sinh, SHA256 và nguồn trong hồ sơ cạnh RAW | 2026-10-28 | B/C mới nhập game; giữ A/D/E |
+| `lpc-moi/candidates/toC-lpc-attempt4.png` | - | builtin `image_gen.imagegen` (Codex, Q44) | Prompt direction tự sinh, SHA256 và nguồn cạnh RAW | 2026-10-28 | chặn attack, không nhập game |
+
+Kiểm chứng phiên 693: npm run check và npm run build đều exit 0; trang /choi/?thu=phuthe với Tà Hỏa Phượng Hoàng mặc định e và chọn se đã hiển thị sheet mới, tải đúng neo. Ảnh chụp game-e-ready.png và game-se.png ở artifact cùng trang so sánh. Không đổi server/SQL; bot RAM theo CI diện ảnh, PostgreSQL không áp dụng.
