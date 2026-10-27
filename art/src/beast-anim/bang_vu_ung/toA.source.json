@@ -1,0 +1,18 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "issue":  1030,
+    "species":  "bang_vu_ung",
+    "sheet":  "toA",
+    "attempts":  1,
+    "recorded_at_utc":  "2026-10-27T03:36:31.3131609Z",
+    "sha256":  "bda09f5d879cb8d51810e9c78085530db86c6e7a1c8c7c79db28ad6a176be30b",
+    "references":  [
+                       "shared/assets/sprites/beast/bang_vu_ung.png"
+                   ],
+    "original_tool_path":  "C:/Users/PC/.codex/generated_images/01a17b67-f992-7893-a381-979cb0744f6b/exec-71a0574e-3843-4c3d-a6c3-75c897baf31c.png",
+    "postprocessing":  "Không; sao chép RAW nguyên byte.",
+    "generated_at_utc":  "2026-10-27T03:35:45.8443171Z",
+    "prompt_sha256":  "81e71501c2810f06c26b7aacf07170e073d1ac6543414ca0831a268d9a146bdc"
+}
