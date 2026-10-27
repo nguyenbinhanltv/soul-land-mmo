@@ -37,6 +37,7 @@ raw concept-attempt2.png pháp tướng (ky_nhung_thong_thien_cuc): CHẶN
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/vohon-v2/ky_nhung_thong_thien_cuc/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. | 2026-10-27 | Chưa duyệt, không nhập game. |
+| `art/src/vohon-v2/ky_nhung_thong_thien_cuc/candidates/portrait-attempt1.*` và `portrait-attempt1-P1c2/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Chân dung lô 3 #1158; prompt CLI nguyên văn, RAW + pixel preset portrait2; model/seed unknown. | 2026-10-27 | 1/3 lượt, ứng viên chưa duyệt, không nhập game; SHA256 và --eye bên dưới. |
 
 Lượt loại 1: `candidates/concept-attempt1.png`; SHA256 ảnh `ee37d620c447950f51e08910448d127226b1a13e9bc9ec7b5fc1422b4c087d11`, prompt `71f85fa0c0d563d18ee85f797345ec261a1c8e7bb7a097e93aba165599dc68ba`. Loại lượt 1: cánh chạm nhau làm bộ kiểm tách chỉ bốn khối. Đúng cánh dao cam đất, nhụy vàng, rễ đen và góc sau; chi tiết còn dày.
 

@@ -9,6 +9,7 @@ SHA256 ảnh: `631ac2ef55e230875ee2452b5dac9c634829ed09642d9666824e2a20f0e664af`
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/vohon-v2/hao_thien_chuy/concept-attempt2.png` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept tthoadev đã chốt #1083/#1154; bản sao nguyên byte, hồ sơ prompt/source tại phap-tuong/hao_thien_chuy. | 2026-10-27 | Chỉ tham chiếu, không sinh mới hay nhập game. |
+| `art/src/vohon-v2/hao_thien_chuy/candidates/portrait-attempt1.*` và `portrait-attempt1-P1c2/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Chân dung lô 3 #1158; prompt CLI nguyên văn, RAW + pixel preset portrait2; model/seed unknown. | 2026-10-27 | 1/3 lượt, ứng viên chưa duyệt, không nhập game; SHA256 và --eye bên dưới. |
 
 
 ## Chân dung lô 3 — #1158, P1c2
