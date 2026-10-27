@@ -1,0 +1,47 @@
+{
+  "type": "icon",
+  "id": "ta_hoa_phuong_hoang",
+  "issues": [
+    {
+      "sev": "soft",
+      "code": "cham-mep",
+      "text": "hình chạm mép ảnh (16 điểm): viền ngoài bị cắt"
+    },
+    {
+      "sev": "soft",
+      "code": "mat-sang",
+      "text": "vùng sáng chỉ 0.0%: mất điểm sáng (mắt, lõi, lưỡi), hình sẽ tối đặc"
+    },
+    {
+      "sev": "soft",
+      "code": "nhieu-chi-tiet",
+      "text": "mật độ biên 0.476 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+    },
+    {
+      "sev": "soft",
+      "code": "gan-mau",
+      "text": "hai màu lớn chỉ cách nhau 26.4 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+    },
+    {
+      "sev": "soft",
+      "code": "mat-mat-mo",
+      "text": "chỉ còn 0/8 điểm sáng của ảnh nguồn (mắt, mỏ, lõi): có thể mất mắt / mỏ ở cỡ này; thử cắt gần hơn (--zoom / --crop) hoặc bản đơn giản hơn"
+    }
+  ],
+  "metrics": {
+    "w": 32,
+    "h": 32,
+    "colors": 7,
+    "outline": 1,
+    "hot": 0,
+    "contrast": 0.145,
+    "edge": 0.476,
+    "sep": 26.4,
+    "bgRatio": 1.17,
+    "accent": "0/8"
+  },
+  "manual": [
+    "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+    "so với RAW: vẫn là cùng một võ hồn"
+  ]
+}
