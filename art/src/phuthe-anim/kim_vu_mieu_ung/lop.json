@@ -1,0 +1,27 @@
+{
+  "huong": {
+    "s": {
+      "mac_dinh": "sau",
+      "vung": [
+        { "nhan": "truoc", "hop": [-22, -26, -2, -2] },
+        { "nhan": "truoc", "hop": [4, -26, 26, -2] }
+      ]
+    },
+    "se": {
+      "mac_dinh": "sau",
+      "vung": [
+        { "nhan": "truoc", "hop": [-18, -26, -3, -2] },
+        { "nhan": "truoc", "hop": [2, -28, 29, -2] }
+      ]
+    },
+    "e": {
+      "mac_dinh": "sau",
+      "vung": [
+        { "nhan": "truoc", "hop": [-18, -26, -3, -2] },
+        { "nhan": "truoc", "hop": [2, -28, 29, -2] }
+      ]
+    },
+    "ne": { "mac_dinh": "truoc" },
+    "n": { "mac_dinh": "truoc" }
+  }
+}

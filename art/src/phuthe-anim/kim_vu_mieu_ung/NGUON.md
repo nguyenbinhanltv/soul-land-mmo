@@ -49,6 +49,19 @@ Khóa nộm trên bảng tham chiếu/prompt là `#00D0D0`, nhưng RAW model v�
 
 Lệnh cắt: `node tools/assets/phuthe-sheet-cut.mjs --id kim_vu_mieu_ung --dummy-key #00E8F8 --sheet A=<A1> --sheet B=<B1> --sheet C=<C1> --sheet D=<D1> --sheet E=<E1> --out <thư mục trên>`. Neo bằng `phuthe-anchor.mjs --source anim`, nhập bằng `phuthe-import.mjs --id kim_vu_mieu_ung --dir <thư mục trên> --anchor <thư mục trên>/anchor.json`. Game thêm `vhanim_kim_vu_mieu_ung_b/f` và neo; không hướng nào cần lấy ảnh cũ trong sheet mới. Ảnh `vh_kim_vu_mieu_ung_b/f` cũ vẫn giữ trong repo. Không sửa client/tools, không sinh thêm ảnh; chủ repo chỉnh ráp tiếp.
 
+### Sửa tách lớp theo AO review (28/10)
+
+Bản nhập đầu dùng phân lớp tự động nên mảng cánh liền vuốt/chạm nộm bị đẩy gần hết vào lớp trước. Đã thêm `lop.json`: s/se/e mặc định `sau`, chỉ các hộp vùng vuốt ở hai tay là `truoc`; ne/n toàn bộ `truoc`. Cắt và nhập lại cùng RAW, cùng khóa thực tế `#00E8F8`; không sinh thêm và không đổi prompt lịch sử. Kết quả vẫn 0 block / 130 warn / 2 info. Tổng nửa sau **317492** điểm, nửa trước **307610** điểm.
+
+| Giới / lớp | s | se | e | ne | n |
+|---|---:|---:|---:|---:|---:|
+| Nam / sau | 56611 | 48330 | 53844 | 0 | 0 |
+| Nam / trước | 7817 | 8892 | 8599 | 62525 | 66004 |
+| Nữ / sau | 56611 | 48300 | 53796 | 0 | 0 |
+| Nữ / trước | 7817 | 8892 | 8599 | 62487 | 65978 |
+
+Kiểm ảnh RGBA tổng hợp sau+trước trước/sau đổi mặt nạ: cùng byte pixel, chỉ chuyển lớp; bốn sheet game Băng/Kim vẫn 0 điểm màu khóa nộm. Neo không đổi vì hình tổng hợp không đổi. Preview cùng thư mục `kim_vu_mieu_ung-nhap/preview/` đã dựng lại và soát đủ năm clip × năm hướng × nam/nữ: cánh s/se/e nằm sau thân, vuốt vùng tay ở trước. Hộp vuốt theo vùng cố định vẫn có thể cần chủ repo tinh chỉnh theo từng pose; các lỗi hướng/giải phẫu/xén đã khai mắt vẫn giữ nguyên.
+
 ## Ghi công
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
