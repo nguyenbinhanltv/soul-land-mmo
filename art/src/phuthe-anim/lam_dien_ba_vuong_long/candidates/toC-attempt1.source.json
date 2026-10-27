@@ -1,0 +1,144 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempt": 1,
+  "date": "2026-10-28",
+  "direction": "e",
+  "raw": "toC-attempt1.png",
+  "sha256": "ee112be5ba59c3e99b75030f4ff70de3ec556454ba93e9a9237b7514adb7d7ef",
+  "prompt": "toC-attempt1.prompt.txt",
+  "promptSha256": "a4c8a50b2940abfdecfffef3b657be59179ecf6669d4f61b1aafd3325d4069eb",
+  "promptCommand": "node tools/assets/phuthe-sheet-prompt.mjs --id lam_dien_ba_vuong_long --stage direction --dir e --concept-ref",
+  "references": [
+    {
+      "file": "art/src/phuthe-anim/lam_dien_ba_vuong_long/references/lam_dien_ba_vuong_long-nom-toC.png",
+      "sha256": "1a4947c58257e1a3dc8796b1ec4e630245cc0d8e3762646bfee72ea0dbbda764"
+    },
+    {
+      "file": "art/src/vohon-v2/lam_dien_ba_vuong_long/concept-attempt2.png",
+      "sha256": "d3c3d2b2d04b0eb9b0d6725092d31a5516a08c73beae294e2c6404df26babb95"
+    }
+  ],
+  "referencePathBase": "repository root",
+  "promptHandwritten": false,
+  "promptAddendum": false,
+  "postprocessing": "none; RAW copied byte-for-byte",
+  "technicalCheck": {
+    "id": "lam_dien_ba_vuong_long",
+    "level": "chặn",
+    "group": "B",
+    "frame": 96,
+    "dummyKey": "#30D030",
+    "blockLevel": {
+      "e": "chặn"
+    },
+    "sheets": [
+      {
+        "sheet": "toC",
+        "size": [
+          1536,
+          1024
+        ],
+        "kind": "huong",
+        "level": "chặn",
+        "dirs": [
+          "e"
+        ],
+        "background": {
+          "key": [
+            251,
+            2,
+            251
+          ],
+          "corners": [
+            [
+              236,
+              9,
+              238
+            ],
+            [
+              243,
+              16,
+              241
+            ],
+            [
+              231,
+              35,
+              235
+            ],
+            [
+              239,
+              30,
+              237
+            ]
+          ],
+          "keyDistFromLock": 4,
+          "cornerSpread": 33
+        },
+        "seVsE": null,
+        "prep": null,
+        "bands": [
+          {
+            "row": 1,
+            "dir": "e",
+            "y": [
+              13,
+              221
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 2,
+            "dir": "e",
+            "y": [
+              261,
+              462
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 3,
+            "dir": "e",
+            "y": [
+              491,
+              710
+            ],
+            "figures": 3,
+            "state": "bad"
+          },
+          {
+            "row": 4,
+            "dir": "e",
+            "y": [
+              724,
+              963
+            ],
+            "figures": 4,
+            "state": "ok"
+          }
+        ],
+        "motion": [],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 33), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "block",
+            "code": "hinh-dinh",
+            "where": "H3 (e)",
+            "msg": "dải có 3 hình, cần 6: hình dính nhau."
+          }
+        ],
+        "draft": "LỖI: toC — hình dính — H3 (e) — dải có 3 hình, cần 6: hình dính nhau."
+      }
+    ]
+  },
+  "eye": "Nộm nhỏ, tay/cổ sau thân; cast cao; attack rộng.",
+  "status": "candidate_rejected"
+}

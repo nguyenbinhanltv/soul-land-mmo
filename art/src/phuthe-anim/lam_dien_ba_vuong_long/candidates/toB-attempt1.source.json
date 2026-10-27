@@ -1,0 +1,156 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempt": 1,
+  "date": "2026-10-28",
+  "direction": "se",
+  "raw": "toB-attempt1.png",
+  "sha256": "5d701e96517c225e3a89565adc25c75812a64a79c1d90ecf92be7fa35e1e4b80",
+  "prompt": "toB-attempt1.prompt.txt",
+  "promptSha256": "63280832339e7f9efaa05f1ce665464b8e98a711b5e746bee7d6d1f6064ae8ac",
+  "promptCommand": "node tools/assets/phuthe-sheet-prompt.mjs --id lam_dien_ba_vuong_long --stage direction --dir se --concept-ref",
+  "references": [
+    {
+      "file": "art/src/phuthe-anim/lam_dien_ba_vuong_long/references/lam_dien_ba_vuong_long-nom-toB.png",
+      "sha256": "1a4947c58257e1a3dc8796b1ec4e630245cc0d8e3762646bfee72ea0dbbda764"
+    },
+    {
+      "file": "art/src/vohon-v2/lam_dien_ba_vuong_long/concept-attempt2.png",
+      "sha256": "d3c3d2b2d04b0eb9b0d6725092d31a5516a08c73beae294e2c6404df26babb95"
+    }
+  ],
+  "referencePathBase": "repository root",
+  "promptHandwritten": false,
+  "promptAddendum": false,
+  "postprocessing": "none; RAW copied byte-for-byte",
+  "technicalCheck": {
+    "id": "lam_dien_ba_vuong_long",
+    "level": "chặn",
+    "group": "B",
+    "frame": 96,
+    "dummyKey": "#30D030",
+    "blockLevel": {
+      "se": "chặn"
+    },
+    "sheets": [
+      {
+        "sheet": "toB",
+        "size": [
+          1536,
+          1024
+        ],
+        "kind": "huong",
+        "level": "chặn",
+        "dirs": [
+          "se"
+        ],
+        "background": {
+          "key": [
+            251,
+            1,
+            250
+          ],
+          "corners": [
+            [
+              238,
+              8,
+              236
+            ],
+            [
+              240,
+              12,
+              238
+            ],
+            [
+              234,
+              36,
+              233
+            ],
+            [
+              239,
+              28,
+              236
+            ]
+          ],
+          "keyDistFromLock": 5,
+          "cornerSpread": 35
+        },
+        "seVsE": null,
+        "prep": null,
+        "bands": [
+          {
+            "row": 1,
+            "dir": "se",
+            "y": [
+              11,
+              208
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 2,
+            "dir": "se",
+            "y": [
+              248,
+              456
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 3,
+            "dir": "se",
+            "y": [
+              484,
+              704
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 4,
+            "dir": "se",
+            "y": [
+              716,
+              965
+            ],
+            "figures": 1,
+            "state": "bad"
+          }
+        ],
+        "motion": [],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 35), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "note",
+            "code": "tach-hinh",
+            "where": "H3 (se)",
+            "msg": "dải dò được 4 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 6."
+          },
+          {
+            "sev": "light",
+            "code": "o-trong",
+            "where": "H4 (se) C5",
+            "msg": "ô trống có hình (0.61% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng."
+          },
+          {
+            "sev": "block",
+            "code": "hinh-dinh",
+            "where": "H4 (se)",
+            "msg": "dải có 1 hình, cần 4: hình dính nhau."
+          }
+        ],
+        "draft": "LỖI: toB — hình ở ô trống / hình dính — H4 (se) C5, H4 (se) — ô trống có hình (0.61% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng; dải có 1 hình, cần 4: hình dính nhau."
+      }
+    ]
+  },
+  "eye": "Nộm nhỏ, khối rồng sau thân; tay rồng chưa bám tay người; se gần e.",
+  "status": "candidate_rejected"
+}

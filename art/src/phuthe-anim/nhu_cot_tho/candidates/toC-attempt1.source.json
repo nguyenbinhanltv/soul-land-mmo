@@ -1,0 +1,150 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempt": 1,
+  "date": "2026-10-28",
+  "direction": "e",
+  "raw": "toC-attempt1.png",
+  "sha256": "0837fb2befa7062a2da1b0746a7e61e741822431a6508cc0470056116ff61db4",
+  "prompt": "toC-attempt1.prompt.txt",
+  "promptSha256": "f0aefde06e1bd702261c8011017d2310f30db5ef044ccf821a86fa00d8245b43",
+  "promptCommand": "node tools/assets/phuthe-sheet-prompt.mjs --id nhu_cot_tho --stage direction --dir e --concept-ref",
+  "references": [
+    {
+      "file": "art/src/phuthe-anim/nhu_cot_tho/references/nhu_cot_tho-nom-toC.png",
+      "sha256": "beaed26756433db93b246eed3466f907d9a923930f5299e81fca2a6d84e26bbd"
+    },
+    {
+      "file": "art/src/vohon-v2/nhu_cot_tho/concept-attempt3.png",
+      "sha256": "e4d6cfb04c501f29f0bbbe1c24f04040b1c1167ab5ce2739f9e5660d12f90aa3"
+    }
+  ],
+  "referencePathBase": "repository root",
+  "promptHandwritten": false,
+  "promptAddendum": false,
+  "postprocessing": "none; RAW copied byte-for-byte",
+  "technicalCheck": {
+    "id": "nhu_cot_tho",
+    "level": "chặn",
+    "group": "B",
+    "frame": 96,
+    "dummyKey": "#00D0D0",
+    "blockLevel": {
+      "e": "chặn"
+    },
+    "sheets": [
+      {
+        "sheet": "toC",
+        "size": [
+          1536,
+          1024
+        ],
+        "kind": "huong",
+        "level": "chặn",
+        "dirs": [
+          "e"
+        ],
+        "background": {
+          "key": [
+            251,
+            2,
+            251
+          ],
+          "corners": [
+            [
+              236,
+              11,
+              238
+            ],
+            [
+              243,
+              16,
+              241
+            ],
+            [
+              235,
+              36,
+              236
+            ],
+            [
+              239,
+              31,
+              239
+            ]
+          ],
+          "keyDistFromLock": 4,
+          "cornerSpread": 34
+        },
+        "seVsE": null,
+        "prep": null,
+        "bands": [
+          {
+            "row": 1,
+            "dir": "e",
+            "y": [
+              25,
+              215
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 2,
+            "dir": "e",
+            "y": [
+              262,
+              455
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 3,
+            "dir": "e",
+            "y": [
+              492,
+              703
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 4,
+            "dir": "e",
+            "y": [
+              728,
+              955
+            ],
+            "figures": 2,
+            "state": "bad"
+          }
+        ],
+        "motion": [],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 34), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "note",
+            "code": "tach-hinh",
+            "where": "H3 (e)",
+            "msg": "dải dò được 5 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 6."
+          },
+          {
+            "sev": "block",
+            "code": "hinh-dinh",
+            "where": "H4 (e)",
+            "msg": "dải có 2 hình, cần 4: hình dính nhau."
+          }
+        ],
+        "draft": "LỖI: toC — hình dính — H4 (e) — dải có 2 hình, cần 4: hình dính nhau."
+      }
+    ]
+  },
+  "eye": "Tai thành khối giống đầu thỏ phía trên; nộm nhỏ, attack rộng; chưa đạt ráp.",
+  "status": "candidate_rejected"
+}
