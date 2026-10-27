@@ -1,0 +1,31 @@
+{
+  "type": "icon",
+  "id": "lam_ngan_thao",
+  "issues": [
+    {
+      "sev": "soft",
+      "code": "cham-mep",
+      "text": "hình chạm mép ảnh (11 điểm): viền ngoài bị cắt"
+    },
+    {
+      "sev": "soft",
+      "code": "nhieu-chi-tiet",
+      "text": "mật độ biên 0.921 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+    }
+  ],
+  "metrics": {
+    "w": 24,
+    "h": 24,
+    "colors": 280,
+    "outline": 1,
+    "hot": 0.055,
+    "contrast": 0.193,
+    "edge": 0.921,
+    "sep": null,
+    "bgRatio": 1.22
+  },
+  "manual": [
+    "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+    "so với RAW: vẫn là cùng một võ hồn"
+  ]
+}
