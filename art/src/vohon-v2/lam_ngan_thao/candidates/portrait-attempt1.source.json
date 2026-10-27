@@ -1,0 +1,95 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "issue": 1158,
+  "attempt": 1,
+  "max_attempts": 3,
+  "reference": "art/src/vohon-v2/lam_ngan_thao/concept-attempt1.png",
+  "reference_sha256": "831f842c891248dc79d9e23d973969eb8b5608f0efe1e705e56b574526c74c35",
+  "image_sha256": "2a21f12aeac0615c2ae8610eef118bcd330641471e2398547d8dfcf21e793c25",
+  "prompt_sha256": "c7486dc7f86bb15cf6c64d9851f208ba50e4cd3382d902be882e8f814a09de14",
+  "prompt_command": "node tools/assets/vohon-prompt.mjs --type portrait --id lam_ngan_thao --style-ref art/src/vohon-v2/lam_ngan_thao/concept-attempt1.png",
+  "pixel_command": "node tools/assets/vohon-pixelize.mjs --type portrait --id lam_ngan_thao --in art/src/vohon-v2/lam_ngan_thao/candidates/portrait-attempt1.png --out art/src/vohon-v2/lam_ngan_thao/candidates/portrait-attempt1-P1c2 --preset portrait2",
+  "raw_check": {
+    "type": "portrait",
+    "id": "lam_ngan_thao",
+    "issues": [
+      {
+        "sev": "soft",
+        "code": "mem",
+        "text": "texture mềm: 91% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+      },
+      {
+        "sev": "soft",
+        "code": "luoi",
+        "text": "chưa đúng lưới khối: tỉ số biên 1.57 ở chu kỳ 31 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+      }
+    ],
+    "metrics": {
+      "w": 1254,
+      "h": 1254,
+      "ratio": 1,
+      "border": {
+        "clear": 0,
+        "flat70": 0.9
+      },
+      "fill": 1,
+      "softness": 0.913,
+      "bigColors": 121,
+      "grid": {
+        "period": 31,
+        "ratio": 1.57
+      },
+      "paletteMatch": 0.94,
+      "smallAccent": "8/8"
+    },
+    "manual": [
+      "đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi)",
+      "không có chữ, ký hiệu đọc được, logo, chữ ký",
+      "đọc được cả ở cỡ thật 1× (nhìn lướt)"
+    ]
+  },
+  "pixel_check": {
+    "type": "portrait",
+    "id": "lam_ngan_thao",
+    "issues": [
+      {
+        "sev": "soft",
+        "code": "nhieu-chi-tiet",
+        "text": "mật độ biên 0.443 (> 0.3): còn nhiều mảng nhỏ ở cỡ 64×64, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+      },
+      {
+        "sev": "soft",
+        "code": "gan-mau",
+        "text": "hai màu lớn chỉ cách nhau 7.1 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+      },
+      {
+        "sev": "soft",
+        "code": "nen-chu-the",
+        "text": "vùng giữa chỉ sáng gấp 1.11× vòng ngoài (< 1.4): chủ thể chưa tách khỏi nền; thử --preset portrait (nền lạnh tối + viền sáng)"
+      }
+    ],
+    "metrics": {
+      "w": 64,
+      "h": 64,
+      "colors": 16,
+      "hot": 0.075,
+      "contrast": 0.226,
+      "edge": 0.443,
+      "sep": 7.1,
+      "bgRatio": 1.11,
+      "accent": "8/8"
+    },
+    "manual": [
+      "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+      "so với RAW: vẫn là cùng một võ hồn"
+    ]
+  },
+  "eye": [
+    "nhận diện — dây leo bị nhân hoá thành mặt có hai mắt, ngoài concept thực vật; bố cục chính diện, đầu ngọn bị cắt mép trên; dây mảnh và màu lạnh dính nền; candidate chưa đạt"
+  ],
+  "status": "candidate_pending_art_review",
+  "imported": false
+}
