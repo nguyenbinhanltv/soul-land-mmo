@@ -1,0 +1,212 @@
+{
+  "issue": 884,
+  "tool": "Codex builtin image_gen.imagegen",
+  "model": null,
+  "seed": null,
+  "reference_order": [
+    "BOARD.png",
+    "palette swatch"
+  ],
+  "references": [
+    {
+      "file": "art/src/ui-kit/BOARD.png",
+      "sha256": "9cae6f45aa21d2b7d5e2975928c0dfc996af0b4566cb7de2b6d676bc36f393bb"
+    },
+    {
+      "file": "D:/Temp/ui882-prompts/palette.png",
+      "sha256": "6d1beee6e8e3ab497aaf7bf9ef857e6c4b8ccfaa03d16a76bd6667ff822d307b",
+      "source": "art/palette.gpl",
+      "source_sha256": "70c1503b15754d192f2dd63fd51ffe9cc0d788c34057ebdfc56c7720cd717f41"
+    }
+  ],
+  "policy": "Prompt nguyên văn ui:prompt; không addendum, không tham chiếu ảnh lỗi. RAW nguyên byte. Lượt I1 sai tỉ lệ chỉ giữ artifact để không làm CI đỏ. N sinh toàn tờ, chỉ cắt hai tab; không thay 10 nút đã duyệt.",
+  "attempts": [
+    {
+      "kind": "I",
+      "attempt": 1,
+      "file": "C:/Users/PC/.ao/data/artifacts/soul_land_game-688/I1/toI-1.png",
+      "prompt_file": "C:/Users/PC/.ao/data/artifacts/soul_land_game-688/I1/toI-1.prompt.txt",
+      "check": "C:/Users/PC/.ao/data/artifacts/soul_land_game-688/I1/toI-1-ui-check.json",
+      "selected": false,
+      "original_tool_output": "C:/Users/PC/.codex/generated_images/01a17ec7-449c-7d01-b601-5edfd9cc7ab7/exec-f9c26ed2-4ec4-4aaa-8ebb-33d849622531.png",
+      "sha256": "10e48ad193ef3b48d73e86721163516ef6e8514cbd1c02bc1734283d1ab5291d",
+      "raw_copy_byte_identical": true,
+      "prompt_sha256": "29a44db4b42dfe03ba57e330de1350130c10019c33f2a4a58e817c6ec3cdc9aa",
+      "prompt_matches_generated_block": true,
+      "block": 1,
+      "warn": 0
+    },
+    {
+      "kind": "I",
+      "attempt": 2,
+      "file": "art/src/ui-kit/candidates/pilot/toI-2.png",
+      "prompt_file": "art/src/ui-kit/candidates/pilot/toI-2.prompt.txt",
+      "check": "C:/Users/PC/.ao/data/artifacts/soul_land_game-688/I2/toI-2-ui-check.json",
+      "selected": true,
+      "original_tool_output": "C:/Users/PC/.codex/generated_images/01a17ec7-449c-7d01-b601-5edfd9cc7ab7/exec-4a1172e8-4e91-4904-b2c2-6b34c8753865.png",
+      "sha256": "a2a4c0539f08ee328542893ae06ef5b204746621c60edae61221be186b181475",
+      "raw_copy_byte_identical": true,
+      "prompt_sha256": "e03892698e205b8a3df269747b410e5b034ac602bada9afb7684d3f2455b7cb2",
+      "prompt_matches_generated_block": true,
+      "block": 1,
+      "warn": 0
+    },
+    {
+      "kind": "I",
+      "attempt": 3,
+      "file": "art/src/ui-kit/candidates/pilot/toI-3.png",
+      "prompt_file": "art/src/ui-kit/candidates/pilot/toI-3.prompt.txt",
+      "check": "C:/Users/PC/.ao/data/artifacts/soul_land_game-688/I3/toI-3-ui-check.json",
+      "selected": false,
+      "original_tool_output": "C:/Users/PC/.codex/generated_images/01a17ec7-449c-7d01-b601-5edfd9cc7ab7/exec-9a37fd14-683b-4d25-813f-bd1182c0ab90.png",
+      "sha256": "5bc354d4fdd90e770247071963472a33e14e686a9b7c5593df89617abcee106c",
+      "raw_copy_byte_identical": true,
+      "prompt_sha256": "0453eec8ec7280a8746c9e9c67f3827097c94e1f066aa94dba0f6c4f832d4e32",
+      "prompt_matches_generated_block": true,
+      "block": 2,
+      "warn": 0
+    },
+    {
+      "kind": "N",
+      "material": "giay",
+      "attempt": 4,
+      "new_batch_attempt": 1,
+      "file": "art/src/ui-kit/candidates/pilot/giay/toN-4.png",
+      "prompt_file": "art/src/ui-kit/candidates/pilot/giay/toN-4.prompt.txt",
+      "check": "C:/Users/PC/.ao/data/artifacts/soul_land_game-688/N4/toN-4-ui-check.json",
+      "selected": true,
+      "original_tool_output": "C:/Users/PC/.codex/generated_images/01a17ec7-449c-7d01-b601-5edfd9cc7ab7/exec-76b82210-ea74-4c83-8542-6f7f10ec41d0.png",
+      "sha256": "74b12028c5bd573ce924be491690a6f96baa564053fb3b2b79f4323240f22d17",
+      "raw_copy_byte_identical": true,
+      "prompt_sha256": "4755146a827599fbe5f7e0e5a749623f561c6df24e09ea2cb691cd81039e1ce1",
+      "prompt_matches_generated_block": true,
+      "block": 1,
+      "warn": 0
+    }
+  ],
+  "menu_mapping": [
+    {
+      "cell": 1,
+      "ai": "icon_01",
+      "existing": "gi_menu_char",
+      "label": "Hồn sư (H)",
+      "source": "delapouite/monk-face"
+    },
+    {
+      "cell": 2,
+      "ai": "icon_02",
+      "existing": "gi_menu_roster",
+      "label": "Đội hình (V)",
+      "source": "delapouite/three-friends"
+    },
+    {
+      "cell": 3,
+      "ai": "icon_03",
+      "existing": "gi_menu_bag",
+      "label": "Túi đồ (B)",
+      "source": "lorc/knapsack"
+    },
+    {
+      "cell": 4,
+      "ai": "icon_04",
+      "existing": "gi_menu_reso",
+      "label": "Cộng minh (K)",
+      "source": "lorc/resonance"
+    },
+    {
+      "cell": 5,
+      "ai": "icon_05",
+      "existing": "gi_menu_settings",
+      "label": "Cài đặt",
+      "source": "lorc/cog"
+    },
+    {
+      "cell": 6,
+      "ai": "icon_06",
+      "existing": "gi_menu_auto",
+      "label": "Tự động (T)",
+      "source": "lorc/cycle"
+    },
+    {
+      "cell": 7,
+      "ai": "icon_07",
+      "existing": "gi_menu_channel",
+      "label": "Kênh",
+      "source": "delapouite/network-bars"
+    },
+    {
+      "cell": 8,
+      "ai": "icon_08",
+      "existing": "gi_menu_area",
+      "label": "Vùng (N)",
+      "source": "lorc/treasure-map"
+    },
+    {
+      "cell": 9,
+      "ai": "icon_09",
+      "existing": "gi_menu_world",
+      "label": "Thế giới (M)",
+      "source": "lorc/world"
+    },
+    {
+      "cell": 10,
+      "ai": "icon_10",
+      "existing": "gi_menu_friends",
+      "label": "Bạn bè",
+      "source": "lorc/backup"
+    },
+    {
+      "cell": 11,
+      "ai": "icon_11",
+      "existing": "gi_menu_rank",
+      "label": "Xếp hạng",
+      "source": "delapouite/podium"
+    },
+    {
+      "cell": 12,
+      "ai": "icon_12",
+      "existing": "gi_menu_quest",
+      "label": "Nhiệm vụ",
+      "source": "delapouite/scroll-quill"
+    },
+    {
+      "cell": 13,
+      "ai": "icon_13",
+      "existing": "gi_menu_chat",
+      "label": "Chat",
+      "source": "delapouite/chat-bubble"
+    },
+    {
+      "cell": 14,
+      "ai": "icon_14",
+      "existing": "gi_menu_arena",
+      "label": "Đấu trường",
+      "source": "lorc/crossed-sabres"
+    },
+    {
+      "cell": 15,
+      "ai": "icon_15",
+      "existing": "gi_menu_shop",
+      "label": "Cửa hàng",
+      "source": "delapouite/shop"
+    },
+    {
+      "cell": 16,
+      "ai": "icon_16",
+      "existing": "gi_menu_forge",
+      "label": "Rèn",
+      "source": "lorc/anvil"
+    }
+  ],
+  "artifacts": {
+    "comparison": "C:/Users/PC/.ao/data/artifacts/soul_land_game-688/comparison/index.html",
+    "tabs": "C:/Users/PC/.ao/data/artifacts/soul_land_game-688/N-tabs/index.html",
+    "icon_cut": "C:/Users/PC/.ao/data/artifacts/soul_land_game-688/I2/cut",
+    "tab_cut": "C:/Users/PC/.ao/data/artifacts/soul_land_game-688/N4/cut"
+  },
+  "selection": {
+    "I": 2,
+    "N": 4
+  },
+  "browser_validation": "ao preview: PREVIEW_FILE_OUTSIDE_WORKSPACE; ao render --check: RENDER_CHECK_FAILED. ao render hiển thị trang so sánh trong chat; chưa xác minh tương tác trình duyệt."
+}

@@ -129,3 +129,31 @@ Thư mục gốc: `C:/Users/PC/.ao/data/artifacts/soul_land_game-684/`.
 Trang do `ui:preview` dựng có ba nền, DPR 1/2, ba cỡ 200×60 / 360×120 / 520×320, nút thật và chuỗi Việt 10/12/24. Asset/font được nhúng vào HTML artifact để mở độc lập; bản cắt và phiếu cắt cũng được giữ trong artifact. Đã thử mở ngay khi tạo: `ao preview` từ chối file ngoài workspace; cả `ao render --check` và `html_preview` trả `RENDER_CHECK_FAILED`. Vì vậy **chưa xác minh hiển thị trang trong trình duyệt**, chưa xác nhận Firefox hoặc thao tác hover/focus; không coi ảnh RAW hiển thị trong chat là kiểm trang component.
 
 Tên file đợt 3 đặt trong `candidates/dot3/giay/toF-1.png`… và `candidates/dot3/muc/toF-4.png` / `toF-5.png` để CI tự suy loại tờ. Nội dung byte không đổi; `analyzed_as` giữ tên lúc chạy phiếu ban đầu.
+
+## Pilot menu và sửa hai tab Giấy — Part of #884 (PR #1186)
+
+Ngày 28/10/2026, sau khi fetch + merge `origin/main` có #1175/#1182. Ảnh duy nhất từ Codex builtin `image_gen.imagegen`, BOARD rồi swatch `art/palette.gpl`; không đính ảnh bố cục game tham chiếu. Prompt nguyên văn khối `ui:prompt`, không viết tay/addendum. Hash RAW/prompt, đường dẫn output gốc và mapping đủ 16 `gi_menu_*` ở `pilot.source.json`; mọi bản sao kiểm nguyên byte, model/seed không được cung cấp. Nguồn/quyền sử dụng theo mục đầu tài liệu; không gán CC0.
+
+### Tờ I: đã dừng sau 3 lượt
+
+| Lượt | Kiểm RAW | Kết luận |
+|---|---|---|
+| 1 | 1 chặn: 1536×1024 thay vì vuông | Chỉ giữ RAW/prompt ở artifact `I1/`, không đưa tờ sai tỉ lệ vào CI. |
+| 2 | 1 chặn viền hồng; nhẹ khoảng cách và 40 màu | Chọn: `candidates/pilot/toI-2.png`; `ui:cut --soft --prefix menu_` đủ 16, bảng 32 màu, viền hồng sau bù 0,1%. |
+| 3 | 2 chặn: viền hồng, 43 màu | `candidates/pilot/toI-3.png`; cutter mềm từ chối do màu, không force. |
+
+Mỗi lượt có một bài học ngắn thêm vào `lessons.md`. I2 vẫn nhiều mây/tua và chi tiết nhỏ: chưa coi là bộ icon đã được chủ repo duyệt. Trang so sánh giữ nguyên PNG game-icons hiện có, đặt cạnh AI ở 64/32/24 px, có nền Mực/Giấy/trắng và thang xám. AI được chuẩn hóa từ bản cắt vào khung trong suốt master 64 (giữ tỉ lệ), hạ 32/24 bằng `areaDown` + lượng tử; đây là bản xem thử, không sửa RAW hay nhập game. `comparison/mapping.json` ghi thứ tự 16 cặp; nhãn Việt là HTML. Game-icons giữ ghi công CC BY 3.0 theo `art/CREDITS.md` và `art/src/game-icons/icons.json`.
+
+### Hai tab N Giấy: đạt chất liệu ở lượt mới 1/3
+
+`candidates/pilot/giay/toN-4.png` là attempt mới, không đè đợt 3. Sinh nguyên tờ bằng `ui:prompt --kind N --material giay`, chỉ xuất `tab_thuong`/`tab_chon` bằng `--soft --skip` toàn bộ 10 nút; không thay RAW/bản cắt của mười nút trước. Cả hai ruột giấy ngà, cạnh dưới mở, tab chọn viền ngọc trên; không có chữ. RAW 1 chặn viền hồng; sau cắt mềm viền hồng 0%, đủ hai tab, không còn chặn. Kiểm trực tiếp ảnh cắt đúng chất liệu. Dừng vì đạt mục tiêu hai tab, không cần dùng hết ba lượt.
+
+### Artifact và giới hạn kiểm chứng
+
+Gốc: `C:/Users/PC/.ao/data/artifacts/soul_land_game-688/`.
+
+- `comparison/index.html`: đủ 16 cặp I2 / game-icons ở 64/32/24; `comparison/I2/` chứa PNG chuẩn hóa.
+- `N-tabs/index.html`: trang component của hai tab, 3 nền / DPR 1–2 / ba cỡ kéo giãn / nút thật / chuỗi Việt.
+- `I2/cut/`, `N4/cut/`: cutter output và phiếu; `I1/`, `I2/`, `I3/`, `N4/`: báo cáo kiểm RAW.
+
+Đã thử mở ngay: `ao preview` từ chối artifact ngoài workspace (`PREVIEW_FILE_OUTSIDE_WORKSPACE`); `ao render --check` báo `RENDER_CHECK_FAILED`. `ao render` đã đưa trang so sánh vào chat. Chưa xác minh tương tác/ảnh chụp trang trong trình duyệt hoặc Firefox; không coi kiểm ảnh cắt là kiểm tương tác. Chủ repo cần chọn hướng icon; PR không nhập game và không merge.
