@@ -31,6 +31,15 @@ Loài `thien_thanh_nguu_mang` (Thiên Thanh Ngưu Mãng), họ `snake`, khung ga
 - Mức kiểm: **nhẹ** (khối hướng: e nhẹ).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
+## toE
+
+- File: `toE.png`, **1536×1024**, 2046178 byte, SHA256 `41daa123d98a790a38369dfe2128fcbf4ad395120098e2899669e0eb522f559a`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-635.
+- Prompt: `toE.prompt.txt` (SHA256 `a748f0a3cb9f4da18a5d3c22f071097daea644529819296206cf8fccb2a7168e`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: n pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
 ## Lỗi
 
 ```text
@@ -38,6 +47,7 @@ LỖI: turnaround — ne còn hơi lộ mõm; die còn cong S; chọn lượt 2/
 LỖI: toA — s — idle H1 C4, attack H3 C2,C5 quay phải; die H4 C2–4 quay chếch phải và còn cong, chưa giữ hướng s (mắt)
 LỖI: toC — hình ở ô trống — H4 (e) C5 — ô trống có hình (0.84% diện tích ô): hình tràn từ ô bên.
 LỖI: toC — e — die cuối còn hơi cong S; hurt biên độ nhỏ (mắt)
+LỖI: toE — n — walk H2 C3, attack H3 C3–5 nghiêng khỏi trục n; die còn cuộn và nghiêng; không thấy mắt/mặt rõ. Chọn lượt 2/2, lượt 1 ở candidates có die lộ mặt (mắt)
 ```
 
 ## Ghi công

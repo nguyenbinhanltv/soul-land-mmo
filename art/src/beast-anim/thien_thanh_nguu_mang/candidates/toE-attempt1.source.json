@@ -1,0 +1,13 @@
+{
+    "references":  [
+                       "shared/assets/sprites/beast/thien_thanh_nguu_mang.png",
+                       "art/src/beast-anim/thien_thanh_nguu_mang/turnaround.png"
+                   ],
+    "timestamp":  "2026-10-27T06:16:09.6400172Z",
+    "model":  "unknown",
+    "tool":  "image_gen.imagegen",
+    "originalOutput":  "C:/Users/PC/.codex/generated_images/01a17bec-b820-7c23-b29d-b91230dff833/exec-e49985ff-3504-4e54-9d6e-e3014d6431a3.png",
+    "seed":  "unknown",
+    "attempts":  1,
+    "sha256":  "faaa7ebe46ca8705fdc8547bbd338a52d0d94be86e8167a3f6b71d477888941d"
+}
