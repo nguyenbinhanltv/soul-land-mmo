@@ -13,9 +13,20 @@ Loài `quy_dang` (Quỷ Đằng), họ `vine`, khung game 128×128. Mức kiểm
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
 - Duyệt bằng mắt: đã xem, không thấy lỗi.
 
+## toA
+
+- File: `toA.png`, **1536×1024**, 2265078 byte, SHA256 `d710e0eda3b54c60ab489b958f93147cdc8bc792d4c0d100070403cd0c585d41`.
+- Công cụ: Codex image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-625.
+- Prompt: `toA.prompt.txt` (SHA256 `3362fb5a08bcaa3c0cbb7a2a2474ed82bb58f403bb07508402fa61fb45b93ca5`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: s pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
 ## Lỗi
 
-Không có dòng `LỖI:`.
+```text
+LỖI: toA — hướng — H1 C5–6 hurt và H3 C3–4 attack nghiêng sang phải thay vì giữ s; chọn lượt 3 sau ba lượt (mắt)
+```
 
 ## Ghi công
 
