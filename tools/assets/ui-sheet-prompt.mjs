@@ -61,12 +61,20 @@ export function pickKindLayout(kind, total) {
   return l;
 }
 
+/** Mô tả mảnh; tờ F vẽ mọi khung theo chất liệu chọn (tên mảnh chỉ là chỗ đứng: lớn / nhỏ / tooltip / toast), không cố định Mực + Giấy. */
+function pieceEn(kindId, name, material) {
+  const en = PIECE_EN[name] ?? name.replace(/_/g, " ");
+  if (kindId !== "F") return en;
+  const mat = material === "giay" ? "paper" : "ink";
+  return en.replace(/(ink|paper)-material/, `${mat}-material`).replace(/, ink material\)/, `, ${mat} material)`);
+}
+
 /** Danh sách mảnh theo thứ tự đọc, mỗi dòng `hàng.cột  mô tả`. */
-function piecesBlock(kind, layout) {
+function piecesBlock(kind, layout, material) {
   const lines = [];
   let k = 0;
   layout.forEach((n, r) => {
-    for (let c = 0; c < n; c++, k++) { const name = kind.pieces[k].name; lines.push(`  ${r + 1}.${c + 1}  ${PIECE_EN[name] ?? name.replace(/_/g, " ")}`); }
+    for (let c = 0; c < n; c++, k++) { const name = kind.pieces[k].name; lines.push(`  ${r + 1}.${c + 1}  ${pieceEn(kind.id, name, material)}`); }
   });
   return lines.join("\n");
 }
@@ -84,11 +92,11 @@ Outside the screen the background is one flat solid colour. Behind the panels hi
   }
   const layout = pickKindLayout(kind, o.layout), total = layout.reduce((a, b) => a + b, 0);
   const family = kind.id === "I" ? ` The icon family of this sheet: ${o.family ?? "menu (character, bag, formation, alliance, friends, auto-hunt, settings, world map)"}. Draw exactly ${total} different icons of that one family.` : "";
-  const mate = !MATERIAL_KINDS.includes(kind.id) ? "" : kind.id === "F" ? `\nMATERIAL: ${MATERIAL.muc.en}; the frames the list calls paper-material use ${MATERIAL.giay.en}.` : `\nMATERIAL: ${mat.en}.`;
+  const mate = !MATERIAL_KINDS.includes(kind.id) ? "" : `\nMATERIAL: ${mat.en}${kind.id === "F" ? "; every frame on this sheet uses this one material" : ""}.`;
   const rows = layout.map((n, i) => `row ${i + 1}: ${n} piece${n > 1 ? "s" : ""}`).join("; ");
   return `A sheet of ${total} separate ${NOUN_EN[kind.id]} pieces for a pixel-art game user interface, ${aspect}. Each piece is its own separate object on the sheet.${family}
 LAYOUT: ${layout.length} rows, ${rows}; read left to right, top to bottom, in exactly this order:
-${piecesBlock(kind, layout)}
+${piecesBlock(kind, layout, o.material ?? "muc")}
 ${kind.stretch ? "Each frame-like piece must stretch cleanly: ornament only at the four corners and the middle of each side, the straight sides are a flat one or two colour band, the inside is a flat uniform fill.\n" : ""}${BACKGROUND}
 ${STYLE}${mate}
 DO NOT DRAW: text, numbers, letters, logos, labels, glow, drop shadow, particles, characters, hands, extra pieces, a border around the sheet.${lessons}`;
