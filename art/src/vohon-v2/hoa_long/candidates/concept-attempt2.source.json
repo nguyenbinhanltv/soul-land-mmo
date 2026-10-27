@@ -1,0 +1,15 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "seed": "unknown",
+  "prompt_sha256": "d093e7f0b7ae29695490ff6f67225f16594bdcdc04c02f5d30f12757067a8ae3",
+  "attempt": 2,
+  "notes": "ne quay trái, lộ mặt; e chưa ngang hẳn.",
+  "image_sha256": "e866243001ba574f8c06eff46b1d7f3d838da0cb9f8d0367276de47a67b5b534",
+  "model": "unknown",
+  "reference": "PR #1083 concept Hạo Thiên lượt 2",
+  "raw_status": "CHẶN",
+  "true_views": 4,
+  "true_views_note": "5 hình; góc ne sai nên chỉ 4 hướng đáp ứng",
+  "width": 1983,
+  "height": 793
+}

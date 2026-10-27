@@ -1,0 +1,32 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "seed": "unknown",
+  "prompt_sha256": "d4833d060f013e64de325e3fd381c116d5fb034b6e7bb78ed01811b379b7215b",
+  "true_views": 5,
+  "attempt": 1,
+  "notes": "Góc ne còn lộ cạnh mõm, không lộ mắt; e hơi chếch. Khí độc sáng rộng; chi tiết vảy nhỏ.",
+  "image_sha256": "dbb1002c01e3a0e541c3b385405b4db54225735ed5e549aac983e4a1f1a94a56",
+  "model": "unknown",
+  "raw_status": "NHẸ",
+  "reference": "PR #1083: art/src/phap-tuong/hao_thien_chuy/concept-turnaround-attempt2.png",
+  "true_views_note": "5 góc xoay phân biệt; sai lệch góc e/ne nêu trong notes và NGUON.md",
+  "width": 1983,
+  "height": 793,
+  "raw_check": {
+    "poses": 5,
+    "pose_spread": 1.05,
+    "palette_match_percent": 73,
+    "warnings": "texture mềm, chưa đúng lưới khối"
+  },
+  "eye": [
+    {
+      "sheet": "concept-attempt1",
+      "text": "hướng — se/e — hai góc gần giống nhau, e còn chếch trước"
+    },
+    {
+      "sheet": "concept-attempt1",
+      "text": "hướng — ne — còn lộ cạnh mõm; n nhìn lưng"
+    }
+  ],
+  "concept_only": true
+}
