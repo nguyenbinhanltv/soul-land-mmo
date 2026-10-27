@@ -1,0 +1,73 @@
+{
+  "species": "u_linh_hai_mau",
+  "sheet": "B",
+  "date": "2026-10-27",
+  "session": "soul-land-mmo-138",
+  "tool": "image_gen.imagegen tích hợp Codex",
+  "model_id": null,
+  "seed": null,
+  "tool_limitations": "Phản hồi công cụ không công bố model ID hoặc seed; không đoán.",
+  "attempts": 1,
+  "builtinCalls": 1,
+  "totalSpeciesImagegenCalls": 2,
+  "selected_attempt": 1,
+  "raw_file": "toB.png",
+  "output_path_returned_by_tool": "/Users/thanhhoa/.codex/generated_images/01a1797e-ed6d-76b0-8fda-be01563a0fe0/exec-309a32e1-33e3-4cc8-be45-17278adc0ef6.png",
+  "output_hint_returned_by_tool": "Generated images are saved to /Users/thanhhoa/.codex/generated_images/01a1797e-ed6d-76b0-8fda-be01563a0fe0 as /Users/thanhhoa/.codex/generated_images/01a1797e-ed6d-76b0-8fda-be01563a0fe0/exec-309a32e1-33e3-4cc8-be45-17278adc0ef6.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link.",
+  "sha256": "17b7b3d222dbf7a7f261de73b01056024467ef6f3679865ed0e20a9f4da20e67",
+  "width": 1254,
+  "height": 1254,
+  "bytes": 1824181,
+  "requested_aspect_ratio": "1:1",
+  "grid": [
+    6,
+    8
+  ],
+  "expected_visible_cells": 44,
+  "empty_cells": [
+    "H4 C5–6",
+    "H8 C5–6"
+  ],
+  "prompt_file": "toB.prompt.txt",
+  "prompt_sha256": "00974333a6df783f205f6b496d15b59c7dfff4f8e575885606bd8a34c66e7282",
+  "execution_prompt_text": "Create ONE image (square 1:1 aspect ratio; the exact pixel size does not matter): an animation sprite sheet of a single fantasy creature for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.\n\nCREATURE: U Linh Hải Mẫu - ghost jellyfish, translucent pale violet bell-shaped body with long trailing tentacles, floating. Body type: phù du, không chân (trôi, co bóp, xúc tu). Size class: Tím / Đen. Keep the SAME design, proportions, colors, markings and overall size as the references in every frame. Do not redesign it.\nREFERENCES (attached images, in this fixed order): image 1 = the static reference of this exact creature in three views (front, side, back): the identity, design, colors and overall size; image 2 = the approved first sheet (A) of this creature: match its design, colors, size and line weight exactly, but never copy its poses.\n\nBACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.\n\nGRID: 6 columns x 8 rows of equal invisible cells (171x128 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with the lowest point of its body (tentacle tips, belly or fins) on the same invisible baseline (nothing is drawn there) about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.\n\nLAYOUT (top to bottom):\nBlock 1 (rows 1-4): direction \"ne\" = facing the upper right of the picture (three-quarter back view, head away from the viewer toward the right).\n  row 1: frames 1-4 = IDLE (the body pulses slowly (the bell or head swells and relaxes), long tentacles trail and sway, the whole body bobs gently up and down in place); frames 5-6 = HURT (contracts sharply and is pushed a short way backward along its facing line while the tentacles flick, staying in the same floating posture).\n  row 2: frames 1-6 = WALK (drifts forward by rhythmic contractions (pulse in, then glide on), tentacles streaming behind it).\n  row 3: frames 1-6 = ATTACK (draws the bell back and contracts, then thrusts forward and lashes the long trailing tentacles out to sting, then drifts back).\n  row 4: frames 1-4 = DIE (the pulsing stops, the body slackens and slowly sinks along its facing line, the tentacles go limp and trail out, ending slack with the same body axis); the last 2 cells of this row stay empty magenta.\nBlock 2 (rows 5-8): direction \"n\" = facing away from the viewer (back view from above).\n  row 5: frames 1-4 = IDLE (the body pulses slowly (the bell or head swells and relaxes), long tentacles trail and sway, the whole body bobs gently up and down in place); frames 5-6 = HURT (contracts sharply and is pushed a short way backward along its facing line while the tentacles flick, staying in the same floating posture).\n  row 6: frames 1-6 = WALK (drifts forward by rhythmic contractions (pulse in, then glide on), tentacles streaming behind it).\n  row 7: frames 1-6 = ATTACK (draws the bell back and contracts, then thrusts forward and lashes the long trailing tentacles out to sting, then drifts back).\n  row 8: frames 1-4 = DIE (the pulsing stops, the body slackens and slowly sinks along its facing line, the tentacles go limp and trail out, ending slack with the same body axis); the last 2 cells of this row stay empty magenta.\n\nCONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, idle, moving and hurt frames keep the body at the same scale and the same baseline. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).\n\nDIRECTION RULES (every frame of a block, including HURT and DIE, keeps the block's direction): the body axis never rotates and the creature never turns to face the viewer. HURT keeps its own 2 animated frames but is only a short recoil backward along the facing line: the creature keeps its normal posture (floating upright, the body on top and the tentacles hanging below), never flips over, never shows its underside, never turns toward the viewer. DIE sinks slowly along the facing line and ends limp with the same body axis as idle; it never rotates the body 90 degrees to lie sideways across the view. In the \"ne\" and \"n\" blocks the creature is seen from behind: no eyes, nose, mouth or face is visible in any frame of those blocks, hurt and die included.\n\nSTYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.\n\nDO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions. This creature has NO legs, feet, paws, roots or ground contact: never draw any, and never draw water, waves or bubbles either.\n\nLESSONS (learned from earlier sheets of other creatures, follow every line):\n- Direction \"se\" is a three-quarter view: the body axis is turned about 45 degrees toward the lower right, the face is visible and looks diagonally down toward the viewer, so it clearly differs from \"e\" (pure side profile).\n- Direction \"ne\" is a three-quarter BACK view: the body axis is turned about 45 degrees away toward the upper right, the rump and back are nearest to the viewer, and it must not be drawn as a plain side profile.\n- Direction \"n\" is a pure back view: only the back of the head, back, rump and tail are visible.\n- Every direction e, se and ne faces the RIGHT side of the picture; never mirror them to face left.\n- HURT of a drifting creature is a sharp contraction plus a small push backward along the facing line, the tentacles flick, and it keeps floating upright. DIE is a slow sink along the facing line with the body going slack and the tentacles trailing limp; it stays legless and rootless in every frame and never ends lying on a floor.\n- Keep the body the same height and length in every row of the sheet, matching the reference; never let walking, attacking or hurt frames grow or shrink the creature.\n- Draw every frame as its own separate picture: leave clear magenta space between neighbours, never overlap or merge two creatures.\n- Idle frames must show a small visible change from frame to frame (breathing, sway), and HURT must look clearly different from IDLE.\n- A frame that is empty in the layout stays empty magenta: do not fill spare cells with extra poses.\n\nExecution addendum — approval scope and reference status:\nApproval scope: in this prompt, approved first sheet (A) means A1 approved by the coordinator solely as a technical identity/continuity reference after A-only checks. A1 is a technical candidate checked, not owner-art-approved, art-accepted or imported. No owner art approval is claimed. Follow the tool motion/direction instructions, not any erroneous poses in A.\n",
+  "original_tool_prompt_file": "toB.tool-prompt.txt",
+  "original_tool_prompt_sha256": "ab6c10b0dc2ae6394b25f3070d5110e0898469dc19c02103953e62e2246f0997",
+  "approvalScope": "technical-reference/by129",
+  "ownerArtApproval": false,
+  "artAccepted": false,
+  "imported": false,
+  "approvalAddendum": "Approval scope: in this prompt, approved first sheet (A) means A1 approved by the coordinator solely as a technical identity/continuity reference after A-only checks. A1 is a technical candidate checked, not owner-art-approved, art-accepted or imported. No owner art approval is claimed. Follow the tool motion/direction instructions, not any erroneous poses in A.",
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/u_linh_hai_mau.png",
+      "sha256": "6dfdc069ff6b7f96b8abda36420d5cfcea74c5d0e841f0cdb2b62fa05754733a",
+      "role": "static identity reference (image 1)"
+    },
+    {
+      "path": "art/src/beast-anim/u_linh_hai_mau/toA.png",
+      "sha256": "6910e0a8c4ca0bd56b1b2164829a26d428f0b977fb7d0a66cead8a2eff842e4d",
+      "role": "A1 technical identity/continuity reference approved by coordinator 129 only"
+    }
+  ],
+  "tool_parameters": {
+    "transparent_background": false,
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-1030-u-linh-hai-mau/shared/assets/sprites/beast/u_linh_hai_mau.png",
+      "/private/tmp/soul-land-mmo-1030-u-linh-hai-mau/art/src/beast-anim/u_linh_hai_mau/toA.png"
+    ],
+    "prompt_file": "toB.prompt.txt",
+    "prompt_sha256": "00974333a6df783f205f6b496d15b59c7dfff4f8e575885606bd8a34c66e7282",
+    "original_tool_prompt_file": "toB.tool-prompt.txt",
+    "original_tool_prompt_sha256": "ab6c10b0dc2ae6394b25f3070d5110e0898469dc19c02103953e62e2246f0997"
+  },
+  "postprocessing": "Không. Sao chép nguyên byte từ output path trả bởi chính call B1.",
+  "qa_status": "candidate; chưa chạy beast:check; A1 chỉ được duyệt làm technical reference bởi điều phối, chưa owner art-approved, chưa art-accepted/imported",
+  "selection_reason": "B1 là lượt đầu duy nhất được cấp.",
+  "execution_result": {
+    "output_path": "/Users/thanhhoa/.codex/generated_images/01a1797e-ed6d-76b0-8fda-be01563a0fe0/exec-309a32e1-33e3-4cc8-be45-17278adc0ef6.png",
+    "output_hint": "Generated images are saved to /Users/thanhhoa/.codex/generated_images/01a1797e-ed6d-76b0-8fda-be01563a0fe0 as /Users/thanhhoa/.codex/generated_images/01a1797e-ed6d-76b0-8fda-be01563a0fe0/exec-309a32e1-33e3-4cc8-be45-17278adc0ef6.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or link.",
+    "image_url_data_uri_scheme": "data:image/png;base64",
+    "image_url_data_uri_length": 2432266
+  }
+}

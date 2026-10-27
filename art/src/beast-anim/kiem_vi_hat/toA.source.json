@@ -1,0 +1,44 @@
+{
+  "species": "kiem_vi_hat",
+  "sheet": "A",
+  "attempt": "A1",
+  "stage": "sheet",
+  "session": "soul-land-mmo-136",
+  "task": "#1030 Kiếm Vĩ Hạt",
+  "tool": "image_gen.imagegen",
+  "image_model_id": "unknown",
+  "seed": "unknown",
+  "requested_dimensions": [
+    1024,
+    1536
+  ],
+  "actual_dimensions": [
+    948,
+    1659
+  ],
+  "bytes": 1985681,
+  "sha256": "c72d893d3efe0591c79b2491a67cb075310b22e15f98bc2f475697e75d8629b6",
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-c584da2d-a4be-4042-83b9-211ab6f0a669.png",
+  "raw_copy_byte_identical": true,
+  "postprocessing": "NONE",
+  "prompt_file": "toA.prompt.txt",
+  "exact_prompt_sha256": "7fb43cd1004c9ef6e2e2569d507a35708ff233480d5de22955cc5bd1f0fa9385",
+  "prompt_generator_command": "node tools/assets/beast-sheet-prompt.mjs --species kiem_vi_hat --stage sheet --out /private/tmp/kiem-vi-hat-prompt-review",
+  "prompt_generator_path": "tools/assets/beast-sheet-prompt.mjs",
+  "prompt_generator_sha256": "c9f3f5b42f62a5e30feb0f8354121ed24b9315a4aef7f4df64a27fc6a6a34aba",
+  "ordered_refs": [
+    {
+      "path": "shared/assets/sprites/beast/kiem_vi_hat.png",
+      "sha256": "deae08267f393ab93f5a7fc3397dfd66547aeca8745a35b172d98548071c033d",
+      "role": "static identity; only reference attached to A1"
+    }
+  ],
+  "transparent_background": false,
+  "counters": {
+    "worker_calls": 1,
+    "retry": 0,
+    "A": 1,
+    "B": 0,
+    "species_calls_after_this_sheet": 1
+  }
+}

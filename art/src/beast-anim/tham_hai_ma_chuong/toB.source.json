@@ -1,0 +1,129 @@
+{
+  "species": "tham_hai_ma_chuong",
+  "sheet": "toB",
+  "worker": "soul-land-mmo-143",
+  "issue": 1030,
+  "tool": "Codex built-in image_gen.imagegen",
+  "imageModel": "unknown (tool did not expose model)",
+  "seed": "unknown (tool did not expose seed)",
+  "attempts": 1,
+  "selected_attempt": 1,
+  "actual_calls_by_sheet": {
+    "toA": 1,
+    "toB": 1
+  },
+  "raw_file": "toB.png",
+  "sha256": "26f78a7ade4f2d3b6338e3565010afa16c6855f349aec36c5542d36dede006dc",
+  "bytes": 2126440,
+  "width": 1254,
+  "height": 1254,
+  "tool_limitations": "ImageGen did not expose model, seed, or a size selector.",
+  "prompt_file": "toB.prompt.txt",
+  "prompt_sha256": "14636ae5db8611c48b76409c2fef6a8dc878ae4e1dbab1920c71a1074e6124ff",
+  "original_prompt_doc": "tham_hai_ma_chuong-toB.md",
+  "original_prompt_doc_sha256": "64ea5c7128d4431d1369aedcb36f74df31d0ac559f69bf114296e0904f03089f",
+  "execution_addendum_file": "toB.execution-addendum.txt",
+  "execution_addendum_sha256": "aa4fa81470d469a0ab65adcec1ad3af367f41fdfd15b306e543acb4dff947039",
+  "prompt_generator_command": "node tools/assets/beast-sheet-prompt.mjs --species tham_hai_ma_chuong --stage sheet --dir ne,n --out art/src/beast-anim/tham_hai_ma_chuong",
+  "prompt_generator_base_sha": "6850da5b827631fb8a3dc33fff78fd9f47e03664",
+  "references": [
+    {
+      "order": 1,
+      "path": "shared/assets/sprites/beast/tham_hai_ma_chuong.png",
+      "absolute_path": "/private/tmp/soul-land-mmo-143-h4-1030-main-6850/shared/assets/sprites/beast/tham_hai_ma_chuong.png",
+      "sha256": "fc19f0b59589f24c4e76567de8d825ea3ac399a99cf91682b238bab97eaa87d1",
+      "role": "static identity reference; authoritative for identity, anatomy, design and colors"
+    },
+    {
+      "order": 2,
+      "path": "art/src/beast-anim/tham_hai_ma_chuong/toA.png",
+      "absolute_path": "/private/tmp/soul-land-mmo-143-h4-1030-main-6850/art/src/beast-anim/tham_hai_ma_chuong/toA.png",
+      "sha256": "30cbcb1da4f7cd9c403098cce2006e1c428539c325ab17efc50e8de18ac5d9fd",
+      "role": "A1 technical identity/continuity candidate only; not owner-art-approved, not accepted, not imported; do not copy poses"
+    }
+  ],
+  "attempt_history": [
+    {
+      "attempt": 1,
+      "status": "technical candidate with manual direction blocker (face visible in NE and N); not owner art-approved, not accepted, not imported",
+      "original_tool_output_path": "/Users/thanhhoa/.codex/generated_images/01a17a5e-149f-7193-9c8b-da1139c69056/exec-48fb34ff-bdc4-4530-8a0e-b70663891401.png",
+      "raw_copy": "toB.png",
+      "sha256": "26f78a7ade4f2d3b6338e3565010afa16c6855f349aec36c5542d36dede006dc",
+      "bytes": 2126440,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "copied_byte_identical": true,
+      "prompt_file": "toB.prompt.txt",
+      "prompt_sha256": "14636ae5db8611c48b76409c2fef6a8dc878ae4e1dbab1920c71a1074e6124ff",
+      "references": [
+        {
+          "order": 1,
+          "path": "shared/assets/sprites/beast/tham_hai_ma_chuong.png",
+          "sha256": "fc19f0b59589f24c4e76567de8d825ea3ac399a99cf91682b238bab97eaa87d1"
+        },
+        {
+          "order": 2,
+          "path": "art/src/beast-anim/tham_hai_ma_chuong/toA.png",
+          "sha256": "30cbcb1da4f7cd9c403098cce2006e1c428539c325ab17efc50e8de18ac5d9fd"
+        }
+      ],
+      "tool_response_note": "Full imagegen response stored in current AO turn before display. Exact output_hint preserved in this note; model and seed were not exposed.",
+      "output_hint": "Generated images are saved to /Users/thanhhoa/.codex/generated_images/01a17a5e-149f-7193-9c8b-da1139c69056 as /Users/thanhhoa/.codex/generated_images/01a17a5e-149f-7193-9c8b-da1139c69056/exec-48fb34ff-bdc4-4530-8a0e-b70663891401.png by default. If you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it. The generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+    }
+  ],
+  "postprocessing": false,
+  "owner_art_approval": false,
+  "technical_gate": "129 PASS technical-reference gate for identity/continuity only; not owner art approval.",
+  "checker_status": "A+B beast-sheet-check exit 0; overall light, 0 blockers; A light 0/2, B light 0/2",
+  "requested_aspect_ratio": "1:1 (prompt permits 1254x1254 or 1024x1024)",
+  "actual_aspect_ratio": "1:1",
+  "technical_findings": [
+    "Manual visual blocker: eyes and face are visible throughout both NE rows H1-H4 and N rows H5-H8, including hurt and die; prompt requires no visible face in either back-view block.",
+    "Manual visual note: hurt recoil is weak in B H1 (NE) C5-C6 and H5 (N) C5-C6.",
+    "Manual visual note: die frame D3 appears flattened/horizontal in B H4 (NE) C4 and H8 (N) C4; facing-axis sink is unclear.",
+    "Grid visually has 8 rows; each idle+hurt, walk, and attack row has 6 figures; each die row has 4 figures and 2 blank cells.",
+    "Automated checker: 0 blockers, 2 light findings. B 1254x1254 is accepted square size. Idle body scale is 112% vs static in both blocks, a light finding only.",
+    "A+B checker details and contact-sheet paths/hashes are included under checker_report. A float-leg baseline false-positive context remains in toA.source.json and NGUON findings."
+  ],
+  "manual_visual_review": {
+    "status": "reviewed from the displayed original tool output",
+    "blockers": [
+      "NE block: eyes/face visible",
+      "N block: eyes/face visible"
+    ],
+    "note": "No redraw, crop, resize, or retry."
+  },
+  "checker_report": {
+    "command": "node tools/assets/beast-sheet-check.mjs tham_hai_ma_chuong --dir art/src/beast-anim/tham_hai_ma_chuong --out /private/tmp/soul-land-mmo-143-check-tham-hai-ma-chuong-ab",
+    "exit_code": 0,
+    "report_path": "/private/tmp/soul-land-mmo-143-check-tham-hai-ma-chuong-ab/tham_hai_ma_chuong-check.json",
+    "report_sha256": "7f5b979da972b8b749c7f24c98d68676c8e85a01a416a2ff67474f5a76b0e80d",
+    "overall": "light; 0 blockers",
+    "sheets": {
+      "toA": {
+        "level": "light",
+        "blockers": 0,
+        "light": 2,
+        "notes": 2
+      },
+      "toB": {
+        "level": "light",
+        "blockers": 0,
+        "light": 2,
+        "notes": 2
+      }
+    },
+    "contact_sheets": [
+      {
+        "path": "/private/tmp/soul-land-mmo-143-check-tham-hai-ma-chuong-ab/tham_hai_ma_chuong-toA-lien-he.png",
+        "sha256": "0d2ddca94dc490fb8a3c25cc5a84d0cf21db09b55b7594eba2d5a12872905cdd"
+      },
+      {
+        "path": "/private/tmp/soul-land-mmo-143-check-tham-hai-ma-chuong-ab/tham_hai_ma_chuong-toB-lien-he.png",
+        "sha256": "bf43c6e57cffde9983df36b6ab7c1e44f884e915f2dab8001980df9bbf2b0fd0"
+      }
+    ]
+  }
+}
