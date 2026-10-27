@@ -21,7 +21,17 @@ Nộm từng tờ ở `references/`, concept lượt lớn nhất ở thư mục
 Kiểm từng lượt bằng `node tools/assets/phuthe-sheet-check.mjs bang_phuong_hoang --out <temp>/<lượt>/check` (tương đương `npm run phuthe:check -- bang_phuong_hoang --out ...`). Kết quả từng lượt trong source JSON không thay bằng kết quả cutter. Cắt thử bằng `phuthe-sheet-cut.mjs`, neo bằng `phuthe-anchor.mjs --source anim`, preview bằng `phuthe-sheet-preview.mjs`. Đầu ra: `C:/Users/PC/.ao/data/artifacts/soul_land_game-705/bang_phuong_hoang/`; trang `preview/index.html`, `preview/xoay-vong.html` có nam/nữ, đủ clip và hướng tây lật ngang. Preview chuẩn của công cụ ghép theo khung LPC; `anchor.json` tách riêng cho chủ repo chỉnh ráp, không khẳng định preview GIF đã áp neo mới.
 
 ## Quyết định và lỗi mắt
-Không nhập game; giữ nhánh cũ. A3 được chọn (0 chặn/32 nhẹ), A1/A2 vào candidates; B1–B3 đều chặn, dừng B ở 3/3 lượt. C/D/E dùng 1 lượt mỗi tờ, dừng vì cả võ hồn đã không đủ điều kiện nhập; không dùng tờ chặn làm ảnh dẫn. Cắt chẩn đoán 110 khung, 0 block/177 warn/3 info; B/D/E dùng gap+uniform-cols dự phòng, không phải đạt kiểm RAW. `--eye toA=phụ
+Không nhập game; giữ nhánh cũ. A3 được chọn (0 chặn/32 nhẹ), A1/A2 vào candidates; B1–B3 đều chặn, dừng B ở 3/3 lượt. C/D/E dùng 1 lượt mỗi tờ, dừng vì cả võ hồn đã không đủ điều kiện nhập; không dùng tờ chặn làm ảnh dẫn. Cắt chẩn đoán 110 khung, 0 block/177 warn/3 info; B/D/E dùng gap+uniform-cols dự phòng, không phải đạt kiểm RAW.
+
+Khai báo bằng mắt (`--eye` chưa có trong CLI, chỉ lưu hồ sơ):
+
+```text
+--eye "toA=phụ thể/nộm — toàn tờ — nộm nhỏ/thấp, thêm đầu/thân chim; s nghiêng phải"
+--eye "toB/toC=hướng/ghép — toàn tờ — se/e gần nhau, cast gần chính diện; cánh/đuôi xén"
+--eye "toD/toE=hướng — ne/n — lộ mặt chim; chỉ khai mắt, không sinh riêng để sửa mặt"
+```
+
+Đã xem khung giữa của đủ năm clip trên cả LPC nam/nữ: chim nằm cao, hướng gần nhau, cánh cast xén; neo lớn, không chứng nhận ráp đạt đẹp.
 
 ## Ghi công
 

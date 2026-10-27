@@ -3,7 +3,7 @@
 Ngày 2026-10-28. Công cụ **builtin image_gen.imagegen (Codex, Q44)**; model/seed `unknown`. RAW nguyên byte, không resize/hậu kỳ. Prompt nguyên khối text của `phuthe-sheet-prompt.mjs --stage direction --concept-ref`, không viết tay/addendum. Trước mỗi lượt thêm một bài học ngắn vào `art/src/phuthe-anim/lessons.md`.
 
 ## Tham chiếu và lượt
-Nộm từng tờ ở `references/`, concept lượt lớn nhất ở thư mục chính `art/src/vohon-v2/u_minh_linh_mieu/` (không candidates), rồi tờ A đã kiểm 0 chặn nếu có. Thứ tự và SHA256 từng tham chiếu, prompt, revision công cụ, toàn bộ kết quả kiểm nằm trong `.source.json` cạnh RAW. Nộm Băng Phượng Hoàng `#30D030`, vạch `#7A5CFF`; các màu của võ hồn khác theo prompt.
+Nộm từng tờ ở `references/`, concept lượt lớn nhất ở thư mục chính `art/src/vohon-v2/u_minh_linh_mieu/` (không candidates), rồi tờ A đã kiểm 0 chặn nếu có. Thứ tự và SHA256 từng tham chiếu, prompt, revision công cụ, toàn bộ kết quả kiểm nằm trong `.source.json` cạnh RAW. Nộm U Minh Linh Miêu `#00D0D0`, vạch `#FF8C00`.
 
 | RAW | Chặn / nhẹ | SHA256 ảnh | SHA256 prompt |
 |---|---|---|---|
@@ -20,7 +20,16 @@ Nộm từng tờ ở `references/`, concept lượt lớn nhất ở thư mục
 Kiểm từng lượt bằng `node tools/assets/phuthe-sheet-check.mjs u_minh_linh_mieu --out <temp>/<lượt>/check` (tương đương `npm run phuthe:check -- u_minh_linh_mieu --out ...`). Kết quả từng lượt trong source JSON không thay bằng kết quả cutter. Cắt thử bằng `phuthe-sheet-cut.mjs`, neo bằng `phuthe-anchor.mjs --source anim`, preview bằng `phuthe-sheet-preview.mjs`. Đầu ra: `C:/Users/PC/.ao/data/artifacts/soul_land_game-705/u_minh_linh_mieu/`; trang `preview/index.html`, `preview/xoay-vong.html` có nam/nữ, đủ clip và hướng tây lật ngang. Preview chuẩn của công cụ ghép theo khung LPC; `anchor.json` tách riêng cho chủ repo chỉnh ráp, không khẳng định preview GIF đã áp neo mới.
 
 ## Quyết định và lỗi mắt
-Đã nhập kỹ thuật theo chủ repo duyệt 28/10 để chủ repo chỉnh ráp: A3/B1/C2/D1/E1 đều 0 chặn, số nhẹ lần lượt 28/37/34/28/30. A 3/3 lượt (chọn A3), B/D/E 1 lượt, C 2 lượt (C1 dính attack 2/6 hình, C2 đạt). Tờ loại lưu candidates, không dùng làm ảnh dẫn. B/C/D dùng A3; E dùng D1 đã đạt kiểm. Nộm #00D0D0, vạch #FF8C00. Cutter 110 khung, 0 block/119 warn/0 info, A–E đều gap, không lưới đều dự phòng. Dùng mặt nạ mặc định theo vùng của công cụ, không có lop.json riêng. Neo source anim nằm ở artifact và được phuthe-import gộp vào bảng game. Chạy phuthe-import hai lần: lần hai giữ ảnh và manifest; không đổi client/server. `--eye toA/toB/toC=phụ
+Đã nhập kỹ thuật theo chủ repo duyệt 28/10 để chủ repo chỉnh ráp: A3/B1/C2/D1/E1 đều 0 chặn, số nhẹ lần lượt 28/37/34/28/30. A 3/3 lượt (chọn A3), B/D/E 1 lượt, C 2 lượt (C1 dính attack 2/6 hình, C2 đạt). Tờ loại lưu candidates, không dùng làm ảnh dẫn. B/C/D dùng A3; E dùng D1 đã đạt kiểm. Cutter 110 khung, 0 block/119 warn/0 info, A–E đều gap, không lưới đều dự phòng. Dùng mặt nạ mặc định theo vùng của công cụ, không có lop.json riêng. Neo source anim nằm ở artifact và được phuthe-import gộp vào bảng game. Chạy phuthe-import hai lần: lần hai giữ ảnh và manifest; không đổi client/server. Game thêm `vhanim_u_minh_linh_mieu_b/f`, giữ ảnh phụ thể cũ để fallback.
+
+Khai báo bằng mắt (`--eye` chưa có trong CLI, chỉ lưu hồ sơ):
+
+```text
+--eye "toA/toB/toC=phụ thể/nộm — toàn tờ — nguyên con linh miêu thay vì chỉ tai/đuôi/vuốt; nộm nhỏ/thấp, vệt chém, se/e gần nhau, cast gần chính diện"
+--eye "toD/toE=hướng — ne/n — lộ mặt linh miêu; chỉ khai mắt, không sinh riêng để sửa mặt"
+```
+
+Đã xem khung giữa của đủ năm clip trên cả LPC nam/nữ: linh miêu che thân; cỡ, điểm gắn và hướng cần chủ repo chỉnh ráp, chưa chứng nhận đạt đẹp. Đã mở trang thử trong client nhưng canvas AO Browser chưa vẽ nhân vật; ảnh chụp trống không dùng làm bằng chứng đạt trong game.
 
 ## Ghi công
 

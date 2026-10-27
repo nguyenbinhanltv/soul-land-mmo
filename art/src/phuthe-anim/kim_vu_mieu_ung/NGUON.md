@@ -3,7 +3,7 @@
 Ngày 2026-10-28. Công cụ **builtin image_gen.imagegen (Codex, Q44)**; model/seed `unknown`. RAW nguyên byte, không resize/hậu kỳ. Prompt nguyên khối text của `phuthe-sheet-prompt.mjs --stage direction --concept-ref`, không viết tay/addendum. Trước mỗi lượt thêm một bài học ngắn vào `art/src/phuthe-anim/lessons.md`.
 
 ## Tham chiếu và lượt
-Nộm từng tờ ở `references/`, concept lượt lớn nhất ở thư mục chính `art/src/vohon-v2/kim_vu_mieu_ung/` (không candidates), rồi tờ A đã kiểm 0 chặn nếu có. Thứ tự và SHA256 từng tham chiếu, prompt, revision công cụ, toàn bộ kết quả kiểm nằm trong `.source.json` cạnh RAW. Nộm Băng Phượng Hoàng `#30D030`, vạch `#7A5CFF`; các màu của võ hồn khác theo prompt.
+Nộm từng tờ ở `references/`, concept lượt lớn nhất ở thư mục chính `art/src/vohon-v2/kim_vu_mieu_ung/` (không candidates), rồi tờ A đã kiểm 0 chặn nếu có. Thứ tự và SHA256 từng tham chiếu, prompt, revision công cụ, toàn bộ kết quả kiểm nằm trong `.source.json` cạnh RAW. Nộm Kim Vũ Miêu Ưng `#00D0D0`, vạch `#7A5CFF`.
 
 | RAW | Chặn / nhẹ | SHA256 ảnh | SHA256 prompt |
 |---|---|---|---|
@@ -19,7 +19,17 @@ Nộm từng tờ ở `references/`, concept lượt lớn nhất ở thư mục
 Kiểm từng lượt bằng `node tools/assets/phuthe-sheet-check.mjs kim_vu_mieu_ung --out <temp>/<lượt>/check` (tương đương `npm run phuthe:check -- kim_vu_mieu_ung --out ...`). Kết quả từng lượt trong source JSON không thay bằng kết quả cutter. Cắt thử bằng `phuthe-sheet-cut.mjs`, neo bằng `phuthe-anchor.mjs --source anim`, preview bằng `phuthe-sheet-preview.mjs`. Đầu ra: `C:/Users/PC/.ao/data/artifacts/soul_land_game-705/kim_vu_mieu_ung/`; trang `preview/index.html`, `preview/xoay-vong.html` có nam/nữ, đủ clip và hướng tây lật ngang. Preview chuẩn của công cụ ghép theo khung LPC; `anchor.json` tách riêng cho chủ repo chỉnh ráp, không khẳng định preview GIF đã áp neo mới.
 
 ## Quyết định và lỗi mắt
-Không nhập game; giữ nhánh cũ. A đủ 3/3 lượt vẫn chặn (A1 cast dính, A2 không dò đủ hàng, A3 chặn nộm/khung). B1 đạt 0 chặn/26 nhẹ và được dùng làm ảnh dẫn C/D/E; A hỏng không được dùng. C/D/E mỗi tờ 1 lượt rồi dừng vì A đã không đủ điều kiện nhập; C/D nom-mat 22 chặn, E attack 5/6 hình. Cắt chẩn đoán chọn A1 + B1/C1/D1/E1, 110 khung, 0 block/96 warn/2 info; A/E dùng gap+uniform-cols dự phòng. Nộm cyan #00D0D0, vạch #7A5CFF. `--eye toA=ghép
+Không nhập game; giữ nhánh cũ. A đủ 3/3 lượt vẫn chặn (A1 cast dính, A2 không dò đủ hàng, A3 chặn nộm/khung). B1 đạt 0 chặn/26 nhẹ và được dùng làm ảnh dẫn C/D/E; A hỏng không được dùng. C/D/E mỗi tờ 1 lượt rồi dừng vì A đã không đủ điều kiện nhập; C/D nom-mat 22 chặn, E attack 5/6 hình. Cắt chẩn đoán chọn A1 + B1/C1/D1/E1, 110 khung, 0 block/96 warn/2 info; A/E dùng gap+uniform-cols dự phòng.
+
+Khai báo bằng mắt (`--eye` chưa có trong CLI, chỉ lưu hồ sơ):
+
+```text
+--eye "toA=ghép — toàn tờ — nộm nhỏ, vuốt thấp gần chân"
+--eye "toB/toC=phụ thể/nộm — toàn tờ — thêm đầu/thân chim, se/e gần nhau; cyan còn trong bản cắt e"
+--eye "toD/toE=hướng/ghép — ne/n — lộ mặt chim, cyan sót trên LPC; chỉ khai mắt, không sinh riêng để sửa mặt"
+```
+
+Đã xem khung giữa của đủ năm clip trên cả LPC nam/nữ: chim che người, nộm sót ở e/ne/n và đường cắt sai; không chứng nhận ráp đạt đẹp.
 
 ## Ghi công
 
