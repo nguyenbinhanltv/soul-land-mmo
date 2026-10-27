@@ -40,9 +40,9 @@ Các khai báo dưới đây cũng lưu trong trường `eye` của source JSON.
 
 ## Chân dung lượt 1 — #1158
 
-Ngày 2026-10-27; 1/3 lượt. builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `portrait-attempt1.png`, SHA256 `84094617aa8c64f9c85fd1746c1cf6662a591d123b08f1e4f1360c1819d3c85d`. Prompt CLI nguyên văn `portrait-attempt1.prompt.txt`, SHA256 `2d826b526b120e6b7a6c942390f594bea211b41332cf089972406c5c8b9843f0`; không viết tay, không addendum. Ảnh neo ngoại hình: `concept-attempt1.png`, SHA256 `de239894a83bfeeb5b0d099fd2869980fb2c6a6d31ea58bc18cdfe2be15624a8`. Hồ sơ lệnh và kết quả kiểm: `portrait-attempt1.source.json`.
+Ngày 2026-10-27; 1/3 lượt. builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `candidates/portrait-attempt1.png`, SHA256 `84094617aa8c64f9c85fd1746c1cf6662a591d123b08f1e4f1360c1819d3c85d`. Prompt CLI nguyên văn `candidates/portrait-attempt1.prompt.txt`, SHA256 `e5466acd1864c905eb0d18bf044c443a17a66f919f5b37c39544bd80a74af354`; không viết tay, không addendum. Ảnh neo ngoại hình: `concept-attempt1.png`, SHA256 `de239894a83bfeeb5b0d099fd2869980fb2c6a6d31ea58bc18cdfe2be15624a8`. Hồ sơ lệnh và kết quả kiểm: `candidates/portrait-attempt1.source.json`.
 
-P1c: `--preset portrait`; bản thử `portrait-attempt1-P1c/yeu_ho-portrait.png`, 64×64, 8 màu, giữ 8/8 điểm sáng. Xem `portrait-attempt1-P1c/preview/index.html` và `so-sanh.png`. Chưa được chủ repo duyệt mỹ thuật, chưa nhập game. Không sửa RAW.
+P1c: `--preset portrait`; bản thử `candidates/portrait-attempt1-P1c/yeu_ho-portrait.png`, 64×64, 8 màu, giữ 8/8 điểm sáng. Xem `candidates/portrait-attempt1-P1c/preview/index.html` và `so-sanh.png`. Chưa được chủ repo duyệt mỹ thuật, chưa nhập game. Không sửa RAW.
 
 ### Khai báo duyệt mắt chân dung (`--eye`)
 
@@ -50,4 +50,10 @@ Công cụ vohon:check chưa có cờ --eye; chỉ khai tại đây, không đ�
 
 ```text
 --eye "portrait-attempt1=góc nhìn — chính diện; quầng/đuôi hồng rộng và đạo ấn sáng tranh mắt, tai sát mép; cần duyệt độ tách nền"
+```
+
+**Kết luận chân dung:** lượt 1 chưa đạt brief, toàn bộ ở `candidates/`; chưa có chân dung cuối được chọn. Prompt lưu UTF-8 LF theo Git, chỉ chuẩn hóa xuống dòng so với chuỗi CLI; SHA256 chuỗi gửi ban đầu `2d826b526b120e6b7a6c942390f594bea211b41332cf089972406c5c8b9843f0`, SHA256 file prompt Git `e5466acd1864c905eb0d18bf044c443a17a66f919f5b37c39544bd80a74af354`. Không sửa nội dung prompt.
+
+```text
+--eye "portrait-attempt1=bản P1c — 64×64 — mất nhiều khối tối; điểm mắt/đầu chưa tách rõ, chưa đạt brief; giữ làm candidate"
 ```
