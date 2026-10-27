@@ -1,6 +1,6 @@
 # Bảng Xếp Hạng nhiều hạng mục
 
-Màn **Xếp Hạng** gom mọi bảng xếp hạng vào một chỗ: nhóm hạng mục bên trái, bục top 3, bảng điểm, dòng "của tôi" ghim đáy. Bảng đã có (đấu trường, cộng minh, tông tuần) giữ nguyên luật và tin; tài liệu này thêm hạng mục mới, khung màn chung và đường tính / lưu. Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; mọi tên đánh dấu *(đề xuất)* chưa tồn tại, đặt khi làm). Số issue ở cuối file. **Chỉ là thiết kế, chưa có code.**
+Màn **Xếp Hạng** gom mọi bảng xếp hạng vào một chỗ: nhóm hạng mục bên trái, bục top 3, bảng điểm, dòng "của tôi" ghim đáy. Bảng đã có (đấu trường, cộng minh, tông tuần) giữ nguyên luật và tin; tài liệu này thêm hạng mục mới, khung màn chung và đường tính / lưu. Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; mọi tên đánh dấu *(đề xuất)* chưa tồn tại, đặt khi làm). Số issue ở cuối file. **Trạng thái:** X0, X1 (một phần), X2 đã có code ở server (Cấp, Sưu tầm, tin `rank`; chưa có UI); phần còn lại vẫn là thiết kế.
 
 Tham chiếu bố cục: ảnh 14 (bảng xếp hạng) trong bộ tham chiếu UI của #877; chỉ học bố cục, không chép.
 
@@ -138,8 +138,19 @@ Chất liệu: màn đầy khung nên **Mực** có tấm Giấy cho bảng đi�
 
 Mỗi bước server sửa **cả** `PgStore` và `MemoryStore`, thêm hàng vào bảng tin ở `giao-thuc-server.md`, và (khi sửa MapRoom) tránh phình file: đặt logic ở `server/src/rooms/rank.ts` *(đề xuất)* như `tong.ts` / `team.ts` (#702).
 
+### Quyết định của chủ repo (28/10, "tất cả theo đề xuất", câu hỏi #1191)
+1. **Thưởng hạng:** v1 chỉ danh hiệu hiển thị theo tuần, không thưởng vật phẩm / Hồn Tệ.
+2. **Đội hình công khai:** 4 ô, mỗi ô chỉ mã võ hồn, cấp, sao; không lộ gì khác (đã làm ở X2: `rank_scores.extra`, `RankLineupSlot`).
+3. **Điểm danh / Lịch / Phúc Lợi** (xem `docs/design/phuc-loi.md` nếu có): chu kỳ riêng mỗi tài khoản từ lần ký đầu, mốc 7 / 14 / 21 theo số thứ tự ô (ký bù ô 7 vẫn có mốc); ký bù = lượt miễn phí mỗi chu kỳ + lượt trả Hồn Tệ lũy tiến, trần số ô ký bù do skill `balance-review` đề xuất, hằng ở `shared/data.ts`; v1 Lịch chỉ liệt kê sự kiện đã có, GM đặt sự kiện tạm / nhân thưởng làm sau.
+
+### Đã làm (X2, phần server)
+- `rank_scores` (`037_xep_hang.sql`), `Store.rankPut / rankTop / rankMe` ở `PgStore` và `MemoryStore`; hằng và hàm thuần `RANK_BOARDS` (Cấp, Sưu tầm), `rankScores`, `rankCompare`, `RANK_PAGE_SIZE / _MAX`, `RANK_CD`, `RANK_SYNC_CD` ở `shared/data.ts`.
+- `server/src/rooms/rank.ts`: `rankSync` (ghi lúc vào phòng, sau lần lưu thành công, lúc rời phòng; không giữa trận; nhịp `RANK_SYNC_CD`) và `rankAction` (tin `rank`). `ArenaRoom` chặn tin `rank`.
+- Chưa làm: `powerScore` và hạng mục Sức mạnh (X3), UI (X4), soát chống gian lận + đo tải (X5), Thợ săn tuần / Boss thế giới (X6), bộ nối Elo / cộng minh / tông tuần ở client.
+- Kiểm thử: `npm run test:rank --prefix server` (phần thuần + `MemoryStore`), `npm run bot:local -- --only rank [--pg]`.
+
 ### Câu hỏi mở
-Gom ở mô tả PR; tóm tắt cho tài liệu này: (1) có thưởng gì cho thứ hạng không; (2) cột "Đội hình" có công khai không.
+Còn lại: trọng số RANK_POWER *(đề xuất)* cho Sức mạnh (X3), qua skill `balance-data`.
 
 ## Lịch sử / issue liên quan
 - Khung màn và hạng mục: bộ spec UI (#877, mục 3 dòng 10).

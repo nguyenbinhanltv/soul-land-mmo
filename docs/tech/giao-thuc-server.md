@@ -32,6 +32,7 @@ Mọi tin đăng ký trong `MapRoom.onCreate` (`onMessage` / `onLimitedMsg(nhóm
 | `auto`, `offline` | mở bảng Tự động, bật / tắt / đổi cấu hình tự săn; xin báo cáo ủy thác | - / read | `autoHunt.ts` `autoAction`, `sendOffline` |
 | `vohons`, `team`, `switch`, `loadout` | mở bảng võ hồn; đổi đội hình, võ hồn ra trận, hồn kỹ | read / social | `team.ts`, `setLoadout` |
 | `stats`, `fog`, `boss`, `talk`, `resonance`, `shardinfo` | xin dữ liệu riêng (bảng Nhân vật, sương mù, boss lúc vào phòng, NPC, cộng minh, mảnh đã đổi) | read | `sendStats`, `sendFog`, `sendBossJoin`, `talkNpc`, `team.ts` `sendRes` / `resonanceTop`, `shop.ts` `sendShardInfo` |
+| `rank` | Bảng Xếp Hạng (mục 5.19): `{op:"boards"}` danh mục hạng mục, `{op:"top", board, page?, pageSize?}` một trang (Cấp `cap`, Sưu tầm `suu_tam`); nhịp `RANK_CD`, hạng mục lạ bị từ chối bằng `log`; `ArenaRoom` chặn | read | `rank.ts` `rankAction` |
 | `bag` | xin cả túi (theo `ASK_CD`) | - | `bag.ts` `sendBag` |
 | `pickup`, `discard`, `sortbag`, `lock`, `autosell`, `use`, `open`, `unlock`, `starup` | thao tác túi, mở khóa / thăng sao võ hồn | bag | `pickup`, `discardItem`, `sortBag`, `lockItem`, `setAutoSell`, `useItem`, `openChest`, `unlockVohon`, `starUp` |
 | `absorb` | hấp thụ hồn hoàn | bag | `absorb.ts` `tryAbsorb` |
@@ -60,6 +61,7 @@ Client nghe ở `GameScene.ts` (`room.onMessage`, buffer lúc vào ở `roomBuff
 | `vohons`, `squad`, `ko` | riêng | võ hồn sở hữu + đội hình; trạng thái đội; võ hồn gục và võ hồn kế | `team.ts`, `MapRoom.ts` |
 | `stats` | riêng | chỉ số tổng hợp bảng Nhân vật | `MapRoom.ts` |
 | `resonance`, `resonanceTop` | riêng | tiến độ cộng minh; bảng xếp hạng | `team.ts` |
+| `rank` (`k:"boards"`), `rankTop` | riêng | danh mục hạng mục `list: {board, group, name, period}`; một trang `{board, period, page, pageSize, total, hasNext, asOf, rows: {rank, name, score, tong?, lineup: {vohon, level, stars}[], me}[], me: {rank, score, at} \| null}` (dòng công khai không có Hồn Tệ, túi, bản đồ, kênh, vị trí; `me` chỉ gửi cho chính chủ) | `rank.ts` |
 | `absorbing` | riêng | bắt đầu / hủy / kết quả hấp thụ hồn hoàn | `absorb.ts` |
 | `auto`, `autost`, `offline` | riêng | bảng Tự động; việc tự săn đang làm + thống kê; báo cáo ủy thác khi vào | `MapRoom.ts`, `autoStatus.ts` |
 | `fusion` | riêng | `k`: `ask`, `wait`, `cancel`, `done` của Dung Hợp Kỹ | `MapRoom.ts` |
