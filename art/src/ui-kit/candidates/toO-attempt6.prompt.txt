@@ -1,0 +1,34 @@
+A sheet of 12 separate item and skill slot pieces for a pixel-art game user interface, square 1:1 aspect ratio. Each piece is its own separate object on the sheet.
+LAYOUT: 3 rows, row 1: 3 pieces; row 2: 5 pieces; row 3: 4 pieces; read left to right, top to bottom, in exactly this order:
+  1.1  empty item slot
+  1.2  item slot holding an item (a plain neutral gem shape as the item)
+  1.3  selected item slot
+  2.1  rarity 1 item slot border (plain)
+  2.2  rarity 2 item slot border
+  2.3  rarity 3 item slot border
+  2.4  rarity 4 item slot border
+  2.5  rarity 5 item slot border (most ornate)
+  3.1  skill slot, ready
+  3.2  skill slot, on cooldown
+  3.3  skill slot, locked
+  3.4  skill slot, not enough spirit power
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no glow, no vignette, no frame or border around the image.
+STYLE: pixel-art game interface in an isometric Ultima Online mood mixed with Chinese ink-wash xianxia (Douluo Dalu setting); sharp pixel edges, palette of at most 32 colours, one thick consistent dark outline (#1a1020), pale bronze rim, no blur, no large gradients.
+MATERIAL: INK material: near-black wood with faint ink-wash grain, pale bronze rim.
+DO NOT DRAW: text, numbers, letters, logos, labels, glow, drop shadow, particles, characters, hands, extra pieces, a border around the sheet.
+
+LESSONS (learned from earlier sheets, follow every line):
+- Draw no text, numbers, letters, glyphs, runes, logos or symbols that could be read as characters anywhere in the image; where a label would go, draw an empty bar or a flat block of colour.
+- Keep at least five percent of the image width of empty magenta between neighbouring pieces and between any piece and the image edge; never let two pieces touch.
+- Arrange the pieces on an even grid, left to right, top to bottom, exactly in the order and row counts given; draw each piece once, never repeat, mirror or crop a piece.
+- Cast no shadow and no glow onto the magenta background; a soft shadow or halo turns into a pink fringe after the background is keyed out.
+- Limit the whole image to a small palette of at most 32 colours with one consistent dark outline (#1a1020); sharp pixel edges, no anti-aliased blur, no large gradients, no noise texture.
+- Two materials share the same corner set, outline weight and bronze rim: INK (near-black wood with ink-wash grain, pale bronze rim) and PAPER (ivory rice paper, thin vermilion rim, wooden roller); only the fill and the text colour differ.
+- Match the style, materials and palette of the attached approved reference exactly; never copy its layout.
+- Rarity borders must differ by shape (corner style or a small notch mark) as well as by colour, never colour alone.
+- The four skill-slot states must be distinguishable in greyscale: ready is bright with a lit rim, cooldown is dimmed with a clear dark overlay quarter, locked is flat grey with a small padlock-like notch, no-mana is bright but with a blue-grey tint and a broken rim.
+- Make the outer outline a fully opaque hard-edged dark pixel staircase directly against pure magenta, with no antialiasing, blended pink pixels or translucent fringe.
+- Shrink every slot to at most seventy percent of its grid cell, leaving broad uninterrupted magenta gutters even across the five-slot rarity row.
+- Fill every slot interior with one completely uniform dark ink colour, without grain, cloud marks or a central light spot.
+- Separate the entire silhouette from magenta with a thick fully opaque near-black stepped outline and no colour blending at the boundary.
+- Make each complete slot including ornaments occupy only half of its cell width, leaving wide clear magenta space around every side.

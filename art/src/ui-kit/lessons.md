@@ -40,3 +40,18 @@
 - [O] Shrink every slot to at most seventy percent of its grid cell, leaving broad uninterrupted magenta gutters even across the five-slot rarity row. // O lượt 1 và 2: hàng độ hiếm quá sát nhau
 - [T] The empty text input box uses a dark ink interior matching the three empty bar frames, never an ivory paper fill; the scrollbar thumb is pale bronze. // T lượt 1: ô nhập sai chất liệu Mực
 - [T] The three second-row bar fills are bare flat solid red, blue and gold strips without bronze frames, corners, medallions or end caps; only the three first-row empty frames carry ornaments. // T lượt 1 và 2: ruột thanh bị vẽ thêm khung
+- [F] Use a completely constant solid bronze band on each straight side, with all ornament strictly outside the stretchable band. // F đợt 2 lượt 1: sáu cạnh bị chặn
+- [F] End every silhouette with fully opaque near-black ink pixels directly touching pure magenta, without any blended pink transition. // F đợt 2 lượt 2: viền hồng 32,8 phần trăm
+- [F] Keep each frame inside the central seventy percent of its cell to preserve broad uninterrupted magenta gutters. // F lượt 3: khoảng cách thiếu
+- [N] Make straight button sides plain constant bronze strips, reserving all ornamental pixels for tiny identical corner blocks. // N lượt 3 cũ: cả 12 cạnh bị chặn
+- [N] Place a solid opaque near-black outline between bronze and magenta with absolutely no intermediate pink edge pixels. // N attempt4: viền hồng 42,4 phần trăm
+- [N] Shrink each button to sixty percent of its cell width so even the five-button rows retain broad pure-magenta gutters. // N attempt5: hai hàng nút vẫn quá sát
+- [N] Keep every selected and disabled state within the same compact corner geometry and use one unbroken flat rim colour per straight segment. // N attempt6: cạnh và góc còn lệch
+- [O] Fill every slot interior with one completely uniform dark ink colour, without grain, cloud marks or a central light spot. // O lượt 3 cũ: ruột có vân khi soát mắt
+- [O] Separate the entire silhouette from magenta with a thick fully opaque near-black stepped outline and no colour blending at the boundary. // O attempt4: viền hồng 45,9 phần trăm
+- [O] Make each complete slot including ornaments occupy only half of its cell width, leaving wide clear magenta space around every side. // O attempt5: cả ba hàng còn khoảng cách thiếu
+- [O] Keep the complete canvas strictly square even when five pieces must share the rarity row. // O attempt6: sai tỉ lệ 3:2
+- [T] Keep every empty bar frame and input interior one flat dark ink colour without any grain, motif or bright centre. // T lượt 3 cũ: ruột chia 9 chạm trần
+- [T] Draw the straight rims of bar frames and the input as uninterrupted constant bronze bands; keep decorative shapes entirely inside tiny corner areas. // T attempt4: bốn cạnh co giãn bị chặn
+- [T] Use only opaque near-black stepped pixels at the outer silhouette, with no antialiasing or pink blend against the magenta background. // T attempt5: viền hồng 27,3 phần trăm
+- [T] Keep the scrollbar thumb compact and structurally separate from its thin track so the thumb cannot dominate the measured rim thickness. // T attempt6: thanh cuộn đo viền quá dày
