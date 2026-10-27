@@ -1,0 +1,33 @@
+{
+  "species": "y_la_hoa_yeu",
+  "sheet": "A",
+  "attempt": 1,
+  "generator": "Codex image_gen built-in",
+  "model": "unknown",
+  "seed": "unknown",
+  "transparent_background": false,
+  "invocation": {
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-1030-y-la-hoa-yeu/shared/assets/sprites/beast/y_la_hoa_yeu.png"
+    ]
+  },
+  "references": [
+    {
+      "role": "static species reference",
+      "path": "shared/assets/sprites/beast/y_la_hoa_yeu.png",
+      "sha256": "d46e0462191860be2e0c3c307df73e23eef0eb5ce689476a8fe2b2b4fc235f74"
+    }
+  ],
+  "prompt_file": "toA-a1.prompt.txt",
+  "prompt_sha256": "f08d2986359df775c7b83efaec3f1c1c217a62acd6ef60e276a1a4865fb31ac8",
+  "raw_file": "toA-a1.png",
+  "raw_sha256": "051f7dfd0916270cf4a8cf0ddc6db722b4b14cd813322bed453a98c17f370497",
+  "original_output_path": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-cead4d12-38f5-453e-aade-c1365f940046.png",
+  "tool": "image_gen.imagegen (built-in)",
+  "attempts": 2,
+  "tool_limitations": "Model và seed không được tool công bố; kích thước chỉ định trong prompt.",
+  "selected_attempt": false,
+  "findings": [
+    "A1 checker: hình tràn vào ô trống H4(s) C5-C6 và H8(se) C5-C6."
+  ]
+}

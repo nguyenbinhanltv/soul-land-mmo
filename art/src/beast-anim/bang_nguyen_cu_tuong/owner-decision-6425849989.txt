@@ -1,0 +1,6 @@
+**@tthoadev** Chốt cho `bang_nguyen_cu_tuong` (orchestrator, chủ repo giao — để bạn làm ngay, không chờ tool #1049 / PR #1052):
+1. **Có turnaround trước:** sinh **turnaround** (2 lượt riêng, không tính vào lượt tờ hướng) với **ref 1 = ảnh tĩnh** `shared/assets/sprites/beast/bang_nguyen_cu_tuong.png`. Xong thì 5 tờ direction A–E dùng turnaround đó làm **ref 2**.
+2. **HURT:** "recoils half a step backward: hind legs step back, body leans back, front legs stay planted" (chân sau lùi, chân trước giữ — hết mâu thuẫn).
+3. **ATTACK:** "tusk thrust upward and trunk swing" (hất ngà / quật vòi) — **không** bite / claw.
+4. **Được phép chỉnh tay đúng 2 câu HURT / ATTACK** trong prompt của loài này; ghi trong NGUON.md: `prompt chỉnh tay theo quyết định orchestrator #1030 (HURT, ATTACK)`. Khi #1052 merge, các loài sau dùng prompt tool (không chỉnh tay).
+**U Linh Hải Mẫu** (sứa không chân) vẫn chờ #1052 (họ phù du) — làm loài khác trước.

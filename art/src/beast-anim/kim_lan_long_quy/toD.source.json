@@ -1,0 +1,65 @@
+{
+  "species": "kim_lan_long_quy",
+  "sheet": "D",
+  "attempt": 1,
+  "worker": "soul-land-mmo-136",
+  "issue": 1030,
+  "raw_file": "toD.png",
+  "sha256": "29107406646f481e24d16795771c9946f339a08b7da6e750e14e83928439ef4d",
+  "bytes": 1879662,
+  "width": 1536,
+  "height": 1024,
+  "requested_aspect_ratio": "3:2",
+  "tool": "builtin Codex image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "attempts": 1,
+  "prompt_file": "toD.prompt.txt",
+  "prompt_sha256": "4fe34467a89415273c908d64bbb96ded96b14d8d5780a37518a9819c2fd5509c",
+  "transparent_background": false,
+  "reference": {
+    "path": "shared/assets/sprites/beast/kim_lan_long_quy.png",
+    "sha256": "af86fae543db4c09f3db4f2b087cb4669e974c1b282e240036d252c90b5a9df6"
+  },
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-5fcb5b01-e617-452b-9e17-09588ab0c61a.png",
+  "postprocessing": "Không; sao chép nguyên byte PNG.",
+  "check": "chưa chạy beast:check",
+  "manualFindings": [
+    "D/ne: có vẻ lộ mắt/mặt ở một số khung khi soát mắt; cần đối chiếu tờ liên hệ."
+  ],
+  "selected_attempt": 1,
+  "counters": {
+    "A": 1,
+    "B": 1,
+    "C": 1,
+    "D": 1,
+    "E": 0,
+    "species_total": 4
+  },
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/kim_lan_long_quy.png",
+      "role": "static identity",
+      "sha256": "af86fae543db4c09f3db4f2b087cb4669e974c1b282e240036d252c90b5a9df6"
+    },
+    {
+      "path": "art/src/beast-anim/kim_lan_long_quy/toA.png",
+      "role": "A candidate consistency reference; not owner-approved",
+      "sha256": "11d32b19d870f1faa4dbbb17e8d1d5d1f23117287cae1c7e9f4c13ace69240db"
+    }
+  ],
+  "history": [
+    {
+      "attempt": 1,
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-5fcb5b01-e617-452b-9e17-09588ab0c61a.png",
+      "raw_file": "toD.png",
+      "prompt_file": "toD.prompt.txt",
+      "sha256": "29107406646f481e24d16795771c9946f339a08b7da6e750e14e83928439ef4d",
+      "prompt_sha256": "4fe34467a89415273c908d64bbb96ded96b14d8d5780a37518a9819c2fd5509c",
+      "bytes": 1879662,
+      "width": 1536,
+      "height": 1024,
+      "requested_aspect_ratio": "3:2"
+    }
+  ]
+}

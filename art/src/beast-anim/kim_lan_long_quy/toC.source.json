@@ -1,0 +1,62 @@
+{
+  "species": "kim_lan_long_quy",
+  "sheet": "C",
+  "attempt": 1,
+  "worker": "soul-land-mmo-136",
+  "issue": 1030,
+  "raw_file": "toC.png",
+  "sha256": "90b360d4674e9e39a1845e733763deeffed89b11a0e3d9faf25dc72f68ab0a3f",
+  "bytes": 1865833,
+  "width": 1536,
+  "height": 1024,
+  "requested_aspect_ratio": "3:2",
+  "tool": "builtin Codex image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "attempts": 1,
+  "prompt_file": "toC.prompt.txt",
+  "prompt_sha256": "b0562f6c32e6dab208e0aaf6abc197cea9aaf8d690af019f1ccd655fde066f2a",
+  "transparent_background": false,
+  "reference": {
+    "path": "shared/assets/sprites/beast/kim_lan_long_quy.png",
+    "sha256": "af86fae543db4c09f3db4f2b087cb4669e974c1b282e240036d252c90b5a9df6"
+  },
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-704782f6-3c41-4976-8c8d-b5a352f27e92.png",
+  "postprocessing": "Không; sao chép nguyên byte PNG.",
+  "check": "chưa chạy beast:check",
+  "selected_attempt": 1,
+  "counters": {
+    "A": 1,
+    "B": 1,
+    "C": 1,
+    "D": 0,
+    "E": 0,
+    "species_total": 3
+  },
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/kim_lan_long_quy.png",
+      "role": "static identity",
+      "sha256": "af86fae543db4c09f3db4f2b087cb4669e974c1b282e240036d252c90b5a9df6"
+    },
+    {
+      "path": "art/src/beast-anim/kim_lan_long_quy/toA.png",
+      "role": "A candidate consistency reference; not owner-approved",
+      "sha256": "11d32b19d870f1faa4dbbb17e8d1d5d1f23117287cae1c7e9f4c13ace69240db"
+    }
+  ],
+  "history": [
+    {
+      "attempt": 1,
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-704782f6-3c41-4976-8c8d-b5a352f27e92.png",
+      "raw_file": "toC.png",
+      "prompt_file": "toC.prompt.txt",
+      "sha256": "90b360d4674e9e39a1845e733763deeffed89b11a0e3d9faf25dc72f68ab0a3f",
+      "prompt_sha256": "b0562f6c32e6dab208e0aaf6abc197cea9aaf8d690af019f1ccd655fde066f2a",
+      "bytes": 1865833,
+      "width": 1536,
+      "height": 1024,
+      "requested_aspect_ratio": "3:2"
+    }
+  ]
+}

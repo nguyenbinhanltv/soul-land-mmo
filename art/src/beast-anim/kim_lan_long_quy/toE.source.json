@@ -1,0 +1,65 @@
+{
+  "species": "kim_lan_long_quy",
+  "sheet": "E",
+  "attempt": 1,
+  "worker": "soul-land-mmo-136",
+  "issue": 1030,
+  "raw_file": "toE.png",
+  "sha256": "d1ec94550f2544e84412d44fcfae638735bab2fbf3de9576563b99035c087e0e",
+  "bytes": 1815361,
+  "width": 1536,
+  "height": 1024,
+  "requested_aspect_ratio": "3:2",
+  "tool": "builtin Codex image_gen.imagegen",
+  "model_id": null,
+  "seed": null,
+  "attempts": 1,
+  "prompt_file": "toE.prompt.txt",
+  "prompt_sha256": "8c38cc4291f82077dbcfc3d55a917e53ece94ee8f78df88a27db161313490549",
+  "transparent_background": false,
+  "reference": {
+    "path": "shared/assets/sprites/beast/kim_lan_long_quy.png",
+    "sha256": "af86fae543db4c09f3db4f2b087cb4669e974c1b282e240036d252c90b5a9df6"
+  },
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-0e6da4ce-d334-4972-841d-91f38822fcb0.png",
+  "postprocessing": "Không; sao chép nguyên byte PNG.",
+  "check": "chưa chạy beast:check",
+  "manualFindings": [
+    "E/n: khung chết cuối H4 C4 lộ mặt nhìn nghiêng và nằm ngang trục; finding mỹ thuật cần giữ nguyên."
+  ],
+  "selected_attempt": 1,
+  "counters": {
+    "A": 1,
+    "B": 1,
+    "C": 1,
+    "D": 1,
+    "E": 1,
+    "species_total": 5
+  },
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/kim_lan_long_quy.png",
+      "role": "static identity",
+      "sha256": "af86fae543db4c09f3db4f2b087cb4669e974c1b282e240036d252c90b5a9df6"
+    },
+    {
+      "path": "art/src/beast-anim/kim_lan_long_quy/toA.png",
+      "role": "A candidate consistency reference; not owner-approved",
+      "sha256": "11d32b19d870f1faa4dbbb17e8d1d5d1f23117287cae1c7e9f4c13ace69240db"
+    }
+  ],
+  "history": [
+    {
+      "attempt": 1,
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-0e6da4ce-d334-4972-841d-91f38822fcb0.png",
+      "raw_file": "toE.png",
+      "prompt_file": "toE.prompt.txt",
+      "sha256": "d1ec94550f2544e84412d44fcfae638735bab2fbf3de9576563b99035c087e0e",
+      "prompt_sha256": "8c38cc4291f82077dbcfc3d55a917e53ece94ee8f78df88a27db161313490549",
+      "bytes": 1815361,
+      "width": 1536,
+      "height": 1024,
+      "requested_aspect_ratio": "3:2"
+    }
+  ]
+}
