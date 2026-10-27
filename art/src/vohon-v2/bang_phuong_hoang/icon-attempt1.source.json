@@ -1,0 +1,24 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "type": "icon",
+  "attempt": 1,
+  "raw": "icon-attempt1.png",
+  "raw_sha256": "34c7d11b20389f26b6d01ef54e6c10229a367788d5d7e29e1d1be1f2bf6d2873",
+  "prompt": "icon-attempt1.prompt.txt",
+  "prompt_sha256": "49fa53b91c4b2e2dd851930a0b17fccd9ac3d0e7c3284674e164b95433b91d24",
+  "reference": "concept-attempt3.png",
+  "reference_sha256": "2060b04e927be7a829816508203ed5663a993930ffe94b77be0ad4a0b6e16d2c",
+  "original": "C:/Users/PC/.codex/generated_images/01a17dd5-789d-7bd1-9290-26a7285f2682/exec-a82f5215-3a12-438f-9b8e-4ba50a1d02a3.png",
+  "pixelize": {
+    "preset": "icon",
+    "colors": 8,
+    "merge": 24,
+    "passes": 2,
+    "protect": true
+  },
+  "status": "needs_visual_review",
+  "eye": "Đầu phượng băng là biểu tượng đơn; cần so sánh mắt, mào và các mảng tinh thể ở 24/32 px."
+}
