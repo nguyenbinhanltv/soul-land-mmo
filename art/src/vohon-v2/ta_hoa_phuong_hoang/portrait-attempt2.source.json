@@ -34,12 +34,19 @@
   "generated_at": "unknown; tool did not expose timestamp",
   "known_issues": [
     "FAIL: vẫn có texture mềm/chi tiết li ti; giảm màu và pixel cluster trong prompt không khắc phục được.",
-    "Không chỉnh/crop/resize; chưa import, chưa artaccepted."
+    "Không chỉnh/crop/resize; chưa import, chưa artaccepted.",
+    "Owner review #6430325821: at 64x64, red-orange background/glow/feathers merge and eye/runes lose separation; redraw attempt 3 only after H4 first batch and #1091 prompt tool is merged."
   ],
-  "qa_status": "FAIL by visual review; not technically processed.",
+  "qa_status": "Not approved as final portrait; owner reports low contrast at 64x64. Retain raw; attempt 3 deferred until H4 milestone and prompt tool gate.",
   "tool_arguments": {
     "referenced_image_paths": [],
     "transparent_background": false
   },
-  "approval_scope": "Chân dung Tà Hỏa Phượng Hoàng theo docs/art/vo-hon-phong-cach.md mục 4.4 và mục 6; ảnh chỉ để tham khảo duyệt, chưa dùng làm game asset."
+  "approval_scope": "Chân dung Tà Hỏa Phượng Hoàng theo docs/art/vo-hon-phong-cach.md mục 4.4 và mục 6; ảnh chỉ để tham khảo duyệt, chưa dùng làm game asset.",
+  "owner_review": {
+    "comment_url": "https://github.com/nguyenbinhanltv/soul-land-mmo/pull/1083#issuecomment-6430325821",
+    "status": "not accepted as final portrait due low contrast at 64x64",
+    "next_attempt": "attempt 3/3 after H4 scheduling is confirmed (owner comment #6430325821 says after batch one; coordination comment #6430214197 says pause #1024 until #1030 has at least two batches). Wait until #1091 merges before generating the prompt with vohon-prompt.mjs.",
+    "style_reference_authorization": "owner permits portrait attempt 2 as the sole style reference for new Hạo Thiên concept"
+  }
 }
