@@ -57,3 +57,37 @@ Công cụ vohon:check chưa có cờ --eye; chỉ khai tại đây, không đ�
 ```text
 --eye "portrait-attempt1=bản P1c — 64×64 — mất nhiều khối tối; điểm mắt/đầu chưa tách rõ, chưa đạt brief; giữ làm candidate"
 ```
+
+
+## Icon lượt 1 — #1159, chưa nhập game
+
+Ngày 2026-10-27. Công cụ builtin `image_gen.imagegen`, model/seed `unknown`. RAW giữ nguyên byte: `icon-attempt1.png`, SHA256 `765db7a756fb9fdd5a1a7e0f35cebc1b4dea0aedeb6fafe34b02dd8ee978bb26`; prompt tự sinh nguyên văn bằng `node tools/assets/vohon-prompt.mjs --type icon --id nhu_cot_tho --style-ref art/src/vohon-v2/nhu_cot_tho/concept-attempt3.png`, SHA256 `e87b69b7559c8f8528c3f377c628b7c984721f83fc8fceab4e45d76fa1e6b576`. Ảnh neo ngoại hình: `concept-attempt3.png`. Không viết tay prompt, không dùng lượt hỏng làm ảnh neo. Hồ sơ: `icon-attempt1.source.json`.
+
+Chuyển bằng `vohon-pixelize --type icon --preset icon --colors 8 --merge 24 --passes 2 --protect on`. Bản 24/32 px ở `icon-attempt1-pixel/`; báo cáo JSON kèm từng ảnh. Đây là ứng viên cần duyệt, không tự tuyên bố đạt đẹp.
+
+RAW: NHẸ; số đo `{"w":1254,"h":1254,"ratio":1,"border":{"clear":1,"flat70":0},"fill":0.89,"softness":0.936,"bigColors":101,"grid":{"period":35,"ratio":1.25},"paletteMatch":1,"smallAccent":"8/8"}`.
+
+32px: NHẸ; số đo `{"w":32,"h":32,"colors":8,"outline":1,"hot":0.274,"contrast":0.291,"edge":0.505,"sep":8.1,"bgRatio":1.09,"accent":"8/8"}`.
+
+24px: NHẸ; số đo `{"w":24,"h":24,"colors":7,"outline":1,"hot":0.353,"contrast":0.319,"edge":0.557,"sep":8.1,"bgRatio":1.27,"accent":"8/8"}`.
+
+### Khai báo duyệt mắt icon (`--eye`)
+
+CLI vohon:check chưa hỗ trợ cờ --eye; lưu khai báo tại đây, giữ nguyên kết quả máy.
+
+```text
+--eye "icon-attempt1=RAW — mem — texture mềm: 93% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+--eye "icon-attempt1=RAW — luoi — chưa đúng lưới khối: tỉ số biên 1.25 ở chu kỳ 35 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+--eye "icon-attempt1=32px — cham-mep — hình chạm mép ảnh (6 điểm): viền ngoài bị cắt"
+--eye "icon-attempt1=32px — nhieu-chi-tiet — mật độ biên 0.505 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+--eye "icon-attempt1=32px — gan-mau — hai màu lớn chỉ cách nhau 8.1 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+--eye "icon-attempt1=24px — cham-mep — hình chạm mép ảnh (6 điểm): viền ngoài bị cắt"
+--eye "icon-attempt1=24px — sang-tran — vùng sáng 35%: sáng tràn, mất đối lập tối / sáng của phong cách mực tối"
+--eye "icon-attempt1=24px — nhieu-chi-tiet — mật độ biên 0.557 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+--eye "icon-attempt1=24px — gan-mau — hai màu lớn chỉ cách nhau 8.1 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+--eye "icon-attempt1=duyệt mắt — Đầu thỏ tai dài nhọn, tím hồng sẫm và mắt đỏ; không biểu cảm dễ thương, kiểm điểm mắt khi thu nhỏ."
+```
+
+```text
+--eye "icon-attempt1=đọc nhỏ — mắt/răng — tai dài nhận ra nhưng mắt đỏ và răng yếu ở 24 px; còn khí quanh tai và nhiều mảng lông nhỏ"
+```

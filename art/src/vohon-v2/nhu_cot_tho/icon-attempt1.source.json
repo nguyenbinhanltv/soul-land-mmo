@@ -1,0 +1,24 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "type": "icon",
+  "attempt": 1,
+  "raw": "icon-attempt1.png",
+  "raw_sha256": "765db7a756fb9fdd5a1a7e0f35cebc1b4dea0aedeb6fafe34b02dd8ee978bb26",
+  "prompt": "icon-attempt1.prompt.txt",
+  "prompt_sha256": "e87b69b7559c8f8528c3f377c628b7c984721f83fc8fceab4e45d76fa1e6b576",
+  "reference": "concept-attempt3.png",
+  "reference_sha256": "e4d6cfb04c501f29f0bbbe1c24f04040b1c1167ab5ce2739f9e5660d12f90aa3",
+  "original": "C:/Users/PC/.codex/generated_images/01a17dd5-789d-7bd1-9290-26a7285f2682/exec-8be4d23b-5d22-4932-9e64-4c281c14d616.png",
+  "pixelize": {
+    "preset": "icon",
+    "colors": 8,
+    "merge": 24,
+    "passes": 2,
+    "protect": true
+  },
+  "status": "needs_visual_review",
+  "eye": "Đầu thỏ tai dài nhọn, tím hồng sẫm và mắt đỏ; không biểu cảm dễ thương, kiểm điểm mắt khi thu nhỏ."
+}
