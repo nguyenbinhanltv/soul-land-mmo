@@ -16,7 +16,7 @@ const ASPECT = { "3:2": ["landscape 3:2 aspect ratio", "3:2, ra 1536×1024"], "2
 
 const BACKGROUND = "BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no glow, no vignette, no frame or border around the image.";
 const STYLE = "STYLE: pixel-art game interface in an isometric Ultima Online mood mixed with Chinese ink-wash xianxia (Douluo Dalu setting); sharp pixel edges, palette of at most 32 colours, one thick consistent dark outline (#1a1020), pale bronze rim, no blur, no large gradients.";
-/** Hướng nghệ thuật tu tiên (NHÁP CHỜ DUYỆT, docs/art/ui-kit-tu-tien.md): khối STYLE + AVOID theo hướng; mặc định (không --style) giữ nguyên STYLE cũ (hướng B). */
+/** Hướng nghệ thuật tu tiên (NHÁP CHỜ DUYỆT, docs/art/ui-kit.md mục "Hướng nghệ thuật tu tiên"): khối STYLE + AVOID theo hướng; mặc định (không --style) giữ nguyên STYLE cũ (hướng B). */
 const COMMON_TX = "pixel-art game interface for a xianxia cultivation MMO (Douluo Dalu setting), sharp pixel edges, palette of at most 32 colours, one consistent dark outline (#1a1020), no blur, no large gradients. Restraint: generous empty space (liu bai), ornament only at the corners, the middle of each side and clasp points, the straight sides stay flat. Exactly one lit accent per piece or screen (spirit power); everything else recedes into dark. Rank by light, never by loud colour: stone grey, jade green, ice blue, violet with gold veins, gold with vermilion qi. At most 3 accent colours.";
 const COMMON_AVOID = "long decorative lettering, plastic gradient drop shadows, double or triple borders, oversaturated glaring colours, cartoon-style icons, copying the artwork or symbols of another game";
 export const STYLES = {
@@ -24,11 +24,21 @@ export const STYLES = {
     vi: "Ngọc – Kim (tiên môn hoàng gia: tím than + lưu ly, vàng đồng chạm vân, nút ngọc bích)",
     style: `STYLE: ${COMMON_TX} Palette: deep indigo-navy and glazed liuli base, aged antique bronze-gold metal (never glaring yellow), jade-green and ice-blue gems, vermilion seal-red only for stamps, warnings and top rank. Materials: dark liuli glass with faint veins; frames of aged bronze-gold with cloud and dragon-scroll relief at corners only; buttons as jade pendants or gold plaques, never flat plastic pills; paper is aged ivory rice paper with torn edges and a vermilion seal. A thin faint qi wisp may trace the rim.`,
     avoid: `AVOID: ${COMMON_AVOID}, bright pure-yellow gold, bright fully saturated blue.`,
+    material: {
+      muc: { en: "INK material: dark liuli glass with faint veins, aged bronze-gold rim", vi: "Mực (lưu ly tối có vân, viền vàng đồng cổ)" },
+      giay: { en: "PAPER material: aged ivory rice paper with torn edges, thin vermilion rim, jade roller ends", vi: "Giấy (giấy dó cổ mép rách, viền son mảnh)" },
+    },
+    board: { ink: "dark liuli glass, faint veins, aged bronze-gold rim", paper: "aged ivory rice paper, thin vermilion rim, jade roller", rim: "bronze-gold rim" },
   },
   "thuy-mac": {
     vi: "Thủy mặc – Chu sa (ẩn thế cao nhân: mực đen loang, nét cọ, giấy dó, dấu chu sa)",
     style: `STYLE: ${COMMON_TX} Palette: black ink wash base with soft bleeding edges, aged rice paper ivory, vermilion cinnabar (chu sa) seal-red for stamps and warnings, a single jade-green or ice-blue accent. Materials: ink-stone black with brush-stroke edges; thin dry-brush rim lines instead of metal; rice paper with rough torn edges; buttons as ink-stone tablets or jade pendants with a cinnabar seal, never flat plastic pills. Minimal, severe, a hidden-master mood; a faint cloud-wisp may sit in the background, never under text.`,
     avoid: `AVOID: ${COMMON_AVOID}, shiny metal, gold ornament everywhere, dense patterns.`,
+    material: {
+      muc: { en: "INK material: ink-stone black with brush-stroke edges, thin dry-brush rim line", vi: "Mực (đá mực đen, mép nét cọ, viền cọ khô mảnh)" },
+      giay: { en: "PAPER material: rough rice paper with torn edges, thin cinnabar rim, ink-stone roller ends", vi: "Giấy (giấy dó thô mép rách, viền chu sa mảnh)" },
+    },
+    board: { ink: "ink-stone black, brush-stroke edges, thin dry-brush rim line", paper: "rough rice paper, thin cinnabar rim, ink-stone roller", rim: "dry-brush rim line" },
   },
 };
 const STYLE_KEYS = Object.keys(STYLES);
@@ -40,6 +50,10 @@ const MATERIAL = {
   muc: { en: "INK material: near-black wood with faint ink-wash grain, pale bronze rim", vi: "Mực (nền tối, viền đồng nhạt)" },
   giay: { en: "PAPER material: ivory rice paper, thin vermilion rim, wooden roller ends", vi: "Giấy (giấy dó ngà, viền son mảnh)" },
 };
+/** Bài học ghi chất liệu hướng B cũ: bỏ khi vẽ theo `--style` để không mâu thuẫn với khối STYLE. */
+const OLD_MATERIAL = /bronze rim|near-black wood|wooden roller/;
+/** Chất liệu theo hướng (nếu có) rồi mới tới mặc định. */
+const materialOf = (o) => (o.style ? STYLES[o.style].material : MATERIAL)[o.material ?? "muc"];
 const MATERIAL_KINDS = ["F", "N", "T", "O"];
 const NOUN_EN = { F: "panel frame", N: "button and tab", O: "item and skill slot", T: "bar and input widget", I: "icon", D: "loose decoration" };
 
@@ -102,12 +116,12 @@ function piecesBlock(kind, layout, material) {
 
 /** Prompt tiếng Anh cho model. */
 export function buildPrompt(kind, o = {}) {
-  const shape = o.shape ?? (kind.board ? "3:2" : kind.shapes[0]), [aspect] = ASPECT[shape], mat = MATERIAL[o.material ?? "muc"], lessons = lessonsBlock(kind.id);
+  const shape = o.shape ?? (kind.board ? "3:2" : kind.shapes[0]), [aspect] = ASPECT[shape], mat = materialOf(o), bd = o.style ? STYLES[o.style].board : { ink: "near-black wood, ink-wash grain, pale bronze rim", paper: "ivory rice paper, thin vermilion rim, wooden roller", rim: "bronze rim" }, lessons = lessonsBlock(kind.id, o.style ? lessonsFor(kind.id).filter((l) => !OLD_MATERIAL.test(l.text)) : undefined);
   if (kind.board) {
     return `One illustration, ${aspect}: a sample game screen for a pixel-art xianxia MMO user interface, drawn as an approval image and style reference.
-Show: (1) a left HUD column with a stats frame and six menu buttons; (2) a "character" panel and a "bag" panel side by side, INK material (near-black wood, ink-wash grain, pale bronze rim); (3) one PAPER material dialog box (ivory rice paper, thin vermilion rim, wooden roller) at the lower middle; (4) one vermilion primary button and one dark secondary button; (5) a row of skill slots along the bottom edge.
+Show: (1) a left HUD column with a stats frame and six menu buttons; (2) a "character" panel and a "bag" panel side by side, INK material (${bd.ink}); (3) one PAPER material dialog box (${bd.paper}) at the lower middle; (4) one vermilion primary button and one dark secondary button; (5) a row of skill slots along the bottom edge.
 ABSOLUTELY no text, numbers, letters, logos or symbols anywhere; where a label would go draw an empty bar or a flat block of colour.
-Frames: ornament only at the four corners and the middle of each side; the straight side between is a flat band of one or two colours with no pattern along it. INK and PAPER share the same corner set, border thickness and bronze rim; they differ only in fill and text colour.
+Frames: ornament only at the four corners and the middle of each side; the straight side between is a flat band of one or two colours with no pattern along it. INK and PAPER share the same corner set, border thickness and ${bd.rim}; they differ only in fill and text colour.
 ${styleBlock(o.style)}
 Outside the screen the background is one flat solid colour. Behind the panels hint a dark old village, only suggested, no detail. Consistent light and line weight in every frame.${lessons}`;
   }
@@ -127,7 +141,7 @@ const refsVi = (refs) => refs.map((r) => `(${r.n}) ${r.vi}`).join("\n   ");
 
 /** Tài liệu Markdown (hướng dẫn tiếng Việt + prompt) cho một loại tờ. */
 export function buildDoc(kind, o = {}) {
-  const shape = o.shape ?? (kind.board ? "3:2" : kind.shapes[0]), [, aspectVi] = ASPECT[shape], refs = referencesFor(kind.id), mat = MATERIAL[o.material ?? "muc"];
+  const shape = o.shape ?? (kind.board ? "3:2" : kind.shapes[0]), [, aspectVi] = ASPECT[shape], refs = referencesFor(kind.id), mat = materialOf(o);
   const layout = kind.board ? null : pickKindLayout(kind, o.layout), total = layout?.reduce((a, b) => a + b, 0);
   const file = kind.board ? "BOARD" : `to${kind.id}`;
   return `# Tờ ${kind.id}: ${kind.title}${o.family && kind.id === "I" ? ` (họ ${o.family})` : ""}
@@ -140,7 +154,7 @@ Quy trình: skill \`ui-kit\` (\`.claude/skills/ui-kit/SKILL.md\`), luật vẽ \
 | Ảnh | tỉ lệ **${aspectVi}** (không đòi số pixel; công cụ Codex không có ô chọn cỡ, cỡ nào hợp tỉ lệ cũng nhận) |
 | Bố cục | ${layout ? `${layout.length} hàng: ${layout.join(" + ")} = ${total} mảnh, đọc trái → phải, trên → dưới` : "một ảnh, **không cắt** (chỉ để duyệt và làm tham chiếu)"} |
 | Chất liệu | ${kind.board ? "Mực + Giấy" : MATERIAL_KINDS.includes(kind.id) ? mat.vi : "–"} |
-| Hướng | ${o.style ? `**${o.style}**: ${STYLES[o.style].vi} (**nháp chờ duyệt**, docs/art/ui-kit-tu-tien.md)` : "mặc định (hướng B hiện tại)"} |
+| Hướng | ${o.style ? `**${o.style}**: ${STYLES[o.style].vi} (**nháp chờ duyệt**, docs/art/ui-kit.md mục "Hướng nghệ thuật tu tiên")` : "mặc định (hướng B hiện tại)"} |
 | Nền | #FF00FF phẳng, không chữ, không bóng |
 
 ## Cách làm

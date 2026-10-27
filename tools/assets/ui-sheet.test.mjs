@@ -286,7 +286,7 @@ test("mirror theo mảnh: spec `mirror: false` giữ nguyên hình (tab hở đ�
 });
 
 test("ui:prompt --style: mọi loại tờ có khối STYLE + AVOID của hướng, mặc định giữ STYLE cũ", () => {
-  for (const id of ["BOARD", "F", "N", "O", "T", "I"]) {
+  for (const id of ["BOARD", "F", "N", "O", "T", "I", "D"]) {
     const k = expandKind(realKit, id), base = buildPrompt(k);
     assert.match(base, /Ultima Online/);
     assert.doesNotMatch(base, /AVOID:/);
@@ -300,6 +300,11 @@ test("ui:prompt --style: mọi loại tờ có khối STYLE + AVOID của hướ
   }
   assert.match(buildPrompt(expandKind(realKit, "F"), { style: "ngoc-kim" }), /bronze-gold/);
   assert.match(buildPrompt(expandKind(realKit, "F"), { style: "thuy-mac" }), /cinnabar/);
+  for (const style of Object.keys(STYLES)) for (const id of ["BOARD", "F", "N", "O", "T"]) for (const material of ["muc", "giay"]) {
+    const p = buildPrompt(expandKind(realKit, id), { style, material });
+    assert.doesNotMatch(p, /bronze rim|near-black wood|wooden roller/, `${style} ${id} ${material}`);
+  }
+  assert.match(buildPrompt(expandKind(realKit, "F"), { style: "ngoc-kim" }), /bronze-gold rim/);
   assert.match(buildDoc(expandKind(realKit, "N"), { style: "thuy-mac" }), /nháp chờ duyệt/);
   assert.match(buildDoc(expandKind(realKit, "N")), /mặc định \(hướng B/);
 });
