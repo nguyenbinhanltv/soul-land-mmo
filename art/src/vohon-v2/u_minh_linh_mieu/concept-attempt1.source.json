@@ -1,11 +1,21 @@
-﻿{
-    "tool":  "builtin image_gen.imagegen",
-    "seed":  "unknown",
-    "prompt_sha256":  "487036f69ae0f8786a0d69d5fabb6af71dc9481f32494d58187b62ddf3a3f84b",
-    "true_views":  5,
-    "attempt":  1,
-    "notes":  "ne/n nhìn lưng, không mặt. e rộng và hơi chếch; mắt tím sáng, móng rõ; khí tím rộng, cạnh mềm. Không chữ, người, khung.",
-    "image_sha256":  "15c2147ec62e9e1bdbe8752161bf3f31863e4ce5b46e93b4ad1c2c081dbb2e36",
-    "model":  "unknown",
-    "reference":  "PR #1083: art/src/phap-tuong/hao_thien_chuy/concept-turnaround-attempt2.png"
+{
+  "tool": "builtin image_gen.imagegen",
+  "seed": "unknown",
+  "prompt_sha256": "487036f69ae0f8786a0d69d5fabb6af71dc9481f32494d58187b62ddf3a3f84b",
+  "true_views": 5,
+  "attempt": 1,
+  "notes": "ne/n nhìn lưng, không mặt. e rộng và hơi chếch; mắt tím sáng, móng rõ; khí tím rộng, cạnh mềm. Không chữ, người, khung.",
+  "image_sha256": "15c2147ec62e9e1bdbe8752161bf3f31863e4ce5b46e93b4ad1c2c081dbb2e36",
+  "model": "unknown",
+  "reference": "PR #1083: art/src/phap-tuong/hao_thien_chuy/concept-turnaround-attempt2.png",
+  "raw_status": "NHẸ",
+  "true_views_note": "5 góc xoay phân biệt; sai lệch góc e/ne nêu trong notes và NGUON.md",
+  "width": 2172,
+  "height": 724,
+  "raw_check": {
+    "poses": 5,
+    "pose_spread": 1.12,
+    "palette_match_percent": 98,
+    "warnings": "texture mềm, chưa đúng lưới khối"
+  }
 }

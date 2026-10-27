@@ -1,4 +1,4 @@
-﻿# Bích Lân Xà Hoàng — concept năm hướng (#1096)
+# Bích Lân Xà Hoàng — concept năm hướng (#1096)
 
 RAW nguyên byte, chưa hậu kỳ hoặc nhập game. Lượt 1/3, chọn concept-attempt1.png.
 
@@ -14,3 +14,11 @@ RAW nguyên byte, chưa hậu kỳ hoặc nhập game. Lượt 1/3, chọn conce
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | art/src/vohon-v2/bich_lan_xa_hoang/ | - | builtin image_gen.imagegen (ChatGPT / Codex) | RAW concept năm hướng Bích Lân Xà Hoàng; model/seed unknown; prompt và SHA ở trên. | 2026-10-27 | Chỉ concept, chưa nhập game. |
+
+## Kết quả kiểm RAW tại repo
+
+- Bản chọn: concept-attempt1.png; kích thước 1983×793.
+- vohon-check raw: **NHẸ**, tách đủ **5 hình**, chênh cỡ 1.05×, màu khớp **73%**.
+- Cảnh báo máy: texture mềm, chưa đúng lưới khối.
+- Ảnh neo nằm ở **nhánh PR #1083**, đường dẫn art/src/phap-tuong/hao_thien_chuy/concept-turnaround-attempt2.png, chưa phải ảnh sẵn có trên main.
+- Dùng --type phaptuong theo khuôn concept #1096 để sinh bố cục năm hướng; không tạo pháp tướng thay thế hoặc nhập game.
