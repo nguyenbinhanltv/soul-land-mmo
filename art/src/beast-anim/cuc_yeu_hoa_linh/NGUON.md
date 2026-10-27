@@ -7,7 +7,7 @@ Loài `cuc_yeu_hoa_linh` (Cúc Yêu Hoa Linh), họ `plant`, khung game 96×96. 
 ## toA
 
 - File: `toA.png`, **1024×1536**, 2021894 byte, SHA256 `239382e5b3f8a6c34459a8d326dc974e14df44e07923548b53f0360b188c851a`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: ao-desktop-621.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: ao-desktop-621.
 - Prompt: `toA.prompt.txt` (SHA256 `ad5fac370e1fafefde1b63b8f0b127832fd5e210f36624ab5051337350d6ea33`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s pass, se nhẹ, e pass).

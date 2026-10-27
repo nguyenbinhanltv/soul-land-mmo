@@ -7,7 +7,7 @@ Loài `quy_dang_non` (Quỷ Đằng non), họ `vine`, khung game 64×64. Mức 
 ## toA
 
 - File: `toA.png`, **948×1659**, 1889095 byte, SHA256 `b98270cbda021e7bb81b6668eeb2d290eca195e61bdb280fe3398b3efe5c5b32`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: ao-desktop-621.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop-621.
 - Prompt: `toA.prompt.txt` (SHA256 `18808885ca4f072f6c646c3ebfc889aab564858606a0791b53382a2132dbb01c`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: s pass, se pass, e pass).
