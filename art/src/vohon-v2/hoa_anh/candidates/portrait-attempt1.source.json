@@ -1,0 +1,95 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "issue": 1158,
+  "attempt": 1,
+  "max_attempts": 3,
+  "reference": "art/src/vohon-v2/hoa_anh/concept-attempt2.png",
+  "reference_sha256": "827431d0d8fb7d4500f694c617bd573dbc2e36ba82dcce69705ca8c90beb8308",
+  "image_sha256": "fd1f2f6695815ec75d2810c75d00f1f198d93b14e3859304818daee7e1827577",
+  "prompt_sha256": "3efb1277d8400d1b4435bf522b42d25b91992e9d86876384657f310ab3c8fa58",
+  "prompt_command": "node tools/assets/vohon-prompt.mjs --type portrait --id hoa_anh --style-ref art/src/vohon-v2/hoa_anh/concept-attempt2.png",
+  "pixel_command": "node tools/assets/vohon-pixelize.mjs --type portrait --id hoa_anh --in art/src/vohon-v2/hoa_anh/candidates/portrait-attempt1.png --out art/src/vohon-v2/hoa_anh/candidates/portrait-attempt1-P1c2 --preset portrait2",
+  "raw_check": {
+    "type": "portrait",
+    "id": "hoa_anh",
+    "issues": [
+      {
+        "sev": "soft",
+        "code": "mem",
+        "text": "texture mềm: 94% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+      },
+      {
+        "sev": "soft",
+        "code": "luoi",
+        "text": "chưa đúng lưới khối: tỉ số biên 1.54 ở chu kỳ 29 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+      }
+    ],
+    "metrics": {
+      "w": 1254,
+      "h": 1254,
+      "ratio": 1,
+      "border": {
+        "clear": 0,
+        "flat70": 0.82
+      },
+      "fill": 1,
+      "softness": 0.949,
+      "bigColors": 68,
+      "grid": {
+        "period": 29,
+        "ratio": 1.54
+      },
+      "paletteMatch": 0.95,
+      "smallAccent": "8/8"
+    },
+    "manual": [
+      "đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi)",
+      "không có chữ, ký hiệu đọc được, logo, chữ ký",
+      "đọc được cả ở cỡ thật 1× (nhìn lướt)"
+    ]
+  },
+  "pixel_check": {
+    "type": "portrait",
+    "id": "hoa_anh",
+    "issues": [
+      {
+        "sev": "soft",
+        "code": "nhieu-chi-tiet",
+        "text": "mật độ biên 0.367 (> 0.3): còn nhiều mảng nhỏ ở cỡ 64×64, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+      },
+      {
+        "sev": "soft",
+        "code": "gan-mau",
+        "text": "hai màu lớn chỉ cách nhau 15.2 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+      },
+      {
+        "sev": "soft",
+        "code": "nen-chu-the",
+        "text": "vùng giữa chỉ sáng gấp 1.17× vòng ngoài (< 1.4): chủ thể chưa tách khỏi nền; thử --preset portrait (nền lạnh tối + viền sáng)"
+      }
+    ],
+    "metrics": {
+      "w": 64,
+      "h": 64,
+      "colors": 14,
+      "hot": 0.131,
+      "contrast": 0.194,
+      "edge": 0.367,
+      "sep": 15.2,
+      "bgRatio": 1.17,
+      "accent": "8/8"
+    },
+    "manual": [
+      "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+      "so với RAW: vẫn là cùng một võ hồn"
+    ]
+  },
+  "eye": [
+    "góc chính diện thay vì 3/4; lửa sừng bị cắt mép trên, lửa vai và ấn ngực sáng rộng tranh mắt; nhiều đỏ trên thân đỏ thẫm; cần duyệt ở 64×64"
+  ],
+  "status": "candidate_pending_art_review",
+  "imported": false
+}

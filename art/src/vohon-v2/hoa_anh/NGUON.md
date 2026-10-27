@@ -38,3 +38,18 @@ raw concept-attempt2.png pháp tướng (hoa_anh): NHẸ
 | `art/src/vohon-v2/hoa_anh/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. | 2026-10-27 | Chưa duyệt, không nhập game. |
 
 Lượt loại 1: `candidates/concept-attempt1.png`; SHA256 ảnh `a55bdfc5d130fa8ed8f2670c05cf1dff890aa28f41346b028ccc582e664a52c2`, prompt `1378ffa29bc20ac6918fb29a1c092542f8594a999582bbec7d2506b7c69c2b7e`. Loại lượt 1 do cắt sừng ở mép trên và tay ngoài mép trái/phải. RAW tự động NHẸ nhưng lỗi cắt mép chặn bằng mắt. Dáng hộ pháp vai rộng, mắt vàng, hai tay lửa và khói tím đúng; ne ngoái trái lộ mắt, chỉ khai eye. Lượt mới nhằm bố cục, không nhằm lỗi ne.
+
+
+## Chân dung lô 2 — #1158, P1c2
+
+Ngày 2026-10-27; 1/3 lượt chân dung. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte: `candidates/portrait-attempt1.png`; SHA256 `fd1f2f6695815ec75d2810c75d00f1f198d93b14e3859304818daee7e1827577`. Prompt CLI nguyên văn, không viết tay / addendum: `candidates/portrait-attempt1.prompt.txt`; SHA256 `3efb1277d8400d1b4435bf522b42d25b91992e9d86876384657f310ab3c8fa58`. Neo ngoại hình `concept-attempt2.png`, SHA256 `827431d0d8fb7d4500f694c617bd573dbc2e36ba82dcce69705ca8c90beb8308`. Lệnh và kết quả máy ở `candidates/portrait-attempt1.source.json`.
+
+Pixel hoá bằng `--preset portrait2` (P1c2 đã duyệt 27/10), giữ mặc định 16 màu của preset; brief RAW 6–8 mảng màu không phải giới hạn bảng màu P1c2. Bản 64×64: `candidates/portrait-attempt1-P1c2/hoa_anh-portrait.png`; xem `candidates/portrait-attempt1-P1c2/preview/index.html` và `so-sanh.png`. Chỉ ứng viên trình duyệt, chưa nhập game; không chọn thay concept. Không dùng lại ảnh lỗi làm neo.
+
+### Khai báo duyệt mắt chân dung (`--eye`)
+
+CLI võ hồn chưa nhận cờ này; lưu khai báo tường minh, không sửa công cụ hoặc RAW.
+
+```text
+--eye "portrait-attempt1=góc chính diện thay vì 3/4; lửa sừng bị cắt mép trên, lửa vai và ấn ngực sáng rộng tranh mắt; nhiều đỏ trên thân đỏ thẫm; cần duyệt ở 64×64"
+```
