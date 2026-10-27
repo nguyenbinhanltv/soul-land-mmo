@@ -120,6 +120,20 @@ try {
       window.__c9CameraSample = { width, x: v.x, y: v.y, steady };
       return steady >= 6;
     }, { width, height });
+    // #1092: đổi cỡ màn hình làm nhãn đổi ô (trễ settle 200 ms) rồi trượt ~120 ms; hai nhãn đổi cùng lúc có thể chồng thoáng qua. Chờ vị trí vẽ
+    // ngừng đổi đủ lâu (> hold 450 ms của bộ xếp, để ô "về chỗ gốc" cũng đã xong) rồi mới đo, không nới ngưỡng chồng.
+    await page.evaluate(() => { window.__c9PlateSample = null; }); // mẫu của cỡ trước không được tính cho cỡ này
+    await page.waitForFunction(() => {
+      const s = window.__c9Scene, now = performance.now();
+      window.__c9After.call(s);
+      const sig = s.nameplateLayout.filter((p) => p.visible).map((p) => {
+        const t = s.nameplateShown.get(p.id);
+        return `${p.id}:${p.compact ? 1 : 0}:${t ? t.dx.toFixed(1) + "," + t.up.toFixed(1) : ""}`;
+      }).sort().join("|");
+      const old = window.__c9PlateSample;
+      if (old?.sig !== sig) { window.__c9PlateSample = { sig, since: now }; return false; }
+      return now - old.since >= 800;
+    }, null, { timeout: 30000, polling: "raf" });
     const check = await page.evaluate(() => {
       const s = window.__c9Scene;
       window.__c9After.call(s);
