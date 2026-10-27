@@ -38,11 +38,7 @@ Phụ thể không vẽ lơ lửng: người vẽ cần thấy **thân hồn sư
 5. **Nộm không vào game:** nộm chỉ có ở ảnh tham chiếu đính kèm và tờ RAW; sheet đầu ra không chứa điểm ảnh nào của nộm (`validate.mjs` kiểm: không còn màu khoá).
 
 ### Vạch tham chiếu và số đo nộm (#1171)
-**Kiểm kê (2026-10-27):** nộm đã đúng khung ngay từ P1: thân `m_0` / `f_0` đúng khung thân của từng bước (idle 4, walk 6, attack 4, cast 3, hurt 2; mỗi khung phụ thể lấy bước thân ở tâm thời gian, theo bảng "Ánh xạ"), gốc chân đúng `frameOrigin` (96: `(48, 74)` → ô `(128, 197)`; 128: `(64, 90)` → ô `(128, 180)`), hệ số thu `CELL / khung` (96: 2,667; 128: 2,0), hàng hướng `s`, `e` (cho `se`, `e`, `ne`), `n`, hurt hướng xuống. Thân hồn sư cao ≈ 48 điểm trong khung thân 64 nên chiếm **≈ 51 % chiều cao ô** (khung 96) và ≈ 31 % chiều rộng; đường chân ở **77 %** chiều cao ô từ trên xuống. Lỗi "phụ thể lệch phải-sau, lớn gấp 2,5 lần nhân vật" **không** do nộm sai chỗ mà do ảnh tham chiếu chỉ có một hình cyan nhỏ trên nền hồng: model không thấy đường chân, trục, tâm gắn hay mép khung, nên vẽ phụ thể cỡ tranh lệch khỏi trục.
-
-Vì vậy bảng nộm (`phuthe-sheet-dummy.mjs`, mặc định bật; `--no-guides` để tắt) vẽ thêm **vạch tham chiếu** cùng **một màu khóa riêng** (`GUIDE_KEY` `#7A5CFF`; võ hồn có màu gần màu vạch tự đổi sang `#FF8C00` hoặc `#80C000` theo `guideKeyOf`, ghi vào `NGUON.md`; ghi đè bằng `--guide-key`), theo đúng hệ số thu của nộm: **đường chân** (đứt nét ngang qua gốc chân), **trục dọc** qua gốc chân (đè lên nộm), **dấu cộng tâm ngực** (điểm neo `back` của thân, đè lên nộm), **thước chiều cao thân** bên trái (từ chân tới đỉnh đầu của chính khung đó), **bốn góc khung** phụ thể (ô = khung game; vẽ vượt mép khung bị cắt). Nộm vẫn tô một màu cyan phẳng, theo đúng bước thân của từng khung clip (không tĩnh).
-- **Prompt** (`phuthe-sheet-prompt.mjs`) có khối `GUIDE LINES` do công cụ sinh: tên từng vạch, màu khóa, tỉ lệ thân / ô tính từ nộm, yêu cầu phụ thể ở trong góc khung và quanh trục ngực. Thứ tự ảnh tham chiếu không đổi (vạch nằm ngay trong ảnh số 1 là bảng nộm).
-- **Cutter / kiểm tờ:** vạch bị trừ như nộm (`sheetMasks`, gỡ viền ngả màu vạch 3 lớp, bỏ khỏi mặt nạ nền để dò lưới không bị vạch chạy suốt ô làm hỏng); `eraseGuides` xóa vạch trước khi dò lưới ở `phuthe:check`. Còn điểm gần màu vạch trong sheet đầu ra thì báo `con-nom` (chặn), như màu nộm. Tờ cũ không có vạch vẫn chạy bình thường.
+Vạch tham chiếu một màu khóa riêng trên bảng nộm: xem [phu-the-vach-tham-chieu.md](phu-the-vach-tham-chieu.md).
 
 ### Mặt nạ nửa sau / nửa trước theo vùng
 Một tờ chỉ có **một** ảnh phụ thể mỗi khung (vẽ như nhìn thấy cùng thân), nên cutter chia **nửa sau** (`_b`, vẽ phía sau thân) và **nửa trước** (`_f`, vẽ phía trước thân; tên theo sheet cũ `vh_{id}_b` / `_f`) bằng **mặt nạ theo vùng**:
@@ -121,7 +117,7 @@ Thân chỉ vẽ `hurt` (và `die`, `absorb`) ở hướng xuống (`LPC_SHEET.a
 - **Trang thử `?thu=phuthe`:** chọn hướng 8 phía, trạng thái gồm `hurt`, ô "Phụ thể" (`anim=` `auto` / `fake` / `0`): `fake` dựng sheet **giả** lúc chạy từ ảnh tĩnh (`phutheFake.ts`, không phải ảnh model, không vào game), `khung=128` thử khung 128.
 
 ## Neo khối thân
-Phụ thể lệch tâm / quá lớn so với nộm được chỉnh bằng `anchor.json` (tâm khối thân, tỉ lệ, trang chỉnh tay): xem [phu-the-neo-khoi-than.md](phu-the-neo-khoi-than.md).
+Chỉnh tâm / tỉ lệ phụ thể bằng `anchor.json`: [phu-the-neo-khoi-than.md](phu-the-neo-khoi-than.md).
 
 ## Tiêu chí duyệt: chặn / nhẹ / đẹp (theo khối hướng)
 Duyệt theo **khối hướng** (`s`, `se`, `e`, `ne`, `n`), như hồn thú. Khác hồn thú: thân hồn sư luôn có đủ hướng nên **một võ hồn có khối chặn thì không nhập cả võ hồn** (vẽ lại **chỉ khối chặn**, tối đa 3 lượt); quá lượt thì võ hồn giữ nhánh cũ (xem "Fallback").
@@ -246,7 +242,7 @@ Thử nghiệm của chủ repo: bỏ hình nộm, vẽ phụ thể thẳng từ
 | Việc | Pha | Trạng thái |
 |---|---|---|
 | Đặc tả + audit + bảng mô tả (file này) | P0 #1021 | xong |
-| Công cụ `phuthe-sheet-*` (nộm, prompt, check, cut, preview, status) | P1 #1022 | PR này |
+| Công cụ `phuthe-sheet-*` | P1 #1022 | xong |
 | Client phát clip + neo theo khung thân, fallback, `spiritMotion` hệ số giảm | P2 #1023 | xong (mục "Client phát clip (P2)") |
 | Thử 3 võ hồn (Tà Hỏa Phượng Hoàng, Hạo Thiên Chùy, Lam Ngân Thảo) | P3 | mở |
 | Rollout 22 võ hồn còn lại theo đợt | P4 | mở |
