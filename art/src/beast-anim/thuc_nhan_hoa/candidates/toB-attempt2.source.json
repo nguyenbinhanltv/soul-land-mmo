@@ -1,0 +1,14 @@
+{
+  "seed": "unknown",
+  "timestamp": "2026-10-27T06:07:56.5778468Z",
+  "sha256": "18072f5af7a7f64e53d2c131eab2a386ea8bf5d2ba99a1d1ddfa55dd46b33a54",
+  "model": "unknown",
+  "references": [
+    "shared/assets/sprites/beast/thuc_nhan_hoa.png",
+    "art/src/beast-anim/thuc_nhan_hoa/toA.png"
+  ],
+  "tool": "Codex image_gen.imagegen",
+  "attempts": 2,
+  "prompt_file": "toB-attempt2.prompt.txt.gz",
+  "prompt_encoding": "gzip of original UTF-8 prompt bytes; lossless; original filename retained in gzip header"
+}
