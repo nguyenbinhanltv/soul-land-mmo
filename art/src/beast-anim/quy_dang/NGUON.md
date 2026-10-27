@@ -31,10 +31,20 @@ Loài `quy_dang` (Quỷ Đằng), họ `vine`, khung game 128×128. Mức kiểm
 - Mức kiểm: **pass** (khối hướng: se pass).
 - Duyệt bằng mắt: đã xem, không thấy lỗi.
 
+## toC
+
+- File: `toC.png`, **1536×1024**, 2202902 byte, SHA256 `356fa86ae10c8b38c73cf5374cce712c41d59d37443eb4b3873e630b65c343d6`.
+- Công cụ: Codex image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-625.
+- Prompt: `toC.prompt.txt` (SHA256 `43269982254f445b64de56bff65b3127145fbb3f81825f604c6989d8c97b9cb1`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: e pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
 ## Lỗi
 
 ```text
 LỖI: toA — hướng — H1 C5–6 hurt và H3 C3–4 attack nghiêng sang phải thay vì giữ s; chọn lượt 3 sau ba lượt (mắt)
+LỖI: toC — hướng — nhiều khung e còn chếch mặt về người xem, gần se; chọn lượt 2 sau ba lượt vì 0 lỗi kỹ thuật (mắt)
 ```
 
 ## Ghi công
