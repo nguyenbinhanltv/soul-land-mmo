@@ -42,6 +42,7 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/phu-the-vach-tham-chieu.md](docs/art/phu-the-vach-tham-chieu.md) | 5 | Vạch tham chiếu trên bảng nộm LPC (#1171) |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/vo-hon-phong-cach.md](docs/art/vo-hon-phong-cach.md) | 5 | Phong cách võ hồn v2 (bá đạo, tu tiên; #1032) |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/vo-hon-portrait2.md](docs/art/vo-hon-portrait2.md) | 5 | Preset chân dung portrait2 (P1c2, #1158) |
+| 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/vo-hon-icon-nearest.md](docs/art/vo-hon-icon-nearest.md) | 5 | Preset icon icon-nearest (RAW thu nhỏ nearest, #1159) |
 | 5.12 | Cảm giác đánh, hiệu ứng chiêu (phần hiển thị) và âm thanh | [docs/art/am-thanh.md](docs/art/am-thanh.md) | 5 | Âm thanh; Âm thanh chiến đấu và hồn thú có tầm; Nhạc nền |
 | 5.12 | Cảm giác đánh, hiệu ứng chiêu (phần hiển thị) và âm thanh | [docs/design/ky-nang-combat-phap-tuong.md](docs/design/ky-nang-combat-phap-tuong.md) | 5 |  |
 | 5.12 | Cảm giác đánh, hiệu ứng chiêu (phần hiển thị) và âm thanh | [docs/art/ky-nang/README.md](docs/art/ky-nang/README.md) | 1 |  |

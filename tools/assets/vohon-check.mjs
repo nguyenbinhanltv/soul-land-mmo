@@ -135,7 +135,7 @@ const manualList = (type) => ["đúng võ hồn (hình mẫu, vật đi kèm the
 /** Kiểm ảnh pixel. `info` = { size?, frame?, report? } (report là JSON do vohon-pixelize.mjs ghi). `img` pháp tướng là dải 5 khung ngang. */
 export function checkPixel(img, { type, id, report } = {}) {
   if (!TYPES.includes(type)) throw new Error(`--type phải là ${TYPES.join(" | ")}`);
-  const issues = [], m = { w: img.w, h: img.h }, cnt = colorCounts(img).size, max = MAX_COLORS[type]; m.colors = cnt;
+  const issues = [], m = { w: img.w, h: img.h }, cnt = colorCounts(img).size, nearestIcon = type === "icon" && report?.preset === "icon-nearest", max = nearestIcon ? img.w * img.h : MAX_COLORS[type]; m.colors = cnt; // icon-nearest (#1159): giữ đủ màu RAW
   const size = report?.size, F = report?.frame ?? (type === "phaptuong" ? img.h : 0);
   if (type === "portrait" && (img.w !== img.h || (size ? img.w !== size : img.w !== PORTRAIT_SIZE))) issues.push(issue("block", "co", `chân dung ${img.w}×${img.h}, cần ${size ?? PORTRAIT_SIZE}×${size ?? PORTRAIT_SIZE}`));
   if (type === "icon" && (img.w !== img.h || !ICON_SIZES.includes(img.w))) issues.push(issue("block", "co", `icon ${img.w}×${img.h}, cần ${ICON_SIZES.join(" hoặc ")} vuông`));
@@ -179,7 +179,7 @@ export function checkPixel(img, { type, id, report } = {}) {
     m.accent = `${acc.kept}/${acc.total}`;
     if (acc.kept / acc.total < 0.5) issues.push(issue("soft", "mat-mat-mo", `chỉ còn ${acc.kept}/${acc.total} điểm sáng của ảnh nguồn (mắt, mỏ, lõi): có thể mất mắt / mỏ ở cỡ này; thử cắt gần hơn (--zoom / --crop) hoặc bản đơn giản hơn`));
   } else if (!report && type !== "phaptuong") issues.push(issue("soft", "khong-nguon", "không có báo cáo điểm sáng của ảnh nguồn (--report): chưa kiểm được mắt / mỏ"));
-  if (!issues.length || issues.every((i) => i.sev === "good")) issues.push(issue("good", "dep", `đạt đẹp: ${cnt} / ${max} màu, viền đúng, còn đủ điểm sáng, tương phản ${m.contrast}`));
+  if (!issues.length || issues.every((i) => i.sev === "good")) issues.push(issue("good", "dep", `đạt đẹp: ${cnt}${nearestIcon ? "" : ` / ${max}`} màu, viền đúng, còn đủ điểm sáng, tương phản ${m.contrast}`));
   return { type, id, issues, metrics: m, manual: ["mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`", "so với RAW: vẫn là cùng một võ hồn"] };
 }
 
