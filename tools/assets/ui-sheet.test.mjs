@@ -305,6 +305,11 @@ test("ui:prompt --style: mọi loại tờ có khối STYLE + AVOID của hướ
     assert.doesNotMatch(p, /bronze rim|near-black wood|wooden roller/, `${style} ${id} ${material}`);
   }
   assert.match(buildPrompt(expandKind(realKit, "F"), { style: "ngoc-kim" }), /bronze-gold rim/);
+  for (const style of Object.keys(STYLES)) for (const id of ["BOARD", "F", "N", "O", "T", "I", "D"]) {
+    const d = buildDoc(expandKind(realKit, id), { style });
+    assert.doesNotMatch(d, /C2|#881|palette\.gpl|nv6_nen_bup_be|swatch/, `${style} ${id}`);
+    if (id !== "BOARD") assert.match(d, new RegExp(`BOARD đã duyệt của hướng \`${style}\``));
+  }
   assert.match(buildDoc(expandKind(realKit, "N"), { style: "thuy-mac" }), /nháp chờ duyệt/);
   assert.match(buildDoc(expandKind(realKit, "N")), /mặc định \(hướng B/);
 });

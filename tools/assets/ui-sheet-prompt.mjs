@@ -74,12 +74,18 @@ const PIECE_EN = {
 };
 
 /** Ảnh đính kèm theo THỨ TỰ CỐ ĐỊNH: { n, en, vi, required }. */
-export function referencesFor(kind) {
+export function referencesFor(kind, style) {
   const board = { required: true, en: "the approved BOARD style image: copy its materials, rim colour, outline weight and mood, never its layout", vi: "**BOARD đã duyệt** (#881): phong cách, chất liệu, viền đồng, độ dày nét" };
   const palette = { required: true, en: "a palette swatch image: use only these colours (plus the outline)", vi: "ảnh **swatch bảng màu** (từ `art/palette.gpl`)" };
   const same = { required: false, en: "an approved sheet of the same family that passed the check: only for matching line weight and palette, never copy its pieces", vi: "(tùy chọn) **một tờ cùng họ đã qua `ui:check` không có mục chặn** (chỉ để khớp nét / bảng màu); **không** dùng tờ lỗi" };
   const c2 = { required: false, en: "the approved ink-material reference pieces (the C2 panels): match their frame, rim and grain", vi: "(tùy chọn) 3 mảnh C2 đã duyệt (`nv6_nen_bup_be`, `thong_bao_len_cap`, `khung_tab_nhan_vat`) làm chuẩn **Mực**" };
   const shot = { required: false, en: "a screenshot of the current game HUD, character panel, bag and dialog, to know which screens the kit must serve (not for style)", vi: "(tùy chọn) ảnh chụp hiện trạng 1366×768 của HUD / Nhân vật / Túi / hộp thoại (`client/scripts/ui-shots.mjs`), chỉ để biết màn nào cần phục vụ" };
+  if (style) {
+    // Hướng tu tiên: không đính ảnh hướng B (C2, BOARD #881, bảng màu cũ) để khỏi kéo model về hướng cũ; màu do khối STYLE quyết.
+    const own = { required: true, en: "the approved BOARD image of this same direction: copy its materials, rim colour, outline weight and mood, never its layout", vi: `**BOARD đã duyệt của hướng \`${style}\`** (sinh bằng \`--kind BOARD --style ${style}\`, chủ repo chọn); chưa có thì dừng, vẽ BOARD của hướng trước; **không** dùng BOARD hướng cũ` };
+    const refs2 = kind === "BOARD" ? [shot] : [own, same];
+    return refs2.map((r, i) => ({ ...r, n: i + 1 }));
+  }
   const refs = kind === "BOARD" ? [palette, c2, shot] : [board, palette, same];
   return refs.map((r, i) => ({ ...r, n: i + 1 }));
 }
@@ -141,7 +147,7 @@ const refsVi = (refs) => refs.map((r) => `(${r.n}) ${r.vi}`).join("\n   ");
 
 /** Tài liệu Markdown (hướng dẫn tiếng Việt + prompt) cho một loại tờ. */
 export function buildDoc(kind, o = {}) {
-  const shape = o.shape ?? (kind.board ? "3:2" : kind.shapes[0]), [, aspectVi] = ASPECT[shape], refs = referencesFor(kind.id), mat = materialOf(o);
+  const shape = o.shape ?? (kind.board ? "3:2" : kind.shapes[0]), [, aspectVi] = ASPECT[shape], refs = referencesFor(kind.id, o.style), mat = materialOf(o);
   const layout = kind.board ? null : pickKindLayout(kind, o.layout), total = layout?.reduce((a, b) => a + b, 0);
   const file = kind.board ? "BOARD" : `to${kind.id}`;
   return `# Tờ ${kind.id}: ${kind.title}${o.family && kind.id === "I" ? ` (họ ${o.family})` : ""}
