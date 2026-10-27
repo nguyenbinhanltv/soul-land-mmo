@@ -381,3 +381,14 @@ Máy **không** đo được và vẫn phải duyệt bằng mắt (danh sách "
 **Tạo tương phản (#1095):** chân dung 64×64 hay tan gam (mắt lẫn chi tiết). `--preset portrait` của `vohon-pixelize` làm: tách chủ thể khỏi nền (Otsu trên luma), nền tối đối gam chủ thể (tím; chủ thể lam / tím thì nâu ấm, bóng không về tím), hue-shift theo sắc độ (`--hue-shift`: bóng → tím, sáng → vàng ấm), gộp tông giống (`merge` cao) còn ≤ `maxColors` (`--max-colors`, mặc định preset 8), giữ màu sáng nhất (mắt, mỏ, lõi) trong bảng, viền sáng 1 điểm màu nhấn ở rìa trên / trái chủ thể. Chỉnh từng mục: `--cool`, `--rim`, `--protect`, `--hue-shift`. `vohon:check pixel` thêm `sep` (khoảng cách RGB nhỏ nhất giữa hai màu chiếm ≥ 2% ảnh; NHẸ `gan-mau` khi < `SEP_MIN`) và `bgRatio` (luma vùng giữa / vòng ngoài, NHẸ `nen-chu-the` khi < `BG_RATIO_MIN`).
 
 **Preset `portrait2` (P1c2, #1158):** xem [vo-hon-portrait2.md](vo-hon-portrait2.md).
+
+**Thử trên RAW của #1083**: chân dung Tà Hỏa lượt 2 cắt sát mặt `--focus 0.69,0.55 --zoom 2.2`: trước 13 màu, mật độ biên 0,335 (NHẸ), cam dính nhau; sau `--preset portrait` 6 màu, mật độ biên 0,268 (ĐẸP), nền tím tối, mỏ + mắt sáng tách rõ. Concept Hạo Thiên tách đủ 5 khung 160×160; icon 24×24 mất đốm sáng (NHẸ).
+
+## 7. Mốc duyệt
+
+1. Tài liệu này (PR của #1032) được review.
+2. **Mục 2, 4 và 6 đã được duyệt** (bảng thiết kế 25 võ hồn): chủ repo giao orchestrator tự duyệt, orchestrator duyệt trong CA ĐÊM 2026-10-27; chủ repo xem lại sau, chưa vẽ gì. tthoadev có thể góp ý bảng thiết kế (đặc biệt Xúc Xích, Nhu Cốt Thố, Yêu Hồ, Bạch Hổ là bốn con dễ lệch phong cách).
+3. Sau khi duyệt: tthoadev vẽ demo (#1024) gồm **Tà Hỏa Phượng Hoàng** (phụ thể + chân dung + icon) và **Hạo Thiên Chùy** (pháp tướng mới, một trong 11); đạt thì gộp (#1025): phụ thể + chân dung / thẻ + icon cho các võ hồn còn lại, còn pháp tướng chỉ cho 10 võ hồn còn lại trong nhóm 11 (trừ Hạo Thiên Chùy đã làm ở demo). 14 pháp tướng PixelLab giữ nguyên.
+
+## Issue liên quan
+#1087 (công cụ chuyển pixel / prompt / kiểm cho chân dung, icon, pháp tướng), #1083 (demo #1024, bài học), #1020 (epic phụ thể v2), #1032 (tài liệu này), #1022 (công cụ prompt `phuthe-sheet-prompt`), #1024 (demo Tà Hỏa Phượng Hoàng), #1025 (gộp), #1028 (đặc tả phụ thể P0).
