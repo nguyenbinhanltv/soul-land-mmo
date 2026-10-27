@@ -38,3 +38,20 @@ raw concept-attempt2.png pháp tướng (can_khon_hon_nguyen_toa): NHẸ
 | `art/src/vohon-v2/can_khon_hon_nguyen_toa/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. | 2026-10-27 | Chưa duyệt, không nhập game. |
 
 Lượt loại 1: `candidates/concept-attempt1.png`; SHA256 ảnh `79791c7536060325dac603853a7beff3ccc1dd0c3811abcbe58f0a62627286af`, prompt `f9d048df6a979b1d81c886a7c70029e2ea1e67947ba45881156fbdf394ac6ee1`. Loại lượt 1: hai hình ne/n chạm nhau làm bộ kiểm chỉ tách bốn khối. Vòng pháp khí, khóa đỏ, xích đen vàng nhận diện đúng; các móc thêm vết nứt cam không có trong brief. Hình mặt sau rõ.
+
+
+## Chân dung lô 3 — #1158, P1c2
+
+Ngày 2026-10-27; **1/3 lượt**. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `candidates/portrait-attempt1.png`, SHA256 `bf0aa5bb78f40d9c9f2c100b5425cd0715f04a5e6ce31f88909436c4dacf1003`. Prompt nguyên văn từ CLI, không viết tay / addendum: `candidates/portrait-attempt1.prompt.txt`, SHA256 `aa0426e00da6e1155d4bc8f5683f8983335977d759e118469ba275a039b5285f`. Prompt lưu UTF-8 LF; chuỗi gửi gốc và SHA256 giữ trong `candidates/portrait-attempt1.source.json`, chỉ chuẩn hoá xuống dòng.
+
+Ảnh neo: `art/src/vohon-v2/can_khon_hon_nguyen_toa/concept-attempt2.png`, SHA256 `107711d2bee5f86479aaafa0cf1741dacb1dec6039bec07243214e1ee76dd071`. 
+
+Pixel hoá `--preset portrait2` đã duyệt, giữ mặc định 16 màu (brief RAW 6–8 mảng màu); bản `candidates/portrait-attempt1-P1c2/can_khon_hon_nguyen_toa-portrait.png`. Xem `candidates/portrait-attempt1-P1c2/preview/index.html` và `so-sanh.png`. Kết quả máy RAW/P1c2 và lệnh tái tạo trong source JSON, báo cáo pixel kèm thư mục. Chỉ ứng viên trình duyệt, **chưa duyệt, không nhập game**; không chọn thay concept.
+
+### Khai báo duyệt mắt chân dung (`--eye`)
+
+CLI chưa nhận cờ `--eye`; lưu khai báo tường minh, giữ nguyên kết quả máy và RAW.
+
+```text
+--eye "portrait-attempt1=RAW/P1c2 — Vòng đồng nhiều lớp, ổ khóa đỏ trung tâm, xích sắt và móc nhọn nhận ra. Chi tiết vòng/xích dày; chóp và xích dưới bị cắt; vàng sáng lan nhiều điểm ngoài lõi. P1c2 khóa đỏ nhỏ nhưng còn đọc ra, mắt xích thành cụm vụn, thân ấm tách nền tím tối."
+```
