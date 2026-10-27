@@ -1,0 +1,315 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-28",
+  "attempt": 3,
+  "raw": {
+    "path": "art/src/phuthe-anim/kim_vu_mieu_ung/candidates/toA-attempt3.png",
+    "sha256": "a9d56e84605339bda9bd84fe64b3b2b2ad85cf1404fca800b4eeaee732e82e99"
+  },
+  "prompt": {
+    "path": "art/src/phuthe-anim/kim_vu_mieu_ung/candidates/toA-attempt3.prompt.txt",
+    "sha256": "13ea429ea19d3950af93ba378839ea3dc0743626cfa56f3c4fc8750fb1d323e0",
+    "generator": "phuthe-sheet-prompt --concept-ref",
+    "revision": "d2e21933d68f8c6a0af901f807c32e5952f4ca73"
+  },
+  "references": [
+    {
+      "path": "art/src/phuthe-anim/kim_vu_mieu_ung/references/kim_vu_mieu_ung-nom-toA.png",
+      "sha256": "4df9feba32a378d29800efe63d059b00f529f8c601454986f5b9b060a89c4bff"
+    },
+    {
+      "path": "art/src/vohon-v2/kim_vu_mieu_ung/concept-attempt1.png",
+      "sha256": "f5acaf93bb42da33603d5d94d9a56fefba8667ba8a9e99d048ca2e70a9f029b9"
+    }
+  ],
+  "check": {
+    "id": "kim_vu_mieu_ung",
+    "level": "chặn",
+    "group": "B",
+    "frame": 96,
+    "dummyKey": "#00D0D0",
+    "blockLevel": {
+      "s": "chặn"
+    },
+    "sheets": [
+      {
+        "sheet": "toA",
+        "size": [
+          1536,
+          1024
+        ],
+        "kind": "huong",
+        "level": "chặn",
+        "dirs": [
+          "s"
+        ],
+        "background": {
+          "key": [
+            249,
+            3,
+            250
+          ],
+          "corners": [
+            [
+              235,
+              11,
+              238
+            ],
+            [
+              240,
+              16,
+              240
+            ],
+            [
+              231,
+              36,
+              233
+            ],
+            [
+              236,
+              31,
+              237
+            ]
+          ],
+          "keyDistFromLock": 6,
+          "cornerSpread": 33
+        },
+        "seVsE": null,
+        "prep": {
+          "shift": {
+            "dx": 0,
+            "dy": 10
+          },
+          "factor": 1,
+          "grid": "gap"
+        },
+        "bands": [
+          {
+            "row": 1,
+            "dir": "s",
+            "y": [
+              35,
+              218
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 2,
+            "dir": "s",
+            "y": [
+              272,
+              481
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 3,
+            "dir": "s",
+            "y": [
+              520,
+              703
+            ],
+            "figures": 6,
+            "state": "warn"
+          },
+          {
+            "row": 4,
+            "dir": "s",
+            "y": [
+              741,
+              961
+            ],
+            "figures": 4,
+            "state": "ok"
+          }
+        ],
+        "motion": [
+          {
+            "dir": "s",
+            "anim": "idle",
+            "maxDiff": 0.401
+          },
+          {
+            "dir": "s",
+            "anim": "walk",
+            "maxDiff": 0.517
+          },
+          {
+            "dir": "s",
+            "anim": "hurt-vs-idle",
+            "maxDiff": 0.369
+          }
+        ],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 33), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "light",
+            "code": "chan-lech",
+            "where": "H3 (s) C5",
+            "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 24%)."
+          },
+          {
+            "sev": "light",
+            "code": "nom-lech",
+            "where": "H1 (s) C2",
+            "msg": "nộm bị dời 25 điểm so với trung vị tờ (> 16); cutter bù được."
+          },
+          {
+            "sev": "light",
+            "code": "nom-lech",
+            "where": "H2 (s) C2",
+            "msg": "nộm bị dời 18 điểm so với trung vị tờ (> 16); cutter bù được."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H2 (s) C2",
+            "msg": "phụ thể chạm mép ô khung (43 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "vuot-khung",
+            "where": "H2 (s) C2",
+            "msg": "100 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H2 (s) C6",
+            "msg": "phụ thể chạm mép ô khung (15 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "nom-lech",
+            "where": "H3 (s) C2",
+            "msg": "nộm bị dời 20 điểm so với trung vị tờ (> 16); cutter bù được."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H3 (s) C2",
+            "msg": "phụ thể chạm mép ô khung (57 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "vuot-khung",
+            "where": "H3 (s) C2",
+            "msg": "18583 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+          },
+          {
+            "sev": "light",
+            "code": "nom-lech",
+            "where": "H3 (s) C3",
+            "msg": "nộm bị dời 16 điểm so với trung vị tờ (> 16); cutter bù được."
+          },
+          {
+            "sev": "block",
+            "code": "khung-rong",
+            "where": "H3 (s) C3",
+            "msg": "khung attack 3 rỗng (0 điểm phụ thể sau khi trừ nền và nộm): thiếu phụ thể, hoặc phụ thể trùng màu khóa nộm."
+          },
+          {
+            "sev": "light",
+            "code": "nom-lech",
+            "where": "H3 (s) C4",
+            "msg": "nộm bị dời 21 điểm so với trung vị tờ (> 16); cutter bù được."
+          },
+          {
+            "sev": "block",
+            "code": "khung-rong",
+            "where": "H3 (s) C4",
+            "msg": "khung attack 4 rỗng (0 điểm phụ thể sau khi trừ nền và nộm): thiếu phụ thể, hoặc phụ thể trùng màu khóa nộm."
+          },
+          {
+            "sev": "block",
+            "code": "khung-rong",
+            "where": "H3 (s) C5",
+            "msg": "khung attack 5 rỗng (0 điểm phụ thể sau khi trừ nền và nộm): thiếu phụ thể, hoặc phụ thể trùng màu khóa nộm."
+          },
+          {
+            "sev": "light",
+            "code": "nom-lech",
+            "where": "H4 (s) C1",
+            "msg": "nộm bị dời 22 điểm so với trung vị tờ (> 16); cutter bù được."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H4 (s) C1",
+            "msg": "phụ thể chạm mép ô khung (26 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "vuot-khung",
+            "where": "H4 (s) C1",
+            "msg": "35 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+          },
+          {
+            "sev": "light",
+            "code": "nom-lech",
+            "where": "H4 (s) C2",
+            "msg": "nộm bị dời 23 điểm so với trung vị tờ (> 16); cutter bù được."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H4 (s) C2",
+            "msg": "phụ thể chạm mép ô khung (41 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "vuot-khung",
+            "where": "H4 (s) C2",
+            "msg": "162 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+          },
+          {
+            "sev": "light",
+            "code": "nom-lech",
+            "where": "H4 (s) C3",
+            "msg": "nộm bị dời 19 điểm so với trung vị tờ (> 16); cutter bù được."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H4 (s) C3",
+            "msg": "phụ thể chạm mép ô khung (47 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "vuot-khung",
+            "where": "H4 (s) C3",
+            "msg": "207 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H4 (s) C4",
+            "msg": "phụ thể chạm mép ô khung (239 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "vuot-khung",
+            "where": "H4 (s) C4",
+            "msg": "1174 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+          },
+          {
+            "sev": "light",
+            "code": "nom-lech",
+            "where": "H1 (s) C5",
+            "msg": "nộm bị dời 17 điểm so với trung vị tờ (> 16); cutter bù được."
+          }
+        ],
+        "draft": "LỖI: toA — chân lệch / nộm bị dời / chạm mép khung / vượt khung / khung rỗng — H3 (s) C5, H1 (s) C2, H2 (s) C2, H2 (s) C2, H2 (s) C2, H2 (s) C6, H3 (s) C2, H3 (s) C2, H3 (s) C2, H3 (s) C3, H3 (s) C3, H3 (s) C4, H3 (s) C4, H3 (s) C5, H4 (s) C1, H4 (s) C1, H4 (s) C1, H4 (s) C2, H4 (s) C2, H4 (s) C2, H4 (s) C3, H4 (s) C3, H4 (s) C3, H4 (s) C4, H4 (s) C4, H1 (s) C5 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 24%); nộm bị dời 25 điểm so với trung vị tờ (> 16); cutter bù được; nộm bị dời 18 điểm so với trung vị tờ (> 16); cutter bù được; phụ thể chạm mép ô khung (43 điểm): có thể bị cắt; 100 điểm phụ thể nằm ngoài ô khung (bị cắt); phụ thể chạm mép ô khung (15 điểm): có thể bị cắt; nộm bị dời 20 điểm so với trung vị tờ (> 16); cutter bù được; phụ thể chạm mép ô khung (57 điểm): có thể bị cắt; 18583 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị dời 16 điểm so với trung vị tờ (> 16); cutter bù được; khung attack 3 rỗng (0 điểm phụ thể sau khi trừ nền và nộm): thiếu phụ thể, hoặc phụ thể trùng màu khóa nộm; nộm bị dời 21 điểm so với trung vị tờ (> 16); cutter bù được; khung attack 4 rỗng (0 điểm phụ thể sau khi trừ nền và nộm): thiếu phụ thể, hoặc phụ thể trùng màu khóa nộm; khung attack 5 rỗng (0 điểm phụ thể sau khi trừ nền và nộm): thiếu phụ thể, hoặc phụ thể trùng màu khóa nộm; nộm bị dời 22 điểm so với trung vị tờ (> 16); cutter bù được; phụ thể chạm mép ô khung (26 điểm): có thể bị cắt; 35 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị dời 23 điểm so với trung vị tờ (> 16); cutter bù được; phụ thể chạm mép ô khung (41 điểm): có thể bị cắt; 162 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị dời 19 điểm so với trung vị tờ (> 16); cutter bù được; phụ thể chạm mép ô khung (47 điểm): có thể bị cắt; 207 điểm phụ thể nằm ngoài ô khung (bị cắt); phụ thể chạm mép ô khung (239 điểm): có thể bị cắt; 1174 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị dời 17 điểm so với trung vị tờ (> 16); cutter bù được."
+      }
+    ]
+  }
+}

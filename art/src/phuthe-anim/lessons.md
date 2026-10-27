@@ -49,3 +49,11 @@
 - [direction @B] In rear views use only the rear feather surfaces and keep the wing roots on the reference chest axis. // Băng Phượng Hoàng C1: cast gần chính diện; D chỉ khai mặt nếu lộ
 - [direction @B] Keep the back-view tail compact below the wing roots, with a clean magenta gutter above the cast row. // Băng Phượng Hoàng D1: ngực cao, lộ mặt khai eye; E giữ lưới
 - [direction @B] For owl possession draw only the paired wings and hand claws from the concept, never the owl torso or face above the hero. // Băng Phượng Hoàng A–E: nguyên chim lấn thân; Kim Vũ A áp bài học này
+- [direction @B] Keep the owl wing roots low enough to meet the full-height reference shoulders, and place the claws on the posed hands. // Kim Vũ A1: nộm nhỏ, vuốt gần chân; B giữ đúng vai/tay
+- [direction @B] Fold the outer owl feathers inward during attack and cast so no wing links adjacent figures or adjacent rows. // Kim Vũ A1: lỗi kiểm lưới; A2 tách hình
+- [direction @B] In every owl cast frame lower and fold the feather tips until a broad empty horizontal gap separates the entire cast band from attack. // Kim Vũ A2: chỉ dò ba hàng, A3 là lượt cuối
+- [direction @B] Preserve a narrow empty magenta border around every folded owl wing and claw throughout the side-facing cycle. // Kim Vũ A3: thu cánh giúp tách hàng; B1 tiếp tục giữ khoảng trống
+- [direction @B] In the pure east view keep the owl claw attached to the hero hand instead of extending a separate owl leg. // Kim Vũ B1: hình tách rõ nhưng thêm thân/đầu chim; C1 giữ vuốt theo tay
+- [direction @B] For a rear three-quarter owl wing, keep the visible feather layers behind the original side-on mannequin and leave all row gutters clear. // Kim Vũ C1: se/e gần nhau, cast quay trước; D kiểm lưới, mặt chỉ khai eye
+- [direction @B] Keep the rear owl wing spread inside the same frame bounds as the standing pose and retain the original foot line. // Kim Vũ D1: nộm thấp và mặt chim lộ, chỉ khai eye; E giữ khung
+- [direction @B] For feline possession draw the ears at the reference head, the tail at the pelvis and claws at the hands, without adding a separate cat body. // Kim Vũ A–E thêm thân chim; U Minh A áp bài học chỉ chi thể

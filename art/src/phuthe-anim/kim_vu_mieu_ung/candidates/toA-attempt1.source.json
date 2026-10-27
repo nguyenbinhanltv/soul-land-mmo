@@ -1,0 +1,160 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-28",
+  "attempt": 1,
+  "raw": {
+    "path": "art/src/phuthe-anim/kim_vu_mieu_ung/candidates/toA-attempt1.png",
+    "sha256": "3596e219551606381c69cd0fa31de25ca7d62323489e4b03881671f9c38c452e"
+  },
+  "prompt": {
+    "path": "art/src/phuthe-anim/kim_vu_mieu_ung/candidates/toA-attempt1.prompt.txt",
+    "sha256": "94de5cda235a8633b92a6d41c2c63ae5018d6c64e54c677a25d3cef7a9df10df",
+    "generator": "phuthe-sheet-prompt --concept-ref",
+    "revision": "d2e21933d68f8c6a0af901f807c32e5952f4ca73"
+  },
+  "references": [
+    {
+      "path": "art/src/phuthe-anim/kim_vu_mieu_ung/references/kim_vu_mieu_ung-nom-toA.png",
+      "sha256": "4df9feba32a378d29800efe63d059b00f529f8c601454986f5b9b060a89c4bff"
+    },
+    {
+      "path": "art/src/vohon-v2/kim_vu_mieu_ung/concept-attempt1.png",
+      "sha256": "f5acaf93bb42da33603d5d94d9a56fefba8667ba8a9e99d048ca2e70a9f029b9"
+    }
+  ],
+  "check": {
+    "id": "kim_vu_mieu_ung",
+    "level": "chặn",
+    "group": "B",
+    "frame": 96,
+    "dummyKey": "#00D0D0",
+    "blockLevel": {
+      "s": "chặn"
+    },
+    "sheets": [
+      {
+        "sheet": "toA",
+        "size": [
+          1536,
+          1024
+        ],
+        "kind": "huong",
+        "level": "chặn",
+        "dirs": [
+          "s"
+        ],
+        "background": {
+          "key": [
+            250,
+            3,
+            251
+          ],
+          "corners": [
+            [
+              236,
+              11,
+              240
+            ],
+            [
+              242,
+              17,
+              241
+            ],
+            [
+              233,
+              36,
+              234
+            ],
+            [
+              236,
+              29,
+              237
+            ]
+          ],
+          "keyDistFromLock": 5,
+          "cornerSpread": 33
+        },
+        "seVsE": null,
+        "prep": null,
+        "bands": [
+          {
+            "row": 1,
+            "dir": "s",
+            "y": [
+              13,
+              201
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 2,
+            "dir": "s",
+            "y": [
+              249,
+              459
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 3,
+            "dir": "s",
+            "y": [
+              496,
+              704
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 4,
+            "dir": "s",
+            "y": [
+              736,
+              958
+            ],
+            "figures": 3,
+            "state": "bad"
+          }
+        ],
+        "motion": [],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 33), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "note",
+            "code": "tach-hinh",
+            "where": "H3 (s)",
+            "msg": "dải dò được 4 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 6."
+          },
+          {
+            "sev": "note",
+            "code": "tach-hinh",
+            "where": "H4 (s)",
+            "msg": "dải dò được 2 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 3."
+          },
+          {
+            "sev": "light",
+            "code": "o-trong",
+            "where": "H4 (s) C5",
+            "msg": "ô trống có hình (3.73% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng."
+          },
+          {
+            "sev": "block",
+            "code": "hinh-dinh",
+            "where": "H4 (s)",
+            "msg": "dải có 3 hình, cần 4: hình dính nhau."
+          }
+        ],
+        "draft": "LỖI: toA — hình ở ô trống / hình dính — H4 (s) C5, H4 (s) — ô trống có hình (3.73% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng; dải có 3 hình, cần 4: hình dính nhau."
+      }
+    ]
+  }
+}
