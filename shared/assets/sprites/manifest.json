@@ -2899,6 +2899,60 @@
       "map": "thanh_hon_thon"
     },
     {
+      "key": "beast_thanh_lan_xa_anim",
+      "frame": [
+        64,
+        64
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          32,
+          56
+        ],
+        "dirsOk": [
+          "e"
+        ]
+      },
+      "map": "thanh_hon_thon"
+    },
+    {
       "key": "beast_that_tinh_doc_thiem",
       "frame": [
         96,
