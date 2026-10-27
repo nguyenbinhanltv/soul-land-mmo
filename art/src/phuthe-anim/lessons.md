@@ -79,3 +79,17 @@
 - [direction @B] When a pose board is supplied, keep gloves limited to the very ends of the existing cyan hands; do not cover the cyan wrists, forearms, neck or torso with claw material. Preserve the broad back-view cyan body exactly in a north sheet. // liet_hoa_thuong_lang E2: E1 nom-mat ở idle; vuốt không được nuốt nộm
 
 - [direction @B] For flame-tipped attachments, make every flame a solid connected part of its claw or tail. Draw no detached embers, sparks, flecks, sweep fragments or floating flame islands between the six attack figures. // liet_hoa_thuong_lang E3: E2 so-hinh: attack 8 cụm thay vì 6 do mảnh lửa rời
+
+- [direction @B] For Bạch Hổ only, the possession is two separate tiger ear pieces on the cyan head, striped white-and-charcoal claw gloves at the cyan hand tips and ONE striped tail rooted at the lower back. Leave the cyan head fully exposed: no tiger head, face, muzzle, chest, torso, separate legs, full tiger or large apparition behind it. // bach_ho A1: Thương Lang A1 nguyên con; Bạch Hổ phải chỉ có chi thể
+
+- [direction @B] For Bạch Hổ on a side pose board, keep the cyan body narrow and right-facing exactly as image 1. The front style sheet supplies striped ear, glove and tail material only; never its front-view cyan body or any extra white vapor. // bach_ho B1: A1 qua kiểm; tránh sao nộm chính diện và khí trắng
+
+- [direction @B] For Bạch Hổ, keep only the named striped ear pieces, hand-tip gloves and one tail around the ORIGINAL side-facing cyan silhouette. Keep the side nose, narrow torso and single visible arm profile from the board; never rotate that cyan body toward the viewer. // bach_ho B2: B1 sai nộm chính diện dù kiểm tự động không chặn
+
+- [direction @B] For Bạch Hổ, use the approved attachment-only sheet for anatomy: ear pieces, hand-tip gloves and one tail, with no tiger face or torso filling the space behind the cyan hero. Preserve the side-board body shape from image 1 while keeping only these disconnected attachment types. // bach_ho B3: B2 nguyên hổ; B3 phải giữ cấu tạo chi thể A1
+
+- [direction @B] For Bạch Hổ, draw only small isolated ear pieces, hand-tip claw gloves and a single striped tail around the unchanged cyan pose-board body. Leave empty magenta instead of a tiger head, animal chest or animal torso; do not paint white aura, smoke or sweep trails. // bach_ho C1: B hết lượt vẫn sai nộm; C không dùng B lỗi làm dẫn
+
+- [direction @B] For Bạch Hổ, keep the simple small striped attachment pieces of the approved side sheet and the exact side-board cyan silhouette; avoid widening the glove masses into a tiger chest or adding any head behind the cyan head. // bach_ho D1: C1 qua kiểm; giữ đúng dạng chi thể ở ne
+
+- [direction @B] For Bạch Hổ on the north pose board, keep the original back-view cyan silhouette and attach only the striped ears, hand-tip gloves and single tail. Do not copy the side-view body of the style sheet or turn the attachments into a separate tiger. // bach_ho E1: D1 qua kiểm; E giữ nộm lưng của bảng số 1
