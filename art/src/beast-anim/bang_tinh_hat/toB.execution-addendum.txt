@@ -1,9 +1,0 @@
-EXECUTION ADDENDUM (applies to this B1 call only; preserve the tool-generated prompt above verbatim)
-
-For this execution, “approved first sheet (A)” means coordinator #134 cleared A1 as a technical identity/continuity reference after the A-only checker returned exit 0 with zero blocking findings. It is not owner-art-approved, art-accepted, or imported.
-
-Reference order and authority: image 1 is the static identity reference and is authoritative for Băng Tinh Hạt identity, anatomy, markings, and design. Image 2 is A1 (a technical candidate) and is secondary only for palette, overall scale, line weight, and limited identity/continuity; never copy any A1 pose or motion. Do not let A1 override the static identity/anatomy reference.
-
-Disclose and avoid A1’s known findings; do not reproduce them: checker exit 0, zero blockers, 4 light findings and 1 note. Four light spill findings affect blank cells H4(S) C5–C6 and H8(SE) C5–C6. HURT recoil is unclear in H1(S), H5(SE), and H9(E), C5–C6. DIE lies horizontally / breaks its facing axis at S H4 C4 and SE H8 C4. These are known A1 defects, not approved poses.
-
-For this B sheet, keep the NE and N blocks as back views with no face visible. Keep HURT upright with only a short recoil along the facing line; keep DIE collapsed along the facing line with the spine parallel to it. Maintain the static reference’s wingless ice-scorpion anatomy (pincers, eight legs, curved tail ending in an ice shard).

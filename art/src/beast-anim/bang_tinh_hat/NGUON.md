@@ -7,7 +7,7 @@ Loài `bang_tinh_hat` (Băng Tinh Hạt), họ `insect`, khung game 96×96. Mứ
 ## toA
 
 - File: `toA.png`, **1024×1536**, 2002868 byte, SHA256 `097698a8f11e4d5eaf3f0a6660b932e9e52cb206a84c49b6f9929d0a10ee3510`.
-- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: tthoadev AO session 142.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: tthoadev.
 - Prompt: `toA.prompt.txt` (SHA256 `5751f677678d99fea58c3b3a5a094b82bd5edd1613e4c8b55c7be1f96779f5bc`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se nhẹ, e pass).
@@ -16,7 +16,7 @@ Loài `bang_tinh_hat` (Băng Tinh Hạt), họ `insect`, khung game 96×96. Mứ
 ## toB
 
 - File: `toB.png`, **1254×1254**, 2080923 byte, SHA256 `5ebdb0b3599901ec99dcbb290ae63d90a3ddf7f813eb2131c666abc300dd15a7`.
-- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: tthoadev AO session 142.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: tthoadev.
 - Prompt: `toB.prompt.txt` (SHA256 `36cbf70cb45a586b1465cc08e552d91016e87513a2c4f96bb943f6b0701ef4ce`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne nhẹ, n nhẹ).

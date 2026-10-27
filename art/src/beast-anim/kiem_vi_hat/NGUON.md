@@ -1,4 +1,4 @@
-# Kiếm Vĩ Hạt — RAW hoạt ảnh
+# Kiếm Vĩ Hạt — RAW hoạt ảnh (#1030)
 
 File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species kiem_vi_hat`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
 
@@ -7,10 +7,10 @@ Loài `kiem_vi_hat` (Kiếm Vĩ Hạt), họ `insect`, khung game 96×96. Mức 
 ## toA
 
 - File: `toA.png`, **948×1659**, 1985681 byte, SHA256 `c72d893d3efe0591c79b2491a67cb075310b22e15f98bc2f475697e75d8629b6`.
-- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul-land-mmo-136.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: tthoadev.
 - Prompt: `toA.prompt.txt` (SHA256 `7fb43cd1004c9ef6e2e2569d507a35708ff233480d5de22955cc5bd1f0fa9385`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
-- Mức kiểm: **nhẹ** (khối hướng: s pass, se nhẹ, e nhẹ).
+- Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se nhẹ, e nhẹ).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H5–8 (se): cỡ thân idle 119% so với ảnh tĩnh (lệch 19%); cutter neo lại, không chặn.
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H9–12 (e): cỡ thân idle 119% so với ảnh tĩnh (lệch 19%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
@@ -18,7 +18,7 @@ Loài `kiem_vi_hat` (Kiếm Vĩ Hạt), họ `insect`, khung game 96×96. Mức 
 ## toB
 
 - File: `toB.png`, **1254×1254**, 1983942 byte, SHA256 `e537b8dd806602023c24eb0ccee7c248746c3fd9370fd1315afd8f0225f94c8c`.
-- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul-land-mmo-136.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: tthoadev.
 - Prompt: `toB.prompt.txt` (SHA256 `03f95bbd218de5fc60b2dad45f8c8aa91fdd7ef94c789ebbc6aa10036f4a7563`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne nhẹ, n nhẹ).

@@ -1,9 +1,0 @@
-EXECUTION ADDENDUM — B1 ONLY. Append this after the generated original prompt without changing the original prompt text.
-
-REFERENCE ORDER FOR THIS EXECUTION:
-Image 1 is the static identity reference at shared/assets/sprites/beast/tham_hai_ma_chuong.png. It is authoritative for the creature's identity, design, colors, and anatomy.
-Image 2 is toA.png, A1, a technical candidate that passed the automated A-only gate. It is NOT owner-art-approved, not art-accepted, and not imported into the game. This is a technical identity and continuity reference only.
-
-Use Image 2 only to help maintain the same octopus identity, palette, outline, and approximate scale. Do not copy any specific A1 pose, frame composition, or animation. In particular, do not reproduce A1's subtle HURT recoil or its close SE/E idle silhouettes. A1 has generic checker baseline warnings labelled as foot deviations, but this floating octopus has no legs, feet, roots, or ground contact. Keep the original prompt's legless, floating anatomy. If Image 2 conflicts with Image 1 or the original prompt, follow Image 1 and the original prompt.
-
-The technical-reference gate authorizes only this limited reference use. It does not imply owner art approval, acceptance, or game import.

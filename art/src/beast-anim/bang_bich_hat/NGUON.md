@@ -7,7 +7,7 @@ Loài `bang_bich_hat` (Băng Bích Hạt), họ `insect`, khung game 96×96. M�
 ## toA
 
 - File: `toA.png`, **948×1659**, 2081450 byte, SHA256 `dc233ba40a30ffd7cc90625f6cadf8177c98b01be29580dcf7709f6249e9da67`.
-- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: tthoadev AO session 142.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: tthoadev.
 - Prompt: `toA.prompt.txt` (SHA256 `c8f89491f216989c415890c514a8d37e260c14f71d4a1374385fc83109bd4bf4`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s pass, se nhẹ, e pass).
@@ -17,10 +17,10 @@ Loài `bang_bich_hat` (Băng Bích Hạt), họ `insect`, khung game 96×96. M�
 ## toB
 
 - File: `toB.png`, **1254×1254**, 2152524 byte, SHA256 `8535c53765a2f3d0226d37f8131c8a0bb50aaa74717ad11fd1323060d81b467a`.
-- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: tthoadev AO session 142.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: tthoadev.
 - Prompt: `toB.prompt.txt` (SHA256 `4a6d4cc93b286b9fbae5628550bd2f08633d4d5b2105fe980ad8742c546ed88a`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
-- Mức kiểm: **pass** (khối hướng: ne pass, n pass).
+- Mức kiểm: **nhẹ** (khối hướng: ne pass, n nhẹ).
 - Duyệt bằng mắt: 4 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## Lỗi
