@@ -1,0 +1,39 @@
+{
+  "type": "icon",
+  "id": "pha_hon_thuong",
+  "issues": [
+    {
+      "sev": "soft",
+      "code": "mem",
+      "text": "texture mềm: 89% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+    },
+    {
+      "sev": "soft",
+      "code": "luoi",
+      "text": "chưa đúng lưới khối: tỉ số biên 1.32 ở chu kỳ 29 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+    }
+  ],
+  "metrics": {
+    "w": 1254,
+    "h": 1254,
+    "ratio": 1,
+    "border": {
+      "clear": 1,
+      "flat70": 0
+    },
+    "fill": 0.8,
+    "softness": 0.891,
+    "bigColors": 125,
+    "grid": {
+      "period": 29,
+      "ratio": 1.32
+    },
+    "paletteMatch": 0.53,
+    "smallAccent": "8/8"
+  },
+  "manual": [
+    "đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi)",
+    "không có chữ, ký hiệu đọc được, logo, chữ ký",
+    "đọc được cả ở cỡ thật 1× (nhìn lướt)"
+  ]
+}

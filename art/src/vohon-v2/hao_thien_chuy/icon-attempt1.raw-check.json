@@ -1,0 +1,49 @@
+{
+  "type": "icon",
+  "id": "hao_thien_chuy",
+  "issues": [
+    {
+      "sev": "soft",
+      "code": "mem",
+      "text": "texture mềm: 88% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+    },
+    {
+      "sev": "soft",
+      "code": "nhieu-mau",
+      "text": "178 màu đáng kể (nên ≤ 160 để ép về ≤ 32 mà không bệt)"
+    },
+    {
+      "sev": "soft",
+      "code": "luoi",
+      "text": "chưa đúng lưới khối: tỉ số biên 1.3 ở chu kỳ 38 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+    },
+    {
+      "sev": "soft",
+      "code": "lech-mau",
+      "text": "26% điểm sáng cùng họ màu robe / col của hao_thien_chuy (mục 4 cần ≥ 50%)"
+    }
+  ],
+  "metrics": {
+    "w": 1254,
+    "h": 1254,
+    "ratio": 1,
+    "border": {
+      "clear": 1,
+      "flat70": 0
+    },
+    "fill": 0.74,
+    "softness": 0.888,
+    "bigColors": 178,
+    "grid": {
+      "period": 38,
+      "ratio": 1.3
+    },
+    "paletteMatch": 0.26,
+    "smallAccent": "8/8"
+  },
+  "manual": [
+    "đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi)",
+    "không có chữ, ký hiệu đọc được, logo, chữ ký",
+    "đọc được cả ở cỡ thật 1× (nhìn lướt)"
+  ]
+}

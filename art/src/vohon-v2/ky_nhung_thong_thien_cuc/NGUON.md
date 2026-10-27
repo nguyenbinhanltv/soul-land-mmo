@@ -59,3 +59,32 @@ CLI chưa nhận cờ `--eye`; lưu khai báo tường minh, giữ nguyên kết
 ```text
 --eye "portrait-attempt1=RAW/P1c2 — Cánh dao cam đất và nhụy vàng rõ nhưng đối xứng giống mặt nạ, cánh tràn mép; P1c2 còn nhiều cụm nhỏ, lõi vàng mạnh, khối tối giữa các cánh còn nhận ra; cần duyệt hình hoa."
 ```
+
+
+## Icon lô 3 — #1159, RAW nearest 24/32 px
+
+Ngày 2026-10-28; **1/3 lượt**. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `icon-attempt1.png`, SHA256 `f8d057d95e2d37ab3c237bbb5fd1f7cb16db4a95128b901b53ec2ea376e47358`. Prompt CLI nguyên nội dung, không viết tay / addendum: `icon-attempt1.prompt.txt`, SHA256 `22b127ad00758ef5fea11de1f68d9883b113609c03bfc763763d154248b8db40` (file UTF-8 đã chuẩn hóa LF, có xuống dòng cuối). `sent_prompt` trong source JSON giữ nguyên stdout CLI thực tế sau khi bỏ xuống dòng cuối: **22 CRLF trong khối STYLE, LF ở phần còn lại** do checkout Windows. `sent_prompt_sha256` tính trên chuỗi gốc hỗn hợp đó, không phải file prompt LF. So sánh nội dung sau chuẩn hóa CRLF → LF: trùng nguyên văn, không addendum.
+
+Ảnh neo theo chỉ định lô 3: `art/src/vohon-v2/ky_nhung_thong_thien_cuc/concept-attempt2.png`, SHA256 `dcfdd0bb52b5dcb0df1416aa2a312ae1b5cc85d76d908c52d2a5bbb4e7fde88f`; chỉ tham chiếu ngoại hình, không xác nhận concept đã đạt năm hướng. Hồ sơ đầy đủ và kết quả máy: `icon-attempt1.source.json`. Chuyển bằng preset `icon-nearest`: bỏ nền, cắt hộp bao, nearest-neighbor, viền mặc định; giữ màu RAW, không ép 8 màu. Bản 24/32 và báo cáo tại `icon-attempt1-nearest/`; xem [trang so sánh](icon-attempt1-nearest/preview/index.html).
+
+Ứng viên trình duyệt, chưa duyệt nhập game. Lỗi còn lại chỉ khai dưới đây, không sửa RAW.
+
+### Khai báo duyệt mắt icon (`--eye`)
+
+CLI chưa nhận cờ `--eye`; giữ nguyên kết quả máy và lưu khai báo tường minh:
+
+```text
+--eye "icon-attempt1=24 — cham-mep — hình chạm mép ảnh (3 điểm): viền ngoài bị cắt"
+--eye "icon-attempt1=24 — nhieu-chi-tiet — mật độ biên 0.928 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+--eye "icon-attempt1=32 — cham-mep — hình chạm mép ảnh (4 điểm): viền ngoài bị cắt"
+--eye "icon-attempt1=32 — nhieu-chi-tiet — mật độ biên 0.917 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+--eye "icon-attempt1=raw — mem — texture mềm: 86% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+--eye "icon-attempt1=raw — luoi — chưa đúng lưới khối: tỉ số biên 1.24 ở chu kỳ 38 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+--eye "icon-attempt1=duyệt mắt — Đóa hoa cánh dao cam đất, nhụy vàng trên khe đỏ tối; còn rễ và cánh rời, vòng sáng nhiều dấu nhọn làm rối bố cục; nhụy sáng còn thấy, cánh nhỏ và rễ dễ nhập nhau ở 24 px; chưa đạt dấu hiệu đơn gọn hoàn toàn."
+```
+
+### Ghi công icon
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/vohon-v2/ky_nhung_thong_thien_cuc/icon-attempt1.*` và `icon-attempt1-nearest/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) + vohon-pixelize icon-nearest | Icon lô 3 #1159; prompt CLI nguyên văn, concept riêng làm neo; model/seed unknown. | 2026-10-28 | 1/3 lượt; ứng viên chưa duyệt, không nhập game; SHA256 ở trên. |

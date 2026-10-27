@@ -1,0 +1,26 @@
+{
+  "type": "icon",
+  "id": "pha_hon_thuong",
+  "issues": [
+    {
+      "sev": "soft",
+      "code": "nhieu-chi-tiet",
+      "text": "mật độ biên 0.854 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+    }
+  ],
+  "metrics": {
+    "w": 24,
+    "h": 24,
+    "colors": 112,
+    "outline": 1,
+    "hot": 0.067,
+    "contrast": 0.183,
+    "edge": 0.854,
+    "sep": null,
+    "bgRatio": 0.96
+  },
+  "manual": [
+    "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+    "so với RAW: vẫn là cùng một võ hồn"
+  ]
+}

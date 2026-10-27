@@ -1,0 +1,44 @@
+{
+  "type": "icon",
+  "id": "xuc_xich",
+  "issues": [
+    {
+      "sev": "soft",
+      "code": "mem",
+      "text": "texture mềm: 88% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+    },
+    {
+      "sev": "soft",
+      "code": "nhieu-mau",
+      "text": "182 màu đáng kể (nên ≤ 160 để ép về ≤ 32 mà không bệt)"
+    },
+    {
+      "sev": "soft",
+      "code": "luoi",
+      "text": "chưa đúng lưới khối: tỉ số biên 1.23 ở chu kỳ 34 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+    }
+  ],
+  "metrics": {
+    "w": 1254,
+    "h": 1254,
+    "ratio": 1,
+    "border": {
+      "clear": 1,
+      "flat70": 0
+    },
+    "fill": 0.74,
+    "softness": 0.887,
+    "bigColors": 182,
+    "grid": {
+      "period": 34,
+      "ratio": 1.23
+    },
+    "paletteMatch": 0.98,
+    "smallAccent": "8/8"
+  },
+  "manual": [
+    "đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi)",
+    "không có chữ, ký hiệu đọc được, logo, chữ ký",
+    "đọc được cả ở cỡ thật 1× (nhìn lướt)"
+  ]
+}

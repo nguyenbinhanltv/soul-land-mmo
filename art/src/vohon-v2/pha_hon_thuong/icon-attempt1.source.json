@@ -1,0 +1,121 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-28",
+  "attempt": 1,
+  "attempt_limit": 3,
+  "raw": "art/src/vohon-v2/pha_hon_thuong/icon-attempt1.png",
+  "raw_sha256": "b8dda27f5f19be10fb6dedecb80518815ff385aa60783787f90881b18dfa9ea6",
+  "prompt": "art/src/vohon-v2/pha_hon_thuong/icon-attempt1.prompt.txt",
+  "prompt_sha256": "4a37bf9731e284d85ca657bd93dcf157ef50d01968e3c75403e36b46dc21d381",
+  "sent_prompt": "STYLE (apply to every image):\r\nDark-xianxia pixel art, isometric RPG, overbearing and dominant \"heaven-defying\" presence.\r\nThe spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.\r\nAngular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.\r\nMuted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small\r\nhigh-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region\r\n(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,\r\nno anti-aliasing, hard pixel edges. Light comes from the upper left.\r\nCultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);\r\ndo not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).\r\nMaterials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.\r\nCalm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.\r\nTransparent background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels\r\n(glow, particles and motion are added in code).\r\n\r\nNEGATIVE (forbidden):\r\ncute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,\r\nSaturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,\r\npastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,\r\nflat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,\r\nreadable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,\r\n3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,\r\nanti-aliasing, painterly brush texture, drawing a copy of existing sprite.\n\nADDITIONAL FORBIDDEN (this asset type): tiny whole animal, full body, frame, card, text, background scenery.\n\nSPIRIT: Phá Hồn Thương (pha_hon_thuong). The design brief below comes from the canonical design table and is written in Vietnamese: follow it exactly, keep every hex code as written, and use only the motifs listed in it (do not add any other motif).\n- Overbearing presence: mũi thương **xuyên phá cả hồn phách**: dài, thẳng, lạnh; chỉ một đường đâm là đủ.\n- Form: cán dài, mũi thoi hẹp có rãnh, hai tua đỏ; dựng chếch sau lưng cao hơn đầu một đoạn.\n- Palette: xanh ngọc tối theo `robe`, lưỡi xanh ngọc sáng theo `col`; nhấn đỏ tươi ở tua + trắng ở mũi nhọn.\n- Motifs (use only these): khắc đạo văn phá hồn dọc cán, vệt hồn quang kéo dài sau mũi (code), tầng hồn quang chồng lên khi đâm.\n- Companion objects: hai tua đỏ phất theo gió.\n- Base colors in the game data: accent (col) #7fe0d0, body (robe) #1f4a48.\n\nASSET TYPE: spirit icon source for a menu icon (final art 32x32 and 24x24). Square 1:1 image. ONE emblem: the single most identifying shape of the spirit (head, blade, hammer head, flower, flame core...), centered, filling about 80% of the frame, strong silhouette, 2 or 3 flat tones plus one bright accent. No scenery, no full-body animal, no motif other than the one that defines the silhouette.\n\nBACKGROUND: transparent (real alpha). If your tool cannot output alpha, use one flat solid #FF00FF magenta, with no gradient, no texture, no shadow.\n\nLOOK (this replaces any request for a pixel grid, pixel count or color limit): chunky low-resolution pixel look, flat color clusters, simple shapes readable when shrunk. Large deliberate clusters of flat color with hard square edges; few broad color regions; no microtexture, no fine hatching, no tiny decorative marks, no fur or feather strands, no noise. Do not try to count pixels or colors: a post-processing tool converts your image to the final pixel grid and palette, so give it bold, simple shapes.\n\nSTYLE REFERENCE: image 1 (attached) is an APPROVED image of this project's new art direction. Match only its line weight, how few and how large its color clusters are, and its overall mood. Do not copy its subject, pose, composition or any detail of it.",
+  "sent_prompt_sha256": "dca2621708172b1193234c2bda429e811c2f677ab34acd2935deb9e408d23598",
+  "prompt_command": "node tools/assets/vohon-prompt.mjs --type icon --id pha_hon_thuong --style-ref art/src/vohon-v2/pha_hon_thuong/concept-attempt1.png",
+  "reference": "art/src/vohon-v2/pha_hon_thuong/concept-attempt1.png",
+  "reference_sha256": "ceeb9594af98b6111ffa15ad52fdd361fd5dfe37b0ce57da7508dbae45bdfa63",
+  "conversion_command": "node tools/assets/vohon-pixelize.mjs --type icon --id pha_hon_thuong --in art/src/vohon-v2/pha_hon_thuong/icon-attempt1.png --out art/src/vohon-v2/pha_hon_thuong/icon-attempt1-nearest --preset icon-nearest",
+  "checks": {
+    "24": {
+      "type": "icon",
+      "id": "pha_hon_thuong",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.854 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 112,
+        "outline": 1,
+        "hot": 0.067,
+        "contrast": 0.183,
+        "edge": 0.854,
+        "sep": null,
+        "bgRatio": 0.96
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    },
+    "32": {
+      "type": "icon",
+      "id": "pha_hon_thuong",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (2 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.88 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 214,
+        "outline": 1,
+        "hot": 0.074,
+        "contrast": 0.195,
+        "edge": 0.88,
+        "sep": null,
+        "bgRatio": 0.94
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    },
+    "raw": {
+      "type": "icon",
+      "id": "pha_hon_thuong",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "mem",
+          "text": "texture mềm: 89% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+        },
+        {
+          "sev": "soft",
+          "code": "luoi",
+          "text": "chưa đúng lưới khối: tỉ số biên 1.32 ở chu kỳ 29 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+        }
+      ],
+      "metrics": {
+        "w": 1254,
+        "h": 1254,
+        "ratio": 1,
+        "border": {
+          "clear": 1,
+          "flat70": 0
+        },
+        "fill": 0.8,
+        "softness": 0.891,
+        "bigColors": 125,
+        "grid": {
+          "period": 29,
+          "ratio": 1.32
+        },
+        "paletteMatch": 0.53,
+        "smallAccent": "8/8"
+      },
+      "manual": [
+        "đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi)",
+        "không có chữ, ký hiệu đọc được, logo, chữ ký",
+        "đọc được cả ở cỡ thật 1× (nhìn lướt)"
+      ]
+    }
+  },
+  "eye": "Một thương chéo, mũi lam trắng tách thân lam tối; hai dải đỏ chiếm nhiều khung, cán vẫn dài làm mũi nhỏ ở 24 px; cần duyệt mức ưu tiên mũi thương và độ rực đỏ.",
+  "imported": false,
+  "prompt_hash_format": "prompt file: UTF-8, normalized LF, with terminal newline; sent_prompt: exact CLI stdout with terminal newlines removed, containing 22 CRLF in STYLE and LF elsewhere; sent_prompt_sha256 hashes this original mixed-newline string, not the normalized prompt file",
+  "status": "candidate-for-review",
+  "attempts_total": 1
+}

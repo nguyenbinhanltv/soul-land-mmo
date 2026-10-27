@@ -1,0 +1,31 @@
+{
+  "type": "icon",
+  "id": "xuc_xich",
+  "issues": [
+    {
+      "sev": "soft",
+      "code": "cham-mep",
+      "text": "hình chạm mép ảnh (3 điểm): viền ngoài bị cắt"
+    },
+    {
+      "sev": "soft",
+      "code": "nhieu-chi-tiet",
+      "text": "mật độ biên 0.911 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+    }
+  ],
+  "metrics": {
+    "w": 32,
+    "h": 32,
+    "colors": 392,
+    "outline": 1,
+    "hot": 0.196,
+    "contrast": 0.274,
+    "edge": 0.911,
+    "sep": null,
+    "bgRatio": 1.34
+  },
+  "manual": [
+    "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+    "so với RAW: vẫn là cùng một võ hồn"
+  ]
+}
