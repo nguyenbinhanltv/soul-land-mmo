@@ -7,7 +7,7 @@ Loài `han_bang_dia_long` (Hàn Băng Địa Long), họ `quad`, khung game 128�
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1800175 byte, SHA256 `70eb3a701f6ec510c6a9279b6631334b4f942750e310a3759a470a499be8dd73`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: ao-desktop.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: ao-desktop.
 - Prompt: `turnaround.prompt.txt` (SHA256 `40c7e9d8593b355158b0e46350c4c0c8eb371790aed52365f8baf711e273f46d`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
@@ -22,11 +22,21 @@ Loài `han_bang_dia_long` (Hàn Băng Địa Long), họ `quad`, khung game 128�
 - Mức kiểm: **pass** (khối hướng: s pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
+## toB
+
+- File: `toB.png`, **1536×1024**, 2020292 byte, SHA256 `c8d213792bf8f795894a68b5d745eaae2d9a94a93caba7f907f2ee690b558cee`.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: ao-desktop.
+- Prompt: `toB.prompt.txt` (SHA256 `467e0bd27bb7c22ffb66511f134f38a17c39c9a81179048ca40b81d8c65856d9`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: se pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
 ## Lỗi
 
 ```text
 LỖI: turnaround — chọn lượt 1; se gần e, HURT ngẩng đầu mạnh (mắt)
-LỖI: toA — s — chọn A2; die D2–D4 xoay chéo phải, attack A1/A5 nghiêng đầu, HURT H1 ngẩng đầu quá mạnh (mắt)
+LỖI: toA — s — chọn A2; die D2–D4 xoay chéo phải, attack C1/C5 nghiêng đầu, HURT C5 ngẩng đầu mạnh (mắt)
+LỖI: toB — se — chọn B2; góc se nông gần e, HURT ngẩng đầu, die nghiêng về góc ngang (mắt)
 ```
 
 ## Ghi công
