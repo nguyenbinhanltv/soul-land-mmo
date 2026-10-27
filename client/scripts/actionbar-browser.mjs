@@ -40,6 +40,16 @@ async function hook(page, op, data = {}) {
     room.send("test", { op, ...data });
   }), { op, data });
 }
+// Giữ fixture thiếu lực qua cả khung vẽ/chụp: vùng an toàn hồi MP trước khi máy CI chậm kịp đọc HUD.
+async function withEmptyMp(page, check) {
+  await hook(page, "ready", { mp: 0 });
+  let running = true;
+  const drain = (async () => {
+    while (running) { await hook(page, "drain", { pct: 100 }); await sleep(100); }
+  })();
+  try { await Promise.race([check(), drain]); }
+  finally { running = false; await drain; }
+}
 async function screenshot(page, name, size) {
   await page.screenshot({ path: resolve(out, `${phase}-${size}-${name}.png`) });
 }
@@ -258,13 +268,14 @@ try {
       await page.waitForFunction((rowId) => window.__c8Scene.owned.active === rowId, team[0], { timeout: 1000 });
       samples.push({ size, touch, geometry, names, contrast, errors });
     }
-    await hook(page, "ready", { mp: 0 });
-    await page.waitForFunction(() => document.querySelectorAll(".sk.nomp").length >= 4);
-    await screenshot(page, "thieu-hon-luc", size);
-    if (!before) {
-      assert.ok((await page.locator(".sk.nomp .sk-state").allTextContents()).every((text) => text === "Thiếu lực"));
-      assert.equal(await page.locator(".sk.ava").getAttribute("aria-disabled"), "true");
-    }
+    await withEmptyMp(page, async () => {
+      await page.waitForFunction(() => document.querySelectorAll(".sk.nomp").length >= 4);
+      await screenshot(page, "thieu-hon-luc", size);
+      if (!before) {
+        assert.ok((await page.locator(".sk.nomp .sk-state").allTextContents()).every((text) => text === "Thiếu lực"));
+        assert.equal(await page.locator(".sk.ava").getAttribute("aria-disabled"), "true");
+      }
+    });
     // Cảnh chiến đấu thật: quái do hook server tạo, chiêu và hồi chiêu do server quyết định.
     await hook(page, "ready");
     await hook(page, "warp", { mapId: "tinh_dau_ngoai_vi" });
