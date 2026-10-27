@@ -1,0 +1,41 @@
+STYLE (apply to every image):
+Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
+The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
+Angular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.
+Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small
+high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
+(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
+no anti-aliasing, hard pixel edges. Light comes from the upper left.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
+Transparent background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
+(glow, particles and motion are added in code).
+
+NEGATIVE (forbidden):
+cute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,
+Saturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,
+pastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,
+flat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,
+readable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,
+3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,
+anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
+
+ADDITIONAL FORBIDDEN (this asset type): border, frame, card, text, full body, extra scenery.
+
+SPIRIT: Kỳ Nhung Thông Thiên Cúc (ky_nhung_thong_thien_cuc). The design brief below comes from the canonical design table and is written in Vietnamese: follow it exactly, keep every hex code as written, and use only the motifs listed in it (do not add any other motif).
+- Overbearing presence: không phải một đóa hoa đẹp mà là **Đại Đạo Kim Hoa**: cánh dài như dao, nở thành vầng đạo quang sau lưng, đâm thẳng lên trời.
+- Form: hoa cúc cánh dài nhọn, nhiều lớp so le như lưỡi kiếm, gốc là rễ đen xoắn.
+- Palette: lớp cánh ngoài cam đất theo `robe`; ánh cánh theo `col`; nhấn vàng kim chói ở nhụy + đỏ sẫm giữa các lớp.
+- Motifs (use only these): vầng hào quang kim quang sau lưng, đạo văn vòng quanh nhụy, cánh rụng thành lưỡi khí.
+- Companion objects: nhụy sáng như đạo quả, vài cánh rời bay như phi đao.
+- Base colors in the game data: accent (col) #ffb347, body (robe) #8a4a12.
+
+ASSET TYPE: spirit portrait source for a small game UI portrait (the final art is a tiny square, so only a few big shapes survive). Square 1:1 image. Close-up of the spirit's FACE (eyes and beak / head, or the single most identifying feature), centered, filling about 70% of the frame, facing the viewer as if confronting them. Keep the key lit points (eyes, beak edge, core) LARGE and clearly separated from the rest; use at most two or three motif marks and make them thick. Not a full body; no wing / body sprawl filling the corners.
+
+BACKGROUND (overrides the line "Transparent background" of the STYLE block): a dark background (near #1a1020) with ONE restrained hard-edged aura of the spirit's accent color behind the spirit; no gradient glow, no outer border, no frame. Make the background dark, in a hue clearly opposite to the spirit's main color (never the same hue as the spirit); only the key focal points (eyes or core) are bright; draw the main mass as 3 to 5 large shapes, not many thin strands.
+
+LOOK (this replaces any request for a pixel grid, pixel count or color limit): chunky low-resolution pixel look, flat color clusters, simple shapes readable when shrunk. Large deliberate clusters of flat color with hard square edges; few broad color regions; no microtexture, no fine hatching, no tiny decorative marks, no fur or feather strands, no noise. Do not try to count pixels or colors: a post-processing tool converts your image to the final pixel grid and palette, so give it bold, simple shapes.
+
+STYLE REFERENCE: image 1 (attached) is an APPROVED image of this project's new art direction. Match only its line weight, how few and how large its color clusters are, and its overall mood. Do not copy its subject, pose, composition or any detail of it.

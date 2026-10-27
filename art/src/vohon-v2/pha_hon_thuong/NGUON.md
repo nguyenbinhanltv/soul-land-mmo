@@ -36,3 +36,21 @@ raw concept-attempt1.png pháp tướng (pha_hon_thuong): NHẸ
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/vohon-v2/pha_hon_thuong/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. | 2026-10-27 | Chưa duyệt, không nhập game. |
+| `art/src/vohon-v2/pha_hon_thuong/candidates/portrait-attempt1.*` và `portrait-attempt1-P1c2/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Chân dung lô 3 #1158; prompt CLI nguyên văn, RAW + pixel preset portrait2; model/seed unknown. | 2026-10-27 | 1/3 lượt, ứng viên chưa duyệt, không nhập game; SHA256 và --eye bên dưới. |
+
+
+## Chân dung lô 3 — #1158, P1c2
+
+Ngày 2026-10-27; **1/3 lượt**. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `candidates/portrait-attempt1.png`, SHA256 `9d9631ab15092b86aa29d7412ed48d8f7a28939e3b9362deb20935b80182e6d7`. Prompt nguyên văn từ CLI, không viết tay / addendum: `candidates/portrait-attempt1.prompt.txt`, SHA256 `8143f96a5bfe89040eb2f300ed37fd1aa57078a5e1effe2507517146a5b7fcf4`. Prompt lưu UTF-8 LF; chuỗi gửi gốc và SHA256 giữ trong `candidates/portrait-attempt1.source.json`, chỉ chuẩn hoá xuống dòng.
+
+Ảnh neo: `art/src/vohon-v2/pha_hon_thuong/concept-attempt1.png`, SHA256 `ceeb9594af98b6111ffa15ad52fdd361fd5dfe37b0ce57da7508dbae45bdfa63`. 
+
+Pixel hoá `--preset portrait2` đã duyệt, giữ mặc định 16 màu (brief RAW 6–8 mảng màu); bản `candidates/portrait-attempt1-P1c2/pha_hon_thuong-portrait.png`. Xem `candidates/portrait-attempt1-P1c2/preview/index.html` và `so-sanh.png`. Kết quả máy RAW/P1c2 và lệnh tái tạo trong source JSON, báo cáo pixel kèm thư mục. Chỉ ứng viên trình duyệt, **chưa duyệt, không nhập game**; không chọn thay concept.
+
+### Khai báo duyệt mắt chân dung (`--eye`)
+
+CLI chưa nhận cờ `--eye`; lưu khai báo tường minh, giữ nguyên kết quả máy và RAW.
+
+```text
+--eye "portrait-attempt1=RAW/P1c2 — Mũi thương thoi xanh ngọc, rãnh lõi và hai tua đỏ đọc rõ; mũi sát và bị cắt mép trên. P1c2 vẫn nhận ra thương và hai tua; hồn quang xanh phía sau lớn, cùng gam thân nên cạnh tối chưa tách hẳn; còn nét vụn ở cán."
+```

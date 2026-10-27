@@ -37,6 +37,7 @@ raw concept-attempt3.png pháp tướng (cuu_bao_luu_ly_thap): NHẸ
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/vohon-v2/cuu_bao_luu_ly_thap/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. | 2026-10-27 | Chưa duyệt, không nhập game. |
+| `art/src/vohon-v2/cuu_bao_luu_ly_thap/candidates/portrait-attempt1.*` và `portrait-attempt1-P1c2/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Chân dung lô 3 #1158; prompt CLI nguyên văn, RAW + pixel preset portrait2; model/seed unknown. | 2026-10-27 | 1/3 lượt, ứng viên chưa duyệt, không nhập game; SHA256 và --eye bên dưới. |
 
 ## Các lượt không chọn
 
@@ -95,4 +96,21 @@ raw concept-attempt6.png pháp tướng (cuu_bao_luu_ly_thap): NHẸ
   [NHẸ] lech-mau: 49% điểm sáng cùng họ màu robe / col của cuu_bao_luu_ly_thap (mục 4 cần ≥ 50%)
   số đo: {"w":1983,"h":793,"ratio":2.501,"border":{"clear":1,"flat70":0},"poses":5,"poseSpread":1.01,"softness":0.747,"bigColors":227,"grid":{"period":38,"ratio":1.11},"paletteMatch":0.49}
   cần mắt duyệt: đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi); không có chữ, ký hiệu đọc được, logo, chữ ký; 5 hướng cùng một hình (cùng cỡ, màu, chi tiết), se / ne chếch đúng hướng; thân đặc, không trong suốt
+```
+
+
+## Chân dung lô 3 — #1158, P1c2
+
+Ngày 2026-10-27; **1/3 lượt**. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `candidates/portrait-attempt1.png`, SHA256 `4205c4ce17443eafdebd691e504768ec5b4e16436b2858e57546120d533e5d79`. Prompt nguyên văn từ CLI, không viết tay / addendum: `candidates/portrait-attempt1.prompt.txt`, SHA256 `9e16ebd749f40f6e47a18cc8febbf44f246f2c7a6c916a56b9bb9bd60d108d2f`. Prompt lưu UTF-8 LF; chuỗi gửi gốc và SHA256 giữ trong `candidates/portrait-attempt1.source.json`, chỉ chuẩn hoá xuống dòng.
+
+Ảnh neo: `art/src/vohon-v2/cuu_bao_luu_ly_thap/candidates/concept-attempt4.png`, SHA256 `64cad59a74778d41b61f5bd9dd9bec41da14686c1aabb5ee9ea4aed959844bd0`. Dùng lượt 4 tốt nhất trong candidates theo đánh giá đợt #1161; concept vẫn CHẶN thiếu chín tầng, chưa được chọn hay duyệt. Đây là ngoại lệ ảnh neo do chủ repo giao riêng cho lô 3. 
+
+Pixel hoá `--preset portrait2` đã duyệt, giữ mặc định 16 màu (brief RAW 6–8 mảng màu); bản `candidates/portrait-attempt1-P1c2/cuu_bao_luu_ly_thap-portrait.png`. Xem `candidates/portrait-attempt1-P1c2/preview/index.html` và `so-sanh.png`. Kết quả máy RAW/P1c2 và lệnh tái tạo trong source JSON, báo cáo pixel kèm thư mục. Chỉ ứng viên trình duyệt, **chưa duyệt, không nhập game**; không chọn thay concept.
+
+### Khai báo duyệt mắt chân dung (`--eye`)
+
+CLI chưa nhận cờ `--eye`; lưu khai báo tường minh, giữ nguyên kết quả máy và RAW.
+
+```text
+--eye "portrait-attempt1=RAW/P1c2 — Cận phần trên tháp, không đọc đủ chín tầng; mái và bảo quang nhận ra, nhiều chi tiết nhỏ. P1c2 thân tối gần vòng ngoài, điểm sáng màu còn rõ; chưa đạt đầy đủ đặc tả, giữ candidate."
 ```

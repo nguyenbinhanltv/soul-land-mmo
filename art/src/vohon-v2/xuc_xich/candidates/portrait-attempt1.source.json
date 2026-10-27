@@ -1,0 +1,99 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "issue": 1158,
+  "batch": 3,
+  "attempt": 1,
+  "max_attempts": 3,
+  "reference": "art/src/vohon-v2/xuc_xich/concept-attempt1.png",
+  "reference_sha256": "0310c598ef01a1970f7c85cd401ba65e0aade78a8974291ecb15a9cdb4a369d3",
+  "image_sha256": "819487c392253dc64a6f99717a19eee350e2759fb59d7deea12d5303a626fd8c",
+  "prompt_sha256": "ea2de97f885b0de1d7f163ba657fe1fd949fd7402e60b3982ac1a3dc40e5cdb9",
+  "sent_prompt": "STYLE (apply to every image):\r\nDark-xianxia pixel art, isometric RPG, overbearing and dominant \"heaven-defying\" presence.\r\nThe spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.\r\nAngular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.\r\nMuted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small\r\nhigh-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region\r\n(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,\r\nno anti-aliasing, hard pixel edges. Light comes from the upper left.\r\nCultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);\r\ndo not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).\r\nMaterials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.\r\nCalm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.\r\nTransparent background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels\r\n(glow, particles and motion are added in code).\r\n\r\nNEGATIVE (forbidden):\r\ncute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,\r\nSaturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,\r\npastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,\r\nflat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,\r\nreadable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,\r\n3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,\r\nanti-aliasing, painterly brush texture, drawing a copy of existing sprite.\n\nADDITIONAL FORBIDDEN (this asset type): border, frame, card, text, full body, extra scenery.\n\nSPIRIT: Xúc Xích (xuc_xich). The design brief below comes from the canonical design table and is written in Vietnamese: follow it exactly, keep every hex code as written, and use only the motifs listed in it (do not add any other motif).\n- Overbearing presence: **Thánh Quang Hương Tràng**: bản đặc tả cũ giữ chất hài (xúc xích nướng); bản v2 **bá đạo hóa thành pháp bảo**: một cây \"đại hương tràng\" khổng lồ nứt vỏ, tỏa kim quang như thần khí, hài chỉ còn là chi tiết tinh tế (vỏ nứt nướng, hơi nóng). **Cần chủ repo duyệt riêng con này.**\n- Form: trụ dài chếch như một cây trượng / lệnh, đầu bo nhưng có gờ, vỏ nứt, có khắc đai.\n- Palette: nâu cam đậm theo `robe`, ánh nướng cam theo `col`; nhấn vàng kim ở vết nứt + đỏ thẫm ở đai.\n- Motifs (use only these): kim quang thánh khí từ vết nứt, vòng ấn hương, hơi nóng thành khí cuộn.\n- Companion objects: vài hương tràng nhỏ bay quanh như pháp bảo; hơi bốc (code).\n- Base colors in the game data: accent (col) #e8875a, body (robe) #6a3a22.\n\nASSET TYPE: spirit portrait source for a small game UI portrait (the final art is a tiny square, so only a few big shapes survive). Square 1:1 image. Close-up of the spirit's FACE (eyes and beak / head, or the single most identifying feature), centered, filling about 70% of the frame, facing the viewer as if confronting them. Keep the key lit points (eyes, beak edge, core) LARGE and clearly separated from the rest; use at most two or three motif marks and make them thick. Not a full body; no wing / body sprawl filling the corners.\n\nBACKGROUND (overrides the line \"Transparent background\" of the STYLE block): a dark background (near #1a1020) with ONE restrained hard-edged aura of the spirit's accent color behind the spirit; no gradient glow, no outer border, no frame. Make the background dark, in a hue clearly opposite to the spirit's main color (never the same hue as the spirit); only the key focal points (eyes or core) are bright; draw the main mass as 3 to 5 large shapes, not many thin strands.\n\nLOOK (this replaces any request for a pixel grid, pixel count or color limit): chunky low-resolution pixel look, flat color clusters, simple shapes readable when shrunk. Large deliberate clusters of flat color with hard square edges; few broad color regions; no microtexture, no fine hatching, no tiny decorative marks, no fur or feather strands, no noise. Do not try to count pixels or colors: a post-processing tool converts your image to the final pixel grid and palette, so give it bold, simple shapes.\n\nSTYLE REFERENCE: image 1 (attached) is an APPROVED image of this project's new art direction. Match only its line weight, how few and how large its color clusters are, and its overall mood. Do not copy its subject, pose, composition or any detail of it.",
+  "sent_prompt_sha256": "e9782bd2fd2ee69fcf54c2ef448592a462f39f6240a8e8c4050a88dc36c2cf8d",
+  "prompt_command": "node tools/assets/vohon-prompt.mjs --type portrait --id xuc_xich --style-ref art/src/vohon-v2/xuc_xich/concept-attempt1.png",
+  "pixel_command": "node tools/assets/vohon-pixelize.mjs --type portrait --id xuc_xich --in art/src/vohon-v2/xuc_xich/candidates/portrait-attempt1.png --out art/src/vohon-v2/xuc_xich/candidates/portrait-attempt1-P1c2 --preset portrait2",
+  "raw_check": {
+    "type": "portrait",
+    "id": "xuc_xich",
+    "issues": [
+      {
+        "sev": "soft",
+        "code": "mem",
+        "text": "texture mềm: 91% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+      },
+      {
+        "sev": "soft",
+        "code": "nhieu-mau",
+        "text": "172 màu đáng kể (nên ≤ 160 để ép về ≤ 32 mà không bệt)"
+      },
+      {
+        "sev": "soft",
+        "code": "luoi",
+        "text": "chưa đúng lưới khối: tỉ số biên 1.76 ở chu kỳ 37 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+      }
+    ],
+    "metrics": {
+      "w": 1254,
+      "h": 1254,
+      "ratio": 1,
+      "border": {
+        "clear": 0,
+        "flat70": 0.93
+      },
+      "fill": 0.97,
+      "softness": 0.918,
+      "bigColors": 172,
+      "grid": {
+        "period": 37,
+        "ratio": 1.76
+      },
+      "paletteMatch": 0.99,
+      "smallAccent": "8/8"
+    },
+    "manual": [
+      "đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi)",
+      "không có chữ, ký hiệu đọc được, logo, chữ ký",
+      "đọc được cả ở cỡ thật 1× (nhìn lướt)"
+    ]
+  },
+  "pixel_check": {
+    "type": "portrait",
+    "id": "xuc_xich",
+    "issues": [
+      {
+        "sev": "soft",
+        "code": "nhieu-chi-tiet",
+        "text": "mật độ biên 0.399 (> 0.3): còn nhiều mảng nhỏ ở cỡ 64×64, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+      },
+      {
+        "sev": "soft",
+        "code": "gan-mau",
+        "text": "hai màu lớn chỉ cách nhau 17.6 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+      },
+      {
+        "sev": "soft",
+        "code": "nen-chu-the",
+        "text": "vùng giữa chỉ sáng gấp 1.19× vòng ngoài (< 1.4): chủ thể chưa tách khỏi nền; thử --preset portrait (nền lạnh tối + viền sáng)"
+      }
+    ],
+    "metrics": {
+      "w": 64,
+      "h": 64,
+      "colors": 16,
+      "hot": 0.21,
+      "contrast": 0.269,
+      "edge": 0.399,
+      "sep": 17.6,
+      "bgRatio": 1.19,
+      "accent": "8/8"
+    },
+    "manual": [
+      "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+      "so với RAW: vẫn là cùng một võ hồn"
+    ]
+  },
+  "eye": "Trụ hương tràng nứt vỏ, đai đỏ và hương tràng nhỏ nhận ra, không nhân hoá. Hơi nóng vàng sáng lớn cùng gam thân cam, nhiều vật phụ, trụ cắt mép trên/dưới. P1c2 giữ vết nứt nhưng hơi nóng cạnh tranh chủ thể, đai đỏ gần thân; cần chủ repo duyệt riêng theo mục 4."
+}
