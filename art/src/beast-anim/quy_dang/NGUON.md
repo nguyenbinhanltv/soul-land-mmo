@@ -2,7 +2,7 @@
 
 File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species quy_dang`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
 
-Loài `quy_dang` (Quỷ Đằng), họ `vine`, khung game 128×128. Mức kiểm chung: **pass**.
+Loài `quy_dang` (Quỷ Đằng), họ `vine`, khung game 128×128. Mức kiểm chung: **nhẹ**.
 
 ## turnaround
 
@@ -40,11 +40,22 @@ Loài `quy_dang` (Quỷ Đằng), họ `vine`, khung game 128×128. Mức kiểm
 - Mức kiểm: **pass** (khối hướng: e pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
+## toD
+
+- File: `toD.png`, **1536×1024**, 2154233 byte, SHA256 `b1319da937f11c578e11bc611c68b2edb0346848ded0cd6088ed5b8420881ccb`.
+- Công cụ: Codex image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-625.
+- Prompt: `toD.prompt.txt` (SHA256 `fceb82b7ad944bc852c30175ac32a38801c5ce4eaa6d7ff894db0b69fce9d092`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: ne nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (ne): cỡ thân idle 116% so với ảnh tĩnh (lệch 16%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
 ## Lỗi
 
 ```text
 LỖI: toA — hướng — H1 C5–6 hurt và H3 C3–4 attack nghiêng sang phải thay vì giữ s; chọn lượt 3 sau ba lượt (mắt)
 LỖI: toC — hướng — nhiều khung e còn chếch mặt về người xem, gần se; chọn lượt 2 sau ba lượt vì 0 lỗi kỹ thuật (mắt)
+LỖI: toD — hình ở ô trống — H4 (ne) C5 — ô trống có hình (0.51% diện tích ô): hình tràn từ ô bên.
 ```
 
 ## Ghi công
