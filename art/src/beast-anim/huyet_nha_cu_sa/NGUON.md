@@ -7,16 +7,26 @@ Loài `huyet_nha_cu_sa` (Huyết Nha Cự Sa), họ `swim`, khung game 128×128.
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1557039 byte, SHA256 `520ef6bbe64cf9f6b61fe9ed068ddfbb827c7453d6ffb997bca0dd580a8c8968`.
-- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: ao-desktop.
 - Prompt: `turnaround.prompt.txt` (SHA256 `2673fad15233753d6820d05a667edeb1c576e830b43ff17c8cf19bd16c7c5ba3`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+## toA
+
+- File: `toA.png`, **1536×1024**, 1660670 byte, SHA256 `0fbadbe812713a85d5863edec0df5ed45d9e0d5b87381e036e0cfd68dc6ea963`.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop.
+- Prompt: `toA.prompt.txt` (SHA256 `821aa82c4b0bac1801a7cb74ba361a5b92d896137c9ed0011e24a75c1da922a7`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: s pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## Lỗi
 
 ```text
 LỖI: turnaround — die khá giống idle, vây rũ biên độ nhỏ (mắt)
+LỖI: toA — s — hurt và die biên độ nhỏ, die khá giống idle (mắt)
 ```
 
 ## Ghi công
