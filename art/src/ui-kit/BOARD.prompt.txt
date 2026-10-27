@@ -1,0 +1,17 @@
+One illustration, landscape 3:2 aspect ratio: a sample game screen for a pixel-art xianxia MMO user interface, drawn as an approval image and style reference.
+Show: (1) a left HUD column with a stats frame and six menu buttons; (2) a "character" panel and a "bag" panel side by side, INK material (near-black wood, ink-wash grain, pale bronze rim); (3) one PAPER material dialog box (ivory rice paper, thin vermilion rim, wooden roller) at the lower middle; (4) one vermilion primary button and one dark secondary button; (5) a row of skill slots along the bottom edge.
+ABSOLUTELY no text, numbers, letters, logos or symbols anywhere; where a label would go draw an empty bar or a flat block of colour.
+Frames: ornament only at the four corners and the middle of each side; the straight side between is a flat band of one or two colours with no pattern along it. INK and PAPER share the same corner set, border thickness and bronze rim; they differ only in fill and text colour.
+STYLE: pixel-art game interface in an isometric Ultima Online mood mixed with Chinese ink-wash xianxia (Douluo Dalu setting); sharp pixel edges, palette of at most 32 colours, one thick consistent dark outline (#1a1020), pale bronze rim, no blur, no large gradients.
+Outside the screen the background is one flat solid colour. Behind the panels hint a dark old village, only suggested, no detail. Consistent light and line weight in every frame.
+
+LESSONS (learned from earlier sheets, follow every line):
+- Draw no text, numbers, letters, glyphs, runes, logos or symbols that could be read as characters anywhere in the image; where a label would go, draw an empty bar or a flat block of colour.
+- Do not draw fake labels, button captions or placeholder squiggles inside the frames: the inside stays an empty flat fill.
+- Keep at least five percent of the image width of empty magenta between neighbouring pieces and between any piece and the image edge; never let two pieces touch.
+- Cast no shadow and no glow onto the magenta background; a soft shadow or halo turns into a pink fringe after the background is keyed out.
+- Limit the whole image to a small palette of at most 32 colours with one consistent dark outline (#1a1020); sharp pixel edges, no anti-aliased blur, no large gradients, no noise texture.
+- Two materials share the same corner set, outline weight and bronze rim: INK (near-black wood with ink-wash grain, pale bronze rim) and PAPER (ivory rice paper, thin vermilion rim, wooden roller); only the fill and the text colour differ.
+- Match the style, materials and palette of the attached approved reference exactly; never copy its layout.
+- The sample screen is for approval and as a style reference only: it shows the HUD, two panels, one dialog and the action row, with all labels drawn as empty bars.
+- Retry adjustment: confine every village silhouette and background detail inside one clearly bounded rectangular game-view area behind the interface. Keep the outside of that view as uninterrupted flat #FF00FF, with at least a five-percent magenta margin around all screen elements; no scenery, shadows or stray pixels may cross into that margin.
