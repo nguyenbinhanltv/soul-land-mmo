@@ -529,3 +529,29 @@ test("--no-dummy (#1024): không bảng nộm, ảnh 1 = concept đã chốt, pr
   assert.equal(infoWith("bach_ho").noDummy, false);
   assert.match(stageDocs(info, "turnaround")[0][1], /không dùng/);
 });
+
+test("--concept-ref: ảnh 2 = concept 5 hướng thay turnaround, vẫn có nộm; mặc định giữ turnaround", () => {
+  const sh = L.sheetPlan("B")[2], on = infoWith("bach_ho", { conceptRef: true }), off = infoWith("bach_ho");
+  const refs = referencesFor("direction", on, sh);
+  assert.match(refs[0].en, /MANNEQUIN BOARD/);
+  assert.match(refs[1].en, /approved CONCEPT image/); assert.doesNotMatch(refs[1].en, /TURNAROUND/);
+  assert.match(refs[1].vi, /art\/src\/vohon-v2\/bach_ho\/concept-attempt\d+\.png/);
+  assert.match(referencesFor("direction", off, sh)[1].en, /approved TURNAROUND/);
+  assert.match(buildDirectionPrompt(on, sh), /MANNEQUIN: the first attached image/);
+  assert.equal(off.conceptRef, false);
+});
+
+test("--concept-ref: võ hồn chưa có concept đã duyệt thì báo lỗi, không rơi về thư mục", () => {
+  assert.throws(() => infoWith("cuu_bao_luu_ly_thap", { conceptRef: true }), /chưa có concept đã duyệt/);
+  assert.equal(infoWith("cuu_bao_luu_ly_thap", { conceptRef: true, noDummy: true }).conceptRef, true);
+  assert.match(buildDirectionPrompt(infoWith("bach_ho", { conceptRef: true }), L.sheetPlan("B")[2]), /--concept-ref|CONCEPT/);
+});
+
+test("dummy --all / turnaround:false: chỉ ghi năm bảng nộm A–E (#1025)", async () => {
+  const { writeDummies } = await import("./phuthe-sheet-dummy.mjs");
+  const { mkdtempSync, readdirSync, rmSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const d = mkdtempSync(path.join(tmpdir(), "phuthe-nom-"));
+  try { assert.deepEqual(writeDummies("bach_ho", d, { turnaround: false }).map((f) => path.basename(f)), ["A", "B", "C", "D", "E"].map((x) => `bach_ho-nom-to${x}.png`)); assert.equal(readdirSync(d).length, 5); }
+  finally { rmSync(d, { recursive: true, force: true }); }
+});
