@@ -31,4 +31,3 @@ Thân chuẩn bị thu nhỏ/dời xuống; khối nhện lớn phía trên lưn
 | to*.png, candidates/to*-attempt*.png | - | builtin image_gen.imagegen (Codex) | Prompt phuthe-sheet-prompt --concept-ref; hồ sơ SHA256 đi kèm | 2026-10-28 | RAW, model/seed unknown |
 | shared/assets/sprites/vohonanim/tu_vong_chu_hoang_{b,f}.png | vhanim_tu_vong_chu_hoang_b, vhanim_tu_vong_chu_hoang_f | phuthe-sheet-cut, phuthe-anchor, phuthe-import | Cắt RAW A–E và neo tự động | 2026-10-28 | 5 hướng, 5 clip; chủ chỉnh neo sau |
 | references/tu_vong_chu_hoang-nom-to*.png | - | phuthe-sheet-dummy, LPC hiện có | Bảng tư thế có vạch; chỉ tham chiếu | 2026-10-28 | Nguồn LPC theo hồ sơ hiện có |
-
