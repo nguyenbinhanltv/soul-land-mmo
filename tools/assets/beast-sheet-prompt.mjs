@@ -160,7 +160,7 @@ ${refsEn(refs)}
 
 ${BACKGROUND}
 
-GRID: ${T.cols} columns x ${T.rows} rows of equal invisible cells (${cw}x${ch} px each). Exactly one creature per cell, centered horizontally, ${legless(info) ? "with the lowest point of its body on the same invisible baseline (nothing is drawn there)" : pose(info) ? `with ${pose(info).base}` : "standing on the same invisible ground line"} about 12% above the cell bottom${legless(info) ? "" : " (lying creatures rest on it)"}, with at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature.
+GRID: ${T.cols} columns x ${T.rows} rows of equal invisible cells (${cw}x${ch} px each). Exactly one creature per cell, centered horizontally, ${legless(info) ? "with the lowest point of its body on the same invisible baseline (nothing is drawn there)" : pose(info) ? `with ${pose(info).base}` : "standing on the same invisible ground line"} about 12% above the cell bottom${legless(info) || info.family === "fly" ? "" : " (lying creatures rest on it)"}, with at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature.
 
 COLUMNS (left to right, one direction per column):
 ${cols}

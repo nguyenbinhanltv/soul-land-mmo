@@ -83,7 +83,7 @@ const DESC_OVERRIDE = {
 /**
  * Họ hoạt ảnh CHỈ cho công cụ prompt khi họ ở client/src/sprites.ts (chuyển động vẽ bằng code) không hợp hình dạng loài (#1049):
  * `float` = phù du, không chân (sứa, bạch tuộc: trôi, co bóp, xúc tu); `swim` = thủy sinh, không chân (cá, đuối, cá mập, cá voi: bơi, vẫy đuôi).
- * #1097: `fly` = côn trùng có cánh bay lơ lửng; `vine` = dây leo (rễ cắm, bò bằng rễ / tua); `worm` = sâu / tằm (thân đốt bò sát đất, chân nhỏ giấu dưới bụng). Rắn (`snake`, họ client) không chân, trườn bằng bụng trên đất:
+ * #1097: `fly` = côn trùng có cánh bay lơ lửng; `vine` = dây leo (rễ cắm, bò bằng rễ / tua); `worm` = sâu / tằm (thân đốt bò sát đất, chân nhỏ giấu dưới bụng). Quỷ Diện Hải Yêu (client xếp `snake` nhưng mô tả bò bốn chi vây) ghi `quad`: loài còn ở họ `snake` sau bảng này phải thật sự không chân (test anatomy quét mô tả). Rắn (`snake`, họ client) không chân, trườn bằng bụng trên đất:
  * xử lý theo họ ở beast-sheet-prompt.mjs, không cần ghi ở đây; rắn biển có vây đuôi sống dưới nước thì ghi `swim`.
  * Không đổi họ ở client. Loài `float` / `swim` thêm vào đây thì prompt không còn nhắc feet / legs / roots / ground.
  */
@@ -91,7 +91,7 @@ export const TOOL_FAMILY = {
   u_linh_hai_mau: "float", tham_hai_ma_chuong: "float",
   loi_quang_hai_dieu: "swim", kiem_ngu: "swim", huyet_nha_cu_sa: "swim", tham_hai_ma_kinh: "swim", lam_lan_hai_xa: "swim",
   // Bướm lửa: côn trùng có cánh, bay lơ lửng (không đứng trên chân). Dây leo: rễ cắm, bò bằng rễ / tua, không chân (#1097).
-  hoa_linh_diep: "fly", huyen_minh_bang_tam: "worm", quy_dang_non: "vine", quy_dang: "vine",
+  hoa_linh_diep: "fly", quy_dien_hai_yeu: "quad", huyen_minh_bang_tam: "worm", quy_dang_non: "vine", quy_dang: "vine",
 };
 /** Họ không chân: không feet / legs / ground line trong prompt. */
 export const LEGLESS = new Set(["float", "swim"]);

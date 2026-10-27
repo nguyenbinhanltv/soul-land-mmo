@@ -1,5 +1,7 @@
 // Prompt hoạt ảnh đúng giải phẫu: rắn trườn, rắn biển, dây leo, côn trùng bay, tằm, hurt bốn chân (#1097).
 import test from "node:test";
+import { readFileSync } from "node:fs";
+import { MANIFEST } from "./lib.mjs";
 import assert from "node:assert/strict";
 import { speciesInfo, sheetPlan, FAMILIES } from "./beast-sheet-lib.mjs";
 import { MOVE, moveFor } from "./beast-sheet-motion.mjs";
@@ -92,4 +94,17 @@ test("bài học theo họ: rắn / cây / bay / tằm không nhận câu 'uprig
     assert.doesNotMatch(text, /on its feet|the legs fold/, `${family}/${st}`);
     assert.match(text, /HURT/, `${family}/${st}`);
   }
+});
+
+test("Quỷ Diện Hải Yêu (bò bốn chi vây) không bị câu rắn 'NO legs … limbs' (rà #1097)", () => {
+  const info = speciesInfo("quy_dien_hai_yeu");
+  assert.equal(info.family, "quad");
+  for (const p of promptsOf(info)) assert.doesNotMatch(p, /NO legs, feet, paws, claws or limbs/);
+});
+
+test("mọi loài còn ở họ snake sau TOOL_FAMILY đều thật sự không chân (mô tả không nhắc chân / chi / bò bốn)", () => {
+  const ids = JSON.parse(readFileSync(MANIFEST, "utf8")).sprites.filter((e) => e.static && e.key.startsWith("beast_")).map((e) => e.key.slice(6));
+  const snakes = ids.map(speciesInfo).filter((i) => i.family === "snake");
+  for (const id of ["bich_lan_xa", "hac_thuy_mang", "thanh_lan_xa", "thien_thanh_nguu_mang", "man_da_la_xa", "xich_lan_mang", "thanh_lan_doc_co"]) assert.ok(snakes.some((i) => i.id === id), id);
+  for (const i of snakes) assert.doesNotMatch(i.desc, /\b(limbs?|legs?|feet|paws?|fins?|crouching)\b/i, `${i.id}: ${i.desc}`);
 });
