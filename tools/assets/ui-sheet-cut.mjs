@@ -1,8 +1,8 @@
 // Cắt tờ UI thành mảnh game + ghi manifest ui-kit.json (#879, theo dõi #877; docs/art/ui-kit.md "Công cụ tờ UI").
 //   node tools/assets/ui-sheet-cut.mjs <tờ.png> --out <thư mục> [--kind F|N|O|T|I|D] [--div N] [--colors 32] [--palette auto|gpl|<file.gpl>]
-//        [--no-mirror | --mirror] [--names a,b,…] [--prefix p_] [--force] [--write-manifest]
+//        [--no-mirror | --mirror] [--names a,b,…] [--prefix p_] [--soft] [--skip a,b] [--force] [--write-manifest]
 //   node tools/assets/ui-sheet-cut.mjs --budget           (tổng KB của các mảnh đã ghi trong manifest so với ngân sách)
-// Các bước: (1) chạy ui-sheet-check (tờ có mục CHẶN thì không cắt, trừ --force); (2) tách mảnh theo khoảng trống + khoá nền + gỡ viền (dò lưới của
+// Các bước: (1) chạy ui-sheet-check (tờ có mục CHẶN thì không cắt, trừ --force; --skip a,b = bỏ mảnh còn chặn riêng; --soft = cắt mềm: bù viền hồng + ép cạnh phẳng, mục chặn tương ứng chỉ hạ xuống nhẹ khi đạt kiểm hình, xem SOFT_* ở ui-sheet-check); (2) tách mảnh theo khoảng trống + khoá nền + gỡ viền (dò lưới của
 // beast-sheet-grid, khoá nền của beast-sheet-cut); (3) hạ lưới theo vùng về master 2× (ui-kit.md "Kit 1× hay 2×": vẽ master 2×);
 // (4) khung / nút: dựng đối xứng bằng gương từ góc trên-trái (mirrorFold); (5) lượng tử về bảng ≤ 32 màu + viền #1a1020, alpha nhị phân;
 // (6) xuất bản 2× và bản 1× (hạ 2× → 1× theo vùng rồi lượng tử lại, không nearest trần); (7) vạch 9-slice đo từ ảnh, chung trong một bộ trạng thái;
@@ -34,24 +34,31 @@ export function budgetOf(kit, pieces = kit.pieces) {
 
 /**
  * Cắt một tờ.
- * @param {{ img: object, name?: string, kit?: object, kindId?: string, div?: number, colors?: number, palette?: string|number[][], mirror?: boolean, names?: string[], prefix?: string, force?: boolean }} o
+ * @param {{ img: object, name?: string, kit?: object, kindId?: string, div?: number, colors?: number, palette?: string|number[][], mirror?: boolean, names?: string[], prefix?: string, force?: boolean, soft?: boolean, skip?: string[] }} o
  * @returns {{ pieces: object[], groups: object, report: object, check: object, files: Map<string, Buffer> }} files: `2x/<khoá>.png`, `1x/<khoá>.png`
  */
 export function cutUiSheet(o) {
   const kit = o.kit ?? loadKit(), name = o.name ?? "to", kindId = o.kindId ?? kindFromName(name);
   const kind = expandKind(kit, kindId);
   if (kind.board) throw new Error("BOARD chỉ để duyệt, không cắt");
-  const check = analyzeUiSheet(o.img, { kit, kindId, name, div: o.div, names: o.names });
-  if (check.level === "chặn" && !o.force) {
-    const e = new Error(`tờ ${name} có mục CHẶN, không cắt (sửa tờ hoặc --force):\n` + check.issues.filter((i) => i.sev === "block").map((i) => `  ${i.code} ${i.where}: ${i.msg}`).join("\n"));
+  const check = analyzeUiSheet(o.img, { kit, kindId, name, div: o.div, names: o.names, soft: o.soft });
+  // --skip: bỏ hẳn mảnh còn CHẶN riêng của nó (vá ô: cắt phần đạt, ô hỏng vẽ lại ở lượt sau); chặn chung của tờ vẫn chặn
+  const skip = new Set(o.skip ?? []);
+  for (const n of skip) if (!kind.pieces.some((p) => p.name === n)) throw new Error(`--skip: tờ ${kind.id} không có mảnh ${n}`);
+  const blocking = check.issues.filter((i) => i.sev === "block" && !(i.piece && skip.has(i.piece)));
+  if (blocking.length && !o.force) {
+    const e = new Error(`tờ ${name} có mục CHẶN, không cắt (sửa tờ, --soft, --skip <mảnh> hoặc --force):\n` + blocking.map((i) => `  ${i.code} ${i.where}: ${i.msg}`).join("\n"));
     e.check = check;
     throw e;
   }
+  check.pieces = check.pieces.filter((p) => !skip.has(p.name));
   if (!check.pieces.length) throw new Error(`tờ ${name}: không cắt được mảnh nào`);
   const mirror = o.mirror ?? kind.mirror === true, colors = o.colors ?? kit.colors, prefix = o.prefix ?? "";
 
   // 2× master, dựng gương
-  const masters = check.pieces.map((p) => ({ ...p, m2: mirror ? mirrorFold(p.master) : p.master }));
+  // mảnh có `mirror: false` ở spec (tab hở đáy…) không dựng gương dù loại tờ có dựng; --mirror / --no-mirror vẫn ghi đè tất cả
+  const mirrorOf = (p) => o.mirror ?? p.mirror ?? kind.mirror === true;
+  const masters = check.pieces.map((p) => ({ ...p, m2: mirrorOf(p) ? mirrorFold(p.master) : p.master }));
   // bảng màu
   let pal;
   if (Array.isArray(o.palette)) pal = o.palette;
@@ -70,7 +77,7 @@ export function cutUiSheet(o) {
     pieces.push({
       key, name: p.name, kind: kind.id, sheet: name, set: p.set ?? null, state: p.state ?? null, budget: kind.group,
       size: { x2: [q2.w, q2.h], x1: [q1.w, q1.h] }, grid: { master: kit.grid.master, div: round(check.div, 2), source: check.size },
-      nine: nine == null ? null : { x2: nine, x1: Math.ceil(nine / 2) }, mirror, bytes: { x2: png2.length, x1: png1.length }, hash: sha(png2),
+      nine: nine == null ? null : { x2: nine, x1: Math.ceil(nine / 2) }, mirror: mirrorOf(p), bytes: { x2: png2.length, x1: png1.length }, hash: sha(png2),
     });
   }
   // vạch cắt chung trong một bộ trạng thái (nút có 4–5 ảnh dùng chung một vạch)
@@ -86,7 +93,7 @@ export function cutUiSheet(o) {
   const budget = budgetOf(kit, pieces);
   for (const o2 of budget.over) warnings.push(`riêng tờ này đã vượt ngân sách: ${o2}`);
   const report = {
-    sheet: name, kind: kind.id, size: check.size, level: check.level, div: round(check.div, 2), mirror, palette: pal.length, pieces: pieces.length,
+    sheet: name, kind: kind.id, size: check.size, level: check.level, div: round(check.div, 2), mirror, soft: check.soft ?? null, skipped: [...skip], palette: pal.length, pieces: pieces.length,
     bytes: Object.fromEntries(Object.entries(budget.groups).map(([g, t]) => [g, { x2: t.x2, x1: t.x1 }])), warnings,
   };
   return { pieces, groups, report, check, files };
@@ -120,6 +127,8 @@ function parseArgs(argv) {
     else if (a === "--names") o.names = next().split(",");
     else if (a === "--prefix") o.prefix = next();
     else if (a === "--force") o.force = true;
+    else if (a === "--soft") o.soft = true;
+    else if (a === "--skip") o.skip = next().split(",");
     else if (a === "--write-manifest") o.write = true;
     else if (a === "--budget") o.budget = true;
     else if (a.startsWith("--")) throw new Error(`tùy chọn lạ: ${a}`);
@@ -138,7 +147,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       process.exit(0);
     }
     if (o.files.length !== 1 || !o.out) {
-      console.error("Dùng: node tools/assets/ui-sheet-cut.mjs <tờ.png> --out <thư mục> [--kind F|N|O|T|I|D] [--div N] [--colors 32] [--palette auto|gpl|<gpl>] [--no-mirror] [--names a,b] [--prefix p_] [--force] [--write-manifest]   |   --budget");
+      console.error("Dùng: node tools/assets/ui-sheet-cut.mjs <tờ.png> --out <thư mục> [--kind F|N|O|T|I|D] [--div N] [--colors 32] [--palette auto|gpl|<gpl>] [--no-mirror] [--names a,b] [--prefix p_] [--soft] [--skip a,b] [--force] [--write-manifest]   |   --budget");
       process.exit(2);
     }
     const file = o.files[0];
