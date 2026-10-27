@@ -1,0 +1,66 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27T22:53:32.538Z",
+  "attempt": 1,
+  "direction": "s",
+  "raw": "toA-attempt1.png",
+  "sha256": "7a53808c472cb207ba6e6729544d7086deb9cf2bbfdb4ec0011d6fac72d6f965",
+  "prompt": "toA-attempt1.prompt.txt",
+  "promptSha256": "02db14860bc614e0b9a3682e4d0784cfc153615306b6e491ebddbc6dbb932478",
+  "promptCommand": "node tools/assets/phuthe-sheet-prompt.mjs --id tu_vong_chu_hoang --stage direction --dir s --concept-ref",
+  "references": [
+    {
+      "file": "references/tu_vong_chu_hoang-nom-toA.png",
+      "sha256": "6363cd86e01166853e76786d5a4578e45cc5476f3bb181d72a5c3ad21e2b1be0"
+    },
+    {
+      "file": "../../vohon-v2/tu_vong_chu_hoang/concept-attempt1.png",
+      "sha256": "b9cdc21f23c580792231cf131a6b4a91ac0676d2e080f7f5a9e21e6786fab656"
+    }
+  ],
+  "referencePathBase": "art/src/phuthe-anim/tu_vong_chu_hoang",
+  "postprocessing": "none; RAW copied byte-for-byte",
+  "promptHandwritten": false,
+  "promptAddendum": false,
+  "technicalCheck": {
+    "level": "chặn",
+    "issues": [
+      {
+        "sev": "note",
+        "code": "nen",
+        "where": "toàn tờ",
+        "msg": "nền dốc nhẹ (bốn góc lệch 35), trong dung sai 60; không phải lỗi."
+      },
+      {
+        "sev": "block",
+        "code": "so-hinh",
+        "where": "H1 (s)",
+        "msg": "dải có 12 hình, cần 6: thừa hình / mảnh rời.",
+        "dir": "s"
+      },
+      {
+        "sev": "block",
+        "code": "so-hinh",
+        "where": "H2 (s)",
+        "msg": "dải có 12 hình, cần 6: thừa hình / mảnh rời.",
+        "dir": "s"
+      },
+      {
+        "sev": "block",
+        "code": "so-hinh",
+        "where": "H3 (s)",
+        "msg": "dải có 10 hình, cần 6: thừa hình / mảnh rời.",
+        "dir": "s"
+      },
+      {
+        "sev": "light",
+        "code": "o-trong",
+        "where": "H4 (s) C5",
+        "msg": "ô trống có hình (0.41% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng.",
+        "dir": "s"
+      }
+    ]
+  }
+}

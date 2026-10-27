@@ -96,3 +96,4 @@
 - [direction @B] Shorten every feline claw extension inside its own cell while preserving a broad magenta gap between all six attack poses. // U Minh C1: vuốt vươn sang ô bên, D giữ khoảng trống
 - [direction @B] Keep feline cast silhouettes compact above the fixed pelvis and leave the two spare cells completely magenta. // U Minh D1: cast dựng nguyên thân, mặt ne khai eye; E giữ khoảng trống
 - [direction @B] Keep each east-facing feline attack claw folded inside its own cell, with no slash arc extending toward a neighbour. // U Minh C1 bị chặn lưới; C2 chỉ sửa tờ e
+- [direction] Remove every reference guide, ruler, foot line and bracket from the final picture; leave only the original hero silhouette and its named attachments, all connected within each cell, with clean magenta gutters. Keep the hero at its reference scale and do not add a separate creature body. // Lô phụ thể: vạch còn sót tạo cụm rời, thân chuẩn bị thu nhỏ và concept lấn phần gắn.
