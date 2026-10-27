@@ -14,6 +14,7 @@ import { fileURLToPath } from "node:url";
 import {
   DIRS, DIR_VI, CLIPS, CLIP_VI, COLS, CELL, BANDS, TURNAROUND, GROUP_VI,
   framesOf, sheetPlan, sheetCells, checkFrame, phutheInfo, allPhutheIds, styleBlock, frameOrigin,
+  guideKeyOf,
 } from "./phuthe-sheet-lib.mjs";
 import { lessonsFor, STAGES } from "./phuthe-sheet-lessons.mjs";
 import { writeDummies, dummyCell } from "./phuthe-sheet-dummy.mjs";
@@ -282,7 +283,7 @@ export function stageDocs(info, stage, { dirs = DIRS, frame } = {}) {
 /** Thông tin cho prompt, cho phép ghi đè khung / màu nộm bằng tùy chọn. */
 export function infoWith(id, { frame, dummyKey, guideKey, noDummy } = {}) {
   const info = phutheInfo(id);
-  return { ...info, frame: checkFrame(frame ?? info.frame), dummyKey: dummyKey ?? info.dummyKey, guideKey: guideKey ?? info.guideKey, noDummy: !!noDummy };
+  return { ...info, frame: checkFrame(frame ?? info.frame), dummyKey: dummyKey ?? info.dummyKey, guideKey: guideKey ?? guideKeyOf(id, dummyKey ?? info.dummyKey), noDummy: !!noDummy };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

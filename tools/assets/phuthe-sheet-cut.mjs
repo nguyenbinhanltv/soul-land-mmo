@@ -20,6 +20,7 @@ import { medianCut, nearest } from "./beast-sheet-cut.mjs";
 import { median } from "./beast-sheet-stats.mjs";
 import {
   DIRS, CLIPS, SHEET_ID, CELL, SEXES, HALVES, GAME_ROWS, framesOf, gameAnims, gameCols, gameRow, gameKey, frameOrigin, checkFrame, phutheInfo, ANIM_ROOT,
+  guideKeyOf,
 } from "./phuthe-sheet-lib.mjs";
 import { prepareSheet, cellSpirit, dropSpecks, parseLop, layerFn, defaultLayers, levelOfCode, summarize, DUMMY_TOL, BG_TOL, dist2 } from "./phuthe-sheet-cut-lib.mjs";
 import { bodyAnchors } from "./phuthe-sheet-dummy.mjs";
@@ -58,7 +59,7 @@ export function downscaleFrame(idx, lab, pal, F) {
  * @returns {{ halves: { b: Img | null, f: Img | null }, entries: object[], report: object }}
  */
 export function cutPhuThe(o) {
-  const info = phutheInfo(o.id), group = o.group ?? info.group, F = checkFrame(o.frame ?? info.frame), dummyKey = o.dummyKey ?? info.dummyKey, guideKey = o.guideKey ?? info.guideKey;
+  const info = phutheInfo(o.id), group = o.group ?? info.group, F = checkFrame(o.frame ?? info.frame), dummyKey = o.dummyKey ?? info.dummyKey, guideKey = o.guideKey ?? guideKeyOf(o.id, dummyKey);
   const dummySex = o.dummySex ?? "m", lop = o.lop ? parseLop(o.lop) : null, dummyTol = o.dummyTol ?? DUMMY_TOL, tol = o.tol ?? BG_TOL;
   const warns = [], rep = { id: o.id, group, frame: F, dummyKey, sheets: {}, dropped: 0 }, fr = framesOf(group);
   const warn = (code, msg) => warns.push({ code, msg });

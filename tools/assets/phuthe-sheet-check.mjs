@@ -19,6 +19,7 @@ import { contactSheet } from "./beast-sheet-contact.mjs";
 import { silhouetteDiff, silhouetteIou, BG_LOCK, BG_TOL, EMPTY_CELL_FRAC, BASELINE_FRAC } from "./beast-sheet-check.mjs";
 import {
   DIRS, CLIPS, COLS, BAND_ROWS, TURNAROUND, CELL, SHEET_W, SHEET_H, DIR_OF_SHEET, ANIM_ROOT, sheetCells, figuresPerBand, framesOf, sheetFits, phutheInfo, GROUPS,
+  guideKeyOf,
 } from "./phuthe-sheet-lib.mjs";
 import { prepareSheet, cellSpirit, dropSpecks, eraseGuides, REG_MIN_SCORE } from "./phuthe-sheet-cut-lib.mjs";
 
@@ -211,7 +212,7 @@ export function checkPhuThe(id, opt = {}) {
   if (!GROUPS.includes(group)) throw new Error(`nhóm lạ ${group}`);
   const ta = turnaroundFile(dir), files = sheetFiles(dir);
   if (!files.length && !ta) throw new Error(`không có tờ toA.png… trong ${dir}`);
-  const o = { group, frame, dummyKey, guideKey: opt.guideKey ?? info.guideKey, sex: opt.sex ?? "m" };
+  const o = { group, frame, dummyKey, guideKey: opt.guideKey ?? guideKeyOf(id, dummyKey), sex: opt.sex ?? "m" };
   const sheets = files.map((f) => analyzeSheet(f, o)), turnaround = ta ? analyzeTurnaround(ta, o) : null;
   const sRef = sheets.find((s) => s.dirs[0] === "s");
   if (sRef) for (const s of sheets) {
@@ -302,6 +303,7 @@ function parseArgs(argv) {
     else if (a === "--dir") o.dir = argv[++i];
     else if (a === "--frame") o.frame = +argv[++i];
     else if (a === "--dummy-key") o.dummyKey = argv[++i];
+    else if (a === "--guide-key") o.guideKey = argv[++i];
     else if (a === "--no-image") o.images = false;
     else if (a === "--all") o.all = true;
     else if (a.startsWith("--")) throw new Error(`tùy chọn lạ: ${a}`);
@@ -315,12 +317,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     const o = parseArgs(process.argv.slice(2));
     if (o.all) o.ids = existsSync(ANIM_ROOT) ? readdirSync(ANIM_ROOT, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort() : [];
-    if (!o.ids.length && !o.all) { console.error("Dùng: npm run phuthe:check -- <võ hồn> [--out <thư mục>] [--dir <thư mục tờ>] [--frame 96|128] [--dummy-key #00D0D0] [--no-image]   |   npm run phuthe:check -- --all"); process.exit(2); }
+    if (!o.ids.length && !o.all) { console.error("Dùng: npm run phuthe:check -- <võ hồn> [--out <thư mục>] [--dir <thư mục tờ>] [--frame 96|128] [--dummy-key #00D0D0] [--guide-key #7A5CFF] [--no-image]   |   npm run phuthe:check -- --all"); process.exit(2); }
     const base = o.out ?? path.join(os.tmpdir(), "phuthe-check");
     let blocked = 0;
     for (const id of o.ids) {
       let r;
-      try { r = checkPhuThe(id, { ...(o.dir ? { dir: o.dir } : {}), ...(o.frame ? { frame: o.frame } : {}), ...(o.dummyKey ? { dummyKey: o.dummyKey } : {}) }); }
+      try { r = checkPhuThe(id, { ...(o.dir ? { dir: o.dir } : {}), ...(o.frame ? { frame: o.frame } : {}), ...(o.dummyKey ? { dummyKey: o.dummyKey } : {}), ...(o.guideKey ? { guideKey: o.guideKey } : {}) }); }
       catch (e) { if (o.all && /không có tờ/.test(e.message)) { console.log(`bỏ qua ${id} (chưa có tờ)`); continue; } throw e; }
       console.log(summary(r));
       if (r.level === "chặn") blocked++;

@@ -167,6 +167,16 @@ test("kiểm turnaround: vạch tham chiếu bị xóa trước khi dò lưới 
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
+test("ghi đè màu: màu vạch mặc định theo màu nộm ĐÃ ghi đè (check / cut / prompt), --guide-key ghi đè hẳn", () => {
+  const id = "ta_hoa_phuong_hoang", info = L.phutheInfo(id), near = "#7A5CF0"; // gần #7A5CFF → guideKeyOf đổi màu vạch
+  assert.notEqual(L.guideKeyOf(id, near), info.guideKey);
+  assert.equal(infoWith(id, { dummyKey: near }).guideKey, L.guideKeyOf(id, near));
+  assert.equal(infoWith(id).guideKey, info.guideKey);
+  assert.equal(infoWith(id, { dummyKey: near, guideKey: "#FF8C00" }).guideKey, "#FF8C00");
+  const r = spawnSync(process.execPath, [path.join(ROOT, "tools/assets/phuthe-sheet-check.mjs"), id, "--guide-key", "#FF8C00", "--dir", os.tmpdir()], { encoding: "utf8" });
+  assert.doesNotMatch(r.stderr, /Dùng:/, "CLI nhận --guide-key");
+});
+
 // ---------- prompt ----------
 test("prompt: chèn NGUYÊN VĂN khối STYLE / NEGATIVE mục 6 ở đầu, mô tả mục 4 của đúng võ hồn, nền #FF00FF ghi đè 'Transparent background', cho cả 25 võ hồn", () => {
   const style = L.styleBlock();
