@@ -27,6 +27,7 @@ import { initDualWindows } from "../dualWindow.ts";
 import { initPanelStack, closeTopPanel, panelOf, trapTab } from "../panelStack.ts";
 import { initHub, toggleHub, setHubOpen } from "../hubMenu.ts";
 import { isUi2 } from "../uiKit.ts";
+import { bindCalendar, openCalendar, closeCalendar, onCalendar, type CalendarMsg } from "../calendarScreen.ts";
 import { bindRank, openRank, closeRank, onRankBoards, onRankTop, type RankTopMsg } from "../rankScreen.ts";
 import type { ServerCommand } from "../charBagContract.ts";
 import { toggleChar, cycleCharTab, isCharOpen, onCharOpen, renderChar, charViewRow, charLog, type StatsMsg } from "../charPanel.ts";
@@ -916,14 +917,14 @@ export class GameScene extends Phaser.Scene {
     const end = (e: PointerEvent) => { if (e.pointerId !== jid) return; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = ""; };
     joyEl.addEventListener("pointerup", end, on); joyEl.addEventListener("pointercancel", end, on);
     // Ngăn xếp bảng (U1 #754): Esc đóng bảng trên cùng, bấm vào bảng nâng lên; mở bảng thì nhả phím đang giữ và dừng cần điều khiển.
-    bindRank((type, payload) => this.room.send(type, payload));
+    bindRank((type, payload) => this.room.send(type, payload)); bindCalendar((type, payload) => this.room.send(type, payload));
     initPanelStack([
       { id: "char", close: () => toggleChar(false) }, { id: "bag", close: () => hud.toggleBag(false) }, { id: "roster", close: () => hud.toggleRoster(false) },
       { id: "reso", close: () => hud.toggleReso(false) }, { id: "friends", close: () => hud.toggleFriends(false) }, { id: "world", close: () => hud.toggleWorld(false) },
       { id: "npc", close: () => hud.closeNpc() }, { id: "autoPanel", close: closeAutoPanel }, { id: "audio", close: closeAudioPanel },
       { id: "pmenu", close: () => hud.showPlayerMenu(null), popup: true }, { id: "chans", close: () => hud.toggleChannels(false), popup: true },
       { id: "autoSum", close: closeAutoSum, popup: true }, { id: "hub", close: () => setHubOpen(false), popup: true },
-      { id: "rank", close: closeRank },
+      { id: "rank", close: closeRank }, { id: "calendar", close: closeCalendar },
     ], () => {
       for (const k of Object.keys(this.keys)) if (this.keys[k]) muted.add(k);
       this.keys = {}; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = "";
@@ -939,7 +940,7 @@ export class GameScene extends Phaser.Scene {
       reso: () => { this.clearForPanel(); hud.toggleReso(true); }, bag: () => { this.clearForPanel(); hud.toggleBag(true); },
       friends: () => { this.clearForPanel(); hud.toggleFriends(true); }, world: () => { this.clearForPanel(); this.openWorld(true); },
       auto: () => { closeAudioPanel(); mapview().close(); toggleAutoPanel(true); }, settings: clickBtn("audioBtn"), guide: () => guideReview(),
-      rank: () => { this.clearForPanel(); openRank(); },
+      rank: () => { this.clearForPanel(); openRank(); }, calendar: () => { this.clearForPanel(); openCalendar(); },
     }, this.ac.signal);
   }
 
@@ -1573,6 +1574,7 @@ export class GameScene extends Phaser.Scene {
     // Màn UI v2 (cờ ui2): bảng Xếp Hạng (#1201), chỉ hiển thị tin riêng của server.
     this.room.onMessage("rank", (m: Parameters<typeof onRankBoards>[0]) => onRankBoards(m));
     this.room.onMessage("rankTop", (m: RankTopMsg) => onRankTop(m));
+    this.room.onMessage("calendar", (m: CalendarMsg) => onCalendar(m)); // Lịch Hoạt Động (#1202)
     // Tổ đội người chơi (7.1): khung tổ đội và lời mời, chỉ gửi riêng cho mình.
     this.room.onMessage("rally", (m: unknown) => { addRally(m); }); // dấu "Tập trung ở đây" của đồng đội (R6)
     this.room.onMessage("party", (m: PartyView) => { this.party = m; pruneRallies(new Set(m.members.map((x) => x.name))); hud.renderParty(m, { send: (op, name, sid) => this.partySend(op, name, sid) }); });

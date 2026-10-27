@@ -71,3 +71,34 @@ body.ui2 .rk-skel{display:flex;flex-direction:column;gap:var(--sp-3)}
 body.ui2 .rk-skel-r{height:24px;background:var(--track);opacity:.6;animation:rk-sk 1.2s ease-in-out infinite alternate}
 @keyframes rk-sk{to{opacity:.25}}
 @media (prefers-reduced-motion:reduce){body.ui2 .rk-skel-r{animation:none}}
+
+/* ---- Lịch Hoạt Động (Giấy) ---- */
+body.ui2 .cal-wrap{display:flex;flex-direction:column;gap:var(--sp-4);min-height:0}
+body.ui2 .cal-fixed,body.ui2 .cal-wk{display:flex;align-items:center;flex-wrap:wrap;gap:var(--sp-3)}
+body.ui2 .cal-fixed-l{font:var(--fs-s)/1.2 var(--f10);color:var(--muted)}
+body.ui2 .cal-chip{padding:var(--sp-1) var(--sp-4);background:var(--paper2);border:var(--bd-fine) solid var(--line)}
+body.ui2 .cal-nav,body.ui2 .cal-retry{min-width:32px;min-height:32px;box-sizing:border-box;padding:0 var(--sp-4);cursor:pointer;font:var(--fs-m)/1.2 var(--f12);color:var(--text);background:var(--paper2);border:var(--bd-fine) solid var(--line)}
+body.ui2 .cal-nav:disabled{cursor:not-allowed;opacity:.5}
+body.ui2 .cal-resets{margin-left:auto;font:var(--fs-s)/1.3 var(--f10);color:var(--muted);overflow-wrap:anywhere}
+body.ui2 .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:var(--sp-3);overflow:auto;min-height:0}
+body.ui2 .cal-col{display:flex;flex-direction:column;gap:var(--sp-3);padding:var(--sp-3);background:var(--paper2);border:var(--bd-fine) solid var(--line)}
+body.ui2 .cal-col.cal-today{background:var(--paper);border:var(--bd) solid var(--son)}      /* hôm nay: viền dày + nhãn chữ, không chỉ màu */
+body.ui2 .cal-dh{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--sp-2)}
+body.ui2 .cal-dn{font:var(--fs-m)/1.2 var(--f12)} body.ui2 .cal-dd{font:var(--fs-s)/1.2 var(--f10);color:var(--muted)}
+body.ui2 .cal-now{padding:0 var(--sp-3);font:var(--fs-s)/1.4 var(--f10);color:var(--plate-text);background:var(--son-d)}
+body.ui2 .cal-empty{color:var(--muted)}
+body.ui2 .cal-slot{display:flex;flex-direction:column;gap:var(--sp-1);min-height:32px;box-sizing:border-box;padding:var(--sp-3);text-align:left;cursor:pointer;font:var(--fs-s)/1.3 var(--f10);color:var(--text);background:var(--paper);border:var(--bd-fine) solid var(--line)}
+body.ui2 .cal-slot.sel{border-color:var(--ink);border-width:var(--bd)}
+body.ui2 .cal-name{font:var(--fs-m)/1.2 var(--f12);overflow-wrap:anywhere}
+body.ui2 .cal-tag{font:var(--fs-s)/1.2 var(--f10)}
+body.ui2 .cal-live{border-color:var(--son);border-width:var(--bd);background:var(--paper3)}
+body.ui2 .cal-soon{border-style:dashed;border-color:var(--son)}
+body.ui2 .cal-past{opacity:.6}
+body.ui2 .cal-detail{display:flex;flex-direction:column;gap:var(--sp-2);padding:var(--sp-4);background:var(--paper2);border:var(--bd) solid var(--line)}
+body.ui2 .cal-d-t{font:var(--fs-m)/1.2 var(--f12)} body.ui2 .cal-d-s{font:var(--fs-s)/1.3 var(--f10);color:var(--muted)}
+body.ui2 .cal-msg{display:flex;align-items:center;justify-content:center;gap:var(--sp-5);min-height:96px;padding:var(--sp-5);color:var(--muted);border:var(--bd-fine) dashed var(--line)}
+body.ui2 .cal-err{color:var(--text);border-color:var(--son)}
+body.ui2 .cal-skel{display:grid;grid-template-columns:repeat(7,1fr);gap:var(--sp-3)}
+body.ui2 .cal-skel-c{height:160px;background:var(--paper2);opacity:.6;animation:rk-sk 1.2s ease-in-out infinite alternate}
+@media (prefers-reduced-motion:reduce){body.ui2 .cal-skel-c{animation:none}}
+body.ui2 .p2-man-giay .p2-cd{color:var(--text);background:var(--paper2);border-color:var(--line)}
