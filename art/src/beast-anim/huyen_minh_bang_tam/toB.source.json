@@ -1,0 +1,24 @@
+{
+    "species":  "huyen_minh_bang_tam",
+    "sheet":  "B",
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "attempts":  1,
+    "generated_at":  "2026-10-27T03:51:31.7741970Z",
+    "sha256":  "48e30f0681ed5a8e21bfd4a0a9471b40411b950c482a698837c7754d8018ca13",
+    "prompt_sha256":  "806ae440bafddca8568509bb2cac2e598f8ce3b6d8e27f87f41b2f366bd63fda",
+    "references":  [
+                       {
+                           "path":  "shared/assets/sprites/beast/huyen_minh_bang_tam.png",
+                           "sha256":  "570f7dfe7d5a6e37c63f5f5a8c71461309d94dd44f8ab7afee4500de86504261"
+                       },
+                       {
+                           "path":  "art/src/beast-anim/huyen_minh_bang_tam/toA.png",
+                           "sha256":  "be8648504dc81c429f47b2fe329681fa181479126ac891991e8b3f05ffca0693"
+                       }
+                   ],
+    "original_tool_path":  "C:/Users/PC/.codex/generated_images/01a17b73-f195-7882-b6e0-50abfdc5f381/exec-9a632cd7-b41c-4198-a0e4-e1d444545775.png",
+    "postprocessing":  "Không; chép nguyên byte RAW",
+    "agent":  "soul_land_game-620"
+}
