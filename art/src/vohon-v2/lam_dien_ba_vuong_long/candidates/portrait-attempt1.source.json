@@ -1,0 +1,100 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "issue": 1158,
+  "attempt": 1,
+  "max_attempts": 3,
+  "reference": "art/src/vohon-v2/lam_dien_ba_vuong_long/concept-attempt2.png",
+  "reference_sha256": "d3c3d2b2d04b0eb9b0d6725092d31a5516a08c73beae294e2c6404df26babb95",
+  "image_sha256": "5397e7b6c1f98f07d977bc5e44a30ae47a0e42c8a92fe8bf383b7ed48348d380",
+  "prompt_sha256": "28dd56828f325358aed2825f28ea6a95650f3c318214cf6019aa8f4e53983499",
+  "prompt_command": "node tools/assets/vohon-prompt.mjs --type portrait --id lam_dien_ba_vuong_long --style-ref art/src/vohon-v2/lam_dien_ba_vuong_long/concept-attempt2.png",
+  "pixel_command": "node tools/assets/vohon-pixelize.mjs --type portrait --id lam_dien_ba_vuong_long --in art/src/vohon-v2/lam_dien_ba_vuong_long/candidates/portrait-attempt1.png --out art/src/vohon-v2/lam_dien_ba_vuong_long/candidates/portrait-attempt1-P1c2 --preset portrait2",
+  "raw_check": {
+    "type": "portrait",
+    "id": "lam_dien_ba_vuong_long",
+    "issues": [
+      {
+        "sev": "soft",
+        "code": "mem",
+        "text": "texture mềm: 87% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+      },
+      {
+        "sev": "soft",
+        "code": "nhieu-mau",
+        "text": "189 màu đáng kể (nên ≤ 160 để ép về ≤ 32 mà không bệt)"
+      },
+      {
+        "sev": "soft",
+        "code": "luoi",
+        "text": "chưa đúng lưới khối: tỉ số biên 1.53 ở chu kỳ 6 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+      }
+    ],
+    "metrics": {
+      "w": 1254,
+      "h": 1254,
+      "ratio": 1,
+      "border": {
+        "clear": 0,
+        "flat70": 0.92
+      },
+      "fill": 1,
+      "softness": 0.878,
+      "bigColors": 189,
+      "grid": {
+        "period": 6,
+        "ratio": 1.53
+      },
+      "paletteMatch": 0.66,
+      "smallAccent": "8/8"
+    },
+    "manual": [
+      "đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi)",
+      "không có chữ, ký hiệu đọc được, logo, chữ ký",
+      "đọc được cả ở cỡ thật 1× (nhìn lướt)"
+    ]
+  },
+  "pixel_check": {
+    "type": "portrait",
+    "id": "lam_dien_ba_vuong_long",
+    "issues": [
+      {
+        "sev": "soft",
+        "code": "nhieu-chi-tiet",
+        "text": "mật độ biên 0.448 (> 0.3): còn nhiều mảng nhỏ ở cỡ 64×64, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+      },
+      {
+        "sev": "soft",
+        "code": "gan-mau",
+        "text": "hai màu lớn chỉ cách nhau 3.2 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+      },
+      {
+        "sev": "soft",
+        "code": "nen-chu-the",
+        "text": "vùng giữa chỉ sáng gấp 1.26× vòng ngoài (< 1.4): chủ thể chưa tách khỏi nền; thử --preset portrait (nền lạnh tối + viền sáng)"
+      }
+    ],
+    "metrics": {
+      "w": 64,
+      "h": 64,
+      "colors": 16,
+      "hot": 0.216,
+      "contrast": 0.293,
+      "edge": 0.448,
+      "sep": 3.2,
+      "bgRatio": 1.26,
+      "accent": "8/8"
+    },
+    "manual": [
+      "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+      "so với RAW: vẫn là cùng một võ hồn"
+    ]
+  },
+  "eye": [
+    "góc nhìn chính diện thay vì 3/4; sừng chạm mép trên; sét và lôi châu sáng rộng tranh mắt; cần duyệt độ tách nền ở 64×64"
+  ],
+  "status": "candidate_pending_art_review",
+  "imported": false
+}
