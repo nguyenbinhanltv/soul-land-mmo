@@ -34,25 +34,54 @@ export function normalizeSheet(raw) {
  * Mặt nạ của tờ canonical: `fg` = không phải nền (sau gỡ viền nền, gồm nộm); `dummy` = điểm nộm (gần màu khoá nộm); `spirit` = phụ thể
  * (fg trừ nộm, gỡ tiếp 3 lớp viền ngả màu khoá nộm giáp vùng nộm, như viền ngả nền).
  */
-export function sheetMasks(img, { bgKey, tol = BG_TOL, dummyKey, dummyTol = DUMMY_TOL }) {
-  const { w, h } = img, fg = foregroundMask(img, [...bgKey, 255], tol), dummy = new Uint8Array(w * h), spirit = new Uint8Array(w * h), dk = dummyKey.slice(0, 3);
+export function sheetMasks(img, { bgKey, tol = BG_TOL, dummyKey, dummyTol = DUMMY_TOL, guideKey = null }) {
+  const { w, h } = img, fg = foregroundMask(img, [...bgKey, 255], tol), dummy = new Uint8Array(w * h), guide = new Uint8Array(w * h), spirit = new Uint8Array(w * h), dk = dummyKey.slice(0, 3), gk = guideKey && guideKey.slice(0, 3);
   for (let i = 0; i < w * h; i++) {
-    const o = i * 4;
-    if (img.data[o + 3] >= 128 && dist2([img.data[o], img.data[o + 1], img.data[o + 2]], dk) <= dummyTol * dummyTol) dummy[i] = 1;
+    const o = i * 4, c = [img.data[o], img.data[o + 1], img.data[o + 2]];
+    if (img.data[o + 3] >= 128 && dist2(c, dk) <= dummyTol * dummyTol) dummy[i] = 1;
+    // Vạch tham chiếu (#1171): màu khóa riêng, trừ như nộm và bỏ khỏi `fg` (vạch chạy suốt ô, không được làm mất khoảng trống giữa các ô khi dò lưới).
+    else if (gk && img.data[o + 3] >= 128 && dist2(c, gk) <= dummyTol * dummyTol) { guide[i] = 1; fg[i] = 0; }
     spirit[i] = fg[i] && !dummy[i] ? 1 : 0;
   }
-  const removed = Uint8Array.from(dummy), fringe = (dummyTol * 1.9) ** 2;
-  for (let pass = 0; pass < 3; pass++) {
+  // Gỡ 3 lớp viền ngả màu khóa giáp vùng bị trừ (nộm: viền ngả màu nộm; vạch: viền ngả màu vạch), như viền ngả nền.
+  for (const [seed, key] of [[dummy, dk], [guide, gk]]) {
+    if (!key) continue;
+    const removed = Uint8Array.from(seed), fringe = (dummyTol * 1.9) ** 2;
+    for (let pass = 0; pass < 3; pass++) {
+      const kill = [];
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const i = y * w + x;
+        if (!spirit[i]) continue;
+        const touches = (x > 0 && removed[i - 1]) || (x < w - 1 && removed[i + 1]) || (y > 0 && removed[i - w]) || (y < h - 1 && removed[i + w]);
+        if (touches && dist2([img.data[i * 4], img.data[i * 4 + 1], img.data[i * 4 + 2]], key) <= fringe) kill.push(i);
+      }
+      for (const i of kill) { spirit[i] = 0; removed[i] = 1; }
+    }
+  }
+  return { fg, dummy, guide, spirit };
+}
+
+/**
+ * Bản sao của tờ thô đã xóa vạch tham chiếu (#1171: pixel gần màu khóa vạch + viền ngả màu vạch 2 lớp → màu nền của tờ) để dò lưới / nền không
+ * coi vạch (chạy suốt ô, góc khung) là hình. Không có vạch thì trả nguyên tờ.
+ */
+export function eraseGuides(img, guideKey, { tol = DUMMY_TOL } = {}) {
+  if (!guideKey) return img;
+  const gk = (typeof guideKey === "string" ? hex(guideKey) : guideKey).slice(0, 3), bg = sheetKey(img).slice(0, 3), { w, h } = img, out = new Img(w, h);
+  out.data.set(img.data);
+  const near = (i, t) => dist2([out.data[i * 4], out.data[i * 4 + 1], out.data[i * 4 + 2]], gk) <= t * t, gone = new Uint8Array(w * h);
+  const wipe = (i) => { out.data[i * 4] = bg[0]; out.data[i * 4 + 1] = bg[1]; out.data[i * 4 + 2] = bg[2]; out.data[i * 4 + 3] = 255; gone[i] = 1; };
+  for (let i = 0; i < w * h; i++) if (img.data[i * 4 + 3] >= 128 && near(i, tol)) wipe(i);
+  for (let pass = 0; pass < 2; pass++) {
     const kill = [];
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const i = y * w + x;
-      if (!spirit[i]) continue;
-      const touches = (x > 0 && removed[i - 1]) || (x < w - 1 && removed[i + 1]) || (y > 0 && removed[i - w]) || (y < h - 1 && removed[i + w]);
-      if (touches && dist2([img.data[i * 4], img.data[i * 4 + 1], img.data[i * 4 + 2]], dk) <= fringe) kill.push(i);
+      if (gone[i] || !((x > 0 && gone[i - 1]) || (x < w - 1 && gone[i + 1]) || (y > 0 && gone[i - w]) || (y < h - 1 && gone[i + w]))) continue;
+      if (near(i, tol * 1.9)) kill.push(i);
     }
-    for (const i of kill) { spirit[i] = 0; removed[i] = 1; }
+    for (const i of kill) wipe(i);
   }
-  return { fg, dummy, spirit };
+  return out;
 }
 
 /** Nộm danh nghĩa của một ô (toạ độ ô 256×256): mặt nạ + danh sách điểm (x, y xen kẽ) cho đăng ký. */
@@ -91,10 +120,10 @@ export function registerDummy(obs, w, h, nom, ox, oy) {
  * @returns {{ img: Img, factor: number, bgKey: number[], masks: object, layout: object, cells: object[], shift: {dx:number, dy:number}, notes: string[] }}
  *   cells[i] = { anim, frame, col, row, step, nom, reg: { dx, dy, score, ok }, win: {x0, y0}, rect }; (win = góc trên trái cửa sổ khung 256×256 trong ảnh canonical)
  */
-export function prepareSheet(raw, { group, dir, frame, dummyKey, dummyTol = DUMMY_TOL, tol = BG_TOL, key, sex = "m", grid = "auto" }) {
+export function prepareSheet(raw, { group, dir, frame, dummyKey, guideKey = null, dummyTol = DUMMY_TOL, tol = BG_TOL, key, sex = "m", grid = "auto" }) {
   const { img, factor } = normalizeSheet(raw), bgKey = (key ?? sheetKey(img)).slice(0, 3);
-  const dk = typeof dummyKey === "string" ? hex(dummyKey) : dummyKey, masks = sheetMasks(img, { bgKey, tol, dummyKey: dk, dummyTol });
-  const sheet = sheetPlan(group)[DIRS.indexOf(dir)], layout = layoutFor(img, sheet, grid, { key: bgKey, tol: GRID_TOL }), fr = framesOf(group);
+  const dk = typeof dummyKey === "string" ? hex(dummyKey) : dummyKey, gk = guideKey ? (typeof guideKey === "string" ? hex(guideKey) : guideKey) : null, masks = sheetMasks(img, { bgKey, tol, dummyKey: dk, dummyTol, guideKey: gk });
+  const sheet = sheetPlan(group)[DIRS.indexOf(dir)], layout = layoutFor(eraseGuides(img, gk), sheet, grid, { key: bgKey, tol: GRID_TOL }), fr = framesOf(group);
   const cells = sheet.cells.map((c) => {
     const step = bodyStepOf(c.anim, fr[c.anim], c.frame), nom = nominalOf({ sex, dir, clip: c.anim, step, frame });
     const reg = registerDummy(masks.dummy, img.w, img.h, nom, c.col * CELL, c.row * CELL);

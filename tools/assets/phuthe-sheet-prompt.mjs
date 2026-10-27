@@ -1,5 +1,5 @@
 // Sinh prompt cho tthoadev (ChatGPT / Codex) vẽ tờ hoạt ảnh phụ thể võ hồn v2 (#1022; docs/art/phu-the-hoat-anh.md, skill beast-anim).
-//   node tools/assets/phuthe-sheet-prompt.mjs --id ta_hoa_phuong_hoang --stage turnaround|direction [--dir s,se,…] [--out <thư mục>] [--frame 96|128] [--dummy-key #00D0D0] [--no-dummy]
+//   node tools/assets/phuthe-sheet-prompt.mjs --id ta_hoa_phuong_hoang --stage turnaround|direction [--dir s,se,…] [--out <thư mục>] [--frame 96|128] [--dummy-key #00D0D0] [--guide-key #7A5CFF] [--no-dummy]
 //   node tools/assets/phuthe-sheet-prompt.mjs --all            (25 võ hồn: mã, nhóm, khung, màu nộm)
 // --stage turnaround: 1 ảnh 3:2, 5 cột hướng × 3 hàng (idle, attack đỉnh, hurt) = 15 hình, kèm bảng nộm; ghi `<id>-turnaround.md`.
 // --stage direction: mỗi hướng một tờ 1536×1024, 6×4 ô; ghi `<id>-to<A..E>.md` (A–E = s, se, e, ne, n).
@@ -12,11 +12,12 @@ import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  DIRS, DIR_VI, CLIPS, CLIP_VI, COLS, BANDS, TURNAROUND, GROUP_VI,
+  DIRS, DIR_VI, CLIPS, CLIP_VI, COLS, CELL, BANDS, TURNAROUND, GROUP_VI,
   framesOf, sheetPlan, sheetCells, checkFrame, phutheInfo, allPhutheIds, styleBlock, frameOrigin,
+  guideKeyOf,
 } from "./phuthe-sheet-lib.mjs";
 import { lessonsFor, STAGES } from "./phuthe-sheet-lessons.mjs";
-import { writeDummies } from "./phuthe-sheet-dummy.mjs";
+import { writeDummies, dummyCell } from "./phuthe-sheet-dummy.mjs";
 
 /** Hướng nhìn của PHỤ THỂ (không phải của nộm). Tây là lật ngang nên mọi hướng nghiêng đều nhìn sang PHẢI. */
 const DIR_EN = {
@@ -81,6 +82,15 @@ export function conceptRef(id, root = path.resolve(path.dirname(fileURLToPath(im
 const FIDELITY = "keep the colors, motifs, line weight and the shape of the attachments named in the brief exactly as in the concept of the first reference image; the concept shows the whole martial soul, so copy neither its full-body composition nor its anatomy: draw only the attachments named in the brief and never a whole creature";
 const noDummyLine = (dir) => `NO MANNEQUIN: this sheet has no hero body and no body guide. Draw ONLY the spirit; ${FIDELITY}. Keep the spirit's position and attachment anchor as the cell grid implies: an unseen hero body stands on the same foot origin of every cell${dir ? ` (it faces ${DUMMY_DIR_EN[dir] ?? "side"} on)` : ""}, and the spirit stays attached to it at the same anchor in every frame, so the frames can be laid over the hero in the game. Never draw a human, a body, a face, hands or clothes.`;
 const mannequinLine = (info, dir) => info.noDummy ? noDummyLine(dir) : `MANNEQUIN: the first attached image already contains the hero's body as a FLAT, single-colored mannequin silhouette (solid ${info.dummyKey}, no shading, no outline) placed in every occupied cell, drawn ${DUMMY_DIR_EN[dir] ?? "side"} on. It is the ONLY human shape allowed in the picture (it overrides "human character" in NEGATIVE) and it is a fixed reference, not something to draw. Keep every mannequin exactly where it is, at the same size and in the same flat color; do not repaint, shade, outline, move, resize or add a face, eyes, hands or clothes to it. Never use ${info.dummyKey} or magenta #FF00FF anywhere in the spirit itself; if the spirit has a similar hue, keep it clearly darker, lighter or less saturated.`;
+/** Số đo nộm tính từ công cụ (không viết tay): chiều cao thân và vị trí đường chân theo % ô, cho khung của võ hồn. */
+const scaleOf = (info) => { const d = dummyCell({ dir: "s", clip: "idle", step: 0, frame: info.frame }); return { hero: Math.round(((d.box.y1 - d.box.y0 + 1) / CELL) * 100), foot: Math.round((d.foot[1] / CELL) * 100), width: Math.round(((d.box.x1 - d.box.x0 + 1) / CELL) * 100), frame: info.frame }; };
+/** Mô tả vạch tham chiếu trong bảng nộm (#1171): đường chân, trục, tâm ngực, thước chiều cao, góc khung; cùng một màu khóa vạch, cutter trừ sạch. */
+const guideLine = (info) => {
+  if (info.noDummy || !info.guideKey) return "";
+  const m = scaleOf(info);
+  return `
+GUIDE LINES: the mannequin board also carries thin dashed guide lines in ONE flat color (${info.guideKey}, drawn under the mannequin): a horizontal FOOT LINE through the mannequin's feet (the ground; the spirit's body or wing roots must sit above it and nothing hangs below it except shadows or roots that touch the ground), a vertical CENTER AXIS up from the feet, a small plus sign at the CHEST CENTER (the back anchor where wings or auras attach), a HEIGHT RULER on the left edge from the feet to the top of the head, and four CORNER BRACKETS marking the edge of the game frame (anything drawn past the bracket box is cut off in game). SCALE: the cell is exactly the game frame (${m.frame}x${m.frame} game pixels scaled to the cell); the mannequin hero is only about ${m.hero}% of the cell height and ${m.width}% of its width, with the feet line at ${m.foot}% of the cell height from the top. Draw the spirit at the size the cell implies: it is a companion around a small hero, so it may be larger than the hero but must stay inside the corner brackets, centered on the hero's chest axis (do not shift it to the right or behind), and never drawn at poster scale. These guide lines are references only: do not redraw, recolor or thicken them, and never use ${info.guideKey} in the spirit.`;
+};
 const spiritBlock = (info) => {
   const c = info.colors, L = info.brief.lines.map((l) => `- ${({ "Bá đạo ở đâu": "Overbearing presence", "Hình mẫu": "Form", "Màu": "Palette", "Motif": "Motifs (use only these)", "Vật đi kèm": "Companion objects" })[l.label] ?? l.label}: ${l.text}`);
   return `SPIRIT: ${info.name} (${info.id}); body type "${info.group}" = ${GROUP_VI[info.group]}. The design brief below comes from the canonical design table and is written in Vietnamese: follow it exactly, keep every hex code as written, and use only the motifs it lists.
@@ -93,7 +103,7 @@ Motion notes (Vietnamese): ${info.motion}`;
 export function referencesFor(stage, info, sheet) {
   const nom = stage === "turnaround" ? `${info.id}-nom-turnaround.png` : `${info.id}-nom-to${sheet.id}.png`;
   const concept = conceptRef(info.id);
-  const refs = info.noDummy ? [{ required: true, en: "the approved CONCEPT of this spirit (its final martial-soul design): copy its colors, motifs and line weight, and the shape of the attachments named in the brief (not its whole-body composition); the grid layout is described in the text below", vi: `**concept võ hồn đã chốt** (\`${concept}\`); không có bảng nộm (\`--no-dummy\`)` }] : [{ required: true, en: `the MANNEQUIN BOARD of this ${stage === "turnaround" ? "turnaround" : "sheet"}: magenta background with the flat ${info.dummyKey} mannequin already placed in every occupied cell; copy this layout exactly and draw the spirit on top of / around it`, vi: `**bảng nộm** của ${stage === "turnaround" ? "ảnh turnaround" : "tờ này"} (\`${nom}\`, do \`phuthe-sheet-dummy.mjs\` dựng; nộm đã đặt đúng chỗ, đừng bảo model tự vẽ thân)` }];
+  const refs = info.noDummy ? [{ required: true, en: "the approved CONCEPT of this spirit (its final martial-soul design): copy its colors, motifs and line weight, and the shape of the attachments named in the brief (not its whole-body composition); the grid layout is described in the text below", vi: `**concept võ hồn đã chốt** (\`${concept}\`); không có bảng nộm (\`--no-dummy\`)` }] : [{ required: true, en: `the MANNEQUIN BOARD of this ${stage === "turnaround" ? "turnaround" : "sheet"}: magenta background with the flat ${info.dummyKey} mannequin already placed in every occupied cell; copy this layout exactly and draw the spirit on top of / around it`, vi: `**bảng nộm** của ${stage === "turnaround" ? "ảnh turnaround" : "tờ này"} (\`${nom}\`, do \`phuthe-sheet-dummy.mjs\` dựng; nộm đã đặt đúng chỗ, đừng bảo model tự vẽ thân; kèm vạch tham chiếu màu \`${info.guideKey}\`: đường chân, trục, tâm ngực, thước chiều cao thân, góc khung)` }];
   if (stage === "direction") {
     refs.push({ required: true, en: `the approved TURNAROUND image of this spirit: five columns of directions (s, se, e, ne, n) by three rows (idle, attack peak, hurt). Copy the form, facing angle, size and colors of the column "${sheet.dirs[0]}"`, vi: "ảnh **turnaround đã duyệt** của võ hồn (5 hướng × idle / attack đỉnh / hurt)" });
     refs.push({ required: false, en: "an approved direction sheet of this spirit (only for matching line weight and palette; never copy its poses)", vi: "(tùy chọn) **một tờ hướng đã qua `npm run phuthe:check` không có khối chặn** của chính võ hồn này, chỉ để khớp nét / bảng màu. **Không** dùng tờ lỗi làm tham chiếu" });
@@ -144,7 +154,7 @@ TASK: Create ONE image (landscape 3:2 aspect ratio; the exact pixel size does no
 ${spiritBlock(info)}
 ${refsEn(refs)}
 
-${mannequinLine(info, dir)}
+${mannequinLine(info, dir)}${guideLine(info)}
 
 ${BACKGROUND}
 
@@ -169,7 +179,7 @@ TASK: Create ONE image (landscape 3:2 aspect ratio; the exact pixel size does no
 ${spiritBlock(info)}
 ${refsEn(refs)}
 
-${mannequinLine(info, "e")}
+${mannequinLine(info, "e")}${guideLine(info)}
 
 ${BACKGROUND}
 
@@ -271,9 +281,9 @@ export function stageDocs(info, stage, { dirs = DIRS, frame } = {}) {
 }
 
 /** Thông tin cho prompt, cho phép ghi đè khung / màu nộm bằng tùy chọn. */
-export function infoWith(id, { frame, dummyKey, noDummy } = {}) {
+export function infoWith(id, { frame, dummyKey, guideKey, noDummy } = {}) {
   const info = phutheInfo(id);
-  return { ...info, frame: checkFrame(frame ?? info.frame), dummyKey: dummyKey ?? info.dummyKey, noDummy: !!noDummy };
+  return { ...info, frame: checkFrame(frame ?? info.frame), dummyKey: dummyKey ?? info.dummyKey, guideKey: guideKey ?? guideKeyOf(id, dummyKey ?? info.dummyKey), noDummy: !!noDummy };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -283,13 +293,13 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       for (const id of allPhutheIds()) { const i = phutheInfo(id); console.log(`${id}\t${i.group}\t${i.frame}\t${i.dummyKey}`); }
     } else {
       const id = val("--id"), stage = val("--stage") ?? "direction", dirs = val("--dir")?.split(",") ?? DIRS;
-      if (!id || !STAGES.includes(stage) || dirs.some((d) => !DIRS.includes(d))) { console.error("Dùng: node tools/assets/phuthe-sheet-prompt.mjs --id <võ hồn> [--stage turnaround|direction] [--dir s,se,e,ne,n] [--out <thư mục>] [--frame 96|128] [--dummy-key #00D0D0] [--no-dummy] | --all"); process.exit(2); }
-      const frame = val("--frame") && +val("--frame"), dummyKey = val("--dummy-key"), info = infoWith(id, { frame, dummyKey, noDummy: a.includes("--no-dummy") }), out = val("--out");
+      if (!id || !STAGES.includes(stage) || dirs.some((d) => !DIRS.includes(d))) { console.error("Dùng: node tools/assets/phuthe-sheet-prompt.mjs --id <võ hồn> [--stage turnaround|direction] [--dir s,se,e,ne,n] [--out <thư mục>] [--frame 96|128] [--dummy-key #00D0D0] [--guide-key #7A5CFF] [--no-dummy] | --all"); process.exit(2); }
+      const frame = val("--frame") && +val("--frame"), dummyKey = val("--dummy-key"), info = infoWith(id, { frame, dummyKey, guideKey: val("--guide-key"), noDummy: a.includes("--no-dummy") }), out = val("--out");
       if (out) mkdirSync(out, { recursive: true });
       for (const [name, md] of stageDocs(info, stage, { dirs, frame: info.frame })) {
         if (out) { writeFileSync(path.join(out, name), md); console.log(`ghi ${path.join(out, name)}`); } else console.log(md);
       }
-      if (out && !info.noDummy) for (const f of writeDummies(id, out, { frame: info.frame, key: info.dummyKey })) console.log(`ghi ${f}`);
+      if (out && !info.noDummy) for (const f of writeDummies(id, out, { frame: info.frame, key: info.dummyKey, guideKey: info.guideKey })) console.log(`ghi ${f}`);
     }
   } catch (e) { console.error(e.message); process.exit(2); }
 }

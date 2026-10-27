@@ -19,8 +19,9 @@ import { contactSheet } from "./beast-sheet-contact.mjs";
 import { silhouetteDiff, silhouetteIou, BG_LOCK, BG_TOL, EMPTY_CELL_FRAC, BASELINE_FRAC } from "./beast-sheet-check.mjs";
 import {
   DIRS, CLIPS, COLS, BAND_ROWS, TURNAROUND, CELL, SHEET_W, SHEET_H, DIR_OF_SHEET, ANIM_ROOT, sheetCells, figuresPerBand, framesOf, sheetFits, phutheInfo, GROUPS,
+  guideKeyOf,
 } from "./phuthe-sheet-lib.mjs";
-import { prepareSheet, cellSpirit, dropSpecks, REG_MIN_SCORE } from "./phuthe-sheet-cut-lib.mjs";
+import { prepareSheet, cellSpirit, dropSpecks, eraseGuides, REG_MIN_SCORE } from "./phuthe-sheet-cut-lib.mjs";
 
 // ---------- Ngưỡng ----------
 export const REG_BLOCK = 0.25;          // điểm đăng ký nộm dưới mức này: coi như mất nộm (chặn); dưới REG_MIN_SCORE: nhẹ
@@ -74,12 +75,12 @@ function sizeCheck(res, img) {
   return true;
 }
 
-/** Phân tích ảnh turnaround: tỉ lệ 3:2, nền, lưới 3 hàng × 5 hình (không có kiểm nộm / chuyển động, chỉ duyệt bằng mắt). */
-export function analyzeTurnaround(file) {
+/** Phân tích ảnh turnaround (`o.guideKey`: màu vạch tham chiếu, xóa trước khi dò lưới): tỉ lệ 3:2, nền, lưới 3 hàng × 5 hình (không có kiểm nộm / chuyển động, chỉ duyệt bằng mắt). */
+export function analyzeTurnaround(file, o = {}) {
   const img = readPng(file), res = { sheet: TURNAROUND_SHEET, file, size: [img.w, img.h], issues: [], blocks: [], cells: [], bands: [], dead: [], img, kind: "turnaround", dirs: DIRS, plan: { dirs: DIRS, cols: TURNAROUND.cols, rows: TURNAROUND.rows } };
   if (!sizeCheck(res, img)) return finish(res);
-  const grid = detectGrid(img);
-  bgCheck(res, grid, img);
+  const clean = eraseGuides(img, o.guideKey), grid = detectGrid(clean); // vạch tham chiếu (góc khung, chân, thước) không phải hình
+  bgCheck(res, grid, clean);
   if (grid.bands.length !== TURNAROUND.rows) { issue(res.issues, "block", "luoi", "toàn tờ", `dò được ${grid.bands.length} dải hàng, cần ${TURNAROUND.rows}: không dò được lưới.`); return finish(res); }
   grid.bands.forEach((b, row) => {
     const rb = { ...b, row, state: "ok", figures: b.figures.map((f) => ({ ...f })) };
@@ -103,9 +104,9 @@ export function analyzeSheet(file, o) {
   const group = o.group;
   res.plan = { dirs: [dir], cols: COLS, rows: BAND_ROWS };
   if (!sizeCheck(res, raw)) return finish(res);
-  const grid = detectGrid(raw);
+  const clean = eraseGuides(raw, o.guideKey), grid = detectGrid(clean); // vạch tham chiếu không phải hình
   res.grid = grid;
-  bgCheck(res, grid, raw);
+  bgCheck(res, grid, clean);
   if (grid.bands.length !== BAND_ROWS) {
     issue(issues, "block", "luoi", "toàn tờ", `dò được ${grid.bands.length} dải hàng, cần ${BAND_ROWS}: không dò được lưới (hàng dính nhau hoặc vỡ).`);
     res.bands = grid.bands.map((b) => ({ ...b, state: "bad", figures: b.figures.map((f) => ({ ...f, state: "bad" })) }));
@@ -150,7 +151,7 @@ export function analyzeSheet(file, o) {
 /** Nộm, phụ thể từng ô (cần lưới đúng): đăng ký nộm, khung rỗng, điểm gắn, cỡ, khung chết, hurt = idle. */
 function analyzeCells(res, raw, o, dir) {
   const { issues } = res, group = o.group, fr = framesOf(group);
-  const prep = prepareSheet(raw, { group, dir, frame: o.frame, dummyKey: o.dummyKey, sex: o.sex ?? "m" });
+  const prep = prepareSheet(raw, { group, dir, frame: o.frame, dummyKey: o.dummyKey, guideKey: o.guideKey, sex: o.sex ?? "m" });
   res.prep = { shift: prep.shift, factor: prep.factor, grid: prep.layout.mode };
   const rowState = (row) => res.bands.find((b) => b.row === row);
   for (const cell of prep.cells) {
@@ -211,8 +212,8 @@ export function checkPhuThe(id, opt = {}) {
   if (!GROUPS.includes(group)) throw new Error(`nhóm lạ ${group}`);
   const ta = turnaroundFile(dir), files = sheetFiles(dir);
   if (!files.length && !ta) throw new Error(`không có tờ toA.png… trong ${dir}`);
-  const o = { group, frame, dummyKey, sex: opt.sex ?? "m" };
-  const sheets = files.map((f) => analyzeSheet(f, o)), turnaround = ta ? analyzeTurnaround(ta) : null;
+  const o = { group, frame, dummyKey, guideKey: opt.guideKey ?? guideKeyOf(id, dummyKey), sex: opt.sex ?? "m" };
+  const sheets = files.map((f) => analyzeSheet(f, o)), turnaround = ta ? analyzeTurnaround(ta, o) : null;
   const sRef = sheets.find((s) => s.dirs[0] === "s");
   if (sRef) for (const s of sheets) {
     if (s === sRef) continue;
@@ -302,6 +303,7 @@ function parseArgs(argv) {
     else if (a === "--dir") o.dir = argv[++i];
     else if (a === "--frame") o.frame = +argv[++i];
     else if (a === "--dummy-key") o.dummyKey = argv[++i];
+    else if (a === "--guide-key") o.guideKey = argv[++i];
     else if (a === "--no-image") o.images = false;
     else if (a === "--all") o.all = true;
     else if (a.startsWith("--")) throw new Error(`tùy chọn lạ: ${a}`);
@@ -315,12 +317,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     const o = parseArgs(process.argv.slice(2));
     if (o.all) o.ids = existsSync(ANIM_ROOT) ? readdirSync(ANIM_ROOT, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort() : [];
-    if (!o.ids.length && !o.all) { console.error("Dùng: npm run phuthe:check -- <võ hồn> [--out <thư mục>] [--dir <thư mục tờ>] [--frame 96|128] [--dummy-key #00D0D0] [--no-image]   |   npm run phuthe:check -- --all"); process.exit(2); }
+    if (!o.ids.length && !o.all) { console.error("Dùng: npm run phuthe:check -- <võ hồn> [--out <thư mục>] [--dir <thư mục tờ>] [--frame 96|128] [--dummy-key #00D0D0] [--guide-key #7A5CFF] [--no-image]   |   npm run phuthe:check -- --all"); process.exit(2); }
     const base = o.out ?? path.join(os.tmpdir(), "phuthe-check");
     let blocked = 0;
     for (const id of o.ids) {
       let r;
-      try { r = checkPhuThe(id, { ...(o.dir ? { dir: o.dir } : {}), ...(o.frame ? { frame: o.frame } : {}), ...(o.dummyKey ? { dummyKey: o.dummyKey } : {}) }); }
+      try { r = checkPhuThe(id, { ...(o.dir ? { dir: o.dir } : {}), ...(o.frame ? { frame: o.frame } : {}), ...(o.dummyKey ? { dummyKey: o.dummyKey } : {}), ...(o.guideKey ? { guideKey: o.guideKey } : {}) }); }
       catch (e) { if (o.all && /không có tờ/.test(e.message)) { console.log(`bỏ qua ${id} (chưa có tờ)`); continue; } throw e; }
       console.log(summary(r));
       if (r.level === "chặn") blocked++;

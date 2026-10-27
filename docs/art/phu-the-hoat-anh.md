@@ -37,6 +37,9 @@ Phụ thể không vẽ lơ lửng: người vẽ cần thấy **thân hồn sư
 4. **Cutter trừ nộm:** điểm ảnh gần màu khoá trong dung sai (`--dummy-tol`, mặc định nhỏ hơn dung sai nền để không ăn sang phụ thể) bị xoá; viền ngả màu khoá gỡ ba lớp như viền ngả nền. Phần còn lại là phụ thể. Chỗ phụ thể che nộm thì còn nguyên, chỗ nộm che phụ thể thì phụ thể mất (đúng ý: đó là phần bị thân che).
 5. **Nộm không vào game:** nộm chỉ có ở ảnh tham chiếu đính kèm và tờ RAW; sheet đầu ra không chứa điểm ảnh nào của nộm (`validate.mjs` kiểm: không còn màu khoá).
 
+### Vạch tham chiếu và số đo nộm (#1171)
+Vạch tham chiếu một màu khóa riêng trên bảng nộm: xem [phu-the-vach-tham-chieu.md](phu-the-vach-tham-chieu.md).
+
 ### Mặt nạ nửa sau / nửa trước theo vùng
 Một tờ chỉ có **một** ảnh phụ thể mỗi khung (vẽ như nhìn thấy cùng thân), nên cutter chia **nửa sau** (`_b`, vẽ phía sau thân) và **nửa trước** (`_f`, vẽ phía trước thân; tên theo sheet cũ `vh_{id}_b` / `_f`) bằng **mặt nạ theo vùng**:
 - Mỗi võ hồn có tệp mô tả `art/src/phuthe-anim/<id>/lop.json` (P1): với từng hướng, danh sách **vùng** (hộp hoặc đa giác trong toạ độ ô, tính theo gốc chân) kèm nhãn `sau` hoặc `truoc`, và nhãn mặc định cho điểm ngoài mọi vùng. Mặc định lấy theo quy tắc: phần **chồng lên nộm** (phụ thể vẽ đè thân: tay cầm, tai, vuốt trước ngực, dây leo trước người) là `truoc`; phần **nằm ngoài hình bao nộm** hoặc nằm sau trục lưng (cánh, đuôi, hư ảnh, chân nhện) là `sau`.
@@ -114,7 +117,7 @@ Thân chỉ vẽ `hurt` (và `die`, `absorb`) ở hướng xuống (`LPC_SHEET.a
 - **Trang thử `?thu=phuthe`:** chọn hướng 8 phía, trạng thái gồm `hurt`, ô "Phụ thể" (`anim=` `auto` / `fake` / `0`): `fake` dựng sheet **giả** lúc chạy từ ảnh tĩnh (`phutheFake.ts`, không phải ảnh model, không vào game), `khung=128` thử khung 128.
 
 ## Neo khối thân
-Phụ thể lệch tâm / quá lớn so với nộm được chỉnh bằng `anchor.json` (tâm khối thân, tỉ lệ, trang chỉnh tay): xem [phu-the-neo-khoi-than.md](phu-the-neo-khoi-than.md).
+Chỉnh tâm / tỉ lệ phụ thể bằng `anchor.json`: [phu-the-neo-khoi-than.md](phu-the-neo-khoi-than.md).
 
 ## Tiêu chí duyệt: chặn / nhẹ / đẹp (theo khối hướng)
 Duyệt theo **khối hướng** (`s`, `se`, `e`, `ne`, `n`), như hồn thú. Khác hồn thú: thân hồn sư luôn có đủ hướng nên **một võ hồn có khối chặn thì không nhập cả võ hồn** (vẽ lại **chỉ khối chặn**, tối đa 3 lượt); quá lượt thì võ hồn giữ nhánh cũ (xem "Fallback").
@@ -239,7 +242,7 @@ Thử nghiệm của chủ repo: bỏ hình nộm, vẽ phụ thể thẳng từ
 | Việc | Pha | Trạng thái |
 |---|---|---|
 | Đặc tả + audit + bảng mô tả (file này) | P0 #1021 | xong |
-| Công cụ `phuthe-sheet-*` (nộm, prompt, check, cut, preview, status) | P1 #1022 | PR này |
+| Công cụ `phuthe-sheet-*` | P1 #1022 | xong |
 | Client phát clip + neo theo khung thân, fallback, `spiritMotion` hệ số giảm | P2 #1023 | xong (mục "Client phát clip (P2)") |
 | Thử 3 võ hồn (Tà Hỏa Phượng Hoàng, Hạo Thiên Chùy, Lam Ngân Thảo) | P3 | mở |
 | Rollout 22 võ hồn còn lại theo đợt | P4 | mở |

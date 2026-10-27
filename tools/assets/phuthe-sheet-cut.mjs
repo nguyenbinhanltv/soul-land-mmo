@@ -20,6 +20,7 @@ import { medianCut, nearest } from "./beast-sheet-cut.mjs";
 import { median } from "./beast-sheet-stats.mjs";
 import {
   DIRS, CLIPS, SHEET_ID, CELL, SEXES, HALVES, GAME_ROWS, framesOf, gameAnims, gameCols, gameRow, gameKey, frameOrigin, checkFrame, phutheInfo, ANIM_ROOT,
+  guideKeyOf,
 } from "./phuthe-sheet-lib.mjs";
 import { prepareSheet, cellSpirit, dropSpecks, parseLop, layerFn, defaultLayers, levelOfCode, summarize, DUMMY_TOL, BG_TOL, dist2 } from "./phuthe-sheet-cut-lib.mjs";
 import { bodyAnchors } from "./phuthe-sheet-dummy.mjs";
@@ -58,7 +59,7 @@ export function downscaleFrame(idx, lab, pal, F) {
  * @returns {{ halves: { b: Img | null, f: Img | null }, entries: object[], report: object }}
  */
 export function cutPhuThe(o) {
-  const info = phutheInfo(o.id), group = o.group ?? info.group, F = checkFrame(o.frame ?? info.frame), dummyKey = o.dummyKey ?? info.dummyKey;
+  const info = phutheInfo(o.id), group = o.group ?? info.group, F = checkFrame(o.frame ?? info.frame), dummyKey = o.dummyKey ?? info.dummyKey, guideKey = o.guideKey ?? guideKeyOf(o.id, dummyKey);
   const dummySex = o.dummySex ?? "m", lop = o.lop ? parseLop(o.lop) : null, dummyTol = o.dummyTol ?? DUMMY_TOL, tol = o.tol ?? BG_TOL;
   const warns = [], rep = { id: o.id, group, frame: F, dummyKey, sheets: {}, dropped: 0 }, fr = framesOf(group);
   const warn = (code, msg) => warns.push({ code, msg });
@@ -68,7 +69,7 @@ export function cutPhuThe(o) {
   for (const dir of DIRS) {
     const sid = SHEET_ID[dir], raw = o.sheets[sid];
     if (!raw) { warn("thieu-to", `thiếu tờ ${sid} (${dir})`); continue; }
-    const prep = prepareSheet(raw, { group, dir, frame: F, dummyKey, dummyTol, tol, key: o.key, sex: dummySex, grid: o.grid ?? "auto" });
+    const prep = prepareSheet(raw, { group, dir, frame: F, dummyKey, guideKey, dummyTol, tol, key: o.key, sex: dummySex, grid: o.grid ?? "auto" });
     for (const n of prep.notes) warn("luoi", `tờ ${sid}: ${n}`);
     const bad = prep.cells.filter((c) => !c.reg.ok);
     rep.sheets[sid] = { dir, size: [raw.w, raw.h], factor: +prep.factor.toFixed(4), key: prep.bgKey, grid: prep.layout.mode, shift: prep.shift, registered: prep.cells.length - bad.length, cells: prep.cells.length };
@@ -174,6 +175,10 @@ export function cutPhuThe(o) {
   const dk = hex(dummyKey);
   let left = 0;
   for (const im of Object.values(halves)) for (let i = 0; i < im.data.length; i += 4) if (im.data[i + 3] && dist2([im.data[i], im.data[i + 1], im.data[i + 2]], dk) <= dummyTol * dummyTol) left++;
+  const gkc = hex(guideKey);
+  let leftGuide = 0;
+  for (const im of Object.values(halves)) for (let i = 0; i < im.data.length; i += 4) if (im.data[i + 3] && dist2([im.data[i], im.data[i + 1], im.data[i + 2]], gkc) <= dummyTol * dummyTol) leftGuide++;
+  if (leftGuide) warn("con-nom", `còn ${leftGuide} điểm ảnh gần màu khóa vạch tham chiếu ${guideKey} trong sheet đầu ra (phụ thể trùng màu vạch); đổi --guide-key khi dựng nộm và vẽ lại`);
   if (left) warn("con-nom", `còn ${left} điểm ảnh gần màu khóa nộm ${dummyKey} trong sheet đầu ra (phụ thể trùng màu khóa hoặc nộm lẫn vào); đổi --dummy-key khi vẽ lại hoặc xem tờ`);
 
   const entries = [];
@@ -216,6 +221,7 @@ function parseArgs(argv) {
     else if (a === "--out") o.out = next();
     else if (a === "--frame") o.frame = +next();
     else if (a === "--dummy-key") o.dummyKey = next();
+    else if (a === "--guide-key") o.guideKey = next();
     else if (a === "--dummy-tol") o.dummyTol = +next();
     else if (a === "--dummy-sex") o.dummySex = next();
     else if (a === "--key") o.key = hex(next());

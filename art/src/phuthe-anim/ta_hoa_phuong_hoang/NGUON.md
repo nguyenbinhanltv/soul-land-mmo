@@ -140,3 +140,6 @@ Bài học rút ra: kiểm lưới tự động không bảo đảm model giữ 
 `npm run check` và `npm run build` đã đạt sau khi cài thư viện thực trong worktree (không junction); bot CI thuộc diện skip vì chỉ ảnh/hồ sơ, không server/SQL. Không đổi client/server, manifest game, workflow hay công cụ.
 
 Prompt của A–E và candidates được sinh trước khi merge main mới: revision `fe159a9a8a50c12f11c0d1b66957f5ac44084c96`, blob `tools/assets/phuthe-sheet-prompt.mjs` = `4ceca8a3bae43234b7fa0a596332ba5ca3d6cb3c`. Các file references/to*.md và to*.prompt.txt giữ đúng bản đã gửi, không tái sinh theo công cụ mới sau merge.
+
+## Cập nhật bảng nộm tham chiếu (#1171)
+Cả sáu bảng nộm trong `references/` (turnaround + toA–toE) được dựng lại bằng công cụ có **vạch tham chiếu** (đường chân, trục, tâm ngực, thước chiều cao thân, góc khung; màu khóa vạch **#7A5CFF**, nộm vẫn cyan **#00D0D0**, khung 96, neo (48, 74), vị trí nộm không đổi). `nom-turnaround.png` mới SHA256 `3d218426bc61b52cd457505e184fb210dec14b3d97bab95d0206e21a8672788f`. Mọi SHA256 / ảnh tham chiếu của bảng nộm ghi ở trên (turnaround và năm tờ A–E, candidates) là của bảng nộm CŨ không vạch; lượt sinh sau dùng bảng mới và prompt có khối `GUIDE LINES`. Cutter vẫn trừ được tờ vẽ trên bảng cũ (không có vạch thì không có gì để trừ).
