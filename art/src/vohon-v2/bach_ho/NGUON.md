@@ -34,3 +34,17 @@ LỖI: concept-attempt1 — bố cục — se/e — khí trắng nối khối; t
 ```
 
 Theo quyết định ở PR #1145: concept chỉ tham chiếu ngoại hình; hướng ne/n xử lý ở khâu phụ thể bằng hình nộm. Giữ nguyên kết quả kiểm RAW và mọi lỗi đã quan sát, không coi ảnh này là sheet năm hướng dùng trực tiếp. SHA256 ảnh và prompt không đổi khi chuyển vị trí.
+
+## Chân dung lượt 1 — #1158
+
+Ngày 2026-10-27; 1/3 lượt. builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `portrait-attempt1.png`, SHA256 `48e0462c0b9f78b02dc439e986897979687fa8ad6e80278735c7786801b04dc3`. Prompt CLI nguyên văn `portrait-attempt1.prompt.txt`, SHA256 `5191476fd883ca590df8c5f29a61118f37a558f585888dd6506741dd9ae14b07`; không viết tay, không addendum. Ảnh neo ngoại hình: `concept-attempt1.png`, SHA256 `910d3a48b513daa6e8dd4768dbf57cf9a6d5170d78490066d0af1a51f89a0475`. Hồ sơ lệnh và kết quả kiểm: `portrait-attempt1.source.json`.
+
+P1c: `--preset portrait`; bản thử `portrait-attempt1-P1c/bach_ho-portrait.png`, 64×64, 8 màu, giữ 8/8 điểm sáng. Xem `portrait-attempt1-P1c/preview/index.html` và `so-sanh.png`. Chưa được chủ repo duyệt mỹ thuật, chưa nhập game. Không sửa RAW.
+
+### Khai báo duyệt mắt chân dung (`--eye`)
+
+Công cụ vohon:check chưa có cờ --eye; chỉ khai tại đây, không đổi bộ kiểm.
+
+```text
+--eye "portrait-attempt1=góc nhìn — chính diện; dải khí trắng lớn, lông/vằn còn nhiều chi tiết; cần duyệt độ tách nền ở cỡ 64×64"
+```
