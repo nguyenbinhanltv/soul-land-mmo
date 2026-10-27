@@ -1,0 +1,18 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "attempt": 1,
+  "raw": true,
+  "output_path": "C:/Users/PC/.codex/generated_images/01a17c44-24ab-7e33-b35f-45c0181ebded/exec-0c7d30a5-f518-478e-946b-7798874a2732.png",
+  "image_sha256": "7a19c441e813a8c6ae05d46d713ef1a185b1f6bc2c210aa87c9cf391a0731d5b",
+  "prompt_sha256": "a8b951c0c2d4cd74bf39248caba17dfe69cdaa74397ac35d3409989629f3ac2f",
+  "style_reference": {
+    "path": "art/src/phap-tuong/hao_thien_chuy/concept-turnaround-attempt2.png",
+    "pr": 1083,
+    "sha256": "631ac2ef55e230875ee2452b5dac9c634829ed09642d9666824e2a20f0e664af"
+  },
+  "assessment": "chặn",
+  "notes": "Cả ba lượt còn mắt / mõm ở góc ne. Thân xám nâu than và lửa cam đọc rõ; tạo hình hung, nhưng lửa và vân còn dày, vài hình sát nhau. Lượt 1 có khoảng tách hình rõ hơn. Không có lượt đạt đủ yêu cầu hướng lưng."
+}
