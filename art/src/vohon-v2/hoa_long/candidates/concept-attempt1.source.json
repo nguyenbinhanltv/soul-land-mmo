@@ -1,0 +1,11 @@
+﻿{
+    "tool":  "builtin image_gen.imagegen",
+    "seed":  "unknown",
+    "prompt_sha256":  "d093e7f0b7ae29695490ff6f67225f16594bdcdc04c02f5d30f12757067a8ae3",
+    "attempt":  1,
+    "notes":  "ne lộ mắt, miệng; e chưa ngang hẳn; ánh lửa rộng.",
+    "image_sha256":  "d98db5d49b918dd396362e2af21aa6a9eb04d22bcaaa8f2b83bbe2c9c6da8180",
+    "model":  "unknown",
+    "status":  "CHẶN",
+    "reference":  "PR #1083 concept Hạo Thiên lượt 2"
+}
