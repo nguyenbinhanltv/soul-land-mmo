@@ -1,0 +1,849 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-28",
+  "attempt": 1,
+  "raw": {
+    "path": "art/src/phuthe-anim/kim_vu_mieu_ung/candidates/toD-attempt1.png",
+    "sha256": "4bcc6faf75edc6cebadff703c26e46b39a3cd854cd771b53838a09d263c8754a"
+  },
+  "prompt": {
+    "path": "art/src/phuthe-anim/kim_vu_mieu_ung/candidates/toD-attempt1.prompt.txt",
+    "sha256": "f62b17533454255ee72d6b6b477150ead46613f0107d5407f33d9e7b6f64747e",
+    "generator": "phuthe-sheet-prompt --concept-ref",
+    "revision": "d2e21933d68f8c6a0af901f807c32e5952f4ca73"
+  },
+  "references": [
+    {
+      "path": "art/src/phuthe-anim/kim_vu_mieu_ung/references/kim_vu_mieu_ung-nom-toD.png",
+      "sha256": "beaed26756433db93b246eed3466f907d9a923930f5299e81fca2a6d84e26bbd"
+    },
+    {
+      "path": "art/src/vohon-v2/kim_vu_mieu_ung/concept-attempt1.png",
+      "sha256": "f5acaf93bb42da33603d5d94d9a56fefba8667ba8a9e99d048ca2e70a9f029b9"
+    },
+    {
+      "path": "art/src/phuthe-anim/kim_vu_mieu_ung/toB.png",
+      "sha256": "f2fc7a7b40a00e7cfa3677feabb5d9207552e44d981994df56cb1b8ba5f23fc7"
+    }
+  ],
+  "check": {
+    "id": "kim_vu_mieu_ung",
+    "level": "chặn",
+    "group": "B",
+    "frame": 96,
+    "dummyKey": "#00D0D0",
+    "blockLevel": {
+      "se": "nhẹ",
+      "e": "chặn",
+      "ne": "chặn"
+    },
+    "sheets": [
+      {
+        "sheet": "toB",
+        "size": [
+          1536,
+          1024
+        ],
+        "kind": "huong",
+        "level": "nhẹ",
+        "dirs": [
+          "se"
+        ],
+        "background": {
+          "key": [
+            249,
+            3,
+            251
+          ],
+          "corners": [
+            [
+              234,
+              11,
+              240
+            ],
+            [
+              240,
+              18,
+              241
+            ],
+            [
+              231,
+              37,
+              236
+            ],
+            [
+              234,
+              31,
+              236
+            ]
+          ],
+          "keyDistFromLock": 6,
+          "cornerSpread": 34
+        },
+        "seVsE": 0.446,
+        "prep": {
+          "shift": {
+            "dx": 1,
+            "dy": 12
+          },
+          "factor": 1,
+          "grid": "gap"
+        },
+        "bands": [
+          {
+            "row": 1,
+            "dir": "se",
+            "y": [
+              25,
+              223
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 2,
+            "dir": "se",
+            "y": [
+              277,
+              467
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 3,
+            "dir": "se",
+            "y": [
+              511,
+              708
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 4,
+            "dir": "se",
+            "y": [
+              736,
+              960
+            ],
+            "figures": 4,
+            "state": "ok"
+          }
+        ],
+        "motion": [
+          {
+            "dir": "se",
+            "anim": "idle",
+            "maxDiff": 0.393
+          },
+          {
+            "dir": "se",
+            "anim": "walk",
+            "maxDiff": 0.43
+          },
+          {
+            "dir": "se",
+            "anim": "hurt-vs-idle",
+            "maxDiff": 0.481
+          }
+        ],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 34), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "note",
+            "code": "tach-hinh",
+            "where": "H3 (se)",
+            "msg": "dải dò được 5 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 6."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H2 (se) C3",
+            "msg": "phụ thể chạm mép ô khung (50 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "vuot-khung",
+            "where": "H2 (se) C3",
+            "msg": "42 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H2 (se) C4",
+            "msg": "phụ thể chạm mép ô khung (112 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "vuot-khung",
+            "where": "H2 (se) C4",
+            "msg": "402 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+          },
+          {
+            "sev": "light",
+            "code": "nom-lech",
+            "where": "H2 (se) C5",
+            "msg": "nộm bị dời 19 điểm so với trung vị tờ (> 16); cutter bù được."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H2 (se) C5",
+            "msg": "phụ thể chạm mép ô khung (169 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "vuot-khung",
+            "where": "H2 (se) C5",
+            "msg": "754 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H3 (se) C2",
+            "msg": "phụ thể chạm mép ô khung (50 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "vuot-khung",
+            "where": "H3 (se) C2",
+            "msg": "203 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+          },
+          {
+            "sev": "light",
+            "code": "nom-lech",
+            "where": "H3 (se) C3",
+            "msg": "nộm bị dời 16 điểm so với trung vị tờ (> 16); cutter bù được."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H3 (se) C3",
+            "msg": "phụ thể chạm mép ô khung (117 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "vuot-khung",
+            "where": "H3 (se) C3",
+            "msg": "900 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+          },
+          {
+            "sev": "light",
+            "code": "nom-lech",
+            "where": "H3 (se) C5",
+            "msg": "nộm bị dời 17 điểm so với trung vị tờ (> 16); cutter bù được."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H3 (se) C5",
+            "msg": "phụ thể chạm mép ô khung (32 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "nom-lech",
+            "where": "H3 (se) C6",
+            "msg": "nộm bị dời 17 điểm so với trung vị tờ (> 16); cutter bù được."
+          },
+          {
+            "sev": "light",
+            "code": "nom-lech",
+            "where": "H4 (se) C1",
+            "msg": "nộm bị dời 18 điểm so với trung vị tờ (> 16); cutter bù được."
+          },
+          {
+            "sev": "light",
+            "code": "nom-lech",
+            "where": "H4 (se) C2",
+            "msg": "nộm bị dời 20 điểm so với trung vị tờ (> 16); cutter bù được."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H4 (se) C2",
+            "msg": "phụ thể chạm mép ô khung (197 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "vuot-khung",
+            "where": "H4 (se) C2",
+            "msg": "824 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+          },
+          {
+            "sev": "light",
+            "code": "nom-lech",
+            "where": "H4 (se) C3",
+            "msg": "nộm bị dời 22 điểm so với trung vị tờ (> 16); cutter bù được."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H4 (se) C3",
+            "msg": "phụ thể chạm mép ô khung (106 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "vuot-khung",
+            "where": "H4 (se) C3",
+            "msg": "188 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+          },
+          {
+            "sev": "light",
+            "code": "nom-lech",
+            "where": "H4 (se) C4",
+            "msg": "nộm bị dời 22 điểm so với trung vị tờ (> 16); cutter bù được."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H4 (se) C4",
+            "msg": "phụ thể chạm mép ô khung (268 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "vuot-khung",
+            "where": "H4 (se) C4",
+            "msg": "786 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+          },
+          {
+            "sev": "light",
+            "code": "nom-mat",
+            "where": "H1 (se) C5",
+            "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.46 < 0.5); cutter dùng độ dời trung vị của tờ."
+          }
+        ],
+        "draft": "LỖI: toB — chạm mép khung / vượt khung / nộm bị dời / mất nộm — H2 (se) C3, H2 (se) C3, H2 (se) C4, H2 (se) C4, H2 (se) C5, H2 (se) C5, H2 (se) C5, H3 (se) C2, H3 (se) C2, H3 (se) C3, H3 (se) C3, H3 (se) C3, H3 (se) C5, H3 (se) C5, H3 (se) C6, H4 (se) C1, H4 (se) C2, H4 (se) C2, H4 (se) C2, H4 (se) C3, H4 (se) C3, H4 (se) C3, H4 (se) C4, H4 (se) C4, H4 (se) C4, H1 (se) C5 — phụ thể chạm mép ô khung (50 điểm): có thể bị cắt; 42 điểm phụ thể nằm ngoài ô khung (bị cắt); phụ thể chạm mép ô khung (112 điểm): có thể bị cắt; 402 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị dời 19 điểm so với trung vị tờ (> 16); cutter bù được; phụ thể chạm mép ô khung (169 điểm): có thể bị cắt; 754 điểm phụ thể nằm ngoài ô khung (bị cắt); phụ thể chạm mép ô khung (50 điểm): có thể bị cắt; 203 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị dời 16 điểm so với trung vị tờ (> 16); cutter bù được; phụ thể chạm mép ô khung (117 điểm): có thể bị cắt; 900 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị dời 17 điểm so với trung vị tờ (> 16); cutter bù được; phụ thể chạm mép ô khung (32 điểm): có thể bị cắt; nộm bị dời 17 điểm so với trung vị tờ (> 16); cutter bù được; nộm bị dời 18 điểm so với trung vị tờ (> 16); cutter bù được; nộm bị dời 20 điểm so với trung vị tờ (> 16); cutter bù được; phụ thể chạm mép ô khung (197 điểm): có thể bị cắt; 824 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị dời 22 điểm so với trung vị tờ (> 16); cutter bù được; phụ thể chạm mép ô khung (106 điểm): có thể bị cắt; 188 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị dời 22 điểm so với trung vị tờ (> 16); cutter bù được; phụ thể chạm mép ô khung (268 điểm): có thể bị cắt; 786 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.46 < 0.5); cutter dùng độ dời trung vị của tờ."
+      },
+      {
+        "sheet": "toC",
+        "size": [
+          1536,
+          1024
+        ],
+        "kind": "huong",
+        "level": "chặn",
+        "dirs": [
+          "e"
+        ],
+        "background": {
+          "key": [
+            250,
+            3,
+            250
+          ],
+          "corners": [
+            [
+              236,
+              12,
+              239
+            ],
+            [
+              242,
+              21,
+              241
+            ],
+            [
+              233,
+              36,
+              235
+            ],
+            [
+              239,
+              32,
+              238
+            ]
+          ],
+          "keyDistFromLock": 5,
+          "cornerSpread": 33
+        },
+        "seVsE": null,
+        "prep": {
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "factor": 1,
+          "grid": "gap"
+        },
+        "bands": [
+          {
+            "row": 1,
+            "dir": "e",
+            "y": [
+              22,
+              226
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 2,
+            "dir": "e",
+            "y": [
+              270,
+              467
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 3,
+            "dir": "e",
+            "y": [
+              510,
+              707
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 4,
+            "dir": "e",
+            "y": [
+              730,
+              959
+            ],
+            "figures": 4,
+            "state": "warn"
+          }
+        ],
+        "motion": [
+          {
+            "dir": "e",
+            "anim": "idle",
+            "maxDiff": 0.426
+          },
+          {
+            "dir": "e",
+            "anim": "walk",
+            "maxDiff": 0.316
+          },
+          {
+            "dir": "e",
+            "anim": "hurt-vs-idle",
+            "maxDiff": 0.341
+          }
+        ],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 33), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "note",
+            "code": "tach-hinh",
+            "where": "H3 (e)",
+            "msg": "dải dò được 5 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 6."
+          },
+          {
+            "sev": "light",
+            "code": "o-trong",
+            "where": "H4 (e) C5",
+            "msg": "ô trống có hình (0.39% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H1 (e) C1",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H1 (e) C2",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H1 (e) C3",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H1 (e) C4",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H2 (e) C1",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H2 (e) C2",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H2 (e) C3",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H2 (e) C4",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.04 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H2 (e) C5",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H2 (e) C6",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H3 (e) C1",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.04 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H3 (e) C2",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H3 (e) C3",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H3 (e) C4",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H3 (e) C5",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H3 (e) C6",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.05 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H4 (e) C1",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H4 (e) C2",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H4 (e) C3",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.04 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H4 (e) C4",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H1 (e) C5",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H1 (e) C6",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          }
+        ],
+        "draft": "LỖI: toC — hình ở ô trống / mất nộm — H4 (e) C5, H1 (e) C1, H1 (e) C2, H1 (e) C3, H1 (e) C4, H2 (e) C1, H2 (e) C2, H2 (e) C3, H2 (e) C4, H2 (e) C5, H2 (e) C6, H3 (e) C1, H3 (e) C2, H3 (e) C3, H3 (e) C4, H3 (e) C5, H3 (e) C6, H4 (e) C1, H4 (e) C2, H4 (e) C3, H4 (e) C4, H1 (e) C5, H1 (e) C6 — ô trống có hình (0.39% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng; không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.04 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.04 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.05 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.04 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+      },
+      {
+        "sheet": "toD",
+        "size": [
+          1536,
+          1024
+        ],
+        "kind": "huong",
+        "level": "chặn",
+        "dirs": [
+          "ne"
+        ],
+        "background": {
+          "key": [
+            249,
+            4,
+            250
+          ],
+          "corners": [
+            [
+              230,
+              12,
+              238
+            ],
+            [
+              238,
+              20,
+              239
+            ],
+            [
+              232,
+              40,
+              236
+            ],
+            [
+              238,
+              35,
+              238
+            ]
+          ],
+          "keyDistFromLock": 6,
+          "cornerSpread": 36
+        },
+        "seVsE": null,
+        "prep": {
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "factor": 1,
+          "grid": "gap"
+        },
+        "bands": [
+          {
+            "row": 1,
+            "dir": "ne",
+            "y": [
+              26,
+              220
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 2,
+            "dir": "ne",
+            "y": [
+              273,
+              467
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 3,
+            "dir": "ne",
+            "y": [
+              511,
+              710
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 4,
+            "dir": "ne",
+            "y": [
+              730,
+              964
+            ],
+            "figures": 4,
+            "state": "ok"
+          }
+        ],
+        "motion": [
+          {
+            "dir": "ne",
+            "anim": "idle",
+            "maxDiff": 0.455
+          },
+          {
+            "dir": "ne",
+            "anim": "walk",
+            "maxDiff": 0.382
+          },
+          {
+            "dir": "ne",
+            "anim": "hurt-vs-idle",
+            "maxDiff": 0.418
+          }
+        ],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 36), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "note",
+            "code": "tach-hinh",
+            "where": "H3 (ne)",
+            "msg": "dải dò được 3 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 6."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H1 (ne) C1",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H1 (ne) C2",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H1 (ne) C3",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H1 (ne) C4",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H2 (ne) C1",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H2 (ne) C2",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H2 (ne) C3",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H2 (ne) C4",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H2 (ne) C5",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H2 (ne) C6",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H3 (ne) C1",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H3 (ne) C2",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H3 (ne) C3",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H3 (ne) C4",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H3 (ne) C5",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H3 (ne) C6",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.04 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H4 (ne) C1",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H4 (ne) C2",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H4 (ne) C3",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H4 (ne) C4",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H1 (ne) C5",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          },
+          {
+            "sev": "block",
+            "code": "nom-mat",
+            "where": "H1 (ne) C6",
+            "msg": "không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+          }
+        ],
+        "draft": "LỖI: toD — mất nộm — H1 (ne) C1, H1 (ne) C2, H1 (ne) C3, H1 (ne) C4, H2 (ne) C1, H2 (ne) C2, H2 (ne) C3, H2 (ne) C4, H2 (ne) C5, H2 (ne) C6, H3 (ne) C1, H3 (ne) C2, H3 (ne) C3, H3 (ne) C4, H3 (ne) C5, H3 (ne) C6, H4 (ne) C1, H4 (ne) C2, H4 (ne) C3, H4 (ne) C4, H1 (ne) C5, H1 (ne) C6 — không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.04 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.02 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn; không tìm thấy nộm trong ô (điểm khớp 0.03 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn."
+      }
+    ]
+  }
+}

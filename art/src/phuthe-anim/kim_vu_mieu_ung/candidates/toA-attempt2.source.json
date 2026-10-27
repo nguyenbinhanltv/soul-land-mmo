@@ -1,0 +1,132 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-28",
+  "attempt": 2,
+  "raw": {
+    "path": "art/src/phuthe-anim/kim_vu_mieu_ung/candidates/toA-attempt2.png",
+    "sha256": "94dccda4141b44f2fe9a1428b102ca29cecd8e8fd683c10fe461791c29687279"
+  },
+  "prompt": {
+    "path": "art/src/phuthe-anim/kim_vu_mieu_ung/candidates/toA-attempt2.prompt.txt",
+    "sha256": "b598c73ddbb803f78e1e7980fc405b3b3feb08e1f730c2907d7a1ff3a120176d",
+    "generator": "phuthe-sheet-prompt --concept-ref",
+    "revision": "d2e21933d68f8c6a0af901f807c32e5952f4ca73"
+  },
+  "references": [
+    {
+      "path": "art/src/phuthe-anim/kim_vu_mieu_ung/references/kim_vu_mieu_ung-nom-toA.png",
+      "sha256": "4df9feba32a378d29800efe63d059b00f529f8c601454986f5b9b060a89c4bff"
+    },
+    {
+      "path": "art/src/vohon-v2/kim_vu_mieu_ung/concept-attempt1.png",
+      "sha256": "f5acaf93bb42da33603d5d94d9a56fefba8667ba8a9e99d048ca2e70a9f029b9"
+    }
+  ],
+  "check": {
+    "id": "kim_vu_mieu_ung",
+    "level": "chặn",
+    "group": "B",
+    "frame": 96,
+    "dummyKey": "#00D0D0",
+    "blockLevel": {
+      "s": "chặn"
+    },
+    "sheets": [
+      {
+        "sheet": "toA",
+        "size": [
+          1536,
+          1024
+        ],
+        "kind": "huong",
+        "level": "chặn",
+        "dirs": [
+          "s"
+        ],
+        "background": {
+          "key": [
+            250,
+            2,
+            251
+          ],
+          "corners": [
+            [
+              236,
+              11,
+              238
+            ],
+            [
+              240,
+              14,
+              240
+            ],
+            [
+              234,
+              39,
+              236
+            ],
+            [
+              237,
+              31,
+              237
+            ]
+          ],
+          "keyDistFromLock": 5,
+          "cornerSpread": 37
+        },
+        "seVsE": null,
+        "prep": null,
+        "bands": [
+          {
+            "row": 1,
+            "dir": null,
+            "y": [
+              29,
+              212
+            ],
+            "figures": 6,
+            "state": "bad"
+          },
+          {
+            "row": 1,
+            "dir": null,
+            "y": [
+              254,
+              457
+            ],
+            "figures": 5,
+            "state": "bad"
+          },
+          {
+            "row": 1,
+            "dir": null,
+            "y": [
+              494,
+              963
+            ],
+            "figures": 3,
+            "state": "bad"
+          }
+        ],
+        "motion": [],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 37), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "block",
+            "code": "luoi",
+            "where": "toàn tờ",
+            "msg": "dò được 3 dải hàng, cần 4: không dò được lưới (hàng dính nhau hoặc vỡ)."
+          }
+        ],
+        "draft": "LỖI: toA — không dò được lưới — toàn tờ — dò được 3 dải hàng, cần 4: không dò được lưới (hàng dính nhau hoặc vỡ)."
+      }
+    ]
+  }
+}
