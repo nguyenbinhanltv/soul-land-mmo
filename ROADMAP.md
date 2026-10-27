@@ -7,7 +7,8 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 
 **Đã có** (Giai đoạn 2–9, nhóm Bản đồ BĐ1–BĐ6, ảnh nền búp bê NV6 gắn vào giao diện ở C16 #595, nhãn trên đầu C9 #593, biểu tượng + con trỏ C12 #598): mọi luật mô tả ở mục 4–5 và kiến trúc mục 6, trừ các việc còn ghi dưới đây.
 
-- [ ] Giao diện và cảm giác dùng họ asset C1–C16 do Codex (tthoadev) làm, còn mở: C8 thanh kỹ năng + ô đội hình (#594), C10 hộp thoại NPC + cửa hàng lưới (#596), C11 nhiệm vụ (#597), C13 phản hồi giao diện (#599), C14 khả năng tiếp cận (#600), C15 màn chết / bảng kết quả / Bạn bè (#601).
+- [x] C8 Thanh kỹ năng tách nhóm, hồi chiêu dạng quạt, trạng thái rõ; thẻ đội hình rút gọn tên theo từ và tooltip đầy đủ (#594).
+- [ ] Giao diện và cảm giác dùng họ asset C1–C16 do Codex (tthoadev) làm, còn mở: C10 hộp thoại NPC + cửa hàng lưới (#596), C11 nhiệm vụ (#597), C13 phản hồi giao diện (#599), C14 khả năng tiếp cận (#600), C15 màn chết / bảng kết quả / Bạn bè (#601).
 - [ ] Asset ngoài: kho riêng tư, nhập gói itch, MCP `asset-scout`, biểu tượng game-icons (#622, theo dõi).
 - [ ] Tối ưu tài liệu (#619, theo dõi D0–D8).
 - [ ] Tách `MapRoom.ts` theo miền, từng PR nhỏ, hàm thuần trước (#702, theo dõi; đã xong nhiều bước, xem issue).
