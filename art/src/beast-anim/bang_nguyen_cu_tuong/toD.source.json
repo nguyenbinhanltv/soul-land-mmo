@@ -1,0 +1,38 @@
+{
+    "species":  "bang_nguyen_cu_tuong",
+    "stage":  "direction",
+    "direction":  "ne",
+    "attempt":  1,
+    "attempts":  1,
+    "attemptLimit":  3,
+    "tool":  "Codex built-in image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "timestamp":  "2026-10-27T03:38:27.1791126Z",
+    "timestampSource":  "Thời điểm tạo file output của công cụ trên máy",
+    "agent":  "soul_land_game-618",
+    "outputPath":  "C:/Users/PC/.codex/generated_images/01a17b67-d2be-7163-a24e-6200a4b757ef/exec-ebbd5d69-b1f0-461d-a69f-4d54ff79ebb2.png",
+    "rawPath":  "art/src/beast-anim/bang_nguyen_cu_tuong/toD.png",
+    "rawSha256":  "67a9993130f0a4e6cc02e60b76734e30aac7673dd71f24aab15c2dee4d6e3dda",
+    "rawBytes":  2213162,
+    "dimensions":  [
+                       1536,
+                       1024
+                   ],
+    "copiedByteIdenticalFromToolOutput":  true,
+    "transparentBackground":  false,
+    "references":  [
+                       {
+                           "path":  "shared/assets/sprites/beast/bang_nguyen_cu_tuong.png",
+                           "sha256":  "3fd6261fe12cbcfd62573887ad38ffb06194c934f898e62bf0297580c076c7e3"
+                       },
+                       {
+                           "path":  "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround.png",
+                           "sha256":  "f858ee9efdbf978fa0290fd2f4d6caef06c896099734490fa62dc02cee5f9465"
+                       }
+                   ],
+    "executionPromptPath":  "art/src/beast-anim/bang_nguyen_cu_tuong/toD.prompt.txt",
+    "executionPromptSha256":  "b08c928a0b039f22b5312f27be146e8d2df188fa8b67a2d28dd91cb80625dfac",
+    "promptCommand":  "node tools/assets/beast-sheet-prompt.mjs --species bang_nguyen_cu_tuong --stage direction --dir ne",
+    "manualPromptAddendum":  false
+}
