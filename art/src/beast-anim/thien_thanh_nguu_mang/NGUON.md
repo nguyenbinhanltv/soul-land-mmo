@@ -2,7 +2,7 @@
 
 File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species thien_thanh_nguu_mang`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
 
-Loài `thien_thanh_nguu_mang` (Thiên Thanh Ngưu Mãng), họ `snake`, khung game 192×192. Mức kiểm chung: **pass**.
+Loài `thien_thanh_nguu_mang` (Thiên Thanh Ngưu Mãng), họ `snake`, khung game 192×192. Mức kiểm chung: **nhẹ**.
 
 ## turnaround
 
@@ -22,11 +22,22 @@ Loài `thien_thanh_nguu_mang` (Thiên Thanh Ngưu Mãng), họ `snake`, khung ga
 - Mức kiểm: **pass** (khối hướng: s pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
+## toC
+
+- File: `toC.png`, **1536×1024**, 2059599 byte, SHA256 `dfc6095aeb252bfc1c45b17efcef72af526134844aefb3eebf8b29d10f001980`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-635.
+- Prompt: `toC.prompt.txt` (SHA256 `d5f38066d58a98579ec0ec87bdf53ae5771c51285c07157e85cf25450e3a9376`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: e nhẹ).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
 ## Lỗi
 
 ```text
-LỖI: turnaround — ne còn hơi lộ mõm; die còn đường cong S; chọn lượt 2/3 làm ref kỹ thuật (mắt)
-LỖI: toA — s — idle H1 C4, attack H3 C2,C5 quay phải; die H4 C2–4 quay chếch phải và còn cong; toB sau 3 lượt vẫn CHẶN kỹ thuật H4/se hình dính (lượt 1: 3/4 hình + tràn C5, lượt 2: 3/4, lượt 3: dò được 1/4). B tốt nhất lượt 3, chỉ lưu candidates/toB-attempt3.png, không có toB chính; die còn cong S (mắt)
+LỖI: turnaround — ne còn hơi lộ mõm; die còn cong S; chọn lượt 2/3 làm ref kỹ thuật. toB: sau 3 lượt vẫn CHẶN H4/se hình dính (1: 3/4 hình và tràn C5, walk thêm đầu; 2: 3/4 hình; 3: dò được 1/4). B tốt nhất lượt 3, lưu candidates/toB-attempt3.png, không có toB chính. toD: ba lượt đều CHẶN H4/ne chỉ dò 3/4 hình; lượt 2 còn tràn C5. Chọn candidates/toD-attempt3.png tốt nhất; không đặt toD chính. Lượt 1–2 attack lộ mặt, lượt 3 còn mõm nghiêng và die nằm ngang. (mắt)
+LỖI: toA — s — idle H1 C4, attack H3 C2,C5 quay phải; die H4 C2–4 quay chếch phải và còn cong, chưa giữ hướng s (mắt)
+LỖI: toC — hình ở ô trống — H4 (e) C5 — ô trống có hình (0.84% diện tích ô): hình tràn từ ô bên.
+LỖI: toC — e — die cuối còn hơi cong S; hurt biên độ nhỏ (mắt)
 ```
 
 ## Ghi công
