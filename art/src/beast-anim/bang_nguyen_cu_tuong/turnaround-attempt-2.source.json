@@ -1,0 +1,54 @@
+{
+  "species": "bang_nguyen_cu_tuong",
+  "stage": "turnaround",
+  "attempt": 2,
+  "attemptLimit": 2,
+  "totalTurnaroundImagegenCalls": 2,
+  "totalDirectionImagegenCalls": 0,
+  "tool": "Codex built-in image_gen.imagegen",
+  "model": "unknown (tool did not disclose)",
+  "seed": "unknown (tool did not disclose)",
+  "timestamp": "unknown (tool did not disclose)",
+  "outputPath": "/Users/thanhhoa/.codex/generated_images/01a1797e-bc83-7452-85a2-c7f698b11d00/exec-f430a6d7-6e9b-4bcd-ad36-69e67e664083.png",
+  "rawPath": "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround-attempt-2.png",
+  "rawSha256": "0470b3247a3e45c84f8a4cf8088f115023403473208cde8ef0afce79e40446f1",
+  "rawBytes": 1975677,
+  "dimensions": [1536, 1024],
+  "copiedByteIdenticalFromToolOutput": true,
+  "transparentBackground": false,
+  "references": [
+    {
+      "role": "static reference, image 1",
+      "path": "shared/assets/sprites/beast/bang_nguyen_cu_tuong.png",
+      "sha256": "3fd6261fe12cbcfd62573887ad38ffb06194c934f898e62bf0297580c076c7e3"
+    }
+  ],
+  "toolOriginalPromptPath": "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround.prompt.tool.txt",
+  "toolOriginalPromptSha256": "c8018c58141fa3764b5b76f8439555b0e2f11b87519188fb74a5b009316708ca",
+  "executionPromptPath": "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround-attempt-2.prompt.txt",
+  "executionPromptSha256": "bde7a1645de67838933bdd1cf04de7acc0d04f04ac9d68e5265a2d8744764568",
+  "ownerDecision": {
+    "url": "https://github.com/nguyenbinhanltv/soul-land-mmo/issues/1030#issuecomment-6425849989",
+    "commentBodyPath": "art/src/beast-anim/bang_nguyen_cu_tuong/owner-decision-6425849989.txt",
+    "commentBodySha256": "44bf170f1d7d94935357fc6e68b959a9c2383d02bd1b3d935e51e3a3ea49f4ef"
+  },
+  "manualPromptChange": "Theo quyết định owner #1030, thay trực tiếp câu HURT generic trong prompt loài bằng: recoils half a step backward: hind legs step back, body leans back, front legs stay planted. Giữ ATTACK direction: tusk thrust upward and trunk swing; do not use a bite or claw.",
+  "capturedToolOutputHint": "Generated images are saved to /Users/thanhhoa/.codex/generated_images/01a1797e-bc83-7452-85a2-c7f698b11d00 as /Users/thanhhoa/.codex/generated_images/01a1797e-bc83-7452-85a2-c7f698b11d00/exec-f430a6d7-6e9b-4bcd-ad36-69e67e664083.png by default.",
+  "fullToolResultPreserved": false,
+  "metadataCaptureNote": "Tool call returned a unique exact output path. The response wrapper truncated the remaining output_hint after the first complete sentence and did not retain the full tool result; the omitted text is unknown and is not reconstructed.",
+  "checker": {
+    "command": "node tools/assets/beast-sheet-check.mjs bang_nguyen_cu_tuong --dir /private/tmp/bang-nguyen-cu-tuong-attempt-2-check-input --out /private/tmp/bang-nguyen-cu-tuong-attempt-2-check",
+    "result": "PASS turnaround (0 block, 0 light)",
+    "limitations": "Checker không xác nhận hướng HURT, hướng mặt n/ne, khác biệt se/e, hướng DIE hoặc nhận diện loài."
+  },
+  "visualReview": {
+    "result": "chưa đạt HURT theo owner",
+    "finding": "Hàng HURT nhấc chân trước và hất vòi lên; không thể hiện rõ chân trước đứng yên và thân ngả sau theo câu owner.",
+    "reviewStatus": "không dùng làm ref2; đã hết 2 lượt turnaround được phép"
+  },
+  "previousAttempt": {
+    "rawPath": "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround.png",
+    "rawSha256": "f858ee9efdbf978fa0290fd2f4d6caef06c896099734490fa62dc2cee5f9465",
+    "sourcePath": "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround.source.json"
+  }
+}

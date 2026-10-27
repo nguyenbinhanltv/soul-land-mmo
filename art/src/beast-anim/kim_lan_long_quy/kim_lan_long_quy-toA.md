@@ -1,0 +1,68 @@
+# Kim Lân Long Quy (`kim_lan_long_quy`) - tờ A / 5: hướng s (nam)
+
+Đặc tả: `docs/art/hon-thu-hoat-anh.md`; skill `beast-anim`. File này sinh tự động bằng `node tools/assets/beast-sheet-prompt.mjs --species kim_lan_long_quy` (`--stage sheet`, đường v1 / dự phòng: khuyên dùng `--stage turnaround` rồi `--stage direction`); **không sửa tay**, sửa mẫu ở `tools/assets/beast-sheet-prompt.mjs` và bài học ở `art/src/beast-anim/lessons.md`.
+
+| Mục | Giá trị |
+|---|---|
+| Loài | Kim Lân Long Quy (`kim_lan_long_quy`), họ **thú bốn chân** (`quad`), bậc **Đỏ**, khung game 128×128 |
+| Tờ này | A: s (nam); ảnh tỉ lệ **3:2, ra 1536×1024** (chuẩn 1536×1024); lưới 6 cột × 4 hàng, ô khoảng 256×256 |
+| Nền | #FF00FF phẳng, không chữ / nhãn / lưới (ChatGPT cho nền trong suốt thật thì cũng được: công cụ nhận cả hai) |
+
+## Cách làm (tthoadev)
+1. Mở cuộc trò chuyện **mới** cho mỗi tờ; đính ảnh tham chiếu **theo đúng thứ tự**:
+   1. ảnh tĩnh loài (`shared/assets/sprites/beast/kim_lan_long_quy.png`, 3 khung nam / đông / bắc; phóng ×4 nếu ChatGPT làm mờ)
+2. Dán khối prompt dưới đây. **Không** cần chọn cỡ ảnh: công cụ (Codex image_gen) chỉ nhận tỉ lệ (3:2, ra 1536×1024). Cỡ ra khác 1536×1024 (vd tờ 1:1 ra 1254×1254) vẫn **hợp lệ**, cutter tự chuẩn hóa.
+3. Soát bằng mắt: mỗi ô đúng một con thú, đủ số khung theo hàng, đúng hướng nhìn, cùng cỡ, ô trống để trống, không chữ. Hỏng một hai khung thì bảo model vẽ lại **cả tờ** (vẽ lại từng ô làm lệch phong cách); đừng sửa tay trừ vết nhỏ.
+4. Lưu ảnh gốc, giữ nguyên cỡ ra (không resize), đặt vào `art/src/beast-anim/kim_lan_long_quy/toA.png` rồi chạy `npm run beast:check -- kim_lan_long_quy`. NGUON và dòng `LỖI:` do `node tools/assets/beast-nguon.mjs` sinh (không viết tay); ghi vào `art/CREDITS.md` khi ảnh được duyệt vào game.
+5. Đưa orchestrator đường dẫn tờ; cắt bằng:
+   `node tools/assets/beast-sheet-cut.mjs --species kim_lan_long_quy --sheet A=<ảnh-tờ-A.png> --sheet B=<ảnh-tờ-B.png> --sheet C=<ảnh-tờ-C.png> --sheet D=<ảnh-tờ-D.png> --sheet E=<ảnh-tờ-E.png> --out <thư mục>`
+
+## Prompt (tiếng Anh cho model)
+```text
+Create ONE image (landscape 3:2 aspect ratio; the exact pixel size does not matter): an animation sprite sheet of a single fantasy creature for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
+
+CREATURE: Kim Lân Long Quy - golden-scale dragon turtle, dragon head on a thick neck, thick gold-scaled shell with dragon-like ridges, four short stout legs. Body type: thú bốn chân. Size class: Đỏ. Keep the SAME design, proportions, colors, markings and overall size as the references in every frame. Do not redesign it.
+REFERENCES (attached images, in this fixed order): image 1 = the static reference of this exact creature in three views (front, side, back): the identity, design, colors and overall size.
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
+
+GRID: 6 columns x 4 rows of equal invisible cells (256x256 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with its feet (or lowest body point) standing on the same invisible ground line about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.
+
+LAYOUT (top to bottom):
+Block 1 (rows 1-4): direction "s" = facing the viewer (front view, three-quarter from above).
+  row 1: frames 1-4 = IDLE (slow breathing, weight shifts subtly, head and tail sway); frames 5-6 = HURT (recoils a short step backward along its facing line, head dips, all four legs stay planted and the spine stays on the same axis).
+  row 2: frames 1-6 = WALK (four-legged trot cycle, diagonal legs in step, body bobbing).
+  row 3: frames 1-6 = ATTACK (crouch back, then lunge forward with a bite or claw swipe, then recover).
+  row 4: frames 1-4 = DIE (staggers, then sinks down in place along its facing line, finally lying with the spine parallel to that line); the last 2 cells of this row stay empty magenta.
+
+CONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, standing, walking and hurt frames keep the body at the same scale and the same ground line. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).
+
+DIRECTION RULES (every frame of a block, including HURT and DIE, keeps the block's direction): the body axis never rotates and the creature never turns to face the viewer. HURT keeps its own 2 animated frames but is only a short recoil backward along the facing line: the creature stays upright on its feet, never flips onto its back or belly, never shows its belly, never turns its head toward the viewer. DIE sinks or topples along the facing line and ends lying with the spine parallel to that line; it never rotates the body 90 degrees to lie sideways across the view. In the "ne" and "n" blocks the creature is seen from behind: no eyes, nose, mouth or face is visible in any frame of those blocks, hurt and die included.
+
+STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.
+
+DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions.
+
+LESSONS (learned from earlier sheets of other creatures, follow every line):
+- Direction "se" is a three-quarter view: the body axis is turned about 45 degrees toward the lower right, the face is visible and looks diagonally down toward the viewer, so it clearly differs from "e" (pure side profile).
+- Direction "ne" is a three-quarter BACK view: the body axis is turned about 45 degrees away toward the upper right, the rump and back are nearest to the viewer, and it must not be drawn as a plain side profile.
+- Direction "n" is a pure back view: only the back of the head, back, rump and tail are visible.
+- Every direction e, se and ne faces the RIGHT side of the picture; never mirror them to face left.
+- HURT is a small recoil along the facing line: the creature stays upright on its feet and does not roll over, bounce into a new facing or turn its head toward the viewer.
+- DIE is a slow collapse along the facing line: the legs fold, the body lowers, and the final pose keeps the same body axis as the idle pose of that block.
+- Squat or low-bodied creatures (toads, turtles, boars) also keep the belly hidden while recoiling: they hunker lower instead of rearing up.
+- Keep the body the same height and length in every row of the sheet, matching the reference; never let walking, attacking or hurt frames grow or shrink the creature.
+- Draw every frame as its own separate picture: leave clear magenta space between neighbours, never overlap or merge two creatures.
+- Idle frames must show a small visible change from frame to frame (breathing, sway), and HURT must look clearly different from IDLE.
+- A frame that is empty in the layout stays empty magenta: do not fill spare cells with extra poses.
+```
+
+## Chú thích (tiếng Việt)
+- **Bố cục:** mỗi hướng một khối 4 hàng: hàng 1 = đứng (4 khung) + trúng đòn (2), hàng 2 = đi (6), hàng 3 = đánh (6), hàng 4 = chết (4, hai ô cuối trống). Ô lưới chia đều theo kích thước ảnh nên model lệch vài pixel vẫn cắt đúng.
+- **Hướng:** chỉ vẽ nam, đông-nam, đông, đông-bắc, bắc; tây là lật ngang đông-nam / đông / đông-bắc nên mọi hướng nghiêng phải nhìn sang phải.
+- **Chân thẳng hàng:** mỗi hoạt ảnh đều để chân trên cùng một đường nền ẩn; công cụ căn chân theo đáy hình của từng khung (khung nhảy / bay mất độ cao, chấp nhận).
+- **Nhất quán:** cùng cỡ, bảng màu, nét viền; chỉ đổi tư thế. Công cụ báo khung lệch cỡ / chân / vượt ô; báo nhiều thì vẽ lại tờ.
+- **Không vẽ** mắt phát sáng, hào quang, bóng, hiệu ứng: client tự tô (`docs/art/quy-cach-isometric.md`).
+- **Bài học** chèn trong prompt lấy từ `art/src/beast-anim/lessons.md` (một nguồn duy nhất); lượt vẽ hỏng cho bài học mới thì thêm vào file đó, không viết tay vào prompt.
+- **Không** dùng tờ / ảnh bị lỗi làm tham chiếu (lỗi lan sang tờ sau): tham chiếu chỉ là ảnh tĩnh, turnaround đã duyệt và tờ đã qua `beast:check` không có khối chặn.
+- Giới hạn: **tối đa 3 lượt** cho mỗi tờ; quá 3 lượt thì dừng và báo orchestrator (skill `beast-anim`, mục "Quá 3 lượt").

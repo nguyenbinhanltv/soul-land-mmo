@@ -1,0 +1,252 @@
+{
+  "task": "H4 #1030",
+  "species": "bang_tinh_hat",
+  "sheet": "toB",
+  "attempt": "B1",
+  "status": "RAW_FAIL",
+  "tool": "builtin image_gen.imagegen",
+  "image_model": "unknown; tool did not expose",
+  "seed": "unknown; tool did not expose",
+  "requested_aspect": "square 1:1; exact pixel size does not matter",
+  "generator_path": "tools/assets/beast-sheet-prompt.mjs",
+  "generator_sha256": "c9f3f5b42f62a5e30feb0f8354121ed24b9315a4aef7f4df64a27fc6a6a34aba",
+  "generator_commit": "0c50c252552d9f3a24d67dfdfad0b7731e7fc28f",
+  "tool_original_path": "/Users/thanhhoa/.codex/generated_images/01a17a5d-e9d7-7c11-8965-2683e531994f/exec-5f03bdca-7720-4b48-b728-b2d6006e2dc0.png",
+  "tool_original_sha256": "e8b24f20bdb5aa2814584fbd2f4da5d88dfad09e0052465c1d53890053981455",
+  "saved_tool_copy_path": "art/src/beast-anim/bang_tinh_hat/toB.tool.md",
+  "saved_tool_copy_sha256": "e8b24f20bdb5aa2814584fbd2f4da5d88dfad09e0052465c1d53890053981455",
+  "execution_addendum_path": "art/src/beast-anim/bang_tinh_hat/toB.execution-addendum.txt",
+  "execution_addendum_sha256": "957a6761fb19e82e5f1d83e514389234827deac5186dcb731f07267f7fef4f73",
+  "actual_prompt_path": "art/src/beast-anim/bang_tinh_hat/toB.prompt.txt",
+  "actual_prompt_sha256": "36cbf70cb45a586b1465cc08e552d91016e87513a2c4f96bb943f6b0701ef4ce",
+  "actual_prompt_bytes": 7910,
+  "durable_raw_path": "art/src/beast-anim/bang_tinh_hat/toB.png",
+  "raw_sha256": "5ebdb0b3599901ec99dcbb290ae63d90a3ddf7f813eb2131c666abc300dd15a7",
+  "raw_bytes": 2080923,
+  "png_signature_hex": "89504e470d0a1a0a",
+  "IHDR": {
+    "width": 1254,
+    "height": 1254,
+    "bit_depth": 8,
+    "color_type": 2,
+    "compression": 0,
+    "filter": 0,
+    "interlace": 0
+  },
+  "tool_output_exact_path": "/Users/thanhhoa/.codex/generated_images/01a17a5d-e9d7-7c11-8965-2683e531994f/exec-5f03bdca-7720-4b48-b728-b2d6006e2dc0.png",
+  "copy_integrity": "copied exact tool output; hash recorded; no resize/crop/redraw/postprocessing",
+  "postprocessing": "none",
+  "transparent_background": false,
+  "size_selector": false,
+  "references_ordered": [
+    {
+      "order": 1,
+      "role": "authoritative static identity/anatomy reference",
+      "attached_path": "/private/tmp/soul-land-mmo-1030-bang-tinh-hat-preflight/shared/assets/sprites/beast/bang_tinh_hat.png",
+      "shipping_path": "shared/assets/sprites/beast/bang_tinh_hat.png",
+      "sha256": "29d0bcbe78d5a8d1050ae125859df4a8d4f34e0684e1f7f729615cf568ddd30e",
+      "bytes": 5100,
+      "dimensions": [
+        288,
+        96
+      ]
+    },
+    {
+      "order": 2,
+      "role": "A1 technical identity/continuity candidate only; palette/scale/lineweight, never pose",
+      "attached_path": "/private/tmp/soul-land-mmo-1030-bang-tinh-hat-preflight/art/src/beast-anim/bang_tinh_hat/toA.png",
+      "shipping_path": "art/src/beast-anim/bang_tinh_hat/toA.png",
+      "sha256": "097698a8f11e4d5eaf3f0a6660b932e9e52cb206a84c49b6f9929d0a10ee3510",
+      "bytes": 2002868,
+      "dimensions": [
+        1024,
+        1536
+      ]
+    }
+  ],
+  "tool_response_capture": {
+    "stored_full_response_before_display": true,
+    "returned_keys": [
+      "image_url",
+      "output_hint"
+    ],
+    "output_hint": "Generated images are saved to /Users/thanhhoa/.codex/generated_images/01a17a5d-e9d7-7c11-8965-2683e531994f as /Users/thanhhoa/.codex/generated_images/01a17a5d-e9d7-7c11-8965-2683e531994f/exec-5f03bdca-7720-4b48-b728-b2d6006e2dc0.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link.",
+    "output_hint_truncated": false,
+    "response_store_key": "soul_land_1030_142_bang_tinh_hat_B1_imagegen_full_response"
+  },
+  "call_ledger": {
+    "prior_species_calls": 1,
+    "species_total_after_B1": 2,
+    "builtin_calls_this_worker": 2,
+    "retries": 0,
+    "A1": 1,
+    "A2": 0,
+    "B1": 1,
+    "B2": 0,
+    "other_species": 0,
+    "parallel_image_calls": 0,
+    "evidence": "A1 sidecar plus explicit #134 grant for exactly one B1; no B RAW/source existed at grant."
+  },
+  "technical_reference_gate": {
+    "A1": "#134/#129 technical identity/continuity reference only",
+    "owner_art_approved": false,
+    "art_accepted": false,
+    "runtime_accepted": false,
+    "imported": false
+  },
+  "known_A1_findings_disclosed": [
+    "checker exit 0, 0 blockers, 4 light, 1 note",
+    "blank-cell spill H4(S) C5-C6 and H8(SE) C5-C6",
+    "HURT recoil unclear H1(S), H5(SE), H9(E) C5-C6",
+    "DIE horizontal / axis broken at S H4 C4 and SE H8 C4"
+  ],
+  "acceptance": {
+    "B1": "checker exit 0 with zero blockers, but manual NE/N face, hurt-recoil and die-axis findings remain",
+    "owner_art_approved": false,
+    "art_accepted": false,
+    "runtime_accepted": false,
+    "imported": false
+  },
+  "attempt_history": [
+    {
+      "attempt": "A1",
+      "builtin_call_count": 1,
+      "retries": 0,
+      "tool_original_path": "/Users/thanhhoa/.codex/generated_images/01a17a5d-e9d7-7c11-8965-2683e531994f/exec-e8358fba-2323-4148-9296-a9a78bcc20ef.png",
+      "raw_sha256": "097698a8f11e4d5eaf3f0a6660b932e9e52cb206a84c49b6f9929d0a10ee3510",
+      "prompt_sha256": "5751f677678d99fea58c3b3a5a094b82bd5edd1613e4c8b55c7be1f96779f5bc",
+      "outcome": "one RAW candidate copied byte-identically; checker not run per authorization"
+    },
+    {
+      "attempt": "B1",
+      "builtin_call_count": 2,
+      "retries": 0,
+      "tool_original_path": "/Users/thanhhoa/.codex/generated_images/01a17a5d-e9d7-7c11-8965-2683e531994f/exec-5f03bdca-7720-4b48-b728-b2d6006e2dc0.png",
+      "raw_sha256": "5ebdb0b3599901ec99dcbb290ae63d90a3ddf7f813eb2131c666abc300dd15a7",
+      "prompt_sha256": "36cbf70cb45a586b1465cc08e552d91016e87513a2c4f96bb943f6b0701ef4ce",
+      "references_ordered": [
+        {
+          "order": 1,
+          "role": "authoritative static identity/anatomy reference",
+          "path": "shared/assets/sprites/beast/bang_tinh_hat.png",
+          "sha256": "29d0bcbe78d5a8d1050ae125859df4a8d4f34e0684e1f7f729615cf568ddd30e"
+        },
+        {
+          "order": 2,
+          "role": "A1 technical identity/continuity candidate only; palette/scale/lineweight, never pose",
+          "path": "art/src/beast-anim/bang_tinh_hat/toA.png",
+          "sha256": "097698a8f11e4d5eaf3f0a6660b932e9e52cb206a84c49b6f9929d0a10ee3510"
+        }
+      ],
+      "outcome": "one RAW candidate copied byte-identically; no B checker/heavy QA run"
+    }
+  ],
+  "check": {
+    "command": "node tools/assets/beast-sheet-check.mjs bang_tinh_hat --out /private/tmp/soul-land-mmo-1030-bang-tinh-hat-B1-QA",
+    "exit_code": 0,
+    "run": true,
+    "scope": "A+B contact sheets",
+    "level": "nhẹ",
+    "total_blocks": 0,
+    "total_light": 6,
+    "total_notes": 3,
+    "sheets": {
+      "toA": {
+        "level": "nhẹ",
+        "blocks": 0,
+        "light": 4,
+        "notes": 1
+      },
+      "toB": {
+        "level": "nhẹ",
+        "blocks": 0,
+        "light": 2,
+        "notes": 2,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "normalization_factor": 0.8166,
+        "technical_notes": [
+          "NE H1-H4 idle body scale 111% of static (11% deviation); cutter anchored it, non-blocking.",
+          "N H5-H8 idle body scale 121% of static (21% deviation); cutter anchored it, non-blocking."
+        ],
+        "background_corner_spread": 33
+      }
+    },
+    "blocks": {
+      "s": "nhẹ",
+      "se": "nhẹ",
+      "e": "pass",
+      "ne": "nhẹ",
+      "n": "nhẹ"
+    },
+    "report_path": "/private/tmp/soul-land-mmo-1030-bang-tinh-hat-B1-QA/bang_tinh_hat-check.md",
+    "report_sha256": "f589456d22d596e74481d014e4d0b1c00e1f2986e2452136d89c2cd3e389fdd0",
+    "contact_sheets": [
+      {
+        "path": "/private/tmp/soul-land-mmo-1030-bang-tinh-hat-B1-QA/bang_tinh_hat-toA-lien-he.png",
+        "sha256": "891edfd6da7202cb0bc720b2cb5d907701a58002fdbfbd63fa31dce5c5a6afaa"
+      },
+      {
+        "path": "/private/tmp/soul-land-mmo-1030-bang-tinh-hat-B1-QA/bang_tinh_hat-toB-lien-he.png",
+        "sha256": "28b9ce0c605fa9721eb6422f5ecd3d0db9572b49bd5387f2bb6f41692af3b483"
+      }
+    ]
+  },
+  "manual_review": {
+    "identity": "Still an ice crystal scorpion with pincers, eight legs and ice-shard tail; no wings.",
+    "toB": {
+      "ne": "H1 (ne) C1-C6 visibly expose eyes/face; block reads face-visible rather than rear three-quarter view.",
+      "n": "H5 (n) C1-C6 visibly expose eyes/face and snout; not a back view.",
+      "hurt": "Recoil unclear / frames too close to idle at H1 (ne) C5-C6 and H5 (n) C5-C6.",
+      "die": "D3 C4 lies horizontally/off the facing axis in H4 (ne) and H8 (n)."
+    },
+    "art_accepted": false
+  },
+  "known_A1_findings_preserved": [
+    "A checker: 0 blockers, 4 light, 1 note.",
+    "A H4(S) C5-C6 and H8(SE) C5-C6 blank-cell spill.",
+    "A HURT recoil unclear H1(S), H5(SE), H9(E) C5-C6.",
+    "A DIE horizontal/off-axis at H4(S) C4 and H8(SE) C4."
+  ],
+  "nguon": {
+    "command": "node tools/assets/beast-nguon.mjs --species bang_tinh_hat --write --force --tool builtin image_gen.imagegen --attempts toA=1,toB=1 --agent tthoadev AO session 142 --issue 1030 --eye toA=<A findings> --eye toB=<B findings>",
+    "exit_code": 0,
+    "path": "art/src/beast-anim/bang_tinh_hat/NGUON.md",
+    "sha256": "d9520bd1687b5bce7c69a70a8b6d76d570be79ff78f1677e85bb0d13c0c4bb80",
+    "eye_mapping": "separate --eye option for toA and toB; both A and B manual findings preserved",
+    "prior_write_refused": {
+      "exit_code": 1,
+      "reason": "existing NGUON; tool requested --force or --out"
+    }
+  },
+  "credits_check": {
+    "command": "node tools/assets/credits.mjs --check",
+    "exit_code": 0,
+    "result": "OK 6 groups, 85 entries",
+    "scope": "read-only check"
+  },
+  "local_status": {
+    "command": "node tools/assets/beast-status.mjs",
+    "exit_code": 0,
+    "state": "san-sang-nhap",
+    "imported": false,
+    "sheets": {
+      "toA": {
+        "level": "nhẹ",
+        "block": 0,
+        "light": 4,
+        "note": 1
+      },
+      "toB": {
+        "level": "nhẹ",
+        "block": 0,
+        "light": 2,
+        "note": 2
+      }
+    },
+    "manual_QA_findings_remain": true,
+    "note": "local generated status is not owner approval/import and does not encode manual eye findings"
+  }
+}

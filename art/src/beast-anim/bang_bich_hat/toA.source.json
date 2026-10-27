@@ -1,0 +1,158 @@
+{
+  "task": "H4 #1030",
+  "species": "bang_bich_hat",
+  "sheet": "toA",
+  "attempt": "A1",
+  "status": "RAW_FAIL",
+  "selection": "A1 candidate; checker has no blocking issues, but manual hurt and death heading findings remain; no art/runtime acceptance",
+  "tool": "builtin image_gen.imagegen",
+  "tool_original_path": "/Users/thanhhoa/.codex/generated_images/01a17a5d-e9d7-7c11-8965-2683e531994f/exec-9843c74b-34bc-40d7-89b6-9ddc04aa0bd6.png",
+  "durable_raw_path": "art/src/beast-anim/bang_bich_hat/toA.png",
+  "raw_sha256": "dc233ba40a30ffd7cc90625f6cadf8177c98b01be29580dcf7709f6249e9da67",
+  "raw_bytes": 2081450,
+  "png_signature_hex": "89504e470d0a1a0a",
+  "IHDR_hex": "000003b40000067b0802000000",
+  "IHDR": {
+    "width": 948,
+    "height": 1659,
+    "bit_depth": 8,
+    "color_type": 2,
+    "compression": 0,
+    "filter": 0,
+    "interlace": 0
+  },
+  "requested_aspect": "portrait 2:3; exact pixel size does not matter",
+  "actual_prompt_path": "art/src/beast-anim/bang_bich_hat/toA.prompt.txt",
+  "actual_prompt_sha256": "c8f89491f216989c415890c514a8d37e260c14f71d4a1374385fc83109bd4bf4",
+  "actual_prompt_bytes": 7025,
+  "generator_path": "tools/assets/beast-sheet-prompt.mjs",
+  "generator_sha256": "c9f3f5b42f62a5e30feb0f8354121ed24b9315a4aef7f4df64a27fc6a6a34aba",
+  "generator_markdown_path": "art/src/beast-anim/bang_bich_hat/bang_bich_hat-toA.md",
+  "generator_markdown_sha256": "1b83ddff5ecf537d9cfe328ff3f273e11d1673a32fe809da0739da971c617741",
+  "references_ordered": [
+    {
+      "order": 1,
+      "role": "static identity, three views; sole reference for A1",
+      "tool_attached_path": "/private/tmp/soul-land-mmo-1030-bang-bich-hat/shared/assets/sprites/beast/bang_bich_hat.png",
+      "shipping_path": "shared/assets/sprites/beast/bang_bich_hat.png",
+      "sha256": "e8ae84d131c9cdad4fcee492737d49eee215a310154acc4f3d1e8f4eeacd681e",
+      "bytes": 4490,
+      "dimensions": [
+        288,
+        96
+      ],
+      "viewed": true
+    }
+  ],
+  "call_returned_utc": "2026-10-26T22:45:38Z",
+  "image_model": "unknown; tool did not expose",
+  "seed": "unknown; tool did not expose",
+  "call_ledger": {
+    "prior_species_calls": 0,
+    "species_total_after_A1": 1,
+    "builtin_calls_this_worker": 1,
+    "retries": 0,
+    "A1": 1,
+    "A2": 0,
+    "B": 0,
+    "other_species": 0,
+    "parallel_image_calls": 0,
+    "evidence": "Issue #775 comment 6419257706 states no prior RAW; current #134 ledger said A=0/3 before this authorized call."
+  },
+  "tool_response_capture": {
+    "stored_full_response_before_display": true,
+    "returned_keys": [
+      "image_url",
+      "output_hint"
+    ],
+    "output_hint": "Generated images are saved to /Users/thanhhoa/.codex/generated_images/01a17a5d-e9d7-7c11-8965-2683e531994f as /Users/thanhhoa/.codex/generated_images/01a17a5d-e9d7-7c11-8965-2683e531994f/exec-9843c74b-34bc-40d7-89b6-9ddc04aa0bd6.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link.",
+    "output_hint_truncated": false
+  },
+  "copy_integrity": "byte-identical copy; verified by cmp",
+  "postprocessing": "none",
+  "acceptance": {
+    "technical": "checker: 0 blocks, light overall; reference gate pending #134",
+    "owner_art_approved": false,
+    "art_accepted": false,
+    "runtime_accepted": false,
+    "imported": false
+  },
+  "generator_commit": "8853cf7b40d8b35cb1f7971ad66413a54a9eb172",
+  "check": {
+    "command": "node tools/assets/beast-sheet-check.mjs bang_bich_hat --out /private/tmp/soul-land-mmo-1030-bang-bich-hat/check",
+    "exit_code": 0,
+    "level": "light",
+    "block_count": 0,
+    "light_count": 1,
+    "note_count": 2,
+    "blocks": {
+      "s": "pass",
+      "se": "light",
+      "e": "pass"
+    },
+    "grid": {
+      "rows": 12,
+      "columns": 6,
+      "observed_figures_by_row_type": {
+        "idle_and_hurt": 6,
+        "walk": 6,
+        "attack": 6,
+        "die": 4
+      },
+      "blank_die_cells": 2
+    },
+    "technical_findings": [
+      "948x1659 is a valid A aspect/area; normalization factor 1.",
+      "Background corner variance 33, within tolerance 60.",
+      "SE idle body scale 112% vs static; technical note only, not LỖI."
+    ],
+    "contact_sheet": "/private/tmp/soul-land-mmo-1030-bang-bich-hat/check/bang_bich_hat-toA-lien-he.png",
+    "manual_review": {
+      "identity": "Correct ice jade scorpion; no wings; matches static identity.",
+      "direction": "SE is visibly distinct from E; A has no NE/N block to review.",
+      "hurt": "Backward recoil is unclear in H1/H5/H9 C5-C6.",
+      "death": "S D3 at H4 C4 turns to right-facing; SE D3 at H8 C4 turns toward horizontal right; E D3 retains right-facing profile.",
+      "art_accepted": false
+    }
+  },
+  "reference_gate": "pending integrator #134 technical-reference decision; any B prompt must keep static first and A as technical identity/continuity only, with execution addendum; do not use failed poses as reference.",
+  "raw_candidates": [
+    {
+      "attempt": "A1",
+      "raw_path": "art/src/beast-anim/bang_bich_hat/toA.png",
+      "raw_sha256": "dc233ba40a30ffd7cc90625f6cadf8177c98b01be29580dcf7709f6249e9da67",
+      "raw_bytes": 2081450,
+      "dimensions": [
+        948,
+        1659
+      ],
+      "prompt_path": "art/src/beast-anim/bang_bich_hat/toA.prompt.txt",
+      "prompt_sha256": "c8f89491f216989c415890c514a8d37e260c14f71d4a1374385fc83109bd4bf4",
+      "tool_original_path": "/Users/thanhhoa/.codex/generated_images/01a17a5d-e9d7-7c11-8965-2683e531994f/exec-9843c74b-34bc-40d7-89b6-9ddc04aa0bd6.png",
+      "references_ordered": [
+        {
+          "order": 1,
+          "role": "static identity, three views; sole reference for A1",
+          "path": "/private/tmp/soul-land-mmo-1030-bang-bich-hat/shared/assets/sprites/beast/bang_bich_hat.png",
+          "sha256": "e8ae84d131c9cdad4fcee492737d49eee215a310154acc4f3d1e8f4eeacd681e"
+        }
+      ],
+      "image_model": "unknown; tool did not expose",
+      "seed": "unknown; tool did not expose",
+      "status": "RAW_FAIL",
+      "retries": 0
+    }
+  ],
+  "attempt_history": [
+    {
+      "attempt": "A1",
+      "builtin_call_count": 1,
+      "retries": 0,
+      "call_returned_utc": "2026-10-26T22:45:38Z",
+      "tool_original_path": "/Users/thanhhoa/.codex/generated_images/01a17a5d-e9d7-7c11-8965-2683e531994f/exec-9843c74b-34bc-40d7-89b6-9ddc04aa0bd6.png",
+      "raw_sha256": "dc233ba40a30ffd7cc90625f6cadf8177c98b01be29580dcf7709f6249e9da67",
+      "prompt_sha256": "c8f89491f216989c415890c514a8d37e260c14f71d4a1374385fc83109bd4bf4",
+      "outcome": "one RAW candidate saved byte-identically; checker exit 0 with no blocking issues; manual hurt/die findings recorded in NGUON; not art accepted"
+    }
+  ]
+}

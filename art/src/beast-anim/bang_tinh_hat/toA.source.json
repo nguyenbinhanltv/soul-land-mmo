@@ -1,0 +1,196 @@
+{
+  "task": "H4 #1030",
+  "species": "bang_tinh_hat",
+  "sheet": "toA",
+  "attempt": "A1",
+  "status": "RAW_FAIL",
+  "tool": "builtin image_gen.imagegen",
+  "image_model": "unknown; tool did not expose",
+  "seed": "unknown; tool did not expose",
+  "requested_aspect": "portrait 2:3; exact pixel size does not matter",
+  "generator_path": "tools/assets/beast-sheet-prompt.mjs",
+  "generator_sha256": "c9f3f5b42f62a5e30feb0f8354121ed24b9315a4aef7f4df64a27fc6a6a34aba",
+  "generator_commit": "0c50c252552d9f3a24d67dfdfad0b7731e7fc28f",
+  "generator_markdown_path": "art/src/beast-anim/bang_tinh_hat/bang_tinh_hat-toA.md",
+  "generator_markdown_sha256": "a9bc43c6f106c3471cd53c43678c8908704211d592d44514987ce7ab248191c7",
+  "actual_prompt_path": "art/src/beast-anim/bang_tinh_hat/toA.prompt.txt",
+  "actual_prompt_sha256": "5751f677678d99fea58c3b3a5a094b82bd5edd1613e4c8b55c7be1f96779f5bc",
+  "actual_prompt_bytes": 7054,
+  "tool_original_path": "/Users/thanhhoa/.codex/generated_images/01a17a5d-e9d7-7c11-8965-2683e531994f/exec-e8358fba-2323-4148-9296-a9a78bcc20ef.png",
+  "durable_raw_path": "art/src/beast-anim/bang_tinh_hat/toA.png",
+  "raw_sha256": "097698a8f11e4d5eaf3f0a6660b932e9e52cb206a84c49b6f9929d0a10ee3510",
+  "raw_bytes": 2002868,
+  "png_signature_hex": "89504e470d0a1a0a",
+  "IHDR_hex": "00000400000006000802000000",
+  "IHDR": {
+    "width": 1024,
+    "height": 1536,
+    "bit_depth": 8,
+    "color_type": 2,
+    "compression": 0,
+    "filter": 0,
+    "interlace": 0
+  },
+  "references_ordered": [
+    {
+      "order": 1,
+      "role": "sole static identity reference (three views)",
+      "tool_attached_path": "/private/tmp/soul-land-mmo-1030-bang-tinh-hat-preflight/shared/assets/sprites/beast/bang_tinh_hat.png",
+      "shipping_path": "shared/assets/sprites/beast/bang_tinh_hat.png",
+      "sha256": "29d0bcbe78a5d8a1050ae125859df4a8d4f34e0684e1f7f729615cf568ddd30e",
+      "bytes": 5100,
+      "dimensions": [
+        288,
+        96
+      ]
+    }
+  ],
+  "transparent_background": false,
+  "size_selector": false,
+  "copy_integrity": "byte-identical copy; verified with cmp",
+  "postprocessing": "none",
+  "tool_response_capture": {
+    "stored_full_response_before_display": true,
+    "returned_keys": [
+      "image_url",
+      "output_hint"
+    ],
+    "output_hint": "Generated images are saved to /Users/thanhhoa/.codex/generated_images/01a17a5d-e9d7-7c11-8965-2683e531994f as /Users/thanhhoa/.codex/generated_images/01a17a5d-e9d7-7c11-8965-2683e531994f/exec-e8358fba-2323-4148-9296-a9a78bcc20ef.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link.",
+    "output_hint_truncated": false,
+    "response_store_key": "soul_land_1030_142_bang_tinh_hat_A1_imagegen_full_response"
+  },
+  "preflight": {
+    "main_sha": "0c50c252552d9f3a24d67dfdfad0b7731e7fc28f",
+    "prompt_command": "node tools/assets/beast-sheet-prompt.mjs --species bang_tinh_hat --stage sheet --dir s,se,e --out art/src/beast-anim/bang_tinh_hat",
+    "prompt_static_mismatch": "none: prompt says crystal scorpion, pincers, ice shard stinger, eight legs; scuttle/walk and keep legs planted; no wings/flying/hovering",
+    "old_prompt_only": {
+      "directory": "/private/tmp/soul-land-775-bang-tinh-hat-prompt",
+      "toA_sha256": "fd3483edf61cbad8807dc5187ffe16d24d36a0ac9eb7da2b54d00530208147a5",
+      "toB_sha256": "8f4a341d06847d1c5c818cab29d7f30cfac19ebafa93c1b9bd9fd5e39bb008a5",
+      "classification": "prompt documents only, no RAW/source/call evidence found",
+      "issue_775_comment": "GitHub issue #775 comment states old prompt had flight/wings mismatch and explicitly says no RAW was generated; no source sidecar or PNG exists in searched worktrees."
+    },
+    "historical_raw_call_attempts_before_A1": 0,
+    "existing_species_PR": "none found; PR search returned #1052 only, which is tool work, not this species",
+    "search_scope": "current origin/main, all local worktrees and /private/tmp source paths, all branch history for art/src/beast-anim/bang_tinh_hat, issue #775/#1030, GitHub PR search"
+  },
+  "call_ledger": {
+    "prior_species_calls": 0,
+    "species_total_after_A1": 1,
+    "builtin_calls_this_worker": 1,
+    "retries": 0,
+    "A1": 1,
+    "A2": 0,
+    "B": 0,
+    "other_species": 0,
+    "parallel_image_calls": 0,
+    "evidence": "No RAW/source/call found; old #775 source comment explicitly stated no RAW generated; one conditional GEN slot granted for A1."
+  },
+  "acceptance": {
+    "technical": "A-only check exit 0, 0 blocks, 4 light, 1 note; manual findings recorded",
+    "technical_reference_gate": "pending integrator #134 decision; worker does not mark pass",
+    "owner_art_approved": false,
+    "art_accepted": false,
+    "runtime_accepted": false,
+    "imported": false
+  },
+  "raw_candidates": [
+    {
+      "attempt": "A1",
+      "raw_path": "art/src/beast-anim/bang_tinh_hat/toA.png",
+      "raw_sha256": "097698a8f11e4d5eaf3f0a6660b932e9e52cb206a84c49b6f9929d0a10ee3510",
+      "raw_bytes": 2002868,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "prompt_path": "art/src/beast-anim/bang_tinh_hat/toA.prompt.txt",
+      "prompt_sha256": "5751f677678d99fea58c3b3a5a094b82bd5edd1613e4c8b55c7be1f96779f5bc",
+      "tool_original_path": "/Users/thanhhoa/.codex/generated_images/01a17a5d-e9d7-7c11-8965-2683e531994f/exec-e8358fba-2323-4148-9296-a9a78bcc20ef.png",
+      "references_ordered": [
+        {
+          "order": 1,
+          "role": "static identity",
+          "path": "/private/tmp/soul-land-mmo-1030-bang-tinh-hat-preflight/shared/assets/sprites/beast/bang_tinh_hat.png",
+          "sha256": "29d0bcbe78a5d8a1050ae125859df4a8d4f34e0684e1f7f729615cf568ddd30e"
+        }
+      ],
+      "image_model": "unknown; tool did not expose",
+      "seed": "unknown; tool did not expose",
+      "status": "RAW_UNCHECKED",
+      "retries": 0
+    }
+  ],
+  "attempt_history": [
+    {
+      "attempt": "A1",
+      "builtin_call_count": 1,
+      "retries": 0,
+      "tool_original_path": "/Users/thanhhoa/.codex/generated_images/01a17a5d-e9d7-7c11-8965-2683e531994f/exec-e8358fba-2323-4148-9296-a9a78bcc20ef.png",
+      "raw_sha256": "097698a8f11e4d5eaf3f0a6660b932e9e52cb206a84c49b6f9929d0a10ee3510",
+      "prompt_sha256": "5751f677678d99fea58c3b3a5a094b82bd5edd1613e4c8b55c7be1f96779f5bc",
+      "outcome": "one RAW candidate copied byte-identically; checker not run per authorization"
+    }
+  ],
+  "check": {
+    "command": "node tools/assets/beast-sheet-check.mjs bang_tinh_hat --out /private/tmp/soul-land-mmo-1030-bang-tinh-hat-preflight/check",
+    "exit_code": 0,
+    "run": true,
+    "scope": "A-only (species directory contained toA only)",
+    "level": "nhẹ",
+    "block_count": 0,
+    "light_count": 4,
+    "note_count": 1,
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "body_scale": 1.4773,
+    "anchored_to_static": true,
+    "blocks": {
+      "s": "nhẹ",
+      "se": "nhẹ",
+      "e": "pass"
+    },
+    "automatic_findings": [
+      "H4 (s) C5 — blank die cell has spill from adjacent cell, 2.55% cell area.",
+      "H4 (s) C6 — blank die cell has spill from adjacent cell, 2.06% cell area.",
+      "H8 (se) C5 — blank die cell has spill from adjacent cell, 6.98% cell area.",
+      "H8 (se) C6 — blank die cell has spill from adjacent cell, 6.85% cell area."
+    ],
+    "technical_note": "Magenta background corner spread 35, within tolerance 60.",
+    "contact_sheet": "/private/tmp/soul-land-mmo-1030-bang-tinh-hat-check/bang_tinh_hat-toA-lien-he.png",
+    "manual_review": {
+      "identity": "Correct ice crystal scorpion with pincers, ice stinger and eight legs; no wings; matches static.",
+      "directions": "S frontal; SE visibly distinct from E side profile.",
+      "hurt": "Backward recoil unclear in H1 (s) C5-C6, H5 (se) C5-C6, H9 (e) C5-C6.",
+      "die": "D3 lies horizontally and breaks facing axis at H4 (s) C4 and H8 (se) C4; E D3 at H12 C4 follows side axis.",
+      "art_accepted": false
+    },
+    "contact_sheet_original_path": "/private/tmp/soul-land-mmo-1030-bang-tinh-hat-preflight/check/bang_tinh_hat-toA-lien-he.png",
+    "report_path": "/private/tmp/soul-land-mmo-1030-bang-tinh-hat-check/bang_tinh_hat-check.md"
+  },
+  "generation_call_return_time": "not exposed by tool",
+  "selection": "A1 candidate; automated checker has four light blank-cell spill findings; manual hurt and S/SE die heading findings remain; no gate/owner approval",
+  "nguon": {
+    "command": "node tools/assets/beast-nguon.mjs --species bang_tinh_hat --write --tool builtin image_gen.imagegen --attempts toA=1,toB=0 --agent tthoadev AO session 142 --issue 1030 --eye-ok toA --eye [manual findings]",
+    "exit_code": 0,
+    "path": "art/src/beast-anim/bang_tinh_hat/NGUON.md",
+    "sha256": "6fcebf3da21beb10e5c6c22cab91f93610f299da70dff9121591d17335c627c5"
+  },
+  "credits_check": {
+    "command": "node tools/assets/credits.mjs --check",
+    "exit_code": 0,
+    "output": "OK 6 groups, 85 entries"
+  },
+  "local_status": {
+    "command": "node tools/assets/beast-status.mjs",
+    "exit_code": 0,
+    "state": "thieu-to",
+    "imported": false,
+    "missing": [
+      "toB"
+    ],
+    "note": "automated local status only; no owner approval/import"
+  }
+}
