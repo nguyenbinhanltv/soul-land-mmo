@@ -1,0 +1,12 @@
+{
+    "seed":  "unknown",
+    "attempt":  2,
+    "createdAt":  "2026-10-27T04:43:30.2086339Z",
+    "sha256":  "7cddd4f00e94e2aab63f30043ef31c9c8cf1b8f7fdc1d138ebe8ba300b4c0c51",
+    "model":  "unknown",
+    "references":  [
+                       "shared/assets/sprites/beast/co_moc_thu_nhan.png"
+                   ],
+    "tool":  "image_gen",
+    "attempts":  2
+}

@@ -1,0 +1,13 @@
+{
+    "seed":  "unknown",
+    "attempt":  1,
+    "createdAt":  "2026-10-27T05:03:17.6076250Z",
+    "sha256":  "b85b0c7b160cf8a1c0fd75908b5ee0b9487388f63ef1a2819bfea9eb3b838085",
+    "model":  "unknown",
+    "references":  [
+                       "shared/assets/sprites/beast/co_moc_thu_nhan.png",
+                       "art/src/beast-anim/co_moc_thu_nhan/turnaround.png"
+                   ],
+    "tool":  "image_gen",
+    "attempts":  1
+}
