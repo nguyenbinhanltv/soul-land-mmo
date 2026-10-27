@@ -308,7 +308,10 @@ test("CLI --preset portrait ghi báo cáo có preset, contrast", () => {
   const r = spawnSync(process.execPath, [path.join(here, "vohon-pixelize.mjs"), "--type", "portrait", "--id", "ta_hoa_phuong_hoang", "--in", raw, "--out", path.join(d, "o"), "--preset", "portrait", "--max-colors", "6"], { encoding: "utf8" }); assert.equal(r.status, 0, r.stdout + r.stderr);
   const rep = JSON.parse(readFileSync(path.join(d, "o", "ta_hoa_phuong_hoang-portrait.report.json"), "utf8")); assert.equal(rep.preset, "portrait"); assert.ok(rep.palette.length <= 6); assert.ok(rep.contrast.sep != null);
 });
-test("prompt chân dung: nền lạnh tối, điểm sáng chỉ ở mắt / mỏ, 3–5 lưỡi lông lớn (#1095)", () => {
-  const t = buildPrompt("portrait", "ta_hoa_phuong_hoang"); const s = typeof t === "string" ? t : t.text ?? JSON.stringify(t);
-  assert.match(s, /cool, dark purple-blue/); assert.match(s, /3 to 5 large blades/);
+test("prompt chân dung: câu tương phản viết chung, không ép gam ấm / mỏ / lông cho võ hồn gam lạnh (#1095)", () => {
+  for (const id of ["ta_hoa_phuong_hoang", "lam_ngan_thao"]) {
+    const t = buildPrompt("portrait", id), s = typeof t === "string" ? t : t.text ?? JSON.stringify(t);
+    assert.match(s, /clearly opposite to the spirit's main color/); assert.match(s, /3 to 5 large shapes/);
+    assert.doesNotMatch(s, /warm colors|purple-blue|beak and|plumage/, `${id}: không ép gam ấm / tím lam`);
+  }
 });
