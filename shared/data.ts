@@ -1552,6 +1552,40 @@ const vnDayNum = (ms: number) => { const c = vnClock(ms); return Math.floor(Date
 export const worldBossOn = (mapId: string, ms: number) => { const l = MAPS[mapId]?.world; return l?.length ? l[vnDayNum(ms) % l.length] : null; };
 /** Bản đồ có boss thế giới (MapDef.world): Lõi Tinh Đấu. */
 export const worldMaps = () => Object.values(MAPS).filter((m) => m.world?.length);
+
+// ---------- Lịch Hoạt Động (mục 5.20, #877): bản đọc của các luật thời gian đã có, không tạo sự kiện mới ----------
+/** Số thứ tự thứ trong tuần theo giờ Việt Nam của `ms`: 0 = thứ Hai … 6 = Chủ nhật (tuần bắt đầu thứ Hai như tongWeek). */
+export const weekdayVn = (ms: number) => (vnDayNum(ms) + 3) % 7;
+/** 00:00 thứ Hai (ms UTC, giờ Việt Nam) của tuần chứa `ms`, cộng thêm `week` tuần (-1 trước, 1 sau). */
+export const weekStartVn = (ms: number, week = 0) => vnAt(ms, "00:00", tongWeek(ms) + 7 * week - vnDayNum(ms));
+/**
+ * Mục của Lịch Hoạt Động. Giờ mở KHÔNG chép số: `slot` lấy từ `times` / `lenSecs` của đúng hằng server dùng để chạy sự kiện
+ * (KING_TIMES + KING.lifeSecs, WORLD_TIME + WORLD.lifeSecs); `reset` là mốc 00:00 giờ Việt Nam (BOSS_TZ), `weekly` = thứ Hai.
+ * `slot` = khung giờ (vẽ ô trong bảng tuần); `reset` = mốc đặt lại; `always` = luôn mở, không theo giờ. `world` = tên boss theo ngày
+ * (worldBossOn), `map` = bản đồ có sự kiện, `npc` = NPC mở bảng tương ứng.
+ */
+export interface EventDef { id: string; name: string; kind: "slot" | "reset" | "always"; map?: string; npc?: string; times?: string[]; lenSecs?: number;
+  weekly?: boolean; world?: boolean; note?: string; }
+/** Khung giờ (ms UTC) của một mục `slot`; `d` = thứ trong tuần (0 = thứ Hai). */
+export interface EventSlot { s: number; e: number; d: number; }
+/** Mọi mục của lịch; chỉ gồm sự kiện đã có luật (v1). Mảng cố định, thêm cuối; id không đổi. */
+export const EVENT_DEFS: EventDef[] = [
+  ...Object.keys(MAPS).filter((m) => MAPS[m].king).map((m): EventDef => ({ id: `king:${m}`, name: "Tà hóa thú vương", kind: "slot", map: m,
+    times: KING_TIMES, lenSecs: KING.lifeSecs, note: `Mỗi ngày tối đa ${KING.daily} lượt thưởng` })),
+  ...Object.keys(MAPS).filter((m) => MAPS[m].world?.length).map((m): EventDef => ({ id: `world:${m}`, name: "Boss thế giới", kind: "slot", map: m,
+    times: [WORLD_TIME], lenSecs: WORLD.lifeSecs, world: true, note: `Mỗi ngày ${WORLD.daily} lượt thưởng` })),
+  { id: "reset:daily", name: "Khảo hạch, tông vụ, lượt đấu trường, tự săn, mảnh Thương hội", kind: "reset" },
+  { id: "reset:tong", name: "Chốt tuần tông môn", kind: "reset", weekly: true },
+  { id: "always:arena", name: "Đại Đấu Hồn Trường", kind: "always", npc: "dau_hon_truong" },
+  { id: "always:auto", name: "Tự săn", kind: "always" },
+];
+/** Các khung giờ (ms UTC) của mục `slot` trong tuần bắt đầu ở `weekStart` (weekStartVn), tăng dần; mục khác `slot` thì rỗng. */
+export function eventSlots(def: EventDef, weekStart: number): EventSlot[] {
+  if (def.kind !== "slot" || !def.times || !def.lenSecs) return [];
+  const out: EventSlot[] = [];
+  for (let d = 0; d < 7; d++) for (const t of def.times) { const s = vnAt(weekStart, t, d); out.push({ s, e: s + def.lenSecs * 1000, d }); }
+  return out.sort((a, b) => a.s - b.s);
+}
 /**
  * Hồn hoàn thưởng (mục 5.4): người đóng góp nhiều nhất nhận hồn hoàn đỏ `top` năm; những người khác (từ WORLD.share) có `red` cơ hội
  * nhận hồn hoàn đỏ, còn lại hồn hoàn đen trong `black` năm (rollYears). Vào thẳng túi đồ cùng rương (không rơi xuống đất).
