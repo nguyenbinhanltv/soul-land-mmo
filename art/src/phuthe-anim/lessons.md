@@ -53,3 +53,15 @@
 - [direction @B] The four cast mannequins must remain the same body scale as idle, even when the neck or attachment rises higher. // Xà Hoàng C1: nộm cast nhỏ hơn idle.
 - [direction @B] Keep the neck bend within its cell during the strike; leave the neighbouring figure completely separate. // Xà Hoàng D1: đầu mổ ở attack sát hình kế.
 - [direction @B] Shorten the striking neck and attached trail enough to keep all six attack figures disconnected from each other. // Xà Hoàng E1: attack dính, chỉ tách 3/6 hình.
+- [direction @B] For a raised neck attachment, keep its root on the shoulder and its head inside the top frame brackets instead of towering beyond the cell. // Bá Vương Long A1: rút lỗi cổ Xà Hoàng cao và xén khi ráp.
+- [direction @B] When forearms are named attachments, draw them on the mannequin arms, not as a second pair of arms floating behind its head. // Bá Vương Long A1: tay rồng nổi sau nộm.
+- [direction @B] Fit the raised claw and neck together inside the frame, leaving the original mannequin head and arm positions unchanged. // Bá Vương Long B1: đầu/tay rồng lớn phía sau nộm.
+- [direction @B] Keep cloud masses and raised claws inside each cast cell; never connect the four cast figures with clouds, lightning or limb tips. // Bá Vương Long B1: cast dính thành 1/4 hình.
+- [direction @B] Leave a continuous magenta margin around the cast neck and claw silhouettes, including the bottom corners of each frame. // Bá Vương Long B2: khối cast còn lớn, tránh xén góc.
+- [direction @B] Fold the striking forearm back inside the cell before it reaches the next figure; keep six separate attack islands. // Bá Vương Long B2: attack chỉ tách 5/6 hình.
+- [direction @B] Keep lightning marks on the attachment itself rather than extending a line between adjacent animation frames. // Bá Vương Long B3: tia sét attack kéo sát hình kế.
+- [direction @B] Keep the claw swing compact around the original forearm location rather than moving the mannequin to accommodate a larger swing. // Bá Vương Long C1: cẳng tay vung xa nộm.
+- [direction @B] Reduce the width of the attack claw arc and surrounding cloud mass until six clear magenta-separated figures fit across the row. // Bá Vương Long C1: attack dính chỉ 3/6 hình.
+- [direction @B] In the lunging attack pose curl the neck upward inside its own cell instead of stretching it horizontally into the next pose. // Bá Vương Long C2: cổ lao khiến attack còn dính 5/6.
+- [direction @B] Keep the two lowest cloud lobes above the foot line and clear of the next horizontal band. // Bá Vương Long C3: mây chân và cast sát mép dưới.
+- [direction @B] Keep the widest raised neck pose shorter than the available cell height, retaining a magenta gutter above the next row. // Bá Vương Long D1: cast ngửa cổ cao sát khung.

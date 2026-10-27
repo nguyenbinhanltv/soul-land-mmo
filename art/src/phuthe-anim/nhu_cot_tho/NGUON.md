@@ -44,3 +44,9 @@ node tools/assets/phuthe-sheet-preview.mjs --id nhu_cot_tho --dir <OUT>
 |---|---|---|---|---|---|
 | `to{A..E}.png`, `candidates/to*-attempt*.png` | - | builtin image_gen.imagegen (Codex) | Prompt direction t? sinh, h? s? SHA256 ?i k?m | 2026-10-28 | Ch? c?t ch?n ?o?n, kh?ng nh?p game |
 | `references/*-nom-to*.png` | - | phuthe-sheet-dummy.mjs, LPC hi?n c? | B?ng n?m ??ng b??c th?n v? v?ch | 2026-10-28 | Ngu?n LPC theo h? s? s?n c? |
+
+## So s?nh sau neo v? ki?m chung
+
+Trang `C:/Users/PC/.ao/data/artifacts/soul_land_game-707/nhu_cot_tho/so-sanh-neo.html` so tr??c/sau, ?? nam/n?, 5 clip, 5 h??ng g?c. Sheet artifact `neo/` bi?n ??i nearest-neighbor t?ng khung quanh g?c ch?n (48,74), scale r?i dx/dy t? anchor.json; kh?ng s?a RAW. Sau neo v?n che th?n/x?n m?p, ?i?m g?n ch?a ??t; kh?ng nh?p game.
+
+Ki?m chung l?: `npm run check` v? `npm run build` ??t; bot RAM `npm run bot:local -- --only view` ??t 91/91, RSS ??nh server 144 MB / bot 124 MB. Kh?ng ??i server/SQL n?n kh?ng ch?y PostgreSQL.
