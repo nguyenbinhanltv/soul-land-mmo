@@ -1,0 +1,54 @@
+{
+  "type": "portrait",
+  "size": 64,
+  "crop": {
+    "x": 0,
+    "y": 0,
+    "w": 1254,
+    "h": 1254
+  },
+  "preset": "portrait2",
+  "bgShare": 0.47,
+  "bgColor": [
+    16,
+    9,
+    20
+  ],
+  "accentAdded": 0,
+  "rimPixels": 501,
+  "contrast": {
+    "sep": 12.4,
+    "bigColors": 11,
+    "bgRatio": 1.18
+  },
+  "hardenedPixels": 402,
+  "accent": {
+    "kept": 4,
+    "total": 4
+  },
+  "colorDrift": 0.172,
+  "colors": 15,
+  "palette": [
+    "#1b142f",
+    "#221a44",
+    "#271d4f",
+    "#2d225c",
+    "#2f216c",
+    "#2e1e7e",
+    "#362699",
+    "#3e2db4",
+    "#46397b",
+    "#4a39c5",
+    "#513ef6",
+    "#5f4fe4",
+    "#6051fb",
+    "#a09ffd",
+    "#100914"
+  ],
+  "source": "portrait-attempt1.png",
+  "options": {
+    "pool": [],
+    "preset": "portrait2",
+    "zoom": 1
+  }
+}
