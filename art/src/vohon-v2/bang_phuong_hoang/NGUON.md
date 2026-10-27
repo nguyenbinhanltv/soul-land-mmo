@@ -10,7 +10,7 @@ Công cụ: builtin `image_gen.imagegen`; model/seed: `unknown`. Ngày 2026-10-2
 - Lượt 2: `candidates/concept-attempt2.png`; SHA256 ảnh `e92e2e04e1af3a1b47d5ba5cc72a789248ed9771d033469dc33cd836d235ed62`; SHA256 prompt `b4be4f0752dd6b8b5f776dad26f89e9a36784d6e7deed1e548ca550aea1da536`.
 - Lượt 3: `concept-attempt3.png`; SHA256 ảnh `2060b04e927be7a829816508203ed5663a993930ffe94b77be0ad4a0b6e16d2c`; SHA256 prompt `b4be4f0752dd6b8b5f776dad26f89e9a36784d6e7deed1e548ca550aea1da536`.
 
-Bản tốt nhất: `concept-attempt3.png`, giữ trong candidates vì còn lỗi chặn. Mỗi lượt có prompt và source JSON kèm theo. Không có NGUON phụ.
+Bản tốt nhất để tham chiếu ngoại hình: `concept-attempt3.png` (lượt 3), đã chọn ở thư mục chính với trạng thái `selected_appearance_reference`. Lượt 1 và 2 ở `candidates` để đối chiếu. Các lỗi còn lại của lượt 3 giữ ở mục khai báo duyệt mắt; chưa duyệt làm phụ thể năm hướng. Mỗi lượt có prompt và source JSON kèm theo. Không có NGUON phụ.
 
 ## Ghi công
 

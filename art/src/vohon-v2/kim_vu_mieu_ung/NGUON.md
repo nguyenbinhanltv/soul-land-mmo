@@ -10,7 +10,7 @@ Công cụ: builtin `image_gen.imagegen`; model/seed: `unknown`. Ngày 2026-10-2
 - Lượt 2: `candidates/concept-attempt2.png`; SHA256 ảnh `07dbb9a6c6508cb58686868625020e69b73d4e46130acfa4d9725b5c4513f30f`; SHA256 prompt `7c49d626a6fdda8d005dae0e80f757645ac5fd0e3ebc4d4e2c2383ec4efcd1a3`.
 - Lượt 3: `candidates/concept-attempt3.png`; SHA256 ảnh `22e0131bf8744970c6f40fd86cca9e5cbf31cd715327fa798c54a6b498570099`; SHA256 prompt `7c49d626a6fdda8d005dae0e80f757645ac5fd0e3ebc4d4e2c2383ec4efcd1a3`.
 
-Bản tốt nhất: `candidates/concept-attempt3.png`, giữ trong candidates vì còn lỗi chặn. Mỗi lượt có prompt và source JSON kèm theo. Không có NGUON phụ.
+Bản tốt nhất để tham chiếu ngoại hình: `concept-attempt1.png` (lượt 1), đã chọn ở thư mục chính với trạng thái `selected_appearance_reference`. Chọn lượt 1 thay lượt 3 vì lượt 3 có khoảng trống giữa cánh quá hẹp, có chỗ gần chạm và không tách rõ năm cột; ưu tiên hình thể tham chiếu hơn độ đúng hướng ne/n của lượt 3. Lượt 1 vẫn còn lỗi ne lộ mắt, cánh rủ và các lỗi ghi ở mục khai báo duyệt mắt, chưa đạt phụ thể năm hướng. Lượt 2 và 3 ở `candidates` để đối chiếu. Mỗi lượt có prompt và source JSON kèm theo. Không có NGUON phụ.
 
 ## Ghi công
 
