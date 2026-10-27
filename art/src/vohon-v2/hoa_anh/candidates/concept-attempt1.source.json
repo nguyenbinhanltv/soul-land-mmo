@@ -1,0 +1,25 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "attempt": 1,
+  "image_sha256": "a55bdfc5d130fa8ed8f2670c05cf1dff890aa28f41346b028ccc582e664a52c2",
+  "prompt_sha256": "1378ffa29bc20ac6918fb29a1c092542f8594a999582bbec7d2506b7c69c2b7e",
+  "submitted_prompt_sha256": "6a8950245c332b307da44ded138083423ff852925b2c509d89dc4b5f923362a1",
+  "prompt_line_endings": "B?n l?u LF theo Git; n?i dung nguy?n b?n, hash th?c g?i l?u ri?ng n?u CRLF.",
+  "original_output": "C:/Users/PC/.codex/generated_images/01a17cc5-63b8-7180-bc0d-e3cc732ef99e/exec-325d9ab8-6d82-44a8-8e46-d817d1cca721.png",
+  "reference": "PR #1083: concept-turnaround-attempt2.png (Hạo Thiên Chùy)",
+  "status": "rejected_candidate",
+  "assessment": "Loại lượt 1 do cắt sừng ở mép trên và tay ngoài mép trái/phải. RAW tự động NHẸ nhưng lỗi cắt mép chặn bằng mắt. Dáng hộ pháp vai rộng, mắt vàng, hai tay lửa và khói tím đúng; ne ngoái trái lộ mắt, chỉ khai eye. Lượt mới nhằm bố cục, không nhằm lỗi ne.",
+  "true_angles": "khoảng 4; ne sai",
+  "raw_check": {
+    "command": "node tools/assets/vohon-check.mjs raw art/src/vohon-v2/hoa_anh/concept-attempt1.png --type phaptuong --id hoa_anh",
+    "exit_code": 0,
+    "output": "raw concept-attempt1.png pháp tướng (hoa_anh): NHẸ\n  [NHẸ] mem: texture mềm: 86% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất\n  [NHẸ] luoi: chưa đúng lưới khối: tỉ số biên 1.07 ở chu kỳ 34 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)\n  số đo: {\"w\":1983,\"h\":793,\"ratio\":2.501,\"border\":{\"clear\":0.99,\"flat70\":0.01},\"poses\":5,\"poseSpread\":1.02,\"softness\":0.869,\"bigColors\":112,\"grid\":{\"period\":34,\"ratio\":1.07},\"paletteMatch\":0.97}\n  cần mắt duyệt: đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi); không có chữ, ký hiệu đọc được, logo, chữ ký; 5 hướng cùng một hình (cùng cỡ, màu, chi tiết), se / ne chếch đúng hướng; thân đặc, không trong suốt\n"
+  },
+  "eye": [
+    "bố cục — s/n — cắt sừng mép trên và tay ngoài mép trái/phải",
+    "hướng — ne — ngoái trái và lộ mắt vàng"
+  ]
+}

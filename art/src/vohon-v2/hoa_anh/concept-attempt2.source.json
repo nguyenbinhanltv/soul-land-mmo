@@ -1,0 +1,25 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "attempt": 2,
+  "image_sha256": "827431d0d8fb7d4500f694c617bd573dbc2e36ba82dcce69705ca8c90beb8308",
+  "prompt_sha256": "1378ffa29bc20ac6918fb29a1c092542f8594a999582bbec7d2506b7c69c2b7e",
+  "submitted_prompt_sha256": "6a8950245c332b307da44ded138083423ff852925b2c509d89dc4b5f923362a1",
+  "prompt_line_endings": "B?n l?u LF theo Git; n?i dung nguy?n b?n, hash th?c g?i l?u ri?ng n?u CRLF.",
+  "original_output": "C:/Users/PC/.codex/generated_images/01a17cc5-63b8-7180-bc0d-e3cc732ef99e/exec-88e1d2dd-8611-41ec-b746-64ed86608298.png",
+  "reference": "PR #1083: concept-turnaround-attempt2.png (Hạo Thiên Chùy)",
+  "status": "selected_appearance_reference",
+  "assessment": "Chọn lượt 2: sừng đã nằm trong khung, tay ít sát mép hơn lượt 1; đủ năm khối riêng, vai rộng, hai tay lửa, khói tím than, mắt vàng và đạo văn ngực đúng. RAW NHẸ do texture mềm và lưới. ne vẫn ngoái trái lộ mắt vàng, n nhìn lưng giấu mắt; khoảng bốn góc đúng. Chỉ khai eye, không sinh thêm vì lỗi ne. Lửa tay n còn rất sát mép phải, sáng dọc thân hơi nhiều; chỉ tham chiếu ngoại hình, chưa dùng làm sheet.",
+  "true_angles": "khoảng 4; ne sai",
+  "raw_check": {
+    "command": "node tools/assets/vohon-check.mjs raw art/src/vohon-v2/hoa_anh/concept-attempt2.png --type phaptuong --id hoa_anh",
+    "exit_code": 0,
+    "output": "raw concept-attempt2.png pháp tướng (hoa_anh): NHẸ\n  [NHẸ] mem: texture mềm: 88% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất\n  [NHẸ] luoi: chưa đúng lưới khối: tỉ số biên 1.1 ở chu kỳ 29 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)\n  số đo: {\"w\":1983,\"h\":793,\"ratio\":2.501,\"border\":{\"clear\":1,\"flat70\":0},\"poses\":5,\"poseSpread\":1.02,\"softness\":0.884,\"bigColors\":107,\"grid\":{\"period\":29,\"ratio\":1.1},\"paletteMatch\":0.93}\n  cần mắt duyệt: đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi); không có chữ, ký hiệu đọc được, logo, chữ ký; 5 hướng cùng một hình (cùng cỡ, màu, chi tiết), se / ne chếch đúng hướng; thân đặc, không trong suốt\n"
+  },
+  "eye": [
+    "hướng — ne — ngoái trái, còn lộ mắt vàng",
+    "bố cục — n — lửa tay sát mép phải; sáng trên thân hơi nhiều"
+  ]
+}
