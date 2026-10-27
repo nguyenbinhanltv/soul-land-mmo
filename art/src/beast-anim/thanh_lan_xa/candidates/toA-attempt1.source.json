@@ -1,0 +1,15 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "generatedAt":  "unknown",
+    "recordedAt":  "2026-10-27T04:50:51.1746334Z",
+    "sha256":  "185f045e1304f671f48240ed2a81137ad9d8aaaea7478cebfae475ca3b9358fa",
+    "promptSha256":  "bda57af97e1cd4988e1aaa70533443fb283a05fd9b4b44aa5dfe899c326c5fed",
+    "references":  [
+                       "shared/assets/sprites/beast/thanh_lan_xa.png"
+                   ],
+    "attempt":  1,
+    "agent":  "soul_land_game-616",
+    "provenance":  "Hồ sơ truy hồi từ PNG và prompt thật đã commit trong PR #1107; thời điểm sinh không được lưu."
+}
