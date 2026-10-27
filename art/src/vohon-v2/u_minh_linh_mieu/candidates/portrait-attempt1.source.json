@@ -1,0 +1,99 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "issue": 1158,
+  "attempt": 1,
+  "max_attempts": 3,
+  "reference": "art/src/vohon-v2/u_minh_linh_mieu/concept-attempt1.png",
+  "reference_sha256": "15c2147ec62e9e1bdbe8752161bf3f31863e4ce5b46e93b4ad1c2c081dbb2e36",
+  "image_sha256": "905aa5b3699ed4fd193cdd4563e5079e57e4e278e43fe0595ed8a9374f66912d",
+  "prompt_sha256": "1e341970faf2f60cc6a32d16519cfd6c7314ef15842e894cd98c91433f3ac174",
+  "prompt_command": "node tools/assets/vohon-prompt.mjs --type portrait --id u_minh_linh_mieu --style-ref art/src/vohon-v2/u_minh_linh_mieu/concept-attempt1.png",
+  "pixel_command": "node tools/assets/vohon-pixelize.mjs --type portrait --id u_minh_linh_mieu --in art/src/vohon-v2/u_minh_linh_mieu/candidates/portrait-attempt1.png --out art/src/vohon-v2/u_minh_linh_mieu/candidates/portrait-attempt1-P1c2 --preset portrait2",
+  "raw_check": {
+    "type": "portrait",
+    "id": "u_minh_linh_mieu",
+    "issues": [
+      {
+        "sev": "soft",
+        "code": "mem",
+        "text": "texture mềm: 95% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+      },
+      {
+        "sev": "soft",
+        "code": "luoi",
+        "text": "chưa đúng lưới khối: tỉ số biên 1.82 ở chu kỳ 25 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+      }
+    ],
+    "metrics": {
+      "w": 1254,
+      "h": 1254,
+      "ratio": 1,
+      "border": {
+        "clear": 0,
+        "flat70": 0.99
+      },
+      "fill": 0.99,
+      "softness": 0.951,
+      "bigColors": 75,
+      "grid": {
+        "period": 25,
+        "ratio": 1.82
+      },
+      "paletteMatch": 0.99,
+      "smallAccent": "0/0"
+    },
+    "manual": [
+      "đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi)",
+      "không có chữ, ký hiệu đọc được, logo, chữ ký",
+      "đọc được cả ở cỡ thật 1× (nhìn lướt)"
+    ]
+  },
+  "pixel_check": {
+    "type": "portrait",
+    "id": "u_minh_linh_mieu",
+    "issues": [
+      {
+        "sev": "soft",
+        "code": "mat-sang",
+        "text": "vùng sáng chỉ 0.0%: mất điểm sáng (mắt, lõi, lưỡi), hình sẽ tối đặc"
+      },
+      {
+        "sev": "soft",
+        "code": "nhieu-chi-tiet",
+        "text": "mật độ biên 0.39 (> 0.3): còn nhiều mảng nhỏ ở cỡ 64×64, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+      },
+      {
+        "sev": "soft",
+        "code": "gan-mau",
+        "text": "hai màu lớn chỉ cách nhau 12.1 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+      },
+      {
+        "sev": "soft",
+        "code": "nen-chu-the",
+        "text": "vùng giữa chỉ sáng gấp 1.07× vòng ngoài (< 1.4): chủ thể chưa tách khỏi nền; thử --preset portrait (nền lạnh tối + viền sáng)"
+      }
+    ],
+    "metrics": {
+      "w": 64,
+      "h": 64,
+      "colors": 15,
+      "hot": 0,
+      "contrast": 0.164,
+      "edge": 0.39,
+      "sep": 12.1,
+      "bgRatio": 1.07
+    },
+    "manual": [
+      "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+      "so với RAW: vẫn là cùng một võ hồn"
+    ]
+  },
+  "eye": [
+    "góc chính diện thay vì 3/4; khí tím rộng cùng gam thân; thân tối có nguy cơ dính nền, mắt trắng tím rõ; chi tiết nhỏ cần duyệt ở 64×64"
+  ],
+  "status": "candidate_pending_art_review",
+  "imported": false
+}
