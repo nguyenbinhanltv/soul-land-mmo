@@ -21,5 +21,6 @@
   "eye": "s/se/e gần chính diện; e không thành góc ngang",
   "original_tool_output_path": "C:/Users/PC/.codex/generated_images/01a17c10-51e1-73f2-a82e-b6578a36a56e/exec-89513e5d-6686-49b7-a9ee-6bdaa9c4a548.png",
   "raw_file": "toA-attempt1.png",
-  "prompt_file": "toA-attempt1.prompt.txt"
+  "prompt_file": "toA-legacy.prompt.txt",
+  "prompt_storage": "Prompt nguyên văn dùng chung với bản cũ, SHA256 theo blob Git; không tệp trùng byte"
 }

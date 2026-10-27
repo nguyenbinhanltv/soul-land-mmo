@@ -20,7 +20,7 @@
   "height": 1536,
   "tool_limitations": "ImageGen did not expose model, seed, or a size selector.",
   "prompt_file": "toA-legacy.prompt.txt",
-  "prompt_sha256": "3ecb6e28277ac5d2af70756c80eb92d02366fd51773ba45d76775e7ca97dfe1a",
+  "prompt_sha256": "8b86467d1c2a147985092e84ef9fee6737d83faac3c5f6231f56e4b8bfefed6a",
   "references": [
     {
       "order": 1,
@@ -102,7 +102,5 @@
     "raw_file": "toA-legacy.png",
     "prompt_file": "toA-legacy.prompt.txt",
     "reason": "Bản cũ từ main: các hướng gần chính diện; B lộ mặt ở ne/n. Giữ nguồn lịch sử, không dùng làm tham chiếu."
-  },
-  "historical_prompt_sha256": "8b86467d1c2a147985092e84ef9fee6737d83faac3c5f6231f56e4b8bfefed6a",
-  "archive_prompt_note": "Giữ nguyên byte prompt hiện có từ main; hash lịch sử không khớp bản checkout, lưu nguyên giá trị cũ riêng và tính lại hash tệp lưu. Không khẳng định đây là nguyên byte prompt đã gửi ở lượt cũ."
+  }
 }
