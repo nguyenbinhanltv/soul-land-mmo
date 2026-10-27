@@ -357,15 +357,18 @@ export function coolBackground(img, mask, { mix = 0.7, dim = 0.55, hue = SHADOW_
 /** Màu sáng nhất của bảng theo `glow` (màu nhấn). */
 export const brightestOf = (pal) => pal.reduce((a, c) => (glow(...c) > glow(...a) ? c : a), pal[0]);
 /**
- * Bảo vệ điểm nhấn nhỏ: màu `glow` cao nhất của ảnh nhỏ (mắt, mỏ, lõi) mà bảng không có màu gần (khoảng cách ≥ 28) thì thay màu bảng gần nhất bằng nó.
- * Sửa `pal` tại chỗ; trả true nếu đã thay.
+ * Bảo vệ điểm nhấn nhỏ: màu `glow` cao nhất của ảnh nhỏ (mắt, mỏ, lõi) mà bảng không có màu gần (khoảng cách ≥ 28) thì THÊM vào bảng nếu còn chỗ (< `max` màu);
+ * bảng đầy thì thay màu ÍT điểm nhất của `small` (không thay màu gần nhất: đó thường là tông sáng chính của thân). Sửa `pal` tại chỗ; trả true nếu đã đổi.
  */
-export function protectAccent(small, pal) {
+export function protectAccent(small, pal, max = pal.length) {
   let top = null, tg = 0;
   for (let i = 0; i < small.data.length; i += 4) { if (small.data[i + 3] < 128) continue; const c = [small.data[i], small.data[i + 1], small.data[i + 2]], g = glow(...c); if (g > tg) { tg = g; top = c; } }
   if (!top || !pal.length) return false;
-  const j = nearest(top, pal); if (dist(top, pal[j]) < 28) return false;
-  pal[j] = top; return true;
+  if (dist(top, pal[nearest(top, pal)]) < 28) return false;
+  if (pal.length < max) { pal.push(top); return true; }
+  const use = new Array(pal.length).fill(0);
+  for (let i = 0; i < small.data.length; i += 4) if (small.data[i + 3] >= 128) use[nearest([small.data[i], small.data[i + 1], small.data[i + 2]], pal)]++;
+  pal[use.indexOf(Math.min(...use))] = top; return true;
 }
 /** Viền sáng 1 điểm phía nguồn sáng (trên trái): điểm chủ thể có láng giềng trên / trái là nền → màu nhấn `accent`. Sửa `img` tại chỗ; trả số điểm. */
 export function rimLight(img, mask, accent) {
@@ -439,7 +442,7 @@ export function pixelizeIcon(src, o = {}) {
 }
 function finish(small, o) {
   const pal = buildPalette(small, o.colors, { mode: o.palette ?? "auto", pool: o.pool ?? [], merge: dflt(o.type, o, "merge") });
-  if (o.protect) protectAccent(small, pal);
+  if (o.protect) protectAccent(small, pal, o.colors);
   const idx = toIndexed(small, pal), changed = harden(idx, small.w, small.h, pal, { minCluster: dflt(o.type, o, "minCluster"), passes: dflt(o.type, o, "passes") });
   const img = fromIndexed(idx, small.w, small.h, pal);
   const rim = o.mask && pal.length ? rimLight(img, o.mask, brightestOf(pal)) : 0;

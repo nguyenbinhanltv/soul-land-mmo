@@ -285,10 +285,12 @@ test("subjectMask + coolBackground + rimLight: nền về lạnh tối, viền s
   P.coolBackground(im, mask); const [r, , b] = im.get(2, 2); assert.ok(b > r * 0.9, "nền thiên về tím / xanh"); assert.deepEqual(im.get(16, 16).slice(0, 3), [230, 120, 40]);
   const n = P.rimLight(im, mask, [255, 240, 150]); assert.ok(n >= 16 && n <= 40, `rim ${n}`); assert.deepEqual(im.get(8, 12).slice(0, 3), [255, 240, 150]); assert.notDeepEqual(im.get(23, 20).slice(0, 3), [255, 240, 150], "rìa dưới / phải không viền");
 });
-test("protectAccent: màu sáng nhất của ảnh không bị bảng nuốt", () => {
-  const im = new Img(4, 1); [[20, 10, 10], [200, 80, 30], [220, 90, 40], [255, 245, 160]].forEach((c, i) => im.set(i, 0, [...c, 255]));
-  const pal = [[20, 10, 10], [210, 85, 35]]; assert.equal(P.protectAccent(im, pal), true); assert.ok(pal.some((c) => c.join() === "255,245,160"));
-  assert.equal(P.protectAccent(im, pal), false, "đã có thì không đổi");
+test("protectAccent: còn chỗ thì thêm màu nhấn; đầy thì thay màu ít điểm nhất, mảng thân giữ màu", () => {
+  const im = new Img(10, 1); [[20, 10, 10], [20, 10, 10], [20, 10, 10], [210, 85, 35], [210, 85, 35], [210, 85, 35], [210, 85, 35], [215, 88, 38], [215, 88, 38], [255, 245, 160]].forEach((c, i) => im.set(i, 0, [...c, 255]));
+  const roomy = [[20, 10, 10], [210, 85, 35]]; assert.equal(P.protectAccent(im, roomy, 3), true); assert.equal(roomy.length, 3); assert.ok(roomy.some((c) => c.join() === "255,245,160")); assert.ok(roomy.some((c) => c.join() === "210,85,35"), "cam thân còn");
+  const full = [[20, 10, 10], [210, 85, 35], [100, 100, 100]]; assert.equal(P.protectAccent(im, full, 3), true); assert.equal(full.length, 3);
+  assert.ok(full.some((c) => c.join() === "255,245,160") && full.some((c) => c.join() === "210,85,35") && full.some((c) => c.join() === "20,10,10"), "chỉ màu ít điểm nhất (xám không dùng) bị thay");
+  assert.equal(P.protectAccent(im, full, 3), false, "đã có thì không đổi");
 });
 test("preset portrait: ≤ 8 màu, tương phản (sep, bgRatio) tốt hơn mặc định, viền sáng + báo cáo", () => {
   const src = sameHue(), base = P.pixelizePortrait(src, {}), pre = P.pixelizePortrait(src, { preset: "portrait" });
