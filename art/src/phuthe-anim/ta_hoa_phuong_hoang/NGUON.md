@@ -74,3 +74,12 @@ Chủ repo duyệt turnaround lượt 2: https://github.com/nguyenbinhanltv/soul
 --eye "toB=hướng — H4 C4 — cast cuối gần chính diện thay vì se"
 --eye "toB=phụ thể/nộm — toàn tờ — nộm thu nhỏ, dời xuống; cánh sát mép"
 ```
+### Tờ D và lượt C bị loại
+
+- D (`ne`), 1 lượt: kỹ thuật 0 chặn / 61 nhẹ. Tham chiếu thực tế: bảng nộm D → turnaround lượt 2 → B (không dùng C lỗi). Cánh/đầu chim gần góc ngang `e`, lộ mặt ở mọi clip; cast cuối gần chính diện. Chỉ khai mắt theo yêu cầu, không sinh thêm để sửa ne/n. Nộm vẫn thu nhỏ/dời xuống so với bảng.
+- C lượt 1 nằm ở `candidates/toC-attempt1.*`: chặn `hinh-dinh` H3, dò được 4 thay vì 6 hình; nhẹ `o-trong` H4 C5. Không dùng làm tham chiếu. Lượt 2 giữ nguyên prompt tự sinh và ba ảnh nộm C → turnaround lượt 2 → B.
+
+```text
+--eye "toD=hướng — toàn tờ ne — lộ mặt, góc gần e; H4 C4 gần chính diện; chỉ khai, không vẽ sửa"
+--eye "toD=phụ thể/nộm — toàn tờ — nộm thu nhỏ/dời xuống, cánh sát mép"
+```
