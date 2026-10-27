@@ -1,0 +1,38 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "stage": "turnaround",
+  "attempt": 3,
+  "status": "rejected",
+  "raw": {
+    "file": "turnaround-attempt3.png",
+    "sha256": "03126ba676a9cb9f2e24b2680106f37b6dd224eec5b64f8d9c4ccfec9cc76012"
+  },
+  "prompt": {
+    "file": "turnaround-attempt3.prompt.txt",
+    "sha256": "05ea0653c9753b642222a3e60a503f9e7b22a7228315a2cf9c8bafa3f761cd33",
+    "generator": "node tools/assets/phuthe-sheet-prompt.mjs --id ta_hoa_phuong_hoang --stage turnaround --out <temp>",
+    "handwritten": false,
+    "addendum": false
+  },
+  "references": [
+    {
+      "role": "mannequin_board",
+      "file": "../references/ta_hoa_phuong_hoang-nom-turnaround.png",
+      "sha256": "0d2d6f89cb2bd86d886b08460334f589fb4e332971d0ab9eb6b2dd9aaeb81456"
+    },
+    {
+      "role": "approved_appearance_reference_only",
+      "file": "art/src/vohon-v2/ta_hoa_phuong_hoang/concept-attempt3.png",
+      "sha256": "afbfb627a42f3f956e6749b8a92809610a700592fda556459c294f30c76d1373"
+    }
+  ],
+  "findings": [
+    "Kiểm chặn: H2 attack có 4/5 hình (hình dính).",
+    "ne quay trái và lộ mặt.",
+    "Nộm dời xuống/biến dạng; vẫn đầu và ngực chim."
+  ],
+  "postprocessing": "none; RAW copied byte-for-byte"
+}

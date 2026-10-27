@@ -1,0 +1,2 @@
+# Giữ nguyên byte prompt thực gửi để SHA256 khớp trên mọi máy.
+*.prompt.txt -text whitespace=cr-at-eol
