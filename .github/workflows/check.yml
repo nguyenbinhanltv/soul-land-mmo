@@ -317,7 +317,7 @@ jobs:
           if-no-files-found: ignore
 
   # Mức assets (#1118): thay check-build cho PR / push chỉ đổi ảnh, sprite, ghi công, tài liệu. Ubuntu, không npm ci / build / Chrome / server / bot
-  # (các công cụ dưới chỉ dùng node:*), mục tiêu ≤ 3 phút.
+  # (các công cụ dưới chỉ dùng node:*), mục tiêu ≤ 3 phút. Gồm mọi bài của `npm run check` kiểm trực tiếp file mức assets và chỉ cần node:*.
   # Chỉ chạy ở mức assets (mức khác đã có `npm run check` trong check-build). Thêm bài nhẹ thì thêm vào đây, đừng kéo build / bot vào.
   assets-check:
     name: assets-check
@@ -335,6 +335,11 @@ jobs:
       - run: node tools/assets/validate.mjs
       - run: node tools/assets/quality.mjs --check
       - run: node tools/assets/credits.mjs --check
+      - run: node tools/assets/normal-quant.mjs --check # `*_n.png` đã lượng tử (#975)
+      - run: node tools/assets/lpc-parts.mjs --check # ngân sách / toàn vẹn món LPC
+      - run: node tools/assets/iso-atlas.mjs --check # atlas ô / vật khớp ảnh nguồn sprites/iso
+      - run: node tools/maps/quet-chan.mjs # vật vẽ khớp ô chặn (xoá / đổi tên prop không để tường vô hình)
+      - run: node tools/ci/check-private-assets.mjs # chặn gói riêng / giấy phép hạn chế lọt vào repo công khai
       - run: node tools/docs-check.mjs # PR chỉ đổi tài liệu cũng được kiểm (trước đây nhờ `npm run check` trong check-build)
       - name: manifest.json / credits.json đọc được
         run: |
