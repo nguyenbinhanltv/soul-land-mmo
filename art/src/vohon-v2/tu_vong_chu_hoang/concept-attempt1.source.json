@@ -14,5 +14,12 @@
     "sha256": "631ac2ef55e230875ee2452b5dac9c634829ed09642d9666824e2a20f0e664af"
   },
   "assessment": "nhẹ",
-  "notes": "Đề xuất lượt 1: nhện tím đen, khớp trắng ngà, mắt tím, sọ đỏ trên bụng và tơ có bùa đúng brief; năm hình không người / chữ / khung. Nhẹ: chân chồng nhau nên khó đếm đủ tám ở góc nghiêng; tơ và đạo văn nhỏ, sọ đỏ hơi lớn so với nhấn đỏ rất ít; chưa đơn giản như neo Hạo Thiên. Không thấy mắt / mặt ở ne và n. Chờ orchestrator duyệt tạo hình, không tự coi là nguồn đã duyệt."
+  "notes": "Đề xuất lượt 1: nhện tím đen, khớp trắng ngà, mắt tím, sọ đỏ trên bụng và tơ có bùa đúng brief; năm hình không người / chữ / khung. Nhẹ: chân chồng nhau nên khó đếm đủ tám ở góc nghiêng; tơ và đạo văn nhỏ, sọ đỏ hơi lớn so với nhấn đỏ rất ít; chưa đơn giản như neo Hạo Thiên. Không thấy mắt / mặt ở ne và n. Chờ orchestrator duyệt tạo hình, không tự coi là nguồn đã duyệt.",
+  "selected_for": "concept ngoại hình; chờ orchestrator duyệt",
+  "eye": [
+    "concept-attempt1=hướng — e — còn hơi chếch trước",
+    "concept-attempt1=hình — chân — chồng nhau khó đếm đủ tám",
+    "concept-attempt1=chi tiết — tơ và lưng — tơ nhỏ, sọ đỏ hơi lớn"
+  ],
+  "selection_decision": "https://github.com/nguyenbinhanltv/soul-land-mmo/pull/1146#issuecomment-6436570268"
 }
