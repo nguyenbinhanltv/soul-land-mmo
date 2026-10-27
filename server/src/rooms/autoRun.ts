@@ -5,7 +5,7 @@
 import { store, type AutoRow, type Item } from "../db.ts";
 import { loadMap, type Zone } from "../map.ts";
 import { bossNow } from "../schedule.ts";
-import { BEASTS, MAPS, TIERS, MAX_YEARS, autoHint, OFFLINE, boneChance, AUTO_MSG_RATE, parseAuto, AUTO_DAILY_SECS, autoTimeText, AUTO_MAX_PER_CELL, autoLeft, AutoSummary, AutoHint, ItemDef, AUTO_BONUS_MAX, offlineSplit, offlineFight, beastStats, xpLevelScale, beastLevel, BEAST_COIN, tierOfYears, shardChance, shardCode, SHARD_QTY, itemDef, herbChance, HERBS, rollEquipDrop, BONE_SLOTS, coreChance, rollCore, XP_SHARE_ACTIVE, XP_SHARE_BENCH, formatYears, formatHonTe, rollYears, tierBand } from "../../../shared/data.ts";
+import { BEASTS, MAPS, TIERS, MAX_YEARS, autoHint, OFFLINE, boneChance, AUTO_MSG_RATE, parseAuto, AUTO_DAILY_SECS, autoTimeText, AUTO_MAX_PER_CELL, autoLeft, type AutoSummary, type AutoHint, type ItemDef, AUTO_BONUS_MAX, offlineSplit, offlineFight, beastStats, xpLevelScale, beastLevel, BEAST_COIN, tierOfYears, shardChance, shardCode, SHARD_QTY, itemDef, herbChance, HERBS, rollEquipDrop, BONE_SLOTS, coreChance, rollCore, XP_SHARE_ACTIVE, XP_SHARE_BENCH, formatYears, formatHonTe, rollYears, tierBand } from "../../../shared/data.ts";
 import { MOVE_DEAD } from "../../../shared/move.ts";
 import { bagUsed } from "./items.ts";
 import { AutoHunter } from "./autoHunt.ts";
