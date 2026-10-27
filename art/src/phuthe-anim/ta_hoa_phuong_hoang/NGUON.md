@@ -61,3 +61,16 @@ Sau AO review: bài học thứ ba đã khái quát để không ép cánh lông
 ## Tiếp tục A–E (27/10/2026)
 Chủ repo duyệt turnaround lượt 2: https://github.com/nguyenbinhanltv/soul-land-mmo/issues/1024#issuecomment-6443812560. Chọn candidates/turnaround-attempt2.png, copy nguyên byte sang turnaround.png để công cụ đọc. Quyết định này thay cổng chặn turnaround trong hồ sơ cũ; giữ nguyên khai lỗi mắt. Chỉ sinh A–E, không nhập game.
 
+### Tờ hướng A–B
+
+- A (`s`), 1 lượt: 1536×1024, kỹ thuật 0 chặn / 58 nhẹ. Bốn hàng đủ 6/6/6/4 hình; nộm thu nhỏ và dời xuống so với bảng nộm; một số pose đầu/ngực chim quay sang phải thay vì giữ chính diện. Cánh lớn, có phần vượt cửa sổ cutter. Không chứng nhận đạt đẹp bằng mắt.
+- B (`se`), 1 lượt: 1536×1024, kỹ thuật 0 chặn / 62 nhẹ. Cast cuối gần chính diện; nộm thu nhỏ/dời xuống, cánh sát mép. Không chứng nhận đạt đẹp bằng mắt.
+- Prompt nguyên văn trích khối `text` của file do `phuthe-sheet-prompt.mjs` sinh, không viết thêm. RAW nguyên byte; nguồn, SHA256 ảnh/prompt và tham chiếu đúng thứ tự ở `toA.source.json`, `toB.source.json`. Model/seed unknown.
+- B tham chiếu bảng nộm B → turnaround lượt 2 → A (A không có khối chặn tự động). C dự kiến tham chiếu bảng nộm C → turnaround lượt 2 → B (B không có khối chặn tự động). Điều kiện tham chiếu ở đây là kiểm kỹ thuật theo yêu cầu, không phải duyệt mắt hoàn toàn.
+
+```text
+--eye "toA=hướng — H1 C2–4, H2/H3 nhiều ô — đầu/ngực chim nghiêng phải thay vì s; không vẽ sửa RAW"
+--eye "toA=phụ thể/nộm — toàn tờ — nộm thu nhỏ, dời xuống; cánh sát mép, cast cuối vượt ô"
+--eye "toB=hướng — H4 C4 — cast cuối gần chính diện thay vì se"
+--eye "toB=phụ thể/nộm — toàn tờ — nộm thu nhỏ, dời xuống; cánh sát mép"
+```

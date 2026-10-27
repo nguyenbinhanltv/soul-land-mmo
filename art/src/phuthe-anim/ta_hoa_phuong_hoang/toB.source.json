@@ -1,0 +1,27 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempt": 1,
+  "date": "2026-10-27",
+  "direction": "se",
+  "raw": "toB.png",
+  "sha256": "aba7ccbd5b489217dc5b1410683f8389db3c56fa714507adae5517a5e73d874a",
+  "prompt": "toB.prompt.txt",
+  "promptSha256": "1039eb683ff236f2c0aed59b120a9dff2b9b50ea525503329fd63df22bc08d03",
+  "promptCommand": "node tools/assets/phuthe-sheet-prompt.mjs --id ta_hoa_phuong_hoang --stage direction --dir se",
+  "references": [
+    {
+      "file": "references/ta_hoa_phuong_hoang-nom-toB.png",
+      "sha256": "dbd7e4230f8db5df51aa986b277c05bbb9d8b2a128d5b19cc01e3d6a3ae1d165"
+    },
+    {
+      "file": "turnaround.png",
+      "sha256": "fa7f51cf58c33792a8c395537909b5d3cc39bdf9301f010d1cb9667d48c8046a"
+    },
+    {
+      "file": "toA.png",
+      "sha256": "e1df266239a6669c2d35bc8488f853733b46d53236c6d701f440ee0401e7a27d"
+    }
+  ]
+}
