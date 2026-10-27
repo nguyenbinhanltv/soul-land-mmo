@@ -39,6 +39,17 @@ test("prompt: mỗi loại có bố cục đúng số mảnh, nền, LESSONS, kh
   assert.throws(() => pickKindLayout(expandKind(kit, "D"), 7), /không có bố cục 7/);
 });
 
+test("prompt tờ F: mọi khung theo --material, không cố định 2 khung Giấy", () => {
+  const f = expandKind(kit, "F"), muc = buildPrompt(f, { material: "muc" }), giay = buildPrompt(f, { material: "giay" });
+  assert.ok(!/paper[- ]material/i.test(muc.replace(/LESSONS[\s\S]*/, "")), "F Mực không nhắc Giấy");
+  assert.match(muc, /INK material/);
+  assert.equal((muc.match(/ink-material/g) ?? []).length, 4);
+  assert.ok(!/ink[- ]material/i.test(giay.replace(/LESSONS[\s\S]*/, "")), "F Giấy không nhắc Mực");
+  assert.match(giay, /PAPER material/);
+  assert.equal((giay.match(/paper-material/g) ?? []).length, 4);
+  assert.match(buildDoc(f, { material: "giay" }), /Giấy \(/);
+});
+
 test("tài liệu prompt: tham chiếu theo thứ tự cố định, không dùng tờ lỗi, tối đa 3 lượt", () => {
   const refs = referencesFor("F");
   assert.deepEqual(refs.map((r) => r.n), [1, 2, 3]);
