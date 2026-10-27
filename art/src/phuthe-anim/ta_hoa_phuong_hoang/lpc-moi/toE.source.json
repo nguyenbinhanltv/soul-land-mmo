@@ -1,0 +1,408 @@
+{
+    "tool":  "builtin image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "date":  "2026-10-27",
+    "attempt":  1,
+    "raw":  "toE.png",
+    "sha256":  "9f7a961749b6e77075cd72775cc56ed9bd243298d4ddd127b1e6f4584496bda1",
+    "prompt":  "toE.prompt.txt",
+    "promptSha256":  "af9aee6dc5a3d935972ff3cac67034f0878b9d72f5b7a2b48fd0dbc8099de87f",
+    "referencePathBase":  "repository root",
+    "references":  [
+                       {
+                           "sha256":  "f8fada0c60d35b1bc5e102f9a91f982d1bd464fea197b2de43abfcf6e9fa493e",
+                           "file":  "art/src/phuthe-anim/ta_hoa_phuong_hoang/lpc-moi/ta_hoa_phuong_hoang-nom-toE.png"
+                       },
+                       {
+                           "sha256":  "fa7f51cf58c33792a8c395537909b5d3cc39bdf9301f010d1cb9667d48c8046a",
+                           "file":  "art/src/phuthe-anim/ta_hoa_phuong_hoang/candidates/turnaround-attempt2.png"
+                       },
+                       {
+                           "sha256":  "bd99266c23f4bfc4c05309280056cb7687cf4eda0f7bfe9b53241df85525b5b7",
+                           "file":  "art/src/phuthe-anim/ta_hoa_phuong_hoang/lpc-moi/toD.png"
+                       }
+                   ],
+    "turnaround":  "Bản cũ lượt 2 đã duyệt #1157, quyết định PR #1176; không phải turnaround nộm mới",
+    "promptHandwritten":  false,
+    "promptAddendum":  false,
+    "postprocessing":  "none; RAW copied byte-for-byte",
+    "technicalCheck":  {
+                           "sheet":  "toE",
+                           "size":  [
+                                        1536,
+                                        1024
+                                    ],
+                           "kind":  "huong",
+                           "level":  "nhẹ",
+                           "dirs":  [
+                                        "n"
+                                    ],
+                           "background":  {
+                                              "key":  [
+                                                          250,
+                                                          4,
+                                                          252
+                                                      ],
+                                              "corners":  [
+                                                              [
+                                                                  227,
+                                                                  18,
+                                                                  241
+                                                              ],
+                                                              [
+                                                                  239,
+                                                                  23,
+                                                                  241
+                                                              ],
+                                                              [
+                                                                  229,
+                                                                  42,
+                                                                  234
+                                                              ],
+                                                              [
+                                                                  234,
+                                                                  34,
+                                                                  236
+                                                              ]
+                                                          ],
+                                              "keyDistFromLock":  5,
+                                              "cornerSpread":  38
+                                          },
+                           "seVsE":  null,
+                           "prep":  {
+                                        "shift":  {
+                                                      "dx":  0,
+                                                      "dy":  0
+                                                  },
+                                        "factor":  1,
+                                        "grid":  "gap"
+                                    },
+                           "bands":  [
+                                         {
+                                             "row":  1,
+                                             "dir":  "n",
+                                             "y":  [
+                                                       19,
+                                                       243
+                                                   ],
+                                             "figures":  6,
+                                             "state":  "ok"
+                                         },
+                                         {
+                                             "row":  2,
+                                             "dir":  "n",
+                                             "y":  [
+                                                       261,
+                                                       487
+                                                   ],
+                                             "figures":  6,
+                                             "state":  "ok"
+                                         },
+                                         {
+                                             "row":  3,
+                                             "dir":  "n",
+                                             "y":  [
+                                                       510,
+                                                       724
+                                                   ],
+                                             "figures":  6,
+                                             "state":  "ok"
+                                         },
+                                         {
+                                             "row":  4,
+                                             "dir":  "n",
+                                             "y":  [
+                                                       737,
+                                                       985
+                                                   ],
+                                             "figures":  4,
+                                             "state":  "warn"
+                                         }
+                                     ],
+                           "motion":  [
+                                          {
+                                              "dir":  "n",
+                                              "anim":  "idle",
+                                              "maxDiff":  0.317
+                                          },
+                                          {
+                                              "dir":  "n",
+                                              "anim":  "walk",
+                                              "maxDiff":  0.449
+                                          },
+                                          {
+                                              "dir":  "n",
+                                              "anim":  "hurt-vs-idle",
+                                              "maxDiff":  0.49
+                                          }
+                                      ],
+                           "issues":  [
+                                          {
+                                              "sev":  "note",
+                                              "code":  "nen",
+                                              "where":  "toàn tờ",
+                                              "msg":  "nền dốc nhẹ (bốn góc lệch 38), trong dung sai 60; không phải lỗi."
+                                          },
+                                          {
+                                              "sev":  "note",
+                                              "code":  "tach-hinh",
+                                              "where":  "H3 (n)",
+                                              "msg":  "dải dò được 4 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 6."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "o-trong",
+                                              "where":  "H4 (n) C5",
+                                              "msg":  "ô trống có hình (11.54% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H1 (n) C1",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.39 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H1 (n) C2",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.41 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "cham-mep-khung",
+                                              "where":  "H1 (n) C2",
+                                              "msg":  "phụ thể chạm mép ô khung (52 điểm): có thể bị cắt."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H1 (n) C3",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.37 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H1 (n) C4",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.42 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H2 (n) C1",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.35 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H2 (n) C2",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.33 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H2 (n) C3",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.35 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H2 (n) C4",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.36 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "cham-mep-khung",
+                                              "where":  "H2 (n) C4",
+                                              "msg":  "phụ thể chạm mép ô khung (79 điểm): có thể bị cắt."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H2 (n) C5",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.38 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H2 (n) C6",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.34 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H3 (n) C1",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.41 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "cham-mep-khung",
+                                              "where":  "H3 (n) C1",
+                                              "msg":  "phụ thể chạm mép ô khung (34 điểm): có thể bị cắt."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H3 (n) C2",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.42 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "cham-mep-khung",
+                                              "where":  "H3 (n) C2",
+                                              "msg":  "phụ thể chạm mép ô khung (84 điểm): có thể bị cắt."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "vuot-khung",
+                                              "where":  "H3 (n) C2",
+                                              "msg":  "99 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H3 (n) C3",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.4 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "cham-mep-khung",
+                                              "where":  "H3 (n) C3",
+                                              "msg":  "phụ thể chạm mép ô khung (327 điểm): có thể bị cắt."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "vuot-khung",
+                                              "where":  "H3 (n) C3",
+                                              "msg":  "4379 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H3 (n) C4",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.31 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "cham-mep-khung",
+                                              "where":  "H3 (n) C4",
+                                              "msg":  "phụ thể chạm mép ô khung (239 điểm): có thể bị cắt."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "vuot-khung",
+                                              "where":  "H3 (n) C4",
+                                              "msg":  "5223 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H3 (n) C5",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.38 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "cham-mep-khung",
+                                              "where":  "H3 (n) C5",
+                                              "msg":  "phụ thể chạm mép ô khung (187 điểm): có thể bị cắt."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "vuot-khung",
+                                              "where":  "H3 (n) C5",
+                                              "msg":  "1643 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H3 (n) C6",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.38 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H4 (n) C1",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.44 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "cham-mep-khung",
+                                              "where":  "H4 (n) C1",
+                                              "msg":  "phụ thể chạm mép ô khung (310 điểm): có thể bị cắt."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "vuot-khung",
+                                              "where":  "H4 (n) C1",
+                                              "msg":  "1630 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H4 (n) C2",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.4 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "cham-mep-khung",
+                                              "where":  "H4 (n) C2",
+                                              "msg":  "phụ thể chạm mép ô khung (312 điểm): có thể bị cắt."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "vuot-khung",
+                                              "where":  "H4 (n) C2",
+                                              "msg":  "1730 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H4 (n) C3",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.44 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "cham-mep-khung",
+                                              "where":  "H4 (n) C3",
+                                              "msg":  "phụ thể chạm mép ô khung (464 điểm): có thể bị cắt."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "vuot-khung",
+                                              "where":  "H4 (n) C3",
+                                              "msg":  "5412 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H4 (n) C4",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.38 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "cham-mep-khung",
+                                              "where":  "H4 (n) C4",
+                                              "msg":  "phụ thể chạm mép ô khung (549 điểm): có thể bị cắt."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "vuot-khung",
+                                              "where":  "H4 (n) C4",
+                                              "msg":  "8428 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H1 (n) C5",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.38 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          },
+                                          {
+                                              "sev":  "light",
+                                              "code":  "nom-mat",
+                                              "where":  "H1 (n) C6",
+                                              "msg":  "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.49 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                                          }
+                                      ],
+                           "draft":  "LỖI: toE — hình ở ô trống / mất nộm / chạm mép khung / vượt khung — H4 (n) C5, H1 (n) C1, H1 (n) C2, H1 (n) C2, H1 (n) C3, H1 (n) C4, H2 (n) C1, H2 (n) C2, H2 (n) C3, H2 (n) C4, H2 (n) C4, H2 (n) C5, H2 (n) C6, H3 (n) C1, H3 (n) C1, H3 (n) C2, H3 (n) C2, H3 (n) C2, H3 (n) C3, H3 (n) C3, H3 (n) C3, H3 (n) C4, H3 (n) C4, H3 (n) C4, H3 (n) C5, H3 (n) C5, H3 (n) C5, H3 (n) C6, H4 (n) C1, H4 (n) C1, H4 (n) C1, H4 (n) C2, H4 (n) C2, H4 (n) C2, H4 (n) C3, H4 (n) C3, H4 (n) C3, H4 (n) C4, H4 (n) C4, H4 (n) C4, H1 (n) C5, H1 (n) C6 — ô trống có hình (11.54% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.39 \u003c 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.41 \u003c 0.5); cutter dùng độ dời trung vị của tờ; phụ thể chạm mép ô khung (52 điểm): có thể bị cắt; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.37 \u003c 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.42 \u003c 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.35 \u003c 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.33 \u003c 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.35 \u003c 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.36 \u003c 0.5); cutter dùng độ dời trung vị của tờ; phụ thể chạm mép ô khung (79 điểm): có thể bị cắt; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.38 \u003c 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.34 \u003c 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.41 \u003c 0.5); cutter dùng độ dời trung vị của tờ; phụ thể chạm mép ô khung (34 điểm): có thể bị cắt; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.42 \u003c 0.5); cutter dùng độ dời trung vị của tờ; phụ thể chạm mép ô khung (84 điểm): có thể bị cắt; 99 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.4 \u003c 0.5); cutter dùng độ dời trung vị của tờ; phụ thể chạm mép ô khung (327 điểm): có thể bị cắt; 4379 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.31 \u003c 0.5); cutter dùng độ dời trung vị của tờ; phụ thể chạm mép ô khung (239 điểm): có thể bị cắt; 5223 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.38 \u003c 0.5); cutter dùng độ dời trung vị của tờ; phụ thể chạm mép ô khung (187 điểm): có thể bị cắt; 1643 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.38 \u003c 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.44 \u003c 0.5); cutter dùng độ dời trung vị của tờ; phụ thể chạm mép ô khung (310 điểm): có thể bị cắt; 1630 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.4 \u003c 0.5); cutter dùng độ dời trung vị của tờ; phụ thể chạm mép ô khung (312 điểm): có thể bị cắt; 1730 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.44 \u003c 0.5); cutter dùng độ dời trung vị của tờ; phụ thể chạm mép ô khung (464 điểm): có thể bị cắt; 5412 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.38 \u003c 0.5); cutter dùng độ dời trung vị của tờ; phụ thể chạm mép ô khung (549 điểm): có thể bị cắt; 8428 điểm phụ thể nằm ngoài ô khung (bị cắt); nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.38 \u003c 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.49 \u003c 0.5); cutter dùng độ dời trung vị của tờ."
+                       }
+}
