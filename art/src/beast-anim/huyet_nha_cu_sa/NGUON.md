@@ -78,4 +78,4 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/beast-anim/huyet_nha_cu_sa/` | - | unknown (công cụ sinh ảnh không công bố) | RAW hoạt ảnh Huyết Nha Cự Sa: turnaround 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+| `art/src/beast-anim/huyet_nha_cu_sa/` | - | image_gen | RAW hoạt ảnh Huyết Nha Cự Sa: turnaround 1536×1024, toA 1536×1024, toB 1536×1024, toC 1536×1024, toD 1536×1024, toE 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
