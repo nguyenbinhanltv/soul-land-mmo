@@ -1,4 +1,4 @@
-﻿# Hạo Thiên Chùy — bản tham chiếu concept đã chốt
+# Hạo Thiên Chùy — bản tham chiếu concept đã chốt
 
 Bản sao nguyên byte từ `art/src/phap-tuong/hao_thien_chuy/concept-turnaround-attempt2.png`, tác giả tthoadev, PR #1083 / #1154. Orchestrator xác nhận dùng làm reference số 1 cho thử phụ thể trực tiếp `--no-dummy` (Part of #1024), ngày 2026-10-27. Không phải lượt sinh mới, không nhập game.
 
