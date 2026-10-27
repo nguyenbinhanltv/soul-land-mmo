@@ -26,7 +26,7 @@ Loài `thien_thanh_nguu_mang` (Thiên Thanh Ngưu Mãng), họ `snake`, khung ga
 
 ```text
 LỖI: turnaround — ne còn hơi lộ mõm; die còn đường cong S; chọn lượt 2/3 làm ref kỹ thuật (mắt)
-LỖI: toA — s — attack H3 C2,C5 quay phải; die H4 C2–4 quay chếch phải và còn cong, chưa giữ hướng s (mắt)
+LỖI: toA — s — idle H1 C4, attack H3 C2,C5 quay phải; die H4 C2–4 quay chếch phải và còn cong; toB sau 3 lượt vẫn CHẶN kỹ thuật H4/se hình dính (lượt 1: 3/4 hình + tràn C5, lượt 2: 3/4, lượt 3: dò được 1/4). B tốt nhất lượt 3, chỉ lưu candidates/toB-attempt3.png, không có toB chính; die còn cong S (mắt)
 ```
 
 ## Ghi công
