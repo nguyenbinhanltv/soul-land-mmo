@@ -45,3 +45,11 @@
 - [direction @B] Keep the six attack poses as six compact islands, with a full-width empty magenta band above and below the row. // Nhu Cốt Thố C1: kiểm chặn không dò đủ bốn hàng.
 - [direction @B] Preserve four isolated cast figures with a visible magenta gap even at the widest ear or limb spread. // Nhu Cốt Thố C1/C2: cast dễ dính, giữ bốn hình riêng.
 - [direction @B] Keep recoil and cast attachments within the same compact envelope as idle, without shrinking the hero silhouette to create space. // Nhu Cốt Thố D1: nộm nhỏ trong cast/hurt.
+- [direction @B] For coiled attachments, keep each coil compact around its named arm or shoulder, with empty gutters above and below every row. // Xà Hoàng A1: áp bài học hình dính cast của Nhu Cốt Thố.
+- [direction @B] Preserve the mannequin position across all four idle frames; make room by tightening coils, never by moving the mannequin downward or sideways. // Xà Hoàng A1: 4 chặn nom-lech ở idle.
+- [direction @B] Copy the mannequin silhouette and its exact key color from image one without rounding, shortening, recoloring or replacing any visible part. // Xà Hoàng A2: nom-mat chặn toàn bộ 22 ô.
+- [direction @B] Keep the attachment centered on the shoulder and arm axis rather than a large coiled pedestal behind the hero. // Xà Hoàng A3: vòng rắn sau thân, nộm thu nhỏ.
+- [direction @B] A coil that crosses the arm must stay in contact with that arm in every pose, without a detached loop or floating head. // Xà Hoàng B1: cần kiểm vòng quấn tay khi ráp LPC.
+- [direction @B] The four cast mannequins must remain the same body scale as idle, even when the neck or attachment rises higher. // Xà Hoàng C1: nộm cast nhỏ hơn idle.
+- [direction @B] Keep the neck bend within its cell during the strike; leave the neighbouring figure completely separate. // Xà Hoàng D1: đầu mổ ở attack sát hình kế.
+- [direction @B] Shorten the striking neck and attached trail enough to keep all six attack figures disconnected from each other. // Xà Hoàng E1: attack dính, chỉ tách 3/6 hình.
