@@ -96,7 +96,7 @@ test("ATTACK theo đặc điểm loài: mô tả có ngà / vòi / nọc / xúc 
 });
 
 test("loài không bị ảnh hưởng giữ câu của họ (bird, snake, plant, insect không ghi đè)", () => {
-  for (const [id, family] of [["kim_linh_ung", "bird"], ["bich_lan_xa", "snake"], ["quy_dang", "plant"], ["doc_cham_phong", "insect"]]) {
+  for (const [id, family] of [["kim_linh_ung", "bird"], ["bich_lan_xa", "snake"], ["thuc_nhan_hoa", "plant"], ["doc_cham_phong", "insect"]]) {
     const info = speciesInfo(id);
     assert.equal(info.family, family);
     assert.deepEqual(moveFor(info), { ...MOVE[family], ...MOVE_OVERRIDE[id] });
