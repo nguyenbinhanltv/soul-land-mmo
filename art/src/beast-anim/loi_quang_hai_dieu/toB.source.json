@@ -13,5 +13,7 @@
                        "art/src/beast-anim/loi_quang_hai_dieu/toA.png"
                    ],
     "original_tool_path":  "C:/Users/PC/.codex/generated_images/01a17b67-f992-7893-a381-979cb0744f6b/exec-f1773767-e83e-41ab-b35b-6dd62d63c62c.png",
-    "postprocessing":  "Không; sao chép RAW nguyên byte."
+    "postprocessing":  "Không; sao chép RAW nguyên byte.",
+    "generated_at_utc":  "2026-10-27T03:33:09.0771890Z",
+    "prompt_sha256":  "adf0ea670bfa415368743a6037566fcd313bb26bdcab95602d5fc88afad0885f"
 }
