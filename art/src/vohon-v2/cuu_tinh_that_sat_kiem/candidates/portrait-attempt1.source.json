@@ -1,0 +1,95 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "issue": 1158,
+  "attempt": 1,
+  "max_attempts": 3,
+  "reference": "art/src/vohon-v2/cuu_tinh_that_sat_kiem/concept-attempt1.png",
+  "reference_sha256": "fd3d5096e24b97581923de32e9643a85119d23c220c1a9a8bb46431a840c51fb",
+  "image_sha256": "07efb5f3936ea488f8b1b267e4fd03277ac63030bd6487c20c3f7e821cd79840",
+  "prompt_sha256": "8c1bbb09dda896ca7e048bd97b05ed32e685d9c36dac8d4d75eb11f4aca28425",
+  "prompt_command": "node tools/assets/vohon-prompt.mjs --type portrait --id cuu_tinh_that_sat_kiem --style-ref art/src/vohon-v2/cuu_tinh_that_sat_kiem/concept-attempt1.png",
+  "pixel_command": "node tools/assets/vohon-pixelize.mjs --type portrait --id cuu_tinh_that_sat_kiem --in art/src/vohon-v2/cuu_tinh_that_sat_kiem/candidates/portrait-attempt1.png --out art/src/vohon-v2/cuu_tinh_that_sat_kiem/candidates/portrait-attempt1-P1c2 --preset portrait2",
+  "raw_check": {
+    "type": "portrait",
+    "id": "cuu_tinh_that_sat_kiem",
+    "issues": [
+      {
+        "sev": "soft",
+        "code": "mem",
+        "text": "texture mềm: 88% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+      },
+      {
+        "sev": "soft",
+        "code": "nhieu-mau",
+        "text": "176 màu đáng kể (nên ≤ 160 để ép về ≤ 32 mà không bệt)"
+      },
+      {
+        "sev": "soft",
+        "code": "luoi",
+        "text": "chưa đúng lưới khối: tỉ số biên 2.19 ở chu kỳ 37 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+      }
+    ],
+    "metrics": {
+      "w": 1254,
+      "h": 1254,
+      "ratio": 1,
+      "border": {
+        "clear": 0,
+        "flat70": 0.95
+      },
+      "fill": 0.93,
+      "softness": 0.884,
+      "bigColors": 176,
+      "grid": {
+        "period": 37,
+        "ratio": 2.19
+      },
+      "paletteMatch": 0.99,
+      "smallAccent": "8/8"
+    },
+    "manual": [
+      "đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi)",
+      "không có chữ, ký hiệu đọc được, logo, chữ ký",
+      "đọc được cả ở cỡ thật 1× (nhìn lướt)"
+    ]
+  },
+  "pixel_check": {
+    "type": "portrait",
+    "id": "cuu_tinh_that_sat_kiem",
+    "issues": [
+      {
+        "sev": "soft",
+        "code": "nhieu-chi-tiet",
+        "text": "mật độ biên 0.34 (> 0.3): còn nhiều mảng nhỏ ở cỡ 64×64, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+      },
+      {
+        "sev": "soft",
+        "code": "gan-mau",
+        "text": "hai màu lớn chỉ cách nhau 6.5 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+      }
+    ],
+    "metrics": {
+      "w": 64,
+      "h": 64,
+      "colors": 16,
+      "hot": 0.164,
+      "contrast": 0.289,
+      "edge": 0.34,
+      "sep": 6.5,
+      "bgRatio": 1.51,
+      "accent": "8/8"
+    },
+    "manual": [
+      "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+      "so với RAW: vẫn là cùng một võ hồn"
+    ]
+  },
+  "eye": [
+    "nhận diện — có tám điểm sao thay vì bảy; góc chính diện thay vì 3/4; cận chuôi/sống kiếm cắt mất mũi, mép thép sáng rộng và quầng lam tranh sao; candidate chưa đạt"
+  ],
+  "status": "candidate_pending_art_review",
+  "imported": false
+}
