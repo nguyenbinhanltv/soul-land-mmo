@@ -327,3 +327,21 @@ test("preset portrait: chủ thể lam trên nền lam → nền về nâu ấm,
   const warm = P.pixelizePortrait(softSpirit(300, 3), { preset: "portrait" }); assert.equal(warm.report.bgHue, 270, "chủ thể ấm: nền vẫn tím");
   assert.equal(P.backgroundHue(null), 270); assert.equal(P.backgroundHue(280), 30); assert.equal(P.backgroundHue(20), 270);
 });
+
+test("portrait2 (P1c2): nền theo màu viền, giữ khối tối + mắt, màu sát RAW hơn preset portrait", () => {
+  const S = 400, im = new Img(S, S); fill(im, 0, 0, S, S, [30, 14, 18]);
+  disc(im, S / 2, S / 2, S * 0.4, [70, 40, 36]); disc(im, S / 2, S / 2, S * 0.22, [110, 70, 55]); // thân TỐI (luma thấp hơn mọi nét sáng)
+  disc(im, S * 0.4, S * 0.42, S * 0.03, [255, 235, 140]); disc(im, S * 0.6, S * 0.42, S * 0.03, [255, 235, 140]);
+  const r2 = P.pixelizePortrait(im, { preset: "portrait2" }), r1 = P.pixelizePortrait(im, { preset: "portrait" });
+  assert.equal(r2.report.preset, "portrait2");
+  assert.ok(r2.report.bgShare > 0.1 && r2.report.bgShare < 0.6, `nền ${r2.report.bgShare}`);
+  const mid = r2.img.get(32, 40), corner = r2.img.get(1, 1);
+  assert.notDeepEqual(mid.slice(0, 3), corner.slice(0, 3), "thân tách khỏi nền");
+  assert.ok(P.luma(...mid) > P.luma(...corner), "thân tối vẫn sáng hơn nền phẳng");
+  assert.ok(r2.report.accent.kept >= 1, "mắt còn");
+  assert.ok(cnt(r2.img) > cnt(r1.img), "nhiều màu hơn preset portrait");
+  const region = P.crop(P.prepareSource(im, { bg: "none" }).img, { x: 0, y: 0, w: S, h: S });
+  assert.ok(P.colorDrift(r2.img, region) < P.colorDrift(r1.img, region), "lệch màu thấp hơn preset portrait");
+  const e = P.edgeBackground(P.pixelizeDown(region, 64, 64));
+  assert.ok(e.bg[0] === 1 && e.bg[32 * 64 + 32] === 0, "tâm không phải nền");
+});
