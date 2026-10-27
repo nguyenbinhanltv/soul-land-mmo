@@ -37,6 +37,7 @@ LESSONS (learned from earlier sheets of other creatures, follow every line):
 - Direction "ne" is a three-quarter BACK view: the body axis is turned about 45 degrees away toward the upper right, the rump and back are nearest to the viewer, and it must not be drawn as a plain side profile.
 - Direction "n" is a pure back view: only the back of the head, back, rump and tail are visible.
 - Every direction e, se and ne faces the RIGHT side of the picture; never mirror them to face left.
+- In the south-facing block, keep the head aimed straight toward the viewer throughout WALK and ATTACK; do not turn right. In DIE, keep the spine aligned from the top to the bottom of the cell, never stretched sideways from left to right.
 - A snake has no legs, feet, paws or claws in any frame: it slithers on its belly along the ground. HURT snaps the head and front of the body backward along the facing line while the body stays on the ground; it never rears up on legs, flips onto its back or shows its belly.
 - While slithering the body flows in an S-curve along the ground toward the facing direction; the head leads and the tail follows.
 - DIE of a snake ends stretched out straight along the facing line, never coiled sideways.
