@@ -5,6 +5,7 @@
 // Chung: --colors N (mặc định theo loại: PORTRAIT_MAX_COLORS / PT_MAX_COLORS) --palette auto|gpl (gpl = chỉ chọn trong art/palette.gpl + màu võ hồn)
 //        --merge D (gộp màu gần hơn D) --min-cluster N --passes N (làm cứng cạnh) --accent K (ưu tiên điểm sáng): mặc định theo loại, xem DEFAULTS_BY_TYPE ở vohon-pixelize-lib.mjs
 //        --bg auto|none|#rrggbb (bỏ nền; chân dung mặc định none) --outline on|off --lift auto|off|<0..1> (icon: nâng sáng ảnh tối, mặc định auto 0,8) --no-check (chỉ tắt in kết quả kiểm; vẫn thoát mã 1 nếu CHẶN)
+//        --preset portrait (#1095, tạo tương phản: nền lạnh tối, hue-shift, ≤ 8 màu, viền sáng; chỉ chân dung; từng mục chỉnh bằng) --hue-shift 0..1 --max-colors N --cool on|off --rim on|off --protect on|off
 // Ghi `<id>-<loại>[-cỡ].png`, `.report.json` (cắt, màu, điểm sáng còn / mất) và in kết quả `vohon-check pixel`. Thoát mã 1 nếu có mục CHẶN.
 // Ảnh RAW KHÔNG vào game từ đây: đây chỉ là bản thử để duyệt bằng mắt (vohon-preview.mjs); nhập game theo skill asset-gen sau khi chủ repo duyệt.
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -25,7 +26,7 @@ const num = (s) => (s === undefined ? undefined : +s);
 /** Chạy một lượt; trả [{ file, res, check }]. Không ghi gì nếu `outDir` rỗng. */
 export function run(o) {
   const src = readPng(o.in), base = `${o.id ?? "vohon"}-${o.type}`, outs = [];
-  const opt = { colors: num(o.colors), palette: o.palette, pool: o.palette === "gpl" ? gplPool(o.id) : [], merge: num(o.merge), minCluster: num(o.minCluster), passes: num(o.passes), accent: num(o.accent), bg: o.bg, outline: o.outline, lift: o.lift, crop: o.crop, zoom: num(o.zoom) ?? 1, focus: o.focus?.split(",").map(Number) };
+  const opt = { colors: num(o.colors), palette: o.palette, pool: o.palette === "gpl" ? gplPool(o.id) : [], merge: num(o.merge), minCluster: num(o.minCluster), preset: o.preset, maxColors: num(o.maxColors), hueShift: num(o.hueShift), cool: o.cool === undefined ? undefined : o.cool !== "off", rim: o.rim === undefined ? undefined : o.rim !== "off", protect: o.protect === undefined ? undefined : o.protect !== "off", passes: num(o.passes), accent: num(o.accent), bg: o.bg, outline: o.outline, lift: o.lift, crop: o.crop, zoom: num(o.zoom) ?? 1, focus: o.focus?.split(",").map(Number) };
   const clean = Object.fromEntries(Object.entries(opt).filter(([, v]) => v !== undefined && !(Array.isArray(v) && v.some(Number.isNaN))));
   if (o.type === "portrait") { const size = num(o.size) ?? PORTRAIT_SIZE, res = pixelizePortrait(src, { ...clean, size }); outs.push({ name: `${base}.png`, img: res.img, res, check: { size } }); }
   else if (o.type === "icon") for (const size of o.size ? [num(o.size)] : ICON_SIZES) { const res = pixelizeIcon(src, { ...clean, size }); outs.push({ name: `${base}-${size}.png`, img: res.img, res, check: { size } }); }
@@ -49,7 +50,7 @@ export function run(o) {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const a = process.argv.slice(2), val = (n) => { const i = a.indexOf(n); return i < 0 ? undefined : a[i + 1]; };
-  const o = { type: val("--type"), id: val("--id"), in: val("--in"), out: val("--out"), crop: val("--crop"), focus: val("--focus"), zoom: val("--zoom"), size: val("--size"), frame: val("--frame"), colors: val("--colors"), palette: val("--palette"), merge: val("--merge"), minCluster: val("--min-cluster"), passes: val("--passes"), accent: val("--accent"), bg: val("--bg"), outline: val("--outline"), lift: val("--lift") };
+  const o = { type: val("--type"), id: val("--id"), in: val("--in"), out: val("--out"), crop: val("--crop"), focus: val("--focus"), zoom: val("--zoom"), size: val("--size"), frame: val("--frame"), colors: val("--colors"), palette: val("--palette"), merge: val("--merge"), minCluster: val("--min-cluster"), passes: val("--passes"), accent: val("--accent"), bg: val("--bg"), outline: val("--outline"), lift: val("--lift"), preset: val("--preset"), maxColors: val("--max-colors"), hueShift: val("--hue-shift"), cool: val("--cool"), rim: val("--rim"), protect: val("--protect") };
   if (!TYPES.includes(o.type) || !o.in || !o.out) { console.error("Dùng: node tools/assets/vohon-pixelize.mjs --type portrait|icon|phaptuong --id <võ hồn> --in <raw.png> --out <thư mục> [--crop x,y,w,h | --focus fx,fy --zoom Z] [--colors N] [--palette auto|gpl] [--bg auto|none|#rrggbb] [--frame 160|128]"); process.exit(2); }
   try {
     let bad = false;
