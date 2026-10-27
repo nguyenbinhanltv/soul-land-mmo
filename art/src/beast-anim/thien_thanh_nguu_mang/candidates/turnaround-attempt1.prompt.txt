@@ -1,0 +1,37 @@
+Create ONE image (landscape 3:2 aspect ratio; the exact pixel size does not matter): a turnaround reference sheet of a single fantasy creature for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game. It is a model sheet: it fixes how the creature looks from each of five directions and how it reacts to a hit and to dying.
+
+CREATURE: Thiên Thanh Ngưu Mãng - sky-blue bull python world boss, giant azure jade-green serpent with a bull's head and two curved horns, thick body coiled in a wide S-curve, forked tongue. Body type: rắn / bò sát. Size class: boss thế giới. Keep the SAME design, proportions, colors, markings and overall size as the references in every frame. Do not redesign it.
+REFERENCES (attached images, in this fixed order): image 1 = the static reference of this exact creature in three views (front, side, back): the identity, design, colors and overall size.
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
+
+GRID: 5 columns x 3 rows of equal invisible cells (307x341 px each). Exactly one creature per cell, centered horizontally, with the lowest point of its body (the belly lying on the ground) on the same invisible ground line about 12% above the cell bottom (lying creatures rest on it), with at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature.
+
+COLUMNS (left to right, one direction per column):
+  column 1: direction "s" = facing the viewer (front view, three-quarter from above).
+  column 2: direction "se" = facing the lower right of the picture (three-quarter front view, head toward the viewer's right).
+  column 3: direction "e" = facing right (side profile, seen from slightly above).
+  column 4: direction "ne" = facing the upper right of the picture (three-quarter back view, head away from the viewer toward the right).
+  column 5: direction "n" = facing away from the viewer (back view from above).
+
+ROWS (top to bottom, the same pose type in every column):
+  row 1 = IDLE: neutral resting pose (the body rests on the ground in loose coils, swaying slowly with the head raised, no legs), one calm frame.
+  row 2 = HURT: the moment of the strongest reaction to a hit (the head and the front of the body snap back along its facing line and the body coils tighter, staying on the ground on the same axis, belly hidden).
+  row 3 = DIE: the FINAL resting pose after dying (the body goes slack and lies stretched out limp on the ground along its facing line).
+In every cell the body keeps the direction of its column: the axis never rotates and the creature never turns to face the viewer. In columns "ne" and "n" no eyes, nose, mouth or face are visible in any row, hurt and die included. Directions e, se and ne face the RIGHT side of the picture.
+
+CONSISTENCY: the same size, proportions, palette and line weight in all 15 cells; only the direction and the pose change.
+
+STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.
+
+DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions. This creature is a snake: it has NO legs, feet, paws, claws or limbs of any kind; never draw any, and never draw it standing or stomping. Its long body rests and slithers directly on the ground along its belly.
+
+LESSONS (learned from earlier sheets of other creatures, follow every line):
+- Direction "se" is a three-quarter view: the body axis is turned about 45 degrees toward the lower right, the face is visible and looks diagonally down toward the viewer, so it clearly differs from "e" (pure side profile).
+- Direction "ne" is a three-quarter BACK view: the body axis is turned about 45 degrees away toward the upper right, the rump and back are nearest to the viewer, and it must not be drawn as a plain side profile.
+- Direction "n" is a pure back view: only the back of the head, back, rump and tail are visible.
+- Every direction e, se and ne faces the RIGHT side of the picture; never mirror them to face left.
+- A snake has no legs, feet, paws or claws in any frame: it slithers on its belly along the ground. HURT snaps the head and front of the body backward along the facing line while the body stays on the ground; it never rears up on legs, flips onto its back or shows its belly.
+- While slithering the body flows in an S-curve along the ground toward the facing direction; the head leads and the tail follows.
+- DIE of a snake ends stretched out straight along the facing line, never coiled sideways.
+- Draw all poses at the same body size and on the same ground line; one creature per cell with clear magenta space around it.
