@@ -36,60 +36,62 @@
 - [direction @B] Keep all four horizontal bands separated by uninterrupted magenta gutters, and keep each of the six attack silhouettes isolated from its neighbours. // Tà Hỏa B/C bổ sung phiên 693: lượt cũ dính H1/H2, attack dính và không dò đủ hàng
 - [direction @B] Preserve six separate figures in each of the first three rows and exactly four in the last row; keep the cast wing tips away from both spare cells. // Tà Hỏa C bổ sung phiên 693: C cũ không dò đủ hàng; B4 qua kiểm nhưng cast tràn ô
 - [direction @B] In the attack strike frame, fold the tail inside its own cell instead of stretching it toward the previous figure; retain the mannequin beneath every attack pose. // Tà Hỏa C4: đuôi attack nối hai hình, H3 chỉ tách 5/6 và mất nộm pha lao
+- [direction @B] Keep the ear roots, limb roots and tail root on the mannequin while leaving an unbroken magenta gap around each attack pose. // Lô 3 trước A1: rút lỗi nộm trôi và attack dính từ Tà Hỏa.
+- [direction @B] Draw only the attachments named in the attachment notes on the hero; do not add an animal torso or separate head unless those notes explicitly request it; keep the mannequin full height. // Nhu Cốt Thố A1: nguyên con thỏ sau nộm và nộm thu nhỏ.
+- [direction @B] For rabbit possession leave the cyan head and torso fully visible, with ears rooted on that head and hind-leg attachments on its feet; omit rabbit face and chest. // Nhu Cốt Thố A2: vẫn có mặt/ngực thỏ sau nộm.
+- [direction @B] Keep the mannequin at its original body proportions instead of turning it into a short rounded icon in front of the spirit. // Nhu Cốt Thố A3: nộm vẫn thu nhỏ thành hình tròn ngắn.
+- [direction @B] If the notes request ears and feet only, leave the space between those attachments empty instead of connecting them into a second animal body. // Nhu Cốt Thố B1: tai/chân lại nối thành thân thú riêng.
+- [direction @B] Keep wide attack trails short and attached; do not let a trail bridge the magenta gutter to the next frame. // Nhu Cốt Thố C1: dải attack dài sát ô bên.
+- [direction @B] Keep the six attack poses as six compact islands, with a full-width empty magenta band above and below the row. // Nhu Cốt Thố C1: kiểm chặn không dò đủ bốn hàng.
+- [direction @B] Preserve four isolated cast figures with a visible magenta gap even at the widest ear or limb spread. // Nhu Cốt Thố C1/C2: cast dễ dính, giữ bốn hình riêng.
+- [direction @B] Keep recoil and cast attachments within the same compact envelope as idle, without shrinking the hero silhouette to create space. // Nhu Cốt Thố D1: nộm nhỏ trong cast/hurt.
+- [direction @B] For coiled attachments, keep each coil compact around its named arm or shoulder, with empty gutters above and below every row. // Xà Hoàng A1: áp bài học hình dính cast của Nhu Cốt Thố.
+- [direction @B] Preserve the mannequin position across all four idle frames; make room by tightening coils, never by moving the mannequin downward or sideways. // Xà Hoàng A1: 4 chặn nom-lech ở idle.
+- [direction @B] Copy the mannequin silhouette and its exact key color from image one without rounding, shortening, recoloring or replacing any visible part. // Xà Hoàng A2: nom-mat chặn toàn bộ 22 ô.
+- [direction @B] Keep the attachment centered on the shoulder and arm axis rather than a large coiled pedestal behind the hero. // Xà Hoàng A3: vòng rắn sau thân, nộm thu nhỏ.
+- [direction @B] A coil that crosses the arm must stay in contact with that arm in every pose, without a detached loop or floating head. // Xà Hoàng B1: cần kiểm vòng quấn tay khi ráp LPC.
+- [direction @B] Across all four cast frames keep the mannequin at the same body scale as idle, even when the neck or attachment rises higher. // Xà Hoàng C1: nộm cast nhỏ hơn idle.
+- [direction @B] Keep the neck bend within its cell during the strike; leave the neighbouring figure completely separate. // Xà Hoàng D1: đầu mổ ở attack sát hình kế.
+- [direction @B] Shorten the striking neck and attached trail enough to keep all six attack figures disconnected from each other. // Xà Hoàng E1: attack dính, chỉ tách 3/6 hình.
+- [direction @B] For a raised neck attachment, keep its root on the shoulder and its head inside the top frame brackets instead of towering beyond the cell. // Bá Vương Long A1: rút lỗi cổ Xà Hoàng cao và xén khi ráp.
+- [direction @B] When forearms are named attachments, draw them on the mannequin arms, not as a second pair of arms floating behind its head. // Bá Vương Long A1: tay rồng nổi sau nộm.
+- [direction @B] Fit the raised claw and neck together inside the frame, leaving the mannequin head and arm positions unchanged. // Bá Vương Long B1: đầu/tay rồng lớn phía sau nộm.
+- [direction @B] Keep cloud masses and raised claws inside each cast cell; never connect the four cast figures with clouds, lightning or limb tips. // Bá Vương Long B1: cast dính thành 1/4 hình.
+- [direction @B] Leave a continuous magenta margin around the cast neck and claw silhouettes, including the bottom corners of each frame. // Bá Vương Long B2: khối cast còn lớn, tránh xén góc.
+- [direction @B] Fold the striking forearm back inside the cell before it reaches the next figure; keep six separate attack islands. // Bá Vương Long B2: attack chỉ tách 5/6 hình.
+- [direction @B] Keep lightning marks on the attachment itself rather than extending a line between adjacent animation frames. // Bá Vương Long B3: tia sét attack kéo sát hình kế.
+- [direction @B] Keep the claw swing compact around the original forearm location rather than moving the mannequin to accommodate a larger swing. // Bá Vương Long C1: cẳng tay vung xa nộm.
+- [direction @B] Reduce the width of the attack claw arc and surrounding cloud mass until six clear magenta-separated figures fit across the row. // Bá Vương Long C1: attack dính chỉ 3/6 hình.
+- [direction @B] In the lunging attack pose curl the neck upward inside its own cell instead of stretching it horizontally into the next pose. // Bá Vương Long C2: cổ lao khiến attack còn dính 5/6.
+- [direction @B] Keep the two lowest cloud lobes above the foot line and clear of the next horizontal band. // Bá Vương Long C3: mây chân và cast sát mép dưới.
+- [direction @B] Keep the widest raised neck pose shorter than the available cell height, retaining a magenta gutter above the next row. // Bá Vương Long D1: cast ngửa cổ cao sát khung.
 - [direction @B] For possessions whose named parts include ears, claws or tails, keep those parts attached to the unchanged hero silhouette; keep any tail curled within its cell so it cannot bridge adjacent attack figures. // Lô 2: áp dụng lỗi đuôi attack nối hình của Tà Hỏa trước lượt Yêu Hồ A1
 - [direction @B] For fox, wolf and tiger possessions, copy only ears, tails and the explicitly listed attached limbs from the concept: no animal head, muzzle, chest, torso or animal legs behind the hero. The unchanged board hero silhouette remains the only body. // Yêu Hồ A1: nguyên hồ ly sau nộm, nộm thu nhỏ/dời xuống
 - [direction @B] For Yêu Hồ only, the fox attachment consists of exactly two separate pointed ear pieces rooted on top of the cyan head and three tails rooted at the cyan lower back. Leave the entire cyan head exposed between the ears: no fox forehead, muzzle, eyes, mask or second head above or behind it, and no detached flame particles. // Yêu Hồ A2: còn đầu/mặt hồ ly trên nộm, attack che nộm
-
 - [direction @B] For ear-and-tail possessions, preserve the exposed cyan head between the ear pieces and root tails at the lower back; do not reintroduce an animal face when turning the attachments. // yeu_ho B1: A3 bỏ được nguyên con; giữ dạng phụ thể ở hướng kế
-
 - [direction @B] Only reference image 1 determines the hero silhouette silhouette and pose in each cell. Never copy the hero silhouette from reference image 3: side-on board bodies must stay side-on, even if the style sheet shows front-on bodies. // yeu_ho B2: B1 nom-mat: nộm chính diện thay dáng ngang
-
 - [direction @B] For sheets whose board is side-on, copy the SIDE PROFILE cyan silhouette of board image 1 literally: one narrow arm profile, right-facing nose silhouette, and the original narrow torso. Do not replace it with a front-view round head and two symmetric arms. // yeu_ho B3: B2 tiếp tục nom-mat do sao dáng chính diện
-
 - [direction @B] Keep side-board hands and arms in their original flat cyan poses throughout ATTACK and CAST, with tails behind the waist rather than over the arm silhouette. // yeu_ho C1: B3 qua kiểm; tránh che nộm khi vung đuôi
-
 - [direction @B] When a side-board sheet requests a back three-quarter attachment view, rotate only the attachments and keep the same side-board hero silhouette; do not replace its pose with a back-view body. // yeu_ho D1: C1 qua kiểm; tránh đổi nộm khi vẽ ne
-
 - [direction @B] For the standard pose board, the hero silhouette head starts near 27 percent of cell height and its feet sit near 77 percent: preserve that full 50 percent cell-height silhouette, never reduce it to a tiny 35 percent tall figure. Preserve each board pose exactly. // yeu_ho D2: D1 nom-mat ở idle vì nộm thu nhỏ/dời
-
 - [direction @B] For a back-view board, keep the original back-view cyan body from image 1; the style reference must never change that body into its side-view silhouette. // yeu_ho E1: D2 qua kiểm; E phải giữ nộm lưng
-
 - [direction @B] For wolf and tiger attachments, keep claw pieces on the existing cyan hands and ears on the cyan head; the tail root stays at the lower back. Never add a second animal body or move the whole attachment mass sideways away from the hero. // liet_hoa_thuong_lang A1: Yêu Hồ sau neo lệch ngang: giữ điểm gắn ngay trong RAW
-
 - [direction @B] For Liệt Hỏa Thương Lang only, draw exactly two separate charcoal-and-ember ear pieces on the cyan head, claw gloves on the cyan hands, and ONE charcoal tail with a flame tip at the cyan lower back. The cyan head stays fully visible: no wolf forehead, eyes, snout, mask, neck, chest, torso, legs or separate wolf anywhere. // liet_hoa_thuong_lang A2: Thương Lang A1 nguyên sói sau nộm
-
 - [direction @B] In a side-board sheet, keep the board narrow side-profile cyan torso and head, not the broad symmetric front hero silhouette seen in the approved front style sheet. Claw gloves follow only the hands already drawn on that side board. // liet_hoa_thuong_lang B1: Yêu Hồ B từng nom-mat do sao nộm A; tránh tái diễn
-
 - [direction @B] When an earlier style sheet pulls the hero silhouette toward the wrong facing, rely on the board alone for body shape: keep the side-facing cyan nose, one arm profile and narrow torso exactly as the board shows, while drawing only the named attachments. // liet_hoa_thuong_lang B2: Thương Lang B1 nom-mat do nộm chính diện
-
 - [direction @B] Keep the claw material itself attached to the original board hands; do not use a detached arc as a substitute for a hand attachment, and keep any painted flame tip within its cell. // liet_hoa_thuong_lang C1: B2 qua kiểm; vệt quét cần nằm gọn ô
-
 - [direction @B] Do not simplify the board cyan silhouettes into thin stick bodies or short figures: retain the full exact head width, torso width, arm thickness and leg thickness of image 1, including the unchanged idle poses in the first four cells. // liet_hoa_thuong_lang C2: C1 nom-mat ở idle do thu/đổi dáng nộm
-
 - [direction @B] For Liệt Hỏa Thương Lang, the approved attachment-only sheet shows the correct anatomy: separate ear pieces, hand claw gloves and one tail, with EMPTY magenta where a separate wolf head or body would have been. Never fill that space with any wolf anatomy from the concept. // liet_hoa_thuong_lang C3: C2 quay lại nguyên sói; C3 giữ cấu tạo chi thể B2
-
 - [direction @B] Keep the first four idle hero silhouettes identical to their board silhouettes, without tilting their heads or merging the claw gloves into the cyan torso; leave the cyan neck and torso outline readable. // liet_hoa_thuong_lang D1: C3 nom-mat ở idle; không dùng C lỗi làm dẫn
-
 - [direction @B] Treat reference board image 1 as an immutable base layer: retain every original cyan shape and original position, and paint only the attachment shapes around and over it. Do not redraw a smaller approximation of any hero silhouette. // liet_hoa_thuong_lang D2: D1 nom-mat: nộm nhỏ/đổi dáng
-
 - [direction @B] For a supplied pose board, preserve the full original head-to-feet cyan silhouette height in every cell; do not shorten it or shift the feet below the original foot guide. // liet_hoa_thuong_lang D3: D2 còn nom-mat do nộm thu nhỏ
-
 - [direction @B] For a north-facing board, preserve every back-view hero silhouette from image 1 exactly; place ears at its head, gloves at its hands and the single tail at its lower back, without adding a wolf head or body. // liet_hoa_thuong_lang E1: D hết 3 lượt còn chặn; E chỉ dùng B2 sạch làm dẫn
-
 - [direction @B] When a pose board is supplied, keep gloves limited to the very ends of the existing cyan hands; do not cover the cyan wrists, forearms, neck or torso with claw material. Preserve the broad back-view cyan body exactly in a north sheet. // liet_hoa_thuong_lang E2: E1 nom-mat ở idle; vuốt không được nuốt nộm
-
 - [direction @B] For flame-tipped attachments, make every flame a solid connected part of its claw or tail. Draw no detached embers, sparks, flecks, sweep fragments or floating flame islands between the six attack figures. // liet_hoa_thuong_lang E3: E2 so-hinh: attack 8 cụm thay vì 6 do mảnh lửa rời
-
 - [direction @B] For Bạch Hổ only, the possession is two separate tiger ear pieces on the cyan head, striped white-and-charcoal claw gloves at the cyan hand tips and ONE striped tail rooted at the lower back. Leave the cyan head fully exposed: no tiger head, face, muzzle, chest, torso, separate legs, full tiger or large apparition behind it. // bach_ho A1: Thương Lang A1 nguyên con; Bạch Hổ phải chỉ có chi thể
-
 - [direction @B] For Bạch Hổ on a side pose board, keep the cyan body narrow and right-facing exactly as image 1. The front style sheet supplies striped ear, glove and tail material only; never its front-view cyan body or any extra white vapor. // bach_ho B1: A1 qua kiểm; tránh sao nộm chính diện và khí trắng
-
 - [direction @B] For Bạch Hổ, keep only the named striped ear pieces, hand-tip gloves and one tail around the ORIGINAL side-facing cyan silhouette. Keep the side nose, narrow torso and single visible arm profile from the board; never rotate that cyan body toward the viewer. // bach_ho B2: B1 sai nộm chính diện dù kiểm tự động không chặn
-
 - [direction @B] For Bạch Hổ, use the approved attachment-only sheet for anatomy: ear pieces, hand-tip gloves and one tail, with no tiger face or torso filling the space behind the cyan hero. Preserve the side-board body shape from image 1 while keeping only these disconnected attachment types. // bach_ho B3: B2 nguyên hổ; B3 phải giữ cấu tạo chi thể A1
-
 - [direction @B] For Bạch Hổ, draw only small isolated ear pieces, hand-tip claw gloves and a single striped tail around the unchanged cyan pose-board body. Leave empty magenta instead of a tiger head, animal chest or animal torso; do not paint white aura, smoke or sweep trails. // bach_ho C1: B hết lượt vẫn sai nộm; C không dùng B lỗi làm dẫn
-
 - [direction @B] For Bạch Hổ, keep the simple small striped attachment pieces of the approved side sheet and the exact side-board cyan silhouette; avoid widening the glove masses into a tiger chest or adding any head behind the cyan head. // bach_ho D1: C1 qua kiểm; giữ đúng dạng chi thể ở ne
-
 - [direction @B] For Bạch Hổ on the north pose board, keep the original back-view cyan silhouette and attach only the striped ears, hand-tip gloves and single tail. Do not copy the side-view body of the style sheet or turn the attachments into a separate tiger. // bach_ho E1: D1 qua kiểm; E giữ nộm lưng của bảng số 1

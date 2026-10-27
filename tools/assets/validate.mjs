@@ -69,6 +69,7 @@ function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank 
     return spec;
   }
   if (!existsSync(file)) return err(key, `thiếu file ${path.relative(ROOT, file)}`);
+  if (spec.alt && !existsSync(path.join(SPRITES, spec.alt))) return err(key, `thiếu file ${path.relative(ROOT, path.join(SPRITES, spec.alt))} (bản 1×)`);
   let img;
   try { img = readPng(file); } catch (e) { return err(key, `không đọc được PNG: ${e.message}`); }
   if (spec.size && (img.w !== spec.size[0] || img.h !== spec.size[1])) return err(key, `kích thước ${img.w}×${img.h}, cần ${spec.size[0]}×${spec.size[1]}`);
@@ -80,7 +81,7 @@ function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank 
   // Màu và alpha.
   const palette = /^hs_(hair|outfit)_/.test(key) ? grayOnly : spec.kind === "prop" ? withAccents : map ? new Set([...allowed, ...mapColors(key, map)]) : allowed;
   // Chân dung / biểu tượng và hiệu ứng fx_* (màu gốc của gói LPC) không theo bảng chung, chỉ giới hạn số màu.
-  const free = spec.kind === "portrait" || spec.kind === "fx" || spec.kind === "phaptuong" || spec.kind === "vhanim" || !!spec.static; // sheet tĩnh ComfyUI: bảng màu riêng từng loài, như chân dung
+  const free = spec.kind === "portrait" || spec.kind === "ui2" || spec.kind === "fx" || spec.kind === "phaptuong" || spec.kind === "vhanim" || !!spec.static; // sheet tĩnh ComfyUI: bảng màu riêng từng loài, như chân dung
   const bad = new Map(), used = new Set(); let semi = 0;
   for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) {
     const p = img.get(x, y);
@@ -91,7 +92,7 @@ function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank 
     if (!free && !palette.has(c)) bad.set(c, (bad.get(c) ?? 0) + 1);
   }
   if (semi) err(key, `${semi} điểm bán trong suốt (chỉ được alpha 0 hoặc 255)`);
-  if (free && !spec.static && spec.kind !== "vhanim" && used.size > (spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS)) err(key, `${used.size} màu, ${spec.kind === "fx" ? "hiệu ứng" : spec.kind === "phaptuong" ? "pháp tướng" : "chân dung"} tối đa ${spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS}`);
+  if (free && !spec.static && spec.kind !== "vhanim" && spec.kind !== "ui2" && used.size > (spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS)) err(key, `${used.size} màu, ${spec.kind === "fx" ? "hiệu ứng" : spec.kind === "phaptuong" ? "pháp tướng" : "chân dung"} tối đa ${spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS}`);
   if (spec.npc && !(npcIds_ ??= npcIds()).has(spec.npc)) err(key, `không có NPC "${spec.npc}" trong NPCS (shared/data.ts)`);
   if (spec.status && !(statusIds_ ??= statusIds()).has(spec.status)) err(key, `không có trạng thái / buff "${spec.status}" trong STATUS_IDS / BUFF_IDS / BEAST_BUFF_IDS (shared/data.ts)`);
   if (spec.beast && !(beastIds_ ??= beastIds()).has(spec.beast)) err(key, `không có loài "${spec.beast}" trong BEASTS (shared/data.ts)`);
@@ -276,8 +277,8 @@ for (const e of manifest.sprites) {
   const key = entryKey(e);
   if (seen.has(key)) err(key, "trùng key trong manifest");
   seen.add(key);
-  const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "", e.nine ?? 0, !!e.static, !!e.blank, e.anim?.cols ?? 0);
-  if (spec) { seen.add(spec.file); seen.add(spec.file.replace(/\.png$/, "_n.png")); }
+  const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "", typeof e.nine === "number" ? e.nine : 0, !!e.static, !!e.blank, e.anim?.cols ?? 0);
+  if (spec) { seen.add(spec.file); if (spec.alt) seen.add(spec.alt); seen.add(spec.file.replace(/\.png$/, "_n.png")); }
   if (spec && typeof e !== "string" && e.anim?.dirsOk !== undefined) checkDirsOk(key, e, spec);
 }
 // Bộ hồn sư giới × kiểu tóc phải đủ 3 lớp tách từ cùng một hình: thiếu lớp nào thì client vẽ lớp đó bằng code, lệch nét.

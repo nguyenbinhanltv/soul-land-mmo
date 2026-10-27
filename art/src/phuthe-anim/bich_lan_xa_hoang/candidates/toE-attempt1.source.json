@@ -1,0 +1,156 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempt": 1,
+  "date": "2026-10-28",
+  "direction": "n",
+  "raw": "toE-attempt1.png",
+  "sha256": "dcf0f7ee1d83b4c2c5aff0288b69925e8ede498657e2ad5a9b65434b8be3c0f7",
+  "prompt": "toE-attempt1.prompt.txt",
+  "promptSha256": "3b7dca1a55176d05c287602cf0d879324753f0e1486ca6f3bc844241431211ad",
+  "promptCommand": "node tools/assets/phuthe-sheet-prompt.mjs --id bich_lan_xa_hoang --stage direction --dir n --concept-ref",
+  "references": [
+    {
+      "file": "art/src/phuthe-anim/bich_lan_xa_hoang/references/bich_lan_xa_hoang-nom-toE.png",
+      "sha256": "f8fada0c60d35b1bc5e102f9a91f982d1bd464fea197b2de43abfcf6e9fa493e"
+    },
+    {
+      "file": "art/src/vohon-v2/bich_lan_xa_hoang/concept-attempt1.png",
+      "sha256": "dbb1002c01e3a0e541c3b385405b4db54225735ed5e549aac983e4a1f1a94a56"
+    }
+  ],
+  "referencePathBase": "repository root",
+  "promptHandwritten": false,
+  "promptAddendum": false,
+  "postprocessing": "none; RAW copied byte-for-byte",
+  "technicalCheck": {
+    "id": "bich_lan_xa_hoang",
+    "level": "chặn",
+    "group": "B",
+    "frame": 96,
+    "dummyKey": "#00D0D0",
+    "blockLevel": {
+      "n": "chặn"
+    },
+    "sheets": [
+      {
+        "sheet": "toE",
+        "size": [
+          1536,
+          1024
+        ],
+        "kind": "huong",
+        "level": "chặn",
+        "dirs": [
+          "n"
+        ],
+        "background": {
+          "key": [
+            250,
+            2,
+            250
+          ],
+          "corners": [
+            [
+              236,
+              11,
+              236
+            ],
+            [
+              243,
+              16,
+              241
+            ],
+            [
+              230,
+              35,
+              231
+            ],
+            [
+              237,
+              27,
+              236
+            ]
+          ],
+          "keyDistFromLock": 5,
+          "cornerSpread": 33
+        },
+        "seVsE": null,
+        "prep": null,
+        "bands": [
+          {
+            "row": 1,
+            "dir": "n",
+            "y": [
+              16,
+              219
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 2,
+            "dir": "n",
+            "y": [
+              237,
+              464
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 3,
+            "dir": "n",
+            "y": [
+              479,
+              700
+            ],
+            "figures": 3,
+            "state": "bad"
+          },
+          {
+            "row": 4,
+            "dir": "n",
+            "y": [
+              704,
+              962
+            ],
+            "figures": 4,
+            "state": "warn"
+          }
+        ],
+        "motion": [],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 33), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "note",
+            "code": "tach-hinh",
+            "where": "H4 (n)",
+            "msg": "dải dò được 3 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 4."
+          },
+          {
+            "sev": "block",
+            "code": "hinh-dinh",
+            "where": "H3 (n)",
+            "msg": "dải có 3 hình, cần 6: hình dính nhau."
+          },
+          {
+            "sev": "light",
+            "code": "o-trong",
+            "where": "H4 (n) C5",
+            "msg": "ô trống có hình (9.18% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng."
+          }
+        ],
+        "draft": "LỖI: toE — hình dính / hình ở ô trống — H3 (n), H4 (n) C5 — dải có 3 hình, cần 6: hình dính nhau; ô trống có hình (9.18% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng."
+      }
+    ]
+  },
+  "eye": "--eye n lộ mặt/quay ngang ở hầu hết clip; nộm nhỏ, cổ sau thân.",
+  "status": "candidate_rejected"
+}
