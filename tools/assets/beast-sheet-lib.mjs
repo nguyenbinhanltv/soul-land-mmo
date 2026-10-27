@@ -91,7 +91,7 @@ export const TOOL_FAMILY = {
   u_linh_hai_mau: "float", tham_hai_ma_chuong: "float",
   loi_quang_hai_dieu: "swim", kiem_ngu: "swim", huyet_nha_cu_sa: "swim", tham_hai_ma_kinh: "swim", lam_lan_hai_xa: "swim",
   // Bướm lửa: côn trùng có cánh, bay lơ lửng (không đứng trên chân). Dây leo: rễ cắm, bò bằng rễ / tua, không chân (#1097).
-  hoa_linh_diep: "fly", quy_dien_hai_yeu: "quad", huyen_minh_bang_tam: "worm", quy_dang_non: "vine", quy_dang: "vine",
+  hoa_linh_diep: "fly", quy_dien_hai_yeu: "quad", huyen_minh_bang_tam: "worm", quy_dang_non: "vine", quy_dang: "vine", doc_cuc_dang: "vine",
 };
 /** Họ không chân: không feet / legs / ground line trong prompt. */
 export const LEGLESS = new Set(["float", "swim"]);

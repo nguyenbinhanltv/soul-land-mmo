@@ -42,8 +42,8 @@ test("Lam Lân Hải Xà là rắn biển bơi (swim): không chân, không grou
   for (const p of promptsOf(info)) assert.match(p, /NO legs, feet, paws, roots or ground contact/);
 });
 
-test("dây leo (Quỷ Đằng, Quỷ Đằng non): rễ cắm, bò bằng rễ / tua, không chân người", () => {
-  for (const id of ["quy_dang", "quy_dang_non"]) {
+test("dây leo (Quỷ Đằng, Quỷ Đằng non, Độc Cức Đằng): rễ cắm, bò bằng rễ / tua, không chân người", () => {
+  for (const id of ["quy_dang", "quy_dang_non", "doc_cuc_dang"]) {
     const info = speciesInfo(id);
     assert.equal(info.family, "vine", id);
     for (const p of promptsOf(info)) {
