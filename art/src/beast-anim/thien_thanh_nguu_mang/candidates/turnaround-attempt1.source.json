@@ -6,5 +6,6 @@
     "references":  [
                        "shared/assets/sprites/beast/thien_thanh_nguu_mang.png"
                    ],
-    "tool":  "image_gen"
+    "tool":  "image_gen",
+    "promptFile":  "turnaround-attempt1.prompt.json"
 }
