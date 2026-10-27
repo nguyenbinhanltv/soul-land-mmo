@@ -7,7 +7,7 @@ Loài `nhan_dien_ma_chu` (Nhân Diện Ma Chu), họ `insect`, khung game 128×1
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1572387 byte, SHA256 `51d9e1d695e8fe673611d0e49a5d22208352306eeade6052269bb2fc313c25b6`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-623.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 4; phiên: soul_land_game-623.
 - Prompt: `turnaround.prompt.txt` (SHA256 `daca5ff6fbd7523e50d40908bff71550ffb22830643b4e9230892d6832fd3e04`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
@@ -16,7 +16,7 @@ Loài `nhan_dien_ma_chu` (Nhân Diện Ma Chu), họ `insect`, khung game 128×1
 ## Lỗi
 
 ```text
-LỖI: turnaround — Chặn mắt — chưa đọc rõ tám chân; lượt 1 tốt nhất lưu candidates/turnaround-attempt1.png (hash trùng mục file bên trên), không có turnaround.png ở thư mục chính; lượt 2 mặt người nổi khối, lượt 3 ne lộ họa tiết mặt. Dừng sau 3 lượt; chưa có tham chiếu đạt nên chưa sinh A–E. (mắt)
+LỖI: turnaround — Chưa đọc rõ tám chân; ngoại lệ orchestrator 27/10: sửa prompt bằng bài học, lượt 4 vẫn chưa đạt. Chọn lượt 1 làm ref kỹ thuật theo quyết định PR 1114; không phải ảnh nhập game. (mắt)
 ```
 
 ## Ghi công
