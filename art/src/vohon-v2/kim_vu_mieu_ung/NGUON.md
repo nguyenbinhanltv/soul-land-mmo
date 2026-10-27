@@ -34,3 +34,17 @@ LỖI: concept-attempt1 — bố cục — cánh — cánh ngoài sát biên, s/
 ```
 
 Theo quyết định ở PR #1145: concept chỉ tham chiếu ngoại hình; hướng ne/n xử lý ở khâu phụ thể bằng hình nộm. Giữ nguyên kết quả kiểm RAW và mọi lỗi đã quan sát, không coi ảnh này là sheet năm hướng dùng trực tiếp. SHA256 ảnh và prompt không đổi khi chuyển vị trí.
+
+## Chân dung lượt 1 — #1158
+
+Ngày 2026-10-27; 1/3 lượt. builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `portrait-attempt1.png`, SHA256 `72608649ecf285bf6951d32d1777130e31e8f15c1b748ba6d27cf670075780a4`. Prompt CLI nguyên văn `portrait-attempt1.prompt.txt`, SHA256 `008ddaa5d7ecd1a653d2fa85fe251475b4e771d8aa3d3ae39b16cb4c0cf0aa28`; không viết tay, không addendum. Ảnh neo ngoại hình: `concept-attempt1.png`, SHA256 `f5acaf93bb42da33603d5d94d9a56fefba8667ba8a9e99d048ca2e70a9f029b9`. Hồ sơ lệnh và kết quả kiểm: `portrait-attempt1.source.json`.
+
+P1c: `--preset portrait`; bản thử `portrait-attempt1-P1c/kim_vu_mieu_ung-portrait.png`, 64×64, 8 màu, giữ 8/8 điểm sáng. Xem `portrait-attempt1-P1c/preview/index.html` và `so-sanh.png`. Chưa được chủ repo duyệt mỹ thuật, chưa nhập game. Không sửa RAW.
+
+### Khai báo duyệt mắt chân dung (`--eye`)
+
+Công cụ vohon:check chưa có cờ --eye; chỉ khai tại đây, không đổi bộ kiểm.
+
+```text
+--eye "portrait-attempt1=góc nhìn — chính diện; tai/mào sát mép, lông và quầng có nhiều nhánh sáng ngoài mắt/mỏ"
+```
