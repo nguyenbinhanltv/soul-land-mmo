@@ -22,7 +22,7 @@
 - [F, N] All four corners have the same size and the same border thickness; draw one beautiful top-left corner and keep the others consistent with it, the tool mirrors them. // công cụ dựng gương
 - [F, N] The inside of a frame or button is a flat or very gently shaded uniform fill, with no motif, vignette or light spot near the centre. // ruột đồng nhất để chia 9 không lộ
 - [N] The pressed state looks sunk (darker, one pixel lower, inner shadow), the hover state looks lit (lighter rim); the disabled state is desaturated and flat. The five states of one button type share exactly the same shape, size and outline. // trạng thái không chỉ đổi màu
-- [N] Primary buttons use vermilion red (son) with a pale bronze rim; secondary buttons use dark ink with the same bronze rim; the two tab pieces are open on the bottom edge. // vai trò vật liệu
+- [N] When MATERIAL is INK, primary buttons use vermilion red (son) with a pale bronze rim; secondary buttons use dark ink with the same bronze rim; the two tab pieces are open on the bottom edge. // vai trò vật liệu
 
 ## Chất liệu, bảng màu, phong cách
 - [all] Limit the whole image to a small palette of at most 32 colours with one consistent dark outline (#1a1020); sharp pixel edges, no anti-aliased blur, no large gradients, no noise texture. // bảng màu ≤ 32 màu
@@ -35,10 +35,10 @@
 - [D] Decorations are loose standalone ornaments (title rule, corner flourish, seal, ribbon); each is a single separated piece that does not need a frame around it. // trang trí rời
 - [BOARD] The sample screen is for approval and as a style reference only: it shows the HUD, two panels, one dialog and the action row, with all labels drawn as empty bars. // không cắt
 - [N] Render every rim as hard opaque stepped pixel blocks with no blended magenta pixels; keep every straight rim segment perfectly constant in colour and thickness, with tiny corner ornaments confined to the corners. // N lượt 1: viền hồng và thân cạnh không phẳng
-- [N] Both tabs use the same dark ink fill as secondary buttons; selection changes only the jade rim and brightness, never turns a tab into ivory paper. // N lượt 1 và 2: tab chọn sai chất liệu Mực
+- [N] When MATERIAL is INK, both tabs use the same dark ink fill as secondary buttons; selection changes only the jade rim and brightness, never turns a tab into ivory paper. // N lượt 1 và 2: tab chọn sai chất liệu Mực
 - [O] Make the outer outline a fully opaque hard-edged dark pixel staircase directly against pure magenta, with no antialiasing, blended pink pixels or translucent fringe. // O lượt 1: viền hồng 48,6 phần trăm
 - [O] Shrink every slot to at most seventy percent of its grid cell, leaving broad uninterrupted magenta gutters even across the five-slot rarity row. // O lượt 1 và 2: hàng độ hiếm quá sát nhau
-- [T] The empty text input box uses a dark ink interior matching the three empty bar frames, never an ivory paper fill; the scrollbar thumb is pale bronze. // T lượt 1: ô nhập sai chất liệu Mực
+- [T] When MATERIAL is INK, the empty text input box uses a dark ink interior matching the three empty bar frames, never an ivory paper fill; the scrollbar thumb is pale bronze. // T lượt 1: ô nhập sai chất liệu Mực
 - [T] The three second-row bar fills are bare flat solid red, blue and gold strips without bronze frames, corners, medallions or end caps; only the three first-row empty frames carry ornaments. // T lượt 1 và 2: ruột thanh bị vẽ thêm khung
 - [F] Use a completely constant solid bronze band on each straight side, with all ornament strictly outside the stretchable band. // F đợt 2 lượt 1: sáu cạnh bị chặn
 - [F] End every silhouette with fully opaque near-black ink pixels directly touching pure magenta, without any blended pink transition. // F đợt 2 lượt 2: viền hồng 32,8 phần trăm
@@ -47,12 +47,25 @@
 - [N] Place a solid opaque near-black outline between bronze and magenta with absolutely no intermediate pink edge pixels. // N attempt4: viền hồng 42,4 phần trăm
 - [N] Shrink each button to sixty percent of its cell width so even the five-button rows retain broad pure-magenta gutters. // N attempt5: hai hàng nút vẫn quá sát
 - [N] Keep every selected and disabled state within the same compact corner geometry and use one unbroken flat rim colour per straight segment. // N attempt6: cạnh và góc còn lệch
-- [O] Fill every slot interior with one completely uniform dark ink colour, without grain, cloud marks or a central light spot. // O lượt 3 cũ: ruột có vân khi soát mắt
+- [O] When MATERIAL is INK, fill every slot interior with one completely uniform dark ink colour, without grain, cloud marks or a central light spot. // O lượt 3 cũ: ruột có vân khi soát mắt
 - [O] Separate the entire silhouette from magenta with a thick fully opaque near-black stepped outline and no colour blending at the boundary. // O attempt4: viền hồng 45,9 phần trăm
 - [O] Make each complete slot including ornaments occupy only half of its cell width, leaving wide clear magenta space around every side. // O attempt5: cả ba hàng còn khoảng cách thiếu
 - [O] Keep the complete canvas strictly square even when five pieces must share the rarity row. // O attempt6: sai tỉ lệ 3:2
-- [T] Keep every empty bar frame and input interior one flat dark ink colour without any grain, motif or bright centre. // T lượt 3 cũ: ruột chia 9 chạm trần
+- [T] When MATERIAL is INK, keep every empty bar frame and input interior one flat dark ink colour without any grain, motif or bright centre. // T lượt 3 cũ: ruột chia 9 chạm trần
 - [T] Draw the straight rims of bar frames and the input as uninterrupted constant bronze bands; keep decorative shapes entirely inside tiny corner areas. // T attempt4: bốn cạnh co giãn bị chặn
 - [T] Use only opaque near-black stepped pixels at the outer silhouette, with no antialiasing or pink blend against the magenta background. // T attempt5: viền hồng 27,3 phần trăm
 - [T] Keep the scrollbar thumb compact and structurally separate from its thin track so the thumb cannot dominate the measured rim thickness. // T attempt6: thanh cuộn đo viền quá dày
 - [F] Draw the toast frame at least twice as tall as one corner ornament and put no gem on its short left and right sides, so the corners do not swallow the stretchable body. // khung_toast (cao 44, góc vạch 20): ngọc giữa cạnh trái / phải bị kéo ×3, chặn canh-phang; công cụ không sửa được
+- [F] Keep paper rollers compact and straight, without hanging tassels or clouds protruding from the stretchable vertical sides. // F Giấy lượt 1: năm cạnh còn chặn sau cắt mềm, trục và tua lớn
+- [F] Keep the low toast interior tall enough to leave a clear central stretch area between the top and bottom corner blocks. // F Giấy lượt 2: cắt mềm đủ sáu khung, toast còn vạch sát nửa chiều cao
+- [N, O, T] When MATERIAL is PAPER, use ivory paper interiors with a thin vermilion rim for secondary buttons, both tabs, slots, empty bar frames and input boxes; dark-ink wording in a piece name describes its INK counterpart only. // Đợt 3: tránh bài học Mực cũ lấn chất liệu Giấy
+- [N] On a PAPER sheet, every secondary-button state and both tabs must have an unmistakably light ivory rice-paper centre, never black or dark purple; keep the primary actions vermilion red. // N Giấy lượt 1: năm nút phụ và hai tab sai chất liệu
+- [N] Make every button corner ornament tiny relative to its height, with no medallion at the middle of any side, leaving most of each short vertical side as a plain straight band; the selected paper tab alone has a bright jade top rim. // N Giấy lượt 2: góc nuốt cạnh ngắn, tab chọn chưa rõ
+- [N] On PAPER sheets both open-bottom tabs must retain the same light ivory centre as the secondary buttons even when the selected top rim is jade. // N Giấy lượt 3: hai tab tái phát nền Mực, dừng sau ba lượt
+- [O] On a PAPER sheet every one of the twelve slots, including the empty item slot, selected slot and all five rarity slots, has a clearly light ivory rice-paper centre; never copy the dark slot interiors from BOARD. // O Giấy lượt 1: tám ô trên sai nền Mực
+- [O] Use only a few flat tones per paper slot, with one uniform ivory interior and no cloud motifs, shading, grain or highlights; reuse the same bronze and red tones throughout the sheet. // O Giấy lượt 2: 42 màu chặn, giảm sắc độ và vân mây
+- [O] Leave wider pure-magenta gutters around the five rarity slots by shrinking their complete ornamental silhouettes, not just their ivory centres. // O Giấy lượt 3: hàng độ hiếm còn sát, đã hết ba lượt
+- [T] On a PAPER sheet the empty text input and the scrollbar track must both have clearly light ivory centres, never black or dark purple, matching the three paper bar frames. // T Giấy lượt 1: ô nhập và rãnh cuộn còn nền Mực
+- [T] Keep bar-frame corner blocks small and remove medallions from all short sides, so each short side retains a long plain stretchable band. // T Giấy lượt 2: tránh góc nuốt cạnh ngắn khi kéo thanh
+- [F] For the toast frame only, make all corner ornaments less than one sixth of its height and use no medallions anywhere, leaving long plain bands on all four sides. // F Mực attempt4: toast góc vạch 18 trên chiều cao 38 vẫn chặn khi kéo
+- [F] Preserve a plain toast silhouette with no side-centre ornaments; small corner blocks are enough to match the approved bronze frame family. // F Mực attempt5: bỏ ngọc giữa cạnh cho mảnh toast thay thế

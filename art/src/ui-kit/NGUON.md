@@ -95,3 +95,37 @@ Sửa công cụ, không sinh ảnh: phép đo `edgeFlatness` (hàng thân cạn
 Phân loại chặn cũ: `vien-hong` (cả bốn tờ) là mực viền ám tím-hồng do nền ăn vào → sửa bằng công cụ (mực tối về `#1a1020`); `canh-phang` ở F / N / T (19 mảnh, trừ `khung_toast`) là đo sai ở hàng trong suốt (ngọc giữa cạnh nhô ra, tab hở đáy) → sửa phép đo; `khung_toast` là lỗi thật của hình → vẽ lại. Còn nhẹ (ghi sổ): `doi-xung`, `chia-9`, `do-day` (T), 35 màu (N), `khoang-cach` (O), `canh-phang` 15–35% ở N / F / T. Cắt N có tab `mirror: false` (hở đáy).
 
 Trang bộ component 3 nền × 3 cỡ: `kit-muc-dot2-soft/index.html` trong artifact của phiên (38 mảnh, kit 2× ≈ 57 KB). Chưa ghi manifest, chưa nhập game (việc P5).
+
+## Đợt 3 — Giấy và chỉ toast Mực (28/10/2026, Part of #882)
+
+Đã fetch + merge `origin/main`, gồm #1167 và #1175. BOARD là chuẩn phong cách đã duyệt; hướng mỹ thuật Mực được chủ repo duyệt ngày 27/10. Ảnh mới chỉ từ Codex builtin `image_gen.imagegen`, tham chiếu theo thứ tự BOARD rồi swatch palette. Prompt nguyên văn khối `ui:prompt --kind <tờ> --material giay|muc`, không viết tay hoặc addendum; mỗi lệnh sinh chỉ đính hai tham chiếu, không đính ảnh lỗi hay ảnh lượt trước. Không sửa công cụ, không nhập game. RAW giữ nguyên byte và các bản cũ không thay đổi.
+
+Các bài học Mực cũ trong `lessons.md` đã được giới hạn bằng điều kiện MATERIAL is INK để không xung đột với Giấy. Sau mỗi lượt có một bài học ngắn, kiểm parser/prompt bằng `node --test tools/assets/ui-kit-p2.test.mjs`. Toàn bộ lượt, hash RAW/prompt, đường dẫn gốc, phiếu RAW và báo cáo cắt chọn trong `dot3.source.json`. Model ID/seed không được công cụ cung cấp; quyền sử dụng theo nguồn OpenAI ở đầu tài liệu.
+
+| Tờ | Lượt chọn / số lượt đợt này | RAW CHẶN / nhẹ | Kết quả cắt chọn |
+|---|---|---|---|
+| F Giấy | 2 / 2 | 1 / 10 | `--soft`: 6/6 khung |
+| N Giấy | 3 / 3 | 1 / 14 | `--soft --skip tab_thuong,tab_chon`: 10/12 nút; hai tab sai nền Mực, chặn bằng mắt |
+| O Giấy | 3 / 3 | 2 / 1 | `--soft`: 12/12 ô; bù viền hồng làm số màu đáng kể giảm về mức cho phép trước lượng tử |
+| T Giấy | 2 / 2 | 1 / 12 | `--soft`: 9/9 mảnh |
+| Toast Mực | attempt5 / 2 lượt mới (attempt4–5) | 1 / 9 toàn tờ | `--soft --skip` năm khung khác: chỉ 1 toast |
+
+Mục tiêu cắt mềm đạt với mọi phần chọn, trừ **hai tab Giấy chưa đạt chất liệu sau giới hạn ba lượt**. N lượt 2 đúng nền giấy ở tab nhưng hai tab gần giống nhau; cả tờ còn nhiều cạnh chặn. Không ghép tab chưa phân biệt rõ vào bộ chọn. N lượt 1 sai nền ở nút phụ/tab; O lượt 1 sai nền ở tám ô trên; O lượt 2 vượt 40 màu; T lượt 1 sai nền ô nhập/rãnh cuộn. Không có chữ đọc được qua soát RAW bằng mắt. O lượt 3 có ổ khóa và che hồi chiêu rõ, độ hiếm khác dạng góc; một số ruột vẫn có sắc/vân nhẹ. F/T còn cảnh báo vạch sát nửa cạnh và độ dày; không gọi là “đạt đẹp”.
+
+### Riêng thay `khung_toast` Mực
+
+Luồng prompt nguyên văn `ui:prompt F` hiện chỉ sinh cả tờ, không có prompt một ô hoặc mask. Vì vậy dùng phương án chủ repo cho phép: tạo F Mực attempt4–5, **chỉ xuất toast từ attempt5**. Attempt4 toast vẫn bị góc nuốt cạnh ngắn khi kéo ×3; attempt5 bỏ ngọc giữa cạnh và cắt mềm được. Năm khung khác vẫn dùng **nguyên RAW `candidates/toF-attempt2.png`** với `--soft --skip khung_toast`; `toF.png`/prompt chuẩn không bị thay. Trang F Mực nhận hai thư mục cutter riêng: năm mảnh attempt2 + một toast attempt5, không chỉnh/ghép pixel RAW.
+
+### Artifact cắt và trang component
+
+Thư mục gốc: `C:/Users/PC/.ao/data/artifacts/soul_land_game-684/`.
+
+- `F-giay/index.html`: 6 khung; bản cắt `F-giay/cut/`.
+- `N-giay/index.html`: 10 nút, không chứa hai tab lỗi; bản cắt `N-giay/cut/`.
+- `O-giay/index.html`: 12 ô; bản cắt `O-giay/cut/`.
+- `T-giay/index.html`: 9 mảnh; bản cắt `T-giay/cut/`.
+- `F-muc/index.html`: 6 khung, gồm `base-attempt2/` (5) và `toast-attempt5/` (1).
+
+Trang do `ui:preview` dựng có ba nền, DPR 1/2, ba cỡ 200×60 / 360×120 / 520×320, nút thật và chuỗi Việt 10/12/24. Asset/font được nhúng vào HTML artifact để mở độc lập; bản cắt và phiếu cắt cũng được giữ trong artifact. Đã thử mở ngay khi tạo: `ao preview` từ chối file ngoài workspace; cả `ao render --check` và `html_preview` trả `RENDER_CHECK_FAILED`. Vì vậy **chưa xác minh hiển thị trang trong trình duyệt**, chưa xác nhận Firefox hoặc thao tác hover/focus; không coi ảnh RAW hiển thị trong chat là kiểm trang component.
+
+Tên file đợt 3 đặt trong `candidates/dot3/giay/toF-1.png`… và `candidates/dot3/muc/toF-4.png` / `toF-5.png` để CI tự suy loại tờ. Nội dung byte không đổi; `analyzed_as` giữ tên lúc chạy phiếu ban đầu.
