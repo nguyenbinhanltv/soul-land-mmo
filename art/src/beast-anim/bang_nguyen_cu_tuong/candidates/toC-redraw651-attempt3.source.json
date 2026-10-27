@@ -8,7 +8,7 @@
     "tool":  "Codex built-in image_gen.imagegen",
     "model":  "unknown",
     "seed":  "unknown",
-    "timestamp":  "2026-10-27T08:57:16.4528011Z",
+    "timestamp":  "2026-10-27T08:56:16.3230179Z",
     "rawSha256":  "63177ad50aa57959f5d496f2c75ef3ad580f6c734a2be9d2e553eadf11f5950a",
     "references":  [
                        {
@@ -20,5 +20,13 @@
                            "path":  "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround.png"
                        }
                    ],
-    "manualPromptAddendum":  false
+    "manualPromptAddendum":  false,
+    "outputPath":  "C:/Users/PC/.codex/generated_images/01a17c8e-40b9-7093-b82b-1fc9d42e172f/exec-ae2c88b9-2ac8-45ce-9684-eae8790a75b6.png",
+    "rawPath":  "art/src/beast-anim/bang_nguyen_cu_tuong/candidates/toC-redraw651-attempt3.png",
+    "executionPromptPath":  "art/src/beast-anim/bang_nguyen_cu_tuong/candidates/toC-redraw651-attempt3.prompt.txt",
+    "executionPromptSha256":  "52223d5a6f66c15a017401625053dacf6c4168305458c9ecbe54f5ab59056f7a",
+    "rawBytes":  2249769,
+    "batchAttempts":  3,
+    "selectedForInspection":  false,
+    "copiedByteIdenticalFromToolOutput":  true
 }

@@ -7,11 +7,11 @@ Loài `bang_nguyen_cu_tuong` (Băng Nguyên Cự Tượng), họ `quad`, khung g
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1882684 byte, SHA256 `f858ee9efdbf978fa0290fd2f4d6caef06c896099734490fa62dc02cee5f9465`.
-- Công cụ: Codex built-in image_gen.imagegen; HURT / ATTACK chỉnh tay theo quyết định orchestrator #1030 (turnaround.prompt.txt; bản gốc của công cụ không giữ lại; lượt 2 ở candidates/turnaround-attempt2.*); phiên sinh turnaround: tthoadev; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo.
+- Công cụ: Codex built-in image_gen.imagegen; HURT / ATTACK chỉnh tay theo quyết định orchestrator #1030 (turnaround.prompt.txt; bản gốc của công cụ không giữ lại; lượt 2 ở candidates/turnaround-attempt2.*); phiên sinh turnaround: tthoadev; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2.
 - Prompt: `turnaround.prompt.txt` (SHA256 `94fc8a0198c553631f2b003f01e641e7b5a32fc21ceca4924cd5460fa137908f`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
-- Duyệt bằng mắt: 3 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## toA
 
@@ -58,14 +58,13 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 - File chọn: `candidates/toC-attempt4.png`, **1536×1024**, SHA256 `8c8f30927bcacf504b2a7ee522bdf546aab163df634426e766bf0dff9ee4c9aa`; lượt tìm thấy: 1, 2, 3, 4.
 - Số lượt đã dùng: 4; lượt được chọn: 4.
 - Mức kiểm: **chặn** (CHẶN: không vào thư mục chính).
-- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## Lỗi
 
 ```text
 LỖI: turnaround — hurt — ne — chân trước hơi quỳ (nhẹ); ảnh đã duyệt ref ở #1030 issuecomment-6430769369; phiên gốc tthoadev, các tờ hướng mới do soul_land_game-618 sinh (mắt)
 LỖI: turnaround — GHI CHÚ TOÀN LOÀI (không phải lỗi turnaround): tờ C hướng e chưa đạt sau 3 lượt do dính H3; ngoại lệ orchestrator 27/10: hướng e quan trọng, cấp C4 tại PR #1108 issuecomment-6433172226; C4 vẫn chặn H3 (3/6 hình), H4 (3/4 hình), tràn ô 2,53%; dừng e, giữ cả 4 lượt candidates/toC-attempt1–4.*, không có toC.png để nhập (mắt)
-LỖI: turnaround — Vẽ lại phiên soul_land_game-651: C/e dùng đủ 3 lượt; cả ba chặn dính H3, lượt 3 còn dính H4. Tốt nhất lượt 1 (1 chặn/1 nhẹ); RAW nguyên byte ở candidates/toC-redraw651-attempt1–3.*, không dùng làm tham chiếu; hurt nâng đầu mạnh. Giữ ne/n tĩnh theo chủ repo. (mắt)
 LỖI: toA — s — die cuối chếch phải; attack xoay đầu (mắt)
 LỖI: toB — hình ở ô trống — H4 (se) C5 — ô trống có hình (0.7% diện tích ô): hình tràn từ ô bên.
 LỖI: toB — se — attack A3 và die cuối xoay gần e; hurt nâng đầu mạnh (mắt)
@@ -73,6 +72,7 @@ LỖI: toD — hình ở ô trống — H4 (ne) C5 — ô trống có hình (0.4
 LỖI: toD — ne — lộ mắt/mặt bên nhiều khung; chưa đạt nhập ne (mắt)
 LỖI: toE — n — hurt biên độ nhỏ, không thấy mặt mọi khung (mắt)
 LỖI: toC — hình dính / hình ở ô trống — H3 (e), H4 (e) C5, H4 (e) — dải có 3 hình, cần 6: hình dính nhau; ô trống có hình (2.53% diện tích ô): hình tràn từ ô bên; dải có 3 hình, cần 4: hình dính nhau.
+LỖI: toC — Vẽ lại phiên soul_land_game-651: C/e dùng đủ 3 lượt; cả ba chặn dính H3, lượt 3 còn dính H4. Tốt nhất lượt 1 (1 chặn/1 nhẹ); RAW nguyên byte ở candidates/toC-redraw651-attempt1–3.*, không dùng làm tham chiếu; hurt nâng đầu mạnh. Giữ ne/n tĩnh theo chủ repo. (mắt)
 ```
 
 ## Ghi công

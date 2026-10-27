@@ -11,17 +11,19 @@
     "seed":  "unknown",
     "timestamp":  "2026-10-27T09:01:24.9131958Z",
     "outputPath":  "C:/Users/PC/.codex/generated_images/01a17c8e-40b9-7093-b82b-1fc9d42e172f/exec-c011965e-52ff-4c82-bbde-8668506b236c.png",
-    "rawPath":  "art/src/beast-anim/bich_lan_xa/toA.png",
     "rawSha256":  "ff7f67c59cf27c081495783a5d88859ac64ce974125621e19a4580405b3a058c",
-    "rawBytes":  1829187,
-    "copiedByteIdenticalFromToolOutput":  true,
     "references":  [
                        {
                            "sha256":  "d9c693054e0ff49f42babbe7328b77f95145e16701ef4e5d67093ce3d6a89c20",
                            "path":  "shared/assets/sprites/beast/bich_lan_xa.png"
                        }
                    ],
-    "executionPromptPath":  "art/src/beast-anim/bich_lan_xa/toA.prompt.txt",
+    "manualPromptAddendum":  false,
+    "rawPath":  "art/src/beast-anim/bich_lan_xa/candidates/toA-redraw651-attempt3.png",
+    "executionPromptPath":  "art/src/beast-anim/bich_lan_xa/candidates/toA-redraw651-attempt3.prompt.txt",
     "executionPromptSha256":  "95dac93ed1ed24e86fadb543dfad3f21a549ec8f3f167cfad74204a09fba274d",
-    "manualPromptAddendum":  false
+    "rawBytes":  1829187,
+    "batchAttempts":  3,
+    "selectedForInspection":  false,
+    "copiedByteIdenticalFromToolOutput":  true
 }

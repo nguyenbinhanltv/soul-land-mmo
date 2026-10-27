@@ -11,17 +11,19 @@
     "seed":  "unknown",
     "timestamp":  "2026-10-27T09:05:07.3887255Z",
     "outputPath":  "C:/Users/PC/.codex/generated_images/01a17c8e-40b9-7093-b82b-1fc9d42e172f/exec-be9737a3-4553-4b40-b1c2-b3b52ab0b8b4.png",
-    "rawPath":  "art/src/beast-anim/huyen_minh_bang_tam/toA.png",
     "rawSha256":  "1f96611a6f4e54a97c8454b6fb327ddd13a35d2d2048aa5e35bd19d20d5fa5a0",
-    "rawBytes":  1773069,
-    "copiedByteIdenticalFromToolOutput":  true,
     "references":  [
                        {
                            "sha256":  "570f7dfe7d5a6e37c63f5f5a8c71461309d94dd44f8ab7afee4500de86504261",
                            "path":  "shared/assets/sprites/beast/huyen_minh_bang_tam.png"
                        }
                    ],
-    "executionPromptPath":  "art/src/beast-anim/huyen_minh_bang_tam/toA.prompt.txt",
+    "manualPromptAddendum":  false,
+    "rawPath":  "art/src/beast-anim/huyen_minh_bang_tam/candidates/toA-redraw651-attempt2.png",
+    "executionPromptPath":  "art/src/beast-anim/huyen_minh_bang_tam/candidates/toA-redraw651-attempt2.prompt.txt",
     "executionPromptSha256":  "cdb794db6f6546d1d004f1fdd5955100278bc981aebe8dd3dcbab298eb322276",
-    "manualPromptAddendum":  false
+    "rawBytes":  1773069,
+    "batchAttempts":  3,
+    "selectedForInspection":  true,
+    "copiedByteIdenticalFromToolOutput":  true
 }
