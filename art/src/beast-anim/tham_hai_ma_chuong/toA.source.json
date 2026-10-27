@@ -1,101 +1,28 @@
 {
-  "species": "tham_hai_ma_chuong",
-  "sheet": "toA",
-  "worker": "soul-land-mmo-143",
-  "issue": 1030,
-  "tool": "Codex built-in image_gen.imagegen",
-  "imageModel": "unknown (tool did not expose model)",
-  "seed": "unknown (tool did not expose seed)",
-  "attempts": 1,
-  "selected_attempt": 1,
-  "actual_calls_by_sheet": {
-    "toA": 1,
-    "toB": 1
-  },
-  "toB_status": "not generated; awaiting technical-reference gate",
-  "raw_file": "toA.png",
-  "sha256": "30cbcb1da4f7cd9c403098cce2006e1c428539c325ab17efc50e8de18ac5d9fd",
-  "bytes": 2079382,
-  "width": 1024,
-  "height": 1536,
-  "tool_limitations": "ImageGen did not expose model, seed, or a size selector.",
-  "prompt_file": "toA.prompt.txt",
-  "prompt_sha256": "8b86467d1c2a147985092e84ef9fee6737d83faac3c5f6231f56e4b8bfefed6a",
-  "references": [
-    {
-      "order": 1,
-      "path": "shared/assets/sprites/beast/tham_hai_ma_chuong.png",
-      "sha256": "fc19f0b59589f24c4e76567de8d825ea3ac399a99cf91682b238bab97eaa87d1",
-      "role": "static identity reference for Thâm Hải Ma Chương"
-    }
-  ],
-  "attempt_history": [
-    {
-      "attempt": 1,
-      "status": "technical candidate; not owner art-approved, not imported",
-      "original_tool_output_path": "/Users/thanhhoa/.codex/generated_images/01a17a5e-149f-7193-9c8b-da1139c69056/exec-b92feebf-d042-4014-aa98-100c433d4791.png",
-      "raw_copy": "toA.png",
-      "sha256": "30cbcb1da4f7cd9c403098cce2006e1c428539c325ab17efc50e8de18ac5d9fd",
-      "bytes": 2079382,
-      "dimensions": [
-        1024,
-        1536
-      ],
-      "copied_byte_identical": true,
-      "prompt_file": "toA.prompt.txt",
-      "prompt_sha256": "8b86467d1c2a147985092e84ef9fee6737d83faac3c5f6231f56e4b8bfefed6a",
-      "references": [
-        {
-          "order": 1,
-          "path": "shared/assets/sprites/beast/tham_hai_ma_chuong.png",
-          "sha256": "fc19f0b59589f24c4e76567de8d825ea3ac399a99cf91682b238bab97eaa87d1"
-        }
-      ],
-      "tool_response_note": "Full response stored in current AO turn before display; output_hint exposed this exact image path. Model and seed were not exposed."
-    }
-  ],
-  "postprocessing": false,
-  "owner_art_approval": false,
-  "technical_findings": [
-    "Visual identity matches the exact static reference: purple octopus with eight tentacles; floating, with no legs, roots, or ground line.",
-    "A contains 12 rows for S/SE/E, with 6 idle+hurt, 6 walk, 6 attack, and 4 die frames per direction; final two DIE cells are blank.",
-    "Manual review: HURT recoil is subtle and close to IDLE in several direction blocks; DIE collapses downward/spreads while retaining the visible facing, with no clear 90-degree turn.",
-    "Checker notes SE and E idle silhouettes are close (IoU 0.824). Manual contact-sheet review confirms this deserves attention on later directions; do not treat A1 as a pose reference.",
-    "Current checker exits 0 with two light baseline warnings at H7 (se) C3-4 and H11 (e) C4. Its generic 'chân lệch' label does not match this floating, legless octopus; no feet, roots, or ground are present.",
-    "A+B checker exit 0; A and B each light with 0 blockers and 2 light findings. Current report and contact-sheet hashes are recorded in toB.source.json."
-  ],
-  "requested_aspect_ratio": "2:3 (exact pixel size not specified)",
-  "actual_aspect_ratio": "2:3",
-  "ledger_updated_after": "tham_hai_ma_chuong B1 actual call 1",
-  "latest_a_plus_b_qa": {
-    "command": "node tools/assets/beast-sheet-check.mjs tham_hai_ma_chuong --dir art/src/beast-anim/tham_hai_ma_chuong --out /private/tmp/soul-land-mmo-143-check-tham-hai-ma-chuong-ab",
-    "exit_code": 0,
-    "report_path": "/private/tmp/soul-land-mmo-143-check-tham-hai-ma-chuong-ab/tham_hai_ma_chuong-check.json",
-    "report_sha256": "7f5b979da972b8b749c7f24c98d68676c8e85a01a416a2ff67474f5a76b0e80d",
-    "overall": "light; 0 blockers",
-    "sheets": {
-      "toA": {
-        "level": "light",
-        "blockers": 0,
-        "light": 2,
-        "notes": 2
-      },
-      "toB": {
-        "level": "light",
-        "blockers": 0,
-        "light": 2,
-        "notes": 2
-      }
-    },
-    "contact_sheets": [
-      {
-        "path": "/private/tmp/soul-land-mmo-143-check-tham-hai-ma-chuong-ab/tham_hai_ma_chuong-toA-lien-he.png",
-        "sha256": "0d2ddca94dc490fb8a3c25cc5a84d0cf21db09b55b7594eba2d5a12872905cdd"
-      },
-      {
-        "path": "/private/tmp/soul-land-mmo-143-check-tham-hai-ma-chuong-ab/tham_hai_ma_chuong-toB-lien-he.png",
-        "sha256": "bf43c6e57cffde9983df36b6ab7c1e44f884e915f2dab8001980df9bbf2b0fd0"
-      }
-    ]
-  }
+    "species":  "tham_hai_ma_chuong",
+    "sheet":  "toA",
+    "worker":  "soul_land_game-640",
+    "issue":  1030,
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "recorded_at":  "2026-10-27T06:40:13.2730795Z",
+    "attempts":  3,
+    "selected_attempt":  3,
+    "raw_file":  "toA.png",
+    "sha256":  "70e297906c0f143dda3768a163af5e0b9c0a9b34bf802e7163dfd15edd477fc0",
+    "bytes":  2062318,
+    "prompt_file":  "toA.prompt.txt",
+    "prompt_sha256":  "7a88de9f547abb3f9e4505bccb545f03c5fa618b8c076521c99f2b54812b1b03",
+    "references":  [
+                       {
+                           "order":  1,
+                           "path":  "shared/assets/sprites/beast/tham_hai_ma_chuong.png",
+                           "sha256":  "fc19f0b59589f24c4e76567de8d825ea3ac399a99cf91682b238bab97eaa87d1"
+                       }
+                   ],
+    "postprocessing":  false,
+    "technical":  "pass 0/0, 948x1659",
+    "eye":  "A3 tốt nhất; s/se/e khác rõ hơn; một số khung e còn thiên góc ba phần tư, chưa ngang tuyệt đối",
+    "original_tool_output_path":  "C:/Users/PC/.codex/generated_images/01a17c10-51e1-73f2-a82e-b6578a36a56e/exec-a7efcb93-c5b3-47f6-be82-87becb7c658f.png"
 }

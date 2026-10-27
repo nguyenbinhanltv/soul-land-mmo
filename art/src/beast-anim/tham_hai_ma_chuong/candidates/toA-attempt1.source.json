@@ -1,0 +1,23 @@
+{
+    "species":  "tham_hai_ma_chuong",
+    "sheet":  "toA",
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "generated_at":  "2026-10-27T06:36:41.5969422Z",
+    "attempts":  1,
+    "selected_attempt":  1,
+    "sha256":  "9ecc2fd646b0f207e3ec0c01221168e5a841ab3a141324875081355be7ba1090",
+    "prompt_sha256":  "8b86467d1c2a147985092e84ef9fee6737d83faac3c5f6231f56e4b8bfefed6a",
+    "references":  [
+                       {
+                           "path":  "shared/assets/sprites/beast/tham_hai_ma_chuong.png",
+                           "sha256":  "fc19f0b59589f24c4e76567de8d825ea3ac399a99cf91682b238bab97eaa87d1",
+                           "order":  1
+                       }
+                   ],
+    "postprocessing":  false,
+    "technical":  "pass 0/0",
+    "eye":  "s/se/e gần chính diện; e không thành góc ngang",
+    "original_tool_output_path":  "C:/Users/PC/.codex/generated_images/01a17c10-51e1-73f2-a82e-b6578a36a56e/exec-89513e5d-6686-49b7-a9ee-6bdaa9c4a548.png"
+}
