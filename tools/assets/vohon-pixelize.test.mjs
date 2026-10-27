@@ -120,6 +120,21 @@ test("pixelizeIcon: 32 và 24, hình vừa (size − 2), căn giữa, viền ngo
     assert.notEqual(verdict(checkPixel(res.img, { type: "icon", report: { ...res.report, size: s } })), "block");
   }
 });
+test("pixelizeIcon preset icon-nearest: 32 và 24, giữ đủ màu (không ép 8), alpha 0 / 255, viền #1a1020, kiểm không CHẶN", () => {
+  const im = new Img(240, 160); for (let y = 40; y < 120; y++) for (let x = 30; x < 210; x++) im.set(x, y, [(x * 5) % 256, (y * 7) % 256, (x + y) % 256, 255]);
+  for (const s of P.ICON_SIZES) {
+    const res = P.pixelizeIcon(im, { size: s, preset: "icon-nearest" }), bb = P.bbox(res.img);
+    assert.equal(res.img.w, s); assert.equal(res.report.preset, "icon-nearest");
+    assert.ok(bb.x >= 0 && bb.y >= 0 && bb.x + bb.w <= s && bb.y + bb.h <= s);
+    assert.ok(cnt(res.img) > PORTRAIT_MAX_COLORS, "không ép bảng màu");
+    let bad = 0; for (let i = 3; i < res.img.data.length; i += 4) if (res.img.data[i] !== 0 && res.img.data[i] !== 255) bad++;
+    assert.equal(bad, 0);
+    const r = checkPixel(res.img, { type: "icon", report: { ...res.report, size: s } }); assert.ok(!codes(r, "block").length, formatResult(r)); assert.ok(!codes(r, "block").includes("mau"));
+    assert.deepEqual(res.img.get(bb.x, bb.y + (bb.h >> 1)).slice(0, 3), [0x1a, 0x10, 0x20]);
+  }
+  const bare = P.pixelizeIcon(im, { size: 32, preset: "icon-nearest", outline: "off" }); assert.equal(bare.report.outline, false);
+  assert.ok(P.bbox(bare.img).w >= 31, "không viền thì hình lấp đầy ô");
+});
 test("pixelizeIcon: ảnh nền phẳng đặc (magenta) được bỏ nền tự động; nền loang không tách thì báo lỗi rõ", () => {
   const im = new Img(200, 200); fill(im, 0, 0, 200, 200, [255, 0, 255]); disc(im, 100, 100, 70, [90, 120, 160]);
   const res = P.pixelizeIcon(im, { size: 32 }); assert.ok(P.hasAlpha(res.img));

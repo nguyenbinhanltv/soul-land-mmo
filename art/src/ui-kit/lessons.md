@@ -55,3 +55,4 @@
 - [T] Draw the straight rims of bar frames and the input as uninterrupted constant bronze bands; keep decorative shapes entirely inside tiny corner areas. // T attempt4: bốn cạnh co giãn bị chặn
 - [T] Use only opaque near-black stepped pixels at the outer silhouette, with no antialiasing or pink blend against the magenta background. // T attempt5: viền hồng 27,3 phần trăm
 - [T] Keep the scrollbar thumb compact and structurally separate from its thin track so the thumb cannot dominate the measured rim thickness. // T attempt6: thanh cuộn đo viền quá dày
+- [F] Draw the toast frame at least twice as tall as one corner ornament and put no gem on its short left and right sides, so the corners do not swallow the stretchable body. // khung_toast (cao 44, góc vạch 20): ngọc giữa cạnh trái / phải bị kéo ×3, chặn canh-phang; công cụ không sửa được

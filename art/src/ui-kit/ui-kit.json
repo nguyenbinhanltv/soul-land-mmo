@@ -28,7 +28,7 @@
         { "name": "nut_phu_thuong", "set": "nut_phu", "state": "thuong" }, { "name": "nut_phu_ro", "set": "nut_phu", "state": "ro" },
         { "name": "nut_phu_nhan", "set": "nut_phu", "state": "nhan" }, { "name": "nut_phu_tat", "set": "nut_phu", "state": "tat" },
         { "name": "nut_phu_chon", "set": "nut_phu", "state": "chon" },
-        { "name": "tab_thuong", "set": "tab", "state": "thuong" }, { "name": "tab_chon", "set": "tab", "state": "chon" }
+        { "name": "tab_thuong", "set": "tab", "state": "thuong", "mirror": false }, { "name": "tab_chon", "set": "tab", "state": "chon", "mirror": false }
       ]
     },
     "O": {
