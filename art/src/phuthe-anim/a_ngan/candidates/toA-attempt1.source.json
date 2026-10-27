@@ -1,0 +1,52 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27T23:31:04.043Z",
+  "attempt": 1,
+  "direction": "s",
+  "raw": "toA-attempt1.png",
+  "sha256": "0c628084bda534a54528605b7212775f081dec3c7c559f84c8db778b54f630ae",
+  "prompt": "toA-attempt1.prompt.txt",
+  "promptSha256": "a4c1dbf1597f1de44061e8076ceff1c83323cdd9bb62c3bb3df339e9ec339a2e",
+  "promptCommand": "node tools/assets/phuthe-sheet-prompt.mjs --id a_ngan --stage direction --dir s --concept-ref",
+  "references": [
+    {
+      "file": "references/a_ngan-nom-toA.png",
+      "sha256": "ffb7f83b709cfb92e75871bce11e522a77a87bf22a2b71512655298c5bb582ea"
+    },
+    {
+      "file": "../../vohon-v2/a_ngan/concept-attempt2.png",
+      "sha256": "d510d4409629e9a0e18d02e1872cb9bc5b0b1c5e9ccceacba9e7c8c0984fd8db"
+    }
+  ],
+  "referencePathBase": "art/src/phuthe-anim/a_ngan",
+  "postprocessing": "none; RAW copied byte-for-byte",
+  "promptHandwritten": false,
+  "promptAddendum": false,
+  "technicalCheck": {
+    "level": "chặn",
+    "issues": [
+      {
+        "sev": "note",
+        "code": "nen",
+        "where": "toàn tờ",
+        "msg": "nền dốc nhẹ (bốn góc lệch 33), trong dung sai 60; không phải lỗi."
+      },
+      {
+        "sev": "note",
+        "code": "tach-hinh",
+        "where": "H3 (s)",
+        "msg": "dải dò được 4 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 5.",
+        "dir": "s"
+      },
+      {
+        "sev": "block",
+        "code": "hinh-dinh",
+        "where": "H3 (s)",
+        "msg": "dải có 5 hình, cần 6: hình dính nhau.",
+        "dir": "s"
+      }
+    ]
+  }
+}
