@@ -26,7 +26,7 @@ Nộm references/liet_hoa_thuong_lang-nom-toA..E.png: khung 96, gốc (48,74), k
 | candidates/toE-attempt1.png | 1 | 22 / 2 | --eye toE=hướng — n walk/attack — nhiều pose ngang phải; chỉ khai, không sinh riêng sửa mặt. Nộm nhỏ/dời. |
 | candidates/toE-attempt2.png | 2 | 1 / 0 | Nộm lưng, đúng chi thể; có viền/tô nhẹ trên cyan; cast nở lớn |
 
-Tổng 13 lượt; trần từng hướng: {"s":2,"se":2,"n":3,"e":3,"ne":3}. Tờ chọn cho cắt: A=toA.png (A2), B=toB.png (B2), C=candidates/toC-attempt3.png (đúng chi thể nhưng chặn nộm, không chọn C2 nguyên sói), D=candidates/toD-attempt1.png (ít chặn nhất), E=toE.png (E3). Tờ trong candidates không bao giờ làm tham chiếu; nếu chọn cắt chẩn đoán thì vẫn giữ nguyên trạng thái chặn và chỉ rõ trong danh sách trên. B3 hoặc C2 bỏ ảnh thứ ba tùy chọn khi nộm bị sao nhầm; mọi tham chiếu thực dùng phải xem source.json, không suy từ tên tờ.
+Tổng 13 lượt; trần từng hướng: {"s":2,"se":2,"n":3,"e":3,"ne":3}. Tờ chọn cho cắt: A=toA.png (A2), B=toB.png (B2), C=candidates/toC-attempt3.png (đúng chi thể nhưng chặn nộm, không chọn C2 nguyên sói), D=candidates/toD-attempt1.png (ít chặn nhất), E=toE.png (E3). Tờ trong candidates không bao giờ làm tham chiếu; nếu chọn cắt chẩn đoán thì vẫn giữ nguyên trạng thái chặn và chỉ rõ trong danh sách trên. Một số lượt bỏ ảnh thứ ba tùy chọn sau lỗi sao nộm hoặc mất nộm; mọi tham chiếu thực dùng phải xem source.json, không suy từ tên tờ.
 
 ## Kiểm, cắt, neo, preview
 
@@ -51,4 +51,39 @@ Không phuthe-import nếu còn bất kỳ khối chặn kỹ thuật hoặc đi
 |---|---|---|---|---|---|
 | to*.png, candidates/to*-attempt*.png | - | builtin image_gen.imagegen (Codex) | Prompt phuthe-sheet-prompt --concept-ref; SHA256 và hồ sơ từng RAW đi kèm | 2026-10-28 | Phụ thể hoạt ảnh; model/seed unknown |
 | references/liet_hoa_thuong_lang-nom-to*.png | - | phuthe-sheet-dummy.mjs, LPC hiện có | Nộm có vạch, chỉ tham chiếu | 2026-10-28 | Nguồn/giấy phép LPC theo hồ sơ hiện có |
-`n### Kết quả cắt và soát ráp`nCutter 110 khung, 0 block / 63 warn; không thay kết luận RAW C/D. Bảng nam/nữ sau neo còn tai/vuốt tách khỏi thân, các mảnh cyan ở C/D và khối đuôi che đầu; chặn mắt, không nhập. Không chứng nhận đủ năm hướng hợp lệ.`n
+
+### Kết quả cắt và soát ráp
+Cutter 110 khung, 0 block / 63 warn; không thay kết luận RAW C/D. Bảng nam/nữ sau neo còn tai/vuốt tách khỏi thân, các mảnh cyan ở C/D và khối đuôi che đầu; chặn mắt, không nhập. Không chứng nhận đủ năm hướng hợp lệ.
+
+
+## Phiếu tổng hợp cuối lô
+
+| Hướng | RAW cắt | Chặn / nhẹ tự động | Soát ráp / quyết định |
+|---|---|---|---|
+| s | toA.png | 0 / 23 | chặn điểm gắn sau neo; tai/vuốt/đuôi không bám thân |
+| se | toB.png | 0 / 28 | chặn điểm gắn sau neo; tai/vuốt/đuôi không bám thân |
+| e | candidates/toC-attempt3.png | 22 / 0 | chặn RAW nộm; còn cyan trong bản ráp, chỉ chẩn đoán |
+| ne | candidates/toD-attempt1.png | 3 / 31 | chặn RAW nộm; còn cyan trong bản ráp, chỉ chẩn đoán |
+| n | toE.png | 0 / 18 | chặn điểm gắn sau neo; tai/vuốt/đuôi không bám thân |
+
+Các lỗi góc ne/n chỉ khai --eye ở trên; không sinh riêng để sửa mặt. Chặn điểm gắn/màu nộm là lý do giữ nhánh game cũ. Không có võ hồn nào được nhập trong lô này.
+
+### Tham chiếu thực dùng
+
+| RAW | Thứ tự ảnh 1 → 2 → 3 (nếu có) |
+|---|---|
+| toA.png | art/src/phuthe-anim/liet_hoa_thuong_lang/references/liet_hoa_thuong_lang-nom-toA.png → art/src/vohon-v2/liet_hoa_thuong_lang/concept-attempt3.png |
+| toB.png | art/src/phuthe-anim/liet_hoa_thuong_lang/references/liet_hoa_thuong_lang-nom-toB.png → art/src/vohon-v2/liet_hoa_thuong_lang/concept-attempt3.png |
+| toE.png | art/src/phuthe-anim/liet_hoa_thuong_lang/references/liet_hoa_thuong_lang-nom-toE.png → art/src/vohon-v2/liet_hoa_thuong_lang/concept-attempt3.png |
+| candidates/toA-attempt1.png | art/src/phuthe-anim/liet_hoa_thuong_lang/references/liet_hoa_thuong_lang-nom-toA.png → art/src/vohon-v2/liet_hoa_thuong_lang/concept-attempt3.png |
+| candidates/toB-attempt1.png | art/src/phuthe-anim/liet_hoa_thuong_lang/references/liet_hoa_thuong_lang-nom-toB.png → art/src/vohon-v2/liet_hoa_thuong_lang/concept-attempt3.png → art/src/phuthe-anim/liet_hoa_thuong_lang/toA.png |
+| candidates/toC-attempt1.png | art/src/phuthe-anim/liet_hoa_thuong_lang/references/liet_hoa_thuong_lang-nom-toC.png → art/src/vohon-v2/liet_hoa_thuong_lang/concept-attempt3.png → art/src/phuthe-anim/liet_hoa_thuong_lang/toB.png |
+| candidates/toC-attempt2.png | art/src/phuthe-anim/liet_hoa_thuong_lang/references/liet_hoa_thuong_lang-nom-toC.png → art/src/vohon-v2/liet_hoa_thuong_lang/concept-attempt3.png |
+| candidates/toC-attempt3.png | art/src/phuthe-anim/liet_hoa_thuong_lang/references/liet_hoa_thuong_lang-nom-toC.png → art/src/vohon-v2/liet_hoa_thuong_lang/concept-attempt3.png → art/src/phuthe-anim/liet_hoa_thuong_lang/toB.png |
+| candidates/toD-attempt1.png | art/src/phuthe-anim/liet_hoa_thuong_lang/references/liet_hoa_thuong_lang-nom-toD.png → art/src/vohon-v2/liet_hoa_thuong_lang/concept-attempt3.png → art/src/phuthe-anim/liet_hoa_thuong_lang/toB.png |
+| candidates/toD-attempt2.png | art/src/phuthe-anim/liet_hoa_thuong_lang/references/liet_hoa_thuong_lang-nom-toD.png → art/src/vohon-v2/liet_hoa_thuong_lang/concept-attempt3.png → art/src/phuthe-anim/liet_hoa_thuong_lang/toB.png |
+| candidates/toD-attempt3.png | art/src/phuthe-anim/liet_hoa_thuong_lang/references/liet_hoa_thuong_lang-nom-toD.png → art/src/vohon-v2/liet_hoa_thuong_lang/concept-attempt3.png → art/src/phuthe-anim/liet_hoa_thuong_lang/toB.png |
+| candidates/toE-attempt1.png | art/src/phuthe-anim/liet_hoa_thuong_lang/references/liet_hoa_thuong_lang-nom-toE.png → art/src/vohon-v2/liet_hoa_thuong_lang/concept-attempt3.png → art/src/phuthe-anim/liet_hoa_thuong_lang/toB.png |
+| candidates/toE-attempt2.png | art/src/phuthe-anim/liet_hoa_thuong_lang/references/liet_hoa_thuong_lang-nom-toE.png → art/src/vohon-v2/liet_hoa_thuong_lang/concept-attempt3.png |
+
+Bài học đã được diễn đạt lại sau kiểm thử để không lọt từ khóa nộm vào chế độ --no-dummy và không ghi số pixel cố định; các prompt lưu trữ vẫn giữ đúng bản thực gửi.

@@ -49,3 +49,32 @@ Không phuthe-import, không đổi manifest/anchor game. Không sinh vượt tr
 |---|---|---|---|---|---|
 | to{A,B,C,D,E}.png, candidates/to*-attempt*.png | - | builtin image_gen.imagegen (Codex) | Prompt phuthe-sheet-prompt --concept-ref; SHA256 và hồ sơ từng RAW đi kèm | 2026-10-28 | RAW phụ thể; chưa nhập game; model/seed unknown |
 | references/yeu_ho-nom-to*.png | - | phuthe-sheet-dummy.mjs, LPC hiện có | Nộm có vạch, chỉ tham chiếu | 2026-10-28 | Nguồn/giấy phép LPC theo hồ sơ hiện có |
+
+## Phiếu tổng hợp cuối lô
+
+| Hướng | RAW cắt | Chặn / nhẹ tự động | Soát ráp / quyết định |
+|---|---|---|---|
+| s | toA.png | 0 / 18 | chặn điểm gắn sau neo; tai/vuốt/đuôi không bám thân |
+| se | toB.png | 0 / 28 | chặn điểm gắn sau neo; tai/vuốt/đuôi không bám thân |
+| e | toC.png | 0 / 47 | chặn điểm gắn sau neo; tai/vuốt/đuôi không bám thân |
+| ne | toD.png | 0 / 54 | chặn điểm gắn sau neo; tai/vuốt/đuôi không bám thân |
+| n | toE.png | 0 / 54 | chặn điểm gắn sau neo; tai/vuốt/đuôi không bám thân |
+
+Các lỗi góc ne/n chỉ khai --eye ở trên; không sinh riêng để sửa mặt. Chặn điểm gắn/màu nộm là lý do giữ nhánh game cũ. Không có võ hồn nào được nhập trong lô này.
+
+### Tham chiếu thực dùng
+
+| RAW | Thứ tự ảnh 1 → 2 → 3 (nếu có) |
+|---|---|
+| toA.png | art/src/phuthe-anim/yeu_ho/references/yeu_ho-nom-toA.png → art/src/vohon-v2/yeu_ho/concept-attempt1.png |
+| toB.png | art/src/phuthe-anim/yeu_ho/references/yeu_ho-nom-toB.png → art/src/vohon-v2/yeu_ho/concept-attempt1.png |
+| toC.png | art/src/phuthe-anim/yeu_ho/references/yeu_ho-nom-toC.png → art/src/vohon-v2/yeu_ho/concept-attempt1.png → art/src/phuthe-anim/yeu_ho/toB.png |
+| toD.png | art/src/phuthe-anim/yeu_ho/references/yeu_ho-nom-toD.png → art/src/vohon-v2/yeu_ho/concept-attempt1.png → art/src/phuthe-anim/yeu_ho/toB.png |
+| toE.png | art/src/phuthe-anim/yeu_ho/references/yeu_ho-nom-toE.png → art/src/vohon-v2/yeu_ho/concept-attempt1.png → art/src/phuthe-anim/yeu_ho/toD.png |
+| candidates/toA-attempt1.png | art/src/phuthe-anim/yeu_ho/references/yeu_ho-nom-toA.png → art/src/vohon-v2/yeu_ho/concept-attempt1.png |
+| candidates/toA-attempt2.png | art/src/phuthe-anim/yeu_ho/references/yeu_ho-nom-toA.png → art/src/vohon-v2/yeu_ho/concept-attempt1.png |
+| candidates/toB-attempt1.png | art/src/phuthe-anim/yeu_ho/references/yeu_ho-nom-toB.png → art/src/vohon-v2/yeu_ho/concept-attempt1.png → art/src/phuthe-anim/yeu_ho/toA.png |
+| candidates/toB-attempt2.png | art/src/phuthe-anim/yeu_ho/references/yeu_ho-nom-toB.png → art/src/vohon-v2/yeu_ho/concept-attempt1.png → art/src/phuthe-anim/yeu_ho/toA.png |
+| candidates/toD-attempt1.png | art/src/phuthe-anim/yeu_ho/references/yeu_ho-nom-toD.png → art/src/vohon-v2/yeu_ho/concept-attempt1.png → art/src/phuthe-anim/yeu_ho/toC.png |
+
+Bài học đã được diễn đạt lại sau kiểm thử để không lọt từ khóa nộm vào chế độ --no-dummy và không ghi số pixel cố định; các prompt lưu trữ vẫn giữ đúng bản thực gửi.
