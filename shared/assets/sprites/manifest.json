@@ -73,6 +73,62 @@
       "map": "cuc_bac_chi_dia"
     },
     {
+      "key": "beast_bang_bich_hat_anim",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          48,
+          88
+        ],
+        "dirsOk": [
+          "s",
+          "se",
+          "e"
+        ]
+      },
+      "map": "cuc_bac_chi_dia"
+    },
+    {
       "key": "beast_bang_giap_cu_quy",
       "frame": [
         96,
@@ -212,6 +268,62 @@
       ],
       "iso": true,
       "static": true,
+      "map": "cuc_bac_chi_dia"
+    },
+    {
+      "key": "beast_bang_tinh_hat_anim",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          48,
+          88
+        ],
+        "dirsOk": [
+          "s",
+          "se",
+          "e"
+        ]
+      },
       "map": "cuc_bac_chi_dia"
     },
     {
@@ -829,6 +941,62 @@
       "map": "hai_than_dao"
     },
     {
+      "key": "beast_kiem_ngu_anim",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          48,
+          88
+        ],
+        "dirsOk": [
+          "se",
+          "e",
+          "n"
+        ]
+      },
+      "map": "hai_than_dao"
+    },
+    {
       "key": "beast_kiem_vi_hat",
       "frame": [
         96,
@@ -839,6 +1007,62 @@
       "map": "tinh_dau_noi_dia"
     },
     {
+      "key": "beast_kiem_vi_hat_anim",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          48,
+          88
+        ],
+        "dirsOk": [
+          "s",
+          "se",
+          "e"
+        ]
+      },
+      "map": "tinh_dau_noi_dia"
+    },
+    {
       "key": "beast_kim_lan_long_quy",
       "frame": [
         128,
@@ -846,6 +1070,61 @@
       ],
       "iso": true,
       "static": true,
+      "map": "hai_than_dao"
+    },
+    {
+      "key": "beast_kim_lan_long_quy_anim",
+      "frame": [
+        128,
+        128
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          64,
+          120
+        ],
+        "dirsOk": [
+          "e",
+          "n"
+        ]
+      },
       "map": "hai_than_dao"
     },
     {
@@ -2586,6 +2865,11 @@
         "origin": [
           48,
           88
+        ],
+        "dirsOk": [
+          "s",
+          "se",
+          "e"
         ]
       },
       "map": "tinh_dau_noi_dia"
@@ -2608,6 +2892,63 @@
       ],
       "iso": true,
       "static": true,
+      "map": "lac_nhat_sam_lam"
+    },
+    {
+      "key": "beast_y_la_hoa_yeu_anim",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          48,
+          88
+        ],
+        "dirsOk": [
+          "s",
+          "se",
+          "e",
+          "n"
+        ]
+      },
       "map": "lac_nhat_sam_lam"
     },
     {
