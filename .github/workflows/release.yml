@@ -26,6 +26,7 @@ env:
 jobs:
   # Cổng: commit chỉ đổi thứ không vào image (art/**, docs/**, *.md, tools/, .github/...) thì không dựng lại (CI đã bỏ bot cho các commit art / docs).
   # Image chỉ gồm server/**, client/**, shared/**, Dockerfile, package*.json (xem Dockerfile + .dockerignore). Không so được thì dựng (không chắc thì dựng).
+  # Ảnh / sprite ở shared/assets/** vào image nên merge PR ảnh VẪN dựng, dù CI main chạy mức `assets` (chỉ assets-check, vẫn success; #1118). Gate không đọc mức CI. Lượt CI hằng ngày (schedule) không phải event push nên không qua đây.
   # Chạy tay luôn dựng. Concurrency nằm ở job `release` (không phải cả workflow) để lượt bị bỏ qua không thay thế lượt dựng đang chờ.
   gate:
     name: cần dựng image?
