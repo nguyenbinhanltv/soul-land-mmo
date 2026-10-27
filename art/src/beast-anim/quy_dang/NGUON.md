@@ -22,6 +22,15 @@ Loài `quy_dang` (Quỷ Đằng), họ `vine`, khung game 128×128. Mức kiểm
 - Mức kiểm: **pass** (khối hướng: s pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
+## toB
+
+- File: `toB.png`, **1536×1024**, 2259048 byte, SHA256 `41b7351b8f514a09d39496c208c11ec4787637d3e1db75f3d39f6492debb1044`.
+- Công cụ: Codex image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-625.
+- Prompt: `toB.prompt.txt` (SHA256 `3443b94862e385820ad44caee69803fea4c6704709b0e5f7293d2a94317201ac`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: se pass).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
 ## Lỗi
 
 ```text
