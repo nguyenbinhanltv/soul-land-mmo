@@ -146,6 +146,26 @@ assert.deepEqual(layoutNameplates(crowd, { viewport, obstacles: [body], maxOffse
   assert.ok(Math.max(...steps) < 112 * 0.4 && steps.slice(0, 12).every((d, i) => i === 0 || d <= steps[i - 1] + 1e-9), "bước giảm dần, khung đầu < 40% quãng");
   assert.ok(112 - x < 5, "tới đích sau ~20 khung (≈ 330 ms)");
 }
+// #1092: hai nhãn đổi ô cùng lúc thì vị trí vẽ (đuổi ô đích ~120 ms) có thể chồng nhau thoáng qua; bài đo trong trình duyệt phải CHỜ hết đoạn này
+// (vị trí ngừng đổi) rồi mới kiểm chồng chữ. Ở đây: sau trễ settle + nội suy, vị trí vẽ ổn định và không chồng.
+{
+  const a = { id: "a", x: 100, y: 100, width: 60, height: 16, priority: 100 }, b = { id: "b", x: 100, y: 100, width: 60, height: 16, priority: 20 };
+  let prev = new Map(), shown = new Map(), t = 0, stableSince = 0, last = "";
+  const items = (f) => (f < 20 ? [a] : [a, b]); // b hiện đúng chỗ a đang chiếm: b phải tránh sang ô khác
+  for (let f = 0; f < 120; f++, t += 16.7) {
+    const placed = layoutNameplates(items(f), { gap: 3, prev, now: t });
+    prev = new Map(placed.flatMap((p) => p.visible && p.slot ? [[p.id, p.slot]] : []));
+    const rects = placed.filter((p) => p.visible).map((p) => {
+      const old = shown.get(p.id), x = easeNameplate(old?.x, p.x, f < 1 ? 1e9 : 16.7), y = easeNameplate(old?.y, p.y, f < 1 ? 1e9 : 16.7);
+      shown.set(p.id, { x, y }); return { ...p, x, y };
+    });
+    const key = rects.map((r) => `${r.id}:${r.x.toFixed(1)},${r.y.toFixed(1)}`).join("|");
+    if (key !== last) stableSince = f; last = key;
+    if (f === 119) for (let i = 0; i < rects.length; i++) for (const r of rects.slice(i + 1)) assert.ok(!nameplatesOverlap(rects[i], r, 3), "sau khi ổn định, nhãn vẽ không chồng");
+  }
+  assert.equal(shown.size, 2);
+  assert.ok(stableSince < 110, `vị trí vẽ phải ngừng đổi trong ~1,8 s (ngừng ở khung ${stableSince})`);
+}
 const impossible = layoutNameplates([{ ...crowd[0], width: 900, compactSize: undefined, priority: 120 }], { viewport });
 assert.equal(impossible[0].visible, false, "hết chỗ thì ẩn, kể cả ưu tiên cao cũng không vẽ chồng");
 assert.equal(nameplatePriority(true, false, false) > nameplatePriority(false, true, false), true);
