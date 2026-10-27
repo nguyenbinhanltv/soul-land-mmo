@@ -1,0 +1,15 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "generatedAt":  "2026-10-27T04:50:51.1902607Z",
+    "recordedAt":  "2026-10-27T04:50:51.1902607Z",
+    "sha256":  "b065e54968f78f0f60d7bcd159bf2e4fd65d31717c475989f5aec68623aef39b",
+    "promptSha256":  "dcfc9f5c9e81300440053b8cfa83a993a458a17049dbfc9be1282ca145edbcb8",
+    "references":  [
+                       "shared/assets/sprites/beast/thanh_lan_xa.png"
+                   ],
+    "attempt":  2,
+    "agent":  "soul_land_game-630",
+    "provenance":  "RAW từ image_gen, giữ nguyên byte."
+}

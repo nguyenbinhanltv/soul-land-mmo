@@ -1,0 +1,15 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "generatedAt":  "unknown",
+    "recordedAt":  "2026-10-27T04:50:48.8190985Z",
+    "sha256":  "3ea403f8c1cb0e6875ef3eefdeccbf5dcc39b775429778196d4622c1839d6376",
+    "promptSha256":  "34789e316c38a77390c94df63a8df7ba95df7bdd8dfb2d6cf27169074dfb0abc",
+    "references":  [
+                       "shared/assets/sprites/beast/hac_thuy_mang.png"
+                   ],
+    "attempt":  1,
+    "agent":  "soul_land_game-616",
+    "provenance":  "Hồ sơ truy hồi từ PNG và prompt thật đã commit trong PR #1107; thời điểm sinh không được lưu."
+}

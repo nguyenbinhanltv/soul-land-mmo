@@ -1,0 +1,15 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "generatedAt":  "unknown",
+    "recordedAt":  "2026-10-27T05:04:02.2599784Z",
+    "sha256":  "b569de1698be988435df2ece068aa12adcefc36ad0eb47c4015a7b61650e7185",
+    "promptSha256":  "51562f5bfe1b81ddaa772555b24cfa2b6e2c484e5a09c97a494c3f4224430706",
+    "references":  [
+                       "shared/assets/sprites/beast/lam_lan_hai_xa.png"
+                   ],
+    "attempt":  2,
+    "agent":  "soul_land_game-630",
+    "provenance":  "RAW từ image_gen, giữ nguyên byte; prompt công cụ đã có bài học swim hướng nam. Không chọn: 4 cảnh báo so với A1 có 2; s walk vẫn nghiêng phải, die lệch ngang; se gần e."
+}

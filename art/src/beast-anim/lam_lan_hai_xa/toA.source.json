@@ -1,0 +1,15 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "generatedAt":  "unknown",
+    "recordedAt":  "2026-10-27T05:04:02.1214256Z",
+    "sha256":  "7f04c6390255c1aa23d213895b5619ac4e6d9f787ff82e86675ec3b744cb9a44",
+    "promptSha256":  "7a501e3ae82a5dbac4466342ac1d2002c888abbd72bcf5c6955b341f92b03157",
+    "references":  [
+                       "shared/assets/sprites/beast/lam_lan_hai_xa.png"
+                   ],
+    "attempt":  1,
+    "agent":  "soul_land_game-616",
+    "provenance":  "Truy hồi PNG và prompt thật từ PR #1107; không lưu thời điểm sinh gốc. Chọn A1/2: ít cảnh báo hơn và gần thiết kế gốc hơn A2."
+}
