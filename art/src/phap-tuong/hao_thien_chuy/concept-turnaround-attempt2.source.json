@@ -40,19 +40,28 @@
   "generated_at": "unknown; tool did not expose timestamp",
   "raw_copy_verified": true,
   "visual_qa": {
-    "status": "pending owner review; not art-approved",
+    "status": "owner-approved concept only; not a final game asset",
     "observations": [
-      "Five hammer renderings are visually arranged in sequence, but no direction labels are present, so exact s/se/e/ne/n assignment cannot be confirmed from the image alone.",
-      "First/fifth and second/fourth renderings appear strongly mirror-paired; true distinct views are not confirmed.",
-      "Chunky silhouette and thick lava seams are present, but soft shading and fine texture remain; strict low-resolution pixel-cluster match is not met."
+      "Owner confirms five drawings are three distinct views: two mirrored pairs plus front.",
+      "Owner directs n/ne to reuse the front view because the hammer is symmetrical.",
+      "RAW has soft shading and some fine texture; concept acceptance does not make it import-ready."
     ]
   },
-  "qa_status": "RAW/provenance verified; concept art decision pending owner. Do not treat as formal approval or import-ready asset.",
+  "qa_status": "Owner approved concept in comment #6430325821; no attempt 3; no formal GitHub PR review or game-asset approval.",
   "tool_arguments": {
     "referenced_image_paths": [
       "/private/tmp/soul-land-mmo-1024-fresh/art/src/vohon-v2/ta_hoa_phuong_hoang/portrait-attempt2.png"
     ],
     "transparent_background": true
   },
-  "approval_scope": "One new Hạo Thiên Chùy concept turnaround call, attempt 2/3, style-referenced only to the owner-approved new Tà Hỏa portrait attempt 2. No animation, import, or formal owner approval."
+  "approval_scope": "Concept shape approval only for Hạo Thiên Chùy attempt 2/3; direction policy n/ne reuses front per owner. No animation/import approval.",
+  "selected_for_concept": true,
+  "owner_decision": {
+    "status": "concept approved by repository owner",
+    "comment_url": "https://github.com/nguyenbinhanltv/soul-land-mmo/pull/1083#issuecomment-6430325821",
+    "distinct_views_in_output": 3,
+    "directions_ne_n_reuse_front_view": true,
+    "attempt3_needed": false,
+    "scope": "concept only; no final sprite, import, or animation approval"
+  }
 }
