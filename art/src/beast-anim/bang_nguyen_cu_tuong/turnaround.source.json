@@ -1,52 +1,56 @@
 {
-  "species": "bang_nguyen_cu_tuong",
-  "stage": "turnaround",
-  "attempt": 1,
-  "attemptLimit": 2,
-  "totalTurnaroundImagegenCalls": 1,
-  "totalDirectionImagegenCalls": 0,
-  "tool": "Codex built-in image_gen.imagegen",
-  "model": "unknown (tool did not disclose)",
-  "seed": "unknown (tool did not disclose)",
-  "timestamp": "unknown (tool did not disclose)",
-  "outputPath": "/Users/thanhhoa/.codex/generated_images/01a1797e-bc83-7452-85a2-c7f698b11d00/exec-2a5b3d03-f070-445e-bebe-b65eb83c3989.png",
-  "rawPath": "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround.png",
-  "rawSha256": "f858ee9efdbf978fa0290fd2f4d6caef06c896099734490fa62dc02cee5f9465",
-  "rawBytes": 1882684,
-  "dimensions": [1536, 1024],
-  "copiedByteIdenticalFromToolOutput": true,
-  "transparentBackground": false,
-  "references": [
-    {
-      "role": "static reference, image 1",
-      "path": "shared/assets/sprites/beast/bang_nguyen_cu_tuong.png",
-      "sha256": "3fd6261fe12cbcfd62573887ad38ffb06194c934f898e62bf0297580c076c7e3"
-    }
-  ],
-  "toolOriginalPromptPath": "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround.prompt.tool.txt",
-  "toolOriginalPromptSha256": "c8018c58141fa3764b5b76f8439555b0e2f11b87519188fb74a5b009316708ca",
-  "executionPromptPath": "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround.prompt.txt",
-  "executionPromptSha256": "b32a57130f0533e10a33ddd4482ef2d543750ca1c92175f41dcd056c46c702cb",
-  "generatedPromptTemplatePath": "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround.prompt.template.md",
-  "generatedPromptTemplateSha256": "283d6b9aed43d9af6ce53b7dd7a73716121a88346b1822e00a9c3f0a55dea07e",
-  "ownerDecision": {
-    "url": "https://github.com/nguyenbinhanltv/soul-land-mmo/issues/1030#issuecomment-6425849989",
-    "commentBodyPath": "art/src/beast-anim/bang_nguyen_cu_tuong/owner-decision-6425849989.txt",
-    "commentBodySha256": "44bf170f1d7d94935357fc6e68b959a9c2383d02bd1b3d935e51e3a3ea49f4ef"
-  },
-  "manualPromptAddendum": "Theo quyết định riêng của owner #1030: sửa hai câu HURT và ATTACK cho Băng Nguyên Cự Tượng; giữ nguyên mẫu prompt gốc. HURT: recoils half a step backward: hind legs step back, body leans back, front legs stay planted. ATTACK cho direction: tusk thrust upward and trunk swing; không bite/claw.",
-  "reviewStatus": "chưa được owner/orchestrator duyệt; chưa dùng làm ref2 cho direction",
-  "checker": {
-    "command": "node tools/assets/beast-sheet-check.mjs bang_nguyen_cu_tuong --dir art/src/beast-anim/bang_nguyen_cu_tuong --out /private/tmp/bang-nguyen-cu-tuong-turnaround-check",
-    "result": "PASS turnaround (0 block, 0 light); lưu ý nền lệch nhẹ 34 trong dung sai 60",
-    "limitations": "Checker không xác nhận hướng HURT, hướng mặt n/ne, khác biệt se/e, hướng DIE hoặc nhận diện loài."
-  },
-  "metadataCorrection": {
-    "field": "rawSha256",
-    "previousValue": "f858ee9efdbf978fa0290fd2f4d6caef06c896099734490fa62dc2cee5f9465",
-    "correctedValue": "f858ee9efdbf978fa0290fd2f4d6caef06c896099734490fa62dc02cee5f9465",
-    "reason": "Đính chính metadata: giá trị cũ thiếu ký tự 0 trong đoạn dc02; đã đối chiếu shasum trực tiếp với exact outputPath và cmp xác nhận RAW byte-identical.",
-    "verifiedOutputPath": "/Users/thanhhoa/.codex/generated_images/01a1797e-bc83-7452-85a2-c7f698b11d00/exec-2a5b3d03-f070-445e-bebe-b65eb83c3989.png",
-    "promptAndReferenceHashesRechecked": true
-  }
+    "species":  "bang_nguyen_cu_tuong",
+    "stage":  "turnaround",
+    "attempt":  1,
+    "attemptLimit":  2,
+    "totalTurnaroundImagegenCalls":  1,
+    "totalDirectionImagegenCalls":  0,
+    "tool":  "Codex built-in image_gen.imagegen; HURT / ATTACK chỉnh tay theo quyết định orchestrator #1030 (turnaround.prompt.txt; bản gốc của công cụ không giữ lại; lượt 2 ở candidates/turnaround-attempt2.*); phiên sinh turnaround: tthoadev",
+    "model":  "unknown (tool did not disclose)",
+    "seed":  "unknown (tool did not disclose)",
+    "timestamp":  "unknown (tool did not disclose)",
+    "outputPath":  "/Users/thanhhoa/.codex/generated_images/01a1797e-bc83-7452-85a2-c7f698b11d00/exec-2a5b3d03-f070-445e-bebe-b65eb83c3989.png",
+    "rawPath":  "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround.png",
+    "rawSha256":  "f858ee9efdbf978fa0290fd2f4d6caef06c896099734490fa62dc02cee5f9465",
+    "rawBytes":  1882684,
+    "dimensions":  [
+                       1536,
+                       1024
+                   ],
+    "copiedByteIdenticalFromToolOutput":  true,
+    "transparentBackground":  false,
+    "references":  [
+                       {
+                           "role":  "static reference, image 1",
+                           "path":  "shared/assets/sprites/beast/bang_nguyen_cu_tuong.png",
+                           "sha256":  "3fd6261fe12cbcfd62573887ad38ffb06194c934f898e62bf0297580c076c7e3"
+                       }
+                   ],
+    "toolOriginalPromptPath":  "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround.prompt.tool.txt",
+    "toolOriginalPromptSha256":  "c8018c58141fa3764b5b76f8439555b0e2f11b87519188fb74a5b009316708ca",
+    "executionPromptPath":  "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround.prompt.txt",
+    "executionPromptSha256":  "b32a57130f0533e10a33ddd4482ef2d543750ca1c92175f41dcd056c46c702cb",
+    "generatedPromptTemplatePath":  "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround.prompt.template.md",
+    "generatedPromptTemplateSha256":  "283d6b9aed43d9af6ce53b7dd7a73716121a88346b1822e00a9c3f0a55dea07e",
+    "ownerDecision":  {
+                          "url":  "https://github.com/nguyenbinhanltv/soul-land-mmo/issues/1030#issuecomment-6425849989",
+                          "commentBodyPath":  "art/src/beast-anim/bang_nguyen_cu_tuong/owner-decision-6425849989.txt",
+                          "commentBodySha256":  "44bf170f1d7d94935357fc6e68b959a9c2383d02bd1b3d935e51e3a3ea49f4ef"
+                      },
+    "manualPromptAddendum":  "Theo quyết định riêng của owner #1030: sửa hai câu HURT và ATTACK cho Băng Nguyên Cự Tượng; giữ nguyên mẫu prompt gốc. HURT: recoils half a step backward: hind legs step back, body leans back, front legs stay planted. ATTACK cho direction: tusk thrust upward and trunk swing; không bite/claw.",
+    "reviewStatus":  "chưa được owner/orchestrator duyệt; chưa dùng làm ref2 cho direction",
+    "checker":  {
+                    "command":  "node tools/assets/beast-sheet-check.mjs bang_nguyen_cu_tuong --dir art/src/beast-anim/bang_nguyen_cu_tuong --out /private/tmp/bang-nguyen-cu-tuong-turnaround-check",
+                    "result":  "PASS turnaround (0 block, 0 light); lưu ý nền lệch nhẹ 34 trong dung sai 60",
+                    "limitations":  "Checker không xác nhận hướng HURT, hướng mặt n/ne, khác biệt se/e, hướng DIE hoặc nhận diện loài."
+                },
+    "metadataCorrection":  {
+                               "field":  "rawSha256",
+                               "previousValue":  "f858ee9efdbf978fa0290fd2f4d6caef06c896099734490fa62dc2cee5f9465",
+                               "correctedValue":  "f858ee9efdbf978fa0290fd2f4d6caef06c896099734490fa62dc02cee5f9465",
+                               "reason":  "Đính chính metadata: giá trị cũ thiếu ký tự 0 trong đoạn dc02; đã đối chiếu shasum trực tiếp với exact outputPath và cmp xác nhận RAW byte-identical.",
+                               "verifiedOutputPath":  "/Users/thanhhoa/.codex/generated_images/01a1797e-bc83-7452-85a2-c7f698b11d00/exec-2a5b3d03-f070-445e-bebe-b65eb83c3989.png",
+                               "promptAndReferenceHashesRechecked":  true
+                           },
+    "agent":  "tthoadev"
 }
