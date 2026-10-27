@@ -175,7 +175,7 @@ export function assignNames(kind, layout, grid, names) {
   grid.bands.forEach((b, row) => {
     for (let c = 0; c < layout[row]; c++, k++) {
       const spec = kind.pieces[k] ?? {}, fig = b.figures[c];
-      if (fig) out.push({ name: list[k] ?? `${kind.id.toLowerCase()}_${String(k + 1).padStart(2, "0")}`, set: spec.set ?? null, state: spec.state ?? null, stretch: spec.stretch ?? kind.stretch === true, text: spec.text ?? kind.text === true, row, col: c, fig, index: k });
+      if (fig) out.push({ name: list[k] ?? `${kind.id.toLowerCase()}_${String(k + 1).padStart(2, "0")}`, set: spec.set ?? null, state: spec.state ?? null, stretch: spec.stretch ?? kind.stretch === true, text: spec.text ?? kind.text === true, mirror: spec.mirror, row, col: c, fig, index: k });
     }
   });
   return out;
@@ -262,13 +262,14 @@ export function edgeFlatness(m, s, depth = s, tol = TOL) {
     if (j1 - j0 < 8 || depth < 1 || depth >= v.D / 2) continue;
     let bad = 0, n = 0;
     for (let i = 0; i < depth; i++) {
-      const cs = [];
-      for (let j = j0; j < j1; j++) if (j < capLo || j >= capHi) { const c = v.at(i, j); if (c) cs.push(c); }
-      const med = medColor(cs);
+      const cs = []; let total = 0;
+      for (let j = j0; j < j1; j++) if (j < capLo || j >= capHi) { total++; const c = v.at(i, j); if (c) cs.push(c); }
+      const med = cs.length * 20 >= total ? medColor(cs) : null; // hàng coi là trong suốt chỉ khi ≤ 5% điểm đặc (viền lởm chởm của tranh vẽ tay vẫn tính lệch)
+      // hàng thân cạnh trong suốt đồng nhất (ngọc giữa cạnh nhô ra, tab hở đáy) co giãn đúng: chỉ điểm đặc lẻ loi mới là lệch
       for (let j = j0; j < j1; j++) {
         if (j >= capLo && j < capHi) continue;
         n++; const c = v.at(i, j);
-        if (!med || !c || cdist(c, med) > tol) bad++;
+        if (!med ? !!c : !c || cdist(c, med) > tol) bad++;
       }
     }
     if (n) worst = Math.max(worst ?? 0, bad / n);
@@ -345,3 +346,61 @@ export function pinkFringe(m) {
 }
 
 export const hexOf = toHex;
+
+// ---------- Cắt mềm: bù viền hồng, ép cạnh phẳng (chỉ dùng khi bật --soft; mọi hàm thuần và tất định) ----------
+/** Điểm đặc có hàng xóm trong suốt (4 hướng) hoặc nằm sát mép ảnh. */
+const touchesAir = (m, x, y) => x === 0 || y === 0 || x === m.w - 1 || y === m.h - 1 || !opaque(m, x - 1, y) || !opaque(m, x + 1, y) || !opaque(m, x, y - 1) || !opaque(m, x, y + 1);
+
+/**
+ * Bù viền ám hồng: điểm ngả hồng-tím nối với rìa qua chuỗi điểm ngả hồng (sâu ≤ depth) là mực viền bị nền ăn vào.
+ * Tối (kênh lớn nhất ≤ dark) thì đổi về màu mực `ink` (giữ nguyên hình, viền chỉ đổi màu); sáng hơn thì là nền lọt vào, bỏ điểm đó.
+ * Trả { img, recolored, removed, left } với left = tỉ lệ điểm viền còn ngả hồng sau xử lý.
+ */
+export function defringe(img, ink, { depth = 3, dark = 150 } = {}) {
+  const out = new Img(img.w, img.h, new Uint8Array(img.data)), mark = new Map();
+  let frontier = [];
+  for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) if (opaque(img, x, y) && isPink(colorAt(img, x, y)) && touchesAir(img, x, y)) { mark.set(y * img.w + x, 1); frontier.push([x, y]); }
+  for (let d = 2; d <= depth && frontier.length; d++) {
+    const next = [];
+    for (const [x, y] of frontier) for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const X = x + dx, Y = y + dy, k = Y * img.w + X;
+      if (X < 0 || Y < 0 || X >= img.w || Y >= img.h || mark.has(k) || !opaque(img, X, Y) || !isPink(colorAt(img, X, Y))) continue;
+      mark.set(k, d); next.push([X, Y]);
+    }
+    frontier = next;
+  }
+  let recolored = 0, removed = 0;
+  for (const k of mark.keys()) {
+    const x = k % img.w, y = (k / img.w) | 0, c = colorAt(img, x, y);
+    if (Math.max(c[0], c[1], c[2]) <= dark) { out.set(x, y, [...ink, 255]); recolored++; } else { out.set(x, y, [0, 0, 0, 0]); removed++; }
+  }
+  const fr = pinkFringe(out);
+  return { img: out, recolored, removed, left: fr.edge ? fr.pink / fr.edge : 0 };
+}
+
+/**
+ * Ép thân cạnh phẳng: trong mỗi hàng của dải mép (độ sâu depth), điểm thân cạnh (bỏ hai góc `s` và vùng giữa cạnh dành cho hoa văn) đổi về màu trung vị
+ * của hàng; hàng trong suốt đồng nhất thì giữ trong suốt. Trả { img, changed } (changed = số điểm đổi màu).
+ */
+export function flattenEdges(m, s, depth = s, tol = TOL) {
+  const out = new Img(m.w, m.h, new Uint8Array(m.data));
+  let changed = 0;
+  for (const side of SIDES) {
+    const v = edgeView(m, side), j0 = s, j1 = v.L - s, capLo = Math.floor(v.L * 0.38), capHi = Math.ceil(v.L * 0.62);
+    if (j1 - j0 < 8 || depth < 1 || depth >= v.D / 2) continue;
+    const horiz = side === "top" || side === "bottom";
+    for (let i = 0; i < depth; i++) {
+      const cs = []; let total = 0;
+      for (let j = j0; j < j1; j++) if (j < capLo || j >= capHi) { total++; const c = v.at(i, j); if (c) cs.push(c); }
+      const med = cs.length * 20 >= total ? medColor(cs) : null; // hàng coi là trong suốt chỉ khi ≤ 5% điểm đặc (viền lởm chởm của tranh vẽ tay vẫn tính lệch)
+      for (let j = j0; j < j1; j++) {
+        if (j >= capLo && j < capHi) continue;
+        const c = v.at(i, j);
+        if (med ? c && cdist(c, med) <= tol : !c) continue;
+        const x = horiz ? j : side === "left" ? i : m.w - 1 - i, y = side === "top" ? i : side === "bottom" ? m.h - 1 - i : j;
+        out.set(x, y, med ? [...med, 255] : [0, 0, 0, 0]); changed++;
+      }
+    }
+  }
+  return { img: out, changed };
+}
