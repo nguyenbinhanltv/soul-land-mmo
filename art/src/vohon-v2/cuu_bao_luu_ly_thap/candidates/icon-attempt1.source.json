@@ -1,0 +1,127 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-28",
+  "attempt": 1,
+  "attempt_limit": 3,
+  "raw": "art/src/vohon-v2/cuu_bao_luu_ly_thap/candidates/icon-attempt1.png",
+  "raw_sha256": "463d68d11d4a58095f11882d543100432c22be85fa8ff6205a5930f62f5e32a3",
+  "prompt": "art/src/vohon-v2/cuu_bao_luu_ly_thap/candidates/icon-attempt1.prompt.txt",
+  "prompt_sha256": "9f675b692ecc68aeeae7bf772ed46527c115db5c00c289f5f72fd75f61934d0d",
+  "sent_prompt": "STYLE (apply to every image):\r\nDark-xianxia pixel art, isometric RPG, overbearing and dominant \"heaven-defying\" presence.\r\nThe spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.\r\nAngular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.\r\nMuted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small\r\nhigh-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region\r\n(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,\r\nno anti-aliasing, hard pixel edges. Light comes from the upper left.\r\nCultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);\r\ndo not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).\r\nMaterials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.\r\nCalm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.\r\nTransparent background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels\r\n(glow, particles and motion are added in code).\r\n\r\nNEGATIVE (forbidden):\r\ncute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,\r\nSaturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,\r\npastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,\r\nflat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,\r\nreadable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,\r\n3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,\r\nanti-aliasing, painterly brush texture, drawing a copy of existing sprite.\n\nADDITIONAL FORBIDDEN (this asset type): tiny whole animal, full body, frame, card, text, background scenery.\n\nSPIRIT: Cửu Bảo Lưu Ly Tháp (cuu_bao_luu_ly_thap). The design brief below comes from the canonical design table and is written in Vietnamese: follow it exactly, keep every hex code as written, and use only the motifs listed in it (do not add any other motif).\n- Overbearing presence: **tháp chín tầng chống trời**: chín tầng, mỗi tầng một sắc bảo quang, dựng đứng sau lưng như ngọn núi phật quang.\n- Form: tháp chín tầng mái cong nhọn, tầng thu nhỏ dần, nóc nhọn; to gấp ba hồn sư khi là pháp tướng.\n- Palette: lam ngọc tối theo `robe`, lưu ly sáng theo `col`; nhấn **bảy sắc lưu ly** ở mái từng tầng (đây là chỗ duy nhất được nhiều màu, mỗi sắc ≤ 3 sắc độ) + vàng kim ở chóp.\n- Motifs (use only these): bảo quang tầng tầng, kinh văn cổ khắc, vòng pháp luân nhiều lớp (nét mảnh).\n- Companion objects: chuông gió ở mái; tia bảy sắc (code).\n- Base colors in the game data: accent (col) #7ef0ff, body (robe) #2a6a7a.\n\nASSET TYPE: spirit icon source for a menu icon (final art 32x32 and 24x24). Square 1:1 image. ONE emblem: the single most identifying shape of the spirit (head, blade, hammer head, flower, flame core...), centered, filling about 80% of the frame, strong silhouette, 2 or 3 flat tones plus one bright accent. No scenery, no full-body animal, no motif other than the one that defines the silhouette.\n\nBACKGROUND: transparent (real alpha). If your tool cannot output alpha, use one flat solid #FF00FF magenta, with no gradient, no texture, no shadow.\n\nLOOK (this replaces any request for a pixel grid, pixel count or color limit): chunky low-resolution pixel look, flat color clusters, simple shapes readable when shrunk. Large deliberate clusters of flat color with hard square edges; few broad color regions; no microtexture, no fine hatching, no tiny decorative marks, no fur or feather strands, no noise. Do not try to count pixels or colors: a post-processing tool converts your image to the final pixel grid and palette, so give it bold, simple shapes.\n\nSTYLE REFERENCE: image 1 (attached) is an APPROVED image of this project's new art direction. Match only its line weight, how few and how large its color clusters are, and its overall mood. Do not copy its subject, pose, composition or any detail of it.",
+  "sent_prompt_sha256": "7ef2d570d3f12e5ddcb3e5fecf0b4145e1021d2c4c3ee6dfd809c0495b0a2c33",
+  "prompt_command": "node tools/assets/vohon-prompt.mjs --type icon --id cuu_bao_luu_ly_thap --style-ref art/src/vohon-v2/cuu_bao_luu_ly_thap/candidates/concept-attempt3.png",
+  "reference": "art/src/vohon-v2/cuu_bao_luu_ly_thap/candidates/concept-attempt3.png",
+  "reference_sha256": "067900bfcfa13d852e79c0d692c19c339406670fc037c13eb96cc37921fd88f4",
+  "conversion_command": "node tools/assets/vohon-pixelize.mjs --type icon --id cuu_bao_luu_ly_thap --in art/src/vohon-v2/cuu_bao_luu_ly_thap/candidates/icon-attempt1.png --out art/src/vohon-v2/cuu_bao_luu_ly_thap/candidates/icon-attempt1-nearest --preset icon-nearest",
+  "checks": {
+    "24": {
+      "type": "icon",
+      "id": "cuu_bao_luu_ly_thap",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.932 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 174,
+        "outline": 1,
+        "hot": 0.091,
+        "contrast": 0.221,
+        "edge": 0.932,
+        "sep": null,
+        "bgRatio": 1.56
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    },
+    "32": {
+      "type": "icon",
+      "id": "cuu_bao_luu_ly_thap",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.941 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 326,
+        "outline": 1,
+        "hot": 0.093,
+        "contrast": 0.218,
+        "edge": 0.941,
+        "sep": null,
+        "bgRatio": 1.58
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    },
+    "raw": {
+      "type": "icon",
+      "id": "cuu_bao_luu_ly_thap",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "mem",
+          "text": "texture mềm: 77% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-mau",
+          "text": "267 màu đáng kể (nên ≤ 160 để ép về ≤ 32 mà không bệt)"
+        },
+        {
+          "sev": "soft",
+          "code": "luoi",
+          "text": "chưa đúng lưới khối: tỉ số biên 1.38 ở chu kỳ 35 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+        },
+        {
+          "sev": "soft",
+          "code": "lech-mau",
+          "text": "30% điểm sáng cùng họ màu robe / col của cuu_bao_luu_ly_thap (mục 4 cần ≥ 50%)"
+        }
+      ],
+      "metrics": {
+        "w": 1254,
+        "h": 1254,
+        "ratio": 1,
+        "border": {
+          "clear": 1,
+          "flat70": 0
+        },
+        "fill": 0.62,
+        "softness": 0.777,
+        "bigColors": 267,
+        "grid": {
+          "period": 35,
+          "ratio": 1.38
+        },
+        "paletteMatch": 0.3,
+        "smallAccent": "8/8"
+      },
+      "manual": [
+        "đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi)",
+        "không có chữ, ký hiệu đọc được, logo, chữ ký",
+        "đọc được cả ở cỡ thật 1× (nhìn lướt)"
+      ]
+    }
+  },
+  "eye": "Tháp lam tối, bảo quang nhiều màu và chóp vàng còn nhận ra; có vòng khí cùng chuông nhỏ làm hình rối ở 24 px; chỉ đọc chắc tám mái, chưa xác nhận chín tầng, cần chủ repo duyệt.",
+  "imported": false,
+  "prompt_hash_format": "file: UTF-8 LF with terminal newline; sent_prompt: exact CLI stdout with terminal newlines removed",
+  "generated_output": "C:/Users/PC/.codex/generated_images/01a17e99-5d72-7e62-8f91-6f335946f354",
+  "status": "candidate-rejected",
+  "attempts_total": 1
+}

@@ -60,9 +60,9 @@ CLI chưa nhận cờ `--eye`; lưu khai báo tường minh, giữ nguyên kết
 
 ## Icon lô 3 — #1159, RAW nearest 24/32 px
 
-Ngày 2026-10-28; **1/3 lượt**. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `icon-attempt1.png`, SHA256 `731755297a9c585d67211f4e5f2046d8a16539bc784be0e526cf713f16d28778`. Prompt CLI nguyên nội dung, không viết tay / addendum: `icon-attempt1.prompt.txt`, SHA256 `fa0f799e6f332cace9a4f945a6687ee496770b9c688772ab26495773749b64ab` (UTF-8 LF, file có xuống dòng cuối; chuỗi gửi bỏ xuống dòng cuối lưu trong source JSON).
+Ngày 2026-10-28; **1/3 lượt**. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `candidates/icon-attempt1.png`, SHA256 `731755297a9c585d67211f4e5f2046d8a16539bc784be0e526cf713f16d28778`. Prompt CLI nguyên nội dung, không viết tay / addendum: `candidates/icon-attempt1.prompt.txt`, SHA256 `fa0f799e6f332cace9a4f945a6687ee496770b9c688772ab26495773749b64ab` (UTF-8 LF, file có xuống dòng cuối; chuỗi gửi bỏ xuống dòng cuối lưu trong source JSON).
 
-Ảnh neo theo chỉ định lô 3: `art/src/vohon-v2/xuc_xich/concept-attempt1.png`, SHA256 `0310c598ef01a1970f7c85cd401ba65e0aade78a8974291ecb15a9cdb4a369d3`; chỉ tham chiếu ngoại hình, không xác nhận concept đã đạt năm hướng. Hồ sơ đầy đủ và kết quả máy: `icon-attempt1.source.json`. Chuyển bằng preset `icon-nearest`: bỏ nền, cắt hộp bao, nearest-neighbor, viền mặc định; giữ màu RAW, không ép 8 màu. Bản 24/32 và báo cáo tại `icon-attempt1-nearest/`; xem [trang so sánh](icon-attempt1-nearest/preview/index.html).
+Ảnh neo theo chỉ định lô 3: `art/src/vohon-v2/xuc_xich/concept-attempt1.png`, SHA256 `0310c598ef01a1970f7c85cd401ba65e0aade78a8974291ecb15a9cdb4a369d3`; chỉ tham chiếu ngoại hình, không xác nhận concept đã đạt năm hướng. Hồ sơ đầy đủ và kết quả máy: `candidates/icon-attempt1.source.json`. Chuyển bằng preset `icon-nearest`: bỏ nền, cắt hộp bao, nearest-neighbor, viền mặc định; giữ màu RAW, không ép 8 màu. Bản 24/32 và báo cáo tại `candidates/icon-attempt1-nearest/`; xem [trang so sánh](candidates/icon-attempt1-nearest/preview/index.html).
 
 Ứng viên trình duyệt, chưa duyệt nhập game. Lỗi còn lại chỉ khai dưới đây, không sửa RAW.
 
@@ -85,4 +85,67 @@ CLI chưa nhận cờ `--eye`; giữ nguyên kết quả máy và lưu khai báo
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/vohon-v2/xuc_xich/icon-attempt1.*` và `icon-attempt1-nearest/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) + vohon-pixelize icon-nearest | Icon lô 3 #1159; prompt CLI nguyên văn, concept riêng làm neo; model/seed unknown. | 2026-10-28 | 1/3 lượt; ứng viên chưa duyệt, không nhập game; SHA256 ở trên. |
+| `art/src/vohon-v2/xuc_xich/candidates/icon-attempt1.*` và `candidates/icon-attempt1-nearest/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) + vohon-pixelize icon-nearest | Icon lô 3 #1159; prompt CLI nguyên văn, concept riêng làm neo; model/seed unknown. | 2026-10-28 | 1/3 lượt; ứng viên chưa duyệt, không nhập game; SHA256 ở trên. |
+
+
+## Icon lô 3 — #1159, RAW nearest 24/32 px
+
+Ngày 2026-10-28; **2/3 lượt**. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `candidates/icon-attempt2.png`, SHA256 `dc89719c3b5411315fad10027b13e37ffd6d3b431e9fa8240be585a073b30b35`. Prompt CLI nguyên nội dung, không viết tay / addendum: `candidates/icon-attempt2.prompt.txt`, SHA256 `fa0f799e6f332cace9a4f945a6687ee496770b9c688772ab26495773749b64ab` (UTF-8 LF, file có xuống dòng cuối; chuỗi gửi bỏ xuống dòng cuối lưu trong source JSON).
+
+Ảnh neo theo chỉ định lô 3: `art/src/vohon-v2/xuc_xich/concept-attempt1.png`, SHA256 `0310c598ef01a1970f7c85cd401ba65e0aade78a8974291ecb15a9cdb4a369d3`; chỉ tham chiếu ngoại hình, không xác nhận concept đã đạt năm hướng. Hồ sơ đầy đủ và kết quả máy: `candidates/icon-attempt2.source.json`. Chuyển bằng preset `icon-nearest`: bỏ nền, cắt hộp bao, nearest-neighbor, viền mặc định; giữ màu RAW, không ép 8 màu. Bản 24/32 và báo cáo tại `candidates/icon-attempt2-nearest/`; xem [trang so sánh](candidates/icon-attempt2-nearest/preview/index.html).
+
+Ứng viên trình duyệt, chưa duyệt nhập game. Lỗi còn lại chỉ khai dưới đây, không sửa RAW.
+
+### Khai báo duyệt mắt icon (`--eye`)
+
+CLI chưa nhận cờ `--eye`; giữ nguyên kết quả máy và lưu khai báo tường minh:
+
+```text
+--eye "icon-attempt2=24 — cham-mep — hình chạm mép ảnh (3 điểm): viền ngoài bị cắt"
+--eye "icon-attempt2=24 — nhieu-chi-tiet — mật độ biên 0.906 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+--eye "icon-attempt2=32 — cham-mep — hình chạm mép ảnh (3 điểm): viền ngoài bị cắt"
+--eye "icon-attempt2=32 — nhieu-chi-tiet — mật độ biên 0.923 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+--eye "icon-attempt2=raw — mem — texture mềm: 89% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+--eye "icon-attempt2=raw — nhieu-mau — 191 màu đáng kể (nên ≤ 160 để ép về ≤ 32 mà không bệt)"
+--eye "icon-attempt2=raw — luoi — chưa đúng lưới khối: tỉ số biên 1.29 ở chu kỳ 37 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+--eye "icon-attempt2=duyệt mắt — Lượt 2 vẫn có bốn Xúc Xích phụ và khí sáng dày, không đạt biểu tượng đơn; thân chính to nhưng vòng khí nhập thân khi thu nhỏ, loại vào candidates."
+```
+
+### Ghi công icon
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/vohon-v2/xuc_xich/candidates/icon-attempt2.*` và `candidates/icon-attempt2-nearest/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) + vohon-pixelize icon-nearest | Icon lô 3 #1159; prompt CLI nguyên văn, concept riêng làm neo; model/seed unknown. | 2026-10-28 | 2/3 lượt; ứng viên chưa duyệt, không nhập game; SHA256 ở trên. |
+
+
+## Icon lô 3 — #1159, RAW nearest 24/32 px
+
+Ngày 2026-10-28; **3/3 lượt**. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte `candidates/icon-attempt3.png`, SHA256 `19dbad5c0f953fc9ac36808e4e36fe95bd05f276c8ff01b4c6e69cdcf4f89dc1`. Prompt CLI nguyên nội dung, không viết tay / addendum: `candidates/icon-attempt3.prompt.txt`, SHA256 `fa0f799e6f332cace9a4f945a6687ee496770b9c688772ab26495773749b64ab` (UTF-8 LF, file có xuống dòng cuối; chuỗi gửi bỏ xuống dòng cuối lưu trong source JSON).
+
+Ảnh neo theo chỉ định lô 3: `art/src/vohon-v2/xuc_xich/concept-attempt1.png`, SHA256 `0310c598ef01a1970f7c85cd401ba65e0aade78a8974291ecb15a9cdb4a369d3`; chỉ tham chiếu ngoại hình, không xác nhận concept đã đạt năm hướng. Hồ sơ đầy đủ và kết quả máy: `candidates/icon-attempt3.source.json`. Chuyển bằng preset `icon-nearest`: bỏ nền, cắt hộp bao, nearest-neighbor, viền mặc định; giữ màu RAW, không ép 8 màu. Bản 24/32 và báo cáo tại `candidates/icon-attempt3-nearest/`; xem [trang so sánh](candidates/icon-attempt3-nearest/preview/index.html).
+
+Ứng viên trình duyệt, chưa duyệt nhập game. Lỗi còn lại chỉ khai dưới đây, không sửa RAW.
+
+### Khai báo duyệt mắt icon (`--eye`)
+
+CLI chưa nhận cờ `--eye`; giữ nguyên kết quả máy và lưu khai báo tường minh:
+
+```text
+--eye "icon-attempt3=24 — cham-mep — hình chạm mép ảnh (2 điểm): viền ngoài bị cắt"
+--eye "icon-attempt3=24 — nhieu-chi-tiet — mật độ biên 0.912 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+--eye "icon-attempt3=32 — cham-mep — hình chạm mép ảnh (3 điểm): viền ngoài bị cắt"
+--eye "icon-attempt3=32 — nhieu-chi-tiet — mật độ biên 0.911 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+--eye "icon-attempt3=raw — mem — texture mềm: 90% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+--eye "icon-attempt3=raw — nhieu-mau — 193 màu đáng kể (nên ≤ 160 để ép về ≤ 32 mà không bệt)"
+--eye "icon-attempt3=raw — luoi — chưa đúng lưới khối: tỉ số biên 1.26 ở chu kỳ 29 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+--eye "icon-attempt3=duyệt mắt — Lượt 3 vẫn có bốn Xúc Xích phụ và khí sáng dày; nhiều chủ thể, không đạt biểu tượng đơn. Hết 3/3 lượt, dừng; chưa có bản chọn, lỗi còn lại chỉ khai --eye."
+```
+
+### Ghi công icon
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/vohon-v2/xuc_xich/candidates/icon-attempt3.*` và `candidates/icon-attempt3-nearest/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) + vohon-pixelize icon-nearest | Icon lô 3 #1159; prompt CLI nguyên văn, concept riêng làm neo; model/seed unknown. | 2026-10-28 | 3/3 lượt; ứng viên chưa duyệt, không nhập game; SHA256 ở trên. |
+
+
+**Kết luận icon:** 3/3 lượt, cả ba chưa đạt biểu tượng đơn do có nhiều chiếc phụ; không chọn bản cuối. Toàn bộ hồ sơ icon ở `candidates/`, không có NGUON phụ; lỗi còn lại chỉ khai `--eye`, không sửa RAW.
