@@ -1,5 +1,6 @@
 import "./style.css";
 import "./uiIcons.css";
+import "./ui2.css";
 import { setConnectionLabel } from "./uiIcons.ts";
 import { loadGameFonts } from "./fontLoad";
 import Phaser from "phaser";

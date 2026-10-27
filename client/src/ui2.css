@@ -1,0 +1,40 @@
+/* UI Kit v2: helper khung theo vai trò (P5 #883; docs/art/ui-kit.md mục "Lớp token ui2"). Chỉ có hiệu lực dưới `body.ui2` (?ui=2, tắt mặc định)
+   VÀ khi mảnh kit tương ứng có thật (uiKit.ts thêm lớp `ui2-k-<tên>` lên body): chưa có mảnh thì phần tử giữ kiểu cũ.
+   Đây là chỗ DUY NHẤT đặt `border-width` / `border-image-slice` / `border-image-width` của kit v2; màn dùng helper bằng cách gắn lớp `f2-*`
+   (P7 gỡ luật khung riêng của màn đó), không tự đặt số. Vạch cắt và độ dày viền lấy từ `--ui2-<tên>-nine` / `-bw` (uiKit.ts đo từ manifest).
+   Hai chất liệu: Mực (`f2-muc-*`: bảng thao tác) và Giấy (`f2-giay-*`: nội dung đọc), dùng chung bộ góc / độ dày; nút, tab, ô dùng chung cho cả hai. */
+
+/* Gán vai trò → mảnh. Mỗi vai trò chỉ khai ba biến; luật vẽ ở khối chung bên dưới. */
+body.ui2 .f2-muc-lon{--frame-img:var(--ui2-khung-muc-lon);--frame-nine:var(--ui2-khung-muc-lon-nine);--frame-bw:var(--ui2-khung-muc-lon-bw)}
+body.ui2 .f2-muc-nho{--frame-img:var(--ui2-khung-muc-nho);--frame-nine:var(--ui2-khung-muc-nho-nine);--frame-bw:var(--ui2-khung-muc-nho-bw)}
+body.ui2 .f2-giay-lon{--frame-img:var(--ui2-khung-giay-lon);--frame-nine:var(--ui2-khung-giay-lon-nine);--frame-bw:var(--ui2-khung-giay-lon-bw)}
+body.ui2 .f2-giay-nho{--frame-img:var(--ui2-khung-giay-nho);--frame-nine:var(--ui2-khung-giay-nho-nine);--frame-bw:var(--ui2-khung-giay-nho-bw)}
+body.ui2 .f2-tooltip{--frame-img:var(--ui2-khung-tooltip);--frame-nine:var(--ui2-khung-tooltip-nine);--frame-bw:var(--ui2-khung-tooltip-bw)}
+body.ui2 .f2-toast{--frame-img:var(--ui2-khung-toast);--frame-nine:var(--ui2-khung-toast-nine);--frame-bw:var(--ui2-khung-toast-bw)}
+body.ui2 .f2-o{--frame-img:var(--ui2-o-trong);--frame-nine:var(--ui2-o-trong-nine);--frame-bw:var(--ui2-o-trong-bw)}
+body.ui2 .f2-o:is(.has,.co){--frame-img:var(--ui2-o-co,var(--ui2-o-trong));--frame-nine:var(--ui2-o-co-nine,var(--ui2-o-trong-nine));--frame-bw:var(--ui2-o-co-bw,var(--ui2-o-trong-bw))}
+body.ui2 .f2-o:is(.sel,:hover:not(:disabled)){--frame-img:var(--ui2-o-chon,var(--ui2-o-co,var(--ui2-o-trong)));--frame-nine:var(--ui2-o-chon-nine,var(--ui2-o-co-nine,var(--ui2-o-trong-nine)));--frame-bw:var(--ui2-o-chon-bw,var(--ui2-o-co-bw,var(--ui2-o-trong-bw)))}
+body.ui2 .f2-tab{--frame-img:var(--ui2-tab-thuong);--frame-nine:var(--ui2-tab-thuong-nine);--frame-bw:var(--ui2-tab-thuong-bw)}
+body.ui2 .f2-tab[aria-selected="true"]{--frame-img:var(--ui2-tab-chon,var(--ui2-tab-thuong));--frame-nine:var(--ui2-tab-chon-nine,var(--ui2-tab-thuong-nine));--frame-bw:var(--ui2-tab-chon-bw,var(--ui2-tab-thuong-bw))}
+
+/* Nút: nut_chinh (son, hành động chính) và nut_phu; trạng thái thường / hover / nhấn / chọn / tắt dùng chung một vạch cắt. */
+body.ui2 .f2-nut-chinh{--frame-img:var(--ui2-nut-chinh-thuong);--frame-nine:var(--ui2-nut-chinh-thuong-nine);--frame-bw:var(--ui2-nut-chinh-thuong-bw)}
+body.ui2 .f2-nut-chinh:hover:not(:disabled){--frame-img:var(--ui2-nut-chinh-ro,var(--ui2-nut-chinh-thuong))}
+body.ui2 .f2-nut-chinh:active:not(:disabled){--frame-img:var(--ui2-nut-chinh-nhan,var(--ui2-nut-chinh-thuong))}
+body.ui2 .f2-nut-chinh:is(.sel,[aria-pressed="true"]){--frame-img:var(--ui2-nut-chinh-chon,var(--ui2-nut-chinh-thuong))}
+body.ui2 .f2-nut-chinh:disabled{--frame-img:var(--ui2-nut-chinh-tat,var(--ui2-nut-chinh-thuong))}
+body.ui2 .f2-nut-phu{--frame-img:var(--ui2-nut-phu-thuong);--frame-nine:var(--ui2-nut-phu-thuong-nine);--frame-bw:var(--ui2-nut-phu-thuong-bw)}
+body.ui2 .f2-nut-phu:hover:not(:disabled){--frame-img:var(--ui2-nut-phu-ro,var(--ui2-nut-phu-thuong))}
+body.ui2 .f2-nut-phu:active:not(:disabled){--frame-img:var(--ui2-nut-phu-nhan,var(--ui2-nut-phu-thuong))}
+body.ui2 .f2-nut-phu:is(.sel,[aria-pressed="true"]){--frame-img:var(--ui2-nut-phu-chon,var(--ui2-nut-phu-thuong))}
+body.ui2 .f2-nut-phu:disabled{--frame-img:var(--ui2-nut-phu-tat,var(--ui2-nut-phu-thuong))}
+
+/* Luật vẽ chung: chỉ áp khi mảnh gốc của vai trò có thật (lớp ui2-k-*). */
+body.ui2.ui2-k-khung-muc-lon .f2-muc-lon,body.ui2.ui2-k-khung-muc-nho .f2-muc-nho,
+body.ui2.ui2-k-khung-giay-lon .f2-giay-lon,body.ui2.ui2-k-khung-giay-nho .f2-giay-nho,
+body.ui2.ui2-k-khung-tooltip .f2-tooltip,body.ui2.ui2-k-khung-toast .f2-toast,
+body.ui2.ui2-k-o-trong .f2-o,body.ui2.ui2-k-tab-thuong .f2-tab,
+body.ui2.ui2-k-nut-chinh-thuong .f2-nut-chinh,body.ui2.ui2-k-nut-phu-thuong .f2-nut-phu{
+  box-sizing:border-box;border-style:solid;border-color:transparent;border-width:var(--frame-bw);
+  border-image:var(--frame-img) var(--frame-nine) fill / var(--frame-bw) stretch;
+  background:none;image-rendering:pixelated}
