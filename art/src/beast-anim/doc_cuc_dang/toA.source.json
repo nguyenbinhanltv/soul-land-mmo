@@ -1,0 +1,14 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "createdAt": "2026-10-27T06:36:14.583Z",
+  "attempts": 1,
+  "sha256": "dbb6abec5daa89cfc40acee8f510dcca545922cc835dbf58332391ba3a4819f1",
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/doc_cuc_dang.png",
+      "sha256": "22feaff621135a6189d08ad7a7066c1be593c546e81fa78996c0a3c20af28288"
+    }
+  ]
+}
