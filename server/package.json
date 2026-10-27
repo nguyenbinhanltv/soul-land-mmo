@@ -30,7 +30,8 @@
     "build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --packages=external --tsconfig=tsconfig.json --sourcemap --outfile=dist/index.mjs",
     "test:gate": "tsx scripts/gate-test.ts",
     "test:control": "tsx scripts/control-test.ts",
-    "test:mapleak": "tsx scripts/map-leak-test.ts"
+    "test:mapleak": "tsx scripts/map-leak-test.ts",
+    "test:calendar": "tsx scripts/calendar-test.ts"
   },
   "dependencies": {
     "@colyseus/redis-driver": "0.16.1",

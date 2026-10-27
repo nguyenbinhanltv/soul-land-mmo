@@ -1,0 +1,144 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-28",
+  "attempt": 2,
+  "direction": "n",
+  "raw": "toE-attempt2.png",
+  "sha256": "0b15ab76d07afe7b8d36e6ff73412d7e98c3072cb7587c46ef753a2248e784bc",
+  "prompt": "toE-attempt2.prompt.txt",
+  "promptSha256": "471bb4bc48a701c5d820cfa264a3fc3be56bcd568b5661b914a3ef1ecca5eead",
+  "promptCommand": "node tools/assets/phuthe-sheet-prompt.mjs --id liet_hoa_thuong_lang --stage direction --dir n --concept-ref",
+  "references": [
+    {
+      "file": "art/src/phuthe-anim/liet_hoa_thuong_lang/references/liet_hoa_thuong_lang-nom-toE.png",
+      "sha256": "f8fada0c60d35b1bc5e102f9a91f982d1bd464fea197b2de43abfcf6e9fa493e"
+    },
+    {
+      "file": "art/src/vohon-v2/liet_hoa_thuong_lang/concept-attempt3.png",
+      "sha256": "3ee22a885eed62d121cde6f32c7e4261d9087b686c6e20c33e0c1f40bfdf3269"
+    }
+  ],
+  "referencePathBase": "repository root",
+  "promptHandwritten": false,
+  "promptAddendum": false,
+  "postprocessing": "none; RAW copied byte-for-byte",
+  "eye": "Nộm lưng, đúng chi thể; có viền/tô nhẹ trên cyan; cast nở lớn",
+  "technicalCheck": {
+    "id": "liet_hoa_thuong_lang",
+    "level": "chặn",
+    "group": "B",
+    "frame": 96,
+    "dummyKey": "#00D0D0",
+    "blockLevel": {
+      "n": "chặn"
+    },
+    "sheets": [
+      {
+        "sheet": "toE",
+        "size": [
+          1536,
+          1024
+        ],
+        "kind": "huong",
+        "level": "chặn",
+        "dirs": [
+          "n"
+        ],
+        "background": {
+          "key": [
+            249,
+            3,
+            251
+          ],
+          "corners": [
+            [
+              235,
+              12,
+              239
+            ],
+            [
+              240,
+              18,
+              241
+            ],
+            [
+              233,
+              37,
+              237
+            ],
+            [
+              235,
+              29,
+              239
+            ]
+          ],
+          "keyDistFromLock": 6,
+          "cornerSpread": 34
+        },
+        "seVsE": null,
+        "prep": null,
+        "bands": [
+          {
+            "row": 1,
+            "dir": "n",
+            "y": [
+              48,
+              209
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 2,
+            "dir": "n",
+            "y": [
+              300,
+              464
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 3,
+            "dir": "n",
+            "y": [
+              530,
+              714
+            ],
+            "figures": 8,
+            "state": "bad"
+          },
+          {
+            "row": 4,
+            "dir": "n",
+            "y": [
+              756,
+              971
+            ],
+            "figures": 4,
+            "state": "ok"
+          }
+        ],
+        "motion": [],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 34), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "block",
+            "code": "so-hinh",
+            "where": "H3 (n)",
+            "msg": "dải có 8 hình, cần 6: thừa hình / mảnh rời."
+          }
+        ],
+        "draft": "LỖI: toE — sai số hình — H3 (n) — dải có 8 hình, cần 6: thừa hình / mảnh rời."
+      }
+    ]
+  },
+  "status": "rejected_not_reference"
+}

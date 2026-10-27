@@ -95,6 +95,7 @@ export async function enter(b,roomId){
   b.chans=null; b.room.onMessage("channels",m=>{b.chans=m;}); // danh sách kênh (mục 6 "Nhiều kênh")
   b.mini=null; b.room.onMessage("mini",m=>{b.mini=m;}); // bản đồ nhỏ: vị trí cả bản đồ (11.4)
   b.fogBits=null; b.fogMsgs=0; b.fogd=[]; b.room.onMessage("fog",m=>{ b.fogBits=fogBytes(m?.bits); b.fogMsgs++; }); b.room.onMessage("fogd",m=>{ b.fogd.push(m); }); // sương mù khám phá (R8)
+  b.cals=[]; b.room.onMessage("calendar",m=>{ b.cals.push(m); }); // Lịch Hoạt Động (5.20)
   b.rallies=[]; b.room.onMessage("rally",m=>{ b.rallies.push(m); }); // dấu "Tập trung ở đây" của tổ đội (R6)
   b.leftCode=null; b.room.onLeave(c=>{b.leftCode=c;});
   // Đại Đấu Hồn Trường (7.2): xếp hàng / đã ghép / pha trận / kết quả, bảng xếp hạng.

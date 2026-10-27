@@ -104,6 +104,7 @@ import { questTest } from "./bot/quest.mjs";
 import { dailyTest } from "./bot/daily.mjs";
 import { resonanceTest } from "./bot/resonance.mjs";
 import { rankTest } from "./bot/rank.mjs";
+import { calendarTest } from "./bot/calendar.mjs";
 import { eggTest } from "./bot/egg.mjs";
 import { fusionTest } from "./bot/fusion.mjs";
 import { tideTest } from "./bot/tide.mjs";
@@ -160,6 +161,7 @@ const STANDALONE=[
   ["shardBuy",5,shardBuyTest],                //  ~8 #282 Thương hội đổi mảnh võ hồn (đo ở máy)
   ["tong",6,tongTest],                        //   9 #196 tông môn
   ["fog",2,fogTest,true],                     //  ~40 R8 #435 sương mù khám phá: đánh dấu, lưu, theo bản đồ, dữ liệu lạ, lệnh GM (đo ở máy)
+  ["calendar",2,calendarTest,true],           //  ~8 L2 #877 Lịch Hoạt Động: tuần trước / này / sau, week lạ bị kẹp, đẩy ngày (hook day) đổi tên boss, xin dồn bị gộp
   ["rally",2,rallyTest],                      //  ~40 R6 #433 dấu "Tập trung ở đây" của tổ đội: đặt, đồng đội nhận, người ngoài không, spam, hết hạn
   ["flag",2,flagTest],                        //  ~60 R4 #431 tự đi tới cờ: cùng bản đồ, xuyên cổng, bị chặn (đo ở máy)
   ["waypoint",5,waypointTest],                //  45 11.2
@@ -255,6 +257,7 @@ if(process.env.BOT_ONLY==="luck"){ await gearLuckTest(); console.log(failCount()
 if(process.env.BOT_ONLY==="shardbuy"){ await shardBuyTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="sell"){ await sellTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="fog"){ await fogTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="calendar"){ await calendarTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="rally"){ await rallyTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="gm"){ await gmTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="testacc"){ await testAccTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
