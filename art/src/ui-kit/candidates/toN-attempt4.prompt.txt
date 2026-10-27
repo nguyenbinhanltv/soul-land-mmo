@@ -1,0 +1,37 @@
+A sheet of 12 separate button and tab pieces for a pixel-art game user interface, landscape 3:2 aspect ratio. Each piece is its own separate object on the sheet.
+LAYOUT: 3 rows, row 1: 5 pieces; row 2: 5 pieces; row 3: 2 pieces; read left to right, top to bottom, in exactly this order:
+  1.1  primary button (vermilion), normal
+  1.2  primary button, hover (lighter rim)
+  1.3  primary button, pressed (sunk, darker)
+  1.4  primary button, disabled (desaturated, flat)
+  1.5  primary button, selected (bright jade rim)
+  2.1  secondary button (dark ink), normal
+  2.2  secondary button, hover
+  2.3  secondary button, pressed
+  2.4  secondary button, disabled
+  2.5  secondary button, selected
+  3.1  tab, not selected (open bottom edge)
+  3.2  tab, selected (open bottom edge, lit)
+Each frame-like piece must stretch cleanly: ornament only at the four corners and the middle of each side, the straight sides are a flat one or two colour band, the inside is a flat uniform fill.
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no glow, no vignette, no frame or border around the image.
+STYLE: pixel-art game interface in an isometric Ultima Online mood mixed with Chinese ink-wash xianxia (Douluo Dalu setting); sharp pixel edges, palette of at most 32 colours, one thick consistent dark outline (#1a1020), pale bronze rim, no blur, no large gradients.
+MATERIAL: INK material: near-black wood with faint ink-wash grain, pale bronze rim.
+DO NOT DRAW: text, numbers, letters, logos, labels, glow, drop shadow, particles, characters, hands, extra pieces, a border around the sheet.
+
+LESSONS (learned from earlier sheets, follow every line):
+- Draw no text, numbers, letters, glyphs, runes, logos or symbols that could be read as characters anywhere in the image; where a label would go, draw an empty bar or a flat block of colour.
+- Do not draw fake labels, button captions or placeholder squiggles inside the frames: the inside stays an empty flat fill.
+- Keep at least five percent of the image width of empty magenta between neighbouring pieces and between any piece and the image edge; never let two pieces touch.
+- Arrange the pieces on an even grid, left to right, top to bottom, exactly in the order and row counts given; draw each piece once, never repeat, mirror or crop a piece.
+- Cast no shadow and no glow onto the magenta background; a soft shadow or halo turns into a pink fringe after the background is keyed out.
+- Put ornament only at the four corners and at the middle of each side; the straight side between them is a flat band of one or two colours with no pattern along it, so it can be stretched without showing repeats.
+- All four corners have the same size and the same border thickness; draw one beautiful top-left corner and keep the others consistent with it, the tool mirrors them.
+- The inside of a frame or button is a flat or very gently shaded uniform fill, with no motif, vignette or light spot near the centre.
+- The pressed state looks sunk (darker, one pixel lower, inner shadow), the hover state looks lit (lighter rim); the disabled state is desaturated and flat. The five states of one button type share exactly the same shape, size and outline.
+- Primary buttons use vermilion red (son) with a pale bronze rim; secondary buttons use dark ink with the same bronze rim; the two tab pieces are open on the bottom edge.
+- Limit the whole image to a small palette of at most 32 colours with one consistent dark outline (#1a1020); sharp pixel edges, no anti-aliased blur, no large gradients, no noise texture.
+- Two materials share the same corner set, outline weight and bronze rim: INK (near-black wood with ink-wash grain, pale bronze rim) and PAPER (ivory rice paper, thin vermilion rim, wooden roller); only the fill and the text colour differ.
+- Match the style, materials and palette of the attached approved reference exactly; never copy its layout.
+- Render every rim as hard opaque stepped pixel blocks with no blended magenta pixels; keep every straight rim segment perfectly constant in colour and thickness, with tiny corner ornaments confined to the corners.
+- Both tabs use the same dark ink fill as secondary buttons; selection changes only the jade rim and brightness, never turns a tab into ivory paper.
+- Make straight button sides plain constant bronze strips, reserving all ornamental pixels for tiny identical corner blocks.

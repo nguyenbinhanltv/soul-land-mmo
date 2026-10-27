@@ -1,0 +1,4026 @@
+{
+  "issue": 882,
+  "batch": 2,
+  "material": "muc",
+  "tool": "Codex builtin image_gen.imagegen",
+  "model": null,
+  "seed": null,
+  "approval": "https://github.com/nguyenbinhanltv/soul-land-mmo/issues/882#issuecomment-6445329314",
+  "references": [
+    {
+      "path": "C:\\Users\\PC\\.ao\\data\\worktrees\\soul_land_game\\soul_land_game-671\\art\\src\\ui-kit\\BOARD.png",
+      "sha256": "9cae6f45aa21d2b7d5e2975928c0dfc996af0b4566cb7de2b6d676bc36f393bb"
+    },
+    {
+      "path": "D:\\Temp\\ui882-prompts\\palette.png",
+      "sha256": "6d1beee6e8e3ab497aaf7bf9ef857e6c4b8ccfaa03d16a76bd6667ff822d307b"
+    }
+  ],
+  "sheets": {
+    "F": {
+      "selected_attempt": 2,
+      "attempts": [
+        {
+          "attempt": 1,
+          "file": "candidates/toF-attempt1.png",
+          "prompt_file": "candidates/toF-attempt1.prompt.txt",
+          "sha256": "1714ca5037d2e3046fe67419aa3608e6912b24298cee1f23cc307359840a8260",
+          "prompt_sha256": "8d94c67fc81b7c9620c7d55038dc559b8fd47b122e1dddddf4d5c4dc9dd910cf",
+          "bytes": 1430694,
+          "original_tool_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17dde-a50e-78d1-87d8-0399f0baeada\\exec-0a876ea3-6047-49c3-9d6e-5dbe2ec6f947.png",
+          "raw_copy_byte_identical": true,
+          "prompt_matches_generated_block": true,
+          "selected": false,
+          "qa": {
+            "sheet": "toF-attempt1",
+            "kind": "F",
+            "size": [
+              1536,
+              1024
+            ],
+            "shape": "3:2",
+            "level": "chặn",
+            "background": {
+              "key": [
+                251,
+                3,
+                251
+              ],
+              "keyDistFromLock": 4,
+              "cornerSpread": 30
+            },
+            "fringe": 0.329,
+            "colors": {
+              "n": 17,
+              "total": 40934,
+              "buckets": 55
+            },
+            "offPalette": null,
+            "layout": [
+              3,
+              3
+            ],
+            "pieces": [
+              {
+                "name": "khung_muc_lon",
+                "set": null,
+                "state": null,
+                "size": [
+                  140,
+                  90
+                ],
+                "rawSize": [
+                  559,
+                  364
+                ],
+                "nine": 22,
+                "thickness": 8,
+                "cornerExt": 22,
+                "flat": 0.625,
+                "flat3": 0.625,
+                "asym": 0.2798983753684379,
+                "fringe": 0.284,
+                "stray": []
+              },
+              {
+                "name": "khung_muc_nho",
+                "set": null,
+                "state": null,
+                "size": [
+                  66,
+                  74
+                ],
+                "rawSize": [
+                  269,
+                  294
+                ],
+                "nine": 19,
+                "thickness": 8,
+                "cornerExt": 19,
+                "flat": 0.6770833333333334,
+                "flat3": 0.6953125,
+                "asym": 0.36893773808396296,
+                "fringe": 0.354,
+                "stray": []
+              },
+              {
+                "name": "khung_giay_lon",
+                "set": null,
+                "state": null,
+                "size": [
+                  138,
+                  90
+                ],
+                "rawSize": [
+                  551,
+                  365
+                ],
+                "nine": 22,
+                "thickness": 8,
+                "cornerExt": 22,
+                "flat": 0.625,
+                "flat3": 0.625,
+                "asym": 0.2818468202915963,
+                "fringe": 0.336,
+                "stray": []
+              },
+              {
+                "name": "khung_giay_nho",
+                "set": null,
+                "state": null,
+                "size": [
+                  68,
+                  68
+                ],
+                "rawSize": [
+                  277,
+                  273
+                ],
+                "nine": 17,
+                "thickness": 8,
+                "cornerExt": 17,
+                "flat": 0.703125,
+                "flat3": 0.6979166666666666,
+                "asym": 0.41037539740767914,
+                "fringe": 0.317,
+                "stray": []
+              },
+              {
+                "name": "khung_tooltip",
+                "set": null,
+                "state": null,
+                "size": [
+                  108,
+                  60
+                ],
+                "rawSize": [
+                  434,
+                  242
+                ],
+                "nine": 19,
+                "thickness": 8,
+                "cornerExt": 19,
+                "flat": 0.625,
+                "flat3": 0.6388221153846154,
+                "asym": 0.47214283890852754,
+                "fringe": 0.258,
+                "stray": []
+              },
+              {
+                "name": "khung_toast",
+                "set": null,
+                "state": null,
+                "size": [
+                  152,
+                  38
+                ],
+                "rawSize": [
+                  609,
+                  155
+                ],
+                "nine": 18,
+                "thickness": 8,
+                "cornerExt": 19,
+                "flat": 0.6282051282051282,
+                "flat3": 0.6875,
+                "asym": 0.39210818701216593,
+                "fringe": 0.431,
+                "stray": []
+              }
+            ],
+            "issues": [
+              {
+                "sev": "light",
+                "code": "khoang-cach",
+                "where": "khung_muc_lon, khung_muc_nho, khung_giay_lon",
+                "msg": "mảnh cách nhau < 5% cạnh tờ (51 px): dễ dính khi tách."
+              },
+              {
+                "sev": "block",
+                "code": "vien-hong",
+                "where": "toàn tờ",
+                "msg": "viền ám hồng 32.9% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối)."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_muc_lon",
+                "msg": "khung_muc_lon: thân cạnh không phẳng (63% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "khung_muc_lon",
+                "msg": "khung_muc_lon: bốn góc không giống nhau (28% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_muc_nho",
+                "msg": "khung_muc_nho: thân cạnh không phẳng (70% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "khung_muc_nho",
+                "msg": "khung_muc_nho: bốn góc không giống nhau (37% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_giay_lon",
+                "msg": "khung_giay_lon: thân cạnh không phẳng (63% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "khung_giay_lon",
+                "msg": "khung_giay_lon: bốn góc không giống nhau (28% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_giay_nho",
+                "msg": "khung_giay_nho: thân cạnh không phẳng (70% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "khung_giay_nho",
+                "msg": "khung_giay_nho: bốn góc không giống nhau (41% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_tooltip",
+                "msg": "khung_tooltip: thân cạnh không phẳng (64% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "khung_tooltip",
+                "msg": "khung_tooltip: bốn góc không giống nhau (47% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_toast",
+                "msg": "khung_toast: thân cạnh không phẳng (69% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "khung_toast",
+                "msg": "khung_toast: bốn góc không giống nhau (39% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "khung_toast",
+                "msg": "khung_toast: vạch 9-slice đề xuất 18 chạm trần (nửa mảnh) của mảnh 152×38: ruột không đồng nhất, khó kéo."
+              }
+            ],
+            "draft": "LỖI: toF-attempt1 — mảnh sát nhau / viền ám hồng / cạnh không phẳng / bốn góc khác nhau / ruột không đồng nhất — khung_muc_lon, khung_muc_nho, khung_giay_lon, toàn tờ, khung_muc_lon, khung_muc_lon, khung_muc_nho, khung_muc_nho, khung_giay_lon, khung_giay_lon, khung_giay_nho, khung_giay_nho, khung_tooltip, khung_tooltip, khung_toast, khung_toast, khung_toast — mảnh cách nhau < 5% cạnh tờ (51 px): dễ dính khi tách; viền ám hồng 32.9% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối); khung_muc_lon: thân cạnh không phẳng (63% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_muc_lon: bốn góc không giống nhau (28% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; khung_muc_nho: thân cạnh không phẳng (70% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_muc_nho: bốn góc không giống nhau (37% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; khung_giay_lon: thân cạnh không phẳng (63% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_giay_lon: bốn góc không giống nhau (28% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; khung_giay_nho: thân cạnh không phẳng (70% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_giay_nho: bốn góc không giống nhau (41% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; khung_tooltip: thân cạnh không phẳng (64% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_tooltip: bốn góc không giống nhau (47% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; khung_toast: thân cạnh không phẳng (69% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_toast: bốn góc không giống nhau (39% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; khung_toast: vạch 9-slice đề xuất 18 chạm trần (nửa mảnh) của mảnh 152×38: ruột không đồng nhất, khó kéo.",
+            "counts": {
+              "block": 7,
+              "light": 8,
+              "warn": 0
+            }
+          }
+        },
+        {
+          "attempt": 2,
+          "file": "candidates/toF-attempt2.png",
+          "prompt_file": "candidates/toF-attempt2.prompt.txt",
+          "sha256": "eb22a4a0bd167a185f3db0dae3018d166a2868ab822be862533a9f7f86327314",
+          "prompt_sha256": "485f03f3f390e951f4511e93f418e6bf8618f6533151dfbbc2acf16e5414a786",
+          "bytes": 1455001,
+          "original_tool_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17dde-a50e-78d1-87d8-0399f0baeada\\exec-b2b22960-49ff-45ab-9fa2-1b51eca6ccd3.png",
+          "raw_copy_byte_identical": true,
+          "prompt_matches_generated_block": true,
+          "selected": true,
+          "qa": {
+            "sheet": "toF-attempt2",
+            "kind": "F",
+            "size": [
+              1536,
+              1024
+            ],
+            "shape": "3:2",
+            "level": "chặn",
+            "background": {
+              "key": [
+                251,
+                4,
+                252
+              ],
+              "keyDistFromLock": 4,
+              "cornerSpread": 33
+            },
+            "fringe": 0.328,
+            "colors": {
+              "n": 17,
+              "total": 39299,
+              "buckets": 63
+            },
+            "offPalette": null,
+            "layout": [
+              3,
+              3
+            ],
+            "pieces": [
+              {
+                "name": "khung_muc_lon",
+                "set": null,
+                "state": null,
+                "size": [
+                  132,
+                  88
+                ],
+                "rawSize": [
+                  531,
+                  353
+                ],
+                "nine": 29,
+                "thickness": 9,
+                "cornerExt": 29,
+                "flat": 0.5714285714285714,
+                "flat3": 0.5583103764921947,
+                "asym": 0.1703035649846952,
+                "fringe": 0.329,
+                "stray": []
+              },
+              {
+                "name": "khung_muc_nho",
+                "set": null,
+                "state": null,
+                "size": [
+                  74,
+                  70
+                ],
+                "rawSize": [
+                  300,
+                  285
+                ],
+                "nine": 18,
+                "thickness": 8,
+                "cornerExt": 18,
+                "flat": 0.65,
+                "flat3": 0.6685606060606061,
+                "asym": 0.48460347371668355,
+                "fringe": 0.272,
+                "stray": []
+              },
+              {
+                "name": "khung_giay_lon",
+                "set": null,
+                "state": null,
+                "size": [
+                  132,
+                  88
+                ],
+                "rawSize": [
+                  531,
+                  353
+                ],
+                "nine": 31,
+                "thickness": 9,
+                "cornerExt": 31,
+                "flat": 0.5614035087719298,
+                "flat3": 0.5648926237161531,
+                "asym": 0.18040702058041277,
+                "fringe": 0.33,
+                "stray": []
+              },
+              {
+                "name": "khung_giay_nho",
+                "set": null,
+                "state": null,
+                "size": [
+                  64,
+                  60
+                ],
+                "rawSize": [
+                  261,
+                  240
+                ],
+                "nine": 16,
+                "thickness": 8,
+                "cornerExt": 16,
+                "flat": 0.703125,
+                "flat3": 0.7154017857142857,
+                "asym": 0.40087520133511867,
+                "fringe": 0.333,
+                "stray": []
+              },
+              {
+                "name": "khung_tooltip",
+                "set": null,
+                "state": null,
+                "size": [
+                  112,
+                  64
+                ],
+                "rawSize": [
+                  452,
+                  254
+                ],
+                "nine": 20,
+                "thickness": 9,
+                "cornerExt": 20,
+                "flat": 0.6666666666666666,
+                "flat3": 0.6744548286604362,
+                "asym": 0.43606833632409076,
+                "fringe": 0.323,
+                "stray": []
+              },
+              {
+                "name": "khung_toast",
+                "set": null,
+                "state": null,
+                "size": [
+                  150,
+                  44
+                ],
+                "rawSize": [
+                  605,
+                  177
+                ],
+                "nine": 20,
+                "thickness": 9,
+                "cornerExt": 20,
+                "flat": 0.5555555555555556,
+                "flat3": 0.5555555555555556,
+                "asym": 0.35512497319070785,
+                "fringe": 0.367,
+                "stray": []
+              }
+            ],
+            "issues": [
+              {
+                "sev": "note",
+                "code": "nen",
+                "where": "toàn tờ",
+                "msg": "nền dốc nhẹ (bốn góc lệch 33), trong dung sai 60; không phải lỗi."
+              },
+              {
+                "sev": "block",
+                "code": "vien-hong",
+                "where": "toàn tờ",
+                "msg": "viền ám hồng 32.8% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối)."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_muc_lon",
+                "msg": "khung_muc_lon: thân cạnh không phẳng (57% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_muc_nho",
+                "msg": "khung_muc_nho: thân cạnh không phẳng (67% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "khung_muc_nho",
+                "msg": "khung_muc_nho: bốn góc không giống nhau (48% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_giay_lon",
+                "msg": "khung_giay_lon: thân cạnh không phẳng (56% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_giay_nho",
+                "msg": "khung_giay_nho: thân cạnh không phẳng (72% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "khung_giay_nho",
+                "msg": "khung_giay_nho: bốn góc không giống nhau (40% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_tooltip",
+                "msg": "khung_tooltip: thân cạnh không phẳng (67% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "khung_tooltip",
+                "msg": "khung_tooltip: bốn góc không giống nhau (44% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_toast",
+                "msg": "khung_toast: thân cạnh không phẳng (56% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "khung_toast",
+                "msg": "khung_toast: bốn góc không giống nhau (36% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              }
+            ],
+            "draft": "LỖI: toF-attempt2 — viền ám hồng / cạnh không phẳng / bốn góc khác nhau — toàn tờ, khung_muc_lon, khung_muc_nho, khung_muc_nho, khung_giay_lon, khung_giay_nho, khung_giay_nho, khung_tooltip, khung_tooltip, khung_toast, khung_toast — viền ám hồng 32.8% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối); khung_muc_lon: thân cạnh không phẳng (57% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_muc_nho: thân cạnh không phẳng (67% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_muc_nho: bốn góc không giống nhau (48% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; khung_giay_lon: thân cạnh không phẳng (56% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_giay_nho: thân cạnh không phẳng (72% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_giay_nho: bốn góc không giống nhau (40% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; khung_tooltip: thân cạnh không phẳng (67% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_tooltip: bốn góc không giống nhau (44% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; khung_toast: thân cạnh không phẳng (56% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_toast: bốn góc không giống nhau (36% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua.",
+            "counts": {
+              "block": 7,
+              "light": 4,
+              "warn": 0
+            }
+          }
+        },
+        {
+          "attempt": 3,
+          "file": "candidates/toF-attempt3.png",
+          "prompt_file": "candidates/toF-attempt3.prompt.txt",
+          "sha256": "6fef6f8e61d819ce8df292310eb72b28409387494db12f88061a7783b4706343",
+          "prompt_sha256": "6a783a80b25096d0e33ab6e34be73a604978aa0b7c8e7011f40fc49d229b373c",
+          "bytes": 1436551,
+          "original_tool_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17dde-a50e-78d1-87d8-0399f0baeada\\exec-bacbd033-6657-4e55-b32b-0d5dbd3174c9.png",
+          "raw_copy_byte_identical": true,
+          "prompt_matches_generated_block": true,
+          "selected": false,
+          "qa": {
+            "sheet": "toF-attempt3",
+            "kind": "F",
+            "size": [
+              1536,
+              1024
+            ],
+            "shape": "3:2",
+            "level": "chặn",
+            "background": {
+              "key": [
+                250,
+                3,
+                251
+              ],
+              "keyDistFromLock": 5,
+              "cornerSpread": 33
+            },
+            "fringe": 0.406,
+            "colors": {
+              "n": 14,
+              "total": 44093,
+              "buckets": 57
+            },
+            "offPalette": null,
+            "layout": [
+              3,
+              3
+            ],
+            "pieces": [
+              {
+                "name": "khung_muc_lon",
+                "set": null,
+                "state": null,
+                "size": [
+                  138,
+                  94
+                ],
+                "rawSize": [
+                  556,
+                  376
+                ],
+                "nine": 23,
+                "thickness": 9,
+                "cornerExt": 23,
+                "flat": 0.6666666666666666,
+                "flat3": 0.6666666666666666,
+                "asym": 0.26626549288267215,
+                "fringe": 0.41,
+                "stray": []
+              },
+              {
+                "name": "khung_muc_nho",
+                "set": null,
+                "state": null,
+                "size": [
+                  78,
+                  82
+                ],
+                "rawSize": [
+                  310,
+                  330
+                ],
+                "nine": 21,
+                "thickness": 9,
+                "cornerExt": 21,
+                "flat": 0.6875,
+                "flat3": 0.7023217247097844,
+                "asym": 0.3575050736179113,
+                "fringe": 0.349,
+                "stray": []
+              },
+              {
+                "name": "khung_giay_lon",
+                "set": null,
+                "state": null,
+                "size": [
+                  142,
+                  94
+                ],
+                "rawSize": [
+                  569,
+                  377
+                ],
+                "nine": 23,
+                "thickness": 9,
+                "cornerExt": 23,
+                "flat": 0.6666666666666666,
+                "flat3": 0.6666666666666666,
+                "asym": 0.1436107428414706,
+                "fringe": 0.377,
+                "stray": []
+              },
+              {
+                "name": "khung_giay_nho",
+                "set": null,
+                "state": null,
+                "size": [
+                  78,
+                  76
+                ],
+                "rawSize": [
+                  311,
+                  309
+                ],
+                "nine": 20,
+                "thickness": 9,
+                "cornerExt": 20,
+                "flat": 0.691358024691358,
+                "flat3": 0.6993464052287581,
+                "asym": 0.3094381477245156,
+                "fringe": 0.197,
+                "stray": []
+              },
+              {
+                "name": "khung_tooltip",
+                "set": null,
+                "state": null,
+                "size": [
+                  114,
+                  56
+                ],
+                "rawSize": [
+                  460,
+                  228
+                ],
+                "nine": 19,
+                "thickness": 8,
+                "cornerExt": 19,
+                "flat": 0.625,
+                "flat3": 0.6272727272727273,
+                "asym": 0.35296420657867894,
+                "fringe": 0.606,
+                "stray": []
+              },
+              {
+                "name": "khung_toast",
+                "set": null,
+                "state": null,
+                "size": [
+                  150,
+                  42
+                ],
+                "rawSize": [
+                  601,
+                  173
+                ],
+                "nine": 19,
+                "thickness": 8,
+                "cornerExt": 19,
+                "flat": 0.625,
+                "flat3": 0.625,
+                "asym": 0.26534462754599275,
+                "fringe": 0.472,
+                "stray": []
+              }
+            ],
+            "issues": [
+              {
+                "sev": "note",
+                "code": "nen",
+                "where": "toàn tờ",
+                "msg": "nền dốc nhẹ (bốn góc lệch 33), trong dung sai 60; không phải lỗi."
+              },
+              {
+                "sev": "light",
+                "code": "khoang-cach",
+                "where": "khung_muc_lon, khung_muc_nho, khung_giay_lon, khung_giay_nho, khung_tooltip, khung_toast",
+                "msg": "mảnh cách nhau < 5% cạnh tờ (51 px): dễ dính khi tách."
+              },
+              {
+                "sev": "block",
+                "code": "vien-hong",
+                "where": "toàn tờ",
+                "msg": "viền ám hồng 40.6% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối)."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_muc_lon",
+                "msg": "khung_muc_lon: thân cạnh không phẳng (67% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "khung_muc_lon",
+                "msg": "khung_muc_lon: bốn góc không giống nhau (27% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_muc_nho",
+                "msg": "khung_muc_nho: thân cạnh không phẳng (70% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "khung_muc_nho",
+                "msg": "khung_muc_nho: bốn góc không giống nhau (36% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_giay_lon",
+                "msg": "khung_giay_lon: thân cạnh không phẳng (67% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_giay_nho",
+                "msg": "khung_giay_nho: thân cạnh không phẳng (70% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "khung_giay_nho",
+                "msg": "khung_giay_nho: bốn góc không giống nhau (31% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_tooltip",
+                "msg": "khung_tooltip: thân cạnh không phẳng (63% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "khung_tooltip",
+                "msg": "khung_tooltip: bốn góc không giống nhau (35% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "khung_toast",
+                "msg": "khung_toast: thân cạnh không phẳng (63% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "khung_toast",
+                "msg": "khung_toast: bốn góc không giống nhau (27% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              }
+            ],
+            "draft": "LỖI: toF-attempt3 — mảnh sát nhau / viền ám hồng / cạnh không phẳng / bốn góc khác nhau — khung_muc_lon, khung_muc_nho, khung_giay_lon, khung_giay_nho, khung_tooltip, khung_toast, toàn tờ, khung_muc_lon, khung_muc_lon, khung_muc_nho, khung_muc_nho, khung_giay_lon, khung_giay_nho, khung_giay_nho, khung_tooltip, khung_tooltip, khung_toast, khung_toast — mảnh cách nhau < 5% cạnh tờ (51 px): dễ dính khi tách; viền ám hồng 40.6% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối); khung_muc_lon: thân cạnh không phẳng (67% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_muc_lon: bốn góc không giống nhau (27% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; khung_muc_nho: thân cạnh không phẳng (70% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_muc_nho: bốn góc không giống nhau (36% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; khung_giay_lon: thân cạnh không phẳng (67% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_giay_nho: thân cạnh không phẳng (70% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_giay_nho: bốn góc không giống nhau (31% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; khung_tooltip: thân cạnh không phẳng (63% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_tooltip: bốn góc không giống nhau (35% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; khung_toast: thân cạnh không phẳng (63% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; khung_toast: bốn góc không giống nhau (27% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua.",
+            "counts": {
+              "block": 7,
+              "light": 6,
+              "warn": 0
+            }
+          }
+        }
+      ]
+    },
+    "N": {
+      "selected_attempt": 6,
+      "attempts": [
+        {
+          "attempt": 4,
+          "file": "candidates/toN-attempt4.png",
+          "prompt_file": "candidates/toN-attempt4.prompt.txt",
+          "sha256": "3e806ac8e8b4832a7341216fa73a4ac10e077a9e45fce771ca4db43d5d73c580",
+          "prompt_sha256": "3641204125be3656aac19ffa99d95eb71c4cd7015b59cd01a6fa752e3ba3332b",
+          "bytes": 1512370,
+          "original_tool_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17dde-a50e-78d1-87d8-0399f0baeada\\exec-a23d7c38-f46d-4702-9643-ce7273d4d89e.png",
+          "raw_copy_byte_identical": true,
+          "prompt_matches_generated_block": true,
+          "selected": false,
+          "qa": {
+            "sheet": "toN-attempt4",
+            "kind": "N",
+            "size": [
+              1536,
+              1024
+            ],
+            "shape": "3:2",
+            "level": "chặn",
+            "background": {
+              "key": [
+                251,
+                4,
+                251
+              ],
+              "keyDistFromLock": 4,
+              "cornerSpread": 31
+            },
+            "fringe": 0.424,
+            "colors": {
+              "n": 31,
+              "total": 29374,
+              "buckets": 118
+            },
+            "offPalette": null,
+            "layout": [
+              5,
+              5,
+              2
+            ],
+            "pieces": [
+              {
+                "name": "nut_chinh_thuong",
+                "set": "nut_chinh",
+                "state": "thuong",
+                "size": [
+                  68,
+                  42
+                ],
+                "rawSize": [
+                  272,
+                  166
+                ],
+                "nine": 17,
+                "thickness": 9,
+                "cornerExt": 17,
+                "flat": 0.5347222222222222,
+                "flat3": 0.5962962962962963,
+                "asym": 0.4128254568723769,
+                "fringe": 0.441,
+                "stray": []
+              },
+              {
+                "name": "nut_chinh_ro",
+                "set": "nut_chinh",
+                "state": "ro",
+                "size": [
+                  68,
+                  42
+                ],
+                "rawSize": [
+                  272,
+                  166
+                ],
+                "nine": 17,
+                "thickness": 10,
+                "cornerExt": 17,
+                "flat": 0.4,
+                "flat3": 0.6933333333333334,
+                "asym": 0.4355202981198125,
+                "fringe": 0.525,
+                "stray": []
+              },
+              {
+                "name": "nut_chinh_nhan",
+                "set": "nut_chinh",
+                "state": "nhan",
+                "size": [
+                  68,
+                  42
+                ],
+                "rawSize": [
+                  273,
+                  166
+                ],
+                "nine": 17,
+                "thickness": 10,
+                "cornerExt": 17,
+                "flat": 0.5,
+                "flat3": 0.5566666666666666,
+                "asym": 0.4584427886559233,
+                "fringe": 0.312,
+                "stray": []
+              },
+              {
+                "name": "nut_chinh_tat",
+                "set": "nut_chinh",
+                "state": "tat",
+                "size": [
+                  68,
+                  42
+                ],
+                "rawSize": [
+                  272,
+                  166
+                ],
+                "nine": 17,
+                "thickness": 10,
+                "cornerExt": 17,
+                "flat": 0.46875,
+                "flat3": 0.5566666666666666,
+                "asym": 0.38093992358037304,
+                "fringe": 0.471,
+                "stray": []
+              },
+              {
+                "name": "nut_chinh_chon",
+                "set": "nut_chinh",
+                "state": "chon",
+                "size": [
+                  68,
+                  42
+                ],
+                "rawSize": [
+                  274,
+                  166
+                ],
+                "nine": 17,
+                "thickness": 10,
+                "cornerExt": 17,
+                "flat": 0.4125,
+                "flat3": 0.6616666666666666,
+                "asym": 0.6185524064028737,
+                "fringe": 0.43,
+                "stray": []
+              },
+              {
+                "name": "nut_phu_thuong",
+                "set": "nut_phu",
+                "state": "thuong",
+                "size": [
+                  68,
+                  42
+                ],
+                "rawSize": [
+                  272,
+                  166
+                ],
+                "nine": 17,
+                "thickness": 8,
+                "cornerExt": 17,
+                "flat": 0.5,
+                "flat3": 0.5666666666666667,
+                "asym": 0.3456039425402162,
+                "fringe": 0.343,
+                "stray": []
+              },
+              {
+                "name": "nut_phu_ro",
+                "set": "nut_phu",
+                "state": "ro",
+                "size": [
+                  68,
+                  42
+                ],
+                "rawSize": [
+                  273,
+                  166
+                ],
+                "nine": 17,
+                "thickness": 8,
+                "cornerExt": 17,
+                "flat": 0.5,
+                "flat3": 0.6583333333333333,
+                "asym": 0.4809790724349125,
+                "fringe": 0.365,
+                "stray": []
+              },
+              {
+                "name": "nut_phu_nhan",
+                "set": "nut_phu",
+                "state": "nhan",
+                "size": [
+                  68,
+                  42
+                ],
+                "rawSize": [
+                  273,
+                  166
+                ],
+                "nine": 17,
+                "thickness": 8,
+                "cornerExt": 17,
+                "flat": 0.5,
+                "flat3": 0.5270833333333333,
+                "asym": 0.35947980389604756,
+                "fringe": 0.343,
+                "stray": []
+              },
+              {
+                "name": "nut_phu_tat",
+                "set": "nut_phu",
+                "state": "tat",
+                "size": [
+                  68,
+                  42
+                ],
+                "rawSize": [
+                  272,
+                  166
+                ],
+                "nine": 17,
+                "thickness": 9,
+                "cornerExt": 17,
+                "flat": 0.4444444444444444,
+                "flat3": 0.48333333333333334,
+                "asym": 0.3477935543698525,
+                "fringe": 0.328,
+                "stray": []
+              },
+              {
+                "name": "nut_phu_chon",
+                "set": "nut_phu",
+                "state": "chon",
+                "size": [
+                  68,
+                  42
+                ],
+                "rawSize": [
+                  274,
+                  166
+                ],
+                "nine": 17,
+                "thickness": 8,
+                "cornerExt": 17,
+                "flat": 0.5,
+                "flat3": 0.6041666666666666,
+                "asym": 0.5489322347812914,
+                "fringe": 0.359,
+                "stray": []
+              },
+              {
+                "name": "tab_thuong",
+                "set": "tab",
+                "state": "thuong",
+                "size": [
+                  132,
+                  38
+                ],
+                "rawSize": [
+                  529,
+                  156
+                ],
+                "nine": 18,
+                "thickness": 8,
+                "cornerExt": 19,
+                "flat": 0.875,
+                "flat3": 0.875,
+                "asym": 0.4855062418268939,
+                "fringe": 0.525,
+                "stray": []
+              },
+              {
+                "name": "tab_chon",
+                "set": "tab",
+                "state": "chon",
+                "size": [
+                  132,
+                  38
+                ],
+                "rawSize": [
+                  531,
+                  156
+                ],
+                "nine": 18,
+                "thickness": 9,
+                "cornerExt": 20,
+                "flat": 0.7777777777777778,
+                "flat3": 0.7777777777777778,
+                "asym": 0.6080418572075968,
+                "fringe": 0.513,
+                "stray": []
+              }
+            ],
+            "issues": [
+              {
+                "sev": "note",
+                "code": "nen",
+                "where": "toàn tờ",
+                "msg": "nền dốc nhẹ (bốn góc lệch 31), trong dung sai 60; không phải lỗi."
+              },
+              {
+                "sev": "light",
+                "code": "khoang-cach",
+                "where": "nut_chinh_thuong, nut_chinh_ro, nut_chinh_nhan, nut_chinh_tat, nut_chinh_chon, nut_phu_thuong, nut_phu_ro, nut_phu_nhan, nut_phu_tat, nut_phu_chon",
+                "msg": "mảnh cách nhau < 5% cạnh tờ (51 px): dễ dính khi tách."
+              },
+              {
+                "sev": "block",
+                "code": "vien-hong",
+                "where": "toàn tờ",
+                "msg": "viền ám hồng 42.4% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối)."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_chinh_thuong",
+                "msg": "nut_chinh_thuong: thân cạnh không phẳng (60% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_chinh_thuong",
+                "msg": "nut_chinh_thuong: bốn góc không giống nhau (41% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_chinh_ro",
+                "msg": "nut_chinh_ro: thân cạnh không phẳng (69% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_chinh_ro",
+                "msg": "nut_chinh_ro: bốn góc không giống nhau (44% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_chinh_nhan",
+                "msg": "nut_chinh_nhan: thân cạnh không phẳng (56% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_chinh_nhan",
+                "msg": "nut_chinh_nhan: bốn góc không giống nhau (46% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_chinh_tat",
+                "msg": "nut_chinh_tat: thân cạnh không phẳng (56% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_chinh_tat",
+                "msg": "nut_chinh_tat: bốn góc không giống nhau (38% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_chinh_chon",
+                "msg": "nut_chinh_chon: thân cạnh không phẳng (66% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_chinh_chon",
+                "msg": "nut_chinh_chon: bốn góc không giống nhau (62% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_phu_thuong",
+                "msg": "nut_phu_thuong: thân cạnh không phẳng (57% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_phu_thuong",
+                "msg": "nut_phu_thuong: bốn góc không giống nhau (35% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_phu_ro",
+                "msg": "nut_phu_ro: thân cạnh không phẳng (66% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_phu_ro",
+                "msg": "nut_phu_ro: bốn góc không giống nhau (48% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_phu_nhan",
+                "msg": "nut_phu_nhan: thân cạnh không phẳng (53% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_phu_nhan",
+                "msg": "nut_phu_nhan: bốn góc không giống nhau (36% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_phu_tat",
+                "msg": "nut_phu_tat: thân cạnh không phẳng (48% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_phu_tat",
+                "msg": "nut_phu_tat: bốn góc không giống nhau (35% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_phu_chon",
+                "msg": "nut_phu_chon: thân cạnh không phẳng (60% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_phu_chon",
+                "msg": "nut_phu_chon: bốn góc không giống nhau (55% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "tab_thuong",
+                "msg": "tab_thuong: thân cạnh không phẳng (88% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "tab_thuong",
+                "msg": "tab_thuong: bốn góc không giống nhau (49% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "tab_thuong",
+                "msg": "tab_thuong: vạch 9-slice đề xuất 18 chạm trần (nửa mảnh) của mảnh 132×38: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "tab_chon",
+                "msg": "tab_chon: thân cạnh không phẳng (78% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "tab_chon",
+                "msg": "tab_chon: bốn góc không giống nhau (61% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "tab_chon",
+                "msg": "tab_chon: vạch 9-slice đề xuất 18 chạm trần (nửa mảnh) của mảnh 132×38: ruột không đồng nhất, khó kéo."
+              }
+            ],
+            "draft": "LỖI: toN-attempt4 — mảnh sát nhau / viền ám hồng / cạnh không phẳng / bốn góc khác nhau / ruột không đồng nhất — nut_chinh_thuong, nut_chinh_ro, nut_chinh_nhan, nut_chinh_tat, nut_chinh_chon, nut_phu_thuong, nut_phu_ro, nut_phu_nhan, nut_phu_tat, nut_phu_chon, toàn tờ, nut_chinh_thuong, nut_chinh_thuong, nut_chinh_ro, nut_chinh_ro, nut_chinh_nhan, nut_chinh_nhan, nut_chinh_tat, nut_chinh_tat, nut_chinh_chon, nut_chinh_chon, nut_phu_thuong, nut_phu_thuong, nut_phu_ro, nut_phu_ro, nut_phu_nhan, nut_phu_nhan, nut_phu_tat, nut_phu_tat, nut_phu_chon, nut_phu_chon, tab_thuong, tab_thuong, tab_thuong, tab_chon, tab_chon, tab_chon — mảnh cách nhau < 5% cạnh tờ (51 px): dễ dính khi tách; viền ám hồng 42.4% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối); nut_chinh_thuong: thân cạnh không phẳng (60% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_chinh_thuong: bốn góc không giống nhau (41% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_chinh_ro: thân cạnh không phẳng (69% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_chinh_ro: bốn góc không giống nhau (44% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_chinh_nhan: thân cạnh không phẳng (56% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_chinh_nhan: bốn góc không giống nhau (46% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_chinh_tat: thân cạnh không phẳng (56% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_chinh_tat: bốn góc không giống nhau (38% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_chinh_chon: thân cạnh không phẳng (66% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_chinh_chon: bốn góc không giống nhau (62% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_phu_thuong: thân cạnh không phẳng (57% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_phu_thuong: bốn góc không giống nhau (35% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_phu_ro: thân cạnh không phẳng (66% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_phu_ro: bốn góc không giống nhau (48% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_phu_nhan: thân cạnh không phẳng (53% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_phu_nhan: bốn góc không giống nhau (36% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_phu_tat: thân cạnh không phẳng (48% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_phu_tat: bốn góc không giống nhau (35% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_phu_chon: thân cạnh không phẳng (60% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_phu_chon: bốn góc không giống nhau (55% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; tab_thuong: thân cạnh không phẳng (88% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; tab_thuong: bốn góc không giống nhau (49% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; tab_thuong: vạch 9-slice đề xuất 18 chạm trần (nửa mảnh) của mảnh 132×38: ruột không đồng nhất, khó kéo; tab_chon: thân cạnh không phẳng (78% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; tab_chon: bốn góc không giống nhau (61% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; tab_chon: vạch 9-slice đề xuất 18 chạm trần (nửa mảnh) của mảnh 132×38: ruột không đồng nhất, khó kéo.",
+            "counts": {
+              "block": 13,
+              "light": 15,
+              "warn": 0
+            }
+          }
+        },
+        {
+          "attempt": 5,
+          "file": "candidates/toN-attempt5.png",
+          "prompt_file": "candidates/toN-attempt5.prompt.txt",
+          "sha256": "b86797076d19673309a0ecd4868c3c7369e04612c992f6ced3123cfc24574560",
+          "prompt_sha256": "a31c90481d90d30e012c785368dd0d6d146497e559bbeaf8e02a2136fb342178",
+          "bytes": 1452464,
+          "original_tool_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17dde-a50e-78d1-87d8-0399f0baeada\\exec-681c69d7-e6fc-4161-a227-ef8c9664472c.png",
+          "raw_copy_byte_identical": true,
+          "prompt_matches_generated_block": true,
+          "selected": false,
+          "qa": {
+            "sheet": "toN-attempt5",
+            "kind": "N",
+            "size": [
+              1536,
+              1024
+            ],
+            "shape": "3:2",
+            "level": "chặn",
+            "background": {
+              "key": [
+                251,
+                4,
+                251
+              ],
+              "keyDistFromLock": 4,
+              "cornerSpread": 31
+            },
+            "fringe": 0.367,
+            "colors": {
+              "n": 33,
+              "total": 27249,
+              "buckets": 120
+            },
+            "offPalette": null,
+            "layout": [
+              5,
+              5,
+              2
+            ],
+            "pieces": [
+              {
+                "name": "nut_chinh_thuong",
+                "set": "nut_chinh",
+                "state": "thuong",
+                "size": [
+                  66,
+                  36
+                ],
+                "rawSize": [
+                  264,
+                  142
+                ],
+                "nine": 13,
+                "thickness": 9,
+                "cornerExt": 13,
+                "flat": 0.4444444444444444,
+                "flat3": 0.4444444444444444,
+                "asym": 0.4584963059539331,
+                "fringe": 0.37,
+                "stray": []
+              },
+              {
+                "name": "nut_chinh_ro",
+                "set": "nut_chinh",
+                "state": "ro",
+                "size": [
+                  66,
+                  36
+                ],
+                "rawSize": [
+                  265,
+                  143
+                ],
+                "nine": 17,
+                "thickness": 9,
+                "cornerExt": 17,
+                "flat": 0.5069444444444444,
+                "flat3": 0.5258620689655172,
+                "asym": 0.4715701617110068,
+                "fringe": 0.384,
+                "stray": []
+              },
+              {
+                "name": "nut_chinh_nhan",
+                "set": "nut_chinh",
+                "state": "nhan",
+                "size": [
+                  64,
+                  36
+                ],
+                "rawSize": [
+                  258,
+                  144
+                ],
+                "nine": 13,
+                "thickness": 11,
+                "cornerExt": 13,
+                "flat": 0.36363636363636365,
+                "flat3": 0.36517719568567025,
+                "asym": 0.6050596290906008,
+                "fringe": 0.323,
+                "stray": []
+              },
+              {
+                "name": "nut_chinh_tat",
+                "set": "nut_chinh",
+                "state": "tat",
+                "size": [
+                  66,
+                  36
+                ],
+                "rawSize": [
+                  263,
+                  143
+                ],
+                "nine": 13,
+                "thickness": 9,
+                "cornerExt": 13,
+                "flat": 0.5509259259259259,
+                "flat3": 0.5439068100358423,
+                "asym": 0.5371794871794872,
+                "fringe": 0.274,
+                "stray": []
+              },
+              {
+                "name": "nut_chinh_chon",
+                "set": "nut_chinh",
+                "state": "chon",
+                "size": [
+                  66,
+                  36
+                ],
+                "rawSize": [
+                  264,
+                  143
+                ],
+                "nine": 13,
+                "thickness": 9,
+                "cornerExt": 13,
+                "flat": 0.5555555555555556,
+                "flat3": 0.5483870967741935,
+                "asym": 0.517550839964633,
+                "fringe": 0.339,
+                "stray": []
+              },
+              {
+                "name": "nut_phu_thuong",
+                "set": "nut_phu",
+                "state": "thuong",
+                "size": [
+                  66,
+                  36
+                ],
+                "rawSize": [
+                  263,
+                  142
+                ],
+                "nine": 13,
+                "thickness": 8,
+                "cornerExt": 13,
+                "flat": 0.5,
+                "flat3": 0.501008064516129,
+                "asym": 0.5320137205709345,
+                "fringe": 0.581,
+                "stray": []
+              },
+              {
+                "name": "nut_phu_ro",
+                "set": "nut_phu",
+                "state": "ro",
+                "size": [
+                  66,
+                  36
+                ],
+                "rawSize": [
+                  265,
+                  142
+                ],
+                "nine": 13,
+                "thickness": 8,
+                "cornerExt": 13,
+                "flat": 0.5260416666666666,
+                "flat3": 0.5181451612903226,
+                "asym": 0.5557896977437208,
+                "fringe": 0.557,
+                "stray": []
+              },
+              {
+                "name": "nut_phu_nhan",
+                "set": "nut_phu",
+                "state": "nhan",
+                "size": [
+                  64,
+                  36
+                ],
+                "rawSize": [
+                  258,
+                  142
+                ],
+                "nine": 16,
+                "thickness": 8,
+                "cornerExt": 16,
+                "flat": 0.5390625,
+                "flat3": 0.5502232142857143,
+                "asym": 0.4919248989237504,
+                "fringe": 0.494,
+                "stray": []
+              },
+              {
+                "name": "nut_phu_tat",
+                "set": "nut_phu",
+                "state": "tat",
+                "size": [
+                  66,
+                  36
+                ],
+                "rawSize": [
+                  263,
+                  142
+                ],
+                "nine": 13,
+                "thickness": 6,
+                "cornerExt": 13,
+                "flat": 0.7638888888888888,
+                "flat3": 0.7580645161290323,
+                "asym": 0.5235601381177847,
+                "fringe": 0.408,
+                "stray": []
+              },
+              {
+                "name": "nut_phu_chon",
+                "set": "nut_phu",
+                "state": "chon",
+                "size": [
+                  66,
+                  36
+                ],
+                "rawSize": [
+                  264,
+                  142
+                ],
+                "nine": 15,
+                "thickness": 8,
+                "cornerExt": 15,
+                "flat": 0.5,
+                "flat3": 0.509375,
+                "asym": 0.42407070093773186,
+                "fringe": 0.518,
+                "stray": []
+              },
+              {
+                "name": "tab_thuong",
+                "set": "tab",
+                "state": "thuong",
+                "size": [
+                  134,
+                  46
+                ],
+                "rawSize": [
+                  538,
+                  183
+                ],
+                "nine": 15,
+                "thickness": 12,
+                "cornerExt": 15,
+                "flat": 0.9166666666666666,
+                "flat3": 0.9166666666666666,
+                "asym": 0.6986264351114184,
+                "fringe": 0.233,
+                "stray": []
+              },
+              {
+                "name": "tab_chon",
+                "set": "tab",
+                "state": "chon",
+                "size": [
+                  134,
+                  46
+                ],
+                "rawSize": [
+                  537,
+                  183
+                ],
+                "nine": 12,
+                "thickness": 12,
+                "cornerExt": 12,
+                "flat": 0.9166666666666666,
+                "flat3": 0.9166666666666666,
+                "asym": 0.6171940928270042,
+                "fringe": 0.202,
+                "stray": []
+              }
+            ],
+            "issues": [
+              {
+                "sev": "note",
+                "code": "nen",
+                "where": "toàn tờ",
+                "msg": "nền dốc nhẹ (bốn góc lệch 31), trong dung sai 60; không phải lỗi."
+              },
+              {
+                "sev": "light",
+                "code": "khoang-cach",
+                "where": "nut_chinh_thuong, nut_chinh_ro, nut_chinh_nhan, nut_chinh_tat, nut_chinh_chon, nut_phu_thuong, nut_phu_ro, nut_phu_nhan, nut_phu_tat, nut_phu_chon",
+                "msg": "mảnh cách nhau < 5% cạnh tờ (51 px): dễ dính khi tách."
+              },
+              {
+                "sev": "block",
+                "code": "vien-hong",
+                "where": "toàn tờ",
+                "msg": "viền ám hồng 36.7% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối)."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_chinh_thuong",
+                "msg": "nut_chinh_thuong: thân cạnh không phẳng (44% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_chinh_thuong",
+                "msg": "nut_chinh_thuong: bốn góc không giống nhau (46% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_chinh_ro",
+                "msg": "nut_chinh_ro: thân cạnh không phẳng (53% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_chinh_ro",
+                "msg": "nut_chinh_ro: bốn góc không giống nhau (47% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "nut_chinh_ro",
+                "msg": "nut_chinh_ro: vạch 9-slice đề xuất 17 chạm trần (nửa mảnh) của mảnh 66×36: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_chinh_nhan",
+                "msg": "nut_chinh_nhan: thân cạnh không phẳng (37% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_chinh_nhan",
+                "msg": "nut_chinh_nhan: bốn góc không giống nhau (61% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_chinh_tat",
+                "msg": "nut_chinh_tat: thân cạnh không phẳng (55% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_chinh_tat",
+                "msg": "nut_chinh_tat: bốn góc không giống nhau (54% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_chinh_chon",
+                "msg": "nut_chinh_chon: thân cạnh không phẳng (56% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_chinh_chon",
+                "msg": "nut_chinh_chon: bốn góc không giống nhau (52% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_phu_thuong",
+                "msg": "nut_phu_thuong: thân cạnh không phẳng (50% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_phu_thuong",
+                "msg": "nut_phu_thuong: bốn góc không giống nhau (53% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_phu_ro",
+                "msg": "nut_phu_ro: thân cạnh không phẳng (53% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_phu_ro",
+                "msg": "nut_phu_ro: bốn góc không giống nhau (56% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_phu_nhan",
+                "msg": "nut_phu_nhan: thân cạnh không phẳng (55% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_phu_nhan",
+                "msg": "nut_phu_nhan: bốn góc không giống nhau (49% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_phu_tat",
+                "msg": "nut_phu_tat: thân cạnh không phẳng (76% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_phu_tat",
+                "msg": "nut_phu_tat: bốn góc không giống nhau (52% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_phu_chon",
+                "msg": "nut_phu_chon: thân cạnh không phẳng (51% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_phu_chon",
+                "msg": "nut_phu_chon: bốn góc không giống nhau (42% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "tab_thuong",
+                "msg": "tab_thuong: thân cạnh không phẳng (92% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "tab_thuong",
+                "msg": "tab_thuong: bốn góc không giống nhau (70% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "tab_chon",
+                "msg": "tab_chon: thân cạnh không phẳng (92% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "tab_chon",
+                "msg": "tab_chon: bốn góc không giống nhau (62% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "mau",
+                "where": "toàn tờ",
+                "msg": "33 màu đáng kể (> 32); cutter lượng tử về ≤ 32 màu nhưng kiểm lại độ mịn."
+              }
+            ],
+            "draft": "LỖI: toN-attempt5 — mảnh sát nhau / viền ám hồng / cạnh không phẳng / bốn góc khác nhau / ruột không đồng nhất / quá nhiều màu — nut_chinh_thuong, nut_chinh_ro, nut_chinh_nhan, nut_chinh_tat, nut_chinh_chon, nut_phu_thuong, nut_phu_ro, nut_phu_nhan, nut_phu_tat, nut_phu_chon, toàn tờ, nut_chinh_thuong, nut_chinh_thuong, nut_chinh_ro, nut_chinh_ro, nut_chinh_ro, nut_chinh_nhan, nut_chinh_nhan, nut_chinh_tat, nut_chinh_tat, nut_chinh_chon, nut_chinh_chon, nut_phu_thuong, nut_phu_thuong, nut_phu_ro, nut_phu_ro, nut_phu_nhan, nut_phu_nhan, nut_phu_tat, nut_phu_tat, nut_phu_chon, nut_phu_chon, tab_thuong, tab_thuong, tab_chon, tab_chon, toàn tờ — mảnh cách nhau < 5% cạnh tờ (51 px): dễ dính khi tách; viền ám hồng 36.7% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối); nut_chinh_thuong: thân cạnh không phẳng (44% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_chinh_thuong: bốn góc không giống nhau (46% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_chinh_ro: thân cạnh không phẳng (53% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_chinh_ro: bốn góc không giống nhau (47% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_chinh_ro: vạch 9-slice đề xuất 17 chạm trần (nửa mảnh) của mảnh 66×36: ruột không đồng nhất, khó kéo; nut_chinh_nhan: thân cạnh không phẳng (37% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_chinh_nhan: bốn góc không giống nhau (61% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_chinh_tat: thân cạnh không phẳng (55% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_chinh_tat: bốn góc không giống nhau (54% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_chinh_chon: thân cạnh không phẳng (56% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_chinh_chon: bốn góc không giống nhau (52% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_phu_thuong: thân cạnh không phẳng (50% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_phu_thuong: bốn góc không giống nhau (53% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_phu_ro: thân cạnh không phẳng (53% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_phu_ro: bốn góc không giống nhau (56% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_phu_nhan: thân cạnh không phẳng (55% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_phu_nhan: bốn góc không giống nhau (49% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_phu_tat: thân cạnh không phẳng (76% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_phu_tat: bốn góc không giống nhau (52% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_phu_chon: thân cạnh không phẳng (51% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_phu_chon: bốn góc không giống nhau (42% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; tab_thuong: thân cạnh không phẳng (92% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; tab_thuong: bốn góc không giống nhau (70% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; tab_chon: thân cạnh không phẳng (92% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; tab_chon: bốn góc không giống nhau (62% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; 33 màu đáng kể (> 32); cutter lượng tử về ≤ 32 màu nhưng kiểm lại độ mịn.",
+            "counts": {
+              "block": 13,
+              "light": 15,
+              "warn": 0
+            }
+          }
+        },
+        {
+          "attempt": 6,
+          "file": "candidates/toN-attempt6.png",
+          "prompt_file": "candidates/toN-attempt6.prompt.txt",
+          "sha256": "5e149957833962bfd8d6521e17ebeea1d63e68bf543ed1b149208d6e952f9cf9",
+          "prompt_sha256": "6b7001f823304cdd002911868bb30878477c6240cbeab6a85abce6f370208022",
+          "bytes": 1470043,
+          "original_tool_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17dde-a50e-78d1-87d8-0399f0baeada\\exec-f52144db-7ad2-478d-b300-5c13f74b32bb.png",
+          "raw_copy_byte_identical": true,
+          "prompt_matches_generated_block": true,
+          "selected": true,
+          "qa": {
+            "sheet": "toN-attempt6",
+            "kind": "N",
+            "size": [
+              1536,
+              1024
+            ],
+            "shape": "3:2",
+            "level": "chặn",
+            "background": {
+              "key": [
+                251,
+                3,
+                251
+              ],
+              "keyDistFromLock": 4,
+              "cornerSpread": 34
+            },
+            "fringe": 0.353,
+            "colors": {
+              "n": 35,
+              "total": 26811,
+              "buckets": 145
+            },
+            "offPalette": null,
+            "layout": [
+              5,
+              5,
+              2
+            ],
+            "pieces": [
+              {
+                "name": "nut_chinh_thuong",
+                "set": "nut_chinh",
+                "state": "thuong",
+                "size": [
+                  60,
+                  38
+                ],
+                "rawSize": [
+                  239,
+                  152
+                ],
+                "nine": 13,
+                "thickness": 8,
+                "cornerExt": 13,
+                "flat": 0.375,
+                "flat3": 0.4056818181818182,
+                "asym": 0.29267672330576217,
+                "fringe": 0.473,
+                "stray": []
+              },
+              {
+                "name": "nut_chinh_ro",
+                "set": "nut_chinh",
+                "state": "ro",
+                "size": [
+                  60,
+                  38
+                ],
+                "rawSize": [
+                  238,
+                  152
+                ],
+                "nine": 13,
+                "thickness": 9,
+                "cornerExt": 13,
+                "flat": 0.3333333333333333,
+                "flat3": 0.3616161616161616,
+                "asym": 0.43409339347136866,
+                "fringe": 0.372,
+                "stray": []
+              },
+              {
+                "name": "nut_chinh_nhan",
+                "set": "nut_chinh",
+                "state": "nhan",
+                "size": [
+                  58,
+                  38
+                ],
+                "rawSize": [
+                  234,
+                  152
+                ],
+                "nine": 14,
+                "thickness": 10,
+                "cornerExt": 14,
+                "flat": 0.3,
+                "flat3": 0.3317307692307692,
+                "asym": 0.5347374057025956,
+                "fringe": 0.277,
+                "stray": []
+              },
+              {
+                "name": "nut_chinh_tat",
+                "set": "nut_chinh",
+                "state": "tat",
+                "size": [
+                  60,
+                  38
+                ],
+                "rawSize": [
+                  238,
+                  152
+                ],
+                "nine": 13,
+                "thickness": 8,
+                "cornerExt": 13,
+                "flat": 0.375,
+                "flat3": 0.4,
+                "asym": 0.20725840901914902,
+                "fringe": 0.402,
+                "stray": []
+              },
+              {
+                "name": "nut_chinh_chon",
+                "set": "nut_chinh",
+                "state": "chon",
+                "size": [
+                  60,
+                  38
+                ],
+                "rawSize": [
+                  239,
+                  152
+                ],
+                "nine": 14,
+                "thickness": 9,
+                "cornerExt": 14,
+                "flat": 0.3333333333333333,
+                "flat3": 0.3631687242798354,
+                "asym": 0.39941396623627173,
+                "fringe": 0.431,
+                "stray": []
+              },
+              {
+                "name": "nut_phu_thuong",
+                "set": "nut_phu",
+                "state": "thuong",
+                "size": [
+                  60,
+                  38
+                ],
+                "rawSize": [
+                  239,
+                  152
+                ],
+                "nine": 13,
+                "thickness": 8,
+                "cornerExt": 13,
+                "flat": 0.375,
+                "flat3": 0.40454545454545454,
+                "asym": 0.26958999132912176,
+                "fringe": 0.506,
+                "stray": []
+              },
+              {
+                "name": "nut_phu_ro",
+                "set": "nut_phu",
+                "state": "ro",
+                "size": [
+                  60,
+                  38
+                ],
+                "rawSize": [
+                  238,
+                  151
+                ],
+                "nine": 13,
+                "thickness": 8,
+                "cornerExt": 13,
+                "flat": 0.375,
+                "flat3": 0.4147727272727273,
+                "asym": 0.42067588443969556,
+                "fringe": 0.416,
+                "stray": []
+              },
+              {
+                "name": "nut_phu_nhan",
+                "set": "nut_phu",
+                "state": "nhan",
+                "size": [
+                  58,
+                  38
+                ],
+                "rawSize": [
+                  233,
+                  151
+                ],
+                "nine": 13,
+                "thickness": 7,
+                "cornerExt": 13,
+                "flat": 0.42857142857142855,
+                "flat3": 0.4568733153638814,
+                "asym": 0.2942904348795124,
+                "fringe": 0.194,
+                "stray": []
+              },
+              {
+                "name": "nut_phu_tat",
+                "set": "nut_phu",
+                "state": "tat",
+                "size": [
+                  60,
+                  38
+                ],
+                "rawSize": [
+                  238,
+                  151
+                ],
+                "nine": 13,
+                "thickness": 8,
+                "cornerExt": 13,
+                "flat": 0.375,
+                "flat3": 0.39886363636363636,
+                "asym": 0.20084260195483652,
+                "fringe": 0.406,
+                "stray": []
+              },
+              {
+                "name": "nut_phu_chon",
+                "set": "nut_phu",
+                "state": "chon",
+                "size": [
+                  60,
+                  38
+                ],
+                "rawSize": [
+                  239,
+                  151
+                ],
+                "nine": 13,
+                "thickness": 8,
+                "cornerExt": 13,
+                "flat": 0.3888888888888889,
+                "flat3": 0.4125,
+                "asym": 0.3654403567447046,
+                "fringe": 0.334,
+                "stray": []
+              },
+              {
+                "name": "tab_thuong",
+                "set": "tab",
+                "state": "thuong",
+                "size": [
+                  150,
+                  40
+                ],
+                "rawSize": [
+                  602,
+                  163
+                ],
+                "nine": 17,
+                "thickness": 11,
+                "cornerExt": 17,
+                "flat": 1,
+                "flat3": 1,
+                "asym": 0.6652138570310849,
+                "fringe": 0.277,
+                "stray": []
+              },
+              {
+                "name": "tab_chon",
+                "set": "tab",
+                "state": "chon",
+                "size": [
+                  150,
+                  40
+                ],
+                "rawSize": [
+                  601,
+                  163
+                ],
+                "nine": 17,
+                "thickness": 11,
+                "cornerExt": 17,
+                "flat": 1,
+                "flat3": 1,
+                "asym": 0.639756781061129,
+                "fringe": 0.294,
+                "stray": []
+              }
+            ],
+            "issues": [
+              {
+                "sev": "note",
+                "code": "nen",
+                "where": "toàn tờ",
+                "msg": "nền dốc nhẹ (bốn góc lệch 34), trong dung sai 60; không phải lỗi."
+              },
+              {
+                "sev": "block",
+                "code": "vien-hong",
+                "where": "toàn tờ",
+                "msg": "viền ám hồng 35.3% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối)."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_chinh_thuong",
+                "msg": "nut_chinh_thuong: thân cạnh không phẳng (41% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_chinh_thuong",
+                "msg": "nut_chinh_thuong: bốn góc không giống nhau (29% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_chinh_ro",
+                "msg": "nut_chinh_ro: thân cạnh không phẳng (36% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_chinh_ro",
+                "msg": "nut_chinh_ro: bốn góc không giống nhau (43% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "canh-phang",
+                "where": "nut_chinh_nhan",
+                "msg": "nut_chinh_nhan: thân cạnh hơi lệch (33% điểm > 15%): kiểm tờ liên hệ trước khi kéo."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_chinh_nhan",
+                "msg": "nut_chinh_nhan: bốn góc không giống nhau (53% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_chinh_tat",
+                "msg": "nut_chinh_tat: thân cạnh không phẳng (40% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_chinh_tat",
+                "msg": "nut_chinh_tat: bốn góc không giống nhau (21% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_chinh_chon",
+                "msg": "nut_chinh_chon: thân cạnh không phẳng (36% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_chinh_chon",
+                "msg": "nut_chinh_chon: bốn góc không giống nhau (40% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_phu_thuong",
+                "msg": "nut_phu_thuong: thân cạnh không phẳng (40% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_phu_thuong",
+                "msg": "nut_phu_thuong: bốn góc không giống nhau (27% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_phu_ro",
+                "msg": "nut_phu_ro: thân cạnh không phẳng (41% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_phu_ro",
+                "msg": "nut_phu_ro: bốn góc không giống nhau (42% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_phu_nhan",
+                "msg": "nut_phu_nhan: thân cạnh không phẳng (46% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_phu_nhan",
+                "msg": "nut_phu_nhan: bốn góc không giống nhau (29% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_phu_tat",
+                "msg": "nut_phu_tat: thân cạnh không phẳng (40% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_phu_tat",
+                "msg": "nut_phu_tat: bốn góc không giống nhau (20% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "nut_phu_chon",
+                "msg": "nut_phu_chon: thân cạnh không phẳng (41% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "nut_phu_chon",
+                "msg": "nut_phu_chon: bốn góc không giống nhau (37% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "tab_thuong",
+                "msg": "tab_thuong: thân cạnh không phẳng (100% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "tab_thuong",
+                "msg": "tab_thuong: bốn góc không giống nhau (67% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "tab_chon",
+                "msg": "tab_chon: thân cạnh không phẳng (100% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "tab_chon",
+                "msg": "tab_chon: bốn góc không giống nhau (64% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "mau",
+                "where": "toàn tờ",
+                "msg": "35 màu đáng kể (> 32); cutter lượng tử về ≤ 32 màu nhưng kiểm lại độ mịn."
+              }
+            ],
+            "draft": "LỖI: toN-attempt6 — viền ám hồng / cạnh không phẳng / bốn góc khác nhau / quá nhiều màu — toàn tờ, nut_chinh_thuong, nut_chinh_thuong, nut_chinh_ro, nut_chinh_ro, nut_chinh_nhan, nut_chinh_nhan, nut_chinh_tat, nut_chinh_tat, nut_chinh_chon, nut_chinh_chon, nut_phu_thuong, nut_phu_thuong, nut_phu_ro, nut_phu_ro, nut_phu_nhan, nut_phu_nhan, nut_phu_tat, nut_phu_tat, nut_phu_chon, nut_phu_chon, tab_thuong, tab_thuong, tab_chon, tab_chon, toàn tờ — viền ám hồng 35.3% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối); nut_chinh_thuong: thân cạnh không phẳng (41% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_chinh_thuong: bốn góc không giống nhau (29% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_chinh_ro: thân cạnh không phẳng (36% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_chinh_ro: bốn góc không giống nhau (43% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_chinh_nhan: thân cạnh hơi lệch (33% điểm > 15%): kiểm tờ liên hệ trước khi kéo; nut_chinh_nhan: bốn góc không giống nhau (53% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_chinh_tat: thân cạnh không phẳng (40% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_chinh_tat: bốn góc không giống nhau (21% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_chinh_chon: thân cạnh không phẳng (36% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_chinh_chon: bốn góc không giống nhau (40% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_phu_thuong: thân cạnh không phẳng (40% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_phu_thuong: bốn góc không giống nhau (27% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_phu_ro: thân cạnh không phẳng (41% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_phu_ro: bốn góc không giống nhau (42% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_phu_nhan: thân cạnh không phẳng (46% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_phu_nhan: bốn góc không giống nhau (29% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_phu_tat: thân cạnh không phẳng (40% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_phu_tat: bốn góc không giống nhau (20% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; nut_phu_chon: thân cạnh không phẳng (41% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; nut_phu_chon: bốn góc không giống nhau (37% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; tab_thuong: thân cạnh không phẳng (100% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; tab_thuong: bốn góc không giống nhau (67% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; tab_chon: thân cạnh không phẳng (100% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; tab_chon: bốn góc không giống nhau (64% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; 35 màu đáng kể (> 32); cutter lượng tử về ≤ 32 màu nhưng kiểm lại độ mịn.",
+            "counts": {
+              "block": 12,
+              "light": 14,
+              "warn": 0
+            }
+          }
+        }
+      ]
+    },
+    "O": {
+      "selected_attempt": 5,
+      "attempts": [
+        {
+          "attempt": 4,
+          "file": "candidates/toO-attempt4.png",
+          "prompt_file": "candidates/toO-attempt4.prompt.txt",
+          "sha256": "a1479b7bbe33d1f2a42e1f08595a123a300a309356e714ed5103f0cd43a325f4",
+          "prompt_sha256": "c0205c648e6ca7c501394364c91610ada933cb2828aa00d29edb4d4511a360ee",
+          "bytes": 1679123,
+          "original_tool_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17dde-a50e-78d1-87d8-0399f0baeada\\exec-28d260fa-f347-4fd2-8f52-e948548fbcc7.png",
+          "raw_copy_byte_identical": true,
+          "prompt_matches_generated_block": true,
+          "selected": false,
+          "qa": {
+            "sheet": "toO-attempt4",
+            "kind": "O",
+            "size": [
+              1254,
+              1254
+            ],
+            "shape": "1:1",
+            "level": "chặn",
+            "background": {
+              "key": [
+                251,
+                3,
+                251
+              ],
+              "keyDistFromLock": 4,
+              "cornerSpread": 32
+            },
+            "fringe": 0.459,
+            "colors": {
+              "n": 28,
+              "total": 24386,
+              "buckets": 203
+            },
+            "offPalette": null,
+            "layout": [
+              3,
+              5,
+              4
+            ],
+            "pieces": [
+              {
+                "name": "o_trong",
+                "set": "o",
+                "state": "trong",
+                "size": [
+                  52,
+                  52
+                ],
+                "rawSize": [
+                  261,
+                  259
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.284,
+                "stray": false
+              },
+              {
+                "name": "o_co",
+                "set": "o",
+                "state": "co",
+                "size": [
+                  52,
+                  52
+                ],
+                "rawSize": [
+                  261,
+                  260
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.569,
+                "stray": false
+              },
+              {
+                "name": "o_chon",
+                "set": "o",
+                "state": "chon",
+                "size": [
+                  52,
+                  52
+                ],
+                "rawSize": [
+                  265,
+                  260
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.426,
+                "stray": false
+              },
+              {
+                "name": "o_hiem_1",
+                "set": "o_hiem",
+                "state": "1",
+                "size": [
+                  42,
+                  46
+                ],
+                "rawSize": [
+                  212,
+                  229
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.48,
+                "stray": false
+              },
+              {
+                "name": "o_hiem_2",
+                "set": "o_hiem",
+                "state": "2",
+                "size": [
+                  42,
+                  46
+                ],
+                "rawSize": [
+                  215,
+                  232
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.524,
+                "stray": false
+              },
+              {
+                "name": "o_hiem_3",
+                "set": "o_hiem",
+                "state": "3",
+                "size": [
+                  44,
+                  46
+                ],
+                "rawSize": [
+                  218,
+                  231
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.652,
+                "stray": false
+              },
+              {
+                "name": "o_hiem_4",
+                "set": "o_hiem",
+                "state": "4",
+                "size": [
+                  46,
+                  48
+                ],
+                "rawSize": [
+                  228,
+                  241
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.565,
+                "stray": false
+              },
+              {
+                "name": "o_hiem_5",
+                "set": "o_hiem",
+                "state": "5",
+                "size": [
+                  46,
+                  48
+                ],
+                "rawSize": [
+                  233,
+                  246
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.539,
+                "stray": false
+              },
+              {
+                "name": "ky_nang_san_sang",
+                "set": "ky_nang",
+                "state": "san_sang",
+                "size": [
+                  50,
+                  50
+                ],
+                "rawSize": [
+                  255,
+                  256
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.387,
+                "stray": false
+              },
+              {
+                "name": "ky_nang_hoi_chieu",
+                "set": "ky_nang",
+                "state": "hoi_chieu",
+                "size": [
+                  50,
+                  50
+                ],
+                "rawSize": [
+                  255,
+                  256
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.42,
+                "stray": false
+              },
+              {
+                "name": "ky_nang_khoa",
+                "set": "ky_nang",
+                "state": "khoa",
+                "size": [
+                  50,
+                  50
+                ],
+                "rawSize": [
+                  255,
+                  256
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.43,
+                "stray": false
+              },
+              {
+                "name": "ky_nang_thieu_hon_luc",
+                "set": "ky_nang",
+                "state": "thieu_hon_luc",
+                "size": [
+                  50,
+                  50
+                ],
+                "rawSize": [
+                  255,
+                  255
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.276,
+                "stray": false
+              }
+            ],
+            "issues": [
+              {
+                "sev": "note",
+                "code": "nen",
+                "where": "toàn tờ",
+                "msg": "nền dốc nhẹ (bốn góc lệch 32), trong dung sai 60; không phải lỗi."
+              },
+              {
+                "sev": "light",
+                "code": "khoang-cach",
+                "where": "o_hiem_1, o_hiem_2, o_hiem_3, o_hiem_4, o_hiem_5, ky_nang_san_sang, ky_nang_hoi_chieu, ky_nang_khoa, ky_nang_thieu_hon_luc",
+                "msg": "mảnh cách nhau < 5% cạnh tờ (63 px): dễ dính khi tách."
+              },
+              {
+                "sev": "block",
+                "code": "vien-hong",
+                "where": "toàn tờ",
+                "msg": "viền ám hồng 45.9% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối)."
+              }
+            ],
+            "draft": "LỖI: toO-attempt4 — mảnh sát nhau / viền ám hồng — o_hiem_1, o_hiem_2, o_hiem_3, o_hiem_4, o_hiem_5, ky_nang_san_sang, ky_nang_hoi_chieu, ky_nang_khoa, ky_nang_thieu_hon_luc, toàn tờ — mảnh cách nhau < 5% cạnh tờ (63 px): dễ dính khi tách; viền ám hồng 45.9% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối).",
+            "counts": {
+              "block": 1,
+              "light": 1,
+              "warn": 0
+            }
+          }
+        },
+        {
+          "attempt": 5,
+          "file": "candidates/toO-attempt5.png",
+          "prompt_file": "candidates/toO-attempt5.prompt.txt",
+          "sha256": "4bc1a738ecf78e94ace8ed684ba0159828710d247c272b025c6d00b46f0463f5",
+          "prompt_sha256": "48afe8b39fc16be84abbfebcb283d575eb62739ec0b0d39bb87ce2257b6e9da7",
+          "bytes": 1716403,
+          "original_tool_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17dde-a50e-78d1-87d8-0399f0baeada\\exec-25ae4f68-919b-4b07-92df-3e892236fbb2.png",
+          "raw_copy_byte_identical": true,
+          "prompt_matches_generated_block": true,
+          "selected": true,
+          "qa": {
+            "sheet": "toO-attempt5",
+            "kind": "O",
+            "size": [
+              1254,
+              1254
+            ],
+            "shape": "1:1",
+            "level": "chặn",
+            "background": {
+              "key": [
+                251,
+                3,
+                252
+              ],
+              "keyDistFromLock": 4,
+              "cornerSpread": 31
+            },
+            "fringe": 0.43,
+            "colors": {
+              "n": 26,
+              "total": 25728,
+              "buckets": 202
+            },
+            "offPalette": null,
+            "layout": [
+              3,
+              5,
+              4
+            ],
+            "pieces": [
+              {
+                "name": "o_trong",
+                "set": "o",
+                "state": "trong",
+                "size": [
+                  60,
+                  56
+                ],
+                "rawSize": [
+                  299,
+                  286
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.475,
+                "stray": false
+              },
+              {
+                "name": "o_co",
+                "set": "o",
+                "state": "co",
+                "size": [
+                  60,
+                  56
+                ],
+                "rawSize": [
+                  298,
+                  287
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.594,
+                "stray": false
+              },
+              {
+                "name": "o_chon",
+                "set": "o",
+                "state": "chon",
+                "size": [
+                  60,
+                  56
+                ],
+                "rawSize": [
+                  299,
+                  287
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.498,
+                "stray": false
+              },
+              {
+                "name": "o_hiem_1",
+                "set": "o_hiem",
+                "state": "1",
+                "size": [
+                  44,
+                  46
+                ],
+                "rawSize": [
+                  226,
+                  236
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.533,
+                "stray": false
+              },
+              {
+                "name": "o_hiem_2",
+                "set": "o_hiem",
+                "state": "2",
+                "size": [
+                  46,
+                  46
+                ],
+                "rawSize": [
+                  232,
+                  237
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.377,
+                "stray": false
+              },
+              {
+                "name": "o_hiem_3",
+                "set": "o_hiem",
+                "state": "3",
+                "size": [
+                  46,
+                  46
+                ],
+                "rawSize": [
+                  237,
+                  237
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.448,
+                "stray": false
+              },
+              {
+                "name": "o_hiem_4",
+                "set": "o_hiem",
+                "state": "4",
+                "size": [
+                  44,
+                  46
+                ],
+                "rawSize": [
+                  222,
+                  237
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.566,
+                "stray": false
+              },
+              {
+                "name": "o_hiem_5",
+                "set": "o_hiem",
+                "state": "5",
+                "size": [
+                  48,
+                  50
+                ],
+                "rawSize": [
+                  243,
+                  251
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.488,
+                "stray": false
+              },
+              {
+                "name": "ky_nang_san_sang",
+                "set": "ky_nang",
+                "state": "san_sang",
+                "size": [
+                  54,
+                  56
+                ],
+                "rawSize": [
+                  277,
+                  279
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.251,
+                "stray": false
+              },
+              {
+                "name": "ky_nang_hoi_chieu",
+                "set": "ky_nang",
+                "state": "hoi_chieu",
+                "size": [
+                  56,
+                  56
+                ],
+                "rawSize": [
+                  279,
+                  279
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.255,
+                "stray": false
+              },
+              {
+                "name": "ky_nang_khoa",
+                "set": "ky_nang",
+                "state": "khoa",
+                "size": [
+                  54,
+                  56
+                ],
+                "rawSize": [
+                  275,
+                  279
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.365,
+                "stray": false
+              },
+              {
+                "name": "ky_nang_thieu_hon_luc",
+                "set": "ky_nang",
+                "state": "thieu_hon_luc",
+                "size": [
+                  54,
+                  56
+                ],
+                "rawSize": [
+                  276,
+                  279
+                ],
+                "nine": null,
+                "thickness": null,
+                "cornerExt": null,
+                "flat": null,
+                "flat3": null,
+                "asym": null,
+                "fringe": 0.306,
+                "stray": false
+              }
+            ],
+            "issues": [
+              {
+                "sev": "note",
+                "code": "nen",
+                "where": "toàn tờ",
+                "msg": "nền dốc nhẹ (bốn góc lệch 31), trong dung sai 60; không phải lỗi."
+              },
+              {
+                "sev": "light",
+                "code": "khoang-cach",
+                "where": "o_trong, o_co, o_chon, o_hiem_1, o_hiem_2, o_hiem_3, o_hiem_4, o_hiem_5, ky_nang_san_sang, ky_nang_hoi_chieu, ky_nang_khoa, ky_nang_thieu_hon_luc",
+                "msg": "mảnh cách nhau < 5% cạnh tờ (63 px): dễ dính khi tách."
+              },
+              {
+                "sev": "block",
+                "code": "vien-hong",
+                "where": "toàn tờ",
+                "msg": "viền ám hồng 43% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối)."
+              }
+            ],
+            "draft": "LỖI: toO-attempt5 — mảnh sát nhau / viền ám hồng — o_trong, o_co, o_chon, o_hiem_1, o_hiem_2, o_hiem_3, o_hiem_4, o_hiem_5, ky_nang_san_sang, ky_nang_hoi_chieu, ky_nang_khoa, ky_nang_thieu_hon_luc, toàn tờ — mảnh cách nhau < 5% cạnh tờ (63 px): dễ dính khi tách; viền ám hồng 43% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối).",
+            "counts": {
+              "block": 1,
+              "light": 1,
+              "warn": 0
+            }
+          }
+        },
+        {
+          "attempt": 6,
+          "file": "candidates/toO-attempt6.png",
+          "prompt_file": "candidates/toO-attempt6.prompt.txt",
+          "sha256": "40d3bf0cb4b2c08f166647b8dad8fcd2912472f5810cd934bcfd73f0ef202c91",
+          "prompt_sha256": "679d2762c1679b655210d33c625f6a9b988bd352b6a5b0795d6654494c472386",
+          "bytes": 1620943,
+          "original_tool_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17dde-a50e-78d1-87d8-0399f0baeada\\exec-19284e83-5e4d-4178-8511-7237699b8995.png",
+          "raw_copy_byte_identical": true,
+          "prompt_matches_generated_block": true,
+          "selected": false,
+          "qa": {
+            "sheet": "toO-attempt6",
+            "kind": "O",
+            "size": [
+              1536,
+              1024
+            ],
+            "shape": null,
+            "level": "chặn",
+            "background": null,
+            "fringe": null,
+            "colors": null,
+            "offPalette": null,
+            "layout": null,
+            "pieces": [],
+            "issues": [
+              {
+                "sev": "block",
+                "code": "kich-thuoc",
+                "where": "toàn tờ",
+                "msg": "tờ O (ô) cần tỉ lệ 1:1, tờ này 3:2 (1536×1024)."
+              }
+            ],
+            "draft": "LỖI: toO-attempt6 — sai kích thước — toàn tờ — tờ O (ô) cần tỉ lệ 1:1, tờ này 3:2 (1536×1024).",
+            "counts": {
+              "block": 1,
+              "light": 0,
+              "warn": 0
+            }
+          }
+        }
+      ]
+    },
+    "T": {
+      "selected_attempt": 5,
+      "attempts": [
+        {
+          "attempt": 4,
+          "file": "candidates/toT-attempt4.png",
+          "prompt_file": "candidates/toT-attempt4.prompt.txt",
+          "sha256": "4d5bf12fdda5549ecfed8e57c5130599622cfa87b5e6333e8edc39750c9e9f15",
+          "prompt_sha256": "96be788c80b39cf6a92f199c9f1df4d71ec631a8d853fa50662d614eb9659516",
+          "bytes": 1360630,
+          "original_tool_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17dde-a50e-78d1-87d8-0399f0baeada\\exec-68d62f53-5203-4a98-bdf1-fd01ef13afbf.png",
+          "raw_copy_byte_identical": true,
+          "prompt_matches_generated_block": true,
+          "selected": false,
+          "qa": {
+            "sheet": "toT-attempt4",
+            "kind": "T",
+            "size": [
+              1536,
+              1024
+            ],
+            "shape": "3:2",
+            "level": "chặn",
+            "background": {
+              "key": [
+                251,
+                4,
+                251
+              ],
+              "keyDistFromLock": 4,
+              "cornerSpread": 31
+            },
+            "fringe": 0.371,
+            "colors": {
+              "n": 25,
+              "total": 21982,
+              "buckets": 66
+            },
+            "offPalette": null,
+            "layout": [
+              3,
+              3,
+              3
+            ],
+            "pieces": [
+              {
+                "name": "thanh_khung_sinh",
+                "set": null,
+                "state": null,
+                "size": [
+                  110,
+                  44
+                ],
+                "rawSize": [
+                  443,
+                  179
+                ],
+                "nine": 19,
+                "thickness": 10,
+                "cornerExt": 19,
+                "flat": 0.6,
+                "flat3": 0.619811320754717,
+                "asym": 0.5149422022698,
+                "fringe": 0.445,
+                "stray": false
+              },
+              {
+                "name": "thanh_khung_hon",
+                "set": null,
+                "state": null,
+                "size": [
+                  110,
+                  44
+                ],
+                "rawSize": [
+                  444,
+                  179
+                ],
+                "nine": 11,
+                "thickness": 8,
+                "cornerExt": 11,
+                "flat": 0.7666666666666667,
+                "flat3": 0.7669956140350878,
+                "asym": 0.64636117875135,
+                "fringe": 0.435,
+                "stray": false
+              },
+              {
+                "name": "thanh_khung_kn",
+                "set": null,
+                "state": null,
+                "size": [
+                  110,
+                  44
+                ],
+                "rawSize": [
+                  445,
+                  179
+                ],
+                "nine": 11,
+                "thickness": 8,
+                "cornerExt": 11,
+                "flat": 0.7666666666666667,
+                "flat3": 0.7669956140350878,
+                "asym": 0.6728180153347688,
+                "fringe": 0.45,
+                "stray": false
+              },
+              {
+                "name": "thanh_do_sinh",
+                "set": null,
+                "state": null,
+                "size": [
+                  106,
+                  16
+                ],
+                "rawSize": [
+                  423,
+                  68
+                ],
+                "nine": 1,
+                "thickness": 1,
+                "cornerExt": 0,
+                "flat": 0,
+                "flat3": 0,
+                "asym": 0,
+                "fringe": 0.524,
+                "stray": false
+              },
+              {
+                "name": "thanh_do_hon",
+                "set": null,
+                "state": null,
+                "size": [
+                  106,
+                  16
+                ],
+                "rawSize": [
+                  423,
+                  68
+                ],
+                "nine": 2,
+                "thickness": 2,
+                "cornerExt": 1,
+                "flat": 0,
+                "flat3": 0,
+                "asym": 0.16666666666666666,
+                "fringe": 0.112,
+                "stray": false
+              },
+              {
+                "name": "thanh_do_kn",
+                "set": null,
+                "state": null,
+                "size": [
+                  106,
+                  16
+                ],
+                "rawSize": [
+                  424,
+                  68
+                ],
+                "nine": 2,
+                "thickness": 2,
+                "cornerExt": 2,
+                "flat": 0,
+                "flat3": 0,
+                "asym": 0.25,
+                "fringe": 0.498,
+                "stray": false
+              },
+              {
+                "name": "vach_chia",
+                "set": null,
+                "state": null,
+                "size": [
+                  14,
+                  46
+                ],
+                "rawSize": [
+                  54,
+                  186
+                ],
+                "nine": 6,
+                "thickness": 23,
+                "cornerExt": 12,
+                "flat": null,
+                "flat3": 0,
+                "asym": 0.48484848484848486,
+                "fringe": 0.609,
+                "stray": false
+              },
+              {
+                "name": "thanh_cuon",
+                "set": null,
+                "state": null,
+                "size": [
+                  138,
+                  18
+                ],
+                "rawSize": [
+                  552,
+                  74
+                ],
+                "nine": 8,
+                "thickness": 10,
+                "cornerExt": 34,
+                "flat": null,
+                "flat3": 0.3781879194630873,
+                "asym": 0.5235760971055089,
+                "fringe": 0.074,
+                "stray": false
+              },
+              {
+                "name": "o_nhap",
+                "set": null,
+                "state": null,
+                "size": [
+                  114,
+                  38
+                ],
+                "rawSize": [
+                  461,
+                  154
+                ],
+                "nine": 18,
+                "thickness": 12,
+                "cornerExt": 19,
+                "flat": 0.485,
+                "flat3": 0.48536036036036034,
+                "asym": 0.5451555774332048,
+                "fringe": 0.355,
+                "stray": false
+              }
+            ],
+            "issues": [
+              {
+                "sev": "note",
+                "code": "nen",
+                "where": "toàn tờ",
+                "msg": "nền dốc nhẹ (bốn góc lệch 31), trong dung sai 60; không phải lỗi."
+              },
+              {
+                "sev": "light",
+                "code": "khoang-cach",
+                "where": "thanh_khung_sinh, thanh_khung_hon, thanh_khung_kn",
+                "msg": "mảnh cách nhau < 5% cạnh tờ (51 px): dễ dính khi tách."
+              },
+              {
+                "sev": "block",
+                "code": "vien-hong",
+                "where": "toàn tờ",
+                "msg": "viền ám hồng 37.1% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối)."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_sinh",
+                "msg": "thanh_khung_sinh: thân cạnh không phẳng (62% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_khung_sinh",
+                "msg": "thanh_khung_sinh: bốn góc không giống nhau (51% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_hon",
+                "msg": "thanh_khung_hon: thân cạnh không phẳng (77% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_khung_hon",
+                "msg": "thanh_khung_hon: bốn góc không giống nhau (65% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_kn",
+                "msg": "thanh_khung_kn: thân cạnh không phẳng (77% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_khung_kn",
+                "msg": "thanh_khung_kn: bốn góc không giống nhau (67% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_do_kn",
+                "msg": "thanh_do_kn: bốn góc không giống nhau (25% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "vach_chia",
+                "msg": "vach_chia: bốn góc không giống nhau (48% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "vach_chia",
+                "msg": "vach_chia: vạch 9-slice đề xuất 6 chạm trần (nửa mảnh) của mảnh 14×46: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_cuon",
+                "msg": "thanh_cuon: bốn góc không giống nhau (52% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_cuon",
+                "msg": "thanh_cuon: vạch 9-slice đề xuất 8 chạm trần (nửa mảnh) của mảnh 138×18: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "o_nhap",
+                "msg": "o_nhap: thân cạnh không phẳng (49% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "o_nhap",
+                "msg": "o_nhap: bốn góc không giống nhau (55% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "o_nhap",
+                "msg": "o_nhap: vạch 9-slice đề xuất 18 chạm trần (nửa mảnh) của mảnh 114×38: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "do-day",
+                "where": "toàn tờ",
+                "msg": "độ dày viền lệch 22 điểm master (> 2 = 1 px ở 1×) giữa thanh_khung_sinh 10, thanh_khung_hon 8, thanh_khung_kn 8, thanh_do_sinh 1, thanh_do_hon 2, thanh_do_kn 2, vach_chia 23, thanh_cuon 10, o_nhap 12."
+              }
+            ],
+            "draft": "LỖI: toT-attempt4 — mảnh sát nhau / viền ám hồng / cạnh không phẳng / bốn góc khác nhau / ruột không đồng nhất / độ dày viền lệch — thanh_khung_sinh, thanh_khung_hon, thanh_khung_kn, toàn tờ, thanh_khung_sinh, thanh_khung_sinh, thanh_khung_hon, thanh_khung_hon, thanh_khung_kn, thanh_khung_kn, thanh_do_kn, vach_chia, vach_chia, thanh_cuon, thanh_cuon, o_nhap, o_nhap, o_nhap, toàn tờ — mảnh cách nhau < 5% cạnh tờ (51 px): dễ dính khi tách; viền ám hồng 37.1% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối); thanh_khung_sinh: thân cạnh không phẳng (62% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_sinh: bốn góc không giống nhau (51% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_khung_hon: thân cạnh không phẳng (77% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_hon: bốn góc không giống nhau (65% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_khung_kn: thân cạnh không phẳng (77% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_kn: bốn góc không giống nhau (67% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_do_kn: bốn góc không giống nhau (25% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; vach_chia: bốn góc không giống nhau (48% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; vach_chia: vạch 9-slice đề xuất 6 chạm trần (nửa mảnh) của mảnh 14×46: ruột không đồng nhất, khó kéo; thanh_cuon: bốn góc không giống nhau (52% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_cuon: vạch 9-slice đề xuất 8 chạm trần (nửa mảnh) của mảnh 138×18: ruột không đồng nhất, khó kéo; o_nhap: thân cạnh không phẳng (49% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; o_nhap: bốn góc không giống nhau (55% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; o_nhap: vạch 9-slice đề xuất 18 chạm trần (nửa mảnh) của mảnh 114×38: ruột không đồng nhất, khó kéo; độ dày viền lệch 22 điểm master (> 2 = 1 px ở 1×) giữa thanh_khung_sinh 10, thanh_khung_hon 8, thanh_khung_kn 8, thanh_do_sinh 1, thanh_do_hon 2, thanh_do_kn 2, vach_chia 23, thanh_cuon 10, o_nhap 12.",
+            "counts": {
+              "block": 5,
+              "light": 12,
+              "warn": 0
+            }
+          }
+        },
+        {
+          "attempt": 5,
+          "file": "candidates/toT-attempt5.png",
+          "prompt_file": "candidates/toT-attempt5.prompt.txt",
+          "sha256": "5aa41dd054ba1069c7ba4d4ff47585f3641a3960e7a22cf1c040d11bb6d994d3",
+          "prompt_sha256": "796d0fc5dff334e4c33a8a26ad8d759b5f665276de4608da8737eb353ef0935f",
+          "bytes": 1333851,
+          "original_tool_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17dde-a50e-78d1-87d8-0399f0baeada\\exec-9b119e28-ef24-40a9-8393-03cdb393a6cb.png",
+          "raw_copy_byte_identical": true,
+          "prompt_matches_generated_block": true,
+          "selected": true,
+          "qa": {
+            "sheet": "toT-attempt5",
+            "kind": "T",
+            "size": [
+              1536,
+              1024
+            ],
+            "shape": "3:2",
+            "level": "chặn",
+            "background": {
+              "key": [
+                251,
+                4,
+                251
+              ],
+              "keyDistFromLock": 4,
+              "cornerSpread": 33
+            },
+            "fringe": 0.273,
+            "colors": {
+              "n": 22,
+              "total": 20031,
+              "buckets": 67
+            },
+            "offPalette": null,
+            "layout": [
+              3,
+              3,
+              3
+            ],
+            "pieces": [
+              {
+                "name": "thanh_khung_sinh",
+                "set": null,
+                "state": null,
+                "size": [
+                  106,
+                  36
+                ],
+                "rawSize": [
+                  422,
+                  145
+                ],
+                "nine": 17,
+                "thickness": 10,
+                "cornerExt": 18,
+                "flat": 0.508695652173913,
+                "flat3": 0.5189320388349514,
+                "asym": 0.17697614075058543,
+                "fringe": 0.194,
+                "stray": false
+              },
+              {
+                "name": "thanh_khung_hon",
+                "set": null,
+                "state": null,
+                "size": [
+                  106,
+                  36
+                ],
+                "rawSize": [
+                  422,
+                  146
+                ],
+                "nine": 17,
+                "thickness": 10,
+                "cornerExt": 18,
+                "flat": 0.5065217391304347,
+                "flat3": 0.5131067961165049,
+                "asym": 0.4432496290697349,
+                "fringe": 0.205,
+                "stray": false
+              },
+              {
+                "name": "thanh_khung_kn",
+                "set": null,
+                "state": null,
+                "size": [
+                  106,
+                  36
+                ],
+                "rawSize": [
+                  422,
+                  145
+                ],
+                "nine": 17,
+                "thickness": 10,
+                "cornerExt": 18,
+                "flat": 0.5065217391304347,
+                "flat3": 0.5155339805825243,
+                "asym": 0.21461769115442278,
+                "fringe": 0.239,
+                "stray": false
+              },
+              {
+                "name": "thanh_do_sinh",
+                "set": null,
+                "state": null,
+                "size": [
+                  100,
+                  18
+                ],
+                "rawSize": [
+                  402,
+                  70
+                ],
+                "nine": 8,
+                "thickness": 3,
+                "cornerExt": 23,
+                "flat": 0,
+                "flat3": 0,
+                "asym": 0.18303571428571427,
+                "fringe": 0.245,
+                "stray": false
+              },
+              {
+                "name": "thanh_do_hon",
+                "set": null,
+                "state": null,
+                "size": [
+                  100,
+                  18
+                ],
+                "rawSize": [
+                  403,
+                  70
+                ],
+                "nine": 8,
+                "thickness": 3,
+                "cornerExt": 18,
+                "flat": 0.05,
+                "flat3": 0.04716981132075472,
+                "asym": 0.23032407407407407,
+                "fringe": 0.443,
+                "stray": false
+              },
+              {
+                "name": "thanh_do_kn",
+                "set": null,
+                "state": null,
+                "size": [
+                  100,
+                  18
+                ],
+                "rawSize": [
+                  402,
+                  70
+                ],
+                "nine": 8,
+                "thickness": 3,
+                "cornerExt": 15,
+                "flat": 0.05,
+                "flat3": 0.050314465408805034,
+                "asym": 0.28215939153439157,
+                "fringe": 0.161,
+                "stray": false
+              },
+              {
+                "name": "vach_chia",
+                "set": null,
+                "state": null,
+                "size": [
+                  10,
+                  48
+                ],
+                "rawSize": [
+                  43,
+                  193
+                ],
+                "nine": 4,
+                "thickness": 12,
+                "cornerExt": 12,
+                "flat": null,
+                "flat3": 0.5275,
+                "asym": 0.6107226107226107,
+                "fringe": 0.158,
+                "stray": false
+              },
+              {
+                "name": "thanh_cuon",
+                "set": null,
+                "state": null,
+                "size": [
+                  142,
+                  18
+                ],
+                "rawSize": [
+                  572,
+                  76
+                ],
+                "nine": 8,
+                "thickness": 13,
+                "cornerExt": 16,
+                "flat": null,
+                "flat3": 0.35294117647058826,
+                "asym": 0.6739970032808907,
+                "fringe": 0.503,
+                "stray": false
+              },
+              {
+                "name": "o_nhap",
+                "set": null,
+                "state": null,
+                "size": [
+                  110,
+                  34
+                ],
+                "rawSize": [
+                  444,
+                  140
+                ],
+                "nine": 16,
+                "thickness": 7,
+                "cornerExt": 18,
+                "flat": 0.29428571428571426,
+                "flat3": 0.2929226736566186,
+                "asym": 0.4565644813516723,
+                "fringe": 0.205,
+                "stray": false
+              }
+            ],
+            "issues": [
+              {
+                "sev": "note",
+                "code": "nen",
+                "where": "toàn tờ",
+                "msg": "nền dốc nhẹ (bốn góc lệch 33), trong dung sai 60; không phải lỗi."
+              },
+              {
+                "sev": "block",
+                "code": "vien-hong",
+                "where": "toàn tờ",
+                "msg": "viền ám hồng 27.3% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối)."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_sinh",
+                "msg": "thanh_khung_sinh: thân cạnh không phẳng (52% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_khung_sinh",
+                "msg": "thanh_khung_sinh: vạch 9-slice đề xuất 17 chạm trần (nửa mảnh) của mảnh 106×36: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_hon",
+                "msg": "thanh_khung_hon: thân cạnh không phẳng (51% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_khung_hon",
+                "msg": "thanh_khung_hon: bốn góc không giống nhau (44% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_khung_hon",
+                "msg": "thanh_khung_hon: vạch 9-slice đề xuất 17 chạm trần (nửa mảnh) của mảnh 106×36: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_kn",
+                "msg": "thanh_khung_kn: thân cạnh không phẳng (52% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_khung_kn",
+                "msg": "thanh_khung_kn: bốn góc không giống nhau (21% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_khung_kn",
+                "msg": "thanh_khung_kn: vạch 9-slice đề xuất 17 chạm trần (nửa mảnh) của mảnh 106×36: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_do_sinh",
+                "msg": "thanh_do_sinh: vạch 9-slice đề xuất 8 chạm trần (nửa mảnh) của mảnh 100×18: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_do_hon",
+                "msg": "thanh_do_hon: bốn góc không giống nhau (23% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_do_hon",
+                "msg": "thanh_do_hon: vạch 9-slice đề xuất 8 chạm trần (nửa mảnh) của mảnh 100×18: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_do_kn",
+                "msg": "thanh_do_kn: bốn góc không giống nhau (28% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_do_kn",
+                "msg": "thanh_do_kn: vạch 9-slice đề xuất 8 chạm trần (nửa mảnh) của mảnh 100×18: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "vach_chia",
+                "msg": "vach_chia: bốn góc không giống nhau (61% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "vach_chia",
+                "msg": "vach_chia: vạch 9-slice đề xuất 4 chạm trần (nửa mảnh) của mảnh 10×48: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_cuon",
+                "msg": "thanh_cuon: bốn góc không giống nhau (67% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_cuon",
+                "msg": "thanh_cuon: vạch 9-slice đề xuất 8 chạm trần (nửa mảnh) của mảnh 142×18: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "canh-phang",
+                "where": "o_nhap",
+                "msg": "o_nhap: thân cạnh hơi lệch (29% điểm > 15%): kiểm tờ liên hệ trước khi kéo."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "o_nhap",
+                "msg": "o_nhap: bốn góc không giống nhau (46% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "o_nhap",
+                "msg": "o_nhap: vạch 9-slice đề xuất 16 chạm trần (nửa mảnh) của mảnh 110×34: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "do-day",
+                "where": "toàn tờ",
+                "msg": "độ dày viền lệch 10 điểm master (> 2 = 1 px ở 1×) giữa thanh_khung_sinh 10, thanh_khung_hon 10, thanh_khung_kn 10, thanh_do_sinh 3, thanh_do_hon 3, thanh_do_kn 3, vach_chia 12, thanh_cuon 13, o_nhap 7."
+              }
+            ],
+            "draft": "LỖI: toT-attempt5 — viền ám hồng / cạnh không phẳng / ruột không đồng nhất / bốn góc khác nhau / độ dày viền lệch — toàn tờ, thanh_khung_sinh, thanh_khung_sinh, thanh_khung_hon, thanh_khung_hon, thanh_khung_hon, thanh_khung_kn, thanh_khung_kn, thanh_khung_kn, thanh_do_sinh, thanh_do_hon, thanh_do_hon, thanh_do_kn, thanh_do_kn, vach_chia, vach_chia, thanh_cuon, thanh_cuon, o_nhap, o_nhap, o_nhap, toàn tờ — viền ám hồng 27.3% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối); thanh_khung_sinh: thân cạnh không phẳng (52% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_sinh: vạch 9-slice đề xuất 17 chạm trần (nửa mảnh) của mảnh 106×36: ruột không đồng nhất, khó kéo; thanh_khung_hon: thân cạnh không phẳng (51% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_hon: bốn góc không giống nhau (44% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_khung_hon: vạch 9-slice đề xuất 17 chạm trần (nửa mảnh) của mảnh 106×36: ruột không đồng nhất, khó kéo; thanh_khung_kn: thân cạnh không phẳng (52% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_kn: bốn góc không giống nhau (21% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_khung_kn: vạch 9-slice đề xuất 17 chạm trần (nửa mảnh) của mảnh 106×36: ruột không đồng nhất, khó kéo; thanh_do_sinh: vạch 9-slice đề xuất 8 chạm trần (nửa mảnh) của mảnh 100×18: ruột không đồng nhất, khó kéo; thanh_do_hon: bốn góc không giống nhau (23% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_do_hon: vạch 9-slice đề xuất 8 chạm trần (nửa mảnh) của mảnh 100×18: ruột không đồng nhất, khó kéo; thanh_do_kn: bốn góc không giống nhau (28% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_do_kn: vạch 9-slice đề xuất 8 chạm trần (nửa mảnh) của mảnh 100×18: ruột không đồng nhất, khó kéo; vach_chia: bốn góc không giống nhau (61% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; vach_chia: vạch 9-slice đề xuất 4 chạm trần (nửa mảnh) của mảnh 10×48: ruột không đồng nhất, khó kéo; thanh_cuon: bốn góc không giống nhau (67% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_cuon: vạch 9-slice đề xuất 8 chạm trần (nửa mảnh) của mảnh 142×18: ruột không đồng nhất, khó kéo; o_nhap: thân cạnh hơi lệch (29% điểm > 15%): kiểm tờ liên hệ trước khi kéo; o_nhap: bốn góc không giống nhau (46% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; o_nhap: vạch 9-slice đề xuất 16 chạm trần (nửa mảnh) của mảnh 110×34: ruột không đồng nhất, khó kéo; độ dày viền lệch 10 điểm master (> 2 = 1 px ở 1×) giữa thanh_khung_sinh 10, thanh_khung_hon 10, thanh_khung_kn 10, thanh_do_sinh 3, thanh_do_hon 3, thanh_do_kn 3, vach_chia 12, thanh_cuon 13, o_nhap 7.",
+            "counts": {
+              "block": 4,
+              "light": 18,
+              "warn": 0
+            }
+          }
+        },
+        {
+          "attempt": 6,
+          "file": "candidates/toT-attempt6.png",
+          "prompt_file": "candidates/toT-attempt6.prompt.txt",
+          "sha256": "7661a3c643e90fbd501e02cf6d012035375e7d7fd374627ea603e80628ff6943",
+          "prompt_sha256": "8c2a3bf46058408e3c4ce1814bdd765087d8b80855194d825be40c3b3a4b2839",
+          "bytes": 1370168,
+          "original_tool_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17dde-a50e-78d1-87d8-0399f0baeada\\exec-aeb65bd5-7730-4af7-bafd-73c1644b9ec2.png",
+          "raw_copy_byte_identical": true,
+          "prompt_matches_generated_block": true,
+          "selected": false,
+          "qa": {
+            "sheet": "toT-attempt6",
+            "kind": "T",
+            "size": [
+              1536,
+              1024
+            ],
+            "shape": "3:2",
+            "level": "chặn",
+            "background": {
+              "key": [
+                251,
+                3,
+                251
+              ],
+              "keyDistFromLock": 4,
+              "cornerSpread": 34
+            },
+            "fringe": 0.408,
+            "colors": {
+              "n": 26,
+              "total": 23480,
+              "buckets": 67
+            },
+            "offPalette": null,
+            "layout": [
+              3,
+              3,
+              3
+            ],
+            "pieces": [
+              {
+                "name": "thanh_khung_sinh",
+                "set": null,
+                "state": null,
+                "size": [
+                  112,
+                  44
+                ],
+                "rawSize": [
+                  450,
+                  174
+                ],
+                "nine": 21,
+                "thickness": 9,
+                "cornerExt": 21,
+                "flat": 0.5555555555555556,
+                "flat3": 0.5628930817610063,
+                "asym": 0.31541141346208085,
+                "fringe": 0.223,
+                "stray": false
+              },
+              {
+                "name": "thanh_khung_hon",
+                "set": null,
+                "state": null,
+                "size": [
+                  112,
+                  44
+                ],
+                "rawSize": [
+                  451,
+                  174
+                ],
+                "nine": 11,
+                "thickness": 8,
+                "cornerExt": 11,
+                "flat": 0.6612903225806451,
+                "flat3": 0.6589439655172413,
+                "asym": 0.45141065830721,
+                "fringe": 0.259,
+                "stray": false
+              },
+              {
+                "name": "thanh_khung_kn",
+                "set": null,
+                "state": null,
+                "size": [
+                  112,
+                  44
+                ],
+                "rawSize": [
+                  451,
+                  174
+                ],
+                "nine": 11,
+                "thickness": 8,
+                "cornerExt": 11,
+                "flat": 0.6653225806451613,
+                "flat3": 0.6627155172413793,
+                "asym": 0.4580783201472856,
+                "fringe": 0.26,
+                "stray": false
+              },
+              {
+                "name": "thanh_do_sinh",
+                "set": null,
+                "state": null,
+                "size": [
+                  106,
+                  14
+                ],
+                "rawSize": [
+                  422,
+                  58
+                ],
+                "nine": 2,
+                "thickness": 2,
+                "cornerExt": 2,
+                "flat": 0,
+                "flat3": 0,
+                "asym": 0.3333333333333333,
+                "fringe": 0.498,
+                "stray": false
+              },
+              {
+                "name": "thanh_do_hon",
+                "set": null,
+                "state": null,
+                "size": [
+                  106,
+                  14
+                ],
+                "rawSize": [
+                  425,
+                  58
+                ],
+                "nine": 2,
+                "thickness": 2,
+                "cornerExt": 1,
+                "flat": 0,
+                "flat3": 0,
+                "asym": 0.4166666666666667,
+                "fringe": 0.505,
+                "stray": false
+              },
+              {
+                "name": "thanh_do_kn",
+                "set": null,
+                "state": null,
+                "size": [
+                  106,
+                  14
+                ],
+                "rawSize": [
+                  425,
+                  58
+                ],
+                "nine": 2,
+                "thickness": 2,
+                "cornerExt": 2,
+                "flat": 0,
+                "flat3": 0,
+                "asym": 0.5,
+                "fringe": 0.452,
+                "stray": false
+              },
+              {
+                "name": "vach_chia",
+                "set": null,
+                "state": null,
+                "size": [
+                  14,
+                  56
+                ],
+                "rawSize": [
+                  57,
+                  224
+                ],
+                "nine": 6,
+                "thickness": 15,
+                "cornerExt": 14,
+                "flat": null,
+                "flat3": 0.560233918128655,
+                "asym": 0.13333333333333333,
+                "fringe": 0.452,
+                "stray": false
+              },
+              {
+                "name": "thanh_cuon",
+                "set": null,
+                "state": null,
+                "size": [
+                  138,
+                  22
+                ],
+                "rawSize": [
+                  554,
+                  91
+                ],
+                "nine": 10,
+                "thickness": 55,
+                "cornerExt": 14,
+                "flat": null,
+                "flat3": 0.07272727272727272,
+                "asym": 0.634004884004884,
+                "fringe": 0.712,
+                "stray": false
+              },
+              {
+                "name": "o_nhap",
+                "set": null,
+                "state": null,
+                "size": [
+                  116,
+                  40
+                ],
+                "rawSize": [
+                  467,
+                  165
+                ],
+                "nine": 19,
+                "thickness": 8,
+                "cornerExt": 21,
+                "flat": 0.635,
+                "flat3": 0.6338495575221239,
+                "asym": 0.568491020879302,
+                "fringe": 0.402,
+                "stray": false
+              }
+            ],
+            "issues": [
+              {
+                "sev": "note",
+                "code": "nen",
+                "where": "toàn tờ",
+                "msg": "nền dốc nhẹ (bốn góc lệch 34), trong dung sai 60; không phải lỗi."
+              },
+              {
+                "sev": "light",
+                "code": "khoang-cach",
+                "where": "thanh_khung_sinh, thanh_khung_hon, thanh_khung_kn",
+                "msg": "mảnh cách nhau < 5% cạnh tờ (51 px): dễ dính khi tách."
+              },
+              {
+                "sev": "block",
+                "code": "vien-hong",
+                "where": "toàn tờ",
+                "msg": "viền ám hồng 40.8% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối)."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_sinh",
+                "msg": "thanh_khung_sinh: thân cạnh không phẳng (56% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_khung_sinh",
+                "msg": "thanh_khung_sinh: bốn góc không giống nhau (32% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_khung_sinh",
+                "msg": "thanh_khung_sinh: vạch 9-slice đề xuất 21 chạm trần (nửa mảnh) của mảnh 112×44: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_hon",
+                "msg": "thanh_khung_hon: thân cạnh không phẳng (66% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_khung_hon",
+                "msg": "thanh_khung_hon: bốn góc không giống nhau (45% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "thanh_khung_kn",
+                "msg": "thanh_khung_kn: thân cạnh không phẳng (67% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_khung_kn",
+                "msg": "thanh_khung_kn: bốn góc không giống nhau (46% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_do_sinh",
+                "msg": "thanh_do_sinh: bốn góc không giống nhau (33% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_do_hon",
+                "msg": "thanh_do_hon: bốn góc không giống nhau (42% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_do_kn",
+                "msg": "thanh_do_kn: bốn góc không giống nhau (50% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "vach_chia",
+                "msg": "vach_chia: vạch 9-slice đề xuất 6 chạm trần (nửa mảnh) của mảnh 14×56: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "thanh_cuon",
+                "msg": "thanh_cuon: bốn góc không giống nhau (63% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "thanh_cuon",
+                "msg": "thanh_cuon: vạch 9-slice đề xuất 10 chạm trần (nửa mảnh) của mảnh 138×22: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "block",
+                "code": "canh-phang",
+                "where": "o_nhap",
+                "msg": "o_nhap: thân cạnh không phẳng (64% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn."
+              },
+              {
+                "sev": "light",
+                "code": "doi-xung",
+                "where": "o_nhap",
+                "msg": "o_nhap: bốn góc không giống nhau (57% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua."
+              },
+              {
+                "sev": "light",
+                "code": "chia-9",
+                "where": "o_nhap",
+                "msg": "o_nhap: vạch 9-slice đề xuất 19 chạm trần (nửa mảnh) của mảnh 116×40: ruột không đồng nhất, khó kéo."
+              },
+              {
+                "sev": "light",
+                "code": "do-day",
+                "where": "toàn tờ",
+                "msg": "độ dày viền lệch 53 điểm master (> 2 = 1 px ở 1×) giữa thanh_khung_sinh 9, thanh_khung_hon 8, thanh_khung_kn 8, thanh_do_sinh 2, thanh_do_hon 2, thanh_do_kn 2, vach_chia 15, thanh_cuon 55, o_nhap 8."
+              }
+            ],
+            "draft": "LỖI: toT-attempt6 — mảnh sát nhau / viền ám hồng / cạnh không phẳng / bốn góc khác nhau / ruột không đồng nhất / độ dày viền lệch — thanh_khung_sinh, thanh_khung_hon, thanh_khung_kn, toàn tờ, thanh_khung_sinh, thanh_khung_sinh, thanh_khung_sinh, thanh_khung_hon, thanh_khung_hon, thanh_khung_kn, thanh_khung_kn, thanh_do_sinh, thanh_do_hon, thanh_do_kn, vach_chia, thanh_cuon, thanh_cuon, o_nhap, o_nhap, o_nhap, toàn tờ — mảnh cách nhau < 5% cạnh tờ (51 px): dễ dính khi tách; viền ám hồng 40.8% điểm viền sau khi khoá nền > 3%: nền ăn vào mảnh (kiểm trên nền tối); thanh_khung_sinh: thân cạnh không phẳng (56% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_sinh: bốn góc không giống nhau (32% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_khung_sinh: vạch 9-slice đề xuất 21 chạm trần (nửa mảnh) của mảnh 112×44: ruột không đồng nhất, khó kéo; thanh_khung_hon: thân cạnh không phẳng (66% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_hon: bốn góc không giống nhau (45% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_khung_kn: thân cạnh không phẳng (67% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; thanh_khung_kn: bốn góc không giống nhau (46% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_do_sinh: bốn góc không giống nhau (33% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_do_hon: bốn góc không giống nhau (42% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_do_kn: bốn góc không giống nhau (50% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; vach_chia: vạch 9-slice đề xuất 6 chạm trần (nửa mảnh) của mảnh 14×56: ruột không đồng nhất, khó kéo; thanh_cuon: bốn góc không giống nhau (63% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; thanh_cuon: vạch 9-slice đề xuất 10 chạm trần (nửa mảnh) của mảnh 138×22: ruột không đồng nhất, khó kéo; o_nhap: thân cạnh không phẳng (64% điểm lệch > 35% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn; o_nhap: bốn góc không giống nhau (57% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua; o_nhap: vạch 9-slice đề xuất 19 chạm trần (nửa mảnh) của mảnh 116×40: ruột không đồng nhất, khó kéo; độ dày viền lệch 53 điểm master (> 2 = 1 px ở 1×) giữa thanh_khung_sinh 9, thanh_khung_hon 8, thanh_khung_kn 8, thanh_do_sinh 2, thanh_do_hon 2, thanh_do_kn 2, vach_chia 15, thanh_cuon 55, o_nhap 8.",
+            "counts": {
+              "block": 5,
+              "light": 14,
+              "warn": 0
+            }
+          }
+        }
+      ]
+    }
+  }
+}
