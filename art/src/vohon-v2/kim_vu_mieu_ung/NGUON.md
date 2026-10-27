@@ -17,3 +17,5 @@ Bản tốt nhất: `candidates/concept-attempt3.png`, giữ trong candidates v�
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/vohon-v2/kim_vu_mieu_ung/` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Concept năm hướng RAW; model/seed unknown; SHA256 và prompt kèm từng lượt. | 2026-10-27 | Chưa duyệt, không nhập game. |
+
+Ki?m t? ??ng RAW ???c ghi nguy?n k?t qu? trong t?ng source JSON. L??t 1 ?t l?i b? c?c h?n; v?n CH?N v? g?c ne. Kh?ng d?ng m?c NH? c?a ki?m m?y thay cho duy?t h??ng b?ng m?t.

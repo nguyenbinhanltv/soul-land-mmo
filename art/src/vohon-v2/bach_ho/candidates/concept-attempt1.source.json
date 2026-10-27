@@ -9,5 +9,10 @@
   "original_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17c43-78f6-7b71-8761-194681d08ba0\\exec-d79bb25d-17af-4ba9-8a23-6f7815598305.png",
   "reference": "PR #1083: concept-turnaround-attempt2.png (Hạo Thiên Chùy)",
   "status": "CHẶN",
-  "assessment": "Cả 3 lượt: ne ngoái đầu lộ mặt/mắt vàng, không đạt góc nhìn lưng. Khoảng 4 góc thật đúng, n giấu mặt đúng. Lượt 1: khí trắng nối hình se/e. Lượt 2: quá nhiều vàng, khí nối s/se. Lượt 3: khí nối s/se, vàng trên vằn không đúng bảng nhấn mắt; thiếu vòng trận sao. Thân xám lạnh, ngực sáng, vằn đen và dáng ngồi đúng; chi tiết lông nhỏ là lỗi nhẹ. Chưa đạt."
+  "assessment": "Cả 3 lượt: ne ngoái đầu lộ mặt/mắt vàng, không đạt góc nhìn lưng. Khoảng 4 góc thật đúng, n giấu mặt đúng. Lượt 1: khí trắng nối hình se/e. Lượt 2: quá nhiều vàng, khí nối s/se. Lượt 3: khí nối s/se, vàng trên vằn không đúng bảng nhấn mắt; thiếu vòng trận sao. Thân xám lạnh, ngực sáng, vằn đen và dáng ngồi đúng; chi tiết lông nhỏ là lỗi nhẹ. Chưa đạt.",
+  "raw_check": {
+    "command": "node tools/assets/vohon-check.mjs raw <image> --type phaptuong --id bach_ho",
+    "exit_code": 0,
+    "output": "raw concept-attempt1.png pháp tướng (bach_ho): NHẸ\n  [NHẸ] mem: texture mềm: 86% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất\n  [NHẸ] luoi: chưa đúng lưới khối: tỉ số biên 1.09 ở chu kỳ 36 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)\n  số đo: {\"w\":1983,\"h\":793,\"ratio\":2.501,\"border\":{\"clear\":0.99,\"flat70\":0},\"poses\":5,\"poseSpread\":1.03,\"softness\":0.865,\"bigColors\":78,\"grid\":{\"period\":36,\"ratio\":1.09},\"paletteMatch\":0.78}\n  cần mắt duyệt: đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi); không có chữ, ký hiệu đọc được, logo, chữ ký; 5 hướng cùng một hình (cùng cỡ, màu, chi tiết), se / ne chếch đúng hướng; thân đặc, không trong suốt\n"
+  }
 }

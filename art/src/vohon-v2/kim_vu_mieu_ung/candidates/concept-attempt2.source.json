@@ -9,5 +9,10 @@
   "original_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17c43-78f6-7b71-8761-194681d08ba0\\exec-a88c8315-36ac-4946-8f20-dcd295e14e8d.png",
   "reference": "PR #1083: concept-turnaround-attempt2.png (Hạo Thiên Chùy)",
   "status": "CHẶN",
-  "assessment": "Lượt 1: ne quay trái và lộ mắt, s/n cánh rủ. Lượt 2: ne/n giấu mặt đúng, cánh s/n cắt biên, se/e quá giống. Lượt 3: ne/n không lộ mặt, đủ 5 tư thế gần đúng nhưng se/e khác ít, khoảng trống giữa cánh quá hẹp/có chỗ gần chạm; không đạt tách năm cột. Khoảng 4 góc thật phân biệt rõ. Màu nâu vàng, đen cánh, mắt dọc đúng; chi tiết lông dày (nhẹ), thiếu mây/vòng sét. Chưa đạt."
+  "assessment": "Lượt 1: ne quay trái và lộ mắt, s/n cánh rủ. Lượt 2: ne/n giấu mặt đúng, cánh s/n cắt biên, se/e quá giống. Lượt 3: ne/n không lộ mặt, đủ 5 tư thế gần đúng nhưng se/e khác ít, khoảng trống giữa cánh quá hẹp/có chỗ gần chạm; không đạt tách năm cột. Khoảng 4 góc thật phân biệt rõ. Màu nâu vàng, đen cánh, mắt dọc đúng; chi tiết lông dày (nhẹ), thiếu mây/vòng sét. Chưa đạt.",
+  "raw_check": {
+    "command": "node tools/assets/vohon-check.mjs raw <image> --type phaptuong --id kim_vu_mieu_ung",
+    "exit_code": 1,
+    "output": "raw concept-attempt2.png pháp tướng (kim_vu_mieu_ung): CHẶN\n  [CHẶN] huong: tách được 4 hướng, cần 5 (s, se, e, ne, n) cách nhau bằng khoảng trống\n  [NHẸ] mem: texture mềm: 79% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất\n  [NHẸ] luoi: chưa đúng lưới khối: tỉ số biên 1.14 ở chu kỳ 33 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)\n  số đo: {\"w\":1983,\"h\":793,\"ratio\":2.501,\"border\":{\"clear\":1,\"flat70\":0},\"poses\":4,\"softness\":0.794,\"bigColors\":122,\"grid\":{\"period\":33,\"ratio\":1.14},\"paletteMatch\":0.95}\n  cần mắt duyệt: đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi); không có chữ, ký hiệu đọc được, logo, chữ ký; 5 hướng cùng một hình (cùng cỡ, màu, chi tiết), se / ne chếch đúng hướng; thân đặc, không trong suốt\n"
+  }
 }
