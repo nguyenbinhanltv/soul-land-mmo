@@ -6,6 +6,7 @@
 // - tỉ lệ giao diện `--u` theo cài đặt Cỡ giao diện (tự động hoặc 75–150%) và các lớp `ui-w*` / `ui-h*` theo kích thước logic.
 import { TIERS, VOHON_SKILLS } from "../../shared/data.ts";
 import { assetUrl, fetchAsset } from "./assetUrl.ts";
+import { applyUi2, setKit, type KitEntry } from "./uiKit.ts";
 
 const BASE = "sprites/";
 interface Entry { key: string; iso?: boolean; nine?: number }
@@ -129,6 +130,7 @@ function applyScale() {
   for (const n of [560, 500, 460]) cl.toggle(`ui-h${n}`, h <= n);
   cl.toggle("ui-portrait", h > w);
   cl.toggle("ui-wide", w >= 960); // hai bảng Nhân vật / Túi cạnh nhau theo bố cục màn ngang (NV1 #455)
+  applyUi2(u); // cờ ui2 + biến kit v2 theo cỡ hiện tại (uiKit.ts); tắt thì không làm gì
 }
 
 /**
@@ -155,8 +157,10 @@ export function loadUiArt() {
     try {
       // Quá 5 giây thì bỏ (giao diện vẽ bằng CSS cũ) để màn đăng nhập không treo trắng khi mạng chậm.
       const r = await fetchAsset(BASE + "manifest.json", { signal: AbortSignal.timeout(5000) }, 1);
-      const data = (await r.json()) as { sprites?: (string | Entry)[] };
-      for (const e of data.sprites ?? []) if (typeof e !== "string" && e.iso) keys.set(e.key, e);
+      const data = (await r.json()) as { sprites?: (string | KitEntry)[] };
+      for (const e of data.sprites ?? []) if (typeof e !== "string" && e.iso) keys.set(e.key, { ...e, nine: typeof e.nine === "number" ? e.nine : undefined });
+      setKit((data.sprites ?? []).filter((e): e is KitEntry => typeof e !== "string"));
+      applyScale();
     } catch { return; }
     const root = document.documentElement.style;
     for (const [key, e] of keys) {

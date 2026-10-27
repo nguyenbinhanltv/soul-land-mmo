@@ -200,6 +200,16 @@ DPR trên trang: không ép được DPR của máy; "DPR 1" dùng ảnh 1× đ�
 
 CI nhẹ: job `ui-sheet-check` (`docs/ops/ci.md` mục "CI nhẹ cho tờ UI"). Mẫu issue một tờ: `.github/ISSUE_TEMPLATE/to-ui.md`.
 
+## Lớp token ui2 (P5, #883)
+
+Cờ `ui2` chạy song song giao diện cũ, **tắt mặc định**; tắt thì không đổi gì (không đặt biến, không thêm lớp). `?ui=2` bật và lưu localStorage (`shh-ui2`), `?ui=0` tắt. Bật thì `body.ui2`. Gỡ ở P8.
+
+- `client/src/uiKit.ts`: đọc mảnh `ui2_<tên>` trong manifest ảnh (mảnh do `ui:cut` xuất; `nine` = `{ x2, x1 }`; ảnh ở `sprites/iso/ui2/2x/` và `1x/`) thành `--ui2-<tên>` (ảnh), `--ui2-<tên>-nine` (vạch cắt của bản đang dùng), `--ui2-<tên>-bw` (độ dày viền CSS = vạch / hệ số kit). Bản 2× khi `--u` × DPR ≥ 2, ngược lại 1× (tính lại khi đổi cỡ). Có mảnh nào thì body có lớp `ui2-k-<tên>`.
+- `client/src/ui2.css`: helper khung theo vai trò, gắn lớp vào phần tử: Mực `f2-muc-lon` / `f2-muc-nho`, Giấy `f2-giay-lon` / `f2-giay-nho`, `f2-tooltip`, `f2-toast`, ô `f2-o`, tab `f2-tab`, nút `f2-nut-chinh` / `f2-nut-phu` (trạng thái theo `:hover` / `:active` / `.sel` / `:disabled`). Đây là chỗ **duy nhất** đặt `border-width`, `border-image-slice`, `border-image-width` của kit v2 (qua `--frame-img`, `--frame-nine`, `--frame-bw`); luôn `pixelated`. Màn chuyển ở P7 gắn lớp `f2-*` và gỡ luật khung riêng của nó (chỉ trong chế độ ui2: luật cũ vẫn ở đó cho giao diện hiện tại).
+- Chưa có mảnh kit nào được nhập vào manifest ảnh (P4 / P7 làm): lớp `ui2-k-*` chưa có nên helper chưa áp, phần tử giữ kiểu cũ (fallback). Khi nhập mảnh thì không cần sửa helper.
+- Chưa chuyển màn nào (P7). Token `--frame-*` cũ (`--frame-panel`, `--frame-btn`...) giữ nguyên cho tới P8.
+- Test: `npm run test:ui2 --prefix client` (cờ, bản kit, token, vạch 9-slice ≤ nửa cạnh và độ dày = vạch / hệ số kit trên manifest kit, ui2.css chỉ đi qua token và chỉ dùng mảnh có trong spec).
+
 ## Lỗi đã sửa ở P0 (ghi để không lặp)
 
 - Nút `Đăng nhập bằng Google` / `Đổi tài khoản` bung thành hai dải nâu: vạch cắt `ui_nut_*` sai 1 điểm (xem "Quy tắc 9-slice").
@@ -214,7 +224,7 @@ CI nhẹ: job `ui-sheet-check` (`docs/ops/ci.md` mục "CI nhẹ cho tờ UI"). 
 | P2 | skill `ui-kit`, prompt mẫu, trang xem trước bộ component, CI nhẹ | #880 | đã đóng |
 | P3 | style board BOARD hướng B (cổng 1) | #881 | mở |
 | P4 | kit mẫu khung / nút / ô / thanh, Mực rồi Giấy (cổng 2); chốt cỡ kit và kiểm Firefox | #882 | mở |
-| P5 | lớp token + cờ `ui2` + helper khung theo vai trò | #883 | mở |
+| P5 | lớp token + cờ `ui2` + helper khung theo vai trò | #883 | đã làm (PR), chưa có mảnh kit nhập |
 | P6 | icon pilot 16 menu (AI) so với game-icons | #884 | mở |
 | P7 | chuyển từng màn sang kit v2 (8 màn) | #885 | mở |
 | P8 | dọn khung cũ, `ui2` mặc định, token thành luật chặn | #886 | mở |
