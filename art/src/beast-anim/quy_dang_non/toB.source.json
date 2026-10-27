@@ -1,0 +1,11 @@
+{
+    "seed":  "unknown",
+    "timestamp":  "2026-10-27T03:59:44.6673061Z",
+    "sha256":  "9ab4dd423f1e6549bca3dcb01cbbd9dfc4988fffbbc9423eefc80070d81810ed",
+    "model":  "unknown",
+    "references":  [
+                       "shared/assets/sprites/beast/quy_dang_non.png",
+                       "art/src/beast-anim/quy_dang_non/toA.png"
+                   ],
+    "tool":  "image_gen"
+}
