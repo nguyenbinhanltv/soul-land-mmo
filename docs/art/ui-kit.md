@@ -203,12 +203,37 @@ Thao tác hằng ngày nằm ở skill `ui-kit` (`.claude/skills/ui-kit/SKILL.md
 
 | Lệnh | Việc |
 |---|---|
-| `npm run ui:prompt -- --kind BOARD\|F\|N\|O\|T\|I\|D [--material muc\|giay] [--family …] [--layout 6\|9] --out <thư mục>` | sinh `<loại>.md` (bảng thông tin, thứ tự ảnh tham chiếu, prompt tiếng Anh, chú thích); tờ F, N, T, O vẽ **mọi** mảnh theo `--material` (F: cả 6 khung cùng một chất liệu; tên `khung_muc_*` / `khung_giay_*` chỉ là chỗ đứng, tờ F Mực rồi tờ F Giấy là hai lượt riêng); bố cục và tên mảnh đọc từ `ui-kit.json`, bài học đọc từ `art/src/ui-kit/lessons.md` (cú pháp ở đầu file; phạm vi theo loại tờ). Không viết / sửa prompt tay |
+| `npm run ui:prompt -- --kind BOARD\|F\|N\|O\|T\|I\|D [--material muc\|giay] [--style ngoc-kim\|thuy-mac] [--family …] [--layout 6\|9] --out <thư mục>` | sinh `<loại>.md` (bảng thông tin, thứ tự ảnh tham chiếu, prompt tiếng Anh, chú thích); tờ F, N, T, O vẽ **mọi** mảnh theo `--material` (F: cả 6 khung cùng một chất liệu; tên `khung_muc_*` / `khung_giay_*` chỉ là chỗ đứng, tờ F Mực rồi tờ F Giấy là hai lượt riêng); bố cục và tên mảnh đọc từ `ui-kit.json`, bài học đọc từ `art/src/ui-kit/lessons.md` (cú pháp ở đầu file; phạm vi theo loại tờ). Không viết / sửa prompt tay |
 | `npm run ui:preview -- --dir <thư mục ui:cut> [--dir …] --out <thư mục>` (hoặc `--fixture c2,ui5`) | trang bộ component `index.html` tự chứa: **A** bảng mảnh (cỡ, vạch, KB, ngân sách) · **B** mọi mảnh × 3 nền (sáng `#e8dcc0`, tối `#14101c`, trắng) × DPR 1 / 2 · **C** mọi mảnh co giãn ở 200×60, 360×120, 520×320 · **D** bộ trạng thái bằng `<button>` thật (hover, nhấn, focus-visible, chọn, tắt) cạnh hàng trạng thái tĩnh · **E** chuỗi tiếng Việt đủ dấu ở 10 / 12 / 24 px × 3 nền × DPR 1 / 2. Không cần Chrome / server |
 
 DPR trên trang: không ép được DPR của máy; "DPR 1" dùng ảnh 1× đúng cỡ, "DPR 2" dùng ảnh 2× hiển thị bằng một nửa cỡ (`border-image-width` = vạch / 2), nên đúng điểm khi máy là DPR 2 và là trường hợp "2× bị hạ nửa" đã đo ở mục "Kit 1× hay 2×" khi máy là DPR 1. Số DPR thật hiện ở đầu trang. Fixture `c2` / `ui5` là tờ giả lập dựng từ 7 mảnh C2 và 6 khung UI-5 có sẵn (`ui-sheet-fixture.mjs`), **không** phải ảnh model.
 
 CI nhẹ: job `ui-sheet-check` (`docs/ops/ci.md` mục "CI nhẹ cho tờ UI"). Mẫu issue một tờ: `.github/ISSUE_TEMPLATE/to-ui.md`.
+
+## Hướng nghệ thuật tu tiên (nháp chờ duyệt)
+
+**Trạng thái: NHÁP, chủ repo chưa duyệt (#877).** Lý do: UI hiện tại (kit Mực / Giấy, BOARD hướng B) chưa "chất"; muốn thiên hướng tu tiên đỉnh cao, hài hòa, đồng bộ với hướng võ hồn bá đạo. Chưa đổi kit, token, màn nào; chỉ công cụ sinh prompt có thêm cờ để thử.
+
+Cảm giác đích: một cuộn pháp bảo hiện giữa hư không: nền tối sâu, linh khí chảy dọc viền, vàng kim và ngọc chỉ ở chỗ cần chú ý, giấy cổ cho phần đọc; mỗi màn **một điểm sáng** (hồn lực).
+
+Nguyên tắc (chung cho cả hai hướng):
+1. Ít mà sang: chừa **lưu bạch**; trang trí chỉ ở góc, giữa cạnh, nút chốt; thân cạnh phẳng.
+2. Một điểm sáng mỗi màn (nút chính / vật chọn / hồn lực); phần còn lại lùi xuống tối.
+3. Linh khí: vệt khí mảnh ở viền, tường vân mờ ở nền, không đè chữ.
+4. Bảng màu giới hạn, tối đa 3 màu nhấn mỗi màn; **chu sa** chỉ cho dấu ấn, cảnh báo, hạng cao.
+5. Chất liệu thật: Mực = đá đen / lưu ly có vân; Giấy = giấy dó cổ mép rách + dấu chu sa; nút = ngọc bội / kim bài, không phải viên thuốc nhựa.
+6. Thư pháp và dấu ấn: tiêu đề như bảng hiệu; "đã xong / đã diệt" bằng con dấu đỏ; số cấp bằng chữ vuông kim.
+7. Hạng bằng ánh sáng: thường (xám đá) → hiếm (lục bích) → quý (lam băng) → cực phẩm (tím vân kim) → tuyệt thế (vàng + khí chu sa).
+8. Chuyển động thở: mở màn cuộn / tan sương 200-300 ms, hover khí sáng lan; không nhấp nháy rẻ tiền; tôn trọng giảm chuyển động.
+9. Đối xứng phá cách: một vật (cành mai, đao kiếm, mây) lấn khỏi khung.
+
+Hai hướng thử (chủ repo chọn sau khi xem BOARD của từng hướng):
+- **`ngoc-kim`** (Ngọc – Kim): tím than + lưu ly, khung vàng đồng cổ chạm vân ở góc, nút ngọc bích; "tiên môn hoàng gia".
+- **`thuy-mac`** (Thủy mặc – Chu sa): mực đen loang, nét cọ, giấy dó, dấu chu sa; tối giản, "ẩn thế cao nhân".
+
+Điều cần tránh: chữ nghệ thuật dài khó đọc, đổ bóng gradient nhựa, nhiều viền kép, màu bão hòa chói, icon kiểu hoạt hình, chép hình / biểu tượng game khác. Ràng buộc kỹ thuật không đổi (2× pixel-friendly, 9-slice, token `ui2`, vùng bấm 32 / 44 px, phông Galmuri, ảnh sinh bằng Codex qua `ui-sheet-*`).
+
+Công cụ: `npm run ui:prompt -- --kind <loại> --style ngoc-kim|thuy-mac ...` thay khối STYLE bằng khối của hướng (bảng màu, chất liệu, lưu bạch, một điểm sáng) và thêm khối `AVOID`; áp cho mọi loại tờ (BOARD, F, N, O, T, I, D). Không có `--style` thì giữ nguyên hành vi cũ (hướng B). Nội dung hai khối nằm ở `STYLES` trong `tools/assets/ui-sheet-prompt.mjs`. Bước kế (sau khi duyệt): Codex sinh BOARD cho từng hướng (3 lượt mỗi hướng), chủ repo chọn, rồi mới làm lại kit F / N / O / T và áp dụng cho màn đầu.
 
 ## Lớp token ui2 (P5, #883)
 

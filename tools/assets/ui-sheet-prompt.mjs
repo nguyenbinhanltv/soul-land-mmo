@@ -1,7 +1,8 @@
 // Sinh prompt + hướng dẫn cho tờ UI (BOARD / F / N / O / T / I / D) để tthoadev / worker vẽ bằng Codex image_gen (#880, theo dõi #877;
 // docs/art/ui-kit.md "Luật vẽ AI", skill ui-kit). Bài học đọc từ art/src/ui-kit/lessons.md (ui-sheet-lessons.mjs); spec (tỉ lệ, bố cục,
 // tên mảnh) từ art/src/ui-kit/ui-kit.json, nên đổi spec là prompt đổi theo.
-//   node tools/assets/ui-sheet-prompt.mjs --kind F [--material muc|giay] [--family "<họ icon>"] [--layout 6|9] [--shape 3:2|2:3] [--out <thư mục>]
+//   node tools/assets/ui-sheet-prompt.mjs --kind F [--material muc|giay] [--style ${STYLE_KEYS.join("|")}] [--family "<họ icon>"] [--layout 6|9] [--shape 3:2|2:3] [--out <thư mục>]
+//   thêm --style ngoc-kim|thuy-mac cho hướng tu tiên (nháp chờ duyệt); không có thì giữ hướng B hiện tại.
 //   node tools/assets/ui-sheet-prompt.mjs --all --out <thư mục>      (một tệp mỗi loại)
 // Không có --out thì in ra màn hình. Ghi `<loại>.md` (hướng dẫn + prompt + chú thích); không viết / sửa tay các tệp này.
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -15,6 +16,26 @@ const ASPECT = { "3:2": ["landscape 3:2 aspect ratio", "3:2, ra 1536×1024"], "2
 
 const BACKGROUND = "BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no glow, no vignette, no frame or border around the image.";
 const STYLE = "STYLE: pixel-art game interface in an isometric Ultima Online mood mixed with Chinese ink-wash xianxia (Douluo Dalu setting); sharp pixel edges, palette of at most 32 colours, one thick consistent dark outline (#1a1020), pale bronze rim, no blur, no large gradients.";
+/** Hướng nghệ thuật tu tiên (NHÁP CHỜ DUYỆT, docs/art/ui-kit-tu-tien.md): khối STYLE + AVOID theo hướng; mặc định (không --style) giữ nguyên STYLE cũ (hướng B). */
+const COMMON_TX = "pixel-art game interface for a xianxia cultivation MMO (Douluo Dalu setting), sharp pixel edges, palette of at most 32 colours, one consistent dark outline (#1a1020), no blur, no large gradients. Restraint: generous empty space (liu bai), ornament only at the corners, the middle of each side and clasp points, the straight sides stay flat. Exactly one lit accent per piece or screen (spirit power); everything else recedes into dark. Rank by light, never by loud colour: stone grey, jade green, ice blue, violet with gold veins, gold with vermilion qi. At most 3 accent colours.";
+const COMMON_AVOID = "long decorative lettering, plastic gradient drop shadows, double or triple borders, oversaturated glaring colours, cartoon-style icons, copying the artwork or symbols of another game";
+export const STYLES = {
+  "ngoc-kim": {
+    vi: "Ngọc – Kim (tiên môn hoàng gia: tím than + lưu ly, vàng đồng chạm vân, nút ngọc bích)",
+    style: `STYLE: ${COMMON_TX} Palette: deep indigo-navy and glazed liuli base, aged antique bronze-gold metal (never glaring yellow), jade-green and ice-blue gems, vermilion seal-red only for stamps, warnings and top rank. Materials: dark liuli glass with faint veins; frames of aged bronze-gold with cloud and dragon-scroll relief at corners only; buttons as jade pendants or gold plaques, never flat plastic pills; paper is aged ivory rice paper with torn edges and a vermilion seal. A thin faint qi wisp may trace the rim.`,
+    avoid: `AVOID: ${COMMON_AVOID}, bright pure-yellow gold, bright fully saturated blue.`,
+  },
+  "thuy-mac": {
+    vi: "Thủy mặc – Chu sa (ẩn thế cao nhân: mực đen loang, nét cọ, giấy dó, dấu chu sa)",
+    style: `STYLE: ${COMMON_TX} Palette: black ink wash base with soft bleeding edges, aged rice paper ivory, vermilion cinnabar (chu sa) seal-red for stamps and warnings, a single jade-green or ice-blue accent. Materials: ink-stone black with brush-stroke edges; thin dry-brush rim lines instead of metal; rice paper with rough torn edges; buttons as ink-stone tablets or jade pendants with a cinnabar seal, never flat plastic pills. Minimal, severe, a hidden-master mood; a faint cloud-wisp may sit in the background, never under text.`,
+    avoid: `AVOID: ${COMMON_AVOID}, shiny metal, gold ornament everywhere, dense patterns.`,
+  },
+};
+const STYLE_KEYS = Object.keys(STYLES);
+/** Khối STYLE (+ AVOID nếu có) theo hướng; không có hướng thì STYLE cũ. */
+export const styleBlock = (style) => (style ? `${STYLES[style].style}
+${STYLES[style].avoid}` : STYLE);
+
 const MATERIAL = {
   muc: { en: "INK material: near-black wood with faint ink-wash grain, pale bronze rim", vi: "Mực (nền tối, viền đồng nhạt)" },
   giay: { en: "PAPER material: ivory rice paper, thin vermilion rim, wooden roller ends", vi: "Giấy (giấy dó ngà, viền son mảnh)" },
@@ -87,7 +108,7 @@ export function buildPrompt(kind, o = {}) {
 Show: (1) a left HUD column with a stats frame and six menu buttons; (2) a "character" panel and a "bag" panel side by side, INK material (near-black wood, ink-wash grain, pale bronze rim); (3) one PAPER material dialog box (ivory rice paper, thin vermilion rim, wooden roller) at the lower middle; (4) one vermilion primary button and one dark secondary button; (5) a row of skill slots along the bottom edge.
 ABSOLUTELY no text, numbers, letters, logos or symbols anywhere; where a label would go draw an empty bar or a flat block of colour.
 Frames: ornament only at the four corners and the middle of each side; the straight side between is a flat band of one or two colours with no pattern along it. INK and PAPER share the same corner set, border thickness and bronze rim; they differ only in fill and text colour.
-${STYLE}
+${styleBlock(o.style)}
 Outside the screen the background is one flat solid colour. Behind the panels hint a dark old village, only suggested, no detail. Consistent light and line weight in every frame.${lessons}`;
   }
   const layout = pickKindLayout(kind, o.layout), total = layout.reduce((a, b) => a + b, 0);
@@ -98,7 +119,7 @@ Outside the screen the background is one flat solid colour. Behind the panels hi
 LAYOUT: ${layout.length} rows, ${rows}; read left to right, top to bottom, in exactly this order:
 ${piecesBlock(kind, layout, o.material ?? "muc")}
 ${kind.stretch ? "Each frame-like piece must stretch cleanly: ornament only at the four corners and the middle of each side, the straight sides are a flat one or two colour band, the inside is a flat uniform fill.\n" : ""}${BACKGROUND}
-${STYLE}${mate}
+${styleBlock(o.style)}${mate}
 DO NOT DRAW: text, numbers, letters, logos, labels, glow, drop shadow, particles, characters, hands, extra pieces, a border around the sheet.${lessons}`;
 }
 
@@ -119,6 +140,7 @@ Quy trình: skill \`ui-kit\` (\`.claude/skills/ui-kit/SKILL.md\`), luật vẽ \
 | Ảnh | tỉ lệ **${aspectVi}** (không đòi số pixel; công cụ Codex không có ô chọn cỡ, cỡ nào hợp tỉ lệ cũng nhận) |
 | Bố cục | ${layout ? `${layout.length} hàng: ${layout.join(" + ")} = ${total} mảnh, đọc trái → phải, trên → dưới` : "một ảnh, **không cắt** (chỉ để duyệt và làm tham chiếu)"} |
 | Chất liệu | ${kind.board ? "Mực + Giấy" : MATERIAL_KINDS.includes(kind.id) ? mat.vi : "–"} |
+| Hướng | ${o.style ? `**${o.style}**: ${STYLES[o.style].vi} (**nháp chờ duyệt**, docs/art/ui-kit-tu-tien.md)` : "mặc định (hướng B hiện tại)"} |
 | Nền | #FF00FF phẳng, không chữ, không bóng |
 
 ## Cách làm
@@ -149,12 +171,12 @@ export function sheetDocs(kit, kindIds, o = {}) {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const a = process.argv.slice(2), val = (n) => { const i = a.indexOf(n); return i < 0 ? undefined : a[i + 1]; };
-    const kit = loadKit(), kind = val("--kind")?.toUpperCase(), all = a.includes("--all"), material = val("--material") ?? "muc";
-    if ((!kind && !all) || (kind && !SHEET_KINDS.includes(kind)) || !MATERIAL[material]) {
-      console.error(`Dùng: node tools/assets/ui-sheet-prompt.mjs (--kind ${SHEET_KINDS.join("|")} | --all) [--material muc|giay] [--family "<họ icon>"] [--layout 6|9] [--shape 3:2|2:3] [--out <thư mục>]`);
+    const kit = loadKit(), kind = val("--kind")?.toUpperCase(), all = a.includes("--all"), material = val("--material") ?? "muc", style = val("--style");
+    if ((!kind && !all) || (kind && !SHEET_KINDS.includes(kind)) || !MATERIAL[material] || (style && !STYLES[style])) {
+      console.error(`Dùng: node tools/assets/ui-sheet-prompt.mjs (--kind ${SHEET_KINDS.join("|")} | --all) [--material muc|giay] [--style ${STYLE_KEYS.join("|")}] [--family "<họ icon>"] [--layout 6|9] [--shape 3:2|2:3] [--out <thư mục>]`);
       process.exit(2);
     }
-    const o = { material, family: val("--family"), layout: val("--layout") ? +val("--layout") : undefined, shape: val("--shape") };
+    const o = { material, style, family: val("--family"), layout: val("--layout") ? +val("--layout") : undefined, shape: val("--shape") };
     const out = val("--out");
     if (out) mkdirSync(out, { recursive: true });
     for (const [name, md] of sheetDocs(kit, all ? SHEET_KINDS : [kind], o)) {

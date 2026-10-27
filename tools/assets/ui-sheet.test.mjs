@@ -5,6 +5,8 @@ import { Img, decodePng } from "./lib.mjs";
 import { loadKit, kindFromName, classifyUiShape, suggestNine, nineSliceRender, mirrorFold, buildPalette, quantize, areaDown, edgeFlatness, defringe, flattenEdges, pinkFringe } from "./ui-kit-lib.mjs";
 import { analyzeUiSheet, draftErrorLine, toJson } from "./ui-sheet-check.mjs";
 import { cutUiSheet, budgetOf, mergeIntoKit } from "./ui-sheet-cut.mjs";
+import { buildPrompt, buildDoc, STYLES } from "./ui-sheet-prompt.mjs";
+import { expandKind } from "./ui-kit-lib.mjs";
 import { c2Sheet, C2_KIND, ui5Sheet, buildSheet, fakeFrame, readUi } from "./ui-sheet-fixture.mjs";
 
 const realKit = loadKit();
@@ -281,4 +283,23 @@ test("mirror theo mảnh: spec `mirror: false` giữ nguyên hình (tab hở đ�
   assert.equal(cut.pieces[0].mirror, false);
   assert.ok(cut.pieces.slice(1).every((p) => p.mirror === true));
   assert.equal(realKit.kinds.N.pieces.filter((p) => p.mirror === false).map((p) => p.name).join(), "tab_thuong,tab_chon");
+});
+
+test("ui:prompt --style: mọi loại tờ có khối STYLE + AVOID của hướng, mặc định giữ STYLE cũ", () => {
+  for (const id of ["BOARD", "F", "N", "O", "T", "I"]) {
+    const k = expandKind(realKit, id), base = buildPrompt(k);
+    assert.match(base, /Ultima Online/);
+    assert.doesNotMatch(base, /AVOID:/);
+    for (const style of Object.keys(STYLES)) {
+      const p = buildPrompt(k, { style });
+      assert.match(p, /xianxia cultivation/);
+      assert.match(p, /AVOID:/);
+      assert.match(p, /liu bai/);
+      assert.doesNotMatch(p, /Ultima Online/);
+    }
+  }
+  assert.match(buildPrompt(expandKind(realKit, "F"), { style: "ngoc-kim" }), /bronze-gold/);
+  assert.match(buildPrompt(expandKind(realKit, "F"), { style: "thuy-mac" }), /cinnabar/);
+  assert.match(buildDoc(expandKind(realKit, "N"), { style: "thuy-mac" }), /nháp chờ duyệt/);
+  assert.match(buildDoc(expandKind(realKit, "N")), /mặc định \(hướng B/);
 });
