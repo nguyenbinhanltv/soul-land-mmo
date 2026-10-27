@@ -76,3 +76,11 @@
 - [I] Reuse exactly the same three flat fill colours across the entire menu family, with no per-icon shading ramps or texture colours. // I pilot lượt 3: 43 màu chặn, cutter từ chối; chọn lượt 2, dừng đủ ba lượt
 - [BOARD] Include one sample ranking panel in INK material with a clear podium hierarchy and blank horizontal ranking rows, alongside the HUD, character and bag panels, PAPER dialog and hotbar; show no readable text or numbers. // BOARD v2 cần màn Xếp Hạng mẫu theo yêu cầu chủ repo
 - [BOARD] Keep jade clasps and secondary gems unlit and mute the gold rim so that only one focal accent attracts the eye across the entire screen. // Ngọc–Kim lượt 1: nhiều điểm ngọc và vàng cùng hút mắt
+- [BOARD] Keep the hinted village entirely inside one bounded game-screen rectangle; outside that rectangle leave uninterrupted flat magenta with no scenery spilling into the gutters. // Thủy mặc lượt 1: cảnh làng tràn ra nền hồng dù ui:check BOARD chỉ kiểm cỡ
+- [BOARD] Make every cinnabar seal a plain solid red slab without internal strokes or glyph-like marks. // Thủy mặc lượt 3: con dấu có nét giống ký tự, dừng đủ ba lượt và nộp bản tốt nhất còn lỗi
+
+## Bài học lịch sử theo hướng (không nạp vào prompt)
+
+Bài học sau lượt 2 Thủy mặc đã dùng trong prompt lượt 3, giữ nguyên tại `board-v2/thuy-mac/BOARD.prompt.txt`. Theo review #1195, chỉ lưu lịch sử dưới dạng trích dẫn: parser hiện chỉ lọc loại tờ, chưa lọc hướng, nên không để bài học này tác động Ngọc–Kim hoặc hướng mặc định.
+
+> - [BOARD] For THUY-MAC only, replace metallic corner scrollwork and repeated jewel clasps with matte ink-stone corners and spare dry-brush strokes, keeping only one small cinnabar seal as the focal ornament. // Thủy mặc lượt 2: còn viền kim loại và nhiều chốt ngọc, cần rõ nét cọ và chu sa

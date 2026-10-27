@@ -49,7 +49,7 @@ function manifestEntries(manifest, root = ROOT) {
 }
 
 function expectedPalette(entry, spec) {
-  if (spec.kind === "portrait" || spec.kind === "fx" || spec.kind === "phaptuong" || spec.kind === "vhanim" || spec.static) return null;
+  if (spec.kind === "portrait" || spec.kind === "ui2" || spec.kind === "fx" || spec.kind === "phaptuong" || spec.kind === "vhanim" || spec.static) return null;
   if (/^hs_(hair|outfit)_/.test(entry.key)) return new Set(["#3a3a3a", "#6a6a6a", "#9a9a9a", "#cacaca", OUTLINE]);
   const colors = new Set([...allowedColors(), ...accentColors()]);
   if (entry.map) {

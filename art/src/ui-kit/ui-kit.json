@@ -1,70 +1,1902 @@
 {
   "version": 1,
   "doc": "Manifest UI Kit v2 (#879, theo dõi #877; docs/art/ui-kit.md mục \"Công cụ tờ UI\"). `shapes`, `kinds`, `budget` là LUẬT (người sửa); `pieces` / `groups` do `ui-sheet-cut --write-manifest` ghi, đừng sửa tay.",
-  "grid": { "master": 2, "exports": [2, 1] },
+  "grid": {
+    "master": 2,
+    "exports": [
+      2,
+      1
+    ]
+  },
   "outline": "#1a1020",
   "colors": 32,
-  "budget": { "kit": 256000, "icon": 153600 },
-  "shapes": {
-    "2:3": { "ratio": 0.6666666667, "sizes": [[1024, 1536]] },
-    "1:1": { "ratio": 1, "sizes": [[1254, 1254], [1024, 1024]] },
-    "3:2": { "ratio": 1.5, "sizes": [[1536, 1024]] }
+  "budget": {
+    "kit": 256000,
+    "icon": 153600
   },
-  "kinds": {
-    "BOARD": { "title": "style board (chỉ duyệt, không cắt)", "shapes": ["2:3", "3:2"], "board": true },
-    "F": {
-      "title": "khung", "shapes": ["3:2"], "layouts": [[3, 3]], "div": 4, "group": "kit", "stretch": true, "mirror": true, "text": true,
-      "pieces": [
-        { "name": "khung_muc_lon" }, { "name": "khung_muc_nho" }, { "name": "khung_giay_lon" },
-        { "name": "khung_giay_nho" }, { "name": "khung_tooltip" }, { "name": "khung_toast" }
+  "shapes": {
+    "2:3": {
+      "ratio": 0.6666666667,
+      "sizes": [
+        [
+          1024,
+          1536
+        ]
       ]
     },
-    "N": {
-      "title": "nút", "shapes": ["3:2"], "layouts": [[5, 5, 2]], "div": 4, "group": "kit", "stretch": true, "mirror": true, "text": true,
-      "pieces": [
-        { "name": "nut_chinh_thuong", "set": "nut_chinh", "state": "thuong" }, { "name": "nut_chinh_ro", "set": "nut_chinh", "state": "ro" },
-        { "name": "nut_chinh_nhan", "set": "nut_chinh", "state": "nhan" }, { "name": "nut_chinh_tat", "set": "nut_chinh", "state": "tat" },
-        { "name": "nut_chinh_chon", "set": "nut_chinh", "state": "chon" },
-        { "name": "nut_phu_thuong", "set": "nut_phu", "state": "thuong" }, { "name": "nut_phu_ro", "set": "nut_phu", "state": "ro" },
-        { "name": "nut_phu_nhan", "set": "nut_phu", "state": "nhan" }, { "name": "nut_phu_tat", "set": "nut_phu", "state": "tat" },
-        { "name": "nut_phu_chon", "set": "nut_phu", "state": "chon" },
-        { "name": "tab_thuong", "set": "tab", "state": "thuong", "mirror": false }, { "name": "tab_chon", "set": "tab", "state": "chon", "mirror": false }
+    "1:1": {
+      "ratio": 1,
+      "sizes": [
+        [
+          1254,
+          1254
+        ],
+        [
+          1024,
+          1024
+        ]
       ]
     },
-    "O": {
-      "title": "ô", "shapes": ["1:1"], "layouts": [[3, 5, 4]], "div": 5, "group": "kit", "stretch": false, "text": false,
-      "pieces": [
-        { "name": "o_trong", "set": "o", "state": "trong" }, { "name": "o_co", "set": "o", "state": "co" }, { "name": "o_chon", "set": "o", "state": "chon" },
-        { "name": "o_hiem_1", "set": "o_hiem", "state": "1" }, { "name": "o_hiem_2", "set": "o_hiem", "state": "2" }, { "name": "o_hiem_3", "set": "o_hiem", "state": "3" },
-        { "name": "o_hiem_4", "set": "o_hiem", "state": "4" }, { "name": "o_hiem_5", "set": "o_hiem", "state": "5" },
-        { "name": "ky_nang_san_sang", "set": "ky_nang", "state": "san_sang" }, { "name": "ky_nang_hoi_chieu", "set": "ky_nang", "state": "hoi_chieu" },
-        { "name": "ky_nang_khoa", "set": "ky_nang", "state": "khoa" }, { "name": "ky_nang_thieu_hon_luc", "set": "ky_nang", "state": "thieu_hon_luc" }
-      ]
-    },
-    "T": {
-      "title": "thanh + phụ kiện", "shapes": ["3:2"], "layouts": [[3, 3, 3]], "div": 4, "group": "kit", "stretch": true, "text": false,
-      "pieces": [
-        { "name": "thanh_khung_sinh" }, { "name": "thanh_khung_hon" }, { "name": "thanh_khung_kn" },
-        { "name": "thanh_do_sinh" }, { "name": "thanh_do_hon" }, { "name": "thanh_do_kn" },
-        { "name": "vach_chia" }, { "name": "thanh_cuon" }, { "name": "o_nhap" }
-      ]
-    },
-    "I": {
-      "title": "icon (một họ mỗi tờ)", "shapes": ["1:1"], "layouts": [[4, 4, 4, 4]], "div": 5, "group": "icon", "stretch": false, "text": false,
-      "pieces": [
-        { "name": "icon_01" }, { "name": "icon_02" }, { "name": "icon_03" }, { "name": "icon_04" }, { "name": "icon_05" }, { "name": "icon_06" },
-        { "name": "icon_07" }, { "name": "icon_08" }, { "name": "icon_09" }, { "name": "icon_10" }, { "name": "icon_11" }, { "name": "icon_12" },
-        { "name": "icon_13" }, { "name": "icon_14" }, { "name": "icon_15" }, { "name": "icon_16" }
-      ]
-    },
-    "D": {
-      "title": "trang trí rời", "shapes": ["2:3"], "layouts": [[3, 3], [3, 3, 3]], "div": 4, "group": "kit", "stretch": false, "text": false,
-      "pieces": [
-        { "name": "d_01" }, { "name": "d_02" }, { "name": "d_03" }, { "name": "d_04" }, { "name": "d_05" },
-        { "name": "d_06" }, { "name": "d_07" }, { "name": "d_08" }, { "name": "d_09" }
+    "3:2": {
+      "ratio": 1.5,
+      "sizes": [
+        [
+          1536,
+          1024
+        ]
       ]
     }
   },
-  "pieces": [],
-  "groups": {}
+  "kinds": {
+    "BOARD": {
+      "title": "style board (chỉ duyệt, không cắt)",
+      "shapes": [
+        "2:3",
+        "3:2"
+      ],
+      "board": true
+    },
+    "F": {
+      "title": "khung",
+      "shapes": [
+        "3:2"
+      ],
+      "layouts": [
+        [
+          3,
+          3
+        ]
+      ],
+      "div": 4,
+      "group": "kit",
+      "stretch": true,
+      "mirror": true,
+      "text": true,
+      "pieces": [
+        {
+          "name": "khung_muc_lon"
+        },
+        {
+          "name": "khung_muc_nho"
+        },
+        {
+          "name": "khung_giay_lon"
+        },
+        {
+          "name": "khung_giay_nho"
+        },
+        {
+          "name": "khung_tooltip"
+        },
+        {
+          "name": "khung_toast"
+        }
+      ]
+    },
+    "N": {
+      "title": "nút",
+      "shapes": [
+        "3:2"
+      ],
+      "layouts": [
+        [
+          5,
+          5,
+          2
+        ]
+      ],
+      "div": 4,
+      "group": "kit",
+      "stretch": true,
+      "mirror": true,
+      "text": true,
+      "pieces": [
+        {
+          "name": "nut_chinh_thuong",
+          "set": "nut_chinh",
+          "state": "thuong"
+        },
+        {
+          "name": "nut_chinh_ro",
+          "set": "nut_chinh",
+          "state": "ro"
+        },
+        {
+          "name": "nut_chinh_nhan",
+          "set": "nut_chinh",
+          "state": "nhan"
+        },
+        {
+          "name": "nut_chinh_tat",
+          "set": "nut_chinh",
+          "state": "tat"
+        },
+        {
+          "name": "nut_chinh_chon",
+          "set": "nut_chinh",
+          "state": "chon"
+        },
+        {
+          "name": "nut_phu_thuong",
+          "set": "nut_phu",
+          "state": "thuong"
+        },
+        {
+          "name": "nut_phu_ro",
+          "set": "nut_phu",
+          "state": "ro"
+        },
+        {
+          "name": "nut_phu_nhan",
+          "set": "nut_phu",
+          "state": "nhan"
+        },
+        {
+          "name": "nut_phu_tat",
+          "set": "nut_phu",
+          "state": "tat"
+        },
+        {
+          "name": "nut_phu_chon",
+          "set": "nut_phu",
+          "state": "chon"
+        },
+        {
+          "name": "tab_thuong",
+          "set": "tab",
+          "state": "thuong",
+          "mirror": false
+        },
+        {
+          "name": "tab_chon",
+          "set": "tab",
+          "state": "chon",
+          "mirror": false
+        }
+      ]
+    },
+    "O": {
+      "title": "ô",
+      "shapes": [
+        "1:1"
+      ],
+      "layouts": [
+        [
+          3,
+          5,
+          4
+        ]
+      ],
+      "div": 5,
+      "group": "kit",
+      "stretch": false,
+      "text": false,
+      "pieces": [
+        {
+          "name": "o_trong",
+          "set": "o",
+          "state": "trong"
+        },
+        {
+          "name": "o_co",
+          "set": "o",
+          "state": "co"
+        },
+        {
+          "name": "o_chon",
+          "set": "o",
+          "state": "chon"
+        },
+        {
+          "name": "o_hiem_1",
+          "set": "o_hiem",
+          "state": "1"
+        },
+        {
+          "name": "o_hiem_2",
+          "set": "o_hiem",
+          "state": "2"
+        },
+        {
+          "name": "o_hiem_3",
+          "set": "o_hiem",
+          "state": "3"
+        },
+        {
+          "name": "o_hiem_4",
+          "set": "o_hiem",
+          "state": "4"
+        },
+        {
+          "name": "o_hiem_5",
+          "set": "o_hiem",
+          "state": "5"
+        },
+        {
+          "name": "ky_nang_san_sang",
+          "set": "ky_nang",
+          "state": "san_sang"
+        },
+        {
+          "name": "ky_nang_hoi_chieu",
+          "set": "ky_nang",
+          "state": "hoi_chieu"
+        },
+        {
+          "name": "ky_nang_khoa",
+          "set": "ky_nang",
+          "state": "khoa"
+        },
+        {
+          "name": "ky_nang_thieu_hon_luc",
+          "set": "ky_nang",
+          "state": "thieu_hon_luc"
+        }
+      ]
+    },
+    "T": {
+      "title": "thanh + phụ kiện",
+      "shapes": [
+        "3:2"
+      ],
+      "layouts": [
+        [
+          3,
+          3,
+          3
+        ]
+      ],
+      "div": 4,
+      "group": "kit",
+      "stretch": true,
+      "text": false,
+      "pieces": [
+        {
+          "name": "thanh_khung_sinh"
+        },
+        {
+          "name": "thanh_khung_hon"
+        },
+        {
+          "name": "thanh_khung_kn"
+        },
+        {
+          "name": "thanh_do_sinh"
+        },
+        {
+          "name": "thanh_do_hon"
+        },
+        {
+          "name": "thanh_do_kn"
+        },
+        {
+          "name": "vach_chia"
+        },
+        {
+          "name": "thanh_cuon"
+        },
+        {
+          "name": "o_nhap"
+        }
+      ]
+    },
+    "I": {
+      "title": "icon (một họ mỗi tờ)",
+      "shapes": [
+        "1:1"
+      ],
+      "layouts": [
+        [
+          4,
+          4,
+          4,
+          4
+        ]
+      ],
+      "div": 5,
+      "group": "icon",
+      "stretch": false,
+      "text": false,
+      "pieces": [
+        {
+          "name": "icon_01"
+        },
+        {
+          "name": "icon_02"
+        },
+        {
+          "name": "icon_03"
+        },
+        {
+          "name": "icon_04"
+        },
+        {
+          "name": "icon_05"
+        },
+        {
+          "name": "icon_06"
+        },
+        {
+          "name": "icon_07"
+        },
+        {
+          "name": "icon_08"
+        },
+        {
+          "name": "icon_09"
+        },
+        {
+          "name": "icon_10"
+        },
+        {
+          "name": "icon_11"
+        },
+        {
+          "name": "icon_12"
+        },
+        {
+          "name": "icon_13"
+        },
+        {
+          "name": "icon_14"
+        },
+        {
+          "name": "icon_15"
+        },
+        {
+          "name": "icon_16"
+        }
+      ]
+    },
+    "D": {
+      "title": "trang trí rời",
+      "shapes": [
+        "2:3"
+      ],
+      "layouts": [
+        [
+          3,
+          3
+        ],
+        [
+          3,
+          3,
+          3
+        ]
+      ],
+      "div": 4,
+      "group": "kit",
+      "stretch": false,
+      "text": false,
+      "pieces": [
+        {
+          "name": "d_01"
+        },
+        {
+          "name": "d_02"
+        },
+        {
+          "name": "d_03"
+        },
+        {
+          "name": "d_04"
+        },
+        {
+          "name": "d_05"
+        },
+        {
+          "name": "d_06"
+        },
+        {
+          "name": "d_07"
+        },
+        {
+          "name": "d_08"
+        },
+        {
+          "name": "d_09"
+        }
+      ]
+    }
+  },
+  "pieces": [
+    {
+      "key": "ui2_khung_giay_lon",
+      "name": "khung_giay_lon",
+      "kind": "F",
+      "sheet": "toF-2",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          128,
+          74
+        ],
+        "x1": [
+          64,
+          37
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 13,
+        "x1": 7
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 3049,
+        "x1": 1007
+      },
+      "hash": "7f00ec227e8d3ebe"
+    },
+    {
+      "key": "ui2_khung_giay_nho",
+      "name": "khung_giay_nho",
+      "kind": "F",
+      "sheet": "toF-2",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          68,
+          62
+        ],
+        "x1": [
+          34,
+          31
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 17,
+        "x1": 9
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 1418,
+        "x1": 544
+      },
+      "hash": "9eceaf3fcc7be4aa"
+    },
+    {
+      "key": "ui2_khung_muc_lon",
+      "name": "khung_muc_lon",
+      "kind": "F",
+      "sheet": "toF",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          132,
+          88
+        ],
+        "x1": [
+          66,
+          44
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 22,
+        "x1": 11
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 4284,
+        "x1": 1073
+      },
+      "hash": "f467a4c2c2a28d0d"
+    },
+    {
+      "key": "ui2_khung_muc_nho",
+      "name": "khung_muc_nho",
+      "kind": "F",
+      "sheet": "toF",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          74,
+          70
+        ],
+        "x1": [
+          37,
+          35
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 19,
+        "x1": 10
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 2021,
+        "x1": 675
+      },
+      "hash": "23a2abdb3cf33e51"
+    },
+    {
+      "key": "ui2_khung_toast",
+      "name": "khung_toast",
+      "kind": "F",
+      "sheet": "toF-5",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          154,
+          42
+        ],
+        "x1": [
+          77,
+          21
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 17,
+        "x1": 9
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 2057,
+        "x1": 679
+      },
+      "hash": "9f1ff5c44f3b266a"
+    },
+    {
+      "key": "ui2_khung_tooltip",
+      "name": "khung_tooltip",
+      "kind": "F",
+      "sheet": "toF",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          112,
+          64
+        ],
+        "x1": [
+          56,
+          32
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 20,
+        "x1": 10
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 2317,
+        "x1": 767
+      },
+      "hash": "136e2dbccabed4ec"
+    },
+    {
+      "key": "ui2_ky_nang_hoi_chieu",
+      "name": "ky_nang_hoi_chieu",
+      "kind": "O",
+      "sheet": "toO-attempt5",
+      "set": "ky_nang",
+      "state": "hoi_chieu",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          56,
+          56
+        ],
+        "x1": [
+          28,
+          28
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1713,
+        "x1": 670
+      },
+      "hash": "92ef0798d76069ff"
+    },
+    {
+      "key": "ui2_ky_nang_khoa",
+      "name": "ky_nang_khoa",
+      "kind": "O",
+      "sheet": "toO-attempt5",
+      "set": "ky_nang",
+      "state": "khoa",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          54,
+          56
+        ],
+        "x1": [
+          27,
+          28
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1819,
+        "x1": 737
+      },
+      "hash": "4e879ba2662f6e34"
+    },
+    {
+      "key": "ui2_ky_nang_san_sang",
+      "name": "ky_nang_san_sang",
+      "kind": "O",
+      "sheet": "toO-attempt5",
+      "set": "ky_nang",
+      "state": "san_sang",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          54,
+          56
+        ],
+        "x1": [
+          27,
+          28
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1921,
+        "x1": 745
+      },
+      "hash": "1a52be162c062f6e"
+    },
+    {
+      "key": "ui2_ky_nang_thieu_hon_luc",
+      "name": "ky_nang_thieu_hon_luc",
+      "kind": "O",
+      "sheet": "toO-attempt5",
+      "set": "ky_nang",
+      "state": "thieu_hon_luc",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          54,
+          56
+        ],
+        "x1": [
+          27,
+          28
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1950,
+        "x1": 764
+      },
+      "hash": "a616ab03e62005e1"
+    },
+    {
+      "key": "ui2_nut_chinh_chon",
+      "name": "nut_chinh_chon",
+      "kind": "N",
+      "sheet": "toN-attempt6",
+      "set": "nut_chinh",
+      "state": "chon",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          60,
+          38
+        ],
+        "x1": [
+          30,
+          19
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 15,
+        "x1": 8
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 735,
+        "x1": 352
+      },
+      "hash": "1e31a5ab9e0315bd"
+    },
+    {
+      "key": "ui2_nut_chinh_nhan",
+      "name": "nut_chinh_nhan",
+      "kind": "N",
+      "sheet": "toN-attempt6",
+      "set": "nut_chinh",
+      "state": "nhan",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          58,
+          38
+        ],
+        "x1": [
+          29,
+          19
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 15,
+        "x1": 8
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 683,
+        "x1": 347
+      },
+      "hash": "82ec6b79d34e7086"
+    },
+    {
+      "key": "ui2_nut_chinh_ro",
+      "name": "nut_chinh_ro",
+      "kind": "N",
+      "sheet": "toN-attempt6",
+      "set": "nut_chinh",
+      "state": "ro",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          60,
+          38
+        ],
+        "x1": [
+          30,
+          19
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 15,
+        "x1": 8
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 694,
+        "x1": 341
+      },
+      "hash": "94fa0b8e60ec7b77"
+    },
+    {
+      "key": "ui2_nut_chinh_tat",
+      "name": "nut_chinh_tat",
+      "kind": "N",
+      "sheet": "toN-attempt6",
+      "set": "nut_chinh",
+      "state": "tat",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          60,
+          38
+        ],
+        "x1": [
+          30,
+          19
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 15,
+        "x1": 8
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 693,
+        "x1": 336
+      },
+      "hash": "2d0b6e0cb0fd588a"
+    },
+    {
+      "key": "ui2_nut_chinh_thuong",
+      "name": "nut_chinh_thuong",
+      "kind": "N",
+      "sheet": "toN-attempt6",
+      "set": "nut_chinh",
+      "state": "thuong",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          60,
+          38
+        ],
+        "x1": [
+          30,
+          19
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 15,
+        "x1": 8
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 696,
+        "x1": 343
+      },
+      "hash": "769a3d6ab380e4cd"
+    },
+    {
+      "key": "ui2_nut_phu_chon",
+      "name": "nut_phu_chon",
+      "kind": "N",
+      "sheet": "toN-attempt6",
+      "set": "nut_phu",
+      "state": "chon",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          60,
+          38
+        ],
+        "x1": [
+          30,
+          19
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 14,
+        "x1": 7
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 786,
+        "x1": 394
+      },
+      "hash": "3012067959ecc68b"
+    },
+    {
+      "key": "ui2_nut_phu_nhan",
+      "name": "nut_phu_nhan",
+      "kind": "N",
+      "sheet": "toN-attempt6",
+      "set": "nut_phu",
+      "state": "nhan",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          58,
+          38
+        ],
+        "x1": [
+          29,
+          19
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 14,
+        "x1": 7
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 770,
+        "x1": 366
+      },
+      "hash": "a1b931ed298a926d"
+    },
+    {
+      "key": "ui2_nut_phu_ro",
+      "name": "nut_phu_ro",
+      "kind": "N",
+      "sheet": "toN-attempt6",
+      "set": "nut_phu",
+      "state": "ro",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          60,
+          38
+        ],
+        "x1": [
+          30,
+          19
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 14,
+        "x1": 7
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 764,
+        "x1": 349
+      },
+      "hash": "cf551be6051373a5"
+    },
+    {
+      "key": "ui2_nut_phu_tat",
+      "name": "nut_phu_tat",
+      "kind": "N",
+      "sheet": "toN-attempt6",
+      "set": "nut_phu",
+      "state": "tat",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          60,
+          38
+        ],
+        "x1": [
+          30,
+          19
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 14,
+        "x1": 7
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 712,
+        "x1": 344
+      },
+      "hash": "fbce7d6aa06fb4a6"
+    },
+    {
+      "key": "ui2_nut_phu_thuong",
+      "name": "nut_phu_thuong",
+      "kind": "N",
+      "sheet": "toN-attempt6",
+      "set": "nut_phu",
+      "state": "thuong",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          60,
+          38
+        ],
+        "x1": [
+          30,
+          19
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 14,
+        "x1": 7
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 777,
+        "x1": 362
+      },
+      "hash": "b6e05dc7747e7fac"
+    },
+    {
+      "key": "ui2_o_chon",
+      "name": "o_chon",
+      "kind": "O",
+      "sheet": "toO-attempt5",
+      "set": "o",
+      "state": "chon",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          60,
+          56
+        ],
+        "x1": [
+          30,
+          28
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1701,
+        "x1": 669
+      },
+      "hash": "34fb90bfbabb88fe"
+    },
+    {
+      "key": "ui2_o_co",
+      "name": "o_co",
+      "kind": "O",
+      "sheet": "toO-attempt5",
+      "set": "o",
+      "state": "co",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          60,
+          56
+        ],
+        "x1": [
+          30,
+          28
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 2012,
+        "x1": 772
+      },
+      "hash": "e2197a83be1ef383"
+    },
+    {
+      "key": "ui2_o_hiem_1",
+      "name": "o_hiem_1",
+      "kind": "O",
+      "sheet": "toO-attempt5",
+      "set": "o_hiem",
+      "state": "1",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          44,
+          46
+        ],
+        "x1": [
+          22,
+          23
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1246,
+        "x1": 494
+      },
+      "hash": "15cbf08e176f1f45"
+    },
+    {
+      "key": "ui2_o_hiem_2",
+      "name": "o_hiem_2",
+      "kind": "O",
+      "sheet": "toO-attempt5",
+      "set": "o_hiem",
+      "state": "2",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          46,
+          46
+        ],
+        "x1": [
+          23,
+          23
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1401,
+        "x1": 510
+      },
+      "hash": "4595bd52fa358385"
+    },
+    {
+      "key": "ui2_o_hiem_3",
+      "name": "o_hiem_3",
+      "kind": "O",
+      "sheet": "toO-attempt5",
+      "set": "o_hiem",
+      "state": "3",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          46,
+          46
+        ],
+        "x1": [
+          23,
+          23
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1344,
+        "x1": 557
+      },
+      "hash": "e5baff19907db8ac"
+    },
+    {
+      "key": "ui2_o_hiem_4",
+      "name": "o_hiem_4",
+      "kind": "O",
+      "sheet": "toO-attempt5",
+      "set": "o_hiem",
+      "state": "4",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          44,
+          46
+        ],
+        "x1": [
+          22,
+          23
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1449,
+        "x1": 576
+      },
+      "hash": "3283760bf31d9bd6"
+    },
+    {
+      "key": "ui2_o_hiem_5",
+      "name": "o_hiem_5",
+      "kind": "O",
+      "sheet": "toO-attempt5",
+      "set": "o_hiem",
+      "state": "5",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          48,
+          50
+        ],
+        "x1": [
+          24,
+          25
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1700,
+        "x1": 646
+      },
+      "hash": "76a655682ff87351"
+    },
+    {
+      "key": "ui2_o_nhap",
+      "name": "o_nhap",
+      "kind": "T",
+      "sheet": "toT-attempt5",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          110,
+          34
+        ],
+        "x1": [
+          55,
+          17
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 16,
+        "x1": 8
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 1899,
+        "x1": 661
+      },
+      "hash": "66b7f91b2317bcf9"
+    },
+    {
+      "key": "ui2_o_trong",
+      "name": "o_trong",
+      "kind": "O",
+      "sheet": "toO-attempt5",
+      "set": "o",
+      "state": "trong",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          60,
+          56
+        ],
+        "x1": [
+          30,
+          28
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1773,
+        "x1": 706
+      },
+      "hash": "4b4c4d42559ee2bb"
+    },
+    {
+      "key": "ui2_tab_chon",
+      "name": "tab_chon",
+      "kind": "N",
+      "sheet": "toN-attempt6",
+      "set": "tab",
+      "state": "chon",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          150,
+          40
+        ],
+        "x1": [
+          75,
+          20
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 18,
+        "x1": 9
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 2175,
+        "x1": 808
+      },
+      "hash": "029bde4370aa6fbb"
+    },
+    {
+      "key": "ui2_tab_thuong",
+      "name": "tab_thuong",
+      "kind": "N",
+      "sheet": "toN-attempt6",
+      "set": "tab",
+      "state": "thuong",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          150,
+          40
+        ],
+        "x1": [
+          75,
+          20
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 18,
+        "x1": 9
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 2162,
+        "x1": 787
+      },
+      "hash": "e8a7d93e7a27b729"
+    },
+    {
+      "key": "ui2_thanh_cuon",
+      "name": "thanh_cuon",
+      "kind": "T",
+      "sheet": "toT-attempt5",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          142,
+          18
+        ],
+        "x1": [
+          71,
+          9
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 8,
+        "x1": 4
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 1066,
+        "x1": 424
+      },
+      "hash": "751557b9a9dfd3c8"
+    },
+    {
+      "key": "ui2_thanh_do_hon",
+      "name": "thanh_do_hon",
+      "kind": "T",
+      "sheet": "toT-attempt5",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          100,
+          18
+        ],
+        "x1": [
+          50,
+          9
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 8,
+        "x1": 4
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 325,
+        "x1": 162
+      },
+      "hash": "643815ddafaf9988"
+    },
+    {
+      "key": "ui2_thanh_do_kn",
+      "name": "thanh_do_kn",
+      "kind": "T",
+      "sheet": "toT-attempt5",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          100,
+          18
+        ],
+        "x1": [
+          50,
+          9
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 3,
+        "x1": 2
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 226,
+        "x1": 120
+      },
+      "hash": "09e8c70ef250d7e7"
+    },
+    {
+      "key": "ui2_thanh_do_sinh",
+      "name": "thanh_do_sinh",
+      "kind": "T",
+      "sheet": "toT-attempt5",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          100,
+          18
+        ],
+        "x1": [
+          50,
+          9
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 8,
+        "x1": 4
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 289,
+        "x1": 154
+      },
+      "hash": "30785ccba5b0b403"
+    },
+    {
+      "key": "ui2_thanh_khung_hon",
+      "name": "thanh_khung_hon",
+      "kind": "T",
+      "sheet": "toT-attempt5",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          106,
+          36
+        ],
+        "x1": [
+          53,
+          18
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 16,
+        "x1": 8
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 2236,
+        "x1": 777
+      },
+      "hash": "b72cf75d55d73546"
+    },
+    {
+      "key": "ui2_thanh_khung_kn",
+      "name": "thanh_khung_kn",
+      "kind": "T",
+      "sheet": "toT-attempt5",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          106,
+          36
+        ],
+        "x1": [
+          53,
+          18
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 16,
+        "x1": 8
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 2228,
+        "x1": 731
+      },
+      "hash": "375fe434590ec468"
+    },
+    {
+      "key": "ui2_thanh_khung_sinh",
+      "name": "thanh_khung_sinh",
+      "kind": "T",
+      "sheet": "toT-attempt5",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          106,
+          36
+        ],
+        "x1": [
+          53,
+          18
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 16,
+        "x1": 8
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 2186,
+        "x1": 733
+      },
+      "hash": "1702437bbe547a5d"
+    },
+    {
+      "key": "ui2_vach_chia",
+      "name": "vach_chia",
+      "kind": "T",
+      "sheet": "toT-attempt5",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          10,
+          48
+        ],
+        "x1": [
+          5,
+          24
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 4,
+        "x1": 2
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 400,
+        "x1": 200
+      },
+      "hash": "05ee4dd6dfd1538a"
+    }
+  ],
+  "groups": {
+    "nut_chinh": {
+      "kind": "N",
+      "states": {
+        "thuong": "ui2_nut_chinh_thuong",
+        "ro": "ui2_nut_chinh_ro",
+        "nhan": "ui2_nut_chinh_nhan",
+        "tat": "ui2_nut_chinh_tat",
+        "chon": "ui2_nut_chinh_chon"
+      },
+      "nine": {
+        "x2": 15,
+        "x1": 8
+      }
+    },
+    "nut_phu": {
+      "kind": "N",
+      "states": {
+        "thuong": "ui2_nut_phu_thuong",
+        "ro": "ui2_nut_phu_ro",
+        "nhan": "ui2_nut_phu_nhan",
+        "tat": "ui2_nut_phu_tat",
+        "chon": "ui2_nut_phu_chon"
+      },
+      "nine": {
+        "x2": 14,
+        "x1": 7
+      }
+    },
+    "tab": {
+      "kind": "N",
+      "states": {
+        "thuong": "ui2_tab_thuong",
+        "chon": "ui2_tab_chon"
+      },
+      "nine": {
+        "x2": 18,
+        "x1": 9
+      }
+    },
+    "o": {
+      "kind": "O",
+      "states": {
+        "trong": "ui2_o_trong",
+        "co": "ui2_o_co",
+        "chon": "ui2_o_chon"
+      },
+      "nine": null
+    },
+    "o_hiem": {
+      "kind": "O",
+      "states": {
+        "1": "ui2_o_hiem_1",
+        "2": "ui2_o_hiem_2",
+        "3": "ui2_o_hiem_3",
+        "4": "ui2_o_hiem_4",
+        "5": "ui2_o_hiem_5"
+      },
+      "nine": null
+    },
+    "ky_nang": {
+      "kind": "O",
+      "states": {
+        "san_sang": "ui2_ky_nang_san_sang",
+        "hoi_chieu": "ui2_ky_nang_hoi_chieu",
+        "khoa": "ui2_ky_nang_khoa",
+        "thieu_hon_luc": "ui2_ky_nang_thieu_hon_luc"
+      },
+      "nine": null
+    }
+  }
 }
