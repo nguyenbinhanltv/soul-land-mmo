@@ -1,29 +1,29 @@
 {
-    "species":  "tham_hai_ma_chuong",
-    "sheet":  "toA",
-    "worker":  "soul_land_game-640",
-    "issue":  1030,
-    "tool":  "image_gen.imagegen",
-    "model":  "unknown",
-    "seed":  "unknown",
-    "recorded_at":  "2026-10-27T06:38:45.4920408Z",
-    "attempts":  2,
-    "selected_attempt":  2,
-    "raw_file":  "toA.png",
-    "sha256":  "916de39b7837d7b10000087017a6643e897af81294868a4b0bead8b883216b5d",
-    "bytes":  2188908,
-    "prompt_file":  "toA.prompt.txt",
-    "prompt_sha256":  "7a88de9f547abb3f9e4505bccb545f03c5fa618b8c076521c99f2b54812b1b03",
-    "references":  [
-                       {
-                           "order":  1,
-                           "path":  "shared/assets/sprites/beast/tham_hai_ma_chuong.png",
-                           "sha256":  "fc19f0b59589f24c4e76567de8d825ea3ac399a99cf91682b238bab97eaa87d1"
-                       }
-                   ],
-    "postprocessing":  false,
-    "technical":  "pass 0/0",
-    "eye":  "e còn hai mắt, gần se; die s dàn ngang ở H4 C4",
-    "original_tool_output_path":  "C:/Users/PC/.codex/generated_images/01a17c10-51e1-73f2-a82e-b6578a36a56e/exec-393fd659-fd99-418b-a775-f955783bf1f0.png",
-    "prompt_storage":  "Prompt nguyên văn dùng chung để không lưu tệp trùng byte"
+  "species": "tham_hai_ma_chuong",
+  "sheet": "toA",
+  "worker": "soul_land_game-640",
+  "issue": 1030,
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "recorded_at": "2026-10-27T06:38:45.4920408Z",
+  "attempts": 2,
+  "selected_attempt": 2,
+  "raw_file": "toA-attempt2.png",
+  "sha256": "916de39b7837d7b10000087017a6643e897af81294868a4b0bead8b883216b5d",
+  "bytes": 2188908,
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "7a88de9f547abb3f9e4505bccb545f03c5fa618b8c076521c99f2b54812b1b03",
+  "references": [
+    {
+      "order": 1,
+      "path": "shared/assets/sprites/beast/tham_hai_ma_chuong.png",
+      "sha256": "fc19f0b59589f24c4e76567de8d825ea3ac399a99cf91682b238bab97eaa87d1"
+    }
+  ],
+  "postprocessing": false,
+  "technical": "pass 0/0",
+  "eye": "e còn hai mắt, gần se; die s dàn ngang ở H4 C4",
+  "original_tool_output_path": "C:/Users/PC/.codex/generated_images/01a17c10-51e1-73f2-a82e-b6578a36a56e/exec-393fd659-fd99-418b-a775-f955783bf1f0.png",
+  "prompt_storage": "Prompt nguyên văn dùng chung để không lưu tệp trùng byte"
 }
