@@ -1,0 +1,33 @@
+{
+  "species": "y_la_hoa_yeu",
+  "sheet": "A",
+  "attempt": 2,
+  "selected_attempt": 2,
+  "tool": "image_gen.imagegen (built-in)",
+  "generator": "Codex image_gen built-in",
+  "model": "unknown",
+  "seed": "unknown",
+  "transparent_background": false,
+  "tool_limitations": "Model và seed không được tool công bố; kích thước chỉ định trong prompt.",
+  "invocation": {
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-1030-y-la-hoa-yeu/shared/assets/sprites/beast/y_la_hoa_yeu.png"
+    ]
+  },
+  "references": [
+    {
+      "role": "static species reference",
+      "path": "shared/assets/sprites/beast/y_la_hoa_yeu.png",
+      "sha256": "d46e0462191860be2e0c3c307df73e23eef0eb5ce689476a8fe2b2b4fc235f74"
+    }
+  ],
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "6c1906f2f7ca82632ff031d2772838e0eac77cfa086fc8cae44849419e2c15e3",
+  "raw_file": "toA.png",
+  "raw_sha256": "3da5e0944f464a72c5cecddef8b9a86ca82f3e4c6fa4d6f99313341c6759701e",
+  "original_output_path": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-86e716f9-0064-4232-9b8c-af6425e5468c.png",
+  "attempts": 2,
+  "findings": [
+    "A2 manual: die D3 ở H4(s) và H8(se) nằm ngang, lệch trục hướng."
+  ]
+}

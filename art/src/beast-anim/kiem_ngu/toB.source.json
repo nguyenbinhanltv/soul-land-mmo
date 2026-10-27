@@ -1,0 +1,93 @@
+{
+  "species": "kiem_ngu",
+  "sheet": "B",
+  "attempt": "B1",
+  "session": "soul-land-mmo-141",
+  "integration_session": "soul-land-mmo-134",
+  "issue": 1030,
+  "umbrella": 766,
+  "tool": "builtin image_gen.imagegen",
+  "image_model_id": "unknown",
+  "seed": "unknown",
+  "size_selector": false,
+  "requested_dimensions": [
+    1024,
+    1024
+  ],
+  "actual_dimensions": [
+    1254,
+    1254
+  ],
+  "bytes": 1813254,
+  "sha256": "556a15f84ec959ec67546bddba5299a9346a0aa8a76a4e1855a12a7db8174c64",
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17a5d-bf84-70e0-bfae-737c89e9e62b/exec-4938ffd3-e4bb-4d2d-80a0-8f8bd9d697a9.png",
+  "artifact_raw": "art/src/beast-anim/kiem_ngu/toB.png",
+  "raw_copy_byte_identical": true,
+  "postprocessing": "NONE",
+  "artifact_exact_prompt": "art/src/beast-anim/kiem_ngu/toB.prompt.txt",
+  "exact_prompt_sha256": "954bfd3024bd0a61a674c01ae13cf5f2db8821b393b014492b6b6d8112613a35",
+  "base_prompt_sha256": "26b6a6530bb4a76830b6c3623a8d85277191c8fe269ddb558cbaaf878fc9995c",
+  "prepared_prompt_sha256": "954bfd3024bd0a61a674c01ae13cf5f2db8821b393b014492b6b6d8112613a35",
+  "prompt_structure": {
+    "prefix_bytes": 877,
+    "base_start_byte_zero_based": 877,
+    "base_end_byte_exclusive": 7420,
+    "base_occurrences": 1,
+    "base_is_final_suffix": true,
+    "prefix": "REFERENCE EXECUTION ADDENDUM — this clarifies the generated template's reference roles for this call.\nImage 1 is the original static three-view reference and is the authority for Kiếm Ngư identity, fish anatomy, proportions, size and direction.\nImage 2 is the raw A1 sheet. The template phrase “approved first sheet” means A1 is approved only as a narrow technical identity-continuity reference for this call; it does not mean owner-art-approved, art-accepted, or approved for import. Use its palette and line/rendering continuity only where they agree with Image 1. If they differ, Image 1 wins.\nDo not copy or use any A1 pose or heading as a reference. Specifically exclude S H1 C6, S A3 C4, and S D0–D3 C1–C4, which turn into side profile and lose the S heading. For all identity, anatomy, proportions, size and directions in this B sheet, prioritize Image 1.\n\n",
+    "suffix": ""
+  },
+  "ordered_refs": [
+    {
+      "path": "shared/assets/sprites/beast/kiem_ngu.png",
+      "sha256": "a27a84bc2390d93e3b7a676dcb91c780a04effe6e3c5b33a6927459d8d3a7763",
+      "role": "original static three-view reference; primary authority for identity, anatomy, proportions, size and direction"
+    },
+    {
+      "path": "art/src/beast-anim/kiem_ngu/toA.png",
+      "sha256": "fb28a600888fddb985cb2bad36f2890f6f4eb22d76a2039abbe3d5a357080aed",
+      "role": "raw A1 technical identity-continuity candidate only; no pose/heading reference; not owner-art-approved or art-accepted"
+    }
+  ],
+  "transparent_background": false,
+  "output_hint": "Generated images are saved to /Users/thanhhoa/.codex/generated_images/01a17a5d-bf84-70e0-bfae-737c89e9e62b as /Users/thanhhoa/.codex/generated_images/01a17a5d-bf84-70e0-bfae-737c89e9e62b/exec-4938ffd3-e4bb-4d2d-80a0-8f8bd9d697a9.png by default. If you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it. The generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link.",
+  "output_hint_truncated": false,
+  "counters": {
+    "worker_calls": 1,
+    "retry": 0,
+    "A": 1,
+    "B": 1,
+    "total_calls": 2,
+    "species_calls_after_this_sheet": 2
+  },
+  "attempt_history": [
+    {
+      "attempt": "A1",
+      "raw_candidate": "toA.png",
+      "sha256": "fb28a600888fddb985cb2bad36f2890f6f4eb22d76a2039abbe3d5a357080aed",
+      "prompt_sha256": "ce56c1691dd5f6f01bd006864e9a24a60bc8c8b514a167e359c5e9273205c692",
+      "tool_output_path": "/Users/thanhhoa/.codex/generated_images/01a17a5d-bf84-70e0-bfae-737c89e9e62b/exec-6776f186-2cf3-40aa-a3e1-e544122f2756.png",
+      "outcome": "existing A1; technical continuity only; not art accepted"
+    },
+    {
+      "attempt": "B1",
+      "raw_candidate": "toB.png",
+      "sha256": "556a15f84ec959ec67546bddba5299a9346a0aa8a76a4e1855a12a7db8174c64",
+      "prompt_sha256": "954bfd3024bd0a61a674c01ae13cf5f2db8821b393b014492b6b6d8112613a35",
+      "tool_output_path": "/Users/thanhhoa/.codex/generated_images/01a17a5d-bf84-70e0-bfae-737c89e9e62b/exec-4938ffd3-e4bb-4d2d-80a0-8f8bd9d697a9.png",
+      "outcome": "generated; not checked; not art accepted"
+    }
+  ],
+  "approval_scope": {
+    "authorization": "exactly one B1 generation call; A1 technical identity/continuity reference only",
+    "art_accepted": false,
+    "owner_art_approved": false,
+    "imported": false,
+    "game_cut": false
+  },
+  "prompt_generator": {
+    "checkout_head": "6850da5b827631fb8a3dc33fff78fd9f47e03664",
+    "current_origin_main": "622be8b80d886e9cfc95ec8f9bbaee4f6a979b77",
+    "prompt_sources_byte_identical": true
+  }
+}

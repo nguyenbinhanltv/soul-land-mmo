@@ -1,0 +1,64 @@
+{
+  "species": "kim_lan_long_quy",
+  "sheet": "A",
+  "attempt": 1,
+  "worker": "soul-land-mmo-136",
+  "issue": 1030,
+  "raw_file": "toA.png",
+  "sha256": "11d32b19d870f1faa4dbbb17e8d1d5d1f23117287cae1c7e9f4c13ace69240db",
+  "bytes": 1910092,
+  "width": 1536,
+  "height": 1024,
+  "requested_aspect_ratio": "3:2",
+  "tool": "builtin Codex image_gen.imagegen",
+  "model_id": "unknown (tool did not disclose)",
+  "seed": "unknown (tool did not disclose)",
+  "attempts": 1,
+  "prompt_file": "toA.prompt.txt",
+  "prompt_sha256": "35406a0a5261d8bbd0078aab970c07634d74df7ef26f8b587030962e98b16139",
+  "transparent_background": false,
+  "reference": {
+    "path": "shared/assets/sprites/beast/kim_lan_long_quy.png",
+    "sha256": "af86fae543db4c09f3db4f2b087cb4669e974c1b282e240036d252c90b5a9df6"
+  },
+  "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-a2bb06a2-5e7f-4430-8d8a-657b9a69683c.png",
+  "postprocessing": "Không; sao chép nguyên byte PNG.",
+  "check": "chưa chạy beast:check",
+  "selected_attempt": 1,
+  "counters": {
+    "A": 1,
+    "B": 0,
+    "C": 0,
+    "D": 0,
+    "E": 0,
+    "species_total": 1
+  },
+  "references": [
+    {
+      "path": "shared/assets/sprites/beast/kim_lan_long_quy.png",
+      "role": "static identity",
+      "sha256": "af86fae543db4c09f3db4f2b087cb4669e974c1b282e240036d252c90b5a9df6"
+    }
+  ],
+  "history": [
+    {
+      "attempt": 1,
+      "original_tool_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-a2bb06a2-5e7f-4430-8d8a-657b9a69683c.png",
+      "raw_file": "toA.png",
+      "prompt_file": "toA.prompt.txt",
+      "sha256": "11d32b19d870f1faa4dbbb17e8d1d5d1f23117287cae1c7e9f4c13ace69240db",
+      "prompt_sha256": "35406a0a5261d8bbd0078aab970c07634d74df7ef26f8b587030962e98b16139",
+      "bytes": 1910092,
+      "width": 1536,
+      "height": 1024,
+      "requested_aspect_ratio": "3:2",
+      "original_output_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-a2bb06a2-5e7f-4430-8d8a-657b9a69683c.png",
+      "raw_sha256": "11d32b19d870f1faa4dbbb17e8d1d5d1f23117287cae1c7e9f4c13ace69240db",
+      "model": "unknown (tool did not disclose)",
+      "seed": "unknown (tool did not disclose)"
+    }
+  ],
+  "original_output_path": "/Users/thanhhoa/.codex/generated_images/01a17812-413e-7a32-91f8-998925aeb766/exec-a2bb06a2-5e7f-4430-8d8a-657b9a69683c.png",
+  "raw_sha256": "11d32b19d870f1faa4dbbb17e8d1d5d1f23117287cae1c7e9f4c13ace69240db",
+  "model": "unknown (tool did not disclose)"
+}

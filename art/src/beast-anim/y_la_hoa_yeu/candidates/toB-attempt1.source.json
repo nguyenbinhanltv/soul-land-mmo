@@ -1,0 +1,39 @@
+{
+  "species": "y_la_hoa_yeu",
+  "sheet": "B",
+  "attempt": 1,
+  "generator": "Codex image_gen built-in",
+  "model": "unknown",
+  "seed": "unknown",
+  "transparent_background": false,
+  "invocation": {
+    "referenced_image_paths": [
+      "/private/tmp/soul-land-mmo-1030-y-la-hoa-yeu/shared/assets/sprites/beast/y_la_hoa_yeu.png",
+      "/private/tmp/soul-land-mmo-1030-y-la-hoa-yeu/art/src/beast-anim/y_la_hoa_yeu/toA.png"
+    ]
+  },
+  "references": [
+    {
+      "role": "static species reference",
+      "path": "shared/assets/sprites/beast/y_la_hoa_yeu.png",
+      "sha256": "d46e0462191860be2e0c3c307df73e23eef0eb5ce689476a8fe2b2b4fc235f74"
+    },
+    {
+      "role": "A1 technical candidate; not owner art-approved",
+      "path": "art/src/beast-anim/y_la_hoa_yeu/toA.png",
+      "sha256": "051f7dfd0916270cf4a8cf0ddc6db722b4b14cd813322bed453a98c17f370497"
+    }
+  ],
+  "prompt_file": "toB-b1.prompt.txt",
+  "prompt_sha256": "c944599c17626af5bfed46b32d767d05402579fc5a1f072564830e7b041a04ce",
+  "raw_file": "toB-b1.png",
+  "raw_sha256": "7fbb165c25e4a756e56fee3cc0187901ba45cb588c2dccc2e6159c3bf340d927",
+  "original_output_path": "/Users/thanhhoa/.codex/generated_images/01a17812-1619-7c41-b67b-9178464e12c1/exec-bb4de51f-5535-4e0e-a565-964e80aaef36.png",
+  "tool": "image_gen.imagegen (built-in)",
+  "attempts": 2,
+  "tool_limitations": "Model và seed không được tool công bố; kích thước chỉ định trong prompt.",
+  "selected_attempt": false,
+  "findings": [
+    "B1 manual: nhiều khung NE lộ mắt/mặt."
+  ]
+}
