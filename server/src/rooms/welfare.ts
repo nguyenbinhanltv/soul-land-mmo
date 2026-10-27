@@ -105,7 +105,7 @@ export function welfareAction(room: MapRoom, id: string, m: { op?: unknown; day?
       d.honTe = Math.max(0, d.honTe + fee - honTe); d.bagDirty = true; // hoàn theo hiệu: Hồn Tệ kiếm được trong lúc chờ DB không bị ghi đè
       for (const g of gives) {
         let n = g.qty;
-        for (const x of d.bag.filter((it) => it.code === g.code && it.vohonId === null && !it.locked).reverse()) { const k = Math.min(n, x.qty); room.takeItem(d, x, k); n -= k; if (!n) break; }
+        for (const x of d.bag.filter((it) => it.code === g.code && it.vohonId === null).reverse()) { const k = Math.min(n, x.qty); room.takeItem(d, x, k); n -= k; if (!n) break; }
       }
     };
     let ver: number | null;
