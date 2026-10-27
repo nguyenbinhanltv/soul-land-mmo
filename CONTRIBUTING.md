@@ -27,6 +27,25 @@ gh issue list --label san-sang --search "no:assignee -label:dang-lam -label:chan
 
 Orchestrator / agent tự động đọc hàng chờ bằng đúng lệnh này, không lấy việc từ chỗ khác.
 
+## Hai làn (chủ repo chốt 28/10, ghi đè các luật cũ về AO review / CI từng PR)
+
+Chủ repo đang làm một mình, nên bỏ bước thừa. Việc chia hai làn theo **đường dẫn file đổi**; một việc đụng cả hai thì theo làn code.
+
+| | Làn nhanh | Làn code |
+| --- | --- | --- |
+| Đường dẫn | Chỉ `art/**`, `docs/**`, `*.md`, `.claude/**`, `shared/assets/sprites/**` và `shared/assets/credits/credits.json` do công cụ nhập, hồ sơ `NGUON.md` / credits | `client/**`, `server/**`, `shared/data.ts` (và `shared/**` còn lại), `tools/**`, `server/sql/**`, `.github/**` (workflow, hook) |
+| Kiểm ở máy | Kiểm nhẹ của loại việc (công cụ check riêng của ảnh / tờ), `node tools/assets/credits.mjs --check`, `npm run check` khi đụng docs (có `docs-check`) | `npm run check` + `npm run bot:local -- --only <nhóm liên quan>` (thêm `--pg` khi đổi `server/` hoặc SQL); ghi kết quả vào mô tả PR |
+| Hình thức | Push nhánh riêng, báo "xong"; **không cần PR nháp**, không chờ AO review | Giữ PR vào `main`; **không cần AO review**, chỉ `ao review trigger` khi việc rủi ro: SQL, chống gian lận, đụng `MapRoom` / giao thức |
+| Gộp | Orchestrator gộp theo **lô** (xem dưới) | Merge khi CI mức `changes` xanh (`smoke` / `full` tuỳ mức); bài chập chờn đã biết thì chạy lại một lần, không sửa trong PR khác |
+
+**Gộp theo lô (làn nhanh):** orchestrator, trong worktree riêng gốc `origin/main`, chạy `git fetch origin && git merge --no-ff origin/<nhánh>` cho vài nhánh một lần rồi `git push origin HEAD:main`. Worker đã mở PR thì `gh pr merge --squash --match-head-commit <SHA>` khi `assets-check` (hoặc check nhẹ tương ứng) xanh, không chờ review AO.
+
+**Sau mỗi lô đẩy `main`:** xem lượt CI của `main`; đỏ thì mở issue và giao worker sửa ngay (hoàn tác commit gây lỗi nếu cần).
+
+**Giữ nguyên ở cả hai làn:** CI đầy đủ chạy trên `main` và lượt hằng ngày (`docs/ops/ci.md`); production chỉ chủ repo promote; mỗi worker một nhánh riêng; công cụ tự kiểm hash / credits; không force push `main`, không `--no-verify`; không `--delete-branch` khi worktree còn dùng nhánh.
+
+Các mục Nhận việc (mở PR nháp), Xin review (`Review: đạt`, đóng băng) và Merge dưới đây là quy trình cũ cho người cộng tác bên ngoài; trong lúc chủ repo làm một mình, **làn ở trên thắng** nếu mâu thuẫn.
+
 ## Nhận việc
 
 1. **Kiểm issue ngay trước khi làm** (`gh issue view <N>`): đã có assignee, `dang-lam` hoặc PR liên kết thì **không làm**, chọn việc khác. Việc chưa có issue thì tạo issue trước (mẫu "Việc lộ trình" hoặc "Lỗi").
