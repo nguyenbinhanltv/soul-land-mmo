@@ -20,7 +20,7 @@ Loài `huyet_nha_cu_sa` (Huyết Nha Cự Sa), họ `swim`, khung game 128×128.
 - Prompt: `toA.prompt.txt` (SHA256 `821aa82c4b0bac1801a7cb74ba361a5b92d896137c9ed0011e24a75c1da922a7`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ).
-- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 119% so với ảnh tĩnh (lệch 19%); cutter neo lại, không chặn.
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 120% so với ảnh tĩnh (lệch 20%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## toB
@@ -35,10 +35,19 @@ Loài `huyet_nha_cu_sa` (Huyết Nha Cự Sa), họ `swim`, khung game 128×128.
 ## toC
 
 - File: `toC.png`, **1536×1024**, 1691183 byte, SHA256 `f88845cb17298490fb2f963cbb56c24c53804ce4aadf34a967c5367808fa0492`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: ao-desktop.
 - Prompt: `toC.prompt.txt` (SHA256 `98c2f760a718ebb411c9f423ba58ce892534fe1c64817b65d5b8d1d2266ec8d4`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: e nhẹ).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+## toD
+
+- File: `toD.png`, **1536×1024**, 1696869 byte, SHA256 `8d3e51b8bb305d57959a1bf1d94ae24a2ca512513c5fac06a9466a041978a349`.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop.
+- Prompt: `toD.prompt.txt` (SHA256 `f7ba0e60c0f09b62f07224538b70c4d31f67e53817905e96bfa7e3dc7b541d3f`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## Lỗi
@@ -49,6 +58,7 @@ LỖI: toA — s — hurt và die biên độ nhỏ (mắt)
 LỖI: toB — se — góc chéo nông, attack C2–3 gần nhìn ngang; die biên độ nhỏ (mắt)
 LỖI: toC — chân lệch — H4 (e) C1 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 13%).
 LỖI: toC — e — hurt và attack đỉnh chếch lên; die gần idle (mắt)
+LỖI: toD — ne — nghi chấm mắt sát mép đầu ở vài khung; hurt/die nhỏ, die cuối hơi ngang (mắt)
 ```
 
 ## Ghi công
