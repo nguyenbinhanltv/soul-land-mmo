@@ -38,6 +38,7 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/ui-kit.md](docs/art/ui-kit.md) | 5 | Hai chất liệu; Bảng vai trò → chất liệu; Token màu theo vai trò; Thang chữ theo vai trò; Quy tắc 9-slice; Kit 1× hay 2×; Luật vẽ AI |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/hon-thu-hoat-anh.md](docs/art/hon-thu-hoat-anh.md) | 5 | Hoạt ảnh vẽ thật của hồn thú (H1) |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/phu-the-hoat-anh.md](docs/art/phu-the-hoat-anh.md) | 5 | Phụ thể võ hồn v2: hoạt ảnh vẽ thật 5 hướng (P0, epic #1020) |
+| 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/phu-the-neo-khoi-than.md](docs/art/phu-the-neo-khoi-than.md) | 5 | Neo phụ thể theo tâm khối thân, `anchor.json` (#1024) |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/vo-hon-phong-cach.md](docs/art/vo-hon-phong-cach.md) | 5 | Phong cách võ hồn v2 (bá đạo, tu tiên; #1032) |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/vo-hon-portrait2.md](docs/art/vo-hon-portrait2.md) | 5 | Preset chân dung portrait2 (P1c2, #1158) |
 | 5.12 | Cảm giác đánh, hiệu ứng chiêu (phần hiển thị) và âm thanh | [docs/art/am-thanh.md](docs/art/am-thanh.md) | 5 | Âm thanh; Âm thanh chiến đấu và hồn thú có tầm; Nhạc nền |

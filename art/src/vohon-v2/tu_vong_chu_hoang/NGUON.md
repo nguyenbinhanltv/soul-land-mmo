@@ -56,3 +56,45 @@ Công cụ vohon:check chưa có cờ --eye; chỉ khai tại đây, không đ�
 ```text
 --eye "portrait-attempt1=bản P1c — 64×64 — mất nhiều khối tối; điểm mắt/đầu chưa tách rõ, chưa đạt brief; giữ làm candidate"
 ```
+
+
+## Icon lượt 1 — #1159, chưa nhập game
+
+Ngày 2026-10-27. Công cụ builtin `image_gen.imagegen`, model/seed `unknown`. RAW giữ nguyên byte: `icon-attempt1.png`, SHA256 `fbeaaeef943c4c7826617d0e839448dc6423eeb9437179d6224312c2e6dde175`; prompt tự sinh nguyên văn bằng `node tools/assets/vohon-prompt.mjs --type icon --id tu_vong_chu_hoang --style-ref art/src/vohon-v2/tu_vong_chu_hoang/concept-attempt1.png`, SHA256 `acf114e686368f111c2bce41462212d838eb76fd93e45783d09650822c1c7320`. Ảnh neo ngoại hình: `concept-attempt1.png`. Không viết tay prompt, không dùng lượt hỏng làm ảnh neo. Hồ sơ: `icon-attempt1.source.json`.
+
+Chuyển bằng `vohon-pixelize --type icon --preset icon --colors 8 --merge 24 --passes 2 --protect on`. Bản 24/32 px ở `icon-attempt1-pixel/`; báo cáo JSON kèm từng ảnh. Đây là ứng viên cần duyệt, không tự tuyên bố đạt đẹp.
+
+RAW: NHẸ; số đo `{"w":1254,"h":1254,"ratio":1,"border":{"clear":1,"flat70":0},"fill":0.94,"softness":0.844,"bigColors":164,"grid":{"period":38,"ratio":1.2},"paletteMatch":0.36,"smallAccent":"8/8"}`.
+
+32px: NHẸ; số đo `{"w":32,"h":32,"colors":8,"outline":1,"hot":0.144,"contrast":0.234,"edge":0.495,"sep":17.5,"bgRatio":1.03,"accent":"8/8"}`.
+
+24px: NHẸ; số đo `{"w":24,"h":24,"colors":7,"outline":1,"hot":0.157,"contrast":0.274,"edge":0.529,"sep":15.8,"bgRatio":0.94,"accent":"8/8"}`.
+
+### Khai báo duyệt mắt icon (`--eye`)
+
+CLI vohon:check chưa hỗ trợ cờ --eye; lưu khai báo tại đây, giữ nguyên kết quả máy.
+
+```text
+--eye "icon-attempt1=RAW — mem — texture mềm: 84% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+--eye "icon-attempt1=RAW — nhieu-mau — 164 màu đáng kể (nên ≤ 160 để ép về ≤ 32 mà không bệt)"
+--eye "icon-attempt1=RAW — luoi — chưa đúng lưới khối: tỉ số biên 1.2 ở chu kỳ 38 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+--eye "icon-attempt1=RAW — lech-mau — 36% điểm sáng cùng họ màu robe / col của tu_vong_chu_hoang (mục 4 cần ≥ 50%)"
+--eye "icon-attempt1=32px — cham-mep — hình chạm mép ảnh (13 điểm): viền ngoài bị cắt"
+--eye "icon-attempt1=32px — nhieu-chi-tiet — mật độ biên 0.495 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+--eye "icon-attempt1=32px — gan-mau — hai màu lớn chỉ cách nhau 17.5 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+--eye "icon-attempt1=24px — cham-mep — hình chạm mép ảnh (10 điểm): viền ngoài bị cắt"
+--eye "icon-attempt1=24px — nhieu-chi-tiet — mật độ biên 0.529 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+--eye "icon-attempt1=24px — gan-mau — hai màu lớn chỉ cách nhau 15.8 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+--eye "icon-attempt1=duyệt mắt — Biểu tượng nhện tím đen, mắt tím và đồ án tử vong; kiểm các chân không dính nhau và điểm mắt ở 24 px."
+```
+
+```text
+--eye "icon-attempt1=bố cục — thân/chân — còn cả hình nhện thu nhỏ thay vì một dấu hiệu đơn; chân/mắt lẫn nhau ở 24 px, chưa đạt đẹp"
+```
+
+
+### Hồ sơ icon để review
+
+Số lượt icon: 1/3; chọn lượt 1 để trình duyệt. Không phải bản đã duyệt nhập game. Xem `icon-attempt1-pixel/preview/index.html` và `icon-attempt1-pixel/preview/so-sanh.png`.
+
+SHA256 prompt trong mục icon tính trên UTF-8, xuống dòng LF, không xuống dòng cuối file; `sent_prompt` và `sent_prompt_sha256` trong source JSON giữ đúng chuỗi đã gửi công cụ (kể cả xuống dòng gốc). So sánh với đầu ra CLI sau chuẩn hóa CRLF/LF: trùng nguyên nội dung, không addendum.

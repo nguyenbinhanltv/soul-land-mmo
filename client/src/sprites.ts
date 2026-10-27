@@ -13,6 +13,7 @@ import Phaser from "phaser";
 import { TELE_WARN, PT_FRAME } from "../../shared/data.ts";
 import { SPR, type Dir8 } from "./iso.ts";
 import { lightingOn } from "./lighting.ts";
+import { loadPhuAnchors } from "./phutheAnchor.ts";
 import { phuClipOf, phuClipIndex, phuDirRow, phuFrame, phuHalf, phuOriginY, phuSheetFits, parsePhuLayout, type PhuLayout } from "./phutheAnim.ts";
 import { registerVohonSheet, registerBlankSheet, setBeastSheetHook, isLazySkillFx, markPartialAnim } from "./vohonLazy.ts";
 import { readFxPrefs } from "./fxSettings.ts";
@@ -474,6 +475,7 @@ export function loadSpriteKey(scene: Phaser.Scene, key: string) {
  * nên không tải hết: `lpc` nhận danh sách tên có trong manifest và tự xếp hàng tải những tên bản đồ dùng (crowd.ts).
  */
 export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) => void, after?: () => void) {
+  void loadPhuAnchors(BASE + "vohonanim/anchor.json"); // neo khối thân của phụ thể (phutheAnchor.ts); thiếu thì hành vi cũ
   scene.cache.json.remove(MANIFEST_KEY); // Game giữ qua các bản đồ (#716 bước 5): cache JSON còn thì loader bỏ qua file, sự kiện filecomplete không bắn
   scene.load.json(MANIFEST_KEY, BASE + "manifest.json");
   scene.load.once(`filecomplete-json-${MANIFEST_KEY}`, (_key: string, _type: string, data: { sprites?: ManifestEntry[] }) => {
