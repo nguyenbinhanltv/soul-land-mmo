@@ -1,0 +1,22 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "type": "portrait",
+  "attempt": 1,
+  "attemptsUsed": 1,
+  "raw": "portrait-attempt1.png",
+  "rawSha256": "045d5d8ebfd9c698cce021b7fc32711c7a2640021c6b8e1bfd3be62dfd2288f5",
+  "prompt": "portrait-attempt1.prompt.txt",
+  "promptSha256": "148ff68335bdc148d18850da69bbeaa1b3cd1c5e2752e4ebdffcc051a2f66142",
+  "reference": "concept-attempt3.png",
+  "referenceSha256": "e4d6cfb04c501f29f0bbbe1c24f04040b1c1167ab5ce2739f9e5660d12f90aa3",
+  "promptCommand": "node tools/assets/vohon-prompt.mjs --type portrait --id nhu_cot_tho --style-ref art/src/vohon-v2/nhu_cot_tho/concept-attempt3.png",
+  "pixelCommand": "node tools/assets/vohon-pixelize.mjs --type portrait --id nhu_cot_tho --in art/src/vohon-v2/nhu_cot_tho/portrait-attempt1.png --out art/src/vohon-v2/nhu_cot_tho/portrait-attempt1-P1c --preset portrait",
+  "rawCheck": "raw portrait-attempt1.png chân dung / thẻ (nhu_cot_tho): NHẸ\n  [NHẸ] mem: texture mềm: 93% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất\n  [NHẸ] luoi: chưa đúng lưới khối: tỉ số biên 1.56 ở chu kỳ 17 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)\n  số đo: {\"w\":1254,\"h\":1254,\"ratio\":1,\"border\":{\"clear\":0,\"flat70\":0.79},\"fill\":1,\"softness\":0.936,\"bigColors\":122,\"grid\":{\"period\":17,\"ratio\":1.56},\"paletteMatch\":1,\"smallAccent\":\"8/8\"}\n  cần mắt duyệt: đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi); không có chữ, ký hiệu đọc được, logo, chữ ký; đọc được cả ở cỡ thật 1× (nhìn lướt)\n",
+  "pixelCheck": "ghi art\\src\\vohon-v2\\nhu_cot_tho\\portrait-attempt1-P1c\\nhu_cot_tho-portrait.png (64×64, 7 màu, đổi 306 điểm khi làm cứng)\npixel chân dung / thẻ (nhu_cot_tho): NHẸ\n  [NHẸ] nhieu-chi-tiet: mật độ biên 0.34 (> 0.3): còn nhiều mảng nhỏ ở cỡ 64×64, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn\n  [NHẸ] nen-chu-the: vùng giữa chỉ sáng gấp 0.98× vòng ngoài (< 1.4): chủ thể chưa tách khỏi nền; thử --preset portrait (nền lạnh tối + viền sáng)\n  số đo: {\"w\":64,\"h\":64,\"colors\":7,\"hot\":0.069,\"contrast\":0.183,\"edge\":0.34,\"sep\":48.2,\"bgRatio\":0.98,\"accent\":\"8/8\"}\n  cần mắt duyệt: mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`; so với RAW: vẫn là cùng một võ hồn\n",
+  "eye": "góc nhìn — chính diện; đầu tai bị cắt mép trên; dải khí hồng rộng tranh mắt đỏ, lông nhiều nhánh",
+  "status": "pending_owner_art_review",
+  "imported": false
+}
