@@ -185,6 +185,16 @@ Ghi chú đo: vạch 9-slice đề xuất = max(độ dày viền, tầm với h
 
 **Cắt** (`ui-sheet-cut.mjs`): tách mảnh (khoảng trống + khoá nền + gỡ viền) → hạ lưới theo vùng về **master 2×** (`div` theo loại tờ, nhân thêm tỉ lệ cỡ tờ nên 1024² và 1254² ra cùng cỡ) → khung / nút dựng **đối xứng bằng gương** từ phần tư trên-trái (model chỉ cần vẽ một góc đẹp) → lượng tử ≤ 32 màu + viền `#1a1020`, alpha nhị phân → xuất **2×** và **1×** (1× hạ theo vùng từ 2× rồi lượng tử lại, không nearest trần; khớp khuyến nghị ở mục "Kit 1× hay 2×") → vạch 9-slice đo từ ảnh, **chung trong một bộ trạng thái** (`nine.x2`, `nine.x1` = ⌈x2 / 2⌉). Manifest mỗi mảnh ghi `nine`, `set` + `state` (và `groups`: bộ → trạng thái → khoá), `grid` (master, hệ số hạ, cỡ tờ), `size`, `bytes`, `hash`. **Tất định**: cùng tờ + cùng tuỳ chọn → cùng byte; cắt lại mảnh đã cắt (bảng màu có sẵn) cũng ra đúng byte (kiểm trong `npm run test:assets`).
 
+**Cắt mềm** (`--soft` ở `ui:check` / `ui:cut`, bước #882 đợt 3; mặc định tắt): với tờ AI vẽ còn lỗi **sửa được bằng công cụ**, bù trước khi đo rồi chỉ **hạ CHẶN → nhẹ** khi mảnh đạt kiểm hình; quá ngưỡng thì vẫn CHẶN (phải vẽ lại). Mục hạ vẫn ghi vào phiếu (`nhẹ`, ghi "đã bù" / "đã ép phẳng") để không che lỗi.
+
+| Lỗi | Xử lý | Điều kiện hạ xuống nhẹ (hằng `SOFT_*` ở `ui-sheet-check.mjs`) |
+|---|---|---|
+| `vien-hong` | `defringe`: điểm ngả hồng nối với rìa (sâu ≤ 3) mà tối thì đổi về mực `#1a1020` (giữ hình), sáng thì bỏ | còn ≤ `SOFT_PINK_LEFT` (1%) điểm viền ám hồng **và** không mảnh nào mất > `SOFT_LOSS_MAX` (5%) điểm |
+| `canh-phang` (hoa văn / sọc dọc thân cạnh) | `flattenEdges`: điểm thân cạnh về màu trung vị hàng; góc và giữa cạnh giữ | lệch ≤ `SOFT_FLAT_MAX` (60%), đổi ≤ `SOFT_FLAT_CHANGE_MAX` (8%) diện tích mảnh, đo lại ≤ 15% |
+| mảnh còn chặn riêng | `ui:cut --skip a,b` bỏ mảnh đó, cắt phần đạt (ghi `skipped` ở `_report.json`); chặn chung của tờ vẫn chặn | không |
+
+Không công cụ nào sửa được (phải vẽ lại): chữ, hoa văn thật dọc cạnh quá 8% diện tích, hai chất liệu lẫn, mảnh dính nhau, cạnh ngắn bị vạch góc nuốt hết (ảnh gốc phẳng, chỉ lệch khi kéo ×3, báo trong mô tả chặn). Spec mảnh có thêm `"mirror": false` cho mảnh không đối xứng (tab hở đáy: dựng gương sẽ khép đáy). Sửa phép đo `edgeFlatness`: hàng thân cạnh trong suốt đồng nhất (≤ 5% điểm đặc: ngọc giữa cạnh nhô ra, tab hở đáy) không còn bị đếm là lệch; viền lởm chởm của tranh vẽ tay vẫn bị chặn (test C2).
+
 Chưa làm ở P1: đổi nguồn `--frame-*` / cờ `ui2` (P5), nhập mảnh vào `shared/assets` (PR từng màn). Fixture thử: 7 mảnh C2 + khung UI-5 thật phóng lên tờ giả, khung tổng hợp có lỗi cố ý (`tools/assets/ui-sheet-fixture.mjs`).
 
 ## Skill, prompt, trang bộ component, CI nhẹ (P2, #880)

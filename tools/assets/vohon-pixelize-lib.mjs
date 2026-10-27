@@ -503,6 +503,7 @@ function portraitFaithful(small, region, blobs, o) {
 }
 /** Icon `size`×`size`: bỏ nền, cắt theo hộp bao (hoặc `crop`), vừa (size − 2) có viền ngoài, căn giữa. */
 export function pixelizeIcon(src, o = {}) {
+  if (o.preset === "icon-nearest") return iconNearest(src, o);
   const size = o.size ?? ICON_SIZES[0], colors = o.colors ?? MAX_COLORS.icon, prep = prepareSource(src, { bg: o.bg ?? "auto", bgTol: o.bgTol });
   const cr = parseCrop(o.crop) ?? bbox(prep.img);
   if (!cr) throw new Error("icon: ảnh không còn điểm đục sau khi bỏ nền (nền không tách?)");
@@ -511,6 +512,24 @@ export function pixelizeIcon(src, o = {}) {
   const fit = pixelizeDown(region, W, H, { accent: dflt("icon", o, "accent") }), canvas = new Img(size, size);
   canvas.blit(fit, 0, 0, W, H, Math.floor((size - W) / 2), Math.floor((size - H) / 2));
   return finish(canvas, { ...o, colors: colors - 1, outline: o.outline !== "off", blobs, crop: cr, size, type: "icon", lift: +liftK.toFixed(2) });
+}
+/**
+ * Preset `icon-nearest` (#1159, cách C = RAW): bỏ nền, cắt cận hộp bao thành ô vuông, thu về (size − 2) bằng láng giềng gần nhất (lấy điểm giữa ô, không trộn màu,
+ * không ép bảng màu, không làm cứng), nền trong suốt, viền ngoài #1a1020 1 điểm (`--outline off` để bỏ). Alpha 0 / 255. Số màu theo ảnh nguồn.
+ */
+export function iconNearest(src, o = {}) {
+  const size = o.size ?? ICON_SIZES[0], prep = prepareSource(src, { bg: o.bg ?? "auto", bgTol: o.bgTol }), bb = parseCrop(o.crop) ?? bbox(prep.img);
+  if (!bb) throw new Error("icon: ảnh không còn điểm đục sau khi bỏ nền (nền không tách?)");
+  const side = Math.max(bb.w, bb.h), cr = { x: bb.x - Math.floor((side - bb.w) / 2), y: bb.y - Math.floor((side - bb.h) / 2), w: side, h: side };
+  const outline = o.outline !== "off", inner = outline ? size - 2 : size, off = (size - inner) >> 1, out = new Img(size, size);
+  for (let y = 0; y < inner; y++) for (let x = 0; x < inner; x++) {
+    const sx = cr.x + Math.floor(((x + 0.5) * side) / inner), sy = cr.y + Math.floor(((y + 0.5) * side) / inner);
+    if (sx < 0 || sy < 0 || sx >= prep.img.w || sy >= prep.img.h) continue;
+    const p = prep.img.get(sx, sy); if (p[3] >= 128) out.set(x + off, y + off, [p[0], p[1], p[2], 255]);
+  }
+  if (outline) outlineOutside(out);
+  const cc = colorCounts(out);
+  return { img: out, palette: [...cc.keys()].map((k) => k.split(",").map(Number)), report: { type: "icon", size, crop: bb, preset: "icon-nearest", outline, contrast: contrastMetrics(out), colors: cc.size } };
 }
 function finish(small, o) {
   const pal = buildPalette(small, o.colors, { mode: o.palette ?? "auto", pool: o.pool ?? [], merge: dflt(o.type, o, "merge") });

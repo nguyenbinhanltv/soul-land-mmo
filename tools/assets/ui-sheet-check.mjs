@@ -14,7 +14,7 @@ import { BG_LOCK, BG_TOL } from "./beast-sheet-check.mjs";
 import { drawText, fillRect, strokeRect, COLORS } from "./beast-sheet-contact.mjs";
 import {
   loadKit, kindFromName, expandKind, classifyUiShape, effectiveDiv, detectGrid, sheetMask, cropPiece, pickLayout, assignNames, areaDown, evenSize,
-  suggestNine, nineSliceRender, edgeFlatness, cornerAsymmetry, strayText, pieceDiff, pinkFringe, significantColors, cdist, colorAt, opaque,
+  suggestNine, nineSliceRender, edgeFlatness, cornerAsymmetry, strayText, pieceDiff, pinkFringe, significantColors, cdist, colorAt, opaque, defringe, flattenEdges,
 } from "./ui-kit-lib.mjs";
 
 // ---------- Ngưỡng ----------
@@ -26,6 +26,8 @@ export const OFF_PALETTE_LIGHT = 0.1, OFF_PALETTE_BLOCK = 0.35, OFF_PALETTE_DIST
 export const GAP_FRAC = 0.05;
 export const THICK_SPREAD = 2;
 export const SAME_STATE_DIFF = 0.005;
+/** Cắt mềm (--soft): chỉ hạ CHẶN → nhẹ khi xử lý xong mà đạt kiểm hình; quá các ngưỡng này là lỗi thật, vẫn CHẶN, phải vẽ lại. */
+export const SOFT_PINK_LEFT = PINK_LIGHT, SOFT_LOSS_MAX = 0.05, SOFT_FLAT_MAX = 0.6, SOFT_FLAT_CHANGE_MAX = 0.08;
 export const STRETCH_SIZES = [[200, 60], [360, 120], [520, 320]];
 const LEVEL_RANK = { pass: 0, "nhẹ": 1, "chặn": 2 };
 const SEV_LEVEL = { block: "chặn", light: "nhẹ", note: "pass", warn: "pass" };
@@ -38,7 +40,8 @@ const finish = (res) => { res.level = res.issues.reduce((l, i) => maxLevel(l, SE
 /**
  * Phân tích một tờ.
  * @param {string|Img} src đường dẫn PNG hoặc ảnh đã đọc (khi đó cần o.name)
- * @param {{ kit?: object, kindId?: string, kind?: object, div?: number, palette?: number[][], name?: string }} o
+ * @param {{ kit?: object, kindId?: string, kind?: object, div?: number, palette?: number[][], name?: string, soft?: boolean }} o
+ *   soft: bù viền hồng + ép cạnh phẳng trước khi đo; mục chặn tương ứng chỉ hạ xuống nhẹ khi đạt kiểm hình (SOFT_*), còn lại giữ chặn.
  */
 export function analyzeUiSheet(src, o = {}) {
   const kit = o.kit ?? loadKit(), img = typeof src === "string" ? readPng(src) : src, name = o.name ?? path.basename(String(src), ".png");
@@ -124,20 +127,39 @@ export function analyzeUiSheet(src, o = {}) {
   const key = grid.key, mask = sheetMask(img, key), div = effectiveDiv(kind, img, cls, o.div);
   res.div = div;
   const masters = [];
-  let edgePink = 0, edgeAll = 0;
+  let edgePink = 0, edgeAll = 0, rawPink = 0, rawAll = 0;
+  const soft = o.soft ? { fringeFixed: 0, lossy: [] } : null, ink = hex(kit.outline);
   for (const p of named) {
-    const crop = cropPiece(img, mask, p.fig);
+    let crop = cropPiece(img, mask, p.fig);
     if (!crop) { issue(issues, "block", "so-hinh", p.name, `${p.name}: không có điểm vật sau khi khoá nền.`, { piece: p.name }); continue; }
+    const raw = pinkFringe(crop.img);
+    rawPink += raw.pink; rawAll += raw.edge;
+    let fixed = null;
+    if (soft && raw.pink) {
+      fixed = defringe(crop.img, ink);
+      soft.fringeFixed += fixed.recolored + fixed.removed;
+      const area = crop.img.data.reduce((t, v, i) => (i % 4 === 3 && v >= 128 ? t + 1 : t), 0);
+      if (fixed.removed > SOFT_LOSS_MAX * area) soft.lossy.push(`${p.name} (mất ${round((fixed.removed / area) * 100, 1)}% điểm)`);
+      crop = { ...crop, img: fixed.img };
+    }
     const master = evenSize(areaDown(crop.img, div)), fr = pinkFringe(crop.img);
     edgePink += fr.pink; edgeAll += fr.edge;
     const rec = { ...p, master, rawSize: [crop.img.w, crop.img.h], size: [master.w, master.h], fringe: fr.edge ? round(fr.pink / fr.edge) : 0 };
+    if (fixed) rec.defringe = { recolored: fixed.recolored, removed: fixed.removed };
     if (p.stretch) {
       const s = suggestNine(master);
       Object.assign(rec, { nine: s.nine, thickness: s.thickness, cornerExt: s.cornerExt });
-      rec.flat = edgeFlatness(master, s.nine, s.thickness);
-      const three = nineSliceRender(master, s.nine, master.w * 3, master.h * 3);
-      rec.flat3 = edgeFlatness(three, s.nine, s.thickness);
-      rec.asym = cornerAsymmetry(master, s.nine);
+      const flatOf = (m) => [edgeFlatness(m, s.nine, s.thickness), edgeFlatness(nineSliceRender(m, s.nine, m.w * 3, m.h * 3), s.nine, s.thickness)];
+      [rec.flat, rec.flat3] = flatOf(master);
+      const worst = Math.max(rec.flat ?? 0, rec.flat3 ?? 0);
+      if (soft && worst > FLAT_BLOCK && worst <= SOFT_FLAT_MAX) {
+        const fx = flattenEdges(master, s.nine, s.thickness), [f1, f3] = flatOf(fx.img);
+        const area = master.data.reduce((t, v, i) => (i % 4 === 3 && v >= 128 ? t + 1 : t), 0);
+        if (Math.max(f1 ?? 0, f3 ?? 0) <= FLAT_LIGHT && fx.changed <= SOFT_FLAT_CHANGE_MAX * area) {
+          Object.assign(rec, { master: fx.img, flat: f1, flat3: f3, softFlat: { before: worst, changed: fx.changed } });
+        }
+      }
+      rec.asym = cornerAsymmetry(rec.master, s.nine);
       rec.stretch = STRETCH_SIZES.map(([w, h]) => ({ size: [w, h], ok: w >= 2 * s.nine && h >= 2 * s.nine }));
     }
     if (p.text) rec.text = strayText(master, rec.nine ?? 2);
@@ -146,19 +168,25 @@ export function analyzeUiSheet(src, o = {}) {
   res.pieces = masters;
   const pieceState = (name, st) => { for (const b of res.bands) b.figures.forEach((f, i) => { if (nameOf.get(grid.bands[b.row].figures[i])?.name === name && f.state !== "bad") f.state = st; }); };
 
-  if (edgeAll) {
+  if (soft) res.soft = { fringeBefore: rawAll ? round(rawPink / rawAll) : 0, fringeAfter: edgeAll ? round(edgePink / edgeAll) : 0, defringed: soft.fringeFixed, flattened: masters.filter((r) => r.softFlat).map((r) => r.name) };
+  if (soft && rawAll && rawPink / rawAll > PINK_BLOCK && edgePink / Math.max(1, edgeAll) <= SOFT_PINK_LEFT && !soft.lossy.length) {
+    res.fringe = round(edgePink / edgeAll);
+    issue(issues, "light", "vien-hong", "toàn tờ", `viền ám hồng ${round((rawPink / rawAll) * 100, 1)}% điểm viền: đã bù (${soft.fringeFixed} điểm: mực tối về #1a1020, hồng sáng bỏ), còn ${round(res.fringe * 100, 1)}%; kiểm lại trên nền tối.`);
+  } else if (edgeAll) {
     const frac = edgePink / edgeAll;
     res.fringe = round(frac);
-    if (frac > PINK_BLOCK) issue(issues, "block", "vien-hong", "toàn tờ", `viền ám hồng ${round(frac * 100, 1)}% điểm viền sau khi khoá nền > ${PINK_BLOCK * 100}%: nền ăn vào mảnh (kiểm trên nền tối).`);
+    if (soft?.lossy.length) issue(issues, "block", "vien-hong", "toàn tờ", `viền ám hồng ${round((rawPink / rawAll) * 100, 1)}% điểm viền: bù thì mất quá ${SOFT_LOSS_MAX * 100}% điểm ở ${soft.lossy.join(", ")}: nền ăn sâu vào mảnh, phải vẽ lại.`);
+    else if (frac > PINK_BLOCK) issue(issues, "block", "vien-hong", "toàn tờ", `viền ám hồng ${round(frac * 100, 1)}% điểm viền sau khi khoá nền > ${PINK_BLOCK * 100}%: nền ăn vào mảnh (kiểm trên nền tối).`);
     else if (frac > PINK_LIGHT) issue(issues, "light", "vien-hong", "toàn tờ", `viền còn ám hồng ${round(frac * 100, 1)}% điểm viền (cutter ăn mòn thêm được).`);
   }
 
   for (const r of masters) {
     if (r.flat != null && r.flat3 != null) {
       const f = Math.max(r.flat, r.flat3);
-      if (f > FLAT_BLOCK) { issue(issues, "block", "canh-phang", r.name, `${r.name}: thân cạnh không phẳng (${round(f * 100, 0)}% điểm lệch > ${FLAT_BLOCK * 100}% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn.`, { piece: r.name }); pieceState(r.name, "bad"); }
+      if (f > FLAT_BLOCK) { issue(issues, "block", "canh-phang", r.name, `${r.name}: thân cạnh không phẳng (${round(f * 100, 0)}% điểm lệch > ${FLAT_BLOCK * 100}% khi kéo ×3): hoa văn dọc cạnh sẽ lộ khi kéo giãn${r.flat <= FLAT_LIGHT ? ` (ảnh gốc phẳng, chỉ lệch khi kéo: góc vạch ${r.nine} nuốt gần hết cạnh ngắn ${Math.min(...r.size)}, ngọc / hoa văn giữa cạnh bị kéo; tờ sau vẽ cạnh ngắn dài hơn hoặc bỏ ngọc giữa cạnh)` : ""}.`, { piece: r.name }); pieceState(r.name, "bad"); }
       else if (f > FLAT_LIGHT) { issue(issues, "light", "canh-phang", r.name, `${r.name}: thân cạnh hơi lệch (${round(f * 100, 0)}% điểm > ${FLAT_LIGHT * 100}%): kiểm tờ liên hệ trước khi kéo.`, { piece: r.name }); pieceState(r.name, "warn"); }
     }
+    if (r.softFlat) { issue(issues, "light", "canh-phang", r.name, `${r.name}: thân cạnh lệch ${round(r.softFlat.before * 100, 0)}% điểm: đã ép phẳng (${r.softFlat.changed} điểm), còn ${round(Math.max(r.flat ?? 0, r.flat3 ?? 0) * 100, 0)}%; kiểm tờ liên hệ.`, { piece: r.name }); pieceState(r.name, "warn"); }
     if (r.asym != null && r.asym > SYM_LIGHT) {
       issue(issues, "light", "doi-xung", r.name, `${r.name}: bốn góc không giống nhau (${round(r.asym * 100, 0)}% điểm khác); cutter dựng gương từ góc trên-trái nên có thể bỏ qua.`, { piece: r.name });
       pieceState(r.name, "warn");
@@ -290,6 +318,7 @@ function parseArgs(argv) {
     else if (a === "--div") o.div = +argv[++i];
     else if (a === "--palette") o.palette = argv[++i];
     else if (a === "--no-image") o.images = false;
+    else if (a === "--soft") o.soft = true;
     else if (a.startsWith("--")) throw new Error(`tùy chọn lạ: ${a}`);
     else o.files.push(a);
   }
@@ -300,12 +329,12 @@ const summary = (r) => `${r.level.padEnd(5)} ${r.sheet} [${r.kind}] ${r.size.joi
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const o = parseArgs(process.argv.slice(2));
-    if (!o.files.length) { console.error("Dùng: npm run ui:check -- <tờ.png>… [--kind F|N|O|T|I|D|BOARD] [--out <thư mục>] [--no-image] [--div N] [--palette <file.gpl>]"); process.exit(2); }
+    if (!o.files.length) { console.error("Dùng: npm run ui:check -- <tờ.png>… [--kind F|N|O|T|I|D|BOARD] [--out <thư mục>] [--no-image] [--div N] [--palette <file.gpl>] [--soft]"); process.exit(2); }
     const kit = loadKit(), palette = o.palette ? readGpl(o.palette).map(hex) : null, base = o.out ?? path.join(os.tmpdir(), "ui-check");
     let blocked = 0;
     for (const f of o.files) {
       if (!existsSync(f)) throw new Error(`không có tờ ${f}`);
-      const r = analyzeUiSheet(f, { kit, kindId: o.kindId, div: o.div, palette });
+      const r = analyzeUiSheet(f, { kit, kindId: o.kindId, div: o.div, palette, soft: o.soft });
       console.log(summary(r));
       if (r.level === "chặn") blocked++;
       for (const i of r.issues) if (i.sev !== "note") console.log(`  ${{ block: "CHẶN", light: "nhẹ", warn: "cảnh báo" }[i.sev]} ${i.code} ${i.where}: ${i.msg}`);

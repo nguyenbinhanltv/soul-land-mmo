@@ -5,7 +5,7 @@
 // Chung: --colors N (mặc định theo loại: PORTRAIT_MAX_COLORS / PT_MAX_COLORS) --palette auto|gpl (gpl = chỉ chọn trong art/palette.gpl + màu võ hồn)
 //        --merge D (gộp màu gần hơn D) --min-cluster N --passes N (làm cứng cạnh) --accent K (ưu tiên điểm sáng): mặc định theo loại, xem DEFAULTS_BY_TYPE ở vohon-pixelize-lib.mjs
 //        --bg auto|none|#rrggbb (bỏ nền; chân dung mặc định none) --outline on|off --lift auto|off|<0..1> (icon: nâng sáng ảnh tối, mặc định auto 0,8) --no-check (chỉ tắt in kết quả kiểm; vẫn thoát mã 1 nếu CHẶN)
-//        --preset portrait2 (P1c2, #1158: sát RAW, nền theo màu viền, giữ khối tối / mắt / mỏ, 16 màu; báo colorDrift) | --preset portrait (#1095, tạo tương phản: nền lạnh tối, hue-shift, ≤ 8 màu, viền sáng; chỉ chân dung; từng mục chỉnh bằng) --hue-shift 0..1 --max-colors N --cool on|off --rim on|off --protect on|off
+//        --preset icon-nearest (#1159, icon cách C: cắt cận, láng giềng gần nhất 24 / 32, đủ màu RAW, viền #1a1020; không ép bảng màu) | --preset portrait2 (P1c2, #1158: sát RAW, nền theo màu viền, giữ khối tối / mắt / mỏ, 16 màu; báo colorDrift) | --preset portrait (#1095, tạo tương phản: nền lạnh tối, hue-shift, ≤ 8 màu, viền sáng; chỉ chân dung; từng mục chỉnh bằng) --hue-shift 0..1 --max-colors N --cool on|off --rim on|off --protect on|off
 // Ghi `<id>-<loại>[-cỡ].png`, `.report.json` (cắt, màu, điểm sáng còn / mất) và in kết quả `vohon-check pixel`. Thoát mã 1 nếu có mục CHẶN.
 // Ảnh RAW KHÔNG vào game từ đây: đây chỉ là bản thử để duyệt bằng mắt (vohon-preview.mjs); nhập game theo skill asset-gen sau khi chủ repo duyệt.
 import { mkdirSync, writeFileSync } from "node:fs";

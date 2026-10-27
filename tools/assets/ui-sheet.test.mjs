@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Img, decodePng } from "./lib.mjs";
-import { loadKit, kindFromName, classifyUiShape, suggestNine, nineSliceRender, mirrorFold, buildPalette, quantize, areaDown } from "./ui-kit-lib.mjs";
+import { loadKit, kindFromName, classifyUiShape, suggestNine, nineSliceRender, mirrorFold, buildPalette, quantize, areaDown, edgeFlatness, defringe, flattenEdges, pinkFringe } from "./ui-kit-lib.mjs";
 import { analyzeUiSheet, draftErrorLine, toJson } from "./ui-sheet-check.mjs";
 import { cutUiSheet, budgetOf, mergeIntoKit } from "./ui-sheet-cut.mjs";
 import { c2Sheet, C2_KIND, ui5Sheet, buildSheet, fakeFrame, readUi } from "./ui-sheet-fixture.mjs";
@@ -189,4 +189,96 @@ test("cắt lại mảnh đã cắt (đã ở lưới master, bảng màu có s�
   assert.equal(pieces.length, 6);
   const again = cutUiSheet({ img: buildSheet([pieces.slice(0, 3), pieces.slice(3, 6)], { k: 4 }), name: "toF", kindId: "F", kit });
   for (const [k, buf] of first.files) assert.ok(buf.equals(again.files.get(k)), k);
+});
+
+// ---------- Cắt mềm (--soft), --skip, mirror theo mảnh ----------
+const INK = [26, 16, 32];
+const dirtyInk = { ink: [70, 0, 70] }; // mực viền ám tím-hồng như nền ăn vào (kênh r, b hơn g quá 40)
+
+test("edgeFlatness: hàng thân cạnh trong suốt đồng nhất (ngọc nhô ra, tab hở đáy) không bị tính lệch", () => {
+  const body = fakeFrame(60, 44, { cap: 0, round: false }), m = new Img(60, 50);
+  m.blit(body, 0, 0, 60, 44, 0, 6); // dải mép bắt đầu ở hàng 6; sáu hàng trên là trong suốt
+  assert.ok(edgeFlatness(m, 8, 10) < 0.15, `hàng trong suốt đồng nhất phải phẳng: ${edgeFlatness(m, 8, 10)}`);
+  m.set(30, 2, [200, 60, 50, 255]); // điểm đặc lẻ loi trong hàng trong suốt vẫn là lệch
+  m.set(31, 2, [200, 60, 50, 255]);
+  assert.ok(edgeFlatness(m, 8, 10) > 0, "điểm đặc lẻ loi vẫn bị đếm");
+});
+
+test("defringe: mực tối ám hồng về #1a1020, hồng sáng bị bỏ, ruột giữ nguyên, tất định", () => {
+  const im = new Img(12, 12);
+  for (let y = 1; y < 11; y++) for (let x = 1; x < 11; x++) im.set(x, y, [60, 120, 60, 255]);
+  for (let i = 1; i < 11; i++) { im.set(i, 1, [70, 0, 70, 255]); im.set(i, 10, [220, 100, 220, 255]); }
+  const a = defringe(im, INK), b = defringe(im, INK);
+  assert.deepEqual(a.img.get(5, 1), [...INK, 255]);
+  assert.equal(a.img.get(5, 10)[3], 0);
+  assert.deepEqual(a.img.get(5, 5), [60, 120, 60, 255]);
+  assert.equal(a.left, 0);
+  assert.ok(a.recolored >= 10 && a.removed >= 10);
+  assert.deepEqual(Buffer.from(a.img.data), Buffer.from(b.img.data));
+  assert.equal(pinkFringe(im).pink > 0, true);
+});
+
+test("flattenEdges: sọc thân cạnh ép phẳng, hoa văn giữa cạnh và góc giữ nguyên", () => {
+  const fr = fakeFrame(60, 44, { stripes: true }), s = 8;
+  assert.ok(edgeFlatness(fr, s, 4) > 0.15);
+  const fx = flattenEdges(fr, s, 4);
+  assert.ok(fx.changed > 0 && edgeFlatness(fx.img, s, 4) <= 0.15, `${edgeFlatness(fx.img, s, 4)}`);
+  assert.deepEqual(fx.img.get(2, 2), fr.get(2, 2), "góc không đổi");
+  assert.deepEqual(fx.img.get(30, 20), fr.get(30, 20), "ruột không đổi");
+});
+
+test("--soft: viền mực ám hồng hạ từ CHẶN xuống nhẹ (đã bù), còn viền hồng sáng dày vẫn CHẶN", () => {
+  const dirty = fakeFrame(60, 44, dirtyInk);
+  const sheet = buildSheet([[dirty, dirty, dirty], [dirty, dirty, dirty]], { k: 4 });
+  const strict = check(sheet), soft = check(sheet, "F", { soft: true });
+  assert.ok(codes(strict, "block").includes("vien-hong"), JSON.stringify(strict.issues.map((i) => i.code)));
+  assert.ok(!codes(soft, "block").includes("vien-hong"), JSON.stringify(soft.issues));
+  const note = soft.issues.find((i) => i.code === "vien-hong");
+  assert.equal(note?.sev, "light");
+  assert.match(note.msg, /đã bù/);
+  assert.ok(soft.soft.fringeBefore > 0.03 && soft.soft.fringeAfter <= 0.01, JSON.stringify(soft.soft));
+  const thick = fakeFrame(60, 44, { band: [200, 80, 200], ink: [200, 80, 200], t: 9 });
+  const still = check(buildSheet([[thick, thick, thick], [thick, thick, thick]], { k: 4 }), "F", { soft: true });
+  assert.ok(codes(still, "block").includes("vien-hong"), "bù không đủ thì vẫn chặn, không che lỗi thật");
+});
+
+test("--soft: tờ sạch không đổi kết quả; tờ không bật soft giữ nguyên hành vi cũ", () => {
+  const clean = fSheet(), a = check(clean), b = check(clean, "F", { soft: true });
+  assert.equal(a.level, "pass");
+  assert.equal(b.level, "pass");
+  assert.deepEqual(a.pieces.map((p) => Buffer.from(p.master.data).toString("hex")), b.pieces.map((p) => Buffer.from(p.master.data).toString("hex")));
+});
+
+test("--skip: bỏ mảnh còn chặn riêng để cắt phần đạt; chặn chung và tên lạ thì từ chối", () => {
+  const bad = fakeFrame(60, 44, { stripes: true }), ok = fakeFrame(60, 44);
+  const sheet = buildSheet([[bad, ok, ok], [ok, ok, ok]], { k: 4 });
+  const r = check(sheet);
+  const blocked = r.issues.filter((i) => i.sev === "block").map((i) => i.piece);
+  assert.deepEqual(blocked, ["khung_muc_lon"]);
+  assert.throws(() => cutUiSheet({ img: sheet, name: "toF", kit }), /CHẶN/);
+  const cut = cutUiSheet({ img: sheet, name: "toF", kit, skip: ["khung_muc_lon"] });
+  assert.equal(cut.pieces.length, 5);
+  assert.ok(!cut.pieces.some((p) => p.name === "khung_muc_lon"));
+  assert.deepEqual(cut.report.skipped, ["khung_muc_lon"]);
+  assert.throws(() => cutUiSheet({ img: sheet, name: "toF", kit, skip: ["khong_co"] }), /không có mảnh/);
+  const dirty = buildSheet([[bad, ok, ok], [ok, ok, ok]], { k: 4, bg: [255, 0, 255, 255], halo: 0 });
+  assert.equal(check(dirty).issues.some((i) => i.sev === "block" && !i.piece), false);
+});
+
+test("--skip theo tên thật của mảnh: tên ghi đè bằng --names dùng được, tên spec cũ bị từ chối", () => {
+  const bad = fakeFrame(60, 44, { stripes: true }), ok = fakeFrame(60, 44);
+  const sheet = buildSheet([[bad, ok, ok], [ok, ok, ok]], { k: 4 }), names = ["a1", "a2", "a3", "a4", "a5", "a6"];
+  const cut = cutUiSheet({ img: sheet, name: "toF", kit, names, skip: ["a1"] });
+  assert.deepEqual(cut.pieces.map((p) => p.name), ["a2", "a3", "a4", "a5", "a6"]);
+  assert.throws(() => cutUiSheet({ img: sheet, name: "toF", kit, names, skip: ["khung_muc_lon"] }), /không có mảnh khung_muc_lon/);
+});
+
+test("mirror theo mảnh: spec `mirror: false` giữ nguyên hình (tab hở đáy), mảnh khác vẫn dựng gương", () => {
+  const k2 = JSON.parse(JSON.stringify(kit));
+  k2.kinds.F.pieces[0].mirror = false;
+  const f = fakeFrame(60, 44);
+  const cut = cutUiSheet({ img: buildSheet([[f, f, f], [f, f, f]], { k: 4 }), name: "toF", kit: k2 });
+  assert.equal(cut.pieces[0].mirror, false);
+  assert.ok(cut.pieces.slice(1).every((p) => p.mirror === true));
+  assert.equal(realKit.kinds.N.pieces.filter((p) => p.mirror === false).map((p) => p.name).join(), "tab_thuong,tab_chon");
 });
