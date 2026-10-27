@@ -10,6 +10,8 @@ Prompt tự sinh bằng `node tools/assets/vohon-prompt.mjs --type phaptuong --i
 - `candidates/concept-attempt2.png`: 2078875 byte; SHA256 `7f2be5e3022117fb3e59ab29ff7f037e55a0c80f8e194780dbc03ba472ee3893`; prompt SHA256 `298658c86df26ae5e89544b6360c99ae3d1528e9f89fe2f0a9862fbbbc531c68`.
 - `candidates/concept-attempt3.png`: 1824410 byte; SHA256 `e4d6cfb04c501f29f0bbbe1c24f04040b1c1167ab5ce2739f9e5660d12f90aa3`; prompt SHA256 `298658c86df26ae5e89544b6360c99ae3d1528e9f89fe2f0a9862fbbbc531c68`.
 
+Công cụ dùng tạm `--type phaptuong` để sinh prompt năm hướng theo chỉ định chủ repo ở comment #6436237808 của issue #1096; đây chỉ là concept, không thay pháp tướng hiện có. Theo khuôn lô worker, mọi lượt bị chặn nằm trong `candidates/`, kể cả mẫu tốt nhất của võ hồn khi chưa có lượt đạt; đường dẫn ảnh chính chỉ dùng cho mẫu đề xuất không bị chặn.
+
 ## Tự soát RAW
 
 - Số lượt: 3/3; lượt tốt nhất: 3.
