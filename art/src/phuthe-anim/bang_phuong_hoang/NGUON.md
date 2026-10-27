@@ -20,7 +20,7 @@ Nộm từng tờ ở `references/`, concept lượt lớn nhất ở thư mục
 ## Kiểm, cắt, neo và preview
 Kiểm từng lượt bằng `node tools/assets/phuthe-sheet-check.mjs bang_phuong_hoang --out <temp>/<lượt>/check` (tương đương `npm run phuthe:check -- bang_phuong_hoang --out ...`). Kết quả từng lượt trong source JSON không thay bằng kết quả cutter. Cắt thử bằng `phuthe-sheet-cut.mjs`, neo bằng `phuthe-anchor.mjs --source anim`, preview bằng `phuthe-sheet-preview.mjs`. Đầu ra: `C:/Users/PC/.ao/data/artifacts/soul_land_game-705/bang_phuong_hoang/`; trang `preview/index.html`, `preview/xoay-vong.html` có nam/nữ, đủ clip và hướng tây lật ngang. Preview chuẩn của công cụ ghép theo khung LPC; `anchor.json` tách riêng cho chủ repo chỉnh ráp, không khẳng định preview GIF đã áp neo mới.
 
-## Quyết định và lỗi mắt
+## Quyết định ban đầu và lỗi mắt
 Không nhập game; giữ nhánh cũ. A3 được chọn (0 chặn/32 nhẹ), A1/A2 vào candidates; B1–B3 đều chặn, dừng B ở 3/3 lượt. C/D/E dùng 1 lượt mỗi tờ, dừng vì cả võ hồn đã không đủ điều kiện nhập; không dùng tờ chặn làm ảnh dẫn. Cắt chẩn đoán 110 khung, 0 block/177 warn/3 info; B/D/E dùng gap+uniform-cols dự phòng, không phải đạt kiểm RAW.
 
 Khai báo bằng mắt (`--eye` chưa có trong CLI, chỉ lưu hồ sơ):
@@ -32,6 +32,22 @@ Khai báo bằng mắt (`--eye` chưa có trong CLI, chỉ lưu hồ sơ):
 ```
 
 Đã xem khung giữa của đủ năm clip trên cả LPC nam/nữ: chim nằm cao, hướng gần nhau, cánh cast xén; neo lớn, không chứng nhận ráp đạt đẹp.
+
+## Nhập bổ sung theo chỉ đạo chủ repo qua orchestrator (28/10)
+
+Chỉ đạo mới cho phép nhập hướng đạt và dùng candidate của hướng chặn nếu cắt sạch, phần còn lại giữ nguồn cũ. **Đã nhập đủ năm hướng** bằng `phuthe-import`; không đổi kết quả checker RAW thành đạt. Bản game dùng bảng sau, cả hai giới:
+
+| Hướng | RAW được cắt | Cơ sở lựa chọn |
+|---|---|---|
+| s | `toA.png` (A3) | 0 chặn RAW |
+| se | `candidates/toB-attempt3.png` | RAW còn chặn; bản cắt không còn nộm; B1 thử cắt lại còn xanh nộm nên không chọn |
+| e | `candidates/toC-attempt1.png` | RAW còn chặn; bản cắt không còn nộm, đủ khung |
+| ne | `candidates/toD-attempt1.png` | RAW còn chặn; bản cắt không còn nộm, đủ khung |
+| n | `candidates/toE-attempt1.png` | RAW còn chặn; bản cắt không còn nộm, đủ khung |
+
+Đầu vào nhập: `C:/Users/PC/.ao/data/artifacts/soul_land_game-705/bang_phuong_hoang-nhap/`, giữ đúng bản cắt A3/B3/C1/D1/E1 đã soát trước đó: 110 khung, 0 block / 177 warn / 3 info; B/D/E vẫn dùng `gap+uniform-cols`. Khóa nộm mặc định `#30D030`, không sửa RAW. Đã xem khung giữa của cả năm clip × năm hướng × nam/nữ: không còn mảng nộm xanh, không có khung rỗng; vẫn còn lỗi mỹ thuật/cánh xén và hướng gần nhau như khai mắt ở trên. Đây là ngoại lệ nhập candidate cắt được, không phải chứng nhận RAW đạt.
+
+Lệnh nhập: `node tools/assets/phuthe-import.mjs --id bang_phuong_hoang --dir <thư mục trên> --anchor <thư mục trên>/anchor.json`. Game thêm hai lớp `vhanim_bang_phuong_hoang_b/f` và neo source anim. Không hướng nào cần lấy ảnh cũ trong sheet mới; ảnh `vh_bang_phuong_hoang_b/f` cũ vẫn được giữ trong repo. Chủ repo chỉnh ráp bằng trang thử phụ thể; không sửa client/tools, không sinh thêm ảnh.
 
 ## Ghi công
 
