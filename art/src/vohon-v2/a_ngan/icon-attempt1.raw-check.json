@@ -1,0 +1,44 @@
+{
+  "type": "icon",
+  "id": "a_ngan",
+  "issues": [
+    {
+      "sev": "soft",
+      "code": "mem",
+      "text": "texture mềm: 84% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất"
+    },
+    {
+      "sev": "soft",
+      "code": "luoi",
+      "text": "chưa đúng lưới khối: tỉ số biên 1.27 ở chu kỳ 34 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)"
+    },
+    {
+      "sev": "soft",
+      "code": "lech-mau",
+      "text": "30% điểm sáng cùng họ màu robe / col của a_ngan (mục 4 cần ≥ 50%)"
+    }
+  ],
+  "metrics": {
+    "w": 1254,
+    "h": 1254,
+    "ratio": 1,
+    "border": {
+      "clear": 1,
+      "flat70": 0
+    },
+    "fill": 0.91,
+    "softness": 0.84,
+    "bigColors": 155,
+    "grid": {
+      "period": 34,
+      "ratio": 1.27
+    },
+    "paletteMatch": 0.3,
+    "smallAccent": "7/8"
+  },
+  "manual": [
+    "đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi)",
+    "không có chữ, ký hiệu đọc được, logo, chữ ký",
+    "đọc được cả ở cỡ thật 1× (nhìn lướt)"
+  ]
+}
