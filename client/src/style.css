@@ -1719,6 +1719,8 @@ body.ui-w1000:not(.touch) #actrow{gap:6px}
 body.ui-w1000:not(.touch) #actbar :is(#bskills,#itemActions) .sk.ui-cell{width:44px}
 /* Guide tránh đội hình cao hơn và chừa vùng báo trước quanh nhân vật giữa màn hình. */
 body:not(.touch) #hud>.guide{bottom:max(206px,calc(50% + 44px))}
+/* Cảm ứng: ô kỹ năng thành lưới hai hàng (cao hơn 132px mặc định của guide) nên guide nằm trên thanh hành động, không che nút Đánh thường. */
+body.touch #hud>.guide{bottom:196px}
 
 body.touch.ui-h460:not(.ui-portrait) #actbar{flex-direction:row;align-items:flex-end;gap:8px}
 body.touch.ui-h460:not(.ui-portrait) #actbar .tm.ui-cell{width:78px}

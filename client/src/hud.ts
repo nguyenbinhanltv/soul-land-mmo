@@ -357,6 +357,14 @@ function setCtSlot(b: HTMLElement, on: boolean) {
   if (v.tier >= 0) b.dataset.tier = String(v.tier); else delete b.dataset.tier;
   b.setAttribute("aria-label", v.label); setCellTip(b, v.tip);
 }
+/** Nút HUD: chuột / bút chạy ngay ở pointerdown (không chờ nhả); chạm chạy ở click (cuộn / kéo không kích hoạt), bàn phím (detail 0) cũng ở click.
+ * Loại con trỏ ghi từ pointerdown vì click của Safari iOS / WebView không phải PointerEvent (pointerType undefined). */
+function bindPress(b: HTMLElement, run: () => void) {
+  let touchDown = false;
+  b.addEventListener("pointerdown", (e) => { e.preventDefault(); touchDown = e.pointerType === "touch"; if (!touchDown) run(); });
+  b.addEventListener("click", (e) => { if (e.detail === 0 || touchDown) { touchDown = false; run(); } });
+}
+
 /**
  * Thanh kỹ năng: đánh thường, 4 ô hồn kỹ mang theo của võ hồn ra trận (từ 8.1a theo `loadout`: chỉ số vòng ở từng ô U / I / O / P,
  * -1 = trống; vòng 1–4 riêng nếu có, không thì dùng chung; tên, biểu tượng, chú thích kèm sức mạnh theo số năm hồn hoàn), nút R Võ
@@ -381,8 +389,7 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
     b.setAttribute("aria-disabled", String(locked));
     b.querySelector(".sk-state")!.textContent = locked ? "Khóa" : "";
     const run = () => { if (!b.classList.contains("locked")) act(action); };
-    b.addEventListener("pointerdown", (e) => { e.preventDefault(); if (e.pointerType !== "touch") run(); });
-    b.addEventListener("click", (e) => { if (e.detail === 0 || (e as PointerEvent).pointerType === "touch") run(); });
+    bindPress(b, run);
     el.appendChild(b);
   };
   mk("J", "Đánh thường", "Đánh", VOHON[vh].col, "attack", "", false, undefined, "Đánh thường · phím J", -1, 0, 0, artImg("gi_menu_arena"));
@@ -547,8 +554,7 @@ export function buildBoneSkills(worn: WornBone[], act: (k: string) => void) {
     b.querySelector(".sk-state")!.textContent = sk ? "" : "Khóa";
     b.setAttribute("aria-disabled", String(!sk));
     const run = () => { if (!b.classList.contains("locked")) act(`bone${i}`); };
-    b.addEventListener("pointerdown", (e) => { e.preventDefault(); if (e.pointerType !== "touch") run(); });
-    b.addEventListener("click", (e) => { if (e.detail === 0 || (e as PointerEvent).pointerType === "touch") run(); });
+    bindPress(b, run);
     el.appendChild(b);
   });
   const pas = $("#bpas"); pas.innerHTML = "";
@@ -695,8 +701,7 @@ export function buildTeam(data: OwnedVohons, sw: (slot: number) => void) {
     b.setAttribute("aria-disabled", String(!v));
     teamTip(b);
     const run = () => { if (v) sw(i); };
-    b.addEventListener("pointerdown", (e) => { e.preventDefault(); if (e.pointerType !== "touch") run(); });
-    b.addEventListener("click", (e) => { if (e.detail === 0 || (e as PointerEvent).pointerType === "touch") run(); });
+    bindPress(b, run);
     el.appendChild(b);
   });
 }
