@@ -8,7 +8,7 @@ import os from "node:os";
 import path from "node:path";
 import { ROOT, Img, encodePng, readPng, hex } from "./lib.mjs";
 import * as L from "./phuthe-sheet-lib.mjs";
-import { dummyCell, dummySheet, dummyTurnaround, writeDummies, bodyAnchors } from "./phuthe-sheet-dummy.mjs";
+import { dummyCell, dummySheet, dummyTurnaround, writeDummies, bodyAnchors, guideCell } from "./phuthe-sheet-dummy.mjs";
 import { buildDirectionPrompt, buildTurnaroundPrompt, referencesFor, stageDocs, infoWith } from "./phuthe-sheet-prompt.mjs";
 import { parseLessons, lessonsFor } from "./phuthe-sheet-lessons.mjs";
 import { fakeSheet } from "./phuthe-sheet-fake.mjs";
@@ -120,6 +120,39 @@ test("nộm: bảng nộm ghi ra 6 ảnh (turnaround + 5 tờ), điểm neo thâ
   } finally { rmSync(out, { recursive: true, force: true }); }
 });
 
+test("vạch tham chiếu (#1171): màu khóa riêng khác nền / nộm / võ hồn; đường chân đúng gốc chân, tâm ngực trong thân, thước đúng chiều cao thân; vạch nằm dưới nộm", () => {
+  for (const id of L.allPhutheIds()) {
+    const info = L.phutheInfo(id), g = hex(info.guideKey), d = hex(info.dummyKey);
+    assert.ok(Math.hypot(g[0] - 255, g[1], g[2] - 255) > 100 && Math.hypot(g[0] - d[0], g[1] - d[1], g[2] - d[2]) >= 120, `${id}: vạch khác nền / nộm`);
+    for (const c of [info.colors.col, info.colors.robe]) { const q = hex(c); assert.ok(Math.hypot(g[0] - q[0], g[1] - q[1], g[2] - q[2]) >= 90, `${id}: vạch gần màu võ hồn ${c}`); }
+  }
+  assert.equal(L.guideKeyOf("ta_hoa_phuong_hoang"), "#7A5CFF"); assert.notEqual(L.guideKeyOf("tu_vong_chu_hoang"), "#7A5CFF");
+  for (const F of [96, 128]) for (const [dir, clip, step] of [["s", "idle", 0], ["e", "walk", 2], ["e", "attack", 2], ["n", "cast", 1], ["s", "hurt", 1]]) {
+    const gs = guideCell({ dir, clip, step, frame: F }), d = dummyCell({ dir, clip, step, frame: F }), [fx, fy] = d.foot, tag = `${F} ${dir} ${clip}${step}`;
+    assert.ok(gs.length > 20, tag);
+    assert.ok(gs.some(([x, y, w, h]) => y === Math.round(fy) && h === 3 && w >= 8), `${tag}: có đường chân ở y = gốc chân`);
+    assert.ok(gs.some(([x, , w]) => x === Math.round(fx) - 1 && w === 2), `${tag}: có trục dọc qua gốc chân`);
+    const cross = gs.find(([, , w, h]) => w === 21 && h === 2);
+    assert.ok(cross && cross[0] + 10 > d.box.x0 && cross[0] + 10 < d.box.x1 && cross[1] > d.box.y0 && cross[1] < fy, `${tag}: tâm ngực nằm trong thân nộm`);
+    const ruler = gs.find(([x, , w, h]) => x === 14 && w === 2 && h > 40);
+    assert.equal(ruler[1], d.box.y0, `${tag}: thước bắt đầu ở đỉnh đầu`); assert.ok(Math.abs(ruler[1] + ruler[3] - 3 - Math.round(fy)) <= 1, `${tag}: thước kết thúc ở chân`);
+  }
+  // tờ nộm: vạch một màu khóa riêng; nộm đè lên vạch; ô trống không vạch; không có vạch thì bằng bộ cũ
+  const gk = "#7A5CFF", s0 = dummySheet({ group: "B", dir: "e", frame: 96, key: "#00D0D0" }), s1 = dummySheet({ group: "B", dir: "e", frame: 96, key: "#00D0D0", guideKey: gk });
+  const g = hex(gk), kd = hex("#00D0D0"), cnt = { g: 0, d: 0, o: 0 };
+  for (let y = 0; y < 1024; y++) for (let x = 0; x < 1536; x++) {
+    const p = s1.img.get(x, y), q = s0.img.get(x, y);
+    if (p[0] === g[0] && p[1] === g[1] && p[2] === g[2]) cnt.g++; else if (p[0] === kd[0] && p[1] === kd[1] && p[2] === kd[2]) { cnt.d++; assert.deepEqual([q[0], q[1], q[2]], kd, "nộm giữ nguyên chỗ"); } else if (!(p[0] === 255 && p[1] === 0 && p[2] === 255)) cnt.o++;
+  }
+  assert.ok(cnt.g > 5000 && cnt.d > 5000 && cnt.o === 0, JSON.stringify(cnt));
+  for (const c of [[4, 3], [5, 3]]) for (let y = c[1] * 256; y < c[1] * 256 + 256; y++) for (let x = c[0] * 256; x < c[0] * 256 + 256; x++) { const p = s1.img.get(x, y); assert.ok(p[0] === 255 && p[1] === 0 && p[2] === 255, "ô thừa trống, không vạch"); }
+  const files = (() => { const out = tmp("guide"); try { return writeDummies("ta_hoa_phuong_hoang", out).map((f) => readPng(f)); } finally { rmSync(out, { recursive: true, force: true }); } })();
+  assert.equal(files.length, 6);
+  const turn = dummyTurnaround({ frame: 96, key: "#00D0D0", guideKey: gk }); let tg = 0;
+  for (let y = 0; y < turn.h; y++) for (let x = 0; x < turn.w; x++) { const p = turn.get(x, y); if (p[0] === g[0] && p[1] === g[1] && p[2] === g[2]) tg++; }
+  assert.ok(tg > 3000, "turnaround có vạch");
+});
+
 // ---------- prompt ----------
 test("prompt: chèn NGUYÊN VĂN khối STYLE / NEGATIVE mục 6 ở đầu, mô tả mục 4 của đúng võ hồn, nền #FF00FF ghi đè 'Transparent background', cho cả 25 võ hồn", () => {
   const style = L.styleBlock();
@@ -150,6 +183,15 @@ test("prompt direction: lưới 6×4, số khung theo nhóm, ô thừa trống k
   assert.match(pb, /do not copy any older drawing/);
   assert.match(buildDirectionPrompt(infoWith("a_ngan"), L.sheetPlan("C")[0]), /solid #30D030/, "màu nộm riêng của võ hồn gần cyan");
   assert.match(buildDirectionPrompt(infoWith("a_ngan", { dummyKey: "#D0D000" }), L.sheetPlan("C")[0]), /solid #D0D000/, "--dummy-key ghi đè");
+});
+
+test("prompt: mô tả vạch tham chiếu do công cụ sinh (màu khóa, tỉ lệ thân / ô, đường chân); --no-dummy thì không có", () => {
+  const info = infoWith("ta_hoa_phuong_hoang"), d = dummyCell({ dir: "s", clip: "idle", step: 0, frame: info.frame });
+  for (const t of [buildDirectionPrompt(info, L.sheetPlan(info.group)[2]), buildTurnaroundPrompt(info)]) {
+    assert.ok(t.includes("GUIDE LINES") && t.includes(info.guideKey) && t.includes("FOOT LINE") && t.includes("CHEST CENTER") && t.includes("CORNER BRACKETS"));
+    assert.ok(t.includes(`about ${Math.round(((d.box.y1 - d.box.y0 + 1) / 256) * 100)}% of the cell height`) && t.includes(`feet line at ${Math.round((d.foot[1] / 256) * 100)}%`), "tỉ lệ tính từ nộm");
+  }
+  assert.ok(!buildDirectionPrompt(infoWith("ta_hoa_phuong_hoang", { noDummy: true }), L.sheetPlan("B")[2]).includes("GUIDE LINES"));
 });
 
 test("prompt turnaround: 5 cột hướng × 3 hàng (idle / attack / hurt), kèm nộm; tài liệu ghi đúng tên file, 5 tờ A–E theo s, se, e, ne, n", () => {
@@ -218,7 +260,7 @@ const FAKE = {};
 function fakeSet(id, { drift = [0, 0], bad = [], jitter = 3, seed = 1, scale = 1 } = {}) {
   const info = L.phutheInfo(id), sheets = {};
   L.DIRS.forEach((dir, i) => {
-    let img = fakeSheet({ group: info.group, dir, frame: info.frame, key: info.dummyKey, seed: seed + i, drift, bad, jitter }).img;
+    let img = fakeSheet({ group: info.group, dir, frame: info.frame, key: info.dummyKey, guideKey: info.guideKey, seed: seed + i, drift, bad, jitter }).img;
     if (scale !== 1) { const w = Math.round(img.w * scale), h = Math.round(img.h * scale), o = new Img(w, h); for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) o.set(x, y, img.get(Math.min(img.w - 1, Math.floor(x / scale)), Math.min(img.h - 1, Math.floor(y / scale)))); img = o; }
     sheets[L.SHEET_ID[dir]] = img;
   });
@@ -234,7 +276,9 @@ test("cutter: tờ giả lệch cả tờ (6, −4) và từng ô → không ch�
     assert.equal(r.report.frames, L.totalFrames(L.phutheInfo(id).group) * 5);
     assert.deepEqual([r.halves.b.w, r.halves.b.h], [cols * F, 10 * F]); assert.deepEqual([r.halves.f.w, r.halves.f.h], [cols * F, 10 * F]);
     assert.equal(r.report.dummyKey, L.phutheInfo(id).dummyKey);
-    // không còn điểm ảnh gần màu khóa nộm
+    // không còn điểm ảnh gần màu khóa nộm, cũng không gần màu khóa vạch tham chiếu (tờ giả CÓ vạch)
+    const gk = hex(L.phutheInfo(id).guideKey);
+    for (const im of [r.halves.b, r.halves.f]) for (let i = 0; i < im.data.length; i += 4) if (im.data[i + 3]) assert.ok(Math.abs(im.data[i] - gk[0]) + Math.abs(im.data[i + 1] - gk[1]) + Math.abs(im.data[i + 2] - gk[2]) > 60, "lọt điểm màu vạch");
     const dk = hex(r.report.dummyKey);
     for (const im of [r.halves.b, r.halves.f]) for (let i = 0; i < im.data.length; i += 4) if (im.data[i + 3]) assert.ok(Math.abs(im.data[i] - dk[0]) + Math.abs(im.data[i + 1] - dk[1]) + Math.abs(im.data[i + 2] - dk[2]) > 60, "lọt điểm màu nộm");
     // hướng s / se / e: cánh ở nửa sau, vũ khí ở nửa trước; ne / n: cánh cũng ở nửa trước

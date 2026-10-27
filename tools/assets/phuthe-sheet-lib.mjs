@@ -138,6 +138,19 @@ export const DUMMY_KEY_ALT = {
 };
 export const dummyKeyOf = (id) => DUMMY_KEY_ALT[id] ?? DUMMY_KEY;
 
+// ---------- Màu khóa vạch tham chiếu (#1171) ----------
+/** Vạch tham chiếu (đường chân, trục, tâm ngực, chiều cao thân, góc khung) vẽ cùng nộm bằng MỘT màu khóa riêng, khác nền, khác nộm; cutter trừ như nộm. */
+export const GUIDE_KEY = "#7A5CFF";
+/** Ứng viên đổi màu vạch khi võ hồn có màu gần màu vạch (tím / xanh tím gần #7A5CFF; cam / đỏ gần #FF8C00). */
+export const GUIDE_KEY_CANDIDATES = [GUIDE_KEY, "#FF8C00", "#80C000"];
+const rgbOf = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const rgbDist = (a, b) => Math.hypot(...rgbOf(a).map((v, i) => v - rgbOf(b)[i]));
+/** Màu vạch của võ hồn: ứng viên đầu tiên cách xa (≥ 90) màu thân + màu nhấn của võ hồn trong VOHON và (≥ 120) màu khóa nộm. */
+export function guideKeyOf(id, dummyKey = dummyKeyOf(id), colors = vohonColors(id)) {
+  const far = (g) => rgbDist(g, dummyKey) >= 120 && (!colors || [colors.col, colors.robe].every((c) => rgbDist(g, c) >= 90));
+  return GUIDE_KEY_CANDIDATES.find(far) ?? GUIDE_KEY;
+}
+
 // ---------- Thông tin từng võ hồn ----------
 const read = (f) => readFileSync(f, "utf8");
 /** Bảng "Bảng phần riêng của phụ thể" trong đặc tả → [{ n, name, id, group, frame, frameNote, attach, motion }]. */
@@ -184,7 +197,8 @@ export function phutheInfo(id) {
   if (!row) throw new Error(`võ hồn ${id} không có trong bảng phần riêng của phụ thể (${path.relative(ROOT, DOC_SPEC)})`);
   const brief = parseStyleBrief(id);
   if (!brief) throw new Error(`võ hồn ${id} không có mô tả ở mục 4 của ${path.relative(ROOT, DOC_STYLE)}`);
-  return { ...row, brief, colors: vohonColors(id), dummyKey: dummyKeyOf(id), groupVi: GROUP_VI[row.group] };
+  const colors = vohonColors(id), dummyKey = dummyKeyOf(id);
+  return { ...row, brief, colors, dummyKey, guideKey: guideKeyOf(id, dummyKey, colors), groupVi: GROUP_VI[row.group] };
 }
 export const allPhutheIds = () => parseSpecTable().map((r) => r.id);
 

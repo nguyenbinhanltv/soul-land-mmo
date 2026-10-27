@@ -57,3 +57,6 @@ Lỗi ne/n chỉ khai, không vẽ đè hoặc sinh thêm riêng để sửa m�
 | `references/ta_hoa_phuong_hoang-nom-turnaround.png` | - | `phuthe-sheet-dummy.mjs`, thân LPC hiện có | Bảng nộm cyan, dựng tự động; nguồn/giấy phép lớp thân theo hồ sơ LPC hiện có của repo. | 2026-10-27 | Chỉ tham chiếu vị trí, không asset game mới. |
 
 Sau AO review: bài học thứ ba đã khái quát để không ép cánh lông lửa lên mọi võ hồn nhóm B. Prompt lượt 3 giữ nguyên bản thực gửi (bản bài học trước sửa nằm ở commit 8d34f105), không sinh thêm ảnh.
+
+## Cập nhật bảng nộm tham chiếu (#1171)
+Bảng nộm trong `references/` được dựng lại bằng công cụ có **vạch tham chiếu** (đường chân, trục, tâm ngực, thước chiều cao thân, góc khung; màu khóa vạch **#7A5CFF**, nộm vẫn cyan **#00D0D0**, khung 96, neo (48, 74)). `nom-turnaround.png` mới SHA256 `3d218426bc61b52cd457505e184fb210dec14b3d97bab95d0206e21a8672788f`. Ba lượt candidates ở trên được sinh bằng bảng nộm CŨ (SHA256 `0d2d6f89…1456`, không vạch); lượt sau dùng bảng mới và prompt có khối `GUIDE LINES`.

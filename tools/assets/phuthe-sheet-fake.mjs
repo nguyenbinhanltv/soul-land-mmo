@@ -8,7 +8,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Img, encodePng, hex } from "./lib.mjs";
 import { DIRS, CELL, SHEET_W, SHEET_H, SHEET_ID, phutheInfo } from "./phuthe-sheet-lib.mjs";
-import { dummySheet } from "./phuthe-sheet-dummy.mjs";
+import { dummySheet, guideCell } from "./phuthe-sheet-dummy.mjs";
 
 const OUT = [26, 16, 32, 255], WING = [224, 96, 26, 255], BLADE = [90, 130, 170, 255];
 function rng(seed) { let s = seed >>> 0 || 1; return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; }
@@ -22,13 +22,15 @@ const outlined = (img, poly, color, out = OUT) => { for (let dy = -2; dy <= 2; d
 /**
  * Tờ giả của một hướng: { img }. Tùy chọn: seed, drift [dx, dy], bad (danh sách lỗi), wingColor, jitter (dời ngẫu nhiên từng ô).
  */
-export function fakeSheet({ group, dir, frame, key, sex = "m", seed = 1, drift = [0, 0], bad = [], wingColor = WING, jitter = 3 }) {
-  const rand = rng(seed), base = dummySheet({ group, dir, frame, key, sex }), out = new Img(SHEET_W, SHEET_H);
+export function fakeSheet({ group, dir, frame, key, sex = "m", seed = 1, drift = [0, 0], bad = [], wingColor = WING, jitter = 3, guideKey = null }) {
+  const rand = rng(seed), base = dummySheet({ group, dir, frame, key, sex, guideKey }), out = new Img(SHEET_W, SHEET_H);
   for (let i = 0; i < out.data.length; i += 4) { out.data[i] = 255; out.data[i + 1] = 0; out.data[i + 2] = 255; out.data[i + 3] = 255; }
   const kc = hex(key);
   base.cells.forEach((c, n) => {
     const cellImg = new Img(CELL, CELL);
     for (let i = 0; i < cellImg.data.length; i += 4) { cellImg.data[i] = 255; cellImg.data[i + 2] = 255; cellImg.data[i + 3] = 255; }
+    const gd = guideKey ? guideCell({ sex, dir, clip: c.anim, step: c.step, frame }) : [], gcol = guideKey ? [...hex(guideKey), 255] : null; // vạch tham chiếu còn trong ảnh (model chép lại): dưới nộm, riêng trục + tâm ngực đè lên nộm; cutter phải trừ
+    for (const [x, y, w, h, o] of gd) if (!o) for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) cellImg.set(x + i, y + j, gcol);
     if (bad.includes("empty") && n === 5) { /* ô rỗng */ } else {
       const [fx, fy] = c.cell.foot, beat = Math.sin((c.frame / 4) * Math.PI * 2) * 12;
       const wing = (s, col) => outlined(cellImg, [[fx + s * 22, fy - 100], [fx + s * 80, fy - 120 + beat], [fx + s * 86, fy - 60 + beat], [fx + s * 24, fy - 40]], col, bad.includes("keycolor") && n === 7 ? kc.concat(255) : OUT);
@@ -36,6 +38,7 @@ export function fakeSheet({ group, dir, frame, key, sex = "m", seed = 1, drift =
       wing(-1, wc); wing(1, wc);
       const dc = bad.includes("nodummy") && n === 3 ? WING : [...kc, 255];
       for (let y = 0; y < CELL; y++) for (let x = 0; x < CELL; x++) if (c.cell.mask[y * CELL + x]) cellImg.set(x, y, dc);
+      for (const [x, y, w, h, o] of gd) if (o) for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) cellImg.set(x + i, y + j, gcol);
       fillPoly(cellImg, [[fx - 7, fy - 78], [fx + 7, fy - 78], [fx + 7, fy - 42], [fx - 7, fy - 42]], bad.includes("keycolor") && n === 7 ? kc.concat(255) : BLADE); // vũ khí đè lên nộm
     }
     const jx = Math.round((rand() - 0.5) * 2 * jitter), jy = Math.round((rand() - 0.5) * 2 * jitter);
@@ -58,7 +61,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const info = phutheInfo(id), drift = (val("--drift") ?? "0,0").split(",").map(Number);
   mkdirSync(out, { recursive: true });
   DIRS.forEach((dir, i) => {
-    const { img } = fakeSheet({ group: info.group, dir, frame: info.frame, key: info.dummyKey, seed: +(val("--seed") ?? 1) + i, drift, bad: a.includes("--bad") ? ["empty", "nodummy", "keycolor"] : [] });
+    const { img } = fakeSheet({ group: info.group, dir, frame: info.frame, key: info.dummyKey, guideKey: info.guideKey, seed: +(val("--seed") ?? 1) + i, drift, bad: a.includes("--bad") ? ["empty", "nodummy", "keycolor"] : [] });
     writeFileSync(path.join(out, `to${SHEET_ID[dir]}.png`), encodePng(img));
     console.log(`ghi ${path.join(out, `to${SHEET_ID[dir]}.png`)}`);
   });

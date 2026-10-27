@@ -20,7 +20,7 @@ import { silhouetteDiff, silhouetteIou, BG_LOCK, BG_TOL, EMPTY_CELL_FRAC, BASELI
 import {
   DIRS, CLIPS, COLS, BAND_ROWS, TURNAROUND, CELL, SHEET_W, SHEET_H, DIR_OF_SHEET, ANIM_ROOT, sheetCells, figuresPerBand, framesOf, sheetFits, phutheInfo, GROUPS,
 } from "./phuthe-sheet-lib.mjs";
-import { prepareSheet, cellSpirit, dropSpecks, REG_MIN_SCORE } from "./phuthe-sheet-cut-lib.mjs";
+import { prepareSheet, cellSpirit, dropSpecks, eraseGuides, REG_MIN_SCORE } from "./phuthe-sheet-cut-lib.mjs";
 
 // ---------- Ngưỡng ----------
 export const REG_BLOCK = 0.25;          // điểm đăng ký nộm dưới mức này: coi như mất nộm (chặn); dưới REG_MIN_SCORE: nhẹ
@@ -103,9 +103,9 @@ export function analyzeSheet(file, o) {
   const group = o.group;
   res.plan = { dirs: [dir], cols: COLS, rows: BAND_ROWS };
   if (!sizeCheck(res, raw)) return finish(res);
-  const grid = detectGrid(raw);
+  const clean = eraseGuides(raw, o.guideKey), grid = detectGrid(clean); // vạch tham chiếu không phải hình
   res.grid = grid;
-  bgCheck(res, grid, raw);
+  bgCheck(res, grid, clean);
   if (grid.bands.length !== BAND_ROWS) {
     issue(issues, "block", "luoi", "toàn tờ", `dò được ${grid.bands.length} dải hàng, cần ${BAND_ROWS}: không dò được lưới (hàng dính nhau hoặc vỡ).`);
     res.bands = grid.bands.map((b) => ({ ...b, state: "bad", figures: b.figures.map((f) => ({ ...f, state: "bad" })) }));
@@ -150,7 +150,7 @@ export function analyzeSheet(file, o) {
 /** Nộm, phụ thể từng ô (cần lưới đúng): đăng ký nộm, khung rỗng, điểm gắn, cỡ, khung chết, hurt = idle. */
 function analyzeCells(res, raw, o, dir) {
   const { issues } = res, group = o.group, fr = framesOf(group);
-  const prep = prepareSheet(raw, { group, dir, frame: o.frame, dummyKey: o.dummyKey, sex: o.sex ?? "m" });
+  const prep = prepareSheet(raw, { group, dir, frame: o.frame, dummyKey: o.dummyKey, guideKey: o.guideKey, sex: o.sex ?? "m" });
   res.prep = { shift: prep.shift, factor: prep.factor, grid: prep.layout.mode };
   const rowState = (row) => res.bands.find((b) => b.row === row);
   for (const cell of prep.cells) {
@@ -211,7 +211,7 @@ export function checkPhuThe(id, opt = {}) {
   if (!GROUPS.includes(group)) throw new Error(`nhóm lạ ${group}`);
   const ta = turnaroundFile(dir), files = sheetFiles(dir);
   if (!files.length && !ta) throw new Error(`không có tờ toA.png… trong ${dir}`);
-  const o = { group, frame, dummyKey, sex: opt.sex ?? "m" };
+  const o = { group, frame, dummyKey, guideKey: opt.guideKey ?? info.guideKey, sex: opt.sex ?? "m" };
   const sheets = files.map((f) => analyzeSheet(f, o)), turnaround = ta ? analyzeTurnaround(ta) : null;
   const sRef = sheets.find((s) => s.dirs[0] === "s");
   if (sRef) for (const s of sheets) {
