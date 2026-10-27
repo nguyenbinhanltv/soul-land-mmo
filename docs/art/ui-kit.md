@@ -241,9 +241,26 @@ Cờ `ui2` chạy song song giao diện cũ, **tắt mặc định**; tắt thì
 
 - `client/src/uiKit.ts`: đọc mảnh `ui2_<tên>` trong manifest ảnh (mảnh do `ui:cut` xuất; `nine` = `{ x2, x1 }`; ảnh ở `sprites/iso/ui2/2x/` và `1x/`) thành `--ui2-<tên>` (ảnh), `--ui2-<tên>-nine` (vạch cắt của bản đang dùng), `--ui2-<tên>-bw` (độ dày viền CSS = vạch / hệ số kit). Bản 2× khi `--u` × DPR ≥ 2, ngược lại 1× (tính lại khi đổi cỡ). Có mảnh nào thì body có lớp `ui2-k-<tên>`.
 - `client/src/ui2.css`: helper khung theo vai trò, gắn lớp vào phần tử: Mực `f2-muc-lon` / `f2-muc-nho`, Giấy `f2-giay-lon` / `f2-giay-nho`, `f2-tooltip`, `f2-toast`, ô `f2-o`, tab `f2-tab`, nút `f2-nut-chinh` / `f2-nut-phu` (trạng thái theo `:hover` / `:active` / `.sel` / `:disabled`). Đây là chỗ **duy nhất** đặt `border-width`, `border-image-slice`, `border-image-width` của kit v2 (qua `--frame-img`, `--frame-nine`, `--frame-bw`); luôn `pixelated`. Màn chuyển ở P7 gắn lớp `f2-*` và gỡ luật khung riêng của nó (chỉ trong chế độ ui2: luật cũ vẫn ở đó cho giao diện hiện tại).
-- Chưa có mảnh kit nào được nhập vào manifest ảnh (P4 / P7 làm): lớp `ui2-k-*` chưa có nên helper chưa áp, phần tử giữ kiểu cũ (fallback). Khi nhập mảnh thì không cần sửa helper.
+- Kit đã nhập (mục "Nhập kit vào game"): lớp `ui2-k-*` có thật khi `?ui=2`, helper áp; tắt cờ thì không đặt biến, không tải ảnh kit, giao diện cũ không đổi. Mảnh nhập mới không cần sửa helper.
 - Chưa chuyển màn nào (P7). Token `--frame-*` cũ (`--frame-panel`, `--frame-btn`...) giữ nguyên cho tới P8.
 - Test: `npm run test:ui2 --prefix client` (cờ, bản kit, token, vạch 9-slice ≤ nửa cạnh và độ dày = vạch / hệ số kit trên manifest kit, ui2.css chỉ đi qua token và chỉ dùng mảnh có trong spec).
+
+## Nhập kit vào game (`ui:import`, #885)
+
+`npm run ui:import` cắt lại từ ảnh RAW trong `art/src/ui-kit` theo `PLAN` ở `tools/assets/ui-import.mjs` (cắt mềm `--soft`, chỉ giữ mảnh đúng chất liệu: tờ F Mực lấy `khung_muc_lon / nho / tooltip`, toast từ lượt F Mực attempt5, tờ F Giấy lấy `khung_giay_lon / nho`; N / O / T Mực lấy cả tờ), rồi ghi:
+- ảnh `shared/assets/sprites/iso/ui2/2x/` và `1x/` (`ui2_<tên>.png`);
+- mục `{ "key": "ui2_<tên>", "iso": true, "nine": { "x2", "x1" } }` vào `shared/assets/sprites/manifest.json` (chỉ thay các dòng `ui2_*`, mục khác giữ nguyên từng byte; không sửa tay);
+- `pieces` / `groups` ở `art/src/ui-kit/ui-kit.json`.
+`npm run ui:import -- --check` (có trong `test:assets`) báo lỗi nếu ảnh hoặc manifest lệch với kết quả cắt (cắt tất định). Tờ mới hoặc mảnh vẽ lại: sửa `PLAN` rồi chạy lại. `validate.mjs` nhận khoá `ui2_*` (kiểu `ui2`: bảng màu do cutter giữ, cần cả bản 1×). Phaser bỏ qua khoá này; ảnh chỉ được tải bởi CSS khi cờ `ui2` bật. Vạch 9-slice được giới hạn để 2 × vạch 1× vẫn nhỏ hơn cạnh ngắn (tab thấp 20 điểm ở 1×). Chưa nhập: nút / ô / thanh Giấy và 2 tab Giấy (chưa có chỗ dùng ở `ui2.css`), tờ icon pilot (#884).
+
+## Khung màn chuẩn và thành phần nhỏ (đợt 1 của bộ spec UI, #885)
+
+`client/src/uiParts.ts` + `client/src/ui2-parts.css` (mọi luật dưới `body.ui2`, màu qua token, chữ 10 / 12 / 24). Chỉ trình bày: số liệu, trạng thái và giờ do server quyết.
+- **Khung màn** `screenFrame({ material: "muc" | "giay", title, badge, info, currency, nav, primary, onNav, onPrimary })`: huy hiệu + tên + nút `i` (trái-trên), vùng tiền tệ ngữ cảnh (phải-trên), cột điều hướng trái, **một** nút chính phải-dưới (44 px, `f2-nut-chinh`; khoá thì hiện lý do cạnh nút). Cờ `ui2` tắt thì trả `null` (màn giữ bảng cũ). Nội dung màn đặt vào `frame.body`; khung ăn kit qua `f2-muc-lon` / `f2-giay-lon`.
+- **Thẻ có nhãn trạng thái** `statusCard({ title, sub, state, reason, rank, limit, onClick })`: `new` chấm đỏ, `up` mũi tên xanh, `done` tick + gạch tên, `lock` xám + lý do (không có lý do thì hiện "Chưa mở"; thẻ khoá không phát `onClick`), `rank` 0…4 là màu nền theo `--rare-N` kèm vạch góc dài dần, `limit` là nhãn đầu thẻ. Mỗi dấu một hình riêng (không chỉ màu).
+- **Công tắc** `toggle({ label, on, disabled, onChange })` (`role=switch`; màn gửi server rồi gọi `set` nếu bị từ chối), **đồng hồ đếm ngược** `countdown({ target, now, label, onEnd })` (`role=timer`; `now` là đồng hồ máy chủ; dưới `COUNTDOWN_SOON_MS` đổi viền đứt nét; hết giờ viền chấm, "Đã hết"; tự dừng khi rời cây DOM), `abbrevNumber` (1,2K / 12,5M).
+- Cây dựng là hàm thuần (`frameNode`, `cardNode`, `toggleNode`, `countdownNode`, `toHtml`) để test bằng node và dựng trang xem trước: `node --experimental-strip-types tools/assets/ui-parts-preview.mjs --out <thư mục ngoài repo>` (mọi trạng thái × 3 nền × 3 cỡ × Mực / Giấy, nút đổi kit 1× / 2×). Test: `npm run test:uiparts --prefix client`.
+- Chưa chuyển màn nào: màn dùng ở đợt sau (menu hub, HUD, màn lõi).
 
 ## Lỗi đã sửa ở P0 (ghi để không lặp)
 
@@ -259,7 +276,7 @@ Cờ `ui2` chạy song song giao diện cũ, **tắt mặc định**; tắt thì
 | P2 | skill `ui-kit`, prompt mẫu, trang xem trước bộ component, CI nhẹ | #880 | đã đóng |
 | P3 | style board BOARD hướng B (cổng 1) | #881 | mở |
 | P4 | kit mẫu khung / nút / ô / thanh, Mực rồi Giấy (cổng 2); chốt cỡ kit và kiểm Firefox | #882 | mở |
-| P5 | lớp token + cờ `ui2` + helper khung theo vai trò | #883 | đã làm (PR), chưa có mảnh kit nhập |
+| P5 | lớp token + cờ `ui2` + helper khung theo vai trò | #883 | đã làm; kit nhập ở #885 (`ui:import`), khung màn + thành phần nhỏ ở `uiParts.ts` |
 | P6 | icon pilot 16 menu (AI) so với game-icons | #884 | mở |
 | P7 | chuyển từng màn sang kit v2 (8 màn) | #885 | mở |
 | P8 | dọn khung cũ, `ui2` mặc định, token thành luật chặn | #886 | mở |
