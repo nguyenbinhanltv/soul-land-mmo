@@ -1,0 +1,18 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "attempt": 2,
+  "image_sha256": "86c74333a021f236522f4ad01816a12e57b4af3da884335cdc2dd3f47297e0c7",
+  "prompt_sha256": "b6f64c59cf895006d4afee9d4035bde8437844e1a76c2f0e00605f10cd27e3ad",
+  "original_output": "C:\\Users\\PC\\.codex\\generated_images\\01a17c43-78f6-7b71-8761-194681d08ba0\\exec-9c883833-f7ac-411f-8745-85a7a5caf0db.png",
+  "reference": "PR #1083: concept-turnaround-attempt2.png (Hạo Thiên Chùy)",
+  "status": "CHẶN",
+  "assessment": "Lượt 1: ne lộ mặt, mép cánh bị cắt. Lượt 2: ne lộ mặt, cánh chạm nhau. Lượt 3: ne quay trái và lộ mắt, s hơi nghiêng, se/e gần nhau; chỉ khoảng 3 góc thật đúng yêu cầu. n nhìn lưng đúng. Màu đỏ thẫm/cam, ngực tối và lõi sáng nhận ra; chi tiết lông còn dày (nhẹ), thiếu vòng lửa. Không đạt bộ 5 góc.",
+  "raw_check": {
+    "command": "node tools/assets/vohon-check.mjs raw <image> --type phaptuong --id ta_hoa_phuong_hoang",
+    "exit_code": 0,
+    "output": "raw concept-attempt2.png pháp tướng (ta_hoa_phuong_hoang): NHẸ\n  [NHẸ] mem: texture mềm: 81% cặp điểm kề chỉ chênh nhẹ (pixel cứng gần 0); vohon-pixelize sẽ khử, nhưng chi tiết li ti sẽ mất\n  [NHẸ] luoi: chưa đúng lưới khối: tỉ số biên 1.08 ở chu kỳ 39 (< 3; model không giữ lưới, công cụ chuyển pixel sẽ tự lập lưới)\n  số đo: {\"w\":1983,\"h\":793,\"ratio\":2.501,\"border\":{\"clear\":1,\"flat70\":0},\"poses\":5,\"poseSpread\":1.03,\"softness\":0.817,\"bigColors\":111,\"grid\":{\"period\":39,\"ratio\":1.08},\"paletteMatch\":1}\n  cần mắt duyệt: đúng võ hồn (hình mẫu, vật đi kèm theo mục 4; không phải cute / chibi); không có chữ, ký hiệu đọc được, logo, chữ ký; 5 hướng cùng một hình (cùng cỡ, màu, chi tiết), se / ne chếch đúng hướng; thân đặc, không trong suốt\n"
+  }
+}
