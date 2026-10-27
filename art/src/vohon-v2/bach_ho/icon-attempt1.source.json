@@ -1,0 +1,24 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "type": "icon",
+  "attempt": 1,
+  "raw": "icon-attempt1.png",
+  "raw_sha256": "39f7df63447d87e0ffd3bc0c131d23d757c096c86445a102b613f12fde825039",
+  "prompt": "icon-attempt1.prompt.txt",
+  "prompt_sha256": "245e6f6edd0397acf2b916989767dda75da90e1aa47f66ae7078be8516efabc9",
+  "reference": "concept-attempt1.png",
+  "reference_sha256": "910d3a48b513daa6e8dd4768dbf57cf9a6d5170d78490066d0af1a51f89a0475",
+  "original": "C:/Users/PC/.codex/generated_images/01a17dd5-789d-7bd1-9290-26a7285f2682/exec-e5d4abb2-6061-460e-829e-eec8ae93705b.png",
+  "pixelize": {
+    "preset": "icon",
+    "colors": 8,
+    "merge": 24,
+    "passes": 2,
+    "protect": true
+  },
+  "status": "needs_visual_review",
+  "eye": "Đầu hổ trắng với vằn tối và mắt vàng; nét nanh và vằn nhỏ cần đối chiếu ở 24 px."
+}
