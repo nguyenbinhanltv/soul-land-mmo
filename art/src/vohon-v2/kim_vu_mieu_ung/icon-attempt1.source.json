@@ -1,0 +1,24 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27",
+  "type": "icon",
+  "attempt": 1,
+  "raw": "icon-attempt1.png",
+  "raw_sha256": "9618305feecfdb0127f6dcfb9455c1903f0d0d5aa023f1b31dacad24f24a5547",
+  "prompt": "icon-attempt1.prompt.txt",
+  "prompt_sha256": "bc01b49e4eee44ee42487c454ca89cc3a0dfbe0355272f0594a40a73b7e5e054",
+  "reference": "concept-attempt1.png",
+  "reference_sha256": "f5acaf93bb42da33603d5d94d9a56fefba8667ba8a9e99d048ca2e70a9f029b9",
+  "original": "C:/Users/PC/.codex/generated_images/01a17dd5-789d-7bd1-9290-26a7285f2682/exec-86899e7d-883f-4b4a-a92e-6bc2128a4fd6.png",
+  "pixelize": {
+    "preset": "icon",
+    "colors": 8,
+    "merge": 24,
+    "passes": 2,
+    "protect": true
+  },
+  "status": "needs_visual_review",
+  "eye": "Đầu cú vàng với tai lông nhọn, mắt lạnh; kiểm mỏ và mắt ở cỡ thật, chi tiết lông phụ có thể lẫn."
+}
