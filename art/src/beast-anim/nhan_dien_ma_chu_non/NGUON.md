@@ -36,4 +36,4 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/beast-anim/nhan_dien_ma_chu_non/` | - | image_gen | RAW hoạt ảnh Nhân Diện Ma Chu non: toA 941×1672, toB 1254×1254; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+| `art/src/beast-anim/nhan_dien_ma_chu_non/` | - | Codex image_gen.imagegen | RAW hoạt ảnh Nhân Diện Ma Chu non: toA 941×1672, toB 1254×1254; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
