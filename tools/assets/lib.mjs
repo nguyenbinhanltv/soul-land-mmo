@@ -506,3 +506,31 @@ export function frameAnchors(fig, x0, y0, w, h, skin = fig) {
   }
   return { head: { x: rowMid(top), y: top }, back, feet: { x: rowMid(bottom), y: bottom + 1 }, hands, mid: rowMid(midEnd) };
 }
+
+// ---------- Lượng tử normal map (#975) ----------
+/** Số bit mỗi kênh mặc định của normal map `_n.png`: 32 mức/kênh nén tốt hơn ~55–60% mà Light2D không thấy khác. */
+export const NORMAL_BITS = 5;
+/** Làm tròn một kênh về lưới `bits` bit (bước 2^(8−bits)), giữ đúng 128 (pháp tuyến phẳng) và 255 (z hướng thẳng ra màn hình). */
+export function quantChannel(v, bits = NORMAL_BITS) {
+  if (bits >= 8) return v;
+  const step = 1 << (8 - bits);
+  return v >= 255 - step / 2 ? 255 : Math.min(Math.round(v / step) * step, 256 - step);
+}
+/** Lượng tử tại chỗ RGB của các điểm có alpha > 0 (điểm trong suốt giữ nguyên, encodePng ghi 0). Trả lại `img`. */
+export function quantizeNormal(img, bits = NORMAL_BITS) {
+  if (bits >= 8) return img;
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) if (d[i + 3]) { d[i] = quantChannel(d[i], bits); d[i + 1] = quantChannel(d[i + 1], bits); d[i + 2] = quantChannel(d[i + 2], bits); }
+  return img;
+}
+/** Sai số góc (độ) giữa pháp tuyến của hai normal map cùng cỡ, chỉ tính điểm có alpha > 0: { mean, max, n }. */
+export function normalAngleError(a, b) {
+  const unit = (d, i) => { const x = d[i] / 127.5 - 1, y = d[i + 1] / 127.5 - 1, z = d[i + 2] / 127.5 - 1, l = Math.hypot(x, y, z) || 1; return [x / l, y / l, z / l]; };
+  let sum = 0, max = 0, n = 0;
+  for (let i = 0; i < a.data.length; i += 4) {
+    if (!a.data[i + 3]) continue;
+    const p = unit(a.data, i), q = unit(b.data, i), deg = Math.acos(Math.min(1, p[0] * q[0] + p[1] * q[1] + p[2] * q[2])) * 180 / Math.PI;
+    sum += deg; n++; if (deg > max) max = deg;
+  }
+  return { mean: n ? sum / n : 0, max, n };
+}
