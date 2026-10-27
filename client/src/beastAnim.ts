@@ -11,7 +11,11 @@ const FLIP_OF: Partial<Record<Dir8, AnimDir>> = { sw: "se", w: "e", nw: "ne" };
 
 export interface AnimSlot { band: number; col: number; n: number }
 /** Bố cục sheet: manifest `anim` (do beast-sheet-cut.mjs ghi) hoặc mặc định theo đặc tả. */
-export interface AnimLayout { cols: number; rowsPerDir: number; dirs: readonly string[]; anims: Record<AnimName, AnimSlot> }
+export interface AnimLayout {
+  cols: number; rowsPerDir: number; dirs: readonly string[]; anims: Record<AnimName, AnimSlot>;
+  /** Hướng vẽ đạt duyệt (#869, manifest `anim.dirsOk`); thiếu = đủ mọi hướng. Hướng không đạt chạy ảnh tĩnh + chuyển động code. */
+  dirsOk?: readonly string[];
+}
 
 export const DEFAULT_LAYOUT: AnimLayout = {
   cols: 6, rowsPerDir: 4, dirs: ANIM_DIRS,
@@ -37,7 +41,8 @@ export function parseLayout(a: unknown): AnimLayout {
     if (!s || !Number.isInteger(s.band) || !Number.isInteger(s.col) || !(s.n >= 1)) return DEFAULT_LAYOUT;
     anims[k] = { band: s.band, col: s.col, n: s.n };
   }
-  return { cols: o.cols ?? 6, rowsPerDir: o.rowsPerDir ?? 4, dirs: o.dirs, anims };
+  const ok = Array.isArray(o.dirsOk) ? o.dirsOk.filter((d, i, a) => o.dirs!.includes(d) && a.indexOf(d) === i) : undefined;
+  return { cols: o.cols ?? 6, rowsPerDir: o.rowsPerDir ?? 4, dirs: o.dirs, anims, ...(ok && ok.length < o.dirs.length ? { dirsOk: ok } : {}) };
 }
 
 /** Hướng 8 trên màn hình → chỉ số hướng vẽ (0–4) và cờ lật ngang. */
@@ -45,6 +50,26 @@ export function animDir(face: Dir8, layout: AnimLayout = DEFAULT_LAYOUT): { dir:
   const f = FLIP_OF[face], d = f ?? face;
   const i = layout.dirs.indexOf(d);
   return { dir: i < 0 ? 0 : i, flip: !!f };
+}
+
+/** Hướng `face` có hoạt ảnh vẽ thật đạt không (tây tính theo hướng đông tương ứng); false thì nơi gọi dùng ảnh tĩnh. */
+export function animDirOk(face: Dir8, layout: AnimLayout = DEFAULT_LAYOUT): boolean {
+  if (!layout.dirsOk) return true;
+  return layout.dirsOk.includes(FLIP_OF[face] ?? face);
+}
+
+/**
+ * Cách vẽ hồn thú ở hướng `face` (#869): "anim" = khung hoạt ảnh vẽ thật của `face`; "static" = sheet tĩnh `beast_<loài>` (hướng chưa đạt, sheet tĩnh đã có);
+ * "near" = hướng chưa đạt mà sheet tĩnh chưa tới: vẽ tạm khung của hướng đạt gần nhất (`face` trả về), tuyệt đối không vẽ khung chưa duyệt.
+ */
+export function beastDirPlan(face: Dir8, layout: AnimLayout, staticReady: boolean): { mode: "anim" | "static" | "near"; face: Dir8 } {
+  if (animDirOk(face, layout)) return { mode: "anim", face };
+  const ok = layout.dirsOk ?? [], base = FLIP_OF[face] ?? face, at = ANIM_DIRS.indexOf(base as AnimDir);
+  let best = ok[0] as AnimDir | undefined;
+  for (const d of ok) if (Math.abs(ANIM_DIRS.indexOf(d as AnimDir) - at) < Math.abs(ANIM_DIRS.indexOf(best as AnimDir) - at)) best = d as AnimDir;
+  const flipOf: Partial<Record<AnimDir, Dir8>> = { se: "sw", e: "w", ne: "nw" };
+  const near = best ? ((FLIP_OF[face] && flipOf[best]) || best) as Dir8 : face;
+  return { mode: staticReady ? "static" : "near", face: near };
 }
 
 /** Chỉ số khung (trong sheet đánh số theo hàng) của khung `i` hoạt ảnh `anim` ở hướng vẽ `dir`; `i` kẹp trong [0, n-1]. */

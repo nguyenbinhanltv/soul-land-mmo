@@ -1,11 +1,13 @@
 // Nhập hoạt ảnh vẽ thật của hồn thú vào game MỘT BƯỚC (H4, skill beast-anim Phần B bước 5–7).
-//   node tools/assets/beast-import.mjs --species a,b,c [--dry-run] [--force] [--scale loài=S]... [--patch loài:A:c,r=c,r]... [--sprites <thư mục>] [--src <thư mục>]
+//   node tools/assets/beast-import.mjs --species a,b,c [--dry-run] [--force] [--scale loài=S]... [--patch loài:A:c,r=c,r]... [--dirs-ok [loài=]s,se,e]... [--dirs-ok-only] [--sprites <thư mục>] [--src <thư mục>]
 // Mỗi loài: cutter v2 (beast-sheet-cut) trên art/src/beast-anim/<loài>/to*.png → chép <loài>_anim.png vào <sprites>/beast/
 //   → normal.mjs --frame FxF sinh _anim_n.png → thêm / cập nhật entry `beast_<loài>_anim` trong <sprites>/manifest.json
 //   (đặt ngay sau entry ảnh tĩnh `beast_<loài>`, chép `map` từ đó; không đụng entry khác; chạy lại không đổi gì)
 //   → sau cùng credits.mjs --check (chỉ khi dùng thư mục mặc định) → bảng tóm tắt.
 // Loài có khối CHẶN (cảnh báo mức block của cutter: thiếu khung, vượt khung, tờ thiếu…) thì BỎ QUA và báo khối nào; không nhập nửa vời.
-// (Chưa có `anim.dirsOk` trên main (#869), nên chưa có cờ nhập riêng khối đạt.)
+// Nhập riêng khối đạt (#869): --dirs-ok s,se,e (mọi loài trong lệnh) hoặc --dirs-ok loài=s,se,e (từng loài, ưu tiên hơn) ghi `anim.dirsOk` vào manifest; client chạy hoạt ảnh ở hướng đạt,
+//   hướng còn lại dùng ảnh tĩnh + chuyển động code. --dirs-ok-only: lấy mọi khối cutter KHÔNG chặn (loài chỉ chặn một vài hướng thì nhập phần còn lại).
+//   Hướng khai trong --dirs-ok mà cutter chặn thì từ chối (không nhập khối hỏng). Lỗi mắt (công cụ không thấy) do người soát khai qua --dirs-ok. Đủ 5 hướng thì không ghi dirsOk.
 // Loài ĐÃ nhập mà bản cắt lại khác thì KHÔNG ghi đè (cutter ở đây không có chỉnh tay của lần nhập trước): cần --force, nên truyền lại --scale / --patch đã dùng.
 // --dry-run: cắt và so sánh, KHÔNG ghi gì; báo "giống bản đã nhập" / "khác bản đã nhập" / "sẽ nhập mới".
 // --sprites / --src: thư mục khác (thử trong thư mục tạm); manifest.json phải có sẵn entry ảnh tĩnh của loài.
@@ -33,6 +35,22 @@ export function blockDirs(issues) {
 }
 
 const ORDER = ["s", "se", "e", "ne", "n", "cả loài"];
+const DIRS5 = ORDER.slice(0, 5);
+
+/** Danh sách hướng đạt khai bằng tay: "s,se,e" → mảng theo thứ tự chuẩn; ném lỗi khi hướng lạ / trùng / rỗng. */
+export function parseDirsOk(text) {
+  const d = text.split(",").map((x) => x.trim()).filter(Boolean), bad = d.filter((x) => !DIRS5.includes(x));
+  if (!d.length || bad.length || new Set(d).size !== d.length) throw new Error(`--dirs-ok sai: "${text}" (hướng hợp lệ ${DIRS5.join(", ")}; mẫu s,se,e hoặc loài=s,se,e)`);
+  return DIRS5.filter((x) => d.includes(x));
+}
+
+/** Hướng đạt của một loài: khai tay (theo loài rồi chung) > --dirs-ok-only (trừ khối chặn) > undefined (không nhập riêng khối). */
+export function pickDirsOk(id, blocked, o) {
+  const want = o.dirsOkBy?.[id] ?? o.dirsOk;
+  if (want) return { dirs: want, rejected: want.filter((d) => blocked.includes(d)) };
+  if (o.dirsOkOnly) return { dirs: DIRS5.filter((d) => !blocked.includes(d)), rejected: [] };
+  return undefined;
+}
 const sortDirs = (d) => [...d].sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
 
 // ---------- Sửa manifest theo văn bản (file có định dạng tay, không tuần tự hóa lại cả file) ----------
@@ -67,8 +85,13 @@ function importOne(id, o) {
   if (r.error) return { ...row, status: "lỗi", note: r.error };
   const rep = r.rep, s = rep.summary;
   Object.assign(row, { frames: rep.frames, block: s.block, warn: s.warn, info: s.info, scale: rep.scaleInfo?.used });
-  const blocked = blockDirs(rep.issues);
-  if (blocked.length) return { ...row, status: "bỏ qua (chặn)", blocked: sortDirs(blocked), note: rep.issues.filter((i) => i.level === "block").slice(0, 3).map((i) => i.msg).join(" · ") };
+  const blocked = blockDirs(rep.issues), pick = pickDirsOk(id, blocked, o);
+  if (pick && !blocked.includes("cả loài")) {
+    if (pick.rejected.length) return { ...row, status: "bỏ qua (chặn)", blocked: sortDirs(blocked), note: `--dirs-ok có khối cutter chặn: ${pick.rejected.join(", ")}` };
+    if (!pick.dirs.length) return { ...row, status: "bỏ qua (chặn)", blocked: sortDirs(blocked), note: "không còn khối nào đạt" };
+    row.dirsOk = pick.dirs;
+    if (pick.dirs.length < DIRS5.length) r.res.entry.anim.dirsOk = pick.dirs;
+  } else if (blocked.length) return { ...row, status: "bỏ qua (chặn)", blocked: sortDirs(blocked), note: rep.issues.filter((i) => i.level === "block").slice(0, 3).map((i) => i.msg).join(" · ") };
 
   const png = path.join(o.sprites, "beast", `${id}_anim.png`), buf = Buffer.from(encodePng(r.res.sheet));
   const manifestPath = path.join(o.sprites, "manifest.json"), text = readFileSync(manifestPath, "utf8");
@@ -93,8 +116,8 @@ function importOne(id, o) {
 }
 
 export function toTable(rows) {
-  const L = ["| Loài | Kết quả | Khung | block / warn / info | Hệ số | Khối chặn | Ghi chú |", "|---|---|---|---|---|---|---|"];
-  for (const r of rows) L.push(`| ${r.id} | ${r.status} | ${r.frames ?? "—"} | ${r.block ?? "—"} / ${r.warn ?? "—"} / ${r.info ?? "—"} | ${r.scale ?? "—"} | ${r.blocked?.join(", ") ?? "—"} | ${r.note ?? (r.png ? `png ${r.png}, manifest ${r.manifest}` : "")} |`);
+  const L = ["| Loài | Kết quả | Khung | block / warn / info | Hệ số | Hướng đạt | Khối chặn | Ghi chú |", "|---|---|---|---|---|---|---|---|"];
+  for (const r of rows) L.push(`| ${r.id} | ${r.status} | ${r.frames ?? "—"} | ${r.block ?? "—"} / ${r.warn ?? "—"} / ${r.info ?? "—"} | ${r.scale ?? "—"} | ${r.dirsOk ? (r.dirsOk.length === 5 ? "đủ 5" : r.dirsOk.join(", ")) : "—"} | ${r.blocked?.join(", ") ?? "—"} | ${r.note ?? (r.png ? `png ${r.png}, manifest ${r.manifest}` : "")} |`);
   return L.join("\n");
 }
 
@@ -106,6 +129,8 @@ function parseArgs(argv) {
     else if (a === "--dry-run") o.dryRun = true;
     else if (a === "--scale") { const [id, v] = argv[++i].split("="); if (!id || !(+v > 0)) throw new Error(`--scale sai: ${id}=${v} (mẫu loài=0.55)`); o.scales[id] = +v; }
     else if (a === "--patch") { const spec = argv[++i], k = spec.indexOf(":"); if (k < 1) throw new Error(`--patch sai: ${spec} (mẫu loài:A:5,3=4,3)`); (o.patches[spec.slice(0, k)] ??= []).push(parsePatch(spec.slice(k + 1))); }
+    else if (a === "--dirs-ok") { const v = argv[++i], k = v.indexOf("="); if (k < 0) o.dirsOk = parseDirsOk(v); else (o.dirsOkBy ??= {})[v.slice(0, k)] = parseDirsOk(v.slice(k + 1)); }
+    else if (a === "--dirs-ok-only") o.dirsOkOnly = true;
     else if (a === "--force") o.force = true;
     else if (a === "--sprites") o.sprites = path.resolve(argv[++i]);
     else if (a === "--src") o.src = path.resolve(argv[++i]);
@@ -131,7 +156,7 @@ export function run(o) {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const o = parseArgs(process.argv.slice(2));
-    if (!o.species?.length) { console.error("Dùng: node tools/assets/beast-import.mjs --species a,b,c [--dry-run] [--force] [--scale loài=S]... [--patch loài:A:c,r=c,r]... [--sprites <thư mục>] [--src <thư mục>]"); process.exit(2); }
+    if (!o.species?.length) { console.error("Dùng: node tools/assets/beast-import.mjs --species a,b,c [--dry-run] [--force] [--scale loài=S]... [--patch loài:A:c,r=c,r]... [--dirs-ok [loài=]s,se,e]... [--dirs-ok-only] [--sprites <thư mục>] [--src <thư mục>]"); process.exit(2); }
     process.exit(run(o));
   } catch (e) { console.error(e.message); process.exit(2); }
 }

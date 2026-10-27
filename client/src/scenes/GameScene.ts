@@ -2480,7 +2480,7 @@ export class GameScene extends Phaser.Scene {
   /** Bóng ngã của hồn thú lai vừa biến mất (STATIC_MOTION.die): bản sao sprite ngã quanh chân, chìm, mờ dần rồi tự hủy (không giữ trong this.beasts). */
   fadeBeastGhost(src: Phaser.GameObjects.Sprite) {
     const D = STATIC_MOTION.die, side = src.flipX ? -1 : 1, ba: BeastAnimState | undefined = src.getData("ba");
-    if (ba) { // hoạt ảnh vẽ thật: chạy dải `die` (giữ khung cuối) rồi mờ dần, không xoay / chìm bằng code
+    if (ba && /_anim$/.test(src.texture.key)) { // hoạt ảnh vẽ thật (hướng chưa đạt đang dùng ảnh tĩnh thì rơi xuống nhánh dưới): chạy dải `die` (giữ khung cuối) rồi mờ dần, không xoay / chìm bằng code
       const L = animLayoutOf(src.texture.key), dm = dieMs(L), g = this.add.sprite(src.x, src.y, src.texture.key, dieFrame(L, ba.dir, 0)).setOrigin(src.originX, src.originY)
         .setScale(src.scaleX, src.scaleY).setFlipX(src.flipX).setDepth(src.depth);
       this.tweens.addCounter({ from: 0, to: dm + 500, duration: dm + 500, onUpdate: (c) => { const t = c.getValue() ?? 0; g.setFrame(dieFrame(L, ba.dir, t)); g.setAlpha(t < dm ? 1 : Math.max(0, 1 - (t - dm) / 500)); }, onComplete: () => g.destroy() });
