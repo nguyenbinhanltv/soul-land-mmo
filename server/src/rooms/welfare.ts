@@ -99,14 +99,13 @@ export function welfareAction(room: MapRoom, id: string, m: { op?: unknown; day?
     }
     const bit = 1 << i, { honTe, gives } = checkinGives(i);
     if (!bagFits(d, gives)) return deny("Túi không đủ chỗ cho phần quà: bỏ hoặc bán bớt đồ rồi thử lại.");
-    const coin0 = d.honTe;
-    d.honTe = coin0 - fee; room.addCoin(d, honTe);
+    d.honTe -= fee; room.addCoin(d, honTe);
     for (const g of gives) room.addItem(d, g.code, g.qty);
     const takeBack = () => {
-      d.honTe = coin0; d.bagDirty = true;
+      d.honTe = Math.max(0, d.honTe + fee - honTe); d.bagDirty = true; // hoàn theo hiệu: Hồn Tệ kiếm được trong lúc chờ DB không bị ghi đè
       for (const g of gives) {
         let n = g.qty;
-        for (const x of d.bag.filter((it) => it.code === g.code && it.vohonId === null).reverse()) { const k = Math.min(n, x.qty); room.takeItem(d, x, k); n -= k; if (!n) break; }
+        for (const x of d.bag.filter((it) => it.code === g.code && it.vohonId === null && !it.locked).reverse()) { const k = Math.min(n, x.qty); room.takeItem(d, x, k); n -= k; if (!n) break; }
       }
     };
     let ver: number | null;
