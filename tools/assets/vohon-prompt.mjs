@@ -27,7 +27,7 @@ const TYPE_FORBID = {
   phaptuong: "solid opaque body is required: no translucent ghost look, no text, no frame, no human character, no ground, no cast shadow",
 };
 const BACKGROUND = {
-  portrait: "BACKGROUND (overrides the line \"Transparent background\" of the STYLE block): a dark background (near #1a1020) with ONE restrained hard-edged aura of the spirit's accent color behind the spirit; no gradient glow, no outer border, no frame.",
+  portrait: "BACKGROUND (overrides the line \"Transparent background\" of the STYLE block): a dark background (near #1a1020) with ONE restrained hard-edged aura of the spirit's accent color behind the spirit; no gradient glow, no outer border, no frame. Make the background a cool, dark purple-blue and keep the spirit in warm colors so subject and background never share a hue; the only bright lit points are the eyes and the beak (or core); draw the plumage as 3 to 5 large blades, not many thin strands.",
   icon: "BACKGROUND: transparent (real alpha). If your tool cannot output alpha, use one flat solid #FF00FF magenta, with no gradient, no texture, no shadow.",
   phaptuong: "BACKGROUND: transparent (real alpha). If your tool cannot output alpha, use one flat solid #FF00FF magenta, with no gradient, no texture, no ground, no cast shadow, no labels. Leave a clear empty gap between neighboring views so none of them touch.",
 };

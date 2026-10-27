@@ -7,10 +7,12 @@ import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readPng, hex, vohonColors } from "./lib.mjs";
-import { TYPES, TYPE_VI, MAX_COLORS, PORTRAIT_SIZE, ICON_SIZES, PT_FRAMES, PT_DIRS, OUT, luma, sat, dist, borderKey, colorCounts, splitPoses, pixelizeDown, accentBlobs, accentSurvival, squareCrop, crop, hasAlpha, bbox } from "./vohon-pixelize-lib.mjs";
+import { TYPES, TYPE_VI, MAX_COLORS, PORTRAIT_SIZE, ICON_SIZES, PT_FRAMES, PT_DIRS, OUT, luma, sat, dist, borderKey, colorCounts, splitPoses, pixelizeDown, accentBlobs, accentSurvival, contrastMetrics, squareCrop, crop, hasAlpha, bbox } from "./vohon-pixelize-lib.mjs";
 
 /** Ngưỡng mật độ biên của ảnh pixel nhỏ (chân dung / icon); hằng công cụ. */
 export const EDGE_BUSY = 0.3;
+/** Ngưỡng tương phản (#1095): khoảng cách RGB nhỏ nhất giữa hai màu lớn; tỉ lệ sáng vùng giữa / vòng ngoài của chân dung. Hằng công cụ. */
+export const SEP_MIN = 36, BG_RATIO_MIN = 1.4;
 const issue = (sev, code, text) => ({ sev, code, text });
 export const SEV_VI = { block: "CHẶN", soft: "NHẸ", good: "ĐẸP" };
 
@@ -167,6 +169,11 @@ export function checkPixel(img, { type, id, report } = {}) {
     for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) for (const [a, b] of [[x + 1, y], [x, y + 1]]) { if (a >= img.w || b >= img.h || img.alpha(x, y) < 128 || img.alpha(a, b) < 128) continue; pairs++; if (img.get(x, y).join() !== img.get(a, b).join()) diff++; }
     m.edge = pairs ? +(diff / pairs).toFixed(3) : 0;
     if (m.edge > EDGE_BUSY) issues.push(issue("soft", "nhieu-chi-tiet", `mật độ biên ${m.edge} (> ${EDGE_BUSY}): còn nhiều mảng nhỏ ở cỡ ${img.w}×${img.h}, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn`));
+  }
+  if (type !== "phaptuong") {
+    const c = contrastMetrics(img); m.sep = c.sep; m.bgRatio = c.bgRatio;
+    if (c.sep != null && c.sep < SEP_MIN) issues.push(issue("soft", "gan-mau", `hai màu lớn chỉ cách nhau ${c.sep} (< ${SEP_MIN}): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn`));
+    if (type === "portrait" && c.bgRatio != null && c.bgRatio < BG_RATIO_MIN) issues.push(issue("soft", "nen-chu-the", `vùng giữa chỉ sáng gấp ${c.bgRatio}× vòng ngoài (< ${BG_RATIO_MIN}): chủ thể chưa tách khỏi nền; thử --preset portrait (nền lạnh tối + viền sáng)`));
   }
   const acc = report?.accent; if (acc?.total) {
     m.accent = `${acc.kept}/${acc.total}`;

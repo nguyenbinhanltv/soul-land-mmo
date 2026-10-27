@@ -378,14 +378,9 @@ Máy **không** đo được và vẫn phải duyệt bằng mắt (danh sách "
 
 **Luật 3 lượt (RAW):** mỗi ảnh (một chân dung, một icon, một tờ 5 hướng) **tối đa 3 lượt** vẽ. Chỉ **CHẶN** buộc vẽ lại; NHẸ thì chuyển pixel trước rồi mới quyết có cần lượt mới hay không (đa số NHẸ do chuyển đổi xử lý được, thử cắt sát hơn trước khi xin lượt 2). Mỗi lượt mới chỉ đổi **một** thứ (vật chính, góc nhìn, hoặc độ đơn giản), không dùng ảnh hỏng làm ảnh dẫn. Quá 3 lượt thì dừng, ghi lý do vào `NGUON.md`, báo orchestrator.
 
-**Thử trên RAW của #1083** (ảnh kết quả ở thư mục artifact của phiên làm #1087, không vào repo):
+**Tạo tương phản (#1095):** chân dung 64×64 hay tan gam (mắt lẫn chi tiết). `--preset portrait` của `vohon-pixelize` làm: tách chủ thể khỏi nền (Otsu trên luma), nền về gam lạnh tối (hue → tím, hạ sáng), hue-shift theo sắc độ (`--hue-shift`: bóng → tím, sáng → vàng ấm), gộp tông giống (`merge` cao) còn ≤ `maxColors` (`--max-colors`, mặc định preset 8), giữ màu sáng nhất (mắt, mỏ, lõi) trong bảng, viền sáng 1 điểm màu nhấn ở rìa trên / trái chủ thể. Chỉnh từng mục: `--cool`, `--rim`, `--protect`, `--hue-shift`. `vohon:check pixel` thêm `sep` (khoảng cách RGB nhỏ nhất giữa hai màu chiếm ≥ 2% ảnh; NHẸ `gan-mau` khi < `SEP_MIN`) và `bgRatio` (luma vùng giữa / vòng ngoài, NHẸ `nen-chu-the` khi < `BG_RATIO_MIN`).
 
-| RAW | Cách chuyển | Kết quả |
-|---|---|---|
-| Chân dung Tà Hỏa lượt 2 (1254²) | cả khung → 64×64 | 12 màu; **mất mắt, mỏ**; kiểm pixel chỉ báo NHẸ (mật độ biên 0,362), không nói được "mất mắt / mỏ": cần mắt duyệt |
-| Chân dung Tà Hỏa lượt 2 | cắt sát mặt `--focus 0.69,0.55 --zoom 2.2` | 13 màu; **mỏ móc rõ, mắt còn 3–4 điểm vàng nhạt** lẫn đạo văn; mật độ biên 0,335 (NHẸ). Đọc ra chim dữ nhưng chưa "bá đạo": **lượt 3 cần bản đơn giản hơn** (mắt to, ít đạo văn, lông thành ít mảng lớn) |
-| Concept Hạo Thiên (1983×793, 5 hướng) | `--type phaptuong` | tách đủ 5 hướng (hai cặp chéo chồng khoảng ngang), 5 khung 160×160, 32 / 48 màu; giữ silhouette, đai đồng, vết nứt; mất đạo văn mảnh; **dùng được làm nguồn 5 hướng**, bỏ bước PixelLab |
-| Hạo Thiên (một hướng) → icon | `--crop` hướng giữa | 32×32 đọc ra búa; 24×24 mất đốm sáng (NHẸ); RAW tối nên cần `--lift` (mặc định 0,8) |
+**Thử trên RAW của #1083**: chân dung Tà Hỏa lượt 2 cắt sát mặt `--focus 0.69,0.55 --zoom 2.2`: trước 13 màu, mật độ biên 0,335 (NHẸ), cam dính nhau; sau `--preset portrait` 6 màu, mật độ biên 0,268 (ĐẸP), nền tím tối, mỏ + mắt sáng tách rõ, đủ 7/8 điểm sáng nguồn. Cả khung (không cắt) vẫn mất mắt / mỏ: lượt 3 cần bản đơn giản hơn. Concept Hạo Thiên tách đủ 5 khung 160×160; icon 24×24 mất đốm sáng (NHẸ).
 
 ## 7. Mốc duyệt
 

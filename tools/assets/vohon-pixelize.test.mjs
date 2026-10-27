@@ -264,3 +264,51 @@ test("tài liệu và lệnh: docs/art/vo-hon-phong-cach.md phần 6.1 + package
   assert.match(doc, /^### 6\.1 /m); for (const w of ["vohon-pixelize", "vohon:check", "vohon-prompt", "vohon-preview", "chặn", "nhẹ", "đẹp", "3 lượt"]) assert.ok(doc.includes(w), w);
   assert.equal(pkg.scripts["vohon:check"], "node tools/assets/vohon-check.mjs"); assert.match(pkg.scripts["test:assets"], /vohon-pixelize\.test\.mjs/);
 });
+
+// ---------- Tạo tương phản (#1095) ----------
+/** Ảnh "dính gam": nền cam đậm, chủ thể cam sáng hơn một chút, hai điểm sáng nhỏ. */
+function sameHue(S = 320) {
+  const im = new Img(S, S); fill(im, 0, 0, S, S, [120, 50, 20]); disc(im, S / 2, S / 2, S * 0.32, [170, 80, 30]);
+  disc(im, S * 0.42, S * 0.45, S * 0.03, [255, 240, 150]); disc(im, S * 0.58, S * 0.45, S * 0.03, [255, 240, 150]);
+  return im;
+}
+test("hueShift: bóng về tím, vùng sáng về vàng, tông giữa giữ nguyên", () => {
+  const im = new Img(3, 1); im.set(0, 0, [90, 20, 10, 255]); im.set(1, 0, [200, 100, 50, 255]); im.set(2, 0, [255, 150, 90, 255]);
+  const before = im.get(1, 0).join(); assert.equal(P.hueShift(im, 1), 2);
+  assert.equal(im.get(1, 0).join(), before, "tông giữa không đổi");
+  assert.ok(im.get(0, 0)[2] > 10, "bóng thêm xanh dương (về tím)"); assert.ok(im.get(2, 0)[1] >= 150, "vùng sáng giữ / thêm lục (về vàng)");
+  assert.equal(P.hueShift(im, 0), 0);
+});
+test("subjectMask + coolBackground + rimLight: nền về lạnh tối, viền sáng 1 điểm ở rìa trên trái chủ thể", () => {
+  const im = new Img(32, 32); fill(im, 0, 0, 32, 32, [60, 20, 10]); fill(im, 8, 8, 16, 16, [230, 120, 40]);
+  const { mask, share } = P.subjectMask(im); assert.ok(share > 0.2 && share < 0.4, `share ${share}`); assert.equal(mask[16 * 32 + 16], 1); assert.equal(mask[2 * 32 + 2], 0);
+  P.coolBackground(im, mask); const [r, , b] = im.get(2, 2); assert.ok(b > r * 0.9, "nền thiên về tím / xanh"); assert.deepEqual(im.get(16, 16).slice(0, 3), [230, 120, 40]);
+  const n = P.rimLight(im, mask, [255, 240, 150]); assert.ok(n >= 16 && n <= 40, `rim ${n}`); assert.deepEqual(im.get(8, 12).slice(0, 3), [255, 240, 150]); assert.notDeepEqual(im.get(23, 20).slice(0, 3), [255, 240, 150], "rìa dưới / phải không viền");
+});
+test("protectAccent: màu sáng nhất của ảnh không bị bảng nuốt", () => {
+  const im = new Img(4, 1); [[20, 10, 10], [200, 80, 30], [220, 90, 40], [255, 245, 160]].forEach((c, i) => im.set(i, 0, [...c, 255]));
+  const pal = [[20, 10, 10], [210, 85, 35]]; assert.equal(P.protectAccent(im, pal), true); assert.ok(pal.some((c) => c.join() === "255,245,160"));
+  assert.equal(P.protectAccent(im, pal), false, "đã có thì không đổi");
+});
+test("preset portrait: ≤ 8 màu, tương phản (sep, bgRatio) tốt hơn mặc định, viền sáng + báo cáo", () => {
+  const src = sameHue(), base = P.pixelizePortrait(src, {}), pre = P.pixelizePortrait(src, { preset: "portrait" });
+  assert.ok(pre.palette.length <= 8, `${pre.palette.length} màu`); assert.equal(pre.report.preset, "portrait"); assert.ok(pre.report.rimPixels > 0); assert.ok(pre.report.coolPixels > 0);
+  assert.ok(pre.report.contrast.sep >= base.report.contrast.sep, `sep ${pre.report.contrast.sep} vs ${base.report.contrast.sep}`);
+  assert.ok(pre.report.accent.kept >= 1, "mắt còn");
+  const off = P.pixelizePortrait(src, { preset: "portrait", cool: false, rim: false }); assert.equal(off.report.rimPixels, undefined);
+});
+test("checkPixel: cảnh báo NHẸ gan-mau / nen-chu-the khi các mảng dính gam, im khi đã tách", () => {
+  const flat = new Img(64, 64); fill(flat, 0, 0, 64, 64, [120, 50, 20]); fill(flat, 16, 16, 32, 32, [130, 56, 24]);
+  const r = checkPixel(flat, { type: "portrait", id: "ta_hoa_phuong_hoang" }); assert.ok(codes(r, "soft").includes("gan-mau"), formatResult(r)); assert.ok(codes(r, "soft").includes("nen-chu-the"), formatResult(r));
+  const good = new Img(64, 64); fill(good, 0, 0, 64, 64, [26, 16, 32]); fill(good, 16, 16, 32, 32, [230, 120, 40]);
+  const g = checkPixel(good, { type: "portrait", id: "ta_hoa_phuong_hoang" }); assert.ok(!codes(g, "soft").includes("gan-mau") && !codes(g, "soft").includes("nen-chu-the"), formatResult(g));
+});
+test("CLI --preset portrait ghi báo cáo có preset, contrast", () => {
+  const d = tmp(), raw = path.join(d, "raw.png"); writeFileSync(raw, encodePng(sameHue()));
+  const r = spawnSync(process.execPath, [path.join(here, "vohon-pixelize.mjs"), "--type", "portrait", "--id", "ta_hoa_phuong_hoang", "--in", raw, "--out", path.join(d, "o"), "--preset", "portrait", "--max-colors", "6"], { encoding: "utf8" }); assert.equal(r.status, 0, r.stdout + r.stderr);
+  const rep = JSON.parse(readFileSync(path.join(d, "o", "ta_hoa_phuong_hoang-portrait.report.json"), "utf8")); assert.equal(rep.preset, "portrait"); assert.ok(rep.palette.length <= 6); assert.ok(rep.contrast.sep != null);
+});
+test("prompt chân dung: nền lạnh tối, điểm sáng chỉ ở mắt / mỏ, 3–5 lưỡi lông lớn (#1095)", () => {
+  const t = buildPrompt("portrait", "ta_hoa_phuong_hoang"); const s = typeof t === "string" ? t : t.text ?? JSON.stringify(t);
+  assert.match(s, /cool, dark purple-blue/); assert.match(s, /3 to 5 large blades/);
+});
