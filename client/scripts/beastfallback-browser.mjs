@@ -3,7 +3,8 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createServer } from "node:net";
-import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromium } from "playwright";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
@@ -22,6 +23,14 @@ async function ready(url) {
   throw new Error(`Không mở được ${url}`);
 }
 /** Vào Thánh Hồn Thôn; `blockAnim`: chặn mọi file `beast/*_anim*.png`. Trả các file hồn thú đã xin và khoảng thời gian tới khi hết hồn thú bị ẩn vì chờ sheet. */
+// Loài có anim.dirsOk để kiểm hướng chưa đạt (đọc từ manifest, không phụ thuộc loài nào xuất hiện trên bản đồ).
+const MANIFEST = JSON.parse(readFileSync(new URL("shared/assets/sprites/manifest.json", pathToFileURL(root)), "utf8"));
+const partialSp = (() => {
+  const e = MANIFEST.sprites.find((x) => x.anim?.dirsOk && /^beast_[a-z_]+_anim$/.test(x.key));
+  if (!e) throw new Error("manifest chưa có loài nào có anim.dirsOk để kiểm");
+  const ok = e.anim.dirsOk, bad = ["s", "se", "e", "ne", "n"].find((d) => !ok.includes(d));
+  return { id: e.key.replace(/^beast_|_anim$/g, ""), ok: ok.includes("e") ? "e" : ok[0], bad };
+})();
 async function run(web, token, blockAnim, species = []) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   const reqs = new Set();
@@ -43,6 +52,22 @@ async function run(web, token, blockAnim, species = []) {
   const has = () => page.evaluate((sp) => sp.every((k) => window.__bfScene.textures.exists(k)), species.map((a) => `beast_${a.replace(/_anim$/, "")}`));
   let shown = false;
   for (let i = 0; i < 40 && !(shown = await has()); i++) await sleep(250);
+  // Hướng chưa đạt (anim.dirsOk, #869; review PR #1103): xin loài có dirsOk qua wantBeast (đường tải thật) → cả `_anim` lẫn sheet tĩnh phải tới; ở hướng đạt
+  // texture là `_anim`, ở hướng chưa đạt là `beast_<loài>` (không phải khung `_anim` chưa duyệt).
+  let dirCheck;
+  if (!blockAnim) {
+    dirCheck = await page.evaluate(async ({ sp, okDir, badDir }) => {
+      const L = await import("/src/vohonLazy.ts"), S = await import("/src/sprites.ts"), sc = window.__bfScene;
+      for (let i = 0; i < 80 && L.wantBeast(sc, sp) !== "ready"; i++) await new Promise((r) => setTimeout(r, 250));
+      for (let i = 0; i < 80 && !sc.textures.exists(`beast_${sp}`); i++) { L.wantBeast(sc, sp); await new Promise((r) => setTimeout(r, 250)); }
+      const spr = sc.add.sprite(0, 0, `beast_${sp}_anim`, 0), art = { now: 1000, hp: 10, walkScale: 1 };
+      const a = S.syncBeastSprite(spr, sp, false, false, false, okDir, art), ka = spr.texture.key;
+      const b = S.syncBeastSprite(spr, sp, false, false, false, badDir, { ...art, now: 1100 }), kb = spr.texture.key;
+      const c = S.syncBeastSprite(spr, sp, false, false, false, okDir, { ...art, now: 1200 }), kc = spr.texture.key;
+      spr.destroy();
+      return { a, ka, b, kb, c, kc, hasStatic: sc.textures.exists(`beast_${sp}`) };
+    }, { sp: partialSp.id, okDir: partialSp.ok, badDir: partialSp.bad });
+  }
   if (!blockAnim) await sleep(4000); // bình thường: chờ thêm để thấy có xin sheet tĩnh thừa không
   // Đổi bản đồ khi `_anim` còn bị chặn (đang thử lại nền): preload bản đồ mới cũng không được bị giữ lại, kể cả khi quay về bản đồ cũ.
   const warps = [];
@@ -60,7 +85,7 @@ async function run(web, token, blockAnim, species = []) {
     for (let i = 0; i < 120 && !(replaced = await page.evaluate((ks) => ks.every((k) => window.__bfScene.textures.exists(k)), anim)); i++) await sleep(250);
   }
   await page.close();
-  return { reqs: [...reqs], ms, shown, replaced, warps };
+  return { reqs: [...reqs], ms, shown, replaced, warps, dirCheck };
 }
 
 try {
@@ -80,14 +105,28 @@ try {
   const ok = await run(web, token, false);
   const animOf = ok.reqs.filter((k) => k.endsWith("_anim"));
   assert.ok(animOf.length > 0, `Bản đồ không có loài nào có _anim để kiểm: ${ok.reqs}`);
-  for (const a of animOf) assert.ok(!ok.reqs.includes(a.replace(/_anim$/, "")), `_anim tải được mà vẫn xin sheet tĩnh: ${a}`);
-  console.log(`✓ _anim tải bình thường: ${animOf.length} loài chỉ xin _anim, không xin sheet tĩnh`);
+  // Hoạt ảnh chỉ đạt một số hướng (manifest anim.dirsOk, #869): sheet tĩnh phải được xin kèm (hướng chưa đạt vẽ bằng sheet tĩnh, không bằng khung chưa duyệt).
+  const partial = new Set(MANIFEST.sprites.filter((e) => e.anim?.dirsOk).map((e) => e.key.replace(/^beast_/, "")));
+  for (const a of animOf) {
+    const st = a.replace(/_anim$/, "");
+    if (partial.has(a)) assert.ok(ok.reqs.includes(st), `_anim có dirsOk mà không xin sheet tĩnh cho hướng chưa đạt: ${a}`);
+    else assert.ok(!ok.reqs.includes(st), `_anim tải được mà vẫn xin sheet tĩnh: ${a}`);
+  }
+  console.log(`✓ _anim tải bình thường: ${animOf.length} loài (${animOf.filter((a) => partial.has(a)).length} có dirsOk xin kèm sheet tĩnh, còn lại chỉ xin _anim)`);
 
-  const bad = await run(web, token, true, animOf);
+  const d = ok.dirCheck, sp = partialSp.id;
+  assert.ok(d.hasStatic, `loài có dirsOk (${sp}): sheet tĩnh không được tải kèm`);
+  assert.deepEqual([d.a, d.ka], ["anim", `beast_${sp}_anim`], "hướng đạt dùng hoạt ảnh");
+  assert.deepEqual([d.b, d.kb], ["static", `beast_${sp}`], `hướng chưa đạt (${partialSp.bad}) phải dùng texture tĩnh, không phải _anim`);
+  assert.deepEqual([d.c, d.kc], ["anim", `beast_${sp}_anim`], "quay lại hướng đạt dùng lại hoạt ảnh");
+  console.log(`✓ dirsOk (${sp}): hướng ${partialSp.ok} → _anim, hướng ${partialSp.bad} → sheet tĩnh`);
+
+  const onMap = animOf.filter((a) => a !== `${partialSp.id}_anim`); // loài probe dirsOk tự xin ở trên, chưa chắc có trên bản đồ
+  const bad = await run(web, token, true, onMap);
   assert.ok(bad.ms < 12000, `_anim bị chặn: vào được phòng sau ${bad.ms} ms (cần < 12000, trước sửa ~27000: preload chờ _anim thử lại hết)`);
   for (const w of bad.warps) assert.ok(w < 12000, `_anim bị chặn: đổi bản đồ mất ${w} ms (cần < 12000; ${bad.warps}): preload bản đồ mới bị giữ`);
   assert.ok(bad.shown, "_anim bị chặn: sheet tĩnh của loài có _anim chưa có texture");
-  for (const a of animOf) assert.ok(bad.reqs.includes(a.replace(/_anim$/, "")), `_anim lỗi mà không xin sheet tĩnh: ${a}`);
+  for (const a of onMap) assert.ok(bad.reqs.includes(a.replace(/_anim$/, "")), `_anim lỗi mà không xin sheet tĩnh: ${a}`);
   assert.ok(bad.replaced, "Gỡ chặn _anim: sheet hoạt ảnh không tới thay sheet tĩnh trong 30 s");
   console.log(`✓ _anim bị chặn: vào phòng sau ${bad.ms} ms, đổi bản đồ ${bad.warps} ms, hồn thú hiện bằng sheet tĩnh, gỡ chặn thì _anim tới thay`);
 } finally {

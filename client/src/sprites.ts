@@ -14,9 +14,9 @@ import { TELE_WARN, PT_FRAME } from "../../shared/data.ts";
 import { SPR, type Dir8 } from "./iso.ts";
 import { lightingOn } from "./lighting.ts";
 import { phuClipOf, phuClipIndex, phuDirRow, phuFrame, phuHalf, phuOriginY, phuSheetFits, parsePhuLayout, type PhuLayout } from "./phutheAnim.ts";
-import { registerVohonSheet, registerBlankSheet, setBeastSheetHook, isLazySkillFx } from "./vohonLazy.ts";
+import { registerVohonSheet, registerBlankSheet, setBeastSheetHook, isLazySkillFx, markPartialAnim } from "./vohonLazy.ts";
 import { readFxPrefs } from "./fxSettings.ts";
-import { DEFAULT_LAYOUT, animDirOk, lungeKeep, newBeastAnimState, parseLayout, stepBeastAnim, type AnimLayout, type BeastAnimState } from "./beastAnim.ts";
+import { DEFAULT_LAYOUT, beastDirPlan, lungeKeep, newBeastAnimState, parseLayout, stepBeastAnim, type AnimLayout, type BeastAnimState } from "./beastAnim.ts";
 
 const MANIFEST_KEY = "sprites-manifest";
 const BASE = "sprites/";
@@ -384,18 +384,20 @@ export function syncBeastSprite(s: Phaser.GameObjects.Sprite, species: string | 
   if (species && art && akey) {
     const L = ANIM_LAYOUTS.get(akey) ?? DEFAULT_LAYOUT;
     let st: BeastAnimState | undefined = s.getData("ba");
-    if (s.texture.key !== akey) {
-      if (s.anims.isPlaying) s.anims.stop();
-      s.setTexture(akey, 0);
-      s.setOrigin(0.5, (s.frame.height - ISO_BEAST_FOOT) / s.frame.height);
-      s.setData("sm", undefined);
-    }
     if (st && s.getData("baKey") !== akey) st = undefined; // `ba` giữ qua lúc đổi giữa sheet hoạt ảnh và ảnh tĩnh của cùng loài (hướng chưa đạt)
     s.setData("baKey", akey);
     if (!st) { st = newBeastAnimState(art.now, cast, art.hp); s.setData("ba", st); }
-    const r = stepBeastAnim(st, L, art.now, moving, cast, art.hp, face, art.walkScale, art.atk);
-    // Hướng chưa đạt (#869 anim.dirsOk): giữ trạng thái `ba` chạy tiếp (pha, máu, đòn) nhưng vẽ ảnh tĩnh + chuyển động code; đổi qua lại không nhảy khung.
-    if (animDirOk(face, L) || !isStaticBeast(s.scene, key)) {
+    // Hướng chưa đạt (#869 anim.dirsOk): sheet tĩnh (wantBeast luôn xin kèm khi anim có dirsOk) + chuyển động code; trạng thái `ba` chạy tiếp nên đổi qua lại không nhảy khung.
+    // Sheet tĩnh chưa tới thì vẽ tạm khung của hướng đạt gần nhất, không bao giờ vẽ khung hướng chưa duyệt.
+    const plan = beastDirPlan(face, L, isStaticBeast(s.scene, key));
+    const r = stepBeastAnim(st, L, art.now, moving, cast, art.hp, plan.face, art.walkScale, art.atk);
+    if (plan.mode !== "static") {
+      if (s.texture.key !== akey) {
+        if (s.anims.isPlaying) s.anims.stop();
+        s.setTexture(akey, 0);
+        s.setOrigin(0.5, (s.frame.height - ISO_BEAST_FOOT) / s.frame.height);
+        s.setData("sm", undefined);
+      }
       if (s.frame.name !== String(r.frame)) s.setFrame(r.frame);
       if (s.flipX !== r.flip) s.setFlipX(r.flip);
       if (aggro) s.setTint(0xffb4b4); else s.clearTint();
@@ -485,7 +487,7 @@ export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) =
       const key = typeof e === "string" ? e : e.key, iso = typeof e !== "string" && !!e.iso;
       if (/^lpc_/.test(key)) { lpcNames.add(key.slice(4)); continue; }
       if (iso && !/^(vh|vhanim|beast|fx|pt)_/.test(key)) continue;
-      if (typeof e !== "string" && e.anim && /^beast_[a-z_]+_anim$/.test(key)) ANIM_LAYOUTS.set(key, parseLayout(e.anim));
+      if (typeof e !== "string" && e.anim && /^beast_[a-z_]+_anim$/.test(key)) { const L = parseLayout(e.anim); ANIM_LAYOUTS.set(key, L); markPartialAnim(key, !!L.dirsOk); }
       if (typeof e !== "string" && /^vhanim_[a-z_]+_[bf]$/.test(key)) { const L = parsePhuLayout(e.anim, e.frame); if (L) PHU_LAYOUTS.set(key, L); else console.warn(`[sprites] anim của ${key} không hợp lệ: phụ thể chạy nhánh cũ`); }
       if (typeof e !== "string" && e.lpc && key.startsWith("beast_")) LPC_BEASTS.add(key);
       // Nửa phụ thể trống hoàn toàn (#974): không có file, không tải (cả normal map); lớp đó ẩn (vohonBlank).

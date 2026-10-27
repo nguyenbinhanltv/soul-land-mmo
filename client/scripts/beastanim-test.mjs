@@ -1,6 +1,6 @@
 // H3 (#688): chọn khung hoạt ảnh vẽ thật của hồn thú theo hướng / trạng thái; bố cục manifest; lùi về mặc định khi thiếu.
 import assert from "node:assert/strict";
-import { ANIM_DIRS, ART_MS, DEFAULT_LAYOUT as L, animDir, animDirOk, animFrame, dieFrame, dieMs, lungeKeep, STRIKE_MS, newBeastAnimState, parseLayout, stepBeastAnim } from "../src/beastAnim.ts";
+import { ANIM_DIRS, ART_MS, DEFAULT_LAYOUT as L, animDir, animDirOk, beastDirPlan, animFrame, dieFrame, dieMs, lungeKeep, STRIKE_MS, newBeastAnimState, parseLayout, stepBeastAnim } from "../src/beastAnim.ts";
 
 // hướng: 5 hướng vẽ, tây lật ngang
 const flips = { s: ["s", false], se: ["se", false], e: ["e", false], ne: ["ne", false], n: ["n", false], sw: ["se", true], w: ["e", true], nw: ["ne", true] };
@@ -90,4 +90,15 @@ assert.deepEqual(P.dirsOk, ["s", "se", "e"]);
 for (const [f, ok] of Object.entries({ s: true, se: true, e: true, ne: false, n: false, sw: true, w: true, nw: false })) assert.equal(animDirOk(f, P), ok, f);
 assert.equal(animDirOk("n", L), true, "bố cục mặc định: mọi hướng đạt");
 assert.deepEqual(parseLayout({ ...raw, dirsOk: [] }).dirsOk, [], "danh sách rỗng: mọi hướng dùng ảnh tĩnh");
+// beastDirPlan (#869, review): hướng chưa đạt + sheet tĩnh có → static; chưa có → khung hướng đạt GẦN NHẤT (không bao giờ khung chưa duyệt)
+for (const f of ["s", "se", "e", "sw", "w"]) assert.deepEqual(beastDirPlan(f, P, false), { mode: "anim", face: f }, f);
+assert.deepEqual(beastDirPlan("ne", P, true), { mode: "static", face: "e" });
+assert.deepEqual(beastDirPlan("n", P, false), { mode: "near", face: "e" });
+assert.deepEqual(beastDirPlan("nw", P, false), { mode: "near", face: "w" }, "tây giữ lật ngang");
+const S2 = parseLayout({ ...raw, dirsOk: ["s", "e"] });
+assert.equal(beastDirPlan("se", S2, false).mode, "near");
+assert.ok(animDirOk(beastDirPlan("n", S2, false).face, S2), "mọi mặt thay thế đều là hướng đạt");
+for (const f of ["s", "se", "e", "ne", "n", "sw", "w", "nw"]) for (const sr of [true, false]) for (const lay of [P, S2]) {
+  const pl = beastDirPlan(f, lay, sr); assert.ok(animDirOk(pl.face, lay), `${f} → ${pl.face}`);
+}
 console.log("beastanim-test: OK");

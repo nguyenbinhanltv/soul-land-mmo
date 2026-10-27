@@ -58,6 +58,20 @@ export function animDirOk(face: Dir8, layout: AnimLayout = DEFAULT_LAYOUT): bool
   return layout.dirsOk.includes(FLIP_OF[face] ?? face);
 }
 
+/**
+ * Cách vẽ hồn thú ở hướng `face` (#869): "anim" = khung hoạt ảnh vẽ thật của `face`; "static" = sheet tĩnh `beast_<loài>` (hướng chưa đạt, sheet tĩnh đã có);
+ * "near" = hướng chưa đạt mà sheet tĩnh chưa tới: vẽ tạm khung của hướng đạt gần nhất (`face` trả về), tuyệt đối không vẽ khung chưa duyệt.
+ */
+export function beastDirPlan(face: Dir8, layout: AnimLayout, staticReady: boolean): { mode: "anim" | "static" | "near"; face: Dir8 } {
+  if (animDirOk(face, layout)) return { mode: "anim", face };
+  const ok = layout.dirsOk ?? [], base = FLIP_OF[face] ?? face, at = ANIM_DIRS.indexOf(base as AnimDir);
+  let best = ok[0] as AnimDir | undefined;
+  for (const d of ok) if (Math.abs(ANIM_DIRS.indexOf(d as AnimDir) - at) < Math.abs(ANIM_DIRS.indexOf(best as AnimDir) - at)) best = d as AnimDir;
+  const flipOf: Partial<Record<AnimDir, Dir8>> = { se: "sw", e: "w", ne: "nw" };
+  const near = best ? ((FLIP_OF[face] && flipOf[best]) || best) as Dir8 : face;
+  return { mode: staticReady ? "static" : "near", face: near };
+}
+
 /** Chỉ số khung (trong sheet đánh số theo hàng) của khung `i` hoạt ảnh `anim` ở hướng vẽ `dir`; `i` kẹp trong [0, n-1]. */
 export function animFrame(layout: AnimLayout, anim: AnimName, dir: number, i: number): number {
   const s = layout.anims[anim];
