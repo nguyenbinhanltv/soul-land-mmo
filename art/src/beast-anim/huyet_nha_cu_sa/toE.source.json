@@ -7,5 +7,6 @@
                        "shared/assets/sprites/beast/huyet_nha_cu_sa.png",
                        "art/src/beast-anim/huyet_nha_cu_sa/turnaround.png"
                    ],
-    "tool":  "image_gen"
+    "tool":  "image_gen",
+    "attempts":  1
 }

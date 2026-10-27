@@ -7,7 +7,7 @@ Loài `huyet_nha_cu_sa` (Huyết Nha Cự Sa), họ `swim`, khung game 128×128.
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1557039 byte, SHA256 `520ef6bbe64cf9f6b61fe9ed068ddfbb827c7453d6ffb997bca0dd580a8c8968`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: ao-desktop.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop.
 - Prompt: `turnaround.prompt.txt` (SHA256 `2673fad15233753d6820d05a667edeb1c576e830b43ff17c8cf19bd16c7c5ba3`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
@@ -16,7 +16,7 @@ Loài `huyet_nha_cu_sa` (Huyết Nha Cự Sa), họ `swim`, khung game 128×128.
 ## toA
 
 - File: `toA.png`, **1536×1024**, 1660670 byte, SHA256 `0fbadbe812713a85d5863edec0df5ed45d9e0d5b87381e036e0cfd68dc6ea963`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: ao-desktop.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop.
 - Prompt: `toA.prompt.txt` (SHA256 `821aa82c4b0bac1801a7cb74ba361a5b92d896137c9ed0011e24a75c1da922a7`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ).
@@ -26,7 +26,7 @@ Loài `huyet_nha_cu_sa` (Huyết Nha Cự Sa), họ `swim`, khung game 128×128.
 ## toB
 
 - File: `toB.png`, **1536×1024**, 1748586 byte, SHA256 `34e86c619b4294e42b3704b529a6fc421fa98aff0e06914878f42d3438491103`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: ao-desktop.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop.
 - Prompt: `toB.prompt.txt` (SHA256 `303fe402848feca26a9bcfb5471cf32e671cd5b0d71f28f1341a819246f58024`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: se pass).
@@ -35,7 +35,7 @@ Loài `huyet_nha_cu_sa` (Huyết Nha Cự Sa), họ `swim`, khung game 128×128.
 ## toC
 
 - File: `toC.png`, **1536×1024**, 1691183 byte, SHA256 `f88845cb17298490fb2f963cbb56c24c53804ce4aadf34a967c5367808fa0492`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: ao-desktop.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop.
 - Prompt: `toC.prompt.txt` (SHA256 `98c2f760a718ebb411c9f423ba58ce892534fe1c64817b65d5b8d1d2266ec8d4`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: e nhẹ).
@@ -44,7 +44,7 @@ Loài `huyet_nha_cu_sa` (Huyết Nha Cự Sa), họ `swim`, khung game 128×128.
 ## toD
 
 - File: `toD.png`, **1536×1024**, 1696869 byte, SHA256 `8d3e51b8bb305d57959a1bf1d94ae24a2ca512513c5fac06a9466a041978a349`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: ao-desktop.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: ao-desktop.
 - Prompt: `toD.prompt.txt` (SHA256 `f7ba0e60c0f09b62f07224538b70c4d31f67e53817905e96bfa7e3dc7b541d3f`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: ne pass).
