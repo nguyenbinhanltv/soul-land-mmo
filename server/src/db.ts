@@ -829,7 +829,8 @@ export class MemoryStore implements Store {
     for (const r of rows) {
       const k = `${r.board}|${r.period}|${accountId}`, cur = this.rankRows.get(k), extra = r.extra ? rankLineup(r.extra) : null;
       if (cur && cur.score === r.score && cur.tie === r.tie && JSON.stringify(cur.extra) === JSON.stringify(extra)) continue;
-      this.rankRows.set(k, { score: r.score, tie: r.tie, extra, t: cur && cur.score === r.score ? cur.t : ++this.rankT }); changed = true;
+      this.rankRows.set(k, { score: r.score, tie: r.tie, extra, t: cur && cur.score === r.score ? cur.t : ++this.rankT });
+      if (!cur || cur.score !== r.score) changed = true; // đổi tie / extra: chấp nhận trễ tối đa RANK_BOARD_CACHE giây
     }
     if (changed) rankScoresClear();
   }
@@ -1678,9 +1679,10 @@ export class PgStore implements Store {
           `INSERT INTO rank_scores(board, period, account_id, score, tie, extra) VALUES ($1,$2,$3,$4,$5,$6::jsonb)
            ON CONFLICT (board, period, account_id) DO UPDATE SET score=EXCLUDED.score, tie=EXCLUDED.tie, extra=EXCLUDED.extra,
              updated_at = CASE WHEN rank_scores.score IS DISTINCT FROM EXCLUDED.score THEN now() ELSE rank_scores.updated_at END
-           WHERE (rank_scores.score, rank_scores.tie, rank_scores.extra) IS DISTINCT FROM (EXCLUDED.score, EXCLUDED.tie, EXCLUDED.extra)`,
+           WHERE (rank_scores.score, rank_scores.tie, rank_scores.extra) IS DISTINCT FROM (EXCLUDED.score, EXCLUDED.tie, EXCLUDED.extra)
+           RETURNING (updated_at = now()) AS score_changed`,
           [r.board, r.period, accountId, r.score, r.tie, r.extra ? JSON.stringify(r.extra) : null]);
-        if (w.rowCount) changed = true;
+        if (w.rows[0]?.score_changed) changed = true; // chỉ xoá cache khi score đổi; đổi tie / extra trễ tối đa RANK_BOARD_CACHE giây
       }
       await db.query("COMMIT");
     } catch (e) {
