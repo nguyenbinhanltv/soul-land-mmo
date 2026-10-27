@@ -73,6 +73,7 @@ import * as social from "./social.ts";
 import * as shop from "./shop.ts";
 import * as gm from "./gm.ts";
 import * as tong from "./tong.ts";
+import { calendarAction } from "./calendar.ts";
 import * as quest from "./quest.ts";
 import * as bag from "./bag.ts";
 import * as team from "./team.ts";
@@ -1084,6 +1085,7 @@ export class MapRoom extends Room<MapState> {
       if (m?.op === "top") return this.resonanceTop(c.sessionId, m.page, m.pageSize);
       this.sendRes(c.sessionId, [], true);
     }); // cộng minh (8.2): bảng tiến độ riêng; op=top là bảng xếp hạng
+    this.onLimitedMsg("read", "calendar", (c, m: { op?: unknown; week?: unknown }) => calendarAction(this, c.sessionId, m)); // Lịch Hoạt Động (5.20): lịch tuần theo giờ server, chỉ đọc
     this.onMessage("chat", (c, m: unknown) => this.chatAction(c.sessionId, m)); // chat bản đồ / tổ đội / riêng / thế giới (#188)
     this.onMessage("friend", (c, m: unknown) => this.friendAction(c.sessionId, m)); // bạn bè và chặn (#195)
   }

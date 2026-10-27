@@ -1,6 +1,6 @@
 # Lịch Hoạt Động
 
-Hộp thoại **Lịch Hoạt Động**: bảng tuần cho biết hôm nay và cả tuần có gì, mở lúc nào, ở đâu. Lịch là **bản đọc** của các luật thời gian đã có (tà hóa thú vương, boss thế giới, mốc làm mới hằng ngày / tuần); nó không tạo sự kiện mới và không có phần thưởng riêng. Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; tên *(đề xuất)* chưa tồn tại). Số issue ở cuối file. **Chỉ là thiết kế, chưa có code.**
+Hộp thoại **Lịch Hoạt Động**: bảng tuần cho biết hôm nay và cả tuần có gì, mở lúc nào, ở đâu. Lịch là **bản đọc** của các luật thời gian đã có (tà hóa thú vương, boss thế giới, mốc làm mới hằng ngày / tuần); nó không tạo sự kiện mới và không có phần thưởng riêng. Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; tên *(đề xuất)* chưa tồn tại). Số issue ở cuối file. **Đã có (server, L1 + L2): `EVENT_DEFS`, `eventSlots`, tin `calendar`; chưa có UI.**
 
 Tham chiếu bố cục: ảnh 13 (lịch hoạt động) trong bộ tham chiếu UI của #877; chỉ học bố cục, không chép.
 
