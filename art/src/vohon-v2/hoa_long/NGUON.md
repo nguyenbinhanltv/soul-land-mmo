@@ -32,3 +32,18 @@ Không sinh thêm; giữ bản chọn nêu trên. Concept chỉ tham chiếu ngo
   LỖI: hướng — se/e — hai góc gần giống nhau, e còn chếch trước (mắt).
 - `--eye "concept-attempt3=hướng — ne — còn mép miệng sáng, chưa che toàn bộ mặt; n nhìn lưng"`
   LỖI: hướng — ne — còn mép miệng sáng, chưa che toàn bộ mặt; n nhìn lưng (mắt).
+
+
+## Chân dung lô 2 — #1158, P1c2
+
+Ngày 2026-10-27; 1/3 lượt chân dung. Công cụ builtin `image_gen.imagegen`; model/seed `unknown`. RAW nguyên byte: `candidates/portrait-attempt1.png`; SHA256 `5a906f55e902f474e33cc3a1af11e613025dddc0b604233c5566ea87e2ec904d`. Prompt CLI nguyên văn, không viết tay / addendum: `candidates/portrait-attempt1.prompt.txt`; SHA256 `fb816d30ed4a7e092a9e7103bf51a268a55f05a467ad1abe2640c45694aa3f92`. Neo ngoại hình `concept-attempt3.png`, SHA256 `bad3357f91644763647671b0e7cada9f6a376314b34c528dca829f9965be961a`. Lệnh và kết quả máy ở `candidates/portrait-attempt1.source.json`.
+
+Pixel hoá bằng `--preset portrait2` (P1c2 đã duyệt 27/10), giữ mặc định 16 màu của preset; brief RAW 6–8 mảng màu không phải giới hạn bảng màu P1c2. Bản 64×64: `candidates/portrait-attempt1-P1c2/hoa_long-portrait.png`; xem `candidates/portrait-attempt1-P1c2/preview/index.html` và `so-sanh.png`. Chỉ ứng viên trình duyệt, chưa nhập game; không chọn thay concept. Không dùng lại ảnh lỗi làm neo.
+
+### Khai báo duyệt mắt chân dung (`--eye`)
+
+CLI võ hồn chưa nhận cờ này; lưu khai báo tường minh, không sửa công cụ hoặc RAW.
+
+```text
+--eye "portrait-attempt1=góc chính diện thay vì 3/4; lõi miệng và vết lửa trên sừng/thân sáng rộng; cổ chạm mép dưới; cần duyệt độ tách nền và mắt ở 64×64"
+```
