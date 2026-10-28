@@ -15,6 +15,8 @@ import {
 import { drawRadarIcon, strokeRoute, radar, ls, DARK, type DotSink } from "./radar.ts";
 import { getFlag } from "./autowalk.ts";
 import { fog } from "./fog.ts";
+import { screenFrame, addCloseButton, type Frame } from "./uiParts.ts";
+import "./ui2-map.css";
 
 void _TILE;
 const LS_HIDDEN = "soul.mapview.hidden";
@@ -27,6 +29,8 @@ const LABEL_PRIO: Record<MapLabel["k"], number> = { gate: 0, wp: 1, npc: 2, lair
 const FONT = '"Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif';
 /** Lề (pixel) chừa quanh bản đồ khi vừa khung. */
 const FIT_MARGIN = 20;
+/** Lý do nút chính (khung ui2) đang khoá: chưa có cờ để đi tới. */
+const NO_FLAG_WHY = "Chưa đặt cờ: bấm vào bản đồ";
 
 /** Nhãn tĩnh của bản đồ (GameScene dựng từ object Tiled): `x`, `y` là tâm (ô); vùng (`zone`, `safe`, `lair`) có thêm `w`, `h` (ô). */
 export interface MapLabel {
@@ -96,8 +100,12 @@ class MapViewUi implements DotSink {
   private drag: { x: number; y: number; moved: boolean } | null = null; private pinch = 0;
   private chips = new Map<string, HTMLButtonElement>();
 
+  /** Khung màn chuẩn (chỉ khi cờ ui2 bật; tắt thì null và bản đồ giữ lớp phủ cũ). */
+  private frame: Frame | null = null;
+
   constructor() {
     this.buildBar();
+    this.mountFrame();
     const cv = this.cv;
     cv.addEventListener("wheel", (e) => { e.preventDefault(); const p = this.local(e); this.zoomAt(e.deltaY < 0 ? MAPVIEW.zoomStep : 1 / MAPVIEW.zoomStep, p.x, p.y); }, { passive: false });
     cv.addEventListener("pointerdown", (e) => { this.menu.hidden = true; this.down(e); });
@@ -114,13 +122,26 @@ class MapViewUi implements DotSink {
     press(el("mapviewOut"), () => this.zoomAt(1 / MAPVIEW.zoomStep, 0, 0));
     press(el("mapviewMe"), () => this.recenter());
     press(el("mapviewFit"), () => this.fit());
-    press(el("mapviewGo"), () => { const f = getFlag(); if (!f) return; if (f.on) this.flagActs?.stop(); else { this.close(); this.flagActs?.go(); } this.syncFlag(); });
+    press(el("mapviewGo"), () => this.goFlag());
     press(el("mapviewClear"), () => { this.flagActs?.clear(); this.syncFlag(); });
     press(this.modeBtn, () => { radar().setMode(radar().mode === "iso" ? "flat" : "iso"); this.view = { ...this.view, mode: radar().mode }; this.syncUi(); this.redraw(); });
     window.addEventListener("resize", () => { if (this.isOpen) this.redraw(); });
   }
 
   get isOpen() { return !this.root.hidden; }
+
+  /** Đi tới cờ / dừng tự đi (nút trên thanh công cụ và nút chính của khung ui2 dùng chung). */
+  private goFlag() { const f = getFlag(); if (!f) return; if (f.on) this.flagActs?.stop(); else { this.close(); this.flagActs?.go(); } this.syncFlag(); }
+  /** Cờ ui2: bọc canvas, thanh công cụ, chú thích vào khung màn chuẩn (Mực); nút "Đi tới cờ" thành nút chính, khoá kèm lý do khi chưa có cờ. */
+  private mountFrame() {
+    const f = screenFrame({ material: "muc", title: "Bản đồ khu vực", badge: "圖", info: el("mapviewHelp").textContent ?? "",
+      primary: { label: "Đi tới cờ", disabled: true, reason: NO_FLAG_WHY }, onPrimary: () => this.goFlag() });
+    if (!f) return;
+    this.frame = f; f.root.classList.add("mv-frame"); f.body.classList.add("mv-body");
+    f.body.append(this.cv, el("mapviewBar"), el("mapviewHelp"), this.tip, this.menu);
+    this.root.prepend(f.root); this.root.classList.add("mv-ui2");
+    addCloseButton(f.root, () => this.close());
+  }
 
   // ---------- API cho GameScene và các bước sau ----------
   /** Báo bản đồ đang đứng (gọi khi dựng cảnh); đổi bản đồ thì đóng và đặt lại khung nhìn. */
@@ -135,6 +156,10 @@ class MapViewUi implements DotSink {
     const f = getFlag(), go = el("mapviewGo");
     go.hidden = !f; el("mapviewClear").hidden = !f;
     if (f) go.textContent = f.on ? "Dừng tự đi" : "Đi tới cờ";
+    const p = this.frame?.primary; if (!p) return;
+    p.disabled = !f; p.textContent = f?.on ? "Dừng tự đi" : "Đi tới cờ";
+    const why = p.parentElement!.querySelector(".p2-why");
+    if (f) why?.remove(); else if (!why) { const w = document.createElement("span"); w.className = "p2-why"; w.textContent = NO_FLAG_WHY; p.before(w); }
   }
   /** Chèn lớp vẽ (sương mù…); trả hàm gỡ. */
   addOverlay(at: "fog" | "top", fn: MapOverlay) { const o = { at, fn }; this.overlays.push(o); return () => { this.overlays = this.overlays.filter((x) => x !== o); }; }
