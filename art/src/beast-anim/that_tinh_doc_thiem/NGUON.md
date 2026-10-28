@@ -40,7 +40,7 @@ Loài `that_tinh_doc_thiem` (Thất Tinh Độc Thiềm), họ `quad`, khung gam
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne nhẹ).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (ne): cỡ thân idle 168% so với ảnh tĩnh (lệch 68%, quá 25%); cutter neo lại, không chặn.
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## toE
 
@@ -50,16 +50,14 @@ Loài `that_tinh_doc_thiem` (Thất Tinh Độc Thiềm), họ `quad`, khung gam
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 136% so với ảnh tĩnh (lệch 36%, quá 25%); cutter neo lại, không chặn.
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## Lỗi
 
 ```text
 LỖI: toA — hình ở ô trống — H4 (s) C6, H8 (se) C5, H8 (se) C6 — ô trống có hình (0.54% diện tích ô): hình tràn từ ô bên; ô trống có hình (0.57% diện tích ô): hình tràn từ ô bên; ô trống có hình (4.28% diện tích ô): hình tràn từ ô bên.
 LỖI: toD — hurt trùng idle — H1 (ne) C5–6 — hurt trùng idle (xor/hợp 0.066 / 0.049): không thấy phản ứng trúng đòn.
-LỖI: toD — nhập — sau cắt — RAW không chặn, giữ hướng; cutter mặc định còn vuot-khung-he-so trước neo cỡ, chưa nhập (mắt)
 LỖI: toE — khung chết — H1 (n) C1–4 — idle: mọi khung gần như trùng (xor/hợp tối đa 0.015 < 0.03); hoạt ảnh không chuyển động.
-LỖI: toE — nhập — sau cắt — RAW không chặn, giữ hướng; cutter mặc định còn vuot-khung-he-so trước neo cỡ, chưa nhập (mắt)
 ```
 
 ## Ghi công
