@@ -356,8 +356,8 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
 
   const fig = document.createElement("div"); fig.className = "bfig"; fig.style.setProperty("--c", def.col);
   const mid = document.createElement("div"); mid.className = "bmid"; mid.style.gridArea = "2 / 2";
-  const src = act.portrait(v.vohon);
-  mid.innerHTML = src ? `<img alt="" src="${src}">` : `<i class="dot"></i>`;
+  const icon = artUrl(`icon_${def.id}_32`), src = icon ?? act.portrait(v.vohon);
+  mid.innerHTML = src ? `<img class="${icon ? "vh-icon" : ""}" alt="" src="${src}">` : `<i class="dot"></i>`;
   const cap = document.createElement("small"); cap.textContent = def.name; mid.appendChild(cap);
   fig.appendChild(mid);
   for (const s of BONE_SLOTS) {

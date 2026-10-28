@@ -503,6 +503,10 @@ function portraitFaithful(small, region, blobs, o) {
 }
 /** Icon `size`×`size`: bỏ nền, cắt theo hộp bao (hoặc `crop`), vừa (size − 2) có viền ngoài, căn giữa. */
 export function pixelizeIcon(src, o = {}) {
+  if (o.preset === "icon-nearest32") {
+    const raw = iconNearest(src, o), quant = quantizeNearestIcon(raw.img, o.colors);
+    return { ...quant, report: { ...raw.report, ...quant.report, preset: "icon-nearest32" } };
+  }
   if (o.preset === "icon-nearest") return iconNearest(src, o);
   const size = o.size ?? ICON_SIZES[0], colors = o.colors ?? MAX_COLORS.icon, prep = prepareSource(src, { bg: o.bg ?? "auto", bgTol: o.bgTol });
   const cr = parseCrop(o.crop) ?? bbox(prep.img);
@@ -530,6 +534,18 @@ export function iconNearest(src, o = {}) {
   if (outline) outlineOutside(out);
   const cc = colorCounts(out);
   return { img: out, palette: [...cc.keys()].map((k) => k.split(",").map(Number)), report: { type: "icon", size, crop: bb, preset: "icon-nearest", outline, contrast: contrastMetrics(out), colors: cc.size } };
+}
+/** Giảm màu sau nearest, giữ nguyên alpha/hình; dành một màu cho viền, không làm cứng hay nâng sáng. */
+export function quantizeNearestIcon(img, limit = MAX_COLORS.icon) {
+  if (!Number.isInteger(limit) || limit < 2 || limit > MAX_COLORS.icon) throw new Error(`icon: số màu phải từ2 đến${MAX_COLORS.icon}`);
+  if (img.w !== img.h || !ICON_SIZES.includes(img.w)) throw new Error("icon nearest đầu vào phải24/32 vuông");
+  for (let i = 3; i < img.data.length; i += 4) if (img.data[i] !== 0 && img.data[i] !== 255) throw new Error("icon nearest đầu vào chỉ được alpha0/255");
+  const palette = buildPalette(img, limit - 1, { merge: 0 });
+  if (!palette.length) throw new Error("icon: ảnh không có chủ thể");
+  protectAccent(img, palette, limit - 1);
+  palette.push(OUT);
+  const out = fromIndexed(toIndexed(img, palette), img.w, img.h, palette);
+  return { img: out, palette, report: { preset: "icon-nearest32", sourceColors: colorCounts(img).size, colors: colorCounts(out).size, colorDrift: colorDrift(out, img) } };
 }
 function finish(small, o) {
   const pal = buildPalette(small, o.colors, { mode: o.palette ?? "auto", pool: o.pool ?? [], merge: dflt(o.type, o, "merge") });
