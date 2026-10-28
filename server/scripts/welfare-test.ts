@@ -82,7 +82,7 @@ await test("bagFits: tính chung ô trống cho cả danh sách quà, tận dụ
 
 const acc = (s: MemoryStore, id: number) => { s.names.set(id, `T${id}`); };
 const bag = (honTe = 0) => ({ honTe, items: [] });
-const patch = (o: Partial<CheckinPatch> = {}): CheckinPatch => ({ expect: null, cycle: 1, startDay: 100, mask: 1, makeupUsed: 0, lastAt: 1000, bit: 1, makeupMax: CHECKIN.makeupMax, ...o });
+const patch = (o: Partial<CheckinPatch> = {}): CheckinPatch => ({ expect: null, cycle: 1, startDay: 100, mask: 1, makeupUsed: 0, lastAt: 1000, bit: 1, makeupMax: CHECKIN.makeupMax, days: CHECKIN.days, ...o });
 await test("MemoryStore.checkinClaim: lần đầu, ký đúp, ver lỗi thời, cùng chu kỳ ghi thêm bit, ký bù đếm lượt", async () => {
   const s = new MemoryStore(); acc(s, 1);
   assert.equal(await s.checkinGet(1), null);
@@ -114,5 +114,14 @@ await test("MemoryStore.checkinClaim: túi hỏng thì không ghi sổ; hai lầ
   assert.equal(await s.checkinGet(1), null, "lỗi túi: sổ không đổi");
   const r = await Promise.all([s.checkinClaim(1, patch(), bag(10)), s.checkinClaim(1, patch(), bag(10))]);
   assert.deepEqual(r.slice().sort(), [1, null], "hai nơi cùng ký ô đầu: một thắng");
+});
+await test("MemoryStore.checkinClaim (soát P5): không đổi / kéo dài start_day giữa chu kỳ, không mở chu kỳ mới sớm, ô ngoài lưới bị từ chối", async () => {
+  const s = new MemoryStore(); acc(s, 1);
+  await s.checkinClaim(1, patch({ startDay: 100 }), bag());
+  assert.equal(await s.checkinClaim(1, patch({ expect: 1, startDay: 101, mask: 3, bit: 2, lastAt: 2000 }), bag()), null, "cùng chu kỳ mà đổi start_day (kéo dài / dời chu kỳ)");
+  assert.equal(await s.checkinClaim(1, patch({ expect: 1, cycle: 2, startDay: 100 + CHECKIN.days - 1, mask: 1, bit: 1, lastAt: 2000 }), bag()), null, "mở chu kỳ mới khi chu kỳ cũ còn ngày cuối");
+  assert.equal(await s.checkinClaim(1, patch({ expect: 1, cycle: 2, startDay: 90, mask: 1, bit: 1, lastAt: 2000 }), bag()), null, "chu kỳ mới lùi ngày bắt đầu");
+  await assert.rejects(() => s.checkinClaim(1, patch({ expect: 1, mask: 1 | 1 << CHECKIN.days, bit: 1 << CHECKIN.days, lastAt: 2000 }), bag()), /không hợp lệ/, "bit đúng ngoài lưới days");
+  assert.equal(await s.checkinClaim(1, patch({ expect: 1, cycle: 2, startDay: 100 + CHECKIN.days, mask: 1, bit: 1, lastAt: 2000 }), bag()), 2, "ngay ngày đầu sau khi chu kỳ hết: mở được");
 });
 console.log("welfare-test: xong");

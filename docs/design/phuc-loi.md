@@ -1,6 +1,6 @@
 # Phúc Lợi: điểm danh 21 ngày
 
-Màn **Phúc Lợi** gom các quà đều đặn không cần nạp tiền. Giai đoạn đầu chỉ có một mục: **Sổ Điểm Danh** theo chu kỳ 21 ngày, có mốc đặc biệt và **lệnh ký bù** cho ngày lỡ. Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; tên *(đề xuất)* chưa tồn tại). Số issue ở cuối file. **Server (P1–P3) đã có code** (#877: `CHECKIN` ở `shared/data.ts`, `038_phuc_loi.sql`, `welfare.ts`, bot nhóm `welfare`); còn P4 màn client và P5 soát chống gian lận.
+Màn **Phúc Lợi** gom các quà đều đặn không cần nạp tiền. Giai đoạn đầu chỉ có một mục: **Sổ Điểm Danh** theo chu kỳ 21 ngày, có mốc đặc biệt và **lệnh ký bù** cho ngày lỡ. Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; tên *(đề xuất)* chưa tồn tại). Số issue ở cuối file. **Server (P1–P3) đã có code** (#877: `CHECKIN` ở `shared/data.ts`, `038_phuc_loi.sql`, `welfare.ts`, bot nhóm `welfare`); P4 màn client và P5 soát chống gian lận (`docs/tech/soat-gian-lan-phuc-loi.md`) xong.
 
 Tham chiếu bố cục: ảnh 10 (phúc lợi) trong bộ tham chiếu UI của #877; chỉ học bố cục (cột mục bên trái, lưới 7 × 3, mốc nổi bật, ô quá khứ xám), không chép tên / chữ / ảnh.
 
@@ -60,7 +60,7 @@ Bổ sung vào bảng ở `docs/tech/giao-thuc-server.md` khi làm (kiểm `tool
 - `ArenaRoom` chặn `welfare`; kiểm thử thêm tin này vào bài `cheat` (dồn `sign` 200 lần, `makeup` ô lạ).
 
 ### Chống gian lận
-Soát theo skill `anti-cheat-audit` trước khi gộp PR server (ghi thành tệp soat-gian-lan-phuc-loi trong docs/tech).
+Soát theo skill `anti-cheat-audit`: kết quả ở [soat-gian-lan-phuc-loi.md](../tech/soat-gian-lan-phuc-loi.md) (P5, 2026-10-28; DB còn giữ `start_day` và ô trong lưới).
 - **Chống đổi giờ máy:** ngày do server tính từ `bossNow()`; client không gửi giờ / ngày, chỉ gửi chỉ số ô và server tự kiểm. Đồng hồ máy chủ **lùi** (sự cố, chỉnh tay): nếu `now < last_at` thì từ chối `sign` / `makeup` và ghi log `[phúc lợi]` (không cộng bất kỳ ô nào theo thời gian lùi). **Bot:** đẩy ngày bằng `BOSS_CLOCK` / `bossOffset` ghi `last_at` ở tương lai; bài bot phải xóa dòng `checkin_state` của tài khoản test khi dọn (hoặc bỏ kiểm lùi giờ khi `GAME_TEST`) để lượt sau dùng đồng hồ thật không bị khóa; trạng thái `ver` + `last_at` khiến ghi chậm trễ không thể thêm ô.
 - **Không điểm danh hai lần:** điều kiện `(mask & bit) = 0` và `ver` trong câu `UPDATE` (nguyên tử), chịu được hai tab, hai tiến trình, bấm dồn, mất mạng giữa chừng; không có đường "nhận" ngoài transaction.
 - **Ký bù có giới hạn:** `makeup_used < CHECKIN.makeupMax` kiểm **trong cùng câu ghi**, không chỉ ở RAM; phí Hồn Tệ trừ cùng transaction (hoàn lại nếu lỗi). Ô phải đã qua **và** thuộc chu kỳ đang chạy: kẹp `day` (số nguyên) tránh âm / quá lớn / NaN.

@@ -3,7 +3,7 @@
 // luật ghi có điều kiện của store) do server/scripts/welfare-test.ts thử; ở đây thử đường đi đầy đủ: ký hôm nay, ký đúp, dồn 200 `sign`, ô lạ, ký bù miễn phí / trả
 // phí / hết lượt, hết chu kỳ mở chu kỳ mới, đồng hồ lùi, túi đầy, ghi lỗi hoàn lại (savefail), vào lại phòng, qua 00:00, trong sân đấu bị chặn.
 import { post, sleep, waitFor, ok, bot, enter, test, qtyOf, npcSpot, AT, needHookSkip } from "./lib.mjs";
-import { ASK_CD, CHECKIN, RING_ITEM, checkinFee } from "../../../shared/data.ts";
+import { ASK_CD, CHECKIN, MSG_GROUP, RING_ITEM, checkinFee } from "../../../shared/data.ts";
 
 export async function welfareTest(){
   console.log("[#877] Phúc Lợi: Sổ Điểm Danh qua server");
@@ -39,6 +39,10 @@ export async function welfareTest(){
   s=await act({op:"sign"}); ok(!!s?.err&&/đã điểm danh/.test(s.err)&&s.mask===1,`ký lần hai cùng ngày: từ chối (${s?.err})`);
   { const before=A.bag.honTe, n=A.wf.length; for(let k=0;k<200;k++) A.room.send("welfare",{op:"sign"}); await waitFor(()=>A.wf.length>=n+200,6000); await sleep(300);
     s=await get(); ok(s?.mask===1&&A.bag.honTe===before&&A.leftCode===null,`dồn 200 sign: mask vẫn ${s?.mask}, Hồn Tệ không đổi (${before}→${A.bag.honTe}), vẫn kết nối`); }
+  // 3b. Giới hạn tần suất thật (soát P5): khi GAME_TEST=1 giới hạn mặc định tắt nên ở đây bật `baglimit`; dồn 200 `sign` chỉ được xử lý cỡ burst + rate của nhóm `trade`, phần còn lại bị bỏ.
+  { await test(A,"baglimit",{on:true}); await sleep(1200); const before=A.bag.honTe, n=A.wf.length; for(let k=0;k<200;k++) A.room.send("welfare",{op:"sign"}); await sleep(1500);
+    const got=A.wf.length-n; await test(A,"baglimit",{on:false}); s=await get();
+    ok(got>0&&got<=MSG_GROUP.trade.burst+MSG_GROUP.trade.rate*3&&s?.mask===1&&A.bag.honTe===before&&A.leftCode===null,`bật giới hạn tin: 200 sign chỉ xử lý ${got} (≤ burst ${MSG_GROUP.trade.burst} + rate), mask ${s?.mask}, Hồn Tệ không đổi`); }
   // 4. Ô lạ / ô hôm nay / ô tương lai: từ chối.
   for(const day of [0,1,5,CHECKIN.days-1,CHECKIN.days,-1,0.5,"1",null,NaN,1e9]){ s=await act({op:"makeup",day}); ok(!!s?.err&&s.mask===1&&s.makeupLeft===MAX,`ký bù ô ${JSON.stringify(day)} (hôm nay / tương lai / lạ): từ chối (${s?.err})`); }
 
