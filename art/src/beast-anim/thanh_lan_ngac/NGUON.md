@@ -1,29 +1,72 @@
-# Thanh Lân Ngạc — RAW H4 đợt 4
+# Thanh Lân Ngạc — RAW hoạt ảnh
 
-Part of #770. Part of #766.
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species thanh_lan_ngac`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
 
-LỖI: toA — sai hướng S/SE/E, hurt chưa recoil rõ, nền chưa phẳng FF00FF, lấn ô trống — H1/H5/H9 C5–6; H7/H11 C6; H9 C1; H4/H8 C5–6 — E H9C1 quay trái, attack H7/H11C6 quay front; ô trống có117/646/19/965 pixel ngoài nền theo ngưỡng; giữ RAW FAIL, không retry.
+Loài `thanh_lan_ngac` (Thanh Lân Ngạc), họ `quad`, khung game 96×96. Mức kiểm chung: **nhẹ**.
 
-A1: fresh conversation soul-land-mmo-101, đúng một builtin `image_gen.imagegen` call, không retry. Yêu cầu 1024×1536; PNG thực 1024×1536, 2123584 byte. SHA256: `fa6ee41de8f7bfc5f4c577629b5d24497446d0e0951b6f7c3d561457c9af7742`. Model ảnh và seed: unknown; tool không cung cấp selector kích thước riêng.
+## turnaround
 
-Chỉ đính static backup đúng loài, đã VIEW; hash khớp ảnh gốc. Prompt thực là prefix ghi trong source JSON + nguyên khối English từ generator; `toA.prompt.txt` là exact prompt. Doc generator đi kèm giữ nguyên hướng dẫn lịch sử; quy định owner mới không redraw/không hậu kỳ thay thế các câu retry/cutter trong doc đó.
+- File: `turnaround.png`, **1536×1024**, 1618158 byte, SHA256 `22d42213b1e05ff8a7f6f98496c79765089379b79a142607f80093311252d6de`.
+- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2.
+- Prompt: `turnaround.prompt.txt` (SHA256 `bf21a9a53acc2502cff915e5a01f62631708b41c3008260fcfe384a2dbe09b60`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
-Đếm bằng mắt: 66 hình; 6 vị trí dự kiến trống có 4 ô bị lấn theo phép đo pixel, không xác nhận 6 ô blank sạch. Số pixel từng ô trống và ngưỡng đo ghi trong source JSON; không suy art PASS từ số ô. Hurt H1/H5/H9 C5–6 nâng/quay đầu thay recoil rõ. S attack có khung nghiêng, SE attack và E attack chuyển front ở C6; E H9C1 quay trái. Nền magenta có biến thiên, không toàn bộ nền chính xác FF00FF. Thân/mõm/nét/màu có biến thiên; chưa kiểm vòng lặp hoặc cỡ thân xuyên tờ. Cặp A/B chưa được duyệt cỡ thân hoặc mỹ thuật.
+## toA
 
-RAW original, bản artifact và toA.png khớp byte; không resize/crop/cutter/assembly/postprocess/metadata rewrite. B104B1 đã bàn giao, 8 tờ còn lại pending fresh workers do44 điều phối. Nộp nguồn không đồng nghĩa merged, art accepted hoặc imported. Phiên101 dừng sinh ảnh vĩnh viễn sau A1.
+- File: `toA.png`, **1024×1536**, 2123584 byte, SHA256 `fa6ee41de8f7bfc5f4c577629b5d24497446d0e0951b6f7c3d561457c9af7742`.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo.
+- Prompt: `toA.prompt.txt` (SHA256 `5f5d087eaab732a0e6fc06527eb4fc017357cd243e269781b9ffaebd03ad0de5`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se nhẹ, e pass).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 152% so với ảnh tĩnh (lệch 52%, quá 25%); cutter neo lại, không chặn.
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H5–8 (se): cỡ thân idle 121% so với ảnh tĩnh (lệch 21%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
 
-LỖI: toB — sai kích thước, hướng N/death, hurt yếu, lấn ô trống — R1/R5 C5–6; R4 C3–4 NE; R5–8 N; R4C5–6/R8C5 — RAW1254×1254; N lộ mặt/đuôi xa, R7C3 lệch NE, death đổi hướng; blank có399/594/116 pixel ngoài nền theo ngưỡng; giữ RAW, không retry.
+## toB
 
-B104B1: đúng một builtin call, không retry. Yêu cầu1024×1024; thực tế1254×1254, 2010045byte. RAW gốc/artifact104/toB.png khớp byte và SHA256 `e24fc47f90d9788261c914b4cee917b00a7399d2a9cb3b30410d304d273a6d1b`. Model/seed unknown. Tổng loài A1+B1=2calls, phiên101 vẫn chỉ1call.
+- File: `toB.png`, **1254×1254**, 2010045 byte, SHA256 `e24fc47f90d9788261c914b4cee917b00a7399d2a9cb3b30410d304d273a6d1b`.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo.
+- Prompt: `toB.prompt.txt` (SHA256 `a85f6d9e685a8849d24411edda9db114d6a3be70b218976b79054a36bd6d944e`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: ne nhẹ, n nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (ne): cỡ thân idle 86% so với ảnh tĩnh (lệch 14%); cutter neo lại, không chặn.
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H5–8 (n): cỡ thân idle 80% so với ảnh tĩnh (lệch 20%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
 
-Prompt B thật: prefix681byte + nguyên khối BASE3539byte (byte681–4219, từ0) + hai LF + câu bổ sung matching second sheet/body size. `toB.prompt.txt` giữ đúng4342byte; không ghi nhầm suffix là prefix. Hai ref thực đúng thứ tự static identity rồi A101A1 style/body-size candidate, hash và đường dẫn trong source JSON. A còn FAIL, không làm chuẩn hướng/pose.
+## Tờ chưa vào thư mục chính (candidates)
 
-Quan sát B:44hình semantic;4vị trí blank được đếm pixel riêng trong JSON, không suy art pass. NE die H4C3–4 về E; N H5–7 lộ mặt/mõm, H7C3 về NE, death H8 về chéo/phải; hurt ngửa đầu thay recoil rõ. Không chữ/lưới thấy rõ. Nền và cỡ thân chưa đạt chứng nhận; không waiver offsize1254, không import.
+Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
+
+### toD (candidates)
+
+- File chọn: `candidates/toD-attempt3.png`, **1536×1024**, SHA256 `7b0a1ad33a04c0201b3ae535396a3ccd2bd2c848ae25d21f1e93d1603b31544e`; lượt tìm thấy: 1, 2, 3.
+- Số lượt đã dùng: 3; lượt được chọn: 3.
+- Mức kiểm: **chặn** (CHẶN: không vào thư mục chính).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+### toE (candidates)
+
+- File chọn: `candidates/toE-attempt3.png`, **1536×1024**, SHA256 `9d2417fc243ea571cd4505ef105d40ebee13e99f26803cc474b99262dd7a33b7`; lượt tìm thấy: 1, 2, 3.
+- Số lượt đã dùng: 3; lượt được chọn: 3.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+## Lỗi
+
+```text
+LỖI: toA — hình ở ô trống — H4 (s) C5, H4 (s) C6, H8 (se) C6 — ô trống có hình (0.52% diện tích ô): hình tràn từ ô bên; ô trống có hình (2.92% diện tích ô): hình tràn từ ô bên; ô trống có hình (4.34% diện tích ô): hình tràn từ ô bên.
+LỖI: toB — hình ở ô trống — H4 (ne) C5, H4 (ne) C6, H8 (n) C5 — ô trống có hình (1.19% diện tích ô): hình tràn từ ô bên; ô trống có hình (1.79% diện tích ô): hình tràn từ ô bên; ô trống có hình (0.34% diện tích ô): hình tràn từ ô bên.
+LỖI: toD — hình dính — H3 (ne) — dải có 5 hình, cần 6: hình dính nhau.
+LỖI: toD — hướng — ne mọi hàng — còn lộ mắt sau 3 lượt, giữ fallback (mắt)
+LỖI: toE — hướng — n H3 C3–4 — attack quay đầu lộ mặt sau 3 lượt, giữ fallback (mắt)
+```
 
 ## Ghi công
 
-Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); không nối dòng vào `art/CREDITS.md`.
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/beast-anim/thanh_lan_ngac/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Thanh Lân Ngạc (H4 đợt 4, Part of #770 và #766): `art/src/beast-anim/thanh_lan_ngac/toA.png` (1024×1536, fresh101 A1) và `toB.png` (1254×1254 thật, yêu cầu1024×1024, fresh104 B1), mỗi tờ đúng một call, không retry, tthoadev sinh ngày 2026-10-26 bằng builtin `image_gen.imagegen`; model ảnh/seed unknown, không size selector. A chỉ static gốc đúng loài qua backup nguyên byte đã VIEW; B ordered static + A101A1 style/body-size candidate còn FAIL. RAW giữ nguyên byte, không hậu kỳ/cắt/resize; FAIL hướng/hurt/nền/lấn ô trống được nộp theo chỉ đạo owner, chưa art accepted hoặc nhập runtime. Exact prompt/base/prefix/hash/refroles/counters và lỗi: [NGUON.md](src/beast-anim/thanh_lan_ngac/NGUON.md), `toA.prompt.txt`, `toB.prompt.txt`, `toA.source.json`, `toB.source.json`, doc generator cùng thư mục. Tổng2calls; B sai size/N/death/hurt; không waiver. Nguồn Q44/điều khoản công cụ. | - | Chuyển một lần từ art/CREDITS.md (#973) |
+| `art/src/beast-anim/thanh_lan_ngac/` | - | builtin image_gen.imagegen | RAW hoạt ảnh Thanh Lân Ngạc: turnaround 1536×1024, toA 1024×1536, toB 1254×1254; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |

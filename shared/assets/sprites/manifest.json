@@ -507,8 +507,10 @@
           88
         ],
         "dirsOk": [
+          "s",
           "se",
-          "e"
+          "e",
+          "n"
         ]
       },
       "map": "lac_nhat_sam_lam"
@@ -637,11 +639,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e"
         ]
       },
       "map": "lac_nhat_sam_lam"
@@ -831,11 +828,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e"
         ]
       },
       "map": "lac_nhat_sam_lam"
@@ -1089,7 +1081,8 @@
         "dirsOk": [
           "s",
           "se",
-          "e"
+          "e",
+          "n"
         ]
       },
       "map": "tinh_dau_noi_dia"
@@ -3387,11 +3380,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e"
         ]
       },
       "map": "tinh_dau_noi_dia"
@@ -3804,11 +3792,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e"
         ]
       },
       "map": "lac_nhat_sam_lam"
