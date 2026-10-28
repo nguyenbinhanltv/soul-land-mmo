@@ -1527,12 +1527,6 @@
         "origin": [
           64,
           120
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e",
-          "n"
         ]
       },
       "map": "hai_than_dao"
@@ -1730,6 +1724,7 @@
         ],
         "dirsOk": [
           "e",
+          "ne",
           "n"
         ]
       },
@@ -2177,11 +2172,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e"
         ]
       },
       "map": "hai_than_dao"
@@ -3053,10 +3043,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se"
         ]
       },
       "map": "hai_than_dao"
@@ -3920,12 +3906,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e",
-          "ne"
         ]
       },
       "map": "cuc_bac_chi_dia"

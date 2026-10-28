@@ -1,0 +1,11 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 2,
+  "agent": "soul_land_game-764",
+  "references": [
+    "shared/assets/sprites/beast/huyet_nha_cu_sa.png",
+    "art/src/beast-anim/huyet_nha_cu_sa/turnaround.png"
+  ]
+}

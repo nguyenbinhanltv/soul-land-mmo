@@ -1,0 +1,11 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 1,
+  "agent": "soul_land_game-764",
+  "references": [
+    "shared/assets/sprites/beast/tham_hai_ma_chuong.png",
+    "art/src/beast-anim/tham_hai_ma_chuong/turnaround.png"
+  ]
+}
