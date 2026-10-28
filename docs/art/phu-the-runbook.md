@@ -16,6 +16,14 @@ Bổ sung cho `phu-the-hoat-anh.md` (đặc tả, nhóm, số khung, tiêu chí 
 6. **Neo + xem trước:** `node tools/assets/phuthe-anchor.mjs --id <id> --source anim --dir <artifact>/<id> --out <artifact>/<id>/anchor.json`, rồi `node tools/assets/phuthe-sheet-preview.mjs --id <id> --dir <artifact>/<id>` (GIF ghép LPC nam / nữ, trang xoay). Duyệt bằng mắt theo phiếu "Tiêu chí duyệt".
 7. **Nhập:** `node tools/assets/phuthe-import.mjs --id <id> --dir <artifact>/<id> --anchor <artifact>/<id>/anchor.json` (chạy lại không đổi), rồi `npm run check`. Còn khối chặn thì **không nhập** (võ hồn giữ nhánh cũ), ghi `NGUON.md`.
 
+## Nhập riêng từng hướng (khi một tờ bị chặn sau 3 lượt)
+Chủ repo cho phép (2026-10-28): tờ hướng còn chặn sau 3 lượt **không kéo cả võ hồn về nhánh cũ**; nhập các hướng đã qua kiểm, hướng còn lại dùng phụ thể tĩnh cũ. Chỉ dùng khi đã hết 3 lượt cho tờ đó và orchestrator duyệt xem trước các hướng đạt; võ hồn đủ 5 tờ không chặn vẫn nhập đủ như bước 7.
+1. **Cắt:** như bước 5 nhưng chỉ `--sheet` cho các tờ đạt và thêm `--partial` (tờ thiếu là `info` `thieu-huong`, không chặn; không có `--partial` thì thiếu tờ vẫn là chặn, thoát mã 1). `_report.json` có `dirs` (`s` … `n` = `ok` / `thieu`), `manifest-entry.json` có `anim.dirsOk` (theo thứ tự `s, se, e, ne, n`) khi chưa đủ 5 hướng. Tờ đã đưa vào mà còn khung rỗng vẫn là lỗi: hướng đạt phải đủ khung.
+2. **Neo:** bước 6 như cũ; `phuthe-anchor.mjs --source anim --dir <artifact>/<id>` đọc `dirsOk` trong `manifest-entry.json` và ghi neo đơn vị cho hướng chưa nhập (client không dùng).
+3. **Nhập:** bước 7 như cũ. Manifest ghi `anim.dirsOk`; `NGUON.md` của võ hồn (hoặc `--nguon <file>`) được ghi khối "Hướng đã nhập" (đã nhập / CHƯA nhập từng hướng; chạy lại không đổi). `npm run check` (`validate.mjs`) kiểm `dirsOk`: không rỗng, không đủ 5, không trùng, đúng thứ tự.
+4. **Client:** hướng đạt chạy hoạt ảnh vẽ thật; hướng chưa nhập dùng phụ thể tĩnh cũ `vh_<id>` cho riêng hướng đó (cả khung phụ thể, không neo, chuyển động như cũ). Tây (`sw`, `w`, `nw`) lật hướng đông tương ứng nên chỉ có hoạt ảnh khi `se`, `e`, `ne` tương ứng đã nhập. Manifest không có `dirsOk` (5 võ hồn đã nhập đủ) giữ nguyên hành vi.
+5. **Bổ sung sau:** khi vẽ lại hướng còn thiếu, cắt lại với đủ tờ đạt (hoặc thêm hướng vào danh sách) và nhập lại: mục manifest đổi `dirsOk`; đủ 5 hướng thì trường bị bỏ, NGUON ghi "Đủ 5 hướng". Ghi vào `NGUON.md` khối nào chặn và lý do.
+
 ## Bài học Tà Hỏa (đã vào `lessons.md`, đọc trước khi sinh)
 - **Nộm trôi / thu nhỏ / dời xuống:** model hay vẽ nộm nhỏ hơn bảng và dời xuống, cutter đăng ký nộm được vài ô, ráp lệch. Vạch tham chiếu giúp, nhưng vẫn soát; thấy nộm thu nhỏ ở tờ liên hệ thì vẽ lại lượt sau, đừng cố cứu bằng neo.
 - **Hình dính, hàng `attack` / `cast` dính:** hai hàng này có pose rộng nhất, dễ chạm ô bên cạnh (tờ B, C của Tà Hỏa bị chặn `hinh-dinh` / `so-hinh`). Đòi vẽ hơi nhỏ hơn và chừa khoảng trống magenta; tờ chặn thì vẽ lại **chỉ tờ đó**.

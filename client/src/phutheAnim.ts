@@ -18,6 +18,8 @@ export interface PhuLayout {
   clips: Record<PhuClip, PhuSlot>;
   /** Độ dời cố định của clip (pixel khung, +x theo hướng nhìn): manifest `anim.offset`, mặc định 0. */
   offset: Record<PhuClip, readonly [number, number]>;
+  /** Hướng vẽ thật đã nhập (manifest `anim.dirsOk`, theo PHU_DIRS); thiếu = đủ 5 hướng (võ hồn nhập đủ). Hướng ngoài danh sách dùng phụ thể tĩnh cũ (phuDirOk). */
+  dirsOk?: readonly (typeof PHU_DIRS)[number][];
 }
 
 /** Bố cục mặc định theo đặc tả (nhóm B / C: 22 cột): idle 4, walk 6, attack 6, cast 4, hurt 2. Số khung thật do manifest `anim` ghi. */
@@ -33,7 +35,7 @@ const ZERO: readonly [number, number] = [0, 0];
 export function parsePhuLayout(anim: unknown, frame: unknown): PhuLayout | null {
   const f = Array.isArray(frame) ? frame[0] : frame;
   if (f !== 96 && f !== 128) return null;
-  const o = (anim && typeof anim === "object" ? anim : {}) as { cols?: unknown; clips?: Record<string, Partial<PhuSlot>>; offset?: Record<string, unknown> };
+  const o = (anim && typeof anim === "object" ? anim : {}) as { cols?: unknown; clips?: Record<string, Partial<PhuSlot>>; offset?: Record<string, unknown>; dirsOk?: unknown };
   const clips = {} as Record<PhuClip, PhuSlot>, offset = {} as Record<PhuClip, readonly [number, number]>;
   let cols = 0;
   for (const c of PHU_CLIPS) {
@@ -46,8 +48,16 @@ export function parsePhuLayout(anim: unknown, frame: unknown): PhuLayout | null 
   }
   const declared = o.cols === undefined ? cols : o.cols;
   if (!Number.isInteger(declared) || (declared as number) < cols) return null;
-  return { frame: f, cols: declared as number, clips, offset };
+  // dirsOk: lọc giá trị lạ / trùng, theo thứ tự PHU_DIRS; đủ 5 hướng (hoặc không khai, hoặc không phải mảng) = không ghi (hành vi cũ)
+  const ok = Array.isArray(o.dirsOk) ? PHU_DIRS.filter((d) => (o.dirsOk as unknown[]).includes(d)) : null;
+  return { frame: f, cols: declared as number, clips, offset, ...(ok && ok.length < PHU_DIRS.length ? { dirsOk: ok } : {}) };
 }
+
+/**
+ * Hướng 8 `face` có hoạt ảnh vẽ thật không. Tây (sw, w, nw) lật hướng đông tương ứng nên theo hàng nguồn (se, e, ne): nguồn chưa nhập thì cả hai
+ * phía dùng phụ thể tĩnh cũ. Layout không có `dirsOk` (đủ 5 hướng, manifest cũ) luôn đúng.
+ */
+export const phuDirOk = (L: PhuLayout, face: Dir8): boolean => !L.dirsOk || (L.dirsOk as readonly string[]).includes(PHU_DIRS[phuDirRow(face)]);
 
 /** Hàng hướng (0–4) của hướng 8 trên màn hình; se / ne chọn hàng riêng (thân vẫn dùng hàng `e`). */
 export function phuDirRow(face: Dir8): number {

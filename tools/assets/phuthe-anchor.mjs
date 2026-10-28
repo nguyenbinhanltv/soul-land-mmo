@@ -106,11 +106,13 @@ export function solveAnchor(core, target, F, ratio = RATIO, growMax = GROW_MAX) 
 /**
  * Bảng neo của một võ hồn từ sheet: `layout.frames(sex, dir)` trả các khung đo (x0, y0 trong ảnh). `imgs` = [nửa sau, nửa trước].
  */
-export function buildAnchors(imgs, layout, F, { ratio = RATIO, erodeN = ERODE, growMax = GROW_MAX } = {}) {
+export function buildAnchors(imgs, layout, F, { ratio = RATIO, erodeN = ERODE, growMax = GROW_MAX, dirsOk = DIRS } = {}) {
   const out = { frame: F }, r = Math.max(1, Math.round(erodeN * F / 96));
   for (const sex of SEXES) {
     out[sex] = {};
     for (const dir of DIRS) {
+      // hướng chưa nhập (cutter --partial): client dùng phụ thể tĩnh cũ, không đọc neo; ghi neo đơn vị cho đủ bảng 2 giới × 5 hướng
+      if (!dirsOk.includes(dir)) { out[sex][dir] = { dx: 0, dy: 0, scale: 1, tx: 0, ty: 0 }; continue; }
       const core = coreOf(imgs, layout.frames(sex, dir), F, r);
       if (!core) continue;
       out[sex][dir] = solveAnchor(core, bodyTarget(sex, dir, F), F, ratio, growMax);
@@ -143,16 +145,18 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   if (!id) { console.error("Dùng: node tools/assets/phuthe-anchor.mjs --id <võ hồn> [--source static|anim] [--dir <thư mục phuthe-sheet-cut>] [--ratio 1.3,1.6] [--erode 5] [--grow] [--out <anchor.json>] [--force] [--dry]"); process.exit(2); }
   try {
     const source = val("--source") ?? "static", ratio = val("--ratio") ? val("--ratio").split(",").map(Number) : RATIO, growMax = a.includes("--grow") ? SCALE_RANGE[1] : GROW_MAX, erodeN = +(val("--erode") ?? ERODE), file = val("--out") ?? ANCHOR_FILE;
-    let imgs, layout, F;
+    let imgs, layout, F, dirsOk = DIRS;
     if (source === "anim") {
       const dir = val("--dir"); if (!dir) throw new Error("--source anim cần --dir <thư mục phuthe-sheet-cut>");
       const info = phutheInfo(id); F = info.frame; layout = animLayout(info.group, F);
+      const me = path.join(dir, "manifest-entry.json");
+      if (existsSync(me)) dirsOk = JSON.parse(readFileSync(me, "utf8")).find((x) => x.anim?.dirsOk)?.anim.dirsOk ?? DIRS;
       imgs = Object.values(HALVES).map((h) => { const f = path.join(dir, `${gameKey(id, h)}.png`); return existsSync(f) ? readPng(f) : null; });
     } else {
       F = STATIC.frame; layout = staticLayout();
       imgs = ["b", "f"].map((h) => readPng(path.join(ROOT, "shared", "assets", "sprites", "vohon", `${id}_${h}.png`)));
     }
-    const entry = buildAnchors(imgs, layout, F, { ratio, erodeN, growMax }), all = readAnchors(file);
+    const entry = buildAnchors(imgs, layout, F, { ratio, erodeN, growMax, dirsOk }), all = readAnchors(file);
     if (all[id]?.manual && !a.includes("--force")) { console.error(`${id}: mục chỉnh tay (manual), dùng --force để ghi đè`); process.exit(1); }
     const bad = checkAnchors(id, entry);
     if (bad.length) { console.error(bad.join("\n")); process.exit(1); }

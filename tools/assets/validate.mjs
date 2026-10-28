@@ -258,6 +258,13 @@ if (register) {
 /** `anim.dirsOk` (#869): hướng vẽ thật đạt duyệt của hoạt ảnh hồn thú; hướng ngoài danh sách client dùng ảnh tĩnh. Phải là tập con thật sự, không trùng, và các hướng đó đủ khung. */
 function checkDirsOk(key, e, spec) {
   const a = e.anim, ok = a.dirsOk;
+  if (spec.kind === "vhanim") { // phụ thể hoạt ảnh nhập từng hướng: hướng nằm trong ISO_DIRS (5 hàng hướng mỗi giới); hướng chưa nhập client dùng phụ thể tĩnh cũ
+    if (!Array.isArray(ok) || !ok.length) return err(key, `"anim.dirsOk" phải là danh sách hướng đã nhập không rỗng (không có hướng nào thì đừng nhập hoạt ảnh)`);
+    if (ok.some((d) => !ISO_DIRS.includes(d)) || new Set(ok).size !== ok.length) return err(key, `"anim.dirsOk" ${JSON.stringify(ok)} có hướng lạ (chỉ ${ISO_DIRS.join(", ")}) hoặc trùng`);
+    if (ok.length >= ISO_DIRS.length) return err(key, `"anim.dirsOk" liệt kê đủ 5 hướng: bỏ trường này`);
+    if (ok.some((d, i) => i && ISO_DIRS.indexOf(d) < ISO_DIRS.indexOf(ok[i - 1]))) return err(key, `"anim.dirsOk" ${JSON.stringify(ok)} không theo thứ tự ${ISO_DIRS.join(", ")}`);
+    return;
+  }
   if (spec.kind !== "beast" || !/^beast_[a-z_]+_anim$/.test(key)) return err(key, `"anim.dirsOk" chỉ cho hoạt ảnh hồn thú beast_*_anim`);
   if (!Array.isArray(a.dirs)) return err(key, `"anim.dirsOk" cần "anim.dirs"`);
   if (!Array.isArray(ok) || !ok.length) return err(key, `"anim.dirsOk" phải là danh sách hướng đạt không rỗng (không có hướng đạt thì đừng nhập hoạt ảnh)`);

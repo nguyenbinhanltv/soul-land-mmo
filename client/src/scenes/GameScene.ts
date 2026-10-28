@@ -12,7 +12,7 @@ import { MINI_BASE, TIERS, BEASTS, VOHON, RADAR, SYNC_VIEW, MAPS, TILE, titleOf,
 import { makeTextures, vohonTextures, BEAST_ORIGIN } from "../textures.ts";
 import { wantVohon, wantPhapTuong, wantBeast, wantSkillFx, vohonIdAt, vohonKeys, vohonBlank, vohonAnimBlank } from "../vohonLazy.ts";
 import { buildRings, animateRings, type HaloState } from "../soulRings.ts";
-import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncPhuLayers, phuAnimSetOf, fitPhuLayer, type PhuAnimSet, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, animBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, VH_ORIGIN,
+import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncPhuLayers, phuUsesStatic, phuAnimSetOf, fitPhuLayer, type PhuAnimSet, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, animBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim, animLayoutOf } from "../sprites.ts";
 import { dieFrame, dieMs, type BeastAnimState } from "../beastAnim.ts";
 import * as hud from "../hud.ts";
@@ -22,9 +22,14 @@ import { radar, type DotSink } from "../radar.ts";
 import { mapview, type MapLabel } from "../mapview.ts";
 import { fog } from "../fog.ts";
 import { toast, lootToasts } from "../feedback.ts";
-import { guideStart, guideEvent, guideHint } from "../guide.ts";
+import { guideStart, guideEvent, guideHint, guideReview } from "../guide.ts";
 import { initDualWindows } from "../dualWindow.ts";
 import { initPanelStack, closeTopPanel, panelOf, trapTab } from "../panelStack.ts";
+import { initHub, toggleHub, setHubOpen, setHubDot } from "../hubMenu.ts";
+import { bindWelfare, openWelfare, closeWelfare, onWelfare, type WelfareMsg } from "../welfareScreen.ts";
+import { isUi2 } from "../uiKit.ts";
+import { bindCalendar, openCalendar, closeCalendar, onCalendar, type CalendarMsg } from "../calendarScreen.ts";
+import { bindRank, openRank, closeRank, onRankBoards, onRankTop, type RankTopMsg } from "../rankScreen.ts";
 import type { ServerCommand } from "../charBagContract.ts";
 import { toggleChar, cycleCharTab, isCharOpen, onCharOpen, renderChar, charViewRow, charLog, type StatsMsg } from "../charPanel.ts";
 import { Predictor, PREDICT, LAG_MS, DEBUG_TAG, stepSpeed } from "../predict.ts";
@@ -813,7 +818,7 @@ export class GameScene extends Phaser.Scene {
       // Esc (U1 #754): đóng đúng MỘT bảng trên cùng (lần nhấn kế đóng bảng kế); hết bảng mới bỏ khoá mục tiêu (M3). Thứ tự: bản đồ vùng → chat → bảng → khoá.
       if (e.code === "Escape" && closeTopPanel()) return;
       if (e.code === "Escape" && this.lockId) { this.lockTo(""); return; }
-      if (e.code === "Escape") return; // không bảng, không khoá: không làm gì (không ghi Escape vào `keys`)
+      if (e.code === "Escape") { if (isUi2()) toggleHub(); return; } // không bảng, không khoá: mở menu hub khi bật ui2, còn lại không làm gì (không ghi Escape vào `keys`)
       if (e.code === "Tab") { e.preventDefault(); if (!e.repeat) this.cycleTarget(); return; }
       if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }
@@ -913,15 +918,32 @@ export class GameScene extends Phaser.Scene {
     const end = (e: PointerEvent) => { if (e.pointerId !== jid) return; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = ""; };
     joyEl.addEventListener("pointerup", end, on); joyEl.addEventListener("pointercancel", end, on);
     // Ngăn xếp bảng (U1 #754): Esc đóng bảng trên cùng, bấm vào bảng nâng lên; mở bảng thì nhả phím đang giữ và dừng cần điều khiển.
+    bindRank((type, payload) => this.room.send(type, payload)); bindCalendar((type, payload) => this.room.send(type, payload));
+    bindWelfare((type, payload) => this.room.send(type, payload), (needs) => setHubDot("welfare", needs)); // chấm đỏ "chưa điểm danh" trên hub
     initPanelStack([
       { id: "char", close: () => toggleChar(false) }, { id: "bag", close: () => hud.toggleBag(false) }, { id: "roster", close: () => hud.toggleRoster(false) },
       { id: "reso", close: () => hud.toggleReso(false) }, { id: "friends", close: () => hud.toggleFriends(false) }, { id: "world", close: () => hud.toggleWorld(false) },
       { id: "npc", close: () => hud.closeNpc() }, { id: "autoPanel", close: closeAutoPanel }, { id: "audio", close: closeAudioPanel },
       { id: "pmenu", close: () => hud.showPlayerMenu(null), popup: true }, { id: "chans", close: () => hud.toggleChannels(false), popup: true },
-      { id: "autoSum", close: closeAutoSum, popup: true },
+      { id: "autoSum", close: closeAutoSum, popup: true }, { id: "hub", close: () => setHubOpen(false), popup: true },
+      { id: "rank", close: closeRank }, { id: "calendar", close: closeCalendar }, { id: "welfare", close: closeWelfare },
     ], () => {
       for (const k of Object.keys(this.keys)) if (this.keys[k]) muted.add(k);
       this.keys = {}; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = "";
+    }, this.ac.signal);
+    this.setupHub();
+  }
+
+  /** Menu hub ngăn kéo (UI v2, cờ `ui2`; tắt thì không dựng gì): mỗi mục gọi đúng hàm mở của bảng đã có, mục chưa có chức năng hiện mờ. */
+  setupHub() {
+    const clickBtn = (id: string) => () => { this.clearForPanel(); document.getElementById(id)?.click(); };
+    initHub({
+      vohon: () => { this.clearForPanel(); hud.toggleRoster(true); }, char: () => { this.clearForPanel(); toggleChar(true); },
+      reso: () => { this.clearForPanel(); hud.toggleReso(true); }, bag: () => { this.clearForPanel(); hud.toggleBag(true); },
+      friends: () => { this.clearForPanel(); hud.toggleFriends(true); }, world: () => { this.clearForPanel(); this.openWorld(true); },
+      auto: () => { closeAudioPanel(); mapview().close(); toggleAutoPanel(true); }, settings: clickBtn("audioBtn"), guide: () => guideReview(),
+      rank: () => { this.clearForPanel(); openRank(); }, calendar: () => { this.clearForPanel(); openCalendar(); },
+      welfare: () => { this.clearForPanel(); openWelfare(); },
     }, this.ac.signal);
   }
 
@@ -1552,6 +1574,11 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("resonanceTop", (m: ResonanceTopMsg) => {
       if (m && Array.isArray(m.list)) hud.setResonanceTop(m);
     });
+    // Màn UI v2 (cờ ui2): bảng Xếp Hạng (#1201), chỉ hiển thị tin riêng của server.
+    this.room.onMessage("rank", (m: Parameters<typeof onRankBoards>[0]) => onRankBoards(m));
+    this.room.onMessage("rankTop", (m: RankTopMsg) => onRankTop(m));
+    this.room.onMessage("calendar", (m: CalendarMsg) => onCalendar(m)); // Lịch Hoạt Động (#1202)
+    this.room.onMessage("welfare", (m: WelfareMsg) => onWelfare(m)); // Phúc Lợi / Sổ Điểm Danh (#1207): server gửi lúc vào phòng và lúc qua 00:00
     // Tổ đội người chơi (7.1): khung tổ đội và lời mời, chỉ gửi riêng cho mình.
     this.room.onMessage("rally", (m: unknown) => { addRally(m); }); // dấu "Tập trung ở đây" của đồng đội (R6)
     this.room.onMessage("party", (m: PartyView) => { this.party = m; pruneRallies(new Set(m.members.map((x) => x.name))); hud.renderParty(m, { send: (op, name, sid) => this.partySend(op, name, sid) }); });
@@ -3344,14 +3371,15 @@ export class GameScene extends Phaser.Scene {
     if (tag !== v.playing) { v.playing = tag; fitHonsuLayer(v.body.play(key)); }
     v.body.anims.timeScale = anim === "walk" ? Phaser.Math.Clamp(spd / WALK_ANIM_SPEED, WALK_ANIM_SCALE[0], WALK_ANIM_SCALE[1]) : 1;
     v.body.setFlipX(flip);
-    const pa = v.vhAnim;
+    const pa = v.vhAnim, pface = phuFaceOf(v.lpcFace.shown, v.face), real = !!pa && !phuUsesStatic(pa, pface); // real: hướng này chạy clip vẽ thật (không thì phụ thể tĩnh cũ, võ hồn nhập từng hướng)
     let clipOff: readonly [number, number] = NO_OFF;
     if (pa) { // clip vẽ thật: khung chọn theo giờ hoạt ảnh thân, hướng 5 hàng (se / ne theo hướng thật), độ dời cố định của clip từ manifest
-      const clip = syncPhuLayers(v.body, [v.vb, v.vf], pa, anim, phuFaceOf(v.lpcFace.shown, v.face), v.act && v.act.anim === anim ? time - v.act.t0 : -1);
+      const clip = syncPhuLayers(v.body, [v.vb, v.vf], pa, anim, pface, v.act && v.act.anim === anim ? time - v.act.t0 : -1);
       if (clip) clipOff = pa.layout.offset[clip];
     } else syncLayers(v.body, [v.vb, v.vf]);
-    if (v.vhBlank[0]) v.vb.setAlpha(0); // nửa phụ thể không có ảnh: giữ visible (spiritMotion đọc) nhưng không hiện
-    if (v.vhBlank[1]) v.vf.setAlpha(0);
+    const blank = pa && !real ? pa.statik!.blank : v.vhBlank; // hướng dùng phụ thể tĩnh: nửa trống theo ảnh tĩnh
+    if (blank[0]) v.vb.setAlpha(0); // nửa phụ thể không có ảnh: giữ visible (spiritMotion đọc) nhưng không hiện
+    if (blank[1]) v.vf.setAlpha(0);
     if (p.vh !== v.vh) { v.vb.setVisible(false); v.vf.setVisible(false); } // phụ thể đang tải lười (vohonLazy.ts)
     // Bay (2.5b): nhấc mọi lớp trừ bóng lên tối đa 10 pixel theo nửa sóng sin.
     const fe = v.fly ? (time - v.fly.t0) / v.fly.ms : 1; if (fe >= 1) v.fly = null;
@@ -3360,10 +3388,10 @@ export class GameScene extends Phaser.Scene {
     // Phụ thể của thân LPC (rộng hơn m1): lệch theo LPC_VIEW.vohon, dx đổi dấu khi lật ngang.
     const ox = (v.lpcKey ? (flip ? -LPC_VIEW.vohon.dx : LPC_VIEW.vohon.dx) : 0) + (flip ? -clipOff[0] : clipOff[0]), oy = (v.lpcKey ? LPC_VIEW.vohon.dy : 0) + clipOff[1];
     // Neo theo tâm khối thân (phutheAnchor.ts): dời (dx, dy) điểm ảnh khung (một điểm ảnh = 1 / SPR đơn vị hình chứa), phóng quanh gốc chân; chưa có neo thì dời 0, phóng 1 (hành vi cũ).
-    const an = pa ? phuAnchorAt(phuAnchorsOf(VOHON[v.vh]?.id ?? ""), /^lpcc_f_/.test(v.lpcKey), phuDirRow(phuFaceOf(v.lpcFace.shown, v.face))) : PHU_NO_ANCHOR; // chỉ clip vẽ thật; phụ thể tĩnh cũ giữ như cũ
+    const an = real ? phuAnchorAt(phuAnchorsOf(VOHON[v.vh]?.id ?? ""), /^lpcc_f_/.test(v.lpcKey), phuDirRow(phuFaceOf(v.lpcFace.shown, v.face))) : PHU_NO_ANCHOR; // chỉ clip vẽ thật; phụ thể tĩnh cũ giữ như cũ
     const ax = ox + (flip ? -an.dx : an.dx) / SPR, ay = oy + an.dy / SPR;
     v.vb.x = v.vf.x = ax; v.vb.y = v.vf.y = lift + ay;
-    this.spiritMotion(id, v, p, time, anim, flip, ax, lift + ay, an.scale);
+    this.spiritMotion(id, v, p, time, anim, flip, ax, lift + ay, an.scale, real);
     // Bị đánh: nháy trắng 2 lần.
     const e = time - v.hurtT, white = e < 70 || (e >= 140 && e < 210);
     for (const s of [v.body, v.vb, v.vf]) if (white) s.setTintFill(0xffffff); else s.clearTint();
@@ -3377,16 +3405,16 @@ export class GameScene extends Phaser.Scene {
    * đánh / thi triển, bằng biến đổi Phaser trên sprite có sẵn (không tạo object). Mức theo fxLevel (Thấp / Vừa / Cao, đã gồm trần FPS), Giảm
    * chuyển động tắt hẳn, người khác nhẹ hơn. Gục, hấp thụ, khung phụ thể ẩn thì trả về tư thế gốc.
    */
-  spiritMotion(id: string, v: PView, p: any, time: number, anim: HsAnim, flip: boolean, ox: number, oy: number, anchorK = 1) {
+  spiritMotion(id: string, v: PView, p: any, time: number, anim: HsAnim, flip: boolean, ox: number, oy: number, anchorK = 1, real = !!v.vhAnim) {
     const fam = SPIRIT_FAMILY[VOHON[p.vh]?.id ?? ""], layers = [v.vb, v.vf];
     const k = fam && v.vb.visible && !p.dead && anim !== "absorb" ? spiritScale(fxLevel(), fxPrefs.reduce, id === this.me) : 0;
-    const iso = v.vhAnim || isIsoSheet(this, v.vb.texture.key), base = (iso ? 1 / SPR : 1) * (iso ? anchorK : 1); // phụ thể 48×48 cũ vẽ bằng code phóng 1 (fitHonsuLayer); neo chỉ cho ảnh iso
+    const iso = real || isIsoSheet(this, v.vb.texture.key), base = (iso ? 1 / SPR : 1) * (iso ? anchorK : 1); // phụ thể 48×48 cũ vẽ bằng code phóng 1 (fitHonsuLayer); neo chỉ cho ảnh iso
     if (!fam) { for (const s of layers) if (s.scaleX !== base) s.setScale(base); return; }
     if ((k <= 0 && v.vb.rotation === 0 && v.vb.scaleX === base && v.vb.scaleY === base)) return;
     const st: SpiritState = anim === "attack" || anim === "cast" ? anim : anim === "walk" ? "walk" : "idle";
     v.spPhase ??= spiritPhase(id);
     const age = v.act ? time - v.act.t0 : 0, dur = v.act ? honsuAnimMs(v.act.anim) : 0;
-    applySpiritPose(layers, spiritPose(this.spPose, fam, k > 0 ? st : "idle", time, age, dur, flip ? -1 : 1, time - v.hurtT, k, v.spPhase, v.vhAnim ? clipOscK(fam) : 1), this.spShift, ox, oy, base, 1 / SPR);
+    applySpiritPose(layers, spiritPose(this.spPose, fam, k > 0 ? st : "idle", time, age, dur, flip ? -1 : 1, time - v.hurtT, k, v.spPhase, real ? clipOscK(fam) : 1), this.spShift, ox, oy, base, 1 / SPR);
   }
 
   /** Xin lại chỉ số của võ hồn đang xem ở bảng nhân vật (server giới hạn nhịp, tin về qua "stats"). */

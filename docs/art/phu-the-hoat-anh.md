@@ -134,7 +134,7 @@ Duyệt theo **khối hướng** (`s`, `se`, `e`, `ne`, `n`), như hồn thú. K
 
 ## Fallback nhánh cũ
 - **Điều kiện dùng sheet mới:** texture `vhanim_{id}` có trong manifest (cho nửa nào không `blank`) → client phát clip; **không có** → chạy nguyên nhánh cũ (phụ thể tĩnh `vh_{id}_b/_f` + `spiritMotion` mức hiện tại): hành vi, bot, ảnh chụp cũ không đổi.
-- Nhập **từng võ hồn một**, không nhập nửa vời: võ hồn nhập đủ 5 hướng không chặn thì dùng sheet mới cho cả 5 hướng; khối chặn thì giữ nhánh cũ cả võ hồn. (Dự phòng theo hướng `dirsOk` như `#869` của hồn thú chỉ làm nếu P4 thấy cần.)
+- Nhập **từng võ hồn một**, không nhập nửa vời: võ hồn nhập đủ 5 hướng không chặn thì dùng sheet mới cho cả 5 hướng; khối chặn thì giữ nhánh cũ cả võ hồn. Ngoại lệ: hướng chặn sau 3 lượt nhập riêng bằng `anim.dirsOk` (`phu-the-runbook.md`).
 - Loài nhánh cũ **không bị gỡ** cho đến khi mọi võ hồn đã nhập; P5 dọn sau khi 25 / 25 xong. Không đổi server, `VOHON`, số cân bằng.
 
 ## `spiritMotion` mức lắc nhẹ
