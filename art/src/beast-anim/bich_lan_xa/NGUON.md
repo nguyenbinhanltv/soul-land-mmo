@@ -20,8 +20,8 @@ Loài `bich_lan_xa` (Bích Lân Xà), họ `snake`, khung game 96×96. Mức ki�
 - Prompt: `toA.prompt.txt` (SHA256 `e08a382632c6da07592e8db336a45230a5b646a8950f1c923ca59d534ff84e58`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se pass, e nhẹ).
-- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 78% so với ảnh tĩnh (lệch 22%); cutter neo lại, không chặn.
-- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H9–12 (e): cỡ thân idle 118% so với ảnh tĩnh (lệch 18%); cutter neo lại, không chặn.
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 75% so với ảnh tĩnh (lệch 25%, quá 25%); cutter neo lại, không chặn.
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H9–12 (e): cỡ thân idle 113% so với ảnh tĩnh (lệch 13%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
 
 ## toB
@@ -31,6 +31,7 @@ Loài `bich_lan_xa` (Bích Lân Xà), họ `snake`, khung game 96×96. Mức ki�
 - Prompt: `toB.prompt.txt` (SHA256 `54f26aea2e618a4cb87b2d145f2cc72aed19c59fbafb004e4e0e48daf9683fb4`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne pass, n nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H5–8 (n): cỡ thân idle 89% so với ảnh tĩnh (lệch 11%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
 
 ## toE
@@ -40,7 +41,17 @@ Loài `bich_lan_xa` (Bích Lân Xà), họ `snake`, khung game 96×96. Mức ki�
 - Prompt: `toE.prompt.txt` (SHA256 `3306e77e4efc4824047a4fcbf5db3dd513f1eb11c88791593dd76ad61122da14`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
-- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 179% so với ảnh tĩnh (lệch 79%, quá 25%); cutter neo lại, không chặn.
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 171% so với ảnh tĩnh (lệch 71%, quá 25%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+## to-s
+
+- File: `to-s.png`, **1536×1024**, 1876515 byte, SHA256 `63742e721a40f60f43cc44f50b94ddc0950dbe154ae7b08e8e2368e648d45a57`.
+- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3.
+- Prompt: `to-s.prompt.txt` (SHA256 `32c7cddd86c18d3829eda9a9a7d040628d60c9c2aeeaa504fb7d816d8ee5f103`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: s nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 168% so với ảnh tĩnh (lệch 68%, quá 25%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## Tờ chưa vào thư mục chính (candidates)
