@@ -2,7 +2,14 @@
 import { NpcActions, npcDefOpen, npcPage, renderNpc } from "./hudNpc.ts";
 import { itemDef, formatHonTe, ARENA, type ArenaRecord } from "../../shared/data.ts";
 import { mmss } from "./hudBoss.ts";
+import { isUi2 } from "./uiKit.ts";
+import { stateBox } from "./uiParts.ts";
+import "./ui2-arena.css";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
+
+// UI v2 (đợt 3d): hộp đấu trường nhận khung Mực của kit khi bật cờ ui2 (index.html giữ nguyên; cờ tắt thì không đổi gì). Luật vẽ ở ui2-arena.css.
+const KIT = isUi2() ? " f2-muc-nho" : "";
+if (KIT) for (const id of ["arenaQ", "arenaBar", "arenaEnd"]) document.getElementById(id)?.classList.add("f2-muc-nho");
 
 // ---------- Đại Đấu Hồn Trường (mục 5.9, bước 7.2): đang tìm trận, thanh trận đấu, kết quả, bảng xếp hạng ----------
 /** Tin riêng "arenaTop": ARENA.topN dòng đầu (dòng của mình có `me`), hạng của mình, lượt thắng có thưởng còn lại hôm nay. */
@@ -87,7 +94,7 @@ export function updateArenaLive() {
 /** Bảng xếp hạng (top ARENA.topN, dòng của mình sáng) kèm hạng / thành tích của mình và lượt thắng có thưởng còn lại. */
 export function arenaRankEl(m: ArenaTopMsg | null) {
   const box = document.createElement("div"); box.className = "arank";
-  if (!m) { box.textContent = "Đang tải bảng xếp hạng…"; return box; }
+  if (!m) { if (KIT) box.append(stateBox({ kind: "loading", text: "Đang tải bảng xếp hạng…", rows: 3 })); else box.textContent = "Đang tải bảng xếp hạng…"; return box; }
   const me = document.createElement("div"); me.className = "ame";
   me.textContent = m.me ? `Hạng ${m.me.rank} · Elo ${m.me.elo} · ${m.me.wins} thắng, ${m.me.losses} thua, ${m.me.draws} hòa`
     : `Chưa đấu trận nào (Elo khởi đầu ${m.start}).`;
@@ -100,10 +107,14 @@ export function arenaRankEl(m: ArenaTopMsg | null) {
   m.list.forEach((r, i) => {
     const row = document.createElement("div"); row.className = "ar" + (r.me ? " me" : "");
     row.innerHTML = `<span>${i + 1}</span><em></em><i>${r.elo}</i><i>${r.wins} – ${r.losses} – ${r.draws}</i>`;
+    if (KIT && i < 3) row.classList.add("top3");              // ba hạng đầu: số đậm + vạch trái (hình, không chỉ màu)
     row.querySelector("em")!.textContent = r.name;
     t.appendChild(row);
   });
-  if (!m.list.length) { const e = document.createElement("small"); e.textContent = "Chưa ai đấu trận nào."; t.appendChild(e); }
+  if (!m.list.length) {
+    if (KIT) t.appendChild(stateBox({ kind: "empty", text: "Chưa ai đấu trận nào.", hint: "Đến Đại Đấu Hồn Trường để mở hạng đầu tiên." }));
+    else { const e = document.createElement("small"); e.textContent = "Chưa ai đấu trận nào."; t.appendChild(e); }
+  }
   box.appendChild(t);
   return box;
 }
@@ -168,7 +179,7 @@ function renderWatchEnd(a: { time: number } | null, sides: { name: string; elo: 
   const el = $("#arenaEnd");
   if (!a) { if (el.dataset.w) { el.dataset.w = ""; el.hidden = true; el.innerHTML = ""; } return; }
   if (!el.dataset.w) {
-    el.dataset.w = "1"; el.hidden = false; el.className = "panel watchend"; el.innerHTML = "";
+    el.dataset.w = "1"; el.hidden = false; el.className = "panel watchend" + KIT; el.innerHTML = "";
     const h = document.createElement("h2"); el.appendChild(h);
     for (let i = 0; i < 2; i++) { const l = document.createElement("div"); l.className = "aline"; el.appendChild(l); }
     const row = document.createElement("div"); row.className = "brow";
@@ -193,7 +204,7 @@ export function arenaEnd(m: ArenaEndMsg | null, act: { back(): void; top(): void
 function renderArenaEnd() {
   const m = arenaEndMsg, el = $("#arenaEnd"); if (!m) return;
   el.hidden = false; el.innerHTML = "";
-  el.className = "panel " + (m.score === 1 ? "win" : m.score === 0 ? "lose" : "draw");
+  el.className = "panel " + (m.score === 1 ? "win" : m.score === 0 ? "lose" : "draw") + KIT;
   const h = document.createElement("h2"); h.textContent = m.score === 1 ? "Thắng!" : m.score === 0 ? "Thua" : "Hòa"; el.appendChild(h);
   const line = (text: string, cls = "") => { const p = document.createElement("div"); p.className = "aline " + cls; p.textContent = text; el.appendChild(p); };
   const noshow = m.reason === "noshow";
@@ -201,6 +212,7 @@ function renderArenaEnd() {
   else if (m.eloCapped) line(`Hôm nay bạn đã cộng đủ ${ARENA.eloDaily} Elo: trận này không cộng Elo, không thưởng (đặt lại 00:00 giờ Việt Nam).`, "afriend");
   line(`Đối thủ ${m.foe}: ${m.why}.`);
   line(m.friendly ? `Elo giữ nguyên: ${m.elo1}` : `Elo ${m.elo0} → ${m.elo1} (${signed(m.elo1 - m.elo0)})`, "aelo");
+  if (KIT) { const d = m.friendly ? 0 : m.elo1 - m.elo0; (el.lastElementChild as HTMLElement).dataset.dir = d > 0 ? "up" : d < 0 ? "down" : "flat"; }   // mũi tên ▲ / ▼ ở ui2-arena.css
   line(`Thành tích: ${m.rec.wins} thắng · ${m.rec.losses} thua · ${m.rec.draws} hòa`);
   if (m.friendly) line(noshow ? "Không thưởng, không tính thành tích, không mất lượt thắng có thưởng." : "Giao hữu không thưởng, không tính thành tích, không mất lượt thắng có thưởng.");
   else if (m.reward) {
@@ -225,4 +237,35 @@ export function updateArenaEnd() {
   const m = arenaEndMsg, k = m && $("#arenaEnd .acd"); if (!m || !k) return;
   const txt = `Tự về bản đồ cũ sau ${Math.max(0, Math.ceil((m.end - performance.now()) / 1000))} giây.`;
   if (k.textContent !== txt) k.textContent = txt;
+}
+
+
+// ---------- Màn gục (UI v2, đợt 2d; chỉ khi bật cờ ui2) ----------
+// Server tự đưa hồn sư về doanh trại sau RESPAWN_SECS (không có lựa chọn nào gửi lên), nên màn này chỉ nói đúng điều đó: đếm ngược, không mất gì,
+// võ hồn gục hồi khi về doanh trại. Lệnh vẫn nhận bình thường; ẩn ngay khi state báo hồn sư sống lại (`deathTick(false)`).
+const DEATH_LOOSE = 1;                                   // giây dư chờ state báo sống lại trước khi tự ẩn (mạng chậm)
+let deathEl: HTMLElement | null = null, deathEnd = 0, deathTotal = 0, deathSeen = false;   // deathSeen: state đã báo gục (tin "ko" có thể đến trước bản vá state)
+/** Tin "ko" không còn võ hồn kế (cả đội gục) ngoài sân: hiện màn đếm ngược `secs` giây. Cờ ui2 tắt thì không làm gì. */
+export function deathShow(secs: number) {
+  if (!isUi2()) return;
+  deathTotal = secs; deathEnd = performance.now() + secs * 1000; deathSeen = false;
+  if (!deathEl) {
+    deathEl = document.createElement("div"); deathEl.id = "deathScreen"; deathEl.className = "panel f2-muc-nho"; deathEl.setAttribute("role", "status"); deathEl.setAttribute("aria-live", "polite");
+    deathEl.innerHTML = `<h2>Hồn sư đã gục</h2><div class="dcd"><b></b><div class="bar"><i></i></div></div>
+      <small>Không mất kinh nghiệm hay đồ. Võ hồn đã gục hồi khi về doanh trại.</small>`;
+    ($("#hud") ?? document.body).appendChild(deathEl);
+  }
+  deathEl.hidden = false; deathTick(false);
+}
+const secsGrace = () => deathTotal - 1;                  // sau 1 giây vẫn chưa thấy gục thì coi như không gục (tin lạc)
+/** Mỗi lần cập nhật HUD: `dead` = hồn sư đang gục theo state. Đồng hồ chạy theo giờ máy; hết giờ dư mà state vẫn gục thì ẩn (tránh kẹt màn). */
+export function deathTick(dead: boolean) {
+  const e = deathEl; if (!e || e.hidden) return;
+  const left = (deathEnd - performance.now()) / 1000;
+  if (dead) deathSeen = true;
+  // Chưa thấy state gục thì chờ (tin đến trước bản vá); đã thấy rồi mà hết gục = sống lại → ẩn.
+  if ((!dead && (deathSeen || left < secsGrace())) || left < -DEATH_LOOSE) { e.hidden = true; return; }
+  const txt = left > 0 ? `Về doanh trại sau ${left.toFixed(1).replace(".", ",")} giây` : "Đang về doanh trại…";
+  const b = e.querySelector("b")!; if (b.textContent !== txt) b.textContent = txt;
+  (e.querySelector(".bar i") as HTMLElement).style.width = `${Math.round(Math.min(1, Math.max(0, 1 - left / deathTotal)) * 100)}%`;
 }
