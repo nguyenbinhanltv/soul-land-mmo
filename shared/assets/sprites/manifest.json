@@ -11614,6 +11614,72 @@
       "iso": true
     },
     {
+      "key": "vhanim_cuu_tinh_that_sat_kiem_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_cuu_tinh_that_sat_kiem_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
       "key": "vh_hao_thien_chuy_b",
       "iso": true
     },
