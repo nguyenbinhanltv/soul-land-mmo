@@ -2,15 +2,15 @@
 //   node tools/assets/beast-sheet-prompt.mjs --species phong_lang [--stage turnaround|direction|sheet] [--dir s,se,…] [--out <thư mục>] [--desc "<mô tả tiếng Anh>"]
 //   node tools/assets/beast-sheet-prompt.mjs --all            (mọi loài đã có ảnh tĩnh, chỉ in danh sách)
 // --stage turnaround: 1 ảnh 3:2, 5 hướng (cột) × idle / hurt / die (hàng); ghi `<loài>-turnaround.md`.
-// --stage direction (v2, khuyên dùng sau khi turnaround duyệt): mỗi hướng một tờ 1536×1024, 6×4, 22 khung; ghi `<loài>-to<A..E>.md` (A–E = s, se, e, ne, n).
+// --stage direction (v2, khuyên dùng sau khi turnaround duyệt): mỗi hướng một tờ 1536×1024, 6×4, 22 khung; ghi `<loài>-to<A..E>.md` (A–E = s, se, e, ne, n); loài đã có tờ legacy toA / toB (không 3:2) hoặc có `--name-by-dir` thì ghi `<loài>-to-<hướng>.md` (tờ lưu `to-s.png`…`to-n.png`, không đụng độ toA legacy).
 // --stage sheet (mặc định, đường v1 / dự phòng): khung ≤ 96 gộp 3 + 2 hướng (tờ A, B); khung lớn mỗi hướng một tờ; ghi `<loài>-to<A|B…>.md`.
 // Bài học đọc từ art/src/beast-anim/lessons.md (beast-sheet-lessons.mjs); ảnh tham chiếu theo thứ tự cố định ghi trong prompt và hướng dẫn.
 // Tên, mô tả, họ, bậc lấy tự động từ BEASTS (shared/data.ts), manifest, art/CREDITS.md và client/src/sprites.ts.
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { MANIFEST, ROOT } from "./lib.mjs";
-import { DIR_VI, DIRS, ANIMS, ANIM_VI, BANDS, FRAMES, COLS, FAMILY_VI, LEGLESS, TURNAROUND, sheetPlan, speciesInfo, tierNameOfFrame } from "./beast-sheet-lib.mjs";
+import { MANIFEST, ROOT, readPng } from "./lib.mjs";
+import { DIR_VI, DIRS, ANIMS, ANIM_VI, BANDS, FRAMES, COLS, FAMILY_VI, LEGLESS, TURNAROUND, sheetPlan, sheetStem, isDirectionRatio, speciesInfo, tierNameOfFrame } from "./beast-sheet-lib.mjs";
 import { lessonsFor, STAGES } from "./beast-sheet-lessons.mjs";
 import { moveFor } from "./beast-sheet-motion.mjs";
 
@@ -234,7 +234,7 @@ ${infoRow(info)}
 1. Mở cuộc trò chuyện **mới** cho mỗi tờ; đính ảnh tham chiếu **theo đúng thứ tự**:
    ${refsVi(refs)}
 2. Dán khối prompt dưới đây. Không chọn cỡ ảnh (công cụ chỉ nhận tỉ lệ).
-3. Lưu ảnh gốc **nguyên byte** (không resize) vào \`art/src/beast-anim/${info.id}/to${sheet.id}.png\` rồi chạy \`npm run beast:check -- ${info.id}\`. Đối chiếu **tờ liên hệ có nhãn**: \`n\` / \`ne\` không thấy mặt (kể cả hurt), \`se\` khác \`e\`, hurt lùi dọc hướng (không ngửa bụng / quay mặt), die giữ hướng, cùng cỡ với tờ chuẩn. NGUON và dòng \`LỖI:\` do \`beast-nguon.mjs\` sinh, không viết tay.
+3. Lưu ảnh gốc **nguyên byte** (không resize) vào \`art/src/beast-anim/${info.id}/${sheetStem(sheet.id)}.png\` rồi chạy \`npm run beast:check -- ${info.id}\`. Đối chiếu **tờ liên hệ có nhãn**: \`n\` / \`ne\` không thấy mặt (kể cả hurt), \`se\` khác \`e\`, hurt lùi dọc hướng (không ngửa bụng / quay mặt), die giữ hướng, cùng cỡ với tờ chuẩn. NGUON và dòng \`LỖI:\` do \`beast-nguon.mjs\` sinh, không viết tay.
 4. Chỉ tờ này hỏng thì vẽ lại **chỉ tờ này** (22 hình), tối đa 3 lượt; chọn lượt có điểm kiểm thấp nhất + mắt. **Không** dùng tờ hỏng làm tham chiếu.
 5. Cắt: \`node tools/assets/beast-sheet-cut.mjs --species ${info.id} ${plan.map((s) => `--sheet ${s.id}=<ảnh-tờ-${s.id}.png>`).join(" ")} --out <thư mục>\` (nhận ra tờ 3:2 nên tự dùng bố cục theo hướng; ép bằng \`--layout direction\`).
 
@@ -267,7 +267,7 @@ ${infoRow(info)}
    ${refsVi(refs)}
 2. Dán khối prompt dưới đây. **Không** cần chọn cỡ ảnh: công cụ (Codex image_gen) chỉ nhận tỉ lệ (${aspectVi(sheet)}). Cỡ ra khác ${sheet.w}×${sheet.h} (vd tờ 1:1 ra 1254×1254) vẫn **hợp lệ**, cutter tự chuẩn hóa.
 3. Soát bằng mắt: mỗi ô đúng một con thú, đủ số khung theo hàng, đúng hướng nhìn, cùng cỡ, ô trống để trống, không chữ. Hỏng một hai khung thì bảo model vẽ lại **cả tờ** (vẽ lại từng ô làm lệch phong cách); đừng sửa tay trừ vết nhỏ.
-4. Lưu ảnh gốc, giữ nguyên cỡ ra (không resize), đặt vào \`art/src/beast-anim/${info.id}/to${sheet.id}.png\` rồi chạy \`npm run beast:check -- ${info.id}\`. NGUON và dòng \`LỖI:\` do \`node tools/assets/beast-nguon.mjs\` sinh (không viết tay); ghi vào \`art/CREDITS.md\` khi ảnh được duyệt vào game.
+4. Lưu ảnh gốc, giữ nguyên cỡ ra (không resize), đặt vào \`art/src/beast-anim/${info.id}/${sheetStem(sheet.id)}.png\` rồi chạy \`npm run beast:check -- ${info.id}\`. NGUON và dòng \`LỖI:\` do \`node tools/assets/beast-nguon.mjs\` sinh (không viết tay); ghi vào \`art/CREDITS.md\` khi ảnh được duyệt vào game.
 5. Đưa orchestrator đường dẫn tờ; cắt bằng:
    \`node tools/assets/beast-sheet-cut.mjs --species ${info.id} ${plan.map((s) => `--sheet ${s.id}=<ảnh-tờ-${s.id}.png>`).join(" ")} --out <thư mục>\`
 
@@ -284,6 +284,11 @@ ${buildPrompt(info, sheet, desc)}
 `;
 }
 
+/** Loài đang giữ tờ legacy toA / toB (không 3:2, gộp nhiều hướng): tờ direction mới phải đặt theo tên hướng (to-s.png…) để không ghi đè / đụng độ toA legacy (#861). */
+export function hasLegacyLetters(id) {
+  return ["A", "B"].some((l) => { const f = path.join(ROOT, "art", "src", "beast-anim", id, `to${l}.png`); if (!existsSync(f)) return false; const im = readPng(f); return !isDirectionRatio(im.w, im.h); });
+}
+
 /** Loài đã có turnaround duyệt trong repo (art/src/beast-anim/<loài>/turnaround.png, cùng tiêu chí với beast-status.mjs). */
 export const hasTurnaround = (id) => existsSync(path.join(ROOT, "art", "src", "beast-anim", id, "turnaround.png"));
 
@@ -293,11 +298,12 @@ export const hasTurnaround = (id) => existsSync(path.join(ROOT, "art", "src", "b
  * (`prereq`), không đòi ảnh tham chiếu chưa tồn tại (#1049).
  */
 export function stageDocs(info, stage, desc, dirs = DIRS, opts = {}) {
+  const byDir = stage === "direction" && (opts.nameByDir ?? hasLegacyLetters(info.id));
   if (stage === "turnaround") return [[`${info.id}-turnaround.md`, buildTurnaroundDoc(info, desc)]];
   if (stage === "direction" && !(opts.hasTurnaround ?? hasTurnaround(info.id))) return [[`${info.id}-turnaround.md`, buildTurnaroundDoc(info, desc, { prereq: true })]];
-  const plan = sheetPlan(info.frame, stage === "direction" ? "direction" : "auto");
+  const plan = sheetPlan(info.frame, stage === "direction" ? "direction" : "auto", byDir ? "dir" : "letter");
   return plan.filter((sh) => sh.dirs.some((d) => dirs.includes(d)))
-    .map((sh) => [`${info.id}-to${sh.id}.md`, stage === "direction" ? buildDirectionDoc(info, sh, plan, desc) : buildDoc(info, sh, plan, desc)]);
+    .map((sh) => [`${info.id}-${sheetStem(sh.id)}.md`, stage === "direction" ? buildDirectionDoc(info, sh, plan, desc) : buildDoc(info, sh, plan, desc)]);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -307,13 +313,13 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     for (const id of keys) { const i = speciesInfo(id); console.log(`${id}\t${i.family}\t${i.frame}\t${tierNameOfFrame(i.frame)}`); }
   } else {
     const species = val("--species"), stage = val("--stage") ?? "sheet", dirs = val("--dir")?.split(",") ?? DIRS;
-    if (!species || !STAGES.includes(stage) || dirs.some((d) => !DIRS.includes(d))) { console.error("Dùng: node tools/assets/beast-sheet-prompt.mjs --species <loài> [--stage turnaround|direction|sheet] [--dir s,se,e,ne,n] [--out <thư mục>] [--desc \"<mô tả tiếng Anh>\"] | --all"); process.exit(2); }
+    if (!species || !STAGES.includes(stage) || dirs.some((d) => !DIRS.includes(d))) { console.error("Dùng: node tools/assets/beast-sheet-prompt.mjs --species <loài> [--stage turnaround|direction|sheet] [--dir s,se,e,ne,n] [--name-by-dir] [--out <thư mục>] [--desc \"<mô tả tiếng Anh>\"] | --all"); process.exit(2); }
     const info = speciesInfo(species);
     if (!info.frame) { console.error(`loài ${species} chưa có khung trong manifest`); process.exit(2); }
     const out = val("--out"), desc = val("--desc") ?? info.desc;
     if (out) mkdirSync(out, { recursive: true });
     if (stage === "direction" && !hasTurnaround(info.id)) console.error(`${species}: chưa có turnaround đã duyệt (art/src/beast-anim/${species}/turnaround.png): sinh hướng dẫn turnaround trước, 5 tờ hướng sau khi có ảnh.`);
-    for (const [name, md] of stageDocs(info, stage, desc, dirs)) {
+    for (const [name, md] of stageDocs(info, stage, desc, dirs, a.includes("--name-by-dir") ? { nameByDir: true } : {})) {
       if (out) { writeFileSync(path.join(out, name), md); console.log(`ghi ${path.join(out, name)}`); } else console.log(md);
     }
   }

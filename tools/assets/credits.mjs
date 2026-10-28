@@ -112,7 +112,7 @@ export function readAnimSources(dir = ANIM_DIR) {
   const out = {};
   for (const d of readdirSync(dir, { withFileTypes: true }).filter((x) => x.isDirectory()).sort((a, b) => (a.name < b.name ? -1 : 1))) {
     const sub = path.join(dir, d.name), nguon = path.join(sub, "NGUON.md");
-    out[d.name] = { md: existsSync(nguon) ? readFileSync(nguon, "utf8") : null, hasSheets: ["A", "B", "C", "D", "E"].some((l) => existsSync(path.join(sub, `to${l}.png`))) || existsSync(path.join(sub, "turnaround.png")) };
+    out[d.name] = { md: existsSync(nguon) ? readFileSync(nguon, "utf8") : null, hasSheets: ["A", "B", "C", "D", "E", "-s", "-se", "-e", "-ne", "-n"].some((l) => existsSync(path.join(sub, `to${l}.png`))) || existsSync(path.join(sub, "turnaround.png")) };
   }
   return out;
 }

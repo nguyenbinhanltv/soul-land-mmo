@@ -6,7 +6,9 @@ import os from "node:os";
 import path from "node:path";
 import { ROOT, Img, readPng, encodePng } from "./lib.mjs";
 import { cutSpecies } from "./beast-sheet-cut.mjs";
-import { mixedPlan, sheetPlan } from "./beast-sheet-lib.mjs";
+import { mixedPlan, sheetPlan, sheetStem, sheetIdOf, speciesInfo } from "./beast-sheet-lib.mjs";
+import { stageDocs } from "./beast-sheet-prompt.mjs";
+import { recutOne } from "./beast-recut-all.mjs";
 import { checkSpecies, liveIssues } from "./beast-sheet-check.mjs";
 import { evaluate } from "./beast-sheet-ci.mjs";
 import { speciesStatus } from "./beast-status.mjs";
@@ -84,4 +86,67 @@ test("check / status: hướng có tờ direction không còn bị tờ legacy h
     assert.equal(st.layout, "hon-hop");
     assert.deepEqual(st.missing, []);
   } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+// ---- Tờ direction THEO TÊN HƯỚNG (to-s.png…): không đụng độ toA legacy (ca bich_lan_xa: s từ tờ direction, se / e vẫn từ toA legacy) ----
+test("mixedPlan: tờ theo tên hướng thắng; toA legacy giữ se / e (skip s), không còn báo se / e vắng", () => {
+  const d = (w, h) => ({ w, h }), L = { A: d(1024, 1536), B: d(1254, 1254) };
+  const p = mixedPlan(96, { ...L, s: d(1536, 1024) });
+  assert.deepEqual(p.map((x) => x.id), ["s", "A", "B"]);
+  assert.deepEqual(p.find((x) => x.id === "s").dirs, ["s"]);
+  assert.deepEqual(p.find((x) => x.id === "A").skip, ["s"]);
+  assert.ok(!p.some((x) => x.absent));
+  const noA = mixedPlan(96, { B: L.B, s: d(1536, 1024) });
+  assert.deepEqual(noA.find((x) => x.absent), { ...sheetPlan(96, "auto")[0], dirs: ["se", "e"], absent: true }, "A vắng → báo thiếu se / e, không phải s");
+  assert.deepEqual(mixedPlan(96, { A: L.A, B: L.B, s: d(1536, 1024), n: d(1536, 1024) }).map((x) => x.id), ["s", "n", "A", "B"]);
+  assert.deepEqual(mixedPlan(96, { A: d(1536, 1024), s: d(1536, 1024) }).find((x) => x.dirs[0] === "s").id, "s", "tờ theo tên thắng tờ mã cùng hướng");
+  const only = mixedPlan(96, { s: d(1536, 1024), n: d(1536, 1024) });
+  assert.deepEqual(only.map((x) => x.id), ["s", "B", "C", "D", "n"].map((x, i) => (["s", "se", "e", "ne", "n"].includes(x) ? x : "ABCDE"[i])), "chỉ tờ direction: đủ 5 mục, hướng thiếu giữ mã A..E");
+  assert.deepEqual(mixedPlan(256, { A: d(1536, 1024) }), sheetPlan(256, "auto"), "khung lớn không tờ theo tên: như cũ");
+  assert.equal(sheetStem("A"), "toA"); assert.equal(sheetStem("se"), "to-se"); assert.equal(sheetIdOf("to-ne"), "ne"); assert.equal(sheetIdOf("toB"), "B");
+});
+
+test("cutter: toA / toB legacy + to-s direction → s từ tờ direction, se / e từ toA legacy, đủ 5 hướng", () => {
+  const r = cutSpecies({ species: "phong_lang", sheets: { ...legacy, s: direction.D } });
+  assert.equal(r.frames.size, 5 * 22);
+  assert.equal(r.report.missing, 0);
+  assert.deepEqual(r.report.sheets.A.dirsOverridden, ["s"]);
+  assert.deepEqual(r.report.sheets.A.dirsUsed, ["se", "e"]);
+  assert.ok(r.report.sheets.s, "báo cáo có tờ theo tên");
+  assert.ok(!r.report.warnings.some((w) => /ô trống|THIẾU|thiếu tờ/.test(w)), r.report.warnings.join("\n"));
+  const pure = cutSpecies({ species: "phong_lang", sheets: legacy });
+  assert.notDeepEqual(Buffer.from(r.frames.get("s/idle/0").data), Buffer.from(pure.frames.get("s/idle/0").data), "s từ tờ direction");
+  const noA = cutSpecies({ species: "phong_lang", sheets: { B: legacy.B, s: direction.D } });
+  assert.ok(noA.report.warnings.includes("thiếu tờ A (se, e)"));
+  assert.deepEqual(blockDirs(noA.report.issues.filter((i) => /^thiếu tờ/.test(i.msg))), ["se", "e"]);
+});
+
+test("check / status / recut: to-s.png + toA / toB legacy cùng thư mục, bố cục hon-hop, không thiếu", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "beast-named-")), root = path.join(dir, "phong_lang");
+  try {
+    mkdirSync(root, { recursive: true });
+    for (const l of "AB") copyFileSync(path.join(ART, "phong_lang", `to${l}.png`), path.join(root, `to${l}.png`));
+    copyFileSync(path.join(ART, "thai_than_cu_vien", "toD.png"), path.join(root, "to-s.png"));
+    const r = checkSpecies("phong_lang", { dir: root });
+    assert.deepEqual(r.sheets.map((s) => s.sheet), ["toA", "toB", "to-s"]);
+    assert.deepEqual(r.sheets.find((s) => s.sheet === "to-s").dirs, ["s"]);
+    assert.deepEqual(r.dirOwned, ["s"]);
+    const st = speciesStatus("phong_lang", { root: dir });
+    assert.equal(st.layout, "hon-hop");
+    assert.deepEqual(st.missing, []);
+    const rc = recutOne("phong_lang", {}, dir);
+    assert.equal(rc.res.frames.size, 5 * 22);
+    rmSync(path.join(root, "toA.png"));
+    const st2 = speciesStatus("phong_lang", { root: dir });
+    assert.deepEqual(st2.missing, ["toA"]);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("prompt: loài có toA legacy thì tờ direction phát ra tên theo hướng (to-s.md, hướng dẫn lưu to-s.png); mặc định giữ toA..toE", () => {
+  const info = speciesInfo("phong_lang");
+  const byDir = stageDocs(info, "direction", info.desc, ["s", "n"], { nameByDir: true, hasTurnaround: true });
+  assert.deepEqual(byDir.map(([n]) => n), ["phong_lang-to-s.md", "phong_lang-to-n.md"]);
+  assert.ok(byDir[0][1].includes("phong_lang/to-s.png"));
+  const letters = stageDocs(info, "direction", info.desc, ["s"], { nameByDir: false, hasTurnaround: true });
+  assert.deepEqual(letters.map(([n]) => n), ["phong_lang-toA.md"]);
 });

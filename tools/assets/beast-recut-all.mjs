@@ -11,12 +11,13 @@ import { fileURLToPath } from "node:url";
 import { readPng, encodePng, ROOT } from "./lib.mjs";
 import { cutSpecies } from "./beast-sheet-cut.mjs";
 import { sheetFiles } from "./beast-sheet-check.mjs";
+import { sheetIdOf } from "./beast-sheet-lib.mjs";
 
 const SRC = path.join(ROOT, "art", "src", "beast-anim");
 
 function loadSheets(id, src = SRC) {
   const files = sheetFiles(path.join(src, id)), sheets = {};
-  for (const f of files) sheets[path.basename(f, ".png").replace(/^to/, "")] = readPng(f);
+  for (const f of files) sheets[sheetIdOf(path.basename(f, ".png"))] = readPng(f);
   return sheets;
 }
 
