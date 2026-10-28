@@ -21,7 +21,8 @@ import { dropArtSpec, dropTexture, DROP_ART_SCALE } from "../dropArt.ts";
 import { radar, type DotSink } from "../radar.ts";
 import { mapview, type MapLabel } from "../mapview.ts";
 import { fog } from "../fog.ts";
-import { toast, lootToasts } from "../feedback.ts";
+import { toast, lootToasts, lootGained, onToastNew } from "../feedback.ts";
+import { planPickup, xpDelta, XpBatch, xpText, coinText, COIN_COL, XP_COL, type PickupLine } from "../pickupFx.ts";
 import { guideStart, guideEvent, guideHint, guideReview } from "../guide.ts";
 import { initDualWindows } from "../dualWindow.ts";
 import { initPanelStack, closeTopPanel, panelOf, trapTab } from "../panelStack.ts";
@@ -37,7 +38,7 @@ import { findLongPath, buildNav, type Nav } from "../../../shared/path.ts";
 import { autoLeg, AUTO_STOP } from "../../../shared/autowalk.ts";
 import { getFlag, setFlag, patchFlag, bindFlagBar, mapName } from "../autowalk.ts";
 import { startCmd, topCmd, stoppedText, deniedText, type Cmd } from "../../../shared/control.ts";
-import { bindCmdChip, setCmdChip, flashWhy } from "../cmdChip.ts";
+import { bindCmdChip, setCmdChip, flashWhy, onWhy } from "../cmdChip.ts";
 import { RALLY, ATTACK_REACH, QUEST_STARTER, GUIDE_BAG_FREE } from "../../../shared/data.ts";
 import { emptyVitals, vitalsAfter, vitalsParse, type Vitals } from "../../../shared/vitals.ts";
 import { newGoal, stepGoal, reachGap, type ClickGoal } from "../../../shared/clickgoal.ts";
@@ -394,6 +395,7 @@ export class GameScene extends Phaser.Scene {
   combat = false;                   // đang giao chiến (tin riêng "squad"): bảng hấp thụ nhắc rời xa hồn thú
   party: PartyView | null = null;   // tin riêng "party" gần nhất (tổ đội người chơi, 7.1)
   audio!: AudioManager;
+  xpPrev: { vh: number; level: number; xp: number } | null = null; xpBatch = new XpBatch();   // kinh nghiệm ở khung trước + bộ gom cho chữ bay (#599)
   lvVh = -1; lvSeen = 0;            // võ hồn ra trận và cấp ở khung trước: cấp tăng (cùng võ hồn) thì phát khúc ngắn lên cấp
   selectedPlayer = "";
   targetBeast = "";
@@ -547,6 +549,9 @@ export class GameScene extends Phaser.Scene {
     });
     this.audio.bindUnlock(this.ac.signal);
     bindUiSounds(this.audio, this.ac.signal); // mở / đóng panel, kéo thả (G5, #396)
+    // Đợt 1c (#599): tiếng giao diện cho toast mới (nhiệm vụ / lên cấp = nhận thưởng, còn lại = thông báo) và cho lệnh bị từ chối / huỷ (chip lý do).
+    onToastNew((k) => { if (k !== "loot") this.audio.playUi(k === "quest" || k === "level" ? "reward" : "notify"); });
+    onWhy(() => { this.audio.playUi("error"); });
     this.audio.music?.setMap(this.room.state.mapId || this.mapId); // nhạc nền theo bản đồ trong state (#134); bài cũ mờ chéo sang
     bindAudioPanel(this.audio, this.ac.signal);
     // Bảng Tự động (Auto 2): tên võ hồn theo ô đội hình và hồn kỹ ở 4 ô của võ hồn đang ra trận, đọc từ tin `vohons` gần nhất.
@@ -1627,7 +1632,7 @@ export class GameScene extends Phaser.Scene {
     // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
     // Mảnh võ hồn trong túi (3.4): bảng đội hình hiện tiến độ mở / lên sao nên vẽ lại cùng túi.
     // Từ #215 sau tin "bag" đầu tiên chỉ nhận phần đổi (tin "bagd"); chưa có túi gốc thì bỏ qua (tin "bag" đang tới).
-    const onBag = (m: BagMsg) => { if (m.slots - m.items.filter((i) => i.vohon === null).length <= GUIDE_BAG_FREE) guideHint("bag"); if (lootToasts(this.bag?.items ?? null, m.items) >= RARE_LOOT_MIN) this.audio.playUi("rare"); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
+    const onBag = (m: BagMsg) => { if (m.slots - m.items.filter((i) => i.vohon === null).length <= GUIDE_BAG_FREE) guideHint("bag"); const rare = lootToasts(this.bag?.items ?? null, m.items); if (rare >= RARE_LOOT_MIN) this.audio.playUi("rare"); else if (rare >= 1) this.audio.playUi("reward"); this.pickupBag(this.bag, m); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
     this.room.onMessage("bag", onBag);
     this.room.onMessage("gear", (m: GearMsg) => { this.gear = m; this.renderBag(); this.renderChar(); this.askStats(); hud.npcRefresh(); }); // trang bị hồn sư (5.15): chỉ số tổng ở tin "stats"
     this.room.onMessage("bagd", (m: BagDeltaMsg) => {
@@ -2501,13 +2506,28 @@ export class GameScene extends Phaser.Scene {
     } else this.tweens.add({ targets: t, y: y - (plus ? 14 : 16) * SPR, alpha: 0, delay: plus ? 600 : 350, duration: plus ? 700 : 550, onComplete: () => t.destroy() });
   }
 
+  /** Túi mới so với túi cũ: đồ nhận thêm và Hồn Tệ tăng thì chữ bay trên đầu mình (#599). Chỉ hiển thị, số liệu từ tin `bag` / `bagd` của server. */
+  pickupBag(prev: BagMsg | null, next: BagMsg) {
+    if (!prev) return;
+    const lines: PickupLine[] = lootGained(prev.items, next.items).map(({ it, n }) => { const i = hud.bagItemInfo(it); return { kind: "item" as const, text: n > 1 ? `${i.name} ×${n}` : i.name, col: i.color }; });
+    if (next.honTe > prev.honTe) lines.push({ kind: "coin", text: coinText(formatHonTe(next.honTe - prev.honTe)), col: COIN_COL });
+    this.pickupFloat(lines);
+  }
+  /** Vẽ các dòng nhận được (pickupFx.planPickup) trên đầu mình: số dòng theo mức hiệu ứng, Giảm chuyển động thì đứng yên rồi mờ. */
+  pickupFloat(lines: PickupLine[]) {
+    const v = this.players.get(this.me); if (!v || !lines.length) return;
+    for (const st of planPickup(lines, fxLevel(), fxPrefs.reduce)) {
+      this.time.delayedCall(st.delay, () => { if (v.root.active) this.floatText(v.root.x, v.root.y - HEAD - 30 - st.dy * this.txtK, st.text, st.col, st.drift); });
+    }
+  }
+
   /** Chữ bay lên rồi mờ dần (tên hồn kỹ, tên tiên cơ); đặt trên danh hiệu để không đè tên hồn sư. */
-  floatText(x: number, y: number, text: string, col: string) {
+  floatText(x: number, y: number, text: string, col: string, drift = true) {
     const t = this.add.text(x, y, text, {
       fontFamily: '"Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif', fontSize: "8px", fontStyle: "800",
       color: col, stroke: "#000", strokeThickness: 2, resolution: 8,
     }).setOrigin(0.5).setDepth(99999).setScale(this.txtK);
-    this.tweens.add({ targets: t, y: y - 14 * this.txtK, alpha: 0, delay: 500, duration: 600, onComplete: () => t.destroy() });
+    this.tweens.add({ targets: t, y: drift ? y - 14 * this.txtK : y, alpha: 0, delay: 500, duration: 600, onComplete: () => t.destroy() });
   }
 
   /**
@@ -3207,6 +3227,8 @@ export class GameScene extends Phaser.Scene {
     this.audio.music?.setBossPhase(bossLevel); // pha 2 (nổi giận): nhạc giao chiến boss lên một nấc
     this.audio.music?.tick();
     if (me) {
+      this.xpBatch.add(xpDelta(this.xpPrev, me), performance.now()); this.xpPrev = { vh: me.vh, level: me.level, xp: me.xp };
+      const gain = this.xpBatch.take(performance.now()); if (gain > 0) this.pickupFloat([{ kind: "xp", text: xpText(gain), col: XP_COL }]);
       if (me.vh === this.lvVh && me.level > this.lvSeen) { this.audio.play("level_up"); this.audio.music?.jingle("level_up"); toast("level", `Cấp ${me.level}`, VOHON[me.vh]?.name ?? "", "#ffe08a"); }
       this.lvVh = me.vh; this.lvSeen = me.level;
     }

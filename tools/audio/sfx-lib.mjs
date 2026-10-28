@@ -27,6 +27,8 @@ export const SFX_REQUIRED = {
   // Lô 2 (G5, #396): môi trường lớp chồng, giao diện, PK
   "amb-wind": 3, "amb-wave": 3, "amb-bird": 3, "amb-cricket": 3, "amb-fire": 3, "amb-bell": 2,
   ...Object.fromEntries(["open", "close", "drag", "drop", "equip", "enhance-ok", "enhance-fail", "rare"].map((k) => [`ui-${k}`, 2])),
+  // Đợt 1c UI v2 (#599): bấm nút, lỗi / từ chối, nhận thưởng, toast
+  ...Object.fromEntries(["click", "error", "reward", "notify"].map((k) => [`ui-${k}`, 2])),
   "pk-open": 2, "pk-count": 3, "pk-go": 1, "pk-kill": 2, "pk-heartbeat": 2,
 };
 

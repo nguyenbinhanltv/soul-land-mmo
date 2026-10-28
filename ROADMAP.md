@@ -8,7 +8,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 **Đã có** (Giai đoạn 2–9, nhóm Bản đồ BĐ1–BĐ6, ảnh nền búp bê NV6 gắn vào giao diện ở C16 #595, nhãn trên đầu C9 #593, biểu tượng + con trỏ C12 #598): mọi luật mô tả ở mục 4–5 và kiến trúc mục 6, trừ các việc còn ghi dưới đây.
 
 - [x] C8 Thanh kỹ năng tách nhóm, hồi chiêu dạng quạt, trạng thái rõ; thẻ đội hình rút gọn tên theo từ và tooltip đầy đủ (#594).
-- [ ] Giao diện và cảm giác dùng họ asset C1–C16 do Codex (tthoadev) làm, còn mở: C10 hộp thoại NPC + cửa hàng lưới (#596), C11 nhiệm vụ (#597), C13 phản hồi giao diện (#599), C14 khả năng tiếp cận (#600), C15 màn chết / bảng kết quả / Bạn bè (#601).
+- [ ] Giao diện và cảm giác dùng họ asset C1–C16 do Codex (tthoadev) làm, còn mở: C10 hộp thoại NPC + cửa hàng lưới (#596), C11 nhiệm vụ (#597), C13 phản hồi giao diện (#599; đợt 1c UI v2 xong sau cờ `ui2`: toast / chip lệnh / banner / tooltip, chữ bay khi nhận, tiếng giao diện CC0), C14 khả năng tiếp cận (#600), C15 màn chết / bảng kết quả / Bạn bè (#601).
 - [ ] Asset ngoài: kho riêng tư, nhập gói itch, MCP `asset-scout`, biểu tượng game-icons (#622, theo dõi).
 - [ ] Tối ưu tài liệu (#619, theo dõi D0–D8).
 - [ ] Tách `MapRoom.ts` theo miền, từng PR nhỏ, hàm thuần trước (#702, theo dõi; đã xong nhiều bước, xem issue).
@@ -19,7 +19,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] Bí Cảnh, phương án B, MVP Luyện Hồn Cảnh solo (#877, `docs/design/bi-canh.md`): P0 thiết kế xong; P1 `BICANH` + `bicanhDay` (làm mới 05:00), P2 tin `bicanh` `get` / `buy` + lượt (không cần SQL mới) và P4 Hồn Kinh Quyển (dùng cho võ hồn dự bị, kẹp bình cảnh) xong, P3 `BiCanhRoom` (server: `enter`, ba sóng + tinh anh, thưởng quyển theo sóng, trần quyển ngày, hoàn lượt khi lỗi; dùng tạm sân đấu làm bản đồ) xong, bot nhóm `bicanh`; còn bản đồ Tiled riêng + P5 màn client, P6 soát chống gian lận + `balance-review` + `soak-perf`; các phụ bản sau (Cực Hạn, Đột Phá, Luyện Khí, tổ đội, Tư Chất) xếp sau MVP.
 - [ ] Hoạt ảnh hồn thú v2 (#861, theo dõi) và H4 vẽ thật 64 loài (#766); sổ tự sinh ở comment ghim #766 (`npm run beast:status`, không commit).
 - [ ] Phụ thể võ hồn v2: vẽ mới + hoạt ảnh 5 hướng (#1020, epic; bảng ở `docs/art/phu-the-hoat-anh.md`). P0 đặc tả #1021 xong; P1 công cụ `phuthe-sheet-*` #1022 xong (PR #1067); còn P2 client phát clip, P3 thử 3 võ hồn, P4 gộp, P5 dọn `spiritMotion`.
-- [ ] Nghiên cứu UI/UX giao diện thích ứng (#732, U0–U5; còn U2 #755 tách chat khỏi log loot / XP, gộp toast; U6 điện thoại không làm, giữ Q40).
+- [ ] Nghiên cứu UI/UX giao diện thích ứng (#732, U0–U5; U2 #755 tách chat khỏi log loot / XP, gộp toast xong ở đợt 1c; U6 điện thoại không làm, giữ Q40).
 - [ ] Cân bằng chờ chủ repo (mức C): #907, #908, #909 (xem `docs/quyet-dinh.md`, "Việc đang chờ").
 
 Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện) đã xong: lớp trang phục phương Đông C3 (#554, PR #576); lịch sử ở `docs/lich-su.md`.

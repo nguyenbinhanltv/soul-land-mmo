@@ -15,7 +15,7 @@ Nguồn theo họ asset ở bảng dưới; thao tác từng công cụ ở skil
 | Vật phẩm / hiệu ứng LPC, gói asset ngoài | OpenGameArt và các nguồn miễn phí (`tools/assets/lpc-item.mjs`, `import-pack.mjs`) | Chỉ asset miễn phí; chủ repo duyệt từng ảnh |
 | Huy hiệu hệ, chỉnh pixel | Vẽ tay (Aseprite hoặc từng điểm bằng code) | |
 | Gói giới hạn giấy phép (Gigapack, Forest, Free Pixel Effects, Battle Effects…) | **Kho asset riêng** (#627, `docs/asset-rieng.md`) | Ảnh đã xử lý chỉ ở repo private; repo game giữ mô tả, manifest, CREDITS. Không có kho thì game dùng hình cũ |
-| Âm thanh | **Chỉ CC0 / miễn phí bản quyền**, không AI, không tiếng hô | `tools/audio`, ghi đủ ở `art/CREDITS.md` (`am-thanh.md`); nhạc nền do dự án sáng tác bằng code |
+| Âm thanh | **Chỉ CC0 / miễn phí bản quyền**, không AI, không tiếng hô | `tools/audio`, ghi đủ ở `art/CREDITS.md` (`am-thanh.md`); tiếng giao diện đợt 1c (#599: `ui-click`, `ui-error`, `ui-reward`, `ui-notify`) lấy từ Kenney Interface Sounds (CC0, đã có trong catalog); nhạc nền do dự án sáng tác bằng code |
 
 - **Thú LPC** (hình tạm cũ cho hồn thú thường) đã thay hết; công cụ `lpc-beast.mjs` ngừng.
 - Công cụ AI chỉ dùng khi điều khoản cho phép dùng kết quả (Gemini: điều khoản Gemini Apps của Google; ComfyUI: CreativeML Open RAIL++-M của SDXL, CreativeML OpenRAIL-M của pixel-art-xl, MIT của VAE). Mỗi key một dòng trong `art/CREDITS.md` (file, key, công cụ, prompt, ngày). Không ghi tên họa sĩ còn sống hay tên game thương mại vào prompt.

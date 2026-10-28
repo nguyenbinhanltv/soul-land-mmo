@@ -16,7 +16,7 @@ const NAME: Record<string, string> = {
   start: "bắt đầu", fly: "bay", boom: "nổ",
   lang: "Sói", hung: "Gấu / tê / giáp", bao: "Báo / hổ / thỏ", xa: "Rắn / mãng", chim: "Chim", trung: "Côn trùng", thiem: "Cóc / nhớt", thuc: "Thực vật",
   co: "Cỏ", dat: "Đất", da: "Đá", tuyet: "Tuyết", nuoc: "Nước nông",
-  open: "Mở panel", close: "Đóng panel", drag: "Nhấc đồ (kéo)", drop: "Thả đồ", equip: "Trang bị", enhanceOk: "Cường hóa thành công", enhanceFail: "Cường hóa chưa thành", rare: "Nhận đồ hiếm",
+  open: "Mở panel", close: "Đóng panel", drag: "Nhấc đồ (kéo)", drop: "Thả đồ", equip: "Trang bị", enhanceOk: "Cường hóa thành công", enhanceFail: "Cường hóa chưa thành", rare: "Nhận đồ hiếm", click: "Bấm nút trong bảng", error: "Lỗi / bị từ chối", reward: "Nhận thưởng", notify: "Thông báo (toast)",
   wave: "Sóng", bird: "Chim (ngày)", cricket: "Côn trùng (đêm)", bell: "Chuông chùa",
 };
 const label = (key: string) => NAME[key] ?? key;
