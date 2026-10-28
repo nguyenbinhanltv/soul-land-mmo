@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ROOT, Img, encodePng, readPng, hex, PORTRAIT_MAX_COLORS, PT_MAX_COLORS, sheetSpec } from "./lib.mjs";
+import { ROOT, Img, encodePng, readPng, hex, PORTRAIT_MAX_COLORS, PT_MAX_COLORS, sheetSpec, appendManifestEntry } from "./lib.mjs";
 import * as P from "./vohon-pixelize-lib.mjs";
 import { checkRaw, checkPixel, paletteMatch, softness, gridRatio, hasFrame, formatResult, verdict } from "./vohon-check.mjs";
 import { buildPrompt, buildDoc, styleRefBlock, allIds, PHAP_TUONG_MOI } from "./vohon-prompt.mjs";
@@ -369,4 +369,14 @@ test("portrait2 (P1c2): nền theo màu viền, giữ khối tối + mắt, màu
   assert.ok(P.colorDrift(r2.img, region) < P.colorDrift(r1.img, region), "lệch màu thấp hơn preset portrait");
   const e = P.edgeBackground(P.pixelizeDown(region, 64, 64));
   assert.ok(e.bg[0] === 1 && e.bg[32 * 64 + 32] === 0, "tâm không phải nền");
+});
+
+ test("thêm icon giữ nguyên byte mục cũ và UI Kit ở cuối, giữ CRLF", () => {
+  const text = '{\r\n  "sprites": [\r\n    { "key": "portrait_bach_ho", "iso": true },\r\n    { "key": "ui2_x", "iso": true }\r\n  ]\r\n}\r\n';
+  const next = appendManifestEntry(text, { key: "icon_bach_ho_24", iso: true });
+  assert.ok(next.includes('    { "key": "portrait_bach_ho", "iso": true },\r\n'));
+  assert.ok(next.endsWith('    { "key": "ui2_x", "iso": true }\r\n  ]\r\n}\r\n'));
+  assert.deepEqual(JSON.parse(next).sprites.map(e => e.key), ["portrait_bach_ho", "icon_bach_ho_24", "ui2_x"]);
+  assert.equal(next.replaceAll("\r\n", "").includes("\n"), false);
+  assert.deepEqual(JSON.parse(appendManifestEntry('{\n  "sprites": [\n  ]\n}\n', { key: "icon_bach_ho_24" })), { sprites: [{ key: "icon_bach_ho_24" }] });
 });

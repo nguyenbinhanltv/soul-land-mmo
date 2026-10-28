@@ -14454,46 +14454,16 @@
       "key": "item_hon_hach_tien_co",
       "iso": true
     },
-    {
-      "key": "ui_cursor_default_32",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_default_64",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_attack_32",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_attack_64",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_talk_32",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_talk_64",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_pickup_32",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_pickup_64",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_blocked_32",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_blocked_64",
-      "iso": true
-    },
+    { "key": "ui_cursor_default_32", "iso": true },
+    { "key": "ui_cursor_default_64", "iso": true },
+    { "key": "ui_cursor_attack_32", "iso": true },
+    { "key": "ui_cursor_attack_64", "iso": true },
+    { "key": "ui_cursor_talk_32", "iso": true },
+    { "key": "ui_cursor_talk_64", "iso": true },
+    { "key": "ui_cursor_pickup_32", "iso": true },
+    { "key": "ui_cursor_pickup_64", "iso": true },
+    { "key": "ui_cursor_blocked_32", "iso": true },
+    { "key": "ui_cursor_blocked_64", "iso": true },
     {
       "key": "gi_ui_menu",
       "iso": true
@@ -14525,270 +14495,6 @@
     {
       "key": "gi_notice_boss",
       "iso": true
-    },
-    {
-      "key": "ui2_khung_giay_lon",
-      "iso": true,
-      "nine": {
-        "x2": 13,
-        "x1": 7
-      }
-    },
-    {
-      "key": "ui2_khung_giay_nho",
-      "iso": true,
-      "nine": {
-        "x2": 17,
-        "x1": 9
-      }
-    },
-    {
-      "key": "ui2_khung_muc_lon",
-      "iso": true,
-      "nine": {
-        "x2": 22,
-        "x1": 11
-      }
-    },
-    {
-      "key": "ui2_khung_muc_nho",
-      "iso": true,
-      "nine": {
-        "x2": 19,
-        "x1": 10
-      }
-    },
-    {
-      "key": "ui2_khung_toast",
-      "iso": true,
-      "nine": {
-        "x2": 17,
-        "x1": 9
-      }
-    },
-    {
-      "key": "ui2_khung_tooltip",
-      "iso": true,
-      "nine": {
-        "x2": 20,
-        "x1": 10
-      }
-    },
-    {
-      "key": "ui2_ky_nang_hoi_chieu",
-      "iso": true
-    },
-    {
-      "key": "ui2_ky_nang_khoa",
-      "iso": true
-    },
-    {
-      "key": "ui2_ky_nang_san_sang",
-      "iso": true
-    },
-    {
-      "key": "ui2_ky_nang_thieu_hon_luc",
-      "iso": true
-    },
-    {
-      "key": "ui2_nut_chinh_chon",
-      "iso": true,
-      "nine": {
-        "x2": 15,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_nut_chinh_nhan",
-      "iso": true,
-      "nine": {
-        "x2": 15,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_nut_chinh_ro",
-      "iso": true,
-      "nine": {
-        "x2": 15,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_nut_chinh_tat",
-      "iso": true,
-      "nine": {
-        "x2": 15,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_nut_chinh_thuong",
-      "iso": true,
-      "nine": {
-        "x2": 15,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_nut_phu_chon",
-      "iso": true,
-      "nine": {
-        "x2": 14,
-        "x1": 7
-      }
-    },
-    {
-      "key": "ui2_nut_phu_nhan",
-      "iso": true,
-      "nine": {
-        "x2": 14,
-        "x1": 7
-      }
-    },
-    {
-      "key": "ui2_nut_phu_ro",
-      "iso": true,
-      "nine": {
-        "x2": 14,
-        "x1": 7
-      }
-    },
-    {
-      "key": "ui2_nut_phu_tat",
-      "iso": true,
-      "nine": {
-        "x2": 14,
-        "x1": 7
-      }
-    },
-    {
-      "key": "ui2_nut_phu_thuong",
-      "iso": true,
-      "nine": {
-        "x2": 14,
-        "x1": 7
-      }
-    },
-    {
-      "key": "ui2_o_chon",
-      "iso": true
-    },
-    {
-      "key": "ui2_o_co",
-      "iso": true
-    },
-    {
-      "key": "ui2_o_hiem_1",
-      "iso": true
-    },
-    {
-      "key": "ui2_o_hiem_2",
-      "iso": true
-    },
-    {
-      "key": "ui2_o_hiem_3",
-      "iso": true
-    },
-    {
-      "key": "ui2_o_hiem_4",
-      "iso": true
-    },
-    {
-      "key": "ui2_o_hiem_5",
-      "iso": true
-    },
-    {
-      "key": "ui2_o_nhap",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_o_trong",
-      "iso": true
-    },
-    {
-      "key": "ui2_tab_chon",
-      "iso": true,
-      "nine": {
-        "x2": 18,
-        "x1": 9
-      }
-    },
-    {
-      "key": "ui2_tab_thuong",
-      "iso": true,
-      "nine": {
-        "x2": 18,
-        "x1": 9
-      }
-    },
-    {
-      "key": "ui2_thanh_cuon",
-      "iso": true,
-      "nine": {
-        "x2": 8,
-        "x1": 4
-      }
-    },
-    {
-      "key": "ui2_thanh_do_hon",
-      "iso": true,
-      "nine": {
-        "x2": 8,
-        "x1": 4
-      }
-    },
-    {
-      "key": "ui2_thanh_do_kn",
-      "iso": true,
-      "nine": {
-        "x2": 3,
-        "x1": 2
-      }
-    },
-    {
-      "key": "ui2_thanh_do_sinh",
-      "iso": true,
-      "nine": {
-        "x2": 8,
-        "x1": 4
-      }
-    },
-    {
-      "key": "ui2_thanh_khung_hon",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_thanh_khung_kn",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_thanh_khung_sinh",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_vach_chia",
-      "iso": true,
-      "nine": {
-        "x2": 4,
-        "x1": 2
-      }
     },
     {
       "key": "icon_cuu_tinh_that_sat_kiem_24",
@@ -14981,6 +14687,45 @@
     {
       "key": "icon_a_ngan_32",
       "iso": true
-    }
+    },
+    { "key": "ui2_khung_giay_lon", "iso": true, "nine": {"x2": 13, "x1": 7} },
+    { "key": "ui2_khung_giay_nho", "iso": true, "nine": {"x2": 17, "x1": 9} },
+    { "key": "ui2_khung_muc_lon", "iso": true, "nine": {"x2": 22, "x1": 11} },
+    { "key": "ui2_khung_muc_nho", "iso": true, "nine": {"x2": 19, "x1": 10} },
+    { "key": "ui2_khung_toast", "iso": true, "nine": {"x2": 17, "x1": 9} },
+    { "key": "ui2_khung_tooltip", "iso": true, "nine": {"x2": 20, "x1": 10} },
+    { "key": "ui2_ky_nang_hoi_chieu", "iso": true },
+    { "key": "ui2_ky_nang_khoa", "iso": true },
+    { "key": "ui2_ky_nang_san_sang", "iso": true },
+    { "key": "ui2_ky_nang_thieu_hon_luc", "iso": true },
+    { "key": "ui2_nut_chinh_chon", "iso": true, "nine": {"x2": 15, "x1": 8} },
+    { "key": "ui2_nut_chinh_nhan", "iso": true, "nine": {"x2": 15, "x1": 8} },
+    { "key": "ui2_nut_chinh_ro", "iso": true, "nine": {"x2": 15, "x1": 8} },
+    { "key": "ui2_nut_chinh_tat", "iso": true, "nine": {"x2": 15, "x1": 8} },
+    { "key": "ui2_nut_chinh_thuong", "iso": true, "nine": {"x2": 15, "x1": 8} },
+    { "key": "ui2_nut_phu_chon", "iso": true, "nine": {"x2": 14, "x1": 7} },
+    { "key": "ui2_nut_phu_nhan", "iso": true, "nine": {"x2": 14, "x1": 7} },
+    { "key": "ui2_nut_phu_ro", "iso": true, "nine": {"x2": 14, "x1": 7} },
+    { "key": "ui2_nut_phu_tat", "iso": true, "nine": {"x2": 14, "x1": 7} },
+    { "key": "ui2_nut_phu_thuong", "iso": true, "nine": {"x2": 14, "x1": 7} },
+    { "key": "ui2_o_chon", "iso": true },
+    { "key": "ui2_o_co", "iso": true },
+    { "key": "ui2_o_hiem_1", "iso": true },
+    { "key": "ui2_o_hiem_2", "iso": true },
+    { "key": "ui2_o_hiem_3", "iso": true },
+    { "key": "ui2_o_hiem_4", "iso": true },
+    { "key": "ui2_o_hiem_5", "iso": true },
+    { "key": "ui2_o_nhap", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_o_trong", "iso": true },
+    { "key": "ui2_tab_chon", "iso": true, "nine": {"x2": 18, "x1": 9} },
+    { "key": "ui2_tab_thuong", "iso": true, "nine": {"x2": 18, "x1": 9} },
+    { "key": "ui2_thanh_cuon", "iso": true, "nine": {"x2": 8, "x1": 4} },
+    { "key": "ui2_thanh_do_hon", "iso": true, "nine": {"x2": 8, "x1": 4} },
+    { "key": "ui2_thanh_do_kn", "iso": true, "nine": {"x2": 3, "x1": 2} },
+    { "key": "ui2_thanh_do_sinh", "iso": true, "nine": {"x2": 8, "x1": 4} },
+    { "key": "ui2_thanh_khung_hon", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_thanh_khung_kn", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_thanh_khung_sinh", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_vach_chia", "iso": true, "nine": {"x2": 4, "x1": 2} }
   ]
 }

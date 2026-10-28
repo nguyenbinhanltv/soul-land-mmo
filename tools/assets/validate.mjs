@@ -18,7 +18,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { checkIsoTiles } from "./iso-build.mjs";
 import path from "node:path";
-import { ROOT, SPRITES, MANIFEST, PT_MAX_COLORS, readPng, toHex, allowedColors, accentColors, readGpl, npcIds, itemIconIds, skillIconIds, statusIds, heIds, beastIds, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS, vhanimSize } from "./lib.mjs";
+import { ROOT, SPRITES, MANIFEST, PT_MAX_COLORS, readPng, toHex, allowedColors, accentColors, readGpl, npcIds, itemIconIds, skillIconIds, statusIds, heIds, beastIds, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS, vhanimSize, appendManifestEntry } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -27,7 +27,8 @@ const nineOpt = +opt("--nine", "0"), mapOpt = opt("--map", ""), isoAt = args.ind
 const staticAt = args.indexOf("--static"), staticOpt = staticAt >= 0 && !!args.splice(staticAt, 1); // hồn thú lai: sheet tĩnh 3 hướng (#386)
 const keepOrderAt = args.indexOf("--keep-order"), keepOrder = keepOrderAt >= 0 && !!args.splice(keepOrderAt, 1); // nhập lô nhỏ, giữ thứ tự các khóa có sẵn
 
-const manifest = JSON.parse(readFileSync(MANIFEST, "utf8"));
+const manifestSource = readFileSync(MANIFEST, "utf8");
+const manifest = JSON.parse(manifestSource);
 manifest.sprites ??= [];
 const entryKey = (e) => (typeof e === "string" ? e : e.key);
 const allowed = allowedColors(), withAccents = new Set([...allowed, ...accentColors()]);
@@ -254,7 +255,8 @@ if (register) {
     if (i >= 0) manifest.sprites.splice(i, 1);
     manifest.sprites.push(entry);
     if (!keepOrder) manifest.sprites.sort((a, b) => entryKey(a).localeCompare(entryKey(b)));
-    writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2) + "\n");
+    if (keepOrder && i >= 0) throw new Error("--keep-order chỉ thêm khóa mới; khóa đã có không được đổi thuộc tính");
+    writeFileSync(MANIFEST, keepOrder ? appendManifestEntry(manifestSource, entry) : JSON.stringify(manifest, null, 2) + "\n");
   }
   upsertCredits(register, `shared/assets/sprites/${spec.file}`);
   console.log(`[validate] đã đăng ký ${register}`);
