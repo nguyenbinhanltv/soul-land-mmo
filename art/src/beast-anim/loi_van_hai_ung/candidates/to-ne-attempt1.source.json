@@ -1,0 +1,11 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 1,
+  "agent": "soul_land_game-764",
+  "references": [
+    "shared/assets/sprites/beast/loi_van_hai_ung.png",
+    "art/src/beast-anim/loi_van_hai_ung/turnaround.png"
+  ]
+}
