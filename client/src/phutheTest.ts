@@ -5,6 +5,7 @@
 // chưa có thì `anim=fake` dựng sheet GIẢ lúc chạy từ ảnh tĩnh (phutheFake.ts, không phải ảnh model); `anim=0` ép nhánh cũ; `khung=128` thử khung 128 của sheet giả.
 // Neo theo tâm khối thân (phutheAnchor.ts, chỉ clip vẽ thật hoặc `anim=fake`): bên "Sau" dùng `sprites/vohonanim/anchor.json` (`neo=0` tắt = hành vi cũ, thấy ngay trước / sau); thanh trượt dx, dy, scale theo (giới `gioi=m|f`, hướng đang chọn),
 // chữ thập = giữa lưng thân LPC (điểm đích), nút "Xuất anchor.json" tải bảng đã chỉnh (mục `manual`: công cụ không ghi đè). Chỉnh giữ trong sessionStorage khi đổi võ hồn; thân thử là nam (`dan_khach`), nên giới f chỉ chỉnh số.
+// Màn chỉnh ráp `sua=1` (#1192, GM / dev; trang thử không nằm trong game thường): ba hồn sư cạnh nhau (thân LPC trơn / Trước / Sau), bảng bên phải chỉnh dx, dy, scale từng (giới, hướng) bằng kéo thả, phím mũi tên, ô số, hoàn tác, xem đủ clip, lưu anchor.json (phutheEditor.ts).
 // `window.__phuthe.at(ms, trang)` đặt đồng hồ giả để chụp khung chính xác (không phụ thuộc tốc độ máy); `bench()` đo mili giây tính chuyển động mỗi khung.
 import Phaser from "phaser";
 import { VOHON } from "../../shared/data.ts";
@@ -15,6 +16,7 @@ import type { Dir8 } from "./iso.ts";
 import { PHU_DEFAULT_CLIPS, PHU_CLIPS, PHU_DIRS, PHU_ROWS_PER_SEX, PHU_FRAMES, parsePhuLayout, phuDirRow, phuFaceOf } from "./phutheAnim.ts";
 import { PHU_NO_ANCHOR, PHU_SCALE_RANGE, loadPhuAnchors, parsePhuAnchor, phuAnchorAt, phuAnchorJson, phuAnchorsOf, setPhuAnchors, type PhuAnchorTable } from "./phutheAnchor.ts";
 import { fakePose } from "./phutheFake.ts";
+import { mountPhutheEditor, PHU_EDITOR_W } from "./phutheEditor.ts";
 import { vohonTextures } from "./textures.ts";
 import { SPIRIT_FAMILY, SPIRIT_MOTION, clipOscK, spiritPose, spiritScale, spiritPhase, applySpiritPose, newSpiritPose, type SpiritState } from "./spiritMotion.ts";
 
@@ -32,6 +34,7 @@ const animMs = (s: PState) => ISO_HS_ANIMS[s].ms.reduce((a, b) => a + b, 0);
 const ANIM_MODE = q.get("anim") === "fake" ? "fake" : q.get("anim") === "0" ? "off" : "auto";
 const FAKE_FRAME = q.get("khung") === "128" ? 128 : 96;
 const USE_ANCHOR = q.get("neo") !== "0";
+const EDITOR = q.get("sua") === "1" && USE_ANCHOR && !q.get("n");
 const EDIT_KEY = "phutheAnchor";
 /** Bảng neo đang chỉnh của một võ hồn: bản chỉnh trong sessionStorage nếu có, không thì bản tải từ anchor.json, không thì bảng trống (dời 0, phóng 1). */
 function editTable(id: string, frame: 96 | 128): PhuAnchorTable {
@@ -51,7 +54,7 @@ function frameAt(s: PState, age: number, row: number): number {
   return row * ISO_SHEET_COLS + a.col + Math.min(i, a.ms.length - 1);
 }
 
-interface Hero { root: Phaser.GameObjects.Container; vb: Phaser.GameObjects.Sprite; body: Phaser.GameObjects.Sprite; vf: Phaser.GameObjects.Sprite; fam: string; phase: number; on: boolean; id: string; iso: boolean; pa: PhuAnimSet | null }
+interface Hero { root: Phaser.GameObjects.Container; vb: Phaser.GameObjects.Sprite; body: Phaser.GameObjects.Sprite; vf: Phaser.GameObjects.Sprite; fam: string; phase: number; on: boolean; id: string; iso: boolean; pa: PhuAnimSet | null; only: boolean }
 
 class PhutheScene extends Phaser.Scene {
   vh = VOHON.some((v) => v.id === q.get("vh")) ? q.get("vh")! : "ta_hoa_phuong_hoang";
@@ -60,7 +63,7 @@ class PhutheScene extends Phaser.Scene {
   heroes: Hero[] = []; pose = newSpiritPose(); shift = { x: 0, y: 0 };
   blank = new Set<string>();
   sex: "m" | "f" = q.get("gioi") === "f" ? "f" : "m"; cross: Phaser.GameObjects.Graphics | null = null; shownDir: Dir8 = "e";
-  fake: number | null = null; stateT0 = 0; other = q.get("khac") === "1"; spentMs = 0; spentN = 0;
+  lastT = 0; fake: number | null = null; stateT0 = 0; other = q.get("khac") === "1"; spentMs = 0; spentN = 0;
   constructor() { super("phuthe"); }
   preload() {
     this.load.spritesheet("t_body", "sprites/iso/lpc/dan_khach.png", { frameWidth: 64, frameHeight: 64 });
@@ -98,7 +101,7 @@ class PhutheScene extends Phaser.Scene {
       tex.refresh(); setPhuLayout(key, L);
     }
   }
-  hero(x: number, y: number, id: string, on: boolean): Hero {
+  hero(x: number, y: number, id: string, on: boolean, only = false): Hero {
     // chưa có ảnh phụ thể thật (hoa_long, liet_hoa_thuong_lang): dùng hình tạm vẽ bằng code 48×48 như trong game (textures.ts)
     const [bb, fb] = [this.blank.has(`vh_${id}_b`), this.blank.has(`vh_${id}_f`)], real = (k: string) => this.textures.exists(k) && this.textures.get(k).key !== "__MISSING";
     const [kb, kf] = real(`vh_${id}_${bb ? "f" : "b"}`) ? [`vh_${id}_${bb ? "f" : "b"}`, `vh_${id}_${fb ? "b" : "f"}`] : vohonTextures(this, VOHON.findIndex((v) => v.id === id));
@@ -109,22 +112,23 @@ class PhutheScene extends Phaser.Scene {
     const vb = mk(pa ? pa.keys[0] : kb, true), body = mk("t_body", false), vf = mk(pa ? pa.keys[1] : kf, true);
     if (pa) { fitPhuLayer(vb, pa.layout); fitPhuLayer(vf, pa.layout); }
     const root = this.add.container(x, y, [this.add.ellipse(0, 0, 22 / SPR, 9 / SPR, 0x000000, 0.4), vb, body, vf]).setScale(SPR).setDepth(y);
-    const h: Hero = { root, vb, body, vf, fam: SPIRIT_FAMILY[id] ?? "", phase: spiritPhase(id + x), on, id, iso: isIsoSheet(this, kb), pa };
-    if (bb) vb.setAlpha(0);
-    if (fb) vf.setAlpha(0);
+    const h: Hero = { root, vb, body, vf, fam: SPIRIT_FAMILY[id] ?? "", phase: spiritPhase(id + x), on, id, iso: isIsoSheet(this, kb), pa, only };
+    if (bb || only) vb.setAlpha(0);
+    if (fb || only) vf.setAlpha(0);
     if (on && USE_ANCHOR && !q.get("n")) { this.cross = this.add.graphics(); root.add(this.cross); }
     this.heroes.push(h); return h;
   }
   create() {
     const n = Math.max(0, Math.min(200, Number(q.get("n") ?? 0) | 0)), z = Number(q.get("zoom") ?? (n ? 1 : 4));
-    this.cameras.main.setZoom(z).setBackgroundColor("#0c1712").setRoundPixels(true);
+    this.cameras.main.setZoom(EDITOR && !q.get("zoom") ? 3 : z).setBackgroundColor("#0c1712").setRoundPixels(true);
     if (n) { // đo tải: n hồn sư rải đều, mỗi người một võ hồn
       const ids = VOHON.map((v) => v.id), cols = Math.ceil(Math.sqrt(n * 1.6));
       for (let i = 0; i < n; i++) this.hero((i % cols - cols / 2) * 46, (Math.floor(i / cols) - n / cols / 2) * 40, ids[i % ids.length], q.get("tat") !== "1");
       this.cameras.main.centerOn(0, 0);
     } else {
       this.cameras.main.centerOn(0, -28 * SPR / 2);
-      this.hero(-34, 0, this.vh, false); this.hero(34, 0, this.vh, true);
+      if (EDITOR) { this.hero(-66, 0, this.vh, false, true); this.hero(0, 0, this.vh, false); this.hero(66, 0, this.vh, true); }
+      else { this.hero(-34, 0, this.vh, false); this.hero(34, 0, this.vh, true); }
     }
     (window as unknown as { __phuthe: object }).__phuthe = {
       at: (ms: number, trang?: string) => { if (trang && (STATES as string[]).includes(trang)) this.state = trang as PState; this.fake = ms; this.stateT0 = 0; this.step(ms); },
@@ -170,7 +174,13 @@ class PhutheScene extends Phaser.Scene {
       .lineStyle(1 / SPR, 0xffff40, 0.8).lineBetween(-r * 0.6, 0, r * 0.6, 0);
   }
   fakeLevel(): FxLevel { return fxPrefs.level; }
-  update(time: number) { if (this.fake === null) this.step(time); if (!this.heroes.length || this.heroes.length > 2) return; this.cameras.main.centerOn(0, -14); }
+  /** Dừng / chạy tiếp hoạt ảnh (màn chỉnh ráp: dừng ở khung đang xem để kéo cho chuẩn). */
+  setPaused(p: boolean) { if (p) { this.fake = this.lastT; this.step(this.lastT); } else this.fake = null; }
+  update(time: number) {
+    this.lastT = time; this.step(this.fake ?? time); // đồng hồ giả / dừng khung: vẫn dựng lại mỗi khung để thấy ngay dx, dy, scale, giới, hướng, clip vừa đổi
+    if (!this.heroes.length || this.heroes.length > (EDITOR ? 3 : 2)) return;
+    this.cameras.main.centerOn(EDITOR ? PHU_EDITOR_W / 2 / this.cameras.main.zoom : 0, -14); // màn chỉnh ráp: dời sang trái nhường bảng bên phải
+  }
 }
 
 export function phutheTestScreen(card: HTMLElement, overlay: HTMLElement): void {
@@ -178,6 +188,7 @@ export function phutheTestScreen(card: HTMLElement, overlay: HTMLElement): void 
   const bar = document.createElement("div");
   bar.style.cssText = "position:fixed;left:8px;top:8px;z-index:50;display:flex;flex-wrap:wrap;gap:6px;max-width:92vw;font:12px system-ui;background:#000a;padding:6px;color:#fff";
   if (q.get("bar") === "0") bar.hidden = true;
+  if (EDITOR) bar.style.maxWidth = `calc(100vw - ${PHU_EDITOR_W + 24}px)`;
   const opt = (a: [string, string][], cur: string) => a.map(([v, t]) => `<option value="${v}"${v === cur ? " selected" : ""}>${t}</option>`).join("");
   bar.innerHTML = `
     <label>Võ hồn <select id="pv">${opt(VOHON.map((v) => [v.id, v.name]), q.get("vh") ?? "ta_hoa_phuong_hoang")}</select></label>
@@ -188,7 +199,7 @@ export function phutheTestScreen(card: HTMLElement, overlay: HTMLElement): void 
     <label><input type="checkbox" id="px"${fxPrefs.reduce ? " checked" : ""}> Giảm chuyển động</label>
     <label>Giới <select id="pg">${opt([["m", "Nam"], ["f", "Nữ"]], q.get("gioi") === "f" ? "f" : "m")}</select></label>
     <label><input type="checkbox" id="pn"${USE_ANCHOR ? " checked" : ""}> Neo khối thân</label>
-    <span id="pe" style="display:${USE_ANCHOR ? "flex" : "none"};gap:8px;align-items:center;flex-wrap:wrap">
+    <span id="pe" style="display:${USE_ANCHOR && !EDITOR ? "flex" : "none"};gap:8px;align-items:center;flex-wrap:wrap">
       <b id="phd">hướng</b>
       <label>dx <input type="range" id="edx" min="-48" max="48" step="0.5" style="width:110px"> <output id="odx"></output></label>
       <label>dy <input type="range" id="edy" min="-48" max="48" step="0.5" style="width:110px"> <output id="ody"></output></label>
@@ -198,12 +209,18 @@ export function phutheTestScreen(card: HTMLElement, overlay: HTMLElement): void 
   document.body.appendChild(bar);
   const tag = document.createElement("div");
   tag.style.cssText = "position:fixed;left:0;right:0;bottom:10px;text-align:center;font:700 18px system-ui;color:#fff;text-shadow:0 0 3px #000;z-index:40;display:flex;justify-content:center;gap:0;";
-  if (!q.get("n")) { tag.innerHTML = '<span style="width:272px">Trước</span><span style="width:272px">Sau</span>'; document.body.appendChild(tag); }
+  if (EDITOR) { tag.style.right = `${PHU_EDITOR_W}px`; tag.innerHTML = ["Thân LPC (không phụ thể)", "Trước (cũ)", "Sau (đang chỉnh)"].map((t) => `<span style="width:198px;font-size:15px">${t}</span>`).join(""); document.body.appendChild(tag); }
+  else if (!q.get("n")) { tag.innerHTML = '<span style="width:272px">Trước</span><span style="width:272px">Sau</span>'; document.body.appendChild(tag); }
   const game = new Phaser.Game({ type: Phaser.AUTO, parent: "game", backgroundColor: "#0c1712", pixelArt: true, roundPixels: true, audio: { noAudio: true },
     scale: { mode: Phaser.Scale.RESIZE, width: innerWidth, height: innerHeight }, scene: PhutheScene });
   const $ = <T extends HTMLElement>(id: string) => bar.querySelector<T>(`#${id}`)!;
   const sc = () => game.scene.getScene("phuthe") as PhutheScene;
-  if (USE_ANCHOR) void loadPhuAnchors("sprites/vohonanim/anchor.json").then(() => { editTable(sc().vh, FAKE_FRAME); });
+  if (USE_ANCHOR) void loadPhuAnchors("sprites/vohonanim/anchor.json").then(() => {
+    editTable(sc().vh, FAKE_FRAME);
+    if (EDITOR) mountPhutheEditor({ id: () => sc().vh, table: () => editTable(sc().vh, FAKE_FRAME), sex: () => sc().sex, setSex: (v) => { sc().sex = v; $<HTMLSelectElement>("pg").value = v; }, row: () => phuDirRow(sc().shownDir),
+      flip: () => DIR_ROW[sc().dir].flip, zoom: () => sc().cameras.main.zoom, state: () => sc().state, setState: (v) => { sc().state = v as PState; $<HTMLSelectElement>("ps").value = v; }, setPaused: (p) => sc().setPaused(p),
+      canvas: () => game.canvas, save: () => saveEdit(sc().vh, editTable(sc().vh, FAKE_FRAME)) });
+  });
   const reload = (k: string, v: string) => { const u = new URL(location.href); u.searchParams.set(k, v); location.href = u.href; };
   $("pv").onchange = () => reload("vh", $<HTMLSelectElement>("pv").value);
   const row = () => phuDirRow(sc().shownDir);
