@@ -1,0 +1,61 @@
+{
+  "type": "icon",
+  "size": 32,
+  "crop": {
+    "x": 57,
+    "y": 56,
+    "w": 1141,
+    "h": 1140
+  },
+  "preset": "icon-nearest32",
+  "outline": true,
+  "contrast": {
+    "sep": null,
+    "bigColors": 1,
+    "bgRatio": 1.16
+  },
+  "colors": 32,
+  "sourceColors": 384,
+  "colorDrift": 0.023,
+  "palette": [
+    "#2b0c0c",
+    "#41120c",
+    "#53130b",
+    "#5f1709",
+    "#1a091b",
+    "#25031f",
+    "#471712",
+    "#3f0f2b",
+    "#6e1409",
+    "#78260d",
+    "#88220c",
+    "#9f250a",
+    "#7a2c13",
+    "#953012",
+    "#9d2f16",
+    "#a72537",
+    "#734036",
+    "#a8411a",
+    "#b74518",
+    "#b64d27",
+    "#ca4a13",
+    "#c75222",
+    "#e15715",
+    "#ed4e2c",
+    "#ec681f",
+    "#fa711a",
+    "#fa7e25",
+    "#fc9918",
+    "#ec7b3f",
+    "#fb945c",
+    "#fde583",
+    "#1a1020"
+  ],
+  "source": "icon-attempt4.png",
+  "options": {
+    "colors": 32,
+    "pool": [],
+    "preset": "icon-nearest32",
+    "zoom": 1
+  }
+}
