@@ -47,7 +47,7 @@ function drawPosed(dst, src, fx, fy, k, p) {
  * Dựng các tờ giả của một loài.
  * @returns {Record<string, Img>} tờ theo mã A, B… cùng cỡ với sheetPlan(F, layout)
  */
-export function fakeSheets(species, { seed = 1, bad = false, layout = "auto" } = {}) {
+export function fakeSheets(species, { seed = 1, bad = false, layout = "auto", grow = 1 } = {}) {
   const info = speciesInfo(species);
   if (!info.staticFile || !info.frame) throw new Error(`loài ${species} chưa có ảnh tĩnh để dựng tờ giả`);
   const st = readPng(info.staticFile), F = info.frame, r = rng(seed), out = {};
@@ -58,7 +58,7 @@ export function fakeSheets(species, { seed = 1, bad = false, layout = "auto" } =
     for (let i = 0; i < sh.w * sh.h; i++) img.data.set(KEY, i * 4);
     const cells = sheetCells(sh), rect = (c) => cellRect(sh, c.col, c.row, sh.w, sh.h);
     // hệ số phóng: thân khung F vừa khoảng 70% chiều thấp hơn của ô
-    const r0 = rect(cells[0]), k = (Math.min(r0.w, r0.h) * (layout === "direction" ? 0.35 : 0.7)) / F; // ô direction 256² to gấp ~2 ô legacy: giảm để thân cùng cỡ khi trộn tờ
+    const r0 = rect(cells[0]), k = (Math.min(r0.w, r0.h) * (layout === "direction" ? 0.35 : 0.7) * grow) / F; // ô direction 256² to gấp ~2 ô legacy: giảm để thân cùng cỡ khi trộn tờ
     cells.forEach((c, n) => {
       const rc = rect(c), jx = (r() - 0.5) * rc.w * 0.12, jy = (r() - 0.5) * rc.h * 0.05;
       const fx = Math.round(rc.x0 + rc.w / 2 + jx), fy = Math.round(rc.y1 - rc.h * 0.12 + jy);

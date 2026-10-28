@@ -158,6 +158,10 @@ export function cutSpecies(o) {
   const plan = o.layout ? sheetPlan(F, o.layout) : mixedPlan(F, dims), warns = [], gapGrid = {}, rep = { species: o.species, frame: F, sheets: {}, scale: 0, dropped: 0 };
   const foot = F - ISO_BEAST_FOOT, tol = o.tol ?? 60, normalize = o.normalizeSize !== false; // mặc định bật (#862)
 
+  // Cấu hình trộn: hướng từ tờ legacy là "gốc" (hệ số chung, kích thước giữ nguyên khi thêm hướng direction); hướng từ tờ direction được hiệu chỉnh riêng, vừa khung theo từng hướng.
+  // Không trộn (chỉ legacy / chỉ direction): mọi hướng là gốc, như cũ.
+  const baseDirs = new Set(plan.some((p) => p.skip) ? plan.filter((p) => p.skip).flatMap((p) => p.dirs.filter((d) => !p.skip.includes(d))) : DIRS);
+
   // 1–2. Tách hình, gán ô
   const raw = new Map(); // `dir/anim/n` → { img: Img (cắt, alpha 0/255), footX, w, h, cellBottom, cellH }
   for (const sh of plan) {
@@ -195,7 +199,7 @@ export function cutSpecies(o) {
         if (x0 === 0 || y0 === 0 || x1 === img.w - 1 || y1 === img.h - 1) warns.push(`khung ${name}: chạm mép ảnh nguồn tờ ${sh.id} (có thể đã bị cắt)`);
       }
       // Hình nguồn giữ pixel RAW; mọi phép đo trước common scale dùng đơn vị canonical của tờ.
-      raw.set(name, { img: im, factor, w: fw * factor, h: fh * factor, area: p.px.length * factor * factor, footX: (n ? sx / n : fw / 2) * factor, bottom: (y1 + 1 - r.y0) * factor, cellH: r.h * factor, anim: c.anim, dir: c.dir });
+      raw.set(name, { img: im, factor, w: fw * factor, h: fh * factor, area: p.px.length * factor * factor, footX: (n ? sx / n : fw / 2) * factor, bottom: (y1 + 1 - r.y0) * factor, cellH: r.h * factor, anim: c.anim, dir: c.dir, base: baseDirs.has(c.dir) });
     }
     for (const k of pieces.keys()) if (!used.has(k)) warns.push(`tờ ${sh.id}: có hình ở ô trống ${k} (bỏ qua)`);
   }
@@ -233,7 +237,7 @@ export function cutSpecies(o) {
     if (!scale) source = "tự động (--fill)";
     scale ??= ((o.fill ?? 0.8) * F) / Math.max(median(idle.map(([, r]) => r.w)), median(idle.map(([, r]) => r.h)));
   }
-  const scaleAuto = scale, fit = fitOf(all);
+  const baseFrames = all.filter((r) => r.base), scaleAuto = scale, fit = fitOf(baseFrames.length ? baseFrames : all);
   if (fit < scale) {
     if (fit >= scale * 0.8) scale = fit;
     else warns.push(`một số khung vượt khung ${F}×${F} ở hệ số ${scale.toFixed(3)} (nhỏ nhất vừa: ${fit.toFixed(3)}), bị cắt mép; đề xuất --scale ${(Math.floor(fit * 1000) / 1000).toFixed(3)}`);
@@ -242,7 +246,7 @@ export function cutSpecies(o) {
   rep.scaleInfo = { source, auto: +scaleAuto.toFixed(4), used: rep.scale, fit: +fit.toFixed(4), suggested: fit < scale ? Math.floor(fit * 1000) / 1000 : null };
   warns.push(`hệ số thu: ${source} ${scaleAuto.toFixed(3)}, dùng ${scale.toFixed(3)}${scale < scaleAuto ? " (hạ cho vừa khung)" : ""}; vừa khung tối đa ${fit.toFixed(3)}`);
 
-  const dirScale = Object.fromEntries(DIRS.map((d) => [d, scale]));
+  const dirScale = Object.fromEntries(DIRS.map((d) => [d, scale])), fitWarned = new Set();
   const anchors = !o.scale && o.anchorBlocks !== false && info.staticFile && !o.fill ? staticAnchors(info.staticFile, F) : null;
   if (anchors) {
     const idleH = Object.fromEntries(DIRS.map((d) => [d, idle.filter(([, r]) => r.dir === d).map(([, r]) => r.h)]));
@@ -252,7 +256,7 @@ export function cutSpecies(o) {
       let sd = scale * b.factor;
       if (b.factor !== 1) {
         const f = fitOf(all.filter((r) => r.dir === dir));
-        if (f < sd) { if (f >= sd * 0.8) sd = f; else warns.push(`khối ${dir}: hệ số ${sd.toFixed(3)} làm khung vượt khung ${F}×${F} (vừa tối đa ${f.toFixed(3)}), bị cắt mép`); }
+        if (f < sd) { if (f >= sd * 0.8) sd = f; else { fitWarned.add(dir); warns.push(`khối ${dir}: hệ số ${sd.toFixed(3)} làm khung vượt khung ${F}×${F} (vừa tối đa ${f.toFixed(3)}), bị cắt mép`); } }
         warns.push(`khối ${dir}: cao thân ${(b.ratio * 100).toFixed(0)}% so với ảnh tĩnh ở hệ số chung, hiệu chỉnh ×${(sd / scale).toFixed(3)} → ${sd.toFixed(3)}`);
       }
       dirScale[dir] = sd;
@@ -272,7 +276,7 @@ export function cutSpecies(o) {
         if (!k || k === 1) continue;
         let sd = dirScale[d] * k;
         const f = fitOf(all.filter((r) => r.dir === d));
-        if (f < sd) { if (f >= sd * 0.8) sd = f; else warns.push(`khối ${d}: hệ số ${sd.toFixed(3)} làm khung vượt khung ${F}×${F} (vừa tối đa ${f.toFixed(3)}), bị cắt mép`); }
+        if (f < sd) { if (f >= sd * 0.8) sd = f; else { fitWarned.add(d); warns.push(`khối ${d}: hệ số ${sd.toFixed(3)} làm khung vượt khung ${F}×${F} (vừa tối đa ${f.toFixed(3)}), bị cắt mép`); } }
         warns.push(`khối ${d}: cao idle ${heights[d].toFixed(1)} so với trung vị 5 hướng ${eq.target.toFixed(1)}, chuẩn hóa ×${(sd / dirScale[d]).toFixed(3)} → ${sd.toFixed(3)}`);
         rep.equalize.factors[d] = +(sd / dirScale[d]).toFixed(3);
         dirScale[d] = sd;
@@ -281,6 +285,18 @@ export function cutSpecies(o) {
       const after = DIRS.map((d) => dirScale[d] * (bodyH(d) || 0)).filter(Boolean);
       rep.equalize.after = +(Math.max(...after) / Math.min(...after)).toFixed(3);
     }
+  }
+
+  // 3c. Vừa khung theo TỪNG hướng cho hướng không phải gốc (từ tờ direction): hạ hệ số của riêng hướng đó (tối đa 20%), còn vượt nữa thì chỉ khối đó bị chặn.
+  // Hướng gốc giữ nguyên hệ số (không bị hướng mới to hơn kéo nhỏ lại; khối của hướng khác không chặn nhau).
+  for (const d of DIRS) {
+    if (baseDirs.has(d) && baseFrames.length) continue;
+    const rs = all.filter((r) => r.dir === d);
+    if (!rs.length) continue;
+    const f = fitOf(rs), sd = dirScale[d];
+    if (f >= sd) continue;
+    if (f >= sd * 0.8) { dirScale[d] = f; warns.push(`khối ${d}: hạ hệ số ${sd.toFixed(3)} → ${f.toFixed(3)} cho vừa khung ${F}×${F}`); if (rep.blocks?.[d]) rep.blocks[d].scale = +f.toFixed(4); }
+    else if (!fitWarned.has(d)) warns.push(`khối ${d}: hệ số ${sd.toFixed(3)} làm khung vượt khung ${F}×${F} (vừa tối đa ${f.toFixed(3)}), bị cắt mép`);
   }
 
   // 4. Bảng màu
