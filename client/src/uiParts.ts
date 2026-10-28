@@ -187,3 +187,9 @@ export function countdown(o: CountdownOpts & { onEnd?: () => void }) {
   if (o.target - now() > 0) timer = window.setInterval(tick, 1000);
   return { root, stop };
 }
+
+/** Nút đóng ở góc phải-trên của khung màn (Esc cũng đóng qua ngăn xếp bảng, `panelStack.ts`). */
+export function addCloseButton(frame: HTMLElement, close: () => void) {
+  const b = document.createElement("button"); b.type = "button"; b.className = "scr-x"; b.textContent = "×"; b.setAttribute("aria-label", "Đóng (Esc)"); b.title = "Đóng · Esc";
+  b.addEventListener("click", close); frame.querySelector(".p2-hd")?.append(b);
+}

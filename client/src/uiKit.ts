@@ -83,7 +83,9 @@ export function applyUi2(u: number) {
   applied = [];
   const on = isUi2(); cl?.toggle("ui2", on);
   if (!on || !cl) return;
-  const tokens = kitTokens(kit, kitScale(u, devicePixelRatio || 1));
+  // URL tuyệt đối: url() tương đối trong biến CSS được phân giải theo tệp CSS đã build (/assets/), nên ở bản build mọi khung kit mất ảnh
+  const abs = (key: string, scale: 1 | 2) => new URL(kitPath(key, scale), document.baseURI).href;
+  const tokens = kitTokens(kit, kitScale(u, devicePixelRatio || 1), abs);
   for (const [k, v] of Object.entries(tokens)) { root.setProperty(k, v); applied.push(k); }
   for (const c of kitClasses(kit)) cl.add(c);
 }
