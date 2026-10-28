@@ -108,7 +108,7 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
   $("#itemActions").replaceChildren();
   const mk = (key: string, label: string, name: string, col: string, action: string, icon = "", locked = false, i?: number, tip: TipSpec | string = "",
     tier = -1, cost = 0, cdFull = 0, art = "") => {
-    const b = document.createElement("button"); b.className = "sk ui-cell" + (locked ? " locked" : "");
+    const b = document.createElement("button"); b.className = "sk ui-cell f2-o" + (locked ? " locked" : "");
     if (i !== undefined) b.dataset.i = String(i);
     if (tier >= 0 && !locked) b.dataset.tier = String(tier);   // viền theo màu hồn hoàn (--tier-N)
     b.dataset.cost = String(cost); b.dataset.cdfull = String(cdFull);
@@ -165,7 +165,7 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
   }
   mk("E", "Nhặt hồn hoàn", "Nhặt", "#ffe08a", "pickup", "", false, undefined, { title: "Nhặt hồn hoàn", lines: ["Nhặt hồn hoàn ở gần nhân vật."], foot: "Phím E" }, -1, 0, 0, artImg("item_hon_hoan"));
   $("#itemActions").appendChild(el.lastElementChild!);
-  const bag = document.createElement("button"); bag.className = "sk ui-cell";
+  const bag = document.createElement("button"); bag.className = "sk ui-cell f2-o";
   bag.innerHTML = `<b class="key">B</b><span class="ico skart">${artImg("gi_menu_bag")}</span><span class="sk-name">Tiêu hao</span>`;
   bag.setAttribute("aria-label", "Mở túi dùng vật phẩm tiêu hao (B)");
   setTip(bag, { title: "Vật phẩm tiêu hao", lines: ["Mở túi để dùng đan, phù và vật phẩm."], foot: "Phím B · Túi đồ" });
@@ -270,7 +270,7 @@ export function buildBoneSkills(worn: WornBone[], act: (k: string) => void) {
     const s = BONE_SLOTS[boneSlotIndex(slot)], w = worn.find((x) => x.slot === slot), k = w ? boneSkillOf(w.beast, slot) : null;
     const sk = k?.active ? k.sk : null, col = w ? ringColor(tierOfYears(w.years)) : "#666";
     boneCd[i] = sk?.cd ?? 1;
-    const b = document.createElement("button"); b.className = "sk bsk ui-cell" + (sk ? "" : " locked"); b.dataset.b = String(i);
+    const b = document.createElement("button"); b.className = "sk bsk ui-cell f2-o" + (sk ? "" : " locked"); b.dataset.b = String(i);
     if (w) b.dataset.tier = String(tierOfYears(w.years)); // cả hồn cốt bị động (ô mờ nhưng giữ viền màu niên hạn)
     b.dataset.cost = String(sk?.cost ?? 0);
     b.innerHTML = `<b class="key">${BONE_SKILL_KEYS[i]}</b><i></i><span class="ico skart" style="color:${col}">${boneIcon(slot, col)}</span><span class="sk-name"></span><div class="ui-cd" aria-hidden="true"></div><em class="cdn" aria-hidden="true"></em><em class="sk-state" aria-hidden="true"></em>`;
@@ -414,7 +414,7 @@ export function buildTeam(data: OwnedVohons, sw: (slot: number) => void) {
   const el = $("#team"); el.innerHTML = "";
   data.team.forEach((rowId, i) => {
     const v = ownedById(data, rowId), def = v && vohonDef(v.vohon), on = rowId === data.active;
-    const b = document.createElement("button"); b.className = "tm ui-cell" + (on ? " on" : "") + (v ? "" : " locked empty");
+    const b = document.createElement("button"); b.className = "tm ui-cell f2-o" + (on ? " on" : "") + (v ? "" : " locked empty");
     b.dataset.slot = String(i);
     if (def) b.style.setProperty("--c", def.col);
     if (v) b.dataset.row = String(rowId);
