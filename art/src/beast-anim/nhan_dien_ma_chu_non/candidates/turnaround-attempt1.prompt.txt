@@ -1,0 +1,37 @@
+Create ONE image (landscape 3:2 aspect ratio; the exact pixel size does not matter): a turnaround reference sheet of a single fantasy creature for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game. It is a model sheet: it fixes how the creature looks from each of five directions and how it reacts to a hit and to dying.
+
+CREATURE: Nhân Diện Ma Chu non - young human-faced demon spider, round dark brown body with a pale human-like face pattern, eight thin jointed legs. Body type: côn trùng. Size class: Tím / Đen. Keep the SAME design, proportions, colors, markings and overall size as the references in every frame. Do not redesign it.
+REFERENCES (attached images, in this fixed order): image 1 = the static reference of this exact creature in three views (front, side, back): the identity, design, colors and overall size.
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
+
+GRID: 5 columns x 3 rows of equal invisible cells (307x341 px each). Exactly one creature per cell, centered horizontally, standing on the same invisible ground line about 12% above the cell bottom (lying creatures rest on it), with at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature.
+
+COLUMNS (left to right, one direction per column):
+  column 1: direction "s" = facing the viewer (front view, three-quarter from above).
+  column 2: direction "se" = facing the lower right of the picture (three-quarter front view, head toward the viewer's right).
+  column 3: direction "e" = facing right (side profile, seen from slightly above).
+  column 4: direction "ne" = facing the upper right of the picture (three-quarter back view, head away from the viewer toward the right).
+  column 5: direction "n" = facing away from the viewer (back view from above).
+
+ROWS (top to bottom, the same pose type in every column):
+  row 1 = IDLE: neutral standing pose (the body bobs, the eight legs shift in small steps, the fangs twitch), one calm frame.
+  row 2 = HURT: the moment of the strongest reaction to a hit (recoils backward along its facing line, legs jerk but stay on the ground).
+  row 3 = DIE: the FINAL resting pose after dying (the legs curl in beneath the body and the body lowers in place, body axis unchanged).
+In every cell the body keeps the direction of its column: the axis never rotates and the creature never turns to face the viewer. In columns "ne" and "n" no eyes, nose, mouth or face are visible in any row, hurt and die included. Directions e, se and ne face the RIGHT side of the picture.
+
+CONSISTENCY: the same size, proportions, palette and line weight in all 15 cells; only the direction and the pose change.
+
+STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.
+
+DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions.
+
+LESSONS (learned from earlier sheets of other creatures, follow every line):
+- Direction "se" is a three-quarter view: the body axis is turned about 45 degrees toward the lower right, the face is visible and looks diagonally down toward the viewer, so it clearly differs from "e" (pure side profile).
+- Direction "ne" is a three-quarter BACK view: the body axis is turned about 45 degrees away toward the upper right, the rump and back are nearest to the viewer, and it must not be drawn as a plain side profile.
+- Direction "n" is a pure back view: only the back of the head, back, rump and tail are visible.
+- Every direction e, se and ne faces the RIGHT side of the picture; never mirror them to face left.
+- HURT is a small recoil along the facing line: the creature stays upright on its feet and does not roll over, bounce into a new facing or turn its head toward the viewer.
+- DIE is a slow collapse along the facing line: the legs fold, the body lowers, and the final pose keeps the same body axis as the idle pose of that block.
+- Draw all poses at the same body size and on the same ground line; one creature per cell with clear magenta space around it.
+- For Nhan Dien Ma Chu (the human-faced demon spider) only: show exactly eight large legs as four clearly separated pairs, with all four pairs readable in every direction; the human face on the abdomen is only a FLAT painted marking, never a raised or sculpted face, and the marking is hidden in back-facing directions n and ne.
