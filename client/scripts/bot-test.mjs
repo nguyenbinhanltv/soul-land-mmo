@@ -165,7 +165,7 @@ const STANDALONE=[
   ["fog",2,fogTest,true],                     //  ~40 R8 #435 sương mù khám phá: đánh dấu, lưu, theo bản đồ, dữ liệu lạ, lệnh GM (đo ở máy)
   ["calendar",2,calendarTest,true],           //  ~8 L2 #877 Lịch Hoạt Động: tuần trước / này / sau, week lạ bị kẹp, đẩy ngày (hook day) đổi tên boss, xin dồn bị gộp
   ["welfare",2,welfareTest,true],             //  ~40 P3 #877 Phúc Lợi: ký hôm nay / đúp / dồn 200, ký bù miễn phí + trả phí + hết lượt, hết chu kỳ, đồng hồ lùi, túi đầy, savefail, vào lại, qua 00:00, sân đấu chặn (chưa đo)
-  ["bicanh",2,bicanhTest,true],               //  ~25 P2+P4 #877 Bí Cảnh: get, id lạ, enter chưa mở, mua lượt (xác nhận, giá lũy tiến, trần, dồn 200), savefail, qua ngày, Hồn Kinh Quyển cho võ hồn dự bị (kẹp bình cảnh) (chưa đo)
+  ["bicanh",2,bicanhTest,true],               //  ~140 P2+P3+P4 #877 Bí Cảnh: get, id lạ, mua lượt (xác nhận, giá lũy tiến, trần, dồn 200), savefail, qua ngày, Hồn Kinh Quyển cho võ hồn dự bị (kẹp bình cảnh) + phòng BiCanhRoom (enter, sóng, thưởng, hoàn lượt, trần quyển, đồng hồ lùi; bicanhRoom.mjs) (~110 giây)
   ["rally",2,rallyTest],                      //  ~40 R6 #433 dấu "Tập trung ở đây" của tổ đội: đặt, đồng đội nhận, người ngoài không, spam, hết hạn
   ["flag",2,flagTest],                        //  ~60 R4 #431 tự đi tới cờ: cùng bản đồ, xuyên cổng, bị chặn (đo ở máy)
   ["waypoint",5,waypointTest],                //  45 11.2

@@ -313,6 +313,11 @@ export interface Store {
    * `n`: tăng ngần này lượt một lần (mua `n` mảnh ở Thương hội, #282); số lượt sau khi tăng vượt `limit` thì null, không ghi gì.
    */
   claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag, n?: number): Promise<number | null>;
+  /**
+   * Hoàn `n` lượt của (`day`, `kind`) khi server lỗi (Bí Cảnh: phòng không mở được / sập, mục 5.22): trừ nguyên tử, không xuống dưới 0, không đụng túi.
+   * Trả số lượt sau khi hoàn.
+   */
+  releaseBoss(accountId: number, day: string, kind: string, n?: number): Promise<number>;
   /** Elo và thành tích Đại Đấu Hồn Trường (bảng `arena_ratings`, 7.2); chưa đấu trận nào thì Elo `start`, 0 trận. */
   getArena(accountId: number, start: number): Promise<ArenaRecord>;
   /**
@@ -802,6 +807,11 @@ export class MemoryStore implements Store {
     return r ? { ...r } : null;
   }
   async bossClaims(accountId: number, day: string, kind: string) { return this.claims.get(`${accountId}|${day}|${kind}`) ?? 0; }
+  async releaseBoss(accountId: number, day: string, kind: string, n = 1) {
+    const key = `${accountId}|${day}|${kind}`, left = Math.max(0, (this.claims.get(key) ?? 0) - Math.max(0, Math.floor(n)));
+    this.claims.set(key, left);
+    return left;
+  }
   async claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag, add = 1) {
     const key = `${accountId}|${day}|${kind}`, n = this.claims.get(key) ?? 0;
     if (n + add > limit) return null;
@@ -1602,6 +1612,11 @@ export class PgStore implements Store {
   }
   async bossClaims(accountId: number, day: string, kind: string) {
     const r = await this.pool.query("SELECT n FROM boss_claims WHERE account_id=$1 AND day=$2::date AND kind=$3", [accountId, day, kind]);
+    return r.rowCount ? Number(r.rows[0].n) : 0;
+  }
+  async releaseBoss(accountId: number, day: string, kind: string, n = 1) {
+    const r = await this.pool.query(`UPDATE boss_claims SET n = GREATEST(0, n - $4::int), updated_at = now() WHERE account_id=$1 AND day=$2::date AND kind=$3 RETURNING n`,
+      [accountId, day, kind, Math.max(0, Math.floor(n))]);
     return r.rowCount ? Number(r.rows[0].n) : 0;
   }
   async claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag, add = 1) {

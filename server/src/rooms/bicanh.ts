@@ -1,16 +1,42 @@
 // Bí Cảnh (GAME_DESIGN.md mục 5.22, docs/design/bi-canh.md, bước P2): lượt theo ngày làm mới 05:00 giờ Việt Nam và mua thêm lượt. Mọi phép tính nằm ở đây; MapRoom chỉ chuyển tiếp
 // `bicanh {op: "get" | "enter" | "buy", id, pay?}`. Giờ do server quyết (`bossNow()` + dayShift, khóa ngày `bicanhDay`): client không gửi giờ / ngày, chỉ gửi mã phụ bản (kiểm theo
 // BICANH.scenes). Lượt đã vào và lượt đã mua nằm ở `boss_claims` (kind `bicanhRunKind` / `bicanhBuyKind`), không cần bảng mới; phí mua và túi ghi MỘT transaction (`store.claimBoss`
-// với trần `buyMax` kiểm ngay trong câu ghi), lỗi thì hoàn lại. Chưa có phòng (P3): `enter` chỉ trả lời "chưa mở", không trừ lượt.
-import { BICANH, MSG_GROUP, bicanhBuyKind, bicanhDay, bicanhResetIn, bicanhRunKind, bicanhRunPrice, bicanhScene, formatHonTe, type BicanhScene } from "../../../shared/data.ts";
+// với trần `buyMax` kiểm ngay trong câu ghi), lỗi thì hoàn lại. P3: `enter` trừ lượt nguyên tử (claimBoss, trần = lượt miễn phí + đã mua) rồi mở phòng riêng `BiCanhRoom` bằng vé giữ chỗ
+// (`Ticket`, dùng một lần); lỗi hệ thống (không mở được phòng, phòng đóng khi chưa chốt) thì hoàn lượt bằng `store.releaseBoss`. Thưởng quyển tính và ghi ở BiCanhRoom.ts.
+import { matchMaker } from "colyseus";
+import { randomUUID } from "node:crypto";
+import { BICANH, MSG_GROUP, bicanhBuyKind, bicanhDay, bicanhResetIn, bicanhRunKind, bicanhRunPrice, bicanhRunTomes, bicanhScene, bicanhTomeKind, formatHonTe, type BicanhScene } from "../../../shared/data.ts";
 import { store } from "../db.ts";
 import { bossNow } from "../schedule.ts";
 import { takeToken } from "../ratelimit.ts";
-import { CLAIM_BUSY, claimHeld, type MapRoom } from "./MapRoom.ts";
+import { arenaBusyOne } from "./arena.ts";
+import { arenaQueued } from "./arenaQueue.ts";
+import { CLAIM_BUSY, claimHeld, type MapRoom, type PData } from "./MapRoom.ts";
 
 const DAY_MS = 86400000;
 /** Đồng hồ của Bí Cảnh: đồng hồ lịch boss (bot đẩy bằng `BOSS_CLOCK`) cộng lệch ngày của hook test `day`, như `room.today()`. */
 export const nowOf = (room: MapRoom) => bossNow() + room.dayShift * DAY_MS;
+
+/**
+ * Vé giữ chỗ vào một phòng Bí Cảnh (một người, một lần): tài khoản, phụ bản, ngày Bí Cảnh đã trừ lượt, phòng đã mở. `joined`: người chơi đã vào phòng; `settled`: lượt đã chốt (thưởng đã ghi hoặc đã hoàn),
+ * nên thưởng / hoàn chỉ xảy ra một lần cho mỗi vé. Bộ nhớ của tiến trình mở phòng (như `arenaMatches`); số vé còn sống = số phòng đồng thời (BICANH.maxRooms).
+ */
+export interface Ticket { id: string; accountId: number; scene: BicanhScene; day: string; roomId: string; joined: boolean; settled: boolean }
+export const bicanhTickets = new Map<string, Ticket>();
+/** Ngày Bí Cảnh lớn nhất tài khoản đã vào ở tiến trình này: đồng hồ máy chủ bị lùi (ngày nhỏ hơn) thì từ chối `enter`. */
+const lastEnterDay = new Map<number, string>();
+
+/** Hoàn một lượt đã trừ cho vé (lỗi hệ thống, không phải lỗi người chơi), không điều kiện; lỗi DB chỉ ghi log (lượt mất, cần GM bù). */
+export async function releaseRun(t: Ticket, why: string) {
+  try { await store.releaseBoss(t.accountId, t.day, bicanhRunKind(t.scene.id), 1); console.warn(`[bí cảnh] hoàn 1 lượt ${t.scene.id} cho tài khoản #${t.accountId} (${why}).`); }
+  catch (e) { console.error(`[bí cảnh] KHÔNG hoàn được lượt ${t.scene.id} của tài khoản #${t.accountId} (${why})`, e); }
+}
+/** Như releaseRun nhưng chỉ khi vé chưa chốt, và chốt vé (một lần cho mỗi vé: không hoàn hai lần, không hoàn sau khi đã thưởng). */
+export async function refundRun(t: Ticket, why: string) {
+  if (t.settled) return;
+  t.settled = true;
+  await releaseRun(t, why);
+}
 
 /** Một dòng trạng thái phụ bản gửi client: `left` lượt còn lại, `max` tổng lượt hôm nay (miễn phí + đã mua), `bought` đã mua, `price` giá lượt mua kế tiếp (null = hết lượt mua). */
 export interface RunView { id: string; name: string; left: number; max: number; bought: number; price: number | null }
@@ -43,7 +69,7 @@ export function bicanhDayPush(room: MapRoom) {
 
 /**
  * Tin client `bicanh {op, id, pay?}`. `get`: gửi trạng thái (nhịp `ask`, gộp). `buy`: mua thêm một lượt của phụ bản `id` bằng Hồn Tệ lũy tiến (bicanhRunPrice), tối đa `buyMax` lượt
- * mỗi ngày Bí Cảnh; chỉ chạy khi `pay === true` (client đã xác nhận giá). `enter`: chưa mở (P3). Mã phụ bản lạ bị từ chối. Giữ chỗ ngay trong RAM (`claimBusy` chặn bán / bỏ đồ), tới lượt
+ * mỗi ngày Bí Cảnh; chỉ chạy khi `pay === true` (client đã xác nhận giá). `enter`: vào phòng (enterRun). Mã phụ bản lạ bị từ chối. Giữ chỗ ngay trong RAM (`claimBusy` chặn bán / bỏ đồ), tới lượt
  * trong chuỗi lưu mới đọc số lượt đã mua từ DB, kiểm lại, trừ Hồn Tệ rồi ghi túi + lượt mua trong một transaction; DB báo hết lượt mua hoặc lỗi thì trả lại Hồn Tệ.
  */
 export function bicanhAction(room: MapRoom, id: string, m: { op?: unknown; id?: unknown; pay?: unknown } | null | undefined) {
@@ -54,7 +80,7 @@ export function bicanhAction(room: MapRoom, id: string, m: { op?: unknown; id?: 
   const deny = (err: string) => { room.log(id, err, "#ffb35c"); void sendState(room, id, { err }); };
   const scene = bicanhScene(m.id);
   if (!scene) return deny("Phụ bản Bí Cảnh không hợp lệ.");
-  if (m.op === "enter") return deny("Phòng Bí Cảnh chưa mở: sắp có.");
+  if (m.op === "enter") return enterRun(room, id, d, scene, deny);
   if (claimHeld(d)) return deny(CLAIM_BUSY);
   const pay = m.pay === true;
   d.claimBusy++;
@@ -76,4 +102,48 @@ export function bicanhAction(room: MapRoom, id: string, m: { op?: unknown; id?: 
     d.claimBusy--;
     if (room.pdata.get(id) === d) room.sendBag(id);
   });
+}
+
+/**
+ * `bicanh {op: "enter", id}` (P3): điều kiện vào (ngoài giao chiến, không gục / hấp thụ / đi cổng, không xếp hàng đấu trường, không tác vụ ghi DB chờ, chưa có phòng Bí Cảnh nào, còn chỗ phòng,
+ * túi đủ chỗ cho quyển thưởng) kiểm TRƯỚC khi trừ lượt; trừ lượt nguyên tử bằng claimBoss (trần = lượt miễn phí + số đã mua đọc từ DB trong chuỗi lưu), rồi mở phòng riêng bằng vé và
+ * đóng băng người chơi như đi cổng (`bicanh {k: "found", roomId}`, khuôn `arena`). Không mở được phòng thì hoàn lượt. Giữ chỗ trong RAM (`claimBusy`, `arenaBusy`, vé) tới khi xong.
+ */
+function enterRun(room: MapRoom, id: string, d: PData, scene: BicanhScene, deny: (err: string) => void) {
+  const p = room.state.players.get(id), c = room.clients.getById(id); if (!p || !c) return;
+  const busy = arenaBusyOne(room, p, d) || (arenaQueued(d.accountId) || d.arenaBusy ? "Đang xếp hàng Đại Đấu Hồn Trường." : "");
+  if (busy) return deny(`${busy} Chưa vào ${scene.name} được.`);
+  if (claimHeld(d)) return deny(CLAIM_BUSY);
+  if ([...bicanhTickets.values()].some((t) => t.accountId === d.accountId)) return deny("Đang có một phòng Bí Cảnh của bạn: hoàn thành hoặc chờ đóng phòng.");
+  if (bicanhTickets.size >= BICANH.maxRooms) return deny("Bí Cảnh đang đông, thử lại sau giây lát (lượt chưa bị trừ).");
+  const t: Ticket = { id: randomUUID(), accountId: d.accountId, scene, day: "", roomId: "", joined: false, settled: false };
+  bicanhTickets.set(t.id, t); d.claimBusy++; d.arenaBusy = true;
+  let claimed = false;
+  const fail = async (err: string, e?: unknown) => {
+    bicanhTickets.delete(t.id);
+    if (claimed) await refundRun(t, "không mở được phòng");
+    deny(err); if (e) console.error(`[bí cảnh] vào phòng lỗi (tài khoản #${d.accountId})`, e);
+  };
+  room.chain(d, async () => {
+    try {
+      const now = nowOf(room), day = bicanhDay(now), last = lastEnterDay.get(d.accountId);
+      if (last !== undefined && day < last) { console.warn(`[bí cảnh] đồng hồ lùi: tài khoản #${d.accountId} đã vào ngày ${last}, nay ${day}: từ chối enter.`); return fail("Đồng hồ máy chủ bị lùi, tạm thời chưa vào Bí Cảnh được."); }
+      const [bought, tomeGot] = await Promise.all([store.bossClaims(d.accountId, day, bicanhBuyKind(scene.id)), store.bossClaims(d.accountId, day, bicanhTomeKind)]);
+      const need = Math.min(bicanhRunTomes(scene), Math.max(0, BICANH.tomeDailyCap - tomeGot));
+      if (need > 0 && !room.bagFits(d, [{ code: BICANH.tome, qty: need }])) return fail("Túi không đủ chỗ nhận Hồn Kinh Quyển: dọn túi rồi vào lại (lượt chưa bị trừ).");
+      const n = await store.claimBoss(d.accountId, day, bicanhRunKind(scene.id), scene.runs + bought, room.bagSnapshot(d), 1);
+      if (n === null) return fail(`Hôm nay đã hết lượt ${scene.name}. Làm mới lúc ${String(BICANH.resetHour).padStart(2, "0")}:00 giờ Việt Nam.`);
+      claimed = true; t.day = day;
+      if (lastEnterDay.size >= 5000) lastEnterDay.clear(); // không để Map lớn dần theo số tài khoản (mất dấu thì chỉ bỏ lần kiểm lùi đồng hồ)
+      lastEnterDay.set(d.accountId, day);
+      const r = await matchMaker.createRoom("bicanh", { ticket: t.id });
+      t.roomId = r.roomId;
+      // Trong lúc mở phòng người chơi có thể đã rời: phòng tự đóng sau BICANH.joinSecs (chưa ai vào = hoàn lượt, BiCanhRoom.tick), không đóng băng ai.
+      const p2 = room.state.players.get(id), c2 = room.clients.getById(id);
+      if (room.pdata.get(id) !== d || !p2 || !c2 || d.travelling) return;
+      room.freeze(id); room.portalHint(id, p2, d); d.arenaGone = true;
+      c2.send("bicanh", { k: "found", roomId: r.roomId, id: scene.id, name: scene.name, waves: scene.waves.length, secs: BICANH.joinSecs });
+      room.clock.setTimeout(() => { if (d.arenaGone && room.clients.getById(id)) c2.leave(4006); }, BICANH.joinSecs * 1000);
+    } catch (e) { await fail("Không mở được phòng Bí Cảnh, thử lại sau (lượt không bị trừ).", e); }
+  }).then(() => { d.claimBusy--; d.arenaBusy = false; });
 }

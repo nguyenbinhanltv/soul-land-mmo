@@ -4164,16 +4164,26 @@ export const AUTO_BONUS_MAX = 24 * 3600;
  * `scenes[i]`: `runs` lượt miễn phí mỗi ngày, mua thêm tối đa `buyMax` lượt, lượt mua thứ i (từ 0) giá `bicanhRunPrice` = buyBase × buyGrow^i (Hồn Tệ, nguồn ra).
  * Hồn Kinh Quyển (`tome`): dùng cho MỘT võ hồn bất kỳ trong bộ sưu tập (kể cả dự bị) cộng `tomeXp` kinh nghiệm qua đường cộng có kẹp bình cảnh;
  * `tomeDailyCap`: trần quyển nhận mỗi ngày Bí Cảnh (cả lượt mua thêm). `equivMin`: một lượt đáng giá chừng ngần ấy phút tự săn. Số ban đầu là số tạm, chờ balance-review.
+ * Phòng (P3, BiCanhRoom): `maxRooms` phòng đồng thời, `joinSecs` giây chờ vào phòng, `readySecs` đếm ngược, `waveGapSecs` nghỉ giữa sóng, `endSecs` giây hiện kết quả.
+ * Mỗi phụ bản: `fightSecs` giờ giao đấu; `beasts` loài sinh ra (mã BEASTS); `waves[i]`: `n` hồn thú, tuổi = `yearsPct` × giới hạn niên hạn vòng kế tiếp của võ hồn ra trận
+ * (ringLimit), `tomes` quyển thưởng khi hạ hết sóng, `elite` kèm một tinh anh.
  */
 export const BICANH = {
   resetHour: 5, claimKind: "bi_canh", tome: "hon_kinh_quyen", tomeXp: 300, tomeDailyCap: 6, equivMin: 10,
-  scenes: [{ id: "luyen_hon", name: "Luyện Hồn Cảnh", runs: 3, buyBase: 3000, buyGrow: 1.5, buyMax: 3 }],
+  maxRooms: 8, joinSecs: 20, readySecs: 4, waveGapSecs: 3, endSecs: 8,
+  scenes: [{ id: "luyen_hon", name: "Luyện Hồn Cảnh", runs: 3, buyBase: 3000, buyGrow: 1.5, buyMax: 3, fightSecs: 300,
+    beasts: ["phong_lang", "tu_van_bao", "quy_ho", "loi_van_hau"],
+    waves: [{ n: 4, yearsPct: 0.5, tomes: 1, elite: false }, { n: 6, yearsPct: 0.7, tomes: 0, elite: false }, { n: 5, yearsPct: 0.9, tomes: 1, elite: true }] }],
 };
 export type BicanhScene = (typeof BICANH.scenes)[number];
 export const bicanhScene = (id: unknown) => BICANH.scenes.find((s) => s.id === id);
 /** `kind` ở `boss_claims`: lượt đã vào / lượt đã mua thêm của một phụ bản trong một ngày Bí Cảnh. */
 export const bicanhRunKind = (id: string) => `${BICANH.claimKind}_${id}`;
 export const bicanhBuyKind = (id: string) => `${BICANH.claimKind}_${id}_mua`;
+/** `kind` ở `boss_claims`: số Hồn Kinh Quyển đã nhận trong một ngày Bí Cảnh (trần BICANH.tomeDailyCap, dùng chung mọi phụ bản). */
+export const bicanhTomeKind = `${BICANH.claimKind}_quyen`;
+/** Tổng quyển tối đa một lượt của phụ bản (thắng cả các sóng). */
+export const bicanhRunTomes = (scene: BicanhScene) => scene.waves.reduce((a, w) => a + w.tomes, 0);
 const BICANH_RESET_MS = BICANH.resetHour * 3600000;
 /** Khóa ngày Bí Cảnh ("2026-10-28", cột `boss_claims.day`): ngày Việt Nam của (`ms` − resetHour giờ), nên đổi ngày lúc 05:00 thay vì 00:00. */
 export const bicanhDay = (ms: number) => vnDay(ms - BICANH_RESET_MS);
