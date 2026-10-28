@@ -30,8 +30,11 @@ export async function bicanhRoomTest(){
     return {...f,found:msgs.filter(m=>m.k==="found").length}; };
   /** Rút đếm ngược rồi chờ tin `fight` + sóng đầu. */
   const fight=async()=>{ await test(B,"bcfast",{s:0.2}); const f=await waitMsg("fight",8000); await waitMsg("wave",4000); return f; };
+  /** Hạ sóng thứ `w` (từ 0) tới khi server báo `clear` (hoặc `end`). Tin `wave` / `fight` tới TRƯỚC bản vá state: `slayAll` một lần có thể thấy `beasts` rỗng, không hạ con nào, sóng không bao giờ xong
+   * (CI nhóm 2: `end` không tới, `winAll` trả undefined, bài đọc `e.win` ném TypeError). Nên lặp hạ lại cho tới khi server xác nhận. */
+  const clearWave=async(w,ms=8000)=>{ const done=()=>B.bc.some(m=>m.k==="end"||(m.k==="clear"&&m.wave>w)); for(let t=0;t<ms&&!done();t+=150){ await slayAll(); await sleep(150); } return done(); };
   /** Hạ hết hồn thú từng sóng tới khi có tin `end`. */
-  const winAll=async()=>{ for(let w=0;w<S.waves.length;w++){ await waitFor(()=>B.bc.filter(m=>m.k==="wave").length>w,8000); await slayAll(); if(B.bc.some(m=>m.k==="end")) break; } return waitMsg("end",8000); };
+  const winAll=async()=>{ for(let w=0;w<S.waves.length;w++){ await waitFor(()=>B.bc.filter(m=>m.k==="wave").length>w,8000); await clearWave(w); if(B.bc.some(m=>m.k==="end")) break; } return waitMsg("end",8000); };
   /** Sau `end`: rút giờ kết quả, bị đưa ra (4005) rồi vào lại bản đồ. */
   const leave=async()=>{ await test(B,"bcfast",{s:0.2}); await waitFor(()=>B.leftCode===4005,4000); await back(); };
 
@@ -56,7 +59,7 @@ export async function bicanhRoomTest(){
   const w1=B.bc.find(m=>m.k==="wave"), yrs=Math.round(ringLimit(Math.min(MAX_RINGS,rings+1))*S.waves[0].yearsPct), years=[]; B.room.state.beasts.forEach(b=>years.push(b.years));
   ok(w1.wave===1&&w1.of===S.waves.length&&w1.n===S.waves[0].n&&!w1.elite&&years.length===S.waves[0].n&&years.every(y=>y===yrs),`sóng 1: ${w1.n} hồn thú ${yrs} năm (vòng kế tiếp ×${S.waves[0].yearsPct})`);
   // Chống hạ độ khó: đổi võ hồn trong lúc nghỉ giữa sóng không đổi niên hạn sóng kế (số hồn hoàn chốt lúc vào phòng).
-  await slayAll(); await waitMsg("clear",8000); for(let sl=0;sl<4;sl++) B.room.send("switch",{slot:sl});
+  await clearWave(0); await waitMsg("clear",8000); for(let sl=0;sl<4;sl++) B.room.send("switch",{slot:sl});
   await waitFor(()=>B.bc.filter(m=>m.k==="wave").length>1,8000); { const y2=Math.round(ringLimit(Math.min(MAX_RINGS,rings+1))*S.waves[1].yearsPct), ys=[]; B.room.state.beasts.forEach(b=>{ if(!b.elite&&b.tier!==undefined) ys.push(b.years); });
     ok(ys.length>0&&ys.every(y=>y===y2),`đổi võ hồn giữa sóng: sóng 2 vẫn ${y2} năm (${ys.join(",")})`); }
   const end=await winAll();
@@ -72,7 +75,7 @@ export async function bicanhRoomTest(){
   await leave(); ok(tomes()===bicanhRunTomes(S)&&await left()===S.runs-2,`thua không quyển, lượt không hoàn (${S.runs-2}/${S.runs})`);
 
   // 4. Rời giữa chừng sau khi hạ sóng 1: giữ phần sóng đã xong (một lần), lượt không hoàn.
-  f=await open(); await fight(); await slayAll(); await waitMsg("clear",8000);
+  f=await open(); await fight(); await clearWave(0); await waitMsg("clear",8000);
   const want=tomes()+S.waves[0].tomes; await B.room.leave(); await sleep(800); await back();
   ok(await tomeBag(want)===want&&await left()===S.runs-3,`rời giữa chừng: giữ ${S.waves[0].tomes} quyển của sóng 1 (${tomes()} quyển), lượt không hoàn (${S.runs-3}/${S.runs})`);
   // 5. Hết lượt miễn phí: không mở phòng, không trừ thêm.

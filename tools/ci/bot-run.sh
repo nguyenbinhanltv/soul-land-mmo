@@ -32,6 +32,13 @@ echo "[$name] bot xong sau $((SECONDS - start)) giây, mã thoát $code"
 if ! kill -0 "$pid" 2>/dev/null; then echo "✗ [$name] server đã chết trong lúc chạy bot"; code=1; fi
 
 n() { grep -c "$1" "$blog"; }
+# Mã ≠ 0 mà không có dòng ✗ (và server còn sống): nói rõ lý do thay vì để "✗ 0" khó hiểu (#1230, #1236). Lỗi chưa bắt đã thành dòng ✗ ở bot/lib.mjs;
+# còn lại là bot bị tín hiệu (mã 128+N: 137 = hết RAM / SIGKILL, 143 = SIGTERM), hết giờ của job, hoặc process.exit(≠0) mà không in ✗.
+if [ "$code" -ne 0 ] && [ "$(n '^  ✗')" -eq 0 ] && kill -0 "$pid" 2>/dev/null; then
+  why="bot thoát mã $code mà không in dòng ✗"; [ "$code" -ge 128 ] && why="$why (bị tín hiệu $((code - 128)): hết RAM / bị kill / hết giờ)"
+  echo "::error title=bot $name::$why: xem 15 dòng cuối của log bot bên dưới"
+  echo "---- $why; 15 dòng cuối log bot [$name] ----"; tail -n 15 "$blog"
+fi
 # Annotation: `gh run view <id>` in ra (step summary thì chỉ có ở trang lượt chạy). Một dòng số ✓ / ✗ / ⚠, mỗi dòng ✗ một lỗi (tối đa 10).
 if [ -n "${GITHUB_ACTIONS:-}" ]; then
   esc() { sed 's/%/%25/g'; } # message của annotation: % phải viết %25
