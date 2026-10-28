@@ -12064,6 +12064,84 @@
       "iso": true
     },
     {
+      "key": "vhanim_quy_mi_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        },
+        "dirsOk": [
+          "s",
+          "se",
+          "ne",
+          "n"
+        ]
+      }
+    },
+    {
+      "key": "vhanim_quy_mi_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        },
+        "dirsOk": [
+          "s",
+          "se",
+          "ne",
+          "n"
+        ]
+      }
+    },
+    {
       "key": "vh_ta_hoa_phuong_hoang_b",
       "iso": true
     },
