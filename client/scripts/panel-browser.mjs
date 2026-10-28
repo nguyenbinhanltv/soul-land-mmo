@@ -188,6 +188,18 @@ GameScene.prototype.create = function(...a) {
   await shot("960x540");
   check(res.small.walk === 0, `960×540 bấm trên Túi không đi: ${JSON.stringify(res.small)}`);
 
+  // Hộp xác nhận (askDialog, #1271) chặn phím của game: Enter trên Huỷ bấm nút (trả false), không nhảy vào ô chat; phím khác không tới window.
+  res.askKeys = await (async () => {
+    const r = await page.evaluate(async () => {
+      const { askDialog } = await import("/src/uiParts.ts");
+      window.__askLeak = 0; window.addEventListener("keydown", () => { window.__askLeak++; });
+      window.__askRes = undefined; askDialog({ title: "Thử", body: "Thử hộp xác nhận.", force: true }).then((v) => { window.__askRes = v; });
+      return document.activeElement?.className ?? "";
+    });
+    await page.keyboard.press("KeyW"); await page.keyboard.press("Enter"); await sleep(150);
+    return page.evaluate((cls) => ({ cls, leak: window.__askLeak, res: window.__askRes, chat: document.activeElement?.id === "chat", open: !!document.querySelector(".p2-ask") }), r);
+  })();
+  check(res.askKeys.cls.includes("p2-ask-no") && res.askKeys.res === false && !res.askKeys.chat && !res.askKeys.open && res.askKeys.leak === 0, `hộp xác nhận chặn phím: ${JSON.stringify(res.askKeys)}`);
   await writeFile(resolve(out, `${tag}-do.json`), JSON.stringify(res, null, 2));
   console.log(JSON.stringify({ output: out, ...res }, null, 2));
 } finally {

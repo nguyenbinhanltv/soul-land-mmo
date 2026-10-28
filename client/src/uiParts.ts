@@ -416,6 +416,7 @@ export function askDialog(o: AskOpts & { force?: boolean }): Promise<boolean> {
   return new Promise((res) => {
     const done = (v: boolean) => { document.removeEventListener("keydown", key, true); root.remove(); prev?.focus?.(); res(v); };
     const key = (e: KeyboardEvent) => {
+      e.stopPropagation(); // hộp chặn nền: không phím nào xuống GameScene (Enter không nhảy vào ô chat, WASD / U-I-O-P không chạy); Enter / Space trên nút giữ mặc định của trình duyệt
       if (e.key === "Escape") { e.stopPropagation(); e.preventDefault(); done(false); }
       else if (e.key === "Tab") { e.preventDefault(); (document.activeElement === no ? ok : no).focus(); }
     };
