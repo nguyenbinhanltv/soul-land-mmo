@@ -16,37 +16,37 @@ Manifest đã có đủ 25 khóa `portrait_<id>` và ba khung `card_sr/ssr/ur`; 
 
 | Võ hồn | Chân dung portrait2 | Thẻ dùng chân dung v2 | Icon 24/32 nearest |
 |---|---|---|---|
-| Cửu Tinh Thất Sát Kiếm | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Lam Điện Bá Vương Long | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Kỳ Nhung Thông Thiên Cúc | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Tà Hỏa Phượng Hoàng | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Hạo Thiên Chùy | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Phá Hồn Thương | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Bạch Hổ | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| U Minh Linh Miêu | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Nguyệt Nhận | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Hỏa Long | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Nhu Cốt Thố | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Kim Vũ Miêu Ưng | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Liệt Hỏa Thương Lang | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Tử Vong Chu Hoàng | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Bích Lân Xà Hoàng | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Càn Khôn Hỗn Nguyên Tỏa | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Hỏa Ảnh | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Yêu Hồ | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Lam Ngân Thảo | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Băng Phượng Hoàng | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Xúc Xích | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Quỷ Mị | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Thiên Càn Bạch Ngọc Đỉnh | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| Cửu Bảo Lưu Ly Tháp | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
-| A Ngân | Đủ | Đủ | Chưa nhập: chặn bộ nhập |
+| Cửu Tinh Thất Sát Kiếm | Đủ | Đủ | Đủ 24/32 |
+| Lam Điện Bá Vương Long | Đủ | Đủ | Đủ 24/32 |
+| Kỳ Nhung Thông Thiên Cúc | Đủ | Đủ | Đủ 24/32 |
+| Tà Hỏa Phượng Hoàng | Đủ | Đủ | Đủ 24/32 |
+| Hạo Thiên Chùy | Đủ | Đủ | Đủ 24/32 |
+| Phá Hồn Thương | Đủ | Đủ | Đủ 24/32 |
+| Bạch Hổ | Đủ | Đủ | Đủ 24/32 |
+| U Minh Linh Miêu | Đủ | Đủ | Đủ 24/32 |
+| Nguyệt Nhận | Đủ | Đủ | Đủ 24/32 |
+| Hỏa Long | Đủ | Đủ | Đủ 24/32 |
+| Nhu Cốt Thố | Đủ | Đủ | Đủ 24/32 |
+| Kim Vũ Miêu Ưng | Đủ | Đủ | Đủ 24/32 |
+| Liệt Hỏa Thương Lang | Đủ | Đủ | Đủ 24/32 |
+| Tử Vong Chu Hoàng | Đủ | Đủ | Đủ 24/32 |
+| Bích Lân Xà Hoàng | Đủ | Đủ | Đủ 24/32 |
+| Càn Khôn Hỗn Nguyên Tỏa | Đủ | Đủ | Đủ 24/32 |
+| Hỏa Ảnh | Đủ | Đủ | Đủ 24/32 |
+| Yêu Hồ | Đủ | Đủ | Đủ 24/32 |
+| Lam Ngân Thảo | Đủ | Đủ | Đủ 24/32 |
+| Băng Phượng Hoàng | Đủ | Đủ | Đủ 24/32 |
+| Xúc Xích | Đủ | Đủ | Thiếu: hết 3 lượt RAW |
+| Quỷ Mị | Đủ | Đủ | Đủ 24/32 |
+| Thiên Càn Bạch Ngọc Đỉnh | Đủ | Đủ | Đủ 24/32 |
+| Cửu Bảo Lưu Ly Tháp | Đủ | Đủ | Đủ 24/32 |
+| A Ngân | Đủ | Đủ | Đủ 24/32 |
 
-## Icon còn chặn
+## Icon đã nhập và trường hợp còn thiếu
 
-Đã có nguồn nearest cho cả 25 võ hồn (lô 1–3); riêng Xúc Xích đã dùng hết 3 lượt. Icon 32 px có 164–589 màu kể cả nền trong suốt. `vohon-check pixel` miễn giới hạn màu với preset icon-nearest, nhưng `validate.mjs` vẫn áp trần PORTRAIT_MAX_COLORS (32) cho icon và UI thường; chưa có loại khóa icon võ hồn 24/32 trong sheetSpec. Client hiện chỉ dùng portrait, chưa dùng icon võ hồn riêng.
+Đã nhập nguyên byte 48 icon nearest của 24 võ hồn từ lô 1–3, có khóa `icon_<id>_24/32` và file `iso/portrait/<id>_icon24/32.png`. Bộ nhập kiểm đúng võ hồn, đúng cỡ, alpha 0/255 và có cả vật/nền trong suốt; riêng loại này giữ màu RAW theo preset. Các loại icon/chân dung khác vẫn giữ trần màu cũ. Đăng ký bằng `validate --register ... --iso --keep-order` để tránh sắp xếp lại manifest. Client đọc khóa mới qua `artUrl`; dải chọn võ hồn bảng Nhân vật dùng bản 24 px, thiếu ảnh thì giữ chữ.
 
-Muốn nhập nguyên bản nearest cần bổ sung công cụ và cách dùng icon ở client: đó là làn code. Không lượng tử lại màu (sai preset đã chốt), không gắn nhầm loại UI/static để lách kiểm. Chờ chủ repo chọn mở rộng phạm vi hoặc tách việc tiếp.
+**Xúc Xích:** ba lượt RAW đều có nhiều chiếc phụ, hồ sơ chưa chọn bản nào. Thử crop từ RAW lượt 3 (`--crop 350,90,420,420`) vẫn không đạt: hình cắt cụt, không đọc ra chiếc chính ở 24/32. Không nhập, không sinh lượt thứ tư; cần chủ repo quyết định cấp thêm lượt hoặc chọn hướng khác. Các file thử chỉ ở thư mục tạm.
 
 ## Duyệt mắt
 

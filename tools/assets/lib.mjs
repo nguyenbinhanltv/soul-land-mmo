@@ -411,6 +411,8 @@ export const vhanimSize = (frame, cols) => (Number.isInteger(cols) && cols > 0 ?
 
 export function sheetSpec(key, frame, iso = false, stat = false) {
   let m;
+  // Icon võ hồn v2 giữ màu RAW nearest; chỉ nhận đúng hai cỡ, tách khỏi giới hạn màu chân dung.
+  if (iso && (m = key.match(/^icon_([a-z_]+)_(24|32)$/)) && vohonColors(m[1])) return { file: `iso/portrait/${m[1]}_icon${m[2]}.png`, size: [+m[2], +m[2]], kind: "portrait", iso: true, nearestIcon: m[1] };
   if (iso) {
     const spec = (file, layout, extra = {}) => ({ file, frame: layout.frame, size: [layout.frame[0] * layout.cols, layout.frame[1] * layout.rows], kind: layout.kind, layout, iso: true, ...extra });
     if ((m = key.match(/^hs_((?:body|outfit|hair)_([mf]_\d+))$/))) return spec(`honsu/${m[1]}.png`, isoLayout("honsu"), { set: m[2] });

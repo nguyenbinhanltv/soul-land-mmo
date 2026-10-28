@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ROOT, Img, encodePng, readPng, hex, PORTRAIT_MAX_COLORS, PT_MAX_COLORS } from "./lib.mjs";
+import { ROOT, Img, encodePng, readPng, hex, PORTRAIT_MAX_COLORS, PT_MAX_COLORS, sheetSpec } from "./lib.mjs";
 import * as P from "./vohon-pixelize-lib.mjs";
 import { checkRaw, checkPixel, paletteMatch, softness, gridRatio, hasFrame, formatResult, verdict } from "./vohon-check.mjs";
 import { buildPrompt, buildDoc, styleRefBlock, allIds, PHAP_TUONG_MOI } from "./vohon-prompt.mjs";
@@ -14,6 +14,16 @@ import { buildPreview } from "./vohon-preview.mjs";
 import { styleBlock } from "./phuthe-sheet-lib.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
+test("khóa icon nearest chỉ nhận võ hồn thật, hai cỡ 24/32 và manifest isometric", () => {
+  for (const { id } of allIds()) for (const size of [24, 32]) {
+    const spec = sheetSpec(`icon_${id}_${size}`, undefined, true);
+    assert.equal(spec.file, `iso/portrait/${id}_icon${size}.png`);
+    assert.deepEqual(spec.size, [size, size]); assert.equal(spec.nearestIcon, id);
+  }
+  for (const key of ["icon_khong_co_24", "icon_bach_ho_64", "icon_bach_ho_16"]) assert.equal(sheetSpec(key, undefined, true), null);
+  assert.equal(sheetSpec("icon_bach_ho_24"), null);
+  assert.equal(sheetSpec("portrait_bach_ho", undefined, true).nearestIcon, undefined);
+});
 const tmp = () => mkdtempSync(path.join(os.tmpdir(), "vohon-"));
 const codes = (r, sev) => r.issues.filter((i) => i.sev === sev).map((i) => i.code);
 let seed = 7; const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32);

@@ -25,6 +25,7 @@ const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i
 const register = opt("--register", ""), prompt = opt("--prompt", ""), tool = opt("--tool", "PixelLab MCP"), note = opt("--note", ""), frameOpt = opt("--frame", "");
 const nineOpt = +opt("--nine", "0"), mapOpt = opt("--map", ""), isoAt = args.indexOf("--iso"), isoOpt = isoAt >= 0 && !!args.splice(isoAt, 1);
 const staticAt = args.indexOf("--static"), staticOpt = staticAt >= 0 && !!args.splice(staticAt, 1); // hồn thú lai: sheet tĩnh 3 hướng (#386)
+const keepOrderAt = args.indexOf("--keep-order"), keepOrder = keepOrderAt >= 0 && !!args.splice(keepOrderAt, 1); // nhập lô nhỏ, giữ thứ tự các khóa có sẵn
 
 const manifest = JSON.parse(readFileSync(MANIFEST, "utf8"));
 manifest.sprites ??= [];
@@ -92,7 +93,12 @@ function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank 
     if (!free && !palette.has(c)) bad.set(c, (bad.get(c) ?? 0) + 1);
   }
   if (semi) err(key, `${semi} điểm bán trong suốt (chỉ được alpha 0 hoặc 255)`);
-  if (free && !spec.static && spec.kind !== "vhanim" && spec.kind !== "ui2" && used.size > (spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS)) err(key, `${used.size} màu, ${spec.kind === "fx" ? "hiệu ứng" : spec.kind === "phaptuong" ? "pháp tướng" : "chân dung"} tối đa ${spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS}`);
+  if (spec.nearestIcon) {
+    let clear = 0, opaque = 0;
+    for (let i = 3; i < img.data.length; i += 4) { if (img.data[i] === 0) clear++; else if (img.data[i] === 255) opaque++; }
+    if (!clear || !opaque) err(key, "icon nearest phải có cả chủ thể và nền trong suốt");
+  }
+  if (free && !spec.nearestIcon && !spec.static && spec.kind !== "vhanim" && spec.kind !== "ui2" && used.size > (spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS)) err(key, `${used.size} màu, ${spec.kind === "fx" ? "hiệu ứng" : spec.kind === "phaptuong" ? "pháp tướng" : "chân dung"} tối đa ${spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS}`);
   if (spec.npc && !(npcIds_ ??= npcIds()).has(spec.npc)) err(key, `không có NPC "${spec.npc}" trong NPCS (shared/data.ts)`);
   if (spec.status && !(statusIds_ ??= statusIds()).has(spec.status)) err(key, `không có trạng thái / buff "${spec.status}" trong STATUS_IDS / BUFF_IDS / BEAST_BUFF_IDS (shared/data.ts)`);
   if (spec.beast && !(beastIds_ ??= beastIds()).has(spec.beast)) err(key, `không có loài "${spec.beast}" trong BEASTS (shared/data.ts)`);
@@ -247,7 +253,7 @@ if (register) {
     // Đăng ký lại một key (ví dụ bộ 32×32 cũ thay bằng bộ isometric) thì ghi đè dòng cũ.
     if (i >= 0) manifest.sprites.splice(i, 1);
     manifest.sprites.push(entry);
-    manifest.sprites.sort((a, b) => entryKey(a).localeCompare(entryKey(b)));
+    if (!keepOrder) manifest.sprites.sort((a, b) => entryKey(a).localeCompare(entryKey(b)));
     writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2) + "\n");
   }
   upsertCredits(register, `shared/assets/sprites/${spec.file}`);
