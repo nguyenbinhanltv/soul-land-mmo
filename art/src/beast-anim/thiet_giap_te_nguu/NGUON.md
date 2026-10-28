@@ -1,23 +1,60 @@
-# Thiết Giáp Tê Ngưu — RAW H4 đợt 4
+# Thiết Giáp Tê Ngưu — RAW hoạt ảnh
 
-Part of #770. Part of #766.
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species thiet_giap_te_nguu`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
 
-LỖI: toA — heading/background/pose — R1–4 S; R5–8 SE; R9–12 E — S attack R3C4 và death R4C2–4 quay phải; SE gần side, hurt ngẩng/nhấc thân chưa recoil rõ; nền không phẳng FF00FF; giữ RAW FAIL, không retry.
+Loài `thiet_giap_te_nguu` (Thiết Giáp Tê Ngưu), họ `quad`, khung game 96×96. Mức kiểm chung: **nhẹ**.
 
-LỖI: toB — size/heading/pose — R5–8 N — RAW1254×1254 thay1024×1024; nhiều khung N lộ mặt/mắt/sừng chính diện, death quay ngang không giữ rear; giữ RAW FAIL, không retry.
+## turnaround
 
-Mỗi tờ một fresh worker, đúng1 builtin imagegen call, không retry/redraw; tổng loài2calls. Owner101 chỉ tích hợp, vẫn đúng1call Thanh Lân A lịch sử. Model ảnh/seed unknown, không suy từ agent. RAW gốc/artifact/shipping khớp byte; số byte/header/SHA256 trong source JSON. Không resize/crop/cutter/assembly/postprocess/runtime.
+- File: `turnaround.png`, **1536×1024**, 1745509 byte, SHA256 `4497c8f54d428908fa2239898f2470c9bf451d20842acd1b1201cde141d662c7`.
+- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2.
+- Prompt: `turnaround.prompt.txt` (SHA256 `77f839726a4e4b465657717dfb9f2e14fe2dbf63823642ec06e5967a40e53213`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
-A110A1 prompt = prefix591byte+BASE4094byte cuối. B112B1 prompt = prefix681byte+BASE3517byte+haiLF+câu matching second sheet/body size, base không nằm cuối prompt thực. Ref A chỉstatic110, B orderedstatic110+A110A1. A/B nhìn thấy66/44hình và6/4vịtríblank, đây là semantic bằng mắt, không chứng nhận mọiframe. N của B lộ mặt/mắt/sừng và death quay ngang; không waiver1254 hoặc nhận artPASS.
+## toA
 
-Prompt thật trong toA/toB.prompt.txt; prefix/base/suffix và vị trí byte thật giữ tại source JSON. BASE nguyên khối so generator, không giả hash hoặc dịch nhãn Việt sẵn có. Doc generator giữ hướng dẫn lịch sử; owner mới chỉ1call, mọiFAIL vẫn nộp, không redraw/cutter. Xung đột template: A prefix N/NE despite S/SE/E layout; bite/claw attack template versus rhinoceros; 171x6=1026 while canvas1024; eyes shut/rear heading and sideways death conflict. Không sửa template/anatomy/generator.
+- File: `toA.png`, **1024×1536**, 2164280 byte, SHA256 `81094ae3e94da1fe50267798df822b3094ee007a378cfe7c80cd6b98c82a71d9`.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo.
+- Prompt: `toA.prompt.txt` (SHA256 `30280a54be95e65725b327dbd46e424cf0a320bb13aac8bf93d44df69574a403`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se nhẹ, e pass).
+- Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
 
-A chỉ static identity đã VIEW; B ordered static rồi A cùngloài style/body-size candidate còn FAIL, không lấy pose/hướng lỗi làm chuẩn. Refpath ghi đúng actual attached, backup không giả làm actual. Không fake blank/artPASS; số pixel màu không phải số sinh vật/occupied frame. Chưa duyệt motion loop/margin/feetline/samebody-size. Submitted≠merged≠artaccepted≠imported; không waiver size hoặc pose.
+## toB
+
+- File: `toB.png`, **1254×1254**, 2104469 byte, SHA256 `4e77c897587f0528141348be2ae49a6c9ad82b6b24e31732f4912db5daba4f28`.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo.
+- Prompt: `toB.prompt.txt` (SHA256 `0f8784c03510ce071fe0d94150bef895c321333d82407fc8521f8bed426e7d64`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: ne nhẹ, n pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+## Tờ chưa vào thư mục chính (candidates)
+
+Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
+
+### toD (candidates)
+
+- File chọn: `candidates/toD-attempt3.png`, **1536×1024**, SHA256 `a9cb17c957474bebaddb3c7bb86ebf00d0bd4de5537abcb13488e97e72dac0da`; lượt tìm thấy: 1, 2, 3.
+- Số lượt đã dùng: 3; lượt được chọn: 3.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+## Lỗi
+
+```text
+LỖI: toA — hình ở ô trống — H4 (s) C5, H4 (s) C6, H8 (se) C5, H8 (se) C6 — ô trống có hình (2.74% diện tích ô): hình tràn từ ô bên; ô trống có hình (3.7% diện tích ô): hình tràn từ ô bên; ô trống có hình (14.24% diện tích ô): hình tràn từ ô bên; ô trống có hình (15.7% diện tích ô): hình tràn từ ô bên.
+LỖI: toB — hình ở ô trống — H4 (ne) C5 — ô trống có hình (0.45% diện tích ô): hình tràn từ ô bên.
+LỖI: toB — nhập — hướng n — công cụ sinh ảnh từ chối tờ toE, chưa có RAW mới, giữ fallback (mắt)
+LỖI: toD — hướng — ne H3 C3–4 — còn lộ mắt sau 3 lượt, giữ fallback (mắt)
+```
 
 ## Ghi công
 
-Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); không nối dòng vào `art/CREDITS.md`.
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/beast-anim/thiet_giap_te_nguu/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Thiết Giáp Tê Ngưu (H4 đợt 4, Part of #770/#766): `art/src/beast-anim/thiet_giap_te_nguu/toA.png` (1024×1536, fresh110 A1) và `toB.png` (1254×1254 thật thay1024×1024 yêu cầu, fresh112 B1), tthoadev sinh ngày2026-10-26 bằng builtin `image_gen.imagegen`; mỗi tờ1call/0retry, tổng2. Model ảnh/seed unknown. A static identity only; B ordered static+A style/body-size candidate còn FAIL. RAW nguyên byte, không hậu kỳ/cắt/resize; nộp mọiFAIL theo owner, không size/art/runtime acceptance. Exact prompts/baseposition/refroles/hash/counters/template conflicts: [NGUON.md](src/beast-anim/thiet_giap_te_nguu/NGUON.md), toA/toB.prompt.txt và toA/toB.source.json cùng thư mục. Nguồn Q44/điều khoản công cụ. | - | Chuyển một lần từ art/CREDITS.md (#973) |
+| `art/src/beast-anim/thiet_giap_te_nguu/` | - | builtin image_gen.imagegen | RAW hoạt ảnh Thiết Giáp Tê Ngưu: turnaround 1536×1024, toA 1024×1536, toB 1254×1254; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
