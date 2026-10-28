@@ -1,6 +1,8 @@
 // UI v2, màn Lịch Hoạt Động (docs/design/lich-hoat-dong.md "Giao diện", Part of #877). Chỉ hiển thị tin riêng `calendar` của server (#1202: `{now, weekStart, items, fixed}`)
 // và gửi ý định `calendar {op:"get", week}`; khung giờ, tên boss, giờ "hôm nay" do server quyết, client chỉ so `now` của server với `s` / `e` để chọn trạng thái thẻ.
+import { EVENT_DEFS } from "../../shared/data.ts";
 import { COUNTDOWN_SOON_MS, countdown, screenFrame, mount, addCloseButton, type PNode } from "./uiParts.ts";
+import { mapName } from "./autowalk.ts";
 import { hhmmVn, serverNow, syncServerNow } from "./svClock.ts";
 
 export interface CalItem { id: string; name: string; kind: "slot"; s: number; e: number; d: number; map: string; mapName: string; boss: string; note?: string }
@@ -35,6 +37,13 @@ export const dayDate = (weekStart: number, d: number) => {
   return `${p.find((x) => x.type === "day")?.value}.${p.find((x) => x.type === "month")?.value}`;
 };
 export const slotRange = (it: Pick<CalItem, "s" | "e">) => `${hhmmVn(it.s)} – ${hhmmVn(it.e)}`;
+/** Đích của nút "Đến": bản đồ (luôn có) và NPC cần gặp nếu mục gắn với một NPC. Lấy từ `EVENT_DEFS` (bảng luật dùng chung), không tự đặt vị trí. */
+export interface CalGoal { map: string; mapName: string; npc?: string }
+/** Mục luôn mở có NPC + bản đồ → đích; mục không có `npc` / `map` thì null (không hiện nút). */
+export function fixedGoal(f: Pick<CalFixed, "id" | "npc">, mapNameOf: (id: string) => string): CalGoal | null {
+  const d = EVENT_DEFS.find((x) => x.id === f.id);
+  return d?.map && f.npc ? { map: d.map, mapName: mapNameOf(d.map), npc: f.npc } : null;
+}
 export const STATE_LABEL: Record<SlotState, string> = { live: "Đang mở", soon: "Sắp mở", past: "Đã qua", later: "" };
 
 // ---- phần DOM ----
@@ -44,7 +53,9 @@ let timer = 0, tick = 0, stops: (() => void)[] = [];
 const el = () => document.getElementById("calendar");
 const LOAD_TIMEOUT_MS = 6000;
 
-export function bindCalendar(sender: (type: string, payload: unknown) => void) { send = sender; }
+/** Mở đường tới đích: GameScene dùng cờ "Đi tới" (`flagToMap`) / đi bộ tới NPC cùng bản đồ; không gửi gì lên server, không dịch chuyển. */
+let goTo: (g: CalGoal) => void = () => {};
+export function bindCalendar(sender: (type: string, payload: unknown) => void, go?: (g: CalGoal) => void) { send = sender; if (go) goTo = go; }
 export const isCalendarOpen = () => { const e = el(); return !!e && !e.hidden; };
 
 function request() {
@@ -90,7 +101,9 @@ function render() {
   else {
     const d = data, today = todayIndex(now, d.weekStart), cols = byDay(d.items);
     const always = d.fixed.filter((x) => x.kind === "always"), resets = d.fixed.filter((x) => x.kind === "reset");
-    body.push(h("div", "cal-fixed", { kids: [h("span", "cal-fixed-l", { text: "Luôn mở:" }), ...always.map((x) => h("span", "cal-chip", { text: x.name, attrs: x.note ? { title: x.note } : {} }))] }));
+    body.push(h("div", "cal-fixed", { kids: [h("span", "cal-fixed-l", { text: "Luôn mở:" }), ...always.map((x) => { const g = fixedGoal(x, mapName); return h("span", "cal-chip", { kids: [
+      h("span", "", { text: x.name, attrs: x.note ? { title: x.note } : {} }),
+      g ? h("button", "cal-go cal-go-s", { text: "Đến", attrs: { type: "button", "data-map": g.map, "data-npc": g.npc ?? "", "data-mn": g.mapName, "aria-label": `Đến ${x.name} ở ${g.mapName}` } }) : null] }); })] }));
     body.push(h("div", "cal-wk", { kids: [
       h("button", "cal-nav", { text: "◀", attrs: { type: "button", "data-w": "-1", "aria-label": "Tuần trước", ...(week <= -1 ? { disabled: "" } : {}) } }),
       h("span", "cal-wk-l", { text: `${dayDate(d.weekStart, 0)} – ${dayDate(d.weekStart, 6)}${week === 0 ? " · tuần này" : week < 0 ? " · tuần trước" : " · tuần sau"}` }),
@@ -108,6 +121,7 @@ function render() {
       body.push(h("div", "cal-detail", { kids: [
         h("span", "cal-d-t", { text: pick.name }), h("span", "cal-d-s", { text: `${pick.mapName} · ${slotRange(pick)}${pick.boss ? ` · Boss: ${pick.boss}` : ""}` }),
         pick.note ? h("span", "cal-d-s", { text: pick.note }) : null,
+        h("button", "cal-go", { text: "Đến", attrs: { type: "button", "data-map": pick.map, "data-mn": pick.mapName, "aria-label": `Đến ${pick.mapName}`, title: `Đi tới ${pick.mapName} (tự đi bằng cờ, không dịch chuyển)` } }),
         st === "live" || st === "soon" ? h("span", "cal-cd", { attrs: { "data-s": String(pick.s), "data-e": String(pick.e), "data-live": st === "live" ? "1" : "" } }) : null,
       ] }));
     }
@@ -123,6 +137,7 @@ function render() {
     const t = e.target as HTMLElement;
     const nav = t.closest<HTMLElement>(".cal-nav"); if (nav && !(nav as HTMLButtonElement).disabled) { week += Number(nav.dataset.w); sel = null; request(); return; }
     if (t.closest(".cal-retry")) { request(); return; }
+    const go = t.closest<HTMLElement>(".cal-go"); if (go?.dataset.map) { goTo({ map: go.dataset.map, mapName: go.dataset.mn ?? go.dataset.map, ...(go.dataset.npc ? { npc: go.dataset.npc } : {}) }); closeCalendar(); return; }
     const sl = t.closest<HTMLElement>(".cal-slot"); if (sl?.dataset.k) { sel = sel === sl.dataset.k ? null : sl.dataset.k; render(); }
   });
   addCloseButton(f.root, closeCalendar);

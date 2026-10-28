@@ -3,6 +3,7 @@
 import { CHECKIN, checkinCount, formatHonTe, itemDef } from "../../shared/data.ts";
 import { abbrevNumber, countdown, screenFrame, mount, addCloseButton, type PNode } from "./uiParts.ts";
 import { serverNow, syncServerNow } from "./svClock.ts";
+import { artImg, tintedUrl } from "./uiArt.ts";
 
 export interface WelfareMsg {
   cycle: number; day: number; mask: number; now: number; endsAt: number; makeupLeft: number; free: number; fee: number | null;
@@ -33,6 +34,20 @@ export const isMilestone = (i: number) => (CHECKIN.milestones as readonly number
 export function rewardParts(i: number): string[] {
   const r = CHECKIN.rewards[i]; if (!r) return [];
   return [...(r.honTe ? [`${abbrevNumber(r.honTe)} Hồn Tệ`] : []), ...(r.shards ? [`Mảnh ×${r.shards}`] : []), ...(r.items ?? []).map((x) => `${itemDef(x.code)?.name ?? x.code} ×${x.qty}`)];
+}
+/** Mã ảnh chung của mảnh võ hồn (loại mảnh do server chọn ngẫu nhiên nên ô chỉ có một icon chung; ảnh xám tô màu vàng SR / SSR). */
+export const SHARD_ITEM = "manh_vo_hon";
+const SHARD_COL = "#e0a458";
+/** Mã vật phẩm có sẵn trong game để vẽ icon quà ô `i` (vật phẩm của ô, mảnh võ hồn nếu có `shards`); Hồn Tệ không có icon riêng nên chỉ ghi chữ. */
+export function rewardIcons(i: number): string[] {
+  const r = CHECKIN.rewards[i]; if (!r) return [];
+  return [...(r.items ?? []).map((x) => x.code), ...(r.shards ? [SHARD_ITEM] : [])];
+}
+/** `<img>` icon của một mã vật phẩm: ảnh riêng `item_<mã>`, rồi ảnh chung theo nhóm (mảnh võ hồn là ảnh xám tô theo `col` của món); không có ảnh thì "". */
+function iconHtml(code: string): string {
+  if (code === SHARD_ITEM) { const u = tintedUrl(`item_${SHARD_ITEM}`, SHARD_COL); return u ? `<img class="wf-img" src="${u}" alt="" draggable="false">` : ""; }
+  const kind = itemDef(code)?.kind;
+  return artImg(`item_${code}`, "wf-img") || (kind ? artImg(`item_${kind}`, "wf-img") : "");
 }
 /** Kết quả lần vừa ký (tin `signed`) thành một dòng. */
 export function signedLine(s: NonNullable<WelfareMsg["signed"]>): string {
@@ -89,6 +104,7 @@ function cellNode(i: number, m: WelfareMsg): PNode {
       title: st === "makeup" ? `${feeText(m.fee)} · còn ${m.makeupLeft} lượt` : st === "missed" ? "Hết lượt ký bù chu kỳ này" : rewardParts(i).join(", "), ...(clickable ? {} : { "aria-disabled": "true" }) },
     kids: [
       h("span", "wf-n", { text: String(i + 1) }),
+      rewardIcons(i).length ? h("span", "wf-ic", { attrs: { "data-ic": rewardIcons(i).join(",") } }) : null, // icon gắn sau khi dựng (ảnh qua uiArt)
       ms ? h("span", "wf-mk", { text: "Mốc" }) : null, // dạng + chữ, không chỉ màu vàng
       h("span", "wf-r", { text: rewardParts(i).join(" · ") }),
       MARK[st] ? h("span", "wf-st", { text: MARK[st] }) : null,
@@ -125,6 +141,7 @@ function render() {
   }
   const wrap = mount(h("div", "wf-wrap", { kids: body }));
   f.body.append(wrap);
+  for (const ic of wrap.querySelectorAll<HTMLElement>(".wf-ic")) ic.innerHTML = (ic.dataset.ic ?? "").split(",").map(iconHtml).join(""); // chỉ URL ảnh của game, không có chữ người chơi
   if (msg && msg.day >= 0) {
     const m = msg;
     for (const host of wrap.querySelectorAll<HTMLElement>(".wf-cdh")) {
