@@ -5,7 +5,7 @@ import { slotState, todayIndex, byDay, dayDate, slotRange, STATE_LABEL } from ".
 import { COUNTDOWN_SOON_MS } from "../src/uiParts.ts";
 import { cellState, signedToday, needsSign, isMilestone, rewardParts, signedLine, primaryOf, nextMidnightVn, feeText } from "../src/welfareScreen.ts";
 import { CHECKIN } from "../../shared/data.ts";
-import { rankGroups, podiumOf, lineupText, meLine, pageLabel, tongName } from "../src/rankScreen.ts";
+import { rankGroups, podiumOf, lineupText, meLine, pageLabel, tongName, sendDelay } from "../src/rankScreen.ts";
 
 // ---- hub ----
 const ids = HUB_ITEMS.map((i) => i.id);
@@ -33,6 +33,7 @@ assert.match(lineupText([{ vohon: "ma_don_khong_co", level: 12, stars: 3 }])[0],
 assert.equal(meLine(null, "Cấp").ranked, false); assert.equal(meLine(null, "Cấp").text, "Chưa có hạng");
 assert.deepEqual([meLine({ rank: 1234, score: 2_600_000 }, "Cấp").text, meLine({ rank: 1, score: 5 }, "x").ranked], ["Hạng 1.234 · 2,6M", true]);
 assert.equal(pageLabel(1, 0, 10), "Trang 1/1"); assert.equal(pageLabel(2, 25, 10), "Trang 2/3"); assert.equal(pageLabel(1, 5, 0), "Trang 1/5");
+assert.equal(sendDelay(1000, 1500, 2), 1550); assert.equal(sendDelay(1000, 3050, 2), 0); assert.equal(sendDelay(0, 99999, 2), 0); // chờ hết nhịp RANK_CD rồi mới gửi
 assert.equal(tongName(undefined), ""); assert.equal(tongName("khong_co"), "");
 
 // ---- Lịch Hoạt Động ----

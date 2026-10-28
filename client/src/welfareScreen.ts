@@ -80,7 +80,7 @@ function act(op: "sign" | "makeup", day?: number, pay?: boolean) {
 
 const h = (tag: string, cls: string, o: { text?: string; attrs?: Record<string, string>; kids?: (PNode | null)[] } = {}): PNode =>
   ({ tag, cls, ...(o.attrs ? { attrs: o.attrs } : {}), ...(o.text !== undefined ? { text: o.text } : {}), ...(o.kids ? { kids: o.kids.filter((k): k is PNode => !!k) } : {}) });
-const MARK: Record<CellState, string> = { signed: "✓ Đã ký", today: "▶ Hôm nay", makeup: "Ký bù được", missed: "Bỏ lỡ", future: "" };
+const MARK: Record<CellState, string> = { signed: "■ Đã ký", today: "▶ Hôm nay", makeup: "Ký bù được", missed: "Bỏ lỡ", future: "" };
 
 function cellNode(i: number, m: WelfareMsg): PNode {
   const st = cellState(i, m), ms = isMilestone(i), clickable = st === "makeup" || (st === "today" && !signedToday(m));

@@ -46,6 +46,9 @@ let cur: string | null = null, page = 1, status: RankStatus = "loading";
 let data: RankTopMsg | null = null; // dữ liệu đang hiện: giữ khi lỗi để không xoá trống
 let sentAt = 0, timer = 0, cdTimer = 0;
 const LOAD_TIMEOUT_MS = 6000;
+/** Số ms còn phải chờ trước khi gửi tin `rank` kế (server bỏ im tin đến sớm hơn RANK_CD giây kể từ tin trước). */
+export const sendDelay = (lastSentAt: number, now: number, cdSecs: number = RANK_CD) => Math.max(0, lastSentAt + cdSecs * 1000 + 50 - now);
+let sendTimer = 0;
 const el = () => document.getElementById("rank");
 
 export function bindRank(sender: (type: string, payload: unknown) => void) { send = sender; }
@@ -53,10 +56,16 @@ export const isRankOpen = () => { const e = el(); return !!e && !e.hidden; };
 
 function request() {
   if (!send || !cur) return;
-  status = "loading"; sentAt = Date.now();
-  send("rank", { op: "top", board: cur, page, pageSize: RANK_PAGE_SIZE });
-  window.clearTimeout(timer);
-  timer = window.setTimeout(() => { if (status === "loading") { status = "error"; render(); } }, LOAD_TIMEOUT_MS);
+  status = "loading";
+  window.clearTimeout(sendTimer); window.clearTimeout(timer);
+  const fire = () => { // đọc `cur` / `page` mới nhất lúc gửi: bấm dồn trong nhịp chỉ gửi yêu cầu cuối
+    if (!send || !cur) return;
+    sentAt = Date.now();
+    send("rank", { op: "top", board: cur, page, pageSize: RANK_PAGE_SIZE });
+    timer = window.setTimeout(() => { if (status === "loading") { status = "error"; render(); } }, LOAD_TIMEOUT_MS); // đếm từ lúc thật sự gửi
+  };
+  const wait = sendDelay(sentAt, Date.now());
+  if (wait > 0) sendTimer = window.setTimeout(fire, wait); else fire();
   render();
 }
 
@@ -67,7 +76,7 @@ export function openRank() {
   else request();
   render();
 }
-export function closeRank() { const e = el(); if (e) e.hidden = true; window.clearTimeout(timer); window.clearTimeout(cdTimer); }
+export function closeRank() { const e = el(); if (e) e.hidden = true; window.clearTimeout(timer); window.clearTimeout(cdTimer); window.clearTimeout(sendTimer); }
 
 export function onRankBoards(m: { k?: string; list?: RankBoardInfo[] }) {
   if (m?.k !== "boards" || !Array.isArray(m.list)) return;
@@ -85,7 +94,7 @@ const h = (tag: string, cls: string, o: { text?: string; attrs?: Record<string, 
 
 function podiumNode(rows: RankRow[]): PNode {
   return h("div", "rk-podium", { kids: rows.map((r) => h("div", `rk-pod rk-pod-${r.rank}`, { attrs: { "aria-label": `Hạng ${r.rank}: ${r.name}` }, kids: [
-    h("span", "rk-pod-n", { text: r.rank === 1 ? "♛ 1" : String(r.rank) }), // vương miện + số: phân biệt bằng dạng, không chỉ màu
+    h("span", "rk-pod-n", { text: r.rank === 1 ? "◆ 1" : String(r.rank) }), // vương miện + số: phân biệt bằng dạng, không chỉ màu
     h("span", "rk-pod-name", { text: r.name }),
     h("span", "rk-pod-score", { text: abbrevNumber(r.score), attrs: { title: fullNum(r.score) } }),
     r.tong ? h("span", "rk-pod-tong", { text: tongName(r.tong) }) : null,
