@@ -125,3 +125,10 @@ Chọn icon lượt 1 trong 2 lượt. Lượt 2 ở candidates/icon-attempt2.* 
 Số lượt icon: 2/3; chọn lượt 1 để trình duyệt. Lượt 2 bị loại ở candidates/. Không phải bản đã duyệt nhập game. Xem `icon-attempt1-pixel/preview/index.html` và `icon-attempt1-pixel/preview/so-sanh.png`.
 
 SHA256 prompt trong mục icon tính trên UTF-8, xuống dòng LF, không xuống dòng cuối file; `sent_prompt` và `sent_prompt_sha256` trong source JSON giữ đúng chuỗi đã gửi công cụ (kể cả xuống dòng gốc). So sánh với đầu ra CLI sau chuẩn hóa CRLF/LF: trùng nguyên nội dung, không addendum.
+
+
+## Nhập chân dung portrait2 — 29/10/2026
+
+Theo giao việc hoàn tất #1158/#1159, tự duyệt và nhập game. Không sinh RAW mới: dùng `portrait-attempt3.png`, giữ giới hạn tối đa 3 lượt. Chuyển bằng `vohon-pixelize --type portrait --id ta_hoa_phuong_hoang --preset portrait2`; bản pixel và báo cáo ở `candidates/portrait-attempt3-P1c2/`. Thành phẩm nguyên byte ở `shared/assets/sprites/iso/portrait/ta_hoa_phuong_hoang.png`, khóa `portrait_ta_hoa_phuong_hoang` đã có trong manifest.
+
+Kiểm pixel: NHẸ, không CHẶN; 64×64, 16 màu, giữ 8/8 điểm sáng. Còn nhieu-chi-tiet (0,459), gan-mau (15,8), nen-chu-the (1,04). Duyệt mắt: đầu hung điểu, mỏ móc và mắt còn đọc được; nền/lửa cùng gam đỏ cam, nét lửa dày. Giữ cảnh báo này trong PR, không khai thành ĐẸP.
