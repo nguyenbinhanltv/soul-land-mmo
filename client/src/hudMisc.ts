@@ -8,6 +8,9 @@ import { chatLine, chatWhisperTo } from "./chat.ts";
 import { el, pbtn } from "./domBtn.ts";
 import type { ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
 import { autoTimeText, FRIEND_MAX, BLOCK_MAX } from "../../shared/data.ts";
+import { isUi2 } from "./uiKit.ts";
+import { stateBox } from "./uiParts.ts";
+import "./ui2-social.css";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 
 // ---------- Bạn bè và chặn (mục 5.9 "Bạn bè", #195): chỉ chính chủ nhận tin "friends" ----------
@@ -28,6 +31,9 @@ export function setFriends(m: FriendsMsg) {
   if (!$("#friends").hidden) renderFriends();
 }
 const FRIEND_COL = "#9fd8ff";
+// UI v2 (đợt 2d): bảng Bạn bè nhận khung Mực của kit khi bật cờ ui2 (index.html giữ nguyên). Luật vẽ ở ui2-social.css.
+const UI2 = isUi2();
+if (UI2) document.getElementById("friends")?.classList.add("f2-muc-nho");
 /** Mở / đóng bảng Bạn bè (phím L, nút trong khung tổ đội); cùng chỗ giữa màn hình với các bảng khác. Mở thì xin bảng mới. */
 export function toggleFriends(open = $("#friends").hidden) {
   $("#friends").hidden = !open;
@@ -52,12 +58,16 @@ function renderFriends() {
   f.append(inp, add, blk); box.append(f);
   if (typing !== null) setTimeout(() => inp.focus(), 0);
   box.append(el("small", "phint", "Hai bên đã thêm nhau mới thấy nhau đang online và ở đâu. Chặn: không nhận tin, lời mời tổ đội, lời thêm bạn của người đó."));
-  if (!m) { box.append(el("small", "phint", "Đang tải…")); return; }
+  if (!m) { if (UI2) box.append(stateBox({ kind: "loading", text: "Đang tải danh sách bạn bè…", rows: 3 })); else box.append(el("small", "phint", "Đang tải…")); return; }
   const rank = (e: FriendsMsg["list"][number]) => (e.mutual && e.map ? 0 : e.mutual ? 1 : 2);
-  for (const e of [...m.list].sort((a, b) => rank(a) - rank(b))) {
+  const sorted = [...m.list].sort((a, b) => rank(a) - rank(b)), onN = sorted.filter((e) => rank(e) === 0).length;
+  if (UI2 && sorted.length) box.append(el("div", "fsum", `${onN} trực tuyến · ${sorted.length - onN} ngoại tuyến hoặc chưa thêm lại`));
+  for (const e of sorted) {
     const row = el("div", "pmem frow" + (e.mutual && e.map ? " on" : " off")), top = el("div", "ptop");
-    top.append(el("span", "pname", (e.mutual && e.map ? "● " : "") + e.name),
+    // ui2: chấm trạng thái là hình (đặc = trực tuyến, rỗng = không) kèm chữ, không chỉ màu; cờ tắt giữ "● " cũ.
+    top.append(UI2 ? el("span", "pname", e.name) : el("span", "pname", (e.mutual && e.map ? "● " : "") + e.name),
       el("small", "", e.mutual ? (e.map ? `Ở ${MAPS[e.map]?.name ?? e.map}${e.ch ? ` · Kênh ${e.ch}` : ""}` : "Ngoại tuyến") : "Chưa thêm lại bạn"));
+    if (UI2) row.dataset.st = rank(e) === 0 ? "on" : rank(e) === 1 ? "off" : "pend";
     const btns = el("div", "pbtns");
     if (e.mutual && e.map) btns.append(pbtn("Mời tổ đội", "ok", () => friendAct?.invite(e.name), `Mời ${e.name} vào tổ đội`),
       pbtn("Nhắn", "", () => { toggleFriends(false); chatWhisperTo(e.name); }, `Nhắn riêng cho ${e.name} (/t)`));
@@ -65,7 +75,10 @@ function renderFriends() {
       pbtn("Chặn", "warn", () => friendSend?.("block", e.name), `Chặn ${e.name}`));
     row.append(top, btns); box.append(row);
   }
-  if (!m.list.length) box.append(el("small", "phint", "Chưa có bạn: gõ tên rồi bấm Thêm bạn, hoặc bấm vào hồn sư khác."));
+  if (!m.list.length) {
+    if (UI2) box.append(stateBox({ kind: "empty", text: "Chưa có bạn bè.", hint: "Gõ tên hồn sư rồi bấm Thêm bạn, hoặc bấm vào hồn sư khác ngoài bản đồ." }));
+    else box.append(el("small", "phint", "Chưa có bạn: gõ tên rồi bấm Thêm bạn, hoặc bấm vào hồn sư khác."));
+  }
   const bh = el("div", "fsub"); bh.append(el("b", "", `Đã chặn ${m.blocks.length}/${BLOCK_MAX}`)); box.append(bh);
   for (const n of m.blocks) {
     const row = el("div", "pmem frow off"), top = el("div", "ptop");
