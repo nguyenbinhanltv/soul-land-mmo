@@ -1,4 +1,4 @@
-# Cổ Mộc Thụ Nhân — RAW hoạt ảnh
+# Cổ Mộc Thụ Nhân — RAW hoạt ảnh (#861)
 
 File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species co_moc_thu_nhan`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
 
@@ -47,8 +47,18 @@ Loài `co_moc_thu_nhan` (Cổ Mộc Thụ Nhân), họ `plant`, khung game 128×
 - Prompt: `toE.prompt.txt` (SHA256 `0bcc2b5ac8b24dfb8cc6563e1ad2357a848423feef7cf093ccd4d9941df5d34a`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
-- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 138% so với ảnh tĩnh (lệch 38%, quá 25%); cutter neo lại, không chặn.
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 137% so với ảnh tĩnh (lệch 37%, quá 25%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
+
+## to-ne
+
+- File: `to-ne.png`, **1536×1024**, 2434306 byte, SHA256 `ddca3ac2b2adcbc3b27e1d36630fdde94f3e147371945735656bd4b2fdeccb8c`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-778.
+- Prompt: `to-ne.prompt.txt` (SHA256 `47634f5421beff4d14edc98d57cee31c14ae9068badad3ccd10d654bf21da056`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: ne nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (ne): cỡ thân idle 115% so với ảnh tĩnh (lệch 15%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## Tờ chưa vào thư mục chính (candidates)
 
@@ -64,12 +74,14 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 ## Lỗi
 
 ```text
-LỖI: turnaround — die chưa đổ thấp hoàn toàn; lượt 3 tốt nhất làm ref kỹ thuật (mắt)
-LỖI: turnaround — toD/ne CHẶN sau 3 lượt: chọn candidates/toD-attempt3.png; H1 C6 và H3 C1,C4 lộ mặt; không đặt toD.png trong thư mục chính. Lượt 1 thiếu một khung die; lượt 2 lộ mặt nhiều hơn. (mắt)
-LỖI: turnaround — Phiên 765: ne dùng đủ 3 lượt mới; lượt 1/2 H1 C5-C6 lộ mặt, lượt3 H1 chỉ 5 hình và hurt lộ mặt. Chọn candidates/to-ne-765-attempt2.png tốt nhất, vẫn chặn mắt; không dùng làm tham chiếu, không nhập ne. Hướng đã nhập s,se,e,n giữ nguyên. (mắt)
-LỖI: toA — s — chọn lượt 3: hurt giữ mặt trước tốt hơn; die C4 hơi xoay phải nhưng vẫn rũ theo trục (mắt)
-LỖI: toB — se — attack C6 gần chính diện; hurt ngả mạnh (mắt)
-LỖI: toC — e — một số khung hơi chếch trước, hurt ngả mạnh; chọn lượt 3 tốt nhất (mắt)
+LỖI: turnaround — Lịch sử trước phiên 778 (hướng mới theo tờ to-<hướng>): die chưa đổ thấp hoàn toàn; lượt 3 tốt nhất làm ref kỹ thuật (mắt)
+LỖI: turnaround — Lịch sử trước phiên 778 (hướng mới theo tờ to-<hướng>): toD/ne CHẶN sau 3 lượt: chọn candidates/toD-attempt3.png; H1 C6 và H3 C1,C4 lộ mặt; không đặt toD.png trong thư mục chính. Lượt 1 thiếu một khung die; lượt 2 lộ mặt nhiều hơn. (mắt)
+LỖI: turnaround — Lịch sử trước phiên 778 (hướng mới theo tờ to-<hướng>): Phiên 765: ne dùng đủ 3 lượt mới; lượt 1/2 H1 C5-C6 lộ mặt, lượt3 H1 chỉ 5 hình và hurt lộ mặt. Chọn candidates/to-ne-765-attempt2.png tốt nhất, vẫn chặn mắt; không dùng làm tham chiếu, không nhập ne. Hướng đã nhập s,se,e,n giữ nguyên. (mắt)
+LỖI: toA — Lịch sử trước phiên 778 (hướng mới theo tờ to-<hướng>): s — chọn lượt 3: hurt giữ mặt trước tốt hơn; die C4 hơi xoay phải nhưng vẫn rũ theo trục (mắt)
+LỖI: toB — Lịch sử trước phiên 778 (hướng mới theo tờ to-<hướng>): se — attack C6 gần chính diện; hurt ngả mạnh (mắt)
+LỖI: toC — Lịch sử trước phiên 778 (hướng mới theo tờ to-<hướng>): e — một số khung hơi chếch trước, hurt ngả mạnh; chọn lượt 3 tốt nhất (mắt)
+LỖI: to-ne — hình ở ô trống — H4 (ne) C5 — ô trống có hình (1.66% diện tích ô): hình tràn từ ô bên.
+LỖI: to-ne — LỊCH SỬ LƯỢT (bản cuối ĐẠT, đã nhập): Đạt lượt 2: lưng thân gỗ và tán lá che mặt; hurt nhỏ, die rũ đúng trục. Lượt 1 còn đường mặt ở H1 C1–4/H3 C6. (mắt)
 ```
 
 ## Ghi công
@@ -78,4 +90,4 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/beast-anim/co_moc_thu_nhan/` | - | image_gen | RAW hoạt ảnh Cổ Mộc Thụ Nhân: turnaround 1536×1024, toA 1536×1024, toB 1536×1024, toC 1536×1024, toE 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+| `art/src/beast-anim/co_moc_thu_nhan/` | - | image_gen | RAW hoạt ảnh Cổ Mộc Thụ Nhân: turnaround 1536×1024, toA 1536×1024, toB 1536×1024, toC 1536×1024, toE 1536×1024, to-ne 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |

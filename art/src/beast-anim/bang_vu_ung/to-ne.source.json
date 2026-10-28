@@ -1,0 +1,14 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 3,
+  "agent": "soul_land_game-778",
+  "original_tool_path": "C:\\Users\\PC\\.codex\\generated_images\\01a18423-efc9-75d3-9467-2adc5fc89681\\exec-c3c48872-4fcf-4772-996c-e2aadbbb7dd8.png",
+  "review": "CHẶN: 3 lượt vẫn lộ cạnh mỏ/mặt ở ne, nhất là die; giữ fallback.",
+  "imported": false,
+  "references": [
+    "shared/assets/sprites/beast/bang_vu_ung.png",
+    "art/src/beast-anim/bang_vu_ung/turnaround.png"
+  ]
+}
