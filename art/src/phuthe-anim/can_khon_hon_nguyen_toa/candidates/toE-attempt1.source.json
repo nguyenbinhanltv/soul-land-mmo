@@ -1,0 +1,130 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "created_at": "2026-10-28T02:36:31.219Z",
+  "attempt": 1,
+  "raw_sha256": "86aa78fabe3222a200f6b703f55a1ba87be5456ff2b6bfbb1b7efd2cd9e40d31",
+  "prompt_sha256": "c56e8d8cafc75da140dfb29f5187ed516cc522ce177f81ed23b9f8526d0c5387",
+  "references": [
+    {
+      "file": "art/src/phuthe-anim/can_khon_hon_nguyen_toa/references/can_khon_hon_nguyen_toa-nom-toE.png",
+      "sha256": "5f58cc61bd7602da269957098c1cd3c4b9771426d372ac69eefae5d529e2abdb"
+    },
+    {
+      "file": "art/src/vohon-v2/can_khon_hon_nguyen_toa/concept-attempt2.png",
+      "sha256": "107711d2bee5f86479aaafa0cf1741dacb1dec6039bec07243214e1ee76dd071"
+    }
+  ],
+  "generator": "node tools/assets/phuthe-sheet-prompt.mjs --id can_khon_hon_nguyen_toa --stage direction --dir n --concept-ref --out <tmp>",
+  "assessment": "Lượt bị loại: chặn; không dùng làm tham chiếu hay nhập game.",
+  "raw_check": {
+    "sheet": "toE",
+    "size": [
+      1536,
+      1024
+    ],
+    "kind": "huong",
+    "level": "chặn",
+    "dirs": [
+      "n"
+    ],
+    "background": {
+      "key": [
+        251,
+        3,
+        252
+      ],
+      "corners": [
+        [
+          237,
+          12,
+          238
+        ],
+        [
+          244,
+          17,
+          244
+        ],
+        [
+          236,
+          37,
+          238
+        ],
+        [
+          240,
+          33,
+          241
+        ]
+      ],
+      "keyDistFromLock": 4,
+      "cornerSpread": 34
+    },
+    "seVsE": null,
+    "prep": null,
+    "bands": [
+      {
+        "row": 1,
+        "dir": "n",
+        "y": [
+          22,
+          231
+        ],
+        "figures": 3,
+        "state": "ok"
+      },
+      {
+        "row": 2,
+        "dir": "n",
+        "y": [
+          268,
+          479
+        ],
+        "figures": 4,
+        "state": "ok"
+      },
+      {
+        "row": 3,
+        "dir": "n",
+        "y": [
+          508,
+          727
+        ],
+        "figures": 3,
+        "state": "bad"
+      },
+      {
+        "row": 4,
+        "dir": "n",
+        "y": [
+          746,
+          975
+        ],
+        "figures": 2,
+        "state": "ok"
+      }
+    ],
+    "motion": [],
+    "issues": [
+      {
+        "sev": "note",
+        "code": "nen",
+        "where": "toàn tờ",
+        "msg": "nền dốc nhẹ (bốn góc lệch 34), trong dung sai 60; không phải lỗi."
+      },
+      {
+        "sev": "note",
+        "code": "tach-hinh",
+        "where": "H3 (n)",
+        "msg": "dải dò được 2 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 3."
+      },
+      {
+        "sev": "block",
+        "code": "hinh-dinh",
+        "where": "H3 (n)",
+        "msg": "dải có 3 hình, cần 4: hình dính nhau."
+      }
+    ],
+    "draft": "LỖI: toE — hình dính — H3 (n) — dải có 3 hình, cần 4: hình dính nhau."
+  }
+}

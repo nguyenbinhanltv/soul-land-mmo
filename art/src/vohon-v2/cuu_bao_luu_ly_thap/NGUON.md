@@ -1,5 +1,13 @@
 # cuu_bao_luu_ly_thap — concept năm hướng RAW
 
+## Đăng ký tham chiếu đã duyệt cho phụ thể lô 8 (2026-10-28)
+
+**Chủ repo duyệt dùng làm tham chiếu (28/10)**: `candidates/concept-attempt3.png` → `concept.png`, nguồn #1163. Nếu chủ repo chọn ảnh khác sau này sẽ thay; hiện chỉ dùng làm tham chiếu ngoại hình.
+
+Chủ repo đã cho phép dùng concept tháp làm tham chiếu ngoại hình trong nhiệm vụ lô 8, theo quyết định giữ lượt tốt nhất tại [#1163](https://github.com/nguyenbinhanltv/soul-land-mmo/pull/1163#issuecomment-6442865997). Đăng ký `concept.png`, `concept.prompt.txt`, `concept.source.json` từ bộ `candidates/concept-attempt3.*` mà hồ sơ dưới đây chọn tốt nhất. PNG giữ nguyên byte; prompt chuẩn hóa xuống dòng LF theo hồ sơ gốc; source JSON bổ sung nguồn đăng ký và duyệt ngoại lệ, giữ đánh giá lịch sử. SHA256 ảnh: `067900bfcfa13d852e79c0d692c19c339406670fc037c13eb96cc37921fd88f4`. Công cụ `phuthe-sheet-prompt.mjs --concept-ref` nhận `concept.png` tại thư mục gốc này; không dùng ảnh phụ thể cũ làm tham chiếu.
+
+Phê duyệt này là ngoại lệ về tham chiếu ngoại hình, không xác nhận đã đọc đủ chín tầng. Các nhận xét và lịch sử CHẶN mắt bên dưới được giữ để truy nguyên; không sinh lại concept và không sửa công cụ.
+
 Công cụ: builtin `image_gen.imagegen`; model/seed: `unknown`. Ngày 2026-10-27. **3/3 lượt**, chưa chọn lượt nào vì CHẶN mắt; lượt 3 tốt nhất trong candidates để đối chiếu, chưa duyệt. RAW nguyên byte, không hậu kỳ, chưa duyệt, không nhập game.
 
 Prompt nguyên bản do `vohon-prompt.mjs --type phaptuong --id cuu_bao_luu_ly_thap --style-ref <ảnh neo>` sinh; ảnh dẫn duy nhất: Hạo Thiên Chùy lượt 2 đã duyệt từ PR #1083 (`art/src/phap-tuong/hao_thien_chuy/concept-turnaround-attempt2.png`). Không dùng ảnh cũ hay lượt hỏng.

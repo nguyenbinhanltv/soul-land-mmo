@@ -1,0 +1,154 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "created_at": "2026-10-28T02:15:51.424Z",
+  "attempt": 1,
+  "raw_sha256": "56a825613f8955f457e008ec8922a3ea8fa216d4c734cb4e688bd081946c55a4",
+  "prompt_sha256": "ae17b78da46bc689689075ea8fd7055a15342ff991a36ea3a94f2d39faee0d8b",
+  "references": [
+    {
+      "file": "art/src/phuthe-anim/thien_can_bach_ngoc_dinh/references/thien_can_bach_ngoc_dinh-nom-toB.png",
+      "sha256": "cf49ecd1045c7a7c9dae7c1d4b413632b0584558a72e138068d44272503c92d4"
+    },
+    {
+      "file": "art/src/vohon-v2/thien_can_bach_ngoc_dinh/concept-attempt1.png",
+      "sha256": "ee78be8f3d9a0f7d1124704380adf4755f44d146aec0bb50998ff2e5812b011d"
+    }
+  ],
+  "generator": "node tools/assets/phuthe-sheet-prompt.mjs --id thien_can_bach_ngoc_dinh --stage direction --dir se --concept-ref --out <tmp>",
+  "assessment": "Lượt bị loại: chặn; không dùng làm tham chiếu hay nhập game.",
+  "raw_check": {
+    "sheet": "toB",
+    "size": [
+      1536,
+      1024
+    ],
+    "kind": "huong",
+    "level": "chặn",
+    "dirs": [
+      "se"
+    ],
+    "background": {
+      "key": [
+        250,
+        3,
+        251
+      ],
+      "corners": [
+        [
+          238,
+          11,
+          238
+        ],
+        [
+          243,
+          16,
+          243
+        ],
+        [
+          234,
+          38,
+          236
+        ],
+        [
+          239,
+          30,
+          238
+        ]
+      ],
+      "keyDistFromLock": 5,
+      "cornerSpread": 35
+    },
+    "seVsE": null,
+    "prep": null,
+    "bands": [
+      {
+        "row": 1,
+        "dir": "se",
+        "y": [
+          25,
+          211
+        ],
+        "figures": 3,
+        "state": "warn"
+      },
+      {
+        "row": 2,
+        "dir": "se",
+        "y": [
+          230,
+          461
+        ],
+        "figures": 4,
+        "state": "warn"
+      },
+      {
+        "row": 3,
+        "dir": "se",
+        "y": [
+          490,
+          712
+        ],
+        "figures": 5,
+        "state": "bad"
+      },
+      {
+        "row": 4,
+        "dir": "se",
+        "y": [
+          742,
+          984
+        ],
+        "figures": 2,
+        "state": "warn"
+      }
+    ],
+    "motion": [],
+    "issues": [
+      {
+        "sev": "note",
+        "code": "nen",
+        "where": "toàn tờ",
+        "msg": "nền dốc nhẹ (bốn góc lệch 35), trong dung sai 60; không phải lỗi."
+      },
+      {
+        "sev": "light",
+        "code": "o-trong",
+        "where": "H1 (se) C4",
+        "msg": "ô trống có hình (2.31% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng."
+      },
+      {
+        "sev": "light",
+        "code": "o-trong",
+        "where": "H2 (se) C5",
+        "msg": "ô trống có hình (1.19% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng."
+      },
+      {
+        "sev": "light",
+        "code": "o-trong",
+        "where": "H3 (se) C5",
+        "msg": "ô trống có hình (43.9% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng."
+      },
+      {
+        "sev": "light",
+        "code": "o-trong",
+        "where": "H3 (se) C6",
+        "msg": "ô trống có hình (4.07% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng."
+      },
+      {
+        "sev": "block",
+        "code": "so-hinh",
+        "where": "H3 (se)",
+        "msg": "dải có 5 hình, cần 4: thừa hình / mảnh rời."
+      },
+      {
+        "sev": "light",
+        "code": "o-trong",
+        "where": "H4 (se) C3",
+        "msg": "ô trống có hình (9.8% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng."
+      }
+    ],
+    "draft": "LỖI: toB — hình ở ô trống / sai số hình — H1 (se) C4, H2 (se) C5, H3 (se) C5, H3 (se) C6, H3 (se), H4 (se) C3 — ô trống có hình (2.31% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng; ô trống có hình (1.19% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng; ô trống có hình (43.9% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng; ô trống có hình (4.07% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng; dải có 5 hình, cần 4: thừa hình / mảnh rời; ô trống có hình (9.8% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng."
+  }
+}
