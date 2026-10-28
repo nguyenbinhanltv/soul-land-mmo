@@ -1,0 +1,81 @@
+/* UI v2: HUD phụ theo kit Mực (đợt 1d, Part of #877 / #885): theo dõi nhiệm vụ, tổ đội, menu người chơi, mục tiêu, thanh boss + đếm ngược + xếp hạng
+   sát thương, cổng / gợi ý nhấn / waypoint, dung hợp kỹ. Mọi luật dưới `body.ui2` (cờ tắt mặc định: không có lớp này thì HUD cũ không đổi).
+   Khung do lớp `f2-muc-nho` lo (hudBoss.ts gắn khi bật cờ, luật vẽ khung ở ui2-hud.css); file này chỉ chỉnh bố cục / màu theo token, cùng tông với HUD (ui2-hud.css),
+   bản đồ (ui2-map.css) và hub (ui2-screens.css). Chữ 10 / 12 (Galmuri), vùng bấm ≥ 32 px, không ký tự ngoài phông nhúng. */
+
+/* Khung chung của các hộp phụ; thanh boss thêm vạch mép trên theo --c do hudBoss.ts đặt (hình, không chỉ màu viền). */
+body.ui2 #hud :is(#bossbar,#bossRank,#target,#prompt,#portal,#wpbox,#fusion,#pmenu).f2-muc-nho{padding:var(--sp-3) var(--sp-5);color:var(--ink-text);background-color:var(--plate)}   /* nền mực đặc dưới khung kit: hộp nổi trên cảnh / hộp khác không lộ chữ phía sau */
+body.ui2 #hud #bossbar.f2-muc-nho{padding:var(--sp-3) var(--sp-5) var(--sp-4);box-shadow:inset 0 var(--bd) 0 var(--c,var(--son-l))}
+body.ui2 #hud #bossbar .bhead b{color:var(--c,var(--son-l))}
+body.ui2 #hud #bossbar.p2 .ph{color:var(--son-l)}
+body.ui2 #hud #bossbar .bar{background:var(--track);border:var(--bd-fine) solid var(--ink2)}
+body.ui2 #hud #bossbar .wl span{background:var(--track);border:var(--bd-fine) solid var(--ink2);color:var(--plate-text)}
+body.ui2 #hud #bossbar .wl span.ok{border-color:var(--accent);color:var(--paper2)}
+body.ui2 #hud #bossbar .wl span.bad{border-color:var(--son-l);color:var(--son-l);border-bottom-width:var(--bd)}
+
+/* Đếm ngược boss: chip mực dưới thanh máu; vạch trái theo màu loài (hình). */
+body.ui2 #hud #bossCd{background:var(--plate);border:var(--bd-fine) solid var(--ink2);box-shadow:inset var(--sp-2) 0 0 var(--c,var(--son-l));padding:var(--sp-2) var(--sp-5) var(--sp-2) var(--sp-5);color:var(--plate-text)}
+
+/* Xếp hạng sát thương: dòng của mình có vạch trái + nền sáng (hình), dòng dưới 3% mờ; chữ tiêu đề cột đủ tương phản. */
+body.ui2 #hud #bossRank b{color:var(--paper2)}
+body.ui2 #hud #bossRank .rk{padding:0 var(--sp-2)}
+body.ui2 #hud #bossRank .rk.hd{color:var(--paper3);border-bottom:var(--bd-fine) solid var(--ink2)}
+body.ui2 #hud #bossRank .rk.me{color:var(--plate-text);background:var(--track);box-shadow:inset var(--sp-2) 0 0 var(--accent)}
+body.ui2 #hud #bossRank .rk.low i{color:var(--paper3)}
+body.ui2 #hud #bossRank small{color:var(--paper3)}
+
+/* Mục tiêu (nhãn + thanh máu hồn thú) và gợi ý nhấn. */
+body.ui2 #hud #target .tn .tl,body.ui2 #hud #target small{color:var(--paper3)}
+body.ui2 #hud #target .thu img{background:var(--plate);border-width:var(--bd)}
+body.ui2 #hud #target .thp{border:var(--bd-fine) solid var(--ink2)}
+body.ui2 #hud #target .xpcut,body.ui2 #hud #prompt em{color:var(--qgold)}
+
+/* Cổng / waypoint / dung hợp kỹ: khung mực, nút hành động là nút Giấy nhỏ (chữ tối trên nền giấy, vùng bấm 32 px), phím tắt trong ô mực. */
+body.ui2 #hud :is(#portal,#wpbox,#fusion) small{color:var(--paper3)}
+body.ui2 #hud :is(#portal,#wpbox,#fusion) button{min-height:32px;padding:0 var(--sp-6);color:var(--ink);background:var(--paper);border:var(--bd) solid var(--ink2);box-shadow:inset 0 calc(var(--bd) * -1) 0 var(--paper3)}
+body.ui2 #hud :is(#portal,#wpbox,#fusion) button:hover:not(:disabled){background:var(--paper2)}
+body.ui2 #hud :is(#portal,#wpbox,#fusion) button:active:not(:disabled){box-shadow:none;background:var(--paper3)}
+body.ui2 #hud :is(#portal,#wpbox,#fusion) button:disabled{opacity:.6}
+body.ui2 #hud #portal button.danger{color:var(--paper);background:var(--son);border-color:var(--son-d);box-shadow:inset 0 calc(var(--bd) * -1) 0 var(--son-d)}
+body.ui2 #hud :is(#portal,#wpbox,#fusion) kbd{color:var(--inkl);border-color:var(--inkl);background:var(--paper2)}
+body.ui2 #hud #portal button.danger kbd{color:var(--paper);border-color:var(--paper3);background:var(--son-d)}
+body.ui2 #hud #portal .danger:not(button){color:var(--son-l)}
+body.ui2 #hud #fusion .bar{background:var(--track);border:var(--bd-fine) solid var(--ink2)}
+body.ui2 #hud #fusion.ask{box-shadow:inset 0 0 0 var(--bd) var(--qgold)}   /* đang chờ hưởng ứng: viền trong vàng (hình) */
+
+/* Tổ đội + menu người chơi: dòng thành viên ngăn bằng vạch mực, tên mình có vạch trái, nút theo token (vùng bấm 32 px). */
+body.ui2 #hud :is(#party,#pmenu) .phead b{color:var(--paper2)}
+body.ui2 #hud :is(#party,#pmenu) .pbtn{min-height:32px;padding:0 var(--sp-4);font:var(--fs-m)/1.2 var(--f12);color:var(--ink);background:var(--paper);border:var(--bd) solid var(--ink2);box-shadow:inset 0 calc(var(--bd) * -1) 0 var(--paper3)}
+body.ui2 #hud #party .phead .pbtn{min-height:28px;padding:0 var(--sp-3)}   /* hàng nút đầu khung gọn hơn để còn chỗ cho thành viên */
+body.ui2 #hud :is(#party,#pmenu) .pbtn:hover:not(:disabled){background:var(--paper2)}
+body.ui2 #hud :is(#party,#pmenu) .pbtn.ok{border-color:var(--good);box-shadow:inset 0 calc(var(--bd) * -1) 0 var(--good)}
+body.ui2 #hud :is(#party,#pmenu) .pbtn.warn{border-color:var(--son);box-shadow:inset 0 calc(var(--bd) * -1) 0 var(--son)}
+body.ui2 #hud #party .pmem,body.ui2 #hud #party .pinvite{border-top:var(--bd-fine) solid var(--ink2)}
+body.ui2 #hud #party .pmem.me{box-shadow:inset var(--sp-2) 0 0 var(--accent);padding-left:var(--sp-3)}
+body.ui2 #hud #party .pmem.me .pname{color:var(--plate-text)}
+body.ui2 #hud #party .pmem.dead .bar i{background:var(--son)}
+body.ui2 #hud #party :is(.pmem,.phint,.pmap) small,body.ui2 #hud :is(#party,#pmenu) :is(.phint,.pmap){color:var(--paper3)}
+body.ui2 #hud #party .pinvite b{color:var(--paper2)}
+body.ui2 #hud #party .pinv input{min-height:32px;color:var(--ink);background:var(--paper);border:var(--bd) solid var(--ink2)}
+body.ui2 #hud #party .pinv input:focus-visible{border-color:var(--accent);outline:none}
+body.ui2 #hud :is(#party,#pmenu) .pbtn:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+
+/* Theo dõi nhiệm vụ (khung do ui2-hud.css lo): tiêu đề mục, vạch ngăn, mục tiêu xong có vạch trái (hình, không chỉ màu), nút thu gọn có vòng focus. */
+body.ui2 #hud #quest .qhead{min-height:32px;color:var(--ink-text)}
+body.ui2 #hud #quest .qhead b{color:var(--paper2)}
+body.ui2 #hud #quest .qhead:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+body.ui2 #hud #quest .qsec{border-top:var(--bd-fine) solid var(--ink2)}
+body.ui2 #hud #quest .qsec:first-child{border-top:0}
+body.ui2 #hud #quest .qg.ok{box-shadow:inset var(--sp-2) 0 0 var(--accent);padding-left:var(--sp-3)}
+body.ui2 #hud #quest .qg.ok,body.ui2 #hud #quest .qg.ok em{color:var(--plate-text)}
+
+/* Màn 960×540 (lớp ui-h560 / ui-h460 của uiArt.ts): khung kit dày hơn khung cũ nên thu gọn đệm; cột phải không tràn. */
+body:where(.ui-h560).ui2 #hud :is(#bossRank,#portal,#wpbox,#fusion,#pmenu){padding:var(--sp-2) var(--sp-4)}
+body:where(.ui-h560).ui2 #hud #bossRank{width:min(236px,calc(100% - 20px))}
+/* Huy hiệu hub (ui2) nằm ở giữa-trên, ngay mép phải bảng Tổ đội: dải boss / mục tiêu dời qua phải huy hiệu (476 + 36) thay vì bị che mất tên. */
+body.ui2:where(.ui-h560) #hud:has(#party:not(:empty)) :is(#bossbar,#bossCd,#target){left:512px;max-width:max(140px,calc(100% - 512px - 222px))}
+body.ui2:where(.ui-h560) #hud:has(#party:not(:empty)) #bossbar{width:min(268px,calc(100% - 512px - 222px));min-width:140px;overflow:visible}
+body.ui2:where(.ui-h560) #hud #bossbar .bhead{flex-wrap:wrap;gap:0 var(--sp-4);white-space:normal}
+body.ui2:where(.ui-h560) #hud #bossbar .bhead .bn{margin-left:0}
+/* Cỡ lớn: huy hiệu hub (44 px, cách mép trên 12 px) đứng đúng giữa-trên nên dải boss / mục tiêu / đếm ngược bắt đầu dưới huy hiệu (12 + 44 + 6). */
+body.ui2:not(.ui-h560) #hud #bossbar,body.ui2:not(.ui-h560):not(.boss) #hud :is(#target,#bossCd){top:calc(var(--sp-5) + 44px + var(--sp-3))}
