@@ -1,0 +1,148 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "createdAt": "2026-10-28T01:04:05.767Z",
+  "attempt": 2,
+  "image": {
+    "file": "toB.png",
+    "sha256": "db7a7a8859d8ba7018dc25537a974249798b1a03567d86ec98f0086160d8dc0b"
+  },
+  "prompt": {
+    "file": "toB.prompt.txt",
+    "sha256": "97e1f1d6aec815f3b25e5ae564f8232b9e6976332522f842c5a0ef6667c50db0"
+  },
+  "references": [
+    {
+      "file": "art/src/phuthe-anim/nguyet_nhan/references/nguyet_nhan-nom-toB.png",
+      "sha256": "cf49ecd1045c7a7c9dae7c1d4b413632b0584558a72e138068d44272503c92d4"
+    },
+    {
+      "file": "art/src/vohon-v2/nguyet_nhan/concept-attempt1.png",
+      "sha256": "b1c8275128014d1c14f48a2f3ce6eacf92f841efe9865dc6f72b57b02a9d3785"
+    }
+  ],
+  "blocks": 2,
+  "lights": 0,
+  "check": {
+    "id": "nguyet_nhan",
+    "level": "chặn",
+    "group": "A",
+    "frame": 96,
+    "dummyKey": "#00D0D0",
+    "blockLevel": {
+      "se": "chặn"
+    },
+    "sheets": [
+      {
+        "sheet": "toB",
+        "size": [
+          1536,
+          1024
+        ],
+        "kind": "huong",
+        "level": "chặn",
+        "dirs": [
+          "se"
+        ],
+        "background": {
+          "key": [
+            250,
+            3,
+            251
+          ],
+          "corners": [
+            [
+              235,
+              12,
+              238
+            ],
+            [
+              242,
+              16,
+              241
+            ],
+            [
+              234,
+              36,
+              236
+            ],
+            [
+              237,
+              29,
+              239
+            ]
+          ],
+          "keyDistFromLock": 5,
+          "cornerSpread": 33
+        },
+        "seVsE": null,
+        "prep": null,
+        "bands": [
+          {
+            "row": 1,
+            "dir": "se",
+            "y": [
+              30,
+              219
+            ],
+            "figures": 3,
+            "state": "ok"
+          },
+          {
+            "row": 2,
+            "dir": "se",
+            "y": [
+              276,
+              463
+            ],
+            "figures": 4,
+            "state": "ok"
+          },
+          {
+            "row": 3,
+            "dir": "se",
+            "y": [
+              502,
+              706
+            ],
+            "figures": 5,
+            "state": "bad"
+          },
+          {
+            "row": 4,
+            "dir": "se",
+            "y": [
+              745,
+              967
+            ],
+            "figures": 3,
+            "state": "bad"
+          }
+        ],
+        "motion": [],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 33), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "block",
+            "code": "so-hinh",
+            "where": "H3 (se)",
+            "msg": "dải có 5 hình, cần 4: thừa hình / mảnh rời."
+          },
+          {
+            "sev": "block",
+            "code": "so-hinh",
+            "where": "H4 (se)",
+            "msg": "dải có 3 hình, cần 2: thừa hình / mảnh rời."
+          }
+        ],
+        "draft": "LỖI: toB — sai số hình — H3 (se), H4 (se) — dải có 5 hình, cần 4: thừa hình / mảnh rời; dải có 3 hình, cần 2: thừa hình / mảnh rời."
+      }
+    ]
+  }
+}
