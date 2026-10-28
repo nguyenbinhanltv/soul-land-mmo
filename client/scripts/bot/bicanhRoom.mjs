@@ -60,7 +60,11 @@ export async function bicanhRoomTest(){
   ok(w1.wave===1&&w1.of===S.waves.length&&w1.n===S.waves[0].n&&!w1.elite&&years.length===S.waves[0].n&&years.every(y=>y===yrs),`sóng 1: ${w1.n} hồn thú ${yrs} năm (vòng kế tiếp ×${S.waves[0].yearsPct})`);
   // Chống hạ độ khó: đổi võ hồn trong lúc nghỉ giữa sóng không đổi niên hạn sóng kế (số hồn hoàn chốt lúc vào phòng).
   await clearWave(0); await waitMsg("clear",8000); for(let sl=0;sl<4;sl++) B.room.send("switch",{slot:sl});
-  await waitFor(()=>B.bc.filter(m=>m.k==="wave").length>1,8000); { const y2=Math.round(ringLimit(Math.min(MAX_RINGS,rings+1))*S.waves[1].yearsPct), ys=[]; B.room.state.beasts.forEach(b=>{ if(!b.elite&&b.tier!==undefined) ys.push(b.years); });
+  await waitFor(()=>B.bc.filter(m=>m.k==="wave").length>1,8000);
+  // Tin `wave` tới trước bản vá state chứa hồn thú sóng 2: chờ hồn thú xuất hiện rồi mới đọc niên hạn.
+  const wave2Years=()=>{ const ys=[]; B.room.state.beasts.forEach(b=>{ if(!b.elite&&b.tier!==undefined) ys.push(b.years); }); return ys; };
+  await waitFor(()=>wave2Years().length>0,5000);
+  { const y2=Math.round(ringLimit(Math.min(MAX_RINGS,rings+1))*S.waves[1].yearsPct), ys=wave2Years();
     ok(ys.length>0&&ys.every(y=>y===y2),`đổi võ hồn giữa sóng: sóng 2 vẫn ${y2} năm (${ys.join(",")})`); }
   const end=await winAll();
   ok(B.bc.filter(m=>m.k==="wave").length===S.waves.length&&B.bc.find(m=>m.k==="wave"&&m.wave===S.waves.length).elite===true,"đủ các sóng, sóng cuối có tinh anh");
