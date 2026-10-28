@@ -11630,6 +11630,82 @@
       "iso": true
     },
     {
+      "key": "vhanim_hoa_anh_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        },
+        "dirsOk": [
+          "s",
+          "se",
+          "ne"
+        ]
+      }
+    },
+    {
+      "key": "vhanim_hoa_anh_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        },
+        "dirsOk": [
+          "s",
+          "se",
+          "ne"
+        ]
+      }
+    },
+    {
       "key": "vh_hoa_long_b",
       "iso": true,
       "blank": true
