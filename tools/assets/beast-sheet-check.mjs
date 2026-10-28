@@ -312,9 +312,11 @@ export function checkSpecies(id, { dir = path.join(ROOT, "art", "src", "beast-an
   for (const s of sheets) checkDieFlat(s, bodyLen);
   let level = turnaround ? turnaround.level : "pass";
   const blockLevel = {};
+  // Cấu hình trộn (#861): hướng có tờ direction (3:2) thì tờ legacy (A / B) không còn quyết định mức của hướng đó (cutter dùng tờ direction)
+  const dirOwned = new Set(sheets.filter((s) => s.kind === "boss").flatMap((s) => s.dirs ?? []));
   for (const s of sheets) {
     finish(s); level = maxLevel(level, s.level);
-    for (const d of s.dirs ?? []) {
+    for (const d of (s.dirs ?? []).filter((x) => s.kind === "boss" || !dirOwned.has(x))) {
       const l = s.issues.filter((i) => i.dir === d || !i.dir).reduce((a, i) => maxLevel(a, SEV_LEVEL[i.sev]), "pass");
       blockLevel[d] = maxLevel(blockLevel[d] ?? "pass", l);
     }

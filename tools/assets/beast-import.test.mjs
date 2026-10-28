@@ -100,6 +100,33 @@ test("CLI --dirs-ok: ghi anim.dirsOk vào manifest (đúng thứ tự), đủ 5 
   } finally { rmSync(tmp, { recursive: true, force: true }); }
 });
 
+test("CLI cấu hình trộn: A / B legacy + D / E direction mới nhập đủ 5 hướng; chỉ D mới + A thì n báo thiếu, dirsOk-only nhập 4 hướng", () => {
+  const tmp = mkdtempSync(path.join(os.tmpdir(), "beast-import-mixed-")), src = path.join(tmp, "src", "phong_lang"), sp = path.join(tmp, "sprites");
+  try {
+    mkdirSync(src, { recursive: true }); mkdirSync(sp);
+    const put = (id, im) => writeFileSync(path.join(src, `to${id}.png`), encodePng(im)), dir = fakeSheets("phong_lang", { layout: "direction" });
+    for (const [id, im] of Object.entries(fakeSheets("phong_lang"))) put(id, im);
+    writeFileSync(path.join(sp, "manifest.json"), `{
+  "sprites": [
+${stat("beast_phong_lang", "tinh_dau_ngoai_vi")}
+  ]
+}
+`);
+    const go = (...a) => spawnSync(process.execPath, [SCRIPT, "--species", "phong_lang", "--sprites", sp, "--src", path.dirname(src), ...a], { encoding: "utf8" });
+    const anim = () => JSON.parse(readFileSync(path.join(sp, "manifest.json"), "utf8")).sprites.find((e) => e.key === "beast_phong_lang_anim")?.anim;
+    put("D", dir.D);
+    const part = go("--dry-run", "--dirs-ok-only"); assert.equal(part.status, 0, part.stderr + part.stdout); assert.match(part.stdout, /sẽ nhập mới/);
+    put("E", dir.E);
+    const full = go(); assert.equal(full.status, 0, full.stderr + full.stdout); assert.match(full.stdout, /đã nhập mới/);
+    assert.equal(anim().dirsOk, undefined, "đủ 5 hướng từ A + D + E");
+    rmSync(path.join(src, "toB.png")); // B legacy không cần khi D / E phủ ne / n: chạy lại giống bản đã nhập
+    assert.match(go("--dry-run").stdout, /giống bản đã nhập/);
+    rmSync(path.join(src, "toE.png")); // n không còn nguồn: chặn đúng hướng n, nhập phần còn lại bằng --dirs-ok-only
+    const miss = go("--dry-run"); assert.match(miss.stdout, /bỏ qua \(chặn\)/); assert.match(miss.stdout, /thiếu tờ B \(n\)/);
+    const ok = go("--dirs-ok-only", "--force"); assert.equal(ok.status, 0, ok.stderr + ok.stdout); assert.deepEqual(anim().dirsOk, ["s", "se", "e", "ne"]);
+  } finally { rmSync(tmp, { recursive: true, force: true }); }
+});
+
 test("CLI: tùy chọn sai báo lỗi", () => {
   const bad = (...a) => spawnSync(process.execPath, [SCRIPT, "--species", "x", ...a], { encoding: "utf8" });
   assert.equal(bad("--scale", "x=abc").status, 2);
