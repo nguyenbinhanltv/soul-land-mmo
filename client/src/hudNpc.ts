@@ -1,9 +1,12 @@
 // Hộp thoại NPC (nói chuyện, trang thương nhân / lò rèn / nhiệm vụ / tông), đổi ngoại hình của HUD (tách nguyên văn từ hud.ts, Part of #885 bước 0a); hud.ts re-export để nơi gọi giữ nguyên.
-import { arenaLiveAsk, arenaLiveAt, arenaLiveEl, arenaQ, arenaRankEl, arenaTopMsg, dailyMark, dailyMsg, questOf, renderDailyPage, renderForge, renderForgeCores, renderForgeGear, renderForgeLuck, renderForgeSalv, renderForgeSets, renderForgeSynth, renderQuestPage, renderShardShop, renderShopBuy, renderShopBuyback, renderShopSell, renderTongRank, renderTongTasks, toggleFriends, toggleReso, forgeReset } from "./hud.ts";
+import { renderQuestOverview, questTracked, dailyMsg } from "./hudQuest.ts";
+import { arenaLiveAsk, arenaLiveAt, arenaLiveEl, arenaQ, arenaRankEl, arenaTopMsg, dailyMark, questOf, renderDailyPage, renderForge, renderForgeCores, renderForgeGear, renderForgeLuck, renderForgeSalv, renderForgeSets, renderForgeSynth, renderQuestPage, renderShardShop, renderShopBuy, renderShopBuyback, renderShopSell, renderTongRank, renderTongTasks, toggleFriends, toggleReso, forgeReset } from "./hud.ts";
 import { honTeHtml, toggleBag, setBagCap } from "./hudBag.ts";
 import { enhClose, setEnhCoin, toggleRoster } from "./hudRoster.ts";
 import { NPCS, shopExpands, formatHonTe, SHARD_BUY, LOOKS_CHANGE, looksChangeCost, type Looks, type NpcDef, type NpcRole, questChain, DAILY, ARENA } from "../../shared/data.ts";
 import { artImg } from "./uiArt.ts";
+import { isUi2 } from "./uiKit.ts";
+import { tabs } from "./uiParts.ts";
 import { toggleChar } from "./charPanel.ts";
 import { openLooksOverlay } from "./looksMaker.ts";
 import type { GearMsg } from "./net.ts";
@@ -48,6 +51,13 @@ export interface NpcActions {
   looks(): Looks | null; changeLooks(looks: Looks): void; // Thợ may (L4 #511): ngoại hình đang mang, gửi lựa chọn mới (server kiểm khoảng cách, tiền)
 }
 export type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "forgeset" | "forgegear" | "forgeluck" | "forgesynth" | "forgesalv" | "quest" | "daily" | "rank" | "shard" | "tongtask" | "tongrank" | "live";
+/** Đích nút "Đến" (UI v2 đợt 3a): bản đồ và NPC (nếu có); GameScene gắn một lần, đi bằng cờ "Đi tới" có sẵn. */
+export interface NpcGoal { map: string; mapName: string; npc?: string }
+let goTo: (g: NpcGoal) => void = () => {};
+export const bindNpcGo = (fn: (g: NpcGoal) => void) => { goTo = fn; };
+/** Bấm "Đến": đóng hộp thoại (khỏi che màn chơi) rồi tự đi tới đích. */
+export function npcGoTo(g: NpcGoal) { closeNpc(); goTo(g); }
+const UI2 = isUi2();
 export let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
 export let npcPage: NpcPage = "talk";
 let npcLine = 0;                       // câu thoại đang hiện
@@ -132,11 +142,26 @@ export function closeNpc() {
 /** Túi đổi (mua, bán, cường hóa): vẽ lại hộp thoại đang mở với Hồn Tệ và đồ mới. */
 export function npcBag(bag: BagMsg) { npcBagMsg = bag; setBagCap(bag.slots); setEnhCoin(bag.honTe); if (npcDefOpen) renderNpc(); }
 
+/**
+ * Thanh tab trang nhiệm vụ (UI v2 đợt 3a): Đang làm / Hằng ngày / Tông, đọc từ tin có sẵn (không phụ thuộc NPC đang mở: nhận / trả chỉ bấm được
+ * ở đúng NPC, chỗ khác nút khoá kèm lý do và có nút Đến). Chấm "mới" khi có bài mới / chờ trả. Dưới 2 tab thì không vẽ thanh.
+ */
+function questTabs(go: (p: NpcPage) => void): HTMLElement | null {
+  const tl = tongMsg?.tasks ?? [], dm = dailyMark(), qs = questTracked();
+  const list: { id: NpcPage; label: string; dot: boolean }[] = [];
+  if (qs.length || (npcDefOpen && questOf(npcDefOpen.id))) list.push({ id: "quest", label: "Đang làm", dot: qs.some((x) => x.status === "offer" || x.status === "ready") });
+  if (dailyMsg) list.push({ id: "daily", label: "Hằng ngày", dot: dm === "offer" || dm === "ready" });
+  if (tl.length) list.push({ id: "tongtask", label: "Tông", dot: tl.some((x) => x.status === "offer" || x.status === "ready") });
+  if (list.length < 2) return null;
+  return tabs({ label: "Loại nhiệm vụ", tabs: list.map((t) => ({ id: t.id, label: t.label, dot: t.dot, active: t.id === npcPage })), onSelect: (id) => go(id as NpcPage) }).root;
+}
+
 export function renderNpc() {
   const def = npcDefOpen, act = npcAct, el = $("#npc"); if (!def || !act) return;
   if (npcPage === "forge" || npcPage === "forgecore" || npcPage === "forgesynth") el.dataset.c16Page = npcPage;
   else delete el.dataset.c16Page;
   el.innerHTML = "";
+  if (UI2) el.classList.add("f2-giay-lon", "n2");
   el.style.setProperty("--c", def.col);
   // 10.8: chân dung NPC 112×112 (npc_<mã>) bên trái tên, chức danh (chưa có ảnh thì chỉ có tên).
   const head = document.createElement("div"); head.className = "rhead nhead";
@@ -148,9 +173,12 @@ export function renderNpc() {
   const row = document.createElement("div"); row.className = "brow";
   const btn = (text: string, cls: string, fn: () => void, disabled = false) => {
     const b = document.createElement("button"); b.type = "button"; b.className = "buse " + cls; b.textContent = text; b.disabled = disabled;
+    if (UI2) b.classList.add(cls.includes("absorb") && npcPage !== "talk" ? "f2-nut-chinh" : "f2-nut-phu");
     b.addEventListener("click", () => { b.blur(); fn(); }); row.appendChild(b); return b;
   };
   const go = (page: NpcPage) => { npcPage = page; sellConfirm = null; enhClose(); renderNpc(); };
+  const qt = UI2 && (npcPage === "quest" || npcPage === "daily" || npcPage === "tongtask") ? questTabs(go) : null; if (qt) el.appendChild(qt);
+  if (UI2 && npcPage === "talk") row.classList.add("n2-choices");
   const bag = npcBagMsg;
   if (npcPage === "tongtask" || npcPage === "tongrank") { // #197: tông vụ hôm nay, bảng tông tuần
     if (npcPage === "tongtask") renderTongTasks(el, act); else renderTongRank(el, act);
@@ -159,7 +187,7 @@ export function renderNpc() {
     return;
   }
   if (npcPage === "quest" || npcPage === "daily") {
-    if (npcPage === "daily") renderDailyPage(el, act); else renderQuestPage(el, act);
+    if (npcPage === "daily") renderDailyPage(el, act); else if (UI2 && !questOf(def.id)) renderQuestOverview(el); else renderQuestPage(el, act);
     btn(`‹ Lời ${def.name}`, "drop", () => go("talk"));
     el.appendChild(row);
     return;
@@ -192,6 +220,7 @@ export function renderNpc() {
     el.appendChild(p);
     if (n > 1) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = `${i + 1}/${n}`; el.appendChild(k); }
     if (i < n - 1) btn("Tiếp ›", "use", () => { npcLine = i + 1; renderNpc(); });
+    if (UI2 && !questOf(def.id) && def.id !== DAILY.giver && (questTracked().length || tongMsg?.tasks?.length)) btn("Sổ nhiệm vụ", "absorb", () => go("quest")); // đọc tiến độ + nút Đến từ bất kỳ NPC
     const q = questOf(def.id), qc = q && questChain(q.chain);
     if (q && qc) btn(q.status === "done" ? `Nhiệm vụ: ${qc.name} (đã xong)` : `Nhiệm vụ: ${qc.steps[q.step].name}${q.status === "offer" ? " !" : q.status === "ready" ? " ?" : ""}`,
       "absorb", () => go("quest"));

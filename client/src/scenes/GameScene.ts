@@ -31,6 +31,7 @@ import { initPanelStack, closeTopPanel, panelOf, trapTab } from "../panelStack.t
 import { initHub, toggleHub, setHubOpen, setHubDot } from "../hubMenu.ts";
 import { bindWelfare, openWelfare, closeWelfare, onWelfare, type WelfareMsg } from "../welfareScreen.ts";
 import { isUi2 } from "../uiKit.ts";
+import { bindNpcGo } from "../hudNpc.ts";
 import { bindCalendar, openCalendar, closeCalendar, onCalendar, type CalendarMsg, type CalGoal } from "../calendarScreen.ts";
 import { bindRank, openRank, closeRank, onRankBoards, onRankTop, type RankTopMsg } from "../rankScreen.ts";
 import type { ServerCommand } from "../charBagContract.ts";
@@ -925,7 +926,7 @@ export class GameScene extends Phaser.Scene {
     const end = (e: PointerEvent) => { if (e.pointerId !== jid) return; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = ""; };
     joyEl.addEventListener("pointerup", end, on); joyEl.addEventListener("pointercancel", end, on);
     // Ngăn xếp bảng (U1 #754): Esc đóng bảng trên cùng, bấm vào bảng nâng lên; mở bảng thì nhả phím đang giữ và dừng cần điều khiển.
-    bindRank((type, payload) => this.room.send(type, payload)); bindCalendar((type, payload) => this.room.send(type, payload), (g) => this.calendarGo(g));
+    bindRank((type, payload) => this.room.send(type, payload)); bindCalendar((type, payload) => this.room.send(type, payload), (g) => this.calendarGo(g)); bindNpcGo((g) => this.calendarGo(g)); // nút "Đến" của hộp thoại / trang nhiệm vụ (ui2): cùng đường đi bộ / cờ "Đi tới" với Lịch Hoạt Động
     bindWelfare((type, payload) => this.room.send(type, payload), (needs) => setHubDot("welfare", needs)); // chấm đỏ "chưa điểm danh" trên hub
     initPanelStack([
       { id: "char", close: () => toggleChar(false) }, { id: "bag", close: () => hud.toggleBag(false) }, { id: "roster", close: () => hud.toggleRoster(false) },
