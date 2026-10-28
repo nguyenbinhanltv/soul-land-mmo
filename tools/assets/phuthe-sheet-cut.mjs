@@ -8,6 +8,8 @@
 //   4. Nhãn lớp từng điểm: `sau` / `truoc` theo mặt nạ vùng (`art/src/phuthe-anim/<id>/lop.json`, xem phuthe-sheet-cut-lib.mjs `parseLop`) hoặc quy tắc có sẵn.
 //   5. Lượng tử một bảng màu cho cả võ hồn, thu 256 → khung 96 / 128 bằng bỏ phiếu (không nội suy), viền ngoài #1a1020.
 //   6. Hai giới dùng chung ảnh vẽ (vẽ trên nộm nam): nửa nữ chỉ dời theo chênh điểm neo `back` của thân nữ so với thân nam (frameAnchors).
+//   Từng hướng độc lập (--partial): tờ nào không có thì hướng đó "thiếu" (không chặn, không ghi ảnh), các hướng còn lại cắt như thường; `_report.json` ghi `dirs` (ok / thieu)
+//      và mục manifest có `anim.dirsOk` khi chưa đủ 5 hướng (client dùng phụ thể tĩnh cũ cho hướng thiếu; đủ 5 hướng thì không có trường, định dạng cũ).
 //   7. Ghi <out>/vhanim_<id>_b.png, vhanim_<id>_f.png (22 cột, vật cứng 13 cột × 10 hàng = giới × hướng; nửa không có điểm ảnh thì không ghi, `blank`),
 //      <out>/manifest-entry.json, <out>/_report.json.
 // Không ghi vào shared/assets (P2 nối client, P3 nhập): orchestrator duyệt trang xem trước (phuthe-sheet-preview.mjs) rồi mới chép.
@@ -55,7 +57,7 @@ export function downscaleFrame(idx, lab, pal, F) {
 
 /**
  * @param {{ id: string, sheets: Record<string, Img>, group?: string, frame?: number, dummyKey?: string, dummyTol?: number, key?: number[], tol?: number, colors?: number,
- *   palette?: string, lop?: object, dummySex?: string, grid?: string, minArea?: number }} o
+ *   palette?: string, lop?: object, dummySex?: string, grid?: string, minArea?: number, partial?: boolean }} o
  * @returns {{ halves: { b: Img | null, f: Img | null }, entries: object[], report: object }}
  */
 export function cutPhuThe(o) {
@@ -65,10 +67,12 @@ export function cutPhuThe(o) {
   const warn = (code, msg) => warns.push({ code, msg });
 
   // 1–4. Từng tờ → khung canonical (điểm + nhãn lớp)
+  const dirStatus = {}; // hướng → "ok" (có tờ, đã cắt) | "thieu" (không có tờ)
   const frames = new Map(); // `dir/anim/n` → { dir, anim, frame, step, px: [[u, v, i]], img, area, lab (hàm nhãn), dx, dy }
   for (const dir of DIRS) {
     const sid = SHEET_ID[dir], raw = o.sheets[sid];
-    if (!raw) { warn("thieu-to", `thiếu tờ ${sid} (${dir})`); continue; }
+    if (!raw) { dirStatus[dir] = "thieu"; if (o.partial) warn("thieu-huong", `hướng ${dir} (tờ ${sid}) chưa có: bỏ qua, client dùng phụ thể tĩnh cũ cho hướng này`); else warn("thieu-to", `thiếu tờ ${sid} (${dir})`); continue; }
+    dirStatus[dir] = "ok";
     const prep = prepareSheet(raw, { group, dir, frame: F, dummyKey, guideKey, dummyTol, tol, key: o.key, sex: dummySex, grid: o.grid ?? "auto" });
     for (const n of prep.notes) warn("luoi", `tờ ${sid}: ${n}`);
     const bad = prep.cells.filter((c) => !c.reg.ok);
@@ -181,12 +185,14 @@ export function cutPhuThe(o) {
   if (leftGuide) warn("con-nom", `còn ${leftGuide} điểm ảnh gần màu khóa vạch tham chiếu ${guideKey} trong sheet đầu ra (phụ thể trùng màu vạch); đổi --guide-key khi dựng nộm và vẽ lại`);
   if (left) warn("con-nom", `còn ${left} điểm ảnh gần màu khóa nộm ${dummyKey} trong sheet đầu ra (phụ thể trùng màu khóa hoặc nộm lẫn vào); đổi --dummy-key khi vẽ lại hoặc xem tờ`);
 
+  rep.dirs = dirStatus;
+  const dirsOk = DIRS.filter((d) => dirStatus[d] === "ok");
   const entries = [];
   for (const [side, half] of Object.entries(HALVES)) {
     if (count[half] === 0) continue;
     entries.push({
       key: gameKey(o.id, half), frame: [F, F], iso: true,
-      anim: { group, layer: side, dirs: DIRS, sexes: SEXES, cols, rows: GAME_ROWS, rowsPerSex: DIRS.length, anims: Object.fromEntries(CLIPS.map((a) => [a, { col: anims[a][0], n: anims[a][1] }])), origin: frameOrigin(F) },
+      anim: { group, layer: side, dirs: DIRS, sexes: SEXES, cols, rows: GAME_ROWS, rowsPerSex: DIRS.length, ...(dirsOk.length < DIRS.length ? { dirsOk } : {}), anims: Object.fromEntries(CLIPS.map((a) => [a, { col: anims[a][0], n: anims[a][1] }])), origin: frameOrigin(F) },
     });
   }
   rep.warnings = warns.map((w) => w.msg);
@@ -231,6 +237,7 @@ function parseArgs(argv) {
     else if (a === "--lop") o.lopFile = next();
     else if (a === "--grid") o.grid = next();
     else if (a === "--min-area") o.minArea = +next();
+    else if (a === "--partial") o.partial = true;
     else if (a === "--strict") o.strict = true;
     else if (a === "--verbose") o.verbose = true;
     else throw new Error(`tùy chọn lạ: ${a}`);
@@ -242,7 +249,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     const o = parseArgs(process.argv.slice(2));
     if (!o.id || !o.out || !Object.keys(o.sheets).length) {
-      console.error("Dùng: node tools/assets/phuthe-sheet-cut.mjs --id <võ hồn> --sheet A=<ảnh> [--sheet B=<ảnh> … E] --out <thư mục> [--frame 96|128] [--dummy-key #00D0D0] [--dummy-tol 40] [--dummy-sex m|f] [--tol 60] [--colors 32] [--palette auto|gpl|<gpl>] [--lop <lop.json>] [--grid auto|uniform] [--strict] [--verbose]");
+      console.error("Dùng: node tools/assets/phuthe-sheet-cut.mjs --id <võ hồn> --sheet A=<ảnh> [--sheet B=<ảnh> … E] --out <thư mục> [--frame 96|128] [--dummy-key #00D0D0] [--dummy-tol 40] [--dummy-sex m|f] [--tol 60] [--colors 32] [--palette auto|gpl|<gpl>] [--lop <lop.json>] [--grid auto|uniform] [--partial] [--strict] [--verbose]");
       process.exit(2);
     }
     const hashes = {};

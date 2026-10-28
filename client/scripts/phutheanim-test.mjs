@@ -2,7 +2,7 @@
 // bố cục manifest + fallback, hệ số giảm spiritMotion khi có clip. Module thuần, không Phaser.
 import assert from "node:assert/strict";
 import { LPC_SHEET } from "../../shared/data.ts";
-import { PHU_CLIPS, PHU_DEFAULT_CLIPS as D, PHU_FRAMES, PHU_ROWS_PER_SEX, parsePhuLayout, phuBodyStep, phuClipIndex, phuClipOf, phuDirRow, phuFaceOf, phuFlip, phuFrame, phuHalf, phuOriginY, phuSheetFits } from "../src/phutheAnim.ts";
+import { PHU_CLIPS, PHU_DIRS, PHU_DEFAULT_CLIPS as D, PHU_FRAMES, PHU_ROWS_PER_SEX, parsePhuLayout, phuBodyStep, phuClipIndex, phuClipOf, phuDirOk, phuDirRow, phuFaceOf, phuFlip, phuFrame, phuHalf, phuOriginY, phuSheetFits } from "../src/phutheAnim.ts";
 import { PHU_NO_ANCHOR, parsePhuAnchor, phuAnchorAt, phuAnchorJson } from "../src/phutheAnchor.ts";
 import { fakePose } from "../src/phutheFake.ts";
 import { clipOscK, newSpiritPose, spiritPose, SPIRIT_CLIP_OSC_K, SPIRIT_FAMILY } from "../src/spiritMotion.ts";
@@ -30,6 +30,19 @@ for (const [f, [r, fl]] of Object.entries(rows)) { assert.equal(phuDirRow(f), r,
 assert.equal(phuFaceOf("e", "se"), "se"); assert.equal(phuFaceOf("e", "ne"), "ne"); assert.equal(phuFaceOf("e", "e"), "e");
 assert.equal(phuFaceOf("e", "sw"), "e"); assert.equal(phuFaceOf("w", "nw"), "nw"); assert.equal(phuFaceOf("w", "se"), "w");
 assert.equal(phuFaceOf("s", "se"), "s"); assert.equal(phuFaceOf("n", "ne"), "n"); assert.equal(phuFaceOf(null, "ne"), "ne");
+
+// --- anim.dirsOk (nhập từng hướng): thiếu / đủ 5 hướng = không ghi (manifest cũ giữ hành vi cũ); hướng chưa nhập → phụ thể tĩnh cũ; tây theo hàng nguồn đông
+assert.equal(L.dirsOk, undefined, "manifest cũ không có dirsOk");
+for (const f of Object.keys(rows)) assert.equal(phuDirOk(L, f), true, `đủ hướng: ${f}`);
+assert.equal(parsePhuLayout({ dirsOk: [...PHU_DIRS] }, 96).dirsOk, undefined, "khai đủ 5 = đủ mọi hướng");
+assert.equal(parsePhuLayout({ dirsOk: "s" }, 96).dirsOk, undefined, "không phải mảng → bỏ qua");
+const PD = parsePhuLayout({ dirsOk: ["e", "x", "s", "e"] }, 96);
+assert.deepEqual(PD.dirsOk, ["s", "e"], "lọc giá trị lạ / trùng, theo thứ tự PHU_DIRS");
+assert.deepEqual(Object.keys(rows).filter((f) => phuDirOk(PD, f)), ["s", "e", "w"], "s, e và tây của e (w); se / sw / ne / nw / n dùng ảnh cũ");
+assert.equal(phuDirOk(parsePhuLayout({ dirsOk: ["se"] }, 96), "sw"), true, "sw phản chiếu se khi se có");
+assert.equal(phuDirOk(parsePhuLayout({ dirsOk: ["s", "e"] }, 96), "sw"), false, "se chưa nhập thì sw cũng không");
+assert.deepEqual(parsePhuLayout({ dirsOk: [] }, 96).dirsOk, [], "rỗng: mọi hướng dùng ảnh cũ");
+assert.equal(parsePhuLayout({ dirsOk: ["s"] }, 96).frame, 96); assert.deepEqual(parsePhuLayout({ dirsOk: ["s"] }, 96).clips, D, "dirsOk không đổi bố cục clip");
 
 // --- clip ↔ hoạt ảnh thân
 assert.equal(phuClipOf("die"), null); assert.equal(phuClipOf("absorb"), "idle"); assert.equal(phuClipOf("hurt"), "hurt");

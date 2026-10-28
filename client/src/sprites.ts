@@ -14,8 +14,8 @@ import { TELE_WARN, PT_FRAME } from "../../shared/data.ts";
 import { SPR, type Dir8 } from "./iso.ts";
 import { lightingOn } from "./lighting.ts";
 import { loadPhuAnchors } from "./phutheAnchor.ts";
-import { phuClipOf, phuClipIndex, phuDirRow, phuFrame, phuHalf, phuOriginY, phuSheetFits, parsePhuLayout, type PhuLayout } from "./phutheAnim.ts";
-import { registerVohonSheet, registerBlankSheet, setBeastSheetHook, isLazySkillFx, markPartialAnim } from "./vohonLazy.ts";
+import { phuClipOf, phuClipIndex, phuDirOk, phuDirRow, phuFrame, phuHalf, phuOriginY, phuSheetFits, parsePhuLayout, type PhuLayout } from "./phutheAnim.ts";
+import { registerVohonSheet, registerBlankSheet, setBeastSheetHook, isLazySkillFx, markPartialAnim, vohonKeys, vohonBlank } from "./vohonLazy.ts";
 import { readFxPrefs } from "./fxSettings.ts";
 import { DEFAULT_LAYOUT, beastDirPlan, lungeKeep, newBeastAnimState, parseLayout, stepBeastAnim, type AnimLayout, type BeastAnimState } from "./beastAnim.ts";
 
@@ -637,9 +637,16 @@ export function syncLayers(body: Phaser.GameObjects.Sprite, vohon: Phaser.GameOb
 }
 
 /** Phụ thể hoạt ảnh vẽ thật của một hồn sư (võ hồn có `vhanim_{id}`): bố cục và texture [sau, trước]; thiếu thì võ hồn chạy nhánh cũ (syncLayers). */
-export interface PhuAnimSet { layout: PhuLayout; keys: [string, string] }
+export interface PhuAnimSet {
+  layout: PhuLayout; keys: [string, string];
+  /** Phụ thể tĩnh cũ `vh_{id}` (texture + nửa trống) cho hướng chưa nhập (layout.dirsOk); null khi nhập đủ 5 hướng. */
+  statik: { keys: [string, string]; blank: [boolean, boolean] } | null;
+}
 /** Key `vhanim_{id}_b` / `_f` (nửa trống mượn texture nửa kia, như vohonKeys). */
 export const isPhuAnimKey = (key: string) => key.startsWith("vhanim_");
+
+/** Hướng `face` chạy phụ thể tĩnh cũ thay vì clip vẽ thật (võ hồn nhập từng hướng, layout.dirsOk, hướng này chưa nhập). */
+export const phuUsesStatic = (pa: PhuAnimSet, face: Dir8): boolean => pa.statik !== null && !phuDirOk(pa.layout, face);
 
 /** Gốc và hệ số phóng của lớp phụ thể hoạt ảnh (khung 96: gốc (48, 74); 128: (64, 90)); hình chứa phóng SPR nên lớp phóng 1 / SPR. */
 export function fitPhuLayer<T extends Phaser.GameObjects.Sprite>(s: T, L: PhuLayout): T {
@@ -659,7 +666,7 @@ export function phuAnimSetOf(scene: Phaser.Scene, id: string, blank: readonly [b
     const src = scene.textures.get(k).source[0];
     if (!phuSheetFits(src.width, src.height, PHU_LAYOUTS.get(k) ?? L)) return null;
   }
-  return { layout: L, keys };
+  return { layout: L, keys, statik: L.dirsOk ? { keys: vohonKeys(id), blank: vohonBlank(id) } : null };
 }
 
 /**
@@ -669,6 +676,10 @@ export function phuAnimSetOf(scene: Phaser.Scene, id: string, blank: readonly [b
  */
 export function syncPhuLayers(body: Phaser.GameObjects.Sprite, layers: Phaser.GameObjects.Sprite[], pa: PhuAnimSet, anim: HsAnim, face: Dir8, age: number): ReturnType<typeof phuClipOf> {
   const clip = phuClipOf(anim), L = pa.layout;
+  // Hướng chưa nhập (anim.dirsOk): phụ thể tĩnh cũ + syncLayers cho riêng hướng đó (tây theo hàng nguồn đông); trả null để nơi gọi không cộng độ dời clip.
+  const st = phuUsesStatic(pa, face), want = st ? pa.statik!.keys : pa.keys;
+  layers.forEach((s, i) => { if (s.texture.key !== want[i]) { s.setTexture(want[i]); if (st) fitHonsuLayer(s, true); else fitPhuLayer(s, L); } });
+  if (st) { syncLayers(body, layers); return null; }
   if (!clip) { for (const s of layers) s.setVisible(false); return null; }
   const A = ISO_HS_ANIMS[anim], steps = A.ms.length, step = Number(body.frame.name) % ISO_SHEET_COLS - A.col;
   const i = phuClipIndex(L.clips[clip].n, steps, step, A.loop, age, honsuAnimMs(anim));

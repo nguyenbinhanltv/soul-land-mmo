@@ -390,6 +390,41 @@ test("CLI cutter: --sheet → ghi 2 nửa + manifest-entry + report; thiếu tù
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
+test("cutter --partial: hướng thiếu tờ chỉ là info, hướng có tờ cắt như thường; dirs / dirsOk ghi đúng; đủ 5 hướng thì không có dirsOk", () => {
+  const id = "ta_hoa_phuong_hoang", F = 96, { sheets } = cached(id, () => fakeSet(id, { drift: [6, -4] }));
+  const some = { A: sheets.A, C: sheets.C }, r = cutPhuThe({ id, sheets: some, partial: true });
+  assert.equal(r.report.summary.block, 0, JSON.stringify(r.report.issues.filter((i) => i.level !== "info")));
+  assert.equal(r.report.missing, 0, "partial: tờ thiếu không tính là thiếu");
+  assert.deepEqual(r.report.dirs, { s: "ok", se: "thieu", e: "ok", ne: "thieu", n: "thieu" });
+  assert.equal(r.report.issues.filter((i) => i.code === "thieu-huong").length, 3);
+  assert.ok(r.report.issues.filter((i) => i.code === "thieu-huong").every((i) => i.level === "info"));
+  assert.deepEqual(r.entries[0].anim.dirsOk, ["s", "e"]); assert.deepEqual(r.entries[0].anim.dirs, L.DIRS);
+  // hàng hướng thiếu rỗng ở cả hai nửa, hàng hướng có tờ có hình
+  const rowPx = (im, sex, dir) => countOpaque(im, L.gameRow(sex, dir) * F, (L.gameRow(sex, dir) + 1) * F);
+  for (const d of ["se", "ne", "n"]) for (const sex of L.SEXES) assert.equal(rowPx(r.halves.b, sex, d) + rowPx(r.halves.f, sex, d), 0, `${sex}/${d} rỗng`);
+  for (const d of ["s", "e"]) assert.ok(rowPx(r.halves.b, "m", d) > 0, `${d} có hình`);
+  // không --partial: hành vi cũ (block + missing)
+  const old = cutPhuThe({ id, sheets: some });
+  assert.ok(old.report.issues.some((i) => i.code === "thieu-to" && i.level === "block")); assert.ok(old.report.missing >= 3);
+  // đủ 5 tờ (kể cả có --partial): dirs đủ ok, mục manifest định dạng cũ (không dirsOk)
+  const full = cutPhuThe({ id, sheets, partial: true });
+  assert.ok(Object.values(full.report.dirs).every((x) => x === "ok")); assert.ok(full.entries.every((e) => e.anim.dirsOk === undefined));
+});
+
+test("CLI cutter --partial: ghi 2 nửa + dirsOk trong manifest-entry, thoát 0; thiếu tờ không có --partial thì thoát 1", () => {
+  const dir = tmp("cutpartial"), out = path.join(dir, "out");
+  try {
+    const { sheets } = cached("ta_hoa_phuong_hoang", () => fakeSet("ta_hoa_phuong_hoang", { drift: [6, -4] }));
+    const args = ["tools/assets/phuthe-sheet-cut.mjs", "--id", "ta_hoa_phuong_hoang", "--out", out];
+    for (const id of ["A", "C"]) { const f = path.join(dir, `${id}.png`); writeFileSync(f, encodePng(sheets[id])); args.push("--sheet", `${id}=${f}`); }
+    assert.equal(spawnSync(process.execPath, args, { cwd: ROOT }).status, 1);
+    const r = spawnSync(process.execPath, [...args, "--partial"], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(r.status, 0, r.stderr + r.stdout);
+    assert.deepEqual(JSON.parse(readFileSync(path.join(out, "manifest-entry.json"), "utf8"))[0].anim.dirsOk, ["s", "e"]);
+    assert.deepEqual(JSON.parse(readFileSync(path.join(out, "_report.json"), "utf8")).dirs.se, "thieu");
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
 // ---------- kiểm tờ ----------
 function putSet(dir, sheets) { mkdirSync(dir, { recursive: true }); for (const [id, im] of Object.entries(sheets)) writeFileSync(path.join(dir, `to${id}.png`), encodePng(im)); }
 test("kiểm tờ: tờ giả sạch → không chặn (chỉ lưu ý / nhẹ); báo cáo JSON + MD + tờ liên hệ; dòng LỖI nháp theo mẫu", () => {
