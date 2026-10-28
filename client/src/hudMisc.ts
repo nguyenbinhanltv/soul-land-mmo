@@ -2,7 +2,7 @@
 import { closeNpc } from "./hudNpc.ts";
 import { toggleBag } from "./hudBag.ts";
 import { toggleRoster } from "./hudRoster.ts";
-import { MAPS, formatHonTe, WAYPOINT_CAST, RESONANCE, RESONANCE_RANK_PAGE_SIZE, resonanceText } from "../../shared/data.ts";
+import { MAPS, formatHonTe, WAYPOINT_CAST, RESONANCE, RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_CD, resonanceText } from "../../shared/data.ts";
 import { toggleChar } from "./charPanel.ts";
 import { chatLine, chatWhisperTo } from "./chat.ts";
 import { el, pbtn } from "./domBtn.ts";
@@ -103,16 +103,18 @@ let resTab = 0; // tab trụ cột đang xem (chỉ số theo RESONANCE)
 let resTopRequest: (page: number, pageSize: number) => void = () => {};
 let resTopWait: "idle" | "wait" | "err" = "idle"; // ui2: đang chờ bảng xếp hạng / quá hạn (chỉ để hiển thị trạng thái tải / lỗi)
 const RESO_TOP_WAIT_MS = 8000;
+let resTopTimer = 0, resTopSentAt = 0; // một hẹn giờ duy nhất; server bỏ im yêu cầu trong RESONANCE_RANK_CD nên ui2 không gửi (không chuyển sang "wait") khi chưa qua nhịp
 const askResTop = (page: number, size: number) => {
-  resTopRequest(page, size);
-  if (!UI2) return;
-  resTopWait = "wait"; renderReso();
-  setTimeout(() => { if (resTopWait === "wait") { resTopWait = "err"; if (!$("#reso").hidden) renderReso(); } }, RESO_TOP_WAIT_MS);
+  if (!UI2) { resTopRequest(page, size); return; }
+  const now = performance.now(); if (now - resTopSentAt < RESONANCE_RANK_CD * 1000) return;
+  resTopSentAt = now; resTopRequest(page, size);
+  clearTimeout(resTopTimer); resTopWait = "wait"; renderReso();
+  resTopTimer = window.setTimeout(() => { resTopTimer = 0; if (resTopWait === "wait") { resTopWait = "err"; if (!$("#reso").hidden) renderReso(); } }, RESO_TOP_WAIT_MS);
 };
 /** Tin "resonance" mới: vẽ lại bảng nếu đang mở. */
 export function setResonance(m: ResonanceMsg) { resMsg = m; if (!$("#reso").hidden) renderReso(); }
 /** Tin "resonanceTop" mới: bảng công khai chỉ hiển thị tên / điểm và dòng riêng của mình. */
-export function setResonanceTop(m: ResonanceTopMsg) { resTopMsg = m; resTopWait = "idle"; if (!$("#reso").hidden) renderReso(); }
+export function setResonanceTop(m: ResonanceTopMsg) { resTopMsg = m; resTopWait = "idle"; clearTimeout(resTopTimer); resTopTimer = 0; if (!$("#reso").hidden) renderReso(); }
 export function onResonanceTop(fn: (page: number, pageSize: number) => void) { resTopRequest = fn; }
 /** Mở / đóng bảng Cộng minh (phím K, nút trong khung chỉ số và trong bảng đội hình); cùng chỗ giữa màn hình với các bảng khác. */
 export function toggleReso(open = $("#reso").hidden) {
