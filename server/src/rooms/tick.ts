@@ -13,6 +13,7 @@ import { setLock, tickLock } from "./lock.ts";
 import { sendVitals } from "./vitals.ts";
 import { savePeriodic } from "./persist.ts";
 import { welfareDayPush } from "./welfare.ts";
+import { bicanhDayPush } from "./bicanh.ts";
 import { SAVE_EVERY_SECS } from "../../../shared/data.ts";
 import type { BeastState, PlayerState } from "./schema.ts";
 
@@ -81,6 +82,7 @@ export function tick(room: MapRoom, dt: number) {
     const day = room.dailyDay();
     for (const [id, d] of room.pdata) if (!d.travelling && room.dailyFresh(d, day)) room.sendDaily(id, "reset");
     for (const [id, d] of room.pdata) if (!d.travelling && room.tongFresh(d, day)) room.sendTong(id); // tông vụ (#197)
+    bicanhDayPush(room); // Bí Cảnh: qua 05:00 gửi lại lượt (chấm đỏ "còn lượt"), không tự vào hộ
     welfareDayPush(room, room.today()); // Phúc Lợi: qua 00:00 gửi lại Sổ Điểm Danh (chấm đỏ), không tự nhận hộ
   }
   // Tổ đội (7.1): mỗi 0,5 giây ghi cấp / sinh lực vào party.ts (đồng đội ở bản đồ khác cũng thấy), gửi lại khung tổ đội khi đổi,

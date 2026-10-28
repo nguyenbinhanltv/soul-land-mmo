@@ -4,7 +4,7 @@
 // (`onMessage("pickup" / "use")`, `autoHunt.ts` gọi `room.pickup` như cũ). Còn ở MapRoom: `addItem` / `addRing` / `addBone` / `addEquip`, `takeItem`, `canLoot`, `lootNote` / `shardNote`, `useAutoToken`.
 import type { MapRoom, PData } from "./MapRoom.ts";
 import { DropState } from "./schema.ts";
-import { TIERS, VOHON, vohonIndex, BEASTS, itemDef, DAN_CD, formatYears, PICKUP_RANGE, BONE_ITEM, BONE_SLOTS, boneName, CORE_ITEM, CORE_SETS, coreName, EQUIP_ITEM, equipName, EQUIP_TEMPLATES, EQUIP_TIERS, HERB_MAX, herbDef, herbText } from "../../../shared/data.ts";
+import { TIERS, VOHON, vohonIndex, BEASTS, itemDef, DAN_CD, formatYears, PICKUP_RANGE, BONE_ITEM, BONE_SLOTS, boneName, CORE_ITEM, CORE_SETS, coreName, EQUIP_ITEM, equipName, EQUIP_TEMPLATES, EQUIP_TIERS, HERB_MAX, herbDef, herbText, BICANH, xpBlocked } from "../../../shared/data.ts";
 import { store, type Item } from "../db.ts";
 
 /**
@@ -92,6 +92,7 @@ export function useItem(room: MapRoom, id: string, raw: unknown, vohonId?: unkno
   if (!it) return warn("Không có vật phẩm này trong túi đồ.");
   const def = itemDef(it.code);
   if (def?.kind === "tien_thao") return useHerb(room, id, d, it, vohonId);
+  if (def?.kind === "kinh_quyen") return useTome(room, id, d, it, vohonId); // Hồn Kinh Quyển (Bí Cảnh, 5.22)
   if (def?.recall) return room.useRecall(id, it); // Hồi Thành Phù (11.2)
   if (def?.auto) return room.useAutoToken(id, d, it, def); // Ủy Thác Lệnh (Auto 2)
   if (!def || !(def.hp || def.mp)) return warn(`${def?.name ?? "Vật phẩm này"} không dùng trực tiếp được.`);
@@ -134,6 +135,35 @@ export function useHerb(room: MapRoom, id: string, d: PData, it: Item, raw: unkn
   room.chain(d, async () => {
     const list = room.unsaved(id), bag = room.bagSnapshot(d);
     if (!list.some((x) => x.rowId === v.rowId)) list.push({ ...v, rings: [...v.rings], skills: [...v.skills], herbs: { ...v.herbs } });
+    try { await store.saveVohonsBag(d.accountId, list, bag); }
+    catch (e) { for (const x of list) if (x.rowId !== d.ch.rowId) d.dirty.add(x.rowId); d.bagDirty = true; throw e; }
+  });
+}
+
+/**
+ * Dùng Hồn Kinh Quyển `it` (Bí Cảnh, mục 5.22) cho võ hồn `raw` (vohons.id, mọi võ hồn trong bộ sưu tập của chính người gửi, kể cả dự bị): +BICANH.tomeXp kinh nghiệm qua
+ * đúng đường cộng của hạ hồn thú (`addXp` cho võ hồn ra trận, `benchXp` cho võ hồn khác) nên vẫn dừng ở bình cảnh; võ hồn đang ở bình cảnh / cấp tối đa thì từ chối, không mất quyển.
+ * Dùng được cả khi giao chiến (như tiên thảo), không dùng khi đang hấp thụ; trong sân đấu `use` bị chặn. Bớt 1 quyển và cộng kinh nghiệm ngay, rồi trong chuỗi lưu ghi võ hồn và túi
+ * trong MỘT transaction (store.saveVohonsBag); lỗi thì đánh dấu để lần lưu sau ghi tiếp.
+ */
+export function useTome(room: MapRoom, id: string, d: PData, it: Item, raw: unknown) {
+  const warn = (text: string) => room.log(id, text, "#ffb35c");
+  const def = itemDef(it.code), v = d.owned.find((x) => x.rowId === raw);
+  if (!def) return warn("Vật phẩm này không dùng trực tiếp được.");
+  if (!v) return warn(`Chọn võ hồn để dùng ${def.name}.`);
+  if (d.absorbing) return warn("Đang hấp thụ hồn hoàn, không dùng được kinh quyển.");
+  if (v === d.ch) room.syncCh(id); // võ hồn ra trận: cấp / vòng thật ở PlayerState, chép về d.ch trước khi kiểm bình cảnh (như absorb.ts)
+  const name = VOHON[Math.max(0, vohonIndex(v.vohon))].name;
+  if (xpBlocked(v.level, v.rings.length)) return warn(`${name} đang ở bình cảnh (cấp ${v.level}): hãy hấp thụ hồn hoàn kế tiếp rồi dùng ${def.name}.`);
+  room.takeItem(d, it, 1);
+  const p = room.state.players.get(id);
+  if (v === d.ch) room.addXp(id, BICANH.tomeXp); else room.benchXp(id, v, BICANH.tomeXp);
+  if (p) room.broadcast("fx", { k: "wave", x: p.x, y: p.y - 6, r: 24, col: def.col });
+  room.log(id, `${name} đọc ${def.name}: +${BICANH.tomeXp} kinh nghiệm.`, def.col);
+  const c = room.clients.getById(id); if (c) room.sendVohons(c);
+  room.sendBag(id);
+  room.chain(d, async () => {
+    const list = room.unsaved(id), bag = room.bagSnapshot(d);
     try { await store.saveVohonsBag(d.accountId, list, bag); }
     catch (e) { for (const x of list) if (x.rowId !== d.ch.rowId) d.dirty.add(x.rowId); d.bagDirty = true; throw e; }
   });

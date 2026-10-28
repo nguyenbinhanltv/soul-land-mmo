@@ -32,7 +32,8 @@
     "test:control": "tsx scripts/control-test.ts",
     "test:mapleak": "tsx scripts/map-leak-test.ts",
     "test:calendar": "tsx scripts/calendar-test.ts",
-    "test:welfare": "tsx scripts/welfare-test.ts"
+    "test:welfare": "tsx scripts/welfare-test.ts",
+    "test:bicanh": "tsx scripts/bicanh-test.ts"
   },
   "dependencies": {
     "@colyseus/redis-driver": "0.16.1",
