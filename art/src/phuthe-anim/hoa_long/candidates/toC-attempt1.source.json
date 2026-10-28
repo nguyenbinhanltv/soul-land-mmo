@@ -1,0 +1,56 @@
+{
+  "tool": "image_gen",
+  "model": "unknown",
+  "seed": "unknown",
+  "createdAt": "2026-10-28T00:15:24.124Z",
+  "attempt": 1,
+  "image": {
+    "path": "toC-attempt1.png",
+    "sha256": "daa66af1a83b6cf9942fb2531fdf7089163b86b92dd31c0a49749f929afaba30"
+  },
+  "prompt": {
+    "path": "toC-attempt1.prompt.txt",
+    "sha256": "f6727c0fc64482f5695f3208eff1b6e037c7d03575fdbfc67d6b6cb9ebcc51b4"
+  },
+  "references": [
+    {
+      "path": "art/src/phuthe-anim/hoa_long/references/hoa_long-nom-toC.png",
+      "sha256": "beaed26756433db93b246eed3466f907d9a923930f5299e81fca2a6d84e26bbd"
+    },
+    {
+      "path": "art/src/vohon-v2/hoa_long/concept-attempt3.png",
+      "sha256": "bad3357f91644763647671b0e7cada9f6a376314b34c528dca829f9965be961a"
+    },
+    {
+      "path": "art/src/phuthe-anim/hoa_long/toA.png",
+      "sha256": "1fbcb74b6826e6bff85a6644e5503328fc201af69c25f4eb458d61a6af021aba"
+    }
+  ],
+  "check": {
+    "level": "chặn",
+    "block": 1,
+    "light": 1,
+    "issues": [
+      {
+        "sev": "note",
+        "code": "nen",
+        "where": "toàn tờ",
+        "msg": "nền dốc nhẹ (bốn góc lệch 38), trong dung sai 60; không phải lỗi."
+      },
+      {
+        "sev": "block",
+        "code": "hinh-dinh",
+        "where": "H3 (e)",
+        "msg": "dải có 3 hình, cần 6: hình dính nhau.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "o-trong",
+        "where": "H4 (e) C5",
+        "msg": "ô trống có hình (3.3% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng.",
+        "dir": "e"
+      }
+    ]
+  }
+}
