@@ -1,13 +1,14 @@
 // Thử cấu hình TRỘN theo hướng (#861): hướng lấy từ tờ legacy (A gộp s / se / e, B gộp ne / n) hoặc tờ direction 3:2 mới (D = ne, E = n), tờ direction thắng.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, copyFileSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, copyFileSync, writeFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { ROOT, Img, readPng, encodePng } from "./lib.mjs";
 import { cutSpecies } from "./beast-sheet-cut.mjs";
 import { mixedPlan, sheetPlan } from "./beast-sheet-lib.mjs";
-import { checkSpecies } from "./beast-sheet-check.mjs";
+import { checkSpecies, liveIssues } from "./beast-sheet-check.mjs";
+import { evaluate } from "./beast-sheet-ci.mjs";
 import { speciesStatus } from "./beast-status.mjs";
 import { blockDirs } from "./beast-import.mjs";
 
@@ -69,16 +70,18 @@ test("tương thích ngược: chỉ legacy cho đúng kết quả cũ (không c
 test("check / status: hướng có tờ direction không còn bị tờ legacy hỏng kéo xuống; bố cục báo hon-hop", () => {
   const dir = mkdtempSync(path.join(os.tmpdir(), "beast-mixed-")), root = path.join(dir, "phong_lang");
   try {
-    for (const [id, f] of [["phong_lang", "A"]]) { mkdirSyncSafe(root); copyFileSync(path.join(ART, id, `to${f}.png`), path.join(root, `to${f}.png`)); }
+    mkdirSync(root, { recursive: true });
+    copyFileSync(path.join(ART, "phong_lang", "toA.png"), path.join(root, "toA.png"));
     writeFileSync(path.join(root, "toB.png"), encodePng(new Img(1024, 1024))); // B legacy hỏng (không có hình)
     for (const l of "DE") copyFileSync(path.join(ART, "thai_than_cu_vien", `to${l}.png`), path.join(root, `to${l}.png`));
     const r = checkSpecies("phong_lang", { dir: root });
     assert.notEqual(r.blockLevel.ne, "chặn");
     assert.notEqual(r.blockLevel.n, "chặn");
+    assert.notEqual(r.level, "chặn", "mức chung (mã thoát beast:check) không tính lỗi hàng đã bị tờ direction thay");
+    assert.deepEqual(liveIssues(r.sheets.find((s) => s.sheet === "toB"), r.dirOwned), []);
+    assert.deepEqual(evaluate("phong_lang", root).blockers.filter((i) => i.sheet === "toB"), [], "CI không chặn lỗi tờ B legacy đã bị D / E thay");
     const st = speciesStatus("phong_lang", { root: dir });
     assert.equal(st.layout, "hon-hop");
     assert.deepEqual(st.missing, []);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
-import { mkdirSync } from "node:fs";
-function mkdirSyncSafe(d) { mkdirSync(d, { recursive: true }); }

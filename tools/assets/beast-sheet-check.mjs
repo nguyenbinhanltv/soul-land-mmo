@@ -290,6 +290,17 @@ export function turnaroundFile(dir) {
   return existsSync(f) ? f : null;
 }
 
+/**
+ * Lỗi còn hiệu lực của một tờ khi có tờ direction phủ các hướng `dirOwned` (#861): lỗi gắn hướng đã bị phủ bị bỏ;
+ * lỗi không gắn hướng của tờ legacy chỉ tính khi tờ đó còn ít nhất một hướng chưa bị phủ. Tờ direction / turnaround (không có hướng bị phủ) giữ nguyên.
+ */
+export function liveIssues(sheet, dirOwned) {
+  const owned = dirOwned instanceof Set ? dirOwned : new Set(dirOwned ?? []);
+  if (sheet.kind === "boss" || !owned.size || !(sheet.dirs ?? []).length) return sheet.issues;
+  const open = sheet.dirs.some((d) => !owned.has(d));
+  return sheet.issues.filter((i) => (i.dir ? !owned.has(i.dir) : open));
+}
+
 /** Kiểm mọi tờ của một loài, thêm kiểm cỡ thân (hệ số chung cả loài, neo theo ảnh tĩnh). */
 export function checkSpecies(id, { dir = path.join(ROOT, "art", "src", "beast-anim", id) } = {}) {
   const ta = turnaroundFile(dir), files = sheetFiles(dir);
@@ -315,13 +326,15 @@ export function checkSpecies(id, { dir = path.join(ROOT, "art", "src", "beast-an
   // Cấu hình trộn (#861): hướng có tờ direction (3:2) thì tờ legacy (A / B) không còn quyết định mức của hướng đó (cutter dùng tờ direction)
   const dirOwned = new Set(sheets.filter((s) => s.kind === "boss").flatMap((s) => s.dirs ?? []));
   for (const s of sheets) {
-    finish(s); level = maxLevel(level, s.level);
+    finish(s);
+    const live = liveIssues(s, dirOwned);
+    level = maxLevel(level, live.reduce((a, i) => maxLevel(a, SEV_LEVEL[i.sev]), "pass"));
     for (const d of (s.dirs ?? []).filter((x) => s.kind === "boss" || !dirOwned.has(x))) {
-      const l = s.issues.filter((i) => i.dir === d || !i.dir).reduce((a, i) => maxLevel(a, SEV_LEVEL[i.sev]), "pass");
+      const l = live.filter((i) => i.dir === d || !i.dir).reduce((a, i) => maxLevel(a, SEV_LEVEL[i.sev]), "pass");
       blockLevel[d] = maxLevel(blockLevel[d] ?? "pass", l);
     }
   }
-  return { id, dir, level, anchored, staticHeights: st, bodyScale: round(k, 4), sheets, turnaround, blockLevel };
+  return { id, dir, level, anchored, staticHeights: st, bodyScale: round(k, 4), sheets, turnaround, blockLevel, dirOwned: [...dirOwned] };
 }
 
 /** Mọi tờ đã kiểm của loài: toA–toE rồi turnaround (nếu có). */
