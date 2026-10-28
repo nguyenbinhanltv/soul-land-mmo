@@ -1,0 +1,37 @@
+Create ONE image (landscape 3:2 aspect ratio; the exact pixel size does not matter): an animation sprite sheet of a single fantasy creature, ONE direction only, for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
+
+CREATURE: Thâm Hải Ma Chương - deep-sea demon octopus, purple-black bulbous head with eight thick suckered tentacles. Body type: phù du, không chân (trôi, co bóp, xúc tu). Size class: Tím / Đen. Keep the SAME design, proportions, colors, markings and overall size as the references in every frame. Do not redesign it.
+REFERENCES (attached images, in this fixed order): image 1 = the static reference of this exact creature in three views (front, side, back): the identity, design, colors and overall size; image 2 = the approved TURNAROUND image of this creature: five columns of directions (s, se, e, ne, n) by three rows (idle, hurt, die). Copy the pose, facing angle and body size of the column "ne" for the idle, hurt and die frames of this sheet; image 3 = an approved direction sheet of this creature (only for matching line weight and palette; never copy its poses) (if attached).
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
+
+GRID: 6 columns x 4 rows of equal invisible cells (256x256 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with the lowest point of its body (tentacle tips, belly or fins) on the same invisible baseline (nothing is drawn there) about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.
+
+LAYOUT (top to bottom; every frame faces the same direction "ne" = facing the upper right of the picture (three-quarter back view, head away from the viewer toward the right)):
+Block 1 (rows 1-4): direction "ne" = facing the upper right of the picture (three-quarter back view, head away from the viewer toward the right).
+  row 1: frames 1-4 = IDLE (the bulbous head swells and relaxes, the eight suckered tentacles ripple and curl); frames 5-6 = HURT (contracts sharply and is pushed a short way backward along its facing line while the tentacles flick, staying in the same floating posture).
+  row 2: frames 1-6 = WALK (pulls itself forward by rippling the tentacles, the head bobbing).
+  row 3: frames 1-6 = ATTACK (coils the tentacles back, then lashes the thick suckered tentacles forward to grab and squeeze, then recovers).
+  row 4: frames 1-4 = DIE (the pulsing stops, the body slackens and slowly sinks along its facing line, the tentacles go limp and trail out, ending slack with the same body axis); the last 2 cells of this row stay empty magenta.
+
+CONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, idle, moving and hurt frames keep the body at the same scale and the same baseline. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).
+
+DIRECTION RULES (every frame of a block, including HURT and DIE, keeps the block's direction): the body axis never rotates and the creature never turns to face the viewer. HURT keeps its own 2 animated frames but is only a short recoil backward along the facing line: the creature keeps its normal posture (floating upright, the body on top and the tentacles hanging below), never flips over, never shows its underside, never turns toward the viewer. DIE sinks slowly along the facing line and ends limp with the same body axis as idle; it never rotates the body 90 degrees to lie sideways across the view. In the "ne" and "n" blocks the creature is seen from behind: no eyes, nose, mouth or face is visible in any frame of those blocks, hurt and die included.
+
+STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.
+
+DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions. This creature has NO legs, feet, paws, roots or ground contact: never draw any, and never draw water, waves or bubbles either.
+
+LESSONS (learned from earlier sheets of other creatures, follow every line):
+- The turnaround reference fixes the creature's pose only, NEVER its five-column layout. This animation sheet has exactly SIX columns: row 1 has FOUR idle plus TWO hurt pictures, row 2 SIX walk pictures, row 3 SIX attack pictures, row 4 FOUR die pictures followed by TWO empty cells. Draw exactly twenty-two separate creatures in this six-by-four layout.
+- Direction "se" is a three-quarter view: the body axis is turned about 45 degrees toward the lower right, the face is visible and looks diagonally down toward the viewer, so it clearly differs from "e" (pure side profile).
+- Direction "ne" is a three-quarter BACK view: the body axis is turned about 45 degrees away toward the upper right, the rump and back are nearest to the viewer, and it must not be drawn as a plain side profile.
+- Direction "n" is a pure back view: only the back of the head, back, rump and tail are visible.
+- Every direction e, se and ne faces the RIGHT side of the picture; never mirror them to face left.
+- HURT of a drifting creature is a sharp contraction plus a small push backward along the facing line, the tentacles flick, and it keeps floating upright. DIE is a slow sink along the facing line with the body going slack and the tentacles trailing limp; it stays legless and rootless in every frame and never ends lying on a floor.
+- Keep the body the same height and length in every row of the sheet, matching the reference; never let walking, attacking or hurt frames grow or shrink the creature.
+- Draw every frame as its own separate picture: leave clear magenta space between neighbours, never overlap or merge two creatures.
+- Idle frames must show a small visible change from frame to frame (breathing, sway), and HURT must look clearly different from IDLE.
+- A frame that is empty in the layout stays empty magenta: do not fill spare cells with extra poses.
+- For the deep-sea demon octopus, rotate the whole mantle and tentacle crown between direction blocks: s shows two symmetric eyes looking straight down toward the viewer; se shows an asymmetric three-quarter face looking lower right; e is a strict right profile with exactly one visible eye and the far eye fully hidden; ne and n show only the rear mantle with absolutely no visible eyes or face, including hurt and die.
+- In directions n and ne, hide every eye, mouth line, tooth and nostril behind the back of the skull in ALL poses: show a solid unmarked rear skull, never the side of the face. Attack and hurt change body height and forward reach only, with zero head yaw; never open a mouth toward the camera.
