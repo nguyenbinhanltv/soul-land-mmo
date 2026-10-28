@@ -7,8 +7,8 @@ Loài `nhan_dien_ma_chu_non` (Nhân Diện Ma Chu non), họ `insect`, khung gam
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1520176 byte, SHA256 `771c0708633bcc3cbab0522521e73ce26870785c3c8da79a79d69be280081dde`.
-- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2.
-- Prompt: `turnaround.prompt.txt` (SHA256 `11cca4a4016794959e55a3411fd709aa091f6391f18eb951e2142c94b2181ded`).
+- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo.
+- Prompt: `turnaround.prompt.txt` (SHA256 `9202ea66a63b59df4da276c49d3c99105af467128ee6b4b43c31ce15587fc08d`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).

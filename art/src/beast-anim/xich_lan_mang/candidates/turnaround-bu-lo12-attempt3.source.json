@@ -1,0 +1,10 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 3,
+  "agent": "soul_land_game-766",
+  "references": [
+    "shared/assets/sprites/beast/xich_lan_mang.png"
+  ]
+}

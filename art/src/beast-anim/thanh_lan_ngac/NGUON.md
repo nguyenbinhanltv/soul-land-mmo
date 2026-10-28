@@ -7,8 +7,8 @@ Loài `thanh_lan_ngac` (Thanh Lân Ngạc), họ `quad`, khung game 96×96. Mứ
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1618158 byte, SHA256 `22d42213b1e05ff8a7f6f98496c79765089379b79a142607f80093311252d6de`.
-- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2.
-- Prompt: `turnaround.prompt.txt` (SHA256 `bf21a9a53acc2502cff915e5a01f62631708b41c3008260fcfe384a2dbe09b60`).
+- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo.
+- Prompt: `turnaround.prompt.txt` (SHA256 `c714c14bae1659059e829dc38bca1778b2d0f5becf0d1831c80e5feed308278e`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
 - Duyệt bằng mắt: đã xem, không thấy lỗi.
@@ -20,8 +20,7 @@ Loài `thanh_lan_ngac` (Thanh Lân Ngạc), họ `quad`, khung game 96×96. Mứ
 - Prompt: `toA.prompt.txt` (SHA256 `5f5d087eaab732a0e6fc06527eb4fc017357cd243e269781b9ffaebd03ad0de5`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se nhẹ, e pass).
-- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 152% so với ảnh tĩnh (lệch 52%, quá 25%); cutter neo lại, không chặn.
-- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H5–8 (se): cỡ thân idle 121% so với ảnh tĩnh (lệch 21%); cutter neo lại, không chặn.
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 138% so với ảnh tĩnh (lệch 38%, quá 25%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
 
 ## toB
@@ -31,13 +30,30 @@ Loài `thanh_lan_ngac` (Thanh Lân Ngạc), họ `quad`, khung game 96×96. Mứ
 - Prompt: `toB.prompt.txt` (SHA256 `a85f6d9e685a8849d24411edda9db114d6a3be70b218976b79054a36bd6d944e`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne nhẹ, n nhẹ).
-- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (ne): cỡ thân idle 86% so với ảnh tĩnh (lệch 14%); cutter neo lại, không chặn.
-- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H5–8 (n): cỡ thân idle 80% so với ảnh tĩnh (lệch 20%); cutter neo lại, không chặn.
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (ne): cỡ thân idle 78% so với ảnh tĩnh (lệch 22%); cutter neo lại, không chặn.
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H5–8 (n): cỡ thân idle 72% so với ảnh tĩnh (lệch 28%, quá 25%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
+
+## to-n
+
+- File: `to-n.png`, **1536×1024**, 1700714 byte, SHA256 `b5ec1255bf8952b865d6a1e508bc8e3c74a63d4accf13cbb6a759656533d3dc8`.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 4.
+- Prompt: `to-n.prompt.txt` (SHA256 `88ff90736b4fda9ba087370b452a65a8a1ceac19aeacebdf604517157c5141df`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 122% so với ảnh tĩnh (lệch 22%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## Tờ chưa vào thư mục chính (candidates)
 
 Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
+
+### to-ne (candidates)
+
+- File chọn: `candidates/to-ne-attempt6.png`, **1536×1024**, SHA256 `f715e6ba881cdb02c2e292d465e453be63128e72b70f414ef0ff20baac776ba9`; lượt tìm thấy: 4, 5, 6.
+- Số lượt đã dùng: 3; lượt được chọn: 6.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
 
 ### toD (candidates)
 
@@ -58,6 +74,9 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 ```text
 LỖI: toA — hình ở ô trống — H4 (s) C5, H4 (s) C6, H8 (se) C6 — ô trống có hình (0.52% diện tích ô): hình tràn từ ô bên; ô trống có hình (2.92% diện tích ô): hình tràn từ ô bên; ô trống có hình (4.34% diện tích ô): hình tràn từ ô bên.
 LỖI: toB — hình ở ô trống — H4 (ne) C5, H4 (ne) C6, H8 (n) C5 — ô trống có hình (1.19% diện tích ô): hình tràn từ ô bên; ô trống có hình (1.79% diện tích ô): hình tràn từ ô bên; ô trống có hình (0.34% diện tích ô): hình tràn từ ô bên.
+LỖI: to-n — chân lệch — H4 (n) C1 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 12%).
+LỖI: to-ne — ne — lượt bổ sung 1 (tổng 4), mọi hàng lộ mắt; candidates/to-ne-attempt4.png; chưa nhập. (mắt)
+LỖI: to-ne — ne — hết 3 lượt bổ sung (tổng 6), mọi lượt còn lộ mắt; candidates/to-ne-attempt4–6.*; giữ fallback. (mắt)
 LỖI: toD — hình dính — H3 (ne) — dải có 5 hình, cần 6: hình dính nhau.
 LỖI: toD — hướng — ne mọi hàng — còn lộ mắt sau 3 lượt, giữ fallback (mắt)
 LỖI: toE — hướng — n H3 C3–4 — attack quay đầu lộ mặt sau 3 lượt, giữ fallback (mắt)
@@ -69,4 +88,4 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/beast-anim/thanh_lan_ngac/` | - | builtin image_gen.imagegen | RAW hoạt ảnh Thanh Lân Ngạc: turnaround 1536×1024, toA 1024×1536, toB 1254×1254; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+| `art/src/beast-anim/thanh_lan_ngac/` | - | builtin image_gen.imagegen | RAW hoạt ảnh Thanh Lân Ngạc: turnaround 1536×1024, toA 1024×1536, toB 1254×1254, to-n 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |

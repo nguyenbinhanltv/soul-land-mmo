@@ -1,0 +1,11 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 6,
+  "agent": "soul_land_game-766",
+  "references": [
+    "shared/assets/sprites/beast/thanh_lan_ngac.png",
+    "art/src/beast-anim/thanh_lan_ngac/turnaround.png"
+  ]
+}
