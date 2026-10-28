@@ -1,0 +1,59 @@
+/* UI v2 đợt 3c: thợ rèn (cường hóa hồn cốt / hồn hạch / trang bị, khắc may mắn, hợp thành, phân giải, đổi bộ) theo kit GIẤY, Part of #885 / #877. Mọi luật dưới
+   `body.ui2 #npc.n2` (cờ tắt mặc định; KHÔNG gỡ luật cũ ở style.css). Dùng lại khung và token của ui2-npc.css / ui2-shop.css; không sinh ảnh. Ba trang đang
+   dùng khung C2 (data-c16-page: forge, forgecore, forgesynth) GIỮ khung đó theo bảng vai trò, chỉ nội dung dùng luật dưới (màu lấy biến --text / --line của
+   tấm mực nên đọc được cả trên giấy lẫn trên mực). Chữ qua --fs-*, vùng bấm >= 32 px, trạng thái chọn / nguy hiểm có chữ hoặc vạch (không chỉ màu). */
+
+/* (1) Hộp thợ rèn: cột dọc, tiêu đề trang có gạch chân son. */
+body.ui2 #npc.n2 .forge,body.ui2 #npc.n2 .epick{display:flex;flex-direction:column;gap:var(--sp-3);font:var(--fs-m)/1.3 var(--f12)}
+body.ui2 #npc.n2 .forge .shead{margin:0;padding:0 0 var(--sp-2);border-top:0;background:none;font:var(--fs-m)/1.3 var(--f12);font-weight:normal;color:var(--text);border-bottom:var(--bd) solid var(--son)}
+body.ui2 #npc.n2 .forge small,body.ui2 #npc.n2 .epick small{font:var(--fs-s)/1.4 var(--f10);color:var(--muted)}
+
+/* (2) Dòng chọn món: thẻ giấy, vạch trái màu bậc (hình), chọn = viền dày + dấu √ / ☑ trong chữ. */
+body.ui2 #npc.n2 .aopt.eopt{min-height:40px;padding:var(--sp-3) var(--sp-4);color:var(--text);cursor:pointer;background:var(--wash);border:var(--bd-fine) solid var(--line);border-left:var(--bd) solid var(--c,var(--line));border-radius:0;text-shadow:none}
+body.ui2 #npc.n2 .aopt.eopt:not(:disabled):hover{border-color:var(--text);border-left-color:var(--c,var(--text))}
+body.ui2 #npc.n2 .aopt.eopt:is(.on,.sel){border:var(--bd) solid var(--son);background:var(--wash2)}
+body.ui2 #npc.n2 .aopt.eopt:disabled{cursor:not-allowed;opacity:.75}
+body.ui2 #npc.n2 .eopt b{font:var(--fs-m)/1.2 var(--f12);font-weight:normal;color:var(--text)}
+body.ui2 #npc.n2 .eopt i{font:var(--fs-s)/1.2 var(--f10);font-style:normal;color:var(--muted)}
+body.ui2 #npc.n2 .eopt span{font:var(--fs-s)/1.3 var(--f10);color:var(--muted)}
+body.ui2 #npc.n2 .eopt .eico{width:32px;height:32px}
+
+/* (3) Bảng xem trước: dòng tên / giá trị nét đứt, số canh phải; hàng tỉ lệ có thanh. */
+body.ui2 #npc.n2 .forge .erow{gap:var(--sp-4);padding:var(--sp-2) 0;border-bottom:var(--bd-fine) dashed var(--line);font:var(--fs-m)/1.3 var(--f12);flex-wrap:wrap}
+body.ui2 #npc.n2 .forge .erow b{color:var(--muted);font-weight:normal}
+body.ui2 #npc.n2 .forge .erow span{font-variant-numeric:tabular-nums;color:var(--text)}
+body.ui2 #npc.n2 .forge .erate .sbar{flex:1 0 100%}
+
+/* (4) Thanh (tiến độ cường hóa, tỉ lệ thành công): rãnh có viền, phần đầy màu bậc; không chỉ màu vì luôn kèm chữ điểm / %. */
+body.ui2 #npc.n2 .sbar{display:block;height:8px;box-sizing:border-box;background:var(--track);border:var(--bd-fine) solid var(--line)}
+body.ui2 #npc.n2 .sbar i{display:block;height:100%;background:var(--c,var(--son-l))}
+body.ui2 #npc.n2 .forge .erate .sbar i{background:var(--son-l)}
+
+/* (5) Khung xác nhận (nguyên liệu mất hẳn) và ô Bùa Hộ Mệnh. */
+body.ui2 #npc.n2 .aconf{gap:var(--sp-2);padding:var(--sp-4);background:var(--wash2);border:var(--bd-fine) solid var(--line);border-left:var(--bd) solid var(--accent);border-radius:0}
+body.ui2 #npc.n2 .aconf b{font:var(--fs-m)/1.3 var(--f12);font-weight:normal;color:var(--accent)}
+body.ui2 #npc.n2 .aconf.risk{border-left-color:var(--bad)}
+body.ui2 #npc.n2 .aconf.risk b{color:var(--text)}
+body.ui2 #npc.n2 .aconf .warn{color:var(--text)}
+body.ui2 #npc.n2 .aconf .poor{color:var(--warn,var(--bad))}
+body.ui2 #npc.n2 .forge .echarm{display:flex;align-items:flex-start;gap:var(--sp-3);min-height:32px;margin:0;font:var(--fs-m)/1.3 var(--f12);color:var(--text)}
+body.ui2 #npc.n2 .forge .echarm input{flex:none;width:20px;height:20px;margin:0}
+
+/* (6) Nút: chính (cường hóa / xác nhận), nguy hiểm (có thể mất đồ: son đậm + chữ), phụ (quay lại, chọn nhanh). Vùng bấm >= 36 px. */
+body.ui2 #npc.n2 :is(.forge,.epick) :is(.aopt:not(.eopt),.buse){min-height:36px;padding:0 var(--sp-5);box-sizing:border-box;font:var(--fs-m)/1.2 var(--f12);color:var(--text);background:var(--wash);border:var(--bd-fine) solid var(--line);border-radius:0;text-shadow:none;cursor:pointer;text-align:center;justify-content:center}
+body.ui2 #npc.n2 :is(.forge,.epick) :is(.aopt:not(.eopt),.buse):not(:disabled):hover{border-color:var(--text);background:var(--wash2)}
+body.ui2 #npc.n2 :is(.forge,.epick) :is(.aopt.absorb,.buse.eok){min-height:44px;color:var(--plate-text);background:var(--son);border:var(--bd) solid var(--son-d)}
+body.ui2 #npc.n2 :is(.forge,.epick) :is(.aopt.absorb,.buse.eok):not(:disabled):hover{background:var(--son-d)}
+body.ui2 #npc.n2 :is(.forge,.epick) .aopt.danger{min-height:44px;color:var(--plate-text);background:var(--son-d);border:var(--bd) dashed var(--plate-text);outline:var(--bd) solid var(--son-d)}   /* viền đứt + chữ nêu hậu quả: nhận ra không cần màu */
+body.ui2 #npc.n2 :is(.forge,.epick) .aopt.danger:not(:disabled):hover{background:var(--son)}
+body.ui2 #npc.n2 :is(.forge,.epick) :is(.aopt,.buse):disabled{cursor:not-allowed;opacity:.7;color:var(--muted);background:var(--wash);border-color:var(--line);outline:0}
+body.ui2 #npc.n2 :is(.forge,.epick) .brow{display:flex;flex-wrap:wrap;gap:var(--sp-3)}
+body.ui2 #npc.n2 :is(.forge,.epick) .brow .buse{flex:1 1 auto}
+body.ui2 #npc.n2 :is(.forge,.epick) :is(button,input):focus-visible{outline:var(--bd) solid var(--son-l);outline-offset:var(--bd)}
+
+/* (7) Màn nhỏ nhất 960x540: nội dung cuộn trong hộp, nút chính dính đáy khi bảng xem trước dài. */
+body.ui2 #npc.n2 .forge>:is(.aopt.absorb,.aopt.danger){position:sticky;bottom:0;z-index:1}
+@media (prefers-reduced-motion:reduce){body.ui2 #npc.n2 .forge{animation:none!important}}
+
+/* (8) Màn thấp (960x540): hộp thợ rèn không phủ lên thanh kỹ năng đáy (cao tối đa = màn trừ 120 px, dịch lên 30 px). */
+body.ui2 #npc.n2.f2-giay-lon[id]:has(>.forge,>.epick),body.ui2 #npc.n2[id]:has(>.forge,>.epick){max-height:calc(100% - 120px);top:calc(50% - 30px)}
