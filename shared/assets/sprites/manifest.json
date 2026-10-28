@@ -11656,6 +11656,72 @@
       "iso": true
     },
     {
+      "key": "vhanim_bich_lan_xa_hoang_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_bich_lan_xa_hoang_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
       "key": "vh_can_khon_hon_nguyen_toa_b",
       "iso": true
     },
@@ -12257,6 +12323,72 @@
       "iso": true
     },
     {
+      "key": "vhanim_lam_dien_ba_vuong_long_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_lam_dien_ba_vuong_long_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
       "key": "vh_lam_ngan_thao_b",
       "iso": true
     },
@@ -12486,6 +12618,72 @@
     {
       "key": "vh_nhu_cot_tho_f",
       "iso": true
+    },
+    {
+      "key": "vhanim_nhu_cot_tho_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_nhu_cot_tho_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
     },
     {
       "key": "vh_pha_hon_thuong_b",
