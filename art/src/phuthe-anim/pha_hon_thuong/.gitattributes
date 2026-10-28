@@ -1,1 +1,1 @@
-*.prompt.txt -text
+*.prompt.txt -text whitespace=cr-at-eol
