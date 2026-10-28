@@ -1,4 +1,4 @@
-# Thâm Hải Ma Kình — RAW hoạt ảnh
+# Thâm Hải Ma Kình — RAW hoạt ảnh (#861)
 
 File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species tham_hai_ma_kinh`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
 
@@ -41,6 +41,25 @@ Loài `tham_hai_ma_kinh` (Thâm Hải Ma Kình), họ `swim`, khung game 128×12
 - Mức kiểm: **pass** (khối hướng: e pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
+## to-ne
+
+- File: `to-ne.png`, **1536×1024**, 1735384 byte, SHA256 `6e74907b044dc0985b018b5816a12d8aa6a217b8db0b33998c0c012d9bb64cf0`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-778.
+- Prompt: `to-ne.prompt.txt` (SHA256 `0b248362ea0e5511cc8859b1f57c5c44fd605ae0c277276ca6c0a0c4e9bf7f4f`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+## to-n
+
+- File: `to-n.png`, **1536×1024**, 1765356 byte, SHA256 `2ddc64328a34e04101d6f87e0e703ae867c7d06ce3e3bf00d496ce3a86cddeca`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-778.
+- Prompt: `to-n.prompt.txt` (SHA256 `0781d8d93c23d5731b6ad303fbf436b32113db172f180504c099191a25cb0e9d`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 132% so với ảnh tĩnh (lệch 32%, quá 25%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
 ## Tờ chưa vào thư mục chính (candidates)
 
 Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
@@ -62,10 +81,12 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 ## Lỗi
 
 ```text
-LỖI: turnaround — CHẶN: turnaround cũ vẫn không được duyệt; thêm đủ 3 lượt mới trong candidates/turnaround-lo4-attemptN: lượt1 n hai đuôi; lượt2 ne có mắt; lượt3 ne đảo đầu/đuôi. Chưa sinh ne/n, giữ fallback (mắt)
-LỖI: toA — s: die còn mở mắt, biên độ chìm nhẹ (ghi chú cũ) (mắt)
-LỖI: toB — se: die hơi xoay, hurt biên độ nhỏ (ghi chú cũ) (mắt)
-LỖI: toC — e: attack ngẩng đầu mạnh, die còn mở mắt (ghi chú cũ) (mắt)
+LỖI: turnaround — Lịch sử trước phiên 778 (hướng mới theo tờ to-<hướng>): CHẶN: turnaround cũ vẫn không được duyệt; thêm đủ 3 lượt mới trong candidates/turnaround-lo4-attemptN: lượt1 n hai đuôi; lượt2 ne có mắt; lượt3 ne đảo đầu/đuôi. Chưa sinh ne/n, giữ fallback (mắt)
+LỖI: toA — Lịch sử trước phiên 778 (hướng mới theo tờ to-<hướng>): s: die còn mở mắt, biên độ chìm nhẹ (ghi chú cũ) (mắt)
+LỖI: toB — Lịch sử trước phiên 778 (hướng mới theo tờ to-<hướng>): se: die hơi xoay, hurt biên độ nhỏ (ghi chú cũ) (mắt)
+LỖI: toC — Lịch sử trước phiên 778 (hướng mới theo tờ to-<hướng>): e: attack ngẩng đầu mạnh, die còn mở mắt (ghi chú cũ) (mắt)
+LỖI: to-ne — Phiên 778: CHẶN: 3 lượt vẫn còn chấm mắt cạnh đầu ne ở idle/walk/attack/die; giữ fallback. (mắt)
+LỖI: to-n — LỊCH SỬ LƯỢT (bản cuối ĐẠT, đã nhập): Đạt lượt 2: nhìn sau đầu trơn không mắt/mặt, đuôi phía gần người xem; die biên độ nhỏ. Lượt 1 còn mắt hai bên đầu. (mắt)
 ```
 
 ## Ghi công
@@ -74,4 +95,4 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/beast-anim/tham_hai_ma_kinh/` | - | image_gen | RAW hoạt ảnh Thâm Hải Ma Kình: turnaround 1536×1024, toA 1536×1024, toB 1536×1024, toC 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+| `art/src/beast-anim/tham_hai_ma_kinh/` | - | image_gen | RAW hoạt ảnh Thâm Hải Ma Kình: turnaround 1536×1024, toA 1536×1024, toB 1536×1024, toC 1536×1024, to-ne 1536×1024, to-n 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
