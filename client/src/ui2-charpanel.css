@@ -1,0 +1,116 @@
+/* UI v2 đợt 2a-1: bảng NHÂN VẬT (Hồn sư) theo kit Mực, Part of #885 / #877. Mọi luật dưới `body.ui2` (cờ tắt mặc định: không có lớp này thì bảng cũ không đổi, KHÔNG gỡ luật cũ ở style.css).
+   Khung do lớp `f2-*` của ui2.css lo (charPanel.ts / actionCard.ts gắn khi bật cờ); file này chỉ (1) giữ khung kit thắng luật `#char` / `.thuymac #char` cũ,
+   (2) đổi token chữ sang tông Mực trong phạm vi bảng, (3) bố cục, ô theo hạng, thẻ thao tác, bảng so sánh. Chữ 10 / 12 / 24 qua --fs-*, vùng bấm 32 px (ô, tab) / 44 px (nút chính),
+   không ký tự ngoài phông nhúng. Hướng nghệ thuật lai Hồn Quang: chỉ dùng token sẵn có, chưa đổi kit. */
+
+/* (1) Khung: lặp lại đúng bộ viền kit (vẫn đi qua --frame-*) vì `.thuymac #char` có độ ưu tiên cao hơn helper. */
+body.ui2.ui2-k-khung-muc-lon #char.f2-muc-lon,body.ui2.ui2-k-khung-muc-nho .acard.f2-muc-nho,body.ui2.ui2-k-khung-giay-nho .cmpdlg.f2-giay-nho,
+body.ui2.ui2-k-tab-thuong #char .f2-tab,body.ui2.ui2-k-nut-chinh-thuong :is(#char,.acard,.cmpdlg) .f2-nut-chinh,
+body.ui2.ui2-k-nut-phu-thuong :is(#char,.acard,.cmpdlg) .f2-nut-phu{
+  box-sizing:border-box;border-style:solid;border-color:transparent;border-width:var(--frame-bw);border-image:var(--frame-img) var(--frame-nine) fill / var(--frame-bw) stretch;
+  background:none;box-shadow:none;image-rendering:pixelated}
+
+/* (2) Tông Mực trong phạm vi bảng: đổi token cục bộ để mọi luật cũ (chữ, đường kẻ, nền nhạt) tự đọc được trên nền mực. */
+body.ui2 #char{--text:var(--plate-text);--muted:var(--paper2);--line:var(--paper3);--line2:var(--inkl);--wash:var(--track);--wash2:var(--ink2);
+  --accent:#97e6bd;--good:#97e6bd;--bad:#ff9b8a;--warn:#ffbf8a;--xp-t:#ffe08a;   /* cùng bộ sáng của `.thuymac #char`, tương phản ≥ 4,5 : 1 trên --plate */
+  color:var(--plate-text);font:var(--fs-m)/1.3 var(--f12);width:min(680px,96vw);gap:var(--sp-4);padding:var(--sp-4);scrollbar-width:thin;scrollbar-color:var(--paper3) transparent}
+body.ui2 #char .rhead{color:var(--plate-text);border-bottom:var(--bd-fine) solid var(--ink2);padding-bottom:var(--sp-3)}
+body.ui2 #char .rhead b{font:var(--fs-l)/1.2 var(--f12);font-weight:normal;color:var(--plate-text)}
+body.ui2 #char :is(.rlink,.x,.rhead button){min-height:32px;min-width:32px;box-sizing:border-box;padding:0 var(--sp-4);cursor:pointer;font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2)}
+body.ui2 #char :is(.rlink,.x,.rhead button):hover{border-color:var(--plate-text)}
+body.ui2 #char :is(button,[tabindex]):focus-visible,body.ui2 :is(.acard,.cmpdlg) button:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+body.ui2 .acard :is(button):focus-visible,body.ui2 .cmpdlg :is(button):focus-visible{outline-color:var(--xp)}
+
+/* Dải võ hồn trong đội + bốn tab búp bê: tab kit, đang chọn có vạch dày dưới chân (hình, không chỉ màu). */
+body.ui2 #char .cstrip{gap:var(--sp-4);align-items:center}
+body.ui2 #char .ctabs,body.ui2 #char .cdtabs{gap:var(--sp-3);border-bottom:0;padding-bottom:0}
+body.ui2 #char .ui-tab{min-height:32px;box-sizing:border-box;padding:0 var(--sp-4);font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text);text-shadow:none;cursor:pointer}
+body.ui2 #char .ui-tab::before{width:var(--sp-4);height:var(--sp-4)}
+body.ui2 #char .ui-tab[aria-selected="true"]{color:var(--plate-text);box-shadow:inset 0 calc(var(--bd) * -2) 0 var(--accent)}
+body.ui2 #char .cdtabs .ui-tab small,body.ui2 #char .cdtabs .ui-tab[aria-selected="true"] small{font:var(--fs-s)/1.2 var(--f10);color:var(--paper2)}
+body.ui2 #char .cgo{min-height:44px;min-width:96px;padding:0 var(--sp-5);color:var(--plate-text);text-shadow:none}
+body.ui2 #char .cgo:disabled{cursor:not-allowed}
+
+/* Bố cục thân bảng: cột trái (búp bê) rộng hơn, cột phải (chỉ số) gọn; màn hẹp (ui-w560) giữ luật cũ một cột. */
+body.ui2 #char .cbody{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:var(--sp-5)}
+body.ui2.ui-w560 #char .cbody{grid-template-columns:minmax(0,1fr)}
+body.ui2 #char .cshead{font:var(--fs-m)/1.2 var(--f12);color:var(--paper2);border-bottom:var(--bd-fine) solid var(--ink2);padding-bottom:var(--sp-2)}
+body.ui2 #char :is(.rnote,.cnote){font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)}
+body.ui2 #char .cnote{padding:var(--sp-3) var(--sp-4);background:var(--track);border-left:6px solid var(--good)}   /* kết quả lệnh: vạch trái 6 px + chữ, không chỉ màu */
+body.ui2 #char .cnote.warn{border-left-color:var(--warn);color:var(--warn)}
+body.ui2 #char .cnote:not(.warn){color:var(--plate-text)}
+
+/* Ô theo hạng. Mảnh ô của kit (o_trong, o_hiem_1..5) là ảnh cỡ cố định, không có vạch cắt 9-slice (ui-kit.json `stretch: false`) nên vẽ bằng `background` kéo vừa ô, không bằng border-image;
+   luật chung `.f2-o` của ui2.css (border-image + `background:none`) không có hiệu lực với ô, nên đặt lại ở đây. Hạng (data-rk 0..4, từ rarityOf) chọn khung o_hiem_1..5; thêm vạch dưới chân dày dần
+   2 / 3 / 4 / 5 / 6 px + màu `--c` (hình, không chỉ màu); ô trống dùng o_trong, mờ nhẹ. Thiếu mảnh thì ô giữ kiểu cũ. */
+body.ui2.ui2-k-o-trong #char .bcell.f2-o{border-width:0;background:var(--ui2-o-trong) center / 100% 100% no-repeat;image-rendering:pixelated}
+body.ui2.ui2-k-o-hiem-1 #char .bcell.f2-o[data-rk="0"]{background-image:var(--ui2-o-hiem-1),var(--ui2-o-trong)}
+body.ui2.ui2-k-o-hiem-2 #char .bcell.f2-o[data-rk="1"]{background-image:var(--ui2-o-hiem-2),var(--ui2-o-trong)}
+body.ui2.ui2-k-o-hiem-3 #char .bcell.f2-o[data-rk="2"]{background-image:var(--ui2-o-hiem-3),var(--ui2-o-trong)}
+body.ui2.ui2-k-o-hiem-4 #char .bcell.f2-o[data-rk="3"]{background-image:var(--ui2-o-hiem-4),var(--ui2-o-trong)}
+body.ui2.ui2-k-o-hiem-5 #char .bcell.f2-o[data-rk="4"]{background-image:var(--ui2-o-hiem-5),var(--ui2-o-trong)}
+body.ui2.ui2-k-o-chon #char .bcell.f2-o.sel{background-image:var(--ui2-o-chon)}
+body.ui2 #char .bcell.ui-cell{color:var(--plate-text);cursor:pointer}
+body.ui2 #char .bcell[data-rk]{box-shadow:inset 0 calc(var(--bd) * -1) 0 var(--c)}
+body.ui2 #char .bcell[data-rk="1"]{box-shadow:inset 0 -3px 0 var(--c)} body.ui2 #char .bcell[data-rk="2"]{box-shadow:inset 0 -4px 0 var(--c)}
+body.ui2 #char .bcell[data-rk="3"]{box-shadow:inset 0 -5px 0 var(--c)} body.ui2 #char .bcell[data-rk="4"]{box-shadow:inset 0 -6px 0 var(--c)}
+body.ui2 #char .bcell.empty{opacity:.85}
+body.ui2 #char .bcell.empty:not(.sel){border-style:dashed}   /* chỉ khi kit chưa có mảnh ô (còn viền cũ): ô trống nét đứt */
+body.ui2 #char .bcell.sel,body.ui2 #char .cring:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:calc(var(--bd) * -1)}
+body.ui2 #char .bcell>span,body.ui2 #char .bcell small,body.ui2 #char .ecell span{font:var(--fs-s)/1.1 var(--f10);color:var(--plate-text)}
+body.ui2 #char .bcell .enh{color:var(--xp-t)}
+body.ui2 #char .bcell{min-height:56px;min-width:32px}
+body.ui2 #char .ecell{width:56px;min-height:56px}
+body.ui2 #char .bmid small,body.ui2 #char .cstar{color:var(--paper2)}
+body.ui2 #char .cmid b{color:var(--plate-text)}
+body.ui2 #char .cring{min-height:32px;padding:var(--sp-1) var(--sp-4);font:var(--fs-s)/1.2 var(--f10);color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2);cursor:pointer}
+body.ui2 #char .cring.empty{border-style:dashed;color:var(--paper2)}
+body.ui2 #char .cring>em{color:var(--paper2)}
+
+/* Thẻ dưới búp bê (món đang gắn / lời nhắc chọn món) và bộ hồn hạch: tấm chìm, chữ sáng. */
+body.ui2 #char .binfo{color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2);padding:var(--sp-4)}
+body.ui2 #char .binfo small{color:var(--paper2)}
+body.ui2 #char .buse{min-height:32px;padding:0 var(--sp-5);cursor:pointer;font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text)}
+body.ui2 #char .cset{background:var(--track);border:var(--bd-fine) solid var(--ink2);color:var(--plate-text)}
+body.ui2 #char .cset.on{border-color:var(--c);border-left-width:6px}
+body.ui2 #char .cset small{color:var(--paper2)} body.ui2 #char .cset small.on{color:var(--good)}
+
+/* Chỉ số: hàng nhãn / số thẳng cột, số căn phải; chênh lệch từ trang bị có chữ "+". */
+body.ui2 #char .cstat{min-height:var(--sp-6);padding:var(--sp-1) 0;border-bottom:var(--bd-fine) solid var(--ink2)}
+body.ui2 #char .cstat span{color:var(--paper2)}
+body.ui2 #char .cstat b{color:var(--plate-text)}
+body.ui2 #char .cgroup{color:var(--paper2)}
+body.ui2 #char .p2-state{min-height:var(--sp-6)}   /* trạng thái "đang nhận chỉ số" dùng chung (stateBox): bộ xương 3 dòng */
+body.ui2 #char .p2-state .p2-skel{height:var(--sp-6)}
+
+/* (3) Thẻ thao tác: tấm Mực nhỏ cạnh ô, nút chính 44 px (Mặc / Gắn), nút phụ 32 px; tên món theo màu hạng kèm viền dưới. */
+body.ui2 .acard{color:var(--plate-text);font:var(--fs-m)/1.3 var(--f12);padding:var(--sp-4);gap:var(--sp-2);max-width:min(280px,92vw)}
+body.ui2 .acard b{font:var(--fs-m)/1.2 var(--f12);font-weight:normal;color:var(--c);text-shadow:var(--stroke)}
+body.ui2 .acard small{font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)}
+body.ui2 .acard .arow{gap:var(--sp-3);margin-top:var(--sp-3)}
+body.ui2 .acard .buse{min-height:32px;margin-top:0;padding:0 var(--sp-5);font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text);cursor:pointer}
+body.ui2 .acard .buse.absorb{min-height:44px;min-width:64px}
+
+/* Bảng so sánh hai cột: tấm Giấy (nội dung đọc); ▲ / ▼ vẫn có chữ + dấu, không chỉ màu. */
+body.ui2 .cmpdlg{color:var(--text);font:var(--fs-m)/1.3 var(--f12);padding:var(--sp-5);gap:var(--sp-4)}
+body.ui2 .cmpdlg .chead b{font:var(--fs-l)/1.2 var(--f12);font-weight:normal}
+body.ui2 .cmpdlg .chead .x{min-width:32px;min-height:32px;background:var(--paper2);color:var(--text);border:var(--bd) solid var(--line)}
+body.ui2 .cmpdlg .cth{border-bottom:var(--bd) solid var(--line)}
+body.ui2 .cmpdlg .cth small,body.ui2 .cmpdlg .ck{font:var(--fs-s)/1.3 var(--f10);color:var(--muted)}
+body.ui2 .cmpdlg .cth b{font-weight:normal;text-shadow:var(--stroke)}
+body.ui2 .cmpdlg .cnew em{font:var(--fs-s)/1.2 var(--f10)}
+body.ui2 .cmpdlg .cnew.t-good{box-shadow:inset 4px 0 0 var(--good);padding-left:var(--sp-3)}   /* tăng / giảm: vạch trái + mũi tên chữ */
+body.ui2 .cmpdlg .cnew.t-bad{box-shadow:inset 4px 0 0 var(--bad);padding-left:var(--sp-3)}
+body.ui2 .cmpdlg .buse{min-height:32px;padding:0 var(--sp-5);font:var(--fs-m)/1.2 var(--f12);cursor:pointer}
+body.ui2 .cmpdlg .buse.absorb{min-height:44px;color:var(--plate-text)}
+body.ui2 .cmpdlg .buse:not(.absorb){color:var(--plate-text)}
+body.ui2 .cmpdlg .brow{gap:var(--sp-4)}
+
+/* Màn thấp (≤ 560 px, nhỏ nhất 960×540): bảng cao hơn, tiêu đề cỡ thường, ô gọn; nội dung dài hơn khung thì cuộn trong bảng (cỡ chữ lớn: giữ ô 56 px để nhãn không bị cắt). */
+body.ui2.ui-h560 #char{max-height:96%}
+body.ui2.ui-h560 #char .rhead b{font:var(--fs-m)/1.2 var(--f12)}
+body.ui2.ui-h560:not(.a11y-fs-1):not(.a11y-fs-2) #char :is(.ecell,.bcell){min-height:48px}
+body.ui2.ui-h560:not(.a11y-fs-1):not(.a11y-fs-2) #char .ecell{width:48px}
+body.ui2.ui-h560 #char .emid{min-height:0}
+body.ui2.a11y-fs-1 #char .ecell{width:64px}
+body.ui2.a11y-fs-2 #char .ecell{width:76px}   /* nhãn ô ("Dây chuyền", "Vòng tay trái") phải vừa chiều ngang ở cỡ chữ lớn */

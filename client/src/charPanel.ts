@@ -11,7 +11,9 @@ import { addZone, dragSource } from "./dragDrop.ts";
 import { showCard } from "./actionCard.ts";
 import { vohonCard } from "./cards.ts";
 import { skillImg, artImg } from "./uiArt.ts";
-import { compareRows } from "./bag.ts";
+import { compareRows, rarityOf } from "./bag.ts";
+import { isUi2 } from "./uiKit.ts";
+import { stateBox } from "./uiParts.ts";
 import { setTip, type TipSpec, type TipLine } from "./tooltip.ts";
 import { itemColor, itemName, boneOf, coreOf, coreSet, coreLines, wornCores, boneIcon, boneEmptyIcon, coreIcon, yearsShort, boneFullText, boneSkillText, skillSpec, SKILL_KEYS,
   starSkillText, itemArt, toggleRoster, toggleBag, toggleReso, toggleWorld, toggleFriends, closeNpc, setBagFocus } from "./hud.ts";
@@ -31,6 +33,10 @@ export interface CharActions {
 }
 
 const $ = (s: string) => document.querySelector(s) as HTMLElement;
+const UI2 = isUi2();
+/** UI v2 (đợt 2a-1, ui2-charpanel.css): lớp kit gắn thêm khi bật cờ; tắt cờ thì chuỗi rỗng, giao diện cũ không đổi. */
+const K = (cls: string) => (UI2 ? ` ${cls}` : "");
+if (UI2) document.getElementById("char")?.classList.add("f2-muc-lon");
 let charRow: number | null = null;   // võ hồn đang xem (null = võ hồn ra trận)
 let again: (() => void) | null = null;
 const BONE_AREA: Record<string, string> = { dau: "1 / 2", tay_trai: "2 / 1", tay_phai: "2 / 3", than: "3 / 2", chan_trai: "3 / 1", chan_phai: "3 / 3" };
@@ -145,12 +151,12 @@ function slotCard(title: string, cur: BagItem | undefined, hint: string, lines: 
   if (cur) for (const l of lines) box.appendChild(mk("p", "", l));
   const row = mk("div", "brow");
   if (cur) {
-    const off = mk("button", "buse drop", "Tháo về túi"); off.type = "button"; off.setAttribute("aria-label", `Tháo ${itemName(cur)} về túi đồ`);
+    const off = mk("button", "buse drop" + K("f2-nut-phu"), "Tháo về túi"); off.type = "button"; off.setAttribute("aria-label", `Tháo ${itemName(cur)} về túi đồ`);
     off.addEventListener("click", () => { off.blur(); unequip(cur); });
     row.appendChild(off);
     box.appendChild(mk("small", "", hint));
   }
-  const x = mk("button", "buse", "Bỏ chọn"); x.type = "button"; x.addEventListener("click", () => { x.blur(); close(); });
+  const x = mk("button", "buse" + K("f2-nut-phu"), "Bỏ chọn"); x.type = "button"; x.addEventListener("click", () => { x.blur(); close(); });
   row.appendChild(x); box.appendChild(row);
   return box;
 }
@@ -204,7 +210,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
   const inTeam = data.team.map((r) => data.list.find((x) => x.rowId === r)).filter((x): x is NonNullable<typeof x> => !!x);
   if (!inTeam.some((x) => x.rowId === v.rowId)) inTeam.push(v);
   for (const o of inTeam.slice(0, TEAM_SIZE + 1)) {
-    const od = VOHON[Math.max(0, vohonIndex(o.vohon))], b = mk("button", "ui-tab");
+    const od = VOHON[Math.max(0, vohonIndex(o.vohon))], b = mk("button", "ui-tab" + K("f2-tab"));
     b.type = "button"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(o.rowId === v.rowId)); b.style.setProperty("--c", od.col);
     b.textContent = `${od.name}${o.rowId === data.active ? " ◆" : ""}`;
     b.addEventListener("click", () => { b.blur(); charRow = o.rowId; selBone = null; selCore = null; act.ask(o.rowId); rerender(); });
@@ -212,7 +218,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
   }
   strip.appendChild(tabs);
   const teamAt = data.team.indexOf(v.rowId), isActive = v.rowId === data.active;
-  const go = mk("button", "buse use cgo", isActive ? "Đang ra trận" : "Ra trận"); go.type = "button";
+  const go = mk("button", "buse use cgo" + K("f2-nut-chinh"), isActive ? "Đang ra trận" : "Ra trận"); go.type = "button";
   go.disabled = isActive || teamAt < 0;
   go.title = isActive ? `${def.name} đang ra trận` : teamAt < 0 ? `${def.name} chưa trong đội: xếp đội ở bảng Đội hình (V)` : `Đổi ${def.name} ra trận`;
   go.setAttribute("aria-label", go.title);
@@ -231,7 +237,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
   if (selEquip && gearBy.has(selEquip)) selEquip = null; // ô đã có món (mặc bằng kéo thả / bấm đúp): bỏ chọn để viền, ghi chú, focus Túi khớp nhau
   const counts: Record<DollTab, string> = { equip: `${gearBy.size}/${EQUIP_SLOTS.length}`, bone: `${worn.size}/${BONE_SLOTS.length}`, core: `${bySlot.size}/${CORE_SLOTS}`, vohon: `${inTeam.length}/${TEAM_SIZE}` };
   for (const t of TABS) {
-    const b = mk("button", "ui-tab"); b.type = "button"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(tab === t.id)); b.dataset.tab = t.id;
+    const b = mk("button", "ui-tab" + K("f2-tab")); b.type = "button"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(tab === t.id)); b.dataset.tab = t.id;
     b.innerHTML = `${t.name} <small>${counts[t.id]}</small>`;
     b.addEventListener("click", () => { b.blur(); pickTab(t.id); });
     dtabs.appendChild(b);
@@ -254,10 +260,10 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     const cell = (id: string) => {
       const s = EQUIP_SLOTS.find((x) => x.id === id)!, g = gearBy.get(id), it = g && gearAsBagItem(g), ref: SlotRef = { tab: "equip", slot: id, rowId: null };
       const tpl = it ? equipTemplate(parseEquip(it.stats)?.tpl) : undefined;
-      const b = mk("button", "bcell ecell ui-cell" + (it ? "" : " empty") + (selEquip === id ? " sel" : "")); b.type = "button"; b.dataset.slot = id;
+      const b = mk("button", "bcell ecell ui-cell" + K("f2-o") + (it ? K("has") : " empty") + (selEquip === id ? " sel" : "")); b.type = "button"; b.dataset.slot = id;
       b.setAttribute("aria-pressed", String(selEquip === id));
       if (it) {
-        b.style.setProperty("--c", itemColor(it)); b.dataset.etier = String(tpl?.tier ?? 0);
+        b.style.setProperty("--c", itemColor(it)); b.dataset.etier = String(tpl?.tier ?? 0); b.dataset.rk = String(Math.max(0, rarityOf(it)));
         const art = itemArt(it);
         b.innerHTML = `${art}${tpl ? artImg(equipFrameKey(tpl.tier), "efr") : ""}`;
         if (!art) b.appendChild(mk("span", "", itemName(it)));
@@ -297,9 +303,9 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     mid.appendChild(mk("small", "cstar", `${v.stars}★ · cấp ${v.level}`));
     fig.appendChild(mid);
     for (const s of BONE_SLOTS) {
-      const it = worn.get(s.id), b = mk("button", "bcell ui-cell" + (it ? "" : " empty") + (selBone === s.id ? " sel" : ""));
+      const it = worn.get(s.id), b = mk("button", "bcell ui-cell" + K("f2-o") + (it ? K("has") : " empty") + (selBone === s.id ? " sel" : ""));
       b.type = "button"; b.style.gridArea = BONE_AREA[s.id]; b.dataset.slot = s.id;
-      if (it) { b.style.setProperty("--c", itemColor(it)); b.dataset.tier = String(tierOfYears(it.years)); }
+      if (it) { b.style.setProperty("--c", itemColor(it)); b.dataset.tier = String(tierOfYears(it.years)); b.dataset.rk = String(rarityOf(it)); }
       const kb = it ? boneOf(it) : null, k = kb ? boneSkillOf(kb.beast, s.id) : null, kname = k ? (k.active ? k.sk.name : k.ps.name) : "";
       b.innerHTML = `${it ? boneIcon(s.id, itemColor(it)) : boneEmptyIcon(s.id)}<span>${s.name}</span>${it ? `<small>${yearsShort(it.years)}</small>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${kname ? "<em></em>" : ""}`;
       if (kname) b.querySelector("em")!.textContent = kname;
@@ -326,11 +332,11 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     const ring = mk("div", "cring6"); ring.style.setProperty("--c", def.col);
     for (let s = 0; s < CORE_SLOTS; s++) {
       const it = bySlot.get(s), c = it ? coreOf(it) : null, n = c ? counts6.get(c.set) ?? 0 : 0, cs = c ? coreSet(c.set) : undefined;
-      const b = mk("button", "bcell ccell ui-cell" + (it ? "" : " empty") + (selCore === s ? " sel" : "") + (n >= CORE_SET_2 ? " seton" : ""));
+      const b = mk("button", "bcell ccell ui-cell" + K("f2-o") + (it ? K("has") : " empty") + (selCore === s ? " sel" : "") + (n >= CORE_SET_2 ? " seton" : ""));
       b.type = "button"; b.dataset.slot = String(s);
       const a = ((-90 + (360 / CORE_SLOTS) * s) * Math.PI) / 180;
       b.style.left = `${50 + 37 * Math.cos(a)}%`; b.style.top = `${50 + 37 * Math.sin(a)}%`;
-      if (it) b.style.setProperty("--c", itemColor(it));
+      if (it) { b.style.setProperty("--c", itemColor(it)); b.dataset.rk = String(rarityOf(it)); }
       if (n >= CORE_SET_2 && cs) b.style.setProperty("--sc", cs.col);
       b.innerHTML = `${coreIcon(c?.set ?? "")}${it ? `<small>${it.stars ?? 1}★</small>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}`;
       b.setAttribute("aria-label", `Ô hồn hạch ${s + 1}: ${it ? itemName(it) : "trống"}${n >= CORE_SET_2 && cs ? `, bộ ${cs.name} đang kích hoạt` : ""}`); b.setAttribute("aria-pressed", String(selCore === s));
@@ -417,7 +423,7 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     setTip(r, { title: name, lines: [tip, ...(lbl ? [{ v: lbl, tone: "good" as const }] : [])] });
     box.appendChild(r);
   };
-  if (!st) box.appendChild(mk("small", "", "Đang nhận chỉ số từ máy chủ…"));
+  if (!st) box.appendChild(UI2 ? stateBox({ kind: "loading", text: "Đang nhận chỉ số từ máy chủ…", rows: 3 }) : mk("small", "", "Đang nhận chỉ số từ máy chủ…"));
   else {
     const { total: t, base: b } = st, d = (x: number, y: number, f = num) => (Math.round(x - y) > 0 ? `+${f(x - y)}` : "");
     const dp = (x: number, y: number) => (x - y > 1e-9 ? `+${pct(x - y)}` : "");
