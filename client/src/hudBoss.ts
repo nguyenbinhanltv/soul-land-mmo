@@ -1,6 +1,11 @@
 // Thanh máu thú vương / boss thế giới, đếm ngược và bảng đóng góp của HUD (tách nguyên văn từ hud.ts, Part of #885 bước 0a); hud.ts re-export để nơi gọi giữ nguyên.
 import { HE, type He, WORLD, KING } from "../../shared/data.ts";
+import { isUi2 } from "./uiKit.ts";
+import "./ui2-hud-side.css";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
+
+// UI v2 (đợt 1d): hộp phụ của HUD nhận khung Mực của kit khi bật cờ ui2 (index.html giữ nguyên; cờ tắt thì không đổi gì). Luật vẽ ở ui2-hud.css / ui2-hud-side.css.
+if (isUi2()) for (const id of ["bossbar", "bossRank", "target", "prompt", "portal", "wpbox", "fusion", "pmenu"]) document.getElementById(id)?.classList.add("f2-muc-nho");
 
 // ---------- Tà hóa thú vương (BĐ5, mục 5.4): đếm ngược, thanh máu lớn, bảng xếp hạng sát thương ----------
 /** Số giây -> "4:59". */
