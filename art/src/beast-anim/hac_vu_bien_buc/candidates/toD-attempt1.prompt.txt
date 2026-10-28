@@ -1,28 +1,18 @@
-Create ONE image (portrait 2:3 aspect ratio; the exact pixel size does not matter): an animation sprite sheet of a single fantasy creature for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
+Create ONE image (landscape 3:2 aspect ratio; the exact pixel size does not matter): an animation sprite sheet of a single fantasy creature, ONE direction only, for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
 
 CREATURE: Hắc Vụ Biên Bức - black mist bat, dark charcoal fur, large leathery wings spread wide, small pointed ears, in flight. Body type: chim. Size class: Tím / Đen. Keep the SAME design, proportions, colors, markings and overall size as the references in every frame. Do not redesign it.
-REFERENCES (attached images, in this fixed order): image 1 = the static reference of this exact creature in three views (front, side, back): the identity, design, colors and overall size.
+REFERENCES (attached images, in this fixed order): image 1 = the static reference of this exact creature in three views (front, side, back): the identity, design, colors and overall size; image 2 = the approved TURNAROUND image of this creature: five columns of directions (s, se, e, ne, n) by three rows (idle, hurt, die). Copy the pose, facing angle and body size of the column "ne" for the idle, hurt and die frames of this sheet; image 3 = an approved direction sheet of this creature (only for matching line weight and palette; never copy its poses) (if attached).
 
 BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
 
-GRID: 6 columns x 12 rows of equal invisible cells (171x128 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with its feet (or lowest body point) standing on the same invisible ground line about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.
+GRID: 6 columns x 4 rows of equal invisible cells (256x256 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with its feet (or lowest body point) standing on the same invisible ground line about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.
 
-LAYOUT (top to bottom):
-Block 1 (rows 1-4): direction "s" = facing the viewer (front view, three-quarter from above).
+LAYOUT (top to bottom; every frame faces the same direction "ne" = facing the upper right of the picture (three-quarter back view, head away from the viewer toward the right)):
+Block 1 (rows 1-4): direction "ne" = facing the upper right of the picture (three-quarter back view, head away from the viewer toward the right).
   row 1: frames 1-4 = IDLE (folded wings, small head bobs and pecks at the ground); frames 5-6 = HURT (wings jerk, body recoils a short way backward along its facing line, talons stay on the ground).
   row 2: frames 1-6 = WALK (hopping and strutting on two talons).
   row 3: frames 1-6 = ATTACK (wings flare up, then dive forward with talons and beak extended, then recover).
   row 4: frames 1-4 = DIE (staggers, wings go limp, sinks down along its facing line, finally lying with the spine parallel to that line); the last 2 cells of this row stay empty magenta.
-Block 2 (rows 5-8): direction "se" = facing the lower right of the picture (three-quarter front view, head toward the viewer's right).
-  row 5: frames 1-4 = IDLE (folded wings, small head bobs and pecks at the ground); frames 5-6 = HURT (wings jerk, body recoils a short way backward along its facing line, talons stay on the ground).
-  row 6: frames 1-6 = WALK (hopping and strutting on two talons).
-  row 7: frames 1-6 = ATTACK (wings flare up, then dive forward with talons and beak extended, then recover).
-  row 8: frames 1-4 = DIE (staggers, wings go limp, sinks down along its facing line, finally lying with the spine parallel to that line); the last 2 cells of this row stay empty magenta.
-Block 3 (rows 9-12): direction "e" = facing right (side profile, seen from slightly above).
-  row 9: frames 1-4 = IDLE (folded wings, small head bobs and pecks at the ground); frames 5-6 = HURT (wings jerk, body recoils a short way backward along its facing line, talons stay on the ground).
-  row 10: frames 1-6 = WALK (hopping and strutting on two talons).
-  row 11: frames 1-6 = ATTACK (wings flare up, then dive forward with talons and beak extended, then recover).
-  row 12: frames 1-4 = DIE (staggers, wings go limp, sinks down along its facing line, finally lying with the spine parallel to that line); the last 2 cells of this row stay empty magenta.
 
 CONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, standing, walking and hurt frames keep the body at the same scale and the same ground line. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).
 
@@ -44,3 +34,4 @@ LESSONS (learned from earlier sheets of other creatures, follow every line):
 - Draw every frame as its own separate picture: leave clear magenta space between neighbours, never overlap or merge two creatures.
 - Idle frames must show a small visible change from frame to frame (breathing, sway), and HURT must look clearly different from IDLE.
 - A frame that is empty in the layout stays empty magenta: do not fill spare cells with extra poses.
+- In directions n and ne, hide every eye, mouth line, tooth and nostril behind the back of the skull in ALL poses: show a solid unmarked rear skull, never the side of the face. Attack and hurt change body height and forward reach only, with zero head yaw; never open a mouth toward the camera.
