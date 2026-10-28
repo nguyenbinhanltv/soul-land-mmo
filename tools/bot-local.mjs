@@ -516,6 +516,8 @@ try {
     for (const x of extras) { await kill(x.p); rmSync(x.xstats, { force: true }); }
     const ss = readStats(sstats), bs = readStats(bstats);
     rmSync(sstats, { force: true }); rmSync(bstats, { force: true });
+    if (code !== 0 && !n["✗"] && !serverDied) console.log(`[bot-local ${label}] mã ${code} nhưng KHÔNG có dòng ✗: bot chết ngoài đường kiểm tra (bị tín hiệu / hết RAM / process.exit), xem 15 dòng cuối của ${path.relative(root, blog)}:
+${tail(blog, 15)}`);
     console.log(`[bot-local ${label}] ${code === 0 ? "ĐẠT" : `TRƯỢT (mã ${code})`}: ✓ ${n["✓"]}, ✗ ${n["✗"]}, ⚠ ${n["⚠"]}; bot ${secs(tBot)}, tổng ${secs(tAll)}`);
     console.log(`[bot-local ${label}] RAM đỉnh: server RSS ${ss ? mb(ss.rss) : "?"} (heap ${ss ? mb(ss.heap) : "?"}), bot RSS ${bs ? mb(bs.rss) : "?"}; trần heap ${opt.heap} MB`);
     console.log(`[bot-local ${label}] log: ${path.relative(root, slog)}, ${path.relative(root, blog)}`);

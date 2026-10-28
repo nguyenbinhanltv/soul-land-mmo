@@ -42,10 +42,10 @@ export function candidateOnlySheets(dir, attemptsKv = {}) {
   if (!existsSync(cd)) return [];
   const found = {};
   for (const f of readdirSync(cd)) {
-    const m = /^(to[A-E])-attempt(\d+)\.png$/.exec(f);
+    const m = /^(to(?:[A-E]|-(?:s|se|e|ne|n)))-attempt(\d+)\.png$/.exec(f);
     if (m && !existsSync(path.join(dir, `${m[1]}.png`))) (found[m[1]] ??= []).push(Number(m[2]));
   }
-  const names = [...new Set([...Object.keys(found), ...Object.keys(attemptsKv).filter((k) => /^to[A-E]$/.test(k) && !existsSync(path.join(dir, `${k}.png`)) && found[k])])].sort();
+  const names = [...new Set([...Object.keys(found), ...Object.keys(attemptsKv).filter((k) => /^to(?:[A-E]|-(?:s|se|e|ne|n))$/.test(k) && !existsSync(path.join(dir, `${k}.png`)) && found[k])])].sort();
   return names.map((name) => {
     const list = found[name].sort((a, b) => a - b), declared = Number(attemptsKv[name]);
     const chosen = list.includes(declared) ? declared : list[list.length - 1];

@@ -263,6 +263,16 @@ jobs:
         timeout-minutes: 5
         env:
           FLOW_OUTPUT: ${{ runner.temp }}/flow-browser
+      # Hai bài trình duyệt nhẹ cùng job (dùng lại Chrome + node_modules vừa cài, ~15 s và ~30 s ở máy; server RAM + vite riêng, có watchdog):
+      # bảng không nuốt phím / chuột (U1 #754) và vào phòng / đổi bản đồ không rơi tin (#714 #715). Trước đây chỉ chạy tay nên PR giao diện làm hỏng mà không ai biết.
+      - run: npm run test:panel-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 4
+        env:
+          PANEL_OUTPUT: ${{ runner.temp }}/flow-browser/panel
+      - run: npm run test:join-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 5
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ failure() }}
         with:

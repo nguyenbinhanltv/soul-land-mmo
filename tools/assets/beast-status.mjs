@@ -11,7 +11,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ROOT, MANIFEST } from "./lib.mjs";
-import { DIRS, sheetPlan, mixedPlan, speciesInfo } from "./beast-sheet-lib.mjs";
+import { DIRS, SHEET_STEMS, sheetIdOf, sheetStem, sheetPlan, mixedPlan, speciesInfo } from "./beast-sheet-lib.mjs";
 import { checkSpecies, draftErrorLine } from "./beast-sheet-check.mjs";
 
 export const ANIM_ROOT = path.join(ROOT, "art", "src", "beast-anim");
@@ -26,7 +26,7 @@ export function speciesDirs(root = ANIM_ROOT) {
 /** Trạng thái một loài: tờ, khối hướng, thiếu, nhập game, dòng LỖI. */
 export function speciesStatus(id, { root = ANIM_ROOT, imported = importedSet() } = {}) {
   const dir = path.join(root, id), info = speciesInfo(id);
-  const hasSheets = ["A", "B", "C", "D", "E"].some((l) => existsSync(path.join(dir, `to${l}.png`)));
+  const hasSheets = SHEET_STEMS.some((n) => existsSync(path.join(dir, `${n}.png`)));
   const out = { id, name: info.name, family: info.family, frame: info.frame, imported: imported.has(id), turnaround: existsSync(path.join(dir, "turnaround.png")) };
   if (!hasSheets) return { ...out, layout: null, state: "chua-co-to", sheets: [], blocks: {}, missing: [], errorLines: [] };
   const r = checkSpecies(id, { dir });
@@ -34,8 +34,8 @@ export function speciesStatus(id, { root = ANIM_ROOT, imported = importedSet() }
   // Trộn theo hướng (#861): tờ 3:2 override hướng của tờ legacy; bố cục báo `hon-hop`, thiếu tính theo hướng chưa ai phủ
   const kinds = r.sheets.map((s) => s.kind === "boss");
   const layout = info.frame <= 96 && kinds.length && kinds.every(Boolean) ? "direction" : info.frame <= 96 && kinds.some(Boolean) ? "hon-hop" : "sheet";
-  const plan = layout === "sheet" ? sheetPlan(info.frame, "auto") : layout === "direction" ? sheetPlan(info.frame, "direction") : mixedPlan(info.frame, Object.fromEntries(r.sheets.map((s) => [s.sheet.replace(/^to/, ""), { w: s.size[0], h: s.size[1] }]))), have = new Set(r.sheets.map((s) => s.sheet.replace(/^to/, "")));
-  const missing = plan.filter((p) => p.absent || !have.has(p.id)).map((p) => `to${p.id}`);
+  const named = r.sheets.some((s) => DIRS.includes(sheetIdOf(s.sheet))), plan = layout === "sheet" && !named ? sheetPlan(info.frame, "auto") : mixedPlan(info.frame, Object.fromEntries(r.sheets.map((s) => [sheetIdOf(s.sheet), { w: s.size[0], h: s.size[1] }]))), have = new Set(r.sheets.map((s) => sheetIdOf(s.sheet)));
+  const missing = plan.filter((p) => p.absent || !have.has(p.id)).map((p) => sheetStem(p.id));
   const blocks = Object.fromEntries(DIRS.map((d) => [d, r.blockLevel[d] ?? "thiếu"]));
   const levels = Object.values(blocks);
   const state = levels.includes("chặn") ? "chan" : levels.includes("thiếu") ? "thieu-to" : "san-sang-nhap";
@@ -71,7 +71,7 @@ export function statusMarkdown(st) {
     `${st.species} loài có thư mục · ${st.imported} đã nhập vào game · ` + Object.entries(st.tally).map(([k, v]) => `${v} ${STATE_VI[k] ?? k}`).join(" · "), "",
     "| Loài | Mã | Bố cục | Tờ (cỡ, mức) | s | se | e | ne | n | Thiếu | Nhập game | Trạng thái |", "|---|---|---|---|---|---|---|---|---|---|---|---|"];
   for (const s of st.items) {
-    const sheets = s.sheets.map((x) => `${x.sheet.replace(/^to/, "")} ${x.size.join("×")} ${LEVEL_MARK[x.level]}`).join("<br>") || "-";
+    const sheets = s.sheets.map((x) => `${sheetIdOf(x.sheet)} ${x.size.join("×")} ${LEVEL_MARK[x.level]}`).join("<br>") || "-";
     const cells = DIRS.map((d) => (s.blocks[d] ? LEVEL_MARK[s.blocks[d]] : "-"));
     L.push(`| ${s.name} | \`${s.id}\` | ${s.layout ?? "-"} | ${sheets} | ${cells.join(" | ")} | ${s.missing.join(", ") || "-"} | ${s.imported ? "đã nhập" : "chưa"} | ${STATE_VI[s.state]} |`);
   }

@@ -24,6 +24,13 @@ export const ok = (cond, msg) => { console.log(cond ? "  ✓" : "  ✗", msg); i
 /** Số kiểm tra thất bại tới lúc này (đọc mã thoát / dòng tổng kết). */
 export const failCount = () => fails;
 /**
+ * Bot ném lỗi chưa bắt (vd. bài đọc `e.win` khi `e` undefined vì hết giờ chờ tin): trước đây node chết mã 1 chỉ với stack, KHÔNG có dòng ✗ nên CI báo "✗ 0" mà vẫn trượt
+ * (#1230, #1236: bicanhRoom.mjs:97). Nay in một dòng ✗ kèm stack để đếm và hiện ở annotation. Phải gắn ở đây (mọi bài đều nhập lib.mjs).
+ */
+const crash = (kind) => (e) => { console.log(`  ✗ bot ném lỗi chưa bắt (${kind}): ${(e && e.stack) || e}`); fails++; process.exit(1); };
+process.on("uncaughtException", crash("uncaughtException"));
+process.on("unhandledRejection", crash("unhandledRejection"));
+/**
  * Bỏ qua bài VÌ THIẾU HOOK TEST (server không bật GAME_TEST=1, hook hỏng, mất biến môi trường). Chạy local: chỉ in ⚠.
  * CI đặt BOT_STRICT_HOOK=1 (tools/ci/bot-run.sh, bot-image.sh): ghi ✗ để bot thoát 1, không để cả nhóm bài im lặng không chạy.
  * Bỏ qua vì dữ liệu / hình học (không tìm được chỗ đứng…) vẫn dùng console.log("  ⚠ …") thường.
