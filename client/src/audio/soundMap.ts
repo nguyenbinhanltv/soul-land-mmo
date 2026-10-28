@@ -116,10 +116,11 @@ export function surfaceOfGround(name: string): Surface {
 export const STEP_INTERVAL_MS = { run: 300, walk: 480 } as const;
 
 /** Tiếng giao diện (G5, #396) → nhóm mẫu trong gói `ui`. */
-export type UiSound = "open" | "close" | "drag" | "drop" | "equip" | "enhanceOk" | "enhanceFail" | "rare";
+export type UiSound = "open" | "close" | "drag" | "drop" | "equip" | "enhanceOk" | "enhanceFail" | "rare" | "click" | "error" | "reward" | "notify";
 export const UI_GROUP: Readonly<Record<UiSound, string>> = {
   open: "ui-open", close: "ui-close", drag: "ui-drag", drop: "ui-drop", equip: "ui-equip",
   enhanceOk: "ui-enhance-ok", enhanceFail: "ui-enhance-fail", rare: "ui-rare",
+  click: "ui-click", error: "ui-error", reward: "ui-reward", notify: "ui-notify",   // đợt 1c UI v2 (#599): bấm nút, lỗi / từ chối, nhận thưởng, toast
 };
 /** Nhận món có độ hiếm (bag.rarityOf, 0..4) từ mức này trở lên thì phát tiếng đồ hiếm. */
 export const RARE_LOOT_MIN = 3;
@@ -149,7 +150,7 @@ export const GROUP_TRIM_DB: Readonly<Record<string, number>> = {
   "beast-lang": -3, "beast-hung": -2.5, "beast-bao": -4.5, "beast-xa": 3.5, "beast-chim": 3.5, "beast-trung": 3, "beast-thiem": 5.5, "beast-thuc": -1, "beast-boss": -3, "beast-die": -3.5,
   "ring-glow": -1, "ring-drop": 4.5, "step-co": 1.5, "step-dat": -0.5, "step-da": 1.5, "step-tuyet": -4, "step-go": -0.5, "step-nuoc": 1.5,
   "amb-wind": -3.5, "amb-wave": -4, "amb-bird": -2, "amb-cricket": -4.5, "amb-fire": -1.5, "amb-bell": -1.5,
-  "ui-open": -2, "ui-close": -3, "ui-drag": 3, "ui-drop": -2, "ui-enhance-ok": -3, "ui-enhance-fail": -5, "ui-rare": -0.5,
+  "ui-open": -2, "ui-close": -3, "ui-drag": 3, "ui-drop": -2, "ui-enhance-ok": -3, "ui-enhance-fail": -5, "ui-rare": -0.5, "ui-click": -2, "ui-error": -6, "ui-reward": -7, "ui-notify": -5,
   "pk-open": -1, "pk-count": -1.5, "pk-go": 1, "pk-kill": 1, "pk-heartbeat": -3,
   "skill-t3-ult-start": 5.5, "skill-t3-ult-fly": 4, "skill-t3-ult-boom": 2, "skill-t3-ct-start": 2.5, "skill-t3-ct-fly": 3, "skill-t3-ct-boom": -1, "skill-t3-avatar": 5,
 };

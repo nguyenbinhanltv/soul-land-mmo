@@ -1,5 +1,5 @@
 // Hiệu ứng G2 (#393): cắt / lọc / chuẩn hóa đỉnh từng clip CC0, ghép thành audio sprite theo gói, nén Vorbis + AAC, ghi manifest và CREDITS.
-//   node tools/audio/process-sfx.mjs --source-root <thư mục tải về, mỗi nguồn một thư mục con theo sourceId>
+//   node tools/audio/process-sfx.mjs --source-root <thư mục tải về, mỗi nguồn một thư mục con theo sourceId> [--pack <gói>]
 import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -15,6 +15,7 @@ const option = (name, fallback) => { const i = process.argv.indexOf(name); retur
 const sourceRoot = path.resolve(option("--source-root", path.join(os.tmpdir(), "soul-land-sfx-sources")));
 const catalogPath = path.resolve(option("--catalog", path.join(repoRoot, "tools/audio/sfx-catalog.json")));
 const outRoot = path.resolve(option("--out", path.join(repoRoot, "shared/assets/audio")));
+const onlyPack = option("--pack", ""); // chỉ dựng lại một gói (cần nguồn của gói đó), giữ nguyên gói khác trong manifest hiện có
 const creditsPath = path.resolve(option("--credits", path.join(repoRoot, "art/CREDITS.md")));
 
 const RATE = 44100, PEAK_DB = -3, GAP = 0.05, FADE = 0.015;
@@ -59,6 +60,7 @@ async function main() {
     await run(["-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi", "-i", `anullsrc=r=${RATE}:cl=mono`, "-t", String(GAP), ...stable, "-c:a", "pcm_s16le", silence]);
     const byPack = new Map(SFX_PACKS.map((p) => [p, []]));
     for (const c of catalog.clips) {
+      if (onlyPack && c.pack !== onlyPack) continue;
       const input = await safeResolve(sourceRoot, c.input);
       verifySha256(await readFile(input), c.inputSha256, `Nguồn ${c.id}`);
       const rough = path.join(tmp, `${c.id}.rough.wav`), done = path.join(tmp, `${c.id}.wav`);
@@ -96,6 +98,13 @@ async function main() {
       clips.push(...placed);
     }
     const generatedAt = `${catalog.sources.map((s) => s.retrievedAt).sort().at(-1)}T00:00:00.000Z`;
+    if (onlyPack) {
+      const old = JSON.parse(await readFile(path.join(outRoot, "sfx/manifest.json"), "utf8"));
+      Object.assign(packs, Object.fromEntries(Object.entries(old.packs).filter(([n]) => n !== onlyPack)));
+      const at = old.clips.findIndex((c) => c.pack === onlyPack); // clip của gói dựng lại thế chỗ clip cũ cùng gói, thứ tự các gói khác giữ nguyên
+      const rest = old.clips.filter((c) => c.pack !== onlyPack);
+      clips.splice(0, clips.length, ...rest.slice(0, at < 0 ? rest.length : at), ...clips, ...rest.slice(at < 0 ? rest.length : at));
+    }
     const manifest = buildSfxManifest({ catalog, packs, clips, generatedAt });
     await writeFile(path.join(outRoot, "sfx/manifest.json"), stableJson(manifest));
     await writeFile(creditsPath, replaceSfxCredits(await readFile(creditsPath, "utf8"), manifest));

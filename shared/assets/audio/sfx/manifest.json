@@ -1233,6 +1233,70 @@
       "start": 8.54
     },
     {
+      "duration": 0.1,
+      "group": "ui-click",
+      "id": "ui-click-1",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "start": 9.12
+    },
+    {
+      "duration": 0.1,
+      "group": "ui-click",
+      "id": "ui-click-2",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "start": 9.27
+    },
+    {
+      "duration": 0.15,
+      "group": "ui-error",
+      "id": "ui-error-1",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "start": 9.42
+    },
+    {
+      "duration": 0.22,
+      "group": "ui-error",
+      "id": "ui-error-2",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "start": 9.62
+    },
+    {
+      "duration": 0.29,
+      "group": "ui-reward",
+      "id": "ui-reward-1",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "start": 9.89
+    },
+    {
+      "duration": 0.52,
+      "group": "ui-reward",
+      "id": "ui-reward-2",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "start": 10.23
+    },
+    {
+      "duration": 0.04,
+      "group": "ui-notify",
+      "id": "ui-notify-1",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "start": 10.8
+    },
+    {
+      "duration": 0.04,
+      "group": "ui-notify",
+      "id": "ui-notify-2",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "start": 10.89
+    },
+    {
       "duration": 3.69,
       "group": "pk-open",
       "id": "pk-open-1",
@@ -2794,13 +2858,13 @@
     "skill": {
       "duration": 82.8,
       "files": {
-        "ogg": {
-          "path": "sfx/skill.ogg",
-          "bytes": 646144
-        },
         "m4a": {
-          "path": "sfx/skill.m4a",
-          "bytes": 845952
+          "bytes": 845952,
+          "path": "sfx/skill.m4a"
+        },
+        "ogg": {
+          "bytes": 646144,
+          "path": "sfx/skill.ogg"
         }
       }
     },
@@ -2818,14 +2882,14 @@
       }
     },
     "ui": {
-      "duration": 9.12,
+      "duration": 10.98,
       "files": {
         "m4a": {
-          "bytes": 109746,
+          "bytes": 130775,
           "path": "sfx/ui.m4a"
         },
         "ogg": {
-          "bytes": 79402,
+          "bytes": 92306,
           "path": "sfx/ui.ogg"
         }
       }
@@ -2848,184 +2912,184 @@
   "schemaVersion": 1,
   "sources": [
     {
-      "id": "oga-80-cc0-rpg-sfx",
-      "title": "80 CC0 RPG SFX",
-      "author": "rubberduck",
-      "url": "https://opengameart.org/content/80-cc0-rpg-sfx",
-      "license": "CC0-1.0",
       "archiveSha256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
-      "retrievedAt": "2026-10-23"
+      "author": "rubberduck",
+      "id": "oga-80-cc0-rpg-sfx",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "80 CC0 RPG SFX",
+      "url": "https://opengameart.org/content/80-cc0-rpg-sfx"
     },
     {
-      "id": "oga-swishes-sound-pack",
-      "title": "Swishes Sound Pack",
-      "author": "artisticdude",
-      "url": "https://opengameart.org/content/swishes-sound-pack",
-      "license": "CC0-1.0",
       "archiveSha256": "7980215241b739a787dcf26f660ce510bb237900968789395a86911619795693",
-      "retrievedAt": "2026-10-23"
+      "author": "artisticdude",
+      "id": "oga-swishes-sound-pack",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "Swishes Sound Pack",
+      "url": "https://opengameart.org/content/swishes-sound-pack"
     },
     {
-      "id": "kenney-rpg-audio",
-      "title": "RPG Audio",
-      "author": "Kenney",
-      "url": "https://kenney.nl/assets/rpg-audio",
-      "license": "CC0-1.0",
       "archiveSha256": "6dbeaf8544da958d8f2adcb4a4a4b76c1ade34a05f8ab9edccd327da7375f38b",
-      "retrievedAt": "2026-10-23"
+      "author": "Kenney",
+      "id": "kenney-rpg-audio",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "RPG Audio",
+      "url": "https://kenney.nl/assets/rpg-audio"
     },
     {
-      "id": "kenney-impact-sounds",
-      "title": "Impact Sounds",
-      "author": "Kenney",
-      "url": "https://kenney.nl/assets/impact-sounds",
-      "license": "CC0-1.0",
       "archiveSha256": "029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8",
-      "retrievedAt": "2026-10-23"
-    },
-    {
-      "id": "oga-50-cc0-sci-fi-sfx",
-      "title": "50 CC0 Sci-Fi SFX",
-      "author": "rubberduck",
-      "url": "https://opengameart.org/content/50-cc0-sci-fi-sfx",
-      "license": "CC0-1.0",
-      "archiveSha256": "7824c08e54b5b68d6c70ced9d8fe9e47f86ce19c1d8d47d093e1dc1b579f78ec",
-      "retrievedAt": "2026-10-23"
-    },
-    {
-      "id": "oga-100-cc0-sfx",
-      "title": "100 CC0 SFX",
-      "author": "rubberduck",
-      "url": "https://opengameart.org/content/100-cc0-sfx",
-      "license": "CC0-1.0",
-      "archiveSha256": "a5c135878c132f1c59cca54e60061c296cd0ac27ad031ca2c41b8cd5cab3c706",
-      "retrievedAt": "2026-10-23"
-    },
-    {
-      "id": "oga-80-cc0-creature-sfx",
-      "title": "80 CC0 creature SFX",
-      "author": "rubberduck",
-      "url": "https://opengameart.org/content/80-cc0-creature-sfx",
-      "license": "CC0-1.0",
-      "archiveSha256": "5d4002eea42f278e76543bb36e8ddd2cb978588a13271984191d8228f5d26768",
-      "retrievedAt": "2026-10-23"
-    },
-    {
-      "id": "kenney-interface-sounds",
-      "title": "Interface Sounds",
       "author": "Kenney",
-      "url": "https://kenney.nl/assets/interface-sounds",
+      "id": "kenney-impact-sounds",
       "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "Impact Sounds",
+      "url": "https://kenney.nl/assets/impact-sounds"
+    },
+    {
+      "archiveSha256": "7824c08e54b5b68d6c70ced9d8fe9e47f86ce19c1d8d47d093e1dc1b579f78ec",
+      "author": "rubberduck",
+      "id": "oga-50-cc0-sci-fi-sfx",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "50 CC0 Sci-Fi SFX",
+      "url": "https://opengameart.org/content/50-cc0-sci-fi-sfx"
+    },
+    {
+      "archiveSha256": "a5c135878c132f1c59cca54e60061c296cd0ac27ad031ca2c41b8cd5cab3c706",
+      "author": "rubberduck",
+      "id": "oga-100-cc0-sfx",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "100 CC0 SFX",
+      "url": "https://opengameart.org/content/100-cc0-sfx"
+    },
+    {
+      "archiveSha256": "5d4002eea42f278e76543bb36e8ddd2cb978588a13271984191d8228f5d26768",
+      "author": "rubberduck",
+      "id": "oga-80-cc0-creature-sfx",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "80 CC0 creature SFX",
+      "url": "https://opengameart.org/content/80-cc0-creature-sfx"
+    },
+    {
       "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
-      "retrievedAt": "2026-10-23"
+      "author": "Kenney",
+      "id": "kenney-interface-sounds",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "Interface Sounds",
+      "url": "https://kenney.nl/assets/interface-sounds"
     },
     {
-      "id": "oga-mild-wind",
-      "title": "Mild Wind Background Noise",
-      "author": "Bashar (Skirmish.io)",
-      "url": "https://opengameart.org/content/mild-wind-background-noise",
-      "license": "CC0-1.0",
       "archiveSha256": "9f1fd5c8b37949e6889a7f6acbd822f66e0ab4e918d72bda58d8d8c2c7e85a80",
-      "retrievedAt": "2026-10-23"
+      "author": "Bashar (Skirmish.io)",
+      "id": "oga-mild-wind",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "Mild Wind Background Noise",
+      "url": "https://opengameart.org/content/mild-wind-background-noise"
     },
     {
-      "id": "oga-wave-01",
-      "title": "Beach Ocean Waves (wave 01)",
-      "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
-      "url": "https://opengameart.org/content/beach-ocean-waves",
-      "license": "CC0-1.0",
       "archiveSha256": "fcfca178eca2eac536e8c2a4ed5cf8096e44c921acd587047b3d9f1d7845435c",
-      "retrievedAt": "2026-10-23"
+      "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
+      "id": "oga-wave-01",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "Beach Ocean Waves (wave 01)",
+      "url": "https://opengameart.org/content/beach-ocean-waves"
     },
     {
-      "id": "oga-wave-02",
-      "title": "Beach Ocean Waves (wave 02)",
-      "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
-      "url": "https://opengameart.org/content/beach-ocean-waves",
-      "license": "CC0-1.0",
       "archiveSha256": "53b5c28c0edc36f049e77e65f2cf8a86135103328c44c1507c416e6469d18096",
-      "retrievedAt": "2026-10-23"
+      "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
+      "id": "oga-wave-02",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "Beach Ocean Waves (wave 02)",
+      "url": "https://opengameart.org/content/beach-ocean-waves"
     },
     {
-      "id": "oga-wave-03",
-      "title": "Beach Ocean Waves (wave 03)",
-      "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
-      "url": "https://opengameart.org/content/beach-ocean-waves",
-      "license": "CC0-1.0",
       "archiveSha256": "fc795f95f352b354867d69a587daecb8815334e28e3b56a7798c5f3005349054",
-      "retrievedAt": "2026-10-23"
-    },
-    {
-      "id": "oga-wave-04",
-      "title": "Beach Ocean Waves (wave 04)",
       "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
-      "url": "https://opengameart.org/content/beach-ocean-waves",
+      "id": "oga-wave-03",
       "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "Beach Ocean Waves (wave 03)",
+      "url": "https://opengameart.org/content/beach-ocean-waves"
+    },
+    {
       "archiveSha256": "3c490e736365fdd617ce8405470d8878fc6146d9a8dba448d622addb01cfff3b",
-      "retrievedAt": "2026-10-23"
+      "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
+      "id": "oga-wave-04",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "Beach Ocean Waves (wave 04)",
+      "url": "https://opengameart.org/content/beach-ocean-waves"
     },
     {
-      "id": "oga-ambient-birds",
-      "title": "Ambient Bird Sounds",
-      "author": "isaiah658",
-      "url": "https://opengameart.org/content/ambient-bird-sounds",
-      "license": "CC0-1.0",
       "archiveSha256": "359e4e3f9da9d75aac64cede511c7e3ef8b461f9d9f8c230f8f80e44c4b3e35f",
-      "retrievedAt": "2026-10-23"
+      "author": "isaiah658",
+      "id": "oga-ambient-birds",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "Ambient Bird Sounds",
+      "url": "https://opengameart.org/content/ambient-bird-sounds"
     },
     {
-      "id": "oga-bird-chirping",
-      "title": "Bird chirping sounds",
-      "author": "syncopika",
-      "url": "https://opengameart.org/content/bird-chirping-sounds",
-      "license": "CC0-1.0",
       "archiveSha256": "bc6e28bd823b653b2abf3384d4147718603af6bcd98e26166345df71a61eeb08",
-      "retrievedAt": "2026-10-23"
+      "author": "syncopika",
+      "id": "oga-bird-chirping",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "Bird chirping sounds",
+      "url": "https://opengameart.org/content/bird-chirping-sounds"
     },
     {
-      "id": "oga-crickets",
-      "title": "Crickets Ambient Noise - loopable",
-      "author": "Ted Kerr",
-      "url": "https://opengameart.org/content/crickets-ambient-noise-loopable",
-      "license": "CC0-1.0",
       "archiveSha256": "5b5bd1f744087888c5623543c3ff80be9c2ce106093993e7c8a8492b0280b2c0",
-      "retrievedAt": "2026-10-23"
+      "author": "Ted Kerr",
+      "id": "oga-crickets",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "Crickets Ambient Noise - loopable",
+      "url": "https://opengameart.org/content/crickets-ambient-noise-loopable"
     },
     {
-      "id": "oga-fireplace",
-      "title": "Fireplace Sound loop",
-      "author": "OpenGameArt (trang không ghi tên tác giả)",
-      "url": "https://opengameart.org/content/fireplace-sound-loop",
-      "license": "CC0-1.0",
       "archiveSha256": "85ca0cc60d0c037fff8b185e31ad1fcdbda6ce45eee17c3ee1318d1b8f59e330",
-      "retrievedAt": "2026-10-23"
+      "author": "OpenGameArt (trang không ghi tên tác giả)",
+      "id": "oga-fireplace",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "Fireplace Sound loop",
+      "url": "https://opengameart.org/content/fireplace-sound-loop"
     },
     {
-      "id": "oga-heartbeat-slow",
-      "title": "Heartbeat sounds (slow)",
-      "author": "estevinho",
-      "url": "https://opengameart.org/content/heartbeat-sounds",
-      "license": "CC0-1.0",
       "archiveSha256": "ce5d2bbe4c9e2a8843fc76419070b9e88f71b2aa4ba7226a5f50a6b45d13be60",
-      "retrievedAt": "2026-10-23"
-    },
-    {
-      "id": "oga-heartbeat-fast",
-      "title": "Heartbeat sounds (fast)",
       "author": "estevinho",
-      "url": "https://opengameart.org/content/heartbeat-sounds",
+      "id": "oga-heartbeat-slow",
       "license": "CC0-1.0",
-      "archiveSha256": "cda9235df232a5a06724a02798f7240e3e6eca96a992fa5560edd5b4b24823ce",
-      "retrievedAt": "2026-10-23"
+      "retrievedAt": "2026-10-23",
+      "title": "Heartbeat sounds (slow)",
+      "url": "https://opengameart.org/content/heartbeat-sounds"
     },
     {
-      "id": "oga-horde-war-drums",
-      "title": "Horde War Drums loop",
-      "author": "William Hector",
-      "url": "https://opengameart.org/content/horde-war-drums-loop",
+      "archiveSha256": "cda9235df232a5a06724a02798f7240e3e6eca96a992fa5560edd5b4b24823ce",
+      "author": "estevinho",
+      "id": "oga-heartbeat-fast",
       "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "Heartbeat sounds (fast)",
+      "url": "https://opengameart.org/content/heartbeat-sounds"
+    },
+    {
       "archiveSha256": "a4d95514029dd928e5637c3b9edd659b8eaf14fa78d8afb2ab7ec4da064e4417",
-      "retrievedAt": "2026-10-23"
+      "author": "William Hector",
+      "id": "oga-horde-war-drums",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-23",
+      "title": "Horde War Drums loop",
+      "url": "https://opengameart.org/content/horde-war-drums-loop"
     }
   ]
 }

@@ -46,3 +46,11 @@ body.touch #toasts{bottom:230px}
 }
 .thuymac .toast[data-frame="rare-ring"]{border-image-source:var(--ui-thong-bao-hon-hoan)}
 .thuymac .toast[data-frame="rare-ring"] :is(.tk,b){color:var(--paper)}
+
+/* ----- Chip lệnh không chạm cột toast (M5 #794, #755): chip ở giữa đáy, toast ở cột phải; chip thu hẹp để mép phải của nó luôn cách cột toast, chữ dài thì cắt "…". ----- */
+#cmdChip{max-width:clamp(160px,calc(100vw - 2 * (236px + 20px)),560px)}
+#cmdChipText{min-width:0}   /* flex con co được để chữ lý do dài bị cắt "…" thay vì tràn khỏi khung */
+body.ui-h560 #cmdChip{bottom:196px}   /* màn thấp: nâng chip lên khỏi hàng ô đội hình ở đáy */
+
+/* Ô chat 270 px (màn ≤ 1000): thêm tab "Tin" (#755) thành 7 tab, nên đệm ngang mỗi tab thu từ 3 xuống 1 px để chữ không bị cắt. */
+:where(body.ui-w1000:not(.ui-w640)) #chattabs button{padding:3px 1px}
