@@ -150,7 +150,7 @@ export function levelOf(msg, { gapGrid = true } = {}) {
   if (/hình vượt ô/.test(msg)) return gapGrid && !/dải dự phòng/.test(msg) ? "warn" : "info";
   if (/bị thay|ngoài kế hoạch|không có hình, bỏ qua/.test(msg)) return "warn";
   if (/chân lệch (\d+)%/.test(msg)) return +/chân lệch (\d+)%/.exec(msg)[1] >= 30 ? "warn" : "info";
-  if (/dời ngang|chuẩn hóa ×|hệ số|--patch|lưới đều|dải hàng/.test(msg)) return "info";
+  if (/dời ngang|chuẩn hóa ×|khớp cỡ thân|hệ số|--patch|lưới đều|dải hàng/.test(msg)) return "info";
   return "warn"; // hình dính, mảnh rời lớn, ô trống, khung lệch, chạm mép ảnh nguồn / khung
 }
 export function summarize(items) {

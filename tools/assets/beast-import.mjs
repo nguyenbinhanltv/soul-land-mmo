@@ -1,5 +1,5 @@
 // Nhập hoạt ảnh vẽ thật của hồn thú vào game MỘT BƯỚC (H4, skill beast-anim Phần B bước 5–7).
-//   node tools/assets/beast-import.mjs --species a,b,c [--dry-run] [--force] [--scale loài=S]... [--patch loài:A:c,r=c,r]... [--dirs-ok [loài=]s,se,e]... [--dirs-ok-only] [--sprites <thư mục>] [--src <thư mục>]
+//   node tools/assets/beast-import.mjs --species a,b,c [--dry-run] [--force] [--scale loài=S]... [--patch loài:A:c,r=c,r]... [--dirs-ok [loài=]s,se,e]... [--dirs-ok-only] [--no-match-size] [--sprites <thư mục>] [--src <thư mục>]
 // Mỗi loài: cutter v2 (beast-sheet-cut) trên art/src/beast-anim/<loài>/to*.png → chép <loài>_anim.png vào <sprites>/beast/
 //   → normal.mjs --frame FxF sinh _anim_n.png → thêm / cập nhật entry `beast_<loài>_anim` trong <sprites>/manifest.json
 //   (đặt ngay sau entry ảnh tĩnh `beast_<loài>`, chép `map` từ đó; không đụng entry khác; chạy lại không đổi gì)
@@ -83,7 +83,7 @@ export function upsertEntry(text, id, entry) {
 // ---------- Nhập một loài ----------
 function importOne(id, o) {
   const row = { id };
-  const r = recutOne(id, { ...(o.scales[id] ? { scale: o.scales[id] } : {}), ...(o.patches[id] ? { patches: o.patches[id] } : {}) }, o.src);
+  const r = recutOne(id, { ...(o.scales[id] ? { scale: o.scales[id] } : {}), ...(o.patches[id] ? { patches: o.patches[id] } : {}), ...(o.noMatchSize ? { matchSize: false } : {}) }, o.src);
   if (r.error) return { ...row, status: "lỗi", note: r.error };
   const rep = r.rep, s = rep.summary;
   Object.assign(row, { frames: rep.frames, block: s.block, warn: s.warn, info: s.info, scale: rep.scaleInfo?.used });
@@ -134,6 +134,7 @@ function parseArgs(argv) {
     else if (a === "--dirs-ok") { const v = argv[++i], k = v.indexOf("="); if (k < 0) o.dirsOk = parseDirsOk(v); else (o.dirsOkBy ??= {})[v.slice(0, k)] = parseDirsOk(v.slice(k + 1)); }
     else if (a === "--dirs-ok-only") o.dirsOkOnly = true;
     else if (a === "--force") o.force = true;
+    else if (a === "--no-match-size") o.noMatchSize = true;
     else if (a === "--sprites") o.sprites = path.resolve(argv[++i]);
     else if (a === "--src") o.src = path.resolve(argv[++i]);
     else throw new Error(`tùy chọn lạ: ${a}`);
@@ -158,7 +159,7 @@ export function run(o) {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const o = parseArgs(process.argv.slice(2));
-    if (!o.species?.length) { console.error("Dùng: node tools/assets/beast-import.mjs --species a,b,c [--dry-run] [--force] [--scale loài=S]... [--patch loài:A:c,r=c,r]... [--dirs-ok [loài=]s,se,e]... [--dirs-ok-only] [--sprites <thư mục>] [--src <thư mục>]"); process.exit(2); }
+    if (!o.species?.length) { console.error("Dùng: node tools/assets/beast-import.mjs --species a,b,c [--dry-run] [--force] [--scale loài=S]... [--patch loài:A:c,r=c,r]... [--dirs-ok [loài=]s,se,e]... [--dirs-ok-only] [--no-match-size] [--sprites <thư mục>] [--src <thư mục>]"); process.exit(2); }
     process.exit(run(o));
   } catch (e) { console.error(e.message); process.exit(2); }
 }

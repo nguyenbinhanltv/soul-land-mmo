@@ -47,7 +47,7 @@ function drawPosed(dst, src, fx, fy, k, p) {
  * Dựng các tờ giả của một loài.
  * @returns {Record<string, Img>} tờ theo mã A, B… cùng cỡ với sheetPlan(F, layout)
  */
-export function fakeSheets(species, { seed = 1, bad = false, layout = "auto", grow = 1 } = {}) {
+export function fakeSheets(species, { seed = 1, bad = false, layout = "auto", grow = 1, wide = 1 } = {}) {
   const info = speciesInfo(species);
   if (!info.staticFile || !info.frame) throw new Error(`loài ${species} chưa có ảnh tĩnh để dựng tờ giả`);
   const st = readPng(info.staticFile), F = info.frame, r = rng(seed), out = {};
@@ -65,7 +65,7 @@ export function fakeSheets(species, { seed = 1, bad = false, layout = "auto", gr
       let kk = k, skip = false;
       if (bad && sh.id === "A" && n === 3) skip = true; // thiếu khung
       if (bad && sh.id === "A" && n === 9) kk = k * 2.6; // khung phóng quá
-      if (!skip) drawPosed(img, frames[STATIC_COL[c.dir]], fx, fy, kk, pose(c.anim, c.frame));
+      if (!skip) { const p = pose(c.anim, c.frame); drawPosed(img, frames[STATIC_COL[c.dir]], fx, fy, kk, { ...p, sx: p.sx * wide }); }
     });
     // viền ngả màu khóa (khử răng cưa kiểu model): điểm vật giáp nền trộn 50% với nền
     const fringe = [];

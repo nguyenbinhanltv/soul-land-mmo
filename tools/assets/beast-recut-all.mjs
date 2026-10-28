@@ -1,5 +1,5 @@
 // Cắt lại HÀNG LOẠT mọi loài trong art/src/beast-anim bằng cutter v2, CHỈ ĐỂ CHẠY THỬ (#864, theo dõi #861).
-//   node tools/assets/beast-recut-all.mjs --out <thư mục ngoài repo> [--only a,b] [--scale loài=0.55]... [--compare] [--no-write]
+//   node tools/assets/beast-recut-all.mjs --out <thư mục ngoài repo> [--only a,b] [--scale loài=0.55]... [--compare] [--no-write] [--no-match-size]
 // Không bao giờ ghi vào shared/assets hay art/src: chỉ ghi <out>/<loài>/{<loài>_anim.png, manifest-entry.json, _report.json} và
 // <out>/_tom-tat.json + _tom-tat.md (hệ số thu tự động vs dùng, kiểu lưới, số cảnh báo theo mức). Nhập lại vào game vẫn làm tay từng loài
 // (cắt từng loài + beast-sheet-preview + orchestrator duyệt); công cụ này không làm bước đó.
@@ -63,6 +63,7 @@ function parseArgs(argv) {
     else if (a === "--scale") { const [id, v] = argv[++i].split("="); o.scales[id] = +v; }
     else if (a === "--compare") o.compare = true;
     else if (a === "--no-write") o.noWrite = true;
+    else if (a === "--no-match-size") o.noMatchSize = true;
     else throw new Error(`tùy chọn lạ: ${a}`);
   }
   return o;
@@ -71,12 +72,12 @@ function parseArgs(argv) {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const o = parseArgs(process.argv.slice(2));
-    if (!o.out) { console.error("Dùng: node tools/assets/beast-recut-all.mjs --out <thư mục ngoài repo> [--only a,b] [--scale loài=S]... [--compare] [--no-write]"); process.exit(2); }
+    if (!o.out) { console.error("Dùng: node tools/assets/beast-recut-all.mjs --out <thư mục ngoài repo> [--only a,b] [--scale loài=S]... [--compare] [--no-write] [--no-match-size]"); process.exit(2); }
     const rel = path.relative(path.resolve(ROOT).toLowerCase(), path.resolve(o.out).toLowerCase());
     if (!rel.startsWith("..") && !path.isAbsolute(rel)) throw new Error("--out không được nằm trong thư mục repo (công cụ chỉ chạy thử, ghi ra ngoài repo)");
     const ids = o.only ?? readdirSync(SRC, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort(), rows = [];
     for (const id of ids) {
-      const opt = o.scales[id] ? { scale: o.scales[id] } : {}, r = recutOne(id, opt);
+      const opt = { ...(o.scales[id] ? { scale: o.scales[id] } : {}), ...(o.noMatchSize ? { matchSize: false } : {}) }, r = recutOne(id, opt);
       const old = o.compare ? recutOne(id, { ...opt, grid: "uniform", anchorBlocks: false }) : undefined;
       rows.push(row(id, r, old));
       if (r.error) { console.log(`${id}: LỖI ${r.error}`); continue; }
