@@ -18,7 +18,7 @@ Part of #1025 · lô 5 · worker soul_land_game-716.
 | D / ne | 3 / 3 | 0 | 50 | Được phép theo 0 chặn kỹ thuật |
 | E / n | 3 / 1 | 1 | 0 | Không — giữ ảnh cũ |
 
-Hướng đủ điều kiện: s, se, ne. Công cụ hiện chưa hỗ trợ nhập riêng hướng; chưa nhập bộ này, giữ toàn bộ ảnh cũ cho tới khi có hỗ trợ fallback.
+Đã nhập A/B/D (s, se, ne), 66 khung bằng cutter --partial → anchor → phuthe-import; C/E (e, n) dùng phụ thể tĩnh cũ. Cutter: 0 block, 124 warn; giữ các hạn chế soát mắt bên dưới.
 
 ## Soát mắt và neo
 
