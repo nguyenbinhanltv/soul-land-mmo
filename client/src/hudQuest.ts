@@ -1,5 +1,7 @@
 // Nhiệm vụ (khung theo dõi, trang nhiệm vụ, khảo hạch hằng ngày, tông môn) của HUD (tách nguyên văn từ hud.ts, Part of #885 bước 0a); hud.ts re-export để nơi gọi giữ nguyên.
-import { NpcActions, npcDefOpen, renderNpc, tongBoardMsg, tongMsg } from "./hudNpc.ts";
+import { NpcActions, npcDefOpen, renderNpc, tongBoardMsg, tongMsg, npcGoTo, type NpcGoal } from "./hudNpc.ts";
+import { isUi2 } from "./uiKit.ts";
+import type { QuestStatus } from "../../shared/data.ts";
 import { tierOfYears, MAPS, NPCS, formatHonTe, QUESTS, QUEST_STARTER, QUEST_AFTER, questChain, questRewardText, questBoneText, type QuestReward, type QuestStep, DAILY } from "../../shared/data.ts";
 import { resolveQuestMarker } from "./nameplate.ts";
 import type { QuestMsg, DailyMsg } from "./net.ts";
@@ -89,6 +91,29 @@ function renderChainTracker(el: HTMLElement, q: QuestMsg) {
   else { const d = document.createElement("small"); d.textContent = s.desc; el.appendChild(d); }
   return true;
 }
+/**
+ * Đích của nút "Đến" (UI v2 đợt 3a, #596 #597): chưa nhận / chờ trả thì về NPC giao bài; đang làm thì mục tiêu chưa xong đầu tiên có bản đồ,
+ * không có thì cũng về NPC giao bài. Chỉ suy từ dữ liệu có sẵn (`QuestGoal.map` / `.npc`, `QuestChain.map`); không thêm tin server.
+ */
+export function questTarget(chain: string, status: QuestStatus, step: number, prog: number[] | null): NpcGoal | null {
+  const c = questChain(chain), s = c?.steps[step]; if (!c || !s) return null;
+  const home = (map: string, npc?: string): NpcGoal | null => MAPS[map] ? { map, mapName: MAPS[map].name, npc } : null;
+  if (status === "active") {
+    const i = s.goals.findIndex((g, j) => (prog?.[j] ?? 0) < g.n && (g.map || g.npc));
+    const g = i >= 0 ? s.goals[i] : null;
+    if (g) return home(g.map ?? c.map, g.npc);
+  }
+  return home(c.map, c.giver);
+}
+/** Nút "Đến" (chỉ khi bật ui2; đi bằng cờ "Đi tới" có sẵn, không gửi gì lên server) cho một bài; null khi tắt cờ hoặc không có đích. */
+export function questGoBtn(t: NpcGoal | null): HTMLButtonElement | null {
+  if (!t || !isUi2()) return null;
+  const b = document.createElement("button"); b.type = "button"; b.className = "buse use n2-den f2-nut-phu"; b.textContent = "Đến";
+  b.title = `Tự đi tới ${t.mapName}${t.npc ? ` (${NPCS.find((n) => n.id === t.npc)?.name ?? ""})` : ""}`;
+  b.setAttribute("aria-label", `Đến ${t.mapName}`);
+  b.addEventListener("click", () => { b.blur(); npcGoTo(t); });
+  return b;
+}
 /** Dòng "Phần thưởng: …" của một bài; hồn cốt thưởng (#285) tô màu theo niên hạn như hồn hoàn. */
 function questRewardEl(r: QuestReward, label = "Phần thưởng") {
   const el = document.createElement("span"); el.className = "qrew";
@@ -121,7 +146,27 @@ export function renderQuestPage(el: HTMLElement, act: NpcActions) {
   b.textContent = q.status === "offer" ? "Nhận nhiệm vụ" : q.status === "ready" ? "Trả nhiệm vụ, nhận thưởng" : "Đang làm…";
   b.disabled = q.status === "active";
   b.addEventListener("click", () => { b.blur(); act.quest(q.status === "offer" ? "accept" : "turnin", q.chain === QUEST_STARTER ? undefined : q.chain); });
-  row.appendChild(b); el.appendChild(row);
+  row.appendChild(b);
+  if (isUi2()) b.classList.add("f2-nut-chinh");
+  const go = questGoBtn(questTarget(q.chain, q.status, q.step, q.prog)); if (go) row.appendChild(go);
+  el.appendChild(row);
+}
+/** Tab "Đang làm" ở NPC không giao bài (UI v2 đợt 3a): tóm tắt mọi chuỗi đang theo dõi (bài hiện tại, mục tiêu x/N) kèm nút "Đến"; nhận / trả vẫn ở NPC giao bài. */
+export function renderQuestOverview(el: HTMLElement) {
+  const list = questTracked();
+  if (!list.length) { const p = document.createElement("p"); p.className = "nline"; p.textContent = "Chưa có nhiệm vụ nào đang làm. Gặp NPC có dấu ! trên đầu để nhận bài."; el.appendChild(p); return; }
+  for (const q of list) {
+    const { c, npc, where } = giverOf(q.chain), s = c?.steps[q.step]; if (!c || !s) continue;
+    const box = document.createElement("div"); box.className = "qbox";
+    const h = document.createElement("b"); h.textContent = `${c.name}: bài ${q.step + 1}/${c.steps.length}, ${s.name}`; box.appendChild(h);
+    if (q.status === "offer") { const d = document.createElement("span"); d.textContent = `Gặp ${npc?.name ?? "NPC"} ở ${where} để nhận bài này.`; box.appendChild(d); }
+    else {
+      box.appendChild(questGoals(s, q.prog));
+      if (q.status === "ready") { const d = document.createElement("span"); d.textContent = `Đã xong: quay về gặp ${npc?.name ?? "NPC"} ở ${where} để nhận thưởng.`; box.appendChild(d); }
+    }
+    const go = questGoBtn(questTarget(q.chain, q.status, q.step, q.prog)); if (go) box.appendChild(go);
+    el.appendChild(box);
+  }
 }
 /** Mã NPC giao nhiệm vụ (để GameScene vẽ dấu "!" / "?" trên đầu), kể cả người ra khảo hạch hằng ngày. */
 export const QUEST_GIVERS = new Set([...QUESTS.map((c) => c.giver), DAILY.giver]);
@@ -207,8 +252,11 @@ export function renderTongTasks(el: HTMLElement, act: NpcActions) {
       const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (q.status === "active" ? "use" : "absorb");
       b.textContent = q.status === "offer" ? "Nhận bài" : q.status === "ready" ? "Trả bài, nhận thưởng" : "Đang làm…";
       b.disabled = q.status === "active";
+      const tg = TONG_MON.find((t) => t.id === tongMsg?.tong);
+      if (isUi2() && tg?.npc !== npcDefOpen?.id) { b.disabled = true; if (q.status !== "active") b.textContent = `Gặp ${NPCS.find((n) => n.id === tg?.npc)?.name ?? "sứ giả tông"}`; }
       b.addEventListener("click", () => { b.blur(); act.tong(q.status === "offer" ? "accept" : "turnin", undefined, q.chain); });
       box.appendChild(b);
+      const go = questGoBtn(questTarget(q.chain, q.status, 0, q.prog)); if (go) box.appendChild(go);
     }
     el.appendChild(box);
   });
@@ -270,8 +318,10 @@ export function renderDailyPage(el: HTMLElement, act: NpcActions) {
       const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (q.status === "active" ? "use" : "absorb");
       b.textContent = q.status === "offer" ? "Nhận bài" : q.status === "ready" ? "Trả bài, nhận thưởng" : "Đang làm…";
       b.disabled = q.status === "active";
+      if (isUi2() && npcDefOpen?.id !== DAILY.giver) { b.disabled = true; if (q.status !== "active") b.textContent = `Gặp ${NPCS.find((n) => n.id === DAILY.giver)?.name ?? "NPC"} ở ${MAPS[DAILY.map]?.name ?? ""}`; }
       b.addEventListener("click", () => { b.blur(); act.quest(q.status === "offer" ? "accept" : "turnin", q.chain); });
       box.appendChild(b);
+      const go = questGoBtn(questTarget(q.chain, q.status, 0, q.prog)); if (go) box.appendChild(go);
     }
     el.appendChild(box);
   });
