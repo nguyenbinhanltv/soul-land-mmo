@@ -1,3 +1,11 @@
+## Trạng thái hiện hành — nhập game ngày 2026-10-28
+
+Chủ repo cho phép nhập các hướng có 0 chặn kỹ thuật, ghi đè cổng mắt trong hồ sơ lịch sử bên dưới. Đã dùng nguyên RAW được chọn từ PR #1200, không sinh ảnh mới. Cắt và nhập tích lũy từng hướng s, se, e, ne, n bằng cutter --partial và importer; đủ 5 hướng, không còn hướng fallback. Neo chỉ do phuthe-anchor.mjs tự tính và importer ghi, không chỉnh tay.
+
+Lỗi hình còn lại ở cả 5 hướng: nộm nhỏ/dời xuống, điểm gắn và mép xén cần chủ repo chỉnh sau; ne/n có thể lộ mặt hoặc gần hướng e. Các lỗi này chỉ khai trong NGUON, không chặn nhập theo phép mới.
+
+Riêng Lam Điện Bá Vương Long: tay rồng chưa khớp tay hồn sư; giữ nguyên để chủ repo chỉnh sau. Mô tả vòng rắn trong hồ sơ cũ là ghi nhầm từ Bích Lân Xà Hoàng.
+
 # Lam Điện Bá Vương Long — phụ thể hoạt ảnh lô 3
 
 Part of #1025. Ngày 2026-10-28. **Hoàn tất bước 1–6, CHẶN mắt, giữ nhánh game cũ; không nhập game.**
@@ -52,3 +60,17 @@ node tools/assets/phuthe-sheet-preview.mjs --id lam_dien_ba_vuong_long --dir <OU
 Trang `C:/Users/PC/.ao/data/artifacts/soul_land_game-707/lam_dien_ba_vuong_long/so-sanh-neo.html` so tr??c/sau, ?? nam/n?, 5 clip, 5 h??ng g?c. Sheet artifact `neo/` bi?n ??i nearest-neighbor t?ng khung quanh g?c ch?n (48,74), scale r?i dx/dy t? anchor.json; kh?ng s?a RAW. Sau neo v?n che th?n/x?n m?p, ?i?m g?n ch?a ??t; kh?ng nh?p game.
 
 Ki?m chung l?: `npm run check` v? `npm run build` ??t; bot RAM `npm run bot:local -- --only view` ??t 91/91, RSS ??nh server 144 MB / bot 124 MB. Kh?ng ??i server/SQL n?n kh?ng ch?y PostgreSQL.
+
+<!-- phuthe-import:huong -->
+### Hướng đã nhập (tự ghi bởi `phuthe-import.mjs`, `anim.dirsOk` trong manifest)
+
+Đủ 5 hướng.
+
+| Hướng | Trạng thái |
+|---|---|
+| s (tờ A) | đã nhập hoạt ảnh vẽ thật |
+| se (tờ B) | đã nhập hoạt ảnh vẽ thật |
+| e (tờ C) | đã nhập hoạt ảnh vẽ thật |
+| ne (tờ D) | đã nhập hoạt ảnh vẽ thật |
+| n (tờ E) | đã nhập hoạt ảnh vẽ thật |
+<!-- /phuthe-import:huong -->

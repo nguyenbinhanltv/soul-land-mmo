@@ -3,6 +3,7 @@ import "./uiIcons.css";
 import "./ui2.css";
 import "./ui2-parts.css";
 import "./ui2-screens.css";
+import "./ui2-hud.css";
 import { setConnectionLabel } from "./uiIcons.ts";
 import { loadGameFonts } from "./fontLoad";
 import Phaser from "phaser";

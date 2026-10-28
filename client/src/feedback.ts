@@ -32,7 +32,7 @@ export function toast(kind: ToastKind, title: string, sub = "", color?: string, 
     (t.querySelector(".tn") as HTMLElement).textContent = `×${n}`;
     arm(t); return;
   }
-  const t = document.createElement("div"); t.className = "toast"; t.dataset.k = kind; t.dataset.title = title;
+  const t = document.createElement("div"); t.className = "toast f2-toast"; t.dataset.k = kind; t.dataset.title = title;
   if (kind === "loot" && frame) t.dataset.frame = frame;
   if (color) t.style.setProperty("--c", color);
   t.innerHTML = `<i class="tk"></i><div><b></b><small></small></div><em class="tn"></em>`;

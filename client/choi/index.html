@@ -13,7 +13,7 @@
     <div id="game"></div>
     <div id="hud" hidden>
       <div id="lcol">
-      <section class="panel stats">
+      <section class="panel stats f2-muc-nho">
         <div class="who"><div class="portrait" id="vhPortrait" aria-label="Biểu tượng võ hồn"><span id="vhGlyph">魂</span></div><div class="who-main"><span id="vhName">–</span><span id="lvl"></span></div></div>
         <div class="bar hp"><i id="hpFill"></i><span id="hpTxt"></span></div>
         <div class="bar mp"><i id="mpFill"></i><span id="mpTxt"></span></div>
@@ -24,16 +24,16 @@
         <div class="buffs" id="bpas" aria-label="Kỹ năng bị động của hồn cốt"></div>
         <button id="hudMenuBtn" class="hud-menu-btn" type="button" aria-controls="quickMenu" aria-expanded="false" aria-label="Mở menu HUD">☰<span>Menu</span></button>
         <div class="minirow" id="quickMenu" role="toolbar" aria-label="Menu HUD">
-          <button id="charBtn" class="minibtn" aria-controls="char" aria-expanded="false"><span class="menu-icon" aria-hidden="true">♙</span><span class="menu-label">Hồn sư</span> <kbd>H</kbd></button>
-          <button id="vhBtn" class="minibtn" aria-controls="roster" aria-expanded="false"><span class="menu-icon" aria-hidden="true">♜</span><span class="menu-label">Đội hình</span> <kbd>V</kbd></button>
-          <button id="bagBtn" class="minibtn" aria-controls="bag" aria-expanded="false"><span class="menu-icon" aria-hidden="true">▣</span><span class="menu-label">Túi đồ</span> <kbd>B</kbd></button>
-          <button id="resBtn" class="minibtn" aria-controls="reso" aria-expanded="false"><span class="menu-icon" aria-hidden="true">✥</span><span class="menu-label">Cộng minh</span> <kbd>K</kbd></button>
-          <button id="audioBtn" class="minibtn" aria-controls="audio" aria-expanded="false"><span class="menu-icon" aria-hidden="true">⚙</span><span class="menu-label">Cài đặt</span></button>
-          <button id="autoBtn" class="minibtn" aria-pressed="false" aria-controls="autoPanel" aria-expanded="false" title="Bảng Tự động: cài đặt và bật / tắt tự săn (phím T bật / tắt ngay)"><span class="menu-icon" aria-hidden="true">◉</span><span class="menu-label">Tự động</span> <kbd>T</kbd></button>
-          <button id="guideBtn" class="minibtn" aria-controls="guide" aria-expanded="false" title="Xem lại hướng dẫn điều khiển"><span class="menu-icon" aria-hidden="true">?</span><span class="menu-label">Hướng dẫn</span></button>
+          <button id="charBtn" class="minibtn f2-nut-phu" aria-controls="char" aria-expanded="false"><span class="menu-icon" aria-hidden="true">♙</span><span class="menu-label">Hồn sư</span> <kbd>H</kbd></button>
+          <button id="vhBtn" class="minibtn f2-nut-phu" aria-controls="roster" aria-expanded="false"><span class="menu-icon" aria-hidden="true">♜</span><span class="menu-label">Đội hình</span> <kbd>V</kbd></button>
+          <button id="bagBtn" class="minibtn f2-nut-phu" aria-controls="bag" aria-expanded="false"><span class="menu-icon" aria-hidden="true">▣</span><span class="menu-label">Túi đồ</span> <kbd>B</kbd></button>
+          <button id="resBtn" class="minibtn f2-nut-phu" aria-controls="reso" aria-expanded="false"><span class="menu-icon" aria-hidden="true">✥</span><span class="menu-label">Cộng minh</span> <kbd>K</kbd></button>
+          <button id="audioBtn" class="minibtn f2-nut-phu" aria-controls="audio" aria-expanded="false"><span class="menu-icon" aria-hidden="true">⚙</span><span class="menu-label">Cài đặt</span></button>
+          <button id="autoBtn" class="minibtn f2-nut-phu" aria-pressed="false" aria-controls="autoPanel" aria-expanded="false" title="Bảng Tự động: cài đặt và bật / tắt tự săn (phím T bật / tắt ngay)"><span class="menu-icon" aria-hidden="true">◉</span><span class="menu-label">Tự động</span> <kbd>T</kbd></button>
+          <button id="guideBtn" class="minibtn f2-nut-phu" aria-controls="guide" aria-expanded="false" title="Xem lại hướng dẫn điều khiển"><span class="menu-icon" aria-hidden="true">?</span><span class="menu-label">Hướng dẫn</span></button>
         </div>
       </section>
-      <section id="party" class="panel" aria-label="Tổ đội"></section>
+      <section id="party" class="panel f2-muc-nho" aria-label="Tổ đội"></section>
       </div>
       <div id="pmenu" class="panel" hidden role="dialog" aria-label="Hồn sư"></div>
       <div id="dualTabs" hidden role="tablist" aria-label="Chuyển Nhân vật / Túi"></div>
@@ -72,7 +72,7 @@
         <div id="mapviewMenu" hidden><button id="mapviewMenuFlag" class="mvbtn">Đặt cờ</button><button id="mapviewMenuRally" class="mvbtn">Tập trung ở đây</button></div>
       </div>
       <div id="rcol">
-      <section class="panel mapbox">
+      <section class="panel mapbox f2-muc-nho">
         <div id="radar" role="img" aria-label="Radar quanh nhân vật">
           <canvas id="mini"></canvas>
           <img id="radarFrame" alt="" hidden>
@@ -87,8 +87,8 @@
         <div id="online"></div>
         <div class="radarbtns">
           <button id="chanBtn" class="minibtn" aria-controls="chans" aria-expanded="false" title="Chọn kênh" hidden>Kênh ▾</button>
-          <button id="areaBtn" class="minibtn" aria-controls="mapview" aria-expanded="false" title="Bản đồ khu vực (phím N)">Vùng <kbd>N</kbd></button>
-          <button id="worldBtn" class="minibtn" aria-controls="world" aria-expanded="false" title="Bản đồ thế giới (phím M)">Thế giới <kbd>M</kbd></button>
+          <button id="areaBtn" class="minibtn f2-nut-phu" aria-controls="mapview" aria-expanded="false" title="Bản đồ khu vực (phím N)">Vùng <kbd>N</kbd></button>
+          <button id="worldBtn" class="minibtn f2-nut-phu" aria-controls="world" aria-expanded="false" title="Bản đồ thế giới (phím M)">Thế giới <kbd>M</kbd></button>
         </div>
         <div id="flagBar" hidden aria-live="polite"><span id="flagText"></span><button id="flagGo" class="minibtn" title="Tự đi tới cờ (phím Y)">Đi <kbd>Y</kbd></button><button id="flagStop" class="minibtn" title="Dừng tự đi (hoặc bấm phím di chuyển)" hidden>Dừng <kbd>Y</kbd></button><button id="flagClear" class="minibtn" title="Xoá cờ" aria-label="Xoá cờ">×</button></div>
         <div id="chans" hidden role="dialog" aria-label="Chọn kênh"></div>

@@ -97,6 +97,119 @@ export function countdownNode(o: CountdownOpts, now = o.now ?? Date.now): PNode 
   });
 }
 
+// ---- trạng thái tải / rỗng / lỗi + thử lại (rút từ rankScreen; đợt 0b của kế hoạch UI v2, mục 8) ----
+export type LoadKind = "loading" | "empty" | "error";
+export interface StateOpts {
+  kind: LoadKind;
+  /** Câu chính; không đặt thì dùng câu mặc định của loại. */
+  text?: string;
+  /** Hành động gợi ý (rỗng: "Săn hồn thú để nhận"; lỗi: việc người chơi tự xử được). */
+  hint?: string;
+  /** Số dòng bộ xương khi đang tải. */
+  rows?: number;
+  retryLabel?: string;
+}
+export const STATE_TEXT: Record<LoadKind, string> = { loading: "Đang tải…", empty: "Chưa có gì ở đây.", error: "Không tải được (mất kết nối hoặc máy chủ chưa trả lời)." };
+export const SKELETON_ROWS = 6;
+/** Hộp trạng thái dùng chung cho mọi bảng gọi máy chủ: tải = bộ xương (`aria-busy`), rỗng = câu + gợi ý, lỗi = câu + nút Thử lại (`role="alert"`). Hàm thuần. */
+export function stateNode(o: StateOpts): PNode {
+  const text = o.text?.trim() || STATE_TEXT[o.kind];
+  if (o.kind === "loading") {
+    const n = Math.min(12, Math.max(1, Math.trunc(o.rows ?? SKELETON_ROWS)));
+    return h("div", "p2-state p2-st-loading", { attrs: { role: "status", "aria-busy": "true", "aria-label": text }, kids: Array.from({ length: n }, () => h("span", "p2-skel")) });
+  }
+  return h("div", `p2-state p2-st-${o.kind}`, { attrs: { role: o.kind === "error" ? "alert" : "status" }, kids: [
+    h("span", "p2-state-t", { text }),
+    o.hint ? h("span", "p2-state-h", { text: o.hint }) : null,
+    o.kind === "error" ? h("button", "p2-retry f2-nut-phu", { text: o.retryLabel ?? "Thử lại", attrs: { type: "button" } }) : null,
+  ] });
+}
+
+// ---- hộp xổ ----
+export interface SelectOption { value: string; label: string; disabled?: boolean }
+export interface SelectOpts { label: string; options: SelectOption[]; value?: string; open?: boolean; disabled?: boolean; placeholder?: string }
+/** Mục đang chọn (value không có trong danh sách thì null). */
+export const selectedOption = (o: Pick<SelectOpts, "options" | "value">) => o.options.find((x) => x.value === o.value) ?? null;
+/** Mục kế bấm được theo hướng +1 / -1 từ `from` (-1 = chưa có mục nào được đánh dấu); không vòng lại, hết đường thì giữ nguyên. */
+export function nextEnabled(options: SelectOption[], from: number, dir: 1 | -1): number {
+  for (let i = from + dir; i >= 0 && i < options.length; i += dir) if (!options[i].disabled) return i;
+  return from;
+}
+export function selectNode(o: SelectOpts, id = "p2-sel"): PNode {
+  const cur = selectedOption(o), open = !!o.open, shown = cur?.label ?? o.placeholder ?? "Chọn…";
+  return h("div", `p2-select${open ? " open" : ""}${o.disabled ? " p2-off" : ""}`, { kids: [
+    h("button", "p2-sel-btn f2-nut-phu", { attrs: { type: "button", "aria-haspopup": "listbox", "aria-expanded": String(open), "aria-label": `${o.label}: ${shown}`, "aria-controls": id, ...(o.disabled ? { disabled: "" } : {}) }, kids: [
+      h("span", "p2-sel-v", { text: shown }),
+      h("span", "p2-sel-arrow", { attrs: { "aria-hidden": "true" } }),
+    ] }),
+    h("ul", "p2-sel-list", { attrs: { id, role: "listbox", "aria-label": o.label, ...(open ? {} : { hidden: "" }) }, kids: o.options.map((x) => h("li", `p2-sel-opt${x.value === o.value ? " sel" : ""}${x.disabled ? " p2-off" : ""}`, {
+      text: x.label, attrs: { role: "option", "data-v": x.value, "aria-selected": String(x.value === o.value), ...(x.disabled ? { "aria-disabled": "true" } : {}) } })) }),
+  ] });
+}
+
+// ---- thanh trượt số lượng ----
+export interface QtyOpts { label: string; min?: number; max: number; value?: number; step?: number; disabled?: boolean }
+/** Ép số lượng về [min, max] theo bước `step` (mốc tính từ `min`); max < min thì giữ min. Hàm thuần. */
+export function clampQty(v: number, min: number, max: number, step = 1): number {
+  const lo = Math.trunc(min), hi = Math.max(lo, Math.trunc(max)), st = Math.max(1, Math.trunc(step));
+  if (!Number.isFinite(v)) return lo;
+  const snapped = lo + Math.round((Math.trunc(v) - lo) / st) * st;
+  return Math.min(hi, Math.max(lo, snapped));
+}
+export function qtyNode(o: QtyOpts): PNode {
+  const min = Math.trunc(o.min ?? 1), step = Math.max(1, Math.trunc(o.step ?? 1)), max = Math.max(min, Math.trunc(o.max)), v = clampQty(o.value ?? min, min, max, step);
+  const off: Record<string, string> = o.disabled || max <= min ? { disabled: "" } : {};
+  return h("div", `p2-qty${o.disabled ? " p2-off" : ""}`, { attrs: { role: "group", "aria-label": o.label }, kids: [
+    h("button", "p2-qty-b p2-qty-minus f2-nut-phu", { text: "-", attrs: { type: "button", "aria-label": "Giảm", ...off } }),
+    h("input", "p2-qty-r", { attrs: { type: "range", min: String(min), max: String(max), step: String(step), value: String(v), "aria-label": o.label, ...off } }),
+    h("button", "p2-qty-b p2-qty-plus f2-nut-phu", { text: "+", attrs: { type: "button", "aria-label": "Tăng", ...off } }),
+    h("output", "p2-qty-v", { text: `${v}/${max}`, attrs: { "aria-live": "polite" } }),
+    h("button", "p2-qty-max f2-nut-phu", { text: "Tối đa", attrs: { type: "button", ...off } }),
+  ] });
+}
+
+// ---- tab hình thang (ngang) và tab icon dọc ----
+export interface TabItem { id: string; label: string; /** chữ / ký tự có trong phông (icon ảnh do màn gắn sau). */ icon?: string; active?: boolean; dot?: boolean; disabled?: boolean; reason?: string }
+export interface TabsOpts { label: string; tabs: TabItem[]; vertical?: boolean }
+/** Tab đang chọn: mục `active` đầu tiên không khoá; không có thì mục bấm được đầu tiên. */
+export const activeTabId = (tabs: TabItem[]) => (tabs.find((t) => t.active && !t.disabled) ?? tabs.find((t) => !t.disabled))?.id ?? null;
+export function tabsNode(o: TabsOpts): PNode {
+  const cur = activeTabId(o.tabs);
+  return h("div", `p2-tabs ${o.vertical ? "p2-tabs-v" : "p2-tabs-h"}`, { attrs: { role: "tablist", "aria-orientation": o.vertical ? "vertical" : "horizontal", "aria-label": o.label }, kids: o.tabs.map((t) => {
+    const sel = t.id === cur, why = t.disabled ? t.reason?.trim() || "Chưa mở" : null;
+    return h("button", `p2-tab f2-tab${sel ? " sel" : ""}${o.vertical ? " p2-tab-v" : ""}`, {
+      attrs: { type: "button", role: "tab", "data-id": t.id, "aria-selected": String(sel), tabindex: sel ? "0" : "-1", ...(why ? { "aria-disabled": "true" } : {}), ...(o.vertical || why ? { title: why ?? t.label } : {}), "aria-label": [t.label, t.dot ? CARD_MARK_LABEL.new : "", why].filter(Boolean).join(", ") },
+      kids: [
+        t.icon ? h("span", "p2-tab-i", { text: t.icon, attrs: { "aria-hidden": "true" } }) : null,
+        h("span", o.vertical ? "p2-tab-t p2-sr" : "p2-tab-t", { text: t.label }),
+        t.dot ? h("span", "p2-mark p2-m-new", { attrs: { role: "img", "aria-label": CARD_MARK_LABEL.new } }) : null,
+      ] });
+  }) });
+}
+
+// ---- ô vật phẩm có nhãn ----
+export interface SlotOpts {
+  name: string; /** ký tự / chữ viết tắt thay icon khi chưa có ảnh. */ icon?: string; qty?: number;
+  state?: CardState; reason?: string; rank?: number; selected?: boolean; empty?: boolean;
+}
+/** Mô tả ô đã chuẩn hoá: nhãn đọc cho trình đọc màn hình (tên, số lượng, trạng thái, lý do khoá), số lượng hiển thị ("x1,2K"). Hàm thuần. */
+export function slotInfo(o: SlotOpts) {
+  const c = cardInfo({ title: o.name, state: o.state, reason: o.reason, rank: o.rank });
+  const qty = o.qty !== undefined && o.qty > 1 ? `x${abbrevNumber(o.qty)}` : null;
+  return { ...c, qty, label: o.empty ? "Ô trống" : [o.name, qty ? `số lượng ${o.qty}` : "", c.state ? CARD_MARK_LABEL[c.state] : "", c.reason].filter(Boolean).join(", ") };
+}
+export function slotNode(o: SlotOpts, clickable = true): PNode {
+  const i = slotInfo(o);
+  return h(clickable ? "button" : "div", `p2-slot f2-o${o.empty ? "" : " has"}${o.selected ? " sel" : ""}${i.state ? ` p2-s-${i.state}` : ""}${i.rank !== null ? ` p2-r${i.rank}` : ""}${o.empty ? " p2-slot-empty" : ""}`, {
+    attrs: { ...(clickable ? { type: "button" } : {}), "aria-label": i.label, ...(i.rank !== null ? { "data-rank": String(i.rank) } : {}), ...(i.state ? { "data-state": i.state } : {}), ...(o.selected ? { "aria-pressed": "true" } : {}), ...(i.state === "lock" && clickable ? { "aria-disabled": "true" } : {}), ...(i.reason ? { title: i.reason } : {}) },
+    kids: o.empty ? [] : [
+      h("span", "p2-slot-i", { text: o.icon ?? [...o.name][0] ?? "", attrs: { "aria-hidden": "true" } }),
+      i.qty ? h("span", "p2-slot-q", { text: i.qty }) : null,
+      i.state ? h("span", `p2-mark p2-m-${i.state}`, { attrs: { role: "img", "aria-label": CARD_MARK_LABEL[i.state] } }) : null,
+    ],
+  });
+}
+
 // ---- khung màn chuẩn ----
 export type Material = "muc" | "giay";
 export interface NavItem { id: string; label: string; active?: boolean; /** chấm đỏ báo mới. */ dot?: boolean }
@@ -186,6 +299,80 @@ export function countdown(o: CountdownOpts & { onEnd?: () => void }) {
   };
   if (o.target - now() > 0) timer = window.setInterval(tick, 1000);
   return { root, stop };
+}
+
+/** Hộp trạng thái (mount): `onRetry` gắn vào nút Thử lại của loại lỗi. */
+export function stateBox(o: StateOpts & { onRetry?: () => void }): HTMLElement {
+  const e = mount(stateNode(o));
+  e.querySelector(".p2-retry")?.addEventListener("click", () => o.onRetry?.());
+  return e;
+}
+
+let selSeq = 0;
+/** Hộp xổ: ↑ ↓ Home End Enter Space, Esc đóng danh sách (không lan lên ngăn xếp bảng khi đang mở), bấm ra ngoài đóng. `onChange` nhận giá trị mới; màn tự quyết giữ hay hoàn lại bằng `set`. */
+export function select(o: SelectOpts & { onChange?: (v: string) => void }) {
+  const id = `p2-sel-${++selSeq}`, root = mount(selectNode({ ...o, open: false }, id)), btn = root.querySelector<HTMLButtonElement>(".p2-sel-btn")!, list = root.querySelector<HTMLElement>(".p2-sel-list")!;
+  let value = o.value, hi = -1;
+  const opts = () => [...list.querySelectorAll<HTMLElement>(".p2-sel-opt")];
+  const shown = () => selectedOption({ options: o.options, value })?.label ?? o.placeholder ?? "Chọn…";
+  const paint = () => {
+    opts().forEach((e, i) => { e.id = `${id}-${i}`; e.classList.toggle("hi", i === hi); e.classList.toggle("sel", e.dataset.v === value); e.setAttribute("aria-selected", String(e.dataset.v === value)); });
+    if (hi >= 0 && !list.hidden) btn.setAttribute("aria-activedescendant", `${id}-${hi}`); else btn.removeAttribute("aria-activedescendant");
+    root.querySelector(".p2-sel-v")!.textContent = shown(); btn.setAttribute("aria-label", `${o.label}: ${shown()}`);
+  };
+  const away = (e: Event) => { if (!root.contains(e.target as Node)) close(); };
+  function close() { list.hidden = true; root.classList.remove("open"); btn.setAttribute("aria-expanded", "false"); document.removeEventListener("pointerdown", away, true); paint(); }
+  const openList = () => { if (btn.disabled) return; list.hidden = false; root.classList.add("open"); btn.setAttribute("aria-expanded", "true"); hi = Math.max(0, o.options.findIndex((x) => x.value === value)); paint(); document.addEventListener("pointerdown", away, true); };
+  const pick = (i: number) => { const x = o.options[i]; if (!x || x.disabled) return; const ch = x.value !== value; value = x.value; close(); btn.focus(); if (ch) o.onChange?.(x.value); };
+  btn.addEventListener("click", () => (list.hidden ? openList() : close()));
+  list.addEventListener("click", (e) => { const i = opts().indexOf((e.target as HTMLElement).closest<HTMLElement>(".p2-sel-opt")!); if (i >= 0) pick(i); });
+  root.addEventListener("keydown", (e) => {
+    const isOpen = !list.hidden;
+    if (e.key === "Escape" && isOpen) { e.stopPropagation(); close(); btn.focus(); return; }
+    const move = (i: number) => { e.preventDefault(); if (!isOpen) openList(); hi = i; paint(); };
+    if (e.key === "ArrowDown") move(nextEnabled(o.options, isOpen ? hi : o.options.findIndex((x) => x.value === value), 1));
+    else if (e.key === "ArrowUp") move(nextEnabled(o.options, isOpen ? hi : o.options.findIndex((x) => x.value === value) < 0 ? o.options.length : o.options.findIndex((x) => x.value === value), -1));
+    else if (e.key === "Home") move(nextEnabled(o.options, -1, 1));
+    else if (e.key === "End") move(nextEnabled(o.options, o.options.length, -1));
+    else if ((e.key === "Enter" || e.key === " ") && isOpen) { e.preventDefault(); pick(hi); }
+  });
+  return { root, set: (v: string) => { value = v; paint(); }, get: () => value };
+}
+
+/** Thanh trượt số lượng: kéo, nút - / +, nút Tối đa. `onChange` chỉ phát khi giá trị đổi. `setMax` khi kho đổi (giá trị tự ép lại, có phát nếu đổi). */
+export function qty(o: QtyOpts & { onChange?: (n: number) => void }) {
+  const root = mount(qtyNode(o)), r = root.querySelector<HTMLInputElement>(".p2-qty-r")!, out = root.querySelector<HTMLElement>(".p2-qty-v")!;
+  const min = Math.trunc(o.min ?? 1), step = Math.max(1, Math.trunc(o.step ?? 1));
+  let max = Math.max(min, Math.trunc(o.max)), v = clampQty(o.value ?? min, min, max, step);
+  const paint = () => { r.max = String(max); r.value = String(v); out.textContent = `${v}/${max}`; };
+  const set = (n: number, emit = true) => { const nv = clampQty(n, min, max, step), ch = nv !== v; v = nv; paint(); if (ch && emit) o.onChange?.(v); };
+  r.addEventListener("input", () => set(Number(r.value)));
+  root.querySelector(".p2-qty-minus")!.addEventListener("click", () => set(v - step));
+  root.querySelector(".p2-qty-plus")!.addEventListener("click", () => set(v + step));
+  root.querySelector(".p2-qty-max")!.addEventListener("click", () => set(max));
+  return { root, get: () => v, set: (n: number) => set(n, false), setMax: (m: number) => { max = Math.max(min, Math.trunc(m)); set(v); } };
+}
+
+/** Tab (ngang hình thang hoặc icon dọc): bấm hoặc ← → (↑ ↓ khi dọc), Home / End; tab khoá không phát sự kiện (vẫn đọc được lý do). */
+export function tabs(o: TabsOpts & { onSelect?: (id: string) => void }) {
+  const root = mount(tabsNode(o));
+  const all = () => [...root.querySelectorAll<HTMLElement>(".p2-tab")], ok = (e: HTMLElement) => e.getAttribute("aria-disabled") !== "true";
+  const mark = (id: string) => { for (const e of all()) { const on = e.dataset.id === id; e.classList.toggle("sel", on); e.setAttribute("aria-selected", String(on)); e.tabIndex = on ? 0 : -1; } };
+  root.addEventListener("click", (e) => { const b = (e.target as HTMLElement).closest<HTMLElement>(".p2-tab"); if (b?.dataset.id && ok(b) && !b.classList.contains("sel")) { mark(b.dataset.id); o.onSelect?.(b.dataset.id); } });
+  root.addEventListener("keydown", (e) => {
+    const list = all().filter(ok), i = list.indexOf(document.activeElement as HTMLElement); if (i < 0) return;
+    const [prev, next] = o.vertical ? ["ArrowUp", "ArrowDown"] : ["ArrowLeft", "ArrowRight"];
+    const to = e.key === prev ? list[Math.max(0, i - 1)] : e.key === next ? list[Math.min(list.length - 1, i + 1)] : e.key === "Home" ? list[0] : e.key === "End" ? list[list.length - 1] : null;
+    if (to) { e.preventDefault(); to.focus(); if (to.dataset.id && !to.classList.contains("sel")) { mark(to.dataset.id); o.onSelect?.(to.dataset.id); } }
+  });
+  return { root, select: mark };
+}
+
+/** Ô vật phẩm; có `onClick` thì là nút (ô khoá không phát sự kiện, vẫn đọc được lý do). */
+export function itemSlot(o: SlotOpts & { onClick?: () => void }): HTMLElement {
+  const e = mount(slotNode(o, !!o.onClick));
+  if (o.onClick) e.addEventListener("click", () => { if (o.state !== "lock") o.onClick!(); });
+  return e;
 }
 
 /** Nút đóng ở góc phải-trên của khung màn (Esc cũng đóng qua ngăn xếp bảng, `panelStack.ts`). */

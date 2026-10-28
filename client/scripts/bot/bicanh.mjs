@@ -1,8 +1,9 @@
 // Nhóm bot "bicanh" (Bí Cảnh, mục 5.22, P2 + P4 #877; BOT_ONLY=bicanh, nhóm 2 của BOT_PART): tin `bicanh {op:"get"|"enter"|"buy", id, pay?}` và dùng Hồn Kinh Quyển qua server thật.
 // Giờ do server quyết nên bot đẩy ngày bằng hook `day {shift}` (room.dayShift, khóa ngày Bí Cảnh dùng cùng đồng hồ), không bao giờ gửi giờ / ngày. Ranh giới 04:59 / 05:00 và giá lũy tiến
-// là hàm thuần, do server/scripts/bicanh-test.ts thử; ở đây thử đường đi đầy đủ: get, id lạ, enter chưa mở (không trừ lượt), mua chưa xác nhận / thiếu Hồn Tệ / đúng giá lũy tiến / quá trần,
-// dồn 200 `buy` và `enter`, ghi lỗi hoàn lại (savefail), qua ngày đặt lại lượt, dùng quyển cho võ hồn dự bị / đang ra trận, kẹp bình cảnh, không mất quyển khi bị từ chối.
+// là hàm thuần, do server/scripts/bicanh-test.ts thử; ở đây thử đường đi đầy đủ: get, id lạ, mua chưa xác nhận / thiếu Hồn Tệ / đúng giá lũy tiến / quá trần,
+// dồn 200 `buy`, ghi lỗi hoàn lại (savefail), qua ngày đặt lại lượt, dùng quyển cho võ hồn dự bị / đang ra trận, kẹp bình cảnh, không mất quyển khi bị từ chối.
 import { sleep, waitFor, ok, bot, test, qtyOf, needHookSkip } from "./lib.mjs";
+import { bicanhRoomTest } from "./bicanhRoom.mjs";
 import { ASK_CD, BICANH, bicanhRunPrice, itemDef, xpNeed } from "../../../shared/data.ts";
 
 export async function bicanhTest(){
@@ -28,9 +29,7 @@ export async function bicanhTest(){
   // 2. Tin lạ / id lạ: không đổi gì, không rớt kết nối.
   { const n=A.bc.length; for(const m of [{op:"set"},{op:1},null,{},"x",{op:"buy"},{op:"buy",id:null},{op:"buy",id:"x",pay:true},{op:"buy",id:{}},{op:"enter",id:"__proto__"},{op:"enter",id:7}]) A.room.send("bicanh",m); await sleep(600);
     ok(A.leftCode===null,"tin lạ / id lạ: vẫn kết nối"); ok(A.bc.slice(n).every(x=>x.err)&&runOf(A.bc.at(-1)??s)?.left!==0,"tin lạ chỉ có thể trả lỗi, không đổi lượt"); }
-  // 3. enter chưa mở (P3): từ chối, không trừ lượt; dồn 200 enter cũng không trừ.
-  s=await act({op:"enter",id:ID}); ok(!!s?.err&&/chưa mở/.test(s.err)&&runOf(s).left===S.runs,`enter khi chưa có phòng: từ chối, không trừ lượt (${s?.err})`);
-  { const n=A.bc.length; for(let k=0;k<200;k++) A.room.send("bicanh",{op:"enter",id:ID}); await sleep(1500); await sleep(3500); s=await get(); ok(runOf(s)?.left===S.runs&&A.leftCode===null,`dồn 200 enter: lượt vẫn ${runOf(s)?.left}/${S.runs}, vẫn kết nối (nhận ${A.bc.length-n} tin)`); }
+  // 3. `enter` (vào phòng, trừ lượt, dồn 200, hoàn lượt, thưởng) do bicanhRoomTest thử ở cuối (bicanhRoom.mjs).
   // 4. Mua lượt: chưa xác nhận / thiếu Hồn Tệ → từ chối, không mất tiền.
   await coin(price(0)+500);
   s=await act({op:"buy",id:ID}); ok(!!s?.err&&/xác nhận/.test(s.err)&&runOf(s).bought===0&&A.bag.honTe===price(0)+500,`buy chưa xác nhận (pay): từ chối, không trừ tiền (${s?.err})`);
@@ -88,4 +87,5 @@ export async function bicanhTest(){
   A.room.send("use",{id:tomeIt()?.id,vohonId:act0}); A.room.send("use",{id:tomeIt()?.id,vohonId:act0}); await sleep(800);
   ok(qtyOf(A,BICANH.tome)===q-1&&A.room.state.players.get(A.room.sessionId).level===10,`võ hồn ra trận chạm bình cảnh: quyển thứ hai bị từ chối, chỉ mất 1 quyển (${q}→${qtyOf(A,BICANH.tome)}, cấp ${A.room.state.players.get(A.room.sessionId).level})`);
   await A.room.leave();
+  await bicanhRoomTest();
 }
