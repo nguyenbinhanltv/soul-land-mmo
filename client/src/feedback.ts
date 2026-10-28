@@ -6,6 +6,11 @@ import { bagItemInfo } from "./hud.ts";
 import { rarityOf } from "./bag.ts";
 import { RING_ITEM } from "../../shared/data.ts";
 import { RARE_LOOT_MIN } from "./audio/soundMap.ts";
+import { isUi2 } from "./uiKit.ts";
+import "./ui2-feedback.css";
+
+// UI v2 (đợt 1c): banner nhận khung Mực của kit khi bật cờ ui2 (chip lệnh do cmdChip.ts, tooltip do tooltip.ts); cờ tắt thì không đổi gì. Luật vẽ ở ui2-feedback.css.
+if (isUi2()) document.getElementById("banner")?.classList.add("f2-muc-nho");
 
 /** Loại toast: nhãn nhỏ ở đầu dòng và màu vạch trái (đặt ở CSS theo `data-k`, màu niên hạn của đồ rơi theo `--c`). */
 export type ToastKind = "loot" | "level" | "quest" | "boss" | "info";
@@ -13,6 +18,10 @@ type ToastFrame = "rare-ring";
 const LABEL: Record<ToastKind, string> = { loot: "Nhận", level: "Lên cấp", quest: "Nhiệm vụ", boss: "Boss", info: "Tin" };
 /** Số toast hiện cùng lúc (cũ nhất bị đẩy đi) và thời gian sống (ms). */
 const MAX = 4, LIFE_MS = 4200, FADE_MS = 400;
+
+/** Nơi khác (GameScene) nghe toast MỚI (không phải lần gộp ×n) để phát tiếng giao diện; feedback.ts không biết âm thanh. */
+let onNew: (kind: ToastKind) => void = () => {};
+export function onToastNew(fn: (kind: ToastKind) => void) { onNew = fn; }
 
 let box: HTMLElement | null = null;
 function root() {
@@ -42,7 +51,7 @@ export function toast(kind: ToastKind, title: string, sub = "", color?: string, 
   t.addEventListener("click", () => dismiss(t));
   el0.appendChild(t);
   while (el0.querySelectorAll(".toast:not(.out)").length > MAX) dismiss(el0.querySelector(".toast:not(.out)") as HTMLElement);
-  arm(t);
+  arm(t); onNew(kind);
 }
 function arm(t: HTMLElement) {
   clearTimeout(Number(t.dataset.to)); t.dataset.to = String(window.setTimeout(() => dismiss(t), LIFE_MS));
@@ -53,15 +62,20 @@ function dismiss(t: HTMLElement) {
 }
 
 const stackKey = (it: BagItem) => `${it.code}|${it.years ?? ""}|${it.stars ?? ""}`;
+/** Đồ nhận thêm giữa hai lần túi (cộng theo mã, năm, sao; cả đồ đang mang lẫn trong túi): `n` là số lượng tăng. Dùng chung cho toast và chữ bay. */
+export function lootGained(prev: BagItem[], next: BagItem[]): { it: BagItem; n: number }[] {
+  const sum = (a: BagItem[]) => { const m = new Map<string, { it: BagItem; n: number }>(); for (const it of a) { const k = stackKey(it), e = m.get(k); if (e) e.n += it.qty; else m.set(k, { it, n: it.qty }); } return m; };
+  const before = sum(prev), after = sum(next), gained: { it: BagItem; n: number }[] = [];
+  for (const [k, e] of after) { const d = e.n - (before.get(k)?.n ?? 0); if (d > 0) gained.push({ it: e.it, n: d }); }
+  return gained;
+}
 /**
  * So túi mới với túi cũ và báo đồ nhận thêm (tối đa 3 dòng, còn lại gộp "+N món khác"). Cộng theo (mã, năm, sao; không tính cường hóa, vì cường hóa / nâng cấp đổi cấp tại chỗ) cả đồ đang
  * mang lẫn trong túi, nên xếp lại túi, gắn / tháo, gộp ô không báo nhầm; mua, nhặt, nhận thưởng thì báo.
  */
 export function lootToasts(prev: BagItem[] | null, next: BagItem[]): number {
   if (!prev) return -1;
-  const sum = (a: BagItem[]) => { const m = new Map<string, { it: BagItem; n: number }>(); for (const it of a) { const k = stackKey(it), e = m.get(k); if (e) e.n += it.qty; else m.set(k, { it, n: it.qty }); } return m; };
-  const before = sum(prev), after = sum(next), gained: { it: BagItem; n: number }[] = [];
-  for (const [k, e] of after) { const d = e.n - (before.get(k)?.n ?? 0); if (d > 0) gained.push({ it: e.it, n: d }); }
+  const gained = lootGained(prev, next);
   gained.slice(0, 3).forEach(({ it, n }) => {
     const info = bagItemInfo(it), frame = it.code === RING_ITEM && rarityOf(it) >= RARE_LOOT_MIN ? "rare-ring" : undefined;
     toast("loot", n > 1 ? `${info.name} ×${n}` : info.name, "", info.color, frame);

@@ -22,7 +22,8 @@ import { dropArtSpec, dropTexture, DROP_ART_SCALE } from "../dropArt.ts";
 import { radar, type DotSink } from "../radar.ts";
 import { mapview, type MapLabel } from "../mapview.ts";
 import { fog } from "../fog.ts";
-import { toast, lootToasts } from "../feedback.ts";
+import { toast, lootToasts, lootGained, onToastNew } from "../feedback.ts";
+import { planPickup, xpDelta, XpBatch, xpText, coinText, COIN_COL, XP_COL, type PickupLine } from "../pickupFx.ts";
 import { guideStart, guideEvent, guideHint, guideReview } from "../guide.ts";
 import { initDualWindows } from "../dualWindow.ts";
 import { initPanelStack, closeTopPanel, panelOf, trapTab } from "../panelStack.ts";
@@ -38,7 +39,7 @@ import { findLongPath, buildNav, type Nav } from "../../../shared/path.ts";
 import { autoLeg, AUTO_STOP } from "../../../shared/autowalk.ts";
 import { getFlag, setFlag, patchFlag, bindFlagBar, mapName } from "../autowalk.ts";
 import { startCmd, topCmd, stoppedText, deniedText, type Cmd } from "../../../shared/control.ts";
-import { bindCmdChip, setCmdChip, flashWhy } from "../cmdChip.ts";
+import { bindCmdChip, setCmdChip, flashWhy, onWhy } from "../cmdChip.ts";
 import { RALLY, ATTACK_REACH, QUEST_STARTER, GUIDE_BAG_FREE } from "../../../shared/data.ts";
 import { emptyVitals, vitalsAfter, vitalsParse, type Vitals } from "../../../shared/vitals.ts";
 import { newGoal, stepGoal, reachGap, type ClickGoal } from "../../../shared/clickgoal.ts";
@@ -395,6 +396,7 @@ export class GameScene extends Phaser.Scene {
   combat = false;                   // đang giao chiến (tin riêng "squad"): bảng hấp thụ nhắc rời xa hồn thú
   party: PartyView | null = null;   // tin riêng "party" gần nhất (tổ đội người chơi, 7.1)
   audio!: AudioManager;
+  xpPrev: { vh: number; level: number; xp: number } | null = null; xpBatch = new XpBatch();   // kinh nghiệm ở khung trước + bộ gom cho chữ bay (#599)
   lvVh = -1; lvSeen = 0;            // võ hồn ra trận và cấp ở khung trước: cấp tăng (cùng võ hồn) thì phát khúc ngắn lên cấp
   selectedPlayer = "";
   targetBeast = "";
@@ -548,6 +550,9 @@ export class GameScene extends Phaser.Scene {
     });
     this.audio.bindUnlock(this.ac.signal);
     bindUiSounds(this.audio, this.ac.signal); // mở / đóng panel, kéo thả (G5, #396)
+    // Đợt 1c (#599): tiếng giao diện cho toast mới (nhiệm vụ / lên cấp = nhận thưởng, còn lại = thông báo) và cho lệnh bị từ chối / huỷ (chip lý do).
+    onToastNew((k) => { if (k !== "loot") this.audio.playUi(k === "quest" || k === "level" ? "reward" : "notify"); });
+    onWhy(() => { this.audio.playUi("error"); });
     this.audio.music?.setMap(this.room.state.mapId || this.mapId); // nhạc nền theo bản đồ trong state (#134); bài cũ mờ chéo sang
     bindAudioPanel(this.audio, this.ac.signal);
     // Bảng Tự động (Auto 2): tên võ hồn theo ô đội hình và hồn kỹ ở 4 ô của võ hồn đang ra trận, đọc từ tin `vohons` gần nhất.
@@ -1359,8 +1364,8 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("log", (m: { text: string; col?: string }) => { hud.log(m.text, m.col); charLog(m.text, m.col); }); // charLog: kết quả / lý do từ chối lệnh gắn, tháo gửi từ bảng nhân vật
     // Tinh anh xuất hiện / bị hạ trong bản đồ này (BĐ4): báo cả phòng.
     this.room.onMessage("elite", (m: { k: string; name: string; zone?: string; by?: string; col?: string }) => {
-      if (m.k === "spawn") { hud.banner(`${m.name} xuất hiện`, m.zone ?? ""); hud.log(`${m.name} đã xuất hiện ở ${m.zone}!`, m.col); }
-      else if (m.k === "down") hud.log(`${m.name} đã bị ${m.by} hạ.`, m.col);
+      if (m.k === "spawn") { hud.banner(`${m.name} xuất hiện`, m.zone ?? ""); hud.logImp(`${m.name} đã xuất hiện ở ${m.zone}!`, m.col); }
+      else if (m.k === "down") hud.logImp(`${m.name} đã bị ${m.by} hạ.`, m.col);
     });
     // Tà hóa thú vương (BĐ5): báo toàn server trước 5 phút (đếm ngược) và lúc xuất hiện; trong bản đồ có thú vương thì thêm giai đoạn 2,
     // bảng xếp hạng sát thương, bị hạ / rút đi / bỏ giao chiến.
@@ -1372,7 +1377,7 @@ export class GameScene extends Phaser.Scene {
       if (m.k === "warn") {
         hud.setBossCountdown({ name: m.name, mapName: m.mapName, here: m.here, secs: m.in, col });
         if (m.join) return; // tin xin lại lúc vào phòng (#118): chỉ đặt đếm ngược, không lặp log / banner
-        hud.log(`${m.name} sẽ xuất hiện ở ${m.mapName} sau ${Math.max(1, Math.round(m.in / 60))} phút!`, col, "Hệ thống");
+        hud.logImp(`${m.name} sẽ xuất hiện ở ${m.mapName} sau ${Math.max(1, Math.round(m.in / 60))} phút!`, col, "Hệ thống");
         toast("boss", `${m.name} sắp xuất hiện`, `${m.mapName} · ${Math.max(1, Math.round(m.in / 60))} phút nữa`);
       } else if (m.k === "spawn" || m.k === "here") {
         hud.setBossCountdown(null);
@@ -1383,15 +1388,15 @@ export class GameScene extends Phaser.Scene {
         if (m.here && m.world && m.dive && m.sx !== undefined) { const all = Math.max(m.dive, m.diveSecs ?? m.dive) * 1000;
           this.diveMark = { bid: m.bid, x: m.sx, y: m.sy, t0: this.time.now - (all - m.dive * 1000), ms: all }; }
         if (m.k === "spawn" && m.world) {
-          hud.log(`${m.name} đã xuất hiện ở ${m.mapName}${m.here ? ": sàn đấu bên hồ trung tâm" : " (cổng ở bờ hồ cuối Hắc Ám Lâm, Nội địa)"}!`, col, "Hệ thống");
+          hud.logImp(`${m.name} đã xuất hiện ở ${m.mapName}${m.here ? ": sàn đấu bên hồ trung tâm" : " (cổng ở bờ hồ cuối Hắc Ám Lâm, Nội địa)"}!`, col, "Hệ thống");
           hud.banner(`${m.name} xuất hiện`, m.here ? `Sàn đấu bên hồ · nổi giận sau ${Math.round(WORLD.enrageSecs / 60)} phút` : m.mapName);
         } else if (m.k === "spawn") {
-          hud.log(`${m.name} đã xuất hiện ở ${m.mapName}${m.here ? ": vào hang ở vùng sâu nhất (chấm đỏ trên bản đồ nhỏ)" : ""}!`, col, "Hệ thống");
+          hud.logImp(`${m.name} đã xuất hiện ở ${m.mapName}${m.here ? ": vào hang ở vùng sâu nhất (chấm đỏ trên bản đồ nhỏ)" : ""}!`, col, "Hệ thống");
           hud.banner(`${m.name} xuất hiện`, m.here ? `Hang ở vùng sâu nhất · rút đi sau ${Math.round(m.life / 60)} phút` : m.mapName);
         }
       } else if (m.k === "phase") {
         hud.banner(`${m.name}: giai đoạn 2`, `${m.title} – ${m.desc}`);
-        hud.log(`${m.name} chuyển sang giai đoạn 2 – ${m.title}: ${m.desc}.`, col);
+        hud.logImp(`${m.name} chuyển sang giai đoạn 2 – ${m.title}: ${m.desc}.`, col);
       } else if (m.k === "rank") { this.bossList = m.list; hud.bossRank(m.list, this.me, false, this.worldBossHere()); }
       else if (m.k === "down") {
         // Kết quả cuối chỉ hiện cho người tham gia (đang nhận bảng xếp hạng, hoặc có tên trong danh sách).
@@ -1400,7 +1405,7 @@ export class GameScene extends Phaser.Scene {
         setTimeout(() => { if (!this.bossList) hud.bossRank(null, this.me); }, 12000);
         hud.banner(`Đã hạ ${m.name}`, `${m.top} ${m.topDmg ? "gây sát thương" : "đóng góp"} nhiều nhất`); // 9.2: boss thế giới xếp hồn hoàn đỏ theo sát thương
       } else if (m.k === "leave") { this.bossList = null; this.diveMark = null; hud.bossRank(null, this.me); hud.banner(`${m.name} đã ${m.world ? "lặn xuống hồ" : "rút đi"}`, `Không ai hạ được trong ${m.mins ?? 15} phút`); }
-      else if (m.k === "reset") { this.bossList = null; this.diveMark = null; hud.bossRank(null, this.me); hud.log(`${m.name} bỏ giao chiến: về hang, hồi đầy máu.`, col); }
+      else if (m.k === "reset") { this.bossList = null; this.diveMark = null; hud.bossRank(null, this.me); hud.logImp(`${m.name} bỏ giao chiến: về hang, hồi đầy máu.`, col); }
     });
     // Chat (#188): `ch` thiếu = bản đồ (kể cả thông báo "Hệ thống"); tổ đội / riêng / thế giới / tông môn (#198) đến từ mọi bản đồ / kênh qua server.
     this.room.onMessage("chat", (m: ChatMsg) => {
@@ -1628,7 +1633,7 @@ export class GameScene extends Phaser.Scene {
     // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
     // Mảnh võ hồn trong túi (3.4): bảng đội hình hiện tiến độ mở / lên sao nên vẽ lại cùng túi.
     // Từ #215 sau tin "bag" đầu tiên chỉ nhận phần đổi (tin "bagd"); chưa có túi gốc thì bỏ qua (tin "bag" đang tới).
-    const onBag = (m: BagMsg) => { if (m.slots - m.items.filter((i) => i.vohon === null).length <= GUIDE_BAG_FREE) guideHint("bag"); if (lootToasts(this.bag?.items ?? null, m.items) >= RARE_LOOT_MIN) this.audio.playUi("rare"); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
+    const onBag = (m: BagMsg) => { if (m.slots - m.items.filter((i) => i.vohon === null).length <= GUIDE_BAG_FREE) guideHint("bag"); const rare = lootToasts(this.bag?.items ?? null, m.items); if (rare >= RARE_LOOT_MIN) this.audio.playUi("rare"); else if (rare >= 1) this.audio.playUi("reward"); this.pickupBag(this.bag, m); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
     this.room.onMessage("bag", onBag);
     this.room.onMessage("gear", (m: GearMsg) => { this.gear = m; this.renderBag(); this.renderChar(); this.askStats(); hud.npcRefresh(); }); // trang bị hồn sư (5.15): chỉ số tổng ở tin "stats"
     this.room.onMessage("bagd", (m: BagDeltaMsg) => {
@@ -2502,13 +2507,28 @@ export class GameScene extends Phaser.Scene {
     } else this.tweens.add({ targets: t, y: y - (plus ? 14 : 16) * SPR, alpha: 0, delay: plus ? 600 : 350, duration: plus ? 700 : 550, onComplete: () => t.destroy() });
   }
 
+  /** Túi mới so với túi cũ: đồ nhận thêm và Hồn Tệ tăng thì chữ bay trên đầu mình (#599). Chỉ hiển thị, số liệu từ tin `bag` / `bagd` của server. */
+  pickupBag(prev: BagMsg | null, next: BagMsg) {
+    if (!prev) return;
+    const lines: PickupLine[] = lootGained(prev.items, next.items).map(({ it, n }) => { const i = hud.bagItemInfo(it); return { kind: "item" as const, text: n > 1 ? `${i.name} ×${n}` : i.name, col: i.color }; });
+    if (next.honTe > prev.honTe) lines.push({ kind: "coin", text: coinText(formatHonTe(next.honTe - prev.honTe)), col: COIN_COL });
+    this.pickupFloat(lines);
+  }
+  /** Vẽ các dòng nhận được (pickupFx.planPickup) trên đầu mình: số dòng theo mức hiệu ứng, Giảm chuyển động thì đứng yên rồi mờ. */
+  pickupFloat(lines: PickupLine[]) {
+    const v = this.players.get(this.me); if (!v || !lines.length) return;
+    for (const st of planPickup(lines, fxLevel(), fxPrefs.reduce)) {
+      this.time.delayedCall(st.delay, () => { if (v.root.active) this.floatText(v.root.x, v.root.y - HEAD - 30 - st.dy * this.txtK, st.text, st.col, st.drift); });
+    }
+  }
+
   /** Chữ bay lên rồi mờ dần (tên hồn kỹ, tên tiên cơ); đặt trên danh hiệu để không đè tên hồn sư. */
-  floatText(x: number, y: number, text: string, col: string) {
+  floatText(x: number, y: number, text: string, col: string, drift = true) {
     const t = this.add.text(x, y, text, {
       fontFamily: '"Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif', fontSize: "8px", fontStyle: "800",
       color: col, stroke: "#000", strokeThickness: 2, resolution: 8,
     }).setOrigin(0.5).setDepth(99999).setScale(this.txtK);
-    this.tweens.add({ targets: t, y: y - 14 * this.txtK, alpha: 0, delay: 500, duration: 600, onComplete: () => t.destroy() });
+    this.tweens.add({ targets: t, y: drift ? y - 14 * this.txtK : y, alpha: 0, delay: 500, duration: 600, onComplete: () => t.destroy() });
   }
 
   /**
@@ -3208,6 +3228,8 @@ export class GameScene extends Phaser.Scene {
     this.audio.music?.setBossPhase(bossLevel); // pha 2 (nổi giận): nhạc giao chiến boss lên một nấc
     this.audio.music?.tick();
     if (me) {
+      this.xpBatch.add(xpDelta(this.xpPrev, me), performance.now()); this.xpPrev = { vh: me.vh, level: me.level, xp: me.xp };
+      const gain = this.xpBatch.take(performance.now()); if (gain > 0) this.pickupFloat([{ kind: "xp", text: xpText(gain), col: XP_COL }]);
       if (me.vh === this.lvVh && me.level > this.lvSeen) { this.audio.play("level_up"); this.audio.music?.jingle("level_up"); toast("level", `Cấp ${me.level}`, VOHON[me.vh]?.name ?? "", "#ffe08a"); }
       this.lvVh = me.vh; this.lvSeen = me.level;
     }
@@ -3591,7 +3613,7 @@ export class GameScene extends Phaser.Scene {
     if (m.k === "warn" && m.world) {
       hud.setBossCountdown({ name: m.name, mapName: m.mapName, here: m.here, secs: m.in, col });
       if (m.join) return true; // tin xin lại lúc vào phòng (#118): chỉ đặt đếm ngược, không lặp log / banner
-      hud.log(`${m.name} sẽ xuất hiện ở ${m.mapName} sau ${Math.max(1, Math.round(m.in / 60))} phút!`, col, "Hệ thống");
+      hud.logImp(`${m.name} sẽ xuất hiện ở ${m.mapName} sau ${Math.max(1, Math.round(m.in / 60))} phút!`, col, "Hệ thống");
       toast("boss", `${m.name} sắp xuất hiện`, `${m.mapName} · ${Math.max(1, Math.round(m.in / 60))} phút nữa`);
       return true;
     }
@@ -3600,19 +3622,19 @@ export class GameScene extends Phaser.Scene {
       case "weak":
         hud.setBossWeak(m.secs);
         hud.banner(`Điểm yếu: ${he(m.he)}`, `Võ hồn ${he(m.he)} gây x${String(m.mult).replace(".", ",")}, hệ khác x${String(m.off).replace(".", ",")} trong ${m.secs} giây: đổi võ hồn (phím 1–4)!`);
-        hud.log(`Boss lộ điểm yếu hệ ${he(m.he)} trong ${m.secs} giây.`, "#ffe08a");
+        hud.logImp(`Boss lộ điểm yếu hệ ${he(m.he)} trong ${m.secs} giây.`, "#ffe08a");
         return true;
       case "weakEnd": return true;
       case "charge":
         hud.banner(`${m.name}: tích lực ${m.secs} giây!`, `Cần ${m.need} lần khống chế của võ hồn Khống chế để ngắt, không thì đứng vào vòng xanh ngọc`);
-        hud.log(`Boss tích lực ${m.name}: cần ${m.need} lần khống chế (Choáng, Trói, Câm lặng…) của võ hồn Khống chế để ngắt.`, "#ff8a6a");
+        hud.logImp(`Boss tích lực ${m.name}: cần ${m.need} lần khống chế (Choáng, Trói, Câm lặng…) của võ hồn Khống chế để ngắt.`, "#ff8a6a");
         return true;
-      case "brk": hud.log(`${m.by} khống chế trúng: ngắt ${m.n}/${m.need}.`, "#9ad8ff"); return true;
+      case "brk": hud.logImp(`${m.by} khống chế trúng: ngắt ${m.n}/${m.need}.`, "#9ad8ff"); return true;
       case "broken":
         hud.banner(`Đã ngắt ${m.name}!`, `${m.by} ngắt chiêu · boss Choáng ${m.secs} giây`);
         return true;
       case "chargeHit":
-        hud.log(`${m.name} không bị ngắt: cả sàn (trừ người đứng trong vòng an toàn) trúng Vết thương sâu (Phá giáp nặng). Chỉ thanh tẩy của võ hồn phụ trợ giải được.`, "#ff6a5a");
+        hud.logImp(`${m.name} không bị ngắt: cả sàn (trừ người đứng trong vòng an toàn) trúng Vết thương sâu (Phá giáp nặng). Chỉ thanh tẩy của võ hồn phụ trợ giải được.`, "#ff6a5a");
         return true;
       case "floor":
         hud.banner(m.name, m.name === "Bạo Nộ" ? "Chiêu toàn sàn: đứng vào vòng xanh ngọc hoặc ra khỏi sàn!"
@@ -3620,10 +3642,10 @@ export class GameScene extends Phaser.Scene {
         return true;
       case "armor":
         hud.banner(`${m.name}!`, `Khiên ${m.secs} giây: võ hồn ${he(m.he)} phá khiên nhanh gấp ${m.mult}`);
-        hud.log(`Boss khoác ${m.name}: võ hồn ${he(m.he)} phá khiên nhanh gấp ${m.mult}; không phá kịp thì boss hồi máu.`, "#9ad8ff");
+        hud.logImp(`Boss khoác ${m.name}: võ hồn ${he(m.he)} phá khiên nhanh gấp ${m.mult}; không phá kịp thì boss hồi máu.`, "#9ad8ff");
         return true;
-      case "armorBreak": hud.log(`${m.by} phá vỡ ${m.name}!`, "#9ad8ff"); return true;
-      case "armorEnd": if (m.heal > 0) hud.log(`${m.name} không bị phá: boss hồi ${Number(m.heal).toLocaleString("vi-VN")} máu.`, "#ff8a6a"); return true;
+      case "armorBreak": hud.logImp(`${m.by} phá vỡ ${m.name}!`, "#9ad8ff"); return true;
+      case "armorEnd": if (m.heal > 0) hud.logImp(`${m.name} không bị phá: boss hồi ${Number(m.heal).toLocaleString("vi-VN")} máu.`, "#ff8a6a"); return true;
       case "dive":
         // #118: lặn ra giữa hồ, chỗ nổi lên báo trước bằng vòng sóng xanh.
         this.diveMark = { bid: m.bid, x: m.sx, y: m.sy, t0: this.time.now, ms: m.secs * 1000 };
@@ -3632,7 +3654,7 @@ export class GameScene extends Phaser.Scene {
       case "rage":
         hud.setBossLife(m.life); hud.setBossRage(0);
         hud.banner("NỔI GIẬN!", `Sát thương x${m.dmg}, chiêu toàn sàn mỗi ${m.every} giây`);
-        hud.log(`${m.name} nổi giận: sát thương x${m.dmg}, đánh nhanh hơn, chiêu toàn sàn mỗi ${m.every} giây.`, col);
+        hud.logImp(`${m.name} nổi giận: sát thương x${m.dmg}, đánh nhanh hơn, chiêu toàn sàn mỗi ${m.every} giây.`, col);
         return true;
     }
     return false;

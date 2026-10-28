@@ -1,10 +1,13 @@
 import type { UiSound } from "./soundMap.ts";
 
 // Tiếng giao diện tự gắn vào DOM (G5, #396): mở / đóng panel theo thuộc tính `hidden`, kéo thả ô đồ. Không đụng vào từng panel;
-// panel mới có `role="dialog"` thì tự có tiếng. Trang bị / cường hóa / đồ hiếm phát từ tin của server ở GameScene.
+// panel mới có `role="dialog"` thì tự có tiếng. Bấm nút trong panel có tiếng "click" (đợt 1c, #599; tối đa một tiếng mỗi CLICK_GAP_MS). Trang bị / cường hóa / đồ hiếm phát từ tin của server ở GameScene.
 
 /** Panel có tiếng mở / đóng: hộp thoại (role=dialog) và các bảng chính. */
 export const UI_PANEL_SELECTOR = '.panel[role="dialog"], #bag, #roster, #chans';
+
+/** Hai tiếng bấm cách nhau tối thiểu chừng này ms (bấm dồn / giữ chuột không thành một chuỗi tiếng). */
+export const CLICK_GAP_MS = 80;
 
 export interface UiSoundSink { playUi(kind: UiSound): unknown; }
 
@@ -25,5 +28,12 @@ export function bindUiSounds(audio: UiSoundSink, signal: AbortSignal, root: Pare
   const inPanel = (e: Event) => (e.target as Element | null)?.closest?.(UI_PANEL_SELECTOR) ?? null;
   document.addEventListener("dragstart", (e) => { if (inPanel(e)) audio.playUi("drag"); }, { signal });
   document.addEventListener("drop", (e) => { if (inPanel(e)) audio.playUi("drop"); }, { signal });
+  let lastClick = -Infinity;
+  document.addEventListener("click", (e) => {
+    const b = (e.target as Element | null)?.closest?.("button, [role=button], [role=tab]") as HTMLElement | null;
+    if (!b || !inPanel(e) || (b as HTMLButtonElement).disabled || b.getAttribute("aria-disabled") === "true") return;
+    const now = performance.now(); if (now - lastClick < CLICK_GAP_MS) return;
+    lastClick = now; audio.playUi("click");
+  }, { signal });
   signal.addEventListener("abort", () => observer.disconnect(), { once: true });
 }
