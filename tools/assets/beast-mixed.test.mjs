@@ -233,6 +233,28 @@ test("khớp cỡ thân (#861): hướng mới nhỏ nhưng rộng (k > 1, phón
     assert.ok(m.factor > 1 && m.factor < 1.5, `grow ${grow}: k kẹp ${m.factor}`);
     assert.ok(m.scale > off.report.scale, "vẫn phóng to được phần vừa khung");
     assert.ok(mix.report.warnings.some((w) => /^khối ne: khớp cỡ thân một phần ×/.test(w)), "ghi cảnh báo lệch cỡ còn lại");
+    assert.ok(mix.report.issues.some((i) => i.level === "warn" && /^khối ne: cỡ thân còn lệch/.test(i.msg)), "lệch >10% còn lại phải ở mức warn");
+    assert.ok(Math.abs(m.residual) > 0.1, `residual ${m.residual}`);
     assert.ok(!mix.report.warnings.some((w) => /^khối ne: .*bị cắt mép/.test(w)));
+  }
+});
+
+test("khớp cỡ thân (#861): bật CẢ neo ảnh tĩnh + chuẩn hóa → legacy nguyên byte, không còn cảnh báo cắt mép cũ khi khớp cỡ đã đổi hệ số, ratioAfter cập nhật", async () => {
+  const { fakeSheets } = await import("./beast-sheet-fake.mjs");
+  const base = { species: "phong_lang", palette: "gpl" };
+  const leg = fakeSheets("phong_lang", { seed: 2 });
+  const pure = cutSpecies({ ...base, sheets: leg });
+  for (const [grow, wide] of [[0.7, 2], [0.8, 2.5], [1.6, 1]]) {
+    const dir = fakeSheets("phong_lang", { seed: 2, layout: "direction", grow, wide }), sheets = { ...leg, D: dir.D, E: dir.E };
+    const mix = cutSpecies({ ...base, sheets });
+    for (const [name, im] of pure.frames) if (/^(s|se|e)\//.test(name)) assert.deepEqual(Buffer.from(mix.frames.get(name).data), Buffer.from(im.data), `grow ${grow}: ${name} đổi byte`);
+    for (const d of ["ne", "n"]) {
+      const b = mix.report.blocks?.[d], m = mix.report.matchSize?.[d];
+      if (b && m) assert.ok(Math.abs(b.ratioAfter - (m.scale * b.bodyH) / b.anchor) < 0.002, `grow ${grow}: ${d} ratioAfter ${b.ratioAfter} không theo hệ số cuối`);
+      // cảnh báo cắt mép chỉ còn khi hệ số cuối thật sự vượt khung: có thì phải kèm mức block khớp, không có thì không được chặn
+      const stale = mix.report.warnings.some((w) => w.startsWith(`khối ${d}: hệ số `) && w.endsWith("bị cắt mép"));
+      const blocked = mix.report.issues.some((i) => i.level === "block" && i.msg.startsWith(`khối ${d}:`));
+      assert.equal(stale, blocked, `grow ${grow}: ${d} cảnh báo cắt mép và mức chặn lệch nhau`);
+    }
   }
 });

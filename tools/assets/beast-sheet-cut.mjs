@@ -305,10 +305,16 @@ export function cutSpecies(o) {
         // Phóng to không vượt khung vừa của hướng này (bước khớp không được biến hướng không chặn thành chặn); đã vượt từ trước thì không phóng thêm
         const kFit = Math.max(1, fitOf(all.filter((r) => r.dir === d)) / sd), k = Math.min(want, kFit);
         rep.matchSize[d] = { bodyH: +h.toFixed(1), target: +target.toFixed(1), factor: +k.toFixed(3), scale: +sd.toFixed(4) };
+        // Độ lệch cỡ thân còn lại so với trung bình legacy (kể cả khi bị kẹp khung / 0,5–2 hoặc k≈1): >10% thì cảnh báo mức warn để người nhập thấy
+        const residual = target / (h * k) - 1;
+        rep.matchSize[d].residual = +residual.toFixed(3);
+        if (Math.abs(residual) > 0.1) warns.push(`khối ${d}: cỡ thân còn lệch ${residual > 0 ? "nhỏ hơn" : "to hơn"} ${Math.round(Math.abs(residual) * 100)}% so với trung bình hướng legacy sau khi khớp (kẹp khung ${F}×${F} hoặc giới hạn ×0,5–×2), nên vẽ lại hướng này`);
         if (Math.abs(k - 1) < 0.02) continue;
         dirScale[d] = sd * k;
         rep.matchSize[d].scale = +dirScale[d].toFixed(4);
-        if (rep.blocks?.[d]) rep.blocks[d].scale = +dirScale[d].toFixed(4);
+        if (rep.blocks?.[d]) { rep.blocks[d].scale = +dirScale[d].toFixed(4); rep.blocks[d].ratioAfter = +((dirScale[d] * rep.blocks[d].bodyH) / rep.blocks[d].anchor).toFixed(3); }
+        // Hệ số hướng này đã đổi: bỏ cảnh báo cắt mép cũ do bước neo ghi, để 3c đánh giá lại theo hệ số cuối
+        if (fitWarned.delete(d)) for (let i = warns.length - 1; i >= 0; i--) if (warns[i].startsWith(`khối ${d}: hệ số `) && warns[i].endsWith("bị cắt mép")) warns.splice(i, 1);
         if (k < want - 1e-9) warns.push(`khối ${d}: khớp cỡ thân một phần ×${k.toFixed(2)} thay vì ×${want.toFixed(2)} (giới hạn khung ${F}×${F}), cỡ thân còn lệch`);
         warns.push(`khối ${d}: khớp cỡ thân ×${k.toFixed(2)} (cao idle ${h.toFixed(1)} so với trung bình hướng legacy ${target.toFixed(1)}), hệ số ${sd.toFixed(3)} → ${dirScale[d].toFixed(3)}`);
       }
