@@ -1,0 +1,28 @@
+/* UI v2: bảng Bạn bè theo kit Mực (đợt 2d, Part of #877 / #601). Mọi luật dưới `body.ui2` (cờ tắt mặc định: không có lớp này thì bảng cũ không đổi).
+   Khung do lớp `f2-muc-nho` lo (hudMisc.ts gắn khi bật cờ, luật vẽ khung ở ui2-hud.css). Trạng thái trực tuyến là HÌNH + CHỮ (chấm đặc / rỗng / đứt nét + dòng "Ở …" / "Ngoại tuyến"),
+   không chỉ màu. Chữ 10 / 12 (Galmuri), vùng bấm ≥ 32 px. */
+
+body.ui2 #hud #friends.f2-muc-nho{width:min(380px,94vw);padding:var(--sp-4) var(--sp-5);color:var(--ink-text);background-color:var(--plate)}
+body.ui2 #hud #friends :is(small,.phint){color:var(--paper3)}
+body.ui2 #hud #friends .rhead b{color:var(--paper2)}
+body.ui2 #hud #friends .pbtn{min-height:32px;padding:0 var(--sp-4);font:var(--fs-m)/1.2 var(--f12);color:var(--ink);background:var(--paper);border:var(--bd) solid var(--ink2);box-shadow:inset 0 calc(var(--bd) * -1) 0 var(--paper3)}
+body.ui2 #hud #friends .pbtn:hover:not(:disabled){background:var(--paper2)}
+body.ui2 #hud #friends .pbtn.ok{border-color:var(--good);box-shadow:inset 0 calc(var(--bd) * -1) 0 var(--good)}
+body.ui2 #hud #friends .pbtn.warn{border-color:var(--son);box-shadow:inset 0 calc(var(--bd) * -1) 0 var(--son)}
+body.ui2 #hud #friends :is(.pbtn,.x):focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+body.ui2 #hud #friends .x{min-width:32px;min-height:32px}
+body.ui2 #hud #friends .finp input{min-height:32px;color:var(--ink);background:var(--paper);border:var(--bd) solid var(--ink2)}
+body.ui2 #hud #friends .finp input:focus-visible{border-color:var(--accent);outline:none}
+
+/* Tóm tắt "N trực tuyến" đầu danh sách; dòng bạn: vạch trái + chấm theo trạng thái (on đặc xanh, off rỗng, pend đứt nét). */
+body.ui2 #hud #friends .fsum{margin:var(--sp-3) 0;font:var(--fs-s)/1.4 var(--f10);color:var(--paper3)}
+body.ui2 #hud #friends .frow{border-top:var(--bd-fine) solid var(--ink2);padding:var(--sp-2) 0 var(--sp-2) var(--sp-3)}
+body.ui2 #hud #friends .frow .pname{display:inline-flex;align-items:center;gap:var(--sp-3);color:var(--plate-text);text-shadow:none}
+body.ui2 #hud #friends .frow .pname::before{content:"";box-sizing:border-box;flex:none;width:8px;height:8px;border:var(--bd-fine) solid var(--paper3);background:transparent}
+body.ui2 #hud #friends .frow[data-st="on"]{box-shadow:inset var(--sp-2) 0 0 var(--good)}
+body.ui2 #hud #friends .frow[data-st="on"] .pname::before{border-color:var(--good);background:var(--good)}
+body.ui2 #hud #friends .frow[data-st="pend"] .pname::before{border-style:dashed}
+body.ui2 #hud #friends .frow.off .pname{color:var(--paper3)}
+body.ui2 #hud #friends .fsub{border-top:var(--bd) solid var(--ink2)}
+body.ui2 #hud #friends .fsub b{color:var(--son-l)}
+body.ui2 #hud #friends .p2-state{min-height:72px}

@@ -16,6 +16,7 @@ import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim, animLayoutOf } from "../sprites.ts";
 import { dieFrame, dieMs, type BeastAnimState } from "../beastAnim.ts";
 import * as hud from "../hud.ts";
+import { deathShow, deathTick } from "../hudArena.ts";
 import { artUrl, fusionImgKey } from "../uiArt.ts";
 import { cbTierMark } from "../a11y.ts";
 import { dropArtSpec, dropTexture, DROP_ART_SCALE } from "../dropArt.ts";
@@ -1623,7 +1624,7 @@ export class GameScene extends Phaser.Scene {
       const name = (id: string) => VOHON[Math.max(0, vohonIndex(id))].name;
       if (m.next) hud.banner(`${name(m.fallen)} đã gục`, `${name(m.next)} tự động ra trận`);
       else if (this.isArena) hud.banner("Cả đội đã gục", "Thua trận đấu hồn, không mất kinh nghiệm hay đồ");
-      else hud.banner("Cả đội đã gục", `Về doanh trại sau ${String(RESPAWN_SECS).replace(".", ",")} giây, không mất kinh nghiệm hay đồ`);
+      else { hud.banner("Cả đội đã gục", `Về doanh trại sau ${String(RESPAWN_SECS).replace(".", ",")} giây, không mất kinh nghiệm hay đồ`); deathShow(RESPAWN_SECS); }
     });
     // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
     // Mảnh võ hồn trong túi (3.4): bảng đội hình hiện tiến độ mở / lên sao nên vẽ lại cùng túi.
@@ -3709,7 +3710,7 @@ export class GameScene extends Phaser.Scene {
         need: wdef?.charge?.need ?? 0, charging: !!kb.chg, dive: kb.dive, armorHe: wdef?.armor?.he ?? null } : undefined });
     if (!kb && this.bossList) { this.bossList = null; hud.bossRank(null, this.me); }
     hud.updateBossCd();
-    hud.updateArenaQueue(); hud.updateArenaLive();
+    hud.updateArenaQueue(); hud.updateArenaLive(); deathTick(!!me?.dead);
     // Sân đấu (7.2): thanh trận đấu đọc thẳng ArenaState (pha, giây còn lại, hai bên).
     this.arenaBar(st);
     // Tên vùng: vùng an toàn > vùng săn > điểm hồi sinh > tên bản đồ. Vừa vào bản đồ thì hiện tên bản đồ.
