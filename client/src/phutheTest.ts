@@ -177,7 +177,7 @@ class PhutheScene extends Phaser.Scene {
   /** Dừng / chạy tiếp hoạt ảnh (màn chỉnh ráp: dừng ở khung đang xem để kéo cho chuẩn). */
   setPaused(p: boolean) { if (p) { this.fake = this.lastT; this.step(this.lastT); } else this.fake = null; }
   update(time: number) {
-    this.lastT = time; if (this.fake === null) this.step(time);
+    this.lastT = time; this.step(this.fake ?? time); // đồng hồ giả / dừng khung: vẫn dựng lại mỗi khung để thấy ngay dx, dy, scale, giới, hướng, clip vừa đổi
     if (!this.heroes.length || this.heroes.length > (EDITOR ? 3 : 2)) return;
     this.cameras.main.centerOn(EDITOR ? PHU_EDITOR_W / 2 / this.cameras.main.zoom : 0, -14); // màn chỉnh ráp: dời sang trái nhường bảng bên phải
   }
