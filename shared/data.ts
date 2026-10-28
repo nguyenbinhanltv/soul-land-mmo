@@ -1577,7 +1577,7 @@ export const EVENT_DEFS: EventDef[] = [
     times: [WORLD_TIME], lenSecs: WORLD.lifeSecs, world: true, note: `Mỗi ngày ${WORLD.daily} lượt thưởng` })),
   { id: "reset:daily", name: "Khảo hạch, tông vụ, lượt đấu trường, tự săn, mảnh Thương hội", kind: "reset" },
   { id: "reset:tong", name: "Chốt tuần tông môn", kind: "reset", weekly: true },
-  { id: "always:arena", name: "Đại Đấu Hồn Trường", kind: "always", npc: "dau_hon_truong" },
+  { id: "always:arena", name: "Đại Đấu Hồn Trường", kind: "always", map: "thien_dau_thanh", npc: "dau_hon_truong" },
   { id: "always:auto", name: "Tự săn", kind: "always" },
 ];
 /** Các khung giờ (ms UTC) của mục `slot` trong tuần bắt đầu ở `weekStart` (weekStartVn), tăng dần; mục khác `slot` thì rỗng. */

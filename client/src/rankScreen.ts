@@ -30,6 +30,11 @@ export function lineupText(l: RankSlot[] | undefined): string[] {
 export const tongName = (id: string | undefined) => (id ? TONG_MON.find((t) => t.id === id)?.name ?? "" : "");
 const fullNum = (n: number) => n.toLocaleString("vi-VN");
 
+/** Thẻ nhỏ công khai của một dòng (docs/design/xep-hang.md "Nhấn một dòng"): chỉ tên, hạng, điểm, tông, đội hình; không túi / chỉ số. Chính mình thì không có nút Kết bạn. */
+export function playerCard(r: RankRow, boardName: string) {
+  return { title: r.name, rank: `Hạng ${fullNum(r.rank)} · ${boardName}`, score: `Điểm ${fullNum(r.score)}`, tong: tongName(r.tong), lineup: lineupText(r.lineup), canFriend: !r.me };
+}
+
 /** Dòng "của tôi" ghim đáy: có hạng thì hiện hạng thật + điểm, chưa có thì "Chưa có hạng" kèm cách lên hạng. */
 export function meLine(me: RankTopMsg["me"], boardName: string): { text: string; title: string; ranked: boolean } {
   if (!me) return { text: "Chưa có hạng", title: `Chưa có hạng ở bảng ${boardName}: chơi và lưu tiến trình, hạng cập nhật ở lần lưu kế tiếp.`, ranked: false };
@@ -45,6 +50,8 @@ let boards: RankBoardInfo[] = [];
 let cur: string | null = null, page = 1, status: RankStatus = "loading";
 let data: RankTopMsg | null = null; // dữ liệu đang hiện: giữ khi lỗi để không xoá trống
 let sentAt = 0, timer = 0, cdTimer = 0;
+let selRank: number | null = null; // hạng của dòng đang mở thẻ nhỏ (đổi bảng / trang thì bỏ)
+const befriended = new Set<string>(); // tên đã bấm Kết bạn ở phiên này: nút đổi thành "Đã gửi" (kết quả thật do server báo ở khung chat)
 const LOAD_TIMEOUT_MS = 6000;
 /** Số ms còn phải chờ trước khi gửi tin `rank` kế (server bỏ im tin đến sớm hơn RANK_CD giây kể từ tin trước). */
 export const sendDelay = (lastSentAt: number, now: number, cdSecs: number = RANK_CD) => Math.max(0, lastSentAt + cdSecs * 1000 + 50 - now);
@@ -57,7 +64,7 @@ export const isRankOpen = () => { const e = el(); return !!e && !e.hidden; };
 /** Gửi tin `rank` (hạng mục `boards` khi chưa có danh mục, không thì `top`) sau khi hết nhịp RANK_CD; bấm dồn chỉ gửi yêu cầu cuối. */
 function request() {
   if (!send) return;
-  status = "loading";
+  status = "loading"; selRank = null;
   window.clearTimeout(sendTimer); window.clearTimeout(timer);
   const fire = () => { // đọc `cur` / `page` mới nhất lúc gửi
     if (!send) return;
@@ -76,7 +83,7 @@ export function openRank() {
   const e = el(); if (!e || !send) return;
   e.hidden = false; request();
 }
-export function closeRank() { const e = el(); if (e) e.hidden = true; window.clearTimeout(timer); window.clearTimeout(cdTimer); window.clearTimeout(sendTimer); }
+export function closeRank() { selRank = null; const e = el(); if (e) e.hidden = true; window.clearTimeout(timer); window.clearTimeout(cdTimer); window.clearTimeout(sendTimer); }
 
 export function onRankBoards(m: { k?: string; list?: RankBoardInfo[] }) {
   if (m?.k !== "boards" || !Array.isArray(m.list)) return;
@@ -103,7 +110,7 @@ function podiumNode(rows: RankRow[]): PNode {
 function rowNode(r: RankRow): PNode {
   return h("tr", `rk-row${r.me ? " rk-me" : ""}`, { kids: [
     h("td", "rk-c-rank", { kids: [h("span", "rk-medal", { text: String(r.rank) })] }),
-    h("td", "rk-c-name", { text: r.name + (r.me ? " (bạn)" : ""), attrs: r.tong ? { title: tongName(r.tong) } : {} }),
+    h("td", "rk-c-name", { kids: [h("button", "rk-who", { text: r.name + (r.me ? " (bạn)" : ""), attrs: { type: "button", "data-rk": String(r.rank), "aria-label": `Xem thẻ ${r.name}`, ...(r.tong ? { title: tongName(r.tong) } : {}) } })] }),
     h("td", "rk-c-score", { text: abbrevNumber(r.score), attrs: { title: fullNum(r.score) } }),
     h("td", "rk-c-line", { kids: lineupText(r.lineup).map((t) => h("span", "rk-slot", { text: t })) }),
   ] });
@@ -147,12 +154,26 @@ function render() {
     const me = meLine(shown.me, board?.name ?? "");
     body.push(h("div", `rk-mine${me.ranked ? "" : " rk-none"}`, { attrs: { title: me.title }, kids: [h("span", "rk-mine-l", { text: "Của tôi" }), h("span", "rk-mine-v", { text: me.text })] }));
   }
+  const pick = shown && selRank !== null ? shown.rows.find((r) => r.rank === selRank) : undefined;
+  if (pick) {
+    const c = playerCard(pick, board?.name ?? ""), sent = befriended.has(pick.name);
+    body.push(h("div", "rk-card", { attrs: { role: "dialog", "aria-label": `Thẻ ${c.title}` }, kids: [
+      h("div", "rk-card-hd", { kids: [h("span", "rk-card-t", { text: c.title }), h("button", "rk-card-x", { text: "X", attrs: { type: "button", "aria-label": "Đóng thẻ" } })] }),
+      h("span", "rk-card-s", { text: `${c.rank} · ${c.score}` }),
+      c.tong ? h("span", "rk-card-s", { text: `Tông: ${c.tong}` }) : null,
+      c.lineup.length ? h("div", "rk-card-l", { kids: c.lineup.map((t) => h("span", "rk-slot", { text: t })) }) : null,
+      c.canFriend ? h("button", "rk-card-f", { text: sent ? "Đã gửi lời kết bạn" : "Kết bạn", attrs: { type: "button", "data-name": pick.name, ...(sent ? { disabled: "" } : {}), ...(sent ? { title: "Kết quả hiện ở khung chat" } : {}) } }) : null,
+    ] }));
+  }
   const wrap = mount(h("div", "rk-wrap", { kids: body }));
   f.body.append(wrap);
   wrap.addEventListener("click", (e) => {
     const t = e.target as HTMLElement;
     const chip = t.closest<HTMLElement>(".rk-chip"); if (chip?.dataset.board && chip.dataset.board !== cur) { cur = chip.dataset.board; page = 1; data = null; request(); return; }
     if (t.closest(".rk-retry")) { request(); return; }
+    if (t.closest(".rk-card-x")) { selRank = null; render(); return; }
+    const fr = t.closest<HTMLElement>(".rk-card-f"); if (fr?.dataset.name && !(fr as HTMLButtonElement).disabled) { befriended.add(fr.dataset.name); send?.("friend", { op: "add", name: fr.dataset.name }); render(); return; }
+    const row = t.closest<HTMLElement>(".rk-row"); if (row) { const rk = Number(row.querySelector<HTMLElement>(".rk-who")?.dataset.rk); if (rk) { selRank = selRank === rk ? null : rk; render(); } return; }
     const pg = t.closest<HTMLElement>(".rk-pg"); if (pg && !(pg as HTMLButtonElement).disabled) { page = Math.max(1, page + Number(pg.dataset.pg)); request(); }
   });
   addCloseButton(f.root, closeRank);
