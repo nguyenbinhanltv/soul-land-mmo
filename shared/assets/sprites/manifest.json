@@ -119,11 +119,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e"
         ]
       },
       "map": "cuc_bac_chi_dia"
@@ -1469,7 +1464,8 @@
         ],
         "dirsOk": [
           "se",
-          "e"
+          "e",
+          "ne"
         ]
       },
       "map": "cuc_bac_chi_dia"
@@ -4240,12 +4236,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e",
-          "n"
         ]
       },
       "map": "lac_nhat_sam_lam"
