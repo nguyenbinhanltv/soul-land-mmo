@@ -7,7 +7,7 @@ Loài `nhan_dien_ma_chu` (Nhân Diện Ma Chu), họ `insect`, khung game 128×1
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1572387 byte, SHA256 `51d9e1d695e8fe673611d0e49a5d22208352306eeade6052269bb2fc313c25b6`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-745.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `turnaround.prompt.txt` (SHA256 `2f0fe58c0d9b3b307ac30e8caf8b0d3a97ef6a22d2a15addadd83a5ec97a1291`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
@@ -16,7 +16,7 @@ Loài `nhan_dien_ma_chu` (Nhân Diện Ma Chu), họ `insect`, khung game 128×1
 ## toA
 
 - File: `toA.png`, **1536×1024**, 1869474 byte, SHA256 `b1ed2d4e8344c4f3577c3af19e76ca7e9fce72f2f68bd36e06123a8ebdb943bf`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-745.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3.
 - Prompt: `toA.prompt.txt` (SHA256 `ee613218bac10857a1c13443428832d2b966f0ab4ca128cc897b5c02bdd2a10a`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: s pass).
@@ -25,7 +25,7 @@ Loài `nhan_dien_ma_chu` (Nhân Diện Ma Chu), họ `insect`, khung game 128×1
 ## toB
 
 - File: `toB.png`, **1536×1024**, 1819114 byte, SHA256 `c6766ac86327c9102c2cc98331acbe271596df5876dc6ef14667cb21e3dd38ee`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-745.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toB.prompt.txt` (SHA256 `2337d6d88449af5562a7e09653a75f3c6461dbb8a844daa66686a23a1c4370a9`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: se pass).
@@ -34,7 +34,7 @@ Loài `nhan_dien_ma_chu` (Nhân Diện Ma Chu), họ `insect`, khung game 128×1
 ## toC
 
 - File: `toC.png`, **1536×1024**, 1763712 byte, SHA256 `d31c783e7c6b12ce8ef34b8d33d172c3d6ad05746cf084c859ea51de973b7d55`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-745.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toC.prompt.txt` (SHA256 `d335853674652ce5d1af36ee071999bdc3faad0befd8a9570d4c4f34c0888ec5`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: e pass).
@@ -43,7 +43,7 @@ Loài `nhan_dien_ma_chu` (Nhân Diện Ma Chu), họ `insect`, khung game 128×1
 ## toE
 
 - File: `toE.png`, **1536×1024**, 1734475 byte, SHA256 `bbc878cd8c5636155ed539debf55dfca3f6e813268f206a6487d516844da0ecc`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-745.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toE.prompt.txt` (SHA256 `1d09f60e24652a7eb116157c38449745d01ddb951913b7999630baa4624a5ca5`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: n pass).
@@ -85,4 +85,4 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/beast-anim/nhan_dien_ma_chu/` | - | image_gen | RAW hoạt ảnh Nhân Diện Ma Chu: turnaround 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+| `art/src/beast-anim/nhan_dien_ma_chu/` | - | image_gen | RAW hoạt ảnh Nhân Diện Ma Chu: turnaround 1536×1024, toA 1536×1024, toB 1536×1024, toC 1536×1024, toE 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
