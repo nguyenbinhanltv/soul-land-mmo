@@ -1,25 +1,58 @@
-# Tuyết Ma Viên — nguồn RAW H4 đợt 5
+# Tuyết Ma Viên — RAW hoạt ảnh
 
-Part of #771; Part of #766. Mỗi tờ một fresh worker, 1 builtin imagegen call/0 retry; tổng loài2call. Nộp cả RAW FAIL, không redraw/hậu kỳ.
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species tuyet_ma_vien`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
 
-Tờ A1: `toA.png`, IHDR 1024×1536, SHA256 `ed127a739e06fe5826343960244fb32eb38eae931c4e80b7c0523935c46bde82`. Exact actual/base/Markdown/source: `toA.prompt.txt`, `toA.base.txt`, `tuyet_ma_vien-toA.md`, `toA.source.json`. Actual = base + suffix từ byte 4090; không prefix.
+Loài `tuyet_ma_vien` (Tuyết Ma Viên), họ `quad`, khung game 96×96. Mức kiểm chung: **nhẹ**.
 
-LỖI: toA — heading/hurt — R9C5–6 và R11C1–2/C5–6/E — hurt và attack quay về người xem hoặc chéo thay vì E profile; recoil chưa rõ, giữ RAW không retry.
+## turnaround
 
-Tờ B1: `toB.png`, IHDR 1254×1254, SHA256 `4389ecefb5c6517efd9c442bdacf1c0ab4a05943d9ea47a697a4ef8507d66d98`. Exact actual/base/Markdown/source: `toB.prompt.txt`, `toB.base.txt`, `tuyet_ma_vien-toB.md`, `toB.source.json`. Actual = base + suffix từ byte 3513; không prefix.
+- File: `turnaround.png`, **1536×1024**, 1895356 byte, SHA256 `d7648b8e3ab614be335a188611307d353740a00c4de789e4d48ebe323c588097`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-764.
+- Prompt: `turnaround.prompt.txt` (SHA256 `6022990d0eb7fb85fe91c6197054acd5e5ae41578c4907f17bb8008116789c46`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
-LỖI: toB — size/heading — toàn tờ, R7C2–4 và R8C3–4/N — RAW 1254×1254 khác yêu cầu 1024×1024; attack/death lộ mặt/mắt thay vì giữ đầu quay xa, giữ RAW không retry.
+## toA
 
-Giữ nguyên `workerProvenance`; phần `integration` đối chiếu generator/hash/Markdown và actual ref paths đúng lúc gọi, tách khỏi durable copies. A chỉ static identity; B ordered static rồi A cùng loài STYLE/body only, không kế thừa heading lỗi. Hash script riêng hash Markdown/base/actual. Base giữ nguyên kể cả số ô171×128 làm tròn, hướng dẫn redraw/import cũ hoặc suffix nhắc hướng ngoài tờ; chỉ đạo RAW-only hiện tại thay hướng dẫn cũ.
+- File: `toA.png`, **1024×1536**, 2389382 byte, SHA256 `ed127a739e06fe5826343960244fb32eb38eae931c4e80b7c0523935c46bde82`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: soul_land_game-764.
+- Prompt: `toA.prompt.txt` (SHA256 `c83e7ab7dcd0896fece480f91ee6e7048badd8428e324a0d44ad6250051f0b79`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se pass, e nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H9–12 (e): cỡ thân idle 90% so với ảnh tĩnh (lệch 10%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
 
-Xung đột anatomy đã giữ: vượn hai tay/hai chân trong static và mô tả standing on two legs khác family quad/four-legged trot. Giữ nguyên input+suffix, best faith static anatomy; không redesign.
+## toB
 
-Image model/seed unknown khi tool không expose; không suy từ model agent. Timestamp theo worker source, không tự suy thời gian nội bộ provider. Pixel occupied không chứng minh semantic figures; chưa chứng nhận đủ khung/margin/feetline/nền/heading/style. Nguyên byte với tool original, không resize/crop/patch/cắt/ghép/sửa metadata; không runtime/manifest/DB/localbot. Submitted ≠ merged ≠ art accepted ≠ imported.
+- File: `toB.png`, **1254×1254**, 2281629 byte, SHA256 `4389ecefb5c6517efd9c442bdacf1c0ab4a05943d9ea47a697a4ef8507d66d98`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: soul_land_game-764.
+- Prompt: `toB.prompt.txt` (SHA256 `a506b32fae7f6136a028fbb3c7d4fafba48a91edd19b5bc9b21241b3480427a0`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: ne pass, n nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H5–8 (n): cỡ thân idle 117% so với ảnh tĩnh (lệch 17%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
+
+## to-n
+
+- File: `to-n.png`, **1536×1024**, 2171793 byte, SHA256 `32e779462d0934a4d0dc83333347f42230bb043c6e0e5f69f883d14ea6f2e6ca`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-764.
+- Prompt: `to-n.prompt.txt` (SHA256 `eadc4533f25f20608afefd67448b5bb5f12d5f47b6567401a2fc97be37759266`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 230% so với ảnh tĩnh (lệch 130%, quá 25%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+## Lỗi
+
+```text
+LỖI: to-n — hình ở ô trống — H4 (n) C5, H4 (n) C6 — ô trống có hình (2.16% diện tích ô): hình tràn từ ô bên; ô trống có hình (1.92% diện tích ô): hình tràn từ ô bên.
+```
 
 ## Ghi công
 
-Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); mỗi loài có tờ phải có ít nhất một dòng.
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); không nối dòng vào `art/CREDITS.md`.
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/beast-anim/tuyet_ma_vien/` | - | ChatGPT / Codex `image_gen.imagegen` (tthoadev, Q44; hoạt ảnh vẽ thật hồn thú H4) | Tuyết Ma Viên (H4 đợt 5, Part of #771 và #766): `art/src/beast-anim/tuyet_ma_vien/toA.png` (A1, 1024×1536) và `toB.png` (B1, 1254×1254 thực tế; yêu cầu1024×1024). Fresh workers118,120 dùng builtin `image_gen.imagegen`, mỗi phiên1call/0retry, tổng loài2call. A chỉ static; B static+A STYLE/body only theo actual paths trong nguồn. Model ảnh/seed unknown. Nộp RAW FAIL nguyên byte, không hậu kỳ/cắt/import; chưa duyệt art/runtime. Exact prompt, hash/IHDR/ref/counter/nguồn/lỗi: [NGUON.md](src/beast-anim/tuyet_ma_vien/NGUON.md), `toA.source.json`, `toB.source.json`. Nguồn Q44/điều khoản công cụ. | - | Chuyển một lần từ art/CREDITS.md (#973) |
+| `art/src/beast-anim/tuyet_ma_vien/` | - | image_gen.imagegen | RAW hoạt ảnh Tuyết Ma Viên: turnaround 1536×1024, toA 1024×1536, toB 1254×1254, to-n 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |

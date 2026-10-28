@@ -119,11 +119,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e"
         ]
       },
       "map": "cuc_bac_chi_dia"
@@ -373,11 +368,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e"
         ]
       },
       "map": "cuc_bac_chi_dia"
@@ -1137,6 +1127,7 @@
         "dirsOk": [
           "s",
           "e",
+          "ne",
           "n"
         ]
       },
@@ -1452,7 +1443,8 @@
         ],
         "dirsOk": [
           "se",
-          "e"
+          "e",
+          "ne"
         ]
       },
       "map": "cuc_bac_chi_dia"
@@ -1514,12 +1506,6 @@
         "origin": [
           64,
           120
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e",
-          "n"
         ]
       },
       "map": "hai_than_dao"
@@ -1714,10 +1700,6 @@
         "origin": [
           64,
           120
-        ],
-        "dirsOk": [
-          "e",
-          "n"
         ]
       },
       "map": "hai_than_dao"
@@ -2164,11 +2146,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e"
         ]
       },
       "map": "hai_than_dao"
@@ -3034,10 +3011,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se"
         ]
       },
       "map": "hai_than_dao"
@@ -3903,12 +3876,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e",
-          "ne"
         ]
       },
       "map": "cuc_bac_chi_dia"
@@ -4219,12 +4186,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e",
-          "n"
         ]
       },
       "map": "lac_nhat_sam_lam"
