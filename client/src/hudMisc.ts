@@ -9,7 +9,7 @@ import { el, pbtn } from "./domBtn.ts";
 import type { ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
 import { autoTimeText, FRIEND_MAX, BLOCK_MAX } from "../../shared/data.ts";
 import { isUi2 } from "./uiKit.ts";
-import { stateBox } from "./uiParts.ts";
+import { stateBox, confirmDialog } from "./uiParts.ts";
 import "./ui2-social.css";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 
@@ -31,6 +31,11 @@ export function setFriends(m: FriendsMsg) {
   if (!$("#friends").hidden) renderFriends();
 }
 const FRIEND_COL = "#9fd8ff";
+/** Việc không đảo ngược (xóa bạn, chặn): bật ui2 thì hỏi bằng hộp xác nhận nêu hậu quả (nút an toàn lấy tiêu điểm); tắt cờ chạy ngay như cũ. */
+export function askThen(title: string, body: string, confirmLabel: string, fn: () => void) {
+  if (!UI2) { fn(); return; }
+  void confirmDialog({ title, body, confirmLabel, danger: true }).then((ok) => { if (ok) fn(); });
+}
 // UI v2 (đợt 2d): bảng Bạn bè nhận khung Mực của kit khi bật cờ ui2 (index.html giữ nguyên). Luật vẽ ở ui2-social.css.
 const UI2 = isUi2();
 if (UI2) document.getElementById("friends")?.classList.add("f2-muc-nho");
@@ -71,8 +76,8 @@ function renderFriends() {
     const btns = el("div", "pbtns");
     if (e.mutual && e.map) btns.append(pbtn("Mời tổ đội", "ok", () => friendAct?.invite(e.name), `Mời ${e.name} vào tổ đội`),
       pbtn("Nhắn", "", () => { toggleFriends(false); chatWhisperTo(e.name); }, `Nhắn riêng cho ${e.name} (/t)`));
-    btns.append(pbtn("Xóa", "", () => friendSend?.("remove", e.name), `Xóa ${e.name} khỏi danh sách bạn bè`),
-      pbtn("Chặn", "warn", () => friendSend?.("block", e.name), `Chặn ${e.name}`));
+    btns.append(pbtn("Xóa", "", () => askThen("Xóa bạn", `Xóa ${e.name} khỏi danh sách bạn bè? Người đó không còn thấy bạn đang ở đâu.`, "Xóa", () => friendSend?.("remove", e.name)), `Xóa ${e.name} khỏi danh sách bạn bè`),
+      pbtn("Chặn", "warn", () => askThen("Chặn hồn sư", `Chặn ${e.name}? Không nhận tin, lời mời tổ đội, lời thêm bạn của người đó, tin của họ ở mọi kênh. Bỏ chặn được sau.`, "Chặn", () => friendSend?.("block", e.name)), `Chặn ${e.name}`));
     row.append(top, btns); box.append(row);
   }
   if (!m.list.length) {
@@ -96,10 +101,18 @@ export let resMsg: ResonanceMsg | null = null;
 let resTopMsg: ResonanceTopMsg | null = null;
 let resTab = 0; // tab trụ cột đang xem (chỉ số theo RESONANCE)
 let resTopRequest: (page: number, pageSize: number) => void = () => {};
+let resTopWait: "idle" | "wait" | "err" = "idle"; // ui2: đang chờ bảng xếp hạng / quá hạn (chỉ để hiển thị trạng thái tải / lỗi)
+const RESO_TOP_WAIT_MS = 8000;
+const askResTop = (page: number, size: number) => {
+  resTopRequest(page, size);
+  if (!UI2) return;
+  resTopWait = "wait"; renderReso();
+  setTimeout(() => { if (resTopWait === "wait") { resTopWait = "err"; if (!$("#reso").hidden) renderReso(); } }, RESO_TOP_WAIT_MS);
+};
 /** Tin "resonance" mới: vẽ lại bảng nếu đang mở. */
 export function setResonance(m: ResonanceMsg) { resMsg = m; if (!$("#reso").hidden) renderReso(); }
 /** Tin "resonanceTop" mới: bảng công khai chỉ hiển thị tên / điểm và dòng riêng của mình. */
-export function setResonanceTop(m: ResonanceTopMsg) { resTopMsg = m; if (!$("#reso").hidden) renderReso(); }
+export function setResonanceTop(m: ResonanceTopMsg) { resTopMsg = m; resTopWait = "idle"; if (!$("#reso").hidden) renderReso(); }
 export function onResonanceTop(fn: (page: number, pageSize: number) => void) { resTopRequest = fn; }
 /** Mở / đóng bảng Cộng minh (phím K, nút trong khung chỉ số và trong bảng đội hình); cùng chỗ giữa màn hình với các bảng khác. */
 export function toggleReso(open = $("#reso").hidden) {
@@ -112,22 +125,25 @@ export function toggleReso(open = $("#reso").hidden) {
  */
 function renderReso() {
   const el = $("#reso"); el.innerHTML = "";
+  if (UI2) el.classList.add("f2-muc-lon");
   const head = document.createElement("div"); head.className = "rhead";
   head.innerHTML = `<b>Cộng minh</b><button class="x" aria-label="Đóng">×</button>`;
   head.querySelector("button")!.addEventListener("click", () => toggleReso(false));
   const note = document.createElement("small"); note.className = "rnote";
   note.textContent = "Đạt mốc ở từng trụ cột thì mọi võ hồn (kể cả võ hồn mở sau) được cộng chỉ số. Nuôi đều các võ hồn để mở thêm mốc.";
-  const total = document.createElement("div"); total.className = "restotal";
   const txt = resMsg ? resonanceText(resMsg.bonus) : "";
-  total.textContent = !resMsg ? "Đang tải…" : txt ? `Mọi võ hồn: ${txt}` : "Chưa đạt mốc nào.";
+  const total: HTMLElement = UI2 && !resMsg ? stateBox({ kind: "loading", text: "Đang tải cộng minh…", rows: 2 }) : document.createElement("div");
+  if (!(UI2 && !resMsg)) { total.className = "restotal"; total.textContent = !resMsg ? "Đang tải…" : txt ? `Mọi võ hồn: ${txt}` : "Chưa đạt mốc nào."; }
   el.append(head, note, total);
   const rank = document.createElement("section"); rank.className = "resrank";
   const rankHead = document.createElement("div"); rankHead.className = "resrankhead";
   const rankTitle = document.createElement("b"); rankTitle.textContent = "Bảng xếp hạng cộng minh";
   const rankBtn = document.createElement("button"); rankBtn.type = "button"; rankBtn.textContent = resTopMsg ? "Làm mới" : "Xem bảng";
-  rankBtn.addEventListener("click", () => resTopRequest(1, resTopMsg?.pageSize ?? RESONANCE_RANK_PAGE_SIZE));
+  rankBtn.addEventListener("click", () => askResTop(1, resTopMsg?.pageSize ?? RESONANCE_RANK_PAGE_SIZE));
   rankHead.append(rankTitle, rankBtn); rank.appendChild(rankHead);
-  if (!resTopMsg) {
+  if (UI2 && resTopWait === "wait") rank.appendChild(stateBox({ kind: "loading", text: "Đang tải bảng xếp hạng…", rows: 3 }));
+  else if (UI2 && resTopWait === "err" && !resTopMsg) rank.appendChild(stateBox({ kind: "error", text: "Chưa nhận được bảng xếp hạng.", hint: "Kiểm tra kết nối rồi thử lại.", onRetry: () => askResTop(1, RESONANCE_RANK_PAGE_SIZE) }));
+  else if (!resTopMsg) {
     const hint = document.createElement("small"); hint.textContent = "Chỉ tài khoản đã đạt ít nhất một mốc được xếp hạng."; rank.appendChild(hint);
   } else {
     const mine = document.createElement("small");
@@ -139,14 +155,14 @@ function renderReso() {
       const name = document.createElement("em"); name.textContent = r.name;
       const score = document.createElement("i"); score.textContent = `${r.score} điểm · ${r.milestones} mốc`;
       row.append(n, name, score); table.appendChild(row); });
-    if (!resTopMsg.list.length) { const empty = document.createElement("small"); empty.textContent = "Chưa có tài khoản đạt mốc."; table.appendChild(empty); }
+    if (!resTopMsg.list.length) { if (UI2) table.appendChild(stateBox({ kind: "empty", text: "Chưa có tài khoản đạt mốc.", hint: "Đạt một mốc cộng minh để lên bảng." })); else { const empty = document.createElement("small"); empty.textContent = "Chưa có tài khoản đạt mốc."; table.appendChild(empty); } }
     rank.appendChild(table);
     const pages = document.createElement("div"); pages.className = "respages";
     const prev = document.createElement("button"); prev.type = "button"; prev.textContent = "‹ Trước"; prev.disabled = resTopMsg.page <= 1;
-    prev.addEventListener("click", () => resTopRequest(resTopMsg!.page - 1, resTopMsg!.pageSize));
+    prev.addEventListener("click", () => askResTop(resTopMsg!.page - 1, resTopMsg!.pageSize));
     const page = document.createElement("span"); page.textContent = `Trang ${resTopMsg.page}`;
     const next = document.createElement("button"); next.type = "button"; next.textContent = "Sau ›"; next.disabled = !resTopMsg.hasNext;
-    next.addEventListener("click", () => resTopRequest(resTopMsg!.page + 1, resTopMsg!.pageSize));
+    next.addEventListener("click", () => askResTop(resTopMsg!.page + 1, resTopMsg!.pageSize));
     pages.append(prev, page, next); rank.appendChild(pages);
   }
   el.appendChild(rank);
@@ -212,10 +228,13 @@ export function resetChannels() { chanMsg = null; chanNow = -1; toggleChannels(f
 export function setChannels(m: ChannelsMsg) { chanMsg = m; if (!$("#chans").hidden) renderChannels(); }
 function renderChannels() {
   const box = $("#chans"); box.innerHTML = "";
-  if (!chanMsg) { box.appendChild(el("small", "", "Đang tải…")); return; } // chỉ khi chưa từng có danh sách
+  if (UI2) box.classList.add("f2-muc-nho");
+  if (!chanMsg) { box.appendChild(UI2 ? stateBox({ kind: "loading", text: "Đang tải danh sách kênh…", rows: 3 }) : el("small", "", "Đang tải…")); return; } // chỉ khi chưa từng có danh sách
+  if (UI2 && !chanMsg.list.length) { box.appendChild(stateBox({ kind: "empty", text: "Chưa có kênh nào." })); return; }
   for (const c of chanMsg.list) {
     const cur = c.ch === chanNow, b = el("button", cur ? "cur" : "") as HTMLButtonElement;
-    b.append(el("span", "", `Kênh ${c.ch}${cur ? " (đang ở)" : ""}`), el("span", "", `${c.n}/${c.max}`));
+    b.append(el("span", "", `Kênh ${c.ch}${cur ? " (đang ở)" : ""}`), el("span", "", `${c.n}/${c.max}${UI2 && c.full ? " · Đầy" : ""}`));
+    if (UI2) { const bar = el("i", "chbar"); bar.style.setProperty("--p", `${Math.min(100, Math.round((c.n / Math.max(1, c.max)) * 100))}%`); b.append(bar); b.dataset.st = cur ? "cur" : c.full ? "full" : "open"; }
     b.disabled = cur || c.full;
     b.title = cur ? "Bạn đang ở kênh này" : c.full ? "Kênh đã đầy" : `Chuyển sang kênh ${c.ch}`;
     b.addEventListener("pointerdown", (e) => { e.preventDefault(); if (!b.disabled) chanPick(c.ch); });
@@ -263,11 +282,12 @@ export function setWorld(m: WorldMsg) {
  */
 function renderWorld() {
   const el = $("#world"), m = worldMsg; el.innerHTML = "";
+  if (UI2) el.classList.add("f2-giay-lon");
   const head = document.createElement("div"); head.className = "rhead";
   head.innerHTML = `<b>Bản đồ thế giới</b><button class="x" aria-label="Đóng">×</button>`;
   head.querySelector("button")!.addEventListener("click", () => toggleWorld(false));
   el.appendChild(head);
-  if (!m) { el.insertAdjacentHTML("beforeend", "<small class=\"rnote\">Đang tải…</small>"); return; }
+  if (!m) { if (UI2) el.appendChild(stateBox({ kind: "loading", text: "Đang tải bản đồ thế giới…", rows: 4 })); else el.insertAdjacentHTML("beforeend", "<small class=\"rnote\">Đang tải…</small>"); return; }
   const here = m.list.find((w) => w.key === m.cur);
   const note = document.createElement("small"); note.className = "rnote";
   note.textContent = here

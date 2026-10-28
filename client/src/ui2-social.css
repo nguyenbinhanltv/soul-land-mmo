@@ -1,4 +1,4 @@
-/* UI v2: bảng Bạn bè theo kit Mực (đợt 2d, Part of #877 / #601). Mọi luật dưới `body.ui2` (cờ tắt mặc định: không có lớp này thì bảng cũ không đổi).
+/* UI v2: Bạn bè, Cộng minh, menu người chơi, Kênh, Thế giới, Tông Môn theo kit (đợt 2d, Part of #885 / #877; Bạn bè từ #1256). Mọi luật dưới `body.ui2` (cờ tắt mặc định: không có lớp này thì bảng cũ không đổi).
    Khung do lớp `f2-muc-nho` lo (hudMisc.ts gắn khi bật cờ, luật vẽ khung ở ui2-hud.css). Trạng thái trực tuyến là HÌNH + CHỮ (chấm đặc / rỗng / đứt nét + dòng "Ở …" / "Ngoại tuyến"),
    không chỉ màu. Chữ 10 / 12 (Galmuri), vùng bấm ≥ 32 px. */
 
@@ -26,3 +26,100 @@ body.ui2 #hud #friends .frow.off .pname{color:var(--paper3)}
 body.ui2 #hud #friends .fsub{border-top:var(--bd) solid var(--ink2)}
 body.ui2 #hud #friends .fsub b{color:var(--son-l)}
 body.ui2 #hud #friends .p2-state{min-height:72px}
+
+/* ===== Đợt 2d: Cộng minh (#reso, Mực), menu người chơi (#pmenu, Mực nhỏ), Kênh (#chans, Mực nhỏ), Thế giới (#world, Giấy), bảng tông (trong hộp thoại NPC) =====
+   Khung kit lặp lại đúng bộ viền (vẫn qua --frame-*) vì `.thuymac #id` có độ ưu tiên cao hơn helper. Chữ 10 / 12 (--fs-*), vùng bấm ≥ 32 px (nút chính ≥ 44 px),
+   trạng thái là hình + chữ (vạch trái dày, dấu √ / "Khoá" / "Đầy"), không chỉ màu. */
+body.ui2.ui2-k-khung-muc-lon #reso.f2-muc-lon,body.ui2.ui2-k-khung-muc-nho :is(#pmenu,#chans).f2-muc-nho,body.ui2.ui2-k-khung-giay-lon #world.f2-giay-lon{
+  box-sizing:border-box;border-style:solid;border-color:transparent;border-width:var(--frame-bw);border-image:var(--frame-img) var(--frame-nine) fill / var(--frame-bw) stretch;
+  background:none;box-shadow:none;image-rendering:pixelated}
+
+/* Cộng minh: tông Mực cục bộ (cùng bộ token với #roster / #char). */
+body.ui2 #reso{--text:var(--plate-text);--muted:var(--paper2);--line:var(--paper3);--line2:var(--inkl);--wash:var(--track);--wash2:var(--ink2);
+  --accent:#97e6bd;--good:#97e6bd;--warn:#ffbf8a;--xp-t:#ffe08a;
+  color:var(--plate-text);font:var(--fs-m)/1.3 var(--f12);width:min(440px,96vw);gap:var(--sp-4);padding:var(--sp-4);scrollbar-width:thin;scrollbar-color:var(--paper3) transparent}
+body.ui2 #reso .rhead{color:var(--plate-text);border-bottom:var(--bd-fine) solid var(--ink2);padding-bottom:var(--sp-3)}
+body.ui2 #reso .rhead b{font:var(--fs-l)/1.2 var(--f12);font-weight:normal;color:var(--plate-text)}
+body.ui2 #reso :is(.x,.rhead button,.resrank button,.respages button){min-height:32px;min-width:32px;box-sizing:border-box;padding:0 var(--sp-4);cursor:pointer;font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2)}
+body.ui2 #reso :is(.x,.rhead button,.resrank button,.respages button):hover:not(:disabled){border-color:var(--plate-text)}
+body.ui2 #reso :is(button,[tabindex]):focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+body.ui2 #reso :is(.rnote,.resauto,.resrank small,.respages span){font:var(--fs-s)/1.4 var(--f10);color:var(--paper2)}
+body.ui2 #reso .restotal{font:var(--fs-m)/1.3 var(--f12);color:var(--xp-t)}
+body.ui2 #reso .restabs{gap:var(--sp-2);margin:0}
+body.ui2 #reso .restab{min-height:44px;color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2);border-bottom:var(--bd-fine) solid var(--ink2)}
+body.ui2 #reso .restab span{font:var(--fs-m)/1.2 var(--f12)}
+body.ui2 #reso .restab small{font:var(--fs-s)/1.2 var(--f10);color:var(--paper2)}
+body.ui2 #reso .restab.on{background:var(--plate);font-weight:normal;border-bottom:calc(var(--bd) * 2) solid var(--c);box-shadow:inset 0 var(--sp-2) 0 var(--c)}   /* tab đang chọn: vạch trên + vạch dưới dày (hình) */
+body.ui2 #reso .respil{background:var(--track);border:var(--bd-fine) solid var(--ink2);border-left:var(--sp-3) solid var(--c);padding:var(--sp-4)}
+body.ui2 #reso :is(.restop b,.restop span){font:var(--fs-m)/1.3 var(--f12)}
+body.ui2 #reso .restop span{color:var(--paper2)}
+body.ui2 #reso .resstep{font:var(--fs-m)/1.3 var(--f12);padding:var(--sp-3) var(--sp-4);min-height:32px;box-sizing:border-box;align-items:center;background:var(--plate);color:var(--paper2);border:var(--bd-fine) dashed var(--paper3);opacity:1}
+body.ui2 #reso .resstep.on{color:var(--plate-text);border:var(--bd-fine) solid var(--c);border-left:var(--sp-3) solid var(--c);background:color-mix(in srgb,var(--c) 22%,var(--plate))}
+body.ui2 #reso .resstep.next{color:var(--plate-text);border:var(--bd) solid var(--c);box-shadow:none;background:color-mix(in srgb,var(--c) 12%,var(--plate))}
+body.ui2 #reso .resstep.next span{color:var(--xp-t)}
+body.ui2 #reso .resstep.lock{border-style:dashed}
+body.ui2 #reso .resrank{background:var(--track);border:var(--bd-fine) solid var(--ink2);padding:var(--sp-4)}
+body.ui2 #reso .resrankhead b{font:var(--fs-m)/1.2 var(--f12);font-weight:normal}
+body.ui2 #reso .resranktable{max-height:136px}
+body.ui2 #reso .resrankrow{font:var(--fs-m)/1.3 var(--f12);padding:var(--sp-2) var(--sp-3)}
+body.ui2 #reso .resrankrow i{color:var(--paper2)}
+body.ui2 #reso .resrankrow.me{background:color-mix(in srgb,var(--xp-t) 18%,var(--plate));color:var(--xp-t);box-shadow:inset var(--sp-2) 0 0 var(--xp-t)}   /* dòng của mình: vạch trái (hình) */
+body.ui2 #reso .p2-state{min-height:56px}
+body.ui2.a11y-fs-1 #reso{width:min(520px,96vw)}
+body.ui2.a11y-fs-2 #reso{width:min(600px,96vw)}
+
+/* Menu người chơi (bấm tên): hộp Mực nhỏ dưới thanh trên; chữ giấy, nút nhỏ là nút giấy (chữ tối) như khung tổ đội. */
+body.ui2 #hud #pmenu.f2-muc-nho{--text:var(--ink-text);--muted:var(--paper3);--accent:var(--paper2);min-width:224px;max-width:min(360px,94vw);padding:var(--sp-4) var(--sp-5);color:var(--ink-text);background-color:var(--plate)}
+body.ui2 #pmenu .phead{gap:var(--sp-3);margin-bottom:var(--sp-3);padding-bottom:var(--sp-3);border-bottom:var(--bd-fine) solid var(--ink2)}
+body.ui2 #pmenu .phead b{font:var(--fs-l)/1.2 var(--f12);font-weight:normal;color:var(--plate-text);overflow-wrap:anywhere}
+body.ui2 #pmenu .pbtns{gap:var(--sp-3);margin-top:var(--sp-3)}
+body.ui2 #pmenu .pbtn{min-height:32px;padding:0 var(--sp-4);font:var(--fs-m)/1.2 var(--f12);color:var(--ink);background:var(--paper);border:var(--bd) solid var(--ink2);box-shadow:inset 0 calc(var(--bd) * -1) 0 var(--paper3)}
+body.ui2 #pmenu .pbtn:hover:not(:disabled){background:var(--paper2)}
+body.ui2 #pmenu .pbtn.ok{border-color:var(--good);box-shadow:inset 0 calc(var(--bd) * -1) 0 var(--good)}
+body.ui2 #pmenu .pbtn.warn{border-color:var(--son);box-shadow:inset 0 calc(var(--bd) * -1) 0 var(--son)}
+body.ui2 #pmenu .pbtn:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+body.ui2 #pmenu .phead .pbtn{min-width:32px}
+body.ui2 #pmenu .phint{font:var(--fs-s)/1.4 var(--f10);color:var(--paper3)}
+
+/* Kênh: danh sách xổ Mực nhỏ; mỗi hàng có thanh đầy-vơi (hình) + chữ n/max, kênh đang ở có vạch trái dày, kênh đầy ghi "Đầy". */
+body.ui2 #chans.f2-muc-nho{--text:var(--ink-text);--muted:var(--paper3);--accent:#97e6bd;width:196px;padding:var(--sp-4);gap:var(--sp-3);color:var(--ink-text);background-color:var(--plate)}
+body.ui2 #chans button{position:relative;min-height:32px;box-sizing:border-box;padding:0 var(--sp-4);align-items:center;font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2);overflow:hidden}
+body.ui2 #chans button:hover:not(:disabled){border-color:var(--plate-text)}
+body.ui2 #chans button.cur{border-color:var(--accent);box-shadow:inset var(--sp-3) 0 0 var(--accent);color:var(--plate-text)}
+body.ui2 #chans button:disabled{opacity:1;color:var(--paper3);cursor:not-allowed}
+body.ui2 #chans button.cur:disabled{color:var(--plate-text)}
+body.ui2 #chans button[data-st="full"]{border-style:dashed}
+body.ui2 #chans .chbar{position:absolute;left:0;right:0;bottom:0;height:var(--sp-2);background:var(--plate)}
+body.ui2 #chans .chbar::after{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--p,0%);background:var(--accent)}
+body.ui2 #chans button[data-st="full"] .chbar::after{background:var(--son)}
+body.ui2 #chans button:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:calc(var(--bd) * -1)}
+body.ui2 #chans small{font:var(--fs-s)/1.4 var(--f10);color:var(--paper3)}
+body.ui2 #chans .p2-state{min-height:56px}
+body.ui2.a11y-fs-1 #chans.f2-muc-nho{width:224px}
+body.ui2.a11y-fs-2 #chans.f2-muc-nho{width:256px}
+
+/* Thế giới: cuộn giấy (Giấy); sơ đồ nét mực, nút "Tự đi tới" theo token thay màu cứng, hàng trận cao ≥ 32 px, hàng đang chọn có vòng + vạch. */
+body.ui2 #world{width:min(480px,96vw);gap:var(--sp-4);padding:var(--sp-4);font:var(--fs-m)/1.3 var(--f12);color:var(--text);scrollbar-width:thin}
+body.ui2 #world :is(.x,.rhead button){min-height:32px;min-width:32px;box-sizing:border-box;padding:0 var(--sp-4);cursor:pointer;font:var(--fs-m)/1.2 var(--f12);color:var(--ink);background:var(--paper2);border:var(--bd-fine) solid var(--line)}
+body.ui2 #world :is(button,[tabindex]):focus-visible,body.ui2 #world .wnode:focus-visible{outline:var(--bd) solid var(--son);outline-offset:var(--bd)}
+body.ui2 #world .wwalk{min-height:32px;padding:0 var(--sp-4);font:var(--fs-m)/1.2 var(--f12);color:var(--ink);background:var(--paper2);border:var(--bd) solid var(--son);border-radius:0;box-shadow:inset 0 calc(var(--bd) * -1) 0 var(--son)}
+body.ui2 #world .wwalk:hover{background:var(--paper)}
+body.ui2 #world .wrow{min-height:32px;padding:var(--sp-2) var(--sp-4);font:var(--fs-m)/1.2 var(--f12)}
+body.ui2 #world .wrow.sel{outline:var(--bd) solid var(--son);box-shadow:inset var(--sp-3) 0 0 var(--son)}
+body.ui2 #world .wrow.locked em::before{content:"Khoá · "}
+body.ui2 #world .wsec{border-left-width:var(--sp-3)}
+body.ui2 #world :is(.rnote,.danger){font:var(--fs-s)/1.4 var(--f10)}
+body.ui2 #world .restotal{font:var(--fs-m)/1.3 var(--f12);color:var(--xp-t)}
+body.ui2 #world .restop :is(b,span){font:var(--fs-m)/1.3 var(--f12)}
+body.ui2 #world .wgo .buse{min-height:44px;padding:0 var(--sp-5);font:var(--fs-m)/1.2 var(--f12);cursor:pointer}
+body.ui2 #world .wgo .buse:disabled{cursor:not-allowed}
+body.ui2 #world .p2-state{min-height:72px}
+body.ui2.a11y-fs-1 #world{width:min(560px,96vw)}
+body.ui2.a11y-fs-2 #world{width:min(640px,96vw)}
+
+/* Bảng tông (trang "Bảng tông tuần" trong hộp thoại sứ giả): mỗi tông một dòng + thanh so với tông đứng đầu; tông của mình có vạch trái dày. */
+body.ui2 .qbox.tong-bang{gap:var(--sp-2)}
+body.ui2 .tong-bang .trow{font:var(--fs-m)/1.3 var(--f12);padding:var(--sp-2) 0 0 var(--sp-3)}
+body.ui2 .tong-bang .trow.me{box-shadow:inset var(--sp-3) 0 0 var(--son)}
+body.ui2 .tong-bang .tbar{display:block;height:var(--sp-3);margin:0 0 var(--sp-2) var(--sp-3);background:var(--paper3)}
+body.ui2 .tong-bang .tbar::after{content:"";display:block;height:100%;width:var(--p,0%);background:var(--c,var(--son))}

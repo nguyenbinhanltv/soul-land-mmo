@@ -5,6 +5,8 @@ import { resolveQuestMarker } from "./nameplate.ts";
 import type { QuestMsg, DailyMsg } from "./net.ts";
 import { TONG_MON, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, tongDef, type TongRank } from "../../shared/data.ts";
 import { ringColor } from "./hudBar.ts";
+import { isUi2 } from "./uiKit.ts";
+import { stateBox } from "./uiParts.ts";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 
 // ---------- Nhiệm vụ: chuỗi cố định (tân thủ của Ngọc Tiểu Cương, chương 2 của Triệu Vô Cực…; mục 5.8, bước 6.2, #190) ----------
@@ -191,7 +193,7 @@ function renderDailyTracker(el: HTMLElement) {
 export function renderTongTasks(el: HTMLElement, act: NpcActions) {
   const say = (t: string) => { const p = document.createElement("p"); p.className = "nline"; p.textContent = t; el.appendChild(p); };
   const l = tongMsg?.tasks;
-  if (!l?.length) { say("…"); return; }
+  if (!l?.length) { if (isUi2()) el.appendChild(stateBox({ kind: tongMsg ? "empty" : "loading", text: tongMsg ? "Hôm nay chưa có tông vụ." : "Đang tải tông vụ…", hint: tongMsg ? "Nửa đêm có bài mới." : undefined, rows: 3 })); else say("…"); return; }
   say(l.every((x) => x.status === "done") ? questChain(l[0].chain)?.finale ?? "" :
     `Tông vụ hôm nay ${l.length} bài, mỗi bài ${TONG_POINTS} điểm tông. Nửa đêm có bài mới, bài dở dang bỏ luôn.`);
   l.forEach((q, i) => {
@@ -218,16 +220,23 @@ export function renderTongTasks(el: HTMLElement, act: NpcActions) {
 export function renderTongRank(el: HTMLElement, act: NpcActions) {
   const m = tongBoardMsg, mine = tongMsg?.tong ?? "";
   const say = (t: string) => { const p = document.createElement("p"); p.className = "nline"; p.textContent = t; el.appendChild(p); };
-  if (!m) { say("…"); return; }
+  if (!m) { if (isUi2()) el.appendChild(stateBox({ kind: "loading", text: "Đang tải bảng tông…", rows: 4 })); else say("…"); return; }
+  const UI2 = isUi2();
   const table = (rows: TongRank[], first: string[]) => {
-    const tb = document.createElement("div"); tb.className = "qbox";
+    const tb = document.createElement("div"); tb.className = "qbox" + (UI2 ? " tong-bang" : "");
     const sorted = TONG_MON.map((t) => rows.find((r) => r.tong === t.id) ?? { tong: t.id, active: 0, avg: 0 }).sort((a, b) => b.avg - a.avg);
+    const best = Math.max(1, ...sorted.map((r) => r.avg));
     for (const r of sorted) {
       const t = tongDef(r.tong), line = document.createElement("span");
       line.textContent = `${first.includes(r.tong) ? "★ " : ""}${t?.name ?? r.tong}: ${r.avg.toLocaleString("vi-VN", { maximumFractionDigits: 1 })} điểm trung bình, ${r.active} người hoạt động`;
       if (t) line.style.color = t.col;
       if (r.tong === mine) line.style.fontWeight = "bold";
       tb.appendChild(line);
+      if (UI2) { // thanh so điểm trung bình với tông đứng đầu (hình, kèm số ở dòng trên); tông mình có vạch trái dày
+        line.classList.add("trow"); if (r.tong === mine) line.classList.add("me");
+        const bar = document.createElement("i"); bar.className = "tbar"; bar.style.setProperty("--p", `${Math.round((r.avg / best) * 100)}%`); if (t) bar.style.setProperty("--c", t.col);
+        tb.appendChild(bar);
+      }
     }
     return tb;
   };

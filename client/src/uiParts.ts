@@ -210,6 +210,30 @@ export function slotNode(o: SlotOpts, clickable = true): PNode {
   });
 }
 
+
+// ---- hộp xác nhận (mục thiếu #19 của kiểm kê UI/UX: hành động không đảo ngược) ----
+export interface ConfirmOpts {
+  title: string;
+  /** Hậu quả cụ thể (nguyên tắc: chữ nêu rõ mất gì, không chỉ "Bạn chắc chứ?"). */
+  body: string;
+  confirmLabel?: string; cancelLabel?: string;
+  /** Nút xác nhận là nút nguy hiểm (viền son, tách khỏi nút an toàn). */
+  danger?: boolean;
+}
+/** Hộp xác nhận dựng bằng cây ảo: nút an toàn (Huỷ) đứng trước và là nút lấy tiêu điểm; nút nguy hiểm đứng sau, tách riêng. Hàm thuần. */
+export function confirmNode(o: ConfirmOpts): PNode {
+  return h("div", "p2-confirm-bg", { kids: [
+    h("div", "p2-confirm f2-muc-nho", { attrs: { role: "alertdialog", "aria-modal": "true", "aria-label": o.title }, kids: [
+      h("b", "p2-confirm-t", { text: o.title }),
+      h("p", "p2-confirm-b", { text: o.body }),
+      h("div", "p2-confirm-btns", { kids: [
+        h("button", "p2-confirm-no f2-nut-phu", { text: o.cancelLabel ?? "Huỷ", attrs: { type: "button" } }),
+        h("button", `p2-confirm-ok f2-nut-phu${o.danger ? " p2-danger" : ""}`, { text: o.confirmLabel ?? "Đồng ý", attrs: { type: "button" } }),
+      ] }),
+    ] }),
+  ] });
+}
+
 // ---- khung màn chuẩn ----
 export type Material = "muc" | "giay";
 export interface NavItem { id: string; label: string; active?: boolean; /** chấm đỏ báo mới. */ dot?: boolean }
@@ -379,4 +403,25 @@ export function itemSlot(o: SlotOpts & { onClick?: () => void }): HTMLElement {
 export function addCloseButton(frame: HTMLElement, close: () => void) {
   const b = document.createElement("button"); b.type = "button"; b.className = "scr-x"; b.textContent = "×"; b.setAttribute("aria-label", "Đóng (Esc)"); b.title = "Đóng · Esc";
   b.addEventListener("click", close); frame.querySelector(".p2-hd")?.append(b);
+}
+
+/**
+ * Hộp xác nhận (mount, chặn nền): trả true khi bấm nút xác nhận, false khi Huỷ / Esc / bấm nền. Tiêu điểm mặc định ở nút an toàn (Huỷ), Tab vòng trong hộp.
+ * Cờ `ui2` tắt thì trả true ngay (màn giữ hành vi cũ, không hỏi); `force` chỉ cho trang xem trước / test.
+ */
+export function confirmDialog(o: ConfirmOpts & { force?: boolean }): Promise<boolean> {
+  if (!o.force && !isUi2()) return Promise.resolve(true);
+  const root = mount(confirmNode(o)), no = root.querySelector<HTMLButtonElement>(".p2-confirm-no")!, ok = root.querySelector<HTMLButtonElement>(".p2-confirm-ok")!;
+  const prev = document.activeElement as HTMLElement | null;
+  return new Promise((res) => {
+    const done = (v: boolean) => { document.removeEventListener("keydown", key, true); root.remove(); prev?.focus?.(); res(v); };
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { e.stopPropagation(); e.preventDefault(); done(false); }
+      else if (e.key === "Tab") { e.preventDefault(); (document.activeElement === no ? ok : no).focus(); }
+    };
+    no.addEventListener("click", () => done(false)); ok.addEventListener("click", () => done(true));
+    root.addEventListener("pointerdown", (e) => { if (e.target === root) done(false); });
+    document.addEventListener("keydown", key, true);
+    document.body.append(root); no.focus();
+  });
 }
