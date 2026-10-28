@@ -1,0 +1,219 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempt": 1,
+  "date": "2026-10-28T01:25:56.225Z",
+  "direction": "n",
+  "raw": "toE.png",
+  "sha256": "4dfed642f29ef221299306ca88f0a0ff2c41e6f053199f2b4e9e90319ae6b6eb",
+  "prompt": "toE.prompt.txt",
+  "promptSha256": "9a2c378ccbe98718f82cd1d130767ed07c0ef646e02132b4ae5f021bce371c1a",
+  "promptCommand": "node tools/assets/phuthe-sheet-prompt.mjs --id pha_hon_thuong --stage direction --dir n --concept-ref",
+  "references": [
+    {
+      "file": "references/pha_hon_thuong-nom-toE.png",
+      "sha256": "58393983761318c4213380eeda7ad1061da3bf5cb8ba8195ce1eed2bc3427dcc"
+    },
+    {
+      "file": "../../vohon-v2/pha_hon_thuong/concept-attempt1.png",
+      "sha256": "ceeb9594af98b6111ffa15ad52fdd361fd5dfe37b0ce57da7508dbae45bdfa63"
+    }
+  ],
+  "referencePathBase": "art/src/phuthe-anim/pha_hon_thuong",
+  "postprocessing": "none; RAW copied byte-for-byte",
+  "promptHandwritten": false,
+  "promptAddendum": false,
+  "technicalCheck": {
+    "sheet": "toE",
+    "size": [
+      1536,
+      1024
+    ],
+    "kind": "huong",
+    "level": "nhẹ",
+    "dirs": [
+      "n"
+    ],
+    "background": {
+      "key": [
+        250,
+        3,
+        251
+      ],
+      "corners": [
+        [
+          238,
+          11,
+          241
+        ],
+        [
+          243,
+          18,
+          242
+        ],
+        [
+          234,
+          34,
+          237
+        ],
+        [
+          240,
+          28,
+          241
+        ]
+      ],
+      "keyDistFromLock": 5,
+      "cornerSpread": 31
+    },
+    "seVsE": null,
+    "prep": {
+      "shift": {
+        "dx": 0,
+        "dy": 3
+      },
+      "factor": 1,
+      "grid": "gap"
+    },
+    "bands": [
+      {
+        "row": 1,
+        "dir": "n",
+        "y": [
+          26,
+          201
+        ],
+        "figures": 3,
+        "state": "ok"
+      },
+      {
+        "row": 2,
+        "dir": "n",
+        "y": [
+          258,
+          443
+        ],
+        "figures": 4,
+        "state": "ok"
+      },
+      {
+        "row": 3,
+        "dir": "n",
+        "y": [
+          504,
+          698
+        ],
+        "figures": 4,
+        "state": "ok"
+      },
+      {
+        "row": 4,
+        "dir": "n",
+        "y": [
+          745,
+          956
+        ],
+        "figures": 2,
+        "state": "ok"
+      }
+    ],
+    "motion": [
+      {
+        "dir": "n",
+        "anim": "idle",
+        "maxDiff": 0.515
+      },
+      {
+        "dir": "n",
+        "anim": "walk",
+        "maxDiff": 0.743
+      },
+      {
+        "dir": "n",
+        "anim": "hurt-vs-idle",
+        "maxDiff": 0.772
+      }
+    ],
+    "issues": [
+      {
+        "sev": "note",
+        "code": "nen",
+        "where": "toàn tờ",
+        "msg": "nền dốc nhẹ (bốn góc lệch 31), trong dung sai 60; không phải lỗi."
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H2 (n) C2",
+        "msg": "phụ thể chạm mép ô khung (11 điểm): có thể bị cắt."
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H3 (n) C1",
+        "msg": "phụ thể chạm mép ô khung (48 điểm): có thể bị cắt."
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H3 (n) C1",
+        "msg": "109 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H3 (n) C2",
+        "msg": "phụ thể chạm mép ô khung (22 điểm): có thể bị cắt."
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H3 (n) C2",
+        "msg": "73 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H3 (n) C3",
+        "msg": "phụ thể chạm mép ô khung (57 điểm): có thể bị cắt."
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H3 (n) C3",
+        "msg": "1104 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H4 (n) C1",
+        "msg": "phụ thể chạm mép ô khung (45 điểm): có thể bị cắt."
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H4 (n) C1",
+        "msg": "341 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H4 (n) C2",
+        "msg": "phụ thể chạm mép ô khung (56 điểm): có thể bị cắt."
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H4 (n) C2",
+        "msg": "259 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+      },
+      {
+        "sev": "light",
+        "code": "co-phu-the",
+        "where": "khối n",
+        "msg": "cỡ phụ thể so với khối s: idle 88%, walk 81%, attack 88%, hurt 82% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+      }
+    ],
+    "draft": "LỖI: toE — chạm mép khung / vượt khung — H2 (n) C2, H3 (n) C1, H3 (n) C1, H3 (n) C2, H3 (n) C2, H3 (n) C3, H3 (n) C3, H4 (n) C1, H4 (n) C1, H4 (n) C2, H4 (n) C2 — phụ thể chạm mép ô khung (11 điểm): có thể bị cắt; phụ thể chạm mép ô khung (48 điểm): có thể bị cắt; 109 điểm phụ thể nằm ngoài ô khung (bị cắt); phụ thể chạm mép ô khung (22 điểm): có thể bị cắt; 73 điểm phụ thể nằm ngoài ô khung (bị cắt); phụ thể chạm mép ô khung (57 điểm): có thể bị cắt; 1104 điểm phụ thể nằm ngoài ô khung (bị cắt); phụ thể chạm mép ô khung (45 điểm): có thể bị cắt; 341 điểm phụ thể nằm ngoài ô khung (bị cắt); phụ thể chạm mép ô khung (56 điểm): có thể bị cắt; 259 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+  }
+}
