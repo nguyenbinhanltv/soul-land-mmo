@@ -27,6 +27,7 @@ STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art fe
 DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions.
 
 LESSONS (learned from earlier sheets of other creatures, follow every line):
+- For ne, the rump is closest to the camera and the chest is fully hidden behind the back; aim the head away as well as the body, showing only the rear of both ears and the back of the neck. The muzzle, eyes, nose and mouth must stay hidden behind the head silhouette in idle, hurt, attack and die.
 - Direction "se" is a three-quarter view: the body axis is turned about 45 degrees toward the lower right, the face is visible and looks diagonally down toward the viewer, so it clearly differs from "e" (pure side profile).
 - Direction "ne" is a three-quarter BACK view: the body axis is turned about 45 degrees away toward the upper right, the rump and back are nearest to the viewer, and it must not be drawn as a plain side profile.
 - Direction "n" is a pure back view: only the back of the head, back, rump and tail are visible.
@@ -36,3 +37,6 @@ LESSONS (learned from earlier sheets of other creatures, follow every line):
 - Squat or low-bodied creatures (toads, turtles, boars) also keep the belly hidden while recoiling: they hunker lower instead of rearing up.
 - HURT of a four-legged creature moves only the head, trunk and tail: the four feet never leave the spots where they stand, and the body never rears up or lifts a leg.
 - Draw all poses at the same body size and on the same ground line; one creature per cell with clear magenta space around it.
+- In directions n and ne, hide every eye, mouth line, tooth and nostril behind the back of the skull in ALL poses: show a solid unmarked rear skull, never the side of the face. Attack and hurt change body height and forward reach only, with zero head yaw; never open a mouth toward the camera.
+- For Bang Nguyen Cu Tuong in ne, the far-facing head is completely occluded by the huge rear ear and shoulder silhouette: draw no eye dots, trunk opening or visible face. HURT lowers the head behind the shoulders instead of raising or turning it. DIE folds the legs under the same rear-facing body with the head still hidden.
+- For Han Bang Dia Long in ne, tuck the head LOW behind the high neck and shoulders: show only the solid blue back of the skull, never a side muzzle, eyes or nostrils. HURT hunkers lower without lifting the head, DIE lowers in place with the head fully occluded behind the shoulder spikes.
