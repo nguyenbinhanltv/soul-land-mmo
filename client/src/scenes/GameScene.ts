@@ -1364,8 +1364,8 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("log", (m: { text: string; col?: string }) => { hud.log(m.text, m.col); charLog(m.text, m.col); }); // charLog: kết quả / lý do từ chối lệnh gắn, tháo gửi từ bảng nhân vật
     // Tinh anh xuất hiện / bị hạ trong bản đồ này (BĐ4): báo cả phòng.
     this.room.onMessage("elite", (m: { k: string; name: string; zone?: string; by?: string; col?: string }) => {
-      if (m.k === "spawn") { hud.banner(`${m.name} xuất hiện`, m.zone ?? ""); hud.log(`${m.name} đã xuất hiện ở ${m.zone}!`, m.col); }
-      else if (m.k === "down") hud.log(`${m.name} đã bị ${m.by} hạ.`, m.col);
+      if (m.k === "spawn") { hud.banner(`${m.name} xuất hiện`, m.zone ?? ""); hud.logImp(`${m.name} đã xuất hiện ở ${m.zone}!`, m.col); }
+      else if (m.k === "down") hud.logImp(`${m.name} đã bị ${m.by} hạ.`, m.col);
     });
     // Tà hóa thú vương (BĐ5): báo toàn server trước 5 phút (đếm ngược) và lúc xuất hiện; trong bản đồ có thú vương thì thêm giai đoạn 2,
     // bảng xếp hạng sát thương, bị hạ / rút đi / bỏ giao chiến.
@@ -1377,7 +1377,7 @@ export class GameScene extends Phaser.Scene {
       if (m.k === "warn") {
         hud.setBossCountdown({ name: m.name, mapName: m.mapName, here: m.here, secs: m.in, col });
         if (m.join) return; // tin xin lại lúc vào phòng (#118): chỉ đặt đếm ngược, không lặp log / banner
-        hud.log(`${m.name} sẽ xuất hiện ở ${m.mapName} sau ${Math.max(1, Math.round(m.in / 60))} phút!`, col, "Hệ thống");
+        hud.logImp(`${m.name} sẽ xuất hiện ở ${m.mapName} sau ${Math.max(1, Math.round(m.in / 60))} phút!`, col, "Hệ thống");
         toast("boss", `${m.name} sắp xuất hiện`, `${m.mapName} · ${Math.max(1, Math.round(m.in / 60))} phút nữa`);
       } else if (m.k === "spawn" || m.k === "here") {
         hud.setBossCountdown(null);
@@ -1388,15 +1388,15 @@ export class GameScene extends Phaser.Scene {
         if (m.here && m.world && m.dive && m.sx !== undefined) { const all = Math.max(m.dive, m.diveSecs ?? m.dive) * 1000;
           this.diveMark = { bid: m.bid, x: m.sx, y: m.sy, t0: this.time.now - (all - m.dive * 1000), ms: all }; }
         if (m.k === "spawn" && m.world) {
-          hud.log(`${m.name} đã xuất hiện ở ${m.mapName}${m.here ? ": sàn đấu bên hồ trung tâm" : " (cổng ở bờ hồ cuối Hắc Ám Lâm, Nội địa)"}!`, col, "Hệ thống");
+          hud.logImp(`${m.name} đã xuất hiện ở ${m.mapName}${m.here ? ": sàn đấu bên hồ trung tâm" : " (cổng ở bờ hồ cuối Hắc Ám Lâm, Nội địa)"}!`, col, "Hệ thống");
           hud.banner(`${m.name} xuất hiện`, m.here ? `Sàn đấu bên hồ · nổi giận sau ${Math.round(WORLD.enrageSecs / 60)} phút` : m.mapName);
         } else if (m.k === "spawn") {
-          hud.log(`${m.name} đã xuất hiện ở ${m.mapName}${m.here ? ": vào hang ở vùng sâu nhất (chấm đỏ trên bản đồ nhỏ)" : ""}!`, col, "Hệ thống");
+          hud.logImp(`${m.name} đã xuất hiện ở ${m.mapName}${m.here ? ": vào hang ở vùng sâu nhất (chấm đỏ trên bản đồ nhỏ)" : ""}!`, col, "Hệ thống");
           hud.banner(`${m.name} xuất hiện`, m.here ? `Hang ở vùng sâu nhất · rút đi sau ${Math.round(m.life / 60)} phút` : m.mapName);
         }
       } else if (m.k === "phase") {
         hud.banner(`${m.name}: giai đoạn 2`, `${m.title} – ${m.desc}`);
-        hud.log(`${m.name} chuyển sang giai đoạn 2 – ${m.title}: ${m.desc}.`, col);
+        hud.logImp(`${m.name} chuyển sang giai đoạn 2 – ${m.title}: ${m.desc}.`, col);
       } else if (m.k === "rank") { this.bossList = m.list; hud.bossRank(m.list, this.me, false, this.worldBossHere()); }
       else if (m.k === "down") {
         // Kết quả cuối chỉ hiện cho người tham gia (đang nhận bảng xếp hạng, hoặc có tên trong danh sách).
@@ -1405,7 +1405,7 @@ export class GameScene extends Phaser.Scene {
         setTimeout(() => { if (!this.bossList) hud.bossRank(null, this.me); }, 12000);
         hud.banner(`Đã hạ ${m.name}`, `${m.top} ${m.topDmg ? "gây sát thương" : "đóng góp"} nhiều nhất`); // 9.2: boss thế giới xếp hồn hoàn đỏ theo sát thương
       } else if (m.k === "leave") { this.bossList = null; this.diveMark = null; hud.bossRank(null, this.me); hud.banner(`${m.name} đã ${m.world ? "lặn xuống hồ" : "rút đi"}`, `Không ai hạ được trong ${m.mins ?? 15} phút`); }
-      else if (m.k === "reset") { this.bossList = null; this.diveMark = null; hud.bossRank(null, this.me); hud.log(`${m.name} bỏ giao chiến: về hang, hồi đầy máu.`, col); }
+      else if (m.k === "reset") { this.bossList = null; this.diveMark = null; hud.bossRank(null, this.me); hud.logImp(`${m.name} bỏ giao chiến: về hang, hồi đầy máu.`, col); }
     });
     // Chat (#188): `ch` thiếu = bản đồ (kể cả thông báo "Hệ thống"); tổ đội / riêng / thế giới / tông môn (#198) đến từ mọi bản đồ / kênh qua server.
     this.room.onMessage("chat", (m: ChatMsg) => {
@@ -3613,7 +3613,7 @@ export class GameScene extends Phaser.Scene {
     if (m.k === "warn" && m.world) {
       hud.setBossCountdown({ name: m.name, mapName: m.mapName, here: m.here, secs: m.in, col });
       if (m.join) return true; // tin xin lại lúc vào phòng (#118): chỉ đặt đếm ngược, không lặp log / banner
-      hud.log(`${m.name} sẽ xuất hiện ở ${m.mapName} sau ${Math.max(1, Math.round(m.in / 60))} phút!`, col, "Hệ thống");
+      hud.logImp(`${m.name} sẽ xuất hiện ở ${m.mapName} sau ${Math.max(1, Math.round(m.in / 60))} phút!`, col, "Hệ thống");
       toast("boss", `${m.name} sắp xuất hiện`, `${m.mapName} · ${Math.max(1, Math.round(m.in / 60))} phút nữa`);
       return true;
     }
@@ -3622,19 +3622,19 @@ export class GameScene extends Phaser.Scene {
       case "weak":
         hud.setBossWeak(m.secs);
         hud.banner(`Điểm yếu: ${he(m.he)}`, `Võ hồn ${he(m.he)} gây x${String(m.mult).replace(".", ",")}, hệ khác x${String(m.off).replace(".", ",")} trong ${m.secs} giây: đổi võ hồn (phím 1–4)!`);
-        hud.log(`Boss lộ điểm yếu hệ ${he(m.he)} trong ${m.secs} giây.`, "#ffe08a");
+        hud.logImp(`Boss lộ điểm yếu hệ ${he(m.he)} trong ${m.secs} giây.`, "#ffe08a");
         return true;
       case "weakEnd": return true;
       case "charge":
         hud.banner(`${m.name}: tích lực ${m.secs} giây!`, `Cần ${m.need} lần khống chế của võ hồn Khống chế để ngắt, không thì đứng vào vòng xanh ngọc`);
-        hud.log(`Boss tích lực ${m.name}: cần ${m.need} lần khống chế (Choáng, Trói, Câm lặng…) của võ hồn Khống chế để ngắt.`, "#ff8a6a");
+        hud.logImp(`Boss tích lực ${m.name}: cần ${m.need} lần khống chế (Choáng, Trói, Câm lặng…) của võ hồn Khống chế để ngắt.`, "#ff8a6a");
         return true;
-      case "brk": hud.log(`${m.by} khống chế trúng: ngắt ${m.n}/${m.need}.`, "#9ad8ff"); return true;
+      case "brk": hud.logImp(`${m.by} khống chế trúng: ngắt ${m.n}/${m.need}.`, "#9ad8ff"); return true;
       case "broken":
         hud.banner(`Đã ngắt ${m.name}!`, `${m.by} ngắt chiêu · boss Choáng ${m.secs} giây`);
         return true;
       case "chargeHit":
-        hud.log(`${m.name} không bị ngắt: cả sàn (trừ người đứng trong vòng an toàn) trúng Vết thương sâu (Phá giáp nặng). Chỉ thanh tẩy của võ hồn phụ trợ giải được.`, "#ff6a5a");
+        hud.logImp(`${m.name} không bị ngắt: cả sàn (trừ người đứng trong vòng an toàn) trúng Vết thương sâu (Phá giáp nặng). Chỉ thanh tẩy của võ hồn phụ trợ giải được.`, "#ff6a5a");
         return true;
       case "floor":
         hud.banner(m.name, m.name === "Bạo Nộ" ? "Chiêu toàn sàn: đứng vào vòng xanh ngọc hoặc ra khỏi sàn!"
@@ -3642,10 +3642,10 @@ export class GameScene extends Phaser.Scene {
         return true;
       case "armor":
         hud.banner(`${m.name}!`, `Khiên ${m.secs} giây: võ hồn ${he(m.he)} phá khiên nhanh gấp ${m.mult}`);
-        hud.log(`Boss khoác ${m.name}: võ hồn ${he(m.he)} phá khiên nhanh gấp ${m.mult}; không phá kịp thì boss hồi máu.`, "#9ad8ff");
+        hud.logImp(`Boss khoác ${m.name}: võ hồn ${he(m.he)} phá khiên nhanh gấp ${m.mult}; không phá kịp thì boss hồi máu.`, "#9ad8ff");
         return true;
-      case "armorBreak": hud.log(`${m.by} phá vỡ ${m.name}!`, "#9ad8ff"); return true;
-      case "armorEnd": if (m.heal > 0) hud.log(`${m.name} không bị phá: boss hồi ${Number(m.heal).toLocaleString("vi-VN")} máu.`, "#ff8a6a"); return true;
+      case "armorBreak": hud.logImp(`${m.by} phá vỡ ${m.name}!`, "#9ad8ff"); return true;
+      case "armorEnd": if (m.heal > 0) hud.logImp(`${m.name} không bị phá: boss hồi ${Number(m.heal).toLocaleString("vi-VN")} máu.`, "#ff8a6a"); return true;
       case "dive":
         // #118: lặn ra giữa hồ, chỗ nổi lên báo trước bằng vòng sóng xanh.
         this.diveMark = { bid: m.bid, x: m.sx, y: m.sy, t0: this.time.now, ms: m.secs * 1000 };
@@ -3654,7 +3654,7 @@ export class GameScene extends Phaser.Scene {
       case "rage":
         hud.setBossLife(m.life); hud.setBossRage(0);
         hud.banner("NỔI GIẬN!", `Sát thương x${m.dmg}, chiêu toàn sàn mỗi ${m.every} giây`);
-        hud.log(`${m.name} nổi giận: sát thương x${m.dmg}, đánh nhanh hơn, chiêu toàn sàn mỗi ${m.every} giây.`, col);
+        hud.logImp(`${m.name} nổi giận: sát thương x${m.dmg}, đánh nhanh hơn, chiêu toàn sàn mỗi ${m.every} giây.`, col);
         return true;
     }
     return false;

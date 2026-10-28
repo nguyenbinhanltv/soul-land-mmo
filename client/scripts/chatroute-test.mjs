@@ -4,6 +4,7 @@ import { sysImportant, canMerge, mergedText, trimHist, SYS_MERGE_MS } from "../s
 
 assert.equal(sysImportant("#ffb35c"), true, "màu cảnh báo = quan trọng");
 assert.equal(sysImportant("#FF8A8A"), true, "không phân biệt hoa thường");
+for (const c of ["#ff8a6a", "#ff6a5a", "#ff5a5a"]) assert.equal(sysImportant(c), true, `màu cơ chế boss ${c}`);
 assert.equal(sysImportant("#86e0b0"), false, "màu thường (nhận đồ, xong việc) = thường");
 assert.equal(sysImportant(undefined), false);
 assert.equal(sysImportant("#86e0b0", true), true, "có nút hành động = quan trọng");

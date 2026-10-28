@@ -9,7 +9,7 @@ import { el, pbtn } from "./domBtn.ts";
 import type { PortalInfo, BagItem, PartyView } from "./net.ts";
 
 // Ô chat đã tách sang chat.ts (Part of #885); giữ tên cũ ở đây để GameScene vẫn gọi hud.chat*.
-export { log, chatLine, chatWhisper, chatReplyTo, chatSendCh, chatSetTab, chatWhisperTo, chatFocus, chatClose, buildChatTabs, CHAT_COL, type ChatCh, type ChatTab } from "./chat.ts";
+export { log, logImp, chatLine, chatWhisper, chatReplyTo, chatSendCh, chatSetTab, chatWhisperTo, chatFocus, chatClose, buildChatTabs, CHAT_COL, type ChatCh, type ChatTab } from "./chat.ts";
 // Thanh kỹ năng / chỉ số / đội nhỏ đã tách sang hudBar.ts (Part of #885 bước 2); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.
 export { ringColor, SKILL_KEYS, BONE_SKILL_KEYS, skillCd, cdText, starSkillText, skillSpec, buildSkills, FUSION_KEY, setFusionCd, fusionOp, setFusionPending, updateFusion, AVA_KEY, chanThanText, boneSkillText, buildBoneSkills, statusText, updateStats, setAbsorbing, buildTeam, setSquad, updateTeam, type WornBone } from "./hudBar.ts";
 // Thanh boss / đếm ngược / xếp hạng đóng góp đã tách sang hudBoss.ts (Part of #885 bước 0a); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.

@@ -9,6 +9,8 @@ const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySele
 
 /** Dòng thông báo riêng cho mình. Lỗi / cảnh báo (màu cảnh báo, hoặc có nút) hiện ở mọi tab; dòng thường (nhặt đồ, kinh nghiệm…) chỉ vào tab "Hệ thống" (chatRoute.ts). */
 export function log(text: string, col?: string, who?: string) { chatLine("sys", text, col, who); }
+/** Như `log` nhưng đánh dấu QUAN TRỌNG tường minh (tin boss: màu do dữ liệu boss quyết định nên không đoán theo màu được) → hiện ở mọi tab. */
+export function logImp(text: string, col?: string, who?: string) { chatLine("sys", text, col, who, undefined, true); }
 
 // ---------- Ô chat (mục 4 "Lệnh chat", #188): tab Tất cả / Bản đồ / Tổ đội / Riêng / Tông / Thế giới, lịch sử chỉ trong phiên ----------
 /** Kênh của một dòng: `sys` = thông báo riêng cho mình (quan trọng thì tab nào cũng hiện, còn lại chỉ ở tab Hệ thống). */
@@ -65,11 +67,11 @@ function renderChat() {
 }
 
 /** Thêm một dòng vào lịch sử ô chat (chỉ trong phiên, không lưu). Tab khác có tin mới thì hiện chấm. */
-export function chatLine(ch: ChatCh, text: string, col?: string, who?: string, act?: ChatLine["act"]) {
-  const l: ChatLine = { ch, text, col, who, at: Date.now(), act, imp: ch === "sys" ? sysImportant(col, !!act) : undefined };
+export function chatLine(ch: ChatCh, text: string, col?: string, who?: string, act?: ChatLine["act"], imp = false) {
+  const l: ChatLine = { ch, text, col, who, at: Date.now(), act, imp: ch === "sys" ? imp || sysImportant(col, !!act) : undefined };
   if (ch === "sys") { // gộp dòng hệ thống lặp ("×n") thay vì xếp thêm
     let last: ChatLine | undefined; for (let i = chatHist.length - 1; i >= 0 && !last; i--) if (chatHist[i].ch === "sys") last = chatHist[i];
-    if (last && !last.act && !act && canMerge(last, l)) { last.n = (last.n ?? 1) + 1; last.at = l.at; renderChat(); return; }
+    if (last && !last.act && !act && !!last.imp === !!l.imp && canMerge(last, l)) { last.n = (last.n ?? 1) + 1; last.at = l.at; renderChat(); return; }
   }
   chatHist.push(l); trimHist(chatHist, CHAT_KEEP, SYS_KEEP);
   const el = $("#log"); if (!el) return;

@@ -3,8 +3,8 @@
 // cùng bảng màu cảnh báo / lỗi) và từ việc dòng có nút hành động; mọi dòng còn lại (nhặt đồ, kinh nghiệm, Hồn Tệ, tin tình hình) là
 // "thường": vào lịch sử tab "Hệ thống", không chen vào dòng chat của tab Tất cả / Bản đồ… để khỏi che dòng người chơi nhắn.
 
-/** Màu cảnh báo / lỗi đang dùng cho dòng hệ thống (khớp màu server và GameScene): cam cảnh báo, đỏ lỗi / nguy hiểm. */
-const WARN_COLS: ReadonlySet<string> = new Set(["#ffb35c", "#ff8a8a", "#ff6b6b", "#ff9a8a"]);
+/** Màu cảnh báo / lỗi đang dùng cho dòng hệ thống (khớp màu server và GameScene): cam cảnh báo, đỏ lỗi / nguy hiểm, đỏ cơ chế boss. Màu do DỮ LIỆU quyết định (hào quang boss) không nằm ở đây: nơi phát đánh dấu tường minh bằng `logImp`. */
+const WARN_COLS: ReadonlySet<string> = new Set(["#ffb35c", "#ff8a8a", "#ff6b6b", "#ff9a8a", "#ff8a6a", "#ff6a5a", "#ff5a5a"]);
 
 /** Dòng hệ thống quan trọng: lỗi / từ chối / cảnh báo (theo màu), hoặc có nút hành động (ví dụ "Thêm lại"). Quan trọng thì hiện ở mọi tab. */
 export function sysImportant(col: string | undefined, hasAct = false): boolean {
