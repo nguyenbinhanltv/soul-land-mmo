@@ -8,9 +8,13 @@ import { chromium } from "playwright";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const WARPS = Number(process.env.JOIN_WARPS ?? 12);
+const TIMEOUT_MS = Number(process.env.JOIN_TIMEOUT_MS ?? 240000);
 const MAPS = ["nac_dinh_thanh", "thanh_hon_thon", "thien_dau_thanh", "tinh_dau_ngoai_vi"];
 const children = [];
 let browser;
+const killChildren = () => { for (const c of children) { try { process.platform === "win32" ? spawn("taskkill", ["/pid", String(c.pid), "/t", "/f"], { stdio: "ignore" }) : process.kill(-c.pid); } catch {} } };
+// Chặn treo: cả bài quá JOIN_TIMEOUT_MS (mặc định 240 s; chạy thường ~30 s) thì tắt server / vite / Chrome rồi thoát mã 1, không để CI / máy chờ vô hạn.
+const watchdog = setTimeout(() => { console.error(`join-browser quá ${TIMEOUT_MS / 1000} s (treo?): tắt tiến trình con rồi thoát`); killChildren(); process.exit(1); }, TIMEOUT_MS);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const port = () => new Promise((done, reject) => {
   const s = createServer(); s.on("error", reject); s.listen(0, "127.0.0.1", () => { const n = s.address().port; s.close(() => done(n)); });
@@ -66,6 +70,7 @@ try {
   assert.deepEqual(bad, [], `Console có lỗi vào phòng:\n${bad.join("\n")}`);
   console.log(`✓ ${WARPS} lần đổi bản đồ, console không có cảnh báo onMessage / lỗi refId`);
 } finally {
+  clearTimeout(watchdog);
   await browser?.close().catch(() => {});
-  for (const c of children) { try { process.platform === "win32" ? spawn("taskkill", ["/pid", String(c.pid), "/t", "/f"], { stdio: "ignore" }) : process.kill(-c.pid); } catch {} }
+  killChildren();
 }
