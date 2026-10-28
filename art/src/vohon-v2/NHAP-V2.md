@@ -36,7 +36,7 @@ Manifest đã có đủ 25 khóa `portrait_<id>` và ba khung `card_sr/ssr/ur`; 
 | Yêu Hồ | Đủ | Đủ | Tách PR icon riêng |
 | Lam Ngân Thảo | Đủ | Đủ | Tách PR icon riêng |
 | Băng Phượng Hoàng | Đủ | Đủ | Tách PR icon riêng |
-| Xúc Xích | Đủ | Đủ | Tách PR icon riêng |
+| Xúc Xích | Đủ | Đủ | Ảnh24/32 ở PR này; khóa ở #1263 |
 | Quỷ Mị | Đủ | Đủ | Tách PR icon riêng |
 | Thiên Càn Bạch Ngọc Đỉnh | Đủ | Đủ | Tách PR icon riêng |
 | Cửu Bảo Lưu Ly Tháp | Đủ | Đủ | Tách PR icon riêng |
@@ -46,7 +46,7 @@ Manifest đã có đủ 25 khóa `portrait_<id>` và ba khung `card_sr/ssr/ur`; 
 
 Theo quyết định ca đêm: PR này chỉ nhập chân dung/thẻ (làn nhanh). PR icon riêng sẽ thêm khóa24/32, dùng lượng tử hóa công cụ về tối đa32 màu, không sinh RAW mới và không nới trần màu.
 
-Xúc Xích đã hết3 lượt RAW, cả ba còn nhiều chiếc phụ; crop từ RAW3 chưa đạt. Không sinh lượt thứ tư. Bảng icon đủ/thiếu và ảnh so sánh lượng tử hóa thuộc PR icon.
+Xúc Xích được duyệt thêm tối đa3 lượt: đã chọn lượt4 (lượt1 bổ sung), một vật duy nhất/nền phẳng, không cần lượt5–6. Nguồn và ảnh24/32 tối đa32 màu ở PR này theo chỉ định; khóa/client ở PR1263 dựa trên PR1262. Hồ sơ ở xuc_xich/NGUON.md.
 
 ## Duyệt mắt
 
