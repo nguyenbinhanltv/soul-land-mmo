@@ -31,6 +31,11 @@ test("hon-quang: phân vai riêng, BOARD v3 đủ mẫu và không đổi hướ
   assert.match(buildPrompt(b), /near-black wood/);
   assert.ok(referencesFor("BOARD", "hon-quang").every((r) => !r.required));
   assert.match(buildDoc(b, { style: "hon-quang" }), /Hồn Quang Tiên Môn/);
+  const doc = buildDoc(b, { style: "hon-quang" });
+  assert.doesNotMatch(doc, /art\/src\/ui-kit\/BOARD\.png/);
+  assert.match(doc, /candidates\/hon-quang\/BOARD\.png/);
+  assert.match(doc, /candidates\/hon-quang\/BOARD\.prompt\.txt/);
+  assert.match(doc, /--kind BOARD --out/);
 });
 
 test("lessons.md: parse được, mọi loại tờ có ít nhất một bài, cú pháp sai thì ném lỗi", () => {

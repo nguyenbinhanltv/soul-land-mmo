@@ -169,7 +169,7 @@ const refsVi = (refs) => refs.map((r) => `(${r.n}) ${r.vi}`).join("\n   ");
 export function buildDoc(kind, o = {}) {
   const shape = o.shape ?? (kind.board ? "3:2" : kind.shapes[0]), [, aspectVi] = ASPECT[shape], refs = referencesFor(kind.id, o.style), mat = materialOf(o);
   const layout = kind.board ? null : pickKindLayout(kind, o.layout), total = layout?.reduce((a, b) => a + b, 0);
-  const file = kind.board ? "BOARD" : `to${kind.id}`;
+  const file = kind.board ? (o.style ? `candidates/${o.style}/BOARD` : "BOARD") : `to${kind.id}`;
   return `# Tờ ${kind.id}: ${kind.title}${o.family && kind.id === "I" ? ` (họ ${o.family})` : ""}
 
 Quy trình: skill \`ui-kit\` (\`.claude/skills/ui-kit/SKILL.md\`), luật vẽ \`docs/art/ui-kit.md\`. File này sinh tự động bằng \`node tools/assets/ui-sheet-prompt.mjs --kind ${kind.id}\`; **không sửa tay** (thiếu ý thì thêm bài học vào \`art/src/ui-kit/lessons.md\` hoặc sửa mẫu \`ui-sheet-prompt.mjs\`, rồi sinh lại).
@@ -187,7 +187,7 @@ Quy trình: skill \`ui-kit\` (\`.claude/skills/ui-kit/SKILL.md\`), luật vẽ \
 1. Mở cuộc trò chuyện **mới** cho mỗi tờ; đính ảnh tham chiếu **theo đúng thứ tự**:
    ${refsVi(refs)}
 2. Dán khối prompt dưới đây. Không chọn cỡ ảnh.
-3. Lưu ảnh gốc **nguyên byte** (không resize) vào \`art/src/ui-kit/${file}.png\`${kind.board ? "" : ` rồi chạy \`npm run ui:check -- art/src/ui-kit/${file}.png --out <thư mục ngoài repo>\``}. Mở **tờ liên hệ** (xanh đạt, vàng nhẹ, đỏ chặn).
+3. Lưu ảnh gốc **nguyên byte** (không resize) vào \`art/src/ui-kit/${file}.png\`${kind.board && o.style ? ` và prompt thật đã gửi vào \`art/src/ui-kit/${file}.prompt.txt\`; không ghi đè BOARD đã duyệt. Chạy \`npm run ui:check -- art/src/ui-kit/${file}.png --kind BOARD --out <thư mục ngoài repo>\` (BOARD chỉ kiểm cỡ; tự soát lưới, chất liệu và chữ bằng mắt)` : kind.board ? "" : ` rồi chạy \`npm run ui:check -- art/src/ui-kit/${file}.png --out <thư mục ngoài repo>\``}. Mở **tờ liên hệ** (xanh đạt, vàng nhẹ, đỏ chặn).
 4. Chỉ tờ này hỏng thì vẽ lại **chỉ tờ này**, tối đa **3 lượt**; chọn lượt ít mục chặn / nhẹ nhất rồi mắt. Mỗi lượt đổi **một** thứ. **Không** dùng tờ hỏng làm tham chiếu.
 5. Đưa orchestrator đường dẫn tờ + prompt thật đã gửi.
 
