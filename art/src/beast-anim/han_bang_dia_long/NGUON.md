@@ -43,12 +43,13 @@ Loài `han_bang_dia_long` (Hàn Băng Địa Long), họ `quad`, khung game 128�
 
 ## to-ne
 
+- Ghi chú kỹ thuật nhập lại: matchSize: chuẩn sheet ĐÃ NHẬP s=84, e=72.5, n=87.5; TB 81.333 px. ne ×0.90; sau nhập ne=81 px (−0.41%). se tiếp tục fallback do lỗi mắt/lưới cũ. Hướng cũ RGBA + normal giữ nguyên, kiểm tự động và đối chiếu git đạt.
 - File: `to-ne.png`, **1536×1024**, 2044407 byte, SHA256 `bc1a7ea0676978a41a36cbf13c2050acea7040fbcec58b315846c9e6565e7ec8`.
 - Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `to-ne.prompt.txt` (SHA256 `ce485fabcfb33bc2106769067732f87d6f5cc60cac303a70761c11f04cdd8250`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: ne pass).
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## Tờ chưa vào thư mục chính (candidates)
 
@@ -75,7 +76,6 @@ LỖI: turnaround — Phiên765: turnaround mới đạt lượt3, hai lượt t
 LỖI: toA — Giữ hướng s cũ: die hơi chếch phải, attack nghiêng đầu và hurt ngẩng mạnh như hồ sơ cũ. (mắt)
 LỖI: toC — Giữ hướng e cũ: hurt hơi quay đầu, idle biên độ nhỏ. (mắt)
 LỖI: toE — Giữ hướng n cũ: không lộ mặt, attack nghiêng nhẹ, hurt nhỏ. (mắt)
-LỖI: to-ne — Phiên765: tờ mới đúng hướng mọi hàng, không lộ mắt; chưa nhập vì thân mới91 px so với hướng cũ s84/e72.5/n87.5 (TB81.33), vẫn lệch +11.89% sau cutter mặc định. Đây là loài chỉ có tờ direction nên matchSize không kích hoạt; không dùng scale tay. Giữ fallback ne và giữ nguyên dữ liệu pixel hướng cũ. (mắt)
 ```
 
 ## Ghi công
