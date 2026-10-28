@@ -172,7 +172,7 @@ test("tờ theo tên hướng: --patch nhận mã s / se…; cảnh báo hình v
 test("vượt khung theo từng hướng: legacy nhỏ + hướng direction to hơn → nhập hướng mới 0 block, hướng legacy nguyên byte và nguyên hệ số", async () => {
   const { fakeSheets } = await import("./beast-sheet-fake.mjs");
   const leg = fakeSheets("phong_lang", { seed: 2 }), big = fakeSheets("phong_lang", { seed: 2, layout: "direction", grow: 1.5 });
-  const base = { species: "phong_lang", palette: "gpl", anchorBlocks: false, equalizeBlocks: false };
+  const base = { species: "phong_lang", palette: "gpl", anchorBlocks: false, equalizeBlocks: false, matchSize: false };
   const pure = cutSpecies({ ...base, sheets: leg });
   const mix = cutSpecies({ ...base, sheets: { ...leg, D: big.D, E: big.E } });
   for (const [name, im] of pure.frames) {
@@ -191,4 +191,31 @@ test("vượt khung theo từng hướng: chỉ chặn hướng thực sự khô
   const blocks = mix.report.issues.filter((i) => i.level === "block");
   assert.deepEqual(blockDirs(blocks), ["ne"], blocks.map((i) => i.msg).join("\n"));
   assert.ok(!blocks.some((i) => /cả loài|một số khung/.test(i.msg)));
+});
+
+test("khớp cỡ thân (#861): hướng direction to / nhỏ hơn legacy vài chục % → cỡ thân khớp trong ±5%, hướng legacy nguyên byte, --no-match-size tắt", async () => {
+  const { fakeSheets } = await import("./beast-sheet-fake.mjs");
+  const base = { species: "phong_lang", palette: "gpl", anchorBlocks: false, equalizeBlocks: false };
+  const leg = fakeSheets("phong_lang", { seed: 2 });
+  const pure = cutSpecies({ ...base, sheets: leg });
+  const bodyH = (r, d) => { // cao thân idle (trung vị) trong khung đã cắt
+    const hs = [0, 1, 2, 3].map((n) => { const im = r.frames.get(`${d}/idle/${n}`); let y0 = Infinity, y1 = -1; for (let y = 0; y < im.h; y++) for (let x = 0; x < im.w; x++) if (im.alpha(x, y)) { y0 = Math.min(y0, y); y1 = Math.max(y1, y); } return y1 - y0 + 1; }).sort((a, b) => a - b);
+    return (hs[1] + hs[2]) / 2;
+  };
+  for (const grow of [1.6, 0.7]) {
+    const dir = fakeSheets("phong_lang", { seed: 2, layout: "direction", grow });
+    const mix = cutSpecies({ ...base, sheets: { ...leg, D: dir.D, E: dir.E } });
+    for (const [name, im] of pure.frames) if (/^(s|se|e)\//.test(name)) assert.deepEqual(Buffer.from(mix.frames.get(name).data), Buffer.from(im.data), `grow ${grow}: ${name} đổi byte`);
+    const target = (bodyH(pure, "s") + bodyH(pure, "se") + bodyH(pure, "e")) / 3;
+    for (const d of ["ne", "n"]) {
+      assert.ok(Math.abs(bodyH(mix, d) / target - 1) <= 0.05, `grow ${grow}: ${d} cao ${bodyH(mix, d)} so với legacy ${target.toFixed(1)}`);
+      assert.ok(mix.report.matchSize[d].factor !== 1);
+    }
+    assert.ok(mix.report.warnings.some((w) => /^khối ne: khớp cỡ thân ×/.test(w)));
+    const off = cutSpecies({ ...base, matchSize: false, sheets: { ...leg, D: dir.D, E: dir.E } });
+    assert.equal(off.report.matchSize, undefined);
+    assert.ok(Math.abs(bodyH(off, "ne") / bodyH(mix, "ne") - 1) > 0.05, "tắt thì cỡ hướng mới không bị kéo về legacy");
+  }
+  // chỉ legacy: không có bước khớp
+  assert.equal(pure.report.matchSize, undefined);
 });

@@ -247,6 +247,8 @@ export function cutSpecies(o) {
   warns.push(`hệ số thu: ${source} ${scaleAuto.toFixed(3)}, dùng ${scale.toFixed(3)}${scale < scaleAuto ? " (hạ cho vừa khung)" : ""}; vừa khung tối đa ${fit.toFixed(3)}`);
 
   const dirScale = Object.fromEntries(DIRS.map((d) => [d, scale])), fitWarned = new Set();
+  // Khớp cỡ thân (#861): chỉ cấu hình trộn (có hướng gốc legacy lẫn hướng direction mới), không đặt tay --scale / --fill
+  const matchSize = !o.scale && !o.fill && o.matchSize !== false && baseDirs.size < DIRS.length && baseFrames.length > 0;
   const anchors = !o.scale && o.anchorBlocks !== false && info.staticFile && !o.fill ? staticAnchors(info.staticFile, F) : null;
   if (anchors) {
     const idleH = Object.fromEntries(DIRS.map((d) => [d, idle.filter(([, r]) => r.dir === d).map(([, r]) => r.h)]));
@@ -267,7 +269,8 @@ export function cutSpecies(o) {
   // 3b. Chuẩn hóa cỡ giữa 5 khối hướng theo trung vị cao idle (#1085); đặt tay --scale / --fill thì không đụng (giữ byte #870)
   if (!o.scale && !o.fill && o.equalizeBlocks !== false) {
     const bodyH = (d) => median(idle.filter(([, r]) => r.dir === d).map(([, r]) => r.h));
-    const heights = Object.fromEntries(DIRS.map((d) => [d, dirScale[d] * (bodyH(d) || 0)]));
+    // Cấu hình trộn + khớp cỡ thân: chuẩn hóa chỉ giữa các hướng gốc (legacy) để hướng gốc không đổi theo hướng mới; hướng mới khớp cỡ ở bước 3b'
+    const heights = Object.fromEntries(DIRS.map((d) => [d, matchSize && !baseDirs.has(d) ? 0 : dirScale[d] * (bodyH(d) || 0)]));
     const eq = equalizeBlocks(heights, o.blockSpread);
     rep.equalize = { before: +(eq.spread ?? 0).toFixed(3), active: eq.active, target: +eq.target.toFixed(1), heightsBefore: Object.fromEntries(Object.entries(heights).map(([d, h]) => [d, +h.toFixed(1)])), factors: {}, after: null };
     if (eq.active) {
@@ -287,6 +290,28 @@ export function cutSpecies(o) {
     }
   }
 
+  // 3b'. Khớp cỡ thân hướng mới về trung bình cỡ thân (cao idle sau thu) các hướng gốc; hướng gốc giữ nguyên hệ số / byte. Vượt khung thì 3c hạ tối đa 20%, quá thì chặn riêng hướng đó.
+  if (matchSize) {
+    const bodyH = (d) => dirScale[d] * (median(idle.filter(([, r]) => r.dir === d).map(([, r]) => r.h)) || 0);
+    const legacyH = [...baseDirs].map(bodyH).filter((h) => h > 0);
+    if (legacyH.length) {
+      const target = legacyH.reduce((a, b) => a + b, 0) / legacyH.length;
+      rep.matchSize = {};
+      for (const d of DIRS) {
+        if (baseDirs.has(d)) continue;
+        const h = bodyH(d);
+        if (!h) continue;
+        const k = Math.min(2, Math.max(0.5, target / h)), sd = dirScale[d];
+        rep.matchSize[d] = { bodyH: +h.toFixed(1), target: +target.toFixed(1), factor: +k.toFixed(3), scale: +sd.toFixed(4) };
+        if (Math.abs(k - 1) < 0.02) continue;
+        dirScale[d] = sd * k;
+        rep.matchSize[d].scale = +dirScale[d].toFixed(4);
+        if (rep.blocks?.[d]) rep.blocks[d].scale = +dirScale[d].toFixed(4);
+        warns.push(`khối ${d}: khớp cỡ thân ×${k.toFixed(2)} (cao idle ${h.toFixed(1)} so với trung bình hướng legacy ${target.toFixed(1)}), hệ số ${sd.toFixed(3)} → ${dirScale[d].toFixed(3)}`);
+      }
+    }
+  }
+
   // 3c. Vừa khung theo TỪNG hướng cho hướng không phải gốc (từ tờ direction): hạ hệ số của riêng hướng đó (tối đa 20%), còn vượt nữa thì chỉ khối đó bị chặn.
   // Hướng gốc giữ nguyên hệ số (không bị hướng mới to hơn kéo nhỏ lại; khối của hướng khác không chặn nhau).
   for (const d of DIRS) {
@@ -295,7 +320,7 @@ export function cutSpecies(o) {
     if (!rs.length) continue;
     const f = fitOf(rs), sd = dirScale[d];
     if (f >= sd) continue;
-    if (f >= sd * 0.8) { dirScale[d] = f; warns.push(`khối ${d}: hạ hệ số ${sd.toFixed(3)} → ${f.toFixed(3)} cho vừa khung ${F}×${F}`); if (rep.blocks?.[d]) rep.blocks[d].scale = +f.toFixed(4); }
+    if (f >= sd * 0.8) { dirScale[d] = f; warns.push(`khối ${d}: hạ hệ số ${sd.toFixed(3)} → ${f.toFixed(3)} cho vừa khung ${F}×${F}`); if (rep.blocks?.[d]) rep.blocks[d].scale = +f.toFixed(4); if (rep.matchSize?.[d]) rep.matchSize[d].scale = +f.toFixed(4); }
     else if (!fitWarned.has(d)) warns.push(`khối ${d}: hệ số ${sd.toFixed(3)} làm khung vượt khung ${F}×${F} (vừa tối đa ${f.toFixed(3)}), bị cắt mép`);
   }
 
@@ -384,6 +409,7 @@ export function formatSummary(rep, verbose = false, cap = 8) {
   const s = rep.summary, lines = [`  Cảnh báo: ${s.block} block · ${s.warn} warn · ${s.info} info (tổng ${s.total}); lưới: ${Object.entries(rep.sheets).map(([id, x]) => `${id}=${x.grid}`).join(", ")}`];
   const si = rep.scaleInfo;
   if (si) lines.push(`  Hệ số thu: tự động ${si.auto} (${si.source}) · dùng ${si.used} · vừa khung tối đa ${si.fit}${si.suggested ? ` · ĐỀ XUẤT --scale ${si.suggested}` : ""}`);
+  if (rep.matchSize) lines.push(`  Khớp cỡ thân hướng mới (×hệ số): ${Object.entries(rep.matchSize).map(([d, m]) => `${d} ×${m.factor.toFixed(2)}`).join(", ")}`);
   if (rep.blocks) lines.push(`  Khối hướng so với ảnh tĩnh (cao thân chung → sau hiệu chỉnh): ${Object.entries(rep.blocks).map(([d, b]) => `${d} ${b.ratioShared}→${b.ratioAfter}`).join(", ")}`);
   for (const level of ["block", "warn"]) {
     const list = rep.issues.filter((i) => i.level === level), shown = verbose ? list : list.slice(0, cap);
@@ -420,6 +446,7 @@ function parseArgs(argv) {
     else if (a === "--block-tol") o.blockTol = +next();
     else if (a === "--no-equalize-blocks") o.equalizeBlocks = false;
     else if (a === "--block-spread") o.blockSpread = +next();
+    else if (a === "--no-match-size") o.matchSize = false;
     else if (a === "--strict") o.strict = true;
     else if (a === "--verbose") o.verbose = true;
     else throw new Error(`tùy chọn lạ: ${a}`);
@@ -431,7 +458,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     const o = parseArgs(process.argv.slice(2));
     if (!o.species || !o.out || !Object.keys(o.sheets).length) {
-      console.error("Dùng: node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=<ảnh> [--sheet B=<ảnh>] --out <thư mục> [--no-normalize-size] [--frame N] [--colors 24] [--palette auto|gpl|<gpl>] [--fill 0.8 | --scale S] [--key #ff00ff] [--tol 60] [--grid auto|uniform] [--layout auto|direction] [--patch A:c,r=c,r|A:c,r=-]... [--no-anchor-blocks] [--block-tol 0.12] [--no-equalize-blocks] [--block-spread 1.3] [--strict] [--verbose]");
+      console.error("Dùng: node tools/assets/beast-sheet-cut.mjs --species <loài> --sheet A=<ảnh> [--sheet B=<ảnh>] --out <thư mục> [--no-normalize-size] [--frame N] [--colors 24] [--palette auto|gpl|<gpl>] [--fill 0.8 | --scale S] [--key #ff00ff] [--tol 60] [--grid auto|uniform] [--layout auto|direction] [--patch A:c,r=c,r|A:c,r=-]... [--no-anchor-blocks] [--block-tol 0.12] [--no-equalize-blocks] [--block-spread 1.3] [--no-match-size] [--strict] [--verbose]");
       process.exit(2);
     }
     const hashes = {};
