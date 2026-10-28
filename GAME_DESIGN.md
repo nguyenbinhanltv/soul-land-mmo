@@ -57,6 +57,7 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 5.18 | Võ Hồn Chân Thân: pháp tướng (theo dõi #482) | [docs/design/ky-nang-combat-phap-tuong.md](docs/design/ky-nang-combat-phap-tuong.md) | 10 | Võ Hồn Chân Thân |
 | 5.18 | Võ Hồn Chân Thân: pháp tướng (theo dõi #482) | [docs/art/phap-tuong.md](docs/art/phap-tuong.md) | 1 |  |
 | 5.18 | Võ Hồn Chân Thân: pháp tướng (theo dõi #482) | [docs/art/phap-tuong-cong-thuc.md](docs/art/phap-tuong-cong-thuc.md) | 1 |  |
+| 5.18 | Pháp tướng Codex: kết quả thử và đề xuất (#1160) | [docs/art/phap-tuong-codex-de-xuat.md](docs/art/phap-tuong-codex-de-xuat.md) | 1 |  |
 | 5.19 | Bảng Xếp Hạng nhiều hạng mục (thiết kế, #877) | [docs/design/xep-hang.md](docs/design/xep-hang.md) | 5 | Bảng Xếp Hạng |
 | 5.20 | Lịch Hoạt Động (thiết kế, #877) | [docs/design/lich-hoat-dong.md](docs/design/lich-hoat-dong.md) | 5 | Lịch Hoạt Động |
 | 5.21 | Phúc Lợi và điểm danh 21 ngày (thiết kế, #877) | [docs/design/phuc-loi.md](docs/design/phuc-loi.md) | 5 | Phúc Lợi và điểm danh |
