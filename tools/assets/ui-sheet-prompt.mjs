@@ -2,7 +2,7 @@
 // docs/art/ui-kit.md "Luật vẽ AI", skill ui-kit). Bài học đọc từ art/src/ui-kit/lessons.md (ui-sheet-lessons.mjs); spec (tỉ lệ, bố cục,
 // tên mảnh) từ art/src/ui-kit/ui-kit.json, nên đổi spec là prompt đổi theo.
 //   node tools/assets/ui-sheet-prompt.mjs --kind F [--material muc|giay] [--style ${STYLE_KEYS.join("|")}] [--family "<họ icon>"] [--layout 6|9] [--shape 3:2|2:3] [--out <thư mục>]
-//   thêm --style ngoc-kim|thuy-mac cho hướng tu tiên (nháp chờ duyệt); không có thì giữ hướng B hiện tại.
+//   thêm --style ngoc-kim|thuy-mac|hon-quang cho hướng thử (BOARD chờ duyệt); không có thì giữ hướng B hiện tại.
 //   node tools/assets/ui-sheet-prompt.mjs --all --out <thư mục>      (một tệp mỗi loại)
 // Không có --out thì in ra màn hình. Ghi `<loại>.md` (hướng dẫn + prompt + chú thích); không viết / sửa tay các tệp này.
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -20,6 +20,16 @@ const STYLE = "STYLE: pixel-art game interface in an isometric Ultima Online moo
 const COMMON_TX = "pixel-art game interface for a xianxia cultivation MMO (Douluo Dalu setting), sharp pixel edges, palette of at most 32 colours, one consistent dark outline (#1a1020), no blur, no large gradients. Restraint: generous empty space (liu bai), ornament only at the corners, the middle of each side and clasp points, the straight sides stay flat. Exactly one lit accent per piece or screen (spirit power); everything else recedes into dark. Rank by light, never by loud colour: stone grey, jade green, ice blue, violet with gold veins, gold with vermilion qi. At most 3 accent colours.";
 const COMMON_AVOID = "long decorative lettering, plastic gradient drop shadows, double or triple borders, oversaturated glaring colours, cartoon-style icons, copying the artwork or symbols of another game";
 export const STYLES = {
+  "hon-quang": {
+    vi: "Hồn Quang Tiên Môn (Thủy mặc làm gốc, ngọc–kim tiết chế, hồn quang và hồn hoàn Đấu La)",
+    style: `STYLE: pixel-art xianxia cultivation MMO interface in an original Douluo Dalu setting, sharp pixel edges, at most 32 colours plus consistent dark outline #1a1020, no blur or large gradients. Role assignment: ink-wash architecture, blue-black ink-stone panels, aged ivory rice paper for reading, generous liu bai empty space, flat straight edges, ornament only at corners, side midpoints and clasps. Muted antique bronze metal, buttons like jade pendants or bronze plaques, never plastic pills. Exactly ONE luminous focal area in the entire screen: a thin soul-light accent confined inside the spirit-power bar; all buttons and selected slots stay matte. At most three accent colours outside rank markers. Rank markers ONLY: five small soul rings, white, yellow, violet, black, red in that order, never coloured slot backgrounds; distinguish tiers also by progressively notched corner silhouettes. Black rings need an ivory keyline. Cinnabar blank seals indicate completion. Original simplified martial-soul reliefs only at corners, faint auspicious clouds away from content. A signboard-like empty title plate, no calligraphic glyphs. Future motion: mist dissolve 200–300 ms, slow ring rotation on hover, respect reduced motion; this board is static.`,
+    avoid: `AVOID: ${COMMON_AVOID}, rainbow panel fills, glowing rarity rings, multiple luminous focal areas, copied franchise emblems, readable stamp glyphs.`,
+    material: {
+      muc: { en: "INK material: blue-black ink-stone, matte antique bronze rim, flat uniform interior", vi: "Mực (đá mực lam đen, đồng cổ mờ)" },
+      giay: { en: "PAPER material: aged ivory rice paper, restrained rough outer edge, matte antique bronze corners, blank cinnabar seal", vi: "Giấy (giấy dó ngà, góc đồng cổ, dấu chu sa trống)" },
+    },
+    board: { ink: "blue-black ink-stone with matte antique bronze corners", paper: "aged ivory rice paper with matte antique bronze corners and a blank cinnabar seal", rim: "matte antique bronze rim" },
+  },
   "ngoc-kim": {
     vi: "Ngọc – Kim (tiên môn hoàng gia: tím than + lưu ly, vàng đồng chạm vân, nút ngọc bích)",
     style: `STYLE: ${COMMON_TX} Palette: deep indigo-navy and glazed liuli base, aged antique bronze-gold metal (never glaring yellow), jade-green and ice-blue gems, vermilion seal-red only for stamps, warnings and top rank. Materials: dark liuli glass with faint veins; frames of aged bronze-gold with cloud and dragon-scroll relief at corners only; buttons as jade pendants or gold plaques, never flat plastic pills; paper is aged ivory rice paper with torn edges and a vermilion seal. A thin faint qi wisp may trace the rim.`,
@@ -124,6 +134,16 @@ function piecesBlock(kind, layout, material) {
 export function buildPrompt(kind, o = {}) {
   const shape = o.shape ?? (kind.board ? "3:2" : kind.shapes[0]), [aspect] = ASPECT[shape], mat = materialOf(o), bd = o.style ? STYLES[o.style].board : { ink: "near-black wood, ink-wash grain, pale bronze rim", paper: "ivory rice paper, thin vermilion rim, wooden roller", rim: "bronze rim" }, lessons = lessonsBlock(kind.id, o.style ? lessonsFor(kind.id).filter((l) => !OLD_MATERIAL.test(l.text)) : undefined);
   if (kind.board) {
+    if (o.style === "hon-quang") {
+      // BOARD v3 có bố cục và nền riêng; không kéo bài học tờ cắt / BOARD cũ vào.
+      const boardLessons = lessonsBlock(kind.id, lessonsFor(kind.id).filter((l) => !OLD_MATERIAL.test(l.text) && !/magenta|attached approved reference|two panels|podium hierarchy|hinted village/.test(l.text)));
+      return `One illustration, ${aspect}: BOARD v3, a single approval screen and style reference, not a sheet to cut.
+LAYOUT: one aligned 4-pixel logical grid, equal gutters, no overlaps. Left fifth: one HUD stats frame with three bars and exactly six menu buttons in two columns of three. Upper middle: one INK interaction panel with a regular 3 by 2 grid of empty item slots. Upper right: one INK ranking sample screen with an empty title plate, three empty category tabs, exactly five equal-height leaderboard rows; each row has a small blank rank medallion, a blank name bar and a blank score bar, plus a personal-rank footer. Lower middle: one PAPER reading dialog with three blank text bars and two matte buttons. Lower right: one item-slot comparison strip, exactly five identical neutral gem item slots, each showing one small soul ring at its upper-right corner: white, yellow, violet, black with ivory keyline, red, left to right; same item and size, progressively notched corners: slot one has plain square corners, slot two one broad cut corner, slot three two broad cut corners, slot four three broad cut corners, slot five four broad cut corners; make these silhouettes visibly distinct in grayscale while keeping the same outer cell size. Each of these five comparison slots MUST contain a clearly visible identical opaque silver diamond gem centered in the slot, not an empty slot; ring colours must not tint the gem. Bottom: exactly eight equal square hotbar slots in one straight row, all within the screen margin.
+INK: ${bd.ink}. PAPER: ${bd.paper}. Shared corner geometry, border thickness and ${bd.rim}; interiors flat and uniform. Decoration only at corners and side midpoints; straight stretchable sides have one or two flat colours.
+ABSOLUTELY no text, numbers, letters, logos or readable glyphs; all titles, names, ranks, scores and button labels are empty bars. Rings and original geometric reliefs are pictorial marks only.
+${styleBlock(o.style)}
+Background: flat dark ink navy, no detailed village or scenery. Keep a generous empty margin around all UI, consistent pixel grid, light and line weight everywhere.${boardLessons}`;
+    }
     return `One illustration, ${aspect}: a sample game screen for a pixel-art xianxia MMO user interface, drawn as an approval image and style reference.
 Show: (1) a left HUD column with a stats frame and six menu buttons; (2) a "character" panel and a "bag" panel side by side, INK material (${bd.ink}); (3) one PAPER material dialog box (${bd.paper}) at the lower middle; (4) one vermilion primary button and one dark secondary button; (5) a row of skill slots along the bottom edge.
 ABSOLUTELY no text, numbers, letters, logos or symbols anywhere; where a label would go draw an empty bar or a flat block of colour.
@@ -161,7 +181,7 @@ Quy trình: skill \`ui-kit\` (\`.claude/skills/ui-kit/SKILL.md\`), luật vẽ \
 | Bố cục | ${layout ? `${layout.length} hàng: ${layout.join(" + ")} = ${total} mảnh, đọc trái → phải, trên → dưới` : "một ảnh, **không cắt** (chỉ để duyệt và làm tham chiếu)"} |
 | Chất liệu | ${kind.board ? "Mực + Giấy" : MATERIAL_KINDS.includes(kind.id) ? mat.vi : "–"} |
 | Hướng | ${o.style ? `**${o.style}**: ${STYLES[o.style].vi} (**nháp chờ duyệt**, docs/art/ui-kit.md mục "Hướng nghệ thuật tu tiên")` : "mặc định (hướng B hiện tại)"} |
-| Nền | #FF00FF phẳng, không chữ, không bóng |
+| Nền | ${kind.board && o.style === "hon-quang" ? "mực lam đen phẳng (BOARD mẫu màn, không cắt)" : "#FF00FF phẳng, không chữ, không bóng"} |
 
 ## Cách làm
 1. Mở cuộc trò chuyện **mới** cho mỗi tờ; đính ảnh tham chiếu **theo đúng thứ tự**:

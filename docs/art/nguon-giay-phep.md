@@ -34,4 +34,6 @@ Nguồn theo họ asset ở bảng dưới; thao tác từng công cụ ở skil
 - Gigapack và Forest (kho riêng) **cấm đưa vào AI**: không dùng làm ảnh tham chiếu, không đưa vào PixelLab / model.
 
 ## Issue liên quan
+BOARD v3 Hồn Quang Tiên Môn (#1260, Part of #877): Codex / OpenAI `image_gen`, ảnh tự sinh không dùng ảnh ngoài; nguồn, điều khoản đầu ra và prompt đầy đủ ở `art/CREDITS.md`, candidate tại `art/src/ui-kit/candidates/hon-quang-v3/`. Chưa nhập vào game, chưa thay BOARD đã duyệt.
+
 #477 (hoạt ảnh hồn sư), #482 / #541 (pháp tướng, sheet hiệu ứng), #564 (hồn sư = LPC), #627 (kho asset riêng).

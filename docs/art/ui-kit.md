@@ -235,6 +235,25 @@ Hai hướng thử (chủ repo chọn sau khi xem BOARD của từng hướng):
 
 Công cụ: `npm run ui:prompt -- --kind <loại> --style ngoc-kim|thuy-mac ...` thay khối STYLE bằng khối của hướng (bảng màu, chất liệu, lưu bạch, một điểm sáng) và thêm khối `AVOID`; áp cho mọi loại tờ (BOARD, F, N, O, T, I, D). Không có `--style` thì giữ nguyên hành vi cũ (hướng B). Nội dung hai khối nằm ở `STYLES` trong `tools/assets/ui-sheet-prompt.mjs`. Bước kế (sau khi duyệt): Codex sinh BOARD cho từng hướng (3 lượt mỗi hướng), chủ repo chọn, rồi mới làm lại kit F / N / O / T và áp dụng cho màn đầu.
 
+### Hồn Quang Tiên Môn — BOARD v3 (thử hướng lai, #1260)
+
+Chủ repo yêu cầu kết hợp tu tiên và Đấu La (29/10/2026). `--style hon-quang` là hướng thử riêng; BOARD chờ chủ repo chọn trước khi làm lại kit. Hướng B mặc định và kit đang chạy giữ nguyên.
+
+| Lớp | Phân vai |
+|---|---|
+| Khung, nền, bố cục, chữ | Thủy mặc làm gốc: mực lam đen, giấy dó cho phần đọc, lưu bạch, cạnh phẳng; tiêu đề dạng bảng hiệu nhưng ảnh để trống, chữ do Galmuri vẽ |
+| Kim loại, nút chốt | Ngọc–Kim tiết chế: đồng cổ mờ, ngọc bội / kim bài |
+| Điểm sáng | Đấu La: một vùng hồn quang duy nhất mỗi màn; BOARD đặt ở thanh hồn lực, nút và ô chọn không phát sáng |
+| Phân hạng | Hồn hoàn trắng → vàng → tím → đen → đỏ (niên hạn theo `TIERS`); chỉ là vòng nhỏ góc ô / thẻ, không tô nền; kèm góc khuyết tăng dần để đọc ở thang xám, vòng đen có nét ngà |
+| Dấu ấn, chủ đề | Chu sa cho hoàn tất / đã diệt; ấn võ hồn tự vẽ ở góc, tường vân mờ tránh nội dung; dấu trong ảnh không chứa ký tự |
+| Chuyển động dự kiến | Tan sương 200–300 ms, hồn hoàn xoay chậm khi hover, tôn trọng giảm chuyển động |
+
+Tối đa ba màu nhấn ngoài dấu hạng; năm màu hồn hoàn chỉ nằm tại nơi có hạng. Không dùng thang xám–ngọc–lam–tím–vàng của hai hướng thử trước cho preset này. Không sao chép biểu tượng / hình tác phẩm gốc. Giữ 2×, 9-slice, token `ui2`, Galmuri 10 / 12 / 24, vùng bấm 32 / 44 px.
+
+Sinh bằng `npm run ui:prompt -- --kind BOARD --style hon-quang --out <thư mục ngoài repo>`; cờ áp dụng cho đủ BOARD / F / N / O / T / I / D. BOARD v3 dùng lưới logic 4 px: HUD sáu nút; bảng Mực 3×2 ô; Xếp Hạng ba tab, năm hàng và hạng bản thân; hộp Giấy; hotbar tám ô; một mẫu ô vật phẩm lặp năm lần để so đủ năm hạng hồn hoàn. Không chữ / số; tiêu đề và dữ liệu là thanh trống.
+
+Tối đa ba lượt, mỗi lượt sửa một ý trong công cụ rồi sinh lại prompt, không dùng ảnh lỗi làm tham chiếu. `ui:check --kind BOARD` chỉ kiểm cỡ / tỉ lệ; lưới, số ô, cạnh phẳng, một hồn quang, chất liệu, chữ lạc và tính nhất quán phải tự duyệt bằng mắt. Lưu ảnh gốc cùng prompt vào `art/src/ui-kit/candidates/`, ghi nguồn ở `art/CREDITS.md`; không cắt / nhập hoặc thay BOARD đã duyệt. Chủ repo chọn BOARD trước khi tiếp tục F/N/O/T.
+
 ## Lớp token ui2 (P5, #883)
 
 Cờ `ui2` chạy song song giao diện cũ, **tắt mặc định**; tắt thì không đổi gì (không đặt biến, không thêm lớp). `?ui=2` bật và lưu localStorage (`shh-ui2`), `?ui=0` tắt. Bật thì `body.ui2`. Gỡ ở P8.
