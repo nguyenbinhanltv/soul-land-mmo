@@ -1,24 +1,53 @@
-# Lôi Văn Hầu — RAW H4 #769
+# Lôi Văn Hầu — RAW hoạt ảnh
 
-Part of #769, Part of #766. Hiện 2/10 tờ của batch: A1 (fresh session93) và B1 (fresh session95), mỗi tờ đúng một builtin call. Nộp cặp RAW kể cả FAIL, issue tiếp tục Đang làm; submitted không phải accepted/merged/imported.
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species loi_van_hau`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
 
-Sinh ngày 2026-10-26 bằng builtin `image_gen.imagegen` trong fresh session 93, đúng một call, không retry. Model ID và seed không được công cụ cung cấp; không lấy tên agent làm model ảnh. Ảnh yêu cầu và IHDR thực tế đều 1024×1536. RAW giữ nguyên byte công cụ, bản repo và artifact cùng SHA-256; không hậu kỳ, cắt, resize hoặc sửa metadata. Chi tiết byte/hash/input/output/time window: `toA.source.json`; prompt thực: `toA.prompt.txt`; prompt script A/B được giữ nguyên trong hai file `.md` cùng thư mục.
+Loài `loi_van_hau` (Lôi Văn Hầu), họ `quad`, khung game 96×96. Mức kiểm chung: **nhẹ**.
 
-Reference duy nhất là ảnh tĩnh gốc đúng loài `shared/assets/sprites/beast/loi_van_hau.png`, đã xem trước khi gọi. Template script là quad / trot bốn chân nhưng static là vượn tay dài; giữ nguyên cả hai đầu vào, không tự chốt anatomy hay thiết kế lại. B1 đính kèm static gốc trước rồi A1 sau, chỉ dùng A1 làm style/cỡ thân; không lấy hurt/death sai làm mẫu. A1 là style-only candidate còn lỗi, chưa được owner duyệt mỹ thuật.
+## turnaround
 
-LỖI: toA — hướng chết / xoay đầu / hurt / style — H4,H8,H12 C3–4; H1,H5,H9 C5–6; s/se/e — chết quay ngang, hurt ngửa hoặc nghiêng đầu và giật lùi chưa rõ; nét/tỉ lệ đơn giản hóa so với static.
+- File: `turnaround.png`, **1536×1024**, 1690048 byte, SHA256 `bfdac8087eaa8d7e6d3677e3bf2c3d274c643ef60b8b0da770a7f57978d1ffa2`.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-745.
+- Prompt: `turnaround.prompt.txt` (SHA256 `4b123fcc53d872e928f5314a467febdd48e2ccc89be7bb997f4d4054d3e0d4a6`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
-Quan sát toàn tờ cho thấy bố cục giống 6×12, nền hồng và sáu ô cuối của các hàng chết để trống. 66 khung có hình và 6 ô trống là yêu cầu prompt, chưa kiểm đếm ngữ nghĩa từng khung; không suy từ pixel occupancy. SE có mặt chéo trước nhưng hướng trong hurt/die chưa ổn định. Không khẳng định nền mọi pixel đúng FF00FF, hướng/khung/anatomy/loop đạt. Không thấy chữ hay đường lưới ở mức xem toàn tờ. Chủ repo chốt mỹ thuật sau; technical review chỉ xác nhận file và provenance.
+## toA
 
-Nguồn/giấy phép: ảnh sinh bằng công cụ ChatGPT/Codex theo Q44 và chính sách repo (`docs/art/nguon-giay-phep.md`); không phải asset ngoài CC0, không tự gán giấy phép CC cho output AI. Reference là ảnh dự án hiện có, giữ ghi nguồn gốc trong `art/CREDITS.md`. Chưa nhập game; không sửa runtime, static, manifest, client, server hoặc cân bằng.
+- File: `toA.png`, **1024×1536**, 2179981 byte, SHA256 `c4501b0bbfed0c05c27217b307ed6e6534a7d302482754c95a4951850ac53260`.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-745.
+- Prompt: `toA.prompt.txt` (SHA256 `18ea10efd0becf6ab840f6da5035f0dda85f22ae9f32443e10e5c06fc266fd21`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se pass, e nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H9–12 (e): cỡ thân idle 86% so với ảnh tĩnh (lệch 14%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
 
-## Tờ B — bàn giao từ session95
+## toB
 
-B1 yêu cầu 1024×1024, IHDR thực tế **1254×1254**, 1.991.633 byte, SHA-256 `d5dc0a2796b9853423107b905ce9c69bad626d5dbbdb8f6083f3abe3711774ad`. Một call duy nhất, không B2/retry; original tool output, artifact95 và `toB.png` đã so khớp byte/hash. Không sửa ảnh hay chuẩn hóa kích thước. Model ảnh/seed unknown do tool không cung cấp. Exact prompt `toB.prompt.txt` giữ nguyên base tiếng Anh rồi nối câu match/same body và clarification; hash/refroles/thời gian/counters/tool truth cùng nguồn upstream ở `toB.source.json`.
+- File: `toB.png`, **1254×1254**, 1991633 byte, SHA256 `d5dc0a2796b9853423107b905ce9c69bad626d5dbbdb8f6083f3abe3711774ad`.
+- Công cụ: builtin image_gen__imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: soul_land_game-745.
+- Prompt: `toB.prompt.txt` (SHA256 `e30d4fea079350f8829ad0d14ba37a4d3e4a9ef2009bd0f8370fdbea78c570ef`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: ne nhẹ, n nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H5–8 (n): cỡ thân idle 117% so với ảnh tĩnh (lệch 17%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
 
-LỖI: toB — sai kích thước, nền không phẳng FF00FF, hướng/pose và tràn ô trống — H1–4 NE; H5/H7/H8 N; H8 C5 — RAW 1254×1254; NE nhiều khung nghiêng ngang E/lộ mặt, N hurt H5 C5 ngửa mặt, attack H7 C1–2 lệch NE, die H8 C2–4 quay ngang/lộ mặt; H8 C5 có 139 pixel thân theo ngưỡng chẩn đoán.
+## to-n
 
-Bố cục nhìn khoảng 6×8; 44 occupied/4 blank là yêu cầu, không phải số frame hợp lệ đã chứng nhận. Số ô theo pixel trong provenance95 chỉ là chẩn đoán, không được diễn giải thành số sinh vật/frame. 139 pixel tại H8 C5 là theo ngưỡng R<160 hoặc B<140 hoặc G>90 của session95; không phải phép phân đoạn ngữ nghĩa. Bốn góc nền trong nguồn có RGB khác FF00FF. Quan sát thấy NE lộ mặt/gần ngang E, N hurt ngửa mặt, attack/death lệch hướng; hurt NE chưa giật lùi rõ. Cỡ thân so với A và loop chưa được chứng nhận. Static/template vẫn có mâu thuẫn quad/vượn như đã ghi; không suy rằng owner chốt anatomy. Chỉ nhận RAW/provenance kỹ thuật; chủ repo quyết định mỹ thuật/nhập game sau.
+- File: `to-n.png`, **1536×1024**, 1873295 byte, SHA256 `fb9ee6742c413339e8278a673ee5bbbd91ef836a48829d66be62eaf4946a8cbe`.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-745.
+- Prompt: `to-n.prompt.txt` (SHA256 `5b3836c47ce4f3f4b55da6f310ffd3a038914a2a8f2f0c58f38a1f465df83d32`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 215% so với ảnh tĩnh (lệch 115%, quá 25%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+## Lỗi
+
+```text
+LỖI: toB — chân lệch / hình ở ô trống — H4 (ne) C1, H8 (n) C5 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 13%); ô trống có hình (0.46% diện tích ô): hình tràn từ ô bên.
+```
 
 ## Ghi công
 
