@@ -49,3 +49,28 @@ Prompt thực gửi và source JSON nằm cạnh mỗi RAW. Không có file ản
 | `art/src/phuthe-anim/hao_thien_chuy/candidates/turnaround-attempt{1,2,3}.png` | - | builtin `image_gen.imagegen` (ChatGPT / Codex, Q44) | Thử phụ thể trực tiếp không nộm; prompt tự sinh, SHA256 và source JSON kèm từng lượt. | 2026-10-27 | Chưa đạt, không nhập game; model/seed unknown. |
 
 Bài học thử: bỏ nộm đã tránh việc model vẽ lại thân người, nhưng chưa bảo đảm khoảng hàng, phân biệt se/e hoặc giữ hướng hurt. Không khái quát kết quả thành đạt hoạt ảnh cho vật cứng.
+
+
+---
+
+# Hạo Thiên Chùy — phụ thể hoạt ảnh lô 7
+
+Part of #1025. Sinh bằng builtin image_gen.imagegen, model/seed unknown, RAW nguyên byte. Prompt nguyên văn phuthe-sheet-prompt.mjs --concept-ref; source.json từng lượt có SHA256 ảnh/prompt/tham chiếu theo thứ tự. Concept đã duyệt: art/src/vohon-v2/hao_thien_chuy/concept-attempt2.png. Màu khóa: cyan mặc định của công cụ.
+
+| Tờ / hướng | Số lượt | Kết quả |
+|---|---|---|
+| A / s | 1 | 0 chặn |
+| B / se | 1 | 0 chặn |
+| C / e | 2 | lượt 2: 0 chặn; lượt 1 thừa hình H1, lưu candidates |
+| D / ne | 1 | 0 chặn |
+| E / n | 1 | 0 chặn |
+
+Cutter: 65 khung, 0 block / 54 warn. Nhập mọi hướng 0 chặn kỹ thuật theo chỉ định chủ repo. Neo tự động, worker khác chỉnh sau.
+
+Soát mắt: đầu chùy lớn; thân nhỏ/dời so với bảng, tay cầm có pha chưa bám; vung/đập và cast sát hoặc xén mép. Một số mảnh đá rời, góc se/ne/n chưa khác rõ ở toàn bộ clip. Đã soát tờ liên hệ và khung ráp LPC, chưa chứng nhận căn đẹp. Preview nam/nữ đủ clip trong artifact phiên 722.
+
+## Ghi công
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| to{A..E}.png; candidates/toC-attempt1.png | vhanim_hao_thien_chuy_b / vhanim_hao_thien_chuy_f | builtin image_gen.imagegen (Codex, Q44) | Prompt phuthe-sheet-prompt --concept-ref, prompt/source cùng tên | 2026-10-28 | 6 lượt; RAW nguyên byte; model/seed unknown |
