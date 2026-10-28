@@ -14,11 +14,11 @@ Part of #1025 · lô 5 · worker soul_land_game-716.
 |---|---|---:|---:|---|
 | A / s | 1 / 1 | 0 | 50 | Được phép theo 0 chặn kỹ thuật |
 | B / se | 1 / 1 | 0 | 52 | Được phép theo 0 chặn kỹ thuật |
-| C / e | 3 / 3 | 1 | 33 | Không — giữ ảnh cũ |
+| C / e | 4 / 4 (thêm 1/3 lượt) | 0 | 44 | Đã nhập bổ sung |
 | D / ne | 3 / 3 | 0 | 50 | Được phép theo 0 chặn kỹ thuật |
-| E / n | 3 / 1 | 1 | 0 | Không — giữ ảnh cũ |
+| E / n | 5 / 5 (thêm 2/3 lượt) | 0 | 41 | Đã nhập bổ sung |
 
-Đã nhập A/B/D (s, se, ne), 66 khung bằng cutter --partial → anchor → phuthe-import; C/E (e, n) dùng phụ thể tĩnh cũ. Cutter: 0 block, 124 warn; giữ các hạn chế soát mắt bên dưới.
+Đã bổ sung C/e (và w lật ngang), E/n, đủ 110 khung A–E. Cutter: 0 block, 204 warn. Neo tự tính bằng phuthe-anchor; importer giữ mục manual hiện có, không chỉnh tay sau nhập.
 
 ## Soát mắt và neo
 
@@ -37,13 +37,19 @@ Preview: C:/Users/PC/.ao/data/artifacts/soul_land_game-716/hoa_anh/preview/index
 <!-- phuthe-import:huong -->
 ### Hướng đã nhập (tự ghi bởi `phuthe-import.mjs`, `anim.dirsOk` trong manifest)
 
-Nhập từng hướng: s, se, ne.
+Đủ 5 hướng.
 
 | Hướng | Trạng thái |
 |---|---|
 | s (tờ A) | đã nhập hoạt ảnh vẽ thật |
 | se (tờ B) | đã nhập hoạt ảnh vẽ thật |
-| e (tờ C) | CHƯA nhập: client dùng phụ thể tĩnh cũ |
+| e (tờ C) | đã nhập hoạt ảnh vẽ thật |
 | ne (tờ D) | đã nhập hoạt ảnh vẽ thật |
-| n (tờ E) | CHƯA nhập: client dùng phụ thể tĩnh cũ |
+| n (tờ E) | đã nhập hoạt ảnh vẽ thật |
 <!-- /phuthe-import:huong -->
+
+## Bổ sung phiên 738
+
+Chủ repo cho thêm tối đa ba lượt mỗi tờ ngoài ba lượt cũ. C4: 0 chặn / 44 nhẹ, nhập. E4: 1 chặn / 0 nhẹ (hinh-dinh hàng attack chỉ 5/6 hình), lưu candidates/toE-attempt4.*. E5: 0 chặn / 41 nhẹ, nhập. Dừng sinh ngay khi đạt. Prompt nguyên văn --concept-ref, bảng tư thế C/E + concept-attempt2 theo thứ tự.
+
+LỖI mắt: C vẫn gần ba phần tư, E lộ mặt/chính diện thay vì quay lưng; hư ảnh lớn và thân chuẩn nhỏ/dời xuống, vài pose bị xén. Chủ repo cho nhập mọi hướng 0 chặn kỹ thuật, chỉnh sau; không chỉnh neo tay. Bài học cú đấm dính đã gộp dòng chung trong lessons.md.

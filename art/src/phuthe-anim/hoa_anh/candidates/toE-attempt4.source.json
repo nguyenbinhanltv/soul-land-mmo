@@ -1,0 +1,45 @@
+{
+  "tool": "image_gen",
+  "model": "unknown",
+  "seed": "unknown",
+  "createdAt": "2026-10-28T04:17:01.734Z",
+  "attempt": 4,
+  "additionalAttempt": 1,
+  "image": {
+    "path": "toE.png",
+    "sha256": "1cca2dfaa7b405c6aed17d4eff038cbe7cf0e155236a8e1b4be259e66b99cf90"
+  },
+  "prompt": {
+    "path": "toE.prompt.txt",
+    "sha256": "aa59fb657d4b66037d507e16a89a6cb5d8fd656854e1d39dbb519a1ad8337209"
+  },
+  "references": [
+    {
+      "path": "art/src/phuthe-anim/hoa_anh/references/hoa_anh-nom-toE.png",
+      "sha256": "f8fada0c60d35b1bc5e102f9a91f982d1bd464fea197b2de43abfcf6e9fa493e"
+    },
+    {
+      "path": "art/src/vohon-v2/hoa_anh/concept-attempt2.png",
+      "sha256": "827431d0d8fb7d4500f694c617bd573dbc2e36ba82dcce69705ca8c90beb8308"
+    }
+  ],
+  "check": {
+    "level": "chặn",
+    "block": 1,
+    "light": 0,
+    "issues": [
+      {
+        "sev": "note",
+        "code": "nen",
+        "where": "toàn tờ",
+        "msg": "nền dốc nhẹ (bốn góc lệch 34), trong dung sai 60; không phải lỗi."
+      },
+      {
+        "sev": "block",
+        "code": "hinh-dinh",
+        "where": "H3 (n)",
+        "msg": "dải có 5 hình, cần 6: hình dính nhau."
+      }
+    ]
+  }
+}

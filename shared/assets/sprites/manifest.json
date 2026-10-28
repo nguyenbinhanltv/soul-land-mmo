@@ -11507,6 +11507,72 @@
       "iso": true
     },
     {
+      "key": "vhanim_bach_ho_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_bach_ho_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
       "key": "vh_bang_phuong_hoang_b",
       "iso": true
     },
@@ -11923,12 +11989,7 @@
             "col": 20,
             "n": 2
           }
-        },
-        "dirsOk": [
-          "s",
-          "se",
-          "ne"
-        ]
+        }
       }
     },
     {
@@ -11961,12 +12022,7 @@
             "col": 20,
             "n": 2
           }
-        },
-        "dirsOk": [
-          "s",
-          "se",
-          "ne"
-        ]
+        }
       }
     },
     {
@@ -12156,13 +12212,7 @@
             "col": 20,
             "n": 2
           }
-        },
-        "dirsOk": [
-          "s",
-          "se",
-          "e",
-          "ne"
-        ]
+        }
       }
     },
     {
@@ -12195,13 +12245,7 @@
             "col": 20,
             "n": 2
           }
-        },
-        "dirsOk": [
-          "s",
-          "se",
-          "e",
-          "ne"
-        ]
+        }
       }
     },
     {
@@ -12295,6 +12339,72 @@
       "iso": true
     },
     {
+      "key": "vhanim_liet_hoa_thuong_lang_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_liet_hoa_thuong_lang_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
       "key": "vh_nguyet_nhan_b",
       "iso": true
     },
@@ -12332,13 +12442,7 @@
             "col": 12,
             "n": 1
           }
-        },
-        "dirsOk": [
-          "s",
-          "se",
-          "ne",
-          "n"
-        ]
+        }
       }
     },
     {
@@ -12371,13 +12475,7 @@
             "col": 12,
             "n": 1
           }
-        },
-        "dirsOk": [
-          "s",
-          "se",
-          "ne",
-          "n"
-        ]
+        }
       }
     },
     {
@@ -12501,13 +12599,7 @@
             "col": 20,
             "n": 2
           }
-        },
-        "dirsOk": [
-          "s",
-          "se",
-          "ne",
-          "n"
-        ]
+        }
       }
     },
     {
@@ -12540,13 +12632,7 @@
             "col": 20,
             "n": 2
           }
-        },
-        "dirsOk": [
-          "s",
-          "se",
-          "ne",
-          "n"
-        ]
+        }
       }
     },
     {
@@ -12927,6 +13013,72 @@
     {
       "key": "vh_yeu_ho_f",
       "iso": true
+    },
+    {
+      "key": "vhanim_yeu_ho_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_yeu_ho_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
     },
     {
       "key": "fx_sk_bh_t3",

@@ -1,5 +1,14 @@
 # Bạch Hổ — phụ thể hoạt ảnh lô 2 (Part of #1025)
 
+## Trạng thái hiện hành: đã nhập năm hướng (2026-10-28)
+
+Chủ repo cho phép nhập mọi hướng cutter 0 block và chỉ khai lỗi mắt. Đã kiểm riêng A–E bằng --partial --strict (mỗi hướng 22 khung, 0 block), rồi cắt bộ tổng 110 khung: **0 block / 88 warn**. Đã nhập s, se, e, ne, n; không còn hướng dùng fallback. Dùng A1/B4/C1/D1/E1. B1 cũ làm bộ tổng còn 7484 điểm gần màu khóa (1 block); bộ bỏ B đạt 0 block và đã nhập bốn hướng trước. B4 là lượt bổ sung 1/3 ngoài ba lượt cũ, dùng prompt công cụ nguyên văn với hai tham chiếu bảng B và concept1. B4 cho bộ tổng 0 block; còn vẽ nguyên hổ sau thân tham chiếu, thân nhỏ/dời, vệt khí trắng, điểm gắn lệch; góc ne/n chưa chuẩn. Các lỗi mắt chỉ khai ở đây, chủ repo chỉnh sau.
+
+Neo chỉ do phuthe-anchor.mjs tính và phuthe-import.mjs ghi; không chỉnh tay. Không sửa RAW/prompt/source lịch sử. Các kết luận chưa nhập bên dưới là hồ sơ trước lần nhập này, không còn là trạng thái hiện hành.
+
+## Hồ sơ lịch sử PR #1199 (trước nhập)
+
+
 Ngày 2026-10-28. Hoàn tất bước 1–6 trong trần lượt; **không nhập game**: A1/C1/D1/E1 không chặn tự động, nhưng B đã dùng đủ 3 lượt vẫn sai nộm bằng mắt (B1 chính diện thay bảng ngang, B2 nguyên hổ, B3 còn chặn kỹ thuật). Giữ nhánh phụ thể cũ; B1 chỉ cắt chẩn đoán. Còn nét khí trắng và điểm gắn cần chủ repo chỉnh ráp.
 
 ## Quy trình và nguồn
@@ -79,3 +88,17 @@ Bài học đã được diễn đạt lại sau kiểm thử để không lọt
 ### Bài học riêng loài (chỉ hồ sơ)
 
 Bạch Hổ: tai, vuốt theo tay và một đuôi vằn; không vẽ nguyên đầu/thân/chân hổ sau nộm. Chi tiết này chỉ lưu tại hồ sơ và prompt lịch sử, không chèn vào bài học chung nhóm B. Theo AO review #1199, các bài học lô 2 trong lessons.md đã gộp thành ba câu chung để không ép số chi thể của loài này lên loài khác; không sửa RAW/prompt/source cũ và không sinh thêm lượt.
+
+<!-- phuthe-import:huong -->
+### Hướng đã nhập (tự ghi bởi `phuthe-import.mjs`, `anim.dirsOk` trong manifest)
+
+Đủ 5 hướng.
+
+| Hướng | Trạng thái |
+|---|---|
+| s (tờ A) | đã nhập hoạt ảnh vẽ thật |
+| se (tờ B) | đã nhập hoạt ảnh vẽ thật |
+| e (tờ C) | đã nhập hoạt ảnh vẽ thật |
+| ne (tờ D) | đã nhập hoạt ảnh vẽ thật |
+| n (tờ E) | đã nhập hoạt ảnh vẽ thật |
+<!-- /phuthe-import:huong -->

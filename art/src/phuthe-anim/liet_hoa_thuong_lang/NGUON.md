@@ -1,5 +1,14 @@
 # Liệt Hỏa Thương Lang — phụ thể hoạt ảnh lô 2 (Part of #1025)
 
+## Trạng thái hiện hành: đã nhập năm hướng (2026-10-28)
+
+Chủ repo cho phép nhập mọi hướng cutter 0 block và chỉ khai lỗi mắt. Đã kiểm riêng A–E bằng --partial --strict (mỗi hướng 22 khung, 0 block), rồi cắt bộ tổng 110 khung: **0 block / 63 warn**. Đã nhập s, se, e, ne, n; không còn hướng dùng fallback. Dùng A2/B2/C3/D1/E3; C3 và D1 lấy nguyên byte từ candidates. Kiểm RAW lịch sử C3 có 22 và D1 có 3 chặn nom-mat; cutter từng hướng và bộ tổng đều 0 block. Giữ khai báo thân/điểm gắn lệch và góc ne/n, nhập theo tiêu chí cutter được chủ repo cho phép.
+
+Neo chỉ do phuthe-anchor.mjs tính và phuthe-import.mjs ghi; không chỉnh tay. Không sửa RAW/prompt/source lịch sử. Các kết luận chưa nhập bên dưới là hồ sơ trước lần nhập này, không còn là trạng thái hiện hành.
+
+## Hồ sơ lịch sử PR #1199 (trước nhập)
+
+
 Ngày 2026-10-28. Hoàn tất bước 1–6 trong trần lượt; **không nhập game**: A2/B2/E3 không chặn tự động, C3 còn 22 chặn nom-mat và D1 còn 3 chặn nom-mat. C/D đã dùng đủ 3 lượt. Giữ nhánh phụ thể cũ; các tờ C/D chỉ cắt chẩn đoán, không chứng nhận điểm gắn hay đúng pose.
 
 ## Quy trình và nguồn
@@ -91,3 +100,17 @@ Bài học đã được diễn đạt lại sau kiểm thử để không lọt
 ### Bài học riêng loài (chỉ hồ sơ)
 
 Liệt Hỏa Thương Lang: tai, vuốt theo tay và một đuôi chóp lửa; không vẽ nguyên đầu/thân/chân sói sau nộm. Chi tiết này chỉ lưu tại hồ sơ và prompt lịch sử, không chèn vào bài học chung nhóm B. Theo AO review #1199, các bài học lô 2 trong lessons.md đã gộp thành ba câu chung để không ép số chi thể của loài này lên loài khác; không sửa RAW/prompt/source cũ và không sinh thêm lượt.
+
+<!-- phuthe-import:huong -->
+### Hướng đã nhập (tự ghi bởi `phuthe-import.mjs`, `anim.dirsOk` trong manifest)
+
+Đủ 5 hướng.
+
+| Hướng | Trạng thái |
+|---|---|
+| s (tờ A) | đã nhập hoạt ảnh vẽ thật |
+| se (tờ B) | đã nhập hoạt ảnh vẽ thật |
+| e (tờ C) | đã nhập hoạt ảnh vẽ thật |
+| ne (tờ D) | đã nhập hoạt ảnh vẽ thật |
+| n (tờ E) | đã nhập hoạt ảnh vẽ thật |
+<!-- /phuthe-import:huong -->
