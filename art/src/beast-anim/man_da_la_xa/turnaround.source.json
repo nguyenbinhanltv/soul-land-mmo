@@ -1,0 +1,9 @@
+{
+    "attempts":  1,
+    "references":  [
+                       "shared/assets/sprites/beast/man_da_la_xa.png"
+                   ],
+    "model":  "unknown",
+    "tool":  "builtin image_gen.imagegen",
+    "seed":  "unknown"
+}
