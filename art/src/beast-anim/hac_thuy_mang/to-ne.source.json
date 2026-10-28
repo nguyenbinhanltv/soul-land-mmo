@@ -1,0 +1,11 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 1,
+  "agent": "soul_land_game-766",
+  "references": [
+    "shared/assets/sprites/beast/hac_thuy_mang.png",
+    "art/src/beast-anim/hac_thuy_mang/turnaround.png"
+  ]
+}

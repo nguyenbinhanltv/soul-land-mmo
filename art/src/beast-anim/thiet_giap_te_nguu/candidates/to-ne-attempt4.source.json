@@ -1,0 +1,11 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 4,
+  "agent": "soul_land_game-766",
+  "references": [
+    "shared/assets/sprites/beast/thiet_giap_te_nguu.png",
+    "art/src/beast-anim/thiet_giap_te_nguu/turnaround.png"
+  ]
+}

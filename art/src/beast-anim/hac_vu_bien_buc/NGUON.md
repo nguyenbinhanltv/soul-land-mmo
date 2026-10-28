@@ -7,8 +7,8 @@ Loài `hac_vu_bien_buc` (Hắc Vụ Biên Bức), họ `bird`, khung game 96×96
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1542655 byte, SHA256 `8d4591b69c053ca804db9783417269e27583d83123d5ef4e3dc90460b8a9a53a`.
-- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
-- Prompt: `turnaround.prompt.txt` (SHA256 `d05417a7bb98ab427445b95440cd268e3a79b95c77ac394806f8044c2e461481`).
+- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo.
+- Prompt: `turnaround.prompt.txt` (SHA256 `0d9c022c7c674ba0185b61349f4869f0bf3e1d01e86f51b0c6f1cd3a71c42310`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
 - Duyệt bằng mắt: đã xem, không thấy lỗi.
@@ -19,9 +19,10 @@ Loài `hac_vu_bien_buc` (Hắc Vụ Biên Bức), họ `bird`, khung game 96×96
 - Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3.
 - Prompt: `toA.prompt.txt` (SHA256 `73aed6337b5b240d58942350bcedefb85ffe653bf07f51e669c3698a1c565249`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
-- Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se nhẹ, e pass).
-- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 82% so với ảnh tĩnh (lệch 18%); cutter neo lại, không chặn.
-- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H5–8 (se): cỡ thân idle 88% so với ảnh tĩnh (lệch 12%); cutter neo lại, không chặn.
+- Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se nhẹ, e nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 76% so với ảnh tĩnh (lệch 24%); cutter neo lại, không chặn.
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H5–8 (se): cỡ thân idle 81% so với ảnh tĩnh (lệch 19%); cutter neo lại, không chặn.
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H9–12 (e): cỡ thân idle 85% so với ảnh tĩnh (lệch 15%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
 
 ## toB
@@ -30,18 +31,28 @@ Loài `hac_vu_bien_buc` (Hắc Vụ Biên Bức), họ `bird`, khung game 96×96
 - Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toB.prompt.txt` (SHA256 `59ad94ccdcc2e84ea01ec0ee5c42d10114c05f78aa9d4325cef9a65c86fe42d2`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
-- Mức kiểm: **nhẹ** (khối hướng: ne pass, n nhẹ).
-- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H5–8 (n): cỡ thân idle 120% so với ảnh tĩnh (lệch 20%); cutter neo lại, không chặn.
+- Mức kiểm: **nhẹ** (khối hướng: ne nhẹ, n nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H5–8 (n): cỡ thân idle 111% so với ảnh tĩnh (lệch 11%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
 
 ## toE
 
 - File: `toE.png`, **1536×1024**, 1708557 byte, SHA256 `c44badb82d4e8036169983f2b5c6c5d3acadf5d09c034b6ed7b63fc69c451f58`.
-- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
-- Prompt: `toE.prompt.txt` (SHA256 `152f54e5eb817f6de15e002792de7b2addc73f73d4d3f07fead37884a05dda7a`).
+- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo.
+- Prompt: `toE.prompt.txt` (SHA256 `1384b65eeafe2c666afc6c06d31bdfded3c801475c583348bc2d6ba19b25419f`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
-- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 284% so với ảnh tĩnh (lệch 184%, quá 25%); cutter neo lại, không chặn.
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 263% so với ảnh tĩnh (lệch 163%, quá 25%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+## to-ne
+
+- File: `to-ne.png`, **1536×1024**, 1723219 byte, SHA256 `143a4daf7e5c68ae3a9db31304af805ceb6b620684c5ff432c2cb6f681fbacb1`.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 5.
+- Prompt: `to-ne.prompt.txt` (SHA256 `f65575ec9e11615463918604a6b1fba4891af79de05349dea3d1cafa5e0b67a1`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: ne nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (ne): cỡ thân idle 233% so với ảnh tĩnh (lệch 133%, quá 25%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## Tờ chưa vào thư mục chính (candidates)
@@ -69,4 +80,4 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/beast-anim/hac_vu_bien_buc/` | - | builtin image_gen.imagegen | RAW hoạt ảnh Hắc Vụ Biên Bức: turnaround 1536×1024, toA 948×1659, toB 1254×1254, toE 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+| `art/src/beast-anim/hac_vu_bien_buc/` | - | builtin image_gen.imagegen | RAW hoạt ảnh Hắc Vụ Biên Bức: turnaround 1536×1024, toA 948×1659, toB 1254×1254, toE 1536×1024, to-ne 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
