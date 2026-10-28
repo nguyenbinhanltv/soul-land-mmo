@@ -1,0 +1,11 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 2,
+  "agent": "soul_land_game-764",
+  "references": [
+    "shared/assets/sprites/beast/kim_lan_long_quy.png",
+    "art/src/beast-anim/kim_lan_long_quy/turnaround.png"
+  ]
+}
