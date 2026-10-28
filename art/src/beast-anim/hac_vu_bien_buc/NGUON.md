@@ -42,7 +42,7 @@ Loài `hac_vu_bien_buc` (Hắc Vụ Biên Bức), họ `bird`, khung game 96×96
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 284% so với ảnh tĩnh (lệch 184%, quá 25%); cutter neo lại, không chặn.
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## Tờ chưa vào thư mục chính (candidates)
 
@@ -59,7 +59,6 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 
 ```text
 LỖI: toA — hình ở ô trống — H4 (s) C5, H8 (se) C5, H8 (se) C6 — ô trống có hình (0.34% diện tích ô): hình tràn từ ô bên; ô trống có hình (4.78% diện tích ô): hình tràn từ ô bên; ô trống có hình (3.52% diện tích ô): hình tràn từ ô bên.
-LỖI: toE — nhập — sau cắt — RAW không chặn, giữ hướng; cutter mặc định còn vuot-khung-he-so trước neo cỡ, chưa nhập (mắt)
 LỖI: toD — hình dính — H3 (ne) — dải có 5 hình, cần 6: hình dính nhau.
 LỖI: toD — hướng — ne H4 C3–4 — chết cuối lộ mặt sau 3 lượt, giữ fallback (mắt)
 ```
