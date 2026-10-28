@@ -1,0 +1,9 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 1,
+  "references": [
+    "shared/assets/sprites/beast/loi_van_hau.png"
+  ]
+}

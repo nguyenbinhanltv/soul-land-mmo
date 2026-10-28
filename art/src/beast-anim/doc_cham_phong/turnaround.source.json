@@ -1,0 +1,9 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 1,
+  "references": [
+    "shared/assets/sprites/beast/doc_cham_phong.png"
+  ]
+}

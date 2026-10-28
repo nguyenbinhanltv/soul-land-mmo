@@ -1,0 +1,10 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 2,
+  "references": [
+    "shared/assets/sprites/beast/thanh_lan_xa.png",
+    "art/src/beast-anim/thanh_lan_xa/turnaround.png"
+  ]
+}

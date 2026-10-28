@@ -1349,7 +1349,8 @@
         "dirsOk": [
           "s",
           "se",
-          "e"
+          "e",
+          "n"
         ]
       },
       "map": "thanh_hon_thon"
@@ -1674,7 +1675,8 @@
         "dirsOk": [
           "s",
           "se",
-          "e"
+          "e",
+          "n"
         ]
       },
       "map": "tinh_dau_noi_dia"
@@ -2252,12 +2254,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e",
-          "ne"
         ]
       },
       "map": "tinh_dau_ngoai_vi"
@@ -2323,7 +2319,8 @@
         "dirsOk": [
           "s",
           "se",
-          "e"
+          "e",
+          "n"
         ]
       },
       "map": "tinh_dau_ngoai_vi"
@@ -2823,11 +2820,6 @@
         "origin": [
           32,
           56
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e"
         ]
       },
       "map": "thanh_hon_thon"
@@ -3334,9 +3326,6 @@
         "origin": [
           32,
           56
-        ],
-        "dirsOk": [
-          "e"
         ]
       },
       "map": "thanh_hon_thon"
@@ -4141,11 +4130,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e"
         ]
       },
       "map": "tinh_dau_noi_dia"

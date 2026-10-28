@@ -1,0 +1,10 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 2,
+  "references": [
+    "shared/assets/sprites/beast/man_da_la_xa.png",
+    "art/src/beast-anim/man_da_la_xa/turnaround.png"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 1,
+  "references": [
+    "shared/assets/sprites/beast/kiem_vi_hat.png"
+  ]
+}
