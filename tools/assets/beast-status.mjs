@@ -11,7 +11,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ROOT, MANIFEST } from "./lib.mjs";
-import { DIRS, sheetPlan, speciesInfo } from "./beast-sheet-lib.mjs";
+import { DIRS, sheetPlan, mixedPlan, speciesInfo } from "./beast-sheet-lib.mjs";
 import { checkSpecies, draftErrorLine } from "./beast-sheet-check.mjs";
 
 export const ANIM_ROOT = path.join(ROOT, "art", "src", "beast-anim");
@@ -31,9 +31,11 @@ export function speciesStatus(id, { root = ANIM_ROOT, imported = importedSet() }
   if (!hasSheets) return { ...out, layout: null, state: "chua-co-to", sheets: [], blocks: {}, missing: [], errorLines: [] };
   const r = checkSpecies(id, { dir });
   // `direction` chỉ khi loài khung ≤ 96 nộp tờ 3:2 (v2); khung lớn vốn đã mỗi hướng một tờ (sheetPlan auto) nên vẫn gọi `sheet`
-  const layout = info.frame <= 96 && r.sheets.length && r.sheets.every((s) => s.kind === "boss") ? "direction" : "sheet";
-  const plan = sheetPlan(info.frame, layout === "direction" ? "direction" : "auto"), have = new Set(r.sheets.map((s) => s.sheet.replace(/^to/, "")));
-  const missing = plan.filter((p) => !have.has(p.id)).map((p) => `to${p.id}`);
+  // Trộn theo hướng (#861): tờ 3:2 override hướng của tờ legacy; bố cục báo `hon-hop`, thiếu tính theo hướng chưa ai phủ
+  const kinds = r.sheets.map((s) => s.kind === "boss");
+  const layout = info.frame <= 96 && kinds.length && kinds.every(Boolean) ? "direction" : info.frame <= 96 && kinds.some(Boolean) ? "hon-hop" : "sheet";
+  const plan = layout === "sheet" ? sheetPlan(info.frame, "auto") : layout === "direction" ? sheetPlan(info.frame, "direction") : mixedPlan(info.frame, Object.fromEntries(r.sheets.map((s) => [s.sheet.replace(/^to/, ""), { w: s.size[0], h: s.size[1] }]))), have = new Set(r.sheets.map((s) => s.sheet.replace(/^to/, "")));
+  const missing = plan.filter((p) => p.absent || !have.has(p.id)).map((p) => `to${p.id}`);
   const blocks = Object.fromEntries(DIRS.map((d) => [d, r.blockLevel[d] ?? "thiếu"]));
   const levels = Object.values(blocks);
   const state = levels.includes("chặn") ? "chan" : levels.includes("thiếu") ? "thieu-to" : "san-sang-nhap";

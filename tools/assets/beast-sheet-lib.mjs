@@ -53,6 +53,30 @@ export function sheetPlan(frame, layout = "auto") {
   return DIRS.map((d, i) => mk("ABCDE"[i], [d], 1536, 1024));
 }
 
+/** Tờ cỡ w×h có tỉ lệ 3:2 (tờ `direction` v2: một hướng một tờ 1536×1024). */
+export const isDirectionRatio = (w, h) => ratioNear(w, h, 3, 2);
+
+/**
+ * Bố cục theo ẢNH THẬT có mặt (cấu hình trộn theo hướng, #861): mỗi hướng lấy từ tờ legacy (A gộp s / se / e, B gộp ne / n) HOẶC tờ direction (3:2, mã A..E = s, se, e, ne, n);
+ * hướng có tờ direction thì tờ direction thắng, hàng hướng đó của tờ legacy bị bỏ (`skip`). `dims` = { mã tờ: { w, h } }.
+ * Chỉ legacy → sheetPlan "auto"; chỉ direction → "direction"; khung > 96 (vốn mỗi hướng một tờ) → "auto" như cũ. Trộn: tờ direction có mặt + tờ legacy có mặt (kèm `skip`);
+ * tờ legacy vắng mà còn hướng chưa ai phủ → mục `absent: true` (chỉ để báo thiếu, `dirs` = các hướng chưa phủ); legacy vắng mà mọi hướng đã phủ thì không cần.
+ */
+export function mixedPlan(frame, dims) {
+  const ids = Object.keys(dims), dirIds = ids.filter((id) => "ABCDE".includes(id) && isDirectionRatio(dims[id].w, dims[id].h));
+  if (frame > 96 || !dirIds.length) return sheetPlan(frame, "auto");
+  if (dirIds.length === ids.length) return sheetPlan(frame, "direction");
+  const direction = sheetPlan(frame, "direction"), plan = direction.filter((p) => dirIds.includes(p.id));
+  const covered = new Set(plan.flatMap((p) => p.dirs));
+  for (const b of sheetPlan(frame, "auto")) {
+    const dirs = b.dirs.filter((d) => !covered.has(d));
+    if (!dirs.length) continue;
+    if (dirIds.includes(b.id) || !ids.includes(b.id)) plan.push({ ...b, dirs, absent: true });
+    else plan.push({ ...b, skip: b.dirs.filter((d) => covered.has(d)) });
+  }
+  return plan;
+}
+
 /** Ảnh turnaround (v2): 1 ảnh 3:2, 5 cột (hướng s, se, e, ne, n) × 3 hàng (idle, hurt, die), mỗi ô một tư thế. */
 export const TURNAROUND = { w: 1536, h: 1024, cols: DIRS.length, rows: 3, poses: ["idle", "hurt", "die"] };
 

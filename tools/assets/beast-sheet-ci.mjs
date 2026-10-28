@@ -10,7 +10,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, write
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ROOT } from "./lib.mjs";
-import { allSheets, checkSpecies, draftErrorLine, writeReport } from "./beast-sheet-check.mjs";
+import { allSheets, checkSpecies, draftErrorLine, liveIssues, writeReport } from "./beast-sheet-check.mjs";
 import { localChangedFiles, SIZE_HINT } from "./sheet-local.mjs";
 
 const ANIM_DIR = "art/src/beast-anim/";
@@ -40,7 +40,7 @@ export function changedFromFiles(files) {
 /** Kiểm một loài → hàng tóm tắt (blockers: phát hiện chặn CI; warns: các phát hiện khác ở mức chặn / nhẹ của công cụ). */
 export function evaluate(id, dir) {
   const r = checkSpecies(id, dir ? { dir } : {});
-  const all = allSheets(r).flatMap((s) => s.issues.map((i) => ({ ...i, sheet: s.sheet })));
+  const all = allSheets(r).flatMap((s) => liveIssues(s, r.dirOwned).map((i) => ({ ...i, sheet: s.sheet })));
   const blockers = all.filter(isCiBlocker), warns = all.filter((i) => i.sev !== "note" && !isCiBlocker(i));
   return { id, r, blockers, warns };
 }

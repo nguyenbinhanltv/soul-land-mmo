@@ -18,7 +18,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { Img, readPng, encodePng, readGpl, hex, toHex, OUTLINE, ISO_BEAST_FOOT } from "./lib.mjs";
-import { DIRS, ANIMS, COLS, BAND_ROWS, animSlot, sheetPlan, sheetCells, speciesInfo, sheetFits, canonFactor } from "./beast-sheet-lib.mjs";
+import { DIRS, ANIMS, COLS, BAND_ROWS, animSlot, sheetPlan, sheetCells, speciesInfo, sheetFits, canonFactor, mixedPlan } from "./beast-sheet-lib.mjs";
 import { layoutFor, parsePatch, applyPatches, staticAnchors, blockFactors, equalizeBlocks, levelOf, codeOf, summarize } from "./beast-sheet-cut-lib.mjs";
 
 const K_OUT = hex(OUTLINE);
@@ -153,14 +153,15 @@ export const nearest = (p, pal) => { let bi = 0, bd = Infinity; for (let i = 0; 
 export function cutSpecies(o) {
   const info = speciesInfo(o.species), F = o.frame ?? info.frame;
   if (!F) throw new Error(`loài ${o.species} chưa có khung trong manifest: đặt --frame`);
-  const wide = Object.values(o.sheets).length > 0 && Object.values(o.sheets).every((im) => Math.abs(im.w * 2 - im.h * 3) <= 0.01 * im.h * 3);
-  const plan = sheetPlan(F, o.layout ?? (wide ? "direction" : "auto")), warns = [], gapGrid = {}, rep = { species: o.species, frame: F, sheets: {}, scale: 0, dropped: 0 };
+  // Không ép --layout: bố cục theo từng tờ có mặt (legacy / direction / trộn, hướng ở tờ direction thắng tờ legacy; mixedPlan ở beast-sheet-lib.mjs)
+  const dims = Object.fromEntries(Object.entries(o.sheets).map(([id, im]) => [id, { w: im.w, h: im.h }]));
+  const plan = o.layout ? sheetPlan(F, o.layout) : mixedPlan(F, dims), warns = [], gapGrid = {}, rep = { species: o.species, frame: F, sheets: {}, scale: 0, dropped: 0 };
   const foot = F - ISO_BEAST_FOOT, tol = o.tol ?? 60, normalize = o.normalizeSize !== false; // mặc định bật (#862)
 
   // 1–2. Tách hình, gán ô
   const raw = new Map(); // `dir/anim/n` → { img: Img (cắt, alpha 0/255), footX, w, h, cellBottom, cellH }
   for (const sh of plan) {
-    const img = o.sheets[sh.id];
+    const img = sh.absent ? undefined : o.sheets[sh.id];
     if (!img) { warns.push(`thiếu tờ ${sh.id} (${sh.dirs.join(", ")})`); continue; }
     if (normalize && !sheetFits(img.w, img.h, sh)) throw new Error(`tờ ${sh.id}: sai tỉ lệ ${img.w}×${img.h}, cần ${sh.w}×${sh.h}${sh.w * 3 === sh.h * 2 ? " (tờ A nhận tỉ lệ 0,55–0,70, vd Codex 948×1659)" : ""}; không thể chuẩn hóa đồng đều`);
     const factor = normalize ? canonFactor(img.w, img.h, sh.w, sh.h) : 1; // theo diện tích: tờ A 948×1659 ≈ 1,0 (quyết định chủ repo 2026-10-26 mục 2)
@@ -174,10 +175,13 @@ export function cutSpecies(o) {
     for (const b of droppedBig) warns.push(`tờ ${sh.id} ô ${b.cell}: bỏ mảnh rời lớn ${Math.round(b.area * factor * factor)} điểm (thân ${Math.round(b.of * factor * factor)}), kiểm tra ảnh`);
     if (stuck) warns.push(`tờ ${sh.id}: ${stuck} hình dính nhiều ô, đã chia theo ô; nên vẽ lại cho các hình cách xa nhau`);
     const used = new Set();
-    rep.sheets[sh.id] = { size: [img.w, img.h], key: key && toHex(key), cells: pieces.size, grid: layout.mode };
+    if (sh.skip?.length) {
+      for (const c of sheetCells(sh)) if (sh.skip.includes(c.dir)) used.add(`${c.col},${c.row}`); // hàng hướng đã có tờ direction: bỏ, không tính ô trống
+    }
+    rep.sheets[sh.id] = { size: [img.w, img.h], key: key && toHex(key), cells: pieces.size, grid: layout.mode, ...(sh.skip?.length ? { dirsUsed: sh.dirs.filter((d) => !sh.skip.includes(d)), dirsOverridden: sh.skip } : {}) };
     if (patched.length) rep.sheets[sh.id].patches = patched;
     if (normalize) Object.assign(rep.sheets[sh.id], { originalSize: [img.w, img.h], expectedSize: [sh.w, sh.h], factor, normalizedMode: "canonical-units" });
-    for (const c of sheetCells(sh)) {
+    for (const c of sheetCells(sh).filter((x) => !sh.skip?.includes(x.dir))) {
       const k = `${c.col},${c.row}`, p = pieces.get(k), name = `${c.dir}/${c.anim}/${c.frame}`;
       used.add(k);
       if (!p) { warns.push(`THIẾU khung ${name} (tờ ${sh.id} cột ${c.col} hàng ${c.row})`); continue; }
