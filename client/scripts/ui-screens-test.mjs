@@ -1,11 +1,11 @@
 // UI v2: hub ngăn kéo + ba màn hệ thống mới (Xếp Hạng, Lịch Hoạt Động, Phúc Lợi): phần thuần (bố cục, mô hình hiển thị), không cần DOM / server.
 import assert from "node:assert/strict";
 import { HUB_ITEMS, hubLayout } from "../src/hubMenu.ts";
-import { slotState, todayIndex, byDay, dayDate, slotRange, STATE_LABEL } from "../src/calendarScreen.ts";
+import { fixedGoal, slotState, todayIndex, byDay, dayDate, slotRange, STATE_LABEL } from "../src/calendarScreen.ts";
 import { COUNTDOWN_SOON_MS } from "../src/uiParts.ts";
-import { cellState, signedToday, needsSign, isMilestone, rewardParts, signedLine, primaryOf, nextMidnightVn, feeText } from "../src/welfareScreen.ts";
+import { rewardIcons, cellState, signedToday, needsSign, isMilestone, rewardParts, signedLine, primaryOf, nextMidnightVn, feeText } from "../src/welfareScreen.ts";
 import { CHECKIN } from "../../shared/data.ts";
-import { rankGroups, podiumOf, lineupText, meLine, pageLabel, tongName, sendDelay } from "../src/rankScreen.ts";
+import { playerCard, rankGroups, podiumOf, lineupText, meLine, pageLabel, tongName, sendDelay } from "../src/rankScreen.ts";
 
 // ---- hub ----
 const ids = HUB_ITEMS.map((i) => i.id);
@@ -75,3 +75,16 @@ assert.equal(nextMidnightVn(t0), Date.UTC(2026, 9, 28, 17, 0, 0)); assert.equal(
 assert.equal(feeText(null), "Hết lượt ký bù"); assert.equal(feeText(0), "Ký bù miễn phí"); assert.match(feeText(12000), /^Ký bù: /);
 
 console.log("ui-screens: ok");
+
+// ---- Thẻ nhỏ Xếp Hạng / nút Đến / icon quà Phúc Lợi ----
+const pc = playerCard({ rank: 3, name: "A", score: 1234567, tong: "hao_thien_tong", lineup: [{ vohon: "x_la", level: 5, stars: 1 }] }, "Cấp");
+assert.equal(pc.canFriend, true); assert.equal(pc.tong, "Hạo Thiên Tông"); assert.equal(pc.rank, "Hạng 3 · Cấp"); assert.equal(pc.lineup.length, 1);
+assert.equal(playerCard({ rank: 1, name: "Tôi", score: 1, me: true }, "Cấp").canFriend, false, "chính mình không tự kết bạn");
+assert.equal(playerCard({ rank: 1, name: "B", score: 1 }, "Cấp").tong, ""); assert.deepEqual(playerCard({ rank: 1, name: "B", score: 1 }, "Cấp").lineup, []);
+assert.deepEqual(fixedGoal({ id: "always:arena", npc: "dau_hon_truong" }, (id) => id), { map: "thien_dau_thanh", mapName: "thien_dau_thanh", npc: "dau_hon_truong" });
+assert.equal(fixedGoal({ id: "always:auto" }, (id) => id), null, "mục không có NPC thì không có nút Đến");
+assert.equal(fixedGoal({ id: "khong_co", npc: "x" }, (id) => id), null);
+assert.deepEqual(rewardIcons(0), [], "ô chỉ Hồn Tệ: không icon");
+assert.deepEqual(rewardIcons(1), ["hoi_huyet_dan"]); assert.deepEqual(rewardIcons(6), ["manh_vo_hon"]);
+assert.equal(rewardIcons(13)[0], CHECKIN.rewards[13].items[0].code); assert.equal(rewardIcons(13).at(-1), "manh_vo_hon"); assert.deepEqual(rewardIcons(99), []);
+console.log("ui-screens: thẻ nhỏ / Đến / icon quà OK");

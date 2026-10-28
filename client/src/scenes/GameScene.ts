@@ -28,7 +28,7 @@ import { initPanelStack, closeTopPanel, panelOf, trapTab } from "../panelStack.t
 import { initHub, toggleHub, setHubOpen, setHubDot } from "../hubMenu.ts";
 import { bindWelfare, openWelfare, closeWelfare, onWelfare, type WelfareMsg } from "../welfareScreen.ts";
 import { isUi2 } from "../uiKit.ts";
-import { bindCalendar, openCalendar, closeCalendar, onCalendar, type CalendarMsg } from "../calendarScreen.ts";
+import { bindCalendar, openCalendar, closeCalendar, onCalendar, type CalendarMsg, type CalGoal } from "../calendarScreen.ts";
 import { bindRank, openRank, closeRank, onRankBoards, onRankTop, type RankTopMsg } from "../rankScreen.ts";
 import type { ServerCommand } from "../charBagContract.ts";
 import { toggleChar, cycleCharTab, isCharOpen, onCharOpen, renderChar, charViewRow, charLog, type StatsMsg } from "../charPanel.ts";
@@ -918,7 +918,7 @@ export class GameScene extends Phaser.Scene {
     const end = (e: PointerEvent) => { if (e.pointerId !== jid) return; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = ""; };
     joyEl.addEventListener("pointerup", end, on); joyEl.addEventListener("pointercancel", end, on);
     // Ngăn xếp bảng (U1 #754): Esc đóng bảng trên cùng, bấm vào bảng nâng lên; mở bảng thì nhả phím đang giữ và dừng cần điều khiển.
-    bindRank((type, payload) => this.room.send(type, payload)); bindCalendar((type, payload) => this.room.send(type, payload));
+    bindRank((type, payload) => this.room.send(type, payload)); bindCalendar((type, payload) => this.room.send(type, payload), (g) => this.calendarGo(g));
     bindWelfare((type, payload) => this.room.send(type, payload), (needs) => setHubDot("welfare", needs)); // chấm đỏ "chưa điểm danh" trên hub
     initPanelStack([
       { id: "char", close: () => toggleChar(false) }, { id: "bag", close: () => hud.toggleBag(false) }, { id: "roster", close: () => hud.toggleRoster(false) },
@@ -1176,6 +1176,15 @@ export class GameScene extends Phaser.Scene {
     setFlag({ map, tx: null, ty: null, name: mapName(map), on: false, cross: false });
     this.syncFlagMarker();
     this.flagGo();
+  }
+
+  /** Nút "Đến" của Lịch Hoạt Động: cùng bản đồ thì đi bộ tới NPC (nếu có), khác bản đồ thì dùng cờ "Đi tới" (`flagToMap`); không dịch chuyển, không gửi gì lên server. */
+  calendarGo(g: CalGoal) {
+    if (this.watching || this.isArena) return;
+    const npc = g.npc && g.map === this.mapId ? this.npcs.find((n) => n.id === g.npc) : undefined;
+    if (npc) { this.flagStop(null); if (!this.begin("click")) return; this.walkTo({ x: npc.x, y: npc.y }); hud.log(`Đang đi tới ${npc.def?.name ?? "NPC"}.`, "#ffb35c"); return; }
+    if (g.map === this.mapId) { hud.log(`Bạn đang ở ${g.mapName} rồi.`, "#ffb35c"); return; }
+    this.flagToMap(g.map);
   }
 
   flagClear() { this.flagStop(null); setFlag(null); this.syncFlagMarker(); }
