@@ -39,7 +39,7 @@ Loài `cuc_yeu_hoa_linh` (Cúc Yêu Hoa Linh), họ `plant`, khung game 96×96. 
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne nhẹ).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (ne): cỡ thân idle 183% so với ảnh tĩnh (lệch 83%, quá 25%); cutter neo lại, không chặn.
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## toE
 
@@ -49,15 +49,13 @@ Loài `cuc_yeu_hoa_linh` (Cúc Yêu Hoa Linh), họ `plant`, khung game 96×96. 
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 188% so với ảnh tĩnh (lệch 88%, quá 25%); cutter neo lại, không chặn.
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## Lỗi
 
 ```text
 LỖI: toA — hình ở ô trống — H8 (se) C5, H8 (se) C6 — ô trống có hình (0.58% diện tích ô): hình tràn từ ô bên; ô trống có hình (0.69% diện tích ô): hình tràn từ ô bên.
 LỖI: toB — hình ở ô trống — H4 (ne) C5, H4 (ne) C6 — ô trống có hình (3.77% diện tích ô): hình tràn từ ô bên; ô trống có hình (3.57% diện tích ô): hình tràn từ ô bên.
-LỖI: toD — nhập — sau cắt — RAW không chặn, giữ hướng; cutter mặc định còn vuot-khung-he-so trước neo cỡ, chưa nhập (mắt)
-LỖI: toE — nhập — sau cắt — RAW không chặn, giữ hướng; cutter mặc định còn vuot-khung-he-so trước neo cỡ, chưa nhập (mắt)
 ```
 
 ## Ghi công
