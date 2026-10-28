@@ -31,7 +31,7 @@ export function changedFromFiles(files) {
   let toolsChanged = false;
   for (const raw of files) {
     const f = raw.trim().replace(/\\/g, "/");
-    if (f.startsWith(ANIM_DIR)) { const m = /^([^/]+)\/(?:to[A-E]|turnaround)\.png$/.exec(f.slice(ANIM_DIR.length)); if (m) species.add(m[1]); }
+    if (f.startsWith(ANIM_DIR)) { const m = /^([^/]+)\/(?:to(?:[A-E]|-(?:s|se|e|ne|n))|turnaround)\.png$/.exec(f.slice(ANIM_DIR.length)); if (m) species.add(m[1]); }
     else if (TOOL_RE.test(f)) toolsChanged = true;
   }
   return { species: [...species].sort(), toolsChanged };

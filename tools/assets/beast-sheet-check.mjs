@@ -10,7 +10,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readPng, encodePng, ROOT, SPRITES } from "./lib.mjs";
-import { DIRS, ANIMS, COLS, BAND_ROWS, TURNAROUND, sheetCells, A_RATIO_MIN, A_RATIO_MAX, A_MIN_SIDE, canonFactor } from "./beast-sheet-lib.mjs";
+import { DIRS, ANIMS, COLS, BAND_ROWS, TURNAROUND, SHEET_STEMS, sheetIdOf, dirOfSheetId, sheetCells, A_RATIO_MIN, A_RATIO_MAX, A_MIN_SIDE, canonFactor } from "./beast-sheet-lib.mjs";
 import { detectGrid, splitStuckFigures } from "./beast-sheet-grid.mjs";
 import { median } from "./beast-sheet-stats.mjs";
 import { contactSheet } from "./beast-sheet-contact.mjs";
@@ -115,9 +115,9 @@ function finish(res) {
 /** Tên file ảnh turnaround (1 ảnh 3:2, 5 hướng × 3 tư thế; hằng TURNAROUND ở beast-sheet-lib.mjs). */
 export const TURNAROUND_SHEET = "turnaround";
 
-/** Phân tích một tờ (toA–toE hoặc turnaround.png); cỡ thân so với ảnh tĩnh làm ở checkSpecies (cần hệ số chung cả loài). */
+/** Phân tích một tờ (toA–toE, to-s…to-n theo tên hướng, hoặc turnaround.png); cỡ thân so với ảnh tĩnh làm ở checkSpecies (cần hệ số chung cả loài). */
 export function analyzeSheet(file) {
-  const img = readPng(file), name = path.basename(file, ".png"), letter = name.replace(/^to/, "");
+  const img = readPng(file), name = path.basename(file, ".png");
   const issues = [], res = { sheet: name, file, size: [img.w, img.h], issues, blocks: [], cells: [], bands: [], dead: [], img };
   const isTa = name === TURNAROUND_SHEET;
   const taShape = { ratio: TURNAROUND.w / TURNAROUND.h, sizes: [[TURNAROUND.w, TURNAROUND.h]], canon: TURNAROUND.w, canonSize: [TURNAROUND.w, TURNAROUND.h], dirs: DIRS };
@@ -132,7 +132,7 @@ export function analyzeSheet(file) {
   const known = shape.sizes.some(([w, h]) => w === img.w && h === img.h), closeArea = Math.abs(factor - 1) <= 0.15;
   if (!canonical && (known || closeArea)) issue(issues, "note", "kich-thuoc", "toàn tờ", `${img.w}×${img.h} hợp lệ (quyết định chủ repo 2026-10-26 mục 2: cỡ theo tỉ lệ); hệ số chuẩn hoá ${round(factor, 4)}.`);
   else if (!canonical) issue(issues, "light", "kich-thuoc", "toàn tờ", `cỡ ${img.w}×${img.h} đúng tỉ lệ nhưng khác xa danh sách (${shape.sizes.map((s) => s.join("×")).join(", ")}); cutter chuẩn hoá được (hệ số ${round(factor, 4)}), nhưng nên kiểm lưới.`);
-  const dirs = shape.dirs ?? [DIRS["ABCDE".indexOf(letter)] ?? DIRS[0]];
+  const dirs = shape.dirs ?? [dirOfSheetId(sheetIdOf(name)) ?? DIRS[0]];
   const plan = isTa ? { dirs, cols: TURNAROUND.cols, rows: TURNAROUND.rows } : { dirs, cols: COLS, rows: dirs.length * BAND_ROWS };
   res.dirs = dirs; res.plan = plan; res.canonFactor = factor;
 
@@ -282,7 +282,7 @@ function checkDieFlat(sheet, bodyLen) {
 
 // ---------- Cả loài ----------
 export function sheetFiles(dir) {
-  return "ABCDE".split("").map((l) => path.join(dir, `to${l}.png`)).filter(existsSync);
+  return SHEET_STEMS.map((n) => path.join(dir, `${n}.png`)).filter(existsSync);
 }
 /** Đường dẫn turnaround.png của loài nếu có (kiểm cỡ / nền / lưới như tờ khác, #972). */
 export function turnaroundFile(dir) {

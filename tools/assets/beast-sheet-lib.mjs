@@ -47,31 +47,50 @@ export const canonFactor = (w, h, cw, ch) => Math.sqrt((cw * ch) / (w * h));
  * Chia các hướng ra các tờ. `layout`: "auto" = theo cỡ khung (khung ≤ 96 gộp 3 + 2 hướng, ô ≈ 170×128; khung lớn mỗi hướng một tờ, ô 256×256);
  * "direction" = luôn mỗi hướng một tờ 1536×1024 (6×4, 22 khung), mã A–E theo thứ tự s, se, e, ne, n (đường v2 của skill beast-anim).
  */
-export function sheetPlan(frame, layout = "auto") {
+export function sheetPlan(frame, layout = "auto", naming = "letter") {
   const mk = (id, dirs, w, h) => ({ id, dirs, w, h, cols: COLS, rows: dirs.length * BAND_ROWS });
   if (layout === "auto" && frame <= 96) return [mk("A", ["s", "se", "e"], 1024, 1536), mk("B", ["ne", "n"], 1024, 1024)];
-  return DIRS.map((d, i) => mk("ABCDE"[i], [d], 1536, 1024));
+  return DIRS.map((d, i) => mk(naming === "dir" ? d : "ABCDE"[i], [d], 1536, 1024));
 }
+
+/**
+ * Mã tờ ↔ tên file. Tờ theo mã: `toA.png`…`toE.png` (id "A".."E"; legacy: A gộp s / se / e, B gộp ne / n; direction 3:2: A..E = s, se, e, ne, n).
+ * Tờ direction THEO TÊN HƯỚNG (không đụng độ toA legacy): `to-s.png`, `to-se.png`, `to-e.png`, `to-ne.png`, `to-n.png` (id = tên hướng), một hướng một tờ 3:2, thắng tờ legacy / tờ mã ở hướng đó.
+ */
+export const sheetStem = (id) => (/^[A-E]$/.test(id) ? `to${id}` : `to-${id}`);
+/** `toA` / `to-s` → mã tờ ("A" / "s"). */
+export const sheetIdOf = (stem) => stem.replace(/^to-?/, "");
+/** Tên (không đuôi) mọi tờ có thể có của một loài: toA..toE rồi to-s..to-n. */
+export const SHEET_STEMS = [..."ABCDE".split("").map(sheetStem), ...DIRS.map(sheetStem)];
+/** Hướng của tờ một hướng theo mã: tên hướng → chính nó; A..E → theo thứ tự s, se, e, ne, n; mã khác → null. */
+export const dirOfSheetId = (id) => (DIRS.includes(id) ? id : /^[A-E]$/.test(id) ? DIRS["ABCDE".indexOf(id)] : null);
 
 /** Tờ cỡ w×h có tỉ lệ 3:2 (tờ `direction` v2: một hướng một tờ 1536×1024). */
 export const isDirectionRatio = (w, h) => ratioNear(w, h, 3, 2);
 
 /**
- * Bố cục theo ẢNH THẬT có mặt (cấu hình trộn theo hướng, #861): mỗi hướng lấy từ tờ legacy (A gộp s / se / e, B gộp ne / n) HOẶC tờ direction (3:2, mã A..E = s, se, e, ne, n);
- * hướng có tờ direction thì tờ direction thắng, hàng hướng đó của tờ legacy bị bỏ (`skip`). `dims` = { mã tờ: { w, h } }.
- * Chỉ legacy → sheetPlan "auto"; chỉ direction → "direction"; khung > 96 (vốn mỗi hướng một tờ) → "auto" như cũ. Trộn: tờ direction có mặt + tờ legacy có mặt (kèm `skip`);
- * tờ legacy vắng mà còn hướng chưa ai phủ → mục `absent: true` (chỉ để báo thiếu, `dirs` = các hướng chưa phủ); legacy vắng mà mọi hướng đã phủ thì không cần.
+ * Bố cục theo ẢNH THẬT có mặt (cấu hình trộn theo hướng, #861): mỗi hướng lấy từ tờ legacy (A gộp s / se / e, B gộp ne / n) HOẶC tờ direction.
+ * Tờ direction = tờ mã A..E tỉ lệ 3:2 (A..E = s, se, e, ne, n) hoặc tờ THEO TÊN HƯỚNG (id s / se / e / ne / n, file `to-<hướng>.png`, nhận mọi tỉ lệ để cutter / check báo sai cỡ); tờ theo tên thắng tờ mã cùng hướng.
+ * Hướng có tờ direction thì tờ direction thắng, hàng hướng đó của tờ legacy bị bỏ (`skip`). `dims` = { mã tờ: { w, h } }.
+ * Chỉ legacy → sheetPlan "auto"; mọi tờ có mặt đều là direction → "direction" (hướng thiếu giữ mã A..E); khung > 96 mà không có tờ theo tên → "auto" như cũ.
+ * Trộn: tờ direction có mặt + tờ legacy có mặt (kèm `skip`); tờ legacy vắng mà còn hướng chưa ai phủ → mục `absent: true` (chỉ để báo thiếu, `dirs` = các hướng chưa phủ); legacy vắng mà mọi hướng đã phủ thì không cần.
  */
 export function mixedPlan(frame, dims) {
-  const ids = Object.keys(dims), dirIds = ids.filter((id) => "ABCDE".includes(id) && isDirectionRatio(dims[id].w, dims[id].h));
-  if (frame > 96 || !dirIds.length) return sheetPlan(frame, "auto");
-  if (dirIds.length === ids.length) return sheetPlan(frame, "direction");
-  const direction = sheetPlan(frame, "direction"), plan = direction.filter((p) => dirIds.includes(p.id));
+  const ids = Object.keys(dims), isDirLetter = (id) => /^[A-E]$/.test(id) && dims[id] && isDirectionRatio(dims[id].w, dims[id].h), src = new Map(); // hướng → mã tờ direction nguồn
+  for (const id of ids) if (isDirLetter(id)) src.set(dirOfSheetId(id), id);
+  for (const id of ids) if (DIRS.includes(id)) src.set(id, id);
+  const dirIds = new Set(src.values());
+  if ((frame > 96 && !ids.some((id) => DIRS.includes(id))) || !dirIds.size) return sheetPlan(frame, "auto");
+  const direction = sheetPlan(frame, "direction", "dir");
+  const plan = direction.filter((p) => src.has(p.dirs[0])).map((p) => ({ ...p, id: src.get(p.dirs[0]) }));
+  if (ids.every((id) => DIRS.includes(id) || isDirLetter(id))) { // mọi tờ là direction: đủ 5 mục, hướng thiếu giữ mã A..E
+    return direction.map((p) => plan.find((q) => q.dirs[0] === p.dirs[0]) ?? { ...p, id: "ABCDE"[DIRS.indexOf(p.dirs[0])] });
+  }
   const covered = new Set(plan.flatMap((p) => p.dirs));
   for (const b of sheetPlan(frame, "auto")) {
     const dirs = b.dirs.filter((d) => !covered.has(d));
     if (!dirs.length) continue;
-    if (dirIds.includes(b.id) || !ids.includes(b.id)) plan.push({ ...b, dirs, absent: true });
+    if (isDirLetter(b.id) || !ids.includes(b.id)) plan.push({ ...b, dirs, absent: true });
     else plan.push({ ...b, skip: b.dirs.filter((d) => covered.has(d)) });
   }
   return plan;
