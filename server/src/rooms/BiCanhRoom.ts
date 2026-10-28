@@ -25,6 +25,8 @@ export class BiCanhRoom extends MapRoom {
   /** Phiên của người chơi (rỗng tới khi vào); kết quả đã chốt (finish chỉ chạy một lần); đã đưa người ra khỏi phòng. */
   sid = ""; done = false; kicked = false;
   /** Sóng hiện tại (−1 = chưa bắt đầu), hồn thú của sóng chưa hạ, số sóng đã hạ hết, giây nghỉ còn lại tới sóng kế. */
+  /** Số hồn hoàn dùng tính niên hạn mọi sóng: chốt MỘT lần lúc vào phòng (võ hồn nhiều hồn hoàn nhất trong đội hình), đổi võ hồn giữa chừng không hạ độ khó. */
+  ringsLocked = 0;
   wave = -1; waveBids = new Set<string>(); cleared = 0; gap = 0;
   private denyAt = new Map<string, number>();
 
@@ -60,6 +62,7 @@ export class BiCanhRoom extends MapRoom {
     this.sid = client.sessionId; this.ticket.joined = true;
     p.x = Math.round(sp.x + sp.w * 0.25); p.y = Math.round(sp.y + sp.h * 0.5);
     d.dir = { x: 1, y: 0 }; p.dir = dir4(1, 0);
+    this.ringsLocked = Math.max(p.rings.length, d.ch.rings.length, ...d.team.map((rid) => d.owned.find((v) => v.rowId === rid)?.rings.length ?? 0));
     this.phase = "ready"; this.time = BICANH.readySecs;
     client.send("bicanh", { k: "ready", id: this.ticket.scene.id, name: this.ticket.scene.name, waves: this.ticket.scene.waves.length, secs: BICANH.readySecs });
   }
@@ -72,9 +75,10 @@ export class BiCanhRoom extends MapRoom {
   /** Rời phòng là về bản đồ cũ, không phải rời game: giữ danh sách mua lại của thương nhân (9.8). */
   override forgetBuyback() {}
   async onDispose() {
-    await super.onDispose();
-    // Phòng đóng khi vé chưa chốt (hủy, hoặc phòng sập trước khi có kết quả): lỗi hệ thống, hoàn lượt.
-    if (this.ticket) { await refundRun(this.ticket, "phòng đóng khi chưa chốt"); bicanhTickets.delete(this.ticket.id); }
+    try { await super.onDispose(); } finally {
+      // Phòng đóng khi vé chưa chốt (hủy, hoặc phòng sập trước khi có kết quả): lỗi hệ thống, hoàn lượt.
+      if (this.ticket) { await refundRun(this.ticket, "phòng đóng khi chưa chốt"); bicanhTickets.delete(this.ticket.id); }
+    }
   }
 
   private deny(id: string, key: string, text: string) {
@@ -123,10 +127,10 @@ export class BiCanhRoom extends MapRoom {
     this.broadcast("fx", { k: "wave", x: b.x, y: b.y, r: TIERS[b.tier].size + 10, col: TIERS[b.tier].glow });
   }
 
-  /** Sinh sóng kế: tuổi = yearsPct × giới hạn niên hạn của vòng kế tiếp của võ hồn ra trận (không vượt tầm vòng đó); sóng có `elite` kèm một tinh anh. */
+  /** Sinh sóng kế: tuổi = yearsPct × giới hạn niên hạn của vòng kế tiếp của võ hồn nhiều hồn hoàn nhất trong đội hình lúc vào phòng (`ringsLocked`, không vượt tầm vòng đó); sóng có `elite` kèm một tinh anh. */
   nextWave() {
     const sc = this.ticket.scene, w = sc.waves[++this.wave], p = this.state.players.get(this.sid); if (!w || !p) return;
-    const years = Math.max(10, Math.round(ringLimit(Math.min(MAX_RINGS, p.rings.length + 1)) * w.yearsPct)), ids = sc.beasts.map((id) => beastIndex(id)).filter((i) => i >= 0);
+    const years = Math.max(10, Math.round(ringLimit(Math.min(MAX_RINGS, this.ringsLocked + 1)) * w.yearsPct)), ids = sc.beasts.map((id) => beastIndex(id)).filter((i) => i >= 0);
     const place = () => {
       const maxX = this.map.MW * TILE, maxY = this.map.MH * TILE;
       for (let k = 0; k < 60; k++) {
@@ -138,7 +142,7 @@ export class BiCanhRoom extends MapRoom {
     for (let i = 0; i < w.n; i++) { const { x, y } = place(); this.waveBids.add(this.addBeast(0, years, ids[Math.floor(Math.random() * ids.length)], x, y)); }
     if (w.elite) {
       const elites = BOSSES.map((b, i) => (b.rank === 1 ? i : -1)).filter((i) => i >= 0), { x, y } = place();
-      if (elites.length) this.waveBids.add(this.addBeast(0, years, elites[p.rings.length % elites.length], x, y, 1));
+      if (elites.length) this.waveBids.add(this.addBeast(0, years, elites[this.ringsLocked % elites.length], x, y, 1));
     }
     this.clients.getById(this.sid)?.send("bicanh", { k: "wave", wave: this.wave + 1, of: sc.waves.length, n: this.waveBids.size, elite: w.elite, secs: this.time });
   }
@@ -156,12 +160,13 @@ export class BiCanhRoom extends MapRoom {
       for (const bid of this.waveBids) if (!this.state.beasts.has(bid)) this.waveBids.delete(bid); // biến mất (hook test) cũng coi là hạ
       const p = this.state.players.get(this.sid), sc = this.ticket.scene;
       if (!p || p.dead) this.finish("dead");
+      else if (this.time <= 0) this.finish("time");
       else if (this.gap > 0) { if ((this.gap -= dt) <= 0) { this.gap = 0; this.nextWave(); } }
       else if (!this.waveBids.size && this.wave >= 0) {
         this.cleared = this.wave + 1;
         this.clients.getById(this.sid)?.send("bicanh", { k: "clear", wave: this.cleared, of: sc.waves.length, tomes: sc.waves.slice(0, this.cleared).reduce((a, x) => a + x.tomes, 0) });
         if (this.cleared >= sc.waves.length) this.finish("win"); else this.gap = BICANH.waveGapSecs;
-      } else if (this.time <= 0) this.finish("time");
+      }
     } else if (this.phase === "end" && this.time <= 0 && !this.kicked) {
       this.kicked = true;
       for (const c of this.clients) c.leave(ARENA_END_CODE);
