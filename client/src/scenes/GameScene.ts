@@ -17,6 +17,7 @@ import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers
 import { dieFrame, dieMs, type BeastAnimState } from "../beastAnim.ts";
 import * as hud from "../hud.ts";
 import { artUrl, fusionImgKey } from "../uiArt.ts";
+import { cbTierMark } from "../a11y.ts";
 import { dropArtSpec, dropTexture, DROP_ART_SCALE } from "../dropArt.ts";
 import { radar, type DotSink } from "../radar.ts";
 import { mapview, type MapLabel } from "../mapview.ts";
@@ -3048,7 +3049,7 @@ export class GameScene extends Phaser.Scene {
           this.eliteLabels.set(id, lb);
         }
         // Boss thế giới (BĐ6e): điểm yếu hệ đang hiện ghi ngay dưới tên.
-        const txt = egg ? `Bọc trứng · ${eggLeft(b)}` : beastName(b.rank, b.species) + (b.rank === 3 && b.weak ? `\nĐiểm yếu: ${HE[HE_IDS[b.weak - 1]].name}` : "");
+        const txt = egg ? `Bọc trứng · ${eggLeft(b)}` : cbTierMark(b.tier) + beastName(b.rank, b.species) + (b.rank === 3 && b.weak ? `\nĐiểm yếu: ${HE[HE_IDS[b.weak - 1]].name}` : "");
         if (lb.text !== txt) lb.setText(txt);
         const top = beastTop(s, b.tier) - (b.hp < b.maxHp ? 5 : 2);
         lb.setPosition(s.x, top).setDepth(99984).setScale(this.txtK);
