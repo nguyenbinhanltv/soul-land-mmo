@@ -6,9 +6,11 @@ import { UI_SCALE_CHOICES, getUiScalePref, setUiScalePref, uiScale } from "../ui
 import { mountGoogleButton } from "../google.ts";
 import { post, storage, type Me } from "../net.ts";
 import { openCredits } from "../credits.ts";
+import { FONT_SIZES, KEY_GROUPS, a11yPrefs, applyA11y, setA11yPrefs, type FontSize } from "../a11y.ts";
 import { closeCentrePanels } from "../panelStack.ts";
 
 const PANEL_ID = "audio";
+const SET_TABS: [string, string][] = [["audio", "Âm thanh"], ["fx", "Hiệu ứng"], ["ui", "Giao diện"], ["a11y", "Trợ năng"], ["keys", "Phím tắt"]];
 const FX_LEVELS: [FxLevel, string][] = [["low", "Thấp"], ["mid", "Vừa"], ["high", "Cao"]];
 
 function panel(): HTMLElement | null { return document.getElementById(PANEL_ID); }
@@ -56,20 +58,20 @@ export function bindAudioPanel(audio: AudioManager, signal: AbortSignal): void {
   if (!el || !button) return;
   el.innerHTML = `
     <div class="audio-head"><div><b>Cài đặt</b><small data-audio-status>Âm thanh đã bật</small></div><button class="panel-x" type="button" data-audio-close aria-label="Đóng bảng Cài đặt">×</button></div>
-    <div class="scale-set" role="group" aria-labelledby="ggLbl" id="ggSet" hidden><span id="ggLbl">Tài khoản Google</span>
-      <small id="ggState" aria-live="polite"></small><div class="gbtn" id="ggBtn" hidden></div></div>
+    <div class="set-body">
+      <div class="set-tabs" role="tablist" aria-label="Nhóm cài đặt" aria-orientation="vertical">${SET_TABS.map(([id, label]) => `<button type="button" role="tab" id="setTab-${id}" aria-controls="setPage-${id}" data-set-tab="${id}" aria-selected="false" tabindex="-1">${label}</button>`).join("")}</div>
+      <div class="set-pages">
+    <div class="set-page" role="tabpanel" id="setPage-audio" aria-labelledby="setTab-audio" data-set-page="audio">
     <label>Âm lượng tổng <output data-audio-output="master"></output><input type="range" min="0" max="1" step="0.05" data-audio="master" aria-label="Âm lượng tổng"></label>
     <label>Nhạc <output data-audio-output="music"></output><input type="range" min="0" max="1" step="0.05" data-audio="music" aria-label="Nhạc"></label>
     <label>Hiệu ứng <output data-audio-output="sfx"></output><input type="range" min="0" max="1" step="0.05" data-audio="sfx" aria-label="Hiệu ứng"></label>
     <label>Giao diện <output data-audio-output="ui"></output><input type="range" min="0" max="1" step="0.05" data-audio="ui" aria-label="Giao diện"></label>
     <label>Môi trường <output data-audio-output="ambient"></output><input type="range" min="0" max="1" step="0.05" data-audio="ambient" aria-label="Môi trường"></label>
     <button class="audio-mute" type="button" data-audio="muted" aria-pressed="false">Tắt tiếng</button>
-    <div class="scale-set" role="group" aria-labelledby="scaleLbl"><span id="scaleLbl">Cỡ giao diện <output data-scale-out></output></span>
-      <div class="scale-opts">${UI_SCALE_CHOICES.map((c) => `<button type="button" data-scale="${c.v}" aria-pressed="false">${c.label}</button>`).join("")}</div></div>
+      <p>Âm thanh chỉ bắt đầu sau lần chạm hoặc phím đầu tiên của bạn.</p></div>
+    <div class="set-page" role="tabpanel" id="setPage-fx" aria-labelledby="setTab-fx" data-set-page="fx" hidden>
     <div class="scale-set" role="group" aria-labelledby="fxLbl"><span id="fxLbl">Hiệu ứng hình ảnh</span>
       <div class="scale-opts">${FX_LEVELS.map(([v, label]) => `<button type="button" data-fx="${v}" aria-pressed="false">${label}</button>`).join("")}
-        <button type="button" data-fx-reduce aria-pressed="false" title="Giảm chuyển động
-Tắt rung màn hình, nháy trắng, dừng hình và phóng to khi đánh.">Giảm chuyển động</button>
         <button type="button" data-fx-cine aria-pressed="false" title="Cảnh hồn kỹ lớn
 Hồn kỹ vòng 7 trở lên: tối màn, chân dung võ hồn trượt ngang, tên chiêu chữ lớn.">Cảnh hồn kỹ lớn</button>
         <button type="button" data-fx-cutin aria-pressed="false" title="Cut-in Chân Thân
@@ -82,8 +84,27 @@ Không vẽ mũ trang bị lên hồn sư (của mọi người; chỉ trên má
       <div class="scale-opts">${SHAKE_MODES.map(([v, label]) => `<button type="button" data-shake="${v}" aria-pressed="false" title="${v === "off" ? "Không rung, không phóng to giật, không dừng hình khi đánh." : v === "boss" ? "Chỉ rung với tinh anh, thú vương, boss, khi bị chiêu mạnh và khi tung hồn kỹ lớn." : "Thêm rung khi chí mạng lên hồn thú thường (không áp dụng lúc tự săn)."}">${label}</button>`).join("")}</div></div>
     <div class="scale-set" role="group" aria-labelledby="haloLbl"><span id="haloLbl">Vòng hồn hoàn khi Chân Thân</span>
       <div class="scale-opts">${HAO_QUANG_MODES.map(([v, label]) => `<button type="button" data-halo="${v}" aria-pressed="false" title="${v === "halo" ? "Các vòng bay xoắn lúc biến hình rồi hợp thành quầng sáng nhỏ sau lưng; vòng 7 ở lại dưới chân." : v === "feet" ? "Các vòng giữ nguyên đồng tâm dưới chân, vòng 7 sáng." : "Các vòng bay lên xếp quanh thân như trước."}">${label}</button>`).join("")}</div></div>
-    <button class="audio-credits" type="button" data-credits>Ghi công</button>
-    <p>Âm thanh chỉ bắt đầu sau lần chạm hoặc phím đầu tiên của bạn.</p>`;
+    </div>
+    <div class="set-page" role="tabpanel" id="setPage-ui" aria-labelledby="setTab-ui" data-set-page="ui" hidden>
+    <div class="scale-set" role="group" aria-labelledby="scaleLbl"><span id="scaleLbl">Cỡ giao diện <output data-scale-out></output></span>
+      <div class="scale-opts">${UI_SCALE_CHOICES.map((c) => `<button type="button" data-scale="${c.v}" aria-pressed="false">${c.label}</button>`).join("")}</div></div>
+    <div class="scale-set" role="group" aria-labelledby="ggLbl" id="ggSet" hidden><span id="ggLbl">Tài khoản Google</span>
+      <small id="ggState" aria-live="polite"></small><div class="gbtn" id="ggBtn" hidden></div></div>
+    <button class="audio-credits" type="button" data-credits>Ghi công</button></div>
+    <div class="set-page" role="tabpanel" id="setPage-a11y" aria-labelledby="setTab-a11y" data-set-page="a11y" hidden>
+    <div class="scale-set" role="group" aria-labelledby="fontLbl"><span id="fontLbl">Cỡ chữ giao diện</span>
+      <div class="scale-opts">${FONT_SIZES.map((f) => `<button type="button" data-font="${f.v}" aria-pressed="false" title="Chữ ${f.label.toLowerCase()} (${f.k}×): áp cho mọi chữ giao diện, không đổi chữ trên đầu nhân vật.">${f.label}</button>`).join("")}</div></div>
+    <div class="scale-set" role="group" aria-labelledby="cbLbl"><span id="cbLbl">Mù màu</span>
+      <div class="scale-opts"><button type="button" data-cb aria-pressed="false" title="Thêm ký hiệu cho màu niên hạn / độ hiếm (○ △ □ ◇ ★), nhãn hệ [Hỏa] [Băng]… cạnh tên võ hồn và ký hiệu bậc trước tên hồn thú. Không đổi luật chơi.">Thêm ký hiệu cho màu</button></div></div>
+    <div class="scale-set" role="group" aria-labelledby="rmLbl"><span id="rmLbl">Chuyển động</span>
+      <div class="scale-opts"><button type="button" data-fx-reduce aria-pressed="false" title="Giảm chuyển động
+Tắt rung màn hình, nháy trắng, dừng hình và phóng to khi đánh.">Giảm chuyển động</button></div></div>
+    <p class="set-note">Mặc định "Giảm chuyển động" theo thiết lập của hệ điều hành. Bấm Tab để di chuyển giữa các nút, Space hoặc Enter để bấm.</p></div>
+    <div class="set-page" role="tabpanel" id="setPage-keys" aria-labelledby="setTab-keys" data-set-page="keys" hidden>
+      <div class="set-keys">${KEY_GROUPS.map((g) => `<h4>${g.title}</h4><dl>${g.rows.map((r) => `<dt>${r.key}</dt><dd>${r.action}</dd>`).join("")}</dl>`).join("")}</div>
+      <p class="set-note">Chưa hỗ trợ đổi phím. Phím chỉ có tác dụng khi không đang gõ chat.</p></div>
+      </div>
+    </div>`;
   // Liên kết Google (#612): hỏi trạng thái mỗi lần mở bảng; chưa liên kết thì hiện nút Google (server tắt thì ẩn cả mục).
   const ggSet = el.querySelector<HTMLElement>("#ggSet")!, ggState = el.querySelector<HTMLElement>("#ggState")!, ggBtn = el.querySelector<HTMLElement>("#ggBtn")!;
   const refreshGoogle = async () => {
@@ -149,6 +170,29 @@ Không vẽ mũ trang bị lên hồn sư (của mọi người; chỉ trên má
   el.querySelector("[data-fx-cutin]")!.addEventListener("click", () => { setFxPrefs({ cutin: !fxPrefs.cutin }); audio.play("ui_click"); renderFx(); }, { signal });
   el.querySelector("[data-fx-auto]")!.addEventListener("click", () => { setFxPrefs({ auto: !fxPrefs.auto }); audio.play("ui_click"); renderFx(); }, { signal });
   el.querySelector("[data-fx-hat]")!.addEventListener("click", () => { setFxPrefs({ hideHat: !fxPrefs.hideHat }); audio.play("ui_click"); renderFx(); }, { signal });
+  // Tab (mẫu WAI-ARIA tablist): mũi tên / Home / End chuyển tab, tiêu điểm lăn theo.
+  const tabs = [...el.querySelectorAll<HTMLButtonElement>("[data-set-tab]")];
+  const showTab = (id: string, focus = false) => {
+    for (const t of tabs) { const on = t.dataset.setTab === id; t.setAttribute("aria-selected", String(on)); t.tabIndex = on ? 0 : -1; if (on && focus) t.focus(); }
+    el.querySelectorAll<HTMLElement>("[data-set-page]").forEach((p) => { p.hidden = p.dataset.setPage !== id; });
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { audio.play("ui_click"); showTab(t.dataset.setTab!); }, { signal });
+    t.addEventListener("keydown", (ev) => {
+      const n = ev.key === "ArrowDown" || ev.key === "ArrowRight" ? i + 1 : ev.key === "ArrowUp" || ev.key === "ArrowLeft" ? i - 1 : ev.key === "Home" ? 0 : ev.key === "End" ? tabs.length - 1 : -1;
+      if (n < 0) return;
+      ev.preventDefault(); ev.stopPropagation(); showTab(tabs[(n + tabs.length) % tabs.length].dataset.setTab!, true);
+    }, { signal });
+  });
+  showTab("audio");
+  const renderA11y = () => {
+    const p = a11yPrefs();
+    el.querySelectorAll<HTMLButtonElement>("[data-font]").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.font) === p.font)));
+    el.querySelector("[data-cb]")!.setAttribute("aria-pressed", String(p.colorblind));
+  };
+  el.querySelectorAll<HTMLButtonElement>("[data-font]").forEach((b) => b.addEventListener("click", () => { setA11yPrefs({ font: Number(b.dataset.font) as FontSize }); audio.play("ui_click"); renderA11y(); }, { signal }));
+  el.querySelector("[data-cb]")!.addEventListener("click", () => { setA11yPrefs({ colorblind: !a11yPrefs().colorblind }); audio.play("ui_click"); renderA11y(); }, { signal });
+  applyA11y(); renderA11y();
   renderFx();
   addEventListener("resize", renderScale, { signal });
   renderScale();

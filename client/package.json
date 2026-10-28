@@ -25,6 +25,7 @@
     "test:combatfeel": "node scripts/combatfeel-test.mjs",
     "test:skillvisual": "node scripts/skillvisual-test.mjs",
     "test:fontglyph": "node scripts/font-glyph-test.mjs",
+    "test:a11y": "node --experimental-strip-types scripts/a11y-test.mjs",
     "test:chatroute": "node --experimental-strip-types scripts/chatroute-test.mjs",
     "test:pickupfx": "node --experimental-strip-types scripts/pickupfx-test.mjs",
     "test:ui2": "node --experimental-strip-types scripts/ui2-test.mjs",
