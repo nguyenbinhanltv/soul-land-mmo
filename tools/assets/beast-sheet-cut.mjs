@@ -301,12 +301,15 @@ export function cutSpecies(o) {
         if (baseDirs.has(d)) continue;
         const h = bodyH(d);
         if (!h) continue;
-        const k = Math.min(2, Math.max(0.5, target / h)), sd = dirScale[d];
+        const sd = dirScale[d], want = Math.min(2, Math.max(0.5, target / h));
+        // Phóng to không vượt khung vừa của hướng này (bước khớp không được biến hướng không chặn thành chặn); đã vượt từ trước thì không phóng thêm
+        const kFit = Math.max(1, fitOf(all.filter((r) => r.dir === d)) / sd), k = Math.min(want, kFit);
         rep.matchSize[d] = { bodyH: +h.toFixed(1), target: +target.toFixed(1), factor: +k.toFixed(3), scale: +sd.toFixed(4) };
         if (Math.abs(k - 1) < 0.02) continue;
         dirScale[d] = sd * k;
         rep.matchSize[d].scale = +dirScale[d].toFixed(4);
         if (rep.blocks?.[d]) rep.blocks[d].scale = +dirScale[d].toFixed(4);
+        if (k < want - 1e-9) warns.push(`khối ${d}: khớp cỡ thân một phần ×${k.toFixed(2)} thay vì ×${want.toFixed(2)} (giới hạn khung ${F}×${F}), cỡ thân còn lệch`);
         warns.push(`khối ${d}: khớp cỡ thân ×${k.toFixed(2)} (cao idle ${h.toFixed(1)} so với trung bình hướng legacy ${target.toFixed(1)}), hệ số ${sd.toFixed(3)} → ${dirScale[d].toFixed(3)}`);
       }
     }

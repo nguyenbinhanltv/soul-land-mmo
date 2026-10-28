@@ -219,3 +219,20 @@ test("khớp cỡ thân (#861): hướng direction to / nhỏ hơn legacy vài c
   // chỉ legacy: không có bước khớp
   assert.equal(pure.report.matchSize, undefined);
 });
+
+test("khớp cỡ thân (#861): hướng mới nhỏ nhưng rộng (k > 1, phóng to sẽ vượt khung) → vẫn nhập được 0 block, hệ số kẹp ở mức vừa khung, có cảnh báo lệch cỡ", async () => {
+  const { fakeSheets } = await import("./beast-sheet-fake.mjs");
+  const base = { species: "phong_lang", palette: "gpl", anchorBlocks: false, equalizeBlocks: false };
+  const leg = fakeSheets("phong_lang", { seed: 2 });
+  for (const [grow, wide] of [[0.8, 2], [0.7, 2.5]]) {
+    const dir = fakeSheets("phong_lang", { seed: 2, layout: "direction", grow, wide }), sheets = { ...leg, D: dir.D, E: dir.E };
+    const off = cutSpecies({ ...base, matchSize: false, sheets }), mix = cutSpecies({ ...base, sheets });
+    assert.equal(off.report.summary.block, 0, "tiền đề: không khớp cỡ thì nhập được");
+    assert.equal(mix.report.summary.block, 0, mix.report.issues.filter((i) => i.level === "block").map((i) => i.msg).join("\n"));
+    const m = mix.report.matchSize.ne;
+    assert.ok(m.factor > 1 && m.factor < 1.5, `grow ${grow}: k kẹp ${m.factor}`);
+    assert.ok(m.scale > off.report.scale, "vẫn phóng to được phần vừa khung");
+    assert.ok(mix.report.warnings.some((w) => /^khối ne: khớp cỡ thân một phần ×/.test(w)), "ghi cảnh báo lệch cỡ còn lại");
+    assert.ok(!mix.report.warnings.some((w) => /^khối ne: .*bị cắt mép/.test(w)));
+  }
+});
