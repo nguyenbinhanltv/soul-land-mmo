@@ -1,5 +1,14 @@
 # Yêu Hồ — phụ thể hoạt ảnh lô 2 (Part of #1025)
 
+## Trạng thái hiện hành: đã nhập năm hướng (2026-10-28)
+
+Chủ repo cho phép nhập mọi hướng cutter 0 block và chỉ khai lỗi mắt. Đã kiểm riêng A–E bằng --partial --strict (mỗi hướng 22 khung, 0 block), rồi cắt bộ tổng 110 khung: **0 block / 146 warn**. Đã nhập s, se, e, ne, n; không còn hướng dùng fallback. Dùng A3/B3/C1/D2/E1. Tai còn tách đầu, đuôi che/xén thân ở ne/n; chỉ khai mắt, chủ repo chỉnh sau.
+
+Neo chỉ do phuthe-anchor.mjs tính và phuthe-import.mjs ghi; không chỉnh tay. Không sửa RAW/prompt/source lịch sử. Các kết luận chưa nhập bên dưới là hồ sơ trước lần nhập này, không còn là trạng thái hiện hành.
+
+## Hồ sơ lịch sử PR #1199 (trước nhập)
+
+
 Ngày 2026-10-28. Hoàn tất bước 1–6; **không nhập game**: năm tờ RAW đều 0 chặn tự động, cutter 0 block / 146 warn, nhưng bản ráp sau neo còn tai tách khỏi đầu và đuôi che/xén thân ở ne/n. Giữ nguyên nhánh phụ thể cũ để chủ repo chỉnh ráp. Không chứng nhận đạt đẹp.
 
 ## Quy trình và nguồn
@@ -82,3 +91,17 @@ Bài học đã được diễn đạt lại sau kiểm thử để không lọt
 ### Bài học riêng loài (chỉ hồ sơ)
 
 Yêu Hồ: tai và ba đuôi; không vẽ nguyên đầu/thân hồ ly sau nộm. Chi tiết này chỉ lưu tại hồ sơ và prompt lịch sử, không chèn vào bài học chung nhóm B. Theo AO review #1199, các bài học lô 2 trong lessons.md đã gộp thành ba câu chung để không ép số chi thể của loài này lên loài khác; không sửa RAW/prompt/source cũ và không sinh thêm lượt.
+
+<!-- phuthe-import:huong -->
+### Hướng đã nhập (tự ghi bởi `phuthe-import.mjs`, `anim.dirsOk` trong manifest)
+
+Đủ 5 hướng.
+
+| Hướng | Trạng thái |
+|---|---|
+| s (tờ A) | đã nhập hoạt ảnh vẽ thật |
+| se (tờ B) | đã nhập hoạt ảnh vẽ thật |
+| e (tờ C) | đã nhập hoạt ảnh vẽ thật |
+| ne (tờ D) | đã nhập hoạt ảnh vẽ thật |
+| n (tờ E) | đã nhập hoạt ảnh vẽ thật |
+<!-- /phuthe-import:huong -->
