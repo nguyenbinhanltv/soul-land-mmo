@@ -576,10 +576,22 @@ test("--concept-ref: ảnh 2 = concept 5 hướng thay turnaround, vẫn có n�
   assert.equal(off.conceptRef, false);
 });
 
-test("--concept-ref: võ hồn chưa có concept đã duyệt thì báo lỗi, không rơi về thư mục", () => {
+test("--concept-ref: võ hồn chưa có concept đã duyệt thì báo lỗi, không rơi về thư mục", async (t) => {
+  const { default: fs } = await import("node:fs");
+  const { syncBuiltinESMExports } = await import("node:module");
+  const exists = fs.existsSync;
+  const conceptDir = path.join(ROOT, "art/src/vohon-v2/cuu_bao_luu_ly_thap");
+  // Giả lập thư mục concept chưa tồn tại, độc lập với ảnh thật đã được duyệt.
+  const missingConcept = t.mock.method(fs, "existsSync", (file) => path.resolve(file) === conceptDir ? false : exists(file));
+  syncBuiltinESMExports();
+  try {
   assert.throws(() => infoWith("cuu_bao_luu_ly_thap", { conceptRef: true }), /chưa có concept đã duyệt/);
   assert.equal(infoWith("cuu_bao_luu_ly_thap", { conceptRef: true, noDummy: true }).conceptRef, true);
   assert.match(buildDirectionPrompt(infoWith("bach_ho", { conceptRef: true }), L.sheetPlan("B")[2]), /--concept-ref|CONCEPT/);
+  } finally {
+    missingConcept.mock.restore();
+    syncBuiltinESMExports();
+  }
 });
 
 test("dummy --all / turnaround:false: chỉ ghi năm bảng nộm A–E (#1025)", async () => {
