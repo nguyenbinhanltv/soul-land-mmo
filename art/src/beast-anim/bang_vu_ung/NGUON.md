@@ -1,4 +1,4 @@
-# Băng Vũ Ưng — RAW hoạt ảnh (#1030)
+# Băng Vũ Ưng — RAW hoạt ảnh (#861)
 
 File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species bang_vu_ung`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
 
@@ -11,7 +11,7 @@ Loài `bang_vu_ung` (Băng Vũ Ưng), họ `bird`, khung game 96×96. Mức ki�
 - Prompt: `turnaround.prompt.txt` (SHA256 `c734f97055ac215e9422eab08b5a0a02d5d7b92ce4b0c3257e7b472076791173`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
-- Duyệt bằng mắt: đã xem, không thấy lỗi.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## toA
 
@@ -34,6 +34,7 @@ Loài `bang_vu_ung` (Băng Vũ Ưng), họ `bird`, khung game 96×96. Mức ki�
 ## Lỗi
 
 ```text
+LỖI: turnaround — Lô 3: ne,n chưa sinh hướng vì turnaround mới hết 2 lượt vẫn lộ mắt ne/die. Xem candidates/turnaround-lo3-attempt1..2.png; giữ bản cũ và fallback. (mắt)
 LỖI: toA — hình ở ô trống — H8 (se) C6 — ô trống có hình (0.83% diện tích ô): hình tràn từ ô bên.
 LỖI: toA — s — H4 die C1–4 — quay thân ngang sang phải; se — H5–8 — gần e; hurt bung cánh lớn, recoil nhỏ (mắt)
 LỖI: toB — ne — H3 attack C3–5 và H4 die C2–4 — lộ mắt/mặt, die quay ngang; n — H8 die C4 — lộ mặt, đổi hướng ngang; H5–7 còn cần soát nhận diện lưng/ngực (mắt)
