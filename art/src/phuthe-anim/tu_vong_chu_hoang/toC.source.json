@@ -1,0 +1,248 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27T22:57:26.296Z",
+  "attempt": 1,
+  "direction": "e",
+  "raw": "toC.png",
+  "sha256": "53fbab613295d869083f52cef865357453d55f1f8e92f5944112d292d868af9f",
+  "prompt": "toC.prompt.txt",
+  "promptSha256": "ad0d93ae32d743d3a83d24ed01e0883269a265d630808abe422bf9c2e8badf7c",
+  "promptCommand": "node tools/assets/phuthe-sheet-prompt.mjs --id tu_vong_chu_hoang --stage direction --dir e --concept-ref",
+  "references": [
+    {
+      "file": "references/tu_vong_chu_hoang-nom-toC.png",
+      "sha256": "e83a92baa5998754a0eb7c165aa057df1ef5e79f979f2b4f573bfe13fbe3de53"
+    },
+    {
+      "file": "../../vohon-v2/tu_vong_chu_hoang/concept-attempt1.png",
+      "sha256": "b9cdc21f23c580792231cf131a6b4a91ac0676d2e080f7f5a9e21e6786fab656"
+    }
+  ],
+  "referencePathBase": "art/src/phuthe-anim/tu_vong_chu_hoang",
+  "postprocessing": "none; RAW copied byte-for-byte",
+  "promptHandwritten": false,
+  "promptAddendum": false,
+  "technicalCheck": {
+    "level": "nhẹ",
+    "issues": [
+      {
+        "sev": "note",
+        "code": "nen",
+        "where": "toàn tờ",
+        "msg": "nền dốc nhẹ (bốn góc lệch 33), trong dung sai 60; không phải lỗi."
+      },
+      {
+        "sev": "light",
+        "code": "nom-lech",
+        "where": "H1 (e) C1",
+        "msg": "nộm bị dời 16 điểm so với trung vị tờ (> 16); cutter bù được.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-lech",
+        "where": "H1 (e) C2",
+        "msg": "nộm bị dời 16 điểm so với trung vị tờ (> 16); cutter bù được.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-lech",
+        "where": "H1 (e) C3",
+        "msg": "nộm bị dời 19 điểm so với trung vị tờ (> 16); cutter bù được.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H1 (e) C3",
+        "msg": "phụ thể chạm mép ô khung (23 điểm): có thể bị cắt.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H1 (e) C3",
+        "msg": "36 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-lech",
+        "where": "H1 (e) C4",
+        "msg": "nộm bị dời 19 điểm so với trung vị tờ (> 16); cutter bù được.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H2 (e) C1",
+        "msg": "phụ thể chạm mép ô khung (19 điểm): có thể bị cắt.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H2 (e) C2",
+        "msg": "phụ thể chạm mép ô khung (47 điểm): có thể bị cắt.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H2 (e) C2",
+        "msg": "128 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H2 (e) C3",
+        "msg": "phụ thể chạm mép ô khung (16 điểm): có thể bị cắt.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H3 (e) C1",
+        "msg": "phụ thể chạm mép ô khung (146 điểm): có thể bị cắt.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H3 (e) C1",
+        "msg": "228 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H3 (e) C2",
+        "msg": "phụ thể chạm mép ô khung (74 điểm): có thể bị cắt.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H3 (e) C2",
+        "msg": "242 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H3 (e) C3",
+        "msg": "phụ thể chạm mép ô khung (32 điểm): có thể bị cắt.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H3 (e) C3",
+        "msg": "182 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H3 (e) C4",
+        "msg": "phụ thể chạm mép ô khung (79 điểm): có thể bị cắt.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H3 (e) C4",
+        "msg": "465 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H3 (e) C5",
+        "msg": "phụ thể chạm mép ô khung (134 điểm): có thể bị cắt.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H3 (e) C5",
+        "msg": "916 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H4 (e) C1",
+        "msg": "phụ thể chạm mép ô khung (138 điểm): có thể bị cắt.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H4 (e) C1",
+        "msg": "991 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H4 (e) C2",
+        "msg": "phụ thể chạm mép ô khung (109 điểm): có thể bị cắt.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H4 (e) C2",
+        "msg": "690 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H4 (e) C3",
+        "msg": "phụ thể chạm mép ô khung (109 điểm): có thể bị cắt.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H4 (e) C3",
+        "msg": "677 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H4 (e) C4",
+        "msg": "phụ thể chạm mép ô khung (319 điểm): có thể bị cắt.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H4 (e) C4",
+        "msg": "1477 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H1 (e) C5",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H1 (e) C6",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.48 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      }
+    ]
+  }
+}

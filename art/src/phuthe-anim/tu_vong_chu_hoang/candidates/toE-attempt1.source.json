@@ -1,0 +1,52 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27T22:59:47.422Z",
+  "attempt": 1,
+  "direction": "n",
+  "raw": "toE-attempt1.png",
+  "sha256": "000889148034d1871d7aad1cf6c2d6a9d9cb4d42548d097f2c10c673cdde5182",
+  "prompt": "toE-attempt1.prompt.txt",
+  "promptSha256": "02e8c1d721912aab52d902bc395caa1b3d54360910588cf630cb6769aa926fd3",
+  "promptCommand": "node tools/assets/phuthe-sheet-prompt.mjs --id tu_vong_chu_hoang --stage direction --dir n --concept-ref",
+  "references": [
+    {
+      "file": "references/tu_vong_chu_hoang-nom-toE.png",
+      "sha256": "55c954d5740c9ca0e65cbc2dfe167ed86d099fe1948332a218998ca74f25d8e4"
+    },
+    {
+      "file": "../../vohon-v2/tu_vong_chu_hoang/concept-attempt1.png",
+      "sha256": "b9cdc21f23c580792231cf131a6b4a91ac0676d2e080f7f5a9e21e6786fab656"
+    }
+  ],
+  "referencePathBase": "art/src/phuthe-anim/tu_vong_chu_hoang",
+  "postprocessing": "none; RAW copied byte-for-byte",
+  "promptHandwritten": false,
+  "promptAddendum": false,
+  "technicalCheck": {
+    "level": "chặn",
+    "issues": [
+      {
+        "sev": "note",
+        "code": "nen",
+        "where": "toàn tờ",
+        "msg": "nền dốc nhẹ (bốn góc lệch 33), trong dung sai 60; không phải lỗi."
+      },
+      {
+        "sev": "note",
+        "code": "tach-hinh",
+        "where": "H3 (n)",
+        "msg": "dải dò được 4 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 5.",
+        "dir": "n"
+      },
+      {
+        "sev": "block",
+        "code": "hinh-dinh",
+        "where": "H3 (n)",
+        "msg": "dải có 5 hình, cần 6: hình dính nhau.",
+        "dir": "n"
+      }
+    ]
+  }
+}

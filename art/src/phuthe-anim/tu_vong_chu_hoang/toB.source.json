@@ -1,0 +1,206 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "date": "2026-10-27T22:56:21.676Z",
+  "attempt": 1,
+  "direction": "se",
+  "raw": "toB.png",
+  "sha256": "0963acb2f24060ac4e8a6191813ff10b5344e0856062e7faccdd7a663b63d06d",
+  "prompt": "toB.prompt.txt",
+  "promptSha256": "fe8ea8f37dcbaa28084e2aefb605eec863464ef3a9ef7bf1be15990f9746db8d",
+  "promptCommand": "node tools/assets/phuthe-sheet-prompt.mjs --id tu_vong_chu_hoang --stage direction --dir se --concept-ref",
+  "references": [
+    {
+      "file": "references/tu_vong_chu_hoang-nom-toB.png",
+      "sha256": "e83a92baa5998754a0eb7c165aa057df1ef5e79f979f2b4f573bfe13fbe3de53"
+    },
+    {
+      "file": "../../vohon-v2/tu_vong_chu_hoang/concept-attempt1.png",
+      "sha256": "b9cdc21f23c580792231cf131a6b4a91ac0676d2e080f7f5a9e21e6786fab656"
+    }
+  ],
+  "referencePathBase": "art/src/phuthe-anim/tu_vong_chu_hoang",
+  "postprocessing": "none; RAW copied byte-for-byte",
+  "promptHandwritten": false,
+  "promptAddendum": false,
+  "technicalCheck": {
+    "level": "nhẹ",
+    "issues": [
+      {
+        "sev": "note",
+        "code": "nen",
+        "where": "toàn tờ",
+        "msg": "nền dốc nhẹ (bốn góc lệch 34), trong dung sai 60; không phải lỗi."
+      },
+      {
+        "sev": "note",
+        "code": "tach-hinh",
+        "where": "H3 (se)",
+        "msg": "dải dò được 5 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 6.",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H2 (se) C1",
+        "msg": "phụ thể chạm mép ô khung (13 điểm): có thể bị cắt.",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H3 (se) C2",
+        "msg": "phụ thể chạm mép ô khung (153 điểm): có thể bị cắt.",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H3 (se) C2",
+        "msg": "220 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H3 (se) C3",
+        "msg": "phụ thể chạm mép ô khung (131 điểm): có thể bị cắt.",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H3 (se) C3",
+        "msg": "1404 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H3 (se) C4",
+        "msg": "phụ thể chạm mép ô khung (63 điểm): có thể bị cắt.",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H3 (se) C4",
+        "msg": "1204 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H3 (se) C6",
+        "msg": "phụ thể chạm mép ô khung (22 điểm): có thể bị cắt.",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H3 (se) C6",
+        "msg": "57 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "nom-lech",
+        "where": "H4 (se) C1",
+        "msg": "nộm bị dời 19 điểm so với trung vị tờ (> 16); cutter bù được.",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H4 (se) C1",
+        "msg": "phụ thể chạm mép ô khung (125 điểm): có thể bị cắt.",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H4 (se) C1",
+        "msg": "448 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "nom-lech",
+        "where": "H4 (se) C2",
+        "msg": "nộm bị dời 19 điểm so với trung vị tờ (> 16); cutter bù được.",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H4 (se) C2",
+        "msg": "phụ thể chạm mép ô khung (297 điểm): có thể bị cắt.",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H4 (se) C2",
+        "msg": "1200 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "nom-lech",
+        "where": "H4 (se) C3",
+        "msg": "nộm bị dời 18 điểm so với trung vị tờ (> 16); cutter bù được.",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H4 (se) C3",
+        "msg": "phụ thể chạm mép ô khung (247 điểm): có thể bị cắt.",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H4 (se) C3",
+        "msg": "685 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "nom-lech",
+        "where": "H4 (se) C4",
+        "msg": "nộm bị dời 19 điểm so với trung vị tờ (> 16); cutter bù được.",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H4 (se) C4",
+        "msg": "phụ thể chạm mép ô khung (224 điểm): có thể bị cắt.",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H4 (se) C4",
+        "msg": "691 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "nom-lech",
+        "where": "H1 (se) C5",
+        "msg": "nộm bị dời 19 điểm so với trung vị tờ (> 16); cutter bù được.",
+        "dir": "se"
+      },
+      {
+        "sev": "light",
+        "code": "co-phu-the",
+        "where": "khối se",
+        "msg": "cỡ phụ thể so với khối s: idle 89%, hurt 88% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn).",
+        "dir": "se"
+      }
+    ]
+  }
+}
