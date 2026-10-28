@@ -53,7 +53,7 @@ export function confirmDialog(o: ConfirmOpts, onYes: () => void): void {
   const key = (e: KeyboardEvent) => {
     if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); }
     else if (e.key === "Tab") { e.preventDefault(); e.stopPropagation(); (document.activeElement === cancel ? yes : cancel).focus(); } // bẫy focus giữa hai nút
-    else if (e.key !== "Enter") e.stopPropagation(); // phím khác không lọt xuống game khi hộp mở
+    else e.stopPropagation(); // mọi phím khác (kể cả Enter: để nút tự bấm, không lọt sang ô chat của game) không xuống game khi hộp mở
   };
   cancel.addEventListener("click", close);
   yes.addEventListener("click", () => { if (!lockButton(yes)) return; close(); onYes(); });

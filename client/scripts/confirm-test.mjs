@@ -23,4 +23,9 @@ assert.match(src("hudForge.ts"), /confirmDialog\([\s\S]{0,300}act\.equipSalvage/
 assert.match(src("hudShop.ts"), /if \(ask\) confirmDialog\(/, "bán món hiếm / có giá trị phải xác nhận");
 assert.match(src("hud.ts"), /confirmDialog\([^)]*Rời tổ đội/, "rời đội phải xác nhận");
 assert.match(readFileSync(new URL("../src/main.ts", import.meta.url), "utf8"), /confirm\.css/);
+// Enter không được preventDefault (nút tự bấm) và phải bị chặn lan lên window của GameScene (nếu không nhảy vào ô chat)
+const cd = src("confirmDialog.ts");
+assert.match(cd, /else e\.stopPropagation\(\)/, "mọi phím còn lại, kể cả Enter, phải stopPropagation");
+assert.doesNotMatch(cd, /key !== "Enter"/, "không được để Enter lọt xuống game");
+
 console.log("confirm: ok");
