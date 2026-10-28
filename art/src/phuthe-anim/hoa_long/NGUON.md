@@ -31,5 +31,5 @@ Preview: C:/Users/PC/.ao/data/artifacts/soul_land_game-716/hoa_long/preview/inde
 ## Ghi công
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
-|---|---|---|---|---|
+|---|---|---|---|---|---|
 | toA.png–toE.png; candidates/ | hoa_long | Codex image_gen | Phụ thể 5 hướng; xem toX.prompt.txt và toX.source.json | 2026-10-28 | Theo điều khoản công cụ; concept gốc đã duyệt, không dùng ảnh thương mại |
