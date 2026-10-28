@@ -19,6 +19,7 @@ const SIZES = opt("sizes", "1366x768,1280x720,960x540,1920x1080").split(",").map
 const ONLY = opt("only", "") ? new Set(opt("only", "").split(",")) : null;
 const TAG = opt("tag", "");
 const DPR = +opt("dpr", "1");
+const QS = argv.includes("--ui2") ? "&ui=2" : ""; // --ui2: bật cờ giao diện v2 (?ui=2) cho ảnh "sau" của PR giao diện
 const OUTER = argv.includes("--outer"); // cỡ = cửa sổ Chrome (vùng hiển thị nhỏ hơn: khung tab / thanh địa chỉ), như người chơi mở cửa sổ 960×540
 const CHROMES = [process.env.CHROME, "C:/Program Files/Google/Chrome/Application/chrome.exe", "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", "/usr/bin/google-chrome", "/usr/bin/chromium"].filter(Boolean);
 const CHROME = CHROMES.find((p) => existsSync(p));
@@ -55,14 +56,14 @@ async function runSize(W, H) {
     await cdp("Page.enable"); await cdp("Runtime.enable");
     if (!OUTER) await cdp("Emulation.setDeviceMetricsOverride", { width: W, height: H, deviceScaleFactor: DPR, mobile: false });
     const name = "Đường Tam " + Math.random().toString(36).slice(2, 6), password = "ui-shots-pass";
-    await step("dang-nhap", async () => { await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" }); await sleep(2500); await shot("01-dang-nhap"); });
+    await step("dang-nhap", async () => { await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" + QS }); await sleep(2500); await shot("01-dang-nhap"); });
     const l = await post("/api/login", { name, password });
-    if (!want("dang-nhap")) { await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" }); await sleep(1500); } // localStorage cần trang cùng nguồn, không phải about:blank
+    if (!want("dang-nhap")) { await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" + QS }); await sleep(1500); } // localStorage cần trang cùng nguồn, không phải about:blank
     await ev(`localStorage.setItem("shh-token", ${JSON.stringify(l.token)}), localStorage.setItem("shh-audio", JSON.stringify({muted:true})), true`);
-    await step("tao-nhan-vat", async () => { await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" }); await sleep(2500); await shot("02-tao-nhan-vat"); });
+    await step("tao-nhan-vat", async () => { await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" + QS }); await sleep(2500); await shot("02-tao-nhan-vat"); });
     await post("/api/looks", { token: l.token, sex: 0, hair: 1, hairCol: 1, outfitCol: 2 });
     await post("/api/awaken", { token: l.token, vohon: "lam_dien_ba_vuong_long" });
-    await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" });
+    await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" + QS });
     await until(`!!document.getElementById("go")`); await sleep(800);
     await step("the-vao-ban-do", () => shot("03-the-vao-ban-do"));
     await click("go");
