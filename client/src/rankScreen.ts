@@ -54,14 +54,17 @@ const el = () => document.getElementById("rank");
 export function bindRank(sender: (type: string, payload: unknown) => void) { send = sender; }
 export const isRankOpen = () => { const e = el(); return !!e && !e.hidden; };
 
+/** Gửi tin `rank` (hạng mục `boards` khi chưa có danh mục, không thì `top`) sau khi hết nhịp RANK_CD; bấm dồn chỉ gửi yêu cầu cuối. */
 function request() {
-  if (!send || !cur) return;
+  if (!send) return;
   status = "loading";
   window.clearTimeout(sendTimer); window.clearTimeout(timer);
-  const fire = () => { // đọc `cur` / `page` mới nhất lúc gửi: bấm dồn trong nhịp chỉ gửi yêu cầu cuối
-    if (!send || !cur) return;
+  const fire = () => { // đọc `cur` / `page` mới nhất lúc gửi
+    if (!send) return;
+    if (!boards.length) send("rank", { op: "boards" });
+    else if (cur) send("rank", { op: "top", board: cur, page, pageSize: RANK_PAGE_SIZE });
+    else return;
     sentAt = Date.now();
-    send("rank", { op: "top", board: cur, page, pageSize: RANK_PAGE_SIZE });
     timer = window.setTimeout(() => { if (status === "loading") { status = "error"; render(); } }, LOAD_TIMEOUT_MS); // đếm từ lúc thật sự gửi
   };
   const wait = sendDelay(sentAt, Date.now());
@@ -71,17 +74,14 @@ function request() {
 
 export function openRank() {
   const e = el(); if (!e || !send) return;
-  e.hidden = false; status = "loading";
-  if (!boards.length) { send("rank", { op: "boards" }); sentAt = Date.now(); window.setTimeout(() => { if (!boards.length) { status = "error"; render(); } }, LOAD_TIMEOUT_MS); }
-  else request();
-  render();
+  e.hidden = false; request();
 }
 export function closeRank() { const e = el(); if (e) e.hidden = true; window.clearTimeout(timer); window.clearTimeout(cdTimer); window.clearTimeout(sendTimer); }
 
 export function onRankBoards(m: { k?: string; list?: RankBoardInfo[] }) {
   if (m?.k !== "boards" || !Array.isArray(m.list)) return;
   boards = m.list; cur = cur && boards.some((b) => b.board === cur) ? cur : boards[0]?.board ?? null; page = 1;
-  if (isRankOpen()) { window.setTimeout(() => { if (isRankOpen()) request(); }, RANK_CD * 1000 + 50); render(); } // `boards` và `top` cùng nhịp RANK_CD: trang đầu gửi sau khi hết nhịp
+  if (isRankOpen()) request(); // `boards` và `top` cùng nhịp RANK_CD: request() tự chờ hết nhịp rồi gửi trang đầu
 }
 export function onRankTop(m: RankTopMsg) {
   if (!m || typeof m.board !== "string" || !Array.isArray(m.rows)) return;
