@@ -8,6 +8,7 @@ import "./ui2-settings.css";
 import "./ui2-charpanel.css";
 import "./ui2-vohon.css";
 import "./ui2-npc.css";
+import "./ui2-shop.css";
 import { setConnectionLabel } from "./uiIcons.ts";
 import { loadGameFonts } from "./fontLoad";
 import Phaser from "phaser";

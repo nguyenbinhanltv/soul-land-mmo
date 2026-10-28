@@ -1,10 +1,15 @@
 // UI Kit v2, khung màn chuẩn + thành phần nhỏ (uiParts.ts): số / giờ, thẻ trạng thái, công tắc, đồng hồ, khung, và ui2-parts.css chỉ chạy dưới body.ui2 bằng token.
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
-import { abbrevNumber, formatCountdown, cardInfo, cardNode, toggleNode, countdownNode, frameNode, toHtml, COUNTDOWN_SOON_MS, CARD_MARK_LABEL, stateNode, STATE_TEXT, selectNode, selectedOption, nextEnabled, qtyNode, clampQty, tabsNode, activeTabId, slotNode, slotInfo } from "../src/uiParts.ts";
+import { abbrevNumber, foldVi, matchQuery, formatCountdown, cardInfo, cardNode, toggleNode, countdownNode, frameNode, toHtml, COUNTDOWN_SOON_MS, CARD_MARK_LABEL, stateNode, STATE_TEXT, selectNode, selectedOption, nextEnabled, qtyNode, clampQty, tabsNode, activeTabId, slotNode, slotInfo } from "../src/uiParts.ts";
 
 // rút gọn số
 for (const [n, s] of [[0, "0"], [999, "999"], [1000, "1K"], [1234, "1,2K"], [999_999, "999,9K"], [12_500_000, "12,5M"], [-1500, "-1,5K"], [2_000_000_000, "2B"], [NaN, "0"]]) assert.equal(abbrevNumber(n), s, `abbrevNumber(${n})`);
+
+// tìm / lọc có dấu tiếng Việt
+assert.equal(foldVi("Hồi Huyết Đan"), "hoi huyet dan"); assert.equal(foldVi("  Đại   Hồi  "), "dai hoi");
+assert.ok(matchQuery("Đại Hồi Huyết Đan", "dai hoi")); assert.ok(matchQuery("Đại Hồi Huyết Đan", "HUYẾT đan")); assert.ok(matchQuery("Hồi Hồn Đan", ""));
+assert.ok(!matchQuery("Hồi Hồn Đan", "huyet")); assert.ok(matchQuery("Hồi Hồn Đan", "dan hoi"), "thứ tự từ không quan trọng");
 
 // đếm ngược
 assert.equal(formatCountdown(0), "Đã hết"); assert.equal(formatCountdown(-5), "Đã hết"); assert.equal(formatCountdown(NaN), "Đã hết");
