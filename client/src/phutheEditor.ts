@@ -68,8 +68,8 @@ export function mountPhutheEditor(h: EditHost): void {
   $("ey").onclick = () => { void navigator.clipboard?.writeText(json()).then(() => say("Đã sao chép JSON."), () => say("Không sao chép được, dùng nút tải.")); };
   // kéo thả trên khung hình
   let drag: { x: number; y: number } | null = null;
-  window.addEventListener("pointerdown", (e) => { if (e.target !== h.canvas() || e.button !== 0) return; drag = { x: e.clientX, y: e.clientY }; hist.push(h.table()); burst = true; });
-  window.addEventListener("pointermove", (e) => { if (!drag) return; const [dx, dy] = phuDragDelta(e.clientX - drag.x, e.clientY - drag.y, h.zoom(), h.flip()); drag = { x: e.clientX, y: e.clientY }; nudge(dx, dy); });
+  window.addEventListener("pointerdown", (e) => { if (e.target !== h.canvas() || e.button !== 0) return; drag = { x: e.clientX, y: e.clientY }; burst = false; }); // chỉ bấm không kéo thì không chụp lịch sử (không xóa hàng làm lại): `nudge` tự chụp ở lần dời đầu
+  window.addEventListener("pointermove", (e) => { if (!drag) return; const [dx, dy] = phuDragDelta(e.clientX - drag.x, e.clientY - drag.y, h.zoom(), h.flip()); drag = { x: e.clientX, y: e.clientY }; if (dx || dy) nudge(dx, dy); });
   window.addEventListener("pointerup", () => { drag = null; burst = false; });
   window.addEventListener("wheel", (e) => { if (e.target !== h.canvas()) return; e.preventDefault(); change((a) => { a.scale = phuWheelScale(a.scale, e.deltaY); }); }, { passive: false });
   window.addEventListener("keydown", (e) => {
