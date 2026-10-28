@@ -423,14 +423,15 @@ export interface CheckinRow { cycle: number; startDay: number; mask: number; mak
 /**
  * Một lần ghi Sổ Điểm Danh: trạng thái MỚI của ô vừa ký (`bit` = đúng một bit) cùng điều kiện ghi. `expect` = `ver` đã đọc (null = chưa có dòng).
  * Hợp lệ khi: cùng chu kỳ thì `mask` mới = mask cũ | bit (bit chưa có), `makeupUsed` mới bằng cũ hoặc cũ + 1; sang chu kỳ mới (`cycle` + 1) thì `mask` = bit,
- * `makeupUsed` = 0. Luôn: `makeupUsed` <= `makeupMax`, `lastAt` không lùi so với lần trước.
+ * `makeupUsed` = 0. Luôn: `makeupUsed` <= `makeupMax`, `lastAt` không lùi so với lần trước, `bit` < `days` (ô trong lưới). Cùng chu kỳ thì `startDay`
+ * không đổi; chu kỳ mới chỉ mở khi chu kỳ cũ đã hết (`startDay` >= `startDay` cũ + `days`), nên không kéo dài / mở sớm chu kỳ dù lỗi ở tầng phòng (soát P5, #877).
  */
-export interface CheckinPatch { expect: number | null; cycle: number; startDay: number; mask: number; makeupUsed: number; lastAt: number; bit: number; makeupMax: number }
+export interface CheckinPatch { expect: number | null; cycle: number; startDay: number; mask: number; makeupUsed: number; lastAt: number; bit: number; makeupMax: number; days: number }
 /** Kiểm đầu vào chung của `checkinClaim` ở cả hai store (lỗi lập trình, không phải tranh chấp). */
 function checkinPatchOk(p: CheckinPatch) {
-  const ints = [p.cycle, p.startDay, p.mask, p.makeupUsed, p.bit, p.makeupMax];
-  if (!ints.every(Number.isSafeInteger) || !Number.isFinite(p.lastAt) || p.cycle < 1 || p.makeupUsed < 0 || p.makeupUsed > p.makeupMax) throw new Error("Sổ điểm danh: giá trị không hợp lệ.");
-  if (p.bit < 1 || p.bit >= 1 << 30 || (p.bit & (p.bit - 1)) !== 0 || (p.mask & p.bit) === 0 || p.mask < 0 || p.mask >= 1 << 30) throw new Error("Sổ điểm danh: ô ký không hợp lệ.");
+  const ints = [p.cycle, p.startDay, p.mask, p.makeupUsed, p.bit, p.makeupMax, p.days];
+  if (!ints.every(Number.isSafeInteger) || !Number.isFinite(p.lastAt) || p.cycle < 1 || p.makeupUsed < 0 || p.makeupUsed > p.makeupMax || p.days < 1 || p.days > 30) throw new Error("Sổ điểm danh: giá trị không hợp lệ.");
+  if (p.bit < 1 || p.bit >= 1 << p.days || (p.bit & (p.bit - 1)) !== 0 || (p.mask & p.bit) === 0 || p.mask < 0 || p.mask >= 1 << 30) throw new Error("Sổ điểm danh: ô ký không hợp lệ.");
   if (p.expect === null && (p.cycle !== 1 || p.mask !== p.bit || p.makeupUsed > 1)) throw new Error("Sổ điểm danh: dòng đầu tiên phải là ô đầu của chu kỳ 1.");
 }
 /** Một dòng điểm ghi vào `rank_scores` (`extra`: đội hình hiển thị, chỉ Cấp / Sưu tầm). */
@@ -854,8 +855,8 @@ export class MemoryStore implements Store {
     if ((cur?.ver ?? null) !== p.expect) return null;
     if (cur) {
       if (cur.lastAt !== null && p.lastAt < cur.lastAt) return null;
-      const same = p.cycle === cur.cycle && (cur.mask & p.bit) === 0 && p.mask === (cur.mask | p.bit) && p.makeupUsed >= cur.makeupUsed && p.makeupUsed <= cur.makeupUsed + 1;
-      if (!same && !(p.cycle === cur.cycle + 1 && p.mask === p.bit && p.makeupUsed === 0)) return null;
+      const same = p.cycle === cur.cycle && p.startDay === cur.startDay && (cur.mask & p.bit) === 0 && p.mask === (cur.mask | p.bit) && p.makeupUsed >= cur.makeupUsed && p.makeupUsed <= cur.makeupUsed + 1;
+      if (!same && !(p.cycle === cur.cycle + 1 && p.startDay >= cur.startDay + p.days && p.mask === p.bit && p.makeupUsed === 0)) return null;
     }
     this.checkBag(accountId, bag);
     const ver = (cur?.ver ?? 0) + 1;
@@ -1767,8 +1768,8 @@ export class PgStore implements Store {
         : await db.query(
           `UPDATE checkin_state SET cycle=$3, start_day=$4, mask=$5, makeup_used=$6, last_at=to_timestamp($7::double precision / 1000), ver=ver+1
            WHERE account_id=$1 AND ver=$2 AND $6::int <= $9::int AND (last_at IS NULL OR last_at <= to_timestamp($7::double precision / 1000))
-             AND ((cycle=$3 AND (mask & $8) = 0 AND (mask | $8) = $5 AND makeup_used <= $6 AND $6 <= makeup_used + 1) OR (cycle + 1 = $3 AND $5 = $8 AND $6 = 0))
-           RETURNING ver`, [accountId, p.expect, p.cycle, p.startDay, p.mask, p.makeupUsed, p.lastAt, p.bit, p.makeupMax]);
+             AND ((cycle=$3 AND start_day=$4 AND (mask & $8) = 0 AND (mask | $8) = $5 AND makeup_used <= $6 AND $6 <= makeup_used + 1) OR (cycle + 1 = $3 AND $4 >= start_day + $10::int AND $5 = $8 AND $6 = 0))
+           RETURNING ver`, [accountId, p.expect, p.cycle, p.startDay, p.mask, p.makeupUsed, p.lastAt, p.bit, p.makeupMax, p.days]);
       if (!r.rowCount) { await db.query("ROLLBACK"); return null; }
       await this.writeBag(db, accountId, bag);
       await db.query("COMMIT");
