@@ -5,9 +5,11 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync
 import { spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
-import { ROOT, encodePng } from "./lib.mjs";
+import { ROOT, encodePng, readPng, Img } from "./lib.mjs";
 import { fakeSheets } from "./beast-sheet-fake.mjs";
-import { blockDirs, parseDirsOk, pickDirsOk, upsertEntry } from "./beast-import.mjs";
+import { blockDirs, parseDirsOk, pickDirsOk, upsertEntry, copyDirRows, changedDirs } from "./beast-import.mjs";
+import { idleSpread } from "./beast-sheet-spread.mjs";
+import { recutOne } from "./beast-recut-all.mjs";
 
 const SCRIPT = path.join(ROOT, "tools", "assets", "beast-import.mjs");
 const stat = (k, map) => `    {\n      "key": "${k}",\n      "frame": [\n        96,\n        96\n      ],\n      "iso": true,\n      "static": true,\n      "map": "${map}"\n    }`;
@@ -132,4 +134,56 @@ test("CLI: tùy chọn sai báo lỗi", () => {
   assert.equal(bad("--scale", "x=abc").status, 2);
   assert.equal(bad("--patch", "x").status, 2);
   assert.equal(bad("--lạ").status, 2);
+});
+
+test("copyDirRows / changedDirs: chép đúng hàng của hướng, phát hiện hướng đổi byte", () => {
+  const F = 8, mk = (v) => { const im = new Img(6 * F, 5 * 4 * F); im.data.fill(v); return im; };
+  const a = mk(1), b = mk(2);
+  assert.deepEqual(changedDirs(a, b, ["s", "se", "e", "ne", "n"], F), ["s", "se", "e", "ne", "n"]);
+  copyDirRows(b, a, ["se", "n"], F);
+  assert.deepEqual(changedDirs(a, b, ["s", "se", "e", "ne", "n"], F), ["s", "e", "ne"], "chỉ se, n được chép");
+  b.data[4 * F * 6 * F * 4 * 0 + 5] ^= 1; // đổi một byte trong khối s
+  assert.deepEqual(changedDirs(a, b, ["se", "n"], F), []);
+  assert.deepEqual(changedDirs(a, mk(1), ["s"], F), []);
+  assert.deepEqual(changedDirs(a, new Img(F, F), ["s"], F), ["s"], "khác cỡ thì coi là đổi");
+});
+
+test("CLI bổ sung hướng vào loài đã nhập một phần: hàng hướng cũ giữ NGUYÊN byte (sheet + normal), hướng mới khớp cỡ theo sheet đã nhập, đủ 5 hướng bỏ dirsOk", () => {
+  const tmp = mkdtempSync(path.join(os.tmpdir(), "beast-import-keep-")), src = path.join(tmp, "src", "phong_lang"), sp = path.join(tmp, "sprites");
+  try {
+    mkdirSync(src, { recursive: true }); mkdirSync(sp);
+    const put = (id, im) => writeFileSync(path.join(src, `to${id}.png`), encodePng(im));
+    for (const [id, im] of Object.entries(fakeSheets("phong_lang", { seed: 2 }))) put(id, im);
+    const big = fakeSheets("phong_lang", { seed: 2, layout: "direction", grow: 1.6 }); put("D", big.D); put("E", big.E);
+    writeFileSync(path.join(sp, "manifest.json"), `{
+  "sprites": [
+${stat("beast_phong_lang", "tinh_dau_ngoai_vi")}
+  ]
+}
+`);
+    const go = (...a) => spawnSync(process.execPath, [SCRIPT, "--species", "phong_lang", "--sprites", sp, "--src", path.dirname(src), ...a], { encoding: "utf8" });
+    const png = path.join(sp, "beast", "phong_lang_anim.png"), nPng = path.join(sp, "beast", "phong_lang_anim_n.png");
+    const anim = () => JSON.parse(readFileSync(path.join(sp, "manifest.json"), "utf8")).sprites.find((e) => e.key === "beast_phong_lang_anim")?.anim;
+    // lần 1: s, se, e với hệ số đặt tay nhỏ hơn bản cắt tự động (sheet đang nhập khác bản cắt lại)
+    const first = go("--dirs-ok", "s,se,e", "--scale", "phong_lang=0.8"); assert.equal(first.status, 0, first.stderr + first.stdout);
+    const old = readPng(png), oldN = readPng(nPng), F = 96, S5 = ["s", "se", "e", "ne", "n"];
+    assert.deepEqual(anim().dirsOk, ["s", "se", "e"]);
+    const auto = recutOne("phong_lang", {}, path.dirname(src));
+    assert.ok(changedDirs(old, auto.res.sheet, ["s", "se", "e"], F).length > 0, "tiền đề: bản cắt lại mặc định khác sheet đã nhập");
+    // lần 2: thêm ne, n (khai thẳng; chạy khô không ghi)
+    const dry = go("--dirs-ok", "s,se,e,ne,n", "--dry-run"); assert.equal(dry.status, 0, dry.stderr + dry.stdout); assert.match(dry.stdout, /khác bản đã nhập/);
+    assert.equal(Buffer.compare(readFileSync(png), Buffer.from(encodePng(old))), 0, "dry-run không ghi");
+    const noForce = go("--dirs-ok", "s,se,e,ne,n"); assert.match(noForce.stdout, /cần --force/);
+    const second = go("--dirs-ok", "s,se,e,ne,n", "--force"); assert.equal(second.status, 0, second.stderr + second.stdout);
+    assert.match(second.stdout, /chuẩn cỡ = sheet đã nhập \(s \d+, se \d+, e \d+/);
+    const now = readPng(png), nowN = readPng(nPng);
+    assert.deepEqual(changedDirs(old, now, ["s", "se", "e"], F), [], "hướng cũ đổi byte (sheet)");
+    assert.deepEqual(changedDirs(oldN, nowN, ["s", "se", "e"], F), [], "hướng cũ đổi byte (normal)");
+    assert.deepEqual(changedDirs(old, now, ["ne", "n"], F), ["ne", "n"], "hướng mới được ghi");
+    assert.equal(anim().dirsOk, undefined, "đủ 5 hướng");
+    const h = idleSpread(now, F).heights, ref = (h.s + h.se + h.e) / 3;
+    for (const d of ["ne", "n"]) assert.ok(Math.abs(h[d] / ref - 1) <= 0.1, `${d} cao ${h[d]} so với sheet đã nhập ${ref.toFixed(1)}`);
+    assert.deepEqual(S5.filter((d) => h[d] === 0), []);
+    assert.match(go("--dirs-ok", "s,se,e,ne,n", "--dry-run").stdout, /(giống|khác) bản đã nhập/);
+  } finally { rmSync(tmp, { recursive: true, force: true }); }
 });
