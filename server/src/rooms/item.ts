@@ -152,6 +152,7 @@ export function useTome(room: MapRoom, id: string, d: PData, it: Item, raw: unkn
   if (!def) return warn("Vật phẩm này không dùng trực tiếp được.");
   if (!v) return warn(`Chọn võ hồn để dùng ${def.name}.`);
   if (d.absorbing) return warn("Đang hấp thụ hồn hoàn, không dùng được kinh quyển.");
+  if (v === d.ch) room.syncCh(id); // võ hồn ra trận: cấp / vòng thật ở PlayerState, chép về d.ch trước khi kiểm bình cảnh (như absorb.ts)
   const name = VOHON[Math.max(0, vohonIndex(v.vohon))].name;
   if (xpBlocked(v.level, v.rings.length)) return warn(`${name} đang ở bình cảnh (cấp ${v.level}): hãy hấp thụ hồn hoàn kế tiếp rồi dùng ${def.name}.`);
   room.takeItem(d, it, 1);

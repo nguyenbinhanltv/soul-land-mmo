@@ -83,5 +83,9 @@ export async function bicanhTest(){
   await test(A,"set",{rowId:act0,level:30,xp:0,rings:[1000,1000,1000]}); await sleep(200); q=qtyOf(A,BICANH.tome); lg=await use(act0);
   const me=A.room.state.players.get(A.room.sessionId);
   ok(qtyOf(A,BICANH.tome)===q-1&&me.xp===BICANH.tomeXp&&me.level===30,`quyển cho võ hồn ra trận: +${BICANH.tomeXp} kinh nghiệm (xp ${me.xp}) (${lg})`);
+  // Võ hồn ra trận vừa chạm bình cảnh bằng chính quyển (cấp thật ở state, d.ch chưa chép): dùng ngay quyển thứ hai phải bị từ chối, không mất quyển.
+  await test(A,"set",{rowId:act0,level:9,xp:xpNeed(9)-1,rings:[]}); await sleep(200); q=qtyOf(A,BICANH.tome);
+  A.room.send("use",{id:tomeIt()?.id,vohonId:act0}); A.room.send("use",{id:tomeIt()?.id,vohonId:act0}); await sleep(800);
+  ok(qtyOf(A,BICANH.tome)===q-1&&A.room.state.players.get(A.room.sessionId).level===10,`võ hồn ra trận chạm bình cảnh: quyển thứ hai bị từ chối, chỉ mất 1 quyển (${q}→${qtyOf(A,BICANH.tome)}, cấp ${A.room.state.players.get(A.room.sessionId).level})`);
   await A.room.leave();
 }
