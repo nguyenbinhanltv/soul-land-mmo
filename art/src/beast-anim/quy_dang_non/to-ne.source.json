@@ -1,0 +1,10 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 1,
+  "references": [
+    "shared/assets/sprites/beast/quy_dang_non.png",
+    "art/src/beast-anim/quy_dang_non/turnaround.png"
+  ]
+}
