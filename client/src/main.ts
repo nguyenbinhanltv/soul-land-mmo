@@ -10,6 +10,7 @@ import "./ui2-bag.css";
 import "./confirm.css";
 import "./ui2-vohon.css";
 import "./ui2-npc.css";
+import "./ui2-shop.css";
 import { setConnectionLabel } from "./uiIcons.ts";
 import { loadGameFonts } from "./fontLoad";
 import Phaser from "phaser";
