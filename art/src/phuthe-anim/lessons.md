@@ -24,6 +24,7 @@
 - [turnaround] Draw all poses at the same spirit size on the same ground line; one figure per cell with clear magenta space around it. // ảnh mẫu hướng phải cùng cỡ
 
 ## Theo nhóm
+- [direction @A] Floating rigid objects hover beside the original full-size mannequin at hand height: keep the whole reference silhouette readable, never shrink it into a tiny figure below a giant object, and keep the object compact inside its own cell during HURT and CAST as well as IDLE. Show exactly three separate figures in the first row, four in the second, four in the third and two in the last; keep all smoke attached to its own object and all spare cells empty. // Lô 8 Đỉnh A1: thân nhỏ, hurt/cast mất đăng ký; B1/B2 thừa cụm hàng attack/idle, gộp bài học vật lơ lửng.
 - [direction @A] A rigid object keeps its shape in every frame (no bending, no melting), but each pose must really differ: change its angle, height and distance from the hand; never copy one pose into several frames. // vật cứng ít pose nhưng phải khác thật
 - [direction @B] Limbs of the creature (wings, tails, ears, claws, legs, necks) keep their root fixed on the mannequin and bend in smooth arcs between frames; wing beats and tail sways match the walking rhythm. // chi thể phải dính điểm gắn ở mọi khung
 - [direction @C] Soft forms (plants, flames, shadows, smoke) are painted with hard edges and a clear dark outline, never as soft blurred glow, so the shape stays separable from the magenta and from the mannequin color. // hình mềm không viền dễ lẫn nộm / nền
