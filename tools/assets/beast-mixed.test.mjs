@@ -258,3 +258,48 @@ test("khớp cỡ thân (#861): bật CẢ neo ảnh tĩnh + chuẩn hóa → le
     }
   }
 });
+
+// ---- Chuẩn cỡ đo trên sheet ĐÃ NHẬP (matchRef, Part of #861) ----
+const frameBodyH = (r, d) => { // cao thân idle (trung vị) của khung đã cắt
+  const hs = [0, 1, 2, 3].map((n) => { const im = r.frames.get(`${d}/idle/${n}`); let y0 = Infinity, y1 = -1; for (let y = 0; y < im.h; y++) for (let x = 0; x < im.w; x++) if (im.alpha(x, y)) { y0 = Math.min(y0, y); y1 = Math.max(y1, y); } return y1 - y0 + 1; }).sort((a, b) => a - b);
+  return (hs[1] + hs[2]) / 2;
+};
+
+test("matchRef (a): cấu hình trộn, sheet đã nhập nhỏ hơn bản legacy cắt lại → hướng mới khớp về sheet ĐÃ NHẬP, không về legacy cắt lại", async () => {
+  const { fakeSheets } = await import("./beast-sheet-fake.mjs");
+  const base = { species: "phong_lang", palette: "gpl", anchorBlocks: false, equalizeBlocks: false };
+  const leg = fakeSheets("phong_lang", { seed: 2 }), dir = fakeSheets("phong_lang", { seed: 2, layout: "direction", grow: 1.6 }), sheets = { ...leg, D: dir.D, E: dir.E };
+  const recut = cutSpecies({ ...base, sheets });
+  const imported = cutSpecies({ ...base, scale: recut.report.scale * 0.85, sheets: leg }); // sheet đang nhập: hướng legacy nhỏ hơn bản cắt lại mặc định ~15%
+  const target = (frameBodyH(imported, "s") + frameBodyH(imported, "se") + frameBodyH(imported, "e")) / 3;
+  const viaRef = cutSpecies({ ...base, sheets, matchRef: { sheet: imported.sheet, dirs: ["s", "se", "e"], only: ["ne", "n"] } });
+  for (const d of ["ne", "n"]) {
+    assert.ok(Math.abs(frameBodyH(viaRef, d) / target - 1) <= 0.06, `${d} cao ${frameBodyH(viaRef, d)} so với sheet đã nhập ${target.toFixed(1)}`);
+    assert.ok(Math.abs(frameBodyH(recut, d) / target - 1) > 0.1, "tiền đề: khớp về legacy cắt lại thì lệch xa sheet đã nhập");
+  }
+  assert.equal(viaRef.report.matchRef.source, "sheet đã nhập");
+  assert.deepEqual(viaRef.report.matchRef.dirs, ["s", "se", "e"]);
+  assert.ok(viaRef.report.warnings.some((w) => /^khối ne: khớp cỡ thân ×.*đã nhập trong game/.test(w)));
+  assert.equal(recut.report.matchRef, undefined, "không matchRef: đo trên legacy cắt lại như cũ");
+  // --no-match-size tắt cả chuẩn sheet đã nhập
+  assert.equal(cutSpecies({ ...base, matchSize: false, sheets, matchRef: { sheet: imported.sheet, dirs: ["s", "se", "e"], only: ["ne", "n"] } }).report.matchSize, undefined);
+});
+
+test("matchRef (b): loài CHỈ có tờ direction nhưng đã nhập e / ne / n → s / se (to hơn) khớp về cỡ đã nhập; không có matchRef thì không khớp (như cũ)", async () => {
+  const { fakeSheets } = await import("./beast-sheet-fake.mjs");
+  const base = { species: "phong_lang", palette: "gpl", anchorBlocks: false, equalizeBlocks: false };
+  const norm = fakeSheets("phong_lang", { seed: 2, layout: "direction" }), big = fakeSheets("phong_lang", { seed: 2, layout: "direction", grow: 1.3 });
+  const sheets = { A: big.A, B: big.B, C: norm.C, D: norm.D, E: norm.E };
+  const imported = cutSpecies({ ...base, sheets: norm }); // sheet đang nhập (đủ 5 hướng cùng cỡ; chỉ e, ne, n coi là đã nhập)
+  const target = (frameBodyH(imported, "e") + frameBodyH(imported, "ne") + frameBodyH(imported, "n")) / 3;
+  const off = cutSpecies({ ...base, sheets });
+  assert.equal(off.report.matchSize, undefined, "tiền đề: thuần direction không có bước khớp");
+  const viaRef = cutSpecies({ ...base, sheets, matchRef: { sheet: imported.sheet, dirs: ["e", "ne", "n"], only: ["s", "se"] } });
+  for (const d of ["s", "se"]) {
+    assert.ok(Math.abs(frameBodyH(off, d) / target - 1) > 0.2, `tiền đề: ${d} lệch cỡ ${frameBodyH(off, d)} / ${target.toFixed(1)}`);
+    assert.ok(Math.abs(frameBodyH(viaRef, d) / target - 1) <= 0.06, `${d} cao ${frameBodyH(viaRef, d)} so với sheet đã nhập ${target.toFixed(1)}`);
+  }
+  assert.equal(viaRef.report.summary.block, 0, viaRef.report.issues.filter((i) => i.level === "block").map((i) => i.msg).join("\n"));
+  // sheet chuẩn rỗng ở các hướng đã nhập (không đo được) hoặc không có hướng mới: không kích hoạt
+  assert.equal(cutSpecies({ ...base, sheets, matchRef: { sheet: imported.sheet, dirs: ["e", "ne", "n"], only: ["e"] } }).report.matchSize, undefined);
+});

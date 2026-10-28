@@ -8,14 +8,19 @@
 // Nhập riêng khối đạt (#869): --dirs-ok s,se,e (mọi loài trong lệnh) hoặc --dirs-ok loài=s,se,e (từng loài, ưu tiên hơn) ghi `anim.dirsOk` vào manifest; client chạy hoạt ảnh ở hướng đạt,
 //   hướng còn lại dùng ảnh tĩnh + chuyển động code. --dirs-ok-only: lấy mọi khối cutter KHÔNG chặn (loài chỉ chặn một vài hướng thì nhập phần còn lại).
 //   Hướng khai trong --dirs-ok mà cutter chặn thì từ chối (không nhập khối hỏng). Lỗi mắt (công cụ không thấy) do người soát khai qua --dirs-ok. Đủ 5 hướng thì không ghi dirsOk.
+// Bổ sung hướng vào loài ĐÃ nhập một phần (manifest có anim.dirsOk) khi khai hướng mới bằng --dirs-ok / --dirs-ok-only (Part of #861):
+//   - cỡ thân hướng mới khớp về cỡ thân đo trên SHEET ĐANG NHẬP (các hướng dirsOk cũ), không phải bản cắt lại của tờ legacy; loài chỉ có tờ direction cũng khớp theo hướng đã nhập;
+//   - hàng của hướng đã nhập giữ NGUYÊN byte (cả _anim.png lẫn _anim_n.png): chỉ hướng mới được ghi; có kiểm tự động, đổi byte thì báo lỗi và không ghi gì.
 // Loài ĐÃ nhập mà bản cắt lại khác thì KHÔNG ghi đè (cutter ở đây không có chỉnh tay của lần nhập trước): cần --force, nên truyền lại --scale / --patch đã dùng.
 // --dry-run: cắt và so sánh, KHÔNG ghi gì; báo "giống bản đã nhập" / "khác bản đã nhập" / "sẽ nhập mới".
 // --sprites / --src: thư mục khác (thử trong thư mục tạm); manifest.json phải có sẵn entry ảnh tĩnh của loài.
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ROOT, encodePng } from "./lib.mjs";
+import { ROOT, encodePng, readPng } from "./lib.mjs";
+import { BAND_ROWS, COLS } from "./beast-sheet-lib.mjs";
 import { recutOne } from "./beast-recut-all.mjs";
 import { parsePatch } from "./beast-sheet-cut-lib.mjs";
 
@@ -80,14 +85,66 @@ export function upsertEntry(text, id, entry) {
   return { text: text.slice(0, at) + (comma ? "\n" + entryText(full) + "," : ",\n" + entryText(full)) + text.slice(at), action: "mới" };
 }
 
+// ---------- Hướng đã nhập: chuẩn cỡ + giữ nguyên byte ----------
+/** Sheet đã nhập (nếu có) + các hướng đã nhập RIÊNG (anim.dirsOk). Loài nhập đủ 5 hướng không có dirsOk nên không thuộc diện giữ hàng (hành vi cũ). */
+function importedState(o, id) {
+  const png = path.join(o.sprites, "beast", `${id}_anim.png`), mf = path.join(o.sprites, "manifest.json");
+  if (!existsSync(png) || !existsSync(mf)) return null;
+  const dirs = findEntry(readFileSync(mf, "utf8"), `beast_${id}_anim`)?.obj.anim?.dirsOk;
+  if (!dirs?.length) return null;
+  const nPng = png.replace(/\.png$/, "_n.png");
+  return { sheet: readPng(png), normal: existsSync(nPng) ? readPng(nPng) : null, dirs: DIRS5.filter((d) => dirs.includes(d)) };
+}
+
+const rowBytes = (F) => BAND_ROWS * F * COLS * F * 4; // một khối hướng = BAND_ROWS khung × COLS khung
+
+/** Chép hàng của các hướng `dirs` từ `from` sang `to` (cùng kích thước). */
+export function copyDirRows(to, from, dirs, F) {
+  const n = rowBytes(F);
+  for (const d of dirs) { const at = DIRS5.indexOf(d) * n; to.data.set(from.data.subarray(at, at + n), at); }
+}
+
+/** Hướng trong `dirs` mà hàng của hai sheet khác byte (kiểm "hướng cũ không đổi byte"). */
+export function changedDirs(a, b, dirs, F) {
+  if (a.w !== b.w || a.h !== b.h) return [...dirs];
+  const n = rowBytes(F);
+  return dirs.filter((d) => { const at = DIRS5.indexOf(d) * n; return Buffer.compare(Buffer.from(a.data.buffer, a.data.byteOffset + at, n), Buffer.from(b.data.buffer, b.data.byteOffset + at, n)) !== 0; });
+}
+
+/** Normal map của sheet (normal.mjs chạy trong thư mục tạm, không đụng thư mục đích). */
+function normalOf(sheet, id, F) {
+  const tmp = mkdtempSync(path.join(os.tmpdir(), "beast-import-n-"));
+  try {
+    const png = path.join(tmp, `${id}_anim.png`);
+    writeFileSync(png, encodePng(sheet));
+    const n = spawnSync(process.execPath, [path.join(ROOT, "tools", "assets", "normal.mjs"), png, "--frame", `${F}x${F}`], { encoding: "utf8" });
+    if (n.status !== 0) throw new Error(`normal.mjs: ${(n.stderr || n.stdout).trim().split("\n").pop()}`);
+    return readPng(png.replace(/\.png$/, "_n.png"));
+  } finally { rmSync(tmp, { recursive: true, force: true }); }
+}
+
+/** Ghi chú chuẩn cỡ (để chép vào PR / NGUON): cỡ các hướng đo trên sheet đã nhập và hệ số khớp từng hướng mới. */
+export function matchNote(rep) {
+  const m = rep.matchRef;
+  if (!m) return undefined;
+  return `chuẩn cỡ = sheet đã nhập (${Object.entries(m.heights).map(([d, h]) => `${d} ${h}`).join(", ")} → ${m.target}); khớp ${Object.entries(rep.matchSize ?? {}).map(([d, x]) => `${d} ×${x.factor.toFixed(2)} (còn lệch ${(x.residual * 100).toFixed(1)}%)`).join(", ")}`;
+}
+
 // ---------- Nhập một loài ----------
 function importOne(id, o) {
   const row = { id };
-  const r = recutOne(id, { ...(o.scales[id] ? { scale: o.scales[id] } : {}), ...(o.patches[id] ? { patches: o.patches[id] } : {}), ...(o.noMatchSize ? { matchSize: false } : {}) }, o.src);
+  // Chỉ khi khai hướng (--dirs-ok / --dirs-ok-only) và loài đã nhập một phần mới khớp cỡ theo sheet đã nhập + giữ hàng cũ; không khai thì giữ hành vi cũ.
+  const want = o.dirsOkBy?.[id] ?? o.dirsOk, prev = want || o.dirsOkOnly ? importedState(o, id) : null;
+  // Hướng giữ lại = hướng đã nhập mà lần này vẫn khai; khai bớt thì bỏ bớt như trước (không tự thêm hướng đã nhập vào danh sách)
+  const kept = prev ? prev.dirs.filter((d) => !want || want.includes(d)) : [];
+  const newDirs = prev ? DIRS5.filter((d) => !prev.dirs.includes(d) && (!want || want.includes(d))) : [];
+  const r = recutOne(id, { ...(o.scales[id] ? { scale: o.scales[id] } : {}), ...(o.patches[id] ? { patches: o.patches[id] } : {}), ...(o.noMatchSize ? { matchSize: false } : {}), ...(newDirs.length && kept.length ? { matchRef: { sheet: prev.sheet, dirs: kept, only: newDirs } } : {}) }, o.src);
   if (r.error) return { ...row, status: "lỗi", note: r.error };
-  const rep = r.rep, s = rep.summary;
-  Object.assign(row, { frames: rep.frames, block: s.block, warn: s.warn, info: s.info, scale: rep.scaleInfo?.used });
-  const blocked = blockDirs(rep.issues), pick = pickDirsOk(id, blocked, o);
+  const rep = r.rep, s = rep.summary, F = r.res.entry.frame[0];
+  Object.assign(row, { frames: rep.frames, block: s.block, warn: s.warn, info: s.info, scale: rep.scaleInfo?.used, match: matchNote(rep) });
+  if (prev && (prev.sheet.w !== r.res.sheet.w || prev.sheet.h !== r.res.sheet.h)) return { ...row, status: "lỗi", note: "sheet đã nhập khác cỡ sheet cắt lại, không thể giữ hàng của hướng đã nhập" };
+  // Hướng đã nhập được giữ nguyên nên khối cutter chặn ở đó (nếu có) không còn liên quan
+  const blocked = blockDirs(rep.issues).filter((d) => !kept.includes(d)), pick = pickDirsOk(id, blocked, o);
   if (pick && !blocked.includes("cả loài")) {
     if (pick.rejected.length) return { ...row, status: "bỏ qua (chặn)", blocked: sortDirs(blocked), note: `--dirs-ok có khối cutter chặn: ${pick.rejected.join(", ")}` };
     if (!pick.dirs.length) return { ...row, status: "bỏ qua (chặn)", blocked: sortDirs(blocked), note: "không còn khối nào đạt" };
@@ -95,6 +152,17 @@ function importOne(id, o) {
     if (pick.dirs.length < DIRS5.length) r.res.entry.anim.dirsOk = pick.dirs;
   } else if (blocked.length) return { ...row, status: "bỏ qua (chặn)", blocked: sortDirs(blocked), note: rep.issues.filter((i) => i.level === "block").slice(0, 3).map((i) => i.msg).join(" · ") };
 
+  // Giữ nguyên hàng của hướng đã nhập (sheet + normal), rồi kiểm tự động: đổi byte là lỗi, không ghi gì
+  let keptNormal = null;
+  if (prev && pick && kept.length) {
+    copyDirRows(r.res.sheet, prev.sheet, kept, F);
+    try {
+      keptNormal = normalOf(r.res.sheet, id, F);
+      if (prev.normal) copyDirRows(keptNormal, prev.normal, kept, F);
+    } catch (e) { return { ...row, status: "lỗi", note: e.message }; }
+    const bad = [...changedDirs(prev.sheet, r.res.sheet, kept, F), ...(prev.normal ? changedDirs(prev.normal, keptNormal, kept, F) : [])];
+    if (bad.length) return { ...row, status: "lỗi", note: `hướng đã nhập đổi byte (${[...new Set(bad)].join(", ")}): lỗi công cụ, không ghi gì` };
+  }
   const png = path.join(o.sprites, "beast", `${id}_anim.png`), buf = Buffer.from(encodePng(r.res.sheet));
   const manifestPath = path.join(o.sprites, "manifest.json"), text = readFileSync(manifestPath, "utf8");
   const up = upsertEntry(text, id, r.res.entry);
@@ -109,7 +177,8 @@ function importOne(id, o) {
   if ((row.png === "cập nhật" || up.action === "cập nhật") && !o.force) return { ...row, status: "bỏ qua (khác bản đã nhập, cần --force)", note: "đã có bản nhập khác kết quả cắt lại; nếu lần trước dùng --scale / --patch thì truyền lại, rồi chạy --force" };
   mkdirSync(path.dirname(png), { recursive: true });
   if (!pngSame) writeFileSync(png, buf);
-  if (needNormal) {
+  if (needNormal && keptNormal) writeFileSync(nPng, encodePng(keptNormal));
+  else if (needNormal) {
     const n = spawnSync(process.execPath, [path.join(ROOT, "tools", "assets", "normal.mjs"), png, "--frame", `${r.res.entry.frame[0]}x${r.res.entry.frame[1]}`], { encoding: "utf8" });
     if (n.status !== 0) return { ...row, status: "lỗi", note: `normal.mjs: ${(n.stderr || n.stdout).trim().split("\n").pop()}` };
   }
@@ -151,6 +220,7 @@ export function run(o) {
     process.stdout.write(c.stdout ?? ""); process.stderr.write(c.stderr ?? "");
     if (c.status !== 0) { console.error("credits.mjs --check lỗi (loài mới có tờ mà NGUON.md thiếu bảng ## Ghi công? chạy npm run beast:nguon)"); return 1; }
   }
+  for (const r of rows) if (r.match) console.log(`${r.id}: ${r.match}`);
   console.log(`\n${o.dryRun ? "[dry-run, không ghi gì] " : ""}${rows.length} loài: ${imported} nhập, ${rows.filter((r) => r.status.startsWith("bỏ qua")).length} bỏ qua, ${rows.filter((r) => r.status === "lỗi").length} lỗi.`);
   if (!o.dryRun && imported) console.log("Tiếp: kiểm GIF (beast-sheet-preview), chạy npm run check, rồi commit.");
   return rows.some((r) => r.status === "lỗi") ? 1 : 0;

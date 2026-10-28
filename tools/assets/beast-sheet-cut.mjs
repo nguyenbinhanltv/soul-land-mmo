@@ -19,6 +19,7 @@ import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { Img, readPng, encodePng, readGpl, hex, toHex, OUTLINE, ISO_BEAST_FOOT } from "./lib.mjs";
 import { DIRS, ANIMS, COLS, BAND_ROWS, animSlot, sheetPlan, sheetCells, speciesInfo, sheetFits, canonFactor, mixedPlan } from "./beast-sheet-lib.mjs";
+import { idleSpread } from "./beast-sheet-spread.mjs";
 import { layoutFor, parsePatch, applyPatches, staticAnchors, blockFactors, equalizeBlocks, levelOf, codeOf, warnSheetId, summarize } from "./beast-sheet-cut-lib.mjs";
 
 const K_OUT = hex(OUTLINE);
@@ -147,7 +148,7 @@ export const nearest = (p, pal) => { let bi = 0, bd = Infinity; for (let i = 0; 
 
 // ---------- Cắt một loài ----------
 /**
- * @param {{ species: string, sheets: Record<string, Img>, frame?: number, key?: number[], tol?: number, colors?: number, palette?: string, fill?: number, scale?: number, minArea?: number, normalizeSize?: boolean (mặc định true) }} o
+ * @param {{ species: string, sheets: Record<string, Img>, matchRef?: { sheet: Img, dirs: string[], only: string[] } (sheet ĐÃ NHẬP trong game làm chuẩn cỡ thân: đo idle các hướng `dirs`, kéo các hướng `only` về chuẩn), frame?: number, key?: number[], tol?: number, colors?: number, palette?: string, fill?: number, scale?: number, minArea?: number, normalizeSize?: boolean (mặc định true) }} o
  * @returns {{ sheet: Img, entry: object, report: object, frames: Map<string, Img> }} frames: khóa `dir/anim/n`
  */
 export function cutSpecies(o) {
@@ -248,7 +249,12 @@ export function cutSpecies(o) {
 
   const dirScale = Object.fromEntries(DIRS.map((d) => [d, scale])), fitWarned = new Set();
   // Khớp cỡ thân (#861): chỉ cấu hình trộn (có hướng gốc legacy lẫn hướng direction mới), không đặt tay --scale / --fill
-  const matchSize = !o.scale && !o.fill && o.matchSize !== false && baseDirs.size < DIRS.length && baseFrames.length > 0;
+  // Chuẩn cỡ có hai nguồn: (1) o.matchRef = sheet ĐÃ NHẬP trong game + các hướng đã nhập (đo thẳng trên sheet đó, kể cả loài chỉ có tờ direction); (2) không có thì trung bình hướng legacy cắt lại trong lần này (cũ).
+  // matchDirs: hướng được kéo về chuẩn. matchRef.only = hướng mới nhập; không có matchRef thì mọi hướng từ tờ direction (không phải hướng gốc).
+  const mref = o.matchRef && o.matchRef.sheet.w === COLS * F ? o.matchRef : null, refHeights = mref ? idleSpread(mref.sheet, F).heights : null;
+  const refDirs = mref ? mref.dirs.filter((d) => refHeights[d] > 0) : [];
+  const matchDirs = new Set(mref ? mref.only.filter((d) => DIRS.includes(d) && !refDirs.includes(d)) : DIRS.filter((d) => !baseDirs.has(d)));
+  const matchSize = !o.scale && !o.fill && o.matchSize !== false && (mref ? refDirs.length > 0 && matchDirs.size > 0 : baseDirs.size < DIRS.length && baseFrames.length > 0);
   const anchors = !o.scale && o.anchorBlocks !== false && info.staticFile && !o.fill ? staticAnchors(info.staticFile, F) : null;
   if (anchors) {
     const idleH = Object.fromEntries(DIRS.map((d) => [d, idle.filter(([, r]) => r.dir === d).map(([, r]) => r.h)]));
@@ -270,7 +276,7 @@ export function cutSpecies(o) {
   if (!o.scale && !o.fill && o.equalizeBlocks !== false) {
     const bodyH = (d) => median(idle.filter(([, r]) => r.dir === d).map(([, r]) => r.h));
     // Cấu hình trộn + khớp cỡ thân: chuẩn hóa chỉ giữa các hướng gốc (legacy) để hướng gốc không đổi theo hướng mới; hướng mới khớp cỡ ở bước 3b'
-    const heights = Object.fromEntries(DIRS.map((d) => [d, matchSize && !baseDirs.has(d) ? 0 : dirScale[d] * (bodyH(d) || 0)]));
+    const heights = Object.fromEntries(DIRS.map((d) => [d, matchSize && matchDirs.has(d) ? 0 : dirScale[d] * (bodyH(d) || 0)]));
     const eq = equalizeBlocks(heights, o.blockSpread);
     rep.equalize = { before: +(eq.spread ?? 0).toFixed(3), active: eq.active, target: +eq.target.toFixed(1), heightsBefore: Object.fromEntries(Object.entries(heights).map(([d, h]) => [d, +h.toFixed(1)])), factors: {}, after: null };
     if (eq.active) {
@@ -293,12 +299,13 @@ export function cutSpecies(o) {
   // 3b'. Khớp cỡ thân hướng mới về trung bình cỡ thân (cao idle sau thu) các hướng gốc; hướng gốc giữ nguyên hệ số / byte. Vượt khung thì 3c hạ tối đa 20%, quá thì chặn riêng hướng đó.
   if (matchSize) {
     const bodyH = (d) => dirScale[d] * (median(idle.filter(([, r]) => r.dir === d).map(([, r]) => r.h)) || 0);
-    const legacyH = [...baseDirs].map(bodyH).filter((h) => h > 0);
+    const legacyH = (mref ? refDirs.map((d) => refHeights[d]) : [...baseDirs].map(bodyH)).filter((h) => h > 0), refName = mref ? "đã nhập trong game" : "legacy";
     if (legacyH.length) {
       const target = legacyH.reduce((a, b) => a + b, 0) / legacyH.length;
       rep.matchSize = {};
+      if (mref) rep.matchRef = { source: "sheet đã nhập", dirs: refDirs, heights: Object.fromEntries(refDirs.map((d) => [d, refHeights[d]])), target: +target.toFixed(1) };
       for (const d of DIRS) {
-        if (baseDirs.has(d)) continue;
+        if (!matchDirs.has(d)) continue;
         const h = bodyH(d);
         if (!h) continue;
         const sd = dirScale[d], want = Math.min(2, Math.max(0.5, target / h));
@@ -308,7 +315,7 @@ export function cutSpecies(o) {
         // Độ lệch cỡ thân còn lại so với trung bình legacy (kể cả khi bị kẹp khung / 0,5–2 hoặc k≈1): >10% thì cảnh báo mức warn để người nhập thấy
         const residual = target / (h * k) - 1;
         rep.matchSize[d].residual = +residual.toFixed(3);
-        if (Math.abs(residual) > 0.1) warns.push(`khối ${d}: cỡ thân còn lệch ${residual > 0 ? "nhỏ hơn" : "to hơn"} ${Math.round(Math.abs(residual) * 100)}% so với trung bình hướng legacy sau khi khớp (kẹp khung ${F}×${F} hoặc giới hạn ×0,5–×2), nên vẽ lại hướng này`);
+        if (Math.abs(residual) > 0.1) warns.push(`khối ${d}: cỡ thân còn lệch ${residual > 0 ? "nhỏ hơn" : "to hơn"} ${Math.round(Math.abs(residual) * 100)}% so với trung bình hướng ${refName} sau khi khớp (kẹp khung ${F}×${F} hoặc giới hạn ×0,5–×2), nên vẽ lại hướng này`);
         if (Math.abs(k - 1) < 0.02) continue;
         dirScale[d] = sd * k;
         rep.matchSize[d].scale = +dirScale[d].toFixed(4);
@@ -316,7 +323,7 @@ export function cutSpecies(o) {
         // Hệ số hướng này đã đổi: bỏ cảnh báo cắt mép cũ do bước neo ghi, để 3c đánh giá lại theo hệ số cuối
         if (fitWarned.delete(d)) for (let i = warns.length - 1; i >= 0; i--) if (warns[i].startsWith(`khối ${d}: hệ số `) && warns[i].endsWith("bị cắt mép")) warns.splice(i, 1);
         if (k < want - 1e-9) warns.push(`khối ${d}: khớp cỡ thân một phần ×${k.toFixed(2)} thay vì ×${want.toFixed(2)} (giới hạn khung ${F}×${F}), cỡ thân còn lệch`);
-        warns.push(`khối ${d}: khớp cỡ thân ×${k.toFixed(2)} (cao idle ${h.toFixed(1)} so với trung bình hướng legacy ${target.toFixed(1)}), hệ số ${sd.toFixed(3)} → ${dirScale[d].toFixed(3)}`);
+        warns.push(`khối ${d}: khớp cỡ thân ×${k.toFixed(2)} (cao idle ${h.toFixed(1)} so với trung bình hướng ${refName} ${target.toFixed(1)}), hệ số ${sd.toFixed(3)} → ${dirScale[d].toFixed(3)}`);
       }
     }
   }
@@ -324,7 +331,7 @@ export function cutSpecies(o) {
   // 3c. Vừa khung theo TỪNG hướng cho hướng không phải gốc (từ tờ direction): hạ hệ số của riêng hướng đó (tối đa 20%), còn vượt nữa thì chỉ khối đó bị chặn.
   // Hướng gốc giữ nguyên hệ số (không bị hướng mới to hơn kéo nhỏ lại; khối của hướng khác không chặn nhau).
   for (const d of DIRS) {
-    if (baseDirs.has(d) && baseFrames.length) continue;
+    if (baseDirs.has(d) && baseFrames.length && !matchDirs.has(d)) continue;
     const rs = all.filter((r) => r.dir === d);
     if (!rs.length) continue;
     const f = fitOf(rs), sd = dirScale[d];
