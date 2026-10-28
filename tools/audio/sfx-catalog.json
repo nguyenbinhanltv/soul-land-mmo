@@ -4705,6 +4705,72 @@
       "skillId": "bach_ho",
       "phase": "form",
       "kind": "avatar"
+    },
+    {
+      "id": "ui-click-1",
+      "group": "ui-click",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/toggle_001.ogg",
+      "inputSha256": "ca1d2dde5f0b286abac4f070e23edab8f30927c8a533665cdf2ac6492a415e49",
+      "gainDb": -6
+    },
+    {
+      "id": "ui-click-2",
+      "group": "ui-click",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/toggle_002.ogg",
+      "inputSha256": "1f564f5520cfa0764028ce245ad97599d3ece8f0ab504554c403af92ac72b900",
+      "gainDb": -6
+    },
+    {
+      "id": "ui-error-1",
+      "group": "ui-error",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/error_005.ogg",
+      "inputSha256": "3f75b11df5b06d68d2c25fbf0e9c9d9e7dd9250562a4007ee34856b8a309a2ae"
+    },
+    {
+      "id": "ui-error-2",
+      "group": "ui-error",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/error_006.ogg",
+      "inputSha256": "a97513d7fd2b12b1210c423be943b4c1ab0e899b11db95855e9b74836e646ae0"
+    },
+    {
+      "id": "ui-reward-1",
+      "group": "ui-reward",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/confirmation_001.ogg",
+      "inputSha256": "063564703b6094d70718a3e787a55cc9141611e4ecd6b6637f8828f79b4a8c3a"
+    },
+    {
+      "id": "ui-reward-2",
+      "group": "ui-reward",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/confirmation_002.ogg",
+      "inputSha256": "33b17a9a9a2397c62b285c52c33a907fdffb476909c99e42dde603f6a7a8b12c"
+    },
+    {
+      "id": "ui-notify-1",
+      "group": "ui-notify",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/select_001.ogg",
+      "inputSha256": "aec0c31ea934a35936ae0d2ab8fac8123c93aa5647f935853a58dbaf90278b7a"
+    },
+    {
+      "id": "ui-notify-2",
+      "group": "ui-notify",
+      "pack": "ui",
+      "sourceId": "kenney-interface-sounds",
+      "input": "kenney-interface-sounds/select_002.ogg",
+      "inputSha256": "4cc6ac5341b9b2c86fef80c347de028e9ab9f2e037586ac7d9fa59a403a1c012"
     }
   ]
 }

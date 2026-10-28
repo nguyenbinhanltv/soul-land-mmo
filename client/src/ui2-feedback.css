@@ -1,0 +1,31 @@
+/* UI v2: phản hồi giao diện theo kit Mực (đợt 1c, Part of #877 / #599 / #755): chú thích (#tip), chip trạng thái lệnh (#cmdChip), banner sự kiện lớn (#banner),
+   dòng lặp "×n" của toast. Toast đã nhận khung kit ở ui2-hud.css. Mọi luật dưới `body.ui2` (cờ tắt mặc định: không có lớp này thì giao diện cũ không đổi) VÀ chỉ khi
+   mảnh kit có thật (lớp `ui2-k-*`). Khung do lớp `f2-tooltip` / `f2-muc-nho` của ui2.css lo (gắn bởi tooltip.ts / cmdChip.ts / feedback.ts khi bật cờ); file này lặp lại
+   đúng bộ viền kit cho các `#id` (độ ưu tiên cao hơn helper) và chỉnh màu theo token. Chữ 10 / 12 (Galmuri), không ký tự ngoài phông nhúng. */
+
+/* Chú thích: tấm Mực của kit; màu bậc (tiêu đề `--tip-cg`, viền `--tip-c` do tooltip.ts đặt) chuyển thành vạch trong mép trên (hình, không chỉ màu viền). */
+body.ui2.ui2-k-khung-tooltip #tip.f2-tooltip{box-sizing:border-box;padding:var(--sp-3) var(--sp-5);border-style:solid;border-color:transparent;border-width:var(--frame-bw);
+  border-image:var(--frame-img) var(--frame-nine) fill / var(--frame-bw) stretch;background:none;background-color:var(--plate);image-rendering:pixelated;
+  box-shadow:inset 0 var(--bd) 0 var(--tip-c,transparent);color:var(--plate-text)}
+
+/* Chip lệnh: tấm Mực, vạch trái đỏ son khi đang chạy (hình, không chỉ màu), vạch giấy khi chỉ báo lý do; nút × là nút giấy nhỏ (vùng bấm ≥ 32 px). */
+body.ui2.ui2-k-khung-muc-nho #hud #cmdChip.f2-muc-nho{padding:0 0 0 var(--sp-5);min-height:36px;background-color:var(--plate);color:var(--plate-text);
+  box-shadow:inset var(--sp-2) 0 0 var(--son-l)}
+body.ui2.ui2-k-khung-muc-nho #hud #cmdChip.f2-muc-nho.why{padding-right:var(--sp-5);background-color:var(--plate);color:var(--plate-text);box-shadow:inset var(--sp-2) 0 0 var(--paper2)}
+body.ui2 #hud #cmdChip #cmdChipX{min-width:36px;color:var(--ink);background:var(--paper);border-left:var(--bd) solid var(--ink2)}
+body.ui2 #hud #cmdChip #cmdChipX:hover{background:var(--paper2)}
+body.ui2 #hud #cmdChip #cmdChipX:focus-visible{outline:var(--bd) solid var(--paper2);outline-offset:calc(var(--bd) * -2)}
+
+/* Banner sự kiện lớn: tấm Mực, vạch son ở mép trên; chữ giấy. */
+body.ui2.ui2-k-khung-muc-nho #hud #banner.f2-muc-nho{padding:var(--sp-4) var(--sp-6) var(--sp-5);background-color:var(--plate);color:var(--plate-text);
+  box-shadow:inset 0 var(--bd) 0 var(--son-l)}
+body.ui2 #hud #banner.f2-muc-nho span{color:var(--paper3)}
+
+/* Toast: số lần lặp "×n" là chip nhỏ để thấy ngay đó là một việc lặp, không phải thêm một thông báo. */
+body.ui2 .toast .tn{padding:0 var(--sp-2);background:var(--track);border:var(--bd-fine) solid var(--ink2);color:var(--plate-text)}
+body.ui2 .toast .tn:empty{display:none}
+
+@media (prefers-reduced-motion:reduce){body.ui2 #hud #banner.f2-muc-nho{transition:none}}
+
+/* Tab chat (7 tab trong ô 270 px): khung ui2 thêm viền 1 px mỗi bên, bỏ đệm ngang để chữ không bị cắt. */
+body.ui2:where(.ui-w1000:not(.ui-w640)) #hud #chattabs button{padding-inline:0}

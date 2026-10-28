@@ -32,5 +32,7 @@
 - Như SFX: context chưa chạy (chưa tương tác) thì nhạc nền đứng chờ, khúc ngắn bị bỏ; tab ẩn hoặc mất tiêu điểm thì Phaser treo context nên nhạc dừng theo. Không có WebAudio (bot, headless) thì không có bộ phát. Thêm `?music=log` vào địa chỉ trang để ghi mỗi lần đổi bài vào console và xem `window.__music.status()`.
 - Mất kết nối (màn "Đã rời bản đồ") thì ngừng nhạc.
 
+- **Tiếng giao diện đợt 1c (#599):** thêm bốn nhóm vào gói `ui` (mỗi nhóm 2 biến thể, Kenney Interface Sounds CC0): `ui-click` (bấm nút trong bảng, `uiSounds.ts`, tối đa một tiếng mỗi `CLICK_GAP_MS`), `ui-error` (chip lệnh báo lý do / bị từ chối), `ui-reward` (toast nhiệm vụ / lên cấp, nhận đồ hạng ≥ 1 chưa tới "hiếm"), `ui-notify` (toast thường). Phát qua kênh **Giao diện** nên theo thanh "Giao diện" trong Cài đặt. Dựng lại riêng gói `ui`: `node tools/audio/process-sfx.mjs --source-root <nguồn> --pack ui` (giữ nguyên các gói khác trong manifest). Cân âm lượng `GROUP_TRIM_DB`.
+
 ## Issue liên quan
-#393 (G2, tiếng mẫu CC0), #396 (G5, nhạc động và âm thanh lô 2), #397 (G6, đấu trường), #399 (G8, cân âm lượng), #579 (C4, tiếng tuyệt kỹ), #643 (nhạc tu tiên 10 bản đồ).
+#393 (G2, tiếng mẫu CC0), #396 (G5, nhạc động và âm thanh lô 2), #397 (G6, đấu trường), #399 (G8, cân âm lượng), #579 (C4, tiếng tuyệt kỹ), #643 (nhạc tu tiên 10 bản đồ), #599 (tiếng giao diện đợt 1c).

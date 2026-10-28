@@ -114,7 +114,7 @@ try {
     const page = await context.newPage(), errors = [];
     page.setDefaultTimeout(20000); page.setDefaultNavigationTimeout(30000);
     page.on("pageerror", (e) => errors.push(e.message));
-    await page.addInitScript((token) => localStorage.setItem("shh-token", token), token);
+    await page.addInitScript(([token, ui2]) => { localStorage.setItem("shh-token", token); if (ui2) localStorage.setItem("shh-ui2", "1"); }, [token, process.env.C8_UI2 === "1"]); // C8_UI2=1: chạy ở chế độ cờ ui2 (?ui=2)
     // Chỉ lấy tham chiếu cảnh để gửi ý định/hook local và đọc state; không thay dữ liệu hay hàm vẽ game.
     await page.route("**/src/scenes/GameScene.ts*", async (route) => {
       const response = await route.fetch();
@@ -135,7 +135,7 @@ try {
     const initialLayout = await layoutBounds(page);
     if (!touch && !before) {
       assert.ok(initialLayout.guideVisible, `Phải kiểm guide đang mở: ${size}`);
-      assert.equal(initialLayout.tabs.length, 6);
+      assert.equal(initialLayout.tabs.length, 7); // 6 kênh chat + tab "Tin" (hệ thống, #755)
       if (initialLayout.team.some((e) => e.overlappingGuide || !e.reachable) || initialLayout.tabs.some((e) => e.scroll > e.width)) nameFailures.push({ size, initialLayout });
     }
     await screenshot(page, "san-sang", size);
