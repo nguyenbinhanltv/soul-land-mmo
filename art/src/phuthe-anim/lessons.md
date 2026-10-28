@@ -96,3 +96,4 @@
 - [direction @B] Shorten every feline claw extension inside its own cell while preserving a broad magenta gap between all six attack poses. // U Minh C1: vuốt vươn sang ô bên, D giữ khoảng trống
 - [direction @B] Keep feline cast silhouettes compact above the fixed pelvis and leave the two spare cells completely magenta. // U Minh D1: cast dựng nguyên thân, mặt ne khai eye; E giữ khoảng trống
 - [direction @B] Keep each east-facing feline attack claw folded inside its own cell, with no slash arc extending toward a neighbour. // U Minh C1 bị chặn lưới; C2 chỉ sửa tờ e
+- [direction @C] Keep each plant, flame or shadow pose as one compact island, with every detached petal or trail close to its own core; preserve six isolated figures in each of the first three rows and four in the last row, separated by uninterrupted magenta gutters. // Lô 5: mảnh rời làm thừa hình, attack/cast dính; bài học chung cho nhóm mềm.
