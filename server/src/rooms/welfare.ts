@@ -109,7 +109,7 @@ export function welfareAction(room: MapRoom, id: string, m: { op?: unknown; day?
       }
     };
     let ver: number | null;
-    try { ver = await store.checkinClaim(d.accountId, { expect: row?.ver ?? null, cycle, startDay, mask: mask | bit, makeupUsed: used, lastAt: now, bit, makeupMax: CHECKIN.makeupMax }, room.bagSnapshot(d)); }
+    try { ver = await store.checkinClaim(d.accountId, { expect: row?.ver ?? null, cycle, startDay, mask: mask | bit, makeupUsed: used, lastAt: now, bit, makeupMax: CHECKIN.makeupMax, days: CHECKIN.days }, room.bagSnapshot(d)); }
     catch (e) { takeBack(); deny("Không lưu được lần điểm danh, thử lại sau (không mất Hồn Tệ, không mất ô)."); throw e; }
     if (ver === null) { takeBack(); return deny("Sổ điểm danh vừa đổi (ô đã ký ở nơi khác): đã cập nhật lại."); }
     const names = [honTe ? formatHonTe(honTe) : "", ...gives.map((g) => `${g.qty} ${itemDef(g.code)?.name ?? g.code}`)].filter(Boolean).join(", ");
