@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { Img, readPng, encodePng, readGpl, hex, toHex, OUTLINE, ISO_BEAST_FOOT } from "./lib.mjs";
 import { DIRS, ANIMS, COLS, BAND_ROWS, animSlot, sheetPlan, sheetCells, speciesInfo, sheetFits, canonFactor, mixedPlan } from "./beast-sheet-lib.mjs";
-import { layoutFor, parsePatch, applyPatches, staticAnchors, blockFactors, equalizeBlocks, levelOf, codeOf, summarize } from "./beast-sheet-cut-lib.mjs";
+import { layoutFor, parsePatch, applyPatches, staticAnchors, blockFactors, equalizeBlocks, levelOf, codeOf, warnSheetId, summarize } from "./beast-sheet-cut-lib.mjs";
 
 const K_OUT = hex(OUTLINE);
 export const dist2 = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
@@ -338,7 +338,7 @@ export function cutSpecies(o) {
   const anims = Object.fromEntries(ANIMS.map(([a, n]) => [a, { band: animSlot(a).band, col: animSlot(a).col, n }]));
   const entry = { key: `beast_${o.species}_anim`, frame: [F, F], iso: true, anim: { dirs: DIRS, cols: COLS, rowsPerDir: BAND_ROWS, anims, origin: [F >> 1, foot] } };
   rep.warnings = warns;
-  rep.issues = warns.map((msg) => ({ level: levelOf(msg, { gapGrid: gapGrid[/tờ ([A-E])/.exec(msg)?.[1]] ?? false }), code: codeOf(msg), msg }));
+  rep.issues = warns.map((msg) => ({ level: levelOf(msg, { gapGrid: gapGrid[warnSheetId(msg)] ?? false }), code: codeOf(msg), msg }));
   rep.summary = summarize(rep.issues);
   rep.frames = frames.size; rep.missing = warns.filter((w) => w.startsWith("THIẾU")).length;
   return { sheet, entry, report: rep, frames };

@@ -68,11 +68,14 @@ export function layoutFor(img, sheet, mode = "auto", detect = {}) {
   return u;
 }
 
+/** Mã tờ trong một cảnh báo cutter (`… tờ A …` / `… tờ s, …`; mã A..E hoặc tên hướng, `se` / `ne` trước `s` / `e` / `n`), undefined nếu không có. */
+export const warnSheetId = (msg) => /tờ ([A-E]|se|ne|s|e|n)(?!\p{L})/u.exec(msg)?.[1];
+
 // ---------- --patch ----------
-/** "A:5,3=4,3" (dời hình đang ở ô cột 5 hàng 3 sang cột 4 hàng 3; cột / hàng đếm từ 0) hoặc "A:5,3=-" (bỏ hình đó). */
+/** "A:5,3=4,3" (mã tờ A..E hoặc tên hướng s / se / e / ne / n như "s:5,3=4,3"; dời hình đang ở ô cột 5 hàng 3 sang cột 4 hàng 3; cột / hàng đếm từ 0) hoặc "A:5,3=-" (bỏ hình đó). */
 export function parsePatch(spec) {
-  const m = /^([A-E]):(\d+),(\d+)=(?:(\d+),(\d+)|-)$/.exec(spec);
-  if (!m) throw new Error(`--patch sai cú pháp: ${spec} (mẫu A:5,3=4,3 hoặc A:5,3=-)`);
+  const m = /^([A-E]|se|ne|s|e|n):(\d+),(\d+)=(?:(\d+),(\d+)|-)$/.exec(spec);
+  if (!m) throw new Error(`--patch sai cú pháp: ${spec} (mẫu A:5,3=4,3 hoặc A:5,3=-; mã tờ A..E hoặc tên hướng s / se / e / ne / n cho tờ to-<hướng>.png)`);
   return { sheet: m[1], from: `${m[2]},${m[3]}`, to: m[4] === undefined ? null : `${m[4]},${m[5]}` };
 }
 /** Áp các patch của một tờ lên map ô → hình (đồng thời, theo bản gốc). Trả về danh sách mô tả đã áp. */

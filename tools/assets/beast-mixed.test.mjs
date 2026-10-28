@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { ROOT, Img, readPng, encodePng } from "./lib.mjs";
 import { cutSpecies } from "./beast-sheet-cut.mjs";
+import { parsePatch, warnSheetId } from "./beast-sheet-cut-lib.mjs";
 import { mixedPlan, sheetPlan, sheetStem, sheetIdOf, speciesInfo } from "./beast-sheet-lib.mjs";
 import { stageDocs } from "./beast-sheet-prompt.mjs";
 import { recutOne } from "./beast-recut-all.mjs";
@@ -149,4 +150,21 @@ test("prompt: loài có toA legacy thì tờ direction phát ra tên theo hướ
   assert.ok(byDir[0][1].includes("phong_lang/to-s.png"));
   const letters = stageDocs(info, "direction", info.desc, ["s"], { nameByDir: false, hasTurnaround: true });
   assert.deepEqual(letters.map(([n]) => n), ["phong_lang-toA.md"]);
+});
+
+test("tờ theo tên hướng: --patch nhận mã s / se…; cảnh báo hình vượt ô của tờ lưới khoảng trống không bị hạ xuống info", () => {
+  assert.deepEqual(parsePatch("s:5,3=4,3"), { sheet: "s", from: "5,3", to: "4,3" });
+  assert.deepEqual(parsePatch("se:1,2=-"), { sheet: "se", from: "1,2", to: null });
+  assert.deepEqual(parsePatch("ne:0,0=1,1").sheet, "ne");
+  assert.throws(() => parsePatch("x:1,1=2,2"));
+  assert.equal(parsePatch("A:5,3=4,3").sheet, "A");
+  const r = cutSpecies({ species: "phong_lang", sheets: { ...legacy, s: direction.D }, patches: [parsePatch("s:5,3=-")] });
+  assert.ok(r.report.sheets.s.patches?.length, "patch áp lên tờ s");
+  // mã tờ trong cảnh báo cutter (cutter tra gapGrid theo mã này): tờ theo tên hướng không bị hạ xuống info
+  assert.equal(warnSheetId("khung s/die/0: hình vượt ô tờ s, kiểm tra lưới"), "s");
+  assert.equal(warnSheetId("khung se/die/0: hình vượt ô tờ se, kiểm tra lưới"), "se");
+  assert.equal(warnSheetId("tờ ne: lưới theo khoảng trống"), "ne");
+  assert.equal(warnSheetId("tờ A ô 1,2: bỏ mảnh rời"), "A");
+  assert.equal(warnSheetId("thiếu tờ B (ne, n)"), "B");
+  assert.equal(warnSheetId("tờ này lạ"), undefined);
 });
