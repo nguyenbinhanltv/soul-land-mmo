@@ -11,4 +11,4 @@ Chủ repo chọn (2026-10-27) icon võ hồn lấy thẳng từ RAW (`icon-atte
 
 Quyết định ca đêm: giữ RAW, dùng nearest làm nguồn rồi lượng tử hóa tối đa `PORTRAIT_MAX_COLORS` (32), không nới trần nhập. `vohon-pixelize --type icon --from-nearest --in <nearest24/32.png> --out <tmp> --colors 32` chỉ đổi bảng màu, giữ hình/alpha; hoặc `--preset icon-nearest32` nếu đi từ RAW. Bảng so sánh và hồ sơ: `art/src/vohon-v2/NHAP-ICON-V2.md`.
 
-Khóa `icon_<id>_24` / `_32` trỏ `iso/portrait/<id>_icon24.png` / `_icon32.png`. `validate --register ... --iso --keep-order` giữ nguyên văn mục cũ để tương thích UI Kit. Client dùng icon tại các ô nhỏ; thiếu icon vẫn có ảnh/chữ dự phòng. Xúc Xích hết3 lượt RAW, chưa nhập.
+Khóa `icon_<id>_24` / `_32` trỏ `iso/portrait/<id>_icon24.png` / `_icon32.png`. `validate --register ... --iso --keep-order` giữ nguyên văn mục cũ để tương thích UI Kit. Client dùng icon tại các ô nhỏ; thiếu icon vẫn có ảnh/chữ dự phòng. Xúc Xích được duyệt thêm3 lượt, đã chọn lượt4 (lượt1 bổ sung), nguồn/PNG ở PR1262 và khóa/client ở PR1263.

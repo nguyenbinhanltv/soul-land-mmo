@@ -2015,6 +2015,110 @@
     }
   },
   {
+    "id": "xuc_xich",
+    "name": "Xúc Xích",
+    "size": 32,
+    "source": "art/src/vohon-v2/xuc_xich/candidates/icon-attempt4-nearest/xuc_xich-icon-32.png",
+    "sourceSha256": "f5b7a9093643932008da8f52773078646ce9b9c256ae346e3c3dc381420d32ec",
+    "file": "shared/assets/sprites/iso/portrait/xuc_xich_icon32.png",
+    "sha256": "c75ad44e2ef5ad460c49548fc0a44246649af4c2705cec87e34f85c08a64c4e0",
+    "preset": "icon-nearest32",
+    "sourceColors": 384,
+    "colors": 32,
+    "colorDrift": 0.023,
+    "alphaChanged": 0,
+    "attempt": 4,
+    "supplemental_attempt": 1,
+    "result": {
+      "type": "icon",
+      "id": "xuc_xich",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (9 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.875 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 8.6 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.088,
+        "contrast": 0.195,
+        "edge": 0.875,
+        "sep": 8.6,
+        "bgRatio": 1.18
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "xuc_xich",
+    "name": "Xúc Xích",
+    "size": 24,
+    "source": "art/src/vohon-v2/xuc_xich/candidates/icon-attempt4-nearest/xuc_xich-icon-24.png",
+    "sourceSha256": "76b2577dc3a79db8025ba23908eeffde8b9a551bca6b62d82d41c9b2b27654c6",
+    "file": "shared/assets/sprites/iso/portrait/xuc_xich_icon24.png",
+    "sha256": "6dca9d6efb93cdc88d3cd4391c2471ee47d6f3cd2824c70fd16a38dc8126c2cd",
+    "preset": "icon-nearest32",
+    "sourceColors": 210,
+    "colors": 32,
+    "colorDrift": 0.017,
+    "alphaChanged": 0,
+    "attempt": 4,
+    "supplemental_attempt": 1,
+    "result": {
+      "type": "icon",
+      "id": "xuc_xich",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (8 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.915 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 7.5 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.102,
+        "contrast": 0.197,
+        "edge": 0.915,
+        "sep": 7.5,
+        "bgRatio": 1.15
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
     "id": "quy_mi",
     "name": "Quỷ Mị",
     "size": 32,

@@ -14688,6 +14688,14 @@
       "key": "icon_a_ngan_24",
       "iso": true
     },
+    {
+      "key": "icon_xuc_xich_24",
+      "iso": true
+    },
+    {
+      "key": "icon_xuc_xich_32",
+      "iso": true
+    },
     { "key": "ui2_khung_giay_lon", "iso": true, "nine": {"x2": 13, "x1": 7} },
     { "key": "ui2_khung_giay_nho", "iso": true, "nine": {"x2": 17, "x1": 9} },
     { "key": "ui2_khung_muc_lon", "iso": true, "nine": {"x2": 22, "x1": 11} },

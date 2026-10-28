@@ -1,12 +1,12 @@
 # Nhập icon võ hồn v2 — #1159
 
-PR làn code, độc lập với PR chân dung/thẻ #1262. Không đổi server. Không sinh RAW mới, không nới trần32 màu.
+PR làn code dựa trên nhánh PR1262 (nguồn/ảnh chân dung và Xúc Xích). Không đổi server, không nới trần32 màu.24 võ hồn dùng RAW có sẵn; Xúc Xích dùng RAW lượt4 được duyệt thêm trong PR1262.
 
 ## Kết quả
 
-Đủ24/25 võ hồn, mỗi võ hồn có icon24/32 px. Xúc Xích thiếu:3/3 lượt RAW đều nhiều chiếc phụ, crop lượt3 không đạt; không sinh lượt thứ tư.
+Đủ25/25 võ hồn, mỗi võ hồn có icon24/32 px. Xúc Xích chọn lượt4 (lượt1/3 bổ sung): một vật chính, không chiếc phụ, nền phẳng. Nguồn và hai PNG thành phẩm ở PR1262; PR này bổ sung hai khóa manifest/client. Không cần lượt5–6.
 
-Các file `iso/portrait/<id>_icon24/32.png` được lượng tử hóa từ nearest đã có bằng `quantizeNearestIcon`: bảng trung vị có trọng số và bảo vệ điểm sáng, dành một màu cho viền; không làm cứng hay đổi alpha/hình. Tất cả tối đa32 màu, alpha đổi0; số đo lệch màu lớn nhất0,03. Đã xem cả24 bộ trước/sau ở cỡ nhỏ: chưa thấy mất nét nhận diện rõ. Cảnh báo NHẸ về nét vụn/sáng tràn còn từ nguồn, không khai là ĐẸP.
+Các file `iso/portrait/<id>_icon24/32.png` được lượng tử hóa từ nearest đã có bằng `quantizeNearestIcon`: bảng trung vị có trọng số và bảo vệ điểm sáng, dành một màu cho viền; không làm cứng hay đổi alpha/hình. Tất cả tối đa32 màu, alpha đổi0; số đo lệch màu lớn nhất0,03. Đã xem cả25 bộ trước/sau ở cỡ nhỏ: chưa thấy mất nét nhận diện rõ. Cảnh báo NHẸ về nét vụn/sáng tràn còn từ nguồn, không khai là ĐẸP.
 
 [Trang so sánh1×/3×](icon-32-mau.html), [hash và số đo từng ảnh](ICON-32-MAU.json).
 

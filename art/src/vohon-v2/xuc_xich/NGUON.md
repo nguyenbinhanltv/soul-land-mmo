@@ -149,3 +149,12 @@ CLI chưa nhận cờ `--eye`; giữ nguyên kết quả máy và lưu khai báo
 
 
 **Kết luận icon:** 3/3 lượt, cả ba chưa đạt biểu tượng đơn do có nhiều chiếc phụ; không chọn bản cuối. Toàn bộ hồ sơ icon ở `candidates/`, không có NGUON phụ; lỗi còn lại chỉ khai `--eye`, không sửa RAW.
+
+
+## Icon lượt4 — chọn sau khi được duyệt thêm tối đa3 lượt
+
+Ngày29/10/2026. Lượt1/3 bổ sung (tổng lượt4, cho phép tối đa6). Chủ repo/điều phối duyệt thêm sau ba lượt cũ chưa đạt; giao việc mới yêu cầu một vật chính duy nhất, không chiếc phụ, nền phẳng. Prompt gốc từ `vohon-prompt --type icon --id xuc_xich`, thêm OWNER OVERRIDE ghi đè phần companion/background theo giao việc. Không sửa RAW hay prompt thật đã gửi. Model/seed unknown, builtin image_gen.imagegen.
+
+**Chọn lượt4**, không dùng hai lượt bổ sung còn lại. RAW/prompt/source JSON ở `candidates/icon-attempt4.*`; bản24/32 và báo cáo ở `candidates/icon-attempt4-nearest32/`, ảnh duyệt `duyet-24-32.png`. Duyệt mắt: một hương tràng nâu cam có đai đỏ và hai vết nứt vàng; không chiếc phụ, khói, vòng sáng, chữ; đọc được ở24/32. RAW và pixel đều NHẸ, không CHẶN; giữ cảnh báo mềm/nhiều màu/lưới ở RAW, chạm mép/nét vụn/gần màu ở pixel. Không khai thành ĐẸP.
+
+Thành phẩm32 màu mỗi ảnh, file `shared/assets/sprites/iso/portrait/xuc_xich_icon24.png` / `_icon32.png` nằm trong PR1262 theo chỉ định. Khóa `icon_xuc_xich_24/32` và client thuộc PR1263 dựa trên PR1262; chỉ hiển thị mới sau khi cả hai phần được gộp. SHA/checks/prompt thật trong source JSON.
