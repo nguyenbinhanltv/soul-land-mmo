@@ -30,15 +30,15 @@ body.ui2 #bag .bsortsel{min-height:32px;box-sizing:border-box;margin-left:auto;p
 body.ui2 #bag .bfocus{background:var(--track);border:var(--bd) solid var(--xp);border-left-width:6px}   /* chế độ chọn món cho ô búp bê: vạch trái 6 px + chữ */
 body.ui2 #bag .bfocus small{font:var(--fs-s)/1.3 var(--f10);color:var(--plate-text)}
 
-/* Trang túi + nút Tự bán / Sắp xếp. */
+/* Trang túi + nút Tự bán / Sắp xếp. Vạch dưới chân của trang đang xem / Tự bán bật phải kèm `.f2-nut-phu`: luật khung kit ở (1) cùng độ ưu tiên và luật đến sau thắng. */
 body.ui2 #bag .bpages{gap:var(--sp-3)}
 body.ui2 #bag .bpg{min-width:32px;min-height:32px;color:var(--plate-text);cursor:pointer}
-body.ui2 #bag .bpg.cur{box-shadow:inset 0 calc(var(--bd) * -2) 0 var(--xp)}
+body.ui2 #bag .bpg.f2-nut-phu.cur{box-shadow:inset 0 calc(var(--bd) * -2) 0 var(--xp)}
 body.ui2 #bag .bpg i{background:var(--ink2)}
 body.ui2 #bag .buse{min-height:32px;padding:0 var(--sp-5);cursor:pointer;font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text)}
 body.ui2 #bag .buse.absorb{min-height:44px;min-width:64px}
 body.ui2 #bag .buse:disabled{cursor:not-allowed;opacity:.6}
-body.ui2 #bag .bsellbtn.on{box-shadow:inset 0 calc(var(--bd) * -2) 0 var(--accent)}
+body.ui2 #bag .bsellbtn.f2-nut-phu.on{box-shadow:inset 0 calc(var(--bd) * -2) 0 var(--accent)}
 
 /* (3) Lưới ô theo hạng. Mảnh ô kit (o_trong, o_hiem_1..5) là ảnh cỡ cố định, không có vạch 9-slice (ui-kit.json `stretch: false`) nên vẽ bằng `background` kéo vừa ô,
    không bằng border-image. Hạng (data-rare 0..4, từ rarityOf) chọn khung o_hiem_1..5; thêm vạch dưới chân dày dần 2 / 3 / 4 / 5 / 6 px + màu `--c` (hình, không chỉ màu).

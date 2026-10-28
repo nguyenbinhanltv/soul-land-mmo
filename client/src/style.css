@@ -1786,3 +1786,6 @@ body:where(.ui-h460):not(.touch) #quest{display:none}
 /* Có tổ đội thì dải giữa-trên (thanh máu boss, đếm ngược boss, nhãn mục tiêu) neo theo mép phải bảng Tổ đội (10 + 210 + 8 + 232 = 460, +16) và mép trái cột phải (222), không theo giữa màn: đúng ở mọi cỡ logic có ui-h560 (#722) */
 body:where(.ui-h560) #hud:has(#party:not(:empty)) :is(#bossbar,#bossCd,#target){left:476px;transform:none;width:auto;max-width:max(140px,calc(100% - 476px - 222px));overflow:hidden;text-overflow:ellipsis}
 body:where(.ui-h560) #hud:has(#party:not(:empty)) #bossbar{width:min(268px,calc(100% - 476px - 222px));min-width:140px}
+
+/* Icon võ hồn ở ô nhỏ, giữ ảnh hồn sư dự phòng khi thiếu asset. */
+.bmid img.vh-icon,#char .bmid img.vh-icon{width:32px;height:32px;margin:0}

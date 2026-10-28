@@ -1,0 +1,2511 @@
+[
+  {
+    "id": "cuu_tinh_that_sat_kiem",
+    "name": "Cửu Tinh Thất Sát Kiếm",
+    "size": 32,
+    "source": "art/src/vohon-v2/cuu_tinh_that_sat_kiem/icon-attempt1-nearest/cuu_tinh_that_sat_kiem-icon-32.png",
+    "sourceSha256": "cc39c56ec8bb19f75383b384b9806178e9e1eb35c0054703e17940544c8ad7ac",
+    "file": "shared/assets/sprites/iso/portrait/cuu_tinh_that_sat_kiem_icon32.png",
+    "sha256": "a31aadd90fa8b59075094b024fb7173ed36af84463027bcdb1673b0396f9c07a",
+    "preset": "icon-nearest32",
+    "sourceColors": 163,
+    "colors": 31,
+    "colorDrift": 0.014,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "cuu_tinh_that_sat_kiem",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (1 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.852 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 5.2 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 31,
+        "outline": 1,
+        "hot": 0.139,
+        "contrast": 0.262,
+        "edge": 0.852,
+        "sep": 5.2,
+        "bgRatio": 1.12
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "cuu_tinh_that_sat_kiem",
+    "name": "Cửu Tinh Thất Sát Kiếm",
+    "size": 24,
+    "source": "art/src/vohon-v2/cuu_tinh_that_sat_kiem/icon-attempt1-nearest/cuu_tinh_that_sat_kiem-icon-24.png",
+    "sourceSha256": "5b8b2c8450406549764f93c45b6b23993daa3938b5930189a7f86de52868e6e3",
+    "file": "shared/assets/sprites/iso/portrait/cuu_tinh_that_sat_kiem_icon24.png",
+    "sha256": "ba06af46e82a4cac89a250d881c545454b3b22ae32f5e78877d6746eca8a4b26",
+    "preset": "icon-nearest32",
+    "sourceColors": 91,
+    "colors": 31,
+    "colorDrift": 0.01,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "cuu_tinh_that_sat_kiem",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (1 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.809 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 1.7 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 31,
+        "outline": 1,
+        "hot": 0.12,
+        "contrast": 0.226,
+        "edge": 0.809,
+        "sep": 1.7,
+        "bgRatio": 1.3
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "lam_dien_ba_vuong_long",
+    "name": "Lam Điện Bá Vương Long",
+    "size": 32,
+    "source": "art/src/vohon-v2/lam_dien_ba_vuong_long/icon-attempt1-nearest/lam_dien_ba_vuong_long-icon-32.png",
+    "sourceSha256": "efcdaf9d4bea790faeb0acf64a06247993fd46669deabd0d398ee32a13253d04",
+    "file": "shared/assets/sprites/iso/portrait/lam_dien_ba_vuong_long_icon32.png",
+    "sha256": "d1ec203d306bf1f42450b934d9b16173f647654fa772b916064cf299748999c5",
+    "preset": "icon-nearest32",
+    "sourceColors": 551,
+    "colors": 32,
+    "colorDrift": 0.019,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "lam_dien_ba_vuong_long",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (15 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.88 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 5.1 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.09,
+        "contrast": 0.235,
+        "edge": 0.88,
+        "sep": 5.1,
+        "bgRatio": 1.38
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "lam_dien_ba_vuong_long",
+    "name": "Lam Điện Bá Vương Long",
+    "size": 24,
+    "source": "art/src/vohon-v2/lam_dien_ba_vuong_long/icon-attempt1-nearest/lam_dien_ba_vuong_long-icon-24.png",
+    "sourceSha256": "351b6e40fda5e9d79395fcb289e3982dc4b6cae038e3bf2997766b52f0ef0053",
+    "file": "shared/assets/sprites/iso/portrait/lam_dien_ba_vuong_long_icon24.png",
+    "sha256": "136ab7468642dae361363aa14f357fc8434bcd4f655e41b985554301d7783295",
+    "preset": "icon-nearest32",
+    "sourceColors": 301,
+    "colors": 32,
+    "colorDrift": 0.018,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "lam_dien_ba_vuong_long",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (12 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.905 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 7.3 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.093,
+        "contrast": 0.237,
+        "edge": 0.905,
+        "sep": 7.3,
+        "bgRatio": 1.73
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "ky_nhung_thong_thien_cuc",
+    "name": "Kỳ Nhung Thông Thiên Cúc",
+    "size": 32,
+    "source": "art/src/vohon-v2/ky_nhung_thong_thien_cuc/icon-attempt1-nearest/ky_nhung_thong_thien_cuc-icon-32.png",
+    "sourceSha256": "b44d8335fb0d7d31b3fa0c7bc65b4131a6d0670a010fe13c918dc656271f8208",
+    "file": "shared/assets/sprites/iso/portrait/ky_nhung_thong_thien_cuc_icon32.png",
+    "sha256": "238ccdcee24c6f6e42fd396fa1cb01e527cfa9760bd07f0ac28bfdaa913e3aa5",
+    "preset": "icon-nearest32",
+    "sourceColors": 441,
+    "colors": 32,
+    "colorDrift": 0.014,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "ky_nhung_thong_thien_cuc",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (4 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.859 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 3.7 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.12,
+        "contrast": 0.227,
+        "edge": 0.859,
+        "sep": 3.7,
+        "bgRatio": 1.27
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "ky_nhung_thong_thien_cuc",
+    "name": "Kỳ Nhung Thông Thiên Cúc",
+    "size": 24,
+    "source": "art/src/vohon-v2/ky_nhung_thong_thien_cuc/icon-attempt1-nearest/ky_nhung_thong_thien_cuc-icon-24.png",
+    "sourceSha256": "a3dda4c254ae8862db1cad5b2331b224a02dfdafbe5854895709cd54bcd6b2d0",
+    "file": "shared/assets/sprites/iso/portrait/ky_nhung_thong_thien_cuc_icon24.png",
+    "sha256": "2c7dfc5980d7e8dcf06c99a2e88ed435bc436255d982abc06fd298de03cc93ff",
+    "preset": "icon-nearest32",
+    "sourceColors": 250,
+    "colors": 31,
+    "colorDrift": 0.013,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "ky_nhung_thong_thien_cuc",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (3 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.897 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 3.3 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 31,
+        "outline": 1,
+        "hot": 0.104,
+        "contrast": 0.213,
+        "edge": 0.897,
+        "sep": 3.3,
+        "bgRatio": 1.17
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "ta_hoa_phuong_hoang",
+    "name": "Tà Hỏa Phượng Hoàng",
+    "size": 32,
+    "source": "art/src/vohon-v2/ta_hoa_phuong_hoang/icon-attempt1-nearest/ta_hoa_phuong_hoang-icon-32.png",
+    "sourceSha256": "7c05fe9444a4b17f8b0acd6637e6851c6d44e8ca8515b0d06ac5bd71c81e7b3e",
+    "file": "shared/assets/sprites/iso/portrait/ta_hoa_phuong_hoang_icon32.png",
+    "sha256": "a131f18b6cede4d5ce91135ffc5c6b60f8bd2a7db7f61f712edd5658c1eed344",
+    "preset": "icon-nearest32",
+    "sourceColors": 466,
+    "colors": 32,
+    "colorDrift": 0.013,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "ta_hoa_phuong_hoang",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (2 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.898 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 10.2 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.101,
+        "contrast": 0.222,
+        "edge": 0.898,
+        "sep": 10.2,
+        "bgRatio": 1.26
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "ta_hoa_phuong_hoang",
+    "name": "Tà Hỏa Phượng Hoàng",
+    "size": 24,
+    "source": "art/src/vohon-v2/ta_hoa_phuong_hoang/icon-attempt1-nearest/ta_hoa_phuong_hoang-icon-24.png",
+    "sourceSha256": "49e24bf057d7a882e613fb7787bb9331124c05ef7c2209c5131221c9cda24a60",
+    "file": "shared/assets/sprites/iso/portrait/ta_hoa_phuong_hoang_icon24.png",
+    "sha256": "db786d16b804053be2d6e412d8a4a47fa525db7b693ced0c3f2cc19c72cb6b57",
+    "preset": "icon-nearest32",
+    "sourceColors": 253,
+    "colors": 32,
+    "colorDrift": 0.012,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "ta_hoa_phuong_hoang",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (3 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.899 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 7.5 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.125,
+        "contrast": 0.236,
+        "edge": 0.899,
+        "sep": 7.5,
+        "bgRatio": 1.32
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "hao_thien_chuy",
+    "name": "Hạo Thiên Chùy",
+    "size": 32,
+    "source": "art/src/vohon-v2/hao_thien_chuy/icon-attempt1-nearest/hao_thien_chuy-icon-32.png",
+    "sourceSha256": "55610f15047fbcd65d05c5cbc9cfbcc64214d09112b100a8d95aa57c4c254fcf",
+    "file": "shared/assets/sprites/iso/portrait/hao_thien_chuy_icon32.png",
+    "sha256": "f0ce5b7c1c8c9d65194a0a583747b11fe8fdc916d27550f3a85d5d67bbb0af66",
+    "preset": "icon-nearest32",
+    "sourceColors": 342,
+    "colors": 32,
+    "colorDrift": 0.019,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "hao_thien_chuy",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (4 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.873 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 4.9 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.044,
+        "contrast": 0.171,
+        "edge": 0.873,
+        "sep": 4.9,
+        "bgRatio": 1.06
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "hao_thien_chuy",
+    "name": "Hạo Thiên Chùy",
+    "size": 24,
+    "source": "art/src/vohon-v2/hao_thien_chuy/icon-attempt1-nearest/hao_thien_chuy-icon-24.png",
+    "sourceSha256": "b8442f4257139265ead8abd43b8c2c68e9948a28b188375a14a0aba24213afa7",
+    "file": "shared/assets/sprites/iso/portrait/hao_thien_chuy_icon24.png",
+    "sha256": "dd82192dd1dc884ce232697f96649c850b06742147fc475325c72c607228f4e6",
+    "preset": "icon-nearest32",
+    "sourceColors": 187,
+    "colors": 32,
+    "colorDrift": 0.017,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "hao_thien_chuy",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (3 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.866 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 5.4 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.027,
+        "contrast": 0.155,
+        "edge": 0.866,
+        "sep": 5.4,
+        "bgRatio": 1.03
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "pha_hon_thuong",
+    "name": "Phá Hồn Thương",
+    "size": 32,
+    "source": "art/src/vohon-v2/pha_hon_thuong/icon-attempt1-nearest/pha_hon_thuong-icon-32.png",
+    "sourceSha256": "08a62e18b1baf848599fab62acbd767a8ababaae5314cff0e3ff4104814699d0",
+    "file": "shared/assets/sprites/iso/portrait/pha_hon_thuong_icon32.png",
+    "sha256": "1fe4f06a9812ee0d0deaec853eb9f2b04833ab3b09496d4233a7bc6f2f83bcc3",
+    "preset": "icon-nearest32",
+    "sourceColors": 214,
+    "colors": 31,
+    "colorDrift": 0.012,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "pha_hon_thuong",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (2 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.839 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 6.2 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 31,
+        "outline": 1,
+        "hot": 0.077,
+        "contrast": 0.197,
+        "edge": 0.839,
+        "sep": 6.2,
+        "bgRatio": 0.94
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "pha_hon_thuong",
+    "name": "Phá Hồn Thương",
+    "size": 24,
+    "source": "art/src/vohon-v2/pha_hon_thuong/icon-attempt1-nearest/pha_hon_thuong-icon-24.png",
+    "sourceSha256": "f1d507bfb99b8bbb9d2f094dbd2409d3ef036c0c515418e07e1be07e0d63c3df",
+    "file": "shared/assets/sprites/iso/portrait/pha_hon_thuong_icon24.png",
+    "sha256": "756784ed4ceac072661664c160fe7dea4accb3d1969d8e466e3a330f4bc1c2ed",
+    "preset": "icon-nearest32",
+    "sourceColors": 112,
+    "colors": 29,
+    "colorDrift": 0.01,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "pha_hon_thuong",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.826 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 4.2 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 29,
+        "outline": 1,
+        "hot": 0.072,
+        "contrast": 0.187,
+        "edge": 0.826,
+        "sep": 4.2,
+        "bgRatio": 0.97
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "bach_ho",
+    "name": "Bạch Hổ",
+    "size": 32,
+    "source": "art/src/vohon-v2/bach_ho/icon-attempt1-nearest/bach_ho-icon-32.png",
+    "sourceSha256": "cfaf5d993a79c27698bf09f8ba6887a3d17902a241b8910d6f988d66c5954549",
+    "file": "shared/assets/sprites/iso/portrait/bach_ho_icon32.png",
+    "sha256": "d1eca7f92b15a4136d92d70bd16fa7219910850427b24b003e13edfffaabc85d",
+    "preset": "icon-nearest32",
+    "sourceColors": 567,
+    "colors": 32,
+    "colorDrift": 0.011,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "bach_ho",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (9 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "sang-tran",
+          "text": "vùng sáng 37%: sáng tràn, mất đối lập tối / sáng của phong cách mực tối"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.887 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 1.4 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.375,
+        "contrast": 0.341,
+        "edge": 0.887,
+        "sep": 1.4,
+        "bgRatio": 1.27
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "bach_ho",
+    "name": "Bạch Hổ",
+    "size": 24,
+    "source": "art/src/vohon-v2/bach_ho/icon-attempt1-nearest/bach_ho-icon-24.png",
+    "sourceSha256": "4cdb6e7f980c41b9bc798fb5cf17e81745fd605322a3475bb6b570a776a73f12",
+    "file": "shared/assets/sprites/iso/portrait/bach_ho_icon24.png",
+    "sha256": "64673afcf8c98bf2fa605b19cfcf32c9dc3d58494de0731e86711bc12871babe",
+    "preset": "icon-nearest32",
+    "sourceColors": 325,
+    "colors": 32,
+    "colorDrift": 0.01,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "bach_ho",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (10 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "sang-tran",
+          "text": "vùng sáng 37%: sáng tràn, mất đối lập tối / sáng của phong cách mực tối"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.887 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 2.2 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.378,
+        "contrast": 0.35,
+        "edge": 0.887,
+        "sep": 2.2,
+        "bgRatio": 1.45
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "u_minh_linh_mieu",
+    "name": "U Minh Linh Miêu",
+    "size": 32,
+    "source": "art/src/vohon-v2/u_minh_linh_mieu/icon-attempt1-nearest/u_minh_linh_mieu-icon-32.png",
+    "sourceSha256": "740eda8716a1cbb3956ab245066403e4065cf34dd000d98c21df448466d8f1f6",
+    "file": "shared/assets/sprites/iso/portrait/u_minh_linh_mieu_icon32.png",
+    "sha256": "4d9634c31877e99bfcd2ddcaf6004fed8678546b3983c0c36b60b0ffdf911c61",
+    "preset": "icon-nearest32",
+    "sourceColors": 450,
+    "colors": 32,
+    "colorDrift": 0.009,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "u_minh_linh_mieu",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (8 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "mat-sang",
+          "text": "vùng sáng chỉ 0.0%: mất điểm sáng (mắt, lõi, lưỡi), hình sẽ tối đặc"
+        },
+        {
+          "sev": "soft",
+          "code": "phang",
+          "text": "tương phản thấp (độ lệch luma 0.086): hình phẳng, khó đọc khi thu nhỏ"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.867 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 2.4 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0,
+        "contrast": 0.086,
+        "edge": 0.867,
+        "sep": 2.4,
+        "bgRatio": 1.04
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "u_minh_linh_mieu",
+    "name": "U Minh Linh Miêu",
+    "size": 24,
+    "source": "art/src/vohon-v2/u_minh_linh_mieu/icon-attempt1-nearest/u_minh_linh_mieu-icon-24.png",
+    "sourceSha256": "4babc2fa0be06ee79d81bc6b596f421e48ba418d153ca21b961ede32392addb5",
+    "file": "shared/assets/sprites/iso/portrait/u_minh_linh_mieu_icon24.png",
+    "sha256": "7f90d833a1c3eee8c61ace2b5ac36bd03f842c581126a7d3bb28cd6f4afb17c4",
+    "preset": "icon-nearest32",
+    "sourceColors": 247,
+    "colors": 31,
+    "colorDrift": 0.009,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "u_minh_linh_mieu",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (7 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "mat-sang",
+          "text": "vùng sáng chỉ 0.0%: mất điểm sáng (mắt, lõi, lưỡi), hình sẽ tối đặc"
+        },
+        {
+          "sev": "soft",
+          "code": "phang",
+          "text": "tương phản thấp (độ lệch luma 0.076): hình phẳng, khó đọc khi thu nhỏ"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.854 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 5.5 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 31,
+        "outline": 1,
+        "hot": 0,
+        "contrast": 0.076,
+        "edge": 0.854,
+        "sep": 5.5,
+        "bgRatio": 1.05
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "nguyet_nhan",
+    "name": "Nguyệt Nhận",
+    "size": 32,
+    "source": "art/src/vohon-v2/nguyet_nhan/icon-attempt1-nearest/nguyet_nhan-icon-32.png",
+    "sourceSha256": "ec0bfed9a8d18e100d0e8a3892cfebaed1d77e4e8dafcfe993f09d6aa5bb9433",
+    "file": "shared/assets/sprites/iso/portrait/nguyet_nhan_icon32.png",
+    "sha256": "e211461a0236dd139dbb91c70334cd0b422275a6deda6fa1456a26c0989649a1",
+    "preset": "icon-nearest32",
+    "sourceColors": 368,
+    "colors": 32,
+    "colorDrift": 0.01,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "nguyet_nhan",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (2 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.841 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 2.2 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.075,
+        "contrast": 0.191,
+        "edge": 0.841,
+        "sep": 2.2,
+        "bgRatio": 0.98
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "nguyet_nhan",
+    "name": "Nguyệt Nhận",
+    "size": 24,
+    "source": "art/src/vohon-v2/nguyet_nhan/icon-attempt1-nearest/nguyet_nhan-icon-24.png",
+    "sourceSha256": "42313bc067e7b3e50144d85402d3d89907d6b1b3f0a2707473519ecb971bb5ea",
+    "file": "shared/assets/sprites/iso/portrait/nguyet_nhan_icon24.png",
+    "sha256": "670905871ef54dd03b47b47aefb394b5f4c0a21a44f306976d94f12ba16ff3fd",
+    "preset": "icon-nearest32",
+    "sourceColors": 205,
+    "colors": 31,
+    "colorDrift": 0.007,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "nguyet_nhan",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (1 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.862 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 2.2 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 31,
+        "outline": 1,
+        "hot": 0.064,
+        "contrast": 0.188,
+        "edge": 0.862,
+        "sep": 2.2,
+        "bgRatio": 1.19
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "hoa_long",
+    "name": "Hỏa Long",
+    "size": 32,
+    "source": "art/src/vohon-v2/hoa_long/icon-attempt1-nearest/hoa_long-icon-32.png",
+    "sourceSha256": "4bc7b1064042c50bdb8b4755ae55c8a991b5ffb531879b383b42c048fea6b3dd",
+    "file": "shared/assets/sprites/iso/portrait/hoa_long_icon32.png",
+    "sha256": "2f679dc4263dcc60a0930a1f2c06db93f8e95a9c7b10372abe4eb62c13dcc28d",
+    "preset": "icon-nearest32",
+    "sourceColors": 572,
+    "colors": 32,
+    "colorDrift": 0.016,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "hoa_long",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (9 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.909 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 7.3 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.064,
+        "contrast": 0.21,
+        "edge": 0.909,
+        "sep": 7.3,
+        "bgRatio": 1.09
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "hoa_long",
+    "name": "Hỏa Long",
+    "size": 24,
+    "source": "art/src/vohon-v2/hoa_long/icon-attempt1-nearest/hoa_long-icon-24.png",
+    "sourceSha256": "423529758e4b5fc16db954f955acb9035f923dcdabc36e2d66cc1b3e1d940525",
+    "file": "shared/assets/sprites/iso/portrait/hoa_long_icon24.png",
+    "sha256": "5c854211a0bbdcdd3ce53a7cb2c6a956b2ce206076eae80c6b2754572993c2fb",
+    "preset": "icon-nearest32",
+    "sourceColors": 304,
+    "colors": 31,
+    "colorDrift": 0.017,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "hoa_long",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (12 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.896 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 3.2 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 31,
+        "outline": 1,
+        "hot": 0.059,
+        "contrast": 0.192,
+        "edge": 0.896,
+        "sep": 3.2,
+        "bgRatio": 1.22
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "nhu_cot_tho",
+    "name": "Nhu Cốt Thố",
+    "size": 32,
+    "source": "art/src/vohon-v2/nhu_cot_tho/icon-attempt1-nearest/nhu_cot_tho-icon-32.png",
+    "sourceSha256": "6ce134801153f8947347e6a15a3bef4a723d1d9fe6de7ae2125d90652448dcbb",
+    "file": "shared/assets/sprites/iso/portrait/nhu_cot_tho_icon32.png",
+    "sha256": "67e1ca045837c5977dc882af64188eea33a8c8ee84951aa0aaea765510582c28",
+    "preset": "icon-nearest32",
+    "sourceColors": 460,
+    "colors": 32,
+    "colorDrift": 0.011,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "nhu_cot_tho",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (3 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.868 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 4.1 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.113,
+        "contrast": 0.218,
+        "edge": 0.868,
+        "sep": 4.1,
+        "bgRatio": 1.11
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "nhu_cot_tho",
+    "name": "Nhu Cốt Thố",
+    "size": 24,
+    "source": "art/src/vohon-v2/nhu_cot_tho/icon-attempt1-nearest/nhu_cot_tho-icon-24.png",
+    "sourceSha256": "45067c6ab5379e3599a01f4af01ac9ec0671ed1e630d126cca3a6de466ee60ec",
+    "file": "shared/assets/sprites/iso/portrait/nhu_cot_tho_icon24.png",
+    "sha256": "2446958e4643f284ac9d8f24abccccb6839b2293a7612ec8fde299836e99b6cb",
+    "preset": "icon-nearest32",
+    "sourceColors": 257,
+    "colors": 32,
+    "colorDrift": 0.01,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "nhu_cot_tho",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (5 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.854 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 4.1 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.101,
+        "contrast": 0.203,
+        "edge": 0.854,
+        "sep": 4.1,
+        "bgRatio": 1.1
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "kim_vu_mieu_ung",
+    "name": "Kim Vũ Miêu Ưng",
+    "size": 32,
+    "source": "art/src/vohon-v2/kim_vu_mieu_ung/icon-attempt1-nearest/kim_vu_mieu_ung-icon-32.png",
+    "sourceSha256": "516acc85f98f730bd8348bef7750be48eff721fe84199c69e236928a81d71c6f",
+    "file": "shared/assets/sprites/iso/portrait/kim_vu_mieu_ung_icon32.png",
+    "sha256": "f2db4092a36fa6f16168ece1fdce957a17bc07397565700224e71750c20fd5d6",
+    "preset": "icon-nearest32",
+    "sourceColors": 514,
+    "colors": 32,
+    "colorDrift": 0.016,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "kim_vu_mieu_ung",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (4 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.88 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 3.5 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.194,
+        "contrast": 0.278,
+        "edge": 0.88,
+        "sep": 3.5,
+        "bgRatio": 1.48
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "kim_vu_mieu_ung",
+    "name": "Kim Vũ Miêu Ưng",
+    "size": 24,
+    "source": "art/src/vohon-v2/kim_vu_mieu_ung/icon-attempt1-nearest/kim_vu_mieu_ung-icon-24.png",
+    "sourceSha256": "5c23c44f9e44a0d7a167da8270353106f35acf706bdd5175b3d3d72f75759d1c",
+    "file": "shared/assets/sprites/iso/portrait/kim_vu_mieu_ung_icon24.png",
+    "sha256": "17b000b850e82517fc92af4c944aba9126a38d1d526737f972449abab85be846",
+    "preset": "icon-nearest32",
+    "sourceColors": 276,
+    "colors": 32,
+    "colorDrift": 0.013,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "kim_vu_mieu_ung",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (10 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.872 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 3.3 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.188,
+        "contrast": 0.282,
+        "edge": 0.872,
+        "sep": 3.3,
+        "bgRatio": 1.57
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "liet_hoa_thuong_lang",
+    "name": "Liệt Hỏa Thương Lang",
+    "size": 32,
+    "source": "art/src/vohon-v2/liet_hoa_thuong_lang/icon-attempt1-nearest/liet_hoa_thuong_lang-icon-32.png",
+    "sourceSha256": "51cf59b480bbee2554e13ad7e03fb2aac2cac981c91f3fe148c40d3b45f0da01",
+    "file": "shared/assets/sprites/iso/portrait/liet_hoa_thuong_lang_icon32.png",
+    "sha256": "66b725ee56a55934d72f7a1b707ca20f30df0f80391dabfbad734de2230101d8",
+    "preset": "icon-nearest32",
+    "sourceColors": 537,
+    "colors": 32,
+    "colorDrift": 0.014,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "liet_hoa_thuong_lang",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (7 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.866 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 3.2 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.074,
+        "contrast": 0.198,
+        "edge": 0.866,
+        "sep": 3.2,
+        "bgRatio": 1.03
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "liet_hoa_thuong_lang",
+    "name": "Liệt Hỏa Thương Lang",
+    "size": 24,
+    "source": "art/src/vohon-v2/liet_hoa_thuong_lang/icon-attempt1-nearest/liet_hoa_thuong_lang-icon-24.png",
+    "sourceSha256": "717e7f3ad88346be83d947ebec792dbc59edfa6738575c51aa5f6c9bddd1bccf",
+    "file": "shared/assets/sprites/iso/portrait/liet_hoa_thuong_lang_icon24.png",
+    "sha256": "a8f48e593b48d8cec157ca36b5a4c79c968e04c723e070fa803f1a19b7d23ac7",
+    "preset": "icon-nearest32",
+    "sourceColors": 297,
+    "colors": 29,
+    "colorDrift": 0.015,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "liet_hoa_thuong_lang",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (8 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.891 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 5.1 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 29,
+        "outline": 1,
+        "hot": 0.065,
+        "contrast": 0.195,
+        "edge": 0.891,
+        "sep": 5.1,
+        "bgRatio": 1.07
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "tu_vong_chu_hoang",
+    "name": "Tử Vong Chu Hoàng",
+    "size": 32,
+    "source": "art/src/vohon-v2/tu_vong_chu_hoang/icon-attempt1-nearest/tu_vong_chu_hoang-icon-32.png",
+    "sourceSha256": "e11b9f6a15356f5fcf97d455553bf28a2556c752a66962a34c110c39598304d6",
+    "file": "shared/assets/sprites/iso/portrait/tu_vong_chu_hoang_icon32.png",
+    "sha256": "adbe686d6f623f78cfa8225236630239868de72083296570a81c2d848a7366f3",
+    "preset": "icon-nearest32",
+    "sourceColors": 443,
+    "colors": 32,
+    "colorDrift": 0.014,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "tu_vong_chu_hoang",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (13 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.858 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 3 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.086,
+        "contrast": 0.201,
+        "edge": 0.858,
+        "sep": 3,
+        "bgRatio": 1.21
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "tu_vong_chu_hoang",
+    "name": "Tử Vong Chu Hoàng",
+    "size": 24,
+    "source": "art/src/vohon-v2/tu_vong_chu_hoang/icon-attempt1-nearest/tu_vong_chu_hoang-icon-24.png",
+    "sourceSha256": "b03055283aded8fe412c31f74aaa46e78d6fc2411f7fe020874cfae595fbbd90",
+    "file": "shared/assets/sprites/iso/portrait/tu_vong_chu_hoang_icon24.png",
+    "sha256": "3a40483a66f767fa30a76a6291df9de59e6432f5cc259011624fe836a3e14062",
+    "preset": "icon-nearest32",
+    "sourceColors": 249,
+    "colors": 32,
+    "colorDrift": 0.014,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "tu_vong_chu_hoang",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (10 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.859 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 4.6 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.075,
+        "contrast": 0.203,
+        "edge": 0.859,
+        "sep": 4.6,
+        "bgRatio": 1.53
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "bich_lan_xa_hoang",
+    "name": "Bích Lân Xà Hoàng",
+    "size": 32,
+    "source": "art/src/vohon-v2/bich_lan_xa_hoang/icon-attempt1-nearest/bich_lan_xa_hoang-icon-32.png",
+    "sourceSha256": "c2416e901cbcbe00a03d30aa1268f59311c4166d090fdd066aa5a9c9ef5e4768",
+    "file": "shared/assets/sprites/iso/portrait/bich_lan_xa_hoang_icon32.png",
+    "sha256": "476cd4de697d847b32427d5aa5a81c5a54dc2813887f791b62ac0c2f133e1382",
+    "preset": "icon-nearest32",
+    "sourceColors": 570,
+    "colors": 32,
+    "colorDrift": 0.016,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "bich_lan_xa_hoang",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (12 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.89 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 3.7 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.155,
+        "contrast": 0.231,
+        "edge": 0.89,
+        "sep": 3.7,
+        "bgRatio": 1.05
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "bich_lan_xa_hoang",
+    "name": "Bích Lân Xà Hoàng",
+    "size": 24,
+    "source": "art/src/vohon-v2/bich_lan_xa_hoang/icon-attempt1-nearest/bich_lan_xa_hoang-icon-24.png",
+    "sourceSha256": "909343cbe7010d18a75cb0c317c0b324cc9c7124bb081e7b4e9e25a6c8785fd6",
+    "file": "shared/assets/sprites/iso/portrait/bich_lan_xa_hoang_icon24.png",
+    "sha256": "a5055469a7bc3adfc0a298d3188651c2a668382c6ff6ce5f1faafb7ce5e5db7c",
+    "preset": "icon-nearest32",
+    "sourceColors": 305,
+    "colors": 31,
+    "colorDrift": 0.016,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "bich_lan_xa_hoang",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (10 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.871 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 2.4 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 31,
+        "outline": 1,
+        "hot": 0.11,
+        "contrast": 0.222,
+        "edge": 0.871,
+        "sep": 2.4,
+        "bgRatio": 1.05
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "can_khon_hon_nguyen_toa",
+    "name": "Càn Khôn Hỗn Nguyên Tỏa",
+    "size": 32,
+    "source": "art/src/vohon-v2/can_khon_hon_nguyen_toa/icon-attempt1-nearest/can_khon_hon_nguyen_toa-icon-32.png",
+    "sourceSha256": "9197d4f75e708b06d5403073e90e1b9d3602d44fcb9d404c4ed47db39c9284a7",
+    "file": "shared/assets/sprites/iso/portrait/can_khon_hon_nguyen_toa_icon32.png",
+    "sha256": "6c107dc25e4129671a1bc2da7eb114b06ebc504fec717f40ebc27dc5ac4a0629",
+    "preset": "icon-nearest32",
+    "sourceColors": 381,
+    "colors": 32,
+    "colorDrift": 0.014,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "can_khon_hon_nguyen_toa",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.875 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 3.2 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.07,
+        "contrast": 0.188,
+        "edge": 0.875,
+        "sep": 3.2,
+        "bgRatio": 1.24
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "can_khon_hon_nguyen_toa",
+    "name": "Càn Khôn Hỗn Nguyên Tỏa",
+    "size": 24,
+    "source": "art/src/vohon-v2/can_khon_hon_nguyen_toa/icon-attempt1-nearest/can_khon_hon_nguyen_toa-icon-24.png",
+    "sourceSha256": "1337d22a7991484f827a90cfaec47bec12bd9aef69a86ca3b73e96fffefbd871",
+    "file": "shared/assets/sprites/iso/portrait/can_khon_hon_nguyen_toa_icon24.png",
+    "sha256": "545111e85343273b25b55fc4e99720008ea6350a5684c135b36a9cc2eb721689",
+    "preset": "icon-nearest32",
+    "sourceColors": 212,
+    "colors": 31,
+    "colorDrift": 0.016,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "can_khon_hon_nguyen_toa",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.904 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 5.5 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 31,
+        "outline": 1,
+        "hot": 0.105,
+        "contrast": 0.215,
+        "edge": 0.904,
+        "sep": 5.5,
+        "bgRatio": 1.16
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "hoa_anh",
+    "name": "Hỏa Ảnh",
+    "size": 32,
+    "source": "art/src/vohon-v2/hoa_anh/icon-attempt1-nearest/hoa_anh-icon-32.png",
+    "sourceSha256": "48da78fa3ddd30a0828fc0192a7b07608cc0444ab146b9287eca857b80ae3f3b",
+    "file": "shared/assets/sprites/iso/portrait/hoa_anh_icon32.png",
+    "sha256": "48ebf227530d4e0a0ab19eac00d065a0d1c9a375e39141f8212e0294b1819051",
+    "preset": "icon-nearest32",
+    "sourceColors": 588,
+    "colors": 32,
+    "colorDrift": 0.01,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "hoa_anh",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (55 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.813 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 6.2 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.026,
+        "contrast": 0.157,
+        "edge": 0.813,
+        "sep": 6.2,
+        "bgRatio": 1.31
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "hoa_anh",
+    "name": "Hỏa Ảnh",
+    "size": 24,
+    "source": "art/src/vohon-v2/hoa_anh/icon-attempt1-nearest/hoa_anh-icon-24.png",
+    "sourceSha256": "5e5e09d26ccff6581802e4810699a17650d140cd6fde7b7ab2c354b26d6984aa",
+    "file": "shared/assets/sprites/iso/portrait/hoa_anh_icon24.png",
+    "sha256": "224846d97c8fe8686422906db55839e85f51d186f252a6f6b7954e317b4c99e6",
+    "preset": "icon-nearest32",
+    "sourceColors": 321,
+    "colors": 32,
+    "colorDrift": 0.01,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "hoa_anh",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (41 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.811 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 6.5 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.038,
+        "contrast": 0.172,
+        "edge": 0.811,
+        "sep": 6.5,
+        "bgRatio": 1.37
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "yeu_ho",
+    "name": "Yêu Hồ",
+    "size": 32,
+    "source": "art/src/vohon-v2/yeu_ho/icon-attempt1-nearest/yeu_ho-icon-32.png",
+    "sourceSha256": "1c8cbda5d83678522addea27b84be75553b9d08ef1a6bbabf68c43eb23bf2c8b",
+    "file": "shared/assets/sprites/iso/portrait/yeu_ho_icon32.png",
+    "sha256": "993b65bb822c799aea9b2443a070a562f1fa4bacd6accf0523041f474fe0afbf",
+    "preset": "icon-nearest32",
+    "sourceColors": 512,
+    "colors": 31,
+    "colorDrift": 0.013,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "yeu_ho",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (9 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.838 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 3.7 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 31,
+        "outline": 1,
+        "hot": 0.164,
+        "contrast": 0.218,
+        "edge": 0.838,
+        "sep": 3.7,
+        "bgRatio": 1.17
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "yeu_ho",
+    "name": "Yêu Hồ",
+    "size": 24,
+    "source": "art/src/vohon-v2/yeu_ho/icon-attempt1-nearest/yeu_ho-icon-24.png",
+    "sourceSha256": "346c3da500ee266788df3442720de0530c553137e27891f4bea68a93500c0381",
+    "file": "shared/assets/sprites/iso/portrait/yeu_ho_icon24.png",
+    "sha256": "fe4f0162159953f4e85e3e7fabcb75f32c4c5dbd2f86ec3791d47fffb6b6c8f3",
+    "preset": "icon-nearest32",
+    "sourceColors": 287,
+    "colors": 32,
+    "colorDrift": 0.011,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "yeu_ho",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (8 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.868 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 3.2 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.125,
+        "contrast": 0.205,
+        "edge": 0.868,
+        "sep": 3.2,
+        "bgRatio": 1.13
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "lam_ngan_thao",
+    "name": "Lam Ngân Thảo",
+    "size": 32,
+    "source": "art/src/vohon-v2/lam_ngan_thao/icon-attempt1-nearest/lam_ngan_thao-icon-32.png",
+    "sourceSha256": "ddef774bc63176ed20987ff364b05853e58e4195ab58fc1ed5eba21793915fbe",
+    "file": "shared/assets/sprites/iso/portrait/lam_ngan_thao_icon32.png",
+    "sha256": "882bbcfe5aba9e894cd7b0e2e062d7bed2101df8fc3d55831f5c2ed6225a52e4",
+    "preset": "icon-nearest32",
+    "sourceColors": 509,
+    "colors": 32,
+    "colorDrift": 0.012,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "lam_ngan_thao",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (13 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.879 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 3.3 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.06,
+        "contrast": 0.198,
+        "edge": 0.879,
+        "sep": 3.3,
+        "bgRatio": 1.14
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "lam_ngan_thao",
+    "name": "Lam Ngân Thảo",
+    "size": 24,
+    "source": "art/src/vohon-v2/lam_ngan_thao/icon-attempt1-nearest/lam_ngan_thao-icon-24.png",
+    "sourceSha256": "3cb4ec486994dacd54e5f44d1309963a643d5e6888c4a26a2269a247aa4b28bd",
+    "file": "shared/assets/sprites/iso/portrait/lam_ngan_thao_icon24.png",
+    "sha256": "301c197bc3bc46dc4dc45708f6d688a338f41c968941b9d7e0435a2532eabd5a",
+    "preset": "icon-nearest32",
+    "sourceColors": 280,
+    "colors": 31,
+    "colorDrift": 0.01,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "lam_ngan_thao",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (11 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.893 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 1.7 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 31,
+        "outline": 1,
+        "hot": 0.055,
+        "contrast": 0.193,
+        "edge": 0.893,
+        "sep": 1.7,
+        "bgRatio": 1.21
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "bang_phuong_hoang",
+    "name": "Băng Phượng Hoàng",
+    "size": 32,
+    "source": "art/src/vohon-v2/bang_phuong_hoang/icon-attempt1-nearest/bang_phuong_hoang-icon-32.png",
+    "sourceSha256": "79dbcfd8ecb50fbe6ebc4b0d3dbccfece31806b40defb379913adf4d42da702c",
+    "file": "shared/assets/sprites/iso/portrait/bang_phuong_hoang_icon32.png",
+    "sha256": "b36353b490c5b1b61bff9a6edd9f447dce88be99534e3cb9e8044228497b21cf",
+    "preset": "icon-nearest32",
+    "sourceColors": 526,
+    "colors": 32,
+    "colorDrift": 0.014,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "bang_phuong_hoang",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (6 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.874 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 4.1 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.243,
+        "contrast": 0.315,
+        "edge": 0.874,
+        "sep": 4.1,
+        "bgRatio": 1.18
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "bang_phuong_hoang",
+    "name": "Băng Phượng Hoàng",
+    "size": 24,
+    "source": "art/src/vohon-v2/bang_phuong_hoang/icon-attempt1-nearest/bang_phuong_hoang-icon-24.png",
+    "sourceSha256": "ca7def9dd260a32824d939eaecc571b53b53befea63311d47ae4466f57cb8135",
+    "file": "shared/assets/sprites/iso/portrait/bang_phuong_hoang_icon24.png",
+    "sha256": "b777c39a5bdb2e8b3e44c1236984fa9457e457f297f52e01840c1395185a933a",
+    "preset": "icon-nearest32",
+    "sourceColors": 283,
+    "colors": 32,
+    "colorDrift": 0.012,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "bang_phuong_hoang",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (4 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.903 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 4.5 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.264,
+        "contrast": 0.321,
+        "edge": 0.903,
+        "sep": 4.5,
+        "bgRatio": 1.11
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "xuc_xich",
+    "name": "Xúc Xích",
+    "size": 32,
+    "source": "art/src/vohon-v2/xuc_xich/candidates/icon-attempt4-nearest/xuc_xich-icon-32.png",
+    "sourceSha256": "f5b7a9093643932008da8f52773078646ce9b9c256ae346e3c3dc381420d32ec",
+    "file": "shared/assets/sprites/iso/portrait/xuc_xich_icon32.png",
+    "sha256": "c75ad44e2ef5ad460c49548fc0a44246649af4c2705cec87e34f85c08a64c4e0",
+    "preset": "icon-nearest32",
+    "sourceColors": 384,
+    "colors": 32,
+    "colorDrift": 0.023,
+    "alphaChanged": 0,
+    "attempt": 4,
+    "supplemental_attempt": 1,
+    "result": {
+      "type": "icon",
+      "id": "xuc_xich",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (9 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.875 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 8.6 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.088,
+        "contrast": 0.195,
+        "edge": 0.875,
+        "sep": 8.6,
+        "bgRatio": 1.18
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "xuc_xich",
+    "name": "Xúc Xích",
+    "size": 24,
+    "source": "art/src/vohon-v2/xuc_xich/candidates/icon-attempt4-nearest/xuc_xich-icon-24.png",
+    "sourceSha256": "76b2577dc3a79db8025ba23908eeffde8b9a551bca6b62d82d41c9b2b27654c6",
+    "file": "shared/assets/sprites/iso/portrait/xuc_xich_icon24.png",
+    "sha256": "6dca9d6efb93cdc88d3cd4391c2471ee47d6f3cd2824c70fd16a38dc8126c2cd",
+    "preset": "icon-nearest32",
+    "sourceColors": 210,
+    "colors": 32,
+    "colorDrift": 0.017,
+    "alphaChanged": 0,
+    "attempt": 4,
+    "supplemental_attempt": 1,
+    "result": {
+      "type": "icon",
+      "id": "xuc_xich",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (8 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.915 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 7.5 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.102,
+        "contrast": 0.197,
+        "edge": 0.915,
+        "sep": 7.5,
+        "bgRatio": 1.15
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "quy_mi",
+    "name": "Quỷ Mị",
+    "size": 32,
+    "source": "art/src/vohon-v2/quy_mi/icon-attempt1-nearest/quy_mi-icon-32.png",
+    "sourceSha256": "8c34ff0678dd8431c67a2161650dc938c5cdfe8181c4ad220e07c54805ea6b59",
+    "file": "shared/assets/sprites/iso/portrait/quy_mi_icon32.png",
+    "sha256": "b6826d7ca57b2d8b72663e46d5549fe5fceb1039cb776aa27ca5ca02305bd1f6",
+    "preset": "icon-nearest32",
+    "sourceColors": 527,
+    "colors": 32,
+    "colorDrift": 0.011,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "quy_mi",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (61 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.84 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 3.7 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.018,
+        "contrast": 0.114,
+        "edge": 0.84,
+        "sep": 3.7,
+        "bgRatio": 1.07
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "quy_mi",
+    "name": "Quỷ Mị",
+    "size": 24,
+    "source": "art/src/vohon-v2/quy_mi/icon-attempt1-nearest/quy_mi-icon-24.png",
+    "sourceSha256": "33d329a2e148a1a0ce71f05ecb18276e36c9885cbc8a4618af131e69bfd2133f",
+    "file": "shared/assets/sprites/iso/portrait/quy_mi_icon24.png",
+    "sha256": "75e03df8cd91821786749e7a617f0071a744074fa3e8b600c7058eea2515701b",
+    "preset": "icon-nearest32",
+    "sourceColors": 295,
+    "colors": 31,
+    "colorDrift": 0.011,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "quy_mi",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (45 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.835 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 5.2 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 31,
+        "outline": 1,
+        "hot": 0.021,
+        "contrast": 0.128,
+        "edge": 0.835,
+        "sep": 5.2,
+        "bgRatio": 1.12
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "thien_can_bach_ngoc_dinh",
+    "name": "Thiên Càn Bạch Ngọc Đỉnh",
+    "size": 32,
+    "source": "art/src/vohon-v2/thien_can_bach_ngoc_dinh/icon-attempt1-nearest/thien_can_bach_ngoc_dinh-icon-32.png",
+    "sourceSha256": "b3e9ae038b6ad7440077f6e438c4137bcdd9d4f90982d9ff208811ee994019f6",
+    "file": "shared/assets/sprites/iso/portrait/thien_can_bach_ngoc_dinh_icon32.png",
+    "sha256": "29d330643b1aa402c8daa59c4c74b2a8af7f344cea0bf7d746b73ea2ea8df401",
+    "preset": "icon-nearest32",
+    "sourceColors": 563,
+    "colors": 32,
+    "colorDrift": 0.019,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "thien_can_bach_ngoc_dinh",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (8 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.865 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 9.1 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.229,
+        "contrast": 0.269,
+        "edge": 0.865,
+        "sep": 9.1,
+        "bgRatio": 1.39
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "thien_can_bach_ngoc_dinh",
+    "name": "Thiên Càn Bạch Ngọc Đỉnh",
+    "size": 24,
+    "source": "art/src/vohon-v2/thien_can_bach_ngoc_dinh/icon-attempt1-nearest/thien_can_bach_ngoc_dinh-icon-24.png",
+    "sourceSha256": "9e1cb34920524a1bbb9efdfd090f043d0e06d537985928a76e9318560ceb434a",
+    "file": "shared/assets/sprites/iso/portrait/thien_can_bach_ngoc_dinh_icon24.png",
+    "sha256": "b1c3cfe1d3e282b498e741c37c6e614da65669164ba4b6d19279ddf27895c69b",
+    "preset": "icon-nearest32",
+    "sourceColors": 307,
+    "colors": 32,
+    "colorDrift": 0.018,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "thien_can_bach_ngoc_dinh",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (6 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.864 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 9 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.205,
+        "contrast": 0.263,
+        "edge": 0.864,
+        "sep": 9,
+        "bgRatio": 1.52
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "cuu_bao_luu_ly_thap",
+    "name": "Cửu Bảo Lưu Ly Tháp",
+    "size": 32,
+    "source": "art/src/vohon-v2/cuu_bao_luu_ly_thap/candidates/icon-attempt1-nearest/cuu_bao_luu_ly_thap-icon-32.png",
+    "sourceSha256": "5194a084479bd83ad4b8ab158375b72f74bcc5d4b5ca5c9b75724a68651fa47d",
+    "file": "shared/assets/sprites/iso/portrait/cuu_bao_luu_ly_thap_icon32.png",
+    "sha256": "ea9110fde1d0801ce73a4d628b5d0f578587e1ac608e249cff09260d49b79ff9",
+    "preset": "icon-nearest32",
+    "sourceColors": 326,
+    "colors": 32,
+    "colorDrift": 0.03,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "cuu_bao_luu_ly_thap",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.861 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 4.6 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.105,
+        "contrast": 0.204,
+        "edge": 0.861,
+        "sep": 4.6,
+        "bgRatio": 1.53
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "cuu_bao_luu_ly_thap",
+    "name": "Cửu Bảo Lưu Ly Tháp",
+    "size": 24,
+    "source": "art/src/vohon-v2/cuu_bao_luu_ly_thap/candidates/icon-attempt1-nearest/cuu_bao_luu_ly_thap-icon-24.png",
+    "sourceSha256": "397d68906360d48e3271a4a20daa4fbb2e937a6624c7a2d34c7106ac838164db",
+    "file": "shared/assets/sprites/iso/portrait/cuu_bao_luu_ly_thap_icon24.png",
+    "sha256": "782f6530f2033dbdec44db9aada0c4d3715a88fda34263a2083b7e971ad0b2c0",
+    "preset": "icon-nearest32",
+    "sourceColors": 174,
+    "colors": 31,
+    "colorDrift": 0.026,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "cuu_bao_luu_ly_thap",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.866 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 5.8 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 31,
+        "outline": 1,
+        "hot": 0.1,
+        "contrast": 0.214,
+        "edge": 0.866,
+        "sep": 5.8,
+        "bgRatio": 1.54
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "a_ngan",
+    "name": "A Ngân",
+    "size": 32,
+    "source": "art/src/vohon-v2/a_ngan/icon-attempt1-nearest/a_ngan-icon-32.png",
+    "sourceSha256": "cd82791156261e3b1e616770663f060faa3aef9d823a30ab8eb7e4b09ef31c7f",
+    "file": "shared/assets/sprites/iso/portrait/a_ngan_icon32.png",
+    "sha256": "748ff5d24bea0d316b304f27ada5a22ad0e0465b06ddd5529ab33b7089bd2884",
+    "preset": "icon-nearest32",
+    "sourceColors": 460,
+    "colors": 31,
+    "colorDrift": 0.017,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "a_ngan",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (6 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.879 (> 0.3): còn nhiều mảng nhỏ ở cỡ 32×32, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 5.7 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 32,
+        "h": 32,
+        "colors": 31,
+        "outline": 1,
+        "hot": 0.161,
+        "contrast": 0.258,
+        "edge": 0.879,
+        "sep": 5.7,
+        "bgRatio": 1.47
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  },
+  {
+    "id": "a_ngan",
+    "name": "A Ngân",
+    "size": 24,
+    "source": "art/src/vohon-v2/a_ngan/icon-attempt1-nearest/a_ngan-icon-24.png",
+    "sourceSha256": "78262e13b7a03b993d2e65692ca289a4e96d2ab2a53405c3f429fe988548e4b5",
+    "file": "shared/assets/sprites/iso/portrait/a_ngan_icon24.png",
+    "sha256": "6b2767fef10e74c099ff59e7d3071d04a6e329df9cae5388794b9f147dd8ae6e",
+    "preset": "icon-nearest32",
+    "sourceColors": 252,
+    "colors": 32,
+    "colorDrift": 0.016,
+    "alphaChanged": 0,
+    "result": {
+      "type": "icon",
+      "id": "a_ngan",
+      "issues": [
+        {
+          "sev": "soft",
+          "code": "cham-mep",
+          "text": "hình chạm mép ảnh (4 điểm): viền ngoài bị cắt"
+        },
+        {
+          "sev": "soft",
+          "code": "nhieu-chi-tiet",
+          "text": "mật độ biên 0.901 (> 0.3): còn nhiều mảng nhỏ ở cỡ 24×24, hình khó đọc khi nhìn lướt; cắt sát hơn (--zoom / --crop) hoặc xin bản đơn giản hơn"
+        },
+        {
+          "sev": "soft",
+          "code": "gan-mau",
+          "text": "hai màu lớn chỉ cách nhau 8.2 (< 36): các mảng cùng gam dính nhau; thử --preset portrait, --hue-shift hoặc --max-colors nhỏ hơn"
+        }
+      ],
+      "metrics": {
+        "w": 24,
+        "h": 24,
+        "colors": 32,
+        "outline": 1,
+        "hot": 0.172,
+        "contrast": 0.259,
+        "edge": 0.901,
+        "sep": 8.2,
+        "bgRatio": 1.5
+      },
+      "manual": [
+        "mắt / mỏ (hoặc lõi, lưỡi) còn đọc ra ở cỡ thật 1×; xem trang `vohon-preview`",
+        "so với RAW: vẫn là cùng một võ hồn"
+      ]
+    }
+  }
+]

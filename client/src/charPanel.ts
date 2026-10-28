@@ -10,7 +10,7 @@ import { type DollTab, type ServerCommand, type SlotRef, acceptsItem, cardAction
 import { addZone, dragSource } from "./dragDrop.ts";
 import { showCard } from "./actionCard.ts";
 import { vohonCard } from "./cards.ts";
-import { skillImg, artImg } from "./uiArt.ts";
+import { skillImg, artImg, artUrl } from "./uiArt.ts";
 import { compareRows, rarityOf } from "./bag.ts";
 import { isUi2 } from "./uiKit.ts";
 import { stateBox } from "./uiParts.ts";
@@ -213,6 +213,11 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     const od = VOHON[Math.max(0, vohonIndex(o.vohon))], b = mk("button", "ui-tab" + K("f2-tab"));
     b.type = "button"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(o.rowId === v.rowId)); b.style.setProperty("--c", od.col);
     b.textContent = `${od.name}${o.rowId === data.active ? " ◆" : ""}`;
+    const icon = artUrl(`icon_${od.id}_24`);
+    if (icon) {
+      const img = document.createElement("img"); img.src = icon; img.alt = ""; img.width = img.height = 24;
+      img.style.verticalAlign = "middle"; img.style.imageRendering = "pixelated"; b.prepend(img, " ");
+    }
     b.addEventListener("click", () => { b.blur(); charRow = o.rowId; selBone = null; selCore = null; act.ask(o.rowId); rerender(); });
     tabs.appendChild(b);
   }
@@ -297,8 +302,8 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     // --- Hồn cốt: 6 ô quanh hình võ hồn ---
     const fig = mk("div", "bfig cdoll"); fig.style.setProperty("--c", def.col);
     const mid = mk("div", "bmid"); mid.style.gridArea = "2 / 2";
-    const src = act.portrait(v.vohon);
-    mid.innerHTML = src ? `<img alt="" src="${src}">` : `<i class="dot"></i>`;
+    const icon = artUrl(`icon_${def.id}_32`), src = icon ?? act.portrait(v.vohon);
+    mid.innerHTML = src ? `<img class="${icon ? "vh-icon" : ""}" alt="" src="${src}">` : `<i class="dot"></i>`;
     mid.appendChild(mk("small", "", def.name));
     mid.appendChild(mk("small", "cstar", `${v.stars}★ · cấp ${v.level}`));
     fig.appendChild(mid);
