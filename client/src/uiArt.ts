@@ -14,8 +14,6 @@ const keys = new Map<string, Entry>();
 
 /** Đường dẫn ảnh theo key isometric của giao diện (mục 5.11 "Tên file"); key lạ thì null. */
 function pathOf(key: string) {
-  const icon = key.match(/^icon_([a-z_]+)_(24|32)$/);
-  if (icon) return assetUrl(`${BASE}iso/portrait/${icon[1]}_icon${icon[2]}.png`);
   const m = key.match(/^(ui|card|portrait|he|npc|item|status|thu|skill|gi)_([a-z0-9_]+)$/); if (!m) return null;
   const dir = { ui: "ui", card: "ui", portrait: "portrait", he: "he", npc: "npc", item: "item", status: "status", thu: "thu", skill: "skill", gi: "gi" }[m[1]];
   return assetUrl(`${BASE}iso/${dir}/${m[1] === "card" ? "the_" : ""}${m[2]}.png`);

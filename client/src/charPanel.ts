@@ -10,7 +10,7 @@ import { type DollTab, type ServerCommand, type SlotRef, acceptsItem, cardAction
 import { addZone, dragSource } from "./dragDrop.ts";
 import { showCard } from "./actionCard.ts";
 import { vohonCard } from "./cards.ts";
-import { skillImg, artImg, artUrl } from "./uiArt.ts";
+import { skillImg, artImg } from "./uiArt.ts";
 import { compareRows } from "./bag.ts";
 import { setTip, type TipSpec, type TipLine } from "./tooltip.ts";
 import { itemColor, itemName, boneOf, coreOf, coreSet, coreLines, wornCores, boneIcon, boneEmptyIcon, coreIcon, yearsShort, boneFullText, boneSkillText, skillSpec, SKILL_KEYS,
@@ -207,11 +207,6 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     const od = VOHON[Math.max(0, vohonIndex(o.vohon))], b = mk("button", "ui-tab");
     b.type = "button"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(o.rowId === v.rowId)); b.style.setProperty("--c", od.col);
     b.textContent = `${od.name}${o.rowId === data.active ? " ◆" : ""}`;
-    const icon = artUrl(`icon_${od.id}_24`);
-    if (icon) {
-      const img = document.createElement("img"); img.src = icon; img.alt = ""; img.width = img.height = 24;
-      img.style.verticalAlign = "middle"; img.style.imageRendering = "pixelated"; b.prepend(img, " ");
-    }
     b.addEventListener("click", () => { b.blur(); charRow = o.rowId; selBone = null; selCore = null; act.ask(o.rowId); rerender(); });
     tabs.appendChild(b);
   }

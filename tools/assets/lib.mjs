@@ -409,24 +409,8 @@ export const HS_LAYERS = ["body", "outfit", "hair"];
 /** Cỡ sheet phụ thể hoạt ảnh `vhanim_*`: rộng `anim.cols` khung, cao 10 khung (2 giới × 5 hướng); `[0, 0]` khi cols không hợp lệ. */
 export const vhanimSize = (frame, cols) => (Number.isInteger(cols) && cols > 0 ? [cols * frame, 10 * frame] : [0, 0]);
 
-/** Thêm khóa mới, giữ nguyên văn mục cũ; khối UI Kit viết gọn phải ở cuối để ui-import kiểm tất định. */
-export function appendManifestEntry(text, entry) {
-  const nl = text.includes("\r\n") ? "\r\n" : "\n", lines = text.replaceAll("\r\n", "\n").split("\n");
-  let at = lines.findIndex((l) => /^    \{ "key": "ui2_/.test(l));
-  const beforeKit = at >= 0;
-  if (at < 0) at = lines.lastIndexOf("  ]");
-  if (at < 1) throw new Error("manifest.json thiếu dấu đóng mảng sprites");
-  if (!lines[at - 1].trimEnd().endsWith("[")) lines[at - 1] = lines[at - 1].trimEnd().replace(/,$/, "") + ",";
-  const rows = JSON.stringify(entry, null, 2).split("\n").map((l) => "    " + l);
-  if (beforeKit) rows[rows.length - 1] += ",";
-  lines.splice(at, 0, ...rows);
-  return lines.join(nl);
-}
-
 export function sheetSpec(key, frame, iso = false, stat = false) {
   let m;
-  // Icon võ hồn v2 giữ màu RAW nearest; chỉ nhận đúng hai cỡ, tách khỏi giới hạn màu chân dung.
-  if (iso && (m = key.match(/^icon_([a-z_]+)_(24|32)$/)) && vohonColors(m[1])) return { file: `iso/portrait/${m[1]}_icon${m[2]}.png`, size: [+m[2], +m[2]], kind: "portrait", iso: true, nearestIcon: m[1] };
   if (iso) {
     const spec = (file, layout, extra = {}) => ({ file, frame: layout.frame, size: [layout.frame[0] * layout.cols, layout.frame[1] * layout.rows], kind: layout.kind, layout, iso: true, ...extra });
     if ((m = key.match(/^hs_((?:body|outfit|hair)_([mf]_\d+))$/))) return spec(`honsu/${m[1]}.png`, isoLayout("honsu"), { set: m[2] });
