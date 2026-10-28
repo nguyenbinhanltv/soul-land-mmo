@@ -4081,7 +4081,7 @@ export const equipDefTotal = (bonePassiveDef: number, equipRed: number) => Math.
 
 // ---------- Túi đồ, vật phẩm và Hồn Tệ (mục 5.7, bước 3.1; mọi số dưới đây đã chốt) ----------
 /** Nhóm vật phẩm (cột `items.kind`). Có đan, hồn hoàn, mảnh võ hồn (3.4), hồn cốt (4.1), hồn hạch (5.1), rương thú vương (BĐ5), tiên thảo (BĐ6b, HERBS). */
-export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao" | "ruong" | "phu" | "lenh" | "trang_bi" | "nguyen_lieu";
+export type ItemKind = "dan" | "hon_hoan" | "hon_cot" | "hon_hach" | "manh_vo_hon" | "tien_thao" | "ruong" | "phu" | "lenh" | "trang_bi" | "nguyen_lieu" | "kinh_quyen";
 export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
   dan: { name: "Đan dược" },
   hon_hoan: { name: "Hồn hoàn" },
@@ -4094,6 +4094,7 @@ export const ITEM_KINDS: Record<ItemKind, { name: string }> = {
   lenh: { name: "Lệnh bài" }, // Auto 2: Ủy Thác Lệnh
   trang_bi: { name: "Trang bị hồn sư" }, // E0, mục 5.15
   nguyen_lieu: { name: "Nguyên liệu" }, // E0: đá cường hóa, bùa, tinh hoa, thần hồn
+  kinh_quyen: { name: "Kinh quyển" }, // Bí Cảnh (5.22): Hồn Kinh Quyển, cộng kinh nghiệm cho một võ hồn bất kỳ
 };
 /**
  * Một loại vật phẩm. `id` là mã cố định (cột `items.code`), không đổi mã đã dùng. `stack`: số món tối đa trong một ô
@@ -4157,6 +4158,29 @@ export const AUTO_TOKEN = "uy_thac_lenh";
 export const AUTO_TOKEN_SECS = 2 * 3600;
 export const AUTO_TOKEN_PRICE = 500;
 export const AUTO_BONUS_MAX = 24 * 3600;
+/**
+ * Bí Cảnh (mục 5.22, docs/design/bi-canh.md; #877): phụ bản hằng ngày có lượt, làm mới 05:00 giờ Việt Nam (`resetHour`, khóa ngày riêng `bicanhDay`, không đụng
+ * lượt boss / đấu trường vẫn đổi 00:00). `claimKind`: tiền tố `kind` ở `boss_claims` (mỗi phụ bản thêm `_<id>`: lượt đã vào; `_<id>_mua`: lượt đã mua thêm), nên không cần bảng mới.
+ * `scenes[i]`: `runs` lượt miễn phí mỗi ngày, mua thêm tối đa `buyMax` lượt, lượt mua thứ i (từ 0) giá `bicanhRunPrice` = buyBase × buyGrow^i (Hồn Tệ, nguồn ra).
+ * Hồn Kinh Quyển (`tome`): dùng cho MỘT võ hồn bất kỳ trong bộ sưu tập (kể cả dự bị) cộng `tomeXp` kinh nghiệm qua đường cộng có kẹp bình cảnh;
+ * `tomeDailyCap`: trần quyển nhận mỗi ngày Bí Cảnh (cả lượt mua thêm). `equivMin`: một lượt đáng giá chừng ngần ấy phút tự săn. Số ban đầu là số tạm, chờ balance-review.
+ */
+export const BICANH = {
+  resetHour: 5, claimKind: "bi_canh", tome: "hon_kinh_quyen", tomeXp: 300, tomeDailyCap: 6, equivMin: 10,
+  scenes: [{ id: "luyen_hon", name: "Luyện Hồn Cảnh", runs: 3, buyBase: 3000, buyGrow: 1.5, buyMax: 3 }],
+};
+export type BicanhScene = (typeof BICANH.scenes)[number];
+export const bicanhScene = (id: unknown) => BICANH.scenes.find((s) => s.id === id);
+/** `kind` ở `boss_claims`: lượt đã vào / lượt đã mua thêm của một phụ bản trong một ngày Bí Cảnh. */
+export const bicanhRunKind = (id: string) => `${BICANH.claimKind}_${id}`;
+export const bicanhBuyKind = (id: string) => `${BICANH.claimKind}_${id}_mua`;
+const BICANH_RESET_MS = BICANH.resetHour * 3600000;
+/** Khóa ngày Bí Cảnh ("2026-10-28", cột `boss_claims.day`): ngày Việt Nam của (`ms` − resetHour giờ), nên đổi ngày lúc 05:00 thay vì 00:00. */
+export const bicanhDay = (ms: number) => vnDay(ms - BICANH_RESET_MS);
+/** Số ms từ `ms` tới lần làm mới 05:00 kế tiếp (luôn > 0; đúng 05:00:00.000 thì là 24 giờ sau). */
+export const bicanhResetIn = (ms: number) => { const at = vnAt(ms - BICANH_RESET_MS, "00:00", 1) + BICANH_RESET_MS; return at - ms; };
+/** Giá lượt mua thêm thứ `i` (từ 0) của một phụ bản trong ngày: buyBase × buyGrow^i, làm tròn trăm đồng (cùng khuôn shardBuyPrice). */
+export const bicanhRunPrice = (scene: Pick<BicanhScene, "buyBase" | "buyGrow">, i: number) => Math.round(scene.buyBase * scene.buyGrow ** Math.max(0, Math.floor(i)) / 100) * 100;
 export const ITEMS: ItemDef[] = [
   { id: "hoi_huyet_dan", kind: "dan", name: "Hồi Huyết Đan", desc: "Hồi 30% sinh lực của võ hồn đang ra trận.", col: "#e0525a", stack: 99, cd: "dan", hp: 0.3 },
   { id: "hoi_hon_dan",   kind: "dan", name: "Hồi Hồn Đan",   desc: "Hồi 30% hồn lực.",                         col: "#4b9dff", stack: 99, cd: "dan", mp: 0.3 },
@@ -4193,6 +4217,9 @@ export const ITEMS: ItemDef[] = [
   // Trang bị hồn sư (E0, mục 5.15): chưa rơi / chưa dùng được cho tới E1+; mỗi món một ô, dữ liệu ở `items.stats` (EquipData).
   { id: EQUIP_ITEM, kind: "trang_bi", name: "Trang bị hồn sư", col: "#e8e8e8", stack: 1,
     desc: "Mặc vào một trong 10 ô của hồn sư để cộng chỉ số cho võ hồn đang ra trận. Cường hóa, hợp thành, phân giải ở Thợ rèn." },
+  // Hồn Kinh Quyển (Bí Cảnh, mục 5.22): phần thưởng Luyện Hồn Cảnh; chỉ nhận từ phụ bản, không bán, không mua; dùng cho một võ hồn bất kỳ (kể cả dự bị).
+  { id: BICANH.tome, kind: "kinh_quyen", name: "Hồn Kinh Quyển", col: "#9fd0ff", stack: 99,
+    desc: `Dùng cho một võ hồn bất kỳ (kể cả dự bị): +${BICANH.tomeXp} kinh nghiệm. Vẫn dừng ở bình cảnh, cần hấp thụ hồn hoàn kế tiếp.` },
   ...EQUIP_MATERIALS.map((m): ItemDef => ({ id: m.id, kind: "nguyen_lieu", name: m.name, col: m.col, stack: m.stack, desc: m.desc })),
 ];
 const ITEM_INDEX = new Map(ITEMS.map((d) => [d.id, d]));

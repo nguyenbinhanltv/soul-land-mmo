@@ -14,7 +14,7 @@ export const BAG_GROUPS: { id: string; name: string; kinds: ItemKind[] | null }[
   { id: "hon_cot", name: "Hồn cốt", kinds: ["hon_cot"] },
   { id: "hon_hach", name: "Hồn hạch", kinds: ["hon_hach"] },
   { id: "vat_lieu", name: "Vật liệu", kinds: ["manh_vo_hon", "tien_thao"] },
-  { id: "tieu_hao", name: "Tiêu hao", kinds: ["dan", "phu", "lenh", "ruong"] },
+  { id: "tieu_hao", name: "Tiêu hao", kinds: ["dan", "phu", "lenh", "ruong", "kinh_quyen"] },
 ];
 /** Cách xếp thứ tự hiển thị (chỉ phía client; nút "Sắp xếp" gộp / xếp thật vẫn do server làm). `tay` = thứ tự server + chỗ tự kéo. */
 export const BAG_SORTS: { id: BagSort; name: string }[] = [

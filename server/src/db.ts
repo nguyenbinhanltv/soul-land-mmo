@@ -1896,7 +1896,7 @@ export class PgStore implements Store {
 
 /**
  * Hook test `savefail {n}` (#797, CHỈ GAME_TEST=1): số lần ghi kế tiếp của tài khoản bị ép lỗi, để bot kiểm nhánh hoàn lại khi lỗi DB
- * (equipLuck, equipEnhance, coreset, tongAction). Chỉ chặn ba đường ghi túi / tông: saveBag, setTong, saveProgress có kèm túi.
+ * (equipLuck, equipEnhance, coreset, tongAction). Chỉ chặn các đường ghi túi / tông: saveBag, claimBoss, checkinClaim, setTong, saveProgress có kèm túi.
  * Lỗi ném TRƯỚC khi chạm DB nên không ghi gì (giống transaction rollback). Không GAME_TEST thì store trả về nguyên bản, không bọc.
  */
 export const saveFailTest = new Map<number, { n: number; only: string }>();
@@ -1911,6 +1911,7 @@ const withSaveFail = (s: Store): Store => new Proxy(s, {
     const f = Reflect.get(t, k, t);
     if (typeof f !== "function") return f;
     if (k === "saveBag") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
+    if (k === "claimBoss") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); }; // lượt boss / đổi mảnh / mua lượt Bí Cảnh (ghi lượt + túi)
     if (k === "checkinClaim") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
     if (k === "setTong") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "tong"); return f.call(t, accountId, ...a); };
     if (k === "saveProgress") return async (accountId: number, ...a: unknown[]) => { if (a[5] !== undefined) failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
