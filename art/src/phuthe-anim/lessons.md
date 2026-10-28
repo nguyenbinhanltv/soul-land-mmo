@@ -1,4 +1,4 @@
-﻿# Bài học vẽ hoạt ảnh phụ thể võ hồn (một nguồn duy nhất)
+# Bài học vẽ hoạt ảnh phụ thể võ hồn (một nguồn duy nhất)
 
 Đọc bởi `tools/assets/phuthe-sheet-prompt.mjs` (qua `phuthe-sheet-lessons.mjs`): mỗi dòng bài học dưới đây được chèn vào mục `LESSONS` của khối prompt tiếng Anh. Bài học mới (từ review, từ lượt vẽ hỏng) **thêm vào đây**, không để ở issue / comment PR / prompt viết tay. Đặc tả: `docs/art/phu-the-hoat-anh.md`; skill `beast-anim` (cùng đường đi với hồn thú).
 
@@ -97,5 +97,6 @@
 - [direction @B] Shorten every feline claw extension inside its own cell while preserving a broad magenta gap between all six attack poses. // U Minh C1: vuốt vươn sang ô bên, D giữ khoảng trống
 - [direction @B] Keep feline cast silhouettes compact above the fixed pelvis and leave the two spare cells completely magenta. // U Minh D1: cast dựng nguyên thân, mặt ne khai eye; E giữ khoảng trống
 - [direction @B] Keep each east-facing feline attack claw folded inside its own cell, with no slash arc extending toward a neighbour. // U Minh C1 bị chặn lưới; C2 chỉ sửa tờ e
+- [direction @C] Keep each plant, flame or shadow pose as one compact island, with every detached petal or trail close to its own core; preserve six isolated figures in each of the first three rows and four in the last row, separated by uninterrupted magenta gutters. // Lô 5: mảnh rời làm thừa hình, attack/cast dính; bài học chung cho nhóm mềm.
 - [direction] Remove every reference guide, ruler, foot line and bracket from the final picture; leave only the original hero silhouette and its named attachments, all connected within each cell, with clean magenta gutters. Keep the hero at its reference scale and do not add a separate creature body. Preserve the same body registration across IDLE, WALK, ATTACK and CAST; never place the idle body lower or higher than the rest. // Lô phụ thể: vạch còn sót tạo cụm rời, thân chuẩn bị thu nhỏ và concept lấn phần gắn.
 - [direction @C] For plant attachments, curl long vine tips inward during ATTACK and CAST so each pose stays compact inside its own cell, with a broad uninterrupted magenta gap to both neighbours; never stretch a vine horizontally into the next pose. // Lô thực vật: dải đánh hướng bắc dính qua hai lượt; giữ sáu cụm độc lập.

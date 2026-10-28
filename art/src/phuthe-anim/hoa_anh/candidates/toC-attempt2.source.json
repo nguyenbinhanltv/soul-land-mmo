@@ -1,0 +1,245 @@
+{
+  "tool": "image_gen",
+  "model": "unknown",
+  "seed": "unknown",
+  "createdAt": "2026-10-28T00:23:25.785Z",
+  "attempt": 2,
+  "image": {
+    "path": "toC-attempt2.png",
+    "sha256": "33a2c987ed739cd99dc1ae13500ef87dfdf254b153416b6a9eae856c14707a92"
+  },
+  "prompt": {
+    "path": "toC-attempt2.prompt.txt",
+    "sha256": "6a7ab25b6ab56d98a652664601d56e12446155e94b543424aa53b5d65fe703ff"
+  },
+  "references": [
+    {
+      "path": "art/src/phuthe-anim/hoa_anh/references/hoa_anh-nom-toC.png",
+      "sha256": "beaed26756433db93b246eed3466f907d9a923930f5299e81fca2a6d84e26bbd"
+    },
+    {
+      "path": "art/src/vohon-v2/hoa_anh/concept-attempt2.png",
+      "sha256": "827431d0d8fb7d4500f694c617bd573dbc2e36ba82dcce69705ca8c90beb8308"
+    },
+    {
+      "path": "art/src/phuthe-anim/hoa_anh/toA.png",
+      "sha256": "06f1ceb793db093475e206e4977e4676b805ed000100c5f9e3c22b0ec3594b0b"
+    }
+  ],
+  "check": {
+    "level": "chặn",
+    "block": 5,
+    "light": 23,
+    "issues": [
+      {
+        "sev": "note",
+        "code": "nen",
+        "where": "toàn tờ",
+        "msg": "nền dốc nhẹ (bốn góc lệch 34), trong dung sai 60; không phải lỗi."
+      },
+      {
+        "sev": "note",
+        "code": "tach-hinh",
+        "where": "H3 (e)",
+        "msg": "dải dò được 4 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 6.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H1 (e) C1",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.36 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H1 (e) C2",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.32 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H1 (e) C3",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.39 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H1 (e) C4",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.37 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H2 (e) C1",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.38 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H2 (e) C2",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.32 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H2 (e) C3",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.35 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H2 (e) C4",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.31 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H2 (e) C5",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.36 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H2 (e) C6",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.39 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H3 (e) C1",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.35 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H3 (e) C1",
+        "msg": "phụ thể chạm mép ô khung (32 điểm): có thể bị cắt.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H3 (e) C1",
+        "msg": "51 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H3 (e) C2",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.31 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      },
+      {
+        "sev": "block",
+        "code": "nom-mat",
+        "where": "H3 (e) C3",
+        "msg": "không tìm thấy nộm trong ô (điểm khớp 0.24 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H3 (e) C4",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.28 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H3 (e) C4",
+        "msg": "phụ thể chạm mép ô khung (186 điểm): có thể bị cắt.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H3 (e) C4",
+        "msg": "1743 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H3 (e) C5",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.33 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "cham-mep-khung",
+        "where": "H3 (e) C5",
+        "msg": "phụ thể chạm mép ô khung (69 điểm): có thể bị cắt.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "vuot-khung",
+        "where": "H3 (e) C5",
+        "msg": "104 điểm phụ thể nằm ngoài ô khung (bị cắt).",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H3 (e) C6",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.39 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      },
+      {
+        "sev": "block",
+        "code": "nom-mat",
+        "where": "H4 (e) C1",
+        "msg": "không tìm thấy nộm trong ô (điểm khớp 0.17 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn.",
+        "dir": "e"
+      },
+      {
+        "sev": "block",
+        "code": "nom-mat",
+        "where": "H4 (e) C2",
+        "msg": "không tìm thấy nộm trong ô (điểm khớp 0.24 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn.",
+        "dir": "e"
+      },
+      {
+        "sev": "block",
+        "code": "nom-mat",
+        "where": "H4 (e) C3",
+        "msg": "không tìm thấy nộm trong ô (điểm khớp 0.18 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn.",
+        "dir": "e"
+      },
+      {
+        "sev": "block",
+        "code": "nom-mat",
+        "where": "H4 (e) C4",
+        "msg": "không tìm thấy nộm trong ô (điểm khớp 0.21 < 0.25): nộm bị vẽ đè, đổi màu, xóa hoặc dời xa; cutter không biết vị trí gắn.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H1 (e) C5",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.34 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H1 (e) C6",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.4 < 0.5); cutter dùng độ dời trung vị của tờ.",
+        "dir": "e"
+      }
+    ]
+  }
+}

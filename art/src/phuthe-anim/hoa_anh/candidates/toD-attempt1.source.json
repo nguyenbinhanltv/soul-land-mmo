@@ -1,0 +1,56 @@
+{
+  "tool": "image_gen",
+  "model": "unknown",
+  "seed": "unknown",
+  "createdAt": "2026-10-28T00:21:40.106Z",
+  "attempt": 1,
+  "image": {
+    "path": "toD-attempt1.png",
+    "sha256": "b63302a16acf2c8b50e778417ef97ff6e58d5c3c2492f79615e89c05efafaf0a"
+  },
+  "prompt": {
+    "path": "toD-attempt1.prompt.txt",
+    "sha256": "cf9025bfc5b81f3001d40653b26f120116c07a05043de401ecdfb0489b7c519d"
+  },
+  "references": [
+    {
+      "path": "art/src/phuthe-anim/hoa_anh/references/hoa_anh-nom-toD.png",
+      "sha256": "beaed26756433db93b246eed3466f907d9a923930f5299e81fca2a6d84e26bbd"
+    },
+    {
+      "path": "art/src/vohon-v2/hoa_anh/concept-attempt2.png",
+      "sha256": "827431d0d8fb7d4500f694c617bd573dbc2e36ba82dcce69705ca8c90beb8308"
+    },
+    {
+      "path": "art/src/phuthe-anim/hoa_anh/toA.png",
+      "sha256": "06f1ceb793db093475e206e4977e4676b805ed000100c5f9e3c22b0ec3594b0b"
+    }
+  ],
+  "check": {
+    "level": "chặn",
+    "block": 1,
+    "light": 0,
+    "issues": [
+      {
+        "sev": "note",
+        "code": "nen",
+        "where": "toàn tờ",
+        "msg": "nền dốc nhẹ (bốn góc lệch 34), trong dung sai 60; không phải lỗi."
+      },
+      {
+        "sev": "note",
+        "code": "tach-hinh",
+        "where": "H3 (ne)",
+        "msg": "dải dò được 3 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 4.",
+        "dir": "ne"
+      },
+      {
+        "sev": "block",
+        "code": "hinh-dinh",
+        "where": "H3 (ne)",
+        "msg": "dải có 4 hình, cần 6: hình dính nhau.",
+        "dir": "ne"
+      }
+    ]
+  }
+}

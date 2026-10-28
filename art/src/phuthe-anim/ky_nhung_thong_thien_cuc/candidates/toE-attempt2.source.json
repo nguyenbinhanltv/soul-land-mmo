@@ -1,0 +1,70 @@
+{
+  "tool": "image_gen",
+  "model": "unknown",
+  "seed": "unknown",
+  "createdAt": "2026-10-28T00:10:49.967Z",
+  "attempt": 2,
+  "image": {
+    "path": "toE-attempt2.png",
+    "sha256": "df0b2a6237b5b093c2ba676a3b199170024a8fb27c1f63d4bbc7bec2bf5e99a5"
+  },
+  "prompt": {
+    "path": "toE-attempt2.prompt.txt",
+    "sha256": "7cf8f0a73207288a1d8aff4476e3dabce0255326302f9beda22fab327ed7bbc2"
+  },
+  "references": [
+    {
+      "path": "art/src/phuthe-anim/ky_nhung_thong_thien_cuc/references/ky_nhung_thong_thien_cuc-nom-toE.png",
+      "sha256": "55c6b7cd2cb16bea9f1c5799cd2d32eb692b1779f2253afc6cc8fa42f4488c89"
+    },
+    {
+      "path": "art/src/vohon-v2/ky_nhung_thong_thien_cuc/concept-attempt2.png",
+      "sha256": "dcfdd0bb52b5dcb0df1416aa2a312ae1b5cc85d76d908c52d2a5bbb4e7fde88f"
+    },
+    {
+      "path": "art/src/phuthe-anim/ky_nhung_thong_thien_cuc/toA.png",
+      "sha256": "bba6a7593371535d3291f70ba690d291abaf3186c3f81fc9880b3aaa4a319028"
+    }
+  ],
+  "check": {
+    "level": "chặn",
+    "block": 1,
+    "light": 1,
+    "issues": [
+      {
+        "sev": "note",
+        "code": "nen",
+        "where": "toàn tờ",
+        "msg": "nền dốc nhẹ (bốn góc lệch 36), trong dung sai 60; không phải lỗi."
+      },
+      {
+        "sev": "note",
+        "code": "tach-hinh",
+        "where": "H3 (n)",
+        "msg": "dải dò được 5 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 6.",
+        "dir": "n"
+      },
+      {
+        "sev": "note",
+        "code": "tach-hinh",
+        "where": "H4 (n)",
+        "msg": "dải dò được 2 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 3.",
+        "dir": "n"
+      },
+      {
+        "sev": "light",
+        "code": "o-trong",
+        "where": "H4 (n) C5",
+        "msg": "ô trống có hình (2.04% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng.",
+        "dir": "n"
+      },
+      {
+        "sev": "block",
+        "code": "hinh-dinh",
+        "where": "H4 (n)",
+        "msg": "dải có 3 hình, cần 4: hình dính nhau.",
+        "dir": "n"
+      }
+    ]
+  }
+}
