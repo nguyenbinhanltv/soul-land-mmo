@@ -12,6 +12,32 @@ import { buildPage, writePreview, sourceFromFixture, BACKGROUNDS, FRAME_SIZES, F
 
 const kit = loadKit();
 
+test("hon-quang: phân vai riêng, BOARD v3 đủ mẫu và không đổi hướng mặc định", () => {
+  for (const id of SHEET_KINDS) {
+    const p = buildPrompt(expandKind(kit, id), { style: "hon-quang" });
+    assert.match(p, /white, yellow, violet, black, red/);
+    assert.match(p, /Exactly ONE luminous focal area/);
+    assert.doesNotMatch(p, /Rank by light|stone grey, jade green/);
+    assert.match(p, /no text|NO text|no text, numbers/i);
+  }
+  const b = expandKind(kit, "BOARD"), p = buildPrompt(b, { style: "hon-quang" });
+  assert.match(p, /BOARD v3/);
+  assert.match(p, /exactly five equal-height leaderboard rows/);
+  assert.match(p, /exactly eight equal square hotbar slots/);
+  assert.match(p, /exactly five identical neutral gem item slots/);
+  assert.match(p, /4-pixel logical grid/);
+  assert.doesNotMatch(p, /magenta|hinted village|podium hierarchy/);
+  assert.doesNotMatch(buildPrompt(b), /BOARD v3/);
+  assert.match(buildPrompt(b), /near-black wood/);
+  assert.ok(referencesFor("BOARD", "hon-quang").every((r) => !r.required));
+  assert.match(buildDoc(b, { style: "hon-quang" }), /Hồn Quang Tiên Môn/);
+  const doc = buildDoc(b, { style: "hon-quang" });
+  assert.doesNotMatch(doc, /art\/src\/ui-kit\/BOARD\.png/);
+  assert.match(doc, /candidates\/hon-quang\/BOARD\.png/);
+  assert.match(doc, /candidates\/hon-quang\/BOARD\.prompt\.txt/);
+  assert.match(doc, /--kind BOARD --out/);
+});
+
 test("lessons.md: parse được, mọi loại tờ có ít nhất một bài, cú pháp sai thì ném lỗi", () => {
   const all = parseLessons(readFileSync(new URL("../../art/src/ui-kit/lessons.md", import.meta.url), "utf8"));
   assert.ok(all.length >= 10);

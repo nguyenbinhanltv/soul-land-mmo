@@ -1,9 +1,10 @@
 {
-    "attempts":  1,
-    "references":  [
-                       "shared/assets/sprites/beast/man_da_la_xa.png"
-                   ],
-    "model":  "unknown",
-    "tool":  "builtin image_gen.imagegen",
-    "seed":  "unknown"
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 2,
+  "agent": "soul_land_game-766",
+  "references": [
+    "shared/assets/sprites/beast/man_da_la_xa.png"
+  ]
 }

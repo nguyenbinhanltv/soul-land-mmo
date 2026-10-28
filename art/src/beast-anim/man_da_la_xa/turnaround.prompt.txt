@@ -35,3 +35,4 @@ LESSONS (learned from earlier sheets of other creatures, follow every line):
 - While slithering the body flows in an S-curve along the ground toward the facing direction; the head leads and the tail follows.
 - DIE of a snake ends stretched out straight along the facing line, never coiled sideways.
 - Draw all poses at the same body size and on the same ground line; one creature per cell with clear magenta space around it.
+- In directions n and ne, hide every eye, mouth line, tooth and nostril behind the back of the skull in ALL poses: show a solid unmarked rear skull, never the side of the face. Attack and hurt change body height and forward reach only, with zero head yaw; never open a mouth toward the camera.

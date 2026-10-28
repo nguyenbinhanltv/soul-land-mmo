@@ -1,0 +1,11 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 4,
+  "agent": "soul_land_game-766",
+  "references": [
+    "shared/assets/sprites/beast/hac_vu_bien_buc.png",
+    "art/src/beast-anim/hac_vu_bien_buc/turnaround.png"
+  ]
+}

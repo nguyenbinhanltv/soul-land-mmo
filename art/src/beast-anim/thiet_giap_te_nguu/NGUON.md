@@ -7,8 +7,8 @@ Loài `thiet_giap_te_nguu` (Thiết Giáp Tê Ngưu), họ `quad`, khung game 96
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1745509 byte, SHA256 `4497c8f54d428908fa2239898f2470c9bf451d20842acd1b1201cde141d662c7`.
-- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2.
-- Prompt: `turnaround.prompt.txt` (SHA256 `77f839726a4e4b465657717dfb9f2e14fe2dbf63823642ec06e5967a40e53213`).
+- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo.
+- Prompt: `turnaround.prompt.txt` (SHA256 `244992e18a9b8810b44adac8905b8f5fcfafec687b59ebcf6ad3ed04f1152780`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
 - Duyệt bằng mắt: đã xem, không thấy lỗi.
@@ -28,12 +28,29 @@ Loài `thiet_giap_te_nguu` (Thiết Giáp Tê Ngưu), họ `quad`, khung game 96
 - Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo.
 - Prompt: `toB.prompt.txt` (SHA256 `0f8784c03510ce071fe0d94150bef895c321333d82407fc8521f8bed426e7d64`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
-- Mức kiểm: **nhẹ** (khối hướng: ne nhẹ, n pass).
+- Mức kiểm: **nhẹ** (khối hướng: ne nhẹ, n nhẹ).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+## to-n
+
+- File: `to-n.png`, **1536×1024**, 1795880 byte, SHA256 `b18a1fbfb684566b27bd0f7e0e6425e23cce9b12c0ea52250eba4facddea3b4f`.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2.
+- Prompt: `to-n.prompt.txt` (SHA256 `afad5a4b8644de6fddf1bca5e63a3ca37c38d4fe60bd4c713e59ec3d5bde956f`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 189% so với ảnh tĩnh (lệch 89%, quá 25%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## Tờ chưa vào thư mục chính (candidates)
 
 Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
+
+### to-ne (candidates)
+
+- File chọn: `candidates/to-ne-attempt6.png`, **1536×1024**, SHA256 `44cea07d56a184e89f926de03464f75e47f333f43be14ce4f8304f2ab9856137`; lượt tìm thấy: 4, 5, 6.
+- Số lượt đã dùng: 3; lượt được chọn: 6.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
 
 ### toD (candidates)
 
@@ -48,6 +65,9 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 LỖI: toA — hình ở ô trống — H4 (s) C5, H4 (s) C6, H8 (se) C5, H8 (se) C6 — ô trống có hình (2.74% diện tích ô): hình tràn từ ô bên; ô trống có hình (3.7% diện tích ô): hình tràn từ ô bên; ô trống có hình (14.24% diện tích ô): hình tràn từ ô bên; ô trống có hình (15.7% diện tích ô): hình tràn từ ô bên.
 LỖI: toB — hình ở ô trống — H4 (ne) C5 — ô trống có hình (0.45% diện tích ô): hình tràn từ ô bên.
 LỖI: toB — nhập — hướng n — công cụ sinh ảnh từ chối tờ toE, chưa có RAW mới, giữ fallback (mắt)
+LỖI: to-n — hurt trùng idle — H1 (n) C5–6 — hurt trùng idle (xor/hợp 0.077 / 0.076): không thấy phản ứng trúng đòn.
+LỖI: to-ne — ne — bổ sung lượt 1–2 vẫn lộ mắt, candidates/to-ne-attempt4.png và to-ne-attempt5.png; chưa nhập. (mắt)
+LỖI: to-ne — ne — hết 3 lượt bổ sung (tổng 6), mọi lượt lộ mắt nhất là attack; candidates/to-ne-attempt4–6.*; giữ fallback. (mắt)
 LỖI: toD — hướng — ne H3 C3–4 — còn lộ mắt sau 3 lượt, giữ fallback (mắt)
 ```
 
@@ -57,4 +77,4 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/beast-anim/thiet_giap_te_nguu/` | - | builtin image_gen.imagegen | RAW hoạt ảnh Thiết Giáp Tê Ngưu: turnaround 1536×1024, toA 1024×1536, toB 1254×1254; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+| `art/src/beast-anim/thiet_giap_te_nguu/` | - | builtin image_gen.imagegen | RAW hoạt ảnh Thiết Giáp Tê Ngưu: turnaround 1536×1024, toA 1024×1536, toB 1254×1254, to-n 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
