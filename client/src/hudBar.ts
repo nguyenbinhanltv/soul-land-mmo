@@ -1,6 +1,8 @@
 // Thanh kỹ năng / hồn cốt / chỉ số nhân vật và khung đội hình nhỏ của HUD (tách nguyên văn từ hud.ts, Part of #885 bước 2); hud.ts re-export để nơi gọi giữ nguyên.
 import { TIERS, VOHON, ringLimit, tierOfYears, vohonIndex, SWITCH_CD, TIEN_CO_MAX, tienCoOf, skillPower, BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, formatYears, MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, starSkillMult, starCdMult, starTienCoMult, starRing, PLAYER_STATUS, BEAST_BUFF_IDS, BEAST_BUFFS, beastBuffBit, BONE_SLOTS, boneSlotIndex, boneName, BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower, boneSkillMult, ringSkill, CHAN_THAN_RING, chanThanOf, chanThanStats, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_CD, FUSION, FUSIONS, fusionsOf, type SkillDef, type ChanThanDef, type ChanThanStat } from "../../shared/data.ts";
 import { artImg, chanThanImg, fusionImg, skillImg } from "./uiArt.ts";
+import { cbElementMark } from "./a11y.ts";
+import { elementOfVohonIndex } from "./audio/soundMap.ts";
 import { setTip, parseText, type TipLine, type TipSpec } from "./tooltip.ts";
 import type { Vitals } from "../../shared/vitals.ts";
 import type { OwnedVohons, Squad } from "./net.ts";
@@ -320,7 +322,8 @@ export function updateStats(p: any, v: Vitals) {
   const vhName = VOHON[p.vh].name;
   $("#vhGlyph").textContent = vhName.slice(0, 1);
   $("#vhPortrait").setAttribute("aria-label", `Biểu tượng ${vhName}`);
-  if (vhName !== lastVhName) { lastVhName = vhName; $("#vhName").textContent = vhName; setTip($("#vhName"), vhName); }
+  const vhLabel = cbElementMark(elementOfVohonIndex(p.vh)) + vhName; // mù màu (#600): nhãn hệ cạnh tên, tắt thì chỉ tên
+  if (vhLabel !== lastVhName) { lastVhName = vhLabel; $("#vhName").textContent = vhLabel; setTip($("#vhName"), vhLabel); }
   $("#vhName").style.color = VOHON[p.vh].col;
   $("#lvl").textContent = `Cấp ${p.level}`;
   $("#hpFill").style.width = (p.hp / Math.max(1, p.maxHp)) * 100 + "%"; $("#hpTxt").textContent = `Sinh lực ${p.hp} / ${p.maxHp}`;
