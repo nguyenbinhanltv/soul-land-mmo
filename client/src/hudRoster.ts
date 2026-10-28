@@ -4,8 +4,9 @@ import { VOHON, HE, tierOfYears, vohonIndex, TEAM_SIZE, MAX_RINGS, MAX_STARS, SH
 
 
 import { vohonCard } from "./cards.ts";
-import { chanThanImg, skillImg } from "./uiArt.ts";
+import { artUrl, chanThanImg, skillImg } from "./uiArt.ts";
 import { toggleChar } from "./charPanel.ts";
+import { isUi2 } from "./uiKit.ts";
 
 
 
@@ -20,6 +21,13 @@ export function toggleRoster(open = $("#roster").hidden) {
   else { toggleBag(false); closeNpc(); toggleReso(false); toggleWorld(false); toggleFriends(false); toggleChar(false); } // các bảng cùng chỗ giữa màn hình: mở bảng này thì đóng bảng kia
 }
 
+/** UI v2 (đợt 2b-1, ui2-vohon.css): bảng chia 5 tab ở đáy; tắt cờ thì giữ một cột cuộn như cũ (UI2 = false: mọi mục hiện). */
+const UI2 = isUi2();
+const K = (cls: string) => (UI2 ? ` ${cls}` : "");
+type RosterTab = "doi" | "ky" | "bone" | "core" | "manh";
+const ROSTER_TABS: { id: RosterTab; name: string }[] = [{ id: "doi", name: "Đội hình" }, { id: "ky", name: "Hồn kỹ" }, { id: "bone", name: "Hồn cốt" }, { id: "core", name: "Hồn hạch" }, { id: "manh", name: "Mảnh" }];
+let rosterTab: RosterTab = "doi";
+const showTab = (t: RosterTab) => !UI2 || rosterTab === t;
 let rosterSel: number | null = null;   // ô đội hình đang chọn để thay võ hồn
 let rosterHint = "";
 
@@ -45,6 +53,7 @@ export interface RosterActions {
  */
 export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<string, number>, items: BagItem[] = []) {
   const el = $("#roster"); el.innerHTML = "";
+  if (UI2) el.classList.add("f2-muc-lon");
   const members = data.team.filter((r) => r > 0).length;
   const head = document.createElement("div"); head.className = "rhead";
   head.innerHTML = `<b>Đội hình (${members}/${TEAM_SIZE})</b><span><button class="rlink">Cộng minh</button><button class="x" aria-label="Đóng">×</button></span>`;
@@ -54,6 +63,7 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
   const send = (team: number[]) => { rosterSel = null; rosterHint = ""; act.setTeam(team); };
 
   // 4 ô đội hình là 4 thẻ võ hồn (10.8): chọn thẻ để đặt võ hồn khác vào ô đó; ô trống là thẻ giấy để trống.
+  const doi = showTab("doi");
   const slots = document.createElement("div"); slots.className = "tslots cgrid";
   data.team.forEach((rowId, i) => {
     const v = ownedById(data, rowId), def = v && vohonDef(v.vohon), on = rowId === data.active;
@@ -78,11 +88,11 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
     }
     slots.appendChild(s);
   });
-  el.appendChild(slots);
+  if (doi) el.appendChild(slots);
 
   // Ràng buộc (mục 5.1, từ 2.5d; 9.4 mỗi cặp một dòng): cặp võ hồn cùng trong đội thì cả đội có thêm hiệu ứng (server tự tính lại).
   const bonds = bondsOf(data.team.map((r) => ownedById(data, r)?.vohon ?? ""));
-  if (bonds.length) {
+  if (doi && bonds.length) {
     const box = document.createElement("div"); box.className = "rbonds";
     for (const b of bonds) {
       const bd = document.createElement("small"); bd.className = "rnote rbond";
@@ -96,12 +106,12 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
   const sub = document.createElement("small"); sub.className = "rnote";
   sub.textContent = rosterHint || (rosterSel === null ? `Bộ sưu tập (${data.list.length}): chọn võ hồn để đưa vào ô trống, hoặc chọn một ô trước.`
     : `Chọn võ hồn để đặt vào ô ${rosterSel + 1}.`);
-  el.appendChild(sub);
+  if (doi) el.appendChild(sub);
 
   // Bộ sưu tập (10.8): lưới thẻ võ hồn; võ hồn đã trong đội mang ấn son số ô. Hiệu ứng hồn kỹ theo sao (9.5) ghi thành dòng chữ nhỏ
   // dưới thẻ (đọc được trên màn chạm) và nối vào nhãn đọc màn hình của thẻ.
-  const grid = document.createElement("div"); grid.className = "cgrid rgrid"; el.appendChild(grid);
-  for (const v of data.list) {
+  const grid = document.createElement("div"); grid.className = "cgrid rgrid"; if (doi) el.appendChild(grid);
+  for (const v of doi ? data.list : []) {
     const def = vohonDef(v.vohon), at = data.team.indexOf(v.rowId);
     const b = vohonCard(def, { level: v.level, stars: v.stars, rings: v.rings, slot: at >= 0 ? at + 1 : undefined, active: v.rowId === data.active }, "button");
     const stx = starSkillText(v.stars);
@@ -122,12 +132,26 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
   }
   const note = document.createElement("small"); note.className = "rnote";
   note.textContent = `Chỉ xếp đội khi không giao chiến và không hấp thụ. Trong trận nhấn 1–${TEAM_SIZE} (hoặc chạm ô đội hình) để đổi võ hồn. Phím V để mở/đóng.`;
-  el.appendChild(note);
+  if (doi) el.appendChild(note);
   rosterAgain = () => renderRoster(data, act, shards, items);
-  renderLoadout(el, data, act, rosterAgain);
-  renderBones(el, data, act, items, rosterAgain);
-  renderCores(el, data, act, items, rosterAgain);
-  renderShards(el, data, act, shards);
+  if (showTab("ky")) renderLoadout(el, data, act, rosterAgain);
+  if (showTab("bone")) renderBones(el, data, act, items, rosterAgain);
+  if (showTab("core")) renderCores(el, data, act, items, rosterAgain);
+  if (showTab("manh")) renderShards(el, data, act, shards);
+  if (UI2) el.appendChild(rosterTabs(members, rosterAgain));
+}
+
+/** Tab dưới của bảng (UI v2): 5 mục, mục đang xem có vạch dưới chân; cuộn về đầu khi đổi mục. Chỉ đổi cách hiện, không gửi gì lên server. */
+function rosterTabs(members: number, again: () => void) {
+  const nav = document.createElement("div"); nav.className = "rtabs"; nav.setAttribute("role", "tablist"); nav.setAttribute("aria-label", "Mục của bảng Võ Hồn");
+  for (const t of ROSTER_TABS) {
+    const b = document.createElement("button"); b.type = "button"; b.className = "ui-tab f2-tab"; b.dataset.tab = t.id;
+    b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(rosterTab === t.id));
+    b.textContent = t.name; if (t.id === "doi") b.title = `Đội hình ${members}/${TEAM_SIZE}`;
+    b.addEventListener("click", () => { b.blur(); if (rosterTab === t.id) return; rosterTab = t.id; rosterSel = null; again(); $("#roster").scrollTop = 0; });
+    nav.appendChild(b);
+  }
+  return nav;
 }
 
 // ---------- 4 ô hồn kỹ mang theo (mục 5.2, bước 8.1a) ----------
@@ -157,6 +181,7 @@ function renderLoadout(el: HTMLElement, data: OwnedVohons, act: RosterActions, a
   el.appendChild(pickRow);
 
   const send = (l: number[]) => { skSlot = null; act.loadout(v.rowId, l); };
+  if (UI2) renderWheel(el, v, cur, tiers, send, again);
   const slots = document.createElement("div"); slots.className = "tslots kslots";
   cur.forEach((r, i) => {
     const s = r >= 0 ? ringSkill(id, r) : null, open = s && r < v.rings.length;
@@ -188,7 +213,7 @@ function renderLoadout(el: HTMLElement, data: OwnedVohons, act: RosterActions, a
     box.querySelector("small")!.textContent = `Vòng ${CHAN_THAN_RING} · Võ Hồn Chân Thân${open ? "" : " · chưa mở"} · cố định`;
     slots.appendChild(box);
   }
-  el.appendChild(slots);
+  if (!UI2) el.appendChild(slots);
 
   const hint = document.createElement("small"); hint.className = "rnote";
   hint.textContent = skSlot === null ? "Chọn hồn kỹ để đưa vào ô trống, hoặc chọn một ô trước rồi chọn hồn kỹ." : `Chọn hồn kỹ để đặt vào ô ${SKILL_KEYS[skSlot]}.`;
@@ -198,7 +223,7 @@ function renderLoadout(el: HTMLElement, data: OwnedVohons, act: RosterActions, a
     const s = ringSkill(id, r), ct = r + 1 === CHAN_THAN_RING ? chanThanOf(id) : null;
     if (!s && !ct) continue;
     const open = r < v.rings.length, at = cur.indexOf(r);
-    const b = document.createElement("button"); b.type = "button"; b.className = "kcard" + (at >= 0 ? " on" : "") + (open ? "" : " locked") + (ct ? " ava" : "");
+    const b = document.createElement("button"); b.type = "button"; b.className = "kcard" + K("f2-nut-phu") + (at >= 0 ? " on" : "") + (open ? "" : " locked") + (ct ? " ava" : "");
     b.style.setProperty("--c", open ? ringColor(tiers[r]) : "#666");
     b.innerHTML = `<i class="ico"></i><span><b></b><small></small></span>`;
     const kart = s ? skillImg(id, r) : chanThanImg(id);
@@ -230,6 +255,59 @@ function renderLoadout(el: HTMLElement, data: OwnedVohons, act: RosterActions, a
   el.appendChild(note);
 }
 
+/** Vị trí 4 ô trên bánh xe (độ, 0 = trên, theo chiều kim đồng hồ): U trên, I phải, O dưới, P trái. */
+const WHEEL_DEG = [0, 90, 180, 270];
+/**
+ * Bánh xe hồn kỹ (UI v2, đợt 2b-1): 4 ô tròn quanh chân dung võ hồn, thay hàng ô chữ nhật. Cùng trạng thái `skSlot` / cùng `send` như hàng cũ
+ * (chọn ô rồi chọn hồn kỹ ở danh sách dưới; "Bỏ" để trống ô); Võ Hồn Chân Thân (vòng 7) là ô nhỏ cố định ở góc, chỉ để xem. Chỉ hiển thị.
+ */
+function renderWheel(el: HTMLElement, v: OwnedVohons["list"][number], cur: number[], tiers: number[], send: (l: number[]) => void, again: () => void) {
+  const id = v.vohon, def = vohonDef(id), wheel = document.createElement("div"); wheel.className = "vh-wheel"; wheel.style.setProperty("--c", def.col);
+  wheel.setAttribute("role", "group"); wheel.setAttribute("aria-label", `Bánh xe hồn kỹ của ${def.name}`);
+  const pic = artUrl(`portrait_${id}`), mid = document.createElement("div"); mid.className = "vh-mid";
+  mid.innerHTML = pic ? `<img src="${pic}" alt="" draggable="false">` : "<i></i>";
+  wheel.appendChild(mid);
+  const circle = (cls: string, key: string, art: string, icon: string, deg: number | null) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = `vh-slot${cls}`;
+    if (deg !== null) { b.style.setProperty("--x", `${(50 + 38 * Math.sin((deg * Math.PI) / 180)).toFixed(1)}%`); b.style.setProperty("--y", `${(50 - 38 * Math.cos((deg * Math.PI) / 180)).toFixed(1)}%`); }
+    b.innerHTML = `${art || `<span class="vh-ic"></span>`}<b></b>`;
+    b.querySelector("b")!.textContent = key; const ic = b.querySelector(".vh-ic"); if (ic) ic.textContent = icon;
+    return b;
+  };
+  cur.forEach((r, i) => {
+    const s = r >= 0 ? ringSkill(id, r) : null, open = !!s && r < v.rings.length;
+    const b = circle((skSlot === i ? " sel" : "") + (s ? " has" : " empty") + (open || !s ? "" : " locked"), SKILL_KEYS[i], s ? skillImg(id, r) : "", s ? s.name.slice(0, 1) : "+", WHEEL_DEG[i]);
+    if (open) b.style.setProperty("--c", ringColor(tiers[r]));
+    b.dataset.slot = String(i); b.setAttribute("aria-pressed", String(skSlot === i));
+    b.setAttribute("aria-label", s ? `Ô ${SKILL_KEYS[i]}: ${s.name}, vòng ${r + 1}${s.ult ? ", tuyệt kỹ" : ""}${open ? "" : ", chưa mở"}` : `Ô ${SKILL_KEYS[i]}: trống`);
+    b.title = s ? `${s.name}: ${s.desc}.` : `Ô ${SKILL_KEYS[i]}: trống, chọn để thêm`;
+    b.addEventListener("click", () => { b.blur(); skSlot = skSlot === i ? null : i; again(); });
+    wheel.appendChild(b);
+  });
+  const ct = chanThanOf(id);
+  if (ct) {
+    const open = v.rings.length >= CHAN_THAN_RING;
+    const b = circle(" ava" + (open ? "" : " locked"), AVA_KEY, chanThanImg(id), ct.name.slice(0, 1), null); b.disabled = true;
+    if (open) b.style.setProperty("--c", ringColor(tiers[CHAN_THAN_RING - 1]));
+    b.setAttribute("aria-label", `${ct.name}, Võ Hồn Chân Thân, phím ${AVA_KEY}, vòng ${CHAN_THAN_RING}${open ? "" : ", chưa mở"}, cố định`);
+    b.title = `${ct.name}: ${ct.desc}. Khi biến hình, ô ${SKILL_KEYS[CHAN_THAN_SKILL_SLOT]} thành ${ct.skill.name}.`;
+    wheel.appendChild(b);
+  }
+  el.appendChild(wheel);
+  // Dòng chi tiết của ô đang chọn (hoặc gợi ý), kèm nút "Bỏ" để trống ô.
+  const sel = skSlot !== null && skSlot >= 0 ? skSlot : null, r = sel !== null ? cur[sel] : -1, s = r >= 0 ? ringSkill(id, r) : null;
+  const info = document.createElement("div"); info.className = "vh-info";
+  if (sel !== null && s) {
+    info.innerHTML = `<span><b></b><small></small></span><button type="button" class="buse f2-nut-phu"></button>`;
+    info.querySelector("b")!.textContent = `${SKILL_KEYS[sel]} · ${s.name}`;
+    info.querySelector("small")!.textContent = `Vòng ${r + 1} · ${s.cost} hồn lực · hồi ${cdText(skillCd(s, r, v.stars))} giây${s.ult ? " · tuyệt kỹ" : ""}`;
+    const rm = info.querySelector("button")!; rm.textContent = "Bỏ";
+    rm.setAttribute("aria-label", `Bỏ ${s.name} khỏi ô ${SKILL_KEYS[sel]}`);
+    rm.addEventListener("click", () => { rm.blur(); const l = [...cur]; l[sel] = -1; send(l); });
+  } else info.innerHTML = "<small></small>", info.querySelector("small")!.textContent = sel !== null ? `Ô ${SKILL_KEYS[sel]} trống: chọn hồn kỹ bên dưới để thêm.` : "Chọn một ô trên bánh xe để xem hoặc thay hồn kỹ.";
+  el.appendChild(info);
+}
+
 // ---------- Hồn cốt gắn trên võ hồn (mục 5.5, bước 4.2) ----------
 let boneVh: number | null = null;     // võ hồn đang xem 6 ô hồn cốt (null = võ hồn ra trận)
 let boneCell: string | null = null;    // ô (mã vị trí) đang chọn: xem hồn cốt đang gắn, lọc hồn cốt trong túi
@@ -240,7 +318,7 @@ const BONE_AREA: Record<string, string> = { dau: "1 / 2", tay_trai: "2 / 1", tay
 
 /** Mở bảng đội hình ở mục hồn cốt, chọn sẵn ô của hồn cốt `itemId` (nút "Gắn…" trong túi đồ). */
 export function openBones(itemId: string, slot: string, rowId: number | null = null) {
-  boneFocus = itemId || null; boneCell = slot; boneVh = rowId; // xem võ hồn đang ra trận (hoặc võ hồn `rowId` từ bảng nhân vật)
+  rosterTab = "bone"; boneFocus = itemId || null; boneCell = slot; boneVh = rowId; // xem võ hồn đang ra trận (hoặc võ hồn `rowId` từ bảng nhân vật)
   rosterAgain?.(); // vẽ ngay: ô chọn sẵn, món tô sáng, danh sách lọc theo vị trí (không chờ tin bag/vohons/squad kế tiếp)
   toggleRoster(true);
   requestAnimationFrame(() => document.querySelector("#roster .bfig")?.scrollIntoView({ block: "start" }));
@@ -386,7 +464,7 @@ let coreFocus: string | null = null;  // hồn hạch trong túi vừa bấm "G�
 
 /** Mở bảng đội hình ở mục hồn hạch của võ hồn ra trận, tô sáng hồn hạch `itemId` (nút "Gắn…" trong túi đồ). */
 export function openCores(itemId: string, rowId: number | null = null, slot: number | null = null) {
-  coreFocus = itemId || null; coreCell = slot; boneVh = rowId; // võ hồn đang ra trận (dùng chung lựa chọn với mục hồn cốt)
+  rosterTab = "core"; coreFocus = itemId || null; coreCell = slot; boneVh = rowId; // võ hồn đang ra trận (dùng chung lựa chọn với mục hồn cốt)
   rosterAgain?.();
   toggleRoster(true);
   requestAnimationFrame(() => document.querySelector("#roster .cfig")?.scrollIntoView({ block: "start" }));
