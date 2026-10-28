@@ -1,0 +1,44 @@
+Create ONE image (landscape 3:2 aspect ratio; the exact pixel size does not matter): an animation sprite sheet of a single fantasy creature, ONE direction only, for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
+
+CREATURE: Thanh Lân Độc Cổ - poisonous green thorny vine-serpent with raised bulb head, thick scaly body in a wide S-curve, green scales with small thorns. Body type: rắn / bò sát. Size class: Tím / Đen. Keep the SAME design, proportions, colors, markings and overall size as the references in every frame. Do not redesign it.
+REFERENCES (attached images, in this fixed order): image 1 = the static reference of this exact creature in three views (front, side, back): the identity, design, colors and overall size; image 2 = the approved TURNAROUND image of this creature: five columns of directions (s, se, e, ne, n) by three rows (idle, hurt, die). Copy the pose, facing angle and body size of the column "se" for the idle, hurt and die frames of this sheet; image 3 = an approved direction sheet of this creature (only for matching line weight and palette; never copy its poses) (if attached).
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
+
+GRID: 6 columns x 4 rows of equal invisible cells (256x256 px each). Exactly one creature per cell, one animation frame per cell, drawn left to right in time order. Every creature is centered horizontally in its cell with the lowest point of its body (the belly lying on the ground) on the same invisible ground line about 12% above the cell bottom, and keeps at least 8% empty magenta margin on all sides. No part of any creature may cross a cell edge or touch another creature. Empty cells stay solid magenta.
+
+LAYOUT (top to bottom; every frame faces the same direction "se" = facing the lower right of the picture (three-quarter front view, head toward the viewer's right)):
+Block 1 (rows 1-4): direction "se" = facing the lower right of the picture (three-quarter front view, head toward the viewer's right).
+  row 1: frames 1-4 = IDLE (the body rests on the ground in loose coils, swaying slowly with the head raised, no legs); frames 5-6 = HURT (the head and the front of the body snap back along its facing line and the body coils tighter, staying on the ground on the same axis, belly hidden).
+  row 2: frames 1-6 = WALK (slithers forward on its belly in an S-curve, the whole body flowing along the ground, no legs).
+  row 3: frames 1-6 = ATTACK (pull back into an S-shape, then strike fast with open jaws, then retract).
+  row 4: frames 1-4 = DIE (the body goes slack and lies stretched out limp on the ground along its facing line); the last 2 cells of this row stay empty magenta.
+
+CONSISTENCY: the creature keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes between frames. In the same direction, resting, slithering and hurt frames keep the body at the same scale and the same ground line. Consecutive frames differ by small, smooth pose changes so they loop cleanly (idle and walk loop). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).
+
+DIRECTION RULES (every frame of a block, including HURT and DIE, keeps the block's direction): the body axis never rotates and the creature never turns to face the viewer. HURT keeps its own 2 animated frames but is only a short recoil backward along the facing line: the creature keeps its normal posture (body low on the ground, head raised), never flips onto its back, never shows its pale belly, never turns its head toward the viewer. DIE goes slack and slides down onto the ground along the facing line, ending stretched out limp with the head in the same direction as idle; it never rotates the body 90 degrees to lie sideways across the view. In the "ne" and "n" blocks the creature is seen from behind: no eyes, nose, mouth or face is visible in any frame of those blocks, hurt and die included.
+
+STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art feel, muted slightly desaturated natural colors, soft light from the top left, one thick consistent dark outline (#1a1020, not pure black) around every creature, three shades per color area, crisp edges with no soft glow or halo against the magenta, no anti-aliased pink fringe.
+
+DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions. This creature is a snake: it has NO legs, feet, paws, claws or limbs of any kind; never draw any, and never draw it standing or stomping. Its long body rests and slithers directly on the ground along its belly.
+
+LESSONS (learned from earlier sheets of other creatures, follow every line):
+- The turnaround reference fixes the creature's pose only, NEVER its five-column layout. This animation sheet has exactly SIX columns: row 1 has FOUR idle plus TWO hurt pictures, row 2 SIX walk pictures, row 3 SIX attack pictures, row 4 FOUR die pictures followed by TWO empty cells. Draw exactly twenty-two separate creatures in this six-by-four layout.
+- In directions ne and n, ATTACK strikes away from the camera: show only the rear scales of the head and neck in all six attack frames. Keep the jaws, mouth opening, fangs, eyes and pale throat completely hidden behind the head; never twist the neck to show a face during the strike.
+- Direction "se" is a three-quarter view: the body axis is turned about 45 degrees toward the lower right, the face is visible and looks diagonally down toward the viewer, so it clearly differs from "e" (pure side profile).
+- Direction "ne" is a three-quarter BACK view: the body axis is turned about 45 degrees away toward the upper right, the rump and back are nearest to the viewer, and it must not be drawn as a plain side profile.
+- Direction "n" is a pure back view: only the back of the head, back, rump and tail are visible.
+- Every direction e, se and ne faces the RIGHT side of the picture; never mirror them to face left.
+- In the south-facing block, keep the head aimed straight toward the viewer throughout WALK and ATTACK; do not turn right. In DIE, keep the spine aligned from the top to the bottom of the cell, never stretched sideways from left to right.
+- A snake has no legs, feet, paws or claws in any frame: it slithers on its belly along the ground. HURT snaps the head and front of the body backward along the facing line while the body stays on the ground; it never rears up on legs, flips onto its back or shows its belly.
+- While slithering the body flows in an S-curve along the ground toward the facing direction; the head leads and the tail follows.
+- DIE of a snake ends stretched out straight along the facing line, never coiled sideways.
+- In WALK and DIE, fit the entire snake silhouette, including its tail, inside its own column with a broad empty vertical magenta gutter between every pair of columns. Use compact S-curves and foreshorten the body toward the upper right in ne; never stretch the snake horizontally across a neighbouring column.
+- Keep the body the same height and length in every row of the sheet, matching the reference; never let walking, attacking or hurt frames grow or shrink the creature.
+- Draw every frame as its own separate picture: leave clear magenta space between neighbours, never overlap or merge two creatures.
+- Idle frames must show a small visible change from frame to frame (breathing, sway), and HURT must look clearly different from IDLE.
+- A frame that is empty in the layout stays empty magenta: do not fill spare cells with extra poses.
+- In directions n and ne, hide every eye, mouth line, tooth and nostril behind the back of the skull in ALL poses: show a solid unmarked rear skull, never the side of the face. Attack and hurt change body height and forward reach only, with zero head yaw; never open a mouth toward the camera.
+- In n and ne every frame shows only the BACK of the head with unbroken scales: no black eye dots, no mouth slit, no teeth, including at the maximum ATTACK reach. Keep the head pointing away along the same line in all 22 frames. In s the head faces straight toward the viewer throughout attack; die extends from top to bottom, never diagonally or sideways.
+- For n and ne keep the head tucked BEHIND the high shoulder or neck silhouette throughout ATTACK and DIE: omit every side-facing facial feature. Never pivot the head toward either side, even at maximum attack extension or when lying down.
+- For Thanh Lan Doc Co, there is exactly ONE bulb-shaped head at the leading end. The trailing end is a thin pointed tapering tail, never a second bulb or another head.

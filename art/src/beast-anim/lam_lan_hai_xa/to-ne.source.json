@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 2,
+  "agent": "soul_land_game-778",
+  "original_tool_path": "C:\\Users\\PC\\.codex\\generated_images\\01a18423-efc9-75d3-9467-2adc5fc89681\\exec-ebec4158-81d9-4691-a14e-20dc3b2d962b.png",
+  "review": "Đạt lượt 2: đầu sau không mắt, attack vươn theo hướng; lượt 1 attack C3–4 lộ miệng.",
+  "imported": true,
+  "references": [
+    "shared/assets/sprites/beast/lam_lan_hai_xa.png"
+  ]
+}
