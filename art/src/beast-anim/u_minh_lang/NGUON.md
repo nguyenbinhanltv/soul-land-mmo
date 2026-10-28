@@ -1,18 +1,60 @@
-# U Minh Lang — nguồn RAW H4 đợt 5
+# U Minh Lang — RAW hoạt ảnh
 
-Part of #771; Part of #766. Mỗi tờ do fresh worker riêng, một builtin `image_gen.imagegen` call/0 retry. A122+B123, tổng species2 call; B2=0. Nộp cả RAW FAIL, không redraw/hậu kỳ.
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species u_minh_lang`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
 
-A1: `toA.png`, IHDR 1024×1536, 1923136 bytes, SHA256 `ee74b175b1b5ca39125d8bb69dfd07551a61f01e8f0a29afc25e49bf4054f74c`. Exact actual/base/Markdown/source: `toA.prompt.txt`, `toA.base.txt`, `u_minh_lang-toA.md`, `toA.source.json`. Actual là base + suffix từ byte 4083. Static call path `/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-static.png` SHA256 `6bc125daf4c235c913fd9dc4930afe0cbf34c720c87327fd50425c366ce2af90`.
+Loài `u_minh_lang` (U Minh Lang), họ `quad`, khung game 96×96. Mức kiểm chung: **nhẹ**.
 
-LỖI: toA — heading/hurt — HURT, SE — HURT có đổi hướng; SE chưa rõ hướng xuống phải (theo HANDOFF worker122).
+## turnaround
 
-B1: `toB.png`, IHDR 1254×1254, 1903620 bytes, SHA256 `a1946d7378d9c91431244251671de9d600ab750cd044a523d06b32b18bcc7a7b`; requested 1024×1024. Exact actual/base/Markdown/source: `toB.prompt.txt`, `toB.base.txt`, `u_minh_lang-toB.md`, `toB.source.json`. Actual là base + suffix từ byte 3506; generator script `tools/assets/beast-sheet-prompt.mjs` SHA256 `5425d7c28866232679429e58963a36c394d33fb4341918c44b0ffef51e55f4ba`, Markdown SHA256 `b9fce8ee13d2a7d8536f7ce6b6600e41986163062f3ee1495c5369e0490d29aa`.
+- File: `turnaround.png`, **1536×1024**, 1638741 byte, SHA256 `4cb8b666a13daf8807e4e061129118bc6bf79cdef5856bf224af5f589d007271`.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-745.
+- Prompt: `turnaround.prompt.txt` (SHA256 `ea0e57e6890c3a87873d01210fc5a3694673b430e1d3f6bf8a5f29603c5c06f6`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
-LỖI: toB — size/heading — 1254×1254; N rows 5,7–8 — RAW vượt yêu cầu 1024×1024; qua VIEW, N row5 lộ mặt và rows7–8 lệch rear (nhận xét trực quan owner, không phải worker metadata).
+## toA
 
-B123 refs theo đúng thứ tự call: (1) `/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-113/prepared-771/u_minh_lang/u_minh_lang-static.png` SHA256 `6bc125daf4c235c913fd9dc4930afe0cbf34c720c87327fd50425c366ce2af90`; (2) `/Users/thanhhoa/.ao/data/artifacts/soul-land-mmo-122/u_minh_lang-toA-A1.RAW.png` SHA256 `ee74b175b1b5ca39125d8bb69dfd07551a61f01e8f0a29afc25e49bf4054f74c` (A122 RAW chỉ dùng STYLE/body-size). Source giữ actual paths và phân biệt worker metadata với nhận xét VIEW của owner. Worker123 HANDOFF/metadata/recovery evidence được nhúng trong `toB.source.json`: exact stored return có keys `image_url` + `output_hint`; response ban đầu bị báo thiếu image block, sau đó evidence nối output_hint với original path. RAW khớp SHA original; không có call/retry mới. Model/seed unknown.
+- File: `toA.png`, **1024×1536**, 1923136 byte, SHA256 `ee74b175b1b5ca39125d8bb69dfd07551a61f01e8f0a29afc25e49bf4054f74c`.
+- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: soul_land_game-745.
+- Prompt: `toA.prompt.txt` (SHA256 `3aa92b33828813ad1bc8525d12c82b7413fd934454d6551c11c5a732e412e3a0`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se pass, e pass).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 88% so với ảnh tĩnh (lệch 12%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
 
-Qua VIEW xác nhận B là sói tím bốn chân cùng loài. Nền nhìn magenta nhưng chưa kiểm tra từng pixel; không khẳng định flatness. Không art/runtime acceptance, không import. Submitted ≠ merged ≠ art accepted ≠ imported.
+## toB
+
+- File: `toB.png`, **1254×1254**, 1903620 byte, SHA256 `a1946d7378d9c91431244251671de9d600ab750cd044a523d06b32b18bcc7a7b`.
+- Công cụ: unknown (công cụ sinh ảnh không công bố); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: soul_land_game-745.
+- Prompt: `toB.prompt.txt` (SHA256 `b1af4897bd53bf71e5585cfdbd7de6329374e86149f28bdcde939a5dfbb449bd`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne nhẹ, n nhẹ).
+- Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
+
+## to-ne
+
+- File: `to-ne.png`, **1536×1024**, 1881467 byte, SHA256 `6580ba6e2850366540d0c65750486315db3527fc2d9cfe8fba2711fdc28ad337`.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-745.
+- Prompt: `to-ne.prompt.txt` (SHA256 `0339005af7615a28d3c1298988faee74d350aa91daf254210f2b0a37085e59a6`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: ne nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (ne): cỡ thân idle 198% so với ảnh tĩnh (lệch 98%, quá 25%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+## to-n
+
+- File: `to-n.png`, **1536×1024**, 1706434 byte, SHA256 `8bd347a92f196580aa29d9d1e8a0a31aec48aadf550641fee8cace0c6f577a30`.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-745.
+- Prompt: `to-n.prompt.txt` (SHA256 `876980695703f56ce01a3e91a4bb58909f6fb858cbbd6eeea1f3ff1f38cf6778`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
+- Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 192% so với ảnh tĩnh (lệch 92%, quá 25%); cutter neo lại, không chặn.
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+## Lỗi
+
+Không có dòng `LỖI:`.
 
 ## Ghi công
 
