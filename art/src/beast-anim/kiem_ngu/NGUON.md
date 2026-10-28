@@ -7,7 +7,7 @@ Loài `kiem_ngu` (Kiếm Ngư), họ `swim`, khung game 96×96. Mức kiểm chu
 ## toA
 
 - File: `toA.png`, **1024×1536**, 1952455 byte, SHA256 `fb28a600888fddb985cb2bad36f2890f6f4eb22d76a2039abbe3d5a357080aed`.
-- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: soul_land_game-778.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: soul_land_game-764.
 - Prompt: `toA.prompt.txt` (SHA256 `6dfe072e8f4ebe234f5f319ec55808bfab57c91a1313aee718cee664f69b7e3c`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se pass, e nhẹ).
@@ -17,7 +17,7 @@ Loài `kiem_ngu` (Kiếm Ngư), họ `swim`, khung game 96×96. Mức kiểm chu
 ## toB
 
 - File: `toB.png`, **1254×1254**, 1813254 byte, SHA256 `556a15f84ec959ec67546bddba5299a9346a0aa8a76a4e1855a12a7db8174c64`.
-- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: soul_land_game-778.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: soul_land_game-764.
 - Prompt: `toB.prompt.txt` (SHA256 `dd5754974be6e4ba9cdb2a9b4a548526b01a76907f20bf531b24eb668201a57a`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne nhẹ, n pass).

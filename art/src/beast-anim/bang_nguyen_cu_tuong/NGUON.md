@@ -7,7 +7,7 @@ Loài `bang_nguyen_cu_tuong` (Băng Nguyên Cự Tượng), họ `quad`, khung g
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1882684 byte, SHA256 `f858ee9efdbf978fa0290fd2f4d6caef06c896099734490fa62dc02cee5f9465`.
-- Công cụ: Codex built-in image_gen.imagegen; HURT / ATTACK chỉnh tay theo quyết định orchestrator #1030 (turnaround.prompt.txt; bản gốc của công cụ không giữ lại; lượt 2 ở candidates/turnaround-attempt2.*); phiên sinh turnaround: tthoadev; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: soul_land_game-778.
+- Công cụ: Codex built-in image_gen.imagegen; HURT / ATTACK chỉnh tay theo quyết định orchestrator #1030 (turnaround.prompt.txt; bản gốc của công cụ không giữ lại; lượt 2 ở candidates/turnaround-attempt2.*); phiên sinh turnaround: tthoadev; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo.
 - Prompt: `turnaround.prompt.txt` (SHA256 `94fc8a0198c553631f2b003f01e641e7b5a32fc21ceca4924cd5460fa137908f`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
@@ -16,7 +16,7 @@ Loài `bang_nguyen_cu_tuong` (Băng Nguyên Cự Tượng), họ `quad`, khung g
 ## toA
 
 - File: `toA.png`, **1536×1024**, 2199895 byte, SHA256 `ac270cb52618880cb4440c74989684ef505546c1f0f2fabfdaa7cd8ac5faf0ec`.
-- Công cụ: Codex built-in image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-778.
+- Công cụ: Codex built-in image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toA.prompt.txt` (SHA256 `e03e78d70fbda1df645f0cc412ba30d2c8e448840b99654d4d68e2a01fff6732`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: s pass).
@@ -25,7 +25,7 @@ Loài `bang_nguyen_cu_tuong` (Băng Nguyên Cự Tượng), họ `quad`, khung g
 ## toB
 
 - File: `toB.png`, **1536×1024**, 2233363 byte, SHA256 `2f3407d2cdd680d38cca4e6d1929b52b5a753418f7ee1a030e05b0d22920fb5e`.
-- Công cụ: Codex built-in image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-778.
+- Công cụ: Codex built-in image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toB.prompt.txt` (SHA256 `0433735236f579376e60fa8d7805e1fcae548be571006646d007690d3af44b05`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: se nhẹ).
@@ -34,7 +34,7 @@ Loài `bang_nguyen_cu_tuong` (Băng Nguyên Cự Tượng), họ `quad`, khung g
 ## toD
 
 - File: `toD.png`, **1536×1024**, 2213162 byte, SHA256 `67a9993130f0a4e6cc02e60b76734e30aac7673dd71f24aab15c2dee4d6e3dda`.
-- Công cụ: Codex built-in image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-778.
+- Công cụ: Codex built-in image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toD.prompt.txt` (SHA256 `208ca09396d84870f1442f9853336c26ba1a092e88831ec2d85ef68edd0913d8`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne nhẹ).
@@ -43,7 +43,7 @@ Loài `bang_nguyen_cu_tuong` (Băng Nguyên Cự Tượng), họ `quad`, khung g
 ## toE
 
 - File: `toE.png`, **1536×1024**, 2030801 byte, SHA256 `373043189e7e3482bc64ef1866c2295c4bbeb595f64b9c81e66adb7d0dfc33e5`.
-- Công cụ: Codex built-in image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-778.
+- Công cụ: Codex built-in image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toE.prompt.txt` (SHA256 `6a285b089f1c566ad891af86fe34f2e82aad5219c27868c57360c8524880ec52`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: n pass).

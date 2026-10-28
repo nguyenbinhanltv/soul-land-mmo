@@ -7,7 +7,7 @@ Loài `co_moc_thu_nhan` (Cổ Mộc Thụ Nhân), họ `plant`, khung game 128×
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 2236389 byte, SHA256 `47c865bedcd9ff3a75dd0a9784e1882feb0facfb41f65db1e8967020c8904707`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-778.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3.
 - Prompt: `turnaround.prompt.txt` (SHA256 `d842be141476375a880e7693ce92b5d5ed5d8994332cdbc4ebc75a63d3cbba88`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
@@ -16,7 +16,7 @@ Loài `co_moc_thu_nhan` (Cổ Mộc Thụ Nhân), họ `plant`, khung game 128×
 ## toA
 
 - File: `toA.png`, **1536×1024**, 2570789 byte, SHA256 `6be543239fc97e85cdd2c2c63a7bbb36589ac76291fbb1fe422ea885aec948b1`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-778.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3.
 - Prompt: `toA.prompt.txt` (SHA256 `3048ffff028ef7d42d78e53d209cf7f68bd77a917c0a73e2b218b549f73bfd15`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: s pass).
@@ -25,7 +25,7 @@ Loài `co_moc_thu_nhan` (Cổ Mộc Thụ Nhân), họ `plant`, khung game 128×
 ## toB
 
 - File: `toB.png`, **1536×1024**, 2536002 byte, SHA256 `b988e28114df3bd3563fe293dca99b0ecdc8debebbba4f6d2f00619eccf99073`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-778.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toB.prompt.txt` (SHA256 `6daec3f95ff19bd7048313366bed9b33f9c9a4bfa9b1432277097348a6281979`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: se pass).
@@ -34,7 +34,7 @@ Loài `co_moc_thu_nhan` (Cổ Mộc Thụ Nhân), họ `plant`, khung game 128×
 ## toC
 
 - File: `toC.png`, **1536×1024**, 2507058 byte, SHA256 `75e5f5f209091c376deeda5de51be0c0edd9326c25358e9ec92bf0396cbd924b`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-778.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3.
 - Prompt: `toC.prompt.txt` (SHA256 `3820f31fbdc32010861c5387ec929697cd80b6bb183d85455324e1cea0c6acd0`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: e pass).
@@ -43,7 +43,7 @@ Loài `co_moc_thu_nhan` (Cổ Mộc Thụ Nhân), họ `plant`, khung game 128×
 ## toE
 
 - File: `toE.png`, **1536×1024**, 2523851 byte, SHA256 `b85b0c7b160cf8a1c0fd75908b5ee0b9487388f63ef1a2819bfea9eb3b838085`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-778.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toE.prompt.txt` (SHA256 `0bcc2b5ac8b24dfb8cc6563e1ad2357a848423feef7cf093ccd4d9941df5d34a`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: n nhẹ).

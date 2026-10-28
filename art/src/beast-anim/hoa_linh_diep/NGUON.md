@@ -7,7 +7,7 @@ Loài `hoa_linh_diep` (Hỏa Linh Điệp), họ `fly`, khung game 96×96. Mức
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1546013 byte, SHA256 `027ce6b09fb8d9984e3f33a9f66962a8f4811e0c6e9553c4fcece2a564d74a75`.
-- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-778.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2.
 - Prompt: `turnaround.prompt.txt` (SHA256 `c9210b3f7b774426b228b56218206c5e92e8c070dd620d3fd211e55f2eac5cbf`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
@@ -16,7 +16,7 @@ Loài `hoa_linh_diep` (Hỏa Linh Điệp), họ `fly`, khung game 96×96. Mức
 ## toA
 
 - File: `toA.png`, **948×1659**, 1817770 byte, SHA256 `3b60db782152ddf21b8cf5ddc6118036076d3621d717815cbcb7a4bc4766b7b3`.
-- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-778.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toA.prompt.txt` (SHA256 `809ebdc078f99fd53c5f7f0a7e2e77eafdbb3e04f9fbc33fdf66914076a7536a`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se nhẹ, e nhẹ).
@@ -26,7 +26,7 @@ Loài `hoa_linh_diep` (Hỏa Linh Điệp), họ `fly`, khung game 96×96. Mức
 ## toB
 
 - File: `toB.png`, **1254×1254**, 1823213 byte, SHA256 `bdc53cf7d257d771e3a9045dd506c711165b9f949ef8357e7e5045d5e42a4dab`.
-- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-778.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toB.prompt.txt` (SHA256 `549566dada9be080e89563a2a0287425ab57dc2f80931ebd6416d575d32f5903`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: ne nhẹ, n pass).

@@ -7,7 +7,7 @@ Loài `tham_hai_ma_kinh` (Thâm Hải Ma Kình), họ `swim`, khung game 128×12
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1632477 byte, SHA256 `a8e3b2c6e2ad097696b60f178fcedb1c519180d6e62e6a3169c9b25818e4375d`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-778.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-764.
 - Prompt: `turnaround.prompt.txt` (SHA256 `b2fddbaa29b466737b754160e2001f2d1259ee1a95ed9cc80bc252988d32a7c1`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
@@ -16,7 +16,7 @@ Loài `tham_hai_ma_kinh` (Thâm Hải Ma Kình), họ `swim`, khung game 128×12
 ## toA
 
 - File: `toA.png`, **1536×1024**, 1801334 byte, SHA256 `b77e3817a3a7a890e7e5c97a2df84b38e2bd6233869cbb9459eccaf15a1dde89`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-778.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-764.
 - Prompt: `toA.prompt.txt` (SHA256 `69ed3dceac5177bb1ae23d5384f25349217af9f344c6eb0996eb681f96e40b6c`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ).
@@ -26,7 +26,7 @@ Loài `tham_hai_ma_kinh` (Thâm Hải Ma Kình), họ `swim`, khung game 128×12
 ## toB
 
 - File: `toB.png`, **1536×1024**, 1755524 byte, SHA256 `d3b91943d9c876a1b2f73115a8aac7dfa1a254d2927851e12d54b65f3ae520d4`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-778.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-764.
 - Prompt: `toB.prompt.txt` (SHA256 `a45727dc2ec838cdc2c7a709553a7aad23c27d8593cfaea4fe1460f5217d67e2`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: se pass).
@@ -35,7 +35,7 @@ Loài `tham_hai_ma_kinh` (Thâm Hải Ma Kình), họ `swim`, khung game 128×12
 ## toC
 
 - File: `toC.png`, **1536×1024**, 1736938 byte, SHA256 `4dff2166f15c4fa3fb2c2d19aeace2eac989462c1c96a412b501dcf317163dd3`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-778.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-764.
 - Prompt: `toC.prompt.txt` (SHA256 `c9dc54ed8f5259e184912b366774a8481c7271e18c18928988f60bcc79783be0`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: e pass).

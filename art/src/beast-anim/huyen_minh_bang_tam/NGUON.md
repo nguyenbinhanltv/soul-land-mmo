@@ -7,7 +7,7 @@ Loài `huyen_minh_bang_tam` (Huyền Minh Băng Tằm), họ `worm`, khung game 
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1469221 byte, SHA256 `f7c1dfd2418624ea29dbd021b0efda43de716f9d2c22fccab000576b8845605e`.
-- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-778.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2.
 - Prompt: `turnaround.prompt.txt` (SHA256 `4266f968860ec3b6c5e559dfb8cb0b6a74b6b190f5b660d360e64389a661de4c`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
@@ -16,7 +16,7 @@ Loài `huyen_minh_bang_tam` (Huyền Minh Băng Tằm), họ `worm`, khung game 
 ## toA
 
 - File: `toA.png`, **948×1659**, 1794384 byte, SHA256 `be8648504dc81c429f47b2fe329681fa181479126ac891991e8b3f05ffca0693`.
-- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-778.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toA.prompt.txt` (SHA256 `cb0068ee0259d9038e4a3b762bc205ca077abf5ab286fd6901c7570f9e40fa21`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se pass, e nhẹ).
@@ -26,7 +26,7 @@ Loài `huyen_minh_bang_tam` (Huyền Minh Băng Tằm), họ `worm`, khung game 
 ## toB
 
 - File: `toB.png`, **1254×1254**, 1791407 byte, SHA256 `48e30f0681ed5a8e21bfd4a0a9471b40411b950c482a698837c7754d8018ca13`.
-- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-778.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toB.prompt.txt` (SHA256 `b4801810e996287e7275609bdd28528c9bc720f839ced6da1a0ee68c081f79f9`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne nhẹ, n nhẹ).
@@ -47,7 +47,7 @@ Loài `huyen_minh_bang_tam` (Huyền Minh Băng Tằm), họ `worm`, khung game 
 ## to-ne
 
 - File: `to-ne.png`, **1536×1024**, 1684848 byte, SHA256 `c6006a971bcc968901f35da9015e8498eb7ec1d1402ed08db6e413ce26354d5a`.
-- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-778.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2.
 - Prompt: `to-ne.prompt.txt` (SHA256 `3fad7b81d96f784e7ee7801ac97755ee8afe5596ed362c4cd9f01747a39720c3`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne nhẹ).

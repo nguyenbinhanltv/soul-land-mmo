@@ -7,7 +7,7 @@ Loài `thanh_lan_doc_co` (Thanh Lân Độc Cổ), họ `snake`, khung game 96×
 ## toA
 
 - File: `toA.png`, **941×1672**, 1852705 byte, SHA256 `4dc379a50cf25dca270120142da264e9250b5f695b9454bf421f18b682a48658`.
-- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-778.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toA.prompt.txt` (SHA256 `40e6646dc66bd3085de7dbfe59cb356be2b249db01e3d2fd23bd5f3253ecfb4a`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se pass, e nhẹ).
@@ -18,7 +18,7 @@ Loài `thanh_lan_doc_co` (Thanh Lân Độc Cổ), họ `snake`, khung game 96×
 ## toB
 
 - File: `toB.png`, **1254×1254**, 1876513 byte, SHA256 `c88ee1aba0332b3f92389bdf197be66fca3a79f74380532dcf96af3eacdf0b5d`.
-- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-778.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toB.prompt.txt` (SHA256 `34a85910d727ff506fb3b47b0fc899d55484d04bcd61fc8159aa79b0e13992eb`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne nhẹ, n nhẹ).

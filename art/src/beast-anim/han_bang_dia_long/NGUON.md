@@ -7,7 +7,7 @@ Loài `han_bang_dia_long` (Hàn Băng Địa Long), họ `quad`, khung game 128�
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1791405 byte, SHA256 `b6456c123f24630b069a7b8d2beb2912c55cfe159d368358eb671c57ac9fa100`.
-- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-778.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3.
 - Prompt: `turnaround.prompt.txt` (SHA256 `872fc730535f772982cbe35412679a5ddfc96c4c72f4b2ad2779015c739f3996`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
@@ -16,7 +16,7 @@ Loài `han_bang_dia_long` (Hàn Băng Địa Long), họ `quad`, khung game 128�
 ## toA
 
 - File: `toA.png`, **1536×1024**, 1970250 byte, SHA256 `b35627f164bbb89d0f678dd8e4af5764a7e76df34bded245f720d46df0e49dcf`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: soul_land_game-778.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo.
 - Prompt: `toA.prompt.txt` (SHA256 `ae8a30304a0e63d4f5b773582102d7b751a2f6bfb9d23a3cb91d068a05eca173`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: s pass).
@@ -25,7 +25,7 @@ Loài `han_bang_dia_long` (Hàn Băng Địa Long), họ `quad`, khung game 128�
 ## toC
 
 - File: `toC.png`, **1536×1024**, 2042228 byte, SHA256 `2a78308646e4c2b62b8d09803a1b84fbe7cea2c363ee653812dc65706e9d6d0c`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: soul_land_game-778.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo.
 - Prompt: `toC.prompt.txt` (SHA256 `ca47a0e02abbdcd2f8606fae3c451f5d0d54978595332309b126ee03480c6c39`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: e nhẹ).
@@ -35,7 +35,7 @@ Loài `han_bang_dia_long` (Hàn Băng Địa Long), họ `quad`, khung game 128�
 ## toE
 
 - File: `toE.png`, **1536×1024**, 1884563 byte, SHA256 `5508fbba6ea2180edac1542341c713ee0cdb5163c02184763af9c9ebfc41b5d0`.
-- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo; phiên: soul_land_game-778.
+- Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo.
 - Prompt: `toE.prompt.txt` (SHA256 `3c1287e769978b0475494408b470d7be479178adc00660facc423aaab2267839`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: n pass).
@@ -53,7 +53,7 @@ Loài `han_bang_dia_long` (Hàn Băng Địa Long), họ `quad`, khung game 128�
 ## to-ne
 
 - File: `to-ne.png`, **1536×1024**, 2044407 byte, SHA256 `bc1a7ea0676978a41a36cbf13c2050acea7040fbcec58b315846c9e6565e7ec8`.
-- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-778.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `to-ne.prompt.txt` (SHA256 `86ca7ecfd609c592adac8013dce380fe0673fec38fc31e1d8e7baf48ac02619b`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: ne pass).
