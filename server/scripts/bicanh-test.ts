@@ -3,9 +3,10 @@
 // bình cảnh, hoàn lại khi lỗi, qua 05:00) do bot thử (BOT_ONLY=bicanh). Chạy: npm run test:bicanh --prefix server
 import assert from "node:assert/strict";
 import { MemoryStore } from "../src/db.ts";
-import { BAG_EXPAND_COST, BICANH, ITEMS, RING_LIMIT, SHARD_BUY, XP_SHARE_BENCH, beastStats, bicanhBuyKind, bicanhDay, bicanhResetIn, bicanhRunKind, bicanhRunPrice, bicanhScene,
+import { BAG_EXPAND_COST, BEASTS, BICANH, BOSSES, ITEMS, RING_LIMIT, SHARD_BUY, XP_SHARE_BENCH, beastStats, bicanhBuyKind, bicanhDay, bicanhResetIn, bicanhRunKind, bicanhRunPrice, bicanhRunTomes, bicanhScene, bicanhTomeKind,
   itemDef, sellPrice, shardBuyPrice, vnAt, vnDay } from "../../shared/data.ts";
 import { runView } from "../src/rooms/bicanh.ts";
+import { beastIndex } from "../../shared/data.ts";
 
 function test(title: string, fn: () => void | Promise<void>) { return Promise.resolve(fn()).then(() => console.log(`✓ ${title}`)); }
 const S = BICANH.scenes[0], HOUR = 3600000;
@@ -69,4 +70,31 @@ await test("MemoryStore.claimBoss (cùng luật PgStore): trần mua chặn nguy
   assert.equal(await buy("2026-10-29"), 1, "ngày Bí Cảnh mới đặt lại lượt mua");
   const rs = await Promise.all(Array.from({ length: 20 }, () => buy("2026-10-30")));
   assert.equal(rs.filter((x) => x !== null).length, S.buyMax, "dồn 20 lần mua cùng lúc chỉ thành buyMax lần");
+});
+await test("Kịch bản phòng (P3): sóng tăng dần, tuổi không vượt vòng kế, loài hợp lệ, thưởng lượt miễn phí không vượt trần quyển ngày, có tinh anh ở sóng cuối", () => {
+  for (const sc of BICANH.scenes) {
+    assert.ok(sc.waves.length >= 1 && sc.fightSecs > 0 && BICANH.maxRooms >= 1 && BICANH.joinSecs > 0 && BICANH.readySecs >= 0 && BICANH.waveGapSecs >= 0 && BICANH.endSecs > 0);
+    sc.waves.forEach((w, i) => {
+      assert.ok(Number.isInteger(w.n) && w.n >= 1 && w.yearsPct > 0 && w.yearsPct <= 1 && Number.isInteger(w.tomes) && w.tomes >= 0, `sóng ${i}`);
+      if (i) assert.ok(w.yearsPct >= sc.waves[i - 1].yearsPct, "sóng sau không yếu hơn");
+    });
+    assert.ok(sc.waves.at(-1)!.elite && sc.waves.slice(0, -1).every((w) => !w.elite), "chỉ sóng cuối có tinh anh");
+    assert.ok(sc.beasts.length >= 1 && sc.beasts.every((id) => beastIndex(id) >= 0 && BEASTS[beastIndex(id)]), "loài sinh ra có trong BEASTS");
+    assert.ok(BOSSES.some((b) => b.rank === 1), "có tinh anh để sinh");
+    assert.ok(sc.runs * bicanhRunTomes(sc) <= BICANH.tomeDailyCap, "lượt miễn phí không bị trần quyển ngày chặn");
+    assert.ok(bicanhRunTomes(sc) >= 1 && sc.waves.some((w) => w.tomes > 0), "thắng thì có quyển");
+  }
+  assert.notEqual(bicanhTomeKind, bicanhRunKind(S.id)); assert.ok(bicanhTomeKind.startsWith(BICANH.claimKind));
+});
+await test("MemoryStore.releaseBoss (cùng luật PgStore): hoàn nguyên tử, không xuống dưới 0, chỉ đúng kind / ngày, nhận lại lượt sau khi hoàn", async () => {
+  const st = new MemoryStore(), acc = 9, bag = { items: [], honTe: 0 }, day = "2026-10-28", k = bicanhRunKind(S.id);
+  assert.equal(await st.claimBoss(acc, day, k, S.runs, bag, 1), 1); assert.equal(await st.claimBoss(acc, day, bicanhBuyKind(S.id), S.buyMax, bag, 1), 1);
+  assert.equal(await st.releaseBoss(acc, day, k, 1), 0); assert.equal(await st.releaseBoss(acc, day, k, 5), 0, "không âm");
+  assert.equal(await st.bossClaims(acc, day, bicanhBuyKind(S.id)), 1, "không đụng kind khác"); assert.equal(await st.bossClaims(acc, "2026-10-29", k), 0);
+  for (let i = 1; i <= S.runs; i++) assert.equal(await st.claimBoss(acc, day, k, S.runs, bag, 1), i);
+  assert.equal(await st.claimBoss(acc, day, k, S.runs, bag, 1), null); assert.equal(await st.releaseBoss(acc, day, k, 1), S.runs - 1);
+  assert.equal(await st.claimBoss(acc, day, k, S.runs, bag, 1), S.runs, "hoàn xong nhận lại được");
+  // Trần quyển nhận ngày: nhận từng phần, vượt trần thì từ chối nguyên tử.
+  const kt = bicanhTomeKind; assert.equal(await st.claimBoss(acc, day, kt, BICANH.tomeDailyCap, bag, BICANH.tomeDailyCap - 1), BICANH.tomeDailyCap - 1);
+  assert.equal(await st.claimBoss(acc, day, kt, BICANH.tomeDailyCap, bag, 2), null); assert.equal(await st.claimBoss(acc, day, kt, BICANH.tomeDailyCap, bag, 1), BICANH.tomeDailyCap);
 });

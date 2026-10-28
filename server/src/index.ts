@@ -8,6 +8,7 @@ import { RedisDriver } from "@colyseus/redis-driver";
 import { WebSocketTransport } from "@colyseus/ws-transport";
 import { MapRoom, awakenAccount, chooseLooks, pickChannel, CHANNEL_CAP, saveStats } from "./rooms/MapRoom.ts";
 import { ArenaRoom } from "./rooms/ArenaRoom.ts";
+import { BiCanhRoom } from "./rooms/BiCanhRoom.ts";
 import { store } from "./db.ts";
 import { loginBegin, loginEnd, signupBegin, signupEnd, ssoCheck, apiCheck, loginRate, PASSWORD_MAX_LEN } from "./ratelimit.ts";
 import { GOOGLE, googleClientId, googleEnabled, verifyGoogle, makeTicket, readTicket } from "./google.ts";
@@ -257,7 +258,7 @@ if (driver) guardClient("Redis (registry phòng)", (driver as unknown as { _clie
 const publicAddress = process.env.PUBLIC_ADDRESS?.trim() || undefined;
 // gracefullyShutdown: false: Colyseus không tự gắn uncaughtException / tín hiệu tắt; việc tắt server chỉ do `shutdown` dưới đây (#270).
 const gameServer = new Server({ transport: new WebSocketTransport({ server, maxPayload: MSG_MAX_PAYLOAD }), presence: gamePresence, gracefullyShutdown: false, ...(driver ? { driver } : {}), ...(publicAddress ? { publicAddress } : {}),
-  selectProcessIdToCreateRoom: async (roomName) => roomName === "arena"
+  selectProcessIdToCreateRoom: async (roomName) => roomName === "arena" || roomName === "bicanh"
     ? matchMaker.processId
     : (await matchMaker.stats.fetchAll()).sort((a, b) => a.roomCount > b.roomCount ? 1 : -1)[0]?.processId || matchMaker.processId });
 // Mọi bản đồ dùng chung một loại phòng; Colyseus ghép người cùng mapId vào chung phòng, phòng đầy thì mở kênh mới. Client thường
@@ -267,6 +268,8 @@ const gameServer = new Server({ transport: new WebSocketTransport({ server, maxP
 gameServer.define("map", MapRoom).filterBy(["mapId"]);
 // Đại Đấu Hồn Trường (7.2): mỗi trận một phòng riêng, server mở khi ghép trận (arenaQueue.ts); client vào bằng mã phòng (joinById).
 gameServer.define("arena", ArenaRoom);
+// Bí Cảnh (5.22, P3): mỗi lượt một phòng riêng một người, server mở khi trừ lượt (bicanh.ts, vé giữ chỗ); client vào bằng mã phòng (joinById); mở ở tiến trình giữ vé.
+gameServer.define("bicanh", BiCanhRoom);
 // Client không gọi được `create` (mặc định Colyseus mở cho mọi người, kể cả chưa đăng nhập): mở phòng bản đồ mới chỉ qua
 // joinOrCreate khi mọi kênh đầy, sân đấu chỉ do server mở (arenaQueue.ts, matchMaker.createRoom). Chặn tự mở kênh riêng (#164);
 // joinOrCreate / joinById kiểm token ở static onAuth trước khi giữ chỗ / mở kênh (#235).

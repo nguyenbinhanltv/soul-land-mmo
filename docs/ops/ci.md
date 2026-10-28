@@ -22,7 +22,7 @@ Theo quy trình hai làn (`CONTRIBUTING.md` mục Hai làn): **CI đầy đủ c
 | Nhóm | Phần | ~giây |
 |---|---|---|
 | 1 | `ab1` (2.5a–d, BĐ5, 3.2), cold, ink, boneSub (+ lượt nhiều kênh, test nhanh) | 350 |
-| 2 | `ab2` (8.x, 9.5, 9.6, 3.5, BĐ4), flag, fog, calendar (~8), welfare (~40, ước), bicanh (~25, ước), rally | 423 |
+| 2 | `ab2` (8.x, 9.5, 9.6, 3.5, BĐ4), flag, fog, calendar (~8), welfare (~40, ước), bicanh (~140 kiểm, ~110 giây, P3 có phòng: bài `bicanhRoom.mjs`), rally | 423 |
 | 3 | `botC`, arena, camp | 345 |
 | 4 | auto, bag | 355 |
 | 5 | waypoint, split, bigmap, autoBoss, friend, chuong3, forgePreview (#699, ước ~25 giây), shardBuy, gm, looks3, view, chat, sell, google, looks2 | 335 |

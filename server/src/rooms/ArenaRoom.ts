@@ -29,7 +29,7 @@ interface Reward { items: Item[]; honTeAfter: number; bag: Bag; honTe: number; c
  * chỉ số hai bên cố định suốt trận và trận không làm đổi đồ ngoài phần thưởng. Đăng ký lại đè handler của MapRoom (message chưa đăng
  * ký làm Colyseus ngắt kết nối client, nên không bỏ hẳn).
  */
-const BLOCKED = ["auto", "absorb", "pickup", "discard", "team", "travel", "wp", "use", "open", "unlock", "starup", "equip", "unequip", "equipcore",
+export const BLOCKED = ["auto", "absorb", "pickup", "discard", "team", "travel", "wp", "use", "open", "unlock", "starup", "equip", "unequip", "equipcore",
   "unequipcore", "equipgear", "unequipgear", "equipenh", "equipenhpreview", "equipluck", "equipluckpreview","equipsynth", "equipsalvage", "enhance", "enhancecore", "talk", "buy", "sell", "buyback", "expand", "shardbuy", "loadout",
   "fusion", "calendar", "rank", "welfare", "bicanh"]; // Võ Hồn Dung Hợp Kỹ cấm trong sân, kể cả 2v2 (#192, #178)
 /** Cùng một câu báo từ chối chỉ gửi lại cho một người sau chừng này mili giây (J / Space giữ phím, bấm dồn không tràn log). */
