@@ -1,4 +1,4 @@
-# Băng Nguyên Cự Tượng — RAW hoạt ảnh (#1030)
+# Băng Nguyên Cự Tượng — RAW hoạt ảnh (#861)
 
 File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species bang_nguyen_cu_tuong`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
 
@@ -7,11 +7,11 @@ Loài `bang_nguyen_cu_tuong` (Băng Nguyên Cự Tượng), họ `quad`, khung g
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1882684 byte, SHA256 `f858ee9efdbf978fa0290fd2f4d6caef06c896099734490fa62dc02cee5f9465`.
-- Công cụ: Codex built-in image_gen.imagegen; HURT / ATTACK chỉnh tay theo quyết định orchestrator #1030 (turnaround.prompt.txt; bản gốc của công cụ không giữ lại; lượt 2 ở candidates/turnaround-attempt2.*); phiên sinh turnaround: tthoadev; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2.
+- Công cụ: Codex built-in image_gen.imagegen; HURT / ATTACK chỉnh tay theo quyết định orchestrator #1030 (turnaround.prompt.txt; bản gốc của công cụ không giữ lại; lượt 2 ở candidates/turnaround-attempt2.*); phiên sinh turnaround: tthoadev; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: chưa khai báo.
 - Prompt: `turnaround.prompt.txt` (SHA256 `b32a57130f0533e10a33ddd4482ef2d543750ca1c92175f41dcd056c46c702cb`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
-- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: 3 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## toA
 
@@ -65,6 +65,7 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 ```text
 LỖI: turnaround — hurt — ne — chân trước hơi quỳ (nhẹ); ảnh đã duyệt ref ở #1030 issuecomment-6430769369; phiên gốc tthoadev, các tờ hướng mới do soul_land_game-618 sinh (mắt)
 LỖI: turnaround — GHI CHÚ TOÀN LOÀI (không phải lỗi turnaround): tờ C hướng e chưa đạt sau 3 lượt do dính H3; ngoại lệ orchestrator 27/10: hướng e quan trọng, cấp C4 tại PR #1108 issuecomment-6433172226; C4 vẫn chặn H3 (3/6 hình), H4 (3/4 hình), tràn ô 2,53%; dừng e, giữ cả 4 lượt candidates/toC-attempt1–4.*, không có toC.png để nhập (mắt)
+LỖI: turnaround — Lô 3: e,ne chưa sinh hướng vì turnaround mới hết 2 lượt vẫn lộ mắt ở ne. Xem candidates/turnaround-lo3-attempt1..2.png; giữ bản cũ và fallback. (mắt)
 LỖI: toA — s — die cuối chếch phải; attack xoay đầu (mắt)
 LỖI: toB — hình ở ô trống — H4 (se) C5 — ô trống có hình (0.7% diện tích ô): hình tràn từ ô bên.
 LỖI: toB — se — attack A3 và die cuối xoay gần e; hurt nâng đầu mạnh (mắt)
