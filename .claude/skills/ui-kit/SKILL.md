@@ -9,7 +9,7 @@ Một skill hai phần để người sinh ảnh và người duyệt dùng **c�
 
 | Việc | Công cụ |
 |---|---|
-| Sinh prompt + hướng dẫn | `npm run ui:prompt -- --kind BOARD\|F\|N\|O\|T\|I\|D [--material muc\|giay] [--style ngoc-kim\|thuy-mac] (nháp chờ duyệt) [--family "<họ icon>"] [--layout 6\|9] --out <thư mục>` (`--all` ra đủ 7 tệp) |
+| Sinh prompt + hướng dẫn | `npm run ui:prompt -- --kind BOARD\|F\|N\|O\|T\|I\|D [--material muc\|giay] [--style ngoc-kim\|thuy-mac\|hon-quang] (nháp chờ duyệt BOARD) [--family "<họ icon>"] [--layout 6\|9] --out <thư mục>` (`--all` ra đủ 7 tệp) |
 | Bài học (một nguồn) | `art/src/ui-kit/lessons.md` (parser `ui-sheet-lessons.mjs`) |
 | Spec tờ (tỉ lệ, bố cục, tên mảnh, ngân sách) | `art/src/ui-kit/ui-kit.json` (`shapes`, `kinds`, `budget` là luật; `pieces` / `groups` do cutter ghi) |
 | Kiểm tờ RAW | `npm run ui:check -- <tờ.png> [--kind …] [--out <thư mục>] [--palette art/palette.gpl]` |
