@@ -1,0 +1,130 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempt": 1,
+  "date": "2026-10-28T01:30:11.089Z",
+  "direction": "e",
+  "raw": "toC-attempt1.png",
+  "sha256": "efb6a2fc18d8ea43acab044fc6a35da5fd870f3e6d5b3f3f9eacbbedd39adb65",
+  "prompt": "toC-attempt1.prompt.txt",
+  "promptSha256": "dec5d818f64403aacca999387abd4a355537275859d1790f53d6f7ef93184d8f",
+  "promptCommand": "node tools/assets/phuthe-sheet-prompt.mjs --id hao_thien_chuy --stage direction --dir e --concept-ref",
+  "references": [
+    {
+      "file": "references/hao_thien_chuy-nom-toC.png",
+      "sha256": "7576bb4b9c4754589f0bb0f63712af733477a5ebd9dcfce26f9f5c0529a90a5f"
+    },
+    {
+      "file": "../../vohon-v2/hao_thien_chuy/concept-attempt2.png",
+      "sha256": "631ac2ef55e230875ee2452b5dac9c634829ed09642d9666824e2a20f0e664af"
+    }
+  ],
+  "referencePathBase": "art/src/phuthe-anim/hao_thien_chuy",
+  "postprocessing": "none; RAW copied byte-for-byte",
+  "promptHandwritten": false,
+  "promptAddendum": false,
+  "technicalCheck": {
+    "sheet": "toC",
+    "size": [
+      1536,
+      1024
+    ],
+    "kind": "huong",
+    "level": "chặn",
+    "dirs": [
+      "e"
+    ],
+    "background": {
+      "key": [
+        250,
+        4,
+        251
+      ],
+      "corners": [
+        [
+          237,
+          12,
+          241
+        ],
+        [
+          242,
+          18,
+          243
+        ],
+        [
+          234,
+          38,
+          239
+        ],
+        [
+          239,
+          32,
+          241
+        ]
+      ],
+      "keyDistFromLock": 5,
+      "cornerSpread": 34
+    },
+    "seVsE": null,
+    "prep": null,
+    "bands": [
+      {
+        "row": 1,
+        "dir": "e",
+        "y": [
+          32,
+          199
+        ],
+        "figures": 4,
+        "state": "bad"
+      },
+      {
+        "row": 2,
+        "dir": "e",
+        "y": [
+          257,
+          425
+        ],
+        "figures": 4,
+        "state": "ok"
+      },
+      {
+        "row": 3,
+        "dir": "e",
+        "y": [
+          463,
+          679
+        ],
+        "figures": 4,
+        "state": "ok"
+      },
+      {
+        "row": 4,
+        "dir": "e",
+        "y": [
+          717,
+          946
+        ],
+        "figures": 2,
+        "state": "ok"
+      }
+    ],
+    "motion": [],
+    "issues": [
+      {
+        "sev": "note",
+        "code": "nen",
+        "where": "toàn tờ",
+        "msg": "nền dốc nhẹ (bốn góc lệch 34), trong dung sai 60; không phải lỗi."
+      },
+      {
+        "sev": "block",
+        "code": "so-hinh",
+        "where": "H1 (e)",
+        "msg": "dải có 4 hình, cần 3: thừa hình / mảnh rời."
+      }
+    ],
+    "draft": "LỖI: toC — sai số hình — H1 (e) — dải có 4 hình, cần 3: thừa hình / mảnh rời."
+  }
+}
