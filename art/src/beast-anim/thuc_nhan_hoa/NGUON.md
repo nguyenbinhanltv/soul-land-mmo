@@ -31,7 +31,7 @@ Loài `thuc_nhan_hoa` (Thực Nhân Hoa), họ `plant`, khung game 96×96. Mức
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne nhẹ).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (ne): cỡ thân idle 151% so với ảnh tĩnh (lệch 51%, quá 25%); cutter neo lại, không chặn.
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## toE
 
@@ -41,7 +41,7 @@ Loài `thuc_nhan_hoa` (Thực Nhân Hoa), họ `plant`, khung game 96×96. Mức
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 149% so với ảnh tĩnh (lệch 49%, quá 25%); cutter neo lại, không chặn.
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## Tờ chưa vào thư mục chính (candidates)
 
@@ -57,8 +57,6 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 ## Lỗi
 
 ```text
-LỖI: toD — nhập — sau cắt — RAW không chặn, giữ hướng; cutter mặc định còn vuot-khung-he-so trước neo cỡ, chưa nhập (mắt)
-LỖI: toE — nhập — sau cắt — RAW không chặn, giữ hướng; cutter mặc định còn vuot-khung-he-so trước neo cỡ, chưa nhập (mắt)
 LỖI: toB — hình ở ô trống — H4 (ne) C5, H4 (ne) C6 — ô trống có hình (5.09% diện tích ô): hình tràn từ ô bên; ô trống có hình (5.09% diện tích ô): hình tràn từ ô bên.
 ```
 
