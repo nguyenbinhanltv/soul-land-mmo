@@ -1,0 +1,68 @@
+/* UI v2 đợt 2b-1: bảng VÕ HỒN / Đội hình (#roster) theo kit Mực, Part of #885 / #877. Mọi luật dưới `body.ui2` (cờ tắt mặc định: không có lớp này thì bảng cũ không đổi, KHÔNG gỡ luật cũ ở style.css).
+   Khung do lớp `f2-*` của ui2.css lo (hudRoster.ts gắn khi bật cờ); file này (1) giữ khung kit thắng luật `#roster` / `.thuymac #roster` cũ, (2) đổi token chữ sang tông Mực trong bảng,
+   (3) tab dưới 5 mục, (4) bánh xe hồn kỹ, (5) chỉnh nhẹ dải thẻ / danh sách cho nền mực. Thẻ võ hồn (cards.ts) giữ nguyên. Hồn cốt / hồn hạch / mảnh: chỉ đổi token, bố cục ở PR sau.
+   Chữ 10 / 12 / 24 qua --fs-*, vùng bấm 32 px (tab, ô) / 44 px (nút chính, ô bánh xe), không ký tự ngoài phông nhúng. */
+
+/* (1) Khung. */
+body.ui2.ui2-k-khung-muc-lon #roster.f2-muc-lon,body.ui2.ui2-k-tab-thuong #roster .f2-tab,
+body.ui2.ui2-k-nut-phu-thuong #roster .f2-nut-phu{
+  box-sizing:border-box;border-style:solid;border-color:transparent;border-width:var(--frame-bw);border-image:var(--frame-img) var(--frame-nine) fill / var(--frame-bw) stretch;
+  background:none;box-shadow:none;image-rendering:pixelated}
+
+/* (2) Tông Mực trong bảng (cùng bộ token cục bộ với #char ở ui2-charpanel.css). */
+body.ui2 #roster{--text:var(--plate-text);--muted:var(--paper2);--line:var(--paper3);--line2:var(--inkl);--wash:var(--track);--wash2:var(--ink2);
+  --accent:#97e6bd;--good:#97e6bd;--bad:#ff9b8a;--warn:#ffbf8a;--xp-t:#ffe08a;
+  color:var(--plate-text);font:var(--fs-m)/1.3 var(--f12);width:min(520px,96vw);gap:var(--sp-4);padding:var(--sp-4);scrollbar-width:thin;scrollbar-color:var(--paper3) transparent}
+body.ui2 #roster .rhead{color:var(--plate-text);border-bottom:var(--bd-fine) solid var(--ink2);padding-bottom:var(--sp-3)}
+body.ui2 #roster .rhead b{font:var(--fs-l)/1.2 var(--f12);font-weight:normal;color:var(--plate-text)}
+body.ui2 #roster :is(.rlink,.x,.rhead button){min-height:32px;min-width:32px;box-sizing:border-box;padding:0 var(--sp-4);cursor:pointer;font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2)}
+body.ui2 #roster :is(.rlink,.x,.rhead button):hover{border-color:var(--plate-text)}
+body.ui2 #roster :is(button,select):focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+body.ui2 #roster :is(.rnote,.rstar){font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)}
+body.ui2 #roster .rbond{color:var(--warn)}
+body.ui2 #roster .shead{font:var(--fs-m)/1.2 var(--f12);color:var(--paper2);border-bottom:var(--bd-fine) solid var(--ink2);padding-bottom:var(--sp-2);background:none}
+body.ui2 #roster .bvh{display:flex;align-items:center;gap:var(--sp-4);font:var(--fs-m)/1.2 var(--f12)}
+body.ui2 #roster .bvh select{min-height:32px;flex:1;box-sizing:border-box;font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2);padding:0 var(--sp-3)}
+
+/* (3) Tab dưới: dính đáy vùng cuộn, đang chọn có vạch dày dưới chân (hình, không chỉ màu). */
+body.ui2 #roster .rtabs{position:sticky;bottom:calc(var(--sp-4) * -1);display:flex;gap:var(--sp-2);flex-wrap:nowrap;
+  margin:auto calc(var(--sp-4) * -1) calc(var(--sp-4) * -1);padding:var(--sp-3) var(--sp-4);background:var(--plate);border-top:var(--bd-fine) solid var(--ink2);z-index:1}
+body.ui2 #roster .rtabs .ui-tab{flex:1 1 0;min-width:0;justify-content:center;white-space:nowrap;min-height:32px;box-sizing:border-box;padding:0 var(--sp-2);font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text);text-shadow:none;cursor:pointer}
+body.ui2 #roster .rtabs .ui-tab::before{display:none}
+body.ui2 #roster .rtabs .ui-tab[aria-selected="true"]{box-shadow:inset 0 calc(var(--bd) * -2) 0 var(--accent)}
+
+/* (4) Bánh xe hồn kỹ: 4 ô tròn U / I / O / P quanh chân dung, Chân Thân (R) ô nhỏ cố định ở góc dưới phải. Vị trí ô đặt bằng --x / --y (hudRoster.ts). */
+body.ui2 #roster .vh-wheel{position:relative;width:min(208px,100%);aspect-ratio:1;margin:var(--sp-3) auto;flex:none}
+body.ui2 #roster .vh-mid{position:absolute;left:50%;top:50%;width:34%;aspect-ratio:1;transform:translate(-50%,-50%);border:var(--bd) solid var(--c);border-radius:50%;
+  background:var(--track);overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 0 var(--sp-4) color-mix(in srgb,var(--c) 55%,transparent)}
+body.ui2 #roster .vh-mid img{width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
+body.ui2 #roster .vh-mid i{width:40%;height:40%;border-radius:50%;background:var(--c)}
+body.ui2 #roster .vh-slot{position:absolute;left:var(--x,auto);top:var(--y,auto);transform:translate(-50%,-50%);width:52px;height:52px;min-width:44px;min-height:44px;box-sizing:border-box;padding:0;
+  display:flex;align-items:center;justify-content:center;border:var(--bd) solid var(--c,var(--paper3));border-radius:50%;background:var(--track);color:var(--plate-text);cursor:pointer;font:var(--fs-l)/1 var(--f12)}
+body.ui2 #roster .vh-slot img{width:70%;height:70%;image-rendering:pixelated}
+body.ui2 #roster .vh-slot>b{position:absolute;right:-2px;bottom:-2px;min-width:18px;height:18px;line-height:18px;text-align:center;border-radius:50%;background:var(--plate);border:var(--bd-fine) solid var(--c,var(--paper3));
+  font:var(--fs-s)/18px var(--f10);font-weight:normal;color:var(--plate-text)}
+body.ui2 #roster .vh-slot.empty{border-style:dashed;color:var(--paper2)}
+body.ui2 #roster .vh-slot.locked{opacity:.55}
+body.ui2 #roster .vh-slot.sel{box-shadow:0 0 0 var(--bd) var(--xp),0 0 var(--sp-4) var(--xp)}   /* chọn: vòng ngoài + vầng sáng, đọc được không cần màu */
+body.ui2 #roster .vh-slot:hover:not(:disabled){border-color:var(--plate-text)}
+body.ui2 #roster .vh-slot.ava{left:88%;top:88%;width:40px;height:40px;min-width:0;min-height:0;border-style:dashed;cursor:default;font-size:var(--fs-m)}
+body.ui2 #roster .vh-info{display:flex;align-items:center;justify-content:center;gap:var(--sp-4);min-height:44px;text-align:center}
+body.ui2 #roster .vh-info>span{display:flex;flex-direction:column;align-items:flex-start;text-align:left}
+body.ui2 #roster .vh-info b{font:var(--fs-m)/1.2 var(--f12);font-weight:normal;color:var(--plate-text)}
+body.ui2 #roster .vh-info small{font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)}
+body.ui2 #roster .vh-info .buse{min-height:32px;min-width:64px;cursor:pointer;color:var(--plate-text);text-shadow:none}
+
+/* (5) Dải thẻ đội hình / bộ sưu tập, danh sách hồn kỹ trên nền mực. */
+body.ui2 #roster .tslots{justify-content:center}
+body.ui2 #roster .trm{min-height:32px;font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2);cursor:pointer}
+body.ui2 #roster .trm:disabled{opacity:.5;cursor:not-allowed}
+body.ui2 #roster .kcard{min-height:44px;color:var(--plate-text);text-shadow:none}
+body.ui2 #roster .kcard b{font:var(--fs-m)/1.2 var(--f12);font-weight:normal}
+body.ui2 #roster .kcard small{font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)}
+body.ui2 #roster .kcard.on{box-shadow:inset var(--sp-2) 0 0 var(--c)}   /* đang gắn: vạch trái dày + màu vòng */
+body.ui2 #roster .kcard.locked{opacity:.55}
+body.ui2.ui-w560 #roster .vh-wheel{width:min(176px,100%)}
+/* Chữ lớn (a11y-fs-1/2): nới bề ngang để 5 tab vẫn một hàng. */
+body.ui2.a11y-fs-1 #roster{width:min(580px,96vw)}
+body.ui2.a11y-fs-2 #roster{width:min(660px,96vw)}
