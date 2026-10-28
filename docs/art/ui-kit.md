@@ -261,7 +261,7 @@ Cờ `ui2` chạy song song giao diện cũ, **tắt mặc định**; tắt thì
 - **Thẻ có nhãn trạng thái** `statusCard({ title, sub, state, reason, rank, limit, onClick })`: `new` chấm đỏ, `up` mũi tên xanh, `done` tick + gạch tên, `lock` xám + lý do (không có lý do thì hiện "Chưa mở"; thẻ khoá không phát `onClick`), `rank` 0…4 là màu nền theo `--rare-N` kèm vạch góc dài dần, `limit` là nhãn đầu thẻ. Mỗi dấu một hình riêng (không chỉ màu).
 - **Công tắc** `toggle({ label, on, disabled, onChange })` (`role=switch`; màn gửi server rồi gọi `set` nếu bị từ chối), **đồng hồ đếm ngược** `countdown({ target, now, label, onEnd })` (`role=timer`; `now` là đồng hồ máy chủ; dưới `COUNTDOWN_SOON_MS` đổi viền đứt nét; hết giờ viền chấm, "Đã hết"; tự dừng khi rời cây DOM), `abbrevNumber` (1,2K / 12,5M).
 - Cây dựng là hàm thuần (`frameNode`, `cardNode`, `toggleNode`, `countdownNode`, `toHtml`) để test bằng node và dựng trang xem trước: `node --experimental-strip-types tools/assets/ui-parts-preview.mjs --out <thư mục ngoài repo>` (mọi trạng thái × 3 nền × 3 cỡ × Mực / Giấy, nút đổi kit 1× / 2×). Test: `npm run test:uiparts --prefix client`.
-- Chưa chuyển màn nào: màn dùng ở đợt sau (menu hub, HUD, màn lõi).
+- Đã dùng ở: menu hub (#1208), HUD chính (P7a: `client/src/ui2-hud.css` — khung nhân vật / tổ đội / minimap = `f2-muc-nho`, nút tắt = `f2-nut-phu`, ô hồn kỹ / hồn cốt / vật phẩm / đội hình = `f2-o`, toast = `f2-toast`; luật `#id` cũ của HUD được lặp lại đúng bộ viền kit trong `#hud`, chỉ dưới `body.ui2`). Màn lõi còn lại ở đợt sau.
 
 ## Lỗi đã sửa ở P0 (ghi để không lặp)
 
