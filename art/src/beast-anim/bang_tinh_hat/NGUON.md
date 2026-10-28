@@ -36,23 +36,25 @@ Loài `bang_tinh_hat` (Băng Tinh Hạt), họ `insect`, khung game 96×96. Mứ
 
 ## to-ne
 
+- Ghi chú kỹ thuật nhập lại: matchSize: chuẩn sheet ĐÃ NHẬP s=64, se=61, e=59.5; TB 61.5 px. ne ×0.87, n ×0.73; sau nhập ne=n=61.5 px (0%). Hướng cũ RGBA + normal giữ nguyên, kiểm tự động và đối chiếu git đạt.
 - File: `to-ne.png`, **1536×1024**, 2091567 byte, SHA256 `07d77b2d08d1946748be1bed61c1e7144b50892ab94aa7c7a49228a14dbeaf8d`.
 - Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `to-ne.prompt.txt` (SHA256 `bfb1995fd3f8266b06f493a97fc7f338b015ecf10aec11612e8e97b0a42958d9`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne nhẹ).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (ne): cỡ thân idle 182% so với ảnh tĩnh (lệch 82%, quá 25%); cutter neo lại, không chặn.
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## to-n
 
+- Ghi chú kỹ thuật nhập lại: matchSize: chuẩn sheet ĐÃ NHẬP s=64, se=61, e=59.5; TB 61.5 px. ne ×0.87, n ×0.73; sau nhập ne=n=61.5 px (0%). Hướng cũ RGBA + normal giữ nguyên, kiểm tự động và đối chiếu git đạt.
 - File: `to-n.png`, **1536×1024**, 1957819 byte, SHA256 `2802aa208c2ca629ff6a5cbfdc8a40a4ad13f32305c227ffb0f22bceba39af82`.
 - Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `to-n.prompt.txt` (SHA256 `e58171b232cbc73367107fb004211b775cc2b5dc97ea015b2581fa02e1d34c0d`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 205% so với ảnh tĩnh (lệch 105%, quá 25%); cutter neo lại, không chặn.
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## Lỗi
 
@@ -60,8 +62,6 @@ Loài `bang_tinh_hat` (Băng Tinh Hạt), họ `insect`, khung game 96×96. Mứ
 LỖI: toA — hình ở ô trống — H4 (s) C5, H4 (s) C6, H8 (se) C5, H8 (se) C6 — ô trống có hình (2.55% diện tích ô): hình tràn từ ô bên; ô trống có hình (2.06% diện tích ô): hình tràn từ ô bên; ô trống có hình (6.98% diện tích ô): hình tràn từ ô bên; ô trống có hình (6.85% diện tích ô): hình tràn từ ô bên.
 LỖI: toA — Legacy giữ nguyên: hurt biên độ nhỏ; die s/se lệch trục như hồ sơ cũ. (mắt)
 LỖI: toB — Legacy ne/n lộ mặt; hướng chưa nhập giữ fallback. (mắt)
-LỖI: to-ne — Đúng hướng, không lộ mắt. Sau matchSize ×0.963, residual công cụ 0 so với đích cutter 68.1 px, nhưng sheet thực tế ne=68 px so với trung bình hướng ĐÃ NHẬP s=64,se=61,e=59.5 là 61.5 px, vẫn lệch +10.57%; giữ fallback theo giới hạn 10% sau khớp. Không cắt lại hướng cũ. (mắt)
-LỖI: to-n — Đúng mặt lưng. Sau matchSize ×0.813, residual công cụ 0 so với đích cutter 68.1 px, nhưng sheet thực tế n=68 px so với trung bình hướng ĐÃ NHẬP 61.5 px vẫn lệch +10.57%; giữ fallback; hướng cũ giữ nguyên. (mắt)
 ```
 
 ## Ghi công

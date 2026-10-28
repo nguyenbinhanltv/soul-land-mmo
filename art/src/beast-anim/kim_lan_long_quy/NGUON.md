@@ -63,21 +63,23 @@ Loài `kim_lan_long_quy` (Kim Lân Long Quy), họ `quad`, khung game 128×128. 
 
 ## to-s
 
+- Ghi chú kỹ thuật nhập lại: matchSize: chuẩn sheet ĐÃ NHẬP e=60, ne=57, n=54; TB 57 px. s ×0.84, se ×0.86; sau nhập s=se=57 px (0%). Hướng cũ RGBA + normal giữ nguyên, kiểm tự động và đối chiếu git đạt.
 - File: `to-s.png`, **1536×1024**, 1959709 byte, SHA256 `99d4c7fa9fa34b97d35e9a81f2d14be0d250eb09e39a30db6c2908494be45860`.
 - Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-764.
 - Prompt: `to-s.prompt.txt` (SHA256 `aacad3a0cf0818885d477d656c82a7a0b4037c4b334f00ffdfa523f441d451e5`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: s nhẹ).
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## to-se
 
+- Ghi chú kỹ thuật nhập lại: matchSize: chuẩn sheet ĐÃ NHẬP e=60, ne=57, n=54; TB 57 px. s ×0.84, se ×0.86; sau nhập s=se=57 px (0%). Hướng cũ RGBA + normal giữ nguyên, kiểm tự động và đối chiếu git đạt.
 - File: `to-se.png`, **1536×1024**, 1933048 byte, SHA256 `15eeb7bf6d7095c74852d30b812ac5fef551fad9a4a063a50aa69a37b1c43a74`.
 - Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-764.
 - Prompt: `to-se.prompt.txt` (SHA256 `ce7bb6b7f95e989593eaa6ce7b295d8239650bb1ecb893d46fc6f0c5d1b0fffc`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: se nhẹ).
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## to-ne
 
@@ -93,9 +95,7 @@ Loài `kim_lan_long_quy` (Kim Lân Long Quy), họ `quad`, khung game 128×128. 
 
 ```text
 LỖI: toC — khung chết — H1 (e) C1–4 — idle: mọi khung gần như trùng (xor/hợp tối đa 0.03 < 0.03); hoạt ảnh không chuyển động.
-LỖI: to-s — CHẶN NHẬP residual: sau cutter cao idle 68px so trung bình hướng cũ đạt e/n 57px, lệch +19,3%; rep.matchSize không kích hoạt vì chỉ có tờ direction. Giữ fallback, không dùng --scale (mắt)
 LỖI: to-se — hình ở ô trống — H4 (se) C5 — ô trống có hình (0.47% diện tích ô): hình tràn từ ô bên.
-LỖI: to-se — CHẶN NHẬP residual: sau cutter cao idle 66,5px so trung bình hướng cũ đạt e/n 57px, lệch +16,7%; rep.matchSize không kích hoạt vì chỉ có tờ direction. Giữ fallback, không dùng --scale (mắt)
 ```
 
 ## Ghi công
