@@ -51,9 +51,12 @@ body.ui2.ui2-k-o-hiem-4 #char .bcell.f2-o[data-rk="3"]{background-image:var(--ui
 body.ui2.ui2-k-o-hiem-5 #char .bcell.f2-o[data-rk="4"]{background-image:var(--ui2-o-hiem-5),var(--ui2-o-trong)}
 body.ui2.ui2-k-o-chon #char .bcell.f2-o.sel{background-image:var(--ui2-o-chon)}
 body.ui2 #char .bcell.ui-cell{color:var(--plate-text);cursor:pointer}
-body.ui2 #char .bcell[data-rk]{box-shadow:inset 0 calc(var(--bd) * -1) 0 var(--c)}
-body.ui2 #char .bcell[data-rk="1"]{box-shadow:inset 0 -3px 0 var(--c)} body.ui2 #char .bcell[data-rk="2"]{box-shadow:inset 0 -4px 0 var(--c)}
-body.ui2 #char .bcell[data-rk="3"]{box-shadow:inset 0 -5px 0 var(--c)} body.ui2 #char .bcell[data-rk="4"]{box-shadow:inset 0 -6px 0 var(--c)}
+body.ui2 #char .bcell[data-rk]{--rkn:2px;box-shadow:inset 0 calc(var(--rkn) * -1) 0 var(--c)}
+body.ui2 #char .bcell[data-rk="1"]{--rkn:3px} body.ui2 #char .bcell[data-rk="2"]{--rkn:4px}
+body.ui2 #char .bcell[data-rk="3"]{--rkn:5px} body.ui2 #char .bcell[data-rk="4"]{--rkn:6px}
+/* Ô hồn hạch thuộc bộ đang kích hoạt: giữ vầng sáng màu bộ (--sc) của luật cũ `#char .cring6 .ccell.seton`, gộp cùng vạch hạng. */
+body.ui2 #char .ccell.seton{box-shadow:inset 0 calc(var(--rkn,0px) * -1) 0 var(--c),0 0 0 var(--bd) var(--sc),0 0 var(--sp-4) color-mix(in srgb,var(--sc) 70%,transparent)}
+body.ui2 #char .ccell.seton.sel{box-shadow:inset 0 calc(var(--rkn,0px) * -1) 0 var(--c),0 0 0 var(--bd) var(--xp)}
 body.ui2 #char .bcell.empty{opacity:.85}
 body.ui2 #char .bcell.empty:not(.sel){border-style:dashed}   /* chỉ khi kit chưa có mảnh ô (còn viền cũ): ô trống nét đứt */
 body.ui2 #char .bcell.sel,body.ui2 #char .cring:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:calc(var(--bd) * -1)}
