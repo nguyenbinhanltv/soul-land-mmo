@@ -1,0 +1,10 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 3,
+  "references": [
+    "shared/assets/sprites/beast/kiem_vi_hat.png",
+    "art/src/beast-anim/kiem_vi_hat/turnaround.png"
+  ]
+}
