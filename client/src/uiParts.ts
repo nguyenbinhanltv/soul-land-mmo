@@ -17,6 +17,19 @@ export function toHtml(n: PNode): string {
   return VOID.has(n.tag) ? `<${n.tag}${a}>` : `<${n.tag}${a}>${n.text !== undefined ? esc(n.text) : ""}${(n.kids ?? []).map(toHtml).join("")}</${n.tag}>`;
 }
 
+// ---- tìm / lọc tiếng Việt ----
+
+/** Bỏ dấu để khớp tìm kiếm: "Hồi Huyết Đan" → "hoi huyet dan" (đ → d, chữ thường, gộp khoảng trắng). Hàm thuần. */
+export function foldVi(s: string): string {
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d").toLowerCase().replace(/\s+/g, " ").trim();
+}
+/** Khớp khi mọi từ của ô tìm (đã bỏ dấu) nằm trong tên (đã bỏ dấu); ô tìm rỗng khớp hết. Hàm thuần. */
+export function matchQuery(name: string, query: string): boolean {
+  const q = foldVi(query); if (!q) return true;
+  const n = foldVi(name);
+  return q.split(" ").every((w) => n.includes(w));
+}
+
 // ---- số và giờ ----
 
 /** Rút gọn số: 999 → "999", 1 234 → "1,2K", 12 500 000 → "12,5M" (bảng xếp hạng, tiền tệ). Không làm tròn lên bậc kế (999 999 → "999,9K"). */
