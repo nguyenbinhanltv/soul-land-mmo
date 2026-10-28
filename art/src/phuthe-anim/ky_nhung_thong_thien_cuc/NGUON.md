@@ -16,9 +16,9 @@ Part of #1025 · lô 5 · worker soul_land_game-716.
 | B / se | 3 / 3 | 0 | 46 | Được phép theo 0 chặn kỹ thuật |
 | C / e | 2 / 2 | 0 | 47 | Được phép theo 0 chặn kỹ thuật |
 | D / ne | 2 / 2 | 0 | 48 | Được phép theo 0 chặn kỹ thuật |
-| E / n | 3 / 2 | 1 | 1 | Không — giữ ảnh cũ |
+| E / n | 4 / 4 (thêm 1/3 lượt) | 0 | 43 | Đã nhập bổ sung |
 
-Đã nhập A–D (s, se, e, ne), 88 khung bằng cutter --partial → anchor → phuthe-import; E (n) dùng phụ thể tĩnh cũ. Cutter: 0 block, 157 warn; giữ các hạn chế soát mắt bên dưới.
+Đã bổ sung E/n ở lượt 4 (lượt mới 1/3 được chủ repo cho phép ngoài ba lượt cũ), đủ A–E: 110 khung. Cutter: 0 block, 194 warn; nhập bằng phuthe-import, không chỉnh tay neo. Importer giữ mục neo manual hiện có. Lượt E cũ giữ nguyên trong candidates/.
 
 ## Soát mắt và neo
 
@@ -37,7 +37,7 @@ Preview: C:/Users/PC/.ao/data/artifacts/soul_land_game-716/ky_nhung_thong_thien_
 <!-- phuthe-import:huong -->
 ### Hướng đã nhập (tự ghi bởi `phuthe-import.mjs`, `anim.dirsOk` trong manifest)
 
-Nhập từng hướng: s, se, e, ne.
+Đủ 5 hướng.
 
 | Hướng | Trạng thái |
 |---|---|
@@ -45,5 +45,9 @@ Nhập từng hướng: s, se, e, ne.
 | se (tờ B) | đã nhập hoạt ảnh vẽ thật |
 | e (tờ C) | đã nhập hoạt ảnh vẽ thật |
 | ne (tờ D) | đã nhập hoạt ảnh vẽ thật |
-| n (tờ E) | CHƯA nhập: client dùng phụ thể tĩnh cũ |
+| n (tờ E) | đã nhập hoạt ảnh vẽ thật |
 <!-- /phuthe-import:huong -->
+
+## Bổ sung phiên 738
+
+Tờ E mới: 0 chặn / 43 nhẹ. Thân nhỏ và dời xuống; hoa lớn, cast xén mép, hướng bắc chưa chứng nhận quay lưng rõ. Lỗi mắt chỉ khai ở đây theo quyền nhập mọi hướng 0 chặn. Prompt nguyên văn từ công cụ với --concept-ref; tham chiếu bảng E và concept-attempt2. Neo tự tính bằng công cụ; không chỉnh tay sau nhập.
