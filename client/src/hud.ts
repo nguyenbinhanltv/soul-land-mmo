@@ -1,7 +1,8 @@
 // Giao diện HTML phủ lên canvas (chữ tiếng Việt hiển thị sắc nét hơn vẽ trong canvas).
-import { boneOf, coreOf, coreSet, honTeHtml, itemArt, itemColor, itemName, toggleBag, setBagCap } from "./hudBag.ts";
-import { coreEnhText, corePicker, enhClose, setEnhCoin, enhOpen, enhTarget, enhText, enhancePicker, toggleRoster } from "./hudRoster.ts";
-import { VOHON, tierOfYears, vohonIndex, ITEM_KINDS, itemDef, honTeParts, formatYears, SHARD_UNLOCK, MAPS, CORE_SETS, coreResetFee, BONE_MAX_ENHANCE, NPCS, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, SHARD_BUY, shardBuyPrice, shardBuyCost, ARENA_SHARDS, shardCode, WAYPOINT_CAST, LOOKS_CHANGE, looksChangeCost, type Looks, type NpcDef, type NpcRole, CORE_MAX_ENHANCE, CORE_MAX_SUBS, QUESTS, QUEST_STARTER, QUEST_AFTER, questChain, questRewardText, questBoneText, type QuestReward, type QuestStep, DAILY, RESONANCE, RESONANCE_RANK_PAGE_SIZE, resonanceText, AUTO_SELL_BUYBACK, ARENA, type ArenaRecord } from "../../shared/data.ts";
+import { NpcActions, NpcPage, SELL_CONFIRM_DONG, closeNpc, npcDefOpen, npcPage, renderNpc, sellConfirm, shardMsg, tongBoardMsg, tongMsg , setSellConfirm } from "./hudNpc.ts";
+import { boneOf, coreOf, coreSet, itemArt, itemColor, itemName, toggleBag } from "./hudBag.ts";
+import { coreEnhText, corePicker, enhClose, enhOpen, enhTarget, enhText, enhancePicker, toggleRoster } from "./hudRoster.ts";
+import { VOHON, tierOfYears, vohonIndex, ITEM_KINDS, itemDef, honTeParts, formatYears, SHARD_UNLOCK, MAPS, CORE_SETS, coreResetFee, BONE_MAX_ENHANCE, NPCS, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, SHARD_BUY, shardBuyPrice, shardBuyCost, ARENA_SHARDS, shardCode, WAYPOINT_CAST, CORE_MAX_ENHANCE, CORE_MAX_SUBS, QUESTS, QUEST_STARTER, QUEST_AFTER, questChain, questRewardText, questBoneText, type QuestReward, type QuestStep, DAILY, RESONANCE, RESONANCE_RANK_PAGE_SIZE, resonanceText, AUTO_SELL_BUYBACK, ARENA, type ArenaRecord } from "../../shared/data.ts";
 
 import { artImg, artUrl } from "./uiArt.ts";
 import { toggleChar } from "./charPanel.ts";
@@ -11,10 +12,9 @@ import { toast } from "./feedback.ts";
 import { chatLine, chatWhisperTo } from "./chat.ts";
 import { el, pbtn } from "./domBtn.ts";
 import { resolveQuestMarker } from "./nameplate.ts";
-import { openLooksOverlay } from "./looksMaker.ts";
-import type { GearMsg, EquipEnhPreview, EquipEnhDone, EquipLuckPreview, EquipLuckDone, EquipSynDone, EquipSalvDone } from "./net.ts";
+import type { EquipEnhPreview, EquipEnhDone, EquipLuckPreview, EquipLuckDone, EquipSynDone, EquipSalvDone } from "./net.ts";
 import type { PortalInfo, BagMsg, BagItem, BuybackItem, PartyView, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
-import { autoTimeText, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, TONG_DAILY, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, tongDef, FRIEND_MAX, BLOCK_MAX, type QuestProgress, type QuestStatus, type TongRank } from "../../shared/data.ts";
+import { autoTimeText, TONG_MON, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, tongDef, FRIEND_MAX, BLOCK_MAX, type TongRank } from "../../shared/data.ts";
 import { ringColor } from "./hudBar.ts";
 
 // Ô chat đã tách sang chat.ts (Part of #885); giữ tên cũ ở đây để GameScene vẫn gọi hud.chat*.
@@ -27,6 +27,8 @@ export { setBossCountdown, updateBossCd, setBossLife, setBossRage, setBossWeak, 
 export { toggleRoster, type RosterActions, renderRoster, openBones, openCores, wornCores, coreLines } from "./hudRoster.ts";
 // Túi đồ, hồn tệ, thẻ thao tác, so sánh, tự bán của HUD đã tách sang hudBag.ts (Part of #885 bước 0a); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.
 export { openBagTieuHao, setBagCap, toggleBag, boneOf, coreOf, coreSet, itemName, boneStatText, boneFullText, subName, yearsShort, itemColor, itemArt, boneIcon, boneEmptyIcon, coreIcon, type AbsorbOption, type HerbOption, type BagActions, type BagFocus, setBagFocus, bagCap, renderBag, updateBag } from "./hudBag.ts";
+// Hộp thoại NPC đã tách sang hudNpc.ts (Part of #885 bước 0a); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.
+export { showTalk, type NpcActions, type TongMsg, type TongBoardMsg, setShardInfo, setLooksInfo, looksOpen, closeLooks, setTong, setTongBoard, npcOpenId, openNpc, closeNpc, npcBag } from "./hudNpc.ts";
 import { mmss } from "./hudBoss.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
@@ -275,249 +277,6 @@ function renderFriends() {
   }
 }
 
-
-// ---------- NPC, thương nhân, lò rèn (mục 5.8, bước 6.1) ----------
-/** Hộp gợi ý khi đứng gần NPC (cổng được ưu tiên): tên, chức danh và nút "Nói chuyện" (phím F, chuột hoặc chạm). */
-export function showTalk(def: NpcDef | null, go: () => void) {
-  const el = $("#talk");
-  if (!def) { el.hidden = true; el.innerHTML = ""; return; }
-  el.innerHTML = `<div></div><small></small><button type="button">Nói chuyện<kbd>F</kbd></button>`;
-  el.querySelector("div")!.textContent = def.name;
-  (el.querySelector("div") as HTMLElement).style.color = def.col;
-  el.querySelector("small")!.textContent = def.title;
-  el.querySelector("button")!.addEventListener("pointerdown", (e) => { e.preventDefault(); go(); });
-  el.hidden = false;
-}
-
-/**
- * Thao tác ở NPC: client chỉ gửi ý định (mã đan và số lượng, id ô muốn bán, hồn cốt muốn cường hóa, hồn hạch muốn nâng cấp từ 5.3);
- * server kiểm tra rồi gửi lại túi.
- */
-export interface NpcActions {
-  buy(code: string, qty: number): void; sell(id: string, qty?: number): void;
-  buyback(key: string): void; expand(): void; // mua lại đồ vừa bán, mở rộng túi (9.8)
-  enhance(targetId: string, materialIds: string[]): void;
-  enhanceCore(targetId: string, materialIds: string[]): void; combat(): boolean;
-  coreSet(id: string, set: string): void; // Thợ rèn: đổi bộ hồn hạch (#283)
-  quest(op: "accept" | "turnin", chain?: string): void; // nhận / trả nhiệm vụ (6.2; `chain` = bài khảo hạch hằng ngày)
-  arena(op: "queue" | "cancel" | "top" | "live" | "watch", roomId?: string): void; // Đại Đấu Hồn Trường (7.2): xếp hàng, hủy, xin bảng xếp hạng; xem trận (#280): danh sách, vào xem
-  // Tông môn (#196): gia nhập / đổi sang `tong`, rời tông; #197: nhận / trả tông vụ `chain`, xin bảng tông tuần, nhận thưởng tuần.
-  tong(op: "join" | "leave" | "accept" | "turnin" | "board" | "claim", tong?: string, chain?: string): void;
-  shard(vohon: string, qty: number): void; shardInfo(): void; // Thương hội đổi mảnh võ hồn (#282): đổi, xin số đã đổi hôm nay
-  gear(): GearMsg | null; equipEnh(id: string, charm: boolean): void; equipEnhPreview(id: string): void; // Thợ rèn: cường hóa trang bị hồn sư (E3)
-  equipLuck(id: string): void; equipLuckPreview(id: string): void; // Thợ rèn: khắc may mắn bằng Thần Hồn
-  equipSynth(main: string, sacrifice: string[]): void; equipSalvage(ids: string[]): void; // Thợ rèn: hợp thành 3 → 1, phân giải hàng loạt (E4)
-  owned(): string[]; // mã các võ hồn đã sở hữu (trang đổi mảnh ghi "chưa có")
-  looks(): Looks | null; changeLooks(looks: Looks): void; // Thợ may (L4 #511): ngoại hình đang mang, gửi lựa chọn mới (server kiểm khoảng cách, tiền)
-}
-type NpcPage = "talk" | "buy" | "sell" | "buyback" | "forge" | "forgecore" | "forgeset" | "forgegear" | "forgeluck" | "forgesynth" | "forgesalv" | "quest" | "daily" | "rank" | "shard" | "tongtask" | "tongrank" | "live";
-let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
-let npcPage: NpcPage = "talk";
-let npcLine = 0;                       // câu thoại đang hiện
-let npcBagMsg: BagMsg | null = null;   // tin "bag" gần nhất (Hồn Tệ, đồ bán được, hồn cốt cho lò rèn)
-let npcAct: NpcActions | null = null;
-let sellConfirm: string | null = null; // "id|số lượng" vừa bấm "Bán" lần đầu với món giá trị (từ 9.8 cả "expand" mở rộng túi): bấm lần nữa mới làm
-/** Bán từ ngần này đồng trở lên (hoặc đồ đã cường hóa) thì phải bấm hai lần (chỉ là xác nhận giao diện, không phải số cân bằng). */
-const SELL_CONFIRM_DONG = 100;
-const NPC_ROLE_NOTE: Record<NpcRole, string> = { talk: "", shop: "Thương nhân: mua đan dược, bán đồ dư.", forge: "Lò rèn: cường hóa hồn cốt, nâng cấp / đổi bộ hồn hạch, rèn trang bị (cường hóa, hợp thành, phân giải, khắc may mắn).",
-  arena: "Đấu đội võ hồn 1v1, xếp hạng Elo. Thua không mất gì.",
-  looks: `Thợ may: đổi ngoại hình, kể cả đổi giữa Mẫu dựng sẵn và Tự tạo. ${LOOKS_CHANGE.free === 1 ? "Lần đầu" : `${LOOKS_CHANGE.free} lần đầu`} miễn phí, các lần sau tốn Hồn Tệ.`,
-  tong: `Gia nhập cần xong chuỗi tân thủ và võ hồn cấp ${TONG_MIN_LEVEL}; đổi tông sau ${TONG_SWITCH_DAYS} ngày, mất điểm tuần đang có. Tông không cộng chỉ số.` };
-/** Tin "tong": tông đang thuộc ("" = không), giây còn chờ đổi tông; từ #197 tông vụ hôm nay (tiến độ do server giữ). */
-export interface TongMsg { tong: string; wait: number; day?: string; tasks?: (QuestProgress & { status: QuestStatus })[]; }
-/** Tin "tongBoard" (#197): bảng tông tuần này (`cur`, điểm của mình `me`) và tuần trước (`last`: tông hạng nhất, phần thưởng của mình). */
-export interface TongBoardMsg {
-  week: number; min: number; me: number; cur: { tongs: TongRank[]; top: Record<string, { name: string; points: number }[]> };
-  last: { week: number; board: { tongs: TongRank[] }; first: string[]; tong: string; points: number; reward: "top" | "rest" | null; claimed: boolean };
-}
-let tongMsg: TongMsg | null = null; // tin "tong" gần nhất
-let tongBoardMsg: TongBoardMsg | null = null; // tin "tongBoard" gần nhất
-let shardMsg: { n: number; daily: number } | null = null; // tin "shardinfo" gần nhất (#282): số mảnh đã đổi hôm nay ở Thương hội
-/** Tin "shardinfo" (#282): vẽ lại hộp thoại Chưởng quỹ nếu đang mở. */
-export function setShardInfo(m: { n: number; daily: number }) { shardMsg = m; if (npcDefOpen?.id === SHARD_BUY.npc) renderNpc(); }
-let looksMsg: { n: number; err?: string } | null = null; // tin "looksinfo" gần nhất (L4 #511): số lần đã đổi ngoại hình
-let looksWait: ((m: { n: number; err?: string }) => void) | null = null; // đang chờ server trả lời lần đổi vừa gửi
-/** Tin "looksinfo" (L4 #511): số lần đã đổi, hoặc lý do từ chối; vẽ lại hộp thoại thợ may nếu đang mở. */
-export function setLooksInfo(m: { n: number; err?: string }) { looksMsg = m; looksWait?.(m); if (npcDefOpen?.role === "looks") renderNpc(); }
-/** Mở màn đổi ngoại hình của thợ may đang mở hộp thoại; xong (server xác nhận) thì đóng màn và hộp thoại. */
-function openLooksChange(def: NpcDef, act: NpcActions) {
-  const n0 = looksMsg?.n ?? 0, cost = looksChangeCost(n0), have = npcBagMsg?.honTe ?? 0;
-  closeNpc(); // màn đổi ngoại hình phủ lên game; xong thì nói chuyện lại với thợ may nếu muốn đổi tiếp
-  closeLooks();
-  looksClose = openLooksOverlay({
-    title: "Đổi ngoại hình", current: act.looks(),
-    intro: cost ? `Lần đổi này tốn <b>${formatHonTe(cost)}</b> Hồn Tệ (bạn có ${formatHonTe(have)}). Có thể đổi giữa Mẫu dựng sẵn và Tự tạo.`
-      : `Lần đổi này <b>miễn phí</b>; các lần sau tốn ${formatHonTe(LOOKS_CHANGE.cost)} Hồn Tệ mỗi lần. Có thể đổi giữa Mẫu dựng sẵn và Tự tạo.`,
-    okLabel: cost ? `Đổi ngoại hình (−${formatHonTe(cost)})` : "Đổi ngoại hình (miễn phí)",
-    onOk: (looks) => new Promise<void>((ok, no) => {
-      const t = setTimeout(() => { looksWait = null; no(new Error("Máy chủ không trả lời, thử lại sau.")); }, 10000);
-      looksWait = (m) => {
-        if (m.err) { clearTimeout(t); looksWait = null; no(new Error(m.err)); }
-        else if (m.n > n0) { clearTimeout(t); looksWait = null; ok(); }
-      };
-      act.changeLooks(looks);
-    }),
-    onClose: () => { looksWait = null; looksClose = null; },
-  });
-}
-let looksClose: (() => void) | null = null; // đóng màn đổi ngoại hình đang mở
-/** Màn đổi ngoại hình (thợ may) đang mở: phím tắt game phải tắt trong lúc đó. */
-export const looksOpen = () => looksClose !== null;
-/** Đóng màn đổi ngoại hình nếu đang mở (Esc, đi cổng / đổi kênh / vào sân đấu, mất kết nối): dừng xem trước, trả #card về như cũ. */
-export function closeLooks() { looksClose?.(); looksClose = null; }
-/** Tin "tong" (#196): vẽ lại hộp thoại sứ giả nếu đang mở. */
-export function setTong(m: TongMsg) { tongMsg = m; if (npcDefOpen?.role === "tong") renderNpc(); }
-/** Tin "tongBoard" (#197): vẽ lại hộp thoại sứ giả nếu đang mở. */
-export function setTongBoard(m: TongBoardMsg) { tongBoardMsg = m; if (npcDefOpen?.role === "tong") renderNpc(); }
-
-/** NPC đang mở hộp thoại (null = đóng). */
-export const npcOpenId = () => npcDefOpen?.id ?? null;
-/** Mở hộp thoại NPC `id` (server đã cho phép): bắt đầu từ câu thoại đầu tiên; đóng túi đồ và bảng đội hình (cùng chỗ giữa màn hình). */
-export function openNpc(id: string, bag: BagMsg | null, act: NpcActions) {
-  const def = NPCS.find((n) => n.id === id); if (!def) return;
-  // NPC giao nhiệm vụ (6.2) đang có bài mới / chờ trả thì mở thẳng trang nhiệm vụ.
-  if (npcDefOpen?.id !== id) {
-    const qs = questOf(id)?.status, ds = id === DAILY.giver ? dailyMark() : null;
-    npcPage = qs === "offer" || qs === "ready" ? "quest" : ds === "offer" || ds === "ready" ? "daily" : "talk"; npcLine = 0;
-  }
-  npcDefOpen = def; npcBagMsg = bag; npcAct = act; sellConfirm = null; enhClose();
-  toggleBag(false); toggleRoster(false); toggleReso(false); toggleFriends(false); toggleChar(false);
-  $("#npc").hidden = false;
-  renderNpc();
-}
-export function closeNpc() {
-  if (!npcDefOpen) return;
-  npcDefOpen = null; npcAct = null; sellConfirm = null; enhClose();
-  const el = $("#npc"); el.hidden = true; el.innerHTML = "";
-  delete el.dataset.c16Page;
-}
-/** Túi đổi (mua, bán, cường hóa): vẽ lại hộp thoại đang mở với Hồn Tệ và đồ mới. */
-export function npcBag(bag: BagMsg) { npcBagMsg = bag; setBagCap(bag.slots); setEnhCoin(bag.honTe); if (npcDefOpen) renderNpc(); }
-
-function renderNpc() {
-  const def = npcDefOpen, act = npcAct, el = $("#npc"); if (!def || !act) return;
-  if (npcPage === "forge" || npcPage === "forgecore" || npcPage === "forgesynth") el.dataset.c16Page = npcPage;
-  else delete el.dataset.c16Page;
-  el.innerHTML = "";
-  el.style.setProperty("--c", def.col);
-  // 10.8: chân dung NPC 112×112 (npc_<mã>) bên trái tên, chức danh (chưa có ảnh thì chỉ có tên).
-  const head = document.createElement("div"); head.className = "rhead nhead";
-  head.innerHTML = `${artImg(`npc_${def.id}`, "nface")}<div class="nname"><b></b><small></small></div><button class="x" aria-label="Đóng">×</button>`;
-  head.querySelector("b")!.textContent = def.name;
-  head.querySelector("small")!.textContent = def.title;
-  head.querySelector("button")!.addEventListener("click", () => closeNpc());
-  el.appendChild(head);
-  const row = document.createElement("div"); row.className = "brow";
-  const btn = (text: string, cls: string, fn: () => void, disabled = false) => {
-    const b = document.createElement("button"); b.type = "button"; b.className = "buse " + cls; b.textContent = text; b.disabled = disabled;
-    b.addEventListener("click", () => { b.blur(); fn(); }); row.appendChild(b); return b;
-  };
-  const go = (page: NpcPage) => { npcPage = page; sellConfirm = null; enhClose(); renderNpc(); };
-  const bag = npcBagMsg;
-  if (npcPage === "tongtask" || npcPage === "tongrank") { // #197: tông vụ hôm nay, bảng tông tuần
-    if (npcPage === "tongtask") renderTongTasks(el, act); else renderTongRank(el, act);
-    btn(`‹ Lời ${def.name}`, "drop", () => go("talk"));
-    el.appendChild(row);
-    return;
-  }
-  if (npcPage === "quest" || npcPage === "daily") {
-    if (npcPage === "daily") renderDailyPage(el, act); else renderQuestPage(el, act);
-    btn(`‹ Lời ${def.name}`, "drop", () => go("talk"));
-    el.appendChild(row);
-    return;
-  }
-  if (npcPage === "live") { // #280: danh sách trận đang diễn ra
-    el.appendChild(arenaLiveEl(act));
-    const rf = btn("Làm mới", "use", () => { arenaLiveAsk(act); renderNpc(); }, performance.now() - arenaLiveAt < ARENA.topCd * 1000);
-    if (rf.disabled) setTimeout(() => { if (npcDefOpen && npcPage === "live") renderNpc(); }, ARENA.topCd * 1000);
-    btn("‹ Quay lại", "drop", () => go("talk"));
-    el.appendChild(row);
-    return;
-  }
-  if (npcPage === "rank") { // bảng xếp hạng Đại Đấu Hồn Trường (7.2)
-    el.appendChild(arenaRankEl(arenaTopMsg));
-    btn(arenaQ ? "Hủy xếp hàng" : "Xếp hàng đấu hồn", arenaQ ? "drop" : "absorb", () => act.arena(arenaQ ? "cancel" : "queue"));
-    btn("‹ Quay lại", "drop", () => go("talk"));
-    el.appendChild(row);
-    return;
-  }
-  if (npcPage !== "talk" && bag) {
-    const coin = document.createElement("div"); coin.className = "coin";
-    coin.innerHTML = `<i class="coinico"></i><span>Hồn Tệ:</span> ${honTeHtml(bag.honTe)}`;
-    coin.title = `${bag.honTe.toLocaleString("vi-VN")} đồng (1 ngân = 100 đồng, 1 kim = 100 ngân)`;
-    el.appendChild(coin);
-  }
-  if (npcPage === "talk" || !bag) {
-    const n = def.lines.length, i = Math.min(npcLine, n - 1);
-    const p = document.createElement("p"); p.className = "nline"; p.textContent = def.lines[i];
-    if (i < n - 1) { p.title = "Bấm để nghe tiếp"; p.addEventListener("click", () => { npcLine = i + 1; renderNpc(); }); }
-    el.appendChild(p);
-    if (n > 1) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = `${i + 1}/${n}`; el.appendChild(k); }
-    if (i < n - 1) btn("Tiếp ›", "use", () => { npcLine = i + 1; renderNpc(); });
-    const q = questOf(def.id), qc = q && questChain(q.chain);
-    if (q && qc) btn(q.status === "done" ? `Nhiệm vụ: ${qc.name} (đã xong)` : `Nhiệm vụ: ${qc.steps[q.step].name}${q.status === "offer" ? " !" : q.status === "ready" ? " ?" : ""}`,
-      "absorb", () => go("quest"));
-    if (def.id === DAILY.giver && dailyMsg) { // khảo hạch hằng ngày
-      const done = dailyMsg.list.filter((x) => x.status === "done").length, m = dailyMark();
-      btn(`Khảo hạch hằng ngày (${done}/${dailyMsg.list.length})${m === "offer" ? " !" : m === "ready" ? " ?" : ""}`, "absorb", () => go("daily"));
-    }
-    if (def.role === "shop") {
-      btn(shopExpands(def.id) ? "Mua đan dược, mở rộng túi" : "Mua đan dược, phù chú", "absorb", () => go("buy"), !bag); // #111: trại cổng không mở rộng túi
-      btn("Bán đồ dư", "absorb", () => go("sell"), !bag);
-      btn(`Mua lại đồ đã bán (${(bag?.buyback?.length ?? 0) + (bag?.sold?.length ?? 0)})`, "absorb", () => go("buyback"), !bag); // 9.8, đồ tự bán #216
-      if (def.id === SHARD_BUY.npc) btn(`Đổi mảnh võ hồn${shardMsg ? ` (${shardMsg.n}/${shardMsg.daily} hôm nay)` : ""}`, "absorb", () => { act.shardInfo(); go("shard"); }, !bag); // #282
-    }
-    if (def.role === "forge") {
-      btn("Cường hóa hồn cốt", "absorb", () => go("forge"), !bag);
-      btn("Nâng cấp hồn hạch", "absorb", () => go("forgecore"), !bag); // 5.3
-      btn("Đổi bộ hồn hạch", "absorb", () => go("forgeset"), !bag); // #283
-      btn("Cường hóa trang bị hồn sư", "absorb", () => { gearPick = null; gearConfirm = false; go("forgegear"); }, !bag); // E3
-      btn("Khắc may mắn", "absorb", () => { luckPick = null; go("forgeluck"); }, !bag);
-      btn("Hợp thành trang bị (3 → 1)", "absorb", () => { synMain = null; synSac = []; synConfirm = false; go("forgesynth"); }, !bag); // E4
-      btn("Phân giải trang bị", "absorb", () => { salvSel.clear(); salvConfirm = false; go("forgesalv"); }, !bag); // E4
-    }
-    if (def.role === "looks") { // L4 #511: giá lần đổi kế tiếp tính từ số lần đã đổi (server gửi `looksinfo` khi mở hộp thoại)
-      const cost = looksChangeCost(looksMsg?.n ?? 0), poor = !!bag && bag.honTe < cost;
-      btn(cost ? `Đổi ngoại hình (${formatHonTe(cost)})` : "Đổi ngoại hình (miễn phí)", "absorb", () => openLooksChange(def, act), !looksMsg || poor);
-      if (poor) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = `Không đủ Hồn Tệ: cần ${formatHonTe(cost)}.`; el.appendChild(k); }
-    }
-    if (def.role === "arena") { // 7.2: server kiểm tra lại khoảng cách và trạng thái khi xếp hàng
-      btn(arenaQ ? "Hủy xếp hàng" : "Xếp hàng đấu hồn", arenaQ ? "drop" : "absorb", () => act.arena(arenaQ ? "cancel" : "queue"));
-      btn("Bảng xếp hạng", "absorb", () => { act.arena("top"); go("rank"); });
-      btn("Trận đang diễn ra", "absorb", () => { arenaLiveAsk(act); go("live"); });
-    }
-    if (def.role === "tong") {
-      const t = TONG_MON.find((x) => x.npc === def.id), cur = TONG_MON.find((x) => x.id === tongMsg?.tong);
-      if (t && t.id === cur?.id) btn(`Đã là người của ${t.name}`, "absorb", () => {}, true);
-      else if (t) btn(cur ? `Đổi sang ${t.name}` : `Gia nhập ${t.name}`, "absorb", () => act.tong("join", t.id));
-      if (t && t.id === cur?.id) { // #197: tông vụ chỉ ở sứ giả tông mình
-        const l = tongMsg?.tasks ?? [], done = l.filter((x) => x.status === "done").length;
-        const mark = l.some((x) => x.status === "ready") ? " ?" : l.some((x) => x.status === "offer") ? " !" : "";
-        btn(`Tông vụ hôm nay (${done}/${l.length || TONG_DAILY.count})${mark}`, "absorb", () => go("tongtask"));
-      }
-      if (cur) btn("Bảng tông tuần, thưởng tuần", "absorb", () => { act.tong("board"); go("tongrank"); });
-      if (cur) btn(`Rời ${cur.name}`, "drop", () => act.tong("leave"));
-      if (tongMsg && tongMsg.wait > 0) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = `Còn ${Math.ceil(tongMsg.wait / 86400)} ngày nữa mới đổi được tông.`; el.appendChild(k); }
-    }
-    btn("Tạm biệt", "drop", () => closeNpc());
-    el.appendChild(row);
-    if (NPC_ROLE_NOTE[def.role]) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = NPC_ROLE_NOTE[def.role]; el.appendChild(k); }
-    return;
-  }
-  if (npcPage === "buy") renderShopBuy(el, bag, act, def.id);
-  else if (npcPage === "sell") renderShopSell(el, bag, act);
-  else if (npcPage === "buyback") renderShopBuyback(el, bag, act);
-  else if (npcPage === "shard") renderShardShop(el, bag, act);
-  else if (npcPage === "forgeset") renderForgeSets(el, bag, act);
-  else if (npcPage === "forgegear") renderForgeGear(el, bag, act);
-  else if (npcPage === "forgeluck") renderForgeLuck(el, bag, act);
-  else if (npcPage === "forgesynth") renderForgeSynth(el, bag, act);
-  else if (npcPage === "forgesalv") renderForgeSalv(el, bag, act);
-  else { const box = npcPage === "forgecore" ? renderForgeCores(bag, act) : renderForge(bag, act); el.appendChild(box); if (box.classList.contains("epick")) return; }
-  btn("‹ Quay lại", "drop", () => go("talk"));
-  el.appendChild(row);
-}
-
 /** Dòng hàng kiểu chung (UI-4): biểu tượng đầu dòng vào ô `ui_o` (.ui-cell) và cả dòng có chú thích `setTip` (rê chuột / chạm giữ). */
 function shopCell(o: HTMLElement, tip: TipSpec) {
   const ico = o.firstElementChild; if (!ico) return;
@@ -529,7 +288,7 @@ function shopCell(o: HTMLElement, tip: TipSpec) {
  * Cửa hàng của thương nhân `npcId`: mỗi món trong bảng hàng (shopOf: SHOP trong thành, CAMP_SHOP ở trại cổng) một dòng (giá, đang có),
  * nút mua 1 / 5 / 10; thiếu Hồn Tệ thì mờ nút (server vẫn kiểm tra lại). Mở rộng túi chỉ ở thương nhân trong thành (shopExpands).
  */
-function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions, npcId: string) {
+export function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions, npcId: string) {
   const used = bag.items.filter((i) => i.vohon === null).length, shop = shopOf(npcId);
   for (const r of shop) {
     const def = itemDef(r.code); if (!def) continue;
@@ -564,8 +323,8 @@ function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions, npcId: str
       b.setAttribute("aria-label", `Mở rộng túi thêm ${BAG_EXPAND} ô, giá ${formatHonTe(cost)}`);
       b.addEventListener("click", () => {
         b.blur();
-        if (sellConfirm !== "expand") { sellConfirm = "expand"; renderNpc(); return; }
-        sellConfirm = null; act.expand();
+        if (sellConfirm !== "expand") { setSellConfirm("expand"); renderNpc(); return; }
+        setSellConfirm(null); act.expand();
       });
       o.querySelector(".brow")!.appendChild(b);
     }
@@ -582,7 +341,7 @@ function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions, npcId: str
  * 5 / hết lượt hôm nay với tổng giá (shardBuyCost theo số đã đổi hôm nay, tin "shardinfo"); thiếu Hồn Tệ thì mờ nút. Server tính giá
  * và kiểm lại lượt, tiền, chỗ trống.
  */
-function renderShardShop(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+export function renderShardShop(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   const K = SHARD_BUY, n = shardMsg?.n ?? 0, left = Math.max(0, K.daily - n), owned = new Set(act.owned());
   const head = document.createElement("small"); head.className = "rnote";
   head.textContent = !shardMsg ? "Đang hỏi Chưởng quỹ số mảnh đã đổi hôm nay…"
@@ -616,7 +375,7 @@ function renderShardShop(el: HTMLElement, bag: BagMsg, act: NpcActions) {
  * Mua lại (9.8): BUYBACK_MAX món bán gần nhất (mới nhất trước) với đúng giá đã bán; món về túi đúng như lúc bán (chỉ số, cấp cường
  * hóa). Thiếu Hồn Tệ thì mờ nút; server kiểm tra lại tiền và chỗ trống.
  */
-function renderShopBuyback(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+export function renderShopBuyback(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   const list = bag.buyback ?? [], sold = bag.sold ?? [];
   if (!list.length && !sold.length) {
     const p = document.createElement("p"); p.className = "nline"; p.textContent = "Ngươi chưa bán gì cho ta từ lúc tới đây. Bán nhầm thì quay lại, ta trả lại đúng món, đúng giá.";
@@ -655,7 +414,7 @@ function buybackRows(el: HTMLElement, bag: BagMsg, act: NpcActions, list: Buybac
  * Bán đồ dư: mọi ô trong túi mà thương nhân mua (sellPrice khác null: hồn hoàn, hồn cốt, hồn hạch, mảnh võ hồn), giá theo niên hạn
  * / sao / độ hiếm (chỉ để hiển thị, server tính lại). Đồ đang gắn không nằm trong danh sách. Món giá trị phải bấm hai lần.
  */
-function renderShopSell(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+export function renderShopSell(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   const list = bag.items.filter((i) => i.vohon === null && !i.lock && sellPrice(i) !== null); // món khoá (#216) không bán
   const kindOrder = ["hon_hoan", "hon_cot", "hon_hach", "manh_vo_hon"];
   list.sort((a, b) => kindOrder.indexOf(itemDef(a.code)?.kind ?? "") - kindOrder.indexOf(itemDef(b.code)?.kind ?? "") || (sellPrice(b) ?? 0) - (sellPrice(a) ?? 0));
@@ -678,8 +437,8 @@ function renderShopSell(el: HTMLElement, bag: BagMsg, act: NpcActions) {
       b.setAttribute("aria-label", `${label} ${itemName(it)}, nhận ${formatHonTe(gain)}`);
       b.addEventListener("click", () => {
         b.blur();
-        if (ask && sellConfirm !== key) { sellConfirm = key; renderNpc(); return; }
-        sellConfirm = null; act.sell(it.id, qty);
+        if (ask && sellConfirm !== key) { setSellConfirm(key); renderNpc(); return; }
+        setSellConfirm(null); act.sell(it.id, qty);
       });
       row.appendChild(b);
     };
@@ -698,7 +457,7 @@ function renderShopSell(el: HTMLElement, bag: BagMsg, act: NpcActions) {
  * Lò rèn: chọn một hồn cốt (đang gắn hoặc trong túi) để mở bảng cường hóa của bước 4.4 (enhancePicker, message `enhance` giữ
  * nguyên); nâng cấp hồn hạch ở trang riêng (renderForgeCores, 5.3). Bảng cường hóa vẫn mở được từ túi đồ / bảng hồn cốt như trước.
  */
-function renderForge(bag: BagMsg, act: NpcActions): HTMLElement {
+export function renderForge(bag: BagMsg, act: NpcActions): HTMLElement {
   const again = () => renderNpc();
   const target = enhTarget ? bag.items.find((i) => i.id === enhTarget) : undefined;
   if (target && boneOf(target) && target.years !== null) {
@@ -727,7 +486,7 @@ function renderForge(bag: BagMsg, act: NpcActions): HTMLElement {
  * Lò rèn, trang nâng cấp hồn hạch (bước 5.3): chọn một hồn hạch (đang gắn trước, rồi cấp cao, sao cao) để mở bảng nâng cấp
  * (corePicker, message `enhancecore`); nút "Đóng" của bảng về danh sách. Bảng vẫn mở được từ túi đồ / mục hồn hạch như hồn cốt.
  */
-function renderForgeCores(bag: BagMsg, act: NpcActions): HTMLElement {
+export function renderForgeCores(bag: BagMsg, act: NpcActions): HTMLElement {
   const again = () => renderNpc();
   const target = enhTarget ? bag.items.find((i) => i.id === enhTarget) : undefined;
   if (target && coreOf(target)) return corePicker(target, bag.items, act, again);
@@ -765,10 +524,10 @@ const takeFx = (box: HTMLElement, page: NpcPage) => {
   if (!forgeFx || forgeFx.page !== page || performance.now() >= forgeFx.until) { if (forgeFx && performance.now() >= forgeFx.until) forgeFx = null; return; }
   box.classList.add(`fx-${forgeFx.kind}`); box.style.animationDelay = `-${((performance.now() - forgeFx.at) / 1000).toFixed(3)}s`;
 };
-let gearPick: string | null = null; // trang bị đang chọn ở trang "Cường hóa trang bị hồn sư" của Thợ rèn (E3)
+export let gearPick: string | null = null; // trang bị đang chọn ở trang "Cường hóa trang bị hồn sư" của Thợ rèn (E3)
 let gearPrev: EquipEnhPreview | null = null; // tin xem trước gần nhất (server tính, client chỉ hiển thị)
 let gearCharm = false; // đang chọn dùng Bùa Hộ Mệnh
-let gearConfirm = false; // đã bấm nút đỏ lần đầu: bấm lần nữa mới gửi
+export let gearConfirm = false; // đã bấm nút đỏ lần đầu: bấm lần nữa mới gửi
 /** Tin "equipenhp" (E3): xem trước lần cường hóa tiếp theo. */
 export function equipEnhPreview(m: EquipEnhPreview) { if (m.id === gearPick) { gearPrev = m; if (npcDefOpen && npcPage === "forgegear") renderNpc(); } }
 /** Tin "equipenhd" (E3): xong một lần cường hóa; bỏ trạng thái xác nhận, món bị phá hủy thì về danh sách. */
@@ -785,7 +544,7 @@ const failText = (f: EquipEnhPreview["fail"]) => !f ? "" : f.kind === "keep" ? "
  * Lò rèn, trang cường hóa trang bị hồn sư (E3; trang đẹp ở E5): chọn món (đang mặc hoặc trong túi), xem bảng xem trước do server tính (tỉ lệ, đá,
  * phí, hậu quả thất bại), có thể dùng Bùa Hộ Mệnh. Nút chuyển ĐỎ và phải bấm hai lần khi thất bại có thể tụt cấp hoặc phá hủy.
  */
-function renderForgeGear(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+export function renderForgeGear(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   const box = document.createElement("div"); box.className = "forge"; el.appendChild(box); takeFx(box, "forgegear");
   const h = document.createElement("b"); h.className = "shead"; h.textContent = "Cường hóa trang bị hồn sư"; box.appendChild(h);
   const worn = (act.gear()?.items ?? []).map((g) => ({ id: g.id, name: equipName(parseEquip(g.stats)?.tpl, g.enhance), enhance: g.enhance, where: `đang mặc (${EQUIP_SLOTS[g.slot]?.name ?? "?"})`, stats: g.stats }));
@@ -834,7 +593,7 @@ function renderForgeGear(el: HTMLElement, bag: BagMsg, act: NpcActions) {
 }
 
 // ---------- Lò rèn: khắc may mắn bằng Thần Hồn (vũ khí, dây chuyền) ----------
-let luckPick: string | null = null, luckPrev: EquipLuckPreview | null = null; // món đang chọn và bảng xem trước server tính
+export let luckPick: string | null = null, luckPrev: EquipLuckPreview | null = null; // món đang chọn và bảng xem trước server tính
 /** Tin "equipluckp": xem trước lần khắc may mắn kế tiếp. */
 export function equipLuckPreview(m: EquipLuckPreview) { if (m.id === luckPick) { luckPrev = m; if (npcDefOpen && npcPage === "forgeluck") renderNpc(); } }
 /** Tin "equipluckd": xong một lần khắc; hiệu ứng thành / bại như cường hóa. */
@@ -848,7 +607,7 @@ const luckReason = (r: EquipLuckPreview["reason"], max: number) => r === "slot" 
  * Lò rèn, trang khắc may mắn: chọn vũ khí / dây chuyền (đang mặc hoặc trong túi), bảng xem trước do server tính (tỉ lệ, Thần Hồn). 1 Thần Hồn mỗi lần,
  * thất bại mất Thần Hồn, may mắn giữ nguyên, món không bị phá (không cần xác nhận hai lần). Tỉ lệ chỉ hiển thị, server tung và kiểm lại.
  */
-function renderForgeLuck(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+export function renderForgeLuck(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   const box = document.createElement("div"); box.className = "forge"; el.appendChild(box); takeFx(box, "forgeluck");
   const h = document.createElement("b"); h.className = "shead"; h.textContent = "Khắc may mắn"; box.appendChild(h);
   const hasLuck = (stats: BagItem["stats"]) => { const e = parseEquip(stats), t = equipTemplate(e?.tpl ?? ""); return !!t && !!equipSlotDef(t.slot).luck; };
@@ -885,8 +644,15 @@ function renderForgeLuck(el: HTMLElement, bag: BagMsg, act: NpcActions) {
 }
 
 // ---------- Lò rèn: hợp thành 3 → 1 và phân giải trang bị hồn sư (E4; trang đẹp ở E5) ----------
-let synMain: string | null = null, synSac: string[] = [], synConfirm = false; // hợp thành: món chính, hai món hiến tế, đã bấm nút lần đầu
-const salvSel = new Set<string>(); let salvConfirm = false; // phân giải: các món đang chọn, đã bấm nút lần đầu
+export let synMain: string | null = null, synSac: string[] = [], synConfirm = false; // hợp thành: món chính, hai món hiến tế, đã bấm nút lần đầu
+export const salvSel = new Set<string>(); let salvConfirm = false; // phân giải: các món đang chọn, đã bấm nút lần đầu
+/** Đặt lại trạng thái trang Thợ rèn khi mở trang (gọi từ hudNpc.ts; biến import không gán được). */
+export const forgeReset = {
+  gear() { gearPick = null; gearConfirm = false; },
+  luck() { luckPick = null; },
+  synth() { synMain = null; synSac = []; synConfirm = false; },
+  salv() { salvSel.clear(); salvConfirm = false; },
+};
 /** Các trang bị hồn sư trong túi (không khoá) kèm bậc và ô; món đang mặc không nằm trong túi nên không xuất hiện. */
 const looseEquip = (bag: BagMsg) => bag.items.flatMap((i) => {
   const t = i.code === EQUIP_ITEM && i.vohon === null && !i.lock ? equipTemplate(parseEquip(i.stats)?.tpl ?? "") : undefined;
@@ -918,7 +684,7 @@ export function equipSalvDone(m: EquipSalvDone) {
  * Lò rèn, trang hợp thành 3 → 1 (E4): chọn món chính rồi 2 món hiến tế cùng bậc, cùng ô (không khoá, không mặc). Tỉ lệ, phí và hậu quả thất bại lấy từ
  * EQUIP_SYNTH (chỉ hiển thị; server tính và kiểm lại). Nút chuyển đỏ, bấm hai lần vì thất bại luôn mất đồ.
  */
-function renderForgeSynth(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+export function renderForgeSynth(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   const box = document.createElement("div"); box.className = "forge"; el.appendChild(box); takeFx(box, "forgesynth");
   const h = document.createElement("b"); h.className = "shead"; h.textContent = "Hợp thành trang bị (3 → 1)"; box.appendChild(h);
   const all = looseEquip(bag), main = synMain ? all.find((x) => x.it.id === synMain) : undefined;
@@ -954,7 +720,7 @@ function renderForgeSynth(el: HTMLElement, bag: BagMsg, act: NpcActions) {
  * Lò rèn, trang phân giải trang bị (E4): chọn nhiều món (không khoá, không mặc, tối đa EQUIP_SALVAGE_MAX), nút chọn nhanh theo bậc. Hồn Tệ theo bảng
  * EQUIP_SALVAGE (hiển thị số tối thiểu, chưa tính nguyên liệu ngẫu nhiên); không cho kinh nghiệm. Bấm hai lần; server kiểm lại và ghi một transaction.
  */
-function renderForgeSalv(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+export function renderForgeSalv(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   const box = document.createElement("div"); box.className = "forge"; el.appendChild(box); takeFx(box, "forgesalv");
   const h = document.createElement("b"); h.className = "shead"; h.textContent = "Phân giải trang bị"; box.appendChild(h);
   const all = looseEquip(bag).sort((a, b) => a.tier - b.tier || a.it.enhance - b.it.enhance);
@@ -989,7 +755,7 @@ let setPick: string | null = null; // hồn hạch đang chọn ở trang "Đổ
  * Lò rèn, trang đổi bộ hồn hạch (#283): chọn một hồn hạch rồi một bộ đích khác bộ hiện tại (message `coreset`); phí theo sao
  * (coreResetFee), server kiểm tra lại khoảng cách, giao chiến và Hồn Tệ.
  */
-function renderForgeSets(el: HTMLElement, bag: BagMsg, act: NpcActions) {
+export function renderForgeSets(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   const box = document.createElement("div"); box.className = "forge"; el.appendChild(box);
   const h = document.createElement("b"); h.className = "shead"; h.textContent = "Đổi bộ hồn hạch"; box.appendChild(h);
   const target = setPick ? bag.items.find((i) => i.id === setPick) : undefined, tc = target && coreOf(target);
@@ -1032,7 +798,7 @@ function renderForgeSets(el: HTMLElement, bag: BagMsg, act: NpcActions) {
 let questMsg: QuestMsg | null = null; // tin "quest" gần nhất của chuỗi tân thủ (tiến độ do server giữ)
 const questMsgs = new Map<string, QuestMsg>(); // tin "quest" gần nhất của từng chuỗi cố định (kể cả tân thủ)
 const questFold = new Set<string>();  // mã chuỗi đang thu gọn trong khung theo dõi
-let dailyMsg: DailyMsg | null = null; // tin "daily" gần nhất (khảo hạch hằng ngày, server giữ tiến độ)
+export let dailyMsg: DailyMsg | null = null; // tin "daily" gần nhất (khảo hạch hằng ngày, server giữ tiến độ)
 let dailyFold = false;
 /** Tiến độ chuỗi mà NPC `id` giao (null = NPC không giao nhiệm vụ, chưa nhận tin "quest", hoặc chuỗi chưa mở theo QUEST_AFTER). */
 export const questOf = (id: string) => {
@@ -1122,7 +888,7 @@ function questRewardEl(r: QuestReward, label = "Phần thưởng") {
   return el;
 }
 /** Trang nhiệm vụ trong hộp thoại NPC giao nhiệm vụ: lời giao + mục tiêu + thưởng + "Nhận", tiến độ, lời khi trả + "Trả", lời kết. */
-function renderQuestPage(el: HTMLElement, act: NpcActions) {
+export function renderQuestPage(el: HTMLElement, act: NpcActions) {
   const q = npcDefOpen ? questOf(npcDefOpen.id) : null, c = q && questChain(q.chain);
   const say = (t: string) => { const p = document.createElement("p"); p.className = "nline"; p.textContent = t; el.appendChild(p); };
   if (!q || !c) { say("…"); return; }
@@ -1155,7 +921,7 @@ export function questMarker(id: string) {
   if (id === DAILY.giver) statuses.push(...(dailyMsg?.list ?? []).map((q) => q.status));
   return resolveQuestMarker(statuses);
 }
-function dailyMark(): "offer" | "ready" | "active" | null {
+export function dailyMark(): "offer" | "ready" | "active" | null {
   const l = dailyMsg?.list ?? [];
   return l.some((x) => x.status === "ready") ? "ready" : l.some((x) => x.status === "offer") ? "offer" : l.some((x) => x.status === "active") ? "active" : null;
 }
@@ -1209,7 +975,7 @@ function renderDailyTracker(el: HTMLElement) {
 }
 /** Trang khảo hạch trong hộp thoại Phất Lan Đức: mỗi bài một khung (mục tiêu, thưởng, lời giao / lời trả) và nút nhận / trả riêng. */
 /** Trang tông vụ hôm nay (#197) ở sứ giả tông mình: như khảo hạch hằng ngày, thưởng Hồn Tệ và điểm tông. */
-function renderTongTasks(el: HTMLElement, act: NpcActions) {
+export function renderTongTasks(el: HTMLElement, act: NpcActions) {
   const say = (t: string) => { const p = document.createElement("p"); p.className = "nline"; p.textContent = t; el.appendChild(p); };
   const l = tongMsg?.tasks;
   if (!l?.length) { say("…"); return; }
@@ -1236,7 +1002,7 @@ function renderTongTasks(el: HTMLElement, act: NpcActions) {
 }
 
 /** Trang bảng tông tuần (#197): điểm trung bình thành viên hoạt động từng tông, top cá nhân tông mình, thưởng tuần trước. */
-function renderTongRank(el: HTMLElement, act: NpcActions) {
+export function renderTongRank(el: HTMLElement, act: NpcActions) {
   const m = tongBoardMsg, mine = tongMsg?.tong ?? "";
   const say = (t: string) => { const p = document.createElement("p"); p.className = "nline"; p.textContent = t; el.appendChild(p); };
   if (!m) { say("…"); return; }
@@ -1272,7 +1038,7 @@ function renderTongRank(el: HTMLElement, act: NpcActions) {
   el.appendChild(b);
 }
 
-function renderDailyPage(el: HTMLElement, act: NpcActions) {
+export function renderDailyPage(el: HTMLElement, act: NpcActions) {
   const m = dailyMsg;
   const say = (t: string, to: HTMLElement = el) => { const p = document.createElement("p"); p.className = "nline"; p.textContent = t; to.appendChild(p); };
   if (!m) { say("…"); return; }
@@ -1313,8 +1079,8 @@ export interface ArenaEndMsg {
   score: number; reason: string; why: string; foe: string; elo0: number; elo1: number; rec: ArenaRecord;
   reward: { honTe: number; code: string; qty: number; coin: number } | null; left: number; secs: number; friendly?: boolean; eloCapped?: boolean;
 }
-let arenaQ: { elo: number; t0: number } | null = null;   // đang xếp hàng: Elo, lúc bắt đầu chờ (performance.now)
-let arenaTopMsg: ArenaTopMsg | null = null;
+export let arenaQ: { elo: number; t0: number } | null = null;   // đang xếp hàng: Elo, lúc bắt đầu chờ (performance.now)
+export let arenaTopMsg: ArenaTopMsg | null = null;
 let arenaEndMsg: (ArenaEndMsg & { end: number; act: { back(): void; top(): void } }) | null = null;
 let arenaLeaveAt = 0;                                    // bấm "Rời sân" lần đầu (giữa trận phải bấm hai lần: rời = thua)
 const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : "±0");
@@ -1343,8 +1109,8 @@ export interface ArenaLiveMsg {
   list: { roomId: string; mode: string; sides: { name: string; elo: number }[]; phase: string; secs: number; watchers: number; max: number }[];
 }
 let arenaLiveMsg: (ArenaLiveMsg & { t0: number }) | null = null;
-let arenaLiveAt = -1e9;                                 // lần xin danh sách gần nhất (performance.now), server chỉ trả mỗi ARENA.topCd giây
-function arenaLiveAsk(act: NpcActions) { arenaLiveAt = performance.now(); act.arena("live"); }
+export let arenaLiveAt = -1e9;                                 // lần xin danh sách gần nhất (performance.now), server chỉ trả mỗi ARENA.topCd giây
+export function arenaLiveAsk(act: NpcActions) { arenaLiveAt = performance.now(); act.arena("live"); }
 /** Tin "arena" k = "live": lưu và vẽ lại trang danh sách nếu đang mở. */
 export function setArenaLive(m: ArenaLiveMsg) {
   arenaLiveMsg = { list: Array.isArray(m.list) ? m.list : [], t0: performance.now() };
@@ -1352,7 +1118,7 @@ export function setArenaLive(m: ArenaLiveMsg) {
 }
 const liveSecs = (l: ArenaLiveMsg["list"][number], t0: number) => Math.max(0, l.secs - Math.floor((performance.now() - t0) / 1000));
 const liveClock = (l: ArenaLiveMsg["list"][number], t0: number) => `${l.phase === "ready" ? "đếm ngược" : "còn"} ${mmss(liveSecs(l, t0))}`;
-function arenaLiveEl(act: NpcActions) {
+export function arenaLiveEl(act: NpcActions) {
   const box = document.createElement("div"); box.className = "alive";
   const m = arenaLiveMsg;
   if (!m) { const p = document.createElement("div"); p.className = "rnote"; p.textContent = "Đang xin danh sách…"; box.appendChild(p); return box; }
@@ -1379,7 +1145,7 @@ export function updateArenaLive() {
   });
 }
 /** Bảng xếp hạng (top ARENA.topN, dòng của mình sáng) kèm hạng / thành tích của mình và lượt thắng có thưởng còn lại. */
-function arenaRankEl(m: ArenaTopMsg | null) {
+export function arenaRankEl(m: ArenaTopMsg | null) {
   const box = document.createElement("div"); box.className = "arank";
   if (!m) { box.textContent = "Đang tải bảng xếp hạng…"; return box; }
   const me = document.createElement("div"); me.className = "ame";
