@@ -123,3 +123,28 @@ assert.equal(parsePhuAnchor({ ...anchorSrc, m: { ...dirs, s: { dx: "x", dy: 0, s
 assert.equal(parsePhuAnchor({ ...anchorSrc, m: { ...dirs, s: { dx: 0, dy: 0, scale: 1 } } }).m[0].ty, PHU_NO_ANCHOR.ty, "thiếu tx / ty → mặc định");
 const back = phuAnchorJson(T); assert.equal(back.manual, true); assert.deepEqual(parsePhuAnchor(back).f, T.f, "xuất rồi đọc lại khớp");
 console.log("phutheanim-test: neo khối thân OK");
+
+// --- màn chỉnh ráp (#1192): hoàn tác / làm lại, phím, kéo, giới hạn
+{
+  const { PhuHistory, phuAssignTable, phuNudge, phuStep, phuDragDelta, phuWheelScale, clampShift, clampScale, PHU_SHIFT_MAX } = await import("../src/phutheEdit.ts");
+  const { PHU_DIRS } = await import("../src/phutheAnim.ts");
+  const mk = () => ({ frame: 96, m: PHU_DIRS.map(() => ({ ...PHU_NO_ANCHOR })), f: PHU_DIRS.map(() => ({ ...PHU_NO_ANCHOR })), manual: false });
+  const t = mk(), h = new PhuHistory();
+  assert.ok(!h.canUndo && !h.canRedo && h.undo(t) === null);
+  h.push(t); t.m[2].dx = 5; t.manual = true;
+  h.push(t); t.f[0].scale = 0.5;
+  assert.equal(h.undo(t) && true, true);
+  const u = h.undo(t); assert.ok(u, "lùi hai bước");
+  assert.equal(u.m[2].dx, 0); assert.equal(u.manual, false);
+  phuAssignTable(t, u); assert.equal(t.m[2].dx, 0);
+  assert.ok(h.canRedo); const r = h.redo(t); assert.equal(r.m[2].dx, 5);
+  t.m[0].dy = 3; h.push(t); assert.ok(!h.canRedo, "thay đổi mới xóa hàng làm lại");
+  h.push(t); h.push(t); // trạng thái giống hệt không chồng thêm
+  assert.equal([h.undo(t), h.undo(t)].filter(Boolean).length, 2);
+  assert.deepEqual(phuNudge("ArrowLeft", 1, false), [-1, 0]); assert.deepEqual(phuNudge("ArrowLeft", 1, true), [1, 0], "tây lật dấu dx");
+  assert.deepEqual(phuNudge("ArrowDown", 5, true), [0, 5]); assert.equal(phuNudge("a", 1, false), null);
+  assert.equal(phuStep(true, false), 5); assert.equal(phuStep(false, true), 0.25); assert.equal(phuStep(false, false), 1);
+  assert.deepEqual(phuDragDelta(8, -4, 4, false), [2, -1]); assert.deepEqual(phuDragDelta(8, 0, 4, true), [-2, 0]);
+  assert.equal(clampShift(999), PHU_SHIFT_MAX); assert.equal(clampShift(NaN), 0); assert.equal(clampScale(9), 2); assert.equal(clampScale(0), 0.25);
+  assert.equal(phuWheelScale(1, -1), 1.02); assert.equal(phuWheelScale(0.25, 1), 0.25);
+}
