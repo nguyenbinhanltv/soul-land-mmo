@@ -7,7 +7,7 @@ Loài `doc_cham_phong` (Độc Châm Phong), họ `insect`, khung game 64×64. M
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1632975 byte, SHA256 `3dc4cd1f3414d9f2493467343cd8f2957926107cf29e250c1d052f960ee83fd8`.
-- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-745.
+- Công cụ: builtin image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `turnaround.prompt.txt` (SHA256 `88cd407ac1638fa0c7cc54d4a29c6e37c99cf90249678e59ebf6250b752d83bb`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
@@ -16,7 +16,7 @@ Loài `doc_cham_phong` (Độc Châm Phong), họ `insect`, khung game 64×64. M
 ## toA
 
 - File: `toA.png`, **948×1659**, 1838198 byte, SHA256 `e51c299e40803ae3e3ddfe71f9fcca2a6bd437e0b2d1c807ed36e93728f57ebf`.
-- Công cụ: built-in image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-745.
+- Công cụ: built-in image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
 - Prompt: `toA.prompt.txt` (SHA256 `deed7a1e9333032d80d0a04653fb0b5a08f9b9e1fc3c1ca23cec8710324c757f`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se nhẹ, e nhẹ).
@@ -26,7 +26,7 @@ Loài `doc_cham_phong` (Độc Châm Phong), họ `insect`, khung game 64×64. M
 ## toB
 
 - File: `toB.png`, **1254×1254**, 1955118 byte, SHA256 `2041ef92afcd021026909d2e0f37705322407ec90df0f822fa1f9cfa42bb2607`.
-- Công cụ: built-in image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-745.
+- Công cụ: built-in image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2.
 - Prompt: `toB.prompt.txt` (SHA256 `769ee360912ea00b9107e64f8cbe779d9f562a15e8aada38413468ba42e1abd8`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne pass, n nhẹ).
@@ -39,10 +39,10 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 
 ### to-ne (candidates)
 
-- File chọn: `candidates/to-ne-attempt3.png`, **1536×1024**, SHA256 `04364bdbba194c06e7e4ad6999d6359977d5e49d61e973cfe5d82d528a3be18b`; lượt tìm thấy: 1, 2, 3.
-- Số lượt đã dùng: 3; lượt được chọn: 3.
+- File chọn: `candidates/to-ne-attempt6.png`, **1536×1024**, SHA256 `52da94507fd489b57facdce799d98b039cb115db2fcb11e1e261274331310035`; lượt tìm thấy: 1, 2, 3, 4, 5, 6.
+- Số lượt đã dùng: 6; lượt được chọn: 6.
 - Mức kiểm: **pass**.
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## Lỗi
 
@@ -52,6 +52,7 @@ LỖI: toA — pose — s H4 C3–4 — DIE nằm ngang ảnh, không giữ tr�
 LỖI: toB — chân lệch — H8 (n) C4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 20%).
 LỖI: toB — hướng — khối ne — nhiều frame lộ mắt/mặt, sai góc 3/4 sau (mắt)
 LỖI: to-ne — ne — hết 3 lượt; đánh C2–C3 lộ mắt; giữ fallback. (mắt)
+LỖI: to-ne — ne — hết 3 lượt bổ sung (tổng 6); vẫn thấy mắt ở idle/attack; lượt 5 thiếu cột; candidates/to-ne-attempt4–6.*; giữ fallback. (mắt)
 ```
 
 ## Ghi công
@@ -60,4 +61,4 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
-| `art/src/beast-anim/doc_cham_phong/` | - | builtin image_gen.imagegen | RAW Độc Châm Phong: A1 948×1659; B2 primary 1254×1254. Prompt, hash và nguồn của ảnh primary ở các mục trên | 2026-10-27 | B1 giữ nguyên trong `candidates/` cùng prompt/source; B1 trùng output #969 (Xích Lân Mãng), không phải ảnh primary. B2 tham chiếu static rồi A1 chỉ để nối thiết kế; A1 chưa owner-approved. Tổng A1/B1/B2 = 3 lượt; model/seed/thời điểm không được công cụ công bố. B2 còn lỗi `ne` lộ mặt; chưa art-accepted/imported. |
+| `art/src/beast-anim/doc_cham_phong/` | - | builtin image_gen.imagegen | RAW hoạt ảnh Độc Châm Phong: turnaround 1536×1024, toA 948×1659, toB 1254×1254; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
