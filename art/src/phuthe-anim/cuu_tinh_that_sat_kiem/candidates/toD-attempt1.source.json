@@ -1,0 +1,136 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "createdAt": "2026-10-28T00:58:31.505Z",
+  "attempt": 1,
+  "image": {
+    "file": "toD.png",
+    "sha256": "a52a7585c5cd0aaa6d0b67ce4c8298135e21f8d964296471c918f41b10b6908f"
+  },
+  "prompt": {
+    "file": "toD.prompt.txt",
+    "sha256": "22d69e63e33aa71ccf281c02395bba80fe796b0d2923e016add0ea6ddcfa2d5d"
+  },
+  "references": [
+    {
+      "file": "art/src/phuthe-anim/cuu_tinh_that_sat_kiem/references/cuu_tinh_that_sat_kiem-nom-toD.png",
+      "sha256": "cf49ecd1045c7a7c9dae7c1d4b413632b0584558a72e138068d44272503c92d4"
+    },
+    {
+      "file": "art/src/vohon-v2/cuu_tinh_that_sat_kiem/concept-attempt1.png",
+      "sha256": "fd3d5096e24b97581923de32e9643a85119d23c220c1a9a8bb46431a840c51fb"
+    },
+    {
+      "file": "art/src/phuthe-anim/cuu_tinh_that_sat_kiem/toA.png",
+      "sha256": "21cd2e52bb49dcc6d7a08b84cc3dadb56f2e329bc7f1a5acda49569838f7a2bc"
+    }
+  ],
+  "blocks": 1,
+  "lights": 0,
+  "check": {
+    "id": "cuu_tinh_that_sat_kiem",
+    "level": "chặn",
+    "group": "A",
+    "frame": 96,
+    "dummyKey": "#00D0D0",
+    "blockLevel": {
+      "ne": "chặn"
+    },
+    "sheets": [
+      {
+        "sheet": "toD",
+        "size": [
+          1536,
+          1024
+        ],
+        "kind": "huong",
+        "level": "chặn",
+        "dirs": [
+          "ne"
+        ],
+        "background": {
+          "key": [
+            250,
+            3,
+            251
+          ],
+          "corners": [
+            [
+              235,
+              12,
+              239
+            ],
+            [
+              243,
+              18,
+              243
+            ],
+            [
+              234,
+              35,
+              236
+            ],
+            [
+              238,
+              32,
+              240
+            ]
+          ],
+          "keyDistFromLock": 5,
+          "cornerSpread": 32
+        },
+        "seVsE": null,
+        "prep": null,
+        "bands": [
+          {
+            "row": 1,
+            "dir": null,
+            "y": [
+              11,
+              249
+            ],
+            "figures": 3,
+            "state": "bad"
+          },
+          {
+            "row": 1,
+            "dir": null,
+            "y": [
+              264,
+              494
+            ],
+            "figures": 4,
+            "state": "bad"
+          },
+          {
+            "row": 1,
+            "dir": null,
+            "y": [
+              500,
+              988
+            ],
+            "figures": 4,
+            "state": "bad"
+          }
+        ],
+        "motion": [],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 32), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "block",
+            "code": "luoi",
+            "where": "toàn tờ",
+            "msg": "dò được 3 dải hàng, cần 4: không dò được lưới (hàng dính nhau hoặc vỡ)."
+          }
+        ],
+        "draft": "LỖI: toD — không dò được lưới — toàn tờ — dò được 3 dải hàng, cần 4: không dò được lưới (hàng dính nhau hoặc vỡ)."
+      }
+    ]
+  }
+}

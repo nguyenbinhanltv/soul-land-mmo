@@ -11614,6 +11614,72 @@
       "iso": true
     },
     {
+      "key": "vhanim_cuu_tinh_that_sat_kiem_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_cuu_tinh_that_sat_kiem_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
       "key": "vh_hao_thien_chuy_b",
       "iso": true
     },
@@ -12105,6 +12171,84 @@
       "iso": true
     },
     {
+      "key": "vhanim_nguyet_nhan_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        },
+        "dirsOk": [
+          "s",
+          "se",
+          "ne",
+          "n"
+        ]
+      }
+    },
+    {
+      "key": "vhanim_nguyet_nhan_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        },
+        "dirsOk": [
+          "s",
+          "se",
+          "ne",
+          "n"
+        ]
+      }
+    },
+    {
       "key": "vh_nhu_cot_tho_b",
       "iso": true,
       "blank": true
@@ -12194,6 +12338,84 @@
     {
       "key": "vh_quy_mi_f",
       "iso": true
+    },
+    {
+      "key": "vhanim_quy_mi_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        },
+        "dirsOk": [
+          "s",
+          "se",
+          "ne",
+          "n"
+        ]
+      }
+    },
+    {
+      "key": "vhanim_quy_mi_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        },
+        "dirsOk": [
+          "s",
+          "se",
+          "ne",
+          "n"
+        ]
+      }
     },
     {
       "key": "vh_ta_hoa_phuong_hoang_b",

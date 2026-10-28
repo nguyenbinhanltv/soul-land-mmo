@@ -1,0 +1,158 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "createdAt": "2026-10-28T00:49:59.312Z",
+  "attempt": 1,
+  "image": {
+    "file": "toC.png",
+    "sha256": "d1f0e5ebc602a0b43817a94303479a5dbf9ed8d8fb03c74e9fb1dbe46bd794fc"
+  },
+  "prompt": {
+    "file": "toC.prompt.txt",
+    "sha256": "a43339fb4879c65fc70dcc70007ac56dc6008e4de86ede60e569e3bf4037a3da"
+  },
+  "references": [
+    {
+      "file": "art/src/phuthe-anim/quy_mi/references/quy_mi-nom-toC.png",
+      "sha256": "da25c6c393da102e950fbb3a2a5d89653f924dc2652dc2ace296f9704db5e838"
+    },
+    {
+      "file": "art/src/vohon-v2/quy_mi/concept-attempt1.png",
+      "sha256": "fee15ae75afe1304660c480d2ffad5053d47b42da89338c4c32111119c11b7dc"
+    },
+    {
+      "file": "art/src/phuthe-anim/quy_mi/toA.png",
+      "sha256": "77140d8d5cb9d40f2b1d46f012e3cf89736a19b3baefe498e0d42f8c71ff3190"
+    }
+  ],
+  "blocks": 1,
+  "lights": 1,
+  "check": {
+    "id": "quy_mi",
+    "level": "chặn",
+    "group": "C",
+    "frame": 96,
+    "dummyKey": "#00D0D0",
+    "blockLevel": {
+      "e": "chặn"
+    },
+    "sheets": [
+      {
+        "sheet": "toC",
+        "size": [
+          1536,
+          1024
+        ],
+        "kind": "huong",
+        "level": "chặn",
+        "dirs": [
+          "e"
+        ],
+        "background": {
+          "key": [
+            250,
+            3,
+            249
+          ],
+          "corners": [
+            [
+              234,
+              12,
+              237
+            ],
+            [
+              241,
+              17,
+              238
+            ],
+            [
+              231,
+              37,
+              230
+            ],
+            [
+              238,
+              31,
+              235
+            ]
+          ],
+          "keyDistFromLock": 6,
+          "cornerSpread": 34
+        },
+        "seVsE": null,
+        "prep": null,
+        "bands": [
+          {
+            "row": 1,
+            "dir": "e",
+            "y": [
+              19,
+              235
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 2,
+            "dir": "e",
+            "y": [
+              271,
+              489
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 3,
+            "dir": "e",
+            "y": [
+              513,
+              746
+            ],
+            "figures": 5,
+            "state": "bad"
+          },
+          {
+            "row": 4,
+            "dir": "e",
+            "y": [
+              779,
+              1003
+            ],
+            "figures": 4,
+            "state": "warn"
+          }
+        ],
+        "motion": [],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 34), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "note",
+            "code": "tach-hinh",
+            "where": "H3 (e)",
+            "msg": "dải dò được 4 hình, tách hình dính (phụ thể chồng sang khung bên) tại thung lũng chiếu cột thành 5."
+          },
+          {
+            "sev": "block",
+            "code": "hinh-dinh",
+            "where": "H3 (e)",
+            "msg": "dải có 5 hình, cần 6: hình dính nhau."
+          },
+          {
+            "sev": "light",
+            "code": "o-trong",
+            "where": "H4 (e) C5",
+            "msg": "ô trống có hình (0.96% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng."
+          }
+        ],
+        "draft": "LỖI: toC — hình dính / hình ở ô trống — H3 (e), H4 (e) C5 — dải có 5 hình, cần 6: hình dính nhau; ô trống có hình (0.96% diện tích ô): hình tràn từ ô bên, hoặc nộm / phụ thể ở ô không dùng."
+      }
+    ]
+  }
+}
