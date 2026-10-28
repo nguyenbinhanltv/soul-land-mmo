@@ -168,3 +168,27 @@ test("tờ theo tên hướng: --patch nhận mã s / se…; cảnh báo hình v
   assert.equal(warnSheetId("thiếu tờ B (ne, n)"), "B");
   assert.equal(warnSheetId("tờ này lạ"), undefined);
 });
+
+test("vượt khung theo từng hướng: legacy nhỏ + hướng direction to hơn → nhập hướng mới 0 block, hướng legacy nguyên byte và nguyên hệ số", async () => {
+  const { fakeSheets } = await import("./beast-sheet-fake.mjs");
+  const leg = fakeSheets("phong_lang", { seed: 2 }), big = fakeSheets("phong_lang", { seed: 2, layout: "direction", grow: 1.5 });
+  const base = { species: "phong_lang", palette: "gpl", anchorBlocks: false, equalizeBlocks: false };
+  const pure = cutSpecies({ ...base, sheets: leg });
+  const mix = cutSpecies({ ...base, sheets: { ...leg, D: big.D, E: big.E } });
+  for (const [name, im] of pure.frames) {
+    if (!/^(s|se|e)\//.test(name)) continue;
+    assert.deepEqual(Buffer.from(mix.frames.get(name).data), Buffer.from(im.data), `${name} đổi byte`);
+  }
+  assert.equal(mix.report.scale, pure.report.scale, "hệ số hướng legacy không bị hướng mới kéo nhỏ");
+  assert.equal(mix.report.summary.block, 0, mix.report.issues.filter((i) => i.level === "block").map((i) => i.msg).join("\n"));
+  assert.ok(mix.report.warnings.some((w) => /^khối (ne|n): hạ hệ số/.test(w)), "hướng mới tự hạ cho vừa khung");
+});
+
+test("vượt khung theo từng hướng: chỉ chặn hướng thực sự không vừa, hướng khác không bị chặn lây", async () => {
+  const { fakeSheets } = await import("./beast-sheet-fake.mjs");
+  const leg = fakeSheets("phong_lang", { seed: 2 }), huge = fakeSheets("phong_lang", { seed: 2, layout: "direction", grow: 2.4 });
+  const mix = cutSpecies({ species: "phong_lang", sheets: { ...leg, D: huge.D }, scale: 1.0952 });
+  const blocks = mix.report.issues.filter((i) => i.level === "block");
+  assert.deepEqual(blockDirs(blocks), ["ne"], blocks.map((i) => i.msg).join("\n"));
+  assert.ok(!blocks.some((i) => /cả loài|một số khung/.test(i.msg)));
+});
