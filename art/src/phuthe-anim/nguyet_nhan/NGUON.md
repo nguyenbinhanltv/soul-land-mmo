@@ -8,11 +8,11 @@ Tham chiếu theo thứ tự: bảng tư thế đúng hướng, concept đã ch�
 |---|---|---|
 | A | 1: 0 / 20 | Nhập |
 | B | 1: 2 / 0; 2: 2 / 0; 3: 0 / 14 | Nhập |
-| C | 1: 1 / 2; 2: 3 / 4; 3: 1 / 15 | Không nhập |
+| C | cũ 1: 1 / 2; 2: 3 / 4; 3: 1 / 15; mới 4: 2 / 0; 5: 0 / 28 | Đã nhập bổ sung e/w |
 | D | 1: 0 / 14 | Nhập |
 | E | 1: 0 / 15 | Nhập |
 
-Cắt, neo tự động và preview bằng đúng phuthe-sheet-cut / phuthe-anchor --source anim / phuthe-sheet-preview; chỉ đưa hướng 0 chặn vào cutter. Báo cáo cutter: {"info":1,"warn":40,"block":0,"total":41,"byCode":{"nom-mat":4,"vuot-khung":15,"cham-mep":21,"thieu-huong":1}}. Nhập bằng phuthe-import với anchor tự sinh; chủ repo/worker khác chỉnh neo sau. Giữ ảnh tĩnh cũ để dự phòng.
+Cắt, neo tự động và preview bằng đúng phuthe-sheet-cut / phuthe-anchor --source anim / phuthe-sheet-preview; chỉ đưa hướng 0 chặn vào cutter. Báo cáo cutter sau bổ sung: 65 khung, 0 block / 57 warn / 0 info, đủ năm hướng. Nhập bằng phuthe-import với anchor tự sinh; chủ repo/worker khác chỉnh neo sau. Giữ ảnh tĩnh cũ để dự phòng.
 
 Preview nam/nữ: C:/Users/PC/.ao/data/artifacts/soul_land_game-720/nguyet_nhan/preview/index.html.
 
@@ -25,15 +25,21 @@ LỖI: Thân chuẩn nhỏ/đổi dáng; cặp lưỡi lớn quanh đầu/lưng 
 <!-- phuthe-import:huong -->
 ### Hướng đã nhập (tự ghi bởi `phuthe-import.mjs`, `anim.dirsOk` trong manifest)
 
-Nhập từng hướng: s, se, ne, n.
+Đủ 5 hướng.
 
 | Hướng | Trạng thái |
 |---|---|
 | s (tờ A) | đã nhập hoạt ảnh vẽ thật |
 | se (tờ B) | đã nhập hoạt ảnh vẽ thật |
-| e (tờ C) | CHƯA nhập: client dùng phụ thể tĩnh cũ |
+| e (tờ C) | đã nhập hoạt ảnh vẽ thật |
 | ne (tờ D) | đã nhập hoạt ảnh vẽ thật |
 | n (tờ E) | đã nhập hoạt ảnh vẽ thật |
 <!-- /phuthe-import:huong -->
 
-Tờ C đã đủ ba lượt; giữ lượt 1 ở gốc để đối chiếu vì cùng một chặn nhưng ít cảnh báo hơn lượt 3. Không đưa C vào cutter/importer.
+Ba lượt C cũ giữ trong candidates/. C5 đạt và đã đưa vào cutter/importer.
+
+## Bổ sung phiên 738
+
+Chủ repo cho thêm tối đa ba lượt ngoài ba lượt cũ. C4 (mới 1/3): 2 chặn / 0 nhẹ, so-hinh hàng walk và attack thừa mảnh rời (5 hình thay vì 4); lưu candidates/toC-attempt4.*. Gộp bài học mảnh trang trí vào dòng chung lessons.md. C5 (mới 2/3): 0 chặn / 28 nhẹ, nhập e/w và dừng sinh. Prompt nguyên văn --concept-ref; bảng C rồi concept-attempt1.
+
+LỖI mắt C5: lưỡi lớn quanh đầu/lưng thay vì bám tay, một số mảnh vẫn rời; thân chuẩn biến dạng và nhỏ, attack/cast có xén mép; góc e chưa thuần ngang. Chủ repo cho nhập mọi hướng 0 chặn kỹ thuật, chỉnh sau. Neo tự tính bằng công cụ, importer giữ mục manual hiện có; không chỉnh tay sau nhập.
