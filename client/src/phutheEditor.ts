@@ -23,8 +23,8 @@ export function mountPhutheEditor(h: EditHost): void {
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><span>Giới:</span>${btn("sm", "Nam")}${btn("sf", "Nữ", "Thân thử là nam, giới nữ chỉ chỉnh số")}</div>
     ${num("dx", "dx", -PHU_SHIFT_MAX, PHU_SHIFT_MAX, 0.25)}${num("dy", "dy", -PHU_SHIFT_MAX, PHU_SHIFT_MAX, 0.25)}${num("sc", "scale", PHU_SCALE_RANGE[0], PHU_SCALE_RANGE[1], 0.01)}
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0">${btn("eu", "↶ Hoàn tác", "Ctrl+Z")}${btn("er", "↷ Làm lại", "Ctrl+Y / Ctrl+Shift+Z")}${btn("e0", "Đặt lại hướng này")}${btn("ec", "Chép sang giới kia", "Chép dx, dy, scale của hướng này sang cùng hướng của giới còn lại")}</div>
-    <div style="margin:6px 0"><div>Clip:</div><div style="display:flex;gap:4px;flex-wrap:wrap">${CLIPS.map(([k, t]) => btn("c" + k, t)).join("")}${btn("ep", "⏸ Dừng khung", "Dừng ở khung đang xem để kéo cho chuẩn")}</div></div>
-    <div style="margin:8px 0;display:flex;gap:6px;flex-wrap:wrap">${btn("ed", "⬇ Lưu: tải anchor.json", "Tải mục võ hồn này; ghi vào repo bằng lệnh bên dưới")}${btn("ey", "Sao chép JSON")}</div>
+    <div style="margin:6px 0"><div>Clip:</div><div style="display:flex;gap:4px;flex-wrap:wrap">${CLIPS.map(([k, t]) => btn("c" + k, t)).join("")}${btn("ep", "Dừng khung", "Dừng ở khung đang xem để kéo cho chuẩn")}</div></div>
+    <div style="margin:8px 0;display:flex;gap:6px;flex-wrap:wrap">${btn("ed", "Lưu: tải anchor.json", "Tải mục võ hồn này; ghi vào repo bằng lệnh bên dưới")}${btn("ey", "Sao chép JSON")}</div>
     <div id="es" style="min-height:18px;color:#ff9"></div>
     <details open style="margin-top:8px"><summary>Cách dùng</summary><ul style="margin:4px 0 0 16px;padding:0">
       <li>Kéo thả trên khung hình: dời phụ thể "Sau"; lăn chuột: đổi scale.</li>
@@ -43,7 +43,7 @@ export function mountPhutheEditor(h: EditHost): void {
     $("eu").toggleAttribute("disabled", !hist.canUndo); $("er").toggleAttribute("disabled", !hist.canRedo);
     for (const [id, on] of [["sm", h.sex() === "m"], ["sf", h.sex() === "f"]] as const) $(id).style.fontWeight = on ? "700" : "400";
     for (const [k] of CLIPS) $("c" + k).style.fontWeight = h.state() === k ? "700" : "400";
-    $("ep").textContent = paused ? "▶ Chạy tiếp" : "⏸ Dừng khung";
+    $("ep").textContent = paused ? "▶ Chạy tiếp" : "Dừng khung";
   };
   /** Một thay đổi: lưu ảnh chụp để hoàn tác (`coalesce` = cùng một cú kéo / chuỗi phím thì chỉ chụp lần đầu), sửa, lưu sessionStorage. */
   const change = (fn: (a: ReturnType<typeof cur>) => void, coalesce = false) => {
