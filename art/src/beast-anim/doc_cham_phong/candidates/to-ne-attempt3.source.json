@@ -1,0 +1,10 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 3,
+  "references": [
+    "shared/assets/sprites/beast/doc_cham_phong.png",
+    "art/src/beast-anim/doc_cham_phong/turnaround.png"
+  ]
+}
