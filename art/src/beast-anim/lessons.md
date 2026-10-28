@@ -53,3 +53,5 @@
 - [direction @bird] In n and ne the entire face stays behind the rear skull even in the FINAL DIE pose: fold the wings and lower the body in place, without rotating the beak toward the viewer. // Hắc Vụ Biên Bức ne chết cuối lộ mặt.
 - [direction @plant] Keep every ATTACK tendril inside its own cell with a wide magenta gap before the next creature: a whipping vine must never touch a neighbouring frame. // Độc Cức Đằng ne hàng đánh dính hai khung.
 - [direction @quad @bird @snake] For n and ne keep the head tucked BEHIND the high shoulder or neck silhouette throughout ATTACK and DIE: omit every side-facing facial feature. Never pivot the head toward either side, even at maximum attack extension or when lying down. // Lô 2 lượt cuối: tư thế đánh/chết lặp lại lỗi lộ mặt nghiêng.
+
+- [turnaround @snake] Draw exactly ONE head and one plain tapering tail in every cell. The tail has no eyes, mouth, nostrils or face-like markings. Keep the head aimed to the right in e and ne, including HURT; never reverse the head toward the left. // Hắc Thủy Mãng có hai đầu ở s/se; e và hurt ne quay trái ở lượt bù lô 1/2.
