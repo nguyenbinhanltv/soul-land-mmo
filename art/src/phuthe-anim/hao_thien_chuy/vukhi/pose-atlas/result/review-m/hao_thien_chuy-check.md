@@ -5,12 +5,12 @@
 | Tờ | Cỡ | Loại | Mức | Chặn | Nhẹ | Lưu ý |
 |---|---|---|---|---|---|---|
 | toA | 1536×1024 | huong | pass | 0 | 0 | 0 |
-| toB | 1536×1024 | huong | pass | 0 | 0 | 0 |
-| toC | 1536×1024 | huong | nhẹ | 0 | 1 | 0 |
+| toB | 1536×1024 | huong | nhẹ | 0 | 1 | 0 |
+| toC | 1536×1024 | huong | pass | 0 | 0 | 0 |
 | toD | 1536×1024 | huong | nhẹ | 0 | 1 | 0 |
-| toE | 1536×1024 | huong | nhẹ | 0 | 1 | 0 |
+| toE | 1536×1024 | huong | pass | 0 | 0 | 0 |
 
-Mức theo khối hướng: s pass · se pass · e nhẹ · ne nhẹ · n nhẹ
+Mức theo khối hướng: s pass · se nhẹ · e pass · ne nhẹ · n pass
 
 ## toA — pass
 
@@ -20,22 +20,22 @@ Không có phát hiện.
 
 Không có dòng `LỖI:` tự sinh.
 
-## toB — pass
+## toB — nhẹ
 
 Ảnh liên hệ: `hao_thien_chuy-toB-lien-he.png` (xanh = đạt, vàng = nhẹ, đỏ = chặn; nhãn I/W/A/C/H + số khung).
 
-Không có phát hiện.
+- **nhẹ** `co-phu-the` khối se: cỡ phụ thể so với khối s: idle 114%, hurt 114% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn).
+
+Ghi chú kỹ thuật (cỡ phụ thể, không phải lỗi):
+- khối se: cỡ phụ thể so với khối s: idle 114%, hurt 114% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn).
 
 Không có dòng `LỖI:` tự sinh.
 
-## toC — nhẹ
+## toC — pass
 
 Ảnh liên hệ: `hao_thien_chuy-toC-lien-he.png` (xanh = đạt, vàng = nhẹ, đỏ = chặn; nhãn I/W/A/C/H + số khung).
 
-- **nhẹ** `co-phu-the` khối e: cỡ phụ thể so với khối s: idle 164%, walk 131%, hurt 161% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn).
-
-Ghi chú kỹ thuật (cỡ phụ thể, không phải lỗi):
-- khối e: cỡ phụ thể so với khối s: idle 164%, walk 131%, hurt 161% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn).
+Không có phát hiện.
 
 Không có dòng `LỖI:` tự sinh.
 
@@ -43,21 +43,18 @@ Không có dòng `LỖI:` tự sinh.
 
 Ảnh liên hệ: `hao_thien_chuy-toD-lien-he.png` (xanh = đạt, vàng = nhẹ, đỏ = chặn; nhãn I/W/A/C/H + số khung).
 
-- **nhẹ** `co-phu-the` khối ne: cỡ phụ thể so với khối s: idle 115%, hurt 112% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn).
+- **nhẹ** `co-phu-the` khối ne: cỡ phụ thể so với khối s: idle 116%, hurt 116% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn).
 
 Ghi chú kỹ thuật (cỡ phụ thể, không phải lỗi):
-- khối ne: cỡ phụ thể so với khối s: idle 115%, hurt 112% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn).
+- khối ne: cỡ phụ thể so với khối s: idle 116%, hurt 116% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn).
 
 Không có dòng `LỖI:` tự sinh.
 
-## toE — nhẹ
+## toE — pass
 
 Ảnh liên hệ: `hao_thien_chuy-toE-lien-he.png` (xanh = đạt, vàng = nhẹ, đỏ = chặn; nhãn I/W/A/C/H + số khung).
 
-- **nhẹ** `co-phu-the` khối n: cỡ phụ thể so với khối s: idle 128%, walk 118%, hurt 126% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn).
-
-Ghi chú kỹ thuật (cỡ phụ thể, không phải lỗi):
-- khối n: cỡ phụ thể so với khối s: idle 128%, walk 118%, hurt 126% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn).
+Không có phát hiện.
 
 Không có dòng `LỖI:` tự sinh.
 

@@ -185,6 +185,13 @@ Quyết định tiếp theo của điều phối cho #1320: bỏ vác vai vì po
 - **@VUKHI-CUNG** Keep the head the same apparent size across poses; do not use a front-facing enlarged impact face as its own attack frame. Draw side or three-quarter smash perspectives at the same head size. // Chuẩn hoá cả hình theo bề ngang vuông góc cán, rồi dùng một tỷ lệ vừa khung chung; s/se bỏ impact chính diện, giữ RAW nguyên byte.
 - **@VUKHI-CUNG** Every registration dot must be one solid connected disk without detached green highlight flecks. // ne lượt 1 có tám chùy nhưng chín thành phần xanh do một mảnh bốn điểm; lượt 2 sửa marker, bộ dò giữ quy tắc tám marker.
 
+- **@VUKHI-CUNG** Keep both head dimensions consistent, including its length along the shaft; normalizing only the transverse width can enlarge a side-view head. // Ảnh trong game #1320 lộ e bị phóng khi chỉ đo ngang; sửa lấy kích thước lớn hơn trong hai trục đầu búa, giữ nguyên cả hình và grip.
+- **@VUKHI-CUNG** Verify the weapon on the actual animated LPC frames in game, at animation boundaries as well as sampled sheet poses. // Attack thân 70/70/90/120 ms: ở 260 ms thân bước 3 nhưng chia đều thời lượng chọn chùy bước 2; vũ khí cùng số khung nay theo đúng bước thân. Tay slash e/ne nâng trên lưng được đo từ mảng da thật, không dùng fallback thấp.
+
+- **@VUKHI-CUNG** A two-handed cast needs enough real straight shaft for the fully raised hands. Check both hands lie before the head block, not merely near any opaque weapon pixel. // Ảnh cast trong game lộ fallback xuống bụng; vẽ atlas cán dài, đo tay giơ thật và kiểm khoảng cán còn lại tới tay B.
+- **@VUKHI-CUNG** Use the butt dot as a registration origin; choose a real grip location along the drawn shaft, fixed per clip and pose. Never resize individual frames or move the LPC hands to fit. // Cho phép giữ cỡ đầu búa tham chiếu mà vẫn vừa khung với cán dài; ghi gripOffset vào compose-plan.
+- **@VUKHI-CUNG** Exclude an unregistered source pose only when no selected frame uses it, and record the omission explicitly. Never invent its missing root. // n lượt3 hết giới hạn, pose7 thiếu marker nhưng không nằm trong chuỗi; omitUnused[7] có guard/test, mọi pose dùng vẫn bắt buộc marker.
+
 ## Bài học riêng `@VUKHI-MEM` — vòng 2 Lam Ngân Thảo, chỉ hướng e
 
 Parser hiện chỉ hỗ trợ `@VUKHI`, chưa hỗ trợ tag nhóm mềm. Các dòng dưới không dùng cú pháp `- [direction …]` để không làm hỏng parser hoặc chèn vào mọi vũ khí. Khi thử nhóm mềm, đọc đúng mục này và truyền các câu tiếng Anh vào tham số `lessons` của `buildDirectionPrompt`, nối sau `vukhiLessonsFor("direction")`; ghi lại prompt thực tế. Không dùng mục này cho vũ khí cứng, không ghi đè prompt lịch sử.

@@ -16,7 +16,14 @@ const plans = DIRS.map((d) => JSON.parse(fs.readFileSync(path.join(dir, d, "comp
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "hao-cut-"));
 try {
   const paletteFile = path.join(scratch, "palette.gpl");
-  fs.writeFileSync(paletteFile, `GIMP Palette\nName: Hạo Thiên Chùy\nColumns: 8\n#\n${report.palette.map((c) => c.join(" ")).join("\n")}\n`);
+  // Cutter tô viền #1a1020: dành một ô bảng màu trước, tránh màu thứ 33 sau cắt.
+  const palette = report.palette.map((c) => [...c]), outline = [26, 16, 32];
+  if (!palette.some((c) => c.every((v, i) => v === outline[i]))) {
+    const distance = (c) => c.reduce((sum, v, i) => sum + (v - outline[i]) ** 2, 0);
+    let closest = 0; for (let i = 1; i < palette.length; i++) if (distance(palette[i]) < distance(palette[closest])) closest = i;
+    palette[closest] = outline;
+  }
+  fs.writeFileSync(paletteFile, `GIMP Palette\nName: Hạo Thiên Chùy\nColumns: 8\n#\n${palette.map((c) => c.join(" ")).join("\n")}\n`);
   const halves = { b: new Img(1664, 1280), f: new Img(1664, 1280) }, cuts = {}, layers = {};
   let entries;
   for (const sex of ["m", "f"]) {
@@ -46,10 +53,13 @@ try {
   }
   const failures = geometry.filter((g) => g.pixels < 15 || g.edge || g.near.some((v) => v > 2));
   if (failures.length) throw Error(`Sheet cắt chưa đạt: ${JSON.stringify(failures)}`);
+  const colors = new Set();
+  for (const im of Object.values(halves)) for (let i = 0; i < im.data.length; i += 4) if (im.data[i + 3]) colors.add(`${im.data[i]},${im.data[i + 1]},${im.data[i + 2]}`);
+  if (colors.size > 32) throw Error(`Sheet cuối vượt 32 màu: ${colors.size}`);
   fs.mkdirSync(out, { recursive: true });
   for (const side of ["b", "f"]) fs.writeFileSync(path.join(out, `vkanim_hao_thien_chuy_${side}.png`), encodePng(halves[side]));
   fs.writeFileSync(path.join(out, "manifest-entry.json"), JSON.stringify(entries, null, 2) + "\n");
-  const finalReport = { frames: geometry.length, cuts, layers, geometry, failures, maxA: Math.max(...geometry.map((g) => g.near[0])), maxB: Math.max(...geometry.flatMap((g) => g.near.slice(1))), edge: geometry.reduce((n, g) => n + g.edge, 0), normalizedHeadWidth: 200 * report.scale, imported: false };
+  const finalReport = { frames: geometry.length, palette, colors: colors.size, cuts, layers, geometry, failures, maxA: Math.max(...geometry.map((g) => g.near[0])), maxB: Math.max(...geometry.flatMap((g) => g.near.slice(1))), edge: geometry.reduce((n, g) => n + g.edge, 0), normalizedHeadSize: 200 * report.scale, imported: false };
   fs.writeFileSync(path.join(out, "_report.json"), JSON.stringify(finalReport, null, 2) + "\n");
   buildPreview("hao_thien_chuy", out, 2);
   console.log(JSON.stringify({ frames: finalReport.frames, maxA: finalReport.maxA, maxB: finalReport.maxB, edge: finalReport.edge, cuts: Object.fromEntries(Object.entries(cuts).map(([s, r]) => [s, r.summary])) }));

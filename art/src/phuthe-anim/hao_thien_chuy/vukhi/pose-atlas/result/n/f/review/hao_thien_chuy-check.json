@@ -65,7 +65,7 @@
           "row": 1,
           "dir": "n",
           "y": [
-            68,
+            50,
             183
           ],
           "figures": 3,
@@ -75,7 +75,7 @@
           "row": 2,
           "dir": "n",
           "y": [
-            320,
+            294,
             441
           ],
           "figures": 4,
@@ -86,7 +86,7 @@
           "dir": "n",
           "y": [
             602,
-            705
+            723
           ],
           "figures": 4,
           "state": "ok"
@@ -106,17 +106,17 @@
         {
           "dir": "n",
           "anim": "idle",
-          "maxDiff": 0.236
+          "maxDiff": 0.36
         },
         {
           "dir": "n",
           "anim": "walk",
-          "maxDiff": 0.477
+          "maxDiff": 0.594
         },
         {
           "dir": "n",
           "anim": "hurt-vs-idle",
-          "maxDiff": 0.348
+          "maxDiff": 0.487
         }
       ],
       "issues": [],

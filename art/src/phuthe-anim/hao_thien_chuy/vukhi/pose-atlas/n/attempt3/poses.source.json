@@ -1,0 +1,16 @@
+{
+    "model":  "unknown",
+    "promptSha256":  "cf2ea74cce35124ae1de281814dc894f8d2ff5dbef52cd2f9f6a2b4cb5c3777f",
+    "tool":  "builtin image_gen.imagegen",
+    "reference":  "../../s/attempt3/poses.raw.png",
+    "referenceSha256":  "acf8ab3b3da83fb38b4f4cdd03130f51b78adafadb84c83efd05864bdd269655",
+    "prompt":  "poses.prompt.txt",
+    "attempt":  3,
+    "postprocessing":  "none; RAW copied byte-for-byte",
+    "selected":  true,
+    "seed":  "unknown",
+    "raw":  "poses.raw.png",
+    "note":  "Marker thiếu ở pose7 không dùng; omitUnused[7] tường minh, không đoán gốc",
+    "license":  "OpenAI output terms; not CC0",
+    "sha256":  "8817591836f9c00a754e6064b050d5662ff075e43fb5b28f02f309bec80913f5"
+}

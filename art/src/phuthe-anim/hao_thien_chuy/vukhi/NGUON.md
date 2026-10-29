@@ -1,4 +1,4 @@
-> **Bộ hiện hành:** [atlas tám pose đủ năm hướng](pose-atlas/README.md), [preview](pose-atlas/index.html). Đã cắt hai nửa ở thư mục này, 0 chặn; phần dưới là hồ sơ RAW lịch sử, không phải kết luận mới. Bỏ vác vai theo quyết định điều phối, chưa nhập shared/assets.
+> **Bộ hiện hành:** [atlas tám pose đủ năm hướng](pose-atlas/README.md), [preview](pose-atlas/index.html). Đã cắt hai nửa ở thư mục này, 0 chặn; phần dưới là hồ sơ RAW lịch sử, không phải kết luận mới. Bỏ vác vai theo quyết định điều phối; đã nhập cả hai nửa bằng importer theo phân công tiếp theo, ảnh kiểm trong [ingame/](ingame/index.html).
 
 # Hạo Thiên Chùy — thí điểm vũ khí cứng
 

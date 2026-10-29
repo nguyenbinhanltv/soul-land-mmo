@@ -10,8 +10,8 @@
     "reference":  "../attempt1/poses.raw.png",
     "referenceSha256":  "d36bb59e2926480f149560e851db412af51217c809d18d06e81fb5738720e5be",
     "postprocessing":  "none; RAW copied byte-for-byte",
-    "selected":  true,
-    "rejection":  null,
+    "selected":  false,
+    "rejection":  "Ảnh game lộ thiếu đoạn cán cho hai tay thật; thay bằng atlas cán dài, RAW cũ giữ nguyên",
     "license":  "OpenAI output terms; not CC0",
     "promptHandwritten":  true
 }

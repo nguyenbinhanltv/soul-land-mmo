@@ -6,172 +6,172 @@
     "ne",
     "n"
   ],
-  "scale": 0.08679199491071118,
+  "scale": 0.11294905654,
   "palette": [
     [
-      1,
+      2,
       0,
-      1
+      2
     ],
     [
-      5,
-      3,
+      6,
+      4,
       5
     ],
     [
-      10,
-      4,
-      7
-    ],
-    [
-      23,
-      6,
-      7
+      12,
+      5,
+      9
     ],
     [
       21,
-      9,
-      13
+      8,
+      10
     ],
     [
-      24,
-      10,
+      21,
+      13,
+      20
+    ],
+    [
+      30,
+      14,
       19
     ],
     [
-      24,
+      30,
       14,
-      24
+      33
     ],
     [
       29,
-      21,
-      29
+      28,
+      30
     ],
     [
-      34,
-      21,
-      28
-    ],
-    [
-      34,
-      25,
-      38
+      35,
+      9,
+      9
     ],
     [
       42,
-      30,
-      36
+      29,
+      32
     ],
     [
-      50,
-      33,
-      35
+      58,
+      29,
+      28
     ],
     [
-      40,
-      33,
-      45
+      81,
+      35,
+      30
+    ],
+    [
+      38,
+      28,
+      43
     ],
     [
       44,
       40,
-      54
+      46
     ],
     [
-      49,
-      45,
-      52
+      46,
+      43,
+      51
     ],
     [
-      66,
-      40,
-      48
+      89,
+      47,
+      57
     ],
     [
+      51,
       53,
-      55,
-      58
+      57
     ],
     [
-      67,
-      58,
-      60
-    ],
-    [
-      66,
-      62,
-      75
-    ],
-    [
-      76,
       65,
-      83
+      62,
+      62
     ],
     [
-      83,
-      63,
+      60,
+      61,
       65
     ],
     [
-      90,
-      78,
-      90
+      70,
+      63,
+      82
     ],
     [
-      115,
-      59,
+      91,
+      72,
+      89
+    ],
+    [
+      83,
+      82,
+      88
+    ],
+    [
+      132,
+      66,
       39
     ],
     [
-      141,
-      119,
-      91
+      175,
+      117,
+      62
     ],
     [
-      107,
-      59,
-      114
+      112,
+      61,
+      112
     ],
     [
-      95,
-      99,
+      103,
+      105,
       108
     ],
     [
-      110,
-      123,
-      138
+      119,
+      121,
+      125
     ],
     [
-      149,
-      139,
-      126
-    ],
-    [
-      142,
+      144,
       153,
-      162
+      158
     ],
     [
-      145,
-      169,
-      183
+      174,
+      165,
+      137
     ],
     [
-      187,
-      195,
-      198
+      161,
+      182,
+      190
     ],
     [
-      240,
-      241,
-      234
+      204,
+      207,
+      205
+    ],
+    [
+      244,
+      244,
+      237
     ]
   ],
   "frames": 130,
-  "maxA": 1.5239140558400175,
-  "maxB": 1.9104973174542788,
+  "maxA": 1.7379321515137836,
+  "maxB": 1.4560219778561039,
   "edge": 0,
   "geometryFailures": [],
   "checks": {
@@ -184,10 +184,10 @@
       "dummyKey": "#00D0D0",
       "blockLevel": {
         "s": "pass",
-        "se": "pass",
-        "e": "nhẹ",
+        "se": "nhẹ",
+        "e": "pass",
         "ne": "nhẹ",
-        "n": "nhẹ"
+        "n": "pass"
       },
       "sheets": [
         {
@@ -246,7 +246,7 @@
               "row": 1,
               "dir": "s",
               "y": [
-                82,
+                56,
                 181
               ],
               "figures": 3,
@@ -256,7 +256,7 @@
               "row": 2,
               "dir": "s",
               "y": [
-                338,
+                302,
                 439
               ],
               "figures": 4,
@@ -287,12 +287,12 @@
             {
               "dir": "s",
               "anim": "idle",
-              "maxDiff": 0.309
+              "maxDiff": 0.401
             },
             {
               "dir": "s",
               "anim": "walk",
-              "maxDiff": 0.616
+              "maxDiff": 0.583
             },
             {
               "dir": "s",
@@ -310,7 +310,7 @@
             1024
           ],
           "kind": "huong",
-          "level": "pass",
+          "level": "nhẹ",
           "dirs": [
             "se"
           ],
@@ -345,7 +345,7 @@
             "keyDistFromLock": 0,
             "cornerSpread": 0
           },
-          "seVsE": 0.092,
+          "seVsE": 0.193,
           "prep": {
             "shift": {
               "dx": 0,
@@ -359,7 +359,7 @@
               "row": 1,
               "dir": "se",
               "y": [
-                84,
+                32,
                 181
               ],
               "figures": 3,
@@ -369,7 +369,7 @@
               "row": 2,
               "dir": "se",
               "y": [
-                342,
+                302,
                 437
               ],
               "figures": 4,
@@ -379,7 +379,7 @@
               "row": 3,
               "dir": "se",
               "y": [
-                598,
+                586,
                 693
               ],
               "figures": 4,
@@ -400,20 +400,27 @@
             {
               "dir": "se",
               "anim": "idle",
-              "maxDiff": 0.302
+              "maxDiff": 0.469
             },
             {
               "dir": "se",
               "anim": "walk",
-              "maxDiff": 0.897
+              "maxDiff": 0.819
             },
             {
               "dir": "se",
               "anim": "hurt-vs-idle",
-              "maxDiff": 1
+              "maxDiff": 0.954
             }
           ],
-          "issues": [],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "co-phu-the",
+              "where": "khối se",
+              "msg": "cỡ phụ thể so với khối s: idle 114%, hurt 114% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+            }
+          ],
           "draft": null
         },
         {
@@ -423,7 +430,7 @@
             1024
           ],
           "kind": "huong",
-          "level": "nhẹ",
+          "level": "pass",
           "dirs": [
             "e"
           ],
@@ -472,7 +479,7 @@
               "row": 1,
               "dir": "e",
               "y": [
-                60,
+                32,
                 181
               ],
               "figures": 3,
@@ -482,7 +489,7 @@
               "row": 2,
               "dir": "e",
               "y": [
-                326,
+                284,
                 437
               ],
               "figures": 4,
@@ -492,7 +499,7 @@
               "row": 3,
               "dir": "e",
               "y": [
-                598,
+                594,
                 693
               ],
               "figures": 4,
@@ -513,27 +520,20 @@
             {
               "dir": "e",
               "anim": "idle",
-              "maxDiff": 0.367
+              "maxDiff": 0.453
             },
             {
               "dir": "e",
               "anim": "walk",
-              "maxDiff": 0.742
+              "maxDiff": 0.828
             },
             {
               "dir": "e",
               "anim": "hurt-vs-idle",
-              "maxDiff": 0.932
+              "maxDiff": 0.992
             }
           ],
-          "issues": [
-            {
-              "sev": "light",
-              "code": "co-phu-the",
-              "where": "khối e",
-              "msg": "cỡ phụ thể so với khối s: idle 164%, walk 131%, hurt 161% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
-            }
-          ],
+          "issues": [],
           "draft": null
         },
         {
@@ -592,7 +592,7 @@
               "row": 1,
               "dir": "ne",
               "y": [
-                84,
+                16,
                 181
               ],
               "figures": 3,
@@ -602,7 +602,7 @@
               "row": 2,
               "dir": "ne",
               "y": [
-                342,
+                272,
                 437
               ],
               "figures": 4,
@@ -612,7 +612,7 @@
               "row": 3,
               "dir": "ne",
               "y": [
-                598,
+                592,
                 693
               ],
               "figures": 4,
@@ -633,17 +633,17 @@
             {
               "dir": "ne",
               "anim": "idle",
-              "maxDiff": 0.198
+              "maxDiff": 0.404
             },
             {
               "dir": "ne",
               "anim": "walk",
-              "maxDiff": 0.899
+              "maxDiff": 0.813
             },
             {
               "dir": "ne",
               "anim": "hurt-vs-idle",
-              "maxDiff": 1
+              "maxDiff": 0.966
             }
           ],
           "issues": [
@@ -651,7 +651,7 @@
               "sev": "light",
               "code": "co-phu-the",
               "where": "khối ne",
-              "msg": "cỡ phụ thể so với khối s: idle 115%, hurt 112% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+              "msg": "cỡ phụ thể so với khối s: idle 116%, hurt 116% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
             }
           ],
           "draft": null
@@ -663,7 +663,7 @@
             1024
           ],
           "kind": "huong",
-          "level": "nhẹ",
+          "level": "pass",
           "dirs": [
             "n"
           ],
@@ -712,7 +712,7 @@
               "row": 1,
               "dir": "n",
               "y": [
-                66,
+                50,
                 183
               ],
               "figures": 3,
@@ -722,7 +722,7 @@
               "row": 2,
               "dir": "n",
               "y": [
-                316,
+                292,
                 439
               ],
               "figures": 4,
@@ -733,7 +733,7 @@
               "dir": "n",
               "y": [
                 602,
-                705
+                721
               ],
               "figures": 4,
               "state": "ok"
@@ -753,27 +753,20 @@
             {
               "dir": "n",
               "anim": "idle",
-              "maxDiff": 0.234
+              "maxDiff": 0.343
             },
             {
               "dir": "n",
               "anim": "walk",
-              "maxDiff": 0.48
+              "maxDiff": 0.59
             },
             {
               "dir": "n",
               "anim": "hurt-vs-idle",
-              "maxDiff": 0.348
+              "maxDiff": 0.487
             }
           ],
-          "issues": [
-            {
-              "sev": "light",
-              "code": "co-phu-the",
-              "where": "khối n",
-              "msg": "cỡ phụ thể so với khối s: idle 128%, walk 118%, hurt 126% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
-            }
-          ],
+          "issues": [],
           "draft": null
         }
       ]
@@ -787,10 +780,10 @@
       "dummyKey": "#00D0D0",
       "blockLevel": {
         "s": "pass",
-        "se": "pass",
-        "e": "nhẹ",
+        "se": "nhẹ",
+        "e": "pass",
         "ne": "nhẹ",
-        "n": "nhẹ"
+        "n": "pass"
       },
       "sheets": [
         {
@@ -849,7 +842,7 @@
               "row": 1,
               "dir": "s",
               "y": [
-                84,
+                56,
                 181
               ],
               "figures": 3,
@@ -859,7 +852,7 @@
               "row": 2,
               "dir": "s",
               "y": [
-                340,
+                304,
                 439
               ],
               "figures": 4,
@@ -870,7 +863,7 @@
               "dir": "s",
               "y": [
                 598,
-                693
+                697
               ],
               "figures": 4,
               "state": "ok"
@@ -890,17 +883,17 @@
             {
               "dir": "s",
               "anim": "idle",
-              "maxDiff": 0.351
+              "maxDiff": 0.428
             },
             {
               "dir": "s",
               "anim": "walk",
-              "maxDiff": 0.541
+              "maxDiff": 0.536
             },
             {
               "dir": "s",
               "anim": "hurt-vs-idle",
-              "maxDiff": 1
+              "maxDiff": 0.991
             }
           ],
           "issues": [],
@@ -913,7 +906,7 @@
             1024
           ],
           "kind": "huong",
-          "level": "pass",
+          "level": "nhẹ",
           "dirs": [
             "se"
           ],
@@ -948,7 +941,7 @@
             "keyDistFromLock": 0,
             "cornerSpread": 0
           },
-          "seVsE": 0.158,
+          "seVsE": 0.162,
           "prep": {
             "shift": {
               "dx": 0,
@@ -962,7 +955,7 @@
               "row": 1,
               "dir": "se",
               "y": [
-                84,
+                32,
                 181
               ],
               "figures": 3,
@@ -972,7 +965,7 @@
               "row": 2,
               "dir": "se",
               "y": [
-                342,
+                300,
                 437
               ],
               "figures": 4,
@@ -982,8 +975,8 @@
               "row": 3,
               "dir": "se",
               "y": [
-                598,
-                693
+                586,
+                699
               ],
               "figures": 4,
               "state": "ok"
@@ -992,7 +985,7 @@
               "row": 4,
               "dir": "se",
               "y": [
-                854,
+                852,
                 949
               ],
               "figures": 2,
@@ -1003,20 +996,27 @@
             {
               "dir": "se",
               "anim": "idle",
-              "maxDiff": 0.402
+              "maxDiff": 0.536
             },
             {
               "dir": "se",
               "anim": "walk",
-              "maxDiff": 1
+              "maxDiff": 0.962
             },
             {
               "dir": "se",
               "anim": "hurt-vs-idle",
-              "maxDiff": 1
+              "maxDiff": 0.947
             }
           ],
-          "issues": [],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "co-phu-the",
+              "where": "khối se",
+              "msg": "cỡ phụ thể so với khối s: idle 115%, hurt 116% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+            }
+          ],
           "draft": null
         },
         {
@@ -1026,7 +1026,7 @@
             1024
           ],
           "kind": "huong",
-          "level": "nhẹ",
+          "level": "pass",
           "dirs": [
             "e"
           ],
@@ -1075,7 +1075,7 @@
               "row": 1,
               "dir": "e",
               "y": [
-                58,
+                32,
                 181
               ],
               "figures": 3,
@@ -1085,7 +1085,7 @@
               "row": 2,
               "dir": "e",
               "y": [
-                324,
+                284,
                 437
               ],
               "figures": 4,
@@ -1095,7 +1095,7 @@
               "row": 3,
               "dir": "e",
               "y": [
-                598,
+                594,
                 693
               ],
               "figures": 4,
@@ -1116,27 +1116,20 @@
             {
               "dir": "e",
               "anim": "idle",
-              "maxDiff": 0.441
+              "maxDiff": 0.53
             },
             {
               "dir": "e",
               "anim": "walk",
-              "maxDiff": 0.974
+              "maxDiff": 0.963
             },
             {
               "dir": "e",
               "anim": "hurt-vs-idle",
-              "maxDiff": 0.899
+              "maxDiff": 0.971
             }
           ],
-          "issues": [
-            {
-              "sev": "light",
-              "code": "co-phu-the",
-              "where": "khối e",
-              "msg": "cỡ phụ thể so với khối s: idle 163%, walk 131%, hurt 164% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
-            }
-          ],
+          "issues": [],
           "draft": null
         },
         {
@@ -1195,7 +1188,7 @@
               "row": 1,
               "dir": "ne",
               "y": [
-                84,
+                16,
                 181
               ],
               "figures": 3,
@@ -1205,7 +1198,7 @@
               "row": 2,
               "dir": "ne",
               "y": [
-                342,
+                272,
                 437
               ],
               "figures": 4,
@@ -1215,7 +1208,7 @@
               "row": 3,
               "dir": "ne",
               "y": [
-                598,
+                592,
                 693
               ],
               "figures": 4,
@@ -1236,17 +1229,17 @@
             {
               "dir": "ne",
               "anim": "idle",
-              "maxDiff": 0.224
+              "maxDiff": 0.413
             },
             {
               "dir": "ne",
               "anim": "walk",
-              "maxDiff": 1
+              "maxDiff": 0.996
             },
             {
               "dir": "ne",
               "anim": "hurt-vs-idle",
-              "maxDiff": 0.995
+              "maxDiff": 0.952
             }
           ],
           "issues": [
@@ -1254,7 +1247,7 @@
               "sev": "light",
               "code": "co-phu-the",
               "where": "khối ne",
-              "msg": "cỡ phụ thể so với khối s: idle 114%, hurt 115% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+              "msg": "cỡ phụ thể so với khối s: idle 117%, hurt 118% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
             }
           ],
           "draft": null
@@ -1266,7 +1259,7 @@
             1024
           ],
           "kind": "huong",
-          "level": "nhẹ",
+          "level": "pass",
           "dirs": [
             "n"
           ],
@@ -1315,7 +1308,7 @@
               "row": 1,
               "dir": "n",
               "y": [
-                68,
+                50,
                 183
               ],
               "figures": 3,
@@ -1325,7 +1318,7 @@
               "row": 2,
               "dir": "n",
               "y": [
-                320,
+                294,
                 441
               ],
               "figures": 4,
@@ -1336,7 +1329,7 @@
               "dir": "n",
               "y": [
                 602,
-                705
+                723
               ],
               "figures": 4,
               "state": "ok"
@@ -1356,27 +1349,20 @@
             {
               "dir": "n",
               "anim": "idle",
-              "maxDiff": 0.236
+              "maxDiff": 0.36
             },
             {
               "dir": "n",
               "anim": "walk",
-              "maxDiff": 0.477
+              "maxDiff": 0.594
             },
             {
               "dir": "n",
               "anim": "hurt-vs-idle",
-              "maxDiff": 0.348
+              "maxDiff": 0.487
             }
           ],
-          "issues": [
-            {
-              "sev": "light",
-              "code": "co-phu-the",
-              "where": "khối n",
-              "msg": "cỡ phụ thể so với khối s: idle 128%, walk 117%, hurt 128% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
-            }
-          ],
+          "issues": [],
           "draft": null
         }
       ]

@@ -1,41 +1,36 @@
-# Hạo Thiên Chùy — atlas tám pose, đủ năm hướng
+# Hạo Thiên Chùy — atlas năm hướng, đã nhập để duyệt
 
-Bộ cuối ở thư mục `vukhi/` cha: `vkanim_hao_thien_chuy_b.png`, `_f.png`, `manifest-entry.json`, `_report.json`. [Trang duyệt](index.html) dùng GIF từ bộ cắt cuối, đủ hai giới × năm hướng × năm clip. Chưa nhập `shared/assets`; importer thực hiện riêng. Part of #1312, epic #1020, PR #1320.
+Part of #1312, epic #1020, PR #1320. Bộ cắt ở `vukhi/` cha (`vkanim_hao_thien_chuy_b.png`, `_f.png`, manifest và báo cáo). Đã nhập cả hai nửa bằng importer #1323 vào `shared/assets/sprites/vukhianim/hao_thien_chuy_b.png` và `_f.png`; ne/n có lớp sau nên cần cả cặp. [Ảnh trong game](../ingame/index.html), [atlas / GIF](index.html), [hash ảnh và truy vấn](../ingame/capture.source.json).
 
-## Quyết định và cách ghép
+## Hình và điểm cầm
 
-Điều phối chấp nhận bỏ vác vai vì tay LPC thấp. Idle/walk/hurt một tay thuận; idle/walk đầu chùy cao hơn hông, cán chéo hoặc đứng, không ngang hông. Attack/cast hai tay, chọn pose nện khác thật. Không tạo hoặc sửa pose LPC. Dòng #19 của bảng vũ khí đã cập nhật.
+Bỏ vác vai vì tay LPC thấp. Idle/walk/hurt một tay thuận; nghỉ/đi giữ đầu chùy cao hơn hông, cán chéo. Attack/cast hai tay, không sửa pose LPC. Các khung attack vẫn có cán ngang/chéo theo hai điểm tay; **chưa tự coi là đạt cán dọc**, trình chủ repo xem chuỗi ảnh nện.
 
-Theo phương pháp s837, nhánh `ao/lam-ngan-thao/1312-vu-khi`, SHA `a69b175b7790d9b8563a797543f95982ca701c86`: model chỉ vẽ vũ khí riêng, code đăng ký gốc từng pose rồi ghép grip nam/nữ đo trực tiếp. Tám hình gồm idle, walk, bốn attack và hai cast. Nhóm A có 13 khung mỗi hướng mỗi giới, tổng 130 khung. Không dùng deform/uốn chùy hoặc vẽ lại thân.
+Phương pháp theo s837 (`ao/lam-ngan-thao/1312-vu-khi`, SHA `a69b175b7790d9b8563a797543f95982ca701c86`): vẽ vũ khí riêng tám pose, đăng ký gốc rồi ghép theo grip từng giới. Không uốn chùy, vẽ lại thân hoặc sửa RAW. Bộ cán dài mới chọn bốn ảnh attack thực 2/3/4/5 và cast 2/6. N lượt3 thiếu marker ở pose7 không dùng: bỏ tường minh bằng omitUnused[7], không đoán gốc; mọi pose đang dùng phải có marker.
 
-Bộ ghép đo trục cán bằng PCA, chuẩn hóa **toàn bộ** mỗi pose về bề ngang vuông góc cán 200 đơn vị nguồn, rồi dùng chung tỷ lệ vừa khung `0.08679199491071118` và bảng 32 màu. Cỡ bề ngang này ở game khoảng 17,36 điểm; giữ tỷ lệ đầu/cán của từng hình, không bóp riêng đầu hoặc cán. s/se bỏ hình impact chính diện số 4; n bỏ pose attack cán ngắn số 4. Chuỗi chọn có bốn hình khác thật, không bắt buộc dùng mọi hình của RAW. Chi tiết root, trục, hệ số chuẩn hóa, lựa chọn và khoảng cách ở `result/<hướng>/compose-plan.json`.
+Sửa cỡ e: bộ `clip-hands/cut/` cũ từng báo 66%; bộ này không dùng ảnh đó. Ảnh trong game còn phát hiện chuẩn hóa riêng bề ngang làm e phóng quá. Bản cuối đo cả bề ngang lẫn chiều dọc đầu búa theo trục cán, lấy kích thước lớn hơn, chuẩn hóa nguyên hình về 200 đơn vị nguồn rồi dùng chung tỷ lệ `0.11294905654000065`: kích thước chuẩn đầu búa **22,59 điểm game**, e/s = 1 trước raster (có làm tròn điểm ảnh). Chi tiết tại `../ingame/scale-review.json`.
 
-Cutter chung chạy riêng nam/nữ. Chỉ lấy năm hàng đúng giới ở mỗi lần cắt, bỏ hàng giới kia được ước lượng bằng neo lưng. ne/n mặc định lớp sau, vùng cầm theo grip thuộc lớp trước; cấu hình mặt nạ từng giới ghi trong `_report.json` cha. Sau ghép hai nửa, đo lại tiếp xúc tay và mép trên chính sheet cuối.
+Cutter chạy riêng hai giới, chỉ lấy đúng năm hàng đo trực tiếp của mỗi giới. ne/n mặc định lớp sau, vùng cầm trước thân. Tay slash e/ne và hai tay cast giơ lên được nhận từ mảng da thật, không dùng fallback thấp. Gốc xanh đăng ký nút cán; điểm nắm A có thể nằm dọc cán, cố định cho mỗi clip/pose và hai giới để vừa khung. Cả hai tay phải trên đoạn cán, không chỉ gần pixel đầu búa. Client chọn theo bước thân khi vũ khí cùng số khung; sửa lệch ở 260 ms (thân bước3 nhưng chia đều thời gian chọn vũ khí bước2). Các clip khác số khung giữ quy tắc cũ.
 
-## RAW, lượt và nguồn
+## Nguồn và số lượt
 
-- s: 2 lượt; chọn lượt 2, lượt 1 thiếu marker.
-- se: 1 lượt, được giữ từ đợt trước.
-- e: 1 lượt.
-- ne: 2 lượt; lượt 1 marker cast có mảnh xanh rời nên bộ dò thấy 9 thành phần, chọn lượt 2.
-- n: 2 lượt; lượt 1 cán ngắn khi ghép hai tay xa nhau, chọn lượt 2 và bỏ pose cán ngắn khỏi chuỗi attack.
+s3, se2, e2, ne3, n3 = **13 job atlas tuần tự**, mỗi hướng không quá3lượt. Đợt nhập dùng thêm năm job cán dài sau khi ảnh cast lộ lỗi lơ lửng. s lượt1 thiếu marker; ne lượt1 marker tách mảnh; n lượt1 cán ngắn. RAW nguyên byte, prompt thực dùng/hash/tham chiếu ở từng `attempt*/poses.source.json`. Nguồn OpenAI output terms, không gán CC0; model/seed không được trả về nên ghi unknown. Ghi công trong art/CREDITS.md đã mô tả đúng atlas không nộm.
 
-Tổng atlas mới 8 job (3 ở đợt s/se, thêm 5 sau quyết định mở rộng), từng job tuần tự, mỗi hướng không quá 3 lượt. Không gọi model trong lệnh tái tạo. RAW nguyên byte, prompt chính xác và SHA256 ở từng `attempt*/poses.source.json`; `source.json` tổng hợp hash công cụ và sheet cuối. Ảnh ghép có nộm là đầu ra code, không gọi là RAW model. Nguồn ảnh OpenAI output terms, không gán CC0; model/seed không được công cụ trả về nên ghi unknown. Thân LPC giữ ghi công hiện hành tại art/CREDITS.md.
+## Kiểm
 
-## Kết quả
-
-- Checker cả nam/nữ: **0 chặn / 3 nhẹ mỗi giới**. s/se 0/0; e/ne/n mỗi hướng 0/1.
-- Cảnh báo là bounding box so với s, không phải cỡ riêng đầu búa: e idle 164%, walk 131%, hurt 161%; ne idle 115%, hurt 112%; n idle 128%, walk 118%, hurt 126%.
-- Cutter mỗi giới: **0 chặn / 5 nhẹ / 15 thông tin**. Thông tin gồm tay bị che dùng fallback, ghi đầy đủ trong báo cáo; không giấu cảnh báo.
-- Sheet cuối **130 khung, không chạm mép**, A tối đa **1,524 điểm**, B **1,910 điểm**, ngưỡng 2 điểm khung game 128. Phép đo là từ tay tới pixel vũ khí gần nhất, vẫn cần xem mặt cầm/đòn nện bằng mắt.
-- Đã xem tổng hợp s nam và n nữ; idle/walk giữ đầu cao/cán chéo, attack/cast hai tay, không dùng đầu impact chính diện phóng lớn. Trang lịch sử cũ được giữ để đối chiếu, không thay thế bộ hiện hành.
+- Checker: **0 chặn / 2 nhẹ mỗi giới**. s/e/n 0/0; se/ne mỗi hướng 0/1. Chi tiết bounding box so với s ở báo cáo checker; đây không phải cỡ riêng đầu búa.
+- Cutter: **0 chặn / 0 nhẹ / 7 thông tin mỗi giới** (fallback còn lại ghi đầy đủ).
+- Sheet cuối130khung, mép0, A tối đa1,738px / B1,456px, ngưỡng2px khung128.
+- Ảnh native Phaser `?thu=vukhi`:8ảnh chính bao phủ5hướng×4clip×2giới; thêm6ảnh cùng attack260ms thành bốn bước0/100/190/260ms mỗi giới. Không cắt, resize hoặc ghép ảnh chụp. Nhãn “ảnh thật · LPC … sẵn sàng” hiện trên ảnh.
+- Duyệt mỹ thuật của chủ repo còn mở; không tự merge PR.
 
 ## Tái tạo
 
 ```sh
 node tools/assets/phuthe-hammer-atlas-finalize.mjs --sources art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-atlas/sources.json --out art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-atlas/result
 node tools/assets/phuthe-hammer-atlas-cut.mjs --dir art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-atlas/result --out art/src/phuthe-anim/hao_thien_chuy/vukhi
-npm run test:assets
+node tools/assets/phuthe-import.mjs --kind vukhi --id hao_thien_chuy --dir art/src/phuthe-anim/hao_thien_chuy/vukhi
+node tools/assets/credits.mjs
 ```
 
-Hồi quy kiểm atlas thiếu marker, giữ byte RAW, từ chối ghi đè RAW, bề ngang chuẩn hóa, bốn pose attack, số tay theo clip và khoảng cách/mép ở 130 khung của sheet cuối.
+Hồi quy kiểm RAW bất biến/thiếu marker, cỡ hai chiều cả năm hướng, grip/mép130khung cuối và chọn bước attack tại ranh giới thời gian. Hash công cụ/bộ cắt/ảnh nhập ở source.json; code client và ảnh chụp trong capture.source.json.

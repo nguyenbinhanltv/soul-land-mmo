@@ -10,8 +10,8 @@
     "reference":  "../../../solo/weapon-s-attempt1.png",
     "referenceSha256":  "91571c968867605efccfacb28ee787fb29eacb566133da3730a4299533b28436",
     "postprocessing":  "none; RAW copied byte-for-byte",
-    "selected":  true,
-    "rejection":  null,
+    "selected":  false,
+    "rejection":  "Ảnh game lộ thiếu đoạn cán cho hai tay thật; thay bằng atlas cán dài, RAW cũ giữ nguyên",
     "license":  "OpenAI output terms; not CC0",
     "promptHandwritten":  true
 }

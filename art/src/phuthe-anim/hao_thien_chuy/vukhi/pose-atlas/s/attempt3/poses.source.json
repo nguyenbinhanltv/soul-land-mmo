@@ -1,0 +1,16 @@
+{
+    "model":  "unknown",
+    "promptSha256":  "16d8b438e059b1911684be5113159d608050fe729bb12a3f53b787a3522adaca",
+    "tool":  "builtin image_gen.imagegen",
+    "reference":  "../attempt2/poses.raw.png",
+    "referenceSha256":  "3f4c462f71e8bfe274aea2ff3030ff740cfdd3859924f2e44931bfa61ec1f190",
+    "prompt":  "poses.prompt.txt",
+    "attempt":  3,
+    "postprocessing":  "none; RAW copied byte-for-byte",
+    "selected":  true,
+    "seed":  "unknown",
+    "raw":  "poses.raw.png",
+    "note":  "Atlas cán dài, kiểm cả hai tay trên cán",
+    "license":  "OpenAI output terms; not CC0",
+    "sha256":  "acf8ab3b3da83fb38b4f4cdd03130f51b78adafadb84c83efd05864bdd269655"
+}

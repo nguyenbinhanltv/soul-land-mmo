@@ -24,7 +24,7 @@ for (const input of [val("--sources"), ...dirs.flatMap((d) => [sources[d].raw, .
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "hao-atlas-finalize-"));
 const compiler = fileURLToPath(new URL("./phuthe-hammer-atlas.mjs", import.meta.url));
 function run(dir, dest, extra = []) {
-  const source = sources[dir], params = [compiler, "--raw", source.raw, "--dir", dir, "--out", dest, ...(source.axes ? ["--axes", source.axes] : []), ...extra];
+  const source = sources[dir], params = [compiler, "--raw", source.raw, "--dir", dir, "--out", dest, ...(source.axes ? ["--axes", source.axes] : []), ...(source.omitUnused?.length ? ["--omit-unused", source.omitUnused.join(",")] : []), ...extra];
   const r = spawnSync(process.execPath, params, { encoding: "utf8", maxBuffer: 8 * 1024 * 1024 });
   if (r.status !== 0) throw Error(`${dir}: ${r.error?.message ?? r.stderr ?? ""}\n${r.stdout ?? ""}`);
   return JSON.parse(fs.readFileSync(path.join(dest, "compose-plan.json"), "utf8"));

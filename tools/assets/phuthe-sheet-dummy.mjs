@@ -120,7 +120,15 @@ export function gripPoints({ sex = "m", dir, clip, step, frame, count = 1 }) {
   for (const s of stepsNear(clip, step)) {
     const a = bodyAnchors(sex, dir, clip, s);
     // Tay nhỏ lộ ít da chỉ nhận nếu ở xa trục lưng, tránh nhận nhầm mảng cổ áo.
-    const hands = a ? a.hands.filter((h) => (h.n >= HAND_MIN_PX || (activePair && h.n >= ACTIVE_HAND_MIN_PX && Math.abs(h.x - a.back.x) >= ACTIVE_HAND_SIDE)) && h.y > a.back.y + belowBack) : [];
+    const hands = a ? a.hands.filter((h) => {
+      const below = (h.n >= HAND_MIN_PX || (activePair && h.n >= ACTIVE_HAND_MIN_PX && Math.abs(h.x - a.back.x) >= ACTIVE_HAND_SIDE)) && h.y > a.back.y + belowBack;
+      // Tay slash hướng e bước cuối nâng cao hơn lưng; mặt lớn/tai nhỏ không được nhận như tay.
+      const raised = activePair && clip === "attack" && h.n >= 20 && h.n <= 80 && Math.abs(h.x - a.back.x) >= 10 && h.y > a.head.y + 12;
+      // Spellcast giơ hai tay xa hai bên đầu; ở hướng e da bàn tay có thể nối với mặt.
+      // Khoảng cách ngang lớn loại mặt/tai, không áp trần diện tích của riêng bàn tay slash.
+      const castRaised = activePair && clip === "cast" && h.n >= 20 && Math.abs(h.x - a.back.x) >= 12 && h.y > a.head.y + 12;
+      return below || raised || castRaised;
+    }) : [];
     if (!hands.length) continue;
     const head = a.head.y, feet = a.feet.y, back = to(a.back);
     const result = { hands: handOrder(dir, hands).slice(0, 2).map(to), back, shoulder: [back[0], back[1] - (feet - head) * SHOULDER_UP * k], step: s, fallback: s !== step };

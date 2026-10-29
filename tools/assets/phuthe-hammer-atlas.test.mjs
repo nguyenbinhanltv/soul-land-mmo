@@ -13,8 +13,8 @@ import { DIRS, gameAnims, gameRow } from "./phuthe-sheet-lib.mjs";
 test("atlas chùy thật: từ chối thiếu marker; tám pose, 26 khung, grip nam/nữ không chạm mép", () => {
   const base = path.join(ROOT, "art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-atlas/s");
   const folder = fs.mkdtempSync(path.join(os.tmpdir(), "hao-atlas-test-"));
-  const raw = path.join(base, "attempt2/poses.raw.png"), hash = (file) => createHash("sha256").update(fs.readFileSync(file)).digest("hex"), before = hash(raw);
-  const run = (file) => spawnSync(process.execPath, [path.join(ROOT, "tools/assets/phuthe-hammer-atlas.mjs"), "--raw", file, "--dir", "s", "--out", folder], { encoding: "utf8", cwd: ROOT, maxBuffer: 8 * 1024 * 1024 });
+  const raw = path.join(base, "attempt3/poses.raw.png"), hash = (file) => createHash("sha256").update(fs.readFileSync(file)).digest("hex"), before = hash(raw);
+  const run = (file, dir = "s", extra = []) => spawnSync(process.execPath, [path.join(ROOT, "tools/assets/phuthe-hammer-atlas.mjs"), "--raw", file, "--dir", dir, "--out", folder, ...extra], { encoding: "utf8", cwd: ROOT, maxBuffer: 8 * 1024 * 1024 });
   try {
     const bad = run(path.join(base, "attempt1/poses.raw.png"));
     assert.equal(bad.status, 1); assert.match(bad.stderr, /marker/);
@@ -22,8 +22,7 @@ test("atlas chùy thật: từ chối thiếu marker; tám pose, 26 khung, grip 
     assert.equal(good.status, 0, good.stderr + good.stdout);
     const report = JSON.parse(fs.readFileSync(path.join(folder, "compose-plan.json"), "utf8"));
     assert.equal(report.poses.length, 8); assert.equal(report.plan.length, 26); assert.equal(report.geometryFailures.length, 0);
-    for (const pose of report.poses) assert.ok(Math.abs(pose.headWidth * pose.headScale - 200) < 1e-8, "chuẩn hoá bề ngang đầu búa, không để impact phình riêng");
-    assert.ok(report.plan.every((f) => f.pose !== 4), "s bỏ impact chính diện khỏi chuỗi đã chọn");
+    for (const pose of report.poses) assert.ok(Math.abs(pose.headSize * pose.headScale - 200) < 1e-8, "chuẩn hoá hai chiều đầu búa, không để impact phình riêng");
     for (const sex of ["m", "f"]) {
       assert.equal(report.checks[sex].level, "pass");
       const frames = report.plan.filter((f) => f.sex === sex);
@@ -31,7 +30,18 @@ test("atlas chùy thật: từ chối thiếu marker; tám pose, 26 khung, grip 
       assert.equal(new Set(frames.filter((f) => f.anim === "attack").map((f) => f.pose)).size, 4);
       for (const frame of frames) assert.equal(frame.hands.length, ["attack", "cast"].includes(frame.anim) ? 2 : 1);
     }
-    for (const d of report.distances) { assert.equal(d.edge, 0); assert.ok(d.near.every((v) => v <= 2)); assert.ok(d.pixels >= 15); }
+    for (const d of report.distances) { assert.equal(d.edge, 0); assert.ok(d.near.every((v) => v <= 2)); assert.ok(d.pixels >= 15); assert.ok(d.gripSpan <= d.shaftLength + 2, "tay B phải trên cán, không chỉ chạm đầu búa"); }
+    const offsets = new Map();
+    for (const f of report.plan) { const key = `${f.anim}/${f.pose}`; assert.ok(f.gripOffset >= 0); if (offsets.has(key)) assert.equal(f.gripOffset, offsets.get(key)); offsets.set(key, f.gripOffset); }
+    const invalidOmission = run(raw, "s", ["--omit-unused", "0"]);
+    assert.equal(invalidOmission.status, 1); assert.match(invalidOmission.stderr, /pose đang dùng/);
+    const north = path.join(base, "../n/attempt3/poses.raw.png");
+    const missingUnused = run(north, "n");
+    assert.equal(missingUnused.status, 1); assert.match(missingUnused.stderr, /marker/);
+    const selectedNorth = run(north, "n", ["--omit-unused", "7"]);
+    assert.equal(selectedNorth.status, 0, selectedNorth.stderr + selectedNorth.stdout);
+    const northPlan = JSON.parse(fs.readFileSync(path.join(folder, "compose-plan.json"), "utf8"));
+    assert.deepEqual(northPlan.omittedPoses, [7]); assert.ok(northPlan.poses[7].unused); assert.ok(northPlan.plan.every((f) => f.pose !== 7));
     assert.equal(hash(raw), before, "không được sửa RAW model");
     const collision = path.join(folder, "vkanim_hao_thien_chuy_f.png");
     fs.copyFileSync(raw, collision);
@@ -48,6 +58,9 @@ test("sheet chùy cuối: đủ hai nửa, đúng grip theo clip và hàng nữ 
   const dir = path.join(ROOT, "art/src/phuthe-anim/hao_thien_chuy/vukhi"), entries = JSON.parse(fs.readFileSync(path.join(dir, "manifest-entry.json"), "utf8"));
   assert.deepEqual(entries.map((e) => e.key).sort(), ["vkanim_hao_thien_chuy_b", "vkanim_hao_thien_chuy_f"]);
   const images = entries.map((e) => readPng(path.join(dir, `${e.key}.png`)));
+  const colors = new Set();
+  for (const im of images) for (let i = 0; i < im.data.length; i += 4) if (im.data[i + 3]) colors.add(`${im.data[i]},${im.data[i + 1]},${im.data[i + 2]}`);
+  assert.ok(colors.size <= 32, "viền cutter nằm trong bảng 32 màu, không thêm màu thứ 33");
   for (const im of images) assert.deepEqual([im.w, im.h], [1664, 1280]);
   for (const entry of entries) {
     assert.equal(entry.anim.kind, "vukhi"); assert.equal(Object.keys(entry.anim.grip).length, 65);
@@ -56,6 +69,12 @@ test("sheet chùy cuối: đủ hai nửa, đúng grip theo clip và hàng nữ 
   let frames = 0;
   for (const d of DIRS) {
     const plan = JSON.parse(fs.readFileSync(path.join(dir, "pose-atlas/result", d, "compose-plan.json"), "utf8"));
+    for (const [index, pose] of plan.poses.entries()) {
+      if (pose.unused) { assert.ok(plan.plan.every((f) => f.pose !== index)); continue; }
+      assert.ok(pose.headSize >= pose.headWidth && pose.headSize >= pose.headLength, `${d}: xét cả hai chiều đầu búa`);
+      assert.ok(Math.abs(pose.headSize * pose.headScale - 200) < 1e-8, `${d}: cùng cỡ chuẩn với s`);
+    }
+    for (const d of plan.distances) assert.ok(d.gripSpan <= d.shaftLength + 2, `${d.name}: tay B phải nằm trên đoạn cán còn lại`);
     for (const f of plan.plan) {
       const x0 = (gameAnims("A")[f.anim][0] + f.frame) * 128, y0 = gameRow(f.sex, d) * 128, near = f.hands.map(() => Infinity);
       let pixels = 0;

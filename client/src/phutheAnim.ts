@@ -128,8 +128,12 @@ export function phuClipOf(anim: string): PhuClip | null {
  * Khung (0..n-1) của clip phụ thể `n` khung cho hoạt ảnh thân `steps` bước. Vòng lặp (idle, walk): theo bước thân đang hiển thị `step` (các bước
  * thân đều nhau nên khớp nhịp cả khi `walk` đổi tốc độ). Một lần (attack, cast, hurt): chia đều thời lượng `total` ms theo tuổi `age`
  * (docs "Ánh xạ clip phụ thể sang khung thân"); `age` < 0 (không biết) thì theo giữa bước thân.
+ * Vũ khí có cùng số khung với số bước thân chọn đúng `step` để giữ điểm cầm đã bake.
  */
-export function phuClipIndex(n: number, steps: number, step: number, loop: boolean, age: number, total: number): number {
+export function phuClipIndex(n: number, steps: number, step: number, loop: boolean, age: number, total: number, weapon = false): number {
+  // Vũ khí bake grip theo từng bước: cùng số khung thì theo đúng bước thân đang hiện.
+  // Attack 70/70/90/120 ms không được chia đều thành bốn khoảng 87,5 ms.
+  if (weapon && n === steps) return Math.max(0, Math.min(n - 1, step));
   const p = !loop && age >= 0 && total > 0 ? age / total : (Math.max(0, Math.min(steps - 1, step)) + 0.5) / steps;
   return Math.max(0, Math.min(n - 1, Math.floor(p * n)));
 }

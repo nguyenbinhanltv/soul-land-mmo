@@ -693,7 +693,7 @@ export function syncPhuLayers(body: Phaser.GameObjects.Sprite, layers: Phaser.Ga
   if (st) { syncLayers(body, layers); return null; }
   if (!clip) { for (const s of layers) s.setVisible(false); return null; }
   const A = ISO_HS_ANIMS[anim], steps = A.ms.length, step = Number(body.frame.name) % ISO_SHEET_COLS - A.col;
-  const i = phuClipIndex(L.clips[clip].n, steps, step, A.loop, age, honsuAnimMs(anim));
+  const i = phuClipIndex(L.clips[clip].n, steps, step, A.loop, age, honsuAnimMs(anim), !!L.weapon);
   const half = phuHalf(layers[0].texture.source[0].height, L, /^lpcc_f_/.test(body.texture.key));
   const f = phuFrame(L, clip, phuDirRow(face), half, i), a = anim === "absorb" ? 0.6 : 1;
   for (const s of layers) { s.setVisible(true).setFlipX(body.flipX); s.setFrame(f).setAlpha(a); }
