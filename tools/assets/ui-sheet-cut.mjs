@@ -78,7 +78,7 @@ export function cutUiSheet(o) {
     // vạch cắt chừa phần giữa ở CẢ hai bản: 2 × ⌈vạch 2× / 2⌉ < cạnh ngắn 1× (mảnh thấp như tab 40 → 20 điểm không còn ruột nếu vạch 2× ≥ 19)
     if (p.stretch) nine = Math.min(suggestNine(q2).nine, 2 * Math.floor((Math.min(q1.w, q1.h) - 1) / 2));
     pieces.push({
-      key, name: p.name, kind: kind.id, sheet: name, set: p.set ?? null, state: p.state ?? null, budget: kind.group,
+      key, name: p.name, kind: kind.id, sheet: name, set: p.set ? `${prefix}${p.set}` : null, state: p.state ?? null, budget: kind.group,
       size: { x2: [q2.w, q2.h], x1: [q1.w, q1.h] }, grid: { master: kit.grid.master, div: round(check.div, 2), source: check.size },
       nine: nine == null ? null : { x2: nine, x1: Math.ceil(nine / 2) }, mirror: mirrorOf(p), bytes: { x2: png2.length, x1: png1.length }, hash: sha(png2),
     });

@@ -165,3 +165,16 @@ RAW `toI-2.png`, prompt `toI-2.prompt.txt`, nguồn/hash và ánh xạ 16 menu �
 `pilot-menu/index.html` là trang chủ repo chọn AI hoặc giữ game-icons, có 16 cặp ở 64/32/24 px, ba nền và thang xám. 48 PNG AI chỉ là ảnh duyệt: chuẩn hóa giữ tỉ lệ vào khung 64, hạ theo vùng rồi lượng tử 32 màu/alpha nhị phân; tổng 50.479 byte cho cả ba cỡ. 16 PNG `pilot-menu/reference/` là bản sao nguyên byte của game-icons đang dùng; CC BY 3.0, nguồn/tác giả từng icon ở art/CREDITS.md và mapping JSON. Đã kiểm bằng AO Browser: các ảnh tải đủ, radio nền và checkbox thang xám hoạt động; đã xem ảnh chụp các hàng đầu/cuối, không lỗi trình duyệt.
 
 Không chạy ui:import hay --write-manifest cho icon; không sửa ui-kit.json, sprites/manifest.json hoặc ảnh game. Chủ repo chưa chọn bộ AI; PR chỉ nộp pilot, không thay game-icons. Điều khoản đầu ra OpenAI cho ảnh AI, không gán CC0; ảnh tham chiếu game-icons giữ CC BY 3.0.
+# Bổ sung N/O/T Giấy — 29/10/2026
+
+Part of #877. Sinh bằng Codex `image_gen` tích hợp, một job mỗi lần, hướng mặc định, không `--style`. Tham chiếu BOARD đã duyệt rồi swatch `art/palette.gpl`; bỏ tham chiếu `toN.png` Mực vì kiểm còn chặn. Prompt nguyên văn do `ui:prompt --material giay` sinh, lưu cạnh từng RAW. Hash và báo cáo kiểm ở `giay.source.json`; RAW giữ nguyên byte, không gán CC0 (điều khoản đầu ra OpenAI).
+
+| Tờ | Lượt chọn / đã dùng | Phiếu kiểm mềm | Bằng mắt |
+|---|---|---|---|
+| N | 1 / 1 | 0 chặn, 14 nhẹ | 12 mảnh; nền phụ và hai tab ngà, đáy tab mở; trạng thái đủ; không chữ |
+| O | 1 / 1 | 0 chặn, 3 nhẹ | 12 ô ngà; độ hiếm khác hình góc; khóa / hồi chiêu / thiếu hồn lực khác hình, không chỉ màu |
+| T | 2 / 2 | 0 chặn, 13 nhẹ | 9 mảnh; khung và ô nhập ngà; lượt 1 có hai chặn cạnh dải đổ, thêm đúng một bài học màu phẳng rồi sinh lại |
+
+Cả ba dùng `--soft`: viền hồng sau bù 0%; đối xứng dựng gương ở mảnh cho phép; O RAW 37 màu, cutter lượng tử về 32. Khoảng cách còn nhẹ; T có cảnh báo 9-slice ở vạch chia / thanh cuộn và độ dày giữa các loại khác chức năng. Không force / skip mảnh. Khóa ảnh và nhóm trạng thái có tiền tố `giay_`, giữ nguyên nhóm Mực. `ui:import` nhập 33 mảnh Giấy; chưa thay màn dùng asset. Ngân sách toàn kit: 2× 105,1 KB / 1× 39,2 KB, dưới 250 KiB mỗi bản.
+
+Đã mở tờ liên hệ N/O/T, sinh `ui:preview` cho từng tờ. AO `render --check` thất bại `RENDER_CHECK_FAILED`: chưa xác minh trang tương tác, ba nền / ba cỡ kéo giãn trong trình duyệt; không coi kiểm ảnh là kiểm tương tác.

@@ -41,6 +41,7 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/phu-the-neo-khoi-than.md](docs/art/phu-the-neo-khoi-than.md) | 5 | Neo phụ thể theo tâm khối thân, `anchor.json` (#1024) |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/phu-the-vach-tham-chieu.md](docs/art/phu-the-vach-tham-chieu.md) | 5 | Vạch tham chiếu trên bảng nộm LPC (#1171) |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/phu-the-runbook.md](docs/art/phu-the-runbook.md) | 5 | Runbook phụ thể: làm 24 võ hồn còn lại, chia lô (#1025) |
+| 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/phu-the-vu-khi.md](docs/art/phu-the-vu-khi.md) | 5 | Phụ thể v2 = vũ khí cầm tay của võ hồn đang ra trận (#1307, epic #1020) |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/vo-hon-phong-cach.md](docs/art/vo-hon-phong-cach.md) | 5 | Phong cách võ hồn v2 (bá đạo, tu tiên; #1032) |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/vo-hon-portrait2.md](docs/art/vo-hon-portrait2.md) | 5 | Preset chân dung portrait2 (P1c2, #1158) |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/vo-hon-icon-nearest.md](docs/art/vo-hon-icon-nearest.md) | 5 | Preset icon icon-nearest (RAW thu nhỏ nearest, #1159) |
@@ -73,6 +74,7 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/chong-gian-lan-khac-may-man-tong-mon.md](docs/tech/chong-gian-lan-khac-may-man-tong-mon.md) | 5 | Soát chống gian lận khắc may mắn + tông môn (#740) |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/soat-gian-lan-mua-lai-ban-be-chat.md](docs/tech/soat-gian-lan-mua-lai-ban-be-chat.md) | 5 | Soát chống gian lận mua lại nhiều tiến trình + bạn bè / chat (#742) |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/soat-gian-lan-phuc-loi.md](docs/tech/soat-gian-lan-phuc-loi.md) | 1 |  |
+| 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/soat-gian-lan-xep-hang.md](docs/tech/soat-gian-lan-xep-hang.md) | 1 |  |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/soat-gian-lan-bi-canh.md](docs/tech/soat-gian-lan-bi-canh.md) | 1 |  |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/du-lieu-db.md](docs/tech/du-lieu-db.md) | 5 | Dữ liệu trong `shared/data.ts; Dữ liệu lâu dài |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/hieu-nang-hieu-ung.md](docs/tech/hieu-nang-hieu-ung.md) | 1 |  |

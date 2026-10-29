@@ -5,7 +5,7 @@ import { coreEnhText, coreLines, corePicker, enhClose, setEnhCoin, enhOpen, enhT
 import { TIERS, tierOfYears, ITEM_KINDS, DAN_CD, itemDef, honTeParts, RING_ITEM, tierBand, formatYears, MAX_RINGS, MAX_LEVEL, BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, BAG_SLOTS, BAG_PAGE, type BoneStat, type CoreStat, CORE_ITEM, CORE_SETS, coreSetIndex, parseCore, coreName, coreMainValue, coreStatText, CORE_SLOTS, CORE_STATS, coreSlotOf, boneSkillOf, BONE_MAX_ENHANCE, BONE_ENHANCE_MILESTONES, parseBoneSubs, sellPrice, formatHonTe, CORE_MAX_ENHANCE, CORE_MAX_SUBS, herbDef, HERB_MAX, HERB_PCT, RES_STAT_NAMES, AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, autoSellable, MAX_YEARS, MAX_CORE_STARS, type SellSettings } from "../../shared/data.ts";
 import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
-import { artImg, tintedUrl } from "./uiArt.ts";
+import { artImg, shardImg, tintedUrl } from "./uiArt.ts";
 import { setPanel } from "./charPanel.ts";
 import { confirmDialog } from "./confirmDialog.ts";
 import { panelChanged, swapButton } from "./dualWindow.ts";
@@ -91,6 +91,7 @@ export function itemArt(it: Pick<BagItem, "code" | "years" | "stats">) {
   const def = itemDef(it.code), kind = def?.kind;
   // Hồn hoàn tô theo màu niên hạn; mảnh võ hồn, rương (màu hào quang thú vương / boss), tiên thảo theo `col` của món (ảnh chung
   // của nhóm, uiArt.tintedUrl lấy độ sáng rồi nhân màu; rương và tiên thảo là bản xám, #170).
+  if (kind === "manh_vo_hon" && def?.vohon) { const s = shardImg(def.vohon, def.col); if (s) return s; }
   const tint = it.code === RING_ITEM && it.years !== null ? ringColor(tierOfYears(it.years))
     : kind === "manh_vo_hon" || kind === "ruong" || kind === "tien_thao" ? def!.col : null;
   if (tint) { const u = tintedUrl(`item_${kind}`, tint); if (u) return `<img class="ico art" src="${u}" alt="" draggable="false">`; }

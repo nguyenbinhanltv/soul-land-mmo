@@ -51,6 +51,16 @@ export function artImg(key: string, cls = "") {
 }
 
 /**
+ * Biểu tượng mảnh võ hồn của `vohonId` (#1305): `item_manh_<mã>` (khung mảnh + icon võ hồn, viền đã theo màu, KHÔNG tô lại); chưa có ảnh
+ * thì rơi về ảnh chung `item_manh_vo_hon` tô theo `col`. Không có ảnh nào thì "" để nơi gọi giữ kiểu cũ.
+ */
+export function shardImg(vohonId: string, col: string, cls = "ico art") {
+  const own = artImg(`item_manh_${vohonId}`, cls); if (own) return own;
+  const u = tintedUrl("item_manh_vo_hon", col);
+  return u ? `<img class="${cls}" src="${u}" alt="" draggable="false">` : "";
+}
+
+/**
  * Ảnh vật phẩm tô theo màu khi hiển thị (ngoài hồn cốt xám): hồn hoàn theo niên hạn, mảnh võ hồn theo màu võ hồn, rương và tiên
  * thảo (bản xám, #170) theo `col` của món.
  */

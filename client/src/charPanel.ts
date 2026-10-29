@@ -20,7 +20,8 @@ import { itemColor, itemName, boneOf, coreOf, coreSet, coreLines, wornCores, bon
 /** Bộ chỉ số server gửi (kết quả calcStats). */
 export interface StatBlock { maxHp: number; maxMp: number; atk: number; speed: number; crit: number; critMult: number; }
 /** Tin riêng "stats": `total` là chỉ số thật của võ hồn `rowId`, `base` là khi không gắn hồn cốt / hồn hạch. */
-export interface StatsMsg { rowId: number; total: StatBlock; base: StatBlock; gear?: { red: number; luck: number; weapon: { min: number; max: number } | null }; }
+export interface StatsMsg { rowId: number; total: StatBlock; base: StatBlock; gear?: { red: number; luck: number; weapon: { min: number; max: number } | null };
+  /** Điểm Sức mạnh (X3, docs/design/xep-hang.md): của võ hồn này và của cả đội hình (số trên bảng Xếp Hạng); server tính bằng `powerScore`. */ power?: number; teamPower?: number; }
 /** Thao tác của bảng: chỉ gửi lệnh server có sẵn (như bảng Đội hình / Túi); `switchTo`: ô đội 0..TEAM_SIZE − 1; `combat`: đang giao chiến (tin "squad"). */
 export interface CharActions {
   portrait(vohon: string): string; ask(rowId: number | null): void;
@@ -429,6 +430,11 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     const { total: t, base: b } = st, d = (x: number, y: number, f = num) => (Math.round(x - y) > 0 ? `+${f(x - y)}` : "");
     const dp = (x: number, y: number) => (x - y > 1e-9 ? `+${pct(x - y)}` : "");
     const src = "từ hồn cốt, hồn hạch";
+    if (st.power != null) {
+      group("Sức mạnh");
+      row("Sức mạnh võ hồn", "Điểm tổng hợp từ sinh lực, hồn lực, công và chí mạng (đã gồm hồn hoàn, hồn cốt, hồn hạch, trang bị, cộng minh; không tính buff tạm).", num(st.power), "", "");
+      if (st.teamPower != null) row("Sức mạnh đội hình", "Tổng sức mạnh các võ hồn trong đội hình: số xếp hạng ở bảng Xếp Hạng (mục Sức mạnh).", num(st.teamPower), "", "");
+    }
     group("Chính");
     row("Sinh lực", "Chịu được bao nhiêu sát thương trước khi gục.", num(t.maxHp), d(t.maxHp, b.maxHp), d(t.maxHp, b.maxHp) && `${d(t.maxHp, b.maxHp)} ${src}`);
     row("Hồn lực", "Tiêu hao khi tung hồn kỹ; hồi dần theo thời gian.", num(t.maxMp), d(t.maxMp, b.maxMp), d(t.maxMp, b.maxMp) && `${d(t.maxMp, b.maxMp)} ${src}`);

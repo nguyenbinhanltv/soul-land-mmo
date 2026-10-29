@@ -1046,6 +1046,7 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
 .rgrid .rstar{color:var(--xp);font-size:10px;font-family:var(--f10);text-align:center}
 .sgrid .srow{flex-direction:column;align-items:stretch;gap:3px;width:96px;padding:0;border:0;background:none}
 .sgrid .srow small{text-align:center;color:var(--muted)}
+.sgrid .srow>.ico{align-self:center;width:32px;height:32px;image-rendering:pixelated}
 .sgrid .sbtn{min-width:0;width:100%;min-height:28px}
 /* Lễ thức tỉnh: lưới thẻ SSR theo hệ; kết quả / màn chào: thẻ phóng ×2. */
 .card .vgrid{grid-template-columns:repeat(auto-fill,96px);justify-content:start}
