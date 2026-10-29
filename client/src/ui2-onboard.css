@@ -1,0 +1,48 @@
+/* UI v2: làm quen sau hướng dẫn điều khiển (onboard.ts), chấm ping (pingMeter.ts), mũi tên chỉ mục tiêu nhiệm vụ (questArrow.ts); Part of #885.
+   Mọi luật dưới `body.ui2` (cờ tắt mặc định: không có lớp này thì không đổi gì). Chữ 10 / 12 (Galmuri) theo token --fs-*, đổi theo cỡ chữ trợ năng;
+   dấu hiệu luôn có HÌNH + CHỮ (không chỉ màu). Giảm chuyển động (prefers-reduced-motion hoặc lớp reduce-motion): vòng sáng đứng yên. */
+
+/* (1) Thẻ làm quen: giấy ở giữa màn, nằm trên bảng lớn (z 5 > 4) nhưng chừa hàng đội hình / thanh kỹ năng (bottom 204 px ở 960×540; cao thêm theo cỡ chữ). Vùng bấm nút ≥ 44 px. */
+body.ui2 #onboard{position:absolute;left:50%;transform:translateX(-50%);bottom:204px;z-index:5;width:min(440px,calc(100% - 560px));min-width:380px;max-width:100%;
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 var(--sp-5);align-items:center;padding:var(--sp-4) var(--sp-5);pointer-events:auto;
+  background:var(--paper);color:var(--ink);border:var(--bd) solid var(--wood);font:var(--fs-m)/1.5 var(--f12)}
+body.ui2 #onboard[hidden]{display:none}
+body.ui2 #onboard[data-dock="low"]{bottom:var(--sp-5)}
+body.ui2 #onboard .ob-head{display:flex;justify-content:space-between;gap:var(--sp-4);color:var(--inkl);font:var(--fs-s)/1.4 var(--f10)}
+body.ui2 #onboard .ob-dots{color:var(--son);letter-spacing:2px;white-space:nowrap}
+body.ui2 #onboard h4{margin:var(--sp-2) 0 var(--sp-1);font:var(--fs-m)/1.3 var(--f12);color:var(--son)}
+body.ui2 #onboard p{margin:0;color:var(--ink)}
+body.ui2 #onboard .ob-foot{display:flex;flex-direction:column;gap:var(--sp-2)}
+body.ui2 #onboard button{min-height:44px;min-width:72px;padding:0 var(--sp-5);font:var(--fs-m)/1.2 var(--f12);cursor:pointer;color:var(--ink);background:var(--paper2);border:var(--bd) solid var(--wood)}
+body.ui2 #onboard .ob-next{background:var(--son);color:var(--plate-text);border-color:var(--son-d)}
+body.ui2 #onboard button:focus-visible{outline:var(--bd) solid var(--son-l);outline-offset:var(--bd-fine)}
+body.ui2 #hud:has(#onboard:not([hidden])) .guide[data-mode="hint"],body.ui2 #hud:has(.guide[data-mode="review"]:not([hidden])) #onboard,body.ui2 #hud:has(#npc:not([hidden])) #onboard,body.arena #onboard{display:none}   /* gợi ý theo tình huống nhường; xem lại hướng dẫn điều khiển thì thẻ làm quen tạm ẩn */
+
+/* (2) Vòng sáng + mũi nhấn bám theo nút cần bấm (onboard.ts đặt left / top / width / height theo nút). Mũi nhấn là ▼ nằm trên nút (hoặc ▲ dưới nút khi sát mép trên). */
+body.ui2 #obSpot{position:absolute;z-index:6;pointer-events:none;box-sizing:border-box}
+body.ui2 #obSpot .ob-ring{position:absolute;inset:calc(var(--sp-2) * -1);border:var(--bd) solid var(--son-l);box-shadow:0 0 0 var(--bd-fine) var(--plate),inset 0 0 0 var(--bd-fine) var(--plate);animation:obPulse 1.2s steps(4,end) infinite}
+body.ui2 #obSpot .ob-arrow{position:absolute;left:50%;bottom:100%;margin-bottom:var(--sp-3);transform:translateX(-50%);font:var(--fs-l)/1 var(--f12);color:var(--son-l);text-shadow:var(--stroke);animation:obBob .8s steps(2,end) infinite}
+body.ui2 #obSpot[data-side="below"] .ob-arrow{bottom:auto;top:100%;margin:var(--sp-3) 0 0;transform:translateX(-50%) scaleY(-1)}
+@keyframes obPulse{50%{inset:calc(var(--sp-3) * -1);opacity:.55}}
+@keyframes obBob{50%{margin-bottom:var(--sp-1)}}
+body.ui2.reduce-motion #obSpot :is(.ob-ring,.ob-arrow){animation:none}
+@media (prefers-reduced-motion:reduce){body.ui2 #obSpot :is(.ob-ring,.ob-arrow){animation:none}}
+
+/* (3) Chấm ping dưới thông tin radar: hình (tròn / tam giác / vuông / rỗng) + chữ mức + số ms. */
+body.ui2 #ping2{display:flex;align-items:center;justify-content:center;gap:var(--sp-2);margin:var(--sp-1) auto 0;max-width:168px;color:var(--plate-text);font:var(--fs-s)/1.3 var(--f10);white-space:nowrap}
+body.ui2 #ping2 .pg2-mark{font-style:normal;--pg:var(--plate-text);color:var(--pg)}
+body.ui2 #ping2[data-level="good"]{--pg:#7fd89a}
+body.ui2 #ping2[data-level="warn"]{--pg:var(--qgold,#ffe08a)}
+body.ui2 #ping2[data-level="bad"]{--pg:var(--son-l)}
+
+/* (4) Mũi tên mục tiêu nhiệm vụ: khung đặt chừa chỗ cho cột trái (chỉ số), cột phải (radar), thanh kỹ năng; mũi tên nằm trên biên khung. */
+body.ui2 #qarrow{position:absolute;top:72px;bottom:150px;left:250px;right:250px;z-index:1;pointer-events:none}
+body.ui2 #qarrow[hidden]{display:none}
+body.ui2 #qarrow .qa-pt{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:var(--sp-1)}
+body.ui2 #qarrow .qa-ar{font:var(--fs-l)/1 var(--f12);font-style:normal;color:#ffe08a;text-shadow:var(--stroke);transform:rotate(var(--qa-deg,0deg))}
+body.ui2 #qarrow .qa-tx{padding:var(--sp-1) var(--sp-3);font:var(--fs-s)/1.3 var(--f10);color:var(--plate-text);background:var(--plate);border:var(--bd-fine) solid var(--ink2);white-space:nowrap}
+body.ui2 #qarrow .qa-pt[data-x="r"]{align-items:flex-end;transform:translate(-100%,-50%)}
+body.ui2 #qarrow .qa-pt[data-x="l"]{align-items:flex-start;transform:translate(0,-50%)}
+body.ui2 #qarrow .qa-pt[data-y="b"]{transform:translate(-50%,-100%)}
+body.ui2 #qarrow .qa-pt[data-y="b"][data-x="r"]{transform:translate(-100%,-100%)}
+body.ui2 #qarrow .qa-pt[data-y="b"][data-x="l"]{transform:translate(0,-100%)}
