@@ -170,6 +170,14 @@ export const GRIP_R = 6, GRIP_RING_IN = 3;
 export const SHOULDER_UP = 0.12;
 /** Số marker điểm cầm của một vũ khí theo cột "Tay": `1 tay` → 1 (chỉ tay thuận A), `2 tay` / `đôi` / `găng` → 2 (A chấm, B vòng). */
 export const gripCount = (hands) => (/^1 tay/.test(hands ?? "") ? 1 : 2);
+/** Binh khí dài ghi "theo clip" trong bảng duyệt: nghỉ/đi/trúng đòn một tay, đánh/thi triển hai tay. */
+export const gripCounts = (hands) => Object.fromEntries(CLIPS.map((clip) => [clip, /theo clip/.test(hands ?? "") ? (["attack", "cast"].includes(clip) ? 2 : 1) : gripCount(hands)]));
+/** Tương thích số tay cố định của API cũ và bảng số tay theo clip. */
+export function gripCountAt(count, clip) {
+  const n = typeof count === "number" ? count : count[clip];
+  if (n !== 1 && n !== 2) throw new Error(`số điểm cầm không hợp lệ cho ${clip}`);
+  return n;
+}
 /** Màu khóa marker: ứng viên đầu tiên cách xa (≥ 90) màu thân + nhấn của võ hồn, màu nộm, màu vạch (≥ 120). */
 export function gripKeyOf(id, dummyKey = dummyKeyOf(id), guideKey = guideKeyOf(id, dummyKey), colors = vohonColors(id)) {
   const far = (g) => [dummyKey, guideKey].every((c) => rgbDist(g, c) >= 120) && (!colors || [colors.col, colors.robe].every((c) => rgbDist(g, c) >= 90));

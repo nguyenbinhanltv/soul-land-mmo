@@ -20,7 +20,7 @@ import { contactSheet } from "./beast-sheet-contact.mjs";
 import { silhouetteDiff, silhouetteIou, BG_LOCK, BG_TOL, EMPTY_CELL_FRAC, BASELINE_FRAC } from "./beast-sheet-check.mjs";
 import {
   DIRS, CLIPS, COLS, BAND_ROWS, TURNAROUND, CELL, SHEET_W, SHEET_H, DIR_OF_SHEET, ANIM_ROOT, sheetCells, figuresPerBand, framesOf, sheetFits, phutheInfo, GROUPS,
-  guideKeyOf, gripKeyOf, gripCount, checkKind, animDir,
+  guideKeyOf, gripKeyOf, gripCounts, gripCountAt, checkKind, animDir,
 } from "./phuthe-sheet-lib.mjs";
 import { prepareSheet, cellSpirit, cellGripObs, dropSpecks, eraseGuides, REG_MIN_SCORE } from "./phuthe-sheet-cut-lib.mjs";
 
@@ -232,7 +232,7 @@ export function checkPhuThe(id, opt = {}) {
   if (!GROUPS.includes(group)) throw new Error(`nhóm lạ ${group}`);
   const ta = turnaroundFile(dir), files = sheetFiles(dir);
   if (!files.length && !ta) throw new Error(`không có tờ toA.png… trong ${dir}`);
-  const guideKey = opt.guideKey ?? guideKeyOf(id, dummyKey), o = { kind, group, frame, dummyKey, guideKey, ...(kind === "vukhi" ? { gripKey: opt.gripKey ?? gripKeyOf(id, dummyKey, guideKey), gripN: gripCount(info.hands) } : {}), sex: opt.sex ?? "m" };
+  const guideKey = opt.guideKey ?? guideKeyOf(id, dummyKey), o = { kind, group, frame, dummyKey, guideKey, ...(kind === "vukhi" ? { gripKey: opt.gripKey ?? gripKeyOf(id, dummyKey, guideKey), gripN: gripCounts(info.hands) } : {}), sex: opt.sex ?? "m" };
   const sheets = files.map((f) => analyzeSheet(f, o)), turnaround = ta ? analyzeTurnaround(ta, o) : null;
   const sRef = sheets.find((s) => s.dirs[0] === "s");
   if (sRef) for (const s of sheets) {

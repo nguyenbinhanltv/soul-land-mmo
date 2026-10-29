@@ -1,0 +1,551 @@
+{
+  "mode": "clip-hands",
+  "source": [
+    [
+      1260,
+      860
+    ],
+    [
+      920,
+      634
+    ]
+  ],
+  "method": "nearest-neighbor similarity transform; no mannequin edits",
+  "frames": [
+    {
+      "name": "se/idle/0",
+      "asset": "se-carry",
+      "hands": [
+        [
+          113,
+          157.25
+        ]
+      ],
+      "shoulder": [
+        126.25961538461539,
+        114.6723076923077
+      ],
+      "sourceStep": 1,
+      "fallback": false,
+      "sourceGripA": [
+        385,
+        390
+      ],
+      "sourceGripB": [
+        294.13983632490147,
+        303.92195020253826
+      ],
+      "scale": 0.25,
+      "angleDegrees": -72.70228042110998,
+      "secondGripError": null,
+      "headCenter": [
+        133.12638883337758,
+        79.1299579331418
+      ],
+      "headAboveHero": true,
+      "drawn": 2375,
+      "clipped": 0
+    },
+    {
+      "name": "se/idle/1",
+      "asset": "se-carry",
+      "hands": [
+        [
+          113.28571428571428,
+          156.14285714285714
+        ]
+      ],
+      "shoulder": [
+        126.07692307692308,
+        114.62461538461538
+      ],
+      "sourceStep": 3,
+      "fallback": false,
+      "sourceGripA": [
+        385,
+        390
+      ],
+      "sourceGripB": [
+        294.13983632490147,
+        303.92195020253826
+      ],
+      "scale": 0.25,
+      "angleDegrees": -72.87664236559854,
+      "secondGripError": null,
+      "headCenter": [
+        133.17427615831014,
+        77.96192847965996
+      ],
+      "headAboveHero": true,
+      "drawn": 2378,
+      "clipped": 0
+    },
+    {
+      "name": "se/walk/0",
+      "asset": "se-carry",
+      "hands": [
+        [
+          126,
+          159.8
+        ]
+      ],
+      "shoulder": [
+        125.93137254901961,
+        116.75921568627453
+      ],
+      "sourceStep": 0,
+      "fallback": false,
+      "sourceGripA": [
+        385,
+        390
+      ],
+      "sourceGripB": [
+        294.13983632490147,
+        303.92195020253826
+      ],
+      "scale": 0.25,
+      "angleDegrees": -90.09135660584235,
+      "secondGripError": null,
+      "headCenter": [
+        121.8596927326999,
+        79.23530329150155
+      ],
+      "headAboveHero": true,
+      "drawn": 2390,
+      "clipped": 0
+    },
+    {
+      "name": "se/walk/1",
+      "asset": "se-carry",
+      "hands": [
+        [
+          105.2,
+          159
+        ]
+      ],
+      "shoulder": [
+        125.19811320754717,
+        114.73471698113208
+      ],
+      "sourceStep": 2,
+      "fallback": false,
+      "sourceGripA": [
+        385,
+        390
+      ],
+      "sourceGripB": [
+        294.13983632490147,
+        303.92195020253826
+      ],
+      "scale": 0.25,
+      "angleDegrees": -65.68755973222812,
+      "secondGripError": null,
+      "headCenter": [
+        134.71609820702324,
+        83.92262360315618
+      ],
+      "headAboveHero": true,
+      "drawn": 2374,
+      "clipped": 0
+    },
+    {
+      "name": "se/walk/2",
+      "asset": "se-carry",
+      "hands": [
+        [
+          100.55555555555556,
+          158.77777777777777
+        ]
+      ],
+      "shoulder": [
+        124.61467889908258,
+        117.13284403669726
+      ],
+      "sourceStep": 3,
+      "fallback": false,
+      "sourceGripA": [
+        385,
+        390
+      ],
+      "sourceGripB": [
+        294.13983632490147,
+        303.92195020253826
+      ],
+      "scale": 0.25,
+      "angleDegrees": -59.98410192436766,
+      "secondGripError": null,
+      "headCenter": [
+        137.38671125645732,
+        87.0053703377599
+      ],
+      "headAboveHero": true,
+      "drawn": 2376,
+      "clipped": 0
+    },
+    {
+      "name": "se/walk/3",
+      "asset": "se-carry",
+      "hands": [
+        [
+          117,
+          157.8
+        ]
+      ],
+      "shoulder": [
+        125.30331753554503,
+        114.68379146919432
+      ],
+      "sourceStep": 5,
+      "fallback": false,
+      "sourceGripA": [
+        385,
+        390
+      ],
+      "sourceGripB": [
+        294.13983632490147,
+        303.92195020253826
+      ],
+      "scale": 0.25,
+      "angleDegrees": -79.09943048506369,
+      "secondGripError": null,
+      "headCenter": [
+        128.29697499039338,
+        77.92390309944767
+      ],
+      "headAboveHero": true,
+      "drawn": 2378,
+      "clipped": 0
+    },
+    {
+      "name": "se/attack/0",
+      "asset": "se-carry",
+      "hands": [
+        [
+          112.55555555555556,
+          160.77777777777777
+        ],
+        [
+          154.42857142857144,
+          159.57142857142856
+        ]
+      ],
+      "shoulder": [
+        130.01554404145077,
+        118.1258031088083
+      ],
+      "sourceStep": 0,
+      "fallback": false,
+      "sourceGripA": [
+        385,
+        390
+      ],
+      "sourceGripB": [
+        263.3582371032313,
+        274.7604351504297
+      ],
+      "scale": 0.25,
+      "angleDegrees": -1.6502180078469737,
+      "secondGripError": 0,
+      "headCenter": [
+        192.97780315442617,
+        154.44732825614452
+      ],
+      "headAboveHero": false,
+      "drawn": 2373,
+      "clipped": 0
+    },
+    {
+      "name": "se/attack/1",
+      "asset": "se-carry",
+      "hands": [
+        [
+          109.2,
+          157
+        ],
+        [
+          147.75,
+          155.75
+        ]
+      ],
+      "shoulder": [
+        130.05405405405406,
+        115.0745945945946
+      ],
+      "sourceStep": 1,
+      "fallback": false,
+      "sourceGripA": [
+        385,
+        390
+      ],
+      "sourceGripB": [
+        272.99926329752196,
+        283.8940389134419
+      ],
+      "scale": 0.25,
+      "angleDegrees": -1.8571890972207565,
+      "secondGripError": 0,
+      "headCenter": [
+        189.59885528448117,
+        150.3790809591829
+      ],
+      "headAboveHero": false,
+      "drawn": 2380,
+      "clipped": 0
+    },
+    {
+      "name": "se/attack/2",
+      "asset": "se-strike",
+      "hands": [
+        [
+          106.2,
+          156.2
+        ],
+        [
+          166.77777777777777,
+          149.44444444444446
+        ]
+      ],
+      "shoulder": [
+        132.25,
+        115.15857142857143
+      ],
+      "sourceStep": 2,
+      "fallback": false,
+      "sourceGripA": [
+        410,
+        880
+      ],
+      "sourceGripB": [
+        222.60655979836136,
+        692.6065597983613
+      ],
+      "scale": 0.23,
+      "angleDegrees": -6.363259535755011,
+      "secondGripError": 0,
+      "headCenter": [
+        196.7142557793197,
+        146.10596707376627
+      ],
+      "headAboveHero": false,
+      "drawn": 2217,
+      "clipped": 0
+    },
+    {
+      "name": "se/attack/3",
+      "asset": "se-strike",
+      "hands": [
+        [
+          106.2,
+          156.2
+        ],
+        [
+          166.77777777777777,
+          149.44444444444446
+        ]
+      ],
+      "shoulder": [
+        132.25,
+        115.15857142857143
+      ],
+      "sourceStep": 3,
+      "fallback": true,
+      "sourceGripA": [
+        410,
+        880
+      ],
+      "sourceGripB": [
+        222.60655979836136,
+        692.6065597983613
+      ],
+      "scale": 0.23,
+      "angleDegrees": -6.363259535755011,
+      "secondGripError": 0,
+      "headCenter": [
+        196.7142557793197,
+        146.10596707376627
+      ],
+      "headAboveHero": false,
+      "drawn": 2217,
+      "clipped": 0
+    },
+    {
+      "name": "se/cast/0",
+      "asset": "se-carry",
+      "hands": [
+        [
+          148.27272727272725,
+          145
+        ],
+        [
+          104.71428571428572,
+          144.85714285714286
+        ]
+      ],
+      "shoulder": [
+        126.43478260869566,
+        115.41913043478262
+      ],
+      "sourceStep": 1,
+      "fallback": false,
+      "sourceGripA": [
+        385,
+        390
+      ],
+      "sourceGripB": [
+        258.513849525296,
+        270.17101533975415
+      ],
+      "scale": 0.25,
+      "angleDegrees": -179.81208964968835,
+      "secondGripError": 0,
+      "headCenter": [
+        67.6888072478551,
+        148.74757700721523
+      ],
+      "headAboveHero": false,
+      "drawn": 2358,
+      "clipped": 0
+    },
+    {
+      "name": "se/cast/1",
+      "asset": "se-strike",
+      "hands": [
+        [
+          148.27272727272725,
+          145
+        ],
+        [
+          104.71428571428572,
+          144.85714285714286
+        ]
+      ],
+      "shoulder": [
+        126.43478260869566,
+        115.41913043478262
+      ],
+      "sourceStep": 2,
+      "fallback": true,
+      "sourceGripA": [
+        410,
+        880
+      ],
+      "sourceGripB": [
+        276.08419542783565,
+        746.0841954278355
+      ],
+      "scale": 0.23,
+      "angleDegrees": -179.81208964968835,
+      "secondGripError": 3.1776437161565096e-14,
+      "headCenter": [
+        57.19786366474089,
+        144.70130485996188
+      ],
+      "headAboveHero": false,
+      "drawn": 2193,
+      "clipped": 0
+    },
+    {
+      "name": "se/hurt/0",
+      "asset": "se-carry",
+      "hands": [
+        [
+          157.44444444444446,
+          158.77777777777777
+        ]
+      ],
+      "shoulder": [
+        133.36296296296297,
+        115.05777777777779
+      ],
+      "sourceStep": 1,
+      "fallback": true,
+      "sourceGripA": [
+        385,
+        390
+      ],
+      "sourceGripB": [
+        294.13983632490147,
+        303.92195020253826
+      ],
+      "scale": 0.25,
+      "angleDegrees": -118.84648136670131,
+      "secondGripError": null,
+      "headCenter": [
+        115.05767257539321,
+        90.1397848691779
+      ],
+      "headAboveHero": true,
+      "drawn": 2377,
+      "clipped": 0
+    }
+  ],
+  "anim": {
+    "kind": "vukhi",
+    "grip": {
+      "se/idle/0": [
+        -7.5,
+        -11.375
+      ],
+      "se/idle/1": [
+        -7.357142857142861,
+        -11.92857142857143
+      ],
+      "se/walk/0": [
+        -1,
+        -10.099999999999994
+      ],
+      "se/walk/1": [
+        -11.399999999999999,
+        -10.5
+      ],
+      "se/walk/2": [
+        -13.722222222222221,
+        -10.611111111111114
+      ],
+      "se/walk/3": [
+        -5.5,
+        -11.099999999999994
+      ],
+      "se/attack/0": [
+        -7.722222222222221,
+        -9.611111111111114,
+        13.214285714285722,
+        -10.214285714285722
+      ],
+      "se/attack/1": [
+        -9.399999999999999,
+        -11.5,
+        9.875,
+        -12.125
+      ],
+      "se/attack/2": [
+        -10.899999999999999,
+        -11.900000000000006,
+        19.388888888888886,
+        -15.277777777777771
+      ],
+      "se/attack/3": [
+        -10.899999999999999,
+        -11.900000000000006,
+        19.388888888888886,
+        -15.277777777777771
+      ],
+      "se/cast/0": [
+        10.136363636363626,
+        -17.5,
+        -11.642857142857139,
+        -17.57142857142857
+      ],
+      "se/cast/1": [
+        10.136363636363626,
+        -17.5,
+        -11.642857142857139,
+        -17.57142857142857
+      ],
+      "se/hurt/0": [
+        14.722222222222229,
+        -10.611111111111114
+      ]
+    }
+  }
+}

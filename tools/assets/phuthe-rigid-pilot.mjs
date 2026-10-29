@@ -1,14 +1,20 @@
 // Thử riêng hướng nam Hạo Thiên Chùy: ghép ảnh vũ khí độc lập vào nộm LPC, không nhập game.
 // node tools/assets/phuthe-rigid-pilot.mjs --raw <PNG nguyên bản> --out <thư mục thử> [--poses <RAW lượt 2>] [--impact <RAW lượt 3>]
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { readPng, encodePng } from "./lib.mjs";
 import { dummySheet, gripPoints, dummyCell } from "./phuthe-sheet-dummy.mjs";
-import { sheetCells, bodyStepOf, framesOf } from "./phuthe-sheet-lib.mjs";
+import { sheetCells, bodyStepOf, framesOf, DIRS, gripCounts, gripCountAt } from "./phuthe-sheet-lib.mjs";
+import { components } from "./beast-sheet-cut.mjs";
 
 const args = process.argv.slice(2), value = (key) => args[args.indexOf(key) + 1];
 if (!args.includes("--raw") || !args.includes("--out")) throw new Error("Cần --raw và --out; công cụ chỉ thử hướng s, không nhập game");
 const out = value("--out"), raw = readPng(value("--raw"));
+const dir = args.includes("--dir") ? value("--dir") : "s", byClip = args.includes("--by-clip");
+if (!DIRS.includes(dir)) throw new Error("Hướng chỉ s/se/e/ne/n");
+const counts = byClip ? gripCounts("2 tay (theo clip)") : 2;
+const config = args.includes("--source-config") ? JSON.parse(readFileSync(value("--source-config"), "utf8").replace(/^\uFEFF/, "")) : null;
+if (config && (!byClip || !config[dir])) throw new Error("Cấu hình ảnh cần --by-clip và mục hướng tương ứng");
 const poses = args.includes("--poses") ? readPng(value("--poses")) : null;
 const impact = args.includes("--impact") ? readPng(value("--impact")) : null;
 if (raw.w !== 1536 || raw.h !== 1024) throw new Error("Điểm đo chỉ áp dụng RAW lượt 1 cỡ 1536×1024; không tự co ảnh khác");
@@ -23,21 +29,37 @@ const isWeapon = (x, y, image = raw, bounds = [0, 0, image.w, image.h]) => {
   const [r, g, b, a] = image.get(x, y);
   return a >= 128 && Math.hypot(r - 255, g, b - 255) > 70;
 };
-for (const [x, y] of source) if (!isWeapon(x, y)) throw new Error("Điểm cầm nguồn không nằm trên vũ khí");
-const idleGrip = gripPoints({ dir: "s", clip: "idle", step: 0, frame: 128 });
+if (!config) for (const [x, y] of source) if (!isWeapon(x, y)) throw new Error("Điểm cầm nguồn không nằm trên vũ khí");
+const maskCache = new WeakMap();
+function mainMask(image, bounds) {
+  if (!maskCache.has(image)) maskCache.set(image, new Map());
+  const key = bounds.join(","), cache = maskCache.get(image);
+  if (!cache.has(key)) {
+    const mask = new Uint8Array(image.w * image.h);
+    for (let y = bounds[1]; y < bounds[3]; y++) for (let x = bounds[0]; x < bounds[2]; x++) if (isWeapon(x, y, image, bounds)) mask[y * image.w + x] = 1;
+    const parts = components(mask, image.w, image.h).sort((a, b) => b.area - a.area);
+    if (!parts.length) throw new Error("Vùng lấy pose rỗng");
+    mask.fill(0); for (const i of parts[0].px) mask[i] = 1;
+    cache.set(key, mask);
+  }
+  return cache.get(key);
+}
+const idleGrip = gripPoints({ dir, clip: "idle", step: 0, frame: 128 });
 const idleDistance = Math.hypot(idleGrip.hands[1][0] - idleGrip.hands[0][0], idleGrip.hands[1][1] - idleGrip.hands[0][1]);
 const results = {};
-for (const mode of ["two-hands", "shoulder", "sliding", ...(poses ? ["poses"] : [])]) {
-  const board = dummySheet({ group: "A", dir: "s", frame: 128, key: "#00D0D0", guideKey: "#7A5CFF", gripKey: "#00FF60", gripN: 2 }).img;
+for (const mode of byClip ? ["clip-hands"] : ["two-hands", "shoulder", "sliding", ...(poses ? ["poses"] : [])]) {
+  const board = dummySheet({ group: "A", dir, frame: 128, key: "#00D0D0", guideKey: "#7A5CFF", gripKey: "#00FF60", gripN: counts }).img;
   const report = { mode, source, method: "nearest-neighbor similarity transform; no mannequin edits", frames: [], anim: { kind: "vukhi", grip: {} } };
   for (const cell of cells) {
-    const step = bodyStepOf(cell.anim, framesOf("A")[cell.anim], cell.frame), opt = { dir: "s", clip: cell.anim, step, frame: 128 };
-    const g = gripPoints(opt), [A, B] = g.hands;
+    const step = bodyStepOf(cell.anim, framesOf("A")[cell.anim], cell.frame), opt = { dir, clip: cell.anim, step, frame: 128 };
+    const g = gripPoints({ ...opt, count: gripCountAt(counts, cell.anim) }); g.hands = g.hands.slice(0, gripCountAt(counts, cell.anim));
+    const [A, B] = g.hands;
     if (!A) throw new Error(`Không đo được tay ${cell.anim}/${cell.frame}`);
     const distance = B ? Math.hypot(B[0] - A[0], B[1] - A[1]) : idleDistance;
-    const slide = mode === "sliding" || mode === "poses";
+    const slide = mode === "sliding" || mode === "poses" || byClip;
     let asset = { name: "base", image: raw, anchor: slide ? [1000, 687] : source[0], angle: sourceAngle, head: [325, 260], bounds: [0, 0, raw.w, raw.h], scale: .12, usable: 640 };
-    if (mode === "poses" && ["attack", "cast"].includes(cell.anim)) {
+    if (byClip) asset = { ...asset, anchor: source[0], scale: .10, usable: 920 };
+    if ((mode === "poses" || byClip) && poses && ["attack", "cast"].includes(cell.anim)) {
       const i = cell.anim === "cast" ? cell.frame : cell.frame === 3 ? 2 : cell.frame === 2 ? 1 : 0;
       asset = [
         { name: "raise", image: poses, anchor: [440, 720], angle: Math.atan2(-340, -220), head: [180, 290], bounds: [0, 0, 512, 1024], scale: .18, usable: 405 },
@@ -46,11 +68,17 @@ for (const mode of ["two-hands", "shoulder", "sliding", ...(poses ? ["poses"] : 
       ][i];
       if (impact && cell.anim === "attack" && cell.frame === 2) asset = { name: "impact-front", image: impact, anchor: [768, 170], angle: Math.PI / 2, head: [768, 650], bounds: [0, 0, 1536, 1024], scale: .18, usable: 210 };
     }
+    if (config) {
+      const useAttack = (cell.anim === "attack" && cell.frame >= 2) || (cell.anim === "cast" && cell.frame === 1);
+      const recipe = config[dir][useAttack ? "attack" : "base"];
+      asset = { ...recipe, image: raw, angle: Math.atan2(recipe.axis[1], recipe.axis[0]) };
+    }
     const { image, anchor, bounds } = asset;
-    const sample = (x, y) => isWeapon(x, y, image, bounds);
+    const mask = config ? mainMask(image, bounds) : null;
+    const sample = (x, y) => mask ? (x >= 0 && y >= 0 && x < image.w && y < image.h && mask[y * image.w + x] === 1) : isWeapon(x, y, image, bounds);
     if (!sample(...anchor)) throw new Error(`Điểm A không nằm trên pose ${asset.name}`);
     const scale = mode === "two-hands" ? distance / sourceDistance : slide ? asset.scale : idleDistance / sourceDistance;
-    const targetAngle = mode === "two-hands" ? (B ? Math.atan2(B[1] - A[1], B[0] - A[0]) : 0) : slide ? (B ? Math.atan2(B[1] - A[1], B[0] - A[0]) : Math.PI + .25) : Math.atan2(g.shoulder[1] - A[1], g.shoulder[0] - A[0]);
+    const targetAngle = byClip ? (B ? Math.atan2(B[1] - A[1], B[0] - A[0]) : Math.atan2(g.shoulder[1] - A[1], g.shoulder[0] - A[0])) : mode === "two-hands" ? (B ? Math.atan2(B[1] - A[1], B[0] - A[0]) : 0) : slide ? (B ? Math.atan2(B[1] - A[1], B[0] - A[0]) : Math.PI + .25) : Math.atan2(g.shoulder[1] - A[1], g.shoulder[0] - A[0]);
     const angle = targetAngle - asset.angle, c = Math.cos(angle), s = Math.sin(angle);
     const transform = ([x, y]) => [A[0] + scale * (c * (x - anchor[0]) - s * (y - anchor[1])), A[1] + scale * (s * (x - anchor[0]) + c * (y - anchor[1]))];
     // Giữ cỡ vật cứng; tay B trượt dọc cán thay vì bắt hai landmark cố định phải trùng hai tay.
@@ -70,12 +98,12 @@ for (const mode of ["two-hands", "shoulder", "sliding", ...(poses ? ["poses"] : 
       if (x < 0 || y < 0 || x >= 256 || y >= 256) { outside++; continue; }
       board.set(x0 + x, y0 + y, image.get(sx, sy)); drawn++;
     }
-    const name = `s/${cell.anim}/${cell.frame}`;
+    const name = `${dir}/${cell.anim}/${cell.frame}`;
     report.anim.grip[name] = g.hands.flatMap(([x, y]) => [(x - origin[0]) / 2, (y - origin[1]) / 2]);
     report.frames.push({ name, asset: asset.name, hands: g.hands, shoulder: g.shoulder, sourceStep: step, fallback: g.fallback, sourceGripA: anchor, sourceGripB: sourceB, scale, angleDegrees: targetAngle * 180 / Math.PI, secondGripError: secondError, headCenter: head, headAboveHero: head[1] < dummy.box.y0, drawn, clipped: outside });
   }
   const file = path.join(out, mode); mkdirSync(file, { recursive: true });
-  writeFileSync(path.join(file, "toA.png"), encodePng(board));
+  writeFileSync(path.join(file, `to${"ABCDE"[DIRS.indexOf(dir)]}.png`), encodePng(board));
   writeFileSync(path.join(file, "placement.json"), JSON.stringify(report, null, 2) + "\n");
   results[mode] = report.frames.map(({ name, secondGripError, headAboveHero, clipped, scale }) => ({ name, secondGripError, headAboveHero, clipped, scale }));
 }

@@ -153,6 +153,8 @@ Parser hiện chỉ hỗ trợ `@VUKHI`, chưa hỗ trợ tag nhóm mềm. Các 
 
 ## Thử ảnh vũ khí riêng — nhóm `@VUKHI-CUNG` (#1320)
 
+- [direction, @VUKHI] For a weapon marked as clip-dependent, idle, walk and hurt use only the main hand; attack and cast use both measured hands. Never move the resting hand to make it touch a shoulder carry. // Quyết định điều phối #1320: không tạo pose LPC mới; Hạo Thiên Chùy và bốn binh khí dài cùng quy tắc.
+
 Các bài dưới đây là kết quả thử, **chưa chèn tự động vào prompt**. Parser hiện chỉ nhận `@VUKHI`, chưa nhận nhóm con; cần bổ sung bộ lọc theo chế độ trước khi đưa các câu này vào cú pháp bài học tự động.
 
 - Draw one isolated rigid weapon on flat magenta, with no mannequin, hero, hands, markers or detached parts; code attaches the weapon to measured hand anchors. // Hạo Thiên Chùy solo s, lượt 1: nộm giữ nguyên khi ghép bằng code, không còn lỗi model vẽ lại tay.

@@ -24,7 +24,7 @@ import { medianCut, nearest } from "./beast-sheet-cut.mjs";
 import { median } from "./beast-sheet-stats.mjs";
 import {
   DIRS, CLIPS, SHEET_ID, CELL, SEXES, HALVES, GAME_ROWS, framesOf, gameAnims, gameCols, gameRow, gameKey, frameOrigin, checkFrame, phutheInfo,
-  guideKeyOf, gripKeyOf, gripCount, checkKind, animDir,
+  guideKeyOf, gripKeyOf, gripCounts, gripCountAt, checkKind, animDir,
 } from "./phuthe-sheet-lib.mjs";
 import { prepareSheet, cellSpirit, cellGripObs, dropSpecks, parseLop, layerFn, defaultLayers, levelOfCode, summarize, DUMMY_TOL, BG_TOL, dist2 } from "./phuthe-sheet-cut-lib.mjs";
 import { bodyAnchors } from "./phuthe-sheet-dummy.mjs";
@@ -76,7 +76,7 @@ export function cutPhuThe(o) {
     const sid = SHEET_ID[dir], raw = o.sheets[sid];
     if (!raw) { dirStatus[dir] = "thieu"; if (o.partial) warn("thieu-huong", `hướng ${dir} (tờ ${sid}) chưa có: bỏ qua, client dùng phụ thể tĩnh cũ cho hướng này`); else warn("thieu-to", `thiếu tờ ${sid} (${dir})`); continue; }
     dirStatus[dir] = "ok";
-    const prep = prepareSheet(raw, { group, dir, frame: F, dummyKey, guideKey, gripKey, gripN: gripCount(info.hands), dummyTol, tol, key: o.key, sex: dummySex, grid: o.grid ?? "auto" });
+    const prep = prepareSheet(raw, { group, dir, frame: F, dummyKey, guideKey, gripKey, gripN: gripCounts(info.hands), dummyTol, tol, key: o.key, sex: dummySex, grid: o.grid ?? "auto" });
     for (const n of prep.notes) warn("luoi", `tờ ${sid}: ${n}`);
     const bad = prep.cells.filter((c) => !c.reg.ok);
     rep.sheets[sid] = { dir, size: [raw.w, raw.h], factor: +prep.factor.toFixed(4), key: prep.bgKey, grid: prep.layout.mode, shift: prep.shift, registered: prep.cells.length - bad.length, cells: prep.cells.length };

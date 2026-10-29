@@ -40,10 +40,11 @@ const CSS = "body{background:#2a2430;color:#e8dfc8;font:13px/1.4 sans-serif;marg
 
 /** Dựng trang xem trước vào `<dir>/preview`; trả đường dẫn index.html. */
 export function buildPreview(id, dir, scaleArg) {
-  const info = phutheInfo(id), entries = JSON.parse(readFileSync(path.join(dir, "manifest-entry.json"), "utf8"));
+  const entries = JSON.parse(readFileSync(path.join(dir, "manifest-entry.json"), "utf8"));
   if (!entries.length) throw new Error("manifest-entry.json rỗng: cả hai nửa đều rỗng, không có gì để xem");
+  const kind = entries[0].anim.kind ?? "phuthe", info = phutheInfo(id, kind);
   const F = entries[0].frame[0], group = entries[0].anim.group ?? info.group, k = scaleArg ?? Math.max(1, Math.round(300 / F)), halves = {};
-  for (const h of Object.values(HALVES)) { const f = path.join(dir, `${gameKey(id, h)}.png`); halves[h] = existsSync(f) ? readPng(f) : null; }
+  for (const h of Object.values(HALVES)) { const f = path.join(dir, `${gameKey(id, h, kind)}.png`); halves[h] = existsSync(f) ? readPng(f) : null; }
   const root = path.join(dir, "preview");
   for (const sex of SEXES) mkdirSync(path.join(root, "gif", sex), { recursive: true });
   for (const sex of SEXES) for (const clip of CLIPS) for (const d of DIRS) {

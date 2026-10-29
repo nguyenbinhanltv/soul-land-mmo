@@ -12,7 +12,7 @@ import { Img, readPng, encodePng, hex, paletteGroup, frameAnchors, ROOT } from "
 import {
   LPC_SHEET, DIRS, BG_KEY, CELL, SHEET_W, SHEET_H, TURNAROUND, TURNAROUND_STEP,
   framesOf, sheetCells, bodyStepOf, bodyRowKey, bodyColOf, bodyOffset, frameOrigin, checkFrame, phutheInfo, dummyKeyOf, guideKeyOf, SHEET_ID, allPhutheIds, allVukhiIds,
-  gripKeyOf, gripCount, GRIP_R, GRIP_RING_IN, SHOULDER_UP, checkKind, CLIPS, bodyAnim,
+  gripKeyOf, gripCounts, gripCountAt, GRIP_R, GRIP_RING_IN, SHOULDER_UP, checkKind, CLIPS, bodyAnim,
 } from "./phuthe-sheet-lib.mjs";
 
 const PARTS = path.join(ROOT, "shared", "assets", "lpcparts");
@@ -109,15 +109,19 @@ const handOrder = (dir, hands) => [...hands].sort((a, b) => (dir === "s" ? a.x -
  * (cùng hệ với `dummyCell` / `guideCell`): { hands: [[x, y], …] (tay thuận trước), back, shoulder, steps: bước thân đã dùng, fallback: có phải dùng bước lân cận }.
  * Khung nào đo không ra tay thì dùng bước thân lân cận của cùng clip (`fallback: true`; kiểm tờ báo lên).
  */
-export function gripPoints({ sex = "m", dir, clip, step, frame }) {
+export function gripPoints({ sex = "m", dir, clip, step, frame, count = 1 }) {
   const F = checkFrame(frame), k = CELL / F, [bx, by] = bodyOffset(F), to = (p) => [(bx + p.x) * k, (by + p.y) * k];
+  let partial = null;
   for (const s of stepsNear(clip, step)) {
     const a = bodyAnchors(sex, dir, clip, s);
     const hands = a ? a.hands.filter((h) => h.n >= HAND_MIN_PX && h.y > a.back.y + HAND_BELOW_BACK) : []; // bỏ mảng da cổ / mặt (cao hơn lưng, hoặc vài điểm)
     if (!hands.length) continue;
     const head = a.head.y, feet = a.feet.y, back = to(a.back);
-    return { hands: handOrder(dir, hands).slice(0, 2).map(to), back, shoulder: [back[0], back[1] - (feet - head) * SHOULDER_UP * k], step: s, fallback: s !== step };
+    const result = { hands: handOrder(dir, hands).slice(0, 2).map(to), back, shoulder: [back[0], back[1] - (feet - head) * SHOULDER_UP * k], step: s, fallback: s !== step };
+    if (hands.length >= count) return result;
+    partial ??= result;
   }
+  if (partial) return { ...partial, fallback: true };
   const a = bodyAnchors(sex, dir, clip, step), back = a ? to(a.back) : [CELL / 2, CELL / 2];
   return { hands: [], back, shoulder: [back[0], back[1] - 20], step, fallback: true };
 }
@@ -153,7 +157,7 @@ export function dummySheet({ group, dir, frame, key = dummyKeyOf(""), sex = "m",
     if (gc) paintGuides(img, at, gd, gc, false);
     paint(img, cell, at, kc);
     if (gc) paintGuides(img, at, gd, gc, true);
-    const grip = pc ? gripMarker({ sex, dir, clip: c.anim, step, frame, count: gripN }) : null;
+    const grip = pc ? gripMarker({ sex, dir, clip: c.anim, step, frame, count: gripCountAt(gripN, c.anim) }) : null;
     if (grip) paintGrip(img, at, grip.pts, pc); // marker điểm cầm đè lên nộm
     cells.push({ ...c, step, cell, ...(grip ? { grip } : {}) });
   }
@@ -169,7 +173,7 @@ export function dummyTurnaround({ frame, key, sex = "m", guideKey = null, gripKe
     if (gc) paintGuides(img, at, gd, gc, false);
     paint(img, cell, { x: c * cw, y: r * ch }, kc);
     if (gc) paintGuides(img, at, gd, gc, true);
-    if (pc) paintGrip(img, at, gripMarker({ sex, dir, clip, step, frame, count: gripN }).pts, pc);
+    if (pc) paintGrip(img, at, gripMarker({ sex, dir, clip, step, frame, count: gripCountAt(gripN, clip) }).pts, pc);
   }));
   return img;
 }
@@ -180,8 +184,8 @@ export function writeDummies(id, out, { frame, key, sex = "m", guideKey, gripKey
   mkdirSync(out, { recursive: true });
   const files = [];
   const put = (name, img) => { const f = path.join(out, name); writeFileSync(f, encodePng(img)); files.push(f); };
-  if (turnaround) put(`${id}-nom-turnaround.png`, dummyTurnaround({ frame: F, key: k, sex, guideKey: g, gripKey: pk, gripN: info.hands ? gripCount(info.hands) : 2 }));
-  for (const dir of DIRS) put(`${id}-nom-to${SHEET_ID[dir]}.png`, dummySheet({ group: info.group, dir, frame: F, key: k, sex, guideKey: g, gripKey: pk, gripN: info.hands ? gripCount(info.hands) : 2 }).img);
+  if (turnaround) put(`${id}-nom-turnaround.png`, dummyTurnaround({ frame: F, key: k, sex, guideKey: g, gripKey: pk, gripN: info.hands ? gripCounts(info.hands) : 2 }));
+  for (const dir of DIRS) put(`${id}-nom-to${SHEET_ID[dir]}.png`, dummySheet({ group: info.group, dir, frame: F, key: k, sex, guideKey: g, gripKey: pk, gripN: info.hands ? gripCounts(info.hands) : 2 }).img);
   return files;
 }
 

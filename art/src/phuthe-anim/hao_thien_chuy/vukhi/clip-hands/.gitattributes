@@ -1,0 +1,2 @@
+# Giữ byte hồ sơ / manifest sinh ra để SHA-256 khớp trên cả Windows và Linux.
+*.json -text

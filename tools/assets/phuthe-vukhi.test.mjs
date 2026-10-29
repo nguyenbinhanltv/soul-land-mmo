@@ -14,6 +14,41 @@ import { buildDirectionPrompt, buildTurnaroundPrompt, referencesFor } from "./ph
 import { vukhiLessonsFor, lessonsFor, parseLessons } from "./phuthe-sheet-lessons.mjs";
 import { fakeSheet } from "./phuthe-sheet-fake.mjs";
 import { cutPhuThe } from "./phuthe-sheet-cut.mjs";
+import { prepareSheet } from "./phuthe-sheet-cut-lib.mjs";
+import { buildPreview } from "./phuthe-sheet-preview.mjs";
+
+test("số tay theo clip: nộm / chuẩn bị cutter giữ một tay lúc nghỉ, hai tay khi đánh / thi triển", () => {
+  const counts = L.gripCounts("2 tay (theo clip)");
+  assert.deepEqual(counts, { idle: 1, walk: 1, attack: 2, cast: 2, hurt: 1 });
+  assert.ok(Object.values(L.gripCounts("2 tay")).every((n) => n === 2));
+  assert.ok(Object.values(L.gripCounts("1 tay")).every((n) => n === 1));
+  assert.equal(L.gripCountAt(2, "idle"), 2);
+  assert.throws(() => L.gripCountAt({ idle: 3 }, "idle"), /không hợp lệ/);
+  const board = dummySheet({ group: "A", dir: "s", frame: 128, key: "#00D0D0", guideKey: "#7A5CFF", gripKey: "#00FF60", gripN: counts });
+  const prep = prepareSheet(board.img, { group: "A", dir: "s", frame: 128, dummyKey: "#00D0D0", guideKey: "#7A5CFF", gripKey: "#00FF60", gripN: counts });
+  for (const cell of board.cells) assert.equal(cell.grip.hands.length, counts[cell.anim]);
+  for (const cell of prep.cells) assert.equal(cell.grip.hands.length, counts[cell.anim]);
+  for (const dir of L.DIRS) for (const cell of L.sheetCells("A").filter((c) => ["attack", "cast"].includes(c.anim))) {
+    const g = gripMarker({ dir, clip: cell.anim, step: L.bodyStepOf(cell.anim, L.framesOf("A")[cell.anim], cell.frame), frame: 128, count: 2 });
+    assert.equal(g.hands.length, 2, `${dir}/${cell.anim}/${cell.frame}: cần tìm khung lân cận nếu tay bị che`);
+  }
+  if (existsSync(L.DOC_VUKHI)) for (const id of ["hao_thien_chuy", "cuu_tinh_that_sat_kiem", "quy_mi", "pha_hon_thuong", "bang_phuong_hoang"]) assert.deepEqual(L.gripCounts(L.phutheInfo(id, "vukhi").hands), counts, id);
+});
+
+test("cutter theo clip: anim.grip ghi hai tọa độ cho nghỉ / đi / hurt và bốn cho attack / cast", () => {
+  const spec = SPEC.replaceAll("| cứng | 2 tay |", "| cứng | 2 tay (theo clip) |");
+  const id = "hao_thien_chuy", info = L.phutheInfo(id, "vukhi", spec), counts = L.gripCounts(info.hands);
+  const sheet = fakeSheet({ group: "A", dir: "s", frame: 128, key: info.dummyKey, guideKey: info.guideKey, gripKey: info.gripKey, gripN: 2 }).img;
+  const r = cutPhuThe({ id, kind: "vukhi", sheets: { A: sheet }, specMd: spec, partial: true });
+  assert.equal(r.report.summary.block, 0);
+  assert.ok(r.entries.length);
+  for (const entry of r.entries) for (const [name, points] of Object.entries(entry.anim.grip)) assert.equal(points.length, counts[name.split("/")[1]] * 2, name);
+  const out = tmp("preview-vukhi");
+  writeFileSync(path.join(out, "manifest-entry.json"), JSON.stringify(r.entries));
+  for (const entry of r.entries) writeFileSync(path.join(out, `${entry.key}.png`), encodePng(r.halves[entry.key.endsWith("_b") ? "b" : "f"]));
+  const preview = buildPreview(id, out, 1);
+  assert.match(readFileSync(preview, "utf8"), /trước có|sau có/, "preview phải tải vkanim, không chỉ vhanim");
+});
 import { checkPhuThe } from "./phuthe-sheet-check.mjs";
 
 const SPEC = `| # | Võ hồn (\`id\`) | Dạng vũ khí | Nhóm | Tay | Điểm cầm trên nộm | Ghi chú hoạt ảnh |
