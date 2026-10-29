@@ -181,7 +181,7 @@ test("buildSheet nguồn hoạt ảnh: thở lấy idleSeq, đánh lấy attackS
   attackSeq(6).forEach((src, i) => assert.equal(h(0, 8 + i), (50 + 2 * src) * k, `đánh ${i} ← nguồn ${src}`));
 });
 
-test("convert 3 võ hồn mẫu: sheet (và lớp sáng Lam Ngân Thảo) khớp tệp đã nhập, lọt khung 160, không cắt, đủ khung, ≤ PT_MAX_COLORS màu", () => {
+test("convert 3 mẫu lọt khung, đủ khung; hai sheet chuyển thể và glow của sheet Lam Ngân Thảo đã nhập khớp công cụ", () => {
   for (const id of SAMPLES) {
     const r = convert(id);
     assert.equal(r.clipped, 0, `${id}: không bị cắt khỏi khung 160`);
@@ -189,8 +189,9 @@ test("convert 3 võ hồn mẫu: sheet (và lớp sáng Lam Ngân Thảo) khớp
     assert.ok(r.src.anim, `${id}: dùng clip vhanim`);
     ISO_DIRS.forEach((d, row) => { for (let c = 0; c < PT_COLS; c++) assert.ok(count(frameOf(r.sheet, row, c)) > 0, `${id}: khung ${d}/${c} trống`); });
     const committed = readPng(path.join(SPRITES, "phaptuong", `${id}.png`));
-    if (id === "lam_ngan_thao") assert.ok(sameImg(readPng(path.join(SPRITES, "phaptuong", `${id}_glow.png`)), buildGlow(r.sheet, hex(vohonColors(id)[0]))), `${id}: lớp sáng lệch công cụ (--glow)`);
-    assert.ok(sameImg(committed, r.sheet), `${id}: shared/assets/sprites/phaptuong/${id}.png lệch công cụ (chạy lại phuthe-to-phaptuong.mjs --id ${id})`);
+    // #1326: Lam Ngân Thảo đã vẽ lại độc lập, không còn là đầu ra chuyển thể.
+    if (id === "lam_ngan_thao") assert.ok(sameImg(readPng(path.join(SPRITES, "phaptuong", `${id}_glow.png`)), buildGlow(committed, hex(vohonColors(id)[0]))), `${id}: lớp sáng lệch sheet đã nhập`);
+    else assert.ok(sameImg(committed, r.sheet), `${id}: shared/assets/sprites/phaptuong/${id}.png lệch công cụ (chạy lại phuthe-to-phaptuong.mjs --id ${id})`);
   }
 });
 
