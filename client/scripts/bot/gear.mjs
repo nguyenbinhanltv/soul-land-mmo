@@ -359,13 +359,13 @@ export async function saveFailTest(){
  * Chống gian lận mua lại nhiều tiến trình / kênh (#742, BOT_ONLY=buybackproc; tài khoản riêng "Mua lai", mỗi vòng một hồn hoàn): bán, đổi kênh NGAY (kênh mới có thể ở
  * tiến trình khác; danh sách mua lại đúng ở presence), rồi mua lại ba lần từ phiên mới, hai lần từ phiên cũ đang đi cổng và một lần từ phiên thứ hai của cùng tài khoản.
  * Bất biến: số hồn hoàn không vượt lúc đầu, Hồn Tệ không vượt lúc đầu (mua lại đúng giá đã bán), id không trùng; món có thể "mất cơ hội mua lại"
- * (danh sách chưa kịp sang) nhưng không nhân đồ / tiền. Cần CHANNEL_MAX=3 (--env CHANNEL_MAX=4; khác 2 để không chạy channelTest), tốt nhất `--procs 2 --pg`.
+ * (danh sách chưa kịp sang) nhưng không nhân đồ / tiền. Cần đúng CHANNEL_MAX=4 (--env CHANNEL_MAX=4; bài tự bỏ qua nếu khác), tốt nhất `--procs 2 --pg`.
  * Báo cáo: docs/tech/soat-gian-lan-mua-lai-ban-be-chat.md.
  */
 export async function buybackProcTest(){
   console.log("[#742] Mua lại nhiều tiến trình / kênh: không nhân đồ, không nhân tiền");
-  const chMax=(await fetch(API+"/health").then(r=>r.json()).catch(()=>({}))).chMax; // kênh 1 phải đầy thì kênh 2 mới mở: server để CHANNEL_MAX mặc định thì báo bỏ qua, không trượt giả "Kênh 2 không còn mở"
-  if(!(chMax>=3&&chMax<=6)){ needHookSkip(`bỏ qua buybackproc (server ${chMax??"?"} người / kênh, cần CHANNEL_MAX 3..6): thêm --env CHANNEL_MAX=4`); await sleep(300); return; }
+  const chMax=(await fetch(API+"/health").then(r=>r.json()).catch(()=>({}))).chMax; // F1..F3 + M lấp ĐÚNG kênh 1 và F4 sang kênh 2 (chỉ đúng khi CHANNEL_MAX=4): sai số khác thì báo bỏ qua, không trượt giả "Kênh 2 không còn mở"
+  if(chMax!==4){ needHookSkip(`bỏ qua buybackproc (server ${chMax??"?"} người / kênh, cần CHANNEL_MAX=4): thêm --env CHANNEL_MAX=4`); await sleep(300); return; }
   const tn=npcSpot("nac_dinh_thanh","thuong_nhan");
   const T=async(b,op,extra={})=>{ b.test=null; b.room.send("test",{op,...extra}); await waitFor(()=>b.test,2000); await sleep(80); return b.test; };
   const F=[]; for(let i=1;i<=4;i++) F.push(await bot(`Mua lai F${i}`,"u_minh_linh_mieu",{sex:0,hair:1,hairCol:1,outfitCol:1}));
