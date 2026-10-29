@@ -18,7 +18,7 @@ export const HUB_ITEMS: HubItem[] = [
   { id: "bag", label: "Túi Đồ", size: "grid", key: "B" },
   { id: "shop", label: "Cửa Hàng", size: "grid", why: "Tại NPC" },
   { id: "rank", label: "Xếp Hạng", size: "grid" },
-  { id: "achv", label: "Thành Tựu", size: "grid", why: "Sắp có" },
+  { id: "achv", label: "Thành Tựu", size: "grid" },
   { id: "quest", label: "Nhiệm Vụ", size: "grid" },
   { id: "world", label: "Bản Đồ", size: "grid", key: "M" },
   { id: "friends", label: "Bạn Bè", size: "grid", key: "L" },

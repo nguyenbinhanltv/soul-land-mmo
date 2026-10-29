@@ -86,6 +86,16 @@ Tái dùng tối đa đường P1 (#1022) / P2 (#1023); thêm chế độ **"vũ
    Mỗi mẫu qua khối chặn / nhẹ / đẹp như `phu-the-hoat-anh.md`, chủ repo duyệt mẫu từng nhóm; bài học ghi `art/src/phuthe-anim/lessons.md` (nhóm mới `@VUKHI-*` hoặc theo nhóm cứng / mềm / găng). Thí điểm xong mới roll 22 võ hồn còn lại theo đợt (thứ tự đề xuất: cứng → găng-vuốt → mềm; găng-vuốt dễ chung khuôn như đợt tai / đuôi / vuốt cũ).
 7. **Giới hạn hiệu năng:** vẫn hai sprite mỗi hồn sư (nửa sau, nửa trước); sheet 128 chỉ cho vũ khí dài (Hạo Thiên Chùy, Phá Hồn Thương, Cửu Tinh, Quỷ Mị nếu cần) theo đo FPS (`tech/hieu-nang-hieu-ung`).
 
+## Quy trình đã kiểm chứng
+
+**Nhóm mềm — Lam Ngân Thảo (#1322), chủ repo chấp nhận mẫu kể cả hai cảnh báo `chan-lech` 14% ở s/se.** [Hồ sơ, lệnh tái tạo và ảnh kiểm](../../art/src/phuthe-anim/lam_ngan_thao/vukhi/NGUON.md).
+
+- **Vẽ riêng, không nộm:** nền `#FF00FF`, mỗi hướng một atlas 6 pose tách rời (1 idle thả dài, 3 attack quất, 2 cast cuộn). Gốc bó dây đánh dấu rõ; đầu dây nằm trọn ảnh, không thêm tay/người. Không cần mỗi pose một job. Thực tế phương pháp mới dùng **5 job tuần tự / 5 atlas, 1 lượt mỗi hướng**: e đạt rồi mới mở rộng s/se/ne/n. Trước đó vòng sửa kèm nộm riêng hướng e đã hết 3/3 lượt mà chưa đạt; không cộng thêm lượt nếu chưa được giao.
+- **Ghép bằng `anim.grip`:** giữ nguyên thân LPC; đo gốc từng pose, chọn pose rồi xoay/dịch tới grip từng khung nam/nữ. Dùng một tỉ lệ chung, đủ chiều dài trong khung (mẫu này 128); không xén để vừa, không dùng code uốn lại dây. Bản mẫu: `isolated/compose.mjs` và `finalize.mjs` trong hồ sơ trên.
+- **Giữ đúng lớp và điểm cầm:** đọc `lop.json` bằng `parseLop`/`layerFn`; ne/n mặc định sau thân, vùng cầm trước, cast theo mặt nạ từng khung. Không áp neo lưng của phụ thể cũ lên vũ khí; giữ `spiritMotion`/`weaponOscK` theo bước 5. Kiểm cả ảnh ghép và GameScene thật để tránh trang thử che lỗi runtime.
+- **Lỗi hay gặp:** model đổi dáng nộm, thêm dây ở tay phụ, xén đầu dây hoặc làm gốc trôi. Tránh bằng atlas không người, chỉ một gốc cầm, chừa mép, đo gốc rồi ghép grip; không yêu cầu model giữ lại pose thân. Soát thêm vòng dây/ngọn chẻ trông như nhiều đầu, chuyển lớp quay lưng và độ dài giữa các hướng.
+- **Cổng duyệt:** e phải 0 chặn và mắt thấy không tay phụ/không xén/gốc đúng tay rồi mới mở rộng. Giữ RAW/prompt lịch sử, hash và bài học bullet `@VUKHI-MEM`; chạy `phuthe:check`, nhập bằng `phuthe-import --kind vukhi`, credits/validate, check/build. Chụp `?thu=vukhi` đủ năm hướng × idle/walk/attack/cast × nam/nữ và võ hồn không vũ khí; ghi cảnh báo vào PR để chủ repo quyết định. Việc chấp nhận hai cảnh báo của mẫu này không tự áp dụng cho mẫu khác.
+
 ## Không làm ở file này
 - Không đổi code, server, `shared/data.ts`, số cân bằng.
 - Không vẽ ảnh, không viết công cụ, không đổi manifest.

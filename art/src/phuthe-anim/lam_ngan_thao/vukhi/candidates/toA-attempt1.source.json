@@ -1,0 +1,199 @@
+{
+  "date": "2026-10-30",
+  "tool": "Codex / OpenAI image_gen tích hợp",
+  "model": null,
+  "seed": null,
+  "kind": "vukhi",
+  "direction": "s",
+  "attempt": 1,
+  "rawUnmodified": true,
+  "image": {
+    "path": "toA-attempt1.png",
+    "sha256": "4b0b2579ff78b4bce6b191229d99bf839da28fba63a4e75fbdeec867bb0b11b8"
+  },
+  "prompt": {
+    "path": "toA-attempt1.prompt.txt",
+    "sha256": "6ba6aaf60533157870e6743d0696200fee1dce3e6321cce5817437cbb3cb0690"
+  },
+  "references": [
+    {
+      "path": "../references/lam_ngan_thao-nom-toA.png",
+      "sha256": "630cb6a25b80011f5cfe988d92e17b3fc60ebfcecac0f2bb5fe4ac68c1c7d5b4",
+      "role": "Bảng nộm LPC có vạch và marker, ảnh tham chiếu duy nhất"
+    }
+  ],
+  "referenceNote": "Không có turnaround vũ khí được duyệt. Prompt công cụ còn mô tả ảnh 2 nhưng thực tế chỉ gửi ảnh 1; không dùng concept phụ thể cũ.",
+  "license": "Đầu ra OpenAI theo điều khoản dịch vụ; không gán CC0. Nộm LPC theo nguồn/giấy phép hiện có trong repo.",
+  "checkReport": "review/lam_ngan_thao-check.json",
+  "cutReport": "_report.json",
+  "check": {
+    "id": "lam_ngan_thao",
+    "kind": "vukhi",
+    "level": "nhẹ",
+    "group": "B",
+    "frame": 96,
+    "dummyKey": "#30D030",
+    "blockLevel": {
+      "s": "nhẹ"
+    },
+    "sheets": [
+      {
+        "sheet": "toA",
+        "size": [
+          1536,
+          1024
+        ],
+        "kind": "huong",
+        "level": "nhẹ",
+        "dirs": [
+          "s"
+        ],
+        "background": {
+          "key": [
+            250,
+            3,
+            251
+          ],
+          "corners": [
+            [
+              239,
+              11,
+              241
+            ],
+            [
+              242,
+              17,
+              240
+            ],
+            [
+              237,
+              37,
+              237
+            ],
+            [
+              238,
+              30,
+              239
+            ]
+          ],
+          "keyDistFromLock": 5,
+          "cornerSpread": 34
+        },
+        "seVsE": null,
+        "prep": {
+          "shift": {
+            "dx": 0,
+            "dy": -1
+          },
+          "factor": 1,
+          "grid": "gap"
+        },
+        "bands": [
+          {
+            "row": 1,
+            "dir": "s",
+            "y": [
+              58,
+              231
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 2,
+            "dir": "s",
+            "y": [
+              328,
+              483
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 3,
+            "dir": "s",
+            "y": [
+              538,
+              718
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 4,
+            "dir": "s",
+            "y": [
+              737,
+              976
+            ],
+            "figures": 4,
+            "state": "ok"
+          }
+        ],
+        "motion": [
+          {
+            "dir": "s",
+            "anim": "idle",
+            "maxDiff": 0.795
+          },
+          {
+            "dir": "s",
+            "anim": "walk",
+            "maxDiff": 0.757
+          },
+          {
+            "dir": "s",
+            "anim": "hurt-vs-idle",
+            "maxDiff": 0.82
+          }
+        ],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 34), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "light",
+            "code": "marker-troi",
+            "where": "H3 (s) C3",
+            "msg": "marker điểm cầm A bị dời 16 điểm so với tay nộm (> 16)."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H3 (s) C4",
+            "msg": "phụ thể chạm mép ô khung (32 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "vuot-khung",
+            "where": "H3 (s) C4",
+            "msg": "576 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H3 (s) C5",
+            "msg": "phụ thể chạm mép ô khung (18 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "cham-mep-khung",
+            "where": "H4 (s) C4",
+            "msg": "phụ thể chạm mép ô khung (44 điểm): có thể bị cắt."
+          },
+          {
+            "sev": "light",
+            "code": "vuot-khung",
+            "where": "H4 (s) C4",
+            "msg": "345 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+          }
+        ],
+        "draft": "LỖI: toA — marker điểm cầm trôi / chạm mép khung / vượt khung — H3 (s) C3, H3 (s) C4, H3 (s) C4, H3 (s) C5, H4 (s) C4, H4 (s) C4 — marker điểm cầm A bị dời 16 điểm so với tay nộm (> 16); phụ thể chạm mép ô khung (32 điểm): có thể bị cắt; 576 điểm phụ thể nằm ngoài ô khung (bị cắt); phụ thể chạm mép ô khung (18 điểm): có thể bị cắt; phụ thể chạm mép ô khung (44 điểm): có thể bị cắt; 345 điểm phụ thể nằm ngoài ô khung (bị cắt)."
+      }
+    ]
+  },
+  "selected": true
+}

@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { LPC_SHEET } from "../../shared/data.ts";
 import { PHU_CLIPS, PHU_DIRS, PHU_DEFAULT_CLIPS as D, PHU_FRAMES, PHU_ROWS_PER_SEX, parsePhuLayout, phuBodyStep, phuClipIndex, phuClipOf, phuDirOk, phuDirRow, phuFaceOf, phuFlip, phuFrame, phuHalf, phuOriginY, phuSheetFits, phuGripAt, weaponHidden } from "../src/phutheAnim.ts";
-import { PHU_NO_ANCHOR, parsePhuAnchor, phuAnchorAt, phuAnchorJson } from "../src/phutheAnchor.ts";
+import { PHU_NO_ANCHOR, parsePhuAnchor, phuAnchorAt, phuAnchorJson, phuLayerPlacement } from "../src/phutheAnchor.ts";
 import { fakePose } from "../src/phutheFake.ts";
 import { clipOscK, weaponOscK, SPIRIT_WEAPON_OSC_K, newSpiritPose, spiritPose, SPIRIT_CLIP_OSC_K, SPIRIT_FAMILY } from "../src/spiritMotion.ts";
 
@@ -123,6 +123,11 @@ assert.equal(parsePhuAnchor({ ...anchorSrc, m: { ...dirs, s: { dx: "x", dy: 0, s
 assert.equal(parsePhuAnchor({ ...anchorSrc, m: { ...dirs, s: { dx: 0, dy: 0, scale: 1 } } }).m[0].ty, PHU_NO_ANCHOR.ty, "thiếu tx / ty → mặc định");
 const back = phuAnchorJson(T); assert.equal(back.manual, true); assert.deepEqual(parsePhuAnchor(back).f, T.f, "xuất rồi đọc lại khớp");
 console.log("phutheanim-test: neo khối thân OK");
+// Neo phụ thể cũ cùng mã và clip offset không được làm trôi điểm cầm vũ khí (cả hai phía).
+const oldAnchor = { dx: 3, dy: -2.65, scale: 0.9, tx: 0, ty: -26 };
+assert.deepEqual(phuLayerPlacement(true, false, [2, -1], [4, -3], oldAnchor, 3), { x: 2, y: -1, scale: 1 });
+assert.deepEqual(phuLayerPlacement(true, true, [2, -1], [4, -3], oldAnchor, 3), { x: -2, y: -1, scale: 1 });
+assert.deepEqual(phuLayerPlacement(false, true, [2, -1], [4, -3], oldAnchor, 3), { x: -7, y: -4 - 2.65 / 3, scale: 0.9 }, "phụ thể giữ offset/neo cũ");
 
 // --- màn chỉnh ráp (#1192): hoàn tác / làm lại, phím, kéo, giới hạn
 {
