@@ -18,7 +18,7 @@ Part of #1306, epic #1020. Chủ repo đã duyệt mẫu Lam Ngân Thảo #1326 
 
 Cutter dùng chung từ #1326, đường dẫn `tools/assets/phaptuong-sheet-cut.mjs`, blob nội dung `e9189290c797aa640347b7a0229d745ab4f69075`. Không ghim commit nhánh bị squash. Cần công cụ trên main và kiểm tái tạo từng byte trước khi coi mẫu sẵn sàng tích hợp.
 
-Lệnh: `node tools/assets/phaptuong-sheet-cut.mjs art/src/phap-tuong/hoa_anh shared/assets/sprites/phaptuong/hoa_anh.png --no-despill`. Giữ dải tím hợp lệ bằng `--no-despill`; vẫn khóa nền magenta và chuẩn hóa viền tối. Sheet 16×5 khung 160, gốc (80,124), 48 màu, alpha 0/255. Glow dựng từ sheet mới bằng `buildGlow`, màu #ff3a4a.
+Lệnh: `node tools/assets/phaptuong-sheet-cut.mjs art/src/phap-tuong/hoa_anh shared/assets/sprites/phaptuong/hoa_anh.png`. Dùng khử ám mặc định trong hai điểm sát nền gốc; giữ bóng tím bên trong thân. Bản đầu dùng `--no-despill` đã để lại quầng hồng, được ghép lại theo review #1344 mà không sinh RAW mới. Sheet 16×5 khung 160, gốc (80,124), 48 màu, alpha 0/255. Glow dựng lại từ sheet đã sửa bằng `buildGlow`, màu #ff3a4a.
 
 Hiển thị riêng: scale 1,5, dy −20, bob 2, đồng bộ PHAP_TUONG và manifest; không đổi chỉ số chiến đấu. Đã giảm từ 1,8 / −24 sau khi thấy sừng chạm vùng điều khiển trong cảnh thử zoom 2.
 

@@ -2,7 +2,7 @@
   "id": "hoa_anh",
   "raw": "art/src/phap-tuong/hoa_anh",
   "glow": "#ff3a4a",
-  "despill": false,
+  "despill": true,
   "selectedAttempts": {
     "s": 2,
     "se": 2,
