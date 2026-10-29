@@ -1,0 +1,79 @@
+{
+  "tool": "Playwright Chrome, --mute-audio; âm lượng game 0, muted=true",
+  "date": "2026-10-29T21:12:07.081Z",
+  "imageBytesUnmodified": true,
+  "viewport": [
+    1600,
+    900
+  ],
+  "items": [
+    {
+      "file": "m-idle.png",
+      "url": "/choi?thu=vukhi&vh=a_ngan&gioi=m&trang=idle&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "m-walk.png",
+      "url": "/choi?thu=vukhi&vh=a_ngan&gioi=m&trang=walk&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "m-attack.png",
+      "url": "/choi?thu=vukhi&vh=a_ngan&gioi=m&trang=attack&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "m-cast.png",
+      "url": "/choi?thu=vukhi&vh=a_ngan&gioi=m&trang=cast&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-idle.png",
+      "url": "/choi?thu=vukhi&vh=a_ngan&gioi=f&trang=idle&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-walk.png",
+      "url": "/choi?thu=vukhi&vh=a_ngan&gioi=f&trang=walk&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-attack.png",
+      "url": "/choi?thu=vukhi&vh=a_ngan&gioi=f&trang=attack&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-cast.png",
+      "url": "/choi?thu=vukhi&vh=a_ngan&gioi=f&trang=cast&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "game-scene-m-idle.png",
+      "url": "/choi?lag=1",
+      "scene": "game",
+      "sex": "m",
+      "serverVohon": 21,
+      "expectedVohon": 21,
+      "setup": "UI thức tỉnh Hỏa Long, hook GAME_TEST grant A Ngân, server xử lý team chỉ có A Ngân"
+    },
+    {
+      "file": "game-scene-f-idle.png",
+      "url": "/choi?lag=1",
+      "scene": "game",
+      "sex": "f",
+      "serverVohon": 21,
+      "expectedVohon": 21,
+      "setup": "UI thức tỉnh Hỏa Long, hook GAME_TEST grant A Ngân, server xử lý team chỉ có A Ngân"
+    }
+  ],
+  "assets": [
+    {
+      "file": "shared/assets/sprites/vukhianim/a_ngan_b.png",
+      "sha256": "0abc7ac1f35638f9482ab7eec0db88aa0903209c313d53c014c0241fdbab34af"
+    },
+    {
+      "file": "shared/assets/sprites/vukhianim/a_ngan_f.png",
+      "sha256": "605adae2f21f3211f150772e3885e735991b858ce28fb4de9ba47932ff7cb61f"
+    }
+  ]
+}
