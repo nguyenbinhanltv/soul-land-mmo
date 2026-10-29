@@ -4,34 +4,60 @@
                             "file":  "art/src/phuthe-anim/lam_ngan_thao/vukhi/isolated/compose.mjs",
                             "sha":  "a69b175b7790d9b8563a797543f95982ca701c86"
                         },
-    "toolSha256NormalizedLF":  {
-                                   "tools/assets/phuthe-hammer-atlas-finalize.mjs":  "21a38f34c22a802609d35521bdd6bffe31bce1e46695981fc4c94b4704d12b2c",
-                                   "tools/assets/phuthe-sheet-dummy.mjs":  "15b44f71dfebaa8de39d2286fd8577028cb3e2ec9bec505b62bbcaa82dd9502f",
-                                   "tools/assets/phuthe-hammer-atlas.mjs":  "0de9499306f43d17158ac1f0d45a97f8294828fbc3f1df159e1890e0aef59c80"
-                               },
+    "decision":  "Bỏ vác vai vì tay LPC thấp; một tay idle/walk/hurt, hai tay attack/cast; đầu cao hơn hông khi nghỉ/đi; giữ cỡ đầu búa và bỏ impact chính diện",
+    "imageJobsThisRound":  8,
+    "imageJobsByDirection":  {
+                                 "e":  1,
+                                 "s":  2,
+                                 "ne":  2,
+                                 "n":  2,
+                                 "se":  1
+                             },
+    "limitPerDirection":  3,
     "rawSources":  [
                        "s/attempt1/poses.source.json",
                        "s/attempt2/poses.source.json",
-                       "se/attempt1/poses.source.json"
+                       "se/attempt1/poses.source.json",
+                       "e/attempt1/poses.source.json",
+                       "ne/attempt1/poses.source.json",
+                       "ne/attempt2/poses.source.json",
+                       "n/attempt1/poses.source.json",
+                       "n/attempt2/poses.source.json"
                    ],
-    "imageJobsThisRound":  3,
-    "imageBudgetClarification":  "Tổng 3 lượt mới hay 3 lượt mỗi hướng đang chờ xác nhận; chưa sinh e/ne/n",
     "selectedDirections":  [
                                "s",
-                               "se"
+                               "se",
+                               "e",
+                               "ne",
+                               "n"
                            ],
-    "commonScale":  0.12387969164221649,
-    "frames":  52,
-    "maxNearestA":  1.5811388300841898,
-    "maxNearestB":  1.204159457879232,
+    "commonScale":  0.08679199491071118,
+    "normalizedHeadWidth":  17.358398982142237,
+    "frames":  130,
+    "maxNearestA":  1.5239140558400175,
+    "maxNearestB":  1.9104973174542788,
     "edge":  0,
-    "maleLevel":  "pass",
-    "femaleLevel":  "pass",
+    "maleLevel":  "nhẹ",
+    "femaleLevel":  "nhẹ",
+    "checkerWarningsPerSex":  3,
+    "cutWarningsPerSex":  5,
+    "toolSha256NormalizedLF":  {
+                                   "tools/assets/phuthe-hammer-atlas.mjs":  "b5a78445a9c3e4482a285cd13037f4f85a7805222eb15cce4d6741ce5f11dd4f",
+                                   "tools/assets/phuthe-hammer-atlas-finalize.mjs":  "21a38f34c22a802609d35521bdd6bffe31bce1e46695981fc4c94b4704d12b2c",
+                                   "tools/assets/phuthe-hammer-atlas-cut.mjs":  "2c9cf9ec55a69f1139fe733654b09c82b63bfcee94a245d2046de33e3bc04c1a",
+                                   "tools/assets/phuthe-sheet-dummy.mjs":  "15b44f71dfebaa8de39d2286fd8577028cb3e2ec9bec505b62bbcaa82dd9502f"
+                               },
+    "finalOutputSha256":  {
+                              "vkanim_hao_thien_chuy_b.png":  "74e6188a11486d863c4c41427d20c9681becadead1f1755cd913f55a0ebfb233",
+                              "vkanim_hao_thien_chuy_f.png":  "2a11c13e933657980b66205e25fd3d0b8bb2841086b14711863c47958425990a",
+                              "manifest-entry.json":  "e4e55e80c5ce512659bc18c8be4c520dda964795fb48fec1942484ee697bfd02",
+                              "_report.json":  "1c2593d992d1befb2736b71c72207e803959b17485d1a3e8644b3ba3222377c4"
+                          },
     "rawUnmodified":  true,
     "lpcPoseChanges":  false,
     "geometryThreshold":  2,
-    "approvedForImport":  false,
+    "readyForImporterReview":  true,
+    "imported":  false,
     "preview":  "index.html",
-    "manifest":  "result/manifest-entry.json",
-    "manifestSha256":  "46a7fb5a6c21333c634c9bb45f00e93ba9e4a2233a31e08fe939f4970b762dc8"
+    "manifest":  "../manifest-entry.json"
 }

@@ -1,13 +1,16 @@
 {
   "id": "hao_thien_chuy",
   "kind": "vukhi",
-  "level": "pass",
+  "level": "nhẹ",
   "group": "A",
   "frame": 128,
   "dummyKey": "#00D0D0",
   "blockLevel": {
     "s": "pass",
-    "se": "pass"
+    "se": "pass",
+    "e": "nhẹ",
+    "ne": "nhẹ",
+    "n": "nhẹ"
   },
   "sheets": [
     {
@@ -66,7 +69,7 @@
           "row": 1,
           "dir": "s",
           "y": [
-            56,
+            84,
             181
           ],
           "figures": 3,
@@ -76,7 +79,7 @@
           "row": 2,
           "dir": "s",
           "y": [
-            312,
+            340,
             439
           ],
           "figures": 4,
@@ -87,7 +90,7 @@
           "dir": "s",
           "y": [
             598,
-            705
+            693
           ],
           "figures": 4,
           "state": "ok"
@@ -107,17 +110,17 @@
         {
           "dir": "s",
           "anim": "idle",
-          "maxDiff": 0.358
+          "maxDiff": 0.351
         },
         {
           "dir": "s",
           "anim": "walk",
-          "maxDiff": 0.494
+          "maxDiff": 0.541
         },
         {
           "dir": "s",
           "anim": "hurt-vs-idle",
-          "maxDiff": 0.953
+          "maxDiff": 1
         }
       ],
       "issues": [],
@@ -165,7 +168,7 @@
         "keyDistFromLock": 0,
         "cornerSpread": 0
       },
-      "seVsE": null,
+      "seVsE": 0.158,
       "prep": {
         "shift": {
           "dx": 0,
@@ -179,7 +182,7 @@
           "row": 1,
           "dir": "se",
           "y": [
-            58,
+            84,
             181
           ],
           "figures": 3,
@@ -189,7 +192,7 @@
           "row": 2,
           "dir": "se",
           "y": [
-            320,
+            342,
             437
           ],
           "figures": 4,
@@ -200,7 +203,7 @@
           "dir": "se",
           "y": [
             598,
-            695
+            693
           ],
           "figures": 4,
           "state": "ok"
@@ -220,20 +223,380 @@
         {
           "dir": "se",
           "anim": "idle",
-          "maxDiff": 0.345
+          "maxDiff": 0.402
         },
         {
           "dir": "se",
           "anim": "walk",
-          "maxDiff": 0.898
+          "maxDiff": 1
         },
         {
           "dir": "se",
           "anim": "hurt-vs-idle",
-          "maxDiff": 0.931
+          "maxDiff": 1
         }
       ],
       "issues": [],
+      "draft": null
+    },
+    {
+      "sheet": "toC",
+      "size": [
+        1536,
+        1024
+      ],
+      "kind": "huong",
+      "level": "nhẹ",
+      "dirs": [
+        "e"
+      ],
+      "background": {
+        "key": [
+          255,
+          0,
+          255
+        ],
+        "corners": [
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ]
+        ],
+        "keyDistFromLock": 0,
+        "cornerSpread": 0
+      },
+      "seVsE": null,
+      "prep": {
+        "shift": {
+          "dx": 0,
+          "dy": 0
+        },
+        "factor": 1,
+        "grid": "gap"
+      },
+      "bands": [
+        {
+          "row": 1,
+          "dir": "e",
+          "y": [
+            58,
+            181
+          ],
+          "figures": 3,
+          "state": "ok"
+        },
+        {
+          "row": 2,
+          "dir": "e",
+          "y": [
+            324,
+            437
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 3,
+          "dir": "e",
+          "y": [
+            598,
+            693
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 4,
+          "dir": "e",
+          "y": [
+            854,
+            949
+          ],
+          "figures": 2,
+          "state": "ok"
+        }
+      ],
+      "motion": [
+        {
+          "dir": "e",
+          "anim": "idle",
+          "maxDiff": 0.441
+        },
+        {
+          "dir": "e",
+          "anim": "walk",
+          "maxDiff": 0.974
+        },
+        {
+          "dir": "e",
+          "anim": "hurt-vs-idle",
+          "maxDiff": 0.899
+        }
+      ],
+      "issues": [
+        {
+          "sev": "light",
+          "code": "co-phu-the",
+          "where": "khối e",
+          "msg": "cỡ phụ thể so với khối s: idle 163%, walk 131%, hurt 164% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+        }
+      ],
+      "draft": null
+    },
+    {
+      "sheet": "toD",
+      "size": [
+        1536,
+        1024
+      ],
+      "kind": "huong",
+      "level": "nhẹ",
+      "dirs": [
+        "ne"
+      ],
+      "background": {
+        "key": [
+          255,
+          0,
+          255
+        ],
+        "corners": [
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ]
+        ],
+        "keyDistFromLock": 0,
+        "cornerSpread": 0
+      },
+      "seVsE": null,
+      "prep": {
+        "shift": {
+          "dx": 0,
+          "dy": 0
+        },
+        "factor": 1,
+        "grid": "gap"
+      },
+      "bands": [
+        {
+          "row": 1,
+          "dir": "ne",
+          "y": [
+            84,
+            181
+          ],
+          "figures": 3,
+          "state": "ok"
+        },
+        {
+          "row": 2,
+          "dir": "ne",
+          "y": [
+            342,
+            437
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 3,
+          "dir": "ne",
+          "y": [
+            598,
+            693
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 4,
+          "dir": "ne",
+          "y": [
+            854,
+            949
+          ],
+          "figures": 2,
+          "state": "ok"
+        }
+      ],
+      "motion": [
+        {
+          "dir": "ne",
+          "anim": "idle",
+          "maxDiff": 0.224
+        },
+        {
+          "dir": "ne",
+          "anim": "walk",
+          "maxDiff": 1
+        },
+        {
+          "dir": "ne",
+          "anim": "hurt-vs-idle",
+          "maxDiff": 0.995
+        }
+      ],
+      "issues": [
+        {
+          "sev": "light",
+          "code": "co-phu-the",
+          "where": "khối ne",
+          "msg": "cỡ phụ thể so với khối s: idle 114%, hurt 115% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+        }
+      ],
+      "draft": null
+    },
+    {
+      "sheet": "toE",
+      "size": [
+        1536,
+        1024
+      ],
+      "kind": "huong",
+      "level": "nhẹ",
+      "dirs": [
+        "n"
+      ],
+      "background": {
+        "key": [
+          255,
+          0,
+          255
+        ],
+        "corners": [
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ]
+        ],
+        "keyDistFromLock": 0,
+        "cornerSpread": 0
+      },
+      "seVsE": null,
+      "prep": {
+        "shift": {
+          "dx": 0,
+          "dy": 0
+        },
+        "factor": 1,
+        "grid": "gap"
+      },
+      "bands": [
+        {
+          "row": 1,
+          "dir": "n",
+          "y": [
+            68,
+            183
+          ],
+          "figures": 3,
+          "state": "ok"
+        },
+        {
+          "row": 2,
+          "dir": "n",
+          "y": [
+            320,
+            441
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 3,
+          "dir": "n",
+          "y": [
+            602,
+            705
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 4,
+          "dir": "n",
+          "y": [
+            858,
+            951
+          ],
+          "figures": 2,
+          "state": "ok"
+        }
+      ],
+      "motion": [
+        {
+          "dir": "n",
+          "anim": "idle",
+          "maxDiff": 0.236
+        },
+        {
+          "dir": "n",
+          "anim": "walk",
+          "maxDiff": 0.477
+        },
+        {
+          "dir": "n",
+          "anim": "hurt-vs-idle",
+          "maxDiff": 0.348
+        }
+      ],
+      "issues": [
+        {
+          "sev": "light",
+          "code": "co-phu-the",
+          "where": "khối n",
+          "msg": "cỡ phụ thể so với khối s: idle 128%, walk 117%, hurt 128% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+        }
+      ],
       "draft": null
     }
   ]

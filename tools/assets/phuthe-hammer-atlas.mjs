@@ -50,13 +50,18 @@ for (const c of parts) {
   const axisPoint = axes?.[slot] ?? [root[0] + sign * Math.cos(theta) * 100, root[1] + sign * Math.sin(theta) * 100];
   const axis = Math.atan2(axisPoint[1] - root[1], axisPoint[0] - root[0]), img = new Img(raw.w, raw.h);
   for (const i of c.px) { const x = i % raw.w, y = Math.floor(i / raw.w), p = raw.get(x, y); img.set(x, y, p); colors.push(p.slice(0, 3)); }
-  poses[slot] = { root, axis, axisPoint, img, box: [c.x0, c.y0, c.x1, c.y1], area: c.area };
+  // Cán thẳng: bề ngang theo pháp tuyến trục cán là bề ngang đầu búa, không bị chiều dài cán chi phối.
+  // Chuẩn hoá toàn bộ pose (không bóp riêng đầu/cán) để mặt impact không phình bất ngờ.
+  const transverse = c.px.map((i) => -(i % raw.w + .5 - root[0]) * Math.sin(axis) + (Math.floor(i / raw.w) + .5 - root[1]) * Math.cos(axis));
+  const headWidth = Math.max(...transverse) - Math.min(...transverse), headScale = 200 / headWidth;
+  poses[slot] = { root, axis, axisPoint, headWidth, headScale, img, box: [c.x0, c.y0, c.x1, c.y1], area: c.area };
 }
 if (poses.filter(Boolean).length !== 8) throw Error("Thiếu ô pose");
 const palette = args.includes("--palette") ? JSON.parse(fs.readFileSync(val("--palette"), "utf8").replace(/^\uFEFF/, "")) : medianCut(colors, 32);
 if (!Array.isArray(palette) || !palette.length || palette.length > 32 || palette.some((c) => !Array.isArray(c) || c.length !== 3 || c.some((v) => !Number.isInteger(v) || v < 0 || v > 255))) throw Error("Bảng màu phải có tối đa 32 màu RGB hợp lệ");
 for (const p of poses) for (let y = p.box[1]; y <= p.box[3]; y++) for (let x = p.box[0]; x <= p.box[2]; x++) if (p.img.alpha(x, y)) p.img.set(x, y, [...palette[nearest(p.img.get(x, y), palette)], 255]);
-const counts = gripCounts("2 tay (theo clip)"), map = { idle: [0, 0], walk: [1, 1, 1, 1], attack: [2, 3, 4, 5], cast: [6, 7], hurt: [0] };
+// s/se bỏ impact chính diện; n bỏ pose 4 cán ngắn không đủ hai tay ở tỷ lệ chung. Không sửa RAW.
+const counts = gripCounts("2 tay (theo clip)"), map = { idle: [0, 0], walk: [1, 1, 1, 1], attack: [2, 3, ...(["s", "se", "n"].includes(dir) ? [5, 6] : [4, 5])], cast: [6, ["s", "se"].includes(dir) ? 5 : 7], hurt: [0] };
 const tilt = { idle: [-2, 2], walk: [-4, -1, 3, 1], hurt: [-8] }, plan = [];
 for (const sex of ["m", "f"]) for (const c of sheetCells("A")) {
   const step = bodyStepOf(c.anim, framesOf("A")[c.anim], c.frame), g = gripPoints({ sex, dir, clip: c.anim, step, frame: F, count: counts[c.anim] });
@@ -66,12 +71,12 @@ for (const sex of ["m", "f"]) for (const c of sheetCells("A")) {
   const angle = hands.length === 2 ? Math.atan2(hands[1][1] - hands[0][1], hands[1][0] - hands[0][0]) - p.axis : (tilt[c.anim][c.frame] * Math.PI / 180);
   plan.push({ ...c, sex, name: `${dir}/${c.anim}/${c.frame}`, pose, hands, angle, step, measuredStep: g.step, fallback: g.fallback });
 }
-// Một tỷ lệ chung cho tám pose và hai giới; chừa lề, không xén hoặc bóp méo pose.
+// Sau chuẩn hoá bề ngang đầu búa, chọn một tỷ lệ vừa khung chung; không xén hoặc bóp méo pose.
 let scale = .22;
 for (const f of plan) {
   const p = poses[f.pose], co = Math.cos(f.angle), si = Math.sin(f.angle), g = f.hands[0];
   for (let y = p.box[1]; y <= p.box[3]; y++) for (let x = p.box[0]; x <= p.box[2]; x++) if (p.img.alpha(x, y)) {
-    const dx = x + .5 - p.root[0], dy = y + .5 - p.root[1], v = [dx * co - dy * si, dx * si + dy * co];
+    const dx = (x + .5 - p.root[0]) * p.headScale, dy = (y + .5 - p.root[1]) * p.headScale, v = [dx * co - dy * si, dx * si + dy * co];
     for (let k = 0; k < 2; k++) if (Math.abs(v[k]) > 1e-8) scale = Math.min(scale, (v[k] > 0 ? F - 3 - g[k] : g[k] - 3) / Math.abs(v[k]));
   }
 }
@@ -85,7 +90,7 @@ for (const f of plan) {
   const p = poses[f.pose], co = Math.cos(f.angle), si = Math.sin(f.angle), g = f.hands[0], frame = new Img(F, F);
   const near = f.hands.map(() => Infinity); let pixels = 0, edge = 0;
   for (let y = 0; y < F; y++) for (let x = 0; x < F; x++) {
-    const dx = (x + .5 - g[0]) / scale, dy = (y + .5 - g[1]) / scale, sx = Math.floor(p.root[0] + co * dx + si * dy), sy = Math.floor(p.root[1] - si * dx + co * dy);
+    const dx = (x + .5 - g[0]) / (scale * p.headScale), dy = (y + .5 - g[1]) / (scale * p.headScale), sx = Math.floor(p.root[0] + co * dx + si * dy), sy = Math.floor(p.root[1] - si * dx + co * dy);
     if (sx < 0 || sy < 0 || sx >= raw.w || sy >= raw.h || !p.img.alpha(sx, sy)) continue;
     const px = p.img.get(sx, sy); frame.set(x, y, px); pixels++;
     f.hands.forEach((h, i) => { near[i] = Math.min(near[i], Math.hypot(x + .5 - h[0], y + .5 - h[1])); });
@@ -106,6 +111,6 @@ const grip = Object.fromEntries(plan.filter((f) => f.sex === "m").map((f) => [f.
 fs.writeFileSync(path.join(out, "manifest-entry.json"), JSON.stringify([{ key: `vkanim_hao_thien_chuy_${side}`, frame: [F, F], iso: true, anim: { kind: "vukhi", group: "A", layer: side === "b" ? "sau" : "truoc", dirs: DIRS, sexes: ["m", "f"], cols: 13, rows: 10, rowsPerSex: 5, dirsOk: [dir], anims: Object.fromEntries(Object.entries(gameAnims("A")).map(([k, [col, n]]) => [k, { col, n }])), origin: [ox, oy], grip, gripSex: "m" } }], null, 2) + "\n");
 const geometryFailures = distances.filter((d) => d.edge || d.pixels < 15 || d.near.some((v) => v > 2));
 const checks = Object.fromEntries(["m", "f"].map((sex) => [sex, toJson(checkPhuThe("hao_thien_chuy", { kind: "vukhi", dir: path.join(out, sex), sex }))]));
-fs.writeFileSync(path.join(out, "compose-plan.json"), JSON.stringify({ dir, F, scale, palette, poses: poses.map(({ root, axis, axisPoint, box, area }) => ({ root, axis, axisPoint, box, area })), plan, distances, geometryFailures, checks, note: "Theo phương pháp s837: atlas pose thật, tỷ lệ chung, đo grip từng giới, không sửa RAW/LPC. Khoảng cách B đo tới hình vũ khí, vẫn cần mắt xác nhận đang nắm cán." }, null, 2) + "\n");
+fs.writeFileSync(path.join(out, "compose-plan.json"), JSON.stringify({ dir, F, scale, palette, poses: poses.map(({ root, axis, axisPoint, headWidth, headScale, box, area }) => ({ root, axis, axisPoint, headWidth, headScale, box, area })), plan, distances, geometryFailures, checks, note: "Theo phương pháp s837: atlas pose thật, tỷ lệ chung, đo grip từng giới, không sửa RAW/LPC. Khoảng cách B đo tới hình vũ khí, vẫn cần mắt xác nhận đang nắm cán." }, null, 2) + "\n");
 console.log(JSON.stringify({ dir, scale, frames: distances.length, maxA: Math.max(...distances.map((d) => d.near[0])), maxB: Math.max(0, ...distances.flatMap((d) => d.near.slice(1))), edge: distances.reduce((n, d) => n + d.edge, 0), geometryFailures, levels: Object.fromEntries(Object.entries(checks).map(([sex, r]) => [sex, r.level])) }));
 if (geometryFailures.length || Object.values(checks).some((r) => r.level === "chặn")) process.exitCode = 1;

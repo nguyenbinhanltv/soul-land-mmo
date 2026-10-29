@@ -1,3 +1,5 @@
+> **Bộ hiện hành:** [atlas tám pose đủ năm hướng](pose-atlas/README.md), [preview](pose-atlas/index.html). Đã cắt hai nửa ở thư mục này, 0 chặn; phần dưới là hồ sơ RAW lịch sử, không phải kết luận mới. Bỏ vác vai theo quyết định điều phối, chưa nhập shared/assets.
+
 # Hạo Thiên Chùy — thí điểm vũ khí cứng
 
 Part of #1312, epic #1020; issue #1319, PR #1320. Ngày sinh: 30/10/2026 (giờ máy). Công cụ: Codex / OpenAI `image_gen` tích hợp; model ID và seed không được công cụ trả về, ghi `unknown`. Sử dụng theo điều khoản đầu ra OpenAI, không gán CC0.

@@ -1,0 +1,2799 @@
+{
+  "frames": 130,
+  "cuts": {
+    "m": {
+      "id": "hao_thien_chuy",
+      "kind": "vukhi",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "gripKey": "#00FF60",
+      "sheets": {
+        "A": {
+          "dir": "s",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "B": {
+          "dir": "se",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "C": {
+          "dir": "e",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "D": {
+          "dir": "ne",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "E": {
+          "dir": "n",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        }
+      },
+      "dropped": 0,
+      "palette": 32,
+      "outline": "tô lại viền tối sẵn có",
+      "halves": {
+        "b": {
+          "pixels": 11806,
+          "blank": false
+        },
+        "f": {
+          "pixels": 27704,
+          "blank": false
+        }
+      },
+      "sexShift": {
+        "f/s/idle/0": [
+          0,
+          0
+        ],
+        "f/s/idle/1": [
+          0,
+          0
+        ],
+        "f/s/walk/0": [
+          0,
+          0
+        ],
+        "f/s/walk/1": [
+          0,
+          0
+        ],
+        "f/s/walk/2": [
+          0,
+          0
+        ],
+        "f/s/walk/3": [
+          0,
+          0
+        ],
+        "f/s/attack/0": [
+          0,
+          0
+        ],
+        "f/s/attack/1": [
+          0,
+          0
+        ],
+        "f/s/attack/2": [
+          0,
+          1
+        ],
+        "f/s/attack/3": [
+          1,
+          0
+        ],
+        "f/s/cast/0": [
+          0,
+          0
+        ],
+        "f/s/cast/1": [
+          0,
+          0
+        ],
+        "f/s/hurt/0": [
+          -1,
+          1
+        ],
+        "f/se/idle/0": [
+          0,
+          0
+        ],
+        "f/se/idle/1": [
+          0,
+          0
+        ],
+        "f/se/walk/0": [
+          0,
+          0
+        ],
+        "f/se/walk/1": [
+          0,
+          0
+        ],
+        "f/se/walk/2": [
+          1,
+          -1
+        ],
+        "f/se/walk/3": [
+          0,
+          -1
+        ],
+        "f/se/attack/0": [
+          0,
+          0
+        ],
+        "f/se/attack/1": [
+          0,
+          -1
+        ],
+        "f/se/attack/2": [
+          0,
+          -1
+        ],
+        "f/se/attack/3": [
+          -1,
+          0
+        ],
+        "f/se/cast/0": [
+          0,
+          -1
+        ],
+        "f/se/cast/1": [
+          0,
+          0
+        ],
+        "f/se/hurt/0": [
+          -1,
+          1
+        ],
+        "f/e/idle/0": [
+          0,
+          0
+        ],
+        "f/e/idle/1": [
+          0,
+          0
+        ],
+        "f/e/walk/0": [
+          0,
+          0
+        ],
+        "f/e/walk/1": [
+          0,
+          0
+        ],
+        "f/e/walk/2": [
+          1,
+          -1
+        ],
+        "f/e/walk/3": [
+          0,
+          -1
+        ],
+        "f/e/attack/0": [
+          0,
+          0
+        ],
+        "f/e/attack/1": [
+          0,
+          -1
+        ],
+        "f/e/attack/2": [
+          0,
+          -1
+        ],
+        "f/e/attack/3": [
+          -1,
+          0
+        ],
+        "f/e/cast/0": [
+          0,
+          -1
+        ],
+        "f/e/cast/1": [
+          0,
+          0
+        ],
+        "f/e/hurt/0": [
+          -1,
+          1
+        ],
+        "f/ne/idle/0": [
+          0,
+          0
+        ],
+        "f/ne/idle/1": [
+          0,
+          0
+        ],
+        "f/ne/walk/0": [
+          0,
+          0
+        ],
+        "f/ne/walk/1": [
+          0,
+          0
+        ],
+        "f/ne/walk/2": [
+          1,
+          -1
+        ],
+        "f/ne/walk/3": [
+          0,
+          -1
+        ],
+        "f/ne/attack/0": [
+          0,
+          0
+        ],
+        "f/ne/attack/1": [
+          0,
+          -1
+        ],
+        "f/ne/attack/2": [
+          0,
+          -1
+        ],
+        "f/ne/attack/3": [
+          -1,
+          0
+        ],
+        "f/ne/cast/0": [
+          0,
+          -1
+        ],
+        "f/ne/cast/1": [
+          0,
+          0
+        ],
+        "f/ne/hurt/0": [
+          -1,
+          1
+        ],
+        "f/n/idle/0": [
+          0,
+          0
+        ],
+        "f/n/idle/1": [
+          0,
+          0
+        ],
+        "f/n/walk/0": [
+          0,
+          0
+        ],
+        "f/n/walk/1": [
+          0,
+          1
+        ],
+        "f/n/walk/2": [
+          0,
+          0
+        ],
+        "f/n/walk/3": [
+          0,
+          1
+        ],
+        "f/n/attack/0": [
+          -1,
+          0
+        ],
+        "f/n/attack/1": [
+          -1,
+          0
+        ],
+        "f/n/attack/2": [
+          0,
+          0
+        ],
+        "f/n/attack/3": [
+          1,
+          0
+        ],
+        "f/n/cast/0": [
+          0,
+          0
+        ],
+        "f/n/cast/1": [
+          0,
+          0
+        ],
+        "f/n/hurt/0": [
+          -1,
+          1
+        ]
+      },
+      "dirs": {
+        "s": "ok",
+        "se": "ok",
+        "e": "ok",
+        "ne": "ok",
+        "n": "ok"
+      },
+      "gripFrames": 65,
+      "warnings": [
+        "khung s/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+        "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung se/attack/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)",
+        "khung se/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+        "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung e/attack/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)",
+        "khung e/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+        "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung ne/attack/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)",
+        "khung ne/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+        "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung n/attack/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung n/attack/2: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+        "khung n/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+        "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khối e clip idle: cỡ phụ thể 164% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối n clip idle: cỡ phụ thể 128% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối e clip walk: cỡ phụ thể 131% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối e clip hurt: cỡ phụ thể 161% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối n clip hurt: cỡ phụ thể 126% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+      ],
+      "issues": [
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung s/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/attack/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/attack/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/attack/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/attack/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/attack/2: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối e clip idle: cỡ phụ thể 164% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối n clip idle: cỡ phụ thể 128% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối e clip walk: cỡ phụ thể 131% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối e clip hurt: cỡ phụ thể 161% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối n clip hurt: cỡ phụ thể 126% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        }
+      ],
+      "summary": {
+        "info": 15,
+        "warn": 5,
+        "block": 0,
+        "total": 20,
+        "byCode": {
+          "ghi-chu": 15,
+          "co-phu-the": 5
+        }
+      },
+      "frames": 65,
+      "missing": 0,
+      "blank": []
+    },
+    "f": {
+      "id": "hao_thien_chuy",
+      "kind": "vukhi",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "gripKey": "#00FF60",
+      "sheets": {
+        "A": {
+          "dir": "s",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "B": {
+          "dir": "se",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "C": {
+          "dir": "e",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "D": {
+          "dir": "ne",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "E": {
+          "dir": "n",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        }
+      },
+      "dropped": 1,
+      "palette": 32,
+      "outline": "tô lại viền tối sẵn có",
+      "halves": {
+        "b": {
+          "pixels": 12092,
+          "blank": false
+        },
+        "f": {
+          "pixels": 27454,
+          "blank": false
+        }
+      },
+      "sexShift": {
+        "m/s/idle/0": [
+          0,
+          0
+        ],
+        "m/s/idle/1": [
+          0,
+          0
+        ],
+        "m/s/walk/0": [
+          0,
+          0
+        ],
+        "m/s/walk/1": [
+          0,
+          0
+        ],
+        "m/s/walk/2": [
+          0,
+          0
+        ],
+        "m/s/walk/3": [
+          0,
+          0
+        ],
+        "m/s/attack/0": [
+          0,
+          0
+        ],
+        "m/s/attack/1": [
+          0,
+          0
+        ],
+        "m/s/attack/2": [
+          0,
+          -1
+        ],
+        "m/s/attack/3": [
+          -1,
+          0
+        ],
+        "m/s/cast/0": [
+          0,
+          0
+        ],
+        "m/s/cast/1": [
+          0,
+          0
+        ],
+        "m/s/hurt/0": [
+          1,
+          -1
+        ],
+        "m/se/idle/0": [
+          0,
+          0
+        ],
+        "m/se/idle/1": [
+          0,
+          0
+        ],
+        "m/se/walk/0": [
+          0,
+          0
+        ],
+        "m/se/walk/1": [
+          0,
+          0
+        ],
+        "m/se/walk/2": [
+          -1,
+          1
+        ],
+        "m/se/walk/3": [
+          0,
+          1
+        ],
+        "m/se/attack/0": [
+          0,
+          0
+        ],
+        "m/se/attack/1": [
+          0,
+          1
+        ],
+        "m/se/attack/2": [
+          0,
+          1
+        ],
+        "m/se/attack/3": [
+          1,
+          0
+        ],
+        "m/se/cast/0": [
+          0,
+          1
+        ],
+        "m/se/cast/1": [
+          0,
+          0
+        ],
+        "m/se/hurt/0": [
+          1,
+          -1
+        ],
+        "m/e/idle/0": [
+          0,
+          0
+        ],
+        "m/e/idle/1": [
+          0,
+          0
+        ],
+        "m/e/walk/0": [
+          0,
+          0
+        ],
+        "m/e/walk/1": [
+          0,
+          0
+        ],
+        "m/e/walk/2": [
+          -1,
+          1
+        ],
+        "m/e/walk/3": [
+          0,
+          1
+        ],
+        "m/e/attack/0": [
+          0,
+          0
+        ],
+        "m/e/attack/1": [
+          0,
+          1
+        ],
+        "m/e/attack/2": [
+          0,
+          1
+        ],
+        "m/e/attack/3": [
+          1,
+          0
+        ],
+        "m/e/cast/0": [
+          0,
+          1
+        ],
+        "m/e/cast/1": [
+          0,
+          0
+        ],
+        "m/e/hurt/0": [
+          1,
+          -1
+        ],
+        "m/ne/idle/0": [
+          0,
+          0
+        ],
+        "m/ne/idle/1": [
+          0,
+          0
+        ],
+        "m/ne/walk/0": [
+          0,
+          0
+        ],
+        "m/ne/walk/1": [
+          0,
+          0
+        ],
+        "m/ne/walk/2": [
+          -1,
+          1
+        ],
+        "m/ne/walk/3": [
+          0,
+          1
+        ],
+        "m/ne/attack/0": [
+          0,
+          0
+        ],
+        "m/ne/attack/1": [
+          0,
+          1
+        ],
+        "m/ne/attack/2": [
+          0,
+          1
+        ],
+        "m/ne/attack/3": [
+          1,
+          0
+        ],
+        "m/ne/cast/0": [
+          0,
+          1
+        ],
+        "m/ne/cast/1": [
+          0,
+          0
+        ],
+        "m/ne/hurt/0": [
+          1,
+          -1
+        ],
+        "m/n/idle/0": [
+          0,
+          0
+        ],
+        "m/n/idle/1": [
+          0,
+          0
+        ],
+        "m/n/walk/0": [
+          0,
+          0
+        ],
+        "m/n/walk/1": [
+          0,
+          -1
+        ],
+        "m/n/walk/2": [
+          0,
+          0
+        ],
+        "m/n/walk/3": [
+          0,
+          -1
+        ],
+        "m/n/attack/0": [
+          1,
+          0
+        ],
+        "m/n/attack/1": [
+          1,
+          0
+        ],
+        "m/n/attack/2": [
+          0,
+          0
+        ],
+        "m/n/attack/3": [
+          -1,
+          0
+        ],
+        "m/n/cast/0": [
+          0,
+          0
+        ],
+        "m/n/cast/1": [
+          0,
+          0
+        ],
+        "m/n/hurt/0": [
+          1,
+          -1
+        ]
+      },
+      "dirs": {
+        "s": "ok",
+        "se": "ok",
+        "e": "ok",
+        "ne": "ok",
+        "n": "ok"
+      },
+      "gripFrames": 65,
+      "warnings": [
+        "khung s/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+        "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung se/attack/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)",
+        "khung se/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+        "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung e/attack/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)",
+        "khung e/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+        "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung ne/attack/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)",
+        "khung ne/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+        "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung n/attack/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung n/attack/2: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+        "khung n/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+        "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khối e clip idle: cỡ phụ thể 163% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối n clip idle: cỡ phụ thể 128% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối e clip walk: cỡ phụ thể 131% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối e clip hurt: cỡ phụ thể 164% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối n clip hurt: cỡ phụ thể 128% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+      ],
+      "issues": [
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung s/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/attack/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/attack/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/attack/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/attack/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/attack/2: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/cast/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối e clip idle: cỡ phụ thể 163% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối n clip idle: cỡ phụ thể 128% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối e clip walk: cỡ phụ thể 131% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối e clip hurt: cỡ phụ thể 164% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối n clip hurt: cỡ phụ thể 128% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        }
+      ],
+      "summary": {
+        "info": 15,
+        "warn": 5,
+        "block": 0,
+        "total": 20,
+        "byCode": {
+          "ghi-chu": 15,
+          "co-phu-the": 5
+        }
+      },
+      "frames": 65,
+      "missing": 0,
+      "blank": []
+    }
+  },
+  "layers": {
+    "m": {
+      "huong": {
+        "s": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "se": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "e": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "ne": {
+          "mac_dinh": "sau",
+          "vung": []
+        },
+        "n": {
+          "mac_dinh": "sau",
+          "vung": []
+        }
+      },
+      "khung": {
+        "ne/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.5,
+              -14.400000000000006,
+              -4.5,
+              -8.400000000000006
+            ]
+          }
+        ],
+        "ne/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.399999999999999,
+              -14.900000000000006,
+              -4.399999999999999,
+              -8.900000000000006
+            ]
+          }
+        ],
+        "ne/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -4,
+              -13.099999999999994,
+              2,
+              -7.099999999999994
+            ]
+          }
+        ],
+        "ne/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.399999999999999,
+              -13.5,
+              -8.399999999999999,
+              -7.5
+            ]
+          }
+        ],
+        "ne/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -16.700000000000003,
+              -13.599999999999994,
+              -10.700000000000003,
+              -7.599999999999994
+            ]
+          }
+        ],
+        "ne/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -8.5,
+              -14.099999999999994,
+              -2.5,
+              -8.099999999999994
+            ]
+          }
+        ],
+        "ne/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.700000000000003,
+              -13.200000000000003,
+              16.200000000000003,
+              -6.599999999999994
+            ]
+          }
+        ],
+        "ne/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.399999999999999,
+              -15.099999999999994,
+              12.900000000000006,
+              -8.5
+            ]
+          }
+        ],
+        "ne/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.899999999999999,
+              -18.299999999999997,
+              22.400000000000006,
+              -8.900000000000006
+            ]
+          }
+        ],
+        "ne/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.899999999999999,
+              -18.299999999999997,
+              22.400000000000006,
+              -8.900000000000006
+            ]
+          }
+        ],
+        "ne/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.600000000000001,
+              -20.599999999999994,
+              13.099999999999994,
+              -14.5
+            ]
+          }
+        ],
+        "ne/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.600000000000001,
+              -20.599999999999994,
+              13.099999999999994,
+              -14.5
+            ]
+          }
+        ],
+        "ne/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              11.700000000000003,
+              -13.599999999999994,
+              17.700000000000003,
+              -7.599999999999994
+            ]
+          }
+        ],
+        "n/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.900000000000006,
+              -14.099999999999994,
+              15.900000000000006,
+              -8.099999999999994
+            ]
+          }
+        ],
+        "n/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.400000000000006,
+              -14.299999999999997,
+              15.400000000000006,
+              -8.299999999999997
+            ]
+          }
+        ],
+        "n/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.900000000000006,
+              -15.099999999999994,
+              15.900000000000006,
+              -9.099999999999994
+            ]
+          }
+        ],
+        "n/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              10.099999999999994,
+              -17.099999999999994,
+              16.099999999999994,
+              -11.099999999999994
+            ]
+          }
+        ],
+        "n/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.900000000000006,
+              -15.099999999999994,
+              15.900000000000006,
+              -9.099999999999994
+            ]
+          }
+        ],
+        "n/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.900000000000006,
+              -13.900000000000006,
+              15.900000000000006,
+              -7.900000000000006
+            ]
+          }
+        ],
+        "n/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.700000000000003,
+              -19.299999999999997,
+              14.099999999999994,
+              -6.599999999999994
+            ]
+          }
+        ],
+        "n/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.700000000000003,
+              -19.299999999999997,
+              14.099999999999994,
+              -6.599999999999994
+            ]
+          }
+        ],
+        "n/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -15.399999999999999,
+              -26.5,
+              26.900000000000006,
+              -8.299999999999997
+            ]
+          }
+        ],
+        "n/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -15.399999999999999,
+              -26.5,
+              26.900000000000006,
+              -8.299999999999997
+            ]
+          }
+        ],
+        "n/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -19.5,
+              -19.400000000000006,
+              19.5,
+              -13.400000000000006
+            ]
+          }
+        ],
+        "n/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -19.5,
+              -19.400000000000006,
+              19.5,
+              -13.400000000000006
+            ]
+          }
+        ],
+        "n/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              11.700000000000003,
+              -13.599999999999994,
+              17.700000000000003,
+              -7.599999999999994
+            ]
+          }
+        ]
+      }
+    },
+    "f": {
+      "huong": {
+        "s": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "se": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "e": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "ne": {
+          "mac_dinh": "sau",
+          "vung": []
+        },
+        "n": {
+          "mac_dinh": "sau",
+          "vung": []
+        }
+      },
+      "khung": {
+        "ne/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -11.166666666666671,
+              -14.277777777777771,
+              -5.166666666666671,
+              -8.277777777777771
+            ]
+          }
+        ],
+        "ne/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.833333333333329,
+              -15.25,
+              -4.833333333333329,
+              -9.25
+            ]
+          }
+        ],
+        "ne/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -3.5,
+              -13.125,
+              2.5,
+              -7.125
+            ]
+          }
+        ],
+        "ne/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              5.875,
+              -14.125,
+              11.875,
+              -8.125
+            ]
+          }
+        ],
+        "ne/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              7.214285714285722,
+              -14.214285714285722,
+              13.214285714285722,
+              -8.214285714285722
+            ]
+          }
+        ],
+        "ne/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -7.833333333333329,
+              -13.166666666666657,
+              -1.8333333333333286,
+              -7.166666666666657
+            ]
+          }
+        ],
+        "ne/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -11.399999999999999,
+              -13.214285714285722,
+              16.214285714285722,
+              -6.5
+            ]
+          }
+        ],
+        "ne/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.399999999999999,
+              -13.5,
+              12.700000000000003,
+              -7.5
+            ]
+          }
+        ],
+        "ne/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.722222222222221,
+              -18.27777777777777,
+              21.388888888888886,
+              -9.611111111111114
+            ]
+          }
+        ],
+        "ne/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.722222222222221,
+              -18.27777777777777,
+              21.388888888888886,
+              -9.611111111111114
+            ]
+          }
+        ],
+        "ne/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13,
+              -18.666666666666657,
+              12.375,
+              -11
+            ]
+          }
+        ],
+        "ne/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13,
+              -18.666666666666657,
+              12.375,
+              -11
+            ]
+          }
+        ],
+        "ne/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.400000000000006,
+              -13.5,
+              15.400000000000006,
+              -7.5
+            ]
+          }
+        ],
+        "n/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -13.611111111111114,
+              14.722222222222229,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.22727272727272,
+              -14.045454545454547,
+              14.22727272727272,
+              -8.045454545454547
+            ]
+          }
+        ],
+        "n/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -13.611111111111114,
+              14.722222222222229,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.900000000000006,
+              -14.900000000000006,
+              14.900000000000006,
+              -8.900000000000006
+            ]
+          }
+        ],
+        "n/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -13.611111111111114,
+              14.722222222222229,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -12.611111111111114,
+              14.722222222222229,
+              -6.611111111111114
+            ]
+          }
+        ],
+        "n/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.722222222222221,
+              -19.5,
+              10.5,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.722222222222221,
+              -19.5,
+              10.5,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.388888888888886,
+              -26.5,
+              26.875,
+              -8.277777777777771
+            ]
+          }
+        ],
+        "n/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.388888888888886,
+              -26.5,
+              26.875,
+              -8.277777777777771
+            ]
+          }
+        ],
+        "n/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -18.590909090909093,
+              -20.863636363636374,
+              18.590909090909093,
+              -14.863636363636374
+            ]
+          }
+        ],
+        "n/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -18.590909090909093,
+              -20.863636363636374,
+              18.590909090909093,
+              -14.863636363636374
+            ]
+          }
+        ],
+        "n/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.400000000000006,
+              -13.5,
+              15.400000000000006,
+              -7.5
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "geometry": [
+    {
+      "name": "m/s/idle/0",
+      "near": [
+        0.7211102550927924
+      ],
+      "pixels": 210,
+      "edge": 0
+    },
+    {
+      "name": "m/s/idle/1",
+      "near": [
+        0.7000000000000028
+      ],
+      "pixels": 211,
+      "edge": 0
+    },
+    {
+      "name": "m/s/walk/0",
+      "near": [
+        0.848528137423854
+      ],
+      "pixels": 286,
+      "edge": 0
+    },
+    {
+      "name": "m/s/walk/1",
+      "near": [
+        0.8062257748298514
+      ],
+      "pixels": 289,
+      "edge": 0
+    },
+    {
+      "name": "m/s/walk/2",
+      "near": [
+        0.848528137423854
+      ],
+      "pixels": 283,
+      "edge": 0
+    },
+    {
+      "name": "m/s/walk/3",
+      "near": [
+        0.7071067811865476
+      ],
+      "pixels": 291,
+      "edge": 0
+    },
+    {
+      "name": "m/s/attack/0",
+      "near": [
+        0.9433981132056578,
+        0.31622776601683344
+      ],
+      "pixels": 262,
+      "edge": 0
+    },
+    {
+      "name": "m/s/attack/1",
+      "near": [
+        0.9899494936611706,
+        0.4000000000000057
+      ],
+      "pixels": 299,
+      "edge": 0
+    },
+    {
+      "name": "m/s/attack/2",
+      "near": [
+        0.6708203932499306,
+        0.9848857801796179
+      ],
+      "pixels": 234,
+      "edge": 0
+    },
+    {
+      "name": "m/s/attack/3",
+      "near": [
+        0.7211102550927924,
+        0.41231056256177023
+      ],
+      "pixels": 302,
+      "edge": 0
+    },
+    {
+      "name": "m/s/cast/0",
+      "near": [
+        0.9848857801796115,
+        0.41231056256177023
+      ],
+      "pixels": 296,
+      "edge": 0
+    },
+    {
+      "name": "m/s/cast/1",
+      "near": [
+        0.6082762530298165,
+        0.9848857801796179
+      ],
+      "pixels": 236,
+      "edge": 0
+    },
+    {
+      "name": "m/s/hurt/0",
+      "near": [
+        0.8062257748298514
+      ],
+      "pixels": 219,
+      "edge": 0
+    },
+    {
+      "name": "f/s/idle/0",
+      "near": [
+        0.7856742013183874
+      ],
+      "pixels": 214,
+      "edge": 0
+    },
+    {
+      "name": "f/s/idle/1",
+      "near": [
+        0.8576346483687809
+      ],
+      "pixels": 213,
+      "edge": 0
+    },
+    {
+      "name": "f/s/walk/0",
+      "near": [
+        0.7856742013183874
+      ],
+      "pixels": 284,
+      "edge": 0
+    },
+    {
+      "name": "f/s/walk/1",
+      "near": [
+        0.7856742013183874
+      ],
+      "pixels": 290,
+      "edge": 0
+    },
+    {
+      "name": "f/s/walk/2",
+      "near": [
+        0.9162456945816991
+      ],
+      "pixels": 288,
+      "edge": 0
+    },
+    {
+      "name": "f/s/walk/3",
+      "near": [
+        1.5239140558400175
+      ],
+      "pixels": 288,
+      "edge": 0
+    },
+    {
+      "name": "f/s/attack/0",
+      "near": [
+        1.118033988749895,
+        0.28284271247462306
+      ],
+      "pixels": 271,
+      "edge": 0
+    },
+    {
+      "name": "f/s/attack/1",
+      "near": [
+        1.118033988749895,
+        0.6009252125773368
+      ],
+      "pixels": 292,
+      "edge": 0
+    },
+    {
+      "name": "f/s/attack/2",
+      "near": [
+        0.9013878188659974,
+        1.125
+      ],
+      "pixels": 242,
+      "edge": 0
+    },
+    {
+      "name": "f/s/attack/3",
+      "near": [
+        0.7211102550927924,
+        0.37267799624996917
+      ],
+      "pixels": 302,
+      "edge": 0
+    },
+    {
+      "name": "f/s/cast/0",
+      "near": [
+        0.931694990624923,
+        0.448763733927863
+      ],
+      "pixels": 302,
+      "edge": 0
+    },
+    {
+      "name": "f/s/cast/1",
+      "near": [
+        0.931694990624923,
+        0.448763733927863
+      ],
+      "pixels": 231,
+      "edge": 0
+    },
+    {
+      "name": "f/s/hurt/0",
+      "near": [
+        0.9000000000000057
+      ],
+      "pixels": 212,
+      "edge": 0
+    },
+    {
+      "name": "m/se/idle/0",
+      "near": [
+        0.9000000000000057
+      ],
+      "pixels": 192,
+      "edge": 0
+    },
+    {
+      "name": "m/se/idle/1",
+      "near": [
+        0.6082762530298165
+      ],
+      "pixels": 190,
+      "edge": 0
+    },
+    {
+      "name": "m/se/walk/0",
+      "near": [
+        0.6403124237432885
+      ],
+      "pixels": 250,
+      "edge": 0
+    },
+    {
+      "name": "m/se/walk/1",
+      "near": [
+        0.8999999999999986
+      ],
+      "pixels": 259,
+      "edge": 0
+    },
+    {
+      "name": "m/se/walk/2",
+      "near": [
+        0.8062257748298514
+      ],
+      "pixels": 254,
+      "edge": 0
+    },
+    {
+      "name": "m/se/walk/3",
+      "near": [
+        1.077032961426903
+      ],
+      "pixels": 252,
+      "edge": 0
+    },
+    {
+      "name": "m/se/attack/0",
+      "near": [
+        0.8062257748298514,
+        0.4242640687119245
+      ],
+      "pixels": 286,
+      "edge": 0
+    },
+    {
+      "name": "m/se/attack/1",
+      "near": [
+        0.8999999999999986,
+        0.5656854249492461
+      ],
+      "pixels": 383,
+      "edge": 0
+    },
+    {
+      "name": "m/se/attack/2",
+      "near": [
+        0.7211102550927924,
+        0.22360679774997896
+      ],
+      "pixels": 245,
+      "edge": 0
+    },
+    {
+      "name": "m/se/attack/3",
+      "near": [
+        0.7211102550927924,
+        0.22360679774997896
+      ],
+      "pixels": 286,
+      "edge": 0
+    },
+    {
+      "name": "m/se/cast/0",
+      "near": [
+        1.077032961426903,
+        1.1045361017187207
+      ],
+      "pixels": 281,
+      "edge": 0
+    },
+    {
+      "name": "m/se/cast/1",
+      "near": [
+        1.077032961426903,
+        0.14142135623730648
+      ],
+      "pixels": 248,
+      "edge": 0
+    },
+    {
+      "name": "m/se/hurt/0",
+      "near": [
+        0.8062257748298514
+      ],
+      "pixels": 193,
+      "edge": 0
+    },
+    {
+      "name": "f/se/idle/0",
+      "near": [
+        0.7027283689263131
+      ],
+      "pixels": 192,
+      "edge": 0
+    },
+    {
+      "name": "f/se/idle/1",
+      "near": [
+        0.7120003121097986
+      ],
+      "pixels": 193,
+      "edge": 0
+    },
+    {
+      "name": "f/se/walk/0",
+      "near": [
+        0.625
+      ],
+      "pixels": 251,
+      "edge": 0
+    },
+    {
+      "name": "f/se/walk/1",
+      "near": [
+        0.7288689868556625
+      ],
+      "pixels": 255,
+      "edge": 0
+    },
+    {
+      "name": "f/se/walk/2",
+      "near": [
+        0.7693092581620766
+      ],
+      "pixels": 251,
+      "edge": 0
+    },
+    {
+      "name": "f/se/walk/3",
+      "near": [
+        0.7453559924999194
+      ],
+      "pixels": 247,
+      "edge": 0
+    },
+    {
+      "name": "f/se/attack/0",
+      "near": [
+        0.8999999999999986,
+        0.40406101782087284
+      ],
+      "pixels": 284,
+      "edge": 0
+    },
+    {
+      "name": "f/se/attack/1",
+      "near": [
+        0.7999999999999972,
+        0.10000000000000142
+      ],
+      "pixels": 372,
+      "edge": 0
+    },
+    {
+      "name": "f/se/attack/2",
+      "near": [
+        0.7856742013183874,
+        0.2484519974999837
+      ],
+      "pixels": 246,
+      "edge": 0
+    },
+    {
+      "name": "f/se/attack/3",
+      "near": [
+        0.7856742013183874,
+        0.2484519974999837
+      ],
+      "pixels": 287,
+      "edge": 0
+    },
+    {
+      "name": "f/se/cast/0",
+      "near": [
+        1.0077822185373186,
+        1.269295517643976
+      ],
+      "pixels": 273,
+      "edge": 0
+    },
+    {
+      "name": "f/se/cast/1",
+      "near": [
+        1.0077822185373186,
+        1.269295517643976
+      ],
+      "pixels": 246,
+      "edge": 0
+    },
+    {
+      "name": "f/se/hurt/0",
+      "near": [
+        0.9000000000000057
+      ],
+      "pixels": 194,
+      "edge": 0
+    },
+    {
+      "name": "m/e/idle/0",
+      "near": [
+        1.345362404707375
+      ],
+      "pixels": 567,
+      "edge": 0
+    },
+    {
+      "name": "m/e/idle/1",
+      "near": [
+        1.2529964086141652
+      ],
+      "pixels": 565,
+      "edge": 0
+    },
+    {
+      "name": "m/e/walk/0",
+      "near": [
+        1.486606874731856
+      ],
+      "pixels": 500,
+      "edge": 0
+    },
+    {
+      "name": "m/e/walk/1",
+      "near": [
+        1.34536240470737
+      ],
+      "pixels": 493,
+      "edge": 0
+    },
+    {
+      "name": "m/e/walk/2",
+      "near": [
+        1.2041594578792318
+      ],
+      "pixels": 493,
+      "edge": 0
+    },
+    {
+      "name": "m/e/walk/3",
+      "near": [
+        1.166190378969057
+      ],
+      "pixels": 496,
+      "edge": 0
+    },
+    {
+      "name": "m/e/attack/0",
+      "near": [
+        0.9219544457292951,
+        0.4242640687119245
+      ],
+      "pixels": 288,
+      "edge": 0
+    },
+    {
+      "name": "m/e/attack/1",
+      "near": [
+        0.8999999999999986,
+        0.5656854249492461
+      ],
+      "pixels": 262,
+      "edge": 0
+    },
+    {
+      "name": "m/e/attack/2",
+      "near": [
+        1.4560219778561039,
+        0.22360679774997896
+      ],
+      "pixels": 228,
+      "edge": 0
+    },
+    {
+      "name": "m/e/attack/3",
+      "near": [
+        0.7211102550927924,
+        0.22360679774997896
+      ],
+      "pixels": 224,
+      "edge": 0
+    },
+    {
+      "name": "m/e/cast/0",
+      "near": [
+        1.077032961426903,
+        0.14142135623730648
+      ],
+      "pixels": 346,
+      "edge": 0
+    },
+    {
+      "name": "m/e/cast/1",
+      "near": [
+        1.077032961426903,
+        0.9055385138137396
+      ],
+      "pixels": 227,
+      "edge": 0
+    },
+    {
+      "name": "m/e/hurt/0",
+      "near": [
+        1.204159457879232
+      ],
+      "pixels": 565,
+      "edge": 0
+    },
+    {
+      "name": "f/e/idle/0",
+      "near": [
+        1.3517250067329338
+      ],
+      "pixels": 561,
+      "edge": 0
+    },
+    {
+      "name": "f/e/idle/1",
+      "near": [
+        1.2936812246883342
+      ],
+      "pixels": 568,
+      "edge": 0
+    },
+    {
+      "name": "f/e/walk/0",
+      "near": [
+        1.0680004681646913
+      ],
+      "pixels": 494,
+      "edge": 0
+    },
+    {
+      "name": "f/e/walk/1",
+      "near": [
+        1.4252192813739224
+      ],
+      "pixels": 496,
+      "edge": 0
+    },
+    {
+      "name": "f/e/walk/2",
+      "near": [
+        1.31707777961326
+      ],
+      "pixels": 498,
+      "edge": 0
+    },
+    {
+      "name": "f/e/walk/3",
+      "near": [
+        1.3743685418725513
+      ],
+      "pixels": 495,
+      "edge": 0
+    },
+    {
+      "name": "f/e/attack/0",
+      "near": [
+        0.8999999999999986,
+        0.40406101782087284
+      ],
+      "pixels": 291,
+      "edge": 0
+    },
+    {
+      "name": "f/e/attack/1",
+      "near": [
+        0.7999999999999972,
+        0.10000000000000142
+      ],
+      "pixels": 251,
+      "edge": 0
+    },
+    {
+      "name": "f/e/attack/2",
+      "near": [
+        0.9162456945816991,
+        0.2484519974999837
+      ],
+      "pixels": 240,
+      "edge": 0
+    },
+    {
+      "name": "f/e/attack/3",
+      "near": [
+        0.9162456945816991,
+        0.2484519974999837
+      ],
+      "pixels": 227,
+      "edge": 0
+    },
+    {
+      "name": "f/e/cast/0",
+      "near": [
+        1.0077822185373186,
+        0.5270462766947269
+      ],
+      "pixels": 348,
+      "edge": 0
+    },
+    {
+      "name": "f/e/cast/1",
+      "near": [
+        1.0077822185373186,
+        0.9718253158075583
+      ],
+      "pixels": 238,
+      "edge": 0
+    },
+    {
+      "name": "f/e/hurt/0",
+      "near": [
+        1.345362404707375
+      ],
+      "pixels": 568,
+      "edge": 0
+    },
+    {
+      "name": "m/ne/idle/0",
+      "near": [
+        0.9000000000000057
+      ],
+      "pixels": 278,
+      "edge": 0
+    },
+    {
+      "name": "m/ne/idle/1",
+      "near": [
+        1.0816653826391924
+      ],
+      "pixels": 277,
+      "edge": 0
+    },
+    {
+      "name": "m/ne/walk/0",
+      "near": [
+        1.486606874731856
+      ],
+      "pixels": 251,
+      "edge": 0
+    },
+    {
+      "name": "m/ne/walk/1",
+      "near": [
+        1.0049875621120892
+      ],
+      "pixels": 254,
+      "edge": 0
+    },
+    {
+      "name": "m/ne/walk/2",
+      "near": [
+        1.1180339887498898
+      ],
+      "pixels": 249,
+      "edge": 0
+    },
+    {
+      "name": "m/ne/walk/3",
+      "near": [
+        1.077032961426903
+      ],
+      "pixels": 253,
+      "edge": 0
+    },
+    {
+      "name": "m/ne/attack/0",
+      "near": [
+        0.9219544457292951,
+        0.4242640687119245
+      ],
+      "pixels": 249,
+      "edge": 0
+    },
+    {
+      "name": "m/ne/attack/1",
+      "near": [
+        0.8999999999999986,
+        0.5656854249492461
+      ],
+      "pixels": 275,
+      "edge": 0
+    },
+    {
+      "name": "m/ne/attack/2",
+      "near": [
+        1.4560219778561039,
+        0.22360679774997896
+      ],
+      "pixels": 237,
+      "edge": 0
+    },
+    {
+      "name": "m/ne/attack/3",
+      "near": [
+        0.848528137423854,
+        0.22360679774997896
+      ],
+      "pixels": 232,
+      "edge": 0
+    },
+    {
+      "name": "m/ne/cast/0",
+      "near": [
+        1.077032961426903,
+        0.14142135623730648
+      ],
+      "pixels": 244,
+      "edge": 0
+    },
+    {
+      "name": "m/ne/cast/1",
+      "near": [
+        1.077032961426903,
+        0.14142135623730648
+      ],
+      "pixels": 214,
+      "edge": 0
+    },
+    {
+      "name": "m/ne/hurt/0",
+      "near": [
+        1.1180339887498898
+      ],
+      "pixels": 273,
+      "edge": 0
+    },
+    {
+      "name": "f/ne/idle/0",
+      "near": [
+        1.024393828588097
+      ],
+      "pixels": 274,
+      "edge": 0
+    },
+    {
+      "name": "f/ne/idle/1",
+      "near": [
+        1.0034662148993612
+      ],
+      "pixels": 280,
+      "edge": 0
+    },
+    {
+      "name": "f/ne/walk/0",
+      "near": [
+        1.0680004681646913
+      ],
+      "pixels": 253,
+      "edge": 0
+    },
+    {
+      "name": "f/ne/walk/1",
+      "near": [
+        1.4252192813739224
+      ],
+      "pixels": 250,
+      "edge": 0
+    },
+    {
+      "name": "f/ne/walk/2",
+      "near": [
+        1.31707777961326
+      ],
+      "pixels": 253,
+      "edge": 0
+    },
+    {
+      "name": "f/ne/walk/3",
+      "near": [
+        0.94280904158206
+      ],
+      "pixels": 251,
+      "edge": 0
+    },
+    {
+      "name": "f/ne/attack/0",
+      "near": [
+        0.8999999999999986,
+        0.40406101782087284
+      ],
+      "pixels": 250,
+      "edge": 0
+    },
+    {
+      "name": "f/ne/attack/1",
+      "near": [
+        1.0198039027185575,
+        0.10000000000000142
+      ],
+      "pixels": 265,
+      "edge": 0
+    },
+    {
+      "name": "f/ne/attack/2",
+      "near": [
+        0.9162456945816991,
+        0.2484519974999837
+      ],
+      "pixels": 236,
+      "edge": 0
+    },
+    {
+      "name": "f/ne/attack/3",
+      "near": [
+        0.9162456945816991,
+        0.2484519974999837
+      ],
+      "pixels": 235,
+      "edge": 0
+    },
+    {
+      "name": "f/ne/cast/0",
+      "near": [
+        1.0077822185373186,
+        0.5270462766947269
+      ],
+      "pixels": 249,
+      "edge": 0
+    },
+    {
+      "name": "f/ne/cast/1",
+      "near": [
+        1.0077822185373186,
+        0.5270462766947269
+      ],
+      "pixels": 221,
+      "edge": 0
+    },
+    {
+      "name": "f/ne/hurt/0",
+      "near": [
+        1.0049875621120885
+      ],
+      "pixels": 281,
+      "edge": 0
+    },
+    {
+      "name": "m/n/idle/0",
+      "near": [
+        1.4560219778561105
+      ],
+      "pixels": 345,
+      "edge": 0
+    },
+    {
+      "name": "m/n/idle/1",
+      "near": [
+        1.2041594578792318
+      ],
+      "pixels": 342,
+      "edge": 0
+    },
+    {
+      "name": "m/n/walk/0",
+      "near": [
+        1.4560219778561105
+      ],
+      "pixels": 397,
+      "edge": 0
+    },
+    {
+      "name": "m/n/walk/1",
+      "near": [
+        1.4560219778561105
+      ],
+      "pixels": 398,
+      "edge": 0
+    },
+    {
+      "name": "m/n/walk/2",
+      "near": [
+        1.4560219778561105
+      ],
+      "pixels": 398,
+      "edge": 0
+    },
+    {
+      "name": "m/n/walk/3",
+      "near": [
+        1.4560219778561105
+      ],
+      "pixels": 397,
+      "edge": 0
+    },
+    {
+      "name": "m/n/attack/0",
+      "near": [
+        0.9999999999999943,
+        0.22360679774997896
+      ],
+      "pixels": 331,
+      "edge": 0
+    },
+    {
+      "name": "m/n/attack/1",
+      "near": [
+        0.9999999999999943,
+        0.22360679774997896
+      ],
+      "pixels": 308,
+      "edge": 0
+    },
+    {
+      "name": "m/n/attack/2",
+      "near": [
+        1.077032961426903,
+        1.9104973174542788
+      ],
+      "pixels": 250,
+      "edge": 0
+    },
+    {
+      "name": "m/n/attack/3",
+      "near": [
+        1.077032961426903,
+        0.22360679774998216
+      ],
+      "pixels": 356,
+      "edge": 0
+    },
+    {
+      "name": "m/n/cast/0",
+      "near": [
+        1.0049875621120885,
+        0.09999999999999432
+      ],
+      "pixels": 352,
+      "edge": 0
+    },
+    {
+      "name": "m/n/cast/1",
+      "near": [
+        0.9000000000000057,
+        0.09999999999999432
+      ],
+      "pixels": 255,
+      "edge": 0
+    },
+    {
+      "name": "m/n/hurt/0",
+      "near": [
+        0.9219544457292951
+      ],
+      "pixels": 349,
+      "edge": 0
+    },
+    {
+      "name": "f/n/idle/0",
+      "near": [
+        0.9162456945817009
+      ],
+      "pixels": 348,
+      "edge": 0
+    },
+    {
+      "name": "f/n/idle/1",
+      "near": [
+        1.35146079521078
+      ],
+      "pixels": 347,
+      "edge": 0
+    },
+    {
+      "name": "f/n/walk/0",
+      "near": [
+        1.1331154474650675
+      ],
+      "pixels": 393,
+      "edge": 0
+    },
+    {
+      "name": "f/n/walk/1",
+      "near": [
+        1.4560219778561105
+      ],
+      "pixels": 395,
+      "edge": 0
+    },
+    {
+      "name": "f/n/walk/2",
+      "near": [
+        1.1331154474650675
+      ],
+      "pixels": 396,
+      "edge": 0
+    },
+    {
+      "name": "f/n/walk/3",
+      "near": [
+        1.1331154474650675
+      ],
+      "pixels": 394,
+      "edge": 0
+    },
+    {
+      "name": "f/n/attack/0",
+      "near": [
+        1,
+        0.24845199749997735
+      ],
+      "pixels": 333,
+      "edge": 0
+    },
+    {
+      "name": "f/n/attack/1",
+      "near": [
+        1,
+        0.24845199749997735
+      ],
+      "pixels": 304,
+      "edge": 0
+    },
+    {
+      "name": "f/n/attack/2",
+      "near": [
+        1.0680004681646913,
+        0.2484519974999837
+      ],
+      "pixels": 252,
+      "edge": 0
+    },
+    {
+      "name": "f/n/attack/3",
+      "near": [
+        1.0680004681646913,
+        0.2484519974999837
+      ],
+      "pixels": 355,
+      "edge": 0
+    },
+    {
+      "name": "f/n/cast/0",
+      "near": [
+        0.9791208740244567,
+        0.3748277841470707
+      ],
+      "pixels": 353,
+      "edge": 0
+    },
+    {
+      "name": "f/n/cast/1",
+      "near": [
+        0.9791208740244567,
+        0.3748277841470707
+      ],
+      "pixels": 264,
+      "edge": 0
+    },
+    {
+      "name": "f/n/hurt/0",
+      "near": [
+        1.0049875621120885
+      ],
+      "pixels": 346,
+      "edge": 0
+    }
+  ],
+  "failures": [],
+  "maxA": 1.5239140558400175,
+  "maxB": 1.9104973174542788,
+  "edge": 0,
+  "normalizedHeadWidth": 17.358398982142237,
+  "imported": false
+}

@@ -1,0 +1,126 @@
+{
+  "id": "hao_thien_chuy",
+  "kind": "vukhi",
+  "level": "pass",
+  "group": "A",
+  "frame": 128,
+  "dummyKey": "#00D0D0",
+  "blockLevel": {
+    "ne": "pass"
+  },
+  "sheets": [
+    {
+      "sheet": "toD",
+      "size": [
+        1536,
+        1024
+      ],
+      "kind": "huong",
+      "level": "pass",
+      "dirs": [
+        "ne"
+      ],
+      "background": {
+        "key": [
+          255,
+          0,
+          255
+        ],
+        "corners": [
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ]
+        ],
+        "keyDistFromLock": 0,
+        "cornerSpread": 0
+      },
+      "seVsE": null,
+      "prep": {
+        "shift": {
+          "dx": 0,
+          "dy": 0
+        },
+        "factor": 1,
+        "grid": "gap"
+      },
+      "bands": [
+        {
+          "row": 1,
+          "dir": "ne",
+          "y": [
+            84,
+            181
+          ],
+          "figures": 3,
+          "state": "ok"
+        },
+        {
+          "row": 2,
+          "dir": "ne",
+          "y": [
+            342,
+            437
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 3,
+          "dir": "ne",
+          "y": [
+            598,
+            693
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 4,
+          "dir": "ne",
+          "y": [
+            854,
+            949
+          ],
+          "figures": 2,
+          "state": "ok"
+        }
+      ],
+      "motion": [
+        {
+          "dir": "ne",
+          "anim": "idle",
+          "maxDiff": 0.224
+        },
+        {
+          "dir": "ne",
+          "anim": "walk",
+          "maxDiff": 1
+        },
+        {
+          "dir": "ne",
+          "anim": "hurt-vs-idle",
+          "maxDiff": 0.995
+        }
+      ],
+      "issues": [],
+      "draft": null
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+    "tool":  "builtin image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "attempt":  1,
+    "raw":  "poses.raw.png",
+    "sha256":  "d36bb59e2926480f149560e851db412af51217c809d18d06e81fb5738720e5be",
+    "prompt":  "poses.prompt.txt",
+    "promptSha256":  "e5ed4785241d339987166bbefc7d505b484083aec2e8ba02a0bfe543709ada0f",
+    "reference":  "../../s/attempt2/poses.raw.png",
+    "referenceSha256":  "3f4c462f71e8bfe274aea2ff3030ff740cfdd3859924f2e44931bfa61ec1f190",
+    "postprocessing":  "none; RAW copied byte-for-byte",
+    "selected":  false,
+    "rejection":  "cán ngắn: tay B attack lệch tối đa 7,24 px ở tỷ lệ chung",
+    "license":  "OpenAI output terms; not CC0",
+    "promptHandwritten":  true
+}

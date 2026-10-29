@@ -45,7 +45,7 @@ Bổ sung cho `phu-the-hoat-anh.md` (khung, nộm, mặt nạ, clip, công cụ 
 | 16 | Quỷ Mị (`quy_mi`) | lưỡi hái bóng: lưỡi cong tím lam đậm, cán dài tan khói ở đuôi, mặt nạ quỷ khắc ở gốc lưỡi | cứng | 2 tay (theo clip) | `tay` hai tay trên cán; kéo `lưng` khi đứng yên | `attack` quét ngang nửa vòng, khói kéo vệt (code); `cast` cắm xuống, bóng quỷ nhỏ (code) |
 | 17 | Thiên Càn Bạch Ngọc Đỉnh (`thien_can_bach_ngoc_dinh`) | đỉnh ngọc ba chân nhỏ, hai quai, nắp có núm, khói ngọc bốc | cứng | 1 tay | bưng trên `tay` thuận (lòng bàn tay ngửa) ngang hông; bồng trước ngực khi `cast` | `attack` ném / hất đỉnh về phía trước rồi thu lại; `cast` nâng cao, miệng nghiêng, linh hỏa (code) |
 | 18 | Lam Ngân Thảo (`lam_ngan_thao`) | roi dây cỏ: bó dây lam thẫm xoắn như thừng, ngọn nhọn như mũi giáo, hạt sáng | mềm | 1 tay | `tay` thuận giữ gốc bó dây; dây thả dài ra sau / bên | `attack` dây quất vòng trước mặt; `cast` dây cuộn quanh người rồi bung. **Thí điểm mềm** |
-| 19 | Hạo Thiên Chùy (`hao_thien_chuy`) | đại chùy: đầu búa vuông khối mẻ, cán dài có đai vàng cũ, nứt sáng cam đỏ rất ít | cứng | 2 tay (theo clip) | `idle` / `walk` / `hurt`: tay thuận xách / chống chùy, cán chéo hoặc đầu buông thấp; có thể vác vai một tay nếu khớp marker. `attack` / `cast`: hai tay trên cán theo khung slash / spellcast, cán dọc, đòn nện đổi pose rõ | `attack` nâng lên nện xuống, pose đổi rõ; `cast` nện đất, đá vỡ (code). **Thí điểm cứng**, khung 128 |
+| 19 | Hạo Thiên Chùy (`hao_thien_chuy`) | đại chùy: đầu búa vuông khối mẻ, cán dài có đai vàng cũ, nứt sáng cam đỏ rất ít | cứng | 2 tay (theo clip) | `idle` / `walk` / `hurt`: tay thuận cầm / chống chùy, đầu chùy cao hơn hông, cán chéo hoặc đứng, không ngang hông; bỏ yêu cầu vác vai vì pose tay LPC thấp. `attack` / `cast`: hai tay trên cán theo khung slash / spellcast, đòn nện đổi pose rõ; giữ cỡ đầu búa giữa các pose, không dùng impact chính diện phóng lớn | `attack` nâng lên nện xuống, pose đổi rõ; `cast` nện đất, đá vỡ (code). **Thí điểm cứng**, khung 128 |
 | 20 | Cửu Bảo Lưu Ly Tháp (`cuu_bao_luu_ly_thap`) | bảo tháp chín tầng thu nhỏ, mái cong nhiều sắc lưu ly, chóp vàng, chuông gió | cứng | 1 tay | tháp đặt trên lòng bàn tay thuận ngửa; bồng nhẹ | `attack` đập xuống như ấn; `cast` nâng cao, tầng sáng lần lượt (code). Tháp nhỏ vừa tay, không phóng to như pháp tướng |
 | 21 | Phá Hồn Thương (`pha_hon_thuong`) | trường thương: cán dài, mũi thoi hẹp có rãnh, hai tua đỏ phất | cứng | 2 tay (theo clip) | `tay` hai tay trên cán; dựng chếch sau `lưng` khi đứng yên | `attack` đâm thẳng theo hướng; `cast` xoay thương một vòng, tua đỏ tung |
 | 22 | A Ngân (`a_ngan`) | roi dây vàng xanh: bó dây quấn cổ tay, một đóa hoa nhỏ kim quang ở gốc làm đầu nắm, dây rủ | mềm | 1 tay | `tay` thuận giữ đầu nắm hoa; dây thả dài | `attack` dây quất; `cast` đóa hoa nở, dây vàng bung (hạt sáng là code, không sao / trái tim) |
@@ -87,7 +87,7 @@ Tái dùng tối đa đường P1 (#1022) / P2 (#1023); thêm chế độ **"vũ
 
 | Võ hồn | Nhóm | Mục đích thử |
 |---|---|---|
-| Hạo Thiên Chùy (#19) | cứng, 2 tay | vật to, khung 128, vác vai, hai marker, pose `attack` đổi rõ ít khung |
+| Hạo Thiên Chùy (#19) | cứng, 2 tay | vật to, khung 128, không vác vai (tay LPC thấp), số tay theo clip, pose `attack` đổi rõ ít khung |
 | Lam Ngân Thảo (#18) | mềm | dây dài đủ pose, mặt nạ trước / sau cho đầu dây, bài học "mềm" |
 | Một võ hồn găng-vuốt: **U Minh Linh Miêu (#5)** (đề xuất; thay được bằng Bạch Hổ #25 nếu chủ repo muốn) | găng-vuốt | vuốt gắn bàn tay, vệt vuốt là code, nhận diện võ hồn từ vật nhỏ |
 
