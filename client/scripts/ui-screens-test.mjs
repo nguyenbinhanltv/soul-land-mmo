@@ -1,6 +1,10 @@
 // UI v2: hub ngăn kéo + ba màn hệ thống mới (Xếp Hạng, Lịch Hoạt Động, Phúc Lợi): phần thuần (bố cục, mô hình hiển thị), không cần DOM / server.
 import assert from "node:assert/strict";
 import { HUB_ITEMS, hubLayout } from "../src/hubMenu.ts";
+import { setBadge, clearBadge, badgeOf, allBadges, onBadges, resetBadges, starReadyCount, ringReady, questActionable } from "../src/badges.ts";
+import { logNotice, notices, clearNotices, LOG_MAX } from "../src/noticeLog.ts";
+import { noticeNode, noticeTime } from "../src/noticeScreen.ts";
+import { toHtml } from "../src/uiParts.ts";
 import { fixedGoal, slotState, todayIndex, byDay, dayDate, slotRange, STATE_LABEL } from "../src/calendarScreen.ts";
 import { COUNTDOWN_SOON_MS } from "../src/uiParts.ts";
 import { rewardIcons, cellState, signedToday, needsSign, isMilestone, rewardParts, signedLine, primaryOf, nextMidnightVn, feeText } from "../src/welfareScreen.ts";
@@ -11,14 +15,18 @@ import { playerCard, rankGroups, podiumOf, lineupText, meLine, pageLabel, tongNa
 const ids = HUB_ITEMS.map((i) => i.id);
 assert.equal(new Set(ids).size, ids.length, "id mục hub không trùng");
 const sizes = (l) => ({ big: l.big.length, mid: l.mid.length, grid: l.grid.length, rail: l.rail.length });
-assert.deepEqual(sizes(hubLayout([])), { big: 2, mid: 2, grid: 12, rail: 0 }, "không có hành động: thẻ lớn / vừa / lưới đủ, rail ẩn hết");
+assert.deepEqual(sizes(hubLayout([])), { big: 2, mid: 2, grid: 12, rail: 4 }, "không có hành động: thẻ lớn / vừa / lưới đủ, rail đủ 4 mục (mờ)");
 const L = hubLayout(["char", "bag", "rank", "settings"], ["rank"]);
 const cell = (l, id) => [...l.big, ...l.mid, ...l.grid, ...l.rail].find((c) => c.item.id === id);
 assert.equal(cell(L, "char").enabled, true);
 assert.equal(cell(L, "shop").enabled, false); assert.equal(cell(L, "shop").card.state, "lock"); assert.equal(cell(L, "shop").card.reason, "Chưa có");
 assert.equal(cell(L, "rank").card.state, "new", "chấm đỏ cho mục có việc mới");
 assert.equal(cell(L, "bag").card.state, undefined, "mục có chức năng, không việc mới: thẻ thường");
-assert.deepEqual(L.rail.map((c) => c.item.id), ["settings"], "rail chỉ giữ mục đã nối");
+assert.deepEqual(L.rail.map((c) => [c.item.id, c.enabled]), [["mail", false], ["notice", false], ["settings", true], ["shot", false]], "rail đủ mục, chưa nối thì mờ");
+assert.equal(cell(L, "mail").card.state, "lock"); assert.equal(cell(L, "mail").card.reason, "Chưa có");
+assert.equal(cell(hubLayout(["bag"], [], ["bag"]), "bag").card.state, "up", "mũi tên xanh cho mục nâng được");
+assert.equal(cell(hubLayout(["bag"], ["bag"], ["bag"]), "bag").card.state, "new", "chấm đỏ thắng mũi tên");
+assert.equal(cell(hubLayout([], [], ["bag"]), "bag").card.state, "lock", "mục chưa nối không có mũi tên");
 assert.equal(cell(hubLayout(["shop"], ["shop"]), "shop").card.state, "new");
 assert.equal(cell(hubLayout([], ["rank"]), "rank").card.state, "lock", "mục chưa nối không thể có chấm đỏ");
 
@@ -88,3 +96,49 @@ assert.deepEqual(rewardIcons(0), [], "ô chỉ Hồn Tệ: không icon");
 assert.deepEqual(rewardIcons(1), ["hoi_huyet_dan"]); assert.deepEqual(rewardIcons(6), ["manh_vo_hon"]);
 assert.equal(rewardIcons(13)[0], CHECKIN.rewards[13].items[0].code); assert.equal(rewardIcons(13).at(-1), "manh_vo_hon"); assert.deepEqual(rewardIcons(99), []);
 console.log("ui-screens: thẻ nhỏ / Đến / icon quà OK");
+
+// ---- kho chấm đỏ / mũi tên xanh (đợt 4b) ----
+{
+  let calls = 0; const off = onBadges(() => { calls++; });
+  setBadge("bag", "new", 2); assert.deepEqual(badgeOf("bag"), { kind: "new", n: 2 });
+  setBadge("bag", "new", 2); assert.equal(calls, 1, "không đổi thì không báo");
+  setBadge("bag", "up", 1); assert.equal(badgeOf("bag").kind, "up"); assert.equal(calls, 2);
+  setBadge("bag", "new", 0); assert.equal(badgeOf("bag"), null, "n ≤ 0 là xoá"); assert.equal(calls, 3);
+  clearBadge("bag"); assert.equal(calls, 3, "xoá cái không có thì không báo");
+  setBadge("vohon", "up", 1); setBadge("quest", "new", 1); assert.equal(allBadges().size, 2);
+  resetBadges(); assert.equal(allBadges().size, 0); off(); setBadge("quest", "new"); assert.equal(calls, 6, "bỏ nghe rồi thì không báo"); resetBadges();
+}
+{
+  const have = new Map([["thanh_long", 5]]);
+  assert.equal(starReadyCount([], new Map([["thanh_long", 1]])), 0, "chưa đủ mảnh mở: không chấm");
+  assert.equal(starReadyCount([], new Map([["thanh_long", 9999]])), 1, "đủ mảnh mở võ hồn chưa có");
+  assert.equal(starReadyCount([{ vohon: "thanh_long", stars: 1 }], new Map([["thanh_long", 0]])), 0);
+  assert.equal(starReadyCount([{ vohon: "thanh_long", stars: 1 }], new Map([["thanh_long", 9999]])), 1, "đủ mảnh lên sao");
+  assert.equal(starReadyCount([{ vohon: "thanh_long", stars: 99 }], new Map([["thanh_long", 9999]])), 0, "sao tối đa (starCost null) không chấm");
+  void have;
+}
+{
+  const ring = (years, vohon = null) => ({ code: "hon_hoan", vohon, years });
+  assert.equal(ringReady(0, [ring(10)]), true, "vòng 1 còn trống, hồn hoàn 10 năm vừa giới hạn");
+  assert.equal(ringReady(0, [ring(10_000_000)]), false, "vượt giới hạn ô kế tiếp");
+  assert.equal(ringReady(0, [ring(10, 7)]), false, "hồn hoàn đang gắn không tính");
+  assert.equal(ringReady(0, [ring(null)]), false); assert.equal(ringReady(0, [{ code: "hoi_huyet_dan", vohon: null, years: 10 }]), false);
+  assert.equal(ringReady(9, [ring(10)]), true, "còn ô thứ 10");
+  assert.equal(ringReady(10, [ring(10)]), false, "đủ 10 hồn hoàn");
+}
+assert.equal(questActionable(["active", "done"]), 0); assert.equal(questActionable(["offer", "ready", "active"]), 2);
+
+// ---- nhật ký thông báo (hộp Thông báo) ----
+{
+  clearNotices();
+  logNotice("loot", "Hồi Huyết Đan", "", false, 1000); logNotice("loot", "Hồi Huyết Đan", "", true, 2000);
+  assert.equal(notices().length, 1, "toast gộp ×n cộng vào dòng cũ"); assert.equal(notices()[0].n, 2); assert.equal(notices()[0].t, 2000);
+  logNotice("quest", "Nhận nhiệm vụ", "sub", false);
+  assert.equal(notices().length, 2); assert.equal(notices()[1].title, "Nhận nhiệm vụ", "mới nhất ở cuối");
+  for (let i = 0; i < 80; i++) logNotice("info", `tin ${i}`, "", false);
+  assert.equal(notices().length, LOG_MAX, "giữ đúng 50 dòng gần nhất"); assert.equal(notices()[LOG_MAX - 1].title, "tin 79"); assert.equal(notices()[0].title, "tin 30");
+  const html = toHtml(noticeNode({ kind: "loot", title: "<b>x</b>", sub: "", t: 0, n: 3 }));
+  assert.match(html, /&lt;b&gt;x&lt;\/b&gt; ×3/, "chữ được escape, kèm ×n"); assert.match(html, /Nhận/, "nhãn loại bằng chữ");
+  assert.match(noticeTime(new Date(2026, 0, 1, 7, 5).getTime()), /^07:05$/);
+  clearNotices(); assert.equal(notices().length, 0);
+}

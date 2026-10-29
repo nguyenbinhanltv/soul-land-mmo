@@ -27,6 +27,11 @@ export const questOf = (id: string) => {
 export function questTracked(): QuestMsg[] {
   return QUESTS.map((c) => questMsgs.get(c.id)).filter((q): q is QuestMsg => !!q && q.status !== "done" && questOf(questChain(q.chain)?.giver ?? "") === q);
 }
+/** Mở rộng mọi mục của khung theo dõi (thẻ Nhiệm Vụ ở hub, ui2): bỏ trạng thái thu gọn rồi vẽ lại; trả số chuỗi + khảo hạch đang hiện. Không đổi dữ liệu / tin mạng. */
+export function revealQuestTracker(): number {
+  questFold.clear(); dailyFold = false; renderQuestTracker();
+  return questTracked().length + (dailyMsg?.list.filter((x) => x.status !== "done").length ?? 0);
+}
 /** Tin "quest": vẽ lại khung theo dõi, và hộp thoại nếu đang mở với NPC giao nhiệm vụ. */
 export function setQuest(q: QuestMsg) {
   questMsgs.set(q.chain, q);

@@ -1,8 +1,10 @@
 // UI v2, menu hub ngăn kéo bên phải (đợt 1 của bộ spec UI, Part of #877; docs/design/giao-dien.md "Menu hub").
 // Chỉ chạy khi cờ `ui2` bật (tắt thì không dựng gì, nút menu cũ giữ nguyên). Hub chỉ MỞ các bảng đã có: bấm một mục là gọi đúng hàm mở của bảng đó
-// (GameScene truyền vào `actions`), hub không giữ trạng thái game. Mục chưa có chức năng: thẻ lưới hiện mờ kèm lý do "Chưa có", mục rail bị ẩn.
+// (GameScene truyền vào `actions`), hub không giữ trạng thái game. Mục chưa có chức năng: thẻ lưới và mục rail hiện mờ kèm lý do "Chưa có".
+// Chấm đỏ / mũi tên xanh đọc từ kho `badges.ts` (đợt 4b); hub chỉ vẽ lại khi kho đổi.
 import { statusCard, mount, type CardOpts, type PNode } from "./uiParts.ts";
 import { isUi2 } from "./uiKit.ts";
+import { allBadges, onBadges, type BadgeKind } from "./badges.ts";
 
 export type HubSize = "big" | "mid" | "grid" | "rail";
 export interface HubItem { id: string; label: string; size: HubSize; /** phím tắt đã có (chỉ để nhắc, hub không bắt phím). */ key?: string; sub?: string }
@@ -35,15 +37,14 @@ export interface HubCell { item: HubItem; card: CardOpts; enabled: boolean }
 export interface HubLayout { big: HubCell[]; mid: HubCell[]; grid: HubCell[]; rail: HubCell[] }
 
 /**
- * Bố cục hub từ hành động có thật (`available`: id đã nối với một bảng) và chấm đỏ (`dots`: id có việc mới, vd Phúc Lợi chưa điểm danh).
- * Hàm thuần để test. Mục chưa có: thẻ khoá "Chưa có" (mờ); mục rail chưa có: bỏ khỏi bố cục (ẩn).
+ * Bố cục hub từ hành động có thật (`available`: id đã nối với một bảng), chấm đỏ (`dots`: id có việc mới, vd Phúc Lợi chưa điểm danh) và mũi tên xanh
+ * (`ups`: id nâng được, vd đủ mảnh lên sao). Hàm thuần để test. Mục chưa có (kể cả rail): thẻ khoá "Chưa có" (mờ); chấm đỏ thắng mũi tên khi trùng id.
  */
-export function hubLayout(available: Iterable<string>, dots: Iterable<string> = []): HubLayout {
-  const have = new Set(available), dot = new Set(dots), out: HubLayout = { big: [], mid: [], grid: [], rail: [] };
+export function hubLayout(available: Iterable<string>, dots: Iterable<string> = [], ups: Iterable<string> = []): HubLayout {
+  const have = new Set(available), dot = new Set(dots), up = new Set(ups), out: HubLayout = { big: [], mid: [], grid: [], rail: [] };
   for (const item of HUB_ITEMS) {
-    const enabled = have.has(item.id);
-    if (!enabled && item.size === "rail") continue;
-    const card: CardOpts = { title: item.label, ...(item.sub && enabled ? { sub: item.sub } : {}), ...(enabled ? (dot.has(item.id) ? { state: "new" as const } : {}) : { state: "lock" as const, reason: "Chưa có" }) };
+    const enabled = have.has(item.id), mark = dot.has(item.id) ? ("new" as const) : up.has(item.id) ? ("up" as const) : null;
+    const card: CardOpts = { title: item.label, ...(item.sub && enabled ? { sub: item.sub } : {}), ...(enabled ? (mark ? { state: mark } : {}) : { state: "lock" as const, reason: "Chưa có" }) };
     out[item.size].push({ item, card, enabled });
   }
   return out;
@@ -51,9 +52,12 @@ export function hubLayout(available: Iterable<string>, dots: Iterable<string> = 
 
 // ---- phần DOM ----
 let actions: Record<string, () => void> = {};
-let dots = new Set<string>();
 let root: HTMLElement | null = null, badge: HTMLButtonElement | null = null;
 
+const idsOf = (k: BadgeKind) => [...allBadges()].filter(([, b]) => b.kind === k).map(([id]) => id);
+/** Nút HUD cũ cùng đọc kho chấm: `data-badge="new|up"` (ui2-hub.css vẽ). */
+const HUD_BTN: Record<string, string> = { bag: "bagBtn", vohon: "vhBtn", char: "charBtn", reso: "resBtn" };
+const hubIds = new Set(HUB_ITEMS.map((i) => i.id));
 const phim = (c: HubCell) => (c.item.key ? ` · ${c.item.key}` : "");
 
 function cellButton(c: HubCell, cls: string): HTMLElement {
@@ -71,7 +75,7 @@ function run(id: string) {
 /** Dựng lại nội dung ngăn kéo theo hành động và chấm đỏ hiện có. */
 function render() {
   if (!root) return;
-  const L = hubLayout(Object.keys(actions), dots);
+  const L = hubLayout(Object.keys(actions), idsOf("new"), idsOf("up"));
   const sec = (cls: string, cells: HubCell[], cellCls: string) => {
     const d = document.createElement("div"); d.className = cls;
     for (const c of cells) d.append(cellButton(c, cellCls));
@@ -82,13 +86,26 @@ function render() {
   main.append(sec("hub-big", L.big, "hub-c-big"), sec("hub-mid", L.mid, "hub-c-mid"), sec("hub-grid", L.grid, "hub-c-grid"));
   const rail = document.createElement("nav"); rail.className = "hub-rail"; rail.setAttribute("aria-label", "Tiện ích");
   for (const c of L.rail) {
-    const b = document.createElement("button"); b.type = "button"; b.className = "hub-r"; b.dataset.hub = c.item.id; b.textContent = c.item.label; b.title = c.item.label + phim(c);
-    b.addEventListener("click", () => run(c.item.id)); rail.append(b);
+    const b = document.createElement("button"); b.type = "button"; b.className = "hub-r"; b.dataset.hub = c.item.id; b.textContent = c.item.label;
+    if (c.card.state === "new" || c.card.state === "up") b.dataset.badge = c.card.state;
+    if (c.enabled) { b.title = c.item.label + phim(c); b.addEventListener("click", () => run(c.item.id)); }
+    else { b.title = `${c.item.label}: ${c.card.reason}`; b.setAttribute("aria-disabled", "true"); b.classList.add("lock"); }
+    rail.append(b);
   }
   const hd = mount(head);
   hd.querySelector(".hub-x")!.addEventListener("click", () => setHubOpen(false));
   root.replaceChildren(hd, main, rail);
-  badge?.classList.toggle("has-dot", dots.size > 0);
+  syncBadges();
+}
+
+/** Chấm của huy hiệu menu (bất kỳ mục hub nào có việc) và của nút HUD cũ; gọi mỗi khi kho đổi. */
+function syncBadges() {
+  badge?.classList.toggle("has-dot", [...allBadges().keys()].some((id) => hubIds.has(id)));
+  for (const [id, btn] of Object.entries(HUD_BTN)) {
+    const el = document.getElementById(btn), b = allBadges().get(id);
+    if (!el) continue;
+    if (b) el.dataset.badge = b.kind; else delete el.dataset.badge;
+  }
 }
 
 export const isHubOpen = () => !!root && !root.hidden;
@@ -100,13 +117,6 @@ export function setHubOpen(open: boolean) {
   badge?.setAttribute("aria-expanded", String(open));
 }
 export const toggleHub = () => setHubOpen(!isHubOpen());
-
-/** Chấm đỏ theo mục (vd `welfare`). Tắt cờ ui2 thì không có gì để cập nhật. */
-export function setHubDot(id: string, on: boolean) {
-  if (on === dots.has(id)) return;
-  on ? dots.add(id) : dots.delete(id);
-  if (isHubOpen()) render(); else badge?.classList.toggle("has-dot", dots.size > 0);
-}
 
 /**
  * Dựng ngăn kéo `#hub` (có sẵn trong choi/index.html) và huy hiệu mở menu. Trả false (không làm gì) khi cờ `ui2` tắt.
@@ -124,7 +134,9 @@ export function initHub(acts: Record<string, () => void>, signal: AbortSignal): 
     document.body.append(badge);
   }
   badge.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); toggleHub(); }, { signal });
-  signal.addEventListener("abort", () => { root = null; badge?.remove(); badge = null; actions = {}; });
+  const stop = onBadges(() => { if (isHubOpen()) render(); else syncBadges(); });
+  signal.addEventListener("abort", () => { stop(); root = null; badge?.remove(); badge = null; actions = {}; });
   root.hidden = true;
+  syncBadges();
   return true;
 }

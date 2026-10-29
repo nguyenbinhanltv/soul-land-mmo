@@ -28,7 +28,9 @@ import { planPickup, xpDelta, XpBatch, xpText, coinText, COIN_COL, XP_COL, type 
 import { guideStart, guideEvent, guideHint, guideReview } from "../guide.ts";
 import { initDualWindows } from "../dualWindow.ts";
 import { initPanelStack, closeTopPanel, panelOf, trapTab } from "../panelStack.ts";
-import { initHub, toggleHub, setHubOpen, setHubDot } from "../hubMenu.ts";
+import { initHub, toggleHub, setHubOpen } from "../hubMenu.ts";
+import { setBadge, badgeOf, resetBadges, starReadyCount, ringReady, questActionable } from "../badges.ts";
+import { openNotice, closeNotice } from "../noticeScreen.ts";
 import { bindWelfare, openWelfare, closeWelfare, onWelfare, type WelfareMsg } from "../welfareScreen.ts";
 import { isUi2 } from "../uiKit.ts";
 import { bindNpcGo } from "../hudNpc.ts";
@@ -727,6 +729,7 @@ export class GameScene extends Phaser.Scene {
 
   /** Đồng bộ dấu nhiệm vụ theo trạng thái chuỗi và khảo hạch hiện tại, không dùng lại trạng thái vẽ cũ. */
   syncQuestMarkers() {
+    this.syncQuestBadge();
     for (const n of this.npcs) {
       if (!n.qmark) continue;
       const marker = hud.questMarker(n.id);
@@ -927,14 +930,14 @@ export class GameScene extends Phaser.Scene {
     joyEl.addEventListener("pointerup", end, on); joyEl.addEventListener("pointercancel", end, on);
     // Ngăn xếp bảng (U1 #754): Esc đóng bảng trên cùng, bấm vào bảng nâng lên; mở bảng thì nhả phím đang giữ và dừng cần điều khiển.
     bindRank((type, payload) => this.room.send(type, payload)); bindCalendar((type, payload) => this.room.send(type, payload), (g) => this.calendarGo(g)); bindNpcGo((g) => this.calendarGo(g)); // nút "Đến" của hộp thoại / trang nhiệm vụ (ui2): cùng đường đi bộ / cờ "Đi tới" với Lịch Hoạt Động
-    bindWelfare((type, payload) => this.room.send(type, payload), (needs) => setHubDot("welfare", needs)); // chấm đỏ "chưa điểm danh" trên hub
+    bindWelfare((type, payload) => this.room.send(type, payload), (needs) => setBadge("welfare", needs ? "new" : null)); // chấm đỏ "chưa điểm danh" (kho badges)
     initPanelStack([
       { id: "char", close: () => toggleChar(false) }, { id: "bag", close: () => hud.toggleBag(false) }, { id: "roster", close: () => hud.toggleRoster(false) },
       { id: "reso", close: () => hud.toggleReso(false) }, { id: "friends", close: () => hud.toggleFriends(false) }, { id: "world", close: () => hud.toggleWorld(false) },
       { id: "npc", close: () => hud.closeNpc() }, { id: "autoPanel", close: closeAutoPanel }, { id: "audio", close: closeAudioPanel },
       { id: "pmenu", close: () => hud.showPlayerMenu(null), popup: true }, { id: "chans", close: () => hud.toggleChannels(false), popup: true },
       { id: "autoSum", close: closeAutoSum, popup: true }, { id: "hub", close: () => setHubOpen(false), popup: true },
-      { id: "rank", close: closeRank }, { id: "calendar", close: closeCalendar }, { id: "welfare", close: closeWelfare },
+      { id: "rank", close: closeRank }, { id: "calendar", close: closeCalendar }, { id: "welfare", close: closeWelfare }, { id: "notice", close: closeNotice },
     ], () => {
       for (const k of Object.keys(this.keys)) if (this.keys[k]) muted.add(k);
       this.keys = {}; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = "";
@@ -945,6 +948,7 @@ export class GameScene extends Phaser.Scene {
   /** Menu hub ngăn kéo (UI v2, cờ `ui2`; tắt thì không dựng gì): mỗi mục gọi đúng hàm mở của bảng đã có, mục chưa có chức năng hiện mờ. */
   setupHub() {
     const clickBtn = (id: string) => () => { this.clearForPanel(); document.getElementById(id)?.click(); };
+    resetBadges(); // kho chấm tính lại từ tin server gửi lúc vào phòng
     initHub({
       vohon: () => { this.clearForPanel(); hud.toggleRoster(true); }, char: () => { this.clearForPanel(); toggleChar(true); },
       reso: () => { this.clearForPanel(); hud.toggleReso(true); }, bag: () => { this.clearForPanel(); hud.toggleBag(true); },
@@ -952,7 +956,26 @@ export class GameScene extends Phaser.Scene {
       auto: () => { closeAudioPanel(); mapview().close(); toggleAutoPanel(true); }, settings: clickBtn("audioBtn"), guide: () => guideReview(),
       rank: () => { this.clearForPanel(); openRank(); }, calendar: () => { this.clearForPanel(); openCalendar(); },
       welfare: () => { this.clearForPanel(); openWelfare(); },
+      quest: () => { const n = hud.revealQuestTracker(); toast("quest", n ? `Đang theo dõi ${n} nhiệm vụ` : "Chưa có nhiệm vụ đang làm", "Khung theo dõi ở góc phải; gặp NPC có dấu trên đầu để nhận / trả"); }, // thẻ Nhiệm Vụ của hub: mở khung theo dõi, nhận / trả vẫn ở NPC
+      notice: () => { this.clearForPanel(); openNotice(); }, shot: () => this.takeShot(),
     }, this.ac.signal);
+  }
+
+  /** Chụp ảnh (rail hub): lưu khung hình game (không gồm HUD DOM) thành PNG `dau-la-<ngày>-<giờ>.png` qua trình duyệt; không gửi đi đâu. */
+  takeShot() {
+    this.game.renderer.snapshot((img) => {
+      if (!(img instanceof HTMLImageElement)) return toast("info", "Không chụp được ảnh", "Thử lại sau");
+      const d = new Date(), p = (n: number) => String(n).padStart(2, "0");
+      const a = document.createElement("a"); a.href = img.src; a.download = `dau-la-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}.png`;
+      document.body.append(a); a.click(); a.remove();
+      toast("info", "Đã chụp ảnh", `Lưu ở thư mục tải về: ${a.download}`);
+    });
+  }
+
+  /** Nhiệm vụ nhận được / chờ trả (chuỗi đang theo dõi và khảo hạch hằng ngày) → chấm đỏ mục Nhiệm Vụ của hub. */
+  syncQuestBadge() {
+    const n = questActionable([...hud.questTracked().map((q) => q.status), ...(hud.dailyMsg?.list ?? []).map((q) => q.status)]);
+    setBadge("quest", n ? "new" : null, n);
   }
 
   /** Trước khi mở một bảng bằng phím / nút: đóng Cài đặt, Tự động và bản đồ khu vực (lớp phủ z-index 5 che bảng, #1045) để bảng vừa mở luôn thấy được. */
@@ -1635,7 +1658,7 @@ export class GameScene extends Phaser.Scene {
     // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
     // Mảnh võ hồn trong túi (3.4): bảng đội hình hiện tiến độ mở / lên sao nên vẽ lại cùng túi.
     // Từ #215 sau tin "bag" đầu tiên chỉ nhận phần đổi (tin "bagd"); chưa có túi gốc thì bỏ qua (tin "bag" đang tới).
-    const onBag = (m: BagMsg) => { if (m.slots - m.items.filter((i) => i.vohon === null).length <= GUIDE_BAG_FREE) guideHint("bag"); const rare = lootToasts(this.bag?.items ?? null, m.items); if (rare >= RARE_LOOT_MIN) this.audio.playUi("rare"); else if (rare >= 1) this.audio.playUi("reward"); this.pickupBag(this.bag, m); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
+    const onBag = (m: BagMsg) => { if (m.slots - m.items.filter((i) => i.vohon === null).length <= GUIDE_BAG_FREE) guideHint("bag"); const rare = lootToasts(this.bag?.items ?? null, m.items); if (this.bag && document.getElementById("bag")?.hidden) { const g = lootGained(this.bag.items, m.items).length; if (g) setBadge("bag", "new", (badgeOf("bag")?.n ?? 0) + g); } if (rare >= RARE_LOOT_MIN) this.audio.playUi("rare"); else if (rare >= 1) this.audio.playUi("reward"); this.pickupBag(this.bag, m); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
     this.room.onMessage("bag", onBag);
     this.room.onMessage("gear", (m: GearMsg) => { this.gear = m; this.renderBag(); this.renderChar(); this.askStats(); hud.npcRefresh(); }); // trang bị hồn sư (5.15): chỉ số tổng ở tin "stats"
     this.room.onMessage("bagd", (m: BagDeltaMsg) => {
@@ -3485,6 +3508,8 @@ export class GameScene extends Phaser.Scene {
       const vh = it.vohon === null ? itemDef(it.code)?.vohon : undefined;
       if (vh) shards.set(vh, (shards.get(vh) ?? 0) + it.qty);
     }
+    const me = this.owned.list.find((v) => v.rowId === this.owned!.active), up = starReadyCount(this.owned.list, shards) + (me && ringReady(me.rings.length, this.bag?.items ?? []) ? 1 : 0);
+    setBadge("vohon", up ? "up" : null, up); // mũi tên xanh: đủ mảnh mở / lên sao, hoặc có hồn hoàn hấp thụ được
     hud.renderRoster(this.owned, {
       setTeam: (slots) => this.room.send("team", { slots }),
       unlock: (vohon) => this.room.send("unlock", { vohon }),

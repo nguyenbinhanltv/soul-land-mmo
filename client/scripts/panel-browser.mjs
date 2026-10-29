@@ -1,6 +1,6 @@
 // U1 #754: lớp quản lý bảng + input, kiểm trên game thật (server RAM riêng + vite riêng + một Chromium `--mute-audio`).
 // Kiểm: bấm trên bảng KHÔNG walkTo / khoá mục tiêu; bấm nền vẫn đi; Esc đóng bảng trên cùng trước, hết bảng mới huỷ khoá; mở bảng nhả phím đang giữ.
-// `PANEL_OUTPUT=<thư mục>`: nơi ghi ảnh (mặc định thư mục tạm); `PANEL_TAG=truoc|sau`: tiền tố ảnh; `PANEL_SOFT=1`: chỉ ghi số đo, không assert (lượt "trước").
+// `PANEL_OUTPUT=<thư mục>`: nơi ghi ảnh (mặc định thư mục tạm); `PANEL_TAG=truoc|sau`: tiền tố ảnh; `PANEL_QS=?ui=2`: thêm tham số vào địa chỉ trang (bật giao diện v2); `PANEL_SOFT=1`: chỉ ghi số đo, không assert (lượt "trước").
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
@@ -53,7 +53,7 @@ try {
   browser = await chromium.launch({ headless: true, channel: process.env.FLOW_CHANNEL || undefined, args: ["--mute-audio", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   page.on("pageerror", (e) => console.error("[trình duyệt]", e.message));
-  await page.addInitScript((t) => localStorage.setItem("shh-token", t), token);
+  await page.addInitScript(([t, ui2]) => { localStorage.setItem("shh-token", t); if (ui2) localStorage.setItem("shh-ui2", "1"); }, [token, process.env.C8_UI2 === "1"]); // C8_UI2=1: chạy ở chế độ cờ ui2 (?ui=2)
   // Chỉ lấy tham chiếu scene và đếm lệnh đi / khoá; không đổi logic. Không đếm `beastAt`: con trỏ ngữ cảnh (cập nhật mỗi khung hình) cũng gọi nó để dò hover, bấm vào hồn thú đã thành `lockTo`.
   await page.route("**/src/scenes/GameScene.ts*", async (route) => {
     const response = await route.fetch();
@@ -65,7 +65,7 @@ GameScene.prototype.create = function(...a) {
   return u1Create.apply(this, a);
 };` });
   });
-  await page.goto(`${web}/choi/`);
+  await page.goto(`${web}/choi/${process.env.PANEL_QS ?? ""}`); // PANEL_QS="?ui=2": chạy cả với giao diện v2
   await page.getByRole("button", { name: "Vào Thánh Hồn Thôn" }).click();
   await page.waitForFunction(() => window.__u1?.players.size > 0);
   await page.waitForTimeout(1500);

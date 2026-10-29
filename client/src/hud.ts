@@ -26,7 +26,7 @@ export { renderShopBuy, renderShardShop, renderShopBuyback, renderShopSell } fro
 // Thợ rèn đã tách sang hudForge.ts (Part of #885 bước 0a); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.
 export { renderForge, renderForgeCores, equipEnhPreview, equipEnhDone, npcRefresh, renderForgeGear, equipLuckPreview, equipLuckDone, renderForgeLuck, forgeReset, equipSynDone, equipSalvDone, renderForgeSynth, renderForgeSalv, renderForgeSets } from "./hudForge.ts";
 // Nhiệm vụ đã tách sang hudQuest.ts (Part of #885 bước 0a); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.
-export { dailyMsg, questOf, questTracked, setQuest, renderQuestPage, QUEST_GIVERS, questMarker, dailyMark, setDaily, setTrackerMap, dailyList, renderTongTasks, renderTongRank, renderDailyPage } from "./hudQuest.ts";
+export { dailyMsg, questOf, questTracked, revealQuestTracker, setQuest, renderQuestPage, QUEST_GIVERS, questMarker, dailyMark, setDaily, setTrackerMap, dailyList, renderTongTasks, renderTongRank, renderDailyPage } from "./hudQuest.ts";
 // Đại Đấu Hồn Trường đã tách sang hudArena.ts (Part of #885 bước 0a); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.
 export { type ArenaTopMsg, type ArenaEndMsg, arenaQ, arenaTopMsg, setArenaQueue, updateArenaQueue, type ArenaLiveMsg, arenaLiveAt, arenaLiveAsk, setArenaLive, arenaLiveEl, updateArenaLive, arenaRankEl, setArenaTop, showArena, arenaEnd, updateArenaEnd } from "./hudArena.ts";
 // Bạn bè, cộng minh, kênh, bản đồ thế giới / truyền tống, điểm đánh dấu, tự động và về thành của HUD đã tách sang hudMisc.ts (Part of #885 bước 0a); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.
