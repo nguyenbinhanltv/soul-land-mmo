@@ -38,7 +38,7 @@ Mỗi nhóm là **một chuỗi bậc** (ngưỡng tăng dần, mỗi bậc mộ
 - Tên thành tựu dùng đúng tên gốc Đấu La; thành tựu "Cấp" mượn tên `TITLES`.
 
 ### Dữ liệu và nơi tính
-- `ACHV` *(đề xuất)* ở `shared/data.ts`: danh sách `{id, group, name, stat, need, reward}`; `stat` là mã chỉ số trong danh sách đóng ACHV_STATS *(đề xuất)* *(đề xuất)*; `reward` chỉ gồm `honTe` và/hoặc `items[]` với mã **có trong `ITEMS`**. Hàm thuần `achvReached(def, stats)` để client hiển thị; server tính thật.
+- `ACHV` *(đề xuất)* ở `shared/data.ts`: danh sách `{id, group, name, stat, need, reward}`; `stat` là mã chỉ số trong danh sách đóng ACHV_STATS *(đề xuất)*; `reward` chỉ gồm `honTe` và/hoặc `items[]` với mã **có trong `ITEMS`**. Hàm thuần `achvReached(def, stats)` để client hiển thị; server tính thật.
 - Server giữ **mọi** phép tính trong một file riêng (đề xuất `server/src/rooms/achv.ts`, như `welfare.ts`, `rank.ts`). Client chỉ gửi `op` và `id`; `id` phải thuộc danh mục (so với bảng đóng, không phải chuỗi tự do).
 - Gom chỉ số: một hàm `achvStats(d)` đọc **RAM của người chơi** (cấp, sưu tầm, sao, nhiệm vụ đã tải lúc vào phòng) cộng bộ đếm sự kiện; khi nhận, chỉ số **không có trong RAM** hoặc quan trọng cho chống gian lận (bộ đếm) được đọc lại từ DB trong chính transaction nhận.
 - Đồng hồ: không dùng; thành tựu không phụ thuộc giờ nên không có chuyện đổi giờ máy.
