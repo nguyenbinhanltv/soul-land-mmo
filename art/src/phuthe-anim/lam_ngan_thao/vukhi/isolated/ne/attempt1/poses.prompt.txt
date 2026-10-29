@@ -1,0 +1,16 @@
+﻿Use case: stylized-concept
+Asset type: isolated game-weapon animation pose atlas, grass whip, direction ne.
+Create ONE landscape 3:2 image, ideally 1536 by 1024, on completely flat solid #FF00FF magenta. Invisible grid of THREE columns by TWO rows: exactly six isolated weapons, one per 512-square cell. No visible grid, labels, letters or numbers.
+Draw ONLY a one-handed dark-blue braided grass whip. There must be NO mannequin, human, hand, arm, glove, sleeve, face, body, doll or character anywhere. This is a weapon-only asset sheet; the game will add its own unchanged character later.
+Weapon: Lam Ngân Thảo, a narrow bundle of intertwined blue grass vines twisted like rope, deep ink-blue #1f4a6b, subdued blue #4ab0ff highlights, dark green-black undersides, sparse white-blue points at the single spear-like pointed tip. Dark outline #1a1020, angular xianxia design, large readable shapes. No glow, aura, particles, ground, shadow, floating leaves or detached fragments. Not a rigid sword or bow: the entire main length is flexible braided cord, with only the very tip tapering sharply.
+Each cell has ONE blunt short root grip at its LEFT side near the vertical center, with ONE continuous cord extending from that root toward the RIGHT, ending in ONE pointed tip. Nothing extends behind the root. Put ONE tiny solid #FFE000 yellow circular registration dot exactly at the blunt end of the root grip. This is a technical marker, not a hand or ornament; code removes it and places the root on a character's grip coordinate. Keep the root and the entire weapon at least 40 image pixels from every edge of its cell. Root dot and all curves must be clearly visible and separated from neighbouring cells by magenta space.
+Same material, thickness, total cord length and scale in all six cells. Weapon viewed slightly from above. Direction specification: NORTH-EAST: three-quarter rear form, looking toward the upper right, darker back surfaces of the braid; code rotates its local axis up by 20 degrees. Keep the atlas technical root at the left of every cell and draw the full cord to its right in local atlas coordinates; code handles final world-axis rotation. Render crisp clean hard edges and restrained detail suitable for reducing to a 96px game frame.
+ROW ONE, left to right:
+1. IDLE: a long cord trailing right and down with a shallow loose S bend, tip curling slightly up; exactly one root at the left.
+2. ATTACK WIND-UP: the cord curls up into an open high hook, preparing the whip; root at left, tip at upper right.
+3. ATTACK SWEEP: broad horizontal curved arc extending right, a full whipping S curve; keep the entire pointed tip inside the cell.
+ROW TWO, left to right:
+4. ATTACK STRIKE: the cord extends in a strong narrow rightward thrust with one shallow wave, pointed tip far right but inside the cell.
+5. CAST LOW COIL: the cord coils into a broad compact open loop to the right of its root, single tip curling inward at the upper right. It is a weapon coil alone, never surrounding an invisible body or a humanoid gap.
+6. CAST HIGH COIL: the same cord forms a taller spiral to the right of its root, single tip rising above the coil. No extra roots or extra tips.
+All six are separate full drawings of the SAME whip. No clipping, no frame crossing. Solid magenta only outside each weapon, never transparency.
