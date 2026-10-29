@@ -26,6 +26,9 @@ import { fog } from "../fog.ts";
 import { toast, lootToasts, lootGained, onToastNew } from "../feedback.ts";
 import { planPickup, xpDelta, XpBatch, xpText, coinText, COIN_COL, XP_COL, type PickupLine } from "../pickupFx.ts";
 import { guideStart, guideEvent, guideHint, guideReview } from "../guide.ts";
+import { onboardEvent } from "../onboard.ts";
+import { pingSent, pingAck, pingTick, pingReset } from "../pingMeter.ts";
+import { pickArrow, setQuestArrow, clearQuestArrow, type QPoint } from "../questArrow.ts";
 import { initDualWindows } from "../dualWindow.ts";
 import { initPanelStack, closeTopPanel, panelOf, trapTab } from "../panelStack.ts";
 import { initHub, toggleHub, setHubOpen } from "../hubMenu.ts";
@@ -422,7 +425,7 @@ export class GameScene extends Phaser.Scene {
     // Scene tắt (đổi bản đồ, vào / ra sân đấu): bỏ các hộp gắn với bản đồ cũ (cổng, gợi ý / hộp thoại NPC, trường đấu).
     const off = () => {
       this.contextCursor?.destroy(); this.contextCursor = null;
-      this.slowmo = 1; this.hitstopEnd = 0; this.anims.globalTimeScale = 1; this.tweens.timeScale = 1; this.ac.abort(); this.cine.destroy(); this.ptCut.destroy(); this.pt.clear(); this.lpc?.destroy(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.closeLooks(); hud.showPlayerMenu(null);
+      this.slowmo = 1; this.hitstopEnd = 0; this.anims.globalTimeScale = 1; this.tweens.timeScale = 1; this.ac.abort(); clearQuestArrow(); this.cine.destroy(); this.ptCut.destroy(); this.pt.clear(); this.lpc?.destroy(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.closeLooks(); hud.showPlayerMenu(null);
       hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} });
       this.show?.destroy(); this.show = undefined;
       hud.setFusionPending(null); hud.setFusionCd(0); // lời mời dung hợp gắn với phòng cũ (server đã hủy khi rời); hồi chiêu đọc lại từ vohons
@@ -502,6 +505,7 @@ export class GameScene extends Phaser.Scene {
     hud.setTrackerMap(this.mapId);
     // Dự đoán chuyển động: cùng lưới ô chặn của file Tiled mà server dùng (shared/move.ts; dựng ở trên, trước Hỏa Đàn).
     if (PREDICT && this.grid) this.pred = new Predictor(this.grid);
+    pingReset(); // số input bắt đầu lại ở phòng mới (UI v2)
     if (LAG_MS || !PREDICT) {
       // Nhãn chế độ thử ở giữa mép trên (khung chỉ số chiếm góc trái); chỉ hiện khi có `?debug`; gỡ khi scene tắt (đổi bản đồ).
       if (DEBUG_TAG) {
@@ -1380,7 +1384,8 @@ export class GameScene extends Phaser.Scene {
       // Có dự đoán thì đánh số input để server trả lại số cuối đã nhận (PlayerState.seq / seqT) cho bước đối chiếu.
       this.walk = walk;
       const w = walk ? { w: 1 } : {};
-      this.room.send("input", this.pred ? { x, y, s: this.pred.next(), ...w } : { x, y, ...w });
+      const seq = this.pred?.next(); if (seq !== undefined) pingSent(seq); // UI v2: ping HUD đo từ số input (pingMeter.ts)
+      this.room.send("input", seq !== undefined ? { x, y, s: seq, ...w } : { x, y, ...w });
     }
   }
 
@@ -1687,7 +1692,7 @@ export class GameScene extends Phaser.Scene {
       const v = this.owned?.list.find((o) => o.rowId === m.rowId), def = VOHON[Math.max(0, vohonIndex(v?.vohon ?? ""))];
       const name = v ? def.name : "võ hồn", age = formatYears(m.years), col = TIERS[tierOfYears(m.years)].glow;
       if (m.on) {
-        guideEvent("absorb");
+        guideEvent("absorb"); onboardEvent("absorb");
         this.audio.play("ring_absorb_start");
         this.audio.playRingGlow(tierOfYears(m.years));
         const risk = m.fail ? ` (${Math.round(m.fail * 100)}% thất bại)` : "";
@@ -3722,6 +3727,26 @@ export class GameScene extends Phaser.Scene {
       pick: (i: number) => { const m = sides[i] ?? []; if (m.length) this.followSid = follow === i ? m[(m.indexOf(this.followSid) + 1) % m.length] : m[0]; } };
   }
 
+  /**
+   * UI v2 (cờ ui2; tắt thì không làm gì): chấm ping (pingAck mỗi khung hình đọc số input server đã nhận) và mũi tên rìa màn chỉ mục tiêu nhiệm vụ
+   * (điểm đã tính cho bản đồ nhỏ, questTargets; không thêm tin server). Mũi tên tính lại 4 lần / giây.
+   */
+  private uiTickAt = 0;
+  uiTick(me: any) {
+    if (!isUi2()) return;
+    pingAck(me.seq ?? 0);
+    const now = performance.now(); if (now - this.uiTickAt < 250) return; this.uiTickAt = now;
+    pingTick();
+    if (this.watching || document.body.classList.contains("arena")) return setQuestArrow(null);
+    const qt = this.questTargets(me.level ?? 1), wv = this.cameras.main.worldView, c = (r: Rect) => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
+    const pts: QPoint[] = [];
+    const add = (p: Pt, label: string) => { const s = W2S(p.x, p.y); pts.push({ x: s.x, y: s.y, label, tiles: Math.hypot(p.x - me.x, p.y - me.y) / TILE }); };
+    for (const n of qt.npcs) add(n, "Mục tiêu");
+    for (const z of qt.zones) add(c(z), "Vùng săn");
+    for (const r of qt.portals) add(c(r), `Cổng → ${MAPS[(r as { to?: string }).to ?? ""]?.name ?? "đi tiếp"}`);
+    setQuestArrow(pickArrow(pts, { x: wv.x, y: wv.y, w: wv.width, h: wv.height }));
+  }
+
   updateHud(me: any) {
     const st = this.room.state;
     // Câu gợi ý hấp thụ trong túi phụ thuộc cấp và số hồn hoàn: đổi thì vẽ lại túi.
@@ -3748,6 +3773,7 @@ export class GameScene extends Phaser.Scene {
     hud.updateTeam(me, vit);
     hud.updateBag();
     hud.updateParty();
+    this.uiTick(me);
     // Thú vương (BĐ5): thanh máu lớn đọc thẳng BeastState; bảng xếp hạng khi mình đang tham gia (có trong danh sách đóng góp).
     let kb: any = null; st.beasts.forEach((b: any) => { if (b.rank >= 2) kb = b; });
     // Boss thế giới (BĐ6e): thêm điểm yếu hệ, khiên, ngắt tích lực, lặn; so với hệ võ hồn mình đang ra trận.

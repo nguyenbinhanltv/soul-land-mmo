@@ -1,4 +1,5 @@
 import { artUrl } from "./uiArt.ts";
+import { pingOnline } from "./pingMeter.ts";
 
 export const MENU_ICON_KEYS = ["char", "roster", "bag", "reso", "settings", "auto", "channel", "area", "world", "friends", "rank", "quest", "chat", "arena", "shop", "forge"].map((key) => `gi_menu_${key}`);
 const MENU: Record<string, string> = { charBtn: "char", vhBtn: "roster", bagBtn: "bag", resBtn: "reso", audioBtn: "settings", autoBtn: "auto", chanBtn: "channel", areaBtn: "area", worldBtn: "world" };
@@ -34,6 +35,7 @@ export function initUiIcons() {
 
 /** Kết nối thật của phòng hiện tại; không đo hoặc suy diễn chất lượng mạng. */
 export function setConnectionLabel(connected: boolean) {
+  pingOnline(connected); // UI v2: chấm ping HUD (pingMeter.ts) hiện "Mất kết nối" khi phòng đóng
   const el = document.getElementById("c12Connection"); if (!el) return;
   const state = connected ? "connected" : "disconnected";
   if (el.dataset.state === state) return;

@@ -33,7 +33,8 @@
     "test:audio": "node scripts/audio-test.mjs && node scripts/music-test.mjs",
     "test:uiparts": "node --experimental-strip-types scripts/ui-parts-test.mjs",
     "test:uiscreens": "node --experimental-strip-types scripts/ui-screens-test.mjs",
-    "test:confirm": "node --experimental-strip-types scripts/confirm-test.mjs"
+    "test:confirm": "node --experimental-strip-types scripts/confirm-test.mjs",
+    "test:onboard": "node --experimental-strip-types scripts/onboard-test.mjs"
   },
   "dependencies": {
     "colyseus.js": "0.16.22",
