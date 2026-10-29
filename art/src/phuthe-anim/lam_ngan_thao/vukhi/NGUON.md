@@ -50,3 +50,21 @@ node tools/assets/phuthe-sheet-cut.mjs --kind vukhi --id lam_ngan_thao --sheet A
 ```
 
 Prompt sinh lại sau khi bổ sung lessons sẽ khác lượt A1/A2; để kiểm nguồn dùng prompt nguyên văn đã lưu, không ghi đè các prompt lịch sử.
+
+## Vòng 2 — chỉ hướng e, ba lỗi, tối đa ba lượt
+
+Theo giao việc từ orchestrator: chỉ sửa **dây tay phụ, xén đầu dây, điểm cầm trôi** cho hướng đông trước; e đạt mới mở rộng. Đã dùng đủ **3 job image_gen tuần tự**, không gọi lượt 4 và không sinh lại A/B/D/E. Cả ba chỉ đính kèm nộm C gốc, không dùng tờ lỗi làm tham chiếu.
+
+**Kết luận: chưa đạt, không chọn lượt nào.** Không thay RAW `toC.*`, sheet `vkanim_*`, `manifest-entry.json`, `lop.json` hoặc GIF cũ. Không cắt/nhập candidate bị loại để che lỗi hình. PR #1322 giữ nháp; cần quyết định bước tiếp sau hạn mức.
+
+| Lượt vòng 2 | Chặn / nhẹ | Ba lỗi cần sửa |
+|---|---|---|
+| 1 | 0 / 17 | Dây đi qua vị trí nắm/gần eo, nộm dời tới khoảng 32 điểm, marker trôi 28 điểm, còn vượt khung |
+| 2 | 0 / 21 | Hai đoạn dây hai phía vị trí nắm, nộm bị vẽ lại/dời, còn nhiều đoạn vượt khung; thiếu marker không có nghĩa hết trôi |
+| 3 | 1 / 18 | Đoạn nắm vẫn gần eo/tay, nộm thay pose; marker trôi tối đa 47 điểm (chặn), vẫn vượt khung |
+
+Trang [so sánh vòng 2](round2/index.html) có nộm chuẩn, C vòng 1, ba RAW và báo cáo có nhãn. Nguồn/prompt/hash/check của từng lượt nằm trong `round2/e/attempt{1,2,3}/`. RAW nguyên byte, không chỉnh hình hoặc màu. Đầu ra theo điều khoản OpenAI, model/seed không được công cụ trả về.
+
+Các bài học riêng ghi ở mục **`@VUKHI-MEM`** trong `art/src/phuthe-anim/lessons.md`. Parser hiện không nhận tag đó; dùng bullet thường để parser chung bỏ qua, tránh ảnh hưởng vũ khí cứng. Prompt sinh qua API có sẵn: `buildDirectionPrompt(infoWith("lam_ngan_thao", {kind:"vukhi"}), sheetPlan("B")[2], {lessons:[...vukhiLessonsFor("direction"), ...softLessons]})`, trong đó `softLessons` lấy câu tiếng Anh của các bullet `@VUKHI-MEM`, bỏ chú thích `//`. Lượt 1/2/3 lần lượt dùng 3/4/5 câu theo tiến trình lessons. Không sửa công cụ chung và không ghi đè prompt lịch sử.
+
+Bài học thực nghiệm: lời yêu cầu "khóa canvas", giữ vạch/marker và cán có đầu bịt chưa buộc được model giữ đúng nộm; cảnh báo máy mức nhẹ vẫn có thể không đạt ba tiêu chí mỹ thuật. Không coi các câu mới là công thức đã thành công.
