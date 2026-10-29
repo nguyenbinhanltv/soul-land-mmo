@@ -4,6 +4,7 @@
 // dồn 200 `buy`, ghi lỗi hoàn lại (savefail), qua ngày đặt lại lượt, dùng quyển cho võ hồn dự bị / đang ra trận, kẹp bình cảnh, không mất quyển khi bị từ chối.
 import { sleep, waitFor, ok, bot, test, qtyOf, needHookSkip } from "./lib.mjs";
 import { bicanhRoomTest } from "./bicanhRoom.mjs";
+import { bicanhSoatTest } from "./bicanhSoat.mjs";
 import { ASK_CD, BICANH, bicanhRunPrice, itemDef, xpNeed } from "../../../shared/data.ts";
 
 export async function bicanhTest(){
@@ -88,4 +89,5 @@ export async function bicanhTest(){
   ok(qtyOf(A,BICANH.tome)===q-1&&A.room.state.players.get(A.room.sessionId).level===10,`võ hồn ra trận chạm bình cảnh: quyển thứ hai bị từ chối, chỉ mất 1 quyển (${q}→${qtyOf(A,BICANH.tome)}, cấp ${A.room.state.players.get(A.room.sessionId).level})`);
   await A.room.leave();
   await bicanhRoomTest();
+  await bicanhSoatTest();
 }

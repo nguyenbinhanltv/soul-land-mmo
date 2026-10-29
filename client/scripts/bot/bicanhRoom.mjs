@@ -112,6 +112,9 @@ export async function bicanhRoomTest(){
     }
   }
   ok(!!capped||got<=BICANH.tomeDailyCap,"trần quyển ngày kẹp được phần thưởng (hoặc chưa tới trần)");
+  // P6: đã chạm trần quyển ngày thì mua thêm lượt là trả tiền cho lượt không có thưởng: từ chối, không thu Hồn Tệ.
+  if(got>=BICANH.tomeDailyCap){ await sleep(600); const hon=B.bag.honTe, n=B.bc.length; B.room.send("bicanh",{op:"buy",id:ID,pay:true}); await waitFor(()=>B.bc.length>n,3000); await sleep(200);
+    ok(/Hồn Kinh Quyển/.test(B.bc.at(-1)?.err??"")&&B.bag.honTe===hon,`chạm trần quyển ngày: mua thêm lượt bị từ chối, không trừ Hồn Tệ (${B.bc.at(-1)?.err})`); }
 
   // 7. Đồng hồ lùi: đã vào ngày +1 rồi quay về ngày cũ thì từ chối.
   await test(B,"day",{shift:1}); await sleep(1300); f=await open(); ok(!f.err,`ngày +1: có lượt mới, vào phòng (${f.err??""})`);
