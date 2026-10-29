@@ -1,4 +1,5 @@
 // Túi đồ, hồn tệ, thẻ thao tác, so sánh, tự bán của HUD (tách nguyên văn từ hud.ts, Part of #885 bước 0a); hud.ts re-export để nơi gọi giữ nguyên.
+import { clearBadge } from "./badges.ts";
 import { closeNpc, toggleFriends, toggleReso, toggleWorld } from "./hud.ts";
 import { coreEnhText, coreLines, corePicker, enhClose, setEnhCoin, enhOpen, enhTarget, enhText, enhancePicker, openBones, openCores, toggleRoster } from "./hudRoster.ts";
 import { TIERS, tierOfYears, ITEM_KINDS, DAN_CD, itemDef, honTeParts, RING_ITEM, tierBand, formatYears, MAX_RINGS, MAX_LEVEL, BONE_ITEM, BONE_SLOTS, BONE_STAT_NAMES, boneSlotIndex, boneStats, boneName, parseBone, BAG_SLOTS, BAG_PAGE, type BoneStat, type CoreStat, CORE_ITEM, CORE_SETS, coreSetIndex, parseCore, coreName, coreMainValue, coreStatText, CORE_SLOTS, CORE_STATS, coreSlotOf, boneSkillOf, BONE_MAX_ENHANCE, BONE_ENHANCE_MILESTONES, parseBoneSubs, sellPrice, formatHonTe, CORE_MAX_ENHANCE, CORE_MAX_SUBS, herbDef, HERB_MAX, HERB_PCT, RES_STAT_NAMES, AUTO_SELL_FREE, AUTO_SELL_BUYBACK, AUTO_SELL_GUARD, SELL_DEFAULTS, autoSellable, MAX_YEARS, MAX_CORE_STARS, type SellSettings } from "../../shared/data.ts";
@@ -29,6 +30,7 @@ if (UI2) document.getElementById("bag")?.classList.add("f2-muc-lon");
 export function toggleBag(open = $("#bag").hidden) {
   $("#bag").hidden = !open; $("#bagBtn").setAttribute("aria-expanded", String(open));
   if (open) { toggleRoster(false); closeNpc(); toggleReso(false); toggleWorld(false); toggleFriends(false); } // Túi và Nhân vật mở cạnh nhau (NV1 #455)
+  if (open) clearBadge("bag"); // đã xem túi: tắt chấm "món mới" (kho badges, đợt 4b)
   panelChanged("bag", open);
 }
 

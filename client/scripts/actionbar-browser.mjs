@@ -8,6 +8,12 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
+/** Esc đóng bảng trên cùng; khi bật ui2 mà không còn bảng nào, Esc mở menu hub (#hub nằm bên phải, chặn chuột vào nút ở dưới): đóng nó lại để bước sau bấm được. */
+async function escClose(page) {
+  await page.keyboard.press("Escape");
+  if (await page.locator("#hub").isVisible()) await page.keyboard.press("Escape");
+}
+
 const installed = fileURLToPath(new URL("../../", import.meta.url));
 const root = await realpath(resolve(process.env.C8_SOURCE_ROOT ?? installed));
 const out = resolve(process.env.C8_OUTPUT ?? await mkdtemp(resolve(tmpdir(), "c8-preview-")));
@@ -229,14 +235,14 @@ try {
         assert.match(await page.locator("#tip").innerText(), /Lam Điện Bá Vương Long/);
         await screenshot(page, "tooltip", size);
       }
-      await page.keyboard.press("Escape");
+      await escClose(page);
       const bag = page.getByRole("button", { name: "Mở túi dùng vật phẩm tiêu hao (B)" });
       if (touch) await bag.tap(); else await bag.click();
       await page.waitForFunction(() => !document.querySelector("#bag").hidden);
       assert.match(await page.locator("#bag .bfilter .on").innerText(), /Tiêu hao/);
       if (touch) await bag.tap(); else await bag.click();
       assert.ok(await page.locator("#bag").isVisible(), "Bấm Tiêu hao lần nữa giữ Túi mở");
-      await page.keyboard.press("Escape");
+      await escClose(page);
       for (const [button, panel] of [["audioBtn", "audio"], ["autoBtn", "autoPanel"]]) {
         const opener = page.locator(`#${button}`);
         await opener.evaluate((e) => e.click());
@@ -248,7 +254,7 @@ try {
         const filter = page.locator("#bag .bfilter .on");
         assert.match(await filter.innerText(), /Tiêu hao/);
         assert.ok(await filter.evaluate((e) => { const r = e.getBoundingClientRect(); return e.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)); }), "Bộ lọc Tiêu hao không bị bảng khác che");
-        await page.keyboard.press("Escape");
+        await escClose(page);
       }
       // Server bỏ qua lệnh đổi khi còn hồi chiêu: đợi sẵn sàng trước thao tác thật.
       await page.waitForFunction(() => document.querySelector("#bag").hidden);
