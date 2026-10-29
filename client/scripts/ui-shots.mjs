@@ -3,13 +3,14 @@
 // và client đã build (server phục vụ client/dist). KHÔNG trỏ DB thật; không có DATABASE_URL thì dữ liệu chỉ ở RAM.
 //   node client/scripts/ui-shots.mjs --server http://localhost:2547 --out <thư mục> [--sizes 1366x768,1280x720,960x540,1920x1080] [--only dang-nhap,hud,tui] [--tag truoc] [--dpr 1] [--outer]
 // Cỡ ghi trong tên ảnh là cỡ vùng hiển thị thật (đặt bằng Emulation.setDeviceMetricsOverride, không tính khung cửa sổ Chrome).
-// Mã cảnh (--only): dang-nhap, tao-nhan-vat, the-vao-ban-do, hud, hud-tien-do, tui, nhan-vat, hai-cua-so, doi-hinh, hon-cot, cong-minh, ban-be, tu-dong, ban-do, the-gioi, cai-dat, hub, npc, cua-hang, tho-ren.
+// Mã cảnh (--only): dang-nhap, tao-nhan-vat, the-vao-ban-do, hud, hud-tien-do, tui, nhan-vat, hai-cua-so, doi-hinh, hon-cot, cong-minh, ban-be, tu-dong, tong-ket, uy-thac, ban-do, the-gioi, cai-dat, hub, npc, cua-hang, tho-ren.
 // Luật: đúng MỘT Chrome headless, luôn --mute-audio, cổng CDP ngẫu nhiên (không dùng 9333), chụp tuần tự từng cỡ; xong tắt đúng PID của mình.
 // Chrome tìm ở biến CHROME (đường dẫn) hoặc đường dẫn cài đặt mặc định (Chrome, rồi Edge).
 import { spawn } from "node:child_process";
 import { readFileSync, existsSync, mkdirSync, writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { AUTO_DEFAULTS } from "../../shared/data.ts";
 
 const argv = process.argv.slice(2);
 const opt = (k, d) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : d; };
@@ -98,6 +99,18 @@ async function runSize(W, H) {
     await step("cong-minh", async () => { await key("KeyK", "k"); await shot("31-cong-minh"); await key("Escape", "Escape"); });
     await step("ban-be", async () => { await key("KeyL", "l"); await shot("32-ban-be"); await key("Escape", "Escape"); });
     await step("tu-dong", async () => { await click("autoBtn"); await sleep(500); await shot("33-tu-dong"); await click("autoBtn"); });
+    // Tổng kết tự động và Ủy thác trở về: phát lại tin giả vào bộ nghe của phòng (không gửi gì lên server; chỉ để chụp bố cục).
+    const fake = (type, msg) => ev(`(window.__scene.room.onMessageHandlers.emit(${JSON.stringify(type)}, ${JSON.stringify(msg)}), true)`);
+    await step("tong-ket", async () => {
+      await click("autoBtn"); await sleep(400);
+      await fake("auto", { on: false, left: 36000, max: 43200, bonus: 0, cfg: AUTO_DEFAULTS, why: "Hết đan hồi sinh lực", sum: { secs: 1830, kills: 142, xp: 98200, coins: 3650, loot: [["Hồn hoàn 1000 năm", 2], ["Tiên thảo", 5]], sold: [12, 840] } }).catch(() => {});
+      await sleep(500); await shot("38-tong-ket-tu-dong"); await click("autoBtn");
+    });
+    await step("uy-thac", async () => {
+      await fake("offline", { away: 21600, secs: 21600, used: 21000, map: "Thánh Hồn Thôn", zone: "Rừng ngoài", kills: 1280, weak: 14, xp: 856000, coins: 42500,
+        items: [{ name: "Hồn hoàn 10 năm", qty: 6 }, { name: "Tiên thảo", qty: 12 }, { name: "Hồn hạch Lam Ngân 1★", qty: 3 }], left: 21600, max: 43200, bonus: 3600, bonusUsed: 1800, equipLost: 2, stop: "túi đầy" });
+      await sleep(500); await shot("39-uy-thac"); await ev(`(document.querySelector("#offline .buse")?.click(), true)`);
+    });
     await step("ban-do", async () => { await key("KeyN", "n"); await sleep(600); await shot("34-ban-do-khu-vuc"); await key("Escape", "Escape"); });
     await step("the-gioi", async () => { await key("KeyM", "m"); await sleep(600); await shot("35-the-gioi"); await key("Escape", "Escape"); });
     await step("cai-dat", async () => { await click("setBtn"); await sleep(500); await shot("37-cai-dat"); await click("setBtn"); });

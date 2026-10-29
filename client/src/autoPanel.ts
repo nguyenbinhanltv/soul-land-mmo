@@ -4,6 +4,8 @@ import { AUTO_DEFAULTS, AUTO_LOOT_KINDS, AUTO_RADIUS, AUTO_RADIUS_MIN, ITEM_KIND
   autoTimeText, formatHonTe, autoStatusText, autoRateText, parseAuto, type AutoSettings, type AutoSummary, type AutoRate, AUTO_HINT } from "../../shared/data.ts";
 import type { AutoMsg, AutoStMsg } from "./net.ts";
 import { closeCentrePanels } from "./panelStack.ts";
+import { isUi2 } from "./uiKit.ts";
+import "./ui2-auto.css";
 
 /** GameScene cung cấp: gửi tin `auto`, tên ô đội hình (theo tin `vohons`) và tên hồn kỹ ở 4 ô của võ hồn đang ra trận. */
 export interface AutoPanelCtx {
@@ -113,6 +115,11 @@ export function bindAutoPanel(c: AutoPanelCtx, signal: AbortSignal) {
     <div class="brow"><button class="buse" type="button" data-a="reset">Về mặc định</button></div>
     <section class="asec" data-a="last" hidden><b>Lượt vừa rồi</b><div class="asum"></div></section>`;
   const on = { signal };
+  if (isUi2()) { // UI v2: khung Giấy của kit, nút phụ cho ▲ ▼ / Áp dụng / Về mặc định (ui2-auto.css); nút bật / tắt đổi nút chính ↔ phụ theo trạng thái ở fill()
+    el.classList.add("f2-giay-lon");
+    for (const b of el.querySelectorAll("button.buse:not(.atoggle),button.rlink")) b.classList.add("f2-nut-phu");
+    sumBox()?.classList.add("f2-giay-nho");
+  }
   $("[data-a=close]", el)!.addEventListener("click", closeAutoPanel, on);
   $("[data-a=toggle]", el)!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); ctx?.send(last?.on ? "off" : "on"); }, on);
   $("[data-a=hintApply]", el)!.addEventListener("click", () => {
@@ -220,6 +227,8 @@ function fill(m: AutoMsg) {
   const t = $("[data-a=toggle]", el)!;
   t.innerHTML = `${m.on ? "Tắt tự động" : "Bật tự động tại đây"} <kbd>T</kbd>`;
   t.classList.toggle("absorb", !m.on);
+  el.dataset.on = m.on ? "1" : "0";
+  if (isUi2()) { t.classList.toggle("f2-nut-chinh", !m.on); t.classList.toggle("f2-nut-phu", m.on); }
   const set = (k: string, val: string | number | boolean) => {
     const i = $<HTMLInputElement>(`[data-k=${k}]`, el)!;
     if (typeof val === "boolean") i.checked = val; else i.value = String(val);
