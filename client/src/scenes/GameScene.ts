@@ -3014,7 +3014,7 @@ export class GameScene extends Phaser.Scene {
       tongT.setText(tg?.name ?? "");
       if (tg && tongT.style.color !== tg.col) tongT.setColor(tg.col);
       const kind = playerNameplateKind(id, this.watching ? this.followSid : this.me,
-        !!this.party?.members.some((m) => m.sid === id), this.isArena ? [...st.sides].map((s: any) => s.sid) : []);
+        !!this.party?.members.some((m) => m.sid === id), this.isArena && st.sides ? [...st.sides].map((s: any) => s.sid) : []); // phòng Bí Cảnh cũng kind arena nhưng MapState không có sides
       label.setText(`${kind === "pk" ? "[PK] " : kind === "party" ? "[Đội] " : ""}${p.name} (${p.level})`);
       const col = id === this.me ? "#ffe9a0" : nameplateAppearance(kind).color;
       if (label.style.color !== col) label.setColor(col);
