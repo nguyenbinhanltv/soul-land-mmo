@@ -1,0 +1,13 @@
+/* UI v2: cột chỉ số trái, thanh kỹ năng và đội hình đáy (đợt 1a còn lại, Part of #885). Chỉ dưới `body.ui2`. Khung kit do ui2-hud.css lo; file này thêm DẤU HIỆU HÌNH
+   (không chỉ màu): vạch chia 10% trên thanh sinh lực / hồn lực / kinh nghiệm, ô khoá và ô đội hình gục kẻ chéo. Chữ 10 / 12 qua --fs-*, không ký tự ngoài phông nhúng. */
+body.ui2 #hud .stats .bar::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 1px),rgba(26,16,32,.6) calc(10% - 1px) 10%)}
+body.ui2 #hud .stats .bar{height:16px;border:var(--bd) solid var(--ink2)}
+body.ui2 #hud .stats .bar span{font:var(--fs-s)/12px var(--f10);z-index:1}
+body.ui2 #hud .stats .who{gap:var(--sp-4);padding-bottom:var(--sp-3);border-bottom:var(--bd-fine) solid var(--ink2)}
+body.ui2 #hud .stats .portrait{border-color:var(--paper3)}
+body.ui2 #hud #lvl{font:var(--fs-m)/1.2 var(--f12);color:var(--qgold);text-shadow:none}
+body.ui2 #hud #actbar :is(.sk.locked,.tm.locked,.tm.down){opacity:1;filter:none}
+body.ui2 #hud #actbar :is(.sk.locked,.tm.locked,.tm.down)::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background:repeating-linear-gradient(135deg,rgba(26,16,32,.55) 0 2px,transparent 2px 6px)}
+body.ui2 #hud #actbar .sk.ui-cell .key,body.ui2 #hud #actbar .tm.ui-cell .key{background:var(--paper);color:var(--ink);border:var(--bd-fine) solid var(--ink2);font:var(--fs-s)/12px var(--f10)}
+body.ui2 #hud #actbar .sk-state{background:var(--plate);color:var(--plate-text);font:var(--fs-s)/12px var(--f10)}
+body.ui2 #hud #actbar :is(.sk,.tm):focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}

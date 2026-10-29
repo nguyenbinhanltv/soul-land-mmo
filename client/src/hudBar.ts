@@ -7,6 +7,7 @@ import { setTip, parseText, type TipLine, type TipSpec } from "./tooltip.ts";
 import type { Vitals } from "../../shared/vitals.ts";
 import type { OwnedVohons, Squad } from "./net.ts";
 import { boneIcon, drawRecall, openBagTieuHao } from "./hud.ts";
+import "./ui2-hud-stats.css";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
