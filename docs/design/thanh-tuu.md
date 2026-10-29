@@ -35,6 +35,7 @@ Mỗi nhóm là **một chuỗi bậc** (ngưỡng tăng dần, mỗi bậc mộ
 | **Đấu trường** | số trận thắng | có sẵn (`arena_ratings.wins`) | vài bậc thắng |
 | **Bí Cảnh** | số lượt Luyện Hồn Cảnh đã thắng đủ các sóng | **phải thêm bộ đếm**; ghi lúc kết thúc lượt thắng ở `BiCanhRoom` | 3 bậc |
 
+- **Không cho sẵn khi tạo tài khoản:** bậc đầu của mỗi chuỗi phải cao hơn trạng thái tài khoản mới (thức tỉnh tối đa cấp `AWAKEN_LEVEL.max`, 2 võ hồn gồm quà tặng, 1 sao, bộ đếm 0): Cấp bậc đầu 15, Sưu tầm bậc đầu 3 võ hồn, Sao bậc đầu 2 sao. Test `server/scripts/achv-test.ts` kiểm không thành tựu nào đạt với chỉ số tài khoản mới.
 - **Điều kiện chỉ dùng chỉ số mà server đã hoặc sẽ đếm.** Thêm nhóm mới = thêm một chỉ số có nguồn rõ + một chuỗi bậc trong `ACHV`, không đổi giao thức.
 - **Không** có thành tựu cho thứ chỉ đo thời gian online, lượt bấm, hay hành vi có thể làm giả bằng nhiều tài khoản chỉ để nhận thưởng (xem "Chống gian lận").
 - Tên thành tựu dùng đúng tên gốc Đấu La; thành tựu "Cấp" mượn tên `TITLES`.

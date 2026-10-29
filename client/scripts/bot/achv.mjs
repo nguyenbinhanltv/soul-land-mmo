@@ -41,10 +41,10 @@ export async function achvTest(){
   await bump("king",1); { const before=A.bag.honTe, r=reward("king_t1").honTe??0, n=A.av.length; for(let k=0;k<5;k++) A.room.send("achv",{op:"claim",id:"king_t1"}); await waitFor(()=>A.av.length>=n+1,3000); await sleep(1000);
     ok(await waitFor(()=>A.bag.honTe===before+r,1500)&&A.av.at(-1).claimed.filter(x=>x==="king_t1").length===1,`5 claim king_t1 cùng lúc: đúng một lần nhận (+${r}, Hồn Tệ ${before}→${A.bag.honTe})`); }
 
-  // 5. Cấp: võ hồn ra trận lên cấp 10 → level_t1 đạt (chỉ số suy từ trạng thái server, không từ client).
-  { const act0=A.owned.list.find(v=>v.rowId===A.owned.active); const w=A.av.length; await test(A,"set",{rowId:act0.rowId,level:10,xp:0,rings:[]}); await sleep(300);
-    s=await act({op:"get"}); if(!s||s.stats.level<10) { await sleep(1100); s=await act({op:"get"}); }
-    ok(s?.stats.level>=10,`đặt cấp 10: chỉ số level = ${s?.stats.level}`);
+  // 5. Cấp: võ hồn ra trận lên cấp 15 → level_t1 đạt (chỉ số suy từ trạng thái server, không từ client).
+  { const act0=A.owned.list.find(v=>v.rowId===A.owned.active); const w=A.av.length; await test(A,"set",{rowId:act0.rowId,level:15,xp:0,rings:[]}); await sleep(300);
+    s=await act({op:"get"}); if(!s||s.stats.level<15) { await sleep(1100); s=await act({op:"get"}); }
+    ok(s?.stats.level>=15,`đặt cấp 15: chỉ số level = ${s?.stats.level}`);
     const b0=A.bag.honTe, r=reward("level_t1").honTe??0; s=await act({op:"claim",id:"level_t1"});
     ok(s&&!s.err&&s.claimed.includes("level_t1")&&await waitFor(()=>A.bag.honTe===b0+r,1500),`nhận level_t1: +${r} Hồn Tệ (${s?.err??"ok"})`);
     s=await act({op:"claim",id:"level_t2"}); ok(!!s?.err&&/Chưa đạt/.test(s.err),`level_t2 chưa đạt (cấp ${s?.stats.level}): từ chối`); void w; }

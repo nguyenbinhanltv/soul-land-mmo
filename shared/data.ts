@@ -5382,10 +5382,10 @@ const achvTier = (group: string, stat: AchvStat, label: string, tiers: [string, 
   tiers.map(([code, need, reward]) => ({ id: `${stat}_${code}`, group, name: label.replace("{n}", String(need)), stat, need, reward }));
 /** Mã thành tựu `${chỉ số}_${mã bậc}`: mã bậc khai TƯỜNG MINH, không suy từ ngưỡng, nên đổi `need` (hoặc thêm võ hồn mới) không đổi mã đã lưu ở `achv_state.claimed`. Không đổi tên / xóa mã đã phát hành (test giữ danh sách `ACHV_IDS`). */
 export const ACHV: AchvDef[] = [
-  ...achvTier("cap", "level", "Đạt cấp {n}", [["t1", 10, { honTe: 10 }], ["t2", 20, { honTe: 10 }], ["t3", 30, { honTe: 20 }], ["t4", 40, { honTe: 20 }], ["t5", 50, { honTe: 30 }],
+  ...achvTier("cap", "level", "Đạt cấp {n}", [["t1", 15, { honTe: 10 }], ["t2", 20, { honTe: 10 }], ["t3", 30, { honTe: 20 }], ["t4", 40, { honTe: 20 }], ["t5", 50, { honTe: 30 }],
     ["t6", 60, { honTe: 40 }], ["t7", 70, { honTe: 50 }], ["t8", 80, { honTe: 60 }], ["t9", 90, { honTe: 70 }], ["t10", 100, { honTe: 90 }]]),
-  ...achvTier("suu_tam", "owned", "Sở hữu {n} võ hồn", [["t1", 2, { honTe: 30 }], ["t2", 4, { honTe: 40 }], ["t3", 6, { honTe: 50, shards: 1 }], ["t4", 10, { honTe: 60, shards: 1 }], ["all", VOHON.length, { honTe: 100, shards: 2 }]]),
-  ...achvTier("suu_tam", "stars", "Một võ hồn đạt {n} sao", [["t1", 1, { honTe: 30 }], ["t2", 3, { honTe: 60 }], ["max", MAX_STARS, { honTe: 100 }]]),
+  ...achvTier("suu_tam", "owned", "Sở hữu {n} võ hồn", [["t1", 3, { honTe: 30 }], ["t2", 5, { honTe: 40 }], ["t3", 8, { honTe: 50, shards: 1 }], ["t4", 12, { honTe: 60, shards: 1 }], ["all", VOHON.length, { honTe: 100, shards: 2 }]]),
+  ...achvTier("suu_tam", "stars", "Một võ hồn đạt {n} sao", [["t1", 2, { honTe: 30 }], ["t2", 3, { honTe: 60 }], ["max", MAX_STARS, { honTe: 100 }]]),
   ...achvTier("hunt", "elite", "Hạ {n} tinh anh", [["t1", 1, { honTe: 30 }], ["t2", 10, { honTe: 60 }], ["t3", 50, { honTe: 100 }]]),
   ...achvTier("hunt", "king", "Hạ {n} thú vương", [["t1", 1, { honTe: 50 }], ["t2", 5, { honTe: 80, shards: 1 }], ["t3", 20, { honTe: 150, shards: 2 }]]),
   ...achvTier("hunt", "world", "Tham gia hạ {n} boss thế giới", [["t1", 1, { honTe: 60, shards: 1 }], ["t2", 3, { honTe: 100, shards: 2 }], ["t3", 10, { honTe: 150, shards: 3, items: [{ code: AUTO_TOKEN, qty: 1 }] }]]),

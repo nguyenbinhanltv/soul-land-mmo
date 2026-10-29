@@ -3,7 +3,7 @@
 // Chạy: npm run test:achv --prefix server
 import assert from "node:assert/strict";
 import { MemoryStore } from "../src/db.ts";
-import { ACHV, ACHV_CAP, ACHV_COUNTERS, ACHV_GROUPS, ACHV_STATS, ARENA_SHARDS, AUTO_BONUS_MAX, BAG_SLOTS, AUTO_DAILY_SECS, AUTO_TOKEN, AUTO_TOKEN_SECS, CHECKIN, ITEMS, MAX_LEVEL, MAX_STARS, QUESTS,
+import { ACHV, ACHV_CAP, ACHV_COUNTERS, ACHV_GROUPS, ACHV_STATS, ARENA_SHARDS, AUTO_BONUS_MAX, AWAKEN_LEVEL, BAG_SLOTS, AUTO_DAILY_SECS, AUTO_TOKEN, AUTO_TOKEN_SECS, CHECKIN, ITEMS, MAX_LEVEL, MAX_STARS, QUESTS,
   SHARD_BUY, VOHON, achvDef, achvReached, achvReady } from "../../shared/data.ts";
 import { achvGives, achvStats } from "../src/rooms/achv.ts";
 
@@ -48,13 +48,18 @@ await test("Quan hệ trần TỔNG thưởng (cả danh mục): Hồn Tệ, m�
   }
   for (const a of ACHV) { const r = a.reward; assert.ok(Number.isInteger(r.honTe ?? 0) && Number.isInteger(r.shards ?? 0), `${a.id}: số nguyên`); }
 });
+await test("Tài khoản mới (thức tỉnh: cấp tối đa lúc thức tỉnh AWAKEN_LEVEL.max, 2 võ hồn gồm quà tặng, 1 sao, bộ đếm 0): không thành tựu nào đạt sẵn", () => {
+  const fresh = { level: AWAKEN_LEVEL.max, owned: 2, stars: 1, quests: 0, arenaWins: 0, elite: 0, king: 0, world: 0, bicanh: 0 };
+  assert.deepEqual(ACHV.filter((x) => achvReached(x, fresh)).map((x) => x.id), [], "thành tựu chỉ ghi mốc đã đạt, không cho sẵn khi tạo tài khoản");
+  assert.equal(achvReady(fresh, []), 0);
+});
 await test("Thưởng tăng dần theo bậc trong cùng chỉ số", () => {
   const val = (a: (typeof ACHV)[number]) => (a.reward.honTe ?? 0) + (a.reward.shards ?? 0) * SHARD_BUY.base + (a.reward.items?.length ?? 0) * 1000;
   for (const stat of ACHV_STATS) { const v = ACHV.filter((a) => a.stat === stat).map(val); assert.ok(v.every((x, i) => i === 0 || x >= v[i - 1]), `${stat}: thưởng không giảm`); }
 });
 await test("achvReached / achvReady / achvDef: ranh giới, thiếu chỉ số, mã lạ", () => {
   const def = achvDef("level_t1")!;
-  assert.equal(achvReached(def, { level: 9 }), false); assert.equal(achvReached(def, { level: 10 }), true); assert.equal(achvReached(def, {}), false);
+  assert.equal(achvReached(def, { level: 14 }), false); assert.equal(achvReached(def, { level: 15 }), true); assert.equal(achvReached(def, {}), false);
   assert.equal(achvReady({ level: 20 }, []), 2); assert.equal(achvReady({ level: 20 }, ["level_t1"]), 1); assert.equal(achvReady({}, []), 0);
   for (const x of [undefined, null, 1, "", "khong_co", {}]) assert.equal(achvDef(x), undefined);
 });
