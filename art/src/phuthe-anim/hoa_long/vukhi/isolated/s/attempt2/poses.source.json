@@ -1,0 +1,22 @@
+﻿{
+    "tool":  "Codex image_gen tích hợp",
+    "date":  "2026-10-30",
+    "direction":  "s",
+    "attempt":  2,
+    "rawUnmodified":  true,
+    "references":  [
+
+                   ],
+    "model":  null,
+    "seed":  null,
+    "image":  {
+                  "sha256":  "7b5af465274f1cfbbadc09fcb03fe463843c00bca552df81f10b326bd482522e",
+                  "path":  "poses.raw.png"
+              },
+    "prompt":  {
+                   "sha256":  "1ea956b971ae5be83086dee12d0ef2d95d81b046d5b5240f51ee571bdec79788",
+                   "path":  "poses.prompt.txt"
+               },
+    "result":  "Loại: marker sát ranh giới cột, hai pose cùng ô gốc.",
+    "license":  "Đầu ra OpenAI theo điều khoản dịch vụ; không gán CC0."
+}

@@ -22,7 +22,7 @@ Những võ hồn còn lại: giữ bản chuyển thể trừ khi chủ repo du
 - **Thở (8 khung, vòng lặp):** biên độ nhỏ (1–2 điểm nhấp nhô, hình không đổi dáng); khung 0 = tư thế gốc, khung 7 liền khung 0. **Đánh (8 khung):** gồng / lùi (khung 0–2), ra đòn mạnh nhất ở khung 3–4 (hình bung xa nhất, giữ khung 4), thu về (5–7, khung 7 ≈ khung 0). Chuyển động theo hướng đòn của hướng đó.
 - **Việc của code, không vẽ vào ảnh:** hào quang, hạt, khói, lửa rời, glow, vòng pháp trận (`pt_<id>_glow` dựng bằng `phuthe-to-phaptuong.mjs --glow`). Ảnh chỉ có hình đặc, viền `#1a1020` 1 điểm, 3 tông mỗi vùng màu.
 - **Tham chiếu:** ảnh dẫn số 1 = sheet phụ thể cũ của chính võ hồn (`shared/assets/sprites/vohonanim/<id>_{b,f}.png`, chỉ để lấy **hình mẫu, màu, motif**, **không chép bố cục, không chép chỗ rỗng hình người**); số 2 (nếu có) = tờ hướng đã được duyệt của chính võ hồn. Không dùng ảnh hỏng làm tham chiếu. Quy tắc 3 lượt mỗi tờ, chỉ đổi một thứ mỗi lượt, rà điều cấm: `vo-hon-phong-cach.md` phần 6.1.
-- **Sau khi sinh:** lưu RAW nguyên byte ở `art/src/phap-tuong/<id>/` kèm `*.prompt.txt` và `NGUON.md`; ghép 5 tờ thành `pt_<id>` bằng cutter riêng (**chưa có**: việc tiếp theo của orchestrator, cắt ô 256 → khung 160 bằng bỏ phiếu màu như `phuthe-sheet-cut-lib.mjs`); chủ repo duyệt bằng ảnh trong game trước khi nhập.
+- **Sau khi sinh:** lưu RAW nguyên byte ở `art/src/phap-tuong/<id>/` kèm `*.prompt.txt` và `NGUON.md`. Mẫu Lam Ngân Thảo dùng `node tools/assets/phaptuong-sheet-cut.mjs art/src/phap-tuong/lam_ngan_thao shared/assets/sprites/phaptuong/lam_ngan_thao.png`: năm tờ `s.png`, `se.png`, `e.png`, `ne.png`, `n.png`, kiểm mép ô rồi bỏ phiếu màu về khung 160. **Bộ lọc viền hồng hiện chỉ dành Lam Ngân Thảo**, không dùng cho võ hồn có thân tím / đỏ. Chủ repo duyệt bằng ảnh trong game trên PR trước khi merge; mẫu chưa đạt động tác giữ PR nháp, không tự vượt ba lượt.
 
 ## 3. Mẫu prompt
 
@@ -104,5 +104,7 @@ Motifs (only these three): a demon mask engraved with talismans, layered dark ne
 ```
 
 ## 5. Kiểm sau khi sinh
+
+Bài học mẫu Lam Ngân Thảo (#1324): ngọn cây không được giống mặt / đầu quỷ; kiểm ảnh vuông và từng ô trước khi ghép. Chừa khoảng nền rộng quanh **toàn bộ** pose đánh; khi dây chạm ô bên cạnh, yêu cầu thu đồng đều mọi pose và cuộn gọn đầu dây, không cắt mất đầu nhọn. Bài học pháp tướng độc lập không thuộc parser bài học phụ thể quanh nộm.
 
 Theo `vo-hon-phong-cach.md` phần 6.1 (RAW chặn / nhẹ / đẹp; ảnh pixel kiểm sau chuyển) và thêm bằng mắt: **không chỗ rỗng hình người**, hình ở giữa tờ liền khối; 16 ô cùng cỡ, cùng đường chân; hướng `ne`/`n` đọc được khi mờ 70%; thở không đổi silhouette; đánh có đỉnh rõ ở ô 12–13. Hỏng thì ghi bài học một dòng vào `art/src/phuthe-anim/lessons.md`.

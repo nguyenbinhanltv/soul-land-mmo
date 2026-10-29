@@ -2495,7 +2495,7 @@ const pt = (id: string, group: PtGroup, hat: PtHat, o: { scale?: number; dx?: nu
 export const PHAP_TUONG: Record<string, PhapTuongDef> = Object.fromEntries([
   pt("cuu_tinh_that_sat_kiem", "V", "hon", { dx: 10, dy: -4, motion: { ...BAKED, pulse: 0.2 } }),
   pt("lam_dien_ba_vuong_long", "S", "dien"),
-  pt("ky_nhung_thong_thien_cuc", "P", "hon", { scale: 1.05, motion: { ...BAKED, pulse: 0.25 } }),
+  pt("ky_nhung_thong_thien_cuc", "P", "hon", { scale: 1.6, dy: -24, motion: { ...BAKED, bob: 2, pulse: 0.25 } }),
   pt("ta_hoa_phuong_hoang", "B", "lua", { scale: 1.8, dy: -28, motion: { ...BAKED, bob: 3, pulse: 0.12 } }),
   pt("u_minh_linh_mieu", "T", "khoi", { motion: { ...BAKED, pulse: 0.12 } }),
   pt("nguyet_nhan", "V", "hon", { scale: 1.2, dy: -6, motion: { ...BAKED, pulse: 0.15 } }),

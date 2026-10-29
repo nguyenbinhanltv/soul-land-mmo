@@ -106,12 +106,24 @@ Tái dùng tối đa đường P1 (#1022) / P2 (#1023); thêm chế độ **"vũ
 | Việc | Trạng thái |
 |---|---|
 | Soạn bảng 25 + quy tắc + kế hoạch (file này, #1307) | PR này |
-| Chủ repo duyệt bảng (dạng vũ khí, nhóm, tay, 3 mẫu thí điểm) | chờ |
+| Chủ repo duyệt bảng (dạng vũ khí, nhóm, tay, 3 mẫu thí điểm) | hướng đã chốt 2026-10-29 (epic #1020); mẫu mềm Lam Ngân Thảo đã chấp nhận (#1322); bảng đủ 25 dòng vẫn duyệt dần theo từng mẫu |
 | Công cụ kiểu `--kind vukhi` (nộm + marker, prompt, cutter, kiểm) | xong (#1313) |
 | Nhập `vkanim_<id>_b` / `_f` vào game (`phuthe-import.mjs --kind vukhi`, validate nhận khoá `vkanim`, trang thử `?thu=vukhi`) | xong (#1312) |
-| Thí điểm Hạo Thiên Chùy / Lam Ngân Thảo / võ hồn găng-vuốt | mở sau công cụ |
+| Thí điểm Hạo Thiên Chùy / Lam Ngân Thảo / võ hồn găng-vuốt | Lam Ngân Thảo xong (#1322); Hạo Thiên Chùy #1319 (PR #1320 nháp, chưa đạt); Hỏa Long mềm #1338; găng-vuốt chưa mở |
 | Client: vũ khí theo võ hồn ra trận, Chân Thân thu về | xong (#1314); thiếu sheet vẫn chạy nhánh hiện nay |
 | Phụ thể cũ chỉ hiện khi Chân Thân; sửa `trang-bi.md` | mở sau thí điểm |
+
+## Tiến độ rollout nhóm mềm
+
+Mỗi võ hồn một PR nháp chờ chủ repo duyệt mỹ thuật; không tự merge. Cảnh báo mới phải được duyệt riêng, không kế thừa mức chấp nhận LNT.
+
+| Dòng | Võ hồn | Issue / PR | Trạng thái |
+|---|---|---|---|
+| 7 | Hỏa Long | #1338 / #1339 | Đã merge qua tài khoản chủ repo ngoài phiên rollout; có ảnh game, AO đạt; cảnh báo s 28%, se 20% trong hồ sơ |
+| 10 | Tử Vong Chu Hoàng | #1341 / #1342 | PR nháp, có ảnh game, AO đạt; chờ duyệt mỹ thuật |
+| 11 | Bích Lân Xà Hoàng | #1346 / #1347 | PR nháp, có ảnh game, AO đạt; chờ duyệt mỹ thuật |
+| 12 | Càn Khôn Hỗn Nguyên Tỏa | #1349 / #1350 | PR nháp, có ảnh game, AO đạt; chờ duyệt mỹ thuật |
+| 22 | A Ngân | #1352 / #1353 | PR nháp, đã nhập năm atlas/220 khung, có ảnh game, 0 chặn; chờ duyệt mỹ thuật |
 
 ## Nhập vào game và trang thử (#1312)
 - **Nhập:** cắt tờ bằng `phuthe-sheet-cut.mjs --kind vukhi --out <thư mục>` rồi `node tools/assets/phuthe-import.mjs --id <võ hồn> --kind vukhi --dir <thư mục>`. Ảnh vào `shared/assets/sprites/vukhianim/<id>_{b|f}.png`; mục manifest `vkanim_<id>_{b|f}` giữ `anim.kind: "vukhi"`, `anim.grip`, `anim.gripSex` (nửa không có điểm ảnh ghi `blank`), đặt sau `vhanim_<id>_f` (nếu có) hoặc `vh_<id>_f`. Ghi thêm dòng vào `art/CREDITS.md` (mục ChatGPT, `--credits` đổi đường dẫn) và khối hướng đã nhập ở `art/src/phuthe-anim/<id>/vukhi/NGUON.md`. Chạy lại không đổi gì; `--dry-run` chỉ in. Không dùng `--anchor` (neo là của phụ thể).

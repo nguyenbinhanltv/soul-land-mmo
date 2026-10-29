@@ -33,5 +33,10 @@
     "e",
     "ne",
     "n"
-  ]
+  ],
+  "verifiedOnMain": {
+    "commit": "399ff4fea66cf2143acb1bded6e91686f4311cf7",
+    "sheetSha256": "00469d697a7f157d31c9045e9e2f60b54e6f514e2fcf7c1959e77531bd2fe404",
+    "glowSha256": "4d4f6470d2330e54e992efdd94ea7f8f391ad361a0a3dbf8b36d067abdb3c6f9"
+  }
 }
