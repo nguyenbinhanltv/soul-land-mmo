@@ -47,7 +47,7 @@ Mọi tính toán ở server; client chỉ gửi `rank {op, board, page}`.
 | **Đọc thẳng** (Cộng minh, Elo, Tông) | truy vấn trên bảng canonical (`accounts`, `arena_ratings`, `tong_points`) theo chỉ mục phục vụ thứ tự xếp; `MemoryStore` và `PgStore` cùng tính | cache `RANK_BOARD_CACHE` giây; ghi Elo / điểm trong cùng tiến trình xóa cache (`rankBoardClear`, mục 6 DB) |
 | **Bảng điểm lưu** (Cấp, Sưu tầm, Sức mạnh, Thợ săn tuần, Boss thế giới) | server ghi `rank_scores` khi có sự kiện: lưu định kỳ / lên cấp / thay đội hình / thêm võ hồn (Cấp, Sưu tầm, Sức mạnh; tối thiểu cách RANK_POWER_CD giây mỗi người), lúc chốt thưởng (săn, boss) | giống trên |
 
-- **Ảnh chụp Cấp / Sưu tầm / Sức mạnh:** chỉ tính lại ở các mốc **ổn định** (thoát phòng, lưu định kỳ, đổi đội hình / gắn đồ xong và đã ghi DB), không tính giữa trận, không tính khi đang trong sân đấu. Điểm lưu là ảnh chụp tại lần ghi thành công gần nhất; hạng của mình hiển thị kèm "cập nhật lúc …".
+- **Ảnh chụp Cấp / Sưu tầm / Sức mạnh:** chỉ tính lại ở các mốc **ổn định** (thoát phòng, lưu định kỳ, đổi đội hình / gắn đồ xong và đã ghi DB), không tính giữa trận; `ArenaRoom` chặn tin `rank` và đổi đội hình / đồ nên lần ghi lúc vào / rời sân không đổi điểm. Điểm lưu là ảnh chụp tại lần ghi thành công gần nhất; hạng của mình hiển thị kèm "cập nhật lúc …".
 - Điểm hiển thị cho chính chủ (bảng Nhân vật: nhóm "Sức mạnh", tin `stats` có thêm `power` của võ hồn đang xem và `teamPower` của đội hình) và điểm trong bảng phải cùng hàm `powerScore` / `teamPowerScore`; bot `rank` so hai đường (`teamPower` ở tin `stats` = điểm `me` ở `rankTop`).
 - Bảng Elo / cộng minh / tông tuần **không đổi** tin riêng của chúng (`arena {op:"top"}`/`arenaTop`, `resonance {op:"top"}`/`resonanceTop`, `tong {op:"board"}`/`tongBoard`). Giai đoạn đầu client có bộ nối (adapter) gọi đúng tin cũ; hợp nhất vào tin `rank` là việc tùy chọn về sau (cần sửa client + bot cùng lúc, mục "Giao thức").
 
@@ -133,7 +133,7 @@ Chất liệu: màn đầy khung nên **Mực** có tấm Giấy cho bảng đi�
 | X2 | SQL `rank_scores` + server: tin `rank {op:"boards"\|"top"}` cho Cấp + Sưu tầm (ghi ở mốc ổn định; `Store.rankTop` / `rankMe` cả hai kho; hạng ẩn tài khoản test) | bot nhóm mới `rank` (người thường thấy mình, test ẩn, trang cuối, xin dồn, tin lạ, `updated_at` không đổi khi chỉ đổi `xp` nhưng thứ tự theo `xp` đúng; `extra` cập nhật khi chỉ đổi đội hình), `--pg` kiểm migration chạy lại 2 lần |
 | X3 | `powerScore` ghi ở mốc ổn định + hạng mục Sức mạnh + hiển thị điểm ở bảng Nhân vật | bot: đổi đội hình / thoát phòng cập nhật đúng; test `powerScore` khớp bảng Nhân vật |
 | X4 | Client: màn Xếp Hạng (khung, bục, bảng, dòng của tôi, trạng thái) + bộ nối cho Elo / cộng minh / tông tuần | `client-ui` + ảnh chụp Chrome headless các trạng thái; `ui:inventory` không tăng màu lẻ |
-| X5 | Soát chống gian lận (skill `anti-cheat-audit`) + đo tải bảng như #738 | tài liệu soát tệp soát soat-gian-lan-xep-hang (trong docs/tech, tạo khi làm X5) |
+| X5 | Soát chống gian lận (skill `anti-cheat-audit`) + đo tải bảng như #738 | `docs/tech/soat-gian-lan-xep-hang.md` (xong); test `rank-test.ts` + bot `rank` |
 | X6 (v2) | Thợ săn tuần; Boss thế giới | bot săn / boss với `bossOffset` đẩy tuần |
 
 Mỗi bước server sửa **cả** `PgStore` và `MemoryStore`, thêm hàng vào bảng tin ở `giao-thuc-server.md`, và (khi sửa MapRoom) tránh phình file: đặt logic ở `server/src/rooms/rank.ts` *(đề xuất)* như `tong.ts` / `team.ts` (#702).
@@ -145,13 +145,16 @@ Mỗi bước server sửa **cả** `PgStore` và `MemoryStore`, thêm hàng và
 ### Đã làm (X2, phần server)
 - `rank_scores` (`037_xep_hang.sql`), `Store.rankPut / rankTop / rankMe` ở `PgStore` và `MemoryStore`; hằng và hàm thuần `RANK_BOARDS` (Cấp, Sưu tầm), `rankScores`, `rankCompare`, `RANK_PAGE_SIZE / _MAX`, `RANK_CD`, `RANK_SYNC_CD` ở `shared/data.ts`.
 - `server/src/rooms/rank.ts`: `rankSync` (ghi lúc vào phòng, sau lần lưu thành công, lúc rời phòng; không giữa trận; nhịp `RANK_SYNC_CD`) và `rankAction` (tin `rank`). `ArenaRoom` chặn tin `rank`.
-- Chưa làm (lúc X2): UI (X4), soát chống gian lận + đo tải (X5), Thợ săn tuần / Boss thế giới (X6), bộ nối Elo / cộng minh / tông tuần ở client.
+- Chưa làm (lúc X2): UI (X4), soát chống gian lận + đo tải (X5, đã làm sau đó), Thợ săn tuần / Boss thế giới (X6), bộ nối Elo / cộng minh / tông tuần ở client.
 - Kiểm thử: `npm run test:rank --prefix server` (phần thuần + `MemoryStore`), `npm run bot:local -- --only rank [--pg]`.
 
 ### Đã làm (X3)
 - `RANK_POWER`, `powerScore`, `teamPowerScore` và hạng mục `suc_manh` (cuối `RANK_BOARDS`) ở `shared/data.ts`; `rankScores(owned, team, power?)` thêm dòng Sức mạnh khi có `power`.
 - `MapRoom.teamPowerOf(d)` tính từ chỉ số thật (hồn cốt, hồn hạch + trang bị, cộng minh, tiên thảo của từng võ hồn trong ô đội); `rankSync` ghi ở cùng mốc ổn định và nhịp `RANK_SYNC_CD` như Cấp / Sưu tầm. `sendStats` gửi thêm `power` / `teamPower`; bảng Nhân vật (`charPanel.ts`) hiện nhóm "Sức mạnh".
 - Kiểm thử: `npm run test:rank --prefix server` (`powerScore`, `teamPowerScore`, `rankScores`), bot `rank` (điểm bảng = điểm bảng Nhân vật; lên cấp / đổi đội hình rồi rời phòng thì điểm và `at` đổi đúng).
+
+### Đã làm (X5)
+- Soát: `docs/tech/soat-gian-lan-xep-hang.md` (14 giả thuyết, không lỗi Nghiêm trọng / Cao). Sửa kèm: `rankMe` có cache theo tài khoản, trang kẹp `RANK_PAGE_DEPTH` và mọi trang qua cache (số khoá có trần), `markTest` xoá cache bảng. Đo tải: 100 người mở bảng 35 → 6,9 truy vấn/giây.
 
 ### Câu hỏi mở
 Không còn. Trọng số RANK_POWER đã đặt ở X3 (có thể chỉnh sau khi xem số thật; tăng bậc thang cần cân nhắc cùng `balance-review`).

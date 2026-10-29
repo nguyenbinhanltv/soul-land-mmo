@@ -8412,6 +8412,106 @@
       "iso": true
     },
     {
+      "key": "item_manh_a_ngan",
+      "iso": true
+    },
+    {
+      "key": "item_manh_bach_ho",
+      "iso": true
+    },
+    {
+      "key": "item_manh_bang_phuong_hoang",
+      "iso": true
+    },
+    {
+      "key": "item_manh_bich_lan_xa_hoang",
+      "iso": true
+    },
+    {
+      "key": "item_manh_can_khon_hon_nguyen_toa",
+      "iso": true
+    },
+    {
+      "key": "item_manh_cuu_bao_luu_ly_thap",
+      "iso": true
+    },
+    {
+      "key": "item_manh_cuu_tinh_that_sat_kiem",
+      "iso": true
+    },
+    {
+      "key": "item_manh_hao_thien_chuy",
+      "iso": true
+    },
+    {
+      "key": "item_manh_hoa_anh",
+      "iso": true
+    },
+    {
+      "key": "item_manh_hoa_long",
+      "iso": true
+    },
+    {
+      "key": "item_manh_kim_vu_mieu_ung",
+      "iso": true
+    },
+    {
+      "key": "item_manh_ky_nhung_thong_thien_cuc",
+      "iso": true
+    },
+    {
+      "key": "item_manh_lam_dien_ba_vuong_long",
+      "iso": true
+    },
+    {
+      "key": "item_manh_lam_ngan_thao",
+      "iso": true
+    },
+    {
+      "key": "item_manh_liet_hoa_thuong_lang",
+      "iso": true
+    },
+    {
+      "key": "item_manh_nguyet_nhan",
+      "iso": true
+    },
+    {
+      "key": "item_manh_nhu_cot_tho",
+      "iso": true
+    },
+    {
+      "key": "item_manh_pha_hon_thuong",
+      "iso": true
+    },
+    {
+      "key": "item_manh_quy_mi",
+      "iso": true
+    },
+    {
+      "key": "item_manh_ta_hoa_phuong_hoang",
+      "iso": true
+    },
+    {
+      "key": "item_manh_thien_can_bach_ngoc_dinh",
+      "iso": true
+    },
+    {
+      "key": "item_manh_tu_vong_chu_hoang",
+      "iso": true
+    },
+    {
+      "key": "item_manh_u_minh_linh_mieu",
+      "iso": true
+    },
+    {
+      "key": "item_manh_xuc_xich",
+      "iso": true
+    },
+    {
+      "key": "item_manh_yeu_ho",
+      "iso": true
+    },
+    {
       "key": "item_ruong",
       "iso": true
     },

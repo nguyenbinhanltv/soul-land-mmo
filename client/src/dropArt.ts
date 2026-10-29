@@ -21,8 +21,9 @@ export function dropArtSpec(d: { item?: string }, bone: { id: string } | undefin
   if (core) return artUrl(`item_hon_hach_${core.id}`) ? { key: `item_hon_hach_${core.id}` } : { key: "item_hon_hach", tint: col }; // màu bộ vẽ sẵn (#696)
   if (!d.item) return { key: "item_hon_hoan", tint: col };
   if (!it) return null;
-  const key = [`item_${it.id}`, `item_${it.kind}`].find((k) => artUrl(k));
-  return key ? { key, tint: TINT_KINDS.includes(it.kind) ? col : undefined } : null;
+  if (artUrl(`item_${it.id}`)) return { key: `item_${it.id}` }; // ảnh riêng của món (mảnh từng võ hồn): màu đã vẽ sẵn, không tô lại
+  const key = `item_${it.kind}`;
+  return artUrl(key) ? { key, tint: TINT_KINDS.includes(it.kind) ? col : undefined } : null;
 }
 
 const pending = new Set<string>(), failed = new Set<string>();

@@ -8,7 +8,7 @@ import { nameKey, isReservedName } from "./names.ts";
 import { mapFile } from "./map.ts";
 import { DEFAULT_LOOKS, parseLooks, encodeLpc, decodeLpc, presetToLpc, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, isTongTask, type TongRank, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
   BONE_ITEM, CORE_ITEM, EQUIP_ITEM, EQUIP_SLOTS, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
-  RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE, RANK_BOARD_CACHE, RANK_PAGE_MAX, rankCompare, tongDef,
+  RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE, RANK_BOARD_CACHE, RANK_PAGE_MAX, RANK_PAGE_DEPTH, rankCompare, tongDef,
   type RankLineupSlot, type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
@@ -343,9 +343,9 @@ export interface Store {
    * điểm do server suy ra). Dòng chưa có thì thêm; có rồi thì chỉ ghi khi `score` / `tie` / `extra` đổi, và `updated_at` ("đạt mốc trước") chỉ đổi khi `score` đổi.
    */
   rankPut(accountId: number, rows: RankPutRow[]): Promise<void>;
-  /** Một trang bảng xếp hạng `board` / `period` (điểm giảm dần, phụ, đạt trước, mã; ẩn tài khoản `is_test`); `page` 1-based, `pageSize` kẹp ở RANK_PAGE_MAX. Dùng chung cache `RANK_BOARD_CACHE` giây. */
+  /** Một trang bảng xếp hạng `board` / `period` (điểm giảm dần, phụ, đạt trước, mã; ẩn tài khoản `is_test`); `page` 1-based, kẹp ở RANK_PAGE_DEPTH (trang xa nhất, hết `hasNext`), `pageSize` kẹp ở RANK_PAGE_MAX. Dùng chung cache `RANK_BOARD_CACHE` giây. */
   rankTop(board: string, period: number, page: number, pageSize: number): Promise<RankTopResult>;
-  /** Hạng và điểm của `accountId` ở bảng `board` / `period`, tính riêng (không qua cache); null = chưa có điểm hoặc bị ẩn (`is_test`). */
+  /** Hạng và điểm của `accountId` ở bảng `board` / `period`, tính riêng (một truy vấn đếm, giữ `RANK_BOARD_CACHE` giây theo tài khoản, xoá khi điểm ai đó đổi); null = chưa có điểm hoặc bị ẩn (`is_test`). */
   rankMe(board: string, period: number, accountId: number): Promise<RankMe | null>;
   /** Sổ Điểm Danh của `accountId` (bảng `checkin_state`, mục 5.21); null = chưa từng điểm danh. Đọc mới mỗi lần (không cache). */
   checkinGet(accountId: number): Promise<CheckinRow | null>;
@@ -448,11 +448,10 @@ export interface RankTopResult { page: number; pageSize: number; total: number; 
 export interface RankMe { rank: number; score: number; tie: number; at: number }
 const rankLineup = (x: unknown): RankLineupSlot[] => (Array.isArray(x) ? x : []).filter((s): s is RankLineupSlot => !!s && typeof s.vohon === "string" && Number.isFinite(s.level) && Number.isFinite(s.stars))
   .map((s) => ({ vohon: s.vohon, level: s.level, stars: s.stars }));
-/** Số trang đầu của mỗi bảng được giữ trong cache `rank|…` (giới hạn số khoá cache). */
-const RANK_CACHE_PAGES = 50;
+/** Trang kẹp vào 1..RANK_PAGE_DEPTH (số khoá cache `rank|…` có trần, soát X5); `deep`: đã là trang xa nhất xem được (không còn trang kế). */
 const rankPageOf = (page: number, pageSize: number) => {
-  const size = Math.max(1, Math.min(RANK_PAGE_MAX, Math.floor(pageSize) || 1)), p = Math.max(1, Math.floor(page) || 1);
-  return { p, size, off: (p - 1) * size };
+  const size = Math.max(1, Math.min(RANK_PAGE_MAX, Math.floor(pageSize) || 1)), p = Math.min(RANK_PAGE_DEPTH, Math.max(1, Math.floor(page) || 1));
+  return { p, size, off: (p - 1) * size, deep: p >= RANK_PAGE_DEPTH };
 };
 export interface ResonanceTopEntry extends ResonanceRankRow { name: string; }
 export interface ResonanceTopResult {
@@ -473,12 +472,20 @@ const rankGenOf = (key: string) => (key.startsWith("rank|") ? rankScoresGen : ra
 export const rankBoardClear = () => { rankGen++; rankScoresGen++; rankBoards.clear(); rankBusy.clear(); };
 /** Xoá riêng cache các trang `rank_scores` (khoá bắt đầu bằng "rank|"): điểm đổi thì bảng đọc được ngay, bảng đấu trường / tông không bị xoá oan. */
 const rankScoresClear = () => { rankScoresGen++; for (const k of [...rankBoards.keys()]) if (k.startsWith("rank|")) rankBoards.delete(k); for (const k of [...rankBusy.keys()]) if (k.startsWith("rank|")) rankBusy.delete(k); };
+/** Số khoá cache bảng tối đa trước khi dọn khoá hết hạn. */
+const RANK_CACHE_MAX = 2000;
 function rankBoard<T>(key: string, compute: () => Promise<T>): Promise<T> {
   const hit = rankBoards.get(key);
   if (hit && Date.now() - hit.at < RANK_BOARD_CACHE * 1000) return Promise.resolve(hit.v as T);
   const busy = rankBusy.get(key); if (busy) return busy as Promise<T>;
   const gen = rankGenOf(key);
-  const p = compute().then((v) => { if (gen === rankGenOf(key)) rankBoards.set(key, { at: Date.now(), v }); return v; }).finally(() => { if (rankBusy.get(key) === p) rankBusy.delete(key); });
+  const p = compute().then((v) => {
+    if (gen === rankGenOf(key)) {
+      if (rankBoards.size >= RANK_CACHE_MAX) { const now = Date.now(); for (const [k, x] of rankBoards) if (now - x.at >= RANK_BOARD_CACHE * 1000) rankBoards.delete(k); } // dọn khoá hết hạn (cache theo tài khoản không phình mãi)
+      rankBoards.set(key, { at: Date.now(), v });
+    }
+    return v;
+  }).finally(() => { if (rankBusy.get(key) === p) rankBusy.delete(key); });
   rankBusy.set(key, p);
   return p;
 }
@@ -891,10 +898,10 @@ export class MemoryStore implements Store {
     }).sort(rankCompare);
   }
   async rankTop(board: string, period: number, page: number, pageSize: number) {
-    const { p, size, off } = rankPageOf(page, pageSize), all = this.rankSorted(board, period);
+    const { p, size, off, deep } = rankPageOf(page, pageSize), all = this.rankSorted(board, period);
     const rows = all.slice(off, off + size).map((x, i): RankTopRow => ({ rank: off + i + 1, accountId: x.accountId, name: this.names.get(x.accountId) ?? "?", score: x.score, tie: x.tie,
       tong: tongDef(this.tongs.get(x.accountId)?.tong)?.id ?? null, lineup: x.extra ?? [] }));
-    return { page: p, pageSize: size, total: all.length, hasNext: off + size < all.length, rows, asOf: Date.now() };
+    return { page: p, pageSize: size, total: all.length, hasNext: !deep && off + size < all.length, rows, asOf: Date.now() };
   }
   async rankMe(board: string, period: number, accountId: number) {
     const all = this.rankSorted(board, period), at = all.findIndex((x) => x.accountId === accountId);
@@ -1748,8 +1755,8 @@ export class PgStore implements Store {
     if (changed) rankScoresClear(); // sau COMMIT: bảng đọc được điểm mới
   }
   async rankTop(board: string, period: number, page: number, pageSize: number) {
-    const { p, size, off } = rankPageOf(page, pageSize);
-    // Chỉ cache RANK_CACHE_PAGES trang đầu: khoá cache không phình theo số trang client xin (trang sâu đọc thẳng DB, đã có nhịp RANK_CD).
+    const { p, size, off, deep } = rankPageOf(page, pageSize);
+    // Mọi trang đều qua cache: trang kẹp ≤ RANK_PAGE_DEPTH nên số khoá có trần (soát X5), client xin trang / cỡ ngẫu nhiên không thoát được cache.
     const load = async () => {
       const [list, count] = await Promise.all([
         this.pool.query(
@@ -1760,9 +1767,9 @@ export class PgStore implements Store {
       const total = Number(count.rows[0].n);
       const rows = list.rows.map((x: any, i: number): RankTopRow => ({ rank: off + i + 1, accountId: Number(x.account_id), name: x.name as string, score: Number(x.score), tie: Number(x.tie),
         tong: tongDef(x.tong)?.id ?? null, lineup: rankLineup(x.extra) }));
-      return { page: p, pageSize: size, total, hasNext: off + size < total, rows, asOf: Date.now() };
+      return { page: p, pageSize: size, total, hasNext: !deep && off + size < total, rows, asOf: Date.now() };
     };
-    return p <= RANK_CACHE_PAGES ? rankBoard(`rank|${board}|${period}|${size}|${p}`, load) : load();
+    return rankBoard(`rank|${board}|${period}|${size}|${p}`, load);
   }
   async checkinGet(accountId: number) {
     const r = await this.pool.query("SELECT cycle, start_day, mask, makeup_used, (extract(epoch FROM last_at) * 1000)::bigint AS at, ver FROM checkin_state WHERE account_id=$1", [accountId]);
@@ -1795,6 +1802,10 @@ export class PgStore implements Store {
     } finally { db.release(); }
   }
   async rankMe(board: string, period: number, accountId: number) {
+    // Giữ RANK_BOARD_CACHE giây theo tài khoản (khoá `rank|me|…`, xoá cùng các trang khi điểm đổi): người mở bảng dồn không tốn một truy vấn đếm mỗi lần (soát X5).
+    return rankBoard(`rank|me|${board}|${period}|${accountId}`, () => this.rankMeQuery(board, period, accountId));
+  }
+  private async rankMeQuery(board: string, period: number, accountId: number) {
     // Một câu: dòng của mình rồi đếm số người đứng trước (khoá chỉ mục rank_scores_order), cùng thứ tự với rankTop.
     const r = await this.pool.query(
       `SELECT m.score, m.tie, (extract(epoch FROM m.updated_at) * 1000)::bigint AS at, 1 + (SELECT COUNT(*) FROM rank_scores x JOIN accounts a ON a.id=x.account_id
@@ -1819,7 +1830,7 @@ export class PgStore implements Store {
     const x = r.rows[0];
     return x ? { id: Number(x.id), name: x.name as string, isTest: !!x.is_test, lastLogin: x.last_login ? new Date(x.last_login).getTime() : null } : null;
   }
-  async markTest(accountId: number) { await this.pool.query("UPDATE accounts SET is_test=true WHERE id=$1", [accountId]); }
+  async markTest(accountId: number) { await this.pool.query("UPDATE accounts SET is_test=true WHERE id=$1", [accountId]); rankScoresClear(); } // ẩn khỏi bảng xếp hạng ngay, không chờ cache hết hạn
   async isTestAccount(accountId: number) {
     const r = await this.pool.query("SELECT is_test FROM accounts WHERE id=$1", [accountId]);
     return !!r.rows[0]?.is_test;
