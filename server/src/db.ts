@@ -1951,6 +1951,8 @@ export class PgStore implements Store {
   }
   async mailSend(accountId: number, m: MailNew) {
     const c = mailOk(m);
+    // Trùng `dedup` (kể cả thư đã xóa mềm) trả "dup" NGAY, trước khi đếm / dọn hộp: gửi lại không được làm mất thêm thư nào (cùng thứ tự với MemoryStore).
+    if ((await this.pool.query("SELECT 1 FROM mail WHERE account_id=$1 AND dedup=$2", [accountId, m.dedup])).rowCount) return "dup";
     const n = await this.pool.query("SELECT COUNT(*)::int AS n FROM mail WHERE account_id=$1 AND deleted_at IS NULL AND expires_at > now()", [accountId]);
     if (n.rows[0].n >= MAIL.boxMax) {
       // Hộp đầy: dọn thư cũ nhất đã nhận hoặc không có đính kèm (xóa mềm, giữ `dedup`); không còn thì không nhận thêm.
