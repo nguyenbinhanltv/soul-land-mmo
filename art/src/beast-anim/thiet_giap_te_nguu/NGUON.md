@@ -77,7 +77,7 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 
 ### to-ne (candidates)
 
-- File chọn: `candidates/to-ne-797-attempt2.png`, **1536×1024**, SHA256 `e7886dcc95d1973d41bf4abff97622dfba3a867ac820362ecdbabae23248a8eb`; lượt tìm thấy: 2.
+- File chọn: `candidates/to-ne-797-attempt2.png`, **1536×1024**, SHA256 `e7886dcc95d1973d41bf4abff97622dfba3a867ac820362ecdbabae23248a8eb`; lượt tìm thấy: 1, 2, 3.
 - Số lượt đã dùng: 3; lượt được chọn: 2.
 - Mức kiểm: **pass**.
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
@@ -87,7 +87,7 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 - File chọn: `candidates/toD-attempt3.png`, **1536×1024**, SHA256 `a9cb17c957474bebaddb3c7bb86ebf00d0bd4de5537abcb13488e97e72dac0da`; lượt tìm thấy: 1, 2, 3.
 - Số lượt đã dùng: 3; lượt được chọn: 3.
 - Mức kiểm: **pass**.
-- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## Các lượt bổ sung vòng 2 (phiên 797)
 

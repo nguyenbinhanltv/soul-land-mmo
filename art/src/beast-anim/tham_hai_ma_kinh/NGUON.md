@@ -89,7 +89,7 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 
 ### to-ne (candidates)
 
-- File chọn: `candidates/to-ne-797-attempt3.png`, **1536×1024**, SHA256 `cbfd76a52f4c3de4dda8149211f77b33ab9f399aa3d009c0269323c1292fce89`; lượt tìm thấy: 3.
+- File chọn: `candidates/to-ne-797-attempt3.png`, **1536×1024**, SHA256 `cbfd76a52f4c3de4dda8149211f77b33ab9f399aa3d009c0269323c1292fce89`; lượt tìm thấy: 1, 2, 3.
 - Số lượt đã dùng: 3; lượt được chọn: 3.
 - Mức kiểm: **pass**.
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).

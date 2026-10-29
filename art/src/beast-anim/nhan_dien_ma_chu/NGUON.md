@@ -78,7 +78,7 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 
 ### to-ne (candidates)
 
-- File chọn: `candidates/to-ne-797-attempt3.png`, **1536×1024**, SHA256 `202cf01a69c9094b3753c27abc62ea6b1d4925343f4f384465ce97cf81747b5b`; lượt tìm thấy: 3.
+- File chọn: `candidates/to-ne-797-attempt3.png`, **1536×1024**, SHA256 `202cf01a69c9094b3753c27abc62ea6b1d4925343f4f384465ce97cf81747b5b`; lượt tìm thấy: 1, 2, 3.
 - Số lượt đã dùng: 3; lượt được chọn: 3.
 - Mức kiểm: **nhẹ**.
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
@@ -88,14 +88,14 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 - File chọn: `candidates/toB-attempt1.png`, **1536×1024**, SHA256 `c6766ac86327c9102c2cc98331acbe271596df5876dc6ef14667cb21e3dd38ee`; lượt tìm thấy: 1.
 - Số lượt đã dùng: 1; lượt được chọn: 1.
 - Mức kiểm: **pass**.
-- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ### toC (candidates)
 
 - File chọn: `candidates/toC-attempt1.png`, **1536×1024**, SHA256 `d31c783e7c6b12ce8ef34b8d33d172c3d6ad05746cf084c859ea51de973b7d55`; lượt tìm thấy: 1.
 - Số lượt đã dùng: 1; lượt được chọn: 1.
 - Mức kiểm: **pass**.
-- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ### toD (candidates)
 
@@ -109,7 +109,7 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 - File chọn: `candidates/toE-attempt1.png`, **1536×1024**, SHA256 `bbc878cd8c5636155ed539debf55dfca3f6e813268f206a6487d516844da0ecc`; lượt tìm thấy: 1.
 - Số lượt đã dùng: 1; lượt được chọn: 1.
 - Mức kiểm: **pass**.
-- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ## Các lượt bổ sung vòng 2 (phiên 797)
 
