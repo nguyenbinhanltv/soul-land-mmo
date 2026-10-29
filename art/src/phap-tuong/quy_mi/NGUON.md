@@ -16,7 +16,7 @@ Part of #1306, epic #1020. Chủ repo đã duyệt mẫu Lam Ngân Thảo #1326 
 
 ## Ghép và hiển thị
 
-Cutter dùng chung ở `tools/assets/phaptuong-sheet-cut.mjs` của #1326, blob nội dung `e9189290c797aa640347b7a0229d745ab4f69075`, không ghim commit nhánh bị squash. Cần công cụ trên main và kiểm tái tạo từng byte sheet / glow trước khi coi mẫu sẵn sàng tích hợp.
+Cutter dùng chung ở `tools/assets/phaptuong-sheet-cut.mjs` của #1326 đã có trên main, blob nội dung `e9189290c797aa640347b7a0229d745ab4f69075`, không ghim commit nhánh bị squash. Đã merge main `4ace05b1fefc0b0af7084681be085b26ef83dae4` và tái tạo từ năm RAW bằng công cụ đó: sheet và glow khớp từng byte; SHA256 xác nhận trong `recipe.json`.
 
 Lệnh: `node tools/assets/phaptuong-sheet-cut.mjs art/src/phap-tuong/quy_mi shared/assets/sprites/phaptuong/quy_mi.png`. Khử ám mặc định trong hai điểm sát nền gốc, giữ bóng tím bên trong thân và viền lam tím; chuẩn hóa viền tối. Áp bài học review ám nền Hỏa Ảnh #1344 trước khi mở PR, không sinh thêm RAW. Sheet 16×5 khung 160, gốc (80,124), 48 màu, alpha 0/255. Glow dựng từ sheet đã khử ám bằng `buildGlow`, màu #8a8aff.
 

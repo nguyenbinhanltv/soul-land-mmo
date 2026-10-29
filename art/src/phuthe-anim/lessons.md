@@ -114,6 +114,16 @@ Chỉ các dòng `@VUKHI` được chèn vào prompt kiểu vũ khí (`--kind vu
 - [direction @VUKHI] Follow the specified number of weapons and grip points exactly; never add an extra weapon to an unused hand. Keep the full weapon inside the corner brackets even at the attack and cast peaks: flexible parts may curl inward, but rigid parts must retain their shape. Preserve the mannequin silhouette and every hand pose exactly. // Lam Ngân Thảo A1: roi cỏ thêm dây ở tay phụ, đổi dáng nộm, dây vượt khung ở attack/cast dù check chỉ báo nhẹ.
 - [direction @VUKHI] Leave every hand not used by the specified weapon unchanged in the mannequin color. Do not duplicate the weapon's distinctive end or add floating decorative fragments. Keep all reference body poses, especially the extended attack arm and raised cast arms; do not replace the board with repeated standing dolls. // Lam Ngân Thảo A2: roi cỏ có dây ở hai tay, cast thêm lá/mảnh rời và thân lặp đứng.
 
+## Bài học rollout Hỏa Long `@VUKHI-MEM`
+
+- **@VUKHI-MEM** Keep each flexible weapon as one uninterrupted silhouette from its single registration root to its single head. Use an open C or U for cast; no disconnected section, inner branch or extra endpoint. // Hỏa Long s1: cast cao đứt thành hai cụm, bộ ghép thấy 7 thay vì 6.
+- **@VUKHI-MEM** Place all six registration roots well inside their own cells, never on a column boundary; specify root coordinates when needed. // Hỏa Long s2: hai gốc cùng ô; s3 đặt tọa độ gốc cụ thể đã ghép được. Hướng s dừng ở 3/3.
+- **@VUKHI-MEM** Use a cyan registration dot for ember-red weapons; keep the dot small and touching a plain blunt grip cap. Check nearest-pixel grip distance again after applying the single shared scale. // Hỏa Long se: màu vàng trùng motif than hồng, dùng cyan; tỉ lệ chung 0,09 giữ khoảng cách dưới 2 px, không nới ngưỡng.
+
+## Bài học rollout A Ngân `@VUKHI-MEM`
+
+- **@VUKHI-MEM** Keep the small golden flower attached to the single root grip, one continuous blue-gold cord and one tapered tip. Show calyx and backs of petals in rear views, no pale flower center facing viewer. Use a tiny red registration dot absent from the weapon palette. // A Ngân: năm atlas một lượt/hướng, ghép 0 chặn; cần duyệt độ rõ hoa và chiều dài dây ở cỡ game.
+
 ## Bài học riêng `@VUKHI-MEM` — vòng 2 Lam Ngân Thảo, chỉ hướng e
 
 Parser hiện chỉ hỗ trợ `@VUKHI`, chưa hỗ trợ tag nhóm mềm. Các dòng dưới không dùng cú pháp `- [direction …]` để không làm hỏng parser hoặc chèn vào mọi vũ khí. Khi thử nhóm mềm, đọc đúng mục này và truyền các câu tiếng Anh vào tham số `lessons` của `buildDirectionPrompt`, nối sau `vukhiLessonsFor("direction")`; ghi lại prompt thực tế. Không dùng mục này cho vũ khí cứng, không ghi đè prompt lịch sử.

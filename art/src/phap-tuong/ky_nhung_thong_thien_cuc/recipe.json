@@ -1,0 +1,36 @@
+{
+  "id": "ky_nhung_thong_thien_cuc",
+  "raw": "art/src/phap-tuong/ky_nhung_thong_thien_cuc",
+  "glow": "#ffb347",
+  "selectedAttempts": {
+    "s": 1,
+    "se": 2,
+    "e": 2,
+    "ne": 2,
+    "n": 1
+  },
+  "display": {
+    "scale": 1.6,
+    "dy": -24,
+    "bob": 2
+  },
+  "cutter": {
+    "gitBlob": "e9189290c797aa640347b7a0229d745ab4f69075",
+    "path": "tools/assets/phaptuong-sheet-cut.mjs"
+  },
+  "colors": 48,
+  "scale": 0.9327031375703942,
+  "frame": 160,
+  "origin": [
+    80,
+    124
+  ],
+  "cols": 16,
+  "dirs": [
+    "s",
+    "se",
+    "e",
+    "ne",
+    "n"
+  ]
+}
