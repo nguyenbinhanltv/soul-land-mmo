@@ -123,6 +123,10 @@ Chỉ các dòng `@VUKHI` được chèn vào prompt kiểu vũ khí (`--kind vu
 
 - **@VUKHI-MEM** Keep each spool-and-cord weapon compact, with its registration root well inside its column, a short connected stem touching the cyan dot, and one continuous cord ending in one needle. // Tử Vong Chu Hoàng e1: marker cột ba lệch sang cột hai; e2 bố cục gọn đã ghép được, 0 chặn nam/nữ trước khi mở rộng.
 
+## Bài học rollout A Ngân `@VUKHI-MEM`
+
+- **@VUKHI-MEM** Keep the small golden flower attached to the single root grip, one continuous blue-gold cord and one tapered tip. Show calyx and backs of petals in rear views, no pale flower center facing viewer. Use a tiny red registration dot absent from the weapon palette. // A Ngân: năm atlas một lượt/hướng, ghép 0 chặn; cần duyệt độ rõ hoa và chiều dài dây ở cỡ game.
+
 ## Bài học riêng `@VUKHI-MEM` — vòng 2 Lam Ngân Thảo, chỉ hướng e
 
 Parser hiện chỉ hỗ trợ `@VUKHI`, chưa hỗ trợ tag nhóm mềm. Các dòng dưới không dùng cú pháp `- [direction …]` để không làm hỏng parser hoặc chèn vào mọi vũ khí. Khi thử nhóm mềm, đọc đúng mục này và truyền các câu tiếng Anh vào tham số `lessons` của `buildDirectionPrompt`, nối sau `vukhiLessonsFor("direction")`; ghi lại prompt thực tế. Không dùng mục này cho vũ khí cứng, không ghi đè prompt lịch sử.
