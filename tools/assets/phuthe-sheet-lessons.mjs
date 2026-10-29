@@ -16,7 +16,7 @@ export function parseLessons(md) {
     if (!m) throw new Error(`lessons.md dòng ${i + 1}: sai cú pháp bài học`);
     const stages = new Set(), groups = new Set();
     for (const t of m[1].split(/[,\s]+/).filter(Boolean)) {
-      if (t.startsWith("@")) { if (!GROUPS.includes(t.slice(1))) throw new Error(`lessons.md dòng ${i + 1}: nhóm lạ ${t}`); groups.add(t.slice(1)); }
+      if (t.startsWith("@")) { if (!GROUPS.includes(t.slice(1)) && t !== "@VUKHI") throw new Error(`lessons.md dòng ${i + 1}: nhóm lạ ${t}`); groups.add(t.slice(1)); }
       else if (t === "all") stages.add("all");
       else if (STAGES.includes(t)) stages.add(t);
       else throw new Error(`lessons.md dòng ${i + 1}: giai đoạn lạ ${t}`);
@@ -26,7 +26,12 @@ export function parseLessons(md) {
   return out;
 }
 
+/** Bài học kiểu vũ khí: CHỈ các dòng gắn `@VUKHI` (bài học phụ thể cũ nói về cánh / đuôi / hư ảnh, không dùng cho vũ khí cầm tay). */
+export function vukhiLessonsFor(stage, md = readFileSync(LESSONS_FILE, "utf8")) {
+  return parseLessons(md).filter((l) => l.groups?.has("VUKHI") && (!l.stages || l.stages.has(stage)));
+}
+
 /** Bài học áp cho (giai đoạn, nhóm), theo thứ tự trong file. */
 export function lessonsFor(stage, group, md = readFileSync(LESSONS_FILE, "utf8")) {
-  return parseLessons(md).filter((l) => (!l.stages || l.stages.has(stage)) && (!l.groups || l.groups.has(group)));
+  return parseLessons(md).filter((l) => (!l.stages || l.stages.has(stage)) && (!l.groups || (l.groups.has(group) && !l.groups.has("VUKHI"))));
 }

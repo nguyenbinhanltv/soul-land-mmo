@@ -15,9 +15,9 @@ import { fileURLToPath } from "node:url";
 import {
   DIRS, DIR_VI, CLIPS, CLIP_VI, COLS, CELL, BANDS, TURNAROUND, GROUP_VI,
   framesOf, sheetPlan, sheetCells, checkFrame, phutheInfo, allPhutheIds, styleBlock, frameOrigin,
-  guideKeyOf,
+  guideKeyOf, gripKeyOf, checkKind, allVukhiIds, KINDS,
 } from "./phuthe-sheet-lib.mjs";
-import { lessonsFor, STAGES } from "./phuthe-sheet-lessons.mjs";
+import { lessonsFor, vukhiLessonsFor, STAGES } from "./phuthe-sheet-lessons.mjs";
 import { writeDummies, dummyCell } from "./phuthe-sheet-dummy.mjs";
 
 /** Hướng nhìn của PHỤ THỂ (không phải của nộm). Tây là lật ngang nên mọi hướng nghiêng đều nhìn sang PHẢI. */
@@ -48,8 +48,25 @@ const MOVE = {
     hurt: "one frame: knocked back a short step along the facing line",
   },
 };
-const moveOf = (group, noDummy) => {
-  const m = group === "A" ? MOVE.rigid : MOVE.soft;
+/** Chuyển động kiểu vũ khí (cầm tay): cứng (A) ít pose, mềm / găng (B) đủ pose; chi tiết riêng từng vũ khí là ghi chú clip trong bảng 25 dòng. */
+const MOVE_VK = {
+  rigid: {
+    idle: "the weapon rests in the hand or on the body with a very small tilt; the two frames differ clearly but gently",
+    walk: "the weapon bobs and tilts with the stride; every frame has a clearly different angle or height",
+    attack: "a swing or thrust through four clearly different poses (raise, strike, hit, return), the hand moving where the mannequin's hand moves",
+    cast: "the weapon is raised and tilted open; two clearly different poses",
+    hurt: "one frame: the weapon is knocked back a short step along the facing line",
+  },
+  soft: {
+    idle: "slow breathing, a gentle sway of the cord / claws / gauntlet around the grip; frame 1 is the neutral base pose",
+    walk: "one full cycle that follows the stride of the mannequin; the first and last frames join smoothly",
+    attack: "wind up, swing, strike, recover; the weapon makes its swing at the same moment the mannequin's arm swings",
+    cast: "the weapon spreads, rises or swells larger than in the attack; the last frame is a hold pose",
+    hurt: "a short recoil backward along the facing line, then recovery",
+  },
+};
+const moveOf = (group, noDummy, vk = false) => {
+  const m = vk ? (group === "A" ? MOVE_VK.rigid : MOVE_VK.soft) : group === "A" ? MOVE.rigid : MOVE.soft;
   return noDummy ? Object.fromEntries(Object.entries(m).map(([k, v]) => [k, v.replace(/the mannequin/g, "the hero")])) : m;
 };
 /** Bài học thuần về giữ nguyên nộm: vô nghĩa khi --no-dummy (các bài còn lại được viết lại bằng `noDummyText`). */
@@ -67,7 +84,11 @@ const NO_DUMMY_SUBS = [
   [/the mannequin's/g, "the unseen hero's"], [/the mannequin/g, "the unseen hero"],
 ];
 const noDummyText = (t) => NO_DUMMY_SUBS.reduce((x, [re, to]) => x.replace(re, to), t);
+const isVk = (info) => info.kind === "vukhi";
+/** Kiểu vũ khí: dùng chung mẫu prompt, đổi từ "spirit" thành "weapon" (bố cục, lưới viết một lần). */
+const W = (info, t) => (isVk(info) ? t.replace(/\bspirit\b/g, "weapon").replace(/\bSpirit\b/g, "Weapon") : t);
 const lessonsOf = (stage, group, info, lessons) => {
+  if (isVk(info)) return lessons ?? vukhiLessonsFor(stage);
   const all = lessons ?? lessonsFor(stage, group);
   return info.noDummy ? all.filter((l) => !DUMMY_ONLY.test(l.text)).map((l) => ({ ...l, text: noDummyText(l.text) })) : all;
 };
@@ -89,10 +110,29 @@ const scaleOf = (info) => { const d = dummyCell({ dir: "s", clip: "idle", step: 
 const guideLine = (info) => {
   if (info.noDummy || !info.guideKey) return "";
   const m = scaleOf(info);
+  if (isVk(info)) return `
+GUIDE LINES: the mannequin board also carries thin dashed guide lines in ONE flat color (${info.guideKey}, drawn under the mannequin): a horizontal FOOT LINE through the mannequin's feet (the ground; nothing of the weapon hangs below it unless it drags on the ground), a vertical CENTER AXIS up from the feet, a small plus sign at the CHEST CENTER, a HEIGHT RULER on the left edge from the feet to the top of the head, and four CORNER BRACKETS marking the edge of the game frame (anything drawn past the bracket box is cut off in game). SCALE: the cell is exactly the game frame (${m.frame}x${m.frame} game pixels scaled to the cell); the mannequin hero is only about ${m.hero}% of the cell height and ${m.width}% of its width, with the feet line at ${m.foot}% of the cell height from the top. Draw the weapon at the size the hero can plausibly carry: a long weapon may be taller than the hero but must stay inside the corner brackets, and it is never drawn at poster scale. These guide lines are references only: do not redraw, recolor or thicken them, and never use ${info.guideKey} in the weapon.`;
   return `
 GUIDE LINES: the mannequin board also carries thin dashed guide lines in ONE flat color (${info.guideKey}, drawn under the mannequin): a horizontal FOOT LINE through the mannequin's feet (the ground; the spirit's body or wing roots must sit above it and nothing hangs below it except shadows or roots that touch the ground), a vertical CENTER AXIS up from the feet, a small plus sign at the CHEST CENTER (the back anchor where wings or auras attach), a HEIGHT RULER on the left edge from the feet to the top of the head, and four CORNER BRACKETS marking the edge of the game frame (anything drawn past the bracket box is cut off in game). SCALE: the cell is exactly the game frame (${m.frame}x${m.frame} game pixels scaled to the cell); the mannequin hero is only about ${m.hero}% of the cell height and ${m.width}% of its width, with the feet line at ${m.foot}% of the cell height from the top. Draw the spirit at the size the cell implies: it is a companion around a small hero, so it may be larger than the hero but must stay inside the corner brackets, centered on the hero's chest axis (do not shift it to the right or behind), and never drawn at poster scale. These guide lines are references only: do not redraw, recolor or thicken them, and never use ${info.guideKey} in the spirit.`;
 };
+const VK_TYPE_EN = { "cứng": "rigid object, its shape never deforms", "mềm": "soft weapon: a cord / whip / chain / thread held at one end, the body follows the swing", "găng-vuốt": "gauntlet or claws worn over the hands; the mannequin's hands keep moving as they do and the claws are added on top, they do not replace the hands" };
+const VK_BRIEF_LABELS = { "Bá đạo ở đâu": "Overbearing presence", "Màu": "Palette", "Motif": "Motifs (use only these)", "Vật đi kèm": "Companion objects" };
+/** Khối WEAPON: dòng của võ hồn ở bảng 25 vũ khí (dạng, tay, điểm cầm, ghi chú clip) + màu / motif ở mục 4 (bỏ dòng "Hình mẫu": mô tả cả võ hồn, không phải vật cầm). */
+const weaponBlock = (info) => {
+  const c = info.colors, L = info.brief.lines.filter((l) => VK_BRIEF_LABELS[l.label]).map((l) => `- ${VK_BRIEF_LABELS[l.label]}: ${l.text}`);
+  return `WEAPON: ${info.name} (${info.id}); weapon kind "${info.type}" = ${VK_TYPE_EN[info.type]}; carried by the hero as: ${info.hands}. The brief below comes from the canonical design tables and is written in Vietnamese: follow it exactly, keep every hex code as written, and use only the motifs it lists. Draw the weapon as ONE held object; keep its colors, motifs and bright points.
+- Form of the weapon (Vietnamese): ${info.shape}
+- Grip (Vietnamese; "tay" = the mannequin's hand, "lưng" = the back, "vai" = the shoulder; the first hand listed is the main hand A): ${info.attach}
+${L.join("\n")}${c ? `\n- Base colors in the game data: body (robe) ${c.robe}, accent (col) ${c.col}.` : ""}
+Motion notes (Vietnamese; "attack" = the strike, "cast" = the special pose): ${info.motion}`;
+};
+/** Mô tả marker điểm cầm trong bảng nộm (kiểu vũ khí): một màu khóa, chấm = tay thuận A, vòng = tay B. */
+const gripLine = (info) => `
+GRIP MARKER: the mannequin board also carries a small marker in ONE flat color (${info.gripKey}), drawn on top of the mannequin exactly on its hand in every frame: a filled DOT marks the main hand A, a RING (a dot with an empty center) marks the other hand B when the weapon needs two hands or two weapons. The weapon is gripped at the marker: the part that is held covers the marker, the rest of the weapon extends from it, sized to fit the mannequin. The marker follows the hand, so the weapon follows it too. The marker color must not appear anywhere in your picture (the game removes it; never leave a marker visible and never use that color for the weapon).`;
+const CONSISTENCY_VK = "CONSISTENCY: the weapon keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes. Consecutive frames differ by small, smooth pose changes so idle and walk loop cleanly. The weapon stays gripped at the grip marker of the mannequin in every frame (the marker moves with the hand). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).";
+const RULES_VK = `DRAWING RULES: draw ONLY the weapon. Never redraw the hero's body, face, hands, fingers or forearms; the mannequin does that job (the weapon grips at the marker). In the "ne" and "n" blocks show no face anywhere. Paint the weapon with hard-edged pixels and the dark outline of the STYLE block; no glow, halo, particles, slash trail, soft shadow, ground or magic circle in the picture (the game adds them).`;
 const spiritBlock = (info) => {
+  if (isVk(info)) return weaponBlock(info);
   const c = info.colors, L = info.brief.lines.map((l) => `- ${({ "Bá đạo ở đâu": "Overbearing presence", "Hình mẫu": "Form", "Màu": "Palette", "Motif": "Motifs (use only these)", "Vật đi kèm": "Companion objects" })[l.label] ?? l.label}: ${l.text}`);
   return `SPIRIT: ${info.name} (${info.id}); body type "${info.group}" = ${GROUP_VI[info.group]}. The design brief below comes from the canonical design table and is written in Vietnamese: follow it exactly, keep every hex code as written, and use only the motifs it lists.
 ${L.join("\n")}${c ? `\n- Base colors in the game data: body (robe) ${c.robe}, accent (col) ${c.col}.` : ""}
@@ -110,7 +150,7 @@ export function referencesFor(stage, info, sheet) {
     else refs.push({ required: true, en: `the approved TURNAROUND image of this spirit: five columns of directions (s, se, e, ne, n) by three rows (idle, attack peak, hurt). Copy the form, facing angle, size and colors of the column "${sheet.dirs[0]}"`, vi: "ảnh **turnaround đã duyệt** của võ hồn (5 hướng × idle / attack đỉnh / hurt)" });
     refs.push({ required: false, en: "an approved direction sheet of this spirit (only for matching line weight and palette; never copy its poses)", vi: "(tùy chọn) **một tờ hướng đã qua `npm run phuthe:check` không có khối chặn** của chính võ hồn này, chỉ để khớp nét / bảng màu. **Không** dùng tờ lỗi làm tham chiếu" });
   }
-  return refs.map((r, i) => ({ ...r, n: i + 1 }));
+  return refs.map((r, i) => ({ ...r, en: W(info, r.en), n: i + 1 }));
 }
 const refsEn = (refs) => `REFERENCES (attached images, in this fixed order): ${refs.map((r) => `image ${r.n} = ${r.en}${r.required ? "" : " (if attached)"}`).join("; ")}. No other reference is allowed: do not copy any older drawing of this spirit.`;
 const refsVi = (refs) => refs.map((r) => `${r.n}. ${r.vi}`).join("\n   ");
@@ -123,8 +163,8 @@ export function lessonsBlock(stage, group, lessons = lessonsFor(stage, group)) {
 const cellPx = (sheet) => [Math.round(sheet.w / sheet.cols), Math.round(sheet.h / sheet.rows)];
 
 /** Mô tả khối bố cục 4 hàng của một tờ (số khung theo nhóm). */
-function layoutText(group, dir, noDummy) {
-  const fr = framesOf(group), mv = moveOf(group, noDummy), cells = sheetCells(group);
+function layoutText(group, dir, noDummy, vk = false) {
+  const fr = framesOf(group), mv = moveOf(group, noDummy, vk), cells = sheetCells(group);
   const rows = BANDS.map((band, r) => {
     const parts = []; let at = 1;
     for (const a of band) { parts.push(`${fr[a] > 1 ? `frames ${at}-${at + fr[a] - 1}` : `frame ${at}`} = ${a.toUpperCase()} (${mv[a]})`); at += fr[a]; }
@@ -151,37 +191,35 @@ export function buildDirectionPrompt(info, sheet, { lessons, style = styleBlock(
   const dir = sheet.dirs[0], refs = referencesFor("direction", info, sheet), nd = !!info.noDummy;
   return `${style}
 
-TASK: Create ONE image (landscape 3:2 aspect ratio; the exact pixel size does not matter): an animation sprite sheet of a martial-soul spirit attached to a hero, ONE direction only, for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game. Draw only the spirit; ${nd ? "no hero is drawn" : "the hero is the flat mannequin already placed in the first reference image"}.
+TASK: Create ONE image (landscape 3:2 aspect ratio; the exact pixel size does not matter): an animation sprite sheet of ${isVk(info) ? "a martial-soul weapon held by a hero" : "a martial-soul spirit attached to a hero"}, ONE direction only, for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game. Draw only the ${isVk(info) ? "weapon" : "spirit"}; ${nd ? "no hero is drawn" : "the hero is the flat mannequin already placed in the first reference image"}.
 
 ${spiritBlock(info)}
-${refsEn(refs)}
+${W(info, refsEn(refs))}
 
-${mannequinLine(info, dir)}${guideLine(info)}
+${W(info, mannequinLine(info, dir))}${guideLine(info)}${isVk(info) ? gripLine(info) : ""}
 
 ${BACKGROUND}
 
-${gridText(sheet, info.group, nd)}
+${W(info, gridText(sheet, info.group, nd))}
 
-${layoutText(info.group, dir, nd)}
+${W(info, layoutText(info.group, dir, nd, isVk(info)))}
 
-${nd ? CONSISTENCY_NO_DUMMY : CONSISTENCY}
+${isVk(info) ? CONSISTENCY_VK : nd ? CONSISTENCY_NO_DUMMY : CONSISTENCY}
 
-${nd ? RULES_NO_DUMMY : RULES}${lessonsBlock("direction", info.group, lessonsOf("direction", info.group, info, lessons))}`;
+${isVk(info) ? RULES_VK : nd ? RULES_NO_DUMMY : RULES}${lessonsBlock("direction", info.group, lessonsOf("direction", info.group, info, lessons))}`;
 }
 
 /** Prompt `--stage turnaround`: 1 ảnh 3:2, 5 cột hướng × 3 hàng (idle, attack đỉnh, hurt). */
 export function buildTurnaroundPrompt(info, { lessons, style = styleBlock() } = {}) {
   const T = TURNAROUND, refs = referencesFor("turnaround", info, { id: "T", dirs: DIRS }), nd = !!info.noDummy, cw = Math.round(T.w / T.cols), ch = Math.round(T.h / T.rows);
-  const cols = DIRS.map((d, i) => `  column ${i + 1}: spirit direction "${d}" = ${DIR_EN[d]}${nd ? "." : `; mannequin drawn ${DUMMY_DIR_EN[d]} on.`}`).join("\n");
-  const mv = moveOf(info.group, nd);
-  return `${style}
-
-TASK: Create ONE image (landscape 3:2 aspect ratio; the exact pixel size does not matter): a turnaround reference sheet of a martial-soul spirit attached to a hero, for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game. It is a model sheet: it fixes how the spirit looks from each of five directions, at the peak of an attack and when hit. Draw only the spirit; ${nd ? "no hero is drawn" : "the hero is the flat mannequin already placed in the first reference image"}.
+  const cols = DIRS.map((d, i) => `  column ${i + 1}: ${isVk(info) ? "weapon" : "spirit"} direction "${d}" = ${DIR_EN[d]}${nd ? "." : `; mannequin drawn ${DUMMY_DIR_EN[d]} on.`}`).join("\n");
+  const mv = moveOf(info.group, nd, isVk(info));
+  const body = `TASK: Create ONE image (landscape 3:2 aspect ratio; the exact pixel size does not matter): a turnaround reference sheet of ${isVk(info) ? "a martial-soul weapon held by a hero" : "a martial-soul spirit attached to a hero"}, for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game. It is a model sheet: it fixes how the ${isVk(info) ? "weapon" : "spirit"} looks from each of five directions, at the peak of an attack and when hit. Draw only the ${isVk(info) ? "weapon" : "spirit"}; ${nd ? "no hero is drawn" : "the hero is the flat mannequin already placed in the first reference image"}.
 
 ${spiritBlock(info)}
 ${refsEn(refs)}
 
-${mannequinLine(info, "e")}${guideLine(info)}
+${W(info, mannequinLine(info, "e"))}${guideLine(info)}${isVk(info) ? gripLine(info) : ""}
 
 ${BACKGROUND}
 
@@ -196,9 +234,12 @@ ROWS (top to bottom, the same pose type in every column):
   row 3 = HURT: the moment of the strongest reaction to a hit (${mv.hurt}).
 Directions e, se and ne face the RIGHT side of the picture.
 
-CONSISTENCY: the same size, proportions, palette and line weight in all ${T.cols * T.rows} cells; only the direction and the pose change. Every attachment point stays ${nd ? "at the same place relative to the cell's foot origin" : "glued to the same place of the mannequin"}.
+CONSISTENCY: the same size, proportions, palette and line weight in all ${T.cols * T.rows} cells; only the direction and the pose change. Every attachment point stays ${nd ? "at the same place relative to the cell's foot origin" : isVk(info) ? "gripped at the grip marker of the mannequin" : "glued to the same place of the mannequin"}.
 
-${nd ? RULES_NO_DUMMY : RULES}${lessonsBlock("turnaround", info.group, lessonsOf("turnaround", info.group, info, lessons))}`;
+${isVk(info) ? RULES_VK : nd ? RULES_NO_DUMMY : RULES}${lessonsBlock("turnaround", info.group, lessonsOf("turnaround", info.group, info, lessons))}`;
+  return `${style}
+
+${W(info, body)}`;
 }
 
 const COMMON_TAIL = (stage, nd, cr) => `
@@ -209,8 +250,13 @@ const COMMON_TAIL = (stage, nd, cr) => `
 
 const infoRows = (info, F) => `| Võ hồn | ${info.name} (\`${info.id}\`), nhóm **${info.group}** (${info.groupVi}), khung phụ thể **${F}×${F}** (gốc chân (${frameOrigin(F).join(", ")})) |
 | Nộm | ${info.noDummy ? "**không dùng** (\`--no-dummy\`): tham chiếu duy nhất là concept đã chốt" : `màu khóa **${info.dummyKey}** (đổi bằng \`--dummy-key\` nếu đổi; ghi màu thật dùng vào \`NGUON.md\`)`} |
-| Nền | #FF00FF phẳng, không chữ / nhãn / lưới |`;
+| Nền | #FF00FF phẳng, không chữ / nhãn / lưới |${isVk(info) ? `
+| Vũ khí | **${info.type}**, ${info.hands}; điểm cầm: ${info.attach} |
+| Marker điểm cầm | màu khóa **${info.gripKey}** (chấm = tay thuận A, vòng = tay B; cutter trừ, không vào sheet; đổi bằng \`--grip-key\`, ghi màu thật dùng vào \`NGUON.md\`) |` : ""}`;
 
+/** Thư mục tờ RAW của võ hồn trong art/src/phuthe-anim (vũ khí ở `<id>/vukhi/`) và tùy chọn `--kind` cho lệnh. */
+const dirOf = (info) => (isVk(info) ? info.id + "/vukhi" : info.id);
+const kindArg = (info) => (isVk(info) ? " --kind vukhi" : "");
 const HEAD = (id, stage) => `Quy trình: skill \`beast-anim\` (đường đi giống hồn thú), đặc tả \`docs/art/phu-the-hoat-anh.md\`. File này sinh tự động bằng \`node tools/assets/phuthe-sheet-prompt.mjs --id ${id} --stage ${stage}\`; **không sửa tay**, sửa mẫu ở \`tools/assets/phuthe-sheet-prompt.mjs\` và bài học ở \`art/src/phuthe-anim/lessons.md\`. Ngoại hình lấy từ \`docs/art/vo-hon-phong-cach.md\` mục 4 (nguồn duy nhất).`;
 
 /** Tài liệu Markdown cho `--stage turnaround`. */
@@ -231,7 +277,7 @@ ${infoRows(info, F)}
 2. Dán khối prompt dưới đây. Không chọn cỡ ảnh (công cụ chỉ nhận tỉ lệ).
 3. Soát bằng mắt: ${info.noDummy ? "không có thân người nào trong ảnh; màu / motif khớp concept" : "nộm còn nguyên (cùng màu, cùng chỗ, không thêm mặt / tay)"}; mỗi ô một phụ thể; cột \`se\` chếch xuống, cột \`ne\` chếch lên (khác \`e\`); cột \`n\` không có mặt; điểm gắn (cánh, tay cầm, đầu) ${info.noDummy ? "cố định so với gốc chân ô" : "dính vào nộm"}; cùng cỡ ở mọi ô; **không có thân người / mặt do model vẽ**.
 4. Hỏng thì vẽ lại **cả ảnh** (chỉ ${T.cols * T.rows} hình, rẻ). Tối đa 3 lượt; **không** dùng ảnh hỏng làm tham chiếu cho lượt sau.
-5. Ảnh turnaround đã duyệt là tham chiếu hướng cho 5 tờ \`--stage direction\`. Lưu ảnh gốc nguyên byte (không resize) vào \`art/src/phuthe-anim/${info.id}/turnaround.png\` kèm \`turnaround.prompt.txt\` (prompt thật đã gửi).
+5. Ảnh turnaround đã duyệt là tham chiếu hướng cho 5 tờ \`--stage direction\`. Lưu ảnh gốc nguyên byte (không resize) vào \`art/src/phuthe-anim/${dirOf(info)}/turnaround.png\` kèm \`turnaround.prompt.txt\` (prompt thật đã gửi).
 
 ## Prompt (tiếng Anh cho model)
 \`\`\`text
@@ -259,9 +305,9 @@ ${infoRows(info, F)}
 1. Mở cuộc trò chuyện **mới** cho mỗi tờ; đính ảnh tham chiếu **theo đúng thứ tự**:
    ${refsVi(refs)}
 2. Dán khối prompt dưới đây. Không chọn cỡ ảnh (công cụ chỉ nhận tỉ lệ 3:2; cỡ khác 1536×1024 vẫn hợp lệ nếu lưới đúng, cutter chuẩn hóa).
-3. Lưu ảnh gốc **nguyên byte** (không resize) vào \`art/src/phuthe-anim/${info.id}/to${sheet.id}.png\` (kèm \`to${sheet.id}.prompt.txt\`) rồi chạy \`npm run phuthe:check -- ${info.id}\`. Đối chiếu **tờ liên hệ có nhãn**: ${info.noDummy ? "không có thân người, màu / motif khớp concept" : "nộm còn nguyên"}, điểm gắn không trôi, \`se\` / \`ne\` khác \`e\`, hurt lùi đúng hướng, không vẽ lại thân / mặt người.
+3. Lưu ảnh gốc **nguyên byte** (không resize) vào \`art/src/phuthe-anim/${dirOf(info)}/to${sheet.id}.png\` (kèm \`to${sheet.id}.prompt.txt\`) rồi chạy \`npm run phuthe:check -- ${info.id}${kindArg(info)}\`. Đối chiếu **tờ liên hệ có nhãn**: ${info.noDummy ? "không có thân người, màu / motif khớp concept" : "nộm còn nguyên"}, điểm gắn không trôi, \`se\` / \`ne\` khác \`e\`, hurt lùi đúng hướng, không vẽ lại thân / mặt người.
 4. Chỉ tờ này hỏng thì vẽ lại **chỉ tờ này**, tối đa 3 lượt; chọn lượt có điểm kiểm thấp nhất + mắt. **Không** dùng tờ hỏng làm tham chiếu.
-5. Cắt: \`node tools/assets/phuthe-sheet-cut.mjs --id ${info.id} ${plan.map((s) => `--sheet ${s.id}=<ảnh-tờ-${s.id}.png>`).join(" ")} --out <thư mục>\`.
+5. Cắt: \`node tools/assets/phuthe-sheet-cut.mjs --id ${info.id}${kindArg(info)} ${plan.map((s) => `--sheet ${s.id}=<ảnh-tờ-${s.id}.png>`).join(" ")} --out <thư mục>\`.
 
 ## Prompt (tiếng Anh cho model)
 \`\`\`text
@@ -283,26 +329,28 @@ export function stageDocs(info, stage, { dirs = DIRS, frame } = {}) {
 }
 
 /** Thông tin cho prompt, cho phép ghi đè khung / màu nộm bằng tùy chọn. */
-export function infoWith(id, { frame, dummyKey, guideKey, noDummy, conceptRef: useConcept } = {}) {
-  const info = phutheInfo(id);
+export function infoWith(id, { frame, dummyKey, guideKey, gripKey, noDummy, conceptRef: useConcept, kind = "phuthe" } = {}) {
+  const info = phutheInfo(id, kind);
+  if (isVk(info) && (noDummy || useConcept)) throw new Error("kiểu vũ khí cần bảng nộm có marker điểm cầm: không dùng được --no-dummy / --concept-ref");
   if (useConcept && !noDummy && !conceptRef(id).endsWith(".png")) throw new Error(`${id} chưa có concept đã duyệt (art/src/vohon-v2/${id}/ không có concept-attemptN.png hay concept.png), không dùng được --concept-ref`);
-  return { ...info, frame: checkFrame(frame ?? info.frame), dummyKey: dummyKey ?? info.dummyKey, guideKey: guideKey ?? guideKeyOf(id, dummyKey ?? info.dummyKey), noDummy: !!noDummy, conceptRef: !!useConcept };
+  return { ...info, frame: checkFrame(frame ?? info.frame), dummyKey: dummyKey ?? info.dummyKey, guideKey: guideKey ?? guideKeyOf(id, dummyKey ?? info.dummyKey), ...(isVk(info) ? { gripKey: gripKey ?? gripKeyOf(id, dummyKey ?? info.dummyKey, guideKey ?? guideKeyOf(id, dummyKey ?? info.dummyKey)) } : {}), noDummy: !!noDummy, conceptRef: !!useConcept };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const a = process.argv.slice(2), val = (n) => { const i = a.indexOf(n); return i < 0 ? undefined : a[i + 1]; };
   try {
     if (a.includes("--all")) {
-      for (const id of allPhutheIds()) { const i = phutheInfo(id); console.log(`${id}\t${i.group}\t${i.frame}\t${i.dummyKey}`); }
+      const kind = checkKind(val("--kind") ?? "phuthe");
+      for (const id of kind === "vukhi" ? allVukhiIds() : allPhutheIds()) { const i = phutheInfo(id, kind); console.log(`${id}\t${i.group}\t${i.frame}\t${i.dummyKey}`); }
     } else {
       const id = val("--id"), stage = val("--stage") ?? "direction", dirs = val("--dir")?.split(",") ?? DIRS;
-      if (!id || !STAGES.includes(stage) || dirs.some((d) => !DIRS.includes(d))) { console.error("Dùng: node tools/assets/phuthe-sheet-prompt.mjs --id <võ hồn> [--stage turnaround|direction] [--dir s,se,e,ne,n] [--out <thư mục>] [--frame 96|128] [--dummy-key #00D0D0] [--guide-key #7A5CFF] [--no-dummy] [--concept-ref] | --all"); process.exit(2); }
-      const frame = val("--frame") && +val("--frame"), dummyKey = val("--dummy-key"), info = infoWith(id, { frame, dummyKey, guideKey: val("--guide-key"), noDummy: a.includes("--no-dummy"), conceptRef: a.includes("--concept-ref") }), out = val("--out");
+      if (!id || !STAGES.includes(stage) || dirs.some((d) => !DIRS.includes(d))) { console.error("Dùng: node tools/assets/phuthe-sheet-prompt.mjs --id <võ hồn> [--stage turnaround|direction] [--dir s,se,e,ne,n] [--out <thư mục>] [--frame 96|128] [--dummy-key #00D0D0] [--guide-key #7A5CFF] [--kind phuthe|vukhi] [--grip-key #00FF60] [--no-dummy] [--concept-ref] | --all [--kind vukhi]"); process.exit(2); }
+      const frame = val("--frame") && +val("--frame"), dummyKey = val("--dummy-key"), info = infoWith(id, { frame, dummyKey, guideKey: val("--guide-key"), gripKey: val("--grip-key"), kind: val("--kind") ?? "phuthe", noDummy: a.includes("--no-dummy"), conceptRef: a.includes("--concept-ref") }), out = val("--out");
       if (out) mkdirSync(out, { recursive: true });
       for (const [name, md] of stageDocs(info, stage, { dirs, frame: info.frame })) {
         if (out) { writeFileSync(path.join(out, name), md); console.log(`ghi ${path.join(out, name)}`); } else console.log(md);
       }
-      if (out && !info.noDummy) for (const f of writeDummies(id, out, { frame: info.frame, key: info.dummyKey, guideKey: info.guideKey })) console.log(`ghi ${f}`);
+      if (out && !info.noDummy) for (const f of writeDummies(id, out, { frame: info.frame, key: info.dummyKey, guideKey: info.guideKey, gripKey: info.gripKey, kind: info.kind })) console.log(`ghi ${f}`);
     }
   } catch (e) { console.error(e.message); process.exit(2); }
 }

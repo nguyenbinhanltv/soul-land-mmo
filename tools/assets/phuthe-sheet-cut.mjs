@@ -12,6 +12,8 @@
 //      và mục manifest có `anim.dirsOk` khi chưa đủ 5 hướng (client dùng phụ thể tĩnh cũ cho hướng thiếu; đủ 5 hướng thì không có trường, định dạng cũ).
 //   7. Ghi <out>/vhanim_<id>_b.png, vhanim_<id>_f.png (22 cột, vật cứng 13 cột × 10 hàng = giới × hướng; nửa không có điểm ảnh thì không ghi, `blank`),
 //      <out>/manifest-entry.json, <out>/_report.json.
+// --kind vukhi (#1312; phu-the-vu-khi.md (thư mục docs/art)): tờ vũ khí cầm tay. Thêm marker điểm cầm (màu khóa riêng, trừ như vạch, không vào sheet), ghi sheet `vkanim_<id>_b` / `_f`,
+//   manifest có `anim.kind: "vukhi"` và `anim.grip` (điểm cầm từng khung, điểm ảnh khung từ gốc chân); thư mục lop.json mặc định `<id>/vukhi/`.
 // Không ghi vào shared/assets (P2 nối client, P3 nhập): orchestrator duyệt trang xem trước (phuthe-sheet-preview.mjs) rồi mới chép.
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import path from "node:path";
@@ -21,10 +23,10 @@ import { Img, readPng, encodePng, readGpl, hex, OUTLINE } from "./lib.mjs";
 import { medianCut, nearest } from "./beast-sheet-cut.mjs";
 import { median } from "./beast-sheet-stats.mjs";
 import {
-  DIRS, CLIPS, SHEET_ID, CELL, SEXES, HALVES, GAME_ROWS, framesOf, gameAnims, gameCols, gameRow, gameKey, frameOrigin, checkFrame, phutheInfo, ANIM_ROOT,
-  guideKeyOf,
+  DIRS, CLIPS, SHEET_ID, CELL, SEXES, HALVES, GAME_ROWS, framesOf, gameAnims, gameCols, gameRow, gameKey, frameOrigin, checkFrame, phutheInfo,
+  guideKeyOf, gripKeyOf, gripCount, checkKind, animDir,
 } from "./phuthe-sheet-lib.mjs";
-import { prepareSheet, cellSpirit, dropSpecks, parseLop, layerFn, defaultLayers, levelOfCode, summarize, DUMMY_TOL, BG_TOL, dist2 } from "./phuthe-sheet-cut-lib.mjs";
+import { prepareSheet, cellSpirit, cellGripObs, dropSpecks, parseLop, layerFn, defaultLayers, levelOfCode, summarize, DUMMY_TOL, BG_TOL, dist2 } from "./phuthe-sheet-cut-lib.mjs";
 import { bodyAnchors } from "./phuthe-sheet-dummy.mjs";
 
 const K_OUT = hex(OUTLINE);
@@ -61,9 +63,10 @@ export function downscaleFrame(idx, lab, pal, F) {
  * @returns {{ halves: { b: Img | null, f: Img | null }, entries: object[], report: object }}
  */
 export function cutPhuThe(o) {
-  const info = phutheInfo(o.id), group = o.group ?? info.group, F = checkFrame(o.frame ?? info.frame), dummyKey = o.dummyKey ?? info.dummyKey, guideKey = o.guideKey ?? guideKeyOf(o.id, dummyKey);
+  const kind = checkKind(o.kind), vk = kind === "vukhi", info = phutheInfo(o.id, kind, o.specMd), group = o.group ?? info.group, F = checkFrame(o.frame ?? info.frame), dummyKey = o.dummyKey ?? info.dummyKey, guideKey = o.guideKey ?? guideKeyOf(o.id, dummyKey);
+  const gripKey = vk ? (o.gripKey ?? gripKeyOf(o.id, dummyKey, guideKey)) : null; // kiểu vũ khí: marker điểm cầm, trừ như vạch
   const dummySex = o.dummySex ?? "m", lop = o.lop ? parseLop(o.lop) : null, dummyTol = o.dummyTol ?? DUMMY_TOL, tol = o.tol ?? BG_TOL;
-  const warns = [], rep = { id: o.id, group, frame: F, dummyKey, sheets: {}, dropped: 0 }, fr = framesOf(group);
+  const warns = [], rep = { id: o.id, kind, group, frame: F, dummyKey, ...(vk ? { gripKey } : {}), sheets: {}, dropped: 0 }, fr = framesOf(group);
   const warn = (code, msg) => warns.push({ code, msg });
 
   // 1–4. Từng tờ → khung canonical (điểm + nhãn lớp)
@@ -73,7 +76,7 @@ export function cutPhuThe(o) {
     const sid = SHEET_ID[dir], raw = o.sheets[sid];
     if (!raw) { dirStatus[dir] = "thieu"; if (o.partial) warn("thieu-huong", `hướng ${dir} (tờ ${sid}) chưa có: bỏ qua, client dùng phụ thể tĩnh cũ cho hướng này`); else warn("thieu-to", `thiếu tờ ${sid} (${dir})`); continue; }
     dirStatus[dir] = "ok";
-    const prep = prepareSheet(raw, { group, dir, frame: F, dummyKey, guideKey, dummyTol, tol, key: o.key, sex: dummySex, grid: o.grid ?? "auto" });
+    const prep = prepareSheet(raw, { group, dir, frame: F, dummyKey, guideKey, gripKey, gripN: gripCount(info.hands), dummyTol, tol, key: o.key, sex: dummySex, grid: o.grid ?? "auto" });
     for (const n of prep.notes) warn("luoi", `tờ ${sid}: ${n}`);
     const bad = prep.cells.filter((c) => !c.reg.ok);
     rep.sheets[sid] = { dir, size: [raw.w, raw.h], factor: +prep.factor.toFixed(4), key: prep.bgKey, grid: prep.layout.mode, shift: prep.shift, registered: prep.cells.length - bad.length, cells: prep.cells.length };
@@ -84,7 +87,9 @@ export function cutPhuThe(o) {
       if (sp.outside > 30) warn("vuot-khung", `khung ${name}: ${sp.outside} điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều`);
       if (sp.edge > 8) warn("cham-mep", `khung ${name}: phụ thể chạm mép ô khung (${sp.edge} điểm, có thể bị cắt)`);
       if (!ds.px.length) { warn(cell.anim === "hurt" ? "hurt-rong" : "khung-rong", `${cell.anim === "hurt" ? "khung hurt rỗng" : "THIẾU khung (rỗng)"} ${name} (tờ ${sid} cột ${cell.col} hàng ${cell.row})`); }
-      frames.set(name, { dir, anim: cell.anim, frame: cell.frame, step: cell.step, px: ds.px, area: ds.px.length, img: prep.img, nom: cell.nom, dx: cell.reg.ok ? cell.reg.dx : prep.shift.dx, dy: cell.reg.ok ? cell.reg.dy : prep.shift.dy, cell });
+      if (vk && ds.px.length && !(cell.grip?.hands.length)) warn("ghi-chu", `khung ${name}: không đo được tay trên nộm (cẳng tay bị áo che), không có marker / điểm cầm ở khung này`);
+      else if (vk && cell.grip?.fallback) warn("ghi-chu", `khung ${name}: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân ${cell.step})`);
+      frames.set(name, { dir, anim: cell.anim, frame: cell.frame, step: cell.step, px: ds.px, area: ds.px.length, img: prep.img, nom: cell.nom, dx: cell.reg.ok ? cell.reg.dx : prep.shift.dx, dy: cell.reg.ok ? cell.reg.dy : prep.shift.dy, cell, gripObs: vk ? cellGripObs(prep, cell) : null });
     }
   }
   if (![...frames.values()].some((f) => f.px.length)) throw new Error("không cắt được khung nào");
@@ -182,17 +187,29 @@ export function cutPhuThe(o) {
   const gkc = hex(guideKey);
   let leftGuide = 0;
   for (const im of Object.values(halves)) for (let i = 0; i < im.data.length; i += 4) if (im.data[i + 3] && dist2([im.data[i], im.data[i + 1], im.data[i + 2]], gkc) <= dummyTol * dummyTol) leftGuide++;
+  let leftGrip = 0;
+  if (vk) { const pk = hex(gripKey); for (const im of Object.values(halves)) for (let i = 0; i < im.data.length; i += 4) if (im.data[i + 3] && dist2([im.data[i], im.data[i + 1], im.data[i + 2]], pk) <= dummyTol * dummyTol) leftGrip++; }
+  if (leftGrip) warn("con-nom", `còn ${leftGrip} điểm ảnh gần màu khóa marker điểm cầm ${gripKey} trong sheet đầu ra (vũ khí trùng màu marker); đổi --grip-key khi dựng nộm và vẽ lại`);
   if (leftGuide) warn("con-nom", `còn ${leftGuide} điểm ảnh gần màu khóa vạch tham chiếu ${guideKey} trong sheet đầu ra (phụ thể trùng màu vạch); đổi --guide-key khi dựng nộm và vẽ lại`);
   if (left) warn("con-nom", `còn ${left} điểm ảnh gần màu khóa nộm ${dummyKey} trong sheet đầu ra (phụ thể trùng màu khóa hoặc nộm lẫn vào); đổi --dummy-key khi vẽ lại hoặc xem tờ`);
 
+  // Điểm cầm của từng khung (kiểu vũ khí): `anim.grip["<hướng>/<clip>/<khung>"] = [x, y, (x2, y2)]` theo điểm ảnh khung F từ GỐC CHÂN (x sang phải, y xuống), tay thuận trước;
+  // đo trên thân `dummySex` (nửa nữ dời theo `rep.sexShift`, hướng tây lật ngang ở client). Để client bù lệch / gắn vệt chém, hạt sáng đúng đầu vũ khí.
+  const grip = {}, [ox, oy] = frameOrigin(F);
+  if (vk) for (const [name, f] of frames) {
+    const hands = f.cell.grip?.hands ?? [];
+    if (hands.length) grip[name] = hands.flatMap(([x, y]) => [+((x * F) / CELL - ox).toFixed(1), +((y * F) / CELL - oy).toFixed(1)]);
+    for (const g of f.gripObs ?? []) if (g.seen > 0 && g.drift > 12) warn("marker-troi", `khung ${name}: marker điểm cầm bị dời ${Math.round(g.drift)} điểm so với vị trí nộm`);
+  }
   rep.dirs = dirStatus;
+  if (vk) rep.gripFrames = Object.keys(grip).length;
   const dirsOk = DIRS.filter((d) => dirStatus[d] === "ok");
   const entries = [];
   for (const [side, half] of Object.entries(HALVES)) {
     if (count[half] === 0) continue;
     entries.push({
-      key: gameKey(o.id, half), frame: [F, F], iso: true,
-      anim: { group, layer: side, dirs: DIRS, sexes: SEXES, cols, rows: GAME_ROWS, rowsPerSex: DIRS.length, ...(dirsOk.length < DIRS.length ? { dirsOk } : {}), anims: Object.fromEntries(CLIPS.map((a) => [a, { col: anims[a][0], n: anims[a][1] }])), origin: frameOrigin(F) },
+      key: gameKey(o.id, half, kind), frame: [F, F], iso: true,
+      anim: { ...(vk ? { kind: "vukhi", grip, gripSex: dummySex } : {}), group, layer: side, dirs: DIRS, sexes: SEXES, cols, rows: GAME_ROWS, rowsPerSex: DIRS.length, ...(dirsOk.length < DIRS.length ? { dirsOk } : {}), anims: Object.fromEntries(CLIPS.map((a) => [a, { col: anims[a][0], n: anims[a][1] }])), origin: frameOrigin(F) },
     });
   }
   rep.warnings = warns.map((w) => w.msg);
@@ -228,6 +245,8 @@ function parseArgs(argv) {
     else if (a === "--frame") o.frame = +next();
     else if (a === "--dummy-key") o.dummyKey = next();
     else if (a === "--guide-key") o.guideKey = next();
+    else if (a === "--kind") o.kind = next();
+    else if (a === "--grip-key") o.gripKey = next();
     else if (a === "--dummy-tol") o.dummyTol = +next();
     else if (a === "--dummy-sex") o.dummySex = next();
     else if (a === "--key") o.key = hex(next());
@@ -249,17 +268,17 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     const o = parseArgs(process.argv.slice(2));
     if (!o.id || !o.out || !Object.keys(o.sheets).length) {
-      console.error("Dùng: node tools/assets/phuthe-sheet-cut.mjs --id <võ hồn> --sheet A=<ảnh> [--sheet B=<ảnh> … E] --out <thư mục> [--frame 96|128] [--dummy-key #00D0D0] [--dummy-tol 40] [--dummy-sex m|f] [--tol 60] [--colors 32] [--palette auto|gpl|<gpl>] [--lop <lop.json>] [--grid auto|uniform] [--partial] [--strict] [--verbose]");
+      console.error("Dùng: node tools/assets/phuthe-sheet-cut.mjs --id <võ hồn> --sheet A=<ảnh> [--sheet B=<ảnh> … E] --out <thư mục> [--frame 96|128] [--kind phuthe|vukhi] [--grip-key #00FF60] [--dummy-key #00D0D0] [--dummy-tol 40] [--dummy-sex m|f] [--tol 60] [--colors 32] [--palette auto|gpl|<gpl>] [--lop <lop.json>] [--grid auto|uniform] [--partial] [--strict] [--verbose]");
       process.exit(2);
     }
     const hashes = {};
     for (const id of Object.keys(o.sheets)) { hashes[id] = createHash("sha256").update(readFileSync(o.sheets[id])).digest("hex"); o.sheets[id] = readPng(o.sheets[id]); }
-    const lopFile = o.lopFile ?? path.join(ANIM_ROOT, o.id, "lop.json");
+    const lopFile = o.lopFile ?? path.join(animDir(o.id, o.kind), "lop.json");
     if (existsSync(lopFile)) o.lop = JSON.parse(readFileSync(lopFile, "utf8")); else if (o.lopFile) throw new Error(`không có ${o.lopFile}`);
     const res = cutPhuThe(o);
     for (const [id, hash] of Object.entries(hashes)) if (res.report.sheets[id]) res.report.sheets[id].sourceSha256 = hash;
     mkdirSync(o.out, { recursive: true });
-    for (const [side, half] of Object.entries(HALVES)) if (res.halves[half]) writeFileSync(path.join(o.out, `${gameKey(o.id, half)}.png`), encodePng(res.halves[half]));
+    for (const [side, half] of Object.entries(HALVES)) if (res.halves[half]) writeFileSync(path.join(o.out, `${gameKey(o.id, half, o.kind)}.png`), encodePng(res.halves[half]));
     writeFileSync(path.join(o.out, "manifest-entry.json"), JSON.stringify(res.entries, null, 2) + "\n");
     writeFileSync(path.join(o.out, "_report.json"), JSON.stringify(res.report, null, 2) + "\n");
     const r = res.report;

@@ -1,8 +1,9 @@
 // Dựng hình nộm LPC tham chiếu cho tờ vẽ phụ thể v2 (#1022; đặc tả docs/art/phu-the-hoat-anh.md, mục "Hình nộm LPC tham chiếu").
-//   node tools/assets/phuthe-sheet-dummy.mjs --id ta_hoa_phuong_hoang --out <thư mục> [--frame 96|128] [--dummy-key #00D0D0] [--guide-key #7A5CFF] [--no-guides] [--sex m|f]
+//   node tools/assets/phuthe-sheet-dummy.mjs --id ta_hoa_phuong_hoang --out <thư mục> [--frame 96|128] [--dummy-key #00D0D0] [--guide-key #7A5CFF] [--no-guides] [--kind phuthe|vukhi] [--grip-key #00FF60] [--sex m|f]
 // Ghi `<id>-nom-turnaround.png` và `<id>-nom-toA..E.png`: nền #FF00FF, mỗi ô có hình thân hồn sư (m_0 / f_0, tô MỘT màu khóa phẳng, không viền,
 // không sáng tối) đúng khung thân mà bảng ánh xạ của đặc tả chỉ cho khung đó, đặt ở gốc chân của khung phụ thể (96: (48, 74), 128: (64, 90))
 // phóng cùng hệ số với ô vẽ (256 / khung). Đây là ảnh tham chiếu đính kèm khi sinh ảnh; nộm KHÔNG vào game.
+// --kind vukhi (#1312): thêm marker điểm cầm (GRIP_KEY, chấm = tay thuận A, vòng = tay B) đè đúng chỗ bàn tay, đo từ `frameAnchors` (xem `gripPoints`); ghi vào `<out>` như cũ.
 // Dùng lại trong cutter: `dummyCell` cho mặt nạ nộm danh nghĩa của từng ô (đăng ký vị trí nộm đã bị model dời), `bodyAnchors` cho neo từng giới.
 import { mkdirSync, writeFileSync, existsSync } from "node:fs";
 import path from "node:path";
@@ -10,7 +11,8 @@ import { fileURLToPath } from "node:url";
 import { Img, readPng, encodePng, hex, paletteGroup, frameAnchors, ROOT } from "./lib.mjs";
 import {
   LPC_SHEET, DIRS, BG_KEY, CELL, SHEET_W, SHEET_H, TURNAROUND, TURNAROUND_STEP,
-  framesOf, sheetCells, bodyStepOf, bodyRowKey, bodyColOf, bodyOffset, frameOrigin, checkFrame, phutheInfo, dummyKeyOf, guideKeyOf, SHEET_ID, allPhutheIds,
+  framesOf, sheetCells, bodyStepOf, bodyRowKey, bodyColOf, bodyOffset, frameOrigin, checkFrame, phutheInfo, dummyKeyOf, guideKeyOf, SHEET_ID, allPhutheIds, allVukhiIds,
+  gripKeyOf, gripCount, GRIP_R, GRIP_RING_IN, SHOULDER_UP, checkKind, CLIPS, bodyAnim,
 } from "./phuthe-sheet-lib.mjs";
 
 const PARTS = path.join(ROOT, "shared", "assets", "lpcparts");
@@ -95,6 +97,44 @@ export function guideCell({ sex = "m", dir, clip, step, frame }) {
   }
   return out;
 }
+// ---------- Marker điểm cầm (kiểu vũ khí; đặc tả vũ khí, mục "Điểm cầm trên nộm") ----------
+/** Mảng da cẳng tay thật có ≥ `HAND_MIN_PX` điểm thân và nằm thấp hơn `back` ≥ `HAND_BELOW_BACK` điểm thân (mảng da cổ / mặt nằm trên lưng). */
+const HAND_MIN_PX = 10, HAND_BELOW_BACK = 4;
+/** Thứ tự bước thân thay thế khi khung thân đo không ra tay (cẳng tay bị áo che): bước kề trước, rồi bước 0. */
+const stepsNear = (clip, step) => { const n = bodyAnim(clip).ms.length, out = [step]; for (let d = 1; d < n; d++) for (const s of [step - d, step + d]) if (s >= 0 && s < n) out.push(s); return out; };
+/** Tay thuận trước: nhìn hướng `s` tay phải của hồn sư ở bên TRÁI ảnh (x nhỏ); hướng `n` ở bên phải ảnh; hướng nghiêng lấy tay gần người xem hơn (y lớn). */
+const handOrder = (dir, hands) => [...hands].sort((a, b) => (dir === "s" ? a.x - b.x : dir === "n" ? b.x - a.x : b.y - a.y || b.x - a.x));
+/**
+ * Điểm cầm của một khung thân, đo bằng `frameAnchors` (`hands[]`: đầu mút xa lưng nhất của mảng da cẳng tay; `back`: giữa lưng) rồi đổi sang toạ độ ô canonical 256
+ * (cùng hệ với `dummyCell` / `guideCell`): { hands: [[x, y], …] (tay thuận trước), back, shoulder, steps: bước thân đã dùng, fallback: có phải dùng bước lân cận }.
+ * Khung nào đo không ra tay thì dùng bước thân lân cận của cùng clip (`fallback: true`; kiểm tờ báo lên).
+ */
+export function gripPoints({ sex = "m", dir, clip, step, frame }) {
+  const F = checkFrame(frame), k = CELL / F, [bx, by] = bodyOffset(F), to = (p) => [(bx + p.x) * k, (by + p.y) * k];
+  for (const s of stepsNear(clip, step)) {
+    const a = bodyAnchors(sex, dir, clip, s);
+    const hands = a ? a.hands.filter((h) => h.n >= HAND_MIN_PX && h.y > a.back.y + HAND_BELOW_BACK) : []; // bỏ mảng da cổ / mặt (cao hơn lưng, hoặc vài điểm)
+    if (!hands.length) continue;
+    const head = a.head.y, feet = a.feet.y, back = to(a.back);
+    return { hands: handOrder(dir, hands).slice(0, 2).map(to), back, shoulder: [back[0], back[1] - (feet - head) * SHOULDER_UP * k], step: s, fallback: s !== step };
+  }
+  const a = bodyAnchors(sex, dir, clip, step), back = a ? to(a.back) : [CELL / 2, CELL / 2];
+  return { hands: [], back, shoulder: [back[0], back[1] - 20], step, fallback: true };
+}
+/** Marker một ô: danh sách điểm [x, y] (toạ độ ô): tay thuận `A` = chấm đặc, tay kia `B` = vòng (hở giữa); hai bên khác nhau bằng hình, cùng một màu khóa. */
+export function gripMarker(opt) {
+  const g = gripPoints(opt), pts = [];
+  if (opt.count) g.hands = g.hands.slice(0, opt.count); // vũ khí 1 tay: chỉ marker A
+  g.hands.forEach(([cx, cy], i) => {
+    for (let y = Math.floor(cy - GRIP_R); y <= Math.ceil(cy + GRIP_R); y++) for (let x = Math.floor(cx - GRIP_R); x <= Math.ceil(cx + GRIP_R); x++) {
+      const d = Math.hypot(x + 0.5 - cx, y + 0.5 - cy);
+      if (d <= GRIP_R && (i === 0 || d >= GRIP_RING_IN)) pts.push([x, y]);
+    }
+  });
+  return { ...g, pts };
+}
+function paintGrip(img, rect, pts, key) { for (const [x, y] of pts) if (x >= 0 && y >= 0 && x < CELL && y < CELL) img.set(rect.x + x, rect.y + y, [...key, 255]); }
+
 function paintGuides(img, rect, guides, key, over) { for (const [x, y, w, h, o] of guides) if (o === over) for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) img.set(rect.x + x + i, rect.y + y + j, [...key, 255]); }
 
 function fillBg(img) { for (let i = 0; i < img.data.length; i += 4) { img.data[i] = BG_KEY[0]; img.data[i + 1] = BG_KEY[1]; img.data[i + 2] = BG_KEY[2]; img.data[i + 3] = 255; } }
@@ -103,8 +143,8 @@ function paint(img, cell, rect, key) {
 }
 
 /** Tờ nộm của một hướng (ảnh 1536×1024, 6×4 ô; ô nào không có khung thì chỉ nền). `group`: A / B / C. */
-export function dummySheet({ group, dir, frame, key = dummyKeyOf(""), sex = "m", guideKey = null }) {
-  const img = new Img(SHEET_W, SHEET_H), kc = typeof key === "string" ? hex(key) : key, fr = framesOf(group), gc = guideKey && (typeof guideKey === "string" ? hex(guideKey) : guideKey);
+export function dummySheet({ group, dir, frame, key = dummyKeyOf(""), sex = "m", guideKey = null, gripKey = null, gripN = 2 }) {
+  const img = new Img(SHEET_W, SHEET_H), kc = typeof key === "string" ? hex(key) : key, fr = framesOf(group), gc = guideKey && (typeof guideKey === "string" ? hex(guideKey) : guideKey), pc = gripKey && (typeof gripKey === "string" ? hex(gripKey) : gripKey);
   fillBg(img);
   const cells = [];
   for (const c of sheetCells(group)) {
@@ -113,13 +153,15 @@ export function dummySheet({ group, dir, frame, key = dummyKeyOf(""), sex = "m",
     if (gc) paintGuides(img, at, gd, gc, false);
     paint(img, cell, at, kc);
     if (gc) paintGuides(img, at, gd, gc, true);
-    cells.push({ ...c, step, cell });
+    const grip = pc ? gripMarker({ sex, dir, clip: c.anim, step, frame, count: gripN }) : null;
+    if (grip) paintGrip(img, at, grip.pts, pc); // marker điểm cầm đè lên nộm
+    cells.push({ ...c, step, cell, ...(grip ? { grip } : {}) });
   }
   return { img, cells };
 }
 /** Bảng nộm turnaround: 5 cột hướng × 3 hàng (idle, attack đỉnh, hurt), 1536×1024; nộm giữa ô. */
-export function dummyTurnaround({ frame, key, sex = "m", guideKey = null }) {
-  const T = TURNAROUND, img = new Img(T.w, T.h), kc = typeof key === "string" ? hex(key) : key, gc = guideKey && (typeof guideKey === "string" ? hex(guideKey) : guideKey), cw = Math.round(T.w / T.cols), ch = Math.round(T.h / T.rows);
+export function dummyTurnaround({ frame, key, sex = "m", guideKey = null, gripKey = null, gripN = 2 }) {
+  const T = TURNAROUND, img = new Img(T.w, T.h), kc = typeof key === "string" ? hex(key) : key, gc = guideKey && (typeof guideKey === "string" ? hex(guideKey) : guideKey), pc = gripKey && (typeof gripKey === "string" ? hex(gripKey) : gripKey), cw = Math.round(T.w / T.cols), ch = Math.round(T.h / T.rows);
   fillBg(img);
   T.poses.forEach((pose, r) => DIRS.forEach((dir, c) => {
     const clip = pose, step = TURNAROUND_STEP[pose], cell = dummyCell({ sex, dir, clip, step, frame, cw, ch });
@@ -127,29 +169,30 @@ export function dummyTurnaround({ frame, key, sex = "m", guideKey = null }) {
     if (gc) paintGuides(img, at, gd, gc, false);
     paint(img, cell, { x: c * cw, y: r * ch }, kc);
     if (gc) paintGuides(img, at, gd, gc, true);
+    if (pc) paintGrip(img, at, gripMarker({ sex, dir, clip, step, frame, count: gripN }).pts, pc);
   }));
   return img;
 }
 
 /** Ghi bảng nộm của một võ hồn vào `out`; trả danh sách file. */
-export function writeDummies(id, out, { frame, key, sex = "m", guideKey, guides = true, turnaround = true } = {}) {
-  const info = phutheInfo(id), F = frame ?? info.frame, k = key ?? info.dummyKey, g = guides ? (guideKey ?? guideKeyOf(id, k)) : null;
+export function writeDummies(id, out, { frame, key, sex = "m", guideKey, gripKey, guides = true, turnaround = true, kind = "phuthe", specMd } = {}) {
+  const info = phutheInfo(id, kind, specMd), F = frame ?? info.frame, k = key ?? info.dummyKey, g = guides ? (guideKey ?? guideKeyOf(id, k)) : null, pk = checkKind(kind) === "vukhi" ? (gripKey ?? gripKeyOf(id, k, g ?? guideKeyOf(id, k))) : null;
   mkdirSync(out, { recursive: true });
   const files = [];
   const put = (name, img) => { const f = path.join(out, name); writeFileSync(f, encodePng(img)); files.push(f); };
-  if (turnaround) put(`${id}-nom-turnaround.png`, dummyTurnaround({ frame: F, key: k, sex, guideKey: g }));
-  for (const dir of DIRS) put(`${id}-nom-to${SHEET_ID[dir]}.png`, dummySheet({ group: info.group, dir, frame: F, key: k, sex, guideKey: g }).img);
+  if (turnaround) put(`${id}-nom-turnaround.png`, dummyTurnaround({ frame: F, key: k, sex, guideKey: g, gripKey: pk, gripN: info.hands ? gripCount(info.hands) : 2 }));
+  for (const dir of DIRS) put(`${id}-nom-to${SHEET_ID[dir]}.png`, dummySheet({ group: info.group, dir, frame: F, key: k, sex, guideKey: g, gripKey: pk, gripN: info.hands ? gripCount(info.hands) : 2 }).img);
   return files;
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const a = process.argv.slice(2), val = (n) => { const i = a.indexOf(n); return i < 0 ? undefined : a[i + 1]; };
-  const id = val("--id"), out = val("--out"), all = a.includes("--all"), turnaround = !a.includes("--no-turnaround");
+  const id = val("--id"), out = val("--out"), all = a.includes("--all"), turnaround = !a.includes("--no-turnaround"), kind = val("--kind") ?? "phuthe";
   if ((!id && !all) || !out) { console.error("Dùng: node tools/assets/phuthe-sheet-dummy.mjs --id <võ hồn> --out <thư mục> [--frame 96|128] [--dummy-key #00D0D0] [--guide-key #7A5CFF] [--no-guides] [--no-turnaround] [--sex m|f]\n  hoặc --all --out <art/src/phuthe-anim> [--skip id,id]: mọi võ hồn vào <out>/<id>/references (khung, màu nộm, màu vạch theo công cụ)"); process.exit(2); }
   try {
     if (all) {
       const skip = new Set(val("--skip")?.split(",") ?? []);
-      for (const k of allPhutheIds().filter((x) => !skip.has(x))) for (const f of writeDummies(k, path.join(out, k, "references"), { sex: val("--sex") ?? "m", turnaround })) console.log(`ghi ${f}`);
-    } else for (const f of writeDummies(id, out, { frame: val("--frame") && +val("--frame"), key: val("--dummy-key"), sex: val("--sex") ?? "m", guideKey: val("--guide-key"), guides: !a.includes("--no-guides"), turnaround })) console.log(`ghi ${f}`);
+      for (const k of (checkKind(kind) === "vukhi" ? allVukhiIds() : allPhutheIds()).filter((x) => !skip.has(x))) for (const f of writeDummies(k, path.join(out, k, ...(kind === "vukhi" ? ["vukhi"] : []), "references"), { sex: val("--sex") ?? "m", turnaround, kind })) console.log(`ghi ${f}`);
+    } else for (const f of writeDummies(id, out, { frame: val("--frame") && +val("--frame"), key: val("--dummy-key"), sex: val("--sex") ?? "m", guideKey: val("--guide-key"), gripKey: val("--grip-key"), guides: !a.includes("--no-guides"), turnaround, kind })) console.log(`ghi ${f}`);
   } catch (e) { console.error(e.message); process.exit(2); }
 }
