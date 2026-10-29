@@ -51,14 +51,13 @@ achv_state (
   account_id  bigint PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
   claimed     text[]  NOT NULL DEFAULT '{}',        -- mã thành tựu đã nhận (ACHV[].id)
   counters    jsonb   NOT NULL DEFAULT '{}'::jsonb, -- bộ đếm sự kiện: {"elite":n,"king":n,"world":n,"bicanh":n,"daily":n,"eloMax":n}
-  ver         integer NOT NULL DEFAULT 0,           -- tăng mỗi lần ghi, để ghi có điều kiện
   updated_at  timestamptz NOT NULL DEFAULT now()
 );
 ```
 
-- Một dòng mỗi tài khoản, đọc một lần lúc vào phòng; tài khoản chưa có dòng = chưa nhận gì, bộ đếm 0 (server không chèn trước).
-- **Bộ đếm chỉ tăng**, ghi bằng `UPDATE … SET counters = jsonb_set(…)` có điều kiện (`GREATEST` cho `eloMax`), qua `this.chain(d, fn)`; không bao giờ giảm. Sự kiện lỡ ghi (sập phòng) thì mất một lần đếm, không có đường "cộng bù" (chấp nhận được: thưởng nhỏ).
-- **Nhận nguyên tử:** `UPDATE achv_state SET claimed = claimed || $id, ver = ver + 1 WHERE account_id = $a AND ver = $ver AND NOT (claimed @> ARRAY[$id])` kèm túi và Hồn Tệ **trong cùng một transaction** (như `checkinClaim`, `claimBoss`). Hai tab / hai tiến trình / bấm dồn: chỉ một lần thắng, lần còn lại nhận "đã nhận". Túi không đủ chỗ cho **cả** phần thưởng thì từ chối, **không** đánh dấu đã nhận.
+- Một dòng mỗi tài khoản, đọc một lần lúc vào phòng; tài khoản chưa có dòng = chưa nhận gì, bộ đếm 0 (server không chèn trước lúc vào phòng). **Không có cột `ver`:** nhận trùng chỉ chặn bằng `NOT (claimed @> …)`, nên một sự kiện đếm chen giữa lúc xem và lúc nhận không làm `claim` trượt oan.
+- **Bộ đếm chỉ tăng**, ghi bằng **upsert**: `INSERT INTO achv_state(account_id, counters) VALUES ($a, jsonb_build_object($key, $n)) ON CONFLICT (account_id) DO UPDATE SET counters = jsonb_set(achv_state.counters, ARRAY[$key], to_jsonb(COALESCE((achv_state.counters->>$key)::int, 0) + $n))` (`GREATEST` cho `eloMax`), nên tài khoản chưa có dòng vẫn đếm được; qua `this.chain(d, fn)`; không bao giờ giảm. Sự kiện lỡ ghi (sập phòng) thì mất một lần đếm, không có đường "cộng bù" (chấp nhận được: thưởng nhỏ).
+- **Nhận nguyên tử** (đường ghi đầu tiên theo khuôn `checkinClaim` ở `server/src/db.ts`): trong một transaction, (1) `INSERT INTO achv_state(account_id) VALUES ($a) ON CONFLICT (account_id) DO NOTHING` để chắc chắn có dòng; (2) đọc `counters` **trong chính transaction** (`SELECT … FOR UPDATE`) và kiểm lại điều kiện; (3) `UPDATE achv_state SET claimed = claimed || $id, updated_at = now() WHERE account_id = $a AND NOT (claimed @> ARRAY[$id])` phải trúng đúng 1 dòng, kèm túi và Hồn Tệ cùng transaction (như `claimBoss`). Hai tab / hai tiến trình / bấm dồn: chỉ một lần thắng, lần còn lại nhận "đã nhận". Túi không đủ chỗ cho **cả** phần thưởng thì từ chối, **không** đánh dấu đã nhận.
 - Cách ghi: giữ chỗ trong RAM (`claimBusy`, như `welfare`), xếp vào chuỗi lưu `this.chain(d, fn)`; DB báo lỗi thì hoàn lại (không cộng quà, không đổi `claimed`).
 - `Store.achvGet(accountId)`, `Store.achvBump(accountId, key, n)` và `Store.achvClaim(accountId, id, bag)` thêm vào **cả** `PgStore` lẫn `MemoryStore`; `Store.removeTestAccount` thêm bảng này. Không `DROP` hay đổi kiểu cột cũ; thêm / đổi ngưỡng trong `ACHV` không đụng dữ liệu đã lưu (chỉ lưu mã đã nhận).
 
@@ -68,7 +67,7 @@ Bổ sung vào bảng ở `docs/tech/giao-thuc-server.md` khi làm (kiểm `tool
 | Hướng | Tin | Nội dung | Nhóm / giới hạn |
 |---|---|---|---|
 | client → server | `achv {op: "get" \| "claim", id?}` | `get`: xin danh sách; `claim`: nhận thưởng thành tựu `id` | `get`: `read`; `claim`: `trade` (ghi DB) |
-| server → client | `achv {stats, claimed, ready, ver, claimedNow?, err?}` | `stats`: chỉ số hiện tại theo ACHV_STATS *(đề xuất)*; `claimed`: mã đã nhận; `ready`: số thành tựu đạt chưa nhận (cho chấm đỏ); `claimedNow`: kết quả lần vừa nhận (`{id, items}`); `err`: lý do tiếng Việt | riêng |
+| server → client | `achv {stats, claimed, ready, claimedNow?, err?}` | `stats`: chỉ số hiện tại theo ACHV_STATS *(đề xuất)*; `claimed`: mã đã nhận; `ready`: số thành tựu đạt chưa nhận (cho chấm đỏ); `claimedNow`: kết quả lần vừa nhận (`{id, items}`); `err`: lý do tiếng Việt | riêng |
 
 - Server gửi `achv` lúc vào phòng (cho chấm đỏ) và sau mỗi sự kiện làm một thành tựu **vừa đạt** (không gửi mỗi lần bộ đếm tăng; chỉ khi `ready` đổi). Không tự nhận hộ.
 - Từ chối bằng `err` tiếng Việt: chưa đạt, đã nhận, mã lạ, túi đầy, đang trong sân đấu / Bí Cảnh, đang đi cổng, đang giao chiến *(đề xuất: chặn như `welfare`, nhận được ở mọi trạng thái an toàn)*, `claimBusy`.
@@ -77,7 +76,7 @@ Bổ sung vào bảng ở `docs/tech/giao-thuc-server.md` khi làm (kiểm `tool
 ### Chống gian lận
 Soát theo skill `anti-cheat-audit` khi làm bước server; kết quả ghi vào một file soát riêng trong docs/tech (tạo khi làm).
 - **Chỉ server đếm:** mọi bộ đếm tăng ở nơi server quyết định sự kiện (hạ thú, thắng trận, xong lượt); không tin tin nhắn client nào để cộng.
-- **Không nhận trùng:** điều kiện `NOT (claimed @> …)` + `ver` trong câu `UPDATE` (nguyên tử), không có đường nhận ngoài transaction.
+- **Không nhận trùng:** điều kiện `NOT (claimed @> …)` trong câu `UPDATE` (nguyên tử, không dùng `ver`), không có đường nhận ngoài transaction.
 - **Điều kiện kiểm lại lúc nhận**, không tin cờ "đã đạt" từ lần xem trước; chỉ số suy từ DB (hoặc RAM đã đồng bộ DB) tại thời điểm nhận.
 - **Chống nuôi tài khoản:** đếm trận đấu trường **chỉ trận xếp hạng** (`arenaRanked`) đã qua các luật chống đấu lặp cặp có sẵn (`arena_pairs`); thành tựu săn thú không đếm lần hạ ở chế độ không tính điểm. Thưởng nhỏ, không chuyển được, nên nuôi nhiều tài khoản chỉ nhận đúng phần mỗi tài khoản chơi thật.
 - **Tài khoản test** (`is_test`): được nhận bình thường (dữ liệu dựng sẵn); bài bot dọn dòng `achv_state` khi xong.
