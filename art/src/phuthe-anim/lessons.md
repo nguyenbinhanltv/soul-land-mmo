@@ -114,6 +114,10 @@ Chỉ các dòng `@VUKHI` được chèn vào prompt kiểu vũ khí (`--kind vu
 - [direction @VUKHI] Follow the specified number of weapons and grip points exactly; never add an extra weapon to an unused hand. Keep the full weapon inside the corner brackets even at the attack and cast peaks: flexible parts may curl inward, but rigid parts must retain their shape. Preserve the mannequin silhouette and every hand pose exactly. // Lam Ngân Thảo A1: roi cỏ thêm dây ở tay phụ, đổi dáng nộm, dây vượt khung ở attack/cast dù check chỉ báo nhẹ.
 - [direction @VUKHI] Leave every hand not used by the specified weapon unchanged in the mannequin color. Do not duplicate the weapon's distinctive end or add floating decorative fragments. Keep all reference body poses, especially the extended attack arm and raised cast arms; do not replace the board with repeated standing dolls. // Lam Ngân Thảo A2: roi cỏ có dây ở hai tay, cast thêm lá/mảnh rời và thân lặp đứng.
 
+## Bài học rollout Càn Khôn Hỗn Nguyên Tỏa `@VUKHI-MEM`
+
+- **@VUKHI-MEM** Keep thick chain links touching or overlapping as one continuous silhouette from the single grip to the heavy ring-lock end. Show a distinct rear plate without the front red seal for north-facing views. // Khóa xích: năm atlas một lượt, ghép 0 chặn; vẫn cần duyệt kích thước vòng/chiều dài xích và lớp cast ở cỡ game.
+
 ## Bài học riêng `@VUKHI-MEM` — vòng 2 Lam Ngân Thảo, chỉ hướng e
 
 Parser hiện chỉ hỗ trợ `@VUKHI`, chưa hỗ trợ tag nhóm mềm. Các dòng dưới không dùng cú pháp `- [direction …]` để không làm hỏng parser hoặc chèn vào mọi vũ khí. Khi thử nhóm mềm, đọc đúng mục này và truyền các câu tiếng Anh vào tham số `lessons` của `buildDirectionPrompt`, nối sau `vukhiLessonsFor("direction")`; ghi lại prompt thực tế. Không dùng mục này cho vũ khí cứng, không ghi đè prompt lịch sử.
