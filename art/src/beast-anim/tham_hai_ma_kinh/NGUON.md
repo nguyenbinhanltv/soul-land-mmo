@@ -83,16 +83,7 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 
 ## Tờ chưa vào thư mục chính (candidates)
 
-Với nhãn to-<hướng>, số lượt đã dùng dưới đây tính RIÊNG vòng 2 (tối đa 3 lượt bổ sung); số lượt cũ giữ ở sổ trước vòng 2. RAW được chọn là lượt ít lỗi chặn hơn sau soát kỹ thuật và bằng mắt; vẫn giữ ảnh tĩnh trong game.
-
 Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
-
-### to-ne (candidates)
-
-- File chọn: `candidates/to-ne-797-attempt3.png`, **1536×1024**, SHA256 `cbfd76a52f4c3de4dda8149211f77b33ab9f399aa3d009c0269323c1292fce89`; lượt tìm thấy: 1, 2, 3.
-- Số lượt đã dùng: 3; lượt được chọn: 3.
-- Mức kiểm: **pass**.
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ### toD (candidates)
 
@@ -140,7 +131,7 @@ Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: ne pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
-- Ghi chú lượt / nhập: die C3-C4 lộ mắt/miệng. **Không chọn cho bản nhập cuối.**
+- Ghi chú lượt / nhập: die C3-C4 lộ mắt/miệng. **Lượt chọn tốt nhất trong vòng 2, vẫn chặn / giữ dự phòng.**
 
 ## Lỗi
 
@@ -151,9 +142,9 @@ LỖI: toB — Lịch sử trước phiên 778 (hướng mới theo tờ to-<hư
 LỖI: toC — Lịch sử trước phiên 778 (hướng mới theo tờ to-<hướng>): e: attack ngẩng đầu mạnh, die còn mở mắt (ghi chú cũ) (mắt)
 LỖI: to-ne — Phiên 778: CHẶN: 3 lượt vẫn còn chấm mắt cạnh đầu ne ở idle/walk/attack/die; giữ fallback. (mắt)
 LỖI: to-n — LỊCH SỬ LƯỢT (bản cuối ĐẠT, đã nhập): Đạt lượt 2: nhìn sau đầu trơn không mắt/mặt, đuôi phía gần người xem; die biên độ nhỏ. Lượt 1 còn mắt hai bên đầu. (mắt)
-LỖI: candidates/to-ne-797-attempt3 — die C3-C4 lộ mắt/miệng (mắt)
 LỖI: candidates/to-ne-797-attempt1 — nhìn ngang, có mặt (mắt)
 LỖI: candidates/to-ne-797-attempt2 — nền ngoài dung sai / không dò được lưới — toàn tờ, toàn tờ — bốn góc lệch màu nền chính 217 > 60: cutter không khoá được nền; dò được 1 dải hàng, cần 4: không dò được lưới (hàng dính nhau hoặc vỡ).
+LỖI: candidates/to-ne-797-attempt3 — die C3-C4 lộ mắt/miệng (mắt)
 ```
 
 ## Ghi công

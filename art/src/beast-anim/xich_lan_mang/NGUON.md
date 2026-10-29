@@ -36,19 +36,6 @@ Loài `xich_lan_mang` (Xích Lân Mãng), họ `snake`, khung game 96×96. Mức
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 221% so với ảnh tĩnh (lệch 121%, quá 25%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: đã xem, không thấy lỗi.
 
-## Tờ chưa vào thư mục chính (candidates)
-
-Với nhãn to-<hướng>, số lượt đã dùng dưới đây tính RIÊNG vòng 2 (tối đa 3 lượt bổ sung); số lượt cũ giữ ở sổ trước vòng 2. RAW được chọn là lượt ít lỗi chặn hơn sau soát kỹ thuật và bằng mắt; vẫn giữ ảnh tĩnh trong game.
-
-Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
-
-### to-ne (candidates)
-
-- File chọn: `candidates/to-ne-797-attempt3.png`, **1536×1024**, SHA256 `02e1a675f3a3dbe92841244ef140d0ae60d1cd3ce4e18dfc18c0d36d96810d3c`; lượt tìm thấy: 1, 2, 3.
-- Số lượt đã dùng: 3; lượt được chọn: 3.
-- Mức kiểm: **pass**.
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
-
 ## Các lượt bổ sung vòng 2 (phiên 797)
 
 Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên; tờ lỗi không dùng làm tham chiếu.
@@ -81,7 +68,7 @@ Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: ne pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
-- Ghi chú lượt / nhập: đủ 4 hình die nhưng đầu quay ngang/lộ mặt khi chết. **Không chọn cho bản nhập cuối.**
+- Ghi chú lượt / nhập: đủ 4 hình die nhưng đầu quay ngang/lộ mặt khi chết. **Lượt chọn tốt nhất trong vòng 2, vẫn chặn / giữ dự phòng.**
 
 ### to-n-797-attempt1
 
@@ -107,9 +94,9 @@ LỖI: toB — chân lệch — H8 (n) C4 — chân lệch > 12% chiều cao so 
 LỖI: toB — lộ mặt — NE H1 hurt, H2 walk, H3 attack; N H6 walk, H7 attack — vi phạm quy tắc n/ne không thấy mặt (mắt)
 LỖI: toB — die nằm ngang — NE H4 và N H8 — lệch trục hướng (mắt)
 LỖI: toB — Turnaround sửa lô 1: 2 lượt riêng chưa đạt; lượt 1 die ne lộ mắt, lượt 2 s/se có hai đầu; giữ fallback hướng yêu cầu. RAW và prompt thật/provenance kèm tại art\src\beast-anim\xich_lan_mang\candidates/turnaround-attempt1.png SHA256 e11fddc5b9105b602696e11ecabf8660c7d2f6e8104b68cd944f13060999acfd; art\src\beast-anim\xich_lan_mang\candidates/turnaround-attempt2.png SHA256 38939594a46aab6819938060aaea63ca427012357272a89c5d5110148317f23d (mắt)
-LỖI: candidates/to-ne-797-attempt3 — đủ 4 hình die nhưng đầu quay ngang/lộ mặt khi chết (mắt)
 LỖI: candidates/to-ne-797-attempt1 — đuôi tù, mất nhận diện rắn (mắt)
 LỖI: candidates/to-ne-797-attempt2 — hình dính — H4 (ne) — dải có 3 hình, cần 4: hình dính nhau.
+LỖI: candidates/to-ne-797-attempt3 — đủ 4 hình die nhưng đầu quay ngang/lộ mặt khi chết (mắt)
 ```
 
 ## Ghi công

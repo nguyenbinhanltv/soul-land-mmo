@@ -77,15 +77,13 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 
 ## Tờ chưa vào thư mục chính (candidates)
 
-Với nhãn to-<hướng>, số lượt đã dùng dưới đây tính RIÊNG vòng 2 (tối đa 3 lượt bổ sung); số lượt cũ giữ ở sổ trước vòng 2. RAW được chọn là lượt ít lỗi chặn hơn sau soát kỹ thuật và bằng mắt; vẫn giữ ảnh tĩnh trong game.
-
 Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
 
 ### to-ne (candidates)
 
-- File chọn: `candidates/to-ne-797-attempt2.png`, **1536×1024**, SHA256 `4872e5ac6614d6327a9688731e86432cd1852ccaf0c3694c171dda7f2ae3e8e5`; lượt tìm thấy: 1, 2, 3.
-- Số lượt đã dùng: 3; lượt được chọn: 2.
-- Mức kiểm: **pass**.
+- File chọn: `candidates/to-ne-attempt4.png`, **1536×1024**, SHA256 `f2968340b9739ca6011198222c1186ac47f19ae40cce8dda04ec7f0aca4e2e21`; lượt tìm thấy: 4.
+- Số lượt đã dùng: 1; lượt được chọn: 4.
+- Mức kiểm: **chặn** (CHẶN: không vào thư mục chính).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
 ### toD (candidates)
@@ -94,13 +92,6 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 - Số lượt đã dùng: 3; lượt được chọn: 3.
 - Mức kiểm: **pass**.
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
-
-### toE (candidates)
-
-- File chọn: `candidates/toE-attempt2.png`, **1536×1024**, SHA256 `9b919d79b0d04578cbf05e429aad2fea2e31fa91a06ce600ea5d5a2305c70773`; lượt tìm thấy: 1, 2.
-- Số lượt đã dùng: 2; lượt được chọn: 2.
-- Mức kiểm: **nhẹ**.
-- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
 
 ## Các lượt bổ sung vòng 2 (phiên 797)
 
@@ -124,7 +115,7 @@ Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: ne pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
-- Ghi chú lượt / nhập: còn chi tiết mặt ở attack. **Không chọn cho bản nhập cuối.**
+- Ghi chú lượt / nhập: còn chi tiết mặt ở attack. **Lượt chọn tốt nhất trong vòng 2, vẫn chặn / giữ dự phòng.**
 
 ### to-ne-797-attempt3
 
@@ -143,9 +134,8 @@ LỖI: turnaround — hướng — bổ sung 3 lượt: lượt 1/3 e quay trái
 LỖI: to-ne — hình ở ô trống / hình dính — H4 (ne) C5, H4 (ne) — ô trống có hình (0.78% diện tích ô): hình tràn từ ô bên; dải có 3 hình, cần 4: hình dính nhau.
 LỖI: to-ne — ne — lượt bổ sung 1 lộ mắt ở idle/attack và die C4 quay ngang/lộ mặt; candidates/to-ne-attempt4.*; dừng vì turnaround hết lượt chưa đạt, giữ fallback. (mắt)
 LỖI: toD — hướng — ne H3/H4 — còn lộ mắt sau 3 lượt, giữ fallback (mắt)
-LỖI: candidates/to-ne-797-attempt2 — còn chi tiết mặt ở attack (mắt)
-LỖI: toE — chân lệch — H4 (n) C1 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 21%).
 LỖI: candidates/to-ne-797-attempt1 — chấm mắt và đầu nghiêng ngang (mắt)
+LỖI: candidates/to-ne-797-attempt2 — còn chi tiết mặt ở attack (mắt)
 LỖI: candidates/to-ne-797-attempt3 — hình dính — H4 (ne) — dải có 3 hình, cần 4: hình dính nhau.
 LỖI: candidates/to-ne-797-attempt3 — die lộ mặt/miệng, không nhập (mắt)
 ```

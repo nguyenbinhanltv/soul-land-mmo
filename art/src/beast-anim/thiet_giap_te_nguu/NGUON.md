@@ -64,23 +64,14 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 
 ## Tờ chưa vào thư mục chính (candidates)
 
-Với nhãn to-<hướng>, số lượt đã dùng dưới đây tính RIÊNG vòng 2 (tối đa 3 lượt bổ sung); số lượt cũ giữ ở sổ trước vòng 2. RAW được chọn là lượt ít lỗi chặn hơn sau soát kỹ thuật và bằng mắt; vẫn giữ ảnh tĩnh trong game.
-
 Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
-
-### to-n (candidates)
-
-- File chọn: `candidates/to-n-attempt1.png`, **1536×1024**, SHA256 `44411f642dda5d74fe03f7c8a38e96e4807f482a2a8568c7b3c064e19e6979d0`; lượt tìm thấy: 1.
-- Số lượt đã dùng: 1; lượt được chọn: 1.
-- Mức kiểm: **nhẹ**.
-- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
 
 ### to-ne (candidates)
 
-- File chọn: `candidates/to-ne-797-attempt2.png`, **1536×1024**, SHA256 `e7886dcc95d1973d41bf4abff97622dfba3a867ac820362ecdbabae23248a8eb`; lượt tìm thấy: 1, 2, 3.
-- Số lượt đã dùng: 3; lượt được chọn: 2.
+- File chọn: `candidates/to-ne-attempt6.png`, **1536×1024**, SHA256 `44cea07d56a184e89f926de03464f75e47f333f43be14ce4f8304f2ab9856137`; lượt tìm thấy: 4, 5, 6.
+- Số lượt đã dùng: 3; lượt được chọn: 6.
 - Mức kiểm: **pass**.
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
 
 ### toD (candidates)
 
@@ -111,7 +102,7 @@ Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: ne pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
-- Ghi chú lượt / nhập: còn chi tiết mắt cạnh đầu. **Không chọn cho bản nhập cuối.**
+- Ghi chú lượt / nhập: còn chi tiết mắt cạnh đầu. **Lượt chọn tốt nhất trong vòng 2, vẫn chặn / giữ dự phòng.**
 
 ### to-ne-797-attempt3
 
@@ -133,9 +124,8 @@ LỖI: to-n — hurt trùng idle — H1 (n) C5–6 — hurt trùng idle (xor/h�
 LỖI: to-ne — ne — bổ sung lượt 1–2 vẫn lộ mắt, candidates/to-ne-attempt4.png và to-ne-attempt5.png; chưa nhập. (mắt)
 LỖI: to-ne — ne — hết 3 lượt bổ sung (tổng 6), mọi lượt lộ mắt nhất là attack; candidates/to-ne-attempt4–6.*; giữ fallback. (mắt)
 LỖI: toD — hướng — ne H3 C3–4 — còn lộ mắt sau 3 lượt, giữ fallback (mắt)
-LỖI: to-n — hurt trùng idle — H1 (n) C5–6 — hurt trùng idle (xor/hợp 0.065 / 0.07): không thấy phản ứng trúng đòn.
-LỖI: candidates/to-ne-797-attempt2 — còn chi tiết mắt cạnh đầu (mắt)
 LỖI: candidates/to-ne-797-attempt1 — lộ mắt (mắt)
+LỖI: candidates/to-ne-797-attempt2 — còn chi tiết mắt cạnh đầu (mắt)
 LỖI: candidates/to-ne-797-attempt3 — sai số hình — H4 (ne) — dải có 3 hình, cần 4: thiếu khung.
 ```
 

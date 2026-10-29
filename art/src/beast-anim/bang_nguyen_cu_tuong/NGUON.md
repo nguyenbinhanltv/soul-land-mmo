@@ -81,23 +81,14 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 
 ## Tờ chưa vào thư mục chính (candidates)
 
-Với nhãn to-<hướng>, số lượt đã dùng dưới đây tính RIÊNG vòng 2 (tối đa 3 lượt bổ sung); số lượt cũ giữ ở sổ trước vòng 2. RAW được chọn là lượt ít lỗi chặn hơn sau soát kỹ thuật và bằng mắt; vẫn giữ ảnh tĩnh trong game.
-
 Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
 
 ### to-e (candidates)
 
-- File chọn: `candidates/to-e-797-attempt3.png`, **1536×1024**, SHA256 `f271f525a4c0cd3bc5fac44282e45ae7d00fb2bca85261043211c8d90bc8d5a5`; lượt tìm thấy: 1, 2, 3.
+- File chọn: `candidates/to-e-attempt3.png`, **1536×1024**, SHA256 `b9aabcf45343b44e0759717ec84a36ccc54366779823771f8e5fa8acd96fe443`; lượt tìm thấy: 3.
 - Số lượt đã dùng: 3; lượt được chọn: 3.
-- Mức kiểm: **nhẹ**.
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
-
-### to-ne (candidates)
-
-- File chọn: `candidates/to-ne-797-attempt2.png`, **1536×1024**, SHA256 `7e792da9cd6c4c795c7e4ee54222bd38027424e9b235ab111c42b05fd62bcb38`; lượt tìm thấy: 1, 2, 3.
-- Số lượt đã dùng: 3; lượt được chọn: 2.
-- Mức kiểm: **pass**.
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Mức kiểm: **chặn** (CHẶN: không vào thư mục chính).
+- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
 
 ### toC (candidates)
 
@@ -138,7 +129,7 @@ Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: e nhẹ).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
-- Ghi chú lượt / nhập: vẫn góc trước gần se. **Không chọn cho bản nhập cuối.**
+- Ghi chú lượt / nhập: vẫn góc trước gần se. **Lượt chọn tốt nhất trong vòng 2, vẫn chặn / giữ dự phòng.**
 
 ### to-ne-797-attempt1
 
@@ -158,7 +149,7 @@ Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: ne pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
-- Ghi chú lượt / nhập: góc lưng nhưng thêm gai băng lớn, sai nhận diện. **Không chọn cho bản nhập cuối.**
+- Ghi chú lượt / nhập: góc lưng nhưng thêm gai băng lớn, sai nhận diện. **Lượt chọn tốt nhất trong vòng 2, vẫn chặn / giữ dự phòng.**
 
 ### to-ne-797-attempt3
 
@@ -188,14 +179,14 @@ LỖI: to-e — Phiên 778: CHẶN nhập: 3 lượt; lượt 3 sau khớp vẫn
 LỖI: to-e — Phiên 778: lượt 3 dính hình ở attack (H3 chỉ 3 hình thay vì 6), sau khớp cỡ vẫn lệch +15,6%; giữ fallback e. (mắt)
 LỖI: toC — hình dính / hình ở ô trống — H3 (e), H4 (e) C5, H4 (e) — dải có 3 hình, cần 6: hình dính nhau; ô trống có hình (2.53% diện tích ô): hình tràn từ ô bên; dải có 3 hình, cần 4: hình dính nhau.
 LỖI: toC — Lịch sử trước phiên 778 (hướng mới theo tờ to-<hướng>): Vẽ lại phiên soul_land_game-651: C/e dùng đủ 3 lượt; cả ba chặn dính H3, lượt 3 còn dính H4. Tốt nhất lượt 1 (1 chặn/1 nhẹ); RAW nguyên byte ở candidates/toC-redraw651-attempt1–3.*, không dùng làm tham chiếu; hurt nâng đầu mạnh. Giữ ne/n tĩnh theo chủ repo. (mắt)
-LỖI: candidates/to-e-797-attempt3 — hình ở ô trống — H4 (e) C5 — ô trống có hình (0.74% diện tích ô): hình tràn từ ô bên.
-LỖI: candidates/to-e-797-attempt3 — vẫn góc trước gần se (mắt)
-LỖI: candidates/to-ne-797-attempt2 — góc lưng nhưng thêm gai băng lớn, sai nhận diện (mắt)
 LỖI: candidates/to-e-797-attempt1 — hình ở ô trống — H4 (e) C5 — ô trống có hình (1.05% diện tích ô): hình tràn từ ô bên.
 LỖI: candidates/to-e-797-attempt1 — góc trước gần se (mắt)
 LỖI: candidates/to-e-797-attempt2 — đúng ngang nhưng thêm gai băng lớn, sai nhận diện (mắt)
+LỖI: candidates/to-e-797-attempt3 — hình ở ô trống — H4 (e) C5 — ô trống có hình (0.74% diện tích ô): hình tràn từ ô bên.
+LỖI: candidates/to-e-797-attempt3 — vẫn góc trước gần se (mắt)
 LỖI: candidates/to-ne-797-attempt1 — hình ở ô trống — H4 (ne) C5 — ô trống có hình (4.15% diện tích ô): hình tràn từ ô bên.
 LỖI: candidates/to-ne-797-attempt1 — góc trước, lộ mặt (mắt)
+LỖI: candidates/to-ne-797-attempt2 — góc lưng nhưng thêm gai băng lớn, sai nhận diện (mắt)
 LỖI: candidates/to-ne-797-attempt3 — vẫn góc trước, lộ mặt (mắt)
 ```
 
