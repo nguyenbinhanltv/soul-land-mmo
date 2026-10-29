@@ -85,7 +85,9 @@ export function bicanhAction(room: MapRoom, id: string, m: { op?: unknown; id?: 
   const pay = m.pay === true;
   d.claimBusy++;
   room.chain(d, async () => {
-    const day = bicanhDay(nowOf(room)), bought = await store.bossClaims(d.accountId, day, bicanhBuyKind(scene.id));
+    const day = bicanhDay(nowOf(room)), [bought, tomeGot] = await Promise.all([store.bossClaims(d.accountId, day, bicanhBuyKind(scene.id)), store.bossClaims(d.accountId, day, bicanhTomeKind)]);
+    // Thưởng duy nhất là quyển và quyển đã chạm trần ngày: lượt mua thêm không còn thưởng gì (P6), không thu phí.
+    if (tomeGot >= BICANH.tomeDailyCap) return deny(`Hôm nay đã nhận đủ ${BICANH.tomeDailyCap}/${BICANH.tomeDailyCap} Hồn Kinh Quyển: mua thêm lượt ${scene.name} cũng không có thưởng. Làm mới lúc ${String(BICANH.resetHour).padStart(2, "0")}:00 giờ Việt Nam.`);
     if (bought >= scene.buyMax) return deny(`Hôm nay đã mua đủ ${scene.buyMax}/${scene.buyMax} lượt ${scene.name}. Làm mới lúc ${String(BICANH.resetHour).padStart(2, "0")}:00 giờ Việt Nam.`);
     const price = bicanhRunPrice(scene, bought);
     if (!pay) return deny(`Mua thêm 1 lượt ${scene.name} tốn ${formatHonTe(price)}: cần xác nhận.`);
