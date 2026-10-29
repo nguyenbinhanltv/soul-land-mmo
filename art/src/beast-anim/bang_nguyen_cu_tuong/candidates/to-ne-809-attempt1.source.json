@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-809",
+  "issue": 1290,
+  "builtinCalls": 1,
+  "round": 3,
+  "direction": "ne",
+  "prompt": "to-ne-809-attempt1.prompt.txt",
+  "verdict": "Đạt: góc lưng lên phải, không thấy mắt hoặc miệng, giữ lông và ngà không thêm gai; hurt nhỏ.",
+  "sha256": "1486a4aa38f8715787fcb58492b00c6067c7d897049affbaba7f5858cfa98c5e"
+}

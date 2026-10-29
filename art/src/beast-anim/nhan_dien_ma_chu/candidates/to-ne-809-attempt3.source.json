@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-809",
+  "issue": 1290,
+  "builtinCalls": 3,
+  "round": 3,
+  "direction": "ne",
+  "prompt": "to-ne-809-attempt3.prompt.txt",
+  "verdict": "Chặn: còn ba cặp chân ở nhiều khung, họa tiết sáng trên lưng; đủ ba lượt bổ sung, giữ ảnh tĩnh ne.",
+  "sha256": "f9cc02997cc24082bcb2ab9cd5dad2be75e87b49ec5d5dd261a44679a1e5384e"
+}

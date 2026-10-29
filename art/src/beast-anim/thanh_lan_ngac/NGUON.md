@@ -154,3 +154,61 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/beast-anim/thanh_lan_ngac/` | - | builtin image_gen.imagegen | RAW hoạt ảnh Thanh Lân Ngạc: turnaround 1536×1024, toA 1024×1536, toB 1254×1254, to-n 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+
+## Các lượt bổ sung vòng 3 (phiên 809)
+
+Sinh bằng beast-nguon trên staging từng ứng viên. Tối đa ba yêu cầu bổ sung/hướng theo chỉ định chủ repo; hướng lỗi giữ dự phòng. Hồ sơ các vòng trước giữ nguyên như ảnh chụp lịch sử, không thay phiếu hướng vòng 3 bên dưới.
+
+### to-ne-809-attempt1
+
+- File: `candidates/to-ne-809-attempt1.png`, **1536×1024**, 1804222 byte, SHA256 `07fb4a5e4b13925b76fd704ebc85bec7b7450b067099be2a3d5bed3a712c6c8f`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-809.
+- Prompt: `candidates/to-ne-809-attempt1.prompt.txt` (SHA256 `312a3bb87a7fc223ad1f7a21f687d55b17b8d6897563b312278aa1a8f1207a0f`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+#### Lỗi ứng viên
+
+```text
+LỖI: to-ne-809-attempt1 — còn nét mắt ở cạnh đầu, kể cả die; không nhập. (mắt)
+```
+
+- Phiếu vòng 3: Chặn: còn nét mắt ở cạnh đầu, kể cả die; không nhập.
+- Bản nhập cuối: không chọn; giữ trong candidates.
+
+### to-ne-809-attempt2
+
+- File: `candidates/to-ne-809-attempt2.png`, **1536×1024**, 1858353 byte, SHA256 `1341b4fec25bbbac810fad1fe54c29e15f96ca4e9743055317b55d2242c36061`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-809.
+- Prompt: `candidates/to-ne-809-attempt2.prompt.txt` (SHA256 `ca99f7554570f73e9a5f073d9d5d4e5edfb44f7435ab1112fa7da9eb65e6cb7e`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+#### Lỗi ứng viên
+
+```text
+LỖI: to-ne-809-attempt2 — vẫn có chấm mắt ở cạnh đầu trên nhiều khung; không nhập. (mắt)
+```
+
+- Phiếu vòng 3: Chặn: vẫn có chấm mắt ở cạnh đầu trên nhiều khung; không nhập.
+- Bản nhập cuối: không chọn; giữ trong candidates.
+
+### to-ne-809-attempt3
+
+- File: `candidates/to-ne-809-attempt3.png`, **1536×1024**, 1812732 byte, SHA256 `054650b6b556c328c2c10ec7312ffcc414a6c0ae310e6a7b9345175f07992666`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-809.
+- Prompt: `candidates/to-ne-809-attempt3.prompt.txt` (SHA256 `23f06063066ed48dcbca8e964e0038135ee1cbf844bf5dc969d6299cd2a3c8b7`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+#### Lỗi ứng viên
+
+```text
+LỖI: to-ne-809-attempt3 — vẫn có mắt ở cạnh đầu, đủ ba lượt bổ sung nên giữ ảnh tĩnh ne. (mắt)
+```
+
+- Phiếu vòng 3: Chặn: vẫn có mắt ở cạnh đầu, đủ ba lượt bổ sung nên giữ ảnh tĩnh ne.
+- Bản nhập cuối: không chọn; giữ trong candidates.

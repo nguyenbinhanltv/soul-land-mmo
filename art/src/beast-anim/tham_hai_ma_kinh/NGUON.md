@@ -42,11 +42,11 @@ Loài `tham_hai_ma_kinh` (Thâm Hải Ma Kình), họ `swim`, khung game 128×12
 - Mức kiểm: **pass** (khối hướng: e pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
-## to-ne
+## to-ne (trước vòng 3, lưu nguyên byte)
 
-- File: `to-ne.png`, **1536×1024**, 1735384 byte, SHA256 `6e74907b044dc0985b018b5816a12d8aa6a217b8db0b33998c0c012d9bb64cf0`.
+- File: `candidates/to-ne-before-809.png`, **1536×1024**, 1735384 byte, SHA256 `6e74907b044dc0985b018b5816a12d8aa6a217b8db0b33998c0c012d9bb64cf0`.
 - Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-778.
-- Prompt: `to-ne.prompt.txt` (SHA256 `0b248362ea0e5511cc8859b1f57c5c44fd605ae0c277276ca6c0a0c4e9bf7f4f`).
+- Prompt: `candidates/to-ne-before-809.prompt.txt` (SHA256 `0b248362ea0e5511cc8859b1f57c5c44fd605ae0c277276ca6c0a0c4e9bf7f4f`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: ne pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
@@ -154,3 +154,28 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/beast-anim/tham_hai_ma_kinh/` | - | image_gen | RAW hoạt ảnh Thâm Hải Ma Kình: turnaround 1536×1024, toA 1536×1024, toB 1536×1024, toC 1536×1024, to-ne 1536×1024, to-n 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+
+## Các lượt bổ sung vòng 3 (phiên 809)
+
+Sinh bằng beast-nguon trên staging từng ứng viên. Tối đa ba yêu cầu bổ sung/hướng theo chỉ định chủ repo; hướng lỗi giữ dự phòng. Hồ sơ các vòng trước giữ nguyên như ảnh chụp lịch sử, không thay phiếu hướng vòng 3 bên dưới.
+
+### to-ne-809-attempt1
+
+- File: `candidates/to-ne-809-attempt1.png`, **1536×1024**, 1751011 byte, SHA256 `45024adc152483d61a3dce7f26121614def3790fa3d3edbc82002ab3effbe0d6`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-809.
+- Prompt: `candidates/to-ne-809-attempt1.prompt.txt` (SHA256 `6bed2908f00b67035881ab0301cccbe1920769f060477aedbf477529b1a10e89`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+#### Lỗi ứng viên
+
+Không có dòng `LỖI:`.
+
+- Phiếu vòng 3: Đạt: không lộ mặt, đuôi gần người xem, hướng lên phải; hurt và die biên độ nhỏ.
+- Bản nhập cuối: chọn tờ này, RAW chính `to-ne.png`; chỉ hướng đã khai đạt trong manifest được chạy hoạt ảnh.
+
+### Nhập vòng 3
+
+- tham_hai_ma_kinh: chuẩn cỡ = sheet đã nhập (s 64.5, se 64, e 61.5, n 63.5 → 63.4); khớp ne ×1.04 (còn lệch 0.0%)
+- Hướng cũ ở ảnh màu và normal giữ nguyên byte; không dùng --scale.

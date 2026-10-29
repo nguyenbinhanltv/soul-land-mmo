@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-809",
+  "issue": 1290,
+  "builtinCalls": 3,
+  "round": 3,
+  "direction": "n",
+  "prompt": "to-n-809-attempt3.prompt.txt",
+  "verdict": "Chặn: không lộ mắt nhưng mất đuôi, sai nhận diện; đủ ba yêu cầu bổ sung (lượt 1 không RAW), giữ ảnh tĩnh n.",
+  "sha256": "80b9bd89e849232ef527664e5d5920565347b3bf238e7280576fde561a672808"
+}

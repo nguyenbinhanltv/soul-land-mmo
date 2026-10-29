@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-809",
+  "issue": 1290,
+  "builtinCalls": 1,
+  "round": 3,
+  "direction": "ne",
+  "prompt": "to-ne-809-attempt1.prompt.txt",
+  "verdict": "Chặn: còn nét mắt ở cạnh đầu, kể cả die; không nhập.",
+  "sha256": "07fb4a5e4b13925b76fd704ebc85bec7b7450b067099be2a3d5bed3a712c6c8f"
+}

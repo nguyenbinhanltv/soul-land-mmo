@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-809",
+  "issue": 1290,
+  "builtinCalls": 1,
+  "round": 3,
+  "direction": "ne",
+  "prompt": "to-ne-809-attempt1.prompt.txt",
+  "verdict": "Chặn: nhiều khung chỉ có ba cặp chân, họa tiết mặt còn trên lưng; không nhập.",
+  "sha256": "b3d23f66a5246b87ec60982326249db54d5f914a5201bc5f53d28e26edcab7de"
+}

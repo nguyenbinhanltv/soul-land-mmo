@@ -145,3 +145,61 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/beast-anim/nhan_dien_ma_chu/` | - | image_gen | RAW hoạt ảnh Nhân Diện Ma Chu: turnaround 1536×1024, toA 1536×1024, toB 1536×1024, toC 1536×1024, toE 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+
+## Các lượt bổ sung vòng 3 (phiên 809)
+
+Sinh bằng beast-nguon trên staging từng ứng viên. Tối đa ba yêu cầu bổ sung/hướng theo chỉ định chủ repo; hướng lỗi giữ dự phòng. Hồ sơ các vòng trước giữ nguyên như ảnh chụp lịch sử, không thay phiếu hướng vòng 3 bên dưới.
+
+### to-ne-809-attempt1
+
+- File: `candidates/to-ne-809-attempt1.png`, **1536×1024**, 1800339 byte, SHA256 `b3d23f66a5246b87ec60982326249db54d5f914a5201bc5f53d28e26edcab7de`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-809.
+- Prompt: `candidates/to-ne-809-attempt1.prompt.txt` (SHA256 `099e8d180b9d214669e1decdae97d3418c9e21f4ba3c2b065faae55a9c5f1929`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+#### Lỗi ứng viên
+
+```text
+LỖI: to-ne-809-attempt1 — nhiều khung chỉ có ba cặp chân, họa tiết mặt còn trên lưng; không nhập. (mắt)
+```
+
+- Phiếu vòng 3: Chặn: nhiều khung chỉ có ba cặp chân, họa tiết mặt còn trên lưng; không nhập.
+- Bản nhập cuối: không chọn; giữ trong candidates.
+
+### to-ne-809-attempt2
+
+- File: `candidates/to-ne-809-attempt2.png`, **1536×1024**, 1832977 byte, SHA256 `1d41b68d53d371fa4f31a187a37758aa7d60151fe55baa5e771bbdee909ce9e9`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-809.
+- Prompt: `candidates/to-ne-809-attempt2.prompt.txt` (SHA256 `5193bd4ec19a7499ba05f771487f265631d678b5dc878a9d20d951f46ea7b0ad`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+#### Lỗi ứng viên
+
+```text
+LỖI: to-ne-809-attempt2 — nhiều khung idle và walk chỉ đọc rõ ba cặp chân; không nhập. (mắt)
+```
+
+- Phiếu vòng 3: Chặn: nhiều khung idle và walk chỉ đọc rõ ba cặp chân; không nhập.
+- Bản nhập cuối: không chọn; giữ trong candidates.
+
+### to-ne-809-attempt3
+
+- File: `candidates/to-ne-809-attempt3.png`, **1536×1024**, 1755652 byte, SHA256 `f9cc02997cc24082bcb2ab9cd5dad2be75e87b49ec5d5dd261a44679a1e5384e`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-809.
+- Prompt: `candidates/to-ne-809-attempt3.prompt.txt` (SHA256 `9c5034cfd425daf2ee810751731c868c08c3eb2df424173a6b196775cae72206`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+#### Lỗi ứng viên
+
+```text
+LỖI: to-ne-809-attempt3 — còn ba cặp chân ở nhiều khung, họa tiết sáng trên lưng; đủ ba lượt bổ sung, giữ ảnh tĩnh ne. (mắt)
+```
+
+- Phiếu vòng 3: Chặn: còn ba cặp chân ở nhiều khung, họa tiết sáng trên lưng; đủ ba lượt bổ sung, giữ ảnh tĩnh ne.
+- Bản nhập cuối: không chọn; giữ trong candidates.

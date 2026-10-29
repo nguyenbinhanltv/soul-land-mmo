@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-809",
+  "issue": 1290,
+  "builtinCalls": 3,
+  "round": 3,
+  "direction": "e",
+  "prompt": "to-e-809-attempt3.prompt.txt",
+  "verdict": "Chặn: đầu và ngực còn chếch trước, chưa rõ góc e; đủ ba lượt bổ sung, giữ ảnh tĩnh e.",
+  "sha256": "175168c2f51566dde055009faee6a9bbe030c7b43fae209cab706cf55d55f68c"
+}

@@ -114,3 +114,46 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/beast-anim/doc_cham_phong/` | - | builtin image_gen.imagegen | RAW hoạt ảnh Độc Châm Phong: turnaround 1536×1024, toA 948×1659, toB 1254×1254; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+
+## Các lượt bổ sung vòng 3 (phiên 809)
+
+Sinh bằng beast-nguon trên staging từng ứng viên. Tối đa ba yêu cầu bổ sung/hướng theo chỉ định chủ repo; hướng lỗi giữ dự phòng. Hồ sơ các vòng trước giữ nguyên như ảnh chụp lịch sử, không thay phiếu hướng vòng 3 bên dưới.
+
+### to-ne-809-attempt1
+
+- File: `candidates/to-ne-809-attempt1.png`, **1536×1024**, 1872824 byte, SHA256 `b46740eb92b0fe389df9b2ec80f2e91f6f179288244a990a4cce2d4d467d169f`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-809.
+- Prompt: `candidates/to-ne-809-attempt1.prompt.txt` (SHA256 `bf6f52377f111375c0f56033f841f41232de6c558aee65ffeecf0cbc32dbe93a`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+#### Lỗi ứng viên
+
+```text
+LỖI: to-ne-809-attempt1 — lộ mắt rõ ở attack C2 và C3; không nhập. (mắt)
+```
+
+- Phiếu vòng 3: Chặn: lộ mắt rõ ở attack C2 và C3; không nhập.
+- Bản nhập cuối: không chọn; giữ trong candidates.
+
+### to-ne-809-attempt2
+
+- File: `candidates/to-ne-809-attempt2.png`, **1536×1024**, 1786553 byte, SHA256 `4a4831ece90762c7218e74bf2d03f71e28cc3b2185823654f2d14a76832eb5c6`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-809.
+- Prompt: `candidates/to-ne-809-attempt2.prompt.txt` (SHA256 `a573f1221d462e52de0448c5d2d4b9506d6a2e331e2027399e55cebe540293b7`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+#### Lỗi ứng viên
+
+Không có dòng `LỖI:`.
+
+- Phiếu vòng 3: Đạt: tờ liên hệ đủ khung, không thấy mắt/mặt, giữ hướng lưng; hurt nhỏ.
+- Bản nhập cuối: chọn tờ này, RAW chính `to-ne.png`; chỉ hướng đã khai đạt trong manifest được chạy hoạt ảnh.
+
+### Nhập vòng 3
+
+- doc_cham_phong: chuẩn cỡ = sheet đã nhập (s 27.5, se 28, e 28, n 26 → 27.4); khớp ne ×0.83 (còn lệch 0.0%)
+- Hướng cũ ở ảnh màu và normal giữ nguyên byte; không dùng --scale.

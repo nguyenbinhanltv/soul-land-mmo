@@ -1,0 +1,14 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 3,
+  "agent": "soul_land_game-778",
+  "original_tool_path": "C:\\Users\\PC\\.codex\\generated_images\\01a18423-efc9-75d3-9467-2adc5fc89681\\exec-74940d47-53db-4687-8075-2574ae923999.png",
+  "review": "CHẶN: 3 lượt vẫn lộ mắt ở ne trong idle/walk/attack/die; giữ fallback.",
+  "imported": false,
+  "references": [
+    "shared/assets/sprites/beast/bang_nguyen_cu_tuong.png",
+    "art/src/beast-anim/bang_nguyen_cu_tuong/turnaround.png"
+  ]
+}

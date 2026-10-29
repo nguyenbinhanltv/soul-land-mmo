@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-809",
+  "issue": 1290,
+  "builtinCalls": 2,
+  "round": 3,
+  "direction": "e",
+  "prompt": "to-e-809-attempt2.prompt.txt",
+  "verdict": "Chặn: đầu còn nhìn chếch trước, chưa phân biệt rõ e với se; không nhập.",
+  "sha256": "49a618e477aede78f1cdcf095ffa802dae16cc0e20b3bc69979fc91925b3ee4f"
+}

@@ -106,3 +106,28 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/beast-anim/xich_lan_mang/` | - | built-in image_gen.imagegen | RAW hoạt ảnh Xích Lân Mãng: toA 948×1659, toB 1254×1254; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+
+## Các lượt bổ sung vòng 3 (phiên 809)
+
+Sinh bằng beast-nguon trên staging từng ứng viên. Tối đa ba yêu cầu bổ sung/hướng theo chỉ định chủ repo; hướng lỗi giữ dự phòng. Hồ sơ các vòng trước giữ nguyên như ảnh chụp lịch sử, không thay phiếu hướng vòng 3 bên dưới.
+
+### to-ne-809-attempt1
+
+- File: `candidates/to-ne-809-attempt1.png`, **1536×1024**, 1683637 byte, SHA256 `97ec9c72122882ce30cd3adfb8424d62e1e016bd752b79d2e33b2ccef203820b`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-809.
+- Prompt: `candidates/to-ne-809-attempt1.prompt.txt` (SHA256 `1ba0f37f514c574e99494322bc5201e82ed0f5e5d8c13c7c0642859457e37248`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+#### Lỗi ứng viên
+
+Không có dòng `LỖI:`.
+
+- Phiếu vòng 3: Đạt: đầu nhìn lên phải, không lộ mặt, giữ đuôi nhọn; xem tách hàng die sau cắt.
+- Bản nhập cuối: chọn tờ này, RAW chính `to-ne.png`; chỉ hướng đã khai đạt trong manifest được chạy hoạt ảnh.
+
+### Nhập vòng 3
+
+- xich_lan_mang: chuẩn cỡ = sheet đã nhập (s 37.5, se 38, e 37, n 37 → 37.4); khớp ne ×0.72 (còn lệch 0.0%)
+- Hướng cũ ở ảnh màu và normal giữ nguyên byte; không dùng --scale.

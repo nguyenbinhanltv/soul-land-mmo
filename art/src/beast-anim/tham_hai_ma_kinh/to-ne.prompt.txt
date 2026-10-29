@@ -38,3 +38,5 @@ LESSONS (learned from earlier sheets of other creatures, follow every line):
 - Idle frames must show a small visible change from frame to frame (breathing, sway), and HURT must look clearly different from IDLE.
 - A frame that is empty in the layout stays empty magenta: do not fill spare cells with extra poses.
 - In directions n and ne, hide every eye, mouth line, tooth and nostril behind the back of the skull in ALL poses: show a solid unmarked rear skull, never the side of the face. Attack and hurt change body height and forward reach only, with zero head yaw; never open a mouth toward the camera.
+
+USER REQUESTED RETRY STRATEGY: Image 2 is an approved NORTH sheet, not turnaround. Rotate whale 45 degrees clockwise toward UPPER RIGHT. Tail nearest viewer lower left, head far upper right. The back of head is plain blue uninterrupted skin; all eyes and mouth on opposite hidden surface. No side profile. Same blue whale design, two flippers, single tail. Swim, recoil and sink without yawing the head. Flat magenta, 6x4 grid 22 separate whales.

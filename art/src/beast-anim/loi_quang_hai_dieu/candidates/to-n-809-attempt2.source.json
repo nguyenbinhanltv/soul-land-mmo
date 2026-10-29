@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-809",
+  "issue": 1290,
+  "builtinCalls": 2,
+  "round": 3,
+  "direction": "n",
+  "prompt": "to-n-809-attempt2.prompt.txt",
+  "verdict": "Chặn: chi tiết sáng hai bên đầu khó phân biệt mắt, chưa chọn nhập.",
+  "sha256": "4eca015d7d98d224cbeca66f28470f4125995f7462879dfd1fa92a5127101a56"
+}

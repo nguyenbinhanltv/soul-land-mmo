@@ -50,11 +50,11 @@ Loài `bang_nguyen_cu_tuong` (Băng Nguyên Cự Tượng), họ `quad`, khung g
 - Mức kiểm: **pass** (khối hướng: n pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
-## to-ne
+## to-ne (trước vòng 3, lưu nguyên byte)
 
-- File: `to-ne.png`, **1536×1024**, 2140567 byte, SHA256 `21674ce4351300a7627f5aab6a0fd4f24753f556f8ba77c47e352f4579c6b8d4`.
+- File: `candidates/to-ne-before-809.png`, **1536×1024**, 2140567 byte, SHA256 `21674ce4351300a7627f5aab6a0fd4f24753f556f8ba77c47e352f4579c6b8d4`.
 - Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-778.
-- Prompt: `to-ne.prompt.txt` (SHA256 `884c33499815137bd86463ef562b0ec75134aaace9c44a607e3cff3deae5b2e7`).
+- Prompt: `candidates/to-ne-before-809.prompt.txt` (SHA256 `884c33499815137bd86463ef562b0ec75134aaace9c44a607e3cff3deae5b2e7`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: ne nhẹ).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
@@ -197,3 +197,100 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/beast-anim/bang_nguyen_cu_tuong/` | - | Codex built-in image_gen.imagegen; HURT / ATTACK chỉnh tay theo quyết định orchestrator #1030 (turnaround.prompt.txt; bản gốc của công cụ không giữ lại; lượt 2 ở candidates/turnaround-attempt2.*); phiên sinh turnaround: tthoadev | RAW hoạt ảnh Băng Nguyên Cự Tượng: turnaround 1536×1024, toA 1536×1024, toB 1536×1024, toD 1536×1024, toE 1536×1024, to-e 1536×1024, to-ne 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+
+## Các lượt bổ sung vòng 3 (phiên 809)
+
+Sinh bằng beast-nguon trên staging từng ứng viên. Tối đa ba yêu cầu bổ sung/hướng theo chỉ định chủ repo; hướng lỗi giữ dự phòng. Hồ sơ các vòng trước giữ nguyên như ảnh chụp lịch sử, không thay phiếu hướng vòng 3 bên dưới.
+
+### to-e-809-attempt1
+
+- File: `candidates/to-e-809-attempt1.png`, **1536×1024**, 2270910 byte, SHA256 `4e37ddfe597dcc9d578d52fdb93f61b22d4a377e523da590e9331d9845d3d803`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-809.
+- Prompt: `candidates/to-e-809-attempt1.prompt.txt` (SHA256 `df2a69f7020df7cfa4dcc808b8fb05580f28e8a94617c7a3ab9d6b601d16d6b4`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: e pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+#### Lỗi ứng viên
+
+```text
+LỖI: to-e-809-attempt1 — phần đầu còn chếch về người xem, chưa là góc ngang e rõ; không nhập. (mắt)
+```
+
+- Phiếu vòng 3: Chặn: phần đầu còn chếch về người xem, chưa là góc ngang e rõ; không nhập.
+- Bản nhập cuối: không chọn; giữ trong candidates.
+
+### to-e-809-attempt2
+
+- File: `candidates/to-e-809-attempt2.png`, **1536×1024**, 2161739 byte, SHA256 `49a618e477aede78f1cdcf095ffa802dae16cc0e20b3bc69979fc91925b3ee4f`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-809.
+- Prompt: `candidates/to-e-809-attempt2.prompt.txt` (SHA256 `cd09bca3b10f04f7f03c4a122659f08a7a77db0b678dcd1a6ef1a02dd36dad4d`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: e pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+#### Lỗi ứng viên
+
+```text
+LỖI: to-e-809-attempt2 — đầu còn nhìn chếch trước, chưa phân biệt rõ e với se; không nhập. (mắt)
+```
+
+- Phiếu vòng 3: Chặn: đầu còn nhìn chếch trước, chưa phân biệt rõ e với se; không nhập.
+- Bản nhập cuối: không chọn; giữ trong candidates.
+
+### to-e-809-attempt3
+
+- File: `candidates/to-e-809-attempt3.png`, **1536×1024**, 2073057 byte, SHA256 `175168c2f51566dde055009faee6a9bbe030c7b43fae209cab706cf55d55f68c`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-809.
+- Prompt: `candidates/to-e-809-attempt3.prompt.txt` (SHA256 `af916225615d2b4abebded41b9e1ad12d111d0f217c00d44d8297c155eff67a1`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: e pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+#### Lỗi ứng viên
+
+```text
+LỖI: to-e-809-attempt3 — đầu và ngực còn chếch trước, chưa rõ góc e; đủ ba lượt bổ sung, giữ ảnh tĩnh e. (mắt)
+```
+
+- Phiếu vòng 3: Chặn: đầu và ngực còn chếch trước, chưa rõ góc e; đủ ba lượt bổ sung, giữ ảnh tĩnh e.
+- Bản nhập cuối: không chọn; giữ trong candidates.
+
+### to-ne-809-attempt1
+
+- File: `candidates/to-ne-809-attempt1.png`, **1536×1024**, 2185312 byte, SHA256 `1486a4aa38f8715787fcb58492b00c6067c7d897049affbaba7f5858cfa98c5e`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-809.
+- Prompt: `candidates/to-ne-809-attempt1.prompt.txt` (SHA256 `82d7c7e7f687e49f26db18261e9553231ffc057dfc8300471d955142bb589f23`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+#### Lỗi ứng viên
+
+Không có dòng `LỖI:`.
+
+- Phiếu vòng 3: Đạt: góc lưng lên phải, không thấy mắt hoặc miệng, giữ lông và ngà không thêm gai; hurt nhỏ.
+- Bản nhập cuối: không chọn; giữ trong candidates.
+
+### to-ne-809-attempt2
+
+- File: `candidates/to-ne-809-attempt2.png`, **1536×1024**, 2142070 byte, SHA256 `352f50712f20f4a2c3531b3fa4ec52ca3eed484717434695ebf4cf6221aebca6`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-809.
+- Prompt: `candidates/to-ne-809-attempt2.prompt.txt` (SHA256 `572ddf1e56bf49681cc01069da3d24a8d799353388257da7cc8f608141e124c8`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+#### Lỗi ứng viên
+
+Không có dòng `LỖI:`.
+
+- Phiếu vòng 3: Đạt: góc lưng lên phải, che toàn bộ mặt, dáng gọn không duỗi vòi khi đánh; hurt nhỏ.
+- Bản nhập cuối: chọn tờ này, RAW chính `to-ne.png`; chỉ hướng đã khai đạt trong manifest được chạy hoạt ảnh.
+
+### Nhập vòng 3
+
+- bang_nguyen_cu_tuong: chuẩn cỡ = sheet đã nhập (s 82, se 74, n 78 → 78); khớp ne ×0.95 (còn lệch 0.0%)
+- Hướng cũ ở ảnh màu và normal giữ nguyên byte; không dùng --scale.
+
+- RAW chính `to-e.png` = `candidates/to-e-809-attempt3.png`, chỉ làm nguồn cắt đủ cấu hình. Hướng e chặn mắt và vẫn dự phòng; manifest chỉ khai s, se, ne, n đạt.
