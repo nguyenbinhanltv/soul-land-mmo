@@ -1,6 +1,6 @@
 # Lam Ngân Thảo — thí điểm vũ khí mềm
 
-Part of #1312, epic #1020; issue thực hiện #1321. Dòng 18 trong `docs/art/phu-the-vu-khi.md`: roi dây cỏ lam thẫm, một tay giữ gốc, thân dây xoắn, ngọn nhọn. Đây là bộ thử để duyệt, **chưa duyệt mỹ thuật, chưa nhập game**. Không thay phụ thể cũ/pháp tướng, không sửa `shared/assets` hay giao diện.
+Part of #1312, epic #1020; issue thực hiện #1321. Dòng 18 trong `docs/art/phu-the-vu-khi.md`: roi dây cỏ lam thẫm, một tay giữ gốc, thân dây xoắn, ngọn nhọn. **Trạng thái mới nhất: đã nhập bộ vẽ riêng + ghép grip vào game theo chỉ đạo sau #1323; [ảnh kiểm trong game](ingame/index.html) ở cuối hồ sơ.** Các mục vòng 1/2 và thử nghiệm dưới đây giữ lịch sử trước lần nhập; không coi trạng thái “chưa nhập” ở lịch sử là trạng thái hiện tại. Chờ chủ repo duyệt mỹ thuật, không tự merge.
 
 ## Nguồn và tham chiếu
 
@@ -103,3 +103,23 @@ node art/src/phuthe-anim/lam_ngan_thao/vukhi/isolated/finalize.mjs
 ```
 
 Lệnh đọc năm RAW đã lưu, chạy bộ ghép, thống nhất tỉ lệ/bảng màu, kiểm nộm nam/nữ, xuất sheet/manifest/GIF/trang duyệt trong `isolated/`. Chạy từ gốc repo, không gọi model và không ghi `shared/assets`. Hai bullet bài học phương pháp mới ở mục `@VUKHI-MEM` của lessons; không đưa các chỉ dẫn khóa nộm vòng 2 vào prompt vẽ riêng.
+
+## Nhập asset và kiểm trong game sau #1323
+
+Theo chỉ đạo tiếp theo, đã merge `origin/main` có importer #1323 rồi chạy:
+
+```sh
+node tools/assets/phuthe-import.mjs --kind vukhi --id lam_ngan_thao --dir art/src/phuthe-anim/lam_ngan_thao/vukhi/isolated/result
+node tools/assets/credits.mjs
+node tools/assets/validate.mjs
+```
+
+Đích: `shared/assets/sprites/vukhianim/lam_ngan_thao_b.png` và `_f.png`, giữ nguyên byte từ `isolated/result/`. Manifest có hai khóa `vkanim_lam_ngan_thao_b/_f`, kiểu vũ khí, khung 128, đủ clip/hướng/grip. Credits mô tả đúng vẽ riêng không nộm + ghép grip (sửa mô tả mặc định “vẽ trên nộm” của importer), credits JSON sinh lại. Validate: 1.762 key, 0 lỗi/0 cảnh báo.
+
+Trang `/choi?thu=vukhi` được bổ sung thân LPC thật qua `LpcRig` cho `gioi=m|f`, mốc dừng `ms`, nhân vật đối chiếu `khac`, và `tay=0` để kiểm năm hướng không chồng dây giữa cột. Ảnh auto thiếu sheet giữ nhánh không vũ khí; sheet giả chỉ dựng khi chọn `anh=gia`. Các lớp vũ khí vẫn qua `vukhiSetOf`, `fitPhuLayer`, `syncPhuLayers`, chọn nửa nữ từ texture `lpcc_f_*`, cùng quy tắc thu vũ khí khi Chân Thân.
+
+[Bộ ảnh trong game](ingame/index.html): 8 PNG nguyên byte chụp AO Browser, 5 hướng × idle/walk/attack/cast × nam/nữ; cột cuối là Bạch Hổ không sheet vũ khí. Thêm ảnh chọn Bạch Hổ làm võ hồn chính và hai ảnh attack ở 88/321 ms để xem cảnh báo nguồn. `ingame/capture.source.json` ghi mốc, điều khiển, SHA256 ảnh và asset đã nhập. Không dùng preview ghép code thay cho ảnh runtime.
+
+**Hai cảnh báo giữ nguyên:** `chan-lech` 14% ở s/attack khung 1 và se/attack khung 5 (chỉ số từ 0); xuất hiện ở cả nam/nữ, không có lỗi chặn. Bộ dò báo trên hình ghép dù thân LPC do code giữ nguyên; để chủ repo soát bằng ảnh nguồn và ảnh game, không xóa cảnh báo. Các khung runtime đã chụp không thấy tay phụ, đầu dây bị xén hoặc vũ khí gắn nhầm Bạch Hổ. Chưa suy ra mọi mốc thời gian/kiểu trang phục từ các ảnh tĩnh.
+
+Kiểm local sau nhập: `npm run check`, `npm run build`, `test:phutheanim`, credits/validate đạt. Bot RAM nhóm `combo`: 34 đạt, 0 lỗi, 0 bỏ qua. Không đổi server/SQL/luật chơi; việc duyệt mỹ thuật và merge vẫn do chủ repo/orchestrator.

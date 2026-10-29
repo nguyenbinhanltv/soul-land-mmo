@@ -177,7 +177,7 @@
   "rearNonCastFramesWithBackLayer": 72,
   "scripts": {
     "compose": "2e6264242a6cd15210100f0cbedc97196c488eda1cc5e30b0019258eeaab94b3",
-    "finalize": "6db504023c917d665bfd34c9b77f6ea1099f6e6fe0c3a62bbdd1090c7fa67b6c"
+    "finalize": "5d7cf86faebc27e1402c5766ab996b8cca3bcd8639acbdc8a40353980519ac26"
   },
-  "note": "Kiểm máy và hình học của đầu ra ghép, không coi tờ có nộm là RAW model. Chưa nhập shared/assets, chưa tích hợp client."
+  "note": "Kiểm máy và hình học của đầu ra ghép, không coi tờ có nộm là RAW model. Trạng thái nhập và ảnh runtime ở NGUON.md / ingame/index.html."
 }

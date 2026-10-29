@@ -1,0 +1,222 @@
+{
+  "method": "AO Browser screenshot, electron-webcontents-debugger",
+  "page": "/choi?thu=vukhi",
+  "viewportPixels": [
+    1600,
+    900
+  ],
+  "imageBytesUnmodified": true,
+  "selection": "Chọn clip trong UI, nhập mốc ms, chờ canvas và trạng thái LPC sẵn sàng; không dựng lại ảnh bằng code.",
+  "assets": [
+    {
+      "key": "vkanim_lam_ngan_thao_b",
+      "file": "shared/assets/sprites/vukhianim/lam_ngan_thao_b.png",
+      "sha256": "b5198c9d158dfe7f8c0a4de7b72cf1e9b689bc61e091656c6d62e366d7159aa5",
+      "source": "../isolated/result/vkanim_lam_ngan_thao_b.png"
+    },
+    {
+      "key": "vkanim_lam_ngan_thao_f",
+      "file": "shared/assets/sprites/vukhianim/lam_ngan_thao_f.png",
+      "sha256": "858f469edcf2bbf77943a450320209c19d74803191a29002d31f6c8f71f08391",
+      "source": "../isolated/result/vkanim_lam_ngan_thao_f.png"
+    }
+  ],
+  "items": [
+    {
+      "file": "m-idle.png",
+      "sex": "m",
+      "clip": "idle",
+      "ms": 120,
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "companion": "bach_ho",
+      "observedMode": "ảnh thật",
+      "observedFallback": "không vũ khí",
+      "sha256": "09511fa7edeb3f7760d72e2f2b082bbea65f15fcb30e523351a93d0893b265f0",
+      "capturedAt": "2026-10-29T19:02:14.789Z",
+      "reproducePath": "/choi?thu=vukhi&vh=lam_ngan_thao&gioi=m&trang=idle&ms=120&khac=bach_ho&zoom=3&tay=0"
+    },
+    {
+      "file": "m-walk.png",
+      "sex": "m",
+      "clip": "walk",
+      "ms": 120,
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "companion": "bach_ho",
+      "observedMode": "ảnh thật",
+      "observedFallback": "không vũ khí",
+      "sha256": "1c0ae241512a24ed0bbd11f79a44be610ce3fa9de464fe3d99d15c63f2a55864",
+      "capturedAt": "2026-10-29T19:02:15.645Z",
+      "reproducePath": "/choi?thu=vukhi&vh=lam_ngan_thao&gioi=m&trang=walk&ms=120&khac=bach_ho&zoom=3&tay=0"
+    },
+    {
+      "file": "m-attack.png",
+      "sex": "m",
+      "clip": "attack",
+      "ms": 180,
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "companion": "bach_ho",
+      "observedMode": "ảnh thật",
+      "observedFallback": "không vũ khí",
+      "sha256": "e816b46d52d3e4714d6b1348041f057cca184791d13a32f72805b11a770a9544",
+      "capturedAt": "2026-10-29T19:02:16.571Z",
+      "reproducePath": "/choi?thu=vukhi&vh=lam_ngan_thao&gioi=m&trang=attack&ms=180&khac=bach_ho&zoom=3&tay=0"
+    },
+    {
+      "file": "m-cast.png",
+      "sex": "m",
+      "clip": "cast",
+      "ms": 180,
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "companion": "bach_ho",
+      "observedMode": "ảnh thật",
+      "observedFallback": "không vũ khí",
+      "sha256": "71d95f20cb61d088c2cd437a7d1e61f6ac8dbd46053fa49e82799da2714ebd4b",
+      "capturedAt": "2026-10-29T19:02:17.447Z",
+      "reproducePath": "/choi?thu=vukhi&vh=lam_ngan_thao&gioi=m&trang=cast&ms=180&khac=bach_ho&zoom=3&tay=0"
+    },
+    {
+      "file": "f-idle.png",
+      "sex": "f",
+      "clip": "idle",
+      "ms": 120,
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "companion": "bach_ho",
+      "observedMode": "ảnh thật",
+      "observedFallback": "không vũ khí",
+      "sha256": "4b259e01e9290580f1bedf8c6c2688315403edafee1a287b7e570a7dc7cbed61",
+      "capturedAt": "2026-10-29T19:07:24.374Z",
+      "reproducePath": "/choi?thu=vukhi&vh=lam_ngan_thao&gioi=f&trang=idle&ms=120&khac=bach_ho&zoom=3&tay=0"
+    },
+    {
+      "file": "f-walk.png",
+      "sex": "f",
+      "clip": "walk",
+      "ms": 120,
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "companion": "bach_ho",
+      "observedMode": "ảnh thật",
+      "observedFallback": "không vũ khí",
+      "sha256": "703d1687cd7f94cce26c1fba4e7eff75643b552cf82bad945ffaee8d4cad10dd",
+      "capturedAt": "2026-10-29T19:07:25.266Z",
+      "reproducePath": "/choi?thu=vukhi&vh=lam_ngan_thao&gioi=f&trang=walk&ms=120&khac=bach_ho&zoom=3&tay=0"
+    },
+    {
+      "file": "f-attack.png",
+      "sex": "f",
+      "clip": "attack",
+      "ms": 180,
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "companion": "bach_ho",
+      "observedMode": "ảnh thật",
+      "observedFallback": "không vũ khí",
+      "sha256": "31d52c807a2a421166089194eb47cde6a61ea2c7a12319e6716476802a5e280a",
+      "capturedAt": "2026-10-29T19:07:26.276Z",
+      "reproducePath": "/choi?thu=vukhi&vh=lam_ngan_thao&gioi=f&trang=attack&ms=180&khac=bach_ho&zoom=3&tay=0"
+    },
+    {
+      "file": "f-cast.png",
+      "sex": "f",
+      "clip": "cast",
+      "ms": 180,
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "companion": "bach_ho",
+      "observedMode": "ảnh thật",
+      "observedFallback": "không vũ khí",
+      "sha256": "d97faaf6a8b3ed1aae7e7f5de06f823b3f1edf517ee8c336e214d83eeffdcfd7",
+      "capturedAt": "2026-10-29T19:07:27.170Z",
+      "reproducePath": "/choi?thu=vukhi&vh=lam_ngan_thao&gioi=f&trang=cast&ms=180&khac=bach_ho&zoom=3&tay=0"
+    },
+    {
+      "file": "fallback-main.png",
+      "sex": "m",
+      "clip": "attack",
+      "ms": 180,
+      "vohon": "bach_ho",
+      "sha256": "ddf3a9f4f9aa931ca8e254a5089201a7d5b7c8ff09059005b2e3431ddcf84667",
+      "capturedAt": "2026-10-29T19:10:31.967Z"
+    },
+    {
+      "file": "warning-s-88.png",
+      "sex": "m",
+      "clip": "attack",
+      "ms": 88,
+      "vohon": "lam_ngan_thao",
+      "sha256": "c343a352540431eda5bf4e842c8463c6fc7ad7f9ca1eeb323a33634c9a217b67",
+      "capturedAt": "2026-10-29T19:18:21.210Z"
+    },
+    {
+      "file": "warning-se-321.png",
+      "sex": "m",
+      "clip": "attack",
+      "ms": 321,
+      "vohon": "lam_ngan_thao",
+      "sha256": "b92d93afbc79b747c0ecbc25e6eae66c723f1caddd144e7433059a829060e9a8",
+      "capturedAt": "2026-10-29T19:18:22.096Z"
+    }
+  ],
+  "warnings": [
+    {
+      "direction": "s",
+      "clip": "attack",
+      "frameIndex": 1,
+      "code": "chan-lech",
+      "percent": 14
+    },
+    {
+      "direction": "se",
+      "clip": "attack",
+      "frameIndex": 5,
+      "code": "chan-lech",
+      "percent": 14
+    }
+  ],
+  "limits": "Ảnh chụp ở các mốc ghi rõ, không chứng nhận mọi mốc thời gian hoặc mọi kiểu ngoại hình."
+}
