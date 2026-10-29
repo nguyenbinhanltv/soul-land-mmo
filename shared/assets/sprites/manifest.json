@@ -14358,66 +14358,82 @@
       "key": "gi_menu_char",
       "iso": true
     },
+    { "key": "gi_menu_char_1x", "iso": true },
     {
       "key": "gi_menu_roster",
       "iso": true
     },
+    { "key": "gi_menu_roster_1x", "iso": true },
     {
       "key": "gi_menu_bag",
       "iso": true
     },
+    { "key": "gi_menu_bag_1x", "iso": true },
     {
       "key": "gi_menu_reso",
       "iso": true
     },
+    { "key": "gi_menu_reso_1x", "iso": true },
     {
       "key": "gi_menu_settings",
       "iso": true
     },
+    { "key": "gi_menu_settings_1x", "iso": true },
     {
       "key": "gi_menu_auto",
       "iso": true
     },
+    { "key": "gi_menu_auto_1x", "iso": true },
     {
       "key": "gi_menu_channel",
       "iso": true
     },
+    { "key": "gi_menu_channel_1x", "iso": true },
     {
       "key": "gi_menu_area",
       "iso": true
     },
+    { "key": "gi_menu_area_1x", "iso": true },
     {
       "key": "gi_menu_world",
       "iso": true
     },
+    { "key": "gi_menu_world_1x", "iso": true },
     {
       "key": "gi_menu_friends",
       "iso": true
     },
+    { "key": "gi_menu_friends_1x", "iso": true },
     {
       "key": "gi_menu_rank",
       "iso": true
     },
+    { "key": "gi_menu_rank_1x", "iso": true },
     {
       "key": "gi_menu_quest",
       "iso": true
     },
+    { "key": "gi_menu_quest_1x", "iso": true },
     {
       "key": "gi_menu_chat",
       "iso": true
     },
+    { "key": "gi_menu_chat_1x", "iso": true },
     {
       "key": "gi_menu_arena",
       "iso": true
     },
+    { "key": "gi_menu_arena_1x", "iso": true },
     {
       "key": "gi_menu_shop",
       "iso": true
     },
+    { "key": "gi_menu_shop_1x", "iso": true },
     {
       "key": "gi_menu_forge",
       "iso": true
     },
+    { "key": "gi_menu_forge_1x", "iso": true },
     {
       "key": "item_hon_hach_phuong_hoang",
       "iso": true

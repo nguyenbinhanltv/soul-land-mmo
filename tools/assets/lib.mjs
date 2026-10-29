@@ -464,6 +464,8 @@ export function sheetSpec(key, frame, iso = false, stat = false) {
   if ((m = key.match(/^he_([a-z_]+)$/))) return { file: `iso/he/${m[1]}.png`, size: [ISO_HE_ICON, ISO_HE_ICON], kind: "portrait", iso: true, he: m[1] };
   if ((m = key.match(/^card_(sr|ssr|ur)$/))) return { file: `iso/ui/the_${m[1]}.png`, size: ISO_CARD, kind: "portrait", iso: true };
   if ((m = key.match(/^ui_(?!the_)([a-z0-9_]+)$/))) return { file: `iso/ui/${m[1]}.png`, kind: "portrait", iso: true };
+  // Icon menu HUD bản 1× (#884, tools/assets/menu-icon-import.mjs): `gi_menu_<tên>_1x` khung 24×24, cạnh bản 2× 32×32 cùng tên không hậu tố.
+  if ((m = key.match(/^gi_(menu_[a-z0-9]+_1x)$/))) return { file: `iso/gi/${m[1]}.png`, size: [24, 24], kind: "portrait", iso: true };
   if ((m = key.match(/^gi_([a-z0-9_]+)$/))) return { file: `iso/gi/${m[1]}.png`, size: [ISO_SKILL_ICON, ISO_SKILL_ICON], kind: "portrait", iso: true }; // game-icons.net (#625): Chân Thân, dung hợp, menu HUD
   if ((m = key.match(/^item_([a-z0-9_]+)$/))) return { file: `iso/item/${m[1]}.png`, size: [ISO_ITEM_ICON, ISO_ITEM_ICON], kind: "portrait", iso: true, item: m[1] };
   if ((m = key.match(/^npc_([a-z_]+)$/))) return { file: `iso/npc/${m[1]}.png`, size: [ISO_NPC_PORTRAIT, ISO_NPC_PORTRAIT], kind: "portrait", iso: true, npc: m[1] };

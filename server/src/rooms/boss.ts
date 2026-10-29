@@ -9,6 +9,7 @@ import { MAPS, BOSSES, KING, KING_CHEST, WORLD, WORLD_SLAM, WORLD_RING, WORLD_CH
 import { ANNOUNCE_TOPIC } from "../schedule.ts";
 import { store, type Item } from "../db.ts";
 import { surfaceSpot } from "./worldBoss.ts";
+import { achvCount } from "./achv.ts";
 import { newItem, bagUsed } from "./items.ts";
 import { claimHeld, bossK, kingClaimCache, persistKingSeat, uid, type MapRoom, type PData, type BData, type EliteData, type KingData, type WorldData } from "./MapRoom.ts";
 
@@ -224,7 +225,7 @@ export function killKing(room: MapRoom, bid: string, b: BeastState, e: EliteData
     const ry = !world ? undefined : pid === owner || Math.random() < WORLD_RING.red ? WORLD_RING.top : rollYears(WORLD_RING.black[0], WORLD_RING.black[1], Math.random());
     if (pct >= K.share && claimed?.has(d.accountId))
       room.log(pid, `Hạ ${name}! Đóng góp ${pctTxt}: đã nhận ${world ? "thưởng" : "rương"} của khung giờ này ở kênh khác, không nhận thêm.${coinTxt}${ring}`, "#ffb35c");
-    else if (pct >= K.share) { room.log(pid, `Hạ ${name}! Đóng góp ${pctTxt}.${coinTxt}${ring}`, k.def.aura); grantChest(room, pid, k.def, claimed, ry); }
+    else if (pct >= K.share) { achvCount(room, pid, world ? "world" : "king"); room.log(pid, `Hạ ${name}! Đóng góp ${pctTxt}.${coinTxt}${ring}`, k.def.aura); grantChest(room, pid, k.def, claimed, ry); }
     else room.log(pid, `Hạ ${name}! Đóng góp ${pctTxt}: cần từ ${K.share * 100}% mới nhận ${world ? "thưởng" : "rương"}.${coinTxt}${ring}`, "#ffb35c");
   }
   if (!e.dmgBy.has(by) && !e.supBy.has(by)) room.log(by, `Hạ ${name}, nhận ${formatHonTe(coin)} Hồn Tệ.`, k.def.aura);

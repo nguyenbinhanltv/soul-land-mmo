@@ -7,7 +7,7 @@ const MENU: Record<string, string> = { charBtn: "char", vhBtn: "roster", bagBtn:
 /** Nạp ảnh trước khi đổi icon; thiếu key/tải lỗi thì giữ nguyên chữ và ký tự cũ. */
 function decorate(el: HTMLElement, key: string) {
   if (el.dataset.c12Key === key) return;
-  const url = artUrl(key); if (!url) return;
+  const url = (key.startsWith("gi_menu_") && window.devicePixelRatio < 1.5 && artUrl(`${key}_1x`)) || artUrl(key); if (!url) return; // icon menu có bản 1× (24 px) cho màn DPR 1
   el.dataset.c12Key = key;
   const image = new Image(); image.alt = ""; image.draggable = false;
   image.onload = () => {
