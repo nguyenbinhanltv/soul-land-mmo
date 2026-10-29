@@ -13,8 +13,8 @@ type Phase = "wait" | "ready" | "fight" | "end";
 type Reason = "win" | "dead" | "time" | "leave" | "noshow";
 const REASON_TEXT: Record<Reason, string> = { win: "hạ hết các sóng", dead: "đội võ hồn gục hết", time: "hết giờ", leave: "rời phòng giữa chừng", noshow: "không vào phòng" };
 const DENY_GAP_MS = 1000;
-/** Tin ngoài trận bị chặn trong phòng Bí Cảnh: như sân đấu, thêm đổi túi (sắp xếp / khóa / tự bán) và `arena`; để túi chỉ đổi bởi phần thưởng và kết quả không lệch giữa RAM và DB. */
-const ROOM_BLOCKED = [...BLOCKED, "arena", "sortbag", "lock", "autosell"];
+/** Tin ngoài trận bị chặn trong phòng Bí Cảnh: như sân đấu, thêm đổi túi (sắp xếp / khóa / tự bán), `arena`, và (phòng thủ thêm, P6) tông môn / ngoại hình / đặt lại bộ hạch / đổi kênh vốn đã vô hiệu vì sân không có NPC và không có kênh; để túi chỉ đổi bởi phần thưởng và kết quả không lệch giữa RAM và DB. */
+const ROOM_BLOCKED = [...BLOCKED, "arena", "sortbag", "lock", "autosell", "tong", "looks", "coreset", "channel"];
 
 export class BiCanhRoom extends MapRoom {
   maxClients = 1;

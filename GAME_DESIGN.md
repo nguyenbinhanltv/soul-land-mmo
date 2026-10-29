@@ -73,6 +73,7 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/chong-gian-lan-khac-may-man-tong-mon.md](docs/tech/chong-gian-lan-khac-may-man-tong-mon.md) | 5 | Soát chống gian lận khắc may mắn + tông môn (#740) |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/soat-gian-lan-mua-lai-ban-be-chat.md](docs/tech/soat-gian-lan-mua-lai-ban-be-chat.md) | 5 | Soát chống gian lận mua lại nhiều tiến trình + bạn bè / chat (#742) |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/soat-gian-lan-phuc-loi.md](docs/tech/soat-gian-lan-phuc-loi.md) | 1 |  |
+| 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/soat-gian-lan-bi-canh.md](docs/tech/soat-gian-lan-bi-canh.md) | 1 |  |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/du-lieu-db.md](docs/tech/du-lieu-db.md) | 5 | Dữ liệu trong `shared/data.ts; Dữ liệu lâu dài |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/hieu-nang-hieu-ung.md](docs/tech/hieu-nang-hieu-ung.md) | 1 |  |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/hieu-nang-soak.md](docs/tech/hieu-nang-soak.md) | 1 |  |
