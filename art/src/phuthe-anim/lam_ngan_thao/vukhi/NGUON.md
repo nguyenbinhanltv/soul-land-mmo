@@ -123,3 +123,8 @@ Trang `/choi?thu=vukhi` được bổ sung thân LPC thật qua `LpcRig` cho `gi
 **Hai cảnh báo giữ nguyên:** `chan-lech` 14% ở s/attack khung 1 và se/attack khung 5 (chỉ số từ 0); xuất hiện ở cả nam/nữ, không có lỗi chặn. Bộ dò báo trên hình ghép dù thân LPC do code giữ nguyên; để chủ repo soát bằng ảnh nguồn và ảnh game, không xóa cảnh báo. Các khung runtime đã chụp không thấy tay phụ, đầu dây bị xén hoặc vũ khí gắn nhầm Bạch Hổ. Chưa suy ra mọi mốc thời gian/kiểu trang phục từ các ảnh tĩnh.
 
 Kiểm local sau nhập: `npm run check`, `npm run build`, `test:phutheanim`, credits/validate đạt. Bot RAM nhóm `combo`: 34 đạt, 0 lỗi, 0 bỏ qua. Không đổi server/SQL/luật chơi; việc duyệt mỹ thuật và merge vẫn do chủ repo/orchestrator.
+
+### Sửa neo runtime theo AO review
+GameScene từng áp neo lưng `anchor.json` của phụ thể cũ (Lam Ngân Thảo m/s scale 0.9, dy -2.65) lên vũ khí mới. Đã dùng chung `phuLayerPlacement` giữa GameScene và trang thử: vũ khí giữ gốc LPC, không áp clip offset/neo lưng; không chạy dao động xoay/co/dịch phụ thể vì grip đã bake. Phụ thể cũ giữ hành vi cũ. Kiểm hồi quy có neo cũ, offset khác 0 và cả phía lật ngang.
+
+Tám ảnh ma trận được chụp lại từ bản build sau sửa. Thêm `ingame/game-scene-m-idle.png`: đăng nhập tài khoản thử trên server RAM riêng, chuyển ô 2 Lam Ngân Thảo, đứng trong Thánh Hồn Thôn qua GameScene thật. `game-scene-fallback.png` chuyển ô 1 Thất Sát Kiếm: trở về phụ thể cũ, không giữ roi. Không đóng băng đồng hồ hoặc dựng lại ảnh; đòn đánh bị vùng an toàn chặn nên không dùng ảnh GameScene làm bằng chứng attack/cast. Ma trận trang thử vẫn kiểm đủ nam/nữ, bốn động tác, năm hướng. Hash ba file mã đặt lớp ghi trong capture.source.json.

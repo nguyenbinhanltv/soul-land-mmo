@@ -76,7 +76,7 @@ import { hitWeight, KNOCK_PX, materialSparks, damageStyle, playHitFeelSheets, re
 import { footDustCount, rootSnareDiameter } from "../combatFeelRules.ts";
 import { PhapTuongSystem, PhapTuongCutIn } from "../phapTuong.ts";
 import { phuFaceOf, phuDirRow, weaponHidden } from "../phutheAnim.ts";
-import { PHU_NO_ANCHOR, phuAnchorAt, phuAnchorsOf } from "../phutheAnchor.ts";
+import { PHU_NO_ANCHOR, phuAnchorAt, phuAnchorsOf, phuLayerPlacement } from "../phutheAnchor.ts";
 import { SPIRIT_FAMILY, clipOscK, weaponOscK, spiritPose, spiritScale, spiritPhase, applySpiritPose, newSpiritPose, type SpiritState } from "../spiritMotion.ts";
 import { ParticleLayer, HIT_SPARK, SHAKE_TIER, beastJerk, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs, fxLevel, fxGov } from "../combatFx.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
@@ -3460,12 +3460,12 @@ export class GameScene extends Phaser.Scene {
     const lift = fe < 1 ? -Math.round(Math.sin(Math.PI * Math.max(0, fe)) * 10) : 0;
     for (const s of [v.body, v.vb, v.vf, v.ringsB, v.ringsF]) s.y = lift; // quầng (v.halo) đặt y trong animateRings
     // Phụ thể của thân LPC (rộng hơn m1): lệch theo LPC_VIEW.vohon, dx đổi dấu khi lật ngang.
-    const ox = (v.lpcKey ? (flip ? -LPC_VIEW.vohon.dx : LPC_VIEW.vohon.dx) : 0) + (flip ? -clipOff[0] : clipOff[0]), oy = (v.lpcKey ? LPC_VIEW.vohon.dy : 0) + clipOff[1];
     // Neo theo tâm khối thân (phutheAnchor.ts): dời (dx, dy) điểm ảnh khung (một điểm ảnh = 1 / SPR đơn vị hình chứa), phóng quanh gốc chân; chưa có neo thì dời 0, phóng 1 (hành vi cũ).
     const an = real ? phuAnchorAt(phuAnchorsOf(VOHON[v.vh]?.id ?? ""), /^lpcc_f_/.test(v.lpcKey), phuDirRow(phuFaceOf(v.lpcFace.shown, v.face))) : PHU_NO_ANCHOR; // chỉ clip vẽ thật; phụ thể tĩnh cũ giữ như cũ
-    const ax = ox + (flip ? -an.dx : an.dx) / SPR, ay = oy + an.dy / SPR;
+    const place = phuLayerPlacement(!!pa?.layout.weapon, flip, v.lpcKey ? [LPC_VIEW.vohon.dx, LPC_VIEW.vohon.dy] : NO_OFF, clipOff, an, SPR);
+    const ax = place.x, ay = place.y;
     v.vb.x = v.vf.x = ax; v.vb.y = v.vf.y = lift + ay;
-    this.spiritMotion(id, v, p, time, anim, flip, ax, lift + ay, an.scale, real);
+    this.spiritMotion(id, v, p, time, anim, flip, ax, lift + ay, place.scale, real);
     // Bị đánh: nháy trắng 2 lần.
     const e = time - v.hurtT, white = e < 70 || (e >= 140 && e < 210);
     for (const s of [v.body, v.vb, v.vf]) if (white) s.setTintFill(0xffffff); else s.clearTint();
@@ -3480,6 +3480,8 @@ export class GameScene extends Phaser.Scene {
    * chuyển động tắt hẳn, người khác nhẹ hơn. Gục, hấp thụ, khung phụ thể ẩn thì trả về tư thế gốc.
    */
   spiritMotion(id: string, v: PView, p: any, time: number, anim: HsAnim, flip: boolean, ox: number, oy: number, anchorK = 1, real = !!v.vhAnim) {
+    // Vũ khí đã bake pose theo bàn tay; dao động phụ thể sẽ làm điểm cầm rời tay.
+    if (real && v.vhAnim?.layout.weapon) { for (const s of [v.vb, v.vf]) s.setRotation(0).setScale(1 / SPR).setPosition(ox, oy); return; }
     const fam = SPIRIT_FAMILY[VOHON[p.vh]?.id ?? ""], layers = [v.vb, v.vf];
     const k = fam && v.vb.visible && !p.dead && anim !== "absorb" ? spiritScale(fxLevel(), fxPrefs.reduce, id === this.me) : 0;
     const iso = real || isIsoSheet(this, v.vb.texture.key), base = (iso ? 1 / SPR : 1) * (iso ? anchorK : 1); // phụ thể 48×48 cũ vẽ bằng code phóng 1 (fitHonsuLayer); neo chỉ cho ảnh iso

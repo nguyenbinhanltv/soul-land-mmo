@@ -6,7 +6,21 @@
     900
   ],
   "imageBytesUnmodified": true,
-  "selection": "Chọn clip trong UI, nhập mốc ms, chờ canvas và trạng thái LPC sẵn sàng; không dựng lại ảnh bằng code.",
+  "selection": "Chụp lại ma trận từ bản build sau sửa neo bằng URL mốc ms, chờ LPC sẵn sàng; thêm ảnh GameScene thật /choi trong server RAM riêng. Không dựng lại ảnh bằng code.",
+  "placementCode": [
+    {
+      "file": "client/src/phutheAnchor.ts",
+      "sha256": "ef8532a1beff47adea8fd40f1fef13c3ac15eee2e6ea08863b515340db66eb71"
+    },
+    {
+      "file": "client/src/scenes/GameScene.ts",
+      "sha256": "5bb8557e38babd486d7abfac5a4c695e3c90ee3a99f2887f4bab4789e8f20ea1"
+    },
+    {
+      "file": "client/src/vukhiTest.ts",
+      "sha256": "c3427a1bdbffbe6907ed26e9cc5f35bd0ab1a033ee305fc9c501f3115d715116"
+    }
+  ],
   "assets": [
     {
       "key": "vkanim_lam_ngan_thao_b",
@@ -38,7 +52,7 @@
       "observedMode": "ảnh thật",
       "observedFallback": "không vũ khí",
       "sha256": "09511fa7edeb3f7760d72e2f2b082bbea65f15fcb30e523351a93d0893b265f0",
-      "capturedAt": "2026-10-29T19:02:14.789Z",
+      "capturedAt": "2026-10-29T19:41:54.240Z",
       "reproducePath": "/choi?thu=vukhi&vh=lam_ngan_thao&gioi=m&trang=idle&ms=120&khac=bach_ho&zoom=3&tay=0"
     },
     {
@@ -57,7 +71,7 @@
       "observedMode": "ảnh thật",
       "observedFallback": "không vũ khí",
       "sha256": "1c0ae241512a24ed0bbd11f79a44be610ce3fa9de464fe3d99d15c63f2a55864",
-      "capturedAt": "2026-10-29T19:02:15.645Z",
+      "capturedAt": "2026-10-29T19:41:55.771Z",
       "reproducePath": "/choi?thu=vukhi&vh=lam_ngan_thao&gioi=m&trang=walk&ms=120&khac=bach_ho&zoom=3&tay=0"
     },
     {
@@ -75,8 +89,8 @@
       "companion": "bach_ho",
       "observedMode": "ảnh thật",
       "observedFallback": "không vũ khí",
-      "sha256": "e816b46d52d3e4714d6b1348041f057cca184791d13a32f72805b11a770a9544",
-      "capturedAt": "2026-10-29T19:02:16.571Z",
+      "sha256": "eb0ef8cd34aaec9d76e3681df9d8283c7ee4d39285cac7bbb2c6e3643fb4668c",
+      "capturedAt": "2026-10-29T19:41:57.364Z",
       "reproducePath": "/choi?thu=vukhi&vh=lam_ngan_thao&gioi=m&trang=attack&ms=180&khac=bach_ho&zoom=3&tay=0"
     },
     {
@@ -94,8 +108,8 @@
       "companion": "bach_ho",
       "observedMode": "ảnh thật",
       "observedFallback": "không vũ khí",
-      "sha256": "71d95f20cb61d088c2cd437a7d1e61f6ac8dbd46053fa49e82799da2714ebd4b",
-      "capturedAt": "2026-10-29T19:02:17.447Z",
+      "sha256": "a8c66f65ad8464e1e346e11d120e04e7d30f9cfd0dc4ea55e23181b427924659",
+      "capturedAt": "2026-10-29T19:41:58.874Z",
       "reproducePath": "/choi?thu=vukhi&vh=lam_ngan_thao&gioi=m&trang=cast&ms=180&khac=bach_ho&zoom=3&tay=0"
     },
     {
@@ -114,7 +128,7 @@
       "observedMode": "ảnh thật",
       "observedFallback": "không vũ khí",
       "sha256": "4b259e01e9290580f1bedf8c6c2688315403edafee1a287b7e570a7dc7cbed61",
-      "capturedAt": "2026-10-29T19:07:24.374Z",
+      "capturedAt": "2026-10-29T19:42:00.466Z",
       "reproducePath": "/choi?thu=vukhi&vh=lam_ngan_thao&gioi=f&trang=idle&ms=120&khac=bach_ho&zoom=3&tay=0"
     },
     {
@@ -133,7 +147,7 @@
       "observedMode": "ảnh thật",
       "observedFallback": "không vũ khí",
       "sha256": "703d1687cd7f94cce26c1fba4e7eff75643b552cf82bad945ffaee8d4cad10dd",
-      "capturedAt": "2026-10-29T19:07:25.266Z",
+      "capturedAt": "2026-10-29T19:42:01.958Z",
       "reproducePath": "/choi?thu=vukhi&vh=lam_ngan_thao&gioi=f&trang=walk&ms=120&khac=bach_ho&zoom=3&tay=0"
     },
     {
@@ -151,8 +165,8 @@
       "companion": "bach_ho",
       "observedMode": "ảnh thật",
       "observedFallback": "không vũ khí",
-      "sha256": "31d52c807a2a421166089194eb47cde6a61ea2c7a12319e6716476802a5e280a",
-      "capturedAt": "2026-10-29T19:07:26.276Z",
+      "sha256": "e4d13a3c058161825e53f1f42121e2b0bd7924bdd49bac357375827248e90c7b",
+      "capturedAt": "2026-10-29T19:42:03.500Z",
       "reproducePath": "/choi?thu=vukhi&vh=lam_ngan_thao&gioi=f&trang=attack&ms=180&khac=bach_ho&zoom=3&tay=0"
     },
     {
@@ -170,8 +184,8 @@
       "companion": "bach_ho",
       "observedMode": "ảnh thật",
       "observedFallback": "không vũ khí",
-      "sha256": "d97faaf6a8b3ed1aae7e7f5de06f823b3f1edf517ee8c336e214d83eeffdcfd7",
-      "capturedAt": "2026-10-29T19:07:27.170Z",
+      "sha256": "c725f5f808f1ef29eb3b43693f21c2874fe18fa313831d3b914ca6d751717d5b",
+      "capturedAt": "2026-10-29T19:42:04.987Z",
       "reproducePath": "/choi?thu=vukhi&vh=lam_ngan_thao&gioi=f&trang=cast&ms=180&khac=bach_ho&zoom=3&tay=0"
     },
     {
@@ -200,6 +214,26 @@
       "vohon": "lam_ngan_thao",
       "sha256": "b92d93afbc79b747c0ecbc25e6eae66c723f1caddd144e7433059a829060e9a8",
       "capturedAt": "2026-10-29T19:18:22.096Z"
+    },
+    {
+      "file": "game-scene-m-idle.png",
+      "page": "/choi",
+      "scene": "GameScene",
+      "sex": "m",
+      "clip": "idle",
+      "sha256": "b13fab8f2fd9ecbe0ab907901ea908d19a25b909f04c68e3ed5cd7b25a819a0d",
+      "capturedAt": "2026-10-29T19:41:18.362Z",
+      "note": "Tài khoản RAM LamGrip837 tại Thánh Hồn Thôn; chuyển ô 2 Lam Ngân Thảo / ô 1 Thất Sát Kiếm; không hook thêm, không đóng băng đồng hồ. Đánh bị vùng an toàn chặn nên không dùng ảnh làm bằng chứng attack."
+    },
+    {
+      "file": "game-scene-fallback.png",
+      "page": "/choi",
+      "scene": "GameScene",
+      "sex": "m",
+      "clip": "idle",
+      "sha256": "deb173dc4e6691f9a672289d7cffc5f023caa45ec46a422518279c8ef4ea91e4",
+      "capturedAt": "2026-10-29T19:41:20.116Z",
+      "note": "Tài khoản RAM LamGrip837 tại Thánh Hồn Thôn; chuyển ô 2 Lam Ngân Thảo / ô 1 Thất Sát Kiếm; không hook thêm, không đóng băng đồng hồ. Đánh bị vùng an toàn chặn nên không dùng ảnh làm bằng chứng attack."
     }
   ],
   "warnings": [

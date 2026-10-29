@@ -12,6 +12,7 @@ import type { Dir8 } from "./iso.ts";
 import { fitHonsuLayer, fitPhuLayer, setPhuLayout, syncPhuLayers, vukhiSetOf, ISO_HS_ANIMS, ISO_SHEET_COLS, type PhuAnimSet } from "./sprites.ts";
 import { PHU_CLIPS, PHU_DIRS, PHU_FRAMES, PHU_ROWS_PER_SEX, parsePhuLayout, phuFaceOf, phuGripAt, weaponHidden, type PhuClip } from "./phutheAnim.ts";
 import { fakeGripTable, fakeHalf, fakeSegment } from "./vukhiFake.ts";
+import { PHU_NO_ANCHOR, phuLayerPlacement } from "./phutheAnchor.ts";
 
 const q = new URLSearchParams(location.search);
 const STATES: PhuClip[] = ["idle", "walk", "attack", "cast", "hurt"];
@@ -116,8 +117,8 @@ class VukhiScene extends Phaser.Scene {
       h.dot.clear();
       if (!pa) { h.vb.setVisible(false); h.vf.setVisible(false); continue; }
       const f8 = phuFaceOf(shown, face), clip = syncPhuLayers(h.body, [h.vb, h.vf], pa, an, f8, doing ? age : -1);
-      h.vb.x = h.vf.x = flip ? -LPC_VIEW.vohon.dx : LPC_VIEW.vohon.dx;
-      h.vb.y = h.vf.y = LPC_VIEW.vohon.dy;
+      const place = phuLayerPlacement(!!pa.layout.weapon, flip, [LPC_VIEW.vohon.dx, LPC_VIEW.vohon.dy], clip ? pa.layout.offset[clip] : [0, 0], PHU_NO_ANCHOR, SPR);
+      for (const s of [h.vb, h.vf]) s.setPosition(place.x, place.y).setRotation(0).setScale(place.scale / SPR);
       if (weaponHidden(this.chan ? 1 : 0, !!PHAP_TUONG[h.id])) { h.vb.setVisible(false); h.vf.setVisible(false); continue; } // Chân Thân xét riêng từng võ hồn
       if (this.diem && clip) {
         const L = pa.layout, i = Number(h.vf.frame.name) % L.cols - L.clips[clip].col, g = phuGripAt(L, f8, clip, i);

@@ -27,6 +27,12 @@ export function parsePhuAnchor(e: unknown): PhuAnchorTable | null {
 }
 /** Neo của (giới, hàng hướng 0–4); thiếu bảng thì PHU_NO_ANCHOR. */
 export const phuAnchorAt = (t: PhuAnchorTable | undefined, female: boolean, row: number): PhuAnchor => t?.[female ? "f" : "m"][row] ?? PHU_NO_ANCHOR;
+/** Vũ khí đã bake điểm cầm theo thân: không dùng offset/neo lưng của phụ thể cùng mã. Gốc LPC tính bằng đơn vị hình chứa, offset/neo tính bằng pixel sheet. */
+export function phuLayerPlacement(weapon: boolean, flip: boolean, origin: readonly [number, number], off: readonly [number, number], anchor: PhuAnchor, spr: number) {
+  const a = weapon ? PHU_NO_ANCHOR : anchor, d = weapon ? [0, 0] : off;
+  return { x: (flip ? -origin[0] : origin[0]) + (flip ? -d[0] : d[0]) + (flip ? -a.dx : a.dx) / spr,
+    y: origin[1] + d[1] + a.dy / spr, scale: a.scale };
+}
 /** Tệp anchor.json dạng văn bản từ một bảng (xuất ở trang thử; `manual: true` để công cụ không ghi đè). Số làm tròn 0,01. */
 export function phuAnchorJson(t: PhuAnchorTable, manual = true): Record<string, unknown> {
   const r = (v: number) => Math.round(v * 100) / 100, out: Record<string, unknown> = { frame: t.frame };
