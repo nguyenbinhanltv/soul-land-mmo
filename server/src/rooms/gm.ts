@@ -14,6 +14,7 @@ import { presenceBackend, bg } from "../presence.ts";
 import { gmAllow, gmEnabled, isAdmin, parseGm, _gmSetAdmin, type GmCmd } from "../gm.ts";
 import { buildPreset } from "../testPreset.ts";
 import { newItem, gearStats, bagUsed } from "./items.ts";
+import { savePeriodic } from "./persist.ts";
 import * as party from "../party.ts";
 import { CHANNEL_CAP, channelLeftKey, channelSwitchAt, channelSwitchKey, claimHeld, eliteLockLeft, eliteLocks, fusionKey, fusionReady, leftRoom, strIn, testNoLeaveLock, testOfflineAgo, testShift, worldChatKey, type MapRoom, type PData } from "./MapRoom.ts";
 
@@ -266,7 +267,7 @@ export async function testHook(room: MapRoom, c: Client, m: unknown) {
     } else out = { redis: false, held: false };
   }
   else if (op === "enhslow") { d.testEnhSlow = int(o.ms, 0, 5000, 0); }
-  else if (op === "savefail") { const n = int(o.n, 0, 10, 0), left = saveFailTest.get(d.accountId)?.n ?? 0; if (n) saveFailTest.set(d.accountId, { n, only: o.only === "bag" || o.only === "tong" ? o.only : "" }); else saveFailTest.delete(d.accountId); out = { n, left }; } // #797: ép n lần ghi túi / tông kế tiếp lỗi (xem db.ts)
+  else if (op === "savefail") { const n = int(o.n, 0, 10, 0), left = saveFailTest.get(d.accountId)?.n ?? 0; if (n) await savePeriodic(room, id).catch((e) => console.warn("[test savefail] xả túi lỗi:", e)); /* xả túi bẩn TRƯỚC khi ép lỗi: lần lưu định kỳ không ăn mất lượt ép (bot equipenh chập chờn) */ if (n) saveFailTest.set(d.accountId, { n, only: o.only === "bag" || o.only === "tong" ? o.only : "" }); else saveFailTest.delete(d.accountId); out = { n, left }; } // #797: ép n lần ghi túi / tông kế tiếp lỗi (xem db.ts)
   else if (op === "roll") { const r = int(o.r, -1, 100, -1); d.testRoll = r < 0 ? null : Math.min(0.9999, r / 100); }
   else if (op === "rush") { if (d.absorbing) room.finishAbsorb(id); }
   else if (op === "drain") { d.mpF = Math.floor(d.mpF * (100 - int(o.pct, 0, 100, 0)) / 100); p.mp = Math.floor(d.mpF); }
