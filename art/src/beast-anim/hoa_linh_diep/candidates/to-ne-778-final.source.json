@@ -1,0 +1,15 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 3,
+  "agent": "soul_land_game-778",
+  "original_tool_path": "C:/Users/PC/.codex/generated_images/01a18423-efc9-75d3-9467-2adc5fc89681/exec-0483c8f5-568e-4dd2-ac96-779450a43136.png",
+  "review": "CHẶN: thêm 3 lượt phiên 778 vẫn lộ mắt/mặt ở idle, hurt, attack và die; lượt 1 ít lỗi hơn lượt 2–3. Giữ fallback ne.",
+  "imported": false,
+  "references": [
+    "shared/assets/sprites/beast/hoa_linh_diep.png",
+    "art/src/beast-anim/hoa_linh_diep/turnaround.png"
+  ],
+  "selectedAttempt": 1
+}
