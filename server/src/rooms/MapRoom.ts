@@ -76,6 +76,7 @@ import * as gm from "./gm.ts";
 import * as tong from "./tong.ts";
 import { calendarAction } from "./calendar.ts";
 import { welfareAction } from "./welfare.ts";
+import { achvAction } from "./achv.ts";
 import { bicanhAction } from "./bicanh.ts";
 import * as quest from "./quest.ts";
 import * as bag from "./bag.ts";
@@ -217,6 +218,7 @@ export interface PData {
   // Bảng Xếp Hạng (rank.ts): lúc xin bảng gần nhất (ms), dấu vết điểm đã ghi `rank_scores` và lúc ghi (ms).
   rankTopAt: number; rankSig: string; rankAt: number;
   bicanhDay: string; // Bí Cảnh (bicanh.ts): khóa ngày Bí Cảnh (05:00) đã gửi trạng thái cho người này; đổi ngày thì gửi lại
+  achvReady: number; // Thành Tựu (achv.ts): số thành tựu đã đạt chưa nhận ở lần báo gần nhất (-1 = chưa báo); chỉ báo lại khi đổi
   welfareDay: string; // Phúc Lợi (welfare.ts): ngày (room.today()) đã gửi trạng thái Sổ Điểm Danh cho người này; đổi ngày thì gửi lại
   arenaGone: boolean;   // đã được ghép trận và rời phòng sang sân đấu (7.2): rời phòng lúc đó không phải rời game (giữ danh sách mua lại, 9.8)
   // Võ Hồn Chân Thân (vòng 7, từ 8.1a): võ hồn đang biến hình (`row`), giây còn lại, chỉ số đang cộng (chanThanStats, đọc trong buffV
@@ -1094,6 +1096,7 @@ export class MapRoom extends Room<MapState> {
       this.sendRes(c.sessionId, [], true);
     }); // cộng minh (8.2): bảng tiến độ riêng; op=top là bảng xếp hạng
     this.onLimitedMsg("read", "rank", (c, m: { op?: unknown; board?: unknown; page?: unknown; pageSize?: unknown }) => rank.rankAction(this, c.sessionId, m)); // Bảng Xếp Hạng (5.19): boards / top
+    this.onLimitedMsg("read", "achv", (c, m: { op?: unknown; id?: unknown }) => achvAction(this, c.sessionId, m)); // Thành Tựu (5.23): get (read) / claim (thêm nhịp trade trong achv.ts)
     this.onLimitedMsg("read", "welfare", (c, m: { op?: unknown; day?: unknown; pay?: unknown }) => welfareAction(this, c.sessionId, m)); // Phúc Lợi (5.21): get (read) / sign, makeup (thêm nhịp trade ở welfare.ts); giờ do server quyết
     this.onLimitedMsg("read", "bicanh", (c, m: { op?: unknown; id?: unknown; pay?: unknown }) => bicanhAction(this, c.sessionId, m)); // Bí Cảnh (5.22): get (read) / enter, buy (thêm nhịp trade ở bicanh.ts); giờ do server quyết
     this.onLimitedMsg("read", "calendar", (c, m: { op?: unknown; week?: unknown }) => calendarAction(this, c.sessionId, m)); // Lịch Hoạt Động (5.20): lịch tuần theo giờ server, chỉ đọc
