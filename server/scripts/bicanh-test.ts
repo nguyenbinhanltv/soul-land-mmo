@@ -7,6 +7,7 @@ import { BAG_EXPAND_COST, BEASTS, BICANH, BOSSES, ITEMS, RING_LIMIT, SHARD_BUY, 
   itemDef, sellPrice, shardBuyPrice, vnAt, vnDay } from "../../shared/data.ts";
 import { runView } from "../src/rooms/bicanh.ts";
 import { beastIndex } from "../../shared/data.ts";
+import { fogOn } from "../../shared/fog.ts";
 
 function test(title: string, fn: () => void | Promise<void>) { return Promise.resolve(fn()).then(() => console.log(`✓ ${title}`)); }
 const S = BICANH.scenes[0], HOUR = 3600000;
@@ -97,4 +98,8 @@ await test("MemoryStore.releaseBoss (cùng luật PgStore): hoàn nguyên tử, 
   // Trần quyển nhận ngày: nhận từng phần, vượt trần thì từ chối nguyên tử.
   const kt = bicanhTomeKind; assert.equal(await st.claimBoss(acc, day, kt, BICANH.tomeDailyCap, bag, BICANH.tomeDailyCap - 1), BICANH.tomeDailyCap - 1);
   assert.equal(await st.claimBoss(acc, day, kt, BICANH.tomeDailyCap, bag, 2), null); assert.equal(await st.claimBoss(acc, day, kt, BICANH.tomeDailyCap, bag, 1), BICANH.tomeDailyCap);
+});
+
+await test("Bí Cảnh: map Luyện Hồn Cảnh không có sương mù (nằm trong FOG.open, không đọc / ghi map_fog)", () => {
+  assert.equal(fogOn("luyen_hon_canh"), false);
 });

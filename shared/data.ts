@@ -5725,7 +5725,7 @@ export const SAVE_EVERY_SECS = 30;
  */
 export const FOG = {
   cell: 8, sight: 12,
-  open: ["thanh_hon_thon", "nac_dinh_thanh", "thien_dau_thanh", "dai_dau_hon_truong"] as string[],
+  open: ["thanh_hon_thon", "nac_dinh_thanh", "thien_dau_thanh", "dai_dau_hon_truong", "luyen_hon_canh"] as string[],
   markSecs: 1, sendSecs: 3, maxAdd: 96, fadeMs: 700, maxCells: 20000,
 };
 
