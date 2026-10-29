@@ -63,7 +63,7 @@ Bổ sung cho `phu-the-hoat-anh.md` (khung, nộm, mặt nạ, clip, công cụ 
 
 ## Số tay theo clip cho binh khí dài (quyết định điều phối #1320)
 
-Khi clip vũ khí có đúng số khung như số bước thân (Hạo Thiên Chùy attack: bốn), client chọn theo bước thân đang hiển thị để điểm cầm đã bake khớp tay. Không chia đều thời lượng attack vì các bước thân dài ngắn khác nhau; các clip khác số khung giữ quy tắc ánh xạ hiện hành.
+Client chọn khung vũ khí có bước thân đã bake gần bước đang hiển thị nhất, ưu tiên chỉ số theo tiến độ cũ nếu hòa. Hạo Thiên Chùy attack bốn khung theo đúng bốn bước thân; cast hai khung không chuyển lên tư thế giơ tay trước bước thân ở300ms. Phụ thể cũ giữ ánh xạ thời lượng hiện hành.
 
 Áp dụng Hạo Thiên Chùy (#19), Cửu Tinh Thất Sát Kiếm (#1), Quỷ Mị (#16), Phá Hồn Thương (#21) và Băng Phượng Hoàng (#24):
 - `idle` / `walk` / `hurt`: **một tay thuận**, chỉ marker A; xách / chống / cầm chếch hoặc vác một tay nếu khớp được điểm tay. Với cung: một tay giữ thân cung, tay còn lại nghỉ.

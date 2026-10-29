@@ -10,7 +10,7 @@ Phương pháp theo s837 (`ao/lam-ngan-thao/1312-vu-khi`, SHA `a69b175b7790d9b85
 
 Sửa cỡ e: bộ `clip-hands/cut/` cũ từng báo 66%; bộ này không dùng ảnh đó. Ảnh trong game còn phát hiện chuẩn hóa riêng bề ngang làm e phóng quá. Bản cuối đo cả bề ngang lẫn chiều dọc đầu búa theo trục cán, lấy kích thước lớn hơn, chuẩn hóa nguyên hình về 200 đơn vị nguồn rồi dùng chung tỷ lệ `0.11294905654000065`: kích thước chuẩn đầu búa **22,59 điểm game**, e/s = 1 trước raster (có làm tròn điểm ảnh). Chi tiết tại `../ingame/scale-review.json`.
 
-Cutter chạy riêng hai giới, chỉ lấy đúng năm hàng đo trực tiếp của mỗi giới. ne/n mặc định lớp sau, vùng cầm trước thân. Tay slash e/ne và hai tay cast giơ lên được nhận từ mảng da thật, không dùng fallback thấp. Gốc xanh đăng ký nút cán; điểm nắm A có thể nằm dọc cán, cố định cho mỗi clip/pose và hai giới để vừa khung. Cả hai tay phải trên đoạn cán, không chỉ gần pixel đầu búa. Client chọn theo bước thân khi vũ khí cùng số khung; sửa lệch ở 260 ms (thân bước3 nhưng chia đều thời gian chọn vũ khí bước2). Các clip khác số khung giữ quy tắc cũ.
+Cutter chạy riêng hai giới, chỉ lấy đúng năm hàng đo trực tiếp của mỗi giới. ne/n mặc định lớp sau, vùng cầm trước thân. Tay slash e/ne và hai tay cast giơ lên được nhận từ mảng da thật, không dùng fallback thấp. Gốc xanh đăng ký nút cán; điểm nắm A có thể nằm dọc cán, cố định cho mỗi clip/pose và hai giới để vừa khung. Cả hai tay phải trên đoạn cán, không chỉ gần pixel đầu búa. Client chọn khung có bước thân đã bake gần bước đang hiển thị nhất, ưu tiên chỉ số theo tiến độ cũ nếu hòa. Sửa lệch attack260ms và cast chuyển tư thế giơ tay quá sớm ở220ms thay vì300ms. Phụ thể cũ giữ hành vi hiện hành.
 
 ## Nguồn và số lượt
 
@@ -21,7 +21,7 @@ s3, se2, e2, ne3, n3 = **13 job atlas tuần tự**, mỗi hướng không quá3
 - Checker: **0 chặn / 2 nhẹ mỗi giới**. s/e/n 0/0; se/ne mỗi hướng 0/1. Chi tiết bounding box so với s ở báo cáo checker; đây không phải cỡ riêng đầu búa.
 - Cutter: **0 chặn / 0 nhẹ / 7 thông tin mỗi giới** (fallback còn lại ghi đầy đủ).
 - Sheet cuối130khung, mép0, A tối đa1,738px / B1,456px, ngưỡng2px khung128.
-- Ảnh native Phaser `?thu=vukhi`:8ảnh chính bao phủ5hướng×4clip×2giới; thêm6ảnh cùng attack260ms thành bốn bước0/100/190/260ms mỗi giới. Không cắt, resize hoặc ghép ảnh chụp. Nhãn “ảnh thật · LPC … sẵn sàng” hiện trên ảnh.
+- Ảnh native Phaser `?thu=vukhi`:8ảnh chính bao phủ5hướng×4clip×2giới; thêm6ảnh cùng attack260ms thành bốn bước0/100/190/260ms mỗi giới; thêm cast280ms so với400ms để soát ranh giới giơ tay. Không cắt, resize hoặc ghép ảnh chụp. Nhãn “ảnh thật · LPC … sẵn sàng” hiện trên ảnh.
 - Duyệt mỹ thuật của chủ repo còn mở; không tự merge PR.
 
 ## Tái tạo

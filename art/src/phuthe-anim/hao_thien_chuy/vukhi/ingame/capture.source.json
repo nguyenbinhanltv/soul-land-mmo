@@ -1,283 +1,319 @@
 {
-    "assets":  [
-                   {
-                       "source":  "../vkanim_hao_thien_chuy_b.png",
-                       "sha256":  "00c32cc24ddd77ed8b58ccc4eed9ac12d32ef04a8d08339e21bf3cd51910c61d",
-                       "file":  "shared/assets/sprites/vukhianim/hao_thien_chuy_b.png"
-                   },
-                   {
-                       "source":  "../vkanim_hao_thien_chuy_f.png",
-                       "sha256":  "5a7be1cd7feef9ef5414cfd8aeec7fb5793d2ff1379dfb51a149c650ae1eade0",
-                       "file":  "shared/assets/sprites/vukhianim/hao_thien_chuy_f.png"
-                   }
-               ],
-    "method":  "AO Browser screenshot, electron-webcontents-debugger",
-    "selection":  "Chụp native PNG sau LPC/Phaser render; không ghép/cắt/resize ảnh; ma trận40cảnh và attack4bước, client đồng bộ vũ khí cùng số khung theo bước thân",
-    "codeSha256NormalizedLF":  {
-                                   "client/src/phutheAnim.ts":  "f4601bfbf84b08275619f9051396c58fd4acf947f393124b4702ee404e0255ce",
-                                   "client/src/sprites.ts":  "7a711a593b91e918d8923d3b6410b8fd4ee21df2dab9fcadf46aa8bc65c38c18",
-                                   "client/src/vukhiTest.ts":  "cbb8e121c8df7f9ba85b41b1932c59cb40520b57346ebe6c778d96eacd6372e9",
-                                   "client/src/lpcRig.ts":  "c69538b1843a3964811381a5469a1332641d024973d718b9945f4c11e8e38748"
-                               },
-    "viewportPixels":  [
-                           1600,
-                           900
-                       ],
-    "page":  "/choi?thu=vukhi",
-    "items":  [
-                  {
-                      "bodyReady":  true,
-                      "sex":  "m",
-                      "capturedAt":  "2026-10-29T21:52:07.9797737Z",
-                      "reproducePath":  "/choi?thu=vukhi\u0026vh=hao_thien_chuy\u0026gioi=m\u0026trang=idle\u0026ms=120\u0026zoom=3\u0026tay=0",
-                      "clip":  "idle",
-                      "observedMode":  "ảnh thật",
-                      "directions":  [
-                                         "s",
-                                         "se",
-                                         "e",
-                                         "ne",
-                                         "n"
-                                     ],
-                      "ms":  120,
-                      "sha256":  "f7cd76622548cf04f90c4ab633a77d89e49458713569d2cbba626f1a1681ab5d",
-                      "file":  "m-idle.png"
-                  },
-                  {
-                      "bodyReady":  true,
-                      "sex":  "m",
-                      "capturedAt":  "2026-10-29T21:52:09.0771575Z",
-                      "reproducePath":  "/choi?thu=vukhi\u0026vh=hao_thien_chuy\u0026gioi=m\u0026trang=walk\u0026ms=220\u0026zoom=3\u0026tay=0",
-                      "clip":  "walk",
-                      "observedMode":  "ảnh thật",
-                      "directions":  [
-                                         "s",
-                                         "se",
-                                         "e",
-                                         "ne",
-                                         "n"
-                                     ],
-                      "ms":  220,
-                      "sha256":  "595a6c2a7c93106c8972a7681214c154dff126751a56fc7cf37e5c024f925898",
-                      "file":  "m-walk.png"
-                  },
-                  {
-                      "bodyReady":  true,
-                      "sex":  "m",
-                      "capturedAt":  "2026-10-29T21:52:10.1641418Z",
-                      "reproducePath":  "/choi?thu=vukhi\u0026vh=hao_thien_chuy\u0026gioi=m\u0026trang=attack\u0026ms=260\u0026zoom=3\u0026tay=0",
-                      "clip":  "attack",
-                      "observedMode":  "ảnh thật",
-                      "directions":  [
-                                         "s",
-                                         "se",
-                                         "e",
-                                         "ne",
-                                         "n"
-                                     ],
-                      "ms":  260,
-                      "sha256":  "dc4845e7380c3d2206e23cd5eb13b673ff066108884aa5dfd86a7c7317de33eb",
-                      "file":  "m-attack.png"
-                  },
-                  {
-                      "bodyReady":  true,
-                      "sex":  "m",
-                      "capturedAt":  "2026-10-29T21:52:11.2487646Z",
-                      "reproducePath":  "/choi?thu=vukhi\u0026vh=hao_thien_chuy\u0026gioi=m\u0026trang=cast\u0026ms=400\u0026zoom=3\u0026tay=0",
-                      "clip":  "cast",
-                      "observedMode":  "ảnh thật",
-                      "directions":  [
-                                         "s",
-                                         "se",
-                                         "e",
-                                         "ne",
-                                         "n"
-                                     ],
-                      "ms":  400,
-                      "sha256":  "ca547ca3b7f76cd76aacd375a812f12ef376a20f749450354f35295c5176cebb",
-                      "file":  "m-cast.png"
-                  },
-                  {
-                      "bodyReady":  true,
-                      "sex":  "m",
-                      "capturedAt":  "2026-10-29T21:52:12.9139645Z",
-                      "reproducePath":  "/choi?thu=vukhi\u0026vh=hao_thien_chuy\u0026gioi=m\u0026trang=attack\u0026ms=0\u0026zoom=3\u0026tay=0",
-                      "clip":  "attack",
-                      "observedMode":  "ảnh thật",
-                      "directions":  [
-                                         "s",
-                                         "se",
-                                         "e",
-                                         "ne",
-                                         "n"
-                                     ],
-                      "ms":  0,
-                      "sha256":  "cf086572714c3d6d09faea50598b648a0302446a976673a34627d889f27a7041",
-                      "file":  "m-attack-0.png"
-                  },
-                  {
-                      "bodyReady":  true,
-                      "sex":  "m",
-                      "capturedAt":  "2026-10-29T21:52:14.0577074Z",
-                      "reproducePath":  "/choi?thu=vukhi\u0026vh=hao_thien_chuy\u0026gioi=m\u0026trang=attack\u0026ms=100\u0026zoom=3\u0026tay=0",
-                      "clip":  "attack",
-                      "observedMode":  "ảnh thật",
-                      "directions":  [
-                                         "s",
-                                         "se",
-                                         "e",
-                                         "ne",
-                                         "n"
-                                     ],
-                      "ms":  100,
-                      "sha256":  "6cb723ed58da7429609d3277953f02fd54431d8221e02885f95fb6b04dede906",
-                      "file":  "m-attack-100.png"
-                  },
-                  {
-                      "bodyReady":  true,
-                      "sex":  "m",
-                      "capturedAt":  "2026-10-29T21:52:15.2056999Z",
-                      "reproducePath":  "/choi?thu=vukhi\u0026vh=hao_thien_chuy\u0026gioi=m\u0026trang=attack\u0026ms=190\u0026zoom=3\u0026tay=0",
-                      "clip":  "attack",
-                      "observedMode":  "ảnh thật",
-                      "directions":  [
-                                         "s",
-                                         "se",
-                                         "e",
-                                         "ne",
-                                         "n"
-                                     ],
-                      "ms":  190,
-                      "sha256":  "426ae11b472273ab518317670dd142e0aed81b55da8884c3b3ba88e9e8fcc2bb",
-                      "file":  "m-attack-190.png"
-                  },
-                  {
-                      "bodyReady":  true,
-                      "sex":  "f",
-                      "capturedAt":  "2026-10-29T21:52:18.9562341Z",
-                      "reproducePath":  "/choi?thu=vukhi\u0026vh=hao_thien_chuy\u0026gioi=f\u0026trang=idle\u0026ms=120\u0026zoom=3\u0026tay=0",
-                      "clip":  "idle",
-                      "observedMode":  "ảnh thật",
-                      "directions":  [
-                                         "s",
-                                         "se",
-                                         "e",
-                                         "ne",
-                                         "n"
-                                     ],
-                      "ms":  120,
-                      "sha256":  "f58031f57efa0ae82beaff87b275bc267d44c7511455c596e0d99c6e97268f9b",
-                      "file":  "f-idle.png"
-                  },
-                  {
-                      "bodyReady":  true,
-                      "sex":  "f",
-                      "capturedAt":  "2026-10-29T21:52:20.1147922Z",
-                      "reproducePath":  "/choi?thu=vukhi\u0026vh=hao_thien_chuy\u0026gioi=f\u0026trang=walk\u0026ms=220\u0026zoom=3\u0026tay=0",
-                      "clip":  "walk",
-                      "observedMode":  "ảnh thật",
-                      "directions":  [
-                                         "s",
-                                         "se",
-                                         "e",
-                                         "ne",
-                                         "n"
-                                     ],
-                      "ms":  220,
-                      "sha256":  "35e5b7b78a77bd09bf3ea212bdd78dfa98280b03662fa88f9557bd44906b3fa7",
-                      "file":  "f-walk.png"
-                  },
-                  {
-                      "bodyReady":  true,
-                      "sex":  "f",
-                      "capturedAt":  "2026-10-29T21:52:21.2223030Z",
-                      "reproducePath":  "/choi?thu=vukhi\u0026vh=hao_thien_chuy\u0026gioi=f\u0026trang=attack\u0026ms=260\u0026zoom=3\u0026tay=0",
-                      "clip":  "attack",
-                      "observedMode":  "ảnh thật",
-                      "directions":  [
-                                         "s",
-                                         "se",
-                                         "e",
-                                         "ne",
-                                         "n"
-                                     ],
-                      "ms":  260,
-                      "sha256":  "54e170d931123ee5a0db6897797fd97c74b6503d5e6a5a49f4d63b76c5e6135a",
-                      "file":  "f-attack.png"
-                  },
-                  {
-                      "bodyReady":  true,
-                      "sex":  "f",
-                      "capturedAt":  "2026-10-29T21:52:22.3586802Z",
-                      "reproducePath":  "/choi?thu=vukhi\u0026vh=hao_thien_chuy\u0026gioi=f\u0026trang=cast\u0026ms=400\u0026zoom=3\u0026tay=0",
-                      "clip":  "cast",
-                      "observedMode":  "ảnh thật",
-                      "directions":  [
-                                         "s",
-                                         "se",
-                                         "e",
-                                         "ne",
-                                         "n"
-                                     ],
-                      "ms":  400,
-                      "sha256":  "f3f041b4e38c90e7f4cd75e553b83fc82f3ca0ca1815b54fd0586cb6d26ec92d",
-                      "file":  "f-cast.png"
-                  },
-                  {
-                      "bodyReady":  true,
-                      "sex":  "f",
-                      "capturedAt":  "2026-10-29T21:52:23.5298869Z",
-                      "reproducePath":  "/choi?thu=vukhi\u0026vh=hao_thien_chuy\u0026gioi=f\u0026trang=attack\u0026ms=0\u0026zoom=3\u0026tay=0",
-                      "clip":  "attack",
-                      "observedMode":  "ảnh thật",
-                      "directions":  [
-                                         "s",
-                                         "se",
-                                         "e",
-                                         "ne",
-                                         "n"
-                                     ],
-                      "ms":  0,
-                      "sha256":  "c88ad3201a9794b476dda3b152bc812dd3048ce9ed7d0f7446342049d0d1d0ed",
-                      "file":  "f-attack-0.png"
-                  },
-                  {
-                      "bodyReady":  true,
-                      "sex":  "f",
-                      "capturedAt":  "2026-10-29T21:52:24.6390887Z",
-                      "reproducePath":  "/choi?thu=vukhi\u0026vh=hao_thien_chuy\u0026gioi=f\u0026trang=attack\u0026ms=100\u0026zoom=3\u0026tay=0",
-                      "clip":  "attack",
-                      "observedMode":  "ảnh thật",
-                      "directions":  [
-                                         "s",
-                                         "se",
-                                         "e",
-                                         "ne",
-                                         "n"
-                                     ],
-                      "ms":  100,
-                      "sha256":  "aeff79dbca667be93c7e7878e3c89417a70e5d2a4f2cb64e37792cc5a9a17a8f",
-                      "file":  "f-attack-100.png"
-                  },
-                  {
-                      "bodyReady":  true,
-                      "sex":  "f",
-                      "capturedAt":  "2026-10-29T21:52:25.7292139Z",
-                      "reproducePath":  "/choi?thu=vukhi\u0026vh=hao_thien_chuy\u0026gioi=f\u0026trang=attack\u0026ms=190\u0026zoom=3\u0026tay=0",
-                      "clip":  "attack",
-                      "observedMode":  "ảnh thật",
-                      "directions":  [
-                                         "s",
-                                         "se",
-                                         "e",
-                                         "ne",
-                                         "n"
-                                     ],
-                      "ms":  190,
-                      "sha256":  "d76bad8e511c79c48dceb19fac7c348d1715f3787626d90a5f1178779b8c457b",
-                      "file":  "f-attack-190.png"
-                  }
-              ],
-    "importCommand":  "node tools/assets/phuthe-import.mjs --kind vukhi --id hao_thien_chuy --dir art/src/phuthe-anim/hao_thien_chuy/vukhi",
-    "imageBytesUnmodified":  true
+  "assets": [
+    {
+      "source": "../vkanim_hao_thien_chuy_b.png",
+      "sha256": "00c32cc24ddd77ed8b58ccc4eed9ac12d32ef04a8d08339e21bf3cd51910c61d",
+      "file": "shared/assets/sprites/vukhianim/hao_thien_chuy_b.png"
+    },
+    {
+      "source": "../vkanim_hao_thien_chuy_f.png",
+      "sha256": "5a7be1cd7feef9ef5414cfd8aeec7fb5793d2ff1379dfb51a149c650ae1eade0",
+      "file": "shared/assets/sprites/vukhianim/hao_thien_chuy_f.png"
+    }
+  ],
+  "method": "AO Browser screenshot, electron-webcontents-debugger",
+  "selection": "Chụp native PNG sau LPC/Phaser render; không ghép/cắt/resize ảnh; ma trận40cảnh và attack4bước, client đồng bộ vũ khí cùng số khung theo bước thân",
+  "codeSha256NormalizedLF": {
+    "client/src/phutheAnim.ts": "ac466acd272b183a51e061fbbea2f313575a874cd8a82806e75a24257a786f57",
+    "client/src/sprites.ts": "a06b3df6e7852766b7855b664a8c46f1b6d48087647c30da25b6248f5a3e092d",
+    "client/src/vukhiTest.ts": "cbb8e121c8df7f9ba85b41b1932c59cb40520b57346ebe6c778d96eacd6372e9",
+    "client/src/lpcRig.ts": "c69538b1843a3964811381a5469a1332641d024973d718b9945f4c11e8e38748"
+  },
+  "viewportPixels": [
+    1600,
+    900
+  ],
+  "page": "/choi?thu=vukhi",
+  "items": [
+    {
+      "bodyReady": true,
+      "sex": "m",
+      "capturedAt": "2026-10-29T22:19:34.446Z",
+      "reproducePath": "/choi?thu=vukhi&vh=hao_thien_chuy&gioi=m&trang=idle&ms=120&zoom=3&tay=0",
+      "clip": "idle",
+      "observedMode": "ảnh thật",
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "ms": 120,
+      "sha256": "545215c98a5c78ec6ab7168748f5a8d89bf18a635331248a70ce4e78747040ef",
+      "file": "m-idle.png"
+    },
+    {
+      "bodyReady": true,
+      "sex": "m",
+      "capturedAt": "2026-10-29T22:19:41.512Z",
+      "reproducePath": "/choi?thu=vukhi&vh=hao_thien_chuy&gioi=m&trang=walk&ms=220&zoom=3&tay=0",
+      "clip": "walk",
+      "observedMode": "ảnh thật",
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "ms": 220,
+      "sha256": "de2c34ae26616e13484bb0697b26340c552ba3e1d861a6f12d4fbefd3ef6c244",
+      "file": "m-walk.png"
+    },
+    {
+      "bodyReady": true,
+      "sex": "m",
+      "capturedAt": "2026-10-29T22:19:48.684Z",
+      "reproducePath": "/choi?thu=vukhi&vh=hao_thien_chuy&gioi=m&trang=attack&ms=260&zoom=3&tay=0",
+      "clip": "attack",
+      "observedMode": "ảnh thật",
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "ms": 260,
+      "sha256": "a9e2c62ac535bd43abe06df3399934b93b2f8b812ecb8f4a8de1e23f33c1cbd4",
+      "file": "m-attack.png"
+    },
+    {
+      "bodyReady": true,
+      "sex": "m",
+      "capturedAt": "2026-10-29T22:19:56.320Z",
+      "reproducePath": "/choi?thu=vukhi&vh=hao_thien_chuy&gioi=m&trang=cast&ms=400&zoom=3&tay=0",
+      "clip": "cast",
+      "observedMode": "ảnh thật",
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "ms": 400,
+      "sha256": "6aeab8c4375c82f806e766bd50f62077d4a954c4bbacd40deb9986e6b3901c50",
+      "file": "m-cast.png"
+    },
+    {
+      "bodyReady": true,
+      "sex": "m",
+      "capturedAt": "2026-10-29T22:20:03.391Z",
+      "reproducePath": "/choi?thu=vukhi&vh=hao_thien_chuy&gioi=m&trang=attack&ms=0&zoom=3&tay=0",
+      "clip": "attack",
+      "observedMode": "ảnh thật",
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "ms": 0,
+      "sha256": "cf086572714c3d6d09faea50598b648a0302446a976673a34627d889f27a7041",
+      "file": "m-attack-0.png"
+    },
+    {
+      "bodyReady": true,
+      "sex": "m",
+      "capturedAt": "2026-10-29T22:20:10.569Z",
+      "reproducePath": "/choi?thu=vukhi&vh=hao_thien_chuy&gioi=m&trang=attack&ms=100&zoom=3&tay=0",
+      "clip": "attack",
+      "observedMode": "ảnh thật",
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "ms": 100,
+      "sha256": "6cb723ed58da7429609d3277953f02fd54431d8221e02885f95fb6b04dede906",
+      "file": "m-attack-100.png"
+    },
+    {
+      "bodyReady": true,
+      "sex": "m",
+      "capturedAt": "2026-10-29T22:20:17.671Z",
+      "reproducePath": "/choi?thu=vukhi&vh=hao_thien_chuy&gioi=m&trang=attack&ms=190&zoom=3&tay=0",
+      "clip": "attack",
+      "observedMode": "ảnh thật",
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "ms": 190,
+      "sha256": "80d05de108e456b583c37a0cfbbd67653e75b6bca155c06f642224d09afe73de",
+      "file": "m-attack-190.png"
+    },
+    {
+      "bodyReady": true,
+      "sex": "f",
+      "capturedAt": "2026-10-29T22:20:40.635Z",
+      "reproducePath": "/choi?thu=vukhi&vh=hao_thien_chuy&gioi=f&trang=idle&ms=120&zoom=3&tay=0",
+      "clip": "idle",
+      "observedMode": "ảnh thật",
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "ms": 120,
+      "sha256": "f58031f57efa0ae82beaff87b275bc267d44c7511455c596e0d99c6e97268f9b",
+      "file": "f-idle.png"
+    },
+    {
+      "bodyReady": true,
+      "sex": "f",
+      "capturedAt": "2026-10-29T22:20:47.713Z",
+      "reproducePath": "/choi?thu=vukhi&vh=hao_thien_chuy&gioi=f&trang=walk&ms=220&zoom=3&tay=0",
+      "clip": "walk",
+      "observedMode": "ảnh thật",
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "ms": 220,
+      "sha256": "2cf2bbbb3c2cb214126619d39e3c467fa967a7a5c0da89ad9c68243f7add1f8d",
+      "file": "f-walk.png"
+    },
+    {
+      "bodyReady": true,
+      "sex": "f",
+      "capturedAt": "2026-10-29T22:20:54.867Z",
+      "reproducePath": "/choi?thu=vukhi&vh=hao_thien_chuy&gioi=f&trang=attack&ms=260&zoom=3&tay=0",
+      "clip": "attack",
+      "observedMode": "ảnh thật",
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "ms": 260,
+      "sha256": "e46557d47466511267e6d2f61569b7e472e3767e2ad2aae49e908a098f1247b7",
+      "file": "f-attack.png"
+    },
+    {
+      "bodyReady": true,
+      "sex": "f",
+      "capturedAt": "2026-10-29T22:21:01.918Z",
+      "reproducePath": "/choi?thu=vukhi&vh=hao_thien_chuy&gioi=f&trang=cast&ms=400&zoom=3&tay=0",
+      "clip": "cast",
+      "observedMode": "ảnh thật",
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "ms": 400,
+      "sha256": "9f3f17747e7ca7723109d1c9892dbb482d446cecf2d64c675d86907fdee97821",
+      "file": "f-cast.png"
+    },
+    {
+      "bodyReady": true,
+      "sex": "f",
+      "capturedAt": "2026-10-29T22:21:08.969Z",
+      "reproducePath": "/choi?thu=vukhi&vh=hao_thien_chuy&gioi=f&trang=attack&ms=0&zoom=3&tay=0",
+      "clip": "attack",
+      "observedMode": "ảnh thật",
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "ms": 0,
+      "sha256": "b3ef7e0edfbf2cb1aaec6eb275a2fd6553bfd03e5030469af710a989bb2b1609",
+      "file": "f-attack-0.png"
+    },
+    {
+      "bodyReady": true,
+      "sex": "f",
+      "capturedAt": "2026-10-29T22:21:16.022Z",
+      "reproducePath": "/choi?thu=vukhi&vh=hao_thien_chuy&gioi=f&trang=attack&ms=100&zoom=3&tay=0",
+      "clip": "attack",
+      "observedMode": "ảnh thật",
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "ms": 100,
+      "sha256": "912c6b829ae8376108cf54b560891f6b4a4b7937d483f6cda86c7b9a530c5c8a",
+      "file": "f-attack-100.png"
+    },
+    {
+      "bodyReady": true,
+      "sex": "f",
+      "capturedAt": "2026-10-29T22:21:23.084Z",
+      "reproducePath": "/choi?thu=vukhi&vh=hao_thien_chuy&gioi=f&trang=attack&ms=190&zoom=3&tay=0",
+      "clip": "attack",
+      "observedMode": "ảnh thật",
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "ms": 190,
+      "sha256": "8f306091f5954e7a51cb9fe8659db114ece1d9818b91718280b740537e5d1c5b",
+      "file": "f-attack-190.png"
+    },
+    {
+      "file": "m-cast-280.png",
+      "sex": "m",
+      "clip": "cast",
+      "ms": 280,
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "observedMode": "?nh th?t",
+      "bodyReady": true,
+      "reproducePath": "/choi?thu=vukhi&vh=hao_thien_chuy&gioi=m&trang=cast&ms=280&zoom=3&tay=0",
+      "sha256": "5c2c413b453d9e9b479bd6221aff81d2262ecaba47759a8fc78f7ef52f2f8459",
+      "capturedAt": "2026-10-29T22:20:24.749Z"
+    },
+    {
+      "file": "f-cast-280.png",
+      "sex": "f",
+      "clip": "cast",
+      "ms": 280,
+      "directions": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "observedMode": "?nh th?t",
+      "bodyReady": true,
+      "reproducePath": "/choi?thu=vukhi&vh=hao_thien_chuy&gioi=f&trang=cast&ms=280&zoom=3&tay=0",
+      "sha256": "783240b0c53e7a3f97b7837a53e8eaf046f92aa9ae9b024e4dbd64b7d64a1e05",
+      "capturedAt": "2026-10-29T22:21:30.129Z"
+    }
+  ],
+  "importCommand": "node tools/assets/phuthe-import.mjs --kind vukhi --id hao_thien_chuy --dir art/src/phuthe-anim/hao_thien_chuy/vukhi",
+  "imageBytesUnmodified": true
 }
