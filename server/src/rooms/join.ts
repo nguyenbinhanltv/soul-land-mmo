@@ -13,6 +13,7 @@ import * as party from "../party.ts";
 import { rankSync } from "./rank.ts";
 import { sendState as sendWelfare } from "./welfare.ts";
 import { sendState as sendAchv } from "./achv.ts";
+import { sendState as sendMail } from "./mail.ts";
 import { sendState as sendBicanh, nowOf as bicanhNow } from "./bicanh.ts";
 import { gearLook, gearStats, itemStacks } from "./items.ts";
 import { MAPS, CHANNEL_CD, TEAM_COMBAT_SECS, encodeLpc, bagSlotsOf, STARTER_ITEMS, SHARD_BUY, BOSS_CLAIM_KING, BOSS_CLAIM_WORLD, AUTO_MSG_RATE, parseAuto, parseSell,
@@ -153,6 +154,7 @@ export function onJoin(room: MapRoom, client: Client, _o: unknown, auth: AuthDat
   friends.enter(auth.accountId, client.sessionId, p.name, auth.social);
   room.friendAfter(online, auth.accountId);
   void sendBicanh(room, client.sessionId); // Bí Cảnh: chấm đỏ "còn lượt" ngay lúc vào phòng
+  void sendMail(room, client.sessionId); // Thư: chấm đỏ "có thư chưa đọc / chưa nhận" ngay lúc vào phòng
   void sendAchv(room, client.sessionId); // Thành Tựu: chấm đỏ "có thành tựu chưa nhận" ngay lúc vào phòng
   void sendWelfare(room, client.sessionId); // Phúc Lợi: chấm đỏ "chưa điểm danh" ngay lúc vào phòng
   void room.chain(d, () => rankSync(room, client.sessionId, d, true)); // Bảng Xếp Hạng: người mới / chưa có điểm lên bảng ngay, không chờ lần lưu đầu
