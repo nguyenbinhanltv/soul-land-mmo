@@ -87,9 +87,9 @@ Nguyên tắc: **thưởng nhỏ, lấy từ vật phẩm đã có, tổng cả 
 
 | Thứ | Quan hệ trần (cộng cả danh mục) |
 |---|---|
-| Hồn Tệ | tổng `ACHV` ≤ một phần cố định của nguồn Hồn Tệ một chu kỳ `CHECKIN.cycleCap.honTe`, nhân số nhóm (thành tựu là một lần cả đời, không lặp) |
-| Mảnh võ hồn | chỉ SR / SSR trong `ARENA_SHARDS`; **không** UR, **không** Lam Ngân Thảo; tổng ≤ vài lần `SHARD_BUY.daily` |
-| Ủy Thác Lệnh (`AUTO_TOKEN`) | chỉ ở bậc cao; tổng giờ ≤ `AUTO_DAILY_SECS` |
+| Hồn Tệ | **tổng** `honTe` của mọi thành tựu trong `ACHV` ≤ `k` × `CHECKIN.cycleCap.honTe`, với `k` là hằng trần `ACHV_CAP.honTeK` (đề xuất; khai ở `shared/data.ts`, không phụ thuộc số nhóm). Thêm nhóm hoặc bậc mới thì phải chia lại trong trần này; test P1 cộng toàn `ACHV` và so với trần |
+| Mảnh võ hồn | chỉ SR / SSR trong `ARENA_SHARDS`; **không** UR, **không** Lam Ngân Thảo; **tổng** mảnh toàn `ACHV` ≤ `ACHV_CAP.shardsK` × `SHARD_BUY.daily` (hằng đề xuất, cùng cách kiểm) |
+| Ủy Thác Lệnh (`AUTO_TOKEN`) | chỉ ở bậc cao; **tổng** giờ toàn `ACHV` ≤ `ACHV_CAP.autoK` × `AUTO_DAILY_SECS` (hằng đề xuất) |
 | Đan, phù | chỉ loại nhỏ trong `SHOP` |
 | Hồn hoàn, hồn cốt, hồn hạch, trang bị, tiên thảo, rương | **không có** trong thưởng thành tựu (đã có nguồn rơi riêng; tránh phá mục tiêu săn) |
 
