@@ -31,11 +31,11 @@ Không chạy song song job sinh ảnh. Không hướng nào quá ba lượt.
 
 `node tools/assets/phaptuong-sheet-cut.mjs art/src/phap-tuong/lam_ngan_thao shared/assets/sprites/phaptuong/lam_ngan_thao.png`
 
-Cutter khóa nền dung sai 60, loại màu viền ám hồng của cây xanh (bộ lọc này chỉ dành Lam Ngân Thảo), bỏ phiếu màu khi thu, chuẩn hóa chiều cao thở theo hướng bằng một hệ số mỗi tờ, căn chân từng khung về (80,124); giữ chung hệ số trong từng hướng để đòn đánh không co giãn. Ghép s/se/e/ne/n, 8 thở rồi 8 đánh, giới hạn bảng trung gian 5 bit mỗi kênh trước lượng tử tối đa 48 màu, alpha 0/255. Lớp sáng đã dựng lại bằng `buildGlow` từ sheet mới. SHA256 của năm RAW ở `SHA256.json`.
+Cutter khóa nền dung sai 60, chỉ khử màu ám hồng trong hai điểm sát nền gốc (tắt bằng `--no-despill` nếu cần giữ viền tím), giữ bóng tím bên trong thân và chuẩn hóa viền tối về `#1a1020`. Bỏ phiếu màu khi thu, chuẩn hóa chiều cao thở theo hướng bằng một hệ số mỗi tờ, căn chân từng khung về (80,124); giữ chung hệ số trong từng hướng để đòn đánh không co giãn. Ghép s/se/e/ne/n, 8 thở rồi 8 đánh, giới hạn bảng trung gian 5 bit mỗi kênh trước lượng tử tối đa 48 màu, alpha 0/255. Lớp sáng đã dựng lại bằng `buildGlow` từ sheet mới. SHA256 của năm RAW ở `SHA256.json`.
 
 ## Kiểm tra
 
-- Hai bài test cutter đạt: thứ tự / neo chân / alpha và từ chối đầu vào lỗi.
+- Bốn bài test cutter đạt: thứ tự / neo chân / alpha, từ chối đầu vào lỗi, giữ bóng tím trong thân và chuẩn viền OUTLINE; có trong `test:assets` để CI chạy.
 - `npm run check` đạt cả trước và sau khi nhập sheet.
 - `npm run build` và `npm run test:phaptuong --prefix client` đạt; bot RAM `npm run bot:local -- --only combo`: 34 đạt, 0 lỗi.
 - `ui:check --kind I`: tìm được lỗi dính ở s lượt 2; s lượt 3 hết lỗi dính, còn báo viền ám hồng và số màu theo giới hạn UI (32), khác giới hạn pháp tướng (48). Kiểm thành phẩm trên nền tối sau cutter.

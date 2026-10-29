@@ -105,4 +105,6 @@ Motifs (only these three): a demon mask engraved with talismans, layered dark ne
 
 ## 5. Kiểm sau khi sinh
 
+Bài học mẫu Lam Ngân Thảo (#1324): ngọn cây không được giống mặt / đầu quỷ; kiểm ảnh vuông và từng ô trước khi ghép. Chừa khoảng nền rộng quanh **toàn bộ** pose đánh; khi dây chạm ô bên cạnh, yêu cầu thu đồng đều mọi pose và cuộn gọn đầu dây, không cắt mất đầu nhọn. Bài học pháp tướng độc lập không thuộc parser bài học phụ thể quanh nộm.
+
 Theo `vo-hon-phong-cach.md` phần 6.1 (RAW chặn / nhẹ / đẹp; ảnh pixel kiểm sau chuyển) và thêm bằng mắt: **không chỗ rỗng hình người**, hình ở giữa tờ liền khối; 16 ô cùng cỡ, cùng đường chân; hướng `ne`/`n` đọc được khi mờ 70%; thở không đổi silhouette; đánh có đỉnh rõ ở ô 12–13. Hỏng thì ghi bài học một dòng vào `art/src/phuthe-anim/lessons.md`.
