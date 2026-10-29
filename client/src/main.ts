@@ -15,6 +15,7 @@ import "./ui2-shop.css";
 import "./ui2-forge.css";
 import "./ui2-hub.css";
 import "./ui2-login.css";
+import "./ui2-onboard.css";
 import { setConnectionLabel } from "./uiIcons.ts";
 import { loadGameFonts } from "./fontLoad";
 import Phaser from "phaser";
