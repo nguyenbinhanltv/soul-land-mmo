@@ -131,7 +131,7 @@ Mỗi võ hồn một PR nháp chờ chủ repo duyệt mỹ thuật; không t�
 
 | Dòng | Võ hồn | Issue / PR | Trạng thái |
 |---|---|---|---|
-| 7 | Hỏa Long | #1338 / #1339 | PR nháp, có ảnh game, AO đạt; chờ duyệt mỹ thuật |
+| 7 | Hỏa Long | #1338 / #1339 | Đã merge qua tài khoản chủ repo ngoài phiên rollout; có ảnh game, AO đạt |
 | 10 | Tử Vong Chu Hoàng | #1341 / #1342 | PR nháp, có ảnh game, AO đạt; chờ duyệt mỹ thuật |
 | 11 | Bích Lân Xà Hoàng | #1346 / #1347 | PR nháp, có ảnh game, AO đạt; chờ duyệt mỹ thuật |
 | 12 | Càn Khôn Hỗn Nguyên Tỏa | #1349 / #1350 | PR nháp, có ảnh game, AO đạt; chờ duyệt mỹ thuật |
