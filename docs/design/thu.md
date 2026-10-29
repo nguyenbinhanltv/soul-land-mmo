@@ -1,6 +1,6 @@
 # Thư hệ thống
 
-Màn **Thư** là hộp thư của người chơi, **một chiều** (hệ thống gửi, người chơi đọc và nhận): chỗ chứa thưởng từ Phúc Lợi, Bí Cảnh và lệnh GM, kèm vật phẩm / Hồn Tệ nhận một lần, có hạn. Thẻ "Thư" ở hub hiện đang khóa ("Chờ máy chủ", `client/src/hubMenu.ts`, mã `mail`). Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; tên *(đề xuất)* chưa tồn tại). Số issue ở cuối file. **Server (P1–P4) đã có code** (#1336: `MAIL` / `MAIL_KINDS` ở `shared/data.ts`, `040_thu.sql`, `server/src/rooms/mail.ts`, bot nhóm `mail`, soát `docs/tech/soat-gian-lan-thu.md`); nguồn Phúc Lợi / Bí Cảnh chưa nối (xem "Câu hỏi mở" 1); màn client (P5) chưa làm.
+Màn **Thư** là hộp thư của người chơi, **một chiều** (hệ thống gửi, người chơi đọc và nhận): chỗ chứa thưởng từ Phúc Lợi, Bí Cảnh và lệnh GM, kèm vật phẩm / Hồn Tệ nhận một lần, có hạn. Thẻ "Thư" ở hub hiện đang khóa ("Chờ máy chủ", `client/src/hubMenu.ts`, mã `mail`). Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; tên *(đề xuất)* chưa tồn tại). Số issue ở cuối file. **Server (P1–P4) đã có code** (#1336: `MAIL` / `MAIL_KINDS` ở `shared/data.ts`, `040_thu.sql`, `server/src/rooms/mail.ts`, bot nhóm `mail`, soát `docs/tech/soat-gian-lan-thu.md`); nguồn Phúc Lợi / Bí Cảnh chưa nối (xem "Câu hỏi mở" 1); màn client (P5, `client/src/mailScreen.ts`, thẻ `mail` ở hub) xong.
 
 Tham chiếu: chỉ học bố cục (danh sách thư bên trái, nội dung bên phải, nút nhận) từ bộ tham chiếu UI của #877; không chép tên / chữ / ảnh.
 

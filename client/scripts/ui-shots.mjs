@@ -3,7 +3,7 @@
 // và client đã build (server phục vụ client/dist). KHÔNG trỏ DB thật; không có DATABASE_URL thì dữ liệu chỉ ở RAM.
 //   node client/scripts/ui-shots.mjs --server http://localhost:2547 --out <thư mục> [--sizes 1366x768,1280x720,960x540,1920x1080] [--only dang-nhap,hud,tui] [--tag truoc] [--dpr 1] [--outer] [--styles <thư mục>] [--name <tên hồn sư>]
 // Cỡ ghi trong tên ảnh là cỡ vùng hiển thị thật (đặt bằng Emulation.setDeviceMetricsOverride, không tính khung cửa sổ Chrome).
-// Mã cảnh (--only): dang-nhap, tao-nhan-vat, the-vao-ban-do, hud, hud-tien-do, tui, nhan-vat, hai-cua-so, doi-hinh, hon-cot, cong-minh, ban-be, tu-dong, tong-ket, uy-thac, ban-do, the-gioi, cai-dat, hub, thanh-tuu, npc, cua-hang, tho-ren, bi-canh.
+// Mã cảnh (--only): dang-nhap, tao-nhan-vat, the-vao-ban-do, hud, hud-tien-do, tui, nhan-vat, hai-cua-so, doi-hinh, hon-cot, cong-minh, ban-be, tu-dong, tong-ket, uy-thac, ban-do, the-gioi, cai-dat, hub, thanh-tuu, thu, npc, cua-hang, tho-ren, bi-canh.
 // Luật: đúng MỘT Chrome headless, luôn --mute-audio, cổng CDP ngẫu nhiên (không dùng 9333), chụp tuần tự từng cỡ; xong tắt đúng PID của mình.
 // Chrome tìm ở biến CHROME (đường dẫn) hoặc đường dẫn cài đặt mặc định (Chrome, rồi Edge).
 import { spawn } from "node:child_process";
@@ -216,6 +216,20 @@ async function runSize(W, H) {
       await open(); await ev(`(document.querySelector('.p2-nav-i[data-id="hunt"]')?.click(), true)`); await sleep(300); await shot("71-thanh-tuu-nhan-duoc");
       await ev(`(document.querySelector(".av-claim")?.click(), true)`); await sleep(900); await shot("72-thanh-tuu-da-nhan");
       await fake("achv", { stats: { level: 1, owned: 2, stars: 1, quests: 0, arenaWins: 0, elite: 12, king: 1, world: 0, bicanh: 0 }, claimed: [], ready: 3, err: "Túi không đủ chỗ cho phần thưởng: bỏ hoặc bán bớt đồ rồi thử lại." }); await sleep(300); await shot("73-thanh-tuu-loi");
+      await key("Escape", "Escape");
+    });
+    // Thư (#1336): thẻ hub đã bật, hộp trống, có thư (mới / có quà / sắp hết hạn), vừa nhận, lỗi từ server.
+    await step("thu", async () => {
+      const open = async () => { await key("Escape", "Escape"); await sleep(300); await ev(`(document.querySelector('[data-hub="mail"]')?.click(), true)`); await sleep(900); };
+      await key("Escape", "Escape"); await sleep(300); await shot("74-thu-hub");
+      await open(); await shot("75-thu-rong"); await key("Escape", "Escape");
+      await test({ op: "mail", title: "Chào mừng đến Rừng Săn Hồn", body: "Thư thử: hộp thư chỉ có thư do hệ thống gửi.", dedup: "shot:1" });
+      await test({ op: "mail", title: "Quà từ Phúc Lợi", body: "Quà điểm danh gửi qua thư vì túi đã đầy.", honTe: 120, dedup: "shot:2", kind: "welfare" });
+      await test({ op: "mail", title: "Thưởng Bí Cảnh", body: "Hồn Kinh Quyển chờ nhận.", honTe: 30, items: [{ code: "hoi_huyet_dan", qty: 3 }], dedup: "shot:3", kind: "bicanh", ttlMs: 2 * 86400000 });
+      await open(); await shot("76-thu-danh-sach");
+      await ev(`(document.querySelector('.ml-row[data-st="gift"]')?.click(), true)`); await sleep(400); await shot("77-thu-doc-thu");
+      await ev(`(document.querySelector(".ml-claim")?.click(), true)`); await sleep(900); await shot("78-thu-da-nhan");
+      await fake("mail", { list: [{ id: 9, from: "Phúc Lợi", title: "Quà từ Phúc Lợi", body: "", honTe: 120, items: [], at: Date.now() - 86400000, exp: Date.now() + 5 * 86400000, read: false, claimed: false }], unread: 1, pending: 1, err: "Túi không đủ chỗ cho phần đính kèm: bỏ hoặc bán bớt đồ rồi thử lại." }); await sleep(300); await shot("79-thu-loi");
       await key("Escape", "Escape");
     });
     ws.close();

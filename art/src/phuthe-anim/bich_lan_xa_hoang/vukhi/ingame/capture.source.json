@@ -1,0 +1,73 @@
+{
+  "tool": "Playwright Chrome, --mute-audio; âm lượng game 0, muted=true",
+  "date": "2026-10-29T20:50:16.427Z",
+  "imageBytesUnmodified": true,
+  "viewport": [
+    1600,
+    900
+  ],
+  "items": [
+    {
+      "file": "m-idle.png",
+      "url": "/choi?thu=vukhi&vh=bich_lan_xa_hoang&gioi=m&trang=idle&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "m-walk.png",
+      "url": "/choi?thu=vukhi&vh=bich_lan_xa_hoang&gioi=m&trang=walk&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "m-attack.png",
+      "url": "/choi?thu=vukhi&vh=bich_lan_xa_hoang&gioi=m&trang=attack&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "m-cast.png",
+      "url": "/choi?thu=vukhi&vh=bich_lan_xa_hoang&gioi=m&trang=cast&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-idle.png",
+      "url": "/choi?thu=vukhi&vh=bich_lan_xa_hoang&gioi=f&trang=idle&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-walk.png",
+      "url": "/choi?thu=vukhi&vh=bich_lan_xa_hoang&gioi=f&trang=walk&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-attack.png",
+      "url": "/choi?thu=vukhi&vh=bich_lan_xa_hoang&gioi=f&trang=attack&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-cast.png",
+      "url": "/choi?thu=vukhi&vh=bich_lan_xa_hoang&gioi=f&trang=cast&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "game-scene-m-idle.png",
+      "url": "/choi?lag=1",
+      "scene": "game",
+      "sex": "m"
+    },
+    {
+      "file": "game-scene-f-idle.png",
+      "url": "/choi?lag=1",
+      "scene": "game",
+      "sex": "f"
+    }
+  ],
+  "assets": [
+    {
+      "file": "shared/assets/sprites/vukhianim/bich_lan_xa_hoang_b.png",
+      "sha256": "e4003a2b2e0fd48727f12c0c1759ce753c77c831bfc160ce1dc6301c22acd862"
+    },
+    {
+      "file": "shared/assets/sprites/vukhianim/bich_lan_xa_hoang_f.png",
+      "sha256": "dcfc2e580e416d2bf8bc652cf1f7c2affa3e096dc4b88369cd3fc134a4579a02"
+    }
+  ]
+}
