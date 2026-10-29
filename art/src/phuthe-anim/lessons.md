@@ -119,6 +119,9 @@ Chỉ các dòng `@VUKHI` được chèn vào prompt kiểu vũ khí (`--kind vu
 - **@VUKHI-MEM** Keep each flexible weapon as one uninterrupted silhouette from its single registration root to its single head. Use an open C or U for cast; no disconnected section, inner branch or extra endpoint. // Hỏa Long s1: cast cao đứt thành hai cụm, bộ ghép thấy 7 thay vì 6.
 - **@VUKHI-MEM** Place all six registration roots well inside their own cells, never on a column boundary; specify root coordinates when needed. // Hỏa Long s2: hai gốc cùng ô; s3 đặt tọa độ gốc cụ thể đã ghép được. Hướng s dừng ở 3/3.
 - **@VUKHI-MEM** Use a cyan registration dot for ember-red weapons; keep the dot small and touching a plain blunt grip cap. Check nearest-pixel grip distance again after applying the single shared scale. // Hỏa Long se: màu vàng trùng motif than hồng, dùng cyan; tỉ lệ chung 0,09 giữ khoảng cách dưới 2 px, không nới ngưỡng.
+## Bài học rollout Tử Vong Chu Hoàng `@VUKHI-MEM`
+
+- **@VUKHI-MEM** Keep each spool-and-cord weapon compact, with its registration root well inside its column, a short connected stem touching the cyan dot, and one continuous cord ending in one needle. // Tử Vong Chu Hoàng e1: marker cột ba lệch sang cột hai; e2 bố cục gọn đã ghép được, 0 chặn nam/nữ trước khi mở rộng.
 
 ## Bài học rollout A Ngân `@VUKHI-MEM`
 
