@@ -2,11 +2,10 @@
    KHÔNG gỡ luật cũ ở style.css). Dùng lại khung và token của ui2-npc.css (--paper*, --ink*, --son, --sp-*, --fs-*); không sinh ảnh. Chữ qua --fs-*, vùng bấm >= 32 px,
    nhãn "Mới" / "Khoá" có chữ (không chỉ màu). Chỉ chữ có trong Galmuri. */
 
-/* (1) Ô tìm có dấu tiếng Việt. */
-body.ui2 #npc.n2 .s2-search{display:block}
-body.ui2 #npc.n2 .s2-search input{width:100%;box-sizing:border-box;min-height:32px;padding:0 var(--sp-4);font:var(--fs-m)/1.2 var(--f12);color:var(--text);background:var(--paper2);border:var(--bd-fine) solid var(--paper3);border-radius:0}
-body.ui2 #npc.n2 .s2-search input:focus-visible{outline:var(--bd) solid var(--son);outline-offset:var(--bd)}
-body.ui2 #npc.n2 .s2-search input::placeholder{color:var(--muted);opacity:1}
+/* (1) Ô tìm có dấu tiếng Việt: khung dùng chung ở ui2-tooltip.css (.p2-search), đây chỉ đổi sang màu Giấy. */
+body.ui2 #npc.n2 .s2-search input{color:var(--text);background:var(--paper2);border-color:var(--paper3)}
+body.ui2 #npc.n2 .s2-search input:focus-visible{outline-color:var(--son)}
+body.ui2 #npc.n2 .s2-search input::placeholder{color:var(--muted)}
 body.ui2 #npc.n2 .s2-none{margin:0}
 
 /* (2) Lưới món: thẻ giấy, vạch dưới màu món (hình), chọn = viền son dày. */
