@@ -1,0 +1,133 @@
+{
+  "id": "hoa_long",
+  "kind": "vukhi",
+  "level": "nhẹ",
+  "group": "B",
+  "frame": 128,
+  "dummyKey": "#30D030",
+  "blockLevel": {
+    "se": "nhẹ"
+  },
+  "sheets": [
+    {
+      "sheet": "toB",
+      "size": [
+        1536,
+        1024
+      ],
+      "kind": "huong",
+      "level": "nhẹ",
+      "dirs": [
+        "se"
+      ],
+      "background": {
+        "key": [
+          255,
+          0,
+          255
+        ],
+        "corners": [
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ]
+        ],
+        "keyDistFromLock": 0,
+        "cornerSpread": 0
+      },
+      "seVsE": null,
+      "prep": {
+        "shift": {
+          "dx": 0,
+          "dy": 0
+        },
+        "factor": 1,
+        "grid": "gap"
+      },
+      "bands": [
+        {
+          "row": 1,
+          "dir": "se",
+          "y": [
+            84,
+            217
+          ],
+          "figures": 6,
+          "state": "ok"
+        },
+        {
+          "row": 2,
+          "dir": "se",
+          "y": [
+            342,
+            477
+          ],
+          "figures": 6,
+          "state": "ok"
+        },
+        {
+          "row": 3,
+          "dir": "se",
+          "y": [
+            598,
+            725
+          ],
+          "figures": 6,
+          "state": "warn"
+        },
+        {
+          "row": 4,
+          "dir": "se",
+          "y": [
+            854,
+            955
+          ],
+          "figures": 4,
+          "state": "ok"
+        }
+      ],
+      "motion": [
+        {
+          "dir": "se",
+          "anim": "idle",
+          "maxDiff": 0.319
+        },
+        {
+          "dir": "se",
+          "anim": "walk",
+          "maxDiff": 0.973
+        },
+        {
+          "dir": "se",
+          "anim": "hurt-vs-idle",
+          "maxDiff": 1
+        }
+      ],
+      "issues": [
+        {
+          "sev": "light",
+          "code": "chan-lech",
+          "where": "H3 (se) C2",
+          "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 20%)."
+        }
+      ],
+      "draft": "LỖI: toB — chân lệch — H3 (se) C2 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 20%)."
+    }
+  ]
+}
