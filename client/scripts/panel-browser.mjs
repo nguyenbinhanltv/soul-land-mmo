@@ -1,6 +1,6 @@
 // U1 #754: lớp quản lý bảng + input, kiểm trên game thật (server RAM riêng + vite riêng + một Chromium `--mute-audio`).
 // Kiểm: bấm trên bảng KHÔNG walkTo / khoá mục tiêu; bấm nền vẫn đi; Esc đóng bảng trên cùng trước, hết bảng mới huỷ khoá; mở bảng nhả phím đang giữ.
-// `PANEL_OUTPUT=<thư mục>`: nơi ghi ảnh (mặc định thư mục tạm); `PANEL_TAG=truoc|sau`: tiền tố ảnh; `PANEL_SOFT=1`: chỉ ghi số đo, không assert (lượt "trước").
+// `PANEL_OUTPUT=<thư mục>`: nơi ghi ảnh (mặc định thư mục tạm); `PANEL_TAG=truoc|sau`: tiền tố ảnh; `PANEL_QS=?ui=2`: thêm tham số vào địa chỉ trang (bật giao diện v2); `PANEL_SOFT=1`: chỉ ghi số đo, không assert (lượt "trước").
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
@@ -65,7 +65,7 @@ GameScene.prototype.create = function(...a) {
   return u1Create.apply(this, a);
 };` });
   });
-  await page.goto(`${web}/choi/`);
+  await page.goto(`${web}/choi/${process.env.PANEL_QS ?? ""}`); // PANEL_QS="?ui=2": chạy cả với giao diện v2
   await page.getByRole("button", { name: "Vào Thánh Hồn Thôn" }).click();
   await page.waitForFunction(() => window.__u1?.players.size > 0);
   await page.waitForTimeout(1500);
