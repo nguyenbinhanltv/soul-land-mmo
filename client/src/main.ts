@@ -7,6 +7,7 @@ import "./ui2-hud.css";
 import "./ui2-settings.css";
 import "./ui2-charpanel.css";
 import "./ui2-bag.css";
+import "./confirm.css";
 import "./ui2-vohon.css";
 import "./ui2-npc.css";
 import "./ui2-shop.css";

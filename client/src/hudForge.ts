@@ -7,6 +7,7 @@ import { artImg } from "./uiArt.ts";
 import { EQUIP_ITEM, EQUIP_LUCK_MAX, EQUIP_SOUL, equipFrameKey, EQUIP_SLOTS, EQUIP_TIERS, EQUIP_MAX_TIER, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SALVAGE_MAX, EQUIP_SYNTH_KEEP, equipName, equipTemplate, equipSlotDef, equipSynthStep, parseEquip } from "../../shared/data.ts";
 import { toast } from "./feedback.ts";
 import { isUi2 } from "./uiKit.ts";
+import { confirmDialog } from "./confirmDialog.ts";
 import type { EquipEnhPreview, EquipEnhDone, EquipLuckPreview, EquipLuckDone, EquipSynDone, EquipSalvDone } from "./net.ts";
 import type { BagMsg, BagItem } from "./net.ts";
 
@@ -211,13 +212,13 @@ export function renderForgeLuck(el: HTMLElement, bag: BagMsg, act: NpcActions) {
 
 // ---------- Lò rèn: hợp thành 3 → 1 và phân giải trang bị hồn sư (E4; trang đẹp ở E5) ----------
 let synMain: string | null = null, synSac: string[] = [], synConfirm = false; // hợp thành: món chính, hai món hiến tế, đã bấm nút lần đầu
-const salvSel = new Set<string>(); let salvConfirm = false; // phân giải: các món đang chọn, đã bấm nút lần đầu
+const salvSel = new Set<string>(); // phân giải: các món đang chọn
 /** Đặt lại trạng thái trang Thợ rèn khi mở trang (gọi từ hudNpc.ts; biến import không gán được). */
 export const forgeReset = {
   gear() { gearPick = null; gearConfirm = false; },
   luck() { luckPick = null; },
   synth() { synMain = null; synSac = []; synConfirm = false; },
-  salv() { salvSel.clear(); salvConfirm = false; },
+  salv() { salvSel.clear(); },
 };
 /** Các trang bị hồn sư trong túi (không khoá) kèm bậc và ô; món đang mặc không nằm trong túi nên không xuất hiện. */
 const looseEquip = (bag: BagMsg) => bag.items.flatMap((i) => {
@@ -242,7 +243,7 @@ export function equipSynDone(m: EquipSynDone) {
 }
 /** Tin "equipsalvd" (E4): xong phân giải; bỏ chọn, báo tổng nhận được. */
 export function equipSalvDone(m: EquipSalvDone) {
-  salvSel.clear(); salvConfirm = false; if (!m.auto) setFx("ok", "forgesalv");
+  salvSel.clear(); if (!m.auto) setFx("ok", "forgesalv");
   toast("info", `${m.auto ? "Tự phân giải" : "Phân giải"} ${m.n} trang bị`, `+${honTeText(m.coin)}${m.items.map((x) => `, ${x.qty} ${itemDef(x.code)?.name ?? x.code}`).join("")}`);
   if (npcDefOpen && npcPage === "forgesalv") renderNpc();
 }
@@ -296,13 +297,13 @@ export function renderForgeSalv(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   for (let t = 0; t < EQUIP_MAX_TIER; t++) {
     if (!all.some((x) => x.tier === t)) continue;
     const q = document.createElement("button"); q.type = "button"; q.className = "aopt"; q.textContent = `Chọn mọi ${EQUIP_TIERS[t].name}`;
-    q.addEventListener("click", () => { q.blur(); salvSel.clear(); for (const x of all.filter((y) => y.tier === t).slice(0, EQUIP_SALVAGE_MAX)) salvSel.add(x.it.id); salvConfirm = false; renderNpc(); });
+    q.addEventListener("click", () => { q.blur(); salvSel.clear(); for (const x of all.filter((y) => y.tier === t).slice(0, EQUIP_SALVAGE_MAX)) salvSel.add(x.it.id); renderNpc(); });
     quick.appendChild(q);
   }
   const clr = document.createElement("button"); clr.type = "button"; clr.className = "aopt drop"; clr.textContent = "Bỏ chọn";
-  clr.addEventListener("click", () => { clr.blur(); salvSel.clear(); salvConfirm = false; renderNpc(); }); quick.appendChild(clr); box.appendChild(quick);
+  clr.addEventListener("click", () => { clr.blur(); salvSel.clear(); renderNpc(); }); quick.appendChild(clr); box.appendChild(quick);
   for (const x of all) equipBtn(box, x.it, x.tier, `${EQUIP_TIERS[x.tier].name} · +${x.it.enhance}`, salvSel.has(x.it.id), () => {
-    if (salvSel.has(x.it.id)) salvSel.delete(x.it.id); else if (salvSel.size < EQUIP_SALVAGE_MAX) salvSel.add(x.it.id); salvConfirm = false; renderNpc();
+    if (salvSel.has(x.it.id)) salvSel.delete(x.it.id); else if (salvSel.size < EQUIP_SALVAGE_MAX) salvSel.add(x.it.id); renderNpc();
   });
   const picked = all.filter((x) => salvSel.has(x.it.id)), coin = picked.reduce((n, x) => n + Math.round(EQUIP_SALVAGE[x.tier].coin * (1 + x.it.enhance / 5)), 0);
   const info = document.createElement("small");
@@ -311,8 +312,8 @@ export function renderForgeSalv(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   box.appendChild(info);
   const go = document.createElement("button"); go.type = "button"; go.className = "aopt danger"; if (!isUi2()) go.style.background = "#a82a2a";
   go.disabled = !picked.length || act.combat();
-  go.textContent = act.combat() ? "Đang giao chiến" : !picked.length ? "Chưa chọn món nào" : salvConfirm ? `Bấm lần nữa: phân giải ${picked.length} món` : `Phân giải ${picked.length} món`;
-  go.addEventListener("click", () => { go.blur(); if (!salvConfirm) { salvConfirm = true; renderNpc(); return; } salvConfirm = false; act.equipSalvage(picked.map((x) => x.it.id)); });
+  go.textContent = act.combat() ? "Đang giao chiến" : !picked.length ? "Chưa chọn món nào" : `Phân giải ${picked.length} món`;
+  go.addEventListener("click", () => { go.blur(); confirmDialog({ title: "Phân giải?", body: `${picked.length} món sẽ bị phân giải, nhận ${honTeText(coin)} cùng vật liệu theo bậc; không lấy lại được.`, confirm: `Phân giải ${picked.length} món`, danger: true }, () => act.equipSalvage(picked.map((x) => x.it.id))); });
   box.appendChild(go);
 }
 
