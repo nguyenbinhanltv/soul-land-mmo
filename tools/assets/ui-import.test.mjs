@@ -44,3 +44,16 @@ test("--check: ảnh, manifest, ui-kit.json trong repo khớp kết quả cắt"
   assert.equal(readdirSync(path.join(dir, "2x")).length, readdirSync(path.join(dir, "1x")).length);
   assert.ok(JSON.parse(readFileSync(path.join(ROOT, "shared/assets/sprites/manifest.json"), "utf8")).sprites.filter((e) => /^ui2_/.test(e.key ?? "")).length > 0);
 });
+
+test("tiền tố Giấy giữ riêng nhóm trạng thái, không ghi đè Mực", () => {
+  const muc = PLAN.find((j) => j.note === "N Mực");
+  const { kit, files } = cutPlan([muc, { ...muc, prefix: "giay_" }]);
+  assert.equal(files.size, muc.keep.length * 4);
+  for (const piece of kit.pieces.filter((p) => p.key.startsWith("ui2_giay_"))) {
+    const original = kit.pieces.find((p) => p.key === piece.key.replace("ui2_giay_", "ui2_"));
+    assert.equal(piece.set, `giay_${original.set}`);
+    assert.equal(kit.groups[piece.set].states[piece.state], piece.key);
+    assert.equal(kit.groups[original.set].states[original.state], original.key);
+    assert.deepEqual(piece.nine, original.nine);
+  }
+});

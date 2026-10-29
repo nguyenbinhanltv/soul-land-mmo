@@ -84,3 +84,4 @@
 Bài học sau lượt 2 Thủy mặc đã dùng trong prompt lượt 3, giữ nguyên tại `board-v2/thuy-mac/BOARD.prompt.txt`. Theo review #1195, chỉ lưu lịch sử dưới dạng trích dẫn: parser hiện chỉ lọc loại tờ, chưa lọc hướng, nên không để bài học này tác động Ngọc–Kim hoặc hướng mặc định.
 
 > - [BOARD] For THUY-MAC only, replace metallic corner scrollwork and repeated jewel clasps with matte ink-stone corners and spare dry-brush strokes, keeping only one small cinnabar seal as the focal ornament. // Thủy mặc lượt 2: còn viền kim loại và nhiều chốt ngọc, cần rõ nét cọ và chu sa
+- [T] Fill all three coloured bar inserts with exactly one flat opaque colour each, without gradients or shading; their straight outer edges must stay constant in colour from end to end. // T Giấy lượt 1: dải hồn lực và kinh nghiệm bị chặn cạnh không phẳng do chuyển sắc.
