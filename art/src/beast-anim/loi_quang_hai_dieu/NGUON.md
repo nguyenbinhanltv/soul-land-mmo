@@ -46,6 +46,26 @@ Loài `loi_quang_hai_dieu` (Lôi Quang Hải Diêu), họ `swim`, khung game 96�
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 159% so với ảnh tĩnh (lệch 59%, quá 25%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
+## Tờ chưa vào thư mục chính (candidates)
+
+Với nhãn to-<hướng>, số lượt đã dùng dưới đây tính RIÊNG vòng 2 (tối đa 3 lượt bổ sung); số lượt cũ giữ ở sổ trước vòng 2. RAW được chọn là lượt ít lỗi chặn hơn sau soát kỹ thuật và bằng mắt; vẫn giữ ảnh tĩnh trong game.
+
+Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
+
+### to-n (candidates)
+
+- File chọn: `candidates/to-n-797-attempt3.png`, **1536×1024**, SHA256 `360257820619160c11c7c26d2eca9f8252f6e861eb577e466f334906ea77a131`; lượt tìm thấy: 3.
+- Số lượt đã dùng: 3; lượt được chọn: 3.
+- Mức kiểm: **nhẹ**.
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+### to-ne (candidates)
+
+- File chọn: `candidates/to-ne-797-attempt2.png`, **1536×1024**, SHA256 `963e730b1881ad24de2f2eefbef6b79617b1d332da85644dcfcadd0ce3413426`; lượt tìm thấy: 2.
+- Số lượt đã dùng: 3; lượt được chọn: 2.
+- Mức kiểm: **nhẹ**.
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
 ## Các lượt bổ sung vòng 2 (phiên 797)
 
 Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên; tờ lỗi không dùng làm tham chiếu.
@@ -104,9 +124,9 @@ Không thu được RAW: nhóm yêu cầu đầu lỗi bộ lọc, không thu đ
 LỖI: toA — chân lệch — H10 (e) C3–6 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 20%).
 LỖI: to-ne — Phiên 778: CHẶN nhập: 3 lượt; lượt 3 mắt ít hơn nhưng cutter vẫn vượt khung toàn loài, sau khớp ne lệch -23,1%; không dùng --scale, giữ fallback. (mắt)
 LỖI: to-n — Phiên 778: CHẶN nhập: lượt 1 nhìn sau sạch mặt nhưng cutter vượt khung toàn loài và sau khớp n lệch -20,5%; không dùng --scale, giữ fallback. (mắt)
+LỖI: candidates/to-n-797-attempt3 — chân lệch — H3 (n) C1–6 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 12%).
 LỖI: candidates/to-ne-797-attempt2 — hình ở ô trống — H4 (ne) C5 — ô trống có hình (0.55% diện tích ô): hình tràn từ ô bên.
 LỖI: candidates/to-ne-797-attempt3 — đuôi ngắn hơn nhưng lộ mắt cạnh đầu; không nhập (mắt)
-LỖI: candidates/to-n-797-attempt3 — chân lệch — H3 (n) C1–6 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 12%).
 ```
 
 ## Ghi công

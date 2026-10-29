@@ -47,6 +47,26 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 - Mức kiểm: **pass**.
 - Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
 
+## Tờ chưa vào thư mục chính (candidates)
+
+Với nhãn to-<hướng>, số lượt đã dùng dưới đây tính RIÊNG vòng 2 (tối đa 3 lượt bổ sung); số lượt cũ giữ ở sổ trước vòng 2. RAW được chọn là lượt ít lỗi chặn hơn sau soát kỹ thuật và bằng mắt; vẫn giữ ảnh tĩnh trong game.
+
+Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
+
+### to-ne (candidates)
+
+- File chọn: `candidates/to-ne-797-attempt1.png`, **1536×1024**, SHA256 `bd3409457b48cf7ae37037f42afebd19a05ae49f2031d55b1ee35aa1e11dc6ce`; lượt tìm thấy: 1.
+- Số lượt đã dùng: 3; lượt được chọn: 1.
+- Mức kiểm: **nhẹ**.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+### toB (candidates)
+
+- File chọn: `candidates/toB-attempt1.png`, **1254×1254**, SHA256 `c15ddce0dd95e64fc6d11674eae1810497a6604b8aef016760f8b6602bb5b675`; lượt tìm thấy: 1.
+- Số lượt đã dùng: 1; lượt được chọn: 1.
+- Mức kiểm: **nhẹ**.
+- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
+
 ## Các lượt bổ sung vòng 2 (phiên 797)
 
 Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên; tờ lỗi không dùng làm tham chiếu.
@@ -92,6 +112,7 @@ LỖI: to-ne — ne — hết 3 lượt; đánh C2–C3 lộ mắt; giữ fallba
 LỖI: to-ne — ne — hết 3 lượt bổ sung (tổng 6); vẫn thấy mắt ở idle/attack; lượt 5 thiếu cột; candidates/to-ne-attempt4–6.*; giữ fallback. (mắt)
 LỖI: candidates/to-ne-797-attempt1 — chân lệch — H3 (ne) C4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 25%).
 LỖI: candidates/to-ne-797-attempt1 — oval tím giống mắt bên đầu (mắt)
+LỖI: toB — chân lệch — H8 (n) C4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 13%).
 LỖI: candidates/to-ne-797-attempt2 — attack còn mắt rõ (mắt)
 LỖI: candidates/to-ne-797-attempt3 — attack quay mặt và biến dạng đầu (mắt)
 ```

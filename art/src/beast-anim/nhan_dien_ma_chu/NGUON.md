@@ -70,6 +70,47 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 - Mức kiểm: **pass**.
 - Duyệt bằng mắt: **chưa duyệt bằng mắt**.
 
+## Tờ chưa vào thư mục chính (candidates)
+
+Với nhãn to-<hướng>, số lượt đã dùng dưới đây tính RIÊNG vòng 2 (tối đa 3 lượt bổ sung); số lượt cũ giữ ở sổ trước vòng 2. RAW được chọn là lượt ít lỗi chặn hơn sau soát kỹ thuật và bằng mắt; vẫn giữ ảnh tĩnh trong game.
+
+Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
+
+### to-ne (candidates)
+
+- File chọn: `candidates/to-ne-797-attempt3.png`, **1536×1024**, SHA256 `202cf01a69c9094b3753c27abc62ea6b1d4925343f4f384465ce97cf81747b5b`; lượt tìm thấy: 3.
+- Số lượt đã dùng: 3; lượt được chọn: 3.
+- Mức kiểm: **nhẹ**.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+### toB (candidates)
+
+- File chọn: `candidates/toB-attempt1.png`, **1536×1024**, SHA256 `c6766ac86327c9102c2cc98331acbe271596df5876dc6ef14667cb21e3dd38ee`; lượt tìm thấy: 1.
+- Số lượt đã dùng: 1; lượt được chọn: 1.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
+
+### toC (candidates)
+
+- File chọn: `candidates/toC-attempt1.png`, **1536×1024**, SHA256 `d31c783e7c6b12ce8ef34b8d33d172c3d6ad05746cf084c859ea51de973b7d55`; lượt tìm thấy: 1.
+- Số lượt đã dùng: 1; lượt được chọn: 1.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
+
+### toD (candidates)
+
+- File chọn: `candidates/toD-attempt3.png`, **1536×1024**, SHA256 `fd4859292a5626b07d262ca54d2745069df1bdb9595c8ecce58af212fc0926c1`; lượt tìm thấy: 1, 2, 3.
+- Số lượt đã dùng: 3; lượt được chọn: 3.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
+
+### toE (candidates)
+
+- File chọn: `candidates/toE-attempt1.png`, **1536×1024**, SHA256 `bbc878cd8c5636155ed539debf55dfca3f6e813268f206a6487d516844da0ecc`; lượt tìm thấy: 1.
+- Số lượt đã dùng: 1; lượt được chọn: 1.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
+
 ## Các lượt bổ sung vòng 2 (phiên 797)
 
 Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên; tờ lỗi không dùng làm tham chiếu.
@@ -114,10 +155,10 @@ LỖI: toB — se — chưa đọc rõ bốn cặp chân; hurt biên độ nhỏ
 LỖI: toC — e — chưa đọc rõ bốn cặp chân; idle C2–3, walk C3/C5 và attack C5 nghiêng gần se; hurt và die giữ hướng phải, không ngửa bụng. (mắt)
 LỖI: toE — n — chưa đọc rõ bốn cặp chân; hurt biên độ nhỏ, giữ hướng lưng trong mọi khung và die hạ thân không xoay ngang. (mắt)
 LỖI: to-ne — ne — lượt sửa 1 vẫn chưa rõ tám chân, còn hoa văn mặt ở góc lưng; chưa nhập. (mắt)
-LỖI: candidates/to-ne-797-attempt1 — chưa đọc rõ 8 chân (mắt)
-LỖI: candidates/to-ne-797-attempt2 — vẫn chỉ rõ 3 cặp chân (mắt)
 LỖI: candidates/to-ne-797-attempt3 — chân lệch — H4 (ne) C1 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 14%).
 LỖI: candidates/to-ne-797-attempt3 — đủ chân hơn nhưng họa tiết mặt còn hiện ở lưng (mắt)
+LỖI: candidates/to-ne-797-attempt1 — chưa đọc rõ 8 chân (mắt)
+LỖI: candidates/to-ne-797-attempt2 — vẫn chỉ rõ 3 cặp chân (mắt)
 ```
 
 ## Ghi công

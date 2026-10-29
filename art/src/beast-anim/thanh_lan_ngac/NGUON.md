@@ -72,6 +72,33 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 - Mức kiểm: **pass**.
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
+## Tờ chưa vào thư mục chính (candidates)
+
+Với nhãn to-<hướng>, số lượt đã dùng dưới đây tính RIÊNG vòng 2 (tối đa 3 lượt bổ sung); số lượt cũ giữ ở sổ trước vòng 2. RAW được chọn là lượt ít lỗi chặn hơn sau soát kỹ thuật và bằng mắt; vẫn giữ ảnh tĩnh trong game.
+
+Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
+
+### to-ne (candidates)
+
+- File chọn: `candidates/to-ne-797-attempt2.png`, **1536×1024**, SHA256 `47ba6a117d60a404c11879c0c2e75a8981f31568b76d272c4f429c29bbc51d7a`; lượt tìm thấy: 2.
+- Số lượt đã dùng: 3; lượt được chọn: 2.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+### toD (candidates)
+
+- File chọn: `candidates/toD-attempt3.png`, **1536×1024**, SHA256 `7b0a1ad33a04c0201b3ae535396a3ccd2bd2c848ae25d21f1e93d1603b31544e`; lượt tìm thấy: 1, 2, 3.
+- Số lượt đã dùng: 3; lượt được chọn: 3.
+- Mức kiểm: **chặn** (CHẶN: không vào thư mục chính).
+- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
+
+### toE (candidates)
+
+- File chọn: `candidates/toE-attempt3.png`, **1536×1024**, SHA256 `9d2417fc243ea571cd4505ef105d40ebee13e99f26803cc474b99262dd7a33b7`; lượt tìm thấy: 1, 2, 3.
+- Số lượt đã dùng: 3; lượt được chọn: 3.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
+
 ## Các lượt bổ sung vòng 2 (phiên 797)
 
 Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên; tờ lỗi không dùng làm tham chiếu.
@@ -117,8 +144,8 @@ LỖI: to-ne — ne — hết 3 lượt bổ sung (tổng 6), mọi lượt còn
 LỖI: toD — hình dính — H3 (ne) — dải có 5 hình, cần 6: hình dính nhau.
 LỖI: toD — hướng — ne mọi hàng — còn lộ mắt sau 3 lượt, giữ fallback (mắt)
 LỖI: toE — hướng — n H3 C3–4 — attack quay đầu lộ mặt sau 3 lượt, giữ fallback (mắt)
-LỖI: candidates/to-ne-797-attempt1 — còn nét mặt bên đầu (mắt)
 LỖI: candidates/to-ne-797-attempt2 — vẫn có mắt (mắt)
+LỖI: candidates/to-ne-797-attempt1 — còn nét mặt bên đầu (mắt)
 LỖI: candidates/to-ne-797-attempt3 — vẫn có mắt ở mép đầu, không nhập (mắt)
 ```
 
