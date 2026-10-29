@@ -1707,6 +1707,7 @@ Người dùng tạo ảnh bằng ChatGPT (tạo ảnh, nền trong suốt), r�
 | `shared/assets/sprites/iso/ui/thong_bao_len_cap.png` | `ui_thong_bao_len_cap` | ChatGPT image model (Codex) + PIL chỉnh tay | Concept sheet UI thủy mặc pixel: dải thông báo ngang màu giấy; crop, thu nearest, lượng tử 32 màu, alpha nhị phân. | 2026-10-25 | Khung thông báo Lên cấp; dùng cho toast/banner. |
 | `shared/assets/sprites/iso/ui/thong_bao_hon_hoan.png` | `ui_thong_bao_hon_hoan` | ChatGPT image model (Codex) + PIL chỉnh tay | Concept sheet UI thủy mặc pixel: dải thông báo ngang mực tím; crop, thu nearest, lượng tử 32 màu, alpha nhị phân. | 2026-10-25 | Khung thông báo Hồn hoàn hiếm; dùng cho toast/banner. |
 | `shared/assets/sprites/iso/ui/khung_tab_nhan_vat.png` | `ui_khung_tab_nhan_vat` | ChatGPT image model (Codex) + PIL chỉnh tay | Concept sheet UI thủy mặc pixel: vạch tab ngang gỗ đồng và ngọc; crop, thu nearest, lượng tử 32 màu, alpha nhị phân. | 2026-10-25 | Khung tab bảng Nhân vật; 9 lát mép 8. |
+| `shared/assets/sprites/phaptuong/lam_ngan_thao_glow.png` | `pt_lam_ngan_thao_glow` | ChatGPT + tools/assets/phuthe-to-phaptuong.mjs | Lớp phát sáng của pt_lam_ngan_thao dựng bằng code từ sheet thân (viền sáng 1–3 điểm màu võ hồn, hạt bay lên), phuthe-to-phaptuong.mjs --glow; vẽ cộng sáng | 2026-10-29 | #1306: làm lại lớp sáng cho sheet pháp tướng lấy từ phụ thể cũ |
 
 ## Asset tạo bằng AI (Microsoft Copilot)
 

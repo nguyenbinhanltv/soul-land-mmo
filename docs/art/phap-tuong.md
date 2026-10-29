@@ -313,32 +313,33 @@ Mục đích: dùng hiệu ứng / hoạt ảnh LPC (Liberated Pixel Cup) và g�
 
 Ảnh thử ghép (pixel hóa, viền, nhuộm màu) nằm trong trang xem trước H1 (bảng "LPC thử"): Fireball, Icicle, Shock, Heal, Shield, Quake, Freeze, Sparks và `lightningclaw` / `tornado` / `fire lion` / `iceshield` từ Extended LPC Magic pack, đặt cạnh pháp tướng PixelLab để xem có cùng độ phân giải và độ bão hòa không. Kết luận thử: gói pixel thật (Extended LPC Magic, LPC Flames, LPC Explosions) khớp ngay; gói dựng Blender của Bellanger khớp sau khi thu 50% với bảng màu ≤ 14 và viền `#1a1020`, riêng Shield / Shock cần làm lớp cộng sáng thay vì pixel hóa.
 
-## 7. Đóng gói từ phụ thể cũ: `phuthe-to-phaptuong.mjs` (#1306, epic #1020)
+## 7. Chuyển thể từ phụ thể cũ: `phuthe-to-phaptuong.mjs` (#1306, epic #1020)
 
-Quyết định chủ repo 2026-10-29: phụ thể cũ thành pháp tướng. Công cụ `tools/assets/phuthe-to-phaptuong.mjs` (phần thuần ở `phuthe-to-phaptuong-lib.mjs`, test `phuthe-to-phaptuong.test.mjs` trong `npm run test:assets`) đọc ảnh phụ thể đã có và ghi sheet `shared/assets/sprites/phaptuong/<id>.png` đúng định dạng của mục 2 và `client/src/phapTuong.ts`: khung `PT_FRAME`, `PT_COLS` cột = `PT_IDLE_N` thở + `PT_ATTACK_N` đánh, hàng = hướng `PT_DIRS`, tối đa `PT_MAX_COLORS` màu, alpha 0 / 255.
+Quyết định chủ repo 2026-10-29: phụ thể cũ thành pháp tướng, nhưng **chuyển thể** cho hợp pháp tướng bay sau lưng chứ không đóng gói nguyên bản (bản đầu của #1309 ra y phụ thể cũ: nhỏ, còn chỗ rỗng hình người). Công cụ `tools/assets/phuthe-to-phaptuong.mjs` (phần thuần ở `phuthe-to-phaptuong-lib.mjs`, test `phuthe-to-phaptuong.test.mjs` trong `npm run test:assets`) đọc ảnh phụ thể đã có và ghi sheet `shared/assets/sprites/phaptuong/<id>.png` đúng định dạng của mục 2 và `client/src/phapTuong.ts`: khung `PT_FRAME`, `PT_COLS` cột = `PT_IDLE_N` thở + `PT_ATTACK_N` đánh, hàng = hướng `PT_DIRS`, tối đa `PT_MAX_COLORS` màu, alpha 0 / 255.
 
 | Việc | Cách làm |
 |---|---|
 | Nguồn | ưu tiên `vohonanim/<id>_{b,f}.png` (clip vẽ thật, cột / khung theo `anim` ở manifest, hàng thân nam); không có clip thì `vohon/<id>_{b,f}.png` (ảnh tĩnh, khung đứng cột 0). `--tinh` ép dùng ảnh tĩnh |
 | Lớp | nửa sau và nửa trước ghép thành **một** lớp (nửa trước đè nửa sau); luật lớp vẫn của client: `s` / `se` / `e` sau thân, `ne` / `n` trước thân mờ `PT_FRONT_ALPHA` |
-| Gốc | gốc chân của phụ thể (khung 96: `(48, 74)`, khung 128: `(64, 90)`) đặt đúng `PT_ORIGIN`, nên hồn sư đứng đúng chỗ rỗng hình người mà cutter đã để lại trong phụ thể |
-| Phóng | **nguyên**, láng giềng gần nhất (mỗi điểm nguồn thành khối s×s, giữ lưới pixel). Thử ×2 trước; nếu một khung nào của hộp bao hợp (cả 5 hướng × 16 khung) không lọt khung 160 (chừa 2 điểm mép) thì ×1. Hình phụ thể cũ hầu hết choán gần hết khung 96 (rộng ~95 điểm), nên 3 mẫu đều ra **×1**; ×2 chỉ hợp hình rộng ≤ 76 điểm. Công cụ in hệ số và số điểm bị cắt (khác 0 là lỗi, `--scale` ép hệ số) |
-| Thở (8) | clip `idle` n khung → đi tới khung cuối rồi quay về (`idleSeq`: 4 khung → 0 1 2 2 3 2 2 1); khung đầu là tư thế gốc |
-| Đánh (8) | clip `attack` n khung chia đều từ đầu đến cuối (`attackSeq`: 6 khung → 0 1 1 2 3 4 4 5), khung ra đòn ở giữa |
-| Chỉ có ảnh tĩnh | thở và đánh **nội suy bằng code tất định** (bảng số nguyên, không ngẫu nhiên, không hàm lượng giác): thở dời dọc 1 điểm nguồn + nghiêng 1 điểm theo độ cao; đánh lùi lấy đà rồi lao theo hướng nhìn (sinh vật / thực vật) hoặc nhấc lên rồi nện xuống (vật cứng, nhóm `V` / `O`). Dời theo điểm nguồn nên giữ lưới pixel |
-| Chỗ rỗng hình người | `--fill N` lấp khoảng rỗng hẹp sát gốc chân bằng màu viền tối đi (mặc định tắt: gốc trùng chân hồn sư thì thân hồn sư lấp đúng chỗ đó; chỉ bật khi `display.dx` / `dy` đẩy pháp tướng đi xa thân và chỗ rỗng lộ ra) |
+| Gốc | gốc chân phụ thể (khung 96: `(48, 74)`, khung 128: `(64, 90)`) đặt đúng `PT_ORIGIN` |
+| Lấp chỗ rỗng hình người | cutter trừ nộm nên phụ thể có khoảng rỗng hình người; khi pháp tướng phóng to và bay lên, chỗ rỗng lộ ra. `fillBodyHole` tự lấp từ hình xung quanh, tất định: mỗi hàng rồi mỗi cột trong ±`BODY_HALF` điểm quanh gốc chân, khoảng trong suốt ≤ `FILL_GAP` kẹp giữa hai điểm đặc được tô bằng trung bình màu hai điểm kề (bỏ viền tối `OUTLINE_SKIP` điểm), tối đi xen theo ô cờ. Mặc định bật cho sinh vật / thực vật / hư ảnh, tắt cho vật cứng (nhóm `V`, `O`: búa, kiếm lõm thật); `--fill N` đổi ngưỡng, `--fill 0` tắt |
+| Phần tay cầm / vật nắm | `--bo x,y,r` (lặp được) xóa đĩa tròn (điểm nguồn từ gốc chân) quanh phần tay cầm không hợp pháp tướng bay. 3 mẫu không cần: Tà Hỏa và Lam Ngân Thảo không có vật nắm, Hạo Thiên Chùy là chính cây búa |
+| Phóng | **không nướng ×2 vào ảnh**: ảnh giữ ×1 (hoặc ×2 chỉ khi hình nhỏ lọt khung 160, `pickScale`); hình phụ thể cũ rộng ~95 điểm nên ×2 không lọt. Độ lớn pháp tướng đặt bằng `scale` (~1,5–1,8) ở `PHAP_TUONG`, client phóng lúc vẽ |
+| Thở (8) | clip `idle` n khung → đi tới khung cuối rồi quay về (`idleSeq`: 4 khung → 0 1 2 2 3 2 2 1) |
+| Đánh (8) | clip `attack` n khung chia đều từ đầu đến cuối (`attackSeq`: 6 khung → 0 1 1 2 3 4 4 5) |
+| Chỉ có ảnh tĩnh | thở / đánh nội suy bằng code tất định (bảng số nguyên): thở dời dọc 1 điểm + nghiêng 1 điểm; đánh lùi lấy đà rồi lao theo hướng nhìn (sinh vật / thực vật) hoặc nhấc lên rồi nện xuống (vật cứng) |
+| Lớp sáng | `--glow` ghi `<id>_glow.png` (cộng sáng, client đọc `pt.glow`): viền sáng 1–3 điểm màu võ hồn (điểm ngoài dithering) và vài hạt bay lên mỗi khung, một vòng lặp đúng độ dài hoạt ảnh |
 | Bảng màu | median cut còn tối đa `PT_MAX_COLORS` màu, giữ viền `#1a1020` |
 | 25 võ hồn | `--all` **từ chối** nếu thiếu `--duyet-mau`; chỉ thêm cờ này sau khi chủ repo duyệt 3 mẫu |
 
-**Cách ghép (`display`).** Dạng "bay sau lưng" nằm ở `PHAP_TUONG` của `shared/data.ts` (`scale`, `dx`, `dy`, quanh gốc hồn sư; test `client/scripts/phaptuong-test.mjs` đối chiếu manifest `pt.*`), không ở ảnh. `PT_ORIGIN` giữ `(80, 124)` vì mọi sheet đã nhập và công cụ này cùng dùng. Hoạt ảnh nằm sẵn trong khung (clip hoặc nội suy) nên `motion` chỉ còn nhịp sáng `pulse` (`BAKED`).
+**Cách ghép (`display`) = dạng bay sau lưng.** Ở `PHAP_TUONG` của `shared/data.ts` (`scale`, `dx`, `dy` quanh gốc hồn sư, `motion.bob`; test `client/scripts/phaptuong-test.mjs` đối chiếu manifest `pt.*`): phóng `scale`, nâng `dy` cao hơn vai, `dx` lùi ra sau, `bob` nhấp nhô bằng code (hoạt ảnh nằm sẵn trong khung nên các số còn lại giữ `BAKED`). `PT_ORIGIN` giữ `(80, 124)`. Luật lớp giữ nguyên.
 
-**Ba mẫu (chờ chủ repo duyệt, xem ở `?thu=phaptuong&vh=<id>`):**
+**Ba mẫu (chờ chủ repo duyệt; ảnh trong game 5 hướng, đứng yên và đánh ở `art/preview/phaptuong-1306/`; xem ở `?thu=phaptuong&vh=<id>` của `/choi`):**
 
-| Võ hồn | Nguồn | Phóng | `display` (`scale`, `dx`, `dy`) | Ghi chú |
-|---|---|---|---|---|
-| Tà Hỏa Phượng Hoàng (`ta_hoa_phuong_hoang`) | `vhanim` khung 96, 4 thở + 6 đánh | ×1 | 1, 0, −4 | bay cao hơn 4 điểm để lửa đuôi không chạm đất |
-| Hạo Thiên Chùy (`hao_thien_chuy`) | `vhanim` khung 128, vật cứng 2 thở + 4 đánh | ×1 | 1, 12, −10 | búa lơ lửng chếch sau vai phải, nện xuống ở động tác đánh |
-| Lam Ngân Thảo (`lam_ngan_thao`) | `vhanim` khung 96, 4 thở + 6 đánh | ×1 | 1, 0, 0 | mọc sau lưng; bỏ lớp sáng cũ `pt_lam_ngan_thao_glow` (suy ra từ sheet PixelLab cũ, không còn khớp) |
+| Võ hồn | Nguồn | `display` (`scale`, `dx`, `dy`, `bob`) | Ghi chú |
+|---|---|---|---|
+| Tà Hỏa Phượng Hoàng (`ta_hoa_phuong_hoang`) | `vhanim` khung 96, 4 thở + 6 đánh | 1,8 · 0 · −28 · 3 | lấp chỗ rỗng; tạm ổn |
+| Hạo Thiên Chùy (`hao_thien_chuy`) | `vhanim` khung 128, vật cứng | 1,5 · 18 · −28 · 3 | không lấp (vật cứng); búa lơ lửng chếch sau vai, nện xuống khi đánh; 1,8 quá to |
+| Lam Ngân Thảo (`lam_ngan_thao`) | `vhanim` khung 96 | 1,8 · 0 · −20 · 2 | **lớp sáng làm lại** (`--glow`); chỗ lấp thân vẫn thành cột tối lộ rõ ở `e`, `n`: cần vẽ lại bằng model (nửa sau không có thân / không có chỗ rỗng) nếu chủ repo thấy không ổn |
 
-Việc tiếp sau khi duyệt mẫu: chạy `--all --duyet-mau`, đăng ký từng `pt_<id>` bằng `validate.mjs --register pt_<id> --iso` (`display` lấy từ `recipe.json`), chỉnh `dx` / `dy` / `scale` từng võ hồn ở `PHAP_TUONG`, bỏ lớp sáng `_glow` còn lại nếu không khớp sheet mới.
-
+Việc tiếp sau khi duyệt mẫu: chạy `--all --duyet-mau --glow` cho các võ hồn cần lớp sáng, đăng ký từng `pt_<id>` bằng `validate.mjs --register pt_<id> --iso` (`display` lấy từ `recipe.json`), chỉnh `scale` / `dx` / `dy` từng võ hồn.

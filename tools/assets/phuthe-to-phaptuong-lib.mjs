@@ -31,26 +31,55 @@ export function cell(sheet, F, col, row) {
 }
 
 /** Nửa bề ngang (điểm nguồn) quanh gốc chân mà khoảng rỗng hình người có thể nằm: thân LPC rộng khoảng 20 điểm. */
-export const BODY_HALF = 14;
+export const BODY_HALF = 16;
+/** Viền tối quanh chỗ rỗng (do cutter) dày chừng này điểm: khi lấp bỏ qua để lấy màu thật của lông / lá ở ngoài viền. */
+export const OUTLINE_SKIP = 6;
+/** Chỗ rỗng hình người lớn nhất cần lấp (điểm nguồn, theo hàng và theo cột). */
+export const FILL_GAP = 28;
 /**
- * Lấp chỗ trống hình người (cutter trừ nộm nên phụ thể có một khoảng rỗng ngay chỗ thân hồn sư đứng): mỗi hàng ngang gốc chân (trong ±BODY_HALF điểm),
- * khoảng trong suốt hẹp (≤ maxGap điểm) kẹp giữa hai điểm đặc được tô bằng màu điểm đặc bên cạnh tối đi một chút (bóng sau lưng). Chỉ dùng khi pháp tướng
- * dời xa thân (display dx / dy lớn) làm lộ chỗ rỗng; không dùng cho vật cứng (búa, kiếm: lõm thật); khoảng rỗng xa thân (kẽ cánh, kẽ lá) giữ nguyên. Trả khung mới.
+ * Lấp chỗ rỗng hình người (cutter trừ nộm nên phụ thể có một khoảng rỗng ngay chỗ thân hồn sư đứng; khi pháp tướng phóng to và bay lên thì chỗ rỗng lộ ra):
+ * tự lấp từ hình xung quanh, tất định. Hai lượt: (1) mỗi hàng, khoảng trong suốt ≤ maxGap điểm kẹp giữa hai điểm đặc, nằm trong ±BODY_HALF điểm quanh gốc chân,
+ * tô bằng trung bình màu hai điểm đặc kề (bỏ viền tối), tối đi 28 / 38% xen theo ô cờ (không thành khối phẳng); (2) mỗi cột trong dải đó, khoảng trong suốt
+ * kẹp giữa hai điểm đặc phía trên và phía dưới, tô như trên. Lượt 2 dùng kết quả lượt 1 nên bịt cả hàng đầu hở.
+ * Không dùng cho vật cứng (búa, kiếm: lõm thật) và không đụng kẽ xa thân (kẽ cánh, kẽ lá). Trả khung mới.
  */
-export function fillBodyHole(im, maxGap = 24, F = im.w) {
-  const o = new Img(im.w, im.h, new Uint8Array(im.data)), cx = srcOrigin(F)[0];
+export function fillBodyHole(im, maxGap = FILL_GAP, F = im.w) {
+  const o = new Img(im.w, im.h, new Uint8Array(im.data)), cx = srcOrigin(F)[0], x0 = cx - BODY_HALF, x1 = cx + BODY_HALF + 1;
+  const lum = (p) => 0.3 * p[0] + 0.59 * p[1] + 0.11 * p[2];
+  /** Màu lấy từ điểm đặc gần nhất đi từ (x, y) theo (dx, dy) mà không phải viền tối quanh nộm (tối đa OUTLINE_SKIP điểm); không có thì chính điểm kề. */
+  const pick = (src, x, y, dx, dy) => { const first = src.get(x, y); for (let k = 0; k < OUTLINE_SKIP; k++) { const X = x + dx * k, Y = y + dy * k; if (X < 0 || Y < 0 || X >= src.w || Y >= src.h || !src.alpha(X, Y)) break; const p = src.get(X, Y); if (lum(p) > 70) return p; } return first; };
+  const mix = (p, q, t) => [0, 1, 2].map((c) => (((p[c] + q[c]) / 2) * t) | 0).concat(255); // trung bình hai màu, tối đi theo t
   for (let y = 0; y < im.h; y++) {
     let x = 0;
     while (x < im.w) {
       if (im.alpha(x, y)) { x++; continue; }
-      let x1 = x; while (x1 < im.w && !im.alpha(x1, y)) x1++;
-      if (x > 0 && x1 < im.w && x1 - x <= maxGap && x >= cx - BODY_HALF && x1 <= cx + BODY_HALF + 1) {
-        const L = im.get(x - 1, y), R = im.get(x1, y);
-        for (let k = x; k < x1; k++) { const p = (k - x) * 2 < x1 - x ? L : R; o.set(k, y, [(p[0] * 0.55) | 0, (p[1] * 0.55) | 0, (p[2] * 0.55) | 0, 255]); }
+      let e = x; while (e < im.w && !im.alpha(e, y)) e++;
+      if (x > 0 && e < im.w && e - x <= maxGap && x >= x0 && e <= x1) {
+        const L = pick(im, x - 1, y, -1, 0), R = pick(im, e, y, 1, 0);
+        for (let k = x; k < e; k++) o.set(k, y, mix(L, R, (k + y) & 1 ? 0.62 : 0.72));
       }
-      x = x1;
+      x = e;
     }
   }
+  const mid = new Img(o.w, o.h, new Uint8Array(o.data));
+  for (let x = x0; x < x1 && x < im.w; x++) {
+    let y = 0;
+    while (y < im.h) {
+      if (mid.alpha(x, y)) { y++; continue; }
+      let e = y; while (e < im.h && !mid.alpha(x, e)) e++;
+      if (y > 0 && e < im.h && e - y <= maxGap) { const U = pick(mid, x, y - 1, 0, -1), D = pick(mid, x, e, 0, 1); for (let k = y; k < e; k++) o.set(x, k, mix(U, D, (x + k) & 1 ? 0.62 : 0.72)); }
+      y = e;
+    }
+  }
+  return o;
+}
+
+/** Xóa các đĩa tròn (x, y từ gốc chân, bán kính r, điểm nguồn): bỏ phần thuộc tay cầm / vật nắm không hợp pháp tướng bay. */
+export function dropDiscs(im, discs, F = im.w) {
+  if (!discs?.length) return im;
+  const o = new Img(im.w, im.h, new Uint8Array(im.data)), [ox, oy] = srcOrigin(F);
+  for (const { x, y, r } of discs) for (let j = Math.floor(oy + y - r); j <= oy + y + r; j++) for (let i = Math.floor(ox + x - r); i <= ox + x + r; i++)
+    if (i >= 0 && j >= 0 && i < o.w && j < o.h && (i - ox - x) ** 2 + (j - oy - y) ** 2 <= r * r) o.set(i, j, [0, 0, 0, 0]);
   return o;
 }
 
@@ -162,12 +191,12 @@ export function quantize(t, max = PT_MAX_COLORS) {
  * source: { F, anim: boolean, dirs: { <hướng>: { idle: [{ back?, front? }], attack: [{ back?, front? }] } } }; mỗi phần tử là một khung nguồn đã cắt (Img cỡ F).
  *   - Nguồn hoạt ảnh (`anim`): idle / attack lấy lại theo `idleSeq` / `attackSeq`;
  *   - Nguồn tĩnh (hoặc chỉ 1 khung): chỉ dùng idle[0]; thở và đánh nội suy bằng `breathPose` / `strikePose` theo `opt.group`.
- * opt: { group: PtGroup, fill: số điểm tối đa của khoảng lấp hình người (mặc định 0 = không lấp: ở ×1, gốc trùng chân hồn sư thì thân hồn sư lấp đúng chỗ rỗng), scale: ép hệ số phóng (mặc định `pickScale`) }.
+ * opt: { group: PtGroup, fill: số điểm tối đa của khoảng lấp hình người (mặc định FILL_GAP cho sinh vật / thực vật / hư ảnh, 0 cho vật cứng; 0 = không lấp), drop: [{ x, y, r }] đĩa xóa phần tay cầm, scale: ép hệ số phóng (mặc định `pickScale`) }.
  * Trả { sheet (2560×800), scale, clipped: số điểm bị cắt khỏi khung 160, colors }.
  */
 export function buildSheet(source, opt = {}) {
-  const { F, anim } = source, pose = poseOf(opt.group), fill = opt.fill ?? 0;
-  const flat = (fr) => { const im = composeHalves(fr.back, fr.front); return fill ? fillBodyHole(im, fill, F) : im; };
+  const { F, anim } = source, pose = poseOf(opt.group), fill = opt.fill ?? (pose.kind === "lunge" ? FILL_GAP : 0);
+  const flat = (fr) => { const im = dropDiscs(composeHalves(fr.back, fr.front), opt.drop, F); return fill ? fillBodyHole(im, fill, F) : im; };
   const cells = []; // { row, col, im } khung nguồn đã dựng, chưa phóng
   ISO_DIRS.forEach((d, row) => {
     const { idle, attack } = source.dirs[d];
@@ -185,4 +214,33 @@ export function buildSheet(source, opt = {}) {
   let clipped = 0;
   for (const { row, col, im } of cells) { const r = placeFrame(im, F, scale); clipped += r.clipped; sheet.blit(r.img, 0, 0, PT_FRAME, PT_FRAME, col * PT_FRAME, row * PT_FRAME); }
   return { sheet, scale, clipped, colors: quantize(sheet) };
+}
+
+// ---------- Lớp sáng `pt_<id>_glow` ----------
+/** Khung trống? */
+const emptyFrame = (im) => !im.data.some((v, i) => i % 4 === 3 && v);
+/** Hạt bay lên (tất định): số hạt, độ cao bay, mỗi hạt một cột / pha riêng theo bảng số nguyên. */
+const MOTES = [[0.1, 0], [0.35, 3], [0.6, 5], [0.85, 1], [0.22, 6], [0.72, 2]];
+/**
+ * Lớp phát sáng cùng bố cục với sheet thân (client vẽ cộng sáng): viền sáng 1–3 điểm quanh hình (điểm ngoài dithering) màu `col`, thêm vài hạt `hat` bay lên từ
+ * nửa trên của hình, mỗi hạt một pha, một vòng lặp đúng bằng độ dài hoạt ảnh (thở 8 khung, đánh 8 khung). Alpha 0 / 255, tất định.
+ */
+export function buildGlow(sheet, col, hat = [255, 255, 255]) {
+  const g = new Img(sheet.w, sheet.h);
+  for (let row = 0; row < ISO_DIRS.length; row++) for (let c = 0; c < PT_COLS; c++) {
+    const body = cell(sheet, PT_FRAME, c, row);
+    if (emptyFrame(body)) continue;
+    const solid = (x, y) => x >= 0 && y >= 0 && x < PT_FRAME && y < PT_FRAME && body.alpha(x, y) > 0;
+    let x0 = PT_FRAME, x1 = -1, y0 = PT_FRAME;
+    for (let y = 0; y < PT_FRAME; y++) for (let x = 0; x < PT_FRAME; x++) if (solid(x, y)) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); }
+    const put = (x, y, rgb) => { if (x >= 1 && y >= 1 && x < PT_FRAME - 1 && y < PT_FRAME - 1 && !solid(x, y)) g.set(c * PT_FRAME + x, row * PT_FRAME + y, [...rgb, 255]); };
+    for (let y = 0; y < PT_FRAME; y++) for (let x = 0; x < PT_FRAME; x++) {
+      if (solid(x, y)) continue;
+      let d = 4; for (let j = -3; j <= 3 && d > 1; j++) for (let i = -3; i <= 3; i++) if (solid(x + i, y + j)) d = Math.min(d, Math.max(Math.abs(i), Math.abs(j)));
+      if (d === 1 || (d === 2 && (x + y) % 2 === 0) || (d === 3 && x % 2 === 0 && y % 2 === 0)) put(x, y, col);
+    }
+    const n = c % 8, w = x1 - x0 + 1;
+    MOTES.forEach(([fx, ph], k) => { const u = ((n + ph) % 8) / 8; if (u < 0.9) put(Math.round(x0 + fx * w), Math.round(y0 + 2 - 22 * u), k % 2 ? hat : col); });
+  }
+  return g;
 }

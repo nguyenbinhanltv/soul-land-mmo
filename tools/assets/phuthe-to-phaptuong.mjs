@@ -1,6 +1,6 @@
 // Đóng gói phụ thể cũ thành pháp tướng (#1306, epic #1020): vh_<id>_b/_f (và clip vhanim_<id>_b/_f nếu có) → sheet pt_<id> (khung 160, 16 cột = 8 thở + 8 đánh,
 // hàng = hướng s, se, e, ne, n; phóng nguyên giữ lưới pixel: ×2 nếu lọt khung 160, không thì ×1). Võ hồn chỉ có ảnh tĩnh thì thở / đánh nội suy bằng code tất định.
-//   node tools/assets/phuthe-to-phaptuong.mjs --id <mã võ hồn> [--out <file.png>] [--preview <file.png>] [--fill <điểm lấp chỗ rỗng hình người, mặc định 0>] [--scale 1|2] [--tinh]
+//   node tools/assets/phuthe-to-phaptuong.mjs --id <mã võ hồn> [--out <file.png>] [--preview <file.png>] [--fill <điểm lấp chỗ rỗng hình người, mặc định 0>] [--scale 1|2] [--tinh] [--bo x,y,r]… [--glow]
 //   node tools/assets/phuthe-to-phaptuong.mjs --all --duyet-mau      (25 võ hồn: chỉ chạy sau khi chủ repo duyệt 3 mẫu, mặc định từ chối)
 // Quyết định chủ repo 2026-10-29 (epic #1020): phụ thể v2 là vũ khí cầm tay; phụ thể CŨ thành pháp tướng bay sau lưng, chỉ hiện khi Chân Thân.
 // Nguồn: ưu tiên `vohonanim/<id>_{b,f}.png` (clip vẽ thật, cột / khung theo `anim` ở manifest), không có thì `vohon/<id>_{b,f}.png` (tĩnh, khung đứng cột 0);
@@ -9,8 +9,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ROOT, SPRITES, MANIFEST, Img, readPng, encodePng, ISO_DIRS, PT_FRAME } from "./lib.mjs";
-import { SAMPLES, buildSheet, cell } from "./phuthe-to-phaptuong-lib.mjs";
+import { ROOT, SPRITES, MANIFEST, Img, readPng, encodePng, ISO_DIRS, PT_FRAME, hex, vohonColors } from "./lib.mjs";
+import { SAMPLES, buildSheet, buildGlow, cell } from "./phuthe-to-phaptuong-lib.mjs";
 
 const { PHAP_TUONG, VOHON } = await import("../../shared/data.ts");
 const fail = (m) => { console.error(`[phuthe-to-phaptuong] ${m}`); process.exit(1); };
@@ -50,14 +50,15 @@ export function convert(id, opt = {}) {
   const src = loadSource(id, { manifest, forceStatic: opt.forceStatic });
   if (!src) throw new Error(`${id}: không có ảnh phụ thể cũ (vohon/${id}_b|f.png, vohonanim/${id}_b|f.png)`);
   const group = PHAP_TUONG[id]?.group ?? "B";
-  return { ...buildSheet(src, { group, fill: opt.fill, scale: opt.scale }), src, group };
+  return { ...buildSheet(src, { group, fill: opt.fill, scale: opt.scale, drop: opt.drop }), src, group };
 }
 
 if (fileURLToPath(import.meta.url) === path.resolve(process.argv[1] ?? "")) {
   const args = process.argv.slice(2);
   const flag = (n) => { const i = args.indexOf(n); if (i >= 0) args.splice(i, 1); return i >= 0; };
   const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
-  const all = flag("--all"), approved = flag("--duyet-mau"), forceStatic = flag("--tinh");
+  const drop = []; for (let i; (i = args.indexOf("--bo")) >= 0;) { const [x, y, r] = args.splice(i, 2)[1].split(",").map(Number); drop.push({ x, y, r }); }
+  const glow = flag("--glow"), all = flag("--all"), approved = flag("--duyet-mau"), forceStatic = flag("--tinh");
   const id = opt("--id", ""), outOpt = opt("--out", ""), previewOut = opt("--preview", ""), fillOpt = opt("--fill", ""), scaleOpt = opt("--scale", "");
   if (all && !approved) fail(`--all chỉ chạy sau khi chủ repo duyệt 3 mẫu (${SAMPLES.join(", ")}); đã duyệt thì thêm --duyet-mau`);
   if (!all && !id) fail("Cách dùng: phuthe-to-phaptuong.mjs --id <mã võ hồn> [--out <file.png>] [--preview <file.png>] [--fill <điểm>] [--tinh]");
@@ -65,10 +66,11 @@ if (fileURLToPath(import.meta.url) === path.resolve(process.argv[1] ?? "")) {
   let bad = 0;
   for (const v of all ? VOHON.map((x) => x.id) : [id]) {
     let r;
-    try { r = convert(v, { forceStatic, fill: fillOpt === "" ? undefined : +fillOpt, scale: scaleOpt === "" ? undefined : +scaleOpt }); } catch (e) { if (all) { console.warn(`[phuthe-to-phaptuong] bỏ ${v}: ${e.message}`); continue; } fail(e.message); }
+    try { r = convert(v, { forceStatic, fill: fillOpt === "" ? undefined : +fillOpt, scale: scaleOpt === "" ? undefined : +scaleOpt, drop }); } catch (e) { if (all) { console.warn(`[phuthe-to-phaptuong] bỏ ${v}: ${e.message}`); continue; } fail(e.message); }
     const out = outOpt || path.join(SPRITES, "phaptuong", `${v}.png`);
     mkdirSync(path.dirname(out), { recursive: true });
     writeFileSync(out, encodePng(r.sheet));
+    if (glow) { const g = path.join(path.dirname(out), `${path.basename(out, ".png")}_glow.png`); writeFileSync(g, encodePng(buildGlow(r.sheet, hex(vohonColors(v)[0])))); console.log(`[phuthe-to-phaptuong] ${v}: ${path.relative(ROOT, g)} (lớp sáng)`); }
     if (previewOut) writeFileSync(previewOut, encodePng(previewOf(r.sheet)));
     console.log(`[phuthe-to-phaptuong] ${v}: ${path.relative(ROOT, out)} (${r.sheet.w}×${r.sheet.h}, ${r.colors} màu, nguồn ${r.src.anim ? `vhanim khung ${r.src.F}` : "tĩnh vh_"}, phóng ×${r.scale}, nhóm ${r.group}${r.clipped ? `, ⚠ cắt ${r.clipped} điểm ngoài khung 160` : ""})`);
     if (r.clipped) bad++;

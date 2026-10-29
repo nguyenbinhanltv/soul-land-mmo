@@ -5,9 +5,9 @@
   "code": [],
   "lo": "P1 (#487)",
   "display": {
-    "scale": 1,
+    "scale": 1.8,
     "dx": 0,
-    "dy": -4,
+    "dy": -28,
     "back": [
       "s",
       "se",
@@ -19,7 +19,7 @@
     ],
     "frontAlpha": 0.7,
     "ghost": 0.88,
-    "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255. Từ #1306 sheet đóng gói từ phụ thể cũ (phuthe-to-phaptuong.mjs), gốc chân trùng PT_ORIGIN nên dx / dy chỉ là độ bay lên / dời sau lưng"
+    "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255. Từ #1306 sheet đóng gói + chuyển thể từ phụ thể cũ (phuthe-to-phaptuong.mjs: lấp chỗ rỗng hình người, không nướng phóng to); scale phóng lúc vẽ, dx / dy nâng lên và lùi ra sau lưng"
   },
   "concept": {
     "endpoint": "/v2/create-image-pixflux",

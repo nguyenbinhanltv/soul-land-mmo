@@ -2491,12 +2491,12 @@ const BAKED: Partial<PtMotion> = { bob: 0, sway: 0, spin: 0, swing: 0, lunge: 0 
 const pt = (id: string, group: PtGroup, hat: PtHat, o: { scale?: number; dx?: number; dy?: number; glow?: string; motion?: Partial<PtMotion> } = {}): [string, PhapTuongDef] =>
   [id, { sheet: `pt_${id}`, formula: group === "S" || group === "B" || group === "T" || group === "D" ? "sinh_vat" : "vat_the", group, hat,
     scale: o.scale ?? 1, dx: o.dx ?? 0, dy: o.dy ?? 0, glow: o.glow, motion: { ...PT_BASE[group], ...o.motion } }];
-/** Bảng pháp tướng của đủ 25 võ hồn (bài kiểm thử đòi mỗi võ hồn có mục). Giá trị H1 (Lam Điện) lấy theo manifest ảnh; Tà Hỏa Phượng Hoàng, Hạo Thiên Chùy, Lam Ngân Thảo (#1306) dùng sheet lấy từ phụ thể cũ: dạng bay sau lưng = dx / dy dời so với gốc chân. */
+/** Bảng pháp tướng của đủ 25 võ hồn (bài kiểm thử đòi mỗi võ hồn có mục). Giá trị H1 (Lam Điện) lấy theo manifest ảnh; Tà Hỏa Phượng Hoàng, Hạo Thiên Chùy, Lam Ngân Thảo (#1306) dùng sheet lấy từ phụ thể cũ: dạng bay sau lưng = phóng `scale` ~1,8 lúc vẽ (không nướng ×2 vào ảnh), dx / dy nâng lên cao hơn vai và lùi ra sau, `bob` nhấp nhô bằng code. */
 export const PHAP_TUONG: Record<string, PhapTuongDef> = Object.fromEntries([
   pt("cuu_tinh_that_sat_kiem", "V", "hon", { dx: 10, dy: -4, motion: { ...BAKED, pulse: 0.2 } }),
   pt("lam_dien_ba_vuong_long", "S", "dien"),
   pt("ky_nhung_thong_thien_cuc", "P", "hon", { scale: 1.05, motion: { ...BAKED, pulse: 0.25 } }),
-  pt("ta_hoa_phuong_hoang", "B", "lua", { dy: -4, motion: { ...BAKED, pulse: 0.12 } }),
+  pt("ta_hoa_phuong_hoang", "B", "lua", { scale: 1.8, dy: -28, motion: { ...BAKED, bob: 3, pulse: 0.12 } }),
   pt("u_minh_linh_mieu", "T", "khoi", { motion: { ...BAKED, pulse: 0.12 } }),
   pt("nguyet_nhan", "V", "hon", { scale: 1.2, dy: -6, motion: { ...BAKED, pulse: 0.15 } }),
   pt("hoa_long", "S", "lua", { motion: { ...BAKED, pulse: 0.12 } }),
@@ -2510,8 +2510,8 @@ export const PHAP_TUONG: Record<string, PhapTuongDef> = Object.fromEntries([
   pt("xuc_xich", "O", "khoi", { scale: 1.1, dx: 10, dy: -6, motion: { ...BAKED, pulse: 0.2 } }),
   pt("quy_mi", "D", "khoi", { motion: { ...BAKED, pulse: 0.12 } }),
   pt("thien_can_bach_ngoc_dinh", "O", "khoi", { dy: -6, motion: { ...BAKED, pulse: 0.15 } }),
-  pt("lam_ngan_thao", "P", "la", { motion: { ...BAKED, pulse: 0.15 } }),
-  pt("hao_thien_chuy", "V", "khoi", { dx: 12, dy: -10, motion: { ...BAKED, pulse: 0.15 } }),
+  pt("lam_ngan_thao", "P", "la", { scale: 1.8, dy: -20, motion: { ...BAKED, bob: 2, pulse: 0.15 } }),
+  pt("hao_thien_chuy", "V", "khoi", { scale: 1.5, dx: 18, dy: -28, motion: { ...BAKED, bob: 3, pulse: 0.15 } }),
   pt("cuu_bao_luu_ly_thap", "V", "hon", { dy: -2, motion: { ...BAKED, pulse: 0.25 } }),
   pt("pha_hon_thuong", "V", "hon", { dx: 12, dy: -2, motion: { ...BAKED, pulse: 0.15 } }),
   pt("a_ngan", "P", "la", { motion: { ...BAKED, pulse: 0.2 } }),

@@ -5,9 +5,9 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { Img, readPng, ISO_DIRS, PT_FRAME, PT_ORIGIN, PT_COLS, PT_MAX_COLORS, SPRITES } from "./lib.mjs";
+import { Img, readPng, hex, vohonColors, ISO_DIRS, PT_FRAME, PT_ORIGIN, PT_COLS, PT_MAX_COLORS, SPRITES } from "./lib.mjs";
 import {
-  SAMPLES, N_IDLE, N_ATTACK, srcOrigin, composeHalves, cell, fillBodyHole, warp, bboxOf, pickScale, placeFrame, idleSeq, attackSeq, breathPose, strikePose, poseOf,
+  SAMPLES, N_IDLE, N_ATTACK, srcOrigin, composeHalves, cell, fillBodyHole, dropDiscs, buildGlow, warp, bboxOf, pickScale, placeFrame, idleSeq, attackSeq, breathPose, strikePose, poseOf,
   quantize, buildSheet,
 } from "./phuthe-to-phaptuong-lib.mjs";
 import { convert } from "./phuthe-to-phaptuong.mjs";
@@ -90,6 +90,29 @@ test("fillBodyHole: chỉ lấp khoảng rỗng hẹp sát gốc chân, giữ k�
   assert.equal(count(fillBodyHole(im, 0, F)), count(im));
 });
 
+test("fillBodyHole: lấp cả cột (hàng đầu hở) và bỏ qua viền tối khi lấy màu", () => {
+  const F = 96, [ox, oy] = srcOrigin(F), im = new Img(F, F);
+  for (let y = oy - 30; y <= oy; y++) for (let x = ox - 20; x <= ox + 20; x++) if (Math.abs(x - ox) > 5 || y < oy - 25) solid(im, x, y, Math.abs(x - ox) === 6 ? [10, 5, 15] : [40, 160, 220]);
+  const o = fillBodyHole(im, 28, F);
+  assert.ok(o.alpha(ox, oy - 10), "giữa thân đã lấp");
+  assert.ok(o.get(ox, oy - 10)[2] > 100, "màu lấy từ lông / lá ngoài viền tối, không phải viền");
+});
+
+test("dropDiscs: xóa đĩa quanh điểm tay cầm, không đụng chỗ khác", () => {
+  const F = 96, im = rect(F, -10, -10, 10, 0), [ox, oy] = srcOrigin(F), o = dropDiscs(im, [{ x: 0, y: -5, r: 3 }], F);
+  assert.ok(!o.alpha(ox, oy - 5) && o.alpha(ox + 9, oy - 9));
+  assert.equal(dropDiscs(im, [], F), im);
+});
+
+test("buildGlow: cùng bố cục sheet thân, viền sáng nằm ngoài hình, tất định, khung trống không có sáng", () => {
+  const a = buildSheet(staticSource(), { group: "B" }), g = buildGlow(a.sheet, [10, 200, 255]), g2 = buildGlow(a.sheet, [10, 200, 255]);
+  assert.equal(g.w, a.sheet.w); assert.equal(g.h, a.sheet.h);
+  assert.ok(sameImg(g, g2));
+  for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) if (g.alpha(x, y)) assert.ok(!a.sheet.alpha(x, y), "sáng không đè lên thân");
+  assert.ok(count(g) > 0);
+  assert.equal(count(buildGlow(new Img(a.sheet.w, a.sheet.h), [1, 2, 3])), 0);
+});
+
 test("thở và đánh tất định: cùng đầu vào cùng kết quả; thở có chu kỳ N_IDLE; đánh về cuối thì đứng yên", () => {
   assert.deepEqual(breathPose(0), { dx: 0, dy: 0, lean: 0 });
   assert.deepEqual(breathPose(3), breathPose(3));
@@ -149,7 +172,7 @@ test("buildSheet nguồn hoạt ảnh: thở lấy idleSeq, đánh lấy attackS
   attackSeq(6).forEach((src, i) => assert.equal(h(0, 8 + i), (50 + 2 * src) * k, `đánh ${i} ← nguồn ${src}`));
 });
 
-test("convert 3 võ hồn mẫu: sheet khớp tệp đã nhập, lọt khung 160, không cắt, đủ khung, ≤ PT_MAX_COLORS màu", () => {
+test("convert 3 võ hồn mẫu: sheet (và lớp sáng Lam Ngân Thảo) khớp tệp đã nhập, lọt khung 160, không cắt, đủ khung, ≤ PT_MAX_COLORS màu", () => {
   for (const id of SAMPLES) {
     const r = convert(id);
     assert.equal(r.clipped, 0, `${id}: không bị cắt khỏi khung 160`);
@@ -157,6 +180,7 @@ test("convert 3 võ hồn mẫu: sheet khớp tệp đã nhập, lọt khung 160
     assert.ok(r.src.anim, `${id}: dùng clip vhanim`);
     ISO_DIRS.forEach((d, row) => { for (let c = 0; c < PT_COLS; c++) assert.ok(count(frameOf(r.sheet, row, c)) > 0, `${id}: khung ${d}/${c} trống`); });
     const committed = readPng(path.join(SPRITES, "phaptuong", `${id}.png`));
+    if (id === "lam_ngan_thao") assert.ok(sameImg(readPng(path.join(SPRITES, "phaptuong", `${id}_glow.png`)), buildGlow(r.sheet, hex(vohonColors(id)[0]))), `${id}: lớp sáng lệch công cụ (--glow)`);
     assert.ok(sameImg(committed, r.sheet), `${id}: shared/assets/sprites/phaptuong/${id}.png lệch công cụ (chạy lại phuthe-to-phaptuong.mjs --id ${id})`);
   }
 });
