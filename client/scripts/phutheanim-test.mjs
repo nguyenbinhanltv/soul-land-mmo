@@ -26,8 +26,8 @@ const castMs = [100, 200, 140];
 assert.equal(phuClipIndex(2, 3, 1, false, 280, 440, true, castMs), 0, "cast không giơ chùy trước tay thân ở300ms");
 assert.equal(phuClipIndex(2, 3, 2, false, 300, 440, true, castMs), 1);
 assert.equal(phuClipIndex(2, 3, 1, false, 280, 440, false, castMs), 1, "phụ thể cũ vẫn chia thời lượng");
-for (const clip of ["idle", "walk", "attack", "cast", "hurt"]) {
-  const ms = LPC_SHEET.anims[clip].ms, n = A.clips[clip].n, total = ms.reduce((a, b) => a + b, 0);
+for (const layout of [A, L]) for (const clip of ["idle", "walk", "attack", "cast", "hurt"]) {
+  const ms = LPC_SHEET.anims[clip].ms, n = layout.clips[clip].n, total = ms.reduce((a, b) => a + b, 0);
   for (let t = 0; t < total; t++) {
     let step = 0, end = ms[0]; while (t >= end && step < ms.length - 1) end += ms[++step];
     const index = phuClipIndex(n, ms.length, step, LPC_SHEET.anims[clip].loop, t, total, true, ms);
