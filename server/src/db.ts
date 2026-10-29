@@ -9,7 +9,7 @@ import { mapFile } from "./map.ts";
 import { DEFAULT_LOOKS, parseLooks, encodeLpc, decodeLpc, presetToLpc, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, isTongTask, type TongRank, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
   BONE_ITEM, CORE_ITEM, EQUIP_ITEM, EQUIP_SLOTS, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
   RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE, RANK_BOARD_CACHE, RANK_PAGE_MAX, RANK_PAGE_DEPTH, rankCompare, tongDef,
-  ACHV_COUNTERS, achvDef, type AchvCounter, type RankLineupSlot, type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
+  ACHV_COUNTERS, achvDef, itemDef, RING_ITEM, MAIL, MAIL_KINDS, type MailItem, type AchvCounter, type RankLineupSlot, type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
@@ -128,7 +128,7 @@ const seedItems = (items: SeedItem[], rowOf: (code: string) => number): Item[] =
   return items.map(({ vohon, ...i }, k): Item => ({ ...copyItem({ ...i, id: "", created: 0, vohonId: null }), id: randomUUID(), created: t0 + k, vohonId: vohon === undefined ? null : rowOf(vohon) }));
 };
 /** Các bảng xoá khi `removeTestAccount` (theo thứ tự xoá; kết quả trả số dòng mỗi bảng). */
-const REMOVE_TABLES = ["items", "teams", "vohons", "quests", "waypoints", "boss_claims", "auto_hunt", "auto_offline", "tong_points", "arena_ratings", "arena_pairs", "arena_elo_day", "rank_scores", "checkin_state", "achv_state",
+const REMOVE_TABLES = ["items", "teams", "vohons", "quests", "waypoints", "boss_claims", "auto_hunt", "auto_offline", "tong_points", "arena_ratings", "arena_pairs", "arena_elo_day", "rank_scores", "checkin_state", "achv_state", "mail",
   "friends", "blocks", "map_fog", "sessions", "characters", "inventory", "accounts"] as const;
 const copyItem = (i: Item): Item => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) });
 const copyQuest = (q: QuestProgress): QuestProgress => ({ ...q, prog: [...q.prog] });
@@ -363,6 +363,22 @@ export interface Store {
    * rồi thêm `id` vào `claimed` chỉ khi chưa có. Trả "ok"; "dup" = đã nhận ở tab / tiến trình khác; "low" = chưa đạt. Hai trường hợp sau không ghi gì, kể cả túi. Lỗi DB thì ném, không ghi gì.
    */
   achvClaim(accountId: number, id: string, reached: (counters: AchvCounters) => boolean, bag: Bag): Promise<"ok" | "dup" | "low">;
+  /** Thư của `accountId` (bảng `mail`, mục 5.24), mới nhất trước, tối đa MAIL.boxMax; dọn thư hết hạn của người này trước khi đọc, bỏ thư đã xóa. */
+  mailList(accountId: number): Promise<MailRow[]>;
+  /**
+   * Thêm thư vào hộp `accountId`. "dup" = `dedup` đã có (một sự kiện nguồn chỉ ra một thư); "full" = hộp đầy MAIL.boxMax mà không còn thư nào dọn được (chỉ dọn thư đã nhận / không đính kèm, cũ nhất trước).
+   * Nội dung sai (nguồn lạ, vật phẩm có dữ liệu riêng, quá dài / quá trần) thì ném (lỗi lập trình).
+   */
+  mailSend(accountId: number, m: MailNew): Promise<"ok" | "dup" | "full">;
+  /** Đánh dấu thư `id` của `accountId` đã đọc (không đổi gì khác; thư của người khác / không có thì bỏ qua). */
+  mailRead(accountId: number, id: number): Promise<void>;
+  /**
+   * Nhận đính kèm thư `id` và ghi túi trong MỘT transaction: chỉ khi thư của `accountId`, chưa nhận, chưa xóa, chưa hết hạn. "gone" = không còn nhận được (đã nhận ở tab khác, hết hạn, lạ):
+   * không ghi gì, kể cả túi. Lỗi DB thì ném, không ghi gì.
+   */
+  mailClaim(accountId: number, id: number, bag: Bag): Promise<"ok" | "gone">;
+  /** Xóa mềm thư `id` của `accountId`; chỉ thư đã nhận hoặc không có đính kèm. Trả true nếu đã xóa. */
+  mailDelete(accountId: number, id: number): Promise<boolean>;
   /** Số trận có kết quả giữa hai tài khoản `a`, `b` (thứ tự bất kỳ) trong ngày `day` (giờ Việt Nam; bảng `arena_pairs`, 9.7). */
   arenaPairCount(day: string, a: number, b: number): Promise<number>;
   /**
@@ -462,6 +478,27 @@ const achvCounters = (raw: unknown): AchvCounters => {
   for (const k of ACHV_COUNTERS) { const v = Number(o[k]); if (Number.isFinite(v) && v > 0) out[k] = Math.floor(v); }
   return out;
 };
+/** Thư gửi tới người chơi (client thấy qua tin `mail`; `createdAt` / `expiresAt` là ms). */
+export interface MailRow { id: number; kind: string; title: string; body: string; honTe: number; items: MailItem[]; createdAt: number; expiresAt: number; read: boolean; claimed: boolean }
+/** Thư mới. `ttlMs`: thời gian sống (mặc định MAIL.ttlDays ngày; chỉ hook test đặt ngắn để thử hết hạn). */
+export interface MailNew { kind: string; dedup: string; title: string; body?: string; honTe?: number; items?: MailItem[]; ttlMs?: number }
+interface MailStored extends MailRow { dedup: string; deleted: boolean }
+/** Có đính kèm gì không (Hồn Tệ hoặc vật phẩm). */
+export const mailHasAttach = (m: Pick<MailRow, "honTe" | "items">) => m.honTe > 0 || m.items.length > 0;
+/** Kiểm nội dung thư ở cả hai store (lỗi lập trình thì ném). Trả thư đã chuẩn hóa. */
+function mailOk(m: MailNew) {
+  const items = m.items ?? [], honTe = m.honTe ?? 0, body = m.body ?? "";
+  if (!Object.hasOwn(MAIL_KINDS, m.kind) || !m.dedup || m.dedup.length > 120 || !m.title || m.title.length > MAIL.titleMax || body.length > MAIL.bodyMax) throw new Error("Thư: nội dung không hợp lệ.");
+  if (!Number.isSafeInteger(honTe) || honTe < 0 || honTe > MAIL.maxHonTe || items.length > MAIL.maxAttach) throw new Error("Thư: đính kèm không hợp lệ.");
+  for (const x of items) {
+    const def = itemDef(x.code);
+    if (!def || def.stack <= 1 || [BONE_ITEM, CORE_ITEM, EQUIP_ITEM, RING_ITEM].includes(x.code) || !Number.isSafeInteger(x.qty) || x.qty < 1 || x.qty > MAIL.maxQty) throw new Error("Thư: vật phẩm đính kèm không hợp lệ.");
+  }
+  if (m.ttlMs !== undefined && (!Number.isSafeInteger(m.ttlMs) || m.ttlMs < 1)) throw new Error("Thư: hạn không hợp lệ.");
+  return { items: items.map((x) => ({ code: x.code, qty: x.qty })), honTe, body, ttlMs: m.ttlMs ?? MAIL.ttlDays * 86_400_000 };
+}
+const mailRow = (r: Record<string, unknown>): MailRow => ({ id: Number(r.id), kind: String(r.kind), title: String(r.title), body: String(r.body), honTe: Number(r.hon_te), items: (r.items as MailItem[]) ?? [],
+  createdAt: Number(r.at), expiresAt: Number(r.exp), read: r.read_at != null, claimed: r.claimed_at != null });
 /** Một dòng điểm ghi vào `rank_scores` (`extra`: đội hình hiển thị, chỉ Cấp / Sưu tầm). */
 export interface RankPutRow { board: string; period: number; score: number; tie: number; extra: RankLineupSlot[] | null }
 /** Dòng công khai của bảng: không có Hồn Tệ, túi, bản đồ, kênh, vị trí. `tong`: mã tông môn (null = không). */
@@ -557,6 +594,8 @@ export class MemoryStore implements Store {
   rankT = 0;
   checkin = new Map<number, CheckinRow>(); // accountId -> Sổ Điểm Danh (bảng checkin_state, mục 5.21)
   achv = new Map<number, AchvRow>(); // accountId -> Thành Tựu (bảng achv_state, mục 5.23)
+  mails = new Map<number, MailStored[]>(); // accountId -> Thư (bảng mail, mục 5.24)
+  mailSeq = 1;
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
   async close() {}
@@ -922,6 +961,37 @@ export class MemoryStore implements Store {
     this.putBag(accountId, bag);
     return "ok";
   }
+  async mailList(accountId: number) {
+    const now = Date.now(), all = (this.mails.get(accountId) ?? []).filter((m) => m.expiresAt > now);
+    this.mails.set(accountId, all);
+    return all.filter((m) => !m.deleted).sort((a, b) => b.createdAt - a.createdAt || b.id - a.id).slice(0, MAIL.boxMax).map(({ dedup: _d, deleted: _x, ...r }) => ({ ...r, items: r.items.map((i) => ({ ...i })) }));
+  }
+  async mailSend(accountId: number, m: MailNew) {
+    const c = mailOk(m), now = Date.now(), all = (this.mails.get(accountId) ?? []).filter((x) => x.expiresAt > now);
+    this.mails.set(accountId, all);
+    if (all.some((x) => x.dedup === m.dedup)) return "dup";
+    const live = all.filter((x) => !x.deleted);
+    if (live.length >= MAIL.boxMax) {
+      const old = live.sort((a, b) => a.createdAt - b.createdAt || a.id - b.id).find((x) => x.claimed || !mailHasAttach(x));
+      if (!old) return "full";
+      old.deleted = true;
+    }
+    all.push({ id: this.mailSeq++, kind: m.kind, dedup: m.dedup, title: m.title, body: c.body, honTe: c.honTe, items: c.items, createdAt: now, expiresAt: now + c.ttlMs, read: false, claimed: false, deleted: false });
+    return "ok";
+  }
+  async mailRead(accountId: number, id: number) { const m = (this.mails.get(accountId) ?? []).find((x) => x.id === id && !x.deleted); if (m) m.read = true; }
+  async mailClaim(accountId: number, id: number, bag: Bag) {
+    const m = (this.mails.get(accountId) ?? []).find((x) => x.id === id);
+    if (!m || m.claimed || m.deleted || m.expiresAt <= Date.now()) return "gone";
+    this.checkBag(accountId, bag);
+    m.claimed = true; m.read = true; this.putBag(accountId, bag);
+    return "ok";
+  }
+  async mailDelete(accountId: number, id: number) {
+    const m = (this.mails.get(accountId) ?? []).find((x) => x.id === id && !x.deleted);
+    if (!m || (!m.claimed && mailHasAttach(m))) return false;
+    m.deleted = true; return true;
+  }
   async rankPut(accountId: number, rows: RankPutRow[]) {
     let changed = false;
     for (const r of rows) {
@@ -1008,7 +1078,7 @@ export class MemoryStore implements Store {
     const rel = (m: Map<number, Set<number>>) => (m.get(id)?.size ?? 0) + [...m].filter(([a, set]) => a !== id && set.has(id)).length;
     Object.assign(n, { items: this.bags.get(id)?.items.length ?? 0, teams: this.teams.get(id)?.filter(Boolean).length ?? 0, vohons: owned.length,
       quests: this.quests.get(id)?.length ?? 0, waypoints: this.wps.get(id)?.size ?? 0, map_fog: this.fogs.get(id)?.size ?? 0, boss_claims: cl.length, auto_hunt: this.autos.has(id) ? 1 : 0,
-      auto_offline: this.offline.has(id) ? 1 : 0, tong_points: tp.length, arena_ratings: this.arena.has(id) ? 1 : 0, arena_pairs: pairs.length, arena_elo_day: eloDays.length, rank_scores: rankKeys.length, checkin_state: this.checkin.has(id) ? 1 : 0, achv_state: this.achv.has(id) ? 1 : 0,
+      auto_offline: this.offline.has(id) ? 1 : 0, tong_points: tp.length, arena_ratings: this.arena.has(id) ? 1 : 0, arena_pairs: pairs.length, arena_elo_day: eloDays.length, rank_scores: rankKeys.length, checkin_state: this.checkin.has(id) ? 1 : 0, achv_state: this.achv.has(id) ? 1 : 0, mail: this.mails.get(id)?.length ?? 0,
       friends: rel(this.friends), blocks: rel(this.blocks), sessions: tokens.length, accounts: 1 });
     for (const c of owned) this.rows.delete(c.rowId);
     for (const k of tp) this.tongPts.delete(k);
@@ -1016,7 +1086,7 @@ export class MemoryStore implements Store {
     for (const k of pairs) this.pairs.delete(k);
     for (const k of eloDays) this.eloDay.delete(k);
     for (const k of rankKeys) this.rankRows.delete(k);
-    this.checkin.delete(id); this.achv.delete(id);
+    this.checkin.delete(id); this.achv.delete(id); this.mails.delete(id);
     for (const t of tokens) this.sessions.delete(t);
     for (const [k, a] of this.identities) if (a === id) this.identities.delete(k);
     for (const m of [this.active, this.teams, this.bags, this.quests, this.wps, this.autos, this.offline, this.tongs, this.arena, this.locs, this.looks, this.looksChanges, this.friends, this.blocks, this.names, this.fogs])
@@ -1872,6 +1942,48 @@ export class PgStore implements Store {
       throw e;
     } finally { db.release(); }
   }
+  async mailList(accountId: number) {
+    await this.pool.query("DELETE FROM mail WHERE account_id=$1 AND expires_at <= now()", [accountId]);
+    const r = await this.pool.query(
+      `SELECT id, kind, title, body, hon_te, items, (extract(epoch FROM created_at) * 1000)::bigint AS at, (extract(epoch FROM expires_at) * 1000)::bigint AS exp, read_at, claimed_at
+       FROM mail WHERE account_id=$1 AND deleted_at IS NULL ORDER BY created_at DESC, id DESC LIMIT $2`, [accountId, MAIL.boxMax]);
+    return r.rows.map(mailRow);
+  }
+  async mailSend(accountId: number, m: MailNew) {
+    const c = mailOk(m);
+    const n = await this.pool.query("SELECT COUNT(*)::int AS n FROM mail WHERE account_id=$1 AND deleted_at IS NULL AND expires_at > now()", [accountId]);
+    if (n.rows[0].n >= MAIL.boxMax) {
+      // Hộp đầy: dọn thư cũ nhất đã nhận hoặc không có đính kèm (xóa mềm, giữ `dedup`); không còn thì không nhận thêm.
+      const o = await this.pool.query(
+        `UPDATE mail SET deleted_at = now() WHERE id = (SELECT id FROM mail WHERE account_id=$1 AND deleted_at IS NULL AND (claimed_at IS NOT NULL OR (hon_te = 0 AND items = '[]'::jsonb))
+           ORDER BY created_at, id LIMIT 1) RETURNING 1`, [accountId]);
+      if (!o.rowCount) return "full";
+    }
+    const r = await this.pool.query(
+      `INSERT INTO mail(account_id, kind, dedup, title, body, hon_te, items, expires_at) VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb, now() + ($8::bigint * interval '1 millisecond'))
+       ON CONFLICT (account_id, dedup) DO NOTHING RETURNING 1`, [accountId, m.kind, m.dedup, m.title, c.body, c.honTe, JSON.stringify(c.items), c.ttlMs]);
+    return r.rowCount ? "ok" : "dup";
+  }
+  async mailRead(accountId: number, id: number) { await this.pool.query("UPDATE mail SET read_at = COALESCE(read_at, now()) WHERE id=$1 AND account_id=$2 AND deleted_at IS NULL", [id, accountId]); }
+  async mailClaim(accountId: number, id: number, bag: Bag) {
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      // Điều kiện nằm trong câu ghi: chỉ thắng khi chưa nhận / chưa xóa / chưa hết hạn; hai nơi cùng nhận chỉ một nơi ghi được (dòng bị khóa tới hết transaction).
+      const r = await db.query("UPDATE mail SET claimed_at = now(), read_at = COALESCE(read_at, now()) WHERE id=$1 AND account_id=$2 AND claimed_at IS NULL AND deleted_at IS NULL AND expires_at > now() RETURNING 1", [id, accountId]);
+      if (!r.rowCount) { await db.query("ROLLBACK"); return "gone"; }
+      await this.writeBag(db, accountId, bag);
+      await db.query("COMMIT");
+      return "ok";
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
+  }
+  async mailDelete(accountId: number, id: number) {
+    const r = await this.pool.query("UPDATE mail SET deleted_at = now() WHERE id=$1 AND account_id=$2 AND deleted_at IS NULL AND (claimed_at IS NOT NULL OR (hon_te = 0 AND items = '[]'::jsonb)) RETURNING 1", [id, accountId]);
+    return !!r.rowCount;
+  }
   async rankMe(board: string, period: number, accountId: number) {
     // Giữ RANK_BOARD_CACHE giây theo tài khoản (khoá `rank|me|…`, xoá cùng các trang khi điểm đổi): người mở bảng dồn không tốn một truy vấn đếm mỗi lần (soát X5).
     return rankBoard(`rank|me|${board}|${period}|${accountId}`, () => this.rankMeQuery(board, period, accountId));
@@ -2010,6 +2122,7 @@ const withSaveFail = (s: Store): Store => new Proxy(s, {
     if (typeof f !== "function") return f;
     if (k === "saveBag") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
     if (k === "claimBoss") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); }; // lượt boss / đổi mảnh / mua lượt Bí Cảnh (ghi lượt + túi)
+    if (k === "mailClaim") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
     if (k === "achvClaim") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
     if (k === "checkinClaim") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
     if (k === "setTong") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "tong"); return f.call(t, accountId, ...a); };

@@ -5,7 +5,7 @@
 // mọi lệnh bị từ chối. Admin dùng lệnh thì tài khoản tự bật is_test (ẩn khỏi xếp hạng, chỉ đấu trường với tài khoản test).
 import {
   MAX_LEVEL, MAX_YEARS, TIERS, BONE_SLOTS, BONE_MAX_ENHANCE, CORE_SETS, MAX_CORE_STARS, CORE_MAX_ENHANCE, EQUIP_ILVL_K, EQUIP_MAX_ENHANCE, MAPS, VOHON, MAX_RINGS,
-  itemDef, equipTemplate, beastIndex, BONE_ITEM, CORE_ITEM, EQUIP_ITEM, RING_ITEM, BAG_MAX_SLOTS, vohonIndex,
+  MAIL, itemDef, equipTemplate, beastIndex, BONE_ITEM, CORE_ITEM, EQUIP_ITEM, RING_ITEM, BAG_MAX_SLOTS, vohonIndex,
 } from "../../shared/data.ts";
 import { PRESETS, isPresetId, MAX_HON_TE, type PresetId } from "./testPreset.ts";
 
@@ -45,6 +45,7 @@ export type GmCmd =
   | { op: "gear"; tpl: string; ilvl: number; enhance: number }
   | { op: "vohon"; vohon: string; level: number; rings: number }
   | { op: "coin"; n: number }
+  | { op: "mail"; code: string; qty: number }
   | { op: "tp"; mapId: string }
   | { op: "fog"; mode: "open" | "reset" }
   | { op: "preset"; preset: PresetId };
@@ -52,7 +53,7 @@ export type GmCmd =
 /** Trợ giúp: cú pháp từng lệnh (gõ `/gm` không kèm gì để xem). */
 export const GM_HELP = [
   "/gm level <cấp>", "/gm give <mã vật phẩm> [số lượng]", "/gm ring <số năm> [số lượng]", "/gm bone <mã loài> <vị trí> [số năm] [cường hóa]",
-  "/gm core <mã bộ> <sao> [nâng cấp]", "/gm gear <mã mẫu> [cấp vật phẩm] [cường hóa]", "/gm vohon <mã võ hồn> [cấp] [số hồn hoàn]", "/gm coin <đồng>",
+  "/gm core <mã bộ> <sao> [nâng cấp]", "/gm gear <mã mẫu> [cấp vật phẩm] [cường hóa]", "/gm vohon <mã võ hồn> [cấp] [số hồn hoàn]", "/gm coin <đồng>", "/gm mail <mã vật phẩm> [số lượng]",
   "/gm tp <mã bản đồ>", "/gm fog [open|reset]", `/gm preset ${PRESETS.join("|")}`,
 ];
 
@@ -104,6 +105,11 @@ export function parseGm(text: unknown): GmCmd | { error: string } {
     if (vohonIndex(vohon) < 0) return { error: `Không có võ hồn "${vohon}" (mã trong danh sách võ hồn, vd ${VOHON[0].id}).` };
     const rings = num(a[2], 0, MAX_RINGS, 0, "số hồn hoàn"), level = num(a[1], 1, MAX_LEVEL, 1, "cấp");
     return bad(level, rings) ?? { op, vohon, level: level as number, rings: rings as number };
+  }
+  if (op === "mail") { // thư GM gửi cho chính người gõ (thử hộp thư); vật phẩm gộp thường như `give`
+    const code = a[0] ?? "", def = itemDef(code);
+    if (!def || [BONE_ITEM, CORE_ITEM, EQUIP_ITEM, RING_ITEM].includes(code) || def.stack <= 1) return { error: `Thư chỉ đính kèm vật phẩm gộp thường (không có "${code}").` };
+    const qty = num(a[1], 1, MAIL.maxQty, 1, "số lượng"); return bad(qty) ?? { op, code, qty: qty as number };
   }
   if (op === "coin") { const n = num(a[0], 0, MAX_HON_TE, null, "số đồng"); return bad(n) ?? { op, n: n as number }; }
   if (op === "tp") {
