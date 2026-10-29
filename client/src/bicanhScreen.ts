@@ -159,7 +159,7 @@ function render() {
   else {
     const s = sceneOf(r.id), b = buyOf(r, busy);
     body.push(h("div", "bc-poster", { kids: [
-      h("div", "bc-art", { attrs: { "data-art": `bicanh_${r.id}`, "aria-hidden": "true" } }),
+      h("div", "bc-art", { attrs: { "data-art": `ui_bicanh_${r.id}`, "aria-hidden": "true" } }),
       h("div", "bc-info", { kids: [
         h("div", "bc-name", { text: r.name }),
         s ? h("div", "bc-rew", { text: `Thưởng: ${rewardLine(s)}` }) : null,
@@ -183,7 +183,7 @@ function render() {
     st.replaceWith(stateBox({ kind: k, text: k === "empty" ? "Chưa có phụ bản nào mở." : k === "error" ? "Không tải được Bí Cảnh (mất kết nối hoặc máy chủ chưa trả lời)." : undefined, onRetry: () => openBiCanh() }));
   }
   const art = wrap.querySelector<HTMLElement>(".bc-art");
-  if (art) { const img = artImg(art.dataset.art ?? "", "bc-img"); if (img) art.innerHTML = img; else art.textContent = "境"; } // chưa có poster: chữ 境 thay hình (ảnh poster làm theo asset-gen)
+  if (art) { const img = artImg(art.dataset.art ?? "", "bc-img"); if (img) art.innerHTML = img; else art.textContent = "境"; } // phụ bản chưa có ảnh vẫn có dấu thay thế
   const host = wrap.querySelector<HTMLElement>(".bc-cd");
   if (host && msg) {
     const target = recvAt + msg.resetIn, c = countdown({ target, label: `Làm mới sau (${resetClock})`, onEnd: () => { if (isBiCanhOpen()) send?.("bicanh", { op: "get" }); } });
