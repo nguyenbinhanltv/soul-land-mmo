@@ -421,6 +421,1191 @@
   },
   "pieces": [
     {
+      "key": "ui2_giay_ky_nang_hoi_chieu",
+      "name": "ky_nang_hoi_chieu",
+      "kind": "O",
+      "sheet": "toO-giay",
+      "set": "giay_ky_nang",
+      "state": "hoi_chieu",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          46,
+          46
+        ],
+        "x1": [
+          23,
+          23
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1410,
+        "x1": 575
+      },
+      "hash": "8c610fd01a1ddb5b"
+    },
+    {
+      "key": "ui2_giay_ky_nang_khoa",
+      "name": "ky_nang_khoa",
+      "kind": "O",
+      "sheet": "toO-giay",
+      "set": "giay_ky_nang",
+      "state": "khoa",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          46,
+          46
+        ],
+        "x1": [
+          23,
+          23
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1142,
+        "x1": 480
+      },
+      "hash": "e8c7f48203411896"
+    },
+    {
+      "key": "ui2_giay_ky_nang_san_sang",
+      "name": "ky_nang_san_sang",
+      "kind": "O",
+      "sheet": "toO-giay",
+      "set": "giay_ky_nang",
+      "state": "san_sang",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          46,
+          46
+        ],
+        "x1": [
+          23,
+          23
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1610,
+        "x1": 637
+      },
+      "hash": "a17896efebb9a8b3"
+    },
+    {
+      "key": "ui2_giay_ky_nang_thieu_hon_luc",
+      "name": "ky_nang_thieu_hon_luc",
+      "kind": "O",
+      "sheet": "toO-giay",
+      "set": "giay_ky_nang",
+      "state": "thieu_hon_luc",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          46,
+          46
+        ],
+        "x1": [
+          23,
+          23
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1599,
+        "x1": 615
+      },
+      "hash": "addaee3fe7d09f47"
+    },
+    {
+      "key": "ui2_giay_nut_chinh_chon",
+      "name": "nut_chinh_chon",
+      "kind": "N",
+      "sheet": "toN-giay",
+      "set": "giay_nut_chinh",
+      "state": "chon",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          66,
+          36
+        ],
+        "x1": [
+          33,
+          18
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 16,
+        "x1": 8
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 665,
+        "x1": 283
+      },
+      "hash": "ed437fbba6b26290"
+    },
+    {
+      "key": "ui2_giay_nut_chinh_nhan",
+      "name": "nut_chinh_nhan",
+      "kind": "N",
+      "sheet": "toN-giay",
+      "set": "giay_nut_chinh",
+      "state": "nhan",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          66,
+          36
+        ],
+        "x1": [
+          33,
+          18
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 16,
+        "x1": 8
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 660,
+        "x1": 297
+      },
+      "hash": "01b42e2f0a4ac794"
+    },
+    {
+      "key": "ui2_giay_nut_chinh_ro",
+      "name": "nut_chinh_ro",
+      "kind": "N",
+      "sheet": "toN-giay",
+      "set": "giay_nut_chinh",
+      "state": "ro",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          66,
+          36
+        ],
+        "x1": [
+          33,
+          18
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 16,
+        "x1": 8
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 698,
+        "x1": 300
+      },
+      "hash": "ecc0778e2154797c"
+    },
+    {
+      "key": "ui2_giay_nut_chinh_tat",
+      "name": "nut_chinh_tat",
+      "kind": "N",
+      "sheet": "toN-giay",
+      "set": "giay_nut_chinh",
+      "state": "tat",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          66,
+          36
+        ],
+        "x1": [
+          33,
+          18
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 16,
+        "x1": 8
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 660,
+        "x1": 298
+      },
+      "hash": "cba49681a32f7633"
+    },
+    {
+      "key": "ui2_giay_nut_chinh_thuong",
+      "name": "nut_chinh_thuong",
+      "kind": "N",
+      "sheet": "toN-giay",
+      "set": "giay_nut_chinh",
+      "state": "thuong",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          66,
+          36
+        ],
+        "x1": [
+          33,
+          18
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 16,
+        "x1": 8
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 655,
+        "x1": 277
+      },
+      "hash": "8dbc97a638ea538f"
+    },
+    {
+      "key": "ui2_giay_nut_phu_chon",
+      "name": "nut_phu_chon",
+      "kind": "N",
+      "sheet": "toN-giay",
+      "set": "giay_nut_phu",
+      "state": "chon",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          66,
+          36
+        ],
+        "x1": [
+          33,
+          18
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 16,
+        "x1": 8
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 1022,
+        "x1": 414
+      },
+      "hash": "fc6eb7fd92d8badb"
+    },
+    {
+      "key": "ui2_giay_nut_phu_nhan",
+      "name": "nut_phu_nhan",
+      "kind": "N",
+      "sheet": "toN-giay",
+      "set": "giay_nut_phu",
+      "state": "nhan",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          66,
+          36
+        ],
+        "x1": [
+          33,
+          18
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 16,
+        "x1": 8
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 762,
+        "x1": 324
+      },
+      "hash": "fd06edf101dbbe6f"
+    },
+    {
+      "key": "ui2_giay_nut_phu_ro",
+      "name": "nut_phu_ro",
+      "kind": "N",
+      "sheet": "toN-giay",
+      "set": "giay_nut_phu",
+      "state": "ro",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          66,
+          36
+        ],
+        "x1": [
+          33,
+          18
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 16,
+        "x1": 8
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 893,
+        "x1": 368
+      },
+      "hash": "c42ed6df1462eecb"
+    },
+    {
+      "key": "ui2_giay_nut_phu_tat",
+      "name": "nut_phu_tat",
+      "kind": "N",
+      "sheet": "toN-giay",
+      "set": "giay_nut_phu",
+      "state": "tat",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          66,
+          36
+        ],
+        "x1": [
+          33,
+          18
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 16,
+        "x1": 8
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 771,
+        "x1": 326
+      },
+      "hash": "2775ad1f1d5dfb78"
+    },
+    {
+      "key": "ui2_giay_nut_phu_thuong",
+      "name": "nut_phu_thuong",
+      "kind": "N",
+      "sheet": "toN-giay",
+      "set": "giay_nut_phu",
+      "state": "thuong",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          66,
+          36
+        ],
+        "x1": [
+          33,
+          18
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 16,
+        "x1": 8
+      },
+      "mirror": true,
+      "bytes": {
+        "x2": 958,
+        "x1": 386
+      },
+      "hash": "02751139b37e405d"
+    },
+    {
+      "key": "ui2_giay_o_chon",
+      "name": "o_chon",
+      "kind": "O",
+      "sheet": "toO-giay",
+      "set": "giay_o",
+      "state": "chon",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          54,
+          52
+        ],
+        "x1": [
+          27,
+          26
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 2132,
+        "x1": 762
+      },
+      "hash": "6f9ba38007633555"
+    },
+    {
+      "key": "ui2_giay_o_co",
+      "name": "o_co",
+      "kind": "O",
+      "sheet": "toO-giay",
+      "set": "giay_o",
+      "state": "co",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          50,
+          48
+        ],
+        "x1": [
+          25,
+          24
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1654,
+        "x1": 656
+      },
+      "hash": "3e6575b308015373"
+    },
+    {
+      "key": "ui2_giay_o_hiem_1",
+      "name": "o_hiem_1",
+      "kind": "O",
+      "sheet": "toO-giay",
+      "set": "giay_o_hiem",
+      "state": "1",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          36,
+          40
+        ],
+        "x1": [
+          18,
+          20
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1241,
+        "x1": 484
+      },
+      "hash": "0a4d36b7778e24d4"
+    },
+    {
+      "key": "ui2_giay_o_hiem_2",
+      "name": "o_hiem_2",
+      "kind": "O",
+      "sheet": "toO-giay",
+      "set": "giay_o_hiem",
+      "state": "2",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          40,
+          44
+        ],
+        "x1": [
+          20,
+          22
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1365,
+        "x1": 507
+      },
+      "hash": "de7c98f27311a356"
+    },
+    {
+      "key": "ui2_giay_o_hiem_3",
+      "name": "o_hiem_3",
+      "kind": "O",
+      "sheet": "toO-giay",
+      "set": "giay_o_hiem",
+      "state": "3",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          40,
+          42
+        ],
+        "x1": [
+          20,
+          21
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1456,
+        "x1": 573
+      },
+      "hash": "e762e4753b574ee9"
+    },
+    {
+      "key": "ui2_giay_o_hiem_4",
+      "name": "o_hiem_4",
+      "kind": "O",
+      "sheet": "toO-giay",
+      "set": "giay_o_hiem",
+      "state": "4",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          40,
+          48
+        ],
+        "x1": [
+          20,
+          24
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1549,
+        "x1": 582
+      },
+      "hash": "a1a9073300d463e4"
+    },
+    {
+      "key": "ui2_giay_o_hiem_5",
+      "name": "o_hiem_5",
+      "kind": "O",
+      "sheet": "toO-giay",
+      "set": "giay_o_hiem",
+      "state": "5",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          46,
+          52
+        ],
+        "x1": [
+          23,
+          26
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1851,
+        "x1": 697
+      },
+      "hash": "9ca11cdc93fe6c12"
+    },
+    {
+      "key": "ui2_giay_o_nhap",
+      "name": "o_nhap",
+      "kind": "T",
+      "sheet": "toT-giay",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          110,
+          38
+        ],
+        "x1": [
+          55,
+          19
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 18,
+        "x1": 9
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 2451,
+        "x1": 817
+      },
+      "hash": "bd89b8cd5ca5e1fd"
+    },
+    {
+      "key": "ui2_giay_o_trong",
+      "name": "o_trong",
+      "kind": "O",
+      "sheet": "toO-giay",
+      "set": "giay_o",
+      "state": "trong",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          50,
+          48
+        ],
+        "x1": [
+          25,
+          24
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 5,
+        "source": [
+          1254,
+          1254
+        ]
+      },
+      "nine": null,
+      "mirror": false,
+      "bytes": {
+        "x2": 1760,
+        "x1": 659
+      },
+      "hash": "d9424c41e0282ac8"
+    },
+    {
+      "key": "ui2_giay_tab_chon",
+      "name": "tab_chon",
+      "kind": "N",
+      "sheet": "toN-giay",
+      "set": "giay_tab",
+      "state": "chon",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          156,
+          40
+        ],
+        "x1": [
+          78,
+          20
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 18,
+        "x1": 9
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 3310,
+        "x1": 1042
+      },
+      "hash": "06f7c3bcb81e9d36"
+    },
+    {
+      "key": "ui2_giay_tab_thuong",
+      "name": "tab_thuong",
+      "kind": "N",
+      "sheet": "toN-giay",
+      "set": "giay_tab",
+      "state": "thuong",
+      "budget": "kit",
+      "size": {
+        "x2": [
+          156,
+          40
+        ],
+        "x1": [
+          78,
+          20
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 18,
+        "x1": 9
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 3322,
+        "x1": 1044
+      },
+      "hash": "53b0848cac8a54a8"
+    },
+    {
+      "key": "ui2_giay_thanh_cuon",
+      "name": "thanh_cuon",
+      "kind": "T",
+      "sheet": "toT-giay",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          136,
+          22
+        ],
+        "x1": [
+          68,
+          11
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 10,
+        "x1": 5
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 1682,
+        "x1": 636
+      },
+      "hash": "12185562cf197877"
+    },
+    {
+      "key": "ui2_giay_thanh_do_hon",
+      "name": "thanh_do_hon",
+      "kind": "T",
+      "sheet": "toT-giay",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          108,
+          18
+        ],
+        "x1": [
+          54,
+          9
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 2,
+        "x1": 1
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 479,
+        "x1": 220
+      },
+      "hash": "998e9bf284d71a2d"
+    },
+    {
+      "key": "ui2_giay_thanh_do_kn",
+      "name": "thanh_do_kn",
+      "kind": "T",
+      "sheet": "toT-giay",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          108,
+          18
+        ],
+        "x1": [
+          54,
+          9
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 2,
+        "x1": 1
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 333,
+        "x1": 143
+      },
+      "hash": "08c3d42ae2c85929"
+    },
+    {
+      "key": "ui2_giay_thanh_do_sinh",
+      "name": "thanh_do_sinh",
+      "kind": "T",
+      "sheet": "toT-giay",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          108,
+          18
+        ],
+        "x1": [
+          54,
+          9
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 2,
+        "x1": 1
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 261,
+        "x1": 117
+      },
+      "hash": "824d02d9bfc570a7"
+    },
+    {
+      "key": "ui2_giay_thanh_khung_hon",
+      "name": "thanh_khung_hon",
+      "kind": "T",
+      "sheet": "toT-giay",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          112,
+          42
+        ],
+        "x1": [
+          56,
+          21
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 20,
+        "x1": 10
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 2932,
+        "x1": 946
+      },
+      "hash": "1182cd27eed95ae7"
+    },
+    {
+      "key": "ui2_giay_thanh_khung_kn",
+      "name": "thanh_khung_kn",
+      "kind": "T",
+      "sheet": "toT-giay",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          112,
+          42
+        ],
+        "x1": [
+          56,
+          21
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 20,
+        "x1": 10
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 2793,
+        "x1": 922
+      },
+      "hash": "72a97281b91dd319"
+    },
+    {
+      "key": "ui2_giay_thanh_khung_sinh",
+      "name": "thanh_khung_sinh",
+      "kind": "T",
+      "sheet": "toT-giay",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          112,
+          42
+        ],
+        "x1": [
+          56,
+          21
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 20,
+        "x1": 10
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 2923,
+        "x1": 947
+      },
+      "hash": "e409e48ae7ef4ecb"
+    },
+    {
+      "key": "ui2_giay_vach_chia",
+      "name": "vach_chia",
+      "kind": "T",
+      "sheet": "toT-giay",
+      "set": null,
+      "state": null,
+      "budget": "kit",
+      "size": {
+        "x2": [
+          12,
+          42
+        ],
+        "x1": [
+          6,
+          21
+        ]
+      },
+      "grid": {
+        "master": 2,
+        "div": 4,
+        "source": [
+          1536,
+          1024
+        ]
+      },
+      "nine": {
+        "x2": 4,
+        "x1": 2
+      },
+      "mirror": false,
+      "bytes": {
+        "x2": 443,
+        "x1": 216
+      },
+      "hash": "94b839b2082520f2"
+    },
+    {
       "key": "ui2_khung_giay_lon",
       "name": "khung_giay_lon",
       "kind": "F",
@@ -1895,6 +3080,75 @@
         "hoi_chieu": "ui2_ky_nang_hoi_chieu",
         "khoa": "ui2_ky_nang_khoa",
         "thieu_hon_luc": "ui2_ky_nang_thieu_hon_luc"
+      },
+      "nine": null
+    },
+    "giay_nut_chinh": {
+      "kind": "N",
+      "states": {
+        "thuong": "ui2_giay_nut_chinh_thuong",
+        "ro": "ui2_giay_nut_chinh_ro",
+        "nhan": "ui2_giay_nut_chinh_nhan",
+        "tat": "ui2_giay_nut_chinh_tat",
+        "chon": "ui2_giay_nut_chinh_chon"
+      },
+      "nine": {
+        "x2": 16,
+        "x1": 8
+      }
+    },
+    "giay_nut_phu": {
+      "kind": "N",
+      "states": {
+        "thuong": "ui2_giay_nut_phu_thuong",
+        "ro": "ui2_giay_nut_phu_ro",
+        "nhan": "ui2_giay_nut_phu_nhan",
+        "tat": "ui2_giay_nut_phu_tat",
+        "chon": "ui2_giay_nut_phu_chon"
+      },
+      "nine": {
+        "x2": 16,
+        "x1": 8
+      }
+    },
+    "giay_tab": {
+      "kind": "N",
+      "states": {
+        "thuong": "ui2_giay_tab_thuong",
+        "chon": "ui2_giay_tab_chon"
+      },
+      "nine": {
+        "x2": 18,
+        "x1": 9
+      }
+    },
+    "giay_o": {
+      "kind": "O",
+      "states": {
+        "trong": "ui2_giay_o_trong",
+        "co": "ui2_giay_o_co",
+        "chon": "ui2_giay_o_chon"
+      },
+      "nine": null
+    },
+    "giay_o_hiem": {
+      "kind": "O",
+      "states": {
+        "1": "ui2_giay_o_hiem_1",
+        "2": "ui2_giay_o_hiem_2",
+        "3": "ui2_giay_o_hiem_3",
+        "4": "ui2_giay_o_hiem_4",
+        "5": "ui2_giay_o_hiem_5"
+      },
+      "nine": null
+    },
+    "giay_ky_nang": {
+      "kind": "O",
+      "states": {
+        "san_sang": "ui2_giay_ky_nang_san_sang",
+        "hoi_chieu": "ui2_giay_ky_nang_hoi_chieu",
+        "khoa": "ui2_giay_ky_nang_khoa",
+        "thieu_hon_luc": "ui2_giay_ky_nang_thieu_hon_luc"
       },
       "nine": null
     }

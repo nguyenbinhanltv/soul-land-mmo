@@ -157,3 +157,16 @@ Gốc: `C:/Users/PC/.ao/data/artifacts/soul_land_game-688/`.
 - `I2/cut/`, `N4/cut/`: cutter output và phiếu; `I1/`, `I2/`, `I3/`, `N4/`: báo cáo kiểm RAW.
 
 Đã thử mở ngay: `ao preview` từ chối artifact ngoài workspace (`PREVIEW_FILE_OUTSIDE_WORKSPACE`); `ao render --check` báo `RENDER_CHECK_FAILED`. `ao render` đã đưa trang so sánh vào chat. Chưa xác minh tương tác/ảnh chụp trang trong trình duyệt hoặc Firefox; không coi kiểm ảnh cắt là kiểm tương tác. Chủ repo cần chọn hướng icon; PR không nhập game và không merge.
+# Bổ sung N/O/T Giấy — 29/10/2026
+
+Part of #877. Sinh bằng Codex `image_gen` tích hợp, một job mỗi lần, hướng mặc định, không `--style`. Tham chiếu BOARD đã duyệt rồi swatch `art/palette.gpl`; bỏ tham chiếu `toN.png` Mực vì kiểm còn chặn. Prompt nguyên văn do `ui:prompt --material giay` sinh, lưu cạnh từng RAW. Hash và báo cáo kiểm ở `giay.source.json`; RAW giữ nguyên byte, không gán CC0 (điều khoản đầu ra OpenAI).
+
+| Tờ | Lượt chọn / đã dùng | Phiếu kiểm mềm | Bằng mắt |
+|---|---|---|---|
+| N | 1 / 1 | 0 chặn, 14 nhẹ | 12 mảnh; nền phụ và hai tab ngà, đáy tab mở; trạng thái đủ; không chữ |
+| O | 1 / 1 | 0 chặn, 3 nhẹ | 12 ô ngà; độ hiếm khác hình góc; khóa / hồi chiêu / thiếu hồn lực khác hình, không chỉ màu |
+| T | 2 / 2 | 0 chặn, 13 nhẹ | 9 mảnh; khung và ô nhập ngà; lượt 1 có hai chặn cạnh dải đổ, thêm đúng một bài học màu phẳng rồi sinh lại |
+
+Cả ba dùng `--soft`: viền hồng sau bù 0%; đối xứng dựng gương ở mảnh cho phép; O RAW 37 màu, cutter lượng tử về 32. Khoảng cách còn nhẹ; T có cảnh báo 9-slice ở vạch chia / thanh cuộn và độ dày giữa các loại khác chức năng. Không force / skip mảnh. Khóa ảnh và nhóm trạng thái có tiền tố `giay_`, giữ nguyên nhóm Mực. `ui:import` nhập 33 mảnh Giấy; chưa thay màn dùng asset. Ngân sách toàn kit: 2× 105,1 KB / 1× 39,2 KB, dưới 250 KiB mỗi bản.
+
+Đã mở tờ liên hệ N/O/T, sinh `ui:preview` cho từng tờ. AO `render --check` thất bại `RENDER_CHECK_FAILED`: chưa xác minh trang tương tác, ba nền / ba cỡ kéo giãn trong trình duyệt; không coi kiểm ảnh là kiểm tương tác.

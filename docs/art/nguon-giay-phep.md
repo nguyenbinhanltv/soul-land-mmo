@@ -34,6 +34,8 @@ Nguồn theo họ asset ở bảng dưới; thao tác từng công cụ ở skil
 - Gigapack và Forest (kho riêng) **cấm đưa vào AI**: không dùng làm ảnh tham chiếu, không đưa vào PixelLab / model.
 
 ## Issue liên quan
+Kit Giấy N/O/T (29/10/2026, Part of #877): sinh bằng Codex / OpenAI `image_gen` tích hợp, dùng BOARD đã duyệt và swatch `art/palette.gpl`, không dùng ảnh thương mại. RAW nguyên byte và prompt ở `art/src/ui-kit/to{N,O,T}-giay.*`; hash, lượt và nguồn gốc ở `giay.source.json`. Sử dụng theo điều khoản đầu ra OpenAI, không gán CC0; model ID/seed không được công cụ trả về. Cắt mềm, lượng tử 32 màu, nhập khóa `ui2_giay_*`; giữ bộ Mực và không đổi màn sử dụng.
+
 BOARD v3 Hồn Quang Tiên Môn (#1260, Part of #877): Codex / OpenAI `image_gen`, ảnh tự sinh không dùng ảnh ngoài; nguồn, điều khoản đầu ra và prompt đầy đủ ở `art/CREDITS.md`, candidate tại `art/src/ui-kit/candidates/hon-quang-v3/`. Chưa nhập vào game, chưa thay BOARD đã duyệt.
 
 #477 (hoạt ảnh hồn sư), #482 / #541 (pháp tướng, sheet hiệu ứng), #564 (hồn sư = LPC), #627 (kho asset riêng).
