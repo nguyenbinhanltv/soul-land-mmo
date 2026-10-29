@@ -3,6 +3,7 @@ import "./uiIcons.css";
 import "./ui2.css";
 import "./ui2-parts.css";
 import "./ui2-screens.css";
+import "./ui2-bicanh.css";
 import "./ui2-hud.css";
 import "./ui2-settings.css";
 import "./ui2-charpanel.css";
@@ -354,9 +355,9 @@ async function join(retry = true, roomId?: string | null) {
  * Vào phòng sân đấu Đại Đấu Hồn Trường bằng mã phòng server gửi khi ghép trận (7.2; phòng riêng, không ghép theo mapId). Không vào
  * được (trận đã hủy, quá giờ) thì quay về bản đồ đang đứng.
  */
-async function joinArena(roomId: string, watch = false) {
+async function joinArena(roomId: string, watch = false, kind?: "bicanh") {
   overlay.hidden = false; card.classList.remove("wide");
-  card.innerHTML = `<h1>${watch ? "Đang vào xem trận…" : "Đang vào Đại Đấu Hồn Trường…"}</h1>`;
+  card.innerHTML = `<h1>${kind === "bicanh" ? "Đang vào Bí Cảnh…" : watch ? "Đang vào xem trận…" : "Đang vào Đại Đấu Hồn Trường…"}</h1>`;
   try {
     const room = await new Client(WS).joinById(roomId, { token });
     bufferRoomMessages(room);
@@ -364,7 +365,7 @@ async function joinArena(roomId: string, watch = false) {
     play(room, roomMap, watch);
   } catch (e) {
     console.warn("[joinArena]", e);
-    card.innerHTML = `<h1>Không vào được trận đấu</h1><p>${esc(viLoi(e, "Trận đã kết thúc hoặc không còn chỗ."))}</p>`;
+    card.innerHTML = `<h1>${kind === "bicanh" ? "Không vào được Bí Cảnh" : "Không vào được trận đấu"}</h1><p>${esc(viLoi(e, kind === "bicanh" ? "Phòng đã đóng: lượt được hoàn nếu chưa vào phòng." : "Trận đã kết thúc hoặc không còn chỗ."))}</p>`;
     setTimeout(() => join(), 1500);
   }
 }
@@ -421,7 +422,7 @@ function play(room: Room, roomMap: string, watch = false) {
   };
   // `roomId`: kênh server đã chọn (tin `travel`); không có (về từ sân đấu) thì join hỏi /api/channel.
   const onTravel = (to: string, roomId?: string | null) => leaveThen(() => { mapId = to; join(true, roomId); });
-  const onArena = (roomId: string, w = false) => leaveThen(() => joinArena(roomId, w));
+  const onArena = (roomId: string, w = false, kind?: "bicanh") => leaveThen(() => joinArena(roomId, w, kind));
   const onBack = () => onTravel(mapId);
   installLoaderRetry();
   if (game) game.canvas.style.visibility = "";

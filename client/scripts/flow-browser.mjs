@@ -156,6 +156,21 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
   await guide.waitFor({ state: "hidden" });
   step("hướng dẫn lần đầu: bước theo phím, Bỏ qua, nút ? xem lại");
 
+  // 5a'. Bí Cảnh (#877 P5): hub có thẻ Bí Cảnh; mở ra thấy phụ bản Luyện Hồn Cảnh, lượt n/m, đếm ngược làm mới 05:00 và nút Khiêu Chiến; Esc đóng.
+  await page.locator("#hubBtn").click();
+  await page.locator('#hub [data-hub="bicanh"]').click();
+  const bc = page.locator("#bicanh");
+  await bc.locator(".bc-runs").waitFor({ state: "visible" });
+  assert.match(await bc.locator(".bc-name").textContent(), /Luyện Hồn Cảnh/);
+  assert.match(await bc.locator(".bc-runs").textContent(), /^Lượt \d+\/\d+$/, "thiếu lượt n/m");
+  assert.match(await bc.locator(".p2-cd").textContent(), /05:00/, "đếm ngược phải ghi mốc làm mới 05:00");
+  assert.equal(await bc.locator(".p2-primary").textContent(), "Khiêu Chiến");
+  assert.ok(await bc.locator(".bc-buy").isVisible(), "thiếu nút mua lượt");
+  await page.keyboard.press("Escape");
+  await bc.waitFor({ state: "hidden" });
+  await sleep(300);
+  step("Bí Cảnh: hub mở màn danh sách (lượt, đếm ngược 05:00, Khiêu Chiến), Esc đóng");
+
   // 5b'. #1027: bấm nút HUD đè lên vùng bấm của trận truyền tống (Phaser nghe mousedown cấp window) không được mở bảng Bản đồ thế giới.
   // Bản chập chờn ở CI: nút Đóng của #guide rơi trúng vùng trận tùy máy chạy chậm / nhanh nên bảng #world mở đè lên và chặn chuột.
   const zones = await page.evaluate(() => {

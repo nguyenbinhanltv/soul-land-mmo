@@ -34,6 +34,7 @@ import { initPanelStack, closeTopPanel, panelOf, trapTab } from "../panelStack.t
 import { initHub, toggleHub, setHubOpen } from "../hubMenu.ts";
 import { setBadge, badgeOf, resetBadges, starReadyCount, ringReady, questActionable } from "../badges.ts";
 import { openNotice, closeNotice } from "../noticeScreen.ts";
+import { bindBiCanh, openBiCanh, closeBiCanh, onBiCanh, bindBiCanhRoom, onBiCanhRoom, resetBiCanhRoom, tickBiCanhHud, inBiCanhRoom, type BiCanhMsg, type BiCanhRoomMsg } from "../bicanhScreen.ts";
 import { bindWelfare, openWelfare, closeWelfare, onWelfare, type WelfareMsg } from "../welfareScreen.ts";
 import { isUi2 } from "../uiKit.ts";
 import { bindNpcGo } from "../hudNpc.ts";
@@ -360,7 +361,7 @@ export class GameScene extends Phaser.Scene {
   lpc!: LpcRig;                     // bộ ghép lớp hồn sư chế độ Tự tạo (lpcRig.ts, L3 #510)
   onTravel: (mapId: string, roomId: string | null) => void = () => {};
   /** Đại Đấu Hồn Trường (7.2): server đã ghép trận thì vào phòng `roomId`; `onBack` rời sân về bản đồ cũ (đang giao đấu = bỏ trận, thua). */
-  onArena: (roomId: string, watch?: boolean) => void = () => {};
+  onArena: (roomId: string, watch?: boolean, kind?: "bicanh") => void = () => {};
   onBack: () => void = () => {};
   /** Đang ở sân Đại Đấu Hồn Trường (MAPS kind `arena`): vẽ thanh trận đấu, thanh máu trên đầu hai hồn sư. */
   isArena = false;
@@ -418,7 +419,7 @@ export class GameScene extends Phaser.Scene {
   nameplateShown = new Map<string, { dx: number; up: number }>(); nameplateT = 0;
 
   constructor() { super("game"); }
-  init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string, roomId: string | null) => void; onArena: (roomId: string, watch?: boolean) => void; onBack: () => void; watch?: boolean }) {
+  init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string, roomId: string | null) => void; onArena: (roomId: string, watch?: boolean, kind?: "bicanh") => void; onBack: () => void; watch?: boolean }) {
     this.room = data.room; this.mapId = data.mapId; this.me = data.room.sessionId; this.onTravel = data.onTravel;
     this.onArena = data.onArena; this.onBack = data.onBack; this.isArena = MAPS[data.mapId]?.kind === "arena"; this.watching = this.isArena && !!data.watch;
     hud.resetChannels(); // danh sách kênh của phòng trước không còn đúng
@@ -426,7 +427,7 @@ export class GameScene extends Phaser.Scene {
     const off = () => {
       this.contextCursor?.destroy(); this.contextCursor = null;
       this.slowmo = 1; this.hitstopEnd = 0; this.anims.globalTimeScale = 1; this.tweens.timeScale = 1; this.ac.abort(); clearQuestArrow(); this.cine.destroy(); this.ptCut.destroy(); this.pt.clear(); this.lpc?.destroy(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.closeLooks(); hud.showPlayerMenu(null);
-      hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} });
+      hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} }); resetBiCanhRoom();
       this.show?.destroy(); this.show = undefined;
       hud.setFusionPending(null); hud.setFusionCd(0); // lời mời dung hợp gắn với phòng cũ (server đã hủy khi rời); hồi chiêu đọc lại từ vohons
     };
@@ -934,6 +935,8 @@ export class GameScene extends Phaser.Scene {
     joyEl.addEventListener("pointerup", end, on); joyEl.addEventListener("pointercancel", end, on);
     // Ngăn xếp bảng (U1 #754): Esc đóng bảng trên cùng, bấm vào bảng nâng lên; mở bảng thì nhả phím đang giữ và dừng cần điều khiển.
     bindRank((type, payload) => this.room.send(type, payload)); bindCalendar((type, payload) => this.room.send(type, payload), (g) => this.calendarGo(g)); bindNpcGo((g) => this.calendarGo(g)); // nút "Đến" của hộp thoại / trang nhiệm vụ (ui2): cùng đường đi bộ / cờ "Đi tới" với Lịch Hoạt Động
+    bindBiCanh((type, payload) => this.room.send(type, payload), (has) => setBadge("bicanh", has ? "new" : null)); // chấm đỏ "còn lượt" (kho badges)
+    bindBiCanhRoom(() => this.onBack(), () => this.onBack());
     bindWelfare((type, payload) => this.room.send(type, payload), (needs) => setBadge("welfare", needs ? "new" : null)); // chấm đỏ "chưa điểm danh" (kho badges)
     initPanelStack([
       { id: "char", close: () => toggleChar(false) }, { id: "bag", close: () => hud.toggleBag(false) }, { id: "roster", close: () => hud.toggleRoster(false) },
@@ -941,7 +944,7 @@ export class GameScene extends Phaser.Scene {
       { id: "npc", close: () => hud.closeNpc() }, { id: "autoPanel", close: closeAutoPanel }, { id: "audio", close: closeAudioPanel },
       { id: "pmenu", close: () => hud.showPlayerMenu(null), popup: true }, { id: "chans", close: () => hud.toggleChannels(false), popup: true },
       { id: "autoSum", close: closeAutoSum, popup: true }, { id: "hub", close: () => setHubOpen(false), popup: true },
-      { id: "rank", close: closeRank }, { id: "calendar", close: closeCalendar }, { id: "welfare", close: closeWelfare }, { id: "notice", close: closeNotice },
+      { id: "rank", close: closeRank }, { id: "calendar", close: closeCalendar }, { id: "welfare", close: closeWelfare }, { id: "bicanh", close: closeBiCanh }, { id: "notice", close: closeNotice },
     ], () => {
       for (const k of Object.keys(this.keys)) if (this.keys[k]) muted.add(k);
       this.keys = {}; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = "";
@@ -960,6 +963,7 @@ export class GameScene extends Phaser.Scene {
       auto: () => { closeAudioPanel(); mapview().close(); toggleAutoPanel(true); }, settings: clickBtn("audioBtn"), guide: () => guideReview(),
       rank: () => { this.clearForPanel(); openRank(); }, calendar: () => { this.clearForPanel(); openCalendar(); },
       welfare: () => { this.clearForPanel(); openWelfare(); },
+      bicanh: () => { if (this.isArena) return toast("info", "Đang ở phòng đấu", "Về bản đồ rồi mới mở Bí Cảnh được"); this.clearForPanel(); openBiCanh(); },
       quest: () => { const n = hud.revealQuestTracker(); toast("quest", n ? `Đang theo dõi ${n} nhiệm vụ` : "Chưa có nhiệm vụ đang làm", "Khung theo dõi ở góc phải; gặp NPC có dấu trên đầu để nhận / trả"); }, // thẻ Nhiệm Vụ của hub: mở khung theo dõi, nhận / trả vẫn ở NPC
       notice: () => { this.clearForPanel(); openNotice(); }, shot: () => this.takeShot(),
     }, this.ac.signal);
@@ -1623,6 +1627,12 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("rank", (m: Parameters<typeof onRankBoards>[0]) => onRankBoards(m));
     this.room.onMessage("rankTop", (m: RankTopMsg) => onRankTop(m));
     this.room.onMessage("calendar", (m: CalendarMsg) => onCalendar(m)); // Lịch Hoạt Động (#1202)
+    // Bí Cảnh (mục 5.22, P5): `{runs, resetIn}` = trạng thái lượt (màn danh sách, chấm đỏ); `{k}` = vòng phòng (found = vào phòng riêng, ready / fight / wave / clear / end).
+    this.room.onMessage("bicanh", (m: BiCanhMsg & BiCanhRoomMsg) => {
+      if (m?.k === "found" && typeof m.roomId === "string") { closeBiCanh(); hud.closeNpc(); hud.log(`Vào ${m.name ?? "Bí Cảnh"}…`, "#ff9a8a"); this.onArena(m.roomId, false, "bicanh"); }
+      else if (m?.k) onBiCanhRoom(m as BiCanhRoomMsg);
+      else onBiCanh(m);
+    });
     this.room.onMessage("welfare", (m: WelfareMsg) => onWelfare(m)); // Phúc Lợi / Sổ Điểm Danh (#1207): server gửi lúc vào phòng và lúc qua 00:00
     // Tổ đội người chơi (7.1): khung tổ đội và lời mời, chỉ gửi riêng cho mình.
     this.room.onMessage("rally", (m: unknown) => { addRally(m); }); // dấu "Tập trung ở đây" của đồng đội (R6)
@@ -1657,7 +1667,7 @@ export class GameScene extends Phaser.Scene {
       this.audio.play("combat_death");
       const name = (id: string) => VOHON[Math.max(0, vohonIndex(id))].name;
       if (m.next) hud.banner(`${name(m.fallen)} đã gục`, `${name(m.next)} tự động ra trận`);
-      else if (this.isArena) hud.banner("Cả đội đã gục", "Thua trận đấu hồn, không mất kinh nghiệm hay đồ");
+      else if (this.isArena) hud.banner("Cả đội đã gục", inBiCanhRoom() ? "Thua Bí Cảnh: giữ quyển các sóng đã hạ, không mất đồ" : "Thua trận đấu hồn, không mất kinh nghiệm hay đồ");
       else { hud.banner("Cả đội đã gục", `Về doanh trại sau ${String(RESPAWN_SECS).replace(".", ",")} giây, không mất kinh nghiệm hay đồ`); deathShow(RESPAWN_SECS); }
     });
     // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
@@ -3786,7 +3796,7 @@ export class GameScene extends Phaser.Scene {
     hud.updateBossCd();
     hud.updateArenaQueue(); hud.updateArenaLive(); deathTick(!!me?.dead);
     // Sân đấu (7.2): thanh trận đấu đọc thẳng ArenaState (pha, giây còn lại, hai bên).
-    this.arenaBar(st);
+    this.arenaBar(st); tickBiCanhHud(st.beasts);
     // Tên vùng: vùng an toàn > vùng săn > điểm hồi sinh > tên bản đồ. Vừa vào bản đồ thì hiện tên bản đồ.
     const area = this.safes.find((z) => inRect(z, me.x, me.y)) ?? this.zones.find((z) => inRect(z, me.x, me.y));
     const mapName = MAPS[this.mapId]?.name ?? this.mapId;
