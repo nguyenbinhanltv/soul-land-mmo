@@ -1,5 +1,5 @@
 // Nhóm bot gear (#703 bước 4): khắc may mắn, xem trước cường hóa, ghi DB lỗi, mua lại, soát xã hội, equipSoak. Tách nguyên văn từ bot-test.mjs.
-import { post, sleep, waitFor, PASS, RUN, ok, bot, enter, bagKey, npcSpot, looseOf, same, test, needHookSkip } from "./lib.mjs";
+import { API, post, sleep, waitFor, PASS, RUN, ok, bot, enter, bagKey, npcSpot, looseOf, same, test, needHookSkip } from "./lib.mjs";
 import * as SD from "../../../shared/data.ts";
 import { TIERS, CHANNEL_CD, TEAM_COMBAT_SECS, RING_ITEM, CORE_ITEM, coreResetFee, sellPrice, TONG_MON, AWAKEN_CHOICES, TICK_RATE, BAG_MSG_BURST, BAG_MSG_RATE, EQUIP_MAX_ENHANCE, EQUIP_LUCK_MAX, parseEquip, EQUIP_STONES, EQUIP_CHARM, equipEnhanceStep, EQUIP_SOUL, EQUIP_LUCK_UP, equipLuckStep } from "../../../shared/data.ts";
 
@@ -364,6 +364,8 @@ export async function saveFailTest(){
  */
 export async function buybackProcTest(){
   console.log("[#742] Mua lại nhiều tiến trình / kênh: không nhân đồ, không nhân tiền");
+  const chMax=(await fetch(API+"/health").then(r=>r.json()).catch(()=>({}))).chMax; // kênh 1 phải đầy thì kênh 2 mới mở: server để CHANNEL_MAX mặc định thì báo bỏ qua, không trượt giả "Kênh 2 không còn mở"
+  if(!(chMax>=3&&chMax<=6)){ needHookSkip(`bỏ qua buybackproc (server ${chMax??"?"} người / kênh, cần CHANNEL_MAX 3..6): thêm --env CHANNEL_MAX=4`); await sleep(300); return; }
   const tn=npcSpot("nac_dinh_thanh","thuong_nhan");
   const T=async(b,op,extra={})=>{ b.test=null; b.room.send("test",{op,...extra}); await waitFor(()=>b.test,2000); await sleep(80); return b.test; };
   const F=[]; for(let i=1;i<=4;i++) F.push(await bot(`Mua lai F${i}`,"u_minh_linh_mieu",{sex:0,hair:1,hairCol:1,outfitCol:1}));
