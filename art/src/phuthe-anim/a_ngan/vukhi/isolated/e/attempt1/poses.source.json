@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-30",
+  "experiment": "Vẽ vũ khí riêng + ghép grip",
+  "direction": "e",
+  "attempt": 1,
+  "tool": "Codex / OpenAI image_gen tích hợp",
+  "model": null,
+  "seed": null,
+  "references": [],
+  "rawUnmodified": true,
+  "image": {
+    "path": "poses.raw.png",
+    "sha256": "3065e640d335fe9b79353d8b0e9e93167e77bc2ff9607d5008a96e9f41acf72f"
+  },
+  "prompt": {
+    "path": "poses.prompt.txt",
+    "sha256": "efa88016fc14c4ef52e4391fc20a24729ae5b826bbb93a3b45c6eb1e8870e7bc"
+  },
+  "compositor": {
+    "path": "../../compose.mjs",
+    "sha256": "72d13d963dc65f4e0f9c0dc2b32ee8ed62471e1508572db3a7137b5f00b6a9f1"
+  },
+  "gripSource": {
+    "path": "../../../../../lam_ngan_thao/vukhi/manifest-entry.json",
+    "sha256": "219add5b87469166af45725230e60ed297ac84bff5b28d43c8d71803783ad45f"
+  },
+  "layerSource": {
+    "path": "../../../lop.json",
+    "sha256": "546e1783ad9e4b3ed0829524274d07adce001ab6c6da3e3713a78fd4d5a66381"
+  },
+  "result": "composed/compose-plan.json",
+  "checks": {
+    "male": "composed/review-m/a_ngan-check.json",
+    "female": "composed/review-f/a_ngan-check.json"
+  },
+  "license": "Đầu ra OpenAI theo điều khoản dịch vụ; không gán CC0. LPC theo giấy phép hiện có."
+}
