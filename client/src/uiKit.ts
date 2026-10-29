@@ -1,5 +1,5 @@
 // UI Kit v2, lớp token (P5 #883, theo dõi #877; docs/art/ui-kit.md mục "Lớp token ui2"):
-// - cờ `ui2`: `?ui=2` bật và lưu localStorage, `?ui=0` tắt; bật thì `body.ui2`. TẮT mặc định, tắt thì không đổi gì ở giao diện hiện tại;
+// - cờ `ui2`: `?ui=2` bật và lưu localStorage, `?ui=0` tắt; bật thì `body.ui2`. BẬT mặc định từ đợt 5a (`?ui=0` là lối thoát, lưu "0"); tắt thì không đổi gì ở giao diện hiện tại;
 // - mảnh kit `ui2_<tên>` trong manifest (do `ui:cut` xuất: bản 2× và 1×, vạch 9-slice `nine.x2` / `nine.x1`) thành biến CSS
 //   `--ui2-<tên>` (ảnh), `--ui2-<tên>-nine` (vạch cắt, tính bằng điểm ảnh của bản đang dùng), `--ui2-<tên>-bw` (độ dày viền CSS = vạch / hệ số kit);
 // - bản 2× khi `--u` × DPR ≥ 2, ngược lại bản 1× (khuyến nghị cỡ kit ở docs); chưa có mảnh thì không đặt biến và không thêm lớp
@@ -70,9 +70,9 @@ export function isUi2(): boolean {
 function readFlag(): boolean {
   try {
     const q = ui2FromSearch(location.search);
-    if (q !== null) { if (q) localStorage.setItem(FLAG_KEY, "1"); else localStorage.removeItem(FLAG_KEY); }
-    return localStorage.getItem(FLAG_KEY) === "1";
-  } catch { return ui2FromSearch(location.search) === true; } // trình duyệt chặn lưu trữ: chỉ theo lượt này
+    if (q !== null) localStorage.setItem(FLAG_KEY, q ? "1" : "0");   // ?ui=0 tắt (lưu "0"), ?ui=2 bật (lưu "1")
+    return localStorage.getItem(FLAG_KEY) !== "0";                    // mặc định BẬT (đợt 5a): chỉ "0" mới tắt
+  } catch { return ui2FromSearch(location.search) !== false; } // trình duyệt chặn lưu trữ: chỉ theo lượt này
 }
 
 /** Bật / tắt `body.ui2` và (lại) đặt biến kit theo cỡ hiện tại. Tắt thì gỡ sạch biến và lớp (giao diện cũ không bị đụng). */

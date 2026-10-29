@@ -3,7 +3,7 @@
 // và client đã build (server phục vụ client/dist). KHÔNG trỏ DB thật; không có DATABASE_URL thì dữ liệu chỉ ở RAM.
 //   node client/scripts/ui-shots.mjs --server http://localhost:2547 --out <thư mục> [--sizes 1366x768,1280x720,960x540,1920x1080] [--only dang-nhap,hud,tui] [--tag truoc] [--dpr 1] [--outer]
 // Cỡ ghi trong tên ảnh là cỡ vùng hiển thị thật (đặt bằng Emulation.setDeviceMetricsOverride, không tính khung cửa sổ Chrome).
-// Mã cảnh (--only): dang-nhap, tao-nhan-vat, the-vao-ban-do, hud, hud-tien-do, tui, nhan-vat, hai-cua-so, doi-hinh, hon-cot, cong-minh, ban-be, tu-dong, ban-do, the-gioi, cai-dat.
+// Mã cảnh (--only): dang-nhap, tao-nhan-vat, the-vao-ban-do, hud, hud-tien-do, tui, nhan-vat, hai-cua-so, doi-hinh, hon-cot, cong-minh, ban-be, tu-dong, ban-do, the-gioi, cai-dat, hub, npc, cua-hang, tho-ren.
 // Luật: đúng MỘT Chrome headless, luôn --mute-audio, cổng CDP ngẫu nhiên (không dùng 9333), chụp tuần tự từng cỡ; xong tắt đúng PID của mình.
 // Chrome tìm ở biến CHROME (đường dẫn) hoặc đường dẫn cài đặt mặc định (Chrome, rồi Edge).
 import { spawn } from "node:child_process";
@@ -19,7 +19,7 @@ const SIZES = opt("sizes", "1366x768,1280x720,960x540,1920x1080").split(",").map
 const ONLY = opt("only", "") ? new Set(opt("only", "").split(",")) : null;
 const TAG = opt("tag", "");
 const DPR = +opt("dpr", "1");
-const QS = argv.includes("--ui2") ? "&ui=2" : ""; // --ui2: bật cờ giao diện v2 (?ui=2) cho ảnh "sau" của PR giao diện
+const QS = argv.includes("--ui0") ? "&ui=0" : ""; // --ui0: giao diện cũ (?ui=0) cho ảnh "trước"; mặc định ui2 bật (đợt 5a)
 const FS = opt("fs", ""); // --fs 1|2: thêm lớp a11y-fs-N (cỡ chữ Lớn / Rất lớn) sau khi vào bản đồ
 const OUTER = argv.includes("--outer"); // cỡ = cửa sổ Chrome (vùng hiển thị nhỏ hơn: khung tab / thanh địa chỉ), như người chơi mở cửa sổ 960×540
 const CHROMES = [process.env.CHROME, "C:/Program Files/Google/Chrome/Application/chrome.exe", "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", "/usr/bin/google-chrome", "/usr/bin/chromium"].filter(Boolean);
@@ -101,6 +101,27 @@ async function runSize(W, H) {
     await step("ban-do", async () => { await key("KeyN", "n"); await sleep(600); await shot("34-ban-do-khu-vuc"); await key("Escape", "Escape"); });
     await step("the-gioi", async () => { await key("KeyM", "m"); await sleep(600); await shot("35-the-gioi"); await key("Escape", "Escape"); });
     await step("cai-dat", async () => { await click("setBtn"); await sleep(500); await shot("37-cai-dat"); await click("setBtn"); });
+    await step("hub", async () => { await key("Escape", "Escape"); await sleep(400); await shot("36-hub"); await key("Escape", "Escape"); });
+    // NPC: dịch tới NPC có vai trò đó trong bản đồ hiện tại (vị trí lấy ở client), gửi "talk" như phím tương tác; không có thì bỏ qua cảnh.
+    const npcShot = async (role, file, prep) => {
+      const ok = await ev(`(() => { const s = window.__scene, n = s.npcs.find((n) => ${role === "talk" ? "true" : `n.def?.role === "${role}"`}); if (!n) return false; window.__npcId = n.id; window.__npcXY = [n.x, n.y]; return true; })()`);
+      if (!ok) { console.log("bỏ qua cảnh", file, "(bản đồ không có NPC", role + ")"); return; }
+      const [nx, ny] = await ev(`window.__npcXY`);
+      await test({ op: "goto", x: nx, y: ny + 40 }); await sleep(600);
+      await ev(`(window.__scene.talk(window.__npcId), true)`); await sleep(1200);
+      if (prep) await prep(); await shot(file);
+      await key("Escape", "Escape"); // một Escape đóng hộp thoại; Escape thừa sẽ mở menu hub (ui2)
+      if (await ev(`!!document.getElementById("hub") && !document.getElementById("hub").hidden`)) await key("Escape", "Escape");
+    };
+    await step("npc", () => npcShot("talk", "50-npc"));
+    if (want("cua-hang") || want("tho-ren")) await (async () => { try { // Thánh Hồn Thôn không có thương nhân / thợ rèn: đi cổng sang Nặc Đinh Thành
+      const pt = await ev(`(() => { const r = window.__scene.portals.find((p) => p.to === "nac_dinh_thanh"); return r ? [r.x + r.w / 2, r.y + r.h / 2] : null; })()`);
+      if (pt) { await test({ op: "goto", x: pt[0], y: pt[1] }); await sleep(600); }
+      await ev(`(window.__scene.room.send("travel", { portal: "Đi Nặc Đinh Thành" }), true)`);
+      await until(`window.__scene?.room?.state?.mapId === "nac_dinh_thanh" && !!window.__scene.room.state.players?.size`, 30000); await sleep(2500); } catch (e) { console.log("LỖI đi cổng", String(e).slice(0, 200)); }
+    })();
+    await step("cua-hang", () => npcShot("shop", "51-cua-hang"));
+    await step("tho-ren", () => npcShot("forge", "52-tho-ren"));
     ws.close();
   } finally {
     chrome.kill(); spawn("taskkill", ["/PID", String(chrome.pid), "/T", "/F"], { stdio: "ignore" });
