@@ -1,4 +1,4 @@
-// Nhóm bot "rank" (docs/design/xep-hang.md bước X2; BOT_ONLY=rank, nhóm 6 của BOT_PART): tin `rank {op:"boards"|"top"}` cho Cấp / Sưu tầm,
+// Nhóm bot "rank" (docs/design/xep-hang.md bước X2, X3 Sức mạnh; BOT_ONLY=rank, nhóm 6 của BOT_PART): tin `rank {op:"boards"|"top"}` cho Cấp / Sưu tầm,
 // điểm ghi lúc vào phòng và lúc rời phòng, `updated_at` ("đạt mốc trước") chỉ đổi khi điểm đổi, đội hình công khai chỉ mã võ hồn + cấp + sao.
 // Phần thuần (tie-break, ẩn tài khoản test, phân trang, xoá tài khoản test) do server/scripts/rank-test.ts thử.
 import { sleep, waitFor, ok, bot, enter, sendTeam, test, needHookSkip, post } from "./lib.mjs";
@@ -17,11 +17,13 @@ async function relog(b){
   await test(b,"goto",{x:b.room.state.players.get(b.room.sessionId).x,y:b.room.state.players.get(b.room.sessionId).y}); await b.room.leave(); await sleep(400);
   b.mapId=(await post("/api/me",{token:b.token})).mapId; await enter(b); await waitFor(()=>b.owned&&b.room.state.players?.get(b.room.sessionId),3000); bind(b);
 }
-function bind(b){ b.room.onMessage("rankTop",m=>{b.rankTop=m; b.rankTopN=(b.rankTopN??0)+1;}); b.room.onMessage("rank",m=>{ if(m?.k==="boards") b.rankBoards=m; }); }
+function bind(b){ b.room.onMessage("rankTop",m=>{b.rankTop=m; b.rankTopN=(b.rankTopN??0)+1;}); b.room.onMessage("rank",m=>{ if(m?.k==="boards") b.rankBoards=m; }); b.room.onMessage("stats",m=>{b.statsMsg=m; b.statsN=(b.statsN??0)+1;}); }
+/** Xin tin `stats` của võ hồn ra trận (bảng Nhân vật): trả `power` / `teamPower` do server tính. */
+async function askStats(b){ const n=b.statsN??0; b.room.send("stats",{rowId:b.owned.active}); return (await waitFor(()=>(b.statsN??0)>n,2500))?b.statsMsg:null; }
 
 export async function rankTest(){
   console.log("[X2] Bảng Xếp Hạng: Cấp / Sưu tầm, tin rank, điểm lúc vào / rời phòng");
-  ok(RANK_BOARDS.map(b=>b.code).join()==="cap,suu_tam"&&RANK_PAGE_MAX>=10,"RANK_BOARDS có Cấp (cap) và Sưu tầm (suu_tam)");
+  ok(RANK_BOARDS.map(b=>b.code).join()==="cap,suu_tam,suc_manh"&&RANK_PAGE_MAX>=10,"RANK_BOARDS có Cấp (cap), Sưu tầm (suu_tam), Sức mạnh (suc_manh)");
   const A=await bot("Xếp hạng A","u_minh_linh_mieu",{sex:0,hair:1,hairCol:2,outfitCol:1}), B=await bot("Xếp hạng B","u_minh_linh_mieu",{sex:1,hair:2,hairCol:0,outfitCol:3});
   for(const b of [A,B]) bind(b);
   await waitFor(()=>A.owned&&B.owned,3000);
@@ -29,7 +31,7 @@ export async function rankTest(){
 
   // ---- boards ----
   await sleep(RANK_CD*1000+120); A.room.send("rank",{op:"boards"}); await waitFor(()=>A.rankBoards,2000);
-  ok(A.rankBoards?.list?.map(x=>x.board).join()==="cap,suu_tam"&&A.rankBoards.list.every(x=>x.name&&x.group&&x.period===0),`rank boards: danh mục ${JSON.stringify(A.rankBoards?.list?.map(x=>x.board))}`);
+  ok(A.rankBoards?.list?.map(x=>x.board).join()==="cap,suu_tam,suc_manh"&&A.rankBoards.list.every(x=>x.name&&x.group&&x.period===0),`rank boards: danh mục ${JSON.stringify(A.rankBoards?.list?.map(x=>x.board))}`);
 
   // ---- vào phòng là có điểm: tài khoản mới đã nằm trên bảng Cấp, hạng của mình tính riêng ----
   let t=null; for(let i=0;i<4&&!t?.me;i++) t=await ask(A,"cap");
@@ -77,5 +79,18 @@ export async function rankTest(){
   const mine=c1.rows.find(r=>r.me)??c1.rows[0];
   ok(c1.me.score===43&&c1.me.at===ta.me.at,"đổi đội hình / thêm võ hồn không đổi điểm Cấp hay mốc at của Cấp");
   if(c1.rows.some(r=>r.me)) ok(mine.lineup.length>=1&&mine.lineup[0].vohon==="hoa_long"&&rowsOk(c1),`đội hình công khai cập nhật theo đội hình đang lưu (ô 1: ${mine.lineup[0]?.vohon})`);
+
+  // ---- Sức mạnh (X3): điểm trên bảng = điểm ở bảng Nhân vật (cùng powerScore), đổi theo chỉ số thật, ghi ở mốc ổn định ----
+  const st0=await askStats(A); await relog(A);
+  const p0=await ask(A,"suc_manh");
+  ok(Number.isInteger(st0?.power)&&Number.isInteger(st0?.teamPower)&&st0.teamPower>=st0.power&&st0.power>0,`tin stats có power ${st0?.power} và teamPower ${st0?.teamPower}`);
+  ok(p0?.board==="suc_manh"&&p0.me&&p0.me.score===st0.teamPower&&rowsOk(p0),`hạng Sức mạnh của mình = điểm đội hình ở bảng Nhân vật (${p0?.me?.score} = ${st0?.teamPower}), đội hình công khai chỉ mã + cấp + sao`);
+  await test(A,"set",{rowId:A.owned.active,level:60,xp:0}); await relog(A);
+  const st1=await askStats(A), p1=await ask(A,"suc_manh");
+  ok(st1.teamPower>st0.teamPower&&p1.me.score===st1.teamPower&&p1.me.at>p0.me.at,`lên cấp 60: điểm Sức mạnh tăng ${st0.teamPower} → ${st1.teamPower}, bảng khớp, at mới`);
+  const ids2=A.owned.list.map(v=>v.rowId);
+  await sendTeam(A,ids2.slice(0,TEAM_SIZE)); await relog(A);
+  const st2=await askStats(A), p2=await ask(A,"suc_manh");
+  ok(st2.teamPower>st1.teamPower&&p2.me.score===st2.teamPower&&p2.me.at>p1.me.at,`thêm võ hồn vào đội hình: điểm tăng ${st1.teamPower} → ${st2.teamPower}, bảng khớp sau khi rời phòng`);
   await A.room.leave(); await B.room.leave();
 }

@@ -5195,6 +5195,7 @@ export const RANK_BOARD_CACHE = 8;
 export const RANK_BOARDS = [
   { code: "cap", group: "Người chơi", name: "Cấp", period: 0 },
   { code: "suu_tam", group: "Người chơi", name: "Sưu tầm", period: 0 },
+  { code: "suc_manh", group: "Người chơi", name: "Sức mạnh", period: 0 },
 ] as const;
 export type RankBoardCode = (typeof RANK_BOARDS)[number]["code"];
 export const rankBoardOf = (code: unknown) => RANK_BOARDS.find((b) => b.code === code);
@@ -5204,22 +5205,39 @@ export const RANK_PAGE_MAX = RESONANCE_RANK_PAGE_MAX;
 export const RANK_CD = RESONANCE_RANK_CD;
 /** Giây tối thiểu giữa hai lần server ghi điểm `rank_scores` của một người (lần ghi cuối khi rời phòng không chờ nhịp này). */
 export const RANK_SYNC_CD = 20;
+/**
+ * Trọng số điểm Sức mạnh (bước X3, `powerScore`): mỗi võ hồn ra trận = hp × `hp` + mp × `mp` + công kỳ vọng × `atk`, công kỳ vọng = atk × (1 + crit × (critMult − 1) × `crit`).
+ * Ý chọn: 1 công đáng ~12 sinh lực (tỉ lệ gốc của công thức: 14 sinh lực / 1,6 công mỗi cấp), hồn lực nhẹ nhất (chỉ là nhiên liệu hồn kỹ), chí mạng tính theo kỳ vọng
+ * (`crit` = 1: đúng sát thương trung bình, không thưởng riêng một chỉ số). Không tính tốc độ.
+ */
+export const RANK_POWER = { hp: 0.25, mp: 0.1, atk: 3, crit: 1 } as const;
+/** Điểm Sức mạnh một võ hồn từ chỉ số `calcStats` (đã gồm hồn hoàn / hồn cốt / hồn hạch / trang bị / cộng minh / tiên thảo; không buff tạm). Hàm thuần, làm tròn xuống số nguyên ≥ 0. */
+export function powerScore(st: { maxHp: number; maxMp: number; atk: number; crit: number; critMult: number }): number {
+  const hit = st.atk * (1 + Math.max(0, st.crit) * Math.max(0, st.critMult - 1) * RANK_POWER.crit);
+  const v = st.maxHp * RANK_POWER.hp + st.maxMp * RANK_POWER.mp + hit * RANK_POWER.atk;
+  return Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0;
+}
+/** Điểm Sức mạnh của cả đội hình: tổng `powerScore` của tối đa TEAM_SIZE võ hồn (bảng Nhân vật và hạng mục `suc_manh` cùng dùng hàm này). */
+export const teamPowerScore = (stats: readonly { maxHp: number; maxMp: number; atk: number; crit: number; critMult: number }[]): number =>
+  stats.slice(0, TEAM_SIZE).reduce((s, x) => s + powerScore(x), 0);
 /** Một ô đội hình công khai ở bảng xếp hạng (mục "Luật chung": chỉ mã võ hồn, cấp, sao). */
 export interface RankLineupSlot { vohon: string; level: number; stars: number }
-/** Một dòng `rank_scores` do server suy ra từ võ hồn đã lưu: điểm chính, chỉ tiêu phụ, đội hình hiển thị (chỉ Cấp / Sưu tầm). */
+/** Một dòng `rank_scores` do server suy ra từ võ hồn đã lưu: điểm chính, chỉ tiêu phụ, đội hình hiển thị. */
 export interface RankScoreRow { board: RankBoardCode; score: number; tie: number; lineup: RankLineupSlot[] }
 /**
- * Điểm các hạng mục Cấp / Sưu tầm của một tài khoản (hàm thuần, server tính; không nhận gì từ client).
+ * Điểm các hạng mục Cấp / Sưu tầm (và Sức mạnh khi có `power`) của một tài khoản (hàm thuần, server tính; không nhận gì từ client).
  * Cấp: cấp võ hồn cao nhất, phụ = kinh nghiệm của võ hồn đó (cấp bằng nhau thì lấy kinh nghiệm cao nhất). Sưu tầm: số võ hồn sở hữu, phụ = tổng sao.
  * Chưa có võ hồn nào thì không có dòng (chưa có điểm thì không xếp). `team`: mã hàng võ hồn theo ô đội hình (0 = trống / mã lạ bị bỏ).
+ * Sức mạnh (X3): `power` = `teamPowerScore` do server tính từ chỉ số thật của đội hình; phụ = tổng cấp đội hình (cùng điểm thì đội cấp cao hơn đứng trước). Bỏ qua khi `power` thiếu / ≤ 0.
  */
-export function rankScores(owned: readonly { rowId: number; vohon: string; level: number; xp: number; stars: number }[], team: readonly number[]): RankScoreRow[] {
+export function rankScores(owned: readonly { rowId: number; vohon: string; level: number; xp: number; stars: number }[], team: readonly number[], power?: number): RankScoreRow[] {
   if (!owned.length) return [];
   const lineup = team.flatMap((r) => { const v = owned.find((o) => o.rowId === r); return v ? [{ vohon: v.vohon, level: v.level, stars: v.stars }] : []; }).slice(0, TEAM_SIZE);
   const top = owned.reduce((a, v) => (v.level > a.level || (v.level === a.level && v.xp > a.xp) ? v : a));
   return [
     { board: "cap", score: top.level, tie: Math.max(0, Math.floor(top.xp)), lineup },
     { board: "suu_tam", score: owned.length, tie: owned.reduce((s, v) => s + Math.max(0, Math.floor(v.stars)), 0), lineup },
+    ...(power && power > 0 ? [{ board: "suc_manh" as const, score: Math.floor(power), tie: lineup.reduce((s, x) => s + x.level, 0), lineup }] : []),
   ];
 }
 /** Thứ tự xếp: điểm giảm dần, chỉ tiêu phụ giảm dần, ai đạt mốc điểm trước (`at` nhỏ hơn), rồi mã tài khoản. Cùng thứ tự chỉ mục `rank_scores_order`. */

@@ -1,4 +1,4 @@
-// Bảng Xếp Hạng nhiều hạng mục (GAME_DESIGN.md mục 5.19, docs/design/xep-hang.md, bước X2): ghi điểm Cấp / Sưu tầm vào `rank_scores` ở mốc ổn định
+// Bảng Xếp Hạng nhiều hạng mục (GAME_DESIGN.md mục 5.19, docs/design/xep-hang.md, bước X2): ghi điểm Cấp / Sưu tầm / Sức mạnh vào `rank_scores` ở mốc ổn định
 // và trả bảng cho client (tin `rank`). Hàm nhận phòng (`room: MapRoom`) như team.ts / tong.ts; MapRoom chỉ chuyển tiếp. Điểm do server suy ra từ
 // võ hồn đã nạp / đã lưu (`rankScores`), client không gửi điểm; không đổi bất kỳ hành vi game nào.
 
@@ -15,7 +15,7 @@ export async function rankSync(room: MapRoom, id: string, d: PData, final = fals
   if (!room.state.players.get(id) || d.gmReset) return;
   if (!final && d.fight < TEAM_COMBAT_SECS) return;
   room.syncCh(id);
-  const rows = rankScores(d.owned, d.team), sig = JSON.stringify(rows);
+  const rows = rankScores(d.owned, d.team, room.teamPowerOf(d)), sig = JSON.stringify(rows);
   if (sig === d.rankSig) return;
   const now = Date.now();
   if (!final && now - d.rankAt < RANK_SYNC_CD * 1000) return;
