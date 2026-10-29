@@ -271,7 +271,7 @@ Không còn lớp `body.ui2` (đợt 5c-b): luật `ui2*.css` là luật thườ
 - ảnh `shared/assets/sprites/iso/ui2/2x/` và `1x/` (`ui2_<tên>.png`);
 - mục `{ "key": "ui2_<tên>", "iso": true, "nine": { "x2", "x1" } }` vào `shared/assets/sprites/manifest.json` (chỉ thay các dòng `ui2_*`, mục khác giữ nguyên từng byte; không sửa tay);
 - `pieces` / `groups` ở `art/src/ui-kit/ui-kit.json`.
-`npm run ui:import -- --check` (có trong `test:assets`) báo lỗi nếu ảnh hoặc manifest lệch với kết quả cắt (cắt tất định). Tờ mới hoặc mảnh vẽ lại: sửa `PLAN` rồi chạy lại. `validate.mjs` nhận khoá `ui2_*` (kiểu `ui2`: bảng màu do cutter giữ, cần cả bản 1×). Phaser bỏ qua khoá này; ảnh do CSS tải. Vạch 9-slice được giới hạn để 2 × vạch 1× vẫn nhỏ hơn cạnh ngắn (tab thấp 20 điểm ở 1×). Chưa nhập: nút / ô / thanh Giấy và 2 tab Giấy (chưa có chỗ dùng ở `ui2.css`), tờ icon pilot (#884).
+`npm run ui:import -- --check` (có trong `test:assets`) báo lỗi nếu ảnh hoặc manifest lệch với kết quả cắt (cắt tất định). Tờ mới hoặc mảnh vẽ lại: sửa `PLAN` rồi chạy lại. `validate.mjs` nhận khoá `ui2_*` (kiểu `ui2`: bảng màu do cutter giữ, cần cả bản 1×). Phaser bỏ qua khoá này; ảnh do CSS tải. Vạch 9-slice được giới hạn để 2 × vạch 1× vẫn nhỏ hơn cạnh ngắn (tab thấp 20 điểm ở 1×). Chưa nhập: nút / ô / thanh Giấy và 2 tab Giấy (chưa có chỗ dùng ở `ui2.css`), tờ icon khác. Icon menu (#884, chủ repo chọn bộ AI 30/10): không đi qua `ui:import` mà qua `node tools/assets/menu-icon-import.mjs` (cắt `toI-2.png` bằng cutter `--soft --prefix menu_`, hạ vào khung 32 × 32 = 2× và 24 × 24 = 1×; khóa `gi_menu_<key>` + `gi_menu_<key>_1x`, ngân sách icon ≤ 150 KB mỗi bản; `--check` có trong `test:assets`). `uiIcons.ts` chọn bản 1× khi DPR < 1,5.
 
 ## Khung màn chuẩn và thành phần nhỏ (#885)
 
@@ -296,7 +296,7 @@ Tờ `toI-manh.png` là họ I riêng: **một hàng ba khung** SR / SSR / UR, �
 
 Kiểm bằng `npm run ui:check -- art/src/ui-kit/toI-manh.png --family manh --soft --out <thư mục ngoài repo>`. Kết quả: không còn chặn; nhẹ vì khoảng cách dưới 5% và viền hồng đã bù từ 56,2% về 0%. Cắt bằng `node tools/assets/manh-sheet.mjs cut art/src/ui-kit/toI-manh.png`, rồi `node tools/assets/manh-compose.mjs` ghép lại 25 icon. Mẫu năm sắc 32×32 giữ alpha / mảng giấy từ ảnh model, sắc đồng được đổi theo `col`; icon chỉ hiện trong ruột Mực, không đè nét khung. `test:assets` kiểm cắt lại RAW và ghép lại đúng dữ liệu.
 
-- Icon pilot 16 menu (AI) so với game-icons (#884); checkbox / slider / scrollbar từ gói CC0, tuỳ chọn (#888).
+- Icon 16 menu: đã chọn bộ AI và nhập (#884); checkbox / slider / scrollbar từ gói CC0, tuỳ chọn (#888).
 - Đợt 5c (#886) đã gỡ cờ `ui2` / `isUi2()` / `?ui=` / `shh-ui2` (5c-a) và `body.ui2` (5c-b); còn gỡ luật cũ khỏi `style.css` (5b): `ROADMAP.md`.
 
 Trạng thái thật ở các issue.
