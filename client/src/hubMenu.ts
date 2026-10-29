@@ -7,27 +7,28 @@ import { isUi2 } from "./uiKit.ts";
 import { allBadges, onBadges, type BadgeKind } from "./badges.ts";
 
 export type HubSize = "big" | "mid" | "grid" | "rail";
-export interface HubItem { id: string; label: string; size: HubSize; /** phím tắt đã có (chỉ để nhắc, hub không bắt phím). */ key?: string; sub?: string }
+export interface HubItem { id: string; label: string; size: HubSize; /** phím tắt đã có (chỉ để nhắc, hub không bắt phím). */ key?: string; sub?: string;
+  /** lý do khi chưa nối bảng (thẻ khoá luôn nói rõ vì sao + đi đâu); thiếu thì "Chưa có". */ why?: string }
 
 /** Cây menu đã duyệt (bộ spec UI mục 2): 2 thẻ lớn, 2 thẻ vừa, lưới 4 cột, rail dọc. Thêm mục = thêm dòng và truyền hành động cùng `id`. */
 export const HUB_ITEMS: HubItem[] = [
   { id: "vohon", label: "Võ Hồn", size: "big", key: "V", sub: "Đội hình, hồn hoàn, hồn cốt" },
   { id: "char", label: "Nhân Vật", size: "big", key: "H", sub: "Chỉ số, trang bị" },
-  { id: "tong", label: "Tông Môn", size: "mid" },
+  { id: "tong", label: "Tông Môn", size: "mid", why: "Gặp Sứ giả Tông Môn ở thành" },
   { id: "reso", label: "Cộng Minh", size: "mid", key: "K" },
   { id: "bag", label: "Túi Đồ", size: "grid", key: "B" },
-  { id: "shop", label: "Cửa Hàng", size: "grid" },
+  { id: "shop", label: "Cửa Hàng", size: "grid", why: "Tại NPC" },
   { id: "rank", label: "Xếp Hạng", size: "grid" },
-  { id: "achv", label: "Thành Tựu", size: "grid" },
+  { id: "achv", label: "Thành Tựu", size: "grid", why: "Sắp có" },
   { id: "quest", label: "Nhiệm Vụ", size: "grid" },
   { id: "world", label: "Bản Đồ", size: "grid", key: "M" },
   { id: "friends", label: "Bạn Bè", size: "grid", key: "L" },
   { id: "auto", label: "Tự Động", size: "grid", key: "T" },
-  { id: "forge", label: "Ghép / Rèn", size: "grid" },
+  { id: "forge", label: "Ghép / Rèn", size: "grid", why: "Tại NPC" },
   { id: "guide", label: "Cẩm Nang", size: "grid" },
   { id: "calendar", label: "Lịch HĐ", size: "grid" },
   { id: "welfare", label: "Phúc Lợi", size: "grid" },
-  { id: "mail", label: "Thư", size: "rail" },
+  { id: "mail", label: "Thư", size: "rail", why: "Chờ máy chủ" },
   { id: "notice", label: "Thông báo", size: "rail" },
   { id: "settings", label: "Cài đặt", size: "rail" },
   { id: "shot", label: "Chụp ảnh", size: "rail" },
@@ -44,7 +45,7 @@ export function hubLayout(available: Iterable<string>, dots: Iterable<string> = 
   const have = new Set(available), dot = new Set(dots), up = new Set(ups), out: HubLayout = { big: [], mid: [], grid: [], rail: [] };
   for (const item of HUB_ITEMS) {
     const enabled = have.has(item.id), mark = dot.has(item.id) ? ("new" as const) : up.has(item.id) ? ("up" as const) : null;
-    const card: CardOpts = { title: item.label, ...(item.sub && enabled ? { sub: item.sub } : {}), ...(enabled ? (mark ? { state: mark } : {}) : { state: "lock" as const, reason: "Chưa có" }) };
+    const card: CardOpts = { title: item.label, ...(item.sub && enabled ? { sub: item.sub } : {}), ...(enabled ? (mark ? { state: mark } : {}) : { state: "lock" as const, reason: item.why ?? "Chưa có" }) };
     out[item.size].push({ item, card, enabled });
   }
   return out;
@@ -94,7 +95,9 @@ function render() {
   }
   const hd = mount(head);
   hd.querySelector(".hub-x")!.addEventListener("click", () => setHubOpen(false));
-  root.replaceChildren(hd, main, rail);
+  const legend = document.createElement("footer"); legend.className = "hub-legend"; legend.setAttribute("aria-label", "Chú giải dấu");
+  for (const [k, t] of [["new", "Mới"], ["up", "Nâng được"], ["lock", "Khoá: đọc lý do trên thẻ"]]) { const s = document.createElement("span"); s.dataset.k = k; s.textContent = t; legend.append(s); }
+  root.replaceChildren(hd, main, rail, legend);
   syncBadges();
 }
 

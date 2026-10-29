@@ -30,3 +30,12 @@ body.ui2.a11y-fs-2 #hub{width:min(560px,100vw)}
 body.ui2.a11y-fs-1 .hub-grid,body.ui2.a11y-fs-2 .hub-grid{grid-template-columns:repeat(3,1fr)}
 body.ui2.a11y-fs-2 .hub-c-grid{min-height:64px}
 body.ui2.a11y-fs-1 .hub-c-grid .p2-card-t,body.ui2.a11y-fs-2 .hub-c-grid .p2-card-t{overflow-wrap:break-word}
+
+/* Chú giải dấu ở chân hub (đợt 1a còn lại): cùng hình với dấu trên thẻ (tròn đỏ = mới, tam giác = nâng được, ô vuông đứt nét = khoá), kèm chữ. */
+body.ui2 #hub.f2-muc-lon{grid-template-rows:auto 1fr auto;grid-template-areas:"hd hd" "main rail" "leg leg"}
+body.ui2 .hub-legend{grid-area:leg;position:sticky;bottom:calc(var(--sp-5) * -1);margin:0 calc(var(--sp-5) * -1) calc(var(--sp-5) * -1);padding:var(--sp-3) var(--sp-5);background:var(--plate);display:flex;flex-wrap:wrap;gap:var(--sp-2) var(--sp-5);border-top:var(--bd-fine) solid var(--ink2);font:var(--fs-s)/1.3 var(--f10);color:var(--paper3)}
+body.ui2 .hub-legend span{display:inline-flex;align-items:center;gap:var(--sp-3)}
+body.ui2 .hub-legend span::before{content:"";box-sizing:border-box;width:10px;height:10px}
+body.ui2 .hub-legend [data-k="new"]::before{border-radius:50%;background:var(--son-l)}
+body.ui2 .hub-legend [data-k="up"]::before{background:var(--accent);clip-path:polygon(50% 0,100% 100%,0 100%)}
+body.ui2 .hub-legend [data-k="lock"]::before{border:var(--bd-fine) dashed var(--paper3)}

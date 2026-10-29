@@ -19,11 +19,12 @@ assert.deepEqual(sizes(hubLayout([])), { big: 2, mid: 2, grid: 12, rail: 4 }, "k
 const L = hubLayout(["char", "bag", "rank", "settings"], ["rank"]);
 const cell = (l, id) => [...l.big, ...l.mid, ...l.grid, ...l.rail].find((c) => c.item.id === id);
 assert.equal(cell(L, "char").enabled, true);
-assert.equal(cell(L, "shop").enabled, false); assert.equal(cell(L, "shop").card.state, "lock"); assert.equal(cell(L, "shop").card.reason, "Chưa có");
+assert.equal(cell(L, "shop").enabled, false); assert.equal(cell(L, "shop").card.state, "lock"); assert.equal(cell(L, "shop").card.reason, "Tại NPC", "lý do khoá riêng từng mục, nói nơi dùng");
+assert.equal(cell(hubLayout([]), "achv").card.reason, "Sắp có");
 assert.equal(cell(L, "rank").card.state, "new", "chấm đỏ cho mục có việc mới");
 assert.equal(cell(L, "bag").card.state, undefined, "mục có chức năng, không việc mới: thẻ thường");
 assert.deepEqual(L.rail.map((c) => [c.item.id, c.enabled]), [["mail", false], ["notice", false], ["settings", true], ["shot", false]], "rail đủ mục, chưa nối thì mờ");
-assert.equal(cell(L, "mail").card.state, "lock"); assert.equal(cell(L, "mail").card.reason, "Chưa có");
+assert.equal(cell(L, "mail").card.state, "lock"); assert.equal(cell(L, "mail").card.reason, "Chờ máy chủ");
 assert.equal(cell(hubLayout(["bag"], [], ["bag"]), "bag").card.state, "up", "mũi tên xanh cho mục nâng được");
 assert.equal(cell(hubLayout(["bag"], ["bag"], ["bag"]), "bag").card.state, "new", "chấm đỏ thắng mũi tên");
 assert.equal(cell(hubLayout([], [], ["bag"]), "bag").card.state, "lock", "mục chưa nối không có mũi tên");
