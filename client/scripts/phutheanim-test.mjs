@@ -173,3 +173,22 @@ console.log("phutheanim-test: neo khối thân OK");
   assert.equal(weaponOscK("weapon"), SPIRIT_WEAPON_OSC_K.hard); assert.equal(weaponOscK("float"), SPIRIT_WEAPON_OSC_K.hard);
   assert.ok(SPIRIT_WEAPON_OSC_K.hard < SPIRIT_WEAPON_OSC_K.soft);
 }
+
+// --- sheet vũ khí GIẢ tất định (vukhiFake.ts, trang ?thu=vukhi): bảng grip đủ mọi khung, parse thành layout vũ khí, điểm cầm khớp đoạn gậy vẽ, cùng đầu vào cùng kết quả
+{
+  const { fakeGripTable, fakeSegment, fakeGrip, fakeHalf } = await import("../src/vukhiFake.ts");
+  const t = fakeGripTable(), total = PHU_CLIPS.reduce((n, c) => n + D[c].n, 0);
+  assert.equal(Object.keys(t).length, 5 * total, "mọi hướng × mọi khung có điểm cầm");
+  assert.deepEqual(fakeGripTable(), t, "tất định");
+  const Lv = parsePhuLayout({ kind: "vukhi", grip: t }, 96);
+  assert.equal(Lv.weapon, true); assert.equal(Object.keys(Lv.grip).length, 5 * total, "parseGrip nhận hết khoá của bảng giả");
+  for (const dir of PHU_DIRS) for (const c of PHU_CLIPS) for (let i = 0; i < D[c].n; i++) {
+    const s = fakeSegment(dir, c, i, D[c].n), g = fakeGrip(dir, c, i, D[c].n);
+    assert.deepEqual([s.x0, s.y0], g, `${dir}/${c}/${i}: gậy bắt đầu ở điểm cầm`);
+    assert.ok(Math.abs(Math.hypot(s.x1 - s.x0, s.y1 - s.y0) - 26) < 1e-9, "độ dài gậy cố định");
+    assert.ok(Math.abs(phuGripAt(Lv, dir, c, i)[0] - +g[0].toFixed(1)) < 1e-9 && Math.abs(phuGripAt(Lv, dir, c, i)[1] - +g[1].toFixed(1)) < 1e-9, `${dir}/${c}/${i}: phuGripAt đọc đúng bảng`);
+  }
+  assert.equal(phuGripAt(Lv, "w", "idle", 0)[0], -phuGripAt(Lv, "e", "idle", 0)[0], "tây lật x của đông");
+  assert.deepEqual(PHU_DIRS.map(fakeHalf), ["f", "f", "f", "b", "b"], "quay lưng vẽ nửa sau");
+  assert.equal(weaponHidden(1, true), true); assert.equal(weaponHidden(1, false), false); assert.equal(weaponHidden(0, true), false);
+}

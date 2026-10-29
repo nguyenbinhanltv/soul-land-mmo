@@ -434,6 +434,8 @@ export function sheetSpec(key, frame, iso = false, stat = false) {
     if ((m = key.match(/^hs_((?:body|outfit|hair)_([mf]_\d+))$/))) return spec(`honsu/${m[1]}.png`, isoLayout("honsu"), { set: m[2] });
     // Hoạt ảnh phụ thể vẽ thật (#1022 / #1024): `vhanim_<võ hồn>_{b|f}`, khung 96 / 128 (manifest ghi), số cột theo `anim`, 10 hàng (giới × 5 hướng); bảng màu riêng từng võ hồn.
     if ((m = key.match(/^vhanim_([a-z_]+_[bf])$/)) && frame && frame[0] === frame[1] && (frame[0] === 96 || frame[0] === 128)) return { file: `vohonanim/${m[1]}.png`, frame, kind: "vhanim", iso: true };
+    // Vũ khí cầm tay (#1312): `vkanim_<võ hồn>_{b|f}`, cùng bố cục sheet như vhanim nhưng ảnh ở `vukhianim/` (client đọc đúng đường này); manifest ghi `anim.kind: "vukhi"` (validate kiểm).
+    if ((m = key.match(/^vkanim_([a-z_]+_[bf])$/)) && frame && frame[0] === frame[1] && (frame[0] === 96 || frame[0] === 128)) return { file: `vukhianim/${m[1]}.png`, frame, kind: "vhanim", vukhi: true, iso: true };
     if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return spec(`vohon/${m[1]}.png`, isoLayout("vohon"));
     if ((m = key.match(/^pt_([a-z_]+)$/))) return spec(`phaptuong/${m[1]}.png`, isoLayout("phaptuong"));
     if ((m = key.match(/^b(\d)$/)) && ISO_BEAST_TIER[+m[1]]) return spec(`beast/${key}.png`, isoLayout("beast", frame?.[0] ?? ISO_BEAST_TIER[+m[1]]));
@@ -462,6 +464,8 @@ export function sheetSpec(key, frame, iso = false, stat = false) {
   if ((m = key.match(/^he_([a-z_]+)$/))) return { file: `iso/he/${m[1]}.png`, size: [ISO_HE_ICON, ISO_HE_ICON], kind: "portrait", iso: true, he: m[1] };
   if ((m = key.match(/^card_(sr|ssr|ur)$/))) return { file: `iso/ui/the_${m[1]}.png`, size: ISO_CARD, kind: "portrait", iso: true };
   if ((m = key.match(/^ui_(?!the_)([a-z0-9_]+)$/))) return { file: `iso/ui/${m[1]}.png`, kind: "portrait", iso: true };
+  // Icon menu HUD bản 1× (#884, tools/assets/menu-icon-import.mjs): `gi_menu_<tên>_1x` khung 24×24, cạnh bản 2× 32×32 cùng tên không hậu tố.
+  if ((m = key.match(/^gi_(menu_[a-z0-9]+_1x)$/))) return { file: `iso/gi/${m[1]}.png`, size: [24, 24], kind: "portrait", iso: true };
   if ((m = key.match(/^gi_([a-z0-9_]+)$/))) return { file: `iso/gi/${m[1]}.png`, size: [ISO_SKILL_ICON, ISO_SKILL_ICON], kind: "portrait", iso: true }; // game-icons.net (#625): Chân Thân, dung hợp, menu HUD
   if ((m = key.match(/^item_([a-z0-9_]+)$/))) return { file: `iso/item/${m[1]}.png`, size: [ISO_ITEM_ICON, ISO_ITEM_ICON], kind: "portrait", iso: true, item: m[1] };
   if ((m = key.match(/^npc_([a-z_]+)$/))) return { file: `iso/npc/${m[1]}.png`, size: [ISO_NPC_PORTRAIT, ISO_NPC_PORTRAIT], kind: "portrait", iso: true, npc: m[1] };
