@@ -1,7 +1,7 @@
 // UI Kit v2, khung màn chuẩn + thành phần nhỏ (uiParts.ts): số / giờ, thẻ trạng thái, công tắc, đồng hồ, khung, và ui2-parts.css chỉ chạy dưới body.ui2 bằng token.
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
-import { abbrevNumber, foldVi, matchQuery, formatCountdown, cardInfo, cardNode, toggleNode, countdownNode, frameNode, toHtml, COUNTDOWN_SOON_MS, CARD_MARK_LABEL, stateNode, STATE_TEXT, selectNode, selectedOption, nextEnabled, qtyNode, clampQty, tabsNode, activeTabId, slotNode, slotInfo, askNode } from "../src/uiParts.ts";
+import { abbrevNumber, foldVi, matchQuery, formatCountdown, cardInfo, cardNode, toggleNode, countdownNode, frameNode, toHtml, COUNTDOWN_SOON_MS, CARD_MARK_LABEL, stateNode, STATE_TEXT, selectNode, selectedOption, nextEnabled, qtyNode, clampQty, tabsNode, activeTabId, slotNode, slotInfo } from "../src/uiParts.ts";
 
 // rút gọn số
 for (const [n, s] of [[0, "0"], [999, "999"], [1000, "1K"], [1234, "1,2K"], [999_999, "999,9K"], [12_500_000, "12,5M"], [-1500, "-1,5K"], [2_000_000_000, "2B"], [NaN, "0"]]) assert.equal(abbrevNumber(n), s, `abbrevNumber(${n})`);
@@ -121,8 +121,4 @@ for (const m of css.matchAll(/var\(--([a-z0-9-]+)/g)) {
 assert.ok(existsSync(new URL("../src/ui2-parts.css", import.meta.url)));
 console.log("ui-parts: ok");
 
-// hộp xác nhận: nút an toàn trước nút nguy hiểm, có lý do, tên không qua innerHTML
-const cf = toHtml(askNode({ title: "Chặn <b>", body: "Không nhận tin của người này.", confirmLabel: "Chặn", danger: true }));
-assert.ok(cf.indexOf("p2-ask-no") < cf.indexOf("p2-ask-ok"), "Huỷ đứng trước nút nguy hiểm");
-assert.match(cf, /role="alertdialog"/); assert.match(cf, /p2-danger/); assert.match(cf, /Chặn &lt;b&gt;/);
-assert.doesNotMatch(toHtml(askNode({ title: "x", body: "y" })), /p2-danger/);
+

@@ -225,28 +225,6 @@ export function slotNode(o: SlotOpts, clickable = true): PNode {
 
 
 // ---- hộp xác nhận (mục thiếu #19 của kiểm kê UI/UX: hành động không đảo ngược) ----
-export interface AskOpts {
-  title: string;
-  /** Hậu quả cụ thể (nguyên tắc: chữ nêu rõ mất gì, không chỉ "Bạn chắc chứ?"). */
-  body: string;
-  confirmLabel?: string; cancelLabel?: string;
-  /** Nút xác nhận là nút nguy hiểm (viền son, tách khỏi nút an toàn). */
-  danger?: boolean;
-}
-/** Hộp xác nhận dựng bằng cây ảo: nút an toàn (Huỷ) đứng trước và là nút lấy tiêu điểm; nút nguy hiểm đứng sau, tách riêng. Hàm thuần. */
-export function askNode(o: AskOpts): PNode {
-  return h("div", "p2-ask-bg", { kids: [
-    h("div", "p2-ask f2-muc-nho", { attrs: { role: "alertdialog", "aria-modal": "true", "aria-label": o.title }, kids: [
-      h("b", "p2-ask-t", { text: o.title }),
-      h("p", "p2-ask-b", { text: o.body }),
-      h("div", "p2-ask-btns", { kids: [
-        h("button", "p2-ask-no f2-nut-phu", { text: o.cancelLabel ?? "Huỷ", attrs: { type: "button" } }),
-        h("button", `p2-ask-ok f2-nut-phu${o.danger ? " p2-danger" : ""}`, { text: o.confirmLabel ?? "Đồng ý", attrs: { type: "button" } }),
-      ] }),
-    ] }),
-  ] });
-}
-
 // ---- khung màn chuẩn ----
 export type Material = "muc" | "giay";
 export interface NavItem { id: string; label: string; active?: boolean; /** chấm đỏ báo mới. */ dot?: boolean }
@@ -418,24 +396,3 @@ export function addCloseButton(frame: HTMLElement, close: () => void) {
   b.addEventListener("click", close); frame.querySelector(".p2-hd")?.append(b);
 }
 
-/**
- * Hộp xác nhận (mount, chặn nền): trả true khi bấm nút xác nhận, false khi Huỷ / Esc / bấm nền. Tiêu điểm mặc định ở nút an toàn (Huỷ), Tab vòng trong hộp.
- * Cờ `ui2` tắt thì trả true ngay (màn giữ hành vi cũ, không hỏi); `force` chỉ cho trang xem trước / test.
- */
-export function askDialog(o: AskOpts & { force?: boolean }): Promise<boolean> {
-  if (!o.force && !isUi2()) return Promise.resolve(true);
-  const root = mount(askNode(o)), no = root.querySelector<HTMLButtonElement>(".p2-ask-no")!, ok = root.querySelector<HTMLButtonElement>(".p2-ask-ok")!;
-  const prev = document.activeElement as HTMLElement | null;
-  return new Promise((res) => {
-    const done = (v: boolean) => { document.removeEventListener("keydown", key, true); root.remove(); prev?.focus?.(); res(v); };
-    const key = (e: KeyboardEvent) => {
-      e.stopPropagation(); // hộp chặn nền: không phím nào xuống GameScene (Enter không nhảy vào ô chat, WASD / U-I-O-P không chạy); Enter / Space trên nút giữ mặc định của trình duyệt
-      if (e.key === "Escape") { e.stopPropagation(); e.preventDefault(); done(false); }
-      else if (e.key === "Tab") { e.preventDefault(); (document.activeElement === no ? ok : no).focus(); }
-    };
-    no.addEventListener("click", () => done(false)); ok.addEventListener("click", () => done(true));
-    root.addEventListener("pointerdown", (e) => { if (e.target === root) done(false); });
-    document.addEventListener("keydown", key, true);
-    document.body.append(root); no.focus();
-  });
-}

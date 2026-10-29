@@ -9,7 +9,8 @@ import { el, pbtn } from "./domBtn.ts";
 import type { ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
 import { autoTimeText, FRIEND_MAX, BLOCK_MAX } from "../../shared/data.ts";
 import { isUi2 } from "./uiKit.ts";
-import { stateBox, askDialog } from "./uiParts.ts";
+import { stateBox } from "./uiParts.ts";
+import { confirmDialog } from "./confirmDialog.ts";
 import "./ui2-social.css";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 
@@ -34,7 +35,7 @@ const FRIEND_COL = "#9fd8ff";
 /** Việc không đảo ngược (xóa bạn, chặn): bật ui2 thì hỏi bằng hộp xác nhận nêu hậu quả (nút an toàn lấy tiêu điểm); tắt cờ chạy ngay như cũ. */
 export function askThen(title: string, body: string, confirmLabel: string, fn: () => void) {
   if (!UI2) { fn(); return; }
-  void askDialog({ title, body, confirmLabel, danger: true }).then((ok) => { if (ok) fn(); });
+  confirmDialog({ title, body, confirm: confirmLabel, danger: true }, fn);
 }
 // UI v2 (đợt 2d): bảng Bạn bè nhận khung Mực của kit khi bật cờ ui2 (index.html giữ nguyên). Luật vẽ ở ui2-social.css.
 const UI2 = isUi2();
