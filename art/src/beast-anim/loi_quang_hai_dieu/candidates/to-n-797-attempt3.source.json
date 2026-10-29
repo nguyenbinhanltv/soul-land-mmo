@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 3,
+  "round": 2,
+  "direction": "n",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "360257820619160c11c7c26d2eca9f8252f6e861eb577e466f334906ea77a131",
+  "prompt": "to-n-797-attempt3.prompt.txt",
+  "verdict": "đạt mắt; nhập riêng n vẫn bị chặn vượt khung ở cấu hình trộn; không dùng --scale nên giữ dự phòng"
+}

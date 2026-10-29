@@ -1,14 +1,15 @@
-# Nhân Diện Ma Chu — RAW hoạt ảnh
+# Nhân Diện Ma Chu — RAW hoạt ảnh (#1277)
 
 File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species nhan_dien_ma_chu`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
 
 Loài `nhan_dien_ma_chu` (Nhân Diện Ma Chu), họ `insect`, khung game 128×128. Mức kiểm chung: **pass**.
 
+
 ## turnaround
 
 - File: `turnaround.png`, **1536×1024**, 1572387 byte, SHA256 `51d9e1d695e8fe673611d0e49a5d22208352306eeade6052269bb2fc313c25b6`.
 - Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
-- Prompt: `turnaround.prompt.txt` (SHA256 `2f0fe58c0d9b3b307ac30e8caf8b0d3a97ef6a22d2a15addadd83a5ec97a1291`).
+- Prompt: `turnaround.prompt.txt` (SHA256 `daca5ff6fbd7523e50d40908bff71550ffb22830643b4e9230892d6832fd3e04`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
 - Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
@@ -17,7 +18,7 @@ Loài `nhan_dien_ma_chu` (Nhân Diện Ma Chu), họ `insect`, khung game 128×1
 
 - File: `toA.png`, **1536×1024**, 1869474 byte, SHA256 `b1ed2d4e8344c4f3577c3af19e76ca7e9fce72f2f68bd36e06123a8ebdb943bf`.
 - Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3.
-- Prompt: `toA.prompt.txt` (SHA256 `ee613218bac10857a1c13443428832d2b966f0ab4ca128cc897b5c02bdd2a10a`).
+- Prompt: `toA.prompt.txt` (SHA256 `316362557647fddb60b38a3230cf7c15f06f98f27a0bc0a15c80f18e83782a20`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: s pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
@@ -26,7 +27,7 @@ Loài `nhan_dien_ma_chu` (Nhân Diện Ma Chu), họ `insect`, khung game 128×1
 
 - File: `toB.png`, **1536×1024**, 1819114 byte, SHA256 `c6766ac86327c9102c2cc98331acbe271596df5876dc6ef14667cb21e3dd38ee`.
 - Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
-- Prompt: `toB.prompt.txt` (SHA256 `2337d6d88449af5562a7e09653a75f3c6461dbb8a844daa66686a23a1c4370a9`).
+- Prompt: `toB.prompt.txt` (SHA256 `2f68db72de8b81fbb20c83edb5271a60b26cd73dee56352e69dfaa57bed229b6`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: se pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
@@ -35,7 +36,7 @@ Loài `nhan_dien_ma_chu` (Nhân Diện Ma Chu), họ `insect`, khung game 128×1
 
 - File: `toC.png`, **1536×1024**, 1763712 byte, SHA256 `d31c783e7c6b12ce8ef34b8d33d172c3d6ad05746cf084c859ea51de973b7d55`.
 - Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
-- Prompt: `toC.prompt.txt` (SHA256 `d335853674652ce5d1af36ee071999bdc3faad0befd8a9570d4c4f34c0888ec5`).
+- Prompt: `toC.prompt.txt` (SHA256 `3137c9e80dd262aaf4cead51ca1de4866484611aafb6b20174e84fa2dae049c9`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: e pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
@@ -44,10 +45,30 @@ Loài `nhan_dien_ma_chu` (Nhân Diện Ma Chu), họ `insect`, khung game 128×1
 
 - File: `toE.png`, **1536×1024**, 1734475 byte, SHA256 `bbc878cd8c5636155ed539debf55dfca3f6e813268f206a6487d516844da0ecc`.
 - Công cụ: image_gen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
-- Prompt: `toE.prompt.txt` (SHA256 `1d09f60e24652a7eb116157c38449745d01ddb951913b7999630baa4624a5ca5`).
+- Prompt: `toE.prompt.txt` (SHA256 `41cf54f75715520b5d7a79decdba440609e29544308e19de8a3d2523c463c1d7`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **pass** (khối hướng: n pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+## Sổ candidates trước vòng 2 (giữ lịch sử)
+
+Ảnh chụp nguyên sổ trước vòng 2; trạng thái chưa vào thư mục chính dưới đây là trạng thái tại thời điểm cũ, không thay trạng thái tờ mới đã nhập.
+
+Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
+
+### to-ne (candidates)
+
+- File chọn: `candidates/to-ne-attempt1.png`, **1536×1024**, SHA256 `f81c6baf0ed1da0260ef498d946932db10b1856b13cd250897a30f76b0cd3f4e`; lượt tìm thấy: 1.
+- Số lượt đã dùng: 1; lượt được chọn: 1.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+### toD (candidates)
+
+- File chọn: `candidates/toD-attempt3.png`, **1536×1024**, SHA256 `fd4859292a5626b07d262ca54d2745069df1bdb9595c8ecce58af212fc0926c1`; lượt tìm thấy: 1, 2, 3.
+- Số lượt đã dùng: 3; lượt được chọn: 3.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
 
 ## Tờ chưa vào thư mục chính (candidates)
 
@@ -67,6 +88,40 @@ Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn s
 - Mức kiểm: **pass**.
 - Duyệt bằng mắt: **chưa duyệt bằng mắt**.
 
+## Các lượt bổ sung vòng 2 (phiên 797)
+
+Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên; tờ lỗi không dùng làm tham chiếu.
+
+### to-ne-797-attempt1
+
+- File: `candidates/to-ne-797-attempt1.png`, **1536×1024**, 1883950 byte, SHA256 `aa202eae53cda13a5dde5b4185e188a3029fa8bfdce145cfb68c515841bba5dc`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-797.
+- Prompt: `candidates/to-ne-797-attempt1.prompt.txt` (SHA256 `0e3d27bcf3e506cd05c66117834901ed4acae7a13e49263a4279179ec5ba5486`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Ghi chú lượt / nhập: chưa đọc rõ 8 chân. **Không chọn cho bản nhập cuối.**
+
+### to-ne-797-attempt2
+
+- File: `candidates/to-ne-797-attempt2.png`, **1536×1024**, 1795795 byte, SHA256 `5cd3086733a225d719a16c96eb09463fb1435d97ed590cd4373eaff5d64e6fd0`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-797.
+- Prompt: `candidates/to-ne-797-attempt2.prompt.txt` (SHA256 `9eee20659d6e0771e19b1faa7c5fa8b796c396890bece664337f1ba2faba276e`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Ghi chú lượt / nhập: vẫn chỉ rõ 3 cặp chân. **Không chọn cho bản nhập cuối.**
+
+### to-ne-797-attempt3
+
+- File: `candidates/to-ne-797-attempt3.png`, **1536×1024**, 1917500 byte, SHA256 `202cf01a69c9094b3753c27abc62ea6b1d4925343f4f384465ce97cf81747b5b`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-797.
+- Prompt: `candidates/to-ne-797-attempt3.prompt.txt` (SHA256 `8d1b09b0e425a6a0ff779c25a1a45dcc787450c4ea1cc372638ffc76cde936bb`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: ne nhẹ).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Ghi chú lượt / nhập: đủ chân hơn nhưng họa tiết mặt còn hiện ở lưng. **Lượt chọn tốt nhất trong vòng 2, vẫn chặn / giữ dự phòng.**
+
 ## Lỗi
 
 ```text
@@ -77,6 +132,10 @@ LỖI: toB — se — chưa đọc rõ bốn cặp chân; hurt biên độ nhỏ
 LỖI: toC — e — chưa đọc rõ bốn cặp chân; idle C2–3, walk C3/C5 và attack C5 nghiêng gần se; hurt và die giữ hướng phải, không ngửa bụng. (mắt)
 LỖI: toE — n — chưa đọc rõ bốn cặp chân; hurt biên độ nhỏ, giữ hướng lưng trong mọi khung và die hạ thân không xoay ngang. (mắt)
 LỖI: to-ne — ne — lượt sửa 1 vẫn chưa rõ tám chân, còn hoa văn mặt ở góc lưng; chưa nhập. (mắt)
+LỖI: candidates/to-ne-797-attempt1 — chưa đọc rõ 8 chân (mắt)
+LỖI: candidates/to-ne-797-attempt2 — vẫn chỉ rõ 3 cặp chân (mắt)
+LỖI: candidates/to-ne-797-attempt3 — chân lệch — H4 (ne) C1 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 14%).
+LỖI: candidates/to-ne-797-attempt3 — đủ chân hơn nhưng họa tiết mặt còn hiện ở lưng (mắt)
 ```
 
 ## Ghi công

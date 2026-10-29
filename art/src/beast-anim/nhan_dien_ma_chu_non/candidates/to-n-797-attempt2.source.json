@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 2,
+  "round": 2,
+  "direction": "n",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "ebd991b8068ed75445def1701d2b7ab8ad6410050411f4fcc1fc69c2642a8d7a",
+  "prompt": "to-n-797-attempt2.prompt.txt",
+  "verdict": "vẫn thiếu cặp chân thứ tư"
+}

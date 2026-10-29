@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 1,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "adff772490453fff19084542ea9eb0777dbfc719f3e9abdef6dc4cdfe6209aef",
+  "prompt": "to-ne-797-attempt1.prompt.txt",
+  "verdict": "đuôi tù, mất nhận diện rắn"
+}

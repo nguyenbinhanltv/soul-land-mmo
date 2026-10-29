@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 3,
+  "round": 2,
+  "direction": "e",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "f271f525a4c0cd3bc5fac44282e45ae7d00fb2bca85261043211c8d90bc8d5a5",
+  "prompt": "to-e-797-attempt3.prompt.txt",
+  "verdict": "vẫn góc trước gần se"
+}

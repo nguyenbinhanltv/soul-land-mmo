@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 1,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "aa202eae53cda13a5dde5b4185e188a3029fa8bfdce145cfb68c515841bba5dc",
+  "prompt": "to-ne-797-attempt1.prompt.txt",
+  "verdict": "chưa đọc rõ 8 chân"
+}

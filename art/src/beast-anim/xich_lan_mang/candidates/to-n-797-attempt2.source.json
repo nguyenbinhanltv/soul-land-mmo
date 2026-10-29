@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 2,
+  "round": 2,
+  "direction": "n",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "346d50e3c68c2e12017cdca3b0a96ff9a5a5c8be223f44063d69329b7a3b3774",
+  "prompt": "to-n-797-attempt2.prompt.txt",
+  "verdict": "đạt; die cuộn hạ thân, đầu giữ phía trên"
+}

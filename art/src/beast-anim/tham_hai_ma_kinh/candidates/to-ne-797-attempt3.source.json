@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 3,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "cbfd76a52f4c3de4dda8149211f77b33ab9f399aa3d009c0269323c1292fce89",
+  "prompt": "to-ne-797-attempt3.prompt.txt",
+  "verdict": "die C3-C4 lộ mắt/miệng"
+}

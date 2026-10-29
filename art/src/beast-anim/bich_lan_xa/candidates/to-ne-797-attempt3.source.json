@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 3,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "385547ac63e51273208759528bd1d67a6d0334dd4b0baa841e54ff22fbe87028",
+  "prompt": "to-ne-797-attempt3.prompt.txt",
+  "verdict": "die lộ mặt/miệng, không nhập"
+}

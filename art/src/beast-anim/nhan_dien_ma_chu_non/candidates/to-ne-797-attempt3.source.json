@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 3,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "cbad4c3c31d92f102cce5e8fd06f8d38659a098f9508142a5c736e5e76285b02",
+  "prompt": "to-ne-797-attempt3.prompt.txt",
+  "verdict": "đạt 4 cặp chân, mặt che khuất"
+}

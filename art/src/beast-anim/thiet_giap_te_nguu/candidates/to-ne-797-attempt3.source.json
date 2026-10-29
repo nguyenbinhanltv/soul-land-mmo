@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 3,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "400b65643a72b2d1ea4ceeb15c1dc20a712739bb31a79f410ccef7ea4be9420f",
+  "prompt": "to-ne-797-attempt3.prompt.txt",
+  "verdict": "thiếu khung die thứ tư, không nhập"
+}

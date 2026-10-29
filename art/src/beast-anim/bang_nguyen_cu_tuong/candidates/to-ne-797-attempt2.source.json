@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 2,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "7e792da9cd6c4c795c7e4ee54222bd38027424e9b235ab111c42b05fd62bcb38",
+  "prompt": "to-ne-797-attempt2.prompt.txt",
+  "verdict": "góc lưng nhưng thêm gai băng lớn, sai nhận diện"
+}

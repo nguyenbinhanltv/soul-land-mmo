@@ -2,14 +2,16 @@
   "tool": "image_gen.imagegen",
   "model": "unknown",
   "seed": "unknown",
-  "attempts": 3,
-  "agent": "soul_land_game-778",
-  "original_tool_path": "C:/Users/PC/.codex/generated_images/01a18423-efc9-75d3-9467-2adc5fc89681/exec-0483c8f5-568e-4dd2-ac96-779450a43136.png",
-  "review": "CHẶN: thêm 3 lượt phiên 778 vẫn lộ mắt/mặt ở idle, hurt, attack và die; lượt 1 ít lỗi hơn lượt 2–3. Giữ fallback ne.",
-  "imported": false,
-  "references": [
-    "shared/assets/sprites/beast/hoa_linh_diep.png",
-    "art/src/beast-anim/hoa_linh_diep/turnaround.png"
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 1,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
   ],
-  "selectedAttempt": 1
+  "sha256": "384a502f066db92e93691f27ae9667a5988bcc35c15729c612f7e70c2cabe246",
+  "prompt": "to-ne.prompt.txt",
+  "verdict": "đạt góc lưng, không mắt; hurt nhỏ"
 }

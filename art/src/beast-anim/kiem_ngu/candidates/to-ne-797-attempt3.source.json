@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 3,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "81b303a948401294fceeb8110da97d8a2ed2b3845bd0ba30fdae723b5eb70965",
+  "prompt": "to-ne-797-attempt3.prompt.txt",
+  "verdict": "đạt; không thấy mắt, cỡ sau khớp lệch 4,6%"
+}

@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 1,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "c011e1ccee49f4ec4019314fb60b1c1188cac2600227a13e199e6eae6f2085d2",
+  "prompt": "to-ne-797-attempt1.prompt.txt",
+  "verdict": "góc trước, lộ mặt"
+}

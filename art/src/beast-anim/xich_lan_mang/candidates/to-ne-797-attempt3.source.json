@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 3,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "02e1a675f3a3dbe92841244ef140d0ae60d1cd3ce4e18dfc18c0d36d96810d3c",
+  "prompt": "to-ne-797-attempt3.prompt.txt",
+  "verdict": "đủ 4 hình die nhưng đầu quay ngang/lộ mặt khi chết"
+}

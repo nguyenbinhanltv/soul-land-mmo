@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 1,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "16fadeacd623f6846e0978911631057ebc7e6f03ac399bc418acab2e133056c4",
+  "prompt": "to-ne-797-attempt1.prompt.txt",
+  "verdict": "chấm mắt và đầu nghiêng ngang"
+}

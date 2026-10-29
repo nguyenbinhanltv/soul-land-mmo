@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 2,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "963e730b1881ad24de2f2eefbef6b79617b1d332da85644dcfcadd0ce3413426",
+  "prompt": "to-ne-797-attempt2.prompt.txt",
+  "verdict": "đạt mắt nhưng đuôi dài: vượt khung, lệch sau khớp -35%; không --scale"
+}
