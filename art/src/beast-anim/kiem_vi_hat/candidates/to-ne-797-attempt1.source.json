@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 1,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "9aba6faf5f6d00357e2d7bab191da707c4145cd2c95c32a11a6ab2de0d75cb1c",
+  "prompt": "to-ne-797-attempt1.prompt.txt",
+  "verdict": "gần hướng e, chưa rõ góc lưng"
+}

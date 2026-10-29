@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 2,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "4872e5ac6614d6327a9688731e86432cd1852ccaf0c3694c171dda7f2ae3e8e5",
+  "prompt": "to-ne-797-attempt2.prompt.txt",
+  "verdict": "còn chi tiết mặt ở attack"
+}

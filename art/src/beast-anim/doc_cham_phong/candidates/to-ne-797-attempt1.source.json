@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 1,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "bd3409457b48cf7ae37037f42afebd19a05ae49f2031d55b1ee35aa1e11dc6ce",
+  "prompt": "to-ne-797-attempt1.prompt.txt",
+  "verdict": "oval tím giống mắt bên đầu"
+}

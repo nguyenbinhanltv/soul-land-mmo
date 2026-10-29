@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 3,
+  "round": 2,
+  "direction": "n",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "6d0f311048aaaea985f045681fb85a7369745b88a8da191b973491f2bdb0dc3c",
+  "prompt": "to-n-797-attempt3.prompt.txt",
+  "verdict": "đạt 4 cặp chân; die hạ thân giữ trục"
+}

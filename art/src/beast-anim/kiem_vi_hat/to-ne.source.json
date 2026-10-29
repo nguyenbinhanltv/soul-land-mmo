@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 2,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "7125e33340bef204a6369baea71af51845ad2174058d80eb27ee77215067531e",
+  "prompt": "to-ne.prompt.txt",
+  "verdict": "đạt góc lưng; hurt nhẹ"
+}

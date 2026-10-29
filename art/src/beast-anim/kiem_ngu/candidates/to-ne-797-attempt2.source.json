@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 2,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "ce5f64bce1ab209d1310ddb001f69451434760f00cbd888b1c4f2edfb41eb02c",
+  "prompt": "to-ne-797-attempt2.prompt.txt",
+  "verdict": "điểm sáng giống mắt ở chân kiếm"
+}

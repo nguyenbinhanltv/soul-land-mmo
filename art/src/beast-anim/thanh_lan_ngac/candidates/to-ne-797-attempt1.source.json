@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 1,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "50f1a5e00a7a4e4f27f1a4220c2f84ea48205d87f52d6949fdcda03ec67c6dfb",
+  "prompt": "to-ne-797-attempt1.prompt.txt",
+  "verdict": "còn nét mặt bên đầu"
+}

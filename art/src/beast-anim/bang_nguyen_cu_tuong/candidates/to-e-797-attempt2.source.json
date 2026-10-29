@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 2,
+  "round": 2,
+  "direction": "e",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "b9882f4ed73b9a02f619880b1910b1325739fc6a3cc2b55ffd9477dd2eeb4950",
+  "prompt": "to-e-797-attempt2.prompt.txt",
+  "verdict": "đúng ngang nhưng thêm gai băng lớn, sai nhận diện"
+}

@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 1,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "e8d9dc977add949344f54a0c3618e9021f91e5810bf2f53bcf8f743e6282dcc8",
+  "prompt": "to-ne-797-attempt1.prompt.txt",
+  "verdict": "nhìn ngang, có mặt"
+}

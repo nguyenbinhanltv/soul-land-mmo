@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 3,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "66d99e0516d2b03ccc0a29d8d7d0b296975ece8e655b17e169be84fce5e5c759",
+  "prompt": "to-ne-797-attempt3.prompt.txt",
+  "verdict": "vẫn có mắt ở mép đầu, không nhập"
+}

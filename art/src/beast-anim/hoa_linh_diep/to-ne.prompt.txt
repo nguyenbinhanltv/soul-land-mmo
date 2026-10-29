@@ -1,7 +1,7 @@
 Create ONE image (landscape 3:2 aspect ratio; the exact pixel size does not matter): an animation sprite sheet of a single fantasy creature, ONE direction only, for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
 
 CREATURE: Hỏa Linh Điệp - fire spirit butterfly, large butterfly with orange and red wings with dark ember patterns, small dark body, two antennae, wings spread flat, seen from directly above. Body type: côn trùng có cánh, bay lơ lửng. Size class: Tím / Đen. Keep the SAME design, proportions, colors, markings and overall size as the references in every frame. Do not redesign it.
-REFERENCES (attached images, in this fixed order): image 1 = the static reference of this exact creature in three views (front, side, back): the identity, design, colors and overall size; image 2 = the approved TURNAROUND image of this creature: five columns of directions (s, se, e, ne, n) by three rows (idle, hurt, die). Copy the pose, facing angle and body size of the column "ne" for the idle, hurt and die frames of this sheet; image 3 = an approved direction sheet of this creature (only for matching line weight and palette; never copy its poses) (if attached).
+REFERENCES: attached static reference fixes identity and colors. Construct this direction from the corresponding correct static view. Do not copy the three-column layout.
 
 BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
 
@@ -23,6 +23,7 @@ STYLE: hand-painted dark ink-wash fantasy illustration with a clean pixel-art fe
 DO NOT DRAW: glowing eyes, aura, magic effects, particles, ground, shadow, weapons, riders, other creatures, text, extra frames, speech bubbles, cute chibi proportions. This creature flies: never draw it standing on its feet; in idle, moving and hurt frames it hovers in the air with its wings, and it only rests on the ground after dying.
 
 LESSONS (learned from earlier sheets of other creatures, follow every line):
+- For n and ne, the visible head is a completely BLANK back-of-head surface: paint over every facial dot, glint, slit, nostril, mouth corner and beak with uninterrupted body-colored texture. Do not copy the visible eyes from the front or side static reference. In ne, the rear skull occludes the entire face; during attack and death the head only lowers or moves forward, it never yaws toward the camera.
 - The turnaround reference fixes the creature's pose only, NEVER its five-column layout. This animation sheet has exactly SIX columns: row 1 has FOUR idle plus TWO hurt pictures, row 2 SIX walk pictures, row 3 SIX attack pictures, row 4 FOUR die pictures followed by TWO empty cells. Draw exactly twenty-two separate creatures in this six-by-four layout.
 - Direction "se" is a three-quarter view: the body axis is turned about 45 degrees toward the lower right, the face is visible and looks diagonally down toward the viewer, so it clearly differs from "e" (pure side profile).
 - Direction "ne" is a three-quarter BACK view: the body axis is turned about 45 degrees away toward the upper right, the rump and back are nearest to the viewer, and it must not be drawn as a plain side profile.

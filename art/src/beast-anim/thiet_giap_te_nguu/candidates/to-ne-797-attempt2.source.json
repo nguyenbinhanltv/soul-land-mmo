@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 2,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "e7886dcc95d1973d41bf4abff97622dfba3a867ac820362ecdbabae23248a8eb",
+  "prompt": "to-ne-797-attempt2.prompt.txt",
+  "verdict": "còn chi tiết mắt cạnh đầu"
+}

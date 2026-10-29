@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 2,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "c61da7102813701a01453a8012e74b7d3d836350ba7da9e144372d6fb01156ba",
+  "prompt": "to-ne-797-attempt2.prompt.txt",
+  "verdict": "attack còn mắt rõ"
+}

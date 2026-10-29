@@ -1,7 +1,7 @@
 Create ONE image (landscape 3:2 aspect ratio; the exact pixel size does not matter): an animation sprite sheet of a single fantasy creature, ONE direction only, for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game.
 
 CREATURE: Băng Vũ Ưng - ice-wing eagle, pale blue feathers with white tips, wide wings spread, sharp beak, standing on two strong talons. Body type: chim. Size class: Tím / Đen. Keep the SAME design, proportions, colors, markings and overall size as the references in every frame. Do not redesign it.
-REFERENCES (attached images, in this fixed order): image 1 = the static reference of this exact creature in three views (front, side, back): the identity, design, colors and overall size; image 2 = the approved TURNAROUND image of this creature: five columns of directions (s, se, e, ne, n) by three rows (idle, hurt, die). Copy the pose, facing angle and body size of the column "ne" for the idle, hurt and die frames of this sheet; image 3 = an approved direction sheet of this creature (only for matching line weight and palette; never copy its poses) (if attached).
+REFERENCES: attached static reference fixes identity and colors. Construct this direction from the corresponding correct static view. Do not copy the three-column layout.
 
 BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border.
 

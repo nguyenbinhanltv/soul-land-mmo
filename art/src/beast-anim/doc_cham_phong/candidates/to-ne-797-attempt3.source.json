@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 3,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "9b2005f6cd25a274f2092b9e8f83c7ee4c8e9eaf2ada5b67226c4779ee6584c8",
+  "prompt": "to-ne-797-attempt3.prompt.txt",
+  "verdict": "attack quay mặt và biến dạng đầu"
+}

@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 2,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "065f81fecaa528e627d6c9b0c67948b9c6ba9399e0f726855adde9d736881c43",
+  "prompt": "to-ne-797-attempt2.prompt.txt",
+  "verdict": "lưới hàng die chỉ dò 3 hình, dính hình"
+}

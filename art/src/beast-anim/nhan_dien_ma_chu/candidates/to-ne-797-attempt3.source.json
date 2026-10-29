@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 3,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "202cf01a69c9094b3753c27abc62ea6b1d4925343f4f384465ce97cf81747b5b",
+  "prompt": "to-ne-797-attempt3.prompt.txt",
+  "verdict": "đủ chân hơn nhưng họa tiết mặt còn hiện ở lưng"
+}

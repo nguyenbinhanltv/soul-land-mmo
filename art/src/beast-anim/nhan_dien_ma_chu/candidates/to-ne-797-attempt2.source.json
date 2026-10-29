@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-797",
+  "issue": 1277,
+  "builtinCalls": 2,
+  "round": 2,
+  "direction": "ne",
+  "size": [
+    1536,
+    1024
+  ],
+  "sha256": "5cd3086733a225d719a16c96eb09463fb1435d97ed590cd4373eaff5d64e6fd0",
+  "prompt": "to-ne-797-attempt2.prompt.txt",
+  "verdict": "vẫn chỉ rõ 3 cặp chân"
+}
