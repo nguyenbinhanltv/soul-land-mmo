@@ -699,7 +699,7 @@ export function gmAction(room: MapRoom, id: string, raw: unknown) {
     console.warn(`[GM] TỪ CHỐI tài khoản #${d.accountId} (${p.name}): ${JSON.stringify(text)}`);
     return room.log(id, "Không có quyền dùng lệnh GM.", "#ffb35c");
   }
-  if (room.state.mapId === ARENA_MAP) return room.log(id, "Không dùng lệnh GM trong sân đấu.", "#ffb35c");
+  if (room.map.kind === "arena") return room.log(id, "Không dùng lệnh GM trong sân đấu.", "#ffb35c");
   const cmd = parseGm(text);
   if ("error" in cmd) { console.log(`[GM] #${d.accountId} ${p.name}: ${JSON.stringify(text)} -> lỗi: ${cmd.error}`); return room.log(id, cmd.error, "#ffb35c"); }
   if (d.gmReset) return room.log(id, "Đã áp mức dựng sẵn: vào lại game rồi dùng tiếp.", "#ffb35c");
