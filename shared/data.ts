@@ -5398,6 +5398,20 @@ export const achvDef = (id: unknown) => ACHV.find((a) => a.id === id);
 export const achvReached = (def: Pick<AchvDef, "stat" | "need">, stats: Partial<AchvStats>) => (stats[def.stat] ?? 0) >= def.need;
 /** Số thành tựu đã đạt mà chưa nhận (chấm đỏ ở hub). */
 export const achvReady = (stats: Partial<AchvStats>, claimed: readonly string[]) => ACHV.filter((a) => achvReached(a, stats) && !claimed.includes(a.id)).length;
+
+/**
+ * Thư hệ thống (GAME_DESIGN.md mục 5.24, docs/design/thu.md; bảng `mail`). Một chiều: server gửi, người chơi đọc và nhận một lần.
+ * `ttlDays`: thư sống bao nhiêu ngày kể từ lúc gửi (hết hạn thì ẩn, đính kèm chưa nhận bị bỏ); `warnDays`: còn chừng này ngày thì hiện nhãn sắp hết hạn;
+ * `boxMax`: số thư tối đa mỗi tài khoản (chưa xóa); `maxAttach`: số dòng vật phẩm đính kèm tối đa một thư; `maxQty`: số lượng tối đa mỗi dòng;
+ * `maxHonTe`: Hồn Tệ đính kèm tối đa một thư; `titleMax` / `bodyMax`: độ dài chữ; `claimAllMax`: số thư nhận tối đa mỗi lần "Nhận tất cả".
+ */
+export const MAIL = { ttlDays: 30, warnDays: 3, boxMax: 50, maxAttach: 5, maxQty: 99, maxHonTe: 1_000_000, titleMax: 60, bodyMax: 400, claimAllMax: 20 };
+/** Nguồn thư (`mail.kind`) → tên người gửi hiển thị. Thêm nguồn mới chỉ cần thêm dòng ở đây và một chỗ gọi `sendMail`. */
+export const MAIL_KINDS: Record<string, string> = { welfare: "Phúc Lợi", bicanh: "Bí Cảnh", gm: "Quản trị" };
+/** Một dòng vật phẩm đính kèm thư (vật phẩm gộp thường trong ITEMS). */
+export interface MailItem { code: string; qty: number }
+/** Số ngày còn lại (làm tròn lên, tối thiểu 0) của thư hết hạn lúc `expiresAt` (ms) tính tới `now` (ms). */
+export const mailDaysLeft = (expiresAt: number, now: number) => Math.max(0, Math.ceil((expiresAt - now) / 86_400_000));
 /**
  * Phạm vi tự săn (`AutoSettings.scope`, #213): "map" (mặc định) săn khắp bản đồ đang đứng: nhắm hồn thú gần nhất hợp khoảng niên hạn
  * trong AUTO_RADIUS quanh mình, không có thì trên cả bản đồ (chỉ chỗ đi bộ tới được, không qua cổng / truyền tống, đường không đi vào vùng
