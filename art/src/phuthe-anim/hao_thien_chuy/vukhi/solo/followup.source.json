@@ -1,0 +1,451 @@
+﻿{
+    "tool":  "builtin image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "attemptsUsed":  3,
+    "attemptLimit":  3,
+    "direction":  "s",
+    "inputs":  [
+                   {
+                       "attempt":  1,
+                       "raw":  "weapon-s-attempt1.png",
+                       "sha256":  "91571c968867605efccfacb28ee787fb29eacb566133da3730a4299533b28436",
+                       "prompt":  "weapon-s-attempt1.prompt.txt",
+                       "promptSha256":  "1403ecdc5d1caf2c0e401ae2438f77580fdd0709392854a98b8706c169bf5ade",
+                       "reference":  null,
+                       "postprocessing":  "none; RAW copied byte-for-byte"
+                   },
+                   {
+                       "attempt":  2,
+                       "raw":  "weapon-s-attempt2.png",
+                       "sha256":  "67d9b1dd58252435c09bc0b6efb298678f138c03f09e2c3ec57033e587010e17",
+                       "prompt":  "weapon-s-attempt2.prompt.txt",
+                       "promptSha256":  "3578480cb5e956cc5ff97b4da9b8fb037c22c4ffb0445f6ca403c1bc51fb8725",
+                       "reference":  "weapon-s-attempt1.png",
+                       "postprocessing":  "none; RAW copied byte-for-byte"
+                   },
+                   {
+                       "attempt":  3,
+                       "raw":  "weapon-s-attempt3.png",
+                       "sha256":  "9f7740dee6e57f4f3c2d3c6792872dfd0be4423bd2b5017338330f1425f0dcc8",
+                       "prompt":  "weapon-s-attempt3.prompt.txt",
+                       "promptSha256":  "c8491822afd717053040ffb3a63eb1309f37aec78d585817b3b5040c0d1b057f",
+                       "reference":  "weapon-s-attempt1.png",
+                       "postprocessing":  "none; RAW copied byte-for-byte"
+                   }
+               ],
+    "compositionTool":  "tools/assets/phuthe-rigid-pilot.mjs",
+    "outputs":  [
+                    {
+                        "file":  "sliding/toA.png",
+                        "sha256":  "2092c09c827290e0ffea3236c5ff6ee987a9d9c1f433e5b338d1367544a045b5",
+                        "raw":  false,
+                        "placement":  "sliding/placement.json",
+                        "technicalCheck":  {
+                                               "id":  "hao_thien_chuy",
+                                               "kind":  "vukhi",
+                                               "level":  "pass",
+                                               "group":  "A",
+                                               "frame":  128,
+                                               "dummyKey":  "#00D0D0",
+                                               "blockLevel":  {
+                                                                  "s":  "pass"
+                                                              },
+                                               "sheets":  [
+                                                              {
+                                                                  "sheet":  "toA",
+                                                                  "size":  [
+                                                                               1536,
+                                                                               1024
+                                                                           ],
+                                                                  "kind":  "huong",
+                                                                  "level":  "pass",
+                                                                  "dirs":  [
+                                                                               "s"
+                                                                           ],
+                                                                  "background":  {
+                                                                                     "key":  [
+                                                                                                 255,
+                                                                                                 0,
+                                                                                                 255
+                                                                                             ],
+                                                                                     "corners":  [
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ],
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ],
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ],
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ]
+                                                                                                 ],
+                                                                                     "keyDistFromLock":  0,
+                                                                                     "cornerSpread":  0
+                                                                                 },
+                                                                  "seVsE":  null,
+                                                                  "prep":  {
+                                                                               "shift":  {
+                                                                                             "dx":  0,
+                                                                                             "dy":  0
+                                                                                         },
+                                                                               "factor":  1,
+                                                                               "grid":  "gap"
+                                                                           },
+                                                                  "bands":  [
+                                                                                {
+                                                                                    "row":  1,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              82,
+                                                                                              186
+                                                                                          ],
+                                                                                    "figures":  3,
+                                                                                    "state":  "ok"
+                                                                                },
+                                                                                {
+                                                                                    "row":  2,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              340,
+                                                                                              449
+                                                                                          ],
+                                                                                    "figures":  4,
+                                                                                    "state":  "ok"
+                                                                                },
+                                                                                {
+                                                                                    "row":  3,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              596,
+                                                                                              700
+                                                                                          ],
+                                                                                    "figures":  4,
+                                                                                    "state":  "ok"
+                                                                                },
+                                                                                {
+                                                                                    "row":  4,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              852,
+                                                                                              949
+                                                                                          ],
+                                                                                    "figures":  2,
+                                                                                    "state":  "ok"
+                                                                                }
+                                                                            ],
+                                                                  "motion":  [
+                                                                                 {
+                                                                                     "dir":  "s",
+                                                                                     "anim":  "idle",
+                                                                                     "maxDiff":  0.069
+                                                                                 },
+                                                                                 {
+                                                                                     "dir":  "s",
+                                                                                     "anim":  "walk",
+                                                                                     "maxDiff":  0.697
+                                                                                 },
+                                                                                 {
+                                                                                     "dir":  "s",
+                                                                                     "anim":  "hurt-vs-idle",
+                                                                                     "maxDiff":  0.823
+                                                                                 }
+                                                                             ],
+                                                                  "issues":  [
+
+                                                                             ],
+                                                                  "draft":  null
+                                                              }
+                                                          ]
+                                           }
+                    },
+                    {
+                        "file":  "poses-side/toA.png",
+                        "sha256":  "665b53e745e71dae6805d261a1a318cab1f0d401e2bb996fac2650dc06f260d8",
+                        "raw":  false,
+                        "placement":  "poses-side/placement.json",
+                        "technicalCheck":  {
+                                               "id":  "hao_thien_chuy",
+                                               "kind":  "vukhi",
+                                               "level":  "pass",
+                                               "group":  "A",
+                                               "frame":  128,
+                                               "dummyKey":  "#00D0D0",
+                                               "blockLevel":  {
+                                                                  "s":  "pass"
+                                                              },
+                                               "sheets":  [
+                                                              {
+                                                                  "sheet":  "toA",
+                                                                  "size":  [
+                                                                               1536,
+                                                                               1024
+                                                                           ],
+                                                                  "kind":  "huong",
+                                                                  "level":  "pass",
+                                                                  "dirs":  [
+                                                                               "s"
+                                                                           ],
+                                                                  "background":  {
+                                                                                     "key":  [
+                                                                                                 255,
+                                                                                                 0,
+                                                                                                 255
+                                                                                             ],
+                                                                                     "corners":  [
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ],
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ],
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ],
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ]
+                                                                                                 ],
+                                                                                     "keyDistFromLock":  0,
+                                                                                     "cornerSpread":  0
+                                                                                 },
+                                                                  "seVsE":  null,
+                                                                  "prep":  {
+                                                                               "shift":  {
+                                                                                             "dx":  0,
+                                                                                             "dy":  0
+                                                                                         },
+                                                                               "factor":  1,
+                                                                               "grid":  "gap"
+                                                                           },
+                                                                  "bands":  [
+                                                                                {
+                                                                                    "row":  1,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              82,
+                                                                                              186
+                                                                                          ],
+                                                                                    "figures":  3,
+                                                                                    "state":  "ok"
+                                                                                },
+                                                                                {
+                                                                                    "row":  2,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              340,
+                                                                                              449
+                                                                                          ],
+                                                                                    "figures":  4,
+                                                                                    "state":  "ok"
+                                                                                },
+                                                                                {
+                                                                                    "row":  3,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              596,
+                                                                                              698
+                                                                                          ],
+                                                                                    "figures":  4,
+                                                                                    "state":  "ok"
+                                                                                },
+                                                                                {
+                                                                                    "row":  4,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              852,
+                                                                                              949
+                                                                                          ],
+                                                                                    "figures":  2,
+                                                                                    "state":  "ok"
+                                                                                }
+                                                                            ],
+                                                                  "motion":  [
+                                                                                 {
+                                                                                     "dir":  "s",
+                                                                                     "anim":  "idle",
+                                                                                     "maxDiff":  0.069
+                                                                                 },
+                                                                                 {
+                                                                                     "dir":  "s",
+                                                                                     "anim":  "walk",
+                                                                                     "maxDiff":  0.697
+                                                                                 },
+                                                                                 {
+                                                                                     "dir":  "s",
+                                                                                     "anim":  "hurt-vs-idle",
+                                                                                     "maxDiff":  0.823
+                                                                                 }
+                                                                             ],
+                                                                  "issues":  [
+
+                                                                             ],
+                                                                  "draft":  null
+                                                              }
+                                                          ]
+                                           }
+                    },
+                    {
+                        "file":  "poses/toA.png",
+                        "sha256":  "36d305b2d519f959464ed58f97378532ba45ea6a0dd1ad1bb0a80f5feb1e1d74",
+                        "raw":  false,
+                        "placement":  "poses/placement.json",
+                        "technicalCheck":  {
+                                               "id":  "hao_thien_chuy",
+                                               "kind":  "vukhi",
+                                               "level":  "nhẹ",
+                                               "group":  "A",
+                                               "frame":  128,
+                                               "dummyKey":  "#00D0D0",
+                                               "blockLevel":  {
+                                                                  "s":  "nhẹ"
+                                                              },
+                                               "sheets":  [
+                                                              {
+                                                                  "sheet":  "toA",
+                                                                  "size":  [
+                                                                               1536,
+                                                                               1024
+                                                                           ],
+                                                                  "kind":  "huong",
+                                                                  "level":  "nhẹ",
+                                                                  "dirs":  [
+                                                                               "s"
+                                                                           ],
+                                                                  "background":  {
+                                                                                     "key":  [
+                                                                                                 255,
+                                                                                                 0,
+                                                                                                 255
+                                                                                             ],
+                                                                                     "corners":  [
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ],
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ],
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ],
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ]
+                                                                                                 ],
+                                                                                     "keyDistFromLock":  0,
+                                                                                     "cornerSpread":  0
+                                                                                 },
+                                                                  "seVsE":  null,
+                                                                  "prep":  {
+                                                                               "shift":  {
+                                                                                             "dx":  0,
+                                                                                             "dy":  0
+                                                                                         },
+                                                                               "factor":  1,
+                                                                               "grid":  "gap"
+                                                                           },
+                                                                  "bands":  [
+                                                                                {
+                                                                                    "row":  1,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              82,
+                                                                                              186
+                                                                                          ],
+                                                                                    "figures":  3,
+                                                                                    "state":  "ok"
+                                                                                },
+                                                                                {
+                                                                                    "row":  2,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              340,
+                                                                                              449
+                                                                                          ],
+                                                                                    "figures":  4,
+                                                                                    "state":  "ok"
+                                                                                },
+                                                                                {
+                                                                                    "row":  3,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              582,
+                                                                                              752
+                                                                                          ],
+                                                                                    "figures":  4,
+                                                                                    "state":  "warn"
+                                                                                },
+                                                                                {
+                                                                                    "row":  4,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              852,
+                                                                                              949
+                                                                                          ],
+                                                                                    "figures":  2,
+                                                                                    "state":  "ok"
+                                                                                }
+                                                                            ],
+                                                                  "motion":  [
+                                                                                 {
+                                                                                     "dir":  "s",
+                                                                                     "anim":  "idle",
+                                                                                     "maxDiff":  0.069
+                                                                                 },
+                                                                                 {
+                                                                                     "dir":  "s",
+                                                                                     "anim":  "walk",
+                                                                                     "maxDiff":  0.697
+                                                                                 },
+                                                                                 {
+                                                                                     "dir":  "s",
+                                                                                     "anim":  "hurt-vs-idle",
+                                                                                     "maxDiff":  0.823
+                                                                                 }
+                                                                             ],
+                                                                  "issues":  [
+                                                                                 {
+                                                                                     "sev":  "light",
+                                                                                     "code":  "chan-lech",
+                                                                                     "where":  "H3 (s) C3",
+                                                                                     "msg":  "chân lệch \u003e 12% chiều cao so với trung vị dải (lệch lớn nhất 56%)."
+                                                                                 }
+                                                                             ],
+                                                                  "draft":  "LỖI: toA — chân lệch — H3 (s) C3 — chân lệch \u003e 12% chiều cao so với trung vị dải (lệch lớn nhất 56%)."
+                                                              }
+                                                          ]
+                                           }
+                    }
+                ],
+    "eyeApproved":  false,
+    "eye":  "Idle/walk vẫn cầm thấp, chưa vác vai. Chưa đủ nâng/nện; impact cuối phóng đầu quá lớn. Không mở rộng 4 hướng, không bàn giao/import.",
+    "lessonsGroup":  "@VUKHI-CUNG",
+    "monitoredInvariants":  "13 frames/grip; sliding scale 0.12; second grip error \u003c= 1e-6; zero clipping"
+}

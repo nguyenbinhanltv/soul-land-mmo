@@ -1,0 +1,374 @@
+{
+  "two-hands": [
+    {
+      "name": "s/idle/0",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 209,
+      "scale": 0.12639013185346365
+    },
+    {
+      "name": "s/idle/1",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 63,
+      "scale": 0.12247105799754228
+    },
+    {
+      "name": "s/walk/0",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 209,
+      "scale": 0.12639013185346365
+    },
+    {
+      "name": "s/walk/1",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 158,
+      "scale": 0.12690659880278626
+    },
+    {
+      "name": "s/walk/2",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 209,
+      "scale": 0.12639013185346365
+    },
+    {
+      "name": "s/walk/3",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 240,
+      "scale": 0.12690659880278632
+    },
+    {
+      "name": "s/attack/0",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.08736533751040243
+    },
+    {
+      "name": "s/attack/1",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.042692152347506146
+    },
+    {
+      "name": "s/attack/2",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.09238082031167064
+    },
+    {
+      "name": "s/attack/3",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 4550,
+      "scale": 0.18004322449809984
+    },
+    {
+      "name": "s/cast/0",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 3081,
+      "scale": 0.16084532283677214
+    },
+    {
+      "name": "s/cast/1",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 3081,
+      "scale": 0.16084532283677214
+    },
+    {
+      "name": "s/hurt/0",
+      "secondGripError": null,
+      "headAboveHero": false,
+      "clipped": 2307,
+      "scale": 0.12639013185346365
+    }
+  ],
+  "shoulder": [
+    {
+      "name": "s/idle/0",
+      "secondGripError": 49.923939980533476,
+      "headAboveHero": true,
+      "clipped": 0,
+      "scale": 0.12639013185346365
+    },
+    {
+      "name": "s/idle/1",
+      "secondGripError": 50.04054343314699,
+      "headAboveHero": true,
+      "clipped": 0,
+      "scale": 0.12639013185346365
+    },
+    {
+      "name": "s/walk/0",
+      "secondGripError": 49.923939980533476,
+      "headAboveHero": true,
+      "clipped": 0,
+      "scale": 0.12639013185346365
+    },
+    {
+      "name": "s/walk/1",
+      "secondGripError": 44.615079755712415,
+      "headAboveHero": true,
+      "clipped": 0,
+      "scale": 0.12639013185346365
+    },
+    {
+      "name": "s/walk/2",
+      "secondGripError": 49.923939980533476,
+      "headAboveHero": true,
+      "clipped": 0,
+      "scale": 0.12639013185346365
+    },
+    {
+      "name": "s/walk/3",
+      "secondGripError": 53.506221576259506,
+      "headAboveHero": true,
+      "clipped": 0,
+      "scale": 0.12639013185346365
+    },
+    {
+      "name": "s/attack/0",
+      "secondGripError": 46.61572545692928,
+      "headAboveHero": true,
+      "clipped": 0,
+      "scale": 0.12639013185346365
+    },
+    {
+      "name": "s/attack/1",
+      "secondGripError": 46.961197236599,
+      "headAboveHero": true,
+      "clipped": 0,
+      "scale": 0.12639013185346365
+    },
+    {
+      "name": "s/attack/2",
+      "secondGripError": 46.71245985420882,
+      "headAboveHero": true,
+      "clipped": 0,
+      "scale": 0.12639013185346365
+    },
+    {
+      "name": "s/attack/3",
+      "secondGripError": 47.61706091631707,
+      "headAboveHero": true,
+      "clipped": 0,
+      "scale": 0.12639013185346365
+    },
+    {
+      "name": "s/cast/0",
+      "secondGripError": 44.72952409645748,
+      "headAboveHero": true,
+      "clipped": 0,
+      "scale": 0.12639013185346365
+    },
+    {
+      "name": "s/cast/1",
+      "secondGripError": 44.72952409645748,
+      "headAboveHero": true,
+      "clipped": 0,
+      "scale": 0.12639013185346365
+    },
+    {
+      "name": "s/hurt/0",
+      "secondGripError": null,
+      "headAboveHero": true,
+      "clipped": 0,
+      "scale": 0.12639013185346365
+    }
+  ],
+  "sliding": [
+    {
+      "name": "s/idle/0",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/idle/1",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/walk/0",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/walk/1",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/walk/2",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/walk/3",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/attack/0",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/attack/1",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/attack/2",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/attack/3",
+      "secondGripError": 2.842170943040401e-14,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/cast/0",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/cast/1",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/hurt/0",
+      "secondGripError": null,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    }
+  ],
+  "poses": [
+    {
+      "name": "s/idle/0",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/idle/1",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/walk/0",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/walk/1",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/walk/2",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/walk/3",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    },
+    {
+      "name": "s/attack/0",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.18
+    },
+    {
+      "name": "s/attack/1",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.18
+    },
+    {
+      "name": "s/attack/2",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.18
+    },
+    {
+      "name": "s/attack/3",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.22
+    },
+    {
+      "name": "s/cast/0",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.18
+    },
+    {
+      "name": "s/cast/1",
+      "secondGripError": 0,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.2
+    },
+    {
+      "name": "s/hurt/0",
+      "secondGripError": null,
+      "headAboveHero": false,
+      "clipped": 0,
+      "scale": 0.12
+    }
+  ]
+}
