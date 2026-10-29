@@ -147,7 +147,7 @@ class MapViewUi implements DotSink {
   // ---------- API cho GameScene và các bước sau ----------
   /** Báo bản đồ đang đứng (gọi khi dựng cảnh); đổi bản đồ thì đóng và đặt lại khung nhìn. */
   setMap(key: string, w: number, h: number) {
-    if (key !== this.mapKey) { this.close(); this.markers.clear(); this.mx = this.my = NaN; this.view = { ...this.view, cx: w / 2, cy: h / 2 }; }
+    if (key !== this.mapKey) { this.close(); this.findReset?.(); this.markers.clear(); this.mx = this.my = NaN; this.view = { ...this.view, cx: w / 2, cy: h / 2 }; }
     this.mapKey = key; this.mapW = w; this.mapH = h;
   }
   /** Đặt / xoá dấu (`null`) theo khoá ("flag", "rally"…). */
@@ -428,6 +428,8 @@ class MapViewUi implements DotSink {
   // ---------- Tìm nơi (UI v2) ----------
   /** Kết quả tìm tối đa; chọn một dòng thì căn bản đồ vào nhãn (phóng tới mức hiện được nhãn NPC / cổng). */
   private static readonly FIND_MAX = 6;
+  /** Xoá chữ + kết quả tìm (nhãn cũ thuộc bản đồ khác); gọi khi đổi bản đồ. */
+  private findReset: (() => void) | null = null;
   private findBox() {
     const list = document.createElement("ul"); list.className = "mv-find"; list.setAttribute("role", "listbox"); list.setAttribute("aria-label", "Kết quả tìm"); list.hidden = true;
     const paint = (q: string) => {
@@ -447,6 +449,7 @@ class MapViewUi implements DotSink {
     };
     const { root, input } = searchField({ label: "Tìm nơi trên bản đồ", placeholder: "Tìm nơi / NPC (không cần dấu)", onInput: paint });
     root.classList.add("mv-search");
+    this.findReset = () => { input.value = ""; list.replaceChildren(); list.hidden = true; };
     input.addEventListener("keydown", (e) => { if (e.key === "Enter") (list.querySelector("li:not(.none)") as HTMLElement | null)?.click(); });
     return [root, list];
   }
