@@ -115,23 +115,11 @@ Tái dùng tối đa đường P1 (#1022) / P2 (#1023); thêm chế độ **"vũ
 
 ## Tiến độ rollout nhóm mềm
 
-Mỗi võ hồn một PR nháp, chờ chủ repo duyệt mỹ thuật; không tự merge. Kiểm 0 chặn không thay cho duyệt mắt.
-
-| Dòng | Võ hồn | Issue / PR | Trạng thái |
-|---|---|---|---|
-| 7 | Hỏa Long | #1338 / #1339 | Đã nhập 5 atlas, 220 khung; 0 chặn cả nam/nữ. Cảnh báo chan-lech s 28%, se 20%, chờ duyệt riêng |
-| 10 | Tử Vong Chu Hoàng | chưa mở | Chưa bắt đầu |
-| 11 | Bích Lân Xà Hoàng | chưa mở | Chưa bắt đầu |
-| 12 | Càn Khôn Hỗn Nguyên Tỏa | chưa mở | Chưa bắt đầu |
-| 22 | A Ngân | chưa mở | Chưa bắt đầu |
-
-## Tiến độ rollout nhóm mềm
-
 Mỗi võ hồn một PR nháp chờ chủ repo duyệt mỹ thuật; không tự merge. Cảnh báo mới phải được duyệt riêng, không kế thừa mức chấp nhận LNT.
 
 | Dòng | Võ hồn | Issue / PR | Trạng thái |
 |---|---|---|---|
-| 7 | Hỏa Long | #1338 / #1339 | Đã merge qua tài khoản chủ repo ngoài phiên rollout; có ảnh game, AO đạt |
+| 7 | Hỏa Long | #1338 / #1339 | Đã merge qua tài khoản chủ repo ngoài phiên rollout; có ảnh game, AO đạt; cảnh báo s 28%, se 20% trong hồ sơ |
 | 10 | Tử Vong Chu Hoàng | #1341 / #1342 | PR nháp, có ảnh game, AO đạt; chờ duyệt mỹ thuật |
 | 11 | Bích Lân Xà Hoàng | #1346 / #1347 | PR nháp, có ảnh game, AO đạt; chờ duyệt mỹ thuật |
 | 12 | Càn Khôn Hỗn Nguyên Tỏa | #1349 / #1350 | PR nháp, có ảnh game, AO đạt; chờ duyệt mỹ thuật |
