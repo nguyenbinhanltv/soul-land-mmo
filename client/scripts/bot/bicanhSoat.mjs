@@ -35,7 +35,7 @@ export async function bicanhSoatTest(){
   // 3. Chủ vé vào được (vé còn nguyên sau các lần thử), vào lần hai cùng lúc thì bị từ chối và phiên đầu không rớt.
   V.mapId=(await post("/api/me",{token:V.token})).mapId;
   await enter(V,roomId); await waitFor(()=>meOf(),3000);
-  ok(!!meOf()&&V.room.state.mapId==="dai_dau_hon_truong","chủ vé vào được phòng sau các lần thử của kẻ khác");
+  ok(!!meOf()&&V.room.state.mapId==="luyen_hon_canh","chủ vé vào được phòng sau các lần thử của kẻ khác");
   ok(await rejected(()=>joinBy(V,roomId)),"chủ vé vào lần hai (hai tab) cùng phòng: bị từ chối");
   await sleep(500); ok(V.leftCode===null&&!!meOf(),"phiên đầu vẫn nguyên sau lần vào thứ hai");
   // 4. Rời lúc đếm ngược (trước giao đấu): thua, lượt KHÔNG hoàn, không quyển; về bản đồ đủ nguyên.
@@ -53,7 +53,7 @@ export async function bicanhSoatTest(){
     ["coreset",{id:1,set:"x",npc:"x"}],["loadout",{rowId:1,skills:[0]}],["party",{op:"create"}],["party",{op:"invite",name:X.name}],["friend",{op:"add",name:X.name}],["chat",{text:"xin chào"}],
     ["rally",{}],["shardinfo",{}],["talk",{npc:"x"}],["wp",{op:"cast",key:"x"}],["rank",{op:"boards"}],["welfare",{op:"sign"}],["calendar",{op:"get"}]]){
     V.room.send(...m); await sleep(250);
-    if(V.leftCode!==null||bagKey(V)!==key0||V.room.state.mapId!=="dai_dau_hon_truong"){ odd.push(`${m[0]}${m[1].op?":"+m[1].op:""}`); break; } }
+    if(V.leftCode!==null||bagKey(V)!==key0||V.room.state.mapId!=="luyen_hon_canh"){ odd.push(`${m[0]}${m[1].op?":"+m[1].op:""}`); break; } }
   ok(!odd.length,`tin ngoài danh sách chặn (kênh, tông, ngoại hình, hạch, tổ đội, bạn bè, chat…): không đổi túi / Hồn Tệ, vẫn trong phòng${odd.length?` (đổi ở: ${odd[0]}, mã rời ${V.leftCode}, túi ${bagKey(V)===key0?"giữ":"đổi"}, bản đồ ${V.room.state.mapId}, kênh ${V.room.state.channel})`:""}`);
   await test(V,"bcfast",{s:0.2}); await waitFor(()=>V.bc.some(m=>m.k==="fight"),8000);
   for(let k=0;k<8&&!meOf()?.dead;k++) await test(V,"down");
