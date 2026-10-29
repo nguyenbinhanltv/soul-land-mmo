@@ -9,6 +9,7 @@ Tài liệu đặc tả hình ảnh. Luật chơi của Chân Thân (hồn lực
 - **5 hướng vẽ thật** `s`, `se`, `e`, `ne`, `n`; ba hướng còn lại (`sw`, `w`, `nw`) **lật gương** từ `se`, `e`, `ne` (như hồn sư và hồn thú).
 - **Hai hoạt ảnh**: (1) **vòng lặp "thở"** dùng chung cho đứng và đi (lơ lửng, sáng nhịp); (2) **một động tác đánh / niệm** (rồng gầm, búa vung...) dùng cho đánh thường và tung hồn kỹ. Trúng đòn, gục: không thêm khung (pháp tướng mờ theo thân, tan khi hết Chân Thân).
 - **Concept ảnh tĩnh không dùng PixelLab** (Q43 ở `docs/quyet-dinh.md`; concept của 25 võ hồn đã làm bằng PixelLab giữ nguyên ghi nguồn, prompt ở mục 5); concept mới làm bằng công cụ ảnh tĩnh (ChatGPT / Codex, ComfyUI; Q44), PixelLab chỉ xoay hướng và hoạt ảnh từ concept đó; chủ repo duyệt kết quả ở trang xem trước trước khi làm cả bộ.
+- **Nguồn mới từ 2026-10-29 (chủ repo, epic #1020):** phụ thể v2 là **vũ khí cầm tay** của võ hồn đang ra trận; **phụ thể CŨ (`vh_<id>_b/_f`, `vhanim_<id>_b/_f`) thành pháp tướng** bay sau lưng, chỉ hiện khi Chân Thân; trang bị `vu_khi` chỉ tác dụng chỉ số. Sheet `pt_<id>` được đóng gói từ phụ thể cũ bằng công cụ ở mục 7, không sinh ảnh bằng model; các mục 4–5 (hình cũ, prompt PixelLab) chỉ còn là tham khảo cho những võ hồn chưa đóng gói.
 - Hình thái xuất hiện / tan theo chuỗi biến hình 5 bước trong kế hoạch #482 (vòng hồn hoàn 7 sáng, cột sáng màu võ hồn, cảnh cận, nở từ tâm + vỡ mảnh kính màu, tan thành bụi sáng). Phần chuyển động đó làm bằng code (Phaser), không tốn lượt ảnh.
 
 ## 2. Điểm gắn và lớp
@@ -311,3 +312,36 @@ Mục đích: dùng hiệu ứng / hoạt ảnh LPC (Liberated Pixel Cup) và g�
 ### 6.4 Ảnh thử
 
 Ảnh thử ghép (pixel hóa, viền, nhuộm màu) nằm trong trang xem trước H1 (bảng "LPC thử"): Fireball, Icicle, Shock, Heal, Shield, Quake, Freeze, Sparks và `lightningclaw` / `tornado` / `fire lion` / `iceshield` từ Extended LPC Magic pack, đặt cạnh pháp tướng PixelLab để xem có cùng độ phân giải và độ bão hòa không. Kết luận thử: gói pixel thật (Extended LPC Magic, LPC Flames, LPC Explosions) khớp ngay; gói dựng Blender của Bellanger khớp sau khi thu 50% với bảng màu ≤ 14 và viền `#1a1020`, riêng Shield / Shock cần làm lớp cộng sáng thay vì pixel hóa.
+
+## 7. Chuyển thể từ phụ thể cũ: `phuthe-to-phaptuong.mjs` (#1306, epic #1020)
+
+Quyết định chủ repo 2026-10-29: phụ thể cũ thành pháp tướng, nhưng **chuyển thể** cho hợp pháp tướng bay sau lưng chứ không đóng gói nguyên bản (bản đầu của #1309 ra y phụ thể cũ: nhỏ, còn chỗ rỗng hình người). Công cụ `tools/assets/phuthe-to-phaptuong.mjs` (phần thuần ở `phuthe-to-phaptuong-lib.mjs`, test `phuthe-to-phaptuong.test.mjs` trong `npm run test:assets`) đọc ảnh phụ thể đã có và ghi sheet `shared/assets/sprites/phaptuong/<id>.png` đúng định dạng của mục 2 và `client/src/phapTuong.ts`: khung `PT_FRAME`, `PT_COLS` cột = `PT_IDLE_N` thở + `PT_ATTACK_N` đánh, hàng = hướng `PT_DIRS`, tối đa `PT_MAX_COLORS` màu, alpha 0 / 255.
+
+| Việc | Cách làm |
+|---|---|
+| Nguồn | **bộ phụ thể mới nhất** `vohonanim/<id>_{b,f}.png` (nguồn `art/src/phuthe-anim/<id>`, lô 3 #1224, đủ 25 võ hồn, hàng thân nam; clip theo `anim`). **Tâm khối** theo `vohonanim/anchor.json` (`dx`, `dy` từng hướng, dời đều mọi khung; bỏ `scale`: pháp tướng có `display.scale` riêng). Ảnh tĩnh bộ cũ `vohon/<id>_{b,f}.png` (nội suy thở / đánh) chỉ là **dự phòng** khi chưa có vhanim (hiện không võ hồn nào); `--tinh` ép dùng. Không dùng `art/src/gemini/phuthe_5huong` |
+| Lớp | nửa sau và nửa trước ghép thành **một** lớp (nửa trước đè nửa sau); luật lớp vẫn của client: `s` / `se` / `e` sau thân, `ne` / `n` trước thân mờ `PT_FRONT_ALPHA` |
+| Gốc | gốc chân phụ thể (khung 96: `(48, 74)`, khung 128: `(64, 90)`) đặt đúng `PT_ORIGIN` |
+| Lấp chỗ rỗng hình người | cutter trừ nộm nên phụ thể có khoảng rỗng hình người; khi pháp tướng phóng to và bay lên, chỗ rỗng lộ ra. `fillBodyHole` tự lấp từ hình xung quanh, tất định: mỗi hàng rồi mỗi cột trong ±`BODY_HALF` điểm quanh gốc chân, khoảng trong suốt ≤ `FILL_GAP` kẹp giữa hai điểm đặc được tô bằng trung bình màu hai điểm kề (bỏ viền tối `OUTLINE_SKIP` điểm), tối đi xen theo ô cờ. Mặc định bật cho sinh vật / thực vật / hư ảnh, tắt cho vật cứng (nhóm `V`, `O`: búa, kiếm lõm thật); `--fill N` đổi ngưỡng, `--fill 0` tắt |
+| Phần tay cầm / vật nắm | `--bo x,y,r` (lặp được) xóa đĩa tròn (điểm nguồn từ gốc chân) quanh phần tay cầm không hợp pháp tướng bay. 3 mẫu không cần: Tà Hỏa và Lam Ngân Thảo không có vật nắm, Hạo Thiên Chùy là chính cây búa |
+| Phóng | **không nướng ×2 vào ảnh**: ảnh giữ ×1 (hoặc ×2 chỉ khi hình nhỏ lọt khung 160, `pickScale`); hình phụ thể cũ rộng ~95 điểm nên ×2 không lọt. Độ lớn pháp tướng đặt bằng `scale` (~1,5–1,8) ở `PHAP_TUONG`, client phóng lúc vẽ |
+| Thở (8) | clip `idle` n khung → đi tới khung cuối rồi quay về (`idleSeq`: 4 khung → 0 1 2 2 3 2 2 1) |
+| Đánh (8) | clip `attack` n khung chia đều từ đầu đến cuối (`attackSeq`: 6 khung → 0 1 1 2 3 4 4 5) |
+| Chỉ có ảnh tĩnh | thở / đánh nội suy bằng code tất định (bảng số nguyên): thở dời dọc 1 điểm + nghiêng 1 điểm; đánh lùi lấy đà rồi lao theo hướng nhìn (sinh vật / thực vật) hoặc nhấc lên rồi nện xuống (vật cứng) |
+| Lớp sáng | `--glow` ghi `<id>_glow.png` (cộng sáng, client đọc `pt.glow`): viền sáng 1–3 điểm màu võ hồn (điểm ngoài dithering) và vài hạt bay lên mỗi khung, một vòng lặp đúng độ dài hoạt ảnh |
+| Bảng màu | median cut còn tối đa `PT_MAX_COLORS` màu, giữ viền `#1a1020` |
+| 25 võ hồn | `--all` **từ chối** nếu thiếu `--duyet-mau`; chỉ thêm cờ này sau khi chủ repo duyệt 3 mẫu |
+
+**Cách ghép (`display`) = dạng bay sau lưng.** Ở `PHAP_TUONG` của `shared/data.ts` (`scale`, `dx`, `dy` quanh gốc hồn sư, `motion.bob`; test `client/scripts/phaptuong-test.mjs` đối chiếu manifest `pt.*`): phóng `scale`, nâng `dy` cao hơn vai, `dx` lùi ra sau, `bob` nhấp nhô bằng code (hoạt ảnh nằm sẵn trong khung nên các số còn lại giữ `BAKED`). `PT_ORIGIN` giữ `(80, 124)`. Luật lớp giữ nguyên.
+
+**Ba mẫu (chờ chủ repo duyệt; ảnh trong game 5 hướng, đứng yên và đánh ở `art/preview/phaptuong-1306/`; xem ở `?thu=phaptuong&vh=<id>` của `/choi`):**
+
+| Võ hồn | Nguồn | `display` (`scale`, `dx`, `dy`, `bob`) | Ghi chú |
+|---|---|---|---|
+| Tà Hỏa Phượng Hoàng (`ta_hoa_phuong_hoang`) | `vhanim` khung 96, 4 thở + 6 đánh | 1,8 · 0 · −28 · 3 | lấp chỗ rỗng; tạm ổn |
+| Hạo Thiên Chùy (`hao_thien_chuy`) | `vhanim` khung 128, vật cứng | 1,5 · 18 · −28 · 3 | không lấp (vật cứng); búa lơ lửng chếch sau vai, nện xuống khi đánh; 1,8 quá to |
+| Lam Ngân Thảo (`lam_ngan_thao`) | `vhanim` khung 96 | 1,8 · 0 · −20 · 2 | **lớp sáng làm lại** (`--glow`); chỗ lấp thân vẫn thành cột tối lộ rõ ở `e`, `n`: cần vẽ lại bằng model nếu không ổn |
+
+Võ hồn công cụ làm chưa ổn: vẽ lại bằng Codex, danh sách + prompt ở [phap-tuong-codex-ve-lai.md](phap-tuong-codex-ve-lai.md).
+
+Việc tiếp sau khi duyệt mẫu: chạy `--all --duyet-mau --glow` cho các võ hồn cần lớp sáng, đăng ký từng `pt_<id>` bằng `validate.mjs --register pt_<id> --iso` (`display` lấy từ `recipe.json`), chỉnh `scale` / `dx` / `dy` từng võ hồn.

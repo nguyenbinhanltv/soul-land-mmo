@@ -9525,9 +9525,9 @@
       "key": "pt_hao_thien_chuy",
       "iso": true,
       "pt": {
-        "scale": 0.85,
-        "dx": 12,
-        "dy": -4,
+        "scale": 1.5,
+        "dx": 18,
+        "dy": -28,
         "back": [
           "s",
           "se",
@@ -9539,7 +9539,7 @@
         ],
         "frontAlpha": 0.7,
         "ghost": 0.88,
-        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; độ đục ghost (lớp sau) và ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255"
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255. Từ #1306 sheet đóng gói + chuyển thể từ phụ thể cũ (phuthe-to-phaptuong.mjs: lấp chỗ rỗng hình người, không nướng phóng to); scale phóng lúc vẽ, dx / dy nâng lên và lùi ra sau lưng"
       }
     },
     {
@@ -9656,9 +9656,9 @@
       "key": "pt_lam_ngan_thao",
       "iso": true,
       "pt": {
-        "scale": 1,
+        "scale": 1.8,
         "dx": 0,
-        "dy": 0,
+        "dy": -20,
         "back": [
           "s",
           "se",
@@ -9671,7 +9671,7 @@
         "frontAlpha": 0.7,
         "ghost": 0.88,
         "glow": "pt_lam_ngan_thao_glow",
-        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); `glow` là sheet phát sáng cùng bố cục, vẽ cộng sáng (ADD) cùng vị trí, độ sáng theo mức hiệu ứng"
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255. Từ #1306 sheet đóng gói + chuyển thể từ phụ thể cũ (phuthe-to-phaptuong.mjs: lấp chỗ rỗng hình người, không nướng phóng to); scale phóng lúc vẽ, dx / dy nâng lên và lùi ra sau lưng"
       }
     },
     {
@@ -9797,9 +9797,9 @@
       "key": "pt_ta_hoa_phuong_hoang",
       "iso": true,
       "pt": {
-        "scale": 1,
+        "scale": 1.8,
         "dx": 0,
-        "dy": 0,
+        "dy": -28,
         "back": [
           "s",
           "se",
@@ -9811,7 +9811,7 @@
         ],
         "frontAlpha": 0.7,
         "ghost": 0.88,
-        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+        "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255. Từ #1306 sheet đóng gói + chuyển thể từ phụ thể cũ (phuthe-to-phaptuong.mjs: lấp chỗ rỗng hình người, không nướng phóng to); scale phóng lúc vẽ, dx / dy nâng lên và lùi ra sau lưng"
       }
     },
     {
