@@ -6,6 +6,7 @@ import { itemDef, honTeParts, CORE_SETS, coreResetFee, BONE_MAX_ENHANCE, CORE_MA
 import { artImg } from "./uiArt.ts";
 import { EQUIP_ITEM, EQUIP_LUCK_MAX, EQUIP_SOUL, equipFrameKey, EQUIP_SLOTS, EQUIP_TIERS, EQUIP_MAX_TIER, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SALVAGE_MAX, EQUIP_SYNTH_KEEP, equipName, equipTemplate, equipSlotDef, equipSynthStep, parseEquip } from "../../shared/data.ts";
 import { toast } from "./feedback.ts";
+import { isUi2 } from "./uiKit.ts";
 import { confirmDialog } from "./confirmDialog.ts";
 import type { EquipEnhPreview, EquipEnhDone, EquipLuckPreview, EquipLuckDone, EquipSynDone, EquipSalvDone } from "./net.ts";
 import type { BagMsg, BagItem } from "./net.ts";
@@ -71,6 +72,15 @@ const equipIcon = (stats: BagItem["stats"]) => {
   const t = equipTemplate(parseEquip(stats)?.tpl);
   return `<span class="eico">${itemArt({ code: EQUIP_ITEM, years: null, stats })}${t ? artImg(equipFrameKey(t.tier), "efr") : ""}</span>`;
 };
+/** Các dòng "tên: giá trị" của bảng xem trước (server tính, client chỉ hiển thị). UI v2: dòng "Tỉ lệ thành công" kèm thanh tỉ lệ (hình, không chỉ chữ %). */
+const addRows = (box: HTMLElement, rows: [string, string][]) => {
+  for (const [k, v] of rows) {
+    const r = document.createElement("div"); r.className = "erow"; r.innerHTML = `<b></b><span></span>`; r.querySelector("b")!.textContent = k; r.querySelector("span")!.textContent = v;
+    const pct = isUi2() && k === "Tỉ lệ thành công" ? parseInt(v, 10) : NaN;
+    if (pct >= 0 && pct <= 100) { r.classList.add("erate"); r.setAttribute("role", "meter"); r.setAttribute("aria-valuenow", String(pct)); r.setAttribute("aria-valuemin", "0"); r.setAttribute("aria-valuemax", "100"); r.setAttribute("aria-label", k); r.insertAdjacentHTML("beforeend", `<i class="sbar"><i></i></i>`); (r.querySelector(".sbar i") as HTMLElement).style.width = `${pct}%`; }
+    box.appendChild(r);
+  }
+};
 type ForgeFx = { kind: "ok" | "fail" | "break"; page: NpcPage; until: number; at: number };
 const FORGE_FX_MS = 900;
 let forgeFx: ForgeFx | null = null; // hiệu ứng kết quả của trang Thợ rèn (E5): xanh sáng / đỏ rung / vỡ; giữ qua các lần vẽ lại (tin bag / gear về ngay sau kết quả)
@@ -129,7 +139,7 @@ export function renderForgeGear(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   const rows: [string, string][] = [["Món", `${pick.name} (${pick.where})`], ["Cấp", `+${pv.enhance} → +${pv.to}`], ["Tỉ lệ thành công", `${Math.round(pv.p * 100)}%`],
     ["Đá cần", `${pv.qty} ${stone} (có ${pv.have})`], ["Phí", honTeParts(pv.fee).map((x) => `${x.n.toLocaleString("vi-VN")} ${x.unit}`).join(" ") || "0"],
     ["Nếu thất bại", failText(pv.fail)], ["Đá và phí mất cả khi thất bại", ""]];
-  for (const [k, v] of rows) { const r = document.createElement("div"); r.className = "erow"; r.innerHTML = `<b></b><span></span>`; r.querySelector("b")!.textContent = k; r.querySelector("span")!.textContent = v; box.appendChild(r); }
+  addRows(box, rows);
   const destroy = pv.fail?.kind === "destroy";
   if (destroy) {
     const l = document.createElement("label"); l.className = "echarm"; const c = document.createElement("input"); c.type = "checkbox"; c.checked = gearCharm && pv.charm > 0; c.disabled = pv.charm <= 0;
@@ -138,7 +148,7 @@ export function renderForgeGear(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   }
   const risky = pv.fail?.kind === "down" || pv.fail?.kind === "reset" || (destroy && !(gearCharm && pv.charm > 0));
   const poor = pv.have < pv.qty || pv.honTe < pv.fee, go = document.createElement("button"); go.type = "button";
-  go.className = `aopt ${risky ? "danger" : "absorb"}`; if (risky) go.style.background = "#a82a2a";
+  go.className = `aopt ${risky ? "danger" : "absorb"}`; if (risky && !isUi2()) go.style.background = "#a82a2a";
   go.disabled = poor || pv.busy || act.combat();
   go.textContent = poor ? "Không đủ đá hoặc Hồn Tệ" : act.combat() ? "Đang giao chiến" : risky ? (gearConfirm ? `Bấm lần nữa: ${destroy ? "có thể PHÁ HỦY" : "có thể tụt cấp"}` : `Cường hóa (${destroy ? "nguy cơ phá hủy" : "có thể tụt cấp"})`) : "Cường hóa";
   go.addEventListener("click", () => {
@@ -191,7 +201,7 @@ export function renderForgeLuck(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   if (!pv) { info.textContent = `${pick.name}: đang tải bảng xem trước…`; box.appendChild(back); return; }
   const rows: [string, string][] = [["Món", `${pick.name} (${pick.where})`], ["May mắn", pv.to === null ? `M${pv.luck}/${pv.max}` : `M${pv.luck} → M${pv.to}`]];
   if (pv.to !== null) rows.push(["Tỉ lệ thành công", `${Math.round(pv.p * 100)}%`], ["Cần", `1 ${soulName} (có ${pv.soul})`], ["Nếu thất bại", `mất 1 ${soulName}, giữ M${pv.luck}, món không bị phá`]);
-  for (const [k, v] of rows) { const r = document.createElement("div"); r.className = "erow"; r.innerHTML = `<b></b><span></span>`; r.querySelector("b")!.textContent = k; r.querySelector("span")!.textContent = v; box.appendChild(r); }
+  addRows(box, rows);
   if (pv.to === null) { info.textContent = luckReason(pv.reason, pv.max); box.appendChild(back); return; }
   const poor = pv.soul < 1, go = document.createElement("button"); go.type = "button"; go.className = "aopt absorb";
   go.disabled = poor || pv.busy || act.combat();
@@ -261,11 +271,11 @@ export function renderForgeSynth(el: HTMLElement, bag: BagMsg, act: NpcActions) 
     ["Tỉ lệ thành công", `${Math.round(step.p * 100)}%`], ["Cấp cường hóa mới", `+${Math.floor(main.it.enhance * EQUIP_SYNTH_KEEP)} (giữ ${Math.round(EQUIP_SYNTH_KEEP * 100)}%)`],
     ["Phí", honTeText(step.fee)], ...(step.essence ? [["Tinh Hoa Đường Môn", `${step.essence} (có ${ess})`] as [string, string]] : []),
     ["Nếu thất bại", synFailText(main.tier)], ["Phí và Tinh Hoa mất cả khi thất bại", ""]];
-  for (const [k, v] of rows) { const r = document.createElement("div"); r.className = "erow"; r.innerHTML = `<b></b><span></span>`; r.querySelector("b")!.textContent = k; r.querySelector("span")!.textContent = v; box.appendChild(r); }
+  addRows(box, rows);
   const sh = document.createElement("small"); sh.textContent = `Chọn 2 món hiến tế (${synSac.length}/2):`; box.appendChild(sh);
   for (const x of all.filter((y) => y.it.id !== main.it.id && same(y, main)))
     equipBtn(box, x.it, x.tier, "hiến tế", synSac.includes(x.it.id), () => { synSac = synSac.includes(x.it.id) ? synSac.filter((i) => i !== x.it.id) : [...synSac, x.it.id].slice(-2); synConfirm = false; renderNpc(); });
-  const poor = bag.honTe < step.fee || ess < step.essence, go = document.createElement("button"); go.type = "button"; go.className = "aopt danger"; go.style.background = "#a82a2a";
+  const poor = bag.honTe < step.fee || ess < step.essence, go = document.createElement("button"); go.type = "button"; go.className = "aopt danger"; if (!isUi2()) go.style.background = "#a82a2a";
   go.disabled = poor || synSac.length !== 2 || act.combat();
   go.textContent = poor ? "Không đủ Hồn Tệ hoặc Tinh Hoa" : act.combat() ? "Đang giao chiến" : synSac.length !== 2 ? "Chọn đủ 2 món hiến tế" : synConfirm ? "Bấm lần nữa: hợp thành" : "Hợp thành (có thể mất đồ)";
   go.addEventListener("click", () => { go.blur(); if (!synConfirm) { synConfirm = true; renderNpc(); return; } synConfirm = false; act.equipSynth(main.it.id, synSac); });
@@ -300,7 +310,7 @@ export function renderForgeSalv(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   info.textContent = picked.length ? `Đã chọn ${picked.length}/${EQUIP_SALVAGE_MAX} món: nhận ${honTeText(coin)} cùng đá / Tinh Hoa / Thần Hồn theo bậc (ngẫu nhiên). Không cho kinh nghiệm; túi phải còn chỗ cho nguyên liệu.`
     : `Chọn trang bị cần phân giải (tối đa ${EQUIP_SALVAGE_MAX} món mỗi lần).`;
   box.appendChild(info);
-  const go = document.createElement("button"); go.type = "button"; go.className = "aopt danger"; go.style.background = "#a82a2a";
+  const go = document.createElement("button"); go.type = "button"; go.className = "aopt danger"; if (!isUi2()) go.style.background = "#a82a2a";
   go.disabled = !picked.length || act.combat();
   go.textContent = act.combat() ? "Đang giao chiến" : !picked.length ? "Chưa chọn món nào" : `Phân giải ${picked.length} món`;
   go.addEventListener("click", () => { go.blur(); confirmDialog({ title: "Phân giải?", body: `${picked.length} món sẽ bị phân giải, nhận ${honTeText(coin)} cùng vật liệu theo bậc; không lấy lại được.`, confirm: `Phân giải ${picked.length} món`, danger: true }, () => act.equipSalvage(picked.map((x) => x.it.id))); });
