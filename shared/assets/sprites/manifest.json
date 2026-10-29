@@ -14663,6 +14663,7 @@
     { "key": "ui2_thanh_khung_hon", "iso": true, "nine": {"x2": 16, "x1": 8} },
     { "key": "ui2_thanh_khung_kn", "iso": true, "nine": {"x2": 16, "x1": 8} },
     { "key": "ui2_thanh_khung_sinh", "iso": true, "nine": {"x2": 16, "x1": 8} },
-    { "key": "ui2_vach_chia", "iso": true, "nine": {"x2": 4, "x1": 2} }
+    { "key": "ui2_vach_chia", "iso": true, "nine": {"x2": 4, "x1": 2} },
+    {"key":"ui_bicanh_luyen_hon","iso":true}
   ]
 }
