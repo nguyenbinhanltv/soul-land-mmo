@@ -2440,7 +2440,7 @@ export interface ChanThanDef { name: string; desc: string; icon: string; cost: n
 // cùng đọc, không chép chỗ khác. Sheet `pt_<mã>` khung PT_FRAME, hàng = hướng PT_DIRS (sw / w / nw lật gương từ se / e / ne), cột 0..7 "thở",
 // 8..15 "đánh"; ảnh tĩnh chỉ 5 khung (một cột) vẫn dùng được, chuyển động khi đó hoàn toàn bằng code (công thức "vật thể").
 export const PT_FRAME = 160, PT_COLS = 16, PT_IDLE_N = 8, PT_ATTACK_N = 8;
-/** Gốc trong khung (trùng chân hồn sư). */
+/** Gốc trong khung (trùng chân hồn sư). Sheet đóng gói từ phụ thể cũ (`phuthe-to-phaptuong.mjs`, #1306) đặt gốc chân phụ thể ở đây, phóng nguyên (×1 hoặc ×2). */
 export const PT_ORIGIN: readonly [number, number] = [80, 124];
 export const PT_DIRS = ["s", "se", "e", "ne", "n"] as const;
 export type PtDir = (typeof PT_DIRS)[number];
@@ -2491,12 +2491,12 @@ const BAKED: Partial<PtMotion> = { bob: 0, sway: 0, spin: 0, swing: 0, lunge: 0 
 const pt = (id: string, group: PtGroup, hat: PtHat, o: { scale?: number; dx?: number; dy?: number; glow?: string; motion?: Partial<PtMotion> } = {}): [string, PhapTuongDef] =>
   [id, { sheet: `pt_${id}`, formula: group === "S" || group === "B" || group === "T" || group === "D" ? "sinh_vat" : "vat_the", group, hat,
     scale: o.scale ?? 1, dx: o.dx ?? 0, dy: o.dy ?? 0, glow: o.glow, motion: { ...PT_BASE[group], ...o.motion } }];
-/** Bảng pháp tướng của đủ 25 võ hồn (bài kiểm thử đòi mỗi võ hồn có mục). Giá trị H1 (Lam Điện, Hạo Thiên Chùy) lấy theo manifest ảnh. */
+/** Bảng pháp tướng của đủ 25 võ hồn (bài kiểm thử đòi mỗi võ hồn có mục). Giá trị H1 (Lam Điện) lấy theo manifest ảnh; Tà Hỏa Phượng Hoàng, Hạo Thiên Chùy, Lam Ngân Thảo (#1306) dùng sheet lấy từ phụ thể cũ: dạng bay sau lưng = dx / dy dời so với gốc chân. */
 export const PHAP_TUONG: Record<string, PhapTuongDef> = Object.fromEntries([
   pt("cuu_tinh_that_sat_kiem", "V", "hon", { dx: 10, dy: -4, motion: { ...BAKED, pulse: 0.2 } }),
   pt("lam_dien_ba_vuong_long", "S", "dien"),
   pt("ky_nhung_thong_thien_cuc", "P", "hon", { scale: 1.05, motion: { ...BAKED, pulse: 0.25 } }),
-  pt("ta_hoa_phuong_hoang", "B", "lua", { motion: { ...BAKED, pulse: 0.12 } }),
+  pt("ta_hoa_phuong_hoang", "B", "lua", { dy: -4, motion: { ...BAKED, pulse: 0.12 } }),
   pt("u_minh_linh_mieu", "T", "khoi", { motion: { ...BAKED, pulse: 0.12 } }),
   pt("nguyet_nhan", "V", "hon", { scale: 1.2, dy: -6, motion: { ...BAKED, pulse: 0.15 } }),
   pt("hoa_long", "S", "lua", { motion: { ...BAKED, pulse: 0.12 } }),
@@ -2511,7 +2511,7 @@ export const PHAP_TUONG: Record<string, PhapTuongDef> = Object.fromEntries([
   pt("quy_mi", "D", "khoi", { motion: { ...BAKED, pulse: 0.12 } }),
   pt("thien_can_bach_ngoc_dinh", "O", "khoi", { dy: -6, motion: { ...BAKED, pulse: 0.15 } }),
   pt("lam_ngan_thao", "P", "la", { motion: { ...BAKED, pulse: 0.15 } }),
-  pt("hao_thien_chuy", "V", "khoi", { scale: 0.85, dx: 12, dy: -4, motion: { swing: 0, bob: 1 } }),
+  pt("hao_thien_chuy", "V", "khoi", { dx: 12, dy: -10, motion: { ...BAKED, pulse: 0.15 } }),
   pt("cuu_bao_luu_ly_thap", "V", "hon", { dy: -2, motion: { ...BAKED, pulse: 0.25 } }),
   pt("pha_hon_thuong", "V", "hon", { dx: 12, dy: -2, motion: { ...BAKED, pulse: 0.15 } }),
   pt("a_ngan", "P", "la", { motion: { ...BAKED, pulse: 0.2 } }),

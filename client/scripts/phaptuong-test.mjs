@@ -30,7 +30,7 @@ for (const [id, d] of Object.entries(PHAP_TUONG)) {
   if (d.formula === "sinh_vat" && (d.group === "V" || d.group === "O" || d.group === "P")) bad.push(`${id}: sinh vật sai nhóm`);
 }
 ok(bad.length === 0, `mọi mục hợp lệ (công thức, nhóm, hạt, cỡ, tham số)${bad.length ? ": " + bad.join("; ") : ""}`);
-ok(phapTuongOf("khong_co") === null && phapTuongOf("hao_thien_chuy")?.scale === 0.85, "phapTuongOf: mã lạ → null, giá trị H1 của Hạo Thiên Chùy");
+ok(phapTuongOf("khong_co") === null && phapTuongOf("hao_thien_chuy")?.scale === 1 && phapTuongOf("hao_thien_chuy")?.dx === 12, "phapTuongOf: mã lạ → null, Hạo Thiên Chùy bay chếch sau vai (#1306)");
 ok(PHAP_TUONG.lam_dien_ba_vuong_long.formula === "sinh_vat" && PHAP_TUONG.hao_thien_chuy.formula === "vat_the", "Lam Điện = sinh vật, Hạo Thiên Chùy = vật thể");
 
 // ---- ảnh thật trong manifest (`pt_<mã>`) khớp bảng: cỡ, độ lệch, lớp; sheet có mặt, đủ 16 × 5 khung
