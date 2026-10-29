@@ -11,6 +11,20 @@ assert.equal(ui2FromSearch("?ui=0"), false);
 assert.equal(ui2FromSearch(""), null, "không có tham số thì giữ giá trị đã lưu");
 assert.equal(ui2FromSearch("?ui=1"), null);
 
+// mặc định BẬT (đợt 5a): không tham số + không có gì lưu thì bật; ?ui=0 tắt và lưu "0"; ?ui=2 bật lại; lưu "0" thì lần sau không tham số vẫn tắt
+{
+  const run = async (n, search, store = {}) => {
+    globalThis.location = { search }; globalThis.localStorage = { getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); }, removeItem: (k) => { delete store[k]; } };
+    const { isUi2 } = await import(`../src/uiKit.ts?mac-dinh-${n}`); return { on: isUi2(), store };
+  };
+  assert.equal((await run(1, "")).on, true, "mặc định bật");
+  const off = await run(2, "?ui=0"); assert.equal(off.on, false); assert.equal(off.store["shh-ui2"], "0");
+  assert.equal((await run(3, "", off.store)).on, false, "đã lưu 0 thì không tham số vẫn tắt");
+  assert.equal((await run(4, "?ui=2", off.store)).on, true, "?ui=2 bật lại");
+  assert.equal((await run(5, "", off.store)).on, true);
+  delete globalThis.location; delete globalThis.localStorage;
+}
+
 // bản kit theo --u × DPR
 assert.equal(kitScale(1, 1), 1); assert.equal(kitScale(1, 2), 2); assert.equal(kitScale(2, 1), 2);
 assert.equal(kitScale(1.5, 1), 1); assert.equal(kitScale(1.25, 1), 1); assert.equal(kitScale(1.5, 2), 2);

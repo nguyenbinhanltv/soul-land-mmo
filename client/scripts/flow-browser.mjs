@@ -79,7 +79,7 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
   await page.waitForURL(/\/choi\/?$/);
   step("landing: 'Vào chơi' sang /choi");
   // Mở lại với ?lag=1 chỉ để game phơi `window.__scene` (đọc vị trí); chưa có phiên nên không mất gì.
-  await page.goto(`${web}/choi/?lag=1${process.env.C8_UI2 === "1" ? "&ui=2" : ""}`); // C8_UI2=1: chạy ở chế độ cờ ui2 (?ui=2)
+  await page.goto(`${web}/choi/?lag=1${process.env.C8_UI0 === "1" ? "&ui=0" : ""}`); // C8_UI0=1: chạy giao diện cũ (?ui=0); mặc định ui2 bật (đợt 5a)
 
   // 2. Tên chưa có → tạo tài khoản bằng mật khẩu.
   const name = `Flow ${Date.now().toString(36).slice(-6)}`;

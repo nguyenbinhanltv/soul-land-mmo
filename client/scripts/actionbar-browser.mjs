@@ -120,7 +120,7 @@ try {
     const page = await context.newPage(), errors = [];
     page.setDefaultTimeout(20000); page.setDefaultNavigationTimeout(30000);
     page.on("pageerror", (e) => errors.push(e.message));
-    await page.addInitScript(([token, ui2]) => { localStorage.setItem("shh-token", token); if (ui2) localStorage.setItem("shh-ui2", "1"); }, [token, process.env.C8_UI2 === "1"]); // C8_UI2=1: chạy ở chế độ cờ ui2 (?ui=2)
+    await page.addInitScript(([token, ui0]) => { localStorage.setItem("shh-token", token); if (ui0) localStorage.setItem("shh-ui2", "0"); }, [token, process.env.C8_UI0 === "1"]); // C8_UI0=1: chạy giao diện cũ (?ui=0); mặc định ui2 bật (đợt 5a)
     // Chỉ lấy tham chiếu cảnh để gửi ý định/hook local và đọc state; không thay dữ liệu hay hàm vẽ game.
     await page.route("**/src/scenes/GameScene.ts*", async (route) => {
       const response = await route.fetch();

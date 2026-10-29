@@ -53,7 +53,7 @@ try {
   browser = await chromium.launch({ headless: true, channel: process.env.FLOW_CHANNEL || undefined, args: ["--mute-audio", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   page.on("pageerror", (e) => console.error("[trình duyệt]", e.message));
-  await page.addInitScript(([t, ui2]) => { localStorage.setItem("shh-token", t); if (ui2) localStorage.setItem("shh-ui2", "1"); }, [token, process.env.C8_UI2 === "1"]); // C8_UI2=1: chạy ở chế độ cờ ui2 (?ui=2)
+  await page.addInitScript(([t, ui0]) => { localStorage.setItem("shh-token", t); if (ui0) localStorage.setItem("shh-ui2", "0"); }, [token, process.env.C8_UI0 === "1"]); // C8_UI0=1: chạy giao diện cũ (?ui=0); mặc định ui2 bật (đợt 5a)
   // Chỉ lấy tham chiếu scene và đếm lệnh đi / khoá; không đổi logic. Không đếm `beastAt`: con trỏ ngữ cảnh (cập nhật mỗi khung hình) cũng gọi nó để dò hover, bấm vào hồn thú đã thành `lockTo`.
   await page.route("**/src/scenes/GameScene.ts*", async (route) => {
     const response = await route.fetch();
