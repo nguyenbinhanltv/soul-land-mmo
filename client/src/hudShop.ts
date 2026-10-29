@@ -6,7 +6,7 @@ import { VOHON, vohonIndex, ITEM_KINDS, itemDef, SHARD_UNLOCK, shopOf, shopExpan
 import { artImg } from "./uiArt.ts";
 import { setTip, type TipSpec } from "./tooltip.ts";
 import { isUi2 } from "./uiKit.ts";
-import { matchQuery, qty as qtySlider } from "./uiParts.ts";
+import { matchQuery, qty as qtySlider, searchField } from "./uiParts.ts";
 import type { BagMsg, BagItem, BuybackItem } from "./net.ts";
 
 /** Dòng hàng kiểu chung (UI-4): biểu tượng đầu dòng vào ô `ui_o` (.ui-cell) và cả dòng có chú thích `setTip` (rê chuột / chạm giữ). */
@@ -23,18 +23,14 @@ let shopQty = 1;          // số lượng đang kéo
 
 /** Ô tìm (bỏ dấu để khớp): lọc tại chỗ các phần tử `.shoprow` / `.s2-card` theo `data-name`, không vẽ lại nên không mất con trỏ. */
 function shopSearch(el: HTMLElement, label: string, scope: () => HTMLElement): HTMLElement {
-  const box = document.createElement("label"); box.className = "s2-search";
-  const input = document.createElement("input"); input.type = "search"; input.value = shopQuery; input.placeholder = "Tìm theo tên (không cần dấu)";
-  input.setAttribute("aria-label", label); input.autocomplete = "off"; input.maxLength = 32;
   const none = document.createElement("p"); none.className = "nline s2-none"; none.hidden = true; none.textContent = "Không có món nào khớp. Xoá bớt chữ để xem lại.";
   const apply = () => {
     let shown = 0;
     for (const r of scope().querySelectorAll<HTMLElement>("[data-name]")) { const ok = matchQuery(r.dataset.name ?? "", shopQuery); r.hidden = !ok; if (ok) shown++; }
     none.hidden = shown > 0 || !scope().querySelector("[data-name]");
   };
-  input.addEventListener("input", () => { shopQuery = input.value; apply(); });
-  input.addEventListener("keydown", (e) => { e.stopPropagation(); }); // gõ chữ không kích phím tắt game
-  box.append(input); el.append(box, none);
+  const { root: box } = searchField({ label, value: shopQuery, onInput: (q) => { shopQuery = q; apply(); } }); box.classList.add("s2-search");
+  el.append(box, none);
   queueMicrotask(apply);
   return box;
 }

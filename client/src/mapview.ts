@@ -15,7 +15,8 @@ import {
 import { drawRadarIcon, strokeRoute, radar, ls, DARK, type DotSink } from "./radar.ts";
 import { getFlag } from "./autowalk.ts";
 import { fog } from "./fog.ts";
-import { screenFrame, addCloseButton, type Frame } from "./uiParts.ts";
+import { screenFrame, addCloseButton, searchField, filterByQuery, type Frame } from "./uiParts.ts";
+import { isUi2 } from "./uiKit.ts";
 import "./ui2-map.css";
 
 void _TILE;
@@ -424,8 +425,40 @@ class MapViewUi implements DotSink {
     ctx.restore();
   }
 
+  // ---------- Tìm nơi (UI v2) ----------
+  /** Kết quả tìm tối đa; chọn một dòng thì căn bản đồ vào nhãn (phóng tới mức hiện được nhãn NPC / cổng). */
+  private static readonly FIND_MAX = 6;
+  private findBox() {
+    const list = document.createElement("ul"); list.className = "mv-find"; list.setAttribute("role", "listbox"); list.setAttribute("aria-label", "Kết quả tìm"); list.hidden = true;
+    const paint = (q: string) => {
+      list.replaceChildren();
+      if (!q.trim()) { list.hidden = true; return; }
+      const hit = filterByQuery(this.labels, (l) => `${l.text} ${l.sub ?? ""}`, q, MapViewUi.FIND_MAX);
+      for (const l of hit) {
+        const li = document.createElement("li"); li.setAttribute("role", "option"); li.tabIndex = 0;
+        const t = document.createElement("b"); t.textContent = l.text; li.append(t);
+        if (l.sub) { const sub = document.createElement("small"); sub.textContent = l.sub; li.append(sub); }
+        const go = () => { this.focusOn(l); list.hidden = true; };
+        li.addEventListener("click", go); li.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+        list.append(li);
+      }
+      if (!hit.length) { const li = document.createElement("li"); li.className = "none"; li.textContent = "Không có nơi nào khớp. Xoá bớt chữ để xem lại."; list.append(li); }
+      list.hidden = false;
+    };
+    const { root, input } = searchField({ label: "Tìm nơi trên bản đồ", placeholder: "Tìm nơi / NPC (không cần dấu)", onInput: paint });
+    root.classList.add("mv-search");
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") (list.querySelector("li:not(.none)") as HTMLElement | null)?.click(); });
+    return [root, list];
+  }
+  /** Căn khung nhìn vào một nhãn; phóng tới mức nhìn rõ nhãn nhưng không thu nhỏ nếu đang gần hơn. */
+  private focusOn(l: MapLabel) {
+    this.view = mapviewClampCenter({ ...this.view, cx: l.x, cy: l.y, zoom: Math.max(this.view.zoom, MAPVIEW.labelZoom.npc), mode: radar().mode }, this.mapW, this.mapH);
+    this.syncUi(); this.redraw();
+  }
+
   // ---------- Thanh công cụ ----------
   private buildBar() {
+    if (isUi2()) el("mapviewBar").append(...this.findBox());
     const box = el("mapviewLayers");
     for (const l of MAPVIEW.layers) {
       const b = document.createElement("button"); b.type = "button"; b.className = "mvchip"; b.textContent = l.name; b.dataset.layer = l.id;

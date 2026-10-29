@@ -7,6 +7,7 @@ import { artImg } from "./uiArt.ts";
 import { EQUIP_ITEM, EQUIP_LUCK_MAX, EQUIP_SOUL, equipFrameKey, EQUIP_SLOTS, EQUIP_TIERS, EQUIP_MAX_TIER, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SALVAGE_MAX, EQUIP_SYNTH_KEEP, equipName, equipTemplate, equipSlotDef, equipSynthStep, parseEquip } from "../../shared/data.ts";
 import { toast } from "./feedback.ts";
 import { isUi2 } from "./uiKit.ts";
+import { lockWhy } from "./uiParts.ts";
 import { confirmDialog } from "./confirmDialog.ts";
 import type { EquipEnhPreview, EquipEnhDone, EquipLuckPreview, EquipLuckDone, EquipSynDone, EquipSalvDone } from "./net.ts";
 import type { BagMsg, BagItem } from "./net.ts";
@@ -157,6 +158,7 @@ export function renderForgeGear(el: HTMLElement, bag: BagMsg, act: NpcActions) {
     gearConfirm = false; act.equipEnh(pick.id, destroy && gearCharm && pv.charm > 0);
   });
   box.appendChild(go); box.appendChild(back);
+  lockWhy(go, poor ? "Không đủ đá hoặc Hồn Tệ." : pv.busy ? "Đang xử lý lượt trước, chờ máy chủ trả lời." : act.combat() ? "Đang giao chiến: rời xa hồn thú vài giây rồi làm tiếp." : null);
 }
 
 // ---------- Lò rèn: khắc may mắn bằng Thần Hồn (vũ khí, dây chuyền) ----------
@@ -208,6 +210,7 @@ export function renderForgeLuck(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   go.textContent = poor ? `Không đủ ${soulName}` : act.combat() ? "Đang giao chiến" : "Khắc may mắn";
   go.addEventListener("click", () => { go.blur(); act.equipLuck(pick.id); });
   box.appendChild(go); box.appendChild(back);
+  lockWhy(go, poor ? `Không đủ ${soulName}.` : pv.busy ? "Đang xử lý lượt trước, chờ máy chủ trả lời." : act.combat() ? "Đang giao chiến: rời xa hồn thú vài giây rồi làm tiếp." : null);
 }
 
 // ---------- Lò rèn: hợp thành 3 → 1 và phân giải trang bị hồn sư (E4; trang đẹp ở E5) ----------
@@ -280,6 +283,7 @@ export function renderForgeSynth(el: HTMLElement, bag: BagMsg, act: NpcActions) 
   go.textContent = poor ? "Không đủ Hồn Tệ hoặc Tinh Hoa" : act.combat() ? "Đang giao chiến" : synSac.length !== 2 ? "Chọn đủ 2 món hiến tế" : synConfirm ? "Bấm lần nữa: hợp thành" : "Hợp thành (có thể mất đồ)";
   go.addEventListener("click", () => { go.blur(); if (!synConfirm) { synConfirm = true; renderNpc(); return; } synConfirm = false; act.equipSynth(main.it.id, synSac); });
   box.appendChild(go);
+  lockWhy(go, poor ? "Không đủ Hồn Tệ hoặc Tinh Hoa." : synSac.length !== 2 ? "Chọn đủ 2 món hiến tế." : act.combat() ? "Đang giao chiến: rời xa hồn thú vài giây rồi làm tiếp." : null);
   const back = document.createElement("button"); back.type = "button"; back.className = "aopt drop"; back.textContent = "Chọn món chính khác";
   back.addEventListener("click", () => { synMain = null; synSac = []; synConfirm = false; renderNpc(); }); box.appendChild(back);
 }
@@ -315,6 +319,7 @@ export function renderForgeSalv(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   go.textContent = act.combat() ? "Đang giao chiến" : !picked.length ? "Chưa chọn món nào" : `Phân giải ${picked.length} món`;
   go.addEventListener("click", () => { go.blur(); confirmDialog({ title: "Phân giải?", body: `${picked.length} món sẽ bị phân giải, nhận ${honTeText(coin)} cùng vật liệu theo bậc; không lấy lại được.`, confirm: `Phân giải ${picked.length} món`, danger: true }, () => act.equipSalvage(picked.map((x) => x.it.id))); });
   box.appendChild(go);
+  lockWhy(go, !picked.length ? "Chưa chọn món nào để phân giải." : act.combat() ? "Đang giao chiến: rời xa hồn thú vài giây rồi làm tiếp." : null);
 }
 
 let setPick: string | null = null; // hồn hạch đang chọn ở trang "Đổi bộ hồn hạch" của Thợ rèn

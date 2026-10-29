@@ -21,10 +21,16 @@ export interface TipSpec {
   sub?: string;
   lines?: TipLine[];
   foot?: string;
+  /**
+   * Phần chỉ hiện khi giữ Shift (UI v2, kiểm kê #12/#13): `lines` (dòng so sánh ▲▼) nối thêm vào cuối, `beside` là chú thích của món đang mặc
+   * đặt song song bên phải. Chưa giữ Shift thì `hint` hiện ở chân tấm ("Giữ Shift: so sánh"). Máy cảm ứng không có Shift: so sánh xem ở khung chi tiết.
+   */
+  shift?: { lines?: TipLine[]; beside?: TipSpec; hint?: string };
 }
 
 const specs = new WeakMap<Element, TipSpec>();
 const HOVER_MS = 250, LONG_MS = 400, TOUCH_SHOW_MS = 7000   /* chạm: giữ đủ lâu để đọc, tắt khi chạm chỗ khác */;
+let shiftOn = false;   // đang giữ Shift: chú thích có `shift` hiện thêm so sánh
 let tipEl: HTMLElement | null = null, cur: Element | null = null, timer = 0, hideTimer = 0, longPressed = false;
 
 /** Gắn chú thích có cấu trúc (hoặc chữ thường) cho một phần tử; `null` gỡ. */
@@ -53,8 +59,17 @@ export function parseText(text: string): TipSpec {
   return { title: rows[0], lines: rows.slice(1) };
 }
 
-/** Dựng nội dung chú thích (mọi chữ qua textContent). Tách riêng để thử / dùng lại. */
-export function buildTip(spec: TipSpec): DocumentFragment {
+/**
+ * Dựng nội dung chú thích (mọi chữ qua textContent). Tách riêng để thử / dùng lại. `shift` = đang giữ Shift: thêm dòng so sánh và đặt
+ * chú thích món đang mặc song song (`.t-pair`); không giữ thì chỉ hiện nhắc phím.
+ */
+export function buildTip(spec: TipSpec, shift = false): DocumentFragment {
+  if (shift && spec.shift?.beside) {
+    const f = document.createDocumentFragment(), pair = document.createElement("div"); pair.className = "t-pair";
+    const col = (sp: TipSpec, cls: string, sh: boolean) => { const c = document.createElement("div"); c.className = `t-col ${cls}`; c.appendChild(buildTip(sp, sh)); return c; };
+    pair.append(col({ ...spec, shift: { lines: spec.shift.lines } }, "t-main", true), col(spec.shift.beside, "t-beside", false)); f.appendChild(pair);
+    return f;
+  }
   const f = document.createDocumentFragment();
   const add = (cls: string, text: string) => { const s = document.createElement("span"); s.className = cls; s.textContent = text; f.appendChild(s); return s; };
   if (spec.title) add("t-title", spec.title);
@@ -66,7 +81,9 @@ export function buildTip(spec: TipSpec): DocumentFragment {
     const v = document.createElement(ln.tone === "gem" ? "b" : "span"); v.textContent = ln.v; d.appendChild(v);
     f.appendChild(d);
   }
+  if (shift) for (const ln of spec.shift?.lines ?? []) f.appendChild(buildTip({ lines: [ln] }).firstChild!);
   if (spec.foot) add("t-foot", spec.foot);
+  if (!shift && spec.shift?.hint) add("t-foot t-hint", spec.shift.hint);
   return f;
 }
 
@@ -87,7 +104,7 @@ function place(target: Element) {
 function show(target: Element) {
   const spec = specs.get(target);
   if (!spec || !tipEl) return;
-  tipEl.replaceChildren(buildTip(spec));
+  tipEl.replaceChildren(buildTip(spec, shiftOn));
   tipEl.style.setProperty("--tip-c", spec.border ?? "");
   if (spec.color) tipEl.style.setProperty("--tip-cg", spec.color); else tipEl.style.removeProperty("--tip-cg");
   if (!spec.border) tipEl.style.removeProperty("--tip-c");
@@ -127,8 +144,13 @@ export function initTips() {
   if (isUi2()) tipEl.classList.add("f2-tooltip");   // UI v2 (đợt 1c): chú thích nhận khung Mực của kit khi bật cờ (ui2-feedback.css)
   if (!tipEl.parentElement) (document.getElementById("stage") ?? document.body).appendChild(tipEl);
   const opt = { capture: true } as const;
+  const setShift = (on: boolean) => { if (on === shiftOn) return; shiftOn = on; if (cur && specs.get(cur)?.shift) { show(cur); } };
+  document.addEventListener("keydown", (e) => { if (e.key === "Shift") setShift(true); }, opt);
+  document.addEventListener("keyup", (e) => { if (e.key === "Shift") setShift(false); }, opt);
+  addEventListener("blur", () => setShift(false));
   document.addEventListener("pointerover", (e) => {
     if (e.pointerType === "touch") return;
+    shiftOn = e.shiftKey;
     const t = findTarget(e.target);
     if (!t || t === cur) return;
     clearTimeout(timer);

@@ -12,6 +12,7 @@ import "./ui2-vohon.css";
 import "./ui2-hon-cot.css";
 import "./ui2-npc.css";
 import "./ui2-shop.css";
+import "./ui2-tooltip.css";
 import "./ui2-forge.css";
 import "./ui2-hub.css";
 import "./ui2-login.css";

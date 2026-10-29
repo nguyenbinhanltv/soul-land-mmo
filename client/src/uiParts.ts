@@ -30,6 +30,13 @@ export function matchQuery(name: string, query: string): boolean {
   return q.split(" ").every((w) => n.includes(w));
 }
 
+/** Lọc danh sách theo ô tìm (không dấu, mọi từ phải khớp); `max` cắt bớt kết quả. Ô tìm rỗng trả nguyên danh sách. Hàm thuần dùng cho Bản đồ, Túi, Cửa hàng. */
+export function filterByQuery<T>(list: readonly T[], text: (t: T) => string, query: string, max = Infinity): T[] {
+  const out: T[] = [];
+  for (const t of list) { if (matchQuery(text(t), query)) { out.push(t); if (out.length >= max) break; } }
+  return out;
+}
+
 // ---- số và giờ ----
 
 /** Rút gọn số: 999 → "999", 1 234 → "1,2K", 12 500 000 → "12,5M" (bảng xếp hạng, tiền tệ). Không làm tròn lên bậc kế (999 999 → "999,9K"). */
@@ -396,3 +403,30 @@ export function addCloseButton(frame: HTMLElement, close: () => void) {
   b.addEventListener("click", close); frame.querySelector(".p2-hd")?.append(b);
 }
 
+export interface SearchOpts { label: string; value?: string; placeholder?: string; maxLength?: number; onInput: (q: string) => void }
+/** Ô tìm dùng chung (UI v2): `type=search`, gõ chữ không kích phím tắt game, Esc xoá chữ trước (hết chữ mới để Esc đóng bảng). Khớp không dấu do `matchQuery` / `filterByQuery`. */
+export function searchField(o: SearchOpts) {
+  const root = document.createElement("label"); root.className = "p2-search";
+  const input = document.createElement("input"); input.type = "search"; input.value = o.value ?? ""; input.placeholder = o.placeholder ?? "Tìm theo tên (không cần dấu)";
+  input.setAttribute("aria-label", o.label); input.autocomplete = "off"; input.maxLength = o.maxLength ?? 32;
+  input.addEventListener("input", () => o.onInput(input.value));
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !input.value) return;   // hết chữ: để Esc đóng bảng như thường
+    e.stopPropagation();
+    if (e.key === "Escape") { e.preventDefault(); input.value = ""; o.onInput(""); }
+  });
+  root.append(input);
+  return { root, input };
+}
+
+let whySeq = 0;
+/**
+ * Nút chính đang khoá thì nói rõ vì sao (nguyên tắc 5 của bộ spec; kiểm kê #24): chèn dòng `.p2-why` ngay trước nút và nối `aria-describedby`.
+ * Chỉ chạy khi cờ ui2 bật, nút đã nằm trong cây, đang `disabled` và có lý do; không đổi gì khác. Trả dòng lý do (hoặc null).
+ */
+export function lockWhy(b: HTMLButtonElement, reason: string | null | undefined, force = false): HTMLElement | null {
+  if ((!force && !isUi2()) || !b.disabled || !reason?.trim() || !b.parentElement) return null;
+  const w = document.createElement("span"); w.className = "p2-why p2-why-btn"; w.id = `p2-why-${++whySeq}`; w.textContent = reason.trim();
+  b.setAttribute("aria-describedby", w.id); b.before(w);
+  return w;
+}

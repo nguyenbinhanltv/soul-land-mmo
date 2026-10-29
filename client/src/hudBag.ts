@@ -19,7 +19,8 @@ import type { GearMsg } from "./net.ts";
 import type { BagMsg, BagItem } from "./net.ts";
 import { ringColor, boneSkillText } from "./hudBar.ts";
 import { isUi2 } from "./uiKit.ts";
-import { stateBox } from "./uiParts.ts";
+import { stateBox, searchField, matchQuery } from "./uiParts.ts";
+import { itemInfoLines, shiftPart } from "./itemTip.ts";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 const UI2 = isUi2();
 /** UI v2 (đợt 2a-2, ui2-bag.css): lớp kit gắn thêm khi bật cờ; tắt cờ thì chuỗi rỗng, giao diện cũ không đổi. */
@@ -256,7 +257,7 @@ export function setBagFocus(f: BagFocus | null) {
   const changed = (f?.key ?? null) !== (bagFocus?.key ?? null);
   bagFocus = f;
   if (!changed) return;
-  if (f) { bagGroup = f.group; bagPage = 0; bagSel = null; sellOpen = false; }
+  if (f) { bagGroup = f.group; bagQuery = ""; bagPage = 0; bagSel = null; sellOpen = false; }
   bagRefresh?.();
 }
 
@@ -264,6 +265,7 @@ export function setBagFocus(f: BagFocus | null) {
 export let bagCap = BAG_SLOTS;
 export const setBagCap = (n: number) => { bagCap = n; };
 export let bagGroup = "all";              // nhóm lọc đang chọn (UI-1, BAG_GROUPS)
+let bagQuery = "", bagSearchFocus = false;  // ô tìm (UI v2, không dấu): chữ đang gõ; vẽ lại túi xong thì trả con trỏ về ô
 let bagSortMode: BagSort = "tay";  // cách xếp thứ tự hiển thị (UI-1, chỉ phía client)
 export let bagPage = 0; // trang túi đang xem (#215: mỗi trang BAG_PAGE ô)
 /**
@@ -293,8 +295,8 @@ export function renderBag(bag: BagMsg, act: BagActions) {
 
   // UI-1: lọc theo nhóm và xếp thứ tự hiển thị chỉ ở client (nút "Sắp xếp" gộp / xếp thật vẫn do server). `view` = cả túi đã xếp, `shown` = sau lọc.
   noteSeen(items);
-  const view = sortView(items, bagSortMode), filtered = bagGroup !== "all", active = act.active();
-  let shown = view.filter((i) => inGroup(i, bagGroup));
+  const view = sortView(items, bagSortMode), filtered = bagGroup !== "all" || (UI2 && bagQuery !== ""), active = act.active();
+  let shown = view.filter((i) => inGroup(i, bagGroup) && (!UI2 || matchQuery(itemName(i), bagQuery)));
   // NV3 (#457): hàm thuần của charBagContract nhìn túi + trang bị đang mặc + võ hồn đang xem trên búp bê; dựng lúc cần (tin mới về thì vẽ lại cả bảng).
   const dollView = (): DollView => ({ rowId: act.viewRow(), bag: bag.items, gear: act.gear()?.items ?? [] });
   const useOf = (it: BagItem) => useAction(it, act, again);
@@ -322,6 +324,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   addZone({ el, kind: "area", test: bagArea, drop: bagAreaDrop }); // kéo từ búp bê thả vào Túi = tháo
   if (bagFocus) shown = [...shown.filter(bagFocus.match), ...shown.filter((i) => !bagFocus!.match(i))]; // món hợp ô lên trước
   el.appendChild(bagTools(bag, items, again));
+  if (UI2) el.appendChild(bagSearch(again));
   if (bagFocus) {
     const n = shown.filter(bagFocus.match).length, fb = document.createElement("div"); fb.className = "bfocus";
     fb.innerHTML = `<small></small><button type="button" class="buse drop${UI2 ? " f2-nut-phu" : ""}">Thôi</button>`;
@@ -387,10 +390,12 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       if (it.qty > 1) lines.push({ k: "Số lượng", v: `×${it.qty}`, tone: "gem" });
       // So sánh với món đang gắn của võ hồn ra trận (chỉ số ▲ xanh / ▼ đỏ); máy cảm ứng: chạm giữ ra chú thích, chạm một lần xem ở khung chi tiết.
       const worn = currentFor(it, dollView()), cmp = worn && compareLines(it, worn, worn.cur ? itemName(worn.cur) : null);
-      if (cmp) lines.push(...cmp);
+      if (cmp && !UI2) lines.push(...cmp);   // UI v2: so sánh + món đang mặc song song chỉ hiện khi giữ Shift (itemTip.ts)
+      if (UI2) lines.push(...itemInfoLines(it));
       setTip(b, { title: itemName(it) + (it.lock ? " (khoá)" : ""), color: tier >= 0 ? TIERS[tier].glow : undefined, border: itemColor(it),
         sub: tier >= 0 ? `${bone ? "Hồn cốt" : "Hồn hoàn"} · ${TIERS[tier].color} (${TIERS[tier].age})` : def ? ITEM_KINDS[def.kind].name : undefined,
-        lines, foot: it.lock ? "Đang khoá: không bán / bỏ được" : undefined });
+        lines, foot: it.lock && !UI2 ? "Đang khoá: không bán / bỏ được" : undefined,
+        shift: UI2 ? shiftPart(cmp ?? null, worn?.cur ?? null, worn?.cur ? itemName(worn.cur) : null, worn?.cur ? itemColor(worn.cur) : "") : undefined });
       b.addEventListener("click", () => {
         b.blur(); markSeen(it.id);
         // Bấm đúp = mặc thông minh. Bấm lần đầu vẽ lại túi (ô bị thay) nên không dùng sự kiện dblclick: so thời điểm hai lần bấm cùng một món.
@@ -407,6 +412,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   }
   el.appendChild(grid);
   if (UI2 && !items.length) el.appendChild(stateBox({ kind: "empty", text: "Túi đang trống.", hint: "Săn hồn thú hoặc nhặt vật phẩm để có đồ." }));
+  else if (UI2 && items.length && !shown.length) el.appendChild(stateBox({ kind: "empty", text: bagQuery ? "Không có món nào khớp." : "Nhóm này chưa có món.", hint: bagQuery ? "Xoá bớt chữ trong ô tìm để xem lại." : "Chọn nhóm khác." }));
 
   if (sellOpen) { el.appendChild(sellBox(bag, sell, act)); return finishBag(el); }
   const info = document.createElement("div"); info.className = "binfo";
@@ -524,6 +530,13 @@ const coreQuickSlot = (it: BagItem, items: BagItem[], active: number) => {
   const s = cur ? coreSlotOf(cur.stats) : -1;
   return s >= 0 ? s : undefined;
 };
+
+/** Ô tìm của túi (UI v2): lọc theo tên không dấu, kết hợp với chip nhóm; gõ xong vẽ lại túi (về trang 1) và trả con trỏ về ô. */
+function bagSearch(again: () => void) {
+  const { root, input } = searchField({ label: "Tìm món trong túi", value: bagQuery, onInput: (q) => { bagQuery = q; bagPage = 0; bagSearchFocus = true; again(); } });
+  if (bagSearchFocus) { bagSearchFocus = false; queueMicrotask(() => { input.focus({ preventScroll: true }); input.setSelectionRange(input.value.length, input.value.length); }); }
+  return root;
+}
 
 /** Hàng công cụ của túi (UI-1): chip lọc theo nhóm (kèm số món) và hộp chọn cách xếp; đổi gì thì vẽ lại túi, không gửi gì lên server. */
 function bagTools(bag: BagMsg, items: BagItem[], again: () => void) {

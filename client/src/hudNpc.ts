@@ -6,7 +6,7 @@ import { enhClose, setEnhCoin, toggleRoster } from "./hudRoster.ts";
 import { NPCS, shopExpands, formatHonTe, SHARD_BUY, LOOKS_CHANGE, looksChangeCost, type Looks, type NpcDef, type NpcRole, questChain, DAILY, ARENA } from "../../shared/data.ts";
 import { artImg } from "./uiArt.ts";
 import { isUi2 } from "./uiKit.ts";
-import { tabs } from "./uiParts.ts";
+import { tabs, lockWhy } from "./uiParts.ts";
 import { toggleChar } from "./charPanel.ts";
 import { openLooksOverlay } from "./looksMaker.ts";
 import type { GearMsg } from "./net.ts";
@@ -171,10 +171,11 @@ export function renderNpc() {
   head.querySelector("button")!.addEventListener("click", () => closeNpc());
   el.appendChild(head);
   const row = document.createElement("div"); row.className = "brow";
-  const btn = (text: string, cls: string, fn: () => void, disabled = false) => {
+  const btn = (text: string, cls: string, fn: () => void, disabled = false, why?: string) => {
     const b = document.createElement("button"); b.type = "button"; b.className = "buse " + cls; b.textContent = text; b.disabled = disabled;
+    row.appendChild(b); lockWhy(b, why);   // UI v2: nút khoá nói rõ vì sao (kiểm kê #24); thêm vào hàng trước để dòng lý do chèn đúng chỗ
     if (UI2) b.classList.add(cls.includes("absorb") && npcPage !== "talk" ? "f2-nut-chinh" : "f2-nut-phu");
-    b.addEventListener("click", () => { b.blur(); fn(); }); row.appendChild(b); return b;
+    b.addEventListener("click", () => { b.blur(); fn(); }); return b;
   };
   const go = (page: NpcPage) => { npcPage = page; sellConfirm = null; enhClose(); renderNpc(); };
   const qt = UI2 && (npcPage === "quest" || npcPage === "daily" || npcPage === "tongtask") ? questTabs(go) : null; if (qt) el.appendChild(qt);
@@ -194,7 +195,7 @@ export function renderNpc() {
   }
   if (npcPage === "live") { // #280: danh sách trận đang diễn ra
     el.appendChild(arenaLiveEl(act));
-    const rf = btn("Làm mới", "use", () => { arenaLiveAsk(act); renderNpc(); }, performance.now() - arenaLiveAt < ARENA.topCd * 1000);
+    const rf = btn("Làm mới", "use", () => { arenaLiveAsk(act); renderNpc(); }, performance.now() - arenaLiveAt < ARENA.topCd * 1000, "Vừa làm mới, chờ vài giây.");
     if (rf.disabled) setTimeout(() => { if (npcDefOpen && npcPage === "live") renderNpc(); }, ARENA.topCd * 1000);
     btn("‹ Quay lại", "drop", () => go("talk"));
     el.appendChild(row);
@@ -236,16 +237,16 @@ export function renderNpc() {
     }
     if (def.role === "forge") {
       btn("Cường hóa hồn cốt", "absorb", () => go("forge"), !bag);
-      btn("Nâng cấp hồn hạch", "absorb", () => go("forgecore"), !bag); // 5.3
-      btn("Đổi bộ hồn hạch", "absorb", () => go("forgeset"), !bag); // #283
-      btn("Cường hóa trang bị hồn sư", "absorb", () => { forgeReset.gear(); go("forgegear"); }, !bag); // E3
-      btn("Khắc may mắn", "absorb", () => { forgeReset.luck(); go("forgeluck"); }, !bag);
-      btn("Hợp thành trang bị (3 → 1)", "absorb", () => { forgeReset.synth(); go("forgesynth"); }, !bag); // E4
-      btn("Phân giải trang bị", "absorb", () => { forgeReset.salv(); go("forgesalv"); }, !bag); // E4
+      btn("Nâng cấp hồn hạch", "absorb", () => go("forgecore"), !bag, "Đang tải túi, chờ một chút."); // 5.3
+      btn("Đổi bộ hồn hạch", "absorb", () => go("forgeset"), !bag, "Đang tải túi, chờ một chút."); // #283
+      btn("Cường hóa trang bị hồn sư", "absorb", () => { forgeReset.gear(); go("forgegear"); }, !bag, "Đang tải túi, chờ một chút."); // E3
+      btn("Khắc may mắn", "absorb", () => { forgeReset.luck(); go("forgeluck"); }, !bag, "Đang tải túi, chờ một chút.");
+      btn("Hợp thành trang bị (3 → 1)", "absorb", () => { forgeReset.synth(); go("forgesynth"); }, !bag, "Đang tải túi, chờ một chút."); // E4
+      btn("Phân giải trang bị", "absorb", () => { forgeReset.salv(); go("forgesalv"); }, !bag, "Đang tải túi, chờ một chút."); // E4
     }
     if (def.role === "looks") { // L4 #511: giá lần đổi kế tiếp tính từ số lần đã đổi (server gửi `looksinfo` khi mở hộp thoại)
       const cost = looksChangeCost(looksMsg?.n ?? 0), poor = !!bag && bag.honTe < cost;
-      btn(cost ? `Đổi ngoại hình (${formatHonTe(cost)})` : "Đổi ngoại hình (miễn phí)", "absorb", () => openLooksChange(def, act), !looksMsg || poor);
+      btn(cost ? `Đổi ngoại hình (${formatHonTe(cost)})` : "Đổi ngoại hình (miễn phí)", "absorb", () => openLooksChange(def, act), !looksMsg || poor, !looksMsg ? "Đang tải giá đổi ngoại hình, chờ một chút." : poor ? `Không đủ Hồn Tệ: cần ${formatHonTe(cost)}.` : undefined);
       if (poor) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = `Không đủ Hồn Tệ: cần ${formatHonTe(cost)}.`; el.appendChild(k); }
     }
     if (def.role === "arena") { // 7.2: server kiểm tra lại khoảng cách và trạng thái khi xếp hàng
@@ -255,7 +256,7 @@ export function renderNpc() {
     }
     if (def.role === "tong") {
       const t = TONG_MON.find((x) => x.npc === def.id), cur = TONG_MON.find((x) => x.id === tongMsg?.tong);
-      if (t && t.id === cur?.id) btn(`Đã là người của ${t.name}`, "absorb", () => {}, true);
+      if (t && t.id === cur?.id) btn(`Đã là người của ${t.name}`, "absorb", () => {}, true, "Bạn đã thuộc tông này.");
       else if (t) btn(cur ? `Đổi sang ${t.name}` : `Gia nhập ${t.name}`, "absorb", () => act.tong("join", t.id));
       if (t && t.id === cur?.id) { // #197: tông vụ chỉ ở sứ giả tông mình
         const l = tongMsg?.tasks ?? [], done = l.filter((x) => x.status === "done").length;
