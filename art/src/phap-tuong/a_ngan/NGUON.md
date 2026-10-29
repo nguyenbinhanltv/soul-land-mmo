@@ -1,4 +1,4 @@
-﻿# Pháp tướng A Ngân vẽ lại (#1328)
+# Pháp tướng A Ngân vẽ lại (#1328)
 
 Part of #1306, epic #1020. Chủ repo đã duyệt mẫu Lam Ngân Thảo #1326 và giao kiểm từng bản chuyển thể trước khi vẽ tiếp. **A Ngân chưa được chủ repo duyệt.**
 
@@ -43,4 +43,3 @@ Hiển thị A Ngân: scale 1,8, dy −24, bob 2; nâng rễ sau vai thay vì s�
 Kiểm mép ô từng hướng bằng cutter trước ghép; sau ghép chạy kiểm asset, `npm run check` và chụp trong game để duyệt. Hướng e đã dùng đủ ba lượt, cần chủ repo xem góc nghiêng và nhịp giữ đỉnh đòn; không tự sinh lượt thứ tư.
 
 Kết quả: năm hướng qua kiểm mép ô, sheet 80 khung / 48 màu; `test:phaptuong`, `npm run check`, `npm run build` đạt; bot RAM `combo` đạt 34/34. `ui:check --kind I` trên RAW báo viền hồng và số màu vượt chuẩn kit UI (32); đây không phải kết quả duyệt pháp tướng. Cutter xử lý nền và lượng tử theo chuẩn pháp tướng 48 màu, đã kiểm thành phẩm trên nền game. `phuthe:check` chỉ hỗ trợ tờ phụ thể 6×4 quanh nộm, không áp trực tiếp cho tờ này. Ảnh năm hướng có ở artifact của phiên soul_land_game-840, trang duyệt chung `duyet-lam-ngan-thao.html`.
-
