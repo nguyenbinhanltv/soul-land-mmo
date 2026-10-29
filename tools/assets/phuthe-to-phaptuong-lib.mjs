@@ -103,6 +103,11 @@ export function bboxOf(frames, F) {
   for (const im of frames) for (let y = 0; y < im.h; y++) for (let x = 0; x < im.w; x++) if (im.alpha(x, y)) { b.x0 = Math.min(b.x0, x - sx); b.x1 = Math.max(b.x1, x - sx); b.y0 = Math.min(b.y0, y - sy); b.y1 = Math.max(b.y1, y - sy); }
   return b.x1 < b.x0 ? null : b;
 }
+/** Hộp bao hợp của nhiều hộp (bỏ hộp null); null nếu không còn hộp. */
+export function unionBox(boxes) {
+  const bs = boxes.filter(Boolean);
+  return bs.length ? { x0: Math.min(...bs.map((b) => b.x0)), y0: Math.min(...bs.map((b) => b.y0)), x1: Math.max(...bs.map((b) => b.x1)), y1: Math.max(...bs.map((b) => b.y1)) } : null;
+}
 /** Hệ số phóng nguyên lớn nhất (PT_SCALES) mà hộp bao `b` đặt ở PT_ORIGIN còn cách mép khung 160 ít nhất PT_MARGIN; 1 nếu ×1 cũng không lọt (khi đó placeFrame cắt). */
 export function pickScale(b) {
   if (!b) return PT_SCALES[PT_SCALES.length - 1];
@@ -110,10 +115,10 @@ export function pickScale(b) {
   return PT_SCALES.find(fit) ?? 1;
 }
 
-/** Đặt khung nguồn (cỡ F) vào khung pháp tướng 160: phóng ×scale, gốc chân trùng PT_ORIGIN, cắt phần ra ngoài; trả { img, clipped: số điểm bị cắt }. */
-export function placeFrame(im, F, scale) {
+/** Đặt khung nguồn (cỡ F) vào khung pháp tướng 160: phóng ×scale, gốc chân trùng PT_ORIGIN dời `off` điểm nguồn, cắt phần ra ngoài; trả { img, clipped: số điểm bị cắt }. */
+export function placeFrame(im, F, scale, off = [0, 0]) {
   const o = new Img(PT_FRAME, PT_FRAME), [sx, sy] = srcOrigin(F);
-  const ox = PT_ORIGIN[0] - sx * scale, oy = PT_ORIGIN[1] - sy * scale;
+  const ox = PT_ORIGIN[0] - sx * scale + off[0] * scale, oy = PT_ORIGIN[1] - sy * scale + off[1] * scale;
   let clipped = 0;
   for (let y = 0; y < im.h; y++) for (let x = 0; x < im.w; x++) {
     const p = im.get(x, y); if (!p[3]) continue;
@@ -188,7 +193,7 @@ export function quantize(t, max = PT_MAX_COLORS) {
 
 // ---------- Dựng sheet ----------
 /**
- * source: { F, anim: boolean, dirs: { <hướng>: { idle: [{ back?, front? }], attack: [{ back?, front? }] } } }; mỗi phần tử là một khung nguồn đã cắt (Img cỡ F).
+ * source: { F, anim: boolean, anchor?: { <hướng>: { dx, dy } }, dirs: { <hướng>: { idle: [{ back?, front? }], attack: [{ back?, front? }] } } }; mỗi phần tử là một khung nguồn đã cắt (Img cỡ F).
  *   - Nguồn hoạt ảnh (`anim`): idle / attack lấy lại theo `idleSeq` / `attackSeq`;
  *   - Nguồn tĩnh (hoặc chỉ 1 khung): chỉ dùng idle[0]; thở và đánh nội suy bằng `breathPose` / `strikePose` theo `opt.group`.
  * opt: { group: PtGroup, fill: số điểm tối đa của khoảng lấp hình người (mặc định FILL_GAP cho sinh vật / thực vật / hư ảnh, 0 cho vật cứng; 0 = không lấp), drop: [{ x, y, r }] đĩa xóa phần tay cầm, scale: ép hệ số phóng (mặc định `pickScale`) }.
@@ -197,22 +202,23 @@ export function quantize(t, max = PT_MAX_COLORS) {
 export function buildSheet(source, opt = {}) {
   const { F, anim } = source, pose = poseOf(opt.group), fill = opt.fill ?? (pose.kind === "lunge" ? FILL_GAP : 0);
   const flat = (fr) => { const im = dropDiscs(composeHalves(fr.back, fr.front), opt.drop, F); return fill ? fillBodyHole(im, fill, F) : im; };
-  const cells = []; // { row, col, im } khung nguồn đã dựng, chưa phóng
+  const off = (d) => { const a = source.anchor?.[d]; return a ? [Math.round(a.dx), Math.round(a.dy)] : [0, 0]; }; // tâm khối thân (anchor.json): dời đều mọi khung của hướng khi đặt vào khung 160 (không cắt, không phóng: scale do display ở PHAP_TUONG)
+  const cells = []; // { row, col, im, off } khung nguồn đã dựng, chưa phóng; off = [dx, dy] điểm nguồn
   ISO_DIRS.forEach((d, row) => {
     const { idle, attack } = source.dirs[d];
     if (anim && idle.length > 1 && attack.length > 1) {
-      idleSeq(idle.length).forEach((k, i) => cells.push({ row, col: PT_ANIMS.idle[0] + i, im: flat(idle[k]) }));
-      attackSeq(attack.length).forEach((k, i) => cells.push({ row, col: PT_ANIMS.attack[0] + i, im: flat(attack[k]) }));
+      idleSeq(idle.length).forEach((k, i) => cells.push({ row, col: PT_ANIMS.idle[0] + i, im: flat(idle[k]), off: off(d) }));
+      attackSeq(attack.length).forEach((k, i) => cells.push({ row, col: PT_ANIMS.attack[0] + i, im: flat(attack[k]), off: off(d) }));
     } else {
       const base = flat(idle[0]);
-      for (let i = 0; i < N_IDLE; i++) cells.push({ row, col: PT_ANIMS.idle[0] + i, im: warp(base, breathPose(i, pose), F) });
-      for (let i = 0; i < N_ATTACK; i++) cells.push({ row, col: PT_ANIMS.attack[0] + i, im: warp(base, strikePose(i, d, pose.kind), F) });
+      for (let i = 0; i < N_IDLE; i++) cells.push({ row, col: PT_ANIMS.idle[0] + i, im: warp(base, breathPose(i, pose), F), off: off(d) });
+      for (let i = 0; i < N_ATTACK; i++) cells.push({ row, col: PT_ANIMS.attack[0] + i, im: warp(base, strikePose(i, d, pose.kind), F), off: off(d) });
     }
   });
-  const scale = opt.scale ?? pickScale(bboxOf(cells.map((c) => c.im), F));
+  const scale = opt.scale ?? pickScale(unionBox(cells.map((c) => { const b = bboxOf([c.im], F); return b && { x0: b.x0 + c.off[0], x1: b.x1 + c.off[0], y0: b.y0 + c.off[1], y1: b.y1 + c.off[1] }; })));
   const sheet = new Img(PT_FRAME * PT_COLS, PT_FRAME * ISO_DIRS.length);
   let clipped = 0;
-  for (const { row, col, im } of cells) { const r = placeFrame(im, F, scale); clipped += r.clipped; sheet.blit(r.img, 0, 0, PT_FRAME, PT_FRAME, col * PT_FRAME, row * PT_FRAME); }
+  for (const { row, col, im, off: o } of cells) { const r = placeFrame(im, F, scale, o); clipped += r.clipped; sheet.blit(r.img, 0, 0, PT_FRAME, PT_FRAME, col * PT_FRAME, row * PT_FRAME); }
   return { sheet, scale, clipped, colors: quantize(sheet) };
 }
 

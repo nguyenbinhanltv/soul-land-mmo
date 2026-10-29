@@ -3,7 +3,7 @@
 //   node tools/assets/phuthe-to-phaptuong.mjs --id <mã võ hồn> [--out <file.png>] [--preview <file.png>] [--fill <điểm lấp chỗ rỗng hình người, mặc định 0>] [--scale 1|2] [--tinh] [--bo x,y,r]… [--glow]
 //   node tools/assets/phuthe-to-phaptuong.mjs --all --duyet-mau      (25 võ hồn: chỉ chạy sau khi chủ repo duyệt 3 mẫu, mặc định từ chối)
 // Quyết định chủ repo 2026-10-29 (epic #1020): phụ thể v2 là vũ khí cầm tay; phụ thể CŨ thành pháp tướng bay sau lưng, chỉ hiện khi Chân Thân.
-// Nguồn: ưu tiên `vohonanim/<id>_{b,f}.png` (clip vẽ thật, cột / khung theo `anim` ở manifest), không có thì `vohon/<id>_{b,f}.png` (tĩnh, khung đứng cột 0);
+// Nguồn: `vohonanim/<id>_{b,f}.png` (bộ phụ thể mới nhất, clip vẽ thật idle / attack, cột / khung theo `anim` ở manifest; tâm khối theo `vohonanim/anchor.json`); chỉ khi võ hồn CHƯA có vhanim mới dự phòng `vohon/<id>_{b,f}.png` (tĩnh bộ cũ, khung đứng cột 0, thở / đánh nội suy; hiện cả 25 võ hồn đều có vhanim);
 // hàng thân nam (0..4 = s, se, e, ne, n). `--tinh` ép dùng ảnh tĩnh. Lớp: nửa sau và nửa trước ghép thành một lớp (luật lớp theo hướng do client:
 // s / se / e sau thân, ne / n trước thân mờ PT_FRONT_ALPHA). Cách ghép (scale / dx / dy) ở PHAP_TUONG của shared/data.ts, không ở sheet.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -14,6 +14,13 @@ import { SAMPLES, buildSheet, buildGlow, cell } from "./phuthe-to-phaptuong-lib.
 
 const { PHAP_TUONG, VOHON } = await import("../../shared/data.ts");
 const fail = (m) => { console.error(`[phuthe-to-phaptuong] ${m}`); process.exit(1); };
+
+/** Tâm khối thân từng hướng (nam) từ `vohonanim/anchor.json`: { <hướng>: { dx, dy } } điểm nguồn; không có mục thì undefined. */
+function anchorOf(id, sprites) {
+  const f = path.join(sprites, "vohonanim", "anchor.json");
+  const m = existsSync(f) ? JSON.parse(readFileSync(f, "utf8"))[id]?.m : null;
+  return m ? Object.fromEntries(ISO_DIRS.filter((d) => m[d]).map((d) => [d, { dx: m[d].dx, dy: m[d].dy }])) : undefined;
+}
 
 /** Đọc nguồn một võ hồn: { F, anim, dirs: { <hướng>: { idle: [{ back, front }], attack: [...] } } } hoặc null nếu không có ảnh nào. */
 export function loadSource(id, { manifest, forceStatic = false, sprites = SPRITES } = {}) {
@@ -27,7 +34,7 @@ export function loadSource(id, { manifest, forceStatic = false, sprites = SPRITE
   if (useAnim) {
     const dirs = {};
     ISO_DIRS.forEach((d, row) => { dirs[d] = { idle: slice(aB, aF, clips.idle.col, clips.idle.n, row, F), attack: slice(aB, aF, clips.attack.col, clips.attack.n, row, F) }; });
-    return { F, anim: true, dirs };
+    return { F, anim: true, dirs, anchor: anchorOf(id, sprites) };
   }
   const sB = half("vohon", "b"), sF = half("vohon", "f");
   if (!sB && !sF) return null;

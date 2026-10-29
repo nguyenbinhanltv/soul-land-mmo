@@ -164,6 +164,15 @@ test("buildSheet nguồn tĩnh: 2560×800, đủ 5 × 16 khung, ×2, không cắ
   assert.ok(top(frameOf(v.sheet, 2, 10)) < top(frameOf(v.sheet, 2, 8)));
 });
 
+test("anchor.json: tâm khối dời cả hướng khi đặt vào khung 160, cùng một độ dời cho mọi khung của hướng", () => {
+  const src = animSource(4, 6), anchored = { ...src, anchor: { e: { dx: 3.4, dy: -2.2 } } };
+  const a = buildSheet(src, { group: "B", scale: 1 }), b = buildSheet(anchored, { group: "B", scale: 1 });
+  const left = (im) => { for (let x = 0; x < im.w; x++) for (let y = 0; y < im.h; y++) if (im.alpha(x, y)) return x; return -1; };
+  const top = (im) => { for (let y = 0; y < im.h; y++) for (let x = 0; x < im.w; x++) if (im.alpha(x, y)) return y; return -1; };
+  for (const c of [0, 5, 9, 13]) { assert.equal(left(frameOf(b.sheet, 2, c)) - left(frameOf(a.sheet, 2, c)), 3); assert.equal(top(frameOf(b.sheet, 2, c)) - top(frameOf(a.sheet, 2, c)), -2); }
+  assert.ok(sameImg(frameOf(b.sheet, 1, 3), frameOf(a.sheet, 1, 3)), "hướng không có mục anchor giữ nguyên");
+});
+
 test("buildSheet nguồn hoạt ảnh: thở lấy idleSeq, đánh lấy attackSeq (khung nguồn n → khung đích đúng)", () => {
   const r = buildSheet(animSource(4, 6), { group: "B" });
   const h = (row, col) => { const f = frameOf(r.sheet, row, col); let y0 = f.h; for (let y = 0; y < f.h; y++) for (let x = 0; x < f.w; x++) if (f.alpha(x, y) && y < y0) y0 = y; return PT_ORIGIN[1] - y0; };

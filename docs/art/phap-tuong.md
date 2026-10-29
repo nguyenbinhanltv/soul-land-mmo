@@ -319,7 +319,7 @@ Quyết định chủ repo 2026-10-29: phụ thể cũ thành pháp tướng, nh
 
 | Việc | Cách làm |
 |---|---|
-| Nguồn | ưu tiên `vohonanim/<id>_{b,f}.png` (clip vẽ thật, cột / khung theo `anim` ở manifest, hàng thân nam); không có clip thì `vohon/<id>_{b,f}.png` (ảnh tĩnh, khung đứng cột 0). `--tinh` ép dùng ảnh tĩnh |
+| Nguồn | **bộ phụ thể mới nhất** `vohonanim/<id>_{b,f}.png` (nguồn `art/src/phuthe-anim/<id>`, lô 3 #1224, đủ 25 võ hồn, hàng thân nam; clip theo `anim`). **Tâm khối** theo `vohonanim/anchor.json` (`dx`, `dy` từng hướng, dời đều mọi khung; bỏ `scale`: pháp tướng có `display.scale` riêng). Ảnh tĩnh bộ cũ `vohon/<id>_{b,f}.png` (nội suy thở / đánh) chỉ là **dự phòng** khi chưa có vhanim (hiện không võ hồn nào); `--tinh` ép dùng. Không dùng `art/src/gemini/phuthe_5huong` |
 | Lớp | nửa sau và nửa trước ghép thành **một** lớp (nửa trước đè nửa sau); luật lớp vẫn của client: `s` / `se` / `e` sau thân, `ne` / `n` trước thân mờ `PT_FRONT_ALPHA` |
 | Gốc | gốc chân phụ thể (khung 96: `(48, 74)`, khung 128: `(64, 90)`) đặt đúng `PT_ORIGIN` |
 | Lấp chỗ rỗng hình người | cutter trừ nộm nên phụ thể có khoảng rỗng hình người; khi pháp tướng phóng to và bay lên, chỗ rỗng lộ ra. `fillBodyHole` tự lấp từ hình xung quanh, tất định: mỗi hàng rồi mỗi cột trong ±`BODY_HALF` điểm quanh gốc chân, khoảng trong suốt ≤ `FILL_GAP` kẹp giữa hai điểm đặc được tô bằng trung bình màu hai điểm kề (bỏ viền tối `OUTLINE_SKIP` điểm), tối đi xen theo ô cờ. Mặc định bật cho sinh vật / thực vật / hư ảnh, tắt cho vật cứng (nhóm `V`, `O`: búa, kiếm lõm thật); `--fill N` đổi ngưỡng, `--fill 0` tắt |
@@ -340,7 +340,7 @@ Quyết định chủ repo 2026-10-29: phụ thể cũ thành pháp tướng, nh
 |---|---|---|---|
 | Tà Hỏa Phượng Hoàng (`ta_hoa_phuong_hoang`) | `vhanim` khung 96, 4 thở + 6 đánh | 1,8 · 0 · −28 · 3 | lấp chỗ rỗng; tạm ổn |
 | Hạo Thiên Chùy (`hao_thien_chuy`) | `vhanim` khung 128, vật cứng | 1,5 · 18 · −28 · 3 | không lấp (vật cứng); búa lơ lửng chếch sau vai, nện xuống khi đánh; 1,8 quá to |
-| Lam Ngân Thảo (`lam_ngan_thao`) | `vhanim` khung 96 | 1,8 · 0 · −20 · 2 | **lớp sáng làm lại** (`--glow`); chỗ lấp thân vẫn thành cột tối lộ rõ ở `e`, `n`: cần vẽ lại bằng model (nửa sau không có thân / không có chỗ rỗng) nếu chủ repo thấy không ổn |
+| Lam Ngân Thảo (`lam_ngan_thao`) | `vhanim` khung 96 | 1,8 · 0 · −20 · 2 | **lớp sáng làm lại** (`--glow`); chỗ lấp thân vẫn thành cột tối lộ rõ ở `e`, `n`: cần vẽ lại bằng model nếu không ổn |
 
 Võ hồn công cụ làm chưa ổn: vẽ lại bằng Codex, danh sách + prompt ở [phap-tuong-codex-ve-lai.md](phap-tuong-codex-ve-lai.md).
 
