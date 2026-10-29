@@ -1,5 +1,5 @@
 {
-  "_": "Luy?n H?n C?nh (#1294): m?t s?nh ?? k?n, ba d?u s?ng v? d?u tinh anh ch? b?ng n?n ?i ???c; gi? c? 40?24 v? v?ng spawn c?a s?n c?, kh?ng ??i c?ch sinh s?ng. T?i d?ng ground isometric, kh?ng th?m ?nh.",
+  "_": "Luyện Hồn Cảnh (#1294): một sảnh đá kín, ba dấu sóng và dấu tinh anh chỉ bằng nền đi được; giữ cỡ 40×24 và vùng spawn của sân cũ, không đổi cách sinh sóng. Tái dùng ground isometric, không thêm ảnh.",
   "map": "luyen_hon_canh",
   "out": "luyen_hon_canh.json",
   "size": [
@@ -38,7 +38,7 @@
   },
   "tiers": [
     {
-      "name": "S?nh luy?n h?n",
+      "name": "Sảnh luyện hồn",
       "trees": {
         "17": 1
       },
@@ -68,7 +68,7 @@
   "features": [
     {
       "type": "area",
-      "name": "N?n ?? ngo?i s?nh",
+      "name": "Nền đá ngoài sảnh",
       "ground": "grass",
       "rect": [
         0,
@@ -80,7 +80,7 @@
     },
     {
       "type": "area",
-      "name": "S?nh Luy?n H?n",
+      "name": "Sảnh Luyện Hồn",
       "ground": "pave",
       "rect": [
         2,
@@ -92,7 +92,7 @@
     },
     {
       "type": "area",
-      "name": "D?u s?ng m?t",
+      "name": "Dấu sóng một",
       "circle": [
         14,
         8,
@@ -103,7 +103,7 @@
     },
     {
       "type": "area",
-      "name": "D?u s?ng hai",
+      "name": "Dấu sóng hai",
       "circle": [
         20,
         15,
@@ -114,7 +114,7 @@
     },
     {
       "type": "area",
-      "name": "D?u s?ng ba",
+      "name": "Dấu sóng ba",
       "circle": [
         26,
         8,
@@ -125,7 +125,7 @@
     },
     {
       "type": "area",
-      "name": "D?u tinh anh",
+      "name": "Dấu tinh anh",
       "circle": [
         30,
         12,
@@ -182,7 +182,7 @@
     }
   ],
   "spawn": {
-    "name": "S?nh Luy?n H?n",
+    "name": "Sảnh Luyện Hồn",
     "rect": [
       4,
       6,
