@@ -7,6 +7,9 @@ import { vohonCard } from "./cards.ts";
 import { artUrl, chanThanImg, skillImg } from "./uiArt.ts";
 import { toggleChar } from "./charPanel.ts";
 import { isUi2 } from "./uiKit.ts";
+import { rarityOf } from "./bag.ts";
+import { stateBox } from "./uiParts.ts";
+import { confirmDialog } from "./confirmDialog.ts";
 
 
 
@@ -362,9 +365,9 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
   fig.appendChild(mid);
   for (const s of BONE_SLOTS) {
     const it = worn.get(s.id), b = document.createElement("button");
-    b.type = "button"; b.className = "bcell" + (it ? "" : " empty") + (boneCell === s.id ? " sel" : "");
+    b.type = "button"; b.className = "bcell" + K("ui-cell f2-o") + (it ? K("has") : " empty") + (boneCell === s.id ? " sel" : "");
     b.dataset.slot = s.id; b.style.gridArea = BONE_AREA[s.id];
-    if (it) b.style.setProperty("--c", itemColor(it));
+    if (it) { b.style.setProperty("--c", itemColor(it)); if (UI2) b.dataset.rk = String(rarityOf(it)); } // hạng cho ô kit (ui2-hon-cot.css)
     // Từ 4.3: tên kỹ năng hồn cốt (chủ động / bị động) hiện trong ô.
     const kb = it ? boneOf(it) : null, k = kb ? boneSkillOf(kb.beast, s.id) : null, kname = k ? (k.active ? k.sk.name : k.ps.name) : "";
     b.innerHTML = `${it ? boneIcon(s.id, itemColor(it)) : boneEmptyIcon(s.id)}<span>${s.name}</span>${it ? `<small>${yearsShort(it.years)}</small>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${kname ? `<em></em>` : ""}`;
@@ -488,18 +491,36 @@ function renderCores(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
   const def = vohonDef(v.vohon);
   const head = document.createElement("b"); head.className = "shead"; head.textContent = `Hồn hạch · ${def.name}`;
   el.appendChild(head);
+  if (UI2) { // chọn võ hồn ngay tại mục này (cũ: chỉ đổi được ở mục hồn cốt), dùng chung `boneVh`
+    const pickRow = document.createElement("label"); pickRow.className = "bvh"; pickRow.innerHTML = `<span>Võ hồn</span><select></select>`;
+    const sel = pickRow.querySelector("select")!;
+    for (const o of data.list) {
+      const opt = document.createElement("option"), n = items.filter((i) => i.vohon === o.rowId && coreOf(i)).length;
+      opt.value = String(o.rowId); opt.selected = o.rowId === v.rowId;
+      opt.textContent = `${vohonDef(o.vohon).name} · cấp ${o.level}${o.rowId === data.active ? " · ra trận" : ""}${n ? ` · ${n}/${CORE_SLOTS} hồn hạch` : ""}`;
+      sel.appendChild(opt);
+    }
+    sel.addEventListener("change", () => { boneVh = Number(sel.value); coreCell = null; again(); });
+    el.appendChild(pickRow);
+  }
   const mine = items.filter((i) => i.vohon === v.rowId && coreOf(i)), bySlot = new Map<number, BagItem>();
   for (const it of mine) { const s = coreSlotOf(it.stats); if (s >= 0) bySlot.set(s, it); }
   if (coreCell !== null && coreCell >= CORE_SLOTS) coreCell = null;
 
-  const fig = document.createElement("div"); fig.className = "cfig"; fig.style.setProperty("--c", def.col);
+  const fig = document.createElement("div"); fig.className = "cfig" + K("cring-r"); fig.style.setProperty("--c", def.col);
+  if (UI2) { // giữa vòng: hình võ hồn (cùng nguồn với mục hồn cốt)
+    const mid = document.createElement("div"); mid.className = "cmid-r"; const icon = artUrl(`icon_${def.id}_32`), src = icon ?? act.portrait(v.vohon);
+    mid.innerHTML = src ? `<img class="${icon ? "vh-icon" : ""}" alt="" src="${src}">` : `<i class="dot"></i>`;
+    const cap = document.createElement("small"); cap.textContent = def.name; mid.appendChild(cap); fig.appendChild(mid);
+  }
   for (let s = 0; s < CORE_SLOTS; s++) {
     const it = bySlot.get(s), c = it ? coreOf(it) : null, cs = c ? coreSet(c.set) : undefined, b = document.createElement("button");
-    b.type = "button"; b.className = "bcell ccell" + (it ? "" : " empty") + (coreCell === s ? " sel" : "");
-    if (it) b.style.setProperty("--c", itemColor(it));
-    b.innerHTML = `${coreIcon(c?.set ?? "")}<span>Ô ${s + 1}</span>${it ? `<small>${it.stars ?? 1}★</small><em></em>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}`;
+    b.type = "button"; b.className = "bcell ccell" + K("ui-cell") + (it ? "" : " empty") + (coreCell === s ? " sel" : "");
+    if (it) { b.style.setProperty("--c", itemColor(it)); if (UI2) b.dataset.rk = String(rarityOf(it)); }
+    if (UI2) { const a = (s * 360) / CORE_SLOTS; b.style.setProperty("--x", `${(50 + 38 * Math.sin((a * Math.PI) / 180)).toFixed(1)}%`); b.style.setProperty("--y", `${(50 - 38 * Math.cos((a * Math.PI) / 180)).toFixed(1)}%`); } // 6 ô tròn quanh võ hồn
+    b.innerHTML = `${coreIcon(c?.set ?? "")}<span>${UI2 ? s + 1 : `Ô ${s + 1}`}</span>${it ? `<small>${it.stars ?? 1}★</small><em></em>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}`;
     if (it) b.querySelector("em")!.textContent = cs?.name ?? "Bộ lạ";
-    b.setAttribute("aria-label", `Ô hồn hạch ${s + 1}: ${it ? itemName(it) : "trống"}`);
+    b.setAttribute("aria-label", `Ô hồn hạch ${s + 1}: ${it ? `${itemName(it)}, ${it.stars ?? 1} sao${cs ? `, bộ ${cs.name}` : ""}${it.enhance ? `, nâng cấp +${it.enhance}` : ""}` : "trống"}`);
     b.setAttribute("aria-pressed", String(coreCell === s));
     b.title = it ? `${itemName(it)}\n${coreLines(it).join("\n")}` : `Ô ${s + 1} trống: gắn được mọi hồn hạch`;
     b.addEventListener("click", () => { b.blur(); coreCell = coreCell === s ? null : s; again(); });
@@ -719,7 +740,8 @@ export function enhancePicker(target: BagItem & { years: number }, items: BagIte
       sm[2].textContent = `⚠ ${mats.length} hồn cốt nguyên liệu sẽ bị tiêu hao (mất hẳn)${rare ? `, trong đó ${rare} món đã cường hóa hoặc từ 10.000 năm` : ""}. Cường hóa không bao giờ thất bại.`
         + (act.combat() ? " Đang giao chiến: rời xa hồn thú vài giây rồi mới cường hóa được." : "");
       box.appendChild(c);
-      btn(`Xác nhận: dùng ${mats.length} hồn cốt${fv.btn}`, "eok", () => { act.enhance(target.id, mats.map((i) => i.id)); enhMats.clear(); }).disabled = !!fv.poor;
+      const go = () => { act.enhance(target.id, mats.map((i) => i.id)); enhMats.clear(); };
+      btn(`Xác nhận: dùng ${mats.length} hồn cốt${fv.btn}`, "eok", () => (rare ? confirmDialog({ title: "Dùng nguyên liệu quý?", body: `${rare} trong ${mats.length} hồn cốt nguyên liệu đã cường hóa hoặc từ 10.000 năm; tất cả bị tiêu hao, không lấy lại được.`, confirm: `Dùng ${mats.length} hồn cốt`, danger: true }, go) : go())).disabled = !!fv.poor;
       btn("Bỏ chọn hết", "drop", () => { enhMats.clear(); again(); });
     }
   } else {
@@ -812,7 +834,8 @@ export function corePicker(target: BagItem, items: BagItem[], act: { enhanceCore
       sm[2].textContent = `⚠ ${mats.length} hồn hạch nguyên liệu sẽ bị tiêu hao (mất hẳn)${rare ? `, trong đó ${rare} món đã nâng cấp hoặc từ 4★` : ""}. Nâng cấp không bao giờ thất bại.`
         + (act.combat() ? " Đang giao chiến: rời xa hồn thú vài giây rồi mới nâng cấp được." : "");
       box.appendChild(c);
-      btn(`Xác nhận: dùng ${mats.length} hồn hạch${fv.btn}`, "eok", () => { act.enhanceCore(target.id, mats.map((i) => i.id)); enhMats.clear(); }).disabled = !!fv.poor;
+      const go = () => { act.enhanceCore(target.id, mats.map((i) => i.id)); enhMats.clear(); };
+      btn(`Xác nhận: dùng ${mats.length} hồn hạch${fv.btn}`, "eok", () => (rare ? confirmDialog({ title: "Dùng nguyên liệu quý?", body: `${rare} trong ${mats.length} hồn hạch nguyên liệu đã nâng cấp hoặc từ 4★; tất cả bị tiêu hao, không lấy lại được.`, confirm: `Dùng ${mats.length} hồn hạch`, danger: true }, go) : go())).disabled = !!fv.poor;
       btn("Bỏ chọn hết", "drop", () => { enhMats.clear(); again(); });
     }
   } else {
@@ -841,6 +864,7 @@ function renderShards(el: HTMLElement, data: OwnedVohons, act: RosterActions, sh
   }).filter((r) => r.v || r.have > 0)
     .sort((a, b) => Number(b.ready) - Number(a.ready) || Number(!b.v) - Number(!a.v) || b.have - a.have);
   const grid = document.createElement("div"); grid.className = "cgrid sgrid"; el.appendChild(grid);
+  if (UI2 && !rows.length) grid.replaceWith(stateBox({ kind: "empty", text: "Chưa có mảnh võ hồn nào.", hint: "Hạ hồn thú để nhận mảnh rơi vào túi đồ." }));
   for (const { def, v, have, need, ready } of rows) {
     const row = document.createElement("div"); row.className = "srow" + (ready ? " ready" : "");
     row.style.setProperty("--c", def.col);

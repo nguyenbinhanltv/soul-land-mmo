@@ -3,7 +3,7 @@
 // và client đã build (server phục vụ client/dist). KHÔNG trỏ DB thật; không có DATABASE_URL thì dữ liệu chỉ ở RAM.
 //   node client/scripts/ui-shots.mjs --server http://localhost:2547 --out <thư mục> [--sizes 1366x768,1280x720,960x540,1920x1080] [--only dang-nhap,hud,tui] [--tag truoc] [--dpr 1] [--outer]
 // Cỡ ghi trong tên ảnh là cỡ vùng hiển thị thật (đặt bằng Emulation.setDeviceMetricsOverride, không tính khung cửa sổ Chrome).
-// Mã cảnh (--only): dang-nhap, tao-nhan-vat, the-vao-ban-do, hud, hud-tien-do, tui, nhan-vat, hai-cua-so, doi-hinh, cong-minh, ban-be, tu-dong, ban-do, the-gioi, cai-dat.
+// Mã cảnh (--only): dang-nhap, tao-nhan-vat, the-vao-ban-do, hud, hud-tien-do, tui, nhan-vat, hai-cua-so, doi-hinh, hon-cot, cong-minh, ban-be, tu-dong, ban-do, the-gioi, cai-dat.
 // Luật: đúng MỘT Chrome headless, luôn --mute-audio, cổng CDP ngẫu nhiên (không dùng 9333), chụp tuần tự từng cỡ; xong tắt đúng PID của mình.
 // Chrome tìm ở biến CHROME (đường dẫn) hoặc đường dẫn cài đặt mặc định (Chrome, rồi Edge).
 import { spawn } from "node:child_process";
@@ -20,6 +20,7 @@ const ONLY = opt("only", "") ? new Set(opt("only", "").split(",")) : null;
 const TAG = opt("tag", "");
 const DPR = +opt("dpr", "1");
 const QS = argv.includes("--ui2") ? "&ui=2" : ""; // --ui2: bật cờ giao diện v2 (?ui=2) cho ảnh "sau" của PR giao diện
+const FS = opt("fs", ""); // --fs 1|2: thêm lớp a11y-fs-N (cỡ chữ Lớn / Rất lớn) sau khi vào bản đồ
 const OUTER = argv.includes("--outer"); // cỡ = cửa sổ Chrome (vùng hiển thị nhỏ hơn: khung tab / thanh địa chỉ), như người chơi mở cửa sổ 960×540
 const CHROMES = [process.env.CHROME, "C:/Program Files/Google/Chrome/Application/chrome.exe", "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", "/usr/bin/google-chrome", "/usr/bin/chromium"].filter(Boolean);
 const CHROME = CHROMES.find((p) => existsSync(p));
@@ -68,6 +69,7 @@ async function runSize(W, H) {
     await step("the-vao-ban-do", () => shot("03-the-vao-ban-do"));
     await click("go");
     await until(`!!window.__scene?.room?.state?.players?.size`); await sleep(2500);
+    if (FS) await ev(`document.body.classList.add("a11y-fs-${FS}"), true`);
     await step("hud", () => shot("10-hud-mac-dinh"));
     for (const v of ["lam_ngan_thao", "thanh_phong_ky", "bach_ho"]) { await test({ op: "grant", vohon: v }); await sleep(300); }
     await test({ op: "coin", n: 123456 });
@@ -80,6 +82,19 @@ async function runSize(W, H) {
     await step("nhan-vat", async () => { await key("KeyH", "h"); await shot("21-nhan-vat-trang-bi"); await key("BracketRight", "]"); await shot("22-nhan-vat-hon-cot"); await key("Escape", "Escape"); });
     await step("hai-cua-so", async () => { await key("KeyH", "h"); await key("KeyB", "b"); await shot("24-hai-cua-so"); await key("Escape", "Escape"); await key("Escape", "Escape"); });
     await step("doi-hinh", async () => { await key("KeyV", "v"); await shot("30-doi-hinh"); await key("Escape", "Escape"); });
+    // Mục Hồn cốt / Hồn hạch / Mảnh của bảng Võ Hồn (đợt 2b-2): mở tab dưới, gắn vài món từ túi, chụp, mở bảng cường hóa.
+    await step("hon-cot", async () => {
+      const tab = (t) => ev(`document.querySelector('#roster .rtabs [data-tab="${t}"]')?.click(), true`);
+      const eq = async (n) => { for (let i = 0; i < n; i++) { await ev(`document.querySelector("#roster .bitem .sbtn")?.click(), true`); await sleep(700); } };
+      await key("KeyV", "v"); await tab("bone"); await sleep(400); await eq(2); await shot("40-hon-cot");
+      await ev(`document.querySelector("#roster .bcell:not(.empty)")?.click(), true`); await sleep(500); await shot("41-hon-cot-chon");
+      await ev(`[...document.querySelectorAll("#roster .buse")].find((b) => b.textContent.includes("Cường hóa"))?.click(), true`); await sleep(500);
+      await ev(`document.querySelector("#roster .aopt")?.click(), true`); await sleep(500); await ev(`(document.getElementById("roster").scrollTop = 1e5, true)`); await sleep(200); await shot("42-hon-cot-cuong-hoa");
+      await tab("core"); await sleep(400); await eq(3); await shot("43-hon-hach");
+      await ev(`document.querySelector("#roster .ccell:not(.empty)")?.click(), true`); await sleep(500); await shot("44-hon-hach-chon"); await ev(`(document.getElementById("roster").scrollTop = 1e5, true)`); await sleep(200); await shot("46-hon-hach-duoi");
+      await tab("manh"); await sleep(400); await shot("45-manh");
+      await key("Escape", "Escape");
+    });
     await step("cong-minh", async () => { await key("KeyK", "k"); await shot("31-cong-minh"); await key("Escape", "Escape"); });
     await step("ban-be", async () => { await key("KeyL", "l"); await shot("32-ban-be"); await key("Escape", "Escape"); });
     await step("tu-dong", async () => { await click("autoBtn"); await sleep(500); await shot("33-tu-dong"); await click("autoBtn"); });
