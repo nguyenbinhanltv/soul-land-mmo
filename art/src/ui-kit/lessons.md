@@ -89,3 +89,10 @@ Hai bài học pilot menu chỉ lưu lịch sử, không áp cho các họ icon 
 > - [I] For the menu family, draw these sixteen subjects in reading order: character bust, four-person roster, bag, resonating linked rings, settings gear, automatic hunt crossed blades with a circular arrow, channel signal, local area map pin, world globe, two friends, ranking trophy, quest scroll, chat speech bubble, arena crossed swords, shop coin purse, forge hammer and anvil. // Pilot #884: đúng thứ tự 16 gi_menu_* để so từng cặp với game-icons.
 > - [I] Use only three completely flat opaque fill colours across all sixteen menu icons: ivory #e8dcc0, vermilion #a43d32 and bronze #b08a4a, plus outline #1a1020; no extra highlight or shadow shades, no gradients and no texture. // Pilot lượt 1 chặn 41 màu: lượt 2 chỉ khóa bảng màu phẳng.
 - [T] Fill all three coloured bar inserts with exactly one flat opaque colour each, without gradients or shading; their straight outer edges must stay constant in colour from end to end. // T Giấy lượt 1: dải hồn lực và kinh nghiệm bị chặn cạnh không phẳng do chuyển sắc.
+
+## Họ mảnh võ hồn (#1305)
+
+Ghi chú bắt đầu bằng `family:manh` chỉ nạp khi gọi `lessonsFor` với họ `manh`; các tờ UI khác không nhận hai bài học này.
+
+- [I] The output canvas MUST be SQUARE, width equals height (1:1). The reference is for materials only. Leave large empty magenta space ABOVE and BELOW the single horizontal row of three pieces, even if this means most of the square canvas is empty. Never crop the canvas to the row. // family:manh — lượt 1 sinh ngang 2172×724, lượt 2 khóa lại canvas vuông
+- [I] Use EXACT RGB (255,0,255) for EVERY background pixel, also right next to the silhouettes. Absolutely NO antialiased pink edge, NO pink-purple tint on the dark outline, NO background noise or shading. Every outline pixel is opaque dark #1a1020 and immediately meets pure magenta with a hard pixel edge. // family:manh — lượt 2 viền hồng 60%; lượt 3 còn 56,2%, cắt mềm về 0%, dừng đủ ba lượt

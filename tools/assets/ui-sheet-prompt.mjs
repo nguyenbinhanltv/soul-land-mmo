@@ -132,7 +132,7 @@ function piecesBlock(kind, layout, material) {
 
 /** Prompt tiếng Anh cho model. */
 export function buildPrompt(kind, o = {}) {
-  const shape = o.shape ?? (kind.board ? "3:2" : kind.shapes[0]), [aspect] = ASPECT[shape], mat = materialOf(o), bd = o.style ? STYLES[o.style].board : { ink: "near-black wood, ink-wash grain, pale bronze rim", paper: "ivory rice paper, thin vermilion rim, wooden roller", rim: "bronze rim" }, lessons = lessonsBlock(kind.id, o.style ? lessonsFor(kind.id).filter((l) => !OLD_MATERIAL.test(l.text)) : undefined);
+  const shape = o.shape ?? (kind.board ? "3:2" : kind.shapes[0]), [aspect] = ASPECT[shape], mat = materialOf(o), bd = o.style ? STYLES[o.style].board : { ink: "near-black wood, ink-wash grain, pale bronze rim", paper: "ivory rice paper, thin vermilion rim, wooden roller", rim: "bronze rim" }, selectedLessons = o.lessons ?? lessonsFor(kind.id), lessons = lessonsBlock(kind.id, o.style ? selectedLessons.filter((l) => !OLD_MATERIAL.test(l.text)) : selectedLessons);
   if (kind.board) {
     if (o.style === "hon-quang") {
       // BOARD v3 có bố cục và nền riêng; không kéo bài học tờ cắt / BOARD cũ vào.

@@ -26,6 +26,9 @@ export function parseLessons(md) {
 }
 
 /** Bài học áp cho một loại tờ, theo thứ tự trong file. */
-export function lessonsFor(kind, md = readFileSync(LESSONS_FILE, "utf8")) {
-  return parseLessons(md).filter((l) => !l.kinds || l.kinds.has(kind));
+export function lessonsFor(kind, md = readFileSync(LESSONS_FILE, "utf8"), family) {
+  return parseLessons(md).filter((l) => {
+    const scope = /^family:([a-z-]+)\b/.exec(l.note)?.[1];
+    return (!l.kinds || l.kinds.has(kind)) && (!scope || scope === family);
+  });
 }
