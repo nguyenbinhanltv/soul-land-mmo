@@ -13,6 +13,11 @@ export { DIRS, DIR_VI, LPC_SHEET, ratioNear, canonFactor };
 
 export const DOC_SPEC = path.join(ROOT, "docs", "art", "phu-the-hoat-anh.md");
 export const DOC_STYLE = path.join(ROOT, "docs", "art", "vo-hon-phong-cach.md");
+/** Phụ thể v2 = vũ khí cầm tay (#1307, #1312; phu-the-vu-khi.md (thư mục docs/art)): bảng 25 dòng "dạng vũ khí" + kế hoạch kỹ thuật. */
+export const DOC_VUKHI = path.join(ROOT, "docs", "art", "phu-the-vu-khi.md");
+/** Kiểu tờ: `phuthe` (phụ thể cũ, sheet `vhanim_*`) và `vukhi` (vũ khí cầm tay, sheet `vkanim_*`, thêm marker điểm cầm). */
+export const KINDS = ["phuthe", "vukhi"];
+export const checkKind = (k = "phuthe") => { if (!KINDS.includes(k)) throw new Error(`kiểu tờ chỉ ${KINDS.join(" / ")} (nhận ${k})`); return k; };
 export const ANIM_ROOT = path.join(ROOT, "art", "src", "phuthe-anim");
 export const LESSONS_FILE = path.join(ANIM_ROOT, "lessons.md");
 
@@ -92,7 +97,10 @@ export const GAME_ROWS = SEXES.length * DIRS.length;
 export const gameRow = (sex, dir) => SEXES.indexOf(sex) * DIRS.length + DIRS.indexOf(dir);
 /** Hai nửa: `b` = sau thân (`sau`), `f` = trước thân (`truoc`); tên theo sheet phụ thể cũ `vh_{id}_b` / `_f`. */
 export const HALVES = { sau: "b", truoc: "f" };
-export const gameKey = (id, half) => `vhanim_${id}_${half}`;
+export const GAME_PREFIX = { phuthe: "vhanim", vukhi: "vkanim" };
+export const gameKey = (id, half, kind = "phuthe") => `${GAME_PREFIX[checkKind(kind)]}_${id}_${half}`;
+/** Thư mục tờ RAW của một võ hồn: phụ thể cũ ở `<id>/`, vũ khí ở `<id>/vukhi/` (cùng toA–toE, lop.json). */
+export const animDir = (id, kind = "phuthe", root = ANIM_ROOT) => (checkKind(kind) === "vukhi" ? path.join(root, id, "vukhi") : path.join(root, id));
 
 // ---------- Ánh xạ clip phụ thể sang khung thân (đặc tả, mục "Ánh xạ clip phụ thể sang khung thân") ----------
 const LPC_ANIM = { idle: "idle", walk: "walk", attack: "attack", cast: "cast", hurt: "hurt" };
@@ -151,6 +159,23 @@ export function guideKeyOf(id, dummyKey = dummyKeyOf(id), colors = vohonColors(i
   return GUIDE_KEY_CANDIDATES.find(far) ?? GUIDE_KEY;
 }
 
+// ---------- Màu khóa marker điểm cầm (kiểu vũ khí) ----------
+/** Marker điểm cầm: chấm / vòng nhỏ đè đúng chỗ bàn tay của nộm, MỘT màu khóa riêng khác nền, nộm, vạch (đặc tả vũ khí, mục "Điểm cầm trên nộm"). Cutter trừ như vạch, KHÔNG vào sheet game. */
+export const GRIP_KEY = "#00FF60";
+/** Ứng viên đổi màu marker khi võ hồn có màu gần lục chói (cutter dùng cùng cách chọn như màu vạch). */
+export const GRIP_KEY_CANDIDATES = [GRIP_KEY, "#FFE000", "#FF3030"];
+/** Bán kính marker theo điểm ảnh ô canonical 256: chấm đặc (tay thuận `A`) và vòng (tay kia `B`, hở giữa); hai bên khác nhau bằng HÌNH, không thêm màu. */
+export const GRIP_R = 6, GRIP_RING_IN = 3;
+/** Điểm đeo `vai` = `back` dời lên theo tỉ lệ chiều cao thân (hằng công cụ, không ở shared/data.ts). */
+export const SHOULDER_UP = 0.12;
+/** Số marker điểm cầm của một vũ khí theo cột "Tay": `1 tay` → 1 (chỉ tay thuận A), `2 tay` / `đôi` / `găng` → 2 (A chấm, B vòng). */
+export const gripCount = (hands) => (/^1 tay/.test(hands ?? "") ? 1 : 2);
+/** Màu khóa marker: ứng viên đầu tiên cách xa (≥ 90) màu thân + nhấn của võ hồn, màu nộm, màu vạch (≥ 120). */
+export function gripKeyOf(id, dummyKey = dummyKeyOf(id), guideKey = guideKeyOf(id, dummyKey), colors = vohonColors(id)) {
+  const far = (g) => [dummyKey, guideKey].every((c) => rgbDist(g, c) >= 120) && (!colors || [colors.col, colors.robe].every((c) => rgbDist(g, c) >= 90));
+  return GRIP_KEY_CANDIDATES.find(far) ?? GRIP_KEY;
+}
+
 // ---------- Thông tin từng võ hồn ----------
 const read = (f) => readFileSync(f, "utf8");
 /** Bảng "Bảng phần riêng của phụ thể" trong đặc tả → [{ n, name, id, group, frame, frameNote, attach, motion }]. */
@@ -191,14 +216,36 @@ export function vohonColors(id) {
   return m ? { col: m[1], robe: m[2] } : null;
 }
 
+/** Khung 128 mặc định cho vũ khí dài / to (đặc tả vũ khí, bước 3 và 7); mọi vũ khí khác khung 96. Đổi bằng `--frame`. */
+export const VUKHI_FRAME_128 = new Set(["hao_thien_chuy"]);
+/** Nhóm vũ khí theo cột "Nhóm" của bảng: cứng → A (clip ít pose); mềm / găng-vuốt → B (clip đủ pose). */
+export const VUKHI_GROUP = { "cứng": "A", "mềm": "B", "găng-vuốt": "B" };
+/**
+ * Bảng 25 vũ khí trong `phu-the-vu-khi.md` → [{ n, name, id, shape, type, group, frame, hands, attach, motion }]:
+ * `shape` = dạng vũ khí, `type` = cứng | mềm | găng-vuốt, `hands` = 1 tay | 2 tay | đôi | găng, `attach` = điểm cầm, `motion` = ghi chú attack / cast.
+ */
+export function parseVukhiTable(md = read(DOC_VUKHI)) {
+  const out = [];
+  for (const line of md.split(/\r?\n/)) {
+    const c = line.split("|").map((s) => s.trim());
+    if (c.length < 9 || !/^\d+$/.test(c[1])) continue;
+    const id = /`([a-z_]+)`/.exec(c[2])?.[1], type = c[4], group = VUKHI_GROUP[type];
+    if (!id || !group) continue;
+    out.push({ n: +c[1], name: c[2].replace(/\s*\(`[a-z_]+`\)/, ""), id, shape: c[3], type, group, frame: VUKHI_FRAME_128.has(id) ? 128 : 96, hands: c[5], attach: c[6], motion: c[7] });
+  }
+  return out;
+}
+export const allVukhiIds = (md) => parseVukhiTable(md).map((r) => r.id);
+
 /** Thông tin một phụ thể: bảng đặc tả + mô tả mục 4 + màu VOHON + màu khóa nộm. Ném lỗi nếu thiếu ở đâu đó. */
-export function phutheInfo(id) {
-  const row = parseSpecTable().find((r) => r.id === id);
-  if (!row) throw new Error(`võ hồn ${id} không có trong bảng phần riêng của phụ thể (${path.relative(ROOT, DOC_SPEC)})`);
+export function phutheInfo(id, kind = "phuthe", md) {
+  checkKind(kind);
+  const vk = kind === "vukhi", doc = vk ? DOC_VUKHI : DOC_SPEC, row = (vk ? parseVukhiTable(md) : parseSpecTable(md)).find((r) => r.id === id);
+  if (!row) throw new Error(`võ hồn ${id} không có trong bảng ${vk ? "25 vũ khí" : "phần riêng của phụ thể"} (${path.relative(ROOT, doc)})`);
   const brief = parseStyleBrief(id);
   if (!brief) throw new Error(`võ hồn ${id} không có mô tả ở mục 4 của ${path.relative(ROOT, DOC_STYLE)}`);
-  const colors = vohonColors(id), dummyKey = dummyKeyOf(id);
-  return { ...row, brief, colors, dummyKey, guideKey: guideKeyOf(id, dummyKey, colors), groupVi: GROUP_VI[row.group] };
+  const colors = vohonColors(id), dummyKey = dummyKeyOf(id), guideKey = guideKeyOf(id, dummyKey, colors);
+  return { ...row, kind, brief, colors, dummyKey, guideKey, ...(vk ? { gripKey: gripKeyOf(id, dummyKey, guideKey, colors) } : {}), groupVi: GROUP_VI[row.group] };
 }
 export const allPhutheIds = () => parseSpecTable().map((r) => r.id);
 

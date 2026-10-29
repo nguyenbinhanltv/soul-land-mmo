@@ -10,7 +10,7 @@ import { layoutFor } from "./beast-sheet-cut-lib.mjs";
 import { foregroundMask, components } from "./beast-sheet-cut.mjs";
 import { median } from "./beast-sheet-stats.mjs";
 import { CELL, SHEET_W, SHEET_H, DIRS, framesOf, sheetPlan, bodyStepOf, sheetFits, canonFactor, DEFAULT_LAYER, LAYER_LABELS, frameOrigin } from "./phuthe-sheet-lib.mjs";
-import { dummyCell } from "./phuthe-sheet-dummy.mjs";
+import { dummyCell, gripPoints } from "./phuthe-sheet-dummy.mjs";
 
 /** Dung sai khoá nền (như hồn thú) và dung sai khoá nộm (nhỏ hơn: không ăn sang phụ thể; đặc tả, ý 4). */
 export const BG_TOL = 60, DUMMY_TOL = 40;
@@ -34,17 +34,19 @@ export function normalizeSheet(raw) {
  * Mặt nạ của tờ canonical: `fg` = không phải nền (sau gỡ viền nền, gồm nộm); `dummy` = điểm nộm (gần màu khoá nộm); `spirit` = phụ thể
  * (fg trừ nộm, gỡ tiếp 3 lớp viền ngả màu khoá nộm giáp vùng nộm, như viền ngả nền).
  */
-export function sheetMasks(img, { bgKey, tol = BG_TOL, dummyKey, dummyTol = DUMMY_TOL, guideKey = null }) {
-  const { w, h } = img, fg = foregroundMask(img, [...bgKey, 255], tol), dummy = new Uint8Array(w * h), guide = new Uint8Array(w * h), spirit = new Uint8Array(w * h), dk = dummyKey.slice(0, 3), gk = guideKey && guideKey.slice(0, 3);
+export function sheetMasks(img, { bgKey, tol = BG_TOL, dummyKey, dummyTol = DUMMY_TOL, guideKey = null, gripKey = null }) {
+  const { w, h } = img, fg = foregroundMask(img, [...bgKey, 255], tol), dummy = new Uint8Array(w * h), guide = new Uint8Array(w * h), grip = new Uint8Array(w * h), spirit = new Uint8Array(w * h), dk = dummyKey.slice(0, 3), gk = guideKey && guideKey.slice(0, 3), pk = gripKey && gripKey.slice(0, 3);
   for (let i = 0; i < w * h; i++) {
     const o = i * 4, c = [img.data[o], img.data[o + 1], img.data[o + 2]];
     if (img.data[o + 3] >= 128 && dist2(c, dk) <= dummyTol * dummyTol) dummy[i] = 1;
     // Vạch tham chiếu (#1171): màu khóa riêng, trừ như nộm và bỏ khỏi `fg` (vạch chạy suốt ô, không được làm mất khoảng trống giữa các ô khi dò lưới).
     else if (gk && img.data[o + 3] >= 128 && dist2(c, gk) <= dummyTol * dummyTol) { guide[i] = 1; fg[i] = 0; }
+    // Marker điểm cầm (kiểu vũ khí): màu khóa riêng, trừ như vạch; `grip` giữ lại để kiểm marker còn thấy / trôi (phuthe-sheet-check).
+    else if (pk && img.data[o + 3] >= 128 && dist2(c, pk) <= dummyTol * dummyTol) { grip[i] = 1; fg[i] = 0; }
     spirit[i] = fg[i] && !dummy[i] ? 1 : 0;
   }
   // Gỡ 3 lớp viền ngả màu khóa giáp vùng bị trừ (nộm: viền ngả màu nộm; vạch: viền ngả màu vạch), như viền ngả nền.
-  for (const [seed, key] of [[dummy, dk], [guide, gk]]) {
+  for (const [seed, key] of [[dummy, dk], [guide, gk], [grip, pk]]) {
     if (!key) continue;
     const removed = Uint8Array.from(seed), fringe = (dummyTol * 1.9) ** 2;
     for (let pass = 0; pass < 3; pass++) {
@@ -58,7 +60,7 @@ export function sheetMasks(img, { bgKey, tol = BG_TOL, dummyKey, dummyTol = DUMM
       for (const i of kill) { spirit[i] = 0; removed[i] = 1; }
     }
   }
-  return { fg, dummy, guide, spirit };
+  return { fg, dummy, guide, grip, spirit };
 }
 
 /**
@@ -120,14 +122,15 @@ export function registerDummy(obs, w, h, nom, ox, oy) {
  * @returns {{ img: Img, factor: number, bgKey: number[], masks: object, layout: object, cells: object[], shift: {dx:number, dy:number}, notes: string[] }}
  *   cells[i] = { anim, frame, col, row, step, nom, reg: { dx, dy, score, ok }, win: {x0, y0}, rect }; (win = góc trên trái cửa sổ khung 256×256 trong ảnh canonical)
  */
-export function prepareSheet(raw, { group, dir, frame, dummyKey, guideKey = null, dummyTol = DUMMY_TOL, tol = BG_TOL, key, sex = "m", grid = "auto" }) {
+export function prepareSheet(raw, { group, dir, frame, dummyKey, guideKey = null, gripKey = null, gripN = 2, dummyTol = DUMMY_TOL, tol = BG_TOL, key, sex = "m", grid = "auto" }) {
   const { img, factor } = normalizeSheet(raw), bgKey = (key ?? sheetKey(img)).slice(0, 3);
-  const dk = typeof dummyKey === "string" ? hex(dummyKey) : dummyKey, gk = guideKey ? (typeof guideKey === "string" ? hex(guideKey) : guideKey) : null, masks = sheetMasks(img, { bgKey, tol, dummyKey: dk, dummyTol, guideKey: gk });
-  const sheet = sheetPlan(group)[DIRS.indexOf(dir)], layout = layoutFor(eraseGuides(img, gk), sheet, grid, { key: bgKey, tol: GRID_TOL }), fr = framesOf(group);
+  const dk = typeof dummyKey === "string" ? hex(dummyKey) : dummyKey, gk = guideKey ? (typeof guideKey === "string" ? hex(guideKey) : guideKey) : null, pk = gripKey ? (typeof gripKey === "string" ? hex(gripKey) : gripKey) : null, masks = sheetMasks(img, { bgKey, tol, dummyKey: dk, dummyTol, guideKey: gk, gripKey: pk });
+  const sheet = sheetPlan(group)[DIRS.indexOf(dir)], layout = layoutFor(eraseGuides(eraseGuides(img, gk), pk), sheet, grid, { key: bgKey, tol: GRID_TOL }), fr = framesOf(group);
   const cells = sheet.cells.map((c) => {
-    const step = bodyStepOf(c.anim, fr[c.anim], c.frame), nom = nominalOf({ sex, dir, clip: c.anim, step, frame });
+    const step = bodyStepOf(c.anim, fr[c.anim], c.frame), nom = nominalOf({ sex, dir, clip: c.anim, step, frame }), grip = pk ? { ...gripPoints({ sex, dir, clip: c.anim, step, frame }) } : null;
+    if (grip) grip.hands = grip.hands.slice(0, gripN); // vũ khí 1 tay: chỉ tay thuận A
     const reg = registerDummy(masks.dummy, img.w, img.h, nom, c.col * CELL, c.row * CELL);
-    return { ...c, step, nom, reg: { ...reg, ok: reg.score >= REG_MIN_SCORE }, rect: layout.rect(c.col, c.row) };
+    return { ...c, step, nom, ...(grip ? { grip } : {}), reg: { ...reg, ok: reg.score >= REG_MIN_SCORE }, rect: layout.rect(c.col, c.row) };
   });
   const good = cells.filter((c) => c.reg.ok), notes = [...layout.notes];
   const shift = good.length ? { dx: Math.round(median(good.map((c) => c.reg.dx))), dy: Math.round(median(good.map((c) => c.reg.dy))) } : { dx: 0, dy: 0 };
@@ -152,6 +155,26 @@ export function cellSpirit(prep, cell) {
     if (u < 2 || v < 2 || u >= CELL - 2 || v >= CELL - 2) edge++;
   }
   return { px, outside, edge };
+}
+
+/**
+ * Marker điểm cầm đo được trong cửa sổ khung của một ô (kiểu vũ khí): mỗi điểm màu marker trong bán kính `GRIP_SEARCH` được gán cho điểm cầm danh nghĩa gần nhất
+ * (`cell.grip.hands[i]`, toạ độ cửa sổ) → [{ nominal: [u, v], seen: số điểm, at: [u, v] | null (trọng tâm), drift: khoảng lệch so với danh nghĩa | null }].
+ * Vũ khí che hết marker thì `seen` = 0 (không phải lỗi: chỉ bỏ qua kiểm trôi).
+ */
+export const GRIP_SEARCH = 48;
+export function cellGripObs(prep, cell) {
+  const { img, masks } = prep, { win } = cell, hands = cell.grip?.hands ?? [], acc = hands.map(() => ({ n: 0, su: 0, sv: 0 }));
+  if (!hands.length) return [];
+  const x0 = Math.max(0, win.x0), y0 = Math.max(0, win.y0);
+  for (let Y = y0; Y < Math.min(img.h, win.y0 + CELL); Y++) for (let X = x0; X < Math.min(img.w, win.x0 + CELL); X++) {
+    if (!masks.grip[Y * img.w + X]) continue;
+    const u = X - win.x0, v = Y - win.y0;
+    let best = -1, bd = GRIP_SEARCH;
+    hands.forEach(([nu, nv], i) => { const d = Math.hypot(u - nu, v - nv); if (d < bd) { bd = d; best = i; } });
+    if (best >= 0) { acc[best].n++; acc[best].su += u; acc[best].sv += v; }
+  }
+  return hands.map(([nu, nv], i) => { const { n, su, sv } = acc[i]; return { nominal: [nu, nv], seen: n, at: n ? [su / n, sv / n] : null, drift: n ? Math.hypot(su / n - nu, sv / n - nv) : null }; });
 }
 
 /** Bỏ các mảnh nhỏ hơn `minArea` điểm (đốm vụn, 8 liên thông); trả { px, dropped }. */
@@ -237,7 +260,7 @@ export const LEVELS = ["info", "warn", "block"];
 /** Phân mức theo mã (mỗi cảnh báo của cutter có mã ngắn). block = phải sửa trước khi nhập; warn = nên xem; info = chỉ đếm. */
 export const CODE_LEVEL = {
   "thieu-to": "block", "thieu-huong": "info", "khung-rong": "block", "con-nom": "block", "nom-mat": "warn", "nom-lech": "warn", "vuot-khung": "warn", "cham-mep": "warn",
-  "co-phu-the": "warn", "khung-lech": "warn", "manh-vun": "info", "luoi": "info", "ghi-chu": "info", "hurt-rong": "warn", "ben-nua": "info", "cat-mep-khung": "warn",
+  "diem-cam": "block", "marker-troi": "warn", "co-phu-the": "warn", "khung-lech": "warn", "manh-vun": "info", "luoi": "info", "ghi-chu": "info", "hurt-rong": "warn", "ben-nua": "info", "cat-mep-khung": "warn",
 };
 export const levelOfCode = (code) => CODE_LEVEL[code] ?? "warn";
 export function summarize(items) {

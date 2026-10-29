@@ -22,8 +22,8 @@ const outlined = (img, poly, color, out = OUT) => { for (let dy = -2; dy <= 2; d
 /**
  * Tờ giả của một hướng: { img }. Tùy chọn: seed, drift [dx, dy], bad (danh sách lỗi), wingColor, jitter (dời ngẫu nhiên từng ô).
  */
-export function fakeSheet({ group, dir, frame, key, sex = "m", seed = 1, drift = [0, 0], bad = [], wingColor = WING, jitter = 3, guideKey = null }) {
-  const rand = rng(seed), base = dummySheet({ group, dir, frame, key, sex, guideKey }), out = new Img(SHEET_W, SHEET_H);
+export function fakeSheet({ group, dir, frame, key, sex = "m", seed = 1, drift = [0, 0], bad = [], wingColor = WING, jitter = 3, guideKey = null, gripKey = null, gripN = 2 }) {
+  const rand = rng(seed), base = dummySheet({ group, dir, frame, key, sex, guideKey, gripKey, gripN }), out = new Img(SHEET_W, SHEET_H);
   for (let i = 0; i < out.data.length; i += 4) { out.data[i] = 255; out.data[i + 1] = 0; out.data[i + 2] = 255; out.data[i + 3] = 255; }
   const kc = hex(key);
   base.cells.forEach((c, n) => {
@@ -31,7 +31,14 @@ export function fakeSheet({ group, dir, frame, key, sex = "m", seed = 1, drift =
     for (let i = 0; i < cellImg.data.length; i += 4) { cellImg.data[i] = 255; cellImg.data[i + 2] = 255; cellImg.data[i + 3] = 255; }
     const gd = guideKey ? guideCell({ sex, dir, clip: c.anim, step: c.step, frame }) : [], gcol = guideKey ? [...hex(guideKey), 255] : null; // vạch tham chiếu còn trong ảnh (model chép lại): dưới nộm, riêng trục + tâm ngực đè lên nộm; cutter phải trừ
     for (const [x, y, w, h, o] of gd) if (!o) for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) cellImg.set(x + i, y + j, gcol);
-    if (bad.includes("empty") && n === 5) { /* ô rỗng */ } else {
+    if (bad.includes("empty") && n === 5) { /* ô rỗng */ } else if (gripKey) {
+      // Kiểu vũ khí: MỘT thanh cầm ở marker tay thuận, đè lên nộm và che nửa marker; không cánh. `float`: ở khung đứng thanh lơ lửng cách tay; `mdrift`: marker ô số 1 vẽ lệch 30 điểm.
+      const gk = hex(gripKey), hand = c.grip?.hands[0], shown = bad.includes("mdrift") && n === 1 ? [30, 0] : [0, 0];
+      for (let y = 0; y < CELL; y++) for (let x = 0; x < CELL; x++) if (c.cell.mask[y * CELL + x]) cellImg.set(x, y, [...kc, 255]);
+      for (const [x, y, w, h, o] of gd) if (o) for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) cellImg.set(x + i, y + j, gcol);
+      for (const [x, y] of c.grip?.pts ?? []) cellImg.set(x + shown[0], y + shown[1], [...gk, 255]);
+      if (hand) { const up = bad.includes("float") && c.anim === "idle" ? 70 : 0, [hx, hy] = hand; outlined(cellImg, [[hx - 5, hy - 70 - up], [hx + 5, hy - 70 - up], [hx + 5, hy - 2 - up], [hx - 5, hy - 2 - up]], BLADE); }
+    } else {
       const [fx, fy] = c.cell.foot, beat = Math.sin((c.frame / 4) * Math.PI * 2) * 12;
       const wing = (s, col) => outlined(cellImg, [[fx + s * 22, fy - 100], [fx + s * 80, fy - 120 + beat], [fx + s * 86, fy - 60 + beat], [fx + s * 24, fy - 40]], col, bad.includes("keycolor") && n === 7 ? kc.concat(255) : OUT);
       const wc = (bad.includes("keycolor") || bad.includes("partkey")) && n === 7 ? kc.concat(255) : wingColor;

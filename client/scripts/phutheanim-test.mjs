@@ -2,10 +2,10 @@
 // bố cục manifest + fallback, hệ số giảm spiritMotion khi có clip. Module thuần, không Phaser.
 import assert from "node:assert/strict";
 import { LPC_SHEET } from "../../shared/data.ts";
-import { PHU_CLIPS, PHU_DIRS, PHU_DEFAULT_CLIPS as D, PHU_FRAMES, PHU_ROWS_PER_SEX, parsePhuLayout, phuBodyStep, phuClipIndex, phuClipOf, phuDirOk, phuDirRow, phuFaceOf, phuFlip, phuFrame, phuHalf, phuOriginY, phuSheetFits } from "../src/phutheAnim.ts";
+import { PHU_CLIPS, PHU_DIRS, PHU_DEFAULT_CLIPS as D, PHU_FRAMES, PHU_ROWS_PER_SEX, parsePhuLayout, phuBodyStep, phuClipIndex, phuClipOf, phuDirOk, phuDirRow, phuFaceOf, phuFlip, phuFrame, phuHalf, phuOriginY, phuSheetFits, phuGripAt, weaponHidden } from "../src/phutheAnim.ts";
 import { PHU_NO_ANCHOR, parsePhuAnchor, phuAnchorAt, phuAnchorJson } from "../src/phutheAnchor.ts";
 import { fakePose } from "../src/phutheFake.ts";
-import { clipOscK, newSpiritPose, spiritPose, SPIRIT_CLIP_OSC_K, SPIRIT_FAMILY } from "../src/spiritMotion.ts";
+import { clipOscK, weaponOscK, SPIRIT_WEAPON_OSC_K, newSpiritPose, spiritPose, SPIRIT_CLIP_OSC_K, SPIRIT_FAMILY } from "../src/spiritMotion.ts";
 
 // --- bố cục manifest: mặc định 22 cột; frame 96 / 128; hỏng → null (nhánh cũ)
 const L = parsePhuLayout(undefined, [96, 96]);
@@ -147,4 +147,29 @@ console.log("phutheanim-test: neo khối thân OK");
   assert.deepEqual(phuDragDelta(8, -4, 4, false), [2, -1]); assert.deepEqual(phuDragDelta(8, 0, 4, true), [-2, 0]);
   assert.equal(clampShift(999), PHU_SHIFT_MAX); assert.equal(clampShift(NaN), 0); assert.equal(clampScale(9), 2); assert.equal(clampScale(0), 0.25);
   assert.equal(phuWheelScale(1, -1), 1.02); assert.equal(phuWheelScale(0.25, 1), 0.25);
+}
+
+// --- vũ khí cầm tay (#1312): manifest anim.kind "vukhi" + anim.grip; điểm cầm theo hướng / clip / khung, tây lật; Chân Thân ẩn; thiếu thì nhánh cũ
+{
+  const grip = { "s/idle/0": [-10.5, -20, 12, -21], "e/attack/3": [8, -30], "ne/walk/5": [1, 2], "x/idle/0": [1, 1], "s/walk/1": [1, "a"], "s/cast/0": [1, 2, 3], "s/hurt/0": [NaN, 1] };
+  const W = parsePhuLayout({ kind: "vukhi", grip }, 96), P = parsePhuLayout({ grip }, 96);
+  assert.equal(W.weapon, true, "anim.kind vukhi → layout vũ khí"); assert.equal(P.weapon, undefined, "phụ thể cũ không phải vũ khí"); assert.equal(P.grip, undefined, "grip chỉ đọc cho vũ khí");
+  assert.deepEqual(Object.keys(W.grip).sort(), ["e/attack/3", "ne/walk/5", "s/idle/0"], "bỏ khoá lạ, mảng sai độ dài / không phải số hữu hạn");
+  assert.equal(parsePhuLayout({ kind: "vukhi" }, 96).grip, undefined, "vũ khí không có grip vẫn hợp lệ (client không bù lệch)");
+  assert.equal(parsePhuLayout({ kind: "vukhi", grip: "x" }, 96).weapon, true); assert.equal(parsePhuLayout({ kind: "vukhi" }, 64), null, "khung lạ vẫn hỏng → nhánh cũ");
+  // phuGripAt: hướng 5 hàng (se / ne riêng, tây lật theo hàng đông và đổi dấu x), khung kẹp vào [0, n-1], tay thuận 0 / tay kia 1
+  assert.deepEqual(phuGripAt(W, "s", "idle", 0), [-10.5, -20]); assert.deepEqual(phuGripAt(W, "s", "idle", 0, 1), [12, -21]);
+  assert.deepEqual(phuGripAt(W, "s", "idle", 0, 2), null, "không có tay thứ ba");
+  assert.deepEqual(phuGripAt(W, "e", "attack", 3), [8, -30]); assert.deepEqual(phuGripAt(W, "w", "attack", 3), [-8, -30], "tây lật ngang hướng đông");
+  assert.deepEqual(phuGripAt(W, "nw", "walk", 5), [-1, 2]); assert.equal(phuGripAt(W, "se", "walk", 5), null, "se có hàng riêng, không mượn ne");
+  const W4 = parsePhuLayout({ kind: "vukhi", clips: { idle: { col: 0, n: 2 }, walk: { col: 2, n: 4 }, attack: { col: 6, n: 4 }, cast: { col: 10, n: 2 }, hurt: { col: 12, n: 1 } }, grip }, 128);
+  assert.deepEqual(phuGripAt(W4, "e", "attack", 99), [8, -30], "khung quá cuối kẹp về khung cuối (attack 4 khung)"); assert.equal(phuGripAt(W, "e", "attack", 99), null, "attack 6 khung: khung 5 chưa có điểm cầm");
+  assert.equal(phuGripAt(P, "s", "idle", 0), null, "phụ thể cũ không có điểm cầm");
+  // Chân Thân: vũ khí chỉ ẩn khi đang Chân Thân VÀ võ hồn có pháp tướng (không chen với pháp tướng); hết Chân Thân hiện lại
+  assert.equal(weaponHidden(1, true), true); assert.equal(weaponHidden(0, true), false, "hết Chân Thân → hiện lại");
+  assert.equal(weaponHidden(5, false), false, "võ hồn chưa có pháp tướng thì vũ khí ở lại");
+  // spiritMotion: vũ khí dao động nhỏ hơn clip phụ thể cũ; vật cứng (weapon, float) nhỏ nhất
+  for (const fam of new Set(Object.values(SPIRIT_FAMILY))) assert.ok(weaponOscK(fam) < clipOscK(fam), "vũ khí < clip phụ thể: " + fam);
+  assert.equal(weaponOscK("weapon"), SPIRIT_WEAPON_OSC_K.hard); assert.equal(weaponOscK("float"), SPIRIT_WEAPON_OSC_K.hard);
+  assert.ok(SPIRIT_WEAPON_OSC_K.hard < SPIRIT_WEAPON_OSC_K.soft);
 }

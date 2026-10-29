@@ -88,6 +88,13 @@ export const SPIRIT_CLIP_OSC_K = { soft: 0.33, hard: 0.6 } as const;
 /** Hệ số dao động liên tục của họ `fam` khi có clip vẽ thật (1 = không clip, nhánh cũ). */
 export const clipOscK = (fam: SpiritFamily): number => (fam === "weapon" || fam === "float" ? SPIRIT_CLIP_OSC_K.hard : SPIRIT_CLIP_OSC_K.soft);
 
+/**
+ * Sheet VŨ KHÍ cầm tay (`vkanim_{id}`): clip đã có nhịp cầm (điểm cầm bake theo bàn tay của thân), nên dao động liên tục (đứng, đi) còn nhỏ hơn clip phụ thể cũ, nhất là
+ * vật cứng (weapon, float: xoay / dịch làm vũ khí rời tay). Cú đánh / thi triển và bị đánh giữ nguyên.
+ */
+export const SPIRIT_WEAPON_OSC_K = { soft: 0.25, hard: 0.12 } as const;
+export const weaponOscK = (fam: SpiritFamily): number => (fam === "weapon" || fam === "float" ? SPIRIT_WEAPON_OSC_K.hard : SPIRIT_WEAPON_OSC_K.soft);
+
 export interface SpiritPose { rot: number; sx: number; sy: number; dx: number; dy: number; pivot: number; active: boolean }
 export const newSpiritPose = (): SpiritPose => ({ rot: 0, sx: 1, sy: 1, dx: 0, dy: 0, pivot: 0, active: false });
 
