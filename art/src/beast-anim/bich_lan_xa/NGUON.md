@@ -55,6 +55,26 @@ Loài `bich_lan_xa` (Bích Lân Xà), họ `snake`, khung game 96×96. Mức ki�
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 168% so với ảnh tĩnh (lệch 68%, quá 25%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: **chưa duyệt bằng mắt** (`n` / `ne` lộ mặt, hurt, die, `se` ≈ `e` chưa ai xem).
 
+## Sổ candidates trước vòng 2 (giữ lịch sử)
+
+Ảnh chụp nguyên sổ trước vòng 2; trạng thái chưa vào thư mục chính dưới đây là trạng thái tại thời điểm cũ, không thay trạng thái tờ mới đã nhập.
+
+Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
+
+### to-ne (candidates)
+
+- File chọn: `candidates/to-ne-attempt4.png`, **1536×1024**, SHA256 `f2968340b9739ca6011198222c1186ac47f19ae40cce8dda04ec7f0aca4e2e21`; lượt tìm thấy: 4.
+- Số lượt đã dùng: 1; lượt được chọn: 4.
+- Mức kiểm: **chặn** (CHẶN: không vào thư mục chính).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+### toD (candidates)
+
+- File chọn: `candidates/toD-attempt3.png`, **1536×1024**, SHA256 `da1abf9c36717ac9562fed03677446ca33c1881c822f8831f8860f6cddf040d1`; lượt tìm thấy: 1, 2, 3.
+- Số lượt đã dùng: 3; lượt được chọn: 3.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
 ## Các lượt bổ sung vòng 2 (phiên 797)
 
 Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên; tờ lỗi không dùng làm tham chiếu.

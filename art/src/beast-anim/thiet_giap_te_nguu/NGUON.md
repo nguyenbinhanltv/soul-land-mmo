@@ -42,6 +42,26 @@ Loài `thiet_giap_te_nguu` (Thiết Giáp Tê Ngưu), họ `quad`, khung game 96
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 189% so với ảnh tĩnh (lệch 89%, quá 25%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: đã xem, không thấy lỗi.
 
+## Sổ candidates trước vòng 2 (giữ lịch sử)
+
+Ảnh chụp nguyên sổ trước vòng 2; trạng thái chưa vào thư mục chính dưới đây là trạng thái tại thời điểm cũ, không thay trạng thái tờ mới đã nhập.
+
+Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
+
+### to-ne (candidates)
+
+- File chọn: `candidates/to-ne-attempt6.png`, **1536×1024**, SHA256 `44cea07d56a184e89f926de03464f75e47f333f43be14ce4f8304f2ab9856137`; lượt tìm thấy: 4, 5, 6.
+- Số lượt đã dùng: 3; lượt được chọn: 6.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
+
+### toD (candidates)
+
+- File chọn: `candidates/toD-attempt3.png`, **1536×1024**, SHA256 `a9cb17c957474bebaddb3c7bb86ebf00d0bd4de5537abcb13488e97e72dac0da`; lượt tìm thấy: 1, 2, 3.
+- Số lượt đã dùng: 3; lượt được chọn: 3.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
 ## Các lượt bổ sung vòng 2 (phiên 797)
 
 Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên; tờ lỗi không dùng làm tham chiếu.

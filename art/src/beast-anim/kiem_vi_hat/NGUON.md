@@ -54,6 +54,19 @@ Loài `kiem_vi_hat` (Kiếm Vĩ Hạt), họ `insect`, khung game 96×96. Mức 
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (ne): cỡ thân idle 132% so với ảnh tĩnh (lệch 32%, quá 25%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: đã xem, không thấy lỗi.
 
+## Sổ candidates trước vòng 2 (giữ lịch sử)
+
+Ảnh chụp nguyên sổ trước vòng 2; trạng thái chưa vào thư mục chính dưới đây là trạng thái tại thời điểm cũ, không thay trạng thái tờ mới đã nhập.
+
+Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
+
+### to-ne (candidates)
+
+- File chọn: `candidates/to-ne-attempt6.png`, **1536×1024**, SHA256 `28f4c5f5ca9a38b74b5216889249bc494aa0af875acb6556106125a1505da64b`; lượt tìm thấy: 1, 2, 3, 4, 5, 6.
+- Số lượt đã dùng: 6; lượt được chọn: 6.
+- Mức kiểm: **chặn** (CHẶN: không vào thư mục chính).
+- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
+
 ## Các lượt bổ sung vòng 2 (phiên 797)
 
 Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên; tờ lỗi không dùng làm tham chiếu.

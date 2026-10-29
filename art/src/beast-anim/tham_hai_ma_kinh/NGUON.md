@@ -61,6 +61,26 @@ Loài `tham_hai_ma_kinh` (Thâm Hải Ma Kình), họ `swim`, khung game 128×12
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 132% so với ảnh tĩnh (lệch 32%, quá 25%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
+## Sổ candidates trước vòng 2 (giữ lịch sử)
+
+Ảnh chụp nguyên sổ trước vòng 2; trạng thái chưa vào thư mục chính dưới đây là trạng thái tại thời điểm cũ, không thay trạng thái tờ mới đã nhập.
+
+Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
+
+### toD (candidates)
+
+- File chọn: `candidates/toD-attempt3.png`, **1536×1024**, SHA256 `7949c22e734dc98fdd77e8a14229b0d92061cc613b5a361b561387676cdb514c`; lượt tìm thấy: 1, 2, 3.
+- Số lượt đã dùng: 3; lượt được chọn: 3.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
+
+### toE (candidates)
+
+- File chọn: `candidates/toE-attempt3.png`, **1536×1024**, SHA256 `30ec350697d6ef23b24ece0ea1209bad96b159e5df7a1dc62f8ac782fff192b0`; lượt tìm thấy: 1, 2, 3.
+- Số lượt đã dùng: 3; lượt được chọn: 3.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
+
 ## Các lượt bổ sung vòng 2 (phiên 797)
 
 Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên; tờ lỗi không dùng làm tham chiếu.

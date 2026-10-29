@@ -45,6 +45,33 @@ Loài `thanh_lan_ngac` (Thanh Lân Ngạc), họ `quad`, khung game 96×96. Mứ
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 122% so với ảnh tĩnh (lệch 22%); cutter neo lại, không chặn.
 - Duyệt bằng mắt: đã xem, không thấy lỗi.
 
+## Sổ candidates trước vòng 2 (giữ lịch sử)
+
+Ảnh chụp nguyên sổ trước vòng 2; trạng thái chưa vào thư mục chính dưới đây là trạng thái tại thời điểm cũ, không thay trạng thái tờ mới đã nhập.
+
+Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
+
+### to-ne (candidates)
+
+- File chọn: `candidates/to-ne-attempt6.png`, **1536×1024**, SHA256 `f715e6ba881cdb02c2e292d465e453be63128e72b70f414ef0ff20baac776ba9`; lượt tìm thấy: 4, 5, 6.
+- Số lượt đã dùng: 3; lượt được chọn: 6.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
+
+### toD (candidates)
+
+- File chọn: `candidates/toD-attempt3.png`, **1536×1024**, SHA256 `7b0a1ad33a04c0201b3ae535396a3ccd2bd2c848ae25d21f1e93d1603b31544e`; lượt tìm thấy: 1, 2, 3.
+- Số lượt đã dùng: 3; lượt được chọn: 3.
+- Mức kiểm: **chặn** (CHẶN: không vào thư mục chính).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+### toE (candidates)
+
+- File chọn: `candidates/toE-attempt3.png`, **1536×1024**, SHA256 `9d2417fc243ea571cd4505ef105d40ebee13e99f26803cc474b99262dd7a33b7`; lượt tìm thấy: 1, 2, 3.
+- Số lượt đã dùng: 3; lượt được chọn: 3.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
 ## Các lượt bổ sung vòng 2 (phiên 797)
 
 Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên; tờ lỗi không dùng làm tham chiếu.

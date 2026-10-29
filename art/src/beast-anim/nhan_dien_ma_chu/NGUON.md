@@ -50,6 +50,26 @@ Loài `nhan_dien_ma_chu` (Nhân Diện Ma Chu), họ `insect`, khung game 128×1
 - Mức kiểm: **pass** (khối hướng: n pass).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
+## Sổ candidates trước vòng 2 (giữ lịch sử)
+
+Ảnh chụp nguyên sổ trước vòng 2; trạng thái chưa vào thư mục chính dưới đây là trạng thái tại thời điểm cũ, không thay trạng thái tờ mới đã nhập.
+
+Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
+
+### to-ne (candidates)
+
+- File chọn: `candidates/to-ne-attempt1.png`, **1536×1024**, SHA256 `f81c6baf0ed1da0260ef498d946932db10b1856b13cd250897a30f76b0cd3f4e`; lượt tìm thấy: 1.
+- Số lượt đã dùng: 1; lượt được chọn: 1.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+### toD (candidates)
+
+- File chọn: `candidates/toD-attempt3.png`, **1536×1024**, SHA256 `fd4859292a5626b07d262ca54d2745069df1bdb9595c8ecce58af212fc0926c1`; lượt tìm thấy: 1, 2, 3.
+- Số lượt đã dùng: 3; lượt được chọn: 3.
+- Mức kiểm: **pass**.
+- Duyệt bằng mắt: **chưa duyệt bằng mắt**.
+
 ## Các lượt bổ sung vòng 2 (phiên 797)
 
 Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên; tờ lỗi không dùng làm tham chiếu.

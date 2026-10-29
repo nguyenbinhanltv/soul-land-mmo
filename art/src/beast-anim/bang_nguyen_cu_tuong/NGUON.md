@@ -59,6 +59,26 @@ Loài `bang_nguyen_cu_tuong` (Băng Nguyên Cự Tượng), họ `quad`, khung g
 - Mức kiểm: **pass** (khối hướng: ne nhẹ).
 - Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
 
+## Sổ candidates trước vòng 2 (giữ lịch sử)
+
+Ảnh chụp nguyên sổ trước vòng 2; trạng thái chưa vào thư mục chính dưới đây là trạng thái tại thời điểm cũ, không thay trạng thái tờ mới đã nhập.
+
+Các tờ dưới đây chưa có `toX.png` ở thư mục chính (bị chặn sau các lượt sinh); chỉ có bản thử ở `candidates/`. Nhãn `toX` là nhãn đúng của tờ.
+
+### to-e (candidates)
+
+- File chọn: `candidates/to-e-attempt3.png`, **1536×1024**, SHA256 `b9aabcf45343b44e0759717ec84a36ccc54366779823771f8e5fa8acd96fe443`; lượt tìm thấy: 3.
+- Số lượt đã dùng: 3; lượt được chọn: 3.
+- Mức kiểm: **chặn** (CHẶN: không vào thư mục chính).
+- Duyệt bằng mắt: 2 mục lỗi (dòng `LỖI:` bên dưới).
+
+### toC (candidates)
+
+- File chọn: `candidates/toC-attempt4.png`, **1536×1024**, SHA256 `8c8f30927bcacf504b2a7ee522bdf546aab163df634426e766bf0dff9ee4c9aa`; lượt tìm thấy: 1, 2, 3, 4.
+- Số lượt đã dùng: 4; lượt được chọn: 4.
+- Mức kiểm: **chặn** (CHẶN: không vào thư mục chính).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
 ## Các lượt bổ sung vòng 2 (phiên 797)
 
 Các mục sau sinh bằng beast-nguon trên staging LF của từng ứng viên; tờ lỗi không dùng làm tham chiếu.
