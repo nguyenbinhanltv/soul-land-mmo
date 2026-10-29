@@ -9609,9 +9609,9 @@
       "key": "pt_ky_nhung_thong_thien_cuc",
       "iso": true,
       "pt": {
-        "scale": 1.05,
+        "scale": 1.6,
         "dx": 0,
-        "dy": 0,
+        "dy": -24,
         "back": [
           "s",
           "se",
