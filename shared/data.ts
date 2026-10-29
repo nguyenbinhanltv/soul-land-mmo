@@ -5378,19 +5378,20 @@ export const ACHV_GROUPS = [
  * giờ Ủy Thác Lệnh <= autoK × AUTO_DAILY_SECS. Thêm thành tựu mới thì chia lại trong trần này.
  */
 export const ACHV_CAP = { honTeK: 4, shardsK: 2, autoK: 1 };
-const achvTier = (group: string, stat: AchvStat, label: string, tiers: [number, CheckinReward][]): AchvDef[] =>
-  tiers.map(([need, reward]) => ({ id: `${stat}_${need}`, group, name: label.replace("{n}", String(need)), stat, need, reward }));
+const achvTier = (group: string, stat: AchvStat, label: string, tiers: [string, number, CheckinReward][]): AchvDef[] =>
+  tiers.map(([code, need, reward]) => ({ id: `${stat}_${code}`, group, name: label.replace("{n}", String(need)), stat, need, reward }));
+/** Mã thành tựu `${chỉ số}_${mã bậc}`: mã bậc khai TƯỜNG MINH, không suy từ ngưỡng, nên đổi `need` (hoặc thêm võ hồn mới) không đổi mã đã lưu ở `achv_state.claimed`. Không đổi tên / xóa mã đã phát hành (test giữ danh sách `ACHV_IDS`). */
 export const ACHV: AchvDef[] = [
-  ...achvTier("cap", "level", "Đạt cấp {n}", [[10, { honTe: 10 }], [20, { honTe: 10 }], [30, { honTe: 20 }], [40, { honTe: 20 }], [50, { honTe: 30 }],
-    [60, { honTe: 40 }], [70, { honTe: 50 }], [80, { honTe: 60 }], [90, { honTe: 70 }], [100, { honTe: 90 }]]),
-  ...achvTier("suu_tam", "owned", "Sở hữu {n} võ hồn", [[2, { honTe: 30 }], [4, { honTe: 40 }], [6, { honTe: 50, shards: 1 }], [10, { honTe: 60, shards: 1 }], [VOHON.length, { honTe: 100, shards: 2 }]]),
-  ...achvTier("suu_tam", "stars", "Một võ hồn đạt {n} sao", [[1, { honTe: 30 }], [3, { honTe: 60 }], [MAX_STARS, { honTe: 100 }]]),
-  ...achvTier("hunt", "elite", "Hạ {n} tinh anh", [[1, { honTe: 30 }], [10, { honTe: 60 }], [50, { honTe: 100 }]]),
-  ...achvTier("hunt", "king", "Hạ {n} thú vương", [[1, { honTe: 50 }], [5, { honTe: 80, shards: 1 }], [20, { honTe: 150, shards: 2 }]]),
-  ...achvTier("hunt", "world", "Tham gia hạ {n} boss thế giới", [[1, { honTe: 60, shards: 1 }], [3, { honTe: 100, shards: 2 }], [10, { honTe: 150, shards: 3, items: [{ code: AUTO_TOKEN, qty: 1 }] }]]),
-  ...achvTier("quest", "quests", "Hoàn thành {n} chuỗi nhiệm vụ", [[1, { honTe: 50 }], [2, { honTe: 80 }], [3, { honTe: 120 }]]),
-  ...achvTier("arena", "arenaWins", "Thắng {n} trận đấu trường", [[1, { honTe: 30 }], [10, { honTe: 60, shards: 1 }], [50, { honTe: 100, shards: 2 }]]),
-  ...achvTier("bicanh", "bicanh", "Thắng {n} lượt Luyện Hồn Cảnh", [[1, { honTe: 30 }], [10, { honTe: 60 }], [30, { honTe: 100, items: [{ code: AUTO_TOKEN, qty: 1 }] }]]),
+  ...achvTier("cap", "level", "Đạt cấp {n}", [["t1", 10, { honTe: 10 }], ["t2", 20, { honTe: 10 }], ["t3", 30, { honTe: 20 }], ["t4", 40, { honTe: 20 }], ["t5", 50, { honTe: 30 }],
+    ["t6", 60, { honTe: 40 }], ["t7", 70, { honTe: 50 }], ["t8", 80, { honTe: 60 }], ["t9", 90, { honTe: 70 }], ["t10", 100, { honTe: 90 }]]),
+  ...achvTier("suu_tam", "owned", "Sở hữu {n} võ hồn", [["t1", 2, { honTe: 30 }], ["t2", 4, { honTe: 40 }], ["t3", 6, { honTe: 50, shards: 1 }], ["t4", 10, { honTe: 60, shards: 1 }], ["all", VOHON.length, { honTe: 100, shards: 2 }]]),
+  ...achvTier("suu_tam", "stars", "Một võ hồn đạt {n} sao", [["t1", 1, { honTe: 30 }], ["t2", 3, { honTe: 60 }], ["max", MAX_STARS, { honTe: 100 }]]),
+  ...achvTier("hunt", "elite", "Hạ {n} tinh anh", [["t1", 1, { honTe: 30 }], ["t2", 10, { honTe: 60 }], ["t3", 50, { honTe: 100 }]]),
+  ...achvTier("hunt", "king", "Hạ {n} thú vương", [["t1", 1, { honTe: 50 }], ["t2", 5, { honTe: 80, shards: 1 }], ["t3", 20, { honTe: 150, shards: 2 }]]),
+  ...achvTier("hunt", "world", "Tham gia hạ {n} boss thế giới", [["t1", 1, { honTe: 60, shards: 1 }], ["t2", 3, { honTe: 100, shards: 2 }], ["t3", 10, { honTe: 150, shards: 3, items: [{ code: AUTO_TOKEN, qty: 1 }] }]]),
+  ...achvTier("quest", "quests", "Hoàn thành {n} chuỗi nhiệm vụ", [["t1", 1, { honTe: 50 }], ["t2", 2, { honTe: 80 }], ["t3", 3, { honTe: 120 }]]),
+  ...achvTier("arena", "arenaWins", "Thắng {n} trận đấu trường", [["t1", 1, { honTe: 30 }], ["t2", 10, { honTe: 60, shards: 1 }], ["t3", 50, { honTe: 100, shards: 2 }]]),
+  ...achvTier("bicanh", "bicanh", "Thắng {n} lượt Luyện Hồn Cảnh", [["t1", 1, { honTe: 30 }], ["t2", 10, { honTe: 60 }], ["t3", 30, { honTe: 100, items: [{ code: AUTO_TOKEN, qty: 1 }] }]]),
 ];
 export const achvDef = (id: unknown) => ACHV.find((a) => a.id === id);
 /** Thành tựu đã đạt với chỉ số `stats` (chưa xét đã nhận). */

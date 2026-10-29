@@ -26,6 +26,16 @@ await test("ACHV: hình dạng (mã duy nhất, nhóm / chỉ số hợp lệ, n
   assert.ok(top("level") <= MAX_LEVEL && top("owned") <= VOHON.length && top("stars") <= MAX_STARS && top("quests") <= QUESTS.length, "ngưỡng cao nhất không vượt nguồn");
   assert.ok(ACHV.some((a) => a.stat === "owned" && a.need === VOHON.length), "mốc sưu tầm cuối = đủ VOHON");
 });
+/** Mã đã phát hành (lưu ở `achv_state.claimed`): CHỈ được thêm, không đổi tên / xóa; đổi ngưỡng hay số võ hồn không được đổi mã. */
+const ACHV_IDS = ["level_t1", "level_t2", "level_t3", "level_t4", "level_t5", "level_t6", "level_t7", "level_t8", "level_t9", "level_t10",
+  "owned_t1", "owned_t2", "owned_t3", "owned_t4", "owned_all", "stars_t1", "stars_t2", "stars_max", "elite_t1", "elite_t2", "elite_t3", "king_t1", "king_t2", "king_t3",
+  "world_t1", "world_t2", "world_t3", "quests_t1", "quests_t2", "quests_t3", "arenaWins_t1", "arenaWins_t2", "arenaWins_t3", "bicanh_t1", "bicanh_t2", "bicanh_t3"];
+await test("Mã thành tựu ổn định: mọi mã đã phát hành còn nguyên, mã không suy từ ngưỡng (thêm võ hồn / cân lại ngưỡng không mở lại lượt nhận)", () => {
+  const have = new Set(ACHV.map((x) => x.id));
+  for (const id of ACHV_IDS) assert.ok(have.has(id), `mã đã phát hành ${id} không được mất`);
+  assert.ok(ACHV.every((x) => !/_\d+$/.test(x.id)), "mã không kết thúc bằng ngưỡng số");
+  assert.equal(achvDef("owned_all")!.need, VOHON.length, "mốc đủ bộ theo VOHON.length nhưng mã cố định");
+});
 await test("Quan hệ trần TỔNG thưởng (cả danh mục): Hồn Tệ, mảnh, Ủy Thác Lệnh, loại quà", () => {
   assert.ok(sum((r) => r.honTe ?? 0) <= ACHV_CAP.honTeK * CHECKIN.cycleCap.honTe, `Hồn Tệ ${sum((r) => r.honTe ?? 0)} ≤ ${ACHV_CAP.honTeK} × cycleCap`);
   assert.ok(sum((r) => r.shards ?? 0) <= ACHV_CAP.shardsK * SHARD_BUY.daily, "mảnh ≤ shardsK × hạn mức mua một ngày");
@@ -43,9 +53,9 @@ await test("Thưởng tăng dần theo bậc trong cùng chỉ số", () => {
   for (const stat of ACHV_STATS) { const v = ACHV.filter((a) => a.stat === stat).map(val); assert.ok(v.every((x, i) => i === 0 || x >= v[i - 1]), `${stat}: thưởng không giảm`); }
 });
 await test("achvReached / achvReady / achvDef: ranh giới, thiếu chỉ số, mã lạ", () => {
-  const def = achvDef("level_10")!;
+  const def = achvDef("level_t1")!;
   assert.equal(achvReached(def, { level: 9 }), false); assert.equal(achvReached(def, { level: 10 }), true); assert.equal(achvReached(def, {}), false);
-  assert.equal(achvReady({ level: 20 }, []), 2); assert.equal(achvReady({ level: 20 }, ["level_10"]), 1); assert.equal(achvReady({}, []), 0);
+  assert.equal(achvReady({ level: 20 }, []), 2); assert.equal(achvReady({ level: 20 }, ["level_t1"]), 1); assert.equal(achvReady({}, []), 0);
   for (const x of [undefined, null, 1, "", "khong_co", {}]) assert.equal(achvDef(x), undefined);
 });
 await test("achvStats: cấp / sưu tầm / sao lấy cao nhất từ võ hồn đã nạp, chuỗi nhiệm vụ xong, bộ đếm thiếu = 0", () => {
@@ -77,12 +87,12 @@ await test("MemoryStore.achvClaim: nhận một lần, đã nhận / chưa đạ
   const orig = (s as unknown as { putBag: (...a: unknown[]) => void }).putBag.bind(s);
   (s as unknown as { putBag: (...a: unknown[]) => void }).putBag = (...a) => { seen.push(a); orig(...a); };
   const need = (n: number) => (c: { elite?: number }) => (c.elite ?? 0) >= n;
-  assert.equal(await s.achvClaim(1, "elite_1", need(1), bag), "low"); assert.equal(seen.length, 0, "chưa đạt: không ghi túi");
+  assert.equal(await s.achvClaim(1, "elite_t1", need(1), bag), "low"); assert.equal(seen.length, 0, "chưa đạt: không ghi túi");
   await s.achvBump(1, "elite", 1);
-  assert.equal(await s.achvClaim(1, "elite_1", need(1), bag), "ok"); assert.equal(seen.length, 1);
-  assert.equal(await s.achvClaim(1, "elite_1", need(1), bag), "dup"); assert.equal(seen.length, 1, "nhận đúp: không ghi túi lần hai");
-  assert.deepEqual((await s.achvGet(1)).claimed, ["elite_1"]);
-  const race = await Promise.all([s.achvClaim(2, "elite_1", () => true, bag), s.achvClaim(2, "elite_1", () => true, bag), s.achvClaim(2, "elite_1", () => true, bag)]);
+  assert.equal(await s.achvClaim(1, "elite_t1", need(1), bag), "ok"); assert.equal(seen.length, 1);
+  assert.equal(await s.achvClaim(1, "elite_t1", need(1), bag), "dup"); assert.equal(seen.length, 1, "nhận đúp: không ghi túi lần hai");
+  assert.deepEqual((await s.achvGet(1)).claimed, ["elite_t1"]);
+  const race = await Promise.all([s.achvClaim(2, "elite_t1", () => true, bag), s.achvClaim(2, "elite_t1", () => true, bag), s.achvClaim(2, "elite_t1", () => true, bag)]);
   assert.deepEqual(race.slice().sort(), ["dup", "dup", "ok"], "ba lần nhận cùng lúc: đúng một lần thắng");
   await assert.rejects(() => s.achvClaim(1, "khong_co", () => true, bag));
   assert.deepEqual(await s.achvGet(3), { claimed: [], counters: {} }, "tài khoản khác không bị ảnh hưởng");

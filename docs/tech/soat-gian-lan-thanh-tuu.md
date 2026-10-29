@@ -18,8 +18,9 @@ Soát theo skill `anti-cheat-audit`. Phạm vi: tin `achv {op: "get" | "claim", 
 | 10 | Nhận trong sân đấu / Bí Cảnh | **Chặn**: `achv` trong `BLOCKED` của `ArenaRoom`, `BiCanhRoom` kế thừa | — |
 | 11 | Mất một lần đếm khi phòng sập giữa chừng | Chấp nhận: bộ đếm ghi qua chuỗi lưu, lỗi chỉ log; không có đường cộng bù (không khai thác được, chỉ thiệt cho người chơi) | Thông tin |
 | 12 | Lượt Bí Cảnh được hoàn do lỗi lưu mà vẫn tính một lần thắng | Có thể đếm dư một lần khi server lỗi (người chơi không gây được); thưởng nhỏ, không khai thác | Thông tin |
+| 13 | Mã thành tựu suy từ ngưỡng: đổi ngưỡng / thêm võ hồn mở lại lượt nhận, vượt trần tổng | **Đã sửa** (review #1329): mã bậc tường minh (`level_t1`, `owned_all`, …), test giữ danh sách mã đã phát hành | Vừa → đã sửa |
 
-Không có lỗi Nghiêm trọng / Cao / Vừa.
+Không có lỗi Nghiêm trọng / Cao còn tồn; một lỗi Vừa (dòng 13 của bảng) đã sửa trong cùng PR.
 
 ## Danh sách bề mặt đã soát
 
