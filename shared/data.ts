@@ -2505,7 +2505,7 @@ export const PHAP_TUONG: Record<string, PhapTuongDef> = Object.fromEntries([
   pt("tu_vong_chu_hoang", "T", "doc", { motion: { ...BAKED, pulse: 0.12 } }),
   pt("bich_lan_xa_hoang", "S", "doc", { motion: { ...BAKED, pulse: 0.12 } }),
   pt("can_khon_hon_nguyen_toa", "O", "hon", { dy: -4, motion: { ...BAKED, pulse: 0.2 } }),
-  pt("hoa_anh", "D", "lua", { motion: { ...BAKED, pulse: 0.15 } }),
+  pt("hoa_anh", "D", "lua", { scale: 1.5, dy: -20, motion: { ...BAKED, bob: 2, pulse: 0.15 } }),
   pt("yeu_ho", "T", "hon", { motion: { ...BAKED, pulse: 0.12 } }),
   pt("xuc_xich", "O", "khoi", { scale: 1.1, dx: 10, dy: -6, motion: { ...BAKED, pulse: 0.2 } }),
   pt("quy_mi", "D", "khoi", { motion: { ...BAKED, pulse: 0.12 } }),
