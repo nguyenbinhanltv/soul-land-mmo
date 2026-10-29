@@ -35,6 +35,7 @@ Nguồn theo họ asset ở bảng dưới; thao tác từng công cụ ở skil
 - Gigapack và Forest (kho riêng) **cấm đưa vào AI**: không dùng làm ảnh tham chiếu, không đưa vào PixelLab / model.
 
 ## Issue liên quan
+Pilot menu 16 icon (29/10/2026, Part of #877, #884): Codex / OpenAI `image_gen` tích hợp, BOARD đã duyệt + swatch `art/palette.gpl`, không dùng ảnh thương mại. RAW nguyên byte và prompt: `art/src/ui-kit/toI-2.*`; nguồn/hash/ánh xạ từng cặp ở `menu-pilot.source.json`; sử dụng theo điều khoản đầu ra OpenAI, không gán CC0. Trang duyệt `art/src/ui-kit/pilot-menu/index.html` so với ảnh game-icons đang có (giữ nguyên byte, CC BY 3.0, tác giả từng file ở `art/CREDITS.md`); chỉ duyệt 64/32/24 px, không nhập icon AI vào game.
 Kit Giấy N/O/T (29/10/2026, Part of #877): sinh bằng Codex / OpenAI `image_gen` tích hợp, dùng BOARD đã duyệt và swatch `art/palette.gpl`, không dùng ảnh thương mại. RAW nguyên byte và prompt ở `art/src/ui-kit/to{N,O,T}-giay.*`; hash, lượt và nguồn gốc ở `giay.source.json`. Sử dụng theo điều khoản đầu ra OpenAI, không gán CC0; model ID/seed không được công cụ trả về. Cắt mềm, lượng tử 32 màu, nhập khóa `ui2_giay_*`; giữ bộ Mực và không đổi màn sử dụng.
 
 BOARD v3 Hồn Quang Tiên Môn (#1260, Part of #877): Codex / OpenAI `image_gen`, ảnh tự sinh không dùng ảnh ngoài; nguồn, điều khoản đầu ra và prompt đầy đủ ở `art/CREDITS.md`, candidate tại `art/src/ui-kit/candidates/hon-quang-v3/`. Chưa nhập vào game, chưa thay BOARD đã duyệt.

@@ -1,0 +1,661 @@
+{
+  "issue": 884,
+  "part_of": 877,
+  "date": "2026-10-29",
+  "tool": "Codex builtin OpenAI image_gen",
+  "model": null,
+  "seed": null,
+  "license": "Điều khoản đầu ra OpenAI; không gán CC0",
+  "references": [
+    "art/src/ui-kit/BOARD.png",
+    "art/palette.gpl"
+  ],
+  "attempts": [
+    {
+      "attempt": 1,
+      "original": "C:/Users/PC/.codex/generated_images/01a187e6-70ee-7601-a9d3-9825a6a27fbc/exec-14115694-1c2b-4655-b0e3-33f2ce88427e.png",
+      "selected": false,
+      "reason": "41 màu, cutter từ chối"
+    },
+    {
+      "attempt": 2,
+      "original": "C:/Users/PC/.codex/generated_images/01a187e6-70ee-7601-a9d3-9825a6a27fbc/exec-ed87a116-24ba-4860-9f0a-7df370753a1c.png",
+      "selected": true,
+      "file": "art/src/ui-kit/toI-2.png",
+      "sha256": "4e3a775410681de5b498198f9cb14fe3ed829225a4d8ea915d87cd18c581f992",
+      "prompt": "art/src/ui-kit/toI-2.prompt.txt",
+      "prompt_sha256": "54d1c0e2e589350397c9bf389e7a3e3289fe59dcdab8b752958ff73b69c1104b",
+      "raw_copy_byte_identical": true,
+      "check": {
+        "sheet": "toI-menu-2",
+        "kind": "I",
+        "size": [
+          1254,
+          1254
+        ],
+        "shape": "1:1",
+        "level": "nhẹ",
+        "background": {
+          "key": [
+            246,
+            4,
+            249
+          ],
+          "keyDistFromLock": 9,
+          "cornerSpread": 31
+        },
+        "fringe": 0,
+        "colors": {
+          "n": 29,
+          "total": 22521,
+          "buckets": 65
+        },
+        "offPalette": null,
+        "layout": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "pieces": [
+          {
+            "name": "icon_01",
+            "set": null,
+            "state": null,
+            "size": [
+              50,
+              54
+            ],
+            "rawSize": [
+              253,
+              274
+            ],
+            "nine": null,
+            "thickness": null,
+            "cornerExt": null,
+            "flat": null,
+            "flat3": null,
+            "asym": null,
+            "fringe": 0,
+            "stray": false
+          },
+          {
+            "name": "icon_02",
+            "set": null,
+            "state": null,
+            "size": [
+              48,
+              42
+            ],
+            "rawSize": [
+              247,
+              213
+            ],
+            "nine": null,
+            "thickness": null,
+            "cornerExt": null,
+            "flat": null,
+            "flat3": null,
+            "asym": null,
+            "fringe": 0,
+            "stray": false
+          },
+          {
+            "name": "icon_03",
+            "set": null,
+            "state": null,
+            "size": [
+              40,
+              44
+            ],
+            "rawSize": [
+              202,
+              218
+            ],
+            "nine": null,
+            "thickness": null,
+            "cornerExt": null,
+            "flat": null,
+            "flat3": null,
+            "asym": null,
+            "fringe": 0,
+            "stray": false
+          },
+          {
+            "name": "icon_04",
+            "set": null,
+            "state": null,
+            "size": [
+              48,
+              46
+            ],
+            "rawSize": [
+              243,
+              231
+            ],
+            "nine": null,
+            "thickness": null,
+            "cornerExt": null,
+            "flat": null,
+            "flat3": null,
+            "asym": null,
+            "fringe": 0,
+            "stray": false
+          },
+          {
+            "name": "icon_05",
+            "set": null,
+            "state": null,
+            "size": [
+              44,
+              44
+            ],
+            "rawSize": [
+              227,
+              227
+            ],
+            "nine": null,
+            "thickness": null,
+            "cornerExt": null,
+            "flat": null,
+            "flat3": null,
+            "asym": null,
+            "fringe": 0,
+            "stray": false
+          },
+          {
+            "name": "icon_06",
+            "set": null,
+            "state": null,
+            "size": [
+              48,
+              48
+            ],
+            "rawSize": [
+              239,
+              238
+            ],
+            "nine": null,
+            "thickness": null,
+            "cornerExt": null,
+            "flat": null,
+            "flat3": null,
+            "asym": null,
+            "fringe": 0,
+            "stray": false
+          },
+          {
+            "name": "icon_07",
+            "set": null,
+            "state": null,
+            "size": [
+              46,
+              44
+            ],
+            "rawSize": [
+              232,
+              222
+            ],
+            "nine": null,
+            "thickness": null,
+            "cornerExt": null,
+            "flat": null,
+            "flat3": null,
+            "asym": null,
+            "fringe": 0,
+            "stray": false
+          },
+          {
+            "name": "icon_08",
+            "set": null,
+            "state": null,
+            "size": [
+              48,
+              44
+            ],
+            "rawSize": [
+              243,
+              226
+            ],
+            "nine": null,
+            "thickness": null,
+            "cornerExt": null,
+            "flat": null,
+            "flat3": null,
+            "asym": null,
+            "fringe": 0,
+            "stray": false
+          },
+          {
+            "name": "icon_09",
+            "set": null,
+            "state": null,
+            "size": [
+              48,
+              52
+            ],
+            "rawSize": [
+              243,
+              261
+            ],
+            "nine": null,
+            "thickness": null,
+            "cornerExt": null,
+            "flat": null,
+            "flat3": null,
+            "asym": null,
+            "fringe": 0,
+            "stray": false
+          },
+          {
+            "name": "icon_10",
+            "set": null,
+            "state": null,
+            "size": [
+              52,
+              36
+            ],
+            "rawSize": [
+              262,
+              184
+            ],
+            "nine": null,
+            "thickness": null,
+            "cornerExt": null,
+            "flat": null,
+            "flat3": null,
+            "asym": null,
+            "fringe": 0,
+            "stray": false
+          },
+          {
+            "name": "icon_11",
+            "set": null,
+            "state": null,
+            "size": [
+              50,
+              48
+            ],
+            "rawSize": [
+              250,
+              239
+            ],
+            "nine": null,
+            "thickness": null,
+            "cornerExt": null,
+            "flat": null,
+            "flat3": null,
+            "asym": null,
+            "fringe": 0,
+            "stray": false
+          },
+          {
+            "name": "icon_12",
+            "set": null,
+            "state": null,
+            "size": [
+              48,
+              42
+            ],
+            "rawSize": [
+              247,
+              216
+            ],
+            "nine": null,
+            "thickness": null,
+            "cornerExt": null,
+            "flat": null,
+            "flat3": null,
+            "asym": null,
+            "fringe": 0,
+            "stray": false
+          },
+          {
+            "name": "icon_13",
+            "set": null,
+            "state": null,
+            "size": [
+              48,
+              40
+            ],
+            "rawSize": [
+              240,
+              198
+            ],
+            "nine": null,
+            "thickness": null,
+            "cornerExt": null,
+            "flat": null,
+            "flat3": null,
+            "asym": null,
+            "fringe": 0,
+            "stray": false
+          },
+          {
+            "name": "icon_14",
+            "set": null,
+            "state": null,
+            "size": [
+              48,
+              46
+            ],
+            "rawSize": [
+              244,
+              234
+            ],
+            "nine": null,
+            "thickness": null,
+            "cornerExt": null,
+            "flat": null,
+            "flat3": null,
+            "asym": null,
+            "fringe": 0,
+            "stray": false
+          },
+          {
+            "name": "icon_15",
+            "set": null,
+            "state": null,
+            "size": [
+              46,
+              44
+            ],
+            "rawSize": [
+              230,
+              225
+            ],
+            "nine": null,
+            "thickness": null,
+            "cornerExt": null,
+            "flat": null,
+            "flat3": null,
+            "asym": null,
+            "fringe": 0,
+            "stray": false
+          },
+          {
+            "name": "icon_16",
+            "set": null,
+            "state": null,
+            "size": [
+              48,
+              50
+            ],
+            "rawSize": [
+              247,
+              252
+            ],
+            "nine": null,
+            "thickness": null,
+            "cornerExt": null,
+            "flat": null,
+            "flat3": null,
+            "asym": null,
+            "fringe": 0,
+            "stray": false
+          }
+        ],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 31), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "light",
+            "code": "khoang-cach",
+            "where": "icon_01, icon_02, icon_09, icon_10, icon_11, icon_12, icon_13, icon_14",
+            "msg": "mảnh cách nhau < 5% cạnh tờ (63 px): dễ dính khi tách."
+          },
+          {
+            "sev": "light",
+            "code": "vien-hong",
+            "where": "toàn tờ",
+            "msg": "viền ám hồng 56.2% điểm viền: đã bù (10308 điểm: mực tối về #1a1020, hồng sáng bỏ), còn 0%; kiểm lại trên nền tối."
+          }
+        ],
+        "draft": "LỖI: toI-menu-2 — mảnh sát nhau / viền ám hồng — icon_01, icon_02, icon_09, icon_10, icon_11, icon_12, icon_13, icon_14, toàn tờ — mảnh cách nhau < 5% cạnh tờ (63 px): dễ dính khi tách; viền ám hồng 56.2% điểm viền: đã bù (10308 điểm: mực tối về #1a1020, hồng sáng bỏ), còn 0%; kiểm lại trên nền tối."
+      }
+    }
+  ],
+  "preview_bytes": 50479,
+  "imported_into_game": false,
+  "mapping": [
+    {
+      "index": 1,
+      "key": "gi_menu_char",
+      "label": "Hồn sư (H)",
+      "game_source": "delapouite/monk-face",
+      "game_license": "CC BY 3.0",
+      "game_file": "shared/assets/sprites/iso/gi/menu_char.png",
+      "ai": {
+        "24": "char-24.png",
+        "32": "char-32.png",
+        "64": "char-64.png"
+      },
+      "game_preview": "reference/char.png"
+    },
+    {
+      "index": 2,
+      "key": "gi_menu_roster",
+      "label": "Đội hình (V)",
+      "game_source": "delapouite/three-friends",
+      "game_license": "CC BY 3.0",
+      "game_file": "shared/assets/sprites/iso/gi/menu_roster.png",
+      "ai": {
+        "24": "roster-24.png",
+        "32": "roster-32.png",
+        "64": "roster-64.png"
+      },
+      "game_preview": "reference/roster.png"
+    },
+    {
+      "index": 3,
+      "key": "gi_menu_bag",
+      "label": "Túi đồ (B)",
+      "game_source": "lorc/knapsack",
+      "game_license": "CC BY 3.0",
+      "game_file": "shared/assets/sprites/iso/gi/menu_bag.png",
+      "ai": {
+        "24": "bag-24.png",
+        "32": "bag-32.png",
+        "64": "bag-64.png"
+      },
+      "game_preview": "reference/bag.png"
+    },
+    {
+      "index": 4,
+      "key": "gi_menu_reso",
+      "label": "Cộng minh (K)",
+      "game_source": "lorc/resonance",
+      "game_license": "CC BY 3.0",
+      "game_file": "shared/assets/sprites/iso/gi/menu_reso.png",
+      "ai": {
+        "24": "reso-24.png",
+        "32": "reso-32.png",
+        "64": "reso-64.png"
+      },
+      "game_preview": "reference/reso.png"
+    },
+    {
+      "index": 5,
+      "key": "gi_menu_settings",
+      "label": "Cài đặt",
+      "game_source": "lorc/cog",
+      "game_license": "CC BY 3.0",
+      "game_file": "shared/assets/sprites/iso/gi/menu_settings.png",
+      "ai": {
+        "24": "settings-24.png",
+        "32": "settings-32.png",
+        "64": "settings-64.png"
+      },
+      "game_preview": "reference/settings.png"
+    },
+    {
+      "index": 6,
+      "key": "gi_menu_auto",
+      "label": "Tự động (T)",
+      "game_source": "lorc/cycle",
+      "game_license": "CC BY 3.0",
+      "game_file": "shared/assets/sprites/iso/gi/menu_auto.png",
+      "ai": {
+        "24": "auto-24.png",
+        "32": "auto-32.png",
+        "64": "auto-64.png"
+      },
+      "game_preview": "reference/auto.png"
+    },
+    {
+      "index": 7,
+      "key": "gi_menu_channel",
+      "label": "Kênh",
+      "game_source": "delapouite/network-bars",
+      "game_license": "CC BY 3.0",
+      "game_file": "shared/assets/sprites/iso/gi/menu_channel.png",
+      "ai": {
+        "24": "channel-24.png",
+        "32": "channel-32.png",
+        "64": "channel-64.png"
+      },
+      "game_preview": "reference/channel.png"
+    },
+    {
+      "index": 8,
+      "key": "gi_menu_area",
+      "label": "Vùng (N)",
+      "game_source": "lorc/treasure-map",
+      "game_license": "CC BY 3.0",
+      "game_file": "shared/assets/sprites/iso/gi/menu_area.png",
+      "ai": {
+        "24": "area-24.png",
+        "32": "area-32.png",
+        "64": "area-64.png"
+      },
+      "game_preview": "reference/area.png"
+    },
+    {
+      "index": 9,
+      "key": "gi_menu_world",
+      "label": "Thế giới (M)",
+      "game_source": "lorc/world",
+      "game_license": "CC BY 3.0",
+      "game_file": "shared/assets/sprites/iso/gi/menu_world.png",
+      "ai": {
+        "24": "world-24.png",
+        "32": "world-32.png",
+        "64": "world-64.png"
+      },
+      "game_preview": "reference/world.png"
+    },
+    {
+      "index": 10,
+      "key": "gi_menu_friends",
+      "label": "Bạn bè",
+      "game_source": "lorc/backup",
+      "game_license": "CC BY 3.0",
+      "game_file": "shared/assets/sprites/iso/gi/menu_friends.png",
+      "ai": {
+        "24": "friends-24.png",
+        "32": "friends-32.png",
+        "64": "friends-64.png"
+      },
+      "game_preview": "reference/friends.png"
+    },
+    {
+      "index": 11,
+      "key": "gi_menu_rank",
+      "label": "Xếp hạng",
+      "game_source": "delapouite/podium",
+      "game_license": "CC BY 3.0",
+      "game_file": "shared/assets/sprites/iso/gi/menu_rank.png",
+      "ai": {
+        "24": "rank-24.png",
+        "32": "rank-32.png",
+        "64": "rank-64.png"
+      },
+      "game_preview": "reference/rank.png"
+    },
+    {
+      "index": 12,
+      "key": "gi_menu_quest",
+      "label": "Nhiệm vụ",
+      "game_source": "delapouite/scroll-quill",
+      "game_license": "CC BY 3.0",
+      "game_file": "shared/assets/sprites/iso/gi/menu_quest.png",
+      "ai": {
+        "24": "quest-24.png",
+        "32": "quest-32.png",
+        "64": "quest-64.png"
+      },
+      "game_preview": "reference/quest.png"
+    },
+    {
+      "index": 13,
+      "key": "gi_menu_chat",
+      "label": "Chat",
+      "game_source": "delapouite/chat-bubble",
+      "game_license": "CC BY 3.0",
+      "game_file": "shared/assets/sprites/iso/gi/menu_chat.png",
+      "ai": {
+        "24": "chat-24.png",
+        "32": "chat-32.png",
+        "64": "chat-64.png"
+      },
+      "game_preview": "reference/chat.png"
+    },
+    {
+      "index": 14,
+      "key": "gi_menu_arena",
+      "label": "Đấu trường",
+      "game_source": "lorc/crossed-sabres",
+      "game_license": "CC BY 3.0",
+      "game_file": "shared/assets/sprites/iso/gi/menu_arena.png",
+      "ai": {
+        "24": "arena-24.png",
+        "32": "arena-32.png",
+        "64": "arena-64.png"
+      },
+      "game_preview": "reference/arena.png"
+    },
+    {
+      "index": 15,
+      "key": "gi_menu_shop",
+      "label": "Cửa hàng",
+      "game_source": "delapouite/shop",
+      "game_license": "CC BY 3.0",
+      "game_file": "shared/assets/sprites/iso/gi/menu_shop.png",
+      "ai": {
+        "24": "shop-24.png",
+        "32": "shop-32.png",
+        "64": "shop-64.png"
+      },
+      "game_preview": "reference/shop.png"
+    },
+    {
+      "index": 16,
+      "key": "gi_menu_forge",
+      "label": "Rèn",
+      "game_source": "lorc/anvil",
+      "game_license": "CC BY 3.0",
+      "game_file": "shared/assets/sprites/iso/gi/menu_forge.png",
+      "ai": {
+        "24": "forge-24.png",
+        "32": "forge-32.png",
+        "64": "forge-64.png"
+      },
+      "game_preview": "reference/forge.png"
+    }
+  ],
+  "reference_hashes": {
+    "art/src/ui-kit/BOARD.png": "9cae6f45aa21d2b7d5e2975928c0dfc996af0b4566cb7de2b6d676bc36f393bb",
+    "art/palette.gpl": "70c1503b15754d192f2dd63fd51ffe9cc0d788c34057ebdfc56c7720cd717f41"
+  },
+  "validation": {
+    "images": 48,
+    "mapping": 16,
+    "reference_copies_identical": true,
+    "dimensions_and_palette": true,
+    "browser": "AO Browser: đủ 16 cặp 64/32/24, nền Mực/Giấy/trắng và thang xám; đã xem ảnh chụp đầu/cuối, không lỗi trình duyệt."
+  }
+}
