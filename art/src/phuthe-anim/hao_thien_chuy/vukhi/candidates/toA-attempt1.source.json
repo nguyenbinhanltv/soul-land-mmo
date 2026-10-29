@@ -1,0 +1,137 @@
+﻿{
+    "tool":  "builtin image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "date":  "2026-10-30",
+    "kind":  "vukhi",
+    "direction":  "s",
+    "attempt":  1,
+    "raw":  "toA-attempt1.png",
+    "sha256":  "5141b0db36e457cc27841fb3de8b7211db7b0419e64ae9a08878981b27881d24",
+    "prompt":  "toA-attempt1.prompt.txt",
+    "promptSha256":  "e1495ed9a0744615777c2668211be0eb82dfca80d257710c8851fad92d08d189",
+    "promptHandwritten":  true,
+    "references":  [
+                       {
+                           "sha256":  "735c6ef8c59e946ca13ea743c0747243dce877d784811581dbe2a474c63bfa5e",
+                           "file":  "nom-toA.png"
+                       }
+                   ],
+    "postprocessing":  "none; RAW copied byte-for-byte",
+    "approved":  false,
+    "technicalCheck":  {
+                           "sheet":  "toA",
+                           "size":  [
+                                        1536,
+                                        1024
+                                    ],
+                           "kind":  "huong",
+                           "level":  "chặn",
+                           "dirs":  [
+                                        "s"
+                                    ],
+                           "background":  {
+                                              "key":  [
+                                                          251,
+                                                          3,
+                                                          251
+                                                      ],
+                                              "corners":  [
+                                                              [
+                                                                  232,
+                                                                  37,
+                                                                  221
+                                                              ],
+                                                              [
+                                                                  242,
+                                                                  17,
+                                                                  242
+                                                              ],
+                                                              [
+                                                                  212,
+                                                                  60,
+                                                                  215
+                                                              ],
+                                                              [
+                                                                  240,
+                                                                  30,
+                                                                  242
+                                                              ]
+                                                          ],
+                                              "keyDistFromLock":  4,
+                                              "cornerSpread":  57
+                                          },
+                           "seVsE":  null,
+                           "prep":  null,
+                           "bands":  [
+                                         {
+                                             "row":  1,
+                                             "dir":  null,
+                                             "y":  [
+                                                       64,
+                                                       195
+                                                   ],
+                                             "figures":  3,
+                                             "state":  "bad"
+                                         },
+                                         {
+                                             "row":  1,
+                                             "dir":  null,
+                                             "y":  [
+                                                       300,
+                                                       438
+                                                   ],
+                                             "figures":  4,
+                                             "state":  "bad"
+                                         },
+                                         {
+                                             "row":  1,
+                                             "dir":  null,
+                                             "y":  [
+                                                       512,
+                                                       717
+                                                   ],
+                                             "figures":  4,
+                                             "state":  "bad"
+                                         },
+                                         {
+                                             "row":  1,
+                                             "dir":  null,
+                                             "y":  [
+                                                       751,
+                                                       763
+                                                   ],
+                                             "figures":  0,
+                                             "state":  "bad"
+                                         },
+                                         {
+                                             "row":  1,
+                                             "dir":  null,
+                                             "y":  [
+                                                       788,
+                                                       964
+                                                   ],
+                                             "figures":  2,
+                                             "state":  "bad"
+                                         }
+                                     ],
+                           "motion":  [
+
+                                      ],
+                           "issues":  [
+                                          {
+                                              "sev":  "note",
+                                              "code":  "nen",
+                                              "where":  "toàn tờ",
+                                              "msg":  "nền dốc nhẹ (bốn góc lệch 57), trong dung sai 60; không phải lỗi."
+                                          },
+                                          {
+                                              "sev":  "block",
+                                              "code":  "luoi",
+                                              "where":  "toàn tờ",
+                                              "msg":  "dò được 5 dải hàng, cần 4: không dò được lưới (hàng dính nhau hoặc vỡ)."
+                                          }
+                                      ],
+                           "draft":  "LỖI: toA — không dò được lưới — toàn tờ — dò được 5 dải hàng, cần 4: không dò được lưới (hàng dính nhau hoặc vỡ)."
+                       }
+}
