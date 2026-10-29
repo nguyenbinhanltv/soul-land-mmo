@@ -16,6 +16,12 @@ const bit = (mask: number, i: number) => (mask & (1 << i)) !== 0;
 export const signedToday = (m: WelfareMsg) => m.day >= 0 && bit(m.mask, m.day);
 /** Cần điểm danh hôm nay (chấm đỏ ở hub): chưa có chu kỳ đang chạy, hoặc ô hôm nay chưa ký. */
 export const needsSign = (m: WelfareMsg) => !signedToday(m);
+/** Số việc chờ ở chấm đỏ hub: hôm nay chưa ký (1) + mốc đặc biệt (7 / 14 / 21) đã lỡ mà còn ký bù được. Hàm thuần, suy ra từ tin `welfare` có sẵn. */
+export function welfareBadgeCount(m: WelfareMsg): number {
+  let n = needsSign(m) ? 1 : 0;
+  if (m.day >= 0) for (const i of CHECKIN.milestones) if (cellState(i, m) === "makeup") n++;
+  return n;
+}
 
 /**
  * Trạng thái ô `i` (0-based): đã ký / hôm nay / ký bù được (đã qua, chưa ký, còn lượt) / bỏ lỡ (đã qua, chưa ký, hết lượt) / tương lai.
@@ -69,12 +75,12 @@ export const feeText = (fee: number | null) => fee === null ? "Hết lượt ký
 
 // ---- phần DOM ----
 let send: ((type: string, payload: unknown) => void) | null = null;
-let onChange: (needs: boolean) => void = () => {};
+let onChange: (n: number) => void = () => {};
 let msg: WelfareMsg | null = null, busy = false, confirmDay: number | null = null, note: { text: string; err: boolean } | null = null, timer = 0, stops: (() => void)[] = [];
 const el = () => document.getElementById("welfare");
 const BUSY_MS = 6000;
 
-export function bindWelfare(sender: (type: string, payload: unknown) => void, changed: (needs: boolean) => void) { send = sender; onChange = changed; }
+export function bindWelfare(sender: (type: string, payload: unknown) => void, changed: (n: number) => void) { send = sender; onChange = changed; }
 export const isWelfareOpen = () => { const e = el(); return !!e && !e.hidden; };
 export function openWelfare() { const e = el(); if (!e || !send) return; e.hidden = false; confirmDay = null; send("welfare", { op: "get" }); render(); }
 export function closeWelfare() { const e = el(); if (e) e.hidden = true; confirmDay = null; for (const s of stops) s(); stops = []; }
@@ -83,7 +89,7 @@ export function onWelfare(m: WelfareMsg) {
   if (!m || typeof m.mask !== "number" || typeof m.day !== "number") return;
   syncServerNow(m.now); msg = m; busy = false; confirmDay = null; window.clearTimeout(timer);
   if (m.err) note = { text: m.err, err: true }; else if (m.signed) note = { text: signedLine(m.signed), err: false };
-  onChange(needsSign(m)); render();
+  onChange(welfareBadgeCount(m)); render();
 }
 
 function act(op: "sign" | "makeup", day?: number, pay?: boolean) {

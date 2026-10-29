@@ -5,9 +5,9 @@ import { setBadge, clearBadge, badgeOf, allBadges, onBadges, resetBadges, starRe
 import { logNotice, notices, clearNotices, LOG_MAX } from "../src/noticeLog.ts";
 import { noticeNode, noticeTime } from "../src/noticeScreen.ts";
 import { toHtml } from "../src/uiParts.ts";
-import { fixedGoal, slotState, todayIndex, byDay, dayDate, slotRange, STATE_LABEL } from "../src/calendarScreen.ts";
+import { fixedGoal, unseenSoon, slotState, todayIndex, byDay, dayDate, slotRange, STATE_LABEL } from "../src/calendarScreen.ts";
 import { COUNTDOWN_SOON_MS } from "../src/uiParts.ts";
-import { rewardIcons, cellState, signedToday, needsSign, isMilestone, rewardParts, signedLine, primaryOf, nextMidnightVn, feeText } from "../src/welfareScreen.ts";
+import { rewardIcons, cellState, signedToday, needsSign, welfareBadgeCount, isMilestone, rewardParts, signedLine, primaryOf, nextMidnightVn, feeText } from "../src/welfareScreen.ts";
 import { CHECKIN } from "../../shared/data.ts";
 import { playerCard, rankGroups, podiumOf, lineupText, meLine, pageLabel, tongName, sendDelay } from "../src/rankScreen.ts";
 
@@ -59,6 +59,13 @@ const cal = [{ id: "b", d: 2, s: 5, e: 6 }, { id: "a", d: 2, s: 5, e: 6 }, { id:
 const cols = byDay(cal);
 assert.equal(cols.length, 7); assert.deepEqual(cols[2].map((x) => x.id), ["c", "a", "b"], "xếp theo giờ bắt đầu rồi mã"); assert.equal(cols.flat().length, 3, "cột ngoài 0..6 bị bỏ");
 assert.equal(dayDate(WS, 0), "26.10"); assert.equal(dayDate(WS, 6), "01.11");
+// chấm đỏ Lịch: khung đang mở / sắp mở chưa xem
+const NS = [it(WS + 20 * H, WS + 21 * H), it(WS + 22 * H, WS + 23 * H), it(WS + 10 * H, WS + 11 * H)].map((x, i) => ({ id: `e${i}`, ...x }));
+assert.equal(unseenSoon(NS, WS + 19.5 * H, new Set()), 1, "chỉ khung sắp mở trong 1 giờ");
+assert.equal(unseenSoon(NS, WS + 20.5 * H, new Set()), 1, "đang mở; khung đã qua không tính");
+assert.equal(unseenSoon(NS, WS + 20.5 * H, new Set([`e0@${WS + 20 * H}`])), 0, "đã xem thì hết chấm");
+assert.equal(unseenSoon(NS, WS + 21.5 * H, new Set()), 1, "khung 20h đã qua, khung 22h sắp mở");
+assert.equal(unseenSoon([], WS, new Set()), 0);
 assert.equal(slotRange(it(WS + 20 * H, WS + 20.25 * H)), "20:00 – 20:15");
 
 // ---- Phúc Lợi ----
@@ -72,6 +79,12 @@ assert.deepEqual([0, 1, 20].map((i) => cellState(i, fresh)), ["today", "future",
 assert.equal(cellState(0, W({ day: -1, mask: 1, cycle: 2 })), "today", "chu kỳ cũ đã hết: mask cũ không làm ô 1 'đã ký'");
 assert.equal(signedToday(m), false); assert.equal(signedToday(W({ mask: 0b111011 })), true); assert.equal(signedToday(fresh), false);
 assert.equal(needsSign(fresh), true); assert.equal(needsSign(W({ mask: 0b111011 })), false, "đã ký hôm nay thì hết chấm đỏ");
+// chấm đỏ hub: hôm nay chưa ký + mốc đã lỡ còn ký bù được
+assert.equal(welfareBadgeCount(m), 1, "chỉ hôm nay chưa ký");
+assert.equal(welfareBadgeCount(W({ day: 8, mask: 0b1 })), 1 + 1, "hôm nay chưa ký + mốc ngày 7 (ô 6) lỡ còn ký bù");
+assert.equal(welfareBadgeCount(W({ day: 8, mask: 0b101000000 | 1 << 8 })), 0, "đã ký mốc + hôm nay: hết chấm");
+assert.equal(welfareBadgeCount(W({ day: 8, mask: 0b1, makeupLeft: 0 })), 1, "hết lượt ký bù: mốc lỡ không tính");
+assert.equal(welfareBadgeCount(fresh), 1, "chưa có chu kỳ: chỉ việc mở chu kỳ");
 assert.deepEqual(CHECKIN.milestones.map(isMilestone), [true, true, true]); assert.equal(isMilestone(0), false);
 assert.equal(CHECKIN.days, 21, "lưới 7 x 3");
 for (let i = 0; i < CHECKIN.days; i++) assert.ok(rewardParts(i).length > 0, `ô ${i + 1} có quà để hiện`);
