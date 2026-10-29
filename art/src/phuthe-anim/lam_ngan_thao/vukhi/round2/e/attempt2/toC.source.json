@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-30",
+  "round": 2,
+  "attempt": 2,
+  "direction": "e",
+  "tool": "Codex / OpenAI image_gen tích hợp",
+  "model": null,
+  "seed": null,
+  "selected": false,
+  "rawUnmodified": true,
+  "image": {
+    "path": "toC.png",
+    "sha256": "8b17b0d1c3309ddbb0f90cb2337cb644c63c11066d2bdd12a995760bdf472e4e"
+  },
+  "prompt": {
+    "path": "toC.prompt.txt",
+    "sha256": "0f6f227dad612c8222da2109ef3df2c9255e7ad707c0056dbf9e3cd18e618321"
+  },
+  "references": [
+    {
+      "path": "../../../references/lam_ngan_thao-nom-toC.png",
+      "sha256": "7d2c38026830ba88664bb402ee605d07655e312895faa28272f7434d45d8c695"
+    }
+  ],
+  "promptMethod": "buildDirectionPrompt(infoWith(lam_ngan_thao, kind=vukhi), sheetPlan(B)[2], {lessons: vukhiLessonsFor(direction) + các bullet @VUKHI-MEM trong lessons.md tại thời điểm sinh}); parser chung không sửa.",
+  "softLessonCount": 4,
+  "license": "Đầu ra OpenAI theo điều khoản dịch vụ; không gán CC0. Nộm LPC theo hồ sơ hiện có.",
+  "check": "review/lam_ngan_thao-check.json",
+  "eye": {
+    "extraCord": "chưa đạt: dây đi qua vị trí nắm, có đoạn thừa phía tay phụ",
+    "tipClipping": "chưa đạt: còn chạm/vượt khung",
+    "gripStability": "chưa đạt: nộm/điểm nắm thay vị trí"
+  },
+  "decision": "Loại; không thay toC hoặc sheet, không mở rộng hướng."
+}

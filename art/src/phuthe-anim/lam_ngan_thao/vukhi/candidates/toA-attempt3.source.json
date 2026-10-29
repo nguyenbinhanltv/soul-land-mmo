@@ -1,0 +1,146 @@
+{
+  "date": "2026-10-30",
+  "tool": "Codex / OpenAI image_gen tích hợp",
+  "model": null,
+  "seed": null,
+  "kind": "vukhi",
+  "direction": "s",
+  "attempt": 3,
+  "rawUnmodified": true,
+  "image": {
+    "path": "toA-attempt3.png",
+    "sha256": "d8acc52cb731bd4c8555d76bc8877d60782e4c923b0ce77888c842fc47fb4b66"
+  },
+  "prompt": {
+    "path": "toA-attempt3.prompt.txt",
+    "sha256": "439ea07d311b6502bc4e610bca696b7b2a8865e1c8bf8eee14708371840529a2"
+  },
+  "references": [
+    {
+      "path": "../references/lam_ngan_thao-nom-toA.png",
+      "sha256": "630cb6a25b80011f5cfe988d92e17b3fc60ebfcecac0f2bb5fe4ac68c1c7d5b4",
+      "role": "Bảng nộm LPC có vạch và marker, ảnh tham chiếu duy nhất"
+    }
+  ],
+  "referenceNote": "Không có turnaround vũ khí được duyệt. Prompt công cụ còn mô tả ảnh 2 nhưng thực tế chỉ gửi ảnh 1; không dùng concept phụ thể cũ.",
+  "license": "Đầu ra OpenAI theo điều khoản dịch vụ; không gán CC0. Nộm LPC theo nguồn/giấy phép hiện có trong repo.",
+  "checkReport": "review/lam_ngan_thao-check.json",
+  "cutReport": "_report.json",
+  "check": {
+    "id": "lam_ngan_thao",
+    "kind": "vukhi",
+    "level": "chặn",
+    "group": "B",
+    "frame": 96,
+    "dummyKey": "#30D030",
+    "blockLevel": {
+      "s": "chặn"
+    },
+    "sheets": [
+      {
+        "sheet": "toA",
+        "size": [
+          1536,
+          1024
+        ],
+        "kind": "huong",
+        "level": "chặn",
+        "dirs": [
+          "s"
+        ],
+        "background": {
+          "key": [
+            250,
+            3,
+            250
+          ],
+          "corners": [
+            [
+              237,
+              13,
+              239
+            ],
+            [
+              242,
+              17,
+              240
+            ],
+            [
+              233,
+              36,
+              235
+            ],
+            [
+              239,
+              30,
+              240
+            ]
+          ],
+          "keyDistFromLock": 5,
+          "cornerSpread": 33
+        },
+        "seVsE": null,
+        "prep": null,
+        "bands": [
+          {
+            "row": 1,
+            "dir": "s",
+            "y": [
+              80,
+              239
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 2,
+            "dir": "s",
+            "y": [
+              328,
+              470
+            ],
+            "figures": 6,
+            "state": "ok"
+          },
+          {
+            "row": 3,
+            "dir": "s",
+            "y": [
+              549,
+              734
+            ],
+            "figures": 5,
+            "state": "bad"
+          },
+          {
+            "row": 4,
+            "dir": "s",
+            "y": [
+              754,
+              975
+            ],
+            "figures": 4,
+            "state": "ok"
+          }
+        ],
+        "motion": [],
+        "issues": [
+          {
+            "sev": "note",
+            "code": "nen",
+            "where": "toàn tờ",
+            "msg": "nền dốc nhẹ (bốn góc lệch 33), trong dung sai 60; không phải lỗi."
+          },
+          {
+            "sev": "block",
+            "code": "hinh-dinh",
+            "where": "H3 (s)",
+            "msg": "dải có 5 hình, cần 6: hình dính nhau."
+          }
+        ],
+        "draft": "LỖI: toA — hình dính — H3 (s) — dải có 5 hình, cần 6: hình dính nhau."
+      }
+    ]
+  },
+  "selected": false
+}
