@@ -120,6 +120,10 @@ Chỉ các dòng `@VUKHI` được chèn vào prompt kiểu vũ khí (`--kind vu
 - **@VUKHI-MEM** Place all six registration roots well inside their own cells, never on a column boundary; specify root coordinates when needed. // Hỏa Long s2: hai gốc cùng ô; s3 đặt tọa độ gốc cụ thể đã ghép được. Hướng s dừng ở 3/3.
 - **@VUKHI-MEM** Use a cyan registration dot for ember-red weapons; keep the dot small and touching a plain blunt grip cap. Check nearest-pixel grip distance again after applying the single shared scale. // Hỏa Long se: màu vàng trùng motif than hồng, dùng cyan; tỉ lệ chung 0,09 giữ khoảng cách dưới 2 px, không nới ngưỡng.
 
+## Bài học rollout A Ngân `@VUKHI-MEM`
+
+- **@VUKHI-MEM** Keep the small golden flower attached to the single root grip, one continuous blue-gold cord and one tapered tip. Show calyx and backs of petals in rear views, no pale flower center facing viewer. Use a tiny red registration dot absent from the weapon palette. // A Ngân: năm atlas một lượt/hướng, ghép 0 chặn; cần duyệt độ rõ hoa và chiều dài dây ở cỡ game.
+
 ## Bài học riêng `@VUKHI-MEM` — vòng 2 Lam Ngân Thảo, chỉ hướng e
 
 Parser hiện chỉ hỗ trợ `@VUKHI`, chưa hỗ trợ tag nhóm mềm. Các dòng dưới không dùng cú pháp `- [direction …]` để không làm hỏng parser hoặc chèn vào mọi vũ khí. Khi thử nhóm mềm, đọc đúng mục này và truyền các câu tiếng Anh vào tham số `lessons` của `buildDirectionPrompt`, nối sau `vukhiLessonsFor("direction")`; ghi lại prompt thực tế. Không dùng mục này cho vũ khí cứng, không ghi đè prompt lịch sử.

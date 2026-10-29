@@ -125,6 +125,18 @@ Mỗi võ hồn một PR nháp, chờ chủ repo duyệt mỹ thuật; không t�
 | 12 | Càn Khôn Hỗn Nguyên Tỏa | chưa mở | Chưa bắt đầu |
 | 22 | A Ngân | chưa mở | Chưa bắt đầu |
 
+## Tiến độ rollout nhóm mềm
+
+Mỗi võ hồn một PR nháp chờ chủ repo duyệt mỹ thuật; không tự merge. Cảnh báo mới phải được duyệt riêng, không kế thừa mức chấp nhận LNT.
+
+| Dòng | Võ hồn | Issue / PR | Trạng thái |
+|---|---|---|---|
+| 7 | Hỏa Long | #1338 / #1339 | PR nháp, có ảnh game, AO đạt; chờ duyệt mỹ thuật |
+| 10 | Tử Vong Chu Hoàng | #1341 / #1342 | PR nháp, có ảnh game, AO đạt; chờ duyệt mỹ thuật |
+| 11 | Bích Lân Xà Hoàng | #1346 / #1347 | PR nháp, có ảnh game, AO đạt; chờ duyệt mỹ thuật |
+| 12 | Càn Khôn Hỗn Nguyên Tỏa | #1349 / #1350 | PR nháp, có ảnh game, AO đạt; chờ duyệt mỹ thuật |
+| 22 | A Ngân | #1352 / #1353 | PR nháp, đã nhập năm atlas/220 khung, có ảnh game, 0 chặn; chờ duyệt mỹ thuật |
+
 ## Nhập vào game và trang thử (#1312)
 - **Nhập:** cắt tờ bằng `phuthe-sheet-cut.mjs --kind vukhi --out <thư mục>` rồi `node tools/assets/phuthe-import.mjs --id <võ hồn> --kind vukhi --dir <thư mục>`. Ảnh vào `shared/assets/sprites/vukhianim/<id>_{b|f}.png`; mục manifest `vkanim_<id>_{b|f}` giữ `anim.kind: "vukhi"`, `anim.grip`, `anim.gripSex` (nửa không có điểm ảnh ghi `blank`), đặt sau `vhanim_<id>_f` (nếu có) hoặc `vh_<id>_f`. Ghi thêm dòng vào `art/CREDITS.md` (mục ChatGPT, `--credits` đổi đường dẫn) và khối hướng đã nhập ở `art/src/phuthe-anim/<id>/vukhi/NGUON.md`. Chạy lại không đổi gì; `--dry-run` chỉ in. Không dùng `--anchor` (neo là của phụ thể).
 - **Kiểm:** `validate.mjs` nhận khoá `vkanim_*` (khung 96 / 128, cỡ sheet như `vhanim`), bắt buộc `anim.kind: "vukhi"` và kiểm `anim.grip` (khoá `<hướng>/<clip>/<khung>` nằm trong số khung của clip, giá trị 2 hoặc 4 số); `vhanim_*` không được mang hai trường đó.
