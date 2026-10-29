@@ -1,4 +1,4 @@
-# Lam Ngân Thảo — thí điểm vũ khí mềm
+﻿# Lam Ngân Thảo — thí điểm vũ khí mềm
 
 Part of #1312, epic #1020; issue thực hiện #1321. Dòng 18 trong `docs/art/phu-the-vu-khi.md`: roi dây cỏ lam thẫm, một tay giữ gốc, thân dây xoắn, ngọn nhọn. **Trạng thái mới nhất: đã nhập bộ vẽ riêng + ghép grip vào game theo chỉ đạo sau #1323; [ảnh kiểm trong game](ingame/index.html) ở cuối hồ sơ.** Các mục vòng 1/2 và thử nghiệm dưới đây giữ lịch sử trước lần nhập; không coi trạng thái “chưa nhập” ở lịch sử là trạng thái hiện tại. Chờ chủ repo duyệt mỹ thuật, không tự merge.
 
@@ -125,6 +125,7 @@ Trang `/choi?thu=vukhi` được bổ sung thân LPC thật qua `LpcRig` cho `gi
 Kiểm local sau nhập: `npm run check`, `npm run build`, `test:phutheanim`, credits/validate đạt. Bot RAM nhóm `combo`: 34 đạt, 0 lỗi, 0 bỏ qua. Không đổi server/SQL/luật chơi; việc duyệt mỹ thuật và merge vẫn do chủ repo/orchestrator.
 
 ### Sửa neo runtime theo AO review
-GameScene từng áp neo lưng `anchor.json` của phụ thể cũ (Lam Ngân Thảo m/s scale 0.9, dy -2.65) lên vũ khí mới. Đã dùng chung `phuLayerPlacement` giữa GameScene và trang thử: vũ khí giữ gốc LPC, không áp clip offset/neo lưng; không chạy dao động xoay/co/dịch phụ thể vì grip đã bake. Phụ thể cũ giữ hành vi cũ. Kiểm hồi quy có neo cũ, offset khác 0 và cả phía lật ngang.
+GameScene từng áp neo lưng `anchor.json` của phụ thể cũ (Lam Ngân Thảo m/s scale 0.9, dy -2.65) lên vũ khí mới. Đã dùng chung `phuLayerPlacement` giữa GameScene và trang thử: vũ khí giữ gốc LPC, không áp clip offset/neo lưng. Giữ spiritMotion với weaponOscK theo đặc tả bước 5 (đứng/đi nhẹ, đánh/thi triển/bị đánh giữ nguyên). Phụ thể cũ giữ hành vi cũ. Kiểm hồi quy có neo cũ, offset khác 0 và cả phía lật ngang.
 
 Tám ảnh ma trận được chụp lại từ bản build sau sửa. Thêm `ingame/game-scene-m-idle.png`: đăng nhập tài khoản thử trên server RAM riêng, chuyển ô 2 Lam Ngân Thảo, đứng trong Thánh Hồn Thôn qua GameScene thật. `game-scene-fallback.png` chuyển ô 1 Thất Sát Kiếm: trở về phụ thể cũ, không giữ roi. Không đóng băng đồng hồ hoặc dựng lại ảnh; đòn đánh bị vùng an toàn chặn nên không dùng ảnh GameScene làm bằng chứng attack/cast. Ma trận trang thử vẫn kiểm đủ nam/nữ, bốn động tác, năm hướng. Hash ba file mã đặt lớp ghi trong capture.source.json.
+

@@ -14,7 +14,7 @@
     },
     {
       "file": "client/src/scenes/GameScene.ts",
-      "sha256": "5bb8557e38babd486d7abfac5a4c695e3c90ee3a99f2887f4bab4789e8f20ea1"
+      "sha256": "2b0b3e43d8b48d282fc731bac188602e3d5929ce28dd189e3744d5a46efc256c"
     },
     {
       "file": "client/src/vukhiTest.ts",
@@ -221,8 +221,8 @@
       "scene": "GameScene",
       "sex": "m",
       "clip": "idle",
-      "sha256": "b13fab8f2fd9ecbe0ab907901ea908d19a25b909f04c68e3ed5cd7b25a819a0d",
-      "capturedAt": "2026-10-29T19:41:18.362Z",
+      "sha256": "39051960fce5bb491be668599f6dedebdfafdffae25a8813b55c51c7c5914a73",
+      "capturedAt": "2026-10-29T19:47:26.525Z",
       "note": "Tài khoản RAM LamGrip837 tại Thánh Hồn Thôn; chuyển ô 2 Lam Ngân Thảo / ô 1 Thất Sát Kiếm; không hook thêm, không đóng băng đồng hồ. Đánh bị vùng an toàn chặn nên không dùng ảnh làm bằng chứng attack."
     },
     {
@@ -231,8 +231,8 @@
       "scene": "GameScene",
       "sex": "m",
       "clip": "idle",
-      "sha256": "deb173dc4e6691f9a672289d7cffc5f023caa45ec46a422518279c8ef4ea91e4",
-      "capturedAt": "2026-10-29T19:41:20.116Z",
+      "sha256": "0f4efadab5ee11149239cded9c26937dae3239bbba13a9b725bb11e31ff2a400",
+      "capturedAt": "2026-10-29T19:47:43.266Z",
       "note": "Tài khoản RAM LamGrip837 tại Thánh Hồn Thôn; chuyển ô 2 Lam Ngân Thảo / ô 1 Thất Sát Kiếm; không hook thêm, không đóng băng đồng hồ. Đánh bị vùng an toàn chặn nên không dùng ảnh làm bằng chứng attack."
     }
   ],

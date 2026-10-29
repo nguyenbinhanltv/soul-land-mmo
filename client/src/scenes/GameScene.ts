@@ -3480,8 +3480,6 @@ export class GameScene extends Phaser.Scene {
    * chuyển động tắt hẳn, người khác nhẹ hơn. Gục, hấp thụ, khung phụ thể ẩn thì trả về tư thế gốc.
    */
   spiritMotion(id: string, v: PView, p: any, time: number, anim: HsAnim, flip: boolean, ox: number, oy: number, anchorK = 1, real = !!v.vhAnim) {
-    // Vũ khí đã bake pose theo bàn tay; dao động phụ thể sẽ làm điểm cầm rời tay.
-    if (real && v.vhAnim?.layout.weapon) { for (const s of [v.vb, v.vf]) s.setRotation(0).setScale(1 / SPR).setPosition(ox, oy); return; }
     const fam = SPIRIT_FAMILY[VOHON[p.vh]?.id ?? ""], layers = [v.vb, v.vf];
     const k = fam && v.vb.visible && !p.dead && anim !== "absorb" ? spiritScale(fxLevel(), fxPrefs.reduce, id === this.me) : 0;
     const iso = real || isIsoSheet(this, v.vb.texture.key), base = (iso ? 1 / SPR : 1) * (iso ? anchorK : 1); // phụ thể 48×48 cũ vẽ bằng code phóng 1 (fitHonsuLayer); neo chỉ cho ảnh iso
