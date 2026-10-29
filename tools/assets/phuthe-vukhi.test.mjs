@@ -28,6 +28,13 @@ test("số tay theo clip: nộm / chuẩn bị cutter giữ một tay lúc ngh�
   const prep = prepareSheet(board.img, { group: "A", dir: "s", frame: 128, dummyKey: "#00D0D0", guideKey: "#7A5CFF", gripKey: "#00FF60", gripN: counts });
   for (const cell of board.cells) assert.equal(cell.grip.hands.length, counts[cell.anim]);
   for (const cell of prep.cells) assert.equal(cell.grip.hands.length, counts[cell.anim]);
+  const femaleNorth = gripPoints({ sex: "f", dir: "n", clip: "attack", step: 0, frame: 128, count: 2 });
+  assert.equal(femaleNorth.hands.length, 2, "không loại tay nện nữ đang nâng ngang lưng");
+  assert.equal(femaleNorth.step, 0, "dùng đúng điểm tay khung hiện tại nếu đã đo được");
+  assert.equal(femaleNorth.fallback, false);
+  const measuredRaisedHand = bodyAnchors("f", "n", "attack", 0).hands.find((h) => h.x === 39.5 && h.y === 41.5);
+  assert.ok(measuredRaisedHand, "điểm có thật trên LPC, không phải gương/ước lượng từ nam");
+  assert.ok(femaleNorth.hands.some(([x, y]) => x === (32 + measuredRaisedHand.x) * 2 && y === (32 + measuredRaisedHand.y) * 2));
   for (const dir of L.DIRS) for (const cell of L.sheetCells("A").filter((c) => ["attack", "cast"].includes(c.anim))) {
     const g = gripMarker({ dir, clip: cell.anim, step: L.bodyStepOf(cell.anim, L.framesOf("A")[cell.anim], cell.frame), frame: 128, count: 2 });
     assert.equal(g.hands.length, 2, `${dir}/${cell.anim}/${cell.frame}: cần tìm khung lân cận nếu tay bị che`);

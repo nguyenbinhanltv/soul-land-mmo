@@ -1,0 +1,37 @@
+{
+    "methodReference":  {
+                            "branch":  "ao/lam-ngan-thao/1312-vu-khi",
+                            "file":  "art/src/phuthe-anim/lam_ngan_thao/vukhi/isolated/compose.mjs",
+                            "sha":  "a69b175b7790d9b8563a797543f95982ca701c86"
+                        },
+    "toolSha256NormalizedLF":  {
+                                   "tools/assets/phuthe-hammer-atlas-finalize.mjs":  "21a38f34c22a802609d35521bdd6bffe31bce1e46695981fc4c94b4704d12b2c",
+                                   "tools/assets/phuthe-sheet-dummy.mjs":  "15b44f71dfebaa8de39d2286fd8577028cb3e2ec9bec505b62bbcaa82dd9502f",
+                                   "tools/assets/phuthe-hammer-atlas.mjs":  "0de9499306f43d17158ac1f0d45a97f8294828fbc3f1df159e1890e0aef59c80"
+                               },
+    "rawSources":  [
+                       "s/attempt1/poses.source.json",
+                       "s/attempt2/poses.source.json",
+                       "se/attempt1/poses.source.json"
+                   ],
+    "imageJobsThisRound":  3,
+    "imageBudgetClarification":  "Tổng 3 lượt mới hay 3 lượt mỗi hướng đang chờ xác nhận; chưa sinh e/ne/n",
+    "selectedDirections":  [
+                               "s",
+                               "se"
+                           ],
+    "commonScale":  0.12387969164221649,
+    "frames":  52,
+    "maxNearestA":  1.5811388300841898,
+    "maxNearestB":  1.204159457879232,
+    "edge":  0,
+    "maleLevel":  "pass",
+    "femaleLevel":  "pass",
+    "rawUnmodified":  true,
+    "lpcPoseChanges":  false,
+    "geometryThreshold":  2,
+    "approvedForImport":  false,
+    "preview":  "index.html",
+    "manifest":  "result/manifest-entry.json",
+    "manifestSha256":  "46a7fb5a6c21333c634c9bb45f00e93ba9e4a2233a31e08fe939f4970b762dc8"
+}
