@@ -9358,9 +9358,9 @@
       "key": "pt_a_ngan",
       "iso": true,
       "pt": {
-        "scale": 1,
+        "scale": 1.8,
         "dx": 0,
-        "dy": 0,
+        "dy": -24,
         "back": [
           "s",
           "se",
