@@ -1,5 +1,5 @@
 // Thử atlas chùy riêng theo phương pháp s837, không sửa RAW/LPC hoặc nhập shared/assets.
-// node tools/assets/phuthe-hammer-atlas.mjs --raw <atlas 4x2> --dir s --out <thư mục> [--axes <JSON tám điểm trên trục cán>]
+// node tools/assets/phuthe-hammer-atlas.mjs --raw <atlas 4x2> --dir s --out <thư mục> [--pose-a] [--axes <JSON tám điểm trên trục cán>]
 import fs from "node:fs";
 import path from "node:path";
 import { Img, readPng, encodePng } from "./lib.mjs";
@@ -12,7 +12,9 @@ const args = process.argv.slice(2), val = (k) => args[args.indexOf(k) + 1];
 if (!args.includes("--raw") || !args.includes("--out")) throw Error("Cần --raw và --out");
 const dir = args.includes("--dir") ? val("--dir") : "s";
 if (!DIRS.includes(dir)) throw Error("Hướng chỉ s/se/e/ne/n");
-const map = { idle: [0, 0], walk: [1, 1, 1, 1], attack: [2, 3, 4, 5], cast: [2, 6], hurt: [0] };
+// Thử quyết định A chính/B gần cán: giữ góc pose nguồn, không suy góc từ hai tay LPC.
+const poseA = args.includes("--pose-a"), secondaryTolerance = 20;
+const map = { idle: [0, 0], walk: [1, 1, 1, 1], attack: poseA ? [2, 3, 4, 7] : [2, 3, 4, 5], cast: poseA ? [6, 7] : [2, 6], hurt: [0] };
 const usedPoses = new Set(Object.values(map).flat());
 const omittedPoses = args.includes("--omit-unused") ? val("--omit-unused").split(",").map(Number) : [];
 if (new Set(omittedPoses).size !== omittedPoses.length || omittedPoses.some((i) => !Number.isInteger(i) || i < 0 || i > 7 || usedPoses.has(i))) throw Error("Không được bỏ pose đang dùng hoặc chỉ số pose không hợp lệ");
@@ -82,7 +84,7 @@ for (const sex of ["m", "f"]) for (const c of sheetCells("A")) {
   const hands = g.hands.slice(0, counts[c.anim]).map((p) => p.map((v) => sex === "m" ? +(v / 2).toFixed(1) : v / 2));
   if (hands.length !== counts[c.anim]) throw Error(`Thiếu tay ${sex}/${dir}/${c.anim}/${c.frame}`);
   const pose = map[c.anim][c.frame], p = poses[pose];
-  const angle = hands.length === 2 ? Math.atan2(hands[1][1] - hands[0][1], hands[1][0] - hands[0][0]) - p.axis : (tilt[c.anim][c.frame] * Math.PI / 180);
+  const angle = hands.length === 2 ? (poseA ? 0 : Math.atan2(hands[1][1] - hands[0][1], hands[1][0] - hands[0][0]) - p.axis) : (tilt[c.anim][c.frame] * Math.PI / 180);
   plan.push({ ...c, sex, name: `${dir}/${c.anim}/${c.frame}`, pose, hands, angle, step, measuredStep: g.step, fallback: g.fallback });
 }
 // Chọn điểm nắm trên chính cán thẳng đã vẽ, không bắt tay A ở nút cuối.
@@ -100,7 +102,7 @@ for (const f of plan) {
 function placementsAt(s) {
   const ranges = new Map();
   for (const f of plan) {
-    let lo = 0, hi = poses[f.pose].shaftLength * poses[f.pose].headScale * s - f.gripSpan - 1;
+    let lo = 0, hi = poses[f.pose].shaftLength * poses[f.pose].headScale * s - (poseA ? 0 : f.gripSpan) - 1;
     if (hi < 0) return null;
     for (let k = 0; k < 2; k++) {
       const min = f.hands[0][k] + f.bounds[k] * s, max = f.hands[0][k] + f.bounds[k + 2] * s, u = f.axisUnit[k];
@@ -137,7 +139,12 @@ for (const f of plan) {
     half.set((gameAnims("A")[f.anim][0] + f.frame) * F + x, gameRow(f.sex, dir) * F + y, px);
   }
   const shaftLength = p.shaftLength * p.headScale * scale - f.gripOffset, gripSpan = f.gripSpan;
-  distances.push({ name: `${f.sex}/${f.name}`, pose: f.pose, near, pixels, edge, shaftLength, gripSpan, gripOffset: f.gripOffset });
+  const delta = f.hands.length > 1 ? f.hands[1].map((v, k) => v - g[k]) : null;
+  const along = delta ? delta[0] * f.axisUnit[0] + delta[1] * f.axisUnit[1] : 0;
+  const clamped = Math.max(-f.gripOffset, Math.min(shaftLength, along));
+  const secondaryShaftDistance = delta ? Math.hypot(...delta.map((v, k) => v - clamped * f.axisUnit[k])) : 0;
+  distances.push({ name: `${f.sex}/${f.name}`, pose: f.pose, near, pixels, edge, shaftLength, gripSpan, gripOffset: f.gripOffset,
+    ...(poseA ? { axisDegrees: (p.axis + f.angle) * 180 / Math.PI, primaryAnchorError: 0, secondaryShaftDistance, secondaryTolerance } : {}) });
   for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) { const px = frame.get(Math.floor(x / 2), Math.floor(y / 2)); if (px[3]) boards[f.sex].set(f.col * 256 + x, f.row * 256 + y, px); }
 }
 const sid = "ABCDE"[DIRS.indexOf(dir)];
@@ -149,8 +156,12 @@ for (const sex of ["m", "f"]) {
 fs.writeFileSync(path.join(out, `vkanim_hao_thien_chuy_${side}.png`), encodePng(half));
 const grip = Object.fromEntries(plan.filter((f) => f.sex === "m").map((f) => [f.name, f.hands.flatMap(([x, y]) => [+(x - ox).toFixed(1), +(y - oy).toFixed(1)])]));
 fs.writeFileSync(path.join(out, "manifest-entry.json"), JSON.stringify([{ key: `vkanim_hao_thien_chuy_${side}`, frame: [F, F], iso: true, anim: { kind: "vukhi", group: "A", layer: side === "b" ? "sau" : "truoc", dirs: DIRS, sexes: ["m", "f"], cols: 13, rows: 10, rowsPerSex: 5, dirsOk: [dir], anims: Object.fromEntries(Object.entries(gameAnims("A")).map(([k, [col, n]]) => [k, { col, n }])), origin: [ox, oy], grip, gripSex: "m" } }], null, 2) + "\n");
-const geometryFailures = distances.filter((d) => d.edge || d.pixels < 15 || d.near.some((v) => v > 2) || d.gripSpan > d.shaftLength + 2);
+const geometryFailures = distances.filter((d) => d.edge || d.pixels < 15 || (poseA ? d.near[0] > 2 || d.secondaryShaftDistance > secondaryTolerance : d.near.some((v) => v > 2) || d.gripSpan > d.shaftLength + 2));
 const checks = Object.fromEntries(["m", "f"].map((sex) => [sex, toJson(checkPhuThe("hao_thien_chuy", { kind: "vukhi", dir: path.join(out, sex), sex }))]));
-fs.writeFileSync(path.join(out, "compose-plan.json"), JSON.stringify({ dir, F, scale, palette, omittedPoses, poses: poses.map(({ unused, root, axis, axisPoint, headWidth, headLength, headSize, headScale, shaftLength, box, area }) => ({ unused, root, axis, axisPoint, headWidth, headLength, headSize, headScale, shaftLength, box, area })), plan, distances, geometryFailures, checks, note: "Theo phương pháp s837: atlas pose thật, tỷ lệ chung, đo grip từng giới, không sửa RAW/LPC. Khoảng cách B đo tới hình vũ khí, vẫn cần mắt xác nhận đang nắm cán." }, null, 2) + "\n");
+if (poseA) fs.writeFileSync(path.join(out, "grip-check.json"), JSON.stringify({ policy: "pose-a", units: "game-pixel-frame-128", primaryAnchor: "exact", primaryRasterTolerance: 2, secondaryTolerance,
+  level: geometryFailures.length ? "block" : "ok", approvedForImport: false,
+  issues: geometryFailures.map((d) => ({ code: "diem-cam", severity: "block", frame: d.name, primaryRasterDistance: d.near[0], secondaryShaftDistance: d.secondaryShaftDistance, secondaryTolerance })),
+  distances }, null, 2) + "\n");
+fs.writeFileSync(path.join(out, "compose-plan.json"), JSON.stringify({ dir, F, scale, palette, omittedPoses, ...(poseA ? { gripPolicy: "pose-a", secondaryTolerance } : {}), poses: poses.map(({ unused, root, axis, axisPoint, headWidth, headLength, headSize, headScale, shaftLength, box, area }) => ({ unused, root, axis, axisPoint, headWidth, headLength, headSize, headScale, shaftLength, box, area })), plan, distances, geometryFailures, checks, note: poseA ? "Neo A chính xác, giữ góc pose atlas; B chỉ đo tới đoạn cán với dung sai20px. Lỗi B chặn nhập." : "Theo phương pháp s837: atlas pose thật, tỷ lệ chung, đo grip từng giới, không sửa RAW/LPC. Khoảng cách B đo tới hình vũ khí, vẫn cần mắt xác nhận đang nắm cán." }, null, 2) + "\n");
 console.log(JSON.stringify({ dir, scale, frames: distances.length, maxA: Math.max(...distances.map((d) => d.near[0])), maxB: Math.max(0, ...distances.flatMap((d) => d.near.slice(1))), edge: distances.reduce((n, d) => n + d.edge, 0), geometryFailures, levels: Object.fromEntries(Object.entries(checks).map(([sex, r]) => [sex, r.level])) }));
 if (geometryFailures.length || Object.values(checks).some((r) => r.level === "chặn")) process.exitCode = 1;

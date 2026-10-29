@@ -54,6 +54,24 @@ test("atlas chùy thật: từ chối thiếu marker; tám pose, 26 khung, grip 
   }
 });
 
+test("neo A theo pose: cán nện dọc, B quá 20 điểm phải chặn, không xoay theo hai tay", () => {
+  const folder = fs.mkdtempSync(path.join(os.tmpdir(), "hao-pose-a-test-"));
+  try {
+    const result = spawnSync(process.execPath, [path.join(ROOT, "tools/assets/phuthe-hammer-atlas.mjs"), "--raw", path.join(ROOT, "art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-atlas/s/attempt3/poses.raw.png"), "--dir", "s", "--pose-a", "--out", folder], { encoding: "utf8", cwd: ROOT, maxBuffer: 8 * 1024 * 1024 });
+    assert.equal(result.status, 1, "B xa cán không được coi là đạt");
+    const report = JSON.parse(fs.readFileSync(path.join(folder, "grip-check.json"), "utf8"));
+    assert.equal(report.level, "block"); assert.equal(report.secondaryTolerance, 20);
+    assert.equal(report.issues.length, 6);
+    for (const d of report.distances) { assert.equal(d.primaryAnchorError, 0); assert.ok(d.near[0] <= 2); assert.equal(d.edge, 0); }
+    const impact = report.distances.find((d) => d.name === "m/s/attack/3"), cast = report.distances.find((d) => d.name === "m/s/cast/1");
+    assert.ok(Math.abs(impact.axisDegrees - 90) < 1, "góc nện theo pose atlas dọc");
+    assert.ok(impact.secondaryShaftDistance > 35 && cast.secondaryShaftDistance > 43, "không lấy đầu búa thay cán hoặc nới dung sai để qua");
+  } finally {
+    assert.ok(path.resolve(folder).startsWith(path.resolve(os.tmpdir()) + path.sep));
+    fs.rmSync(folder, { recursive: true, force: true });
+  }
+});
+
 test("sheet chùy cuối: đủ hai nửa, đúng grip theo clip và hàng nữ đo trực tiếp", () => {
   const dir = path.join(ROOT, "art/src/phuthe-anim/hao_thien_chuy/vukhi"), entries = JSON.parse(fs.readFileSync(path.join(dir, "manifest-entry.json"), "utf8"));
   assert.deepEqual(entries.map((e) => e.key).sort(), ["vkanim_hao_thien_chuy_b", "vkanim_hao_thien_chuy_f"]);

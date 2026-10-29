@@ -1,5 +1,7 @@
 # Hạo Thiên Chùy — atlas năm hướng, đã nhập để duyệt
 
+> Quyết định tiếp theo: neo A chính xác, góc theo pose atlas, B tới cán≤20px. [Bản thử s/se](../pose-a/index.html) hiện có13khung chặn B, chưa được nhập và chưa mở rộng e/ne/n. Bộ năm hướng mô tả dưới đây là bộ trước quyết định này.
+
 Part of #1312, epic #1020, PR #1320. Bộ cắt ở `vukhi/` cha (`vkanim_hao_thien_chuy_b.png`, `_f.png`, manifest và báo cáo). Đã nhập cả hai nửa bằng importer #1323 vào `shared/assets/sprites/vukhianim/hao_thien_chuy_b.png` và `_f.png`; ne/n có lớp sau nên cần cả cặp. [Ảnh trong game](../ingame/index.html), [atlas / GIF](index.html), [hash ảnh và truy vấn](../ingame/capture.source.json).
 
 ## Hình và điểm cầm
