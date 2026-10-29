@@ -4,7 +4,7 @@ import { VOHON, HE, tierOfYears, vohonIndex, TEAM_SIZE, MAX_RINGS, MAX_STARS, SH
 
 
 import { vohonCard } from "./cards.ts";
-import { artUrl, chanThanImg, skillImg } from "./uiArt.ts";
+import { artUrl, chanThanImg, shardImg, skillImg } from "./uiArt.ts";
 import { toggleChar } from "./charPanel.ts";
 import { rarityOf } from "./bag.ts";
 import { stateBox } from "./uiParts.ts";
@@ -832,7 +832,7 @@ function renderShards(el: HTMLElement, data: OwnedVohons, act: RosterActions, sh
     const row = document.createElement("div"); row.className = "srow" + (ready ? " ready" : "");
     row.style.setProperty("--c", def.col);
     row.append(vohonCard(def, v ? { level: v.level, stars: v.stars, rings: v.rings } : { locked: true, plate: "Chưa mở" }));
-    row.insertAdjacentHTML("beforeend", `<small></small><i class="sbar"><i></i></i><button type="button" class="sbtn"></button>`);
+    row.insertAdjacentHTML("beforeend", `${shardImg(def.id, def.col)}<small></small><i class="sbar"><i></i></i><button type="button" class="sbtn"></button>`);
     const sm = row.querySelector("small")!, btn = row.querySelector("button")!;
     sm.textContent = !v ? `${have}/${SHARD_UNLOCK} mảnh` : need === null ? `Tối đa · dư ${have}` : `${have}/${need} lên ${v.stars + 1}★`;
     (row.querySelector(".sbar i") as HTMLElement).style.width = (need ? Math.min(1, have / need) : 1) * 100 + "%";
