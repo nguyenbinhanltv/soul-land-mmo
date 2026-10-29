@@ -1,14 +1,14 @@
 /* UI v2 đợt 3a: hộp thoại NPC (#npc) và trang nhiệm vụ theo kit GIẤY, Part of #885 / #877 (#596, #597). Luật thường (đợt 5c-b: đã bỏ tiền tố body.ui2; luật cũ ở style.css gỡ ở đợt 5b).
    Khung do lớp `f2-giay-lon` của ui2.css lo (hudNpc.ts gắn). Kit chưa có nút / ô / thanh Giấy và 2 tab Giấy (docs/art/ui-kit.md): nút và tab dùng mảnh kit
    dùng chung (f2-nut-*, f2-tab, chữ sáng trên mảnh tối), thanh tiến độ và dòng thoại dựng bằng token CSS (--paper*, --ink*, --son). Không sinh ảnh mới.
-   Trang thợ rèn (data-c16-page) giữ khung riêng, đợt 3c mới đổi. Chữ qua --fs-*, vùng bấm ≥ 32 px (nút chính 44 px), chỉ ký tự có trong Galmuri. */
+   Trang thợ rèn dùng cùng khung Giấy (đợt 5b-2, đã bỏ khung C2 riêng). Chữ qua --fs-*, vùng bấm ≥ 32 px (nút chính 44 px), chỉ ký tự có trong Galmuri. */
 
-/* (1) Khung Giấy thắng luật `#npc` / `.thuymac #npc` cũ (trừ trang thợ rèn). */
-.ui2-k-khung-giay-lon #npc.f2-giay-lon:not([data-c16-page]){
+/* (1) Khung Giấy thắng luật `#npc` / `.thuymac #npc` cũ . */
+.ui2-k-khung-giay-lon #npc.f2-giay-lon{
   box-sizing:border-box;border-style:solid;border-color:transparent;border-width:var(--frame-bw);border-image:var(--frame-img) var(--frame-nine) fill / var(--frame-bw) stretch;
   background:none;box-shadow:0 0 0 100vmax rgba(26,16,32,.35);backdrop-filter:none;image-rendering:pixelated;
   width:min(460px,94vw);max-height:90%;padding:var(--sp-4);gap:var(--sp-4);color:var(--text)}
-#npc.n2:not([data-c16-page])::before,#npc.n2:not([data-c16-page])::after{display:none}
+#npc.n2::before,#npc.n2::after{display:none}
 #npc.n2{font:var(--fs-m)/1.3 var(--f12);scrollbar-width:thin;scrollbar-color:var(--paper3) transparent}
 
 /* (2) Đầu hộp thoại: chân dung, tên, chức danh, nút đóng. */

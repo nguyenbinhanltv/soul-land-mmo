@@ -135,7 +135,6 @@ export function closeNpc() {
   if (!npcDefOpen) return;
   npcDefOpen = null; npcAct = null; sellConfirm = null; enhClose();
   const el = $("#npc"); el.hidden = true; el.innerHTML = "";
-  delete el.dataset.c16Page;
 }
 /** Túi đổi (mua, bán, cường hóa): vẽ lại hộp thoại đang mở với Hồn Tệ và đồ mới. */
 export function npcBag(bag: BagMsg) { npcBagMsg = bag; setBagCap(bag.slots); setEnhCoin(bag.honTe); if (npcDefOpen) renderNpc(); }
@@ -156,8 +155,6 @@ function questTabs(go: (p: NpcPage) => void): HTMLElement | null {
 
 export function renderNpc() {
   const def = npcDefOpen, act = npcAct, el = $("#npc"); if (!def || !act) return;
-  if (npcPage === "forge" || npcPage === "forgecore" || npcPage === "forgesynth") el.dataset.c16Page = npcPage;
-  else delete el.dataset.c16Page;
   el.innerHTML = "";
   el.classList.add("f2-giay-lon", "n2");
   el.style.setProperty("--c", def.col);
