@@ -164,7 +164,7 @@ RAW `toI-2.png`, prompt `toI-2.prompt.txt`, nguồn/hash và ánh xạ 16 menu �
 
 `pilot-menu/index.html` là trang chủ repo chọn AI hoặc giữ game-icons, có 16 cặp ở 64/32/24 px, ba nền và thang xám. 48 PNG AI chỉ là ảnh duyệt: chuẩn hóa giữ tỉ lệ vào khung 64, hạ theo vùng rồi lượng tử 32 màu/alpha nhị phân; tổng 50.479 byte cho cả ba cỡ. 16 PNG `pilot-menu/reference/` là bản sao nguyên byte của game-icons đang dùng; CC BY 3.0, nguồn/tác giả từng icon ở art/CREDITS.md và mapping JSON. Đã kiểm bằng AO Browser: các ảnh tải đủ, radio nền và checkbox thang xám hoạt động; đã xem ảnh chụp các hàng đầu/cuối, không lỗi trình duyệt.
 
-Không chạy ui:import hay --write-manifest cho icon; không sửa ui-kit.json, sprites/manifest.json hoặc ảnh game. Chủ repo chưa chọn bộ AI; PR chỉ nộp pilot, không thay game-icons. Điều khoản đầu ra OpenAI cho ảnh AI, không gán CC0; ảnh tham chiếu game-icons giữ CC BY 3.0.
+(Cập nhật 30/10/2026, #884: chủ repo đã chọn bộ AI; nhập bằng `tools/assets/menu-icon-import.mjs`, xem `docs/art/ui-kit.md`.) Khi nộp pilot: không chạy ui:import hay --write-manifest cho icon; không sửa ui-kit.json, sprites/manifest.json hoặc ảnh game; PR chỉ nộp pilot. Điều khoản đầu ra OpenAI cho ảnh AI, không gán CC0; ảnh tham chiếu game-icons giữ CC BY 3.0.
 # Bổ sung N/O/T Giấy — 29/10/2026
 
 Part of #877. Sinh bằng Codex `image_gen` tích hợp, một job mỗi lần, hướng mặc định, không `--style`. Tham chiếu BOARD đã duyệt rồi swatch `art/palette.gpl`; bỏ tham chiếu `toN.png` Mực vì kiểm còn chặn. Prompt nguyên văn do `ui:prompt --material giay` sinh, lưu cạnh từng RAW. Hash và báo cáo kiểm ở `giay.source.json`; RAW giữ nguyên byte, không gán CC0 (điều khoản đầu ra OpenAI).
