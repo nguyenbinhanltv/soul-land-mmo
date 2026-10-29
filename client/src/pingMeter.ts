@@ -1,8 +1,7 @@
 // Chấm / thanh ping trên HUD (UI v2, kiểm kê UI #9; Part of #885). Chỉ hiển thị, không gửi thêm tin lên server: RTT lấy từ số `seq` của input
 // (GameScene đánh số mỗi hướng đi gửi lên; server trả lại số cuối đã nhận ở PlayerState.seq, predict.ts dùng cho đối chiếu), tức thời gian từ lúc
 // gửi input tới lúc state có số đó. Chỉ có mẫu khi người chơi vừa đổi hướng đi; lâu không có mẫu thì hiện "Chưa đo" (không đoán).
-// Mức: tốt / chậm / kém / chưa đo, mỗi mức một hình + một chữ (mù màu: không chỉ bằng màu). Chỉ dựng khi cờ `ui2` bật.
-import { isUi2 } from "./uiKit.ts";
+// Mức: tốt / chậm / kém / chưa đo, mỗi mức một hình + một chữ (mù màu: không chỉ bằng màu).
 
 export type PingLevel = "good" | "warn" | "bad" | "none";
 /** Từ mức này (ms) trở lên là "chậm" / "kém" (dự đoán chuyển động của predict.ts vẫn mượt tới khoảng 250 ms). */
@@ -62,7 +61,6 @@ const meter = new RttMeter();
 let box: HTMLElement | null = null, online = true, last = "";
 
 function ensureBox(): HTMLElement | null {
-  if (!isUi2()) return null;
   if (box?.isConnected) return box;
   const info = document.querySelector(".c12-radar-info"); if (!info?.parentElement) return null;
   box = document.createElement("div"); box.id = "ping2"; box.className = "pg2"; box.setAttribute("role", "status"); box.setAttribute("aria-live", "off");
@@ -82,10 +80,10 @@ function paint() {
 }
 /** Phòng mới (số input bắt đầu lại từ 1): bỏ mẫu cũ. */
 export function pingReset() { meter.reset(); last = ""; paint(); }
-export function pingSent(seq: number) { if (isUi2()) meter.sent(seq, performance.now()); }
+export function pingSent(seq: number) { meter.sent(seq, performance.now()); }
 /** Gọi mỗi khung hình với `PlayerState.seq` của mình; chỉ vẽ lại khi chữ đổi. */
-export function pingAck(seq: number) { if (isUi2() && (meter.acked(seq, performance.now()) || last === "")) paint(); }
+export function pingAck(seq: number) { if (meter.acked(seq, performance.now()) || last === "") paint(); }
 /** Hết hạn mẫu cũ: gọi chừng 1 lần / giây. */
-export function pingTick() { if (isUi2()) paint(); }
+export function pingTick() { paint(); }
 /** Kết nối của phòng (uiIcons.setConnectionLabel): mất kết nối thì hiện "Mất kết nối" mức kém. */
-export function pingOnline(on: boolean) { online = on; if (isUi2()) paint(); }
+export function pingOnline(on: boolean) { online = on; paint(); }

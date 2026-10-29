@@ -119,7 +119,6 @@ function render() {
     material: "muc", title: "Phúc Lợi", badge: "福", info: `Sổ Điểm Danh ${CHECKIN.days} ngày: mỗi ngày một ô, quà lấy từ vật phẩm đã có. Ngày đổi lúc 00:00 giờ Việt Nam do máy chủ tính.`,
     nav: [{ id: "checkin", label: "Điểm danh", active: true, dot: !!msg && needsSign(msg) }], primary: pr, onPrimary: () => act("sign"),
   });
-  if (!f) return;
   const body: PNode[] = [];
   if (!msg) body.push(h("div", "wf-msg", { text: "Đang tải sổ điểm danh…", attrs: { "aria-busy": "true" } }));
   else {

@@ -38,7 +38,7 @@ Chuyển từng màn theo thứ tự ở #877 (HUD + hotbar → Nhân vật + T�
 
 ## Token màu theo vai trò
 
-Một danh sách duy nhất, khai ở `:root` của `client/src/style.css`. Màu ngoài danh sách (mã `#hex` / `rgba()` viết thẳng trong luật CSS) là nợ: P0 chỉ **đếm** (`npm run ui:inventory`), P8 (#886) mới chặn.
+Một danh sách duy nhất, khai ở `:root` của `client/src/style.css`. Màu ngoài danh sách (mã `#hex` / `rgba()` viết thẳng trong luật CSS) là nợ: P0 chỉ **đếm** (`npm run ui:inventory`). Từ đợt 5c, `tools/ci/check-css-tokens.mjs` (trong `npm run check`) kiểm riêng CSS mới `client/src/ui2*.css`: màu thô ngoài `:root` / khai báo `--x:` không được vượt trần `BASELINE` (hiện 6 chỗ); về 0 thì đặt `BASELINE = 0` là chặn hẳn. `style.css` cũ vẫn chỉ đếm (đợt 5b).
 
 | Vai trò | Token hiện có | Ghi chú |
 |---|---|---|
@@ -275,7 +275,7 @@ Lớp `body.ui2` luôn có (tên lớp và tiền tố `ui2-*` ở mã / CSS cò
 ## Khung màn chuẩn và thành phần nhỏ (#885)
 
 `client/src/uiParts.ts` + `client/src/ui2-parts.css` (mọi luật dưới `body.ui2`, màu qua token, chữ 10 / 12 / 24). Chỉ trình bày: số liệu, trạng thái và giờ do server quyết.
-- **Khung màn** `screenFrame({ material: "muc" | "giay", title, badge, info, currency, nav, primary, onNav, onPrimary })`: huy hiệu + tên + nút `i` (trái-trên), vùng tiền tệ ngữ cảnh (phải-trên), cột điều hướng trái, **một** nút chính phải-dưới (44 px, `f2-nut-chinh`; khoá thì hiện lý do cạnh nút). (Mã còn nhánh trả `null` khi thiếu lớp `ui2`; gỡ ở đợt 5b / 5c.) Nội dung màn đặt vào `frame.body`; khung ăn kit qua `f2-muc-lon` / `f2-giay-lon`.
+- **Khung màn** `screenFrame({ material: "muc" | "giay", title, badge, info, currency, nav, primary, onNav, onPrimary })`: huy hiệu + tên + nút `i` (trái-trên), vùng tiền tệ ngữ cảnh (phải-trên), cột điều hướng trái, **một** nút chính phải-dưới (44 px, `f2-nut-chinh`; khoá thì hiện lý do cạnh nút). Luôn trả khung (đã gỡ nhánh `null` và tham số `force` ở đợt 5c-a). Nội dung màn đặt vào `frame.body`; khung ăn kit qua `f2-muc-lon` / `f2-giay-lon`.
 - **Thẻ có nhãn trạng thái** `statusCard({ title, sub, state, reason, rank, limit, onClick })`: `new` chấm đỏ, `up` mũi tên xanh, `done` tick + gạch tên, `lock` xám + lý do (không có lý do thì hiện "Chưa mở"; thẻ khoá không phát `onClick`), `rank` 0…4 là màu nền theo `--rare-N` kèm vạch góc dài dần, `limit` là nhãn đầu thẻ. Mỗi dấu một hình riêng (không chỉ màu).
 - **Công tắc** `toggle({ label, on, disabled, onChange })` (`role=switch`; màn gửi server rồi gọi `set` nếu bị từ chối), **đồng hồ đếm ngược** `countdown({ target, now, label, onEnd })` (`role=timer`; `now` là đồng hồ máy chủ; dưới `COUNTDOWN_SOON_MS` đổi viền đứt nét; hết giờ viền chấm, "Đã hết"; tự dừng khi rời cây DOM), `abbrevNumber` (1,2K / 12,5M).
 - **Bộ thành phần dùng chung** (chỉ trình bày, không đổi logic; cây dựng thuần + hàm DOM cùng tên bỏ "Node"): `stateBox({ kind: "loading" | "empty" | "error", text, hint, onRetry })` (tải = bộ xương `aria-busy`, rỗng = câu + gợi ý việc làm, lỗi = `role=alert` + nút Thử lại), `select({ label, options, value, onChange })` (hộp xổ: ↑ ↓ Home End Enter, Esc đóng danh sách và không lan lên ngăn xếp bảng, mục khoá bị bỏ qua), `qty({ label, max, min, step, value, onChange })` (thanh trượt + nút - / + / Tối đa; `clampQty` ép số, `setMax` khi kho đổi), `tabs({ label, tabs, vertical, onSelect })` (ngang hình thang, chọn = cao hơn một bậc; dọc = ô icon 44 px, vạch trái, chữ chỉ cho trình đọc; tab khoá có lý do; có mảnh kit `tab_thuong` thì kit thay khung), `itemSlot({ name, icon, qty, state, reason, rank, selected, empty, onClick })` (ô 48 px: viền + góc cắt theo hạng, `x1,2K` đáy phải, nhãn mới / nâng / khoá ở góc, khoá không phát `onClick`). Icon là ký tự có trong Galmuri (icon ảnh gắn ở đợt 0c). Trang xem trước thêm khối "đợt 0b" (mở bằng `#parts` để chỉ xem khối này).
@@ -290,6 +290,6 @@ Lớp `body.ui2` luôn có (tên lớp và tiền tố `ui2-*` ở mã / CSS cò
 ## Việc còn lại
 
 - Icon pilot 16 menu (AI) so với game-icons (#884); checkbox / slider / scrollbar từ gói CC0, tuỳ chọn (#888).
-- Gỡ cờ `ui2`, `?ui=` và luật cũ khỏi `style.css` (đợt 5b / 5c, #886): `ROADMAP.md`.
+- Đợt 5c-a (#886) đã gỡ cờ `ui2` / `isUi2()` / `?ui=` / `shh-ui2`; còn `body.ui2` thành nền (5c-b) và gỡ luật cũ khỏi `style.css` (5b): `ROADMAP.md`.
 
 Trạng thái thật ở các issue.

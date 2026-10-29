@@ -1,10 +1,9 @@
 // Onboarding sau hướng dẫn điều khiển (UI v2, kiểm kê UI #10; Part of #885): 6 bước đầu theo thứ tự chọn võ hồn → nhiệm vụ đầu → mở túi → hấp thụ hồn hoàn
 // → xem bản đồ → mở menu. Mỗi bước tô sáng đúng nút (vòng viền nhấp nháy + mũi nhấn; giảm chuyển động thì đứng yên), thẻ hướng dẫn nêu việc cần làm và phím
 // tắt. Chỉ hiển thị: bước tiến lên khi bảng tương ứng thực sự mở (đọc thuộc tính `hidden` của DOM) hoặc khi GameScene báo sự kiện đã gửi, không quyết điều gì
-// của luật chơi và không thêm tin server. Tiến độ lưu localStorage theo tên hồn sư; "Bỏ qua" tắt hẳn. Chỉ chạy khi cờ `ui2` bật.
+// của luật chơi và không thêm tin server. Tiến độ lưu localStorage theo tên hồn sư; "Bỏ qua" tắt hẳn.
 // Khởi động: guide.ts (hướng dẫn điều khiển) gọi `onboardAttach` khi vào game và `onboardBegin` khi người chơi xong / bỏ qua chuỗi 4 bước; tài khoản cũ
 // (chuỗi tân thủ đã xong từ trước) không có bản ghi nên không bị hỏi.
-import { isUi2 } from "./uiKit.ts";
 
 export type ObEvent = "absorb";
 export interface ObStep {
@@ -150,13 +149,12 @@ function run() {
 
 /** Gắn vào một hồn sư (guide.ts gọi mỗi lần vào bản đồ): nạp tiến độ; đang làm dở thì tiếp tục (giữ bước khi GameScene dựng lại cảnh). */
 export function onboardAttach(name: string) {
-  if (!isUi2()) return;
   if (name !== who) { stop(); hide(); who = name; saved = parseSaved(storage.get(obKey(name))); step = saved?.s ?? 0; }
   if (saved?.st === "run") run();
 }
 /** Người chơi vừa xong / bỏ qua hướng dẫn điều khiển: bắt đầu làm quen một lần (đã có bản ghi thì không bắt đầu lại). */
 export function onboardBegin() {
-  if (!isUi2() || !who || saved) return;
+  if (!who || saved) return;
   saved = { s: 0, st: "run" }; step = 0; persist(); run();
 }
 /** GameScene báo việc đã gửi (đang chờ đúng việc này thì tiến lên). */

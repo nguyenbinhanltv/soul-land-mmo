@@ -6,7 +6,6 @@ import { itemDef, honTeParts, CORE_SETS, coreResetFee, BONE_MAX_ENHANCE, CORE_MA
 import { artImg } from "./uiArt.ts";
 import { EQUIP_ITEM, EQUIP_LUCK_MAX, EQUIP_SOUL, equipFrameKey, EQUIP_SLOTS, EQUIP_TIERS, EQUIP_MAX_TIER, EQUIP_ESSENCE, EQUIP_SALVAGE, EQUIP_SALVAGE_MAX, EQUIP_SYNTH_KEEP, equipName, equipTemplate, equipSlotDef, equipSynthStep, parseEquip } from "../../shared/data.ts";
 import { toast } from "./feedback.ts";
-import { isUi2 } from "./uiKit.ts";
 import { lockWhy } from "./uiParts.ts";
 import { confirmDialog } from "./confirmDialog.ts";
 import type { EquipEnhPreview, EquipEnhDone, EquipLuckPreview, EquipLuckDone, EquipSynDone, EquipSalvDone } from "./net.ts";
@@ -77,7 +76,7 @@ const equipIcon = (stats: BagItem["stats"]) => {
 const addRows = (box: HTMLElement, rows: [string, string][]) => {
   for (const [k, v] of rows) {
     const r = document.createElement("div"); r.className = "erow"; r.innerHTML = `<b></b><span></span>`; r.querySelector("b")!.textContent = k; r.querySelector("span")!.textContent = v;
-    const pct = isUi2() && k === "Tỉ lệ thành công" ? parseInt(v, 10) : NaN;
+    const pct = k === "Tỉ lệ thành công" ? parseInt(v, 10) : NaN;
     if (pct >= 0 && pct <= 100) { r.classList.add("erate"); r.setAttribute("role", "meter"); r.setAttribute("aria-valuenow", String(pct)); r.setAttribute("aria-valuemin", "0"); r.setAttribute("aria-valuemax", "100"); r.setAttribute("aria-label", k); r.insertAdjacentHTML("beforeend", `<i class="sbar"><i></i></i>`); (r.querySelector(".sbar i") as HTMLElement).style.width = `${pct}%`; }
     box.appendChild(r);
   }
@@ -149,7 +148,7 @@ export function renderForgeGear(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   }
   const risky = pv.fail?.kind === "down" || pv.fail?.kind === "reset" || (destroy && !(gearCharm && pv.charm > 0));
   const poor = pv.have < pv.qty || pv.honTe < pv.fee, go = document.createElement("button"); go.type = "button";
-  go.className = `aopt ${risky ? "danger" : "absorb"}`; if (risky && !isUi2()) go.style.background = "#a82a2a";
+  go.className = `aopt ${risky ? "danger" : "absorb"}`;
   go.disabled = poor || pv.busy || act.combat();
   go.textContent = poor ? "Không đủ đá hoặc Hồn Tệ" : act.combat() ? "Đang giao chiến" : risky ? (gearConfirm ? `Bấm lần nữa: ${destroy ? "có thể PHÁ HỦY" : "có thể tụt cấp"}` : `Cường hóa (${destroy ? "nguy cơ phá hủy" : "có thể tụt cấp"})`) : "Cường hóa";
   go.addEventListener("click", () => {
@@ -278,7 +277,7 @@ export function renderForgeSynth(el: HTMLElement, bag: BagMsg, act: NpcActions) 
   const sh = document.createElement("small"); sh.textContent = `Chọn 2 món hiến tế (${synSac.length}/2):`; box.appendChild(sh);
   for (const x of all.filter((y) => y.it.id !== main.it.id && same(y, main)))
     equipBtn(box, x.it, x.tier, "hiến tế", synSac.includes(x.it.id), () => { synSac = synSac.includes(x.it.id) ? synSac.filter((i) => i !== x.it.id) : [...synSac, x.it.id].slice(-2); synConfirm = false; renderNpc(); });
-  const poor = bag.honTe < step.fee || ess < step.essence, go = document.createElement("button"); go.type = "button"; go.className = "aopt danger"; if (!isUi2()) go.style.background = "#a82a2a";
+  const poor = bag.honTe < step.fee || ess < step.essence, go = document.createElement("button"); go.type = "button"; go.className = "aopt danger";
   go.disabled = poor || synSac.length !== 2 || act.combat();
   go.textContent = poor ? "Không đủ Hồn Tệ hoặc Tinh Hoa" : act.combat() ? "Đang giao chiến" : synSac.length !== 2 ? "Chọn đủ 2 món hiến tế" : synConfirm ? "Bấm lần nữa: hợp thành" : "Hợp thành (có thể mất đồ)";
   go.addEventListener("click", () => { go.blur(); if (!synConfirm) { synConfirm = true; renderNpc(); return; } synConfirm = false; act.equipSynth(main.it.id, synSac); });
@@ -314,7 +313,7 @@ export function renderForgeSalv(el: HTMLElement, bag: BagMsg, act: NpcActions) {
   info.textContent = picked.length ? `Đã chọn ${picked.length}/${EQUIP_SALVAGE_MAX} món: nhận ${honTeText(coin)} cùng đá / Tinh Hoa / Thần Hồn theo bậc (ngẫu nhiên). Không cho kinh nghiệm; túi phải còn chỗ cho nguyên liệu.`
     : `Chọn trang bị cần phân giải (tối đa ${EQUIP_SALVAGE_MAX} món mỗi lần).`;
   box.appendChild(info);
-  const go = document.createElement("button"); go.type = "button"; go.className = "aopt danger"; if (!isUi2()) go.style.background = "#a82a2a";
+  const go = document.createElement("button"); go.type = "button"; go.className = "aopt danger";
   go.disabled = !picked.length || act.combat();
   go.textContent = act.combat() ? "Đang giao chiến" : !picked.length ? "Chưa chọn món nào" : `Phân giải ${picked.length} món`;
   go.addEventListener("click", () => { go.blur(); confirmDialog({ title: "Phân giải?", body: `${picked.length} món sẽ bị phân giải, nhận ${honTeText(coin)} cùng vật liệu theo bậc; không lấy lại được.`, confirm: `Phân giải ${picked.length} món`, danger: true }, () => act.equipSalvage(picked.map((x) => x.it.id))); });

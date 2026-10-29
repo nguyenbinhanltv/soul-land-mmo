@@ -1,5 +1,5 @@
 // UI v2, màn Xếp Hạng (docs/design/xep-hang.md "Giao diện", Part of #877). Chỉ hiển thị tin riêng `rank {k:"boards"}` / `rankTop` của server (#1201) và
-// gửi ý định `rank {op, board, page}`; điểm, hạng, đội hình đều do server suy ra. Chỉ chạy khi cờ `ui2` bật (`screenFrame` trả null thì không mở).
+// gửi ý định `rank {op, board, page}`; điểm, hạng, đội hình đều do server suy ra.
 import { TONG_MON, VOHON, RANK_CD, RANK_PAGE_SIZE } from "../../shared/data.ts";
 import { abbrevNumber, screenFrame, mount, addCloseButton, type PNode } from "./uiParts.ts";
 import { hhmmVn } from "./svClock.ts";
@@ -127,7 +127,6 @@ function render() {
     onNav: (g) => { const first = groups.find((x) => x.group === g)?.boards[0]; if (first) { cur = first.board; page = 1; data = null; request(); } },
     onPrimary: () => request(),
   });
-  if (!f) return;
   window.clearTimeout(cdTimer);
   if (cd > 0) cdTimer = window.setTimeout(render, cd + 20);
   const body: PNode[] = [];

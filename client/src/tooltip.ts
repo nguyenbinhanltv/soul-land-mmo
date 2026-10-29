@@ -9,7 +9,6 @@
  * Mọi chữ đi qua `textContent` (tên người chơi, tên vật phẩm không bao giờ vào `innerHTML`). Máy cảm ứng: chạm giữ ~0,4 giây; chú thích tự
  * tắt sau vài giây (7 giây) hoặc khi chạm chỗ khác. Chỉ hiển thị, không đổi trạng thái game.
  */
-import { isUi2 } from "./uiKit.ts";
 
 export type TipLine = string | { k?: string; v: string; tone?: "good" | "bad" | "muted" | "gem" };
 export interface TipSpec {
@@ -141,7 +140,7 @@ export function initTips() {
   if (tipEl) return;
   tipEl = document.getElementById("tip") ?? Object.assign(document.createElement("div"), { id: "tip" });
   tipEl.setAttribute("role", "tooltip"); tipEl.hidden = true;
-  if (isUi2()) tipEl.classList.add("f2-tooltip");   // UI v2 (đợt 1c): chú thích nhận khung Mực của kit khi bật cờ (ui2-feedback.css)
+  tipEl.classList.add("f2-tooltip");   // chú thích nhận khung Mực của kit (ui2-feedback.css)
   if (!tipEl.parentElement) (document.getElementById("stage") ?? document.body).appendChild(tipEl);
   const opt = { capture: true } as const;
   const setShift = (on: boolean) => { if (on === shiftOn) return; shiftOn = on; if (cur && specs.get(cur)?.shift) { show(cur); } };

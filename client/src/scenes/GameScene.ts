@@ -35,7 +35,6 @@ import { initHub, toggleHub, setHubOpen } from "../hubMenu.ts";
 import { setBadge, badgeOf, resetBadges, starReadyCount, ringReady, questActionable } from "../badges.ts";
 import { openNotice, closeNotice } from "../noticeScreen.ts";
 import { bindWelfare, openWelfare, closeWelfare, onWelfare, type WelfareMsg } from "../welfareScreen.ts";
-import { isUi2 } from "../uiKit.ts";
 import { bindNpcGo } from "../hudNpc.ts";
 import { bindCalendar, openCalendar, closeCalendar, onCalendar, type CalendarMsg, type CalGoal } from "../calendarScreen.ts";
 import { bindRank, openRank, closeRank, onRankBoards, onRankTop, type RankTopMsg } from "../rankScreen.ts";
@@ -833,7 +832,7 @@ export class GameScene extends Phaser.Scene {
       // Esc (U1 #754): đóng đúng MỘT bảng trên cùng (lần nhấn kế đóng bảng kế); hết bảng mới bỏ khoá mục tiêu (M3). Thứ tự: bản đồ vùng → chat → bảng → khoá.
       if (e.code === "Escape" && closeTopPanel()) return;
       if (e.code === "Escape" && this.lockId) { this.lockTo(""); return; }
-      if (e.code === "Escape") { if (isUi2()) toggleHub(); return; } // không bảng, không khoá: mở menu hub khi bật ui2, còn lại không làm gì (không ghi Escape vào `keys`)
+      if (e.code === "Escape") { toggleHub(); return; } // không bảng, không khoá: mở menu hub khi bật ui2, còn lại không làm gì (không ghi Escape vào `keys`)
       if (e.code === "Tab") { e.preventDefault(); if (!e.repeat) this.cycleTarget(); return; }
       if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }
@@ -949,7 +948,7 @@ export class GameScene extends Phaser.Scene {
     this.setupHub();
   }
 
-  /** Menu hub ngăn kéo (UI v2, cờ `ui2`; tắt thì không dựng gì): mỗi mục gọi đúng hàm mở của bảng đã có, mục chưa có chức năng hiện mờ. */
+  /** Menu hub ngăn kéo (UI v2): mỗi mục gọi đúng hàm mở của bảng đã có, mục chưa có chức năng hiện mờ. */
   setupHub() {
     const clickBtn = (id: string) => () => { this.clearForPanel(); document.getElementById(id)?.click(); };
     resetBadges(); // kho chấm tính lại từ tin server gửi lúc vào phòng
@@ -1619,7 +1618,7 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("resonanceTop", (m: ResonanceTopMsg) => {
       if (m && Array.isArray(m.list)) hud.setResonanceTop(m);
     });
-    // Màn UI v2 (cờ ui2): bảng Xếp Hạng (#1201), chỉ hiển thị tin riêng của server.
+    // Màn UI v2: bảng Xếp Hạng (#1201), chỉ hiển thị tin riêng của server.
     this.room.onMessage("rank", (m: Parameters<typeof onRankBoards>[0]) => onRankBoards(m));
     this.room.onMessage("rankTop", (m: RankTopMsg) => onRankTop(m));
     this.room.onMessage("calendar", (m: CalendarMsg) => onCalendar(m)); // Lịch Hoạt Động (#1202)
@@ -3729,12 +3728,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * UI v2 (cờ ui2; tắt thì không làm gì): mũi tên rìa màn chỉ mục tiêu nhiệm vụ
+   * UI v2: mũi tên rìa màn chỉ mục tiêu nhiệm vụ
    * (điểm đã tính cho bản đồ nhỏ, questTargets; không thêm tin server). Mũi tên tính lại 4 lần / giây.
    */
   private uiTickAt = 0;
   uiTick(me: any) {
-    if (!isUi2()) return;
     const now = performance.now(); if (now - this.uiTickAt < 250) return; this.uiTickAt = now;
     pingTick();
     if (this.watching || document.body.classList.contains("arena")) return setQuestArrow(null);

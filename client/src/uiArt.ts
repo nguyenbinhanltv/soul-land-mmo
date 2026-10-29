@@ -132,7 +132,7 @@ function applyScale() {
   for (const n of [560, 500, 460]) cl.toggle(`ui-h${n}`, h <= n);
   cl.toggle("ui-portrait", h > w);
   cl.toggle("ui-wide", w >= 960); // hai bảng Nhân vật / Túi cạnh nhau theo bố cục màn ngang (NV1 #455)
-  applyUi2(u); // cờ ui2 + biến kit v2 theo cỡ hiện tại (uiKit.ts); tắt thì không làm gì
+  applyUi2(u); // body.ui2 + biến kit v2 theo cỡ hiện tại (uiKit.ts)
 }
 
 /**
