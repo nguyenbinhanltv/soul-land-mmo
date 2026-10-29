@@ -342,4 +342,6 @@ Quyết định chủ repo 2026-10-29: phụ thể cũ thành pháp tướng, nh
 | Hạo Thiên Chùy (`hao_thien_chuy`) | `vhanim` khung 128, vật cứng | 1,5 · 18 · −28 · 3 | không lấp (vật cứng); búa lơ lửng chếch sau vai, nện xuống khi đánh; 1,8 quá to |
 | Lam Ngân Thảo (`lam_ngan_thao`) | `vhanim` khung 96 | 1,8 · 0 · −20 · 2 | **lớp sáng làm lại** (`--glow`); chỗ lấp thân vẫn thành cột tối lộ rõ ở `e`, `n`: cần vẽ lại bằng model (nửa sau không có thân / không có chỗ rỗng) nếu chủ repo thấy không ổn |
 
+Võ hồn công cụ làm chưa ổn: vẽ lại bằng Codex, danh sách + prompt ở [phap-tuong-codex-ve-lai.md](phap-tuong-codex-ve-lai.md).
+
 Việc tiếp sau khi duyệt mẫu: chạy `--all --duyet-mau --glow` cho các võ hồn cần lớp sáng, đăng ký từng `pt_<id>` bằng `validate.mjs --register pt_<id> --iso` (`display` lấy từ `recipe.json`), chỉnh `scale` / `dx` / `dy` từng võ hồn.
