@@ -20,7 +20,8 @@ const L = hubLayout(["char", "bag", "rank", "settings"], ["rank"]);
 const cell = (l, id) => [...l.big, ...l.mid, ...l.grid, ...l.rail].find((c) => c.item.id === id);
 assert.equal(cell(L, "char").enabled, true);
 assert.equal(cell(L, "shop").enabled, false); assert.equal(cell(L, "shop").card.state, "lock"); assert.equal(cell(L, "shop").card.reason, "Tại NPC", "lý do khoá riêng từng mục, nói nơi dùng");
-assert.equal(cell(hubLayout([]), "achv").card.reason, "Sắp có");
+assert.equal(cell(hubLayout([]), "achv").card.reason, "Chưa có", "Thành Tựu đã nối bảng: chưa nối thì thẻ khoá nói \"Chưa có\" (không còn \"Sắp có\")");
+assert.equal(cell(hubLayout(["achv"], ["achv"]), "achv").card.state, "new", "chấm đỏ cho Thành Tựu có mốc nhận được");
 assert.equal(cell(L, "rank").card.state, "new", "chấm đỏ cho mục có việc mới");
 assert.equal(cell(L, "bag").card.state, undefined, "mục có chức năng, không việc mới: thẻ thường");
 assert.deepEqual(L.rail.map((c) => [c.item.id, c.enabled]), [["mail", false], ["notice", false], ["settings", true], ["shot", false]], "rail đủ mục, chưa nối thì mờ");
@@ -201,4 +202,28 @@ assert.equal(questActionable(["active", "done"]), 0); assert.equal(questActionab
   assert.match(txt(bc.endView({ k: "end", win: true, reason: "win", why: "x", cleared: 3, of: 3, tomes: 0, full: true })), /Túi đầy/);
   const bad = bc.endView({ k: "end", win: true, reason: "win", why: "x", cleared: 3, of: 3, tomes: 0, err: "Không lưu được kết quả.", refunded: true });
   assert.equal(bad.title, "Chưa lưu được kết quả"); assert.match(txt(bad), /hoàn lại/); assert.ok(!/Nhận /.test(txt(bad)), "lỗi hệ thống: không báo đã nhận quyển");
+}
+
+// ---- Thành Tựu (achvScreen.ts, #1317): hàm thuần ----
+{
+  const { ACHV, ACHV_GROUPS } = await import("../../shared/data.ts");
+  const { achvGroups, achvStateOf, readyIds, achvBadgeCount, achvIsBlank, achvPrimary, achvRowNode, achvRewardParts, claimedLine } = await import("../src/achvScreen.ts");
+  const z = { level: 1, owned: 2, stars: 1, quests: 0, arenaWins: 0, elite: 0, king: 0, world: 0, bicanh: 0 };
+  const m0 = { stats: z, claimed: [], ready: 0 };
+  assert.deepEqual(achvGroups(m0).map((g) => g.code), ACHV_GROUPS.map((g) => g.code), "đủ nhóm, đúng thứ tự");
+  assert.equal(achvGroups(m0).reduce((a, g) => a + g.rows.length, 0), ACHV.length, "mọi thành tựu thuộc một nhóm");
+  assert.equal(achvIsBlank(m0), true); assert.deepEqual(readyIds(m0), []); assert.equal(achvPrimary(m0, false).disabled, true); assert.match(achvPrimary(m0, false).reason, /Chưa có/);
+  const m1 = { stats: { ...z, elite: 12 }, claimed: [], ready: 2 };
+  assert.deepEqual(readyIds(m1), ["elite_t1", "elite_t2"], "elite 12: hai bậc đầu đạt");
+  const r1 = achvGroups(m1).flatMap((g) => g.rows).filter((r) => r.def.stat === "elite");
+  assert.deepEqual(r1.map((r) => r.state), ["ready", "ready", "todo"]); assert.equal(r1[2].have, 12); assert.ok(r1[2].pct > 0 && r1[2].pct < 1, "bậc 3 chưa đạt: tiến độ giữa 0 và 1"); assert.equal(r1[0].pct, 1, "tiến độ kẹp 1");
+  assert.equal(achvStateOf(ACHV.find((a) => a.id === "elite_t1"), { stats: m1.stats, claimed: ["elite_t1"] }), "claimed", "đã nhận thắng đã đạt");
+  assert.equal(achvPrimary(m1, false).label, "Nhận tất cả (2)"); assert.equal(achvPrimary(m1, true).disabled, true); assert.equal(achvPrimary(m1, true).reason, "Đang gửi…"); assert.equal(achvPrimary(null, false).reason, "Đang tải…");
+  assert.equal(achvBadgeCount({ ready: 3 }), 3); assert.equal(achvBadgeCount({ ready: -1 }), 0); assert.equal(achvBadgeCount({ ready: NaN }), 0);
+  assert.equal(achvGroups(m1).find((g) => g.code === "hunt").ready, 2, "chấm nhóm theo số bậc đạt");
+  const row = JSON.stringify(achvRowNode(r1[0])), rowDone = JSON.stringify(achvRowNode({ ...r1[0], state: "claimed" })), rowTodo = JSON.stringify(achvRowNode(r1[2]));
+  assert.match(row, /av-claim f2-nut-phu/); assert.doesNotMatch(rowDone, /av-claim f2-nut-phu/); assert.match(rowDone, /Đã nhận/); assert.doesNotMatch(rowTodo, /av-claim f2-nut-phu/); assert.match(rowTodo, /Chưa đạt/);
+  assert.match(row, /progressbar/, "thanh tiến độ có vai trò + giá trị cho đọc màn hình");
+  assert.ok(ACHV.every((a) => achvRewardParts(a).length > 0), "mọi thành tựu có dòng quà");
+  assert.match(claimedLine({ id: "elite_t1", honTe: 30, items: [] }), /Hạ 1 tinh anh/); assert.match(claimedLine({ id: "khong_co", honTe: 0, items: [] }), /khong_co/, "mã lạ không làm vỡ");
 }
