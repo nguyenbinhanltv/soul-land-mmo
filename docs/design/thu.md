@@ -76,7 +76,7 @@ Bổ sung vào bảng ở `docs/tech/giao-thuc-server.md` khi làm (kiểm `tool
 - Từ chối bằng `err` tiếng Việt: thư lạ / không phải của mình, đã nhận, hết hạn, túi đầy, đang đi cổng, `claimBusy`; nhận được ở mọi trạng thái an toàn khác. `ArenaRoom` / `BiCanhRoom` chặn `mail`; thêm vào bài `cheat` (dồn `claim` 200 lần, `id` lạ / của người khác, nhận thư hết hạn).
 
 ### Chống gian lận
-Soát theo skill `anti-cheat-audit` khi làm bước server; kết quả ghi vào `docs/tech/soat-gian-lan-thu.md` (tạo khi làm).
+Soát theo skill `anti-cheat-audit` khi làm bước server; kết quả ghi vào file soát riêng trong docs/tech (tạo khi làm).
 - **Chỉ server tạo thư và quyết định đính kèm;** client không có tin tạo thư nào. Thư GM chỉ qua `ADMIN_ACCOUNTS`, tắt ở bản prod mặc định (`tools` kiểm cổng GM đã có).
 - **Không nhận trùng:** `claimed_at IS NULL` trong câu `UPDATE` nguyên tử + `unique (account_id, dedup)` lúc tạo; không có đường nhận ngoài transaction.
 - **Chỉ thư của chính mình:** mọi câu SQL ràng `account_id`; `id` thư của người khác coi như "thư lạ".
@@ -108,7 +108,7 @@ Chất liệu **Giấy** (kit gốc, `docs/art/ui-kit.md`): cửa sổ riêng m�
 | P1 | `shared/data.ts`: `MAIL`, MAIL_KINDS; hàm thuần kiểm thư hợp lệ | `npm run check` |
 | P2 | SQL `mail` + `Store.mail*` (cả `PgStore` lẫn `MemoryStore`) | bot `--pg`: migration chạy lại hai lần; nhận có điều kiện không nhân quà khi hai tiến trình tranh |
 | P3 | Server: tin `mail`, `mail.ts`, `sendMail`, nối nguồn (GM; Phúc Lợi / Bí Cảnh khi túi đầy), hoàn khi lỗi | bot nhóm mới `mail`: nhận khi có, nhận đúp, thư hết hạn, id lạ / của người khác, túi đầy, dồn 200 `claim`; hook `savefail` |
-| P4 | Soát chống gian lận (`anti-cheat-audit`) → `docs/tech/soat-gian-lan-thu.md` | tài liệu soát |
+| P4 | Soát chống gian lận (`anti-cheat-audit`) → file soát riêng trong docs/tech | tài liệu soát |
 | P5 | Client: màn Thư kit Giấy + chấm đỏ hub | `client-ui` + ảnh chụp Chrome headless (`--mute-audio`) đủ trạng thái, 3 cỡ |
 
 ### Câu hỏi mở (cho chủ repo)
