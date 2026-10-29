@@ -25,7 +25,8 @@ assert.equal(cell(hubLayout(["achv"], ["achv"]), "achv").card.state, "new", "ch�
 assert.equal(cell(L, "rank").card.state, "new", "chấm đỏ cho mục có việc mới");
 assert.equal(cell(L, "bag").card.state, undefined, "mục có chức năng, không việc mới: thẻ thường");
 assert.deepEqual(L.rail.map((c) => [c.item.id, c.enabled]), [["mail", false], ["notice", false], ["settings", true], ["shot", false]], "rail đủ mục, chưa nối thì mờ");
-assert.equal(cell(L, "mail").card.state, "lock"); assert.equal(cell(L, "mail").card.reason, "Chờ máy chủ");
+assert.equal(cell(L, "mail").card.state, "lock"); assert.equal(cell(L, "mail").card.reason, "Chưa có", "Thư đã nối bảng: chưa nối thì thẻ khoá nói \"Chưa có\" (không còn \"Chờ máy chủ\")");
+assert.equal(cell(hubLayout(["mail"], ["mail"]), "mail").card.state, "new", "chấm đỏ cho Thư có thư chưa đọc / quà chờ nhận");
 assert.equal(cell(hubLayout(["bag"], [], ["bag"]), "bag").card.state, "up", "mũi tên xanh cho mục nâng được");
 assert.equal(cell(hubLayout(["bag"], ["bag"], ["bag"]), "bag").card.state, "new", "chấm đỏ thắng mũi tên");
 assert.equal(cell(hubLayout([], [], ["bag"]), "bag").card.state, "lock", "mục chưa nối không có mũi tên");
@@ -226,4 +227,27 @@ assert.equal(questActionable(["active", "done"]), 0); assert.equal(questActionab
   assert.match(row, /progressbar/, "thanh tiến độ có vai trò + giá trị cho đọc màn hình");
   assert.ok(ACHV.every((a) => achvRewardParts(a).length > 0), "mọi thành tựu có dòng quà");
   assert.match(claimedLine({ id: "elite_t1", honTe: 30, items: [] }), /Hạ 1 tinh anh/); assert.match(claimedLine({ id: "khong_co", honTe: 0, items: [] }), /khong_co/, "mã lạ không làm vỡ");
+}
+
+// ---- Thư (mailScreen.ts, #1336): hàm thuần ----
+{
+  const { MAIL } = await import("../../shared/data.ts");
+  const { mailStateOf, mailFilter, mailBadgeCount, mailGiftIds, mailExpiry, mailGiftParts, mailClaimedLine, mailPrimary, mailRowNode, mailDetailNode } = await import("../src/mailScreen.ts");
+  const DAY = 86_400_000, now = 1_000_000_000_000;
+  const mk = (id, o = {}) => ({ id, from: "Quản trị", title: `Thư ${id}`, body: "", honTe: 0, items: [], at: now - DAY, exp: now + 20 * DAY, read: true, claimed: false, ...o });
+  const a = mk(1, { read: false }), b = mk(2, { honTe: 50, read: false }), c = mk(3, { honTe: 20, read: true, claimed: true }), d = mk(4), e = mk(5, { items: [{ code: "khong_co", qty: 2 }] });
+  assert.deepEqual([a, b, c, d, e].map(mailStateOf), ["new", "gift", "claimed", "read", "gift"], "quà chờ nhận thắng 'mới'; đã nhận / đã đọc tách nhau");
+  assert.deepEqual(mailFilter([a, b, c, d, e], "unread").map((m) => m.id), [1, 2]); assert.deepEqual(mailFilter([a, b, c, d, e], "gift").map((m) => m.id), [2, 5]); assert.equal(mailFilter([a, b], "all").length, 2);
+  assert.equal(mailBadgeCount({ list: [a, b, c, d, e] }), 3, "đếm thư cần chú ý (1, 2, 5), thư vừa chưa đọc vừa có quà chỉ tính một lần"); assert.equal(mailBadgeCount({ list: [] }), 0); assert.equal(mailBadgeCount({}), 0);
+  assert.deepEqual(mailGiftIds({ list: [a, b, c, d, e] }), [2, 5]);
+  assert.equal(mailExpiry(now + 20 * DAY, now).soon, false); assert.equal(mailExpiry(now + 20 * DAY, now).text, "Còn 20 ngày");
+  assert.equal(mailExpiry(now + MAIL.warnDays * DAY, now).soon, true); assert.match(mailExpiry(now + 2 * DAY, now).text, /Sắp hết hạn: còn 2 ngày/); assert.equal(mailExpiry(now - 5, now).text, "Hết hạn hôm nay");
+  assert.deepEqual(mailGiftParts(e), ["khong_co ×2"], "mã lạ không làm vỡ"); assert.match(mailClaimedLine({ count: 2, honTe: 30, items: [] }), /Nhận 2 thư/);
+  assert.equal(mailPrimary(null, false).reason, "Đang tải…"); assert.equal(mailPrimary({ list: [a], unread: 1, pending: 0 }, false).disabled, true); assert.match(mailPrimary({ list: [a], unread: 1, pending: 0 }, false).reason, /Không có thư/);
+  assert.equal(mailPrimary({ list: [b, e], unread: 1, pending: 2 }, false).label, "Nhận tất cả (2)"); assert.equal(mailPrimary({ list: [b], unread: 1, pending: 1 }, true).reason, "Đang gửi…");
+  const rowNew = JSON.stringify(mailRowNode(a, false, now)), rowGift = JSON.stringify(mailRowNode(b, true, now)), rowSoon = JSON.stringify(mailRowNode(mk(6, { exp: now + DAY }), false, now));
+  assert.match(rowNew, /Mới/); assert.match(rowGift, /Có quà/); assert.match(rowGift, /"aria-pressed":"true"/); assert.match(rowSoon, /Sắp hết hạn/, "nhãn hạn bằng chữ"); assert.doesNotMatch(rowNew, /Sắp hết hạn/);
+  const dGift = JSON.stringify(mailDetailNode(b, false, now)), dDone = JSON.stringify(mailDetailNode(c, false, now)), dBusy = JSON.stringify(mailDetailNode(b, true, now));
+  assert.match(dGift, /ml-claim f2-nut-phu/); assert.doesNotMatch(dGift, /ml-del/, "thư còn quà chưa nhận: không có nút Xóa, có gợi ý"); assert.match(dGift, /Nhận quà rồi mới xóa/);
+  assert.doesNotMatch(dDone, /ml-claim/); assert.match(dDone, /ml-del/); assert.match(dBusy, /disabled/); assert.match(JSON.stringify(mailDetailNode(null, false, now)), /Chọn một thư/);
 }
