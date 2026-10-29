@@ -5203,6 +5203,8 @@ export const rankBoardOf = (code: unknown) => RANK_BOARDS.find((b) => b.code ===
 export const RANK_PAGE_SIZE = RESONANCE_RANK_PAGE_SIZE;
 export const RANK_PAGE_MAX = RESONANCE_RANK_PAGE_MAX;
 export const RANK_CD = RESONANCE_RANK_CD;
+/** Số trang tối đa xem được mỗi hạng mục (X5, soát tải): trang xa hơn kẹp về trang này, nên khoá cache bảng có số lượng chặn trước (cỡ trang × trang × hạng mục) và không có đường đọc thẳng DB không qua cache. */
+export const RANK_PAGE_DEPTH = 50;
 /** Giây tối thiểu giữa hai lần server ghi điểm `rank_scores` của một người (lần ghi cuối khi rời phòng không chờ nhịp này). */
 export const RANK_SYNC_CD = 20;
 /**

@@ -1,8 +1,8 @@
-// Nhóm bot "rank" (docs/design/xep-hang.md bước X2, X3 Sức mạnh; BOT_ONLY=rank, nhóm 6 của BOT_PART): tin `rank {op:"boards"|"top"}` cho Cấp / Sưu tầm,
+// Nhóm bot "rank" (docs/design/xep-hang.md bước X2, X3 Sức mạnh, X5 soát; BOT_ONLY=rank, nhóm 6 của BOT_PART): tin `rank {op:"boards"|"top"}` cho Cấp / Sưu tầm,
 // điểm ghi lúc vào phòng và lúc rời phòng, `updated_at` ("đạt mốc trước") chỉ đổi khi điểm đổi, đội hình công khai chỉ mã võ hồn + cấp + sao.
 // Phần thuần (tie-break, ẩn tài khoản test, phân trang, xoá tài khoản test) do server/scripts/rank-test.ts thử.
 import { sleep, waitFor, ok, bot, enter, sendTeam, test, needHookSkip, post } from "./lib.mjs";
-import { RANK_BOARDS, RANK_CD, RANK_PAGE_MAX, TEAM_SIZE } from "../../../shared/data.ts";
+import { RANK_BOARDS, RANK_CD, RANK_PAGE_DEPTH, RANK_PAGE_MAX, TEAM_SIZE } from "../../../shared/data.ts";
 
 /** Xin một trang bảng (đợi hết nhịp RANK_CD của chính bot đó trước); trả tin `rankTop` hoặc null nếu không tới. */
 async function ask(b,board,page=1,pageSize=10){
@@ -92,5 +92,18 @@ export async function rankTest(){
   await sendTeam(A,ids2.slice(0,TEAM_SIZE)); await relog(A);
   const st2=await askStats(A), p2=await ask(A,"suc_manh");
   ok(st2.teamPower>st1.teamPower&&p2.me.score===st2.teamPower&&p2.me.at>p1.me.at,`thêm võ hồn vào đội hình: điểm tăng ${st1.teamPower} → ${st2.teamPower}, bảng khớp sau khi rời phòng`);
+
+  // ---- Soát X5: client không đặt được điểm; dồn tin không tốn thêm truy vấn ----
+  const before=p2.me.score;
+  for(const forged of [{op:"put",board:"suc_manh",score:1e12},{op:"set",board:"suc_manh",score:1e12,tie:1e12},{op:"top",board:"suc_manh",score:1e12,me:{rank:1,score:1e12}},{op:"top",board:"suc_manh",page:1e9,pageSize:1e9}]){
+    await sleep(RANK_CD*1000+120); A.rankAt=Date.now(); A.room.send("rank",forged);
+  }
+  await sleep(500); await relog(A); const pf=await ask(A,"suc_manh");
+  ok(pf?.me?.score===before&&pf.rows.every(r=>r.score<1e9),`tin rank giả mạo điểm / hạng: bỏ qua, điểm Sức mạnh vẫn ${pf?.me?.score}`);
+  const deep=await ask(A,"suc_manh",RANK_PAGE_DEPTH+500,RANK_PAGE_MAX);
+  ok(deep&&deep.page===RANK_PAGE_DEPTH&&!deep.hasNext&&deep.me,`trang quá xa kẹp về trang ${deep?.page} (RANK_PAGE_DEPTH), hết hasNext, vẫn có dòng của mình`);
+  await test(A,"baglimit",{on:true}); await sleep(RANK_CD*1000+120);
+  const n1=A.rankTopN; A.rankAt=Date.now(); for(let i=0;i<200;i++) A.room.send("rank",{op:"top",board:i%2?"suc_manh":"cap",page:1+(i%7),pageSize:1+(i%20)}); await sleep(900);
+  ok(A.rankTopN-n1<=2&&!A.leftCode,`dồn 200 tin rank trong RANK_CD: chỉ trả ${A.rankTopN-n1} bảng, vẫn kết nối`);
   await A.room.leave(); await B.room.leave();
 }
