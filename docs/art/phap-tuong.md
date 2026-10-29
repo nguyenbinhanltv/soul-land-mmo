@@ -340,7 +340,7 @@ Quyết định chủ repo 2026-10-29: phụ thể cũ thành pháp tướng, nh
 |---|---|---|---|
 | Tà Hỏa Phượng Hoàng (`ta_hoa_phuong_hoang`) | `vhanim` khung 96, 4 thở + 6 đánh | 1,8 · 0 · −28 · 3 | lấp chỗ rỗng; tạm ổn |
 | Hạo Thiên Chùy (`hao_thien_chuy`) | `vhanim` khung 128, vật cứng | 1,5 · 18 · −28 · 3 | không lấp (vật cứng); búa lơ lửng chếch sau vai, nện xuống khi đánh; 1,8 quá to |
-| Lam Ngân Thảo (`lam_ngan_thao`) | `vhanim` khung 96 | 1,8 · 0 · −20 · 2 | **lớp sáng làm lại** (`--glow`); chỗ lấp thân vẫn thành cột tối lộ rõ ở `e`, `n`: cần vẽ lại bằng model nếu không ổn |
+| Lam Ngân Thảo (`lam_ngan_thao`) | Codex vẽ lại độc lập, năm tờ 4×4 (#1326) | 1,8 · 0 · −20 · 2 | **Chủ repo đã duyệt mẫu**: thân cây liền, không nộm; lớp sáng dựng lại từ sheet mới. Hạn chế đã biết: hướng `se` chưa giữ đỉnh đòn ở khung 13 của tờ (khung đánh 4, đếm từ 0); đã dùng đủ ba lượt, chủ repo chấp nhận, không sinh thêm |
 
 Võ hồn công cụ làm chưa ổn: vẽ lại bằng Codex, danh sách + prompt ở [phap-tuong-codex-ve-lai.md](phap-tuong-codex-ve-lai.md).
 

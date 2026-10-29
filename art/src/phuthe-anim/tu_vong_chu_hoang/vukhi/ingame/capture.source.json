@@ -1,0 +1,73 @@
+{
+  "tool": "Playwright Chrome, --mute-audio; âm lượng game 0, muted=true",
+  "date": "2026-10-29T20:40:10.955Z",
+  "imageBytesUnmodified": true,
+  "viewport": [
+    1600,
+    900
+  ],
+  "items": [
+    {
+      "file": "m-idle.png",
+      "url": "/choi?thu=vukhi&vh=tu_vong_chu_hoang&gioi=m&trang=idle&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "m-walk.png",
+      "url": "/choi?thu=vukhi&vh=tu_vong_chu_hoang&gioi=m&trang=walk&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "m-attack.png",
+      "url": "/choi?thu=vukhi&vh=tu_vong_chu_hoang&gioi=m&trang=attack&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "m-cast.png",
+      "url": "/choi?thu=vukhi&vh=tu_vong_chu_hoang&gioi=m&trang=cast&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-idle.png",
+      "url": "/choi?thu=vukhi&vh=tu_vong_chu_hoang&gioi=f&trang=idle&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-walk.png",
+      "url": "/choi?thu=vukhi&vh=tu_vong_chu_hoang&gioi=f&trang=walk&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-attack.png",
+      "url": "/choi?thu=vukhi&vh=tu_vong_chu_hoang&gioi=f&trang=attack&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-cast.png",
+      "url": "/choi?thu=vukhi&vh=tu_vong_chu_hoang&gioi=f&trang=cast&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "game-scene-m-idle.png",
+      "url": "/choi?lag=1",
+      "scene": "game",
+      "sex": "m"
+    },
+    {
+      "file": "game-scene-f-idle.png",
+      "url": "/choi?lag=1",
+      "scene": "game",
+      "sex": "f"
+    }
+  ],
+  "assets": [
+    {
+      "file": "shared/assets/sprites/vukhianim/tu_vong_chu_hoang_b.png",
+      "sha256": "1855340a9c5a9976f57176cd796147c131184fb7becc94c426340c8345a79d65"
+    },
+    {
+      "file": "shared/assets/sprites/vukhianim/tu_vong_chu_hoang_f.png",
+      "sha256": "2af057c670a648c7e622922f39034a2ab3979417047036385d04a85a6603933e"
+    }
+  ]
+}

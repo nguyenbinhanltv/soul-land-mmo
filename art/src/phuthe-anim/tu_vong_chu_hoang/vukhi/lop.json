@@ -1,0 +1,29 @@
+{
+  "huong": {
+    "s": { "mac_dinh": "truoc", "vung": [] },
+    "se": { "mac_dinh": "truoc", "vung": [] },
+    "e": { "mac_dinh": "truoc", "vung": [] },
+    "ne": { "mac_dinh": "sau", "vung": [{ "nhan": "truoc", "hop": [-15, -25, 8, -9] }] },
+    "n": { "mac_dinh": "sau", "vung": [{ "nhan": "truoc", "hop": [6, -25, 21, -7] }] }
+  },
+  "khung": {
+    "s/cast/0": [{ "nhan": "sau", "hop": [-48, -48, 48, -30] }],
+    "s/cast/1": [{ "nhan": "sau", "hop": [-48, -48, 48, -30] }],
+    "s/cast/2": [{ "nhan": "sau", "hop": [-48, -48, 48, -30] }, { "nhan": "sau", "hop": [-48, -19, 0, -8] }],
+    "s/cast/3": [{ "nhan": "sau", "hop": [-48, -48, 48, -30] }, { "nhan": "sau", "hop": [-48, -19, 0, -8] }],
+    "se/cast/1": [{ "nhan": "sau", "hop": [-48, -48, 48, -31] }],
+    "se/cast/2": [{ "nhan": "sau", "hop": [-48, -48, 48, -31] }],
+    "se/cast/3": [{ "nhan": "sau", "hop": [-48, -48, 48, -31] }],
+    "e/cast/1": [{ "nhan": "sau", "hop": [-48, -48, 48, -31] }],
+    "e/cast/2": [{ "nhan": "sau", "hop": [-48, -48, 48, -31] }],
+    "e/cast/3": [{ "nhan": "sau", "hop": [-48, -48, 48, -31] }],
+    "ne/cast/0": [{ "nhan": "truoc", "hop": [-48, -17, 48, 6] }],
+    "ne/cast/1": [{ "nhan": "truoc", "hop": [-48, -17, 48, 6] }],
+    "ne/cast/2": [{ "nhan": "truoc", "hop": [-48, -17, 48, 6] }],
+    "ne/cast/3": [{ "nhan": "truoc", "hop": [-48, -17, 48, 6] }],
+    "n/cast/0": [{ "nhan": "truoc", "hop": [-48, -17, 48, 6] }],
+    "n/cast/1": [{ "nhan": "truoc", "hop": [-48, -17, 48, 6] }],
+    "n/cast/2": [{ "nhan": "truoc", "hop": [-48, -17, 48, 6] }],
+    "n/cast/3": [{ "nhan": "truoc", "hop": [-48, -17, 48, 6] }]
+  }
+}
