@@ -12,6 +12,7 @@ import "./ui2-vohon.css";
 import "./ui2-npc.css";
 import "./ui2-shop.css";
 import "./ui2-forge.css";
+import "./ui2-login.css";
 import { setConnectionLabel } from "./uiIcons.ts";
 import { loadGameFonts } from "./fontLoad";
 import Phaser from "phaser";
@@ -40,11 +41,13 @@ import { stopAmbientBed } from "./audio/ambientBed.ts";
 import { mountGoogleButton } from "./google.ts";
 import { openCredits } from "./credits.ts";
 import { viLoi } from "./viLoi.ts";
+import { isUi2 } from "./uiKit.ts";
 import { isIsoSlice } from "./isoMap.ts";
 import { evictStaleTextures } from "./textureLru.ts";
 
 const card = document.getElementById("card")!, overlay = document.getElementById("overlay")!;
 if (matchMedia("(pointer: coarse)").matches) document.body.classList.add("touch");
+if (isUi2()) card.classList.add("f2-giay-lon", "l2");   // UI v2 đợt 4a (ui2-login.css): thẻ đăng nhập / chọn nhân vật / lỗi theo kit Giấy; tắt cờ thì giữ kiểu cũ
 let token = storage.get("shh-token") ?? "";
 
 const vohonOf = (c: Character) => VOHON[Math.max(0, vohonIndex(c.vohon))];
@@ -73,7 +76,7 @@ function loginScreen(err = "") {
       <input id="name" placeholder="Tên nhân vật" maxlength="20" required autocomplete="username">
       <input id="pass" type="password" placeholder="Mật khẩu" minlength="4" required autocomplete="current-password">
       <button class="btn primary" id="go">Vào game</button>
-      <div class="err" id="err"></div>
+      <div class="err" id="err" role="alert"></div>
     </form>
     <div class="gsep" id="gsep" hidden><span>hoặc</span></div>
     <div class="gbtn" id="gbtn" hidden></div>
@@ -276,6 +279,28 @@ function waitMapId(room: Room, ms = 8000) {
   });
 }
 
+const RECONNECT_TRIES = 5;
+/** Banner mất kết nối (UI v2, ui2-login.css): `null` = gỡ. Phủ cả màn để khoá nhập trong lúc nối lại; Phaser vẫn đứng yên bên dưới. */
+function netBanner(n: number | null) {
+  let el = document.getElementById("net2");
+  if (n === null) { el?.remove(); return; }
+  if (!el) { el = document.createElement("div"); el.id = "net2"; el.setAttribute("role", "status"); el.setAttribute("aria-live", "polite"); document.body.appendChild(el); }
+  el.innerHTML = `<div class="n2-bar"><i class="n2-spin" aria-hidden="true"></i>Mất kết nối. Đang nối lại… (${n}/${RECONNECT_TRIES})</div>`;
+}
+/**
+ * Mất kết nối giữa chừng: hỏi lại server bằng /api/me (cùng token, không đổi luồng đăng nhập) tối đa RECONNECT_TRIES lần, cách nhau dần;
+ * server trả lời được thì `rejoin` (vào lại phòng như đổi bản đồ), phiên hết hạn hoặc hết lượt thì `giveUp` (màn "Đã rời" như cũ).
+ */
+async function autoReconnect(giveUp: (msg: string) => void, rejoin: () => void) {
+  for (let n = 1; n <= RECONNECT_TRIES; n++) {
+    netBanner(n);
+    await new Promise((r) => setTimeout(r, n * 1000));
+    try { await post<Me>("/api/me", { token }); netBanner(null); return rejoin(); }
+    catch (e) { if (/401|403|hết hạn|không hợp lệ/.test((e as Error).message ?? "")) return giveUp("Phiên đã hết hạn, hãy vào lại."); }   // mất mạng / server 5xx: thử tiếp
+  }
+  giveUp("Mất kết nối với server.");
+}
+
 let game: Phaser.Game | null = null;
 /** Bản đồ đang đứng do server lưu (/api/login, /api/me trả `mapId`); client chỉ chuyển nó để Colyseus ghép đúng phòng. */
 let mapId = "";
@@ -370,9 +395,14 @@ function play(room: Room, roomMap: string, watch = false) {
     setConnectionLabel(false);
     if (travelling) return;
     if (isArena && code === ARENA_END_CODE) { onTravel(mapId); return; }
-    closeLooks(); document.body.classList.remove("playing"); overlay.hidden = false; stopMusic(); stopAmbientBed();
-    const msg = code === 4001 ? "Tài khoản vừa đăng nhập ở nơi khác." : "Mất kết nối với server.";
-    card.innerHTML = `<h1>Đã rời ${esc(MAPS[roomMap]?.name ?? "bản đồ")}</h1><p>${msg}</p><div class="btns"><button class="btn primary" onclick="location.reload()">Vào lại</button></div>`;
+    const showLeft = (msg: string) => {
+      netBanner(null);
+      closeLooks(); document.body.classList.remove("playing"); overlay.hidden = false; stopMusic(); stopAmbientBed();
+      card.innerHTML = `<h1>Đã rời ${esc(MAPS[roomMap]?.name ?? "bản đồ")}</h1><p${isUi2() ? ' class="l2-err" role="alert"' : ""}>${msg}</p><div class="btns"><button class="btn primary" onclick="location.reload()">Vào lại</button></div>`;
+    };
+    if (code === 4001) return showLeft("Tài khoản vừa đăng nhập ở nơi khác.");
+    if (!isUi2()) return showLeft("Mất kết nối với server.");
+    void autoReconnect(showLeft, () => onTravel(mapId));   // UI v2: banner "Đang nối lại… (n/5)", hết lượt thì về màn "Đã rời"
   });
   /** Rời phòng hiện tại, hủy scene rồi `next()` (vào phòng mới). */
   const leaveThen = async (next: () => void) => {
