@@ -76,11 +76,19 @@ export const vohonAnimBlank = (id: string): [boolean, boolean] => {
   const [b, f] = [`vhanim_${id}_b`, `vhanim_${id}_f`].map((k) => blanks.has(k));
   return b && f ? [false, false] : [b, f];
 };
-/** Key sheet hoạt ảnh của võ hồn `id` có trong manifest (không trống, chưa lỗi); rỗng = võ hồn chưa có sheet mới (nhánh cũ). */
-const phuAnimKeys = (id: string): string[] => {
-  const [bb, fb] = vohonAnimBlank(id), ks = [`vhanim_${id}_b`, `vhanim_${id}_f`].filter((_, i) => !(i ? fb : bb));
+/** Nửa [sau, trước] của vũ khí cầm tay `vkanim_{id}` (#1312) là nửa trống; như vohonAnimBlank. */
+export const vohonVukhiBlank = (id: string): [boolean, boolean] => {
+  const [b, f] = [`vkanim_${id}_b`, `vkanim_${id}_f`].map((k) => blanks.has(k));
+  return b && f ? [false, false] : [b, f];
+};
+/** Key sheet hoạt ảnh (`vhanim`) hoặc vũ khí (`vkanim`) của võ hồn `id` có trong manifest (không trống, chưa lỗi); rỗng = võ hồn chưa có sheet mới (nhánh cũ). */
+const animKeys = (prefix: "vhanim" | "vkanim", id: string, [bb, fb]: [boolean, boolean]): string[] => {
+  const ks = [`${prefix}_${id}_b`, `${prefix}_${id}_f`].filter((_, i) => !(i ? fb : bb));
   return ks.length && ks.every((k) => specs.has(k) && !failed.has(k)) ? ks : [];
 };
+const phuAnimKeys = (id: string): string[] => animKeys("vhanim", id, vohonAnimBlank(id));
+/** Sheet vũ khí của võ hồn `id`: tải kèm sheet tĩnh như phuAnimKeys; thiếu / lỗi thì rỗng (nhánh hiện nay). */
+const vukhiAnimKeys = (id: string): string[] => animKeys("vkanim", id, vohonVukhiBlank(id));
 /** Texture hai lớp phụ thể; nửa trống mượn texture của nửa kia (cùng kích thước / bố cục khung nên mọi phép tính khung giữ nguyên), vohonBlank báo ẩn. */
 export const vohonKeys = (id: string): [string, string] => {
   const [kb, kf] = vohonPair(id), [bb, fb] = vohonBlank(id);
@@ -120,7 +128,7 @@ function settle(scene: Phaser.Scene) {
  */
 export function wantVohon(scene: Phaser.Scene, id: string, start = true): "ready" | "wait" | "code" {
   const [bb, fb] = vohonBlank(id), pair = vohonPair(id), keys = pair.filter((_, i) => !(i ? fb : bb));
-  const anim = phuAnimKeys(id); // sheet hoạt ảnh vẽ thật (Phụ thể v2): tải kèm sheet tĩnh; lỗi thì bỏ, võ hồn chạy nhánh cũ
+  const anim = [...phuAnimKeys(id), ...vukhiAnimKeys(id)]; // sheet hoạt ảnh vẽ thật (Phụ thể v2) và vũ khí cầm tay: tải kèm sheet tĩnh; lỗi thì bỏ, võ hồn chạy nhánh cũ
   keys.forEach(touchTexture); anim.forEach(touchTexture);
   if (keys.every((k) => scene.textures.exists(k)) && anim.every((k) => scene.textures.exists(k))) return "ready";
   if (keys.some((k) => !specs.has(k) || failed.has(k))) return "code";

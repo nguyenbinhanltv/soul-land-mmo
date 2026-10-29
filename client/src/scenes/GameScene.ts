@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { ContextCursor, pickupHintAllowed, resolveCursor } from "../contextCursor.ts";
 import type { Room } from "colyseus.js";
-import { MINI_BASE, TIERS, BEASTS, VOHON, RADAR, SYNC_VIEW, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
+import { MINI_BASE, TIERS, BEASTS, VOHON, PHAP_TUONG, RADAR, SYNC_VIEW, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
   ringSkill, loadoutOf, DEFAULT_LOADOUT, chanThanOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, DROP_TTL_SECS, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
@@ -10,9 +10,9 @@ import { MINI_BASE, TIERS, BEASTS, VOHON, RADAR, SYNC_VIEW, MAPS, TILE, titleOf,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
   type QuestProgress, type QuestStatus, formatHonTe, type SkillDef, tongByIndex, TONG_MON, TONG_DAILY, FUSIONS, LPC_VIEW, decodeLpc, encodeLpc, presetToLpc, lpcGearLooks, type Looks } from "../../../shared/data.ts";
 import { makeTextures, vohonTextures, BEAST_ORIGIN } from "../textures.ts";
-import { wantVohon, wantPhapTuong, wantBeast, wantSkillFx, vohonIdAt, vohonKeys, vohonBlank, vohonAnimBlank } from "../vohonLazy.ts";
+import { wantVohon, wantPhapTuong, wantBeast, wantSkillFx, vohonIdAt, vohonKeys, vohonBlank, vohonAnimBlank, vohonVukhiBlank } from "../vohonLazy.ts";
 import { buildRings, animateRings, type HaloState } from "../soulRings.ts";
-import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncPhuLayers, phuUsesStatic, phuAnimSetOf, fitPhuLayer, type PhuAnimSet, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, animBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, VH_ORIGIN,
+import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers, syncPhuLayers, phuUsesStatic, phuAnimSetOf, vukhiSetOf, fitPhuLayer, type PhuAnimSet, syncBeastSprite, beastSheetSpecies, beastBody, staticBeastPose, animBeastPose, STATIC_MOTION, beastFamily, beastStrikeAge, beastMotionLevel, fitHonsuLayer, isIsoSheet, vohonHalf, VH_ORIGIN,
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim, animLayoutOf } from "../sprites.ts";
 import { dieFrame, dieMs, type BeastAnimState } from "../beastAnim.ts";
 import * as hud from "../hud.ts";
@@ -75,9 +75,9 @@ const SV_OFF = new URLSearchParams(location.search).get("sv") === "0";
 import { hitWeight, KNOCK_PX, materialSparks, damageStyle, playHitFeelSheets, registerHitFeelSheets } from "../hitFeel.ts";
 import { footDustCount, rootSnareDiameter } from "../combatFeelRules.ts";
 import { PhapTuongSystem, PhapTuongCutIn } from "../phapTuong.ts";
-import { phuFaceOf, phuDirRow } from "../phutheAnim.ts";
+import { phuFaceOf, phuDirRow, weaponHidden } from "../phutheAnim.ts";
 import { PHU_NO_ANCHOR, phuAnchorAt, phuAnchorsOf } from "../phutheAnchor.ts";
-import { SPIRIT_FAMILY, clipOscK, spiritPose, spiritScale, spiritPhase, applySpiritPose, newSpiritPose, type SpiritState } from "../spiritMotion.ts";
+import { SPIRIT_FAMILY, clipOscK, weaponOscK, spiritPose, spiritScale, spiritPhase, applySpiritPose, newSpiritPose, type SpiritState } from "../spiritMotion.ts";
 import { ParticleLayer, HIT_SPARK, SHAKE_TIER, beastJerk, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs, fxLevel, fxGov } from "../combatFx.ts";
 import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
 import { bindUiSounds } from "../audio/uiSounds.ts";
@@ -2989,9 +2989,10 @@ export class GameScene extends Phaser.Scene {
         if (st !== "wait") {
           v.vh = p.vh;
           // Võ hồn có sheet hoạt ảnh vẽ thật (Phụ thể v2) thì phát clip; chưa có / hỏng thì nhánh cũ (phụ thể tĩnh + spiritMotion mức cũ).
-          const pa = st === "ready" ? phuAnimSetOf(this, vohonIdAt(p.vh), vohonAnimBlank(vohonIdAt(p.vh))) : null;
+          // Vũ khí cầm tay (sheet `vkanim_{id}`, #1312) thay phụ thể: có thì dùng, thiếu / hỏng thì phụ thể hoạt ảnh `vhanim_{id}`, rồi phụ thể tĩnh như cũ.
+          const vid = vohonIdAt(p.vh), pa = st === "ready" ? vukhiSetOf(this, vid, vohonVukhiBlank(vid)) ?? phuAnimSetOf(this, vid, vohonAnimBlank(vid)) : null;
           v.vhAnim = pa;
-          v.vhBlank = pa ? vohonAnimBlank(vohonIdAt(p.vh)) : st === "ready" ? vohonBlank(vohonIdAt(p.vh)) : [false, false];
+          v.vhBlank = pa ? (pa.layout.weapon ? vohonVukhiBlank(vid) : vohonAnimBlank(vid)) : st === "ready" ? vohonBlank(vohonIdAt(p.vh)) : [false, false];
           const [kb, kf] = pa ? pa.keys : st === "ready" ? vohonKeys(vohonIdAt(p.vh)) : vohonTextures(this, p.vh);
           if (pa) { fitPhuLayer(v.vb.setTexture(kb), pa.layout); fitPhuLayer(v.vf.setTexture(kf), pa.layout); }
           else { fitHonsuLayer(v.vb.setTexture(kb), true); fitHonsuLayer(v.vf.setTexture(kf), true); }
@@ -3452,6 +3453,7 @@ export class GameScene extends Phaser.Scene {
     const blank = pa && !real ? pa.statik!.blank : v.vhBlank; // hướng dùng phụ thể tĩnh: nửa trống theo ảnh tĩnh
     if (blank[0]) v.vb.setAlpha(0); // nửa phụ thể không có ảnh: giữ visible (spiritMotion đọc) nhưng không hiện
     if (blank[1]) v.vf.setAlpha(0);
+    if (pa?.layout.weapon && weaponHidden(p.ava, !!PHAP_TUONG[VOHON[p.vh]?.id ?? ""])) { v.vb.setVisible(false); v.vf.setVisible(false); } // Chân Thân: vũ khí thu về, pháp tướng sau lưng hiện thay (không chen nhau)
     if (p.vh !== v.vh) { v.vb.setVisible(false); v.vf.setVisible(false); } // phụ thể đang tải lười (vohonLazy.ts)
     // Bay (2.5b): nhấc mọi lớp trừ bóng lên tối đa 10 pixel theo nửa sóng sin.
     const fe = v.fly ? (time - v.fly.t0) / v.fly.ms : 1; if (fe >= 1) v.fly = null;
@@ -3486,7 +3488,7 @@ export class GameScene extends Phaser.Scene {
     const st: SpiritState = anim === "attack" || anim === "cast" ? anim : anim === "walk" ? "walk" : "idle";
     v.spPhase ??= spiritPhase(id);
     const age = v.act ? time - v.act.t0 : 0, dur = v.act ? honsuAnimMs(v.act.anim) : 0;
-    applySpiritPose(layers, spiritPose(this.spPose, fam, k > 0 ? st : "idle", time, age, dur, flip ? -1 : 1, time - v.hurtT, k, v.spPhase, real ? clipOscK(fam) : 1), this.spShift, ox, oy, base, 1 / SPR);
+    applySpiritPose(layers, spiritPose(this.spPose, fam, k > 0 ? st : "idle", time, age, dur, flip ? -1 : 1, time - v.hurtT, k, v.spPhase, real ? (v.vhAnim?.layout.weapon ? weaponOscK(fam) : clipOscK(fam)) : 1), this.spShift, ox, oy, base, 1 / SPR);
   }
 
   /** Xin lại chỉ số của võ hồn đang xem ở bảng nhân vật (server giới hạn nhịp, tin về qua "stats"). */

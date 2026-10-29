@@ -90,7 +90,7 @@ Hệ trang bị phỏng theo Mir2 / Sabuk (10 ô, 6 bậc, cường hóa +15 có
 - **Thợ rèn:** ba trang Cường hóa / Hợp thành / Phân giải có biểu tượng món + khung bậc ở danh sách chọn, bảng xem trước dạng nhãn trái / giá trị phải, và hiệu ứng khi kết quả về.
   - Nhịp sáng khi thành, rung đỏ khi bại, rung mạnh khi món bị phá hủy / mất cả 3; tắt khi người chơi chọn giảm chuyển động.
   - Tiếng `enhanceOk` / `enhanceFail` (phân giải: tiếng thả đồ); chưa có clip riêng cho "vỡ", dùng tiếng thất bại.
-- **Hình trên hồn sư:** áo / mũ hiện lên lớp LPC; vũ khí do phụ thể; các ô khác không có hình (xem `docs/art/hon-su-lpc.md`).
+- **Hình trên hồn sư:** áo / mũ hiện lên lớp LPC; vũ khí cầm tay do **võ hồn đang ra trận** quyết định (sheet `vkanim_{id}`, ẩn khi Chân Thân; thiếu sheet thì hiện phụ thể như trước), ô `vu_khi` trang bị chỉ là chỉ số + viền hạng, không có hình trên người; các ô khác không có hình (xem `docs/art/hon-su-lpc.md`).
 
 ## Khóa mẫu và quy ước ảnh
 Để thay ảnh không phải sửa code.

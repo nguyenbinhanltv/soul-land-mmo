@@ -20,6 +20,10 @@ export interface PhuLayout {
   offset: Record<PhuClip, readonly [number, number]>;
   /** Hướng vẽ thật đã nhập (manifest `anim.dirsOk`, theo PHU_DIRS); thiếu = đủ 5 hướng (võ hồn nhập đủ). Hướng ngoài danh sách dùng phụ thể tĩnh cũ (phuDirOk). */
   dirsOk?: readonly (typeof PHU_DIRS)[number][];
+  /** Sheet VŨ KHÍ cầm tay (`vkanim_{id}`, manifest `anim.kind: "vukhi"`, docs/art phu-the-vu-khi, #1312): cùng bố cục như phụ thể hoạt ảnh nhưng ẩn khi Chân Thân và dao động riêng (weaponOscK). */
+  weapon?: true;
+  /** Điểm cầm đã bake (manifest `anim.grip["<hướng>/<clip>/<khung>"] = [x, y, (x2, y2)]`, điểm ảnh khung từ gốc chân, +x theo hướng nhìn gốc, tay thuận trước, đo trên thân nam). */
+  grip?: Readonly<Record<string, readonly number[]>>;
 }
 
 /** Bố cục mặc định theo đặc tả (nhóm B / C: 22 cột): idle 4, walk 6, attack 6, cast 4, hurt 2. Số khung thật do manifest `anim` ghi. */
@@ -35,7 +39,7 @@ const ZERO: readonly [number, number] = [0, 0];
 export function parsePhuLayout(anim: unknown, frame: unknown): PhuLayout | null {
   const f = Array.isArray(frame) ? frame[0] : frame;
   if (f !== 96 && f !== 128) return null;
-  const o = (anim && typeof anim === "object" ? anim : {}) as { cols?: unknown; clips?: Record<string, Partial<PhuSlot>>; offset?: Record<string, unknown>; dirsOk?: unknown };
+  const o = (anim && typeof anim === "object" ? anim : {}) as { cols?: unknown; clips?: Record<string, Partial<PhuSlot>>; offset?: Record<string, unknown>; dirsOk?: unknown; kind?: unknown; grip?: unknown };
   const clips = {} as Record<PhuClip, PhuSlot>, offset = {} as Record<PhuClip, readonly [number, number]>;
   let cols = 0;
   for (const c of PHU_CLIPS) {
@@ -50,8 +54,36 @@ export function parsePhuLayout(anim: unknown, frame: unknown): PhuLayout | null 
   if (!Number.isInteger(declared) || (declared as number) < cols) return null;
   // dirsOk: lọc giá trị lạ / trùng, theo thứ tự PHU_DIRS; đủ 5 hướng (hoặc không khai, hoặc không phải mảng) = không ghi (hành vi cũ)
   const ok = Array.isArray(o.dirsOk) ? PHU_DIRS.filter((d) => (o.dirsOk as unknown[]).includes(d)) : null;
-  return { frame: f, cols: declared as number, clips, offset, ...(ok && ok.length < PHU_DIRS.length ? { dirsOk: ok } : {}) };
+  const grip = o.kind === "vukhi" ? parseGrip(o.grip) : null;
+  return { frame: f, cols: declared as number, clips, offset, ...(ok && ok.length < PHU_DIRS.length ? { dirsOk: ok } : {}), ...(o.kind === "vukhi" ? { weapon: true as const } : {}), ...(grip ? { grip } : {}) };
 }
+
+/** Khóa điểm cầm hợp lệ: `<hướng>/<clip>/<khung>`; giá trị 2 hoặc 4 số hữu hạn (tay thuận, tay kia). Mục hỏng bị bỏ (điểm cầm chỉ để bù lệch / gắn hiệu ứng, không chặn sheet). */
+const GRIP_KEY = /^(s|se|e|ne|n)\/(idle|walk|attack|cast|hurt)\/\d+$/;
+function parseGrip(g: unknown): Record<string, readonly number[]> | null {
+  if (!g || typeof g !== "object") return null;
+  const out: Record<string, readonly number[]> = {};
+  for (const [k, v] of Object.entries(g as Record<string, unknown>)) {
+    if (GRIP_KEY.test(k) && Array.isArray(v) && (v.length === 2 || v.length === 4) && v.every((x) => typeof x === "number" && Number.isFinite(x))) out[k] = v as number[];
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+/**
+ * Điểm cầm (điểm ảnh khung, tính từ GỐC CHÂN, +x sang phải màn hình, +y xuống) của khung `i` clip `clip` hướng `face` của sheet vũ khí; `hand` 0 = tay thuận, 1 = tay kia.
+ * Hướng tây lật ngang hướng đông tương ứng (đổi dấu x). Không có điểm cầm (sheet cũ, khung đo không ra tay, tay không có) thì null.
+ */
+export function phuGripAt(L: PhuLayout, face: Dir8, clip: PhuClip, i: number, hand = 0): readonly [number, number] | null {
+  const v = L.grip?.[`${PHU_DIRS[phuDirRow(face)]}/${clip}/${Math.max(0, Math.min(L.clips[clip].n - 1, i))}`];
+  if (!v || v.length < 2 * (hand + 1)) return null;
+  return [phuFlip(face) ? -v[2 * hand] : v[2 * hand], v[2 * hand + 1]];
+}
+
+/**
+ * Vũ khí cầm tay thu về khi hồn sư đang Chân Thân (`ava` > 0 của người chơi) mà võ hồn có pháp tướng: không để vũ khí và pháp tướng của cùng một võ hồn chen nhau
+ * (phu-the-vu-khi, quy tắc 5). Võ hồn chưa có pháp tướng thì vũ khí ở lại. Hết Chân Thân thì hiện lại.
+ */
+export const weaponHidden = (ava: number, hasPhapTuong: boolean): boolean => ava > 0 && hasPhapTuong;
 
 /**
  * Hướng 8 `face` có hoạt ảnh vẽ thật không. Tây (sw, w, nw) lật hướng đông tương ứng nên theo hàng nguồn (se, e, ne): nguồn chưa nhập thì cả hai
