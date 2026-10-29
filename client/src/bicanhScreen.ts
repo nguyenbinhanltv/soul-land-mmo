@@ -89,10 +89,10 @@ export interface EndView { win: boolean; title: string; lines: { text: string; c
 /** Bảng kết quả từ tin `end`: thắng / thua + lý do, số sóng đã hạ, thưởng quyển (trần ngày / túi đầy), hoàn lượt khi lỗi hệ thống. */
 export function endView(m: BiCanhRoomMsg): EndView {
   const win = !!m.win, tomes = m.tomes ?? 0, name = itemDef(BICANH.tome)?.name ?? BICANH.tome, lines: EndView["lines"] = [];
-  if (m.err) lines.push({ text: m.err, cls: "bc-bad" });
+  if (m.err && !(m.refunded && /hoàn/.test(m.err))) lines.push({ text: m.err, cls: "bc-bad" }); // tin lỗi đã nói hoàn lượt thì không in hai lần
   else lines.push({ text: m.why ? `Kết thúc: ${m.why}.` : "Kết thúc.", cls: "" });
   lines.push({ text: `Đã hạ ${m.cleared ?? 0}/${m.of ?? 0} sóng.`, cls: "" });
-  if (m.refunded && !m.err) lines.push({ text: "Lỗi hệ thống: lượt đã được hoàn lại, quyển chưa nhận.", cls: "bc-bad" });
+  if (m.refunded) lines.push({ text: "Lỗi hệ thống: lượt đã được hoàn lại, quyển chưa nhận.", cls: "bc-bad" });
   else if (tomes > 0) lines.push({ text: `Nhận ${name} ×${tomes} vào túi.`, cls: "bc-rew" });
   else lines.push({ text: m.capped ? `Hôm nay đã nhận đủ ${BICANH.tomeDailyCap} ${name}: lượt này không có quyển.` : m.full ? `Túi đầy: chưa nhận được ${name}.` : `Chưa hạ sóng có quyển nên không nhận ${name}.`, cls: "" });
   if (tomes > 0 && m.capped) lines.push({ text: `Chạm trần ${BICANH.tomeDailyCap} quyển mỗi ngày: phần dư không nhận.`, cls: "" });
