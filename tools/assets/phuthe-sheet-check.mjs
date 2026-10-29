@@ -4,6 +4,7 @@
 // Chỉ đọc tờ RAW (toA–toE = s, se, e, ne, n; `turnaround.png`): tỉ lệ 3:2, khóa nền (dung sai), dò lưới theo khoảng trống, số hình mỗi dải, ô trống có hình,
 // nộm còn tìm thấy (đăng ký hình bóng nộm), nộm bị dời, khung rỗng (trừ hurt), phụ thể không dính nộm ở khung đứng (điểm gắn trôi), khung chết, hurt = idle,
 // se ≈ e, cỡ phụ thể lệch so với khối s. Ghi <id>-check.json + .md + tờ liên hệ có nhãn (<id>-to<X>-lien-he.png) + dòng `LỖI:` nháp.
+// --kind vukhi (#1312): thêm `diem-cam` (vũ khí phải chạm marker ở khung đứng; chặn với mềm / găng, nhẹ với cứng) và `marker-troi` (marker bị vẽ lệch khỏi tay nộm); đọc `<id>/vukhi/toA–toE`.
 // Mức: pass / nhẹ / chặn (thoát mã 1 khi có chặn). Cỡ phụ thể lệch chỉ là nhẹ, không bao giờ chặn (như hồn thú, quyết định chủ repo 2026-10-26 mục 4).
 // KHÔNG kiểm bằng code (xem tờ liên hệ bằng mắt): nhận diện đúng võ hồn so với bảng mô tả, vẽ lại thân / mặt / tay chân người, nộm bị vẽ thêm mặt ở n / ne,
 // se / ne khác e thật sự, hurt lùi đúng hướng. Không sửa tờ, không ghi vào repo (mặc định ghi ở thư mục tạm).
@@ -19,9 +20,9 @@ import { contactSheet } from "./beast-sheet-contact.mjs";
 import { silhouetteDiff, silhouetteIou, BG_LOCK, BG_TOL, EMPTY_CELL_FRAC, BASELINE_FRAC } from "./beast-sheet-check.mjs";
 import {
   DIRS, CLIPS, COLS, BAND_ROWS, TURNAROUND, CELL, SHEET_W, SHEET_H, DIR_OF_SHEET, ANIM_ROOT, sheetCells, figuresPerBand, framesOf, sheetFits, phutheInfo, GROUPS,
-  guideKeyOf,
+  guideKeyOf, gripKeyOf, gripCount, checkKind, animDir,
 } from "./phuthe-sheet-lib.mjs";
-import { prepareSheet, cellSpirit, dropSpecks, eraseGuides, REG_MIN_SCORE } from "./phuthe-sheet-cut-lib.mjs";
+import { prepareSheet, cellSpirit, cellGripObs, dropSpecks, eraseGuides, REG_MIN_SCORE } from "./phuthe-sheet-cut-lib.mjs";
 
 // ---------- Ngưỡng ----------
 export const REG_BLOCK = 0.25;          // điểm đăng ký nộm dưới mức này: coi như mất nộm (chặn); dưới REG_MIN_SCORE: nhẹ
@@ -30,6 +31,7 @@ export const MIN_SPIRIT_PX = 20;        // ô có ít điểm phụ thể hơn s
 export const ATTACH_FRAC = 0.12;        // khoảng cách tối đa (tỉ lệ cạnh ô) từ phụ thể tới nộm ở khung idle
 export const SIZE_LIGHT = 0.1;          // cỡ phụ thể lệch quá mức này so với khối s: nhẹ (chỉ cảnh báo kỹ thuật, không chặn)
 export const AREA_OUTLIER = 1.7;       // khung lệch diện tích so với trung vị cùng clip (như hồn thú)
+export const GRIP_TOUCH = 12;        // kiểu vũ khí: khoảng cách tối đa (điểm canonical) từ marker điểm cầm tới điểm vũ khí gần nhất ở khung đứng (không lơ lửng cách tay)
 export const DEAD_DIFF = 0.03, HURT_IDLE_DIFF = 0.08, SE_E_IOU = 0.8;
 const LEVEL_RANK = { pass: 0, "nhẹ": 1, "chặn": 2 };
 const SEV_LEVEL = { block: "chặn", light: "nhẹ", note: "pass" };
@@ -79,7 +81,7 @@ function sizeCheck(res, img) {
 export function analyzeTurnaround(file, o = {}) {
   const img = readPng(file), res = { sheet: TURNAROUND_SHEET, file, size: [img.w, img.h], issues: [], blocks: [], cells: [], bands: [], dead: [], img, kind: "turnaround", dirs: DIRS, plan: { dirs: DIRS, cols: TURNAROUND.cols, rows: TURNAROUND.rows } };
   if (!sizeCheck(res, img)) return finish(res);
-  const clean = eraseGuides(img, o.guideKey), grid = detectGrid(clean); // vạch tham chiếu (góc khung, chân, thước) không phải hình
+  const clean = eraseGuides(eraseGuides(img, o.guideKey), o.gripKey), grid = detectGrid(clean); // vạch tham chiếu (góc khung, chân, thước) không phải hình
   bgCheck(res, grid, clean);
   if (grid.bands.length !== TURNAROUND.rows) { issue(res.issues, "block", "luoi", "toàn tờ", `dò được ${grid.bands.length} dải hàng, cần ${TURNAROUND.rows}: không dò được lưới.`); return finish(res); }
   grid.bands.forEach((b, row) => {
@@ -99,12 +101,12 @@ export function analyzeTurnaround(file, o = {}) {
  */
 export function analyzeSheet(file, o) {
   const raw = readPng(file), name = path.basename(file, ".png"), dir = o.dir ?? DIR_OF_SHEET[name.replace(/^to/, "")];
-  const res = { sheet: name, file, size: [raw.w, raw.h], issues: [], blocks: [], cells: [], bands: [], dead: [], img: raw, kind: "huong", dirs: [dir], frames: new Map(), areas: {} }, { issues } = res;
+  const res = { group: o.group, sheet: name, file, size: [raw.w, raw.h], issues: [], blocks: [], cells: [], bands: [], dead: [], img: raw, kind: "huong", dirs: [dir], frames: new Map(), areas: {} }, { issues } = res;
   if (!dir) throw new Error(`không biết hướng của ${name} (cần toA–toE)`);
   const group = o.group;
   res.plan = { dirs: [dir], cols: COLS, rows: BAND_ROWS };
   if (!sizeCheck(res, raw)) return finish(res);
-  const clean = eraseGuides(raw, o.guideKey), grid = detectGrid(clean); // vạch tham chiếu không phải hình
+  const clean = eraseGuides(eraseGuides(raw, o.guideKey), o.gripKey), grid = detectGrid(clean); // vạch tham chiếu không phải hình
   res.grid = grid;
   bgCheck(res, grid, clean);
   if (grid.bands.length !== BAND_ROWS) {
@@ -148,10 +150,27 @@ export function analyzeSheet(file, o) {
   return finish(res);
 }
 
+/**
+ * Kiểu vũ khí: (1) marker điểm cầm còn thấy thì không được trôi khỏi tay nộm (nhẹ > DRIFT_LIGHT, chặn > DRIFT_BLOCK điểm canonical; vũ khí che hết marker thì bỏ qua);
+ * (2) ở khung đứng vũ khí phải CHẠM marker (điểm vũ khí gần nhất cách điểm cầm ≤ GRIP_TOUCH): không thì lơ lửng cách tay; chặn với mềm / găng (B), nhẹ với cứng (A) như `diem-gan`.
+ */
+function gripChecks(res, cell, obs, px, tag, dir, skip, figure) {
+  const { issues } = res;
+  for (const [i, g] of obs.entries()) {
+    if (g.seen > 0 && g.drift > DRIFT_BLOCK) { issue(issues, "block", "marker-troi", tag, `marker điểm cầm ${i ? "B" : "A"} bị dời ${round(g.drift, 0)} điểm so với tay nộm (> ${DRIFT_BLOCK}).`, { dir }); if (figure) figure.state = "bad"; }
+    else if (g.seen > 0 && g.drift > DRIFT_LIGHT) { issue(issues, "light", "marker-troi", tag, `marker điểm cầm ${i ? "B" : "A"} bị dời ${round(g.drift, 0)} điểm so với tay nộm (> ${DRIFT_LIGHT}).`, { dir }); if (figure && figure.state === "ok") figure.state = "warn"; }
+  }
+  if (skip || cell.anim !== "idle" || !obs.length) return;
+  const sev = attachSeverity(res.group), far = obs.map((g, i) => ({ i, d: minDistToPoint(px, g.nominal) })).filter((x) => x.d > GRIP_TOUCH);
+  if (far.length) { issue(issues, sev, "diem-cam", tag, `vũ khí cách marker điểm cầm ${far.map((x) => `${x.i ? "B" : "A"} ${Math.round(x.d)}`).join(", ")} điểm (> ${GRIP_TOUCH}) ở khung đứng: lơ lửng, không nằm trong tay${sev === "light" ? " (vật cứng: nhẹ)" : ""}.`, { dir }); if (figure && sev === "block") figure.state = "bad"; }
+}
+/** Khoảng cách từ một điểm [u, v] tới điểm gần nhất trong `px` ([[u, v, …]]). */
+export function minDistToPoint(px, [u, v]) { let best = Infinity; for (const p of px) best = Math.min(best, Math.hypot(p[0] + 0.5 - u, p[1] + 0.5 - v)); return best; }
+
 /** Nộm, phụ thể từng ô (cần lưới đúng): đăng ký nộm, khung rỗng, điểm gắn, cỡ, khung chết, hurt = idle. */
 function analyzeCells(res, raw, o, dir) {
   const { issues } = res, group = o.group, fr = framesOf(group);
-  const prep = prepareSheet(raw, { group, dir, frame: o.frame, dummyKey: o.dummyKey, guideKey: o.guideKey, sex: o.sex ?? "m" });
+  const prep = prepareSheet(raw, { group, dir, frame: o.frame, dummyKey: o.dummyKey, guideKey: o.guideKey, gripKey: o.gripKey, gripN: o.gripN, sex: o.sex ?? "m" });
   res.prep = { shift: prep.shift, factor: prep.factor, grid: prep.layout.mode };
   const rowState = (row) => res.bands.find((b) => b.row === row);
   for (const cell of prep.cells) {
@@ -171,11 +190,12 @@ function analyzeCells(res, raw, o, dir) {
     } else if (!nomLost) {
       if (sp.edge > 8) issue(issues, "light", "cham-mep-khung", tag, `phụ thể chạm mép ô khung (${sp.edge} điểm): có thể bị cắt.`, { dir });
       if (sp.outside > 30) issue(issues, "light", "vuot-khung", tag, `${sp.outside} điểm phụ thể nằm ngoài ô khung (bị cắt).`, { dir });
-      if (cell.anim === "idle") { // điểm gắn: ở khung đứng, phụ thể phải dính nộm
+      if (cell.anim === "idle" && o.kind !== "vukhi") { // điểm gắn: ở khung đứng, phụ thể phải dính nộm
         const d = minDistToDummy(cell.nom.mask, ds.px), lim = ATTACH_FRAC * CELL;
         if (d > lim) { issue(issues, attachSeverity(group), "diem-gan", tag, `phụ thể cách nộm ${d} điểm (> ${Math.round(lim)}) ở khung đứng: không dính vào thân${group === "A" ? " (vật cứng lơ lửng: nhẹ)" : ""}.`, { dir }); if (figure && attachSeverity(group) === "block") figure.state = "bad"; }
       }
     }
+    if (o.kind === "vukhi") gripChecks(res, cell, cellGripObs(prep, cell), ds.px, tag, dir, nomLost || ds.px.length < MIN_SPIRIT_PX, figure);
     res.cells.push({ ...cell, dir, spirit: ds.px.length });
     res.frames.set(key, { px: ds.px, mask: cellMask(ds.px), area: ds.px.length });
   }
@@ -208,11 +228,11 @@ export function turnaroundFile(dir) { const f = path.join(dir, `${TURNAROUND_SHE
 
 /** Kiểm mọi tờ của một võ hồn, thêm so cỡ phụ thể giữa các hướng (theo khối `s`) và se ≈ e. `opt`: { dir, group, frame, dummyKey, sex }. */
 export function checkPhuThe(id, opt = {}) {
-  const info = phutheInfo(id), dir = opt.dir ?? path.join(ANIM_ROOT, id), group = opt.group ?? info.group, frame = opt.frame ?? info.frame, dummyKey = opt.dummyKey ?? info.dummyKey;
+  const kind = checkKind(opt.kind), info = phutheInfo(id, kind, opt.specMd), dir = opt.dir ?? animDir(id, kind), group = opt.group ?? info.group, frame = opt.frame ?? info.frame, dummyKey = opt.dummyKey ?? info.dummyKey;
   if (!GROUPS.includes(group)) throw new Error(`nhóm lạ ${group}`);
   const ta = turnaroundFile(dir), files = sheetFiles(dir);
   if (!files.length && !ta) throw new Error(`không có tờ toA.png… trong ${dir}`);
-  const o = { group, frame, dummyKey, guideKey: opt.guideKey ?? guideKeyOf(id, dummyKey), sex: opt.sex ?? "m" };
+  const guideKey = opt.guideKey ?? guideKeyOf(id, dummyKey), o = { kind, group, frame, dummyKey, guideKey, ...(kind === "vukhi" ? { gripKey: opt.gripKey ?? gripKeyOf(id, dummyKey, guideKey), gripN: gripCount(info.hands) } : {}), sex: opt.sex ?? "m" };
   const sheets = files.map((f) => analyzeSheet(f, o)), turnaround = ta ? analyzeTurnaround(ta, o) : null;
   const sRef = sheets.find((s) => s.dirs[0] === "s");
   if (sRef) for (const s of sheets) {
@@ -234,14 +254,14 @@ export function checkPhuThe(id, opt = {}) {
     const d = s.dirs[0];
     blockLevel[d] = maxLevel(blockLevel[d] ?? "pass", s.level);
   }
-  return { id, dir, group, frame, dummyKey, level, sheets, turnaround, blockLevel };
+  return { id, kind, dir, group, frame, dummyKey, level, sheets, turnaround, blockLevel };
 }
 export const allSheets = (r) => [...r.sheets, ...(r.turnaround ? [r.turnaround] : [])];
 
 // ---------- Dòng LỖI nháp ----------
 const CODE_VI = { "kich-thuoc": "sai kích thước", nen: "nền ngoài dung sai", luoi: "không dò được lưới", "so-hinh": "sai số hình", "hinh-dinh": "hình dính", "o-trong": "hình ở ô trống", "cham-mep": "chạm mép tờ",
   "chan-lech": "chân lệch", "khung-chet": "khung chết", "hurt-idle": "hurt trùng idle", "nom-mat": "mất nộm", "nom-lech": "nộm bị dời", "khung-rong": "khung rỗng", "hurt-rong": "hurt rỗng", "diem-gan": "điểm gắn trôi",
-  "cham-mep-khung": "chạm mép khung", "khung-lech": "khung lệch", "vuot-khung": "vượt khung" };
+  "diem-cam": "vũ khí không chạm marker", "marker-troi": "marker điểm cầm trôi", "cham-mep-khung": "chạm mép khung", "khung-lech": "khung lệch", "vuot-khung": "vượt khung" };
 /** Ghi chú kỹ thuật cỡ phụ thể (không phải lỗi, không có tiền tố `LỖI:`). */
 export const sizeNotes = (sheet) => sheet.issues.filter((i) => i.code === "co-phu-the").map((i) => `${i.where}: ${i.msg}`);
 /** Dòng `LỖI:` nháp theo mẫu NGUON.md: tờ — loại / loại — vị trí — mô tả. Chỉ mục nhẹ và chặn, trừ cỡ phụ thể (ghi chú kỹ thuật); null nếu không có. */
@@ -255,7 +275,7 @@ export function draftErrorLine(sheet) {
 // ---------- Báo cáo ----------
 export function toJson(r) {
   return {
-    id: r.id, level: r.level, group: r.group, frame: r.frame, dummyKey: r.dummyKey, blockLevel: r.blockLevel,
+    id: r.id, kind: r.kind, level: r.level, group: r.group, frame: r.frame, dummyKey: r.dummyKey, blockLevel: r.blockLevel,
     sheets: allSheets(r).map((s) => ({
       sheet: s.sheet, size: s.size, kind: s.kind ?? null, level: s.level, dirs: s.dirs ?? null, background: s.background ?? null, seVsE: s.seVsE ?? null, prep: s.prep ?? null,
       bands: s.bands.map((b) => ({ row: (b.row ?? 0) + 1, dir: b.dir ?? null, y: [b.y0, b.y1], figures: b.figures.length, state: b.state })),
@@ -265,7 +285,7 @@ export function toJson(r) {
 }
 export function toMarkdown(r) {
   const n = (s, sev) => s.issues.filter((i) => i.sev === sev).length;
-  const L = [`# Kiểm tờ phụ thể: ${r.id}`, "", `**Mức chung: ${r.level.toUpperCase()}** · nhóm ${r.group}, khung ${r.frame}, màu khóa nộm ${r.dummyKey}.`, "", "| Tờ | Cỡ | Loại | Mức | Chặn | Nhẹ | Lưu ý |", "|---|---|---|---|---|---|---|"];
+  const L = [`# Kiểm tờ ${r.kind === "vukhi" ? "vũ khí" : "phụ thể"}: ${r.id}`, "", `**Mức chung: ${r.level.toUpperCase()}** · nhóm ${r.group}, khung ${r.frame}, màu khóa nộm ${r.dummyKey}.`, "", "| Tờ | Cỡ | Loại | Mức | Chặn | Nhẹ | Lưu ý |", "|---|---|---|---|---|---|---|"];
   for (const s of allSheets(r)) L.push(`| ${s.sheet} | ${s.size.join("×")} | ${s.kind ?? "?"} | ${s.level} | ${n(s, "block")} | ${n(s, "light")} | ${n(s, "note")} |`);
   L.push("", "Mức theo khối hướng: " + DIRS.filter((d) => r.blockLevel[d]).map((d) => `${d} ${r.blockLevel[d]}`).join(" · "), "");
   for (const s of allSheets(r)) {
@@ -304,6 +324,8 @@ function parseArgs(argv) {
     else if (a === "--frame") o.frame = +argv[++i];
     else if (a === "--dummy-key") o.dummyKey = argv[++i];
     else if (a === "--guide-key") o.guideKey = argv[++i];
+    else if (a === "--grip-key") o.gripKey = argv[++i];
+    else if (a === "--kind") o.kind = argv[++i];
     else if (a === "--no-image") o.images = false;
     else if (a === "--all") o.all = true;
     else if (a.startsWith("--")) throw new Error(`tùy chọn lạ: ${a}`);
@@ -316,13 +338,13 @@ const summary = (r) => `${r.level.padEnd(5)} ${r.id}: ${allSheets(r).map((s) => 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const o = parseArgs(process.argv.slice(2));
-    if (o.all) o.ids = existsSync(ANIM_ROOT) ? readdirSync(ANIM_ROOT, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort() : [];
-    if (!o.ids.length && !o.all) { console.error("Dùng: npm run phuthe:check -- <võ hồn> [--out <thư mục>] [--dir <thư mục tờ>] [--frame 96|128] [--dummy-key #00D0D0] [--guide-key #7A5CFF] [--no-image]   |   npm run phuthe:check -- --all"); process.exit(2); }
+    if (o.all) o.ids = existsSync(ANIM_ROOT) ? readdirSync(ANIM_ROOT, { withFileTypes: true }).filter((d) => d.isDirectory() && (o.kind !== "vukhi" || existsSync(animDir(d.name, "vukhi")))).map((d) => d.name).sort() : [];
+    if (!o.ids.length && !o.all) { console.error("Dùng: npm run phuthe:check -- <võ hồn> [--out <thư mục>] [--dir <thư mục tờ>] [--frame 96|128] [--dummy-key #00D0D0] [--guide-key #7A5CFF] [--kind phuthe|vukhi] [--grip-key #00FF60] [--no-image]   |   npm run phuthe:check -- --all"); process.exit(2); }
     const base = o.out ?? path.join(os.tmpdir(), "phuthe-check");
     let blocked = 0;
     for (const id of o.ids) {
       let r;
-      try { r = checkPhuThe(id, { ...(o.dir ? { dir: o.dir } : {}), ...(o.frame ? { frame: o.frame } : {}), ...(o.dummyKey ? { dummyKey: o.dummyKey } : {}), ...(o.guideKey ? { guideKey: o.guideKey } : {}) }); }
+      try { r = checkPhuThe(id, { ...(o.dir ? { dir: o.dir } : {}), ...(o.frame ? { frame: o.frame } : {}), ...(o.dummyKey ? { dummyKey: o.dummyKey } : {}), ...(o.guideKey ? { guideKey: o.guideKey } : {}), ...(o.gripKey ? { gripKey: o.gripKey } : {}), ...(o.kind ? { kind: o.kind } : {}) }); }
       catch (e) { if (o.all && /không có tờ/.test(e.message)) { console.log(`bỏ qua ${id} (chưa có tờ)`); continue; } throw e; }
       console.log(summary(r));
       if (r.level === "chặn") blocked++;
