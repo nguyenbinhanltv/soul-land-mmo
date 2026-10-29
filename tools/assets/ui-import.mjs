@@ -26,6 +26,9 @@ export const PLAN = [
   { sheet: "candidates/toN-attempt6.png", note: "N Mực", keep: ["nut_chinh_thuong", "nut_chinh_ro", "nut_chinh_nhan", "nut_chinh_tat", "nut_chinh_chon", "nut_phu_thuong", "nut_phu_ro", "nut_phu_nhan", "nut_phu_tat", "nut_phu_chon", "tab_thuong", "tab_chon"] },
   { sheet: "candidates/toO-attempt5.png", note: "O Mực", keep: ["o_trong", "o_co", "o_chon", "o_hiem_1", "o_hiem_2", "o_hiem_3", "o_hiem_4", "o_hiem_5", "ky_nang_san_sang", "ky_nang_hoi_chieu", "ky_nang_khoa", "ky_nang_thieu_hon_luc"] },
   { sheet: "candidates/toT-attempt5.png", note: "T Mực", keep: ["thanh_khung_sinh", "thanh_khung_hon", "thanh_khung_kn", "thanh_do_sinh", "thanh_do_hon", "thanh_do_kn", "vach_chia", "thanh_cuon", "o_nhap"] },
+  { sheet: "toN-giay.png", note: "N Giấy, lượt 1", prefix: "giay_", keep: ["nut_chinh_thuong", "nut_chinh_ro", "nut_chinh_nhan", "nut_chinh_tat", "nut_chinh_chon", "nut_phu_thuong", "nut_phu_ro", "nut_phu_nhan", "nut_phu_tat", "nut_phu_chon", "tab_thuong", "tab_chon"] },
+  { sheet: "toO-giay.png", note: "O Giấy, lượt 1", prefix: "giay_", keep: ["o_trong", "o_co", "o_chon", "o_hiem_1", "o_hiem_2", "o_hiem_3", "o_hiem_4", "o_hiem_5", "ky_nang_san_sang", "ky_nang_hoi_chieu", "ky_nang_khoa", "ky_nang_thieu_hon_luc"] },
+  { sheet: "toT-giay.png", note: "T Giấy, lượt 2", prefix: "giay_", keep: ["thanh_khung_sinh", "thanh_khung_hon", "thanh_khung_kn", "thanh_do_sinh", "thanh_do_hon", "thanh_do_kn", "vach_chia", "thanh_cuon", "o_nhap"] },
 ];
 
 /** Cắt cả kế hoạch; trả { kit, files } (files: Map `2x/ui2_x.png` → Buffer; kit: ui-kit.json với `pieces` / `groups` dựng lại từ đầu). */
@@ -37,7 +40,7 @@ export function cutPlan(plan = PLAN, base = loadKit()) {
     if (!existsSync(file)) throw new Error(`không có tờ ${job.sheet}`);
     const name = path.basename(file, ".png"), kindId = kindFromName(name) ?? job.sheet.match(/to([FNOTID])/)?.[1], all = expandKind(base, kindId).pieces.map((p) => p.name);
     for (const k of job.keep) if (!all.includes(k)) throw new Error(`${job.sheet}: loại tờ không có mảnh ${k}`);
-    const cut = cutUiSheet({ img: readPng(file), name, kindId, kit: base, soft: true, skip: all.filter((n) => !job.keep.includes(n)) });
+    const cut = cutUiSheet({ img: readPng(file), name, kindId, kit: base, prefix: job.prefix, soft: true, skip: all.filter((n) => !job.keep.includes(n)) });
     for (const p of cut.pieces) if (!job.keep.includes(p.name)) throw new Error(`${job.sheet}: mảnh ${p.name} ngoài danh sách nhập`);
     kit = mergeIntoKit(kit, cut);
     for (const [f, buf] of cut.files) files.set(f, buf);
