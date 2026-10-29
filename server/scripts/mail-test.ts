@@ -67,8 +67,14 @@ await test("mailRead / mailDelete: đọc chỉ đánh dấu; xóa chỉ thư đ
 await test("Hộp đầy: dọn thư cũ nhất đã nhận / không đính kèm; toàn thư còn đính kèm thì 'full'", async () => {
   const s = new MemoryStore();
   for (let i = 0; i < MAIL.boxMax; i++) assert.equal(await s.mailSend(1, mk(`p${i}`, { honTe: 1 })), "ok");
-  assert.equal(await s.mailSend(1, mk("over", { honTe: 1 })), "full"); assert.equal((await s.mailList(1)).length, MAIL.boxMax);
-  const oldest = (await s.mailList(1)).at(-1)!; await s.mailClaim(1, oldest.id, bag);
+  assert.equal((await s.mailList(1)).length, MAIL.boxMax);
+  const oldest = (await s.mailList(1)).at(-1)!;
+  assert.equal(await s.mailSend(1, mk("over", { honTe: 1 })), "full", "toàn thư còn quà");
+  await s.mailClaim(1, oldest.id, bag);
+  const before = (await s.mailList(1)).map((m) => m.id).join();
+  // có thư đã nhận để dọn, nhưng gửi lại dedup cũ phải trả "dup" và KHÔNG dọn gì
+  assert.equal(await s.mailSend(1, mk("p5", { honTe: 1 })), "dup", "hộp đầy + dedup cũ: dup");
+  assert.equal((await s.mailList(1)).map((m) => m.id).join(), before, "gửi lại dedup cũ không làm mất / đổi thư nào");
   assert.equal(await s.mailSend(1, mk("over", { honTe: 1 })), "ok", "dọn thư đã nhận cũ nhất");
   const l = await s.mailList(1); assert.equal(l.length, MAIL.boxMax); assert.ok(!l.some((m) => m.id === oldest.id));
 });

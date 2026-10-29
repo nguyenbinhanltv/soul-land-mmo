@@ -71,5 +71,10 @@ export async function mailTest(){
   await send({title:"Giữ lại",honTe:5,dedup:"bot:keep"}); const keep=A.mv.at(-1).list.map(m=>`${m.id}:${m.claimed}`).sort();
   await A.room.leave(); await sleep(400); A.mapId=(await post("/api/me",{token:A.token})).mapId; A.mv=[]; await enter(A); await waitFor(()=>me(A)&&A.bag,3000);
   ok(await waitFor(()=>A.mv.length>0,3000)&&JSON.stringify(A.mv[0].list.map(m=>`${m.id}:${m.claimed}`).sort())===JSON.stringify(keep)&&A.mv[0].pending===1,`vào lại phòng: ${keep.length} thư còn nguyên, 1 thư chờ nhận`);
+  // 7b. Hộp đầy + gửi lại dedup cũ: "dup", không dọn mất thư nào (PgStore từng dọn trước khi kiểm trùng).
+  { await coin(0); for(let k=0;k<60;k++){ const x=await test(A,"mail",{title:`Đầy ${k}`,honTe:1,dedup:`bot:fill${k}`}); if(x?.res==="full") break; }
+    await sleep(200); const full=(await act({op:"get"})).list; const gift=full.find(m=>!m.claimed&&m.honTe>0);
+    s=await act({op:"claim",id:gift.id}); r=await test(A,"mail",{title:"x",honTe:1,dedup:"bot:fill0"});
+    const after=(await act({op:"get"})).list; ok(r?.res==="dup"&&after.length===full.length&&full.every(m=>after.some(n=>n.id===m.id)),`hộp đầy ${full.length} + dedup cũ: dup, không mất thư nào (${r?.res}, ${after.length}/${full.length})`); }
   await A.room.leave();
 }
