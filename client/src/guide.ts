@@ -6,6 +6,7 @@ import "./guide.css";
 import { storage } from "./net.ts";
 import { SKILL_KEYS } from "./hud.ts";
 import { GUIDE_BAG_FREE } from "../../shared/data.ts";
+import { onboardAttach, onboardBegin } from "./onboard.ts";
 
 /** Đoạn chữ: chuỗi thường hoặc phím (vẽ thành <kbd>). */
 type Seg = string | { k: string };
@@ -74,9 +75,11 @@ function render() {
 function close(result: "" | "skip" | "done" = "") {
   clearTimeout(hintTimer);
   if (card) card.hidden = true;
-  if (mode === "tour" && result) { saved.tour = result; save(); }
+  const ended = mode === "tour" && !!result;
+  if (ended) { saved.tour = result as "done" | "skip"; save(); }
   mode = "off";
   document.getElementById("guideBtn")?.setAttribute("aria-expanded", "false");
+  if (ended) onboardBegin(); // UI v2: làm quen (onboard.ts) nối tiếp sau chuỗi điều khiển; tắt cờ ui2 thì không làm gì
 }
 
 function next() {
@@ -89,6 +92,7 @@ export function guideStart(name: string, starterDone: boolean) {
   who = name; load();
   if (!wired) { wired = true; document.getElementById("guideBtn")?.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); guideReview(); }); }
   if (!saved.tour && starterDone) { saved.tour = "done"; save(); }
+  onboardAttach(name); // UI v2: nạp tiến độ làm quen (tiếp tục nếu đang làm dở)
   if (!saved.tour) { if (mode !== "tour") step = 0; mode = "tour"; render(); } // đổi bản đồ giữa chừng (GameScene dựng lại): giữ bước đang làm
 }
 
