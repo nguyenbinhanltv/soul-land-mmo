@@ -8,6 +8,7 @@
 // (có thể kèm đường dẫn cũ `thư-mục/tên.png` hoặc ghi chú sau tên). Mặc định chỉ in ảnh chưa nhập; --all in cả ảnh đã nhập.
 import { closeSync, existsSync, openSync, readdirSync, readFileSync, readSync, statSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 export const SERVICES = { copilot: "Microsoft Copilot (Bing Image Creator)", qwen: "Qwen Chat", leonardo: "Leonardo AI", meta: "Meta AI", grok: "Grok" };
 const NAME = /^(.+?)(?:-v(\d+))?(?:-(copilot|qwen|leonardo|meta|grok))?\.png$/i;
@@ -40,7 +41,7 @@ export function scanInbox(dir) {
   return files.sort((a, b) => a.code.localeCompare(b.code) || a.version - b.version || a.mtime - b.mtime);
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"))) {
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const a = process.argv.slice(2), opt = (n, d) => { const i = a.indexOf(n); return i >= 0 ? a.splice(i, 2)[1] : d; };
   const dir = opt("--dir", process.env.ANH_INBOX ?? ""), code = opt("--code", ""), all = a.includes("--all");
   if (!dir || !existsSync(dir)) { console.error(`không thấy thư mục hộp thư "${dir}": truyền --dir <thư mục anh-inbox> hoặc đặt biến ANH_INBOX`); process.exit(1); }
