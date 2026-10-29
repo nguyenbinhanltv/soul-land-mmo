@@ -104,6 +104,7 @@ export async function enter(b,roomId){
   b.fogBits=null; b.fogMsgs=0; b.fogd=[]; b.room.onMessage("fog",m=>{ b.fogBits=fogBytes(m?.bits); b.fogMsgs++; }); b.room.onMessage("fogd",m=>{ b.fogd.push(m); }); // sương mù khám phá (R8)
   b.cals=[]; b.room.onMessage("calendar",m=>{ b.cals.push(m); }); // Lịch Hoạt Động (5.20)
   b.bc=[]; b.room.onMessage("bicanh",m=>{ b.bc.push(m); }); // Bí Cảnh (5.22)
+  b.av=[]; b.room.onMessage("achv",m=>{ b.av.push(m); }); // Thành Tựu (5.23)
   b.wf=[]; b.room.onMessage("welfare",m=>{ b.wf.push(m); }); // Phúc Lợi: Sổ Điểm Danh (5.21)
   b.rallies=[]; b.room.onMessage("rally",m=>{ b.rallies.push(m); }); // dấu "Tập trung ở đây" của tổ đội (R6)
   b.leftCode=null; b.room.onLeave(c=>{b.leftCode=c;});

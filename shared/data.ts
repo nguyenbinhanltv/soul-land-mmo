@@ -5358,6 +5358,46 @@ export const checkinFee = (used: number) => used < CHECKIN.makeupFree ? 0 : used
 export const checkinValue = (r: CheckinReward) => (r.honTe ?? 0) + (r.shards ?? 0) * SHARD_BUY.base
   + (r.items ?? []).reduce((a, x) => a + x.qty * (SHOP.find((s) => s.code === x.code)?.price ?? 0), 0);
 /**
+ * Thành Tựu (GAME_DESIGN.md mục 5.23, docs/design/thanh-tuu.md, bước P1): danh mục thành tựu nhận một lần mỗi tài khoản. Mỗi thành tựu là điều kiện
+ * `chỉ số >= need`; chỉ số suy từ trạng thái có sẵn (cấp, số võ hồn, sao, chuỗi nhiệm vụ xong, trận thắng đấu trường) hoặc bộ đếm sự kiện do server ghi
+ * (`ACHV_COUNTERS`, bảng `achv_state`). Thưởng nhỏ, chỉ Hồn Tệ / mảnh SR-SSR / Ủy Thác Lệnh, có trần tổng `ACHV_CAP` (test: server/scripts/achv-test.ts).
+ */
+export const ACHV_COUNTERS = ["elite", "king", "world", "bicanh"] as const;
+export type AchvCounter = (typeof ACHV_COUNTERS)[number];
+export const ACHV_STATS = ["level", "owned", "stars", "quests", "arenaWins", ...ACHV_COUNTERS] as const;
+export type AchvStat = (typeof ACHV_STATS)[number];
+export type AchvStats = Record<AchvStat, number>;
+export interface AchvDef { id: string; group: string; name: string; stat: AchvStat; need: number; reward: CheckinReward }
+/** Nhóm hiển thị (thứ tự cột trái của màn Thành Tựu): mã -> tên. */
+export const ACHV_GROUPS = [
+  { code: "cap", name: "Cấp" }, { code: "suu_tam", name: "Sưu tầm" }, { code: "hunt", name: "Săn" }, { code: "quest", name: "Nhiệm vụ" },
+  { code: "arena", name: "Đấu trường" }, { code: "bicanh", name: "Bí Cảnh" },
+] as const;
+/**
+ * Trần TỔNG thưởng của cả danh mục (cộng mọi thành tựu, không theo số nhóm): Hồn Tệ <= honTeK × CHECKIN.cycleCap.honTe, mảnh <= shardsK × SHARD_BUY.daily,
+ * giờ Ủy Thác Lệnh <= autoK × AUTO_DAILY_SECS. Thêm thành tựu mới thì chia lại trong trần này.
+ */
+export const ACHV_CAP = { honTeK: 4, shardsK: 2, autoK: 1 };
+const achvTier = (group: string, stat: AchvStat, label: string, tiers: [number, CheckinReward][]): AchvDef[] =>
+  tiers.map(([need, reward]) => ({ id: `${stat}_${need}`, group, name: label.replace("{n}", String(need)), stat, need, reward }));
+export const ACHV: AchvDef[] = [
+  ...achvTier("cap", "level", "Đạt cấp {n}", [[10, { honTe: 10 }], [20, { honTe: 10 }], [30, { honTe: 20 }], [40, { honTe: 20 }], [50, { honTe: 30 }],
+    [60, { honTe: 40 }], [70, { honTe: 50 }], [80, { honTe: 60 }], [90, { honTe: 70 }], [100, { honTe: 90 }]]),
+  ...achvTier("suu_tam", "owned", "Sở hữu {n} võ hồn", [[2, { honTe: 30 }], [4, { honTe: 40 }], [6, { honTe: 50, shards: 1 }], [10, { honTe: 60, shards: 1 }], [VOHON.length, { honTe: 100, shards: 2 }]]),
+  ...achvTier("suu_tam", "stars", "Một võ hồn đạt {n} sao", [[1, { honTe: 30 }], [3, { honTe: 60 }], [MAX_STARS, { honTe: 100 }]]),
+  ...achvTier("hunt", "elite", "Hạ {n} tinh anh", [[1, { honTe: 30 }], [10, { honTe: 60 }], [50, { honTe: 100 }]]),
+  ...achvTier("hunt", "king", "Hạ {n} thú vương", [[1, { honTe: 50 }], [5, { honTe: 80, shards: 1 }], [20, { honTe: 150, shards: 2 }]]),
+  ...achvTier("hunt", "world", "Tham gia hạ {n} boss thế giới", [[1, { honTe: 60, shards: 1 }], [3, { honTe: 100, shards: 2 }], [10, { honTe: 150, shards: 3, items: [{ code: AUTO_TOKEN, qty: 1 }] }]]),
+  ...achvTier("quest", "quests", "Hoàn thành {n} chuỗi nhiệm vụ", [[1, { honTe: 50 }], [2, { honTe: 80 }], [3, { honTe: 120 }]]),
+  ...achvTier("arena", "arenaWins", "Thắng {n} trận đấu trường", [[1, { honTe: 30 }], [10, { honTe: 60, shards: 1 }], [50, { honTe: 100, shards: 2 }]]),
+  ...achvTier("bicanh", "bicanh", "Thắng {n} lượt Luyện Hồn Cảnh", [[1, { honTe: 30 }], [10, { honTe: 60 }], [30, { honTe: 100, items: [{ code: AUTO_TOKEN, qty: 1 }] }]]),
+];
+export const achvDef = (id: unknown) => ACHV.find((a) => a.id === id);
+/** Thành tựu đã đạt với chỉ số `stats` (chưa xét đã nhận). */
+export const achvReached = (def: Pick<AchvDef, "stat" | "need">, stats: Partial<AchvStats>) => (stats[def.stat] ?? 0) >= def.need;
+/** Số thành tựu đã đạt mà chưa nhận (chấm đỏ ở hub). */
+export const achvReady = (stats: Partial<AchvStats>, claimed: readonly string[]) => ACHV.filter((a) => achvReached(a, stats) && !claimed.includes(a.id)).length;
+/**
  * Phạm vi tự săn (`AutoSettings.scope`, #213): "map" (mặc định) săn khắp bản đồ đang đứng: nhắm hồn thú gần nhất hợp khoảng niên hạn
  * trong AUTO_RADIUS quanh mình, không có thì trên cả bản đồ (chỉ chỗ đi bộ tới được, không qua cổng / truyền tống, đường không đi vào vùng
  * an toàn), nhặt đồ trong AUTO_RADIUS quanh mình. "near" ("Chỉ quanh chỗ đứng", kiểu Auto 1) chỉ săn trong bán kính quanh điểm neo.

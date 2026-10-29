@@ -78,6 +78,7 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/soat-gian-lan-phuc-loi.md](docs/tech/soat-gian-lan-phuc-loi.md) | 1 |  |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/soat-gian-lan-xep-hang.md](docs/tech/soat-gian-lan-xep-hang.md) | 1 |  |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/soat-gian-lan-bi-canh.md](docs/tech/soat-gian-lan-bi-canh.md) | 1 |  |
+| 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/soat-gian-lan-thanh-tuu.md](docs/tech/soat-gian-lan-thanh-tuu.md) | 1 |  |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/du-lieu-db.md](docs/tech/du-lieu-db.md) | 5 | Dữ liệu trong `shared/data.ts; Dữ liệu lâu dài |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/hieu-nang-hieu-ung.md](docs/tech/hieu-nang-hieu-ung.md) | 1 |  |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/hieu-nang-soak.md](docs/tech/hieu-nang-soak.md) | 1 |  |

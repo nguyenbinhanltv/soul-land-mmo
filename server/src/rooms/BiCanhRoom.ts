@@ -5,6 +5,7 @@
 import { Client, ServerError } from "colyseus";
 import { MapRoom, seatAccount, type AuthData, type PData, type SeatPass } from "./MapRoom.ts";
 import { BLOCKED, ARENA_END_CODE } from "./ArenaRoom.ts";
+import { achvCount } from "./achv.ts";
 import { BICANH, BOSSES, MAX_RINGS, SPAWN_PLAYER_GAP, TIERS, TILE, beastIndex, bicanhTomeKind, ringLimit, dir4 } from "../../../shared/data.ts";
 import { store } from "../db.ts";
 import { bicanhTickets, refundRun, releaseRun, type Ticket } from "./bicanh.ts";
@@ -193,6 +194,7 @@ export class BiCanhRoom extends MapRoom {
     if (p && d && p.dead) d.deadT = Infinity; // gục thì nằm lại tới khi rời phòng
     if (t.settled) return; // đã chốt (hoàn lượt) ở nơi khác
     t.settled = true;
+    if (reason === "win") achvCount(this, sid, "bicanh"); // Thành Tựu: lượt thắng đủ sóng (mỗi lượt đã trừ lượt nguyên tử, tối đa BICANH.runs + mua / ngày)
     const tomes = sc.waves.slice(0, this.cleared).reduce((a, w) => a + w.tomes, 0), win = reason === "win";
     const report = (extra: Record<string, unknown>) => this.clients.getById(sid)?.send("bicanh", { k: "end", win, reason, why: REASON_TEXT[reason], cleared: this.cleared, of: sc.waves.length, tomes: 0, secs: this.time, ...extra });
     const save = async () => {

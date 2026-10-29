@@ -1,6 +1,7 @@
 // Hạ hồn thú (GAME_DESIGN.md mục 5.2, 5.4, 5.9), tách khỏi MapRoom.ts (#702, bước 24): `killBeast` (kinh nghiệm, Hồn Tệ, đồ rơi, khóa tinh anh, chia tổ đội).
 // Hàm nhận phòng (`room: MapRoom`) như loot.ts; nguyên văn từ MapRoom, không đổi thứ tự xử lý / thứ tự gọi RNG (`roll*` giữ thứ tự cũ). MapRoom chỉ chuyển tiếp `killBeast`.
 import { TIERS, BEASTS, beastIndex, formatHonTe, formatYears, DROP_OWNER_SECS, BOSSES, ELITE, beastName, fitBeast, partyXpShare } from "../../../shared/data.ts";
+import { achvCount } from "./achv.ts";
 import { type MapRoom, uid, eliteLocks, persistEliteLock, eliteKey, eliteLockLeft } from "./MapRoom.ts";
 
 /**
@@ -49,7 +50,7 @@ export function killBeast(room: MapRoom, bid: string, by: string) {
       room.log(pid, `Đã nhận thưởng ${name} trên bản đồ này chưa lâu (kênh nào cũng tính): còn ${Math.ceil(l / 60)} phút mới nhận lại; lần này chỉ thưởng như hồn thú thường.`, "#ffb35c");
     }
     let m = eliteLocks.get(lockKey); if (!m) { m = new Map(); eliteLocks.set(lockKey, m); }
-    for (const pid of got) m.set(accOf(pid), now + ELITE.lock * 1000);
+    for (const pid of got) { m.set(accOf(pid), now + ELITE.lock * 1000); achvCount(room, pid, "elite"); } // Thành Tựu: chỉ người nhận thưởng tinh anh (khóa ELITE.lock giây chặn đếm lặp)
     void persistEliteLock(lockKey, m).catch((err) => console.error("Không lưu được khóa tinh anh trong presence", err));
   }
   const elite = !!e && !!owner, drOwner = owner ?? by; // elite: còn người nhận đồ rơi tinh anh (hồn cốt x ELITE.bone, chắc chắn hồn hạch)
