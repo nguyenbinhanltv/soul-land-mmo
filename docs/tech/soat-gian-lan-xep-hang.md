@@ -16,7 +16,7 @@ Ngày soát 2026-10-29, trên `main` tại `3f418909` cộng PR X3.
 | 7 | Đọc dữ liệu riêng của người khác qua bảng | **Không lộ**: dòng công khai chỉ có hạng, tên, điểm, tông, đội hình (mã võ hồn + cấp + sao); bot `rowsOk` kiểm đúng bộ khoá; không Hồn Tệ, túi, bản đồ, vị trí; `me` chỉ gửi chính chủ; tin `stats` chỉ trả võ hồn của chính mình | — |
 | 8 | Tài khoản `is_test` / đã bật cờ lệnh GM lên bảng hoặc thấy hạng của mình | **Chặn đúng** ở mọi hạng mục (`NOT is_test` ở `rankTop`, `rankMe`; test mới lặp qua cả `RANK_BOARDS`). **Lỗ nhỏ, đã sửa**: bật cờ bằng `markTest` không xoá cache nên tài khoản vẫn hiện tối đa `RANK_BOARD_CACHE` giây | Thấp → **đã sửa** |
 | 9 | Spam tin `rank`, dồn 200 tin | **Giới hạn đúng**: nhóm `read` + nhịp `RANK_CD` mỗi người; bot bật `baglimit` dồn 200 tin chỉ nhận 1 bảng và vẫn kết nối | — |
-| 10 | Làm tốn DB: xin trang / cỡ trang ngẫu nhiên để thoát cache, đọc trang sâu; mở bảng dồn | **Có lỗ tải, đã sửa** (mục 10 dưới): hạng của mình (`rankMe`) không qua cache nên mỗi lần mở bảng tốn một truy vấn đếm; trang sâu đọc thẳng DB, không có trần | Vừa → **đã sửa** |
+| 10 | Làm tốn DB: xin trang / cỡ trang ngẫu nhiên để thoát cache, đọc trang sâu; mở bảng dồn | **Có lỗ tải, đã sửa** (giả thuyết 10, bên dưới): hạng của mình (`rankMe`) không qua cache nên mỗi lần mở bảng tốn một truy vấn đếm; trang sâu đọc thẳng DB, không có trần | Vừa → **đã sửa** |
 | 11 | Mở bảng khi đang trong sân đấu để lách luật "không chụp giữa trận" | **Không khai thác được**: `rank` nằm trong `BLOCKED` của `ArenaRoom`. Ghi chú: `ArenaRoom.onJoin` gọi `super.onJoin` nên `rankSync` vẫn chạy lúc vào / rời sân; vì sân chặn đổi đội hình / đồ nên điểm ghi ra bằng đúng điểm đã lưu (không đổi) | Thấp (sửa tài liệu) |
 | 12 | Nuôi nhiều tài khoản để dồn điểm / lên hạng | Không có chuyển giá trị giữa tài khoản; v1 không có thưởng vật phẩm cho hạng (Q52), chỉ danh hiệu hiển thị | — |
 | 13 | Ghi điểm lúc DB lỗi / hai tiến trình: hỏng dữ liệu | **Đúng**: `rankSync` chạy trong `this.chain(d, …)`, lỗi chỉ ghi log và giữ dấu vết cũ (lần sau ghi lại); `rankPut` ghi nhiều dòng trong một transaction, idempotent | — |
@@ -29,15 +29,15 @@ Không có lỗi Nghiêm trọng / Cao. Hai mục "đã sửa" (8, 10) nằm tro
 | Tin / route | Kết quả |
 |---|---|
 | `rank {op:"boards"}` | Đã đọc, ổn: nhóm `read` + `RANK_CD`, danh mục cố định, không dữ liệu riêng |
-| `rank {op:"top", board, page, pageSize}` | Đã đọc, ổn sau sửa (mục 8–10): `board` kẹp theo `RANK_BOARDS` (lạ: log, không truy vấn), `page` / `pageSize` qua `intIn` + kẹp; bot thử mã lạ, kiểu lạ (`{}`, `"x"`), cỡ 9999, trang quá xa |
+| `rank {op:"top", board, page, pageSize}` | Đã đọc, ổn sau sửa (giả thuyết 8–10): `board` kẹp theo `RANK_BOARDS` (lạ: log, không truy vấn), `page` / `pageSize` qua `intIn` + kẹp; bot thử mã lạ, kiểu lạ (`{}`, `"x"`), cỡ 9999, trang quá xa |
 | `rank` với `op` lạ / trường điểm giả | Đã đọc, ổn: từ chối bằng `log`, không đổi điểm; bot thử |
 | Tin `rank` / `rankTop` server → client | Chỉ người xin (`room.clients.getById(id).send`); không vào `schema.ts` |
 | `stats {rowId?}` (thêm `power`, `teamPower`) | Đã đọc, ổn: chỉ võ hồn của chính chủ (tra trong `d.owned`), cùng nhịp `ask` / nhóm `read` như trước |
-| `rankSync` (không phải tin; mốc ghi) | Đã đọc, ổn (mục 2–6, 13) |
-| `ArenaRoom` | `rank` trong `BLOCKED` (mục 11) |
+| `rankSync` (không phải tin; mốc ghi) | Đã đọc, ổn (giả thuyết 2–6, 13) |
+| `ArenaRoom` | `rank` trong `BLOCKED` (giả thuyết 11) |
 | Hook test (`set`, `grant`, `baglimit`) | Chỉ có hiệu lực khi `GAME_TEST=1`; điểm bot đổi cấp bằng hook vẫn đi qua `rankSync` (không có đường tắt ghi điểm) |
-| Lệnh GM (`preset`, `markTest`) | `preset` đặt `d.gmReset` (bỏ mọi lần ghi sau, gồm `rankSync`); `markTest` ẩn khỏi bảng (mục 8) |
-| SQL `037_xep_hang.sql` | Mục 14 |
+| Lệnh GM (`preset`, `markTest`) | `preset` đặt `d.gmReset` (bỏ mọi lần ghi sau, gồm `rankSync`); `markTest` ẩn khỏi bảng (giả thuyết 8) |
+| SQL `037_xep_hang.sql` | Giả thuyết 14 |
 | REST | Không có route mới |
 
 ## Chi tiết các mục chính
