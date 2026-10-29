@@ -3,7 +3,7 @@
 // và client đã build (server phục vụ client/dist). KHÔNG trỏ DB thật; không có DATABASE_URL thì dữ liệu chỉ ở RAM.
 //   node client/scripts/ui-shots.mjs --server http://localhost:2547 --out <thư mục> [--sizes 1366x768,1280x720,960x540,1920x1080] [--only dang-nhap,hud,tui] [--tag truoc] [--dpr 1] [--outer] [--styles <thư mục>] [--name <tên hồn sư>]
 // Cỡ ghi trong tên ảnh là cỡ vùng hiển thị thật (đặt bằng Emulation.setDeviceMetricsOverride, không tính khung cửa sổ Chrome).
-// Mã cảnh (--only): dang-nhap, tao-nhan-vat, the-vao-ban-do, hud, hud-tien-do, tui, nhan-vat, hai-cua-so, doi-hinh, hon-cot, cong-minh, ban-be, tu-dong, tong-ket, uy-thac, ban-do, the-gioi, cai-dat, hub, npc, cua-hang, tho-ren, bi-canh.
+// Mã cảnh (--only): dang-nhap, tao-nhan-vat, the-vao-ban-do, hud, hud-tien-do, tui, nhan-vat, hai-cua-so, doi-hinh, hon-cot, cong-minh, ban-be, tu-dong, tong-ket, uy-thac, ban-do, the-gioi, cai-dat, hub, thanh-tuu, npc, cua-hang, tho-ren, bi-canh.
 // Luật: đúng MỘT Chrome headless, luôn --mute-audio, cổng CDP ngẫu nhiên (không dùng 9333), chụp tuần tự từng cỡ; xong tắt đúng PID của mình.
 // Chrome tìm ở biến CHROME (đường dẫn) hoặc đường dẫn cài đặt mặc định (Chrome, rồi Edge).
 import { spawn } from "node:child_process";
@@ -206,6 +206,17 @@ async function runSize(W, H) {
       await test({ op: "bcfast", s: 0 }); await until(`!document.getElementById("bicanhEnd")?.hidden`, 15000); await sleep(500); await shot("64-bi-canh-ket-qua-thua");
       await fake("bicanh", { k: "end", win: true, reason: "win", why: "hạ hết các sóng", cleared: 3, of: 3, tomes: 2, secs: 8 }); await sleep(400); await shot("65-bi-canh-ket-qua-thang");
       await fake("bicanh", { k: "end", win: false, reason: "dead", why: "đội võ hồn gục hết", cleared: 1, of: 3, tomes: 0, secs: 8, err: "Không lưu được kết quả: quyển chưa nhận, lượt đã được hoàn lại.", refunded: true }); await sleep(400); await shot("66-bi-canh-ket-qua-loi");
+    });
+    // Thành Tựu (#1317): thẻ hub đã bật, danh sách khi chưa đạt gì (trống), có mốc nhận được (nhóm Săn), vừa nhận, lỗi từ server.
+    await step("thanh-tuu", async () => {
+      const open = async () => { await key("Escape", "Escape"); await sleep(300); await ev(`(document.querySelector('[data-hub="achv"]')?.click(), true)`); await sleep(900); };
+      await key("Escape", "Escape"); await sleep(300); await shot("69-thanh-tuu-hub");
+      await open(); await shot("70-thanh-tuu-rong"); await key("Escape", "Escape");
+      await test({ op: "achv", key: "elite", n: 12 }); await test({ op: "achv", key: "king", n: 1 });
+      await open(); await ev(`(document.querySelector('.p2-nav-i[data-id="hunt"]')?.click(), true)`); await sleep(300); await shot("71-thanh-tuu-nhan-duoc");
+      await ev(`(document.querySelector(".av-claim")?.click(), true)`); await sleep(900); await shot("72-thanh-tuu-da-nhan");
+      await fake("achv", { stats: { level: 1, owned: 2, stars: 1, quests: 0, arenaWins: 0, elite: 12, king: 1, world: 0, bicanh: 0 }, claimed: [], ready: 3, err: "Túi không đủ chỗ cho phần thưởng: bỏ hoặc bán bớt đồ rồi thử lại." }); await sleep(300); await shot("73-thanh-tuu-loi");
+      await key("Escape", "Escape");
     });
     ws.close();
   } finally {

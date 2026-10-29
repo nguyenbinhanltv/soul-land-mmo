@@ -1,6 +1,6 @@
 # Thành Tựu
 
-Màn **Thành Tựu** ghi lại những mốc người chơi đã đạt (cấp, sưu tầm võ hồn, săn boss, nhiệm vụ, đấu trường, Bí Cảnh) và cho **thưởng nhỏ nhận một lần**. Thẻ "Thành Tựu" ở hub hiện đang khóa ("Sắp có", `client/src/hubMenu.ts`). Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; tên *(đề xuất)* chưa tồn tại). Số issue ở cuối file. **Server (P1–P4) đã có code** (#1317: `ACHV` ở `shared/data.ts`, `039_thanh_tuu.sql`, `server/src/rooms/achv.ts`, bot nhóm `achv`, soát `docs/tech/soat-gian-lan-thanh-tuu.md`); P5 màn client chưa làm.
+Màn **Thành Tựu** ghi lại những mốc người chơi đã đạt (cấp, sưu tầm võ hồn, săn boss, nhiệm vụ, đấu trường, Bí Cảnh) và cho **thưởng nhỏ nhận một lần**. Thẻ "Thành Tựu" ở hub hiện đang khóa ("Sắp có", `client/src/hubMenu.ts`). Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; tên *(đề xuất)* chưa tồn tại). Số issue ở cuối file. **Server (P1–P4) đã có code** (#1317: `ACHV` ở `shared/data.ts`, `039_thanh_tuu.sql`, `server/src/rooms/achv.ts`, bot nhóm `achv`, soát `docs/tech/soat-gian-lan-thanh-tuu.md`); P5 màn client (`client/src/achvScreen.ts`, thẻ `achv` ở hub) xong.
 
 Tham chiếu: chỉ học bố cục (danh mục theo nhóm, thanh tiến độ, nút nhận) từ bộ tham chiếu UI của #877; không chép tên / chữ / ảnh.
 
