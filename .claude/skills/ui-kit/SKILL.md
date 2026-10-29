@@ -1,15 +1,15 @@
 ---
 name: ui-kit
-description: Tờ UI Kit v2 (#880, theo dõi #877), hai phần: SINH (spec theo tỉ lệ Codex, prompt tự sinh, checklist ui:check, bảng triệu chứng → sửa prompt, tối đa 3 lượt mỗi tờ) và DUYỆT / NHẬP (ui:check, tờ liên hệ, phiếu chặn / nhẹ, ui-sheet-cut, trang bộ component, nhập). Dùng khi sinh tờ BOARD / khung / nút / ô / thanh / icon / trang trí, soát tờ tthoadev nộp, cắt / nhập mảnh vào kit, sửa mẫu prompt hoặc bài học.
+description: Tờ kit của UI gốc (Mực + Giấy; #880, theo dõi #877), hai phần: SINH (spec theo tỉ lệ Codex, prompt tự sinh, checklist ui:check, bảng triệu chứng → sửa prompt, tối đa 3 lượt mỗi tờ) và DUYỆT / NHẬP (ui:check, tờ liên hệ, phiếu chặn / nhẹ, ui-sheet-cut, trang bộ component, nhập). Dùng khi sinh tờ BOARD / khung / nút / ô / thanh / icon / trang trí, soát tờ tthoadev nộp, cắt / nhập mảnh vào kit, sửa mẫu prompt hoặc bài học.
 ---
 
-# UI Kit v2: tờ UI
+# UI gốc: tờ kit UI
 
-Một skill hai phần để người sinh ảnh và người duyệt dùng **cùng một chuẩn** (cùng khung với `beast-anim`). Luật vẽ, chất liệu, token, 9-slice: `docs/art/ui-kit.md`; skill này là **thao tác**. Hướng đã chốt (chủ repo, #877): hướng B, hai chất liệu Mực / Giấy; chỉ PC; kit 2× chốt sau thử nghiệm; phông Galmuri 10 / 12 / 24.
+Một skill hai phần để người sinh ảnh và người duyệt dùng **cùng một chuẩn** (cùng khung với `beast-anim`). Luật vẽ, chất liệu, token, 9-slice: `docs/art/ui-kit.md`; skill này là **thao tác**. UI gốc (chủ repo chốt, #877): hai chất liệu Mực / Giấy; chỉ PC; kit 2× chốt sau thử nghiệm; phông Galmuri 10 / 12 / 24.
 
 | Việc | Công cụ |
 |---|---|
-| Sinh prompt + hướng dẫn | `npm run ui:prompt -- --kind BOARD\|F\|N\|O\|T\|I\|D [--material muc\|giay] [--style ngoc-kim\|thuy-mac\|hon-quang] (nháp chờ duyệt BOARD) [--family "<họ icon>"] [--layout 6\|9] --out <thư mục>` (`--all` ra đủ 7 tệp) |
+| Sinh prompt + hướng dẫn | `npm run ui:prompt -- --kind BOARD\|F\|N\|O\|T\|I\|D [--material muc\|giay] [--style ngoc-kim\|thuy-mac\|hon-quang] (thử nghiệm, chờ duyệt BOARD) [--family "<họ icon>"] [--layout 6\|9] --out <thư mục>` (`--all` ra đủ 7 tệp) |
 | Bài học (một nguồn) | `art/src/ui-kit/lessons.md` (parser `ui-sheet-lessons.mjs`) |
 | Spec tờ (tỉ lệ, bố cục, tên mảnh, ngân sách) | `art/src/ui-kit/ui-kit.json` (`shapes`, `kinds`, `budget` là luật; `pieces` / `groups` do cutter ghi) |
 | Kiểm tờ RAW | `npm run ui:check -- <tờ.png> [--kind …] [--out <thư mục>] [--palette art/palette.gpl]` |
@@ -77,7 +77,7 @@ Thứ tự: **ui:check → tờ liên hệ → phiếu chặn / nhẹ → ui-she
    Mẫu comment một dòng: `nut_chinh: đạt` · `khung_giay_nho: nhẹ — chia-9 vệt sáng ở giữa` · `ky_nang: chặn — khóa ≈ sẵn sàng ở thang xám`.
 4. **Cắt:** `npm run ui:cut -- <tờ.png> --out <thư mục ngoài repo>` (tờ có mục chặn thì cutter từ chối; tờ chỉ còn `vien-hong` / `canh-phang` sửa được bằng công cụ thì thêm `--soft`, mảnh còn chặn riêng thì `--skip <mảnh>` và đưa vào danh sách vẽ lại; bảng điều kiện ở `docs/art/ui-kit.md` "Cắt mềm"; `--no-mirror` cho mảnh vẽ tay không đối xứng; `--prefix` cho tờ icon để khóa không trùng). Hạ về master 2×, dựng gương, lượng tử, xuất 2× và 1×, vạch 9-slice đo từ ảnh và chung cho cả bộ trạng thái. Cắt lại cùng tờ phải ra đúng byte.
 5. **Trang bộ component:** `npm run ui:preview -- --dir <thư mục ui:cut> --out <thư mục ngoài repo>`, mở `index.html`. Xem lần lượt: **B** mọi mảnh × 3 nền (mép hồng, răng cưa, quầng sáng ở nền trắng / sáng) × DPR 1 / 2; **C** 9-slice ở 200×60, 360×120, 520×320 (cạnh lặp, góc méo, khung quá nhỏ); **D** nút thật: rê chuột (hover), giữ chuột (nhấn), Tab (focus-visible), chọn, tắt; **E** chuỗi tiếng Việt đủ dấu ở 10 / 12 / 24 px (dấu bị cắt, chữ tràn). Ghi chú DPR: trang không ép được DPR của máy; "DPR 2" là ảnh 2× hiển thị nửa cỡ (đúng điểm khi máy DPR 2). Mở Chrome nếu cần chụp: `--mute-audio`, không cổng 9333, tắt đúng PID.
-6. **Nhập:** kiểm ngân sách `npm run ui:cut -- --budget` (kit ≤ 250 KB, icon ≤ 150 KB, 2× và 1× tính riêng), `--write-manifest` ghi mảnh vào `art/src/ui-kit/ui-kit.json`. **Không** chép vào `shared/assets` trong PR tờ: nhập vào game (lớp token `--frame-*`, cờ `ui2`) là việc PR chuyển màn (P5, #883 trở đi). Ghi nguồn ở `docs/art/nguon-giay-phep.md`, `npm run check`.
+6. **Nhập:** kiểm ngân sách `npm run ui:cut -- --budget` (kit ≤ 250 KB, icon ≤ 150 KB, 2× và 1× tính riêng), `--write-manifest` ghi mảnh vào `art/src/ui-kit/ui-kit.json`. **Không** chép vào `shared/assets` trong PR tờ: nhập vào game (`ui:import`, token `--ui2-*`) là việc PR chuyển màn. Ghi nguồn ở `docs/art/nguon-giay-phep.md`, `npm run check`.
 
 Chủ repo chỉ duyệt BOARD, mẫu đầu mỗi họ (khung, nút, ô, thanh, icon) và tranh chấp; còn lại orchestrator tự duyệt theo phiếu trên.
 

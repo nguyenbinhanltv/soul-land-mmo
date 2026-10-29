@@ -1,6 +1,6 @@
 # Bảng Xếp Hạng nhiều hạng mục
 
-Màn **Xếp Hạng** gom mọi bảng xếp hạng vào một chỗ: nhóm hạng mục bên trái, bục top 3, bảng điểm, dòng "của tôi" ghim đáy. Bảng đã có (đấu trường, cộng minh, tông tuần) giữ nguyên luật và tin; tài liệu này thêm hạng mục mới, khung màn chung và đường tính / lưu. Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; mọi tên đánh dấu *(đề xuất)* chưa tồn tại, đặt khi làm). Số issue ở cuối file. **Trạng thái:** X0, X1 (một phần), X2 đã có code ở server (Cấp, Sưu tầm, tin `rank`; UI ở `rankScreen.ts` sau cờ `ui2`); phần còn lại vẫn là thiết kế.
+Màn **Xếp Hạng** gom mọi bảng xếp hạng vào một chỗ: nhóm hạng mục bên trái, bục top 3, bảng điểm, dòng "của tôi" ghim đáy. Bảng đã có (đấu trường, cộng minh, tông tuần) giữ nguyên luật và tin; tài liệu này thêm hạng mục mới, khung màn chung và đường tính / lưu. Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; mọi tên đánh dấu *(đề xuất)* chưa tồn tại, đặt khi làm). Số issue ở cuối file. **Trạng thái:** X0, X1 (một phần), X2 đã có code ở server (Cấp, Sưu tầm, tin `rank`; UI ở `rankScreen.ts`); phần còn lại vẫn là thiết kế.
 
 Tham chiếu bố cục: ảnh 14 (bảng xếp hạng) trong bộ tham chiếu UI của #877; chỉ học bố cục, không chép.
 
@@ -102,7 +102,7 @@ Soát theo skill `anti-cheat-audit` trước khi gộp mỗi PR có server.
 - Không có xếp hạng theo Hồn Tệ / giàu có (tránh bị nhắm và cổ vũ gian lận).
 
 ### Giao diện
-Chất liệu: màn đầy khung nên **Mực** có tấm Giấy cho bảng điểm; token theo `docs/art/ui-kit.md` (không thêm màu ngoài bảng); chữ ba cỡ 10 / 12 / 24; vùng bấm 32 px cho tab / chip, 44 px cho nút chính (không có nút chính nguy hiểm). Ghép khung C2 / kit v2; phím tắt chọn khi làm, tránh trùng, nhắc trên màn (luật 9 của bộ spec UI).
+Chất liệu: màn đầy khung nên **Mực** có tấm Giấy cho bảng điểm; token theo `docs/art/ui-kit.md` (không thêm màu ngoài bảng); chữ ba cỡ 10 / 12 / 24; vùng bấm 32 px cho tab / chip, 44 px cho nút chính (không có nút chính nguy hiểm). Ghép khung C2 / kit UI gốc; phím tắt chọn khi làm, tránh trùng, nhắc trên màn (luật 9 của bộ spec UI).
 
 ```
 ┌ Xếp Hạng ──────────────────────────────────────────── [X] ┐
