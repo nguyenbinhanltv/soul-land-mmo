@@ -28,7 +28,7 @@ export const HUB_ITEMS: HubItem[] = [
   { id: "calendar", label: "Lịch HĐ", size: "grid" },
   { id: "welfare", label: "Phúc Lợi", size: "grid" },
   { id: "bicanh", label: "Bí Cảnh", size: "grid" },
-  { id: "mail", label: "Thư", size: "rail", why: "Chờ máy chủ" },
+  { id: "mail", label: "Thư", size: "rail" },
   { id: "notice", label: "Thông báo", size: "rail" },
   { id: "settings", label: "Cài đặt", size: "rail" },
   { id: "shot", label: "Chụp ảnh", size: "rail" },

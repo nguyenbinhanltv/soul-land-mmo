@@ -107,6 +107,7 @@ import { rankTest } from "./bot/rank.mjs";
 import { calendarTest } from "./bot/calendar.mjs";
 import { welfareTest } from "./bot/welfare.mjs";
 import { achvTest } from "./bot/achv.mjs";
+import { mailTest } from "./bot/mail.mjs";
 import { bicanhTest } from "./bot/bicanh.mjs";
 import { eggTest } from "./bot/egg.mjs";
 import { fusionTest } from "./bot/fusion.mjs";
@@ -167,6 +168,7 @@ const STANDALONE=[
   ["calendar",2,calendarTest,true],           //  ~8 L2 #877 Lịch Hoạt Động: tuần trước / này / sau, week lạ bị kẹp, đẩy ngày (hook day) đổi tên boss, xin dồn bị gộp
   ["welfare",2,welfareTest,true],             //  ~40 P3 #877 Phúc Lợi: ký hôm nay / đúp / dồn 200, ký bù miễn phí + trả phí + hết lượt, hết chu kỳ, đồng hồ lùi, túi đầy, savefail, vào lại, qua 00:00, sân đấu chặn (chưa đo)
   ["achv",2,achvTest,true],                   //  ~25 #1317 Thành Tựu: nhận khi chưa đạt / đã đạt / đúp / dồn 200 / năm tin cùng lúc, cấp, savefail hoàn lại, túi đầy, vào lại phòng
+  ["mail",2,mailTest,true],                   //  ~30 #1336 Thư hệ thống: hộp trống, tin lạ / id lạ, gửi + dedup, đọc / xóa, nhận đúng một lần / đúp / dồn 200 / năm tin cùng lúc, nhận tất cả, hết hạn, savefail hoàn lại, túi đầy, vào lại phòng
   ["bicanh",2,bicanhTest,true],               //  ~140 P2+P3+P4 #877 Bí Cảnh: get, id lạ, mua lượt (xác nhận, giá lũy tiến, trần, dồn 200), savefail, qua ngày, Hồn Kinh Quyển cho võ hồn dự bị (kẹp bình cảnh) + phòng BiCanhRoom (enter, sóng, thưởng, hoàn lượt, trần quyển, đồng hồ lùi; bicanhRoom.mjs) (~110 giây)
   ["rally",2,rallyTest],                      //  ~40 R6 #433 dấu "Tập trung ở đây" của tổ đội: đặt, đồng đội nhận, người ngoài không, spam, hết hạn
   ["flag",2,flagTest],                        //  ~60 R4 #431 tự đi tới cờ: cùng bản đồ, xuyên cổng, bị chặn (đo ở máy)
@@ -241,6 +243,7 @@ function finish(){
 // Liên kích Hạo Thiên 4 món (#249, comboTest; BOT_ONLY=combo, không chạy trong bot đầy đủ): lặp bài "liên kích ở đòn thứ 3" của
 // nhóm 1 nhiều lượt trên một bot riêng để thử chập chờn.
 if(process.env.BOT_ONLY==="bicanh"){ await bicanhTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="mail"){ await mailTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="achv"){ await achvTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="welfare"){ await welfareTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="rank"){ await rankTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }

@@ -34,6 +34,7 @@
     "test:calendar": "tsx scripts/calendar-test.ts",
     "test:welfare": "tsx scripts/welfare-test.ts",
     "test:achv": "tsx scripts/achv-test.ts",
+    "test:mail": "tsx scripts/mail-test.ts",
     "test:bicanh": "tsx scripts/bicanh-test.ts"
   },
   "dependencies": {

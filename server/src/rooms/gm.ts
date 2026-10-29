@@ -6,8 +6,10 @@ import { DropState } from "./schema.ts";
 import { ACHV_COUNTERS, TIERS, VOHON, MAX_LEVEL, calcStats, tierOfYears, vohonIndex, TEAM_COMBAT_SECS, MAX_RINGS, BEASTS, beastIndex, MAPS, MAP_MOVED, TIEN_CO_MAX, TILE, itemDef, formatHonTe, MAX_YEARS, formatYears, RING_ITEM, MAX_STARS, BONE_ITEM, BONE_SLOTS, boneName, CORE_ITEM, CORE_SETS, rollCoreStats, coreName, coreSetIndex, MAX_CORE_STARS, CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ROLL, equipTemplate, equipName, equipSlotDef, rollEquip, coreBonus, coreFx, coreSetCounts, type CoreFx, BONE_MAX_ENHANCE, boneEnhanceNeed, boneAddSubs, SHARD_BUY, CORE_MAX_ENHANCE, coreEnhanceNeed, coreUpgradeSubs, STATUS_IDS, PHONG_LOI, BOND_KEYS, loadoutOf, type StatusId, type StatusApply, BOSSES, bossIndex, bossHpMult, beastName, KING, BOSS_CLAIM_KING, WORLD, WORLD_SLAM, BOSS_CLAIM_WORLD, worldBossOn, HE_IDS, TONG_MON, tongDef, tongWeek, QUEST_STARTER, parseQuest, questStatus, DAILY, TONG_DAILY, herbBonus, ARENA, AUTO_DAILY_SECS, AUTO_STUCK, AUTO_MSG_RATE, AUTO_BONUS_MAX, BEAST_DEF, ringLimit, coreSubRolls } from "../../../shared/data.ts";
 import { fogEmpty, fogFill } from "../../../shared/fog.ts";
 import { publishBoss, bossNow, bossClockMode } from "../schedule.ts";
+import { randomUUID } from "node:crypto";
 import { store, saveFailTest } from "../db.ts";
 import { sendState as achvSend } from "./achv.ts";
+import { mailNotify } from "./mail.ts";
 import { chatReset, inviteReset, rallyReset, friendReset } from "../ratelimit.ts";
 import { arenaWatchMax, setTestWatchMax, arenaTestSlow } from "./arenaQueue.ts";
 import { itemLockKey } from "../itemLock.ts";
@@ -196,6 +198,14 @@ export async function testHook(room: MapRoom, c: Client, m: unknown) {
     const key = strIn(o.key), n = int(o.n, 1, 1e6, 1);
     if ((ACHV_COUNTERS as readonly string[]).includes(key)) await store.achvBump(d.accountId, key, n);
     await achvSend(room, id); out = { counters: (await store.achvGet(d.accountId)).counters };
+  }
+  else if (op === "mail") { // Thư (5.24): gửi một thư cho chính người gọi (`title`, `honTe`, `items` [{code, qty}], `dedup`, `ttlMs`, `kind`); trả kết quả `res` hoặc `error`
+    try {
+      const items = Array.isArray(o.items) ? o.items.slice(0, 20).map((x: { code?: unknown; qty?: unknown }) => ({ code: strIn(x?.code), qty: int(x?.qty, 0, 1e9, 1) })) : [];
+      const res = await store.mailSend(d.accountId, { kind: strIn(o.kind) || "gm", dedup: strIn(o.dedup) || `test:${randomUUID()}`, title: strIn(o.title) || "Thư thử", body: strIn(o.body), honTe: int(o.honTe, 0, 1e9, 0), items, ttlMs: o.ttlMs === undefined ? undefined : int(o.ttlMs, 1, 1e12, 1) });
+      if (res === "ok") mailNotify(room, id);
+      out = { res };
+    } catch (e) { out = { error: String((e as Error).message) }; }
   }
   else if (op === "coin") { d.honTe = int(o.n, 0, 1e12, d.honTe); d.bagDirty = true; room.sendBag(id); }
   else if (op === "gmadmin") { _gmSetAdmin(d.accountId, o.on !== false); } // #518: bật / tắt quyền admin GM của người gọi (bot không biết trước mã tài khoản)
@@ -758,6 +768,11 @@ export async function gmRun(room: MapRoom, id: string, d: PData, cmd: GmCmd): Pr
       v.rings = Array.from({ length: cmd.rings }, (_, k) => ringLimit(k + 1)); v.level = Math.min(cmd.level, 10 * (v.rings.length + 1)); d.dirty.add(v.rowId);
       d.owned.push(v); room.resCheck(id);
       return `Đã thêm ${name} cấp ${v.level}, ${v.rings.length} hồn hoàn${cmd.level > v.level ? " (cấp bị kẹp theo bình cảnh, cần thêm hồn hoàn)" : ""}.`;
+    }
+    case "mail": {
+      const res = await store.mailSend(d.accountId, { kind: "gm", dedup: `gm:${randomUUID()}`, title: "Quà từ quản trị", body: "Thư thử do lệnh GM gửi.", items: [{ code: cmd.code, qty: cmd.qty }] });
+      if (res === "ok") mailNotify(room, id);
+      return res === "ok" ? `Đã gửi thư kèm ${cmd.qty} ${itemDef(cmd.code)!.name}.` : "Hộp thư đầy: xóa bớt thư đã nhận rồi thử lại.";
     }
     case "coin": d.honTe = cmd.n; d.bagDirty = true; return `Hồn Tệ = ${formatHonTe(cmd.n)}.`;
     case "fog": {
