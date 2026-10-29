@@ -11,6 +11,7 @@ import "./confirm.css";
 import "./ui2-vohon.css";
 import "./ui2-npc.css";
 import "./ui2-shop.css";
+import "./ui2-hub.css";
 import "./ui2-login.css";
 import { setConnectionLabel } from "./uiIcons.ts";
 import { loadGameFonts } from "./fontLoad";

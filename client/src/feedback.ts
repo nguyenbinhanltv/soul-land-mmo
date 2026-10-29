@@ -8,14 +8,15 @@ import { RING_ITEM } from "../../shared/data.ts";
 import { RARE_LOOT_MIN } from "./audio/soundMap.ts";
 import { isUi2 } from "./uiKit.ts";
 import "./ui2-feedback.css";
+import { logNotice, NOTICE_LABEL, type ToastKind } from "./noticeLog.ts";
+export { notices, onNotices, clearNotices, LOG_MAX, type Notice, type ToastKind } from "./noticeLog.ts";
 
 // UI v2 (đợt 1c): banner nhận khung Mực của kit khi bật cờ ui2 (chip lệnh do cmdChip.ts, tooltip do tooltip.ts); cờ tắt thì không đổi gì. Luật vẽ ở ui2-feedback.css.
 if (isUi2()) document.getElementById("banner")?.classList.add("f2-muc-nho");
 
 /** Loại toast: nhãn nhỏ ở đầu dòng và màu vạch trái (đặt ở CSS theo `data-k`, màu niên hạn của đồ rơi theo `--c`). */
-export type ToastKind = "loot" | "level" | "quest" | "boss" | "info";
 type ToastFrame = "rare-ring";
-const LABEL: Record<ToastKind, string> = { loot: "Nhận", level: "Lên cấp", quest: "Nhiệm vụ", boss: "Boss", info: "Tin" };
+const LABEL = NOTICE_LABEL;
 /** Số toast hiện cùng lúc (cũ nhất bị đẩy đi) và thời gian sống (ms). */
 const MAX = 4, LIFE_MS = 4200, FADE_MS = 400;
 
@@ -39,6 +40,7 @@ export function toast(kind: ToastKind, title: string, sub = "", color?: string, 
     if (kind === "loot" && frame) t.dataset.frame = frame;
     const n = Number(t.dataset.n ?? "1") + 1; t.dataset.n = String(n);
     (t.querySelector(".tn") as HTMLElement).textContent = `×${n}`;
+    logNotice(kind, title, sub, true);
     arm(t); return;
   }
   const t = document.createElement("div"); t.className = "toast f2-toast"; t.dataset.k = kind; t.dataset.title = title;
@@ -51,6 +53,7 @@ export function toast(kind: ToastKind, title: string, sub = "", color?: string, 
   t.addEventListener("click", () => dismiss(t));
   el0.appendChild(t);
   while (el0.querySelectorAll(".toast:not(.out)").length > MAX) dismiss(el0.querySelector(".toast:not(.out)") as HTMLElement);
+  logNotice(kind, title, sub, false);
   arm(t); onNew(kind);
 }
 function arm(t: HTMLElement) {
