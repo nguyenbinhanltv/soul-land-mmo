@@ -68,3 +68,38 @@ Trang [so sánh vòng 2](round2/index.html) có nộm chuẩn, C vòng 1, ba RAW
 Các bài học riêng ghi ở mục **`@VUKHI-MEM`** trong `art/src/phuthe-anim/lessons.md`. Parser hiện không nhận tag đó; dùng bullet thường để parser chung bỏ qua, tránh ảnh hưởng vũ khí cứng. Prompt sinh qua API có sẵn: `buildDirectionPrompt(infoWith("lam_ngan_thao", {kind:"vukhi"}), sheetPlan("B")[2], {lessons:[...vukhiLessonsFor("direction"), ...softLessons]})`, trong đó `softLessons` lấy câu tiếng Anh của các bullet `@VUKHI-MEM`, bỏ chú thích `//`. Lượt 1/2/3 lần lượt dùng 3/4/5 câu theo tiến trình lessons. Không sửa công cụ chung và không ghi đè prompt lịch sử.
 
 Bài học thực nghiệm: lời yêu cầu "khóa canvas", giữ vạch/marker và cán có đầu bịt chưa buộc được model giữ đúng nộm; cảnh báo máy mức nhẹ vẫn có thể không đạt ba tiêu chí mỹ thuật. Không coi các câu mới là công thức đã thành công.
+
+## Thử nghiệm mới — vẽ vũ khí riêng + ghép grip
+
+Chủ repo/orchestrator cho phép đổi phương pháp và thêm tối đa ba lượt cho thử nghiệm mới: model chỉ vẽ dây riêng, không nộm; code gắn **gốc bó dây** vào `anim.grip`, chọn pose mềm đã vẽ và xoay/dịch quanh gốc. Đã thử **e trước, một lượt**: kiểm máy 0 chặn/0 nhẹ và soát ba lỗi đạt (không tay phụ, không xén đầu dây, gốc nằm ở grip). Sau đó mở rộng s/se/ne/n theo điều kiện đã giao, **mỗi hướng một lượt**, từng job tuần tự. Không cần lượt 2/3 ở phương pháp mới.
+
+Trang duyệt mới: [vẽ riêng + ghép grip](isolated/index.html). Kết quả thử ở `isolated/result/`, **không ghi đè bộ chọn cũ**, không nhập `shared/assets`, PR #1322 vẫn nháp. RAW model là `isolated/<hướng>/attempt1/poses.raw.png`, tuyệt đối không gọi tờ nộm do code ghép là RAW model. Prompt mới viết cho thử nghiệm không nộm theo giao việc; không gọi `--no-dummy --kind vukhi` vì công cụ đó chưa hỗ trợ. Mỗi atlas 3×2 có idle, ba attack, hai cast; gốc có chấm vàng đăng ký, không có tay/người.
+
+### Ghép và kiểm
+
+- Tách sáu cụm liên thông, không cắt lưới cứng (một số đầu dây vượt đường chia ô tưởng tượng nhưng không chạm mép ảnh). Đo chấm vàng của từng cụm để xác định gốc, trừ chấm khỏi sprite. Không dùng nộm hay vẽ bù thân trong model.
+- Code thử `isolated/compose.mjs` chọn pose theo bảng trong code, đặt gốc vào 110 `anim.grip` nam của manifest cũ. Nữ đo bàn tay từ đúng khung LPC bằng `gripPoints`; ghi rõ tọa độ nam/nữ trong `compose-plan.json`. Không dịch neo bằng mắt.
+- Khung thử **128×128**, thân LPC vẫn 64×64, grip giữ tọa độ tương đối theo gốc chân. Khung 96 ban đầu buộc dây quá ngắn khi tay vươn phải; tăng khoảng trống khung thay vì kéo giãn thân hay xén đầu dây.
+- Một tỉ lệ chung **0.09062213** cho cả năm atlas và mọi khung/giới; góc hướng cơ sở s/se/e/ne/n lần lượt 45/20/0/−20/−45 độ rồi cộng góc pose. Code không uốn/nội suy hình dây: dùng đúng sáu hình mềm đã vẽ. Các khung lặp pose chỉ xoay/dịch quanh gốc.
+- Sheet kết quả có **32 màu chung**, 110 khung mỗi giới, **220 khung tổng**, đủ năm hướng; manifest có 110 grip. Không chạm mép (0 điểm), điểm sprite gần gốc cách grip tối đa **1.35 pixel** sau lấy mẫu nearest. Khoảng cách này là khoảng cách tới pixel vũ khí, không phải sai số tọa độ phép đặt gốc (phép đặt gốc dùng đúng grip).
+- Cast thử tách lớp phần vòng cao sau thân, phần thấp trước thân. Đây là quy tắc hình học thử trong code, cần duyệt đường chuyển lớp trước khi tích hợp client.
+
+| Hướng | Kiểm nam | Kiểm nữ | Soát ba lỗi mục tiêu |
+|---|---|---|---|
+| s | 0 chặn / 1 nhẹ | 0 / 1 | Không tay phụ, không xén, gốc theo grip |
+| se | 0 / 1 | 0 / 1 | Không tay phụ, không xén, gốc theo grip |
+| e | 0 / 0 | 0 / 0 | Đạt để mở rộng theo giao việc |
+| ne | 0 / 0 | 0 / 0 | Không tay phụ, không xén, gốc theo grip |
+| n | 0 / 0 | 0 / 0 | Không tay phụ, không xén, gốc theo grip |
+
+Cảnh báo nhẹ s/se là `chan-lech` 14% ở một pose attack mỗi hướng; nộm do code dựng từ LPC không bị model thay dáng, nhưng vẫn giữ cảnh báo và tờ có nhãn để soát. `review-m`/`review-f` chứa kết quả `phuthe:check`; `compose-plan.json` ghi phép đặt của mỗi khung; `result/report.json` ghi hình học và hash hai script. Mỗi RAW/prompt có source SHA256, không ảnh tham chiếu, không seed/model ID được trả về. Điều khoản đầu ra OpenAI và giấy phép LPC như phần nguồn ở trên.
+
+### Giới hạn còn lại và tái tạo
+
+Preview ghép thân tại **tâm thời gian từng khung vũ khí** (`bodyStepOf`), không chứng nhận đồng bộ client tại mọi mốc thời gian. Client chưa đổi, chưa nhập manifest. Một số pose bó dây có ngọn chẻ hoặc vòng nhìn như nhiều đầu; nét/độ dài giữa atlas chưa đồng nhất hoàn toàn. Không coi việc sửa ba lỗi mục tiêu là duyệt mỹ thuật cuối cùng.
+
+```sh
+node art/src/phuthe-anim/lam_ngan_thao/vukhi/isolated/finalize.mjs
+```
+
+Lệnh đọc năm RAW đã lưu, chạy bộ ghép, thống nhất tỉ lệ/bảng màu, kiểm nộm nam/nữ, xuất sheet/manifest/GIF/trang duyệt trong `isolated/`. Chạy từ gốc repo, không gọi model và không ghi `shared/assets`. Hai bullet bài học phương pháp mới ở mục `@VUKHI-MEM` của lessons; không đưa các chỉ dẫn khóa nộm vòng 2 vào prompt vẽ riêng.

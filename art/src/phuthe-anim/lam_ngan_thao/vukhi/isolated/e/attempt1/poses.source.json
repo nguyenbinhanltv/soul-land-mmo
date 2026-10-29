@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-30",
+  "experiment": "Vẽ vũ khí riêng + ghép grip",
+  "direction": "e",
+  "attempt": 1,
+  "tool": "Codex / OpenAI image_gen tích hợp",
+  "model": null,
+  "seed": null,
+  "references": [],
+  "rawUnmodified": true,
+  "image": {
+    "path": "poses.raw.png",
+    "sha256": "c258cb2526acfbb729b8e5de8523d76c8b4e4ccabfc77b925abcc4ce6510c2a9"
+  },
+  "prompt": {
+    "path": "poses.prompt.txt",
+    "sha256": "7175e940f164d83812957c3afbbb10113c610cebab495c0be2961d040a9a5574"
+  },
+  "compositor": {
+    "path": "../../compose.mjs",
+    "sha256": "f15ff17269763a931b955a1da618d1849022a7f95a34071ac5f1442f1ec55b4c"
+  },
+  "gripSource": {
+    "path": "../../../manifest-entry.json",
+    "sha256": "219add5b87469166af45725230e60ed297ac84bff5b28d43c8d71803783ad45f"
+  },
+  "result": "composed/compose-plan.json",
+  "checks": {
+    "male": "composed/review-m/lam_ngan_thao-check.json",
+    "female": "composed/review-f/lam_ngan_thao-check.json"
+  },
+  "license": "Đầu ra OpenAI theo điều khoản dịch vụ; không gán CC0. LPC theo giấy phép hiện có."
+}

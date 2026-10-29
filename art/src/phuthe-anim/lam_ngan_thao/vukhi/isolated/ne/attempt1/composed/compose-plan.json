@@ -1,0 +1,1176 @@
+{
+  "dir": "ne",
+  "F": 128,
+  "scale": 0.09062213038935286,
+  "palette": [
+    [
+      1,
+      1,
+      3
+    ],
+    [
+      9,
+      3,
+      8
+    ],
+    [
+      10,
+      4,
+      16
+    ],
+    [
+      14,
+      3,
+      30
+    ],
+    [
+      15,
+      14,
+      20
+    ],
+    [
+      14,
+      15,
+      37
+    ],
+    [
+      20,
+      24,
+      39
+    ],
+    [
+      26,
+      36,
+      44
+    ],
+    [
+      21,
+      28,
+      63
+    ],
+    [
+      29,
+      43,
+      66
+    ],
+    [
+      26,
+      42,
+      82
+    ],
+    [
+      26,
+      47,
+      100
+    ],
+    [
+      29,
+      58,
+      104
+    ],
+    [
+      29,
+      71,
+      115
+    ],
+    [
+      29,
+      81,
+      152
+    ],
+    [
+      29,
+      123,
+      199
+    ],
+    [
+      42,
+      31,
+      51
+    ],
+    [
+      43,
+      53,
+      62
+    ],
+    [
+      54,
+      48,
+      58
+    ],
+    [
+      73,
+      53,
+      59
+    ],
+    [
+      41,
+      53,
+      87
+    ],
+    [
+      40,
+      65,
+      119
+    ],
+    [
+      52,
+      60,
+      97
+    ],
+    [
+      118,
+      14,
+      124
+    ],
+    [
+      43,
+      85,
+      133
+    ],
+    [
+      43,
+      99,
+      170
+    ],
+    [
+      54,
+      98,
+      148
+    ],
+    [
+      82,
+      100,
+      102
+    ],
+    [
+      47,
+      118,
+      205
+    ],
+    [
+      48,
+      154,
+      231
+    ],
+    [
+      63,
+      148,
+      225
+    ],
+    [
+      128,
+      192,
+      236
+    ]
+  ],
+  "poses": [
+    {
+      "root": [
+        32.60857142857143,
+        243.68857142857144
+      ],
+      "box": [
+        23,
+        221,
+        522,
+        389
+      ],
+      "area": 15357
+    },
+    {
+      "root": [
+        556.3370786516854,
+        243.7808988764045
+      ],
+      "box": [
+        546,
+        67,
+        979,
+        362
+      ],
+      "area": 20873
+    },
+    {
+      "root": [
+        1045.0581395348838,
+        243.7674418604651
+      ],
+      "box": [
+        1035,
+        171,
+        1517,
+        362
+      ],
+      "area": 17622
+    },
+    {
+      "root": [
+        30.935294117647057,
+        738.9588235294118
+      ],
+      "box": [
+        21,
+        713,
+        556,
+        776
+      ],
+      "area": 15248
+    },
+    {
+      "root": [
+        594.3742857142857,
+        740.2371428571429
+      ],
+      "box": [
+        585,
+        617,
+        990,
+        881
+      ],
+      "area": 29288
+    },
+    {
+      "root": [
+        1053.2166666666667,
+        747.4166666666666
+      ],
+      "box": [
+        1043,
+        511,
+        1450,
+        906
+      ],
+      "area": 38506
+    }
+  ],
+  "plan": [
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "name": "ne/idle/0",
+      "sex": "m",
+      "grip": [
+        -7.5,
+        -11.4
+      ],
+      "pose": 0,
+      "angle": -22,
+      "step": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "name": "ne/idle/1",
+      "sex": "m",
+      "grip": [
+        -7.5,
+        -11.4
+      ],
+      "pose": 0,
+      "angle": -20,
+      "step": 1
+    },
+    {
+      "anim": "idle",
+      "frame": 2,
+      "col": 2,
+      "row": 0,
+      "name": "ne/idle/2",
+      "sex": "m",
+      "grip": [
+        -7.4,
+        -11.9
+      ],
+      "pose": 0,
+      "angle": -18,
+      "step": 2
+    },
+    {
+      "anim": "idle",
+      "frame": 3,
+      "col": 3,
+      "row": 0,
+      "name": "ne/idle/3",
+      "sex": "m",
+      "grip": [
+        -7.4,
+        -11.9
+      ],
+      "pose": 0,
+      "angle": -20,
+      "step": 3
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "name": "ne/walk/0",
+      "sex": "m",
+      "grip": [
+        -1,
+        -10.1
+      ],
+      "pose": 0,
+      "angle": -24,
+      "step": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "name": "ne/walk/1",
+      "sex": "m",
+      "grip": [
+        -3.6,
+        -10.3
+      ],
+      "pose": 0,
+      "angle": -20,
+      "step": 1
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "name": "ne/walk/2",
+      "sex": "m",
+      "grip": [
+        -11.4,
+        -10.5
+      ],
+      "pose": 0,
+      "angle": -16,
+      "step": 2
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "name": "ne/walk/3",
+      "sex": "m",
+      "grip": [
+        -13.7,
+        -10.6
+      ],
+      "pose": 0,
+      "angle": -17,
+      "step": 3
+    },
+    {
+      "anim": "walk",
+      "frame": 4,
+      "col": 4,
+      "row": 1,
+      "name": "ne/walk/4",
+      "sex": "m",
+      "grip": [
+        -7.8,
+        -10.2
+      ],
+      "pose": 0,
+      "angle": -20,
+      "step": 4
+    },
+    {
+      "anim": "walk",
+      "frame": 5,
+      "col": 5,
+      "row": 1,
+      "name": "ne/walk/5",
+      "sex": "m",
+      "grip": [
+        -5.5,
+        -11.1
+      ],
+      "pose": 0,
+      "angle": -23,
+      "step": 5
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "name": "ne/attack/0",
+      "sex": "m",
+      "grip": [
+        -7.7,
+        -9.6
+      ],
+      "pose": 0,
+      "angle": -30,
+      "step": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "name": "ne/attack/1",
+      "sex": "m",
+      "grip": [
+        -9.4,
+        -11.5
+      ],
+      "pose": 1,
+      "angle": -35,
+      "step": 1
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "name": "ne/attack/2",
+      "sex": "m",
+      "grip": [
+        -10.9,
+        -11.9
+      ],
+      "pose": 2,
+      "angle": -25,
+      "step": 2
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "name": "ne/attack/3",
+      "sex": "m",
+      "grip": [
+        -10.9,
+        -11.9
+      ],
+      "pose": 3,
+      "angle": -20,
+      "step": 2
+    },
+    {
+      "anim": "attack",
+      "frame": 4,
+      "col": 4,
+      "row": 2,
+      "name": "ne/attack/4",
+      "sex": "m",
+      "grip": [
+        -9.9,
+        -12.1
+      ],
+      "pose": 2,
+      "angle": -10,
+      "step": 3
+    },
+    {
+      "anim": "attack",
+      "frame": 5,
+      "col": 5,
+      "row": 2,
+      "name": "ne/attack/5",
+      "sex": "m",
+      "grip": [
+        -9.9,
+        -12.1
+      ],
+      "pose": 0,
+      "angle": -20,
+      "step": 3
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "name": "ne/cast/0",
+      "sex": "m",
+      "grip": [
+        -4.8,
+        -12.2
+      ],
+      "pose": 4,
+      "angle": -25,
+      "step": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "name": "ne/cast/1",
+      "sex": "m",
+      "grip": [
+        10.1,
+        -17.5
+      ],
+      "pose": 4,
+      "angle": -20,
+      "step": 1
+    },
+    {
+      "anim": "cast",
+      "frame": 2,
+      "col": 2,
+      "row": 3,
+      "name": "ne/cast/2",
+      "sex": "m",
+      "grip": [
+        10.1,
+        -17.5
+      ],
+      "pose": 5,
+      "angle": -25,
+      "step": 1
+    },
+    {
+      "anim": "cast",
+      "frame": 3,
+      "col": 3,
+      "row": 3,
+      "name": "ne/cast/3",
+      "sex": "m",
+      "grip": [
+        10.1,
+        -17.5
+      ],
+      "pose": 5,
+      "angle": -15,
+      "step": 2
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 4,
+      "row": 0,
+      "name": "ne/hurt/0",
+      "sex": "m",
+      "grip": [
+        14.7,
+        -10.6
+      ],
+      "pose": 0,
+      "angle": -30,
+      "step": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 1,
+      "col": 5,
+      "row": 0,
+      "name": "ne/hurt/1",
+      "sex": "m",
+      "grip": [
+        14.7,
+        -10.6
+      ],
+      "pose": 0,
+      "angle": -25,
+      "step": 1
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "name": "ne/idle/0",
+      "sex": "f",
+      "grip": [
+        -8.166666666666671,
+        -11.277777777777771
+      ],
+      "pose": 0,
+      "angle": -22,
+      "step": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "name": "ne/idle/1",
+      "sex": "f",
+      "grip": [
+        -8.166666666666671,
+        -11.277777777777771
+      ],
+      "pose": 0,
+      "angle": -20,
+      "step": 1
+    },
+    {
+      "anim": "idle",
+      "frame": 2,
+      "col": 2,
+      "row": 0,
+      "name": "ne/idle/2",
+      "sex": "f",
+      "grip": [
+        -7.833333333333329,
+        -12.25
+      ],
+      "pose": 0,
+      "angle": -18,
+      "step": 2
+    },
+    {
+      "anim": "idle",
+      "frame": 3,
+      "col": 3,
+      "row": 0,
+      "name": "ne/idle/3",
+      "sex": "f",
+      "grip": [
+        -7.833333333333329,
+        -12.25
+      ],
+      "pose": 0,
+      "angle": -20,
+      "step": 3
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "name": "ne/walk/0",
+      "sex": "f",
+      "grip": [
+        -0.5,
+        -10.125
+      ],
+      "pose": 0,
+      "angle": -24,
+      "step": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "name": "ne/walk/1",
+      "sex": "f",
+      "grip": [
+        -4.125,
+        -10.25
+      ],
+      "pose": 0,
+      "angle": -20,
+      "step": 1
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "name": "ne/walk/2",
+      "sex": "f",
+      "grip": [
+        8.875,
+        -11.125
+      ],
+      "pose": 0,
+      "angle": -16,
+      "step": 2
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "name": "ne/walk/3",
+      "sex": "f",
+      "grip": [
+        10.214285714285722,
+        -11.214285714285722
+      ],
+      "pose": 0,
+      "angle": -17,
+      "step": 3
+    },
+    {
+      "anim": "walk",
+      "frame": 4,
+      "col": 4,
+      "row": 1,
+      "name": "ne/walk/4",
+      "sex": "f",
+      "grip": [
+        -9.166666666666671,
+        -10.277777777777771
+      ],
+      "pose": 0,
+      "angle": -20,
+      "step": 4
+    },
+    {
+      "anim": "walk",
+      "frame": 5,
+      "col": 5,
+      "row": 1,
+      "name": "ne/walk/5",
+      "sex": "f",
+      "grip": [
+        -4.833333333333329,
+        -10.166666666666657
+      ],
+      "pose": 0,
+      "angle": -23,
+      "step": 5
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "name": "ne/attack/0",
+      "sex": "f",
+      "grip": [
+        -8.399999999999999,
+        -9.5
+      ],
+      "pose": 0,
+      "angle": -30,
+      "step": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "name": "ne/attack/1",
+      "sex": "f",
+      "grip": [
+        9.700000000000003,
+        -10.5
+      ],
+      "pose": 1,
+      "angle": -35,
+      "step": 1
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "name": "ne/attack/2",
+      "sex": "f",
+      "grip": [
+        -9.722222222222221,
+        -12.611111111111114
+      ],
+      "pose": 2,
+      "angle": -25,
+      "step": 2
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "name": "ne/attack/3",
+      "sex": "f",
+      "grip": [
+        -9.722222222222221,
+        -12.611111111111114
+      ],
+      "pose": 3,
+      "angle": -20,
+      "step": 2
+    },
+    {
+      "anim": "attack",
+      "frame": 4,
+      "col": 4,
+      "row": 2,
+      "name": "ne/attack/4",
+      "sex": "f",
+      "grip": [
+        -9.954545454545453,
+        -13.045454545454547
+      ],
+      "pose": 2,
+      "angle": -10,
+      "step": 3
+    },
+    {
+      "anim": "attack",
+      "frame": 5,
+      "col": 5,
+      "row": 2,
+      "name": "ne/attack/5",
+      "sex": "f",
+      "grip": [
+        -9.954545454545453,
+        -13.045454545454547
+      ],
+      "pose": 0,
+      "angle": -20,
+      "step": 3
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "name": "ne/cast/0",
+      "sex": "f",
+      "grip": [
+        -5.5,
+        -11.5
+      ],
+      "pose": 4,
+      "angle": -25,
+      "step": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "name": "ne/cast/1",
+      "sex": "f",
+      "grip": [
+        9.375,
+        -14
+      ],
+      "pose": 4,
+      "angle": -20,
+      "step": 1
+    },
+    {
+      "anim": "cast",
+      "frame": 2,
+      "col": 2,
+      "row": 3,
+      "name": "ne/cast/2",
+      "sex": "f",
+      "grip": [
+        9.375,
+        -14
+      ],
+      "pose": 5,
+      "angle": -25,
+      "step": 1
+    },
+    {
+      "anim": "cast",
+      "frame": 3,
+      "col": 3,
+      "row": 3,
+      "name": "ne/cast/3",
+      "sex": "f",
+      "grip": [
+        9.375,
+        -14
+      ],
+      "pose": 5,
+      "angle": -15,
+      "step": 2
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 4,
+      "row": 0,
+      "name": "ne/hurt/0",
+      "sex": "f",
+      "grip": [
+        12.400000000000006,
+        -10.5
+      ],
+      "pose": 0,
+      "angle": -30,
+      "step": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 1,
+      "col": 5,
+      "row": 0,
+      "name": "ne/hurt/1",
+      "sex": "f",
+      "grip": [
+        12.400000000000006,
+        -10.5
+      ],
+      "pose": 0,
+      "angle": -25,
+      "step": 1
+    }
+  ],
+  "rootDistances": [
+    {
+      "frame": "m/ne/idle/0",
+      "nearestWeaponPixel": 0.9000000000000057,
+      "edge": 0,
+      "pixels": 124
+    },
+    {
+      "frame": "m/ne/idle/1",
+      "nearestWeaponPixel": 1.0049875621120885,
+      "edge": 0,
+      "pixels": 125
+    },
+    {
+      "frame": "m/ne/idle/2",
+      "nearestWeaponPixel": 0.9848857801796115,
+      "edge": 0,
+      "pixels": 125
+    },
+    {
+      "frame": "m/ne/idle/3",
+      "nearestWeaponPixel": 0.9848857801796115,
+      "edge": 0,
+      "pixels": 121
+    },
+    {
+      "frame": "m/ne/walk/0",
+      "nearestWeaponPixel": 0.7810249675906611,
+      "edge": 0,
+      "pixels": 128
+    },
+    {
+      "frame": "m/ne/walk/1",
+      "nearestWeaponPixel": 0.8062257748298522,
+      "edge": 0,
+      "pixels": 123
+    },
+    {
+      "frame": "m/ne/walk/2",
+      "nearestWeaponPixel": 0.8999999999999986,
+      "edge": 0,
+      "pixels": 120
+    },
+    {
+      "frame": "m/ne/walk/3",
+      "nearestWeaponPixel": 0.8062257748298514,
+      "edge": 0,
+      "pixels": 122
+    },
+    {
+      "frame": "m/ne/walk/4",
+      "nearestWeaponPixel": 0.7615773105863923,
+      "edge": 0,
+      "pixels": 124
+    },
+    {
+      "frame": "m/ne/walk/5",
+      "nearestWeaponPixel": 1.077032961426903,
+      "edge": 0,
+      "pixels": 122
+    },
+    {
+      "frame": "m/ne/attack/0",
+      "nearestWeaponPixel": 0.8062257748298514,
+      "edge": 0,
+      "pixels": 127
+    },
+    {
+      "frame": "m/ne/attack/1",
+      "nearestWeaponPixel": 0.8999999999999986,
+      "edge": 0,
+      "pixels": 167
+    },
+    {
+      "frame": "m/ne/attack/2",
+      "nearestWeaponPixel": 0.7211102550927924,
+      "edge": 0,
+      "pixels": 145
+    },
+    {
+      "frame": "m/ne/attack/3",
+      "nearestWeaponPixel": 0.7211102550927924,
+      "edge": 0,
+      "pixels": 127
+    },
+    {
+      "frame": "m/ne/attack/4",
+      "nearestWeaponPixel": 0.7211102550927924,
+      "edge": 0,
+      "pixels": 147
+    },
+    {
+      "frame": "m/ne/attack/5",
+      "nearestWeaponPixel": 0.7211102550927924,
+      "edge": 0,
+      "pixels": 126
+    },
+    {
+      "frame": "m/ne/cast/0",
+      "nearestWeaponPixel": 0.7615773105863923,
+      "edge": 0,
+      "pixels": 239
+    },
+    {
+      "frame": "m/ne/cast/1",
+      "nearestWeaponPixel": 1.077032961426903,
+      "edge": 0,
+      "pixels": 243
+    },
+    {
+      "frame": "m/ne/cast/2",
+      "nearestWeaponPixel": 1.077032961426903,
+      "edge": 0,
+      "pixels": 306
+    },
+    {
+      "frame": "m/ne/cast/3",
+      "nearestWeaponPixel": 1.077032961426903,
+      "edge": 0,
+      "pixels": 305
+    },
+    {
+      "frame": "m/ne/hurt/0",
+      "nearestWeaponPixel": 0.8062257748298514,
+      "edge": 0,
+      "pixels": 124
+    },
+    {
+      "frame": "m/ne/hurt/1",
+      "nearestWeaponPixel": 0.8062257748298514,
+      "edge": 0,
+      "pixels": 127
+    },
+    {
+      "frame": "f/ne/idle/0",
+      "nearestWeaponPixel": 0.7027283689263131,
+      "edge": 0,
+      "pixels": 127
+    },
+    {
+      "frame": "f/ne/idle/1",
+      "nearestWeaponPixel": 0.7027283689263131,
+      "edge": 0,
+      "pixels": 121
+    },
+    {
+      "frame": "f/ne/idle/2",
+      "nearestWeaponPixel": 0.7120003121097986,
+      "edge": 0,
+      "pixels": 121
+    },
+    {
+      "frame": "f/ne/idle/3",
+      "nearestWeaponPixel": 0.7120003121097986,
+      "edge": 0,
+      "pixels": 124
+    },
+    {
+      "frame": "f/ne/walk/0",
+      "nearestWeaponPixel": 1.0680004681646913,
+      "edge": 0,
+      "pixels": 125
+    },
+    {
+      "frame": "f/ne/walk/1",
+      "nearestWeaponPixel": 0.6731456008918131,
+      "edge": 0,
+      "pixels": 123
+    },
+    {
+      "frame": "f/ne/walk/2",
+      "nearestWeaponPixel": 0.7288689868556625,
+      "edge": 0,
+      "pixels": 129
+    },
+    {
+      "frame": "f/ne/walk/3",
+      "nearestWeaponPixel": 0.7693092581620766,
+      "edge": 0,
+      "pixels": 128
+    },
+    {
+      "frame": "f/ne/walk/4",
+      "nearestWeaponPixel": 0.7027283689263131,
+      "edge": 0,
+      "pixels": 121
+    },
+    {
+      "frame": "f/ne/walk/5",
+      "nearestWeaponPixel": 0.7453559924999194,
+      "edge": 0,
+      "pixels": 121
+    },
+    {
+      "frame": "f/ne/attack/0",
+      "nearestWeaponPixel": 0.8999999999999986,
+      "edge": 0,
+      "pixels": 124
+    },
+    {
+      "frame": "f/ne/attack/1",
+      "nearestWeaponPixel": 0.7999999999999972,
+      "edge": 0,
+      "pixels": 169
+    },
+    {
+      "frame": "f/ne/attack/2",
+      "nearestWeaponPixel": 0.7856742013183874,
+      "edge": 0,
+      "pixels": 134
+    },
+    {
+      "frame": "f/ne/attack/3",
+      "nearestWeaponPixel": 0.7856742013183874,
+      "edge": 0,
+      "pixels": 123
+    },
+    {
+      "frame": "f/ne/attack/4",
+      "nearestWeaponPixel": 0.7100226978096961,
+      "edge": 0,
+      "pixels": 143
+    },
+    {
+      "frame": "f/ne/attack/5",
+      "nearestWeaponPixel": 0.6428243465332233,
+      "edge": 0,
+      "pixels": 128
+    },
+    {
+      "frame": "f/ne/cast/0",
+      "nearestWeaponPixel": 1,
+      "edge": 0,
+      "pixels": 237
+    },
+    {
+      "frame": "f/ne/cast/1",
+      "nearestWeaponPixel": 1.231107225224513,
+      "edge": 0,
+      "pixels": 236
+    },
+    {
+      "frame": "f/ne/cast/2",
+      "nearestWeaponPixel": 1.231107225224513,
+      "edge": 0,
+      "pixels": 311
+    },
+    {
+      "frame": "f/ne/cast/3",
+      "nearestWeaponPixel": 1.231107225224513,
+      "edge": 0,
+      "pixels": 308
+    },
+    {
+      "frame": "f/ne/hurt/0",
+      "nearestWeaponPixel": 0.9000000000000057,
+      "edge": 0,
+      "pixels": 129
+    },
+    {
+      "frame": "f/ne/hurt/1",
+      "nearestWeaponPixel": 1.0049875621120885,
+      "edge": 0,
+      "pixels": 130
+    }
+  ],
+  "note": "Tờ có nộm là ảnh ghép code; RAW model là poses.raw.png. Gốc nam dùng anim.grip có sẵn, gốc nữ đo từ LPC; không bù lệch bằng mắt."
+}
