@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-809",
+  "issue": 1290,
+  "builtinCalls": 2,
+  "round": 3,
+  "direction": "ne",
+  "prompt": "to-ne-809-attempt2.prompt.txt",
+  "verdict": "Đạt: tờ liên hệ đủ khung, không thấy mắt/mặt, giữ hướng lưng; hurt nhỏ.",
+  "sha256": "4a4831ece90762c7218e74bf2d03f71e28cc3b2185823654f2d14a76832eb5c6"
+}

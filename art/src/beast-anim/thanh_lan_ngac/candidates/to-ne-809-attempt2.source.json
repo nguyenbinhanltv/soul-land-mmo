@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-809",
+  "issue": 1290,
+  "builtinCalls": 2,
+  "round": 3,
+  "direction": "ne",
+  "prompt": "to-ne-809-attempt2.prompt.txt",
+  "verdict": "Chặn: vẫn có chấm mắt ở cạnh đầu trên nhiều khung; không nhập.",
+  "sha256": "1341b4fec25bbbac810fad1fe54c29e15f96ca4e9743055317b55d2242c36061"
+}

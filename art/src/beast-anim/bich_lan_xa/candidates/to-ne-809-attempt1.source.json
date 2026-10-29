@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-809",
+  "issue": 1290,
+  "builtinCalls": 1,
+  "round": 3,
+  "direction": "ne",
+  "prompt": "to-ne-809-attempt1.prompt.txt",
+  "verdict": "Chặn: còn chấm mắt sát mép đầu ở attack và die; không nhập.",
+  "sha256": "fbf72b86898a7a86ee424cde4095d8fdff6d0d4235e2a5e3196949e030bb10fb"
+}

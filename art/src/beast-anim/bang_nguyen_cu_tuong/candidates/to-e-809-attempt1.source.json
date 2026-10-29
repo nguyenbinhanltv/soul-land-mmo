@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-809",
+  "issue": 1290,
+  "builtinCalls": 1,
+  "round": 3,
+  "direction": "e",
+  "prompt": "to-e-809-attempt1.prompt.txt",
+  "verdict": "Chặn: phần đầu còn chếch về người xem, chưa là góc ngang e rõ; không nhập.",
+  "sha256": "4e37ddfe597dcc9d578d52fdb93f61b22d4a377e523da590e9331d9845d3d803"
+}

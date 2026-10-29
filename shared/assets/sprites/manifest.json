@@ -245,6 +245,7 @@
         "dirsOk": [
           "s",
           "se",
+          "ne",
           "n"
         ]
       },
@@ -490,12 +491,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e",
-          "n"
         ]
       },
       "map": "lac_nhat_sam_lam"
@@ -740,12 +735,6 @@
         "origin": [
           32,
           56
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e",
-          "n"
         ]
       },
       "map": "thanh_hon_thon"
@@ -3024,12 +3013,6 @@
         "origin": [
           64,
           120
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e",
-          "n"
         ]
       },
       "map": "hai_than_dao"
@@ -3565,12 +3548,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e",
-          "n"
         ]
       },
       "map": "tinh_dau_ngoai_vi"
@@ -4069,12 +4046,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e",
-          "n"
         ]
       },
       "map": "tinh_dau_noi_dia"

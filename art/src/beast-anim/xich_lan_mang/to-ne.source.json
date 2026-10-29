@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-809",
+  "issue": 1290,
+  "builtinCalls": 1,
+  "round": 3,
+  "direction": "ne",
+  "prompt": "to-ne-809-attempt1.prompt.txt",
+  "verdict": "Đạt: đầu nhìn lên phải, không lộ mặt, giữ đuôi nhọn; xem tách hàng die sau cắt.",
+  "sha256": "97ec9c72122882ce30cd3adfb8424d62e1e016bd752b79d2e33b2ccef203820b"
+}

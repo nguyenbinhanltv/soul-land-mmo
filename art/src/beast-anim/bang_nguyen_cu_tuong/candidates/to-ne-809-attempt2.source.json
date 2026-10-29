@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-809",
+  "issue": 1290,
+  "builtinCalls": 2,
+  "round": 3,
+  "direction": "ne",
+  "prompt": "to-ne-809-attempt2.prompt.txt",
+  "verdict": "Đạt: góc lưng lên phải, che toàn bộ mặt, dáng gọn không duỗi vòi khi đánh; hurt nhỏ.",
+  "sha256": "352f50712f20f4a2c3531b3fa4ec52ca3eed484717434695ebf4cf6221aebca6"
+}

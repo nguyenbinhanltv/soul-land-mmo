@@ -1,0 +1,14 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 3,
+  "agent": "soul_land_game-778",
+  "original_tool_path": "C:\\Users\\PC\\.codex\\generated_images\\01a18423-efc9-75d3-9467-2adc5fc89681\\exec-3f6ca571-375d-4981-b30c-a3b019b13c1f.png",
+  "review": "CHẶN: 3 lượt vẫn còn chấm mắt cạnh đầu ne ở idle/walk/attack/die; giữ fallback.",
+  "imported": false,
+  "references": [
+    "shared/assets/sprites/beast/tham_hai_ma_kinh.png",
+    "art/src/beast-anim/tham_hai_ma_kinh/turnaround.png"
+  ]
+}

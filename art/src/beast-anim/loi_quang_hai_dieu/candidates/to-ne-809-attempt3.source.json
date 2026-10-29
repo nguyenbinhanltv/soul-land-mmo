@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-809",
+  "issue": 1290,
+  "builtinCalls": 3,
+  "round": 3,
+  "direction": "ne",
+  "prompt": "to-ne-809-attempt3.prompt.txt",
+  "verdict": "Chặn: đạt mắt nhưng dry-run còn vượt khung cấu hình trộn; sau khớp cỡ còn lệch -17,2%, quá 10%; đủ ba lượt, giữ ảnh tĩnh ne, không dùng --scale.",
+  "sha256": "02e1a3030662f77d53d808ff144c2c93cdbe8362d93cf8122a5cd1e4dfc5cfa9"
+}

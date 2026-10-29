@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-809",
+  "issue": 1290,
+  "builtinCalls": 1,
+  "round": 3,
+  "direction": "ne",
+  "prompt": "to-ne-809-attempt1.prompt.txt",
+  "verdict": "Đạt: không lộ mặt, đuôi gần người xem, hướng lên phải; hurt và die biên độ nhỏ.",
+  "sha256": "45024adc152483d61a3dce7f26121614def3790fa3d3edbc82002ab3effbe0d6"
+}
