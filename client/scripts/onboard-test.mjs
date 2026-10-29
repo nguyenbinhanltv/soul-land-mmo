@@ -81,7 +81,7 @@ assert.equal(arrowText({ label: "Cổng", tiles: 23.6 }), "Cổng · 24 ô"); as
 const css = src("ui2-onboard.css").replace(/\/\*[\s\S]*?\*\//g, "");
 for (const rule of css.split("}").map((s) => s.trim()).filter((s) => s && !s.startsWith("@") && !s.startsWith("50%"))) {
   const sel = rule.split("{")[0]; if (!sel || /^\s*(50%|to|from)/.test(sel)) continue;
-  assert.ok(/body\.ui2|body\.arena/.test(sel), `luật phải nằm dưới body.ui2: ${sel.slice(0, 60)}`);
+  assert.ok(!/body\.ui2(?![\w-])/.test(sel), `đợt 5c-b: không còn tiền tố body.ui2: ${sel.slice(0, 60)}`);
 }
 assert.ok(/prefers-reduced-motion:reduce/.test(css) && /reduce-motion/.test(css), "giảm chuyển động: cả media query lẫn lớp");
 assert.ok(/min-height:44px/.test(css), "nút thẻ ≥ 44 px");

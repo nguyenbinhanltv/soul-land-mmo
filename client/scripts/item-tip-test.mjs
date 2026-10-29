@@ -41,9 +41,9 @@ assert.deepEqual(filterByQuery(names, (n) => n, "hoi dan"), ["Hồi Huyết Đan
 assert.deepEqual(filterByQuery(names, (n) => n, "HỒI huyết"), ["Hồi Huyết Đan"]);
 assert.equal(filterByQuery(names, (n) => n, "", 2).length, 2); assert.equal(filterByQuery(names, (n) => n, "xyz").length, 0);
 
-// CSS: mọi luật dưới body.ui2, màu qua token, cỡ chữ theo thang
+// CSS: luật thường (không tiền tố body.ui2), màu qua token, cỡ chữ theo thang
 const css = readFileSync(new URL("../src/ui2-tooltip.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-for (const m of css.matchAll(/(^|\})\s*([^{}@]+)\{/g)) for (const sel of m[2].split(/,(?![^(]*\))/)) assert.ok(/^body.ui2[ .]/.test(sel.trim()), `luật không nằm dưới body.ui2: ${sel.trim()}`);
+assert.ok(!/body\.ui2(?![\w-])/.test(css), "đợt 5c-b: luật thường, không còn tiền tố body.ui2");
 assert.ok(!/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(css), "màu chỉ qua token");
 assert.ok(!/font(-size)?\s*:[^;}]*\b\d+px/.test(css), "cỡ chữ chỉ qua --fs-*");
 console.log("item-tip: ok");

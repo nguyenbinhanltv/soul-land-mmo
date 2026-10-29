@@ -37,7 +37,7 @@ import { openNotice, closeNotice } from "../noticeScreen.ts";
 import { bindBiCanh, openBiCanh, closeBiCanh, onBiCanh, bindBiCanhRoom, onBiCanhRoom, resetBiCanhRoom, tickBiCanhHud, inBiCanhRoom, type BiCanhMsg, type BiCanhRoomMsg } from "../bicanhScreen.ts";
 import { bindWelfare, openWelfare, closeWelfare, onWelfare, type WelfareMsg } from "../welfareScreen.ts";
 import { bindNpcGo } from "../hudNpc.ts";
-import { bindCalendar, openCalendar, closeCalendar, onCalendar, type CalendarMsg, type CalGoal } from "../calendarScreen.ts";
+import { bindCalendar, watchCalendar, openCalendar, closeCalendar, onCalendar, type CalendarMsg, type CalGoal } from "../calendarScreen.ts";
 import { bindRank, openRank, closeRank, onRankBoards, onRankTop, type RankTopMsg } from "../rankScreen.ts";
 import type { ServerCommand } from "../charBagContract.ts";
 import { toggleChar, cycleCharTab, isCharOpen, onCharOpen, renderChar, charViewRow, charLog, type StatsMsg } from "../charPanel.ts";
@@ -833,7 +833,7 @@ export class GameScene extends Phaser.Scene {
       // Esc (U1 #754): đóng đúng MỘT bảng trên cùng (lần nhấn kế đóng bảng kế); hết bảng mới bỏ khoá mục tiêu (M3). Thứ tự: bản đồ vùng → chat → bảng → khoá.
       if (e.code === "Escape" && closeTopPanel()) return;
       if (e.code === "Escape" && this.lockId) { this.lockTo(""); return; }
-      if (e.code === "Escape") { toggleHub(); return; } // không bảng, không khoá: mở menu hub khi bật ui2, còn lại không làm gì (không ghi Escape vào `keys`)
+      if (e.code === "Escape") { toggleHub(); return; } // không bảng, không khoá: mở menu hub (không ghi Escape vào `keys`)
       if (e.code === "Tab") { e.preventDefault(); if (!e.repeat) this.cycleTarget(); return; }
       if (e.code === "KeyT" && !e.repeat) { this.toggleAuto(); return; } // tự săn (Auto 1)
       if (e.code === "KeyF" && !e.repeat) { if (this.portal?.name) this.goPortal(); else if (this.wpHere) this.openWorld(true); else if (this.nearNpc) this.talk(this.nearNpc); return; }
@@ -933,10 +933,10 @@ export class GameScene extends Phaser.Scene {
     const end = (e: PointerEvent) => { if (e.pointerId !== jid) return; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = ""; };
     joyEl.addEventListener("pointerup", end, on); joyEl.addEventListener("pointercancel", end, on);
     // Ngăn xếp bảng (U1 #754): Esc đóng bảng trên cùng, bấm vào bảng nâng lên; mở bảng thì nhả phím đang giữ và dừng cần điều khiển.
-    bindRank((type, payload) => this.room.send(type, payload)); bindCalendar((type, payload) => this.room.send(type, payload), (g) => this.calendarGo(g)); bindNpcGo((g) => this.calendarGo(g)); // nút "Đến" của hộp thoại / trang nhiệm vụ (ui2): cùng đường đi bộ / cờ "Đi tới" với Lịch Hoạt Động
+    bindRank((type, payload) => this.room.send(type, payload)); bindCalendar((type, payload) => this.room.send(type, payload), (g) => this.calendarGo(g), (n) => setBadge("calendar", n ? "new" : null, n)); watchCalendar(this.ac.signal); bindNpcGo((g) => this.calendarGo(g)); // nút "Đến" của hộp thoại / trang nhiệm vụ (ui2): cùng đường đi bộ / cờ "Đi tới" với Lịch Hoạt Động
     bindBiCanh((type, payload) => this.room.send(type, payload), (has) => setBadge("bicanh", has ? "new" : null)); // chấm đỏ "còn lượt" (kho badges)
     bindBiCanhRoom(() => this.onBack(), () => this.onBack());
-    bindWelfare((type, payload) => this.room.send(type, payload), (needs) => setBadge("welfare", needs ? "new" : null)); // chấm đỏ "chưa điểm danh" (kho badges)
+    bindWelfare((type, payload) => this.room.send(type, payload), (n) => setBadge("welfare", n ? "new" : null, n)); // chấm đỏ "chưa điểm danh" + mốc ký bù được (kho badges)
     initPanelStack([
       { id: "char", close: () => toggleChar(false) }, { id: "bag", close: () => hud.toggleBag(false) }, { id: "roster", close: () => hud.toggleRoster(false) },
       { id: "reso", close: () => hud.toggleReso(false) }, { id: "friends", close: () => hud.toggleFriends(false) }, { id: "world", close: () => hud.toggleWorld(false) },

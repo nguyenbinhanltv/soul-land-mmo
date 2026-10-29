@@ -1,41 +1,41 @@
 /* UI v2: hoàn thiện hub (đợt 4b, Part of #885): chấm đỏ / mũi tên xanh toàn hệ (kho badges.ts) trên rail hub và nút HUD cũ, mục rail "Chưa có", hộp Thông báo.
-   Mọi luật dưới `body.ui2` (cờ tắt mặc định: giao diện cũ không đổi). Chữ 10 / 12 (Galmuri), không ký tự ngoài phông nhúng; dấu hiệu là HÌNH (tròn / tam giác), không chỉ màu. */
+   Luật thường (đợt 5c-b: đã bỏ tiền tố body.ui2; luật cũ ở style.css gỡ ở đợt 5b). Chữ 10 / 12 (Galmuri), không ký tự ngoài phông nhúng; dấu hiệu là HÌNH (tròn / tam giác), không chỉ màu. */
 
 /* Dấu trên nút: tròn đỏ son = có việc mới, tam giác xanh ngọc = nâng được. Vẽ bằng CSS (cùng hình với dấu của thẻ ở ui2-parts.css). */
-body.ui2 .minibtn[data-badge],body.ui2 .hub-r[data-badge]{position:relative}
-body.ui2 .minibtn[data-badge]::after,body.ui2 .hub-r[data-badge]::after{content:"";position:absolute;right:var(--sp-1);top:var(--sp-1);width:10px;height:10px;box-sizing:border-box;pointer-events:none}
-body.ui2 [data-badge="new"]::after{border-radius:50%;background:var(--son-l);border:var(--bd-fine) solid var(--plate)}
-body.ui2 [data-badge="up"]::after{background:var(--accent);clip-path:polygon(50% 0,100% 100%,0 100%)}
+.minibtn[data-badge],.hub-r[data-badge]{position:relative}
+.minibtn[data-badge]::after,.hub-r[data-badge]::after{content:"";position:absolute;right:var(--sp-1);top:var(--sp-1);width:10px;height:10px;box-sizing:border-box;pointer-events:none}
+[data-badge="new"]::after{border-radius:50%;background:var(--son-l);border:var(--bd-fine) solid var(--plate)}
+[data-badge="up"]::after{background:var(--accent);clip-path:polygon(50% 0,100% 100%,0 100%)}
 
 /* Rail: mục chưa có chức năng mờ, con trỏ không-cho-bấm, lý do ở tooltip và aria-disabled (không bắt phím, không chạy hành động). */
-body.ui2 .hub-r.lock{cursor:not-allowed;opacity:.55;border-style:dashed}
-body.ui2 .hub-r.lock:hover{border-color:var(--ink2)}
+.hub-r.lock{cursor:not-allowed;opacity:.55;border-style:dashed}
+.hub-r.lock:hover{border-color:var(--ink2)}
 
 /* Hộp Thông báo (Giấy): danh sách mới nhất ở trên, mỗi dòng giờ / nhãn loại / nội dung; vạch trái theo loại (kèm nhãn chữ). */
-body.ui2 #notice{width:min(560px,calc(100vw - var(--sp-6) * 2))}
-body.ui2 .nt-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;overflow:auto;min-height:0;max-height:300px;background:var(--paper);color:var(--text);border:var(--bd) solid var(--line)}
-body.ui2 .nt-row{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:var(--sp-4);align-items:baseline;padding:var(--sp-3) var(--sp-4);border-bottom:var(--bd-fine) solid var(--line2);border-left:6px solid var(--line)}
-body.ui2 .nt-row[data-k="loot"]{border-left-color:var(--good)}
-body.ui2 .nt-row[data-k="quest"],body.ui2 .nt-row[data-k="level"]{border-left-color:var(--xp)}
-body.ui2 .nt-row[data-k="boss"]{border-left-color:var(--son-l)}
-body.ui2 .nt-t{font:var(--fs-s)/1.3 var(--f10);color:var(--muted);font-variant-numeric:tabular-nums}
-body.ui2 .nt-k{min-width:48px;padding:0 var(--sp-2);text-align:center;font:var(--fs-s)/1.4 var(--f10);background:var(--paper2);border:var(--bd-fine) solid var(--line)}
-body.ui2 .nt-b{display:flex;flex-direction:column;gap:var(--sp-1);min-width:0}
-body.ui2 .nt-title{font:var(--fs-m)/1.3 var(--f12);overflow-wrap:anywhere}
-body.ui2 .nt-sub{font:var(--fs-s)/1.3 var(--f10);color:var(--muted);overflow-wrap:anywhere}
+#notice{width:min(560px,calc(100vw - var(--sp-6) * 2))}
+.nt-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;overflow:auto;min-height:0;max-height:300px;background:var(--paper);color:var(--text);border:var(--bd) solid var(--line)}
+.nt-row{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:var(--sp-4);align-items:baseline;padding:var(--sp-3) var(--sp-4);border-bottom:var(--bd-fine) solid var(--line2);border-left:6px solid var(--line)}
+.nt-row[data-k="loot"]{border-left-color:var(--good)}
+.nt-row[data-k="quest"],.nt-row[data-k="level"]{border-left-color:var(--xp)}
+.nt-row[data-k="boss"]{border-left-color:var(--son-l)}
+.nt-t{font:var(--fs-s)/1.3 var(--f10);color:var(--muted);font-variant-numeric:tabular-nums}
+.nt-k{min-width:48px;padding:0 var(--sp-2);text-align:center;font:var(--fs-s)/1.4 var(--f10);background:var(--paper2);border:var(--bd-fine) solid var(--line)}
+.nt-b{display:flex;flex-direction:column;gap:var(--sp-1);min-width:0}
+.nt-title{font:var(--fs-m)/1.3 var(--f12);overflow-wrap:anywhere}
+.nt-sub{font:var(--fs-s)/1.3 var(--f10);color:var(--muted);overflow-wrap:anywhere}
 
 /* Cỡ chữ lớn (a11y-fs-1 / a11y-fs-2): ngăn kéo rộng hơn và lưới 3 cột (4 cột ở 360 px làm tên mục vỡ từng chữ); thừa chiều cao thì cuộn trong ngăn kéo (đã `overflow:auto`). */
-body.ui2.a11y-fs-1 #hub{width:min(480px,100vw)}
-body.ui2.a11y-fs-2 #hub{width:min(560px,100vw)}
-body.ui2.a11y-fs-1 .hub-grid,body.ui2.a11y-fs-2 .hub-grid{grid-template-columns:repeat(3,1fr)}
-body.ui2.a11y-fs-2 .hub-c-grid{min-height:64px}
-body.ui2.a11y-fs-1 .hub-c-grid .p2-card-t,body.ui2.a11y-fs-2 .hub-c-grid .p2-card-t{overflow-wrap:break-word}
+.a11y-fs-1 #hub{width:min(480px,100vw)}
+.a11y-fs-2 #hub{width:min(560px,100vw)}
+.a11y-fs-1 .hub-grid,.a11y-fs-2 .hub-grid{grid-template-columns:repeat(3,1fr)}
+.a11y-fs-2 .hub-c-grid{min-height:64px}
+.a11y-fs-1 .hub-c-grid .p2-card-t,.a11y-fs-2 .hub-c-grid .p2-card-t{overflow-wrap:break-word}
 
 /* Chú giải dấu ở chân hub (đợt 1a còn lại): cùng hình với dấu trên thẻ (tròn đỏ = mới, tam giác = nâng được, ô vuông đứt nét = khoá), kèm chữ. */
-body.ui2 #hub.f2-muc-lon{grid-template-rows:auto 1fr auto;grid-template-areas:"hd hd" "main rail" "leg leg"}
-body.ui2 .hub-legend{grid-area:leg;position:sticky;bottom:calc(var(--sp-5) * -1);margin:0 calc(var(--sp-5) * -1) calc(var(--sp-5) * -1);padding:var(--sp-3) var(--sp-5);background:var(--plate);display:flex;flex-wrap:wrap;gap:var(--sp-2) var(--sp-5);border-top:var(--bd-fine) solid var(--ink2);font:var(--fs-s)/1.3 var(--f10);color:var(--paper3)}
-body.ui2 .hub-legend span{display:inline-flex;align-items:center;gap:var(--sp-3)}
-body.ui2 .hub-legend span::before{content:"";box-sizing:border-box;width:10px;height:10px}
-body.ui2 .hub-legend [data-k="new"]::before{border-radius:50%;background:var(--son-l)}
-body.ui2 .hub-legend [data-k="up"]::before{background:var(--accent);clip-path:polygon(50% 0,100% 100%,0 100%)}
-body.ui2 .hub-legend [data-k="lock"]::before{border:var(--bd-fine) dashed var(--paper3)}
+#hub.f2-muc-lon{grid-template-rows:auto 1fr auto;grid-template-areas:"hd hd" "main rail" "leg leg"}
+.hub-legend{grid-area:leg;position:sticky;bottom:calc(var(--sp-5) * -1);margin:0 calc(var(--sp-5) * -1) calc(var(--sp-5) * -1);padding:var(--sp-3) var(--sp-5);background:var(--plate);display:flex;flex-wrap:wrap;gap:var(--sp-2) var(--sp-5);border-top:var(--bd-fine) solid var(--ink2);font:var(--fs-s)/1.3 var(--f10);color:var(--paper3)}
+.hub-legend span{display:inline-flex;align-items:center;gap:var(--sp-3)}
+.hub-legend span::before{content:"";box-sizing:border-box;width:10px;height:10px}
+.hub-legend [data-k="new"]::before{border-radius:50%;background:var(--son-l)}
+.hub-legend [data-k="up"]::before{background:var(--accent);clip-path:polygon(50% 0,100% 100%,0 100%)}
+.hub-legend [data-k="lock"]::before{border:var(--bd-fine) dashed var(--paper3)}
