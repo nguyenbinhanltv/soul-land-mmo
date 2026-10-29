@@ -3,7 +3,7 @@
 // Phần chạy trong phòng (tin `rank`, mốc ghi, ArenaRoom chặn) do bot thử (BOT_ONLY=rank). Chạy: npm run test:rank --prefix server
 import assert from "node:assert/strict";
 import { MemoryStore } from "../src/db.ts";
-import { RANK_BOARDS, RANK_PAGE_MAX, RANK_POWER, TEAM_SIZE, calcStats, powerScore, rankBoardOf, rankCompare, rankScores, teamPowerScore } from "../../shared/data.ts";
+import { RANK_BOARDS, RANK_PAGE_DEPTH, RANK_PAGE_MAX, RANK_POWER, TEAM_SIZE, calcStats, powerScore, rankBoardOf, rankCompare, rankScores, teamPowerScore } from "../../shared/data.ts";
 
 function test(title: string, fn: () => void | Promise<void>) { return Promise.resolve(fn()).then(() => console.log(`✓ ${title}`)); }
 const v = (rowId: number, vohon: string, level: number, xp: number, stars: number) => ({ rowId, vohon, level, xp, stars });
@@ -93,6 +93,27 @@ await test("phân trang: total, hasNext, trang cuối, trang quá cuối rỗng,
   assert.equal(p2.rows.length, 5); assert.equal(p2.hasNext, false); assert.equal(p2.rows[0].rank, RANK_PAGE_MAX + 1);
   assert.equal((await s.rankTop("cap", 0, 99, 10)).rows.length, 0);
   assert.equal((await s.rankTop("cap", 0, -3, 10)).page, 1, "trang < 1 về trang 1");
+});
+await test("soát X5: trang xa kẹp về RANK_PAGE_DEPTH và hết hasNext (khoá cache có trần)", async () => {
+  const s = new MemoryStore(); const n = RANK_PAGE_MAX * RANK_PAGE_DEPTH + 7;
+  for (let i = 1; i <= n; i++) { s.names.set(i, `P${i}`); await put(s, i, 1 + (i % 90), i); }
+  const far = await s.rankTop("cap", 0, RANK_PAGE_DEPTH + 40, RANK_PAGE_MAX), last = await s.rankTop("cap", 0, RANK_PAGE_DEPTH, RANK_PAGE_MAX);
+  assert.equal(far.page, RANK_PAGE_DEPTH); assert.deepEqual(far.rows.map((r) => r.rank), last.rows.map((r) => r.rank));
+  assert.equal(far.hasNext, false, "trang xa nhất không còn trang kế dù còn người phía sau"); assert.equal(far.total, n);
+  assert.equal((await s.rankTop("cap", 0, RANK_PAGE_DEPTH - 1, RANK_PAGE_MAX)).hasNext, true);
+});
+await test("soát X5: mọi hạng mục (kể cả Sức mạnh) ẩn tài khoản test, kể cả hạng của chính nó; cùng điểm thì phụ rồi ai đạt trước", async () => {
+  const s = new MemoryStore(); for (const [i, n] of [[1, "A"], [2, "T"], [3, "C"], [4, "D"]] as const) s.names.set(i, n);
+  const owned = [v(1, "a", 20, 0, 1)];
+  for (const id of [1, 2, 3, 4]) await s.rankPut(id, rankScores(owned, [1], id === 2 ? 99999 : 500).map((r) => ({ board: r.board, period: 0, score: r.score, tie: r.tie, extra: r.lineup })));
+  await s.rankPut(3, rankScores([v(1, "a", 25, 0, 1)], [1], 500).map((r) => ({ board: r.board, period: 0, score: r.score, tie: r.tie, extra: r.lineup }))); // C: cùng điểm Sức mạnh, đội cấp cao hơn
+  s.tests.add(2);
+  for (const b of RANK_BOARDS) {
+    const t = await s.rankTop(b.code, 0, 1, 10);
+    assert.ok(!t.rows.some((r) => r.name === "T"), `${b.code}: tài khoản test không lên bảng`); assert.equal(await s.rankMe(b.code, 0, 2), null, `${b.code}: tài khoản test không có hạng`);
+  }
+  const pw = await s.rankTop("suc_manh", 0, 1, 10);
+  assert.deepEqual(pw.rows.map((r) => r.name), ["C", "A", "D"], "cùng 500: tổng cấp cao hơn trước, rồi ai đạt mốc trước");
 });
 await test("xoá tài khoản test xoá cả dòng rank_scores", async () => {
   const s = new MemoryStore(); s.accounts.set("t", { id: 1, pass: "x" }); s.names.set(1, "T"); s.tests.add(1);
