@@ -1,6 +1,6 @@
-# UI Kit v2: luật chất liệu, token, luật vẽ AI (bản 1)
+# UI gốc (kit Mực + Giấy): luật chất liệu, token, luật vẽ AI
 
-Style guide của giao diện HTML (HUD, bảng, hộp thoại). Theo dõi: #877 (UI Kit v2), việc này là #878 (P0). Hướng đã chốt ngày 2026-10-26 (chủ repo, ở #877): **hướng B, hai chất liệu có luật**; chỉ PC (Q40); vùng bấm 44 px cho nút hành động chính; kit **2×** chốt sau thử nghiệm (mục "Kit 1× hay 2×"); phông Galmuri 10 / 12 / 24; icon hybrid; chuyển bằng cờ `ui2`. Luật nằm ở đây, **không** nằm trong issue: issue chỉ chứa việc. Bản 1 ghi luật + token + prompt BOARD; công cụ cắt / kiểm tờ (P1, đã có: mục "Công cụ tờ UI"), skill (P2), lớp token và cờ `ui2` (P5) đến sau và sẽ sửa tài liệu này.
+Style guide của giao diện HTML (HUD, bảng, hộp thoại). **UI gốc** là giao diện duy nhất của game (chủ repo chốt 2026-10-26 ở #877, UI mặc định từ 29/10): **hai chất liệu có luật** (Mực, Giấy); chỉ PC (Q40); vùng bấm 44 px cho nút hành động chính; kit **2×** (mục "Kit 1× hay 2×"); phông Galmuri 10 / 12 / 24; icon hybrid. Luật nằm ở đây, **không** nằm trong issue: issue chỉ chứa việc. Theo dõi: #877, #885, #886.
 
 Liên quan: `docs/design/giao-dien.md` (bố cục, hành vi bảng), skill `client-ui` (cách code), `docs/art/nguon-giay-phep.md` (nguồn / giấy phép ảnh).
 
@@ -14,7 +14,7 @@ Liên quan: `docs/design/giao-dien.md` (bố cục, hành vi bảng), skill `cli
 | Nền chung | `--bg`, `--ink-panel`, `--plate`, `--track` | `--paper`, `--paper2`, `--panel` |
 
 Luật dùng:
-1. Một màn một chất liệu chính. Không đặt bảng Giấy cạnh bảng Mực cùng vai trò (lỗi hiện tại: Nhân vật tối, Túi be). Ngoại lệ có chủ đích: hộp thoại / hướng dẫn (Giấy) nổi trên HUD (Mực).
+1. Một màn một chất liệu chính. Không đặt bảng Giấy cạnh bảng Mực cùng vai trò. Ngoại lệ có chủ đích: hộp thoại / hướng dẫn (Giấy) nổi trên HUD (Mực).
 2. **Dùng chung** hai chất liệu: bộ góc, độ dày viền, bảng màu, đồng nhạt. Khác nhau chỉ ở nền và màu chữ.
 3. Vật liệu phụ: **ngọc** (`--accent`, `--good`) cho trạng thái tốt / đang bật; **vàng** (`--xp`, chữ trên giấy `--xp-t`) cho kinh nghiệm / tiền; **son** (`--son*`) cho hành động chính và cảnh báo. Mỗi vật liệu chỉ một vai trò.
 4. **Độ hiếm / niên hạn không chỉ bằng màu**: `--tier-N` (do `uiArt.ts` đặt từ `TIERS`, không chép số) đi cùng dạng góc hoặc dấu. Trạng thái cũng vậy (mục "Trạng thái").
@@ -54,7 +54,7 @@ Một danh sách duy nhất, khai ở `:root` của `client/src/style.css`. Màu
 | độ hiếm / niên hạn | `--tier-N`, `--tier-N-glow`, `--rare-N` | từ `TIERS`, không chép số |
 | viền chữ | `--stroke` | |
 
-Đề xuất thêm khi kit mẫu được duyệt (làm ở P5 #883, **cần chủ repo duyệt cùng cổng 1**): đồng nhạt cho viền Mực (gợi ý `#b08a4a`), `--surface-ink-raised` cho ô nổi trên nền Mực, `--info` (hiện dùng lẻ `#5aa8c0`, `#8ec5ff`). Mỗi màu lẻ trong CSS cũ khi gặp thì thay bằng token gần nhất, **không** thêm màu mới ngoài bảng.
+Đề xuất thêm khi kit mẫu được duyệt (#883, **cần chủ repo duyệt**): đồng nhạt cho viền Mực (gợi ý `#b08a4a`), `--surface-ink-raised` cho ô nổi trên nền Mực, `--info` (hiện dùng lẻ `#5aa8c0`, `#8ec5ff`). Mỗi màu lẻ trong CSS cũ khi gặp thì thay bằng token gần nhất, **không** thêm màu mới ngoài bảng.
 
 Tương phản chữ ≥ 4,5 : 1 (chữ thân), ≥ 3 : 1 (chữ ≥ 24 px, biểu tượng). Bảng đo cũ: báo cáo U0 #753.
 
@@ -132,7 +132,7 @@ Nếu chủ repo muốn đơn giản hơn: một bản 2× thôi và chấp nh�
 
 ### Prompt BOARD (cho #881)
 
-Tờ BOARD: **một ảnh 3:2 (1536×1024)** cho hướng B, chỉ để chủ repo duyệt phong cách và làm ảnh tham chiếu cho các tờ sau. Ảnh tham chiếu gửi kèm: (a) ảnh chụp hiện trạng `1366x768` của HUD, Nhân vật, Túi, hộp thoại NPC (trang xem trước của #878); (b) ba mảnh C2 đã duyệt (`nv6_nen_bup_be`, `thong_bao_len_cap`, `khung_tab_nhan_vat`) làm chuẩn **Mực**; (c) swatch bảng màu thủy mặc. Thử tối đa 3 lượt; mỗi lượt đổi **một** thứ.
+Tờ BOARD: **một ảnh 3:2 (1536×1024)** cho UI gốc, chỉ để chủ repo duyệt phong cách và làm ảnh tham chiếu cho các tờ sau. Ảnh tham chiếu gửi kèm: (a) ảnh chụp hiện trạng `1366x768` của HUD, Nhân vật, Túi, hộp thoại NPC (trang xem trước của #878); (b) ba mảnh C2 đã duyệt (`nv6_nen_bup_be`, `thong_bao_len_cap`, `khung_tab_nhan_vat`) làm chuẩn **Mực**; (c) swatch bảng màu thủy mặc. Thử tối đa 3 lượt; mỗi lượt đổi **một** thứ.
 
 ```
 Ảnh minh hoạ giao diện game MMO pixel art, kiểu isometric Ultima Online pha thủy mặc tiên hiệp (chủ đề Đấu La Đại Lục).
@@ -146,7 +146,7 @@ pixel sắc nét, không làm mờ, không đổ bóng ra nền, không gradient
 Nhất quán ánh sáng và độ dày nét giữa mọi khung. Phía sau bảng là cảnh làng cổ tối, chỉ gợi, không chi tiết.
 ```
 
-Duyệt BOARD (mức B, trang xem trước): chủ repo chọn hướng (A / B / C), pipeline giữ nguyên nếu đổi hướng, chỉ đổi BOARD và prompt.
+Duyệt BOARD (mức B, trang xem trước): chủ repo duyệt phong cách; đổi phong cách thì chỉ đổi BOARD và prompt, pipeline giữ nguyên.
 
 ## Kiểm kê và chụp ảnh (công cụ của P0)
 
@@ -195,7 +195,7 @@ Ghi chú đo: vạch 9-slice đề xuất = max(độ dày viền, tầm với h
 
 Không công cụ nào sửa được (phải vẽ lại): chữ, hoa văn thật dọc cạnh quá 8% diện tích, hai chất liệu lẫn, mảnh dính nhau, cạnh ngắn bị vạch góc nuốt hết (ảnh gốc phẳng, chỉ lệch khi kéo ×3, báo trong mô tả chặn). Spec mảnh có thêm `"mirror": false` cho mảnh không đối xứng (tab hở đáy: dựng gương sẽ khép đáy). Sửa phép đo `edgeFlatness`: hàng thân cạnh trong suốt đồng nhất (≤ 5% điểm đặc: ngọc giữa cạnh nhô ra, tab hở đáy) không còn bị đếm là lệch; viền lởm chởm của tranh vẽ tay vẫn bị chặn (test C2).
 
-Chưa làm ở P1: đổi nguồn `--frame-*` / cờ `ui2` (P5), nhập mảnh vào `shared/assets` (PR từng màn). Fixture thử: 7 mảnh C2 + khung UI-5 thật phóng lên tờ giả, khung tổng hợp có lỗi cố ý (`tools/assets/ui-sheet-fixture.mjs`).
+Fixture thử: 7 mảnh C2 + khung UI-5 thật phóng lên tờ giả, khung tổng hợp có lỗi cố ý (`tools/assets/ui-sheet-fixture.mjs`).
 
 ## Skill, prompt, trang bộ component, CI nhẹ (P2, #880)
 
@@ -212,7 +212,7 @@ CI nhẹ: job `ui-sheet-check` (`docs/ops/ci.md` mục "CI nhẹ cho tờ UI"). 
 
 ## Hướng nghệ thuật tu tiên (nháp chờ duyệt)
 
-**Trạng thái: NHÁP, chủ repo chưa duyệt (#877).** Lý do: UI hiện tại (kit Mực / Giấy, BOARD hướng B) chưa "chất"; muốn thiên hướng tu tiên đỉnh cao, hài hòa, đồng bộ với hướng võ hồn bá đạo. Chưa đổi kit, token, màn nào; chỉ công cụ sinh prompt có thêm cờ để thử.
+**Trạng thái: NHÁP, chủ repo chưa duyệt (#877).** Lý do: UI gốc (kit Mực / Giấy) chưa "chất"; muốn thiên hướng tu tiên đỉnh cao, hài hòa, đồng bộ với hướng võ hồn bá đạo. Chưa đổi kit, token, màn nào; chỉ công cụ sinh prompt có thêm cờ để thử.
 
 Cảm giác đích: một cuộn pháp bảo hiện giữa hư không: nền tối sâu, linh khí chảy dọc viền, vàng kim và ngọc chỉ ở chỗ cần chú ý, giấy cổ cho phần đọc; mỗi màn **một điểm sáng** (hồn lực).
 
@@ -231,13 +231,13 @@ Hai hướng thử (chủ repo chọn sau khi xem BOARD của từng hướng):
 - **`ngoc-kim`** (Ngọc – Kim): tím than + lưu ly, khung vàng đồng cổ chạm vân ở góc, nút ngọc bích; "tiên môn hoàng gia".
 - **`thuy-mac`** (Thủy mặc – Chu sa): mực đen loang, nét cọ, giấy dó, dấu chu sa; tối giản, "ẩn thế cao nhân".
 
-Điều cần tránh: chữ nghệ thuật dài khó đọc, đổ bóng gradient nhựa, nhiều viền kép, màu bão hòa chói, icon kiểu hoạt hình, chép hình / biểu tượng game khác. Ràng buộc kỹ thuật không đổi (2× pixel-friendly, 9-slice, token `ui2`, vùng bấm 32 / 44 px, phông Galmuri, ảnh sinh bằng Codex qua `ui-sheet-*`).
+Điều cần tránh: chữ nghệ thuật dài khó đọc, đổ bóng gradient nhựa, nhiều viền kép, màu bão hòa chói, icon kiểu hoạt hình, chép hình / biểu tượng game khác. Ràng buộc kỹ thuật không đổi (2× pixel-friendly, 9-slice, token `--ui2-*`, vùng bấm 32 / 44 px, phông Galmuri, ảnh sinh bằng Codex qua `ui-sheet-*`).
 
-Công cụ: `npm run ui:prompt -- --kind <loại> --style ngoc-kim|thuy-mac ...` thay khối STYLE bằng khối của hướng (bảng màu, chất liệu, lưu bạch, một điểm sáng) và thêm khối `AVOID`; áp cho mọi loại tờ (BOARD, F, N, O, T, I, D). Không có `--style` thì giữ nguyên hành vi cũ (hướng B). Nội dung hai khối nằm ở `STYLES` trong `tools/assets/ui-sheet-prompt.mjs`. Bước kế (sau khi duyệt): Codex sinh BOARD cho từng hướng (3 lượt mỗi hướng), chủ repo chọn, rồi mới làm lại kit F / N / O / T và áp dụng cho màn đầu.
+Công cụ: `npm run ui:prompt -- --kind <loại> --style ngoc-kim|thuy-mac ...` thay khối STYLE bằng khối của hướng (bảng màu, chất liệu, lưu bạch, một điểm sáng) và thêm khối `AVOID`; áp cho mọi loại tờ (BOARD, F, N, O, T, I, D). Không có `--style` thì dùng phong cách UI gốc. Nội dung hai khối nằm ở `STYLES` trong `tools/assets/ui-sheet-prompt.mjs`. Bước kế (sau khi duyệt): Codex sinh BOARD cho từng hướng (3 lượt mỗi hướng), chủ repo chọn, rồi mới làm lại kit F / N / O / T và áp dụng cho màn đầu.
 
 ### Hồn Quang Tiên Môn — BOARD v3 (thử hướng lai, #1260)
 
-Chủ repo yêu cầu kết hợp tu tiên và Đấu La (29/10/2026). `--style hon-quang` là hướng thử riêng; BOARD chờ chủ repo chọn trước khi làm lại kit. Hướng B mặc định và kit đang chạy giữ nguyên.
+Chủ repo yêu cầu kết hợp tu tiên và Đấu La (29/10/2026). `--style hon-quang` là hướng thử riêng; BOARD chờ chủ repo chọn trước khi làm lại kit. UI gốc và kit đang chạy giữ nguyên.
 
 | Lớp | Phân vai |
 |---|---|
@@ -254,16 +254,15 @@ Sinh bằng `npm run ui:prompt -- --kind BOARD --style hon-quang --out <thư m�
 
 Tối đa ba lượt, mỗi lượt sửa một ý trong công cụ rồi sinh lại prompt, không dùng ảnh lỗi làm tham chiếu. `ui:check --kind BOARD` chỉ kiểm cỡ / tỉ lệ; lưới, số ô, cạnh phẳng, một hồn quang, chất liệu, chữ lạc và tính nhất quán phải tự duyệt bằng mắt. Lưu ảnh gốc cùng prompt vào `art/src/ui-kit/candidates/`, ghi nguồn ở `art/CREDITS.md`; không cắt / nhập hoặc thay BOARD đã duyệt. Chủ repo chọn BOARD trước khi tiếp tục F/N/O/T.
 
-## Lớp token ui2 (P5, #883)
+## Lớp token kit (`--ui2-*`, #883)
 
-Cờ `ui2` chạy song song giao diện cũ và **BẬT mặc định từ đợt 5a** (chủ repo quyết 29/10): không tham số, không giá trị lưu thì bật. `?ui=0` tắt (lối thoát một đợt, lưu `shh-ui2=0` ở localStorage), `?ui=2` bật lại (lưu `1`). Tắt thì không đổi gì (không đặt biến, không thêm lớp); bật thì `body.ui2`. Màn chưa có bản ui2 vẫn chạy giao diện cũ bình thường (luật cũ còn nguyên trong `style.css`). Gỡ cờ ở đợt 5c, gỡ luật cũ ở 5b. Test: `ui2-test` kiểm mặc định bật / `?ui=0` / `?ui=2`; test trình duyệt (`flow-`, `panel-`, `actionbar-browser`) chạy mặc định ui2, `C8_UI0=1` để chạy giao diện cũ; `client/scripts/ui-shots.mjs` chụp mặc định ui2, `--ui0` chụp giao diện cũ, thêm cảnh `hub`, `npc`, `cua-hang`, `tho-ren`.
+Lớp `body.ui2` luôn có (tên lớp và tiền tố `ui2-*` ở mã / CSS còn giữ tên cũ; gỡ cờ và đổi tên ở đợt 5b / 5c, `ROADMAP.md`). Test: `ui2-test` kiểm lớp và token; test trình duyệt (`flow-`, `panel-`, `actionbar-browser`) và `client/scripts/ui-shots.mjs` chạy trên UI gốc, thêm cảnh `hub`, `npc`, `cua-hang`, `tho-ren`.
 
 - `client/src/uiKit.ts`: đọc mảnh `ui2_<tên>` trong manifest ảnh (mảnh do `ui:cut` xuất; `nine` = `{ x2, x1 }`; ảnh ở `sprites/iso/ui2/2x/` và `1x/`) thành `--ui2-<tên>` (ảnh), `--ui2-<tên>-nine` (vạch cắt của bản đang dùng), `--ui2-<tên>-bw` (độ dày viền CSS = vạch / hệ số kit). Bản 2× khi `--u` × DPR ≥ 2, ngược lại 1× (tính lại khi đổi cỡ). Có mảnh nào thì body có lớp `ui2-k-<tên>`.
-- `client/src/ui2.css`: helper khung theo vai trò, gắn lớp vào phần tử: Mực `f2-muc-lon` / `f2-muc-nho`, Giấy `f2-giay-lon` / `f2-giay-nho`, `f2-tooltip`, `f2-toast`, ô `f2-o`, tab `f2-tab`, nút `f2-nut-chinh` / `f2-nut-phu` (trạng thái theo `:hover` / `:active` / `.sel` / `:disabled`). Đây là chỗ **duy nhất** đặt `border-width`, `border-image-slice`, `border-image-width` của kit v2 (qua `--frame-img`, `--frame-nine`, `--frame-bw`); luôn `pixelated`. Màn chuyển ở P7 gắn lớp `f2-*` và gỡ luật khung riêng của nó (chỉ trong chế độ ui2: luật cũ vẫn ở đó cho giao diện hiện tại).
-- URL ảnh kit đặt vào biến CSS là **URL tuyệt đối** (`applyUi2`): url() tương đối trong biến bị phân giải theo tệp CSS đã build nên ở bản build khung kit mất ảnh (sửa ở PR hub / màn hệ thống).
-- Kit đã nhập (mục "Nhập kit vào game"): lớp `ui2-k-*` có thật khi `?ui=2`, helper áp; tắt cờ thì không đặt biến, không tải ảnh kit, giao diện cũ không đổi. Mảnh nhập mới không cần sửa helper.
-- Chưa chuyển màn nào (P7). Token `--frame-*` cũ (`--frame-panel`, `--frame-btn`...) giữ nguyên cho tới P8.
-- Test: `npm run test:ui2 --prefix client` (cờ, bản kit, token, vạch 9-slice ≤ nửa cạnh và độ dày = vạch / hệ số kit trên manifest kit, ui2.css chỉ đi qua token và chỉ dùng mảnh có trong spec).
+- `client/src/ui2.css`: helper khung theo vai trò, gắn lớp vào phần tử: Mực `f2-muc-lon` / `f2-muc-nho`, Giấy `f2-giay-lon` / `f2-giay-nho`, `f2-tooltip`, `f2-toast`, ô `f2-o`, tab `f2-tab`, nút `f2-nut-chinh` / `f2-nut-phu` (trạng thái theo `:hover` / `:active` / `.sel` / `:disabled`). Đây là chỗ **duy nhất** đặt `border-width`, `border-image-slice`, `border-image-width` của kit (qua `--frame-img`, `--frame-nine`, `--frame-bw`); luôn `pixelated`. Màn mới gắn lớp `f2-*`, không viết luật khung riêng.
+- URL ảnh kit đặt vào biến CSS là **URL tuyệt đối** (`applyUi2`): url() tương đối trong biến bị phân giải theo tệp CSS đã build nên ở bản build khung kit mất ảnh .
+- Kit đã nhập (mục "Nhập kit vào game"): lớp `ui2-k-*` có thật, helper áp. Mảnh nhập mới không cần sửa helper.
+- Test: `npm run test:ui2 --prefix client` (lớp, bản kit, token, vạch 9-slice ≤ nửa cạnh và độ dày = vạch / hệ số kit trên manifest kit, `ui2.css` chỉ đi qua token và chỉ dùng mảnh có trong spec).
 
 ## Nhập kit vào game (`ui:import`, #885)
 
@@ -271,37 +270,26 @@ Cờ `ui2` chạy song song giao diện cũ và **BẬT mặc định từ đợ
 - ảnh `shared/assets/sprites/iso/ui2/2x/` và `1x/` (`ui2_<tên>.png`);
 - mục `{ "key": "ui2_<tên>", "iso": true, "nine": { "x2", "x1" } }` vào `shared/assets/sprites/manifest.json` (chỉ thay các dòng `ui2_*`, mục khác giữ nguyên từng byte; không sửa tay);
 - `pieces` / `groups` ở `art/src/ui-kit/ui-kit.json`.
-`npm run ui:import -- --check` (có trong `test:assets`) báo lỗi nếu ảnh hoặc manifest lệch với kết quả cắt (cắt tất định). Tờ mới hoặc mảnh vẽ lại: sửa `PLAN` rồi chạy lại. `validate.mjs` nhận khoá `ui2_*` (kiểu `ui2`: bảng màu do cutter giữ, cần cả bản 1×). Phaser bỏ qua khoá này; ảnh chỉ được tải bởi CSS khi cờ `ui2` bật. Vạch 9-slice được giới hạn để 2 × vạch 1× vẫn nhỏ hơn cạnh ngắn (tab thấp 20 điểm ở 1×). Chưa nhập: nút / ô / thanh Giấy và 2 tab Giấy (chưa có chỗ dùng ở `ui2.css`), tờ icon pilot (#884).
+`npm run ui:import -- --check` (có trong `test:assets`) báo lỗi nếu ảnh hoặc manifest lệch với kết quả cắt (cắt tất định). Tờ mới hoặc mảnh vẽ lại: sửa `PLAN` rồi chạy lại. `validate.mjs` nhận khoá `ui2_*` (kiểu `ui2`: bảng màu do cutter giữ, cần cả bản 1×). Phaser bỏ qua khoá này; ảnh do CSS tải. Vạch 9-slice được giới hạn để 2 × vạch 1× vẫn nhỏ hơn cạnh ngắn (tab thấp 20 điểm ở 1×). Chưa nhập: nút / ô / thanh Giấy và 2 tab Giấy (chưa có chỗ dùng ở `ui2.css`), tờ icon pilot (#884).
 
-## Khung màn chuẩn và thành phần nhỏ (đợt 1 của bộ spec UI, #885)
+## Khung màn chuẩn và thành phần nhỏ (#885)
 
 `client/src/uiParts.ts` + `client/src/ui2-parts.css` (mọi luật dưới `body.ui2`, màu qua token, chữ 10 / 12 / 24). Chỉ trình bày: số liệu, trạng thái và giờ do server quyết.
-- **Khung màn** `screenFrame({ material: "muc" | "giay", title, badge, info, currency, nav, primary, onNav, onPrimary })`: huy hiệu + tên + nút `i` (trái-trên), vùng tiền tệ ngữ cảnh (phải-trên), cột điều hướng trái, **một** nút chính phải-dưới (44 px, `f2-nut-chinh`; khoá thì hiện lý do cạnh nút). Cờ `ui2` tắt thì trả `null` (màn giữ bảng cũ). Nội dung màn đặt vào `frame.body`; khung ăn kit qua `f2-muc-lon` / `f2-giay-lon`.
+- **Khung màn** `screenFrame({ material: "muc" | "giay", title, badge, info, currency, nav, primary, onNav, onPrimary })`: huy hiệu + tên + nút `i` (trái-trên), vùng tiền tệ ngữ cảnh (phải-trên), cột điều hướng trái, **một** nút chính phải-dưới (44 px, `f2-nut-chinh`; khoá thì hiện lý do cạnh nút). (Mã còn nhánh trả `null` khi thiếu lớp `ui2`; gỡ ở đợt 5b / 5c.) Nội dung màn đặt vào `frame.body`; khung ăn kit qua `f2-muc-lon` / `f2-giay-lon`.
 - **Thẻ có nhãn trạng thái** `statusCard({ title, sub, state, reason, rank, limit, onClick })`: `new` chấm đỏ, `up` mũi tên xanh, `done` tick + gạch tên, `lock` xám + lý do (không có lý do thì hiện "Chưa mở"; thẻ khoá không phát `onClick`), `rank` 0…4 là màu nền theo `--rare-N` kèm vạch góc dài dần, `limit` là nhãn đầu thẻ. Mỗi dấu một hình riêng (không chỉ màu).
 - **Công tắc** `toggle({ label, on, disabled, onChange })` (`role=switch`; màn gửi server rồi gọi `set` nếu bị từ chối), **đồng hồ đếm ngược** `countdown({ target, now, label, onEnd })` (`role=timer`; `now` là đồng hồ máy chủ; dưới `COUNTDOWN_SOON_MS` đổi viền đứt nét; hết giờ viền chấm, "Đã hết"; tự dừng khi rời cây DOM), `abbrevNumber` (1,2K / 12,5M).
-- **Bộ thành phần đợt 0b** (kế hoạch UI v2 mã 0b; chỉ trình bày, không đổi logic; cây dựng thuần + hàm DOM cùng tên bỏ "Node"): `stateBox({ kind: "loading" | "empty" | "error", text, hint, onRetry })` (tải = bộ xương `aria-busy`, rỗng = câu + gợi ý việc làm, lỗi = `role=alert` + nút Thử lại; rút từ `rankScreen`, màn cũ chưa đổi), `select({ label, options, value, onChange })` (hộp xổ: ↑ ↓ Home End Enter, Esc đóng danh sách và không lan lên ngăn xếp bảng, mục khoá bị bỏ qua), `qty({ label, max, min, step, value, onChange })` (thanh trượt + nút - / + / Tối đa; `clampQty` ép số, `setMax` khi kho đổi), `tabs({ label, tabs, vertical, onSelect })` (ngang hình thang, chọn = cao hơn một bậc; dọc = ô icon 44 px, vạch trái, chữ chỉ cho trình đọc; tab khoá có lý do; có mảnh kit `tab_thuong` thì kit thay khung), `itemSlot({ name, icon, qty, state, reason, rank, selected, empty, onClick })` (ô 48 px: viền + góc cắt theo hạng, `x1,2K` đáy phải, nhãn mới / nâng / khoá ở góc, khoá không phát `onClick`). Icon là ký tự có trong Galmuri (icon ảnh gắn ở đợt 0c). Trang xem trước thêm khối "đợt 0b" (mở bằng `#parts` để chỉ xem khối này).
+- **Bộ thành phần dùng chung** (chỉ trình bày, không đổi logic; cây dựng thuần + hàm DOM cùng tên bỏ "Node"): `stateBox({ kind: "loading" | "empty" | "error", text, hint, onRetry })` (tải = bộ xương `aria-busy`, rỗng = câu + gợi ý việc làm, lỗi = `role=alert` + nút Thử lại), `select({ label, options, value, onChange })` (hộp xổ: ↑ ↓ Home End Enter, Esc đóng danh sách và không lan lên ngăn xếp bảng, mục khoá bị bỏ qua), `qty({ label, max, min, step, value, onChange })` (thanh trượt + nút - / + / Tối đa; `clampQty` ép số, `setMax` khi kho đổi), `tabs({ label, tabs, vertical, onSelect })` (ngang hình thang, chọn = cao hơn một bậc; dọc = ô icon 44 px, vạch trái, chữ chỉ cho trình đọc; tab khoá có lý do; có mảnh kit `tab_thuong` thì kit thay khung), `itemSlot({ name, icon, qty, state, reason, rank, selected, empty, onClick })` (ô 48 px: viền + góc cắt theo hạng, `x1,2K` đáy phải, nhãn mới / nâng / khoá ở góc, khoá không phát `onClick`). Icon là ký tự có trong Galmuri (icon ảnh gắn ở đợt 0c). Trang xem trước thêm khối "đợt 0b" (mở bằng `#parts` để chỉ xem khối này).
 - Cây dựng là hàm thuần (`frameNode`, `cardNode`, `toggleNode`, `countdownNode`, `toHtml`) để test bằng node và dựng trang xem trước: `node --experimental-strip-types tools/assets/ui-parts-preview.mjs --out <thư mục ngoài repo>` (mọi trạng thái × 3 nền × 3 cỡ × Mực / Giấy, nút đổi kit 1× / 2×). Test: `npm run test:uiparts --prefix client`.
-- Đã dùng ở: menu hub (#1208), HUD chính (P7a: `client/src/ui2-hud.css` — khung nhân vật / tổ đội / minimap = `f2-muc-nho`, nút tắt = `f2-nut-phu`, ô hồn kỹ / hồn cốt / vật phẩm / đội hình = `f2-o`, toast = `f2-toast`; luật `#id` cũ của HUD được lặp lại đúng bộ viền kit trong `#hud`, chỉ dưới `body.ui2`), HUD phụ (đợt 1d: `client/src/ui2-hud-side.css` — thanh boss, xếp hạng sát thương, mục tiêu, cổng, waypoint, dung hợp kỹ, menu người chơi = `f2-muc-nho`, `hudBoss.ts` gắn lớp khi bật cờ; tổ đội / nhiệm vụ chỉnh theo token), đấu trường + màn gục (`client/src/ui2-arena.css`: hàng đợi, thanh trận, bảng kết quả, màn đếm ngược gục do `deathShow` / `deathTick` ở `hudArena.ts`; server tự hồi sinh sau `RESPAWN_SECS` nên màn gục không có nút lựa chọn), bảng Bạn bè (`client/src/ui2-social.css`: trạng thái trực tuyến bằng chấm hình + chữ); phản hồi giao diện (đợt 1c #599 / #755: `client/src/ui2-feedback.css` — chú thích `#tip` = `f2-tooltip`, chip lệnh `#cmdChip` và banner `#banner` = `f2-muc-nho`, chip "×n" của toast; lớp gắn khi bật cờ ở `tooltip.ts` / `cmdChip.ts` / `feedback.ts`). Màn lõi còn lại ở đợt sau.
+- Đã dùng ở: menu hub (#1208), HUD chính (`client/src/ui2-hud.css` — khung nhân vật / tổ đội / minimap = `f2-muc-nho`, nút tắt = `f2-nut-phu`, ô hồn kỹ / hồn cốt / vật phẩm / đội hình = `f2-o`, toast = `f2-toast`; luật `#id` cũ của HUD được lặp lại đúng bộ viền kit trong `#hud`, chỉ dưới `body.ui2`), HUD phụ (`client/src/ui2-hud-side.css` — thanh boss, xếp hạng sát thương, mục tiêu, cổng, waypoint, dung hợp kỹ, menu người chơi = `f2-muc-nho`, `hudBoss.ts` gắn lớp; tổ đội / nhiệm vụ chỉnh theo token), đấu trường + màn gục (`client/src/ui2-arena.css`: hàng đợi, thanh trận, bảng kết quả, màn đếm ngược gục do `deathShow` / `deathTick` ở `hudArena.ts`; server tự hồi sinh sau `RESPAWN_SECS` nên màn gục không có nút lựa chọn), bảng Bạn bè (`client/src/ui2-social.css`: trạng thái trực tuyến bằng chấm hình + chữ); phản hồi giao diện (#599 / #755: `client/src/ui2-feedback.css` — chú thích `#tip` = `f2-tooltip`, chip lệnh `#cmdChip` và banner `#banner` = `f2-muc-nho`, chip "×n" của toast; lớp gắn ở `tooltip.ts` / `cmdChip.ts` / `feedback.ts`).
 
 ## Lỗi đã sửa ở P0 (ghi để không lặp)
 
 - Nút `Đăng nhập bằng Google` / `Đổi tài khoản` bung thành hai dải nâu: vạch cắt `ui_nut_*` sai 1 điểm (xem "Quy tắc 9-slice").
 - Cửa sổ 960×540 (vùng hiển thị 944×445): cột phải (bản đồ nhỏ cao ~305 px) đẩy hộp nhiệm vụ xuống dải đội hình / hồn kỹ, chữ nhiệm vụ lọt qua ô trong suốt. Vùng cao ≤ 460 không còn chỗ nên hộp nhiệm vụ ẩn (xem ở hộp thoại NPC); điện thoại có chỗ riêng. Nếu muốn hiện lại ở cỡ này cần đổi bố cục cột phải (không thuộc P0).
 
-## Trạng thái các bước (theo #877)
+## Việc còn lại
 
-| Bước | Việc | Issue | Trạng thái |
-|---|---|---|---|
-| P0 | style guide, kiểm kê token, sửa 9-slice, lớp 960×540, thử kit 1× / 2× | #878 | đã đóng |
-| P1 | `ui-sheet-check` / `ui-sheet-cut` + manifest | #879 | đã đóng |
-| P2 | skill `ui-kit`, prompt mẫu, trang xem trước bộ component, CI nhẹ | #880 | đã đóng |
-| P3 | style board BOARD hướng B (cổng 1) | #881 | mở |
-| P4 | kit mẫu khung / nút / ô / thanh, Mực rồi Giấy (cổng 2); chốt cỡ kit và kiểm Firefox | #882 | mở |
-| P5 | lớp token + cờ `ui2` + helper khung theo vai trò | #883 | đã làm; kit nhập ở #885 (`ui:import`), khung màn + thành phần nhỏ ở `uiParts.ts` |
-| P6 | icon pilot 16 menu (AI) so với game-icons | #884 | mở |
-| P7 | chuyển từng màn sang kit v2 (8 màn) | #885 | mở |
-| P8 | dọn khung cũ, `ui2` mặc định, token thành luật chặn | #886 | mở |
-| — | cỡ giao diện tự động theo bậc màn (≥ 1600 / ≥ 1920) | #887 | đã đóng |
-| — | lấp checkbox / slider / scrollbar từ gói CC0 (tuỳ chọn) | #888 | mở |
+- Icon pilot 16 menu (AI) so với game-icons (#884); checkbox / slider / scrollbar từ gói CC0, tuỳ chọn (#888).
+- Gỡ cờ `ui2`, `?ui=` và luật cũ khỏi `style.css` (đợt 5b / 5c, #886): `ROADMAP.md`.
 
-Trạng thái thật ở các issue; bảng này cập nhật khi đóng một bước.
+Trạng thái thật ở các issue.
