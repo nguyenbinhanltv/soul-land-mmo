@@ -1,0 +1,11 @@
+/* Hộp xác nhận chung (confirmDialog.ts). Chạy cả khi tắt ui2; khung Mực do lớp f2-muc-nho. */
+.cfm-back{position:fixed;inset:0;z-index:9500;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55)}
+.cfm{display:flex;flex-direction:column;gap:6px;width:min(340px,92vw);padding:12px 14px;background:var(--panel);color:var(--text);border:2px solid var(--line);box-shadow:0 8px 28px rgba(0,0,0,.6);font-family:var(--f12);font-size:12px}
+.cfm b{font-size:14px;text-shadow:var(--stroke)}
+.cfm p{margin:0;color:var(--muted);line-height:1.5}
+.cfm-row{display:flex;justify-content:space-between;gap:24px;margin-top:6px}
+.cfm .buse{margin-top:0;min-height:36px}
+.cfm .buse.drop.cfm-yes{border-color:var(--hp);background:var(--hp);color:#fff}
+.cfm .buse:focus-visible{outline:2px solid var(--xp);outline-offset:1px}
+.buse.busy{opacity:.55;cursor:progress}
+body.touch .cfm .buse{min-height:44px}

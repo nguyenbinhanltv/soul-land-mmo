@@ -1,4 +1,5 @@
 // Cửa hàng NPC (mua, mảnh võ hồn, mua lại, bán) của HUD (tách nguyên văn từ hud.ts, Part of #885 bước 0a); hud.ts re-export để nơi gọi giữ nguyên.
+import { confirmDialog } from "./confirmDialog.ts";
 import { NpcActions, SELL_CONFIRM_DONG, renderNpc, sellConfirm, shardMsg, setSellConfirm } from "./hudNpc.ts";
 import { boneOf, itemArt, itemColor, itemName } from "./hudBag.ts";
 import { VOHON, vohonIndex, ITEM_KINDS, itemDef, SHARD_UNLOCK, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, SHARD_BUY, shardBuyPrice, shardBuyCost, ARENA_SHARDS, shardCode, AUTO_SELL_BUYBACK } from "../../shared/data.ts";
@@ -242,14 +243,15 @@ export function renderShopSell(el: HTMLElement, bag: BagMsg, act: NpcActions) {
     shopCell(o, { title: itemName(it), color: itemColor(it), sub: ITEM_KINDS[def!.kind].name, lines: [{ k: "Giá bán", v: formatHonTe(price) + (it.qty > 1 ? " mỗi món" : "") }] });
     const row = o.querySelector(".brow")!;
     const sell = (qty: number, label: string) => {
-      const key = `${it.id}|${qty}`, gain = price * qty, ask = gain >= SELL_CONFIRM_DONG || it.enhance > 0;
-      const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (sellConfirm === key ? "eok" : "use");
-      b.textContent = sellConfirm === key ? `Bán thật? +${formatHonTe(gain)}` : `${label} · +${formatHonTe(gain)}`;
+      const gain = price * qty, ask = gain >= SELL_CONFIRM_DONG || it.enhance > 0;
+      const b = document.createElement("button"); b.type = "button"; b.className = "buse use";
+      b.textContent = `${label} · +${formatHonTe(gain)}`;
       b.setAttribute("aria-label", `${label} ${itemName(it)}, nhận ${formatHonTe(gain)}`);
       b.addEventListener("click", () => {
         b.blur();
-        if (ask && sellConfirm !== key) { setSellConfirm(key); renderNpc(); return; }
-        setSellConfirm(null); act.sell(it.id, qty);
+        const go = () => { setSellConfirm(null); act.sell(it.id, qty); };
+        if (ask) confirmDialog({ title: "Bán món này?", body: `${itemName(it)}${qty > 1 ? ` ×${qty}` : ""}${it.enhance > 0 ? ` (cường hóa +${it.enhance})` : ""}: nhận ${formatHonTe(gain)}. Bán nhầm thì mua lại được trong danh sách mua lại (${BUYBACK_MAX} món gần nhất, mất khi rời game).`, confirm: `Bán · +${formatHonTe(gain)}`, danger: true }, go);
+        else go();
       });
       row.appendChild(b);
     };
