@@ -41,6 +41,7 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/phu-the-neo-khoi-than.md](docs/art/phu-the-neo-khoi-than.md) | 5 | Neo phụ thể theo tâm khối thân, `anchor.json` (#1024) |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/phu-the-vach-tham-chieu.md](docs/art/phu-the-vach-tham-chieu.md) | 5 | Vạch tham chiếu trên bảng nộm LPC (#1171) |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/phu-the-runbook.md](docs/art/phu-the-runbook.md) | 5 | Runbook phụ thể: làm 24 võ hồn còn lại, chia lô (#1025) |
+| 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/phu-the-vu-khi.md](docs/art/phu-the-vu-khi.md) | 5 | Phụ thể v2 = vũ khí cầm tay của võ hồn đang ra trận (#1307, epic #1020) |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/vo-hon-phong-cach.md](docs/art/vo-hon-phong-cach.md) | 5 | Phong cách võ hồn v2 (bá đạo, tu tiên; #1032) |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/vo-hon-portrait2.md](docs/art/vo-hon-portrait2.md) | 5 | Preset chân dung portrait2 (P1c2, #1158) |
 | 5.11 | Mỹ thuật: đồ họa isometric, hồn sư, võ hồn, hồn thú | [docs/art/vo-hon-icon-nearest.md](docs/art/vo-hon-icon-nearest.md) | 5 | Preset icon icon-nearest (RAW thu nhỏ nearest, #1159) |
