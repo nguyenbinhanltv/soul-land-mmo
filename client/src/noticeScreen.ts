@@ -34,7 +34,6 @@ function render() {
     material: "giay", title: "Thông báo", badge: "報", info: `Giữ ${LOG_MAX} thông báo gần nhất của phiên này; tải lại trang thì mất. Chỉ để đọc lại.`,
     primary: { label: "Xoá hết", disabled: !list.length, reason: list.length ? undefined : "Chưa có thông báo nào" }, onPrimary: () => clearNotices(),
   });
-  if (!f) return;
   if (!list.length) f.body.append(stateBox({ kind: "empty", text: "Chưa có thông báo.", hint: "Nhận đồ, nhiệm vụ, boss… sẽ hiện ở đây." }));
   else f.body.append(mount(h("ol", "nt-list", { attrs: { "aria-label": "Thông báo gần đây, mới nhất ở trên" }, kids: [...list].reverse().map(noticeNode) })));
   addCloseButton(f.root, closeNotice);

@@ -1,8 +1,6 @@
 // UI Kit v2, khung màn chuẩn + thành phần nhỏ (đợt 1 của bộ spec UI, Part of #885; docs/art/ui-kit.md "Khung màn chuẩn và thành phần nhỏ").
-// Chỉ trình bày: số liệu, trạng thái, giờ đều do server quyết, client nhận rồi hiển thị. Chỉ chạy khi cờ `ui2` bật (`screenFrame` trả null khi tắt:
-// màn giữ giao diện cũ); các thành phần nhỏ (thẻ, công tắc, đồng hồ) là DOM thường, kiểu của chúng nằm dưới `body.ui2` ở ui2-parts.css.
+// Chỉ trình bày: số liệu, trạng thái, giờ đều do server quyết, client nhận rồi hiển thị. Các thành phần nhỏ (thẻ, công tắc, đồng hồ) là DOM thường, kiểu của chúng nằm dưới `body.ui2` ở ui2-parts.css.
 // Cấu trúc dựng bằng hàm thuần (`PNode`, không đụng DOM) để test bằng node và dựng trang xem trước; phần DOM (`mount`, hàm công khai) ở cuối tệp.
-import { isUi2 } from "./uiKit.ts";
 
 /** Nút ảo của cây dựng: thẻ, lớp, thuộc tính, chữ hoặc con. Chữ luôn là text (tên do người chơi đặt không đi qua innerHTML). */
 export interface PNode { tag: string; cls: string; attrs?: Record<string, string>; text?: string; kids?: PNode[] }
@@ -282,11 +280,10 @@ export function mount(n: PNode): HTMLElement {
 
 export interface Frame { root: HTMLElement; body: HTMLElement; nav: HTMLElement; primary: HTMLButtonElement | null }
 /**
- * Dựng khung màn chuẩn. Cờ `ui2` tắt thì trả null và màn giữ bảng cũ (không đổi gì ở giao diện hiện tại); `force` chỉ cho trang xem trước / thử.
+ * Dựng khung màn chuẩn.
  * Nội dung màn đặt vào `body`; chọn mục điều hướng và bấm nút chính do màn gắn (`onNav`, `onPrimary`), khung không giữ trạng thái.
  */
-export function screenFrame(o: FrameOpts & { onNav?: (id: string) => void; onPrimary?: () => void; force?: boolean }): Frame | null {
-  if (!o.force && !isUi2()) return null;
+export function screenFrame(o: FrameOpts & { onNav?: (id: string) => void; onPrimary?: () => void }): Frame {
   const root = mount(frameNode(o)), nav = root.querySelector<HTMLElement>(".p2-nav")!, primary = root.querySelector<HTMLButtonElement>(".p2-primary");
   nav.addEventListener("click", (e) => { const b = (e.target as HTMLElement).closest<HTMLElement>(".p2-nav-i"); if (b?.dataset.id) o.onNav?.(b.dataset.id); });
   primary?.addEventListener("click", () => { if (!primary.disabled) o.onPrimary?.(); });
@@ -424,10 +421,10 @@ export function searchField(o: SearchOpts) {
 let whySeq = 0;
 /**
  * Nút chính đang khoá thì nói rõ vì sao (nguyên tắc 5 của bộ spec; kiểm kê #24): chèn dòng `.p2-why` ngay trước nút và nối `aria-describedby`.
- * Chỉ chạy khi cờ ui2 bật, nút đã nằm trong cây, đang `disabled` và có lý do; không đổi gì khác. Trả dòng lý do (hoặc null).
+ * Chỉ chạy khi nút đã nằm trong cây, đang `disabled` và có lý do; không đổi gì khác. Trả dòng lý do (hoặc null).
  */
-export function lockWhy(b: HTMLButtonElement, reason: string | null | undefined, force = false): HTMLElement | null {
-  if ((!force && !isUi2()) || !b.disabled || !reason?.trim() || !b.parentElement) return null;
+export function lockWhy(b: HTMLButtonElement, reason: string | null | undefined): HTMLElement | null {
+  if (!b.disabled || !reason?.trim() || !b.parentElement) return null;
   const w = document.createElement("span"); w.className = "p2-why p2-why-btn"; w.id = `p2-why-${++whySeq}`; w.textContent = reason.trim();
   b.setAttribute("aria-describedby", w.id); b.before(w);
   return w;

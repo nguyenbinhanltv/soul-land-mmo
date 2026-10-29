@@ -1,6 +1,5 @@
 // Nhiệm vụ (khung theo dõi, trang nhiệm vụ, khảo hạch hằng ngày, tông môn) của HUD (tách nguyên văn từ hud.ts, Part of #885 bước 0a); hud.ts re-export để nơi gọi giữ nguyên.
 import { NpcActions, npcDefOpen, renderNpc, tongBoardMsg, tongMsg, npcGoTo, type NpcGoal } from "./hudNpc.ts";
-import { isUi2 } from "./uiKit.ts";
 import type { QuestStatus } from "../../shared/data.ts";
 import { tierOfYears, MAPS, NPCS, formatHonTe, QUESTS, QUEST_STARTER, QUEST_AFTER, questChain, questRewardText, questBoneText, type QuestReward, type QuestStep, DAILY } from "../../shared/data.ts";
 import { resolveQuestMarker } from "./nameplate.ts";
@@ -111,9 +110,9 @@ export function questTarget(chain: string, status: QuestStatus, step: number, pr
   }
   return home(c.map, c.giver);
 }
-/** Nút "Đến" (chỉ khi bật ui2; đi bằng cờ "Đi tới" có sẵn, không gửi gì lên server) cho một bài; null khi tắt cờ hoặc không có đích. */
+/** Nút "Đến" (đi bằng cờ "Đi tới" có sẵn, không gửi gì lên server) cho một bài; null khi không có đích. */
 export function questGoBtn(t: NpcGoal | null): HTMLButtonElement | null {
-  if (!t || !isUi2()) return null;
+  if (!t) return null;
   const b = document.createElement("button"); b.type = "button"; b.className = "buse use n2-den f2-nut-phu"; b.textContent = "Đến";
   b.title = `Tự đi tới ${t.mapName}${t.npc ? ` (${NPCS.find((n) => n.id === t.npc)?.name ?? ""})` : ""}`;
   b.setAttribute("aria-label", `Đến ${t.mapName}`);
@@ -153,7 +152,7 @@ export function renderQuestPage(el: HTMLElement, act: NpcActions) {
   b.disabled = q.status === "active";
   b.addEventListener("click", () => { b.blur(); act.quest(q.status === "offer" ? "accept" : "turnin", q.chain === QUEST_STARTER ? undefined : q.chain); });
   row.appendChild(b);
-  if (isUi2()) b.classList.add("f2-nut-chinh");
+  b.classList.add("f2-nut-chinh");
   const go = questGoBtn(questTarget(q.chain, q.status, q.step, q.prog)); if (go) row.appendChild(go);
   el.appendChild(row);
 }
@@ -242,7 +241,7 @@ function renderDailyTracker(el: HTMLElement) {
 export function renderTongTasks(el: HTMLElement, act: NpcActions) {
   const say = (t: string) => { const p = document.createElement("p"); p.className = "nline"; p.textContent = t; el.appendChild(p); };
   const l = tongMsg?.tasks;
-  if (!l?.length) { if (isUi2()) el.appendChild(stateBox({ kind: tongMsg ? "empty" : "loading", text: tongMsg ? "Hôm nay chưa có tông vụ." : "Đang tải tông vụ…", hint: tongMsg ? "Nửa đêm có bài mới." : undefined, rows: 3 })); else say("…"); return; }
+  if (!l?.length) { el.appendChild(stateBox({ kind: tongMsg ? "empty" : "loading", text: tongMsg ? "Hôm nay chưa có tông vụ." : "Đang tải tông vụ…", hint: tongMsg ? "Nửa đêm có bài mới." : undefined, rows: 3 })); return; }
   say(l.every((x) => x.status === "done") ? questChain(l[0].chain)?.finale ?? "" :
     `Tông vụ hôm nay ${l.length} bài, mỗi bài ${TONG_POINTS} điểm tông. Nửa đêm có bài mới, bài dở dang bỏ luôn.`);
   l.forEach((q, i) => {
@@ -259,7 +258,7 @@ export function renderTongTasks(el: HTMLElement, act: NpcActions) {
       b.textContent = q.status === "offer" ? "Nhận bài" : q.status === "ready" ? "Trả bài, nhận thưởng" : "Đang làm…";
       b.disabled = q.status === "active";
       const tg = TONG_MON.find((t) => t.id === tongMsg?.tong);
-      if (isUi2() && tg?.npc !== npcDefOpen?.id) { b.disabled = true; if (q.status !== "active") b.textContent = `Gặp ${NPCS.find((n) => n.id === tg?.npc)?.name ?? "sứ giả tông"}`; }
+      if (tg?.npc !== npcDefOpen?.id) { b.disabled = true; if (q.status !== "active") b.textContent = `Gặp ${NPCS.find((n) => n.id === tg?.npc)?.name ?? "sứ giả tông"}`; }
       b.addEventListener("click", () => { b.blur(); act.tong(q.status === "offer" ? "accept" : "turnin", undefined, q.chain); });
       box.appendChild(b);
       const go = questGoBtn(questTarget(q.chain, q.status, 0, q.prog)); if (go) box.appendChild(go);
@@ -272,10 +271,9 @@ export function renderTongTasks(el: HTMLElement, act: NpcActions) {
 export function renderTongRank(el: HTMLElement, act: NpcActions) {
   const m = tongBoardMsg, mine = tongMsg?.tong ?? "";
   const say = (t: string) => { const p = document.createElement("p"); p.className = "nline"; p.textContent = t; el.appendChild(p); };
-  if (!m) { if (isUi2()) el.appendChild(stateBox({ kind: "loading", text: "Đang tải bảng tông…", rows: 4 })); else say("…"); return; }
-  const UI2 = isUi2();
+  if (!m) { el.appendChild(stateBox({ kind: "loading", text: "Đang tải bảng tông…", rows: 4 })); return; }
   const table = (rows: TongRank[], first: string[]) => {
-    const tb = document.createElement("div"); tb.className = "qbox" + (UI2 ? " tong-bang" : "");
+    const tb = document.createElement("div"); tb.className = "qbox tong-bang";
     const sorted = TONG_MON.map((t) => rows.find((r) => r.tong === t.id) ?? { tong: t.id, active: 0, avg: 0 }).sort((a, b) => b.avg - a.avg);
     const best = Math.max(1, ...sorted.map((r) => r.avg));
     for (const r of sorted) {
@@ -284,11 +282,10 @@ export function renderTongRank(el: HTMLElement, act: NpcActions) {
       if (t) line.style.color = t.col;
       if (r.tong === mine) line.style.fontWeight = "bold";
       tb.appendChild(line);
-      if (UI2) { // thanh so điểm trung bình với tông đứng đầu (hình, kèm số ở dòng trên); tông mình có vạch trái dày
-        line.classList.add("trow"); if (r.tong === mine) line.classList.add("me");
-        const bar = document.createElement("i"); bar.className = "tbar"; bar.style.setProperty("--p", `${Math.round((r.avg / best) * 100)}%`); if (t) bar.style.setProperty("--c", t.col);
-        tb.appendChild(bar);
-      }
+      // thanh so điểm trung bình với tông đứng đầu (hình, kèm số ở dòng trên); tông mình có vạch trái dày
+      line.classList.add("trow"); if (r.tong === mine) line.classList.add("me");
+      const bar = document.createElement("i"); bar.className = "tbar"; bar.style.setProperty("--p", `${Math.round((r.avg / best) * 100)}%`); if (t) bar.style.setProperty("--c", t.col);
+      tb.appendChild(bar);
     }
     return tb;
   };
@@ -331,7 +328,7 @@ export function renderDailyPage(el: HTMLElement, act: NpcActions) {
       const b = document.createElement("button"); b.type = "button"; b.className = "buse " + (q.status === "active" ? "use" : "absorb");
       b.textContent = q.status === "offer" ? "Nhận bài" : q.status === "ready" ? "Trả bài, nhận thưởng" : "Đang làm…";
       b.disabled = q.status === "active";
-      if (isUi2() && npcDefOpen?.id !== DAILY.giver) { b.disabled = true; if (q.status !== "active") b.textContent = `Gặp ${NPCS.find((n) => n.id === DAILY.giver)?.name ?? "NPC"} ở ${MAPS[DAILY.map]?.name ?? ""}`; }
+      if (npcDefOpen?.id !== DAILY.giver) { b.disabled = true; if (q.status !== "active") b.textContent = `Gặp ${NPCS.find((n) => n.id === DAILY.giver)?.name ?? "NPC"} ở ${MAPS[DAILY.map]?.name ?? ""}`; }
       b.addEventListener("click", () => { b.blur(); act.quest(q.status === "offer" ? "accept" : "turnin", q.chain); });
       box.appendChild(b);
       const go = questGoBtn(questTarget(q.chain, q.status, 0, q.prog)); if (go) box.appendChild(go);

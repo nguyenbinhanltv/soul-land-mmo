@@ -46,13 +46,12 @@ import { stopAmbientBed } from "./audio/ambientBed.ts";
 import { mountGoogleButton } from "./google.ts";
 import { openCredits } from "./credits.ts";
 import { viLoi } from "./viLoi.ts";
-import { isUi2 } from "./uiKit.ts";
 import { isIsoSlice } from "./isoMap.ts";
 import { evictStaleTextures } from "./textureLru.ts";
 
 const card = document.getElementById("card")!, overlay = document.getElementById("overlay")!;
 if (matchMedia("(pointer: coarse)").matches) document.body.classList.add("touch");
-if (isUi2()) card.classList.add("f2-giay-lon", "l2");   // UI v2 đợt 4a (ui2-login.css): thẻ đăng nhập / chọn nhân vật / lỗi theo kit Giấy; tắt cờ thì giữ kiểu cũ
+card.classList.add("f2-giay-lon", "l2");   // ui2-login.css: thẻ đăng nhập / chọn nhân vật / lỗi theo kit Giấy
 let token = storage.get("shh-token") ?? "";
 
 const vohonOf = (c: Character) => VOHON[Math.max(0, vohonIndex(c.vohon))];
@@ -403,11 +402,10 @@ function play(room: Room, roomMap: string, watch = false) {
     const showLeft = (msg: string) => {
       netBanner(null);
       closeLooks(); document.body.classList.remove("playing"); overlay.hidden = false; stopMusic(); stopAmbientBed();
-      card.innerHTML = `<h1>Đã rời ${esc(MAPS[roomMap]?.name ?? "bản đồ")}</h1><p${isUi2() ? ' class="l2-err" role="alert"' : ""}>${msg}</p><div class="btns"><button class="btn primary" onclick="location.reload()">Vào lại</button></div>`;
+      card.innerHTML = `<h1>Đã rời ${esc(MAPS[roomMap]?.name ?? "bản đồ")}</h1><p class="l2-err" role="alert">${msg}</p><div class="btns"><button class="btn primary" onclick="location.reload()">Vào lại</button></div>`;
     };
     if (code === 4001) return showLeft("Tài khoản vừa đăng nhập ở nơi khác.");
-    if (!isUi2()) return showLeft("Mất kết nối với server.");
-    void autoReconnect(showLeft, () => onTravel(mapId));   // UI v2: banner "Đang nối lại… (n/5)", hết lượt thì về màn "Đã rời"
+    void autoReconnect(showLeft, () => onTravel(mapId));   // banner "Đang nối lại… (n/5)", hết lượt thì về màn "Đã rời"
   });
   /** Rời phòng hiện tại, hủy scene rồi `next()` (vào phòng mới). */
   const leaveThen = async (next: () => void) => {

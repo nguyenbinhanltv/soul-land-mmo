@@ -1,6 +1,5 @@
 // Hộp xác nhận chung + khóa chống bấm đôi (kiểm kê UI/UX #885, mục "hộp thoại xác nhận" và "khóa nút"; docs/design/giao-dien.md).
 // Chỉ DOM, không gửi tin: nơi gọi truyền `onYes` (đúng lệnh cũ). Mặc định tập trung nút an toàn (Hủy); nút nguy hiểm tách riêng, chữ nêu hậu quả.
-import { isUi2 } from "./uiKit.ts";
 
 export interface ConfirmOpts {
   title: string;
@@ -41,11 +40,11 @@ export function guardOnce<A extends unknown[]>(fn: (...a: A) => void, ms = LOCK_
 /** Mở hộp xác nhận. Hủy / Esc / bấm nền = không làm gì; Xác nhận = đóng hộp rồi gọi `onYes` đúng một lần. */
 export function confirmDialog(o: ConfirmOpts, onYes: () => void): void {
   closeConfirm();
-  const ui2 = isUi2(), prev = document.activeElement as HTMLElement | null;
-  const root = mk("div", "cfm-back"), box = mk("div", "cfm" + (ui2 ? " f2-muc-nho" : ""));
+  const prev = document.activeElement as HTMLElement | null;
+  const root = mk("div", "cfm-back"), box = mk("div", "cfm f2-muc-nho");
   box.setAttribute("role", "alertdialog"); box.setAttribute("aria-modal", "true"); box.setAttribute("aria-label", o.title);
-  const cancel = mk("button", "buse use cfm-no" + (ui2 ? " f2-nut-phu" : ""), o.cancel ?? "Hủy"); cancel.type = "button";
-  const yes = mk("button", "buse cfm-yes " + (o.danger ? "drop" : "absorb") + (ui2 ? " f2-nut-chinh" : ""), o.confirm); yes.type = "button";
+  const cancel = mk("button", "buse use cfm-no f2-nut-phu", o.cancel ?? "Hủy"); cancel.type = "button";
+  const yes = mk("button", "buse cfm-yes " + (o.danger ? "drop" : "absorb") + " f2-nut-chinh", o.confirm); yes.type = "button";
   const row = mk("div", "cfm-row"); row.append(cancel, yes);
   box.append(mk("b", "", o.title), mk("p", "", o.body), row); root.append(box);
   let done = false;

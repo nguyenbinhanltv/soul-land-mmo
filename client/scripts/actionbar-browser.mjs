@@ -8,7 +8,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
-/** Esc đóng bảng trên cùng; khi bật ui2 mà không còn bảng nào, Esc mở menu hub (#hub nằm bên phải, chặn chuột vào nút ở dưới): đóng nó lại để bước sau bấm được. */
+/** Esc đóng bảng trên cùng; khi không còn bảng nào, Esc mở menu hub (#hub nằm bên phải, chặn chuột vào nút ở dưới): đóng nó lại để bước sau bấm được. */
 async function escClose(page) {
   await page.keyboard.press("Escape");
   if (await page.locator("#hub").isVisible()) await page.keyboard.press("Escape");
@@ -120,7 +120,7 @@ try {
     const page = await context.newPage(), errors = [];
     page.setDefaultTimeout(20000); page.setDefaultNavigationTimeout(30000);
     page.on("pageerror", (e) => errors.push(e.message));
-    await page.addInitScript(([token, ui0]) => { localStorage.setItem("shh-token", token); if (ui0) localStorage.setItem("shh-ui2", "0"); }, [token, process.env.C8_UI0 === "1"]); // C8_UI0=1: chạy giao diện cũ (?ui=0); mặc định ui2 bật (đợt 5a)
+    await page.addInitScript((token) => { localStorage.setItem("shh-token", token); }, token);
     // Chỉ lấy tham chiếu cảnh để gửi ý định/hook local và đọc state; không thay dữ liệu hay hàm vẽ game.
     await page.route("**/src/scenes/GameScene.ts*", async (route) => {
       const response = await route.fetch();

@@ -5,7 +5,6 @@ import { honTeHtml, toggleBag, setBagCap } from "./hudBag.ts";
 import { enhClose, setEnhCoin, toggleRoster } from "./hudRoster.ts";
 import { NPCS, shopExpands, formatHonTe, SHARD_BUY, LOOKS_CHANGE, looksChangeCost, type Looks, type NpcDef, type NpcRole, questChain, DAILY, ARENA } from "../../shared/data.ts";
 import { artImg } from "./uiArt.ts";
-import { isUi2 } from "./uiKit.ts";
 import { tabs, lockWhy } from "./uiParts.ts";
 import { toggleChar } from "./charPanel.ts";
 import { openLooksOverlay } from "./looksMaker.ts";
@@ -57,7 +56,6 @@ let goTo: (g: NpcGoal) => void = () => {};
 export const bindNpcGo = (fn: (g: NpcGoal) => void) => { goTo = fn; };
 /** Bấm "Đến": đóng hộp thoại (khỏi che màn chơi) rồi tự đi tới đích. */
 export function npcGoTo(g: NpcGoal) { closeNpc(); goTo(g); }
-const UI2 = isUi2();
 export let npcDefOpen: NpcDef | null = null;  // NPC đang mở hộp thoại
 export let npcPage: NpcPage = "talk";
 let npcLine = 0;                       // câu thoại đang hiện
@@ -161,7 +159,7 @@ export function renderNpc() {
   if (npcPage === "forge" || npcPage === "forgecore" || npcPage === "forgesynth") el.dataset.c16Page = npcPage;
   else delete el.dataset.c16Page;
   el.innerHTML = "";
-  if (UI2) el.classList.add("f2-giay-lon", "n2");
+  el.classList.add("f2-giay-lon", "n2");
   el.style.setProperty("--c", def.col);
   // 10.8: chân dung NPC 112×112 (npc_<mã>) bên trái tên, chức danh (chưa có ảnh thì chỉ có tên).
   const head = document.createElement("div"); head.className = "rhead nhead";
@@ -174,12 +172,12 @@ export function renderNpc() {
   const btn = (text: string, cls: string, fn: () => void, disabled = false, why?: string) => {
     const b = document.createElement("button"); b.type = "button"; b.className = "buse " + cls; b.textContent = text; b.disabled = disabled;
     row.appendChild(b); lockWhy(b, why);   // UI v2: nút khoá nói rõ vì sao (kiểm kê #24); thêm vào hàng trước để dòng lý do chèn đúng chỗ
-    if (UI2) b.classList.add(cls.includes("absorb") && npcPage !== "talk" ? "f2-nut-chinh" : "f2-nut-phu");
+    b.classList.add(cls.includes("absorb") && npcPage !== "talk" ? "f2-nut-chinh" : "f2-nut-phu");
     b.addEventListener("click", () => { b.blur(); fn(); }); return b;
   };
   const go = (page: NpcPage) => { npcPage = page; sellConfirm = null; enhClose(); renderNpc(); };
-  const qt = UI2 && (npcPage === "quest" || npcPage === "daily" || npcPage === "tongtask") ? questTabs(go) : null; if (qt) el.appendChild(qt);
-  if (UI2 && npcPage === "talk") row.classList.add("n2-choices");
+  const qt = (npcPage === "quest" || npcPage === "daily" || npcPage === "tongtask") ? questTabs(go) : null; if (qt) el.appendChild(qt);
+  if (npcPage === "talk") row.classList.add("n2-choices");
   const bag = npcBagMsg;
   if (npcPage === "tongtask" || npcPage === "tongrank") { // #197: tông vụ hôm nay, bảng tông tuần
     if (npcPage === "tongtask") renderTongTasks(el, act); else renderTongRank(el, act);
@@ -188,7 +186,7 @@ export function renderNpc() {
     return;
   }
   if (npcPage === "quest" || npcPage === "daily") {
-    if (npcPage === "daily") renderDailyPage(el, act); else if (UI2 && !questOf(def.id)) renderQuestOverview(el); else renderQuestPage(el, act);
+    if (npcPage === "daily") renderDailyPage(el, act); else if (!questOf(def.id)) renderQuestOverview(el); else renderQuestPage(el, act);
     btn(`‹ Lời ${def.name}`, "drop", () => go("talk"));
     el.appendChild(row);
     return;
@@ -221,7 +219,7 @@ export function renderNpc() {
     el.appendChild(p);
     if (n > 1) { const k = document.createElement("small"); k.className = "rnote"; k.textContent = `${i + 1}/${n}`; el.appendChild(k); }
     if (i < n - 1) btn("Tiếp ›", "use", () => { npcLine = i + 1; renderNpc(); });
-    if (UI2 && !questOf(def.id) && def.id !== DAILY.giver && (questTracked().length || tongMsg?.tasks?.length)) btn("Sổ nhiệm vụ", "absorb", () => go("quest")); // đọc tiến độ + nút Đến từ bất kỳ NPC
+    if (!questOf(def.id) && def.id !== DAILY.giver && (questTracked().length || tongMsg?.tasks?.length)) btn("Sổ nhiệm vụ", "absorb", () => go("quest")); // đọc tiến độ + nút Đến từ bất kỳ NPC
     const q = questOf(def.id), qc = q && questChain(q.chain);
     if (q && qc) btn(q.status === "done" ? `Nhiệm vụ: ${qc.name} (đã xong)` : `Nhiệm vụ: ${qc.steps[q.step].name}${q.status === "offer" ? " !" : q.status === "ready" ? " ?" : ""}`,
       "absorb", () => go("quest"));

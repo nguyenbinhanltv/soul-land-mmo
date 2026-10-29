@@ -16,7 +16,6 @@ import { drawRadarIcon, strokeRoute, radar, ls, DARK, type DotSink } from "./rad
 import { getFlag } from "./autowalk.ts";
 import { fog } from "./fog.ts";
 import { screenFrame, addCloseButton, searchField, filterByQuery, type Frame } from "./uiParts.ts";
-import { isUi2 } from "./uiKit.ts";
 import "./ui2-map.css";
 
 void _TILE;
@@ -101,7 +100,7 @@ class MapViewUi implements DotSink {
   private drag: { x: number; y: number; moved: boolean } | null = null; private pinch = 0;
   private chips = new Map<string, HTMLButtonElement>();
 
-  /** Khung màn chuẩn (chỉ khi cờ ui2 bật; tắt thì null và bản đồ giữ lớp phủ cũ). */
+  /** Khung màn chuẩn. */
   private frame: Frame | null = null;
 
   constructor() {
@@ -133,11 +132,10 @@ class MapViewUi implements DotSink {
 
   /** Đi tới cờ / dừng tự đi (nút trên thanh công cụ và nút chính của khung ui2 dùng chung). */
   private goFlag() { const f = getFlag(); if (!f) return; if (f.on) this.flagActs?.stop(); else { this.close(); this.flagActs?.go(); } this.syncFlag(); }
-  /** Cờ ui2: bọc canvas, thanh công cụ, chú thích vào khung màn chuẩn (Mực); nút "Đi tới cờ" thành nút chính, khoá kèm lý do khi chưa có cờ. */
+  /** Bọc canvas, thanh công cụ, chú thích vào khung màn chuẩn (Mực); nút "Đi tới cờ" thành nút chính, khoá kèm lý do khi chưa có cờ. */
   private mountFrame() {
     const f = screenFrame({ material: "muc", title: "Bản đồ khu vực", badge: "圖", info: el("mapviewHelp").textContent ?? "",
       primary: { label: "Đi tới cờ", disabled: true, reason: NO_FLAG_WHY }, onPrimary: () => this.goFlag() });
-    if (!f) return;
     this.frame = f; f.root.classList.add("mv-frame"); f.body.classList.add("mv-body");
     f.body.append(this.cv, el("mapviewBar"), el("mapviewHelp"), this.tip, this.menu);
     this.root.prepend(f.root); this.root.classList.add("mv-ui2");
@@ -461,7 +459,7 @@ class MapViewUi implements DotSink {
 
   // ---------- Thanh công cụ ----------
   private buildBar() {
-    if (isUi2()) el("mapviewBar").append(...this.findBox());
+    el("mapviewBar").append(...this.findBox());
     const box = el("mapviewLayers");
     for (const l of MAPVIEW.layers) {
       const b = document.createElement("button"); b.type = "button"; b.className = "mvchip"; b.textContent = l.name; b.dataset.layer = l.id;

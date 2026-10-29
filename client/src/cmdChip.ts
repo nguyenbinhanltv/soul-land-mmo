@@ -2,7 +2,6 @@
 // "Tự đi cờ ×", "Tự săn ×"; bấm × huỷ lệnh đó. Khi một lệnh bị lệnh khác thắng thì chip hiện lý do vài giây. Chỉ hiển thị: luật ưu tiên ở
 // shared/control.ts, GameScene giữ trạng thái và gọi `setCmdChip` mỗi khung hình.
 import type { Cmd } from "../../shared/control.ts";
-import { isUi2 } from "./uiKit.ts";
 
 /** Thời gian chip giữ câu lý do sau khi một lệnh bị huỷ (ms). */
 const WHY_MS = 3500;
@@ -17,7 +16,7 @@ const el = () => document.getElementById("cmdChip") as HTMLElement | null;
 /** GameScene gắn một lần mỗi cảnh: bấm × trên chip. */
 export function bindCmdChip(cancel: (c: Cmd) => void) {
   onCancel = cancel;
-  if (isUi2()) el()?.classList.add("f2-muc-nho");   // UI v2 (đợt 1c): chip nhận khung Mực của kit khi bật cờ (ui2-feedback.css)
+  el()?.classList.add("f2-muc-nho");   // chip nhận khung Mực của kit (ui2-feedback.css)
   const b = document.getElementById("cmdChipX"); if (!b || b.dataset.bound) return; b.dataset.bound = "1";
   b.addEventListener("click", () => { b.blur(); if (cmd) onCancel(cmd); });
 }

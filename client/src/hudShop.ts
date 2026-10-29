@@ -5,7 +5,6 @@ import { boneOf, itemArt, itemColor, itemName } from "./hudBag.ts";
 import { VOHON, vohonIndex, ITEM_KINDS, itemDef, SHARD_UNLOCK, shopOf, shopExpands, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, BAG_EXPAND, BAG_MAX_SLOTS, bagExpandCost, formatHonTe, SHARD_BUY, shardBuyPrice, shardBuyCost, ARENA_SHARDS, shardCode, AUTO_SELL_BUYBACK } from "../../shared/data.ts";
 import { artImg } from "./uiArt.ts";
 import { setTip, type TipSpec } from "./tooltip.ts";
-import { isUi2 } from "./uiKit.ts";
 import { matchQuery, qty as qtySlider, searchField } from "./uiParts.ts";
 import type { BagMsg, BagItem, BuybackItem } from "./net.ts";
 
@@ -16,7 +15,7 @@ function shopCell(o: HTMLElement, tip: TipSpec) {
   setTip(o, tip);
 }
 
-// ---------- UI v2 đợt 3b (cờ ui2): lưới món, ô tìm có dấu, thanh trượt số lượng. Chỉ trình bày; tin mua / bán / mua lại giữ nguyên. ----------
+// ---------- UI v2 đợt 3b: lưới món, ô tìm có dấu, thanh trượt số lượng. Chỉ trình bày; tin mua / bán / mua lại giữ nguyên. ----------
 let shopQuery = "";       // chữ trong ô tìm (nhớ khi hộp thoại vẽ lại vì túi đổi)
 let shopSel = "";         // mã món đang chọn ở lưới mua
 let shopQty = 1;          // số lượng đang kéo
@@ -95,26 +94,7 @@ function renderShopGrid(el: HTMLElement, bag: BagMsg, act: NpcActions, npcId: st
  */
 export function renderShopBuy(el: HTMLElement, bag: BagMsg, act: NpcActions, npcId: string) {
   const used = bag.items.filter((i) => i.vohon === null).length, shop = shopOf(npcId);
-  if (isUi2()) renderShopGrid(el, bag, act, npcId);
-  else for (const r of shop) {
-    const def = itemDef(r.code); if (!def) continue;
-    const have = bag.items.filter((i) => i.code === r.code && i.vohon === null).reduce((a, i) => a + i.qty, 0);
-    const o = document.createElement("div"); o.className = "shoprow"; o.style.setProperty("--c", def.col);
-    o.innerHTML = `${artImg(`item_${def.id}`, "ico art") || `<i class="ico ${def.kind}"></i>`}<div><b></b><small></small></div><div class="brow"></div>`;
-    o.querySelector("b")!.textContent = def.name;
-    o.querySelector("small")!.textContent = `${formatHonTe(r.price)} mỗi viên · đang có ${have} · ${def.desc}`;
-    shopCell(o, { title: def.name, color: def.col, sub: ITEM_KINDS[def.kind].name, lines: [def.desc, { k: "Giá", v: formatHonTe(r.price) }, { k: "Đang có", v: String(have) }] });
-    const row = o.querySelector(".brow")!;
-    for (const q of [1, 5, 10].filter((x) => x <= SHOP_MAX_QTY)) {
-      const b = document.createElement("button"); b.type = "button"; b.className = "buse use";
-      b.textContent = `Mua ${q}`; b.disabled = bag.honTe < r.price * q;
-      b.title = `${q} ${def.name}: ${formatHonTe(r.price * q)}`;
-      b.setAttribute("aria-label", `Mua ${q} ${def.name}, giá ${formatHonTe(r.price * q)}`);
-      b.addEventListener("click", () => { b.blur(); act.buy(r.code, q); });
-      row.appendChild(b);
-    }
-    el.appendChild(o);
-  }
+  renderShopGrid(el, bag, act, npcId);
   // Mở rộng túi (9.8): +BAG_EXPAND ô mỗi lần tới BAG_MAX_SLOTS, giá tăng dần (bagExpandCost); bấm hai lần. Server kiểm tra lại.
   if (shopExpands(npcId)) {
     const cost = bagExpandCost(bag.slots);
@@ -187,7 +167,7 @@ export function renderShopBuyback(el: HTMLElement, bag: BagMsg, act: NpcActions)
     const p = document.createElement("p"); p.className = "nline"; p.textContent = "Ngươi chưa bán gì cho ta từ lúc tới đây. Bán nhầm thì quay lại, ta trả lại đúng món, đúng giá.";
     el.appendChild(p);
   }
-  if (isUi2() && (list.length || sold.length)) shopSearch(el, "Tìm món đã bán", () => el);
+  if (list.length || sold.length) shopSearch(el, "Tìm món đã bán", () => el);
   buybackRows(el, bag, act, list);
   const n = document.createElement("small"); n.className = "rnote";
   n.textContent = `Thương nhân giữ ${BUYBACK_MAX} món bán gần nhất (cả hai thành), mua lại đúng giá đã bán; rời game thì mất. Cần ô trống trong túi.`;
@@ -229,7 +209,7 @@ export function renderShopSell(el: HTMLElement, bag: BagMsg, act: NpcActions) {
     const p = document.createElement("p"); p.className = "nline"; p.textContent = "Túi không có đồ nào ta mua: mang hồn hoàn, hồn cốt, hồn hạch hay mảnh võ hồn dư tới đây.";
     el.appendChild(p);
   }
-  if (isUi2() && list.length) shopSearch(el, "Tìm món trong túi để bán", () => el);
+  if (list.length) shopSearch(el, "Tìm món trong túi để bán", () => el);
   for (const it of list) {
     const price = sellPrice(it)!, def = itemDef(it.code);
     const o = document.createElement("div"); o.className = "shoprow"; o.dataset.name = itemName(it); o.style.setProperty("--c", itemColor(it));
