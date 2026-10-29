@@ -40,5 +40,5 @@ Cutter khóa nền dung sai 60, loại màu viền ám hồng của cây xanh (b
 - `npm run build` và `npm run test:phaptuong --prefix client` đạt; bot RAM `npm run bot:local -- --only combo`: 34 đạt, 0 lỗi.
 - `ui:check --kind I`: tìm được lỗi dính ở s lượt 2; s lượt 3 hết lỗi dính, còn báo viền ám hồng và số màu theo giới hạn UI (32), khác giới hạn pháp tướng (48). Kiểm thành phẩm trên nền tối sau cutter.
 - `phuthe:check`: không áp dụng trực tiếp, công cụ đòi toA 6×4 quanh nộm, khác tờ pháp tướng 4×4 độc lập.
-- Chưa có phê duyệt mỹ thuật của chủ repo. Ảnh trong game là căn cứ duyệt, không tự suy ra từ test.
-- Giữ PR nháp: hướng se chưa giữ đỉnh ở khung 13; đã dùng đủ ba lượt nên không tự sinh thêm. Góc se cần chủ repo đối chiếu với s.
+- Chủ repo đã duyệt mẫu qua ảnh trong game và chấp nhận hạn chế hướng se (thông báo qua phiên điều phối soul_land_game-815, 2026-10-30).
+- Hạn chế đã biết: hướng se chưa giữ đỉnh ở khung 13; đã dùng đủ ba lượt, chủ repo chấp nhận và yêu cầu không sinh thêm. Bỏ nháp PR khi CI xanh.
