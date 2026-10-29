@@ -78,8 +78,8 @@
 - [x] H2 ba loài thử (Phong Lang, Kim Linh Ưng, Thái Thản Cự Viên) đã nhập; H4 đã nhập thêm Ám Kim Khủng Trảo Hùng, Hắc Bối Dã Trư, Huyền Băng Thiềm.
 - [x] P0 đặc tả cỡ theo tỉ lệ + cutter chuẩn hóa mặc định; P1 `beast:check` và cutter v2; P2 skill `beast-anim` + sổ trạng thái tự sinh; P3 trang xoay vòng hướng + CI nhẹ.
 
-**Nhóm UI Kit v2** (hướng B; `docs/art/ui-kit.md`).
-- [x] P0 style guide, kiểm kê token, sửa 9-slice, lớp 960×540; P1 công cụ `ui-sheet-check` / `ui-sheet-cut` + manifest; P2 skill `ui-kit`, prompt mẫu, trang xem trước, CI nhẹ; cỡ giao diện tự động theo bậc màn (≥ 1600 / ≥ 1920).
+**Nhóm UI gốc (kit Mực + Giấy)** (`docs/art/ui-kit.md`).
+- [x] P0 style guide, kiểm kê token, sửa 9-slice, lớp 960×540; P1 công cụ `ui-sheet-check` / `ui-sheet-cut` + manifest; P2 skill `ui-kit`, prompt mẫu, trang xem trước, CI nhẹ; cỡ giao diện tự động theo bậc màn (≥ 1600 / ≥ 1920). Kit nhập vào game, màn hệ thống / HUD / bảng lõi / đăng nhập chuyển sang kit (#885); 29/10/2026: UI gốc là UI mặc định duy nhất (chủ repo chốt), tài liệu bỏ mọi UI khác.
 
 **Nhóm Di chuyển & giao chiến** (phản hồi chơi thử 2026-10-26).
 - [x] M1 quét xuyên rào, M2 lách góc, M4 bấm-để-đi không bỏ dở, M3 khoá mục tiêu, M5 thứ tự ưu tiên lệnh + chip trạng thái, M6 hướng dẫn điều khiển lần đầu.
@@ -100,4 +100,4 @@
 - Pháp tướng: #482–#487, #490, #491, #492, #499, #505, #513, #528, #531.
 - Hình ảnh kỹ năng: #541, #542, #546, #548, #566–#569, #583, #590.
 - Hồn sư LPC: #507–#511, #564, #565, #570–#574, #578, #588; họ asset Codex C1–C16: #541, #553, #554, #576, #577.
-- Hồn thú v2: #862–#866, #870, #766–#768. UI Kit v2: #878–#880, #887. Di chuyển & giao chiến: #746–#752. Chống gian lận và hiệu năng: #716, #734–#739.
+- Hồn thú v2: #862–#866, #870, #766–#768. UI gốc (kit Mực + Giấy): #878–#880, #887. Di chuyển & giao chiến: #746–#752. Chống gian lận và hiệu năng: #716, #734–#739.
