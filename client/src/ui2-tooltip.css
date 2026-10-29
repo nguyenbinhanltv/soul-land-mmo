@@ -1,23 +1,23 @@
 /* UI v2: chú thích vật phẩm (giữ Shift: so sánh + món đang mặc song song) và ô tìm không dấu dùng chung Bản đồ / Túi / Cửa hàng, Part of #885 (kiểm kê thiếu #3, #12, #13, #24).
-   Mọi luật dưới `body.ui2` (cờ tắt thì không đổi gì). Chữ qua --fs-*, vùng bấm ≥ 32 px; trạng thái có chữ + dấu (▲ ▼ =, "Khoá"), không chỉ màu. */
-body.ui2 #tip:has(.t-pair){max-width:min(520px,92vw)}
-body.ui2 #tip .t-pair{display:flex;gap:var(--sp-5);align-items:flex-start}
-body.ui2 #tip .t-col{flex:1 1 0;min-width:0}
-body.ui2 #tip .t-beside{padding-left:var(--sp-5);border-left:var(--bd-fine) solid var(--ink2)}
-body.ui2 #tip :is(.t-title,.t-sub,.t-row,.t-foot,div){line-height:1.3}   /* base cố định 12 px: chữ cỡ lớn / rất lớn chồng dòng */
-body.ui2 #tip .t-hint{color:var(--accent)}
-body.ui2 #tip .t-row>:first-child{flex:none;white-space:nowrap}
-body.ui2 #tip .t-row>:last-child{text-align:right;overflow-wrap:anywhere}
+   Luật thường (đợt 5c-b: đã bỏ tiền tố body.ui2; luật cũ ở style.css gỡ ở đợt 5b). Chữ qua --fs-*, vùng bấm ≥ 32 px; trạng thái có chữ + dấu (▲ ▼ =, "Khoá"), không chỉ màu. */
+#tip:has(.t-pair){max-width:min(520px,92vw)}
+#tip .t-pair{display:flex;gap:var(--sp-5);align-items:flex-start}
+#tip .t-col{flex:1 1 0;min-width:0}
+#tip .t-beside{padding-left:var(--sp-5);border-left:var(--bd-fine) solid var(--ink2)}
+#tip :is(.t-title,.t-sub,.t-row,.t-foot,div){line-height:1.3}   /* base cố định 12 px: chữ cỡ lớn / rất lớn chồng dòng */
+#tip .t-hint{color:var(--accent)}
+#tip .t-row>:first-child{flex:none;white-space:nowrap}
+#tip .t-row>:last-child{text-align:right;overflow-wrap:anywhere}
 
 /* Ô tìm dùng chung (nền Mực; Cửa hàng đè màu Giấy ở ui2-shop.css). */
-body.ui2 .p2-search{display:block}
-body.ui2 .p2-search input{width:100%;box-sizing:border-box;min-height:32px;padding:0 var(--sp-4);font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2);border-radius:0}
-body.ui2 .p2-search input:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+.p2-search{display:block}
+.p2-search input{width:100%;box-sizing:border-box;min-height:32px;padding:0 var(--sp-4);font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2);border-radius:0}
+.p2-search input:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
 
 /* Bản đồ: ô tìm trên thanh công cụ, kết quả (≤ 6 dòng) xổ ngay dưới thanh. */
-body.ui2 #mapview .mv-search{flex:1 1 180px;max-width:280px}
-body.ui2 #mapview .mv-find{position:absolute;left:var(--sp-4);top:100%;z-index:2;list-style:none;margin:0;padding:0;min-width:240px;max-width:min(360px,90%);background:var(--plate);color:var(--plate-text);border:var(--bd) solid var(--ink2);font:var(--fs-m)/1.3 var(--f12)}
-body.ui2 #mapview .mv-find li{display:flex;flex-direction:column;min-height:32px;box-sizing:border-box;padding:var(--sp-2) var(--sp-4);cursor:pointer}
-body.ui2 #mapview .mv-find small,body.ui2 #mapview .mv-find .none{font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)}
-body.ui2 #mapview .mv-find li:hover,body.ui2 #mapview .mv-find li:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:calc(var(--bd) * -1)}
-body.ui2 #mapview .mv-find .none{cursor:default}
+#mapview .mv-search{flex:1 1 180px;max-width:280px}
+#mapview .mv-find{position:absolute;left:var(--sp-4);top:100%;z-index:2;list-style:none;margin:0;padding:0;min-width:240px;max-width:min(360px,90%);background:var(--plate);color:var(--plate-text);border:var(--bd) solid var(--ink2);font:var(--fs-m)/1.3 var(--f12)}
+#mapview .mv-find li{display:flex;flex-direction:column;min-height:32px;box-sizing:border-box;padding:var(--sp-2) var(--sp-4);cursor:pointer}
+#mapview .mv-find small,#mapview .mv-find .none{font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)}
+#mapview .mv-find li:hover,#mapview .mv-find li:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:calc(var(--bd) * -1)}
+#mapview .mv-find .none{cursor:default}

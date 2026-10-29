@@ -132,6 +132,8 @@ export const MAPS: Record<string, MapDef> = {
     world: ["thai_than_cu_vien", "thien_thanh_nguu_mang"], exit: "tinh_dau_noi_dia" },
   // 7.2: sân đấu riêng của Đại Đấu Hồn Trường (ARENA_MAP). Không cổng nào dẫn tới, không lưu làm bản đồ đang đứng; chỉ ArenaRoom mở.
   dai_dau_hon_truong: { id: "dai_dau_hon_truong", name: "Đại Đấu Hồn Trường", kind: "arena", level: null, years: null, shards: [], cores: [] },
+  // Phòng riêng Bí Cảnh: không đi cổng, không lưu vị trí, không sinh quái ngoài kịch bản sóng.
+  luyen_hon_canh: { id: "luyen_hon_canh", name: "Luyện Hồn Cảnh", kind: "arena", level: null, years: null, shards: [], cores: [] },
 };
 /**
  * Mã bản đồ cũ đã bỏ khỏi MAPS -> bản đồ thay thế (mục 6): `accounts.map_id` còn mã cũ thì vào bản đồ thay thế, ở `spawn`
@@ -5723,7 +5725,7 @@ export const SAVE_EVERY_SECS = 30;
  */
 export const FOG = {
   cell: 8, sight: 12,
-  open: ["thanh_hon_thon", "nac_dinh_thanh", "thien_dau_thanh", "dai_dau_hon_truong"] as string[],
+  open: ["thanh_hon_thon", "nac_dinh_thanh", "thien_dau_thanh", "dai_dau_hon_truong", "luyen_hon_canh"] as string[],
   markSecs: 1, sendSecs: 3, maxAdd: 96, fadeMs: 700, maxCells: 20000,
 };
 

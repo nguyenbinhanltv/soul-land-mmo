@@ -77,7 +77,7 @@ Chất liệu **Giấy** (hộp thoại giữa màn, nội dung đọc; `docs/ar
 - **Bảng tuần:** 7 cột thứ + ngày; **cột hôm nay tô nổi** (nền + viền + dấu "hôm nay", không chỉ màu); thẻ giờ = tên + `HH:MM – HH:MM`; hàng xếp theo giờ bắt đầu chứ không theo loại.
 - **Trạng thái thẻ** (hình + dấu, không chỉ màu): *đang mở* (nổi, nhãn "Đang mở", đếm lùi tới lúc kết thúc), *sắp mở* (trong vòng CAL_SOON_MIN *(đề xuất)* phút: nhãn "Sắp mở" + đếm lùi), *đã qua* (mờ, ở cột hôm nay), *ngày khác* (thường), *xong hôm nay* (tick, v2), *khóa* (bản đồ chưa tới cấp đề xuất: nhãn lý do, nút "Đến" tắt, chữ lý do vẫn hiện).
 - **Trạng thái bắt buộc của màn:** *đang tải* (khung xương), *lỗi / mất kết nối* (nút Thử lại, giữ dữ liệu cũ), *tuần trống* (hiếm; "Tuần này chưa có khung giờ"), *giờ server chưa nhận* (chưa hiện đếm lùi, chỉ hiện giờ). Tên dài xuống dòng; thẻ cắt ở mép cuộn phải có dấu mờ báo "còn nữa". Esc đóng theo ngăn xếp (`panelStack.ts`); cuộn ngang bằng nút ◀ ▶ và chuột, không bắt buộc cuộn.
-- Chấm đỏ ở icon lịch khi **có khung giờ vừa mở** mà chưa xem; tắt khi mở bảng.
+- Chấm đỏ ở icon lịch khi **có khung giờ đang mở / sắp mở** (trong `COUNTDOWN_SOON_MS`) mà chưa xem; tắt khi mở bảng. Làm ở client (`watchCalendar`, `unseenSoon`): xin tin `calendar` tuần này lúc vào phòng và mỗi 10 phút khi bảng đóng, không có tin mới.
 
 ### Lộ trình triển khai (mỗi bước một PR nhỏ)
 | Bước | Việc | Kiểm thử |

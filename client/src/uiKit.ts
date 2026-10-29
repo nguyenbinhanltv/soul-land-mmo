@@ -1,5 +1,5 @@
 // UI Kit v2, lớp token (P5 #883, theo dõi #877; docs/art/ui-kit.md mục "Lớp token ui2"):
-// - UI gốc luôn bật (đợt 5c: đã gỡ cờ `?ui=` và `isUi2()`): `applyUi2` đặt `body.ui2` và biến kit theo cỡ;
+// - UI gốc luôn bật (đợt 5c: đã gỡ cờ `?ui=` và `isUi2()`): `applyUi2` đặt biến kit và lớp `ui2-k-<tên>` theo cỡ (không còn lớp `body.ui2`: đợt 5c-b, CSS là luật thường);
 // - mảnh kit `ui2_<tên>` trong manifest (do `ui:cut` xuất: bản 2× và 1×, vạch 9-slice `nine.x2` / `nine.x1`) thành biến CSS
 //   `--ui2-<tên>` (ảnh), `--ui2-<tên>-nine` (vạch cắt, tính bằng điểm ảnh của bản đang dùng), `--ui2-<tên>-bw` (độ dày viền CSS = vạch / hệ số kit);
 // - bản 2× khi `--u` × DPR ≥ 2, ngược lại bản 1× (khuyến nghị cỡ kit ở docs); chưa có mảnh thì không đặt biến và không thêm lớp
@@ -54,14 +54,13 @@ export function kitClasses(entries: KitEntry[]): string[] {
 let kit: KitEntry[] = [];
 let applied: string[] = [];
 
-/** Bật `body.ui2` và (lại) đặt biến kit theo cỡ hiện tại (gọi lại khi đổi cỡ: gỡ biến / lớp cũ trước). */
+/** (Lại) đặt biến kit theo cỡ hiện tại (gọi lại khi đổi cỡ: gỡ biến / lớp cũ trước). */
 export function applyUi2(u: number) {
   const root = document.documentElement.style, cl = document.body?.classList;
   for (const k of applied) root.removeProperty(k);
   if (cl) for (const c of [...cl].filter((c) => c.startsWith("ui2-k-"))) cl.remove(c);
   applied = [];
   if (!cl) return;
-  cl.add("ui2");
   // URL tuyệt đối: url() tương đối trong biến CSS được phân giải theo tệp CSS đã build (/assets/), nên ở bản build mọi khung kit mất ảnh
   const abs = (key: string, scale: 1 | 2) => new URL(kitPath(key, scale), document.baseURI).href;
   const tokens = kitTokens(kit, kitScale(u, devicePixelRatio || 1), abs);

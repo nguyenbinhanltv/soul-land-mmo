@@ -1,51 +1,51 @@
-/* UI v2: HUD chính theo kit Mực + Giấy (P7a, Part of #885 / #877). Mọi luật dưới `body.ui2` (cờ tắt mặc định: không có lớp này thì HUD cũ không đổi).
+/* UI v2: HUD chính theo kit Mực + Giấy (P7a, Part of #885 / #877). Luật thường (đợt 5c-b: đã bỏ tiền tố body.ui2; luật cũ ở style.css gỡ ở đợt 5b).
    Khung do lớp `f2-*` của ui2.css lo (gắn trong index.html / hudBar.ts / feedback.ts); file này chỉ (1) giữ khung kit thắng luật `#id` cũ của style.css
    và (2) chỉnh bố cục / màu theo token, cùng tông với menu hub (ui2-screens.css). Chữ 10 / 12 (Galmuri), không ký tự ngoài phông nhúng. */
 
 /* (1) Luật `#actbar …` / `.panel` của HUD cũ có độ ưu tiên cao hơn helper: lặp lại đúng bộ viền kit (vẫn đi qua --frame-*), chỉ trong #hud. */
-body.ui2.ui2-k-khung-muc-nho #hud .f2-muc-nho,body.ui2.ui2-k-o-trong #hud .f2-o,body.ui2.ui2-k-nut-phu-thuong #hud .f2-nut-phu{
+.ui2-k-khung-muc-nho #hud .f2-muc-nho,.ui2-k-o-trong #hud .f2-o,.ui2-k-o-trong #hud :is(.sk,.tm).f2-o,.ui2-k-nut-phu-thuong #hud .f2-nut-phu{
   box-sizing:border-box;border-style:solid;border-color:transparent;border-width:var(--frame-bw);border-image:var(--frame-img) var(--frame-nine) fill / var(--frame-bw) stretch;
   background:none;box-shadow:none;image-rendering:pixelated;color:var(--ink-text)}
-body.ui2.ui2-k-khung-toast .toast.f2-toast{border-width:var(--frame-bw);border-style:solid;border-color:transparent;border-image:var(--frame-img) var(--frame-nine) fill / var(--frame-bw) stretch;
+.ui2-k-khung-toast .toast.f2-toast{border-width:var(--frame-bw);border-style:solid;border-color:transparent;border-image:var(--frame-img) var(--frame-nine) fill / var(--frame-bw) stretch;
   background:none;box-shadow:inset 4px 0 0 var(--c)}   /* màu loại toast: vạch trong bên trái (hình), không chỉ màu viền */
 
 /* (2) Khung nhân vật: tên, cấp, sinh lực / hồn lực / kinh nghiệm. Thanh dày 16 px giữ chữ số đọc được; viền mảnh cùng màu cột điều hướng của hub. */
-body.ui2 #hud .stats{width:224px;padding:var(--sp-4) var(--sp-5)}
-body.ui2 #hud .portrait{background:var(--plate);border:var(--bd) solid var(--ink2)}
-body.ui2 #hud .bar{background:var(--track);border:var(--bd-fine) solid var(--ink2);margin-top:var(--sp-3)}
-body.ui2 #hud .bar span{color:var(--plate-text)}
+#hud .stats{width:224px;padding:var(--sp-4) var(--sp-5)}
+#hud .portrait{background:var(--plate);border:var(--bd) solid var(--ink2)}
+#hud .bar{background:var(--track);border:var(--bd-fine) solid var(--ink2);margin-top:var(--sp-3)}
+#hud .bar span{color:var(--plate-text)}
 
 /* Khung tổ đội và thẻ nhiệm vụ / radar cùng chất liệu Mực. */
-body.ui2 #hud #party{width:240px;padding:var(--sp-4) var(--sp-5);color:var(--ink-text)}
-body.ui2 #hud .mapbox{padding:var(--sp-4)}
-body.ui2 #hud #quest{background:var(--plate);border:var(--bd-fine) solid var(--ink2);color:var(--ink-text)}
+#hud #party{width:240px;padding:var(--sp-4) var(--sp-5);color:var(--ink-text)}
+#hud .mapbox{padding:var(--sp-4)}
+#hud #quest{background:var(--plate);border:var(--bd-fine) solid var(--ink2);color:var(--ink-text)}
 
 /* Nút tắt trái (menu nhanh) và nút nhỏ quanh radar: nút phụ của kit; vùng bấm tối thiểu 32 px. */
-body.ui2 #hud .minibtn.f2-nut-phu{min-height:32px;margin-top:0;padding:0 var(--sp-3);font:var(--fs-s)/1.1 var(--f10)}
-body.ui2 #hud .minirow{margin-top:var(--sp-4);gap:var(--sp-2)}
-body.ui2 #hud .radarbtns .minibtn.f2-nut-phu{font:var(--fs-s)/1.1 var(--f10)}
+#hud .minibtn.f2-nut-phu{min-height:32px;margin-top:0;padding:0 var(--sp-3);font:var(--fs-s)/1.1 var(--f10)}
+#hud .minirow{margin-top:var(--sp-4);gap:var(--sp-2)}
+#hud .radarbtns .minibtn.f2-nut-phu{font:var(--fs-s)/1.1 var(--f10)}
 
 /* Viền minimap: vòng mực quanh radar, nút +/-/xoay cùng tông. */
-body.ui2 #hud #mini{box-shadow:0 0 0 var(--bd) var(--ink2),0 0 0 calc(var(--bd) * 2) var(--plate)}
-body.ui2 #hud #radar .rbtn{background:var(--plate);color:var(--plate-text);border:var(--bd-fine) solid var(--ink2)}
-body.ui2 #hud #radar .rbtn:focus-visible,body.ui2 #hud .f2-nut-phu:focus-visible,body.ui2 #hud .f2-o:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+#hud #mini{box-shadow:0 0 0 var(--bd) var(--ink2),0 0 0 calc(var(--bd) * 2) var(--plate)}
+#hud #radar .rbtn{background:var(--plate);color:var(--plate-text);border:var(--bd-fine) solid var(--ink2)}
+#hud #radar .rbtn:focus-visible,#hud .f2-nut-phu:focus-visible,#hud .f2-o:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
 
 /* Thanh hồn kỹ / hồn cốt / vật phẩm / đội hình: ô kit; màu bậc hồn hoàn chuyển thành vạch dưới chân ô (hình, không chỉ màu viền). */
-body.ui2 #hud #actbar :is(.sk,.tm).ui-cell.f2-o{color:var(--ink-text)}
-body.ui2 #hud #actbar .sk.ui-cell.f2-o[data-tier]{box-shadow:inset 0 -3px 0 var(--c)}
-body.ui2 #hud #actbar .tm.ui-cell.on.f2-o,body.ui2 #hud #actbar .sk.ui-cell.f2-o:is(.ct,.on,.ask){box-shadow:inset 0 0 0 var(--bd) var(--accent)}
-body.ui2 #hud #actbar .action-label{color:var(--plate-text);text-shadow:var(--stroke)}
+#hud #actbar :is(.sk,.tm).ui-cell.f2-o{color:var(--ink-text)}
+#hud #actbar .sk.ui-cell.f2-o[data-tier]{box-shadow:inset 0 -3px 0 var(--c)}
+#hud #actbar .tm.ui-cell.on.f2-o,#hud #actbar .sk.ui-cell.f2-o:is(.ct,.on,.ask){box-shadow:inset 0 0 0 var(--bd) var(--accent)}
+#hud #actbar .action-label{color:var(--plate-text);text-shadow:var(--stroke)}
 
 /* Chat: dòng trên tấm mực, tab theo token, ô gõ là Giấy. */
-body.ui2 #hud #log div{background:var(--plate);color:var(--plate-text)}
-body.ui2 #hud #chattabs button{background:var(--plate);border:var(--bd-fine) solid var(--ink2)}
-body.ui2 #hud #chat{background:var(--paper);color:var(--ink);border:var(--bd) solid var(--ink2)}
-body.ui2 #hud #chat:focus-visible{border-color:var(--accent);outline:none}
+#hud #log div{background:var(--plate);color:var(--plate-text)}
+#hud #chattabs button{background:var(--plate);border:var(--bd-fine) solid var(--ink2)}
+#hud #chat{background:var(--paper);color:var(--ink);border:var(--bd) solid var(--ink2)}
+#hud #chat:focus-visible{border-color:var(--accent);outline:none}
 
 /* Toast: tấm mực khung kit, chữ giấy. */
-body.ui2 .toast.f2-toast{padding:var(--sp-3) var(--sp-4);color:var(--plate-text)}
+.toast.f2-toast{padding:var(--sp-3) var(--sp-4);color:var(--plate-text)}
 
 /* Chữ trên tấm mực: style.css đặt chữ tối cho giấy (--text / --muted / --accent); trong khung Mực đổi lại cho đủ tương phản (≥ 7 : 1 trên --plate). */
-body.ui2 #hud .f2-muc-nho,body.ui2 #hud #quest,body.ui2 #hud #actbar .f2-o{--text:var(--ink-text);--muted:var(--paper3);--accent:var(--paper2);--qgold:#ffe08a}
-body.ui2 #hud #actbar .f2-o{background:var(--ink-panel);background-clip:padding-box}
-body.ui2 #hud .f2-muc-nho .pbtn{--text:var(--ink);color:var(--ink)}   /* nút nhỏ trong khung vẫn là nút giấy: chữ tối */
+#hud .f2-muc-nho,#hud #quest,#hud #actbar .f2-o{--text:var(--ink-text);--muted:var(--paper3);--accent:var(--paper2);--qgold:#ffe08a}
+#hud #actbar .f2-o{background:var(--ink-panel);background-clip:padding-box}
+#hud .f2-muc-nho .pbtn{--text:var(--ink);color:var(--ink)}   /* nút nhỏ trong khung vẫn là nút giấy: chữ tối */

@@ -1,11 +1,11 @@
-// Phòng Bí Cảnh (mục 5.22, docs/design/bi-canh.md, bước P3): một lượt Luyện Hồn Cảnh solo. Lớp con của MapRoom trên sân `ARENA_MAP` (MVP dùng chung bản đồ sân đấu, chưa có bản đồ riêng):
+// Phòng Bí Cảnh (mục 5.22, docs/design/bi-canh.md, bước P3): một lượt Luyện Hồn Cảnh solo. Lớp con của MapRoom trên bản đồ riêng Luyện Hồn Cảnh:
 // dùng lại nguyên vòng lặp, di chuyển, đánh thường, hồn kỹ, tiên cơ, Chân Thân, đổi võ hồn. Ở đây chỉ có luật riêng: các pha (chờ vào phòng, đếm ngược, giao đấu, kết quả), các sóng hồn thú
 // theo kịch bản dữ liệu `BICANH.scenes[].waves`, chốt kết quả MỘT lần, thưởng Hồn Kinh Quyển theo số sóng đã hạ do server đếm, hoàn lượt khi lỗi hệ thống. Mọi thứ do server quyết; client chỉ gửi ý định.
 // Lượt đã trừ ở bicanh.ts (`enterRun`) bằng vé `Ticket`; phòng chỉ mở bằng vé đó, một người, một lần.
 import { Client, ServerError } from "colyseus";
 import { MapRoom, seatAccount, type AuthData, type PData, type SeatPass } from "./MapRoom.ts";
 import { BLOCKED, ARENA_END_CODE } from "./ArenaRoom.ts";
-import { BICANH, BOSSES, MAX_RINGS, SPAWN_PLAYER_GAP, TIERS, TILE, ARENA_MAP, beastIndex, bicanhTomeKind, ringLimit, dir4 } from "../../../shared/data.ts";
+import { BICANH, BOSSES, MAX_RINGS, SPAWN_PLAYER_GAP, TIERS, TILE, beastIndex, bicanhTomeKind, ringLimit, dir4 } from "../../../shared/data.ts";
 import { store } from "../db.ts";
 import { bicanhTickets, refundRun, releaseRun, type Ticket } from "./bicanh.ts";
 
@@ -13,8 +13,8 @@ type Phase = "wait" | "ready" | "fight" | "end";
 type Reason = "win" | "dead" | "time" | "leave" | "noshow";
 const REASON_TEXT: Record<Reason, string> = { win: "hạ hết các sóng", dead: "đội võ hồn gục hết", time: "hết giờ", leave: "rời phòng giữa chừng", noshow: "không vào phòng" };
 const DENY_GAP_MS = 1000;
-/** Tin ngoài trận bị chặn trong phòng Bí Cảnh: như sân đấu, thêm đổi túi (sắp xếp / khóa / tự bán) và `arena`; để túi chỉ đổi bởi phần thưởng và kết quả không lệch giữa RAM và DB. */
-const ROOM_BLOCKED = [...BLOCKED, "arena", "sortbag", "lock", "autosell"];
+/** Tin ngoài trận bị chặn trong phòng Bí Cảnh: như sân đấu, thêm đổi túi (sắp xếp / khóa / tự bán), `arena`, và (phòng thủ thêm, P6) tông môn / ngoại hình / đặt lại bộ hạch / đổi kênh vốn đã vô hiệu vì sân không có NPC và không có kênh; để túi chỉ đổi bởi phần thưởng và kết quả không lệch giữa RAM và DB. */
+const ROOM_BLOCKED = [...BLOCKED, "arena", "sortbag", "lock", "autosell", "tong", "looks", "coreset", "channel"];
 
 export class BiCanhRoom extends MapRoom {
   maxClients = 1;
@@ -36,7 +36,7 @@ export class BiCanhRoom extends MapRoom {
     if (!t || t.roomId || t.settled) throw new ServerError(400, "Phòng Bí Cảnh không tồn tại.");
     t.roomId = this.roomId; this.ticket = t;
     void this.setPrivate(true);
-    await this.setup(ARENA_MAP);
+    await this.setup("luyen_hon_canh");
     this.interest.all = true; // sân nhỏ: không lọc đồng bộ theo vùng
     this.phase = "wait"; this.time = BICANH.joinSecs;
     for (const k of ROOM_BLOCKED) this.onMessage(k, (c) => this.deny(c.sessionId, k, "Đang ở Bí Cảnh: không làm được việc này trong phòng."));

@@ -45,7 +45,8 @@
       "title": "Đại Đấu Hồn Trường",
       "kind": "map",
       "maps": [
-        "dai_dau_hon_truong"
+        "dai_dau_hon_truong",
+        "luyen_hon_canh"
       ],
       "loop": true,
       "seconds": 73.143,

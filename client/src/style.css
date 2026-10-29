@@ -391,7 +391,6 @@ body.touch #prompt{bottom:160px}
 .rhead{display:flex;justify-content:space-between;align-items:center}
 .rhead .x{font:inherit;font-size:24px;font-family:var(--f12);line-height:1;width:32px;height:32px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer}
 /* 4 ô hồn kỹ mang theo (8.1a): ô dùng lại kiểu ô đội hình, danh sách hồn kỹ đã mở bên dưới. */
-.kslots .tpick>b{font-size:12px;font-family:var(--f12);color:var(--xp-t)}
 .klist{display:grid;grid-template-columns:1fr;gap:4px}
 .kcard{font:inherit;color:var(--text);background:var(--wash);border:2px solid var(--line);padding:5px 8px;cursor:pointer;
   display:flex;align-items:center;gap:8px;text-align:left;min-height:40px}
@@ -429,15 +428,8 @@ body.touch #prompt{bottom:160px}
 .tslot.empty{border-style:dashed}
 .tslot.sel{box-shadow:0 0 0 2px var(--xp)}
 .tslot.ava{grid-column:1/-1;border-style:dashed}
-.tslot.ava .tpick{cursor:default}
 .tslot.ava.locked{opacity:.6}
-.tpick{flex:1;font:inherit;color:var(--text);background:transparent;border:0;padding:6px 8px;cursor:pointer;text-align:left;min-height:48px;
-  display:grid;grid-template-columns:auto auto 1fr;column-gap:6px;align-items:center}
-.tpick>b{grid-row:span 2;font-size:12px;font-family:var(--f12);color:var(--muted)}
-.tpick .dot{grid-row:span 2;margin:0;color:var(--c,var(--muted))}
 .tslot.empty .dot{box-shadow:none;background:transparent;border:1px dashed var(--muted)}
-.tpick span{font-size:12px;font-family:var(--f12);line-height:normal}
-.tpick small{grid-column:3;color:var(--muted);font-size:12px;font-family:var(--f12)}
 .trm{font:inherit;font-size:12px;font-family:var(--f12);border:0;border-left:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;padding:0 8px}
 .trm:disabled{opacity:.35;cursor:default}
 .tpick:focus-visible,.trm:focus-visible{outline:2px solid var(--xp);outline-offset:-2px}
@@ -1259,7 +1251,7 @@ body.touch #autoPanel .aorder .rlink{min-height:36px}
 #tip .t-sub{display:block;color:#a89fb4;font:var(--fs-s)/12px var(--f10);margin-bottom:var(--sp-2)}
 #tip .t-row{display:flex;justify-content:space-between;gap:var(--sp-5)}
 #tip .t-row b{font-weight:400;color:#ffe08a}
-#tip .t-good{color:#7bd88f} #tip .t-bad{color:#ff8a7a} #tip .t-muted{color:#a89fb4}
+#tip .t-good{color:#7bd88f} #tip .t-bad{color:#ff8a7a}
 #tip .t-foot{display:block;margin-top:var(--sp-3);padding-top:var(--sp-2);border-top:1px solid #3a3440;color:#a89fb4;font:var(--fs-s)/12px var(--f10)}
 
 /* ===== UI-1 (#351): túi đồ dạng lưới — lọc nhóm, dải gắn nhanh, dấu "mới", so sánh trang bị ===== */

@@ -1,0 +1,223 @@
+{
+  "_": "Luyện Hồn Cảnh (#1294): một sảnh đá kín, ba dấu sóng và dấu tinh anh chỉ bằng nền đi được; giữ cỡ 40×24 và vùng spawn của sân cũ, không đổi cách sinh sóng. Tái dùng ground isometric, không thêm ảnh.",
+  "map": "luyen_hon_canh",
+  "out": "luyen_hon_canh.json",
+  "size": [
+    40,
+    24
+  ],
+  "seed": 20261029,
+  "gids": {
+    "ground": {
+      "grass": [
+        1,
+        1
+      ],
+      "leaf": 1,
+      "moss": 1,
+      "path": 7,
+      "pathDark": 8,
+      "camp": 7,
+      "pave": 13,
+      "crack": 16,
+      "water": 9,
+      "ford": 34,
+      "bank": 25,
+      "deep": 35,
+      "stony": 26,
+      "glow": 5,
+      "bridge": 33
+    },
+    "objects": {
+      "stele": 38,
+      "fire": 12,
+      "ruin": 37,
+      "roof": 14,
+      "wall": 15
+    }
+  },
+  "tiers": [
+    {
+      "name": "Sảnh luyện hồn",
+      "trees": {
+        "17": 1
+      },
+      "density": 0,
+      "cluster": 0.99
+    }
+  ],
+  "zones": [],
+  "points": {
+    "song_1": [
+      14,
+      8
+    ],
+    "song_2": [
+      20,
+      15
+    ],
+    "song_3": [
+      26,
+      8
+    ],
+    "tinh_anh": [
+      30,
+      12
+    ]
+  },
+  "features": [
+    {
+      "type": "area",
+      "name": "Nền đá ngoài sảnh",
+      "ground": "grass",
+      "rect": [
+        0,
+        0,
+        40,
+        24
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Sảnh Luyện Hồn",
+      "ground": "pave",
+      "rect": [
+        2,
+        2,
+        36,
+        20
+      ],
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Dấu sóng một",
+      "circle": [
+        14,
+        8,
+        3
+      ],
+      "ground": "crack",
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Dấu sóng hai",
+      "circle": [
+        20,
+        15,
+        3
+      ],
+      "ground": "crack",
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Dấu sóng ba",
+      "circle": [
+        26,
+        8,
+        3
+      ],
+      "ground": "crack",
+      "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Dấu tinh anh",
+      "circle": [
+        30,
+        12,
+        2
+      ],
+      "ground": "glow",
+      "clear": true
+    },
+    {
+      "type": "objects",
+      "kind": "stele",
+      "at": [
+        [
+          2,
+          4
+        ],
+        [
+          37,
+          4
+        ],
+        [
+          2,
+          19
+        ],
+        [
+          37,
+          19
+        ]
+      ]
+    },
+    {
+      "type": "objects",
+      "kind": "fire",
+      "at": [
+        [
+          2,
+          11
+        ],
+        [
+          37,
+          11
+        ]
+      ]
+    },
+    {
+      "type": "fence",
+      "rect": [
+        0,
+        0,
+        40,
+        24
+      ],
+      "gates": []
+    }
+  ],
+  "spawn": {
+    "name": "Sảnh Luyện Hồn",
+    "rect": [
+      4,
+      6,
+      32,
+      14
+    ]
+  },
+  "arrives": [
+    {
+      "name": "song_1",
+      "at": [
+        14,
+        8
+      ]
+    },
+    {
+      "name": "song_2",
+      "at": [
+        20,
+        15
+      ]
+    },
+    {
+      "name": "song_3",
+      "at": [
+        26,
+        8
+      ]
+    },
+    {
+      "name": "tinh_anh",
+      "at": [
+        30,
+        12
+      ]
+    }
+  ]
+}

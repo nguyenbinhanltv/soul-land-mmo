@@ -7,7 +7,7 @@
 // Luật: đúng MỘT Chrome headless, luôn --mute-audio, cổng CDP ngẫu nhiên (không dùng 9333), chụp tuần tự từng cỡ; xong tắt đúng PID của mình.
 // Chrome tìm ở biến CHROME (đường dẫn) hoặc đường dẫn cài đặt mặc định (Chrome, rồi Edge).
 import { spawn } from "node:child_process";
-import { readFileSync, existsSync, mkdirSync, writeFileSync, mkdtempSync, rmSync } from "node:fs";
+import { readFileSync, existsSync, mkdirSync, writeFileSync, mkdtempSync, rmSync, appendFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { AUTO_DEFAULTS } from "../../shared/data.ts";
@@ -22,6 +22,8 @@ const TAG = opt("tag", "");
 const DPR = +opt("dpr", "1");
 const FS = opt("fs", ""); // --fs 1|2: thêm lớp a11y-fs-N (cỡ chữ Lớn / Rất lớn) sau khi vào bản đồ
 const STYLES = opt("styles", ""); // --styles <thư mục>: cùng mỗi ảnh ghi thêm <tag>-<cảnh>.json (computed style của mọi phần tử DOM ngoài canvas) để so trước / sau không nhiễu bởi nền bản đồ (node tools/ui-styles-diff.mjs)
+const PROBE = opt("probe", ""); // --probe <tệp.json>: [{ "scene": "10-hud", "sel": "#bskills .bsk", "props": ["border-top-style"] }]; sau ảnh của cảnh khớp tiền tố, in các luật CSS khớp phần tử kèm độ đặc hiệu (tìm luật thua do độ ưu tiên)
+const FLIP = opt("flip", ""); // --flip <tệp.jsonl>: (bản build đã đánh dấu `--u2:1` vào luật ui2) mô phỏng độ đặc hiệu cũ (+0,1,1) với mới trên mọi phần tử, ghi các thuộc tính đổi người thắng
 const OUTER = argv.includes("--outer"); // cỡ = cửa sổ Chrome (vùng hiển thị nhỏ hơn: khung tab / thanh địa chỉ), như người chơi mở cửa sổ 960×540
 const CHROMES = [process.env.CHROME, "C:/Program Files/Google/Chrome/Application/chrome.exe", "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", "/usr/bin/google-chrome", "/usr/bin/chromium"].filter(Boolean);
 const CHROME = CHROMES.find((p) => existsSync(p));
@@ -48,6 +50,45 @@ const DUMP_STYLES = `() => {
   walk(document.body, "body"); return out;
 }`;
 
+// Chạy trong trang: với phần tử khớp `sel` đầu tiên, liệt kê luật khai báo từng thuộc tính theo thứ tự thắng tăng dần (cuối cùng thắng).
+const PROBE_FN = String.raw`(sel, props) => {
+  const el = document.querySelector(sel); if (!el) return "KHÔNG THẤY " + sel;
+  const spec = (s) => { let a = 0, b = 0, c = 0; s = s.replace(/\[[^\]]*\]/g, () => (b++, "")).replace(/::?(where)\((?:[^()]|\([^)]*\))*\)/g, "").replace(/#[\w-]+/g, () => (a++, "")).replace(/\.[\w-]+/g, () => (b++, "")).replace(/::?[\w-]+(\([^)]*\))?/g, () => (b++, "")).replace(/[a-zA-Z][\w-]*/g, () => (c++, "")); return [a, b, c]; };
+  const out = []; let order = 0;
+  const walk = (rules, sheet) => { for (const r of rules) { if (r.cssRules && !r.selectorText) { walk(r.cssRules, sheet); continue; } if (!r.selectorText) continue; order++;
+    const parts = r.selectorText.split(/,(?![^(]*\))/).map((x) => x.trim()).filter((x) => { try { return el.matches(x); } catch { return false; } });
+    if (!parts.length) continue;
+    for (const p of props) { const v = r.style.getPropertyValue(p); if (!v) continue; const best = parts.map(spec).sort((x, y) => y[0] - x[0] || y[1] - x[1] || y[2] - x[2])[0];
+      out.push({ p, v: v.slice(0, 50), imp: r.style.getPropertyPriority(p) === "important", sp: best, order, sel: parts.join(" , ").slice(0, 110), sheet }); } } };
+  [...document.styleSheets].forEach((sh, i) => { try { walk(sh.cssRules, i); } catch {} });
+  const cmp = (x, y) => (x.imp - y.imp) || (x.sp[0] - y.sp[0]) || (x.sp[1] - y.sp[1]) || (x.sp[2] - y.sp[2]) || (x.order - y.order);
+  return props.map((p) => p + " @ " + sel + "\n" + out.filter((o) => o.p === p).sort(cmp).map((o) => "   (" + o.sp.join(",") + ")" + (o.imp ? "!" : "") + " #" + o.order + " " + o.v + "  <-  " + o.sel).join("\n")).join("\n");
+}`;
+
+const FLIP_FN = String.raw`() => {
+  const SH = { border: ["border-top-width","border-top-style","border-top-color","border-right-width","border-right-style","border-right-color","border-bottom-width","border-bottom-style","border-bottom-color","border-left-width","border-left-style","border-left-color"], "border-color": ["border-top-color","border-right-color","border-bottom-color","border-left-color"], "border-width": ["border-top-width","border-right-width","border-bottom-width","border-left-width"], "border-style": ["border-top-style","border-right-style","border-bottom-style","border-left-style"], padding: ["padding-top","padding-right","padding-bottom","padding-left"], margin: ["margin-top","margin-right","margin-bottom","margin-left"], "border-top": ["border-top-width","border-top-style","border-top-color"], "border-bottom": ["border-bottom-width","border-bottom-style","border-bottom-color"], "border-left": ["border-left-width","border-left-style","border-left-color"], "border-right": ["border-right-width","border-right-style","border-right-color"], background: ["background-color","background-image","background-size","background-position","background-repeat"], inset: ["top","right","bottom","left"], gap: ["row-gap","column-gap"], "border-radius": ["border-top-left-radius"], font: ["font-size","font-family","font-weight","line-height"], outline: ["outline-width","outline-style","outline-color"] };
+  const spec = (s) => { let a = 0, b = 0, c = 0; s = s.replace(/\[[^\]]*\]/g, () => (b++, "")).replace(/::?where\((?:[^()]|\([^)]*\))*\)/g, "").replace(/#[\w-]+/g, () => (a++, "")).replace(/\.[\w-]+/g, () => (b++, "")).replace(/::?[\w-]+(\([^)]*\))?/g, () => (b++, "")).replace(/[a-zA-Z][\w-]*/g, () => (c++, "")); return [a, b, c]; };
+  const rules = []; let order = 0;
+  const walk = (rs) => { for (const r of rs) { if (r.cssRules && !r.selectorText) { walk(r.cssRules); continue; } if (!r.selectorText) continue; order++;
+    const decl = []; const css = r.style.cssText;
+    for (const m of css.matchAll(/(?:^|;)\s*([a-z-]+)\s*:\s*((?:[^;(]|\([^)]*\))*)/g)) { const p = m[1]; if (p === "--u2" || p.startsWith("--")) continue; for (const q of (SH[p] ?? [p])) decl.push([q, m[2].trim() + "@" + p, r.style.getPropertyPriority(p) === "important"]); }
+    if (!decl.length) continue;
+    rules.push({ order, u2: r.style.getPropertyValue("--u2") === "1", sel: r.selectorText, parts: r.selectorText.split(/,(?![^(]*\))/).map((x) => x.trim()), decl }); } };
+  for (const sh of document.styleSheets) { try { walk(sh.cssRules); } catch {} }
+  const byEl = new Map();
+  for (const r of rules) for (const part of r.parts) { let els; try { els = document.body.querySelectorAll(part); } catch { continue; } const sp = spec(part);
+    for (const el of els) { if (el.closest("canvas")) continue; let a = byEl.get(el); if (!a) byEl.set(el, a = []); a.push({ r, sp }); } }
+  const key = (m, mode) => { const sp = m.sp.slice(); if (mode === "old" && m.r.u2) sp[1] += 1, sp[2] += 1; return sp; };
+  const better = (x, y, mode) => { if (!y) return true; if (x.imp !== y.imp) return x.imp; const a = key(x.m, mode), b = key(y.m, mode); for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] > b[i]; return x.m.r.order > y.m.r.order; };
+  const out = new Map();
+  for (const [el, ms] of byEl) {
+    const win = new Map();
+    for (const m of ms) for (const [p, v, imp] of m.r.decl) { const w = win.get(p) ?? { old: null, nw: null }; const c = { m, v, imp }; if (better(c, w.old, "old")) w.old = c; if (better(c, w.nw, "new")) w.nw = c; win.set(p, w); }
+    for (const [p, w] of win) if (w.old.m.r !== w.nw.m.r && w.old.v !== w.nw.v) { const k = p + " | THẮNG-CŨ #" + w.old.m.r.order + (w.old.m.r.u2 ? " [ui2]" : "") + " " + w.old.m.r.sel.slice(0, 90) + " | THẮNG-MỚI #" + w.nw.m.r.order + (w.nw.m.r.u2 ? " [ui2]" : "") + " " + w.nw.m.r.sel.slice(0, 90); const e = out.get(k) ?? { n: 0, el: el.tagName.toLowerCase() + (el.id ? "#" + el.id : "") + "." + [...el.classList].join(".") }; e.n++; out.set(k, e); }
+  }
+  return [...out].map(([k, e]) => ({ k, n: e.n, el: e.el }));
+}`;
+
 async function runSize(W, H) {
   const profile = mkdtempSync(path.join(tmpdir(), "ui-shots-"));
   const chrome = spawn(CHROME, ["--headless=new", "--mute-audio", "--remote-debugging-port=0", `--user-data-dir=${profile}`, "--enable-gpu", "--ignore-gpu-blocklist",
@@ -67,6 +108,8 @@ async function runSize(W, H) {
     const until = async (expr, ms = 20000) => { for (let t = 0; t < ms; t += 200) { if (await ev(expr).catch(() => false)) return true; await sleep(200); } throw new Error("hết giờ chờ: " + expr); };
     const test = (o) => ev(`(window.__scene.room.send("test", ${JSON.stringify(o)}), new Promise(r=>setTimeout(()=>r(true),250)))`);
     const shot = async (file) => { const r = await cdp("Page.captureScreenshot", { format: "png" }); writeFileSync(path.join(OUT, `${tag}-${file}.png`), Buffer.from(r.result.data, "base64")); console.log("ảnh", `${tag}-${file}`);
+      if (PROBE) for (const q of JSON.parse(readFileSync(PROBE, "utf8"))) if (file.startsWith(q.scene)) console.log("PROBE", file, await ev(`(${PROBE_FN})(${JSON.stringify(q.sel)}, ${JSON.stringify(q.props)})`));
+      if (FLIP) appendFileSync(FLIP, JSON.stringify({ file, flips: await ev(`(${FLIP_FN})()`) }) + "\n");
       if (STYLES) { mkdirSync(STYLES, { recursive: true }); writeFileSync(path.join(STYLES, `${tag}-${file}.json`), JSON.stringify(await ev(`(${DUMP_STYLES})()`))); } };
     const key = async (code, k) => { for (const type of ["keyDown", "keyUp"]) await cdp("Input.dispatchKeyEvent", { type, code, key: k, windowsVirtualKeyCode: k.toUpperCase().charCodeAt(0) }); await sleep(500); };
     const step = async (id, fn) => { if (!want(id)) return; try { await fn(); } catch (e) { console.log("LỖI cảnh", id, String(e).slice(0, 200)); } };

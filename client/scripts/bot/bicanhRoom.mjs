@@ -6,7 +6,7 @@
 import { sleep, waitFor, ok, bot, test, qtyOf, needHookSkip, post, enter } from "./lib.mjs";
 import { ASK_CD, BICANH, MAX_RINGS, bicanhRunTomes, ringLimit } from "../../../shared/data.ts";
 
-const ARENA_MAP_ID = "dai_dau_hon_truong";
+const BICANH_MAP_ID = "luyen_hon_canh";
 
 export async function bicanhRoomTest(){
   console.log("[#877 P3] Bí Cảnh: phòng riêng, sóng, thưởng, hoàn lượt, chống gian lận");
@@ -51,7 +51,9 @@ export async function bicanhRoomTest(){
   const bad=await act({op:"enter",id:"x"}); ok(!!bad.err&&runOf(bad)?.left===S.runs,"enter id lạ: từ chối, không trừ lượt");
   let f=await open(200);
   ok(!f.err&&f.found===1&&f.id===ID&&f.waves===S.waves.length&&!!f.roomId,`dồn 200 enter: một tin found (${f.found}), phòng ${f.roomId}`);
-  ok(B.room.state.mapId===ARENA_MAP_ID,"vào phòng riêng trên sân Bí Cảnh");
+  ok(B.room.state.mapId===BICANH_MAP_ID,"vào phòng riêng trên bản đồ Luyện Hồn Cảnh");
+  { await test(B,"gmadmin",{on:true}); const n=B.logs.length, h0=B.bag.honTe; B.room.send("gm",{cmd:"coin 999"}); await waitFor(()=>B.logs.length>n,2000); await sleep(150);
+    ok(B.logs.slice(n).some(t=>/Không dùng lệnh GM/.test(t))&&B.bag.honTe===h0&&B.leftCode===null,"admin gửi lệnh GM trong phòng Bí Cảnh: bị từ chối, không đổi gì"); await test(B,"gmadmin",{on:false}); }
   { const n=B.logs.length; for(const m of [["bicanh",{op:"enter",id:ID}],["bicanh",{op:"buy",id:ID,pay:true}],["buy",{code:"hoi_huyet_dan",qty:1}],["travel",{portal:"x"}],["sortbag",{}],["arena",{op:"queue"}],["use",{id:"x"}]]) B.room.send(...m);
     await sleep(600); ok(B.leftCode===null&&B.logs.slice(n).some(t=>/Bí Cảnh/.test(t)),"tin ngoài trận trong phòng (bicanh lồng, mua, đi cổng, túi, đấu trường): bị chặn, vẫn kết nối"); }
   B.room.send("attack"); await sleep(300); ok(B.room.state.beasts.size===0,"chưa đếm ngược xong: chưa có hồn thú");
@@ -110,6 +112,9 @@ export async function bicanhRoomTest(){
     }
   }
   ok(!!capped||got<=BICANH.tomeDailyCap,"trần quyển ngày kẹp được phần thưởng (hoặc chưa tới trần)");
+  // P6: đã chạm trần quyển ngày thì mua thêm lượt là trả tiền cho lượt không có thưởng: từ chối, không thu Hồn Tệ.
+  if(got>=BICANH.tomeDailyCap){ await sleep(600); const hon=B.bag.honTe, n=B.bc.length; B.room.send("bicanh",{op:"buy",id:ID,pay:true}); await waitFor(()=>B.bc.length>n,3000); await sleep(200);
+    ok(/Hồn Kinh Quyển/.test(B.bc.at(-1)?.err??"")&&B.bag.honTe===hon,`chạm trần quyển ngày: mua thêm lượt bị từ chối, không trừ Hồn Tệ (${B.bc.at(-1)?.err})`); }
 
   // 7. Đồng hồ lùi: đã vào ngày +1 rồi quay về ngày cũ thì từ chối.
   await test(B,"day",{shift:1}); await sleep(1300); f=await open(); ok(!f.err,`ngày +1: có lượt mới, vào phòng (${f.err??""})`);
