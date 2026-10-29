@@ -44,6 +44,12 @@ export function fixedGoal(f: Pick<CalFixed, "id" | "npc">, mapNameOf: (id: strin
   const d = EVENT_DEFS.find((x) => x.id === f.id);
   return d?.map && f.npc ? { map: d.map, mapName: mapNameOf(d.map), npc: f.npc } : null;
 }
+/** Khung giờ đang mở hoặc sắp mở (trong `COUNTDOWN_SOON_MS`) mà người chơi chưa xem (`seen`: khoá `id@s`): số chấm đỏ của icon Lịch. Hàm thuần. */
+export function unseenSoon(items: Pick<CalItem, "id" | "s" | "e">[], now: number, seen: ReadonlySet<string>): number {
+  let n = 0;
+  for (const it of items) { const st = slotState(it, now); if ((st === "live" || st === "soon") && !seen.has(`${it.id}@${it.s}`)) n++; }
+  return n;
+}
 export const STATE_LABEL: Record<SlotState, string> = { live: "Đang mở", soon: "Sắp mở", past: "Đã qua", later: "" };
 
 // ---- phần DOM ----
@@ -55,7 +61,20 @@ const LOAD_TIMEOUT_MS = 6000;
 
 /** Mở đường tới đích: GameScene dùng cờ "Đi tới" (`flagToMap`) / đi bộ tới NPC cùng bản đồ; không gửi gì lên server, không dịch chuyển. */
 let goTo: (g: CalGoal) => void = () => {};
-export function bindCalendar(sender: (type: string, payload: unknown) => void, go?: (g: CalGoal) => void) { send = sender; if (go) goTo = go; }
+let onBadge: (n: number) => void = () => {};
+const seen = new Set<string>(); // khung giờ đã xem (mở bảng) trong phiên này
+const WATCH_REFRESH_MS = 10 * 60_000, WATCH_TICK_MS = 30_000;
+export function bindCalendar(sender: (type: string, payload: unknown) => void, go?: (g: CalGoal) => void, badge?: (n: number) => void) { send = sender; if (go) goTo = go; if (badge) onBadge = badge; }
+/** Chấm đỏ: xin lịch tuần này lúc vào phòng và mỗi 10 phút (khi bảng đóng), tính lại mỗi 30 giây từ bản đã có; chỉ dùng tin `calendar` sẵn có, không tin mới. */
+export function watchCalendar(signal: AbortSignal) {
+  seen.clear(); data = null;
+  const ask = () => { if (send && !isCalendarOpen()) send("calendar", { op: "get", week: 0 }); };
+  const tickBadge = () => { const open = isCalendarOpen(); if (open && data) for (const it of data.items) if (slotState(it, serverNow()) !== "past") seen.add(`${it.id}@${it.s}`); onBadge(data && !open ? unseenSoon(data.items, serverNow(), seen) : 0); };
+  const a = window.setTimeout(ask, 1500), r = window.setInterval(ask, WATCH_REFRESH_MS), t = window.setInterval(tickBadge, WATCH_TICK_MS);
+  signal.addEventListener("abort", () => { window.clearTimeout(a); window.clearInterval(r); window.clearInterval(t); onBadge(0); });
+  watchTick = tickBadge;
+}
+let watchTick: () => void = () => {};
 export const isCalendarOpen = () => { const e = el(); return !!e && !e.hidden; };
 
 function request() {
@@ -65,11 +84,11 @@ function request() {
   timer = window.setTimeout(() => { if (status === "loading") { status = "error"; render(); } }, LOAD_TIMEOUT_MS);
   render();
 }
-export function openCalendar() { const e = el(); if (!e || !send) return; e.hidden = false; week = 0; request(); window.clearInterval(tick); tick = window.setInterval(() => { if (data) render(); }, 30_000); } // đổi trạng thái thẻ khi qua giờ
+export function openCalendar() { const e = el(); if (!e || !send) return; e.hidden = false; week = 0; request(); watchTick(); window.clearInterval(tick); tick = window.setInterval(() => { if (data) render(); }, 30_000); } // đổi trạng thái thẻ khi qua giờ
 export function closeCalendar() { const e = el(); if (e) e.hidden = true; window.clearTimeout(timer); window.clearInterval(tick); for (const s of stops) s(); stops = []; }
 export function onCalendar(m: CalendarMsg) {
   if (!m || !Array.isArray(m.items) || !Array.isArray(m.fixed) || typeof m.weekStart !== "number") return;
-  syncServerNow(m.now); data = m; status = "ready"; window.clearTimeout(timer); render();
+  syncServerNow(m.now); data = m; status = "ready"; window.clearTimeout(timer); render(); watchTick();
 }
 
 const h = (tag: string, cls: string, o: { text?: string; attrs?: Record<string, string>; kids?: (PNode | null)[] } = {}): PNode =>

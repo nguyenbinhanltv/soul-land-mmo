@@ -55,7 +55,7 @@ Bổ sung vào bảng ở `docs/tech/giao-thuc-server.md` khi làm (kiểm `tool
 | client → server | `welfare {op: "get" \| "sign" \| "makeup", day?, pay?}` | `get`: xin trạng thái; `sign`: điểm danh hôm nay; `makeup`: ký bù ô `day` (chỉ số ô 0-based), lượt trả Hồn Tệ chỉ chạy khi `pay: true` (client xác nhận 2 bước) | `get`: `read`; `sign` / `makeup`: `trade` (ghi DB) |
 | server → client | `welfare {cycle, day, mask, now, endsAt, makeupLeft, free, signed?, err?}` | `day`: chỉ số ô hôm nay (0-based; **−1** nếu chưa có chu kỳ đang chạy, `cycle: 0` khi chưa từng ký); `mask`; `now`: giờ server (ms) để đếm lùi; `endsAt`: hết chu kỳ; `makeupLeft`: lượt còn lại; `signed`: kết quả lần vừa làm (`{day, items}`), `err`: lý do tiếng Việt | riêng |
 
-- Server gửi `welfare` lúc vào phòng (cho chấm đỏ "chưa điểm danh") và lúc **qua 00:00** khi đang chơi (như tin `daily`), không tự nhận hộ.
+- Server gửi `welfare` lúc vào phòng (cho chấm đỏ "chưa điểm danh") và lúc **qua 00:00** khi đang chơi (như tin `daily`), không tự nhận hộ. Số chấm đỏ ở hub (`welfareBadgeCount`) = hôm nay chưa ký + số mốc (`CHECKIN.milestones`) đã lỡ mà còn ký bù được; suy từ tin `welfare` có sẵn.
 - Từ chối bằng tin `log` / `err` tiếng Việt: chưa tới ô, đã ký, hết lượt ký bù, thiếu Hồn Tệ, túi đầy, đang trong sân đấu, đang đi cổng, đang giao chiến (ngoài hiển thị, điểm danh được ở mọi trạng thái an toàn; đề xuất **không** chặn khi giao chiến nhưng chặn khi `claimBusy`).
 - `ArenaRoom` chặn `welfare`; kiểm thử thêm tin này vào bài `cheat` (dồn `sign` 200 lần, `makeup` ô lạ).
 
