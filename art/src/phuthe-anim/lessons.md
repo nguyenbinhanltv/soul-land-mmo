@@ -129,6 +129,10 @@ Chỉ các dòng `@VUKHI` được chèn vào prompt kiểu vũ khí (`--kind vu
 ## Bài học rollout Càn Khôn Hỗn Nguyên Tỏa `@VUKHI-MEM`
 
 - **@VUKHI-MEM** Keep thick chain links touching or overlapping as one continuous silhouette from the single grip to the heavy ring-lock end. Show a distinct rear plate without the front red seal for north-facing views. // Khóa xích: năm atlas một lượt, ghép 0 chặn; vẫn cần duyệt kích thước vòng/chiều dài xích và lớp cast ở cỡ game.
+## Bài học rollout Bích Lân Xà Hoàng `@VUKHI-MEM`
+
+- **@VUKHI-MEM** In every north-facing pose, including attack strike, show only the back of the snake head and its dorsal crest; no eyes, mouth or fangs facing the viewer. // Bích Lân Xà Hoàng n1 máy không chặn nhưng attack lộ mặt; n2 giữ mặt sau đủ sáu pose, không sửa ảnh lỗi bằng code.
+- **@VUKHI-MEM** Use a tiny royal-blue registration dot for jade-green weapons with lime eyes, and remove only that key before composing. // Bích Lân Xà Hoàng dùng #0000FF để tránh trùng màu ngọc và mắt vàng; grip/mép vẫn kiểm nguyên ngưỡng.
 
 ## Bài học riêng `@VUKHI-MEM` — vòng 2 Lam Ngân Thảo, chỉ hướng e
 
