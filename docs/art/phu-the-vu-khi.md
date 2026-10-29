@@ -121,8 +121,8 @@ Mỗi võ hồn một PR nháp chờ chủ repo duyệt mỹ thuật; chỉ bỏ
 |---|---|---|---|
 | 7 | Hỏa Long | #1338 / #1339 | Đã duyệt mỹ thuật và merge; cảnh báo s 28%, se 20% trong hồ sơ |
 | 10 | Tử Vong Chu Hoàng | #1341 / #1342 | Đã duyệt mỹ thuật và merge; s 21% trong hồ sơ |
-| 11 | Bích Lân Xà Hoàng | #1346 / #1347 | Đã duyệt mỹ thuật; chờ CI xanh để bỏ nháp; đầu rắn rõ hơn là góp ý không chặn |
-| 12 | Càn Khôn Hỗn Nguyên Tỏa | #1349 / #1350 | Có ảnh game, AO đạt; giữ nháp chờ duyệt mỹ thuật |
+| 11 | Bích Lân Xà Hoàng | #1346 / #1347 | Đã duyệt mỹ thuật, đã bỏ nháp; cập nhật main và chờ CI xanh; đầu rắn rõ hơn là góp ý không chặn |
+| 12 | Càn Khôn Hỗn Nguyên Tỏa | #1349 / #1350 | Đã merge trên main; có ảnh game, AO đạt |
 | 22 | A Ngân | #1352 / #1353 | Đã merge trên main; có ảnh game, AO đạt |
 
 ## Nhập vào game và trang thử (#1312)
