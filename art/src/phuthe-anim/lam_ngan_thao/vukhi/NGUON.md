@@ -82,7 +82,7 @@ Trang duyệt mới: [vẽ riêng + ghép grip](isolated/index.html). Kết qu�
 - Khung thử **128×128**, thân LPC vẫn 64×64, grip giữ tọa độ tương đối theo gốc chân. Khung 96 ban đầu buộc dây quá ngắn khi tay vươn phải; tăng khoảng trống khung thay vì kéo giãn thân hay xén đầu dây.
 - Một tỉ lệ chung **0.09062213** cho cả năm atlas và mọi khung/giới; góc hướng cơ sở s/se/e/ne/n lần lượt 45/20/0/−20/−45 độ rồi cộng góc pose. Code không uốn/nội suy hình dây: dùng đúng sáu hình mềm đã vẽ. Các khung lặp pose chỉ xoay/dịch quanh gốc.
 - Sheet kết quả có **32 màu chung**, 110 khung mỗi giới, **220 khung tổng**, đủ năm hướng; manifest có 110 grip. Không chạm mép (0 điểm), điểm sprite gần gốc cách grip tối đa **1.35 pixel** sau lấy mẫu nearest. Khoảng cách này là khoảng cách tới pixel vũ khí, không phải sai số tọa độ phép đặt gốc (phép đặt gốc dùng đúng grip).
-- Cast thử tách lớp phần vòng cao sau thân, phần thấp trước thân. Đây là quy tắc hình học thử trong code, cần duyệt đường chuyển lớp trước khi tích hợp client.
+- Mọi hướng dùng đúng `lop.json` qua `parseLop`/`layerFn` như cutter, với tọa độ vùng từ gốc chân khung 128: ne/n mặc định sau, vùng cầm trước; cast theo vùng riêng từng khung. Đã sửa theo AO review lỗi ban đầu đẩy mọi khung ngoài cast vào trước. Kiểm 72 khung quay lưng ngoài cast đều có lớp sau; vẫn cần duyệt đường chuyển lớp trước khi tích hợp client. Hash mặt nạ nguồn có trong từng `poses.source.json`.
 
 | Hướng | Kiểm nam | Kiểm nữ | Soát ba lỗi mục tiêu |
 |---|---|---|---|

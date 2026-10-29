@@ -911,265 +911,441 @@
       "frame": "m/ne/idle/0",
       "nearestWeaponPixel": 0.9000000000000057,
       "edge": 0,
-      "pixels": 124
+      "pixels": 124,
+      "layerPixels": {
+        "b": 73,
+        "f": 51
+      }
     },
     {
       "frame": "m/ne/idle/1",
       "nearestWeaponPixel": 1.0049875621120885,
       "edge": 0,
-      "pixels": 125
+      "pixels": 125,
+      "layerPixels": {
+        "b": 76,
+        "f": 49
+      }
     },
     {
       "frame": "m/ne/idle/2",
       "nearestWeaponPixel": 0.9848857801796115,
       "edge": 0,
-      "pixels": 125
+      "pixels": 125,
+      "layerPixels": {
+        "b": 76,
+        "f": 49
+      }
     },
     {
       "frame": "m/ne/idle/3",
       "nearestWeaponPixel": 0.9848857801796115,
       "edge": 0,
-      "pixels": 121
+      "pixels": 121,
+      "layerPixels": {
+        "b": 76,
+        "f": 45
+      }
     },
     {
       "frame": "m/ne/walk/0",
       "nearestWeaponPixel": 0.7810249675906611,
       "edge": 0,
-      "pixels": 128
+      "pixels": 128,
+      "layerPixels": {
+        "b": 95,
+        "f": 33
+      }
     },
     {
       "frame": "m/ne/walk/1",
       "nearestWeaponPixel": 0.8062257748298522,
       "edge": 0,
-      "pixels": 123
+      "pixels": 123,
+      "layerPixels": {
+        "b": 83,
+        "f": 40
+      }
     },
     {
       "frame": "m/ne/walk/2",
       "nearestWeaponPixel": 0.8999999999999986,
       "edge": 0,
-      "pixels": 120
+      "pixels": 120,
+      "layerPixels": {
+        "b": 67,
+        "f": 53
+      }
     },
     {
       "frame": "m/ne/walk/3",
       "nearestWeaponPixel": 0.8062257748298514,
       "edge": 0,
-      "pixels": 122
+      "pixels": 122,
+      "layerPixels": {
+        "b": 62,
+        "f": 60
+      }
     },
     {
       "frame": "m/ne/walk/4",
       "nearestWeaponPixel": 0.7615773105863923,
       "edge": 0,
-      "pixels": 124
+      "pixels": 124,
+      "layerPixels": {
+        "b": 73,
+        "f": 51
+      }
     },
     {
       "frame": "m/ne/walk/5",
       "nearestWeaponPixel": 1.077032961426903,
       "edge": 0,
-      "pixels": 122
+      "pixels": 122,
+      "layerPixels": {
+        "b": 78,
+        "f": 44
+      }
     },
     {
       "frame": "m/ne/attack/0",
       "nearestWeaponPixel": 0.8062257748298514,
       "edge": 0,
-      "pixels": 127
+      "pixels": 127,
+      "layerPixels": {
+        "b": 75,
+        "f": 52
+      }
     },
     {
       "frame": "m/ne/attack/1",
       "nearestWeaponPixel": 0.8999999999999986,
       "edge": 0,
-      "pixels": 167
+      "pixels": 167,
+      "layerPixels": {
+        "b": 111,
+        "f": 56
+      }
     },
     {
       "frame": "m/ne/attack/2",
       "nearestWeaponPixel": 0.7211102550927924,
       "edge": 0,
-      "pixels": 145
+      "pixels": 145,
+      "layerPixels": {
+        "b": 71,
+        "f": 74
+      }
     },
     {
       "frame": "m/ne/attack/3",
       "nearestWeaponPixel": 0.7211102550927924,
       "edge": 0,
-      "pixels": 127
+      "pixels": 127,
+      "layerPixels": {
+        "b": 62,
+        "f": 65
+      }
     },
     {
       "frame": "m/ne/attack/4",
       "nearestWeaponPixel": 0.7211102550927924,
       "edge": 0,
-      "pixels": 147
+      "pixels": 147,
+      "layerPixels": {
+        "b": 86,
+        "f": 61
+      }
     },
     {
       "frame": "m/ne/attack/5",
       "nearestWeaponPixel": 0.7211102550927924,
       "edge": 0,
-      "pixels": 126
+      "pixels": 126,
+      "layerPixels": {
+        "b": 70,
+        "f": 56
+      }
     },
     {
       "frame": "m/ne/cast/0",
       "nearestWeaponPixel": 0.7615773105863923,
       "edge": 0,
-      "pixels": 239
+      "pixels": 239,
+      "layerPixels": {
+        "b": 100,
+        "f": 139
+      }
     },
     {
       "frame": "m/ne/cast/1",
       "nearestWeaponPixel": 1.077032961426903,
       "edge": 0,
-      "pixels": 243
+      "pixels": 243,
+      "layerPixels": {
+        "b": 171,
+        "f": 72
+      }
     },
     {
       "frame": "m/ne/cast/2",
       "nearestWeaponPixel": 1.077032961426903,
       "edge": 0,
-      "pixels": 306
+      "pixels": 306,
+      "layerPixels": {
+        "b": 240,
+        "f": 66
+      }
     },
     {
       "frame": "m/ne/cast/3",
       "nearestWeaponPixel": 1.077032961426903,
       "edge": 0,
-      "pixels": 305
+      "pixels": 305,
+      "layerPixels": {
+        "b": 201,
+        "f": 104
+      }
     },
     {
       "frame": "m/ne/hurt/0",
       "nearestWeaponPixel": 0.8062257748298514,
       "edge": 0,
-      "pixels": 124
+      "pixels": 124,
+      "layerPixels": {
+        "b": 124,
+        "f": 0
+      }
     },
     {
       "frame": "m/ne/hurt/1",
       "nearestWeaponPixel": 0.8062257748298514,
       "edge": 0,
-      "pixels": 127
+      "pixels": 127,
+      "layerPixels": {
+        "b": 127,
+        "f": 0
+      }
     },
     {
       "frame": "f/ne/idle/0",
       "nearestWeaponPixel": 0.7027283689263131,
       "edge": 0,
-      "pixels": 127
+      "pixels": 127,
+      "layerPixels": {
+        "b": 74,
+        "f": 53
+      }
     },
     {
       "frame": "f/ne/idle/1",
       "nearestWeaponPixel": 0.7027283689263131,
       "edge": 0,
-      "pixels": 121
+      "pixels": 121,
+      "layerPixels": {
+        "b": 70,
+        "f": 51
+      }
     },
     {
       "frame": "f/ne/idle/2",
       "nearestWeaponPixel": 0.7120003121097986,
       "edge": 0,
-      "pixels": 121
+      "pixels": 121,
+      "layerPixels": {
+        "b": 73,
+        "f": 48
+      }
     },
     {
       "frame": "f/ne/idle/3",
       "nearestWeaponPixel": 0.7120003121097986,
       "edge": 0,
-      "pixels": 124
+      "pixels": 124,
+      "layerPixels": {
+        "b": 73,
+        "f": 51
+      }
     },
     {
       "frame": "f/ne/walk/0",
       "nearestWeaponPixel": 1.0680004681646913,
       "edge": 0,
-      "pixels": 125
+      "pixels": 125,
+      "layerPixels": {
+        "b": 96,
+        "f": 29
+      }
     },
     {
       "frame": "f/ne/walk/1",
       "nearestWeaponPixel": 0.6731456008918131,
       "edge": 0,
-      "pixels": 123
+      "pixels": 123,
+      "layerPixels": {
+        "b": 81,
+        "f": 42
+      }
     },
     {
       "frame": "f/ne/walk/2",
       "nearestWeaponPixel": 0.7288689868556625,
       "edge": 0,
-      "pixels": 129
+      "pixels": 129,
+      "layerPixels": {
+        "b": 129,
+        "f": 0
+      }
     },
     {
       "frame": "f/ne/walk/3",
       "nearestWeaponPixel": 0.7693092581620766,
       "edge": 0,
-      "pixels": 128
+      "pixels": 128,
+      "layerPixels": {
+        "b": 128,
+        "f": 0
+      }
     },
     {
       "frame": "f/ne/walk/4",
       "nearestWeaponPixel": 0.7027283689263131,
       "edge": 0,
-      "pixels": 121
+      "pixels": 121,
+      "layerPixels": {
+        "b": 68,
+        "f": 53
+      }
     },
     {
       "frame": "f/ne/walk/5",
       "nearestWeaponPixel": 0.7453559924999194,
       "edge": 0,
-      "pixels": 121
+      "pixels": 121,
+      "layerPixels": {
+        "b": 79,
+        "f": 42
+      }
     },
     {
       "frame": "f/ne/attack/0",
       "nearestWeaponPixel": 0.8999999999999986,
       "edge": 0,
-      "pixels": 124
+      "pixels": 124,
+      "layerPixels": {
+        "b": 71,
+        "f": 53
+      }
     },
     {
       "frame": "f/ne/attack/1",
       "nearestWeaponPixel": 0.7999999999999972,
       "edge": 0,
-      "pixels": 169
+      "pixels": 169,
+      "layerPixels": {
+        "b": 169,
+        "f": 0
+      }
     },
     {
       "frame": "f/ne/attack/2",
       "nearestWeaponPixel": 0.7856742013183874,
       "edge": 0,
-      "pixels": 134
+      "pixels": 134,
+      "layerPixels": {
+        "b": 69,
+        "f": 65
+      }
     },
     {
       "frame": "f/ne/attack/3",
       "nearestWeaponPixel": 0.7856742013183874,
       "edge": 0,
-      "pixels": 123
+      "pixels": 123,
+      "layerPixels": {
+        "b": 63,
+        "f": 60
+      }
     },
     {
       "frame": "f/ne/attack/4",
       "nearestWeaponPixel": 0.7100226978096961,
       "edge": 0,
-      "pixels": 143
+      "pixels": 143,
+      "layerPixels": {
+        "b": 83,
+        "f": 60
+      }
     },
     {
       "frame": "f/ne/attack/5",
       "nearestWeaponPixel": 0.6428243465332233,
       "edge": 0,
-      "pixels": 128
+      "pixels": 128,
+      "layerPixels": {
+        "b": 71,
+        "f": 57
+      }
     },
     {
       "frame": "f/ne/cast/0",
       "nearestWeaponPixel": 1,
       "edge": 0,
-      "pixels": 237
+      "pixels": 237,
+      "layerPixels": {
+        "b": 96,
+        "f": 141
+      }
     },
     {
       "frame": "f/ne/cast/1",
       "nearestWeaponPixel": 1.231107225224513,
       "edge": 0,
-      "pixels": 236
+      "pixels": 236,
+      "layerPixels": {
+        "b": 125,
+        "f": 111
+      }
     },
     {
       "frame": "f/ne/cast/2",
       "nearestWeaponPixel": 1.231107225224513,
       "edge": 0,
-      "pixels": 311
+      "pixels": 311,
+      "layerPixels": {
+        "b": 191,
+        "f": 120
+      }
     },
     {
       "frame": "f/ne/cast/3",
       "nearestWeaponPixel": 1.231107225224513,
       "edge": 0,
-      "pixels": 308
+      "pixels": 308,
+      "layerPixels": {
+        "b": 152,
+        "f": 156
+      }
     },
     {
       "frame": "f/ne/hurt/0",
       "nearestWeaponPixel": 0.9000000000000057,
       "edge": 0,
-      "pixels": 129
+      "pixels": 129,
+      "layerPixels": {
+        "b": 129,
+        "f": 0
+      }
     },
     {
       "frame": "f/ne/hurt/1",
       "nearestWeaponPixel": 1.0049875621120885,
       "edge": 0,
-      "pixels": 130
+      "pixels": 130,
+      "layerPixels": {
+        "b": 130,
+        "f": 0
+      }
     }
   ],
   "note": "Tờ có nộm là ảnh ghép code; RAW model là poses.raw.png. Gốc nam dùng anim.grip có sẵn, gốc nữ đo từ LPC; không bù lệch bằng mắt."

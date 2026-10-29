@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Img, readPng, encodePng } from '../../../../../../tools/assets/lib.mjs';
 import { components, medianCut, nearest } from '../../../../../../tools/assets/beast-sheet-cut.mjs';
+import { parseLop, layerFn } from '../../../../../../tools/assets/phuthe-sheet-cut-lib.mjs';
 import { dummySheet, gripPoints } from '../../../../../../tools/assets/phuthe-sheet-dummy.mjs';
 import { sheetCells, bodyStepOf, framesOf, gameAnims, gameRow, frameOrigin } from '../../../../../../tools/assets/phuthe-sheet-lib.mjs';
 
@@ -12,6 +13,7 @@ const [attempt, dir, scaleCap = 'Infinity'] = process.argv.slice(2);
 if (!attempt || !['s', 'se', 'e', 'ne', 'n'].includes(dir)) throw Error('Cần thư mục lượt và một hướng hợp lệ');
 const raw = readPng(path.join(attempt, 'poses.raw.png')), F = 128, cells = sheetCells('B');
 const base = JSON.parse(fs.readFileSync('art/src/phuthe-anim/lam_ngan_thao/vukhi/manifest-entry.json', 'utf8'))[0];
+const lop = parseLop(fs.readFileSync('art/src/phuthe-anim/lam_ngan_thao/vukhi/lop.json', 'utf8'));
 const mask = new Uint8Array(raw.w * raw.h);
 const yellow = ([r, g, b]) => r > 170 && g > 150 && b < 110;
 for (let i = 0; i < mask.length; i++) {
@@ -68,6 +70,8 @@ const halves = { b: new Img(22 * F, 10 * F), f: new Img(22 * F, 10 * F) }, rootD
 const boards = Object.fromEntries(['m', 'f'].map(sex => [sex, dummySheet({ group: 'B', dir, frame: F, sex, key: '#30D030', guideKey: '#7A5CFF', gripKey: '#FFE000', gripN: 1 }).img]));
 for (const f of plan) {
   const p = poses[f.pose], a = f.angle * Math.PI / 180, co = Math.cos(a), si = Math.sin(a), g = [ox + f.grip[0], oy + f.grip[1]], frame = new Img(F, F);
+  const chooseLayer = layerFn({ lop, dir, clip: f.anim, frameIdx: f.frame, F, base: new Uint8Array(256 * 256) });
+  const layerPixels = { b: 0, f: 0 };
   let near = Infinity, n = 0, edge = 0;
   for (let y = 0; y < F; y++) for (let x = 0; x < F; x++) {
     const dx = (x + 0.5 - g[0]) / scale, dy = (y + 0.5 - g[1]) / scale;
@@ -76,11 +80,14 @@ for (const f of plan) {
     const px = p.img.get(sx, sy); frame.set(x, y, px); n++;
     near = Math.min(near, Math.hypot(x + 0.5 - g[0], y + 0.5 - g[1]));
     if (x < 2 || y < 2 || x >= F - 2 || y >= F - 2) edge++;
-    const side = f.anim === 'cast' && y < g[1] - 5 ? 'b' : 'f';
+    // Dùng cùng mặt nạ với cutter: tọa độ vùng tính từ gốc chân, không từ gốc ảnh.
+    const side = chooseLayer((x + 0.5) * 256 / F - 0.5, (y + 0.5) * 256 / F - 0.5) === 'sau' ? 'b' : 'f';
+    layerPixels[side]++;
     halves[side].set((gameAnims('B')[f.anim][0] + f.frame) * F + x, gameRow(f.sex, dir) * F + y, px);
   }
   if (n < 15 || near > 2 || edge) throw Error(`Khung ${f.sex}/${f.name}: diện tích ${n}, cách grip ${near}, chạm mép ${edge}`);
-  rootDistances.push({ frame: `${f.sex}/${f.name}`, nearestWeaponPixel: near, edge, pixels: n });
+  if (['ne', 'n'].includes(dir) && f.anim !== 'cast' && !layerPixels.b) throw Error(`Khung quay lưng ${f.sex}/${f.name} không có lớp sau`);
+  rootDistances.push({ frame: `${f.sex}/${f.name}`, nearestWeaponPixel: near, edge, pixels: n, layerPixels });
   // Ghép theo pixel art nearest vào nộm gốc, không bao giờ vẽ lại thân bằng model.
   const board = boards[f.sex];
   for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) {

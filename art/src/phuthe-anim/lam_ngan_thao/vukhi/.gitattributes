@@ -3,3 +3,4 @@
 # Hash script và manifest nguồn phải ổn định khi clone trên Windows.
 isolated/*.mjs text eol=lf
 manifest-entry.json text eol=lf
+lop.json text eol=lf
