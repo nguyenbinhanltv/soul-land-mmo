@@ -97,6 +97,13 @@ Tái dùng tối đa đường P1 (#1022) / P2 (#1023); thêm chế độ **"vũ
 |---|---|
 | Soạn bảng 25 + quy tắc + kế hoạch (file này, #1307) | PR này |
 | Chủ repo duyệt bảng (dạng vũ khí, nhóm, tay, 3 mẫu thí điểm) | chờ |
-| Công cụ kiểu `--kind vukhi` (nộm + marker, prompt, cutter, kiểm) | mở sau duyệt |
+| Công cụ kiểu `--kind vukhi` (nộm + marker, prompt, cutter, kiểm) | xong (#1313) |
+| Nhập `vkanim_<id>_b` / `_f` vào game (`phuthe-import.mjs --kind vukhi`, validate nhận khoá `vkanim`, trang thử `?thu=vukhi`) | xong (#1312) |
 | Thí điểm Hạo Thiên Chùy / Lam Ngân Thảo / võ hồn găng-vuốt | mở sau công cụ |
-| Client: vũ khí theo võ hồn ra trận; phụ thể cũ chỉ khi Chân Thân; sửa `trang-bi.md` | mở sau thí điểm |
+| Client: vũ khí theo võ hồn ra trận, Chân Thân thu về | xong (#1314); thiếu sheet vẫn chạy nhánh hiện nay |
+| Phụ thể cũ chỉ hiện khi Chân Thân; sửa `trang-bi.md` | mở sau thí điểm |
+
+## Nhập vào game và trang thử (#1312)
+- **Nhập:** cắt tờ bằng `phuthe-sheet-cut.mjs --kind vukhi --out <thư mục>` rồi `node tools/assets/phuthe-import.mjs --id <võ hồn> --kind vukhi --dir <thư mục>`. Ảnh vào `shared/assets/sprites/vukhianim/<id>_{b|f}.png`; mục manifest `vkanim_<id>_{b|f}` giữ `anim.kind: "vukhi"`, `anim.grip`, `anim.gripSex` (nửa không có điểm ảnh ghi `blank`), đặt sau `vhanim_<id>_f` (nếu có) hoặc `vh_<id>_f`. Ghi thêm dòng vào `art/CREDITS.md` (mục ChatGPT, `--credits` đổi đường dẫn) và khối hướng đã nhập ở `art/src/phuthe-anim/<id>/vukhi/NGUON.md`. Chạy lại không đổi gì; `--dry-run` chỉ in. Không dùng `--anchor` (neo là của phụ thể).
+- **Kiểm:** `validate.mjs` nhận khoá `vkanim_*` (khung 96 / 128, cỡ sheet như `vhanim`), bắt buộc `anim.kind: "vukhi"` và kiểm `anim.grip` (khoá `<hướng>/<clip>/<khung>` nằm trong số khung của clip, giá trị 2 hoặc 4 số); `vhanim_*` không được mang hai trường đó.
+- **Trang thử `?thu=vukhi`** (không cần đăng nhập): sáu hồn sư nhìn s / se / e / ne / n / w cầm vũ khí của võ hồn chọn (`vh=`), đổi clip (`trang=`), tích "Chân Thân" (`chan=1`) để xem vũ khí thu về (chỉ võ hồn có pháp tướng), "Điểm cầm" (`diem=1`) chấm `anim.grip`. Dùng đúng đường client trong game; chưa có sheet thật thì dựng **sheet giả tất định** lúc chạy (gậy + đầu vật, `client/src/vukhiFake.ts`, không phải ảnh model, không vào game; `anh=gia` ép dùng sheet giả kể cả khi đã có ảnh thật).
