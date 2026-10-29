@@ -151,6 +151,7 @@ Duyệt BOARD (mức B, trang xem trước): chủ repo duyệt phong cách; đ�
 ## Kiểm kê và chụp ảnh (công cụ của P0)
 
 - `npm run ui:inventory` (`tools/ui-css-inventory.mjs`): đếm mã màu, `rgba()`, cỡ chữ, `border-image` trong `client/src/*.css` (trừ `landing.css`; `--json`, `--md <tệp>`, `--all`). **Chỉ báo cáo**, luôn thoát 0. Số lúc viết bản 1 (`origin/main` 2c2365af): 81 mã `#hex` khác nhau ngoài `:root` (6 trùng token), 43 `rgba()`, 19 cỡ chữ (14 ngoài thang 10 / 12 / 24), 23 chỗ `border-image`. Cách đếm khác báo cáo gốc (84 màu / 17 cỡ chỉ `style.css`) nên không so trực tiếp.
+- So hình không nhiễu (đợt 5c): `ui-shots.mjs --styles <thư mục> --name <tên cố định>` ghi thêm computed style của mọi phần tử DOM cho từng cảnh; `node tools/ui-styles-diff.mjs <thư mục> <tag trước> <tag sau>` so hai lượt (nền bản đồ và loot ngẫu nhiên không lẫn vào). `--probe <tệp.json>` in các luật CSS khớp một phần tử kèm độ đặc hiệu (tìm luật thua do độ ưu tiên). Còn nhiễu thật: độ rộng chữ khi phông chưa tải xong, số dòng chat / toast, loot ngẫu nhiên.
 - `client/scripts/ui-shots.mjs`: chụp game ở nhiều cỡ (mặc định 1366×768, 1280×720, 960×540, 1920×1080) cho ảnh trước / sau của PR giao diện. Cần server `GAME_TEST=1` riêng cổng riêng, một Chrome headless `--mute-audio`, chụp tuần tự (`--help` ở đầu tệp). `--outer` chụp theo cỡ cửa sổ có khung trình duyệt (vùng hiển thị 944×445 cho "960×540": lỗi hộp nhiệm vụ nằm ở cỡ này).
 - `tools/ui-border-image-probe.mjs`: thử nghiệm kit 1× / 2× ở trên (`--browser chrome|edge`).
 
@@ -256,7 +257,7 @@ Tối đa ba lượt, mỗi lượt sửa một ý trong công cụ rồi sinh l
 
 ## Lớp token kit (`--ui2-*`, #883)
 
-Lớp `body.ui2` luôn có (tên lớp và tiền tố `ui2-*` ở mã / CSS còn giữ tên cũ; gỡ cờ và đổi tên ở đợt 5b / 5c, `ROADMAP.md`). Test: `ui2-test` kiểm lớp và token; test trình duyệt (`flow-`, `panel-`, `actionbar-browser`) và `client/scripts/ui-shots.mjs` chạy trên UI gốc, thêm cảnh `hub`, `npc`, `cua-hang`, `tho-ren`.
+Không còn lớp `body.ui2` (đợt 5c-b): luật `ui2*.css` là luật thường; luật kit đứng sau lớp `ui2-k-<tên>` của body (có khi mảnh kit có thật, `uiKit.ts`). Tên tệp và tiền tố `ui2-*` ở mã / CSS còn giữ tên cũ (đổi tên: `ROADMAP.md`). Độ ưu tiên: bỏ `body.ui2` làm mọi luật ui2 tụt (0,1,1) so với luật cũ ở `style.css`; vài luật thua luật `.thuymac …` / `#actbar …` cũ nên được bù bằng lặp lớp (`.cls.cls`) hoặc thêm tên thẻ, đều ghi nhãn ở ui2-charpanel / ui2-hud / ui2-auto / ui2-npc; gỡ các bù đó khi gỡ luật cũ (đợt 5b). Bắt buộc giữ khoảng cách luật kit / luật thường: viết luật kit là `.ui2-k-<tên> …` (không thêm `body`), không phải `body.ui2-k-<tên> …`. Test: `ui2-test` kiểm lớp và token; test trình duyệt (`flow-`, `panel-`, `actionbar-browser`) và `client/scripts/ui-shots.mjs` chạy trên UI gốc, thêm cảnh `hub`, `npc`, `cua-hang`, `tho-ren`.
 
 - `client/src/uiKit.ts`: đọc mảnh `ui2_<tên>` trong manifest ảnh (mảnh do `ui:cut` xuất; `nine` = `{ x2, x1 }`; ảnh ở `sprites/iso/ui2/2x/` và `1x/`) thành `--ui2-<tên>` (ảnh), `--ui2-<tên>-nine` (vạch cắt của bản đang dùng), `--ui2-<tên>-bw` (độ dày viền CSS = vạch / hệ số kit). Bản 2× khi `--u` × DPR ≥ 2, ngược lại 1× (tính lại khi đổi cỡ). Có mảnh nào thì body có lớp `ui2-k-<tên>`.
 - `client/src/ui2.css`: helper khung theo vai trò, gắn lớp vào phần tử: Mực `f2-muc-lon` / `f2-muc-nho`, Giấy `f2-giay-lon` / `f2-giay-nho`, `f2-tooltip`, `f2-toast`, ô `f2-o`, tab `f2-tab`, nút `f2-nut-chinh` / `f2-nut-phu` (trạng thái theo `:hover` / `:active` / `.sel` / `:disabled`). Đây là chỗ **duy nhất** đặt `border-width`, `border-image-slice`, `border-image-width` của kit (qua `--frame-img`, `--frame-nine`, `--frame-bw`); luôn `pixelated`. Màn mới gắn lớp `f2-*`, không viết luật khung riêng.
@@ -274,7 +275,7 @@ Lớp `body.ui2` luôn có (tên lớp và tiền tố `ui2-*` ở mã / CSS cò
 
 ## Khung màn chuẩn và thành phần nhỏ (#885)
 
-`client/src/uiParts.ts` + `client/src/ui2-parts.css` (mọi luật dưới `body.ui2`, màu qua token, chữ 10 / 12 / 24). Chỉ trình bày: số liệu, trạng thái và giờ do server quyết.
+`client/src/uiParts.ts` + `client/src/ui2-parts.css` (luật thường, màu qua token, chữ 10 / 12 / 24). Chỉ trình bày: số liệu, trạng thái và giờ do server quyết.
 - **Khung màn** `screenFrame({ material: "muc" | "giay", title, badge, info, currency, nav, primary, onNav, onPrimary })`: huy hiệu + tên + nút `i` (trái-trên), vùng tiền tệ ngữ cảnh (phải-trên), cột điều hướng trái, **một** nút chính phải-dưới (44 px, `f2-nut-chinh`; khoá thì hiện lý do cạnh nút). Luôn trả khung (đã gỡ nhánh `null` và tham số `force` ở đợt 5c-a). Nội dung màn đặt vào `frame.body`; khung ăn kit qua `f2-muc-lon` / `f2-giay-lon`.
 - **Thẻ có nhãn trạng thái** `statusCard({ title, sub, state, reason, rank, limit, onClick })`: `new` chấm đỏ, `up` mũi tên xanh, `done` tick + gạch tên, `lock` xám + lý do (không có lý do thì hiện "Chưa mở"; thẻ khoá không phát `onClick`), `rank` 0…4 là màu nền theo `--rare-N` kèm vạch góc dài dần, `limit` là nhãn đầu thẻ. Mỗi dấu một hình riêng (không chỉ màu).
 - **Công tắc** `toggle({ label, on, disabled, onChange })` (`role=switch`; màn gửi server rồi gọi `set` nếu bị từ chối), **đồng hồ đếm ngược** `countdown({ target, now, label, onEnd })` (`role=timer`; `now` là đồng hồ máy chủ; dưới `COUNTDOWN_SOON_MS` đổi viền đứt nét; hết giờ viền chấm, "Đã hết"; tự dừng khi rời cây DOM), `abbrevNumber` (1,2K / 12,5M).
@@ -290,6 +291,6 @@ Lớp `body.ui2` luôn có (tên lớp và tiền tố `ui2-*` ở mã / CSS cò
 ## Việc còn lại
 
 - Icon pilot 16 menu (AI) so với game-icons (#884); checkbox / slider / scrollbar từ gói CC0, tuỳ chọn (#888).
-- Đợt 5c-a (#886) đã gỡ cờ `ui2` / `isUi2()` / `?ui=` / `shh-ui2`; còn `body.ui2` thành nền (5c-b) và gỡ luật cũ khỏi `style.css` (5b): `ROADMAP.md`.
+- Đợt 5c (#886) đã gỡ cờ `ui2` / `isUi2()` / `?ui=` / `shh-ui2` (5c-a) và `body.ui2` (5c-b); còn gỡ luật cũ khỏi `style.css` (5b): `ROADMAP.md`.
 
 Trạng thái thật ở các issue.
