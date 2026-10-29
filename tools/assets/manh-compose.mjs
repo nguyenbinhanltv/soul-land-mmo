@@ -5,25 +5,21 @@
 // manifest.json ("iso": true). Thiếu ảnh của mã nào thì client rơi về `item_manh_vo_hon` (tô theo `col`, uiArt.shardImg).
 //   - Hình khung theo độ hiếm của võ hồn (SR / SSR / UR = 3 hình dạng); viền = `col` của võ hồn (gốc ở cạnh trên-trái, tối hơn ở cạnh
 //     dưới-phải), nền tối pha từ `col`, ngoài cùng viền #1a1020.
-//   - KHUNG TẠM: chưa có tờ I (kit Giấy / Mực) do model vẽ, nên khung dựng bằng code, tất định (cùng đầu vào → cùng ảnh). Có tờ khung
-//     thật thì thay `buildMask` / `frameTone` bằng khung cắt từ tờ, giữ nguyên phần ghép và viền màu.
+//   - Khung thật từ tờ Codex image_gen toI-manh.png; manh-sheet.mjs kiểm / cắt mẫu 32×32, giữ mảng giấy và đổi sắc đồng theo col.
 //   - Icon 24×24 căn giữa, chỉ giữ phần nằm trong ruột khung.
-// Không ghi CREDITS.md: ảnh sinh bằng mã từ icon sẵn có (đã ghi nguồn ở mục icon võ hồn); dòng nguồn chung ở docs/art/nguon-giay-phep.md.
+// Nguồn tờ khung Codex và icon có sẵn: docs/art/nguon-giay-phep.md.
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ROOT, SPRITES, MANIFEST, readPng, encodePng, Img, hex, OUTLINE, ISO_ITEM_ICON, PORTRAIT_MAX_COLORS } from "./lib.mjs";
+import { FRAME_DIR, FRAME_PALETTE, RARITIES } from "./manh-sheet.mjs";
 
 /** Màu tối đa của icon sau giảm: chừa 5 màu cho khung (gốc / tối / nền / viền ngoài, dư một). */
 const ICON_COLORS = PORTRAIT_MAX_COLORS - 5;
 const S = ISO_ITEM_ICON, ICON = 24, OUT_RGB = hex(OUTLINE);
 
-/** Đa giác khung (toạ độ trong ô 32×32, chừa 1 điểm cho viền ngoài) theo độ hiếm. */
-export const SHAPES = {
-  SR: [[6, 3], [26, 4], [29, 10], [28, 25], [22, 29], [5, 28], [3, 20], [3, 9]],
-  SSR: [[16, 2], [28, 9], [29, 23], [16, 30], [3, 23], [4, 9]],
-  UR: [[16, 2], [23, 6], [29, 5], [28, 14], [30, 22], [24, 29], [16, 30], [8, 29], [2, 22], [4, 14], [3, 5], [9, 6]],
-};
+/** Mẫu khung model đã cắt theo độ hiếm, chừa lề trong ô 32×32. */
+export const FRAMES = Object.fromEntries(RARITIES.map((r) => [r, readPng(path.join(FRAME_DIR, `${r}.png`))]));
 
 /** Đọc VOHON trong shared/data.ts: [{ id, rarity, col }] (vh("id", "tên", hệ, "độ hiếm", …, "col", "robe")). */
 export function readVohon(src = readFileSync(path.join(ROOT, "shared", "data.ts"), "utf8")) {
@@ -31,23 +27,11 @@ export function readVohon(src = readFileSync(path.join(ROOT, "shared", "data.ts"
     .map((m) => ({ id: m[1], rarity: m[2], col: m[3].toLowerCase() }));
 }
 
-const inside = (poly, x, y) => { // tâm điểm ảnh (x + .5, y + .5), even-odd
-  let c = false; const px = x + 0.5, py = y + 0.5;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const [xi, yi] = poly[i], [xj, yj] = poly[j];
-    if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) c = !c;
-  }
-  return c;
-};
-/** Mặt nạ khung: Uint8Array S×S (1 = trong khung). */
+/** Mặt nạ alpha từ khung model đã cắt (không dựng lại đa giác). */
 export function buildMask(rarity) {
-  const poly = SHAPES[rarity]; if (!poly) throw new Error(`độ hiếm lạ: ${rarity}`);
-  const m = new Uint8Array(S * S);
-  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) m[y * S + x] = inside(poly, x, y) ? 1 : 0;
-  return m;
+  const frame = FRAMES[rarity]; if (!frame) throw new Error(`độ hiếm lạ: ${rarity}`);
+  return Uint8Array.from({ length: S * S }, (_, i) => frame.data[i * 4 + 3] >= 128 ? 1 : 0);
 }
-const at = (m, x, y) => (x >= 0 && y >= 0 && x < S && y < S ? m[y * S + x] : 0);
-const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
 /** Sắc viền theo màu võ hồn: `col` gốc (cạnh trên-trái), tối hơn (dưới-phải) + nền ruột. */
 export function frameTone(col) {
@@ -88,22 +72,19 @@ export function quantizeIcon(icon, max) {
   return out;
 }
 
-/** Ghép một ô: mặt nạ độ hiếm + màu + icon 24×24 (Img). Trả Img 32×32. */
+/** Ghép một ô: khung model theo độ hiếm + màu + icon 24×24 trong ruột Mực. Trả Img 32×32. */
 export function composeShard({ rarity, col }, icon) {
   if (icon.w !== ICON || icon.h !== ICON) throw new Error(`icon phải ${ICON}×${ICON}, nhận ${icon.w}×${icon.h}`);
   icon = quantizeIcon(icon, ICON_COLORS);
-  const m = buildMask(rarity), tone = frameTone(col), t = new Img(S, S), off = (S - ICON) / 2;
-  const ring = (x, y) => at(m, x, y) && N4.some(([dx, dy]) => !at(m, x + dx, y + dy));
+  const frame = FRAMES[rarity]; if (!frame) throw new Error(`độ hiếm lạ: ${rarity}`);
+  const tone = frameTone(col), t = new Img(S, S), off = (S - ICON) / 2;
+  const palette = [OUT_RGB, tone.bg, tone.lo, tone.mid, FRAME_PALETTE[4]];
   for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
-    if (at(m, x, y)) {
-      if (ring(x, y)) {
-        const c = !at(m, x - 1, y) || !at(m, x, y - 1) ? tone.mid : tone.lo;
-        t.set(x, y, [...c, 255]);
-      } else {
-        const ix = x - off, iy = y - off, p = ix >= 0 && iy >= 0 && ix < ICON && iy < ICON ? icon.get(ix, iy) : [0, 0, 0, 0];
-        t.set(x, y, p[3] >= 128 ? [p[0], p[1], p[2], 255] : [...tone.bg, 255]);
-      }
-    } else if (N4.some(([dx, dy]) => at(m, x + dx, y + dy))) t.set(x, y, [...OUT_RGB, 255]);
+    const p = frame.get(x, y); if (p[3] < 128) continue;
+    const role = FRAME_PALETTE.findIndex((c) => c.every((v, i) => v === p[i]));
+    if (role < 0) throw new Error(`khung ${rarity}: màu lạ tại ${x},${y}; chạy lại manh-sheet cut`);
+    const ix = x - off, iy = y - off, ic = ix >= 0 && iy >= 0 && ix < ICON && iy < ICON ? icon.get(ix, iy) : [0, 0, 0, 0];
+    t.set(x, y, role === 1 && ic[3] >= 128 ? [ic[0], ic[1], ic[2], 255] : [...palette[role], 255]);
   }
   return t;
 }

@@ -13,6 +13,7 @@ import { fileURLToPath } from "node:url";
 import { ROOT } from "./lib.mjs";
 import { loadKit, kindFromName } from "./ui-kit-lib.mjs";
 import { analyzeUiSheet, draftErrorLine, writeReport } from "./ui-sheet-check.mjs";
+import { shardKit } from "./manh-sheet-spec.mjs";
 import { localChangedFiles, SIZE_HINT } from "./sheet-local.mjs";
 
 export const KIT_PREFIX = "art/src/ui-kit/";
@@ -33,7 +34,7 @@ export function changedFromFiles(files) {
   let toolsChanged = false;
   for (const raw of files) {
     const f = raw.trim().replace(/\\/g, "/");
-    if (f.startsWith(KIT_PREFIX) && f.endsWith(".png") && kindFromName(f)) sheets.add(f);
+    if (f.startsWith(KIT_PREFIX) && f.endsWith(".png") && (kindFromName(f) || f === `${KIT_PREFIX}toI-manh.png`)) sheets.add(f);
     else if (TOOL_RE.test(f)) toolsChanged = true;
   }
   return { sheets: [...sheets].sort(), toolsChanged };
@@ -44,7 +45,7 @@ export function allSheets(root = ROOT) {
   const out = [], walk = (rel) => {
     for (const d of readdirSync(path.join(root, rel), { withFileTypes: true })) {
       if (d.isDirectory() && !d.name.startsWith("_")) walk(`${rel}${d.name}/`);
-      else if (d.isFile() && d.name.endsWith(".png") && kindFromName(d.name)) out.push(`${rel}${d.name}`);
+      else if (d.isFile() && d.name.endsWith(".png") && (kindFromName(d.name) || `${rel}${d.name}` === `${KIT_PREFIX}toI-manh.png`)) out.push(`${rel}${d.name}`);
     }
   };
   if (existsSync(path.join(root, KIT_PREFIX))) walk(KIT_PREFIX);
@@ -53,7 +54,7 @@ export function allSheets(root = ROOT) {
 
 /** Kiểm một tờ → hàng tóm tắt. */
 export function evaluate(file, kit = loadKit(), root = ROOT) {
-  const name = path.basename(file, ".png"), r = analyzeUiSheet(path.resolve(root, file), { kit, name });
+  const name = path.basename(file, ".png"), shard = name === "toI-manh", r = analyzeUiSheet(path.resolve(root, file), { kit: shard ? shardKit() : kit, name, ...(shard ? { kindId: "I", soft: true } : {}) });
   const blockers = r.issues.filter(isCiBlocker), warns = r.issues.filter((i) => i.sev !== "note" && !isCiBlocker(i));
   return { file, name, r, blockers, warns };
 }
@@ -127,7 +128,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const sources = [];
     for (const x of toolsOnly ? [] : rows) {
       if (x.r.kind === "BOARD" || x.r.level === "chặn") continue;
-      try { const cut = cutUiSheet({ img: x.r.img, name: x.name, kindId: x.r.kind, kit }); sources.push({ label: x.name, pieces: cut.pieces, groups: cut.groups, read: (rel) => cut.files.get(rel) }); }
+      try { const shard = x.name === "toI-manh", cut = cutUiSheet({ img: x.r.img, name: x.name, kindId: x.r.kind, kit: shard ? shardKit() : kit, ...(shard ? { soft: true, mirror: false } : {}) }); sources.push({ label: x.name, pieces: cut.pieces, groups: cut.groups, read: (rel) => cut.files.get(rel) }); }
       catch (e) { console.warn(`không cắt được ${x.file} cho trang xem trước: ${e.message.split(/\r?\n/)[0]}`); }
     }
     if (toolsChanged || toolsOnly) for (const id of ["c2", "ui5"]) sources.push(await sourceFromFixture(id));

@@ -314,6 +314,7 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--kind") o.kindId = argv[++i].toUpperCase();
+    else if (a === "--family") { o.family = argv[++i]; if (o.family !== "manh") throw new Error("--family chỉ nhận manh (ba khung mảnh võ hồn)"); }
     else if (a === "--out") o.out = argv[++i];
     else if (a === "--div") o.div = +argv[++i];
     else if (a === "--palette") o.palette = argv[++i];
@@ -329,8 +330,9 @@ const summary = (r) => `${r.level.padEnd(5)} ${r.sheet} [${r.kind}] ${r.size.joi
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const o = parseArgs(process.argv.slice(2));
-    if (!o.files.length) { console.error("Dùng: npm run ui:check -- <tờ.png>… [--kind F|N|O|T|I|D|BOARD] [--out <thư mục>] [--no-image] [--div N] [--palette <file.gpl>] [--soft]"); process.exit(2); }
-    const kit = loadKit(), palette = o.palette ? readGpl(o.palette).map(hex) : null, base = o.out ?? path.join(os.tmpdir(), "ui-check");
+    if (!o.files.length) { console.error("Dùng: npm run ui:check -- <tờ.png>… [--kind F|N|O|T|I|D|BOARD] [--family manh] [--out <thư mục>] [--no-image] [--div N] [--palette <file.gpl>] [--soft]"); process.exit(2); }
+    const kit = o.family === "manh" ? (await import("./manh-sheet-spec.mjs")).shardKit() : loadKit(), palette = o.palette ? readGpl(o.palette).map(hex) : null, base = o.out ?? path.join(os.tmpdir(), "ui-check");
+    if (o.family === "manh") o.kindId = "I";
     let blocked = 0;
     for (const f of o.files) {
       if (!existsSync(f)) throw new Error(`không có tờ ${f}`);

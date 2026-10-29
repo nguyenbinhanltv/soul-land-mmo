@@ -4,11 +4,28 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
-import { readVohon, buildMask, composeShard, colorCount, addManifestKeys, SHAPES } from "./manh-compose.mjs";
+import { readVohon, buildMask, composeShard, colorCount, addManifestKeys, FRAMES, quantizeIcon } from "./manh-compose.mjs";
 import { ROOT, SPRITES, MANIFEST, readPng, Img, hex, PORTRAIT_MAX_COLORS } from "./lib.mjs";
+import { cutFrames, FRAME_DIR, RARITIES, shardPrompt } from "./manh-sheet.mjs";
+import { lessonsFor } from "./ui-sheet-lessons.mjs";
+import { changedFromFiles, evaluate } from "./ui-sheet-ci.mjs";
 
 const vohon = readVohon();
 const icon = (v) => readPng(path.join(SPRITES, "iso", "portrait", `${v.id}_icon24.png`));
+
+test("khung thật cắt lại từ RAW đúng byte điểm ảnh, prompt ba mảnh không lẫn lưới menu", () => {
+  const frames = cutFrames(path.join(ROOT, "art/src/ui-kit/toI-manh.png"));
+  assert.equal(frames.length, 3);
+  frames.forEach((im, i) => assert.deepEqual(im.data, readPng(path.join(FRAME_DIR, `${RARITIES[i]}.png`)).data));
+  assert.match(shardPrompt(), /row 1: 3 pieces/);
+  assert.doesNotMatch(shardPrompt(), /four equally spaced rows|menu icon|menu family/);
+  assert.equal(readFileSync(path.join(ROOT, "art/src/ui-kit/toI-manh.prompt.txt"), "utf8").replace(/\r\n/g, "\n").trim(), shardPrompt().trim());
+  assert.ok(lessonsFor("I", undefined, "manh").some((l) => /Never crop the canvas/.test(l.text)));
+  assert.ok(!lessonsFor("I").some((l) => /Never crop the canvas/.test(l.text)));
+  const sheet = "art/src/ui-kit/toI-manh.png";
+  assert.deepEqual(changedFromFiles([sheet]).sheets, [sheet]);
+  assert.equal(evaluate(sheet).blockers.length, 0);
+});
 
 test("đọc đủ 25 võ hồn, mỗi mã có icon 24 và đủ ba độ hiếm", () => {
   assert.equal(vohon.length, 25);
@@ -17,7 +34,7 @@ test("đọc đủ 25 võ hồn, mỗi mã có icon 24 và đủ ba độ hiếm
 });
 
 test("ba hình dạng khác nhau, ruột đủ rộng để chứa icon", () => {
-  const masks = Object.keys(SHAPES).map((r) => buildMask(r));
+  const masks = Object.keys(FRAMES).map((r) => buildMask(r));
   assert.equal(new Set(masks.map((m) => m.join(""))).size, 3);
   for (const m of masks) assert.ok(m.reduce((a, b) => a + b, 0) > 500);
 });
@@ -34,6 +51,11 @@ test("ghép tất định, ≤ PORTRAIT_MAX_COLORS màu, viền ngoài #1a1020, 
     const ic = icon(v); let vis = 0, kept = 0;
     for (let y = 0; y < 24; y++) for (let x = 0; x < 24; x++) if (ic.alpha(x, y) >= 128) { vis++; if (a.alpha(x + 4, y + 4)) kept++; }
     assert.ok(kept / vis > 0.7, `${v.id}: khung che mất icon (${kept}/${vis})`);
+    const q = quantizeIcon(ic, PORTRAIT_MAX_COLORS - 5); let visible = 0;
+    for (let y = 0; y < 24; y++) for (let x = 0; x < 24; x++) {
+      if (q.alpha(x, y) >= 128 && q.get(x, y).every((c, i) => c === a.get(x + 4, y + 4)[i])) visible++;
+    }
+    assert.ok(visible / vis > 0.35, `${v.id}: nét khung che quá nhiều màu icon (${visible}/${vis})`);
   }
 });
 
