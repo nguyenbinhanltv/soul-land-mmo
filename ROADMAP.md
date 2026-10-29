@@ -12,7 +12,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] Asset ngoài: kho riêng tư, nhập gói itch, MCP `asset-scout`, biểu tượng game-icons (#622, theo dõi).
 - [ ] Tối ưu tài liệu (#619, theo dõi D0–D8).
 - [ ] Tách `MapRoom.ts` theo miền, từng PR nhỏ, hàm thuần trước (#702, theo dõi; đã xong nhiều bước, xem issue).
-- [ ] Tách `bot-test.mjs` thành module theo nhóm (#703, theo dõi; đã tách `bot/lib.mjs`, `bot/google.mjs`).
+- [x] Tách `bot-test.mjs` thành module theo nhóm (#703, xong: mọi bài ở `client/scripts/bot/<nhóm>.mjs`, `bot-test.mjs` chỉ còn bộ chạy + bảng nhóm).
 - [ ] UI gốc (kit Mực + Giấy; #877, #885, #886; luật ở `docs/art/ui-kit.md`, `docs/design/giao-dien.md`): đợt 5c đã gỡ cờ `ui2` / `?ui=` / `body.ui2` (5c-a, 5c-b); còn **gỡ luật cũ khỏi `style.css` (đợt 5b)**, đổi tên `ui2-*` nếu cần; icon pilot #884; chuyển nốt màn còn lại (Tự động / Ủy thác offline, cột chỉ số trái, thanh kỹ năng, mục hub "Chưa có").
 - [ ] Bảng Xếp Hạng nhiều hạng mục (#877, `docs/design/xep-hang.md`): X0 thiết kế xong; X1–X2 server Cấp / Sưu tầm + tin `rank` xong; còn X3 Sức mạnh, X4 màn client xong (`rankScreen.ts`), X5 soát chống gian lận, X6 Thợ săn tuần / Boss thế giới.
 - [ ] Phúc Lợi / Sổ Điểm Danh 21 ngày (#877, `docs/design/phuc-loi.md`): P0 thiết kế xong; P1–P3 server (`CHECKIN`, `038_phuc_loi.sql`, tin `welfare`, bot nhóm `welfare`) xong; P4 màn client xong (`welfareScreen.ts`); P5 soát chống gian lận + bảng trần quà xong (`docs/tech/soat-gian-lan-phuc-loi.md`); chấm đỏ hub tính thêm mốc ký bù được.
