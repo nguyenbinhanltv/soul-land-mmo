@@ -1,9 +1,8 @@
 // UI v2, menu hub ngăn kéo bên phải (đợt 1 của bộ spec UI, Part of #877; docs/design/giao-dien.md "Menu hub").
-// Chỉ chạy khi cờ `ui2` bật (tắt thì không dựng gì, nút menu cũ giữ nguyên). Hub chỉ MỞ các bảng đã có: bấm một mục là gọi đúng hàm mở của bảng đó
+// Hub chỉ MỞ các bảng đã có: bấm một mục là gọi đúng hàm mở của bảng đó
 // (GameScene truyền vào `actions`), hub không giữ trạng thái game. Mục chưa có chức năng: thẻ lưới và mục rail hiện mờ kèm lý do "Chưa có".
 // Chấm đỏ / mũi tên xanh đọc từ kho `badges.ts` (đợt 4b); hub chỉ vẽ lại khi kho đổi.
 import { statusCard, mount, type CardOpts, type PNode } from "./uiParts.ts";
-import { isUi2 } from "./uiKit.ts";
 import { allBadges, onBadges, type BadgeKind } from "./badges.ts";
 
 export type HubSize = "big" | "mid" | "grid" | "rail";
@@ -122,11 +121,10 @@ export function setHubOpen(open: boolean) {
 export const toggleHub = () => setHubOpen(!isHubOpen());
 
 /**
- * Dựng ngăn kéo `#hub` (có sẵn trong choi/index.html) và huy hiệu mở menu. Trả false (không làm gì) khi cờ `ui2` tắt.
+ * Dựng ngăn kéo `#hub` (có sẵn trong choi/index.html) và huy hiệu mở menu.
  * `acts`: id → hàm mở bảng; id không có ở đây thì mục hiện mờ.
  */
 export function initHub(acts: Record<string, () => void>, signal: AbortSignal): boolean {
-  if (!isUi2()) return false;
   root = document.getElementById("hub");
   if (!root) return false;
   actions = acts;

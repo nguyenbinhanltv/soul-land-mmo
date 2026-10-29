@@ -2,13 +2,12 @@
 import { NpcActions, npcDefOpen, npcPage, renderNpc } from "./hudNpc.ts";
 import { itemDef, formatHonTe, ARENA, type ArenaRecord } from "../../shared/data.ts";
 import { mmss } from "./hudBoss.ts";
-import { isUi2 } from "./uiKit.ts";
 import { stateBox } from "./uiParts.ts";
 import "./ui2-arena.css";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 
-// UI v2 (đợt 3d): hộp đấu trường nhận khung Mực của kit khi bật cờ ui2 (index.html giữ nguyên; cờ tắt thì không đổi gì). Luật vẽ ở ui2-arena.css.
-const KIT = isUi2() ? " f2-muc-nho" : "";
+// UI v2 (đợt 3d): hộp đấu trường nhận khung Mực của kit (index.html giữ nguyên). Luật vẽ ở ui2-arena.css.
+const KIT = " f2-muc-nho";
 if (KIT) for (const id of ["arenaQ", "arenaBar", "arenaEnd"]) document.getElementById(id)?.classList.add("f2-muc-nho");
 
 // ---------- Đại Đấu Hồn Trường (mục 5.9, bước 7.2): đang tìm trận, thanh trận đấu, kết quả, bảng xếp hạng ----------
@@ -240,14 +239,13 @@ export function updateArenaEnd() {
 }
 
 
-// ---------- Màn gục (UI v2, đợt 2d; chỉ khi bật cờ ui2) ----------
+// ---------- Màn gục (UI v2, đợt 2d) ----------
 // Server tự đưa hồn sư về doanh trại sau RESPAWN_SECS (không có lựa chọn nào gửi lên), nên màn này chỉ nói đúng điều đó: đếm ngược, không mất gì,
 // võ hồn gục hồi khi về doanh trại. Lệnh vẫn nhận bình thường; ẩn ngay khi state báo hồn sư sống lại (`deathTick(false)`).
 const DEATH_LOOSE = 1;                                   // giây dư chờ state báo sống lại trước khi tự ẩn (mạng chậm)
 let deathEl: HTMLElement | null = null, deathEnd = 0, deathTotal = 0, deathSeen = false;   // deathSeen: state đã báo gục (tin "ko" có thể đến trước bản vá state)
-/** Tin "ko" không còn võ hồn kế (cả đội gục) ngoài sân: hiện màn đếm ngược `secs` giây. Cờ ui2 tắt thì không làm gì. */
+/** Tin "ko" không còn võ hồn kế (cả đội gục) ngoài sân: hiện màn đếm ngược `secs` giây. */
 export function deathShow(secs: number) {
-  if (!isUi2()) return;
   deathTotal = secs; deathEnd = performance.now() + secs * 1000; deathSeen = false;
   if (!deathEl) {
     deathEl = document.createElement("div"); deathEl.id = "deathScreen"; deathEl.className = "panel f2-muc-nho"; deathEl.setAttribute("role", "status"); deathEl.setAttribute("aria-live", "polite");

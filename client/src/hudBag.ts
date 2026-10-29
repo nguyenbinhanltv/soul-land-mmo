@@ -18,14 +18,10 @@ import { EQUIP_ITEM, equipFrameKey, equipIconChain, EQUIP_SLOTS, EQUIP_TIERS, EQ
 import type { GearMsg } from "./net.ts";
 import type { BagMsg, BagItem } from "./net.ts";
 import { ringColor, boneSkillText } from "./hudBar.ts";
-import { isUi2 } from "./uiKit.ts";
 import { stateBox, searchField, matchQuery } from "./uiParts.ts";
 import { itemInfoLines, shiftPart } from "./itemTip.ts";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
-const UI2 = isUi2();
-/** UI v2 (đợt 2a-2, ui2-bag.css): lớp kit gắn thêm khi bật cờ; tắt cờ thì chuỗi rỗng, giao diện cũ không đổi. */
-const K = (cls: string) => (UI2 ? ` ${cls}` : "");
-if (UI2) document.getElementById("bag")?.classList.add("f2-muc-lon");
+document.getElementById("bag")?.classList.add("f2-muc-lon");
 
 // ---------- Túi đồ và Hồn Tệ (mục 5.7, bước 3.1): chỉ chính chủ nhận tin "bag" ----------
 export function toggleBag(open = $("#bag").hidden) {
@@ -295,8 +291,8 @@ export function renderBag(bag: BagMsg, act: BagActions) {
 
   // UI-1: lọc theo nhóm và xếp thứ tự hiển thị chỉ ở client (nút "Sắp xếp" gộp / xếp thật vẫn do server). `view` = cả túi đã xếp, `shown` = sau lọc.
   noteSeen(items);
-  const view = sortView(items, bagSortMode), filtered = bagGroup !== "all" || (UI2 && bagQuery !== ""), active = act.active();
-  let shown = view.filter((i) => inGroup(i, bagGroup) && (!UI2 || matchQuery(itemName(i), bagQuery)));
+  const view = sortView(items, bagSortMode), filtered = bagGroup !== "all" || (bagQuery !== ""), active = act.active();
+  let shown = view.filter((i) => inGroup(i, bagGroup) && matchQuery(itemName(i), bagQuery));
   // NV3 (#457): hàm thuần của charBagContract nhìn túi + trang bị đang mặc + võ hồn đang xem trên búp bê; dựng lúc cần (tin mới về thì vẽ lại cả bảng).
   const dollView = (): DollView => ({ rowId: act.viewRow(), bag: bag.items, gear: act.gear()?.items ?? [] });
   const useOf = (it: BagItem) => useAction(it, act, again);
@@ -324,10 +320,10 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   addZone({ el, kind: "area", test: bagArea, drop: bagAreaDrop }); // kéo từ búp bê thả vào Túi = tháo
   if (bagFocus) shown = [...shown.filter(bagFocus.match), ...shown.filter((i) => !bagFocus!.match(i))]; // món hợp ô lên trước
   el.appendChild(bagTools(bag, items, again));
-  if (UI2) el.appendChild(bagSearch(again));
+  el.appendChild(bagSearch(again));
   if (bagFocus) {
     const n = shown.filter(bagFocus.match).length, fb = document.createElement("div"); fb.className = "bfocus";
-    fb.innerHTML = `<small></small><button type="button" class="buse drop${UI2 ? " f2-nut-phu" : ""}">Thôi</button>`;
+    fb.innerHTML = `<small></small><button type="button" class="buse drop f2-nut-phu">Thôi</button>`;
     fb.querySelector("small")!.textContent = n ? `${bagFocus.label}: bấm một món sáng để gắn (${n} món hợp).` : `${bagFocus.label}: túi không có món nào hợp ô này.`;
     fb.querySelector("button")!.addEventListener("click", () => { bagFocus?.cancel(); });
     el.appendChild(fb);
@@ -338,7 +334,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   const bar = document.createElement("div"); bar.className = "bpages";
   for (let p = 0; p < pages; p++) {
     const cap = Math.min(BAG_PAGE, bag.slots - p * BAG_PAGE), n = Math.max(0, Math.min(cap, shown.length - p * BAG_PAGE));
-    const b = document.createElement("button"); b.className = "bpg" + K("f2-nut-phu") + (p === bagPage ? " cur" : "") + (n >= cap ? " full" : n === 0 ? " none" : "");
+    const b = document.createElement("button"); b.className = "bpg f2-nut-phu" + (p === bagPage ? " cur" : "") + (n >= cap ? " full" : n === 0 ? " none" : "");
     b.innerHTML = `<b>${p + 1}</b><i style="--f:${n / cap}"></i>`;
     b.title = `Trang ${p + 1}: ${n}/${cap} ô${n >= cap ? " (đầy)" : ""}`; b.setAttribute("aria-label", b.title);
     b.setAttribute("aria-pressed", String(p === bagPage));
@@ -347,11 +343,11 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   }
   // Tự bán từ xa (#216): nút mở bộ lọc (thay chỗ chi tiết ô), chữ ghi đang bật hay tắt.
   const sell = { ...SELL_DEFAULTS, ...(bag.sell ?? {}) }, sb = document.createElement("button");
-  sb.className = "buse bsellbtn" + K("f2-nut-phu") + (sell.on ? " on" : ""); sb.textContent = sell.on ? "Tự bán: bật" : "Tự bán: tắt";
+  sb.className = "buse bsellbtn f2-nut-phu" + (sell.on ? " on" : ""); sb.textContent = sell.on ? "Tự bán: bật" : "Tự bán: tắt";
   sb.title = "Bộ lọc tự bán từ xa khi túi gần đầy"; sb.setAttribute("aria-pressed", String(sellOpen));
   sb.addEventListener("click", () => { sb.blur(); sellOpen = !sellOpen; if (sellOpen) bagSel = null; again(); });
   bar.appendChild(sb);
-  const sort = document.createElement("button"); sort.className = "buse bsort" + K("f2-nut-phu"); sort.textContent = "Sắp xếp";
+  const sort = document.createElement("button"); sort.className = "buse bsort f2-nut-phu"; sort.textContent = "Sắp xếp";
   sort.title = "Gộp đồ cùng loại chưa đầy ô và xếp lại cả túi (mọi trang) theo loại, số năm, sao.";
   sort.disabled = items.length < 2;
   sort.addEventListener("click", () => { sort.blur(); clearOrder(); bagSortMode = "tay"; act.sort(); });
@@ -363,7 +359,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   const grid = document.createElement("div"); grid.className = "bgrid";
   for (let k = bagPage * BAG_PAGE; k < Math.min(bag.slots, (bagPage + 1) * BAG_PAGE); k++) {
     const it = shown[k], b = document.createElement("button");
-    b.className = "bslot ui-cell" + K("f2-o") + (it ? "" : " empty") + (it && it.id === bagSel ? " sel" : "") + (it && bagFocus ? (bagFocus.match(it) ? " hint" : " dim") : "");
+    b.className = "bslot ui-cell f2-o" + (it ? "" : " empty") + (it && it.id === bagSel ? " sel" : "") + (it && bagFocus ? (bagFocus.match(it) ? " hint" : " dim") : "");
     // Kéo thả (NV3 #457, dragDrop.ts): thả lên ô túi khác = đổi chỗ (chỉ khi không lọc; thứ tự nhớ ở trình duyệt); kéo từ búp bê thả lên ô túi = tháo.
     addZone({ el: b, kind: "cell", test: (d) => ("bagIndex" in d.from ? (!filtered && d.item.id !== it?.id ? { ok: true } : null) : bagArea(d)), drop: (d) => {
       if ("bagIndex" in d.from) { moveItem(view, d.item.id, it ? view.indexOf(it) : view.length); bagSortMode = "tay"; again(); } else bagAreaDrop(d); } });
@@ -390,12 +386,11 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       if (it.qty > 1) lines.push({ k: "Số lượng", v: `×${it.qty}`, tone: "gem" });
       // So sánh với món đang gắn của võ hồn ra trận (chỉ số ▲ xanh / ▼ đỏ); máy cảm ứng: chạm giữ ra chú thích, chạm một lần xem ở khung chi tiết.
       const worn = currentFor(it, dollView()), cmp = worn && compareLines(it, worn, worn.cur ? itemName(worn.cur) : null);
-      if (cmp && !UI2) lines.push(...cmp);   // UI v2: so sánh + món đang mặc song song chỉ hiện khi giữ Shift (itemTip.ts)
-      if (UI2) lines.push(...itemInfoLines(it));
+      lines.push(...itemInfoLines(it));   // so sánh + món đang mặc song song chỉ hiện khi giữ Shift (itemTip.ts)
       setTip(b, { title: itemName(it) + (it.lock ? " (khoá)" : ""), color: tier >= 0 ? TIERS[tier].glow : undefined, border: itemColor(it),
         sub: tier >= 0 ? `${bone ? "Hồn cốt" : "Hồn hoàn"} · ${TIERS[tier].color} (${TIERS[tier].age})` : def ? ITEM_KINDS[def.kind].name : undefined,
-        lines, foot: it.lock && !UI2 ? "Đang khoá: không bán / bỏ được" : undefined,
-        shift: UI2 ? shiftPart(cmp ?? null, worn?.cur ?? null, worn?.cur ? itemName(worn.cur) : null, worn?.cur ? itemColor(worn.cur) : "") : undefined });
+        lines,
+        shift: shiftPart(cmp ?? null, worn?.cur ?? null, worn?.cur ? itemName(worn.cur) : null, worn?.cur ? itemColor(worn.cur) : "") });
       b.addEventListener("click", () => {
         b.blur(); markSeen(it.id);
         // Bấm đúp = mặc thông minh. Bấm lần đầu vẽ lại túi (ô bị thay) nên không dùng sự kiện dblclick: so thời điểm hai lần bấm cùng một món.
@@ -411,8 +406,8 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     grid.appendChild(b);
   }
   el.appendChild(grid);
-  if (UI2 && !items.length) el.appendChild(stateBox({ kind: "empty", text: "Túi đang trống.", hint: "Săn hồn thú hoặc nhặt vật phẩm để có đồ." }));
-  else if (UI2 && items.length && !shown.length) el.appendChild(stateBox({ kind: "empty", text: bagQuery ? "Không có món nào khớp." : "Nhóm này chưa có món.", hint: bagQuery ? "Xoá bớt chữ trong ô tìm để xem lại." : "Chọn nhóm khác." }));
+  if (!items.length) el.appendChild(stateBox({ kind: "empty", text: "Túi đang trống.", hint: "Săn hồn thú hoặc nhặt vật phẩm để có đồ." }));
+  else if (items.length && !shown.length) el.appendChild(stateBox({ kind: "empty", text: bagQuery ? "Không có món nào khớp." : "Nhóm này chưa có món.", hint: bagQuery ? "Xoá bớt chữ trong ô tìm để xem lại." : "Chọn nhóm khác." }));
 
   if (sellOpen) { el.appendChild(sellBox(bag, sell, act)); return finishBag(el); }
   const info = document.createElement("div"); info.className = "binfo";
@@ -463,7 +458,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       + (isRing(sel) ? (ready ? ` Có ${ready} võ hồn ở bình cảnh hấp thụ được.` : " Chưa có võ hồn nào ở bình cảnh hấp thụ được hồn hoàn này.") : "");
     const row = document.createElement("div"); row.className = "brow";
     const btn = (text: string, cls: string, fn: () => void) => {
-      const b = document.createElement("button"); b.className = "buse " + cls + (UI2 ? (cls.includes("absorb") ? " f2-nut-chinh" : " f2-nut-phu") : ""); b.textContent = text;
+      const b = document.createElement("button"); b.className = "buse " + cls + (cls.includes("absorb") ? " f2-nut-chinh" : " f2-nut-phu"); b.textContent = text;
       b.addEventListener("click", () => { b.blur(); fn(); }); row.appendChild(b); return b;
     };
     if (def && (def.hp || def.mp)) btn("Dùng", "use", () => act.use(sel.id)).dataset.cd = def.cd ?? "";
@@ -544,7 +539,7 @@ function bagTools(bag: BagMsg, items: BagItem[], again: () => void) {
   for (const g of BAG_GROUPS) {
     const n = items.filter((i) => inGroup(i, g.id)).length;
     if (g.id !== "all" && !n && bagGroup !== g.id) continue; // nhóm trống không hiện (trừ nhóm đang chọn)
-    const b = document.createElement("button"); b.type = "button"; b.className = "ui-tab" + K("f2-tab") + (bagGroup === g.id ? " on" : "");
+    const b = document.createElement("button"); b.type = "button"; b.className = "ui-tab f2-tab" + (bagGroup === g.id ? " on" : "");
     b.textContent = g.id === "all" ? g.name : `${g.name} ${n}`; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(bagGroup === g.id)); // .ui-tab[aria-selected] (cả khung gỗ) tô tab đang chọn
     b.addEventListener("click", () => { b.blur(); bagGroup = g.id; bagPage = 0; bagSel = null; again(); });
     box.appendChild(b);

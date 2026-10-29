@@ -6,7 +6,6 @@ import { VOHON, HE, tierOfYears, vohonIndex, TEAM_SIZE, MAX_RINGS, MAX_STARS, SH
 import { vohonCard } from "./cards.ts";
 import { artUrl, chanThanImg, skillImg } from "./uiArt.ts";
 import { toggleChar } from "./charPanel.ts";
-import { isUi2 } from "./uiKit.ts";
 import { rarityOf } from "./bag.ts";
 import { stateBox } from "./uiParts.ts";
 import { confirmDialog } from "./confirmDialog.ts";
@@ -24,13 +23,11 @@ export function toggleRoster(open = $("#roster").hidden) {
   else { toggleBag(false); closeNpc(); toggleReso(false); toggleWorld(false); toggleFriends(false); toggleChar(false); } // các bảng cùng chỗ giữa màn hình: mở bảng này thì đóng bảng kia
 }
 
-/** UI v2 (đợt 2b-1, ui2-vohon.css): bảng chia 5 tab ở đáy; tắt cờ thì giữ một cột cuộn như cũ (UI2 = false: mọi mục hiện). */
-const UI2 = isUi2();
-const K = (cls: string) => (UI2 ? ` ${cls}` : "");
+/** ui2-vohon.css: bảng chia 5 tab ở đáy. */
 type RosterTab = "doi" | "ky" | "bone" | "core" | "manh";
 const ROSTER_TABS: { id: RosterTab; name: string }[] = [{ id: "doi", name: "Đội hình" }, { id: "ky", name: "Hồn kỹ" }, { id: "bone", name: "Hồn cốt" }, { id: "core", name: "Hồn hạch" }, { id: "manh", name: "Mảnh" }];
 let rosterTab: RosterTab = "doi";
-const showTab = (t: RosterTab) => !UI2 || rosterTab === t;
+const showTab = (t: RosterTab) => rosterTab === t;
 let rosterSel: number | null = null;   // ô đội hình đang chọn để thay võ hồn
 let rosterHint = "";
 
@@ -56,7 +53,7 @@ export interface RosterActions {
  */
 export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<string, number>, items: BagItem[] = []) {
   const el = $("#roster"); el.innerHTML = "";
-  if (UI2) el.classList.add("f2-muc-lon");
+  el.classList.add("f2-muc-lon");
   const members = data.team.filter((r) => r > 0).length;
   const head = document.createElement("div"); head.className = "rhead";
   head.innerHTML = `<b>Đội hình (${members}/${TEAM_SIZE})</b><span><button class="rlink">Cộng minh</button><button class="x" aria-label="Đóng">×</button></span>`;
@@ -141,7 +138,7 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
   if (showTab("bone")) renderBones(el, data, act, items, rosterAgain);
   if (showTab("core")) renderCores(el, data, act, items, rosterAgain);
   if (showTab("manh")) renderShards(el, data, act, shards);
-  if (UI2) el.appendChild(rosterTabs(members, rosterAgain));
+  el.appendChild(rosterTabs(members, rosterAgain));
 }
 
 /** Tab dưới của bảng (UI v2): 5 mục, mục đang xem có vạch dưới chân; cuộn về đầu khi đổi mục. Chỉ đổi cách hiện, không gửi gì lên server. */
@@ -184,39 +181,7 @@ function renderLoadout(el: HTMLElement, data: OwnedVohons, act: RosterActions, a
   el.appendChild(pickRow);
 
   const send = (l: number[]) => { skSlot = null; act.loadout(v.rowId, l); };
-  if (UI2) renderWheel(el, v, cur, tiers, send, again);
-  const slots = document.createElement("div"); slots.className = "tslots kslots";
-  cur.forEach((r, i) => {
-    const s = r >= 0 ? ringSkill(id, r) : null, open = s && r < v.rings.length;
-    const box = document.createElement("div"); box.className = "tslot" + (skSlot === i ? " sel" : "") + (s ? "" : " empty");
-    if (open) box.style.setProperty("--c", ringColor(tiers[r]));
-    const pick = document.createElement("button"); pick.className = "tpick"; pick.setAttribute("aria-pressed", String(skSlot === i));
-    pick.innerHTML = `<b></b><i class="dot"></i><span></span><small></small>`;
-    pick.querySelector("b")!.textContent = SKILL_KEYS[i];
-    pick.querySelector("span")!.textContent = s ? s.name : "Ô trống";
-    pick.querySelector("small")!.textContent = s ? `Vòng ${r + 1}${open ? "" : " · chưa mở"}${s.ult ? " · tuyệt kỹ" : ""}` : "Chọn để thêm";
-    pick.addEventListener("click", () => { pick.blur(); skSlot = skSlot === i ? null : i; again(); });
-    box.appendChild(pick);
-    if (s) {
-      const rm = document.createElement("button"); rm.className = "trm"; rm.textContent = "Bỏ"; rm.setAttribute("aria-label", `Bỏ ${s.name} khỏi ô ${SKILL_KEYS[i]}`);
-      rm.addEventListener("click", () => { rm.blur(); const l = [...cur]; l[i] = -1; send(l); });
-      box.appendChild(rm);
-    }
-    slots.appendChild(box);
-  });
-  // Vòng 7 là Võ Hồn Chân Thân (phím riêng, không xếp vào 4 ô): hiện thêm một ô cố định, không chọn / bỏ được.
-  const ct7 = chanThanOf(id);
-  if (ct7) {
-    const open = v.rings.length >= CHAN_THAN_RING, box = document.createElement("div"); box.className = "tslot ava" + (open ? "" : " locked");
-    if (open) box.style.setProperty("--c", ringColor(tiers[CHAN_THAN_RING - 1]));
-    box.title = `${ct7.name}: ${ct7.desc}. Khi biến hình, ô ${SKILL_KEYS[CHAN_THAN_SKILL_SLOT]} thành ${ct7.skill.name}.`;
-    box.innerHTML = `<div class="tpick"><b></b><i class="dot"></i><span></span><small></small></div>`;
-    box.querySelector("b")!.textContent = AVA_KEY;
-    box.querySelector("span")!.textContent = ct7.name;
-    box.querySelector("small")!.textContent = `Vòng ${CHAN_THAN_RING} · Võ Hồn Chân Thân${open ? "" : " · chưa mở"} · cố định`;
-    slots.appendChild(box);
-  }
-  if (!UI2) el.appendChild(slots);
+  renderWheel(el, v, cur, tiers, send, again);
 
   const hint = document.createElement("small"); hint.className = "rnote";
   hint.textContent = skSlot === null ? "Chọn hồn kỹ để đưa vào ô trống, hoặc chọn một ô trước rồi chọn hồn kỹ." : `Chọn hồn kỹ để đặt vào ô ${SKILL_KEYS[skSlot]}.`;
@@ -226,7 +191,7 @@ function renderLoadout(el: HTMLElement, data: OwnedVohons, act: RosterActions, a
     const s = ringSkill(id, r), ct = r + 1 === CHAN_THAN_RING ? chanThanOf(id) : null;
     if (!s && !ct) continue;
     const open = r < v.rings.length, at = cur.indexOf(r);
-    const b = document.createElement("button"); b.type = "button"; b.className = "kcard" + K("f2-nut-phu") + (at >= 0 ? " on" : "") + (open ? "" : " locked") + (ct ? " ava" : "");
+    const b = document.createElement("button"); b.type = "button"; b.className = "kcard f2-nut-phu" + (at >= 0 ? " on" : "") + (open ? "" : " locked") + (ct ? " ava" : "");
     b.style.setProperty("--c", open ? ringColor(tiers[r]) : "#666");
     b.innerHTML = `<i class="ico"></i><span><b></b><small></small></span>`;
     const kart = s ? skillImg(id, r) : chanThanImg(id);
@@ -365,9 +330,9 @@ function renderBones(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
   fig.appendChild(mid);
   for (const s of BONE_SLOTS) {
     const it = worn.get(s.id), b = document.createElement("button");
-    b.type = "button"; b.className = "bcell" + K("ui-cell f2-o") + (it ? K("has") : " empty") + (boneCell === s.id ? " sel" : "");
+    b.type = "button"; b.className = "bcell ui-cell f2-o" + (it ? " has" : " empty") + (boneCell === s.id ? " sel" : "");
     b.dataset.slot = s.id; b.style.gridArea = BONE_AREA[s.id];
-    if (it) { b.style.setProperty("--c", itemColor(it)); if (UI2) b.dataset.rk = String(rarityOf(it)); } // hạng cho ô kit (ui2-hon-cot.css)
+    if (it) { b.style.setProperty("--c", itemColor(it)); b.dataset.rk = String(rarityOf(it)); } // hạng cho ô kit (ui2-hon-cot.css)
     // Từ 4.3: tên kỹ năng hồn cốt (chủ động / bị động) hiện trong ô.
     const kb = it ? boneOf(it) : null, k = kb ? boneSkillOf(kb.beast, s.id) : null, kname = k ? (k.active ? k.sk.name : k.ps.name) : "";
     b.innerHTML = `${it ? boneIcon(s.id, itemColor(it)) : boneEmptyIcon(s.id)}<span>${s.name}</span>${it ? `<small>${yearsShort(it.years)}</small>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${kname ? `<em></em>` : ""}`;
@@ -491,34 +456,32 @@ function renderCores(el: HTMLElement, data: OwnedVohons, act: RosterActions, ite
   const def = vohonDef(v.vohon);
   const head = document.createElement("b"); head.className = "shead"; head.textContent = `Hồn hạch · ${def.name}`;
   el.appendChild(head);
-  if (UI2) { // chọn võ hồn ngay tại mục này (cũ: chỉ đổi được ở mục hồn cốt), dùng chung `boneVh`
-    const pickRow = document.createElement("label"); pickRow.className = "bvh"; pickRow.innerHTML = `<span>Võ hồn</span><select></select>`;
-    const sel = pickRow.querySelector("select")!;
-    for (const o of data.list) {
-      const opt = document.createElement("option"), n = items.filter((i) => i.vohon === o.rowId && coreOf(i)).length;
-      opt.value = String(o.rowId); opt.selected = o.rowId === v.rowId;
-      opt.textContent = `${vohonDef(o.vohon).name} · cấp ${o.level}${o.rowId === data.active ? " · ra trận" : ""}${n ? ` · ${n}/${CORE_SLOTS} hồn hạch` : ""}`;
-      sel.appendChild(opt);
-    }
-    sel.addEventListener("change", () => { boneVh = Number(sel.value); coreCell = null; again(); });
-    el.appendChild(pickRow);
+  // chọn võ hồn ngay tại mục này (cũ: chỉ đổi được ở mục hồn cốt), dùng chung `boneVh`
+  const pickRow = document.createElement("label"); pickRow.className = "bvh"; pickRow.innerHTML = `<span>Võ hồn</span><select></select>`;
+  const sel = pickRow.querySelector("select")!;
+  for (const o of data.list) {
+    const opt = document.createElement("option"), n = items.filter((i) => i.vohon === o.rowId && coreOf(i)).length;
+    opt.value = String(o.rowId); opt.selected = o.rowId === v.rowId;
+    opt.textContent = `${vohonDef(o.vohon).name} · cấp ${o.level}${o.rowId === data.active ? " · ra trận" : ""}${n ? ` · ${n}/${CORE_SLOTS} hồn hạch` : ""}`;
+    sel.appendChild(opt);
   }
+  sel.addEventListener("change", () => { boneVh = Number(sel.value); coreCell = null; again(); });
+  el.appendChild(pickRow);
   const mine = items.filter((i) => i.vohon === v.rowId && coreOf(i)), bySlot = new Map<number, BagItem>();
   for (const it of mine) { const s = coreSlotOf(it.stats); if (s >= 0) bySlot.set(s, it); }
   if (coreCell !== null && coreCell >= CORE_SLOTS) coreCell = null;
 
-  const fig = document.createElement("div"); fig.className = "cfig" + K("cring-r"); fig.style.setProperty("--c", def.col);
-  if (UI2) { // giữa vòng: hình võ hồn (cùng nguồn với mục hồn cốt)
-    const mid = document.createElement("div"); mid.className = "cmid-r"; const icon = artUrl(`icon_${def.id}_32`), src = icon ?? act.portrait(v.vohon);
-    mid.innerHTML = src ? `<img class="${icon ? "vh-icon" : ""}" alt="" src="${src}">` : `<i class="dot"></i>`;
-    const cap = document.createElement("small"); cap.textContent = def.name; mid.appendChild(cap); fig.appendChild(mid);
-  }
+  const fig = document.createElement("div"); fig.className = "cfig cring-r"; fig.style.setProperty("--c", def.col);
+  // giữa vòng: hình võ hồn (cùng nguồn với mục hồn cốt)
+  const mid = document.createElement("div"); mid.className = "cmid-r"; const icon = artUrl(`icon_${def.id}_32`), src = icon ?? act.portrait(v.vohon);
+  mid.innerHTML = src ? `<img class="${icon ? "vh-icon" : ""}" alt="" src="${src}">` : `<i class="dot"></i>`;
+  const cap = document.createElement("small"); cap.textContent = def.name; mid.appendChild(cap); fig.appendChild(mid);
   for (let s = 0; s < CORE_SLOTS; s++) {
     const it = bySlot.get(s), c = it ? coreOf(it) : null, cs = c ? coreSet(c.set) : undefined, b = document.createElement("button");
-    b.type = "button"; b.className = "bcell ccell" + K("ui-cell") + (it ? "" : " empty") + (coreCell === s ? " sel" : "");
-    if (it) { b.style.setProperty("--c", itemColor(it)); if (UI2) b.dataset.rk = String(rarityOf(it)); }
-    if (UI2) { const a = (s * 360) / CORE_SLOTS; b.style.setProperty("--x", `${(50 + 38 * Math.sin((a * Math.PI) / 180)).toFixed(1)}%`); b.style.setProperty("--y", `${(50 - 38 * Math.cos((a * Math.PI) / 180)).toFixed(1)}%`); } // 6 ô tròn quanh võ hồn
-    b.innerHTML = `${coreIcon(c?.set ?? "")}<span>${UI2 ? s + 1 : `Ô ${s + 1}`}</span>${it ? `<small>${it.stars ?? 1}★</small><em></em>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}`;
+    b.type = "button"; b.className = "bcell ccell ui-cell" + (it ? "" : " empty") + (coreCell === s ? " sel" : "");
+    if (it) { b.style.setProperty("--c", itemColor(it)); b.dataset.rk = String(rarityOf(it)); }
+    { const a = (s * 360) / CORE_SLOTS; b.style.setProperty("--x", `${(50 + 38 * Math.sin((a * Math.PI) / 180)).toFixed(1)}%`); b.style.setProperty("--y", `${(50 - 38 * Math.cos((a * Math.PI) / 180)).toFixed(1)}%`); } // 6 ô tròn quanh võ hồn
+    b.innerHTML = `${coreIcon(c?.set ?? "")}<span>${s + 1}</span>${it ? `<small>${it.stars ?? 1}★</small><em></em>` : ""}${it?.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}`;
     if (it) b.querySelector("em")!.textContent = cs?.name ?? "Bộ lạ";
     b.setAttribute("aria-label", `Ô hồn hạch ${s + 1}: ${it ? `${itemName(it)}, ${it.stars ?? 1} sao${cs ? `, bộ ${cs.name}` : ""}${it.enhance ? `, nâng cấp +${it.enhance}` : ""}` : "trống"}`);
     b.setAttribute("aria-pressed", String(coreCell === s));
@@ -864,7 +827,7 @@ function renderShards(el: HTMLElement, data: OwnedVohons, act: RosterActions, sh
   }).filter((r) => r.v || r.have > 0)
     .sort((a, b) => Number(b.ready) - Number(a.ready) || Number(!b.v) - Number(!a.v) || b.have - a.have);
   const grid = document.createElement("div"); grid.className = "cgrid sgrid"; el.appendChild(grid);
-  if (UI2 && !rows.length) grid.replaceWith(stateBox({ kind: "empty", text: "Chưa có mảnh võ hồn nào.", hint: "Hạ hồn thú để nhận mảnh rơi vào túi đồ." }));
+  if (!rows.length) grid.replaceWith(stateBox({ kind: "empty", text: "Chưa có mảnh võ hồn nào.", hint: "Hạ hồn thú để nhận mảnh rơi vào túi đồ." }));
   for (const { def, v, have, need, ready } of rows) {
     const row = document.createElement("div"); row.className = "srow" + (ready ? " ready" : "");
     row.style.setProperty("--c", def.col);

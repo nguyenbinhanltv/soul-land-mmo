@@ -1,7 +1,7 @@
 // Trợ năng (#600, Part of #877): cỡ chữ UI 3 mức, chế độ mù màu (thêm hình / chữ, không chỉ màu), giảm chuyển động toàn cục, bảng phím tắt.
 // Chỉ hiển thị ở client, lưu localStorage (`shh-a11y-v1`), không đụng server hay số cân bằng. Không import Phaser để test bằng node.
 // Cỡ chữ đặt lớp `a11y-fs-1/2` lên body (ui2-settings.css đổi --fs-s/m/l); mù màu đặt `a11y-cb`. Giảm chuyển động dùng lớp `reduce-motion` trên <html>
-// có sẵn của combatFx (theo `fxPrefs.reduce`, mặc định theo hệ điều hành); ui2-settings.css mở rộng ra mọi hoạt ảnh. Cả ba có tác dụng khi tắt cờ ui2.
+// có sẵn của combatFx (theo `fxPrefs.reduce`, mặc định theo hệ điều hành); ui2-settings.css mở rộng ra mọi hoạt ảnh.
 import type { Element } from "./audio/soundMap.ts";
 
 /** Tên hệ ngắn (trùng ELEMENT_NAME ở skillFx.ts; chép lại để không kéo Phaser vào mô-đun này). */

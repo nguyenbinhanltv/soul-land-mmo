@@ -1,6 +1,5 @@
 // Giao diện HTML phủ lên canvas (chữ tiếng Việt hiển thị sắc nét hơn vẽ trong canvas).
 import { friendSend, friendsLast, toggleFriends, askThen } from "./hudMisc.ts";
-import { isUi2 } from "./uiKit.ts";
 import { itemColor, itemName } from "./hudBag.ts";
 import { VOHON, formatYears, MAPS } from "../../shared/data.ts";
 
@@ -195,7 +194,7 @@ export function updateParty() {
  */
 export function showPlayerMenu(t: { sid: string; name: string; level: number } | null) {
   const box = $("#pmenu"); box.innerHTML = "";
-  if (isUi2()) box.classList.add("f2-muc-nho"); // UI v2 đợt 2d: khung Mực nhỏ (ui2-social.css)
+  box.classList.add("f2-muc-nho"); // UI v2 đợt 2d: khung Mực nhỏ (ui2-social.css)
   if (!t || !partyLast) { box.hidden = true; return; }
   const { v, act } = partyLast, me = v.members.find((m) => m.me), mem = v.members.find((m) => !m.me && m.name === t.name);
   const close = () => showPlayerMenu(null);

@@ -94,7 +94,6 @@ function render() {
   const root = el(); if (!root || root.hidden) return;
   for (const s of stops) s(); stops = [];
   const f = screenFrame({ material: "giay", title: "Lịch Hoạt Động", badge: "曆", info: "Giờ theo giờ Việt Nam. Lịch chỉ đọc từ luật thời gian của máy chủ; mỗi ngày làm mới lúc 00:00." });
-  if (!f) return;
   const now = serverNow(), body: PNode[] = [];
   if (status === "error") body.push(h("div", "cal-msg cal-err", { kids: [h("span", "", { text: "Không tải được lịch (mất kết nối hoặc máy chủ chưa trả lời)." }), h("button", "cal-retry", { text: "Thử lại", attrs: { type: "button" } })] }));
   if (!data) { if (status === "loading") body.push(h("div", "cal-skel", { attrs: { "aria-busy": "true", "aria-label": "Đang tải" }, kids: Array.from({ length: 7 }, () => h("span", "cal-skel-c")) })); }

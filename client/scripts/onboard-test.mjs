@@ -87,6 +87,6 @@ assert.ok(/prefers-reduced-motion:reduce/.test(css) && /reduce-motion/.test(css)
 assert.ok(/min-height:44px/.test(css), "nút thẻ ≥ 44 px");
 assert.ok(!/font(-size)?:[^;]*\b\d+px/.test(css.replace(/var\([^)]*\)/g, "")), "cỡ chữ chỉ qua token --fs-*");
 assert.ok(src("main.ts").includes('import "./ui2-onboard.css"'));
-// cờ tắt thì không làm gì
-for (const f of ["onboard.ts", "pingMeter.ts", "questArrow.ts"]) assert.ok(src(f).includes("isUi2()"), `${f}: chỉ chạy khi cờ ui2 bật`);
+// đợt 5c: đã gỡ cờ ui2, các tệp này không còn đọc isUi2
+for (const f of ["onboard.ts", "pingMeter.ts", "questArrow.ts"]) assert.ok(!src(f).includes("isUi2"), `${f}: không còn nhánh theo cờ`);
 console.log("onboard: ok");

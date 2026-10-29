@@ -6,13 +6,12 @@ import { bagItemInfo } from "./hud.ts";
 import { rarityOf } from "./bag.ts";
 import { RING_ITEM } from "../../shared/data.ts";
 import { RARE_LOOT_MIN } from "./audio/soundMap.ts";
-import { isUi2 } from "./uiKit.ts";
 import "./ui2-feedback.css";
 import { logNotice, NOTICE_LABEL, type ToastKind } from "./noticeLog.ts";
 export { notices, onNotices, clearNotices, LOG_MAX, type Notice, type ToastKind } from "./noticeLog.ts";
 
-// UI v2 (đợt 1c): banner nhận khung Mực của kit khi bật cờ ui2 (chip lệnh do cmdChip.ts, tooltip do tooltip.ts); cờ tắt thì không đổi gì. Luật vẽ ở ui2-feedback.css.
-if (isUi2()) document.getElementById("banner")?.classList.add("f2-muc-nho");
+// Banner nhận khung Mực của kit (chip lệnh do cmdChip.ts, tooltip do tooltip.ts). Luật vẽ ở ui2-feedback.css.
+document.getElementById("banner")?.classList.add("f2-muc-nho");
 
 /** Loại toast: nhãn nhỏ ở đầu dòng và màu vạch trái (đặt ở CSS theo `data-k`, màu niên hạn của đồ rơi theo `--c`). */
 type ToastFrame = "rare-ring";

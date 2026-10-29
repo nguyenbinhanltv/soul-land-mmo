@@ -1,7 +1,7 @@
 // Chụp giao diện game ở nhiều cỡ màn để làm ảnh trước / sau cho PR giao diện (UI Kit v2, #877 / #878).
 // Cần server đang chạy với GAME_TEST=1 (hook "test"; ví dụ `GAME_TEST=1 PORT=2547 npm run dev:server`, hoặc bản build: `npm run build` rồi `npm start`)
 // và client đã build (server phục vụ client/dist). KHÔNG trỏ DB thật; không có DATABASE_URL thì dữ liệu chỉ ở RAM.
-//   node client/scripts/ui-shots.mjs --server http://localhost:2547 --out <thư mục> [--sizes 1366x768,1280x720,960x540,1920x1080] [--only dang-nhap,hud,tui] [--tag truoc] [--dpr 1] [--outer]
+//   node client/scripts/ui-shots.mjs --server http://localhost:2547 --out <thư mục> [--sizes 1366x768,1280x720,960x540,1920x1080] [--only dang-nhap,hud,tui] [--tag truoc] [--dpr 1] [--outer] [--styles <thư mục>] [--name <tên hồn sư>]
 // Cỡ ghi trong tên ảnh là cỡ vùng hiển thị thật (đặt bằng Emulation.setDeviceMetricsOverride, không tính khung cửa sổ Chrome).
 // Mã cảnh (--only): dang-nhap, tao-nhan-vat, the-vao-ban-do, hud, hud-tien-do, tui, nhan-vat, hai-cua-so, doi-hinh, hon-cot, cong-minh, ban-be, tu-dong, tong-ket, uy-thac, ban-do, the-gioi, cai-dat, hub, npc, cua-hang, tho-ren.
 // Luật: đúng MỘT Chrome headless, luôn --mute-audio, cổng CDP ngẫu nhiên (không dùng 9333), chụp tuần tự từng cỡ; xong tắt đúng PID của mình.
@@ -20,8 +20,8 @@ const SIZES = opt("sizes", "1366x768,1280x720,960x540,1920x1080").split(",").map
 const ONLY = opt("only", "") ? new Set(opt("only", "").split(",")) : null;
 const TAG = opt("tag", "");
 const DPR = +opt("dpr", "1");
-const QS = argv.includes("--ui0") ? "&ui=0" : ""; // --ui0: giao diện cũ (?ui=0) cho ảnh "trước"; mặc định ui2 bật (đợt 5a)
 const FS = opt("fs", ""); // --fs 1|2: thêm lớp a11y-fs-N (cỡ chữ Lớn / Rất lớn) sau khi vào bản đồ
+const STYLES = opt("styles", ""); // --styles <thư mục>: cùng mỗi ảnh ghi thêm <tag>-<cảnh>.json (computed style của mọi phần tử DOM ngoài canvas) để so trước / sau không nhiễu bởi nền bản đồ (node tools/ui-styles-diff.mjs)
 const OUTER = argv.includes("--outer"); // cỡ = cửa sổ Chrome (vùng hiển thị nhỏ hơn: khung tab / thanh địa chỉ), như người chơi mở cửa sổ 960×540
 const CHROMES = [process.env.CHROME, "C:/Program Files/Google/Chrome/Application/chrome.exe", "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", "/usr/bin/google-chrome", "/usr/bin/chromium"].filter(Boolean);
 const CHROME = CHROMES.find((p) => existsSync(p));
@@ -31,6 +31,22 @@ mkdirSync(OUT, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const post = async (p, b) => { const r = await fetch(SERVER + p, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) }); return { status: r.status, ...(await r.json()) }; };
 const want = (id) => !ONLY || ONLY.has(id);
+
+// Chạy trong trang: computed style (các thuộc tính ảnh hưởng hình) của mọi phần tử DOM nhìn thấy ngoài canvas, khoá theo đường đi trong cây.
+const DUMP_STYLES = `() => {
+  const P = ["display","position","visibility","opacity","color","background-color","background-image","background-size","background-position","border-top-width","border-right-width","border-bottom-width","border-left-width","border-top-style","border-top-color","border-right-color","border-bottom-color","border-left-color","border-image-source","border-image-slice","border-image-width","border-top-left-radius","box-shadow","text-shadow","outline","font-family","font-size","font-weight","font-style","line-height","letter-spacing","text-align","text-transform","text-decoration-line","padding-top","padding-right","padding-bottom","padding-left","margin-top","margin-right","margin-bottom","margin-left","width","height","left","top","gap","transform","filter","z-index","cursor","overflow-x","overflow-y","white-space"];
+  const out = {}, seen = new Map();
+  const walk = (el, path) => {
+    for (const c of el.children) {
+      if (c.tagName === "CANVAS" || c.tagName === "SCRIPT" || c.tagName === "STYLE") continue;
+      const n = c.tagName.toLowerCase() + (c.id ? "#" + c.id : "") + (c.classList.length ? "." + [...c.classList].sort().join(".") : "");
+      const p = path + ">" + n, k = (seen.get(p) ?? 0) + 1; seen.set(p, k);
+      const cs = getComputedStyle(c);
+      if (cs.display !== "none") { const o = {}; for (const q of P) o[q] = cs.getPropertyValue(q); out[p + "#" + k] = o; walk(c, p + "#" + k); }
+    }
+  };
+  walk(document.body, "body"); return out;
+}`;
 
 async function runSize(W, H) {
   const profile = mkdtempSync(path.join(tmpdir(), "ui-shots-"));
@@ -50,22 +66,23 @@ async function runSize(W, H) {
     const ev = async (expr) => { const r = await cdp("Runtime.evaluate", { expression: expr, awaitPromise: true, returnByValue: true }); if (r.result?.exceptionDetails) throw new Error(JSON.stringify(r.result.exceptionDetails).slice(0, 300)); return r.result?.result?.value; };
     const until = async (expr, ms = 20000) => { for (let t = 0; t < ms; t += 200) { if (await ev(expr).catch(() => false)) return true; await sleep(200); } throw new Error("hết giờ chờ: " + expr); };
     const test = (o) => ev(`(window.__scene.room.send("test", ${JSON.stringify(o)}), new Promise(r=>setTimeout(()=>r(true),250)))`);
-    const shot = async (file) => { const r = await cdp("Page.captureScreenshot", { format: "png" }); writeFileSync(path.join(OUT, `${tag}-${file}.png`), Buffer.from(r.result.data, "base64")); console.log("ảnh", `${tag}-${file}`); };
+    const shot = async (file) => { const r = await cdp("Page.captureScreenshot", { format: "png" }); writeFileSync(path.join(OUT, `${tag}-${file}.png`), Buffer.from(r.result.data, "base64")); console.log("ảnh", `${tag}-${file}`);
+      if (STYLES) { mkdirSync(STYLES, { recursive: true }); writeFileSync(path.join(STYLES, `${tag}-${file}.json`), JSON.stringify(await ev(`(${DUMP_STYLES})()`))); } };
     const key = async (code, k) => { for (const type of ["keyDown", "keyUp"]) await cdp("Input.dispatchKeyEvent", { type, code, key: k, windowsVirtualKeyCode: k.toUpperCase().charCodeAt(0) }); await sleep(500); };
     const step = async (id, fn) => { if (!want(id)) return; try { await fn(); } catch (e) { console.log("LỖI cảnh", id, String(e).slice(0, 200)); } };
     const click = (id) => ev(`document.getElementById(${JSON.stringify(id)})?.click(), true`);
 
     await cdp("Page.enable"); await cdp("Runtime.enable");
     if (!OUTER) await cdp("Emulation.setDeviceMetricsOverride", { width: W, height: H, deviceScaleFactor: DPR, mobile: false });
-    const name = "Đường Tam " + Math.random().toString(36).slice(2, 6), password = "ui-shots-pass";
-    await step("dang-nhap", async () => { await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" + QS }); await sleep(2500); await shot("01-dang-nhap"); });
+    const name = opt("name", "Đường Tam " + Math.random().toString(36).slice(2, 6)), password = "ui-shots-pass";
+    await step("dang-nhap", async () => { await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" }); await sleep(2500); await shot("01-dang-nhap"); });
     const l = await post("/api/login", { name, password });
-    if (!want("dang-nhap")) { await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" + QS }); await sleep(1500); } // localStorage cần trang cùng nguồn, không phải about:blank
+    if (!want("dang-nhap")) { await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" }); await sleep(1500); } // localStorage cần trang cùng nguồn, không phải about:blank
     await ev(`localStorage.setItem("shh-token", ${JSON.stringify(l.token)}), localStorage.setItem("shh-audio", JSON.stringify({muted:true})), true`);
-    await step("tao-nhan-vat", async () => { await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" + QS }); await sleep(2500); await shot("02-tao-nhan-vat"); });
+    await step("tao-nhan-vat", async () => { await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" }); await sleep(2500); await shot("02-tao-nhan-vat"); });
     await post("/api/looks", { token: l.token, sex: 0, hair: 1, hairCol: 1, outfitCol: 2 });
     await post("/api/awaken", { token: l.token, vohon: "lam_dien_ba_vuong_long" });
-    await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" + QS });
+    await cdp("Page.navigate", { url: SERVER + "/choi?nopredict" });
     await until(`!!document.getElementById("go")`); await sleep(800);
     await step("the-vao-ban-do", () => shot("03-the-vao-ban-do"));
     await click("go");

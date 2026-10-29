@@ -79,7 +79,7 @@ function close(result: "" | "skip" | "done" = "") {
   if (ended) { saved.tour = result as "done" | "skip"; save(); }
   mode = "off";
   document.getElementById("guideBtn")?.setAttribute("aria-expanded", "false");
-  if (ended) onboardBegin(); // UI v2: làm quen (onboard.ts) nối tiếp sau chuỗi điều khiển; tắt cờ ui2 thì không làm gì
+  if (ended) onboardBegin(); // làm quen (onboard.ts) nối tiếp sau chuỗi điều khiển
 }
 
 function next() {

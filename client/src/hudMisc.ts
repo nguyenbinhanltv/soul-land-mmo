@@ -8,7 +8,6 @@ import { chatLine, chatWhisperTo } from "./chat.ts";
 import { el, pbtn } from "./domBtn.ts";
 import type { ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, FriendsMsg } from "./net.ts";
 import { autoTimeText, FRIEND_MAX, BLOCK_MAX } from "../../shared/data.ts";
-import { isUi2 } from "./uiKit.ts";
 import { stateBox } from "./uiParts.ts";
 import { confirmDialog } from "./confirmDialog.ts";
 import "./ui2-social.css";
@@ -32,14 +31,12 @@ export function setFriends(m: FriendsMsg) {
   if (!$("#friends").hidden) renderFriends();
 }
 const FRIEND_COL = "#9fd8ff";
-/** Việc không đảo ngược (xóa bạn, chặn): bật ui2 thì hỏi bằng hộp xác nhận nêu hậu quả (nút an toàn lấy tiêu điểm); tắt cờ chạy ngay như cũ. */
+/** Việc không đảo ngược (xóa bạn, chặn): hỏi bằng hộp xác nhận nêu hậu quả (nút an toàn lấy tiêu điểm). */
 export function askThen(title: string, body: string, confirmLabel: string, fn: () => void) {
-  if (!UI2) { fn(); return; }
   confirmDialog({ title, body, confirm: confirmLabel, danger: true }, fn);
 }
-// UI v2 (đợt 2d): bảng Bạn bè nhận khung Mực của kit khi bật cờ ui2 (index.html giữ nguyên). Luật vẽ ở ui2-social.css.
-const UI2 = isUi2();
-if (UI2) document.getElementById("friends")?.classList.add("f2-muc-nho");
+// Bảng Bạn bè nhận khung Mực của kit (index.html giữ nguyên). Luật vẽ ở ui2-social.css.
+document.getElementById("friends")?.classList.add("f2-muc-nho");
 /** Mở / đóng bảng Bạn bè (phím L, nút trong khung tổ đội); cùng chỗ giữa màn hình với các bảng khác. Mở thì xin bảng mới. */
 export function toggleFriends(open = $("#friends").hidden) {
   $("#friends").hidden = !open;
@@ -64,16 +61,16 @@ function renderFriends() {
   f.append(inp, add, blk); box.append(f);
   if (typing !== null) setTimeout(() => inp.focus(), 0);
   box.append(el("small", "phint", "Hai bên đã thêm nhau mới thấy nhau đang online và ở đâu. Chặn: không nhận tin, lời mời tổ đội, lời thêm bạn của người đó."));
-  if (!m) { if (UI2) box.append(stateBox({ kind: "loading", text: "Đang tải danh sách bạn bè…", rows: 3 })); else box.append(el("small", "phint", "Đang tải…")); return; }
+  if (!m) { box.append(stateBox({ kind: "loading", text: "Đang tải danh sách bạn bè…", rows: 3 })); return; }
   const rank = (e: FriendsMsg["list"][number]) => (e.mutual && e.map ? 0 : e.mutual ? 1 : 2);
   const sorted = [...m.list].sort((a, b) => rank(a) - rank(b)), onN = sorted.filter((e) => rank(e) === 0).length;
-  if (UI2 && sorted.length) box.append(el("div", "fsum", `${onN} trực tuyến · ${sorted.length - onN} ngoại tuyến hoặc chưa thêm lại`));
+  if (sorted.length) box.append(el("div", "fsum", `${onN} trực tuyến · ${sorted.length - onN} ngoại tuyến hoặc chưa thêm lại`));
   for (const e of sorted) {
     const row = el("div", "pmem frow" + (e.mutual && e.map ? " on" : " off")), top = el("div", "ptop");
-    // ui2: chấm trạng thái là hình (đặc = trực tuyến, rỗng = không) kèm chữ, không chỉ màu; cờ tắt giữ "● " cũ.
-    top.append(UI2 ? el("span", "pname", e.name) : el("span", "pname", (e.mutual && e.map ? "● " : "") + e.name),
+    // chấm trạng thái là hình (đặc = trực tuyến, rỗng = không) kèm chữ, không chỉ màu.
+    top.append(el("span", "pname", e.name),
       el("small", "", e.mutual ? (e.map ? `Ở ${MAPS[e.map]?.name ?? e.map}${e.ch ? ` · Kênh ${e.ch}` : ""}` : "Ngoại tuyến") : "Chưa thêm lại bạn"));
-    if (UI2) row.dataset.st = rank(e) === 0 ? "on" : rank(e) === 1 ? "off" : "pend";
+    row.dataset.st = rank(e) === 0 ? "on" : rank(e) === 1 ? "off" : "pend";
     const btns = el("div", "pbtns");
     if (e.mutual && e.map) btns.append(pbtn("Mời tổ đội", "ok", () => friendAct?.invite(e.name), `Mời ${e.name} vào tổ đội`),
       pbtn("Nhắn", "", () => { toggleFriends(false); chatWhisperTo(e.name); }, `Nhắn riêng cho ${e.name} (/t)`));
@@ -82,8 +79,7 @@ function renderFriends() {
     row.append(top, btns); box.append(row);
   }
   if (!m.list.length) {
-    if (UI2) box.append(stateBox({ kind: "empty", text: "Chưa có bạn bè.", hint: "Gõ tên hồn sư rồi bấm Thêm bạn, hoặc bấm vào hồn sư khác ngoài bản đồ." }));
-    else box.append(el("small", "phint", "Chưa có bạn: gõ tên rồi bấm Thêm bạn, hoặc bấm vào hồn sư khác."));
+    box.append(stateBox({ kind: "empty", text: "Chưa có bạn bè.", hint: "Gõ tên hồn sư rồi bấm Thêm bạn, hoặc bấm vào hồn sư khác ngoài bản đồ." }));
   }
   const bh = el("div", "fsub"); bh.append(el("b", "", `Đã chặn ${m.blocks.length}/${BLOCK_MAX}`)); box.append(bh);
   for (const n of m.blocks) {
@@ -102,11 +98,10 @@ export let resMsg: ResonanceMsg | null = null;
 let resTopMsg: ResonanceTopMsg | null = null;
 let resTab = 0; // tab trụ cột đang xem (chỉ số theo RESONANCE)
 let resTopRequest: (page: number, pageSize: number) => void = () => {};
-let resTopWait: "idle" | "wait" | "err" = "idle"; // ui2: đang chờ bảng xếp hạng / quá hạn (chỉ để hiển thị trạng thái tải / lỗi)
+let resTopWait: "idle" | "wait" | "err" = "idle"; // đang chờ bảng xếp hạng / quá hạn (chỉ để hiển thị trạng thái tải / lỗi)
 const RESO_TOP_WAIT_MS = 8000;
-let resTopTimer = 0, resTopSentAt = 0; // một hẹn giờ duy nhất; server bỏ im yêu cầu trong RESONANCE_RANK_CD nên ui2 không gửi (không chuyển sang "wait") khi chưa qua nhịp
+let resTopTimer = 0, resTopSentAt = 0; // một hẹn giờ duy nhất; server bỏ im yêu cầu trong RESONANCE_RANK_CD nên không gửi (không chuyển sang "wait") khi chưa qua nhịp
 const askResTop = (page: number, size: number) => {
-  if (!UI2) { resTopRequest(page, size); return; }
   const now = performance.now(); if (now - resTopSentAt < RESONANCE_RANK_CD * 1000) return;
   resTopSentAt = now; resTopRequest(page, size);
   clearTimeout(resTopTimer); resTopWait = "wait"; renderReso();
@@ -128,15 +123,15 @@ export function toggleReso(open = $("#reso").hidden) {
  */
 function renderReso() {
   const el = $("#reso"); el.innerHTML = "";
-  if (UI2) el.classList.add("f2-muc-lon");
+  el.classList.add("f2-muc-lon");
   const head = document.createElement("div"); head.className = "rhead";
   head.innerHTML = `<b>Cộng minh</b><button class="x" aria-label="Đóng">×</button>`;
   head.querySelector("button")!.addEventListener("click", () => toggleReso(false));
   const note = document.createElement("small"); note.className = "rnote";
   note.textContent = "Đạt mốc ở từng trụ cột thì mọi võ hồn (kể cả võ hồn mở sau) được cộng chỉ số. Nuôi đều các võ hồn để mở thêm mốc.";
   const txt = resMsg ? resonanceText(resMsg.bonus) : "";
-  const total: HTMLElement = UI2 && !resMsg ? stateBox({ kind: "loading", text: "Đang tải cộng minh…", rows: 2 }) : document.createElement("div");
-  if (!(UI2 && !resMsg)) { total.className = "restotal"; total.textContent = !resMsg ? "Đang tải…" : txt ? `Mọi võ hồn: ${txt}` : "Chưa đạt mốc nào."; }
+  const total: HTMLElement = !resMsg ? stateBox({ kind: "loading", text: "Đang tải cộng minh…", rows: 2 }) : document.createElement("div");
+  if (resMsg) { total.className = "restotal"; total.textContent = txt ? `Mọi võ hồn: ${txt}` : "Chưa đạt mốc nào."; }
   el.append(head, note, total);
   const rank = document.createElement("section"); rank.className = "resrank";
   const rankHead = document.createElement("div"); rankHead.className = "resrankhead";
@@ -144,8 +139,8 @@ function renderReso() {
   const rankBtn = document.createElement("button"); rankBtn.type = "button"; rankBtn.textContent = resTopMsg ? "Làm mới" : "Xem bảng";
   rankBtn.addEventListener("click", () => askResTop(1, resTopMsg?.pageSize ?? RESONANCE_RANK_PAGE_SIZE));
   rankHead.append(rankTitle, rankBtn); rank.appendChild(rankHead);
-  if (UI2 && resTopWait === "wait") rank.appendChild(stateBox({ kind: "loading", text: "Đang tải bảng xếp hạng…", rows: 3 }));
-  else if (UI2 && resTopWait === "err" && !resTopMsg) rank.appendChild(stateBox({ kind: "error", text: "Chưa nhận được bảng xếp hạng.", hint: "Kiểm tra kết nối rồi thử lại.", onRetry: () => askResTop(1, RESONANCE_RANK_PAGE_SIZE) }));
+  if (resTopWait === "wait") rank.appendChild(stateBox({ kind: "loading", text: "Đang tải bảng xếp hạng…", rows: 3 }));
+  else if (resTopWait === "err" && !resTopMsg) rank.appendChild(stateBox({ kind: "error", text: "Chưa nhận được bảng xếp hạng.", hint: "Kiểm tra kết nối rồi thử lại.", onRetry: () => askResTop(1, RESONANCE_RANK_PAGE_SIZE) }));
   else if (!resTopMsg) {
     const hint = document.createElement("small"); hint.textContent = "Chỉ tài khoản đã đạt ít nhất một mốc được xếp hạng."; rank.appendChild(hint);
   } else {
@@ -158,7 +153,7 @@ function renderReso() {
       const name = document.createElement("em"); name.textContent = r.name;
       const score = document.createElement("i"); score.textContent = `${r.score} điểm · ${r.milestones} mốc`;
       row.append(n, name, score); table.appendChild(row); });
-    if (!resTopMsg.list.length) { if (UI2) table.appendChild(stateBox({ kind: "empty", text: "Chưa có tài khoản đạt mốc.", hint: "Đạt một mốc cộng minh để lên bảng." })); else { const empty = document.createElement("small"); empty.textContent = "Chưa có tài khoản đạt mốc."; table.appendChild(empty); } }
+    if (!resTopMsg.list.length) { table.appendChild(stateBox({ kind: "empty", text: "Chưa có tài khoản đạt mốc.", hint: "Đạt một mốc cộng minh để lên bảng." })); }
     rank.appendChild(table);
     const pages = document.createElement("div"); pages.className = "respages";
     const prev = document.createElement("button"); prev.type = "button"; prev.textContent = "‹ Trước"; prev.disabled = resTopMsg.page <= 1;
@@ -231,13 +226,13 @@ export function resetChannels() { chanMsg = null; chanNow = -1; toggleChannels(f
 export function setChannels(m: ChannelsMsg) { chanMsg = m; if (!$("#chans").hidden) renderChannels(); }
 function renderChannels() {
   const box = $("#chans"); box.innerHTML = "";
-  if (UI2) box.classList.add("f2-muc-nho");
-  if (!chanMsg) { box.appendChild(UI2 ? stateBox({ kind: "loading", text: "Đang tải danh sách kênh…", rows: 3 }) : el("small", "", "Đang tải…")); return; } // chỉ khi chưa từng có danh sách
-  if (UI2 && !chanMsg.list.length) { box.appendChild(stateBox({ kind: "empty", text: "Chưa có kênh nào." })); return; }
+  box.classList.add("f2-muc-nho");
+  if (!chanMsg) { box.appendChild(stateBox({ kind: "loading", text: "Đang tải danh sách kênh…", rows: 3 })); return; } // chỉ khi chưa từng có danh sách
+  if (!chanMsg.list.length) { box.appendChild(stateBox({ kind: "empty", text: "Chưa có kênh nào." })); return; }
   for (const c of chanMsg.list) {
     const cur = c.ch === chanNow, b = el("button", cur ? "cur" : "") as HTMLButtonElement;
-    b.append(el("span", "", `Kênh ${c.ch}${cur ? " (đang ở)" : ""}`), el("span", "", `${c.n}/${c.max}${UI2 && c.full ? " · Đầy" : ""}`));
-    if (UI2) { const bar = el("i", "chbar"); bar.style.setProperty("--p", `${Math.min(100, Math.round((c.n / Math.max(1, c.max)) * 100))}%`); b.append(bar); b.dataset.st = cur ? "cur" : c.full ? "full" : "open"; }
+    b.append(el("span", "", `Kênh ${c.ch}${cur ? " (đang ở)" : ""}`), el("span", "", `${c.n}/${c.max}${c.full ? " · Đầy" : ""}`));
+    { const bar = el("i", "chbar"); bar.style.setProperty("--p", `${Math.min(100, Math.round((c.n / Math.max(1, c.max)) * 100))}%`); b.append(bar); b.dataset.st = cur ? "cur" : c.full ? "full" : "open"; }
     b.disabled = cur || c.full;
     b.title = cur ? "Bạn đang ở kênh này" : c.full ? "Kênh đã đầy" : `Chuyển sang kênh ${c.ch}`;
     b.addEventListener("pointerdown", (e) => { e.preventDefault(); if (!b.disabled) chanPick(c.ch); });
@@ -285,12 +280,12 @@ export function setWorld(m: WorldMsg) {
  */
 function renderWorld() {
   const el = $("#world"), m = worldMsg; el.innerHTML = "";
-  if (UI2) el.classList.add("f2-giay-lon");
+  el.classList.add("f2-giay-lon");
   const head = document.createElement("div"); head.className = "rhead";
   head.innerHTML = `<b>Bản đồ thế giới</b><button class="x" aria-label="Đóng">×</button>`;
   head.querySelector("button")!.addEventListener("click", () => toggleWorld(false));
   el.appendChild(head);
-  if (!m) { if (UI2) el.appendChild(stateBox({ kind: "loading", text: "Đang tải bản đồ thế giới…", rows: 4 })); else el.insertAdjacentHTML("beforeend", "<small class=\"rnote\">Đang tải…</small>"); return; }
+  if (!m) { el.appendChild(stateBox({ kind: "loading", text: "Đang tải bản đồ thế giới…", rows: 4 })); return; }
   const here = m.list.find((w) => w.key === m.cur);
   const note = document.createElement("small"); note.className = "rnote";
   note.textContent = here

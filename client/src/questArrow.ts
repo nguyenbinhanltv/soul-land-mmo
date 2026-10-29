@@ -2,7 +2,6 @@
 // đã tính sẵn cho bản đồ nhỏ (questTargets: NPC, vùng săn, cổng đi tiếp), không thêm tin server. Mục tiêu đang trong màn thì không vẽ mũi tên;
 // ngoài màn thì mũi tên nằm trên khung chữ nhật (CSS đặt chừa chỗ cho các cột HUD) theo hướng từ tâm màn tới mục tiêu, kèm nhãn + khoảng cách
 // (ô) để không chỉ truyền đạt bằng màu / hình. Hàm tính là hàm thuần để test bằng node.
-import { isUi2 } from "./uiKit.ts";
 
 export interface QPoint { /** tọa độ trên màn (cùng hệ với worldView của camera). */ x: number; y: number; /** loại mục tiêu để ghi nhãn. */ label: string; /** khoảng cách thế giới tới nhân vật, tính bằng ô. */ tiles: number }
 export interface View { x: number; y: number; w: number; h: number }
@@ -40,7 +39,6 @@ export const arrowText = (a: Pick<Arrow, "label" | "tiles">) => `${a.label} · $
 // ---- phần DOM ----
 let el: HTMLElement | null = null, lastKey = "";
 function ensure(): HTMLElement | null {
-  if (!isUi2()) return null;
   if (el?.isConnected) return el;
   const hud = document.getElementById("hud"); if (!hud) return null;
   el = document.createElement("div"); el.id = "qarrow"; el.hidden = true; el.setAttribute("role", "img");

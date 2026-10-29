@@ -2,12 +2,10 @@
 // (`cardActions` / `quickCommand` ở charBagContract.ts); số liệu so sánh từ `compareRows` (bag.ts, số ở shared/data.ts). Server vẫn quyết định.
 import type { CardAction, CardActionId } from "./charBagContract.ts";
 import { type CmpRow, rowTone } from "./bag.ts";
-import { isUi2 } from "./uiKit.ts";
 
 const mk = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = "", text = "") => {
   const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e;
 };
-const UI2 = isUi2(); // UI v2 (đợt 2a-1, ui2-charpanel.css): thẻ nhận khung Mực, bảng so sánh nhận khung Giấy, nút theo kit; tắt cờ thì giữ kiểu cũ
 const host = () => document.body; // position: fixed theo cửa sổ, không theo #stage (có thể bị biến đổi)
 
 let card: HTMLElement | null = null, cardOff: (() => void) | null = null, cardId: string | null = null;
@@ -23,13 +21,13 @@ export const cardFor = () => cardId;
  */
 export function showCard(anchor: HTMLElement, title: string, color: string, sub: string, actions: CardAction[], run: (id: CardActionId) => void, itemId: string | null = null) {
   hideCard(); cardId = itemId;
-  const c = mk("div", "acard" + (UI2 ? " f2-muc-nho" : "")); c.setAttribute("role", "dialog"); c.setAttribute("aria-label", `Thao tác: ${title}`);
+  const c = mk("div", "acard f2-muc-nho"); c.setAttribute("role", "dialog"); c.setAttribute("aria-label", `Thao tác: ${title}`);
   c.style.setProperty("--c", color);
   const h = mk("b", "", title); c.appendChild(h);
   if (sub) c.appendChild(mk("small", "", sub));
   const row = mk("div", "arow");
   for (const a of actions) {
-    const b = mk("button", "buse" + (a.primary ? " absorb" : a.id === "salvage" ? " drop" : " use") + (UI2 ? (a.primary ? " f2-nut-chinh" : " f2-nut-phu") : ""), a.label); b.type = "button"; b.dataset.act = a.id;
+    const b = mk("button", "buse" + (a.primary ? " absorb" : a.id === "salvage" ? " drop" : " use") + (a.primary ? " f2-nut-chinh" : " f2-nut-phu"), a.label); b.type = "button"; b.dataset.act = a.id;
     b.addEventListener("click", () => { b.blur(); hideCard(); run(a.id); });
     row.appendChild(b);
   }
@@ -64,7 +62,7 @@ export interface CompareSpec {
  */
 export function showCompare(sp: CompareSpec) {
   hideCompare(); dlgId = sp.itemId;
-  const d = mk("div", "cmpdlg" + (UI2 ? " f2-giay-nho" : "")); d.setAttribute("role", "dialog"); d.setAttribute("aria-label", "So sánh trang bị");
+  const d = mk("div", "cmpdlg f2-giay-nho"); d.setAttribute("role", "dialog"); d.setAttribute("aria-label", "So sánh trang bị");
   const head = mk("div", "chead");
   head.innerHTML = `<b>So sánh</b><button class="x" type="button" aria-label="Đóng">×</button>`;
   head.querySelector(".x")!.addEventListener("click", hideCompare);
@@ -85,8 +83,8 @@ export function showCompare(sp: CompareSpec) {
   if (!sp.rows.length) grid.appendChild(mk("small", "cnone", "Không có chỉ số để so sánh."));
   d.appendChild(grid);
   const foot = mk("div", "brow");
-  if (sp.mount) { const b = mk("button", "buse absorb" + (UI2 ? " f2-nut-chinh" : ""), sp.mount); b.type = "button"; b.addEventListener("click", () => { b.blur(); hideCompare(); sp.onMount(); }); foot.appendChild(b); }
-  const x = mk("button", "buse" + (UI2 ? " f2-nut-phu" : ""), "Đóng"); x.type = "button"; x.addEventListener("click", hideCompare); foot.appendChild(x);
+  if (sp.mount) { const b = mk("button", "buse absorb f2-nut-chinh", sp.mount); b.type = "button"; b.addEventListener("click", () => { b.blur(); hideCompare(); sp.onMount(); }); foot.appendChild(b); }
+  const x = mk("button", "buse f2-nut-phu", "Đóng"); x.type = "button"; x.addEventListener("click", hideCompare); foot.appendChild(x);
   d.appendChild(foot);
   host().appendChild(d); dlg = d;
   (foot.querySelector("button") as HTMLElement).focus({ preventScroll: true });

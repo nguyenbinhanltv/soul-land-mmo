@@ -1,19 +1,11 @@
 // UI Kit v2, lớp token (P5 #883, theo dõi #877; docs/art/ui-kit.md mục "Lớp token ui2"):
-// - cờ `ui2`: `?ui=2` bật và lưu localStorage, `?ui=0` tắt; bật thì `body.ui2`. BẬT mặc định từ đợt 5a (`?ui=0` là lối thoát, lưu "0"); tắt thì không đổi gì ở giao diện hiện tại;
+// - UI gốc luôn bật (đợt 5c: đã gỡ cờ `?ui=` và `isUi2()`): `applyUi2` đặt `body.ui2` và biến kit theo cỡ;
 // - mảnh kit `ui2_<tên>` trong manifest (do `ui:cut` xuất: bản 2× và 1×, vạch 9-slice `nine.x2` / `nine.x1`) thành biến CSS
 //   `--ui2-<tên>` (ảnh), `--ui2-<tên>-nine` (vạch cắt, tính bằng điểm ảnh của bản đang dùng), `--ui2-<tên>-bw` (độ dày viền CSS = vạch / hệ số kit);
 // - bản 2× khi `--u` × DPR ≥ 2, ngược lại bản 1× (khuyến nghị cỡ kit ở docs); chưa có mảnh thì không đặt biến và không thêm lớp
-//   `ui2-k-<tên>` lên body, helper khung ở ui2.css không áp, phần tử giữ kiểu cũ.
+//   `ui2-k-<tên>` lên body, helper khung ở ui2.css không áp.
 // Hàm thuần (không đụng DOM) để test bằng node; phần DOM ở cuối tệp.
 import { assetUrl } from "./assetUrl.ts";
-
-const FLAG_KEY = "shh-ui2";
-
-/** Cờ từ chuỗi truy vấn: "2" bật, "0" tắt, khác thì null (giữ giá trị đã lưu). */
-export function ui2FromSearch(search: string): boolean | null {
-  const v = new URLSearchParams(search).get("ui");
-  return v === "2" ? true : v === "0" ? false : null;
-}
 
 /** Mảnh kit trong manifest: `nine` là số (một bản) hoặc { x2, x1 } do cutter ghi. */
 export interface KitEntry { key: string; iso?: boolean; nine?: number | { x2: number; x1: number } | null }
@@ -62,27 +54,14 @@ export function kitClasses(entries: KitEntry[]): string[] {
 let kit: KitEntry[] = [];
 let applied: string[] = [];
 
-let flagCache: boolean | null = null;
-export function isUi2(): boolean {
-  if (flagCache !== null) return flagCache;
-  return flagCache = readFlag();
-}
-function readFlag(): boolean {
-  try {
-    const q = ui2FromSearch(location.search);
-    if (q !== null) localStorage.setItem(FLAG_KEY, q ? "1" : "0");   // ?ui=0 tắt (lưu "0"), ?ui=2 bật (lưu "1")
-    return localStorage.getItem(FLAG_KEY) !== "0";                    // mặc định BẬT (đợt 5a): chỉ "0" mới tắt
-  } catch { return ui2FromSearch(location.search) !== false; } // trình duyệt chặn lưu trữ: chỉ theo lượt này
-}
-
-/** Bật / tắt `body.ui2` và (lại) đặt biến kit theo cỡ hiện tại. Tắt thì gỡ sạch biến và lớp (giao diện cũ không bị đụng). */
+/** Bật `body.ui2` và (lại) đặt biến kit theo cỡ hiện tại (gọi lại khi đổi cỡ: gỡ biến / lớp cũ trước). */
 export function applyUi2(u: number) {
   const root = document.documentElement.style, cl = document.body?.classList;
   for (const k of applied) root.removeProperty(k);
   if (cl) for (const c of [...cl].filter((c) => c.startsWith("ui2-k-"))) cl.remove(c);
   applied = [];
-  const on = isUi2(); cl?.toggle("ui2", on);
-  if (!on || !cl) return;
+  if (!cl) return;
+  cl.add("ui2");
   // URL tuyệt đối: url() tương đối trong biến CSS được phân giải theo tệp CSS đã build (/assets/), nên ở bản build mọi khung kit mất ảnh
   const abs = (key: string, scale: 1 | 2) => new URL(kitPath(key, scale), document.baseURI).href;
   const tokens = kitTokens(kit, kitScale(u, devicePixelRatio || 1), abs);
