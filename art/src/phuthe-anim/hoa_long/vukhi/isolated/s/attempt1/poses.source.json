@@ -1,0 +1,22 @@
+﻿{
+    "tool":  "Codex image_gen tích hợp",
+    "date":  "2026-10-30",
+    "direction":  "s",
+    "attempt":  1,
+    "rawUnmodified":  true,
+    "references":  [
+
+                   ],
+    "model":  null,
+    "seed":  null,
+    "image":  {
+                  "sha256":  "94e58b5f6e99c9593d944fd25ccd68e72e63d9ff0d210ba3ff5f0a21e9014339",
+                  "path":  "poses.raw.png"
+              },
+    "prompt":  {
+                   "sha256":  "b4f16371ec541980d25813368191e30f1dfbe855292ddb9e00dee9c9ba0b48e3",
+                   "path":  "poses.prompt.txt"
+               },
+    "result":  "Loại: cast cao đứt thành hai cụm, tổng 7 cụm thay vì 6.",
+    "license":  "Đầu ra OpenAI theo điều khoản dịch vụ; không gán CC0."
+}
