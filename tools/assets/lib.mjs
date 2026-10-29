@@ -434,6 +434,8 @@ export function sheetSpec(key, frame, iso = false, stat = false) {
     if ((m = key.match(/^hs_((?:body|outfit|hair)_([mf]_\d+))$/))) return spec(`honsu/${m[1]}.png`, isoLayout("honsu"), { set: m[2] });
     // Hoạt ảnh phụ thể vẽ thật (#1022 / #1024): `vhanim_<võ hồn>_{b|f}`, khung 96 / 128 (manifest ghi), số cột theo `anim`, 10 hàng (giới × 5 hướng); bảng màu riêng từng võ hồn.
     if ((m = key.match(/^vhanim_([a-z_]+_[bf])$/)) && frame && frame[0] === frame[1] && (frame[0] === 96 || frame[0] === 128)) return { file: `vohonanim/${m[1]}.png`, frame, kind: "vhanim", iso: true };
+    // Vũ khí cầm tay (#1312): `vkanim_<võ hồn>_{b|f}`, cùng bố cục sheet như vhanim nhưng ảnh ở `vukhianim/` (client đọc đúng đường này); manifest ghi `anim.kind: "vukhi"` (validate kiểm).
+    if ((m = key.match(/^vkanim_([a-z_]+_[bf])$/)) && frame && frame[0] === frame[1] && (frame[0] === 96 || frame[0] === 128)) return { file: `vukhianim/${m[1]}.png`, frame, kind: "vhanim", vukhi: true, iso: true };
     if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return spec(`vohon/${m[1]}.png`, isoLayout("vohon"));
     if ((m = key.match(/^pt_([a-z_]+)$/))) return spec(`phaptuong/${m[1]}.png`, isoLayout("phaptuong"));
     if ((m = key.match(/^b(\d)$/)) && ISO_BEAST_TIER[+m[1]]) return spec(`beast/${key}.png`, isoLayout("beast", frame?.[0] ?? ISO_BEAST_TIER[+m[1]]));

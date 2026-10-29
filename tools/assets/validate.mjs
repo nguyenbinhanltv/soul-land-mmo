@@ -286,6 +286,21 @@ function checkDirsOk(key, e, spec) {
   if (lost.length) err(key, `hướng đạt (dirsOk) mà thiếu ${lost.length} khung: ${lost.slice(0, 8).join(" ")}`);
 }
 
+/** Sheet vũ khí cầm tay `vkanim_*` (#1312): `anim.kind` phải là "vukhi" (client chỉ nhận vũ khí khi có khoá này; phụ thể `vhanim_*` không được mang khoá); `anim.grip` nếu có: khoá `<hướng>/<clip>/<khung>` trong số khung của clip, giá trị 2 hoặc 4 số hữu hạn. */
+function checkVukhi(key, e, spec) {
+  if (spec.kind !== "vhanim") return;
+  const a = e.anim ?? {}, want = !!spec.vukhi;
+  if (want && a.kind !== "vukhi") return err(key, `sheet vũ khí cần "anim.kind": "vukhi" (nhập bằng phuthe-import.mjs --kind vukhi)`);
+  if (!want && (a.kind !== undefined || a.grip !== undefined)) return err(key, `"anim.kind" / "anim.grip" chỉ cho sheet vũ khí vkanim_*`);
+  if (!want || a.grip === undefined) return;
+  if (!a.grip || typeof a.grip !== "object" || Array.isArray(a.grip)) return err(key, `"anim.grip" phải là bảng { "<hướng>/<clip>/<khung>": [x, y, (x2, y2)] }`);
+  for (const [k, v] of Object.entries(a.grip)) {
+    const m = k.match(/^(s|se|e|ne|n)\/(idle|walk|attack|cast|hurt)\/(\d+)$/), n = m && (a.clips ?? {})[m[2]]?.n;
+    if (!m || !(n > +m[3])) err(key, `"anim.grip" khoá "${k}" sai (cần <s|se|e|ne|n>/<clip>/<khung nhỏ hơn số khung của clip>)`);
+    else if (!Array.isArray(v) || (v.length !== 2 && v.length !== 4) || v.some((x) => !Number.isFinite(x))) err(key, `"anim.grip" "${k}" phải là 2 hoặc 4 số hữu hạn`);
+  }
+}
+
 // ---------- Kiểm toàn bộ manifest ----------
 const seen = new Set();
 for (const e of manifest.sprites) {
@@ -295,6 +310,7 @@ for (const e of manifest.sprites) {
   const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "", typeof e.nine === "number" ? e.nine : 0, !!e.static, !!e.blank, e.anim?.cols ?? 0);
   if (spec) { seen.add(spec.file); if (spec.alt) seen.add(spec.alt); seen.add(spec.file.replace(/\.png$/, "_n.png")); }
   if (spec && typeof e !== "string" && e.anim?.dirsOk !== undefined) checkDirsOk(key, e, spec);
+  if (spec && typeof e !== "string") checkVukhi(key, e, spec);
 }
 // Bộ hồn sư giới × kiểu tóc phải đủ 3 lớp tách từ cùng một hình: thiếu lớp nào thì client vẽ lớp đó bằng code, lệch nét.
 const sets = new Map();

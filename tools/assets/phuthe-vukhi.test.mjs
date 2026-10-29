@@ -249,3 +249,62 @@ test("bảng 25 dòng thật (nếu file đã có): đúng 25 võ hồn trùng b
   for (const r of t) { assert.ok(L.parseStyleBrief(r.id), r.id); assert.ok(r.shape && r.hands && r.attach && r.motion, r.id); assert.equal(L.phutheInfo(r.id, "vukhi").gripKey != null, true); }
   assert.equal(t.find((r) => r.id === "hao_thien_chuy").frame, 128);
 });
+
+// ---------- nhập vào game (phuthe-import.mjs --kind vukhi) ----------
+import { run as importRun, clientEntry, upsertCreditsRow } from "./phuthe-import.mjs";
+import { sheetSpec } from "./lib.mjs";
+
+/** Ghi kết quả cutter (tờ giả) ra thư mục như `phuthe-sheet-cut.mjs --out`, và dựng thư mục sprites / CREDITS tạm có sẵn mục `vh_<id>_f`. */
+function stage(id) {
+  const { r } = cutOf(id), dir = tmp("cut"), sprites = tmp("spr"), credits = path.join(tmp("cr"), "CREDITS.md");
+  for (const [half, im] of Object.entries(r.halves)) if (im) writeFileSync(path.join(dir, `vkanim_${id}_${half}.png`), encodePng(im));
+  writeFileSync(path.join(dir, "manifest-entry.json"), JSON.stringify(r.entries, null, 2) + "\n");
+  writeFileSync(path.join(sprites, "manifest.json"), `{\n  "sprites": [\n    {\n      "key": "vh_${id}_f",\n      "iso": true\n    },\n    {\n      "key": "zz",\n      "iso": true\n    }\n  ]\n}\n`);
+  writeFileSync(credits, "# Credits\n\n## Asset tạo bằng AI (ChatGPT)\n\nmô tả\n\n| File | Key | Công cụ | Mô tả | Ngày | Ghi chú |\n|---|---|---|---|---|---|\n| `a.png` | `x` | t | m | 2026-01-01 | g |\n\n## Asset bên ngoài\n");
+  return { r, dir, sprites, credits, nguon: path.join(tmp("ng"), "NGUON.md") };
+}
+
+test("sheetSpec: vkanim_* → vukhianim/<id>_<nửa>.png, khung 96 / 128; khoá hỏng / khung lạ thì null; vhanim giữ vohonanim", () => {
+  assert.deepEqual(sheetSpec("vkanim_hao_thien_chuy_b", [128, 128], true), { file: "vukhianim/hao_thien_chuy_b.png", frame: [128, 128], kind: "vhanim", vukhi: true, iso: true });
+  assert.equal(sheetSpec("vkanim_x_b", [64, 64], true), null); assert.equal(sheetSpec("vkanim_x_b", undefined, true), null); assert.equal(sheetSpec("vkanim_x_c", [96, 96], true), null);
+  assert.equal(sheetSpec("vhanim_x_b", [96, 96], true).file, "vohonanim/x_b.png");
+});
+
+test("importer vũ khí: chép ảnh vào vukhianim, mục manifest giữ kind / grip / gripSex đặt sau vh_<id>_f, credit một dòng mỗi nửa, chạy lại không đổi", () => {
+  const id = "lam_ngan_thao", s = stage(id), o = { id, kind: "vukhi", dir: s.dir, sprites: s.sprites, credits: s.credits, nguon: s.nguon, date: "2026-10-30" };
+  importRun(o);
+  const mf = JSON.parse(readFileSync(path.join(s.sprites, "manifest.json"), "utf8")).sprites, keys = mf.map((e) => e.key), halves = s.r.entries.map((e) => e.key);
+  assert.deepEqual(keys, [`vh_${id}_f`, `vkanim_${id}_b`, `vkanim_${id}_f`, "zz"], "mục vũ khí liền sau vh_<id>_f, trước mục khác (nửa không có điểm ảnh ghi blank)");
+  for (const k of [`vkanim_${id}_b`, `vkanim_${id}_f`]) if (!halves.includes(k)) { const m = mf.find((x) => x.key === k); assert.equal(m.blank, true); assert.equal(m.anim.kind, "vukhi"); assert.ok(!existsSync(path.join(s.sprites, "vukhianim", `${id}_${k.slice(-1)}.png`))); }
+  for (const e of s.r.entries) {
+    const m = mf.find((x) => x.key === e.key), half = e.key.slice(-1);
+    assert.equal(m.anim.kind, "vukhi"); assert.deepEqual(m.anim.grip, e.anim.grip); assert.equal(m.anim.gripSex, "m"); assert.deepEqual(m.anim.clips, e.anim.anims); assert.equal(m.anim.cols, e.anim.cols);
+    assert.ok(!("anims" in m.anim) && !("origin" in m.anim) && !("group" in m.anim), "bỏ trường chỉ của công cụ");
+    assert.ok(existsSync(path.join(s.sprites, "vukhianim", `${id}_${half}.png`)) && !existsSync(path.join(s.sprites, "vohonanim")), "ảnh ở vukhianim, không đụng vohonanim");
+    assert.equal(readPng(path.join(s.sprites, "vukhianim", `${id}_${half}.png`)).w, e.frame[0] * e.anim.cols);
+  }
+  const cr = readFileSync(s.credits, "utf8");
+  for (const k of halves) assert.equal(cr.split(`\`${k}\``).length - 1, 1, `credit ${k}`);
+  assert.ok(cr.indexOf(`vkanim_${id}_`) < cr.indexOf("## Asset bên ngoài") && cr.includes("2026-10-30") && cr.includes("`x` | t | m"), "chèn cuối bảng ChatGPT, giữ dòng cũ");
+  const snap = [readFileSync(path.join(s.sprites, "manifest.json"), "utf8"), cr, readFileSync(path.join(s.sprites, "vukhianim", `${id}_${halves[0].slice(-1)}.png`))];
+  importRun({ ...o, date: "2027-01-01" });
+  assert.equal(readFileSync(path.join(s.sprites, "manifest.json"), "utf8"), snap[0], "manifest không đổi khi chạy lại"); assert.equal(readFileSync(s.credits, "utf8"), snap[1], "credit giữ ngày cũ");
+  assert.ok(Buffer.compare(readFileSync(path.join(s.sprites, "vukhianim", `${id}_${halves[0].slice(-1)}.png`)), snap[2]) === 0);
+});
+
+test("importer vũ khí: dry-run không ghi; --anchor bị từ chối; mục đặt sau vhanim_<id>_f nếu đã có phụ thể hoạt ảnh; CREDITS thiếu mục ChatGPT thì báo lỗi", () => {
+  const id = "lam_ngan_thao", s = stage(id), before = readFileSync(path.join(s.sprites, "manifest.json"), "utf8");
+  importRun({ id, kind: "vukhi", dir: s.dir, sprites: s.sprites, credits: s.credits, nguon: s.nguon, dryRun: true });
+  assert.equal(readFileSync(path.join(s.sprites, "manifest.json"), "utf8"), before); assert.ok(!existsSync(path.join(s.sprites, "vukhianim")));
+  assert.throws(() => importRun({ id, kind: "vukhi", dir: s.dir, sprites: s.sprites, anchor: "x.json" }), /--anchor chỉ cho phụ thể/);
+  writeFileSync(path.join(s.sprites, "manifest.json"), before.replace(`"zz"`, `"vhanim_${id}_f"`));
+  importRun({ id, kind: "vukhi", dir: s.dir, sprites: s.sprites });
+  const keys = JSON.parse(readFileSync(path.join(s.sprites, "manifest.json"), "utf8")).sprites.map((e) => e.key);
+  assert.equal(keys.indexOf(`vkanim_${id}_b`) - keys.indexOf(`vhanim_${id}_f`) >= 1, true); assert.equal(keys[keys.indexOf(`vhanim_${id}_f`) - 0], `vhanim_${id}_f`);
+  assert.throws(() => upsertCreditsRow("# x\n", { key: "k", file: "f", id, date: "d" }), /chưa có mục/);
+});
+
+test("importer phụ thể cũ không đổi: clientEntry không mang kind / grip", () => {
+  const e = clientEntry({ key: "vhanim_x_b", frame: [96, 96], iso: true, anim: { cols: 22, anims: { idle: { col: 0, n: 4 } } } }, false);
+  assert.deepEqual(Object.keys(e.anim), ["cols", "clips"]);
+});
