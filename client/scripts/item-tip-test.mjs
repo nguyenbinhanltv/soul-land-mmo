@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { itemInfoLines, lockLines, priceLines, shiftPart, wornSideSpec, SHIFT_HINT, ITEM_USE, ITEM_SOURCE } from "../src/itemTip.ts";
-import { filterByQuery } from "../src/uiParts.ts";
+import { filterByQuery, searchField } from "../src/uiParts.ts";
 import { ITEM_KINDS, ITEMS, SHOP, formatHonTe, sellPrice } from "../../shared/data.ts";
 
 const bag = (o) => ({ id: "i1", code: "hoi_huyet_dan", qty: 1, years: null, stars: null, enhance: 0, stats: "", lock: false, vohon: null, ...o });
@@ -47,3 +47,14 @@ for (const m of css.matchAll(/(^|\})\s*([^{}@]+)\{/g)) for (const sel of m[2].sp
 assert.ok(!/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(css), "màu chỉ qua token");
 assert.ok(!/font(-size)?\s*:[^;}]*\b\d+px/.test(css), "cỡ chữ chỉ qua --fs-*");
 console.log("item-tip: ok");
+
+// searchField: đang dựng chữ (composition) không báo onInput, xong (compositionend) mới báo một lần
+{
+  const mk = () => { const ls = {}; return { style: {}, classList: { add() {} }, addEventListener: (t, f) => { ls[t] = f; }, setAttribute() {}, append() {}, ls }; };
+  const input = mk(); globalThis.document = { createElement: (t) => (t === "input" ? input : mk()) };
+  const got = []; searchField({ label: "x", onInput: (q) => got.push(q) });
+  input.value = "tr"; input.ls.input({ isComposing: true }); assert.deepEqual(got, [], "đang composition thì bỏ qua");
+  input.value = "trà"; input.ls.compositionend(); assert.deepEqual(got, ["trà"]);
+  input.ls.input({ isComposing: false }); assert.deepEqual(got, ["trà", "trà"], "gõ thường vẫn báo");
+  delete globalThis.document;
+}

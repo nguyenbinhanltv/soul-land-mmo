@@ -409,7 +409,9 @@ export function searchField(o: SearchOpts) {
   const root = document.createElement("label"); root.className = "p2-search";
   const input = document.createElement("input"); input.type = "search"; input.value = o.value ?? ""; input.placeholder = o.placeholder ?? "Tìm theo tên (không cần dấu)";
   input.setAttribute("aria-label", o.label); input.autocomplete = "off"; input.maxLength = o.maxLength ?? 32;
-  input.addEventListener("input", () => o.onInput(input.value));
+  // bộ gõ composition (macOS / Gboard / iOS): đang dựng chữ thì không báo (bên nhận có thể vẽ lại ô và cắt chữ), xong mới báo một lần
+  input.addEventListener("input", (e) => { if (!(e as InputEvent).isComposing) o.onInput(input.value); });
+  input.addEventListener("compositionend", () => o.onInput(input.value));
   input.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !input.value) return;   // hết chữ: để Esc đóng bảng như thường
     e.stopPropagation();
