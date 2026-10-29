@@ -1,0 +1,73 @@
+{
+  "tool": "Playwright Chrome, --mute-audio; âm lượng game 0, muted=true",
+  "date": "2026-10-29T20:25:29.927Z",
+  "imageBytesUnmodified": true,
+  "viewport": [
+    1600,
+    900
+  ],
+  "items": [
+    {
+      "file": "m-idle.png",
+      "url": "/choi?thu=vukhi&vh=hoa_long&gioi=m&trang=idle&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "m-walk.png",
+      "url": "/choi?thu=vukhi&vh=hoa_long&gioi=m&trang=walk&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "m-attack.png",
+      "url": "/choi?thu=vukhi&vh=hoa_long&gioi=m&trang=attack&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "m-cast.png",
+      "url": "/choi?thu=vukhi&vh=hoa_long&gioi=m&trang=cast&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-idle.png",
+      "url": "/choi?thu=vukhi&vh=hoa_long&gioi=f&trang=idle&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-walk.png",
+      "url": "/choi?thu=vukhi&vh=hoa_long&gioi=f&trang=walk&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-attack.png",
+      "url": "/choi?thu=vukhi&vh=hoa_long&gioi=f&trang=attack&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-cast.png",
+      "url": "/choi?thu=vukhi&vh=hoa_long&gioi=f&trang=cast&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "game-scene-m-idle.png",
+      "url": "/choi?lag=1",
+      "scene": "game",
+      "sex": "m"
+    },
+    {
+      "file": "game-scene-f-idle.png",
+      "url": "/choi?lag=1",
+      "scene": "game",
+      "sex": "f"
+    }
+  ],
+  "assets": [
+    {
+      "file": "shared/assets/sprites/vukhianim/hoa_long_b.png",
+      "sha256": "83fc14e87c161c40dacc05e1d146d6e2d5775a0bb42f67d3a0273f5947573503"
+    },
+    {
+      "file": "shared/assets/sprites/vukhianim/hoa_long_f.png",
+      "sha256": "9748f0ac2be1a57ebf6bb53a992ff31550416fa02c3fc5097eeb6795dc2d6788"
+    }
+  ]
+}
