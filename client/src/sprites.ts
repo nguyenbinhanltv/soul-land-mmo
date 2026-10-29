@@ -448,6 +448,8 @@ function sheetSpec(key: string, frame?: readonly [number, number], iso = false):
   if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return { url: `vohon/${m[1]}.png`, frame: iso ? [ISO_VH_FRAME, ISO_VH_FRAME] : [VH_FRAME, VH_FRAME] };
   // Phụ thể hoạt ảnh vẽ thật (Phụ thể v2 P2, #1023): nửa sau / trước; khung vuông 96 hoặc 128 do manifest ghi (`frame`), mặc định 96.
   if ((m = key.match(/^vhanim_([a-z_]+_[bf])$/))) return { url: `vohonanim/${m[1]}.png`, frame: frame ?? [ISO_VH_FRAME, ISO_VH_FRAME] };
+  // Vũ khí cầm tay (phụ thể v2 kiểu vũ khí, #1312): cùng bố cục như vhanim, thư mục riêng `vukhianim/`.
+  if ((m = key.match(/^vkanim_([a-z_]+_[bf])$/))) return { url: `vukhianim/${m[1]}.png`, frame: frame ?? [ISO_VH_FRAME, ISO_VH_FRAME] };
   if ((m = key.match(/^b(\d)$/)) && BEAST_FRAMES[+m[1]]) return { url: `beast/${key}.png`, frame: frame ?? BEAST_FRAMES[+m[1]] };
   // Khung của từng loài phụ thuộc bậc của loài, nên manifest phải ghi `frame`.
   if ((m = key.match(/^beast_([a-z_]+)$/)) && frame) return { url: `beast/${m[1]}.png`, frame };
@@ -488,19 +490,19 @@ export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) =
       // NPC, vật phẩm do giao diện HTML đọc manifest (uiArt.ts); hiệu ứng `fx_*` (#201) là dải một hàng, chạy bằng playFx.
       const key = typeof e === "string" ? e : e.key, iso = typeof e !== "string" && !!e.iso;
       if (/^lpc_/.test(key)) { lpcNames.add(key.slice(4)); continue; }
-      if (iso && !/^(vh|vhanim|beast|fx|pt)_/.test(key)) continue;
+      if (iso && !/^(vh|vhanim|vkanim|beast|fx|pt)_/.test(key)) continue;
       if (typeof e !== "string" && e.anim && /^beast_[a-z_]+_anim$/.test(key)) { const L = parseLayout(e.anim); ANIM_LAYOUTS.set(key, L); markPartialAnim(key, !!L.dirsOk); }
-      if (typeof e !== "string" && /^vhanim_[a-z_]+_[bf]$/.test(key)) { const L = parsePhuLayout(e.anim, e.frame); if (L) PHU_LAYOUTS.set(key, L); else console.warn(`[sprites] anim của ${key} không hợp lệ: phụ thể chạy nhánh cũ`); }
+      if (typeof e !== "string" && /^(vhanim|vkanim)_[a-z_]+_[bf]$/.test(key)) { const L = parsePhuLayout(e.anim, e.frame); if (L) PHU_LAYOUTS.set(key, L); else console.warn(`[sprites] anim của ${key} không hợp lệ: phụ thể chạy nhánh cũ`); }
       if (typeof e !== "string" && e.lpc && key.startsWith("beast_")) LPC_BEASTS.add(key);
       // Nửa phụ thể trống hoàn toàn (#974): không có file, không tải (cả normal map); lớp đó ẩn (vohonBlank).
-      if (typeof e !== "string" && e.blank && /^vh(anim)?_/.test(key)) { registerBlankSheet(key); continue; }
+      if (typeof e !== "string" && e.blank && /^(vh|vhanim|vkanim)_/.test(key)) { registerBlankSheet(key); continue; }
       const spec = sheetSpec(key, typeof e === "string" ? undefined : e.frame, iso);
       if (!spec) { console.warn(`[sprites] key không hợp lệ trong manifest: ${key}`); continue; }
       // Phụ thể isometric (2304×1152 × 2 lớp × 25 võ hồn) tải theo nhu cầu (vohonLazy.ts), không tải hết mỗi lần vào bản đồ.
       // Pháp tướng (2560×800 × 35) cũng tải theo nhu cầu (wantPhapTuong).
       // Hồn thú (134 file) cũng tải theo loài đang có trong tầm (wantBeast).
       // Hiệu ứng chiêu `fx_sk_*` theo võ hồn (wantSkillFx, bước 4).
-      if (iso && spec.frame && (/^(vh|vhanim|pt|beast)_/.test(key) || isLazySkillFx(key))) { registerVohonSheet(key, BASE + spec.url, spec.frame); continue; }
+      if (iso && spec.frame && (/^(vh|vhanim|vkanim|pt|beast)_/.test(key) || isLazySkillFx(key))) { registerVohonSheet(key, BASE + spec.url, spec.frame); continue; }
       if (spec.frame) scene.load.spritesheet(key, BASE + spec.url, { frameWidth: spec.frame[0], frameHeight: spec.frame[1] });
       else scene.load.image(key, BASE + spec.url);
       // Normal map của bộ hồn sư / phụ thể isometric (`<ảnh>_n.png`, 10.7): tải riêng, GameScene gắn vào texture (attachNormal).
@@ -657,8 +659,17 @@ export function fitPhuLayer<T extends Phaser.GameObjects.Sprite>(s: T, L: PhuLay
 }
 
 /** Bố cục + texture phụ thể hoạt ảnh của võ hồn `id` nếu cả hai nửa (không trống) đã có trong texture và đúng kích thước; không thì null (nhánh cũ). */
-export function phuAnimSetOf(scene: Phaser.Scene, id: string, blank: readonly [boolean, boolean]): PhuAnimSet | null {
-  const kb = `vhanim_${id}_b`, kf = `vhanim_${id}_f`, L = PHU_LAYOUTS.get(kb) ?? PHU_LAYOUTS.get(kf);
+export const phuAnimSetOf = (scene: Phaser.Scene, id: string, blank: readonly [boolean, boolean]): PhuAnimSet | null => animSetOf(scene, id, blank, "vhanim");
+/**
+ * Vũ khí cầm tay (sheet `vkanim_{id}`, #1312) của võ hồn `id`: cùng bố cục và cùng cách đặt khung như phụ thể hoạt ảnh, nhưng chỉ nhận sheet manifest ghi `anim.kind: "vukhi"`
+ * và đủ 5 hướng (thiếu hướng thì không trộn vũ khí với phụ thể tĩnh: cả võ hồn chạy nhánh hiện nay). Thiếu sheet / sai kích thước thì null (nhánh hiện nay).
+ */
+export function vukhiSetOf(scene: Phaser.Scene, id: string, blank: readonly [boolean, boolean]): PhuAnimSet | null {
+  const set = animSetOf(scene, id, blank, "vkanim");
+  return set && set.layout.weapon && !set.layout.dirsOk ? set : null;
+}
+function animSetOf(scene: Phaser.Scene, id: string, blank: readonly [boolean, boolean], prefix: "vhanim" | "vkanim"): PhuAnimSet | null {
+  const kb = `${prefix}_${id}_b`, kf = `${prefix}_${id}_f`, L = PHU_LAYOUTS.get(kb) ?? PHU_LAYOUTS.get(kf);
   if (!L || (!blank[0] && !PHU_LAYOUTS.has(kb)) || (!blank[1] && !PHU_LAYOUTS.has(kf))) return null;
   const keys: [string, string] = [blank[0] ? kf : kb, blank[1] ? kb : kf];
   for (const k of keys) {
