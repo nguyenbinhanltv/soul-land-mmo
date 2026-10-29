@@ -15,7 +15,7 @@ import { playerCard, rankGroups, podiumOf, lineupText, meLine, pageLabel, tongNa
 const ids = HUB_ITEMS.map((i) => i.id);
 assert.equal(new Set(ids).size, ids.length, "id mục hub không trùng");
 const sizes = (l) => ({ big: l.big.length, mid: l.mid.length, grid: l.grid.length, rail: l.rail.length });
-assert.deepEqual(sizes(hubLayout([])), { big: 2, mid: 2, grid: 12, rail: 4 }, "không có hành động: thẻ lớn / vừa / lưới đủ, rail đủ 4 mục (mờ)");
+assert.deepEqual(sizes(hubLayout([])), { big: 2, mid: 2, grid: 13, rail: 4 }, "không có hành động: thẻ lớn / vừa / lưới đủ, rail đủ 4 mục (mờ)");
 const L = hubLayout(["char", "bag", "rank", "settings"], ["rank"]);
 const cell = (l, id) => [...l.big, ...l.mid, ...l.grid, ...l.rail].find((c) => c.item.id === id);
 assert.equal(cell(L, "char").enabled, true);
@@ -142,4 +142,50 @@ assert.equal(questActionable(["active", "done"]), 0); assert.equal(questActionab
   assert.match(html, /&lt;b&gt;x&lt;\/b&gt; ×3/, "chữ được escape, kèm ×n"); assert.match(html, /Nhận/, "nhãn loại bằng chữ");
   assert.match(noticeTime(new Date(2026, 0, 1, 7, 5).getTime()), /^07:05$/);
   clearNotices(); assert.equal(notices().length, 0);
+}
+
+// ---- Bí Cảnh (P5): phần thuần của màn danh sách, HUD trong phòng và bảng kết quả ----
+{
+  const bc = await import("../src/bicanhScreen.ts");
+  const { BICANH, bicanhRunTomes } = await import("../../shared/data.ts");
+  const run = (o = {}) => ({ id: "luyen_hon", name: "Luyện Hồn Cảnh", left: 2, max: 3, bought: 0, price: 3000, ...o });
+  assert.ok(ids.includes("bicanh"), "hub có mục Bí Cảnh");
+  assert.equal(cell(hubLayout(["bicanh"], ["bicanh"]), "bicanh").card.state, "new", "còn lượt: chấm đỏ trên thẻ hub");
+  assert.equal(cell(hubLayout([]), "bicanh").card.state, "lock", "chưa nối: khoá có lý do");
+  // danh sách
+  assert.equal(bc.hasRun({ runs: [run({ left: 0 }), run({ id: "x" })] }), true); assert.equal(bc.hasRun({ runs: [run({ left: 0 })] }), false); assert.equal(bc.hasRun(null), false);
+  assert.equal(bc.runStatus(run()), "Còn 2 lượt"); assert.equal(bc.runStatus(run({ left: 0 })), "Đã xong hôm nay");
+  assert.equal(bc.primaryOf(null, false).disabled, true); assert.match(bc.primaryOf(null, false).reason, /Đang tải/);
+  assert.equal(bc.primaryOf(run(), false).disabled, false);
+  assert.match(bc.primaryOf(run(), true).reason, /Đang gửi/, "đang gửi: nút tắt, không bấm đôi");
+  const none = bc.primaryOf(run({ left: 0 }), false); assert.equal(none.disabled, true); assert.match(none.reason, /Hết lượt/); assert.match(none.reason, /05:00/, "lý do ghi giờ làm mới của Bí Cảnh");
+  assert.equal(bc.buyOf(run(), false).disabled, false); assert.match(bc.buyOf(run(), false).label, /Hồn Tệ|3/);
+  assert.equal(bc.buyOf(run({ price: null, bought: 3 }), false).disabled, true); assert.match(bc.buyOf(run({ price: null, bought: 3 }), false).reason, /đủ/);
+  assert.equal(bc.buyOf(run(), true).disabled, true);
+  assert.match(bc.buyConfirm(run({ bought: 1 }), 3).body, /1\/3/, "hộp xác nhận ghi số lượt đã mua / trần");
+  const sc = bc.sceneOf("luyen_hon"); assert.ok(sc); assert.equal(bc.sceneOf("la"), undefined);
+  assert.match(bc.rewardLine(sc), new RegExp(`×${bicanhRunTomes(sc)}`)); assert.match(bc.rewardLine(sc), new RegExp(String(BICANH.tomeDailyCap)));
+  assert.equal(bc.waveLines(sc).length, sc.waves.length); assert.match(bc.waveLines(sc).at(-1), /tinh anh/);
+  // HUD trong phòng
+  let hud = bc.newRoomHud();
+  hud = bc.applyRoomMsg(hud, { k: "ready", name: "Luyện Hồn Cảnh", waves: 3, secs: 4 }, 1000);
+  assert.equal(hud.phase, "ready"); assert.equal(hud.endAt, 5000); assert.match(bc.hudTitle(hud), /chuẩn bị/);
+  hud = bc.applyRoomMsg(hud, { k: "fight", secs: 300, waves: 3 }, 6000); assert.equal(hud.endAt, 306000); assert.equal(hud.phase, "fight");
+  hud = bc.applyRoomMsg(hud, { k: "wave", wave: 1, of: 3, n: 4, elite: false }, 6000);
+  assert.equal(bc.hudTitle(hud), "Sóng 1/3"); assert.match(bc.hudSub(hud), /Còn 4 hồn thú/); assert.match(bc.hudSub(hud), /Quyển tạm: 0/);
+  hud = bc.applyRoomMsg(hud, { k: "clear", wave: 1, of: 3, tomes: 1 }, 7000); assert.match(bc.hudSub(hud), /Quyển tạm: 1/); assert.match(bc.hudSub(hud), /nghỉ/);
+  hud = bc.applyRoomMsg(hud, { k: "wave", wave: 3, of: 3, n: 5, elite: true }, 8000); assert.match(bc.hudSub(hud), /Có tinh anh/);
+  assert.match(bc.hudSub({ ...hud, eliteHp: 40 }), /Tinh anh 40%/, "máu tinh anh đọc từ state hồn thú");
+  assert.equal(bc.hudSub(bc.newRoomHud()), "");
+  // kết quả
+  const txt = (v) => v.lines.map((l) => l.text).join("\n");
+  const win = bc.endView({ k: "end", win: true, reason: "win", why: "hạ hết các sóng", cleared: 3, of: 3, tomes: 2 });
+  assert.equal(win.title, "Thắng!"); assert.match(txt(win), /Đã hạ 3\/3 sóng/); assert.match(txt(win), /×2 vào túi/);
+  const lose = bc.endView({ k: "end", win: false, reason: "dead", why: "đội võ hồn gục hết", cleared: 1, of: 3, tomes: 1 });
+  assert.equal(lose.title, "Thua"); assert.match(txt(lose), /giữ|không hoàn/); assert.match(txt(lose), /gục hết/);
+  assert.match(txt(bc.endView({ k: "end", win: false, reason: "dead", why: "x", cleared: 0, of: 3, tomes: 0 })), /Chưa hạ sóng có quyển/);
+  assert.match(txt(bc.endView({ k: "end", win: true, reason: "win", why: "x", cleared: 3, of: 3, tomes: 0, capped: true })), /nhận đủ/, "chạm trần quyển ngày");
+  assert.match(txt(bc.endView({ k: "end", win: true, reason: "win", why: "x", cleared: 3, of: 3, tomes: 0, full: true })), /Túi đầy/);
+  const bad = bc.endView({ k: "end", win: true, reason: "win", why: "x", cleared: 3, of: 3, tomes: 0, err: "Không lưu được kết quả.", refunded: true });
+  assert.equal(bad.title, "Chưa lưu được kết quả"); assert.match(txt(bad), /hoàn lại/); assert.ok(!/Nhận /.test(txt(bad)), "lỗi hệ thống: không báo đã nhận quyển");
 }
