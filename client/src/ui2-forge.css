@@ -1,6 +1,4 @@
-/* UI v2 đợt 3c: thợ rèn (cường hóa hồn cốt / hồn hạch / trang bị, khắc may mắn, hợp thành, phân giải, đổi bộ) theo kit GIẤY, Part of #885 / #877. Luật thường dưới `#npc.n2` (đợt 5c-b: đã bỏ tiền tố body.ui2; luật cũ ở style.css gỡ ở đợt 5b). Dùng lại khung và token của ui2-npc.css / ui2-shop.css; không sinh ảnh. Ba trang đang
-   dùng khung C2 (data-c16-page: forge, forgecore, forgesynth) GIỮ khung đó theo bảng vai trò, chỉ nội dung dùng luật dưới (màu lấy biến --text / --line của
-   tấm mực nên đọc được cả trên giấy lẫn trên mực). Chữ qua --fs-*, vùng bấm >= 32 px, trạng thái chọn / nguy hiểm có chữ hoặc vạch (không chỉ màu). */
+/* UI v2 đợt 3c: thợ rèn (cường hóa hồn cốt / hồn hạch / trang bị, khắc may mắn, hợp thành, phân giải, đổi bộ) theo kit GIẤY, Part of #885 / #877. Luật thường dưới `#npc.n2` (đợt 5c-b: đã bỏ tiền tố body.ui2; luật cũ ở style.css gỡ ở đợt 5b). Dùng lại khung và token của ui2-npc.css / ui2-shop.css; không sinh ảnh. Ba trang forge / forgecore / forgesynth dùng cùng khung Giấy với hộp thoại NPC (đợt 5b-2: đã bỏ khung C2 + tấm mực riêng, màu lấy token --text / --line của Giấy). Chữ qua --fs-*, vùng bấm >= 32 px, trạng thái chọn / nguy hiểm có chữ hoặc vạch (không chỉ màu). */
 
 /* (1) Hộp thợ rèn: cột dọc, tiêu đề trang có gạch chân son. */
 #npc.n2 .forge,#npc.n2 .epick{display:flex;flex-direction:column;gap:var(--sp-3);font:var(--fs-m)/1.3 var(--f12)}

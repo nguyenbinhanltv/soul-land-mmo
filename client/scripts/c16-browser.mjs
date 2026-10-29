@@ -72,7 +72,7 @@ await withCleanup(async(signal)=>{
    const ink=document.createElement('canvas').getContext('2d');
    const lum=c=>c.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((v,x,i)=>v+x*[.2126,.7152,.0722][i],0);
    const rows=[], clippedText=[];
-   for(const root of document.querySelectorAll('#char:not([hidden]),#npc[data-c16-page]:not([hidden]),.toast[data-k="level"],.toast[data-frame="rare-ring"]')) {
+   for(const root of document.querySelectorAll('#char:not([hidden]),#npc:not([hidden]),.toast[data-k="level"],.toast[data-frame="rare-ring"]')) {
     const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
     while(walker.nextNode()){
      const text=walker.currentNode;if(!text.textContent.trim())continue;
@@ -109,7 +109,7 @@ await withCleanup(async(signal)=>{
   await page.locator('#char [data-tab=bone]').evaluate(el=>el.click());await delay(250);assert.ok(await page.locator('#char').isVisible(),'Phải chụp đúng bảng Nhân vật');await shot(`${before?'before':'after'}-${vp.width}x${vp.height}-nhan-vat-hon-cot.png`);
   await page.locator('#char .cgroup').filter({hasText:/^Phụ$/}).evaluate(el=>el.scrollIntoView({block:'center',inline:'nearest'}));await delay(250);await shot(`${before?'before':'after'}-${vp.width}x${vp.height}-nhan-vat-chi-so-cuon.png`,['Phụ']);await page.locator('#char').evaluate(el=>el.scrollTop=0);
   await page.locator('#char [data-tab=core]').evaluate(el=>el.click());await delay(250);assert.ok(await page.locator('#char').isVisible(),'Phải chụp đúng bảng Nhân vật');await shot(`${before?'before':'after'}-${vp.width}x${vp.height}-nhan-vat-hon-hach.png`);
-  for(const [label,file]of [['Cường hóa hồn cốt','tho-ren-cuong-hoa'],['Nâng cấp hồn hạch','tho-ren-nang-cap'],['Hợp thành trang bị (3 → 1)','tho-ren-hop-thanh']]){await npc();await page.getByRole('button',{name:label,exact:true}).evaluate(el=>el.click());await delay(300);if(!before)assert.equal(await page.locator('#npc').getAttribute('data-c16-page'),{'tho-ren-cuong-hoa':'forge','tho-ren-nang-cap':'forgecore','tho-ren-hop-thanh':'forgesynth'}[file]);await shot(`${before?'before':'after'}-${vp.width}x${vp.height}-${file}.png`);}
+  for(const [label,file]of [['Cường hóa hồn cốt','tho-ren-cuong-hoa'],['Nâng cấp hồn hạch','tho-ren-nang-cap'],['Hợp thành trang bị (3 → 1)','tho-ren-hop-thanh']]){await npc();await page.getByRole('button',{name:label,exact:true}).evaluate(el=>el.click());await delay(300);if(!before)assert.equal(await page.locator('#npc').getAttribute('data-c16-page'),null);await shot(`${before?'before':'after'}-${vp.width}x${vp.height}-${file}.png`);}
   if(!before){await npc();assert.equal(await page.locator('#npc').getAttribute('data-c16-page'),null);await page.evaluate(async()=>(await import('/src/hud.ts')).closeNpc());assert.equal(await page.locator('#npc').getAttribute('data-c16-page'),null);}
   await page.evaluate(async()=>{(await import('/src/hud.ts')).closeNpc();const f=await import('/src/feedback.ts');f.toast('level','Cấp 30','Lam Điện Bá Vương Long','#ffe08a');f.lootToasts([],[{id:'c16-baseline-ring',code:'hon_hoan',qty:1,years:10000,stars:null,enhance:0,vohon:null,stats:null}]);});await delay(150);await shot(`${before?'before':'after'}-${vp.width}x${vp.height}-thong-bao.png`);
  }
