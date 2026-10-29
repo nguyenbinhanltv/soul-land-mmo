@@ -153,3 +153,4 @@ body.ui2 .p2-slot.p2-s-lock{filter:grayscale(1);opacity:.75}
 body.ui2 .p2-slot.p2-s-done .p2-slot-i{text-decoration:line-through}
 body.ui2 .p2-man-giay .p2-slot{--p2-fg2:var(--muted)}
 body.ui2.ui2-k-tab-thuong .p2-man-giay .p2-tab{--p2-fg:var(--plate-text)}   /* mảnh kit tab tối ở cả hai chất liệu: chữ giấy */
+

@@ -1,5 +1,6 @@
 // Giao diện HTML phủ lên canvas (chữ tiếng Việt hiển thị sắc nét hơn vẽ trong canvas).
-import { friendSend, friendsLast, toggleFriends } from "./hudMisc.ts";
+import { friendSend, friendsLast, toggleFriends, askThen } from "./hudMisc.ts";
+import { isUi2 } from "./uiKit.ts";
 import { itemColor, itemName } from "./hudBag.ts";
 import { VOHON, formatYears, MAPS } from "../../shared/data.ts";
 
@@ -194,6 +195,7 @@ export function updateParty() {
  */
 export function showPlayerMenu(t: { sid: string; name: string; level: number } | null) {
   const box = $("#pmenu"); box.innerHTML = "";
+  if (isUi2()) box.classList.add("f2-muc-nho"); // UI v2 đợt 2d: khung Mực nhỏ (ui2-social.css)
   if (!t || !partyLast) { box.hidden = true; return; }
   const { v, act } = partyLast, me = v.members.find((m) => m.me), mem = v.members.find((m) => !m.me && m.name === t.name);
   const close = () => showPlayerMenu(null);
@@ -201,14 +203,14 @@ export function showPlayerMenu(t: { sid: string; name: string; level: number } |
   const btns = el("div", "pbtns");
   if (!mem) btns.append(pbtn("Mời vào tổ đội", "ok", () => { act.send("invite", undefined, t.sid); close(); }, `Mời ${t.name} vào tổ đội`));
   else if (me?.leader) btns.append(pbtn("Nhường trưởng nhóm", "", () => { act.send("lead", t.name); close(); }),
-    pbtn("Mời ra khỏi đội", "warn", () => { act.send("kick", t.name); close(); }));
+    pbtn("Mời ra khỏi đội", "warn", () => { close(); askThen("Mời ra khỏi đội", `Mời ${t.name} ra khỏi tổ đội? Muốn vào lại phải được mời lần nữa.`, "Mời ra", () => act.send("kick", t.name)); }));
   else btns.append(el("small", "phint", "Đồng đội trong tổ đội của bạn."));
   btns.append(pbtn("Nhắn riêng", "", () => { close(); chatWhisperTo(t.name); }, `Nhắn riêng cho ${t.name} (/t)`));
   // Bạn bè và chặn (#195): theo bảng bạn bè gần nhất của chính mình.
   const fr = friendsLast?.list.some((f) => f.name === t.name), bl = friendsLast?.blocks.includes(t.name);
   if (friendSend && !fr && !bl) btns.append(pbtn("Kết bạn", "ok", () => { friendSend!("add", t.name); close(); }, `Thêm ${t.name} vào danh sách bạn bè`));
   if (friendSend) btns.append(bl ? pbtn("Bỏ chặn", "", () => { friendSend!("unblock", t.name); close(); }, `Bỏ chặn ${t.name}`)
-    : pbtn("Chặn", "warn", () => { friendSend!("block", t.name); close(); }, `Chặn ${t.name}: không nhận tin, lời mời, lời thêm bạn`));
+    : pbtn("Chặn", "warn", () => { close(); askThen("Chặn hồn sư", `Chặn ${t.name}? Không nhận tin, lời mời tổ đội, lời thêm bạn của người đó, tin của họ ở mọi kênh. Bỏ chặn được sau.`, "Chặn", () => friendSend!("block", t.name)); }, `Chặn ${t.name}: không nhận tin, lời mời, lời thêm bạn`));
   box.append(head, btns);
   box.hidden = false;
 }

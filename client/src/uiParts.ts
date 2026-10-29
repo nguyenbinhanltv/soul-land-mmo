@@ -223,6 +223,8 @@ export function slotNode(o: SlotOpts, clickable = true): PNode {
   });
 }
 
+
+// ---- hộp xác nhận (mục thiếu #19 của kiểm kê UI/UX: hành động không đảo ngược) ----
 // ---- khung màn chuẩn ----
 export type Material = "muc" | "giay";
 export interface NavItem { id: string; label: string; active?: boolean; /** chấm đỏ báo mới. */ dot?: boolean }
@@ -393,3 +395,4 @@ export function addCloseButton(frame: HTMLElement, close: () => void) {
   const b = document.createElement("button"); b.type = "button"; b.className = "scr-x"; b.textContent = "×"; b.setAttribute("aria-label", "Đóng (Esc)"); b.title = "Đóng · Esc";
   b.addEventListener("click", close); frame.querySelector(".p2-hd")?.append(b);
 }
+

@@ -120,3 +120,5 @@ for (const m of css.matchAll(/var\(--([a-z0-9-]+)/g)) {
 }
 assert.ok(existsSync(new URL("../src/ui2-parts.css", import.meta.url)));
 console.log("ui-parts: ok");
+
+
