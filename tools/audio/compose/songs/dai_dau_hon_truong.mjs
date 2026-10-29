@@ -26,7 +26,7 @@ export default {
   id: "dai_dau_hon_truong",
   title: "Đại Đấu Hồn Trường",
   kind: "map",
-  maps: ["dai_dau_hon_truong"],
+  maps: ["dai_dau_hon_truong", "luyen_hon_canh"],
   bpm: 105,
   beatsPerBar: 4,
   bars: 32,

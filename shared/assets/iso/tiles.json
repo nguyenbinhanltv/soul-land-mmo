@@ -1265,6 +1265,49 @@
     "42": "cau_da_vom_ngang"
    }
   },
+  "luyen_hon_canh": {
+   "ground": {
+    "1": "san_da_nut~#8896a0",
+    "5": "san_da_nut~#e0c890",
+    "7": "san_da_nut",
+    "13": "san_da_loi~#9cabb8",
+    "16": "san_da_loi~#bfced8"
+   },
+   "props": {
+    "12": "lo_lua_dong",
+    "17": "bia_da_co",
+    "38": "bia_da_co"
+   },
+   "build": {
+    "wallKind": "stone",
+    "wall": [
+     "#737f8c",
+     "#4e5966",
+     "#939eaa"
+    ],
+    "trim": "#95856a",
+    "base": "#4e5966",
+    "win": "#1c2230",
+    "roofKind": "tile",
+    "roof": [
+     "#596879",
+     "#3d4b5b",
+     "#798897"
+    ],
+    "wallH": 30,
+    "roofMax": 24,
+    "fence": {
+     "kind": "stone",
+     "wall": [
+      "#737f8c",
+      "#4e5966",
+      "#939eaa"
+     ],
+     "top": "#939eaa",
+     "h": 24
+    }
+   }
+  },
   "dai_dau_hon_truong": {
    "ground": {
     "1": "san_da_nut",
