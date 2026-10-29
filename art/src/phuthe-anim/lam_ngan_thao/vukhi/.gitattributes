@@ -1,0 +1,2 @@
+# Giữ nguyên byte prompt để hash nguồn không đổi theo hệ điều hành.
+*.prompt.txt -text
