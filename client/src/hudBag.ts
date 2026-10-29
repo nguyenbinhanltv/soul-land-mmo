@@ -6,6 +6,7 @@ import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { artImg, tintedUrl } from "./uiArt.ts";
 import { setPanel } from "./charPanel.ts";
+import { confirmDialog } from "./confirmDialog.ts";
 import { panelChanged, swapButton } from "./dualWindow.ts";
 import { setTip, type TipLine } from "./tooltip.ts";
 import { BAG_GROUPS, BAG_SORTS, type BagSort, inGroup, rarityOf, noteSeen, isNew, markSeen, sortView, moveItem, clearOrder, wornFor, compareLines, compareRows } from "./bag.ts";
@@ -309,7 +310,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     if (a === "mount") quick(it);
     else if (a === "use") u?.run();
     else if (a === "lock" || a === "unlock") act.lock(it.id);
-    else if (a === "salvage") act.send({ msg: "equipsalvage", data: { ids: [it.id] } });
+    else if (a === "salvage") confirmDialog({ title: "Phân giải?", body: `${itemName(it)} sẽ bị phân giải thành vật liệu, không lấy lại được.`, confirm: "Phân giải", danger: true }, () => act.send({ msg: "equipsalvage", data: { ids: [it.id] } }));
     else if (a === "compare") {
       const w = currentFor(it, v), rows = compareRows(it, w?.cur ?? null); if (!rows) return;
       const who = (x: BagItem) => ({ name: itemName(x), color: itemColor(x) });

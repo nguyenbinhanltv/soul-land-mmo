@@ -7,6 +7,7 @@ import { VOHON, formatYears, MAPS } from "../../shared/data.ts";
 import { artUrl } from "./uiArt.ts";
 import { chatWhisperTo } from "./chat.ts";
 import { el, pbtn } from "./domBtn.ts";
+import { confirmDialog } from "./confirmDialog.ts";
 import type { PortalInfo, BagItem, PartyView } from "./net.ts";
 
 // Ô chat đã tách sang chat.ts (Part of #885); giữ tên cũ ở đây để GameScene vẫn gọi hud.chat*.
@@ -121,7 +122,7 @@ export function renderParty(v: PartyView, act: PartyActions) {
   const me = v.members.find((m) => m.me), lead = !!me?.leader;
   if (!v.id || v.members.length < v.max)
     head.append(pbtn(partyInviting ? "Đóng" : "Mời…", "", () => { partyInviting = !partyInviting; partyOpenNow = partyInviting; renderParty(v, act); }, "Mời hồn sư vào tổ đội"));
-  if (v.id) head.append(pbtn("Rời đội", "warn", () => act.send("leave"), "Rời tổ đội"));
+  if (v.id) head.append(pbtn("Rời đội", "warn", () => confirmDialog({ title: "Rời tổ đội?", body: `Bạn rời tổ đội ${v.members.length}/${v.max} người; muốn quay lại phải được mời lại.`, confirm: "Rời đội", danger: true }, () => act.send("leave")), "Rời tổ đội"));
   head.append(pbtn("Bạn bè", "", () => toggleFriends(), "Bảng bạn bè (phím L)"));
   head.append(pbtn(partyCollapsed ? "Mở" : "Gọn", "", () => { partyCollapsed = !partyCollapsed; renderParty(v, act); }, partyCollapsed ? "Mở bảng tổ đội" : "Thu gọn bảng tổ đội"));
   box.append(head);
