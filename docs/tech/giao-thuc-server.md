@@ -11,7 +11,7 @@
 | Nhóm | Message |
 |---|---|
 | Di chuyển, đánh | `input {x, y, s, w?}`, `attack`, `skill {i}`, `boneskill {i}`, `chanthan`, `switch {slot}`, `fusion {op}` (Võ Hồn Dung Hợp Kỹ: `start`, `join`; mục 5.9) |
-| Võ hồn | `vohons`, `team {slots}`, `loadout {rowId, skills}`, `unlock {vohon}`, `starup {vohon}`, `stats {rowId?}` (chỉ số tổng hợp cho bảng Nhân vật, trả tin riêng `stats`) |
+| Võ hồn | `vohons`, `team {slots}`, `loadout {rowId, skills}`, `unlock {vohon}`, `starup {vohon}`, `stats {rowId?}` (chỉ số tổng hợp cho bảng Nhân vật, trả tin riêng `stats`, kèm `power` / `teamPower` điểm Sức mạnh) |
 | Túi đồ | `bag`, `use {id, vohonId?}`, `pickup`, `discard {id}`, `open {id}`, `absorb {itemId, vohonId}`, `sortbag`, `lock {id}` (khoá / mở khoá), `autosell {cfg}` (bộ lọc tự bán `SellSettings`) |
 | Hồn cốt, hồn hạch, trang bị | `equip` / `unequip`, `equipcore` / `unequipcore`, `equipgear {id}` / `unequipgear {slot}` (trang bị hồn sư, mục 5.15), `equipenh {id, charm}` / `equipenhpreview {id}` (cường hóa ở Thợ rèn), `equipsynth {main, sacrifice}` (hợp thành 3 → 1), `equipsalvage {ids}` (phân giải), `enhance {targetId, materialIds}`, `enhancecore {targetId, materialIds}`, `coreset {id, set, npc}` (Thợ rèn đổi bộ hồn hạch) |
 | NPC | `talk {npc}`, `buy {code, qty, npc?}`, `sell {id, qty?, npc?}`, `expand {npc?}`, `buyback {key, npc?}` (`npc`: thương nhân đang mở hộp thoại, thiếu thì thương nhân gần nhất), `quest {op, chain?}` (`chain`: bài khảo hạch hằng ngày), `tong {op, tong?}` (gia nhập / đổi / rời tông môn, mục 5.14), `shardbuy {vohon, qty, npc}` / `shardinfo` (Thương hội đổi mảnh võ hồn, trả `shardinfo {n, daily}`, mục 5.7), `looks {looks, npc?}` (đổi ngoại hình ở thợ may; trả `looksinfo {n, err?}`, mục 5.11) |

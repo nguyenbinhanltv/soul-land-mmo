@@ -3,7 +3,7 @@
 // Phần chạy trong phòng (tin `rank`, mốc ghi, ArenaRoom chặn) do bot thử (BOT_ONLY=rank). Chạy: npm run test:rank --prefix server
 import assert from "node:assert/strict";
 import { MemoryStore } from "../src/db.ts";
-import { RANK_BOARDS, RANK_PAGE_MAX, TEAM_SIZE, rankBoardOf, rankCompare, rankScores } from "../../shared/data.ts";
+import { RANK_BOARDS, RANK_PAGE_MAX, RANK_POWER, TEAM_SIZE, calcStats, powerScore, rankBoardOf, rankCompare, rankScores, teamPowerScore } from "../../shared/data.ts";
 
 function test(title: string, fn: () => void | Promise<void>) { return Promise.resolve(fn()).then(() => console.log(`✓ ${title}`)); }
 const v = (rowId: number, vohon: string, level: number, xp: number, stars: number) => ({ rowId, vohon, level, xp, stars });
@@ -11,7 +11,7 @@ const put = (s: MemoryStore, id: number, level: number, xp: number, count = 1, t
   s.rankPut(id, rankScores(Array.from({ length: count }, (_, i) => v(i + 1, "hao_thien_chuy", i === 0 ? level : 1, i === 0 ? xp : 0, 1)), team).map((r) => ({ board: r.board, period: 0, score: r.score, tie: r.tie, extra: r.lineup })));
 
 await test("RANK_BOARDS: mã cố định, không trùng; rankBoardOf nhận mã lạ = undefined", () => {
-  assert.deepEqual(RANK_BOARDS.map((b) => b.code), ["cap", "suu_tam"]);
+  assert.deepEqual(RANK_BOARDS.map((b) => b.code), ["cap", "suu_tam", "suc_manh"]);
   assert.equal(rankBoardOf("cap")?.period, 0); assert.equal(rankBoardOf("xyz"), undefined); assert.equal(rankBoardOf(undefined), undefined);
 });
 await test("rankScores: chưa có võ hồn thì không có dòng; Cấp = cấp cao nhất, phụ = kinh nghiệm võ hồn đó; Sưu tầm = số võ hồn, phụ = tổng sao", () => {
@@ -23,6 +23,24 @@ await test("rankScores: chưa có võ hồn thì không có dòng; Cấp = cấp
   assert.deepEqual(cap.lineup, [{ vohon: "b", level: 30, stars: 3 }, { vohon: "c", level: 30, stars: 1 }, { vohon: "a", level: 10, stars: 2 }], "ô trống / mã lạ bị bỏ, chỉ mã võ hồn + cấp + sao");
   assert.deepEqual(Object.keys(cap.lineup[0]).sort(), ["level", "stars", "vohon"], "đội hình công khai không lộ thêm gì");
   assert.ok(rankScores([v(1, "a", 1, 0, 1)], [1, 1, 1, 1, 1, 1]).every((x) => x.lineup.length <= TEAM_SIZE));
+});
+await test("powerScore: hàm thuần theo RANK_POWER, tăng theo từng chỉ số, bỏ số hỏng; teamPowerScore cộng tối đa TEAM_SIZE võ hồn", () => {
+  const st = { maxHp: 1000, maxMp: 200, atk: 100, crit: 0.1, critMult: 1.5 };
+  assert.equal(powerScore(st), Math.floor(1000 * RANK_POWER.hp + 200 * RANK_POWER.mp + 100 * (1 + 0.1 * 0.5 * RANK_POWER.crit) * RANK_POWER.atk));
+  for (const k of ["maxHp", "maxMp", "atk", "crit", "critMult"] as const) assert.ok(powerScore({ ...st, [k]: st[k] * 2 }) > powerScore(st), `${k} tăng thì điểm tăng`);
+  assert.equal(powerScore({ ...st, atk: NaN }), 0); assert.equal(powerScore({ maxHp: -5, maxMp: -5, atk: -5, crit: -1, critMult: 0 }), 0);
+  assert.equal(teamPowerScore([]), 0);
+  assert.equal(teamPowerScore(Array(TEAM_SIZE + 3).fill(st)), TEAM_SIZE * powerScore(st), "chỉ tính TEAM_SIZE ô đầu");
+  const lv = (level: number) => powerScore(calcStats(0, level, [], 1));
+  assert.ok(lv(2) > lv(1) && lv(60) > lv(30), "điểm theo cấp từ calcStats thật");
+});
+await test("rankScores: Sức mạnh chỉ có khi có power (>0); phụ = tổng cấp đội hình; không đổi dòng Cấp / Sưu tầm", () => {
+  const owned = [v(1, "a", 20, 0, 1), v(2, "b", 10, 0, 4)];
+  assert.deepEqual(rankScores(owned, [1, 2]).map((r) => r.board), ["cap", "suu_tam"]);
+  assert.deepEqual(rankScores(owned, [1, 2], 0).map((r) => r.board), ["cap", "suu_tam"]);
+  const r = rankScores(owned, [1, 2], 1234.9), p = r.find((x) => x.board === "suc_manh")!;
+  assert.equal(p.score, 1234); assert.equal(p.tie, 30); assert.equal(p.lineup.length, 2);
+  assert.deepEqual(r.filter((x) => x.board !== "suc_manh"), rankScores(owned, [1, 2]));
 });
 await test("rankCompare: điểm, phụ, ai đạt trước, mã tài khoản", () => {
   const x = (score: number, tie: number, at: number, accountId: number) => ({ score, tie, at, accountId });

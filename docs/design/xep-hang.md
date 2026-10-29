@@ -1,6 +1,6 @@
 # Bảng Xếp Hạng nhiều hạng mục
 
-Màn **Xếp Hạng** gom mọi bảng xếp hạng vào một chỗ: nhóm hạng mục bên trái, bục top 3, bảng điểm, dòng "của tôi" ghim đáy. Bảng đã có (đấu trường, cộng minh, tông tuần) giữ nguyên luật và tin; tài liệu này thêm hạng mục mới, khung màn chung và đường tính / lưu. Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; mọi tên đánh dấu *(đề xuất)* chưa tồn tại, đặt khi làm). Số issue ở cuối file. **Trạng thái:** X0, X1 (một phần), X2 đã có code ở server (Cấp, Sưu tầm, tin `rank`; UI ở `rankScreen.ts`); phần còn lại vẫn là thiết kế.
+Màn **Xếp Hạng** gom mọi bảng xếp hạng vào một chỗ: nhóm hạng mục bên trái, bục top 3, bảng điểm, dòng "của tôi" ghim đáy. Bảng đã có (đấu trường, cộng minh, tông tuần) giữ nguyên luật và tin; tài liệu này thêm hạng mục mới, khung màn chung và đường tính / lưu. Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; mọi tên đánh dấu *(đề xuất)* chưa tồn tại, đặt khi làm). Số issue ở cuối file. **Trạng thái:** X0, X1 (một phần), X2, X3 đã có code ở server (Cấp, Sưu tầm, Sức mạnh, tin `rank`; UI ở `rankScreen.ts`); phần còn lại vẫn là thiết kế.
 
 Tham chiếu bố cục: ảnh 14 (bảng xếp hạng) trong bộ tham chiếu UI của #877; chỉ học bố cục, không chép.
 
@@ -17,7 +17,7 @@ Hai tầng điều hướng (nhóm rồi mục). RANK_BOARDS *(đề xuất, m�
 | Nhóm | Mục (mã) | Điểm xếp | Kỳ | Nguồn | Giai đoạn |
 |---|---|---|---|---|---|
 | Người chơi | **Cấp** (`cap`) | cấp võ hồn cao nhất; bằng nhau: kinh nghiệm cao hơn, rồi đạt mốc đó trước (`rank_scores.updated_at`) | mọi thời | bảng điểm lưu | v1 |
-| Người chơi | **Sức mạnh** (`suc_manh`) | `powerScore` *(đề xuất)* của đội hình ra trận (ảnh chụp, mục dưới) | mọi thời | bảng điểm lưu | v1 |
+| Người chơi | **Sức mạnh** (`suc_manh`) | `teamPowerScore` (tổng `powerScore` đội hình ra trận; ảnh chụp, mục dưới); bằng nhau: tổng cấp đội hình, rồi đạt mốc trước | mọi thời | bảng điểm lưu | v1 |
 | Người chơi | **Sưu tầm** (`suu_tam`) | số võ hồn sở hữu, rồi tổng sao | mọi thời | bảng điểm lưu | v1 |
 | Người chơi | **Cộng minh** (`cong_minh`) | đã có: `resonanceRankValue` / `resonanceRankCompare` (mục 5.10) | mọi thời | đã có | v1 (chỉ nối màn) |
 | Đấu trường | **Elo** (`elo`) | đã có: `arena_ratings` (mục 5.9) | mọi thời | đã có | v1 (chỉ nối màn) |
@@ -27,7 +27,7 @@ Hai tầng điều hướng (nhóm rồi mục). RANK_BOARDS *(đề xuất, m�
 
 Ghi chú từng mục:
 - **Cấp / Sưu tầm:** không đọc thẳng `vohons` (một dòng mỗi võ hồn, nên Cấp = `MAX(level)` và Sưu tầm = `COUNT(*)` / `SUM(stars)` là truy vấn gộp toàn bảng kèm join `accounts` để ẩn `is_test`; `vohons.updated_at` còn đổi ở mỗi lần lưu nên không dùng làm "đạt trước"). Cả hai ghi vào `rank_scores` ở mốc ổn định như Sức mạnh: `score` = cấp cao nhất / số võ hồn, `tie` = kinh nghiệm / tổng sao, `tie` và `extra` luôn được cập nhật khi đổi, còn `updated_at` chỉ đổi khi `score` đổi (xem câu `INSERT … ON CONFLICT` ở mục Lưu trữ) nên đúng nghĩa "đạt mốc trước"; đội hình lấy lúc ghi, vào `extra`.
-- **Sức mạnh** không phải tổng chỉ số thô: `powerScore` *(đề xuất; hàm thuần trong `shared/data.ts`, client dùng để giải thích, server tính thật; hiện chưa có hàm này, và client chưa hiện điểm sức mạnh nào: phần hiển thị ở bảng Nhân vật là phần mới thuộc X3 / X4)* cộng có trọng số chỉ số do `calcStats` trả cho tối đa `TEAM_SIZE` võ hồn đội hình, **không tính** buff tạm, thức ăn, hiệu ứng trận, **có tính** hồn hoàn / hồn cốt / hồn hạch / trang bị đang gắn và cộng minh. Trọng số ở RANK_POWER *(đề xuất)*, cân qua skill `balance-data`; mục tiêu là chọn đúng thứ người chơi thấy là "mạnh" chứ không thưởng một chỉ số duy nhất.
+- **Sức mạnh** không phải tổng chỉ số thô: `powerScore` (hàm thuần trong `shared/data.ts`; server tính thật, bảng Nhân vật chỉ hiện số server gửi) cộng có trọng số RANK_POWER chỉ số do `calcStats` trả (sinh lực, hồn lực, công kỳ vọng có chí mạng; không tính tốc độ); `teamPowerScore` cộng cho tối đa `TEAM_SIZE` võ hồn đội hình. **Không tính** buff tạm, thức ăn, hiệu ứng trận (kể cả Chân Thân), **có tính** hồn hoàn / hồn cốt / hồn hạch / trang bị đang gắn, cộng minh và tiên thảo. Cân qua skill `balance-data`; mục tiêu là chọn đúng thứ người chơi thấy là "mạnh" chứ không thưởng một chỉ số duy nhất. Phụ của hạng mục = tổng cấp của đội hình (`rankScores`).
 - **Thợ săn tuần** (v2): điểm = Σ RANK_HUNT_PTS[bậc] *(đề xuất)* cho mỗi hồn thú **hợp cấp** (`fitBeast`) do người đó góp công theo luật chia thưởng hiện có, trần RANK_HUNT_DAILY_CAP điểm mỗi ngày giờ Việt Nam; tuần theo `tongWeek`. Chỉ cộng ở chỗ server đã chốt thưởng (không cộng khi hết khóa thưởng `eliteLocks`).
 - **Boss thế giới** (v2): lấy từ bảng đóng góp sát thương mà `MapRoom` đã giữ để chia thưởng; chốt khi boss hạ / hết giờ, ghi một lần. Không có hạng cho người chỉ đứng xem.
 - Tài khoản `is_test` và tài khoản đã bật cờ do lệnh GM **ẩn khỏi mọi bảng, kể cả hạng của chính nó** (giống mục 5.9, 5.14). Cùng luật cho hạng mục mới.
@@ -48,7 +48,7 @@ Mọi tính toán ở server; client chỉ gửi `rank {op, board, page}`.
 | **Bảng điểm lưu** (Cấp, Sưu tầm, Sức mạnh, Thợ săn tuần, Boss thế giới) | server ghi `rank_scores` khi có sự kiện: lưu định kỳ / lên cấp / thay đội hình / thêm võ hồn (Cấp, Sưu tầm, Sức mạnh; tối thiểu cách RANK_POWER_CD giây mỗi người), lúc chốt thưởng (săn, boss) | giống trên |
 
 - **Ảnh chụp Cấp / Sưu tầm / Sức mạnh:** chỉ tính lại ở các mốc **ổn định** (thoát phòng, lưu định kỳ, đổi đội hình / gắn đồ xong và đã ghi DB), không tính giữa trận, không tính khi đang trong sân đấu. Điểm lưu là ảnh chụp tại lần ghi thành công gần nhất; hạng của mình hiển thị kèm "cập nhật lúc …".
-- Điểm hiển thị cho chính chủ (bảng Nhân vật, phần hiển thị mới) và điểm trong bảng phải cùng hàm `powerScore`; test so hai đường tính.
+- Điểm hiển thị cho chính chủ (bảng Nhân vật: nhóm "Sức mạnh", tin `stats` có thêm `power` của võ hồn đang xem và `teamPower` của đội hình) và điểm trong bảng phải cùng hàm `powerScore` / `teamPowerScore`; bot `rank` so hai đường (`teamPower` ở tin `stats` = điểm `me` ở `rankTop`).
 - Bảng Elo / cộng minh / tông tuần **không đổi** tin riêng của chúng (`arena {op:"top"}`/`arenaTop`, `resonance {op:"top"}`/`resonanceTop`, `tong {op:"board"}`/`tongBoard`). Giai đoạn đầu client có bộ nối (adapter) gọi đúng tin cũ; hợp nhất vào tin `rank` là việc tùy chọn về sau (cần sửa client + bot cùng lúc, mục "Giao thức").
 
 ### Lưu trữ
@@ -145,11 +145,16 @@ Mỗi bước server sửa **cả** `PgStore` và `MemoryStore`, thêm hàng và
 ### Đã làm (X2, phần server)
 - `rank_scores` (`037_xep_hang.sql`), `Store.rankPut / rankTop / rankMe` ở `PgStore` và `MemoryStore`; hằng và hàm thuần `RANK_BOARDS` (Cấp, Sưu tầm), `rankScores`, `rankCompare`, `RANK_PAGE_SIZE / _MAX`, `RANK_CD`, `RANK_SYNC_CD` ở `shared/data.ts`.
 - `server/src/rooms/rank.ts`: `rankSync` (ghi lúc vào phòng, sau lần lưu thành công, lúc rời phòng; không giữa trận; nhịp `RANK_SYNC_CD`) và `rankAction` (tin `rank`). `ArenaRoom` chặn tin `rank`.
-- Chưa làm: `powerScore` và hạng mục Sức mạnh (X3), UI (X4), soát chống gian lận + đo tải (X5), Thợ săn tuần / Boss thế giới (X6), bộ nối Elo / cộng minh / tông tuần ở client.
+- Chưa làm (lúc X2): UI (X4), soát chống gian lận + đo tải (X5), Thợ săn tuần / Boss thế giới (X6), bộ nối Elo / cộng minh / tông tuần ở client.
 - Kiểm thử: `npm run test:rank --prefix server` (phần thuần + `MemoryStore`), `npm run bot:local -- --only rank [--pg]`.
 
+### Đã làm (X3)
+- `RANK_POWER`, `powerScore`, `teamPowerScore` và hạng mục `suc_manh` (cuối `RANK_BOARDS`) ở `shared/data.ts`; `rankScores(owned, team, power?)` thêm dòng Sức mạnh khi có `power`.
+- `MapRoom.teamPowerOf(d)` tính từ chỉ số thật (hồn cốt, hồn hạch + trang bị, cộng minh, tiên thảo của từng võ hồn trong ô đội); `rankSync` ghi ở cùng mốc ổn định và nhịp `RANK_SYNC_CD` như Cấp / Sưu tầm. `sendStats` gửi thêm `power` / `teamPower`; bảng Nhân vật (`charPanel.ts`) hiện nhóm "Sức mạnh".
+- Kiểm thử: `npm run test:rank --prefix server` (`powerScore`, `teamPowerScore`, `rankScores`), bot `rank` (điểm bảng = điểm bảng Nhân vật; lên cấp / đổi đội hình rồi rời phòng thì điểm và `at` đổi đúng).
+
 ### Câu hỏi mở
-Còn lại: trọng số RANK_POWER *(đề xuất)* cho Sức mạnh (X3), qua skill `balance-data`.
+Không còn. Trọng số RANK_POWER đã đặt ở X3 (có thể chỉnh sau khi xem số thật; tăng bậc thang cần cân nhắc cùng `balance-review`).
 
 ## Lịch sử / issue liên quan
 - Khung màn và hạng mục: bộ spec UI (#877, mục 3 dòng 10).

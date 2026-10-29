@@ -36,6 +36,7 @@ import { TIERS, VOHON, xpNeed, xpBlocked, calcStats, TICK_RATE, tierOfYears, voh
   type OfflinePower,
   type SellSettings } from "../../../shared/data.ts";
 import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
+import { powerScore, teamPowerScore } from "../../../shared/data.ts"; // điểm Sức mạnh (bảng Xếp Hạng X3, bảng Nhân vật)
 import { FOG } from "../../../shared/data.ts"; // sương mù khám phá (R8)
 import type { Vitals } from "../../../shared/vitals.ts";
 import { fogDims, fogEmpty, fogReveal, fogValid, fogOn as fogMapOn } from "../../../shared/fog.ts";
@@ -1206,10 +1207,20 @@ export class MapRoom extends Room<MapState> {
     const total = calcStats(vh, v.level, rings, v.stars, this.boneBonusOf(d, v.rowId), this.coreBonusOf(d, v.rowId), d.res.bonus, herbs);
     const base = calcStats(vh, v.level, rings, v.stars, {}, {}, d.res.bonus, herbs);
     const gear = { bonus: d.gearSt.bonus, weapon: d.gearSt.weapon, red: d.gearSt.red, luck: d.gearSt.luck }; // trang bị hồn sư (5.15): `total` đã gồm phần cộng này
+    const power = powerScore(total), teamPower = this.teamPowerOf(d); // Sức mạnh (X3): trước khi cộng Chân Thân (hiệu ứng trận không tính), cùng hàm với hạng mục `suc_manh`
     if (d.ava?.row === v.rowId) total.maxHp = Math.round(total.maxHp * (1 + (d.ava.stats.hp ?? 0))); // như recalc
-    c.send("stats", { rowId: v.rowId, total, base, gear });
+    c.send("stats", { rowId: v.rowId, total, base, gear, power, teamPower });
   }
 
+  /** Điểm Sức mạnh của đội hình đang lưu (`teamPowerScore`, bước X3): chỉ số thật của từng võ hồn trong ô đội, không buff tạm / Chân Thân; dùng cho bảng Nhân vật và hạng mục `suc_manh`. */
+  teamPowerOf(d: PData) {
+    const seen = new Set<number>(), stats: ReturnType<typeof calcStats>[] = [];
+    for (const r of d.team) {
+      const v = r && !seen.has(r) ? d.owned.find((o) => o.rowId === r) : undefined; if (!v) continue; seen.add(r);
+      stats.push(calcStats(Math.max(0, vohonIndex(v.vohon)), v.level, v.rings.map(tierOfYears), v.stars, this.boneBonusOf(d, r), this.coreBonusOf(d, r), d.res.bonus, herbBonus(v.herbs)));
+    }
+    return teamPowerScore(stats);
+  }
   /** Sinh lực tối đa của một võ hồn sở hữu (dù đang ra trận hay không), kể cả hồn cốt (4.2), hồn hạch (5.2) đang gắn, cộng minh (8.2) và tiên thảo (BĐ6b). */
   maxHpOf(d: PData, v: Character) {
     return calcStats(Math.max(0, vohonIndex(v.vohon)), v.level, v.rings.map(tierOfYears), v.stars, this.boneBonusOf(d, v.rowId), this.coreBonusOf(d, v.rowId),
