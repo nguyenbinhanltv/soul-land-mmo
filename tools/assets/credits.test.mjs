@@ -6,9 +6,10 @@ import { readFileSync, mkdtempSync, writeFileSync, rmSync, mkdirSync } from "nod
 import { spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { buildCredits, validate, readAnimSources, OUT, parseTables } from "./credits.mjs";
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const MD = readFileSync(path.join(ROOT, "art/CREDITS.md"), "utf8");
 const nguon = (extra = "") => `# Loài thử\n\nLỖI: toA — hướng — ...\n${extra}`;
 const table = (desc = "ChatGPT dựng raw") => `\n## Ghi công\n\n| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |\n|---|---|---|---|---|---|\n| \`art/src/beast-anim/x/\` | - | ChatGPT / Codex \`image_gen.imagegen\` | ${desc} | - | - |\n`;
@@ -21,7 +22,7 @@ test("credits.json thật khớp CREDITS.md + mọi NGUON.md; mọi loài có t�
   for (const [id, a] of withSheets) assert.ok(a.md && parseTables(a.md).some((t) => t.section === "Ghi công" && t.rows.length), id);
   const { r, errs } = run(anim);
   assert.deepEqual(errs, []);
-  assert.equal(JSON.stringify(r.data) + "\n", readFileSync(OUT, "utf8"));
+  assert.equal(JSON.stringify(r.data) + "\n", readFileSync(OUT, "utf8").replace(/\r\n/g, "\n"));
 });
 
 test("loài có tờ mà NGUON.md thiếu bảng ghi công: lỗi nêu đúng loài; có bảng thì hết lỗi", () => {
