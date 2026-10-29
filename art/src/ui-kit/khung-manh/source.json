@@ -1,0 +1,32 @@
+{
+    "issue":  1305,
+    "congCu":  "Codex image_gen",
+    "ngay":  "2026-10-30",
+    "thamChieu":  "art/src/ui-kit/BOARD.png (kit Mực + Giấy gốc)",
+    "raw":  "art/src/ui-kit/toI-manh.png",
+    "rawSha256":  "28ff38f7454b57c650365ac85757787642cc122c073d9c731cdb3bc4e14cf622",
+    "prompt":  "art/src/ui-kit/toI-manh.prompt.txt",
+    "promptSha256":  "2452edb9b955224eefea2c65e12d0f510fb9818ca8d235fa15abd3b51aed0ab1",
+    "luotDaDung":  3,
+    "luotChon":  3,
+    "luot":  [
+                 {
+                     "so":  1,
+                     "co":  "2172x724",
+                     "ketQua":  "Chặn: sai tỉ lệ"
+                 },
+                 {
+                     "so":  2,
+                     "co":  "1254x1254",
+                     "ketQua":  "Viền hồng 60%; cắt mềm còn 0,1%, hai mục nhẹ"
+                 },
+                 {
+                     "so":  3,
+                     "co":  "1254x1254",
+                     "ketQua":  "Chọn: cắt mềm không chặn, hai mục nhẹ; viền hồng 56,2% về 0%"
+                 }
+             ],
+    "giayPhep":  "Ảnh AI tạo cho dự án theo điều khoản OpenAI; không gán CC0",
+    "xuLy":  "manh-sheet.mjs cut: khóa nền, bù viền hồng, hạ theo vùng, mẫu năm sắc 32x32; manh-compose.mjs đổi sắc đồng theo col và ghép 25 icon đã có",
+    "duyetMat":  "Không chữ; ba silhouette khác nhau; giữ Giấy ngà, ruột Mực, viền đồng; đã xem icon trên nền sáng, tối, trắng"
+}

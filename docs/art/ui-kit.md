@@ -290,6 +290,12 @@ Không còn lớp `body.ui2` (đợt 5c-b): luật `ui2*.css` là luật thườ
 
 ## Việc còn lại
 
+### Khung mảnh võ hồn (Part of #1305)
+
+Tờ `toI-manh.png` là họ I riêng: **một hàng ba khung** SR / SSR / UR, ảnh vuông, kit Mực + Giấy gốc. Không áp lưới 4×4 của họ menu. Prompt sinh bằng `node tools/assets/manh-sheet.mjs prompt <file ngoài repo>`; lưu prompt thật cạnh RAW. Đã dùng đủ ba lượt, chọn lượt 3; không dùng lượt lỗi làm tham chiếu.
+
+Kiểm bằng `npm run ui:check -- art/src/ui-kit/toI-manh.png --family manh --soft --out <thư mục ngoài repo>`. Kết quả: không còn chặn; nhẹ vì khoảng cách dưới 5% và viền hồng đã bù từ 56,2% về 0%. Cắt bằng `node tools/assets/manh-sheet.mjs cut art/src/ui-kit/toI-manh.png`, rồi `node tools/assets/manh-compose.mjs` ghép lại 25 icon. Mẫu năm sắc 32×32 giữ alpha / mảng giấy từ ảnh model, sắc đồng được đổi theo `col`; icon chỉ hiện trong ruột Mực, không đè nét khung. `test:assets` kiểm cắt lại RAW và ghép lại đúng dữ liệu.
+
 - Icon pilot 16 menu (AI) so với game-icons (#884); checkbox / slider / scrollbar từ gói CC0, tuỳ chọn (#888).
 - Đợt 5c (#886) đã gỡ cờ `ui2` / `isUi2()` / `?ui=` / `shh-ui2` (5c-a) và `body.ui2` (5c-b); còn gỡ luật cũ khỏi `style.css` (5b): `ROADMAP.md`.
 

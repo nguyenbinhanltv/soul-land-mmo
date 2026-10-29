@@ -22,7 +22,7 @@ for (const [id, d] of Object.entries(PHAP_TUONG)) {
   if (d.formula !== "sinh_vat" && d.formula !== "vat_the") bad.push(`${id}: công thức`);
   if (!["V", "S", "P", "B", "T", "O", "D"].includes(d.group)) bad.push(`${id}: nhóm`);
   if (!["dien", "lua", "bang", "la", "hon", "doc", "khoi"].includes(d.hat)) bad.push(`${id}: hạt`);
-  if (!(d.scale > 0.3 && d.scale <= 1.5) || Math.abs(d.dx) > 40 || Math.abs(d.dy) > 40) bad.push(`${id}: cỡ / độ lệch`);
+  if (!(d.scale > 0.3 && d.scale <= 2.2) || Math.abs(d.dx) > 40 || Math.abs(d.dy) > 40) bad.push(`${id}: cỡ / độ lệch`);
   if (d.glow !== undefined && !/^#[0-9a-f]{6}$/i.test(d.glow)) bad.push(`${id}: màu`);
   if (!(m.bobSec > 0.5 && m.bobSec < 4) || m.bob < 0 || m.bob > 6 || m.sway < 0 || m.sway > 8 || m.lag < 0 || m.lag >= 1 || m.pulse < 0 || m.pulse > 1
     || m.swing < 0 || m.swing > 45 || m.lunge < 0 || m.lunge > 20 || m.pivot < 0 || m.pivot > 120 || Math.abs(m.spin) > 90) bad.push(`${id}: tham số chuyển động`);
@@ -30,7 +30,7 @@ for (const [id, d] of Object.entries(PHAP_TUONG)) {
   if (d.formula === "sinh_vat" && (d.group === "V" || d.group === "O" || d.group === "P")) bad.push(`${id}: sinh vật sai nhóm`);
 }
 ok(bad.length === 0, `mọi mục hợp lệ (công thức, nhóm, hạt, cỡ, tham số)${bad.length ? ": " + bad.join("; ") : ""}`);
-ok(phapTuongOf("khong_co") === null && phapTuongOf("hao_thien_chuy")?.scale === 0.85, "phapTuongOf: mã lạ → null, giá trị H1 của Hạo Thiên Chùy");
+ok(phapTuongOf("khong_co") === null && phapTuongOf("hao_thien_chuy")?.scale === 1.5 && phapTuongOf("hao_thien_chuy")?.dx === 18, "phapTuongOf: mã lạ → null, Hạo Thiên Chùy phóng 1,5 bay chếch sau vai (#1306)");
 ok(PHAP_TUONG.lam_dien_ba_vuong_long.formula === "sinh_vat" && PHAP_TUONG.hao_thien_chuy.formula === "vat_the", "Lam Điện = sinh vật, Hạo Thiên Chùy = vật thể");
 
 // ---- ảnh thật trong manifest (`pt_<mã>`) khớp bảng: cỡ, độ lệch, lớp; sheet có mặt, đủ 16 × 5 khung

@@ -41,6 +41,7 @@ import { audioTestScreen } from "./audioTest.ts";
 import { fxTestScreen } from "./fxTest.ts";
 import { phapTuongTestScreen } from "./phapTuongTest.ts";
 import { phutheTestScreen } from "./phutheTest.ts";
+import { vukhiTestScreen } from "./vukhiTest.ts";
 import { sharedAudioContext, stopMusic } from "./audio/music.ts";
 import { stopAmbientBed } from "./audio/ambientBed.ts";
 import { mountGoogleButton } from "./google.ts";
@@ -447,6 +448,7 @@ function play(room: Room, roomMap: string, watch = false) {
   if (thu === "am") return audioTestScreen(card, overlay); // `?thu=am`: nghe thử tiếng mẫu CC0 (G2, #393)
   if (thu === "fx") return fxTestScreen(card, overlay); // `?thu=fx`: thử hiệu ứng hồn kỹ theo hệ (G3, #394)
   if (thu === "phuthe") return phutheTestScreen(card, overlay); // `?thu=phuthe`: thử chuyển động phụ phụ thể, trước / sau (H7, #490)
+  if (thu === "vukhi") return vukhiTestScreen(card, overlay); // `?thu=vukhi`: thử vũ khí cầm tay theo võ hồn, 5 hướng, Chân Thân thu về (#1312)
   if (thu === "phaptuong") return phapTuongTestScreen(card, overlay); // `?thu=phaptuong`: thử pháp tướng Võ Hồn Chân Thân (#486)
   // Landing (/) đã cho đăng nhập Google nhưng tài khoản chưa có nhân vật: nó chuyển vé sang đây, hiện luôn màn chọn tên (vé hết hạn thì server báo, nameScreen về đăng nhập).
   const gt = takeGoogleTicket();

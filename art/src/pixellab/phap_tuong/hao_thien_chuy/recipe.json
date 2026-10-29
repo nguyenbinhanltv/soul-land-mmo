@@ -7,9 +7,9 @@
     "attack"
   ],
   "display": {
-    "scale": 0.85,
-    "dx": 12,
-    "dy": -4,
+    "scale": 1.5,
+    "dx": 18,
+    "dy": -28,
     "back": [
       "s",
       "se",
@@ -21,7 +21,7 @@
     ],
     "frontAlpha": 0.7,
     "ghost": 0.88,
-    "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; độ đục ghost (lớp sau) và ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255"
+    "ghiChu": "client vẽ pháp tướng: scale, dx, dy (px quanh gốc hồn sư); lớp back / front theo hướng; ghost (lớp sau), ghost × frontAlpha (lớp trước); sheet chỉ alpha 0 / 255. Từ #1306 sheet đóng gói + chuyển thể từ phụ thể cũ (phuthe-to-phaptuong.mjs: lấp chỗ rỗng hình người, không nướng phóng to); scale phóng lúc vẽ, dx / dy nâng lên và lùi ra sau lưng"
   },
   "concept": {
     "endpoint": "/v2/create-image-pixflux",
@@ -84,5 +84,11 @@
     "thử đánh hỏng": 2,
     "hoạt ảnh dùng": 0,
     "tong": 5
+  },
+  "dongGoi": {
+    "cong_cu": "tools/assets/phuthe-to-phaptuong.mjs",
+    "nguon": "vhanim_hao_thien_chuy_b/_f (clip vẽ thật) ; vh_hao_thien_chuy_b/_f nếu không có clip",
+    "ngay": "2026-10-29",
+    "issue": 1306
   }
 }
