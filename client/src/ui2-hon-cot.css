@@ -1,116 +1,116 @@
-/* UI v2 đợt 2b-2: mục Hồn cốt / Hồn hạch / Mảnh võ hồn của bảng #roster theo kit Mực, Part of #885 / #877. Mọi luật dưới `body.ui2` (cờ tắt mặc định; KHÔNG gỡ luật cũ ở style.css).
+/* UI v2 đợt 2b-2: mục Hồn cốt / Hồn hạch / Mảnh võ hồn của bảng #roster theo kit Mực, Part of #885 / #877. Luật thường (đợt 5c-b: đã bỏ tiền tố body.ui2; luật cũ ở style.css gỡ ở đợt 5b).
    Khung, tab dưới, token Mực của #roster nằm ở ui2-vohon.css (đợt 2b-1); file này chỉ lo bố cục ba mục: (1) hồn cốt: 6 ô theo hạng quanh võ hồn, (2) hồn hạch: 6 ô TRÒN quanh võ hồn,
    (3) chỉ số, thẻ món, bộ hồn hạch, (4) bảng cường hóa / nâng cấp, (5) mảnh võ hồn. Chữ 10 / 12 / 24 qua --fs-* (đổi theo cỡ chữ trợ năng), vùng bấm 32 px (nút, hàng) / 44 px (ô),
    hạng và bộ thể hiện bằng hình (vạch dày dần, số sao, tên bộ trong nhãn đọc màn hình), không chỉ bằng màu. Không ký tự ngoài phông nhúng. */
 
 /* (1) Ô hồn cốt theo hạng: cùng cách với #char (ui2-charpanel.css): khung o_hiem_1..5 vẽ bằng background, vạch dưới chân dày dần theo hạng. */
-body.ui2.ui2-k-o-trong #roster .bcell.f2-o{border-width:0;background:var(--ui2-o-trong) center / 100% 100% no-repeat;image-rendering:pixelated}
-body.ui2.ui2-k-o-hiem-1 #roster .bcell.f2-o[data-rk="0"]{background-image:var(--ui2-o-hiem-1),var(--ui2-o-trong)}
-body.ui2.ui2-k-o-hiem-2 #roster .bcell.f2-o[data-rk="1"]{background-image:var(--ui2-o-hiem-2),var(--ui2-o-trong)}
-body.ui2.ui2-k-o-hiem-3 #roster .bcell.f2-o[data-rk="2"]{background-image:var(--ui2-o-hiem-3),var(--ui2-o-trong)}
-body.ui2.ui2-k-o-hiem-4 #roster .bcell.f2-o[data-rk="3"]{background-image:var(--ui2-o-hiem-4),var(--ui2-o-trong)}
-body.ui2.ui2-k-o-hiem-5 #roster .bcell.f2-o[data-rk="4"]{background-image:var(--ui2-o-hiem-5),var(--ui2-o-trong)}
-body.ui2.ui2-k-o-chon #roster .bcell.f2-o.sel{background-image:var(--ui2-o-chon)}
-body.ui2 #roster .bcell{color:var(--plate-text);cursor:pointer;min-height:56px;min-width:44px;outline:none}
-body.ui2 #roster .bcell[data-rk]{--rkn:2px;box-shadow:inset 0 calc(var(--rkn) * -1) 0 var(--c)}
-body.ui2 #roster .bcell[data-rk="1"]{--rkn:3px} body.ui2 #roster .bcell[data-rk="2"]{--rkn:4px}
-body.ui2 #roster .bcell[data-rk="3"]{--rkn:5px} body.ui2 #roster .bcell[data-rk="4"]{--rkn:6px}
-body.ui2 #roster .bcell.empty{opacity:.85}
-body.ui2 #roster .bcell.empty:not(.sel){border-style:dashed}   /* chỉ khi kit chưa có mảnh ô (còn viền cũ) */
-body.ui2 #roster .bcell.sel,body.ui2 #roster .bcell:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:calc(var(--bd) * -1)}
-body.ui2 #roster .bcell.over{outline:var(--bd) dashed var(--accent);outline-offset:calc(var(--bd) * -1)}   /* đang kéo món vào: nét đứt */
-body.ui2 #roster .bcell>span,body.ui2 #roster .bcell small,body.ui2 #roster .bcell em{font:var(--fs-s)/1.1 var(--f10);color:var(--plate-text);text-shadow:none}
-body.ui2 #roster .bcell .enh{font:var(--fs-s)/1.1 var(--f10);color:var(--xp-t)}
-body.ui2 #roster .bmid{border:var(--bd-fine) solid var(--ink2);color:var(--plate-text)}
-body.ui2 #roster .bmid small{font:var(--fs-s)/1.2 var(--f10);color:var(--paper2)}
+.ui2-k-o-trong #roster .bcell.f2-o{border-width:0;background:var(--ui2-o-trong) center / 100% 100% no-repeat;image-rendering:pixelated}
+.ui2-k-o-hiem-1 #roster .bcell.f2-o[data-rk="0"]{background-image:var(--ui2-o-hiem-1),var(--ui2-o-trong)}
+.ui2-k-o-hiem-2 #roster .bcell.f2-o[data-rk="1"]{background-image:var(--ui2-o-hiem-2),var(--ui2-o-trong)}
+.ui2-k-o-hiem-3 #roster .bcell.f2-o[data-rk="2"]{background-image:var(--ui2-o-hiem-3),var(--ui2-o-trong)}
+.ui2-k-o-hiem-4 #roster .bcell.f2-o[data-rk="3"]{background-image:var(--ui2-o-hiem-4),var(--ui2-o-trong)}
+.ui2-k-o-hiem-5 #roster .bcell.f2-o[data-rk="4"]{background-image:var(--ui2-o-hiem-5),var(--ui2-o-trong)}
+.ui2-k-o-chon #roster .bcell.f2-o.sel{background-image:var(--ui2-o-chon)}
+#roster .bcell{color:var(--plate-text);cursor:pointer;min-height:56px;min-width:44px;outline:none}
+#roster .bcell[data-rk]{--rkn:2px;box-shadow:inset 0 calc(var(--rkn) * -1) 0 var(--c)}
+#roster .bcell[data-rk="1"]{--rkn:3px} #roster .bcell[data-rk="2"]{--rkn:4px}
+#roster .bcell[data-rk="3"]{--rkn:5px} #roster .bcell[data-rk="4"]{--rkn:6px}
+#roster .bcell.empty{opacity:.85}
+#roster .bcell.empty:not(.sel){border-style:dashed}   /* chỉ khi kit chưa có mảnh ô (còn viền cũ) */
+#roster .bcell.sel,#roster .bcell:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:calc(var(--bd) * -1)}
+#roster .bcell.over{outline:var(--bd) dashed var(--accent);outline-offset:calc(var(--bd) * -1)}   /* đang kéo món vào: nét đứt */
+#roster .bcell>span,#roster .bcell small,#roster .bcell em{font:var(--fs-s)/1.1 var(--f10);color:var(--plate-text);text-shadow:none}
+#roster .bcell .enh{font:var(--fs-s)/1.1 var(--f10);color:var(--xp-t)}
+#roster .bmid{border:var(--bd-fine) solid var(--ink2);color:var(--plate-text)}
+#roster .bmid small{font:var(--fs-s)/1.2 var(--f10);color:var(--paper2)}
 
 /* (2) Hồn hạch: 6 ô tròn quanh võ hồn (vị trí --x / --y đặt ở hudRoster.ts, như bánh xe hồn kỹ). Hạng: vòng trong dày 2 – 6 px (theo sao); số ô ở góc dưới phải, sao ở góc trên;
    tên bộ nằm trong nhãn đọc màn hình và danh sách bộ bên dưới. */
-body.ui2 #roster .cfig.cring-r{position:relative;display:block;width:min(244px,100%);aspect-ratio:1;margin:var(--sp-3) auto;flex:none;align-self:center}
-body.ui2 #roster .cmid-r{position:absolute;left:50%;top:50%;width:34%;aspect-ratio:1;transform:translate(-50%,-50%);border:var(--bd) solid var(--c);border-radius:50%;background:var(--track);overflow:hidden;
+#roster .cfig.cring-r{position:relative;display:block;width:min(244px,100%);aspect-ratio:1;margin:var(--sp-3) auto;flex:none;align-self:center}
+#roster .cmid-r{position:absolute;left:50%;top:50%;width:34%;aspect-ratio:1;transform:translate(-50%,-50%);border:var(--bd) solid var(--c);border-radius:50%;background:var(--track);overflow:hidden;
   display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 var(--sp-4) color-mix(in srgb,var(--c) 55%,transparent)}
-body.ui2 #roster .cmid-r img{width:70%;height:70%;object-fit:contain;image-rendering:pixelated}
-body.ui2 #roster .cmid-r .dot{width:40%;height:40%;border-radius:50%;background:var(--c)}
-body.ui2 #roster .cmid-r small{display:none}   /* tên võ hồn đã ở tiêu đề mục */
-body.ui2 #roster .cfig.cring-r .ccell{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);width:52px;height:52px;min-width:44px;min-height:44px;box-sizing:border-box;padding:0;
+#roster .cmid-r img{width:70%;height:70%;object-fit:contain;image-rendering:pixelated}
+#roster .cmid-r .dot{width:40%;height:40%;border-radius:50%;background:var(--c)}
+#roster .cmid-r small{display:none}   /* tên võ hồn đã ở tiêu đề mục */
+#roster .cfig.cring-r .ccell{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);width:52px;height:52px;min-width:44px;min-height:44px;box-sizing:border-box;padding:0;
   border:var(--bd) solid var(--c,var(--paper3));border-image:none;border-radius:50%;background:var(--track);box-shadow:none;display:flex;align-items:center;justify-content:center}
-body.ui2 #roster .cfig.cring-r .ccell::before{display:none}
-body.ui2 #roster .cfig.cring-r .ccell[data-rk]{--rkn:2px;box-shadow:inset 0 0 0 var(--rkn) var(--c)}
-body.ui2 #roster .cfig.cring-r .ccell[data-rk="1"]{--rkn:3px} body.ui2 #roster .cfig.cring-r .ccell[data-rk="2"]{--rkn:4px}
-body.ui2 #roster .cfig.cring-r .ccell[data-rk="3"]{--rkn:5px} body.ui2 #roster .cfig.cring-r .ccell[data-rk="4"]{--rkn:6px}
-body.ui2 #roster .cfig.cring-r .ccell.empty{border-style:dashed;color:var(--paper2);opacity:.85}
-body.ui2 #roster .cfig.cring-r .ccell.sel{outline:var(--bd) solid var(--xp);outline-offset:var(--bd);box-shadow:0 0 var(--sp-4) var(--xp)}   /* chọn: vòng ngoài + vầng sáng */
-body.ui2 #roster .cfig.cring-r .ccell.over{outline:var(--bd) dashed var(--accent);outline-offset:var(--bd)}
-body.ui2 #roster .cfig.cring-r .ccell img.ico.art,body.ui2 #roster .cfig.cring-r .ccell svg.ico.core{width:60%;height:60%;max-width:32px;max-height:32px}
-body.ui2 #roster .cfig.cring-r .ccell>span{position:absolute;right:-2px;bottom:-2px;min-width:18px;height:18px;line-height:18px;text-align:center;border-radius:50%;background:var(--plate);
+#roster .cfig.cring-r .ccell::before{display:none}
+#roster .cfig.cring-r .ccell[data-rk]{--rkn:2px;box-shadow:inset 0 0 0 var(--rkn) var(--c)}
+#roster .cfig.cring-r .ccell[data-rk="1"]{--rkn:3px} #roster .cfig.cring-r .ccell[data-rk="2"]{--rkn:4px}
+#roster .cfig.cring-r .ccell[data-rk="3"]{--rkn:5px} #roster .cfig.cring-r .ccell[data-rk="4"]{--rkn:6px}
+#roster .cfig.cring-r .ccell.empty{border-style:dashed;color:var(--paper2);opacity:.85}
+#roster .cfig.cring-r .ccell.sel{outline:var(--bd) solid var(--xp);outline-offset:var(--bd);box-shadow:0 0 var(--sp-4) var(--xp)}   /* chọn: vòng ngoài + vầng sáng */
+#roster .cfig.cring-r .ccell.over{outline:var(--bd) dashed var(--accent);outline-offset:var(--bd)}
+#roster .cfig.cring-r .ccell img.ico.art,#roster .cfig.cring-r .ccell svg.ico.core{width:60%;height:60%;max-width:32px;max-height:32px}
+#roster .cfig.cring-r .ccell>span{position:absolute;right:-2px;bottom:-2px;min-width:18px;height:18px;line-height:18px;text-align:center;border-radius:50%;background:var(--plate);
   border:var(--bd-fine) solid var(--c,var(--paper3));font:var(--fs-s)/18px var(--f10);color:var(--plate-text)}
-body.ui2 #roster .cfig.cring-r .ccell>small{position:absolute;left:50%;top:-6px;right:auto;transform:translateX(-50%);padding:0 var(--sp-2);background:var(--plate);color:var(--xp-t);white-space:nowrap}
-body.ui2 #roster .cfig.cring-r .ccell>em{display:none}
-body.ui2 #roster .cfig.cring-r .ccell .enh{left:auto;right:calc(var(--sp-2) * -1);top:calc(var(--sp-2) * -1);background:var(--plate);padding:0 var(--sp-1)}
-body.ui2.ui-w560 #roster .cfig.cring-r{width:min(208px,100%)}
+#roster .cfig.cring-r .ccell>small{position:absolute;left:50%;top:-6px;right:auto;transform:translateX(-50%);padding:0 var(--sp-2);background:var(--plate);color:var(--xp-t);white-space:nowrap}
+#roster .cfig.cring-r .ccell>em{display:none}
+#roster .cfig.cring-r .ccell .enh{left:auto;right:calc(var(--sp-2) * -1);top:calc(var(--sp-2) * -1);background:var(--plate);padding:0 var(--sp-1)}
+.ui-w560 #roster .cfig.cring-r{width:min(208px,100%)}
 
 /* (3) Chỉ số cộng, thẻ món, danh sách món trong túi, bộ hồn hạch: tấm chìm, chữ sáng. */
-body.ui2 #roster .bsum{font:var(--fs-m)/1.3 var(--f12);color:var(--plate-text)}
-body.ui2 #roster .bsum span{font:var(--fs-m)/1.3 var(--f12);color:var(--paper2)}
-body.ui2 #roster .bsum em{font:var(--fs-s)/1.3 var(--f10);color:var(--good)}
-body.ui2 #roster .binfo{color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2);padding:var(--sp-4);gap:var(--sp-3)}
-body.ui2 #roster .binfo b{font:var(--fs-m)/1.3 var(--f12);font-weight:normal;text-shadow:none}
-body.ui2 #roster .binfo small{font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)}
-body.ui2 #roster .binfo small.warn,body.ui2 #roster .rnote.warn{color:var(--warn)}
-body.ui2 #roster .binfo p{font:var(--fs-m)/1.3 var(--f12);margin:0}
-body.ui2 #roster .binfo p.bskill{color:var(--xp-t)}
-body.ui2 #roster .bitem{min-height:44px;background:var(--plate);border:var(--bd-fine) solid var(--ink2);padding:var(--sp-3) var(--sp-4)}
-body.ui2 #roster .bitem.sel{border-color:var(--xp);box-shadow:inset var(--sp-2) 0 0 var(--xp)}   /* vừa bấm "Gắn…" ở túi: vạch trái dày */
-body.ui2 #roster .bitem b{font:var(--fs-m)/1.2 var(--f12);color:var(--c)}
-body.ui2 #roster .bitem small{font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)}
-body.ui2 #roster :is(.sbtn,.buse){min-height:32px;min-width:64px;box-sizing:border-box;padding:0 var(--sp-5);font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text);text-shadow:none;cursor:pointer;
+#roster .bsum{font:var(--fs-m)/1.3 var(--f12);color:var(--plate-text)}
+#roster .bsum span{font:var(--fs-m)/1.3 var(--f12);color:var(--paper2)}
+#roster .bsum em{font:var(--fs-s)/1.3 var(--f10);color:var(--good)}
+#roster .binfo{color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2);padding:var(--sp-4);gap:var(--sp-3)}
+#roster .binfo b{font:var(--fs-m)/1.3 var(--f12);font-weight:normal;text-shadow:none}
+#roster .binfo small{font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)}
+#roster .binfo small.warn,#roster .rnote.warn{color:var(--warn)}
+#roster .binfo p{font:var(--fs-m)/1.3 var(--f12);margin:0}
+#roster .binfo p.bskill{color:var(--xp-t)}
+#roster .bitem{min-height:44px;background:var(--plate);border:var(--bd-fine) solid var(--ink2);padding:var(--sp-3) var(--sp-4)}
+#roster .bitem.sel{border-color:var(--xp);box-shadow:inset var(--sp-2) 0 0 var(--xp)}   /* vừa bấm "Gắn…" ở túi: vạch trái dày */
+#roster .bitem b{font:var(--fs-m)/1.2 var(--f12);color:var(--c)}
+#roster .bitem small{font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)}
+#roster :is(.sbtn,.buse){min-height:32px;min-width:64px;box-sizing:border-box;padding:0 var(--sp-5);font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text);text-shadow:none;cursor:pointer;
   background:var(--track);border:var(--bd-fine) solid var(--ink2);border-image:none;margin-top:0}
-body.ui2 #roster :is(.sbtn,.buse):not(:disabled):hover{border-color:var(--plate-text)}
-body.ui2 #roster :is(.sbtn,.buse):disabled{opacity:.5;cursor:not-allowed}
-body.ui2 #roster .buse.use{border-color:var(--accent)}
-body.ui2 #roster .buse.absorb{min-height:44px}
-body.ui2 #roster .brow{gap:var(--sp-4)}
-body.ui2 #roster .csets{gap:var(--sp-3)}
-body.ui2 #roster .cset{background:var(--track);border:var(--bd-fine) solid var(--ink2);color:var(--plate-text);padding:var(--sp-3) var(--sp-4);opacity:1}
-body.ui2 #roster .cset:not(.on){opacity:.75}
-body.ui2 #roster .cset.on{border-color:var(--c);border-left-width:6px}   /* bộ đã kích hoạt: vạch trái dày + dấu √ ở dòng hiệu ứng */
-body.ui2 #roster .cset b{font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text)}
-body.ui2 #roster .cset small{font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)} body.ui2 #roster .cset small.on{color:var(--good)}
-body.ui2 #roster .csum{color:var(--plate-text)}
+#roster :is(.sbtn,.buse):not(:disabled):hover{border-color:var(--plate-text)}
+#roster :is(.sbtn,.buse):disabled{opacity:.5;cursor:not-allowed}
+#roster .buse.use{border-color:var(--accent)}
+#roster .buse.absorb{min-height:44px}
+#roster .brow{gap:var(--sp-4)}
+#roster .csets{gap:var(--sp-3)}
+#roster .cset{background:var(--track);border:var(--bd-fine) solid var(--ink2);color:var(--plate-text);padding:var(--sp-3) var(--sp-4);opacity:1}
+#roster .cset:not(.on){opacity:.75}
+#roster .cset.on{border-color:var(--c);border-left-width:6px}   /* bộ đã kích hoạt: vạch trái dày + dấu √ ở dòng hiệu ứng */
+#roster .cset b{font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text)}
+#roster .cset small{font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)} #roster .cset small.on{color:var(--good)}
+#roster .csum{color:var(--plate-text)}
 
 /* (4) Bảng cường hóa / nâng cấp: hàng nguyên liệu 44 px có ô tích chữ (☐ / ☑), khối kết quả có vạch trái 6 px + dòng ⚠ bằng chữ. */
-body.ui2 #roster .apick{gap:var(--sp-3);margin-top:var(--sp-3)}
-body.ui2 #roster .epick>small:first-child{font:var(--fs-m)/1.3 var(--f12);color:var(--paper2)}
-body.ui2 #roster .epick>small:first-child b{font:var(--fs-m)/1.3 var(--f12);font-weight:normal;color:var(--plate-text)}
-body.ui2 #roster .aopt{min-height:44px;box-sizing:border-box;padding:var(--sp-3) var(--sp-4);font:var(--fs-m)/1.3 var(--f12);color:var(--plate-text);text-shadow:none;cursor:pointer;
+#roster .apick{gap:var(--sp-3);margin-top:var(--sp-3)}
+#roster .epick>small:first-child{font:var(--fs-m)/1.3 var(--f12);color:var(--paper2)}
+#roster .epick>small:first-child b{font:var(--fs-m)/1.3 var(--f12);font-weight:normal;color:var(--plate-text)}
+#roster .aopt{min-height:44px;box-sizing:border-box;padding:var(--sp-3) var(--sp-4);font:var(--fs-m)/1.3 var(--f12);color:var(--plate-text);text-shadow:none;cursor:pointer;
   background:var(--plate);border:var(--bd-fine) solid var(--ink2);border-image:none}
-body.ui2 #roster .aopt b{font:var(--fs-m)/1.3 var(--f12);font-weight:normal;color:var(--plate-text)}
-body.ui2 #roster .aopt span{font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)}
-body.ui2 #roster .aopt i{font:var(--fs-s)/1.3 var(--f10);color:var(--good)}
-body.ui2 #roster .aopt.sel{border-color:var(--xp);box-shadow:inset var(--sp-2) 0 0 var(--xp);outline:none}
-body.ui2 #roster .aopt:disabled{opacity:.5;cursor:not-allowed}
-body.ui2 #roster .aopt:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
-body.ui2 #roster .aconf{background:var(--track);border:var(--bd-fine) solid var(--ink2);border-left:6px solid var(--good);padding:var(--sp-3) var(--sp-4);gap:var(--sp-2)}
-body.ui2 #roster .aconf.risk{border-left-color:var(--warn)}
-body.ui2 #roster .aconf b{font:var(--fs-m)/1.3 var(--f12);font-weight:normal;color:var(--plate-text)}
-body.ui2 #roster .aconf small{font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)}
-body.ui2 #roster .aconf small.warn,body.ui2 #roster .aconf small.poor{color:var(--warn)}
-body.ui2 #roster .buse.eok{min-height:44px;color:var(--plate-text);background:color-mix(in srgb,var(--hp) 55%,var(--plate));border:var(--bd-fine) solid var(--bad)}
-body.ui2 #roster .buse.drop{color:var(--paper2)}
-body.ui2 #roster .sbar{height:var(--sp-3);background:var(--plate);border:var(--bd-fine) solid var(--ink2);box-sizing:border-box}   /* thanh tiến độ: luôn kèm số "x / y" bằng chữ */
-body.ui2 #roster .sbar i{background:var(--c,var(--good))}
+#roster .aopt b{font:var(--fs-m)/1.3 var(--f12);font-weight:normal;color:var(--plate-text)}
+#roster .aopt span{font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)}
+#roster .aopt i{font:var(--fs-s)/1.3 var(--f10);color:var(--good)}
+#roster .aopt.sel{border-color:var(--xp);box-shadow:inset var(--sp-2) 0 0 var(--xp);outline:none}
+#roster .aopt:disabled{opacity:.5;cursor:not-allowed}
+#roster .aopt:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+#roster .aconf{background:var(--track);border:var(--bd-fine) solid var(--ink2);border-left:6px solid var(--good);padding:var(--sp-3) var(--sp-4);gap:var(--sp-2)}
+#roster .aconf.risk{border-left-color:var(--warn)}
+#roster .aconf b{font:var(--fs-m)/1.3 var(--f12);font-weight:normal;color:var(--plate-text)}
+#roster .aconf small{font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)}
+#roster .aconf small.warn,#roster .aconf small.poor{color:var(--warn)}
+#roster .buse.eok{min-height:44px;color:var(--plate-text);background:color-mix(in srgb,var(--hp) 55%,var(--plate));border:var(--bd-fine) solid var(--bad)}
+#roster .buse.drop{color:var(--paper2)}
+#roster .sbar{height:var(--sp-3);background:var(--plate);border:var(--bd-fine) solid var(--ink2);box-sizing:border-box}   /* thanh tiến độ: luôn kèm số "x / y" bằng chữ */
+#roster .sbar i{background:var(--c,var(--good))}
 
 /* (5) Mảnh võ hồn: lưới thẻ, dòng "x/y" + thanh + nút 32 px. Thẻ sẵn sàng (đủ mảnh) có nút viền dày + thanh viền sáng, không chỉ màu. */
-body.ui2 #roster .sgrid .srow{gap:var(--sp-2)}
-body.ui2 #roster .sgrid .srow small{font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)}
-body.ui2 #roster .sgrid .srow.ready small{color:var(--plate-text)}
-body.ui2 #roster .sgrid .sbtn{min-width:0;width:100%}
-body.ui2 #roster .sgrid .srow.ready .sbtn{border-color:var(--c);border-width:var(--bd);color:var(--plate-text)}
-body.ui2 #roster .sgrid .srow.ready .sbar{border-color:var(--c)}
-body.ui2 #roster .p2-state{min-height:var(--sp-6);color:var(--plate-text)}   /* trạng thái rỗng dùng chung (stateBox) */
+#roster .sgrid .srow{gap:var(--sp-2)}
+#roster .sgrid .srow small{font:var(--fs-s)/1.3 var(--f10);color:var(--paper2)}
+#roster .sgrid .srow.ready small{color:var(--plate-text)}
+#roster .sgrid .sbtn{min-width:0;width:100%}
+#roster .sgrid .srow.ready .sbtn{border-color:var(--c);border-width:var(--bd);color:var(--plate-text)}
+#roster .sgrid .srow.ready .sbar{border-color:var(--c)}
+#roster .p2-state{min-height:var(--sp-6);color:var(--plate-text)}   /* trạng thái rỗng dùng chung (stateBox) */
 
 /* Màn thấp (≤ 560 px, nhỏ nhất 960×540): ô gọn hơn khi cỡ chữ chuẩn. */
-body.ui2.ui-h560:not(.a11y-fs-1):not(.a11y-fs-2) #roster .bcell{min-height:48px}
-body.ui2.ui-h560:not(.a11y-fs-1):not(.a11y-fs-2) #roster .cfig.cring-r{width:min(184px,100%)}
-body.ui2.ui-h560:not(.a11y-fs-1):not(.a11y-fs-2) #roster .cfig.cring-r .ccell{width:44px;height:44px}
-body.ui2.ui-h560:not(.a11y-fs-1):not(.a11y-fs-2) #roster .bfig{width:min(240px,100%)}
+.ui-h560:not(.a11y-fs-1):not(.a11y-fs-2) #roster .bcell{min-height:48px}
+.ui-h560:not(.a11y-fs-1):not(.a11y-fs-2) #roster .cfig.cring-r{width:min(184px,100%)}
+.ui-h560:not(.a11y-fs-1):not(.a11y-fs-2) #roster .cfig.cring-r .ccell{width:44px;height:44px}
+.ui-h560:not(.a11y-fs-1):not(.a11y-fs-2) #roster .bfig{width:min(240px,100%)}

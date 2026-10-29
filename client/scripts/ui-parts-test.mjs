@@ -108,9 +108,9 @@ assert.equal(sl.tag, "button"); assert.equal(sl.attrs["aria-disabled"], "true");
 assert.equal(slotNode({ name: "x" }, false).tag, "div"); assert.equal(slotNode({ name: "x", empty: true }).kids.length, 0, "ô trống không có nội dung");
 assert.match(toHtml(slotNode({ name: '<img src=x onerror=alert(1)>' })), /&lt;img/, "tên không qua innerHTML");
 
-// CSS: mọi luật dưới body.ui2, màu chỉ qua token, cỡ chữ theo thang
+// CSS: luật thường (không tiền tố body.ui2), màu chỉ qua token, cỡ chữ theo thang
 const css = readFileSync(new URL("../src/ui2-parts.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-for (const m of css.matchAll(/(^|\})\s*([^{}@]+)\{/g)) for (const sel of m[2].split(/,(?![^(]*\))/)) assert.ok(/^body.ui2[ .]/.test(sel.trim()), `luật không nằm dưới body.ui2: ${sel.trim()}`);
+assert.ok(!/body\.ui2(?![\w-])/.test(css), "đợt 5c-b: luật thường, không còn tiền tố body.ui2");
 assert.ok(!/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(css), "màu chỉ qua token");
 assert.ok(!/font(-size)?\s*:[^;}]*\b(11|13|14|16|18)px/.test(css), "cỡ chữ ngoài thang 10 / 12 / 24");
 assert.ok(!/border-image/.test(css), "border-image chỉ ở ui2.css");

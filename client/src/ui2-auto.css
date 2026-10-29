@@ -1,98 +1,97 @@
-/* UI v2: Tự động (#autoPanel), tổng kết tự động (#autoSum) và Ủy thác trở về (#offline) theo kit GIẤY, Part of #885 / #877 (đợt 2c còn lại). Mọi luật dưới `body.ui2`
-   (`?ui=0` giữ bảng cũ nguyên). Khung do lớp `f2-giay-lon` / `f2-giay-nho` của ui2.css lo (autoPanel.ts / offline.ts gắn khi bật cờ); kit chưa có nút / thanh Giấy
+/* UI v2: Tự động (#autoPanel), tổng kết tự động (#autoSum) và Ủy thác trở về (#offline) theo kit GIẤY, Part of #885 / #877 (đợt 2c còn lại). Luật thường (đợt 5c-b: đã bỏ tiền tố body.ui2; luật cũ ở style.css gỡ ở đợt 5b). Khung do lớp `f2-giay-lon` / `f2-giay-nho` của ui2.css lo (autoPanel.ts / offline.ts gắn); kit chưa có nút / thanh Giấy
    nên nút dùng mảnh kit dùng chung (`f2-nut-*`, chữ sáng trên mảnh tối), công tắc / chip / thanh trượt dựng bằng token. Chỉ trình bày: cài đặt, số liệu và lý do dừng do server quyết.
    Trạng thái là HÌNH + CHỮ (ô vuông đặc / rỗng cạnh "Đang tự săn" / "Đang tắt", công tắc có chữ Bật / Tắt), không chỉ màu. Chữ qua --fs-*, vùng bấm ≥ 32 px (công tắc, chip, − / + : 44 px). */
 
 /* (1) Khung Giấy thắng luật `#id` / `.thuymac #id` cũ của style.css. */
-body.ui2.ui2-k-khung-giay-lon :is(#autoPanel,#autoSum,#offline).f2-giay-lon,body.ui2.ui2-k-khung-giay-nho :is(#autoPanel,#autoSum,#offline).f2-giay-nho{
+.ui2-k-khung-giay-lon :is(#autoPanel,#autoSum,#offline).f2-giay-lon,.ui2-k-khung-giay-nho :is(#autoPanel,#autoSum,#offline).f2-giay-nho{
   box-sizing:border-box;border-style:solid;border-color:transparent;border-width:var(--frame-bw);border-image:var(--frame-img) var(--frame-nine) fill / var(--frame-bw) stretch;
   background:none;box-shadow:none;backdrop-filter:none;image-rendering:pixelated}
-body.ui2 :is(#autoPanel,#autoSum,#offline){color:var(--text);font:var(--fs-m)/1.3 var(--f12);scrollbar-width:thin;scrollbar-color:var(--paper3) transparent}
-body.ui2 #autoPanel{width:min(460px,94vw);gap:var(--sp-4);padding:var(--sp-4)}
-body.ui2 #autoSum{width:min(360px,92vw);gap:var(--sp-4);padding:var(--sp-4)}
-body.ui2 #offline{width:min(420px,94vw);padding:var(--sp-4)}
-body.ui2 :is(#autoPanel,#autoSum,#offline) :is(button,input,select,summary):focus-visible,body.ui2 #autoPanel .achip input:focus-visible+span,body.ui2 #autoPanel .apill input:focus-visible+i{
+:is(#autoPanel,#autoSum,#offline){color:var(--text);font:var(--fs-m)/1.3 var(--f12);scrollbar-width:thin;scrollbar-color:var(--paper3) transparent}
+#autoPanel{width:min(460px,94vw);gap:var(--sp-4);padding:var(--sp-4)}
+#autoSum{width:min(360px,92vw);gap:var(--sp-4);padding:var(--sp-4)}
+#offline{width:min(420px,94vw);padding:var(--sp-4)}
+:is(#autoPanel,#autoSum,#offline) :is(button,input,select,summary):focus-visible,#autoPanel .achip input:focus-visible+span,#autoPanel .apill input:focus-visible+i{
   outline:var(--bd) solid var(--son);outline-offset:var(--bd)}
 
 /* (2) Đầu bảng: tên + nút đóng (cùng cỡ với các bảng Giấy khác). */
-body.ui2 :is(#autoPanel,#autoSum) .rhead{align-items:center;gap:var(--sp-4);border-bottom:var(--bd-fine) solid var(--paper3);padding-bottom:var(--sp-3);background:none}
-body.ui2 :is(#autoPanel,#autoSum) .rhead b{font:var(--fs-l)/1.2 var(--f12);font-weight:normal;color:var(--text);text-shadow:none}
-body.ui2 :is(#autoPanel,#autoSum) .rhead .x{min-width:32px;min-height:32px;box-sizing:border-box;cursor:pointer;font:var(--fs-m)/1 var(--f12);color:var(--text);background:var(--paper2);border:var(--bd-fine) solid var(--paper3)}
-body.ui2 :is(#autoPanel,#autoSum) .rhead .x:hover{border-color:var(--ink2)}
-body.ui2 :is(#autoPanel,#autoSum) :is(.anote,small){font:var(--fs-s)/1.4 var(--f10);color:var(--muted)}
+:is(#autoPanel,#autoSum) .rhead{align-items:center;gap:var(--sp-4);border-bottom:var(--bd-fine) solid var(--paper3);padding-bottom:var(--sp-3);background:none}
+:is(#autoPanel,#autoSum) .rhead b{font:var(--fs-l)/1.2 var(--f12);font-weight:normal;color:var(--text);text-shadow:none}
+:is(#autoPanel,#autoSum) .rhead .x{min-width:32px;min-height:32px;box-sizing:border-box;cursor:pointer;font:var(--fs-m)/1 var(--f12);color:var(--text);background:var(--paper2);border:var(--bd-fine) solid var(--paper3)}
+:is(#autoPanel,#autoSum) .rhead .x:hover{border-color:var(--ink2)}
+:is(#autoPanel,#autoSum) :is(.anote,small),:is(#autoPanel,#autoSum) .asec small{font:var(--fs-s)/1.4 var(--f10);color:var(--muted)}
 
 /* (3) Dải trạng thái: ô vuông đặc = đang tự săn, rỗng = đang tắt (autoPanel.ts đặt data-on); vạch trái dày cùng nghĩa. */
-body.ui2 #autoPanel [data-a=status]{display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-3) var(--sp-4);background:var(--paper2);border:var(--bd-fine) solid var(--paper3);border-left:var(--bd) solid var(--paper3);font:var(--fs-m)/1.3 var(--f12);color:var(--text)}
-body.ui2 #autoPanel [data-a=status]::before{content:"";flex:none;box-sizing:border-box;width:12px;height:12px;border:var(--bd) solid var(--ink2);background:transparent}
-body.ui2 #autoPanel[data-on="1"] [data-a=status]{border-left-color:var(--good)}
-body.ui2 #autoPanel[data-on="1"] [data-a=status]::before{background:var(--good);border-color:var(--good)}
+#autoPanel [data-a=status]{display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-3) var(--sp-4);background:var(--paper2);border:var(--bd-fine) solid var(--paper3);border-left:var(--bd) solid var(--paper3);font:var(--fs-m)/1.3 var(--f12);color:var(--text)}
+#autoPanel [data-a=status]::before{content:"";flex:none;box-sizing:border-box;width:12px;height:12px;border:var(--bd) solid var(--ink2);background:transparent}
+#autoPanel[data-on="1"] [data-a=status]{border-left-color:var(--good)}
+#autoPanel[data-on="1"] [data-a=status]::before{background:var(--good);border-color:var(--good)}
 
 /* (4) Nút bật / tắt tự động: nút chính (son) khi đang tắt, nút phụ khi đang bật (bấm để tắt); 44 px. */
-body.ui2.ui2-k-nut-phu-thuong #autoPanel .f2-nut-phu,body.ui2.ui2-k-nut-chinh-thuong #autoPanel .f2-nut-chinh,
-body.ui2.ui2-k-nut-phu-thuong :is(#autoSum,#offline) .f2-nut-phu,body.ui2.ui2-k-nut-chinh-thuong :is(#autoSum,#offline) .f2-nut-chinh{
+.ui2-k-nut-phu-thuong #autoPanel .f2-nut-phu,.ui2-k-nut-chinh-thuong #autoPanel .f2-nut-chinh,
+.ui2-k-nut-phu-thuong :is(#autoSum,#offline) .f2-nut-phu,.ui2-k-nut-chinh-thuong :is(#autoSum,#offline) .f2-nut-chinh{
   box-sizing:border-box;border-style:solid;border-color:transparent;border-width:var(--frame-bw);border-image:var(--frame-img) var(--frame-nine) fill / var(--frame-bw) stretch;
   background:none;box-shadow:none;image-rendering:pixelated;color:var(--plate-text);text-shadow:none;cursor:pointer}
-body.ui2 #autoPanel :is(.buse,.rlink){font:var(--fs-m)/1.2 var(--f12);min-height:44px;padding:0 var(--sp-5)}
-body.ui2 #autoPanel .atoggle{min-height:48px;font:var(--fs-m)/1.2 var(--f12)}
-body.ui2 #autoPanel .atoggle kbd{font:var(--fs-s)/1 var(--f10);border:var(--bd-fine) solid currentColor;padding:var(--sp-2) var(--sp-3);margin-left:var(--sp-4);opacity:1}
-body.ui2 #autoPanel :is(.buse,.rlink):disabled{cursor:not-allowed;opacity:.75}
-body.ui2 #autoPanel .rlink{min-width:44px;padding:0}
+#autoPanel :is(.buse,.rlink){font:var(--fs-m)/1.2 var(--f12);min-height:44px;padding:0 var(--sp-5)}
+#autoPanel .atoggle{min-height:48px;font:var(--fs-m)/1.2 var(--f12)}
+#autoPanel .atoggle kbd{font:var(--fs-s)/1 var(--f10);border:var(--bd-fine) solid currentColor;padding:var(--sp-2) var(--sp-3);margin-left:var(--sp-4);opacity:1}
+#autoPanel :is(.buse,.rlink):disabled{cursor:not-allowed;opacity:.75}
+#autoPanel .rlink.rlink{min-width:44px;padding:0}
 
 /* (5) Mục cài đặt: thẻ giấy đậm, vạch trái dày; tiêu đề mục 12 chữ thường, không in đậm. */
-body.ui2 #autoPanel .asec{gap:var(--sp-4);padding:var(--sp-4);background:var(--paper);border:var(--bd-fine) solid var(--paper3);border-left:var(--sp-3) solid var(--ink2)}
-body.ui2 #autoPanel .asec>b,body.ui2 #autoPanel .asub{font:var(--fs-m)/1.3 var(--f12);font-weight:normal;color:var(--text);border-bottom:var(--bd-fine) solid var(--paper3);padding-bottom:var(--sp-2)}
-body.ui2 #autoPanel .asub{margin-top:var(--sp-3)}
-body.ui2 #autoPanel :is(.arange,.aline,.achk){font:var(--fs-m)/1.3 var(--f12);color:var(--text)}
-body.ui2 #autoPanel output{font:var(--fs-m)/1 var(--f12);color:var(--accent)}
-body.ui2 #autoPanel .anote{padding:var(--sp-3) var(--sp-4);background:var(--paper2);border:var(--bd-fine) solid var(--paper3)}
-body.ui2 #autoPanel .ayerr{color:var(--bad)}
-body.ui2 #autoPanel .ayerr::before{content:"Lỗi · "}
+#autoPanel .asec{gap:var(--sp-4);padding:var(--sp-4);background:var(--paper);border:var(--bd-fine) solid var(--paper3);border-left:var(--sp-3) solid var(--ink2)}
+#autoPanel .asec>b,#autoPanel .asub{font:var(--fs-m)/1.3 var(--f12);font-weight:normal;color:var(--text);border-bottom:var(--bd-fine) solid var(--paper3);padding-bottom:var(--sp-2)}
+#autoPanel .asub{margin-top:var(--sp-3)}
+#autoPanel :is(.arange,.aline,.achk){font:var(--fs-m)/1.3 var(--f12);color:var(--text)}
+#autoPanel output{font:var(--fs-m)/1 var(--f12);color:var(--accent)}
+#autoPanel .anote{padding:var(--sp-3) var(--sp-4);background:var(--paper2);border:var(--bd-fine) solid var(--paper3)}
+#autoPanel .ayerr{color:var(--bad)}
+#autoPanel .ayerr::before{content:"Lỗi · "}
 
 /* (6) Thanh trượt, ô số, ô chọn: ô Giấy viền mực. */
-body.ui2 #autoPanel .arange input[type=range]{accent-color:var(--son);height:44px}
-body.ui2 #autoPanel :is(input[type=number],select){font:var(--fs-m)/1.2 var(--f12);min-height:44px;color:var(--ink);background:var(--paper);border:var(--bd) solid var(--ink2);border-radius:0}
-body.ui2 #autoPanel :is(input[type=number],select):focus-visible{border-color:var(--son)}
-body.ui2 #autoPanel input[aria-invalid]{background:var(--paper2);color:var(--bad);border-color:var(--bad)}
-body.ui2 #autoPanel .astp{border:var(--bd) solid var(--ink2);background:var(--paper)}
-body.ui2 #autoPanel .astp button{font:var(--fs-l)/1 var(--f12);color:var(--ink);background:var(--paper2);border:0}
-body.ui2 #autoPanel .astp button:hover{background:var(--paper3)}
-body.ui2 #autoPanel .astp:has(input[aria-invalid]){border-color:var(--bad)}
+#autoPanel .arange input[type=range]{accent-color:var(--son);height:44px}
+#autoPanel :is(input[type=number],select),#autoPanel .astp input[type=number]{font:var(--fs-m)/1.2 var(--f12);min-height:44px;color:var(--ink);background:var(--paper);border:var(--bd) solid var(--ink2);border-radius:0}
+#autoPanel :is(input[type=number],select):focus-visible{border-color:var(--son)}
+#autoPanel input[aria-invalid]{background:var(--paper2);color:var(--bad);border-color:var(--bad)}
+#autoPanel .astp{border:var(--bd) solid var(--ink2);background:var(--paper)}
+#autoPanel .astp button{font:var(--fs-l)/1 var(--f12);color:var(--ink);background:var(--paper2);border:0}
+#autoPanel .astp button:hover{background:var(--paper3)}
+#autoPanel .astp:has(input[aria-invalid]){border-color:var(--bad)}
 
 /* (7) Công tắc: ô vuông (không bo tròn) có chữ Bật / Tắt trong nút, nên không chỉ phân biệt bằng màu. */
-body.ui2 #autoPanel .apill i{width:56px;height:28px;border:var(--bd) solid var(--ink2);border-radius:0;background:var(--paper3)}
-body.ui2 #autoPanel .apill i::after{top:var(--bd);left:var(--bd);width:20px;height:20px;border-radius:0;background:var(--ink2);transition:none}
-body.ui2 #autoPanel .apill i::before{content:"Tắt";position:absolute;right:var(--sp-3);top:0;font:var(--fs-s)/24px var(--f10);color:var(--ink)}
-body.ui2 #autoPanel .apill input:checked+i{background:var(--good);border-color:var(--ink2)}
-body.ui2 #autoPanel .apill input:checked+i::before{content:"Bật";right:auto;left:var(--sp-3);color:var(--paper)}
-body.ui2 #autoPanel .apill input:checked+i::after{left:32px;background:var(--paper)}
-body.ui2 #autoPanel .apill input:disabled+i{opacity:.5}
+#autoPanel .apill i{width:56px;height:28px;border:var(--bd) solid var(--ink2);border-radius:0;background:var(--paper3)}
+#autoPanel .apill i::after{top:var(--bd);left:var(--bd);width:20px;height:20px;border-radius:0;background:var(--ink2);transition:none}
+#autoPanel .apill i::before{content:"Tắt";position:absolute;right:var(--sp-3);top:0;font:var(--fs-s)/24px var(--f10);color:var(--ink)}
+#autoPanel .apill input:checked+i{background:var(--good);border-color:var(--ink2)}
+#autoPanel .apill input:checked+i::before{content:"Bật";right:auto;left:var(--sp-3);color:var(--paper)}
+#autoPanel .apill input:checked+i::after{left:32px;background:var(--paper)}
+#autoPanel .apill input:disabled+i{opacity:.5}
 
 /* (8) Chip chọn một (vùng săn, niên hạn mẫu): tấm mực chữ giấy; đang chọn = vạch dày dưới chân + chữ đổi nền (hình, không chỉ màu). */
-body.ui2 #autoPanel .achip span{font:var(--fs-m)/1.2 var(--f12);min-height:44px;padding:0 var(--sp-5);color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2)}
-body.ui2 #autoPanel .achip input:checked+span,body.ui2 #autoPanel .achip.on span{background:var(--son-d);border-color:var(--ink2);border-bottom:var(--sp-3) solid var(--paper);color:var(--plate-text)}
-body.ui2 #autoPanel .achip.on:not(:has(input)) span{background:var(--son-d)}
+#autoPanel .achip span{font:var(--fs-m)/1.2 var(--f12);min-height:44px;padding:0 var(--sp-5);color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2)}
+#autoPanel .achip input:checked+span,#autoPanel .achip.on span{background:var(--son-d);border-color:var(--ink2);border-bottom:var(--sp-3) solid var(--paper);color:var(--plate-text)}
+#autoPanel .achip.on:not(:has(input)) span{background:var(--son-d)}
 
 /* (9) Danh sách thứ tự (hồn kỹ / đội hình): dòng thấp, nút ▲ ▼ là nút phụ. */
-body.ui2 #autoPanel .aorder li{gap:var(--sp-3);padding:var(--sp-2) 0;border-bottom:var(--bd-fine) dashed var(--paper3)}
+#autoPanel .aorder li{gap:var(--sp-3);padding:var(--sp-2) 0;border-bottom:var(--bd-fine) dashed var(--paper3)}
 
 /* (10) Tổng kết: lưới nhãn / giá trị, hàng kẻ nét đứt; giá trị khớp tông chữ chính (tổng kết hiện trong #autoPanel, #autoSum, đều dùng .asum). */
-body.ui2 .asum{gap:0 var(--sp-5);font:var(--fs-m)/1.4 var(--f12)}
-body.ui2 .asum>*{padding:var(--sp-2) 0;border-bottom:var(--bd-fine) dashed var(--paper3)}
-body.ui2 .asum span{color:var(--muted)}
-body.ui2 .asum b{color:var(--text)}
-body.ui2 #autoSum [data-a=why],body.ui2 #autoSum>small.anote{padding:var(--sp-3) var(--sp-4);background:var(--paper2);border:var(--bd-fine) solid var(--paper3);border-left:var(--bd) solid var(--bad);color:var(--text);font:var(--fs-m)/1.3 var(--f12)}   /* lý do dừng: vạch trái dày + chữ "Đã dừng", không chỉ màu */
+.asum{gap:0 var(--sp-5);font:var(--fs-m)/1.4 var(--f12)}
+.asum>*{padding:var(--sp-2) 0;border-bottom:var(--bd-fine) dashed var(--paper3)}
+.asum span{color:var(--muted)}
+.asum b{color:var(--text)}
+#autoSum [data-a=why],#autoSum>small.anote{padding:var(--sp-3) var(--sp-4);background:var(--paper2);border:var(--bd-fine) solid var(--paper3);border-left:var(--bd) solid var(--bad);color:var(--text);font:var(--fs-m)/1.3 var(--f12)}   /* lý do dừng: vạch trái dày + chữ "Đã dừng", không chỉ màu */
 
 /* (11) Ủy thác trở về: tiêu đề, các dòng số liệu thành hàng kẻ nét đứt, thưởng nổi bật, vật phẩm trong ô giấy, "Dừng sớm" có vạch trái; nút Nhận là nút chính. */
-body.ui2 #offline h2{margin:0 0 var(--sp-3);padding-bottom:var(--sp-3);border-bottom:var(--bd) solid var(--ink2);font:var(--fs-l)/1.2 var(--f12);font-weight:normal;color:var(--text);text-shadow:none}
-body.ui2 #offline .oline{margin:0;padding:var(--sp-3) 0;border-bottom:var(--bd-fine) dashed var(--paper3);font:var(--fs-m)/1.4 var(--f12);color:var(--text)}
-body.ui2 #offline .omuted{color:var(--muted);text-align:left}
-body.ui2 #offline .orew{margin-top:var(--sp-3);padding:var(--sp-4);background:var(--paper2);border:var(--bd-fine) solid var(--paper3);border-left:var(--sp-3) solid var(--good);color:var(--text)}
-body.ui2 #offline .ostop{padding:var(--sp-3) var(--sp-4);background:var(--paper2);border-left:var(--bd) solid var(--bad);color:var(--text)}
-body.ui2 #offline .oitems{margin:var(--sp-3) 0;padding:var(--sp-3) var(--sp-4) var(--sp-3) var(--sp-6);background:var(--paper);border:var(--bd-fine) solid var(--paper3);font:var(--fs-m)/1.5 var(--f12);max-height:120px}
-body.ui2 #offline .rnote{display:block;margin-top:var(--sp-3);font:var(--fs-s)/1.4 var(--f10);color:var(--muted)}
-body.ui2 #offline .brow{display:flex;justify-content:flex-end;position:sticky;bottom:calc(var(--sp-4) * -1);margin:var(--sp-4) calc(var(--sp-4) * -1) calc(var(--sp-4) * -1);padding:var(--sp-4);background:var(--paper2);border-top:var(--bd-fine) solid var(--paper3)}   /* nút Nhận luôn thấy, dù danh sách dài phải cuộn */
-body.ui2 #offline .buse{min-height:44px;min-width:120px;padding:0 var(--sp-5);font:var(--fs-m)/1.2 var(--f12)}
+#offline h2{margin:0 0 var(--sp-3);padding-bottom:var(--sp-3);border-bottom:var(--bd) solid var(--ink2);font:var(--fs-l)/1.2 var(--f12);font-weight:normal;color:var(--text);text-shadow:none}
+#offline .oline{margin:0;padding:var(--sp-3) 0;border-bottom:var(--bd-fine) dashed var(--paper3);font:var(--fs-m)/1.4 var(--f12);color:var(--text)}
+#offline .omuted{color:var(--muted);text-align:left}
+#offline .orew{margin-top:var(--sp-3);padding:var(--sp-4);background:var(--paper2);border:var(--bd-fine) solid var(--paper3);border-left:var(--sp-3) solid var(--good);color:var(--text)}
+#offline .ostop{padding:var(--sp-3) var(--sp-4);background:var(--paper2);border-left:var(--bd) solid var(--bad);color:var(--text)}
+#offline .oitems{margin:var(--sp-3) 0;padding:var(--sp-3) var(--sp-4) var(--sp-3) var(--sp-6);background:var(--paper);border:var(--bd-fine) solid var(--paper3);font:var(--fs-m)/1.5 var(--f12);max-height:120px}
+#offline .rnote{display:block;margin-top:var(--sp-3);font:var(--fs-s)/1.4 var(--f10);color:var(--muted)}
+#offline .brow{display:flex;justify-content:flex-end;position:sticky;bottom:calc(var(--sp-4) * -1);margin:var(--sp-4) calc(var(--sp-4) * -1) calc(var(--sp-4) * -1);padding:var(--sp-4);background:var(--paper2);border-top:var(--bd-fine) solid var(--paper3)}   /* nút Nhận luôn thấy, dù danh sách dài phải cuộn */
+#offline .buse{min-height:44px;min-width:120px;padding:0 var(--sp-5);font:var(--fs-m)/1.2 var(--f12)}
 
 /* (12) Chữ phím tắt trên thanh kỹ năng (.key, z-index 4) từng nổi lên trên mọi bảng giữa màn hình (cùng z-index 4, #bottombar đứng sau trong DOM): cho #bottombar
    một lớp xếp chồng thấp nên bảng luôn phủ lên thanh kỹ năng. Chỉ dưới cờ ui2; tooltip / toast / banner có lớp riêng cao hơn. */
-body.ui2 #hud #bottombar{z-index:1}
+#hud #bottombar{z-index:1}

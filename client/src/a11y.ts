@@ -84,6 +84,6 @@ export const KEY_GROUPS: readonly { title: string; rows: readonly KeyRow[] }[] =
     { code: "KeyN", key: "N", action: "Bản đồ khu vực" },
     { code: "BracketLeft", key: "[ ]", action: "Chuyển tab ở bảng Nhân vật" },
     { code: "Enter", key: "Enter", action: "Mở khung chat" },
-    { code: "Escape", key: "Esc", action: "Đóng bảng trên cùng / bỏ khoá mục tiêu / mở menu (ui2)" },
+    { code: "Escape", key: "Esc", action: "Đóng bảng trên cùng / bỏ khoá mục tiêu / mở menu" },
   ] },
 ];
