@@ -1,0 +1,73 @@
+{
+  "tool": "Playwright Chrome, --mute-audio; âm lượng game 0, muted=true",
+  "date": "2026-10-29T21:00:04.641Z",
+  "imageBytesUnmodified": true,
+  "viewport": [
+    1600,
+    900
+  ],
+  "items": [
+    {
+      "file": "m-idle.png",
+      "url": "/choi?thu=vukhi&vh=can_khon_hon_nguyen_toa&gioi=m&trang=idle&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "m-walk.png",
+      "url": "/choi?thu=vukhi&vh=can_khon_hon_nguyen_toa&gioi=m&trang=walk&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "m-attack.png",
+      "url": "/choi?thu=vukhi&vh=can_khon_hon_nguyen_toa&gioi=m&trang=attack&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "m-cast.png",
+      "url": "/choi?thu=vukhi&vh=can_khon_hon_nguyen_toa&gioi=m&trang=cast&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-idle.png",
+      "url": "/choi?thu=vukhi&vh=can_khon_hon_nguyen_toa&gioi=f&trang=idle&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-walk.png",
+      "url": "/choi?thu=vukhi&vh=can_khon_hon_nguyen_toa&gioi=f&trang=walk&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-attack.png",
+      "url": "/choi?thu=vukhi&vh=can_khon_hon_nguyen_toa&gioi=f&trang=attack&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "f-cast.png",
+      "url": "/choi?thu=vukhi&vh=can_khon_hon_nguyen_toa&gioi=f&trang=cast&ms=120&tay=0&zoom=3&khac=bach_ho",
+      "mode": "that"
+    },
+    {
+      "file": "game-scene-m-idle.png",
+      "url": "/choi?lag=1",
+      "scene": "game",
+      "sex": "m"
+    },
+    {
+      "file": "game-scene-f-idle.png",
+      "url": "/choi?lag=1",
+      "scene": "game",
+      "sex": "f"
+    }
+  ],
+  "assets": [
+    {
+      "file": "shared/assets/sprites/vukhianim/can_khon_hon_nguyen_toa_b.png",
+      "sha256": "f849d49b133394dc939daeee6848ccf183070c59e38ed221bbba38115f527b74"
+    },
+    {
+      "file": "shared/assets/sprites/vukhianim/can_khon_hon_nguyen_toa_f.png",
+      "sha256": "d83a926ca1e064ef3a7e8ce3e616eccc0975d4362fafe5aef03348e682039852"
+    }
+  ]
+}

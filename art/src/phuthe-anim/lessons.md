@@ -126,6 +126,9 @@ Chỉ các dòng `@VUKHI` được chèn vào prompt kiểu vũ khí (`--kind vu
 ## Bài học rollout A Ngân `@VUKHI-MEM`
 
 - **@VUKHI-MEM** Keep the small golden flower attached to the single root grip, one continuous blue-gold cord and one tapered tip. Show calyx and backs of petals in rear views, no pale flower center facing viewer. Use a tiny red registration dot absent from the weapon palette. // A Ngân: năm atlas một lượt/hướng, ghép 0 chặn; cần duyệt độ rõ hoa và chiều dài dây ở cỡ game.
+## Bài học rollout Càn Khôn Hỗn Nguyên Tỏa `@VUKHI-MEM`
+
+- **@VUKHI-MEM** Keep thick chain links touching or overlapping as one continuous silhouette from the single grip to the heavy ring-lock end. Show a distinct rear plate without the front red seal for north-facing views. // Khóa xích: năm atlas một lượt, ghép 0 chặn; vẫn cần duyệt kích thước vòng/chiều dài xích và lớp cast ở cỡ game.
 
 ## Bài học riêng `@VUKHI-MEM` — vòng 2 Lam Ngân Thảo, chỉ hướng e
 
