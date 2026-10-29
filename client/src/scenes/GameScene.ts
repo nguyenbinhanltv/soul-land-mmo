@@ -3265,6 +3265,7 @@ export class GameScene extends Phaser.Scene {
     }
     if (this.watching && (this.hudT -= dt) <= 0) { this.hudT = 0.08; this.arenaBar(st); } // người xem không có `me` nên hudT không dùng chỗ khác
     if (me) {
+      pingAck(me.seq ?? 0); // mỗi khung hình (không theo nhịp hudT 0,08 s) để RTT không bị cộng thêm 0–80 ms (UI v2)
       this.hudT -= dt;
       if (this.hudT <= 0) { this.hudT = 0.08; this.updateHud(me); this.updateNpcs(me); }
     }
@@ -3728,13 +3729,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * UI v2 (cờ ui2; tắt thì không làm gì): chấm ping (pingAck mỗi khung hình đọc số input server đã nhận) và mũi tên rìa màn chỉ mục tiêu nhiệm vụ
+   * UI v2 (cờ ui2; tắt thì không làm gì): mũi tên rìa màn chỉ mục tiêu nhiệm vụ
    * (điểm đã tính cho bản đồ nhỏ, questTargets; không thêm tin server). Mũi tên tính lại 4 lần / giây.
    */
   private uiTickAt = 0;
   uiTick(me: any) {
     if (!isUi2()) return;
-    pingAck(me.seq ?? 0);
     const now = performance.now(); if (now - this.uiTickAt < 250) return; this.uiTickAt = now;
     pingTick();
     if (this.watching || document.body.classList.contains("arena")) return setQuestArrow(null);
