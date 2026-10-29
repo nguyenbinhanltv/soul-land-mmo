@@ -50,6 +50,7 @@ body.ui2 #npc.n2 :is(.forge,.epick) :is(.aopt,.buse):disabled{cursor:not-allowed
 body.ui2 #npc.n2 :is(.forge,.epick) .brow{display:flex;flex-wrap:wrap;gap:var(--sp-3)}
 body.ui2 #npc.n2 :is(.forge,.epick) .brow .buse{flex:1 1 auto}
 body.ui2 #npc.n2 :is(.forge,.epick) :is(button,input):focus-visible{outline:var(--bd) solid var(--son-l);outline-offset:var(--bd)}
+body.ui2 #npc.n2 :is(.forge,.epick) .aopt.danger:focus-visible{outline:var(--bd) solid var(--son-l);outline-offset:var(--bd)}   /* thắng outline son đậm mặc định của nút nguy hiểm */
 
 /* (7) Màn nhỏ nhất 960x540: nội dung cuộn trong hộp, nút chính dính đáy khi bảng xem trước dài. */
 body.ui2 #npc.n2 .forge>:is(.aopt.absorb,.aopt.danger){position:sticky;bottom:0;z-index:1}
