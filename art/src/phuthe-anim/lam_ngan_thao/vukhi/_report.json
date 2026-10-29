@@ -1,0 +1,983 @@
+{
+  "id": "lam_ngan_thao",
+  "kind": "vukhi",
+  "group": "B",
+  "frame": 96,
+  "dummyKey": "#30D030",
+  "gripKey": "#FFE000",
+  "sheets": {
+    "A": {
+      "dir": "s",
+      "size": [
+        1536,
+        1024
+      ],
+      "factor": 1,
+      "key": [
+        250,
+        3,
+        251
+      ],
+      "grid": "uniform",
+      "shift": {
+        "dx": 0,
+        "dy": -1
+      },
+      "registered": 22,
+      "cells": 22,
+      "sourceSha256": "4b0b2579ff78b4bce6b191229d99bf839da28fba63a4e75fbdeec867bb0b11b8"
+    },
+    "B": {
+      "dir": "se",
+      "size": [
+        1536,
+        1024
+      ],
+      "factor": 1,
+      "key": [
+        250,
+        3,
+        250
+      ],
+      "grid": "uniform",
+      "shift": {
+        "dx": 0,
+        "dy": 0
+      },
+      "registered": 22,
+      "cells": 22,
+      "sourceSha256": "e67dadbf3bc7210ea8c5472c94bdde67303cf5d4ff81c79ba4c7003511de5e38"
+    },
+    "C": {
+      "dir": "e",
+      "size": [
+        1536,
+        1024
+      ],
+      "factor": 1,
+      "key": [
+        251,
+        3,
+        251
+      ],
+      "grid": "uniform",
+      "shift": {
+        "dx": -2,
+        "dy": 8
+      },
+      "registered": 21,
+      "cells": 22,
+      "sourceSha256": "cc0c53e11ea22e916625ae52000e8a3608d560d72de6d1872923c463fd255e34"
+    },
+    "D": {
+      "dir": "ne",
+      "size": [
+        1536,
+        1024
+      ],
+      "factor": 1,
+      "key": [
+        249,
+        3,
+        250
+      ],
+      "grid": "uniform",
+      "shift": {
+        "dx": 0,
+        "dy": 4
+      },
+      "registered": 22,
+      "cells": 22,
+      "sourceSha256": "1fb0c4f94b66db69bdcb90604b1932d24a41a5df08fd3c9e9d8d5e32eea0a4d6"
+    },
+    "E": {
+      "dir": "n",
+      "size": [
+        1536,
+        1024
+      ],
+      "factor": 1,
+      "key": [
+        251,
+        3,
+        251
+      ],
+      "grid": "uniform",
+      "shift": {
+        "dx": 0,
+        "dy": 4
+      },
+      "registered": 22,
+      "cells": 22,
+      "sourceSha256": "76cc5ecb5a48ee12160504018cca2a197cb4de3de0c40e54780e301f672c3cfb"
+    }
+  },
+  "dropped": 6174,
+  "palette": 32,
+  "outline": "tô lại viền tối sẵn có",
+  "halves": {
+    "b": {
+      "pixels": 47458,
+      "blank": false
+    },
+    "f": {
+      "pixels": 89486,
+      "blank": false
+    }
+  },
+  "sexShift": {
+    "f/s/idle/0": [
+      0,
+      0
+    ],
+    "f/s/idle/1": [
+      0,
+      0
+    ],
+    "f/s/idle/2": [
+      0,
+      0
+    ],
+    "f/s/idle/3": [
+      0,
+      0
+    ],
+    "f/s/walk/0": [
+      0,
+      0
+    ],
+    "f/s/walk/1": [
+      0,
+      0
+    ],
+    "f/s/walk/2": [
+      0,
+      0
+    ],
+    "f/s/walk/3": [
+      0,
+      0
+    ],
+    "f/s/walk/4": [
+      0,
+      0
+    ],
+    "f/s/walk/5": [
+      0,
+      0
+    ],
+    "f/s/attack/0": [
+      0,
+      0
+    ],
+    "f/s/attack/1": [
+      0,
+      0
+    ],
+    "f/s/attack/2": [
+      0,
+      1
+    ],
+    "f/s/attack/3": [
+      0,
+      1
+    ],
+    "f/s/attack/4": [
+      1,
+      0
+    ],
+    "f/s/attack/5": [
+      1,
+      0
+    ],
+    "f/s/cast/0": [
+      0,
+      0
+    ],
+    "f/s/cast/1": [
+      0,
+      0
+    ],
+    "f/s/cast/2": [
+      0,
+      0
+    ],
+    "f/s/cast/3": [
+      0,
+      0
+    ],
+    "f/s/hurt/0": [
+      -1,
+      1
+    ],
+    "f/s/hurt/1": [
+      -1,
+      1
+    ],
+    "f/se/idle/0": [
+      0,
+      0
+    ],
+    "f/se/idle/1": [
+      0,
+      0
+    ],
+    "f/se/idle/2": [
+      0,
+      0
+    ],
+    "f/se/idle/3": [
+      0,
+      0
+    ],
+    "f/se/walk/0": [
+      0,
+      0
+    ],
+    "f/se/walk/1": [
+      0,
+      0
+    ],
+    "f/se/walk/2": [
+      0,
+      0
+    ],
+    "f/se/walk/3": [
+      1,
+      -1
+    ],
+    "f/se/walk/4": [
+      1,
+      -1
+    ],
+    "f/se/walk/5": [
+      0,
+      -1
+    ],
+    "f/se/attack/0": [
+      0,
+      0
+    ],
+    "f/se/attack/1": [
+      0,
+      -1
+    ],
+    "f/se/attack/2": [
+      0,
+      -1
+    ],
+    "f/se/attack/3": [
+      0,
+      -1
+    ],
+    "f/se/attack/4": [
+      -1,
+      0
+    ],
+    "f/se/attack/5": [
+      -1,
+      0
+    ],
+    "f/se/cast/0": [
+      0,
+      0
+    ],
+    "f/se/cast/1": [
+      0,
+      -1
+    ],
+    "f/se/cast/2": [
+      0,
+      -1
+    ],
+    "f/se/cast/3": [
+      0,
+      0
+    ],
+    "f/se/hurt/0": [
+      -1,
+      1
+    ],
+    "f/se/hurt/1": [
+      -1,
+      1
+    ],
+    "f/e/idle/0": [
+      0,
+      0
+    ],
+    "f/e/idle/1": [
+      0,
+      0
+    ],
+    "f/e/idle/2": [
+      0,
+      0
+    ],
+    "f/e/idle/3": [
+      0,
+      0
+    ],
+    "f/e/walk/0": [
+      0,
+      0
+    ],
+    "f/e/walk/1": [
+      0,
+      0
+    ],
+    "f/e/walk/2": [
+      0,
+      0
+    ],
+    "f/e/walk/3": [
+      1,
+      -1
+    ],
+    "f/e/walk/4": [
+      1,
+      -1
+    ],
+    "f/e/walk/5": [
+      0,
+      -1
+    ],
+    "f/e/attack/0": [
+      0,
+      0
+    ],
+    "f/e/attack/1": [
+      0,
+      -1
+    ],
+    "f/e/attack/2": [
+      0,
+      -1
+    ],
+    "f/e/attack/3": [
+      0,
+      -1
+    ],
+    "f/e/attack/4": [
+      -1,
+      0
+    ],
+    "f/e/attack/5": [
+      -1,
+      0
+    ],
+    "f/e/cast/0": [
+      0,
+      0
+    ],
+    "f/e/cast/1": [
+      0,
+      -1
+    ],
+    "f/e/cast/2": [
+      0,
+      -1
+    ],
+    "f/e/cast/3": [
+      0,
+      0
+    ],
+    "f/e/hurt/0": [
+      -1,
+      1
+    ],
+    "f/e/hurt/1": [
+      -1,
+      1
+    ],
+    "f/ne/idle/0": [
+      0,
+      0
+    ],
+    "f/ne/idle/1": [
+      0,
+      0
+    ],
+    "f/ne/idle/2": [
+      0,
+      0
+    ],
+    "f/ne/idle/3": [
+      0,
+      0
+    ],
+    "f/ne/walk/0": [
+      0,
+      0
+    ],
+    "f/ne/walk/1": [
+      0,
+      0
+    ],
+    "f/ne/walk/2": [
+      0,
+      0
+    ],
+    "f/ne/walk/3": [
+      1,
+      -1
+    ],
+    "f/ne/walk/4": [
+      1,
+      -1
+    ],
+    "f/ne/walk/5": [
+      0,
+      -1
+    ],
+    "f/ne/attack/0": [
+      0,
+      0
+    ],
+    "f/ne/attack/1": [
+      0,
+      -1
+    ],
+    "f/ne/attack/2": [
+      0,
+      -1
+    ],
+    "f/ne/attack/3": [
+      0,
+      -1
+    ],
+    "f/ne/attack/4": [
+      -1,
+      0
+    ],
+    "f/ne/attack/5": [
+      -1,
+      0
+    ],
+    "f/ne/cast/0": [
+      0,
+      0
+    ],
+    "f/ne/cast/1": [
+      0,
+      -1
+    ],
+    "f/ne/cast/2": [
+      0,
+      -1
+    ],
+    "f/ne/cast/3": [
+      0,
+      0
+    ],
+    "f/ne/hurt/0": [
+      -1,
+      1
+    ],
+    "f/ne/hurt/1": [
+      -1,
+      1
+    ],
+    "f/n/idle/0": [
+      0,
+      0
+    ],
+    "f/n/idle/1": [
+      0,
+      0
+    ],
+    "f/n/idle/2": [
+      0,
+      0
+    ],
+    "f/n/idle/3": [
+      0,
+      0
+    ],
+    "f/n/walk/0": [
+      0,
+      0
+    ],
+    "f/n/walk/1": [
+      0,
+      1
+    ],
+    "f/n/walk/2": [
+      0,
+      1
+    ],
+    "f/n/walk/3": [
+      0,
+      0
+    ],
+    "f/n/walk/4": [
+      0,
+      1
+    ],
+    "f/n/walk/5": [
+      0,
+      1
+    ],
+    "f/n/attack/0": [
+      -1,
+      0
+    ],
+    "f/n/attack/1": [
+      -1,
+      0
+    ],
+    "f/n/attack/2": [
+      0,
+      0
+    ],
+    "f/n/attack/3": [
+      0,
+      0
+    ],
+    "f/n/attack/4": [
+      1,
+      0
+    ],
+    "f/n/attack/5": [
+      1,
+      0
+    ],
+    "f/n/cast/0": [
+      0,
+      0
+    ],
+    "f/n/cast/1": [
+      0,
+      0
+    ],
+    "f/n/cast/2": [
+      0,
+      0
+    ],
+    "f/n/cast/3": [
+      0,
+      0
+    ],
+    "f/n/hurt/0": [
+      -1,
+      1
+    ],
+    "f/n/hurt/1": [
+      -1,
+      1
+    ]
+  },
+  "dirs": {
+    "s": "ok",
+    "se": "ok",
+    "e": "ok",
+    "ne": "ok",
+    "n": "ok"
+  },
+  "gripFrames": 110,
+  "warnings": [
+    "khung s/attack/3: 75 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều",
+    "khung s/attack/3: phụ thể chạm mép ô khung (74 điểm, có thể bị cắt)",
+    "khung s/attack/4: phụ thể chạm mép ô khung (71 điểm, có thể bị cắt)",
+    "khung s/cast/3: phụ thể chạm mép ô khung (23 điểm, có thể bị cắt)",
+    "khung s/cast/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+    "khung s/hurt/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+    "khung se/attack/2: phụ thể chạm mép ô khung (73 điểm, có thể bị cắt)",
+    "khung se/attack/3: phụ thể chạm mép ô khung (164 điểm, có thể bị cắt)",
+    "khung se/attack/4: phụ thể chạm mép ô khung (40 điểm, có thể bị cắt)",
+    "khung se/cast/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+    "khung se/hurt/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+    "tờ C: 1 / 22 ô không tìm thấy nộm (điểm khớp < 50%: hurt2), dùng độ dời trung vị của tờ (-2, 8)",
+    "khung e/attack/3: 156 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều",
+    "khung e/attack/3: phụ thể chạm mép ô khung (91 điểm, có thể bị cắt)",
+    "khung e/cast/0: phụ thể chạm mép ô khung (67 điểm, có thể bị cắt)",
+    "khung e/cast/1: phụ thể chạm mép ô khung (13 điểm, có thể bị cắt)",
+    "khung e/cast/2: phụ thể chạm mép ô khung (202 điểm, có thể bị cắt)",
+    "khung e/cast/3: phụ thể chạm mép ô khung (21 điểm, có thể bị cắt)",
+    "khung e/cast/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+    "khung e/hurt/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+    "khung ne/idle/1: phụ thể chạm mép ô khung (11 điểm, có thể bị cắt)",
+    "khung ne/idle/2: phụ thể chạm mép ô khung (20 điểm, có thể bị cắt)",
+    "khung ne/idle/3: phụ thể chạm mép ô khung (19 điểm, có thể bị cắt)",
+    "khung ne/walk/2: phụ thể chạm mép ô khung (9 điểm, có thể bị cắt)",
+    "khung ne/attack/0: 67 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều",
+    "khung ne/attack/1: 238 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều",
+    "khung ne/attack/1: phụ thể chạm mép ô khung (151 điểm, có thể bị cắt)",
+    "khung ne/attack/2: 314 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều",
+    "khung ne/attack/2: phụ thể chạm mép ô khung (164 điểm, có thể bị cắt)",
+    "khung ne/attack/3: 230 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều",
+    "khung ne/attack/3: phụ thể chạm mép ô khung (115 điểm, có thể bị cắt)",
+    "khung ne/attack/4: 171 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều",
+    "khung ne/attack/4: phụ thể chạm mép ô khung (75 điểm, có thể bị cắt)",
+    "khung ne/cast/0: 54 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều",
+    "khung ne/cast/0: phụ thể chạm mép ô khung (32 điểm, có thể bị cắt)",
+    "khung ne/cast/1: 113 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều",
+    "khung ne/cast/1: phụ thể chạm mép ô khung (71 điểm, có thể bị cắt)",
+    "khung ne/cast/2: 65 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều",
+    "khung ne/cast/2: phụ thể chạm mép ô khung (57 điểm, có thể bị cắt)",
+    "khung ne/cast/3: 186 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều",
+    "khung ne/cast/3: phụ thể chạm mép ô khung (75 điểm, có thể bị cắt)",
+    "khung ne/cast/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+    "khung ne/hurt/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+    "khung n/walk/0: phụ thể chạm mép ô khung (13 điểm, có thể bị cắt)",
+    "khung n/walk/1: phụ thể chạm mép ô khung (26 điểm, có thể bị cắt)",
+    "khung n/walk/2: phụ thể chạm mép ô khung (25 điểm, có thể bị cắt)",
+    "khung n/attack/3: 68 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều",
+    "khung n/attack/3: phụ thể chạm mép ô khung (82 điểm, có thể bị cắt)",
+    "khung n/attack/4: 55 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều",
+    "khung n/attack/4: phụ thể chạm mép ô khung (58 điểm, có thể bị cắt)",
+    "khung n/attack/5: phụ thể chạm mép ô khung (11 điểm, có thể bị cắt)",
+    "khung n/cast/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+    "khung n/hurt/1: phụ thể chạm mép ô khung (17 điểm, có thể bị cắt)",
+    "khung n/hurt/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+    "khung s/attack/5 lệch: diện tích phụ thể 57% trung vị cùng clip (kiểm tra: phụ thể trùng màu khóa nộm? hình sao chép?)",
+    "khung ne/attack/4 lệch: diện tích phụ thể 54% trung vị cùng clip (kiểm tra: phụ thể trùng màu khóa nộm? hình sao chép?)",
+    "khung ne/cast/0 lệch: diện tích phụ thể 47% trung vị cùng clip (kiểm tra: phụ thể trùng màu khóa nộm? hình sao chép?)",
+    "khung n/attack/2 lệch: diện tích phụ thể 228% trung vị cùng clip (kiểm tra: phụ thể trùng màu khóa nộm? hình sao chép?)",
+    "khung n/attack/3 lệch: diện tích phụ thể 226% trung vị cùng clip (kiểm tra: phụ thể trùng màu khóa nộm? hình sao chép?)",
+    "khung n/cast/0 lệch: diện tích phụ thể 54% trung vị cùng clip (kiểm tra: phụ thể trùng màu khóa nộm? hình sao chép?)",
+    "khung s/attack/1: marker điểm cầm bị dời 13 điểm so với vị trí nộm",
+    "khung s/attack/2: marker điểm cầm bị dời 16 điểm so với vị trí nộm",
+    "khung e/idle/0: marker điểm cầm bị dời 14 điểm so với vị trí nộm",
+    "khung e/hurt/1: marker điểm cầm bị dời 24 điểm so với vị trí nộm"
+  ],
+  "issues": [
+    {
+      "level": "warn",
+      "code": "vuot-khung",
+      "msg": "khung s/attack/3: 75 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung s/attack/3: phụ thể chạm mép ô khung (74 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung s/attack/4: phụ thể chạm mép ô khung (71 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung s/cast/3: phụ thể chạm mép ô khung (23 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "info",
+      "code": "ghi-chu",
+      "msg": "khung s/cast/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+    },
+    {
+      "level": "info",
+      "code": "ghi-chu",
+      "msg": "khung s/hurt/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung se/attack/2: phụ thể chạm mép ô khung (73 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung se/attack/3: phụ thể chạm mép ô khung (164 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung se/attack/4: phụ thể chạm mép ô khung (40 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "info",
+      "code": "ghi-chu",
+      "msg": "khung se/cast/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+    },
+    {
+      "level": "info",
+      "code": "ghi-chu",
+      "msg": "khung se/hurt/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+    },
+    {
+      "level": "warn",
+      "code": "nom-mat",
+      "msg": "tờ C: 1 / 22 ô không tìm thấy nộm (điểm khớp < 50%: hurt2), dùng độ dời trung vị của tờ (-2, 8)"
+    },
+    {
+      "level": "warn",
+      "code": "vuot-khung",
+      "msg": "khung e/attack/3: 156 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung e/attack/3: phụ thể chạm mép ô khung (91 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung e/cast/0: phụ thể chạm mép ô khung (67 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung e/cast/1: phụ thể chạm mép ô khung (13 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung e/cast/2: phụ thể chạm mép ô khung (202 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung e/cast/3: phụ thể chạm mép ô khung (21 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "info",
+      "code": "ghi-chu",
+      "msg": "khung e/cast/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+    },
+    {
+      "level": "info",
+      "code": "ghi-chu",
+      "msg": "khung e/hurt/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung ne/idle/1: phụ thể chạm mép ô khung (11 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung ne/idle/2: phụ thể chạm mép ô khung (20 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung ne/idle/3: phụ thể chạm mép ô khung (19 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung ne/walk/2: phụ thể chạm mép ô khung (9 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "vuot-khung",
+      "msg": "khung ne/attack/0: 67 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều"
+    },
+    {
+      "level": "warn",
+      "code": "vuot-khung",
+      "msg": "khung ne/attack/1: 238 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung ne/attack/1: phụ thể chạm mép ô khung (151 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "vuot-khung",
+      "msg": "khung ne/attack/2: 314 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung ne/attack/2: phụ thể chạm mép ô khung (164 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "vuot-khung",
+      "msg": "khung ne/attack/3: 230 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung ne/attack/3: phụ thể chạm mép ô khung (115 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "vuot-khung",
+      "msg": "khung ne/attack/4: 171 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung ne/attack/4: phụ thể chạm mép ô khung (75 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "vuot-khung",
+      "msg": "khung ne/cast/0: 54 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung ne/cast/0: phụ thể chạm mép ô khung (32 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "vuot-khung",
+      "msg": "khung ne/cast/1: 113 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung ne/cast/1: phụ thể chạm mép ô khung (71 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "vuot-khung",
+      "msg": "khung ne/cast/2: 65 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung ne/cast/2: phụ thể chạm mép ô khung (57 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "vuot-khung",
+      "msg": "khung ne/cast/3: 186 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung ne/cast/3: phụ thể chạm mép ô khung (75 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "info",
+      "code": "ghi-chu",
+      "msg": "khung ne/cast/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+    },
+    {
+      "level": "info",
+      "code": "ghi-chu",
+      "msg": "khung ne/hurt/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung n/walk/0: phụ thể chạm mép ô khung (13 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung n/walk/1: phụ thể chạm mép ô khung (26 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung n/walk/2: phụ thể chạm mép ô khung (25 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "vuot-khung",
+      "msg": "khung n/attack/3: 68 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung n/attack/3: phụ thể chạm mép ô khung (82 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "vuot-khung",
+      "msg": "khung n/attack/4: 55 điểm phụ thể nằm ngoài ô khung (bị cắt); kiểm tra lưới / vẽ lại nếu nhiều"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung n/attack/4: phụ thể chạm mép ô khung (58 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung n/attack/5: phụ thể chạm mép ô khung (11 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "info",
+      "code": "ghi-chu",
+      "msg": "khung n/cast/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+    },
+    {
+      "level": "warn",
+      "code": "cham-mep",
+      "msg": "khung n/hurt/1: phụ thể chạm mép ô khung (17 điểm, có thể bị cắt)"
+    },
+    {
+      "level": "info",
+      "code": "ghi-chu",
+      "msg": "khung n/hurt/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+    },
+    {
+      "level": "warn",
+      "code": "khung-lech",
+      "msg": "khung s/attack/5 lệch: diện tích phụ thể 57% trung vị cùng clip (kiểm tra: phụ thể trùng màu khóa nộm? hình sao chép?)"
+    },
+    {
+      "level": "warn",
+      "code": "khung-lech",
+      "msg": "khung ne/attack/4 lệch: diện tích phụ thể 54% trung vị cùng clip (kiểm tra: phụ thể trùng màu khóa nộm? hình sao chép?)"
+    },
+    {
+      "level": "warn",
+      "code": "khung-lech",
+      "msg": "khung ne/cast/0 lệch: diện tích phụ thể 47% trung vị cùng clip (kiểm tra: phụ thể trùng màu khóa nộm? hình sao chép?)"
+    },
+    {
+      "level": "warn",
+      "code": "khung-lech",
+      "msg": "khung n/attack/2 lệch: diện tích phụ thể 228% trung vị cùng clip (kiểm tra: phụ thể trùng màu khóa nộm? hình sao chép?)"
+    },
+    {
+      "level": "warn",
+      "code": "khung-lech",
+      "msg": "khung n/attack/3 lệch: diện tích phụ thể 226% trung vị cùng clip (kiểm tra: phụ thể trùng màu khóa nộm? hình sao chép?)"
+    },
+    {
+      "level": "warn",
+      "code": "khung-lech",
+      "msg": "khung n/cast/0 lệch: diện tích phụ thể 54% trung vị cùng clip (kiểm tra: phụ thể trùng màu khóa nộm? hình sao chép?)"
+    },
+    {
+      "level": "warn",
+      "code": "marker-troi",
+      "msg": "khung s/attack/1: marker điểm cầm bị dời 13 điểm so với vị trí nộm"
+    },
+    {
+      "level": "warn",
+      "code": "marker-troi",
+      "msg": "khung s/attack/2: marker điểm cầm bị dời 16 điểm so với vị trí nộm"
+    },
+    {
+      "level": "warn",
+      "code": "marker-troi",
+      "msg": "khung e/idle/0: marker điểm cầm bị dời 14 điểm so với vị trí nộm"
+    },
+    {
+      "level": "warn",
+      "code": "marker-troi",
+      "msg": "khung e/hurt/1: marker điểm cầm bị dời 24 điểm so với vị trí nộm"
+    }
+  ],
+  "summary": {
+    "info": 10,
+    "warn": 54,
+    "block": 0,
+    "total": 64,
+    "byCode": {
+      "vuot-khung": 13,
+      "cham-mep": 30,
+      "ghi-chu": 10,
+      "nom-mat": 1,
+      "khung-lech": 6,
+      "marker-troi": 4
+    }
+  },
+  "frames": 110,
+  "missing": 0,
+  "blank": []
+}

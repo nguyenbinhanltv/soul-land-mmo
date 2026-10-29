@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-30",
+  "tool": "Codex / OpenAI image_gen tích hợp",
+  "model": null,
+  "seed": null,
+  "kind": "vukhi",
+  "direction": "s",
+  "attempt": 1,
+  "rawUnmodified": true,
+  "image": {
+    "path": "toA.png",
+    "sha256": "4b0b2579ff78b4bce6b191229d99bf839da28fba63a4e75fbdeec867bb0b11b8"
+  },
+  "prompt": {
+    "path": "toA.prompt.txt",
+    "sha256": "6ba6aaf60533157870e6743d0696200fee1dce3e6321cce5817437cbb3cb0690"
+  },
+  "references": [
+    {
+      "path": "references/lam_ngan_thao-nom-toA.png",
+      "sha256": "630cb6a25b80011f5cfe988d92e17b3fc60ebfcecac0f2bb5fe4ac68c1c7d5b4",
+      "role": "Bảng nộm LPC có vạch và marker, ảnh tham chiếu duy nhất"
+    }
+  ],
+  "referenceNote": "Không có turnaround vũ khí được duyệt. Prompt công cụ còn mô tả ảnh 2 nhưng thực tế chỉ gửi ảnh 1; không dùng concept phụ thể cũ.",
+  "license": "Đầu ra OpenAI theo điều khoản dịch vụ; không gán CC0. Nộm LPC theo nguồn/giấy phép hiện có trong repo.",
+  "checkReport": "review/lam_ngan_thao-check.json",
+  "cutReport": "_report.json"
+}
