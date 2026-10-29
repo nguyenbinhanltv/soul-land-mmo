@@ -29,5 +29,10 @@
     "dx": 0,
     "dy": -24,
     "bob": 2
+  },
+  "verifiedOnMain": {
+    "commit": "4ace05b1fefc0b0af7084681be085b26ef83dae4",
+    "sheetSha256": "077f4970a9e818ac3b5e1bc3a83ff60048abad6cb1379df638bef20aa8e8ed69",
+    "glowSha256": "041a22eebd9b33d6e4b3008740f10961c1f4113d3b50a5acd9d136810fc5bb3b"
   }
 }

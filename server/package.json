@@ -33,6 +33,7 @@
     "test:mapleak": "tsx scripts/map-leak-test.ts",
     "test:calendar": "tsx scripts/calendar-test.ts",
     "test:welfare": "tsx scripts/welfare-test.ts",
+    "test:achv": "tsx scripts/achv-test.ts",
     "test:bicanh": "tsx scripts/bicanh-test.ts"
   },
   "dependencies": {

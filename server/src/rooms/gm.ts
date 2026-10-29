@@ -3,10 +3,11 @@
 // MapRoom chỉ chuyển tiếp (đăng ký `onMessage("test" | "gm")` giữ nguyên thứ tự ở đó; ArenaRoom vẫn override `testHook`).
 import { Client } from "colyseus";
 import { DropState } from "./schema.ts";
-import { TIERS, VOHON, MAX_LEVEL, calcStats, tierOfYears, vohonIndex, TEAM_COMBAT_SECS, MAX_RINGS, BEASTS, beastIndex, MAPS, MAP_MOVED, TIEN_CO_MAX, TILE, itemDef, formatHonTe, MAX_YEARS, formatYears, RING_ITEM, MAX_STARS, BONE_ITEM, BONE_SLOTS, boneName, CORE_ITEM, CORE_SETS, rollCoreStats, coreName, coreSetIndex, MAX_CORE_STARS, CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ROLL, equipTemplate, equipName, equipSlotDef, rollEquip, coreBonus, coreFx, coreSetCounts, type CoreFx, BONE_MAX_ENHANCE, boneEnhanceNeed, boneAddSubs, SHARD_BUY, CORE_MAX_ENHANCE, coreEnhanceNeed, coreUpgradeSubs, STATUS_IDS, PHONG_LOI, BOND_KEYS, loadoutOf, type StatusId, type StatusApply, BOSSES, bossIndex, bossHpMult, beastName, KING, BOSS_CLAIM_KING, WORLD, WORLD_SLAM, BOSS_CLAIM_WORLD, worldBossOn, HE_IDS, TONG_MON, tongDef, tongWeek, QUEST_STARTER, parseQuest, questStatus, DAILY, TONG_DAILY, herbBonus, ARENA, AUTO_DAILY_SECS, AUTO_STUCK, AUTO_MSG_RATE, AUTO_BONUS_MAX, BEAST_DEF, ringLimit, coreSubRolls } from "../../../shared/data.ts";
+import { ACHV_COUNTERS, TIERS, VOHON, MAX_LEVEL, calcStats, tierOfYears, vohonIndex, TEAM_COMBAT_SECS, MAX_RINGS, BEASTS, beastIndex, MAPS, MAP_MOVED, TIEN_CO_MAX, TILE, itemDef, formatHonTe, MAX_YEARS, formatYears, RING_ITEM, MAX_STARS, BONE_ITEM, BONE_SLOTS, boneName, CORE_ITEM, CORE_SETS, rollCoreStats, coreName, coreSetIndex, MAX_CORE_STARS, CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, EQUIP_ROLL, equipTemplate, equipName, equipSlotDef, rollEquip, coreBonus, coreFx, coreSetCounts, type CoreFx, BONE_MAX_ENHANCE, boneEnhanceNeed, boneAddSubs, SHARD_BUY, CORE_MAX_ENHANCE, coreEnhanceNeed, coreUpgradeSubs, STATUS_IDS, PHONG_LOI, BOND_KEYS, loadoutOf, type StatusId, type StatusApply, BOSSES, bossIndex, bossHpMult, beastName, KING, BOSS_CLAIM_KING, WORLD, WORLD_SLAM, BOSS_CLAIM_WORLD, worldBossOn, HE_IDS, TONG_MON, tongDef, tongWeek, QUEST_STARTER, parseQuest, questStatus, DAILY, TONG_DAILY, herbBonus, ARENA, AUTO_DAILY_SECS, AUTO_STUCK, AUTO_MSG_RATE, AUTO_BONUS_MAX, BEAST_DEF, ringLimit, coreSubRolls } from "../../../shared/data.ts";
 import { fogEmpty, fogFill } from "../../../shared/fog.ts";
 import { publishBoss, bossNow, bossClockMode } from "../schedule.ts";
 import { store, saveFailTest } from "../db.ts";
+import { sendState as achvSend } from "./achv.ts";
 import { chatReset, inviteReset, rallyReset, friendReset } from "../ratelimit.ts";
 import { arenaWatchMax, setTestWatchMax, arenaTestSlow } from "./arenaQueue.ts";
 import { itemLockKey } from "../itemLock.ts";
@@ -190,6 +191,11 @@ export async function testHook(room: MapRoom, c: Client, m: unknown) {
     else got = room.addItem(d, code, qty);
     if (got < qty) room.log(id, itemDef(code) ? `Túi đồ đã đầy (${d.bagSlots} ô): ${qty - got} món không nhận được.` : "Vật phẩm không tồn tại.", "#ffb35c");
     room.sendBag(id);
+  }
+  else if (op === "achv") { // Thành Tựu (5.23): `key`, `n` cộng thẳng bộ đếm sự kiện của người gọi (như server đếm), rồi gửi lại trạng thái; trả bộ đếm hiện có
+    const key = strIn(o.key), n = int(o.n, 1, 1e6, 1);
+    if ((ACHV_COUNTERS as readonly string[]).includes(key)) await store.achvBump(d.accountId, key, n);
+    await achvSend(room, id); out = { counters: (await store.achvGet(d.accountId)).counters };
   }
   else if (op === "coin") { d.honTe = int(o.n, 0, 1e12, d.honTe); d.bagDirty = true; room.sendBag(id); }
   else if (op === "gmadmin") { _gmSetAdmin(d.accountId, o.on !== false); } // #518: bật / tắt quyền admin GM của người gọi (bot không biết trước mã tài khoản)

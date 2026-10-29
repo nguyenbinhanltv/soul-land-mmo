@@ -65,6 +65,7 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 5.21 | Phúc Lợi và điểm danh 21 ngày (thiết kế, #877) | [docs/design/phuc-loi.md](docs/design/phuc-loi.md) | 5 | Phúc Lợi và điểm danh |
 | 5.22 | Bí Cảnh: phụ bản hằng ngày, MVP Luyện Hồn Cảnh (thiết kế, #877) | [docs/design/bi-canh.md](docs/design/bi-canh.md) | 5 | Bí Cảnh |
 | 5.23 | Thành Tựu: danh mục từ hệ thống có sẵn (thiết kế, #1317) | [docs/design/thanh-tuu.md](docs/design/thanh-tuu.md) | 5 | Thành Tựu |
+| 5.24 | Thư hệ thống: nguồn thư, đính kèm, hạn (thiết kế, #1336) | [docs/design/thu.md](docs/design/thu.md) | 5 | Thư hệ thống |
 | 6 | Kiến trúc (bắt buộc giữ) | (file này) | – | Kiến trúc; Server quyết định mọi thứ; HTTP; Lưu của mỗi người chơi chạy nối tiếp |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/giao-thuc-server.md](docs/tech/giao-thuc-server.md) | 5 | Message từ client; Bảo mật; Đăng nhập Google |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/dong-bo-state.md](docs/tech/dong-bo-state.md) | 5 | Đồng bộ xuống client |
@@ -78,6 +79,7 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/soat-gian-lan-phuc-loi.md](docs/tech/soat-gian-lan-phuc-loi.md) | 1 |  |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/soat-gian-lan-xep-hang.md](docs/tech/soat-gian-lan-xep-hang.md) | 1 |  |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/soat-gian-lan-bi-canh.md](docs/tech/soat-gian-lan-bi-canh.md) | 1 |  |
+| 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/soat-gian-lan-thanh-tuu.md](docs/tech/soat-gian-lan-thanh-tuu.md) | 1 |  |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/du-lieu-db.md](docs/tech/du-lieu-db.md) | 5 | Dữ liệu trong `shared/data.ts; Dữ liệu lâu dài |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/hieu-nang-hieu-ung.md](docs/tech/hieu-nang-hieu-ung.md) | 1 |  |
 | 6 | Kiến trúc (bắt buộc giữ) | [docs/tech/hieu-nang-soak.md](docs/tech/hieu-nang-soak.md) | 1 |  |

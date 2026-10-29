@@ -32,7 +32,7 @@ Part of #1306, epic #1020. Chủ repo đã duyệt mẫu Lam Ngân Thảo #1326 
 
 ## Ghép và kiểm tra
 
-Cutter dùng chung từ PR #1326, blob nội dung `e9189290c797aa640347b7a0229d745ab4f69075`, đường dẫn `tools/assets/phaptuong-sheet-cut.mjs`. Nhánh này độc lập từ `origin/main`, không mang theo ảnh Lam Ngân Thảo; công cụ sẽ có trên main sau khi #1326 được merge. Lệnh sau khi có công cụ:
+Cutter dùng chung từ PR #1326 đã có trên main, blob nội dung `e9189290c797aa640347b7a0229d745ab4f69075`, đường dẫn `tools/assets/phaptuong-sheet-cut.mjs`. Đã merge main `4ace05b1fefc0b0af7084681be085b26ef83dae4` vào nhánh này và tái tạo từ năm RAW bằng đúng công cụ đó: sheet và glow đều khớp từng byte. SHA256 xác nhận nằm trong `recipe.json`. Lệnh ghép:
 
 `node tools/assets/phaptuong-sheet-cut.mjs art/src/phap-tuong/a_ngan shared/assets/sprites/phaptuong/a_ngan.png`
 

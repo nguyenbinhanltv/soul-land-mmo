@@ -9,7 +9,7 @@ import { mapFile } from "./map.ts";
 import { DEFAULT_LOOKS, parseLooks, encodeLpc, decodeLpc, presetToLpc, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, isTongTask, type TongRank, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
   BONE_ITEM, CORE_ITEM, EQUIP_ITEM, EQUIP_SLOTS, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
   RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE, RANK_BOARD_CACHE, RANK_PAGE_MAX, RANK_PAGE_DEPTH, rankCompare, tongDef,
-  type RankLineupSlot, type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
+  ACHV_COUNTERS, achvDef, type AchvCounter, type RankLineupSlot, type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
@@ -128,7 +128,7 @@ const seedItems = (items: SeedItem[], rowOf: (code: string) => number): Item[] =
   return items.map(({ vohon, ...i }, k): Item => ({ ...copyItem({ ...i, id: "", created: 0, vohonId: null }), id: randomUUID(), created: t0 + k, vohonId: vohon === undefined ? null : rowOf(vohon) }));
 };
 /** Các bảng xoá khi `removeTestAccount` (theo thứ tự xoá; kết quả trả số dòng mỗi bảng). */
-const REMOVE_TABLES = ["items", "teams", "vohons", "quests", "waypoints", "boss_claims", "auto_hunt", "auto_offline", "tong_points", "arena_ratings", "arena_pairs", "arena_elo_day", "rank_scores", "checkin_state",
+const REMOVE_TABLES = ["items", "teams", "vohons", "quests", "waypoints", "boss_claims", "auto_hunt", "auto_offline", "tong_points", "arena_ratings", "arena_pairs", "arena_elo_day", "rank_scores", "checkin_state", "achv_state",
   "friends", "blocks", "map_fog", "sessions", "characters", "inventory", "accounts"] as const;
 const copyItem = (i: Item): Item => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) });
 const copyQuest = (q: QuestProgress): QuestProgress => ({ ...q, prog: [...q.prog] });
@@ -354,6 +354,15 @@ export interface Store {
    * Trả `ver` mới; null = điều kiện không khớp (đã ký ở tab / tiến trình khác, đồng hồ lùi): không ghi gì, kể cả túi. Lỗi DB thì ném, không ghi gì.
    */
   checkinClaim(accountId: number, patch: CheckinPatch, bag: Bag): Promise<number | null>;
+  /** Thành Tựu của `accountId` (bảng `achv_state`, mục 5.23): mã đã nhận và bộ đếm sự kiện; chưa có dòng = rỗng. Đọc mới mỗi lần (không cache). */
+  achvGet(accountId: number): Promise<AchvRow>;
+  /** Tăng bộ đếm `key` (một trong ACHV_COUNTERS) thêm `n` (số nguyên dương); tạo dòng nếu chưa có (upsert, một câu nên hai lần ghi cùng lúc không mất lượt). Mã lạ / `n` sai thì ném. */
+  achvBump(accountId: number, key: string, n: number): Promise<void>;
+  /**
+   * Nhận thành tựu `id` và ghi túi (quà, Hồn Tệ) trong MỘT transaction: đảm bảo có dòng, đọc bộ đếm TRONG transaction (khóa dòng) rồi gọi `reached(counters)` để kiểm lại điều kiện,
+   * rồi thêm `id` vào `claimed` chỉ khi chưa có. Trả "ok"; "dup" = đã nhận ở tab / tiến trình khác; "low" = chưa đạt. Hai trường hợp sau không ghi gì, kể cả túi. Lỗi DB thì ném, không ghi gì.
+   */
+  achvClaim(accountId: number, id: string, reached: (counters: AchvCounters) => boolean, bag: Bag): Promise<"ok" | "dup" | "low">;
   /** Số trận có kết quả giữa hai tài khoản `a`, `b` (thứ tự bất kỳ) trong ngày `day` (giờ Việt Nam; bảng `arena_pairs`, 9.7). */
   arenaPairCount(day: string, a: number, b: number): Promise<number>;
   /**
@@ -439,6 +448,20 @@ function checkinPatchOk(p: CheckinPatch) {
   if (p.bit < 1 || p.bit >= 1 << p.days || (p.bit & (p.bit - 1)) !== 0 || (p.mask & p.bit) === 0 || p.mask < 0 || p.mask >= 1 << 30) throw new Error("Sổ điểm danh: ô ký không hợp lệ.");
   if (p.expect === null && (p.cycle !== 1 || p.mask !== p.bit || p.makeupUsed > 1)) throw new Error("Sổ điểm danh: dòng đầu tiên phải là ô đầu của chu kỳ 1.");
 }
+/** Bộ đếm sự kiện của Thành Tựu (khóa trong ACHV_COUNTERS; khóa thiếu = 0). */
+export type AchvCounters = Partial<Record<AchvCounter, number>>;
+/** Một dòng `achv_state` (Thành Tựu, mục 5.23). */
+export interface AchvRow { claimed: string[]; counters: AchvCounters }
+/** Kiểm đầu vào `achvBump` / `achvClaim` ở cả hai store (lỗi lập trình). */
+function achvBumpOk(key: string, n: number) {
+  if (!(ACHV_COUNTERS as readonly string[]).includes(key) || !Number.isSafeInteger(n) || n < 1 || n > 1e6) throw new Error("Thành Tựu: bộ đếm không hợp lệ.");
+}
+function achvIdOk(id: string) { if (!achvDef(id)) throw new Error("Thành Tựu: mã không có."); }
+const achvCounters = (raw: unknown): AchvCounters => {
+  const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>, out: AchvCounters = {};
+  for (const k of ACHV_COUNTERS) { const v = Number(o[k]); if (Number.isFinite(v) && v > 0) out[k] = Math.floor(v); }
+  return out;
+};
 /** Một dòng điểm ghi vào `rank_scores` (`extra`: đội hình hiển thị, chỉ Cấp / Sưu tầm). */
 export interface RankPutRow { board: string; period: number; score: number; tie: number; extra: RankLineupSlot[] | null }
 /** Dòng công khai của bảng: không có Hồn Tệ, túi, bản đồ, kênh, vị trí. `tong`: mã tông môn (null = không). */
@@ -533,6 +556,7 @@ export class MemoryStore implements Store {
   rankRows = new Map<string, { score: number; tie: number; extra: RankLineupSlot[] | null; t: number }>(); // "board|period|accountId" -> điểm (bảng rank_scores); t = thứ tự đạt mốc
   rankT = 0;
   checkin = new Map<number, CheckinRow>(); // accountId -> Sổ Điểm Danh (bảng checkin_state, mục 5.21)
+  achv = new Map<number, AchvRow>(); // accountId -> Thành Tựu (bảng achv_state, mục 5.23)
   seq = 1; rowSeq = 1;
   async init() { console.warn("⚠  Chưa có DATABASE_URL: dữ liệu chỉ lưu trong RAM."); }
   async close() {}
@@ -881,6 +905,23 @@ export class MemoryStore implements Store {
     this.putBag(accountId, bag);
     return ver;
   }
+  async achvGet(accountId: number) { const r = this.achv.get(accountId); return { claimed: [...(r?.claimed ?? [])], counters: { ...(r?.counters ?? {}) } }; }
+  async achvBump(accountId: number, key: string, n: number) {
+    achvBumpOk(key, n);
+    const r = this.achv.get(accountId) ?? { claimed: [], counters: {} };
+    r.counters[key as AchvCounter] = (r.counters[key as AchvCounter] ?? 0) + n;
+    this.achv.set(accountId, r);
+  }
+  async achvClaim(accountId: number, id: string, reached: (counters: AchvCounters) => boolean, bag: Bag) {
+    achvIdOk(id);
+    const r = this.achv.get(accountId) ?? { claimed: [], counters: {} };
+    if (!reached({ ...r.counters })) return "low";
+    if (r.claimed.includes(id)) return "dup";
+    this.checkBag(accountId, bag);
+    r.claimed.push(id); this.achv.set(accountId, r);
+    this.putBag(accountId, bag);
+    return "ok";
+  }
   async rankPut(accountId: number, rows: RankPutRow[]) {
     let changed = false;
     for (const r of rows) {
@@ -967,7 +1008,7 @@ export class MemoryStore implements Store {
     const rel = (m: Map<number, Set<number>>) => (m.get(id)?.size ?? 0) + [...m].filter(([a, set]) => a !== id && set.has(id)).length;
     Object.assign(n, { items: this.bags.get(id)?.items.length ?? 0, teams: this.teams.get(id)?.filter(Boolean).length ?? 0, vohons: owned.length,
       quests: this.quests.get(id)?.length ?? 0, waypoints: this.wps.get(id)?.size ?? 0, map_fog: this.fogs.get(id)?.size ?? 0, boss_claims: cl.length, auto_hunt: this.autos.has(id) ? 1 : 0,
-      auto_offline: this.offline.has(id) ? 1 : 0, tong_points: tp.length, arena_ratings: this.arena.has(id) ? 1 : 0, arena_pairs: pairs.length, arena_elo_day: eloDays.length, rank_scores: rankKeys.length, checkin_state: this.checkin.has(id) ? 1 : 0,
+      auto_offline: this.offline.has(id) ? 1 : 0, tong_points: tp.length, arena_ratings: this.arena.has(id) ? 1 : 0, arena_pairs: pairs.length, arena_elo_day: eloDays.length, rank_scores: rankKeys.length, checkin_state: this.checkin.has(id) ? 1 : 0, achv_state: this.achv.has(id) ? 1 : 0,
       friends: rel(this.friends), blocks: rel(this.blocks), sessions: tokens.length, accounts: 1 });
     for (const c of owned) this.rows.delete(c.rowId);
     for (const k of tp) this.tongPts.delete(k);
@@ -975,7 +1016,7 @@ export class MemoryStore implements Store {
     for (const k of pairs) this.pairs.delete(k);
     for (const k of eloDays) this.eloDay.delete(k);
     for (const k of rankKeys) this.rankRows.delete(k);
-    this.checkin.delete(id);
+    this.checkin.delete(id); this.achv.delete(id);
     for (const t of tokens) this.sessions.delete(t);
     for (const [k, a] of this.identities) if (a === id) this.identities.delete(k);
     for (const m of [this.active, this.teams, this.bags, this.quests, this.wps, this.autos, this.offline, this.tongs, this.arena, this.locs, this.looks, this.looksChanges, this.friends, this.blocks, this.names, this.fogs])
@@ -1801,6 +1842,36 @@ export class PgStore implements Store {
       throw e;
     } finally { db.release(); }
   }
+  async achvGet(accountId: number) {
+    const r = await this.pool.query("SELECT claimed, counters FROM achv_state WHERE account_id=$1", [accountId]);
+    return r.rowCount ? { claimed: [...r.rows[0].claimed as string[]], counters: achvCounters(r.rows[0].counters) } : { claimed: [], counters: {} };
+  }
+  async achvBump(accountId: number, key: string, n: number) {
+    achvBumpOk(key, n);
+    // Upsert một câu: tài khoản chưa có dòng vẫn đếm được; cộng ngay trong DB nên hai tiến trình cùng đếm không mất lượt.
+    await this.pool.query(
+      `INSERT INTO achv_state(account_id, counters) VALUES ($1, jsonb_build_object($2::text, $3::int))
+       ON CONFLICT (account_id) DO UPDATE SET counters = jsonb_set(achv_state.counters, ARRAY[$2::text], to_jsonb(COALESCE((achv_state.counters->>$2::text)::int, 0) + $3::int)), updated_at = now()`, [accountId, key, n]);
+  }
+  async achvClaim(accountId: number, id: string, reached: (counters: AchvCounters) => boolean, bag: Bag) {
+    achvIdOk(id);
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      await db.query("INSERT INTO achv_state(account_id) VALUES ($1) ON CONFLICT (account_id) DO NOTHING", [accountId]);
+      const cur = await db.query("SELECT counters FROM achv_state WHERE account_id=$1 FOR UPDATE", [accountId]);
+      if (!reached(achvCounters(cur.rows[0]?.counters))) { await db.query("ROLLBACK"); return "low"; }
+      // Điều kiện nằm trong câu ghi: chỉ thắng khi mã chưa có trong `claimed`; hai nơi cùng nhận chỉ một nơi ghi được (dòng bị khóa tới hết transaction).
+      const r = await db.query("UPDATE achv_state SET claimed = claimed || ARRAY[$2::text], updated_at = now() WHERE account_id=$1 AND NOT (claimed @> ARRAY[$2::text]) RETURNING 1", [accountId, id]);
+      if (!r.rowCount) { await db.query("ROLLBACK"); return "dup"; }
+      await this.writeBag(db, accountId, bag);
+      await db.query("COMMIT");
+      return "ok";
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
+  }
   async rankMe(board: string, period: number, accountId: number) {
     // Giữ RANK_BOARD_CACHE giây theo tài khoản (khoá `rank|me|…`, xoá cùng các trang khi điểm đổi): người mở bảng dồn không tốn một truy vấn đếm mỗi lần (soát X5).
     return rankBoard(`rank|me|${board}|${period}|${accountId}`, () => this.rankMeQuery(board, period, accountId));
@@ -1939,6 +2010,7 @@ const withSaveFail = (s: Store): Store => new Proxy(s, {
     if (typeof f !== "function") return f;
     if (k === "saveBag") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
     if (k === "claimBoss") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); }; // lượt boss / đổi mảnh / mua lượt Bí Cảnh (ghi lượt + túi)
+    if (k === "achvClaim") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
     if (k === "checkinClaim") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
     if (k === "setTong") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "tong"); return f.call(t, accountId, ...a); };
     if (k === "saveProgress") return async (accountId: number, ...a: unknown[]) => { if (a[5] !== undefined) failSave(accountId, "bag"); return f.call(t, accountId, ...a); };

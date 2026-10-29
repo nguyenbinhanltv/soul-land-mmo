@@ -86,6 +86,16 @@ Tái dùng tối đa đường P1 (#1022) / P2 (#1023); thêm chế độ **"vũ
    Mỗi mẫu qua khối chặn / nhẹ / đẹp như `phu-the-hoat-anh.md`, chủ repo duyệt mẫu từng nhóm; bài học ghi `art/src/phuthe-anim/lessons.md` (nhóm mới `@VUKHI-*` hoặc theo nhóm cứng / mềm / găng). Thí điểm xong mới roll 22 võ hồn còn lại theo đợt (thứ tự đề xuất: cứng → găng-vuốt → mềm; găng-vuốt dễ chung khuôn như đợt tai / đuôi / vuốt cũ).
 7. **Giới hạn hiệu năng:** vẫn hai sprite mỗi hồn sư (nửa sau, nửa trước); sheet 128 chỉ cho vũ khí dài (Hạo Thiên Chùy, Phá Hồn Thương, Cửu Tinh, Quỷ Mị nếu cần) theo đo FPS (`tech/hieu-nang-hieu-ung`).
 
+## Quy trình đã kiểm chứng
+
+**Nhóm mềm — Lam Ngân Thảo (#1322), chủ repo chấp nhận mẫu kể cả hai cảnh báo `chan-lech` 14% ở s/se.** [Hồ sơ, lệnh tái tạo và ảnh kiểm](../../art/src/phuthe-anim/lam_ngan_thao/vukhi/NGUON.md).
+
+- **Vẽ riêng, không nộm:** nền `#FF00FF`, mỗi hướng một atlas 6 pose tách rời (1 idle thả dài, 3 attack quất, 2 cast cuộn). Gốc bó dây đánh dấu rõ; đầu dây nằm trọn ảnh, không thêm tay/người. Không cần mỗi pose một job. Thực tế phương pháp mới dùng **5 job tuần tự / 5 atlas, 1 lượt mỗi hướng**: e đạt rồi mới mở rộng s/se/ne/n. Trước đó vòng sửa kèm nộm riêng hướng e đã hết 3/3 lượt mà chưa đạt; không cộng thêm lượt nếu chưa được giao.
+- **Ghép bằng `anim.grip`:** giữ nguyên thân LPC; đo gốc từng pose, chọn pose rồi xoay/dịch tới grip từng khung nam/nữ. Dùng một tỉ lệ chung, đủ chiều dài trong khung (mẫu này 128); không xén để vừa, không dùng code uốn lại dây. Bản mẫu: `isolated/compose.mjs` và `finalize.mjs` trong hồ sơ trên.
+- **Giữ đúng lớp và điểm cầm:** đọc `lop.json` bằng `parseLop`/`layerFn`; ne/n mặc định sau thân, vùng cầm trước, cast theo mặt nạ từng khung. Không áp neo lưng của phụ thể cũ lên vũ khí; giữ `spiritMotion`/`weaponOscK` theo bước 5. Kiểm cả ảnh ghép và GameScene thật để tránh trang thử che lỗi runtime.
+- **Lỗi hay gặp:** model đổi dáng nộm, thêm dây ở tay phụ, xén đầu dây hoặc làm gốc trôi. Tránh bằng atlas không người, chỉ một gốc cầm, chừa mép, đo gốc rồi ghép grip; không yêu cầu model giữ lại pose thân. Soát thêm vòng dây/ngọn chẻ trông như nhiều đầu, chuyển lớp quay lưng và độ dài giữa các hướng.
+- **Cổng duyệt:** e phải 0 chặn và mắt thấy không tay phụ/không xén/gốc đúng tay rồi mới mở rộng. Giữ RAW/prompt lịch sử, hash và bài học bullet `@VUKHI-MEM`; chạy `phuthe:check`, nhập bằng `phuthe-import --kind vukhi`, credits/validate, check/build. Chụp `?thu=vukhi` đủ năm hướng × idle/walk/attack/cast × nam/nữ và võ hồn không vũ khí; ghi cảnh báo vào PR để chủ repo quyết định. Việc chấp nhận hai cảnh báo của mẫu này không tự áp dụng cho mẫu khác.
+
 ## Không làm ở file này
 - Không đổi code, server, `shared/data.ts`, số cân bằng.
 - Không vẽ ảnh, không viết công cụ, không đổi manifest.
@@ -96,12 +106,24 @@ Tái dùng tối đa đường P1 (#1022) / P2 (#1023); thêm chế độ **"vũ
 | Việc | Trạng thái |
 |---|---|
 | Soạn bảng 25 + quy tắc + kế hoạch (file này, #1307) | PR này |
-| Chủ repo duyệt bảng (dạng vũ khí, nhóm, tay, 3 mẫu thí điểm) | chờ |
+| Chủ repo duyệt bảng (dạng vũ khí, nhóm, tay, 3 mẫu thí điểm) | hướng đã chốt 2026-10-29 (epic #1020); mẫu mềm Lam Ngân Thảo đã chấp nhận (#1322); bảng đủ 25 dòng vẫn duyệt dần theo từng mẫu |
 | Công cụ kiểu `--kind vukhi` (nộm + marker, prompt, cutter, kiểm) | xong (#1313) |
 | Nhập `vkanim_<id>_b` / `_f` vào game (`phuthe-import.mjs --kind vukhi`, validate nhận khoá `vkanim`, trang thử `?thu=vukhi`) | xong (#1312) |
-| Thí điểm Hạo Thiên Chùy / Lam Ngân Thảo / võ hồn găng-vuốt | mở sau công cụ |
+| Thí điểm Hạo Thiên Chùy / Lam Ngân Thảo / võ hồn găng-vuốt | Lam Ngân Thảo xong (#1322); Hạo Thiên Chùy #1319 (PR #1320 nháp, chưa đạt); Hỏa Long mềm #1338; găng-vuốt chưa mở |
 | Client: vũ khí theo võ hồn ra trận, Chân Thân thu về | xong (#1314); thiếu sheet vẫn chạy nhánh hiện nay |
 | Phụ thể cũ chỉ hiện khi Chân Thân; sửa `trang-bi.md` | mở sau thí điểm |
+
+## Tiến độ rollout nhóm mềm
+
+Mỗi võ hồn một PR nháp, chờ chủ repo duyệt mỹ thuật; không tự merge. Kiểm 0 chặn không thay cho duyệt mắt.
+
+| Dòng | Võ hồn | Issue / PR | Trạng thái |
+|---|---|---|---|
+| 7 | Hỏa Long | #1338 / #1339 | Đã nhập 5 atlas, 220 khung; 0 chặn cả nam/nữ. Cảnh báo chan-lech s 28%, se 20%, chờ duyệt riêng |
+| 10 | Tử Vong Chu Hoàng | chưa mở | Chưa bắt đầu |
+| 11 | Bích Lân Xà Hoàng | chưa mở | Chưa bắt đầu |
+| 12 | Càn Khôn Hỗn Nguyên Tỏa | chưa mở | Chưa bắt đầu |
+| 22 | A Ngân | chưa mở | Chưa bắt đầu |
 
 ## Nhập vào game và trang thử (#1312)
 - **Nhập:** cắt tờ bằng `phuthe-sheet-cut.mjs --kind vukhi --out <thư mục>` rồi `node tools/assets/phuthe-import.mjs --id <võ hồn> --kind vukhi --dir <thư mục>`. Ảnh vào `shared/assets/sprites/vukhianim/<id>_{b|f}.png`; mục manifest `vkanim_<id>_{b|f}` giữ `anim.kind: "vukhi"`, `anim.grip`, `anim.gripSex` (nửa không có điểm ảnh ghi `blank`), đặt sau `vhanim_<id>_f` (nếu có) hoặc `vh_<id>_f`. Ghi thêm dòng vào `art/CREDITS.md` (mục ChatGPT, `--credits` đổi đường dẫn) và khối hướng đã nhập ở `art/src/phuthe-anim/<id>/vukhi/NGUON.md`. Chạy lại không đổi gì; `--dry-run` chỉ in. Không dùng `--anchor` (neo là của phụ thể).

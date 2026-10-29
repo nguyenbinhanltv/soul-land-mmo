@@ -1,6 +1,6 @@
 # Thành Tựu
 
-Màn **Thành Tựu** ghi lại những mốc người chơi đã đạt (cấp, sưu tầm võ hồn, săn boss, nhiệm vụ, đấu trường, Bí Cảnh) và cho **thưởng nhỏ nhận một lần**. Thẻ "Thành Tựu" ở hub hiện đang khóa ("Sắp có", `client/src/hubMenu.ts`). Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; tên *(đề xuất)* chưa tồn tại). Số issue ở cuối file. **Chưa có code**: tài liệu này là bước P0 của #1317 (Part of #877).
+Màn **Thành Tựu** ghi lại những mốc người chơi đã đạt (cấp, sưu tầm võ hồn, săn boss, nhiệm vụ, đấu trường, Bí Cảnh) và cho **thưởng nhỏ nhận một lần**. Thẻ "Thành Tựu" ở hub hiện đang khóa ("Sắp có", `client/src/hubMenu.ts`). Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; tên *(đề xuất)* chưa tồn tại). Số issue ở cuối file. **Server (P1–P4) đã có code** (#1317: `ACHV` ở `shared/data.ts`, `039_thanh_tuu.sql`, `server/src/rooms/achv.ts`, bot nhóm `achv`, soát `docs/tech/soat-gian-lan-thanh-tuu.md`); P5 màn client (`client/src/achvScreen.ts`, thẻ `achv` ở hub) xong.
 
 Tham chiếu: chỉ học bố cục (danh mục theo nhóm, thanh tiến độ, nút nhận) từ bộ tham chiếu UI của #877; không chép tên / chữ / ảnh.
 
@@ -19,8 +19,10 @@ Mỗi thành tựu có **điều kiện** dạng `chỉ số ≥ ngưỡng`. Hai
 
 Không tự phát thưởng khi đạt: người chơi túi đầy vẫn không mất gì, chỉ chưa nhận được (như đổi mảnh ở Thương hội).
 
+> **Đã làm ở v1:** bộ đếm chỉ có `elite`, `king`, `world`, `bicanh` (`ACHV_COUNTERS`). Khảo hạch hằng ngày và Elo cao nhất để sau (cần bộ đếm mới + chỗ ghi). Chấm đỏ báo lại khi bộ đếm đổi, lúc vào phòng và sau `get` / `claim`; lên cấp / thắng đấu trường chưa đẩy tin riêng (màn tải lại khi mở).
+
 ### Danh mục (nhóm → chỉ số → nguồn)
-Mỗi nhóm là **một chuỗi bậc** (ngưỡng tăng dần, mỗi bậc một thành tựu). Số ngưỡng và thưởng nằm trong `ACHV` *(đề xuất)* ở `shared/data.ts`; bảng dưới chỉ ghi **chỉ số lấy ở đâu** và gợi ý số bậc.
+Mỗi nhóm là **một chuỗi bậc** (ngưỡng tăng dần, mỗi bậc một thành tựu). Số ngưỡng và thưởng nằm trong `ACHV` ở `shared/data.ts`; bảng dưới chỉ ghi **chỉ số lấy ở đâu** và gợi ý số bậc.
 
 | Nhóm | Chỉ số | Nguồn (đã có hay phải thêm) | Gợi ý bậc |
 |---|---|---|---|
@@ -29,16 +31,18 @@ Mỗi nhóm là **một chuỗi bậc** (ngưỡng tăng dần, mỗi bậc mộ
 | **Sao** | số sao cao nhất / tổng sao | có sẵn: `vohons` (sao, trần `MAX_STARS`) | 2–3 bậc |
 | **Săn tinh anh / thú vương** | số lần hạ tinh anh, thú vương | **phải thêm bộ đếm** (xem "Lưu trữ"); sự kiện hạ ở `rooms/kill.ts` | vài bậc mỗi loại |
 | **Săn boss thế giới** | số lần tham gia hạ boss thế giới (đủ điều kiện nhận thưởng, `BOSS_CLAIM_WORLD`) | **phải thêm bộ đếm**; ghi cùng chỗ nhận thưởng boss | 3 bậc |
-| **Nhiệm vụ** | số chuỗi nhiệm vụ cố định đã xong (`QUESTS`); số ngày làm khảo hạch hằng ngày (`DAILY`) | chuỗi: có sẵn (bảng `quests`, `step` = số bước); khảo hạch ngày: bộ đếm mới | mỗi chuỗi xong một bậc; mốc ngày |
-| **Đấu trường** | số trận thắng; Elo cao nhất đã đạt | thắng: có sẵn (`arena_ratings.wins`); Elo cao nhất: bộ đếm mới (cột `elo` chỉ giữ Elo hiện tại) | vài bậc thắng, vài mốc Elo trong `ARENA` |
+| **Nhiệm vụ** | số chuỗi nhiệm vụ cố định đã xong (`QUESTS`) | có sẵn (bảng `quests`, `step` = số bước, đọc từ `d.quest` / `d.chains`) | mỗi chuỗi xong một bậc |
+| **Đấu trường** | số trận thắng | có sẵn (`arena_ratings.wins`) | vài bậc thắng |
 | **Bí Cảnh** | số lượt Luyện Hồn Cảnh đã thắng đủ các sóng | **phải thêm bộ đếm**; ghi lúc kết thúc lượt thắng ở `BiCanhRoom` | 3 bậc |
 
+- **Không cho sẵn khi tạo tài khoản:** bậc đầu của mỗi chuỗi phải cao hơn trạng thái tài khoản mới (thức tỉnh tối đa cấp `AWAKEN_LEVEL.max`, 2 võ hồn gồm quà tặng, 1 sao, bộ đếm 0): Cấp bậc đầu 15, Sưu tầm bậc đầu 3 võ hồn, Sao bậc đầu 2 sao. Test `server/scripts/achv-test.ts` kiểm không thành tựu nào đạt với chỉ số tài khoản mới.
 - **Điều kiện chỉ dùng chỉ số mà server đã hoặc sẽ đếm.** Thêm nhóm mới = thêm một chỉ số có nguồn rõ + một chuỗi bậc trong `ACHV`, không đổi giao thức.
 - **Không** có thành tựu cho thứ chỉ đo thời gian online, lượt bấm, hay hành vi có thể làm giả bằng nhiều tài khoản chỉ để nhận thưởng (xem "Chống gian lận").
 - Tên thành tựu dùng đúng tên gốc Đấu La; thành tựu "Cấp" mượn tên `TITLES`.
 
 ### Dữ liệu và nơi tính
-- `ACHV` *(đề xuất)* ở `shared/data.ts`: danh sách `{id, group, name, stat, need, reward}`; `stat` là mã chỉ số trong danh sách đóng ACHV_STATS *(đề xuất)*; `reward` chỉ gồm `honTe` và/hoặc `items[]` với mã **có trong `ITEMS`**. Hàm thuần `achvReached(def, stats)` để client hiển thị; server tính thật.
+- `ACHV` ở `shared/data.ts`: danh sách `{id, group, name, stat, need, reward}`; `stat` là mã chỉ số trong danh sách đóng `ACHV_STATS`; `reward` chỉ gồm `honTe` và/hoặc `items[]` với mã **có trong `ITEMS`**. Hàm thuần `achvReached(def, stats)` để client hiển thị; server tính thật.
+- **Mã thành tựu ổn định:** `id` = `${chỉ số}_${mã bậc}` với mã bậc khai tường minh (`t1`, `t2`, …, `all`, `max`), **không** suy từ ngưỡng. Nhờ vậy đổi `need`, hoặc thêm võ hồn làm `VOHON.length` đổi, không đổi mã đã lưu ở `claimed` và không mở lại lượt nhận (giữ trần tổng `ACHV_CAP`). Mã đã phát hành chỉ được thêm, không đổi tên / xóa; test `server/scripts/achv-test.ts` giữ danh sách mã.
 - Server giữ **mọi** phép tính trong một file riêng (đề xuất `server/src/rooms/achv.ts`, như `welfare.ts`, `rank.ts`). Client chỉ gửi `op` và `id`; `id` phải thuộc danh mục (so với bảng đóng, không phải chuỗi tự do).
 - Gom chỉ số: một hàm `achvStats(d)` đọc **RAM của người chơi** (cấp, sưu tầm, sao, nhiệm vụ đã tải lúc vào phòng) cộng bộ đếm sự kiện; khi nhận, chỉ số **không có trong RAM** hoặc quan trọng cho chống gian lận (bộ đếm) được đọc lại từ DB trong chính transaction nhận.
 - Đồng hồ: không dùng; thành tựu không phụ thuộc giờ nên không có chuyện đổi giờ máy.
@@ -67,7 +71,7 @@ Bổ sung vào bảng ở `docs/tech/giao-thuc-server.md` khi làm (kiểm `tool
 | Hướng | Tin | Nội dung | Nhóm / giới hạn |
 |---|---|---|---|
 | client → server | `achv {op: "get" \| "claim", id?}` | `get`: xin danh sách; `claim`: nhận thưởng thành tựu `id` | `get`: `read`; `claim`: `trade` (ghi DB) |
-| server → client | `achv {stats, claimed, ready, claimedNow?, err?}` | `stats`: chỉ số hiện tại theo ACHV_STATS *(đề xuất)*; `claimed`: mã đã nhận; `ready`: số thành tựu đạt chưa nhận (cho chấm đỏ); `claimedNow`: kết quả lần vừa nhận (`{id, items}`); `err`: lý do tiếng Việt | riêng |
+| server → client | `achv {stats, claimed, ready, claimedNow?, err?}` | `stats`: chỉ số hiện tại theo `ACHV_STATS`; `claimed`: mã đã nhận; `ready`: số thành tựu đạt chưa nhận (cho chấm đỏ); `claimedNow`: kết quả lần vừa nhận (`{id, items}`); `err`: lý do tiếng Việt | riêng |
 
 - Server gửi `achv` lúc vào phòng (cho chấm đỏ) và sau mỗi sự kiện làm một thành tựu **vừa đạt** (không gửi mỗi lần bộ đếm tăng; chỉ khi `ready` đổi). Không tự nhận hộ.
 - Từ chối bằng `err` tiếng Việt: chưa đạt, đã nhận, mã lạ, túi đầy, đang trong sân đấu / Bí Cảnh, đang đi cổng, đang giao chiến *(đề xuất: chặn như `welfare`, nhận được ở mọi trạng thái an toàn)*, `claimBusy`.
@@ -87,9 +91,9 @@ Nguyên tắc: **thưởng nhỏ, lấy từ vật phẩm đã có, tổng cả 
 
 | Thứ | Quan hệ trần (cộng cả danh mục) |
 |---|---|
-| Hồn Tệ | **tổng** `honTe` của mọi thành tựu trong `ACHV` ≤ `k` × `CHECKIN.cycleCap.honTe`, với `k` là hằng trần `ACHV_CAP.honTeK` (đề xuất; khai ở `shared/data.ts`, không phụ thuộc số nhóm). Thêm nhóm hoặc bậc mới thì phải chia lại trong trần này; test P1 cộng toàn `ACHV` và so với trần |
-| Mảnh võ hồn | chỉ SR / SSR trong `ARENA_SHARDS`; **không** UR, **không** Lam Ngân Thảo; **tổng** mảnh toàn `ACHV` ≤ `ACHV_CAP.shardsK` × `SHARD_BUY.daily` (hằng đề xuất, cùng cách kiểm) |
-| Ủy Thác Lệnh (`AUTO_TOKEN`) | chỉ ở bậc cao; **tổng** giờ toàn `ACHV` ≤ `ACHV_CAP.autoK` × `AUTO_DAILY_SECS` (hằng đề xuất) |
+| Hồn Tệ | **tổng** `honTe` của mọi thành tựu trong `ACHV` ≤ `k` × `CHECKIN.cycleCap.honTe`, với `k` là hằng trần `ACHV_CAP.honTeK` (khai ở `shared/data.ts`, không phụ thuộc số nhóm). Thêm nhóm hoặc bậc mới thì phải chia lại trong trần này; test P1 cộng toàn `ACHV` và so với trần |
+| Mảnh võ hồn | chỉ SR / SSR trong `ARENA_SHARDS`; **không** UR, **không** Lam Ngân Thảo; **tổng** mảnh toàn `ACHV` ≤ `ACHV_CAP.shardsK` × `SHARD_BUY.daily` |
+| Ủy Thác Lệnh (`AUTO_TOKEN`) | chỉ ở bậc cao; **tổng** giờ toàn `ACHV` ≤ `ACHV_CAP.autoK` × `AUTO_DAILY_SECS` |
 | Đan, phù | chỉ loại nhỏ trong `SHOP` |
 | Hồn hoàn, hồn cốt, hồn hạch, trang bị, tiên thảo, rương | **không có** trong thưởng thành tựu (đã có nguồn rơi riêng; tránh phá mục tiêu săn) |
 
@@ -107,7 +111,7 @@ Chất liệu **Giấy** (kit gốc, `docs/art/ui-kit.md`): cửa sổ riêng m�
 | Bước | Việc | Kiểm thử |
 |---|---|---|
 | P0 | Tài liệu này (+ dòng mục lục `GAME_DESIGN.md`) | `npm run check`, `tools/docs-check.mjs` |
-| P1 | `shared/data.ts`: `ACHV`, ACHV_STATS *(đề xuất)*, `achvReached`; test thuần + **test quan hệ trần thưởng** | `npm run check` |
+| P1 | `shared/data.ts`: `ACHV`, `ACHV_STATS`, `ACHV_CAP`, `achvReached`; test thuần + **test quan hệ trần thưởng** | `npm run check` |
 | P2 | SQL `achv_state` + `Store.achvGet` / `achvBump` / `achvClaim` (cả `PgStore` lẫn `MemoryStore`) | bot `--pg`: migration chạy lại hai lần; nhận có điều kiện không nhân quà khi hai tiến trình tranh |
 | P3 | Server: tin `achv` (`get`, `claim`), `achv.ts`, bộ đếm sự kiện ở nơi hạ thú / đấu trường / Bí Cảnh / khảo hạch, hoàn khi lỗi | bot nhóm mới `achv`: nhận khi đạt, nhận đúp, chưa đạt, id lạ, túi đầy, dồn 200 `claim`; hook `savefail` kiểm hoàn lại |
 | P4 | Soát chống gian lận (`anti-cheat-audit`) + `balance-review` bảng trần thưởng | tài liệu soát + bảng quan hệ với số thật |
