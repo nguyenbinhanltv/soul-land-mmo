@@ -18,7 +18,7 @@
   },
   "compositor": {
     "path": "../../compose.mjs",
-    "sha256": "86c18bb8c84c9edacddfb284d5468cd4b678bf1cbbfde31aa464b96bde1582db"
+    "sha256": "722992ab18be3de17c84a2fdba1b9e4e070a04e8f9be6661fe5e1b22e05af191"
   },
   "license": "Đầu ra OpenAI theo điều khoản dịch vụ; LPC giữ giấy phép nguồn."
 }
