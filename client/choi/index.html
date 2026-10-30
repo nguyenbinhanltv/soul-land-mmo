@@ -26,6 +26,20 @@
         <div class="buffs" id="buffs" aria-label="Hiệu ứng và trạng thái"></div>
         <div class="buffs" id="bpas" aria-label="Kỹ năng bị động của hồn cốt"></div>
       </section>
+      <section id="sideBox" class="panel f2-muc-nho" data-tab="quest" aria-label="Nhiệm vụ và Tổ đội">
+        <div class="sb-bar">
+          <div class="sb-tabs" role="tablist" aria-label="Khung Nhiệm vụ và Tổ đội">
+            <button id="sbTabQuest" class="sb-tab" type="button" role="tab" data-tab="quest" aria-selected="true" aria-controls="quest">Nhiệm vụ</button>
+            <button id="sbTabParty" class="sb-tab" type="button" role="tab" data-tab="party" aria-selected="false" aria-controls="party" tabindex="-1">Tổ đội</button>
+          </div>
+          <button id="sbFold" class="sb-fold" type="button" aria-expanded="true" aria-controls="sbBody" title="Thu gọn khung thành một chip">Gọn</button>
+        </div>
+        <div id="sbBody" class="sb-body">
+          <div id="quest" role="tabpanel" aria-labelledby="sbTabQuest" aria-label="Nhiệm vụ đang làm" hidden></div>
+          <small id="sbQuestEmpty" class="sb-empty">Chưa có nhiệm vụ đang làm. Gặp NPC có dấu ! để nhận bài.</small>
+          <div id="party" role="tabpanel" aria-labelledby="sbTabParty" aria-label="Tổ đội"></div>
+        </div>
+      </section>
       </div>
       <div id="pmenu" class="panel" hidden role="dialog" aria-label="Hồn sư"></div>
       <div id="dualTabs" hidden role="tablist" aria-label="Chuyển Nhân vật / Túi"></div>
@@ -88,20 +102,6 @@
         </div>
         <div id="flagBar" hidden aria-live="polite"><span id="flagText"></span><button id="flagGo" class="minibtn" title="Tự đi tới cờ (phím Y)">Đi <kbd>Y</kbd></button><button id="flagStop" class="minibtn" title="Dừng tự đi (hoặc bấm phím di chuyển)" hidden>Dừng <kbd>Y</kbd></button><button id="flagClear" class="minibtn" title="Xoá cờ" aria-label="Xoá cờ">×</button></div>
         <div id="chans" hidden role="dialog" aria-label="Chọn kênh"></div>
-      </section>
-      <section id="sideBox" class="panel f2-muc-nho" data-tab="quest" aria-label="Nhiệm vụ và Tổ đội">
-        <div class="sb-bar">
-          <div class="sb-tabs" role="tablist" aria-label="Khung Nhiệm vụ và Tổ đội">
-            <button id="sbTabQuest" class="sb-tab" type="button" role="tab" data-tab="quest" aria-selected="true" aria-controls="quest">Nhiệm vụ</button>
-            <button id="sbTabParty" class="sb-tab" type="button" role="tab" data-tab="party" aria-selected="false" aria-controls="party" tabindex="-1">Tổ đội</button>
-          </div>
-          <button id="sbFold" class="sb-fold" type="button" aria-expanded="true" aria-controls="sbBody" title="Thu gọn khung thành một chip">Gọn</button>
-        </div>
-        <div id="sbBody" class="sb-body">
-          <div id="quest" role="tabpanel" aria-labelledby="sbTabQuest" aria-label="Nhiệm vụ đang làm" hidden></div>
-          <small id="sbQuestEmpty" class="sb-empty">Chưa có nhiệm vụ đang làm. Gặp NPC có dấu ! để nhận bài.</small>
-          <div id="party" role="tabpanel" aria-labelledby="sbTabParty" aria-label="Tổ đội"></div>
-        </div>
       </section>
       </div>
       <div id="bossbar" class="panel" hidden></div>
