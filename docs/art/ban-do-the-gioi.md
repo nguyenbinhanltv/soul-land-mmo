@@ -11,6 +11,8 @@ Chủ repo duyệt ngày 31/10/2026: bản đồ thế giới mở bằng M dùn
 
 Asset nằm ở `art/src/world-map/` để PR chỉ bàn giao mỹ thuật; phía client chưa tải ảnh hay JSON này. Khi nhập game cần dùng quy trình asset-gen để đăng ký đường dẫn runtime, không tự coi key trong ghi công là key manifest.
 
+Trang xem trước dùng `fetch` để đọc JSON, cần mở qua HTTP, ví dụ `ao preview art/src/world-map/xem-truoc.html`; không mở trực tiếp bằng `file://`.
+
 ## Hợp đồng bố cục
 
 Gốc tọa độ ở góc trên trái ảnh; x sang phải, y xuống dưới. `position` của bản đồ là tâm nút / nhãn tên vùng, của trận là tâm nút trận. Tất cả trong [0,1], độc lập tọa độ Tiled và không được gửi lên server như tọa độ dịch chuyển. Khi ảnh có kích thước hiển thị W×H với góc ở (L,T), điểm vẽ = (L+xW,T+yH); dùng cùng phép biến đổi cho đường nối, nút và hit target.
