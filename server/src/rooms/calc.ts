@@ -1,6 +1,6 @@
 // Hàm thuần tính toán nhỏ tách khỏi MapRoom.ts (#702): không giữ phòng, không ghi DB. Nguyên văn, không đổi hành vi.
 import type { Item } from "../db.ts";
-import { CORE_SETS, CORE_SET_2, CORE_SET_4, coreSetIndex, ELITE_RAGE, WORLD, SUPPORT_CONTRIB, questStart, sellPrice, type QuestProgress } from "../../../shared/data.ts";
+import { CORE_SETS, CORE_SET_2, CORE_SET_4, coreSetIndex, ELITE_RAGE, WORLD, SUPPORT_CONTRIB, questStart, sellPrice, type QuestProgress, CORE_STAT_IDS, type CoreStat } from "../../../shared/data.ts";
 
 /** Câu báo khi bộ `set` có `n` món đang gắn trên một võ hồn và vừa đủ 2 / 4 món ("" nếu không). */
 export function coreSetNoteOf(n: number, set: string) {
@@ -82,4 +82,18 @@ export const progressFor = (ids: readonly string[], saved: readonly QuestProgres
 export function giveCandidates(bag: Item[], code: string, absorbingId: string | undefined) {
   return bag.filter((it) => it.code === code && it.vohonId === null && !(it.enhance > 0) && it.id !== absorbingId)
     .sort((a, b) => (sellPrice(a) ?? 0) - (sellPrice(b) ?? 0));
+}
+
+/** Cộng chỉ số trang bị `gear` vào bảng chỉ số kiểu hồn hạch `b` (làm tròn 0,1); không sửa `b`. */
+export function addGearBonus(b: Record<CoreStat, number>, gear: Record<CoreStat, number>) {
+  const out = { ...b };
+  for (const k of CORE_STAT_IDS) out[k] = Math.round((out[k] + gear[k]) * 10) / 10;
+  return out;
+}
+
+/** Một nhịp hồi máu của hồn thú: máu đầy / đã chết thì xoá phần dư; không thì cộng dồn `maxHp × pct × dt × mult`, đủ số nguyên mới cộng vào máu. */
+export function regenStep(b: { hp: number; maxHp: number }, bd: { regen: number }, mult: number, pct: number, dt: number) {
+  if (b.hp >= b.maxHp || b.hp <= 0) { bd.regen = 0; return; }
+  bd.regen += b.maxHp * pct * dt * mult;
+  const add = Math.floor(bd.regen); if (add > 0) { bd.regen -= add; b.hp = Math.min(b.maxHp, b.hp + add); }
 }
