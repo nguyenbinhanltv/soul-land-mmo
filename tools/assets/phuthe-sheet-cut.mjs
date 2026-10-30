@@ -59,7 +59,7 @@ export function downscaleFrame(idx, lab, pal, F) {
 
 /**
  * @param {{ id: string, sheets: Record<string, Img>, group?: string, frame?: number, dummyKey?: string, dummyTol?: number, key?: number[], tol?: number, colors?: number,
- *   palette?: string, lop?: object, dummySex?: string, grid?: string, minArea?: number, partial?: boolean }} o
+ *   palette?: string, lop?: object, dummySex?: string, grid?: string, minArea?: number, partial?: boolean, poseFrames?: object[] }} o
  * @returns {{ halves: { b: Img | null, f: Img | null }, entries: object[], report: object }}
  */
 export function cutPhuThe(o) {
@@ -76,7 +76,7 @@ export function cutPhuThe(o) {
     const sid = SHEET_ID[dir], raw = o.sheets[sid];
     if (!raw) { dirStatus[dir] = "thieu"; if (o.partial) warn("thieu-huong", `hướng ${dir} (tờ ${sid}) chưa có: bỏ qua, client dùng phụ thể tĩnh cũ cho hướng này`); else warn("thieu-to", `thiếu tờ ${sid} (${dir})`); continue; }
     dirStatus[dir] = "ok";
-    const prep = prepareSheet(raw, { group, dir, frame: F, dummyKey, guideKey, gripKey, gripN: gripCounts(info.hands), dummyTol, tol, key: o.key, sex: dummySex, grid: o.grid ?? "auto" });
+    const prep = prepareSheet(raw, { group, dir, frame: F, dummyKey, guideKey, gripKey, gripN: gripCounts(info.hands), dummyTol, tol, key: o.key, sex: dummySex, grid: o.grid ?? "auto", id: vk ? o.id : undefined, poseFrames: vk ? o.poseFrames : undefined });
     for (const n of prep.notes) warn("luoi", `tờ ${sid}: ${n}`);
     const bad = prep.cells.filter((c) => !c.reg.ok);
     rep.sheets[sid] = { dir, size: [raw.w, raw.h], factor: +prep.factor.toFixed(4), key: prep.bgKey, grid: prep.layout.mode, shift: prep.shift, registered: prep.cells.length - bad.length, cells: prep.cells.length };

@@ -9,6 +9,7 @@ import { mkdirSync, writeFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Img, readPng, encodePng, hex, paletteGroup, frameAnchors, ROOT } from "./lib.mjs";
+import { weaponPoseGripPolicy, weaponFrameAxis } from "./phuthe-weapon-grip.mjs";
 import {
   LPC_SHEET, DIRS, BG_KEY, CELL, SHEET_W, SHEET_H, TURNAROUND, TURNAROUND_STEP,
   framesOf, sheetCells, bodyStepOf, bodyRowKey, bodyColOf, bodyOffset, frameOrigin, checkFrame, phutheInfo, dummyKeyOf, guideKeyOf, SHEET_ID, allPhutheIds, allVukhiIds,
@@ -112,7 +113,7 @@ const handOrder = (dir, hands) => [...hands].sort((a, b) => (dir === "s" ? a.x -
  * `count` là số tay tối thiểu cần tìm; marker/cutter giới hạn số tay theo clip. Cặp tay attack/cast được nâng ngang lưng,
  * mảng tay nhỏ chỉ nhận nếu nằm rõ ra hai bên trục thân; không đổi ảnh LPC hoặc suy ra tay từ giới khác.
  */
-export function gripPoints({ sex = "m", dir, clip, step, frame, count = 1 }) {
+export function gripPoints({ sex = "m", dir, clip, step, frame, count = 1, id, axisDegrees }) {
   const F = checkFrame(frame), k = CELL / F, [bx, by] = bodyOffset(F), to = (p) => [(bx + p.x) * k, (by + p.y) * k];
   // Tay nện/thi triển có thể nâng ngang lưng; không áp ngưỡng của tay đang nghỉ.
   const activePair = count > 1 && ["attack", "cast"].includes(clip), belowBack = activePair ? 0 : HAND_BELOW_BACK;
@@ -132,7 +133,8 @@ export function gripPoints({ sex = "m", dir, clip, step, frame, count = 1 }) {
     if (!hands.length) continue;
     const head = a.head.y, feet = a.feet.y, back = to(a.back);
     const result = { hands: handOrder(dir, hands).slice(0, 2).map(to), back, shoulder: [back[0], back[1] - (feet - head) * SHOULDER_UP * k], step: s, fallback: s !== step };
-    if (hands.length >= count) return result;
+    // Ngoại lệ dọc đã duyệt: giữ tay thật của chính bước này, không mượn cặp tay ở bước khác.
+    if (hands.length >= count || (s === step && hands.length === 1 && weaponPoseGripPolicy({ id, clip, axisDegrees, primaryDistance: 0 }).primaryOnly)) return result;
     partial ??= result;
   }
   if (partial) return { ...partial, fallback: true };
@@ -161,7 +163,7 @@ function paint(img, cell, rect, key) {
 }
 
 /** Tờ nộm của một hướng (ảnh 1536×1024, 6×4 ô; ô nào không có khung thì chỉ nền). `group`: A / B / C. */
-export function dummySheet({ group, dir, frame, key = dummyKeyOf(""), sex = "m", guideKey = null, gripKey = null, gripN = 2 }) {
+export function dummySheet({ group, dir, frame, key = dummyKeyOf(""), sex = "m", guideKey = null, gripKey = null, gripN = 2, id, poseFrames }) {
   const img = new Img(SHEET_W, SHEET_H), kc = typeof key === "string" ? hex(key) : key, fr = framesOf(group), gc = guideKey && (typeof guideKey === "string" ? hex(guideKey) : guideKey), pc = gripKey && (typeof gripKey === "string" ? hex(gripKey) : gripKey);
   fillBg(img);
   const cells = [];
@@ -171,7 +173,7 @@ export function dummySheet({ group, dir, frame, key = dummyKeyOf(""), sex = "m",
     if (gc) paintGuides(img, at, gd, gc, false);
     paint(img, cell, at, kc);
     if (gc) paintGuides(img, at, gd, gc, true);
-    const grip = pc ? gripMarker({ sex, dir, clip: c.anim, step, frame, count: gripCountAt(gripN, c.anim) }) : null;
+    const grip = pc ? gripMarker({ sex, dir, clip: c.anim, step, frame, count: gripCountAt(gripN, c.anim), id, axisDegrees: weaponFrameAxis(poseFrames, sex, dir, c.anim, c.frame) }) : null;
     if (grip) paintGrip(img, at, grip.pts, pc); // marker điểm cầm đè lên nộm
     cells.push({ ...c, step, cell, ...(grip ? { grip } : {}) });
   }

@@ -1,0 +1,24 @@
+{
+    "date":  "2026-10-30",
+    "tool":  "Codex / OpenAI image_gen tích hợp",
+    "model":  null,
+    "seed":  null,
+    "direction":  "se",
+    "generation":  1,
+    "rejectedReason":  "Góc quá giống đông, chưa đủ khác cho đông-nam",
+    "rawUnmodified":  true,
+    "image":  {
+                  "sha256":  "f7aa4aa0318119befe07ea5fe6b167cc9e37bcc6806d0fc752b585d0666d47f5",
+                  "path":  "se-1.raw.png"
+              },
+    "prompt":  {
+                   "sha256":  "a63bce5fc3b9b0a7ceac18cb908f19e56f822f1b151ff3ebf637878a69ae6138",
+                   "path":  "se-1.prompt.txt"
+               },
+    "references":  [
+                       {
+                           "sha256":  "2efd72d1f5852c8b7939e0aed36a795c905c4216468e24e66df06513d655c460",
+                           "path":  "../e/attempt1/poses.raw.png"
+                       }
+                   ]
+}

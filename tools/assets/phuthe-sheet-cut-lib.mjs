@@ -11,6 +11,7 @@ import { foregroundMask, components } from "./beast-sheet-cut.mjs";
 import { median } from "./beast-sheet-stats.mjs";
 import { CELL, SHEET_W, SHEET_H, DIRS, framesOf, sheetPlan, bodyStepOf, sheetFits, canonFactor, DEFAULT_LAYER, LAYER_LABELS, frameOrigin, gripCountAt } from "./phuthe-sheet-lib.mjs";
 import { dummyCell, gripPoints } from "./phuthe-sheet-dummy.mjs";
+import { weaponFrameAxis } from "./phuthe-weapon-grip.mjs";
 
 /** Dung sai khoá nền (như hồn thú) và dung sai khoá nộm (nhỏ hơn: không ăn sang phụ thể; đặc tả, ý 4). */
 export const BG_TOL = 60, DUMMY_TOL = 40;
@@ -122,12 +123,12 @@ export function registerDummy(obs, w, h, nom, ox, oy) {
  * @returns {{ img: Img, factor: number, bgKey: number[], masks: object, layout: object, cells: object[], shift: {dx:number, dy:number}, notes: string[] }}
  *   cells[i] = { anim, frame, col, row, step, nom, reg: { dx, dy, score, ok }, win: {x0, y0}, rect }; (win = góc trên trái cửa sổ khung 256×256 trong ảnh canonical)
  */
-export function prepareSheet(raw, { group, dir, frame, dummyKey, guideKey = null, gripKey = null, gripN = 2, dummyTol = DUMMY_TOL, tol = BG_TOL, key, sex = "m", grid = "auto" }) {
+export function prepareSheet(raw, { group, dir, frame, dummyKey, guideKey = null, gripKey = null, gripN = 2, dummyTol = DUMMY_TOL, tol = BG_TOL, key, sex = "m", grid = "auto", id, poseFrames }) {
   const { img, factor } = normalizeSheet(raw), bgKey = (key ?? sheetKey(img)).slice(0, 3);
   const dk = typeof dummyKey === "string" ? hex(dummyKey) : dummyKey, gk = guideKey ? (typeof guideKey === "string" ? hex(guideKey) : guideKey) : null, pk = gripKey ? (typeof gripKey === "string" ? hex(gripKey) : gripKey) : null, masks = sheetMasks(img, { bgKey, tol, dummyKey: dk, dummyTol, guideKey: gk, gripKey: pk });
   const sheet = sheetPlan(group)[DIRS.indexOf(dir)], layout = layoutFor(eraseGuides(eraseGuides(img, gk), pk), sheet, grid, { key: bgKey, tol: GRID_TOL }), fr = framesOf(group);
   const cells = sheet.cells.map((c) => {
-    const step = bodyStepOf(c.anim, fr[c.anim], c.frame), nom = nominalOf({ sex, dir, clip: c.anim, step, frame }), grip = pk ? { ...gripPoints({ sex, dir, clip: c.anim, step, frame, count: gripCountAt(gripN, c.anim) }) } : null;
+    const step = bodyStepOf(c.anim, fr[c.anim], c.frame), nom = nominalOf({ sex, dir, clip: c.anim, step, frame }), grip = pk ? { ...gripPoints({ sex, dir, clip: c.anim, step, frame, count: gripCountAt(gripN, c.anim), id, axisDegrees: weaponFrameAxis(poseFrames, sex, dir, c.anim, c.frame) }) } : null;
     if (grip) grip.hands = grip.hands.slice(0, gripCountAt(gripN, c.anim)); // vũ khí 1 tay: chỉ tay thuận A
     const reg = registerDummy(masks.dummy, img.w, img.h, nom, c.col * CELL, c.row * CELL);
     return { ...c, step, nom, ...(grip ? { grip } : {}), reg: { ...reg, ok: reg.score >= REG_MIN_SCORE }, rect: layout.rect(c.col, c.row) };

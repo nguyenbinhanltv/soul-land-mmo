@@ -86,11 +86,12 @@ for (const p of poses.filter((p) => !p.unused)) for (let y = p.box[1]; y <= p.bo
 const counts = gripCounts("2 tay (theo clip)");
 const tilt = { idle: [-2, 2], walk: [-4, -1, 3, 1], hurt: [-8] }, plan = [];
 for (const sex of ["m", "f"]) for (const c of sheetCells("A")) {
-  const step = bodyStepOf(c.anim, framesOf("A")[c.anim], c.frame), g = gripPoints({ sex, dir, clip: c.anim, step, frame: F, count: counts[c.anim] });
+  const pose = map[c.anim][c.frame], p = poses[pose], step = bodyStepOf(c.anim, framesOf("A")[c.anim], c.frame);
+  const gripPolicy = weaponPoseGripPolicy({ id: "hao_thien_chuy", clip: c.anim, axisDegrees: poseA ? p.axis * 180 / Math.PI : undefined, primaryDistance: 0 });
+  const g = gripPoints({ sex, dir, clip: c.anim, step, frame: F, count: counts[c.anim], id: "hao_thien_chuy", axisDegrees: poseA ? p.axis * 180 / Math.PI : undefined });
   const hands = g.hands.slice(0, counts[c.anim]).map((p) => p.map((v) => sex === "m" ? +(v / 2).toFixed(1) : v / 2));
-  if (hands.length !== counts[c.anim]) throw Error(`Thiếu tay ${sex}/${dir}/${c.anim}/${c.frame}`);
-  const pose = map[c.anim][c.frame], p = poses[pose];
-  const angle = hands.length === 2 ? (poseA ? 0 : Math.atan2(hands[1][1] - hands[0][1], hands[1][0] - hands[0][0]) - p.axis) : (tilt[c.anim][c.frame] * Math.PI / 180);
+  if (hands.length !== counts[c.anim] && !(gripPolicy.primaryOnly && hands.length === 1 && !g.fallback)) throw Error(`Thiếu tay ${sex}/${dir}/${c.anim}/${c.frame}`);
+  const angle = hands.length === 2 ? (poseA ? 0 : Math.atan2(hands[1][1] - hands[0][1], hands[1][0] - hands[0][0]) - p.axis) : (gripPolicy.primaryOnly ? 0 : tilt[c.anim][c.frame] * Math.PI / 180);
   plan.push({ ...c, sex, name: `${dir}/${c.anim}/${c.frame}`, pose, hands, angle, step, measuredStep: g.step, fallback: g.fallback });
 }
 // Chọn điểm nắm trên chính cán thẳng đã vẽ, không bắt tay A ở nút cuối.
@@ -135,7 +136,8 @@ for (const f of plan) {
   f.gripOffset = Math.max(lo, Math.min(hi, desired));
 }
 fs.mkdirSync(out, { recursive: true });
-const side = ["ne", "n"].includes(dir) ? "b" : "f", half = new Img(13 * F, 10 * F), boards = Object.fromEntries(["m", "f"].map((sex) => [sex, dummySheet({ group: "A", dir, sex, frame: F, key: "#00D0D0", guideKey: "#7A5CFF", gripKey: "#00FF60", gripN: counts }).img]));
+const gripFrames = poseA ? plan.map((f) => ({ name: `${f.sex}/${f.name}`, axisDegrees: Math.atan2(f.axisUnit[1], f.axisUnit[0]) * 180 / Math.PI })) : undefined;
+const side = ["ne", "n"].includes(dir) ? "b" : "f", half = new Img(13 * F, 10 * F), boards = Object.fromEntries(["m", "f"].map((sex) => [sex, dummySheet({ group: "A", dir, sex, frame: F, key: "#00D0D0", guideKey: "#7A5CFF", gripKey: "#00FF60", gripN: counts, id: "hao_thien_chuy", poseFrames: gripFrames }).img]));
 const distances = [];
 for (const f of plan) {
   const p = poses[f.pose], co = Math.cos(f.angle), si = Math.sin(f.angle), g = f.hands[0], frame = new Img(F, F);

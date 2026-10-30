@@ -1,0 +1,26 @@
+{
+    "date":  "2026-10-30",
+    "tool":  "Codex / OpenAI image_gen tích hợp",
+    "model":  null,
+    "seed":  null,
+    "direction":  "ne",
+    "attempt":  1,
+    "generation":  1,
+    "references":  [
+
+                   ],
+    "rawUnmodified":  true,
+    "image":  {
+                  "path":  "poses.raw.png",
+                  "sha256":  "9ad2235dbcd801676bc7d7995d58b72586badae47070c2c48431d7d477b12f5e"
+              },
+    "prompt":  {
+                   "path":  "poses.prompt.txt",
+                   "sha256":  "f7b933b9f5f7a5c05d5a9db656dabab23684ed17bbfd617f321545b134add45b"
+               },
+    "compositor":  {
+                       "path":  "../../compose.mjs",
+                       "sha256":  "308b5ed862e49ba4ac3a02b0b42b079ad250f3a374a367d96878a7352f8a6376"
+                   },
+    "license":  "Đầu ra OpenAI theo điều khoản dịch vụ; LPC giữ giấy phép nguồn."
+}
