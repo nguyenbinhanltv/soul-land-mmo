@@ -14,7 +14,7 @@ import { TIERS, VOHON, xpNeed, xpBlocked, calcStats, TICK_RATE, tierOfYears, voh
   SHARD_UNLOCK, starCost,
   BONE_ITEM, BONE_SLOTS, parseBone, boneBonus,
   CORE_ITEM, parseCore, type CoreData,
-  CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, equipDefTotal, equipWeaponRoll, equipName, rollEquipDrop, rollEquipCharm, EQUIP_CHARM, type EquipData, type EquipDrop,
+  type CoreStat, EQUIP_ITEM, equipDefTotal, equipWeaponRoll, equipName, rollEquipDrop, rollEquipCharm, EQUIP_CHARM, type EquipData, type EquipDrop,
   coreSlotOf, coreBonus, coreFx, coreSetCounts, type CoreFx,
   bonePassive, type BonePassive, type PassiveBuff,
   parseBoneSubs, boneAddSubs,
@@ -64,7 +64,7 @@ import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
 import { newItem, bagUsed, itemLabel, shardCount, type GearStats } from "./items.ts";
 import { questBump } from "./questBump.ts";
-import { coreSetNoteOf, beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint, spawnPointIn, dashPath, dashAim, progressFor, giveCandidates } from "./calc.ts";
+import { coreSetNoteOf, beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint, spawnPointIn, dashPath, dashAim, progressFor, giveCandidates, addGearBonus, regenStep } from "./calc.ts";
 import { targetMsg, manualAttack } from "./lock.ts";
 import * as equip from "./equip.ts";
 import * as bones from "./bones.ts";
@@ -2065,9 +2065,7 @@ export class MapRoom extends Room<MapState> {
 
   /** Hồn thú không mục tiêu, không bị đánh BEAST_REGEN.delay giây thì hồi máu; Trúng độc giảm hồi máu (healCut). */
   regenBeast(b: BeastState, bd: BData, dt: number, pct = BEAST_REGEN.pct) {
-    if (b.hp >= b.maxHp || b.hp <= 0) { bd.regen = 0; return; }
-    bd.regen += b.maxHp * pct * dt * (bd.st.has("poison") ? 1 - STATUS.poison.healCut : 1);
-    const add = Math.floor(bd.regen); if (add > 0) { bd.regen -= add; b.hp = Math.min(b.maxHp, b.hp + add); }
+    regenStep(b, bd, bd.st.has("poison") ? 1 - STATUS.poison.healCut : 1, pct, dt);
   }
 
   // ---------- Chiêu có báo trước của hồn thú (mục 5.3, 5.4; bước 3.5) ----------
@@ -2275,9 +2273,7 @@ export class MapRoom extends Room<MapState> {
   coreBonusOf(d: PData, rowId: number) { return this.withGear(d, coreBonus(this.coresOn(d, rowId))); }
   /** Cộng chỉ số trang bị hồn sư đang mặc (thuộc hồn sư, dùng chung mọi võ hồn) vào bảng chỉ số kiểu hồn hạch; cùng đơn vị với coreBonus. */
   withGear(d: PData, b: Record<CoreStat, number>) {
-    const out = { ...b };
-    for (const k of CORE_STAT_IDS) out[k] = Math.round((out[k] + d.gearSt.bonus[k]) * 10) / 10;
-    return out;
+    return addGearBonus(b, d.gearSt.bonus);
   }
   /** Câu báo khi bộ `set` trên võ hồn `rowId` vừa đủ 2 / 4 món ("" nếu không). */
   coreSetNote(d: PData, rowId: number, set: string) { return coreSetNoteOf(coreSetCounts(this.coresOn(d, rowId)).get(set) ?? 0, set); }

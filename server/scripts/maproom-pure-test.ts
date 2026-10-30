@@ -2,9 +2,9 @@
 // Chạy: npm run test:maproom-pure --prefix server
 import assert from "node:assert/strict";
 import { itemLabel, shardCount } from "../src/rooms/items.ts";
-import { coreSetNoteOf, beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint, spawnPointIn, dashPath, dashAim, progressFor, giveCandidates } from "../src/rooms/calc.ts";
+import { coreSetNoteOf, beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint, spawnPointIn, dashPath, dashAim, progressFor, giveCandidates, addGearBonus, regenStep } from "../src/rooms/calc.ts";
 import { questBump } from "../src/rooms/questBump.ts";
-import { CORE_SETS, CORE_SET_2, CORE_SET_4, ELITE_RAGE, WORLD, SUPPORT_CONTRIB, QUEST_STARTER, questStart, questChain, itemDef, ITEMS } from "../../shared/data.ts";
+import { CORE_STAT_IDS, CORE_SETS, CORE_SET_2, CORE_SET_4, ELITE_RAGE, WORLD, SUPPORT_CONTRIB, QUEST_STARTER, questStart, questChain, itemDef, ITEMS } from "../../shared/data.ts";
 import type { Item } from "../src/db.ts";
 
 function test(title: string, fn: () => void) { fn(); console.log(`✓ ${title}`); }
@@ -127,4 +127,21 @@ test("giveCandidates: bỏ ô gắn võ hồn / đã cường hóa / đang hấp
   const ids = giveCandidates(bag, it.id, "5").map((i) => i.id);
   assert.ok(!ids.some((x) => ["3", "4", "5", "6"].includes(x)));
   assert.deepEqual([...ids].sort(), ["1", "2"]);
+});
+
+test("addGearBonus: cộng từng chỉ số, làm tròn 0,1, không sửa bảng gốc", () => {
+  const z = () => Object.fromEntries(CORE_STAT_IDS.map((k) => [k, 0])) as Record<(typeof CORE_STAT_IDS)[number], number>;
+  const b = z(), g = z(); b[CORE_STAT_IDS[0]] = 0.1; g[CORE_STAT_IDS[0]] = 0.2;
+  const r = addGearBonus(b, g);
+  assert.equal(r[CORE_STAT_IDS[0]], 0.3);
+  assert.equal(b[CORE_STAT_IDS[0]], 0.1);
+});
+
+test("regenStep: đầy / chết thì xoá phần dư; hồi chỉ cộng phần nguyên, kẹp ở maxHp", () => {
+  const bd = { regen: 5 };
+  regenStep({ hp: 100, maxHp: 100 }, bd, 1, 0.1, 1); assert.equal(bd.regen, 0);
+  const b = { hp: 50, maxHp: 100 };
+  regenStep(b, bd, 1, 0.025, 1); assert.deepEqual([b.hp, bd.regen], [52, 0.5]);
+  regenStep(b, bd, 0.5, 0.025, 1); assert.deepEqual([b.hp, bd.regen], [53, 0.75]);
+  const c = { hp: 99, maxHp: 100 }; regenStep(c, { regen: 0 }, 1, 0.1, 1); assert.equal(c.hp, 100);
 });
