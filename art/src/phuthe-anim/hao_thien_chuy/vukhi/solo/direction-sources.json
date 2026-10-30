@@ -1,0 +1,18 @@
+{
+  "se": {
+    "base": {"name":"se-carry","anchor":[385,390],"axis":[-190,-180],"head":[140,180],"bounds":[15,50,445,465],"scale":0.25,"usable":270},
+    "attack": {"name":"se-strike","anchor":[410,880],"axis":[-210,-210],"head":[130,600],"bounds":[15,480,475,980],"scale":0.23,"usable":300}
+  },
+  "e": {
+    "base": {"name":"e-carry","anchor":[800,295],"axis":[-270,-75],"head":[470,205],"bounds":[420,100,850,350],"scale":0.23,"usable":280},
+    "attack": {"name":"e-strike","anchor":[800,823],"axis":[-240,-190],"head":[500,615],"bounds":[395,490,875,940],"scale":0.22,"usable":310}
+  },
+  "ne": {
+    "base": {"name":"ne-carry","anchor":[1210,390],"axis":[-210,-150],"head":[940,170],"bounds":[840,50,1280,465],"scale":0.26,"usable":250},
+    "attack": {"name":"ne-strike","anchor":[1210,885],"axis":[-190,-195],"head":[950,620],"bounds":[830,480,1280,980],"scale":0.26,"usable":250}
+  },
+  "n": {
+    "base": {"name":"n-carry","anchor":[1400,405],"axis":[0,-1],"head":[1400,130],"bounds":[1310,40,1490,465],"scale":0.32,"usable":220},
+    "attack": {"name":"n-strike","anchor":[1400,900],"axis":[0,-1],"head":[1400,590],"bounds":[1310,490,1490,980],"scale":0.30,"usable":225}
+  }
+}

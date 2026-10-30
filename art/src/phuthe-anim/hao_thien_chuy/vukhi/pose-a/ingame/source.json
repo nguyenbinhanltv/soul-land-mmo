@@ -1,0 +1,221 @@
+{
+  "method": "Native Playwright Chrome screenshot; --mute-audio; viewport1600x900; no crop/resize/composition",
+  "gameScene": "RAM server GAME_TEST=1; UI account creation/lineup/switch; grant existing hook for weapon; pause scene and call actual animatePlayer, pause body frame at age0/100/190/260; renderer inspection, not a complete combat playthrough",
+  "gameFrames": 40,
+  "testFrames": 8,
+  "directions": [
+    "s",
+    "se",
+    "e",
+    "ne",
+    "n"
+  ],
+  "sexes": [
+    "m",
+    "f"
+  ],
+  "attackMs": [
+    0,
+    100,
+    190,
+    260
+  ],
+  "assets": {
+    "b": "608da74fd06aa2aca887775ff1c7605162016e776f2053af0d237c609638e0dc",
+    "f": "6548e9a5c65ab915d4cf1ae5b8ed7796bdc3410629b719a80d19029ab8d603bf"
+  },
+  "items": [
+    {
+      "file": "game-f-e-0.png",
+      "sha256": "d98913e689ad312037043b892cfb7ff64cfa49cfd8177d47a500dc7b4b49f46a"
+    },
+    {
+      "file": "game-f-e-100.png",
+      "sha256": "777bf418350884e16ee083a3c53e266e3296414a7afde856c50fd31f3be38fc9"
+    },
+    {
+      "file": "game-f-e-190.png",
+      "sha256": "ee83e0e989c808702dc957a9ec2fc7de2ba346e67422c33b50f361b511255b78"
+    },
+    {
+      "file": "game-f-e-260.png",
+      "sha256": "236f1d8403fce590608e8dcae0ab04c59791636950bd7d0df5ebe74390512984"
+    },
+    {
+      "file": "game-f-n-0.png",
+      "sha256": "f325c1a2ea947c173f47f52ef85ce414c9c0198f47383003127851244afcf535"
+    },
+    {
+      "file": "game-f-n-100.png",
+      "sha256": "8997b562ea0310c51742f50eb40fa83aeeb5f61bdfa81dc984d323ad861ac173"
+    },
+    {
+      "file": "game-f-n-190.png",
+      "sha256": "bf73fdb3dabf97e74d472c2ed60eb390ad1dca423d52c33ab0a39c0600f65020"
+    },
+    {
+      "file": "game-f-n-260.png",
+      "sha256": "a2edf33bd7403365862dec54bfbb96bcfd4a258201cefa1251dad1941e4be984"
+    },
+    {
+      "file": "game-f-ne-0.png",
+      "sha256": "240e6572932620806d5d7202f01b85e29249c4e7fac84d212fdd30c7fff6ada6"
+    },
+    {
+      "file": "game-f-ne-100.png",
+      "sha256": "4fc477553a3e3b5bafebb9a84c1b5d0ceb34485291998e1fd976f1bdf6ff9842"
+    },
+    {
+      "file": "game-f-ne-190.png",
+      "sha256": "69256cf90b2d41be7a21c66da2138e99ff84c3e5fdf9b44600dba2bf931a82f2"
+    },
+    {
+      "file": "game-f-ne-260.png",
+      "sha256": "902f3f6251852a0343b9fd415adffb170b5848a7c2b44f9ba121ad7122816c1f"
+    },
+    {
+      "file": "game-f-s-0.png",
+      "sha256": "2c47fc36d186300e2bb5bb5b26eba62d355b2c227ead9403eb6e14a51a71cb4b"
+    },
+    {
+      "file": "game-f-s-100.png",
+      "sha256": "26628324e9159537deefe6efed8caccedf44f9b5a7cb30592f43fc02a2e5a725"
+    },
+    {
+      "file": "game-f-s-190.png",
+      "sha256": "ef17fc67efc58e2df9520115f338d7638c7fceda147f20c48feae53fdd40747c"
+    },
+    {
+      "file": "game-f-s-260.png",
+      "sha256": "fae41bfbc31c00acd44c841991c14863d1904a9f6bd20c69a3d28f5c5812f179"
+    },
+    {
+      "file": "game-f-se-0.png",
+      "sha256": "7f625fdda3344bdb8cced56466b221a8406f26a3b1bbbdb33d487429885b19ca"
+    },
+    {
+      "file": "game-f-se-100.png",
+      "sha256": "fe7a1b66030df6e5e03fe1b2b2829a83b1bae128af467a0c2fdc20fa70a5afb6"
+    },
+    {
+      "file": "game-f-se-190.png",
+      "sha256": "2cc00a2d7f14ce43c4531a07ce7ed3d8b0edd656c4a3217dd997e997ecaf4d6f"
+    },
+    {
+      "file": "game-f-se-260.png",
+      "sha256": "56f131ec55321eaef8d14daccd0b3710a9a017d8bc586773d63d841dd49677c6"
+    },
+    {
+      "file": "game-m-e-0.png",
+      "sha256": "666363d2c2596c98753d882b9b9beb45db772a9d4c01a0cdc8f961014f62a49e"
+    },
+    {
+      "file": "game-m-e-100.png",
+      "sha256": "5af73e60b2b0bc78b73c7c534929a08a85a49c7b11d4663849f5908d01b1e095"
+    },
+    {
+      "file": "game-m-e-190.png",
+      "sha256": "f04fd30496ab576e8303e31f87d3731a15595de498f7b19a00cb2840541ad1a6"
+    },
+    {
+      "file": "game-m-e-260.png",
+      "sha256": "bdf9e4c9fb495e45b53ba67a04c12e75374523ca08bc0280747b88acc54dde2f"
+    },
+    {
+      "file": "game-m-n-0.png",
+      "sha256": "657ef9356b24e57ecd1996cb7e9bc57074d7b7c7bc4fe8f7f6396beaacbcd768"
+    },
+    {
+      "file": "game-m-n-100.png",
+      "sha256": "c6391e91fd017a17647bbc791fd3f7bbfdd983f033c42c052ed1e136b07923ed"
+    },
+    {
+      "file": "game-m-n-190.png",
+      "sha256": "e755a21bf67b64029912f601d1510b7f1dabeb636f7c44add7bd4a0884d027e1"
+    },
+    {
+      "file": "game-m-n-260.png",
+      "sha256": "a09806d407dc7f6901fe5adc556ede376c5be890954e499705d5f22238476239"
+    },
+    {
+      "file": "game-m-ne-0.png",
+      "sha256": "c64d4ed0d82a3dfe29b34951fe21b5c1ff14d2b1a4bfb5161f24c3867da5fc33"
+    },
+    {
+      "file": "game-m-ne-100.png",
+      "sha256": "7d76d0c3027d903c3a1f37cbb7ae7e11c4a4ad16b7606c6eac955358a9c6ea7f"
+    },
+    {
+      "file": "game-m-ne-190.png",
+      "sha256": "68540877ce9c2551cb7676e79dfda87d36f05b49f7c6c611b454bb794594ec09"
+    },
+    {
+      "file": "game-m-ne-260.png",
+      "sha256": "4d44aeffa35e7f5193fdb34c85e2342b5dea194808cdd40ece4677f297591829"
+    },
+    {
+      "file": "game-m-s-0.png",
+      "sha256": "16451d765debd06be0ae0814ed693614b9717eba7690e96c6f73ceec69b023bf"
+    },
+    {
+      "file": "game-m-s-100.png",
+      "sha256": "890cc65bb377952075ebf27c60816edb3a3108dcd81544e3c86bb92b1970e24b"
+    },
+    {
+      "file": "game-m-s-190.png",
+      "sha256": "9717979df0158c2f1abff79d68fadc909b4586eecab42f55558640bf489a42b6"
+    },
+    {
+      "file": "game-m-s-260.png",
+      "sha256": "f523880bb2861bd235b3c65912bbe7f377c20ffb382586c19082f0bc0a6f386b"
+    },
+    {
+      "file": "game-m-se-0.png",
+      "sha256": "d7c827bb29deb46be133c9b405ad053fdcba9b364227e1ef9ef8251debb673a3"
+    },
+    {
+      "file": "game-m-se-100.png",
+      "sha256": "28ff10c9211fa0f58fcb82d0d3d7e64be3feba456c8d7ae77626e09df9594dac"
+    },
+    {
+      "file": "game-m-se-190.png",
+      "sha256": "ab8d710ee996e2fd1239a6429a1542ed758b58eca16f1dc95f7cc758c7e36e85"
+    },
+    {
+      "file": "game-m-se-260.png",
+      "sha256": "5a0edb2272f03c13412b1ba69cd9d63327a27c1178cfa2df4dcd2ee7345d5968"
+    },
+    {
+      "file": "test-f-0.png",
+      "sha256": "eae78754fba00df114db5811fc63b4da64c22219846d715a8974d986c1eea758"
+    },
+    {
+      "file": "test-f-100.png",
+      "sha256": "65e92362681365ca3d70d3dd0ef061843c03b4137d81d56ec85afc636d7143a5"
+    },
+    {
+      "file": "test-f-190.png",
+      "sha256": "c205d96a73410d55e68c6653a92e3968a92db6bfb9ff408abc33ccf87ea2222c"
+    },
+    {
+      "file": "test-f-260.png",
+      "sha256": "ecbe9560e4a8537a7c818e99a22b98bf5e9e11832140fd725462bd3d2070701e"
+    },
+    {
+      "file": "test-m-0.png",
+      "sha256": "87d94a38bceb4eb40ddbf4cd1a6688025128fd5d7ec7b1a081bbd053334c76a8"
+    },
+    {
+      "file": "test-m-100.png",
+      "sha256": "5ead32ec3cf84070e777058e89b1d0e50ed239080ba4ddff069a1bfe6da98dce"
+    },
+    {
+      "file": "test-m-190.png",
+      "sha256": "19707ac22fb6b82c6d8f80c7d4685307b26d0788b117adb008730106686f3e06"
+    },
+    {
+      "file": "test-m-260.png",
+      "sha256": "a278f948ddd1d56080a6cb8f74a3a91093377a5de72e97df17f93c1addc2062c"
+    }
+  ]
+}

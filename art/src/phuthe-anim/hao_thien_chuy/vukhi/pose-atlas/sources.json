@@ -1,0 +1,20 @@
+{
+    "s":  {
+              "raw":  "art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-atlas/s/attempt3/poses.raw.png"
+          },
+    "se":  {
+               "raw":  "art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-atlas/se/attempt2/poses.raw.png"
+           },
+    "e":  {
+              "raw":  "art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-atlas/e/attempt2/poses.raw.png"
+          },
+    "ne":  {
+               "raw":  "art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-atlas/ne/attempt3/poses.raw.png"
+           },
+    "n":  {
+              "raw":  "art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-atlas/n/attempt3/poses.raw.png",
+              "omitUnused":  [
+                                 7
+                             ]
+          }
+}

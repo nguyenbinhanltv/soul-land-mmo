@@ -1,0 +1,621 @@
+{
+  "reference": "s",
+  "method": "max(headWidth,headLength); fixed size and grip per clip/pose; both hands on shaft",
+  "eToSNormalizedSize": 1,
+  "historical66Percent": "Old clip-hands/cut candidate is not imported",
+  "commonScale": 0.11294905654,
+  "normalizedGameHeadSize": 22.589811307999998,
+  "directions": [
+    {
+      "direction": "s",
+      "omittedPoses": [],
+      "poses": [
+        {
+          "index": 0,
+          "headWidth": 192.60581038652612,
+          "headLength": 110.89042087447967,
+          "normalizedGameHeadSize": 22.589811307999994
+        },
+        {
+          "index": 1,
+          "headWidth": 161.0109371235949,
+          "headLength": 112.50288035834092,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 2,
+          "headWidth": 162.00985957710296,
+          "headLength": 103.84728113314634,
+          "normalizedGameHeadSize": 22.589811308
+        },
+        {
+          "index": 3,
+          "headWidth": 168.94337080095886,
+          "headLength": 162.86258525840594,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 4,
+          "headWidth": 209.02174761079348,
+          "headLength": 124.04093342021054,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 5,
+          "headWidth": 188.44644220290564,
+          "headLength": 133.14478142238795,
+          "normalizedGameHeadSize": 22.589811308
+        },
+        {
+          "index": 6,
+          "headWidth": 157.8803801358423,
+          "headLength": 133.67654219691224,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 7,
+          "headWidth": 202.02093642142313,
+          "headLength": 154.64472130470705,
+          "normalizedGameHeadSize": 22.589811307999998
+        }
+      ],
+      "motion": [
+        {
+          "clip": "attack",
+          "frame": 0,
+          "pose": 2,
+          "bodyStep": 0,
+          "fallback": false,
+          "shaftAngleDegrees": 0.3218830153987527,
+          "gripSpan": 17.800280896660027,
+          "gripOffset": 0.8838753720456759,
+          "shaftRemaining": 56.28438994499299
+        },
+        {
+          "clip": "attack",
+          "frame": 1,
+          "pose": 3,
+          "bodyStep": 1,
+          "fallback": false,
+          "shaftAngleDegrees": 0.6585431775636589,
+          "gripSpan": 8.700574693662485,
+          "gripOffset": 0,
+          "shaftRemaining": 48.27015019012344
+        },
+        {
+          "clip": "attack",
+          "frame": 2,
+          "pose": 4,
+          "bodyStep": 2,
+          "fallback": false,
+          "shaftAngleDegrees": -0.6095065766751614,
+          "gripSpan": 18.801063799689633,
+          "gripOffset": 0,
+          "shaftRemaining": 37.17744769994797
+        },
+        {
+          "clip": "attack",
+          "frame": 3,
+          "pose": 5,
+          "bodyStep": 3,
+          "fallback": false,
+          "shaftAngleDegrees": -11.46288400474967,
+          "gripSpan": 36.73268299484807,
+          "gripOffset": 0,
+          "shaftRemaining": 38.35965027546984
+        },
+        {
+          "clip": "cast",
+          "frame": 0,
+          "pose": 2,
+          "bodyStep": 1,
+          "fallback": false,
+          "shaftAngleDegrees": 0,
+          "gripSpan": 32.800000000000004,
+          "gripOffset": 0,
+          "shaftRemaining": 57.16826531703867
+        },
+        {
+          "clip": "cast",
+          "frame": 1,
+          "pose": 6,
+          "bodyStep": 2,
+          "fallback": false,
+          "shaftAngleDegrees": 0,
+          "gripSpan": 43.800000000000004,
+          "gripOffset": 0,
+          "shaftRemaining": 45.50001710005495
+        }
+      ]
+    },
+    {
+      "direction": "se",
+      "omittedPoses": [],
+      "poses": [
+        {
+          "index": 0,
+          "headWidth": 150.40413509503966,
+          "headLength": 109.08469121337862,
+          "normalizedGameHeadSize": 22.589811308
+        },
+        {
+          "index": 1,
+          "headWidth": 145.64945708609736,
+          "headLength": 113.22177355533393,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 2,
+          "headWidth": 135.5749305445233,
+          "headLength": 103.38925729096957,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 3,
+          "headWidth": 136.91252499200192,
+          "headLength": 130.18489241622206,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 4,
+          "headWidth": 210.2460064031242,
+          "headLength": 129.12102453504792,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 5,
+          "headWidth": 180.1653741098414,
+          "headLength": 132.8597977592663,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 6,
+          "headWidth": 146.99555268867624,
+          "headLength": 131.63147784612806,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 7,
+          "headWidth": 186.13561765219106,
+          "headLength": 144.07496180843725,
+          "normalizedGameHeadSize": 22.589811307999998
+        }
+      ],
+      "motion": [
+        {
+          "clip": "attack",
+          "frame": 0,
+          "pose": 2,
+          "bodyStep": 0,
+          "fallback": false,
+          "shaftAngleDegrees": -1.644403264695111,
+          "gripSpan": 20.908610666421627,
+          "gripOffset": 18.292538997745133,
+          "shaftRemaining": 50.855729455479626
+        },
+        {
+          "clip": "attack",
+          "frame": 1,
+          "pose": 3,
+          "bodyStep": 1,
+          "fallback": false,
+          "shaftAngleDegrees": -1.7806424459986658,
+          "gripSpan": 19.309324172533852,
+          "gripOffset": 15.502667317004077,
+          "shaftRemaining": 48.350197690829944
+        },
+        {
+          "clip": "attack",
+          "frame": 2,
+          "pose": 4,
+          "bodyStep": 2,
+          "fallback": false,
+          "shaftAngleDegrees": -6.402447186291935,
+          "gripSpan": 30.490162347878705,
+          "gripOffset": 0,
+          "shaftRemaining": 36.53118542472286
+        },
+        {
+          "clip": "attack",
+          "frame": 3,
+          "pose": 5,
+          "bodyStep": 3,
+          "fallback": false,
+          "shaftAngleDegrees": -28.610459665965227,
+          "gripSpan": 33.8309030325825,
+          "gripOffset": 0,
+          "shaftRemaining": 44.51123338189736
+        },
+        {
+          "clip": "cast",
+          "frame": 0,
+          "pose": 2,
+          "bodyStep": 1,
+          "fallback": false,
+          "shaftAngleDegrees": -179.73596601874092,
+          "gripSpan": 21.700230413523258,
+          "gripOffset": 15.806470889213005,
+          "shaftRemaining": 53.341797564011756
+        },
+        {
+          "clip": "cast",
+          "frame": 1,
+          "pose": 6,
+          "bodyStep": 2,
+          "fallback": false,
+          "shaftAngleDegrees": 180,
+          "gripSpan": 31.199999999999996,
+          "gripOffset": 0,
+          "shaftRemaining": 51.48173975172901
+        }
+      ]
+    },
+    {
+      "direction": "e",
+      "omittedPoses": [],
+      "poses": [
+        {
+          "index": 0,
+          "headWidth": 156.11853588464845,
+          "headLength": 87.45177395983387,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 1,
+          "headWidth": 134.5805381267922,
+          "headLength": 89.37484979608541,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 2,
+          "headWidth": 133.92939137270037,
+          "headLength": 95.2866728753911,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 3,
+          "headWidth": 137.603585269273,
+          "headLength": 83.55544770863628,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 4,
+          "headWidth": 162.22274905421688,
+          "headLength": 90.78193007375796,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 5,
+          "headWidth": 149.40801534569874,
+          "headLength": 87.60833072175996,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 6,
+          "headWidth": 129.57477608725299,
+          "headLength": 93.86097286805466,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 7,
+          "headWidth": 166.96121838215763,
+          "headLength": 91.52763172101027,
+          "normalizedGameHeadSize": 22.589811307999998
+        }
+      ],
+      "motion": [
+        {
+          "clip": "attack",
+          "frame": 0,
+          "pose": 2,
+          "bodyStep": 0,
+          "fallback": false,
+          "shaftAngleDegrees": -1.644403264695111,
+          "gripSpan": 20.908610666421627,
+          "gripOffset": 10.211312690906773,
+          "shaftRemaining": 52.36509349872303
+        },
+        {
+          "clip": "attack",
+          "frame": 1,
+          "pose": 3,
+          "bodyStep": 1,
+          "fallback": false,
+          "shaftAngleDegrees": -1.7806424459986658,
+          "gripSpan": 19.309324172533852,
+          "gripOffset": 11.556570473166508,
+          "shaftRemaining": 56.40809674979102
+        },
+        {
+          "clip": "attack",
+          "frame": 2,
+          "pose": 4,
+          "bodyStep": 2,
+          "fallback": false,
+          "shaftAngleDegrees": -6.402447186291935,
+          "gripSpan": 30.490162347878705,
+          "gripOffset": 0,
+          "shaftRemaining": 54.02970199065409
+        },
+        {
+          "clip": "attack",
+          "frame": 3,
+          "pose": 5,
+          "bodyStep": 3,
+          "fallback": false,
+          "shaftAngleDegrees": -28.610459665965227,
+          "gripSpan": 33.8309030325825,
+          "gripOffset": 0,
+          "shaftRemaining": 55.639923615271556
+        },
+        {
+          "clip": "cast",
+          "frame": 0,
+          "pose": 2,
+          "bodyStep": 1,
+          "fallback": false,
+          "shaftAngleDegrees": -179.73596601874092,
+          "gripSpan": 21.700230413523258,
+          "gripOffset": 9.141437507058336,
+          "shaftRemaining": 53.434968682571466
+        },
+        {
+          "clip": "cast",
+          "frame": 1,
+          "pose": 6,
+          "bodyStep": 2,
+          "fallback": false,
+          "shaftAngleDegrees": 180,
+          "gripSpan": 31.199999999999996,
+          "gripOffset": 8.488974803461403,
+          "shaftRemaining": 57.23646281860526
+        }
+      ]
+    },
+    {
+      "direction": "ne",
+      "omittedPoses": [],
+      "poses": [
+        {
+          "index": 0,
+          "headWidth": 113.72995667243852,
+          "headLength": 144.40852444057612,
+          "normalizedGameHeadSize": 22.589811308
+        },
+        {
+          "index": 1,
+          "headWidth": 110.81924214182503,
+          "headLength": 138.00465655932635,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 2,
+          "headWidth": 142.13150018954755,
+          "headLength": 84.93615637135304,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 3,
+          "headWidth": 128.20045294358377,
+          "headLength": 94.07162149489477,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 4,
+          "headWidth": 165.01796961783077,
+          "headLength": 109.43710520213779,
+          "normalizedGameHeadSize": 22.589811308
+        },
+        {
+          "index": 5,
+          "headWidth": 154.82435469041727,
+          "headLength": 93.02115616258277,
+          "normalizedGameHeadSize": 22.589811307999994
+        },
+        {
+          "index": 6,
+          "headWidth": 140.41670830531174,
+          "headLength": 123.73245973230058,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 7,
+          "headWidth": 161.61696219188664,
+          "headLength": 96.14074941305012,
+          "normalizedGameHeadSize": 22.589811307999998
+        }
+      ],
+      "motion": [
+        {
+          "clip": "attack",
+          "frame": 0,
+          "pose": 2,
+          "bodyStep": 0,
+          "fallback": false,
+          "shaftAngleDegrees": -1.644403264695111,
+          "gripSpan": 20.908610666421627,
+          "gripOffset": 12.414545315737177,
+          "shaftRemaining": 54.497508296480966
+        },
+        {
+          "clip": "attack",
+          "frame": 1,
+          "pose": 3,
+          "bodyStep": 1,
+          "fallback": false,
+          "shaftAngleDegrees": -1.7806424459986658,
+          "gripSpan": 19.309324172533852,
+          "gripOffset": 27.63127053022824,
+          "shaftRemaining": 53.42392828605699
+        },
+        {
+          "clip": "attack",
+          "frame": 2,
+          "pose": 4,
+          "bodyStep": 2,
+          "fallback": false,
+          "shaftAngleDegrees": -6.402447186291935,
+          "gripSpan": 30.490162347878705,
+          "gripOffset": 0,
+          "shaftRemaining": 52.156247760656086
+        },
+        {
+          "clip": "attack",
+          "frame": 3,
+          "pose": 5,
+          "bodyStep": 3,
+          "fallback": false,
+          "shaftAngleDegrees": -28.610459665965227,
+          "gripSpan": 33.8309030325825,
+          "gripOffset": 0,
+          "shaftRemaining": 55.88202029496011
+        },
+        {
+          "clip": "cast",
+          "frame": 0,
+          "pose": 2,
+          "bodyStep": 1,
+          "fallback": false,
+          "shaftAngleDegrees": -179.73596601874092,
+          "gripSpan": 21.700230413523258,
+          "gripOffset": 9.773607349452742,
+          "shaftRemaining": 57.1384462627654
+        },
+        {
+          "clip": "cast",
+          "frame": 1,
+          "pose": 6,
+          "bodyStep": 2,
+          "fallback": false,
+          "shaftAngleDegrees": 180,
+          "gripSpan": 31.199999999999996,
+          "gripOffset": 2.806862993404349,
+          "shaftRemaining": 53.500068376962425
+        }
+      ]
+    },
+    {
+      "direction": "n",
+      "omittedPoses": [
+        7
+      ],
+      "poses": [
+        {
+          "index": 0,
+          "headWidth": 177.80700839846548,
+          "headLength": 110.3729321618016,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 1,
+          "headWidth": 152.85213512930287,
+          "headLength": 109.42148817670068,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 2,
+          "headWidth": 147.1317427963058,
+          "headLength": 105.34305409954993,
+          "normalizedGameHeadSize": 22.589811308
+        },
+        {
+          "index": 3,
+          "headWidth": 153.65340064528914,
+          "headLength": 136.507709227365,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 4,
+          "headWidth": 183.96862348132072,
+          "headLength": 121.84035836576959,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 5,
+          "headWidth": 185.69722793865859,
+          "headLength": 130.50173831637994,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 6,
+          "headWidth": 154.17107255834034,
+          "headLength": 121.47564945187497,
+          "normalizedGameHeadSize": 22.589811307999998
+        },
+        {
+          "index": 7,
+          "unused": true
+        }
+      ],
+      "motion": [
+        {
+          "clip": "attack",
+          "frame": 0,
+          "pose": 2,
+          "bodyStep": 0,
+          "fallback": false,
+          "shaftAngleDegrees": 162.9157416233165,
+          "gripSpan": 22.806358762415357,
+          "gripOffset": 9.185234293959393,
+          "shaftRemaining": 53.14980787124685
+        },
+        {
+          "clip": "attack",
+          "frame": 1,
+          "pose": 3,
+          "bodyStep": 1,
+          "fallback": true,
+          "shaftAngleDegrees": 162.9157416233165,
+          "gripSpan": 22.806358762415357,
+          "gripOffset": 7.035358572631513,
+          "shaftRemaining": 50.595686334590276
+        },
+        {
+          "clip": "attack",
+          "frame": 2,
+          "pose": 4,
+          "bodyStep": 2,
+          "fallback": true,
+          "shaftAngleDegrees": 161.4231131201681,
+          "gripSpan": 38.295299972712066,
+          "gripOffset": 0,
+          "shaftRemaining": 45.80128642827799
+        },
+        {
+          "clip": "attack",
+          "frame": 3,
+          "pose": 5,
+          "bodyStep": 3,
+          "fallback": false,
+          "shaftAngleDegrees": 161.4231131201681,
+          "gripSpan": 38.295299972712066,
+          "gripOffset": 0,
+          "shaftRemaining": 41.11723318038
+        },
+        {
+          "clip": "cast",
+          "frame": 0,
+          "pose": 2,
+          "bodyStep": 1,
+          "fallback": false,
+          "shaftAngleDegrees": 180,
+          "gripSpan": 33,
+          "gripOffset": 2.4179353381076254,
+          "shaftRemaining": 59.917106827098614
+        },
+        {
+          "clip": "cast",
+          "frame": 1,
+          "pose": 6,
+          "bodyStep": 2,
+          "fallback": false,
+          "shaftAngleDegrees": 180,
+          "gripSpan": 43.800000000000004,
+          "gripOffset": 0,
+          "shaftRemaining": 48.3530250385919
+        }
+      ]
+    }
+  ],
+  "attackNote": "S shaft remains horizontal/diagonal with existing LPC hands; owner visual review pending"
+}

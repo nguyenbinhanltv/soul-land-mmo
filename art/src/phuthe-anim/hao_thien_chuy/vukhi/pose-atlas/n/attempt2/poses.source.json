@@ -1,0 +1,17 @@
+{
+    "tool":  "builtin image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "attempt":  2,
+    "raw":  "poses.raw.png",
+    "sha256":  "b6e2cd7e36e7fe2c24342451388f9e74d168e1d9b9098abba1890871f9b03fbc",
+    "prompt":  "poses.prompt.txt",
+    "promptSha256":  "2a63dbf99e2cee32ffc9e801f22d625e8d92b54b75f1dcc0ee6be1fbc4b6e58d",
+    "reference":  "../attempt1/poses.raw.png",
+    "referenceSha256":  "d36bb59e2926480f149560e851db412af51217c809d18d06e81fb5738720e5be",
+    "postprocessing":  "none; RAW copied byte-for-byte",
+    "selected":  false,
+    "rejection":  "Ảnh game lộ thiếu đoạn cán cho hai tay thật; thay bằng atlas cán dài, RAW cũ giữ nguyên",
+    "license":  "OpenAI output terms; not CC0",
+    "promptHandwritten":  true
+}

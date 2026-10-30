@@ -1,0 +1,17 @@
+{
+    "tool":  "builtin image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "attempt":  1,
+    "raw":  "poses.raw.png",
+    "sha256":  "cffd14f6ee134585b2c5cb340b5c4923e69d069bf19403e97e3b2ef5ff5a241f",
+    "prompt":  "poses.prompt.txt",
+    "promptSha256":  "967edf3c2c07450abf3f97987b9f2bef93b0840e497a05f8e1f66cccec6293d9",
+    "reference":  "../../../solo/weapon-s-attempt1.png",
+    "referenceSha256":  "91571c968867605efccfacb28ee787fb29eacb566133da3730a4299533b28436",
+    "postprocessing":  "none; RAW copied byte-for-byte",
+    "selected":  false,
+    "rejection":  "Ảnh game lộ thiếu đoạn cán cho hai tay thật; thay bằng atlas cán dài, RAW cũ giữ nguyên",
+    "license":  "OpenAI output terms; not CC0",
+    "promptHandwritten":  true
+}
