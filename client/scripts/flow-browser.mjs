@@ -136,11 +136,14 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
   await sleep(500);
   const before = await pos();
   await page.keyboard.down("KeyD");
-  await sleep(900);
+  // Giữ D tới khi vị trí (qua bản vá state, máy chậm tới trễ) đã dời, tối đa 10 s; không giữ / ngủ cố định rồi đọc.
+  await page.waitForFunction(([x, y]) => { const s = window.__scene, p = s.room.state.players.get(s.me); return Math.hypot(p.x - x, p.y - y) > 8; }, [before.x, before.y], { timeout: 10000 })
+    .catch(() => {});
+  const dDiag = await page.evaluate(() => ({ keyD: !!window.__scene.keys.KeyD, hasFocus: document.hasFocus(), active: document.activeElement?.tagName + "#" + document.activeElement?.id,
+    overlay: document.getElementById("overlay")?.hidden === false ? document.getElementById("overlay").innerText.slice(0, 100) : "" }));
   await page.keyboard.up("KeyD");
-  await sleep(300);
   const after = await pos();
-  assert.ok(Math.hypot(after.x - before.x, after.y - before.y) > 8, `giữ phím D mà nhân vật đứng yên (${before.x},${before.y} → ${after.x},${after.y})`);
+  assert.ok(Math.hypot(after.x - before.x, after.y - before.y) > 8, `giữ phím D mà nhân vật đứng yên (${before.x},${before.y} → ${after.x},${after.y}; ${JSON.stringify(dDiag)})`);
   await shot("vao-game");
   step("vào game: HUD hiện, nhân vật đi được");
 
@@ -208,14 +211,19 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
   await page.keyboard.press("Enter"); await page.keyboard.type("ab");
   const typed = await chatState();
   assert.ok(typed.focus === "chat" && typed.value === "ab", `Enter không mở ô chat nhận chữ: ${JSON.stringify(typed)}`);
-  const vp = page.viewportSize(), ground = await page.evaluate(([w, h]) => { for (const [x, y] of [[w / 2, h * 0.35], [w / 2, h * 0.15], [w * 0.08, h / 2], [w * 0.92, h / 2]]) { if (document.elementFromPoint(x, y) === window.__scene.game.canvas) return [x, y]; } return null; }, [vp.width, vp.height]);
-  assert.ok(ground, "không tìm được điểm nền trống để bấm");
+  // Thẻ / lớp phủ vừa đóng có thể chưa gỡ khỏi DOM (máy chậm): thử lại tới khi có điểm nền trống.
+  const vp = page.viewportSize(), findGround = ([w, h]) => { for (const [x, y] of [[w / 2, h * 0.35], [w / 2, h * 0.15], [w * 0.08, h / 2], [w * 0.92, h / 2]]) { if (document.elementFromPoint(x, y) === window.__scene.game.canvas) return [x, y]; } return null; };
+  const groundH = await page.waitForFunction(findGround, [vp.width, vp.height], { timeout: 10000 }).catch(() => null);
+  const ground = groundH ? await groundH.jsonValue() : null;
+  assert.ok(ground, `không tìm được điểm nền trống để bấm (phần tử trên cùng giữa màn hình: ${await page.evaluate(([w, h]) => { const e = document.elementFromPoint(w / 2, h * 0.35); return e ? e.tagName + "#" + e.id + "." + e.className : "null"; }, [vp.width, vp.height])})`);
   await page.mouse.click(ground[0], ground[1]);
   // #1089: Phaser xếp mousedown vào hàng đợi và chỉ xử lý (bỏ tiêu điểm ô chat) ở khung hình kế; bấm W ngay thì máy chậm sẽ gửi W lúc ô chat còn tiêu điểm
   // (client đúng khi bỏ phím đó). Người chơi thật không bấm nền và W trong cùng một khung: chờ ô chat mất tiêu điểm rồi mới bấm W.
   await page.waitForFunction(() => document.activeElement?.id !== "chat");
-  await page.keyboard.down("KeyW"); await sleep(80);
-  const clicked = await chatState();
+  await page.keyboard.down("KeyW");
+  // Keydown xử lý đồng bộ, nhưng đọc cờ qua một vòng trình duyệt; chờ cờ lên (không ngủ cố định). Trượt thì in chẩn đoán (tiêu điểm, cửa sổ có tiêu điểm, phím đang giữ).
+  await page.waitForFunction(() => !!window.__scene.keys.KeyW, null, { timeout: 3000 }).catch(() => {});
+  const clicked = { ...(await chatState()), ...(await page.evaluate(() => ({ hasFocus: document.hasFocus(), active: document.activeElement?.tagName + "#" + document.activeElement?.id, keys: Object.keys(window.__scene.keys).filter((k) => window.__scene.keys[k]) }))) };
   await page.keyboard.up("KeyW");
   assert.ok(clicked.focus !== "chat" && clicked.value === "ab" && clicked.keyW, `bấm nền: ô chat phải mất tiêu điểm, W đi, chữ dở còn: ${JSON.stringify(clicked)}`);
   await page.evaluate(() => { document.getElementById("chat").value = ""; });
