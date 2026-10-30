@@ -1,5 +1,6 @@
 // Hàm thuần tính toán nhỏ tách khỏi MapRoom.ts (#702): không giữ phòng, không ghi DB. Nguyên văn, không đổi hành vi.
-import { CORE_SETS, CORE_SET_2, CORE_SET_4, coreSetIndex, ELITE_RAGE, WORLD, SUPPORT_CONTRIB } from "../../../shared/data.ts";
+import type { Item } from "../db.ts";
+import { CORE_SETS, CORE_SET_2, CORE_SET_4, coreSetIndex, ELITE_RAGE, WORLD, SUPPORT_CONTRIB, questStart, sellPrice, type QuestProgress } from "../../../shared/data.ts";
 
 /** Câu báo khi bộ `set` có `n` món đang gắn trên một võ hồn và vừa đủ 2 / 4 món ("" nếu không). */
 export function coreSetNoteOf(n: number, set: string) {
@@ -65,4 +66,20 @@ export function dashPath(x: number, y: number, dir: Pt, dist: number, blocked: (
   let moved = 0;
   while (moved < dist && !blocked(x + dir.x * 2, y + dir.y * 2)) { x += dir.x * 2; y += dir.y * 2; moved += 2; }
   return { x, y, moved };
+}
+
+/** Hướng lướt (vector đơn vị) từ `p` tới `b` và quãng lướt: tối đa `dist`, chừa nửa cỡ mục tiêu `size` và 8 pixel; không âm. */
+export function dashAim(p: Pt, b: Pt, dist: number, size: number) {
+  const dd = Math.max(1, Math.hypot(b.x - p.x, b.y - p.y));
+  return { dir: { x: (b.x - p.x) / dd, y: (b.y - p.y) / dd }, dist: Math.min(dist, Math.max(0, dd - size / 2 - 8)) };
+}
+
+/** Tiến độ cho từng chuỗi `ids` từ các dòng đã lưu; chuỗi chưa có dòng thì chưa nhận (questStart). */
+export const progressFor = (ids: readonly string[], saved: readonly QuestProgress[] | undefined): QuestProgress[] =>
+  ids.map((id) => saved?.find((q) => q.chain === id) ?? questStart(id));
+
+/** Các ô túi mã `code` được tính cho mục tiêu "nộp đồ": không gắn võ hồn, chưa cường hóa, không phải món đang hấp thụ; rẻ nhất trước. */
+export function giveCandidates(bag: Item[], code: string, absorbingId: string | undefined) {
+  return bag.filter((it) => it.code === code && it.vohonId === null && !(it.enhance > 0) && it.id !== absorbingId)
+    .sort((a, b) => (sellPrice(a) ?? 0) - (sellPrice(b) ?? 0));
 }

@@ -25,7 +25,7 @@ import { TIERS, VOHON, xpNeed, xpBlocked, calcStats, TICK_RATE, tierOfYears, voh
   BOSSES, bossIndex, ELITE, ELITE_RAGE, beastName, beastBuffBit, BEAST_BUFFS, type BeastBuffId,
   KING, kingActive, kingNext, vnDay, type BossDef, type FormDef,
   WORLD, worldActive, worldNext, worldBossOn, type He,
-  npcDef, NPC_RANGE, looksChangeCost, TONG_SWITCH_DAYS, tongDef, sellPrice, type NpcRole,
+  npcDef, NPC_RANGE, looksChangeCost, TONG_SWITCH_DAYS, tongDef, type NpcRole,
   QUEST_STARTER, QUEST_AFTER, questChain, questStart, questStatus, questRewardText, type QuestReward, type QuestProgress, type QuestEvent, type QuestGoal,
   DAILY, dailyIds,
   tongTaskIds,
@@ -64,7 +64,7 @@ import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
 import { newItem, bagUsed, itemLabel, shardCount, type GearStats } from "./items.ts";
 import { questBump } from "./questBump.ts";
-import { coreSetNoteOf, beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint, spawnPointIn, dashPath } from "./calc.ts";
+import { coreSetNoteOf, beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint, spawnPointIn, dashPath, dashAim, progressFor, giveCandidates } from "./calc.ts";
 import { targetMsg, manualAttack } from "./lock.ts";
 import * as equip from "./equip.ts";
 import * as bones from "./bones.ts";
@@ -1568,7 +1568,7 @@ export class MapRoom extends Room<MapState> {
   tongNow() { return Date.now() + testShift.tong * 86400000; }
   /** Bộ tông vụ hôm nay từ các dòng `quests` đã lưu (như dailyOf); bài chưa có dòng thì chưa nhận. */
   tongTasksOf(saved: QuestProgress[] | undefined, day = this.dailyDay()) {
-    return { tongDay: day, tongTasks: tongTaskIds(day).map((id) => saved?.find((q) => q.chain === id) ?? questStart(id)) };
+    return { tongDay: day, tongTasks: progressFor(tongTaskIds(day), saved) };
   }
   /** Sang ngày mới thì thay bằng bộ tông vụ mới chưa nhận (như dailyFresh); trả true khi vừa đặt lại. */
   tongFresh(d: PData, day = this.dailyDay()) {
@@ -1688,7 +1688,7 @@ export class MapRoom extends Room<MapState> {
   dailyDay() { return vnDay(bossNow() + (this.dayShift + testShift.daily) * 86400000); }
   /** Bộ khảo hạch hôm nay (dailyIds) từ các dòng `quests` đã lưu; bài chưa có dòng thì chưa nhận. Dòng của ngày khác bỏ qua. */
   dailyOf(saved: QuestProgress[] | undefined, day = this.dailyDay()) {
-    return { dailyDay: day, daily: dailyIds(day).map((id) => saved?.find((q) => q.chain === id) ?? questStart(id)) };
+    return { dailyDay: day, daily: progressFor(dailyIds(day), saved) };
   }
   /**
    * Sang ngày mới (00:00 giờ Việt Nam, dailyDay) thì thay bằng bộ bài mới chưa nhận; bài cũ dở dang bỏ luôn (dòng cũ trong bảng `quests`
@@ -1705,8 +1705,7 @@ export class MapRoom extends Room<MapState> {
    * thụ (#165: đồ đang dùng không làm nguyên liệu đồng thời); rẻ nhất trước.
    */
   giveItems(d: PData, code: string) {
-    return d.bag.filter((it) => it.code === code && it.vohonId === null && !(it.enhance > 0) && it.id !== d.absorbing?.itemId)
-      .sort((a, b) => (sellPrice(a) ?? 0) - (sellPrice(b) ?? 0));
+    return giveCandidates(d.bag, code, d.absorbing?.itemId);
   }
   /**
    * Số đếm của mục tiêu `give` = số món đang có trong túi (kẹp ở `n`), tính lại mỗi khi túi đổi. Trả chỉ số bài vừa đủ mục tiêu
@@ -1843,9 +1842,9 @@ export class MapRoom extends Room<MapState> {
 
   /** Quay mặt về mục tiêu `b` (hồn thú, hoặc đối thủ ở 7.2) cỡ `size` pixel rồi lướt tới sát nó (tối đa `dist`). */
   dashTo(p: PlayerState, d: PData, b: { x: number; y: number }, dist: number, size: number) {
-    const dd = Math.max(1, Math.hypot(b.x - p.x, b.y - p.y));
-    d.dir = { x: (b.x - p.x) / dd, y: (b.y - p.y) / dd }; p.dir = dir4(d.dir.x, d.dir.y);
-    return this.dashStep(p, d, Math.min(dist, Math.max(0, dd - size / 2 - 8)));
+    const aim = dashAim(p, b, dist, size);
+    d.dir = aim.dir; p.dir = dir4(d.dir.x, d.dir.y);
+    return this.dashStep(p, d, aim.dist);
   }
 
   /** Kéo hồn thú về sát hồn sư (gom quái), từng bước nhỏ để không xuyên vật cản. */
