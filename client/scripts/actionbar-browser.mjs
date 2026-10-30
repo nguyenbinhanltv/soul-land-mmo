@@ -297,8 +297,12 @@ try {
       await hook(page, "rest", { s: 120 });
       await page.waitForFunction(() => !document.querySelector('.sk[data-i="3"].ct'));
       // Hồi quy #1418: ô P loadout = -1 (ô trống) vẫn phải hiện hồn kỹ Chân Thân (biểu tượng + hồi chiêu) khi biến hình, và trở lại trống khi hết.
-      await page.evaluate((rowId) => window.__c8Scene.room.send("loadout", { rowId, skills: [0, 1, 2, -1] }), active);
-      await page.waitForFunction(() => document.querySelector('.sk[data-i="3"].empty'));
+      // Tin `loadout` có giới hạn tần suất (nhóm social): gửi lại tới khi server nhận.
+      for (let tries = 0; tries < 6; tries++) {
+        await page.evaluate((rowId) => window.__c8Scene.room.send("loadout", { rowId, skills: [0, 1, 2, -1] }), active);
+        if (await page.waitForFunction(() => document.querySelector('.sk[data-i="3"].empty'), null, { timeout: 2500 }).then(() => true, () => false)) break;
+      }
+      await page.waitForFunction(() => document.querySelector('.sk[data-i="3"].empty'), null, { timeout: 1000 });
       await hook(page, "ready");
       await page.waitForFunction(() => document.querySelector(".sk.ava:not(.locked)"));
       if (touch) await avatar.tap(); else await avatar.click();
