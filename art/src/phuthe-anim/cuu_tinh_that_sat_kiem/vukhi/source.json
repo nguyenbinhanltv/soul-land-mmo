@@ -3,6 +3,13 @@
   "model": "unknown",
   "seed": "unknown",
   "terms": "OpenAI output terms; not CC0",
+  "canonicalVerification": {
+    "policyPR": 1367,
+    "checkerPatched": false,
+    "reportsRebuilt": true,
+    "sheetsUnchanged": true,
+    "note": "Rebuilt five directions and cutter against canonical checker after merging main; reports and sheet bytes match previous output."
+  },
   "history": [
     {
       "dir": "s",
@@ -121,9 +128,9 @@
     "phuthe-hammer-atlas.mjs": "4ce875e7fc03aa5d2872119c896065e3483ff4d95b1820f746ef489ddc7d0c7a",
     "phuthe-hammer-atlas-finalize.mjs": "3a88168a2e15c1f5adc358c25bbda45c42cec99120f5e9de54cca2c5b351a521",
     "phuthe-hammer-atlas-cut.mjs": "54d2afa196c3af9e0adc62e31ddbc050ad13d7c354b24834f341286913bea1ac",
-    "phuthe-sheet-check.mjs": "7f17a6cf03cb5ce89a84d7c11c65bd69abb6af14a4d176c37e05d25d4ccb973d"
+    "phuthe-sheet-check.mjs": "163a6d87721ba2b6b7293917911c9ec01708cc2a5e541951af825e42fe45622a"
   },
-  "recipeSha256": "a65c4171f849baf1bfb58437b372d54622ba5f68b18551c243cf826f3cf9c980",
+  "recipeSha256": "f5da180f15b1c046c62229f494ddcbdaadf0646dd8d970abe314db5feed4a50b",
   "sheets": {
     "b": "fec524aa64781e9d9ffc719f082dbdbc8414c999cff783bc45b0c26c76faec1b",
     "f": "ca70c16b73867115c9be7e141e13f3f68ba06edc24319d610017abe48d38bce8"

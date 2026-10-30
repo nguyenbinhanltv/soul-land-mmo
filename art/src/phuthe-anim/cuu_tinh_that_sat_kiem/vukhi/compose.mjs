@@ -9,15 +9,14 @@ const root = fileURLToPath(new URL("../../../../../", import.meta.url));
 const id = "cuu_tinh_that_sat_kiem", args = process.argv.slice(2);
 if (!args.includes("--sources") || !args.includes("--out")) throw Error("Cần --sources và --out");
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "cuu-tinh-atlas-"));
-const names = ["phuthe-hammer-atlas.mjs", "phuthe-hammer-atlas-finalize.mjs", "phuthe-hammer-atlas-cut.mjs", "phuthe-sheet-check.mjs"];
+const names = ["phuthe-hammer-atlas.mjs", "phuthe-hammer-atlas-finalize.mjs", "phuthe-hammer-atlas-cut.mjs"];
 for (const name of names) {
   let code = fs.readFileSync(path.join(root, "tools/assets", name), "utf8");
   if (!code.includes("hao_thien_chuy")) throw Error(`${name}: công thức mẫu đã đổi mã`);
   if (name === names[0]) for (const token of [".11294905654", "idle: [0, 0], walk: [1, 1, 1, 1]", "hurt: [0]"]) {
     if (!code.includes(token)) throw Error(`${name}: thiếu cấu hình mẫu ${token}`);
   }
-  if (name === names[3] && !code.includes('id === "hao_thien_chuy"')) throw Error("Quy tắc ngoại lệ mẫu đã đổi");
-  // Ngoại lệ A ở attack/cast dọc≤15° được yêu cầu cho rollout; ngưỡng A/B giữ nguyên.
+  // Ngoại lệ đã ở checker chuẩn qua #1367; không tạo hay vá bản sao checker.
   code = code.replaceAll("hao_thien_chuy", id).replaceAll("Hạo Thiên Chùy", "Cửu Tinh Thất Sát Kiếm")
     .replaceAll('kind: "vukhi",', 'kind: "vukhi", frame: 128,')
     .replace(".11294905654", ".20")
@@ -28,7 +27,7 @@ for (const name of names) {
     .replace("const angle = hands.length === 2 ?", "const angle = pose === 4 && Math.sin(p.axis) < 0 ? Math.PI : hands.length === 2 ?")
     .replace("pose, hands, angle, step", 'pose, hands, angle: angle + (dir === "n" && pose === 4 ? Math.PI / 12 : 0), step')
     .replace("hurt: [0]", "hurt: [2]");
-  code = code.replace(/from "\.\/(.*?)"/g, (_, p) => "from " + JSON.stringify(pathToFileURL(path.join(p === "phuthe-sheet-check.mjs" ? scratch : path.join(root, "tools/assets"), p)).href));
+  code = code.replace(/from "\.\/(.*?)"/g, (_, p) => "from " + JSON.stringify(pathToFileURL(path.join(root, "tools/assets", p)).href));
   fs.writeFileSync(path.join(scratch, name), code);
 }
 function run(name, params) {

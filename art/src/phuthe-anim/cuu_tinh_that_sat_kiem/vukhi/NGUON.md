@@ -16,7 +16,7 @@ Thép xanh đậm, mép bạc xanh, sống khuyết, chuôi dài và ngọc đ�
 - Đứng/đi dựng kiếm trên tay thay cho đeo chéo lưng ở bảng đề xuất; cần chủ repo duyệt mỹ thuật. Nếu pose4 nguồn chĩa lên, xoay nguyên hình180° quanh grip để chém xuống; không đổi tỷ lệ hoặc uốn hình.
 - Riêng pose4 hướng n xoay nguyên hình thêm15° về phía thân; trục nguồn lệch−0,30° nên độ lệch dọc thực14,70°, vẫn≤15°. Điều này giúp phép dò không tách kiếm mảnh khỏi nộm ở attack khung2 của nữ; cả hai giới phải qua checker, A giữ nguyên.
 - Khung128, cap raster0,20, cỡ lưỡi tham chiếu40px; một tỷ lệ trong mỗi atlas và cap chung giữa các hướng. Không phóng riêng impact, không sửa LPC.
-- `compose.mjs` cấu hình công thức #1320 trong thư mục tạm; kiểm chuỗi cấu hình trước khi chạy. Bản checker tạm chỉ đổi mã áp dụng ngoại lệ từ Hạo Thiên sang Cửu Tinh; ngưỡng A≤2px, dọc≤15°, B≤20px ngoài ngoại lệ giữ nguyên. Công cụ dùng chung không đổi.
+- `compose.mjs` cấu hình công thức #1320 trong thư mục tạm; kiểm chuỗi cấu hình trước khi chạy. Không tạo hay vá bản sao checker: import trực tiếp checker chuẩn đã thêm danh sách được duyệt qua PR #1367. Ngưỡng A≤2px, dọc≤15°, B≤20px ngoài ngoại lệ giữ nguyên.
 
 ```sh
 node art/src/phuthe-anim/cuu_tinh_that_sat_kiem/vukhi/compose.mjs --sources art/src/phuthe-anim/cuu_tinh_that_sat_kiem/vukhi/sources.json --out <temp>/cuu-tinh
@@ -24,12 +24,12 @@ node tools/assets/phuthe-import.mjs --id cuu_tinh_that_sat_kiem --kind vukhi --d
 node tools/assets/credits.mjs
 ```
 
-**Dùng một tay A ở khung dọc là điểm lệch so với bảng #19 ban đầu, chờ chủ repo xác nhận cho rollout.** Cửu Tinh cũng vốn hai tay theo dòng1; B chỉ được bỏ yêu cầu chạm cán ở attack/cast dọc, vẫn đo và ghi độ lệch thật trong báo cáo.
+**Dùng một tay A ở khung dọc là điểm lệch so với bảng #19 ban đầu; chủ repo đã xác nhận cho rollout qua điều phối soul_land_game-815, checker chuẩn triển khai ở PR #1367.** Cửu Tinh cũng vốn hai tay theo dòng1; B chỉ được bỏ yêu cầu chạm cán ở attack/cast dọc, vẫn đo và ghi độ lệch thật trong báo cáo. Sau khi đồng bộ main, đã bỏ checker tạm và tái tạo atlas/report bằng checker chuẩn.
 
 ## Kiểm
 
 Số đo cuối, hash sheet và ảnh trong `source.json`, `final/report.json`, `import/_report.json`.
-130khung: ghép A≤1,70px; sau cutter A≤0,95px,0mép,0chặn/0cảnh báo/7ghi chú mỗi giới. Cán tối đa16,84px / thân47px =0,36lần. B tới điểm ảnh có thể40,44px ở khung dọc; đây là ngoại lệ đang chờ xác nhận, không mô tả là hai tay cùng nắm.
+130khung: ghép A≤1,70px; sau cutter A≤0,95px,0mép,0chặn/0cảnh báo/7ghi chú mỗi giới. Cán tối đa16,84px / thân47px =0,36lần. B tới điểm ảnh có thể40,44px ở khung dọc; đây là ngoại lệ đã được xác nhận, không mô tả là hai tay cùng nắm.
 Checker có cảnh báo chân khi kiếm hạ xuống; mọi cảnh báo mới cần chủ repo duyệt, không kế thừa mẫu khác.
 Mặt sau ne/n ở sau thân, vùng nắm ra trước qua mặt nạ cutter; ghép riêng hai giới theo grip đo trực tiếp.
 Ảnh native1600×900 trong `ingame/`: nam/nữ ×5hướng ×attack0/100/190/260ms và trang thử idle/walk/attack/cast.
