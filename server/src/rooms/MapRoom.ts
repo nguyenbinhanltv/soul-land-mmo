@@ -64,7 +64,7 @@ import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
 import { newItem, bagUsed, itemLabel, shardCount, type GearStats } from "./items.ts";
 import { questBump } from "./questBump.ts";
-import { coreSetNoteOf, beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint } from "./calc.ts";
+import { coreSetNoteOf, beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint, spawnPointIn, dashPath } from "./calc.ts";
 import { targetMsg, manualAttack } from "./lock.ts";
 import * as equip from "./equip.ts";
 import * as bones from "./bones.ts";
@@ -1160,14 +1160,7 @@ export class MapRoom extends Room<MapState> {
   }
 
   // ---------- Nhân vật ----------
-  spawnPoint() {
-    const { spawn } = this.map;
-    for (let k = 0; k < 30; k++) {
-      const x = spawn.x + 8 + Math.random() * (spawn.w - 16), y = spawn.y + 8 + Math.random() * (spawn.h - 16);
-      if (!this.map.hits(x, y, 5, 4)) return { x, y };
-    }
-    return { x: spawn.x + spawn.w / 2, y: spawn.y + spawn.h / 2 };
-  }
+  spawnPoint() { return spawnPointIn(this.map.spawn, (x, y) => this.map.hits(x, y, 5, 4), Math.random); }
 
   recalc(id: string, full: boolean) {
     const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
@@ -1843,9 +1836,9 @@ export class MapRoom extends Room<MapState> {
 
   /** Lướt theo d.dir tối đa `dist` pixel, dừng khi vướng vật cản. Trả về quãng đã lướt. */
   dashStep(p: PlayerState, d: PData, dist: number) {
-    let moved = 0;
-    while (moved < dist && !this.map.hits(p.x + d.dir.x * 2, p.y + d.dir.y * 2, 5, 4)) { p.x += d.dir.x * 2; p.y += d.dir.y * 2; moved += 2; }
-    return moved;
+    const r = dashPath(p.x, p.y, d.dir, dist, (x, y) => this.map.hits(x, y, 5, 4));
+    p.x = r.x; p.y = r.y;
+    return r.moved;
   }
 
   /** Quay mặt về mục tiêu `b` (hồn thú, hoặc đối thủ ở 7.2) cỡ `size` pixel rồi lướt tới sát nó (tối đa `dist`). */
