@@ -2,7 +2,7 @@
 // Chạy: npm run test:maproom-pure --prefix server
 import assert from "node:assert/strict";
 import { itemLabel, shardCount } from "../src/rooms/items.ts";
-import { coreSetNoteOf, beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint } from "../src/rooms/calc.ts";
+import { coreSetNoteOf, beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint, spawnPointIn, dashPath } from "../src/rooms/calc.ts";
 import { questBump } from "../src/rooms/questBump.ts";
 import { CORE_SETS, CORE_SET_2, CORE_SET_4, ELITE_RAGE, WORLD, SUPPORT_CONTRIB, QUEST_STARTER, questStart, questChain, itemDef, ITEMS } from "../../shared/data.ts";
 import type { Item } from "../src/db.ts";
@@ -88,4 +88,19 @@ test("fxPoint: ưu tiên (x,y), rồi (x1,y1), rồi người chơi, rồi hồn
   assert.deepEqual(fxPoint({ to: "p1" }, pl, bs), { x: 1, y: 2 });
   assert.deepEqual(fxPoint({ bid: "b1" }, pl, bs), { x: 3, y: 4 });
   assert.equal(fxPoint({ id: "zz" }, pl, bs), null);
+});
+
+test("spawnPointIn: trong ô trừ lề, né vật cản, hết 30 lần thì lấy tâm", () => {
+  const sp = { x: 100, y: 200, w: 40, h: 60 };
+  assert.deepEqual(spawnPointIn(sp, () => false, () => 0), { x: 108, y: 208 });
+  let n = 0;
+  assert.deepEqual(spawnPointIn(sp, () => ++n <= 2, () => 1), { x: 132, y: 252 });
+  assert.equal(n, 3);
+  assert.deepEqual(spawnPointIn(sp, () => true, () => 0.5), { x: 120, y: 230 });
+});
+
+test("dashPath: lướt đủ quãng, dừng trước vật cản, quãng 0 thì đứng yên", () => {
+  assert.deepEqual(dashPath(0, 0, { x: 1, y: 0 }, 10, () => false), { x: 10, y: 0, moved: 10 });
+  assert.deepEqual(dashPath(0, 0, { x: 1, y: 0 }, 10, (x) => x >= 6), { x: 4, y: 0, moved: 4 });
+  assert.deepEqual(dashPath(5, 5, { x: 0, y: 1 }, 0, () => false), { x: 5, y: 5, moved: 0 });
 });

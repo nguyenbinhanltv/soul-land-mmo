@@ -50,3 +50,19 @@ export function fxPoint(m: Record<string, unknown>, player: (id: string) => Pt |
   const b = typeof m.bid === "string" ? beast(m.bid) : undefined;
   return b ?? null;
 }
+
+/** Điểm xuất hiện ngẫu nhiên trong ô `spawn` (chừa lề 8), thử tối đa 30 lần tránh vật cản; không được thì lấy tâm ô. */
+export function spawnPointIn(spawn: { x: number; y: number; w: number; h: number }, blocked: (x: number, y: number) => boolean, rnd: () => number) {
+  for (let k = 0; k < 30; k++) {
+    const x = spawn.x + 8 + rnd() * (spawn.w - 16), y = spawn.y + 8 + rnd() * (spawn.h - 16);
+    if (!blocked(x, y)) return { x, y };
+  }
+  return { x: spawn.x + spawn.w / 2, y: spawn.y + spawn.h / 2 };
+}
+
+/** Lướt từ (x, y) theo `dir` tối đa `dist` pixel, mỗi bước 2, dừng khi bước kế vướng vật cản. Trả vị trí mới và quãng đã lướt. */
+export function dashPath(x: number, y: number, dir: Pt, dist: number, blocked: (x: number, y: number) => boolean) {
+  let moved = 0;
+  while (moved < dist && !blocked(x + dir.x * 2, y + dir.y * 2)) { x += dir.x * 2; y += dir.y * 2; moved += 2; }
+  return { x, y, moved };
+}
