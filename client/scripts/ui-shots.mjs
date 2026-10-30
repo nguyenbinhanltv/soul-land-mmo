@@ -114,6 +114,8 @@ async function runSize(W, H) {
     const key = async (code, k) => { for (const type of ["keyDown", "keyUp"]) await cdp("Input.dispatchKeyEvent", { type, code, key: k, windowsVirtualKeyCode: k.toUpperCase().charCodeAt(0) }); await sleep(500); };
     const step = async (id, fn) => { if (!want(id)) return; try { await fn(); } catch (e) { console.log("LỖI cảnh", id, String(e).slice(0, 200)); } };
     const click = (id) => ev(`document.getElementById(${JSON.stringify(id)})?.click(), true`);
+    // Mở một mục của hub (các nút menu cũ ở cột trái đã bỏ): mở ngăn kéo bằng huy hiệu nếu đang đóng rồi bấm thẻ.
+    const hubOpen = (id) => ev(`(document.getElementById("hub")?.hidden && document.getElementById("hubBtn")?.click(), document.querySelector('[data-hub="${id}"]')?.click(), true)`);
 
     await cdp("Page.enable"); await cdp("Runtime.enable");
     if (!OUTER) await cdp("Emulation.setDeviceMetricsOverride", { width: W, height: H, deviceScaleFactor: DPR, mobile: false });
@@ -169,13 +171,13 @@ async function runSize(W, H) {
     });
     await step("cong-minh", async () => { await key("KeyK", "k"); await shot("31-cong-minh"); await key("Escape", "Escape"); });
     await step("ban-be", async () => { await key("KeyL", "l"); await shot("32-ban-be"); await key("Escape", "Escape"); });
-    await step("tu-dong", async () => { await click("autoBtn"); await sleep(500); await shot("33-tu-dong"); await click("autoBtn"); });
+    await step("tu-dong", async () => { await hubOpen("auto"); await sleep(500); await shot("33-tu-dong"); await key("Escape", "Escape"); }); // mục hub luôn MỞ (không bật / tắt như nút cũ): đóng bằng Esc
     // Tổng kết tự động và Ủy thác trở về: phát lại tin giả vào bộ nghe của phòng (không gửi gì lên server; chỉ để chụp bố cục).
     const fake = (type, msg) => ev(`(window.__scene.room.onMessageHandlers.emit(${JSON.stringify(type)}, ${JSON.stringify(msg)}), true)`);
     await step("tong-ket", async () => {
-      await click("autoBtn"); await sleep(400);
+      await hubOpen("auto"); await sleep(400);
       await fake("auto", { on: false, left: 36000, max: 43200, bonus: 0, cfg: AUTO_DEFAULTS, why: "Hết đan hồi sinh lực", sum: { secs: 1830, kills: 142, xp: 98200, coins: 3650, loot: [["Hồn hoàn 1000 năm", 2], ["Tiên thảo", 5]], sold: [12, 840] } }).catch(() => {});
-      await sleep(500); await shot("38-tong-ket-tu-dong"); await click("autoBtn");
+      await sleep(500); await shot("38-tong-ket-tu-dong"); await key("Escape", "Escape");
     });
     await step("uy-thac", async () => {
       await fake("offline", { away: 21600, secs: 21600, used: 21000, map: "Thánh Hồn Thôn", zone: "Rừng ngoài", kills: 1280, weak: 14, xp: 856000, coins: 42500,
@@ -184,7 +186,7 @@ async function runSize(W, H) {
     });
     await step("ban-do", async () => { await key("KeyN", "n"); await sleep(600); await shot("34-ban-do-khu-vuc"); await key("Escape", "Escape"); });
     await step("the-gioi", async () => { await key("KeyM", "m"); await sleep(600); await shot("35-the-gioi"); await key("Escape", "Escape"); });
-    await step("cai-dat", async () => { await click("setBtn"); await sleep(500); await shot("37-cai-dat"); await click("setBtn"); });
+    await step("cai-dat", async () => { await hubOpen("settings"); await sleep(500); await shot("37-cai-dat"); await hubOpen("settings"); });
     await step("hub", async () => { await key("Escape", "Escape"); await sleep(400); await shot("36-hub"); await key("Escape", "Escape"); });
     // NPC: dịch tới NPC có vai trò đó trong bản đồ hiện tại (vị trí lấy ở client), gửi "talk" như phím tương tác; không có thì bỏ qua cảnh.
     const npcShot = async (role, file, prep) => {

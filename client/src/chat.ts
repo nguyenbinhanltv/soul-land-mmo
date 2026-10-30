@@ -138,24 +138,5 @@ export function buildChatTabs() {
     b.addEventListener("pointerdown", (e) => { e.preventDefault(); chatSetTab(t.id, true); });
     bar.appendChild(b);
   }
-  const menu = $("#hudMenuBtn"), quick = $("#quickMenu");
-  if (menu && quick && menu.dataset.bound !== "1") {
-    menu.dataset.bound = "1";
-    if (matchMedia("(pointer: coarse)").matches) quick.hidden = true;
-    menu.addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      const open = quick.hidden;
-      quick.hidden = !open;
-      menu.setAttribute("aria-expanded", String(open));
-    });
-  }
-  const menuTips: [string, string, string][] = [
-    ["charBtn", "Hồn sư", "H"], ["vhBtn", "Đội hình", "V"], ["bagBtn", "Túi đồ", "B"],
-    ["resBtn", "Cộng minh", "K"], ["audioBtn", "Cài đặt âm thanh và giao diện", "không có phím tắt"],
-  ];
-  for (const [id, title, key] of menuTips) {
-    const b = document.getElementById(id);
-    if (b) setTip(b, { title, foot: `Mở ${title.toLowerCase()} · ${key === "không có phím tắt" ? key : `phím ${key}`}` });
-  }
   renderChat();
 }

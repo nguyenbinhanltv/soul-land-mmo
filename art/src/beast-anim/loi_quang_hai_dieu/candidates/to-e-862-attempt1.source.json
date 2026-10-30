@@ -1,0 +1,12 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 1,
+  "agent": "soul_land_game-862",
+  "sourceSha256": "acfd8f79fbd2232ca1565f4d1c2a5e66a8abf2b5ac551616d18a4e781f9b6016",
+  "promptSha256": "9b0fc44877f8b77c3ae461c111ce44e05b72d5c3b0de483f934c594a37b08bdb",
+  "review": "Đủ 22 khung, nhìn phải, đủ đuôi; hurt lùi và die giữ trục; cutter 0 block. Thay e legacy, giữ s/se nguyên byte.",
+  "imported": true,
+  "turnaroundWaived": "Chủ repo đã bỏ turnaround sau hai lượt lộ mắt"
+}

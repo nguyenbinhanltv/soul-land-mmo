@@ -153,11 +153,11 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
   assert.match(await guide.locator(".g-head b").textContent(), /bước 2\/4/, "giữ D xong mà hướng dẫn chưa sang bước 2");
   await guide.getByRole("button", { name: "Bỏ qua" }).click();
   await guide.waitFor({ state: "hidden" });
-  await page.locator("#guideBtn").click();
+  await page.evaluate(() => { if (document.getElementById("hub").hidden) document.getElementById("hubBtn").click(); document.querySelector('[data-hub="guide"]').click(); });
   assert.match(await guide.locator(".g-head b").textContent(), /bước 1\/4/, "nút ? không mở lại hướng dẫn từ bước 1");
   await guide.getByRole("button", { name: "Đóng" }).click();
   await guide.waitFor({ state: "hidden" });
-  step("hướng dẫn lần đầu: bước theo phím, Bỏ qua, nút ? xem lại");
+  step("hướng dẫn lần đầu: bước theo phím, Bỏ qua, mục Cẩm Nang của hub xem lại");
 
   // 5a'. Bí Cảnh (#877 P5): hub có thẻ Bí Cảnh; mở ra thấy phụ bản Luyện Hồn Cảnh, lượt n/m, đếm ngược làm mới 05:00 và nút Khiêu Chiến; Esc đóng.
   await page.locator("#hubBtn").click();
@@ -186,7 +186,7 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
   });
   assert.ok(zones > 0, "không có vùng bấm (Zone) nào để kiểm");
   await page.evaluate(() => {
-    const el = document.getElementById("guideBtn"), r = window.__scene.game.canvas.getBoundingClientRect();
+    const el = document.getElementById("hubBtn"), r = window.__scene.game.canvas.getBoundingClientRect();
     // Mọi vùng bấm: gửi mousedown giả lên nút HUD tại đúng giữa vùng đó.
     const cam = window.__scene.cameras.main;
     for (const z of window.__scene.children.list) {

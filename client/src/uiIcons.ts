@@ -2,7 +2,7 @@ import { artUrl } from "./uiArt.ts";
 import { pingOnline } from "./pingMeter.ts";
 
 export const MENU_ICON_KEYS = ["char", "roster", "bag", "reso", "settings", "auto", "channel", "area", "world", "friends", "rank", "quest", "chat", "arena", "shop", "forge"].map((key) => `gi_menu_${key}`);
-const MENU: Record<string, string> = { charBtn: "char", vhBtn: "roster", bagBtn: "bag", resBtn: "reso", audioBtn: "settings", autoBtn: "auto", chanBtn: "channel", areaBtn: "area", worldBtn: "world" };
+const MENU: Record<string, string> = { autoChip: "auto", chanBtn: "channel", areaBtn: "area", worldBtn: "world" };
 
 /** Nạp ảnh trước khi đổi icon; thiếu key/tải lỗi thì giữ nguyên chữ và ký tự cũ. */
 function decorate(el: HTMLElement, key: string) {
@@ -15,7 +15,6 @@ function decorate(el: HTMLElement, key: string) {
     const slot = el.querySelector(".menu-icon");
     if (slot) { image.className = "c12-ui-icon"; slot.replaceChildren(image); }
     else {
-      if (el.id === "hudMenuBtn" && el.firstChild?.nodeType === 3) el.firstChild.textContent = el.firstChild.textContent?.replace("☰", "") ?? "";
       el.style.setProperty("--c12-icon", `url("${new URL(url, document.baseURI).href}")`); el.classList.add("c12-with-icon");
     }
   };
@@ -29,8 +28,6 @@ export function initUiIcons() {
     const el = document.getElementById(id);
     if (el) decorate(el, `gi_menu_${key}`);
   }
-  const menu = document.getElementById("hudMenuBtn");
-  if (menu) decorate(menu, "gi_ui_menu");
 }
 
 /** Kết nối thật của phòng hiện tại; không đo hoặc suy diễn chất lượng mạng. */

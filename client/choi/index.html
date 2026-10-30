@@ -19,19 +19,12 @@
         <div class="bar mp"><i id="mpFill"></i><span id="mpTxt"></span></div>
         <div class="bar xp"><i id="xpFill"></i><span id="xpTxt"></span></div>
         <div class="bar lei" id="leiBar" hidden><i id="leiFill"></i><span id="leiTxt"></span></div>
-        <div class="rings" id="rings"></div>
+        <div class="chips" id="statChips">
+          <button id="ringChip" class="stat-chip" type="button" aria-label="Hồn hoàn: mở bảng Hồn Cốt"><span class="menu-icon" aria-hidden="true">◎</span><span id="ringChipTxt">0/10</span></button>
+          <button id="autoChip" class="stat-chip on" type="button" aria-label="Đang tự động: mở bảng Tự động" hidden><span class="menu-icon" aria-hidden="true">◉</span><span>Tự động</span></button>
+        </div>
         <div class="buffs" id="buffs" aria-label="Hiệu ứng và trạng thái"></div>
         <div class="buffs" id="bpas" aria-label="Kỹ năng bị động của hồn cốt"></div>
-        <button id="hudMenuBtn" class="hud-menu-btn" type="button" aria-controls="quickMenu" aria-expanded="false" aria-label="Mở menu HUD">☰<span>Menu</span></button>
-        <div class="minirow" id="quickMenu" role="toolbar" aria-label="Menu HUD">
-          <button id="charBtn" class="minibtn f2-nut-phu" aria-controls="char" aria-expanded="false"><span class="menu-icon" aria-hidden="true">♙</span><span class="menu-label">Hồn sư</span> <kbd>H</kbd></button>
-          <button id="vhBtn" class="minibtn f2-nut-phu" aria-controls="roster" aria-expanded="false"><span class="menu-icon" aria-hidden="true">♜</span><span class="menu-label">Đội hình</span> <kbd>V</kbd></button>
-          <button id="bagBtn" class="minibtn f2-nut-phu" aria-controls="bag" aria-expanded="false"><span class="menu-icon" aria-hidden="true">▣</span><span class="menu-label">Túi đồ</span> <kbd>B</kbd></button>
-          <button id="resBtn" class="minibtn f2-nut-phu" aria-controls="reso" aria-expanded="false"><span class="menu-icon" aria-hidden="true">✥</span><span class="menu-label">Cộng minh</span> <kbd>K</kbd></button>
-          <button id="audioBtn" class="minibtn f2-nut-phu" aria-controls="audio" aria-expanded="false"><span class="menu-icon" aria-hidden="true">⚙</span><span class="menu-label">Cài đặt</span></button>
-          <button id="autoBtn" class="minibtn f2-nut-phu" aria-pressed="false" aria-controls="autoPanel" aria-expanded="false" title="Bảng Tự động: cài đặt và bật / tắt tự săn (phím T bật / tắt ngay)"><span class="menu-icon" aria-hidden="true">◉</span><span class="menu-label">Tự động</span> <kbd>T</kbd></button>
-          <button id="guideBtn" class="minibtn f2-nut-phu" aria-controls="guide" aria-expanded="false" title="Xem lại hướng dẫn điều khiển"><span class="menu-icon" aria-hidden="true">?</span><span class="menu-label">Hướng dẫn</span></button>
-        </div>
       </section>
       </div>
       <div id="pmenu" class="panel" hidden role="dialog" aria-label="Hồn sư"></div>

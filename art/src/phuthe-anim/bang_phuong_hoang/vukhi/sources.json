@@ -1,0 +1,33 @@
+{
+  "e": {
+    "raw": "art/src/phuthe-anim/bang_phuong_hoang/vukhi/e/attempt1/poses.raw.png",
+    "attempt": 1,
+    "references": []
+  },
+  "s": {
+    "raw": "art/src/phuthe-anim/bang_phuong_hoang/vukhi/s/attempt1/poses.raw.png",
+    "attempt": 1,
+    "references": [
+      "art/src/phuthe-anim/bang_phuong_hoang/vukhi/e/attempt1/poses.raw.png"
+    ]
+  },
+  "se": {
+    "raw": "art/src/phuthe-anim/bang_phuong_hoang/vukhi/se/attempt2/poses.raw.png",
+    "attempt": 2,
+    "references": [
+      "art/src/phuthe-anim/bang_phuong_hoang/vukhi/s/attempt1/poses.raw.png"
+    ]
+  },
+  "ne": {
+    "raw": "art/src/phuthe-anim/bang_phuong_hoang/vukhi/ne/attempt2/poses.raw.png",
+    "attempt": 2,
+    "references": []
+  },
+  "n": {
+    "raw": "art/src/phuthe-anim/bang_phuong_hoang/vukhi/n/attempt1/poses.raw.png",
+    "attempt": 1,
+    "references": [
+      "art/src/phuthe-anim/bang_phuong_hoang/vukhi/ne/attempt2/poses.raw.png"
+    ]
+  }
+}

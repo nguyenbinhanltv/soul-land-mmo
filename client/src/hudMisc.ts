@@ -114,7 +114,7 @@ export function setResonanceTop(m: ResonanceTopMsg) { resTopMsg = m; resTopWait 
 export function onResonanceTop(fn: (page: number, pageSize: number) => void) { resTopRequest = fn; }
 /** Mở / đóng bảng Cộng minh (phím K, nút trong khung chỉ số và trong bảng đội hình); cùng chỗ giữa màn hình với các bảng khác. */
 export function toggleReso(open = $("#reso").hidden) {
-  $("#reso").hidden = !open; $("#resBtn").setAttribute("aria-expanded", String(open));
+  $("#reso").hidden = !open;
   if (open) { toggleRoster(false); toggleBag(false); closeNpc(); toggleWorld(false); toggleFriends(false); toggleChar(false); renderReso(); }
 }
 /**
@@ -380,9 +380,8 @@ let recall: { label: string; secs: number; t0: number } | null = null;
  * động (client/src/autoPanel.ts, Auto 2); lý do dừng server báo bằng dòng log và bảng tổng kết.
  */
 export function setAuto(m: AutoMsg) {
-  const b = $("#autoBtn"); if (!b) return;
-  b.setAttribute("aria-pressed", String(m.on));
-  b.querySelector(".menu-label")!.textContent = m.on ? "Đang tự động" : "Tự động";
+  const b = $("#autoChip"); if (!b) return;
+  b.hidden = !m.on; // chip chỉ hiện khi đang tự săn; bấm mở bảng Tự động
   b.title = `${m.on ? "Đang tự săn: tự đi / đánh hoặc phím T để tắt" : "Bảng Tự động: cài đặt và bật tự săn quanh chỗ đang đứng (phím T bật / tắt ngay)"}. Còn ${autoTimeText(m.left)} treo (mỗi ngày ${autoTimeText(m.max)} miễn phí).`;
 }
 export function setRecall(r: { label: string; secs: number } | null) { recall = r ? { ...r, t0: performance.now() } : null; }

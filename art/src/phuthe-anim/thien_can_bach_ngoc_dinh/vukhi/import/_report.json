@@ -1,0 +1,3565 @@
+{
+  "frames": 130,
+  "scale": 0.08,
+  "geometry": [
+    {
+      "name": "m/s/idle/0",
+      "near": 0.7211102550927924,
+      "edge": 0,
+      "pixels": 629
+    },
+    {
+      "name": "m/s/idle/1",
+      "near": 0.29999999999999716,
+      "edge": 0,
+      "pixels": 640
+    },
+    {
+      "name": "m/s/walk/0",
+      "near": 0.7211102550927924,
+      "edge": 0,
+      "pixels": 611
+    },
+    {
+      "name": "m/s/walk/1",
+      "near": 0.24845199749997735,
+      "edge": 0,
+      "pixels": 621
+    },
+    {
+      "name": "m/s/walk/2",
+      "near": 0.7211102550927924,
+      "edge": 0,
+      "pixels": 611
+    },
+    {
+      "name": "m/s/walk/3",
+      "near": 0.6428243465332233,
+      "edge": 0,
+      "pixels": 608
+    },
+    {
+      "name": "m/s/attack/0",
+      "near": 0.9013878188659974,
+      "edge": 0,
+      "pixels": 610
+    },
+    {
+      "name": "m/s/attack/1",
+      "near": 0.40406101782087783,
+      "edge": 0,
+      "pixels": 606
+    },
+    {
+      "name": "m/s/attack/2",
+      "near": 0.6388765649999377,
+      "edge": 0,
+      "pixels": 599
+    },
+    {
+      "name": "m/s/attack/3",
+      "near": 0.565685424949241,
+      "edge": 0,
+      "pixels": 595
+    },
+    {
+      "name": "m/s/cast/0",
+      "near": 0.4249182927993899,
+      "edge": 0,
+      "pixels": 653
+    },
+    {
+      "name": "m/s/cast/1",
+      "near": 0.7142857142857139,
+      "edge": 0,
+      "pixels": 602
+    },
+    {
+      "name": "m/s/hurt/0",
+      "near": 0.7856742013183803,
+      "edge": 0,
+      "pixels": 629
+    },
+    {
+      "name": "f/s/idle/0",
+      "near": 0.24845199749997735,
+      "edge": 0,
+      "pixels": 637
+    },
+    {
+      "name": "f/s/idle/1",
+      "near": 0.5300865358950265,
+      "edge": 0,
+      "pixels": 621
+    },
+    {
+      "name": "f/s/walk/0",
+      "near": 0.24845199749997735,
+      "edge": 0,
+      "pixels": 621
+    },
+    {
+      "name": "f/s/walk/1",
+      "near": 0.24845199749997735,
+      "edge": 0,
+      "pixels": 621
+    },
+    {
+      "name": "f/s/walk/2",
+      "near": 0.24845199749997735,
+      "edge": 0,
+      "pixels": 621
+    },
+    {
+      "name": "f/s/walk/3",
+      "near": 0.6428243465332233,
+      "edge": 0,
+      "pixels": 608
+    },
+    {
+      "name": "f/s/attack/0",
+      "near": 0.5,
+      "edge": 0,
+      "pixels": 613
+    },
+    {
+      "name": "f/s/attack/1",
+      "near": 0.5,
+      "edge": 0,
+      "pixels": 603
+    },
+    {
+      "name": "f/s/attack/2",
+      "near": 0.5590169943749475,
+      "edge": 0,
+      "pixels": 595
+    },
+    {
+      "name": "f/s/attack/3",
+      "near": 0.565685424949241,
+      "edge": 0,
+      "pixels": 595
+    },
+    {
+      "name": "f/s/cast/0",
+      "near": 0.4487637339278763,
+      "edge": 0,
+      "pixels": 643
+    },
+    {
+      "name": "f/s/cast/1",
+      "near": 0.6324555320336782,
+      "edge": 0,
+      "pixels": 603
+    },
+    {
+      "name": "f/s/hurt/0",
+      "near": 0.09999999999999432,
+      "edge": 0,
+      "pixels": 645
+    },
+    {
+      "name": "m/se/idle/0",
+      "near": 0.125,
+      "edge": 0,
+      "pixels": 613
+    },
+    {
+      "name": "m/se/idle/1",
+      "near": 0.45175395145262626,
+      "edge": 0,
+      "pixels": 600
+    },
+    {
+      "name": "m/se/walk/0",
+      "near": 0.6403124237432885,
+      "edge": 0,
+      "pixels": 593
+    },
+    {
+      "name": "m/se/walk/1",
+      "near": 0.10000000000000142,
+      "edge": 0,
+      "pixels": 603
+    },
+    {
+      "name": "m/se/walk/2",
+      "near": 0.24845199749997735,
+      "edge": 0,
+      "pixels": 605
+    },
+    {
+      "name": "m/se/walk/3",
+      "near": 0.4000000000000057,
+      "edge": 0,
+      "pixels": 596
+    },
+    {
+      "name": "m/se/attack/0",
+      "near": 0.24845199749997735,
+      "edge": 0,
+      "pixels": 583
+    },
+    {
+      "name": "m/se/attack/1",
+      "near": 0.10000000000000142,
+      "edge": 0,
+      "pixels": 609
+    },
+    {
+      "name": "m/se/attack/2",
+      "near": 0.565685424949241,
+      "edge": 0,
+      "pixels": 603
+    },
+    {
+      "name": "m/se/attack/3",
+      "near": 0.5892556509887863,
+      "edge": 0,
+      "pixels": 599
+    },
+    {
+      "name": "m/se/cast/0",
+      "near": 0.36363636363637397,
+      "edge": 0,
+      "pixels": 615
+    },
+    {
+      "name": "m/se/cast/1",
+      "near": 0.5150787536377138,
+      "edge": 0,
+      "pixels": 631
+    },
+    {
+      "name": "m/se/hurt/0",
+      "near": 0.2484519974999837,
+      "edge": 0,
+      "pixels": 608
+    },
+    {
+      "name": "f/se/idle/0",
+      "near": 0.4006168083848873,
+      "edge": 0,
+      "pixels": 617
+    },
+    {
+      "name": "f/se/idle/1",
+      "near": 0.4166666666666629,
+      "edge": 0,
+      "pixels": 610
+    },
+    {
+      "name": "f/se/walk/0",
+      "near": 0.375,
+      "edge": 0,
+      "pixels": 596
+    },
+    {
+      "name": "f/se/walk/1",
+      "near": 0.5303300858899107,
+      "edge": 0,
+      "pixels": 592
+    },
+    {
+      "name": "f/se/walk/2",
+      "near": 0.40406101782087284,
+      "edge": 0,
+      "pixels": 594
+    },
+    {
+      "name": "f/se/walk/3",
+      "near": 0.47140452079103506,
+      "edge": 0,
+      "pixels": 589
+    },
+    {
+      "name": "f/se/attack/0",
+      "near": 0.10000000000000142,
+      "edge": 0,
+      "pixels": 579
+    },
+    {
+      "name": "f/se/attack/1",
+      "near": 0.20000000000000284,
+      "edge": 0,
+      "pixels": 610
+    },
+    {
+      "name": "f/se/attack/2",
+      "near": 0.24845199749997735,
+      "edge": 0,
+      "pixels": 606
+    },
+    {
+      "name": "f/se/attack/3",
+      "near": 0.6428243465332233,
+      "edge": 0,
+      "pixels": 594
+    },
+    {
+      "name": "f/se/cast/0",
+      "near": 0.5153882032022076,
+      "edge": 0,
+      "pixels": 626
+    },
+    {
+      "name": "f/se/cast/1",
+      "near": 0.48956043701222834,
+      "edge": 0,
+      "pixels": 633
+    },
+    {
+      "name": "f/se/hurt/0",
+      "near": 0.09999999999999432,
+      "edge": 0,
+      "pixels": 625
+    },
+    {
+      "name": "m/e/idle/0",
+      "near": 0.125,
+      "edge": 0,
+      "pixels": 627
+    },
+    {
+      "name": "m/e/idle/1",
+      "near": 0.45175395145262626,
+      "edge": 0,
+      "pixels": 623
+    },
+    {
+      "name": "m/e/walk/0",
+      "near": 0.6403124237432885,
+      "edge": 0,
+      "pixels": 608
+    },
+    {
+      "name": "m/e/walk/1",
+      "near": 0.10000000000000142,
+      "edge": 0,
+      "pixels": 611
+    },
+    {
+      "name": "m/e/walk/2",
+      "near": 0.7856742013183874,
+      "edge": 0,
+      "pixels": 606
+    },
+    {
+      "name": "m/e/walk/3",
+      "near": 0.4000000000000057,
+      "edge": 0,
+      "pixels": 613
+    },
+    {
+      "name": "m/e/attack/0",
+      "near": 0.7856742013183874,
+      "edge": 0,
+      "pixels": 610
+    },
+    {
+      "name": "m/e/attack/1",
+      "near": 0.10000000000000142,
+      "edge": 0,
+      "pixels": 604
+    },
+    {
+      "name": "m/e/attack/2",
+      "near": 0.7211102550927924,
+      "edge": 0,
+      "pixels": 588
+    },
+    {
+      "name": "m/e/attack/3",
+      "near": 0.5892556509887863,
+      "edge": 0,
+      "pixels": 612
+    },
+    {
+      "name": "m/e/cast/0",
+      "near": 0.36363636363637397,
+      "edge": 0,
+      "pixels": 614
+    },
+    {
+      "name": "m/e/cast/1",
+      "near": 0.5150787536377138,
+      "edge": 0,
+      "pixels": 600
+    },
+    {
+      "name": "m/e/hurt/0",
+      "near": 0.7856742013183803,
+      "edge": 0,
+      "pixels": 625
+    },
+    {
+      "name": "f/e/idle/0",
+      "near": 0.4006168083848873,
+      "edge": 0,
+      "pixels": 628
+    },
+    {
+      "name": "f/e/idle/1",
+      "near": 0.4166666666666629,
+      "edge": 0,
+      "pixels": 628
+    },
+    {
+      "name": "f/e/walk/0",
+      "near": 0.375,
+      "edge": 0,
+      "pixels": 613
+    },
+    {
+      "name": "f/e/walk/1",
+      "near": 0.5303300858899107,
+      "edge": 0,
+      "pixels": 609
+    },
+    {
+      "name": "f/e/walk/2",
+      "near": 0.40406101782087284,
+      "edge": 0,
+      "pixels": 608
+    },
+    {
+      "name": "f/e/walk/3",
+      "near": 0.47140452079103506,
+      "edge": 0,
+      "pixels": 605
+    },
+    {
+      "name": "f/e/attack/0",
+      "near": 0.10000000000000142,
+      "edge": 0,
+      "pixels": 606
+    },
+    {
+      "name": "f/e/attack/1",
+      "near": 0.20000000000000284,
+      "edge": 0,
+      "pixels": 595
+    },
+    {
+      "name": "f/e/attack/2",
+      "near": 0.24845199749997735,
+      "edge": 0,
+      "pixels": 594
+    },
+    {
+      "name": "f/e/attack/3",
+      "near": 0.6428243465332233,
+      "edge": 0,
+      "pixels": 613
+    },
+    {
+      "name": "f/e/cast/0",
+      "near": 0.5153882032022076,
+      "edge": 0,
+      "pixels": 607
+    },
+    {
+      "name": "f/e/cast/1",
+      "near": 0.48956043701222834,
+      "edge": 0,
+      "pixels": 609
+    },
+    {
+      "name": "f/e/hurt/0",
+      "near": 0.09999999999999432,
+      "edge": 0,
+      "pixels": 635
+    },
+    {
+      "name": "m/ne/idle/0",
+      "near": 0.125,
+      "edge": 0,
+      "pixels": 622
+    },
+    {
+      "name": "m/ne/idle/1",
+      "near": 0.45175395145262626,
+      "edge": 0,
+      "pixels": 625
+    },
+    {
+      "name": "m/ne/walk/0",
+      "near": 0.6403124237432885,
+      "edge": 0,
+      "pixels": 573
+    },
+    {
+      "name": "m/ne/walk/1",
+      "near": 0.10000000000000142,
+      "edge": 0,
+      "pixels": 575
+    },
+    {
+      "name": "m/ne/walk/2",
+      "near": 0.24845199749997735,
+      "edge": 0,
+      "pixels": 582
+    },
+    {
+      "name": "m/ne/walk/3",
+      "near": 0.4000000000000057,
+      "edge": 0,
+      "pixels": 577
+    },
+    {
+      "name": "m/ne/attack/0",
+      "near": 0.24845199749997735,
+      "edge": 0,
+      "pixels": 590
+    },
+    {
+      "name": "m/ne/attack/1",
+      "near": 0.10000000000000142,
+      "edge": 0,
+      "pixels": 568
+    },
+    {
+      "name": "m/ne/attack/2",
+      "near": 0.7211102550927924,
+      "edge": 0,
+      "pixels": 553
+    },
+    {
+      "name": "m/ne/attack/3",
+      "near": 0.5892556509887863,
+      "edge": 0,
+      "pixels": 566
+    },
+    {
+      "name": "m/ne/cast/0",
+      "near": 0.36363636363637397,
+      "edge": 0,
+      "pixels": 642
+    },
+    {
+      "name": "m/ne/cast/1",
+      "near": 0.5150787536377138,
+      "edge": 0,
+      "pixels": 564
+    },
+    {
+      "name": "m/ne/hurt/0",
+      "near": 0.7856742013183803,
+      "edge": 0,
+      "pixels": 621
+    },
+    {
+      "name": "f/ne/idle/0",
+      "near": 0.4006168083848873,
+      "edge": 0,
+      "pixels": 628
+    },
+    {
+      "name": "f/ne/idle/1",
+      "near": 0.4166666666666629,
+      "edge": 0,
+      "pixels": 616
+    },
+    {
+      "name": "f/ne/walk/0",
+      "near": 0.375,
+      "edge": 0,
+      "pixels": 577
+    },
+    {
+      "name": "f/ne/walk/1",
+      "near": 0.5303300858899107,
+      "edge": 0,
+      "pixels": 567
+    },
+    {
+      "name": "f/ne/walk/2",
+      "near": 0.40406101782087284,
+      "edge": 0,
+      "pixels": 574
+    },
+    {
+      "name": "f/ne/walk/3",
+      "near": 0.47140452079103506,
+      "edge": 0,
+      "pixels": 573
+    },
+    {
+      "name": "f/ne/attack/0",
+      "near": 0.10000000000000142,
+      "edge": 0,
+      "pixels": 593
+    },
+    {
+      "name": "f/ne/attack/1",
+      "near": 0.20000000000000284,
+      "edge": 0,
+      "pixels": 573
+    },
+    {
+      "name": "f/ne/attack/2",
+      "near": 0.24845199749997735,
+      "edge": 0,
+      "pixels": 559
+    },
+    {
+      "name": "f/ne/attack/3",
+      "near": 0.6428243465332233,
+      "edge": 0,
+      "pixels": 564
+    },
+    {
+      "name": "f/ne/cast/0",
+      "near": 0.5153882032022076,
+      "edge": 0,
+      "pixels": 642
+    },
+    {
+      "name": "f/ne/cast/1",
+      "near": 0.9359663764533586,
+      "edge": 0,
+      "pixels": 564
+    },
+    {
+      "name": "f/ne/hurt/0",
+      "near": 0.09999999999999432,
+      "edge": 0,
+      "pixels": 624
+    },
+    {
+      "name": "m/n/idle/0",
+      "near": 0.5892556509887762,
+      "edge": 0,
+      "pixels": 609
+    },
+    {
+      "name": "m/n/idle/1",
+      "near": 0.18633899812497823,
+      "edge": 0,
+      "pixels": 631
+    },
+    {
+      "name": "m/n/walk/0",
+      "near": 0.5892556509887762,
+      "edge": 0,
+      "pixels": 580
+    },
+    {
+      "name": "m/n/walk/1",
+      "near": 0.5656854249492461,
+      "edge": 0,
+      "pixels": 582
+    },
+    {
+      "name": "m/n/walk/2",
+      "near": 0.5892556509887762,
+      "edge": 0,
+      "pixels": 580
+    },
+    {
+      "name": "m/n/walk/3",
+      "near": 0.7211102550927962,
+      "edge": 0,
+      "pixels": 581
+    },
+    {
+      "name": "m/n/attack/0",
+      "near": 0.40655781409088243,
+      "edge": 0,
+      "pixels": 588
+    },
+    {
+      "name": "m/n/attack/1",
+      "near": 0.32777738867854794,
+      "edge": 0,
+      "pixels": 556
+    },
+    {
+      "name": "m/n/attack/2",
+      "near": 0.9013878188659974,
+      "edge": 0,
+      "pixels": 557
+    },
+    {
+      "name": "m/n/attack/3",
+      "near": 0.2484519974999837,
+      "edge": 0,
+      "pixels": 581
+    },
+    {
+      "name": "m/n/cast/0",
+      "near": 0.0769230769230802,
+      "edge": 0,
+      "pixels": 626
+    },
+    {
+      "name": "m/n/cast/1",
+      "near": 0.7142857142857139,
+      "edge": 0,
+      "pixels": 575
+    },
+    {
+      "name": "m/n/hurt/0",
+      "near": 0.2484519974999837,
+      "edge": 0,
+      "pixels": 630
+    },
+    {
+      "name": "f/n/idle/0",
+      "near": 0.2484519974999837,
+      "edge": 0,
+      "pixels": 630
+    },
+    {
+      "name": "f/n/idle/1",
+      "near": 0.5300865358950302,
+      "edge": 0,
+      "pixels": 620
+    },
+    {
+      "name": "f/n/walk/0",
+      "near": 0.2484519974999837,
+      "edge": 0,
+      "pixels": 586
+    },
+    {
+      "name": "f/n/walk/1",
+      "near": 0.7211102550927962,
+      "edge": 0,
+      "pixels": 581
+    },
+    {
+      "name": "f/n/walk/2",
+      "near": 0.2484519974999837,
+      "edge": 0,
+      "pixels": 586
+    },
+    {
+      "name": "f/n/walk/3",
+      "near": 0.2484519974999837,
+      "edge": 0,
+      "pixels": 586
+    },
+    {
+      "name": "f/n/attack/0",
+      "near": 0.24845199749997735,
+      "edge": 0,
+      "pixels": 586
+    },
+    {
+      "name": "f/n/attack/1",
+      "near": 0.24845199749997735,
+      "edge": 0,
+      "pixels": 555
+    },
+    {
+      "name": "f/n/attack/2",
+      "near": 0.24845199749997735,
+      "edge": 0,
+      "pixels": 567
+    },
+    {
+      "name": "f/n/attack/3",
+      "near": 0.2484519974999837,
+      "edge": 0,
+      "pixels": 581
+    },
+    {
+      "name": "f/n/cast/0",
+      "near": 0.3748277841470707,
+      "edge": 0,
+      "pixels": 632
+    },
+    {
+      "name": "f/n/cast/1",
+      "near": 0.25,
+      "edge": 0,
+      "pixels": 592
+    },
+    {
+      "name": "f/n/hurt/0",
+      "near": 0.09999999999999432,
+      "edge": 0,
+      "pixels": 635
+    }
+  ],
+  "cuts": {
+    "m": {
+      "id": "thien_can_bach_ngoc_dinh",
+      "kind": "vukhi",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "gripKey": "#00FF60",
+      "sheets": {
+        "A": {
+          "dir": "s",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "B": {
+          "dir": "se",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 10,
+          "cells": 13
+        },
+        "C": {
+          "dir": "e",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 11,
+          "cells": 13
+        },
+        "D": {
+          "dir": "ne",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 12,
+          "cells": 13
+        },
+        "E": {
+          "dir": "n",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        }
+      },
+      "dropped": 9,
+      "palette": 32,
+      "outline": "thêm vòng viền ngoài",
+      "halves": {
+        "b": {
+          "pixels": 29428,
+          "blank": false
+        },
+        "f": {
+          "pixels": 48866,
+          "blank": false
+        }
+      },
+      "sexShift": {
+        "f/s/idle/0": [
+          0,
+          0
+        ],
+        "f/s/idle/1": [
+          0,
+          0
+        ],
+        "f/s/walk/0": [
+          0,
+          0
+        ],
+        "f/s/walk/1": [
+          0,
+          0
+        ],
+        "f/s/walk/2": [
+          0,
+          0
+        ],
+        "f/s/walk/3": [
+          0,
+          0
+        ],
+        "f/s/attack/0": [
+          0,
+          0
+        ],
+        "f/s/attack/1": [
+          0,
+          0
+        ],
+        "f/s/attack/2": [
+          0,
+          1
+        ],
+        "f/s/attack/3": [
+          1,
+          0
+        ],
+        "f/s/cast/0": [
+          0,
+          0
+        ],
+        "f/s/cast/1": [
+          0,
+          0
+        ],
+        "f/s/hurt/0": [
+          -1,
+          1
+        ],
+        "f/se/idle/0": [
+          0,
+          0
+        ],
+        "f/se/idle/1": [
+          0,
+          0
+        ],
+        "f/se/walk/0": [
+          0,
+          0
+        ],
+        "f/se/walk/1": [
+          0,
+          0
+        ],
+        "f/se/walk/2": [
+          1,
+          -1
+        ],
+        "f/se/walk/3": [
+          0,
+          -1
+        ],
+        "f/se/attack/0": [
+          0,
+          0
+        ],
+        "f/se/attack/1": [
+          0,
+          -1
+        ],
+        "f/se/attack/2": [
+          0,
+          -1
+        ],
+        "f/se/attack/3": [
+          -1,
+          0
+        ],
+        "f/se/cast/0": [
+          0,
+          -1
+        ],
+        "f/se/cast/1": [
+          0,
+          0
+        ],
+        "f/se/hurt/0": [
+          -1,
+          1
+        ],
+        "f/e/idle/0": [
+          0,
+          0
+        ],
+        "f/e/idle/1": [
+          0,
+          0
+        ],
+        "f/e/walk/0": [
+          0,
+          0
+        ],
+        "f/e/walk/1": [
+          0,
+          0
+        ],
+        "f/e/walk/2": [
+          1,
+          -1
+        ],
+        "f/e/walk/3": [
+          0,
+          -1
+        ],
+        "f/e/attack/0": [
+          0,
+          0
+        ],
+        "f/e/attack/1": [
+          0,
+          -1
+        ],
+        "f/e/attack/2": [
+          0,
+          -1
+        ],
+        "f/e/attack/3": [
+          -1,
+          0
+        ],
+        "f/e/cast/0": [
+          0,
+          -1
+        ],
+        "f/e/cast/1": [
+          0,
+          0
+        ],
+        "f/e/hurt/0": [
+          -1,
+          1
+        ],
+        "f/ne/idle/0": [
+          0,
+          0
+        ],
+        "f/ne/idle/1": [
+          0,
+          0
+        ],
+        "f/ne/walk/0": [
+          0,
+          0
+        ],
+        "f/ne/walk/1": [
+          0,
+          0
+        ],
+        "f/ne/walk/2": [
+          1,
+          -1
+        ],
+        "f/ne/walk/3": [
+          0,
+          -1
+        ],
+        "f/ne/attack/0": [
+          0,
+          0
+        ],
+        "f/ne/attack/1": [
+          0,
+          -1
+        ],
+        "f/ne/attack/2": [
+          0,
+          -1
+        ],
+        "f/ne/attack/3": [
+          -1,
+          0
+        ],
+        "f/ne/cast/0": [
+          0,
+          -1
+        ],
+        "f/ne/cast/1": [
+          0,
+          0
+        ],
+        "f/ne/hurt/0": [
+          -1,
+          1
+        ],
+        "f/n/idle/0": [
+          0,
+          0
+        ],
+        "f/n/idle/1": [
+          0,
+          0
+        ],
+        "f/n/walk/0": [
+          0,
+          0
+        ],
+        "f/n/walk/1": [
+          0,
+          1
+        ],
+        "f/n/walk/2": [
+          0,
+          0
+        ],
+        "f/n/walk/3": [
+          0,
+          1
+        ],
+        "f/n/attack/0": [
+          -1,
+          0
+        ],
+        "f/n/attack/1": [
+          -1,
+          0
+        ],
+        "f/n/attack/2": [
+          0,
+          0
+        ],
+        "f/n/attack/3": [
+          1,
+          0
+        ],
+        "f/n/cast/0": [
+          0,
+          0
+        ],
+        "f/n/cast/1": [
+          0,
+          0
+        ],
+        "f/n/hurt/0": [
+          -1,
+          1
+        ]
+      },
+      "dirs": {
+        "s": "ok",
+        "se": "ok",
+        "e": "ok",
+        "ne": "ok",
+        "n": "ok"
+      },
+      "gripFrames": 65,
+      "warnings": [
+        "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "tờ B: 3 / 13 ô không tìm thấy nộm (điểm khớp < 50%: idle1, idle2, walk4), dùng độ dời trung vị của tờ (0, 0)",
+        "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "tờ C: 2 / 13 ô không tìm thấy nộm (điểm khớp < 50%: walk1, walk4), dùng độ dời trung vị của tờ (0, 0)",
+        "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "tờ D: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: walk4), dùng độ dời trung vị của tờ (0, 0)",
+        "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+      ],
+      "issues": [
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "warn",
+          "code": "nom-mat",
+          "msg": "tờ B: 3 / 13 ô không tìm thấy nộm (điểm khớp < 50%: idle1, idle2, walk4), dùng độ dời trung vị của tờ (0, 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "warn",
+          "code": "nom-mat",
+          "msg": "tờ C: 2 / 13 ô không tìm thấy nộm (điểm khớp < 50%: walk1, walk4), dùng độ dời trung vị của tờ (0, 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "warn",
+          "code": "nom-mat",
+          "msg": "tờ D: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: walk4), dùng độ dời trung vị của tờ (0, 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        }
+      ],
+      "summary": {
+        "info": 5,
+        "warn": 3,
+        "block": 0,
+        "total": 8,
+        "byCode": {
+          "ghi-chu": 5,
+          "nom-mat": 3
+        }
+      },
+      "frames": 65,
+      "missing": 0,
+      "blank": []
+    },
+    "f": {
+      "id": "thien_can_bach_ngoc_dinh",
+      "kind": "vukhi",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "gripKey": "#00FF60",
+      "sheets": {
+        "A": {
+          "dir": "s",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "B": {
+          "dir": "se",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 12,
+          "cells": 13
+        },
+        "C": {
+          "dir": "e",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 12,
+          "cells": 13
+        },
+        "D": {
+          "dir": "ne",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 12,
+          "cells": 13
+        },
+        "E": {
+          "dir": "n",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        }
+      },
+      "dropped": 8,
+      "palette": 32,
+      "outline": "thêm vòng viền ngoài",
+      "halves": {
+        "b": {
+          "pixels": 29454,
+          "blank": false
+        },
+        "f": {
+          "pixels": 49022,
+          "blank": false
+        }
+      },
+      "sexShift": {
+        "m/s/idle/0": [
+          0,
+          0
+        ],
+        "m/s/idle/1": [
+          0,
+          0
+        ],
+        "m/s/walk/0": [
+          0,
+          0
+        ],
+        "m/s/walk/1": [
+          0,
+          0
+        ],
+        "m/s/walk/2": [
+          0,
+          0
+        ],
+        "m/s/walk/3": [
+          0,
+          0
+        ],
+        "m/s/attack/0": [
+          0,
+          0
+        ],
+        "m/s/attack/1": [
+          0,
+          0
+        ],
+        "m/s/attack/2": [
+          0,
+          -1
+        ],
+        "m/s/attack/3": [
+          -1,
+          0
+        ],
+        "m/s/cast/0": [
+          0,
+          0
+        ],
+        "m/s/cast/1": [
+          0,
+          0
+        ],
+        "m/s/hurt/0": [
+          1,
+          -1
+        ],
+        "m/se/idle/0": [
+          0,
+          0
+        ],
+        "m/se/idle/1": [
+          0,
+          0
+        ],
+        "m/se/walk/0": [
+          0,
+          0
+        ],
+        "m/se/walk/1": [
+          0,
+          0
+        ],
+        "m/se/walk/2": [
+          -1,
+          1
+        ],
+        "m/se/walk/3": [
+          0,
+          1
+        ],
+        "m/se/attack/0": [
+          0,
+          0
+        ],
+        "m/se/attack/1": [
+          0,
+          1
+        ],
+        "m/se/attack/2": [
+          0,
+          1
+        ],
+        "m/se/attack/3": [
+          1,
+          0
+        ],
+        "m/se/cast/0": [
+          0,
+          1
+        ],
+        "m/se/cast/1": [
+          0,
+          0
+        ],
+        "m/se/hurt/0": [
+          1,
+          -1
+        ],
+        "m/e/idle/0": [
+          0,
+          0
+        ],
+        "m/e/idle/1": [
+          0,
+          0
+        ],
+        "m/e/walk/0": [
+          0,
+          0
+        ],
+        "m/e/walk/1": [
+          0,
+          0
+        ],
+        "m/e/walk/2": [
+          -1,
+          1
+        ],
+        "m/e/walk/3": [
+          0,
+          1
+        ],
+        "m/e/attack/0": [
+          0,
+          0
+        ],
+        "m/e/attack/1": [
+          0,
+          1
+        ],
+        "m/e/attack/2": [
+          0,
+          1
+        ],
+        "m/e/attack/3": [
+          1,
+          0
+        ],
+        "m/e/cast/0": [
+          0,
+          1
+        ],
+        "m/e/cast/1": [
+          0,
+          0
+        ],
+        "m/e/hurt/0": [
+          1,
+          -1
+        ],
+        "m/ne/idle/0": [
+          0,
+          0
+        ],
+        "m/ne/idle/1": [
+          0,
+          0
+        ],
+        "m/ne/walk/0": [
+          0,
+          0
+        ],
+        "m/ne/walk/1": [
+          0,
+          0
+        ],
+        "m/ne/walk/2": [
+          -1,
+          1
+        ],
+        "m/ne/walk/3": [
+          0,
+          1
+        ],
+        "m/ne/attack/0": [
+          0,
+          0
+        ],
+        "m/ne/attack/1": [
+          0,
+          1
+        ],
+        "m/ne/attack/2": [
+          0,
+          1
+        ],
+        "m/ne/attack/3": [
+          1,
+          0
+        ],
+        "m/ne/cast/0": [
+          0,
+          1
+        ],
+        "m/ne/cast/1": [
+          0,
+          0
+        ],
+        "m/ne/hurt/0": [
+          1,
+          -1
+        ],
+        "m/n/idle/0": [
+          0,
+          0
+        ],
+        "m/n/idle/1": [
+          0,
+          0
+        ],
+        "m/n/walk/0": [
+          0,
+          0
+        ],
+        "m/n/walk/1": [
+          0,
+          -1
+        ],
+        "m/n/walk/2": [
+          0,
+          0
+        ],
+        "m/n/walk/3": [
+          0,
+          -1
+        ],
+        "m/n/attack/0": [
+          1,
+          0
+        ],
+        "m/n/attack/1": [
+          1,
+          0
+        ],
+        "m/n/attack/2": [
+          0,
+          0
+        ],
+        "m/n/attack/3": [
+          -1,
+          0
+        ],
+        "m/n/cast/0": [
+          0,
+          0
+        ],
+        "m/n/cast/1": [
+          0,
+          0
+        ],
+        "m/n/hurt/0": [
+          1,
+          -1
+        ]
+      },
+      "dirs": {
+        "s": "ok",
+        "se": "ok",
+        "e": "ok",
+        "ne": "ok",
+        "n": "ok"
+      },
+      "gripFrames": 65,
+      "warnings": [
+        "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "tờ B: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: walk4), dùng độ dời trung vị của tờ (0, 0)",
+        "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "tờ C: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: walk1), dùng độ dời trung vị của tờ (0, 0)",
+        "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "tờ D: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: walk4), dùng độ dời trung vị của tờ (0, 0)",
+        "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+      ],
+      "issues": [
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "warn",
+          "code": "nom-mat",
+          "msg": "tờ B: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: walk4), dùng độ dời trung vị của tờ (0, 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "warn",
+          "code": "nom-mat",
+          "msg": "tờ C: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: walk1), dùng độ dời trung vị của tờ (0, 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "warn",
+          "code": "nom-mat",
+          "msg": "tờ D: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: walk4), dùng độ dời trung vị của tờ (0, 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        }
+      ],
+      "summary": {
+        "info": 5,
+        "warn": 3,
+        "block": 0,
+        "total": 8,
+        "byCode": {
+          "ghi-chu": 5,
+          "nom-mat": 3
+        }
+      },
+      "frames": 65,
+      "missing": 0,
+      "blank": []
+    }
+  },
+  "layers": {
+    "m": {
+      "huong": {
+        "s": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "se": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "e": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "ne": {
+          "mac_dinh": "sau",
+          "vung": []
+        },
+        "n": {
+          "mac_dinh": "sau",
+          "vung": []
+        }
+      },
+      "khung": {
+        "ne/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.5,
+              -14.375,
+              -4.5,
+              -8.375
+            ]
+          }
+        ],
+        "ne/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.357142857142861,
+              -14.92857142857143,
+              -4.357142857142861,
+              -8.92857142857143
+            ]
+          }
+        ],
+        "ne/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -4,
+              -13.099999999999994,
+              2,
+              -7.099999999999994
+            ]
+          }
+        ],
+        "ne/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.399999999999999,
+              -13.5,
+              -8.399999999999999,
+              -7.5
+            ]
+          }
+        ],
+        "ne/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -16.72222222222222,
+              -13.611111111111114,
+              -10.722222222222221,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "ne/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -8.5,
+              -14.099999999999994,
+              -2.5,
+              -8.099999999999994
+            ]
+          }
+        ],
+        "ne/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.722222222222221,
+              -12.611111111111114,
+              -4.722222222222221,
+              -6.611111111111114
+            ]
+          }
+        ],
+        "ne/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.399999999999999,
+              -14.5,
+              -6.399999999999999,
+              -8.5
+            ]
+          }
+        ],
+        "ne/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.899999999999999,
+              -14.900000000000006,
+              -7.899999999999999,
+              -8.900000000000006
+            ]
+          }
+        ],
+        "ne/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.916666666666671,
+              -15.083333333333343,
+              -6.916666666666671,
+              -9.083333333333343
+            ]
+          }
+        ],
+        "ne/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              7.136363636363626,
+              -20.5,
+              13.136363636363626,
+              -14.5
+            ]
+          }
+        ],
+        "ne/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              10.07142857142857,
+              -34.214285714285715,
+              16.07142857142857,
+              -28.214285714285715
+            ]
+          }
+        ],
+        "ne/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              11.722222222222229,
+              -13.611111111111114,
+              17.72222222222223,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.916666666666657,
+              -14.083333333333343,
+              15.916666666666657,
+              -8.083333333333343
+            ]
+          }
+        ],
+        "n/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.416666666666657,
+              -14.333333333333343,
+              15.416666666666657,
+              -8.333333333333343
+            ]
+          }
+        ],
+        "n/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.916666666666657,
+              -15.083333333333343,
+              15.916666666666657,
+              -9.083333333333343
+            ]
+          }
+        ],
+        "n/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              10.099999999999994,
+              -17.099999999999994,
+              16.099999999999994,
+              -11.099999999999994
+            ]
+          }
+        ],
+        "n/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.916666666666657,
+              -15.083333333333343,
+              15.916666666666657,
+              -9.083333333333343
+            ]
+          }
+        ],
+        "n/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.900000000000006,
+              -13.900000000000006,
+              15.900000000000006,
+              -7.900000000000006
+            ]
+          }
+        ],
+        "n/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.136363636363626,
+              -19.318181818181813,
+              14.136363636363626,
+              -13.318181818181813
+            ]
+          }
+        ],
+        "n/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -11.227272727272727,
+              -12.681818181818187,
+              -5.227272727272727,
+              -6.681818181818187
+            ]
+          }
+        ],
+        "n/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14,
+              -13.75,
+              -8,
+              -7.75
+            ]
+          }
+        ],
+        "n/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -15.388888888888886,
+              -14.277777777777771,
+              -9.388888888888886,
+              -8.277777777777771
+            ]
+          }
+        ],
+        "n/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              13.5,
+              -19.42307692307692,
+              19.5,
+              -13.42307692307692
+            ]
+          }
+        ],
+        "n/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              18.92857142857143,
+              -31.92857142857143,
+              24.92857142857143,
+              -25.92857142857143
+            ]
+          }
+        ],
+        "n/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              11.722222222222229,
+              -13.611111111111114,
+              17.72222222222223,
+              -7.611111111111114
+            ]
+          }
+        ]
+      }
+    },
+    "f": {
+      "huong": {
+        "s": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "se": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "e": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "ne": {
+          "mac_dinh": "sau",
+          "vung": []
+        },
+        "n": {
+          "mac_dinh": "sau",
+          "vung": []
+        }
+      },
+      "khung": {
+        "ne/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -11.166666666666671,
+              -14.277777777777771,
+              -5.166666666666671,
+              -8.277777777777771
+            ]
+          }
+        ],
+        "ne/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.833333333333329,
+              -15.25,
+              -4.833333333333329,
+              -9.25
+            ]
+          }
+        ],
+        "ne/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -3.5,
+              -13.125,
+              2.5,
+              -7.125
+            ]
+          }
+        ],
+        "ne/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              5.875,
+              -14.125,
+              11.875,
+              -8.125
+            ]
+          }
+        ],
+        "ne/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              7.214285714285722,
+              -14.214285714285722,
+              13.214285714285722,
+              -8.214285714285722
+            ]
+          }
+        ],
+        "ne/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -7.833333333333329,
+              -13.166666666666657,
+              -1.8333333333333286,
+              -7.166666666666657
+            ]
+          }
+        ],
+        "ne/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -11.399999999999999,
+              -12.5,
+              -5.399999999999999,
+              -6.5
+            ]
+          }
+        ],
+        "ne/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              6.700000000000003,
+              -13.5,
+              12.700000000000003,
+              -7.5
+            ]
+          }
+        ],
+        "ne/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.722222222222221,
+              -15.611111111111114,
+              -6.722222222222221,
+              -9.611111111111114
+            ]
+          }
+        ],
+        "ne/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.954545454545453,
+              -16.045454545454547,
+              -6.954545454545453,
+              -10.045454545454547
+            ]
+          }
+        ],
+        "ne/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              6.375,
+              -17,
+              12.375,
+              -11
+            ]
+          }
+        ],
+        "ne/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.954545454545453,
+              -32.68181818181819,
+              15.954545454545453,
+              -26.681818181818187
+            ]
+          }
+        ],
+        "ne/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.400000000000006,
+              -13.5,
+              15.400000000000006,
+              -7.5
+            ]
+          }
+        ],
+        "n/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -13.611111111111114,
+              14.722222222222229,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.22727272727272,
+              -14.045454545454547,
+              14.22727272727272,
+              -8.045454545454547
+            ]
+          }
+        ],
+        "n/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -13.611111111111114,
+              14.722222222222229,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.900000000000006,
+              -14.900000000000006,
+              14.900000000000006,
+              -8.900000000000006
+            ]
+          }
+        ],
+        "n/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -13.611111111111114,
+              14.722222222222229,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -12.611111111111114,
+              14.722222222222229,
+              -6.611111111111114
+            ]
+          }
+        ],
+        "n/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.722222222222221,
+              -13.611111111111114,
+              -7.722222222222221,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.722222222222221,
+              -13.611111111111114,
+              -7.722222222222221,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.722222222222221,
+              -13.611111111111114,
+              -6.722222222222221,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.388888888888886,
+              -14.277777777777771,
+              -7.388888888888886,
+              -8.277777777777771
+            ]
+          }
+        ],
+        "n/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              12.590909090909093,
+              -20.863636363636374,
+              18.590909090909093,
+              -14.863636363636374
+            ]
+          }
+        ],
+        "n/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              17.75,
+              -32.5,
+              23.75,
+              -26.5
+            ]
+          }
+        ],
+        "n/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.400000000000006,
+              -13.5,
+              15.400000000000006,
+              -7.5
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "checks": {
+    "m": {
+      "id": "thien_can_bach_ngoc_dinh",
+      "kind": "vukhi",
+      "level": "nhẹ",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "blockLevel": {
+        "s": "pass",
+        "se": "nhẹ",
+        "e": "nhẹ",
+        "ne": "nhẹ",
+        "n": "pass"
+      },
+      "sheets": [
+        {
+          "sheet": "toA",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "s"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "s",
+              "y": [
+                82,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "s",
+              "y": [
+                340,
+                439
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "s",
+              "y": [
+                596,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "s",
+              "y": [
+                832,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "s",
+              "anim": "idle",
+              "maxDiff": 0.088
+            },
+            {
+              "dir": "s",
+              "anim": "walk",
+              "maxDiff": 0.317
+            },
+            {
+              "dir": "s",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toB",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "se"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": 0.721,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "se",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "se",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "se",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "se",
+              "y": [
+                830,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "se",
+              "anim": "idle",
+              "maxDiff": 0.071
+            },
+            {
+              "dir": "se",
+              "anim": "walk",
+              "maxDiff": 0.718
+            },
+            {
+              "dir": "se",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.967
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H1 (se) C1",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.48 < 0.5); cutter dùng độ dời trung vị của tờ."
+            },
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H1 (se) C2",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.5 < 0.5); cutter dùng độ dời trung vị của tờ."
+            },
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H2 (se) C4",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.46 < 0.5); cutter dùng độ dời trung vị của tờ."
+            }
+          ],
+          "draft": "LỖI: toB — mất nộm — H1 (se) C1, H1 (se) C2, H2 (se) C4 — nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.48 < 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.5 < 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.46 < 0.5); cutter dùng độ dời trung vị của tờ."
+        },
+        {
+          "sheet": "toC",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "e"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "e",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "e",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "e",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "e",
+              "y": [
+                832,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "e",
+              "anim": "idle",
+              "maxDiff": 0.071
+            },
+            {
+              "dir": "e",
+              "anim": "walk",
+              "maxDiff": 0.707
+            },
+            {
+              "dir": "e",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.94
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H2 (e) C1",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.49 < 0.5); cutter dùng độ dời trung vị của tờ."
+            },
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H2 (e) C4",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.49 < 0.5); cutter dùng độ dời trung vị của tờ."
+            }
+          ],
+          "draft": "LỖI: toC — mất nộm — H2 (e) C1, H2 (e) C4 — nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.49 < 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.49 < 0.5); cutter dùng độ dời trung vị của tờ."
+        },
+        {
+          "sheet": "toD",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "ne"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "ne",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "ne",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "ne",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "ne",
+              "y": [
+                832,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "ne",
+              "anim": "idle",
+              "maxDiff": 0.083
+            },
+            {
+              "dir": "ne",
+              "anim": "walk",
+              "maxDiff": 0.724
+            },
+            {
+              "dir": "ne",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.951
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H2 (ne) C4",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+            }
+          ],
+          "draft": "LỖI: toD — mất nộm — H2 (ne) C4 — nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+        },
+        {
+          "sheet": "toE",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "n"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "n",
+              "y": [
+                88,
+                183
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "n",
+              "y": [
+                344,
+                439
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "n",
+              "y": [
+                602,
+                697
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "n",
+              "y": [
+                838,
+                951
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "n",
+              "anim": "idle",
+              "maxDiff": 0.097
+            },
+            {
+              "dir": "n",
+              "anim": "walk",
+              "maxDiff": 0.31
+            },
+            {
+              "dir": "n",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.143
+            }
+          ],
+          "issues": [],
+          "draft": null
+        }
+      ]
+    },
+    "f": {
+      "id": "thien_can_bach_ngoc_dinh",
+      "kind": "vukhi",
+      "level": "nhẹ",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "blockLevel": {
+        "s": "pass",
+        "se": "nhẹ",
+        "e": "nhẹ",
+        "ne": "nhẹ",
+        "n": "nhẹ"
+      },
+      "sheets": [
+        {
+          "sheet": "toA",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "s"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "s",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "s",
+              "y": [
+                342,
+                439
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "s",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "s",
+              "y": [
+                830,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "s",
+              "anim": "idle",
+              "maxDiff": 0.092
+            },
+            {
+              "dir": "s",
+              "anim": "walk",
+              "maxDiff": 0.247
+            },
+            {
+              "dir": "s",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.969
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toB",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "se"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": 0.702,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "se",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "se",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "se",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "se",
+              "y": [
+                834,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "se",
+              "anim": "idle",
+              "maxDiff": 0.118
+            },
+            {
+              "dir": "se",
+              "anim": "walk",
+              "maxDiff": 0.803
+            },
+            {
+              "dir": "se",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.93
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H2 (se) C4",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+            }
+          ],
+          "draft": "LỖI: toB — mất nộm — H2 (se) C4 — nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+        },
+        {
+          "sheet": "toC",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "e"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "e",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "e",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "e",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "e",
+              "y": [
+                834,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "e",
+              "anim": "idle",
+              "maxDiff": 0.132
+            },
+            {
+              "dir": "e",
+              "anim": "walk",
+              "maxDiff": 0.793
+            },
+            {
+              "dir": "e",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.914
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H2 (e) C1",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+            }
+          ],
+          "draft": "LỖI: toC — mất nộm — H2 (e) C1 — nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+        },
+        {
+          "sheet": "toD",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "ne"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "ne",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "ne",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "ne",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "ne",
+              "y": [
+                836,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "ne",
+              "anim": "idle",
+              "maxDiff": 0.13
+            },
+            {
+              "dir": "ne",
+              "anim": "walk",
+              "maxDiff": 0.826
+            },
+            {
+              "dir": "ne",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.921
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H2 (ne) C4",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+            }
+          ],
+          "draft": "LỖI: toD — mất nộm — H2 (ne) C4 — nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+        },
+        {
+          "sheet": "toE",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "n"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "n",
+              "y": [
+                88,
+                183
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "n",
+              "y": [
+                344,
+                441
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "n",
+              "y": [
+                602,
+                697
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "n",
+              "y": [
+                836,
+                951
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "n",
+              "anim": "idle",
+              "maxDiff": 0.099
+            },
+            {
+              "dir": "n",
+              "anim": "walk",
+              "maxDiff": 0.237
+            },
+            {
+              "dir": "n",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.062
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "hurt-idle",
+              "where": "H1 (n)",
+              "msg": "hurt trùng idle (xor/hợp 0.062): không thấy phản ứng trúng đòn."
+            }
+          ],
+          "draft": "LỖI: toE — hurt trùng idle — H1 (n) — hurt trùng idle (xor/hợp 0.062): không thấy phản ứng trúng đòn."
+        }
+      ]
+    }
+  },
+  "maxA": 0.9359663764533586,
+  "edge": 0
+}

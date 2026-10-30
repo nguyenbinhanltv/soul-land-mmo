@@ -1,0 +1,18 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 1,
+  "agent": "soul_land_game-860",
+  "sourceSha256": "0f3a8430e4f97b17d2897fb3ca83e6afecdf848764b1a6c259bc5f48fee2bc38",
+  "promptSha256": "088f0aca605403a547d81cf91eb2294839bba94d8e95877dca2088dddc22ce7c",
+  "review": "Mắt đạt: đầu ne lên phải, không thấy mắt, giữ đuôi. Chuẩn sheet nhập 44,8 px, khớp x0,5, residual -4,4% trong 10%. CHẶN nhập: cả loài legacy auto 1,2452 fit 0,7023 và nguồn n cũ vượt khung. Không nhập.",
+  "imported": false,
+  "turnaroundWaived": "Quyết định chủ repo/orchestrator: bỏ bước turnaround vì cả hai lượt ne lộ mắt",
+  "references": {
+    "source": "shared/assets/sprites/beast/loi_quang_hai_dieu_anim.png",
+    "rows": "0..11 (s,se,e)",
+    "sourceSha256": "d2ef85b74baa940315b84717f02c651d46638baac5698de0df129ca9f846a12c",
+    "cropSha256": "23dcd93d094a6138e0d5317ae695558284871d0b339aba7b3c7f4bb18e1f2e43"
+  }
+}

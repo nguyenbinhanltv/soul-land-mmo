@@ -1,0 +1,14 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "attempts":  1,
+    "agent":  "soul_land_game-860",
+    "sourceSha256":  "30f9c98f8484088a7c5c78d6f744435d5e44623d7dd51bee5a3ace3cd482f7a6",
+    "promptSha256":  "c672a7f9568e33bb2d6748c873fea7d3e9c53a035f60d4b94b9487144531322f",
+    "review":  "Chặn: cột ne còn thấy mắt ở mép đầu trong idle/hurt/die; không dùng làm tham chiếu",
+    "imported":  false,
+    "references":  [
+                       "shared/assets/sprites/beast/loi_quang_hai_dieu.png"
+                   ]
+}

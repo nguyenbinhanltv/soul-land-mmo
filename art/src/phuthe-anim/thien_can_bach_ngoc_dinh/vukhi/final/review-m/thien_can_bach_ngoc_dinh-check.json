@@ -1,0 +1,621 @@
+{
+  "id": "thien_can_bach_ngoc_dinh",
+  "kind": "vukhi",
+  "level": "nhẹ",
+  "group": "A",
+  "frame": 128,
+  "dummyKey": "#00D0D0",
+  "blockLevel": {
+    "s": "pass",
+    "se": "nhẹ",
+    "e": "nhẹ",
+    "ne": "nhẹ",
+    "n": "pass"
+  },
+  "sheets": [
+    {
+      "sheet": "toA",
+      "size": [
+        1536,
+        1024
+      ],
+      "kind": "huong",
+      "level": "pass",
+      "dirs": [
+        "s"
+      ],
+      "background": {
+        "key": [
+          255,
+          0,
+          255
+        ],
+        "corners": [
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ]
+        ],
+        "keyDistFromLock": 0,
+        "cornerSpread": 0
+      },
+      "seVsE": null,
+      "prep": {
+        "shift": {
+          "dx": 0,
+          "dy": 0
+        },
+        "factor": 1,
+        "grid": "gap"
+      },
+      "bands": [
+        {
+          "row": 1,
+          "dir": "s",
+          "y": [
+            82,
+            181
+          ],
+          "figures": 3,
+          "state": "ok"
+        },
+        {
+          "row": 2,
+          "dir": "s",
+          "y": [
+            340,
+            439
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 3,
+          "dir": "s",
+          "y": [
+            596,
+            693
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 4,
+          "dir": "s",
+          "y": [
+            832,
+            949
+          ],
+          "figures": 2,
+          "state": "ok"
+        }
+      ],
+      "motion": [
+        {
+          "dir": "s",
+          "anim": "idle",
+          "maxDiff": 0.088
+        },
+        {
+          "dir": "s",
+          "anim": "walk",
+          "maxDiff": 0.317
+        },
+        {
+          "dir": "s",
+          "anim": "hurt-vs-idle",
+          "maxDiff": 1
+        }
+      ],
+      "issues": [],
+      "draft": null
+    },
+    {
+      "sheet": "toB",
+      "size": [
+        1536,
+        1024
+      ],
+      "kind": "huong",
+      "level": "nhẹ",
+      "dirs": [
+        "se"
+      ],
+      "background": {
+        "key": [
+          255,
+          0,
+          255
+        ],
+        "corners": [
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ]
+        ],
+        "keyDistFromLock": 0,
+        "cornerSpread": 0
+      },
+      "seVsE": 0.721,
+      "prep": {
+        "shift": {
+          "dx": 0,
+          "dy": 0
+        },
+        "factor": 1,
+        "grid": "gap"
+      },
+      "bands": [
+        {
+          "row": 1,
+          "dir": "se",
+          "y": [
+            84,
+            181
+          ],
+          "figures": 3,
+          "state": "ok"
+        },
+        {
+          "row": 2,
+          "dir": "se",
+          "y": [
+            342,
+            437
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 3,
+          "dir": "se",
+          "y": [
+            598,
+            693
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 4,
+          "dir": "se",
+          "y": [
+            830,
+            949
+          ],
+          "figures": 2,
+          "state": "ok"
+        }
+      ],
+      "motion": [
+        {
+          "dir": "se",
+          "anim": "idle",
+          "maxDiff": 0.071
+        },
+        {
+          "dir": "se",
+          "anim": "walk",
+          "maxDiff": 0.718
+        },
+        {
+          "dir": "se",
+          "anim": "hurt-vs-idle",
+          "maxDiff": 0.967
+        }
+      ],
+      "issues": [
+        {
+          "sev": "light",
+          "code": "nom-mat",
+          "where": "H1 (se) C1",
+          "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.48 < 0.5); cutter dùng độ dời trung vị của tờ."
+        },
+        {
+          "sev": "light",
+          "code": "nom-mat",
+          "where": "H1 (se) C2",
+          "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.5 < 0.5); cutter dùng độ dời trung vị của tờ."
+        },
+        {
+          "sev": "light",
+          "code": "nom-mat",
+          "where": "H2 (se) C4",
+          "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.46 < 0.5); cutter dùng độ dời trung vị của tờ."
+        }
+      ],
+      "draft": "LỖI: toB — mất nộm — H1 (se) C1, H1 (se) C2, H2 (se) C4 — nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.48 < 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.5 < 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.46 < 0.5); cutter dùng độ dời trung vị của tờ."
+    },
+    {
+      "sheet": "toC",
+      "size": [
+        1536,
+        1024
+      ],
+      "kind": "huong",
+      "level": "nhẹ",
+      "dirs": [
+        "e"
+      ],
+      "background": {
+        "key": [
+          255,
+          0,
+          255
+        ],
+        "corners": [
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ]
+        ],
+        "keyDistFromLock": 0,
+        "cornerSpread": 0
+      },
+      "seVsE": null,
+      "prep": {
+        "shift": {
+          "dx": 0,
+          "dy": 0
+        },
+        "factor": 1,
+        "grid": "gap"
+      },
+      "bands": [
+        {
+          "row": 1,
+          "dir": "e",
+          "y": [
+            84,
+            181
+          ],
+          "figures": 3,
+          "state": "ok"
+        },
+        {
+          "row": 2,
+          "dir": "e",
+          "y": [
+            342,
+            437
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 3,
+          "dir": "e",
+          "y": [
+            598,
+            693
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 4,
+          "dir": "e",
+          "y": [
+            832,
+            949
+          ],
+          "figures": 2,
+          "state": "ok"
+        }
+      ],
+      "motion": [
+        {
+          "dir": "e",
+          "anim": "idle",
+          "maxDiff": 0.071
+        },
+        {
+          "dir": "e",
+          "anim": "walk",
+          "maxDiff": 0.707
+        },
+        {
+          "dir": "e",
+          "anim": "hurt-vs-idle",
+          "maxDiff": 0.94
+        }
+      ],
+      "issues": [
+        {
+          "sev": "light",
+          "code": "nom-mat",
+          "where": "H2 (e) C1",
+          "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.49 < 0.5); cutter dùng độ dời trung vị của tờ."
+        },
+        {
+          "sev": "light",
+          "code": "nom-mat",
+          "where": "H2 (e) C4",
+          "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.49 < 0.5); cutter dùng độ dời trung vị của tờ."
+        }
+      ],
+      "draft": "LỖI: toC — mất nộm — H2 (e) C1, H2 (e) C4 — nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.49 < 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.49 < 0.5); cutter dùng độ dời trung vị của tờ."
+    },
+    {
+      "sheet": "toD",
+      "size": [
+        1536,
+        1024
+      ],
+      "kind": "huong",
+      "level": "nhẹ",
+      "dirs": [
+        "ne"
+      ],
+      "background": {
+        "key": [
+          255,
+          0,
+          255
+        ],
+        "corners": [
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ]
+        ],
+        "keyDistFromLock": 0,
+        "cornerSpread": 0
+      },
+      "seVsE": null,
+      "prep": {
+        "shift": {
+          "dx": 0,
+          "dy": 0
+        },
+        "factor": 1,
+        "grid": "gap"
+      },
+      "bands": [
+        {
+          "row": 1,
+          "dir": "ne",
+          "y": [
+            84,
+            181
+          ],
+          "figures": 3,
+          "state": "ok"
+        },
+        {
+          "row": 2,
+          "dir": "ne",
+          "y": [
+            342,
+            437
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 3,
+          "dir": "ne",
+          "y": [
+            598,
+            693
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 4,
+          "dir": "ne",
+          "y": [
+            832,
+            949
+          ],
+          "figures": 2,
+          "state": "ok"
+        }
+      ],
+      "motion": [
+        {
+          "dir": "ne",
+          "anim": "idle",
+          "maxDiff": 0.083
+        },
+        {
+          "dir": "ne",
+          "anim": "walk",
+          "maxDiff": 0.724
+        },
+        {
+          "dir": "ne",
+          "anim": "hurt-vs-idle",
+          "maxDiff": 0.951
+        }
+      ],
+      "issues": [
+        {
+          "sev": "light",
+          "code": "nom-mat",
+          "where": "H2 (ne) C4",
+          "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+        }
+      ],
+      "draft": "LỖI: toD — mất nộm — H2 (ne) C4 — nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+    },
+    {
+      "sheet": "toE",
+      "size": [
+        1536,
+        1024
+      ],
+      "kind": "huong",
+      "level": "pass",
+      "dirs": [
+        "n"
+      ],
+      "background": {
+        "key": [
+          255,
+          0,
+          255
+        ],
+        "corners": [
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ]
+        ],
+        "keyDistFromLock": 0,
+        "cornerSpread": 0
+      },
+      "seVsE": null,
+      "prep": {
+        "shift": {
+          "dx": 0,
+          "dy": 0
+        },
+        "factor": 1,
+        "grid": "gap"
+      },
+      "bands": [
+        {
+          "row": 1,
+          "dir": "n",
+          "y": [
+            88,
+            183
+          ],
+          "figures": 3,
+          "state": "ok"
+        },
+        {
+          "row": 2,
+          "dir": "n",
+          "y": [
+            344,
+            439
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 3,
+          "dir": "n",
+          "y": [
+            602,
+            697
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 4,
+          "dir": "n",
+          "y": [
+            838,
+            951
+          ],
+          "figures": 2,
+          "state": "ok"
+        }
+      ],
+      "motion": [
+        {
+          "dir": "n",
+          "anim": "idle",
+          "maxDiff": 0.097
+        },
+        {
+          "dir": "n",
+          "anim": "walk",
+          "maxDiff": 0.31
+        },
+        {
+          "dir": "n",
+          "anim": "hurt-vs-idle",
+          "maxDiff": 0.143
+        }
+      ],
+      "issues": [],
+      "draft": null
+    }
+  ]
+}
