@@ -90,6 +90,9 @@
 **Nhóm Tối ưu tài liệu** (#619).
 - [x] D0–D8: tách `GAME_DESIGN.md` thành `docs/design` / `art` / `tech` / `ops`, `quyet-dinh.md`, `lich-su.md`, rút gọn CLAUDE.md / AGENTS.md / CONTRIBUTING, `tools/docs-check.mjs` trong `npm run check`, dọn file xem trước sót, tóm tắt tiếng Anh `docs/en/OVERVIEW.md`.
 
+**Nhóm Giao diện và cảm giác họ asset C1–C16 (Codex)**.
+- [x] C10 hộp thoại NPC + cửa hàng lưới (#596), C11 nhiệm vụ (#597), C13 phản hồi giao diện (#599), C14 khả năng tiếp cận (#600), C15 màn chết / bảng kết quả / Bạn bè (#601) xong; luật hiện hành ở `docs/design/giao-dien.md`.
+
 ## Số issue / PR
 
 - Giai đoạn 10: #96, #100–#103, #105, #331, #333, #335, #336–#342, #383, #385–#387, #395, #436, #444, #447, #451, #463, #466, #476, #480–#484, #564.
@@ -102,5 +105,5 @@
 - Bản đồ khu vực: #426–#435, #472, #473.
 - Pháp tướng: #482–#487, #490, #491, #492, #499, #505, #513, #528, #531.
 - Hình ảnh kỹ năng: #541, #542, #546, #548, #566–#569, #583, #590.
-- Hồn sư LPC: #507–#511, #564, #565, #570–#574, #578, #588; họ asset Codex C1–C16: #541, #553, #554, #576, #577.
+- Hồn sư LPC: #507–#511, #564, #565, #570–#574, #578, #588; họ asset Codex C1–C16: #596, #597, #599–#601, #541, #553, #554, #576, #577.
 - Tối ưu tài liệu: #619, #636, #637, #640. Hồn thú v2: #862–#866, #870, #766–#768. UI gốc (kit Mực + Giấy): #878–#880, #887. Di chuyển & giao chiến: #746–#752. Chống gian lận và hiệu năng: #716, #734–#739.
