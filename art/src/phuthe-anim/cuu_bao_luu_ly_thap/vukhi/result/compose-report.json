@@ -1,0 +1,3956 @@
+{
+  "id": "cuu_bao_luu_ly_thap",
+  "F": 128,
+  "scale": 0.06,
+  "palette": [
+    [
+      0,
+      0,
+      1
+    ],
+    [
+      2,
+      1,
+      6
+    ],
+    [
+      5,
+      2,
+      7
+    ],
+    [
+      11,
+      3,
+      8
+    ],
+    [
+      4,
+      5,
+      20
+    ],
+    [
+      12,
+      6,
+      21
+    ],
+    [
+      11,
+      13,
+      34
+    ],
+    [
+      13,
+      18,
+      44
+    ],
+    [
+      15,
+      24,
+      47
+    ],
+    [
+      16,
+      27,
+      56
+    ],
+    [
+      18,
+      33,
+      62
+    ],
+    [
+      20,
+      42,
+      68
+    ],
+    [
+      22,
+      42,
+      75
+    ],
+    [
+      21,
+      44,
+      82
+    ],
+    [
+      19,
+      63,
+      101
+    ],
+    [
+      19,
+      111,
+      132
+    ],
+    [
+      29,
+      29,
+      55
+    ],
+    [
+      29,
+      48,
+      83
+    ],
+    [
+      61,
+      22,
+      45
+    ],
+    [
+      122,
+      50,
+      53
+    ],
+    [
+      39,
+      52,
+      99
+    ],
+    [
+      64,
+      61,
+      139
+    ],
+    [
+      111,
+      51,
+      145
+    ],
+    [
+      165,
+      47,
+      119
+    ],
+    [
+      115,
+      108,
+      83
+    ],
+    [
+      210,
+      138,
+      64
+    ],
+    [
+      238,
+      202,
+      86
+    ],
+    [
+      41,
+      103,
+      171
+    ],
+    [
+      52,
+      149,
+      190
+    ],
+    [
+      135,
+      98,
+      191
+    ],
+    [
+      157,
+      204,
+      224
+    ],
+    [
+      26,
+      16,
+      32
+    ]
+  ],
+  "dirs": [
+    "s",
+    "se",
+    "e",
+    "ne",
+    "n"
+  ],
+  "plans": [
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        51.1,
+        78.1
+      ],
+      "pose": 0,
+      "pixels": 234,
+      "near": 0.7211102550927924,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        51.5,
+        77.8
+      ],
+      "pose": 0,
+      "pixels": 236,
+      "near": 0.7000000000000028,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        51.1,
+        78.1
+      ],
+      "pose": 1,
+      "pixels": 217,
+      "near": 0.7211102550927924,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        51.27777777777778,
+        79.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 228,
+      "near": 0.7856742013183874,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        51.1,
+        78.1
+      ],
+      "pose": 1,
+      "pixels": 217,
+      "near": 0.7211102550927924,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        51.04545454545455,
+        75.95454545454545
+      ],
+      "pose": 1,
+      "pixels": 220,
+      "near": 0.6428243465332233,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        53,
+        77.25
+      ],
+      "pose": 2,
+      "pixels": 236,
+      "near": 0.5590169943749475,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        52.785714285714285,
+        78.78571428571428
+      ],
+      "pose": 3,
+      "pixels": 230,
+      "near": 0.7693092581620699,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        54.785714285714285,
+        78.07142857142857
+      ],
+      "pose": 4,
+      "pixels": 233,
+      "near": 0.8329931278350449,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        52.9,
+        77.9
+      ],
+      "pose": 5,
+      "pixels": 234,
+      "near": 0.7211102550927924,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        47.583333333333336,
+        72.91666666666666
+      ],
+      "pose": 6,
+      "pixels": 190,
+      "near": 1.0069204977995416,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        42.07142857142857,
+        59.07142857142857
+      ],
+      "pose": 7,
+      "pixels": 284,
+      "near": 0.7142857142857139,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        78.72222222222223,
+        79.38888888888889
+      ],
+      "pose": 0,
+      "pixels": 237,
+      "near": 0.7856742013183803,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        52.27777777777778,
+        78.38888888888889
+      ],
+      "pose": 0,
+      "pixels": 236,
+      "near": 0.7856742013183874,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        52.77272727272727,
+        77.95454545454545
+      ],
+      "pose": 0,
+      "pixels": 233,
+      "near": 0.6098367211363077,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        52.27777777777778,
+        78.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 228,
+      "near": 0.7856742013183874,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        52.27777777777778,
+        79.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 228,
+      "near": 0.7856742013183874,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        52.27777777777778,
+        78.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 228,
+      "near": 0.7856742013183874,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        52.04545454545455,
+        76.95454545454545
+      ],
+      "pose": 1,
+      "pixels": 220,
+      "near": 0.6428243465332233,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        53.5,
+        79
+      ],
+      "pose": 2,
+      "pixels": 238,
+      "near": 0.5,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        53.5,
+        79
+      ],
+      "pose": 3,
+      "pixels": 229,
+      "near": 1.118033988749895,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        55,
+        78.25
+      ],
+      "pose": 4,
+      "pixels": 232,
+      "near": 0.9013878188659974,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        53.9,
+        77.9
+      ],
+      "pose": 5,
+      "pixels": 234,
+      "near": 0.7211102550927924,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        50.08333333333333,
+        74.66666666666666
+      ],
+      "pose": 6,
+      "pixels": 192,
+      "near": 1.2388390622765348,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        43.1,
+        58.3
+      ],
+      "pose": 7,
+      "pixels": 296,
+      "near": 0.6324555320336782,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        76.4,
+        79.5
+      ],
+      "pose": 0,
+      "pixels": 236,
+      "near": 0.9000000000000057,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        56.5,
+        78.625
+      ],
+      "pose": 0,
+      "pixels": 247,
+      "near": 1.0077822185373186,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        56.64285714285714,
+        78.07142857142857
+      ],
+      "pose": 0,
+      "pixels": 245,
+      "near": 0.5890150893739485,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        63,
+        79.9
+      ],
+      "pose": 1,
+      "pixels": 232,
+      "near": 0.6403124237432885,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        52.6,
+        79.5
+      ],
+      "pose": 1,
+      "pixels": 236,
+      "near": 0.8999999999999986,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        50.27777777777778,
+        79.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 237,
+      "near": 0.7856742013183874,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        58.5,
+        78.9
+      ],
+      "pose": 1,
+      "pixels": 241,
+      "near": 0.5999999999999943,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        56.27777777777778,
+        80.38888888888889
+      ],
+      "pose": 2,
+      "pixels": 241,
+      "near": 0.7856742013183874,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        54.6,
+        78.5
+      ],
+      "pose": 3,
+      "pixels": 244,
+      "near": 0.8999999999999986,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        53.1,
+        78.1
+      ],
+      "pose": 4,
+      "pixels": 270,
+      "near": 0.7211102550927924,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        54.08333333333333,
+        77.91666666666666
+      ],
+      "pose": 5,
+      "pixels": 249,
+      "near": 0.5892556509887863,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        74.13636363636363,
+        72.5
+      ],
+      "pose": 6,
+      "pixels": 206,
+      "near": 0.636363636363626,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        77.07142857142857,
+        58.785714285714285
+      ],
+      "pose": 7,
+      "pixels": 314,
+      "near": 0.6388765649999377,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        78.72222222222223,
+        79.38888888888889
+      ],
+      "pose": 0,
+      "pixels": 245,
+      "near": 0.7856742013183803,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        55.83333333333333,
+        78.72222222222223
+      ],
+      "pose": 0,
+      "pixels": 244,
+      "near": 0.7027283689263131,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        56.16666666666667,
+        77.75
+      ],
+      "pose": 0,
+      "pixels": 245,
+      "near": 0.7120003121097986,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        63.5,
+        79.875
+      ],
+      "pose": 1,
+      "pixels": 242,
+      "near": 0.625,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        72.875,
+        78.875
+      ],
+      "pose": 1,
+      "pixels": 239,
+      "near": 0.7288689868556625,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        74.21428571428572,
+        78.78571428571428
+      ],
+      "pose": 1,
+      "pixels": 233,
+      "near": 0.7693092581620766,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        59.16666666666667,
+        79.83333333333334
+      ],
+      "pose": 1,
+      "pixels": 233,
+      "near": 0.7453559924999383,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        55.6,
+        80.5
+      ],
+      "pose": 2,
+      "pixels": 248,
+      "near": 0.8999999999999986,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        73.7,
+        79.5
+      ],
+      "pose": 3,
+      "pixels": 242,
+      "near": 0.7999999999999972,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        54.27777777777778,
+        77.38888888888889
+      ],
+      "pose": 4,
+      "pixels": 271,
+      "near": 0.7856742013183874,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        54.04545454545455,
+        76.95454545454545
+      ],
+      "pose": 5,
+      "pixels": 247,
+      "near": 0.6428243465332233,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        73.375,
+        76
+      ],
+      "pose": 6,
+      "pixels": 211,
+      "near": 1.0077822185373186,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        76.95454545454545,
+        60.31818181818181
+      ],
+      "pose": 7,
+      "pixels": 309,
+      "near": 0.5749595745760718,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        76.4,
+        79.5
+      ],
+      "pose": 0,
+      "pixels": 243,
+      "near": 0.9000000000000057,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        56.5,
+        78.625
+      ],
+      "pose": 0,
+      "pixels": 235,
+      "near": 1.0077822185373186,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        56.64285714285714,
+        78.07142857142857
+      ],
+      "pose": 0,
+      "pixels": 224,
+      "near": 0.5890150893739485,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        63,
+        79.9
+      ],
+      "pose": 1,
+      "pixels": 219,
+      "near": 0.6403124237432885,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        52.6,
+        79.5
+      ],
+      "pose": 1,
+      "pixels": 221,
+      "near": 0.8999999999999986,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        50.27777777777778,
+        79.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 219,
+      "near": 0.7856742013183874,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        58.5,
+        78.9
+      ],
+      "pose": 1,
+      "pixels": 217,
+      "near": 0.5999999999999943,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        56.27777777777778,
+        80.38888888888889
+      ],
+      "pose": 2,
+      "pixels": 236,
+      "near": 0.7856742013183874,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        54.6,
+        78.5
+      ],
+      "pose": 3,
+      "pixels": 227,
+      "near": 0.8999999999999986,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        53.1,
+        78.1
+      ],
+      "pose": 4,
+      "pixels": 239,
+      "near": 0.565685424949241,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        54.08333333333333,
+        77.91666666666666
+      ],
+      "pose": 5,
+      "pixels": 224,
+      "near": 0.5892556509887863,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        74.13636363636363,
+        72.5
+      ],
+      "pose": 6,
+      "pixels": 217,
+      "near": 0.636363636363626,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        77.07142857142857,
+        58.785714285714285
+      ],
+      "pose": 7,
+      "pixels": 272,
+      "near": 0.6388765649999377,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        78.72222222222223,
+        79.38888888888889
+      ],
+      "pose": 0,
+      "pixels": 232,
+      "near": 0.7856742013183803,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        55.83333333333333,
+        78.72222222222223
+      ],
+      "pose": 0,
+      "pixels": 225,
+      "near": 0.7027283689263131,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        56.16666666666667,
+        77.75
+      ],
+      "pose": 0,
+      "pixels": 222,
+      "near": 0.7120003121097986,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        63.5,
+        79.875
+      ],
+      "pose": 1,
+      "pixels": 215,
+      "near": 1.0680004681646913,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        72.875,
+        78.875
+      ],
+      "pose": 1,
+      "pixels": 226,
+      "near": 0.5303300858899107,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        74.21428571428572,
+        78.78571428571428
+      ],
+      "pose": 1,
+      "pixels": 220,
+      "near": 0.7693092581620766,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        59.16666666666667,
+        79.83333333333334
+      ],
+      "pose": 1,
+      "pixels": 218,
+      "near": 0.7453559924999383,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        55.6,
+        80.5
+      ],
+      "pose": 2,
+      "pixels": 239,
+      "near": 0.8999999999999986,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        73.7,
+        79.5
+      ],
+      "pose": 3,
+      "pixels": 225,
+      "near": 0.7999999999999972,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        54.27777777777778,
+        77.38888888888889
+      ],
+      "pose": 4,
+      "pixels": 245,
+      "near": 0.7856742013183874,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        54.04545454545455,
+        76.95454545454545
+      ],
+      "pose": 5,
+      "pixels": 225,
+      "near": 0.6428243465332233,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        73.375,
+        76
+      ],
+      "pose": 6,
+      "pixels": 202,
+      "near": 0.5153882032022076,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        76.95454545454545,
+        60.31818181818181
+      ],
+      "pose": 7,
+      "pixels": 274,
+      "near": 0.5749595745760718,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        76.4,
+        79.5
+      ],
+      "pose": 0,
+      "pixels": 234,
+      "near": 0.9000000000000057,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        56.5,
+        78.625
+      ],
+      "pose": 0,
+      "pixels": 249,
+      "near": 1.0077822185373186,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        56.64285714285714,
+        78.07142857142857
+      ],
+      "pose": 0,
+      "pixels": 252,
+      "near": 0.5890150893739485,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        63,
+        79.9
+      ],
+      "pose": 1,
+      "pixels": 241,
+      "near": 0.6403124237432885,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        52.6,
+        79.5
+      ],
+      "pose": 1,
+      "pixels": 241,
+      "near": 0.8999999999999986,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        50.27777777777778,
+        79.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 242,
+      "near": 0.7856742013183874,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        58.5,
+        78.9
+      ],
+      "pose": 1,
+      "pixels": 246,
+      "near": 0.5999999999999943,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        56.27777777777778,
+        80.38888888888889
+      ],
+      "pose": 2,
+      "pixels": 244,
+      "near": 0.7856742013183874,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        54.6,
+        78.5
+      ],
+      "pose": 3,
+      "pixels": 261,
+      "near": 0.8999999999999986,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        53.1,
+        78.1
+      ],
+      "pose": 4,
+      "pixels": 270,
+      "near": 0.565685424949241,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        54.08333333333333,
+        77.91666666666666
+      ],
+      "pose": 5,
+      "pixels": 258,
+      "near": 0.5892556509887863,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        74.13636363636363,
+        72.5
+      ],
+      "pose": 6,
+      "pixels": 214,
+      "near": 0.636363636363626,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        77.07142857142857,
+        58.785714285714285
+      ],
+      "pose": 7,
+      "pixels": 295,
+      "near": 0.6388765649999377,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        78.72222222222223,
+        79.38888888888889
+      ],
+      "pose": 0,
+      "pixels": 251,
+      "near": 0.7856742013183803,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        55.83333333333333,
+        78.72222222222223
+      ],
+      "pose": 0,
+      "pixels": 252,
+      "near": 0.7027283689263131,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        56.16666666666667,
+        77.75
+      ],
+      "pose": 0,
+      "pixels": 251,
+      "near": 0.7120003121097986,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        63.5,
+        79.875
+      ],
+      "pose": 1,
+      "pixels": 243,
+      "near": 0.625,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        72.875,
+        78.875
+      ],
+      "pose": 1,
+      "pixels": 243,
+      "near": 0.7288689868556625,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        74.21428571428572,
+        78.78571428571428
+      ],
+      "pose": 1,
+      "pixels": 236,
+      "near": 0.7693092581620766,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        59.16666666666667,
+        79.83333333333334
+      ],
+      "pose": 1,
+      "pixels": 234,
+      "near": 0.7453559924999383,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        55.6,
+        80.5
+      ],
+      "pose": 2,
+      "pixels": 242,
+      "near": 0.8999999999999986,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        73.7,
+        79.5
+      ],
+      "pose": 3,
+      "pixels": 264,
+      "near": 0.7999999999999972,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        54.27777777777778,
+        77.38888888888889
+      ],
+      "pose": 4,
+      "pixels": 272,
+      "near": 0.9162456945816991,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        54.04545454545455,
+        76.95454545454545
+      ],
+      "pose": 5,
+      "pixels": 255,
+      "near": 0.6428243465332233,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        73.375,
+        76
+      ],
+      "pose": 6,
+      "pixels": 212,
+      "near": 0.5153882032022076,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        76.95454545454545,
+        60.31818181818181
+      ],
+      "pose": 7,
+      "pixels": 296,
+      "near": 0.5749595745760718,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        76.4,
+        79.5
+      ],
+      "pose": 0,
+      "pixels": 246,
+      "near": 0.9000000000000057,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        76.91666666666666,
+        78.91666666666666
+      ],
+      "pose": 0,
+      "pixels": 223,
+      "near": 0.5892556509887762,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        76.41666666666666,
+        78.66666666666666
+      ],
+      "pose": 0,
+      "pixels": 227,
+      "near": 0.9316949906249015,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        76.91666666666666,
+        77.91666666666666
+      ],
+      "pose": 1,
+      "pixels": 221,
+      "near": 0.5892556509887762,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        77.1,
+        75.9
+      ],
+      "pose": 1,
+      "pixels": 228,
+      "near": 0.5656854249492461,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        76.91666666666666,
+        77.91666666666666
+      ],
+      "pose": 1,
+      "pixels": 221,
+      "near": 0.5892556509887762,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        76.9,
+        79.1
+      ],
+      "pose": 1,
+      "pixels": 215,
+      "near": 0.7211102550927962,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        75.13636363636363,
+        73.68181818181819
+      ],
+      "pose": 2,
+      "pixels": 237,
+      "near": 0.6618281717527658,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        55.77272727272727,
+        80.31818181818181
+      ],
+      "pose": 3,
+      "pixels": 237,
+      "near": 0.7496555682941207,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        53,
+        79.25
+      ],
+      "pose": 4,
+      "pixels": 248,
+      "near": 0.5590169943749475,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        51.611111111111114,
+        78.72222222222223
+      ],
+      "pose": 5,
+      "pixels": 230,
+      "near": 0.9162456945817009,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        80.5,
+        73.57692307692308
+      ],
+      "pose": 6,
+      "pixels": 214,
+      "near": 1.0029542161850231,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        85.92857142857143,
+        61.07142857142857
+      ],
+      "pose": 7,
+      "pixels": 291,
+      "near": 0.6060915267313294,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        78.72222222222223,
+        79.38888888888889
+      ],
+      "pose": 0,
+      "pixels": 233,
+      "near": 0.7856742013183803,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        75.72222222222223,
+        79.38888888888889
+      ],
+      "pose": 0,
+      "pixels": 233,
+      "near": 0.7856742013183803,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        75.22727272727272,
+        78.95454545454545
+      ],
+      "pose": 0,
+      "pixels": 225,
+      "near": 0.6098367211363109,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        75.72222222222223,
+        79.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 222,
+      "near": 0.7856742013183803,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        75.9,
+        78.1
+      ],
+      "pose": 1,
+      "pixels": 215,
+      "near": 0.7211102550927962,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        75.72222222222223,
+        79.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 222,
+      "near": 0.7856742013183803,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        75.72222222222223,
+        80.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 222,
+      "near": 0.7856742013183803,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        53.27777777777778,
+        79.38888888888889
+      ],
+      "pose": 2,
+      "pixels": 238,
+      "near": 0.7856742013183874,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        53.27777777777778,
+        79.38888888888889
+      ],
+      "pose": 3,
+      "pixels": 228,
+      "near": 0.7856742013183874,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        54.27777777777778,
+        79.38888888888889
+      ],
+      "pose": 4,
+      "pixels": 251,
+      "near": 0.7856742013183874,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        53.611111111111114,
+        78.72222222222223
+      ],
+      "pose": 5,
+      "pixels": 230,
+      "near": 0.9162456945817009,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        79.5909090909091,
+        72.13636363636363
+      ],
+      "pose": 6,
+      "pixels": 204,
+      "near": 0.6428243465332152,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        84.75,
+        60.5
+      ],
+      "pose": 7,
+      "pixels": 290,
+      "near": 0.75,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        76.4,
+        79.5
+      ],
+      "pose": 0,
+      "pixels": 238,
+      "near": 0.9000000000000057,
+      "edge": 0
+    }
+  ],
+  "checks": {
+    "m": {
+      "id": "cuu_bao_luu_ly_thap",
+      "kind": "vukhi",
+      "level": "pass",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "blockLevel": {
+        "s": "pass",
+        "se": "pass",
+        "e": "pass",
+        "ne": "pass",
+        "n": "pass"
+      },
+      "sheets": [
+        {
+          "sheet": "toA",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "s"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "s",
+              "y": [
+                82,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "s",
+              "y": [
+                340,
+                439
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "s",
+              "y": [
+                596,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "s",
+              "y": [
+                836,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "s",
+              "anim": "idle",
+              "maxDiff": 0.157
+            },
+            {
+              "dir": "s",
+              "anim": "walk",
+              "maxDiff": 0.4
+            },
+            {
+              "dir": "s",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toB",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "se"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": 0.861,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "se",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "se",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "se",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "se",
+              "y": [
+                834,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "se",
+              "anim": "idle",
+              "maxDiff": 0.198
+            },
+            {
+              "dir": "se",
+              "anim": "walk",
+              "maxDiff": 0.971
+            },
+            {
+              "dir": "se",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "note",
+              "code": "se-giong-e",
+              "where": "se vs e",
+              "msg": "hình bóng phụ thể idle se ≈ e (IoU 0.861 > 0.8): cảnh báo gần đúng, xem bằng mắt."
+            }
+          ],
+          "draft": null
+        },
+        {
+          "sheet": "toC",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "e"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "e",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "e",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "e",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "e",
+              "y": [
+                834,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "e",
+              "anim": "idle",
+              "maxDiff": 0.221
+            },
+            {
+              "dir": "e",
+              "anim": "walk",
+              "maxDiff": 0.986
+            },
+            {
+              "dir": "e",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toD",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "ne"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "ne",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "ne",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "ne",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "ne",
+              "y": [
+                836,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "ne",
+              "anim": "idle",
+              "maxDiff": 0.217
+            },
+            {
+              "dir": "ne",
+              "anim": "walk",
+              "maxDiff": 0.979
+            },
+            {
+              "dir": "ne",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toE",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "n"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "n",
+              "y": [
+                88,
+                183
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "n",
+              "y": [
+                344,
+                439
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "n",
+              "y": [
+                602,
+                697
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "n",
+              "y": [
+                838,
+                951
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "n",
+              "anim": "idle",
+              "maxDiff": 0.214
+            },
+            {
+              "dir": "n",
+              "anim": "walk",
+              "maxDiff": 0.353
+            },
+            {
+              "dir": "n",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.279
+            }
+          ],
+          "issues": [],
+          "draft": null
+        }
+      ]
+    },
+    "f": {
+      "id": "cuu_bao_luu_ly_thap",
+      "kind": "vukhi",
+      "level": "pass",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "blockLevel": {
+        "s": "pass",
+        "se": "pass",
+        "e": "pass",
+        "ne": "pass",
+        "n": "pass"
+      },
+      "sheets": [
+        {
+          "sheet": "toA",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "s"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "s",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "s",
+              "y": [
+                342,
+                439
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "s",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "s",
+              "y": [
+                836,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "s",
+              "anim": "idle",
+              "maxDiff": 0.238
+            },
+            {
+              "dir": "s",
+              "anim": "walk",
+              "maxDiff": 0.335
+            },
+            {
+              "dir": "s",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toB",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "se"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": 0.833,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "se",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "se",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "se",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "se",
+              "y": [
+                840,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "se",
+              "anim": "idle",
+              "maxDiff": 0.291
+            },
+            {
+              "dir": "se",
+              "anim": "walk",
+              "maxDiff": 0.998
+            },
+            {
+              "dir": "se",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "note",
+              "code": "se-giong-e",
+              "where": "se vs e",
+              "msg": "hình bóng phụ thể idle se ≈ e (IoU 0.833 > 0.8): cảnh báo gần đúng, xem bằng mắt."
+            }
+          ],
+          "draft": null
+        },
+        {
+          "sheet": "toC",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "e"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "e",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "e",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "e",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "e",
+              "y": [
+                838,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "e",
+              "anim": "idle",
+              "maxDiff": 0.294
+            },
+            {
+              "dir": "e",
+              "anim": "walk",
+              "maxDiff": 1
+            },
+            {
+              "dir": "e",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toD",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "ne"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "ne",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "ne",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "ne",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "ne",
+              "y": [
+                836,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "ne",
+              "anim": "idle",
+              "maxDiff": 0.277
+            },
+            {
+              "dir": "ne",
+              "anim": "walk",
+              "maxDiff": 0.998
+            },
+            {
+              "dir": "ne",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toE",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "n"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "n",
+              "y": [
+                88,
+                183
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "n",
+              "y": [
+                344,
+                441
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "n",
+              "y": [
+                602,
+                697
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "n",
+              "y": [
+                840,
+                951
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "n",
+              "anim": "idle",
+              "maxDiff": 0.245
+            },
+            {
+              "dir": "n",
+              "anim": "walk",
+              "maxDiff": 0.357
+            },
+            {
+              "dir": "n",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.131
+            }
+          ],
+          "issues": [],
+          "draft": null
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-31",
+  "tool": "Codex / OpenAI image_gen",
+  "model": null,
+  "seed": null,
+  "direction": "e",
+  "attempt": 3,
+  "status": "rejected",
+  "reason": "Eight roof ledges clearly visible; nine required. Base and finial are not stories.",
+  "references": [],
+  "rawUnmodified": true,
+  "image": {
+    "path": "poses.raw.png",
+    "sha256": "d2129289f61a8a61b08d76837c4f7d316911aedd4a923c0e8554fd1fed35e502"
+  },
+  "prompt": {
+    "path": "prompt.txt",
+    "sha256": "f0a26d3be9d2d54a0cf7bc01efd3821e2c889571b40dd364067235e8f0141417"
+  }
+}

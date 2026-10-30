@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-31",
+  "tool": "Codex / OpenAI image_gen",
+  "model": null,
+  "seed": null,
+  "direction": "e",
+  "attempt": 5,
+  "status": "rejected",
+  "reason": "Still eight roofs; attempt4 chosen for curved eaves and bells under owner-approved eight-tier deviation.",
+  "references": [
+    {
+      "path": "../../references/nine-roofs-guide.png",
+      "sha256": "06a3ae35c982d7457c06649e027d8f645e765420923bea35212d05cadc588241"
+    }
+  ],
+  "rawUnmodified": true,
+  "image": {
+    "path": "poses.raw.png",
+    "sha256": "5b694e36a6aeccb14162161a291fa28912d8e2b10c15ac379de889498abd25d8"
+  },
+  "prompt": {
+    "path": "prompt.txt",
+    "sha256": "e8af3d5550963fdd61709973ccaec227356c5c35f06b561267e62b242981a6db"
+  }
+}

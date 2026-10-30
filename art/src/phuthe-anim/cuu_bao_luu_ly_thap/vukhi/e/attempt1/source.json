@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-31",
+  "tool": "Codex / OpenAI image_gen",
+  "model": null,
+  "seed": null,
+  "direction": "e",
+  "attempt": 1,
+  "status": "rejected",
+  "reason": "Only seven roof ledges are clearly visible; nine required.",
+  "references": [],
+  "rawUnmodified": true,
+  "image": {
+    "path": "poses.raw.png",
+    "sha256": "1a8fc5c0dc593c29365bdf7d584952e5e6c414a5841a6d197c3776e60d9fe9b8"
+  },
+  "prompt": {
+    "path": "prompt.txt",
+    "sha256": "4017d1fb5ceb807888fdaf8a648be20f3f788008c54cab3b7697af780c118627"
+  }
+}
