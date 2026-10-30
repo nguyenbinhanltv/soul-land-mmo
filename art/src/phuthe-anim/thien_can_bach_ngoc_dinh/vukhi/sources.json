@@ -1,0 +1,35 @@
+{
+  "s": {
+    "raw": "art/src/phuthe-anim/thien_can_bach_ngoc_dinh/vukhi/s/attempt1/poses.raw.png",
+    "attempt": 1,
+    "references": [
+      "art/src/phuthe-anim/thien_can_bach_ngoc_dinh/vukhi/e/attempt1/poses.raw.png"
+    ]
+  },
+  "se": {
+    "raw": "art/src/phuthe-anim/thien_can_bach_ngoc_dinh/vukhi/se/attempt1/poses.raw.png",
+    "attempt": 1,
+    "references": [
+      "art/src/phuthe-anim/thien_can_bach_ngoc_dinh/vukhi/s/attempt1/poses.raw.png"
+    ]
+  },
+  "e": {
+    "raw": "art/src/phuthe-anim/thien_can_bach_ngoc_dinh/vukhi/e/attempt1/poses.raw.png",
+    "attempt": 1,
+    "references": []
+  },
+  "ne": {
+    "raw": "art/src/phuthe-anim/thien_can_bach_ngoc_dinh/vukhi/ne/attempt1/poses.raw.png",
+    "attempt": 1,
+    "references": [
+      "art/src/phuthe-anim/thien_can_bach_ngoc_dinh/vukhi/e/attempt1/poses.raw.png"
+    ]
+  },
+  "n": {
+    "raw": "art/src/phuthe-anim/thien_can_bach_ngoc_dinh/vukhi/n/attempt1/poses.raw.png",
+    "attempt": 1,
+    "references": [
+      "art/src/phuthe-anim/thien_can_bach_ngoc_dinh/vukhi/ne/attempt1/poses.raw.png"
+    ]
+  }
+}
