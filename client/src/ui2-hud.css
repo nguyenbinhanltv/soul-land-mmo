@@ -16,7 +16,7 @@
 #hud .bar span{color:var(--plate-text)}
 
 /* Khung gộp Nhiệm vụ | Tổ đội và radar cùng chất liệu Mực (khung gộp: kiểu tab ở ui2-hud-side.css). */
-#hud #sideBox{width:232px;padding:var(--sp-3) var(--sp-4) var(--sp-4);color:var(--ink-text)}
+#hud #sideBox{flex:0 1 auto;width:0;min-width:100%;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:var(--sp-3) var(--sp-4) var(--sp-4);color:var(--ink-text)}  /* cùng chiều rộng cột trái (không làm cột rộng thêm), co theo #lcol */
 #hud .mapbox{padding:var(--sp-4)}
 
 /* Nút tắt trái (menu nhanh) và nút nhỏ quanh radar: nút phụ của kit; vùng bấm tối thiểu 32 px. */
