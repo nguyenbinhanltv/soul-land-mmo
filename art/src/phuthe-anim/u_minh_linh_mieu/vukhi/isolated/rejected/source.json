@@ -1,0 +1,41 @@
+[
+  {
+    "direction": "s",
+    "generation": 1,
+    "tool": "Codex / OpenAI image_gen tích hợp",
+    "references": [
+      "../e/attempt1/poses.raw.png"
+    ],
+    "raw": "s-1.raw.png",
+    "sha256": "970f0aabb2f2ed65d44d0488e2e0528d070fc57d96d0d55155b431c59ac4ca12",
+    "prompt": "s-1.prompt.txt",
+    "promptSha256": "f3f44fcb3f91b8da8e5677777cead451648f6290651278649b9f04630c8c7f8f",
+    "result": "Loại: bám góc đông, không nhập game"
+  },
+  {
+    "direction": "se",
+    "generation": 1,
+    "tool": "Codex / OpenAI image_gen tích hợp",
+    "references": [
+      "../e/attempt1/poses.raw.png"
+    ],
+    "raw": "se-1.raw.png",
+    "sha256": "2e236d95e25dea89f2b0e18e486a326fd4c830b5bea14729c8448b257b016f8c",
+    "prompt": "se-1.prompt.txt",
+    "promptSha256": "23e3c445404655a2219f03d28fe71348382ad77a06339af24a8432c1418f23c9",
+    "result": "Loại: bám góc đông, không nhập game"
+  },
+  {
+    "direction": "ne",
+    "generation": 1,
+    "tool": "Codex / OpenAI image_gen tích hợp",
+    "references": [
+      "../e/attempt1/poses.raw.png"
+    ],
+    "raw": "ne-1.raw.png",
+    "sha256": "1b321af29da80fda348aa24c5d28f44230011751b8d0f1a171324fe7d79306cf",
+    "prompt": "ne-1.prompt.txt",
+    "promptSha256": "e376afbeed5cd06555a533a5de0dfd28c09663e7d8bc36b3b752f72e9fff67ad",
+    "result": "Loại: bám góc đông, không nhập game"
+  }
+]
