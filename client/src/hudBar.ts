@@ -323,7 +323,6 @@ let lastVhName = ""; // updateStats chạy mỗi khung: chỉ ghi tên + chú th
 export function updateStats(p: any, v: Vitals) {
   const vhName = VOHON[p.vh].name;
   $("#vhGlyph").textContent = vhName.slice(0, 1);
-  $("#vhPortrait").setAttribute("aria-label", `Biểu tượng ${vhName}`);
   const vhLabel = cbElementMark(elementOfVohonIndex(p.vh)) + vhName; // mù màu (#600): nhãn hệ cạnh tên, tắt thì chỉ tên
   if (vhLabel !== lastVhName) { lastVhName = vhLabel; $("#vhName").textContent = vhLabel; setTip($("#vhName"), vhLabel); }
   $("#vhName").style.color = VOHON[p.vh].col;
