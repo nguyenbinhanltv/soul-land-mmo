@@ -154,9 +154,13 @@ export function analyzeSheet(file, o) {
  * Kiểu vũ khí: (1) marker điểm cầm còn thấy thì không được trôi khỏi tay nộm (nhẹ > DRIFT_LIGHT, chặn > DRIFT_BLOCK điểm canonical; vũ khí che hết marker thì bỏ qua);
  * (2) ở khung đứng vũ khí phải CHẠM marker (điểm vũ khí gần nhất cách điểm cầm ≤ GRIP_TOUCH): không thì lơ lửng cách tay; chặn với mềm / găng (B), nhẹ với cứng (A) như `diem-gan`.
  */
+// Chủ repo xác nhận rollout nhóm cứng: chỉ các bộ này được bỏ tay B ở attack/cast dọc.
+const PRIMARY_ONLY_VERTICAL_WEAPONS = new Set([
+  "hao_thien_chuy", "ta_hoa_phuong_hoang", "cuu_tinh_that_sat_kiem", "nguyet_nhan",
+]);
 export function weaponPoseGripPolicy({ id, clip, axisDegrees, primaryDistance, secondaryDistance = 0 }) {
   const verticalDeviation = Math.abs(90 - ((axisDegrees % 180 + 180) % 180));
-  const primaryOnly = id === "hao_thien_chuy" && ["attack", "cast"].includes(clip) && Number.isFinite(axisDegrees) && verticalDeviation <= 15;
+  const primaryOnly = PRIMARY_ONLY_VERTICAL_WEAPONS.has(id) && ["attack", "cast"].includes(clip) && Number.isFinite(axisDegrees) && verticalDeviation <= 15;
   return { primaryOnly, verticalDeviation, blocked: !Number.isFinite(primaryDistance) || primaryDistance > 2 || (!primaryOnly && (!Number.isFinite(secondaryDistance) || secondaryDistance > 20)) };
 }
 
