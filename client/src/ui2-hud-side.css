@@ -99,3 +99,6 @@ body:not(.ui-h560) #hud #bossbar,body:not(.ui-h560):not(.boss) #hud :is(#target,
 #hud #sideBox.collapsed .sb-bar{margin:0;padding:0;border:0}
 #hud #sideBox.collapsed :is(.sb-tabs,.sb-body){display:none}
 :where(body.touch) #hud #sideBox :is(.sb-tab,.sb-fold){min-height:40px}
+/* Như hành vi cũ: khi dải xếp hạng boss, đấu trường hoặc màn rất thấp chiếm chỗ thì chỉ phần Nhiệm vụ bị ẩn, tab Tổ đội (sinh lực đồng đội, Rời đội, lời mời) vẫn hiện và được ép chọn. */
+#hud:has(#bossRank:not([hidden])) #sideBox :is(#quest,.sb-empty,#sbTabQuest),body.arena #hud #sideBox :is(#quest,.sb-empty,#sbTabQuest),body:where(.ui-h460):not(.touch) #hud #sideBox :is(#quest,.sb-empty,#sbTabQuest){display:none!important}
+#hud:has(#bossRank:not([hidden])) #sideBox #party,body.arena #hud #sideBox #party,body:where(.ui-h460):not(.touch) #hud #sideBox #party{display:block!important}
