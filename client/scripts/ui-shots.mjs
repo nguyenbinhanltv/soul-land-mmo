@@ -152,6 +152,11 @@ async function runSize(W, H) {
       await click("sbFold"); await sleep(300); await shot("15-khung-thu-gon"); await click("sbFold");
       await click("sbTabQuest"); await fakeParty({ id: 0, max: 5, members: [], invites: [] }); await sleep(200);
     });
+    // HUD sạch (tắt thẻ hướng dẫn / làm quen, dọn toast) để thấy cột trái, chip và khung góc phải; dùng cho cỡ màn nhỏ (--sizes 640x360,844x390).
+    await step("hud-sach", async () => {
+      await ev(`(document.querySelector("#guide .g-skip")?.click(), document.querySelector("#onboard .ob-skip")?.click(), document.querySelectorAll("#toasts .toast").forEach((e) => e.remove()), true)`);
+      await sleep(400); await shot("16-hud-sach");
+    });
     await step("tui", async () => { await key("KeyB", "b"); await shot("20-tui"); await key("KeyB", "b"); });
     await step("nhan-vat", async () => { await key("KeyH", "h"); await shot("21-nhan-vat-trang-bi"); await key("BracketRight", "]"); await shot("22-nhan-vat-hon-cot"); await key("Escape", "Escape"); });
     await step("hai-cua-so", async () => { await key("KeyH", "h"); await key("KeyB", "b"); await shot("24-hai-cua-so"); await key("Escape", "Escape"); await key("Escape", "Escape"); });

@@ -101,7 +101,9 @@ function render() {
 
 /** Chấm của huy hiệu menu giữa trên (bất kỳ mục hub nào có việc: chấm đỏ hoặc mũi tên xanh); gọi mỗi khi kho đổi. */
 function syncBadges() {
-  badge?.classList.toggle("has-dot", [...allBadges().keys()].some((id) => hubIds.has(id)));
+  const any = [...allBadges().keys()].some((id) => hubIds.has(id)), av = document.getElementById("vhPortrait");
+  badge?.classList.toggle("has-dot", any);
+  if (av) { if (any) av.dataset.badge = "new"; else delete av.dataset.badge; av.setAttribute("aria-label", any ? "Mở menu: có việc mới" : "Mở menu"); } // chấm tổng hợp trên avatar (cùng nguồn với huy hiệu)
 }
 
 export const isHubOpen = () => !!root && !root.hidden;
@@ -129,6 +131,7 @@ export function initHub(acts: Record<string, () => void>, signal: AbortSignal): 
     document.body.append(badge);
   }
   badge.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); toggleHub(); }, { signal });
+  document.getElementById("vhPortrait")?.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); toggleHub(); }, { signal }); // avatar cũng mở hub
   const stop = onBadges(() => { if (isHubOpen()) render(); else syncBadges(); });
   signal.addEventListener("abort", () => { stop(); root = null; badge?.remove(); badge = null; actions = {}; });
   root.hidden = true;

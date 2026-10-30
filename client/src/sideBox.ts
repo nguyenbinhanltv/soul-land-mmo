@@ -12,6 +12,7 @@ const root = () => document.getElementById("sideBox");
 
 function wire(el: HTMLElement) {
   if (wired) return; wired = true;
+  if (document.body.classList.contains("ui-w640")) collapsed = true; // màn nhỏ: thu gọn mặc định (chip), chừa chỗ cho cảnh
   el.querySelectorAll<HTMLButtonElement>(".sb-tab").forEach((b) => b.addEventListener("click", () => { b.blur(); showSideTab(b.dataset.tab as SideTab); }));
   el.querySelector<HTMLButtonElement>("#sbFold")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); collapsed = !collapsed; paint(); });
   onBadges(paint);

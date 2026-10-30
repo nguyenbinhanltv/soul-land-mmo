@@ -2,6 +2,7 @@
 import { TIERS, VOHON, ringLimit, tierOfYears, vohonIndex, SWITCH_CD, TIEN_CO_MAX, tienCoOf, skillPower, BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, formatYears, MAX_RINGS, atBottleneck, PHONG_LOI, starSkillMult, starCdMult, starTienCoMult, starRing, PLAYER_STATUS, BEAST_BUFF_IDS, BEAST_BUFFS, beastBuffBit, BONE_SLOTS, boneSlotIndex, boneName, BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower, boneSkillMult, ringSkill, CHAN_THAN_RING, chanThanOf, chanThanStats, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_CD, FUSION, FUSIONS, fusionsOf, type SkillDef, type ChanThanDef, type ChanThanStat } from "../../shared/data.ts";
 import { artImg, chanThanImg, fusionImg, skillImg } from "./uiArt.ts";
 import { cbElementMark } from "./a11y.ts";
+import { setVhChip } from "./statChips.ts";
 import { elementOfVohonIndex } from "./audio/soundMap.ts";
 import { setTip, parseText, type TipLine, type TipSpec } from "./tooltip.ts";
 import type { Vitals } from "../../shared/vitals.ts";
@@ -412,6 +413,7 @@ function teamTip(b: HTMLElement, state = b.dataset.sub ?? "") {
 
 /** Thanh đội hình trong trận: mỗi ô một nút (phím 1–4 hoặc chạm) để đổi sang võ hồn đó. */
 export function buildTeam(data: OwnedVohons, sw: (slot: number) => void) {
+  setVhChip(data); // chip võ hồn ra trận ở cột trái (statChips.ts)
   const el = $("#team"); el.innerHTML = "";
   data.team.forEach((rowId, i) => {
     const v = ownedById(data, rowId), def = v && vohonDef(v.vohon), on = rowId === data.active;
