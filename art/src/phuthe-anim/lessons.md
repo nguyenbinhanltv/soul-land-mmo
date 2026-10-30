@@ -204,3 +204,4 @@ Parser hiện chỉ hỗ trợ `@VUKHI`, chưa hỗ trợ tag nhóm mềm. Các 
 
 - @VUKHI-GANG Nhu Cốt Thố (#1374): hai dải phải nối cổ tay thành cùng component để giữ pose khi ghép; góc nam/bắc nêu rõ mu/lòng găng. Chờ nhãn UI LPC sẵn sàng ngoài API ready trước chụp để tránh nhãn cũ ở ảnh đầu. Giữ giới hạn grip/hurt và chuyển động LPC trong hồ sơ.
 - @VUKHI-GANG Rollout Lam Điện (#1372): atlas đông-nam tham chiếu đông dễ giữ góc đông; chuyển tham chiếu nam giúp đổi mu tay. Giữ 62/220 khung một grip và 10 hurt dự phòng như mẫu; sét/cào riêng cần PR client, không bake FX. Kiểm ảnh thật nam/nữ trước mở PR.
+- @VUKHI-GANG Kim Vũ Miêu Ưng (#1378): giáp vàng phải dùng marker RAW lục #00FF60 và bộ tách lục trong compositor art, tránh xóa kim loại cùng marker vàng. Giữ nộm/marker kiểm chuẩn riêng. Năm hướng độc lập cần so độ mở vuốt và quạt lông; nguồn/hash và giới hạn grip/FX ghi rõ.
