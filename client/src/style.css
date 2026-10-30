@@ -763,7 +763,6 @@ body.touch .pbtn{min-height:34px;font-size:12px;font-family:var(--f12);padding:4
 /* Nhiệm vụ (bước 6.2): khung theo dõi dưới bản đồ nhỏ (ẩn khi có bảng xếp hạng thú vương), trang nhiệm vụ trong hộp thoại NPC */
 #hud{--qgold:#6c4a08}
 #quest{font-size:12px;font-family:var(--f12);pointer-events:auto}
-#hud:has(#bossRank:not([hidden])) #sideBox{display:none}
 #quest .qhead{display:flex;width:100%;align-items:baseline;gap:6px;padding:0;min-height:22px;border:0;background:none;color:var(--text);font:inherit;text-align:left;cursor:pointer}
 #quest .qhead b{flex:1;font-size:12px;font-family:var(--f12);color:var(--accent)}
 #quest .qhead i{font-style:normal;color:var(--muted);font-size:10px;font-family:var(--f10)}
@@ -812,7 +811,6 @@ body.arena #target{display:none!important}
 #arenaBar .aleave{margin-top:3px;font:inherit;font-size:12px;font-family:var(--f12);padding:2px 8px;min-height:26px;border:1px solid var(--line);background:var(--wash2);color:var(--muted);cursor:pointer}
 body.touch #arenaBar .aleave{min-height:34px;font-size:12px;font-family:var(--f12)}
 body.arena #rcol{top:84px}
-body.arena #sideBox{display:none}
 body.watching :is(.mapbox,.stats,#team,#actbar,#joy,#chat,#chattabs,#sideBox,#bossbar,#bossCd,#bossRank,#prompt,#portal,#wpbox,#talk,#channel){display:none!important}
 #arenaBar .awatch{display:block;font-style:normal;font-size:12px;font-family:var(--f12);color:var(--accent);margin-top:2px}
 #arenaBar.watching .aleave{color:var(--text)}
@@ -1761,7 +1759,6 @@ body:where(.ui-h560) #toasts{width:min(200px,60vw)}
 body:where(.ui-h560) #toasts .toast:nth-last-child(n+4){display:none}
 body:where(.ui-h560) #hud:has(#toasts .toast:not(.out)) #sideBox{visibility:hidden}
 /* Vùng nhìn ≤ 460 cao (cửa sổ 960×540 có khung trình duyệt = 944×445): bản đồ nhỏ đã cao ~305 nên hộp nhiệm vụ rơi xuống dải đội hình / hồn kỹ và chữ lọt qua ô trong suốt (UI P0 #878). Không còn chỗ: ẩn (nhiệm vụ vẫn xem ở hộp thoại NPC). Điện thoại có chỗ riêng ở dòng 796. */
-body:where(.ui-h460):not(.touch) #sideBox:not(.inv){display:none}
 /* Có tổ đội thì dải giữa-trên (thanh máu boss, đếm ngược boss, nhãn mục tiêu) neo theo mép phải bảng Tổ đội (10 + 210 + 8 + 232 = 460, +16) và mép trái cột phải (222), không theo giữa màn: đúng ở mọi cỡ logic có ui-h560 (#722) */
 
 /* Icon võ hồn ở ô nhỏ, giữ ảnh hồn sư dự phòng khi thiếu asset. */
