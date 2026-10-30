@@ -5,7 +5,7 @@ Rollout găng-vuốt đợt 1, dòng 2 bảng 25 dạng; mẫu quy trình U Minh
 ## Nguồn và tái tạo
 
 - Codex / OpenAI `image_gen` tích hợp; model và seed không được cung cấp. Đầu ra theo điều khoản OpenAI, không gán CC0. Không dùng ảnh thương mại. LPC giữ giấy phép lớp hiện có trong `art/CREDITS.md`.
-- Năm atlas sáu pose riêng, không nộm: nghỉ, lấy đà, vươn, thu, cast khép, cast xòe. RAW nguyên byte, prompt nguyên văn và SHA-256 ở `isolated/<hướng>/attempt1/poses.*`. Tên `attempt1` là ô nguồn compositor; se dùng lượt 2, các hướng khác lượt 1: tổng sáu job tuần tự. Lượt se đầu giống đông nên loại, không nhập. s tham chiếu atlas e; se lượt 2 tham chiếu s; e/ne/n sinh từ chữ.
+- Năm atlas sáu pose riêng, không nộm: nghỉ, lấy đà, vươn, thu, cast khép, cast xòe. RAW nguyên byte, prompt nguyên văn và SHA-256 ở `isolated/<hướng>/attempt1/poses.*`. Tên `attempt1` là ô nguồn compositor; se dùng lượt 2, các hướng khác lượt 1: tổng sáu job tuần tự. Lượt se đầu giống đông nên loại, không nhập; giữ RAW/prompt/hash và ảnh dẫn ở `isolated/rejected/`. s tham chiếu atlas e; se lượt 2 tham chiếu s; e/ne/n sinh từ chữ.
 - Giữ nguyên LPC. Compositor chỉ tách nền/marker vàng, thu nearest tỷ lệ chung 0,036, xoay/dịch tới grip; bảng 32 màu chung. Không vẽ lại vũ khí bằng code. Hai lớp trước/sau theo tay; vùng cổ tay bán kính 4 px che da ở lớp trước. Khung 96, nhóm B 22 cột, năm hướng × hai giới; tây lật bởi client. Không dùng neo lưng.
 - `manifest-entry.json` do compositor sinh, importer ghi manifest; không sửa tay manifest. Compositor thay cutter lưới nộm cho atlas riêng.
 
