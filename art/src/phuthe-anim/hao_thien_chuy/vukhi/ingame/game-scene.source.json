@@ -1,0 +1,35 @@
+{
+  "scene": "GameScene",
+  "url": "/choi/?lag=1",
+  "api": "local RAM GAME_TEST=1",
+  "method": "AO Browser native screenshot; no crop, resize or composition",
+  "sourceHead": "7fb3491d95e71d5462dd4efa1a21630939a687a5",
+  "mergedFix": "8bd8820e6afd6784441142378364d1c2d414be7e",
+  "codeSha256NormalizedLF": {
+    "client/src/scenes/GameScene.ts": "bc92d2b4c20b359d7b13151403dce6e442685c58dc5732428cced2d5be035a38",
+    "client/src/phutheAnchor.ts": "8634dd6423abb117722257a9c42fdb181b74c40a4390fd73617dd8578724b24e",
+    "client/src/spiritMotion.ts": "b6293a74184a5ca61f9c0ae071d3a7f5379f9797fc76443de8281821be70aba9"
+  },
+  "coverage": "two sexes, idle, one current direction; five-direction four-clip matrix remains in separate test-scene captures",
+  "notes": [
+    "Hao Thien Chuy selected through team UI; HUD confirms active weapon.",
+    "Existing optional iso-private-present JSON fails on Vite dev; public LPC and weapon still render. No renderer fix in this change.",
+    "Native screenshot does not establish per-pixel grip error or all combat clips."
+  ],
+  "items": [
+    {
+      "file": "game-scene-m-idle.png",
+      "sex": "m",
+      "clip": "idle",
+      "sha256": "2bcc2874b3fd7447f363c4c5b78e4b14e09381a4335eb8a3c00e4dbc9977e235",
+      "capturedAt": "2026-10-29T23:04:34.051Z"
+    },
+    {
+      "file": "game-scene-f-idle.png",
+      "sex": "f",
+      "clip": "idle",
+      "sha256": "43f479c800f00a8a9c4cc66fc452dc7f086c9f686300dc717ad7a339ca26974a",
+      "capturedAt": "2026-10-29T23:06:43.540Z"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+    "tool":  "builtin image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "attempt":  1,
+    "raw":  "poses.raw.png",
+    "sha256":  "0aa53a3d4afd7303daca764cc17c14d825cb416f933240c08b86234368dfc22d",
+    "prompt":  "poses.prompt.txt",
+    "promptSha256":  "e1087f071d98ad14d60a029dce661201d70dff54ef7a217a32aa7022161aca26",
+    "reference":  "../../../solo/weapon-s-attempt1.png",
+    "referenceSha256":  "91571c968867605efccfacb28ee787fb29eacb566133da3730a4299533b28436",
+    "postprocessing":  "none; RAW copied byte-for-byte",
+    "selected":  false,
+    "rejection":  "Thiếu marker gốc ở bốn pose; bộ ghép từ chối, không đoán gốc.",
+    "license":  "OpenAI output terms; not CC0",
+    "promptHandwritten":  true
+}

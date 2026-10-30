@@ -1,0 +1,83 @@
+{
+  "policy": "vertical-primary-only",
+  "verticalToleranceDegrees": 15,
+  "primaryRasterTolerance": 2,
+  "secondaryToleranceNonvertical": 20,
+  "artApproved": false,
+  "imageAttempts": {
+    "s": 3,
+    "se": 3,
+    "e": 3,
+    "ne": 1,
+    "n": 1
+  },
+  "newImageJobs": 6,
+  "directions": [
+    {
+      "dir": "s",
+      "raw": "art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-atlas/s/attempt3/poses.raw.png",
+      "sha256": "acf8ab3b3da83fb38b4f4cdd03130f51b78adafadb84c83efd05864bdd269655",
+      "rawScale": 0.12641552996786584,
+      "shaftMax": 51.83036728682499,
+      "headRange": [
+        19.958531926400624,
+        25.538583742318735
+      ],
+      "maxA": 1.5811388300841898
+    },
+    {
+      "dir": "se",
+      "raw": "art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-a/se/attempt3/poses.raw.png",
+      "sha256": "612607f2dcdf03b848e117475b27423f8a692d94445fa9001b31a7907ba068f6",
+      "rawScale": 0.1442399054374709,
+      "shaftMax": 48.320368321552756,
+      "headRange": [
+        21.27548265115322,
+        24.52429402407052
+      ],
+      "maxA": 1.5051993223490368
+    },
+    {
+      "dir": "e",
+      "raw": "art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-a/e/attempt3/poses.raw.png",
+      "sha256": "e6cad575802980a8c627ca5fb3fd0035ea199ef3cf8de010d48b22b97529f10d",
+      "rawScale": 0.14927680521510994,
+      "shaftMax": 50.75411377313738,
+      "headRange": [
+        21.65233523688193,
+        23.297918150252112
+      ],
+      "maxA": 1.5051993223490368
+    },
+    {
+      "dir": "ne",
+      "raw": "art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-a/ne/attempt1/poses.raw.png",
+      "sha256": "ce0c469fd0e07704051693f1a27e36bbe8423ba4816337db0a03f8540d4cdd40",
+      "rawScale": 0.1538592306257242,
+      "shaftMax": 52.61985687399768,
+      "headRange": [
+        21.52698670325426,
+        24.35337797263455
+      ],
+      "maxA": 1.5051993223490368
+    },
+    {
+      "dir": "n",
+      "raw": "art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-a/n/attempt1/poses.raw.png",
+      "sha256": "a0cccf1ce6baa5df96b729e96f3a93dfa9e3be16c892ba0c00ae712f7df461ee",
+      "rawScale": 0.1530396500638608,
+      "shaftMax": 53.563877522351284,
+      "headRange": [
+        21.592415283416493,
+        23.576186195582924
+      ],
+      "maxA": 1.6278820596099688
+    }
+  ],
+  "importedForReview": true,
+  "bodyHeightRange": [
+    47,
+    49
+  ],
+  "maxShaftBodyRatio": 1.1396569685606657
+}

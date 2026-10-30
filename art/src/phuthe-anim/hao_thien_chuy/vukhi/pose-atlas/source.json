@@ -1,0 +1,88 @@
+{
+    "methodReference":  {
+                            "branch":  "ao/lam-ngan-thao/1312-vu-khi",
+                            "file":  "art/src/phuthe-anim/lam_ngan_thao/vukhi/isolated/compose.mjs",
+                            "sha":  "a69b175b7790d9b8563a797543f95982ca701c86"
+                        },
+    "decision":  "Bỏ vác vai vì tay LPC thấp; một tay idle/walk/hurt, hai tay attack/cast; đầu cao hơn hông khi nghỉ/đi; giữ cỡ đầu búa và bỏ impact chính diện",
+    "imageJobsThisRound":  13,
+    "imageJobsByDirection":  {
+                                 "e":  2,
+                                 "s":  3,
+                                 "ne":  3,
+                                 "n":  3,
+                                 "se":  2
+                             },
+    "limitPerDirection":  3,
+    "rawSources":  [
+                       "s/attempt1/poses.source.json",
+                       "s/attempt2/poses.source.json",
+                       "s/attempt3/poses.source.json",
+                       "se/attempt1/poses.source.json",
+                       "se/attempt2/poses.source.json",
+                       "e/attempt1/poses.source.json",
+                       "e/attempt2/poses.source.json",
+                       "ne/attempt1/poses.source.json",
+                       "ne/attempt2/poses.source.json",
+                       "ne/attempt3/poses.source.json",
+                       "n/attempt1/poses.source.json",
+                       "n/attempt2/poses.source.json",
+                       "n/attempt3/poses.source.json"
+                   ],
+    "selectedDirections":  [
+                               "s",
+                               "se",
+                               "e",
+                               "ne",
+                               "n"
+                           ],
+    "commonScale":  0.11294905654,
+    "frames":  130,
+    "maxNearestA":  1.7379321515137836,
+    "maxNearestB":  1.4560219778561039,
+    "edge":  0,
+    "maleLevel":  "nhẹ",
+    "femaleLevel":  "nhẹ",
+    "checkerWarningsPerSex":  2,
+    "cutWarningsPerSex":  0,
+    "toolSha256NormalizedLF":  {
+                                   "tools/assets/phuthe-hammer-atlas.mjs":  "16e71b32c35890f9b74d391f6582575894aa88184e0149e1be17d5d3d4db1b10",
+                                   "tools/assets/phuthe-hammer-atlas-finalize.mjs":  "2c2fc15a4d654e3aee80cb0f3dee50344da2f2f5ae3ef3da8c7905d454aa1115",
+                                   "tools/assets/phuthe-hammer-atlas-cut.mjs":  "ec9051fa9bf718a511b33f70ed2648eba9e95ec5f0b2aeaa1f247b879455db7f",
+                                   "tools/assets/phuthe-sheet-dummy.mjs":  "31bbe8426cf1100c2510357fa2c64bde10aa230aa936c9bdde807e33a8d7cce0"
+                               },
+    "finalOutputSha256":  {
+                              "vkanim_hao_thien_chuy_b.png":  "00c32cc24ddd77ed8b58ccc4eed9ac12d32ef04a8d08339e21bf3cd51910c61d",
+                              "vkanim_hao_thien_chuy_f.png":  "5a7be1cd7feef9ef5414cfd8aeec7fb5793d2ff1379dfb51a149c650ae1eade0",
+                              "manifest-entry.json":  "a60f43b810f08c63dbce534aaafc05b821398723cd61f7119bf47fa2e43d57a5",
+                              "_report.json":  "aee0629c1252644eecea4f435435c81132cf289183f37630e56a7f7e226331fa"
+                          },
+    "rawUnmodified":  true,
+    "lpcPoseChanges":  false,
+    "geometryThreshold":  2,
+    "readyForImporterReview":  true,
+    "imported":  true,
+    "preview":  "index.html",
+    "manifest":  "../manifest-entry.json",
+    "normalizedHeadSize":  22.589811307999998,
+    "gameAssets":  [
+                       {
+                           "source":  "../vkanim_hao_thien_chuy_b.png",
+                           "sha256":  "00c32cc24ddd77ed8b58ccc4eed9ac12d32ef04a8d08339e21bf3cd51910c61d",
+                           "file":  "shared/assets/sprites/vukhianim/hao_thien_chuy_b.png"
+                       },
+                       {
+                           "source":  "../vkanim_hao_thien_chuy_f.png",
+                           "sha256":  "5a7be1cd7feef9ef5414cfd8aeec7fb5793d2ff1379dfb51a149c650ae1eade0",
+                           "file":  "shared/assets/sprites/vukhianim/hao_thien_chuy_f.png"
+                       }
+                   ],
+    "finalColorCount":  32,
+    "shaftContactVerified":  true,
+    "gripPlacement":  "Điểm A dọc cán cố định cho mỗi clip/pose, hai giới; cả A/B nằm trên cán, không đổi tay LPC hoặc cỡ từng khung",
+    "omittedPoses":  {
+                         "n":  [
+                                   7
+                               ]
+                     }
+}

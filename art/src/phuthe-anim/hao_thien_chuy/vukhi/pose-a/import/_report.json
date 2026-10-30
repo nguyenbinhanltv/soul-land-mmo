@@ -1,0 +1,3454 @@
+{
+  "frames": 130,
+  "palette": [
+    [
+      1,
+      0,
+      0
+    ],
+    [
+      5,
+      2,
+      3
+    ],
+    [
+      9,
+      4,
+      5
+    ],
+    [
+      12,
+      4,
+      8
+    ],
+    [
+      32,
+      8,
+      7
+    ],
+    [
+      26,
+      16,
+      32
+    ],
+    [
+      24,
+      16,
+      18
+    ],
+    [
+      35,
+      29,
+      32
+    ],
+    [
+      47,
+      3,
+      3
+    ],
+    [
+      47,
+      13,
+      8
+    ],
+    [
+      47,
+      22,
+      25
+    ],
+    [
+      46,
+      36,
+      45
+    ],
+    [
+      67,
+      24,
+      33
+    ],
+    [
+      108,
+      26,
+      25
+    ],
+    [
+      119,
+      27,
+      14
+    ],
+    [
+      169,
+      39,
+      19
+    ],
+    [
+      49,
+      54,
+      55
+    ],
+    [
+      70,
+      56,
+      59
+    ],
+    [
+      60,
+      79,
+      81
+    ],
+    [
+      82,
+      73,
+      83
+    ],
+    [
+      136,
+      55,
+      57
+    ],
+    [
+      191,
+      57,
+      23
+    ],
+    [
+      145,
+      119,
+      83
+    ],
+    [
+      237,
+      169,
+      31
+    ],
+    [
+      83,
+      101,
+      109
+    ],
+    [
+      135,
+      72,
+      120
+    ],
+    [
+      144,
+      154,
+      140
+    ],
+    [
+      158,
+      169,
+      171
+    ],
+    [
+      164,
+      185,
+      186
+    ],
+    [
+      174,
+      210,
+      217
+    ],
+    [
+      222,
+      224,
+      222
+    ],
+    [
+      248,
+      249,
+      246
+    ]
+  ],
+  "colors": 32,
+  "cuts": {
+    "m": {
+      "id": "hao_thien_chuy",
+      "kind": "vukhi",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "gripKey": "#00FF60",
+      "sheets": {
+        "A": {
+          "dir": "s",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "B": {
+          "dir": "se",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "C": {
+          "dir": "e",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "D": {
+          "dir": "ne",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "E": {
+          "dir": "n",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        }
+      },
+      "dropped": 0,
+      "palette": 32,
+      "outline": "tô lại viền tối sẵn có",
+      "halves": {
+        "b": {
+          "pixels": 26088,
+          "blank": false
+        },
+        "f": {
+          "pixels": 40398,
+          "blank": false
+        }
+      },
+      "sexShift": {
+        "f/s/idle/0": [
+          0,
+          0
+        ],
+        "f/s/idle/1": [
+          0,
+          0
+        ],
+        "f/s/walk/0": [
+          0,
+          0
+        ],
+        "f/s/walk/1": [
+          0,
+          0
+        ],
+        "f/s/walk/2": [
+          0,
+          0
+        ],
+        "f/s/walk/3": [
+          0,
+          0
+        ],
+        "f/s/attack/0": [
+          0,
+          0
+        ],
+        "f/s/attack/1": [
+          0,
+          0
+        ],
+        "f/s/attack/2": [
+          0,
+          1
+        ],
+        "f/s/attack/3": [
+          1,
+          0
+        ],
+        "f/s/cast/0": [
+          0,
+          0
+        ],
+        "f/s/cast/1": [
+          0,
+          0
+        ],
+        "f/s/hurt/0": [
+          -1,
+          1
+        ],
+        "f/se/idle/0": [
+          0,
+          0
+        ],
+        "f/se/idle/1": [
+          0,
+          0
+        ],
+        "f/se/walk/0": [
+          0,
+          0
+        ],
+        "f/se/walk/1": [
+          0,
+          0
+        ],
+        "f/se/walk/2": [
+          1,
+          -1
+        ],
+        "f/se/walk/3": [
+          0,
+          -1
+        ],
+        "f/se/attack/0": [
+          0,
+          0
+        ],
+        "f/se/attack/1": [
+          0,
+          -1
+        ],
+        "f/se/attack/2": [
+          0,
+          -1
+        ],
+        "f/se/attack/3": [
+          -1,
+          0
+        ],
+        "f/se/cast/0": [
+          0,
+          -1
+        ],
+        "f/se/cast/1": [
+          0,
+          0
+        ],
+        "f/se/hurt/0": [
+          -1,
+          1
+        ],
+        "f/e/idle/0": [
+          0,
+          0
+        ],
+        "f/e/idle/1": [
+          0,
+          0
+        ],
+        "f/e/walk/0": [
+          0,
+          0
+        ],
+        "f/e/walk/1": [
+          0,
+          0
+        ],
+        "f/e/walk/2": [
+          1,
+          -1
+        ],
+        "f/e/walk/3": [
+          0,
+          -1
+        ],
+        "f/e/attack/0": [
+          0,
+          0
+        ],
+        "f/e/attack/1": [
+          0,
+          -1
+        ],
+        "f/e/attack/2": [
+          0,
+          -1
+        ],
+        "f/e/attack/3": [
+          -1,
+          0
+        ],
+        "f/e/cast/0": [
+          0,
+          -1
+        ],
+        "f/e/cast/1": [
+          0,
+          0
+        ],
+        "f/e/hurt/0": [
+          -1,
+          1
+        ],
+        "f/ne/idle/0": [
+          0,
+          0
+        ],
+        "f/ne/idle/1": [
+          0,
+          0
+        ],
+        "f/ne/walk/0": [
+          0,
+          0
+        ],
+        "f/ne/walk/1": [
+          0,
+          0
+        ],
+        "f/ne/walk/2": [
+          1,
+          -1
+        ],
+        "f/ne/walk/3": [
+          0,
+          -1
+        ],
+        "f/ne/attack/0": [
+          0,
+          0
+        ],
+        "f/ne/attack/1": [
+          0,
+          -1
+        ],
+        "f/ne/attack/2": [
+          0,
+          -1
+        ],
+        "f/ne/attack/3": [
+          -1,
+          0
+        ],
+        "f/ne/cast/0": [
+          0,
+          -1
+        ],
+        "f/ne/cast/1": [
+          0,
+          0
+        ],
+        "f/ne/hurt/0": [
+          -1,
+          1
+        ],
+        "f/n/idle/0": [
+          0,
+          0
+        ],
+        "f/n/idle/1": [
+          0,
+          0
+        ],
+        "f/n/walk/0": [
+          0,
+          0
+        ],
+        "f/n/walk/1": [
+          0,
+          1
+        ],
+        "f/n/walk/2": [
+          0,
+          0
+        ],
+        "f/n/walk/3": [
+          0,
+          1
+        ],
+        "f/n/attack/0": [
+          -1,
+          0
+        ],
+        "f/n/attack/1": [
+          -1,
+          0
+        ],
+        "f/n/attack/2": [
+          0,
+          0
+        ],
+        "f/n/attack/3": [
+          1,
+          0
+        ],
+        "f/n/cast/0": [
+          0,
+          0
+        ],
+        "f/n/cast/1": [
+          0,
+          0
+        ],
+        "f/n/hurt/0": [
+          -1,
+          1
+        ]
+      },
+      "dirs": {
+        "s": "ok",
+        "se": "ok",
+        "e": "ok",
+        "ne": "ok",
+        "n": "ok"
+      },
+      "gripFrames": 65,
+      "warnings": [
+        "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung n/attack/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung n/attack/2: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+        "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+      ],
+      "issues": [
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/attack/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/attack/2: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        }
+      ],
+      "summary": {
+        "info": 7,
+        "warn": 0,
+        "block": 0,
+        "total": 7,
+        "byCode": {
+          "ghi-chu": 7
+        }
+      },
+      "frames": 65,
+      "missing": 0,
+      "blank": []
+    },
+    "f": {
+      "id": "hao_thien_chuy",
+      "kind": "vukhi",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "gripKey": "#00FF60",
+      "sheets": {
+        "A": {
+          "dir": "s",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "B": {
+          "dir": "se",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "C": {
+          "dir": "e",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "D": {
+          "dir": "ne",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "E": {
+          "dir": "n",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        }
+      },
+      "dropped": 2,
+      "palette": 32,
+      "outline": "tô lại viền tối sẵn có",
+      "halves": {
+        "b": {
+          "pixels": 26214,
+          "blank": false
+        },
+        "f": {
+          "pixels": 40560,
+          "blank": false
+        }
+      },
+      "sexShift": {
+        "m/s/idle/0": [
+          0,
+          0
+        ],
+        "m/s/idle/1": [
+          0,
+          0
+        ],
+        "m/s/walk/0": [
+          0,
+          0
+        ],
+        "m/s/walk/1": [
+          0,
+          0
+        ],
+        "m/s/walk/2": [
+          0,
+          0
+        ],
+        "m/s/walk/3": [
+          0,
+          0
+        ],
+        "m/s/attack/0": [
+          0,
+          0
+        ],
+        "m/s/attack/1": [
+          0,
+          0
+        ],
+        "m/s/attack/2": [
+          0,
+          -1
+        ],
+        "m/s/attack/3": [
+          -1,
+          0
+        ],
+        "m/s/cast/0": [
+          0,
+          0
+        ],
+        "m/s/cast/1": [
+          0,
+          0
+        ],
+        "m/s/hurt/0": [
+          1,
+          -1
+        ],
+        "m/se/idle/0": [
+          0,
+          0
+        ],
+        "m/se/idle/1": [
+          0,
+          0
+        ],
+        "m/se/walk/0": [
+          0,
+          0
+        ],
+        "m/se/walk/1": [
+          0,
+          0
+        ],
+        "m/se/walk/2": [
+          -1,
+          1
+        ],
+        "m/se/walk/3": [
+          0,
+          1
+        ],
+        "m/se/attack/0": [
+          0,
+          0
+        ],
+        "m/se/attack/1": [
+          0,
+          1
+        ],
+        "m/se/attack/2": [
+          0,
+          1
+        ],
+        "m/se/attack/3": [
+          1,
+          0
+        ],
+        "m/se/cast/0": [
+          0,
+          1
+        ],
+        "m/se/cast/1": [
+          0,
+          0
+        ],
+        "m/se/hurt/0": [
+          1,
+          -1
+        ],
+        "m/e/idle/0": [
+          0,
+          0
+        ],
+        "m/e/idle/1": [
+          0,
+          0
+        ],
+        "m/e/walk/0": [
+          0,
+          0
+        ],
+        "m/e/walk/1": [
+          0,
+          0
+        ],
+        "m/e/walk/2": [
+          -1,
+          1
+        ],
+        "m/e/walk/3": [
+          0,
+          1
+        ],
+        "m/e/attack/0": [
+          0,
+          0
+        ],
+        "m/e/attack/1": [
+          0,
+          1
+        ],
+        "m/e/attack/2": [
+          0,
+          1
+        ],
+        "m/e/attack/3": [
+          1,
+          0
+        ],
+        "m/e/cast/0": [
+          0,
+          1
+        ],
+        "m/e/cast/1": [
+          0,
+          0
+        ],
+        "m/e/hurt/0": [
+          1,
+          -1
+        ],
+        "m/ne/idle/0": [
+          0,
+          0
+        ],
+        "m/ne/idle/1": [
+          0,
+          0
+        ],
+        "m/ne/walk/0": [
+          0,
+          0
+        ],
+        "m/ne/walk/1": [
+          0,
+          0
+        ],
+        "m/ne/walk/2": [
+          -1,
+          1
+        ],
+        "m/ne/walk/3": [
+          0,
+          1
+        ],
+        "m/ne/attack/0": [
+          0,
+          0
+        ],
+        "m/ne/attack/1": [
+          0,
+          1
+        ],
+        "m/ne/attack/2": [
+          0,
+          1
+        ],
+        "m/ne/attack/3": [
+          1,
+          0
+        ],
+        "m/ne/cast/0": [
+          0,
+          1
+        ],
+        "m/ne/cast/1": [
+          0,
+          0
+        ],
+        "m/ne/hurt/0": [
+          1,
+          -1
+        ],
+        "m/n/idle/0": [
+          0,
+          0
+        ],
+        "m/n/idle/1": [
+          0,
+          0
+        ],
+        "m/n/walk/0": [
+          0,
+          0
+        ],
+        "m/n/walk/1": [
+          0,
+          -1
+        ],
+        "m/n/walk/2": [
+          0,
+          0
+        ],
+        "m/n/walk/3": [
+          0,
+          -1
+        ],
+        "m/n/attack/0": [
+          1,
+          0
+        ],
+        "m/n/attack/1": [
+          1,
+          0
+        ],
+        "m/n/attack/2": [
+          0,
+          0
+        ],
+        "m/n/attack/3": [
+          -1,
+          0
+        ],
+        "m/n/cast/0": [
+          0,
+          0
+        ],
+        "m/n/cast/1": [
+          0,
+          0
+        ],
+        "m/n/hurt/0": [
+          1,
+          -1
+        ]
+      },
+      "dirs": {
+        "s": "ok",
+        "se": "ok",
+        "e": "ok",
+        "ne": "ok",
+        "n": "ok"
+      },
+      "gripFrames": 65,
+      "warnings": [
+        "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung n/attack/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung n/attack/2: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+        "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+      ],
+      "issues": [
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/attack/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/attack/2: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        }
+      ],
+      "summary": {
+        "info": 7,
+        "warn": 0,
+        "block": 0,
+        "total": 7,
+        "byCode": {
+          "ghi-chu": 7
+        }
+      },
+      "frames": 65,
+      "missing": 0,
+      "blank": []
+    }
+  },
+  "layers": {
+    "m": {
+      "huong": {
+        "s": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "se": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "e": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "ne": {
+          "mac_dinh": "sau",
+          "vung": []
+        },
+        "n": {
+          "mac_dinh": "sau",
+          "vung": []
+        }
+      },
+      "khung": {
+        "ne/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.5,
+              -14.400000000000006,
+              -4.5,
+              -8.400000000000006
+            ]
+          }
+        ],
+        "ne/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.399999999999999,
+              -14.900000000000006,
+              -4.399999999999999,
+              -8.900000000000006
+            ]
+          }
+        ],
+        "ne/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -4,
+              -13.099999999999994,
+              2,
+              -7.099999999999994
+            ]
+          }
+        ],
+        "ne/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.399999999999999,
+              -13.5,
+              -8.399999999999999,
+              -7.5
+            ]
+          }
+        ],
+        "ne/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -16.700000000000003,
+              -13.599999999999994,
+              -10.700000000000003,
+              -7.599999999999994
+            ]
+          }
+        ],
+        "ne/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -8.5,
+              -14.099999999999994,
+              -2.5,
+              -8.099999999999994
+            ]
+          }
+        ],
+        "ne/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.700000000000003,
+              -13.200000000000003,
+              16.200000000000003,
+              -6.599999999999994
+            ]
+          }
+        ],
+        "ne/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.399999999999999,
+              -15.099999999999994,
+              12.900000000000006,
+              -8.5
+            ]
+          }
+        ],
+        "ne/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.899999999999999,
+              -18.299999999999997,
+              22.400000000000006,
+              -8.900000000000006
+            ]
+          }
+        ],
+        "ne/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.899999999999999,
+              -31.299999999999997,
+              22.799999999999997,
+              -9.099999999999994
+            ]
+          }
+        ],
+        "ne/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.600000000000001,
+              -20.599999999999994,
+              13.099999999999994,
+              -14.5
+            ]
+          }
+        ],
+        "ne/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -21.1,
+              -34.2,
+              16.099999999999994,
+              -28.200000000000003
+            ]
+          }
+        ],
+        "ne/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              11.700000000000003,
+              -13.599999999999994,
+              17.700000000000003,
+              -7.599999999999994
+            ]
+          }
+        ],
+        "n/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.900000000000006,
+              -14.099999999999994,
+              15.900000000000006,
+              -8.099999999999994
+            ]
+          }
+        ],
+        "n/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.400000000000006,
+              -14.299999999999997,
+              15.400000000000006,
+              -8.299999999999997
+            ]
+          }
+        ],
+        "n/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.900000000000006,
+              -15.099999999999994,
+              15.900000000000006,
+              -9.099999999999994
+            ]
+          }
+        ],
+        "n/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              10.099999999999994,
+              -17.099999999999994,
+              16.099999999999994,
+              -11.099999999999994
+            ]
+          }
+        ],
+        "n/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.900000000000006,
+              -15.099999999999994,
+              15.900000000000006,
+              -9.099999999999994
+            ]
+          }
+        ],
+        "n/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.900000000000006,
+              -13.900000000000006,
+              15.900000000000006,
+              -7.900000000000006
+            ]
+          }
+        ],
+        "n/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.700000000000003,
+              -19.299999999999997,
+              14.099999999999994,
+              -6.599999999999994
+            ]
+          }
+        ],
+        "n/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.700000000000003,
+              -19.299999999999997,
+              14.099999999999994,
+              -6.599999999999994
+            ]
+          }
+        ],
+        "n/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -15.399999999999999,
+              -26.5,
+              26.900000000000006,
+              -8.299999999999997
+            ]
+          }
+        ],
+        "n/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -15.399999999999999,
+              -26.5,
+              26.900000000000006,
+              -8.299999999999997
+            ]
+          }
+        ],
+        "n/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -19.5,
+              -19.400000000000006,
+              19.5,
+              -13.400000000000006
+            ]
+          }
+        ],
+        "n/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -24.9,
+              -31.9,
+              24.900000000000006,
+              -25.9
+            ]
+          }
+        ],
+        "n/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              11.700000000000003,
+              -13.599999999999994,
+              17.700000000000003,
+              -7.599999999999994
+            ]
+          }
+        ]
+      }
+    },
+    "f": {
+      "huong": {
+        "s": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "se": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "e": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "ne": {
+          "mac_dinh": "sau",
+          "vung": []
+        },
+        "n": {
+          "mac_dinh": "sau",
+          "vung": []
+        }
+      },
+      "khung": {
+        "ne/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -11.166666666666671,
+              -14.277777777777771,
+              -5.166666666666671,
+              -8.277777777777771
+            ]
+          }
+        ],
+        "ne/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.833333333333329,
+              -15.25,
+              -4.833333333333329,
+              -9.25
+            ]
+          }
+        ],
+        "ne/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -3.5,
+              -13.125,
+              2.5,
+              -7.125
+            ]
+          }
+        ],
+        "ne/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              5.875,
+              -14.125,
+              11.875,
+              -8.125
+            ]
+          }
+        ],
+        "ne/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              7.214285714285722,
+              -14.214285714285722,
+              13.214285714285722,
+              -8.214285714285722
+            ]
+          }
+        ],
+        "ne/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -7.833333333333329,
+              -13.166666666666657,
+              -1.8333333333333286,
+              -7.166666666666657
+            ]
+          }
+        ],
+        "ne/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -11.399999999999999,
+              -13.214285714285722,
+              16.214285714285722,
+              -6.5
+            ]
+          }
+        ],
+        "ne/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.399999999999999,
+              -13.5,
+              12.700000000000003,
+              -7.5
+            ]
+          }
+        ],
+        "ne/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.722222222222221,
+              -18.27777777777777,
+              21.388888888888886,
+              -9.611111111111114
+            ]
+          }
+        ],
+        "ne/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.954545454545453,
+              -31.318181818181813,
+              21.77272727272728,
+              -10.045454545454547
+            ]
+          }
+        ],
+        "ne/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13,
+              -18.666666666666657,
+              12.375,
+              -11
+            ]
+          }
+        ],
+        "ne/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -20.125,
+              -33.875,
+              15.954545454545453,
+              -26.681818181818187
+            ]
+          }
+        ],
+        "ne/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.400000000000006,
+              -13.5,
+              15.400000000000006,
+              -7.5
+            ]
+          }
+        ],
+        "n/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -13.611111111111114,
+              14.722222222222229,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.22727272727272,
+              -14.045454545454547,
+              14.22727272727272,
+              -8.045454545454547
+            ]
+          }
+        ],
+        "n/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -13.611111111111114,
+              14.722222222222229,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.900000000000006,
+              -14.900000000000006,
+              14.900000000000006,
+              -8.900000000000006
+            ]
+          }
+        ],
+        "n/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -13.611111111111114,
+              14.722222222222229,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -12.611111111111114,
+              14.722222222222229,
+              -6.611111111111114
+            ]
+          }
+        ],
+        "n/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.722222222222221,
+              -19.5,
+              10.5,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.722222222222221,
+              -19.5,
+              10.5,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.388888888888886,
+              -26.5,
+              26.875,
+              -8.277777777777771
+            ]
+          }
+        ],
+        "n/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.388888888888886,
+              -26.5,
+              26.875,
+              -8.277777777777771
+            ]
+          }
+        ],
+        "n/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -18.590909090909093,
+              -20.863636363636374,
+              18.590909090909093,
+              -14.863636363636374
+            ]
+          }
+        ],
+        "n/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -23.75,
+              -32.5,
+              23.75,
+              -26.5
+            ]
+          }
+        ],
+        "n/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.400000000000006,
+              -13.5,
+              15.400000000000006,
+              -7.5
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "geometry": [
+    {
+      "name": "m/s/idle/0",
+      "near": [
+        1.4560219778561039
+      ],
+      "pixels": 459,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 36.96424326844398,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/idle/1",
+      "near": [
+        1.2206555615733719
+      ],
+      "pixels": 465,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 32.96424326844398,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/walk/0",
+      "near": [
+        1.4560219778561039
+      ],
+      "pixels": 427,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 40.94933735189139,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/walk/1",
+      "near": [
+        1.1180339887498898
+      ],
+      "pixels": 426,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 37.94933735189136,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/walk/2",
+      "near": [
+        1.4560219778561039
+      ],
+      "pixels": 424,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.94933735189139,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/walk/3",
+      "near": [
+        1.5811388300841898
+      ],
+      "pixels": 421,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 35.94933735189139,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/attack/0",
+      "near": [
+        0.5385164807134515,
+        12.397580409095957
+      ],
+      "pixels": 428,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 34.61512053592757,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/attack/1",
+      "near": [
+        0.4242640687119245,
+        4.770744176750622
+      ],
+      "pixels": 521,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.37206014900292,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/attack/2",
+      "near": [
+        0.5000000000000029,
+        16.104968177553157
+      ],
+      "pixels": 426,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 2.67009761986958,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/attack/3",
+      "near": [
+        0.565685424949241,
+        33.465952847633076
+      ],
+      "pixels": 563,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.05016688176192474,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/cast/0",
+      "near": [
+        0.4123105625617719,
+        29.902675465583346
+      ],
+      "pixels": 409,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 2.67009761986958,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/cast/1",
+      "near": [
+        0.8485281374238591,
+        41.40193232205473
+      ],
+      "pixels": 550,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.05016688176192474,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/hurt/0",
+      "near": [
+        1.1180339887498898
+      ],
+      "pixels": 460,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.964243268443994,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/idle/0",
+      "near": [
+        1.1331154474650664
+      ],
+      "pixels": 461,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 36.96424326844398,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/idle/1",
+      "near": [
+        1.3514607952107733
+      ],
+      "pixels": 462,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 32.96424326844398,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/walk/0",
+      "near": [
+        1.1331154474650664
+      ],
+      "pixels": 427,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 40.94933735189139,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/walk/1",
+      "near": [
+        1.1331154474650664
+      ],
+      "pixels": 423,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 37.94933735189136,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/walk/2",
+      "near": [
+        1.1331154474650664
+      ],
+      "pixels": 427,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.94933735189139,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/walk/3",
+      "near": [
+        1.5239140558400175
+      ],
+      "pixels": 421,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 35.94933735189139,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/attack/0",
+      "near": [
+        0.5,
+        13.148383931114877
+      ],
+      "pixels": 427,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 34.61512053592757,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/attack/1",
+      "near": [
+        0.5,
+        4.400126260814689
+      ],
+      "pixels": 517,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.37206014900292,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/attack/2",
+      "near": [
+        0.5590169943749475,
+        14.000558024593163
+      ],
+      "pixels": 426,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 2.67009761986958,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/attack/3",
+      "near": [
+        0.565685424949241,
+        32.6772941896289
+      ],
+      "pixels": 563,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.05016688176192474,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/cast/0",
+      "near": [
+        0.4487637339278763,
+        24.41723548825478
+      ],
+      "pixels": 430,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 2.67009761986958,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/cast/1",
+      "near": [
+        0.8944271909999127,
+        39.40050761094329
+      ],
+      "pixels": 552,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.05016688176192474,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/hurt/0",
+      "near": [
+        1.0049875621120885
+      ],
+      "pixels": 463,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.964243268443994,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/idle/0",
+      "near": [
+        1.0999999999999943
+      ],
+      "pixels": 475,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 37.783745998782564,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/idle/1",
+      "near": [
+        1.4035668847618257
+      ],
+      "pixels": 477,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 41.78374599878259,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/walk/0",
+      "near": [
+        1.486606874731856
+      ],
+      "pixels": 483,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 35.5101290879586,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/walk/1",
+      "near": [
+        1.34536240470737
+      ],
+      "pixels": 485,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 38.5101290879586,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/walk/2",
+      "near": [
+        1.360147050873538
+      ],
+      "pixels": 485,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.5101290879586,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/walk/3",
+      "near": [
+        1.166190378969057
+      ],
+      "pixels": 488,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 40.5101290879586,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/attack/0",
+      "near": [
+        1.1180339887498898,
+        18.702406262296844
+      ],
+      "pixels": 516,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.15615332056785292,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/attack/1",
+      "near": [
+        1.34536240470737,
+        16.40487732352791
+      ],
+      "pixels": 517,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.035290572558082545,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/attack/2",
+      "near": [
+        1.4560219778561088,
+        27.900716836669275
+      ],
+      "pixels": 516,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.2755217370544756,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/attack/3",
+      "near": [
+        0.565685424949241,
+        27.300732590903124
+      ],
+      "pixels": 559,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.032461971239229115,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/cast/0",
+      "near": [
+        1.077032961426903,
+        19.100261778310788
+      ],
+      "pixels": 508,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.2755217370544756,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/cast/1",
+      "near": [
+        0.8062257748298602,
+        28.60157338329485
+      ],
+      "pixels": 559,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.032461971239229115,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/hurt/0",
+      "near": [
+        1.1180339887498898
+      ],
+      "pixels": 479,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 31.783745998782564,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/idle/0",
+      "near": [
+        1.2668615834434915
+      ],
+      "pixels": 482,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 37.783745998782564,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/idle/1",
+      "near": [
+        1.2936812246883342
+      ],
+      "pixels": 483,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 41.78374599878259,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/walk/0",
+      "near": [
+        1.1792476415070754
+      ],
+      "pixels": 487,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 35.5101290879586,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/walk/1",
+      "near": [
+        1.4252192813739224
+      ],
+      "pixels": 486,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 38.5101290879586,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/walk/2",
+      "near": [
+        1.31707777961326
+      ],
+      "pixels": 483,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.5101290879586,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/walk/3",
+      "near": [
+        1.3743685418725513
+      ],
+      "pixels": 487,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 40.5101290879586,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/attack/0",
+      "near": [
+        1.34536240470737,
+        18.71646661229036
+      ],
+      "pixels": 515,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.15615332056785292,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/attack/1",
+      "near": [
+        1.280624847486568,
+        16.9
+      ],
+      "pixels": 510,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.035290572558082545,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/attack/2",
+      "near": [
+        1.1331154474650664,
+        24.889880932610065
+      ],
+      "pixels": 536,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.2755217370544756,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/attack/3",
+      "near": [
+        0.6428243465332233,
+        26.27335639385169
+      ],
+      "pixels": 537,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.032461971239229115,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/cast/0",
+      "near": [
+        1.5051993223490368,
+        16.5008417293718
+      ],
+      "pixels": 537,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.2755217370544756,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/cast/1",
+      "near": [
+        0.48956043701222834,
+        27.627545131625432
+      ],
+      "pixels": 532,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.032461971239229115,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/hurt/0",
+      "near": [
+        1.345362404707375
+      ],
+      "pixels": 476,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 31.783745998782564,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/idle/0",
+      "near": [
+        1.345362404707375
+      ],
+      "pixels": 499,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 38.980702551966004,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/idle/1",
+      "near": [
+        1.4035668847618257
+      ],
+      "pixels": 501,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.980702551966004,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/walk/0",
+      "near": [
+        1.486606874731856
+      ],
+      "pixels": 511,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 37.10752746730539,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/walk/1",
+      "near": [
+        1.34536240470737
+      ],
+      "pixels": 511,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 40.107527467305374,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/walk/2",
+      "near": [
+        1.360147050873538
+      ],
+      "pixels": 503,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 44.1075274673054,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/walk/3",
+      "near": [
+        1.166190378969057
+      ],
+      "pixels": 509,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.1075274673054,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/attack/0",
+      "near": [
+        1.1180339887498898,
+        18.702406262296844
+      ],
+      "pixels": 529,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.32152977125200266,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/attack/1",
+      "near": [
+        1.34536240470737,
+        16.40487732352791
+      ],
+      "pixels": 536,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.054253226623004025,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/attack/2",
+      "near": [
+        1.4560219778561088,
+        27.900716836669275
+      ],
+      "pixels": 520,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.1931050236815821,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/attack/3",
+      "near": [
+        0.565685424949241,
+        27.300732590903124
+      ],
+      "pixels": 540,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.08260427460453457,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/cast/0",
+      "near": [
+        1.077032961426903,
+        19.100261778310788
+      ],
+      "pixels": 509,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.1931050236815821,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/cast/1",
+      "near": [
+        0.8062257748298602,
+        28.60157338329485
+      ],
+      "pixels": 538,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.08260427460453457,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/hurt/0",
+      "near": [
+        1.2041594578792318
+      ],
+      "pixels": 493,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 32.980702551966004,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/idle/0",
+      "near": [
+        1.3922182317935263
+      ],
+      "pixels": 494,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 38.980702551966004,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/idle/1",
+      "near": [
+        1.2936812246883342
+      ],
+      "pixels": 498,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.980702551966004,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/walk/0",
+      "near": [
+        1.1792476415070754
+      ],
+      "pixels": 510,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 37.10752746730539,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/walk/1",
+      "near": [
+        1.4252192813739224
+      ],
+      "pixels": 513,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 40.107527467305374,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/walk/2",
+      "near": [
+        1.31707777961326
+      ],
+      "pixels": 508,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 44.1075274673054,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/walk/3",
+      "near": [
+        1.3743685418725513
+      ],
+      "pixels": 512,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.1075274673054,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/attack/0",
+      "near": [
+        1.0049875621120892,
+        19.71635599895557
+      ],
+      "pixels": 528,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.32152977125200266,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/attack/1",
+      "near": [
+        1.280624847486568,
+        16.9
+      ],
+      "pixels": 546,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.054253226623004025,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/attack/2",
+      "near": [
+        1.1331154474650664,
+        25.88984261476465
+      ],
+      "pixels": 509,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.1931050236815821,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/attack/3",
+      "near": [
+        0.6428243465332233,
+        26.27335639385169
+      ],
+      "pixels": 540,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.08260427460453457,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/cast/0",
+      "near": [
+        1.5051993223490368,
+        16.5008417293718
+      ],
+      "pixels": 545,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.1931050236815821,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/cast/1",
+      "near": [
+        0.48956043701222834,
+        27.627545131625432
+      ],
+      "pixels": 542,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.08260427460453457,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/hurt/0",
+      "near": [
+        1.345362404707375
+      ],
+      "pixels": 497,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 32.980702551966004,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/idle/0",
+      "near": [
+        1.345362404707375
+      ],
+      "pixels": 527,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 39.07501360081773,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/idle/1",
+      "near": [
+        1.1704699910719658
+      ],
+      "pixels": 523,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 43.07501360081773,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/walk/0",
+      "near": [
+        0.6403124237432885
+      ],
+      "pixels": 535,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 37.09011825925103,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/walk/1",
+      "near": [
+        0.10000000000000142
+      ],
+      "pixels": 530,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 40.09011825925103,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/walk/2",
+      "near": [
+        0.22360679774997896
+      ],
+      "pixels": 533,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 44.09011825925103,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/walk/3",
+      "near": [
+        0.4000000000000057
+      ],
+      "pixels": 534,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.09011825925103,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/attack/0",
+      "near": [
+        1.1180339887498898,
+        18.702406262296844
+      ],
+      "pixels": 564,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.12300707585697523,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/attack/1",
+      "near": [
+        1.34536240470737,
+        16.40487732352791
+      ],
+      "pixels": 548,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.21545297027772392,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/attack/2",
+      "near": [
+        1.4560219778561088,
+        27.900716836669275
+      ],
+      "pixels": 528,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.5365424684306817,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/attack/3",
+      "near": [
+        0.565685424949241,
+        27.300732590903124
+      ],
+      "pixels": 592,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.3650527475783747,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/cast/0",
+      "near": [
+        1.077032961426903,
+        19.100261778310788
+      ],
+      "pixels": 530,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.5365424684306817,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/cast/1",
+      "near": [
+        0.5000000000000029,
+        28.60157338329485
+      ],
+      "pixels": 579,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.3650527475783747,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/hurt/0",
+      "near": [
+        1.1180339887498898
+      ],
+      "pixels": 529,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.07501360081773,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/idle/0",
+      "near": [
+        1.3922182317935263
+      ],
+      "pixels": 528,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 39.07501360081773,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/idle/1",
+      "near": [
+        1.2936812246883342
+      ],
+      "pixels": 518,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 43.07501360081773,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/walk/0",
+      "near": [
+        0.375
+      ],
+      "pixels": 531,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 37.09011825925103,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/walk/1",
+      "near": [
+        0.5303300858899107
+      ],
+      "pixels": 526,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 40.09011825925103,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/walk/2",
+      "near": [
+        0.40406101782087284
+      ],
+      "pixels": 527,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 44.09011825925103,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/walk/3",
+      "near": [
+        0.47140452079103506
+      ],
+      "pixels": 532,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.09011825925103,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/attack/0",
+      "near": [
+        1.34536240470737,
+        18.71646661229036
+      ],
+      "pixels": 549,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.12300707585697523,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/attack/1",
+      "near": [
+        1.280624847486568,
+        16.9
+      ],
+      "pixels": 541,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.21545297027772392,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/attack/2",
+      "near": [
+        1.1331154474650664,
+        25.88984261476465
+      ],
+      "pixels": 565,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.5365424684306817,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/attack/3",
+      "near": [
+        0.6428243465332233,
+        26.27335639385169
+      ],
+      "pixels": 573,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.3650527475783747,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/cast/0",
+      "near": [
+        1.5051993223490368,
+        16.5008417293718
+      ],
+      "pixels": 556,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.5365424684306817,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/cast/1",
+      "near": [
+        0.48956043701222834,
+        27.627545131625432
+      ],
+      "pixels": 579,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.3650527475783747,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/hurt/0",
+      "near": [
+        1.345362404707375
+      ],
+      "pixels": 524,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.07501360081773,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/idle/0",
+      "near": [
+        0.5656854249492461
+      ],
+      "pixels": 519,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 39.50865065957913,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/idle/1",
+      "near": [
+        0.22360679774997896
+      ],
+      "pixels": 522,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 43.50865065957913,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/walk/0",
+      "near": [
+        0.5656854249492461
+      ],
+      "pixels": 535,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 38.29184668508657,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/walk/1",
+      "near": [
+        0.5656854249492461
+      ],
+      "pixels": 541,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 41.29184668508657,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/walk/2",
+      "near": [
+        0.5656854249492461
+      ],
+      "pixels": 528,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 45.29184668508657,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/walk/3",
+      "near": [
+        0.5656854249492461
+      ],
+      "pixels": 542,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 43.29184668508657,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/attack/0",
+      "near": [
+        0.4472135954999643,
+        19.20026041490063
+      ],
+      "pixels": 513,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.09261233344780351,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/attack/1",
+      "near": [
+        0.4472135954999643,
+        19.20026041490063
+      ],
+      "pixels": 522,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.30765203562859256,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/attack/2",
+      "near": [
+        0.4000000000000057,
+        33.900589965367864
+      ],
+      "pixels": 536,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.1413868427397631,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/attack/3",
+      "near": [
+        0.4000000000000057,
+        33.900589965367864
+      ],
+      "pixels": 561,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.059408001742554006,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/cast/0",
+      "near": [
+        1.0999999999999943,
+        30.000166666203704
+      ],
+      "pixels": 562,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.1413868427397631,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/cast/1",
+      "near": [
+        0.565685424949241,
+        41.401932322054726
+      ],
+      "pixels": 562,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.059408001742554006,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/hurt/0",
+      "near": [
+        1.6278820596099688
+      ],
+      "pixels": 523,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.50865065957913,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/idle/0",
+      "near": [
+        0.2484519974999837
+      ],
+      "pixels": 519,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 39.50865065957913,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/idle/1",
+      "near": [
+        0.5300865358950302
+      ],
+      "pixels": 525,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 43.50865065957913,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/walk/0",
+      "near": [
+        0.2484519974999837
+      ],
+      "pixels": 543,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 38.29184668508657,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/walk/1",
+      "near": [
+        0.5656854249492461
+      ],
+      "pixels": 537,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 41.29184668508657,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/walk/2",
+      "near": [
+        0.2484519974999837
+      ],
+      "pixels": 544,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 45.29184668508657,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/walk/3",
+      "near": [
+        0.2484519974999837
+      ],
+      "pixels": 540,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 43.29184668508657,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/attack/0",
+      "near": [
+        0,
+        15.22262773182503
+      ],
+      "pixels": 528,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.09261233344780351,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/attack/1",
+      "near": [
+        0,
+        15.22262773182503
+      ],
+      "pixels": 548,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.30765203562859256,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/attack/2",
+      "near": [
+        0.375,
+        31.88966317294603
+      ],
+      "pixels": 536,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.1413868427397631,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/attack/3",
+      "near": [
+        0.375,
+        31.88966317294603
+      ],
+      "pixels": 560,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.059408001742554006,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/cast/0",
+      "near": [
+        1.3666633071248204,
+        28.098116168729263
+      ],
+      "pixels": 564,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.1413868427397631,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/cast/1",
+      "near": [
+        0.25,
+        39.25
+      ],
+      "pixels": 576,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.059408001742554006,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/hurt/0",
+      "near": [
+        1.345362404707375
+      ],
+      "pixels": 526,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.50865065957913,
+        "blocked": false
+      }
+    }
+  ],
+  "failures": [],
+  "maxA": 1.6278820596099688,
+  "maxB": 41.40193232205473,
+  "edge": 0,
+  "normalizedHeadSize": 22.589811307999998,
+  "imported": false
+}

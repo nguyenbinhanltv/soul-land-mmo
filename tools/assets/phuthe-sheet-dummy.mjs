@@ -12,7 +12,7 @@ import { Img, readPng, encodePng, hex, paletteGroup, frameAnchors, ROOT } from "
 import {
   LPC_SHEET, DIRS, BG_KEY, CELL, SHEET_W, SHEET_H, TURNAROUND, TURNAROUND_STEP,
   framesOf, sheetCells, bodyStepOf, bodyRowKey, bodyColOf, bodyOffset, frameOrigin, checkFrame, phutheInfo, dummyKeyOf, guideKeyOf, SHEET_ID, allPhutheIds, allVukhiIds,
-  gripKeyOf, gripCount, GRIP_R, GRIP_RING_IN, SHOULDER_UP, checkKind, CLIPS, bodyAnim,
+  gripKeyOf, gripCounts, gripCountAt, GRIP_R, GRIP_RING_IN, SHOULDER_UP, checkKind, CLIPS, bodyAnim,
 } from "./phuthe-sheet-lib.mjs";
 
 const PARTS = path.join(ROOT, "shared", "assets", "lpcparts");
@@ -98,8 +98,9 @@ export function guideCell({ sex = "m", dir, clip, step, frame }) {
   return out;
 }
 // ---------- Marker điểm cầm (kiểu vũ khí; đặc tả vũ khí, mục "Điểm cầm trên nộm") ----------
-/** Mảng da cẳng tay thật có ≥ `HAND_MIN_PX` điểm thân và nằm thấp hơn `back` ≥ `HAND_BELOW_BACK` điểm thân (mảng da cổ / mặt nằm trên lưng). */
+/** Ngưỡng của tay nghỉ; cặp tay attack/cast có ngoại lệ được kiểm vị trí trong gripPoints. */
 const HAND_MIN_PX = 10, HAND_BELOW_BACK = 4;
+const ACTIVE_HAND_MIN_PX = 8, ACTIVE_HAND_SIDE = 6;
 /** Thứ tự bước thân thay thế khi khung thân đo không ra tay (cẳng tay bị áo che): bước kề trước, rồi bước 0. */
 const stepsNear = (clip, step) => { const n = bodyAnim(clip).ms.length, out = [step]; for (let d = 1; d < n; d++) for (const s of [step - d, step + d]) if (s >= 0 && s < n) out.push(s); return out; };
 /** Tay thuận trước: nhìn hướng `s` tay phải của hồn sư ở bên TRÁI ảnh (x nhỏ); hướng `n` ở bên phải ảnh; hướng nghiêng lấy tay gần người xem hơn (y lớn). */
@@ -108,16 +109,33 @@ const handOrder = (dir, hands) => [...hands].sort((a, b) => (dir === "s" ? a.x -
  * Điểm cầm của một khung thân, đo bằng `frameAnchors` (`hands[]`: đầu mút xa lưng nhất của mảng da cẳng tay; `back`: giữa lưng) rồi đổi sang toạ độ ô canonical 256
  * (cùng hệ với `dummyCell` / `guideCell`): { hands: [[x, y], …] (tay thuận trước), back, shoulder, steps: bước thân đã dùng, fallback: có phải dùng bước lân cận }.
  * Khung nào đo không ra tay thì dùng bước thân lân cận của cùng clip (`fallback: true`; kiểm tờ báo lên).
+ * `count` là số tay tối thiểu cần tìm; marker/cutter giới hạn số tay theo clip. Cặp tay attack/cast được nâng ngang lưng,
+ * mảng tay nhỏ chỉ nhận nếu nằm rõ ra hai bên trục thân; không đổi ảnh LPC hoặc suy ra tay từ giới khác.
  */
-export function gripPoints({ sex = "m", dir, clip, step, frame }) {
+export function gripPoints({ sex = "m", dir, clip, step, frame, count = 1 }) {
   const F = checkFrame(frame), k = CELL / F, [bx, by] = bodyOffset(F), to = (p) => [(bx + p.x) * k, (by + p.y) * k];
+  // Tay nện/thi triển có thể nâng ngang lưng; không áp ngưỡng của tay đang nghỉ.
+  const activePair = count > 1 && ["attack", "cast"].includes(clip), belowBack = activePair ? 0 : HAND_BELOW_BACK;
+  let partial = null;
   for (const s of stepsNear(clip, step)) {
     const a = bodyAnchors(sex, dir, clip, s);
-    const hands = a ? a.hands.filter((h) => h.n >= HAND_MIN_PX && h.y > a.back.y + HAND_BELOW_BACK) : []; // bỏ mảng da cổ / mặt (cao hơn lưng, hoặc vài điểm)
+    // Tay nhỏ lộ ít da chỉ nhận nếu ở xa trục lưng, tránh nhận nhầm mảng cổ áo.
+    const hands = a ? a.hands.filter((h) => {
+      const below = (h.n >= HAND_MIN_PX || (activePair && h.n >= ACTIVE_HAND_MIN_PX && Math.abs(h.x - a.back.x) >= ACTIVE_HAND_SIDE)) && h.y > a.back.y + belowBack;
+      // Tay slash hướng e bước cuối nâng cao hơn lưng; mặt lớn/tai nhỏ không được nhận như tay.
+      const raised = activePair && clip === "attack" && h.n >= 20 && h.n <= 80 && Math.abs(h.x - a.back.x) >= 10 && h.y > a.head.y + 12;
+      // Spellcast giơ hai tay xa hai bên đầu; ở hướng e da bàn tay có thể nối với mặt.
+      // Khoảng cách ngang lớn loại mặt/tai, không áp trần diện tích của riêng bàn tay slash.
+      const castRaised = activePair && clip === "cast" && h.n >= 20 && Math.abs(h.x - a.back.x) >= 12 && h.y > a.head.y + 12;
+      return below || raised || castRaised;
+    }) : [];
     if (!hands.length) continue;
     const head = a.head.y, feet = a.feet.y, back = to(a.back);
-    return { hands: handOrder(dir, hands).slice(0, 2).map(to), back, shoulder: [back[0], back[1] - (feet - head) * SHOULDER_UP * k], step: s, fallback: s !== step };
+    const result = { hands: handOrder(dir, hands).slice(0, 2).map(to), back, shoulder: [back[0], back[1] - (feet - head) * SHOULDER_UP * k], step: s, fallback: s !== step };
+    if (hands.length >= count) return result;
+    partial ??= result;
   }
+  if (partial) return { ...partial, fallback: true };
   const a = bodyAnchors(sex, dir, clip, step), back = a ? to(a.back) : [CELL / 2, CELL / 2];
   return { hands: [], back, shoulder: [back[0], back[1] - 20], step, fallback: true };
 }
@@ -153,7 +171,7 @@ export function dummySheet({ group, dir, frame, key = dummyKeyOf(""), sex = "m",
     if (gc) paintGuides(img, at, gd, gc, false);
     paint(img, cell, at, kc);
     if (gc) paintGuides(img, at, gd, gc, true);
-    const grip = pc ? gripMarker({ sex, dir, clip: c.anim, step, frame, count: gripN }) : null;
+    const grip = pc ? gripMarker({ sex, dir, clip: c.anim, step, frame, count: gripCountAt(gripN, c.anim) }) : null;
     if (grip) paintGrip(img, at, grip.pts, pc); // marker điểm cầm đè lên nộm
     cells.push({ ...c, step, cell, ...(grip ? { grip } : {}) });
   }
@@ -169,7 +187,7 @@ export function dummyTurnaround({ frame, key, sex = "m", guideKey = null, gripKe
     if (gc) paintGuides(img, at, gd, gc, false);
     paint(img, cell, { x: c * cw, y: r * ch }, kc);
     if (gc) paintGuides(img, at, gd, gc, true);
-    if (pc) paintGrip(img, at, gripMarker({ sex, dir, clip, step, frame, count: gripN }).pts, pc);
+    if (pc) paintGrip(img, at, gripMarker({ sex, dir, clip, step, frame, count: gripCountAt(gripN, clip) }).pts, pc);
   }));
   return img;
 }
@@ -180,8 +198,8 @@ export function writeDummies(id, out, { frame, key, sex = "m", guideKey, gripKey
   mkdirSync(out, { recursive: true });
   const files = [];
   const put = (name, img) => { const f = path.join(out, name); writeFileSync(f, encodePng(img)); files.push(f); };
-  if (turnaround) put(`${id}-nom-turnaround.png`, dummyTurnaround({ frame: F, key: k, sex, guideKey: g, gripKey: pk, gripN: info.hands ? gripCount(info.hands) : 2 }));
-  for (const dir of DIRS) put(`${id}-nom-to${SHEET_ID[dir]}.png`, dummySheet({ group: info.group, dir, frame: F, key: k, sex, guideKey: g, gripKey: pk, gripN: info.hands ? gripCount(info.hands) : 2 }).img);
+  if (turnaround) put(`${id}-nom-turnaround.png`, dummyTurnaround({ frame: F, key: k, sex, guideKey: g, gripKey: pk, gripN: info.hands ? gripCounts(info.hands) : 2 }));
+  for (const dir of DIRS) put(`${id}-nom-to${SHEET_ID[dir]}.png`, dummySheet({ group: info.group, dir, frame: F, key: k, sex, guideKey: g, gripKey: pk, gripN: info.hands ? gripCounts(info.hands) : 2 }).img);
   return files;
 }
 

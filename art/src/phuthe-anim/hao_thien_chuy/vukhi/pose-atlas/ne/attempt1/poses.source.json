@@ -1,0 +1,17 @@
+{
+    "tool":  "builtin image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "attempt":  1,
+    "raw":  "poses.raw.png",
+    "sha256":  "431719a82a86eb0efa39f73b5bd9885c4588cc91978794f2db5e87a2c60149a3",
+    "prompt":  "poses.prompt.txt",
+    "promptSha256":  "f81c13aa7ada23a68e0738cc1ed3db4f92ab8474a223f8718ba16b20dc77c90a",
+    "reference":  "../../s/attempt2/poses.raw.png",
+    "referenceSha256":  "3f4c462f71e8bfe274aea2ff3030ff740cfdd3859924f2e44931bfa61ec1f190",
+    "postprocessing":  "none; RAW copied byte-for-byte",
+    "selected":  false,
+    "rejection":  "marker cast bị tách thành 2 thành phần xanh",
+    "license":  "OpenAI output terms; not CC0",
+    "promptHandwritten":  true
+}

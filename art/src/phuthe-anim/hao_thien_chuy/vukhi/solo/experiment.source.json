@@ -1,0 +1,369 @@
+﻿{
+    "tool":  "builtin image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "kind":  "vukhi-solo-experiment",
+    "direction":  "s",
+    "attempt":  1,
+    "attemptLimit":  3,
+    "raw":  "weapon-s-attempt1.png",
+    "sha256":  "91571c968867605efccfacb28ee787fb29eacb566133da3730a4299533b28436",
+    "prompt":  "weapon-s-attempt1.prompt.txt",
+    "promptSha256":  "1403ecdc5d1caf2c0e401ae2438f77580fdd0709392854a98b8706c169bf5ade",
+    "references":  [
+
+                   ],
+    "postprocessingRaw":  "none; copied byte-for-byte",
+    "compositeTool":  "tools/assets/phuthe-rigid-pilot.mjs",
+    "compositeMethod":  "nearest-neighbor similarity transform into unchanged nominal LPC dummy board; key magenta only",
+    "sourceGrip":  [
+                       [
+                           1260,
+                           860
+                       ],
+                       [
+                           920,
+                           634
+                       ]
+                   ],
+    "outputs":  [
+                    {
+                        "technicalCheck":  {
+                                               "id":  "hao_thien_chuy",
+                                               "kind":  "vukhi",
+                                               "level":  "nhẹ",
+                                               "group":  "A",
+                                               "frame":  128,
+                                               "dummyKey":  "#00D0D0",
+                                               "blockLevel":  {
+                                                                  "s":  "nhẹ"
+                                                              },
+                                               "sheets":  [
+                                                              {
+                                                                  "sheet":  "toA",
+                                                                  "size":  [
+                                                                               1536,
+                                                                               1024
+                                                                           ],
+                                                                  "kind":  "huong",
+                                                                  "level":  "nhẹ",
+                                                                  "dirs":  [
+                                                                               "s"
+                                                                           ],
+                                                                  "background":  {
+                                                                                     "key":  [
+                                                                                                 255,
+                                                                                                 0,
+                                                                                                 255
+                                                                                             ],
+                                                                                     "corners":  [
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ],
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ],
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ],
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ]
+                                                                                                 ],
+                                                                                     "keyDistFromLock":  0,
+                                                                                     "cornerSpread":  0
+                                                                                 },
+                                                                  "seVsE":  null,
+                                                                  "prep":  {
+                                                                               "shift":  {
+                                                                                             "dx":  0,
+                                                                                             "dy":  0
+                                                                                         },
+                                                                               "factor":  1,
+                                                                               "grid":  "gap"
+                                                                           },
+                                                                  "bands":  [
+                                                                                {
+                                                                                    "row":  1,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              82,
+                                                                                              187
+                                                                                          ],
+                                                                                    "figures":  3,
+                                                                                    "state":  "ok"
+                                                                                },
+                                                                                {
+                                                                                    "row":  2,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              340,
+                                                                                              456
+                                                                                          ],
+                                                                                    "figures":  4,
+                                                                                    "state":  "ok"
+                                                                                },
+                                                                                {
+                                                                                    "row":  3,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              596,
+                                                                                              693
+                                                                                          ],
+                                                                                    "figures":  4,
+                                                                                    "state":  "ok"
+                                                                                },
+                                                                                {
+                                                                                    "row":  4,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              852,
+                                                                                              949
+                                                                                          ],
+                                                                                    "figures":  2,
+                                                                                    "state":  "ok"
+                                                                                }
+                                                                            ],
+                                                                  "motion":  [
+                                                                                 {
+                                                                                     "dir":  "s",
+                                                                                     "anim":  "idle",
+                                                                                     "maxDiff":  0.127
+                                                                                 },
+                                                                                 {
+                                                                                     "dir":  "s",
+                                                                                     "anim":  "walk",
+                                                                                     "maxDiff":  0.746
+                                                                                 },
+                                                                                 {
+                                                                                     "dir":  "s",
+                                                                                     "anim":  "hurt-vs-idle",
+                                                                                     "maxDiff":  0.779
+                                                                                 }
+                                                                             ],
+                                                                  "issues":  [
+                                                                                 {
+                                                                                     "sev":  "light",
+                                                                                     "code":  "cham-mep-khung",
+                                                                                     "where":  "H1 (s) C1",
+                                                                                     "msg":  "phụ thể chạm mép ô khung (98 điểm): có thể bị cắt."
+                                                                                 },
+                                                                                 {
+                                                                                     "sev":  "light",
+                                                                                     "code":  "cham-mep-khung",
+                                                                                     "where":  "H1 (s) C2",
+                                                                                     "msg":  "phụ thể chạm mép ô khung (58 điểm): có thể bị cắt."
+                                                                                 },
+                                                                                 {
+                                                                                     "sev":  "light",
+                                                                                     "code":  "cham-mep-khung",
+                                                                                     "where":  "H2 (s) C1",
+                                                                                     "msg":  "phụ thể chạm mép ô khung (98 điểm): có thể bị cắt."
+                                                                                 },
+                                                                                 {
+                                                                                     "sev":  "light",
+                                                                                     "code":  "cham-mep-khung",
+                                                                                     "where":  "H2 (s) C2",
+                                                                                     "msg":  "phụ thể chạm mép ô khung (112 điểm): có thể bị cắt."
+                                                                                 },
+                                                                                 {
+                                                                                     "sev":  "light",
+                                                                                     "code":  "cham-mep-khung",
+                                                                                     "where":  "H2 (s) C3",
+                                                                                     "msg":  "phụ thể chạm mép ô khung (98 điểm): có thể bị cắt."
+                                                                                 },
+                                                                                 {
+                                                                                     "sev":  "light",
+                                                                                     "code":  "cham-mep-khung",
+                                                                                     "where":  "H2 (s) C4",
+                                                                                     "msg":  "phụ thể chạm mép ô khung (85 điểm): có thể bị cắt."
+                                                                                 },
+                                                                                 {
+                                                                                     "sev":  "light",
+                                                                                     "code":  "cham-mep-khung",
+                                                                                     "where":  "H3 (s) C4",
+                                                                                     "msg":  "phụ thể chạm mép ô khung (22 điểm): có thể bị cắt."
+                                                                                 },
+                                                                                 {
+                                                                                     "sev":  "light",
+                                                                                     "code":  "cham-mep-khung",
+                                                                                     "where":  "H4 (s) C1",
+                                                                                     "msg":  "phụ thể chạm mép ô khung (119 điểm): có thể bị cắt."
+                                                                                 },
+                                                                                 {
+                                                                                     "sev":  "light",
+                                                                                     "code":  "cham-mep-khung",
+                                                                                     "where":  "H4 (s) C2",
+                                                                                     "msg":  "phụ thể chạm mép ô khung (119 điểm): có thể bị cắt."
+                                                                                 },
+                                                                                 {
+                                                                                     "sev":  "light",
+                                                                                     "code":  "cham-mep-khung",
+                                                                                     "where":  "H1 (s) C3",
+                                                                                     "msg":  "phụ thể chạm mép ô khung (16 điểm): có thể bị cắt."
+                                                                                 }
+                                                                             ],
+                                                                  "draft":  "LỖI: toA — chạm mép khung — H1 (s) C1, H1 (s) C2, H2 (s) C1, H2 (s) C2, H2 (s) C3, H2 (s) C4, H3 (s) C4, H4 (s) C1, H4 (s) C2, H1 (s) C3 — phụ thể chạm mép ô khung (98 điểm): có thể bị cắt; phụ thể chạm mép ô khung (58 điểm): có thể bị cắt; phụ thể chạm mép ô khung (98 điểm): có thể bị cắt; phụ thể chạm mép ô khung (112 điểm): có thể bị cắt; phụ thể chạm mép ô khung (98 điểm): có thể bị cắt; phụ thể chạm mép ô khung (85 điểm): có thể bị cắt; phụ thể chạm mép ô khung (22 điểm): có thể bị cắt; phụ thể chạm mép ô khung (119 điểm): có thể bị cắt; phụ thể chạm mép ô khung (119 điểm): có thể bị cắt; phụ thể chạm mép ô khung (16 điểm): có thể bị cắt."
+                                                              }
+                                                          ]
+                                           },
+                        "sha256":  "6febfb8bf15a73976d3f6311636aead784d7f5a93f0618210e5afad84f667517",
+                        "file":  "two-hands/toA.png",
+                        "raw":  false
+                    },
+                    {
+                        "technicalCheck":  {
+                                               "id":  "hao_thien_chuy",
+                                               "kind":  "vukhi",
+                                               "level":  "nhẹ",
+                                               "group":  "A",
+                                               "frame":  128,
+                                               "dummyKey":  "#00D0D0",
+                                               "blockLevel":  {
+                                                                  "s":  "nhẹ"
+                                                              },
+                                               "sheets":  [
+                                                              {
+                                                                  "sheet":  "toA",
+                                                                  "size":  [
+                                                                               1536,
+                                                                               1024
+                                                                           ],
+                                                                  "kind":  "huong",
+                                                                  "level":  "nhẹ",
+                                                                  "dirs":  [
+                                                                               "s"
+                                                                           ],
+                                                                  "background":  {
+                                                                                     "key":  [
+                                                                                                 255,
+                                                                                                 0,
+                                                                                                 255
+                                                                                             ],
+                                                                                     "corners":  [
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ],
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ],
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ],
+                                                                                                     [
+                                                                                                         255,
+                                                                                                         0,
+                                                                                                         255
+                                                                                                     ]
+                                                                                                 ],
+                                                                                     "keyDistFromLock":  0,
+                                                                                     "cornerSpread":  0
+                                                                                 },
+                                                                  "seVsE":  null,
+                                                                  "prep":  {
+                                                                               "shift":  {
+                                                                                             "dx":  0,
+                                                                                             "dy":  0
+                                                                                         },
+                                                                               "factor":  1,
+                                                                               "grid":  "gap"
+                                                                           },
+                                                                  "bands":  [
+                                                                                {
+                                                                                    "row":  1,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              6,
+                                                                                              181
+                                                                                          ],
+                                                                                    "figures":  3,
+                                                                                    "state":  "ok"
+                                                                                },
+                                                                                {
+                                                                                    "row":  2,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              264,
+                                                                                              439
+                                                                                          ],
+                                                                                    "figures":  4,
+                                                                                    "state":  "ok"
+                                                                                },
+                                                                                {
+                                                                                    "row":  3,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              515,
+                                                                                              693
+                                                                                          ],
+                                                                                    "figures":  4,
+                                                                                    "state":  "ok"
+                                                                                },
+                                                                                {
+                                                                                    "row":  4,
+                                                                                    "dir":  "s",
+                                                                                    "y":  [
+                                                                                              786,
+                                                                                              949
+                                                                                          ],
+                                                                                    "figures":  2,
+                                                                                    "state":  "ok"
+                                                                                }
+                                                                            ],
+                                                                  "motion":  [
+                                                                                 {
+                                                                                     "dir":  "s",
+                                                                                     "anim":  "idle",
+                                                                                     "maxDiff":  0.119
+                                                                                 },
+                                                                                 {
+                                                                                     "dir":  "s",
+                                                                                     "anim":  "walk",
+                                                                                     "maxDiff":  0.377
+                                                                                 },
+                                                                                 {
+                                                                                     "dir":  "s",
+                                                                                     "anim":  "hurt-vs-idle",
+                                                                                     "maxDiff":  0.982
+                                                                                 }
+                                                                             ],
+                                                                  "issues":  [
+                                                                                 {
+                                                                                     "sev":  "light",
+                                                                                     "code":  "diem-cam",
+                                                                                     "where":  "H1 (s) C1",
+                                                                                     "msg":  "vũ khí cách marker điểm cầm B 36 điểm (\u003e 12) ở khung đứng: lơ lửng, không nằm trong tay (vật cứng: nhẹ)."
+                                                                                 },
+                                                                                 {
+                                                                                     "sev":  "light",
+                                                                                     "code":  "diem-cam",
+                                                                                     "where":  "H1 (s) C2",
+                                                                                     "msg":  "vũ khí cách marker điểm cầm B 36 điểm (\u003e 12) ở khung đứng: lơ lửng, không nằm trong tay (vật cứng: nhẹ)."
+                                                                                 }
+                                                                             ],
+                                                                  "draft":  "LỖI: toA — vũ khí không chạm marker — H1 (s) C1, H1 (s) C2 — vũ khí cách marker điểm cầm B 36 điểm (\u003e 12) ở khung đứng: lơ lửng, không nằm trong tay (vật cứng: nhẹ); vũ khí cách marker điểm cầm B 36 điểm (\u003e 12) ở khung đứng: lơ lửng, không nằm trong tay (vật cứng: nhẹ)."
+                                                              }
+                                                          ]
+                                           },
+                        "sha256":  "fb8efc8876e5f3f278209bb8d1fc80676a5f0dfc8243bda75fd783e26229023b",
+                        "file":  "shoulder/toA.png",
+                        "raw":  false
+                    }
+                ],
+    "approved":  false,
+    "eye":  "Chưa đạt hai tay/vác vai và đòn nện. Không mở rộng bốn hướng. Không cắt/import."
+}

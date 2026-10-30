@@ -1,0 +1,131 @@
+﻿{
+    "tool":  "builtin image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "date":  "2026-10-30",
+    "kind":  "vukhi",
+    "direction":  "n",
+    "attempt":  1,
+    "raw":  "toE.png",
+    "sha256":  "f182f585a4f1919208217d4d995783b3b3789c8b05b4587a2a6b71825231e9c9",
+    "prompt":  "toE.prompt.txt",
+    "promptSha256":  "ded65f70247c32b45a120a9df31a2b167c64801f4c1e045ae65cf6d2a83108d6",
+    "promptHandwritten":  false,
+    "promptCommand":  "node tools/assets/phuthe-sheet-prompt.mjs --id hao_thien_chuy --kind vukhi --stage direction --dir n --out \u003ctemp\u003e",
+    "references":  [
+                       {
+                           "sha256":  "48bf12694770d237485aa5fb77aa48a527cb1f4082b06478760fb7eb6e59f27b",
+                           "file":  "references/hao_thien_chuy-nom-toE.png"
+                       }
+                   ],
+    "referencePathBase":  "art/src/phuthe-anim/hao_thien_chuy/vukhi",
+    "turnaround":  "not available; no older phuthe image used",
+    "postprocessing":  "none; RAW copied byte-for-byte",
+    "approved":  false,
+    "eye":  "Chưa đạt: model đổi hình bóng và tay nộm; cán không giữ hai điểm cầm. Không cắt, không nhập.",
+    "technicalCheck":  {
+                           "sheet":  "toE",
+                           "size":  [
+                                        1536,
+                                        1024
+                                    ],
+                           "kind":  "huong",
+                           "level":  "chặn",
+                           "dirs":  [
+                                        "n"
+                                    ],
+                           "background":  {
+                                              "key":  [
+                                                          250,
+                                                          3,
+                                                          251
+                                                      ],
+                                              "corners":  [
+                                                              [
+                                                                  235,
+                                                                  12,
+                                                                  239
+                                                              ],
+                                                              [
+                                                                  243,
+                                                                  18,
+                                                                  243
+                                                              ],
+                                                              [
+                                                                  236,
+                                                                  38,
+                                                                  240
+                                                              ],
+                                                              [
+                                                                  236,
+                                                                  29,
+                                                                  240
+                                                              ]
+                                                          ],
+                                              "keyDistFromLock":  5,
+                                              "cornerSpread":  35
+                                          },
+                           "seVsE":  null,
+                           "prep":  null,
+                           "bands":  [
+                                         {
+                                             "row":  1,
+                                             "dir":  "n",
+                                             "y":  [
+                                                       38,
+                                                       212
+                                                   ],
+                                             "figures":  4,
+                                             "state":  "bad"
+                                         },
+                                         {
+                                             "row":  2,
+                                             "dir":  "n",
+                                             "y":  [
+                                                       270,
+                                                       454
+                                                   ],
+                                             "figures":  4,
+                                             "state":  "ok"
+                                         },
+                                         {
+                                             "row":  3,
+                                             "dir":  "n",
+                                             "y":  [
+                                                       479,
+                                                       706
+                                                   ],
+                                             "figures":  4,
+                                             "state":  "ok"
+                                         },
+                                         {
+                                             "row":  4,
+                                             "dir":  "n",
+                                             "y":  [
+                                                       744,
+                                                       967
+                                                   ],
+                                             "figures":  2,
+                                             "state":  "ok"
+                                         }
+                                     ],
+                           "motion":  [
+
+                                      ],
+                           "issues":  [
+                                          {
+                                              "sev":  "note",
+                                              "code":  "nen",
+                                              "where":  "toàn tờ",
+                                              "msg":  "nền dốc nhẹ (bốn góc lệch 35), trong dung sai 60; không phải lỗi."
+                                          },
+                                          {
+                                              "sev":  "block",
+                                              "code":  "so-hinh",
+                                              "where":  "H1 (n)",
+                                              "msg":  "dải có 4 hình, cần 3: thừa hình / mảnh rời."
+                                          }
+                                      ],
+                           "draft":  "LỖI: toE — sai số hình — H1 (n) — dải có 4 hình, cần 3: thừa hình / mảnh rời."
+                       }
+}

@@ -1,0 +1,64 @@
+STYLE (apply to every image):
+Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
+The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
+Angular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.
+Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small
+high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
+(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
+no anti-aliasing, hard pixel edges. Light comes from the upper left.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
+Transparent background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
+(glow, particles and motion are added in code).
+
+NEGATIVE (forbidden):
+cute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,
+Saturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,
+pastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,
+flat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,
+readable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,
+3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,
+anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
+
+TASK: Create ONE image (landscape 3:2 aspect ratio; the exact pixel size does not matter): an animation sprite sheet of a martial-soul weapon held by a hero, ONE direction only, for a 2D isometric (2:1 projection, camera looking down at about 30 degrees) game. Draw only the weapon; the hero is the flat mannequin already placed in the first reference image.
+
+WEAPON: Hạo Thiên Chùy (hao_thien_chuy); weapon kind "cứng" = rigid object, its shape never deforms; carried by the hero as: 2 tay. The brief below comes from the canonical design tables and is written in Vietnamese: follow it exactly, keep every hex code as written, and use only the motifs it lists. Draw the weapon as ONE held object; keep its colors, motifs and bright points.
+- Form of the weapon (Vietnamese): đại chùy: đầu búa vuông khối mẻ, cán dài có đai vàng cũ, nứt sáng cam đỏ rất ít
+- Grip (Vietnamese; "tay" = the mannequin's hand, "lưng" = the back, "vai" = the shoulder; the first hand listed is the main hand A): `tay` hai tay trên cán; vác `vai` khi đứng yên / đi (đầu búa cao hơn đầu hồn sư)
+- Overbearing presence: búa **trấn thiên hạ**: đầu búa to bằng cả thân người, nặng đến mức đất dưới nó nứt; không cần ra đòn, chỉ vác lên vai đã đủ áp.
+- Palette: đen sắt theo `robe`, ánh thép xám lạnh theo `col`; nhấn một vệt vàng cũ ở đai cán + nứt sáng cam đỏ rất ít (bắt buộc viền sáng, phần 3.2).
+- Motifs (use only these): vân đạo văn chìm khắc quanh đầu búa, đất nứt hình tia dưới chân (lớp nền, code thêm bụi).
+- Companion objects: mảnh đá vỡ bay lên; dây đai / xích quấn cán.
+- Base colors in the game data: body (robe) #22222c, accent (col) #9aa0b4.
+Motion notes (Vietnamese; "attack" = the strike, "cast" = the special pose): `attack` nâng lên nện xuống, pose đổi rõ; `cast` nện đất, đá vỡ (code). **Thí điểm cứng**, khung 128
+REFERENCES (attached images, in this fixed order): image 1 = the MANNEQUIN BOARD of this sheet: magenta background with the flat #00D0D0 mannequin already placed in every occupied cell; copy this layout exactly and draw the weapon on top of / around it; image 2 = the approved TURNAROUND image of this weapon: five columns of directions (s, se, e, ne, n) by three rows (idle, attack peak, hurt). Copy the form, facing angle, size and colors of the column "s"; image 3 = an approved direction sheet of this weapon (only for matching line weight and palette; never copy its poses) (if attached). No other reference is allowed: do not copy any older drawing of this weapon.
+
+MANNEQUIN: the first attached image already contains the hero's body as a FLAT, single-colored mannequin silhouette (solid #00D0D0, no shading, no outline) placed in every occupied cell, drawn front on. It is the ONLY human shape allowed in the picture (it overrides "human character" in NEGATIVE) and it is a fixed reference, not something to draw. Keep every mannequin exactly where it is, at the same size and in the same flat color; do not repaint, shade, outline, move, resize or add a face, eyes, hands or clothes to it. Never use #00D0D0 or magenta #FF00FF anywhere in the weapon itself; if the weapon has a similar hue, keep it clearly darker, lighter or less saturated.
+GUIDE LINES: the mannequin board also carries thin dashed guide lines in ONE flat color (#7A5CFF, drawn under the mannequin): a horizontal FOOT LINE through the mannequin's feet (the ground; nothing of the weapon hangs below it unless it drags on the ground), a vertical CENTER AXIS up from the feet, a small plus sign at the CHEST CENTER, a HEIGHT RULER on the left edge from the feet to the top of the head, and four CORNER BRACKETS marking the edge of the game frame (anything drawn past the bracket box is cut off in game). SCALE: the cell is exactly the game frame (128x128 game pixels scaled to the cell); the mannequin hero is only about 38% of the cell height and 23% of its width, with the feet line at 70% of the cell height from the top. Draw the weapon at the size the hero can plausibly carry: a long weapon may be taller than the hero but must stay inside the corner brackets, and it is never drawn at poster scale. These guide lines are references only: do not redraw, recolor or thicken them, and never use #7A5CFF in the weapon.
+GRIP MARKER: the mannequin board also carries a small marker in ONE flat color (#00FF60), drawn on top of the mannequin exactly on its hand in every frame: a filled DOT marks the main hand A, a RING (a dot with an empty center) marks the other hand B when the weapon needs two hands or two weapons. The weapon is gripped at the marker: the part that is held covers the marker, the rest of the weapon extends from it, sized to fit the mannequin. The marker follows the hand, so the weapon follows it too. The marker color must not appear anywhere in your picture (the game removes it; never leave a marker visible and never use that color for the weapon).
+
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no vignette, no text, no labels, no numbers, no grid lines, no frame or border. This overrides the line "Transparent background" of the STYLE block: the sheet background is solid magenta, never transparent.
+
+GRID: 6 columns x 4 rows of equal invisible cells (256x256 px each), exactly the layout of the mannequin board. Exactly one figure (mannequin + weapon) per occupied cell, one animation frame per cell, left to right in time order (13 occupied cells). Each mannequin stays exactly where the board puts it, and the weapon is drawn around and over it. No part of any figure may cross a cell edge or touch another cell; keep clear magenta space between cells. Empty cells stay solid magenta.
+
+LAYOUT (top to bottom; every frame shows the weapon in direction "s" = facing the viewer (front view, three-quarter from above); the mannequin is drawn front on in the pose of the hero's body at that frame):
+  row 1: frames 1-2 = IDLE (the weapon rests in the hand or on the body with a very small tilt; the two frames differ clearly but gently); frame 3 = HURT (one frame: the weapon is knocked back a short step along the facing line); the last 3 cells of this row stay empty magenta, with no mannequin.
+  row 2: frames 1-4 = WALK (the weapon bobs and tilts with the stride; every frame has a clearly different angle or height); the last 2 cells of this row stay empty magenta, with no mannequin.
+  row 3: frames 1-4 = ATTACK (a swing or thrust through four clearly different poses (raise, strike, hit, return), the hand moving where the mannequin's hand moves); the last 2 cells of this row stay empty magenta, with no mannequin.
+  row 4: frames 1-2 = CAST (the weapon is raised and tilted open; two clearly different poses); the last 4 cells of this row stay empty magenta, with no mannequin.
+
+CONSISTENCY: the weapon keeps exactly the same size, proportions, palette and line weight in all frames, only the pose changes. Consecutive frames differ by small, smooth pose changes so idle and walk loop cleanly. The weapon stays gripped at the grip marker of the mannequin in every frame (the marker moves with the hand). Directions e, se and ne must all face to the RIGHT of the picture (the game mirrors them for the left side).
+
+DRAWING RULES: draw ONLY the weapon. Never redraw the hero's body, face, hands, fingers or forearms; the mannequin does that job (the weapon grips at the marker). In the "ne" and "n" blocks show no face anywhere. Paint the weapon with hard-edged pixels and the dark outline of the STYLE block; no glow, halo, particles, slash trail, soft shadow, ground or magic circle in the picture (the game adds them).
+
+LESSONS (learned from earlier sheets, follow every line):
+- Draw ONLY the held weapon. The hands, fingers and forearms belong to the mannequin: never draw them, and never draw a sleeve, cuff or glove edge around the hand; the weapon simply starts where the grip marker is.
+- The weapon stays gripped at the grip marker in every frame: the marker moves with the mannequin's hand, so the weapon moves with it. Where the weapon passes in front of the mannequin or its marker, paint over it.
+- Never use the grip marker color or the mannequin color anywhere in the weapon.
+- Keep the weapon the same size, proportions, palette and line weight in every frame; rigid weapons never bend or melt, but every pose must really differ in angle, height or distance from the hand.
+- Draw every frame as its own separate picture inside its cell: leave clear magenta space between neighbours and never let any part cross a cell edge or touch another cell. A cell that is empty in the layout stays empty magenta.
+- Directions e, se and ne face the RIGHT side of the picture; never mirror them to face left. Directions "ne" and "n" show the hero from behind: no face on the mannequin and no face-like marks anywhere.
+- Treat the mannequin as locked source pixels: never replace its head with a round head, add a dark outline to its cyan edge, raise its arms, or reposition either hand to suit a shoulder carry; route the rigid shaft through the existing hand markers instead.
+- The existing low hands must stay low even when the hammer head is above the shoulder: angle the shaft from those low markers up toward the shoulder, never lay a horizontal shaft behind the neck; no detached rubble is painted in any pose.
