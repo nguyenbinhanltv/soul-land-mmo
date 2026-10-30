@@ -11,11 +11,29 @@ import { readPng } from "./lib.mjs";
 import { DIRS, gameAnims, gameRow } from "./phuthe-sheet-lib.mjs";
 import { weaponPoseGripPolicy } from "./phuthe-sheet-check.mjs";
 
-test("ngoại lệ cán dọc chỉ cho chùy attack/cast và không bỏ kiểm A", () => {
-  const base = { id: "hao_thien_chuy", clip: "attack", axisDegrees: 90, primaryDistance: 1, secondaryDistance: 44 };
-  assert.equal(weaponPoseGripPolicy(base).blocked, false);
-  for (const axisDegrees of [-90, 75, 105, 270]) assert.equal(weaponPoseGripPolicy({ ...base, axisDegrees }).primaryOnly, true);
-  for (const change of [{ primaryDistance: 2.01 }, { axisDegrees: 74.9 }, { axisDegrees: NaN }, { clip: "idle" }, { id: "pha_hon_thuong" }]) assert.equal(weaponPoseGripPolicy({ ...base, ...change }).blocked, true);
+test("ngoại lệ cán dọc chỉ cho danh sách nhóm cứng đã duyệt, attack/cast và không bỏ kiểm A", () => {
+  const base = { clip: "attack", axisDegrees: 90, primaryDistance: 2, secondaryDistance: 44 };
+  for (const id of ["hao_thien_chuy", "ta_hoa_phuong_hoang", "cuu_tinh_that_sat_kiem", "nguyet_nhan"]) {
+    for (const clip of ["attack", "cast"]) for (const axisDegrees of [-90, 75, 90, 105, 270]) {
+      const result = weaponPoseGripPolicy({ ...base, id, clip, axisDegrees });
+      assert.equal(result.primaryOnly, true, `${id}/${clip}/${axisDegrees}`);
+      assert.equal(result.blocked, false);
+    }
+    for (const change of [{ primaryDistance: 2.01 }, { primaryDistance: NaN }, { primaryDistance: Infinity }, { axisDegrees: 74.9 }, { axisDegrees: 105.1 }, { axisDegrees: NaN }, { axisDegrees: Infinity }, { clip: "idle" }, { clip: "walk" }, { clip: "hurt" }]) {
+      assert.equal(weaponPoseGripPolicy({ ...base, id, ...change }).blocked, true, `${id}: ${JSON.stringify(change)}`);
+    }
+    // Ngoài khung dọc, ngưỡng B vẫn đúng 20px và không nhận số đo không hữu hạn.
+    for (const secondaryDistance of [20, 20.01, NaN, Infinity]) {
+      const result = weaponPoseGripPolicy({ ...base, id, axisDegrees: 0, secondaryDistance });
+      assert.equal(result.primaryOnly, false);
+      assert.equal(result.blocked, secondaryDistance !== 20);
+    }
+  }
+  for (const id of ["pha_hon_thuong", "lam_ngan_thao", "", "khong_ton_tai"]) {
+    assert.equal(weaponPoseGripPolicy({ ...base, id }).primaryOnly, false);
+    assert.equal(weaponPoseGripPolicy({ ...base, id }).blocked, true);
+    assert.equal(weaponPoseGripPolicy({ ...base, id, secondaryDistance: 20 }).blocked, false);
+  }
 });
 
 test("bộ một tay dọc đã nhập: đúng nguồn, tỷ lệ cố định và A sau cắt đạt cả 130 khung", () => {
