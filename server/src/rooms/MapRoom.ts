@@ -29,7 +29,7 @@ import { TIERS, VOHON, xpNeed, xpBlocked, calcStats, TICK_RATE, tierOfYears, voh
   QUEST_STARTER, QUEST_AFTER, questChain, questStart, questStatus, questRewardText, type QuestReward, type QuestProgress, type QuestEvent, type QuestGoal,
   DAILY, dailyIds,
   tongTaskIds,
-  PARTY_XP_RANGE, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, BUFFS,
+  PARTY_XP_RANGE, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, BUFFS,
   type ResEffect,
   herbBonus,
   RADAR, type AutoHint, type AutoSettings, type AutoSummary,
@@ -64,7 +64,7 @@ import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
 import { newItem, bagUsed, itemLabel, shardCount, type GearStats } from "./items.ts";
 import { questBump } from "./questBump.ts";
-import { coreSetNoteOf, beastDmgOf } from "./calc.ts";
+import { coreSetNoteOf, beastDmgOf, buffMask, contribOf, contributors } from "./calc.ts";
 import { targetMsg, manualAttack } from "./lock.ts";
 import * as equip from "./equip.ts";
 import * as bones from "./bones.ts";
@@ -1822,7 +1822,7 @@ export class MapRoom extends Room<MapState> {
   /** Chỉ số võ hồn ra trận cho công thức tự đánh (offlineFight): ủy thác offline và trần tốc độ tự săn (AUTO_PACE). */
   offlinePower(d: PData, p: PlayerState): OfflinePower { return { atk: this.atkOf(d, true, "mid"), crit: d.crit, critMult: d.critMult, maxHp: p.maxHp, def: VOHON[p.vh].def }; }
   /** Đồng bộ PlayerState.buff (bit theo BUFF_IDS) để mọi người thấy hào quang. */
-  syncBuffs(p: PlayerState, d: PData) { let m = 0; for (const b of d.buffs.keys()) m |= buffBit(b); p.buff = m; }
+  syncBuffs(p: PlayerState, d: PData) { p.buff = buffMask(d.buffs.keys(), buffBit); }
   /**
    * Ràng buộc (BONDS, 2.5d, đủ bảng ở 9.4): tổng hiệu ứng `k` của các cặp võ hồn cùng trong đội của hồn sư (ô bất kỳ, kể cả đang
    * gục), võ hồn nào ra trận cũng hưởng; cùng loại từ nhiều cặp thì cộng.
@@ -2036,9 +2036,9 @@ export class MapRoom extends Room<MapState> {
   }
 
   /** Đóng góp tổng của `pid` lên tinh anh / thú vương (9.2): sát thương + hỗ trợ × SUPPORT_CONTRIB. */
-  contribOf(e: EliteData, pid: string) { return (e.dmgBy.get(pid) ?? 0) + (e.supBy.get(pid) ?? 0) * SUPPORT_CONTRIB; }
+  contribOf(e: EliteData, pid: string) { return contribOf(e.dmgBy, e.supBy, pid); }
   /** Mọi người có đóng góp (sát thương hoặc hỗ trợ) lên tinh anh / thú vương (9.2). */
-  contributors(e: EliteData) { return [...new Set([...e.dmgBy.keys(), ...e.supBy.keys()])]; }
+  contributors(e: EliteData) { return contributors(e.dmgBy, e.supBy); }
   /**
    * Người đóng góp nhiều nhất còn trong phòng (không thì `by`): ưu tiên hồn hoàn của tinh anh / thú vương theo đóng góp tổng;
    * `dmgOnly` (hồn hoàn đỏ boss thế giới, 9.2) chỉ xếp theo sát thương. `ok` (#119): chỉ xét người thỏa (tinh anh: chưa bị khóa nhận
@@ -2337,7 +2337,7 @@ export class MapRoom extends Room<MapState> {
 
   /** Sát thương đòn thường hiện tại của hồn thú (đánh thường và bội số chiêu): Cuồng nộ cộng thêm ELITE_RAGE.dmg. */
   beastDmg(bd: BData) { return beastDmgOf(bd.dmg, bd.buffs.has("rage"), !!bd.elite?.king?.world?.rage); } // boss thế giới nổi giận (BĐ6e)
-  syncBeastBuff(b: BeastState, bd: BData) { let m = 0; for (const k of bd.buffs.keys()) m |= beastBuffBit(k); b.buff = m; }
+  syncBeastBuff(b: BeastState, bd: BData) { b.buff = buffMask(bd.buffs.keys(), beastBuffBit); }
 
 
 
