@@ -37,6 +37,7 @@ import { openNotice, closeNotice } from "../noticeScreen.ts";
 import { bindBiCanh, openBiCanh, closeBiCanh, onBiCanh, bindBiCanhRoom, onBiCanhRoom, resetBiCanhRoom, tickBiCanhHud, inBiCanhRoom, type BiCanhMsg, type BiCanhRoomMsg } from "../bicanhScreen.ts";
 import { bindWelfare, openWelfare, closeWelfare, onWelfare, type WelfareMsg } from "../welfareScreen.ts";
 import { bindAchv, openAchv, closeAchv, onAchv, type AchvMsg } from "../achvScreen.ts";
+import { bindMail, openMail, closeMail, onMail, type MailMsg } from "../mailScreen.ts";
 import { bindNpcGo } from "../hudNpc.ts";
 import { bindCalendar, watchCalendar, openCalendar, closeCalendar, onCalendar, type CalendarMsg, type CalGoal } from "../calendarScreen.ts";
 import { bindRank, openRank, closeRank, onRankBoards, onRankTop, type RankTopMsg } from "../rankScreen.ts";
@@ -938,6 +939,7 @@ export class GameScene extends Phaser.Scene {
     bindBiCanh((type, payload) => this.room.send(type, payload), (has) => setBadge("bicanh", has ? "new" : null)); // chấm đỏ "còn lượt" (kho badges)
     bindBiCanhRoom(() => this.onBack(), () => this.onBack());
     bindAchv((type, payload) => this.room.send(type, payload), (n) => setBadge("achv", n ? "new" : null, n)); // chấm đỏ "có thành tựu nhận được" (kho badges)
+    bindMail((type, payload) => this.room.send(type, payload), (n) => setBadge("mail", n ? "new" : null, n)); // chấm đỏ "có thư chưa đọc / chưa nhận" (kho badges)
     bindWelfare((type, payload) => this.room.send(type, payload), (n) => setBadge("welfare", n ? "new" : null, n)); // chấm đỏ "chưa điểm danh" + mốc ký bù được (kho badges)
     initPanelStack([
       { id: "char", close: () => toggleChar(false) }, { id: "bag", close: () => hud.toggleBag(false) }, { id: "roster", close: () => hud.toggleRoster(false) },
@@ -945,7 +947,7 @@ export class GameScene extends Phaser.Scene {
       { id: "npc", close: () => hud.closeNpc() }, { id: "autoPanel", close: closeAutoPanel }, { id: "audio", close: closeAudioPanel },
       { id: "pmenu", close: () => hud.showPlayerMenu(null), popup: true }, { id: "chans", close: () => hud.toggleChannels(false), popup: true },
       { id: "autoSum", close: closeAutoSum, popup: true }, { id: "hub", close: () => setHubOpen(false), popup: true },
-      { id: "rank", close: closeRank }, { id: "calendar", close: closeCalendar }, { id: "welfare", close: closeWelfare }, { id: "achv", close: closeAchv }, { id: "bicanh", close: closeBiCanh }, { id: "notice", close: closeNotice },
+      { id: "rank", close: closeRank }, { id: "calendar", close: closeCalendar }, { id: "welfare", close: closeWelfare }, { id: "achv", close: closeAchv }, { id: "mail", close: closeMail }, { id: "bicanh", close: closeBiCanh }, { id: "notice", close: closeNotice },
     ], () => {
       for (const k of Object.keys(this.keys)) if (this.keys[k]) muted.add(k);
       this.keys = {}; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = "";
@@ -963,7 +965,7 @@ export class GameScene extends Phaser.Scene {
       friends: () => { this.clearForPanel(); hud.toggleFriends(true); }, world: () => { this.clearForPanel(); this.openWorld(true); },
       auto: () => { closeAudioPanel(); mapview().close(); toggleAutoPanel(true); }, settings: clickBtn("audioBtn"), guide: () => guideReview(),
       rank: () => { this.clearForPanel(); openRank(); }, calendar: () => { this.clearForPanel(); openCalendar(); },
-      welfare: () => { this.clearForPanel(); openWelfare(); }, achv: () => { this.clearForPanel(); openAchv(); },
+      welfare: () => { this.clearForPanel(); openWelfare(); }, achv: () => { this.clearForPanel(); openAchv(); }, mail: () => { this.clearForPanel(); openMail(); },
       bicanh: () => { if (this.isArena) return toast("info", "Đang ở phòng đấu", "Về bản đồ rồi mới mở Bí Cảnh được"); this.clearForPanel(); openBiCanh(); },
       quest: () => { const n = hud.revealQuestTracker(); toast("quest", n ? `Đang theo dõi ${n} nhiệm vụ` : "Chưa có nhiệm vụ đang làm", "Khung theo dõi ở góc phải; gặp NPC có dấu trên đầu để nhận / trả"); }, // thẻ Nhiệm Vụ của hub: mở khung theo dõi, nhận / trả vẫn ở NPC
       notice: () => { this.clearForPanel(); openNotice(); }, shot: () => this.takeShot(),
@@ -1634,6 +1636,7 @@ export class GameScene extends Phaser.Scene {
       else if (m?.k) onBiCanhRoom(m as BiCanhRoomMsg);
       else onBiCanh(m);
     });
+    this.room.onMessage("mail", (m: MailMsg) => onMail(m)); // Thư (#1336): server gửi lúc vào phòng, sau mỗi thao tác và khi có thư mới
     this.room.onMessage("achv", (m: AchvMsg) => onAchv(m)); // Thành Tựu (#1317): server gửi lúc vào phòng, sau get / claim và khi bộ đếm làm số "nhận được" đổi
     this.room.onMessage("welfare", (m: WelfareMsg) => onWelfare(m)); // Phúc Lợi / Sổ Điểm Danh (#1207): server gửi lúc vào phòng và lúc qua 00:00
     // Tổ đội người chơi (7.1): khung tổ đội và lời mời, chỉ gửi riêng cho mình.
