@@ -2,12 +2,33 @@
   "tool": "image_gen.imagegen",
   "model": "unknown",
   "seed": "unknown",
-  "attempts": 1,
-  "agent": "soul_land_game-778",
-  "original_tool_path": "C:\\Users\\PC\\.codex\\generated_images\\01a18423-efc9-75d3-9467-2adc5fc89681\\exec-0a984433-1716-4f53-b71e-457b4fce1335.png",
-  "review": "CHẶN nhập: lượt 1 nhìn sau sạch mặt nhưng cutter vượt khung toàn loài và sau khớp n lệch -20,5%; không dùng --scale, giữ fallback.",
+  "attempts": 3,
+  "agent": "soul_land_game-860",
+  "sourceSha256": "b5711cf4192832024856431aaeae6b7929a674446f69e4721fc97d35c6414857",
+  "promptSha256": "60d33fe81dd5113684fe9e2f5797ec7529035933e36fd1fa7bfff446c0632479",
+  "review": "Giữ dự phòng: đủ ba lượt phiên 860, residual -19,2%; không sinh thêm.",
   "imported": false,
-  "references": [
-    "shared/assets/sprites/beast/loi_quang_hai_dieu.png"
-  ]
+  "turnaroundWaived": "Quyết định chủ repo/orchestrator: bỏ bước turnaround vì cả hai lượt ne lộ mắt",
+  "references": {
+    "source": "shared/assets/sprites/beast/loi_quang_hai_dieu_anim.png",
+    "rows": "0..11 (s,se,e)",
+    "sourceSha256": "d2ef85b74baa940315b84717f02c651d46638baac5698de0df129ca9f846a12c",
+    "cropSha256": "23dcd93d094a6138e0d5317ae695558284871d0b339aba7b3c7f4bb18e1f2e43"
+  },
+  "selected": true,
+  "importCheck": {
+    "reference": "sheet đã nhập",
+    "heights": {
+      "s": 57,
+      "se": 46,
+      "e": 31.5
+    },
+    "target": 44.8,
+    "factor": 0.5,
+    "residual": -0.192,
+    "blocked": [
+      "cỡ thân sau khớp lệch 19,2% > 10%",
+      "cả loài: legacy auto 1,2452 fit 0,7023"
+    ]
+  }
 }
