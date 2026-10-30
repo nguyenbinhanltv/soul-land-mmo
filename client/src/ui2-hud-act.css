@@ -58,3 +58,7 @@
 /* Gục: kẻ chéo (ui2-hud-stats.css) + avatar xám; sẵn sàng tiên cơ: sao ở góc (hình, không chỉ màu viền nhấp nháy). */
 #hud #actbar .tm.ui-cell.down .av{filter:grayscale(1)}
 #hud #actbar .tm.ui-cell.full::after{content:"★";position:absolute;right:1px;top:-3px;z-index:4;font:var(--fs-s)/12px var(--f10);color:var(--qgold);text-shadow:var(--stroke)}
+
+/* Chạm / màn hẹp (tạm tới PR2 cụm ngón cái): hàng ô xuống dòng, chừa cần điều khiển (130 px + lề) bên trái; bỏ vạch phân nhóm vì nhóm có thể ngắt dòng. */
+:where(body.touch, body.ui-w640) #hud #actrow{flex-wrap:wrap;justify-content:flex-end;gap:var(--sp-2);max-width:calc(100vw - 170px)}
+:where(body.touch, body.ui-w640) #hud #actrow .action-group+.action-group{margin-left:0;padding-left:0;border-left:0}
