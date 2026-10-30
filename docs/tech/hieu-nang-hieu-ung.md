@@ -38,7 +38,7 @@ Mỗi lượt kèm hiệu ứng G3, tia lửa theo chất liệu. Đồng thời
 - Nhiễu giữa các lượt ở CPU giả lập cao khá lớn (±10 %); đọc xu hướng, không đọc từng con số.
 - **Điện thoại thật chưa đo** (không có máy); giả lập 4× CPU + màn ngang cho thấy cùng kết luận. Cần chủ repo thử trên máy thật.
 
-**Số nổi (`floatText`) chưa nằm trong bài đo:** `?thu=fx` không dựng số sát thương (`floatText` tạo một `Text` mới mỗi lần gọi, không có pool như `ParticleLayer` / `SheetFx`). Đo riêng khi sửa cách vẽ số (FPS p1, số texture, heap sau gc, 60 giây, 40 người); chưa có số thì ghi "Chưa đo".
+**Số nổi (`damageText`, `floatText`) chưa nằm trong bài đo:** `?thu=fx` không dựng chữ nổi. Số sát thương do `damageText` vẽ (dùng `damageStyle`, nguồn chính); `floatText` chỉ vẽ tên chiêu / chữ như "Nở!", "Tiên cơ · …". Cả hai tạo một `Text` mới mỗi lần gọi, không có pool như `ParticleLayer` / `SheetFx`. Đo riêng khi sửa cách vẽ số (FPS p1, số texture, heap sau gc, 60 giây, 40 người), nhắm đúng hàm cần sửa (số sát thương thì `damageText`); chưa có số thì ghi "Chưa đo".
 
 ## Khi FPS thấp: CPU hay GPU?
 
