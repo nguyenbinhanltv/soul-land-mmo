@@ -129,6 +129,7 @@ export function initHub(acts: Record<string, () => void>, signal: AbortSignal): 
     document.body.append(badge);
   }
   badge.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); toggleHub(); }, { signal });
+  document.getElementById("vhPortrait")?.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); toggleHub(); }, { signal }); // avatar cũng mở hub
   const stop = onBadges(() => { if (isHubOpen()) render(); else syncBadges(); });
   signal.addEventListener("abort", () => { stop(); root = null; badge?.remove(); badge = null; actions = {}; });
   root.hidden = true;

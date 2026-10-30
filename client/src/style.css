@@ -782,7 +782,6 @@ body.touch .pbtn{min-height:34px;font-size:12px;font-family:var(--f12);padding:4
 body:where(.ui-h500).touch .mapbox{position:absolute;right:10px;top:10px}
 body:where(.ui-h500).touch #radar{width:120px;height:120px}
 body.arena:where(.ui-h500).touch .mapbox{top:84px}
-body:where(.ui-h500).touch #sideBox{position:absolute;top:22px;right:180px;width:200px;max-height:max(80px,calc(100% - 230px))}
 /* Đại Đấu Hồn Trường (7.2): đang tìm trận, thanh trận đấu, kết quả, bảng xếp hạng */
 #arenaQ{position:absolute;left:50%;transform:translateX(-50%);top:46px;display:flex;align-items:center;gap:10px;padding:6px 10px;border-color:#ff6b6b;pointer-events:auto}
 #arenaQ b{display:block;font-size:12px;font-family:var(--f12);color:var(--son)}
@@ -1363,7 +1362,6 @@ body.touch :is(.cring,.qhead){min-width:0}
 .buffs span::before{content:"+ "} .buffs span.debuff::before{content:"– "} .buffs span.passive::before{content:none}
 /* Điện thoại hẹp (≤ 420 điểm logic): hai cột trên không đè nhau, tổ đội gọn, tab chat chỉ hiện khi đang chat. */
 :where(body.ui-w420) .stats{width:172px}
-:where(body.ui-w420) #sideBox{width:176px}
 :where(body.ui-w640) #party .phint{display:none}
 :where(body.ui-w640) #party .phead{flex-wrap:wrap}
 #party .phead b{white-space:nowrap}
@@ -1732,8 +1730,6 @@ body.touch.ui-h460.ui-w640:not(.ui-portrait) #actbar{flex-direction:column}
 body:where(.ui-h560){--log-max:50px;--toast-res:290px}
 body:where(.ui-h560) #toasts{width:min(200px,60vw)}
 body:where(.ui-h560) #toasts .toast:nth-last-child(n+4){display:none}
-/* Chỉ che khi khung thật sự đang ở tab Nhiệm vụ: không che khi có tổ đội / lời mời, và không che ở trạng thái CSS ép tab Tổ đội (đấu trường, dải xếp hạng boss; ui-h460 đã ẩn riêng). */
-body:where(.ui-h560):not(.arena) #hud:not(:has(#bossRank:not([hidden]))):has(#toasts .toast:not(.out)) #sideBox:not(.inv):not(.inparty)[data-tab="quest"]{visibility:hidden}
 /* Vùng nhìn ≤ 460 cao (cửa sổ 960×540 có khung trình duyệt = 944×445): bản đồ nhỏ đã cao ~305 nên hộp nhiệm vụ rơi xuống dải đội hình / hồn kỹ và chữ lọt qua ô trong suốt (UI P0 #878). Không còn chỗ: ẩn (nhiệm vụ vẫn xem ở hộp thoại NPC). Điện thoại có chỗ riêng ở dòng 796. */
 /* Có tổ đội thì dải giữa-trên (thanh máu boss, đếm ngược boss, nhãn mục tiêu) neo theo mép phải bảng Tổ đội (10 + 210 + 8 + 232 = 460, +16) và mép trái cột phải (222), không theo giữa màn: đúng ở mọi cỡ logic có ui-h560 (#722) */
 
