@@ -8,6 +8,7 @@ import { chatWhisperTo } from "./chat.ts";
 import { el, pbtn } from "./domBtn.ts";
 import { confirmDialog } from "./confirmDialog.ts";
 import type { PortalInfo, BagItem, PartyView } from "./net.ts";
+import { sideBoxInvites } from "./sideBox.ts";
 
 // Ô chat đã tách sang chat.ts (Part of #885); giữ tên cũ ở đây để GameScene vẫn gọi hud.chat*.
 export { log, logImp, chatLine, chatWhisper, chatReplyTo, chatSendCh, chatSetTab, chatWhisperTo, chatFocus, chatClose, buildChatTabs, CHAT_COL, type ChatCh, type ChatTab } from "./chat.ts";
@@ -103,13 +104,12 @@ let partyAt = 0;             // performance.now() lúc nhận tin "party" gần 
 let partyInviting = false;   // đang mở ô gõ tên để mời
 let partyOpenNow = false;    // vừa bấm "Mời…": lần vẽ này đặt focus vào ô gõ tên
 let partyDraft = "";         // chữ đang gõ trong ô mời: giữ lại khi khung vẽ lại (sinh lực đồng đội đổi)
-let partyCollapsed = false;
 let partyLast: { v: PartyView; act: PartyActions } | null = null;
 /** Khung tổ đội gần nhất (null = chưa nhận). */
 export const partyNow = () => partyLast?.v ?? null;
 
 /**
- * Khung tổ đội (tin riêng "party"), nằm dưới khung chỉ số: mỗi thành viên một dòng (trưởng nhóm ★, tên, cấp và võ hồn ra trận,
+ * Khung tổ đội (tin riêng "party"), tab "Tổ đội" của khung gộp `#sideBox` (sideBox.ts): mỗi thành viên một dòng (trưởng nhóm ★, tên, cấp và võ hồn ra trận,
  * thanh sinh lực võ hồn ra trận; ở bản đồ khác thì ghi tên bản đồ, đã rời game thì mờ), trưởng nhóm có nút nhường / mời ra cho
  * từng thành viên, nút "Rời đội"; lời mời đang chờ có nút "Vào đội" / "Từ chối"; nút "Mời…" mở ô gõ tên (như lệnh chat /moi).
  */
@@ -123,10 +123,7 @@ export function renderParty(v: PartyView, act: PartyActions) {
     head.append(pbtn(partyInviting ? "Đóng" : "Mời…", "", () => { partyInviting = !partyInviting; partyOpenNow = partyInviting; renderParty(v, act); }, "Mời hồn sư vào tổ đội"));
   if (v.id) head.append(pbtn("Rời đội", "warn", () => confirmDialog({ title: "Rời tổ đội?", body: `Bạn rời tổ đội ${v.members.length}/${v.max} người; muốn quay lại phải được mời lại.`, confirm: "Rời đội", danger: true }, () => act.send("leave")), "Rời tổ đội"));
   head.append(pbtn("Bạn bè", "", () => toggleFriends(), "Bảng bạn bè (phím L)"));
-  head.append(pbtn(partyCollapsed ? "Mở" : "Gọn", "", () => { partyCollapsed = !partyCollapsed; renderParty(v, act); }, partyCollapsed ? "Mở bảng tổ đội" : "Thu gọn bảng tổ đội"));
   box.append(head);
-  if (partyCollapsed) { box.classList.add("collapsed"); placeParty(); return; }
-  box.classList.remove("collapsed");
   if (partyInviting) {
     const f = el("form", "pinv"), inp = el("input"), go = el("button", "pbtn", "Mời");
     inp.placeholder = "Tên hồn sư"; inp.maxLength = 20; inp.autocomplete = "off"; go.type = "submit";
@@ -168,16 +165,10 @@ export function renderParty(v: PartyView, act: PartyActions) {
     row.append(t, btns); box.append(row);
   }
   if (!v.id && !v.invites.length && !partyInviting) box.append(el("small", "phint", "Bấm vào hồn sư khác hoặc gõ /moi <tên> để mời."));
-  placeParty();
+  sideBoxInvites(v.invites.length); // chấm đỏ tab Tổ đội; có lời mời mới thì khung gộp tự nhảy sang tab này
 }
 
-/** Đặt khung tổ đội ngay dưới khung chỉ số (khung chỉ số cao thấp theo số hồn hoàn, hiệu ứng). */
-function placeParty() {
-  const st = document.querySelector<HTMLElement>(".stats"), box = $("#party");
-  if (st && box) box.style.top = st.offsetTop + st.offsetHeight + 8 + "px";
-}
-
-/** Mỗi lần cập nhật HUD: đếm ngược lời mời, giữ khung tổ đội dưới khung chỉ số. */
+/** Mỗi lần cập nhật HUD: đếm ngược lời mời. */
 export function updateParty() {
   const dt = (performance.now() - partyAt) / 1000;
   document.querySelectorAll<HTMLElement>("#party .pinvite").forEach((r) => {
@@ -185,7 +176,6 @@ export function updateParty() {
     if (t) t.textContent = `(${s}s)`;
     r.classList.toggle("gone", s <= 0);
   });
-  placeParty();
 }
 
 /**
