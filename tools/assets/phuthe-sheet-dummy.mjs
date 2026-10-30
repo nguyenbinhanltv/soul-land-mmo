@@ -125,9 +125,9 @@ export function gripPoints({ sex = "m", dir, clip, step, frame, count = 1, id, a
       const below = (h.n >= HAND_MIN_PX || (activePair && h.n >= ACTIVE_HAND_MIN_PX && Math.abs(h.x - a.back.x) >= ACTIVE_HAND_SIDE)) && h.y > a.back.y + belowBack;
       // Tay slash hướng e bước cuối nâng cao hơn lưng; mặt lớn/tai nhỏ không được nhận như tay.
       const raised = activePair && clip === "attack" && h.n >= 20 && h.n <= 80 && Math.abs(h.x - a.back.x) >= 10 && h.y > a.head.y + 12;
-      // Spellcast giơ hai tay xa hai bên đầu; ở hướng e da bàn tay có thể nối với mặt.
+      // Spellcast giơ tay xa hai bên đầu, kể cả vũ khí một tay; ở hướng e da bàn tay có thể nối với mặt.
       // Khoảng cách ngang lớn loại mặt/tai, không áp trần diện tích của riêng bàn tay slash.
-      const castRaised = activePair && clip === "cast" && h.n >= 20 && Math.abs(h.x - a.back.x) >= 12 && h.y > a.head.y + 12;
+      const castRaised = clip === "cast" && h.n >= 20 && Math.abs(h.x - a.back.x) >= 12 && h.y > a.head.y + 12;
       return below || raised || castRaised;
     }) : [];
     if (!hands.length) continue;
