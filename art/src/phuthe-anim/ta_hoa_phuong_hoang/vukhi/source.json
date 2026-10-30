@@ -1,0 +1,261 @@
+{
+  "tool": "Codex / OpenAI image_gen built-in",
+  "model": "unknown",
+  "seed": "unknown",
+  "terms": "OpenAI output terms; not CC0",
+  "raw": {
+    "s": {
+      "file": "s/attempt1/poses.raw.png",
+      "sha256": "c5e37257362d65a9b1a0944940a50890140e82d1b25cd8738e7c2dba03350c8f",
+      "prompt": "s/attempt1/prompt.txt",
+      "promptSha256": "cfa8c247c216312a346edc99f86edca3326e11351327ae3d97c1a4e6fa86e6e1",
+      "attempt": 1,
+      "reference": "e/attempt1/poses.raw.png"
+    },
+    "se": {
+      "file": "se/attempt1/poses.raw.png",
+      "sha256": "52949c3cf550a51f50ef7ae61be3f1a83d42060c8638982175ea4391d7677034",
+      "prompt": "se/attempt1/prompt.txt",
+      "promptSha256": "e1049d56926166c075b6d57e932acf5a34f17c16d447a9a98b8bb25f95eebad7",
+      "attempt": 1,
+      "reference": "e/attempt1/poses.raw.png"
+    },
+    "e": {
+      "file": "e/attempt1/poses.raw.png",
+      "sha256": "1513861012a6c3e83e3084352a6890ce119f7628fab9854832e8a28935ab356a",
+      "prompt": "e/attempt1/prompt.txt",
+      "promptSha256": "ac15f793986646066786a7f66e897aa89df7b306264a88568d94a591921c3927",
+      "attempt": 1,
+      "reference": null
+    },
+    "ne": {
+      "file": "ne/attempt1/poses.raw.png",
+      "sha256": "b44de2e15be81e4f69f95aab78e88d8a2cd5e27f48e0e65502eed66a48059fe9",
+      "prompt": "ne/attempt1/prompt.txt",
+      "promptSha256": "97f361964bc054723724168af51a319d5591583951a3dbf60e2af530e2fa67c0",
+      "attempt": 1,
+      "reference": "e/attempt1/poses.raw.png"
+    },
+    "n": {
+      "file": "n/attempt1/poses.raw.png",
+      "sha256": "d6bafa48f45932b41e714f0096f73ddc84472822ad0ed23bb6efefe1fa34f7a0",
+      "prompt": "n/attempt1/prompt.txt",
+      "promptSha256": "9a0d75e1f0985cddaf37c45765b9f1caad3766e69e661cf9daa33ad1faa410ac",
+      "attempt": 1,
+      "reference": "e/attempt1/poses.raw.png"
+    }
+  },
+  "sheets": {
+    "b": "125666cebb71a63dcf9d03c9738d234b8eaf1cf0a233456f8d005f77217e67c6",
+    "f": "57781a076a1dae0ab919859a981e3d0f7c37d8ddc666078861d473dd59e30ef7"
+  },
+  "maxShaftGamePixels": 15.488093514365875,
+  "bodyReferencePixels": 47,
+  "shaftBodyRatio": 0.3295339045609761,
+  "capture": {
+    "method": "native Chrome Playwright; --mute-audio; localStorage muted true master0;1600x900; no crop/resize/composition",
+    "game": "RAM GAME_TEST=1; UI creation/awakening; paused GameScene animatePlayer and body steps at0/100/190/260ms; renderer inspection, not full combat",
+    "screenshots": [
+      {
+        "file": "game-f-e-0.png",
+        "sha256": "ce614ae82f151959bb2f6f9424cd337be97e35a18dea0e37f63e672b1b54742a"
+      },
+      {
+        "file": "game-f-e-100.png",
+        "sha256": "b28d41b176ec92855e547b445204ec881b47fcaf4254f9ba0dfa4f6489c4d397"
+      },
+      {
+        "file": "game-f-e-190.png",
+        "sha256": "d2367abd56f6738db217003d6f43c92946dd10bcb0a3fdbf7b31be533deb2659"
+      },
+      {
+        "file": "game-f-e-260.png",
+        "sha256": "4f57610106bc209b80342fac08a8c86cafa4b5ed62ca0c076dcd405e687215ff"
+      },
+      {
+        "file": "game-f-n-0.png",
+        "sha256": "fac992cde174b4de81ac0a4d8769eb7e360d95492f8a23de8bc2f4a733358d11"
+      },
+      {
+        "file": "game-f-n-100.png",
+        "sha256": "fda1239037e09d615b99f9e08829c19a37cdd36b5ed27ac735179fa7978f9561"
+      },
+      {
+        "file": "game-f-n-190.png",
+        "sha256": "7fbb5bb7fb12ff2003845bfebf2eb8d60800d4b9e5d0ac9cef520b5def251ade"
+      },
+      {
+        "file": "game-f-n-260.png",
+        "sha256": "4fb095fd8fd7c05ee3f83df1577929e862e238f7cf439fdea7675ad845c46951"
+      },
+      {
+        "file": "game-f-ne-0.png",
+        "sha256": "085d097bfaff22210333e5d605443a5af5b0cb8b20ddc0660090ff63e524e5cb"
+      },
+      {
+        "file": "game-f-ne-100.png",
+        "sha256": "cc625f68f079d0e441b63b034d3e3460519466293e94d25d01534f49ce6205f7"
+      },
+      {
+        "file": "game-f-ne-190.png",
+        "sha256": "072e85c02f92ac54df99345e192157109171d2af39612011f8428ba7d2b2feee"
+      },
+      {
+        "file": "game-f-ne-260.png",
+        "sha256": "2112bef304eaec42d607bd3cfe1f263c55e157b370eee07b9b7411a781f062ab"
+      },
+      {
+        "file": "game-f-s-0.png",
+        "sha256": "a06ab3da98cd67b58c0f7fc8fbdeddc3f5eb09ca6134af78b016ca7dde8793de"
+      },
+      {
+        "file": "game-f-s-100.png",
+        "sha256": "b4c022dcc31474ab281c13c8a83ad89ab30ecb6b1ba402b1fdecd8bc95f5f5a2"
+      },
+      {
+        "file": "game-f-s-190.png",
+        "sha256": "a4d2d4584637ff8f85f1c60a3887313838ddb4a3ff2918341c3bb73730106af7"
+      },
+      {
+        "file": "game-f-s-260.png",
+        "sha256": "eeab68928c151585deeacc5dd5e1ee8ae404c6dae5b98dcb2ed3b265e1d834de"
+      },
+      {
+        "file": "game-f-se-0.png",
+        "sha256": "caaaa3f97ad3feae61e3ab56e1c458a3ec5d8b62a4e4a4755e45442ffd669291"
+      },
+      {
+        "file": "game-f-se-100.png",
+        "sha256": "174f6b7d6d8de71c9d1f97bbdaf25ec9d6c25bde65b58910a2b4e52282fd1f43"
+      },
+      {
+        "file": "game-f-se-190.png",
+        "sha256": "183766a9e41b5062bcffa7d7624abe153cd81bd474da1c538b5bda871064be2c"
+      },
+      {
+        "file": "game-f-se-260.png",
+        "sha256": "df7f7074415693ca262ba8e097ebd475e12180334168ece5651af1f28cb470f6"
+      },
+      {
+        "file": "game-m-e-0.png",
+        "sha256": "9f80458d1a792465e62fb0b43d2fa6d0993e1b642376fa278196f17daaa0bcf0"
+      },
+      {
+        "file": "game-m-e-100.png",
+        "sha256": "0718c79b662f654fac080fcf1dee612d7c0fff66a496b828b8b893ad46ba18a8"
+      },
+      {
+        "file": "game-m-e-190.png",
+        "sha256": "04d05fcd336470f8f90bf064bd134608d7a37d9a8ea5394a00fbd8ec412a2035"
+      },
+      {
+        "file": "game-m-e-260.png",
+        "sha256": "defbedaf1d5ad6f68db29ce1bddec9a03fecfa53090ac76a4d1a42cc99d8ad66"
+      },
+      {
+        "file": "game-m-n-0.png",
+        "sha256": "7a7d1e2e36387b8490778c013e4d5eeb73c303848322cdaa2048af99c6403f08"
+      },
+      {
+        "file": "game-m-n-100.png",
+        "sha256": "cdbb1af807c161292da5322f5a929ed620d593d073f0c3dacecdd461b2b81807"
+      },
+      {
+        "file": "game-m-n-190.png",
+        "sha256": "3f40085c01557dd587079cd5255aef1da16f2bbdc14d419fb24bd7ba682cd416"
+      },
+      {
+        "file": "game-m-n-260.png",
+        "sha256": "a3a2877deb2e77ee9f54f8ca08c7331ead5ccaebfafec5f01619d48e8d1e1c12"
+      },
+      {
+        "file": "game-m-ne-0.png",
+        "sha256": "b44f5e6e697df653506243af1df594cf2edff49bf89d0c0fe117127f1ef61f40"
+      },
+      {
+        "file": "game-m-ne-100.png",
+        "sha256": "cb11bca4d4d1cf693abf353d11439a2efa2189e3d9c775a6bd25d03079703329"
+      },
+      {
+        "file": "game-m-ne-190.png",
+        "sha256": "b54942c16cb4a66d9664874fc4ec35fa1db597916e66d4c460177c045cea4461"
+      },
+      {
+        "file": "game-m-ne-260.png",
+        "sha256": "0e713f3fbfbf4ebe6242bc0a95b37ab5d9d1bc82ce33eaeaabebc488efc00680"
+      },
+      {
+        "file": "game-m-s-0.png",
+        "sha256": "eee9cd15909409b75ce31e31562dabe427d8dae2928c4620c80f6d16516ae07c"
+      },
+      {
+        "file": "game-m-s-100.png",
+        "sha256": "08ee011316801ef40f34f3805e51412a90f387f134873af210d3b44d95afbf6b"
+      },
+      {
+        "file": "game-m-s-190.png",
+        "sha256": "d269bbe43912479d5d5aa41e529d28f376f986b0961963ca6ae0244b0b666299"
+      },
+      {
+        "file": "game-m-s-260.png",
+        "sha256": "d8b781b13586d1298a50ce1be875f57150dbc1351786e6562662f9226abb4676"
+      },
+      {
+        "file": "game-m-se-0.png",
+        "sha256": "5296446eab079cd46f13e301693f820ee00d0ce993714ffafd00d9dcdbc387bc"
+      },
+      {
+        "file": "game-m-se-100.png",
+        "sha256": "033659124a442f736070dd4cd55e7af1fd10b45a5376b0c6c8cec243b4a8f211"
+      },
+      {
+        "file": "game-m-se-190.png",
+        "sha256": "763ec7aaed7c2ed8a4ce06403691e59cc836f6df4b56006ccd4bfe6f4547bb92"
+      },
+      {
+        "file": "game-m-se-260.png",
+        "sha256": "25a97f03abd61422607b545ee611d98b20f904951428aa61cfe882bf0af8146d"
+      },
+      {
+        "file": "test-f-attack.png",
+        "sha256": "78107a47b721804bb4d23e14ba08910cd21a213ca0c7389075dde203bc767db6"
+      },
+      {
+        "file": "test-f-cast.png",
+        "sha256": "cb3e8c13641ce803bbd0eb2ebcee465232aa224a469f2af686ecd9c018822e15"
+      },
+      {
+        "file": "test-f-idle.png",
+        "sha256": "60cf32a21d3a1fc2cce9c8adc59a6ca8a38066b4de3dce287d10a19ad274a8d8"
+      },
+      {
+        "file": "test-f-walk.png",
+        "sha256": "141cb59f8cddac3702dbc68f6bfcefe3bbc3c0c825d5558976abd498f6b7c437"
+      },
+      {
+        "file": "test-m-attack.png",
+        "sha256": "92a4e1ee0331ef14c567383ee2a9e27291ae2d7bdfc08ddb29d9b2bb9fcf9edd"
+      },
+      {
+        "file": "test-m-cast.png",
+        "sha256": "61fe632471bfae6b41cffcb93667b5de9021abd21b0059418411b205a0786358"
+      },
+      {
+        "file": "test-m-idle.png",
+        "sha256": "fd80e9457b8fec559422f8308539aaf03408eec5f335ff301c87c794de54b5b8"
+      },
+      {
+        "file": "test-m-walk.png",
+        "sha256": "94c802af9bfe219cabe92afd00fe4281984cf9daff2d691f5a95d258b3a535c7"
+      }
+    ]
+  },
+  "canonicalCheckerSha256": "163a6d87721ba2b6b7293917911c9ec01708cc2a5e541951af825e42fe45622a",
+  "canonicalVerification": {
+    "policyPR": 1367,
+    "checkerPatched": false,
+    "reportsRebuilt": true,
+    "sheetsUnchanged": true,
+    "note": "Rebuilt five directions and cutter against canonical checker after merging main; sheet bytes match previous output."
+  }
+}
