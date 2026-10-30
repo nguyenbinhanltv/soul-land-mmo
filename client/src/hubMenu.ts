@@ -1,7 +1,7 @@
 // UI v2, menu hub ngăn kéo bên phải (đợt 1 của bộ spec UI, Part of #877; docs/design/giao-dien.md "Menu hub").
 // Hub chỉ MỞ các bảng đã có: bấm một mục là gọi đúng hàm mở của bảng đó
 // (GameScene truyền vào `actions`), hub không giữ trạng thái game. Mục chưa có chức năng: thẻ lưới và mục rail hiện mờ kèm lý do "Chưa có".
-// Chấm đỏ / mũi tên xanh đọc từ kho `badges.ts` (đợt 4b); hub chỉ vẽ lại khi kho đổi.
+// Chấm đỏ / mũi tên xanh đọc từ kho `badges.ts` (đợt 4b); hub chỉ vẽ lại khi kho đổi. Các nút HUD cũ (Hồn sư, Đội hình, Túi…) đã bỏ: chấm chỉ còn ở huy hiệu menu và hub.
 import { statusCard, mount, type CardOpts, type PNode } from "./uiParts.ts";
 import { allBadges, onBadges, type BadgeKind } from "./badges.ts";
 
@@ -56,8 +56,6 @@ let actions: Record<string, () => void> = {};
 let root: HTMLElement | null = null, badge: HTMLButtonElement | null = null;
 
 const idsOf = (k: BadgeKind) => [...allBadges()].filter(([, b]) => b.kind === k).map(([id]) => id);
-/** Nút HUD cũ cùng đọc kho chấm: `data-badge="new|up"` (ui2-hub.css vẽ). */
-const HUD_BTN: Record<string, string> = { bag: "bagBtn", vohon: "vhBtn", char: "charBtn", reso: "resBtn" };
 const hubIds = new Set(HUB_ITEMS.map((i) => i.id));
 const phim = (c: HubCell) => (c.item.key ? ` · ${c.item.key}` : "");
 
@@ -101,14 +99,9 @@ function render() {
   syncBadges();
 }
 
-/** Chấm của huy hiệu menu (bất kỳ mục hub nào có việc) và của nút HUD cũ; gọi mỗi khi kho đổi. */
+/** Chấm của huy hiệu menu giữa trên (bất kỳ mục hub nào có việc: chấm đỏ hoặc mũi tên xanh); gọi mỗi khi kho đổi. */
 function syncBadges() {
   badge?.classList.toggle("has-dot", [...allBadges().keys()].some((id) => hubIds.has(id)));
-  for (const [id, btn] of Object.entries(HUD_BTN)) {
-    const el = document.getElementById(btn), b = allBadges().get(id);
-    if (!el) continue;
-    if (b) el.dataset.badge = b.kind; else delete el.dataset.badge;
-  }
 }
 
 export const isHubOpen = () => !!root && !root.hidden;

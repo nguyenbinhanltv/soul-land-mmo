@@ -25,7 +25,7 @@ document.getElementById("bag")?.classList.add("f2-muc-lon");
 
 // ---------- Túi đồ và Hồn Tệ (mục 5.7, bước 3.1): chỉ chính chủ nhận tin "bag" ----------
 export function toggleBag(open = $("#bag").hidden) {
-  $("#bag").hidden = !open; $("#bagBtn").setAttribute("aria-expanded", String(open));
+  $("#bag").hidden = !open;
   if (open) { toggleRoster(false); closeNpc(); toggleReso(false); toggleWorld(false); toggleFriends(false); } // Túi và Nhân vật mở cạnh nhau (NV1 #455)
   if (open) clearBadge("bag"); // đã xem túi: tắt chấm "món mới" (kho badges, đợt 4b)
   panelChanged("bag", open);
@@ -670,9 +670,12 @@ export function updateBag() {
   }
 }
 
+let beforeBagFromBar: (() => void) | null = null;
+/** GameScene đặt hàm dọn các bảng phủ (Cài đặt, Tự động, bản đồ vùng) trước khi nút "Tiêu hao" mở Túi (trước kia đi qua nút Túi ở cột trái). */
+export function onBeforeBagFromBar(fn: () => void) { beforeBagFromBar = fn; }
 /** Nút "Tiêu hao" ở thanh kỹ năng (hudBar.ts): mở túi ở nhóm tiêu hao. */
 export function openBagTieuHao() {
   bagGroup = "tieu_hao"; bagPage = 0; bagSel = null;
-  if ($("#bag").hidden) $("#bagBtn").click();
+  if ($("#bag").hidden) { beforeBagFromBar?.(); toggleBag(true); }
   bagRefresh?.();
 }

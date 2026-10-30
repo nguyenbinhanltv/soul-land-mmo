@@ -59,7 +59,7 @@ const NOTICE_MS = 4000, WARN_COL = "#ffb35c"; // server báo từ chối bằng 
 export function toggleChar(open = $("#char").hidden) {
   const el = $("#char");
   if (el.hidden === !open) return open;
-  el.hidden = !open; document.getElementById("charBtn")?.setAttribute("aria-expanded", String(open));
+  el.hidden = !open;
   if (open) { toggleRoster(false); toggleReso(false); toggleWorld(false); toggleFriends(false); closeNpc(); onOpen?.(); again?.(); }
   else { charRow = null; selBone = null; selCore = null; selEquip = null; notice = null; setBagFocus(null); }
   panelChanged("char", open);

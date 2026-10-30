@@ -33,7 +33,7 @@ let who = "";
 let saved: Saved = {};
 let card: HTMLElement | null = null;
 let mode: "off" | "tour" | "review" | "hint" = "off";
-let step = 0, hintTimer = 0, wired = false;
+let step = 0, hintTimer = 0;
 
 const keyOf = () => `soul-guide-v1:${who}`;
 function load() { try { const j = JSON.parse(storage.get(keyOf()) ?? "{}"); saved = j && typeof j === "object" ? j : {}; } catch { saved = {}; } }
@@ -69,7 +69,6 @@ function render() {
   fill(q(c, "p"), s.body);
   q(c, ".g-skip").hidden = false; q(c, ".g-skip").textContent = mode === "tour" ? "Bỏ qua" : "Đóng";
   q(c, ".g-next").textContent = step === STEPS.length - 1 ? "Xong" : "Tiếp";
-  document.getElementById("guideBtn")?.setAttribute("aria-expanded", "true");
 }
 
 function close(result: "" | "skip" | "done" = "") {
@@ -78,7 +77,6 @@ function close(result: "" | "skip" | "done" = "") {
   const ended = mode === "tour" && !!result;
   if (ended) { saved.tour = result as "done" | "skip"; save(); }
   mode = "off";
-  document.getElementById("guideBtn")?.setAttribute("aria-expanded", "false");
   if (ended) onboardBegin(); // làm quen (onboard.ts) nối tiếp sau chuỗi điều khiển
 }
 
@@ -90,7 +88,6 @@ function next() {
 /** Gắn vào một hồn sư: nạp "đã xem" theo tên. `starterDone`: chuỗi tân thủ đã xong (tài khoản cũ) thì không tự hiện (nút "?" vẫn xem được). */
 export function guideStart(name: string, starterDone: boolean) {
   who = name; load();
-  if (!wired) { wired = true; document.getElementById("guideBtn")?.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); guideReview(); }); }
   if (!saved.tour && starterDone) { saved.tour = "done"; save(); }
   onboardAttach(name); // UI v2: nạp tiến độ làm quen (tiếp tục nếu đang làm dở)
   if (!saved.tour) { if (mode !== "tour") step = 0; mode = "tour"; render(); } // đổi bản đồ giữa chừng (GameScene dựng lại): giữ bước đang làm
