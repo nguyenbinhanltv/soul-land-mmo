@@ -296,6 +296,19 @@ try {
       assert.equal(await avatar.getAttribute("aria-disabled"), "false");
       await hook(page, "rest", { s: 120 });
       await page.waitForFunction(() => !document.querySelector('.sk[data-i="3"].ct'));
+      // Hồi quy #1418: ô P loadout = -1 (ô trống) vẫn phải hiện hồn kỹ Chân Thân (biểu tượng + hồi chiêu) khi biến hình, và trở lại trống khi hết.
+      await page.evaluate((rowId) => window.__c8Scene.room.send("loadout", { rowId, skills: [0, 1, 2, -1] }), active);
+      await page.waitForFunction(() => document.querySelector('.sk[data-i="3"].empty'));
+      await hook(page, "ready");
+      await page.waitForFunction(() => document.querySelector(".sk.ava:not(.locked)"));
+      if (touch) await avatar.tap(); else await avatar.click();
+      await page.waitForFunction(() => document.querySelector('.sk[data-i="3"].ct'));
+      const ctCell = await page.locator('.sk[data-i="3"]').evaluate((e) => ({ empty: e.classList.contains("empty"), ico: e.querySelector(".ico").getBoundingClientRect().width,
+        opacity: getComputedStyle(e).opacity, cd: getComputedStyle(e.querySelector(".ui-cd")).display, border: getComputedStyle(e).borderStyle }));
+      assert.ok(!ctCell.empty && ctCell.ico > 0 && ctCell.opacity === "1" && ctCell.cd !== "none" && ctCell.border !== "dashed", `Ô P trống phải hiện hồn kỹ Chân Thân: ${JSON.stringify(ctCell)}`);
+      await screenshot(page, "chan-than-p-trong", size);
+      await hook(page, "rest", { s: 120 });
+      await page.waitForFunction(() => document.querySelector('.sk[data-i="3"].empty:not(.ct)'));
     }
     const unexpected = errors.filter((e) => !e.includes("Unexpected token '<'"));
     assert.deepEqual(unexpected, [], "Lỗi trình duyệt mới");
