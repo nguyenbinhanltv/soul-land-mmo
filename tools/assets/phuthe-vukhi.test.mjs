@@ -17,6 +17,46 @@ import { cutPhuThe } from "./phuthe-sheet-cut.mjs";
 import { prepareSheet } from "./phuthe-sheet-cut-lib.mjs";
 import { buildPreview } from "./phuthe-sheet-preview.mjs";
 import { analyzeSheet } from "./phuthe-sheet-check.mjs";
+import { weaponPoseGripPolicy } from "./phuthe-weapon-grip.mjs";
+
+test("cast một tay không mở ngoại lệ B hoặc nới ngưỡng ngoài phạm vi", () => {
+  for (const id of ["ky_nhung_thong_thien_cuc", "bang_phuong_hoang", "khong_ton_tai"]) {
+    for (const clip of ["attack", "cast", "idle"]) for (const axisDegrees of [0, 90, 180, NaN]) {
+      const p = weaponPoseGripPolicy({ id, clip, axisDegrees, primaryDistance: 0, secondaryDistance: 21 });
+      assert.equal(p.primaryOnly, false); assert.equal(p.blocked, true, `${id}/${clip}: B21px vẫn chặn`);
+    }
+  }
+  assert.equal(weaponPoseGripPolicy({ id: "ky_nhung_thong_thien_cuc", clip: "cast", axisDegrees: 90, primaryDistance: 2.1 }).blocked, true);
+});
+
+test("cast một tay: đúng bước giơ tay ở cả hai giới năm hướng qua dummy/checker/cutter", () => {
+  const id = "ky_nhung_thong_thien_cuc", frame = 128;
+  const dummyKey = "#D0D000", guideKey = "#7A5CFF", gripKey = "#00FF60";
+  const out = tmp("cast-mot-tay");
+  for (const sex of ["m", "f"]) for (const dir of L.DIRS) {
+    const options = { group: "A", dir, frame, key: dummyKey, dummyKey, guideKey, gripKey, gripN: 1, sex, id };
+    const board = dummySheet(options);
+    const cast = board.cells.find((c) => c.anim === "cast" && c.frame === 1);
+    assert.equal(cast.grip.step, 2); assert.equal(cast.grip.fallback, false);
+    const pair = gripPoints({ sex, dir, clip: "cast", step: 2, frame, count: 2 });
+    assert.deepEqual(cast.grip.hands, pair.hands.slice(0, 1));
+    for (const c of board.cells) {
+      const [hx, hy] = c.grip.hands[0];
+      for (let y = Math.floor(hy - 8); y <= Math.ceil(hy + 8); y++) for (let x = Math.floor(hx - 4); x <= Math.ceil(hx + 4); x++) board.img.set(c.col * L.CELL + x, c.row * L.CELL + y, [180, 80, 40, 255]);
+    }
+    const prep = prepareSheet(board.img, options);
+    const prepared = prep.cells.find((c) => c.anim === "cast" && c.frame === 1).grip;
+    assert.deepEqual(prepared.hands, cast.grip.hands);
+    assert.equal(prepared.step, 2); assert.equal(prepared.fallback, false);
+    const file = path.join(out, `${sex}-${dir}.png`); writeFileSync(file, encodePng(board.img));
+    const checked = analyzeSheet(file, { ...options, kind: "vukhi" });
+    assert.equal(checked.issues.filter((i) => i.sev === "block").length, 0, JSON.stringify(checked.issues));
+    const cut = cutPhuThe({ id, kind: "vukhi", sheets: { [L.SHEET_ID[dir]]: board.img }, frame, dummyKey, guideKey, gripKey, dummySex: sex, partial: true });
+    assert.equal(cut.report.summary.block, 0);
+    const expected = cast.grip.hands[0].map((v, i) => +(v / 2 - [64, 90][i]).toFixed(1));
+    for (const e of cut.entries) assert.deepEqual(e.anim.grip[`${dir}/cast/1`], expected);
+  }
+});
 
 test("Phá Hồn Thương dọc: n/attack 1,2 giữ tay hiện hữu đúng bước qua dummy/checker/cutter", () => {
   const id = "pha_hon_thuong", frame = 128, gripN = L.gripCounts("2 tay (theo clip)");
