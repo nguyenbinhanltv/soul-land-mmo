@@ -23,6 +23,8 @@ import {
   guideKeyOf, gripKeyOf, gripCounts, gripCountAt, checkKind, animDir,
 } from "./phuthe-sheet-lib.mjs";
 import { prepareSheet, cellSpirit, cellGripObs, dropSpecks, eraseGuides, REG_MIN_SCORE } from "./phuthe-sheet-cut-lib.mjs";
+import { weaponPoseGripPolicy } from "./phuthe-weapon-grip.mjs";
+export { weaponPoseGripPolicy } from "./phuthe-weapon-grip.mjs";
 
 // ---------- Ngưỡng ----------
 export const REG_BLOCK = 0.25;          // điểm đăng ký nộm dưới mức này: coi như mất nộm (chặn); dưới REG_MIN_SCORE: nhẹ
@@ -154,17 +156,6 @@ export function analyzeSheet(file, o) {
  * Kiểu vũ khí: (1) marker điểm cầm còn thấy thì không được trôi khỏi tay nộm (nhẹ > DRIFT_LIGHT, chặn > DRIFT_BLOCK điểm canonical; vũ khí che hết marker thì bỏ qua);
  * (2) ở khung đứng vũ khí phải CHẠM marker (điểm vũ khí gần nhất cách điểm cầm ≤ GRIP_TOUCH): không thì lơ lửng cách tay; chặn với mềm / găng (B), nhẹ với cứng (A) như `diem-gan`.
  */
-// Chủ repo xác nhận rollout nhóm cứng: chỉ các bộ này được bỏ tay B ở attack/cast dọc.
-const PRIMARY_ONLY_VERTICAL_WEAPONS = new Set([
-  "hao_thien_chuy", "ta_hoa_phuong_hoang", "cuu_tinh_that_sat_kiem", "nguyet_nhan",
-  "pha_hon_thuong", "quy_mi",
-]);
-export function weaponPoseGripPolicy({ id, clip, axisDegrees, primaryDistance, secondaryDistance = 0 }) {
-  const verticalDeviation = Math.abs(90 - ((axisDegrees % 180 + 180) % 180));
-  const primaryOnly = PRIMARY_ONLY_VERTICAL_WEAPONS.has(id) && ["attack", "cast"].includes(clip) && Number.isFinite(axisDegrees) && verticalDeviation <= 15;
-  return { primaryOnly, verticalDeviation, blocked: !Number.isFinite(primaryDistance) || primaryDistance > 2 || (!primaryOnly && (!Number.isFinite(secondaryDistance) || secondaryDistance > 20)) };
-}
-
 function gripChecks(res, cell, obs, px, tag, dir, skip, figure, o) {
   const { issues } = res;
   for (const [i, g] of obs.entries()) {
@@ -190,7 +181,7 @@ export function minDistToPoint(px, [u, v]) { let best = Infinity; for (const p o
 /** Nộm, phụ thể từng ô (cần lưới đúng): đăng ký nộm, khung rỗng, điểm gắn, cỡ, khung chết, hurt = idle. */
 function analyzeCells(res, raw, o, dir) {
   const { issues } = res, group = o.group, fr = framesOf(group);
-  const prep = prepareSheet(raw, { group, dir, frame: o.frame, dummyKey: o.dummyKey, guideKey: o.guideKey, gripKey: o.gripKey, gripN: o.gripN, sex: o.sex ?? "m" });
+  const prep = prepareSheet(raw, { group, dir, frame: o.frame, dummyKey: o.dummyKey, guideKey: o.guideKey, gripKey: o.gripKey, gripN: o.gripN, sex: o.sex ?? "m", id: o.id, poseFrames: o.poseFrames });
   res.prep = { shift: prep.shift, factor: prep.factor, grid: prep.layout.mode };
   const rowState = (row) => res.bands.find((b) => b.row === row);
   for (const cell of prep.cells) {

@@ -35,7 +35,7 @@ try {
     }
     layers[sex] = lop;
     const sheets = Object.fromEntries(DIRS.map((d, i) => ["ABCDE"[i], readPng(path.join(dir, `boards-${sex}`, `to${"ABCDE"[i]}.png`))]));
-    const cut = cutPhuThe({ id: "hao_thien_chuy", kind: "vukhi", sheets, frame: 128, dummySex: sex, palette: paletteFile, lop });
+    const cut = cutPhuThe({ id: "hao_thien_chuy", kind: "vukhi", sheets, frame: 128, dummySex: sex, palette: paletteFile, lop, poseFrames: plans.flatMap((p) => p.distances) });
     if (cut.report.missing || cut.report.summary.block) throw Error(`Cutter ${sex}: thiếu khung hoặc có chặn`);
     cuts[sex] = cut.report;
     if (sex === "m") entries = cut.entries;
