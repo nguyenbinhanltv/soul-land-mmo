@@ -35,7 +35,8 @@
     "test:welfare": "tsx scripts/welfare-test.ts",
     "test:achv": "tsx scripts/achv-test.ts",
     "test:mail": "tsx scripts/mail-test.ts",
-    "test:bicanh": "tsx scripts/bicanh-test.ts"
+    "test:bicanh": "tsx scripts/bicanh-test.ts",
+    "test:maproom-pure": "tsx scripts/maproom-pure-test.ts"
   },
   "dependencies": {
     "@colyseus/redis-driver": "0.16.1",

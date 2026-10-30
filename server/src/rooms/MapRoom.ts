@@ -10,11 +10,11 @@ import { TIERS, VOHON, xpNeed, xpBlocked, calcStats, TICK_RATE, tierOfYears, voh
   BOAT_CAST, CHANNEL_MAX, CHANNEL_CD,
   TILE,
   itemDef, formatHonTe, type ItemDef,
-  formatYears, RING_ITEM, DROP_OWNER_SECS,
+  RING_ITEM, DROP_OWNER_SECS,
   SHARD_UNLOCK, starCost,
-  BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneBonus,
-  CORE_ITEM, CORE_SETS, parseCore, coreName, coreSetIndex, type CoreData,
-  CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, parseEquip, equipDefTotal, equipWeaponRoll, equipName, rollEquipDrop, rollEquipCharm, EQUIP_CHARM, type EquipData, type EquipDrop,
+  BONE_ITEM, BONE_SLOTS, parseBone, boneBonus,
+  CORE_ITEM, CORE_SETS, parseCore, coreSetIndex, type CoreData,
+  CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, equipDefTotal, equipWeaponRoll, equipName, rollEquipDrop, rollEquipCharm, EQUIP_CHARM, type EquipData, type EquipDrop,
   CORE_SET_2, CORE_SET_4, coreSlotOf, coreBonus, coreFx, coreSetCounts, type CoreFx,
   bonePassive, type BonePassive, type PassiveBuff,
   parseBoneSubs, boneAddSubs,
@@ -26,7 +26,7 @@ import { TIERS, VOHON, xpNeed, xpBlocked, calcStats, TICK_RATE, tierOfYears, voh
   KING, kingActive, kingNext, vnDay, type BossDef, type FormDef,
   WORLD, worldActive, worldNext, worldBossOn, type He,
   npcDef, NPC_RANGE, looksChangeCost, TONG_SWITCH_DAYS, tongDef, sellPrice, type NpcRole,
-  QUEST_STARTER, QUEST_AFTER, questChain, questStart, questStatus, questGoalHit, questRewardText, type QuestReward, type QuestProgress, type QuestEvent, type QuestGoal,
+  QUEST_STARTER, QUEST_AFTER, questChain, questStart, questStatus, questRewardText, type QuestReward, type QuestProgress, type QuestEvent, type QuestGoal,
   DAILY, dailyIds,
   tongTaskIds,
   PARTY_XP_RANGE, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, SUPPORT_CONTRIB, BUFFS,
@@ -62,7 +62,8 @@ import { ColdStacks } from "./cold.ts";
 import { _gmSetAdmin, type GmCmd } from "../gm.ts"; // lệnh GM của admin (#518)
 import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
-import { newItem, bagUsed, type GearStats } from "./items.ts";
+import { newItem, bagUsed, itemLabel, shardCount, type GearStats } from "./items.ts";
+import { questBump } from "./questBump.ts";
 import { targetMsg, manualAttack } from "./lock.ts";
 import * as equip from "./equip.ts";
 import * as bones from "./bones.ts";
@@ -1485,16 +1486,7 @@ export class MapRoom extends Room<MapState> {
   }
 
   /** Tên một ô để báo trong log: "Hồn hoàn 437 năm", "3 Hồi Huyết Đan", "hồn cốt Ám Kim Khủng Trảo Hùng – Tay phải, 32.000 năm". */
-  itemLabel(it: Item) {
-    const bone = it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
-    if (bone) return `hồn cốt ${boneName(bone.beast, bone.slot, it.years!, it.enhance)}`;
-    const core = it.code === CORE_ITEM ? parseCore(it.stats) : null;
-    if (core) return coreName(core.set, it.stars ?? 1, it.enhance).replace("Hồn hạch", "hồn hạch");
-    const eq = it.code === EQUIP_ITEM ? parseEquip(it.stats) : null;
-    if (eq) return equipName(eq.tpl, it.enhance);
-    const name = itemDef(it.code)?.name ?? "vật phẩm lạ";
-    return it.years !== null ? `${name} ${formatYears(it.years)}` : it.qty > 1 ? `${it.qty} ${name}` : name;
-  }
+  itemLabel(it: Item) { return itemLabel(it); }
 
 /** Nhặt đồ dưới đất (xem rooms/item.ts, #702): `only` = chỉ xét đúng món đó (tự săn). */
   pickup(id: string, only?: string) { itemUse.pickup(this, id, only); }
@@ -1671,15 +1663,7 @@ export class MapRoom extends Room<MapState> {
     if (tHit) { d.bagDirty = true; this.sendTong(id); }
   }
   /** Cộng sự kiện `ev` vào bước đang làm (đã nhận) của tiến độ `q`: null = không mục tiêu nào khớp, "ready" = vừa đủ mọi mục tiêu. */
-  questBump(q: QuestProgress, ev: QuestEvent): "hit" | "ready" | null {
-    const step = q.accepted ? questChain(q.chain)?.steps[q.step] : undefined; if (!step) return null;
-    const was = questStatus(q);
-    let hit = false;
-    step.goals.forEach((g, i) => {
-      if (questGoalHit(g, ev) && (q.prog[i] ?? 0) < g.n) { q.prog[i] = (q.prog[i] ?? 0) + 1; hit = true; }
-    });
-    return !hit ? null : was !== "ready" && questStatus(q) === "ready" ? "ready" : "hit";
-  }
+  questBump(q: QuestProgress, ev: QuestEvent): "hit" | "ready" | null { return questBump(q, ev); }
 
 
   /** Túi đủ chỗ cho cả phần thưởng nhiệm vụ `r` không: vật phẩm như bagFits, mỗi hồn cốt (`bones`, #285) thêm một ô. */
@@ -2215,7 +2199,7 @@ export class MapRoom extends Room<MapState> {
   useHerb(id: string, d: PData, it: Item, raw: unknown) { return itemUse.useHerb(this, id, d, it, raw); }
 
   /** Tổng số mảnh mã `code` trong túi (mọi ô). */
-  shardCount(d: PData, code: string) { return d.bag.reduce((n, i) => n + (i.code === code && i.vohonId === null ? i.qty : 0), 0); }
+  shardCount(d: PData, code: string) { return shardCount(d.bag, code); }
 
   /** Bớt `n` mảnh mã `code` khỏi túi, lấy từ các ô ít nhất trước (gọi sau khi đã kiểm tra đủ). */
   takeShards(d: PData, code: string, n: number) {
