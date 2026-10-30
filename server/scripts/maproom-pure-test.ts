@@ -2,8 +2,9 @@
 // Chạy: npm run test:maproom-pure --prefix server
 import assert from "node:assert/strict";
 import { itemLabel, shardCount } from "../src/rooms/items.ts";
+import { coreSetNoteOf, beastDmgOf } from "../src/rooms/calc.ts";
 import { questBump } from "../src/rooms/questBump.ts";
-import { QUEST_STARTER, questStart, questChain, itemDef, ITEMS } from "../../shared/data.ts";
+import { CORE_SETS, CORE_SET_2, CORE_SET_4, ELITE_RAGE, WORLD, QUEST_STARTER, questStart, questChain, itemDef, ITEMS } from "../../shared/data.ts";
 import type { Item } from "../src/db.ts";
 
 function test(title: string, fn: () => void) { fn(); console.log(`✓ ${title}`); }
@@ -33,4 +34,20 @@ test("questBump: chưa nhận thì không đếm; khớp thì hit; đủ mục t
   for (let i = 0; i < g.n; i++) last = questBump(q, ev);
   assert.equal(last, "ready");
   assert.equal(questBump(q, ev), null, "đã đủ thì không đếm thêm");
+});
+
+test("coreSetNoteOf: chỉ báo khi đúng 2 hoặc 4 món của bộ có thật", () => {
+  const cs = CORE_SETS[0];
+  assert.equal(coreSetNoteOf(1, cs.id), "");
+  assert.equal(coreSetNoteOf(3, cs.id), "");
+  assert.equal(coreSetNoteOf(CORE_SET_2, cs.id), ` Kích hoạt bộ ${cs.name} 2 món: ${cs.set2}.`);
+  assert.equal(coreSetNoteOf(CORE_SET_4, cs.id), ` Kích hoạt bộ ${cs.name} 4 món: ${cs.set4}.`);
+  assert.equal(coreSetNoteOf(CORE_SET_2, "bo_la"), "");
+});
+
+test("beastDmgOf: Cuồng nộ và boss thế giới nổi giận nhân lên, không thì giữ nguyên", () => {
+  assert.equal(beastDmgOf(100, false, false), 100);
+  assert.equal(beastDmgOf(100, true, false), 100 * (1 + ELITE_RAGE.dmg));
+  assert.equal(beastDmgOf(100, false, true), 100 * WORLD.rageDmg);
+  assert.equal(beastDmgOf(100, true, true), 100 * (1 + ELITE_RAGE.dmg) * WORLD.rageDmg);
 });

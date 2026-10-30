@@ -13,9 +13,9 @@ import { TIERS, VOHON, xpNeed, xpBlocked, calcStats, TICK_RATE, tierOfYears, voh
   RING_ITEM, DROP_OWNER_SECS,
   SHARD_UNLOCK, starCost,
   BONE_ITEM, BONE_SLOTS, parseBone, boneBonus,
-  CORE_ITEM, CORE_SETS, parseCore, coreSetIndex, type CoreData,
+  CORE_ITEM, parseCore, type CoreData,
   CORE_STAT_IDS, type CoreStat, EQUIP_ITEM, equipDefTotal, equipWeaponRoll, equipName, rollEquipDrop, rollEquipCharm, EQUIP_CHARM, type EquipData, type EquipDrop,
-  CORE_SET_2, CORE_SET_4, coreSlotOf, coreBonus, coreFx, coreSetCounts, type CoreFx,
+  coreSlotOf, coreBonus, coreFx, coreSetCounts, type CoreFx,
   bonePassive, type BonePassive, type PassiveBuff,
   parseBoneSubs, boneAddSubs,
   STATUS, CC_TIER_MULT, BEAST_REGEN, buffBit,
@@ -64,6 +64,7 @@ import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
 import { newItem, bagUsed, itemLabel, shardCount, type GearStats } from "./items.ts";
 import { questBump } from "./questBump.ts";
+import { coreSetNoteOf, beastDmgOf } from "./calc.ts";
 import { targetMsg, manualAttack } from "./lock.ts";
 import * as equip from "./equip.ts";
 import * as bones from "./bones.ts";
@@ -2298,11 +2299,7 @@ export class MapRoom extends Room<MapState> {
     return out;
   }
   /** Câu báo khi bộ `set` trên võ hồn `rowId` vừa đủ 2 / 4 món ("" nếu không). */
-  coreSetNote(d: PData, rowId: number, set: string) {
-    const n = coreSetCounts(this.coresOn(d, rowId)).get(set) ?? 0, cs = CORE_SETS[coreSetIndex(set)];
-    if (!cs || (n !== CORE_SET_2 && n !== CORE_SET_4)) return "";
-    return ` Kích hoạt bộ ${cs.name} ${n} món: ${n === CORE_SET_4 ? cs.set4 : cs.set2}.`;
-  }
+  coreSetNote(d: PData, rowId: number, set: string) { return coreSetNoteOf(coreSetCounts(this.coresOn(d, rowId)).get(set) ?? 0, set); }
 
   /** Hồn cốt / hồn hạch (gắn, tháo, cường hóa, đổi bộ): logic ở `bones.ts` (#702), các hàm dưới chỉ chuyển tiếp để `onMessage` gọi như cũ. */
   equipBone(id: string, rawItem: unknown, rawVohon: unknown, rawSlot: unknown) { return bones.equipBone(this, id, rawItem, rawVohon, rawSlot); }
@@ -2339,7 +2336,7 @@ export class MapRoom extends Room<MapState> {
   // ---------- Tinh anh (mục 5.4, bước BĐ4) ----------
 
   /** Sát thương đòn thường hiện tại của hồn thú (đánh thường và bội số chiêu): Cuồng nộ cộng thêm ELITE_RAGE.dmg. */
-  beastDmg(bd: BData) { return bd.dmg * (bd.buffs.has("rage") ? 1 + ELITE_RAGE.dmg : 1) * (bd.elite?.king?.world?.rage ? WORLD.rageDmg : 1); } // boss thế giới nổi giận (BĐ6e)
+  beastDmg(bd: BData) { return beastDmgOf(bd.dmg, bd.buffs.has("rage"), !!bd.elite?.king?.world?.rage); } // boss thế giới nổi giận (BĐ6e)
   syncBeastBuff(b: BeastState, bd: BData) { let m = 0; for (const k of bd.buffs.keys()) m |= beastBuffBit(k); b.buff = m; }
 
 
