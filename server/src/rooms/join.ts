@@ -114,7 +114,7 @@ export function onJoin(room: MapRoom, client: Client, _o: unknown, auth: AuthDat
   // Vị trí đã lưu; chưa có, kẹt trong ô chặn hoặc ngoài bản đồ thì về `spawn` (mục 6).
   const pos = loc.x !== null && loc.y !== null && room.map.standable(loc.x, loc.y) ? { x: loc.x, y: loc.y } : room.spawnPoint();
   p.x = pos.x; p.y = pos.y;
-  const d: PData = { accountId: auth.accountId, leaseOwner, leaseT: PRESENCE_HEARTBEAT_MS, owned, team, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 }, walk: false,
+  const d: PData = { accountId: auth.accountId, leaseOwner, leaseAt: Date.now() + PRESENCE_HEARTBEAT_MS, owned, team, ch, ringYears: [...ch.rings], input: { x: 0, y: 0 }, dir: { x: 1, y: 0 }, walk: false,
     target: "", atk: 0, speed: 0, atkCd: 0, inv: 1.5, lastHit: 99, deadT: 0, absorbing: null, testRoll: null, testShard: null, testBone: null, testCore: null, testHerb: null, looksN: looks.changes, looksBusy: false, shardBusy: false, mpF: 0, hpF: 0, fight: 99,
     benchHp: new Map(), down: new Map(), dirty: new Set(), squadKey: "", squadT: 0,
     saving: Promise.resolve(), saveSig: "", saveIn: SAVE_EVERY_SECS * (0.5 + Math.random() * 0.5), teamQueued: false, tradeQueued: false, latest: new Map(), portalKey: "", travelCast: null, travelling: false, travelled: false, gmReset: false, gmMarked: false, chListAt: 0, chListQueued: false, bossAskAt: 0, msgLimit: process.env.GAME_TEST !== "1", msgTok: newMsgBuckets(), msgOver: 0, msgOverAt: 0, msgGone: false, statsRow: undefined, askAt: new Map(), askQueued: new Set(),

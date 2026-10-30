@@ -61,15 +61,16 @@ export function perfLog(room: MapRoom, t0: number, t1: number, t2: number, c0: n
 const BEAST_IDS: string[] = [];
 
 export function tick(room: MapRoom, dt: number) {
-  if (room.state.channel && (room.channelT -= dt * 1000) <= 0) {
-    room.channelT = PRESENCE_HEARTBEAT_MS;
+  // Nhịp gia hạn theo giờ thật: `dt` bị kẹp 100 ms nên lúc máy tải đồng hồ game chậm hơn TTL presence và lease hết hạn (phiên tự bị đá 4001).
+  const wall = Date.now();
+  if (room.state.channel && wall >= room.channelAt) {
+    room.channelAt = wall + PRESENCE_HEARTBEAT_MS;
     void touchChannel(room.state.mapId, room.roomId, room.state.channel).catch((e) => console.error("Không gia hạn được kênh", e));
   }
   // Lease tài khoản có TTL: tiến trình chết không để khóa vĩnh viễn; mất Redis thì đóng phiên để tránh split-brain.
   for (const [id, d] of room.pdata) {
-    d.leaseT -= dt * 1000;
-    if (d.leaseT > 0) continue;
-    d.leaseT = PRESENCE_HEARTBEAT_MS;
+    if (wall < d.leaseAt) continue;
+    d.leaseAt = wall + PRESENCE_HEARTBEAT_MS;
     void presenceBackend.renewLease(accountLeaseKey(d.accountId), d.leaseOwner, PRESENCE_TTL_MS).then((ok) => {
       if (!ok) room.clients.getById(id)?.leave(4001);
     }).catch((e) => { console.error(`Không gia hạn được phiên giữ tài khoản #${d.accountId}`, e); room.clients.getById(id)?.leave(1011); });

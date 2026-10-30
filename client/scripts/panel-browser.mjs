@@ -28,17 +28,19 @@ function start(args, env) {
   let log = "";
   for (const stream of [child.stdout, child.stderr]) stream.on("data", (d) => { log = (log + d).slice(-12000); });
   child.on("exit", (code) => { if (code) console.error(log); });
+  return () => log;
 }
 async function ready(url) {
   for (let i = 0; i < 150; i++) { if (await fetch(url).then((r) => r.ok).catch(() => false)) return; await sleep(200); }
   throw new Error(`Không mở được ${url}`);
 }
 const check = (cond, msg) => { if (soft) { if (!cond) console.log("  (trước) không đạt:", msg); } else assert.ok(cond, msg); };
+const clientLog = []; // lỗi / cảnh báo console của trang, in kèm khi trượt
 
 try {
   await mkdir(out, { recursive: true });
   const apiPort = await port(), webPort = await port(), api = `http://127.0.0.1:${apiPort}`, web = `http://127.0.0.1:${webPort}`;
-  start(["server/node_modules/tsx/dist/cli.mjs", "--tsconfig", "server/tsconfig.json", "server/src/index.ts"], { PORT: String(apiPort), GAME_TEST: "1" });
+  const serverLog = start(["server/node_modules/tsx/dist/cli.mjs", "--tsconfig", "server/tsconfig.json", "server/src/index.ts"], { PORT: String(apiPort), GAME_TEST: "1" });
   start(["client/node_modules/vite/bin/vite.js", "client", "--host", "127.0.0.1", "--port", String(webPort)], { VITE_SERVER_URL: api });
   await Promise.all([ready(`${api}/health`), ready(web)]);
   const post = async (path, body) => {
@@ -53,6 +55,8 @@ try {
   browser = await chromium.launch({ headless: true, channel: process.env.FLOW_CHANNEL || undefined, args: ["--mute-audio", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   page.on("pageerror", (e) => console.error("[trình duyệt]", e.message));
+  page.on("websocket", (ws) => { const t0 = Date.now(); clientLog.push(`ws mở ${ws.url().slice(-40)}`); ws.on("close", () => clientLog.push(`ws đóng sau ${Date.now() - t0} ms`)); });
+  page.on("console", (m) => { if (["warning", "error"].includes(m.type())) clientLog.push(m.text().slice(0, 200)); });
   await page.addInitScript((t) => { localStorage.setItem("shh-token", t); }, token);
   // Chỉ lấy tham chiếu scene và đếm lệnh đi / khoá; không đổi logic. Không đếm `beastAt`: con trỏ ngữ cảnh (cập nhật mỗi khung hình) cũng gọi nó để dò hover, bấm vào hồn thú đã thành `lockTo`.
   await page.route("**/src/scenes/GameScene.ts*", async (route) => {
@@ -97,8 +101,11 @@ GameScene.prototype.create = function(...a) {
 
   // 1c. Phaser còn nghe mousedown ở cấp window và chỉ lọc theo "chuột đang trên canvas": con trỏ trên nền nhưng sự kiện bấm rơi vào bảng
   // (trạng thái isOver cũ, bấm do mã gửi) vẫn không được thành lệnh đi.
-  const ground = await page.evaluate(() => { for (const [x, y] of [[640, 40], [30, 400], [1250, 400], [640, 690], [640, 360]]) { if (document.elementFromPoint(x, y) === window.__u1.game.canvas) return [x, y]; } return null; });
-  assert.ok(ground, "không tìm được điểm nền trống để đặt con trỏ");
+  // Thẻ / lớp phủ có thể chưa gỡ khỏi DOM (máy chậm): thử lại tới khi có điểm nền trống.
+  const findGround = () => { for (const [x, y] of [[640, 40], [30, 400], [1250, 400], [640, 690], [640, 360]]) { if (document.elementFromPoint(x, y) === window.__u1.game.canvas) return [x, y]; } return null; };
+  const groundH = await page.waitForFunction(findGround, null, { timeout: 10000 }).catch(() => null);
+  const ground = groundH ? await groundH.jsonValue() : null;
+  assert.ok(ground, `không tìm được điểm nền trống để đặt con trỏ (console: ${clientLog.slice(-8).join(" | ")}; server: ${serverLog().slice(-500)}; trên cùng giữa màn hình: ${await page.evaluate(() => { const e = document.elementFromPoint(640, 360); return e ? e.tagName + "#" + e.id + "." + e.className : "null"; })}; overlay: ${await page.evaluate(() => document.getElementById("overlay")?.hidden === false ? document.getElementById("overlay").innerText.slice(0, 120) : "(ẩn)")}; nối lại: ${await page.evaluate(() => document.getElementById("net2")?.innerText ?? "")})`);
   await page.mouse.move(ground[0], ground[1]); await sleep(100);
   await page.evaluate(() => { const n = window.__u1n; n.walk = n.lock = 0; window.__u1.goal = null; });
   await page.evaluate(() => { const r = document.getElementById("bag").getBoundingClientRect(); document.getElementById("bag").dispatchEvent(new MouseEvent("mousedown", { bubbles: true, clientX: r.left + r.width - 5, clientY: r.top + r.height - 5, button: 0 })); });
@@ -111,8 +118,10 @@ GameScene.prototype.create = function(...a) {
   const gx = Math.round(rects[0].x + rects[0].w + 8), gy = 90;
   await page.keyboard.press("Escape"); await page.keyboard.press("Escape");
   // Điểm bấm lấy từ `ground` (phần tử ngay dưới điểm đó là canvas): thẻ Hướng dẫn tân thủ nằm giữa màn hình chặn bấm đúng ý, nên không dùng toạ độ cố định.
-  await page.mouse.move(ground[0], ground[1]); await sleep(100); await page.mouse.click(ground[0], ground[1]); await sleep(80);
-  res.clickOnGround = await counts();
+  await page.mouse.move(ground[0], ground[1]); await sleep(100); await page.mouse.click(ground[0], ground[1]);
+  // Phaser xếp mousedown vào hàng đợi và chỉ gọi pointerdown ở khung hình kế (SwiftShader chậm có khung > 80 ms): chờ lệnh đi lên, không ngủ cố định.
+  await page.waitForFunction(() => window.__u1n.walk >= 1, null, { timeout: 5000 }).catch(() => {});
+  res.clickOnGround = { ...(await counts()), hasFocus: await page.evaluate(() => document.hasFocus()), down: await page.evaluate(() => window.__u1.input.activePointer.downElement?.tagName ?? null), over: await page.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y); return e ? e.tagName + "#" + e.id + "." + e.className : null; }, ground), overlay: await page.evaluate(() => document.getElementById("overlay")?.hidden === false ? document.getElementById("overlay").innerText.slice(0, 120) : "", ), net: await page.evaluate(() => document.getElementById("net2")?.innerText ?? "") };
   check(res.clickOnGround.walk >= 1, `bấm nền phải đi: ${JSON.stringify(res.clickOnGround)}`);
 
   // 2b. Bản đồ khu vực (N) đang mở rồi bấm phím mở bảng (#1045): bản đồ đóng, bảng hiện (không chìm sau lớp phủ).
