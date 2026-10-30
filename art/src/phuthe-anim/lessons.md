@@ -114,40 +114,6 @@ Chỉ các dòng `@VUKHI` được chèn vào prompt kiểu vũ khí (`--kind vu
 - [direction @VUKHI] Follow the specified number of weapons and grip points exactly; never add an extra weapon to an unused hand. Keep the full weapon inside the corner brackets even at the attack and cast peaks: flexible parts may curl inward, but rigid parts must retain their shape. Preserve the mannequin silhouette and every hand pose exactly. // Lam Ngân Thảo A1: roi cỏ thêm dây ở tay phụ, đổi dáng nộm, dây vượt khung ở attack/cast dù check chỉ báo nhẹ.
 - [direction @VUKHI] Leave every hand not used by the specified weapon unchanged in the mannequin color. Do not duplicate the weapon's distinctive end or add floating decorative fragments. Keep all reference body poses, especially the extended attack arm and raised cast arms; do not replace the board with repeated standing dolls. // Lam Ngân Thảo A2: roi cỏ có dây ở hai tay, cast thêm lá/mảnh rời và thân lặp đứng.
 
-## Bài học rollout Hỏa Long `@VUKHI-MEM`
-
-- **@VUKHI-MEM** Keep each flexible weapon as one uninterrupted silhouette from its single registration root to its single head. Use an open C or U for cast; no disconnected section, inner branch or extra endpoint. // Hỏa Long s1: cast cao đứt thành hai cụm, bộ ghép thấy 7 thay vì 6.
-- **@VUKHI-MEM** Place all six registration roots well inside their own cells, never on a column boundary; specify root coordinates when needed. // Hỏa Long s2: hai gốc cùng ô; s3 đặt tọa độ gốc cụ thể đã ghép được. Hướng s dừng ở 3/3.
-- **@VUKHI-MEM** Use a cyan registration dot for ember-red weapons; keep the dot small and touching a plain blunt grip cap. Check nearest-pixel grip distance again after applying the single shared scale. // Hỏa Long se: màu vàng trùng motif than hồng, dùng cyan; tỉ lệ chung 0,09 giữ khoảng cách dưới 2 px, không nới ngưỡng.
-## Bài học rollout Tử Vong Chu Hoàng `@VUKHI-MEM`
-
-- **@VUKHI-MEM** Keep each spool-and-cord weapon compact, with its registration root well inside its column, a short connected stem touching the cyan dot, and one continuous cord ending in one needle. // Tử Vong Chu Hoàng e1: marker cột ba lệch sang cột hai; e2 bố cục gọn đã ghép được, 0 chặn nam/nữ trước khi mở rộng.
-
-## Bài học rollout A Ngân `@VUKHI-MEM`
-
-- **@VUKHI-MEM** Keep the small golden flower attached to the single root grip, one continuous blue-gold cord and one tapered tip. Show calyx and backs of petals in rear views, no pale flower center facing viewer. Use a tiny red registration dot absent from the weapon palette. // A Ngân: năm atlas một lượt/hướng, ghép 0 chặn; cần duyệt độ rõ hoa và chiều dài dây ở cỡ game.
-## Bài học rollout Càn Khôn Hỗn Nguyên Tỏa `@VUKHI-MEM`
-
-- **@VUKHI-MEM** Keep thick chain links touching or overlapping as one continuous silhouette from the single grip to the heavy ring-lock end. Show a distinct rear plate without the front red seal for north-facing views. // Khóa xích: năm atlas một lượt, ghép 0 chặn; vẫn cần duyệt kích thước vòng/chiều dài xích và lớp cast ở cỡ game.
-## Bài học rollout Bích Lân Xà Hoàng `@VUKHI-MEM`
-
-- **@VUKHI-MEM** In every north-facing pose, including attack strike, show only the back of the snake head and its dorsal crest; no eyes, mouth or fangs facing the viewer. // Bích Lân Xà Hoàng n1 máy không chặn nhưng attack lộ mặt; n2 giữ mặt sau đủ sáu pose, không sửa ảnh lỗi bằng code.
-- **@VUKHI-MEM** Use a tiny royal-blue registration dot for jade-green weapons with lime eyes, and remove only that key before composing. // Bích Lân Xà Hoàng dùng #0000FF để tránh trùng màu ngọc và mắt vàng; grip/mép vẫn kiểm nguyên ngưỡng.
-
-## Bài học riêng `@VUKHI-MEM` — vòng 2 Lam Ngân Thảo, chỉ hướng e
-
-Parser hiện chỉ hỗ trợ `@VUKHI`, chưa hỗ trợ tag nhóm mềm. Các dòng dưới không dùng cú pháp `- [direction …]` để không làm hỏng parser hoặc chèn vào mọi vũ khí. Khi thử nhóm mềm, đọc đúng mục này và truyền các câu tiếng Anh vào tham số `lessons` của `buildDirectionPrompt`, nối sau `vukhiLessonsFor("direction")`; ghi lại prompt thực tế. Không dùng mục này cho vũ khí cứng, không ghi đè prompt lịch sử.
-
-- **@VUKHI-MEM** Treat the first reference board as a locked edit canvas: preserve every green mannequin pixel, hand pose, guide and foot position exactly; add only the weapon. Do not redraw the mannequin or replace its changing poses with standing dolls. // Vòng 1: đổi dáng nộm làm điểm cầm trôi.
-- **@VUKHI-MEM** This one-handed grass whip has a single short grip covering the yellow main-hand marker, one continuous braided blue cord and one pointed end. The other hand remains entirely unchanged and empty. The cord must never start at the shoulder, waist or other hand; the short grip stays exactly at the original yellow dot in every frame. // Chỉ sửa dây tay phụ và điểm cầm của Lam Ngân Thảo e.
-- **@VUKHI-MEM** Coil the long flexible cord inward within each frame, leaving at least twenty image pixels of untouched magenta between its tip or outermost curve and every corner bracket. Preserve its visible length with tight bends instead of extending it outside the frame, even at attack and cast peaks. No leaves or fragments may detach from the cord. // Chỉ sửa xén đầu dây, không đổi palette/motif/kiểu vũ khí.
-- **@VUKHI-MEM** The entire source board is an immutable raster template, including its purple dashed foot lines, rulers, corner brackets and green figures. Keep those original pixels visible and unchanged except where the weapon itself directly covers them. In particular do not move feet downward, enlarge a head, rotate a torso, erase guides or relocate a yellow grip dot. The grip is the exact original dot, not a new dot invented at the waist. Leave a small visible yellow rim beside the grip for registration. // Vòng 2 e lượt 1: thân dời xuống, gốc roi gần eo và attack/cast thay tay.
-- **@VUKHI-MEM** The whip starts with a short blunt capped handle at the original grip dot; the handle is the absolute end of the weapon, with zero cord extending behind it or through the other hand. All of its continuous length extends from the other end of that handle into a compact inward coil ending in the single pointed tip. Do not hold the middle of a two-ended cord across the torso. Leave a broad magenta margin around the whole coil. // Vòng 2 e lượt 2: dây chạy xuyên vị trí nắm thành hai đầu, gốc gần eo; lượt 3 là lượt cuối.
-
-### Thử nghiệm mới: vẽ vũ khí riêng + ghép grip
-
-- **@VUKHI-MEM** Draw the flexible weapon ALONE on solid magenta, without any mannequin, person, hand, arm, glove, body or human-shaped guide. Separate its main poses into isolated cells. Mark the blunt root of each single cord with a tiny yellow registration dot; only one cord leaves this root and ends in one pointed tip. // Thử nghiệm mới theo chỉ đạo: model chỉ vẽ hình dây, code giữ pose thân và gắn gốc bó dây vào anim.grip; không dùng các bài học khóa nộm của vòng 2.
-- **@VUKHI-MEM** Draw one hanging idle pose, three distinct whip attack poses and two coil cast poses with the same braided dark-blue grass design and physical length. Keep every full tip and curve inside its own cell with a generous magenta border. Code selects these actual soft poses and only rotates/translates each whole pose around its root; it never invents the cord's deformation. // Vẽ vũ khí riêng + ghép grip: kiểm không tay phụ, không xén và gốc bám đúng tay trước khi mở rộng hướng.
 - [direction, @VUKHI] Treat the mannequin as locked source artwork: never replace its head with a round head, add a dark outline to its cyan edge, raise its arms, or reposition either hand to suit a shoulder carry; route the rigid shaft through the existing hand markers instead. // Hạo Thiên Chùy vũ khí, A lượt 1: model vẽ lại đầu và nâng tay, làm sai điểm cầm
 - [direction, @VUKHI] The existing low hands must stay low even when the hammer head is above the shoulder: angle the shaft from those low markers up toward the shoulder, never lay a horizontal shaft behind the neck; no detached rubble is painted in any pose. // Hạo Thiên Chùy vũ khí, A lượt 2: cán ngang cổ không chạm tay, sinh thêm đá rời
 
@@ -191,6 +157,26 @@ Quyết định tiếp theo của điều phối cho #1320: bỏ vác vai vì po
 - **@VUKHI-CUNG** A two-handed cast needs enough real straight shaft for the fully raised hands. Check both hands lie before the head block, not merely near any opaque weapon pixel. // Ảnh cast trong game lộ fallback xuống bụng; vẽ atlas cán dài, đo tay giơ thật và kiểm khoảng cán còn lại tới tay B.
 - **@VUKHI-CUNG** Use the butt dot as a registration origin; choose a real grip location along the drawn shaft, fixed per clip and pose. Never resize individual frames or move the LPC hands to fit. // Cho phép giữ cỡ đầu búa tham chiếu mà vẫn vừa khung với cán dài; ghi gripOffset vào compose-plan.
 - **@VUKHI-CUNG** Exclude an unregistered source pose only when no selected frame uses it, and record the omission explicitly. Never invent its missing root. // n lượt3 hết giới hạn, pose7 thiếu marker nhưng không nằm trong chuỗi; omitUnused[7] có guard/test, mọi pose dùng vẫn bắt buộc marker.
+
+## Bài học rollout Hỏa Long `@VUKHI-MEM`
+
+- **@VUKHI-MEM** Keep each flexible weapon as one uninterrupted silhouette from its single registration root to its single head. Use an open C or U for cast; no disconnected section, inner branch or extra endpoint. // Hỏa Long s1: cast cao đứt thành hai cụm, bộ ghép thấy 7 thay vì 6.
+- **@VUKHI-MEM** Place all six registration roots well inside their own cells, never on a column boundary; specify root coordinates when needed. // Hỏa Long s2: hai gốc cùng ô; s3 đặt tọa độ gốc cụ thể đã ghép được. Hướng s dừng ở 3/3.
+- **@VUKHI-MEM** Use a cyan registration dot for ember-red weapons; keep the dot small and touching a plain blunt grip cap. Check nearest-pixel grip distance again after applying the single shared scale. // Hỏa Long se: màu vàng trùng motif than hồng, dùng cyan; tỉ lệ chung 0,09 giữ khoảng cách dưới 2 px, không nới ngưỡng.
+## Bài học rollout Tử Vong Chu Hoàng `@VUKHI-MEM`
+
+- **@VUKHI-MEM** Keep each spool-and-cord weapon compact, with its registration root well inside its column, a short connected stem touching the cyan dot, and one continuous cord ending in one needle. // Tử Vong Chu Hoàng e1: marker cột ba lệch sang cột hai; e2 bố cục gọn đã ghép được, 0 chặn nam/nữ trước khi mở rộng.
+
+## Bài học rollout A Ngân `@VUKHI-MEM`
+
+- **@VUKHI-MEM** Keep the small golden flower attached to the single root grip, one continuous blue-gold cord and one tapered tip. Show calyx and backs of petals in rear views, no pale flower center facing viewer. Use a tiny red registration dot absent from the weapon palette. // A Ngân: năm atlas một lượt/hướng, ghép 0 chặn; cần duyệt độ rõ hoa và chiều dài dây ở cỡ game.
+## Bài học rollout Càn Khôn Hỗn Nguyên Tỏa `@VUKHI-MEM`
+
+- **@VUKHI-MEM** Keep thick chain links touching or overlapping as one continuous silhouette from the single grip to the heavy ring-lock end. Show a distinct rear plate without the front red seal for north-facing views. // Khóa xích: năm atlas một lượt, ghép 0 chặn; vẫn cần duyệt kích thước vòng/chiều dài xích và lớp cast ở cỡ game.
+## Bài học rollout Bích Lân Xà Hoàng `@VUKHI-MEM`
+
+- **@VUKHI-MEM** In every north-facing pose, including attack strike, show only the back of the snake head and its dorsal crest; no eyes, mouth or fangs facing the viewer. // Bích Lân Xà Hoàng n1 máy không chặn nhưng attack lộ mặt; n2 giữ mặt sau đủ sáu pose, không sửa ảnh lỗi bằng code.
+- **@VUKHI-MEM** Use a tiny royal-blue registration dot for jade-green weapons with lime eyes, and remove only that key before composing. // Bích Lân Xà Hoàng dùng #0000FF để tránh trùng màu ngọc và mắt vàng; grip/mép vẫn kiểm nguyên ngưỡng.
 
 ## Bài học riêng `@VUKHI-MEM` — vòng 2 Lam Ngân Thảo, chỉ hướng e
 
